@@ -26,6 +26,21 @@ isolation and landing on the wrong actor.
 
 ## Important files
 
+- [docs/disassembly_coverage.md](/home/tighe/projects/rastan-genesis/docs/disassembly_coverage.md)
+- [docs/disassembly_reference.md](/home/tighe/projects/rastan-genesis/docs/disassembly_reference.md)
+- [docs/actor_system_reference.md](/home/tighe/projects/rastan-genesis/docs/actor_system_reference.md)
+- [docs/bridge_visibility_reference.md](/home/tighe/projects/rastan-genesis/docs/bridge_visibility_reference.md)
+- [docs/02c8_reference.md](/home/tighe/projects/rastan-genesis/docs/02c8_reference.md)
+- [docs/02c8_constructor_reference.md](/home/tighe/projects/rastan-genesis/docs/02c8_constructor_reference.md)
+- [docs/02c8_frame_reference.md](/home/tighe/projects/rastan-genesis/docs/02c8_frame_reference.md)
+- [docs/02c8_state_reference.md](/home/tighe/projects/rastan-genesis/docs/02c8_state_reference.md)
+- [docs/02c8_transition_reference.md](/home/tighe/projects/rastan-genesis/docs/02c8_transition_reference.md)
+- [docs/02c8_filter_reference.md](/home/tighe/projects/rastan-genesis/docs/02c8_filter_reference.md)
+- [docs/0508_reference.md](/home/tighe/projects/rastan-genesis/docs/0508_reference.md)
+- [docs/constructor_reference.md](/home/tighe/projects/rastan-genesis/docs/constructor_reference.md)
+- [docs/startup_mode_reference.md](/home/tighe/projects/rastan-genesis/docs/startup_mode_reference.md)
+- [docs/sprite_animation_reference.md](/home/tighe/projects/rastan-genesis/docs/sprite_animation_reference.md)
+- [docs/reverse_engineering_workflow.md](/home/tighe/projects/rastan-genesis/docs/reverse_engineering_workflow.md)
 - [docs/player_input_trace.md](/home/tighe/projects/rastan-genesis/docs/player_input_trace.md)
 - [docs/player_sprite_trace.md](/home/tighe/projects/rastan-genesis/docs/player_sprite_trace.md)
 - [docs/player_actor_groups.md](/home/tighe/projects/rastan-genesis/docs/player_actor_groups.md)
