@@ -231,9 +231,95 @@ Then:
 - otherwise it calls `0x446bc`
 - then uses current actor coords plus player coords:
   - `d4 = a4 + 0x16`
-  - `d5 = a4 + 0x1a`
-  - `d1 = player X`
-  - `d2 = player Y`
+- `d5 = a4 + 0x1a`
+- `d1 = player X`
+- `d2 = player Y`
+
+Concrete bridge point:
+
+- at `0x44a52`, this pass calls `0x447ce`
+
+Immediately before that, it:
+
+- writes a small per-entry record into `a5 + 0x12a8`
+- copies:
+  - `a4 + 0x16 -> a3 + 0x04`
+  - `a4 + 0x1a -> a3 + 0x06`
+  - `a4 + 0x29 -> a3 + 0x03`
+- calls:
+  - `0x4498c`
+  - `0x448d8`
+
+Interpretation:
+
+- `0x447ce` is not a free-standing test
+- it is part of the concrete `0x449b4` ownership/visibility loop over live
+  `0x02c8` entries
+- that makes `0x44a52` the best currently documented call site for proving
+  which live `0x02c8` entries actually hit the player-coordinate bridge
+
+### `0x4498c`
+
+This helper is narrower than it first looked.
+
+It checks:
+
+- `a4 + 0x05`
+
+and only reacts for states:
+
+- `24`
+- `29`
+- `33`
+
+Even then, it only sets:
+
+- `a3 + 0x03 = 3`
+
+when:
+
+- `a4 + 0x08 == 2`
+
+Interpretation:
+
+- this is a small selector flag helper for a narrow state subset
+- it does not explain ownership by itself
+
+### `0x448d8`
+
+This helper only triggers for:
+
+- `a4 + 0x3e == 12`
+
+When that matches, it:
+
+- calls `0x3b726` with `a4 + 0x2c`
+- then calls `0x40a1e`
+
+Interpretation:
+
+- this is a special replacement/reseed escape
+- not a general ownership transform before `0x447ce`
+
+### `0x44930`
+
+This is a small dispatcher into the filter helpers at:
+
+- `0x44c66`
+- `0x44c6c`
+- `0x44c72`
+
+It branches on:
+
+- `a5 + 0x13b4`
+- `a5 + 0x0214`
+- sometimes `a4 + 0x05`
+
+Interpretation:
+
+- pre-bridge filtering happens here
+- but it still looks like visibility/overlap selection, not constructor-side
+  ownership assignment
 
 Interpretation:
 

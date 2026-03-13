@@ -13,6 +13,7 @@ Private engineering project for an arcade-accurate `Rastan` port targeting the S
 
 - `roms/`: source arcade ROM files supplied locally by the user.
 - `tools/`: analysis, validation, extraction, and conversion scripts.
+- `Genesistan/`: compile-time arcade-code translation scaffold for running patched original `68000` code on Genesis.
 - `runtime/`: Genesis-side runtime and game code.
 - `build/`: generated manifests, extracted assets, and intermediate outputs.
 

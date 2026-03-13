@@ -227,6 +227,39 @@ Interpretation:
   fixed-slot seed path reused across many stage/event-owned slots, so direct
   `0x02c8` seeding alone is not body ownership
 
+### `0x46216`, `0x463aa`, `0x4644c`, `0x4650e`
+
+These are now better understood as fixed-slot event controllers, not body
+constructors.
+
+They drive progression through:
+
+- `a5 + 0x028a`
+- `a5 + 0x0288`
+- `a5 + 0x021c`
+- `a5 + 0x0118`
+
+And they repeatedly seed combinations of:
+
+- `0x02c8`
+- `0x03c8`
+- `0x0408`
+- `0x0448`
+- `0x0488`
+- `0x0308`
+- `0x0348`
+- `0x0388`
+
+through the shared helper at `0x45248`.
+
+Interpretation:
+
+- structurally important because they explain why direct `0x02c8` seeds keep
+  appearing
+- misleading if treated as proof of player-body ownership
+- best viewed as generic stage/event choreography until a downstream bridge
+  class/state proof exists
+
 ## `0x0508`-Facing Constructors
 
 ### `0x45342`

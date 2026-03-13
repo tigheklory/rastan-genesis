@@ -21,6 +21,7 @@ Status terms:
 | --- | --- | --- | --- |
 | `0x000000..0x003fff` | vectors / boot / early tables | low | raw binary disassembly only; mostly not useful for current gameplay work |
 | `0x03a772..0x03a85e` | input latch and top-level mode flow | high | title/start to gameplay handoff is mapped well enough to mirror |
+| `0x03b8b0..0x03c54f` | startup/test/title display writers | medium | real `0xC08000` text-RAM and `0xD000xx` startup display paths are now identified; glyph/tile mapping still needs implementation |
 | `0x03c9e8..0x03d1ff` | sprite attribute/builder front-end | medium | dispatcher role is clear, but non-family-1 branches need more work |
 | `0x03d054..0x0400ff` | sprite-family dispatchers | low | only family-1 path has meaningful coverage so far |
 | `0x04092e..0x040a46` | actor reset / replacement logic | medium | generic object reinit path is understood structurally |
@@ -39,6 +40,8 @@ Status terms:
 | `0x0449b4..0x044fff` | `0x02c8` proximity / visibility and follow-on paths | medium | enough to prioritize this region for body ownership |
 | `0x0450d8..0x045fff` | stage/event helper actor systems | medium | many constructors known; several proven false leads for player body |
 | `0x04543e..0x0457ff` | animation records and palette application | high | `0x4543e` and `0x45684` roles are well established |
+| `0x046216..0x0464ff` | fixed-slot event state machines on `0x028a/0x0288/0x021c` | medium | clearly generic choreography controllers; useful mainly to rule out false ownership assumptions |
+| `0x04650e..0x04677a` | stage-id dispatcher into generic fixed-slot seeds | medium | bridges `a5 + 0x0118` into `0x4677c` and neighboring slot seeds; not body ownership by itself |
 | `0x046300..0x046776` | generic fixed-slot event seeding cluster | medium | shows `0x46790` is reused broadly across non-`0x02c8` slots too |
 | `0x04677c..0x04684c` | direct `0x02c8` constructor / seeding path | medium | strong positive constructor evidence; still not proven player-body ownership |
 | `0x04684e..0x046c1f` | concrete `0x02c8` branch cluster | medium | now identified as a useful body-facing lead |

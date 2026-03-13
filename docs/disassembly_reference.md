@@ -20,7 +20,9 @@ For dedicated subsystem notes, also see:
 - [docs/02c8_filter_reference.md](/home/tighe/projects/rastan-genesis/docs/02c8_filter_reference.md)
 - [docs/0508_reference.md](/home/tighe/projects/rastan-genesis/docs/0508_reference.md)
 - [docs/bridge_visibility_reference.md](/home/tighe/projects/rastan-genesis/docs/bridge_visibility_reference.md)
+- [docs/fixed_slot_event_reference.md](/home/tighe/projects/rastan-genesis/docs/fixed_slot_event_reference.md)
 - [docs/startup_mode_reference.md](/home/tighe/projects/rastan-genesis/docs/startup_mode_reference.md)
+- [docs/startup_display_reference.md](/home/tighe/projects/rastan-genesis/docs/startup_display_reference.md)
 - [docs/sprite_animation_reference.md](/home/tighe/projects/rastan-genesis/docs/sprite_animation_reference.md)
 - [docs/constructor_reference.md](/home/tighe/projects/rastan-genesis/docs/constructor_reference.md)
 
@@ -199,6 +201,15 @@ Important caution:
   `0x02c8` slot itself
 - the remaining proof gap is still where the seeded `0x02c8` slot gets class
   ownership and a body-facing runtime state
+
+Related clarification:
+
+- the controllers at `0x46216`, `0x463aa`, and `0x4644c`, plus the stage-id
+  dispatcher at `0x4650e`, are now better treated as generic fixed-slot event
+  choreography
+- they explain why direct `0x02c8` seeds repeatedly appear next to neighboring
+  slots like `0x03c8`, `0x0408`, `0x0448`, and `0x0488` without proving
+  visible-body ownership
 
 ### `0x420e6..0x42e38`
 

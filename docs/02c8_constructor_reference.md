@@ -24,6 +24,10 @@ for many stage/event-owned slots besides `0x02c8`.
 The most important routines are:
 
 - `0x45248`
+- `0x46216`
+- `0x463aa`
+- `0x4644c`
+- `0x4650e`
 - `0x4677c`
 - `0x46790`
 - `0x4c706`
@@ -277,6 +281,26 @@ Interpretation:
 - but less special from an ownership standpoint
 - it now looks like a shared fixed-slot seeding mechanism, not a narrow player
   body constructor
+
+### Event Controllers Inside This Cluster
+
+The newer trace makes the controller structure clearer too:
+
+- `0x46216` drives a staged event sequence on `a5 + 0x028a`
+- `0x463aa` drives a two-slot event sequence on `a5 + 0x0288`
+- `0x4644c` drives a three-slot event sequence on `a5 + 0x021c`
+- `0x4650e` dispatches on `a5 + 0x0118` and fans into the same generic
+  fixed-slot seeding machinery
+
+What they have in common:
+
+- they repeatedly seed neighboring fixed slots through `0x45248`
+- they gate progression on emptiness checks or X-position windows
+- they sometimes include `0x02c8`, but they do not make `0x02c8` special enough
+  to imply player-body ownership
+
+That is why this whole cluster is now better described as generic fixed-slot
+event choreography instead of a clean constructor family for the visible body.
 
 ## `0x4c706`
 

@@ -29,8 +29,11 @@ typedef struct RenderSpritePart {
 static u8 arcade_workram[ARCADE_WORKRAM_BYTES];
 static RegionCounter region_counters[REGION_COUNT];
 static u16 input_shadow[3];
+static u8 dip_bank_shadow[2];
 static u16 video_shadow[8];
 static u16 sound_shadow[8];
+static u16 arcade_text_shadow[0x2000];
+static bool arcade_text_dirty;
 static ShadowSpriteEntry sprite_list_0460[10];
 static ShadowSpriteEntry sprite_list_0170[6];
 static ShadowSpriteEntry sprite_list_0300[4];
@@ -41,6 +44,26 @@ static u16 credits;
 static bool game_started;
 static bool stage_ready;
 static bool start_request_latched;
+static bool startup_test_mode;
+static bool startup_test_initialized;
+static u8 startup_test_fail_code;
+static u8 startup_test_phase;
+static bool normal_boot_initialized;
+static bool title_screen_ready;
+static u8 normal_boot_phase;
+static u16 normal_boot_timer;
+static u8 normal_boot_fail_code;
+static u8 title_attract_page;
+static u16 title_attract_timer;
+static u8 last_screen_kind;
+static u16 last_title_credits;
+static bool last_title_ready;
+static u8 last_boot_phase_drawn;
+static u8 last_title_page_drawn;
+static u8 last_startup_phase_drawn;
+static u8 last_startup_fail_drawn;
+static u8 last_dip1_drawn;
+static u8 last_dip2_drawn;
 static u16 sprite_group_counts[3];
 static u16 sprite_part_counts[3];
 static RenderSpritePart render_parts[64];
@@ -69,6 +92,24 @@ static const u16 arcade_sprite_palette[16] = {
     RGB24_TO_VDPCOLOR(0x804020), RGB24_TO_VDPCOLOR(0xA06060), RGB24_TO_VDPCOLOR(0x60A0A0), RGB24_TO_VDPCOLOR(0xFFFFFF),
 };
 
+typedef struct StartupTestRegionStatus {
+    const char *label;
+    u32 start_addr;
+    u32 end_addr;
+    u8 fail_code;
+    bool passed;
+} StartupTestRegionStatus;
+
+static StartupTestRegionStatus startup_test_regions[5];
+
+static const char *const normal_boot_phase_names[5] = {
+    "HW INIT ",
+    "RAM CLR ",
+    "READ DIP",
+    "NORMAL  ",
+    "TITLE   ",
+};
+
 #define STAGE_VIEW_X_CHARS 23
 #define STAGE_VIEW_Y_CHARS 5
 #define STAGE_VIEW_W_CHARS 16
@@ -77,6 +118,7 @@ static const u16 arcade_sprite_palette[16] = {
 static void arcade_3a2d0_clear_words(u32 start_addr, u16 count_words);
 static void arcade_45dfa_build_shadow_lists(void);
 static void arcade_4543e_refresh_actor_fields_generic(u32 actor_addr);
+static void draw_startup_test_hud(void);
 
 static const char *const region_names[REGION_COUNT] = {
     "ROM    ",
@@ -155,13 +197,18 @@ static const char *const mode_names[3] = {
 #define WRAM_ACTOR_0748_ADDR      0x10C748
 #define ACTOR_STRIDE              0x40
 #define FAMILY1_TABLE_ADDR        0x04771C
+#define TESTMODE_BANK1_BIT        0x04
+#define ARCADE_TEXTRAM_START      0x00C08000
+#define ARCADE_TEXTRAM_END        0x00C0BFFF
 
 static ArcadeRegionId region_for_addr(u32 addr)
 {
     if (addr <= ARCADE_MAINCPU_ROM_END) return REGION_ROM;
     if (addr >= ARCADE_WORKRAM_START && addr <= ARCADE_WORKRAM_END) return REGION_WORKRAM;
-    if (addr == ARCADE_INPUT_PORT0 || addr == ARCADE_INPUT_PORT1 || addr == ARCADE_INPUT_DIP) return REGION_INPUT;
-    if (addr >= ARCADE_VIDEO_REG_START && addr <= ARCADE_VIDEO_REG_END) return REGION_VIDEO;
+    if (addr == ARCADE_INPUT_PORT0 || addr == ARCADE_INPUT_PORT1 || addr == ARCADE_INPUT_DIP ||
+        addr == ARCADE_DIP_BANK1 || addr == ARCADE_DIP_BANK2) return REGION_INPUT;
+    if ((addr >= ARCADE_VIDEO_REG_START && addr <= ARCADE_VIDEO_REG_END) ||
+        (addr >= ARCADE_TEXTRAM_START && addr <= ARCADE_TEXTRAM_END)) return REGION_VIDEO;
     if (addr >= ARCADE_SOUND_LATCH_START && addr <= ARCADE_SOUND_LATCH_END) return REGION_SOUND;
     return REGION_UNKNOWN;
 }
@@ -175,6 +222,14 @@ static u8 rom_read8(u32 addr)
 static u16 rom_read16(u32 addr)
 {
     return ((u16)rom_read8(addr) << 8) | rom_read8(addr + 1);
+}
+
+static u32 rom_read32(u32 addr)
+{
+    return ((u32)rom_read8(addr) << 24) |
+           ((u32)rom_read8(addr + 1) << 16) |
+           ((u32)rom_read8(addr + 2) << 8) |
+           rom_read8(addr + 3);
 }
 
 static u8 workram_read8(u32 addr)
@@ -219,6 +274,22 @@ static void record_access(ArcadeRegionId region, bool is_write, bool is_16bit, u
     counter->last_value = value;
 }
 
+static bool is_arcade_text_addr(u32 addr)
+{
+    return (addr >= ARCADE_TEXTRAM_START) && (addr <= ARCADE_TEXTRAM_END);
+}
+
+static u16 arcade_text_read16(u32 addr)
+{
+    return arcade_text_shadow[(addr - ARCADE_TEXTRAM_START) >> 1];
+}
+
+static void arcade_text_write16(u32 addr, u16 value)
+{
+    arcade_text_shadow[(addr - ARCADE_TEXTRAM_START) >> 1] = value;
+    arcade_text_dirty = TRUE;
+}
+
 static u8 arcade_read8(u32 addr)
 {
     const ArcadeRegionId region = region_for_addr(addr);
@@ -235,10 +306,13 @@ static u8 arcade_read8(u32 addr)
         case REGION_INPUT:
             if (addr == ARCADE_INPUT_PORT0) value = input_shadow[0] & 0xFF;
             else if (addr == ARCADE_INPUT_PORT1) value = input_shadow[1] & 0xFF;
-            else value = input_shadow[2] & 0xFF;
+            else if (addr == ARCADE_INPUT_DIP) value = input_shadow[2] & 0xFF;
+            else if (addr == ARCADE_DIP_BANK1) value = dip_bank_shadow[0];
+            else value = dip_bank_shadow[1];
             break;
         case REGION_VIDEO:
-            value = video_shadow[((addr - ARCADE_VIDEO_REG_START) >> 1) & 7] & 0xFF;
+            if (is_arcade_text_addr(addr)) value = arcade_text_read16(addr) & 0xFF;
+            else value = video_shadow[((addr - ARCADE_VIDEO_REG_START) >> 1) & 7] & 0xFF;
             break;
         case REGION_SOUND:
             value = sound_shadow[((addr - ARCADE_SOUND_LATCH_START) >> 1) & 7] & 0xFF;
@@ -267,10 +341,13 @@ static u16 arcade_read16(u32 addr)
         case REGION_INPUT:
             if (addr == ARCADE_INPUT_PORT0) value = input_shadow[0];
             else if (addr == ARCADE_INPUT_PORT1) value = input_shadow[1];
-            else value = input_shadow[2];
+            else if (addr == ARCADE_INPUT_DIP) value = input_shadow[2];
+            else if (addr == ARCADE_DIP_BANK1) value = dip_bank_shadow[0];
+            else value = dip_bank_shadow[1];
             break;
         case REGION_VIDEO:
-            value = video_shadow[((addr - ARCADE_VIDEO_REG_START) >> 1) & 7];
+            if (is_arcade_text_addr(addr)) value = arcade_text_read16(addr);
+            else value = video_shadow[((addr - ARCADE_VIDEO_REG_START) >> 1) & 7];
             break;
         case REGION_SOUND:
             value = sound_shadow[((addr - ARCADE_SOUND_LATCH_START) >> 1) & 7];
@@ -293,7 +370,7 @@ static void arcade_write8(u32 addr, u8 value)
             workram_write8(addr, value);
             break;
         case REGION_VIDEO:
-            video_shadow[((addr - ARCADE_VIDEO_REG_START) >> 1) & 7] = value;
+            if (!is_arcade_text_addr(addr)) video_shadow[((addr - ARCADE_VIDEO_REG_START) >> 1) & 7] = value;
             break;
         case REGION_SOUND:
             sound_shadow[((addr - ARCADE_SOUND_LATCH_START) >> 1) & 7] = value;
@@ -315,7 +392,8 @@ static void arcade_write16(u32 addr, u16 value)
             workram_write16(addr, value);
             break;
         case REGION_VIDEO:
-            video_shadow[((addr - ARCADE_VIDEO_REG_START) >> 1) & 7] = value;
+            if (is_arcade_text_addr(addr)) arcade_text_write16(addr, value);
+            else video_shadow[((addr - ARCADE_VIDEO_REG_START) >> 1) & 7] = value;
             break;
         case REGION_SOUND:
             sound_shadow[((addr - ARCADE_SOUND_LATCH_START) >> 1) & 7] = value;
@@ -332,8 +410,12 @@ static void seed_initial_state(void)
     memset(arcade_workram, 0, sizeof(arcade_workram));
     memset(region_counters, 0, sizeof(region_counters));
     memset(input_shadow, 0xFF, sizeof(input_shadow));
+    dip_bank_shadow[0] = 0xFE;
+    dip_bank_shadow[1] = 0xFF;
     memset(video_shadow, 0, sizeof(video_shadow));
     memset(sound_shadow, 0, sizeof(sound_shadow));
+    memset(arcade_text_shadow, 0, sizeof(arcade_text_shadow));
+    arcade_text_dirty = TRUE;
     memset(sprite_list_0460, 0, sizeof(sprite_list_0460));
     memset(sprite_list_0170, 0, sizeof(sprite_list_0170));
     memset(sprite_list_0300, 0, sizeof(sprite_list_0300));
@@ -352,12 +434,44 @@ static void seed_initial_state(void)
     rendered_actor_frame = 0xFF;
     rendered_actor_tile_base = 0xFFFF;
 
+    /* Factory defaults from the manual:
+       bank 1 = ON,OFF,OFF,OFF,OFF,OFF,OFF,OFF
+       bank 2 = OFF,OFF,OFF,OFF,OFF,OFF,OFF,OFF
+       The hardware reads active-low, so ON clears the corresponding bit. */
+    dip_bank_shadow[0] = 0xFE;
+    dip_bank_shadow[1] = 0xFF;
+
     previous_pad = 0;
     gameplay_frames = 0;
     credits = 0;
     game_started = FALSE;
     stage_ready = FALSE;
     start_request_latched = FALSE;
+    startup_test_mode = FALSE;
+    startup_test_initialized = FALSE;
+    startup_test_fail_code = 0;
+    startup_test_phase = 0;
+    normal_boot_initialized = FALSE;
+    title_screen_ready = FALSE;
+    normal_boot_phase = 0;
+    normal_boot_timer = 0;
+    normal_boot_fail_code = 0;
+    title_attract_page = 0;
+    title_attract_timer = 0;
+    last_screen_kind = 0xFF;
+    last_title_credits = 0xFFFF;
+    last_title_ready = FALSE;
+    last_boot_phase_drawn = 0xFF;
+    last_title_page_drawn = 0xFF;
+    last_startup_phase_drawn = 0xFF;
+    last_startup_fail_drawn = 0xFF;
+    last_dip1_drawn = 0xFF;
+    last_dip2_drawn = 0xFF;
+    startup_test_regions[0] = (StartupTestRegionStatus){ "10C000", 0x10C000, 0x10D600, 0x36, FALSE };
+    startup_test_regions[1] = (StartupTestRegionStatus){ "200000", 0x200000, 0x201000, 0x39, FALSE };
+    startup_test_regions[2] = (StartupTestRegionStatus){ "C00000", 0xC00000, 0xC04000, 0x34, FALSE };
+    startup_test_regions[3] = (StartupTestRegionStatus){ "C08000", 0xC08000, 0xC0C000, 0x34, FALSE };
+    startup_test_regions[4] = (StartupTestRegionStatus){ "D00000", 0xD00000, 0xD01000, 0x35, FALSE };
     workram_write16(WRAM_SUBMODE_ADDR, 0x0004);
     workram_write16(WRAM_MODE_ADDR, 0);
     workram_write16(WRAM_MODE_FLAG46_ADDR, 0);
@@ -382,10 +496,164 @@ static void seed_initial_state(void)
     workram_write16(ARCADE_STAGE_DROP_Y_ADDR, 128);
 }
 
+static bool dip_test_mode_enabled(void)
+{
+    return (dip_bank_shadow[0] & TESTMODE_BANK1_BIT) == 0;
+}
+
+static void toggle_dip_test_mode(void)
+{
+    dip_bank_shadow[0] ^= TESTMODE_BANK1_BIT;
+}
+
+static void arcade_text_clear_shadow(void)
+{
+    memset(arcade_text_shadow, 0, sizeof(arcade_text_shadow));
+    arcade_text_dirty = TRUE;
+}
+
+static u32 arcade_text_addr_for_xy(u16 x, u16 y)
+{
+    return ARCADE_TEXTRAM_START + ((u32)y * 0x100) + ((u32)x * 4);
+}
+
+static void arcade_text_put_char_xy(u16 x, u16 y, char c)
+{
+    const u32 addr = arcade_text_addr_for_xy(x, y);
+    arcade_text_write16(addr, 0);
+    arcade_text_write16(addr + 2, (u16)(u8)c);
+}
+
+static void arcade_text_puts_xy(u16 x, u16 y, const char *text)
+{
+    while (*text)
+    {
+        arcade_text_put_char_xy(x++, y, *text++);
+    }
+}
+
+static char arcade_char_from_code(u16 code)
+{
+    if ((code >= 0x20) && (code <= 0x7E)) return (char)code;
+    if (code == 0x2744 || code == 0x274B) return '*';
+    return ' ';
+}
+
+static void arcade_3bb48_emit(s16 message_id)
+{
+    const u16 id = (u16)message_id;
+    const u32 table_addr = 0x03BB7C + ((id & 0x7F) * 4);
+    const u32 record_addr = rom_read32(table_addr);
+    const u32 dest_addr = rom_read32(record_addr);
+    const u16 attr = rom_read16(record_addr + 4);
+    u32 src = record_addr + 6;
+    u32 dst = dest_addr;
+
+    while (rom_read8(src) != 0)
+    {
+        arcade_write16(dst, attr);
+        arcade_write16(dst + 2, (id & 0x8000) ? 0x0020 : rom_read8(src));
+        src++;
+        dst += 4;
+    }
+}
+
+static void arcade_3c2e2_emit(u16 entry_id)
+{
+    const u32 table_addr = 0x03C37C + (entry_id * 10);
+    s16 count = (s16)rom_read16(table_addr);
+    u32 dst = rom_read32(table_addr + 2);
+    u32 src = rom_read32(table_addr + 6);
+    const u16 attr = 0;
+
+    if (count == -1)
+    {
+        const u16 value = rom_read8(src) & 0x0F;
+
+        if (value == 7)
+        {
+            dst -= 8;
+            arcade_write16(dst + 0, attr);
+            arcade_write16(dst + 2, 'A');
+            arcade_write16(dst + 4, attr);
+            arcade_write16(dst + 6, 'L');
+            arcade_write16(dst + 8, attr);
+            arcade_write16(dst + 10, 'L');
+        }
+        else
+        {
+            arcade_3c2e2_emit(1);
+        }
+        return;
+    }
+
+    while (count > 0)
+    {
+        u16 digit;
+
+        if (count & 1) digit = rom_read8(src) & 0x0F;
+        else digit = (rom_read8(src) >> 4) & 0x0F;
+
+        arcade_write16(dst, attr);
+        arcade_write16(dst + 2, digit | 0x30);
+
+        if (count & 1) src -= 1;
+        count--;
+        dst += 4;
+    }
+
+    if ((rom_read16(table_addr) == 6) && (arcade_read16(rom_read32(table_addr + 2) + 2) == '0'))
+    {
+        s16 trim_count = rom_read16(table_addr);
+        u32 trim_dst = rom_read32(table_addr + 2) + 2;
+
+        while (trim_count > 0)
+        {
+            if (arcade_read16(trim_dst) != '0') break;
+            arcade_write16(trim_dst, 0x0020);
+            trim_dst += 4;
+            trim_count--;
+        }
+    }
+}
+
+static void arcade_emit_title_base(void)
+{
+    arcade_3bb48_emit(2);
+    arcade_3c2e2_emit(3);
+
+    if (workram_read16(0x10C040) != 0) arcade_3bb48_emit(29);
+}
+
+static void arcade_emit_title_ready_sequence(void)
+{
+    /* Directly mirrors the title-side string sequence at 0x3aaae. */
+    arcade_3bb48_emit(17);
+    arcade_3bb48_emit(63);
+    arcade_3bb48_emit(64);
+    arcade_3bb48_emit(65);
+    arcade_3bb48_emit(66);
+    arcade_3bb48_emit(67);
+    arcade_3bb48_emit(68);
+    arcade_3bb48_emit(69);
+    arcade_3bb48_emit(70);
+    arcade_3bb48_emit(12);
+    arcade_write16(0x00C09172, 0x2749);
+}
+
+static void arcade_emit_title_chronology_sequence(void)
+{
+    arcade_3bb48_emit(60);
+    arcade_3bb48_emit(61);
+    arcade_3bb48_emit(62);
+    arcade_3bb48_emit(12);
+}
+
 static void update_input_shadow(u16 state)
 {
     u8 port0 = 0xFF;
     u8 port1 = 0xFF;
+    u8 service = 0xFF;
     u16 latched = 0;
 
     if (state & BUTTON_UP) port0 &= ~0x01;
@@ -404,10 +672,11 @@ static void update_input_shadow(u16 state)
 
     if (state & BUTTON_C) port1 &= ~0x01;
     if (state & BUTTON_START) port1 &= ~0x02;
+    if (state & BUTTON_Z) service &= ~0x08;
 
     input_shadow[0] = port0;
     input_shadow[1] = port1;
-    input_shadow[2] = 0xFF;
+    input_shadow[2] = service;
     workram_write16(WRAM_PLAYER_CTRL_ADDR, latched);
 }
 
@@ -1058,6 +1327,11 @@ static void handle_action_buttons(u16 pad)
         return;
     }
 
+    if ((mode == 0) && (pressed & BUTTON_A))
+    {
+        toggle_dip_test_mode();
+    }
+
     if ((mode == 2) && (pressed & BUTTON_A))
     {
         selected_02c8_slot = (selected_02c8_slot + 8) % 9;
@@ -1136,6 +1410,245 @@ static void arcade_41f0e_gameplay_tick(u16 pad)
     arcade_write16(ARCADE_VIDEO_REG_START + 2, (u16)player_x);
     arcade_write16(ARCADE_VIDEO_REG_START + 4, (u16)player_y);
     arcade_write8(ARCADE_SOUND_LATCH_START, (u8)(pad & 0xFF));
+}
+
+static bool startup_test_check_region(u32 start_addr, u32 end_addr)
+{
+    u32 addr;
+    bool passed = TRUE;
+
+    for (addr = start_addr; addr < end_addr; addr += 2)
+    {
+        if ((addr >= ARCADE_MAINCPU_ROM_START) && (addr <= ARCADE_MAINCPU_ROM_END))
+        {
+            continue;
+        }
+
+        if (region_for_addr(addr) == REGION_UNKNOWN)
+        {
+            continue;
+        }
+
+        if ((addr >= ARCADE_VIDEO_REG_START) && (addr <= ARCADE_VIDEO_REG_END))
+        {
+            continue;
+        }
+
+        if ((addr >= ARCADE_SOUND_LATCH_START) && (addr <= ARCADE_SOUND_LATCH_END))
+        {
+            continue;
+        }
+
+        if ((addr >= 0xC00000) && (addr < 0xD00000))
+        {
+            continue;
+        }
+
+        {
+            const u16 original = arcade_read16(addr);
+            arcade_write16(addr, 0x0000);
+            if (arcade_read16(addr) != 0x0000)
+            {
+                passed = FALSE;
+                arcade_write16(addr, original);
+                break;
+            }
+
+            arcade_write16(addr, 0xFFFF);
+            if (arcade_read16(addr) != 0xFFFF)
+            {
+                passed = FALSE;
+                arcade_write16(addr, original);
+                break;
+            }
+
+            arcade_write16(addr, original);
+        }
+    }
+
+    return passed;
+}
+
+static void startup_test_initialize(void)
+{
+    u16 i;
+
+    startup_test_initialized = TRUE;
+    startup_test_fail_code = 0;
+    startup_test_phase = 2;
+    workram_write16(WRAM_MODE_ADDR, 0);
+    workram_write16(WRAM_SUBMODE_ADDR, 0);
+    workram_write16(0x10C00A, 0);
+    workram_write16(0x10C008, 0);
+    workram_write16(0x10C006, 0);
+    workram_write16(0x10C004, 0);
+    workram_write16(0x10C002, 0);
+
+    for (i = 0; i < 5; i++)
+    {
+        startup_test_regions[i].passed = startup_test_check_region(startup_test_regions[i].start_addr, startup_test_regions[i].end_addr);
+        if (!startup_test_regions[i].passed && (startup_test_fail_code == 0))
+        {
+            startup_test_fail_code = startup_test_regions[i].fail_code;
+            workram_write16(0x10C00A, 0xFFFF);
+        }
+    }
+}
+
+static void startup_test_tick(u16 pad)
+{
+    const u16 pressed = (pad ^ previous_pad) & pad;
+
+    if (!startup_test_initialized)
+    {
+        startup_test_initialize();
+    }
+
+    if (pressed & BUTTON_B)
+    {
+        startup_test_phase = (startup_test_phase + 1) & 0x03;
+    }
+
+    if (pressed & BUTTON_C)
+    {
+        toggle_dip_test_mode();
+    }
+
+    if (pressed & BUTTON_START)
+    {
+        if (!dip_test_mode_enabled())
+        {
+            seed_initial_state();
+        }
+    }
+}
+
+static u8 run_simple_system_test(void)
+{
+    u16 original;
+
+    original = arcade_read16(ARCADE_WORKRAM_START);
+    arcade_write16(ARCADE_WORKRAM_START, 0x0000);
+    if (arcade_read16(ARCADE_WORKRAM_START) != 0x0000)
+    {
+        arcade_write16(ARCADE_WORKRAM_START, original);
+        return 0x36;
+    }
+    arcade_write16(ARCADE_WORKRAM_START, 0xFFFF);
+    if (arcade_read16(ARCADE_WORKRAM_START) != 0xFFFF)
+    {
+        arcade_write16(ARCADE_WORKRAM_START, original);
+        return 0x36;
+    }
+    arcade_write16(ARCADE_WORKRAM_START, original);
+
+    arcade_write16(ARCADE_VIDEO_REG_START, 0x0020);
+    if (video_shadow[0] != 0x0020)
+    {
+        return 0x34;
+    }
+
+    arcade_write8(ARCADE_SOUND_LATCH_START, 0x5A);
+    if ((sound_shadow[0] & 0x00FF) != 0x005A)
+    {
+        return 0x35;
+    }
+
+    return 0;
+}
+
+static void normal_boot_initialize(void)
+{
+    normal_boot_initialized = TRUE;
+    title_screen_ready = FALSE;
+    normal_boot_phase = 0;
+    normal_boot_timer = 0;
+    normal_boot_fail_code = 0;
+    title_attract_page = 0;
+    title_attract_timer = 0;
+    arcade_write16(WRAM_MODE_ADDR, 0);
+    arcade_write16(WRAM_SUBMODE_ADDR, 4);
+    arcade_write16(WRAM_MODE_FLAG46_ADDR, 0);
+    arcade_write16(WRAM_PLAY_READY_ADDR, 3);
+    arcade_write16(WRAM_PLAY_READY_MIRROR, 3);
+    arcade_write16(WRAM_SELECTED_STAGE_ADDR, 1);
+    arcade_write16(WRAM_STAGE_ID_ADDR, 1);
+    arcade_write16(ARCADE_PLAYER_X_ADDR, 160);
+    arcade_write16(ARCADE_PLAYER_Y_ADDR, 128);
+    arcade_write16(ARCADE_STAGE_DROP_X_ADDR, 160);
+    arcade_write16(ARCADE_STAGE_DROP_Y_ADDR, 128);
+}
+
+static void normal_boot_tick(void)
+{
+    if (!normal_boot_initialized)
+    {
+        normal_boot_initialize();
+    }
+
+    normal_boot_timer++;
+
+    switch (normal_boot_phase)
+    {
+        case 0:
+            arcade_write16(ARCADE_VIDEO_REG_START, 0);
+            arcade_write16(ARCADE_VIDEO_REG_START + 2, 0x0060);
+            arcade_write16(WRAM_MODE_FLAG46_ADDR, 0);
+            if (normal_boot_timer >= 20)
+            {
+                normal_boot_phase = 1;
+                normal_boot_timer = 0;
+            }
+            break;
+        case 1:
+            arcade_write16(WRAM_SUBMODE_ADDR, 4);
+            arcade_write16(WRAM_FLAG_0034_ADDR, 1);
+            arcade_write16(WRAM_MODE_FLAG46_ADDR, 0);
+            if (normal_boot_timer >= 20)
+            {
+                normal_boot_phase = 2;
+                normal_boot_timer = 0;
+            }
+            break;
+        case 2:
+            arcade_write16(0x10C018, (u16)(~arcade_read8(ARCADE_DIP_BANK1) & 0x00FF));
+            arcade_write16(0x10C01C, (u16)(~arcade_read8(ARCADE_DIP_BANK2) & 0x00FF));
+            if (normal_boot_timer >= 20)
+            {
+                normal_boot_phase = 3;
+                normal_boot_timer = 0;
+            }
+            break;
+        case 3:
+            arcade_write16(WRAM_MODE_FLAG46_ADDR, 0);
+            arcade_write16(0x10C04A, 0x00AA);
+            if (normal_boot_timer == 1)
+            {
+                normal_boot_fail_code = run_simple_system_test();
+            }
+            if (normal_boot_fail_code != 0)
+            {
+                title_screen_ready = FALSE;
+            }
+            else if (normal_boot_timer >= 45)
+            {
+                normal_boot_phase = 4;
+                normal_boot_timer = 0;
+                title_screen_ready = TRUE;
+                title_attract_page = 0;
+                title_attract_timer = 0;
+            }
+            break;
+        default:
+            title_screen_ready = TRUE;
+            title_attract_timer++;
+            if (title_attract_timer >= 160)
+            {
+                title_attract_timer = 0;
+                title_attract_page ^= 1;
+            }
+            break;
+    }
 }
 
 /* Direct translation of arcade routine 0x45dfa..0x45ef8 using shadow sprite lists. */
@@ -1283,6 +1796,147 @@ static void draw_stage_view(void)
     VDP_drawText("P", STAGE_VIEW_X_CHARS + (player_x >> 4), STAGE_VIEW_Y_CHARS + (player_y >> 4));
 }
 
+static void render_arcade_text_shadow(void)
+{
+    u16 x;
+    u16 y;
+    char line[41];
+
+    if (!arcade_text_dirty) return;
+
+    for (y = 0; y < 28; y++)
+    {
+        for (x = 0; x < 40; x++)
+        {
+            line[x] = arcade_char_from_code(arcade_text_read16(arcade_text_addr_for_xy(x, y) + 2));
+        }
+        line[40] = 0;
+        VDP_drawText(line, 0, y);
+    }
+
+    arcade_text_dirty = FALSE;
+}
+
+static void draw_startup_test_hud(void)
+{
+    char line[40];
+    u16 i;
+
+    if ((last_screen_kind == 1) &&
+        (last_startup_phase_drawn == startup_test_phase) &&
+        (last_startup_fail_drawn == startup_test_fail_code) &&
+        (last_dip1_drawn == dip_bank_shadow[0]) &&
+        (last_dip2_drawn == dip_bank_shadow[1]))
+    {
+        return;
+    }
+
+    last_screen_kind = 1;
+    last_startup_phase_drawn = startup_test_phase;
+    last_startup_fail_drawn = startup_test_fail_code;
+    last_dip1_drawn = dip_bank_shadow[0];
+    last_dip2_drawn = dip_bank_shadow[1];
+
+    arcade_text_clear_shadow();
+    arcade_3bb48_emit(36);
+
+    sprintf(line, "DIP1 %02X  DIP2 %02X  PH %u", dip_bank_shadow[0], dip_bank_shadow[1], startup_test_phase);
+    arcade_text_puts_xy(1, 2, line);
+    sprintf(line, "TEST MODE %s  FAIL %02X", dip_test_mode_enabled() ? "ON " : "OFF", startup_test_fail_code);
+    arcade_text_puts_xy(1, 3, line);
+    sprintf(line, "IN 390007 %02X", arcade_read8(ARCADE_INPUT_DIP));
+    arcade_text_puts_xy(1, 5, line);
+    sprintf(line, "IN 390001 %02X", arcade_read8(ARCADE_INPUT_PORT0));
+    arcade_text_puts_xy(1, 6, line);
+    sprintf(line, "IN 390003 %02X", arcade_read8(ARCADE_INPUT_PORT1));
+    arcade_text_puts_xy(1, 7, line);
+    sprintf(line, "DIP390009 %02X", arcade_read8(ARCADE_DIP_BANK1));
+    arcade_text_puts_xy(1, 8, line);
+    sprintf(line, "DIP39000B %02X", arcade_read8(ARCADE_DIP_BANK2));
+    arcade_text_puts_xy(1, 9, line);
+
+    arcade_text_puts_xy(1, 11, "MEMORY TEST");
+    for (i = 0; i < 5; i++)
+    {
+        sprintf(
+            line,
+            "%s %s E%02X",
+            startup_test_regions[i].label,
+            startup_test_regions[i].passed ? "PASS" : "FAIL",
+            startup_test_regions[i].fail_code
+        );
+        arcade_text_puts_xy(1, 12 + i, line);
+    }
+
+    arcade_text_puts_xy(1, 20, "BANK1 SW3 = TEST MODE");
+    arcade_text_puts_xy(1, 22, "TITLE: A=toggle SW3");
+    arcade_text_puts_xy(1, 23, "TEST : B=phase  C=toggle  START=boot");
+    arcade_text_puts_xy(1, 24, "Z maps to 390007 bit3 if your pad has it");
+    sprintf(line, "TEST@ %06X %04X", 0x000100, arcade_read16(0x000100));
+    arcade_text_puts_xy(1, 25, line);
+    render_arcade_text_shadow();
+}
+
+static void draw_title_screen(void)
+{
+    char line[40];
+
+    if ((last_screen_kind == 2) &&
+        (last_title_credits == credits) &&
+        (last_title_ready == title_screen_ready) &&
+        (last_boot_phase_drawn == normal_boot_phase) &&
+        (last_title_page_drawn == title_attract_page) &&
+        (last_dip1_drawn == dip_bank_shadow[0]) &&
+        (last_dip2_drawn == dip_bank_shadow[1]))
+    {
+        return;
+    }
+
+    last_screen_kind = 2;
+    last_title_credits = credits;
+    last_title_ready = title_screen_ready;
+    last_boot_phase_drawn = normal_boot_phase;
+    last_title_page_drawn = title_attract_page;
+    last_dip1_drawn = dip_bank_shadow[0];
+    last_dip2_drawn = dip_bank_shadow[1];
+
+    arcade_text_clear_shadow();
+
+    if (normal_boot_phase == 3)
+    {
+        sprintf(line, "BOOT PHASE %s  T%u", normal_boot_phase_names[normal_boot_phase < 5 ? normal_boot_phase : 4], normal_boot_timer);
+        arcade_text_puts_xy(2, 2, line);
+        sprintf(line, "WORK RAM %s", normal_boot_fail_code == 0x36 ? "FAIL" : "PASS");
+        arcade_text_puts_xy(11, 5, line);
+        sprintf(line, "VIDEO    %s", normal_boot_fail_code == 0x34 ? "FAIL" : "PASS");
+        arcade_text_puts_xy(11, 6, line);
+        sprintf(line, "SOUND    %s", normal_boot_fail_code == 0x35 ? "FAIL" : "PASS");
+        arcade_text_puts_xy(11, 7, line);
+        sprintf(line, "FAIL CODE %02X", normal_boot_fail_code);
+        arcade_text_puts_xy(12, 9, line);
+    }
+    else if (title_screen_ready)
+    {
+        const u8 bcd_credits = (u8)(((credits / 10) << 4) | (credits % 10));
+
+        workram_write8(0x10C013, bcd_credits);
+        arcade_emit_title_base();
+        if (title_attract_page == 0) arcade_emit_title_ready_sequence();
+        else arcade_emit_title_chronology_sequence();
+    }
+    else
+    {
+        sprintf(line, "BOOT PHASE %s  T%u", normal_boot_phase_names[normal_boot_phase < 5 ? normal_boot_phase : 4], normal_boot_timer);
+        arcade_text_puts_xy(2, 2, line);
+        sprintf(line, "DIP1 %02X  DIP2 %02X", dip_bank_shadow[0], dip_bank_shadow[1]);
+        arcade_text_puts_xy(2, 4, line);
+        arcade_text_puts_xy(14, 8, "BOOTING...");
+    }
+
+    arcade_text_puts_xy(1, 27, "A=TEST DIP  C=COIN  START=BEGIN");
+    render_arcade_text_shadow();
+}
+
 static void draw_debug_hud(void)
 {
     char line[40];
@@ -1374,9 +2028,34 @@ int main(bool hardReset)
 
         update_input_shadow(pad);
         handle_action_buttons(pad);
-        arcade_3a79c_mode_dispatch(pad);
-        draw_arcade_render_parts();
-        draw_debug_hud();
+        startup_test_mode = dip_test_mode_enabled() && !game_started;
+
+        if (startup_test_mode)
+        {
+            startup_test_tick(pad);
+            draw_startup_test_hud();
+            VDP_resetSprites();
+        }
+        else
+        {
+            startup_test_initialized = FALSE;
+            if (!game_started)
+            {
+                normal_boot_tick();
+                if (title_screen_ready)
+                {
+                    arcade_3a79c_mode_dispatch(pad);
+                }
+                draw_title_screen();
+                VDP_resetSprites();
+            }
+            else
+            {
+                arcade_3a79c_mode_dispatch(pad);
+                draw_arcade_render_parts();
+                draw_debug_hud();
+            }
+        }
         previous_pad = pad;
         frame_counter++;
         SYS_doVBlankProcess();
