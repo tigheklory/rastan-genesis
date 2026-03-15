@@ -40,6 +40,7 @@ isolation and landing on the wrong actor.
 - [docs/constructor_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/constructor_reference.md)
 - [docs/fixed_slot_event_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/fixed_slot_event_reference.md)
 - [docs/startup_mode_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/startup_mode_reference.md)
+- [docs/mode_flow_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/mode_flow_reference.md)
 - [docs/startup_display_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/startup_display_reference.md)
 - [docs/sprite_animation_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/sprite_animation_reference.md)
 - [docs/reverse_engineering_workflow.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/reverse_engineering_workflow.md)

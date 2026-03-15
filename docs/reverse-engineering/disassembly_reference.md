@@ -22,6 +22,7 @@ For dedicated subsystem notes, also see:
 - [docs/bridge_visibility_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/bridge_visibility_reference.md)
 - [docs/fixed_slot_event_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/fixed_slot_event_reference.md)
 - [docs/startup_mode_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/startup_mode_reference.md)
+- [docs/mode_flow_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/mode_flow_reference.md)
 - [docs/startup_display_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/startup_display_reference.md)
 - [docs/sprite_animation_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/sprite_animation_reference.md)
 - [docs/constructor_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/constructor_reference.md)
@@ -114,6 +115,21 @@ Use this region when tracing:
 - title to gameplay transition
 - credit/start behavior
 - early mode changes
+
+Additional mode-flow anchors live in:
+
+- [docs/mode_flow_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/mode_flow_reference.md)
+
+New high-value mode/state addresses:
+
+- `0x0100`: full test/service program entry
+- `0x3a8ac`: title/start page substate controller
+- `0x3aa90`: attract/story page controller
+- `0x3a614`: strongest death/game-over/continue controller entry
+- `0x3a6b2`: later-mode controller wrapper around `0x55ddc`
+- `0x55ddc`: major transition controller keyed by `a5 + 0x1394` and
+  `a5 + 0x13aa`
+- `0x501ea`: stage init master
 
 ### `0x3d054`
 

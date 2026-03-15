@@ -21,6 +21,7 @@ Status terms:
 | --- | --- | --- | --- |
 | `0x000000..0x003fff` | vectors / boot / early tables | low | raw binary disassembly only; mostly not useful for current gameplay work |
 | `0x03a772..0x03a85e` | input latch and top-level mode flow | high | title/start to gameplay handoff is mapped well enough to mirror |
+| `0x03a2f8..0x03ab80` | title, credits, attract, and start-page controllers | medium | major page/state controllers and start commit are mapped; some subpages still need tighter naming |
 | `0x03b8b0..0x03c54f` | startup/test/title display writers | medium | real `0xC08000` text-RAM and `0xD000xx` startup display paths are now identified; glyph/tile mapping still needs implementation |
 | `0x03c9e8..0x03d1ff` | sprite attribute/builder front-end | medium | dispatcher role is clear, but non-family-1 branches need more work |
 | `0x03d054..0x0400ff` | sprite-family dispatchers | low | only family-1 path has meaningful coverage so far |
@@ -50,6 +51,7 @@ Status terms:
 | `0x04a0d8..0x04a1ff` | generic spawn/replacement table path | medium | useful for palette/form logic, not proven body ownership |
 | `0x04c706..0x04cb04` | event-driven direct `0x02c8` reseeds | medium | confirms `0x46790` is a live seeding entry point in stage/event code |
 | `0x0501ea..0x0505a4` | stage initialization | high | stage/player spawn defaults are well documented |
+| `0x055ddc..0x056440` | round/death transition meta-controller | medium | states `1..8` and `9..13` are now structurally mapped, but some user-facing meanings still need confirmation |
 | `0x051024..0x054a32` | active stage-entry and event flow | medium | entry logic is mapped well enough to separate it from body rendering |
 
 ## Strongly Understood Regions
