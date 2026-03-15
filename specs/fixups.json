@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "description": "Code and data fixups applied to original objects during translation.",
+  "fixups": [
+    {
+      "id": "startup_common_slice:runtime_shadow_remaps",
+      "source_object": "startup_common_slice",
+      "kind": "absolute_address_rewrite",
+      "status": "applied_in_startup_common_rom",
+      "reason": "Compile-time remap of arcade MMIO, work RAM, and display windows into Genesis shadow storage so the original startup opcodes can execute safely.",
+      "evidence": [
+        "docs/project/startup_hardware_test_reference.md",
+        "build/rastan/startup_common_manifest.json",
+        "build/rastan/startup_common_rom_manifest.json"
+      ]
+    },
+    {
+      "id": "startup_common_slice:test_jump_redirect",
+      "source_object": "startup_common_slice",
+      "kind": "control_flow",
+      "status": "applied_in_startup_common_rom",
+      "reason": "The common startup slice ends at the normal/test split, so the detailed test-mode jump is redirected to a local Genesis-side result stub instead of the original 0x000100 service program.",
+      "evidence": [
+        "docs/project/startup_hardware_test_reference.md",
+        "build/rastan/startup_common_rom_manifest.json"
+      ]
+    },
+    {
+      "id": "startup_common_slice:normal_followon_stop_stub",
+      "source_object": "startup_common_slice",
+      "kind": "control_flow",
+      "status": "applied_in_startup_common_rom",
+      "reason": "Normal boot continuation at 0x03B05C is temporarily replaced by a small status-write stub so the runner can return cleanly after executing the original common startup block.",
+      "evidence": [
+        "docs/project/startup_hardware_test_reference.md",
+        "build/rastan/startup_common_rom_manifest.json"
+      ]
+    }
+  ]
+}

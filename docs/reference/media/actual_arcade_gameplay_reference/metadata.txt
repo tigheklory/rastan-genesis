@@ -1,0 +1,20 @@
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'video/actual_arcade_gameplay.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 131072
+    compatible_brands: isomiso2mp41
+    creation_time   : 2026-03-13T16:11:46.000000Z
+    location        : +42.6385-74.5394/
+    location-eng    : +42.6385-74.5394/
+    com.android.version: 15
+  Duration: 00:01:20.76, start: 0.000000, bitrate: 10940 kb/s
+  Stream #0:0[0x1](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 156 kb/s (default)
+      Metadata:
+        creation_time   : 2026-03-13T16:11:46.000000Z
+        handler_name    : SoundHandle
+        vendor_id       : [0][0][0][0]
+  Stream #0:1[0x2](eng): Video: h264 (High) (avc1 / 0x31637661), yuvj420p(pc, bt470bg/bt470bg/smpte170m, progressive), 1920x1080, 10785 kb/s, SAR 1:1 DAR 16:9, 29.99 fps, 30 tbr, 90k tbn (default)
+      Metadata:
+        creation_time   : 2026-03-13T16:11:46.000000Z
+        handler_name    : VideoHandle
+        vendor_id       : [0][0][0][0]

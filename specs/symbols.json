@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "description": "Stable origin-address identities for original arcade code and data.",
+  "symbols": [
+    {
+      "id": "maincpu:03AE86",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x03AE86",
+      "origin_end_exclusive": "0x03B05C",
+      "label": "startup_common_slice",
+      "notes": [
+        "First substantial common startup and basic hardware-test block after reset handoff."
+      ]
+    },
+    {
+      "id": "maincpu:03B05C",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x03B05C",
+      "label": "normal_boot_followon",
+      "notes": [
+        "First normal-boot code that runs after the startup common slice decides not to enter test mode."
+      ]
+    },
+    {
+      "id": "maincpu:03B9F8",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x03B9F8",
+      "label": "startup_helper_3b9f8"
+    },
+    {
+      "id": "maincpu:03AD3C",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x03AD3C",
+      "label": "startup_fill_words_helper"
+    },
+    {
+      "id": "maincpu:03AD72",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x03AD72",
+      "label": "startup_d000_init_helper"
+    },
+    {
+      "id": "maincpu:03B0C2",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x03B0C2",
+      "label": "startup_cfg_copy_helper"
+    },
+    {
+      "id": "maincpu:04EAF6",
+      "kind": "data",
+      "origin_region": "maincpu",
+      "origin_start": "0x04EAF6",
+      "label": "startup_table_4eaf6"
+    },
+    {
+      "id": "maincpu:04FE62",
+      "kind": "data",
+      "origin_region": "maincpu",
+      "origin_start": "0x04FE62",
+      "label": "startup_table_4fe62"
+    },
+    {
+      "id": "maincpu:05B512",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x05B512",
+      "label": "startup_helper_5b512"
+    },
+    {
+      "id": "maincpu:05FFA2",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x05FFA2",
+      "label": "startup_dip_decode_low"
+    },
+    {
+      "id": "maincpu:05FFB2",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x05FFB2",
+      "label": "startup_dip_decode_high"
+    },
+    {
+      "id": "maincpu:03BB48",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x03BB48",
+      "label": "startup_string_emitter"
+    },
+    {
+      "id": "maincpu:03C2E2",
+      "kind": "code",
+      "origin_region": "maincpu",
+      "origin_start": "0x03C2E2",
+      "label": "startup_numeric_formatter"
+    }
+  ]
+}

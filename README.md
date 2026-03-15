@@ -12,10 +12,15 @@ Private engineering project for an arcade-accurate `Rastan` port targeting the S
 ## Current project shape
 
 - `roms/`: source arcade ROM files supplied locally by the user.
-- `tools/`: analysis, validation, extraction, and conversion scripts.
-- `Genesistan/`: compile-time arcade-code translation scaffold for running patched original `68000` code on Genesis.
-- `runtime/`: Genesis-side runtime and game code.
-- `build/`: generated manifests, extracted assets, and intermediate outputs.
+- `apps/`: runnable ROM projects.
+- `apps/rastan/`: current known-good text baseline ROM.
+- `attic/`: preserved experiments we are not trusting as the baseline.
+- `runtime/`: shared Genesis-side runtime and shim code.
+- `specs/`: machine-readable build rules, fixups, variants, and runtime config.
+- `docs/`: project docs, validation notes, and reverse-engineering research.
+- `tools/`: analysis, extraction, conversion, and translation scripts.
+- `build/`: disposable generated intermediates and extracted artifacts.
+- `dist/`: named ROM releases we intentionally keep.
 
 ## Workflow
 
@@ -58,6 +63,32 @@ tools/build_sgdk_smoke.sh
 ```
 
 This builds the SGDK template project into `build/sgdk-smoke/out/rom.bin`.
+
+## Porting Path
+
+The current porting path is strict about preserving original arcade behavior:
+
+- build-time patching of original arcade `68000` code
+- build-time extraction/manifests for execution slices
+- Genesis runtime kept as a host/shim, not a rewritten game engine
+
+Current first target:
+
+- the startup and basic hardware-test block at `0x3AE86..0x3B05C`
+- current default variant: `world_rev1`
+- near-term alternate target: `us_rev1`
+
+Run the current scaffold with:
+
+```bash
+make patch-maincpu
+```
+
+Current known-good ROM baseline:
+
+```bash
+make -C apps/rastan release
+```
 
 ## Reference videos
 

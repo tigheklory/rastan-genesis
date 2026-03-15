@@ -1,0 +1,20 @@
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'video/VID_20260311_173918.mp4':
+  Metadata:
+    major_brand     : mp42
+    minor_version   : 0
+    compatible_brands: isommp42
+    creation_time   : 2026-03-11T21:39:20.000000Z
+    location        : +42.6385-074.5394/
+    location-eng    : +42.6385-074.5394/
+    com.android.version: 15
+  Duration: 00:00:01.96, start: 0.000000, bitrate: 22313 kb/s
+  Stream #0:0[0x1](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 156 kb/s (default)
+      Metadata:
+        creation_time   : 2026-03-11T21:39:20.000000Z
+        handler_name    : SoundHandle
+        vendor_id       : [0][0][0][0]
+  Stream #0:1[0x2](eng): Video: h264 (High) (avc1 / 0x31637661), yuvj420p(pc, bt470bg/bt470bg/smpte170m, progressive), 1920x1080, 20817 kb/s, 30 fps, 30 tbr, 90k tbn (default)
+      Metadata:
+        creation_time   : 2026-03-11T21:39:20.000000Z
+        handler_name    : VideoHandle
+        vendor_id       : [0][0][0][0]

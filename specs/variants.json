@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "description": "Supported Rastan maincpu program variants derived from original ROM filenames.",
+  "current_default": "world_rev1",
+  "support_policy": {
+    "current_target": "world_rev1",
+    "near_term_supported": [
+      "us_rev1"
+    ],
+    "reserved_future": [
+      "japan_rev1"
+    ]
+  },
+  "notes": [
+    "The current project extraction uses the World Rev 1 maincpu set.",
+    "US Rev 1 is intended to stay close enough to support with the same pipeline and small variant-scoped rules.",
+    "Japan Rev 1 should not be targeted immediately, but the pipeline should remain variant-aware so it can be added later without redesign.",
+    "Variants are identified by original filenames and assembled maincpu SHA-1s.",
+    "All builds should continue to derive variant binaries from original ROMs."
+  ],
+  "variants": [
+    {
+      "id": "world_rev1",
+      "region": "World",
+      "revision": "Rev 1",
+      "title": "Rastan",
+      "support_status": "current_target",
+      "maincpu_roms": [
+        "b04-38.19",
+        "b04-37.7",
+        "b04-40.20",
+        "b04-39.8",
+        "b04-42.21",
+        "b04-43-1.9"
+      ],
+      "assembled_maincpu_sha1": "63577d3f75a96b35398cf40126c40598ebd8089d"
+    },
+    {
+      "id": "world",
+      "region": "World",
+      "revision": "earlier",
+      "title": "Rastan",
+      "support_status": "known_variant",
+      "maincpu_roms": [
+        "b04-38.19",
+        "b04-37.7",
+        "b04-40.20",
+        "b04-39.8",
+        "b04-42.21",
+        "b04-43.9"
+      ],
+      "assembled_maincpu_sha1": "ddb024c043b0988736863b3281f8754527d06eb1"
+    },
+    {
+      "id": "us_rev1",
+      "region": "USA",
+      "revision": "Rev 1",
+      "title": "Rastan",
+      "support_status": "near_term_supported",
+      "maincpu_roms": [
+        "b04-38.19",
+        "b04-37.7",
+        "b04-45.20",
+        "b04-44.8",
+        "b04-42.21",
+        "b04-41-1.9"
+      ],
+      "assembled_maincpu_sha1": "d304aa19075bb5ac8516f5508ef8bfcc4eff5fd9"
+    },
+    {
+      "id": "us",
+      "region": "USA",
+      "revision": "earlier",
+      "title": "Rastan",
+      "support_status": "known_variant",
+      "maincpu_roms": [
+        "b04-38.19",
+        "b04-37.7",
+        "b04-45.20",
+        "b04-44.8",
+        "b04-42.21",
+        "b04-41.9"
+      ],
+      "assembled_maincpu_sha1": "5eec47c888c2c1f4f2d2838a7c1216bffc97bdfd"
+    },
+    {
+      "id": "japan_rev1",
+      "region": "Japan",
+      "revision": "Rev 1",
+      "title": "Rastan Saga",
+      "support_status": "reserved_future",
+      "maincpu_roms": [
+        "b04-14.19",
+        "b04-13.7",
+        "b04-16-1.20",
+        "b04-15-1.8",
+        "b04-18-1.21",
+        "b04-17-1.9"
+      ],
+      "assembled_maincpu_sha1": "ed180781f640e0da2c4420cbe9f4323e4e48ee57"
+    },
+    {
+      "id": "japan_earlier",
+      "region": "Japan",
+      "revision": "earlier",
+      "title": "Rastan Saga",
+      "support_status": "known_variant",
+      "maincpu_roms": [
+        "b04-14.19",
+        "b04-13.7",
+        "b04-16.20",
+        "b04-15.8",
+        "b04-18-1.21",
+        "b04-17-1.9"
+      ],
+      "assembled_maincpu_sha1": "87e6d10e3bb16fa8f992997abcb64590df900c68"
+    }
+  ],
+  "pairwise_maincpu_differences": [
+    {
+      "a": "world_rev1",
+      "b": "world",
+      "different_bytes": 2,
+      "percent": 0.0005,
+      "summary": "Revision-only delta in the final 0x40000..0x4FFFF bank."
+    },
+    {
+      "a": "us_rev1",
+      "b": "us",
+      "different_bytes": 2,
+      "percent": 0.0005,
+      "summary": "Revision-only delta in the final 0x40000..0x4FFFF bank."
+    },
+    {
+      "a": "world_rev1",
+      "b": "us_rev1",
+      "different_bytes": 26,
+      "percent": 0.0066,
+      "summary": "Small but real regional delta: mostly title/copyright region text plus one trailing byte in the final bank."
+    },
+    {
+      "a": "world",
+      "b": "us",
+      "different_bytes": 26,
+      "percent": 0.0066,
+      "summary": "Mostly title/copyright region text plus one trailing byte in the final bank."
+    },
+    {
+      "a": "japan_rev1",
+      "b": "japan_earlier",
+      "different_bytes": 282,
+      "percent": 0.0717,
+      "summary": "Revision-sized code/data block in the 0x30000..0x3FFFF bank."
+    },
+    {
+      "a": "world_rev1",
+      "b": "japan_rev1",
+      "different_bytes": 131796,
+      "percent": 33.5175,
+      "summary": "Substantial program divergence; not a simple region text swap."
+    }
+  ]
+}

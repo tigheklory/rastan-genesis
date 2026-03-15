@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "description": "Shared debug-event routing for temporary/null/shadow subsystems.",
+  "policy": {
+    "rule": "Temporary subsystems emit structured events to the shared debug bus instead of drawing or logging independently.",
+    "why": [
+      "keep subsystem staging orderly",
+      "avoid each null implementation inventing its own UI",
+      "allow later HUD/log tooling to consume the same event stream"
+    ]
+  },
+  "channels": [
+    "startup",
+    "audio",
+    "video_text",
+    "video_sprite",
+    "input",
+    "patcher",
+    "runtime"
+  ],
+  "severities": [
+    "trace",
+    "info",
+    "warn",
+    "error"
+  ],
+  "default_limits": {
+    "ring_size": 128,
+    "per_frame_soft_limit": 32
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "description": "Rare semantic replacements that cannot remain raw arcade opcodes.",
+  "rules": [
+    {
+      "id": "policy",
+      "status": "active",
+      "notes": [
+        "This file should stay small.",
+        "Use only when a hardware-dependent behavior cannot be preserved with remaps and shims alone."
+      ]
+    }
+  ]
+}

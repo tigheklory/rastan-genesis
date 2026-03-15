@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "description": "Placement policy for translated objects in the Genesis ROM.",
+  "sections": [
+    {
+      "id": "startup_slices",
+      "purpose": "Early translated startup and hardware-test code.",
+      "objects": [
+        "startup_common_slice",
+        "normal_boot_followon"
+      ],
+      "notes": [
+        "Original addresses remain the identity; placement here is only the Genesis host layout."
+      ]
+    }
+  ]
+}

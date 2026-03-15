@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "description": "Extracted code/data slices derived from original ROMs.",
+  "objects": [
+    {
+      "id": "startup_common_slice",
+      "primary_symbol": "maincpu:03AE86",
+      "kind": "code_slice",
+      "entry_point": "maincpu:03AE86",
+      "dependencies": [
+        "maincpu:03AD3C",
+        "maincpu:03AD72",
+        "maincpu:03B0C2",
+        "maincpu:03B9F8",
+        "maincpu:04EAF6",
+        "maincpu:04FE62",
+        "maincpu:05B512",
+        "maincpu:05FFA2",
+        "maincpu:05FFB2"
+      ],
+      "generated_outputs": [
+        "build/rastan/startup_common_slice.bin",
+        "build/rastan/startup_common_manifest.json",
+        "build/rastan/startup_common_rom_manifest.json"
+      ],
+      "status": "executable_on_genesis"
+    },
+    {
+      "id": "normal_boot_followon",
+      "primary_symbol": "maincpu:03B05C",
+      "kind": "code_slice",
+      "entry_point": "maincpu:03B05C",
+      "dependencies": [
+        "maincpu:03B8B0",
+        "maincpu:03B098"
+      ],
+      "status": "future_target"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "description": "Graphics, tile, sprite, and palette conversion rules.",
+  "rules": [
+    {
+      "id": "startup_text_layer_placeholder",
+      "status": "planned",
+      "source_regions": [
+        "pc080sn"
+      ],
+      "target": "startup/title text layer",
+      "notes": [
+        "Real pc080sn glyph/tile mapping remains to be defined.",
+        "Do not use SGDK font substitution as a final path."
+      ]
+    }
+  ]
+}
