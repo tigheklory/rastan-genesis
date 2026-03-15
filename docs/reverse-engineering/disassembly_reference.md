@@ -25,6 +25,7 @@ For dedicated subsystem notes, also see:
 - [docs/mode_flow_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/mode_flow_reference.md)
 - [docs/startup_display_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/startup_display_reference.md)
 - [docs/sprite_animation_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/sprite_animation_reference.md)
+- [docs/palette_application_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/palette_application_reference.md)
 - [docs/constructor_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/constructor_reference.md)
 
 ## Ground Truth
@@ -351,6 +352,10 @@ This area answers:
 - tile base
 - offset set
 - palette/attribute modifier bits
+
+For the table-driven palette path specifically, see:
+
+- [docs/palette_application_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/palette_application_reference.md)
 
 ### `0x4770e` and family-1 records at `0x4771c`
 

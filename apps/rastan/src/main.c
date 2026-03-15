@@ -7,9 +7,35 @@
 #define SCREEN_W 40
 #define FACTORY_DIP1 0xFE
 #define FACTORY_DIP2 0xFF
-#define MENU_COUNT 8
+#define SETTING_MENU_COUNT 8
+#define MENU_COUNT 13
+#define GRAPHICS_TEST_TILE_INDEX (TILE_USER_INDEX + 4)
+#define PC080SN_TILE_COUNT (524288 / 32)
+#define PC090OJ_TILE_COUNT (524288 / 32)
+#define PC090OJ_CELL_COUNT (524288 / 128)
+#define GRAPHICS_TEST_COLS_PC080SN 20
+#define GRAPHICS_TEST_ROWS_PC080SN 12
+#define GRAPHICS_TEST_ITEMS_PER_PAGE_PC080SN (GRAPHICS_TEST_COLS_PC080SN * GRAPHICS_TEST_ROWS_PC080SN)
+#define GRAPHICS_TEST_COLS_PC090OJ 10
+#define GRAPHICS_TEST_ROWS_PC090OJ 6
+#define GRAPHICS_TEST_ITEMS_PER_PAGE_PC090OJ (GRAPHICS_TEST_COLS_PC090OJ * GRAPHICS_TEST_ROWS_PC090OJ)
+#define GRAPHICS_TEST_MAX_VRAM_TILES GRAPHICS_TEST_ITEMS_PER_PAGE_PC080SN
+#define GRAPHICS_TEST_BLANK_TILE_INDEX (GRAPHICS_TEST_TILE_INDEX + GRAPHICS_TEST_MAX_VRAM_TILES)
 #define DIP_TILE_ON_INDEX TILE_USER_INDEX
 #define DIP_TILE_OFF_INDEX (TILE_USER_INDEX + 2)
+
+typedef enum
+{
+    SCREEN_CONFIG = 0,
+    SCREEN_GRAPHICS_TEST,
+    SCREEN_SOUND_TEST,
+} AppScreen;
+
+typedef enum
+{
+    GRAPHICS_REGION_PC080SN = 0,
+    GRAPHICS_REGION_PC090OJ,
+} GraphicsRegion;
 
 typedef struct
 {
@@ -92,6 +118,25 @@ static const u16 rastan_active_dip_palette[16] = {
     0x0EE0,
 };
 
+static const u16 rastan_graphics_test_palette[16] = {
+    0x0000,
+    0x0222,
+    0x0444,
+    0x0666,
+    0x0888,
+    0x0AAA,
+    0x0CCC,
+    0x0EEE,
+    0x0022,
+    0x0044,
+    0x0066,
+    0x0088,
+    0x00AA,
+    0x00CC,
+    0x00EE,
+    0x0EEE,
+};
+
 static const MenuItem menu_items[MENU_COUNT] = {
     {"CABINET TYPE", cabinet_values, "CABINET ORIENTATION FOR THE GAME.", "SW1 1", 2},
     {"MONITOR", monitor_values, "FLIPS MONITOR DISPLAY DIRECTION.", "SW1 2", 2},
@@ -101,6 +146,11 @@ static const MenuItem menu_items[MENU_COUNT] = {
     {"BONUS LIFE", bonus_values, "SCORE NEEDED FOR BONUS LIFE.", "SW2 3-4", 4},
     {"LIVES", lives_values, "STARTING LIVES FOR EACH CREDIT.", "SW2 5-6", 4},
     {"CONTINUE", continue_values, "ALLOW CONTINUE AFTER GAME OVER.", "SW2 7", 2},
+    {"COMPETITION SETTINGS", NULL, "APPLY ARCADE COMPETITION DEFAULT SETTINGS.", "", 0},
+    {"FACTORY DEFAULTS", NULL, "RESTORE THE DEFAULT RASTAN DIP POSITIONS.", "", 0},
+    {"GRAPHICS TEST", NULL, "OPEN THE RASTAN GRAPHICS TEST SCREEN.", "", 0},
+    {"SOUND TEST", NULL, "OPEN THE RASTAN SOUND TEST SCREEN.", "", 0},
+    {"START RASTAN", NULL, "LAUNCH THE RASTAN STARTUP AND GAME FLOW.", "", 0},
 };
 
 volatile u8 rastan_virtual_dip1 = FACTORY_DIP1;
@@ -109,6 +159,14 @@ static u8 selected_menu = 0;
 static UndoState undo_state = {0, 0, FALSE};
 static char status_line[SCREEN_W + 1] = "READY";
 static u32 rastan_font_data[FONT_LEN * 8];
+static u32 graphics_test_tile_buffer[GRAPHICS_TEST_MAX_VRAM_TILES * 8];
+static AppScreen current_screen = SCREEN_CONFIG;
+static u16 graphics_page = 0;
+static GraphicsRegion graphics_region = GRAPHICS_REGION_PC080SN;
+volatile u8 rastan_virtual_sound_command = 0x00;
+volatile u8 rastan_virtual_sound_pending = FALSE;
+static u8 sound_test_last_command = 0x00;
+static bool sound_test_has_triggered = FALSE;
 
 typedef struct
 {
@@ -184,6 +242,28 @@ static void build_rastan_font(void)
 
 static void draw_padded_text_palette(const char *text, u16 x, u16 y, u16 width, u16 palette);
 static bool menu_controls_switch(u8 menu_index, bool bank2, u8 bit);
+static u16 menu_row_y(u8 index);
+static bool menu_item_is_action(u8 index);
+static void render_dip_banks(void);
+static void render_menu_row(u8 index);
+static void render_help_panel(void);
+static void activate_selected_menu(void);
+static void request_start_rastan(void);
+static void render_graphics_test_screen(void);
+static void enter_graphics_test(void);
+static void leave_graphics_test(void);
+static const u8 *get_graphics_region_data(void);
+static u16 get_graphics_region_item_count(void);
+static u16 get_graphics_test_cols(void);
+static u16 get_graphics_test_rows(void);
+static u16 get_graphics_test_items_per_page(void);
+static const char *get_graphics_region_name(void);
+static const char *get_graphics_region_description(void);
+static const char *get_graphics_region_unit_name(void);
+static void render_sound_test_screen(void);
+static void enter_sound_test(void);
+static void leave_sound_test(void);
+static void trigger_sound_test_command(void);
 
 static void draw_padded_text(const char *text, u16 x, u16 y, u16 width)
 {
@@ -209,7 +289,7 @@ static void set_status(const char *text)
 {
     strncpy(status_line, text, SCREEN_W);
     status_line[SCREEN_W] = '\0';
-    draw_padded_text(status_line, 0, 25, SCREEN_W);
+    draw_padded_text(status_line, 0, 27, SCREEN_W);
 }
 
 static void save_undo_state(void)
@@ -322,6 +402,30 @@ static void set_menu_value(u8 index, u8 next_value)
     }
 }
 
+static u16 menu_row_y(u8 index)
+{
+    return (index < SETTING_MENU_COUNT) ? (u16)(9 + index) : (u16)(10 + index);
+}
+
+static bool menu_item_is_action(u8 index)
+{
+    return index >= SETTING_MENU_COUNT;
+}
+
+static void cycle_selected_setting(bool backwards)
+{
+    const u8 current_value = get_menu_value(selected_menu);
+    const u8 count = menu_items[selected_menu].value_count;
+    const u8 next_value = backwards ? ((current_value == 0) ? (count - 1) : (current_value - 1))
+                                    : ((current_value + 1) % count);
+
+    set_menu_value(selected_menu, next_value);
+    render_dip_banks();
+    render_menu_row(selected_menu);
+    render_help_panel();
+    set_status("SETTING UPDATED");
+}
+
 static void draw_dip_icon(u16 x, u16 y, bool active, bool highlighted)
 {
     const u16 tile_index = active ? DIP_TILE_ON_INDEX : DIP_TILE_OFF_INDEX;
@@ -335,19 +439,19 @@ static void render_dip_bank(u8 bank_value, bool bank2, u16 title_x, u16 label_x,
 {
     u16 i;
 
-    draw_padded_text(title, title_x, 3, 12);
-    draw_padded_text("ON", label_x, 4, 3);
-    draw_padded_text("OFF", label_x, 5, 3);
+    draw_padded_text(title, title_x, 4, 12);
+    draw_padded_text("ON", label_x, 5, 3);
+    draw_padded_text("OFF", label_x, 6, 3);
 
     for (i = 0; i < 8; i++)
     {
-        draw_dip_icon((u16)(icon_x + (i * 2)), 4, ((bank_value >> i) & 1) == 0, menu_controls_switch(selected_menu, bank2, i));
+        draw_dip_icon((u16)(icon_x + (i * 2)), 5, ((bank_value >> i) & 1) == 0, menu_controls_switch(selected_menu, bank2, i));
     }
 }
 
 static void render_dip_banks(void)
 {
-    VDP_fillTileMapRect(BG_A, TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_FONT_INDEX), 0, 3, SCREEN_W, 3);
+    VDP_fillTileMapRect(BG_A, TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, TILE_FONT_INDEX), 0, 4, SCREEN_W, 3);
     render_dip_bank(rastan_virtual_dip1, FALSE, 2, 0, 4, "DIP SWITCH 1");
     render_dip_bank(rastan_virtual_dip2, TRUE, 24, 21, 25, "DIP SWITCH 2");
 }
@@ -356,10 +460,20 @@ static void render_menu_row(u8 index)
 {
     char line[SCREEN_W + 1];
     const MenuItem *item = &menu_items[index];
-    const u8 value = get_menu_value(index);
+    const bool is_action = menu_item_is_action(index);
+    const u16 y = menu_row_y(index);
 
-    sprintf(line, "%c %-13s %-11s", (index == selected_menu) ? ')' : ' ', item->label, item->values[value]);
-    draw_padded_text_palette(line, 1, (u16)(8 + index), 27, (index == selected_menu) ? PAL3 : PAL1);
+    if (is_action)
+    {
+        sprintf(line, "%c %-21s", (index == selected_menu) ? ')' : ' ', item->label);
+        draw_padded_text_palette(line, 1, y, 27, (index == selected_menu) ? PAL3 : PAL1);
+    }
+    else
+    {
+        const u8 value = get_menu_value(index);
+        sprintf(line, "%c %-13s %-11s", (index == selected_menu) ? ')' : ' ', item->label, item->values[value]);
+        draw_padded_text_palette(line, 1, y, 27, (index == selected_menu) ? PAL3 : PAL1);
+    }
 }
 
 static void render_help_panel(void)
@@ -367,14 +481,14 @@ static void render_help_panel(void)
     const MenuItem *item = &menu_items[selected_menu];
     char line[SCREEN_W + 1];
 
-    sprintf(line, "HELP: %-28s", item->switches);
-    draw_padded_text(line, 0, 17, SCREEN_W);
-    draw_padded_text(item->help_text, 0, 18, SCREEN_W);
-    draw_padded_text("", 0, 19, SCREEN_W);
-    draw_padded_text("(UP DOWN) MOVE (LEFT RIGHT) CHANGE", 0, 20, SCREEN_W);
-    draw_padded_text("(A) COMPETITION SETTINGS", 0, 21, SCREEN_W);
-    draw_padded_text("(B) UNDO  (C) FACTORY DEFAULTS", 0, 22, SCREEN_W);
-    draw_padded_text("(START) RUN RASTAN", 0, 23, SCREEN_W);
+    if (item->switches[0] != '\0')
+        sprintf(line, "HELP: %-28s", item->switches);
+    else
+        sprintf(line, "HELP");
+
+    draw_padded_text(line, 0, 24, SCREEN_W);
+    draw_padded_text(item->help_text, 0, 25, SCREEN_W);
+    draw_padded_text("", 0, 26, SCREEN_W);
 }
 
 static void render_static_layout(void)
@@ -382,9 +496,9 @@ static void render_static_layout(void)
     VDP_clearPlane(BG_A, TRUE);
     VDP_clearPlane(BG_B, TRUE);
 
-    draw_padded_text("RASTAN STARTUP CONFIG", 9, 0, 22);
-    draw_padded_text("WORLD REV1 BASELINE UI", 8, 1, 24);
-    draw_padded_text("SETTINGS", 1, 7, 8);
+    draw_padded_text("RASTAN STARTUP CONFIG", 9, 1, 22);
+    draw_padded_text("WORLD REV1 BASELINE UI", 8, 2, 24);
+    draw_padded_text("SETTINGS", 1, 8, 8);
 }
 
 static void render_full_screen(void)
@@ -401,6 +515,247 @@ static void render_full_screen(void)
 
     render_help_panel();
     set_status(status_line);
+}
+
+static u16 get_graphics_test_page_count(void)
+{
+    return (get_graphics_region_item_count() + get_graphics_test_items_per_page() - 1) / get_graphics_test_items_per_page();
+}
+
+static const u8 *get_graphics_region_data(void)
+{
+    return (graphics_region == GRAPHICS_REGION_PC080SN) ? rastan_pc080sn : rastan_pc090oj;
+}
+
+static u16 get_graphics_region_item_count(void)
+{
+    return (graphics_region == GRAPHICS_REGION_PC080SN) ? PC080SN_TILE_COUNT : PC090OJ_CELL_COUNT;
+}
+
+static u16 get_graphics_test_cols(void)
+{
+    return (graphics_region == GRAPHICS_REGION_PC080SN) ? GRAPHICS_TEST_COLS_PC080SN : GRAPHICS_TEST_COLS_PC090OJ;
+}
+
+static u16 get_graphics_test_rows(void)
+{
+    return (graphics_region == GRAPHICS_REGION_PC080SN) ? GRAPHICS_TEST_ROWS_PC080SN : GRAPHICS_TEST_ROWS_PC090OJ;
+}
+
+static u16 get_graphics_test_items_per_page(void)
+{
+    return (graphics_region == GRAPHICS_REGION_PC080SN) ? GRAPHICS_TEST_ITEMS_PER_PAGE_PC080SN : GRAPHICS_TEST_ITEMS_PER_PAGE_PC090OJ;
+}
+
+static const char *get_graphics_region_name(void)
+{
+    return (graphics_region == GRAPHICS_REGION_PC080SN) ? "PC080SN" : "PC090OJ";
+}
+
+static const char *get_graphics_region_description(void)
+{
+    return (graphics_region == GRAPHICS_REGION_PC080SN) ? "BG AND TEXT LAYER ROM" : "SPRITE OBJECT ROM";
+}
+
+static const char *get_graphics_region_unit_name(void)
+{
+    return (graphics_region == GRAPHICS_REGION_PC080SN) ? "TILES" : "CELLS";
+}
+
+static void render_graphics_test_screen(void)
+{
+    static const u32 blank_tile[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    char line[SCREEN_W + 1];
+    const u8 *graphics_data = get_graphics_region_data();
+    const u16 region_item_count = get_graphics_region_item_count();
+    const u16 cols = get_graphics_test_cols();
+    const u16 rows = get_graphics_test_rows();
+    const u16 items_per_page = get_graphics_test_items_per_page();
+    const u16 page_count = get_graphics_test_page_count();
+    const u16 page_base_item = graphics_page * items_per_page;
+    const u16 item_count = (page_base_item + items_per_page <= region_item_count)
+                               ? items_per_page
+                               : (region_item_count - page_base_item);
+    const u16 item_end = (item_count == 0) ? page_base_item : (page_base_item + item_count - 1);
+    const u32 rom_start = (graphics_region == GRAPHICS_REGION_PC080SN) ? ((u32)page_base_item * 32) : ((u32)page_base_item * 128);
+    const u32 rom_end = (item_count == 0)
+                            ? rom_start
+                            : ((graphics_region == GRAPHICS_REGION_PC080SN)
+                                   ? (((u32)(page_base_item + item_count) * 32) - 1)
+                                   : (((u32)(page_base_item + item_count) * 128) - 1));
+    u16 row;
+    u16 col;
+
+    memset(graphics_test_tile_buffer, 0, sizeof(graphics_test_tile_buffer));
+
+    VDP_clearPlane(BG_A, TRUE);
+    PAL_setPalette(PAL2, rastan_graphics_test_palette, CPU);
+    VDP_loadTileData(blank_tile, GRAPHICS_TEST_BLANK_TILE_INDEX, 1, CPU);
+
+    if (graphics_region == GRAPHICS_REGION_PC080SN)
+    {
+        if (item_count > 0)
+        {
+            VDP_loadTileData((const u32 *)(graphics_data + rom_start), GRAPHICS_TEST_TILE_INDEX, item_count, CPU);
+        }
+    }
+    else if (item_count > 0)
+    {
+        u16 cell;
+
+        for (cell = 0; cell < item_count; cell++)
+        {
+            const u8 *src = graphics_data + (((u32) page_base_item + cell) * 128);
+            u8 *dst = ((u8 *)graphics_test_tile_buffer) + ((u32) cell * 4 * 32);
+            u16 y;
+
+            for (y = 0; y < 16; y++)
+            {
+                const u8 *src_row = src + (y * 8);
+                u8 *tile_left;
+                u8 *tile_right;
+
+                if (y < 8)
+                {
+                    tile_left = dst + (0 * 32) + (y * 4);
+                    tile_right = dst + (1 * 32) + (y * 4);
+                }
+                else
+                {
+                    tile_left = dst + (2 * 32) + ((y - 8) * 4);
+                    tile_right = dst + (3 * 32) + ((y - 8) * 4);
+                }
+
+                memcpy(tile_left, src_row, 4);
+                memcpy(tile_right, src_row + 4, 4);
+            }
+        }
+
+        VDP_loadTileData(graphics_test_tile_buffer, GRAPHICS_TEST_TILE_INDEX, item_count * 4, CPU);
+    }
+
+    draw_padded_text("RASTAN GRAPHICS TEST", 10, 1, 20);
+    sprintf(line, "%s RAW TILE BROWSER", get_graphics_region_name());
+    draw_padded_text(line, 8, 2, 24);
+    draw_padded_text(get_graphics_region_description(), 9, 3, 22);
+
+    sprintf(line, "PAGE %02u OF %02u", graphics_page + 1, page_count);
+    draw_padded_text(line, 12, 17, 16);
+    sprintf(line, "%s %04X-%04X", get_graphics_region_unit_name(), page_base_item, item_end);
+    draw_padded_text(line, 11, 18, 18);
+    sprintf(line, "ROM %05lX-%05lX", (unsigned long)rom_start, (unsigned long)rom_end);
+    draw_padded_text(line, 10, 19, 20);
+
+    for (row = 0; row < rows; row++)
+    {
+        for (col = 0; col < cols; col++)
+        {
+            const u16 item_offset = (row * cols) + col;
+
+            if (graphics_region == GRAPHICS_REGION_PC080SN)
+            {
+                const u16 tile_index = (item_offset < item_count)
+                                           ? (GRAPHICS_TEST_TILE_INDEX + item_offset)
+                                           : GRAPHICS_TEST_BLANK_TILE_INDEX;
+
+                VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL2, FALSE, FALSE, FALSE, tile_index), (u16)(10 + col), (u16)(4 + row));
+            }
+            else
+            {
+                const u16 tile_base = (item_offset < item_count)
+                                          ? (GRAPHICS_TEST_TILE_INDEX + (item_offset * 4))
+                                          : GRAPHICS_TEST_BLANK_TILE_INDEX;
+                const u16 x = (u16)(10 + (col * 2));
+                const u16 y = (u16)(4 + (row * 2));
+
+                VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL2, FALSE, FALSE, FALSE, tile_base + 0), x, y);
+                VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL2, FALSE, FALSE, FALSE, tile_base + 1), x + 1, y);
+                VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL2, FALSE, FALSE, FALSE, tile_base + 2), x, y + 1);
+                VDP_setTileMapXY(BG_A, TILE_ATTR_FULL(PAL2, FALSE, FALSE, FALSE, tile_base + 3), x + 1, y + 1);
+            }
+        }
+    }
+
+    draw_padded_text("LEFT RIGHT PAGE", 11, 22, 16);
+    draw_padded_text("UP DOWN PLUS 10", 11, 23, 16);
+    draw_padded_text("A TOGGLE REGION", 11, 24, 16);
+    draw_padded_text("B C START BACK", 11, 25, 16);
+    sprintf(line, "GRAPHICS TEST %s", get_graphics_region_name());
+    set_status(line);
+    VDP_waitDMACompletion();
+}
+
+static void enter_graphics_test(void)
+{
+    current_screen = SCREEN_GRAPHICS_TEST;
+    render_graphics_test_screen();
+}
+
+static void leave_graphics_test(void)
+{
+    current_screen = SCREEN_CONFIG;
+    PAL_setPalette(PAL2, rastan_dip_palette.data, CPU);
+    render_full_screen();
+    set_status("READY");
+}
+
+static void render_sound_test_screen(void)
+{
+    char line[SCREEN_W + 1];
+
+    VDP_clearPlane(BG_A, TRUE);
+    VDP_clearPlane(BG_B, TRUE);
+
+    draw_padded_text("RASTAN SOUND TEST", 11, 2, 18);
+    draw_padded_text("SOUND COMMAND BROWSER", 9, 4, 22);
+
+    sprintf(line, "CURRENT COMMAND %02X", rastan_virtual_sound_command);
+    draw_padded_text(line, 10, 8, 20);
+
+    if (sound_test_has_triggered)
+    {
+        sprintf(line, "LAST TRIGGER %02X", sound_test_last_command);
+        draw_padded_text(line, 12, 10, 16);
+    }
+    else
+    {
+        draw_padded_text("LAST TRIGGER NONE", 11, 10, 18);
+    }
+
+    draw_padded_text("LEFT RIGHT PLUS 01", 10, 18, 20);
+    draw_padded_text("UP DOWN PLUS 10", 11, 19, 18);
+    draw_padded_text("A B C TRIGGER", 12, 21, 14);
+    draw_padded_text("START BACK", 14, 22, 10);
+    draw_padded_text("READY TO HOOK INTO SOUND LATCH", 5, 24, 30);
+    draw_padded_text(status_line, 0, 27, SCREEN_W);
+}
+
+static void enter_sound_test(void)
+{
+    current_screen = SCREEN_SOUND_TEST;
+    strncpy(status_line, "SOUND TEST", SCREEN_W);
+    status_line[SCREEN_W] = '\0';
+    render_sound_test_screen();
+}
+
+static void leave_sound_test(void)
+{
+    current_screen = SCREEN_CONFIG;
+    render_full_screen();
+    set_status("READY");
+}
+
+static void trigger_sound_test_command(void)
+{
+    char line[SCREEN_W + 1];
+
+    rastan_virtual_sound_pending = TRUE;
+    sound_test_last_command = rastan_virtual_sound_command;
+    sound_test_has_triggered = TRUE;
+    sprintf(line, "COMMAND %02X QUEUED", rastan_virtual_sound_command);
+    strncpy(status_line, line, SCREEN_W);
+    status_line[SCREEN_W] = '\0';
+    render_sound_test_screen();
 }
 
 static void render_all_menu_rows(void)
@@ -452,19 +807,41 @@ static bool menu_controls_switch(u8 menu_index, bool bank2, u8 bit)
     }
 }
 
-static void undo_last_change(void)
+static void activate_selected_menu(void)
 {
-    if (undo_state.valid)
+    switch (selected_menu)
     {
-        const u8 prev_dip1 = rastan_virtual_dip1;
-        const u8 prev_dip2 = rastan_virtual_dip2;
-
-        rastan_virtual_dip1 = undo_state.dip1;
-        rastan_virtual_dip2 = undo_state.dip2;
-        undo_state.dip1 = prev_dip1;
-        undo_state.dip2 = prev_dip2;
-        undo_state.valid = FALSE;
+        case 8:
+            apply_competition_settings();
+            render_dip_banks();
+            render_all_menu_rows();
+            render_help_panel();
+            set_status("COMPETITION SETTINGS APPLIED");
+            break;
+        case 9:
+            apply_factory_defaults();
+            render_dip_banks();
+            render_all_menu_rows();
+            render_help_panel();
+            set_status("FACTORY DEFAULTS RESTORED");
+            break;
+        case 10:
+            enter_graphics_test();
+            break;
+        case 11:
+            enter_sound_test();
+            break;
+        case 12:
+            request_start_rastan();
+            break;
+        default:
+            break;
     }
+}
+
+static void request_start_rastan(void)
+{
+    set_status("START REQUESTED - GAME LAUNCH NOT HOOKED YET");
 }
 
 int main(bool hardReset)
@@ -495,7 +872,75 @@ int main(bool hardReset)
         const u16 state = JOY_readJoypad(JOY_1);
         const u16 pressed = state & ~previous_state;
 
-        if (pressed & BUTTON_UP)
+        if (current_screen == SCREEN_GRAPHICS_TEST)
+        {
+            const u16 page_count = get_graphics_test_page_count();
+            const u16 max_page = (page_count == 0) ? 0 : (page_count - 1);
+
+            if ((pressed & BUTTON_A) != 0)
+            {
+                graphics_region = (graphics_region == GRAPHICS_REGION_PC080SN) ? GRAPHICS_REGION_PC090OJ : GRAPHICS_REGION_PC080SN;
+                graphics_page = 0;
+                render_graphics_test_screen();
+            }
+            else if ((pressed & (BUTTON_B | BUTTON_C | BUTTON_START)) != 0)
+            {
+                leave_graphics_test();
+            }
+            else if ((pressed & BUTTON_LEFT) != 0)
+            {
+                graphics_page = (graphics_page == 0) ? max_page : (graphics_page - 1);
+                render_graphics_test_screen();
+            }
+            else if ((pressed & BUTTON_RIGHT) != 0)
+            {
+                graphics_page = (graphics_page >= max_page) ? 0 : (graphics_page + 1);
+                render_graphics_test_screen();
+            }
+            else if ((pressed & BUTTON_UP) != 0)
+            {
+                graphics_page = (graphics_page >= 10) ? (graphics_page - 10) : 0;
+                render_graphics_test_screen();
+            }
+            else if ((pressed & BUTTON_DOWN) != 0)
+            {
+                const u16 next_page = graphics_page + 10;
+                graphics_page = (next_page > max_page) ? max_page : next_page;
+                render_graphics_test_screen();
+            }
+        }
+        else if (current_screen == SCREEN_SOUND_TEST)
+        {
+            if ((pressed & BUTTON_START) != 0)
+            {
+                leave_sound_test();
+            }
+            else if ((pressed & BUTTON_LEFT) != 0)
+            {
+                rastan_virtual_sound_command--;
+                render_sound_test_screen();
+            }
+            else if ((pressed & BUTTON_RIGHT) != 0)
+            {
+                rastan_virtual_sound_command++;
+                render_sound_test_screen();
+            }
+            else if ((pressed & BUTTON_UP) != 0)
+            {
+                rastan_virtual_sound_command = (u8)(rastan_virtual_sound_command + 0x10);
+                render_sound_test_screen();
+            }
+            else if ((pressed & BUTTON_DOWN) != 0)
+            {
+                rastan_virtual_sound_command = (u8)(rastan_virtual_sound_command - 0x10);
+                render_sound_test_screen();
+            }
+            else if ((pressed & (BUTTON_A | BUTTON_B | BUTTON_C)) != 0)
+            {
+                trigger_sound_test_command();
+            }
+        }
+        else if (pressed & BUTTON_UP)
         {
             const u8 previous_menu = selected_menu;
             selected_menu = (selected_menu == 0) ? (MENU_COUNT - 1) : (selected_menu - 1);
@@ -517,45 +962,25 @@ int main(bool hardReset)
         }
         else if (pressed & (BUTTON_LEFT | BUTTON_RIGHT))
         {
-            const u8 current_value = get_menu_value(selected_menu);
-            const u8 count = menu_items[selected_menu].value_count;
-            const bool backwards = (pressed & BUTTON_LEFT) != 0;
-            const u8 next_value = backwards ? ((current_value == 0) ? (count - 1) : (current_value - 1))
-                                            : ((current_value + 1) % count);
-
-            set_menu_value(selected_menu, next_value);
-            render_dip_banks();
-            render_menu_row(selected_menu);
-            render_help_panel();
-            set_status("SETTING UPDATED");
+            if (!menu_item_is_action(selected_menu))
+            {
+                cycle_selected_setting((pressed & BUTTON_LEFT) != 0);
+            }
         }
-        else if (pressed & BUTTON_A)
+        else if (pressed & (BUTTON_A | BUTTON_B | BUTTON_C))
         {
-            apply_competition_settings();
-            render_dip_banks();
-            render_all_menu_rows();
-            render_help_panel();
-            set_status("COMPETITION SETTINGS APPLIED");
-        }
-        else if (pressed & BUTTON_B)
-        {
-            undo_last_change();
-            render_dip_banks();
-            render_all_menu_rows();
-            render_help_panel();
-            set_status("LAST CHANGE UNDONE");
-        }
-        else if (pressed & BUTTON_C)
-        {
-            apply_factory_defaults();
-            render_dip_banks();
-            render_all_menu_rows();
-            render_help_panel();
-            set_status("FACTORY DEFAULTS RESTORED");
+            if (menu_item_is_action(selected_menu))
+            {
+                activate_selected_menu();
+            }
+            else
+            {
+                cycle_selected_setting(FALSE);
+            }
         }
         else if (pressed & BUTTON_START)
         {
-            set_status("START REQUESTED - GAME LAUNCH NOT HOOKED YET");
+            request_start_rastan();
         }
 
         previous_state = state;

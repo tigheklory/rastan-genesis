@@ -43,6 +43,7 @@ isolation and landing on the wrong actor.
 - [docs/mode_flow_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/mode_flow_reference.md)
 - [docs/startup_display_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/startup_display_reference.md)
 - [docs/sprite_animation_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/sprite_animation_reference.md)
+- [docs/palette_application_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/palette_application_reference.md)
 - [docs/reverse_engineering_workflow.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/reverse_engineering_workflow.md)
 - [docs/player_input_trace.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/player_input_trace.md)
 - [docs/player_sprite_trace.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/player_sprite_trace.md)
@@ -124,6 +125,10 @@ Palette / attribute table applicator.
 
 This ORs table-selected bits into `a4 + 0x27`, which is why it is one of the
 main palette leads.
+
+See also:
+
+- [docs/palette_application_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/palette_application_reference.md)
 
 ### `0x40a1e -> 0x40a46 -> 0x4a0d8`
 
