@@ -13,6 +13,23 @@
         "Real pc080sn glyph/tile mapping remains to be defined.",
         "Do not use SGDK font substitution as a final path."
       ]
+    },
+    {
+      "id": "palette_bank_translation",
+      "status": "planned",
+      "source_regions": [
+        "maincpu",
+        "pc080sn",
+        "pc090oj"
+      ],
+      "target": "Genesis CRAM palette packing and palette-line assignment",
+      "notes": [
+        "Genesis supports a 512-color master space but only 64 resident CRAM entries at once.",
+        "Treat Rastan palette work as palette-bank translation, not graphics-ROM conversion.",
+        "Use actor/video attribute paths such as a4+0x27 as palette-bank leads until final arcade palette RAM writes are proven.",
+        "Real palette source words now look 0x0RGB-based and are converted through 0x59ad4 into 16-color blocks in the 0x200000 shadow region.",
+        "Final rule must document how arcade layer/object palette banks map onto Genesis PAL0..PAL3."
+      ]
     }
   ]
 }

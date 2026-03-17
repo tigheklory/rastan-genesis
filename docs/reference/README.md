@@ -12,6 +12,8 @@ Use it for:
 
 Subdirectories:
 
+- [hardware](/home/tighe/projects/rastan-genesis/docs/reference/hardware) for
+  durable CPU, VDP, and board reference manuals
 - [media](/home/tighe/projects/rastan-genesis/docs/reference/media) for extracted
   video frames, contact sheets, and recording reviews
 - [images](/home/tighe/projects/rastan-genesis/docs/reference/images) for

@@ -1,0 +1,370 @@
+{
+  "version": 1,
+  "scope": "startup_title_frontend",
+  "description": "Declarative remap rules for the current Rastan boot/title/front-end bring-up path.",
+  "policy": {
+    "current_copy_mode": "whole_maincpu_relocated",
+    "target_copy_mode": "whole_maincpu_relocated",
+    "planned_arcade_rom_base": "0x000200",
+    "launcher_reserved_rom_end_exclusive": "0x200000",
+    "execute_from_relocated_base": true,
+    "keep_identity_overlays_for_bringup": false,
+    "normal_handoff": "one_way_after_launcher",
+    "notes": [
+      "Active build carries the entire maincpu at a relocated base and executes startup/frontend from that relocated base.",
+      "Legacy identity overlays are disabled; translated execution is from relocated blocks only.",
+      "Test mode remains on the preview/debug path until the real board test screen is running."
+    ]
+  },
+  "whole_maincpu_copy": {
+    "enabled": true,
+    "source_start": "0x000000",
+    "source_end_exclusive": "0x060000",
+    "dest_start": "0x000200"
+  },
+  "rom_absolute_call_relocation": {
+    "enabled": true,
+    "description": "When executing from relocated ROM base, rewrite absolute long ROM targets embedded in copied code blocks.",
+    "source_start": "0x000000",
+    "source_end_exclusive": "0x060000",
+    "scan_ranges": "whole_maincpu_copy_window",
+    "opcodes_with_abs_long_operand": [
+      "0x4EB9",
+      "0x4EF9",
+      "0x4879",
+      "0x41F9",
+      "0x43F9",
+      "0x45F9",
+      "0x47F9",
+      "0x49F9",
+      "0x4BF9",
+      "0x4DF9",
+      "0x4FF9",
+      "0x207C",
+      "0x227C",
+      "0x247C",
+      "0x267C",
+      "0x287C",
+      "0x2A7C",
+      "0x2C7C",
+      "0x2E7C"
+    ]
+  },
+  "declared_arcade_windows": [
+    { "name": "maincpu_rom", "start": "0x000000", "end_exclusive": "0x060000" },
+    { "name": "workram_10c000", "start": "0x0010C000", "end_exclusive": "0x00110000" },
+    { "name": "shadow_200000", "start": "0x00200000", "end_exclusive": "0x00204000" },
+    { "name": "reg_350008", "start": "0x00350008", "end_exclusive": "0x0035000A" },
+    { "name": "reg_380000", "start": "0x00380000", "end_exclusive": "0x00380002" },
+    { "name": "io_390000", "start": "0x00390000", "end_exclusive": "0x00390010" },
+    { "name": "reg_3c0000", "start": "0x003C0000", "end_exclusive": "0x003C0002" },
+    { "name": "reg_3e0000", "start": "0x003E0000", "end_exclusive": "0x003E0004" },
+    { "name": "c_window", "start": "0x00C00000", "end_exclusive": "0x00C10000" },
+    { "name": "reg_c20000", "start": "0x00C20000", "end_exclusive": "0x00C20004" },
+    { "name": "reg_c40000", "start": "0x00C40000", "end_exclusive": "0x00C40004" },
+    { "name": "reg_c50000", "start": "0x00C50000", "end_exclusive": "0x00C50002" },
+    { "name": "d_window", "start": "0x00D00000", "end_exclusive": "0x00D04000" }
+  ],
+  "declared_rewrite_target_windows": [
+    { "name": "genesis_rom", "start": "0x00000000", "end_exclusive": "0x00800000" },
+    { "name": "genesis_wram", "start": "0xE0000000", "end_exclusive": "0xE1000000" }
+  ],
+  "required_symbols": [
+    "genesistan_shadow_200000_words",
+    "genesistan_arcade_workram_words",
+    "genesistan_shadow_d00000_words",
+    "genesistan_shadow_c_window_words",
+    "genesistan_shadow_c20000_words",
+    "genesistan_shadow_c40000_words",
+    "genesistan_shadow_reg_c50000",
+    "genesistan_shadow_reg_d01bfe",
+    "genesistan_shadow_reg_350008",
+    "genesistan_shadow_reg_380000",
+    "genesistan_shadow_reg_3c0000",
+    "genesistan_shadow_input_390001",
+    "genesistan_shadow_input_390003",
+    "genesistan_shadow_input_390005",
+    "genesistan_shadow_input_390007",
+    "genesistan_shadow_reg_3e0001",
+    "genesistan_shadow_reg_3e0003",
+    "genesistan_shadow_dip1",
+    "genesistan_shadow_dip2",
+    "genesistan_shadow_service_word",
+    "genesistan_startup_result_code",
+    "genesistan_sound_send_command",
+    "genesistan_sound_read_status",
+    "genesistan_run_original_startup_common",
+    "genesistan_run_original_frontend_tick",
+    "genesistan_startup_common_continue_normal",
+    "genesistan_startup_common_exit_normal",
+    "genesistan_startup_common_exit_test",
+    "_reset_entry"
+  ],
+  "copied_ranges": [
+    {
+      "name": "startup_common",
+      "kind": "original_code",
+      "start": "0x03AE86",
+      "end_exclusive": "0x03B05C"
+    },
+    {
+      "name": "frontend_data_038000",
+      "kind": "original_data",
+      "start": "0x038000",
+      "end_exclusive": "0x039F80"
+    },
+    {
+      "name": "frontend_tables_05d068",
+      "kind": "original_data",
+      "start": "0x05D068",
+      "end_exclusive": "0x05D400"
+    },
+    {
+      "name": "frontend_core",
+      "kind": "original_code",
+      "start": "0x039F80",
+      "end_exclusive": "0x03AD3C"
+    },
+    {
+      "name": "title_init_block",
+      "kind": "original_code",
+      "start": "0x03B098",
+      "end_exclusive": "0x03C484"
+    },
+    {
+      "name": "title_text_ptr_table_03bb7c",
+      "kind": "original_data",
+      "start": "0x03BB7C",
+      "end_exclusive": "0x03BC98"
+    },
+    {
+      "name": "helper_fill_words",
+      "kind": "original_code",
+      "start": "0x03AD3C",
+      "end_exclusive": "0x03AD4C"
+    },
+    {
+      "name": "helper_d000_init",
+      "kind": "original_code",
+      "start": "0x03AD72",
+      "end_exclusive": "0x03ADBC"
+    },
+    {
+      "name": "helper_display_control",
+      "kind": "original_code",
+      "start": "0x03ADD8",
+      "end_exclusive": "0x03AE85"
+    },
+    {
+      "name": "helper_cfg_copy",
+      "kind": "original_code",
+      "start": "0x03B0C2",
+      "end_exclusive": "0x03B103"
+    },
+    {
+      "name": "helper_200000_init",
+      "kind": "original_code",
+      "start": "0x03B9F8",
+      "end_exclusive": "0x03BA88"
+    },
+    {
+      "name": "helper_frontend_timers",
+      "kind": "original_code",
+      "start": "0x03EEFA",
+      "end_exclusive": "0x03EFBD"
+    },
+    {
+      "name": "helper_3f084_reg_write",
+      "kind": "original_code",
+      "start": "0x03F084",
+      "end_exclusive": "0x03F09C"
+    },
+    {
+      "name": "table_4eaf6",
+      "kind": "original_data",
+      "start": "0x04EAF6",
+      "end_exclusive": "0x04F0F6"
+    },
+    {
+      "name": "table_4fe62",
+      "kind": "original_data",
+      "start": "0x04FE62",
+      "end_exclusive": "0x04FE82"
+    },
+    {
+      "name": "helper_5b512_rts",
+      "kind": "original_code",
+      "start": "0x05B512",
+      "end_exclusive": "0x05B51A"
+    },
+    {
+      "name": "helper_55ca2_dispatch",
+      "kind": "original_code",
+      "start": "0x055CA2",
+      "end_exclusive": "0x055DDC"
+    },
+    {
+      "name": "helper_5ffa2_5ffb2",
+      "kind": "original_code",
+      "start": "0x05FFA2",
+      "end_exclusive": "0x060000"
+    }
+  ],
+  "absolute_rewrite_groups": [
+    {
+      "range": "startup_common",
+      "mappings": [
+        { "old": "0x00C50000", "symbol": "genesistan_shadow_reg_c50000" },
+        { "old": "0x00D01BFE", "symbol": "genesistan_shadow_reg_d01bfe" },
+        { "old": "0x00350008", "symbol": "genesistan_shadow_reg_350008" },
+        { "old": "0x00380000", "symbol": "genesistan_shadow_reg_380000" },
+        { "old": "0x003E0001", "symbol": "genesistan_shadow_reg_3e0001" },
+        { "old": "0x003E0003", "symbol": "genesistan_shadow_reg_3e0003" },
+        { "old": "0x00390001", "symbol": "genesistan_shadow_input_390001" },
+        { "old": "0x00390003", "symbol": "genesistan_shadow_input_390003" },
+        { "old": "0x00390005", "symbol": "genesistan_shadow_input_390005" },
+        { "old": "0x00390007", "symbol": "genesistan_shadow_input_390007" },
+        { "old": "0x00200000", "symbol": "genesistan_shadow_200000_words" },
+        { "old": "0x0010C000", "symbol": "genesistan_arcade_workram_words" },
+        { "old": "0x0010C002", "symbol": "genesistan_arcade_workram_words", "offset": 2 },
+        { "old": "0x003C0000", "symbol": "genesistan_shadow_reg_3c0000" },
+        { "old": "0x00C00000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00C04000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00C08000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00C0C000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00390009", "symbol": "genesistan_shadow_dip1" },
+        { "old": "0x0039000B", "symbol": "genesistan_shadow_dip2" },
+        { "old": "0x0005FF9E", "symbol": "genesistan_shadow_service_word" }
+      ]
+    },
+    {
+      "range": "frontend_core",
+      "mappings": [
+        { "old": "0x00C50000", "symbol": "genesistan_shadow_reg_c50000" },
+        { "old": "0x00D01BFE", "symbol": "genesistan_shadow_reg_d01bfe" },
+        { "old": "0x00350008", "symbol": "genesistan_shadow_reg_350008" },
+        { "old": "0x00380000", "symbol": "genesistan_shadow_reg_380000" },
+        { "old": "0x003E0001", "symbol": "genesistan_shadow_reg_3e0001" },
+        { "old": "0x003E0003", "symbol": "genesistan_shadow_reg_3e0003" },
+        { "old": "0x00390001", "symbol": "genesistan_shadow_input_390001" },
+        { "old": "0x00390003", "symbol": "genesistan_shadow_input_390003" },
+        { "old": "0x00390005", "symbol": "genesistan_shadow_input_390005" },
+        { "old": "0x00390007", "symbol": "genesistan_shadow_input_390007" },
+        { "old": "0x00200000", "symbol": "genesistan_shadow_200000_words" },
+        { "old": "0x0010C000", "symbol": "genesistan_arcade_workram_words" },
+        { "old": "0x0010C002", "symbol": "genesistan_arcade_workram_words", "offset": 2 },
+        { "old": "0x003C0000", "symbol": "genesistan_shadow_reg_3c0000" },
+        { "old": "0x00C00000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00C04000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00C08000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00C0C000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00390009", "symbol": "genesistan_shadow_dip1" },
+        { "old": "0x0039000B", "symbol": "genesistan_shadow_dip2" },
+        { "old": "0x0005FF9E", "symbol": "genesistan_shadow_service_word" }
+      ]
+    },
+    {
+      "range": "title_init_block",
+      "mappings": [
+        { "old": "0x00C50000", "symbol": "genesistan_shadow_reg_c50000" },
+        { "old": "0x00D01BFE", "symbol": "genesistan_shadow_reg_d01bfe" },
+        { "old": "0x00350008", "symbol": "genesistan_shadow_reg_350008" },
+        { "old": "0x00380000", "symbol": "genesistan_shadow_reg_380000" },
+        { "old": "0x003E0001", "symbol": "genesistan_shadow_reg_3e0001" },
+        { "old": "0x003E0003", "symbol": "genesistan_shadow_reg_3e0003" },
+        { "old": "0x00390001", "symbol": "genesistan_shadow_input_390001" },
+        { "old": "0x00390003", "symbol": "genesistan_shadow_input_390003" },
+        { "old": "0x00390005", "symbol": "genesistan_shadow_input_390005" },
+        { "old": "0x00390007", "symbol": "genesistan_shadow_input_390007" },
+        { "old": "0x00200000", "symbol": "genesistan_shadow_200000_words" },
+        { "old": "0x0010C000", "symbol": "genesistan_arcade_workram_words" },
+        { "old": "0x0010C002", "symbol": "genesistan_arcade_workram_words", "offset": 2 },
+        { "old": "0x003C0000", "symbol": "genesistan_shadow_reg_3c0000" },
+        { "old": "0x00C00000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00C04000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00C08000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00C0C000", "symbol": "genesistan_shadow_c_window_words" },
+        { "old": "0x00390009", "symbol": "genesistan_shadow_dip1" },
+        { "old": "0x0039000B", "symbol": "genesistan_shadow_dip2" },
+        { "old": "0x0005FF9E", "symbol": "genesistan_shadow_service_word" }
+      ]
+    },
+    {
+      "range": "helper_d000_init",
+      "mappings": [
+        { "old": "0x00D00000", "symbol": "genesistan_shadow_d00000_words" },
+        { "old": "0x00D00778", "symbol": "genesistan_shadow_d00000_words", "offset": 1912 }
+      ]
+    },
+    {
+      "range": "helper_200000_init",
+      "mappings": [
+        { "old": "0x00200000", "symbol": "genesistan_shadow_200000_words" }
+      ]
+    },
+    {
+      "range": "helper_frontend_timers",
+      "mappings": [
+        { "old": "0x00380000", "symbol": "genesistan_shadow_reg_380000" }
+      ]
+    },
+    {
+      "range": "helper_3f084_reg_write",
+      "mappings": [
+        { "old": "0x003E0001", "symbol": "genesistan_shadow_reg_3e0001" },
+        { "old": "0x003E0003", "symbol": "genesistan_shadow_reg_3e0003" }
+      ]
+    }
+  ],
+  "window_rewrite_rules": [
+    { "range": "frontend_core", "old_start": "0x00C00000", "old_end_exclusive": "0x00C04000", "symbol": "genesistan_shadow_c_window_words" },
+    { "range": "frontend_core", "old_start": "0x00C04000", "old_end_exclusive": "0x00C08000", "symbol": "genesistan_shadow_c_window_words" },
+    { "range": "frontend_core", "old_start": "0x00C08000", "old_end_exclusive": "0x00C0C000", "symbol": "genesistan_shadow_c_window_words" },
+    { "range": "frontend_core", "old_start": "0x00C0C000", "old_end_exclusive": "0x00C10000", "symbol": "genesistan_shadow_c_window_words" },
+    { "range": "frontend_core", "old_start": "0x0010C000", "old_end_exclusive": "0x00110000", "symbol": "genesistan_arcade_workram_words" },
+    { "range": "frontend_core", "old_start": "0x00200000", "old_end_exclusive": "0x00204000", "symbol": "genesistan_shadow_200000_words" },
+    { "range": "frontend_core", "old_start": "0x00D00000", "old_end_exclusive": "0x00D00800", "symbol": "genesistan_shadow_d00000_words" },
+    { "range": "frontend_core", "old_start": "0x00C20000", "old_end_exclusive": "0x00C20004", "symbol": "genesistan_shadow_c20000_words" },
+    { "range": "frontend_core", "old_start": "0x00C40000", "old_end_exclusive": "0x00C40004", "symbol": "genesistan_shadow_c40000_words" },
+    { "range": "title_text_ptr_table_03bb7c", "old_start": "0x000000", "old_end_exclusive": "0x00060000", "new_start": "0x000200", "scan_step": 4 },
+    { "range": "title_init_block", "old_start": "0x00C00000", "old_end_exclusive": "0x00C04000", "symbol": "genesistan_shadow_c_window_words", "allow_in_code": true },
+    { "range": "title_init_block", "old_start": "0x00C04000", "old_end_exclusive": "0x00C08000", "symbol": "genesistan_shadow_c_window_words", "allow_in_code": true },
+    { "range": "title_init_block", "old_start": "0x00C08000", "old_end_exclusive": "0x00C0C000", "symbol": "genesistan_shadow_c_window_words", "allow_in_code": true },
+    { "range": "title_init_block", "old_start": "0x00C0C000", "old_end_exclusive": "0x00C10000", "symbol": "genesistan_shadow_c_window_words", "allow_in_code": true },
+    { "range": "title_init_block", "old_start": "0x0010C000", "old_end_exclusive": "0x00110000", "symbol": "genesistan_arcade_workram_words", "allow_in_code": true },
+    { "range": "title_init_block", "old_start": "0x00D00000", "old_end_exclusive": "0x00D00800", "symbol": "genesistan_shadow_d00000_words", "allow_in_code": true },
+    { "range": "title_init_block", "old_start": "0x00C20000", "old_end_exclusive": "0x00C20004", "symbol": "genesistan_shadow_c20000_words", "allow_in_code": true },
+    { "range": "title_init_block", "old_start": "0x00C40000", "old_end_exclusive": "0x00C40004", "symbol": "genesistan_shadow_c40000_words", "allow_in_code": true },
+    { "range": "helper_frontend_timers", "old_start": "0x0010C000", "old_end_exclusive": "0x00110000", "symbol": "genesistan_arcade_workram_words", "allow_in_code": true },
+    { "range": "helper_55ca2_dispatch", "old_start": "0x0010C000", "old_end_exclusive": "0x00110000", "symbol": "genesistan_arcade_workram_words", "allow_in_code": true }
+  ],
+  "verbatim_restores": [
+    {
+      "name": "helper_5b512_rts",
+      "start": "0x05B512",
+      "end_exclusive": "0x05B51A"
+    }
+  ],
+  "shim_jumps": [
+    {
+      "id": "helper_3f084_reg_write",
+      "start": "0x03F084",
+      "end_exclusive": "0x03F09C",
+      "symbol": "genesistan_sound_send_command"
+    },
+    {
+      "id": "helper_3f09c_reg_status",
+      "start": "0x03F09C",
+      "end_exclusive": "0x03F0AC",
+      "symbol": "genesistan_sound_read_status"
+    }
+  ],
+  "generated_stubs": {
+    "test_jump_patch_address": "0x03B058",
+    "normal_stub_start": "0x03B05C",
+    "normal_stub_end_exclusive": "0x03B070",
+    "test_stub_address": "0x03B070",
+    "test_stub_end_exclusive": "0x03B07E",
+    "test_result_value": 2
+  }
+}

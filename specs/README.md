@@ -15,6 +15,7 @@ Principles:
 
 The intended spec split is:
 
+- `startup_title_remap.json`: active build-driving remap rules for the current boot/title/front-end bring-up path
 - `symbols.json`: stable identities for original code/data objects
 - `objects.json`: extracted code/data slices and their dependencies
 - `extraction_manifest.json`: ROM source provenance, set version, and required file hashes

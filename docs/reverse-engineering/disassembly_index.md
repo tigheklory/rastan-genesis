@@ -44,6 +44,8 @@ isolation and landing on the wrong actor.
 - [docs/startup_display_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/startup_display_reference.md)
 - [docs/sprite_animation_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/sprite_animation_reference.md)
 - [docs/palette_application_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/palette_application_reference.md)
+- [docs/palette_fit_audit.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/palette_fit_audit.md)
+- [docs/palette_table_reference.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/palette_table_reference.md)
 - [docs/reverse_engineering_workflow.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/reverse_engineering_workflow.md)
 - [docs/player_input_trace.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/player_input_trace.md)
 - [docs/player_sprite_trace.md](/home/tighe/projects/rastan-genesis/docs/reverse-engineering/player_sprite_trace.md)

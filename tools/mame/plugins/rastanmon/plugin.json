@@ -1,0 +1,10 @@
+{
+  "plugin": {
+    "name": "rastanmon",
+    "description": "Rastan mode and palette monitor",
+    "version": "0.1.0",
+    "author": "OpenAI Codex",
+    "type": "plugin",
+    "start": "false"
+  }
+}

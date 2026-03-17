@@ -51,5 +51,5 @@ out/src/main.o: src/main.c \
  /home/tighe/projects/rastan-genesis/tools/sgdk/inc/config.h \
  /home/tighe/projects/rastan-genesis/tools/sgdk/inc/string.h \
  /home/tighe/projects/rastan-genesis/tools/sgdk/inc/maths.h \
- /home/tighe/projects/rastan-genesis/tools/sgdk/inc/dma.h inc/main.h \
- res/res_ui.h
+ /home/tighe/projects/rastan-genesis/tools/sgdk/inc/dma.h \
+ inc/build_info.h inc/main.h res/res_payload.h res/res_ui.h

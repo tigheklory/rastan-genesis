@@ -1,8 +1,14 @@
 #include <genesis.h>
 #include <string.h>
 
+#include "build_info.h"
 #include "main.h"
+#include "res_payload.h"
 #include "res_ui.h"
+
+#ifndef RASTAN_ENABLE_STARTUP_HOOK
+#define RASTAN_ENABLE_STARTUP_HOOK 1
+#endif
 
 #define SCREEN_W 40
 #define FACTORY_DIP1 0xFE
@@ -13,22 +19,28 @@
 #define PC080SN_TILE_COUNT (524288 / 32)
 #define PC090OJ_TILE_COUNT (524288 / 32)
 #define PC090OJ_CELL_COUNT (524288 / 128)
-#define GRAPHICS_TEST_COLS_PC080SN 20
-#define GRAPHICS_TEST_ROWS_PC080SN 12
+#define GRAPHICS_TEST_COLS_PC080SN 18
+#define GRAPHICS_TEST_ROWS_PC080SN 11
 #define GRAPHICS_TEST_ITEMS_PER_PAGE_PC080SN (GRAPHICS_TEST_COLS_PC080SN * GRAPHICS_TEST_ROWS_PC080SN)
-#define GRAPHICS_TEST_COLS_PC090OJ 10
-#define GRAPHICS_TEST_ROWS_PC090OJ 6
+#define GRAPHICS_TEST_COLS_PC090OJ 9
+#define GRAPHICS_TEST_ROWS_PC090OJ 5
 #define GRAPHICS_TEST_ITEMS_PER_PAGE_PC090OJ (GRAPHICS_TEST_COLS_PC090OJ * GRAPHICS_TEST_ROWS_PC090OJ)
 #define GRAPHICS_TEST_MAX_VRAM_TILES GRAPHICS_TEST_ITEMS_PER_PAGE_PC080SN
 #define GRAPHICS_TEST_BLANK_TILE_INDEX (GRAPHICS_TEST_TILE_INDEX + GRAPHICS_TEST_MAX_VRAM_TILES)
 #define DIP_TILE_ON_INDEX TILE_USER_INDEX
 #define DIP_TILE_OFF_INDEX (TILE_USER_INDEX + 2)
+#define FRONTEND_RUNTIME_SPRITE_TILE_BASE 1024
+#define FRONTEND_RUNTIME_MAX_SPRITES SAT_MAX_SIZE
+#define FRONTEND_RUNTIME_MAX_UNIQUE_CODES 64
+#define FRONTEND_RUNTIME_MAX_PALETTE_BANKS 4
 
 typedef enum
 {
     SCREEN_CONFIG = 0,
     SCREEN_GRAPHICS_TEST,
     SCREEN_SOUND_TEST,
+    SCREEN_STARTUP_PREVIEW,
+    SCREEN_FRONTEND_LIVE,
 } AppScreen;
 
 typedef enum
@@ -158,8 +170,10 @@ volatile u8 rastan_virtual_dip2 = FACTORY_DIP2;
 static u8 selected_menu = 0;
 static UndoState undo_state = {0, 0, FALSE};
 static char status_line[SCREEN_W + 1] = "READY";
-static u32 rastan_font_data[FONT_LEN * 8];
-static u32 graphics_test_tile_buffer[GRAPHICS_TEST_MAX_VRAM_TILES * 8];
+static u32 rastan_font_tile_buffer[FONT_LEN * 8];
+static u32 *graphics_test_tile_buffer = NULL;
+static u32 frontend_runtime_sprite_tile_buffer[FRONTEND_RUNTIME_MAX_UNIQUE_CODES * 4 * 8];
+static u16 frontend_runtime_sprite_codes[FRONTEND_RUNTIME_MAX_UNIQUE_CODES];
 static AppScreen current_screen = SCREEN_CONFIG;
 static u16 graphics_page = 0;
 static GraphicsRegion graphics_region = GRAPHICS_REGION_PC080SN;
@@ -167,6 +181,8 @@ volatile u8 rastan_virtual_sound_command = 0x00;
 volatile u8 rastan_virtual_sound_pending = FALSE;
 static u8 sound_test_last_command = 0x00;
 static bool sound_test_has_triggered = FALSE;
+static volatile u32 packed_romset_size_cache = 0;
+static volatile u32 packed_romset_signature_cache = 0;
 
 typedef struct
 {
@@ -226,9 +242,9 @@ static const RastanFontGlyph rastan_font_glyphs[] = {
 static void build_rastan_font(void)
 {
     u16 i;
-    u8 *dst = (u8 *) rastan_font_data;
+    u8 *dst = (u8 *) rastan_font_tile_buffer;
 
-    memset(rastan_font_data, 0, sizeof(rastan_font_data));
+    memset(rastan_font_tile_buffer, 0, sizeof(rastan_font_tile_buffer));
 
     for (i = 0; i < sizeof(rastan_font_glyphs) / sizeof(rastan_font_glyphs[0]); i++)
     {
@@ -240,6 +256,107 @@ static void build_rastan_font(void)
     }
 }
 
+static char lookup_rastan_font_char(u8 source_tile)
+{
+    u16 i;
+
+    for (i = 0; i < sizeof(rastan_font_glyphs) / sizeof(rastan_font_glyphs[0]); i++)
+    {
+        if (rastan_font_glyphs[i].src_tile == source_tile)
+        {
+            return (char)rastan_font_glyphs[i].code;
+        }
+    }
+
+    return '\0';
+}
+
+static char decode_startup_shadow_word(u16 word)
+{
+    static const u16 candidate_masks[] = {0x00FF, 0xFF00, 0x01FF};
+    u16 i;
+
+    if (word == 0)
+    {
+        return ' ';
+    }
+
+    for (i = 0; i < sizeof(candidate_masks) / sizeof(candidate_masks[0]); i++)
+    {
+        const u16 mask = candidate_masks[i];
+        const u8 source_tile = (mask == 0xFF00) ? (u8)((word >> 8) & 0xFF) : (u8)(word & mask);
+        const char decoded = lookup_rastan_font_char(source_tile);
+
+        if (decoded != '\0')
+        {
+            return decoded;
+        }
+    }
+
+    return ' ';
+}
+
+static bool startup_shadow_row_has_text(u16 shadow_row)
+{
+    u16 col;
+
+    for (col = 0; col < SCREEN_W; col++)
+    {
+        if (decode_startup_shadow_word(genesistan_shadow_c_window_words[(shadow_row * 64) + col]) != ' ')
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+static u16 find_first_nonzero_word(const volatile uint16_t *words, u16 count)
+{
+    u16 i;
+
+    for (i = 0; i < count; i++)
+    {
+        if (words[i] != 0)
+        {
+            return i;
+        }
+    }
+
+    return 0xFFFF;
+}
+
+static u16 find_last_nonzero_word(const volatile uint16_t *words, u16 count)
+{
+    s16 i;
+
+    for (i = (s16)count - 1; i >= 0; i--)
+    {
+        if (words[i] != 0)
+        {
+            return (u16)i;
+        }
+    }
+
+    return 0xFFFF;
+}
+
+static u16 count_nonzero_words(const volatile uint16_t *words, u16 count)
+{
+    u16 i;
+    u16 total = 0;
+
+    for (i = 0; i < count; i++)
+    {
+        if (words[i] != 0)
+        {
+            total++;
+        }
+    }
+
+    return total;
+}
+
 static void draw_padded_text_palette(const char *text, u16 x, u16 y, u16 width, u16 palette);
 static bool menu_controls_switch(u8 menu_index, bool bank2, u8 bit);
 static u16 menu_row_y(u8 index);
@@ -249,6 +366,7 @@ static void render_menu_row(u8 index);
 static void render_help_panel(void);
 static void activate_selected_menu(void);
 static void request_start_rastan(void);
+static void reset_launcher_runtime_state(void);
 static void render_graphics_test_screen(void);
 static void enter_graphics_test(void);
 static void leave_graphics_test(void);
@@ -260,10 +378,24 @@ static u16 get_graphics_test_items_per_page(void);
 static const char *get_graphics_region_name(void);
 static const char *get_graphics_region_description(void);
 static const char *get_graphics_region_unit_name(void);
+static bool ensure_graphics_test_buffer(void);
+static void free_graphics_test_buffer(void);
 static void render_sound_test_screen(void);
 static void enter_sound_test(void);
 static void leave_sound_test(void);
 static void trigger_sound_test_command(void);
+static void render_startup_preview_screen(void);
+static void render_frontend_sprite_layer(void);
+static void clear_frontend_sprite_layer(void);
+static u16 convert_xbgr555_to_genesis(u16 raw);
+static u16 frontend_palette_line_for_bank(u16 bank, u16 *bank_map, u16 *bank_count);
+static void frontend_decode_pc090oj_cell(u16 code, u32 *dst_tiles);
+static s16 frontend_runtime_tile_for_code(u16 code, u16 *unique_count);
+static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count);
+static void leave_startup_preview(void);
+static u32 get_packed_romset_size(void);
+static u32 get_packed_romset_signature(void);
+static void restore_launcher_vdp_state(void);
 
 static void draw_padded_text(const char *text, u16 x, u16 y, u16 width)
 {
@@ -326,7 +458,7 @@ static u8 get_menu_value(u8 index)
     {
         case 0: return get_bit(rastan_virtual_dip1, 0) ? 1 : 0;
         case 1: return get_bit(rastan_virtual_dip1, 1) ? 0 : 1;
-        case 2: return get_bit(rastan_virtual_dip1, 2) ? 1 : 0;
+        case 2: return get_bit(rastan_virtual_dip1, 2) ? 0 : 1;
         case 3:
         {
             const u8 raw = get_field(rastan_virtual_dip1, 4, 0x0F);
@@ -372,7 +504,7 @@ static void set_menu_value(u8 index, u8 next_value)
     {
         case 0: set_bit((u8 *) &rastan_virtual_dip1, 0, next_value ? 1 : 0); break;
         case 1: set_bit((u8 *) &rastan_virtual_dip1, 1, next_value ? 0 : 1); break;
-        case 2: set_bit((u8 *) &rastan_virtual_dip1, 2, next_value ? 1 : 0); break;
+        case 2: set_bit((u8 *) &rastan_virtual_dip1, 2, next_value ? 0 : 1); break;
         case 3:
         {
             static const u8 raw_coinage[4] = {0x0F, 0x0A, 0x05, 0x00};
@@ -493,12 +625,33 @@ static void render_help_panel(void)
 
 static void render_static_layout(void)
 {
+    u16 build_x;
+
     VDP_clearPlane(BG_A, TRUE);
     VDP_clearPlane(BG_B, TRUE);
 
     draw_padded_text("RASTAN STARTUP CONFIG", 9, 1, 22);
-    draw_padded_text("WORLD REV1 BASELINE UI", 8, 2, 24);
+    build_x = (u16)((SCREEN_W - strlen(RASTAN_BUILD_LINE)) / 2);
+    draw_padded_text(RASTAN_BUILD_LINE, build_x, 2, (u16)strlen(RASTAN_BUILD_LINE));
     draw_padded_text("SETTINGS", 1, 8, 8);
+}
+
+static void restore_launcher_vdp_state(void)
+{
+    SYS_disableInts();
+    VDP_init();
+    VDP_setScreenWidth320();
+    PAL_setPalette(PAL0, rastan_active_dip_palette, CPU);
+    PAL_setPalette(PAL1, rastan_font_palette, CPU);
+    PAL_setPalette(PAL2, rastan_dip_palette.data, CPU);
+    PAL_setPalette(PAL3, rastan_selected_font_palette, CPU);
+    VDP_setTextPalette(PAL1);
+    build_rastan_font();
+    VDP_loadFontData(rastan_font_tile_buffer, FONT_LEN, CPU);
+    VDP_loadTileSet(&rastan_dip_on, DIP_TILE_ON_INDEX, CPU);
+    VDP_loadTileSet(&rastan_dip_off, DIP_TILE_OFF_INDEX, CPU);
+    VDP_updateSprites(0, CPU);
+    SYS_enableInts();
 }
 
 static void render_full_screen(void)
@@ -562,6 +715,26 @@ static const char *get_graphics_region_unit_name(void)
     return (graphics_region == GRAPHICS_REGION_PC080SN) ? "TILES" : "CELLS";
 }
 
+static bool ensure_graphics_test_buffer(void)
+{
+    if (graphics_test_tile_buffer != NULL)
+    {
+        return TRUE;
+    }
+
+    graphics_test_tile_buffer = MEM_alloc(sizeof(u32) * GRAPHICS_TEST_MAX_VRAM_TILES * 8);
+    return graphics_test_tile_buffer != NULL;
+}
+
+static void free_graphics_test_buffer(void)
+{
+    if (graphics_test_tile_buffer != NULL)
+    {
+        MEM_free(graphics_test_tile_buffer);
+        graphics_test_tile_buffer = NULL;
+    }
+}
+
 static void render_graphics_test_screen(void)
 {
     static const u32 blank_tile[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -586,7 +759,21 @@ static void render_graphics_test_screen(void)
     u16 row;
     u16 col;
 
-    memset(graphics_test_tile_buffer, 0, sizeof(graphics_test_tile_buffer));
+    if (!ensure_graphics_test_buffer())
+    {
+        VDP_clearPlane(BG_A, TRUE);
+        VDP_clearPlane(BG_B, TRUE);
+        draw_padded_text("RASTAN GRAPHICS TEST", 10, 1, 20);
+        draw_padded_text("NOT ENOUGH FREE WRAM", 8, 12, 24);
+        set_status("GFX TEST NEEDS MORE WRAM");
+        return;
+    }
+
+    memset(
+        graphics_test_tile_buffer,
+        0,
+        sizeof(u32) * GRAPHICS_TEST_MAX_VRAM_TILES * 8
+    );
 
     VDP_clearPlane(BG_A, TRUE);
     PAL_setPalette(PAL2, rastan_graphics_test_palette, CPU);
@@ -694,6 +881,7 @@ static void enter_graphics_test(void)
 static void leave_graphics_test(void)
 {
     current_screen = SCREEN_CONFIG;
+    free_graphics_test_buffer();
     PAL_setPalette(PAL2, rastan_dip_palette.data, CPU);
     render_full_screen();
     set_status("READY");
@@ -756,6 +944,280 @@ static void trigger_sound_test_command(void)
     strncpy(status_line, line, SCREEN_W);
     status_line[SCREEN_W] = '\0';
     render_sound_test_screen();
+}
+
+static const char *startup_result_label(void)
+{
+    switch (genesistan_startup_result_code)
+    {
+        case GENESISTAN_STARTUP_RESULT_NORMAL: return "NORMAL";
+        case GENESISTAN_STARTUP_RESULT_TEST: return "TEST";
+        default: return "UNKNOWN";
+    }
+}
+
+static void render_startup_preview_screen(void)
+{
+#if RASTAN_ENABLE_STARTUP_HOOK
+    char line[SCREEN_W + 1];
+    u16 first_text_row = 0;
+    u16 preview_row;
+    const u16 c_window_nonzero = count_nonzero_words(genesistan_shadow_c_window_words, 0x2000);
+    const u16 c_window_first = find_first_nonzero_word(genesistan_shadow_c_window_words, 0x2000);
+    const u16 c_window_last = find_last_nonzero_word(genesistan_shadow_c_window_words, 0x2000);
+
+    VDP_clearPlane(BG_A, TRUE);
+    VDP_clearPlane(BG_B, TRUE);
+
+    draw_padded_text("RASTAN STARTUP PREVIEW", 9, 1, 22);
+    sprintf(line, "RESULT %-6s  DIPS %02X %02X", startup_result_label(), rastan_virtual_dip1, rastan_virtual_dip2);
+    draw_padded_text(line, 5, 2, 30);
+    sprintf(line, "3E %02X/%02X  C5 %04X  3C %04X", genesistan_shadow_reg_3e0001, genesistan_shadow_reg_3e0003, genesistan_shadow_reg_c50000, genesistan_shadow_reg_3c0000);
+    draw_padded_text(line, 2, 3, 36);
+    sprintf(line, "CWIN NZ %04X 1ST %04X LST %04X", c_window_nonzero, c_window_first, c_window_last);
+    draw_padded_text(line, 6, 4, 28);
+    sprintf(line, "C2 %04X %04X C4 %04X %04X",
+            genesistan_shadow_c20000_words[0],
+            genesistan_shadow_c20000_words[1],
+            genesistan_shadow_c40000_words[0],
+            genesistan_shadow_c40000_words[1]);
+    draw_padded_text(line, 8, 5, 24);
+    draw_padded_text("ORIGINAL TITLE TEXT SHADOW", 7, 7, 26);
+
+    while ((first_text_row < 31) && !startup_shadow_row_has_text(first_text_row))
+    {
+        first_text_row++;
+    }
+    if (first_text_row > 1)
+    {
+        first_text_row -= 1;
+    }
+
+    for (preview_row = 0; preview_row < 18; preview_row++)
+    {
+        const u16 shadow_row = first_text_row + preview_row;
+        u16 col;
+
+        memset(line, ' ', SCREEN_W);
+        line[SCREEN_W] = '\0';
+
+        if (shadow_row < 32)
+        {
+            for (col = 0; col < SCREEN_W; col++)
+            {
+                line[col] = decode_startup_shadow_word(genesistan_shadow_c_window_words[(shadow_row * 64) + col]);
+            }
+        }
+
+        draw_padded_text(line, 0, (u16)(9 + preview_row), SCREEN_W);
+    }
+
+    draw_padded_text("A/START RERUN   B/C BACK", 7, 26, 26);
+    draw_padded_text(status_line, 0, 27, SCREEN_W);
+#else
+    VDP_clearPlane(BG_A, TRUE);
+    VDP_clearPlane(BG_B, TRUE);
+    draw_padded_text("NO HOOK PREVIEW IN PAYLOAD BUILD", 4, 12, 32);
+    draw_padded_text(status_line, 0, 27, SCREEN_W);
+#endif
+}
+
+static u16 convert_xbgr555_to_genesis(u16 raw)
+{
+    const u16 r = (raw >> 0) & 0x1F;
+    const u16 g = (raw >> 5) & 0x1F;
+    const u16 b = (raw >> 10) & 0x1F;
+    const u16 rn = (u16)(((r >> 2) & 0x07) << 1);
+    const u16 gn = (u16)(((g >> 2) & 0x07) << 1);
+    const u16 bn = (u16)(((b >> 2) & 0x07) << 1);
+
+    return (u16)((bn << 8) | (gn << 4) | rn);
+}
+
+static u16 frontend_palette_line_for_bank(u16 bank, u16 *bank_map, u16 *bank_count)
+{
+    u16 i;
+
+    for (i = 0; i < *bank_count; i++)
+    {
+        if (bank_map[i] == bank)
+        {
+            return i;
+        }
+    }
+
+    if (*bank_count < FRONTEND_RUNTIME_MAX_PALETTE_BANKS)
+    {
+        bank_map[*bank_count] = bank;
+        (*bank_count)++;
+        return (u16)(*bank_count - 1);
+    }
+
+    return (u16)(bank & 0x0003);
+}
+
+static void frontend_decode_pc090oj_cell(u16 code, u32 *dst_tiles)
+{
+    const u16 cell = (u16)(code % PC090OJ_CELL_COUNT);
+    const u8 *src = rastan_pc090oj + ((u32)cell * 128);
+    u8 *dst = (u8 *)dst_tiles;
+    u16 y;
+
+    for (y = 0; y < 16; y++)
+    {
+        const u8 *src_row = src + (y * 8);
+        u8 *tile_left;
+        u8 *tile_right;
+
+        if (y < 8)
+        {
+            tile_left = dst + (0 * 32) + (y * 4);
+            tile_right = dst + (1 * 32) + (y * 4);
+        }
+        else
+        {
+            tile_left = dst + (2 * 32) + ((y - 8) * 4);
+            tile_right = dst + (3 * 32) + ((y - 8) * 4);
+        }
+
+        memcpy(tile_left, src_row, 4);
+        memcpy(tile_right, src_row + 4, 4);
+    }
+}
+
+static s16 frontend_runtime_tile_for_code(u16 code, u16 *unique_count)
+{
+    u16 i;
+
+    for (i = 0; i < *unique_count; i++)
+    {
+        if (frontend_runtime_sprite_codes[i] == code)
+        {
+            return (s16)(FRONTEND_RUNTIME_SPRITE_TILE_BASE + (i * 4));
+        }
+    }
+
+    if (*unique_count >= FRONTEND_RUNTIME_MAX_UNIQUE_CODES)
+    {
+        return -1;
+    }
+
+    frontend_runtime_sprite_codes[*unique_count] = code;
+    frontend_decode_pc090oj_cell(
+        code,
+        frontend_runtime_sprite_tile_buffer + ((u32)(*unique_count) * 4 * 8)
+    );
+    (*unique_count)++;
+
+    return (s16)(FRONTEND_RUNTIME_SPRITE_TILE_BASE + ((*unique_count - 1) * 4));
+}
+
+static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count)
+{
+    u16 line;
+
+    for (line = 0; line < FRONTEND_RUNTIME_MAX_PALETTE_BANKS; line++)
+    {
+        const u16 bank = (line < bank_count) ? bank_map[line] : line;
+        const u16 base = (u16)((bank & 0x007f) << 4);
+        u16 color;
+
+        for (color = 0; color < 16; color++)
+        {
+            const u16 raw = genesistan_shadow_200000_words[(base + color) & 0x07ff];
+            PAL_setColor((line * 16) + color, convert_xbgr555_to_genesis(raw));
+        }
+    }
+}
+
+static void clear_frontend_sprite_layer(void)
+{
+    VDP_updateSprites(0, CPU);
+}
+
+static void render_frontend_sprite_layer(void)
+{
+#if RASTAN_ENABLE_STARTUP_HOOK
+    const u16 sprite_ctrl = genesistan_shadow_reg_380000;
+    const u16 obj_ctrl = genesistan_shadow_reg_d01bfe;
+    const u16 sprite_colbank = (u16)((sprite_ctrl & 0x00E0) >> 1);
+    const bool flipscreen = ((obj_ctrl & 0x0001) == 0);
+    u16 palette_bank_map[FRONTEND_RUNTIME_MAX_PALETTE_BANKS] = {0, 1, 2, 3};
+    u16 palette_bank_count = 0;
+    u16 unique_count = 0;
+    u16 sprite_count = 0;
+    u16 offs;
+
+    memset(frontend_runtime_sprite_tile_buffer, 0, sizeof(frontend_runtime_sprite_tile_buffer));
+
+    for (offs = 0; offs < 0x0400; offs += 4)
+    {
+        const u16 data = genesistan_shadow_d00000_words[offs + 0];
+        const u16 code = (u16)(genesistan_shadow_d00000_words[offs + 2] & 0x1FFF);
+        s16 x = (s16)(genesistan_shadow_d00000_words[offs + 3] & 0x01FF);
+        s16 y = (s16)(genesistan_shadow_d00000_words[offs + 1] & 0x01FF);
+        bool flipy = (data & 0x8000) != 0;
+        bool flipx = (data & 0x4000) != 0;
+        const u16 color = (u16)((data & 0x000F) | sprite_colbank);
+        const u16 palette_line = frontend_palette_line_for_bank((u16)(color >> 4), palette_bank_map, &palette_bank_count);
+        const s16 tile_base = frontend_runtime_tile_for_code(code, &unique_count);
+        const u16 link = (sprite_count >= (FRONTEND_RUNTIME_MAX_SPRITES - 1)) ? 0 : (u16)(sprite_count + 1);
+        u16 tile_attr;
+
+        if (tile_base < 0)
+        {
+            continue;
+        }
+
+        if (x > 0x140) x -= 0x0200;
+        if (y > 0x140) y -= 0x0200;
+
+        if (flipscreen)
+        {
+            x = (s16)(320 - x - 16);
+            y = (s16)(256 - y - 16);
+            flipx = !flipx;
+            flipy = !flipy;
+        }
+
+        if ((x <= -16) || (x >= 320) || (y <= -16) || (y >= 256))
+        {
+            continue;
+        }
+
+        tile_attr = TILE_ATTR_FULL(palette_line, TRUE, flipy, flipx, (u16)tile_base);
+        VDP_setSpriteFull(sprite_count, x, y, SPRITE_SIZE(2, 2), tile_attr, (u8)link);
+
+        sprite_count++;
+        if (sprite_count >= FRONTEND_RUNTIME_MAX_SPRITES)
+        {
+            break;
+        }
+    }
+
+    if (unique_count > 0)
+    {
+        VDP_loadTileData(
+            frontend_runtime_sprite_tile_buffer,
+            FRONTEND_RUNTIME_SPRITE_TILE_BASE,
+            unique_count * 4,
+            CPU
+        );
+    }
+
+    refresh_frontend_sprite_palettes(palette_bank_map, palette_bank_count);
+    VDP_updateSprites(sprite_count, CPU);
+#endif
+}
+
+static void leave_startup_preview(void)
+{
+#if RASTAN_ENABLE_STARTUP_HOOK
+    current_screen = SCREEN_CONFIG;
+    restore_launcher_vdp_state();
+    render_full_screen();
+    set_status("READY");
+#endif
 }
 
 static void render_all_menu_rows(void)
@@ -841,7 +1303,87 @@ static void activate_selected_menu(void)
 
 static void request_start_rastan(void)
 {
-    set_status("START REQUESTED - GAME LAUNCH NOT HOOKED YET");
+#if RASTAN_ENABLE_STARTUP_HOOK
+    genesistan_reset_startup_shadows(rastan_virtual_dip1, rastan_virtual_dip2, GENESISTAN_SERVICE_FACTORY);
+    genesistan_refresh_arcade_inputs();
+    genesistan_run_original_startup_common();
+
+    restore_launcher_vdp_state();
+
+    if (genesistan_startup_result_code == GENESISTAN_STARTUP_RESULT_NORMAL)
+    {
+        current_screen = SCREEN_FRONTEND_LIVE;
+        VDP_clearPlane(BG_A, TRUE);
+        VDP_clearPlane(BG_B, TRUE);
+        clear_frontend_sprite_layer();
+    }
+    else if (genesistan_startup_result_code == GENESISTAN_STARTUP_RESULT_TEST)
+    {
+        current_screen = SCREEN_STARTUP_PREVIEW;
+        set_status("ORIGINAL STARTUP RETURNED ON TEST PATH");
+        render_startup_preview_screen();
+    }
+    else
+    {
+        current_screen = SCREEN_STARTUP_PREVIEW;
+        set_status("ORIGINAL STARTUP RETURNED WITH UNKNOWN STATUS");
+        render_startup_preview_screen();
+    }
+#else
+    char line[SCREEN_W + 1];
+
+    sprintf(line, "PACKED ROMSET %luk SIG %04lX",
+            (unsigned long)(get_packed_romset_size() / 1024UL),
+            (unsigned long)(get_packed_romset_signature() & 0xFFFFUL));
+    set_status(line);
+#endif
+}
+
+static u32 get_packed_romset_size(void)
+{
+    return (u32) sizeof(rastan_maincpu)
+         + (u32) sizeof(rastan_audiocpu)
+         + (u32) sizeof(rastan_adpcm)
+         + (u32) sizeof(rastan_pc080sn)
+         + (u32) sizeof(rastan_pc090oj);
+}
+
+static u32 get_packed_romset_signature(void)
+{
+    u32 signature = 0;
+
+    signature += rastan_maincpu[0];
+    signature += rastan_maincpu[sizeof(rastan_maincpu) - 1];
+    signature += rastan_audiocpu[0];
+    signature += rastan_audiocpu[sizeof(rastan_audiocpu) - 1];
+    signature += rastan_adpcm[0];
+    signature += rastan_adpcm[sizeof(rastan_adpcm) - 1];
+    signature += rastan_pc080sn[0];
+    signature += rastan_pc080sn[sizeof(rastan_pc080sn) - 1];
+    signature += rastan_pc090oj[0];
+    signature += rastan_pc090oj[sizeof(rastan_pc090oj) - 1];
+
+    return signature;
+}
+
+static void reset_launcher_runtime_state(void)
+{
+    /* Always start the launcher from known factory defaults. */
+    rastan_virtual_dip1 = FACTORY_DIP1;
+    rastan_virtual_dip2 = FACTORY_DIP2;
+    selected_menu = 0;
+    undo_state.dip1 = 0;
+    undo_state.dip2 = 0;
+    undo_state.valid = FALSE;
+    current_screen = SCREEN_CONFIG;
+    graphics_page = 0;
+    graphics_region = GRAPHICS_REGION_PC080SN;
+    rastan_virtual_sound_command = 0x00;
+    rastan_virtual_sound_pending = FALSE;
+    sound_test_last_command = 0x00;
+    sound_test_has_triggered = FALSE;
+    strncpy(status_line, "READY", SCREEN_W);
+    status_line[SCREEN_W] = '\0';
 }
 
 int main(bool hardReset)
@@ -852,20 +1394,12 @@ int main(bool hardReset)
 
     SYS_disableInts();
 
-    VDP_setScreenWidth320();
-    PAL_setPalette(PAL0, rastan_active_dip_palette, CPU);
-    PAL_setPalette(PAL1, rastan_font_palette, CPU);
-    PAL_setPalette(PAL2, rastan_dip_palette.data, CPU);
-    PAL_setPalette(PAL3, rastan_selected_font_palette, CPU);
-    VDP_setTextPalette(PAL1);
-    build_rastan_font();
-    VDP_loadFontData(rastan_font_data, FONT_LEN, CPU);
-    VDP_loadTileSet(&rastan_dip_on, DIP_TILE_ON_INDEX, CPU);
-    VDP_loadTileSet(&rastan_dip_off, DIP_TILE_OFF_INDEX, CPU);
+    packed_romset_size_cache = get_packed_romset_size();
+    packed_romset_signature_cache = get_packed_romset_signature();
+    reset_launcher_runtime_state();
+    restore_launcher_vdp_state();
 
     render_full_screen();
-
-    SYS_enableInts();
 
     while (TRUE)
     {
@@ -907,6 +1441,23 @@ int main(bool hardReset)
                 const u16 next_page = graphics_page + 10;
                 graphics_page = (next_page > max_page) ? max_page : next_page;
                 render_graphics_test_screen();
+            }
+        }
+        else if (current_screen == SCREEN_FRONTEND_LIVE)
+        {
+            genesistan_refresh_arcade_inputs();
+            genesistan_run_original_frontend_tick();
+            render_frontend_sprite_layer();
+        }
+        else if (current_screen == SCREEN_STARTUP_PREVIEW)
+        {
+            if ((pressed & (BUTTON_A | BUTTON_START)) != 0)
+            {
+                request_start_rastan();
+            }
+            else if ((pressed & (BUTTON_B | BUTTON_C)) != 0)
+            {
+                leave_startup_preview();
             }
         }
         else if (current_screen == SCREEN_SOUND_TEST)
