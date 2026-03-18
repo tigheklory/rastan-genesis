@@ -414,3 +414,16 @@ For stock Genesis-compatible design:
 Proceed only if Build 89 is revised so that:
 - SRAM is used as a **data-only backend**
 - any code executed from relocated C-window pages is redirected to **WRAM or ROM**
+
+## [Emergency Joint Audit - Build 89 Hardware Failure]
+**Participants:** Alan (Architect), Chad (Consultant)
+
+### 1. Consensus on Crash 0x201F4C
+- **Finding:** The Arcade engine uses the first 16KB of the C-Window ($C00000) for "Trampoline" code.
+- **Hardware Conflict:** Genesis SRAM at $200000 is **Data-Only**. Attempting to fetch instructions here causes an immediate CPU exception/lockup.
+- **EverDrive Status:** Confirmed via `IMG_20260318_161437.jpg` that the ROM header is missing SRAM range metadata, resulting in "EEPROM: No" on hardware.
+
+### 2. Strategy for Build 90
+- **The Split:** Move "Page 0" back to **WRAM** ($FFxxxx) to restore execution capability.
+- **The Offload:** Keep Pages 1-3 (48KB) in **SRAM** ($200000) to maintain WRAM budget.
+- **Header:** Explicitly define 64KB SRAM at $0x1B4 in the ROM header to unblock the EverDrive X3 mapper.
