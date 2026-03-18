@@ -427,3 +427,6 @@ Proceed only if Build 89 is revised so that:
 - **The Split:** Move "Page 0" back to **WRAM** ($FFxxxx) to restore execution capability.
 - **The Offload:** Keep Pages 1-3 (48KB) in **SRAM** ($200000) to maintain WRAM budget.
 - **Header:** Explicitly define 64KB SRAM at $0x1B4 in the ROM header to unblock the EverDrive X3 mapper.
+
+## [Implementer Update - Build 90]
+Build 90: Hybrid Memory Pivot Complete.
