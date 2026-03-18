@@ -368,3 +368,49 @@ To resolve the fault while still mitigating WRAM pressure, the C-Window shadow b
 - Allocate one 16KB array in `.bss` to serve as the WRAM shadow for `PAGE 0`.
 - Modify the `shadow_read16()` and `shadow_write16()` API functions.
 - The API must now conditionally route memory access: requests for `page == 0` target the WRAM buffer, while requests for `page > 0` target the SRAM hardware address space.
+
+## [External Consultant Audit - Build 89 Crash]
+
+### Crash Assessment
+- Fatal crash reported at `0x201F4C` during transition to the in-game engine.
+- This address falls inside the Build 89 SRAM shadow region beginning at `$200000`.
+- Audit conclusion: the 68K PC has entered SRAM-backed shadow space.
+
+### Hardware / Emulator Legality Review
+- Standard Genesis cartridge SRAM at/around `$200000` is **not** a safe assumption for general executable memory.
+- The standard compatibility model is:
+  - SRAM enabled/disabled through `$A130F1`
+  - byte-wide save RAM behavior
+  - typically odd-byte addressing (`$200001-$20FFFF`)
+- Therefore, `$200000` SRAM should be treated as **data storage**, not as portable 16-bit executable RAM.
+
+### Illegal / Unsafe Assumptions Flagged
+1. **Unsafe:** Treating `$200000` SRAM as generic 16-bit executable RAM.
+2. **Unsafe:** Assuming code fetch from SRAM is portable across stock Genesis hardware, BlastEm, and flash carts without custom mapper support.
+3. **Unsafe:** Packing 64KB of logical shadow data into 64KB of address space under standard 8-bit SRAM rules.
+4. **Unsafe:** Depending on SRAM-visible cartridge space for execution while SRAM banking is controlled by `$A130F1`.
+
+### Architectural Conclusion
+If the arcade engine genuinely executes from relocated C-window regions, those regions must remain in **true executable memory**.
+
+For stock Genesis-compatible design:
+- **Use SRAM only for non-executable shadow data**
+- **Keep executable subranges in 68K WRAM**
+- **Prefer ROM-resident patched routines / trampolines where possible**
+
+### Recommended Re-allocation Strategy
+1. Split C-window usage into:
+   - **Executable ranges**
+   - **Non-executable data ranges**
+2. Move non-executable shadow storage to SRAM backend.
+3. Move executable ranges to:
+   - WRAM overlays, or
+   - ROM-based patched handlers/trampolines
+4. Prevent higher-level code from assuming SRAM is executable.
+
+### Build 89 Verdict
+**REJECT current "Executable SRAM" assumption.**
+
+Proceed only if Build 89 is revised so that:
+- SRAM is used as a **data-only backend**
+- any code executed from relocated C-window pages is redirected to **WRAM or ROM**
