@@ -325,3 +325,28 @@ Approved for Build 89 experimentation.
 - Final PC: 0x9C942C
 - Stack Pointer (SP): 0x8403DD8A
 - Unique Unmapped Memory Addresses (2): 0x0020A4C2, 0x00000000
+- **Visual Evidence (BlastEm):** Screenshot saved as `B89_BlastEm_Launcher_20260318_1555.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B89_BlastEm_In-Game_20260318_1555.png` (Stage: In-Game)
+
+## [Lead Review - Build 89 Validation]
+**Date:** 2026-03-18
+**Status:** **FAILED (In-Game Regression)**
+
+### 1. Build Execution Summary
+- **Launcher Phase:** **SUCCESS** (Both MAME and BlastEm). The Sega header and initial bridge code are stable.
+- **In-Game Phase:** **CRASH**. 
+  - **MAME:** Black Screen (Engine hang).
+  - **BlastEm:** Fatal Crash (`M68K attempted to execute code at unmapped address 201F4C`).
+
+### 2. Technical Analysis
+- **The Jump Error:** Address `0x201F4C` sits inside our new SRAM Window ($200000 - $20FFFF). 
+- **Root Cause Hypothesis:** 1. **Pointer Corruption:** The Arcade engine likely uses a Jump Table or Function Pointer that was stored in the C-Window. By moving that window to SRAM, we may have broken a pointer or failed to initialize it before the jump.
+  2. **Stack/Return Error:** A function called from the Arcade logic is likely failing to "return" correctly, causing the PC (Program Counter) to "drift" into the SRAM memory space.
+
+### 3. Visual Evidence
+- **MAME In-Game:** `B89_MAME_In-Game_20260318_1548.png` (Black Screen / CPU Hang)
+- **BlastEm In-Game:** `B89_BlastEm_In-Game_20260318_1555.png` (Debugger Break / Bus Error)
+
+### 4. Directives for the Team
+- **Alan (Architect):** Audit the `shadow_read16` logic. If the Arcade engine expects to *execute* code from the C-Window (some arcade boards do this for "trampoline" functions), we cannot use SRAM at $200000, as that region is data-only on Genesis.
+- **Cody (Cody):** Examine the Linker Map for Build 89. Check if any `.text` (code) sections accidentally landed in the `SRAM` region.
