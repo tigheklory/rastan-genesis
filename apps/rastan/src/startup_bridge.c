@@ -102,15 +102,26 @@ static void fill_words(volatile uint16_t *words, uint16_t count, uint16_t value)
     }
 }
 
+static void fill_shadow_page_words(uint8_t page, uint16_t count, uint16_t value)
+{
+    uint16_t i;
+
+    for (i = 0; i < count; i++) {
+        shadow_write16(page, (uint16_t)(i * 2), value);
+    }
+}
+
 void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t service_word)
 {
+    shadow_init();
+
     fill_words(genesistan_shadow_200000_words, 0x2000, 0);
     fill_words(genesistan_arcade_workram_words, 0x2000, 0);
     fill_words(genesistan_shadow_d00000_words, 0x0400, 0);
-    fill_words(genesistan_shadow_c00000_words, 0x2000, 0);
-    fill_words(genesistan_shadow_c04000_words, 0x2000, 0);
-    fill_words(genesistan_shadow_c08000_words, 0x2000, 0);
-    fill_words(genesistan_shadow_c0c000_words, 0x2000, 0);
+    fill_shadow_page_words(0, 0x2000, 0);
+    fill_shadow_page_words(1, 0x2000, 0);
+    fill_shadow_page_words(2, 0x2000, 0);
+    fill_shadow_page_words(3, 0x2000, 0);
     fill_words(genesistan_shadow_c20000_words, 2, 0);
     fill_words(genesistan_shadow_c40000_words, 2, 0);
 

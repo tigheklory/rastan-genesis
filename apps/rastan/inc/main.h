@@ -48,5 +48,8 @@ void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t servi
 void genesistan_refresh_arcade_inputs(void);
 void genesistan_sound_send_command(void);
 void genesistan_sound_read_status(void);
+void shadow_init(void);
+void shadow_write16(uint8_t page, uint16_t offset, uint16_t value);
+uint16_t shadow_read16(uint8_t page, uint16_t offset);
 
 #endif

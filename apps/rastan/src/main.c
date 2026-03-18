@@ -10,10 +10,6 @@
 extern volatile uint16_t genesistan_shadow_d00000_words[0x0400];
 extern volatile uint16_t genesistan_shadow_reg_c50000;
 extern volatile uint16_t genesistan_shadow_reg_d01bfe;
-volatile uint16_t genesistan_shadow_c00000_words[0x2000];
-volatile uint16_t genesistan_shadow_c04000_words[0x2000];
-volatile uint16_t genesistan_shadow_c08000_words[0x2000];
-volatile uint16_t genesistan_shadow_c0c000_words[0x2000];
 
 #ifndef RASTAN_ENABLE_STARTUP_HOOK
 #define RASTAN_ENABLE_STARTUP_HOOK 1
@@ -47,6 +43,10 @@ volatile uint16_t genesistan_shadow_c0c000_words[0x2000];
 #define C_WINDOW_TOTAL_WORDS (C_WINDOW_WORDS_PER_BANK * C_WINDOW_BANK_COUNT)
 #define C_WINDOW_WORDS_PER_ROW 64
 #define C_WINDOW_TOTAL_ROWS (C_WINDOW_TOTAL_WORDS / C_WINDOW_WORDS_PER_ROW)
+#define SHADOW_SRAM_ENABLE_REG ((volatile uint8_t *)0xA130F1)
+#define SHADOW_SRAM_BASE 0x200000UL
+#define SHADOW_SRAM_PAGE_STRIDE 0x4000UL
+#define SHADOW_SRAM_PAGE_MAX 4
 
 typedef enum
 {
@@ -310,6 +310,38 @@ static char decode_startup_shadow_word(u16 word)
     return ' ';
 }
 
+void shadow_init(void)
+{
+    *SHADOW_SRAM_ENABLE_REG = 0x01;
+}
+
+void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
+{
+    volatile uint8_t *base;
+
+    if ((page >= SHADOW_SRAM_PAGE_MAX) || (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
+    {
+        return;
+    }
+
+    base = (volatile uint8_t *)(SHADOW_SRAM_BASE + ((uint32_t)page * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
+    base[0] = (uint8_t)(value >> 8);
+    base[1] = (uint8_t)(value & 0xFF);
+}
+
+uint16_t shadow_read16(uint8_t page, uint16_t offset)
+{
+    volatile uint8_t *base;
+
+    if ((page >= SHADOW_SRAM_PAGE_MAX) || (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
+    {
+        return 0;
+    }
+
+    base = (volatile uint8_t *)(SHADOW_SRAM_BASE + ((uint32_t)page * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
+    return (uint16_t)(((uint16_t)base[0] << 8) | (uint16_t)base[1]);
+}
+
 static u16 read_shadow_c_window_word(u16 linear_index);
 static u16 count_nonzero_c_window_words(void);
 static u16 find_first_nonzero_c_window_word(void);
@@ -336,44 +368,27 @@ static bool startup_shadow_row_has_text(u16 shadow_row)
     return FALSE;
 }
 
-static u16 find_first_nonzero_word(const volatile uint16_t *words, u16 count)
+static u16 read_shadow_c_window_word(u16 linear_index)
 {
-    u16 i;
+    const u8 page = (u8)(linear_index / C_WINDOW_WORDS_PER_BANK);
+    const u16 page_word = (u16)(linear_index % C_WINDOW_WORDS_PER_BANK);
 
-    for (i = 0; i < count; i++)
+    if (linear_index >= C_WINDOW_TOTAL_WORDS)
     {
-        if (words[i] != 0)
-        {
-            return i;
-        }
+        return 0;
     }
 
-    return 0xFFFF;
+    return shadow_read16(page, (u16)(page_word * 2));
 }
 
-static u16 find_last_nonzero_word(const volatile uint16_t *words, u16 count)
-{
-    s16 i;
-
-    for (i = (s16)count - 1; i >= 0; i--)
-    {
-        if (words[i] != 0)
-        {
-            return (u16)i;
-        }
-    }
-
-    return 0xFFFF;
-}
-
-static u16 count_nonzero_words(const volatile uint16_t *words, u16 count)
+static u16 count_nonzero_c_window_words(void)
 {
     u16 i;
     u16 total = 0;
 
-    for (i = 0; i < count; i++)
+    for (i = 0; i < C_WINDOW_TOTAL_WORDS; i++)
     {
-        if (words[i] != 0)
+        if (read_shadow_c_window_word(i) != 0)
         {
             total++;
         }
@@ -382,74 +397,32 @@ static u16 count_nonzero_words(const volatile uint16_t *words, u16 count)
     return total;
 }
 
-static u16 read_shadow_c_window_word(u16 linear_index)
-{
-    if (linear_index < C_WINDOW_WORDS_PER_BANK)
-    {
-        return genesistan_shadow_c00000_words[linear_index];
-    }
-
-    linear_index -= C_WINDOW_WORDS_PER_BANK;
-    if (linear_index < C_WINDOW_WORDS_PER_BANK)
-    {
-        return genesistan_shadow_c04000_words[linear_index];
-    }
-
-    linear_index -= C_WINDOW_WORDS_PER_BANK;
-    if (linear_index < C_WINDOW_WORDS_PER_BANK)
-    {
-        return genesistan_shadow_c08000_words[linear_index];
-    }
-
-    linear_index -= C_WINDOW_WORDS_PER_BANK;
-    if (linear_index < C_WINDOW_WORDS_PER_BANK)
-    {
-        return genesistan_shadow_c0c000_words[linear_index];
-    }
-
-    return 0;
-}
-
-static u16 count_nonzero_c_window_words(void)
-{
-    return (u16)(count_nonzero_words(genesistan_shadow_c00000_words, C_WINDOW_WORDS_PER_BANK)
-                 + count_nonzero_words(genesistan_shadow_c04000_words, C_WINDOW_WORDS_PER_BANK)
-                 + count_nonzero_words(genesistan_shadow_c08000_words, C_WINDOW_WORDS_PER_BANK)
-                 + count_nonzero_words(genesistan_shadow_c0c000_words, C_WINDOW_WORDS_PER_BANK));
-}
-
 static u16 find_first_nonzero_c_window_word(void)
 {
-    u16 first = find_first_nonzero_word(genesistan_shadow_c00000_words, C_WINDOW_WORDS_PER_BANK);
+    u16 i;
 
-    if (first != 0xFFFF) return first;
-
-    first = find_first_nonzero_word(genesistan_shadow_c04000_words, C_WINDOW_WORDS_PER_BANK);
-    if (first != 0xFFFF) return (u16)(C_WINDOW_WORDS_PER_BANK + first);
-
-    first = find_first_nonzero_word(genesistan_shadow_c08000_words, C_WINDOW_WORDS_PER_BANK);
-    if (first != 0xFFFF) return (u16)((2 * C_WINDOW_WORDS_PER_BANK) + first);
-
-    first = find_first_nonzero_word(genesistan_shadow_c0c000_words, C_WINDOW_WORDS_PER_BANK);
-    if (first != 0xFFFF) return (u16)((3 * C_WINDOW_WORDS_PER_BANK) + first);
+    for (i = 0; i < C_WINDOW_TOTAL_WORDS; i++)
+    {
+        if (read_shadow_c_window_word(i) != 0)
+        {
+            return i;
+        }
+    }
 
     return 0xFFFF;
 }
 
 static u16 find_last_nonzero_c_window_word(void)
 {
-    u16 last = find_last_nonzero_word(genesistan_shadow_c0c000_words, C_WINDOW_WORDS_PER_BANK);
+    s32 i;
 
-    if (last != 0xFFFF) return (u16)((3 * C_WINDOW_WORDS_PER_BANK) + last);
-
-    last = find_last_nonzero_word(genesistan_shadow_c08000_words, C_WINDOW_WORDS_PER_BANK);
-    if (last != 0xFFFF) return (u16)((2 * C_WINDOW_WORDS_PER_BANK) + last);
-
-    last = find_last_nonzero_word(genesistan_shadow_c04000_words, C_WINDOW_WORDS_PER_BANK);
-    if (last != 0xFFFF) return (u16)(C_WINDOW_WORDS_PER_BANK + last);
-
-    last = find_last_nonzero_word(genesistan_shadow_c00000_words, C_WINDOW_WORDS_PER_BANK);
-    if (last != 0xFFFF) return last;
+    for (i = (s32)C_WINDOW_TOTAL_WORDS - 1; i >= 0; i--)
+    {
+        if (read_shadow_c_window_word((u16)i) != 0)
+        {
+            return (u16)i;
+        }
+    }
 
     return 0xFFFF;
 }
