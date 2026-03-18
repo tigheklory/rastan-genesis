@@ -443,3 +443,21 @@ Build 90: Hybrid Memory Pivot Complete.
 - Stack Pointer (SP): 0xE0394DEA
 - Unique Unmapped Memory Addresses (3): 0x0000A4F6, 0x0020A4F6, 0x00000000
 - **Visual Evidence (MAME):** Screenshot saved as `B90_MAME_In-Game_20260318_1703.png` (Stage: In-Game)
+
+## [Architect Audit - Build 90 Z80 Failure]
+
+### 1. Analysis: The Contiguity Break
+The failure in Build 90 (Z80 buzzing, 68K write errors) is attributed to the loss of **spatial locality** caused by the Hybrid Memory Split.
+- **Mechanism:** The Arcade Engine likely treats `$C00000`-$`C07FFF` (32KB) as a contiguous block for sound command buffers or data copying.
+- **The Fault:** By placing Page 0 in WRAM and Page 1 in SRAM, we created a non-contiguous memory map. Any operation that increments a pointer past the end of Page 0 (16KB) now reads unmapped memory instead of the start of Page 1, leading to pointer corruption and the observed "unhandled address" writes.
+
+### 2. Design for Build 91: 32KB Contiguous Block
+To resolve the regression, we must restore linearity for the active "hot" memory regions.
+
+- **WRAM Allocation:** Move **Page 1** (`$C04000`) back to WRAM alongside Page 0.
+  - Result: 32KB contiguous block in WRAM (covers active code + sound buffers).
+- **SRAM Allocation:** Keep **Page 2** (`$C08000`) and **Page 3** (`$C0C000`) in SRAM.
+  - Result: 32KB data-only offload to preserve WRAM budget.
+
+### 3. Implementation Logic
+- **API Update:** `shadow_read16`/`write16` must now route `page < 2` to WRAM and `page >= 2` to SRAM.
