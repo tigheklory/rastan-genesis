@@ -370,3 +370,24 @@ Why:
 - For now, keep window rewrites data-only and rely on explicit declarative
   remap entries (`absolute_rewrite_groups`) until operand-position-aware code
   rewriting is implemented.
+
+### Add explicit `title_init_block` D-window remaps for text-object buffer writes
+
+Decision:
+
+- Add explicit absolute mappings in `title_init_block` for:
+  - `0x00D00000`
+  - `0x00D00020`
+  - `0x00D00088`
+  - `0x00D000E0`
+  - `0x00D00128`
+  all targeting `genesistan_shadow_d00000_words` with byte offsets.
+
+Why:
+
+- BlastEm freeze reproduced on `START RASTAN` with:
+  `machine freeze due to write to address D00020`.
+- Disassembly confirms this is a real startup/title path literal:
+  `0x03B8B4: lea 0x00D00020,a1` (plus nearby `D00088/D000E0/D00128`).
+- Because code-window rewrites are intentionally disabled (to avoid opcode
+  clobber), these literals must be covered by explicit spec mappings.
