@@ -430,3 +430,16 @@ Proceed only if Build 89 is revised so that:
 
 ## [Implementer Update - Build 90]
 Build 90: Hybrid Memory Pivot Complete.
+- **Visual Evidence (MAME):** Screenshot saved as `B90_MAME_Launcher_20260318_1658.png` (Stage: Launcher)
+
+### MAME Exit Summary (2026-03-18 16:59:18)
+- Final PC: 0x25DAD2
+- Stack Pointer (SP): 0xE0A014C8
+- Unique Unmapped Memory Addresses (2): 0x0020A4F6, 0x00000000
+- **Visual Evidence (BlastEm):** Screenshot saved as `B90_BlastEm_Launcher_20260318_1701.png` (Stage: Launcher)
+
+### MAME Exit Summary (2026-03-18 17:02:48)
+- Final PC: 0x15052A
+- Stack Pointer (SP): 0xE0394DEA
+- Unique Unmapped Memory Addresses (3): 0x0000A4F6, 0x0020A4F6, 0x00000000
+- **Visual Evidence (MAME):** Screenshot saved as `B90_MAME_In-Game_20260318_1703.png` (Stage: In-Game)
