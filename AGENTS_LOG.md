@@ -244,6 +244,7 @@ This preserves forward compatibility with:
 
 ---
 
+
 ## [Architect Review - Build 89 SRAM Pivot]
 
 ### Design Strategy
@@ -265,6 +266,7 @@ We implemented a `shadow_` API in `main.c` to abstract the backend.
 - **Runtime:** Implemented `shadow_init`, `shadow_write16`, `shadow_read16`.
 - **Next Step:** Compile and verify C-Window text rendering.
 
+
 ## [External Consultant Review - Build 89 Strategy]
 
 Decision: Move C-window shadow buffers to cartridge SRAM backend.
@@ -281,3 +283,17 @@ Implementation Plan:
 
 Status:
 Approved for Build 89 experimentation.
+
+## [Implementer Update - Build 89]
+
+### Build 89 SRAM Implementation Complete
+- Added linker MEMORY region: `SRAM (w!x) : ORIGIN = 0x200000, LENGTH = 64K`.
+- Removed the 4x16KB C-window `.bss` arrays from `main.c`.
+- Implemented SRAM-backed shadow API in `main.c`:
+  - `shadow_init()` enables SRAM at `0xA130F1`.
+  - `shadow_write16(page, offset, value)` maps to `0x200000 + page*0x4000 + offset`.
+  - `shadow_read16(page, offset)` maps to `0x200000 + page*0x4000 + offset`.
+- Replaced direct C-window array access paths with API-backed access:
+  - C-window read/count/first/last diagnostics in `main.c`.
+  - C-window reset clears in `startup_bridge.c`.
+- `make -C apps/rastan debug` now succeeds; prior WRAM `.bss` overflow is cleared.
