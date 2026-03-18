@@ -1,7 +1,8 @@
 #!/bin/bash
-# Supervisor Tool: Move Windows Screenshot to Project (v5 - Auto-Cleanup)
+# Supervisor Tool: Move Screenshot & Auto-Log (v6)
 PROJECT_ROOT="/home/tighe/projects/rastan-genesis"
 WIN_SHOT_DIR="/mnt/c/Users/Tighe Lory/Pictures/Screenshots"
+AGENTS_LOG="${PROJECT_ROOT}/AGENTS_LOG.md"
 
 # 1. Check if Windows C: drive is mounted
 if [ ! -d "/mnt/c" ]; then
@@ -15,46 +16,34 @@ read -r BUILD_NUM
 TARGET_DIR="${PROJECT_ROOT}/states/screenshots/build_${BUILD_NUM}"
 mkdir -p "$TARGET_DIR"
 
-# 3. Get the latest shot EXCLUDING the BK subfolder
+# 3. Get the latest shot
 LATEST_SHOT=$(find "$WIN_SHOT_DIR" -maxdepth 1 -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")
 
 if [ -z "$LATEST_SHOT" ]; then
-    echo "No new screenshots found in $WIN_SHOT_DIR (ignoring BK folder)."
+    echo "No new screenshots found."
     exit 1
 fi
 
-echo "Found latest: $(basename "$LATEST_SHOT")"
-
-# 4. Select Platform
-echo "Enter platform (m=MAME, b=BlastEm, e=Exodus, h=Hardware/Nomad): "
+# 4. Select Platform & Stage
+echo "Enter platform (m=MAME, b=BlastEm, e=Exodus, h=Hardware): "
 read -r PLAT_KEY
-case $PLAT_KEY in
-    m) PLAT="mame" ;;
-    b) PLAT="blastem" ;;
-    e) PLAT="exodus" ;;
-    h) PLAT="hardware" ;;
-    *) PLAT="unknown" ;;
-esac
+case $PLAT_KEY in m) PLAT="MAME" ;; b) PLAT="BlastEm" ;; e) PLAT="Exodus" ;; h) PLAT="Hardware" ;; *) PLAT="Unknown" ;; esac
 
-# 5. Select Stage
 echo "Enter stage (l=launcher, i=ingame): "
 read -r STAGE_KEY
-case $STAGE_KEY in
-    l) STAGE="launcher" ;;
-    i) STAGE="ingame" ;;
-    *) STAGE="unknown" ;;
-esac
+case $STAGE_KEY in l) STAGE="Launcher" ;; i) STAGE="In-Game" ;; *) STAGE="Unknown" ;; esac
 
 TIMESTAMP=$(date +%Y%m%d_%H%M)
 NEW_NAME="B${BUILD_NUM}_${PLAT}_${STAGE}_${TIMESTAMP}.png"
 
-# 6. Copy to Repository
-cp "$LATEST_SHOT" "$TARGET_DIR/$NEW_NAME"
-
-# 7. Delete from Windows (Cleanup)
-if [ $? -eq 0 ]; then
+# 5. Move and Log
+if cp "$LATEST_SHOT" "$TARGET_DIR/$NEW_NAME"; then
     rm "$LATEST_SHOT"
-    echo "Successfully moved and DELETED source: $NEW_NAME"
+    echo "Moved to: $NEW_NAME"
+    
+    # Append to AGENTS_LOG.md
+    echo "- **Visual Evidence ($PLAT):** Screenshot saved as \`$NEW_NAME\` (Stage: $STAGE)" >> "$AGENTS_LOG"
+    echo "Appended to AGENTS_LOG.md"
 else
-    echo "ERROR: Copy failed. Original file was not deleted."
+    echo "ERROR: Move failed."
 fi
