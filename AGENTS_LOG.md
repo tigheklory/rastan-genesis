@@ -575,3 +575,63 @@ This creates the seamless 32KB block required by the Z80 sound driver to cross t
 - **DELETE** `shadow_page0_wram` (16KB).
 - **RETAIN** `shadow_pages_0_1_wram` (32KB) as the authoritative source for Pages 0 and 1.
 - **UPDATE** `shadow_read16` and `shadow_write16` to route `page < 2` exclusively to `shadow_pages_0_1_wram`.
+
+## [External Consultant Audit - Build 91.1 Bus Safety]
+
+### Verdict
+Build 91's `7FFF` failure is **more consistent with software pointer corruption / address wrap** than with a hardware Z80 bus collision.
+
+### Linker Map Audit
+- `shadow_pages_0_1_wram` is placed at `0xE0FF0076`.
+- `_bend` is at `0xE0FFFECC`.
+- `__stack` is at `0xE1000000`.
+
+Conclusion:
+- The WRAM shadow buffer does **not** overlap the Genesis Z80 area (`0xA00000+`).
+- The WRAM shadow buffer does **not** directly overlap the stack at link time.
+
+### Critical Safety Observation
+Although there is no direct overlap at link time, WRAM headroom is extremely small:
+- Free space between `_bend` and `__stack` is only `0x134` bytes.
+- One Build 91 MAME exit reported `SP = 0xE0FFFEAC`, which is **32 bytes below `_bend`**.
+
+Conclusion:
+- The runtime stack has already entered BSS space.
+- This can corrupt live variables and is a credible cause of bad sound/Z80 pointer state.
+
+### Bus Collision Assessment
+Double-shadow writes into `shadow_pages_0_1_wram` do **not** access the Z80 bus.
+They are plain 68K WRAM accesses in the `0xE00000-0xFFFFFF` region.
+
+A real 68K/Z80 bus arbitration issue would involve:
+- Z80 RAM / YM access through `0xA00000+`
+- Z80 bus request / reset control through `0xA11100` / `0xA11200`
+
+Therefore:
+- The new WRAM shadow buffer is **not physically overlapping** the Z80 communication ports.
+- "Overstaying on the bus" is **not** the primary explanation for this fault.
+
+### Interpretation of the `7FFF` Error
+The Z80 memory map normally handles:
+- `0000-1FFF` Z80 RAM
+- `4000-5FFF` YM2612
+- `6000-60FF` bank register
+- `8000-FFFF` banked 68K window
+
+A write to `7FFF` falls near the unhandled boundary between the bank register area and the banked 68K window.
+
+Conclusion:
+- This strongly suggests **bad address calculation, pointer wrap, or corrupted sound command state**.
+- It does **not** look like a direct hardware overlap between WRAM and Z80 ports.
+
+### Final Assessment
+Primary diagnosis:
+1. **Software pointer / wrap bug**
+2. **Possible stack-overwrite corruption of sound state**
+3. **Not a direct hardware bus collision**
+
+### Recommendation
+Next debug step:
+- Instrument every 68K write path that targets Z80-visible addresses.
+- Log the source pointer and computed destination before the `7FFF` fault.
+- Also treat WRAM exhaustion as active: reduce stack usage or reclaim BSS before further sound debugging.
