@@ -6,6 +6,8 @@ local cpu = nil
 local prog = nil
 local last_pc = nil
 local last_exec_label = nil
+local tap_refs = {}
+local write_watch_stats = {}
 
 _G.genesistrace_reset_subscription = nil
 _G.genesistrace_stop_subscription = nil
@@ -22,6 +24,9 @@ local DISPATCH_PC_1 = 0x03A06A
 local EXEC_BASES = {0x000000, 0x000200, 0x200000}
 local EXEC_RANGE_TEMPLATES = {
 	{name = "startup_common", start_addr = 0x03AE86, end_addr = 0x03B05B},
+	{name = "helper_fill_words", start_addr = 0x03AD3C, end_addr = 0x03AD4B},
+	{name = "helper_d000_init", start_addr = 0x03AD72, end_addr = 0x03ADBB},
+	{name = "helper_display_control", start_addr = 0x03ADD8, end_addr = 0x03AE84},
 	{name = "frontend_core", start_addr = 0x039F80, end_addr = 0x03AD3B},
 	{name = "title_init_block", start_addr = 0x03B098, end_addr = 0x03C483},
 	{name = "helper_frontend_timers", start_addr = 0x03EEFA, end_addr = 0x03EFBC},
@@ -61,6 +66,11 @@ local EXCEPTION_HANDLER_SYMBOLS = {
 
 local FALLBACK_EXCEPTION_UI_START = 0x214000
 local FALLBACK_EXCEPTION_UI_END = 0x216FFF
+
+local WRITE_TAP_WINDOWS = {
+	{name = "vdp_ports_live", start_addr = 0xC00000, end_addr = 0xC0001F},
+	{name = "reg_c50000_live", start_addr = 0xC50000, end_addr = 0xC50001},
+}
 
 local function append_log(line)
 	if not log_path then
@@ -234,6 +244,92 @@ local function read_value(addr, width)
 		return prog:read_u16(addr)
 	else
 		return prog:read_u32(addr)
+	end
+end
+
+local function ensure_write_watch_stat(name)
+	local stat = write_watch_stats[name]
+	if not stat then
+		stat = {
+			count = 0,
+			first_frame = nil,
+			last_frame = nil,
+			first_pc = nil,
+			last_pc = nil,
+			first_addr = nil,
+			last_addr = nil,
+			first_data = nil,
+			last_data = nil,
+			first_mask = nil,
+			last_mask = nil,
+		}
+		write_watch_stats[name] = stat
+	end
+	return stat
+end
+
+local function log_live_write(window_name, addr, data, mem_mask)
+	local pc = current_pc() or 0
+	local stat = ensure_write_watch_stat(window_name)
+	local is_first = (stat.count == 0)
+
+	stat.count = stat.count + 1
+	if is_first then
+		stat.first_frame = frame_count
+		stat.first_pc = pc
+		stat.first_addr = addr
+		stat.first_data = data
+		stat.first_mask = mem_mask
+	end
+	stat.last_frame = frame_count
+	stat.last_pc = pc
+	stat.last_addr = addr
+	stat.last_data = data
+	stat.last_mask = mem_mask
+
+	if is_first or addr == 0xC00008 or addr == 0xC50000 then
+		append_log(string.format(
+			"[frame %06d] live_write %s pc=%06x addr=%06x data=%04x mask=%04x count=%d",
+			frame_count,
+			window_name,
+			pc,
+			addr & 0xFFFFFF,
+			data or 0,
+			mem_mask or 0,
+			stat.count
+		))
+	end
+end
+
+local function install_write_taps()
+	local i
+
+	tap_refs = {}
+	for i = 1, #WRITE_TAP_WINDOWS do
+		local window = WRITE_TAP_WINDOWS[i]
+		local ok, tap = pcall(function()
+			return prog:install_write_tap(
+				window.start_addr,
+				window.end_addr,
+				"genesistrace_" .. window.name .. "_w",
+				function(offset, data, mem_mask)
+					log_live_write(window.name, offset, data, mem_mask)
+				end
+			)
+		end)
+
+		if ok and tap then
+			tap_refs[#tap_refs + 1] = tap
+		else
+			append_log(string.format(
+				"[frame %06d] install_write_tap_failed window=%s start=%06x end=%06x err=%s",
+				frame_count,
+				window.name,
+				window.start_addr,
+				window.end_addr,
+				tostring(tap)
+			))
+		end
 	end
 end
 
@@ -490,6 +586,31 @@ local function write_summary()
 		))
 	end
 
+	fh:write("\n[live_write_watches]\n")
+	for i = 1, #WRITE_TAP_WINDOWS do
+		local window = WRITE_TAP_WINDOWS[i]
+		local stat = write_watch_stats[window.name]
+		if stat then
+			fh:write(string.format(
+				"%s count=%d first_frame=%s last_frame=%s first_pc=%s last_pc=%s first_addr=%s last_addr=%s first_data=%s last_data=%s first_mask=%s last_mask=%s\n",
+				window.name,
+				stat.count,
+				stat.first_frame or "-",
+				stat.last_frame or "-",
+				stat.first_pc and string.format("%06X", stat.first_pc) or "-",
+				stat.last_pc and string.format("%06X", stat.last_pc) or "-",
+				stat.first_addr and string.format("%06X", stat.first_addr & 0xFFFFFF) or "-",
+				stat.last_addr and string.format("%06X", stat.last_addr & 0xFFFFFF) or "-",
+				stat.first_data and string.format("%04X", stat.first_data & 0xFFFF) or "-",
+				stat.last_data and string.format("%04X", stat.last_data & 0xFFFF) or "-",
+				stat.first_mask and string.format("%04X", stat.first_mask & 0xFFFF) or "-",
+				stat.last_mask and string.format("%04X", stat.last_mask & 0xFFFF) or "-"
+			))
+		else
+			fh:write(string.format("%s count=0\n", window.name))
+		end
+	end
+
 	fh:close()
 end
 
@@ -501,6 +622,7 @@ local function reset_state()
 	exec_hits = {}
 	window_hits = {}
 	symbol_watches = {}
+	write_watch_stats = {}
 	exception_handlers = {}
 	last_exception_pc = nil
 	last_exception_frame = -999999
@@ -530,6 +652,7 @@ local function arm_trace()
 	symbol_map = load_symbol_map(symbol_path)
 	add_project_symbol_watches(symbol_map)
 	setup_exception_handlers(symbol_map)
+	install_write_taps()
 
 	append_log(string.format("arm: genesistrace armed root=%s symbols=%s", root, symbol_path))
 	append_log(string.format("arm: symbol_watches=%d", #symbol_watches))

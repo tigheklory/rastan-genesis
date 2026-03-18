@@ -207,6 +207,35 @@ Why:
 - Whole-window relocation keeps absolute ROM call targets consistent with the
   relocated execution model and avoids one-function-at-a-time chasing.
 
+### Remap low startup hardware probe window (0x052A+) into Genesis shadows
+
+Decision:
+
+- Add a dedicated copied/remap range for the low startup probe routine
+  `0x00052A..0x00066C` in `specs/startup_title_remap.json`.
+- Apply in-code window rewrites for that range so legacy probe spans are
+  redirected into shadow memory:
+  - `0x10C000..0x10FFFF` -> `genesistan_arcade_workram_words`
+  - `0x200000..0x201FFF` -> `genesistan_shadow_200000_words`
+  - `0xC00000..0xC07FFF` -> `genesistan_shadow_c_window_words`
+  - `0xC08000..0xC0FFFF` -> `genesistan_shadow_c_window_words`
+  - `0xD00000..0xD00FFF` -> `genesistan_shadow_d00000_words`
+- Add absolute rewrites in this range for all explicit hardware constants used
+  by that code (inputs, control regs, and C/D window constants), including
+  bounded end-pointer offsets where the probe uses start/end address pairs.
+
+Why:
+
+- Emulator repros moved past earlier dispatcher faults and now fail later with
+  illegal writes to mirrored VDP/HV-port space.
+- The `0x052A` startup probe still performed raw arcade memory tests against
+  `C`/`D` windows, which on Genesis can alias hardware ports (`C00008` class).
+- This fix keeps the approach declarative/spec-driven and removes another
+  untranslated hardware-contract path without adding runtime ad-hoc hacks.
+- For the `D00000..D01000` probe pair, we map the end constant to a bounded
+  shadow end offset so the translated probe stays inside the existing WRAM
+  shadow budget.
+
 ### Relocate embedded ROM pointer tables with narrow, declarative slices
 
 Decision:
@@ -244,3 +273,100 @@ Why:
   surfaced as downstream illegal/address errors after start.
 - Opting in audited ranges keeps the remap declarative and holistic for this
   path without re-opening blanket code-range rewrites everywhere.
+
+### Re-enable audited `frontend_core` C-window rewrites for live front-end text pages
+
+Decision:
+
+- Keep `window_rewrite_rules` defaults unchanged for code ranges overall, but
+  opt in the `frontend_core` C-window rules (`0x00C00000..0x00C10000`) with
+  `allow_in_code=true`.
+
+Why:
+
+- Build `76` reaches the normal startup result and then faults in the first
+  live front-end tick before progressing into title flow.
+- BlastEm reports a hard freeze on direct C-window access at `0x00C09EA3`.
+- That operand is in `frontend_core` (`0x03A552` / `0x03A55C`) and was not
+  being remapped because code-range window rewrites were still skipped there.
+- Opting in only the audited C-window rules for `frontend_core` fixes this
+  concrete untranslated-address class without reopening broad in-code rewrites
+  for unrelated windows.
+
+### Add explicit helper remap coverage for post-launch control and score paths
+
+Decision:
+
+- Add declarative absolute remap mappings for:
+  - `helper_display_control` (`0x03ADD8..0x03AE85`) C50000/D01BFE/380000 and
+    C-window writes (`0x00C00100`, `0x00C08100`).
+  - `helper_3d044_score_digit` (`0x03D044..0x03D053`) score-digit C-window
+    write at `0x00C08C66`.
+
+Why:
+
+- Build `77` still faulted on `START RASTAN` with raw hardware writes:
+  - BlastEm: freeze on write to `0x00C50000`.
+  - MAME: follow-on address faults during coin/start flow.
+- These addresses were in active helper code that executed after launcher
+  handoff but were not included in current rewrite groups.
+- Adding explicit helper rules keeps this spec-driven and deterministic
+  (no crash-site runtime patching) while preserving whole-ROM relocated
+  execution policy.
+
+### Keep startup probe C/D-window aliases inside bounded shadow buffers
+
+Decision:
+
+- In `startup_hw_probe_052a`, map `0x00C04000` and `0x00C0C000` to the
+  `genesistan_shadow_c_window_words` base alias (no end-offset).
+- In the same range, map `0x00D01000` to the
+  `genesistan_shadow_d00000_words` base alias (no end-offset).
+
+Why:
+
+- The prior offsets resolved to one-past the allocated shadow arrays:
+  - C-window: `+0x4000` on a `0x4000`-byte shadow.
+  - D-window: `+0x0800` on a `0x0800`-byte shadow.
+- That risks pointer escape into unrelated WRAM and non-deterministic failures
+  during startup probe execution.
+- This keeps remap behavior deterministic and within the current WRAM budget.
+
+### Add audited in-code C-window rewrites for startup-common and low probe path
+
+Decision:
+
+- Add `window_rewrite_rules` with `allow_in_code=true` for:
+  - `startup_common` C-window spans (`0x00C00000..0x00C10000` split by 0x4000 pages)
+  - `startup_hw_probe_052a` C-window spans (`0x00C00000..0x00C10000`)
+  - `startup_hw_probe_052a` D-window probe span (`0x00D00000..0x00D00800`)
+
+Why:
+
+- Recent startup traces show execution reaching `startup_common` and then
+  immediately falling into repeated exception UI handling, while BlastEm reports
+  illegal writes in VDP/HV-port space.
+- Existing startup/probe remap relied mostly on explicit absolute constants,
+  which does not cover all in-code window-derived operands (for example
+  `0x00C00000` base + small offsets such as HV-port aliases).
+- This keeps the fix declarative/spec-driven and range-scoped to audited startup
+  code, instead of adding one-off crash-site runtime patches.
+
+### Roll back `allow_in_code` window rewrites after launcher opcode corruption
+
+Decision:
+
+- Remove all `allow_in_code=true` entries from
+  `specs/startup_title_remap.json` `window_rewrite_rules`.
+
+Why:
+
+- The launcher regressed into immediate startup corruption (garbled screen and
+  illegal-instruction faults around `0x03B2xx`), indicating opcode stream
+  mutation.
+- Window rewrites that operate on raw 32-bit patterns in code can match across
+  instruction boundaries and transform opcodes, even when the matched value
+  looked like a valid address constant.
+- For now, keep window rewrites data-only and rely on explicit declarative
+  remap entries (`absolute_rewrite_groups`) until operand-position-aware code
+  rewriting is implemented.
