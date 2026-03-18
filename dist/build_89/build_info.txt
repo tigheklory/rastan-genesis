@@ -1,0 +1,4 @@
+build_number=89
+date_utc=2026-03-18T19:44:44Z
+rom_file=rom.bin
+rom_md5=b06f01cad098014be6b0f91fcc79cf4a

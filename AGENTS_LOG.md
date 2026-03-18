@@ -297,3 +297,31 @@ Approved for Build 89 experimentation.
   - C-window read/count/first/last diagnostics in `main.c`.
   - C-window reset clears in `startup_bridge.c`.
 - `make -C apps/rastan debug` now succeeds; prior WRAM `.bss` overflow is cleared.
+
+## [Implementer Update - Build 89 Release Orchestrator]
+
+### Versioned Build Script Added
+- Created `tools/release_build.sh`.
+- Script behavior:
+  - Accepts build number argument (example: `./tools/release_build.sh 89`)
+  - Runs `make -C apps/rastan clean debug`
+  - Creates `dist/build_<num>`
+  - Copies build artifacts (`.bin`, plus `.elf`/`.map` outputs)
+  - Writes `build_info.txt` with UTC date, build number, and ROM MD5
+
+### Build 89 Packaging Status
+- Executed: `tools/release_build.sh 89`
+- Output ready for Lead review at:
+  - `dist/build_89`
+- Includes:
+  - `rom.bin`
+  - `rastan_build_89.elf`
+  - `rastan_build_89.map`
+  - `build_info.txt`
+- **Visual Evidence (MAME):** Screenshot saved as `B89_MAME_Launcher_20260318_1548.png` (Stage: Launcher)
+- **Visual Evidence (MAME):** Screenshot saved as `B89_MAME_In-Game_20260318_1548.png` (Stage: In-Game)
+
+### MAME Exit Summary (2026-03-18 15:48:45)
+- Final PC: 0x9C942C
+- Stack Pointer (SP): 0x8403DD8A
+- Unique Unmapped Memory Addresses (2): 0x0020A4C2, 0x00000000
