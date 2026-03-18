@@ -461,3 +461,64 @@ To resolve the regression, we must restore linearity for the active "hot" memory
 
 ### 3. Implementation Logic
 - **API Update:** `shadow_read16`/`write16` must now route `page < 2` to WRAM and `page >= 2` to SRAM.
+
+## [External Consultant Audit - Build 90 Sound Hang]
+
+### Incident
+Build 90 reaches the In-Game state but produces a black screen and continuous buzzing sound.
+
+BlastEm reports:
+68K Write to unhandled z80 address 7FFF
+
+### Hardware Analysis
+
+The Z80 in the Genesis cannot directly access cartridge SRAM in a reliable or portable way.
+
+The Z80 memory map is:
+
+0000–1FFF  Z80 RAM  
+2000–3FFF  YM2612  
+4000–5FFF  VDP  
+6000–60FF  bank register  
+8000–FFFF  banked 68K memory window
+
+Although the bank window can expose 68K memory, cartridge SRAM at $200000 is not guaranteed to behave as normal RAM due to SRAM enable logic and byte-wide implementations.
+
+### Hybrid Map Impact
+
+Build 90 uses a hybrid C-window layout:
+
+Page0 ($C00000) -> WRAM  
+Page1–3 ($C04000+) -> SRAM
+
+From the perspective of the original arcade engine this region must behave as a **contiguous 64KB block**.
+
+The WRAM/SRAM split breaks that assumption.
+
+If the sound driver reads tables or sample pointers from this region, half the data will be inaccessible or corrupted from the Z80 perspective.
+
+### Interpretation of the 7FFF Fault
+
+A write to Z80 address 7FFF indicates the sound driver is executing corrupted data or using an invalid pointer.
+
+This strongly suggests the driver read invalid memory due to the broken C-window layout.
+
+The buzzing sound matches a Z80 driver stuck executing garbage instructions.
+
+### Architectural Conclusion
+
+The sound driver likely requires the entire C-window region to behave as **linear RAM accessible to both CPUs**.
+
+The current WRAM/SRAM hybrid mapping violates this requirement.
+
+### Recommendation
+
+For the next build:
+
+1. Ensure all memory visible to the Z80 resides in 68K WRAM.
+2. Do not place sound driver tables or buffers in cartridge SRAM.
+3. If SRAM must be used, restrict it to non-audio data.
+
+### Verdict
+
+Build 90 failure is consistent with a **Z80 driver crash caused by the split C-window mapping**.
