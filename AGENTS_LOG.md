@@ -72,3 +72,175 @@ Accessing `0xD000DA` on Genesis (unmapped space) causes the observed crash/freez
 
 ### Final Status
 - Build 88: `Logic Complete / Memory Blocked`.
+
+# External Technical Consultant — Build 89 Memory Pivot Review
+Date: 2026-03-18  
+Reviewer: External Technical Consultant
+
+---
+
+## Summary
+
+Recommend proceeding with the **SRAM experiment for Build 89**, but **only behind a switchable memory-backend abstraction layer**.
+
+This allows the project to:
+
+- Test quickly using standard Genesis cartridge SRAM.
+- Pivot later to **true 16-bit cartridge RAM** without rewriting the engine or title-screen code.
+
+---
+
+## Architectural Assessment
+
+### Genesis Cartridge SRAM Location
+
+Standard Genesis/Mega Drive backup SRAM is conventionally mapped in cartridge space around: $200000
+
+SRAM access is controlled via:
+
+$A130F1
+
+---
+
+### SRAM Bus Behavior
+
+The compatibility baseline for Genesis SRAM is typically:
+
+- **Byte-wide**
+- **Odd-byte addressing**
+
+This means it should **not be assumed to behave like generic 16-bit work RAM**.
+
+---
+
+### Flash Cart Behavior
+
+Some flash carts internally use wider RAM (for example DRAM behind an FPGA), but compatibility expectations still follow the **standard SRAM behavior model**.
+
+Therefore:
+
+> SRAM should be treated as a **compatibility/testing backend**, not the final architectural assumption.
+
+---
+
+## Recommendation for Build 89
+
+### 1. Introduce a Shadow Memory Abstraction Layer
+
+Define four logical shadow pages corresponding to the arcade C-window.
+
+| Logical Page | Arcade Address |
+|---------------|----------------|
+| PAGE0 | `$C00000` |
+| PAGE1 | `$C04000` |
+| PAGE2 | `$C08000` |
+| PAGE3 | `$C0C000` |
+
+Each page represents **16 KB of logical storage**.
+
+---
+
+### 2. Route All Access Through an API
+
+Example interface:
+
+shadow_read8(page, offset)
+shadow_write8(page, offset, value)
+
+shadow_read16(page, offset)
+shadow_write16(page, offset, value)
+shadow_read8(page, offset)
+shadow_write8(page, offset, value)
+
+shadow_read16(page, offset)
+shadow_write16(page, offset, value)
+
+No higher-level code should access cartridge memory directly.
+
+---
+
+### 3. Backend A — SRAM Compatible (Build 89)
+
+Implementation characteristics:
+
+- Uses SRAM region near `$200000`
+- Packed or translated storage layout
+- Designed to remain **odd-byte compatible**
+- Does **not expose raw 16-bit linear memory semantics**
+
+Purpose:
+
+- Emulator testing
+- Mega EverDrive testing
+- Early hardware validation
+
+---
+
+### 4. Backend B — True Cartridge RAM (Future Hardware)
+
+Future backend for custom hardware:
+
+- 16-bit SRAM or RAM device
+- Direct word reads/writes
+- Same logical page API
+
+Important:
+
+> No engine code should change when switching backends.
+
+Only the backend implementation changes.
+
+---
+
+### 5. Prevent Hardcoded SRAM Dependencies
+
+Game logic must **never directly reference `$200000`**.
+
+All cartridge shadow storage must be accessed through the abstraction layer.
+
+This ensures:
+
+- Easy hardware pivots
+- Emulator portability
+- Cleaner debugging
+
+---
+
+## Risk Notes
+
+### SRAM Compatibility
+
+SRAM at `$200000` is widely supported for testing, but the safest assumption remains:
+
+- **odd-byte compatible**
+- **save-RAM style behavior**
+
+Not generic WRAM.
+
+---
+
+### Flash Cart Variability
+
+Some flash carts internally use wider RAM, but that behavior is **implementation specific** and should not be relied upon.
+
+---
+
+### Dev Cart Differences
+
+Some development cartridges (e.g., Open-ED) do **not implement persistent SRAM**, so behavior may differ from EverDrive devices.
+
+---
+
+## Architectural Conclusion
+
+Proceed with the SRAM experiment **as a backend implementation only**, not as a permanent architectural dependency.
+
+This preserves forward compatibility with:
+
+- standard SRAM testing
+- EverDrive flash carts
+- emulator environments
+- future **custom 16-bit RAM cartridges**
+
+---
+
