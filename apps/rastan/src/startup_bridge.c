@@ -6,7 +6,8 @@
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 
-volatile uint16_t genesistan_shadow_200000_words[0x2000];
+/* Keep this shadow backing in cart SRAM to preserve WRAM for hot startup state. */
+volatile uint16_t genesistan_shadow_200000_words[0x2000] __attribute__((section(".sram_data")));
 volatile uint16_t genesistan_arcade_workram_words[0x2000];
 volatile uint16_t genesistan_shadow_d00000_words[0x0400];
 volatile uint16_t genesistan_shadow_c20000_words[2];

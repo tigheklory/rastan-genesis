@@ -522,3 +522,34 @@ For the next build:
 ### Verdict
 
 Build 90 failure is consistent with a **Z80 driver crash caused by the split C-window mapping**.
+
+## [Implementer Update - Build 91]
+Build 91 completed and packaged.
+
+- Hybrid memory routing confirmed in `apps/rastan/src/main.c`:
+  - `shadow_pages_0_1_wram[16384]` (32KB contiguous WRAM) is active.
+  - `shadow_write16` / `shadow_read16` route:
+    - `page < 2` to WRAM
+    - `page >= 2` to SRAM using `(page - 2)`.
+- EverDrive SRAM header values are still present in `apps/rastan/src/boot/rom_head.c`:
+  - Support: `RA`
+  - Type: `0xF800`
+  - Start: `0x00200000`
+  - End: `0x0020FFFF`
+- Build command:
+  - `./tools/release_build.sh 91` succeeded.
+- Output artifacts:
+  - `dist/build_91/`
+  - `dist/Rastan_91.bin`
+
+Build 91 status: **Ready for testing**.
+### MAME Exit Summary (2026-03-18 17:42:49)
+- Final PC: 0x20A30A
+- Stack Pointer (SP): 0xE0FFFEAC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-03-18 17:43:14)
+- Final PC: 0x20973C
+- Stack Pointer (SP): 0xE07F6F1A
+- Unique Unmapped Memory Addresses (3): 0x0020A512, 0x2700A512, 0x00000000
+- **Visual Evidence (BlastEm):** Screenshot saved as `B91_BlastEm_Launcher_20260318_1746.png` (Stage: Launcher)

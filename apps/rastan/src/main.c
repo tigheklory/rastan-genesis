@@ -47,7 +47,9 @@ extern volatile uint16_t genesistan_shadow_reg_d01bfe;
 #define SHADOW_SRAM_BASE 0x200000UL
 #define SHADOW_SRAM_PAGE_STRIDE 0x4000UL
 #define SHADOW_SRAM_PAGE_MAX 4
-#define SHADOW_PAGE0_WRAM_WORDS 8192
+#define SHADOW_WRAM_PAGE_COUNT 2
+#define SHADOW_WRAM_PAGE_WORDS 8192
+#define SHADOW_WRAM_TOTAL_WORDS (SHADOW_WRAM_PAGE_COUNT * SHADOW_WRAM_PAGE_WORDS)
 
 typedef enum
 {
@@ -198,7 +200,7 @@ static u8 sound_test_last_command = 0x00;
 static bool sound_test_has_triggered = FALSE;
 static volatile u32 packed_romset_size_cache = 0;
 static volatile u32 packed_romset_signature_cache = 0;
-uint16_t shadow_page0_wram[SHADOW_PAGE0_WRAM_WORDS];
+uint16_t shadow_pages_0_1_wram[16384];
 
 typedef struct
 {
@@ -321,25 +323,27 @@ void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
 {
     volatile uint8_t *base;
     uint16_t word_index;
+    uint32_t linear_index;
 
     if ((page >= SHADOW_SRAM_PAGE_MAX) || (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
     {
         return;
     }
 
-    if (page == 0)
+    if (page < SHADOW_WRAM_PAGE_COUNT)
     {
         word_index = (uint16_t)(offset >> 1);
+        linear_index = ((uint32_t)page * SHADOW_WRAM_PAGE_WORDS) + (uint32_t)word_index;
 
-        if (word_index < SHADOW_PAGE0_WRAM_WORDS)
+        if (linear_index < SHADOW_WRAM_TOTAL_WORDS)
         {
-            shadow_page0_wram[word_index] = value;
+            shadow_pages_0_1_wram[linear_index] = value;
         }
 
         return;
     }
 
-    base = (volatile uint8_t *)(SHADOW_SRAM_BASE + ((uint32_t)(page - 1) * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
+    base = (volatile uint8_t *)(SHADOW_SRAM_BASE + ((uint32_t)(page - SHADOW_WRAM_PAGE_COUNT) * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
     base[0] = (uint8_t)(value >> 8);
     base[1] = (uint8_t)(value & 0xFF);
 }
@@ -348,25 +352,27 @@ uint16_t shadow_read16(uint8_t page, uint16_t offset)
 {
     volatile uint8_t *base;
     uint16_t word_index;
+    uint32_t linear_index;
 
     if ((page >= SHADOW_SRAM_PAGE_MAX) || (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
     {
         return 0;
     }
 
-    if (page == 0)
+    if (page < SHADOW_WRAM_PAGE_COUNT)
     {
         word_index = (uint16_t)(offset >> 1);
+        linear_index = ((uint32_t)page * SHADOW_WRAM_PAGE_WORDS) + (uint32_t)word_index;
 
-        if (word_index < SHADOW_PAGE0_WRAM_WORDS)
+        if (linear_index < SHADOW_WRAM_TOTAL_WORDS)
         {
-            return shadow_page0_wram[word_index];
+            return shadow_pages_0_1_wram[linear_index];
         }
 
         return 0;
     }
 
-    base = (volatile uint8_t *)(SHADOW_SRAM_BASE + ((uint32_t)(page - 1) * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
+    base = (volatile uint8_t *)(SHADOW_SRAM_BASE + ((uint32_t)(page - SHADOW_WRAM_PAGE_COUNT) * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
     return (uint16_t)(((uint16_t)base[0] << 8) | (uint16_t)base[1]);
 }
 

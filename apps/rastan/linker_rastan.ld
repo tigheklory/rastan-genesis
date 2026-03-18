@@ -78,6 +78,11 @@ SECTIONS
     _bend = .;
   } > ram
 
+  .sram_data (NOLOAD) :
+  {
+    *(.sram_data .sram_data.*)
+  } > SRAM
+
   .stab 0 (NOLOAD) :
   {
     *(.stab)
