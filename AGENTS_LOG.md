@@ -553,3 +553,25 @@ Build 91 status: **Ready for testing**.
 - Stack Pointer (SP): 0xE07F6F1A
 - Unique Unmapped Memory Addresses (3): 0x0020A512, 0x2700A512, 0x00000000
 - **Visual Evidence (BlastEm):** Screenshot saved as `B91_BlastEm_Launcher_20260318_1746.png` (Stage: Launcher)
+
+## [Architect Audit - Build 91.1 Unification]
+
+### 1. Analysis of Redundancy
+**Confirmed Critical Inefficiency.**
+The current implementation maintains two active WRAM buffers for Page 0:
+1. `shadow_page0_wram` (16KB) - The Legacy Artifact.
+2. `shadow_pages_0_1_wram` (32KB) - The Linear Target.
+
+This "Double-Shadow" approach consumes 48KB of WRAM to store 32KB of data. Given the Genesis WRAM constraint (64KB total for the entire system), this is unsustainable.
+
+### 2. The Logic Bridge
+The linear index calculation `((uint32_t)page * 8192) + (uint32_t)word_index` is **Mathematically Correct** for a `uint16_t` array.
+- Page 0 (0x0000) maps to indices 0-8191.
+- Page 1 (0x4000) maps to indices 8192-16383.
+This creates the seamless 32KB block required by the Z80 sound driver to cross the 16KB boundary without a bus fault.
+
+### 3. Final Memory Plan (Build 91.1)
+**Directive:** Consolidate immediately.
+- **DELETE** `shadow_page0_wram` (16KB).
+- **RETAIN** `shadow_pages_0_1_wram` (32KB) as the authoritative source for Pages 0 and 1.
+- **UPDATE** `shadow_read16` and `shadow_write16` to route `page < 2` exclusively to `shadow_pages_0_1_wram`.
