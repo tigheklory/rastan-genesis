@@ -264,3 +264,20 @@ We implemented a `shadow_` API in `main.c` to abstract the backend.
 - **Linker:** Defined `sram` region.
 - **Runtime:** Implemented `shadow_init`, `shadow_write16`, `shadow_read16`.
 - **Next Step:** Compile and verify C-Window text rendering.
+
+## [External Consultant Review - Build 89 Strategy]
+
+Decision: Move C-window shadow buffers to cartridge SRAM backend.
+
+Rationale:
+- Genesis WRAM exhausted by 4×16KB buffers
+- Cartridge SRAM available in 0x200000 region
+- Implementation to occur through shadow memory abstraction layer
+
+Implementation Plan:
+1. Create backend interface for C-window shadow memory
+2. Implement SRAM-compatible backend
+3. Allow later pivot to true 16-bit cartridge RAM
+
+Status:
+Approved for Build 89 experimentation.
