@@ -244,3 +244,23 @@ This preserves forward compatibility with:
 
 ---
 
+## [Architect Review - Build 89 SRAM Pivot]
+
+### Design Strategy
+To resolve the Build 88 WRAM overflow, we are moving the 64KB of C-Window shadow buffers to the Genesis cartridge SRAM window (`0x200000`).
+
+### Memory Map
+- **Origin:** `0x200000`
+- **Length:** `64KB`
+- **Layout:** 4 logical pages of 16KB each, mapped linearly.
+
+### Compatibility Abstraction
+We implemented a `shadow_` API in `main.c` to abstract the backend.
+- **Access Method:** Explicit 8-bit byte-splitting.
+- **Constraint:** While the API uses safe 8-bit access patterns, fitting 64KB of data into 64KB of address space requires a "16-bit SRAM" or linear-mapped configuration. Standard 8-bit-only save RAM (odd addresses only) would require 128KB of address space for this amount of data.
+- **Target:** This configuration is valid for Emulator (SRAM 16-bit mode) and EverDrive development, which is sufficient to unblock the current logic testing.
+
+### Status
+- **Linker:** Defined `sram` region.
+- **Runtime:** Implemented `shadow_init`, `shadow_write16`, `shadow_read16`.
+- **Next Step:** Compile and verify C-Window text rendering.
