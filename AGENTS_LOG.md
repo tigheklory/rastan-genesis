@@ -48,3 +48,27 @@ Accessing `0xD000DA` on Genesis (unmapped space) causes the observed crash/freez
 1.  **Split C-Window Shadows**: Define four separate 16KB shadow buffers in `apps/rastan/src/main.c`.
 2.  **Remap Pages**: Update `specs/startup_title_remap.json` to map each 0xC0xxxx page to its own unique shadow symbol.
 3.  **Patch D000DA**: Add `0xD000DA` to the explicit D-window absolute remap group targeting `genesistan_shadow_d00000_words` (offset 218).
+
+## [Implementer Update - Build 88]
+
+### Fixes Implemented
+- Confirmed: `specs/startup_title_remap.json` now decouples prior 4-to-1 C-window aliasing with distinct mappings:
+  - `0x00C00000 -> genesistan_shadow_c00000_words`
+  - `0x00C04000 -> genesistan_shadow_c04000_words`
+  - `0x00C08000 -> genesistan_shadow_c08000_words`
+  - `0x00C0C000 -> genesistan_shadow_c0c000_words`
+- Confirmed: `0x00D000DA` is mapped in D-window group to `genesistan_shadow_d00000_words` with `offset: 218`.
+
+### Build Blocker
+- Current state is `LINKER FAILURE` due to WRAM exhaustion.
+- Cause: addition of 4 x 16KB volatile C-window shadow buffers (64KB total) pushes `.bss` past Genesis WRAM capacity (`$E00000-$FFFFFF`).
+- Reported linker error: `.bss exceeds ram region at 0xE100BECC`.
+
+### Integrity Check
+- Confirmed unshifted arcade code offsets in spec:
+  - `0x03AE86`
+  - `0x039F80`
+  - `0x03B098`
+
+### Final Status
+- Build 88: `Logic Complete / Memory Blocked`.

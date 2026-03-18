@@ -14,7 +14,10 @@
 extern volatile uint16_t genesistan_shadow_200000_words[0x2000];
 extern volatile uint16_t genesistan_arcade_workram_words[0x2000];
 extern volatile uint16_t genesistan_shadow_d00000_words[0x0400];
-extern volatile uint16_t genesistan_shadow_c_window_words[0x2000];
+extern volatile uint16_t genesistan_shadow_c00000_words[0x2000];
+extern volatile uint16_t genesistan_shadow_c04000_words[0x2000];
+extern volatile uint16_t genesistan_shadow_c08000_words[0x2000];
+extern volatile uint16_t genesistan_shadow_c0c000_words[0x2000];
 extern volatile uint16_t genesistan_shadow_c20000_words[2];
 extern volatile uint16_t genesistan_shadow_c40000_words[2];
 

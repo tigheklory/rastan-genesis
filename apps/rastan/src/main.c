@@ -10,6 +10,10 @@
 extern volatile uint16_t genesistan_shadow_d00000_words[0x0400];
 extern volatile uint16_t genesistan_shadow_reg_c50000;
 extern volatile uint16_t genesistan_shadow_reg_d01bfe;
+volatile uint16_t genesistan_shadow_c00000_words[0x2000];
+volatile uint16_t genesistan_shadow_c04000_words[0x2000];
+volatile uint16_t genesistan_shadow_c08000_words[0x2000];
+volatile uint16_t genesistan_shadow_c0c000_words[0x2000];
 
 #ifndef RASTAN_ENABLE_STARTUP_HOOK
 #define RASTAN_ENABLE_STARTUP_HOOK 1
@@ -38,6 +42,11 @@ extern volatile uint16_t genesistan_shadow_reg_d01bfe;
 #define FRONTEND_RUNTIME_MAX_SPRITES SAT_MAX_SIZE
 #define FRONTEND_RUNTIME_MAX_UNIQUE_CODES 64
 #define FRONTEND_RUNTIME_MAX_PALETTE_BANKS 4
+#define C_WINDOW_WORDS_PER_BANK 0x2000
+#define C_WINDOW_BANK_COUNT 4
+#define C_WINDOW_TOTAL_WORDS (C_WINDOW_WORDS_PER_BANK * C_WINDOW_BANK_COUNT)
+#define C_WINDOW_WORDS_PER_ROW 64
+#define C_WINDOW_TOTAL_ROWS (C_WINDOW_TOTAL_WORDS / C_WINDOW_WORDS_PER_ROW)
 
 typedef enum
 {
@@ -301,13 +310,24 @@ static char decode_startup_shadow_word(u16 word)
     return ' ';
 }
 
+static u16 read_shadow_c_window_word(u16 linear_index);
+static u16 count_nonzero_c_window_words(void);
+static u16 find_first_nonzero_c_window_word(void);
+static u16 find_last_nonzero_c_window_word(void);
+
 static bool startup_shadow_row_has_text(u16 shadow_row)
 {
     u16 col;
+    const u16 row_base = (u16)(shadow_row * C_WINDOW_WORDS_PER_ROW);
+
+    if (shadow_row >= C_WINDOW_TOTAL_ROWS)
+    {
+        return FALSE;
+    }
 
     for (col = 0; col < SCREEN_W; col++)
     {
-        if (decode_startup_shadow_word(genesistan_shadow_c_window_words[(shadow_row * 64) + col]) != ' ')
+        if (decode_startup_shadow_word(read_shadow_c_window_word((u16)(row_base + col))) != ' ')
         {
             return TRUE;
         }
@@ -360,6 +380,78 @@ static u16 count_nonzero_words(const volatile uint16_t *words, u16 count)
     }
 
     return total;
+}
+
+static u16 read_shadow_c_window_word(u16 linear_index)
+{
+    if (linear_index < C_WINDOW_WORDS_PER_BANK)
+    {
+        return genesistan_shadow_c00000_words[linear_index];
+    }
+
+    linear_index -= C_WINDOW_WORDS_PER_BANK;
+    if (linear_index < C_WINDOW_WORDS_PER_BANK)
+    {
+        return genesistan_shadow_c04000_words[linear_index];
+    }
+
+    linear_index -= C_WINDOW_WORDS_PER_BANK;
+    if (linear_index < C_WINDOW_WORDS_PER_BANK)
+    {
+        return genesistan_shadow_c08000_words[linear_index];
+    }
+
+    linear_index -= C_WINDOW_WORDS_PER_BANK;
+    if (linear_index < C_WINDOW_WORDS_PER_BANK)
+    {
+        return genesistan_shadow_c0c000_words[linear_index];
+    }
+
+    return 0;
+}
+
+static u16 count_nonzero_c_window_words(void)
+{
+    return (u16)(count_nonzero_words(genesistan_shadow_c00000_words, C_WINDOW_WORDS_PER_BANK)
+                 + count_nonzero_words(genesistan_shadow_c04000_words, C_WINDOW_WORDS_PER_BANK)
+                 + count_nonzero_words(genesistan_shadow_c08000_words, C_WINDOW_WORDS_PER_BANK)
+                 + count_nonzero_words(genesistan_shadow_c0c000_words, C_WINDOW_WORDS_PER_BANK));
+}
+
+static u16 find_first_nonzero_c_window_word(void)
+{
+    u16 first = find_first_nonzero_word(genesistan_shadow_c00000_words, C_WINDOW_WORDS_PER_BANK);
+
+    if (first != 0xFFFF) return first;
+
+    first = find_first_nonzero_word(genesistan_shadow_c04000_words, C_WINDOW_WORDS_PER_BANK);
+    if (first != 0xFFFF) return (u16)(C_WINDOW_WORDS_PER_BANK + first);
+
+    first = find_first_nonzero_word(genesistan_shadow_c08000_words, C_WINDOW_WORDS_PER_BANK);
+    if (first != 0xFFFF) return (u16)((2 * C_WINDOW_WORDS_PER_BANK) + first);
+
+    first = find_first_nonzero_word(genesistan_shadow_c0c000_words, C_WINDOW_WORDS_PER_BANK);
+    if (first != 0xFFFF) return (u16)((3 * C_WINDOW_WORDS_PER_BANK) + first);
+
+    return 0xFFFF;
+}
+
+static u16 find_last_nonzero_c_window_word(void)
+{
+    u16 last = find_last_nonzero_word(genesistan_shadow_c0c000_words, C_WINDOW_WORDS_PER_BANK);
+
+    if (last != 0xFFFF) return (u16)((3 * C_WINDOW_WORDS_PER_BANK) + last);
+
+    last = find_last_nonzero_word(genesistan_shadow_c08000_words, C_WINDOW_WORDS_PER_BANK);
+    if (last != 0xFFFF) return (u16)((2 * C_WINDOW_WORDS_PER_BANK) + last);
+
+    last = find_last_nonzero_word(genesistan_shadow_c04000_words, C_WINDOW_WORDS_PER_BANK);
+    if (last != 0xFFFF) return (u16)(C_WINDOW_WORDS_PER_BANK + last);
+
+    last = find_last_nonzero_word(genesistan_shadow_c00000_words, C_WINDOW_WORDS_PER_BANK);
+    if (last != 0xFFFF) return last;
+
+    return 0xFFFF;
 }
 
 static void draw_padded_text_palette(const char *text, u16 x, u16 y, u16 width, u16 palette);
@@ -967,9 +1059,9 @@ static void render_startup_preview_screen(void)
     char line[SCREEN_W + 1];
     u16 first_text_row = 0;
     u16 preview_row;
-    const u16 c_window_nonzero = count_nonzero_words(genesistan_shadow_c_window_words, 0x2000);
-    const u16 c_window_first = find_first_nonzero_word(genesistan_shadow_c_window_words, 0x2000);
-    const u16 c_window_last = find_last_nonzero_word(genesistan_shadow_c_window_words, 0x2000);
+    const u16 c_window_nonzero = count_nonzero_c_window_words();
+    const u16 c_window_first = find_first_nonzero_c_window_word();
+    const u16 c_window_last = find_last_nonzero_c_window_word();
 
     VDP_clearPlane(BG_A, TRUE);
     VDP_clearPlane(BG_B, TRUE);
@@ -989,7 +1081,7 @@ static void render_startup_preview_screen(void)
     draw_padded_text(line, 8, 5, 24);
     draw_padded_text("ORIGINAL TITLE TEXT SHADOW", 7, 7, 26);
 
-    while ((first_text_row < 31) && !startup_shadow_row_has_text(first_text_row))
+    while ((first_text_row + 1 < C_WINDOW_TOTAL_ROWS) && !startup_shadow_row_has_text(first_text_row))
     {
         first_text_row++;
     }
@@ -1006,11 +1098,13 @@ static void render_startup_preview_screen(void)
         memset(line, ' ', SCREEN_W);
         line[SCREEN_W] = '\0';
 
-        if (shadow_row < 32)
+        if (shadow_row < C_WINDOW_TOTAL_ROWS)
         {
             for (col = 0; col < SCREEN_W; col++)
             {
-                line[col] = decode_startup_shadow_word(genesistan_shadow_c_window_words[(shadow_row * 64) + col]);
+                line[col] = decode_startup_shadow_word(
+                    read_shadow_c_window_word((u16)((shadow_row * C_WINDOW_WORDS_PER_ROW) + col))
+                );
             }
         }
 
