@@ -350,3 +350,21 @@ Approved for Build 89 experimentation.
 ### 4. Directives for the Team
 - **Alan (Architect):** Audit the `shadow_read16` logic. If the Arcade engine expects to *execute* code from the C-Window (some arcade boards do this for "trampoline" functions), we cannot use SRAM at $200000, as that region is data-only on Genesis.
 - **Cody (Cody):** Examine the Linker Map for Build 89. Check if any `.text` (code) sections accidentally landed in the `SRAM` region.
+
+## [Architect Audit - Build 89 Execution Failure]
+
+### 1. Root Cause Analysis
+**Confirmed.** The Build 89 crash is caused by the 68K CPU attempting to execute code from the cartridge SRAM region (`$200000`).
+- **Evidence:** BlastEm debugger reported an execution attempt at `0x201F4C`.
+- **Conclusion:** This address corresponds to arcade address `$C01F4C`, which falls within the first 16KB C-Window page (`PAGE 0`). The original arcade code contains executable subroutines or jump tables within this memory region, which is incompatible with the non-executable nature of Genesis Save RAM.
+
+### 2. Design for Build 90: Hybrid Memory Map
+To resolve the fault while still mitigating WRAM pressure, the C-Window shadow buffers will be split between WRAM and SRAM.
+
+- **PAGE 0 (`$C00000` - 16KB):** This "hot" page contains executable code and **must be moved back to WRAM** (`$FFxxxx`).
+- **PAGES 1-3 (`$C04000` - 48KB):** These "cold" pages appear to contain only data and **can remain in SRAM** (`$200000`).
+
+### 3. Action Items for Implementer
+- Allocate one 16KB array in `.bss` to serve as the WRAM shadow for `PAGE 0`.
+- Modify the `shadow_read16()` and `shadow_write16()` API functions.
+- The API must now conditionally route memory access: requests for `page == 0` target the WRAM buffer, while requests for `page > 0` target the SRAM hardware address space.
