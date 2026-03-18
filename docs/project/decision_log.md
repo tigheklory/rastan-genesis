@@ -391,3 +391,23 @@ Why:
   `0x03B8B4: lea 0x00D00020,a1` (plus nearby `D00088/D000E0/D00128`).
 - Because code-window rewrites are intentionally disabled (to avoid opcode
   clobber), these literals must be covered by explicit spec mappings.
+
+### Expand `helper_d000_init` range to include `0x03AD4C..0x03AD72`
+
+Decision:
+
+- Widen `helper_d000_init` copied/remap range start from `0x03AD72` to
+  `0x03AD4C`.
+- Add explicit absolute remap for `0x00D00170` in `helper_d000_init`.
+
+Why:
+
+- Disassembly shows `0x03AD4C..0x03AD70` is part of the same D-window init
+  helper and contains:
+  - `0x03AD50: lea 0x00D00000,a0`
+  - `0x03AD62: lea 0x00D00170,a0`
+- This preamble sat outside the previous remap range, leaving at least one
+  `0x00D00000` literal untranslated and allowing direct D-window writes in
+  startup/title paths.
+- Keeping this fix in `specs/startup_title_remap.json` preserves the
+  declarative, build-time remap policy and avoids runtime crash-site patches.

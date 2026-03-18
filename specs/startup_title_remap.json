@@ -146,7 +146,7 @@
     {
       "name": "helper_d000_init",
       "kind": "original_code",
-      "start": "0x03AD72",
+      "start": "0x03AD4C",
       "end_exclusive": "0x03ADBC"
     },
     {
@@ -310,6 +310,7 @@
       "range": "helper_d000_init",
       "mappings": [
         { "old": "0x00D00000", "symbol": "genesistan_shadow_d00000_words" },
+        { "old": "0x00D00170", "symbol": "genesistan_shadow_d00000_words", "offset": 368 },
         { "old": "0x00D00778", "symbol": "genesistan_shadow_d00000_words", "offset": 1912 }
       ]
     },
@@ -369,6 +370,12 @@
     }
   ],
   "window_rewrite_rules": [
+    { "range": "startup_common", "arcade_base": "0x00C50000", "arcade_end": "0x00C50002", "symbol": "genesistan_shadow_reg_c50000", "allow_in_code": true },
+    { "range": "startup_common", "arcade_base": "0x00D01BFE", "arcade_end": "0x00D01C00", "symbol": "genesistan_shadow_reg_d01bfe", "allow_in_code": true },
+    { "range": "startup_common", "arcade_base": "0x00D00000", "arcade_end": "0x00D04000", "symbol": "genesistan_shadow_d00000_words", "allow_in_code": true },
+    { "range": "helper_display_control", "arcade_base": "0x00C50000", "arcade_end": "0x00C50002", "symbol": "genesistan_shadow_reg_c50000", "allow_in_code": true },
+    { "range": "helper_display_control", "arcade_base": "0x00D01BFE", "arcade_end": "0x00D01C00", "symbol": "genesistan_shadow_reg_d01bfe", "allow_in_code": true },
+    { "range": "helper_display_control", "arcade_base": "0x00D00000", "arcade_end": "0x00D04000", "symbol": "genesistan_shadow_d00000_words", "allow_in_code": true },
     { "range": "frontend_core", "old_start": "0x00C00000", "old_end_exclusive": "0x00C04000", "symbol": "genesistan_shadow_c_window_words" },
     { "range": "frontend_core", "old_start": "0x00C04000", "old_end_exclusive": "0x00C08000", "symbol": "genesistan_shadow_c_window_words" },
     { "range": "frontend_core", "old_start": "0x00C08000", "old_end_exclusive": "0x00C0C000", "symbol": "genesistan_shadow_c_window_words" },

@@ -1,6 +1,7 @@
 local frame_count = 0
 local log_path = nil
 local summary_path = nil
+local agents_log_path = nil
 local error_logged = false
 local cpu = nil
 local prog = nil
@@ -43,6 +44,8 @@ local arcade_workram_base = nil
 local exception_handlers = {}
 local last_exception_pc = nil
 local last_exception_frame = -999999
+local unmapped_address_set = {}
+local unmapped_address_list = {}
 
 local WINDOW_WATCHES = {
 	{name = "wram_ff0000", start_addr = 0xFF0000, end_addr = 0xFFFFFF, stride = 0x80},
@@ -82,6 +85,18 @@ local function append_log(line)
 		fh:write("\n")
 		fh:close()
 	end
+end
+
+local function record_unmapped_address(addr)
+	if not addr then
+		return
+	end
+	local key = string.format("0x%08X", addr & 0xFFFFFFFF)
+	if unmapped_address_set[key] then
+		return
+	end
+	unmapped_address_set[key] = true
+	table.insert(unmapped_address_list, key)
 end
 
 local function normalize_24(addr)
@@ -479,6 +494,7 @@ local function log_exception_context(pc, name)
 	local w1 = prog:read_u16(sp + 2)
 	local w2 = prog:read_u16(sp + 4)
 	local offset_guess = ((w1 << 16) | w2) & 0xFFFFFFFF
+	record_unmapped_address(offset_guess)
 	append_log(string.format(
 		"[frame %06d] exception_guess fmt=%04x offset_guess=%08x",
 		frame_count, w0, offset_guess
@@ -491,6 +507,35 @@ local function log_exception_context(pc, name)
 			frame_count, off, prog:read_u16(sp + off)
 		))
 	end
+end
+
+local function append_agents_log_summary()
+	local fh
+	local final_pc = current_pc()
+	local final_sp = read_state_u32("SP")
+	local i
+
+	if not agents_log_path then
+		return
+	end
+
+	fh = io.open(agents_log_path, "a")
+	if not fh then
+		return
+	end
+
+	fh:write("\n")
+	fh:write(string.format("### MAME Exit Summary (%s)\n", os.date("%Y-%m-%d %H:%M:%S")))
+	fh:write(string.format("- Final PC: %s\n", final_pc and string.format("0x%06X", final_pc) or "unknown"))
+	fh:write(string.format("- Stack Pointer (SP): %s\n", final_sp and string.format("0x%08X", final_sp) or "unknown"))
+	if #unmapped_address_list == 0 then
+		fh:write("- Unique Unmapped Memory Addresses: none\n")
+	else
+		fh:write(string.format("- Unique Unmapped Memory Addresses (%d): %s\n",
+			#unmapped_address_list,
+			table.concat(unmapped_address_list, ", ")))
+	end
+	fh:close()
 end
 
 local function is_dispatch_pc(pc)
@@ -626,6 +671,8 @@ local function reset_state()
 	exception_handlers = {}
 	last_exception_pc = nil
 	last_exception_frame = -999999
+	unmapped_address_set = {}
+	unmapped_address_list = {}
 end
 
 local function arm_trace()
@@ -666,6 +713,7 @@ setup_exec_ranges()
 
 local root, home = find_repo_root()
 local trace_dir = (home and (home .. "/genesistrace")) or (root .. "/build/mame/home/genesistrace")
+agents_log_path = root .. "/AGENTS_LOG.md"
 os.execute(string.format("mkdir -p '%s'", trace_dir))
 log_path = trace_dir .. "/genesis_exec_trace.log"
 summary_path = trace_dir .. "/genesis_exec_summary.txt"
@@ -694,6 +742,7 @@ end)
 
 _G.genesistrace_stop_subscription = emu.add_machine_stop_notifier(function ()
 	write_summary()
+	append_agents_log_summary()
 	append_log("==== genesistrace stop ====")
 end)
 

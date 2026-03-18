@@ -135,8 +135,14 @@ def validate_spec_addresses(
         range_name = rule["range"]
         if range_name not in range_lookup:
             raise RuntimeError(f"Unknown window rewrite range in spec: {range_name}")
-        old_start = parse_hexish(rule["old_start"])
-        old_end = parse_hexish(rule["old_end_exclusive"])
+        old_start_raw = rule.get("arcade_base", rule.get("old_start"))
+        old_end_raw = rule.get("arcade_end", rule.get("old_end_exclusive"))
+        if old_start_raw is None or old_end_raw is None:
+            raise RuntimeError(
+                f"Window rewrite rule for range {range_name} must define arcade_base/arcade_end (or old_start/old_end_exclusive)."
+            )
+        old_start = parse_hexish(old_start_raw)
+        old_end = parse_hexish(old_end_raw)
         has_symbol = "symbol" in rule
         has_new_start = "new_start" in rule
         if has_symbol == has_new_start:
@@ -684,8 +690,14 @@ def main() -> int:
         if execute_from_relocated_base:
             range_start += relocation_delta
             range_end += relocation_delta
-        old_start = parse_hexish(rule["old_start"])
-        old_end = parse_hexish(rule["old_end_exclusive"])
+        old_start_raw = rule.get("arcade_base", rule.get("old_start"))
+        old_end_raw = rule.get("arcade_end", rule.get("old_end_exclusive"))
+        if old_start_raw is None or old_end_raw is None:
+            raise RuntimeError(
+                f"Window rewrite rule for range {range_name} must define arcade_base/arcade_end (or old_start/old_end_exclusive)."
+            )
+        old_start = parse_hexish(old_start_raw)
+        old_end = parse_hexish(old_end_raw)
         offset = int(rule.get("offset", 0))
         if "symbol" in rule:
             new_start = symbol_addresses[rule["symbol"]] + offset

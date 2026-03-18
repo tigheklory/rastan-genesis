@@ -6,6 +6,11 @@
 #include "res_payload.h"
 #include "res_ui.h"
 
+/* Explicitly reference SBT-linked Genesis shadow symbols used by remap rules. */
+extern volatile uint16_t genesistan_shadow_d00000_words[0x0400];
+extern volatile uint16_t genesistan_shadow_reg_c50000;
+extern volatile uint16_t genesistan_shadow_reg_d01bfe;
+
 #ifndef RASTAN_ENABLE_STARTUP_HOOK
 #define RASTAN_ENABLE_STARTUP_HOOK 1
 #endif
