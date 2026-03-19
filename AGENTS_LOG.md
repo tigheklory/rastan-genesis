@@ -1341,3 +1341,444 @@ Completed refactor of `tools/mame/scripts/rastantrace.lua` into a focused RAM co
 - **Visual Evidence (Hardware):** Screenshot saved as `B92_Hardware_In-Game_20260319_1111.png` (Stage: In-Game)
 - **Visual Evidence (Hardware):** Screenshot saved as `B92_Hardware_In-Game_20260319_1112.png` (Stage: In-Game)
 - **Visual Evidence (Hardware):** Screenshot saved as `B92_Hardware_Launcher_20260319_1112.png` (Stage: Launcher)
+
+## [External Consultant Audit (Claude) - Build 92 EX-SSF / VDP Direct Write Strategy]
+
+### Trace Result Review
+The `ram_usage_profile.json` trace shows that the arcade `$C00000–$C0FFFF` window is **fully exercised** during the traced gameplay run.
+
+Per-page metrics:
+
+Page 0:
+- min_offset_touched: `0x0000`
+- max_offset_touched: `0x3FFE`
+- unique_words_touched: `8192`
+
+Page 1:
+- min_offset_touched: `0x0000`
+- max_offset_touched: `0x3FFE`
+- unique_words_touched: `8192`
+
+Page 2:
+- min_offset_touched: `0x0000`
+- max_offset_touched: `0x3FFE`
+- unique_words_touched: `8192`
+- small number of read accesses
+
+Page 3:
+- min_offset_touched: `0x0000`
+- max_offset_touched: `0x3FFE`
+- unique_words_touched: `8192`
+
+Observations:
+
+- All four pages are **completely written during gameplay**.
+- No large dead zones were detected.
+- No instruction fetches occurred in this window.
+- This indicates the region behaves as **data-only memory**, not executable code.
+
+Important limitation:
+
+The profiler reflects **one traced run only**.  
+Different game states (bosses, attract mode, transitions) may still exercise different patterns.
+
+---
+
+### Implication for the Current Shadow Architecture
+The profiler results strongly suggest:
+
+- The C-window is **not sparse memory**
+- The current 64KB logical working set assumption is **accurate**
+
+Therefore attempts to shrink the region by trimming unused offsets will likely **not produce meaningful savings**.
+
+The current WRAM pressure problem will **not be solved by page trimming alone**.
+
+---
+
+### Direct-to-VDP Translation Strategy Audit
+
+Because the C-window appears to be **data-only**, a strategy that intercepts arcade writes and translates them directly to Genesis VDP updates is technically viable.
+
+However, this must **not** be implemented as immediate one-to-one VDP writes.
+
+#### Risk: VDP Fill Rate Saturation
+
+The Genesis VDP contains a write FIFO.  
+If the CPU writes faster than the VDP can drain the FIFO:
+
+- the 68000 stalls
+- frame time collapses
+- gameplay becomes unstable
+
+The hardware prevents corruption, but performance degrades heavily.
+
+The main risk is therefore **timing collapse**, not bus damage.
+
+---
+
+### Required Design for Safe VDP Translation
+
+A safe design must follow this pattern:
+
+1. Intercept arcade writes.
+2. Mark the affected tile / span / region as **dirty**.
+3. Accumulate changes in a lightweight structure.
+4. Flush changes in **batched transfers** during:
+   - VBLANK
+   - forced blank
+   - controlled update windows.
+
+Avoid:
+
+- issuing VDP writes for every intercepted memory write
+- frequent VDP control-port resets
+- fine-grained per-word transfers.
+
+Correct usage should rely on:
+
+- sequential VRAM writes
+- auto-increment addressing
+- DMA bursts where appropriate.
+
+---
+
+### EX-SSF Mapper Re-Evaluation
+
+Krikzz confirmed that the Mega EverDrive X3 supports:
+
+- **16-bit accessible RAM**
+- writable cartridge space when EX-SSF disables ROM protection.
+
+With EX-SSF enabled:
+
+ - 000000–3FFFFF
+ 
+can behave as writable memory backed by EverDrive RAM.
+
+This is **not standard Genesis cartridge behavior**, but it is extremely useful for development builds.
+
+---
+
+### Recommended Use of EX-SSF RAM
+
+If video shadow buffers are removed or reduced, EX-SSF RAM can be repurposed safely for:
+
+- relocating the **68K system stack**
+- large **68K-side sound buffers**
+- decompression buffers
+- staging memory for asset translation.
+
+Benefits:
+
+- eliminates WRAM stack collisions
+- relieves WRAM pressure
+- simplifies debugging.
+
+---
+
+### Z80 Safety Considerations
+
+EX-SSF RAM should **not** replace memory used for:
+
+- Z80 command queues
+- Z80 handshake structures
+- latency-sensitive audio communication.
+
+These structures should remain in **normal Genesis-visible RAM** for reliability.
+
+Large producer-side audio buffers may reside in EX-SSF RAM if accessed only by the 68K.
+
+---
+
+### Recommended Architecture Moving Forward
+
+1. Treat the C-window as **data-only translation memory**.
+2. Implement a **dirty-region based VDP update pipeline**.
+3. Remove large WRAM shadow buffers where possible.
+4. Use EX-SSF RAM in development builds for:
+   - stack relocation
+   - large temporary buffers.
+5. Maintain compatibility path targeting **standard Genesis hardware**.
+
+---
+
+### Consultant Verdict
+
+APPROVED WITH CONDITIONS.
+
+A buffered **Direct-to-VDP translation architecture** is technically sound and aligns with the trace evidence that the C-window is data-only.
+
+However:
+
+- writes must be **batched and coalesced**
+- not issued directly per arcade write.
+
+EX-SSF RAM should be treated as a **development tool for memory pressure relief**, not as the primary runtime architecture.
+
+Good — I have the full profile. Let me parse the data carefully before writing the audit.Good. I now have the full JSON parsed and the design context loaded. Let me build the RAM map visualization first, then write the full audit.Now the full audit, grounded in what the JSON actually shows.
+
+---
+
+## Audit: Direct-to-VDP strategy & EX-SSF RAM reuse
+
+### What the RAM profile actually tells us
+
+This is the most important thing to establish before any strategy decision. The profile covers `0xC00000–0xC0FFFF` — all 64KB of the Rastan arcade board's work RAM — across 549 traced frames. The finding is stark: **three of four pages are write-only with zero reads**. Page2 is the only page with any reads at all, and those are 16 isolated word reads scattered at a stride of approximately `0x200` bytes through the range `0x1336–0x1EA3`. Every single write range is the full `0x0000–0x3FFF` span, meaning the arcade code treats each page as a dense scratch buffer, writing to every word at some point in the 549 frames.
+
+Two caveats from the file's own metadata must be front-of-mind for everything that follows: (1) "coverage reflects only the traced scenario," and (2) the read detection is heuristic-only. The 16 reads in page2 are a floor, not a ceiling. Cold-path code — exactly the gap problem raised in the prior audit — may read from any of these pages during boss transitions or stage-load routines that weren't exercised in 549 frames.
+
+With that framing, here is the full technical audit.
+
+---
+
+## Part 1: Direct-to-VDP timing and bus safety
+
+### The core premise
+
+The proposal is: when the ported arcade code writes to its remapped work-RAM equivalent, intercept that write and fire a VDP command immediately, rather than staging through a WRAM shadow buffer that gets DMA'd at vblank.
+
+The premise is appealing because the RAM profile shows these buffers are write-only (from the CPU's perspective) during normal gameplay. If nothing reads back from them, the shadow buffer exists only to feed the VDP — so why not cut out the middleman?
+
+The answer is that the "middleman" does three things that direct writes cannot replace.
+
+### Risk 1: VDP write timing window
+
+The Genesis VDP accepts CPU writes to VRAM only during valid bus cycles. During active display, the VDP is consuming its own VRAM bandwidth for rendering — on NTSC hardware, roughly 64 out of every 342 pixel-clocks per scanline are available for CPU-side DMA or direct writes, and the VDP serializes contention through the `VRAM busy` flag on the data port. If you fire VDP writes synchronously at the rate the arcade 68000 was writing to work-RAM, you will be issuing VDP commands at arbitrary points in the display cycle.
+
+The key number: at 7.67 MHz (Genesis 68000 clock), a word write to work-RAM takes 4 bus cycles (~520 ns). A word write to VRAM via the VDP data port takes a minimum of 8 bus cycles when the VDP isn't busy, and an unbounded number when it is — the CPU must spin-wait on the VDP FIFO. The arcade's full 16KB write-per-page pattern, if translated directly to VDP commands, would block the CPU for a duration entirely dependent on VDP availability, which in turn depends on raster position, DMA activity, and FIFO depth. You cannot predict this from the trace.
+
+Practically: if the arcade code writes a complete sprite table update (potentially thousands of words) inside a single game logic frame, a direct-to-VDP translation of those writes would stall the CPU mid-frame, arriving at the next game logic tick late. Over successive frames this accumulates, producing physics drift and input lag — subtle but reproducible problems that are very hard to diagnose without cycle-accurate profiling.
+
+### Risk 2: Write ordering vs. VDP setup protocol
+
+A VDP VRAM write requires a preceding control-port write that establishes the VRAM address and direction (`WRITE` vs `READ`). The arcade code writes to its work-RAM with no such setup cost — it is just a `MOVE.W Dn, (An)+` into flat RAM. Intercepting that write and translating it to a VDP command requires tracking VRAM cursor state separately, which is state you do not have from the trace. If any part of the intercepted code writes multiple non-contiguous regions (which the stride pattern in page2's reads suggests is possible), you would need to re-arm the VDP control port between sub-regions. Miss one and you silently corrupt VRAM layout.
+
+### Risk 3: The 16 sparse reads in page2 are a direct contraindication
+
+The 16 word-reads at stride `0x200` in page2 are not noise. That pattern — eight evenly-spaced pairs across a 16KB range, each pair separated by exactly 4 bytes — is consistent with a routine that reads back a previously written value for comparison: a dirty-flag check, a sprite-culling pass, or a state machine that tests its own output before deciding whether to re-issue. If those reads come back from a VDP-backed region, they will get stale or undefined data (the VDP data port does not support arbitrary read-back at the rate CPU code expects), and the comparison will produce undefined game behavior.
+
+The heuristic-exec flag being `false` on all pages is reassuring — no code executes from this RAM. But the 16 reads mean this buffer is not purely a write-only sink. **At minimum, page2 must retain a read-capable WRAM shadow even in a direct-VDP strategy.**
+
+### Verdict on Direct-to-VDP
+
+A fully direct strategy is unsafe for gameplay-critical writes. The recommended hybrid:
+
+For regions that are demonstrably write-only and contain only bulk tile/sprite data (likely pages 0, 1, and 3), a vblank-triggered DMA from a small WRAM staging area remains the safer approach — but you can reduce the shadow buffer size dramatically. Instead of mirroring all 64KB, you only need to shadow the "dirty" subset: the words that actually changed since the last DMA. A 2KB dirty-tracking bitmap (1 bit per word in 64KB) would let you skip DMA for unchanged regions and fire precise VRAM writes only for delta words.
+
+For page2, retain the full shadow. The 16 reads must be satisfiable from WRAM, not VDP.
+
+---
+
+## Part 2: Mega Everdrive X3 EX-SSF mode — stack collision resolution
+
+### What EX-SSF mode actually provides
+
+The Mega Everdrive X3's EX-SSF mode maps an additional 512KB of flash-backed storage RAM into the cartridge address space, typically at `0x400000–0x47FFFF` (or a banking window depending on firmware version). This is not WRAM — it is PSRAM-backed and has slower access timing than the internal 64KB WRAM at `0xFF0000`. On original hardware, random-read latency for cartridge-space PSRAM is roughly 2–3× that of WRAM on the Genesis bus.
+
+The intended use-case for EX-SSF in your current setup was as a "video shadow" — a large flat buffer mirroring the arcade's work-RAM for VDP translation. If you abandon that use case, you have 512KB of addressable space that is otherwise idle. The question is whether it can absorb your stack collision.
+
+### The `0x2DDA` stack collision
+
+The collision at `0x2DDA` puts the arcade code's stack pointer squarely in the middle of what is almost certainly a WRAM region that the patched code also uses for data. On Genesis, `0x2DDA` sits inside the standard `0xFF0000–0xFFFFFF` WRAM window when accessed via the standard 24-bit address mirror (on Genesis, `0x002DDA` would be in ROM space — the collision is almost certainly at the full address `0xFF2DDA`). If the arcade stack grows down from `0xFF2DDA` while game data grows up from lower WRAM addresses, they will collide whenever game state is deep enough to push more than a few kilobytes of stack.
+
+### Can EX-SSF RAM hold the stack?
+
+Technically yes, but with a significant caveat: the system stack (`SSP`/`A7`) must be readable and writable with minimum latency. Every `JSR`, `BSR`, interrupt dispatch, and `MOVEM.L -(SP), ...` pays the bus penalty for the stack memory's access time. If the system stack lives in cartridge PSRAM at `0x400000`, each of those operations takes 2–3× longer than if it lives in WRAM. For gameplay routines that call deep sub-routines frequently — which Rastan does, given its sprite-heavy interrupt structure — this will introduce measurable and potentially gameplay-affecting slowdowns.
+
+The more appropriate use of EX-SSF RAM for the stack collision problem is indirect: move large data structures (specifically, the sound driver buffer or the largest persistent data table that currently occupies WRAM) into EX-SSF address space, freeing enough contiguous WRAM for the stack to grow safely without hitting live data. The stack itself stays in WRAM; EX-SSF absorbs the bulk storage.
+
+### Recommended memory layout revision
+
+Based on the profile's finding that pages 0, 1, 3 are pure write buffers and page 2 has a small read footprint, the following layout makes sense:
+
+The current full 64KB WRAM shadow can be replaced with a 16KB shadow for page2 only (which must remain read-capable), a 2KB dirty-tracking bitmap covering all four pages, and a small DMA descriptor ring buffer. That frees approximately 46KB of WRAM compared to a full-shadow approach. The freed WRAM gives the stack room to grow without touching live data, eliminates the `0x2DDA` collision without needing EX-SSF at all for the stack, and leaves EX-SSF available for larger future needs (stage data, sound sample banks, pre-decoded tile strips).
+
+If WRAM pressure after that redistribution is still too tight, the second tier is to move the sound buffer — typically 2–8KB depending on driver design — to EX-SSF. Sound access is bursty (filled during vblank, consumed at audio interrupt rate) rather than cycle-critical on the CPU path, making it a much better fit for slightly slower PSRAM than the stack.
+
+### EX-SSF access timing risk for sound buffers
+
+One more caveat specific to the Everdrive X3: EX-SSF mode's PSRAM can have inconsistent access timing across individual cartridges due to PSRAM chip variance. If the sound driver fills its buffer inside a tight vblank interrupt handler, a slow PSRAM access could overrun the vblank window and produce audio glitches. Mitigate by double-buffering — fill the "next" buffer in main-loop time, copy to EX-SSF during vblank when the window is known to be safe.
+
+---
+
+## Summary recommendations
+
+The RAM profile strongly supports abandoning the full 64KB WRAM shadow. Replace it with a page2-only 16KB shadow (the only page with reads), a dirty-tracking bitmap for the other three pages to enable minimal-delta DMA, and shift the strategy from synchronous direct VDP writes to a vblank-gated delta-DMA approach. This is safer than direct-to-VDP, smaller than a full shadow, and correctly handles the page2 readback pattern.
+
+For the `0x2DDA` stack collision, the fix is to move large non-critical data out of WRAM rather than moving the stack to EX-SSF. Page2's 16KB shadow plus a 2KB bitmap frees enough space in WRAM to resolve the collision without incurring EX-SSF latency on the hot stack path. Reserve EX-SSF for the sound buffer if needed, using a double-buffered fill pattern to stay safe inside the vblank window.
+
+## [External Consultant Audit (Chad) - Build 92 EX-SSF / VDP Direct Write Strategy]
+
+### Trace Result Review
+The `ram_usage_profile.json` trace shows that the arcade `$C00000–$C0FFFF` window is **fully exercised** during the traced gameplay run.
+
+Per-page metrics:
+
+Page 0:
+- min_offset_touched: `0x0000`
+- max_offset_touched: `0x3FFE`
+- unique_words_touched: `8192`
+
+Page 1:
+- min_offset_touched: `0x0000`
+- max_offset_touched: `0x3FFE`
+- unique_words_touched: `8192`
+
+Page 2:
+- min_offset_touched: `0x0000`
+- max_offset_touched: `0x3FFE`
+- unique_words_touched: `8192`
+- small number of read accesses
+
+Page 3:
+- min_offset_touched: `0x0000`
+- max_offset_touched: `0x3FFE`
+- unique_words_touched: `8192`
+
+Observations:
+
+- All four pages are **completely written during gameplay**.
+- No large dead zones were detected.
+- No instruction fetches occurred in this window.
+- This indicates the region behaves as **data-only memory**, not executable code.
+
+Important limitation:
+
+The profiler reflects **one traced run only**.  
+Different game states (bosses, attract mode, transitions) may still exercise different patterns.
+
+---
+
+### Implication for the Current Shadow Architecture
+The profiler results strongly suggest:
+
+- The C-window is **not sparse memory**
+- The current 64KB logical working set assumption is **accurate**
+
+Therefore attempts to shrink the region by trimming unused offsets will likely **not produce meaningful savings**.
+
+The current WRAM pressure problem will **not be solved by page trimming alone**.
+
+---
+
+### Direct-to-VDP Translation Strategy Audit
+
+Because the C-window appears to be **data-only**, a strategy that intercepts arcade writes and translates them directly to Genesis VDP updates is technically viable.
+
+However, this must **not** be implemented as immediate one-to-one VDP writes.
+
+#### Risk: VDP Fill Rate Saturation
+
+The Genesis VDP contains a write FIFO.  
+If the CPU writes faster than the VDP can drain the FIFO:
+
+- the 68000 stalls
+- frame time collapses
+- gameplay becomes unstable
+
+The hardware prevents corruption, but performance degrades heavily.
+
+The main risk is therefore **timing collapse**, not bus damage.
+
+---
+
+### Required Design for Safe VDP Translation
+
+A safe design must follow this pattern:
+
+1. Intercept arcade writes.
+2. Mark the affected tile / span / region as **dirty**.
+3. Accumulate changes in a lightweight structure.
+4. Flush changes in **batched transfers** during:
+   - VBLANK
+   - forced blank
+   - controlled update windows.
+
+Avoid:
+
+- issuing VDP writes for every intercepted memory write
+- frequent VDP control-port resets
+- fine-grained per-word transfers.
+
+Correct usage should rely on:
+
+- sequential VRAM writes
+- auto-increment addressing
+- DMA bursts where appropriate.
+
+---
+
+### EX-SSF Mapper Re-Evaluation
+
+Krikzz confirmed that the Mega EverDrive X3 supports:
+
+- **16-bit accessible RAM**
+- writable cartridge space when EX-SSF disables ROM protection.
+
+With EX-SSF enabled:
+
+ - 000000–3FFFFF
+
+ 
+can behave as writable memory backed by EverDrive RAM.
+
+This is **not standard Genesis cartridge behavior**, but it is extremely useful for development builds.
+
+---
+
+### Recommended Use of EX-SSF RAM
+
+If video shadow buffers are removed or reduced, EX-SSF RAM can be repurposed safely for:
+
+- relocating the **68K system stack**
+- large **68K-side sound buffers**
+- decompression buffers
+- staging memory for asset translation.
+
+Benefits:
+
+- eliminates WRAM stack collisions
+- relieves WRAM pressure
+- simplifies debugging.
+
+---
+
+### Z80 Safety Considerations
+
+EX-SSF RAM should **not** replace memory used for:
+
+- Z80 command queues
+- Z80 handshake structures
+- latency-sensitive audio communication.
+
+These structures should remain in **normal Genesis-visible RAM** for reliability.
+
+Large producer-side audio buffers may reside in EX-SSF RAM if accessed only by the 68K.
+
+---
+
+### Recommended Architecture Moving Forward
+
+1. Treat the C-window as **data-only translation memory**.
+2. Implement a **dirty-region based VDP update pipeline**.
+3. Remove large WRAM shadow buffers where possible.
+4. Use EX-SSF RAM in development builds for:
+   - stack relocation
+   - large temporary buffers.
+5. Maintain compatibility path targeting **standard Genesis hardware**.
+
+---
+
+### Consultant Verdict
+
+APPROVED WITH CONDITIONS.
+
+A buffered **Direct-to-VDP translation architecture** is technically sound and aligns with the trace evidence that the C-window is data-only.
+
+However:
+
+- writes must be **batched and coalesced**
+- not issued directly per arcade write.
+
+EX-SSF RAM should be treated as a **development tool for memory pressure relief**, not as the primary runtime architecture.
