@@ -2964,3 +2964,88 @@ NEEDS CONFIRMATION from main.c VRAM load address.
 
 These three values will confirm whether tile index translation
 is a fixed offset or requires more complex remapping.
+
+## [Architect Note - main.c Full Analysis, Rendering Gap Identified]
+## Source: Claude (Lead Architect, this session)
+
+### What Is Already Working (confirmed from main.c)
+
+1. TILE PIXEL PIPELINE
+   VDP_loadTileData(rastan_pc080sn + offset, TILE_INDEX, count, CPU)
+   Raw PC080SN ROM bytes → VDP VRAM via DMA. No conversion needed.
+   Tile N is at byte offset N*32 in rastan_pc080sn.
+   Genesis tile index = VRAM_BASE_INDEX + N. Fixed offset only.
+   CONFIRMED WORKING: graphics test browser renders correctly.
+
+2. SPRITE RENDERER
+   frontend_decode_pc090oj_cell() splits 16x16 cell into 4x 8x8 tiles.
+   render_frontend_sprite_layer() reads genesistan_shadow_d00000_words,
+   extracts position/flip/colour/code, calls VDP_setSpriteFull().
+   CONFIRMED WORKING: sprite layer renders in SCREEN_FRONTEND_LIVE.
+
+3. PALETTE CONVERTER
+   convert_xbgr555_to_genesis() converts arcade XBGR555 to Genesis BGR.
+   refresh_frontend_sprite_palettes() reads page2 SRAM shadow at
+   0xC08000 offsets — this IS the PC080SN palette/CLCS colour RAM.
+   The 16 sparse reads in ram_usage_profile.json page2 ARE THIS.
+   CONFIRMED WORKING: colours render correctly in sprite layer.
+
+4. FONT / TILE INDEX MAPPING
+   build_rastan_font() copies tiles from rastan_pc080sn at src_tile*32.
+   Translation formula confirmed: genesis_idx = BASE + arcade_tile_idx
+   Fixed offset addition only. No lookup table required.
+
+### What Is NOT Yet Wired (the rendering gap)
+
+SCREEN_FRONTEND_LIVE main loop:
+  genesistan_run_original_frontend_tick()  ← arcade logic runs
+  render_frontend_sprite_layer()           ← sprites render
+  [MISSING] render_frontend_tilemap_layer() ← backgrounds NOT rendered
+
+The C-Window shadow contains PC080SN tilemap words written by the
+arcade 68K code. These words need to be read and sent to the VDP
+nametable. This function does not yet exist.
+
+### What render_frontend_tilemap_layer() Needs To Do
+
+1. Read C-Window shadow words via read_shadow_c_window_word()
+   (infrastructure already exists and works)
+
+2. For each word, extract:
+   - Tile index (bits to be confirmed from PC080SN word format)
+   - Palette bank
+   - Flip flags
+   - Priority
+
+3. Translate tile index:
+   genesis_tile_idx = PC080SN_VRAM_BASE + arcade_tile_idx
+
+4. Call VDP_setTileMapXY() with Genesis nametable word.
+   (same pattern as existing VDP_setTileMapXY calls in launcher)
+
+5. Write scroll values:
+   genesistan_shadow_c20000_words → VDP Y scroll register
+   genesistan_shadow_c40000_words → VDP X scroll register
+
+### PC080SN Tilemap Word Format (needs confirmation)
+
+From decode_startup_shadow_word() in main.c:
+  candidate_masks: 0x00FF, 0xFF00, 0x01FF
+  Tile index appears to be in lower 8 or 9 bits of the word.
+  Upper bits contain palette/attribute data.
+  Exact bit layout needs confirmation from MAME pc080sn.cpp source
+  or from tracing known title screen tile writes.
+
+### Next Step
+
+Confirm PC080SN tilemap word bit format.
+Then implement render_frontend_tilemap_layer() following the
+exact same pattern as render_frontend_sprite_layer().
+This is the single remaining gap between current state and
+a game that displays both backgrounds and sprites.
+
+### Stack Collision Still Active
+
+Build 93 Step A (stack fix) remains prerequisite.
+_bend to __stack gap = 0x134 bytes. Active crash risk.
+Must be fixed before any new rendering work is added to BSS.
