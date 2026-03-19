@@ -1,0 +1,73 @@
+frames=3196
+
+[execution_ranges]
+startup_common@000000 count=0
+startup_common@000200 count=0
+startup_common@200000 count=0
+helper_fill_words@000000 count=0
+helper_fill_words@000200 count=0
+helper_fill_words@200000 count=0
+helper_d000_init@000000 count=0
+helper_d000_init@000200 count=0
+helper_d000_init@200000 count=0
+helper_display_control@000000 count=0
+helper_display_control@000200 count=0
+helper_display_control@200000 count=0
+frontend_core@000000 count=0
+frontend_core@000200 count=0
+frontend_core@200000 count=0
+title_init_block@000000 count=0
+title_init_block@000200 count=0
+title_init_block@200000 count=0
+helper_frontend_timers@000000 count=0
+helper_frontend_timers@000200 count=0
+helper_frontend_timers@200000 count=0
+helper_3f084_reg_write@000000 count=0
+helper_3f084_reg_write@000200 count=0
+helper_3f084_reg_write@200000 count=0
+helper_55ca2_dispatch@000000 count=0
+helper_55ca2_dispatch@000200 count=0
+helper_55ca2_dispatch@200000 count=0
+helper_5b512_rts@000000 count=0
+helper_5b512_rts@000200 count=0
+helper_5b512_rts@200000 count=0
+
+[window_signatures]
+wram_ff0000 changes=6 first_change=540 last_change=2220
+io_a10000 changes=14 first_change=840 last_change=3030
+vdp_ports changes=78 first_change=840 last_change=3180
+z80_ctrl changes=105 first_change=60 last_change=3180
+
+[symbol_watches]
+startup_result_code addr=ff8072 width=16 changes=33 first_change=541 last_change=2198 last=FF
+dip1 addr=ff0005 width=8 changes=32 first_change=542 last_change=632 last=0
+dip2 addr=ff0004 width=8 changes=32 first_change=542 last_change=632 last=27
+in_390001 addr=ff8079 width=8 changes=33 first_change=541 last_change=2198 last=0
+in_390003 addr=ff8078 width=8 changes=32 first_change=544 last_change=2198 last=0
+in_390005 addr=ff8077 width=8 changes=32 first_change=544 last_change=2198 last=FF
+in_390007 addr=ff8076 width=8 changes=32 first_change=541 last_change=631 last=0
+reg_3e0001 addr=ff8075 width=8 changes=32 first_change=541 last_change=631 last=0
+reg_3e0003 addr=ff8074 width=8 changes=33 first_change=541 last_change=2198 last=0
+reg_3c0000 addr=ff807a width=16 changes=33 first_change=541 last_change=2198 last=FF
+reg_c50000 addr=ff8082 width=16 changes=33 first_change=541 last_change=2198 last=FF
+reg_d01bfe addr=ff8080 width=16 changes=33 first_change=541 last_change=2198 last=0
+reg_350008 addr=ff807e width=16 changes=33 first_change=541 last_change=2198 last=FF
+reg_380000 addr=ff807c width=16 changes=33 first_change=541 last_change=2198 last=0
+c20000_0 addr=ff8088 width=16 changes=33 first_change=541 last_change=2198 last=0
+c20000_1 addr=ff808a width=16 changes=33 first_change=541 last_change=2198 last=FF
+c40000_0 addr=ff8084 width=16 changes=33 first_change=541 last_change=2198 last=0
+c40000_1 addr=ff8086 width=16 changes=33 first_change=541 last_change=2198 last=FF
+workram_10c000 addr=ff888c width=16 changes=33 first_change=541 last_change=2198 last=0
+arcade_page0 addr=ff888c width=16 changes=33 first_change=541 last_change=2198 last=0
+arcade_page2 addr=ff888e width=16 changes=33 first_change=541 last_change=2198 last=FF
+arcade_mode4 addr=ff8890 width=16 changes=33 first_change=541 last_change=2198 last=0
+arcade_credits addr=ff889e width=16 changes=33 first_change=541 last_change=2198 last=FF
+arcade_stage addr=ff89ca width=16 changes=33 first_change=541 last_change=2198 last=FF
+arcade_flag_2a addr=ff88b6 width=16 changes=33 first_change=541 last_change=2198 last=FF
+arcade_flag_34 addr=ff88c0 width=16 changes=33 first_change=541 last_change=2198 last=0
+arcade_flag_3b addr=ff88c7 width=8 changes=33 first_change=541 last_change=2198 last=FF
+arcade_mode_42 addr=ff88ce width=16 changes=33 first_change=541 last_change=2198 last=FF
+
+[live_write_watches]
+vdp_ports_live count=1772199 first_frame=0 last_frame=3168 first_pc=2078F2 last_pc=2097E2 first_addr=C00004 last_addr=C00000 first_data=9E4D last_data=0000 first_mask=FFFF last_mask=FFFF
+reg_c50000_live count=1 first_frame=709 last_frame=709 first_pc=20A596 last_pc=20A596 first_addr=C50000 last_addr=C50000 first_data=0020 last_data=0020 first_mask=FFFF last_mask=FFFF

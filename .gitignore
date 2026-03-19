@@ -1,4 +1,3 @@
-build/
 
 roms/*
 !roms/.gitkeep

@@ -1,0 +1,276 @@
+frames=207
+
+[execution_ranges]
+startup_common count=7 first_frame=1 last_frame=7 first_pc=03aec6 last_pc=03af00
+helper_title_credit_trim count=0
+frontend_title_cluster count=0
+helper_fill_words count=6 first_frame=8 last_frame=13 first_pc=03ad46 last_pc=03ad48
+helper_d000_init count=0
+helper_cfg_copy count=0
+title_init_block count=16 first_frame=16 last_frame=202 first_pc=03b098 last_pc=03b098
+helper_200000_init count=0
+helper_3f084_reg_write count=0
+table_4eaf6 count=0
+table_4fe62 count=0
+helper_5b512_rts count=0
+helper_5ffa2_5ffb2 count=0
+
+[touch_windows]
+workram_10c000 mode=installed reads=2661757 writes=487226 first_read_pc=03aec6 first_write_pc=03aefc last_read_pc=03b086 last_write_pc=03b094
+  read frame=1 pc=03aec6 addr=10c000 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=10c002 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=10c004 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=10c012 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=10c13e data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=10d3aa data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=10d3ac data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=10d3ae data=0000 mask=ffff
+  write frame=5 pc=03aefc addr=10c000 data=0000 mask=ffff
+  write frame=5 pc=03af02 addr=10c002 data=0000 mask=ffff
+  write frame=5 pc=03af02 addr=10c004 data=0000 mask=ffff
+  write frame=5 pc=03af02 addr=10c006 data=0000 mask=ffff
+  write frame=5 pc=03af02 addr=10c008 data=0000 mask=ffff
+  write frame=5 pc=03af02 addr=10c00a data=0000 mask=ffff
+  write frame=5 pc=03af02 addr=10c00c data=0000 mask=ffff
+  write frame=5 pc=03af02 addr=10c00e data=0000 mask=ffff
+palette_200000 mode=installed reads=1712126 writes=17182 first_read_pc=03aebc first_write_pc=03aec2 last_read_pc=03b086 last_write_pc=059b0e
+  read frame=0 pc=03aebc addr=200000 data=0000 mask=ffff
+  read frame=0 pc=03aebc addr=200000 data=0000 mask=ffff
+  read frame=0 pc=03aebc addr=200000 data=0000 mask=ffff
+  read frame=0 pc=03aebc addr=200000 data=0000 mask=ffff
+  read frame=0 pc=03aebc addr=200000 data=0000 mask=ffff
+  read frame=0 pc=03aebc addr=200000 data=0000 mask=ffff
+  read frame=0 pc=03aebc addr=200000 data=0000 mask=ffff
+  read frame=0 pc=03aebc addr=200000 data=0000 mask=ffff
+  write frame=0 pc=03aec2 addr=200000 data=0000 mask=ffff
+  write frame=0 pc=03aec2 addr=200000 data=0000 mask=ffff
+  write frame=0 pc=03aec2 addr=200000 data=0000 mask=ffff
+  write frame=0 pc=03aec2 addr=200000 data=0000 mask=ffff
+  write frame=0 pc=03aec2 addr=200000 data=0000 mask=ffff
+  write frame=0 pc=03aec2 addr=200000 data=0000 mask=ffff
+  write frame=0 pc=03aec2 addr=200000 data=0000 mask=ffff
+  write frame=0 pc=03aec2 addr=200000 data=0000 mask=ffff
+tile_c00000 mode=installed reads=1695744 writes=13112 first_read_pc=03aec6 first_write_pc=03ad48 last_read_pc=03b086 last_write_pc=05a4e8
+  read frame=1 pc=03aec6 addr=c00000 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c00002 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c00004 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c00006 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c00008 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0000a data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0000c data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0000e data=0000 mask=ffff
+  write frame=8 pc=03ad48 addr=c00000 data=0000 mask=ffff
+  write frame=8 pc=03ad48 addr=c00002 data=0020 mask=ffff
+  write frame=8 pc=03ad48 addr=c00004 data=0000 mask=ffff
+  write frame=8 pc=03ad48 addr=c00006 data=0020 mask=ffff
+  write frame=8 pc=03ad48 addr=c00008 data=0000 mask=ffff
+  write frame=8 pc=03ad48 addr=c0000a data=0020 mask=ffff
+  write frame=8 pc=03ad48 addr=c0000c data=0000 mask=ffff
+  write frame=8 pc=03ad48 addr=c0000e data=0020 mask=ffff
+tile_c04000 mode=installed reads=1695744 writes=8192 first_read_pc=03aec6 first_write_pc=03ad40 last_read_pc=03b086 last_write_pc=03ad40
+  read frame=1 pc=03aec6 addr=c04000 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c04002 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c04004 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c04006 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c04008 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0400a data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0400c data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0400e data=0000 mask=ffff
+  write frame=9 pc=03ad40 addr=c04000 data=0000 mask=ffff
+  write frame=9 pc=03ad40 addr=c04002 data=0000 mask=ffff
+  write frame=9 pc=03ad40 addr=c04004 data=0000 mask=ffff
+  write frame=9 pc=03ad40 addr=c04006 data=0000 mask=ffff
+  write frame=9 pc=03ad40 addr=c04008 data=0000 mask=ffff
+  write frame=9 pc=03ad40 addr=c0400a data=0000 mask=ffff
+  write frame=9 pc=03ad40 addr=c0400c data=0000 mask=ffff
+  write frame=9 pc=03ad40 addr=c0400e data=0000 mask=ffff
+tile_c08000 mode=installed reads=1695746 writes=12180 first_read_pc=03aec6 first_write_pc=03ad48 last_read_pc=03b086 last_write_pc=03bb6c
+  read frame=1 pc=03aec6 addr=c08000 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c08002 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c08004 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c08006 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c08008 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0800a data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0800c data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0800e data=0000 mask=ffff
+  write frame=8 pc=03ad48 addr=c08000 data=0000 mask=ffff
+  write frame=8 pc=03ad48 addr=c08002 data=0020 mask=ffff
+  write frame=8 pc=03ad48 addr=c08004 data=0000 mask=ffff
+  write frame=8 pc=03ad48 addr=c08006 data=0020 mask=ffff
+  write frame=8 pc=03ad48 addr=c08008 data=0000 mask=ffff
+  write frame=8 pc=03ad48 addr=c0800a data=0020 mask=ffff
+  write frame=8 pc=03ad48 addr=c0800c data=0000 mask=ffff
+  write frame=8 pc=03ad48 addr=c0800e data=0020 mask=ffff
+tile_c0c000 mode=installed reads=1695744 writes=8192 first_read_pc=03aec6 first_write_pc=03ad40 last_read_pc=03b086 last_write_pc=03ad40
+  read frame=1 pc=03aec6 addr=c0c000 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0c002 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0c004 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0c006 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0c008 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0c00a data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0c00c data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c0c00e data=0000 mask=ffff
+  write frame=11 pc=03ad40 addr=c0c000 data=0000 mask=ffff
+  write frame=11 pc=03ad40 addr=c0c002 data=0000 mask=ffff
+  write frame=11 pc=03ad40 addr=c0c004 data=0000 mask=ffff
+  write frame=11 pc=03ad40 addr=c0c006 data=0000 mask=ffff
+  write frame=11 pc=03ad40 addr=c0c008 data=0000 mask=ffff
+  write frame=11 pc=03ad40 addr=c0c00a data=0000 mask=ffff
+  write frame=11 pc=03ad40 addr=c0c00c data=0000 mask=ffff
+  write frame=11 pc=03ad40 addr=c0c00e data=0000 mask=ffff
+c20000 mode=installed reads=418 writes=4 first_read_pc=03aec6 first_write_pc=03b0a0 last_read_pc=03b086 last_write_pc=03b0a0
+  read frame=1 pc=03aec6 addr=c20000 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c20002 data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=c20000 data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=c20002 data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=c20000 data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=c20002 data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=c20000 data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=c20002 data=0000 mask=ffff
+  write frame=12 pc=03b0a0 addr=c20002 data=0000 mask=ffff
+  write frame=12 pc=03b0a0 addr=c20000 data=0000 mask=ffff
+  write frame=13 pc=03b0a0 addr=c20002 data=0000 mask=ffff
+  write frame=13 pc=03b0a0 addr=c20000 data=0000 mask=ffff
+c40000 mode=installed reads=418 writes=4 first_read_pc=03aec6 first_write_pc=03b0a6 last_read_pc=03b086 last_write_pc=03b0a6
+  read frame=1 pc=03aec6 addr=c40000 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=c40002 data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=c40000 data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=c40002 data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=c40000 data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=c40002 data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=c40000 data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=c40002 data=0000 mask=ffff
+  write frame=12 pc=03b0a6 addr=c40002 data=0000 mask=ffff
+  write frame=12 pc=03b0a6 addr=c40000 data=0000 mask=ffff
+  write frame=13 pc=03b0a6 addr=c40002 data=0000 mask=ffff
+  write frame=13 pc=03b0a6 addr=c40000 data=0000 mask=ffff
+c50000 mode=installed reads=207 writes=3 first_read_pc=03aec6 first_write_pc=03ae8e last_read_pc=03b086 last_write_pc=03ae06
+  read frame=1 pc=03aec6 addr=c50000 data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=c50000 data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=c50000 data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=c50000 data=0000 mask=ffff
+  read frame=5 pc=03aedc addr=c50000 data=0000 mask=ffff
+  read frame=6 pc=03af04 addr=c50000 data=0000 mask=ffff
+  read frame=7 pc=03af00 addr=c50000 data=0000 mask=ffff
+  read frame=8 pc=03ad46 addr=c50000 data=0000 mask=ffff
+  write frame=0 pc=03ae8e addr=c50000 data=0000 mask=ffff
+  write frame=12 pc=03ae06 addr=c50000 data=0000 mask=ffff
+  write frame=12 pc=03ae06 addr=c50000 data=0000 mask=ffff
+d00000 mode=installed reads=211972 writes=2007 first_read_pc=03aec6 first_write_pc=03ad48 last_read_pc=03b086 last_write_pc=03ad48
+  read frame=1 pc=03aec6 addr=d00000 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=d00002 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=d00004 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=d00006 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=d00008 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=d0000a data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=d0000c data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=d0000e data=0000 mask=ffff
+  write frame=7 pc=03ad48 addr=d00000 data=0000 mask=ffff
+  write frame=7 pc=03ad48 addr=d00002 data=0100 mask=ffff
+  write frame=7 pc=03ad48 addr=d00004 data=0000 mask=ffff
+  write frame=7 pc=03ad48 addr=d00006 data=0100 mask=ffff
+  write frame=7 pc=03ad48 addr=d00008 data=0000 mask=ffff
+  write frame=7 pc=03ad48 addr=d0000a data=0100 mask=ffff
+  write frame=7 pc=03ad48 addr=d0000c data=0000 mask=ffff
+  write frame=7 pc=03ad48 addr=d0000e data=0100 mask=ffff
+d01bfe mode=installed reads=207 writes=3 first_read_pc=03aec6 first_write_pc=03ae96 last_read_pc=03b086 last_write_pc=03ae0e
+  read frame=1 pc=03aec6 addr=d01bfe data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=d01bfe data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=d01bfe data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=d01bfe data=0000 mask=ffff
+  read frame=5 pc=03aedc addr=d01bfe data=0000 mask=ffff
+  read frame=6 pc=03af04 addr=d01bfe data=0000 mask=ffff
+  read frame=7 pc=03af00 addr=d01bfe data=0000 mask=ffff
+  read frame=8 pc=03ad46 addr=d01bfe data=0000 mask=ffff
+  write frame=0 pc=03ae96 addr=d01bfe data=0000 mask=ffff
+  write frame=12 pc=03ae0e addr=d01bfe data=0001 mask=ffff
+  write frame=12 pc=03ae0e addr=d01bfe data=0001 mask=ffff
+reg_350008 mode=installed reads=403 writes=196 first_read_pc=03ae9c first_write_pc=03ae9e last_read_pc=03b086 last_write_pc=03a014
+  read frame=0 pc=03ae9c addr=350008 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=350008 data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=350008 data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=350008 data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=350008 data=0000 mask=ffff
+  read frame=5 pc=03aedc addr=350008 data=0000 mask=ffff
+  read frame=6 pc=03af04 addr=350008 data=0000 mask=ffff
+  read frame=7 pc=03af00 addr=350008 data=0000 mask=ffff
+  write frame=0 pc=03ae9e addr=350008 data=0000 mask=ffff
+  write frame=12 pc=03a014 addr=350008 data=0000 mask=ffff
+  write frame=13 pc=03a014 addr=350008 data=0000 mask=ffff
+  write frame=14 pc=03a014 addr=350008 data=0000 mask=ffff
+  write frame=15 pc=03a014 addr=350008 data=0000 mask=ffff
+  write frame=16 pc=03a014 addr=350008 data=0000 mask=ffff
+  write frame=17 pc=03a014 addr=350008 data=0000 mask=ffff
+  write frame=18 pc=03a014 addr=350008 data=0000 mask=ffff
+reg_380000 mode=installed reads=208 writes=3 first_read_pc=03aea2 first_write_pc=03aea4 last_read_pc=03b086 last_write_pc=03ae3a
+  read frame=0 pc=03aea2 addr=380000 data=0000 mask=ffff
+  read frame=1 pc=03aec6 addr=380000 data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=380000 data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=380000 data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=380000 data=0000 mask=ffff
+  read frame=5 pc=03aedc addr=380000 data=0000 mask=ffff
+  read frame=6 pc=03af04 addr=380000 data=0000 mask=ffff
+  read frame=7 pc=03af00 addr=380000 data=0000 mask=ffff
+  write frame=0 pc=03aea4 addr=380000 data=0000 mask=ffff
+  write frame=7 pc=03af24 addr=380000 data=0060 mask=ffff
+  write frame=12 pc=03ae3a addr=380000 data=0063 mask=ffff
+dip_390009 mode=installed reads=208 writes=0 first_read_pc=03aec6 first_write_pc=- last_read_pc=03b086 last_write_pc=-
+  read frame=1 pc=03aec6 addr=390008 data=00fe mask=ffff
+  read frame=2 pc=03aebe addr=390008 data=00fe mask=ffff
+  read frame=3 pc=03aeea addr=390008 data=00fe mask=ffff
+  read frame=4 pc=03aee6 addr=390008 data=00fe mask=ffff
+  read frame=5 pc=03aedc addr=390008 data=00fe mask=ffff
+  read frame=6 pc=03af04 addr=390008 data=00fe mask=ffff
+  read frame=7 pc=03af00 addr=390008 data=00fe mask=ffff
+  read frame=8 pc=03ad46 addr=390008 data=00fe mask=ffff
+dip_39000b mode=installed reads=208 writes=0 first_read_pc=03aec6 first_write_pc=- last_read_pc=03b086 last_write_pc=-
+  read frame=1 pc=03aec6 addr=39000a data=00ff mask=ffff
+  read frame=2 pc=03aebe addr=39000a data=00ff mask=ffff
+  read frame=3 pc=03aeea addr=39000a data=00ff mask=ffff
+  read frame=4 pc=03aee6 addr=39000a data=00ff mask=ffff
+  read frame=5 pc=03aedc addr=39000a data=00ff mask=ffff
+  read frame=6 pc=03af04 addr=39000a data=00ff mask=ffff
+  read frame=7 pc=03af00 addr=39000a data=00ff mask=ffff
+  read frame=8 pc=03ad46 addr=39000a data=00ff mask=ffff
+reg_3c0000 mode=installed reads=207 writes=236959 first_read_pc=03aec6 first_write_pc=03af10 last_read_pc=03b086 last_write_pc=03b084
+  read frame=1 pc=03aec6 addr=3c0000 data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=3c0000 data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=3c0000 data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=3c0000 data=0000 mask=ffff
+  read frame=5 pc=03aedc addr=3c0000 data=0000 mask=ffff
+  read frame=6 pc=03af04 addr=3c0000 data=0000 mask=ffff
+  read frame=7 pc=03af00 addr=3c0000 data=0000 mask=ffff
+  read frame=8 pc=03ad46 addr=3c0000 data=0000 mask=ffff
+  write frame=7 pc=03af10 addr=3c0000 data=0000 mask=ffff
+  write frame=7 pc=03af1a addr=3c0000 data=0000 mask=ffff
+  write frame=9 pc=03af52 addr=3c0000 data=0020 mask=ffff
+  write frame=12 pc=03af78 addr=3c0000 data=0000 mask=ffff
+  write frame=12 pc=03a018 addr=3c0000 data=0063 mask=ffff
+  write frame=13 pc=03a018 addr=3c0000 data=0000 mask=ffff
+  write frame=13 pc=03b084 addr=3c0000 data=0000 mask=ffff
+  write frame=13 pc=03b084 addr=3c0000 data=0000 mask=ffff
+reg_3e0001 mode=installed reads=207 writes=3 first_read_pc=03aec6 first_write_pc=03aeaa last_read_pc=03b086 last_write_pc=03f08c
+  read frame=1 pc=03aec6 addr=3e0000 data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=3e0000 data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=3e0000 data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=3e0000 data=0000 mask=ffff
+  read frame=5 pc=03aedc addr=3e0000 data=0000 mask=ffff
+  read frame=6 pc=03af04 addr=3e0000 data=0000 mask=ffff
+  read frame=7 pc=03af00 addr=3e0000 data=0000 mask=ffff
+  read frame=8 pc=03ad46 addr=3e0000 data=0000 mask=ffff
+  write frame=0 pc=03aeaa addr=3e0000 data=0404 mask=00ff
+  write frame=2 pc=03aece addr=3e0000 data=0404 mask=00ff
+  write frame=12 pc=03f08c addr=3e0000 data=0000 mask=00ff
+reg_3e0003 mode=installed reads=207 writes=4 first_read_pc=03aec6 first_write_pc=03aeb2 last_read_pc=03b086 last_write_pc=03f09a
+  read frame=1 pc=03aec6 addr=3e0002 data=0000 mask=ffff
+  read frame=2 pc=03aebe addr=3e0002 data=0000 mask=ffff
+  read frame=3 pc=03aeea addr=3e0002 data=0000 mask=ffff
+  read frame=4 pc=03aee6 addr=3e0002 data=0000 mask=ffff
+  read frame=5 pc=03aedc addr=3e0002 data=0004 mask=ffff
+  read frame=6 pc=03af04 addr=3e0002 data=0004 mask=ffff
+  read frame=7 pc=03af00 addr=3e0002 data=0004 mask=ffff
+  read frame=8 pc=03ad46 addr=3e0002 data=0004 mask=ffff
+  write frame=0 pc=03aeb2 addr=3e0002 data=0101 mask=00ff
+  write frame=2 pc=03aed6 addr=3e0002 data=0000 mask=00ff
+  write frame=12 pc=03f092 addr=3e0002 data=efef mask=00ff
+  write frame=12 pc=03f09a addr=3e0002 data=0e0e mask=00ff

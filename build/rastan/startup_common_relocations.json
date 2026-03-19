@@ -1,0 +1,299 @@
+{
+  "variant": "world_rev1",
+  "rom": "/home/tighe/projects/rastan-genesis/apps/rastan/out/rom.bin",
+  "source_maincpu": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+  "policy": "Build from original ROM bytes every time; never patch forward from derived binaries.",
+  "objects": [
+    {
+      "id": "maincpu:whole_relocated",
+      "name": "whole_maincpu_relocated",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x000000",
+      "original_end_exclusive": "0x060000",
+      "genesis_rom_start": "0x000200",
+      "genesis_rom_end_exclusive": "0x060200",
+      "placement": "relocated_whole_copy"
+    },
+    {
+      "id": "maincpu:03AE86-03B05B",
+      "name": "startup_common",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03AE86",
+      "original_end_exclusive": "0x03B05C",
+      "genesis_rom_start": "0x03B086",
+      "genesis_rom_end_exclusive": "0x03B25C",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:038000-039F7F",
+      "name": "frontend_data_038000",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x038000",
+      "original_end_exclusive": "0x039F80",
+      "genesis_rom_start": "0x038200",
+      "genesis_rom_end_exclusive": "0x03A180",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:05D068-05D3FF",
+      "name": "frontend_tables_05d068",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x05D068",
+      "original_end_exclusive": "0x05D400",
+      "genesis_rom_start": "0x05D268",
+      "genesis_rom_end_exclusive": "0x05D600",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:039F80-03AD3B",
+      "name": "frontend_core",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x039F80",
+      "original_end_exclusive": "0x03AD3C",
+      "genesis_rom_start": "0x03A180",
+      "genesis_rom_end_exclusive": "0x03AF3C",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:03B098-03C483",
+      "name": "title_init_block",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03B098",
+      "original_end_exclusive": "0x03C484",
+      "genesis_rom_start": "0x03B298",
+      "genesis_rom_end_exclusive": "0x03C684",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:03BB7C-03BC97",
+      "name": "title_text_ptr_table_03bb7c",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03BB7C",
+      "original_end_exclusive": "0x03BC98",
+      "genesis_rom_start": "0x03BD7C",
+      "genesis_rom_end_exclusive": "0x03BE98",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:03AD3C-03AD4B",
+      "name": "helper_fill_words",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03AD3C",
+      "original_end_exclusive": "0x03AD4C",
+      "genesis_rom_start": "0x03AF3C",
+      "genesis_rom_end_exclusive": "0x03AF4C",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:03AD4C-03ADBB",
+      "name": "helper_d000_init",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03AD4C",
+      "original_end_exclusive": "0x03ADBC",
+      "genesis_rom_start": "0x03AF4C",
+      "genesis_rom_end_exclusive": "0x03AFBC",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:03ADD8-03AE84",
+      "name": "helper_display_control",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03ADD8",
+      "original_end_exclusive": "0x03AE85",
+      "genesis_rom_start": "0x03AFD8",
+      "genesis_rom_end_exclusive": "0x03B085",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:03B0C2-03B102",
+      "name": "helper_cfg_copy",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03B0C2",
+      "original_end_exclusive": "0x03B103",
+      "genesis_rom_start": "0x03B2C2",
+      "genesis_rom_end_exclusive": "0x03B303",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:03B9F8-03BA87",
+      "name": "helper_200000_init",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03B9F8",
+      "original_end_exclusive": "0x03BA88",
+      "genesis_rom_start": "0x03BBF8",
+      "genesis_rom_end_exclusive": "0x03BC88",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:03EEFA-03EFBC",
+      "name": "helper_frontend_timers",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03EEFA",
+      "original_end_exclusive": "0x03EFBD",
+      "genesis_rom_start": "0x03F0FA",
+      "genesis_rom_end_exclusive": "0x03F1BD",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:03F084-03F09B",
+      "name": "helper_3f084_reg_write",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03F084",
+      "original_end_exclusive": "0x03F09C",
+      "genesis_rom_start": "0x03F284",
+      "genesis_rom_end_exclusive": "0x03F29C",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:03D044-03D053",
+      "name": "helper_3d044_score_digit",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x03D044",
+      "original_end_exclusive": "0x03D054",
+      "genesis_rom_start": "0x03D244",
+      "genesis_rom_end_exclusive": "0x03D254",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:04EAF6-04F0F5",
+      "name": "table_4eaf6",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x04EAF6",
+      "original_end_exclusive": "0x04F0F6",
+      "genesis_rom_start": "0x04ECF6",
+      "genesis_rom_end_exclusive": "0x04F2F6",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:04FE62-04FE81",
+      "name": "table_4fe62",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x04FE62",
+      "original_end_exclusive": "0x04FE82",
+      "genesis_rom_start": "0x050062",
+      "genesis_rom_end_exclusive": "0x050082",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:05B512-05B519",
+      "name": "helper_5b512_rts",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x05B512",
+      "original_end_exclusive": "0x05B51A",
+      "genesis_rom_start": "0x05B712",
+      "genesis_rom_end_exclusive": "0x05B71A",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:055CA2-055DDB",
+      "name": "helper_55ca2_dispatch",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x055CA2",
+      "original_end_exclusive": "0x055DDC",
+      "genesis_rom_start": "0x055EA2",
+      "genesis_rom_end_exclusive": "0x055FDC",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:05FFA2-05FFFF",
+      "name": "helper_5ffa2_5ffb2",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x05FFA2",
+      "original_end_exclusive": "0x060000",
+      "genesis_rom_start": "0x0601A2",
+      "genesis_rom_end_exclusive": "0x060200",
+      "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:00052A-00066B",
+      "name": "startup_hw_probe_052a",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x00052A",
+      "original_end_exclusive": "0x00066C",
+      "genesis_rom_start": "0x00072A",
+      "genesis_rom_end_exclusive": "0x00086C",
+      "placement": "relocated_window"
+    }
+  ],
+  "generated_blocks": [
+    {
+      "id": "startup_common.normal_result_stub",
+      "kind": "generated_stub",
+      "genesis_rom_start": "0x03B25C",
+      "genesis_rom_end_exclusive": "0x03B270",
+      "replaces_original_range": "0x03B25C..0x03B26F",
+      "reason": "Jump from the branch-based normal path into the Genesis continuation wrapper without shifting ROM layout."
+    },
+    {
+      "id": "startup_common.test_result_stub",
+      "kind": "generated_stub",
+      "genesis_rom_start": "0x03B270",
+      "genesis_rom_end_exclusive": "0x03B27E",
+      "replaces_original_range": "0x03B270..0x03B27D",
+      "reason": "Terminate test-mode branch locally and return to Genesis runner."
+    },
+    {
+      "id": "genesistan_run_original_startup_common",
+      "kind": "runner_wrapper",
+      "genesis_rom_start": "0x2094E4",
+      "purpose": "C/asm wrapper that calls the original startup/common slice."
+    },
+    {
+      "id": "genesistan_sound_send_command",
+      "kind": "sound_shim",
+      "genesis_rom_start": "0x20949C",
+      "purpose": "Minimal Genesis-side sound command shim for the original 0x03F084 helper."
+    },
+    {
+      "id": "genesistan_sound_read_status",
+      "kind": "sound_shim",
+      "genesis_rom_start": "0x2094CC",
+      "purpose": "Always-ready sound status shim for the original 0x03F09C helper."
+    },
+    {
+      "id": "genesistan_run_original_frontend_tick",
+      "kind": "runner_wrapper",
+      "genesis_rom_start": "0x2094F4",
+      "purpose": "Frame-tick wrapper that enters the original front-end dispatcher at 0x03A008 and returns via a synthetic exception frame."
+    },
+    {
+      "id": "genesistan_startup_common_exit_normal",
+      "kind": "runner_trampoline",
+      "genesis_rom_start": "0x209548",
+      "purpose": "Return trampoline for the normal branch after patched original flow."
+    },
+    {
+      "id": "genesistan_startup_common_continue_normal",
+      "kind": "runner_continuation",
+      "genesis_rom_start": "0x209514",
+      "purpose": "Replays the original 0x03B05C normal-boot continuation before returning to the Genesis host."
+    },
+    {
+      "id": "genesistan_startup_common_exit_test",
+      "kind": "runner_trampoline",
+      "genesis_rom_start": "0x209550",
+      "purpose": "Return trampoline for the test branch after patched original flow."
+    }
+  ]
+}

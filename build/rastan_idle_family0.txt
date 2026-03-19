@@ -1,0 +1,5 @@
+Rastan family-0 idle candidate
+table=0x03d09e
+tile_base=0x004b
+frame=0x17
+size=32x48

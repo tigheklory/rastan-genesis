@@ -1,0 +1,103 @@
+{
+  "metadata": {
+    "generated_utc": "2026-03-19T16:44:58Z",
+    "rom_name": "rastan",
+    "game_name": "Rastan (World Rev 1)",
+    "frames_profiled": 549,
+    "range": "0xC00000-0xC0FFFF",
+    "granularity": "word16",
+    "hook_backend": "address_space_taps",
+    "execution_detection": "heuristic_exec",
+    "warning": "Coverage reflects only the traced scenario and is evidence for reduction candidates, not proof of universal safety."
+  },
+  "pages": {
+    "page0": {
+      "arcade_start": "0xC00000",
+      "arcade_end": "0xC03FFF",
+      "min_offset_touched": "0x0000",
+      "max_offset_touched": "0x3FFE",
+      "unique_words_touched": 8192,
+      "read_unique_words": 0,
+      "write_unique_words": 8192,
+      "possible_execute": false,
+      "heuristic_exec": false,
+      "read_ranges": [
+      ],
+      "write_ranges": [
+        {"start_offset":"0x0000","end_offset":"0x3FFF","length_words":8192,"length_bytes":16384}
+      ],
+      "untouched_ranges": [
+      ]
+    },
+    "page1": {
+      "arcade_start": "0xC04000",
+      "arcade_end": "0xC07FFF",
+      "min_offset_touched": "0x0000",
+      "max_offset_touched": "0x3FFE",
+      "unique_words_touched": 8192,
+      "read_unique_words": 0,
+      "write_unique_words": 8192,
+      "possible_execute": false,
+      "heuristic_exec": false,
+      "read_ranges": [
+      ],
+      "write_ranges": [
+        {"start_offset":"0x0000","end_offset":"0x3FFF","length_words":8192,"length_bytes":16384}
+      ],
+      "untouched_ranges": [
+      ]
+    },
+    "page2": {
+      "arcade_start": "0xC08000",
+      "arcade_end": "0xC0BFFF",
+      "min_offset_touched": "0x0000",
+      "max_offset_touched": "0x3FFE",
+      "unique_words_touched": 8192,
+      "read_unique_words": 16,
+      "write_unique_words": 8192,
+      "possible_execute": false,
+      "heuristic_exec": false,
+      "read_ranges": [
+        {"start_offset":"0x1336","end_offset":"0x1337","length_words":1,"length_bytes":2},
+        {"start_offset":"0x133A","end_offset":"0x133B","length_words":1,"length_bytes":2},
+        {"start_offset":"0x133E","end_offset":"0x133F","length_words":1,"length_bytes":2},
+        {"start_offset":"0x1536","end_offset":"0x1537","length_words":1,"length_bytes":2},
+        {"start_offset":"0x153A","end_offset":"0x153B","length_words":1,"length_bytes":2},
+        {"start_offset":"0x153E","end_offset":"0x153F","length_words":1,"length_bytes":2},
+        {"start_offset":"0x1736","end_offset":"0x1737","length_words":1,"length_bytes":2},
+        {"start_offset":"0x173A","end_offset":"0x173B","length_words":1,"length_bytes":2},
+        {"start_offset":"0x173E","end_offset":"0x173F","length_words":1,"length_bytes":2},
+        {"start_offset":"0x1936","end_offset":"0x1937","length_words":1,"length_bytes":2},
+        {"start_offset":"0x193A","end_offset":"0x193B","length_words":1,"length_bytes":2},
+        {"start_offset":"0x193E","end_offset":"0x193F","length_words":1,"length_bytes":2},
+        {"start_offset":"0x1B36","end_offset":"0x1B37","length_words":1,"length_bytes":2},
+        {"start_offset":"0x1B3A","end_offset":"0x1B3B","length_words":1,"length_bytes":2},
+        {"start_offset":"0x1B3E","end_offset":"0x1B3F","length_words":1,"length_bytes":2},
+        {"start_offset":"0x1EA2","end_offset":"0x1EA3","length_words":1,"length_bytes":2}
+      ],
+      "write_ranges": [
+        {"start_offset":"0x0000","end_offset":"0x3FFF","length_words":8192,"length_bytes":16384}
+      ],
+      "untouched_ranges": [
+      ]
+    },
+    "page3": {
+      "arcade_start": "0xC0C000",
+      "arcade_end": "0xC0FFFF",
+      "min_offset_touched": "0x0000",
+      "max_offset_touched": "0x3FFE",
+      "unique_words_touched": 8192,
+      "read_unique_words": 0,
+      "write_unique_words": 8192,
+      "possible_execute": false,
+      "heuristic_exec": false,
+      "read_ranges": [
+      ],
+      "write_ranges": [
+        {"start_offset":"0x0000","end_offset":"0x3FFF","length_words":8192,"length_bytes":16384}
+      ],
+      "untouched_ranges": [
+      ]
+    }
+  }
+}

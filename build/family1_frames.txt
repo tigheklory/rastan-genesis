@@ -1,0 +1,177 @@
+Rastan family-1 frame decode
+
+This is driven from the 68000 animation path:
+- 0x457d0 sets family 1, state 15
+- 0x4543e resolves that to tile base + frame code
+- 0x4770e resolves the family-1 frame record
+- 0x3c902 style record bytes provide y, tile delta, and x
+
+Rendered sample: /home/tighe/projects/rastan-genesis/examples/hello-rastan/res/sprite/rastan_family1_state15.png
+Rendered dimensions: 40x48
+
+Target entry:
+default state 15: tile_base=0x043a aux=0x02 frame=0x5f param_a=0x0302 param_b=0x0005
+  frame_record=0x048a33 end=0x048a53
+  part 0: ctrl=0x01 tile_delta=0x00 tile=0x043a x=-8 y=-32
+  part 1: ctrl=0x01 tile_delta=0x01 tile=0x043b x=+8 y=-32
+  part 2: ctrl=0x01 tile_delta=0x02 tile=0x043c x=-8 y=-16
+  part 3: ctrl=0x01 tile_delta=0x03 tile=0x043d x=+8 y=-16
+  part 4: ctrl=0x01 tile_delta=0x04 tile=0x043e x=-16 y=-16
+  part 5: ctrl=0x01 tile_delta=0x05 tile=0x043f x=+0 y=-16
+  part 6: ctrl=0x01 tile_delta=0x06 tile=0x0440 x=-16 y=+0
+  part 7: ctrl=0x01 tile_delta=0x07 tile=0x0441 x=+0 y=+0
+
+Default family-1 states 8-15:
+default state 8: tile_base=0x004b aux=0x01 frame=0x17 param_a=0x0301 param_b=0x0003
+  frame_record=0x047e67 end=0x047e6b
+  part 0: ctrl=0x0f tile_delta=0x62 tile=0x00ad x=-6 y=-9
+default state 9: tile_base=0x00d0 aux=0x01 frame=0x23 param_a=0x0302 param_b=0x0003
+  frame_record=0x047eaf end=0x047eb3
+  part 0: ctrl=0x0f tile_delta=0x71 tile=0x0141 x=-8 y=-10
+default state 10: tile_base=0x033e aux=0x02 frame=0x93 param_a=0x0302 param_b=0x0004
+  frame_record=0x049317 end=0x04932b
+  part 0: ctrl=0x0f tile_delta=0x07 tile=0x0345 x=-18 y=-48
+  part 1: ctrl=0x0f tile_delta=0x08 tile=0x0346 x=-18 y=-32
+  part 2: ctrl=0x0f tile_delta=0x09 tile=0x0347 x=-18 y=-16
+  part 3: ctrl=0x0f tile_delta=0x0a tile=0x0348 x=-2 y=-16
+  part 4: ctrl=0x0f tile_delta=0x00 tile=0x033e x=-2 y=-48
+default state 11: tile_base=0x02e8 aux=0x01 frame=0x5f param_a=0x0201 param_b=0x0002
+  frame_record=0x048a33 end=0x048a53
+  part 0: ctrl=0x01 tile_delta=0x00 tile=0x02e8 x=-8 y=-32
+  part 1: ctrl=0x01 tile_delta=0x01 tile=0x02e9 x=+8 y=-32
+  part 2: ctrl=0x01 tile_delta=0x02 tile=0x02ea x=-8 y=-16
+  part 3: ctrl=0x01 tile_delta=0x03 tile=0x02eb x=+8 y=-16
+  part 4: ctrl=0x01 tile_delta=0x04 tile=0x02ec x=-16 y=-16
+  part 5: ctrl=0x01 tile_delta=0x05 tile=0x02ed x=+0 y=-16
+  part 6: ctrl=0x01 tile_delta=0x06 tile=0x02ee x=-16 y=+0
+  part 7: ctrl=0x01 tile_delta=0x07 tile=0x02ef x=+0 y=+0
+default state 12: tile_base=0x0420 aux=0x02 frame=0xc9 param_a=0x0201 param_b=0x0004
+  frame_record=0x049791 end=0x0497a9
+  part 0: ctrl=0x00 tile_delta=0x0c tile=0x042c x=-24 y=-32
+  part 1: ctrl=0x00 tile_delta=0x0d tile=0x042d x=-24 y=-16
+  part 2: ctrl=0x00 tile_delta=0x0a tile=0x042a x=-8 y=-32
+  part 3: ctrl=0x00 tile_delta=0x0b tile=0x042b x=-8 y=-16
+  part 4: ctrl=0x00 tile_delta=0x0c tile=0x042c x=+8 y=-32
+  part 5: ctrl=0x00 tile_delta=0x0d tile=0x042d x=+8 y=-16
+default state 13: tile_base=0x01cb aux=0x02 frame=0xd0 param_a=0x0202 param_b=0x0007
+  frame_record=0x04986c end=0x0498a8
+  part 0: ctrl=0x0f tile_delta=0x00 tile=0x01cb x=-16 y=-48
+  part 1: ctrl=0x0f tile_delta=0x01 tile=0x01cc x=+0 y=-48
+  part 2: ctrl=0x0f tile_delta=0x02 tile=0x01cd x=-16 y=-32
+  part 3: ctrl=0x0f tile_delta=0x03 tile=0x01ce x=+0 y=-32
+  part 4: ctrl=0x0f tile_delta=0x04 tile=0x01cf x=-16 y=-16
+  part 5: ctrl=0x0f tile_delta=0x05 tile=0x01d0 x=+0 y=-16
+  part 6: ctrl=0x0f tile_delta=0x06 tile=0x01d1 x=-18 y=+0
+  part 7: ctrl=0x0f tile_delta=0x17 tile=0x01e2 x=-43 y=-49
+  part 8: ctrl=0x0f tile_delta=0x18 tile=0x01e3 x=-27 y=-49
+  part 9: ctrl=0x0f tile_delta=0x19 tile=0x01e4 x=+5 y=-49
+  part 10: ctrl=0x0f tile_delta=0x1a tile=0x01e5 x=-43 y=-33
+  part 11: ctrl=0x0f tile_delta=0x1b tile=0x01e6 x=-27 y=-33
+  part 12: ctrl=0x0f tile_delta=0x1c tile=0x01e7 x=-11 y=-33
+  part 13: ctrl=0x0f tile_delta=0x1d tile=0x01e8 x=+5 y=-33
+  part 14: ctrl=0x0f tile_delta=0x1e tile=0x01e9 x=+21 y=-33
+default state 14: tile_base=0x03b3 aux=0x03 frame=0xdd param_a=0x0402 param_b=0x0009
+  frame_record=0x049b0d end=0x049b3d
+  part 0: ctrl=0x0f tile_delta=0x5b tile=0x040e x=-48 y=-64
+  part 1: ctrl=0x0f tile_delta=0x5c tile=0x040f x=-40 y=-48
+  part 2: ctrl=0x0f tile_delta=0x5d tile=0x0410 x=-24 y=-48
+  part 3: ctrl=0x0f tile_delta=0x5e tile=0x0411 x=-8 y=-48
+  part 4: ctrl=0x0f tile_delta=0x5f tile=0x0412 x=-32 y=-32
+  part 5: ctrl=0x0f tile_delta=0x60 tile=0x0413 x=-16 y=-32
+  part 6: ctrl=0x0f tile_delta=0x61 tile=0x0414 x=+0 y=-32
+  part 7: ctrl=0x0f tile_delta=0x37 tile=0x03ea x=-8 y=-32
+  part 8: ctrl=0x0f tile_delta=0x38 tile=0x03eb x=-16 y=-16
+  part 9: ctrl=0x0f tile_delta=0x39 tile=0x03ec x=+0 y=-16
+  part 10: ctrl=0x0f tile_delta=0x3a tile=0x03ed x=-16 y=+0
+  part 11: ctrl=0x0f tile_delta=0x3b tile=0x03ee x=+0 y=+0
+default state 15: tile_base=0x043a aux=0x02 frame=0x5f param_a=0x0302 param_b=0x0005
+  frame_record=0x048a33 end=0x048a53
+  part 0: ctrl=0x01 tile_delta=0x00 tile=0x043a x=-8 y=-32
+  part 1: ctrl=0x01 tile_delta=0x01 tile=0x043b x=+8 y=-32
+  part 2: ctrl=0x01 tile_delta=0x02 tile=0x043c x=-8 y=-16
+  part 3: ctrl=0x01 tile_delta=0x03 tile=0x043d x=+8 y=-16
+  part 4: ctrl=0x01 tile_delta=0x04 tile=0x043e x=-16 y=-16
+  part 5: ctrl=0x01 tile_delta=0x05 tile=0x043f x=+0 y=-16
+  part 6: ctrl=0x01 tile_delta=0x06 tile=0x0440 x=-16 y=+0
+  part 7: ctrl=0x01 tile_delta=0x07 tile=0x0441 x=+0 y=+0
+
+Alternate family-1 states 8-15:
+alt state 8: tile_base=0x004b aux=0x01 frame=0x17 param_a=0x0402 param_b=0x0007
+  frame_record=0x047e67 end=0x047e6b
+  part 0: ctrl=0x0f tile_delta=0x62 tile=0x00ad x=-6 y=-9
+alt state 9: tile_base=0x00d0 aux=0x01 frame=0x23 param_a=0x0302 param_b=0x0005
+  frame_record=0x047eaf end=0x047eb3
+  part 0: ctrl=0x0f tile_delta=0x71 tile=0x0141 x=-8 y=-10
+alt state 10: tile_base=0x033e aux=0x02 frame=0x93 param_a=0x0302 param_b=0x0004
+  frame_record=0x049317 end=0x04932b
+  part 0: ctrl=0x0f tile_delta=0x07 tile=0x0345 x=-18 y=-48
+  part 1: ctrl=0x0f tile_delta=0x08 tile=0x0346 x=-18 y=-32
+  part 2: ctrl=0x0f tile_delta=0x09 tile=0x0347 x=-18 y=-16
+  part 3: ctrl=0x0f tile_delta=0x0a tile=0x0348 x=-2 y=-16
+  part 4: ctrl=0x0f tile_delta=0x00 tile=0x033e x=-2 y=-48
+alt state 11: tile_base=0x02e8 aux=0x01 frame=0x5f param_a=0x0403 param_b=0x0006
+  frame_record=0x048a33 end=0x048a53
+  part 0: ctrl=0x01 tile_delta=0x00 tile=0x02e8 x=-8 y=-32
+  part 1: ctrl=0x01 tile_delta=0x01 tile=0x02e9 x=+8 y=-32
+  part 2: ctrl=0x01 tile_delta=0x02 tile=0x02ea x=-8 y=-16
+  part 3: ctrl=0x01 tile_delta=0x03 tile=0x02eb x=+8 y=-16
+  part 4: ctrl=0x01 tile_delta=0x04 tile=0x02ec x=-16 y=-16
+  part 5: ctrl=0x01 tile_delta=0x05 tile=0x02ed x=+0 y=-16
+  part 6: ctrl=0x01 tile_delta=0x06 tile=0x02ee x=-16 y=+0
+  part 7: ctrl=0x01 tile_delta=0x07 tile=0x02ef x=+0 y=+0
+alt state 12: tile_base=0x0420 aux=0x02 frame=0xc9 param_a=0x0402 param_b=0x0008
+  frame_record=0x049791 end=0x0497a9
+  part 0: ctrl=0x00 tile_delta=0x0c tile=0x042c x=-24 y=-32
+  part 1: ctrl=0x00 tile_delta=0x0d tile=0x042d x=-24 y=-16
+  part 2: ctrl=0x00 tile_delta=0x0a tile=0x042a x=-8 y=-32
+  part 3: ctrl=0x00 tile_delta=0x0b tile=0x042b x=-8 y=-16
+  part 4: ctrl=0x00 tile_delta=0x0c tile=0x042c x=+8 y=-32
+  part 5: ctrl=0x00 tile_delta=0x0d tile=0x042d x=+8 y=-16
+alt state 13: tile_base=0x01cb aux=0x02 frame=0xd0 param_a=0x0403 param_b=0x0012
+  frame_record=0x04986c end=0x0498a8
+  part 0: ctrl=0x0f tile_delta=0x00 tile=0x01cb x=-16 y=-48
+  part 1: ctrl=0x0f tile_delta=0x01 tile=0x01cc x=+0 y=-48
+  part 2: ctrl=0x0f tile_delta=0x02 tile=0x01cd x=-16 y=-32
+  part 3: ctrl=0x0f tile_delta=0x03 tile=0x01ce x=+0 y=-32
+  part 4: ctrl=0x0f tile_delta=0x04 tile=0x01cf x=-16 y=-16
+  part 5: ctrl=0x0f tile_delta=0x05 tile=0x01d0 x=+0 y=-16
+  part 6: ctrl=0x0f tile_delta=0x06 tile=0x01d1 x=-18 y=+0
+  part 7: ctrl=0x0f tile_delta=0x17 tile=0x01e2 x=-43 y=-49
+  part 8: ctrl=0x0f tile_delta=0x18 tile=0x01e3 x=-27 y=-49
+  part 9: ctrl=0x0f tile_delta=0x19 tile=0x01e4 x=+5 y=-49
+  part 10: ctrl=0x0f tile_delta=0x1a tile=0x01e5 x=-43 y=-33
+  part 11: ctrl=0x0f tile_delta=0x1b tile=0x01e6 x=-27 y=-33
+  part 12: ctrl=0x0f tile_delta=0x1c tile=0x01e7 x=-11 y=-33
+  part 13: ctrl=0x0f tile_delta=0x1d tile=0x01e8 x=+5 y=-33
+  part 14: ctrl=0x0f tile_delta=0x1e tile=0x01e9 x=+21 y=-33
+alt state 14: tile_base=0x0129 aux=0x02 frame=0x30 param_a=0x0302 param_b=0x0005
+  frame_record=0x048154 end=0x048190
+  part 0: ctrl=0x44 tile_delta=0x04 tile=0x012d x=-16 y=-53
+  part 1: ctrl=0x44 tile_delta=0x03 tile=0x012c x=+0 y=-53
+  part 2: ctrl=0x44 tile_delta=0x02 tile=0x012b x=+16 y=-53
+  part 3: ctrl=0x44 tile_delta=0x01 tile=0x012a x=-16 y=-37
+  part 4: ctrl=0x04 tile_delta=0x00 tile=0x0129 x=+0 y=-37
+  part 5: ctrl=0x04 tile_delta=0x01 tile=0x012a x=-16 y=-21
+  part 6: ctrl=0x04 tile_delta=0x02 tile=0x012b x=+0 y=-21
+  part 7: ctrl=0x04 tile_delta=0x19 tile=0x0142 x=-40 y=-32
+  part 8: ctrl=0x04 tile_delta=0x1a tile=0x0143 x=-24 y=-32
+  part 9: ctrl=0x04 tile_delta=0x1b tile=0x0144 x=-40 y=-16
+  part 10: ctrl=0x04 tile_delta=0x1c tile=0x0145 x=-24 y=-16
+  part 11: ctrl=0x04 tile_delta=0x1d tile=0x0146 x=-8 y=-16
+  part 12: ctrl=0x04 tile_delta=0x1e tile=0x0147 x=-32 y=+0
+  part 13: ctrl=0x04 tile_delta=0x1f tile=0x0148 x=-16 y=+0
+  part 14: ctrl=0x04 tile_delta=0x20 tile=0x0149 x=+0 y=+0
+alt state 15: tile_base=0x02af aux=0x01 frame=0x57 param_a=0x0301 param_b=0x0005
+  frame_record=0x048943 end=0x04896b
+  part 0: ctrl=0x02 tile_delta=0x13 tile=0x02c2 x=-48 y=-39
+  part 1: ctrl=0x02 tile_delta=0x14 tile=0x02c3 x=-32 y=-39
+  part 2: ctrl=0x02 tile_delta=0x15 tile=0x02c4 x=-8 y=-39
+  part 3: ctrl=0x02 tile_delta=0x16 tile=0x02c5 x=-32 y=-23
+  part 4: ctrl=0x02 tile_delta=0x17 tile=0x02c6 x=-16 y=-23
+  part 5: ctrl=0x02 tile_delta=0x18 tile=0x02c7 x=+0 y=-23
+  part 6: ctrl=0x02 tile_delta=0x0e tile=0x02bd x=-16 y=-15
+  part 7: ctrl=0x02 tile_delta=0x0f tile=0x02be x=+0 y=-15
+  part 8: ctrl=0x02 tile_delta=0x10 tile=0x02bf x=-16 y=+1
+  part 9: ctrl=0x02 tile_delta=0x11 tile=0x02c0 x=+0 y=+1
+
+Palette note: this render uses a grayscale placeholder palette.

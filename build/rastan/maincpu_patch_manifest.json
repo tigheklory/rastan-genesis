@@ -1,0 +1,32 @@
+{
+  "input": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+  "output": "/home/tighe/projects/rastan-genesis/build/rastan/maincpu_patched.bin",
+  "variant": "world_rev1",
+  "input_size": 393216,
+  "patches": [],
+  "patch_classes": [
+    "absolute_ram",
+    "mmio",
+    "control_flow",
+    "pointer_table",
+    "asset_side"
+  ],
+  "execution_goal": "Run patched original Rastan maincpu code on Genesis.",
+  "first_target_slice": {
+    "id": "startup_common_slice",
+    "entry_points": [
+      "0x03AE86"
+    ],
+    "normal_boot_followon": "0x03B05C",
+    "excludes": [
+      "0x000100 detailed DIP-selected test program"
+    ],
+    "why": "This is the first substantial common startup/basic system-test block the arcade runs on every boot."
+  },
+  "startup_slice_manifest": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_manifest.json",
+  "notes": [
+    "Scaffold only: no opcode patches applied yet.",
+    "Next step is to populate absolute-address and MMIO rewrite rules.",
+    "Do not replace gameplay logic here with handwritten behavior."
+  ]
+}

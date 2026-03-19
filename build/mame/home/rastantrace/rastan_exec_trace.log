@@ -1,0 +1,152 @@
+==== rastantrace start rom=rastan game=Rastan (World Rev 1) ====
+arm: trace state armed
+[frame 000000] first_write c50000 pc=03ae8e addr=c50000 data=0000 mask=ffff
+[frame 000000] first_write d01bfe pc=03ae96 addr=d01bfe data=0000 mask=ffff
+[frame 000000] first_read reg_350008 pc=03ae9c addr=350008 data=0000 mask=ffff
+[frame 000000] first_write reg_350008 pc=03ae9e addr=350008 data=0000 mask=ffff
+[frame 000000] first_read reg_380000 pc=03aea2 addr=380000 data=0000 mask=ffff
+[frame 000000] first_write reg_380000 pc=03aea4 addr=380000 data=0000 mask=ffff
+[frame 000000] first_write reg_3e0001 pc=03aeaa addr=3e0000 data=0404 mask=00ff
+[frame 000000] first_write reg_3e0003 pc=03aeb2 addr=3e0002 data=0101 mask=00ff
+[frame 000000] first_read palette_200000 pc=03aebc addr=200000 data=0000 mask=ffff
+[frame 000000] first_write palette_200000 pc=03aec2 addr=200000 data=0000 mask=ffff
+[frame 000001] first_read workram_10c000 pc=03aec6 addr=10c000 data=0000 mask=ffff
+[frame 000001] first_read tile_c00000 pc=03aec6 addr=c00000 data=0000 mask=ffff
+[frame 000001] first_read tile_c04000 pc=03aec6 addr=c04000 data=0000 mask=ffff
+[frame 000001] first_read tile_c08000 pc=03aec6 addr=c08000 data=0000 mask=ffff
+[frame 000001] first_read tile_c0c000 pc=03aec6 addr=c0c000 data=0000 mask=ffff
+[frame 000001] first_read c20000 pc=03aec6 addr=c20000 data=0000 mask=ffff
+[frame 000001] first_read c40000 pc=03aec6 addr=c40000 data=0000 mask=ffff
+[frame 000001] first_read c50000 pc=03aec6 addr=c50000 data=0000 mask=ffff
+[frame 000001] first_read d00000 pc=03aec6 addr=d00000 data=0000 mask=ffff
+[frame 000001] first_read d01bfe pc=03aec6 addr=d01bfe data=0000 mask=ffff
+[frame 000001] first_read dip_390009 pc=03aec6 addr=390008 data=00fe mask=ffff
+[frame 000001] first_read dip_39000b pc=03aec6 addr=39000a data=00ff mask=ffff
+[frame 000001] first_read reg_3c0000 pc=03aec6 addr=3c0000 data=0000 mask=ffff
+[frame 000001] first_read reg_3e0001 pc=03aec6 addr=3e0000 data=0000 mask=ffff
+[frame 000001] first_read reg_3e0003 pc=03aec6 addr=3e0002 data=0000 mask=ffff
+[frame 000001] scene=frontend_title_or_attract pc=03aec6 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 13aa=0000 13ac=0000 13ae=0000 13b0=0000
+[frame 000001] exec_enter pc=03aec6 range=startup_common
+[frame 000005] first_diff reg_3e0003 pc=03aedc addr=3e0002 before=0000 after=0004
+[frame 000005] first_write workram_10c000 pc=03aefc addr=10c000 data=0000 mask=ffff
+[frame 000007] first_write reg_3c0000 pc=03af10 addr=3c0000 data=0000 mask=ffff
+[frame 000007] first_write d00000 pc=03ad48 addr=d00000 data=0000 mask=ffff
+[frame 000008] first_diff workram_10c000 pc=03ad46 addr=10c014 before=0000 after=0060
+[frame 000008] first_diff palette_200000 pc=03ad46 addr=200002 before=0000 after=7bde
+[frame 000008] first_diff d00000 pc=03ad46 addr=d00002 before=0000 after=0100
+[frame 000008] exec_enter pc=03ad46 range=helper_fill_words
+[frame 000008] first_write tile_c00000 pc=03ad48 addr=c00000 data=0000 mask=ffff
+[frame 000008] first_write tile_c08000 pc=03ad48 addr=c08000 data=0000 mask=ffff
+[frame 000009] first_diff tile_c00000 pc=03ad4a addr=c00002 before=0000 after=0020
+[frame 000009] first_diff tile_c08000 pc=03ad4a addr=c08002 before=0000 after=0020
+[frame 000009] first_write tile_c04000 pc=03ad40 addr=c04000 data=0000 mask=ffff
+[frame 000011] first_write tile_c0c000 pc=03ad40 addr=c0c000 data=0000 mask=ffff
+[frame 000012] first_write c20000 pc=03b0a0 addr=c20002 data=0000 mask=ffff
+[frame 000012] first_write c40000 pc=03b0a6 addr=c40002 data=0000 mask=ffff
+[frame 000013] first_diff d01bfe pc=03ad48 addr=d01bfe before=0000 after=0001
+[frame 000014] scene=frontend_0000_0001 pc=03b08e page0=0000 page2=0001 mode4=0000 credits=0000 stage=0000 13aa=0000 13ac=0000 13ae=0000 13b0=0000
+[frame 000014] exec_enter pc=03b08e range=other
+[frame 000016] exec_enter pc=03b098 range=title_init_block
+[frame 000017] exec_enter pc=03b086 range=other
+[frame 000023] exec_enter pc=03b098 range=title_init_block
+[frame 000024] exec_enter pc=03b086 range=other
+[frame 000030] exec_enter pc=03b098 range=title_init_block
+[frame 000030] pc=03b098 exec=title_init_block
+[frame 000031] exec_enter pc=03b086 range=other
+[frame 000037] exec_enter pc=03b098 range=title_init_block
+[frame 000038] exec_enter pc=03b086 range=other
+[frame 000044] exec_enter pc=03b098 range=title_init_block
+[frame 000045] exec_enter pc=03b086 range=other
+[frame 000051] exec_enter pc=03b098 range=title_init_block
+[frame 000052] exec_enter pc=03b086 range=other
+[frame 000058] exec_enter pc=03b098 range=title_init_block
+[frame 000059] exec_enter pc=03b086 range=other
+[frame 000060] pc=03b094 exec=other
+==== rastantrace stop ====
+==== rastantrace start rom=rastan game=Rastan (World Rev 1) ====
+arm: trace state armed
+[frame 000000] first_write c50000 pc=03ae8e addr=c50000 data=0000 mask=ffff
+[frame 000000] first_write d01bfe pc=03ae96 addr=d01bfe data=0000 mask=ffff
+[frame 000000] first_read reg_350008 pc=03ae9c addr=350008 data=0000 mask=ffff
+[frame 000000] first_write reg_350008 pc=03ae9e addr=350008 data=0000 mask=ffff
+[frame 000000] first_read reg_380000 pc=03aea2 addr=380000 data=0000 mask=ffff
+[frame 000000] first_write reg_380000 pc=03aea4 addr=380000 data=0000 mask=ffff
+[frame 000000] first_write reg_3e0001 pc=03aeaa addr=3e0000 data=0404 mask=00ff
+[frame 000000] first_write reg_3e0003 pc=03aeb2 addr=3e0002 data=0101 mask=00ff
+[frame 000000] first_read palette_200000 pc=03aebc addr=200000 data=0000 mask=ffff
+[frame 000000] first_write palette_200000 pc=03aec2 addr=200000 data=0000 mask=ffff
+[frame 000001] first_read workram_10c000 pc=03aec6 addr=10c000 data=0000 mask=ffff
+[frame 000001] first_read tile_c00000 pc=03aec6 addr=c00000 data=0000 mask=ffff
+[frame 000001] first_read tile_c04000 pc=03aec6 addr=c04000 data=0000 mask=ffff
+[frame 000001] first_read tile_c08000 pc=03aec6 addr=c08000 data=0000 mask=ffff
+[frame 000001] first_read tile_c0c000 pc=03aec6 addr=c0c000 data=0000 mask=ffff
+[frame 000001] first_read c20000 pc=03aec6 addr=c20000 data=0000 mask=ffff
+[frame 000001] first_read c40000 pc=03aec6 addr=c40000 data=0000 mask=ffff
+[frame 000001] first_read c50000 pc=03aec6 addr=c50000 data=0000 mask=ffff
+[frame 000001] first_read d00000 pc=03aec6 addr=d00000 data=0000 mask=ffff
+[frame 000001] first_read d01bfe pc=03aec6 addr=d01bfe data=0000 mask=ffff
+[frame 000001] first_read dip_390009 pc=03aec6 addr=390008 data=00fe mask=ffff
+[frame 000001] first_read dip_39000b pc=03aec6 addr=39000a data=00ff mask=ffff
+[frame 000001] first_read reg_3c0000 pc=03aec6 addr=3c0000 data=0000 mask=ffff
+[frame 000001] first_read reg_3e0001 pc=03aec6 addr=3e0000 data=0000 mask=ffff
+[frame 000001] first_read reg_3e0003 pc=03aec6 addr=3e0002 data=0000 mask=ffff
+[frame 000001] scene=frontend_title_or_attract pc=03aec6 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 13aa=0000 13ac=0000 13ae=0000 13b0=0000
+[frame 000001] exec_enter pc=03aec6 range=startup_common
+[frame 000005] first_diff reg_3e0003 pc=03aedc addr=3e0002 before=0000 after=0004
+[frame 000005] first_write workram_10c000 pc=03aefc addr=10c000 data=0000 mask=ffff
+[frame 000007] first_write reg_3c0000 pc=03af10 addr=3c0000 data=0000 mask=ffff
+[frame 000007] first_write d00000 pc=03ad48 addr=d00000 data=0000 mask=ffff
+[frame 000008] first_diff workram_10c000 pc=03ad46 addr=10c014 before=0000 after=0060
+[frame 000008] first_diff palette_200000 pc=03ad46 addr=200002 before=0000 after=7bde
+[frame 000008] first_diff d00000 pc=03ad46 addr=d00002 before=0000 after=0100
+[frame 000008] exec_enter pc=03ad46 range=helper_fill_words
+[frame 000008] first_write tile_c00000 pc=03ad48 addr=c00000 data=0000 mask=ffff
+[frame 000008] first_write tile_c08000 pc=03ad48 addr=c08000 data=0000 mask=ffff
+[frame 000009] first_diff tile_c00000 pc=03ad4a addr=c00002 before=0000 after=0020
+[frame 000009] first_diff tile_c08000 pc=03ad4a addr=c08002 before=0000 after=0020
+[frame 000009] first_write tile_c04000 pc=03ad40 addr=c04000 data=0000 mask=ffff
+[frame 000011] first_write tile_c0c000 pc=03ad40 addr=c0c000 data=0000 mask=ffff
+[frame 000012] first_write c20000 pc=03b0a0 addr=c20002 data=0000 mask=ffff
+[frame 000012] first_write c40000 pc=03b0a6 addr=c40002 data=0000 mask=ffff
+[frame 000013] first_diff d01bfe pc=03ad48 addr=d01bfe before=0000 after=0001
+[frame 000014] scene=frontend_0000_0001 pc=03b08e page0=0000 page2=0001 mode4=0000 credits=0000 stage=0000 13aa=0000 13ac=0000 13ae=0000 13b0=0000
+[frame 000014] exec_enter pc=03b08e range=other
+[frame 000016] exec_enter pc=03b098 range=title_init_block
+[frame 000017] exec_enter pc=03b086 range=other
+[frame 000023] exec_enter pc=03b098 range=title_init_block
+[frame 000024] exec_enter pc=03b086 range=other
+[frame 000030] exec_enter pc=03b098 range=title_init_block
+[frame 000030] pc=03b098 exec=title_init_block
+[frame 000031] exec_enter pc=03b086 range=other
+[frame 000037] exec_enter pc=03b098 range=title_init_block
+[frame 000038] exec_enter pc=03b086 range=other
+[frame 000044] exec_enter pc=03b098 range=title_init_block
+[frame 000045] exec_enter pc=03b086 range=other
+[frame 000051] exec_enter pc=03b098 range=title_init_block
+[frame 000052] exec_enter pc=03b086 range=other
+[frame 000058] exec_enter pc=03b098 range=title_init_block
+[frame 000059] exec_enter pc=03b086 range=other
+[frame 000060] pc=03b094 exec=other
+[frame 000065] exec_enter pc=03b098 range=title_init_block
+[frame 000066] exec_enter pc=03b086 range=other
+[frame 000072] exec_enter pc=03b098 range=title_init_block
+[frame 000073] exec_enter pc=039fae range=other
+[frame 000090] pc=03b094 exec=other
+[frame 000094] exec_enter pc=03b098 range=title_init_block
+[frame 000095] exec_enter pc=039fae range=other
+[frame 000101] exec_enter pc=03b098 range=title_init_block
+[frame 000102] exec_enter pc=039fae range=other
+[frame 000120] pc=03b08a exec=other
+[frame 000130] exec_enter pc=03b098 range=title_init_block
+[frame 000131] exec_enter pc=039fae range=other
+[frame 000137] exec_enter pc=03b098 range=title_init_block
+[frame 000138] exec_enter pc=039fae range=other
+[frame 000150] pc=03b086 exec=other
+[frame 000166] exec_enter pc=03b098 range=title_init_block
+[frame 000167] exec_enter pc=039fae range=other
+[frame 000173] exec_enter pc=03b098 range=title_init_block
+[frame 000174] exec_enter pc=039fae range=other
+[frame 000180] pc=03b080 exec=other
+[frame 000202] exec_enter pc=03b098 range=title_init_block
+[frame 000203] exec_enter pc=039fae range=other
+==== rastantrace stop ====

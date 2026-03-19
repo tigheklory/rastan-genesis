@@ -1,0 +1,7 @@
+Chosen 16x16 sprite tile indices for hello-rastan neutral pose:
+cell 0: tile 188
+cell 1: tile 2462
+cell 2: tile 2542
+cell 3: tile 13
+cell 4: tile 2449
+cell 5: tile 1548
