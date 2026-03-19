@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 
 import argparse
+import hashlib
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
 ROMS = ROOT / "roms"
+BUILD_ROOT = ROOT / "build"
 BUILD = ROOT / "build" / "regions"
+ROM_INVENTORY = BUILD_ROOT / "rom_inventory.json"
 
 MAINCPU_VARIANTS = {
     "world_rev1": [
@@ -72,10 +76,45 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load16_byte_pairs(region_size: int, entries: list[tuple[str, int]]) -> bytes:
+def _merge_region(existing: str | None, incoming: str | None) -> str | None:
+    if existing is None:
+        return incoming
+    if incoming is None:
+        return existing
+    if existing == incoming:
+        return existing
+    return None
+
+
+def read_rom(filename: str, region: str | None, inventory: dict[str, dict[str, object]]) -> bytes:
+    payload = (ROMS / filename).read_bytes()
+    entry = inventory.get(filename)
+    sha1 = hashlib.sha1(payload).hexdigest()
+
+    if entry is None:
+        inventory[filename] = {
+            "path": f"roms/{filename}",
+            "sha1": sha1,
+            "size_bytes": len(payload),
+            "region": region,
+        }
+    else:
+        entry["region"] = _merge_region(entry.get("region"), region)
+        entry["sha1"] = sha1
+        entry["size_bytes"] = len(payload)
+
+    return payload
+
+
+def load16_byte_pairs(
+    region_size: int,
+    entries: list[tuple[str, int]],
+    inventory: dict[str, dict[str, object]],
+    region: str | None,
+) -> bytes:
     data = bytearray(region_size)
     for filename, offset in entries:
-        rom = (ROMS / filename).read_bytes()
+        rom = read_rom(filename, region, inventory)
         data[offset : offset + len(rom) * 2 : 2] = rom
     return bytes(data)
 
@@ -96,14 +135,50 @@ def write_variant_manifest(variant: str) -> None:
     (BUILD / "variant.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
 
+def warn_on_changed_sha1s(new_roms: dict[str, dict[str, object]]) -> None:
+    if not ROM_INVENTORY.exists():
+        return
+
+    previous = json.loads(ROM_INVENTORY.read_text())
+    previous_roms = previous.get("roms", {})
+
+    for filename in sorted(new_roms):
+        old_entry = previous_roms.get(filename)
+        if old_entry is None:
+            continue
+
+        old_sha1 = old_entry.get("sha1")
+        new_sha1 = new_roms[filename].get("sha1")
+
+        if old_sha1 != new_sha1:
+            print(f"WARNING: ROM {filename} SHA1 changed since last run.")
+            print(f"Prior:  {old_sha1}")
+            print(f"Now:    {new_sha1}")
+            print("Delete build/rom_inventory.json to accept new ROMs.")
+
+
+def write_rom_inventory(variant: str, roms: dict[str, dict[str, object]]) -> None:
+    BUILD_ROOT.mkdir(parents=True, exist_ok=True)
+    warn_on_changed_sha1s(roms)
+    payload = {
+        "generated_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "variant": variant,
+        "roms": {name: roms[name] for name in sorted(roms)},
+    }
+    ROM_INVENTORY.write_text(json.dumps(payload, indent=2) + "\n")
+
+
 def main() -> int:
     args = parse_args()
+    rom_inventory: dict[str, dict[str, object]] = {}
 
     write_region(
         "maincpu",
         load16_byte_pairs(
             0x60000,
             list(zip(MAINCPU_VARIANTS[args.variant], [0x00000, 0x00001, 0x20000, 0x20001, 0x40000, 0x40001])),
+            rom_inventory,
+            "maincpu",
         ),
     )
     write_region(
@@ -116,6 +191,8 @@ def main() -> int:
                 ("b04-03.39", 0x40000),
                 ("b04-04.66", 0x40001),
             ],
+            rom_inventory,
+            "pc080sn",
         ),
     )
     write_region(
@@ -128,10 +205,13 @@ def main() -> int:
                 ("b04-07.14", 0x40000),
                 ("b04-08.27", 0x40001),
             ],
+            rom_inventory,
+            "pc090oj",
         ),
     )
-    write_region("audiocpu", (ROMS / "b04-19.49").read_bytes())
-    write_region("adpcm", (ROMS / "b04-20.76").read_bytes())
+    write_region("audiocpu", read_rom("b04-19.49", "audiocpu", rom_inventory))
+    write_region("adpcm", read_rom("b04-20.76", "adpcm", rom_inventory))
+    write_rom_inventory(args.variant, rom_inventory)
     write_variant_manifest(args.variant)
     return 0
 

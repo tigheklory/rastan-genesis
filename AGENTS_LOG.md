@@ -3161,6 +3161,70 @@ Build/packaging results:
 - ./tools/release_build.sh 93 (success)
 - artifact: dist/Rastan_93.bin
 ```
+
+## [Cody - Build 93 Step B, ROM Fingerprint]
+```text
+Build 93 Step B completed in Python tooling only.
+Updated file: tools/build_rastan_regions.py
+
+Verification runs:
+1) python3 tools/build_rastan_regions.py --variant world_rev1
+   - success
+   - build/rom_inventory.json created
+2) python3 tools/build_rastan_regions.py --variant world_rev1
+   - success
+   - no WARNING lines emitted
+   - confirmed no false-positive SHA1 mismatch warnings on second run
+
+Fingerprinted ROM files (world_rev1):
+- b04-01.40  sha1=f8d158d38cd07a24cb5ddefd4ce90beec706924d  size=131072  region=pc080sn
+- b04-02.67  sha1=a2bea2ce1cebd25b33be41723299ca0512d95f9e  size=131072  region=pc080sn
+- b04-03.39  sha1=5c49f0ff9221cba9f2bb8da86eb4448c73012410  size=131072  region=pc080sn
+- b04-04.66  sha1=3df7f085fe6468bda11fab2e86252df6f74f7a99  size=131072  region=pc080sn
+- b04-05.15  sha1=04f69f9af7ac4242e95dba32988afa3616d75a92  size=131072  region=pc090oj
+- b04-06.28  sha1=fdc29f39198f9b488e298ee89b0eeb3417527733  size=131072  region=pc090oj
+- b04-07.14  sha1=da6ebe6afe245443a76b33714213549356c0c5c3  size=131072  region=pc090oj
+- b04-08.27  sha1=9de9ff1fcf037e5ab25c181b678245041238d6ae  size=131072  region=pc090oj
+- b04-19.49  sha1=fa59dac2583a7d2979550dffc6f9c6c2bd67bfd5  size=65536   region=audiocpu
+- b04-20.76  sha1=b1682959521fa295769207b75cf7d839e9ec95fd  size=65536   region=adpcm
+- b04-37.7   sha1=92e46b1edef40a19be17091c09daba598d77bca8  size=65536   region=maincpu
+- b04-38.19  sha1=17fc55e8546cc0b847aebd67fb4570a1e9f128f3  size=65536   region=maincpu
+- b04-39.8   sha1=f47557dcfa9d3137e2a3838e45858fc21471cc91  size=65536   region=maincpu
+- b04-40.20  sha1=c269b3856040ed9409de99cca48f22a2f355fc4c  size=65536   region=maincpu
+- b04-42.21  sha1=7d967d04ade648c6ddb19aad9e184b6e272856da  size=65536   region=maincpu
+- b04-43-1.9 sha1=0f8c2d7d332c4e35884c48d87ba9fd26924d1692  size=65536   region=maincpu
+
+Unexpected files found in roms/ (present but not used for world_rev1 build):
+- .gitkeep
+- b04-13.7
+- b04-14.19
+- b04-15-1.8
+- b04-15.8
+- b04-16-1.20
+- b04-16.20
+- b04-17-1.9
+- b04-18-1.21
+- b04-21.7
+- b04-22.8
+- b04-23.20
+- b04-24.9
+- b04-25.21
+- b04-26.8
+- b04-27.20
+- b04-28.9
+- b04-29.21
+- b04-31.7
+- b04-33-1.8
+- b04-34-1.20
+- b04-35.9
+- b04-36.21
+- b04-41-1.9
+- b04-41.9
+- b04-43.9
+- b04-44.8
+- b04-45.20
+- rastan.zip
+```
 ## [Technical Lead Review - Build 93 Step A Approved]
 ## Source: Claude (Project Technical Lead)
 
