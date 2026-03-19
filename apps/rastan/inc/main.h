@@ -46,6 +46,7 @@ void genesistan_run_original_startup_common(void);
 void genesistan_run_original_frontend_tick(void);
 void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t service_word);
 void genesistan_refresh_arcade_inputs(void);
+void genesistan_reclaim_launcher_wram(void);
 void genesistan_sound_send_command(void);
 void genesistan_sound_read_status(void);
 void shadow_init(void);

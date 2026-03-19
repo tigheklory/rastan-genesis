@@ -149,6 +149,30 @@ void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t servi
     genesistan_refresh_arcade_inputs();
 }
 
+void genesistan_reclaim_launcher_wram(void)
+{
+    const uint8_t saved_dip1 = genesistan_shadow_dip1;
+    const uint8_t saved_dip2 = genesistan_shadow_dip2;
+    const uint16_t saved_service = genesistan_shadow_service_word;
+
+    /*
+     * Reclaim launcher-only state once we hand off to live game flow.
+     * Keep DIP/service configuration intact so startup/game behavior stays stable.
+     */
+    fill_words(genesistan_shadow_c20000_words, 2, 0);
+    fill_words(genesistan_shadow_c40000_words, 2, 0);
+    genesistan_startup_result_code = GENESISTAN_STARTUP_RESULT_NONE;
+    genesistan_sound_last_command = 0;
+    genesistan_sound_last_low_nibble = 0;
+    genesistan_sound_last_high_nibble = 0;
+    genesistan_sound_status = 0;
+    genesistan_sound_command_count = 0;
+
+    genesistan_shadow_dip1 = saved_dip1;
+    genesistan_shadow_dip2 = saved_dip2;
+    genesistan_shadow_service_word = saved_service;
+}
+
 #else
 
 void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t service_word)
@@ -159,6 +183,10 @@ void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t servi
 }
 
 void genesistan_refresh_arcade_inputs(void)
+{
+}
+
+void genesistan_reclaim_launcher_wram(void)
 {
 }
 

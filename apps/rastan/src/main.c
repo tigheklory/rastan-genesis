@@ -48,8 +48,7 @@ extern volatile uint16_t genesistan_shadow_reg_d01bfe;
 #define SHADOW_SRAM_PAGE_STRIDE 0x4000UL
 #define SHADOW_SRAM_PAGE_MAX 4
 #define SHADOW_WRAM_PAGE_COUNT 2
-#define SHADOW_WRAM_PAGE_WORDS 8192
-#define SHADOW_WRAM_TOTAL_WORDS (SHADOW_WRAM_PAGE_COUNT * SHADOW_WRAM_PAGE_WORDS)
+#define SHADOW_WRAM_TOTAL_WORDS 16384
 
 typedef enum
 {
@@ -322,7 +321,6 @@ void shadow_init(void)
 void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
 {
     volatile uint8_t *base;
-    uint16_t word_index;
     uint32_t linear_index;
 
     if ((page >= SHADOW_SRAM_PAGE_MAX) || (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
@@ -332,8 +330,7 @@ void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
 
     if (page < SHADOW_WRAM_PAGE_COUNT)
     {
-        word_index = (uint16_t)(offset >> 1);
-        linear_index = ((uint32_t)page * SHADOW_WRAM_PAGE_WORDS) + (uint32_t)word_index;
+        linear_index = ((uint32_t)page * 8192UL) + (uint32_t)(offset >> 1);
 
         if (linear_index < SHADOW_WRAM_TOTAL_WORDS)
         {
@@ -351,7 +348,6 @@ void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
 uint16_t shadow_read16(uint8_t page, uint16_t offset)
 {
     volatile uint8_t *base;
-    uint16_t word_index;
     uint32_t linear_index;
 
     if ((page >= SHADOW_SRAM_PAGE_MAX) || (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
@@ -361,8 +357,7 @@ uint16_t shadow_read16(uint8_t page, uint16_t offset)
 
     if (page < SHADOW_WRAM_PAGE_COUNT)
     {
-        word_index = (uint16_t)(offset >> 1);
-        linear_index = ((uint32_t)page * SHADOW_WRAM_PAGE_WORDS) + (uint32_t)word_index;
+        linear_index = ((uint32_t)page * 8192UL) + (uint32_t)(offset >> 1);
 
         if (linear_index < SHADOW_WRAM_TOTAL_WORDS)
         {
@@ -1418,6 +1413,7 @@ static void request_start_rastan(void)
 
     if (genesistan_startup_result_code == GENESISTAN_STARTUP_RESULT_NORMAL)
     {
+        genesistan_reclaim_launcher_wram();
         current_screen = SCREEN_FRONTEND_LIVE;
         VDP_clearPlane(BG_A, TRUE);
         VDP_clearPlane(BG_B, TRUE);

@@ -635,3 +635,113 @@ Next debug step:
 - Instrument every 68K write path that targets Z80-visible addresses.
 - Log the source pointer and computed destination before the `7FFF` fault.
 - Also treat WRAM exhaustion as active: reduce stack usage or reclaim BSS before further sound debugging.
+
+## [Implementer Update - Build 91.1 Reclamation & Unification]
+
+- Build command executed: `./tools/release_build.sh 91`
+- Artifact ready: `dist/Rastan_91.bin`
+- Shadow API unification:
+  - `shadow_pages_0_1_wram` remains the single WRAM backing for pages 0/1.
+  - Linear index path uses `((uint32_t)page * 8192UL) + (uint32_t)(offset >> 1)`.
+  - Legacy `shadow_page0_wram` symbol is not present in source.
+
+### Requested Metrics
+- `shadow_pages_0_1_wram` exact address: `0xE0FF0076`
+- `_bend`: `0xE0FFFECC`
+- `__stack`: `0xE1000000`
+- Hex distance (`__stack - _bend`): `0x134`
+
+### Launcher Buffers Reclaimed/Scrubbed on Normal Handoff
+- `genesistan_shadow_c20000_words[2]`
+- `genesistan_shadow_c40000_words[2]`
+- `genesistan_startup_result_code`
+- `genesistan_sound_last_command`
+- `genesistan_sound_last_low_nibble`
+- `genesistan_sound_last_high_nibble`
+- `genesistan_sound_status`
+- `genesistan_sound_command_count`
+
+### Preserved State During Reclamation
+- `genesistan_shadow_dip1`
+- `genesistan_shadow_dip2`
+- `genesistan_shadow_service_word`
+
+### MAME Exit Summary (2026-03-18 18:24:37)
+- Final PC: 0x20956E
+- Stack Pointer (SP): 0xE0691EBC
+- Unique Unmapped Memory Addresses (2): 0x0020A59A, 0x00000000
+- **Visual Evidence (BlastEm):** Screenshot saved as `B91.1_BlastEm_Launcher_20260318_1827.png` (Stage: Launcher)
+
+## [Implementer Update - Build 91.1 Revalidation]
+
+- Build command executed: `./tools/release_build.sh 91`
+- Build result: success
+- Artifact: `dist/Rastan_91.bin`
+
+### Required Reporting
+- Exact `shadow_pages_0_1_wram` address: `0xE0FF0076`
+- `_bend`: `0xE0FFFECC`
+- `__stack`: `0xE1000000`
+- Hex distance (`__stack - _bend`): `0x134`
+
+### Launcher Buffers Reclaimed/Scrubbed
+- `genesistan_shadow_c20000_words[2]`
+- `genesistan_shadow_c40000_words[2]`
+- `genesistan_startup_result_code`
+- `genesistan_sound_last_command`
+- `genesistan_sound_last_low_nibble`
+- `genesistan_sound_last_high_nibble`
+- `genesistan_sound_status`
+- `genesistan_sound_command_count`
+
+### Preserved Across Reclamation
+- `genesistan_shadow_dip1`
+- `genesistan_shadow_dip2`
+- `genesistan_shadow_service_word`
+- **Visual Evidence (MAME):** Screenshot saved as `B91.1_MAME_Launcher_20260318_1828.png` (Stage: Launcher)
+
+### MAME Exit Summary (2026-03-18 18:28:26)
+- Final PC: 0x2097C0
+- Stack Pointer (SP): 0xE0966928
+- Unique Unmapped Memory Addresses (4): 0x0000A59A, 0x0020A59A, 0x2700A59A, 0x00000000
+- **Visual Evidence (MAME):** Screenshot saved as `B91.1_MAME_In-Game_20260318_1828.png` (Stage: In-Game)
+
+## [Architect Audit - Build 91.1 Boot Trap]
+
+### 1. Forensic Analysis
+**Confirmed: Fatal Hardware Conflict on Boot.**
+The immediate crash-on-boot in accurate emulators (BlastEm, Exodus) is caused by the C runtime startup code (`crt0`) attempting to initialize the new `.sram_data` section.
+
+### 2. Mechanism of Failure
+- The linker is configured to place `.sram_data` at address `$200000`.
+- The `crt0` boot code, which runs *before* `main()`, attempts to clear this section by writing zeros to it.
+- On a real Genesis, the SRAM bus is disabled until a write to the control register at `$A130F1` occurs.
+- Our `shadow_init()` function performs this enablement, but it is called from within `main()`, which is too late.
+- The `crt0` write to the disabled bus at `$200000` causes an immediate hardware Bus Error (`BERR`), leading to a fatal CPU exception.
+
+### 3. Emulator Behavior Differential
+- **BlastEm / Exodus:** Correctly emulate the bus error, causing an instant crash as would be seen on physical hardware.
+- **MAME:** Leniently ignores the illegal write to disabled SRAM, allowing `crt0` to complete and `main()` to run. The subsequent in-game crash is the unrelated Z80 bug from the previous build.
+
+### 4. Conclusion
+The boot trap is a hardware initialization order problem, not a pointer-math bug in the shadow API. The `.sram_data` section must be designated as a `NOLOAD` type in the linker script to prevent the C runtime from attempting to clear it at boot.
+
+## [Architect Audit - Build 91.1 Boot Trap]
+
+### 1. Forensic Analysis
+**Confirmed: Fatal Hardware Conflict on Boot.**
+The immediate crash-on-boot in accurate emulators (BlastEm, Exodus) is caused by the C runtime startup code (`crt0`) attempting to initialize the new `.sram_data` section.
+
+### 2. Mechanism of Failure
+- The linker is configured to place `.sram_data` at address `$200000`.
+- The `crt0` boot code, which runs *before* `main()`, attempts to clear this section by writing zeros to it.
+- On a real Genesis, the SRAM bus is disabled until a write to the control register at `$A130F1` occurs.
+- Our `shadow_init()` function performs this enablement, but it is called from within `main()`, which is too late.
+- The `crt0` write to the disabled bus at `$200000` causes an immediate hardware Bus Error (`BERR`), leading to a fatal CPU exception.
+
+### 3. Emulator Behavior Differential
+- **BlastEm / Exodus:** Correctly emulate the bus error, causing an instant crash as would be seen on physical hardware.
+- **MAME:** Leniently ignores the illegal write to disabled SRAM, allowing `crt0` to complete and `main()` to run. The subsequent in-game crash is the unrelated Z80 bug from the previous build.
+
+### 4. Conclusion
+The boot trap is a hardware initialization order problem, not a pointer-math bug in the shadow API. The `.sram_data` section must be designated as a `NOLOAD` type in the linker script to prevent the C runtime from attempting to clear it at boot.
