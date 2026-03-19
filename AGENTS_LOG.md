@@ -2515,3 +2515,100 @@ This note is a confidence and testing requirement, not a redesign.
 The delta flush must be validated against known good arcade output
 frame-by-frame before pages 0/1/3 shadow removal is considered
 complete.
+
+## [Architect Note - Build 93 MAME Hardware Analysis]
+## Source: Claude (Lead Architect, this session)
+## Reference: mamedev/mame src/mame/taito/rastan.cpp
+
+### Hardware Identification (confirmed from MAME driver)
+
+MAIN CPU:   Motorola 68000 @ 8 MHz
+SOUND CPU:  Zilog Z80 @ 4 MHz
+SOUND ICs:  Yamaha YM2151 (music), OKI MSM5205 (ADPCM voice)
+TILEMAP IC: PC080SN (Taito custom, two background layers)
+SPRITE IC:  PC090OJ (Taito custom, sprite renderer)
+CPU-SOUND:  PC060HA (mailbox communication chip)
+
+### C-Window Address Map (0xC00000-0xC0FFFF) — CRITICAL
+
+The C-Window is NOT general work RAM.
+It is the PC080SN chip's internal tilemap RAM, exposed on the
+68000 bus via word_r/word_w handlers.
+
+MAME mapping:
+  0xC00000-0xC0FFFF  PC080SN word_r / word_w  (tilemap RAM)
+  0xC20000-0xC20003  PC080SN yscroll_word_w
+  0xC40000-0xC40003  PC080SN xscroll_word_w
+  0xC50000-0xC50003  PC080SN ctrl_word_w
+
+The PC080SN chip reads from its own RAM autonomously every
+scanline to render two background tile layers. The 68000
+writes tile indices and attribute words into this RAM.
+The chip owns the RAM; the 68000 has shared bus access.
+
+### PC080SN RAM Layout (inferred from profile + hardware)
+
+Two background layers, each 64x64 tiles of 8x8 pixels.
+Each tile entry = 1 word (tile index + palette/attribute).
+4096 words per layer = 8KB per layer = 16KB total.
+
+Pages 0+1 (0xC00000-0xC07FFF): BG Layer 0 tilemap data
+Pages 2+3 (0xC08000-0xC0FFFF): BG Layer 1 tilemap data
+
+The 16 sparse reads in page 2 at stride ~0x200 are rowscroll
+table entries. The PC080SN supports per-row horizontal scroll.
+The 68000 reads back its own previously written rowscroll
+values to compute animation deltas. This is why page 2 has
+68000 reads while pages 0, 1, and 3 do not.
+
+### Sprite RAM (0xD00000-0xD03FFF) — SEPARATE
+
+PC090OJ sprite chip has its own 16KB RAM at 0xD00000-0xD03FFF.
+Completely separate from C-Window tilemap RAM.
+Already shadowed in startup_bridge.c as:
+  genesistan_shadow_d00000_words[0x0400]
+This is correct. Do not conflate sprite RAM with tilemap RAM.
+
+### Render Order (from screen_update in rastan.cpp)
+
+1. PC080SN BG Layer 0 — TILEMAP_DRAW_OPAQUE (background)
+2. PC080SN BG Layer 1 — over layer 0
+3. PC090OJ sprites     — on top of both layers
+
+### Sound Architecture
+
+68000 writes command byte to PC060HA at 0x3E0003.
+Z80 polls PC060HA at 0xA001, executes sound commands.
+Z80 drives YM2151 (music) and MSM5205 (ADPCM voice samples).
+68000 never touches sound hardware directly.
+startup_trampoline.s genesistan_sound_send_command correctly
+models this mailbox pattern.
+
+### Implication for Build 93 Delta Flush
+
+The delta flush is not sending generic RAM data to the VDP.
+It is specifically sending PC080SN tilemap entries to the
+Genesis VDP's tilemap/plane structures, translated from
+PC080SN tile format to Genesis VDP nametable format.
+
+This means the flush requires FORMAT TRANSLATION, not just
+a raw memory copy. A PC080SN tile word encodes:
+  - Tile index (into PC080SN ROM-based tile graphics)
+  - Palette bank
+  - Flip flags
+  - Priority flag
+
+A Genesis VDP nametable word encodes:
+  - Tile index (into Genesis VRAM tile data)
+  - Palette line (0-3)
+  - H/V flip flags
+  - Priority bit
+
+The tile index mapping requires a pre-built translation table
+that maps arcade tile ROM indices to Genesis VRAM tile slot
+indices. This is a build-time asset extraction problem, not
+a runtime memory copy problem. The delta flush must call a
+translate_tile_word() function, not memcpy.
+
+This is the most significant architectural implication of the
+MAME hardware analysis. Add to Build 93 task list.
