@@ -1102,3 +1102,237 @@ Write `tools/validate_manifest.py` with address-range sanity checks, overlap det
 **Priority 3 — Resolve the `attic/` build graph entanglement and the `CLAUDE.md` gap**
 
 Create a `CLAUDE.md` that references `AGENTS.md` so Claude Code loads the correct context automatically. Move `attic/startup-common-rom` out of the live Makefile target (gate behind `ATTIC=1` or delete the target). These two changes together close the two most likely agentic corruption paths before you start using AI tools more heavily on the port.
+
+## [External Consultant Strategic Review - Project Memory Direction]
+
+### Current Situation
+The project is attempting to port the arcade version of Rastan to the Sega Genesis.  
+The major technical pressure point has been the **Arcade C-Window memory block ($C00000–$C0FFFF)** which represents **64KB of linear RAM** on the original hardware.
+
+The Genesis only provides:
+
+- **64KB total 68K WRAM**
+
+This has forced the project into several experimental architectures:
+
+- Shadow buffers
+- WRAM/SRAM hybrids
+- Double-shadowing
+- Memory overlays
+
+Recent work (Build 92) has stabilized WRAM pressure using a **C union overlay**, but this still assumes the full 32KB WRAM block must exist.
+
+The key unknown remains:
+
+**How much of the 64KB C-window does Rastan actually use during real gameplay?**
+
+---
+
+### Trace-Based Decision Strategy
+
+The new `rastantrace.lua` RAM profiler will determine:
+
+- Highest offset touched per 16KB page
+- Read/write distribution
+- Executable vs data-only regions
+- Large unused "dead zones"
+
+This information will allow us to determine the **true high-water RAM requirement**.
+
+The project should avoid making architectural decisions until the profiler results are available.
+
+---
+
+### Possible Outcomes From Trace Analysis
+
+#### Scenario A — Small Working Set
+Example result:
+
+Page 0: ~6KB  
+Page 1: ~3KB  
+Page 2: ~4KB  
+Page 3: mostly unused  
+
+Total effective usage < ~20KB.
+
+If this occurs:
+
+- The Genesis WRAM can likely support the port using:
+  - overlays
+  - region compression
+  - careful relocation
+
+This enables a **fully standard Genesis cartridge build**.
+
+Advantages:
+
+- Works on real hardware
+- Works in all emulators
+- No custom hardware required
+
+This is the **preferred outcome**.
+
+---
+
+#### Scenario B — Moderate Working Set
+Example result:
+
+Total effective usage ~32KB–48KB.
+
+In this case:
+
+- WRAM may still be sufficient with careful overlay design
+- Some regions could move to **cartridge SRAM**
+
+Possible architecture:
+
+WRAM:
+- executable pages
+- sound buffers
+- hot data
+
+SRAM:
+- cold data pages
+
+This still supports **standard cartridges**.
+
+---
+
+#### Scenario C — Full 64KB Required
+If Rastan genuinely depends on nearly the entire C-window as a contiguous working buffer:
+
+Then the Genesis WRAM architecture becomes fundamentally insufficient.
+
+In that case the project must choose between:
+
+1. **Custom RAM cartridge**
+2. **EverDrive development target**
+
+---
+
+### EverDrive EX-SSF Capability
+
+Recent communication with EverDrive developer **Krikzz** confirmed the following:
+
+- The EverDrive X3/X5/X7 contain **16-bit accessible RAM**.
+- RAM is normally exposed at **0x200000** as backup RAM.
+- Using the **EX-SSF mapper**, write protection on cartridge ROM can be disabled.
+
+This allows:
+ - Entire cartridge address space
+ - 000000–3FFFFF to become writable RAM
+
+
+Key properties:
+
+- **16-bit bus width**
+- `/UDS` and `/LDS` fully supported
+- behaves like normal 68K memory
+
+This effectively provides **megabytes of working RAM** for development builds.
+
+---
+
+### Implications of EX-SSF
+
+Advantages:
+
+- Eliminates WRAM pressure entirely
+- Allows very large buffers
+- Simplifies early development
+- Makes debugging significantly easier
+
+Limitations:
+
+- **Not a standard Genesis cartridge feature**
+- Requires EverDrive hardware
+- Emulator support is inconsistent
+- Not suitable for final retail-style builds
+
+Therefore EX-SSF should be considered a **development tool**, not the primary target architecture.
+
+---
+
+### Recommended Development Path
+
+1. Complete the RAM profiler (`rastantrace.lua`).
+2. Generate `ram_usage_profile.json`.
+3. Analyze high-water marks and dead zones.
+
+Then choose architecture:
+
+| Trace Result | Recommended Path |
+|--------------|------------------|
+| < ~24KB usage | Standard WRAM build |
+| 24–48KB usage | WRAM + SRAM hybrid |
+| ~64KB usage | RAM cart or EX-SSF dev build |
+
+---
+
+### Strategic Recommendation
+
+Do **not redesign the memory architecture further until the trace data is available**.
+
+The profiler will convert speculation into measurable facts.
+
+Once the real usage profile is known, the project can confidently decide whether:
+
+- the port fits within Genesis WRAM limits, or
+- a RAM-backed cartridge architecture is required.
+
+---
+
+### Consultant Verdict
+
+The project is currently following the correct direction:
+
+- stabilize WRAM using overlays
+- measure real arcade memory usage
+- avoid premature architectural commitments
+
+The RAM profiler is now the **most important tool in determining the final hardware target**.
+
+Further architectural changes should wait until its results are available.
+
+## [Implementer Update - RAM Coverage Profiler Refactor]
+Date: 2026-03-19
+
+Completed refactor of `tools/mame/scripts/rastantrace.lua` into a focused RAM coverage profiler for arcade C-window analysis.
+
+### Scope Implemented
+- Instrumented only `$C00000-$C0FFFF` split into four 16KB pages:
+  - Page 0: `$C00000-$C03FFF`
+  - Page 1: `$C04000-$C07FFF`
+  - Page 2: `$C08000-$C0BFFF`
+  - Page 3: `$C0C000-$C0FFFF`
+- Coverage granularity is 16-bit words (word-indexed bitmaps).
+
+### Metrics Captured Per Page
+- `min_offset_touched`
+- `max_offset_touched`
+- `unique_words_touched`
+- `read_unique_words`
+- `write_unique_words`
+- Separate read/write bitmaps converted to:
+  - `read_ranges`
+  - `write_ranges`
+- Dead-zone detection:
+  - `untouched_ranges` (only contiguous gaps `>= 256` bytes retained)
+
+### Execution Detection
+- Added opcode/fetch hook attempts when available.
+- If fetch hook is unavailable, uses PC-in-page heuristic and marks:
+  - `execution_detection = "heuristic_exec"`
+  - per-page `heuristic_exec = true` when triggered
+- Per-page output includes `possible_execute` boolean.
+
+### Output
+- On MAME exit, profiler writes:
+  - `ram_usage_profile.json`
+- JSON includes metadata warning:
+  - profile is scenario evidence for reduction candidates, not universal proof of safety.
+
+### Reliability/Performance Notes
+- No per-access console logging or per-access file I/O.
+- All tracking is in-memory bitsets/counters until stop notifier flush.
+- Added address normalization so hooks/taps are robust to absolute vs relative callback address forms.
