@@ -32,6 +32,9 @@ extern volatile uint16_t genesistan_shadow_reg_d01bfe;
 #define GRAPHICS_TEST_ITEMS_PER_PAGE_PC090OJ (GRAPHICS_TEST_COLS_PC090OJ * GRAPHICS_TEST_ROWS_PC090OJ)
 #define GRAPHICS_TEST_MAX_VRAM_TILES GRAPHICS_TEST_ITEMS_PER_PAGE_PC080SN
 #define GRAPHICS_TEST_BLANK_TILE_INDEX (GRAPHICS_TEST_TILE_INDEX + GRAPHICS_TEST_MAX_VRAM_TILES)
+#define TILEMAP_CACHE_BASE    GRAPHICS_TEST_TILE_INDEX
+#define TILEMAP_CACHE_SIZE    1024
+#define TILEMAP_CACHE_INVALID 0xFFFF
 #define DIP_TILE_ON_INDEX TILE_USER_INDEX
 #define DIP_TILE_OFF_INDEX (TILE_USER_INDEX + 2)
 #define FRONTEND_RUNTIME_SPRITE_TILE_BASE 1024
@@ -214,6 +217,8 @@ static u8 sound_test_last_command = 0x00;
 static bool sound_test_has_triggered = FALSE;
 static volatile u32 packed_romset_size_cache = 0;
 static volatile u32 packed_romset_signature_cache = 0;
+static uint16_t tilemap_cache_slots[TILEMAP_CACHE_SIZE];
+static bool tilemap_cache_dirty = TRUE;
 
 typedef struct
 {
@@ -1252,6 +1257,196 @@ static void clear_frontend_sprite_layer(void)
     VDP_updateSprites(0, CPU);
 }
 
+static uint16_t tilemap_cache_get(uint16_t arcade_tile);
+
+static uint16_t translate_pc080sn_tile_word(
+    uint16_t attr,
+    uint16_t code,
+    uint16_t palette_line)
+{
+    const uint16_t arcade_tile = code & 0x3FFF;
+    const uint8_t  hflip = (uint8_t)((attr >> 14) & 1);
+    const uint8_t  vflip = (uint8_t)((attr >> 15) & 1);
+    const uint16_t vram_slot = tilemap_cache_get(arcade_tile);
+
+    return TILE_ATTR_FULL(
+        palette_line,
+        FALSE,
+        vflip,
+        hflip,
+        vram_slot);
+}
+
+static uint16_t pc080sn_palette_line(
+    uint16_t colour_index,
+    uint16_t *bank_map,
+    uint16_t *bank_count)
+{
+    /*
+     * The 9-bit colour index encodes a palette bank in
+     * its upper bits. Extract the bank using the same
+     * approach as the sprite palette mapper and reuse
+     * the existing frontend_palette_line_for_bank().
+     * Bits [8:4] of the colour index select the bank.
+     */
+    const uint16_t bank = (colour_index >> 4) & 0x1F;
+    return frontend_palette_line_for_bank(
+        bank, bank_map, bank_count);
+}
+
+static void tilemap_cache_init(void)
+{
+    uint16_t i;
+    for (i = 0; i < TILEMAP_CACHE_SIZE; i++)
+        tilemap_cache_slots[i] = TILEMAP_CACHE_INVALID;
+    tilemap_cache_dirty = TRUE;
+}
+
+static uint16_t tilemap_cache_get(uint16_t arcade_tile)
+{
+    uint16_t slot;
+    uint16_t evict;
+
+    /*
+     * Simple direct-mapped cache using modulo.
+     * Slot = arcade_tile_num % TILEMAP_CACHE_SIZE.
+     * If the slot holds a different tile, evict and
+     * load the new tile via DMA.
+     */
+    slot = arcade_tile % TILEMAP_CACHE_SIZE;
+
+    if (tilemap_cache_slots[slot] == arcade_tile)
+        return (uint16_t)(TILEMAP_CACHE_BASE + slot);
+
+    /* Cache miss — load tile from ROM into VRAM slot */
+    evict = tilemap_cache_slots[slot];
+    (void)evict;
+    tilemap_cache_slots[slot] = arcade_tile;
+    tilemap_cache_dirty = TRUE;
+
+    VDP_loadTileData(
+        (const u32 *)(rastan_pc080sn +
+            ((uint32_t)arcade_tile * 32)),
+        (uint16_t)(TILEMAP_CACHE_BASE + slot),
+        1,
+        DMA);
+
+    return (uint16_t)(TILEMAP_CACHE_BASE + slot);
+}
+
+static void render_frontend_tilemap_layer(void)
+{
+#if RASTAN_ENABLE_STARTUP_HOOK
+
+    /*
+     * PC080SN has two 64x64 tile layers.
+     * Layer 0 (BG) lives at C-window linear words 0x0000-0x3FFF
+     *   (pages 0+1, arcade addresses 0xC00000-0xC07FFF)
+     * Layer 1 (FG) lives at C-window linear words 0x8000-0xBFFF
+     *   (pages 2+3, arcade addresses 0xC08000-0xC0FFFF)
+     *
+     * Each layer is 64 tiles wide x 64 tiles tall.
+     * Each tile entry is 2 words (attr at even index,
+     * code at odd index) in the linear word array.
+     *
+     * Scroll values are in genesistan_shadow_c20000_words
+     * (Y scroll) and genesistan_shadow_c40000_words (X scroll).
+     * Arcade stores negated values so negate on read.
+     */
+
+    uint16_t palette_bank_map[FRONTEND_RUNTIME_MAX_PALETTE_BANKS]
+        = {0, 1, 2, 3};
+    uint16_t palette_bank_count = 0;
+    uint16_t tile_x;
+    uint16_t tile_y;
+
+    /*
+     * Scroll: arcade negates before storing.
+     * Negate again to get the correct Genesis scroll value.
+     * Cast through int16_t to handle signed wrap correctly.
+     */
+    const int16_t scroll_x_bg = -(int16_t)genesistan_shadow_c40000_words[0];
+    const int16_t scroll_y_bg = -(int16_t)genesistan_shadow_c20000_words[0];
+    const int16_t scroll_x_fg = -(int16_t)genesistan_shadow_c40000_words[1];
+    const int16_t scroll_y_fg = -(int16_t)genesistan_shadow_c20000_words[1];
+
+    /* Set scroll for both planes */
+    VDP_setHorizontalScroll(BG_B, scroll_x_bg);
+    VDP_setVerticalScroll(BG_B, scroll_y_bg);
+    VDP_setHorizontalScroll(BG_A, scroll_x_fg);
+    VDP_setVerticalScroll(BG_A, scroll_y_fg);
+
+    /*
+     * Render BG layer 0 to BG_B.
+     * Linear word index: row * 64 * 2 + col * 2
+     * (multiply by 2 because each tile is 2 words)
+     */
+    for (tile_y = 0; tile_y < 64; tile_y++)
+    {
+        for (tile_x = 0; tile_x < 64; tile_x++)
+        {
+            const uint16_t linear_word =
+                (uint16_t)(tile_y * 64 * 2 + tile_x * 2);
+            const uint16_t attr =
+                read_shadow_c_window_word(linear_word);
+            const uint16_t code =
+                read_shadow_c_window_word((uint16_t)(linear_word + 1));
+            const uint16_t palette_line =
+                pc080sn_palette_line(
+                    (uint16_t)(attr & 0x1FF),
+                    palette_bank_map,
+                    &palette_bank_count);
+            const uint16_t nametable_word =
+                translate_pc080sn_tile_word(
+                    attr, code, palette_line);
+
+            VDP_setTileMapXY(BG_B, nametable_word,
+                             tile_x, tile_y);
+        }
+    }
+
+    /* Reset bank count for FG layer pass */
+    palette_bank_count = 0;
+
+    /*
+     * Render BG layer 1 to BG_A.
+     * Layer 1 starts at linear word 0x8000 in the C-window.
+     * C_WINDOW_WORDS_PER_BANK * 2 = 0x4000 words per page pair.
+     * Layer 1 base = C_WINDOW_WORDS_PER_BANK * 2 = 0x4000.
+     */
+    for (tile_y = 0; tile_y < 64; tile_y++)
+    {
+        for (tile_x = 0; tile_x < 64; tile_x++)
+        {
+            const uint16_t linear_word =
+                (uint16_t)(0x4000 + tile_y * 64 * 2 + tile_x * 2);
+            const uint16_t attr =
+                read_shadow_c_window_word(linear_word);
+            const uint16_t code =
+                read_shadow_c_window_word((uint16_t)(linear_word + 1));
+            const uint16_t palette_line =
+                pc080sn_palette_line(
+                    (uint16_t)(attr & 0x1FF),
+                    palette_bank_map,
+                    &palette_bank_count);
+            const uint16_t nametable_word =
+                translate_pc080sn_tile_word(
+                    attr, code, palette_line);
+
+            VDP_setTileMapXY(BG_A, nametable_word,
+                             tile_x, tile_y);
+        }
+    }
+
+    /* Refresh palettes from PC080SN colour RAM (page 2 shadow) */
+    refresh_frontend_sprite_palettes(
+        palette_bank_map, palette_bank_count);
+    VDP_waitDMACompletion();
+    tilemap_cache_dirty = FALSE;
+
+#endif
+}
+
 static void render_frontend_sprite_layer(void)
 {
 #if RASTAN_ENABLE_STARTUP_HOOK
@@ -1332,6 +1527,7 @@ static void leave_startup_preview(void)
 #if RASTAN_ENABLE_STARTUP_HOOK
     current_screen = SCREEN_CONFIG;
     restore_launcher_vdp_state();
+    tilemap_cache_init();
     render_full_screen();
     set_status("READY");
 #endif
@@ -1428,6 +1624,7 @@ static void request_start_rastan(void)
     genesistan_run_original_startup_common();
 
     restore_launcher_vdp_state();
+    tilemap_cache_init();
 
     if (genesistan_startup_result_code == GENESISTAN_STARTUP_RESULT_NORMAL)
     {
@@ -1435,6 +1632,7 @@ static void request_start_rastan(void)
         VDP_clearPlane(BG_A, TRUE);
         VDP_clearPlane(BG_B, TRUE);
         clear_frontend_sprite_layer();
+        tilemap_cache_init();
     }
     else if (genesistan_startup_result_code == GENESISTAN_STARTUP_RESULT_TEST)
     {
@@ -1529,6 +1727,7 @@ int main(bool hardReset)
     packed_romset_signature_cache = get_packed_romset_signature();
     reset_launcher_runtime_state();
     restore_launcher_vdp_state();
+    tilemap_cache_init();
 
     render_full_screen();
 
@@ -1578,6 +1777,7 @@ int main(bool hardReset)
         {
             genesistan_refresh_arcade_inputs();
             genesistan_run_original_frontend_tick();
+            render_frontend_tilemap_layer();
             render_frontend_sprite_layer();
         }
         else if (current_screen == SCREEN_STARTUP_PREVIEW)

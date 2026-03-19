@@ -3619,3 +3619,43 @@ Build pipeline: reproducible, fingerprinted, validated.
 Stack: safe (22.6KB headroom).
 Rendering: sprites working, backgrounds next.
 Status: ready for Build 94.
+
+## [Technical Lead Note - Build 94 Step 1F VRAM Overflow]
+## Source: Claude (Project Technical Lead)
+
+### VRAM Overflow Confirmed and Resolved
+
+Cody correctly identified and stopped on VRAM overflow.
+
+PC080SN_TILE_COUNT = 16384 tiles x 32 bytes = 512KB.
+Genesis VRAM total = 64KB = 2048 tile slots.
+Full tileset overflow = 14356 tiles beyond capacity.
+
+Resolution: Direct-mapped tile cache (1024 slots).
+  TILEMAP_CACHE_BASE = GRAPHICS_TEST_TILE_INDEX (0x14)
+  TILEMAP_CACHE_SIZE = 1024 slots
+  Slot assignment: arcade_tile % TILEMAP_CACHE_SIZE
+  Cache miss: load single tile via DMA on demand.
+  Cache hit: reuse existing VRAM slot, no DMA.
+
+This is the correct long-term approach. The opcode
+replacement architecture will use the same cache —
+when tilemap writes are replaced with direct VDP calls,
+the cache lookup becomes part of the replacement
+sequence. No architectural change needed at that point.
+
+### Known Limitation for Build 94
+
+Direct-mapped cache will thrash when two frequently
+used tiles share the same modulo slot. Acceptable for
+Build 94 (visual validation goal). Optimisation in
+Build 95 (LRU or pre-warm from trace data).
+
+### Cache Invalidation Policy
+
+Cache must be invalidated whenever VDP VRAM is reset:
+  - tilemap_cache_init() on SCREEN_FRONTEND_LIVE entry
+  - tilemap_cache_init() in leave_startup_preview()
+  - tilemap_cache_init() in restore_launcher_vdp_state()
+    if that path is ever called during live screen.
+    
