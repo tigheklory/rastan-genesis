@@ -539,8 +539,8 @@ Build 91 completed and packaged.
 - Build command:
   - `./tools/release_build.sh 91` succeeded.
 - Output artifacts:
-  - `dist/build_91/`
-  - `dist/Rastan_91.bin`
+- `dist/build_91/`
+- `dist/Rastan_91.bin`
 
 Build 91 status: **Ready for testing**.
 ### MAME Exit Summary (2026-03-18 17:42:49)
@@ -2612,3 +2612,130 @@ translate_tile_word() function, not memcpy.
 
 This is the most significant architectural implication of the
 MAME hardware analysis. Add to Build 93 task list.
+
+
+
+## [Cody Recon - Build 93 Pre-Step-1, Q11-Q12]
+```text
+File: apps/rastan/linker_rastan.ld
+OUTPUT_ARCH(m68k)
+SEARCH_DIR(.)
+__DYNAMIC = 0;
+
+MEMORY
+{
+	rom (rx) : ORIGIN = 0x00000000, LENGTH = 0xE0000000
+	ram : ORIGIN = 0xE0FF0000, LENGTH = 0x00010000
+	SRAM (w!x) : ORIGIN = 0x200000, LENGTH = 64K
+}
+
+PROVIDE(__stack = 0xE1000000);
+PROVIDE(__GENESISTAN_APP_ROM_BASE = 0x00200000);
+genesistan_shadow_c00000_words = 0x00200000;
+genesistan_shadow_c04000_words = 0x00204000;
+genesistan_shadow_c08000_words = 0x00208000;
+genesistan_shadow_c0c000_words = 0x0020C000;
+
+SECTIONS
+{
+  .boot 0x00000000 :
+  {
+    KEEP(*(.text.keepboot))
+  } > rom
+
+  .text __GENESISTAN_APP_ROM_BASE :
+  {
+    *(.text.*) *(.text)
+    . = ALIGN(0x4);
+    __CTOR_LIST__ = .;
+    LONG((__CTOR_END__ - __CTOR_LIST__) / 4 - 2)
+    *(.ctors)
+    LONG(0)
+    __CTOR_END__ = .;
+    __DTOR_LIST__ = .;
+    LONG((__DTOR_END__ - __DTOR_LIST__) / 4 - 2)
+    *(.dtors)
+    LONG(0)
+    __DTOR_END__ = .;
+
+    *(.rodata .rodata.*)
+    *(.gcc_except_table .gcc_except_table.*)
+
+    . = ALIGN(0x4);
+    __INIT_SECTION__ = .;
+    *(.init)
+    SHORT(0x4E75)	/* rts */
+
+    __FINI_SECTION__ = .;
+    *(.fini)
+    SHORT(0x4E75)	/* rts */
+
+    _etext = .;
+    *(.lit)
+
+    *(.rodata_bin)
+    *(.rodata_binf)
+  } > rom
+
+  .data 0xE0FF0000 :
+  AT ( ADDR(.text) + SIZEOF(.text) )
+  {
+    *(.got.plt) *(.got)
+    *(.shdata)
+    *(.data .data.*)
+    *(.ramprog .ramprog.*)
+    _edata = .;
+  } > ram
+  _sdata = SIZEOF(.data);
+  _stext = LOADADDR(.data);
+
+  .bss 0xE0FF0000 + SIZEOF(.data) :
+  {
+    _start = .;
+    *(.shbss)
+    *(.bss .bss.*)
+    *(COMMON)
+    _bend = .;
+  } > ram
+
+  .stab 0 (NOLOAD) :
+  {
+    *(.stab)
+  }
+
+  .stabstr 0 (NOLOAD) :
+  {
+    *(.stabstr)
+  }
+
+  .eh_frame 0 (NOLOAD) :
+  {
+    *(.eh_frame)
+  }
+}
+
+File: apps/rastan/src/main.c lines 40-60
+40	#define FRONTEND_RUNTIME_MAX_PALETTE_BANKS 4
+41	#define C_WINDOW_WORDS_PER_BANK 0x2000
+42	#define C_WINDOW_BANK_COUNT 4
+43	#define C_WINDOW_TOTAL_WORDS (C_WINDOW_WORDS_PER_BANK * C_WINDOW_BANK_COUNT)
+44	#define C_WINDOW_WORDS_PER_ROW 64
+45	#define C_WINDOW_TOTAL_ROWS (C_WINDOW_TOTAL_WORDS / C_WINDOW_WORDS_PER_ROW)
+46	#define SHADOW_SRAM_ENABLE_REG ((volatile uint8_t *)0xA130F1)
+47	#define SHADOW_SRAM_BASE 0x200000UL
+48	#define SHADOW_SRAM_PAGE_STRIDE 0x4000UL
+49	#define SHADOW_SRAM_PAGE_MAX 4
+50	#define SHADOW_WRAM_PAGE_COUNT 2
+51	#define SHADOW_WRAM_TOTAL_WORDS 16384
+52	
+53	typedef enum
+54	{
+55	    SCREEN_CONFIG = 0,
+56	    SCREEN_GRAPHICS_TEST,
+57	    SCREEN_SOUND_TEST,
+58	    SCREEN_STARTUP_PREVIEW,
+59	    SCREEN_FRONTEND_LIVE,
+60	} AppScreen;
+
+Notes: linker script currently still defines SRAM memory and binds genesistan_shadow_c* symbols directly into 0x0020xxxx; SHADOW_WRAM_PAGE_COUNT is 2 and SHADOW_WRAM_TOTAL_WORDS is 16384 in main.c.
+```
