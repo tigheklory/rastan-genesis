@@ -2406,3 +2406,67 @@ SECTION 7: AGENT GUARDRAILS FOR BUILD 93 (append to AGENTS.md)
 END OF BUILD 93 SPECIFICATION
 ================================================================================
 ```
+
+## [Architect Note - Build 93 Pre-Implementation Review]
+## Source: Claude (Lead Architect, this session)
+
+### Finding: Spec vs Reality Delta
+
+The original Build 93 Hybrid Delta Shadow spec was written against
+the ram_usage_profile.json audit findings. Direct source inspection
+by Cody (Step 0) revealed the following material differences between
+the spec assumptions and the actual codebase. The spec must be
+revised before any implementation proceeds.
+
+### Key Discrepancies
+
+1. SHADOW SIZE
+   Spec assumed: 64KB WRAM shadow to be reduced.
+   Actual: engine_shadow_wram[16384] = 32KB WRAM (pages 0 and 1 only).
+   Pages 2 and 3 were already routed to SHADOW_SRAM_BASE (cartridge
+   SRAM), not WRAM. The WRAM reduction target is 16KB, not 48KB.
+
+2. PAGES 2 AND 3 — SRAM HISTORY
+   Pages 2 and 3 were previously placed in cartridge SRAM and caused
+   errors. Two suspected failure modes:
+     a. SRAM enable register (SHADOW_SRAM_ENABLE_REG) lapsing between
+        shadow_init() and a page 2/3 access due to intervening bus
+        activity (ROM fetch, DMA, VDP operation).
+     b. Everdrive X3 mapper conflict between standard SRAM window and
+        EX-SSF extended RAM sharing the cartridge address space.
+   Root cause is unconfirmed pending Q6 (SHADOW_SRAM_BASE value).
+   Page 2 must NOT be moved back to SRAM until root cause is known.
+
+3. SHADOW API SIGNATURE MISMATCH
+   Spec assumed: shadow_write16(uint32_t arcade_addr, uint16_t value)
+   Actual:       shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
+   All call sites use the page+offset form. Any API change requires
+   simultaneous migration of all call sites. Known call sites:
+     startup_bridge.c lines 120-123
+     main.c line 1239
+
+4. SP INITIALISATION LOCATION UNKNOWN
+   startup_trampoline.s contains no SP initialisation instruction.
+   The stack pointer is set elsewhere — likely SGDK linker script or
+   C runtime init. Step 5 (stack relocation) cannot be implemented
+   until Q7 (SP init location) is answered by Cody.
+
+5. UNION OVERLAY CONSTRAINT
+   engine_shadow_wram and LauncherRuntime share a union (WramOverlay).
+   Changing the size of engine_shadow_wram changes the union size and
+   may corrupt the launcher overlay if LauncherRuntime is close to
+   32KB. Safe only if sizeof(LauncherRuntime) < target shadow size.
+   Pending Q8 answer from Cody.
+
+### Blocked Steps
+
+   Step 1 (delete shadows): blocked on Q5, Q6, Q8, Q10
+   Step 3 (shadow API):     blocked on Q5, Q8, call site audit
+   Step 5 (stack reloc):    blocked on Q7
+   Steps 2, 4, 6, 7:        can proceed once above are unblocked
+
+### Next Action
+
+Awaiting Cody's answers to Q5-Q10. Do not authorise Step 1
+until all five blocked questions are resolved and this log
+is updated with confirmed values.
