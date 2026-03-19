@@ -3265,3 +3265,35 @@ BSS layout post-Step-A:
   __stack       0xE1000000
 
 This is a healthy layout. No concerns going into Step B.
+
+## [Technical Lead Review - Build 93 Step B Approved]
+## Source: Claude (Project Technical Lead)
+
+### Verification Confirmed
+
+build/rom_inventory.json created correctly.
+16 ROM files fingerprinted for world_rev1 variant.
+Second run produced zero false-positive warnings.
+SHA1 for b04-04.66 matches arcade-museum.com ROM
+identifier result from prior session research.
+Confirmed correct ROM set is being used.
+
+### Unexpected Files Note
+
+26 ROM files in roms/ are not used by world_rev1.
+These are almost certainly ROM files for alternate
+Rastan variants present in MAME romset:
+  us_rev1, rastanua, rastsaga, rastsagaa
+Also: rastan.zip present — likely the MAME romset
+archive used as extraction source. Not a problem.
+
+Future variant support (e.g. us_rev1) will naturally
+pick up the correct files when that variant is added
+to MAINCPU_VARIANTS in build_rastan_regions.py.
+
+### Authorisation
+
+Build 93 Step B: APPROVED.
+Cody cleared to proceed to Build 93 Step C
+(PC080SN tilemap word format research) on receipt
+of Prompt 3.
