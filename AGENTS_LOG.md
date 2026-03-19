@@ -554,6 +554,38 @@ Build 91 status: **Ready for testing**.
 - Unique Unmapped Memory Addresses (3): 0x0020A512, 0x2700A512, 0x00000000
 - **Visual Evidence (BlastEm):** Screenshot saved as `B91_BlastEm_Launcher_20260318_1746.png` (Stage: Launcher)
 
+## [Implementer Update - Build 91.1 Reclamation & Unification]
+
+- Removed ghost SRAM compiler-managed symbol usage:
+  - `genesistan_shadow_200000_words` removed from runtime code paths.
+  - `.sram_data` linker section hack removed (manual SRAM pointer routing only).
+- Unified shadow routing:
+  - `shadow_pages_0_1_wram` is the only WRAM shadow backing for pages 0 and 1.
+  - Linear index in API uses `((uint32_t)page * 8192) + (offset >> 1)`.
+  - Pages 2 and 3 are routed by raw pointer to SRAM (`0x200000 + ((page-2) * 0x4000) + offset`).
+- Added launcher pre-handoff scrub in `main.c` before original startup handoff.
+- Build executed: `./tools/release_build.sh 91` (success).
+
+### Required Reporting
+- `shadow_pages_0_1_wram` address: `0xE0FF0076`
+- `_bend` address: `0xE0FFFECC`
+- `__stack` address: `0xE1000000`
+- Hex distance (`__stack - _bend`): `0x134`
+- Threshold check (`>= 0x4000` required): **FAILURE**
+
+### Launcher Buffers Reclaimed / Scrubbed
+- `genesistan_shadow_c20000_words` (scrubbed with `memset` in handoff reclaim path)
+- `genesistan_shadow_c40000_words` (scrubbed with `memset` in handoff reclaim path)
+- `graphics_test_tile_buffer` (freed on handoff if allocated)
+- `rastan_font_tile_buffer` (scrubbed with `memset` before handoff)
+- `frontend_runtime_sprite_tile_buffer` (scrubbed with `memset` before handoff)
+- `frontend_runtime_sprite_codes` (scrubbed with `memset` before handoff)
+- `status_line` (scrubbed with `memset` before handoff)
+
+### State Preservation
+- DIP switch shadow state preserved in reclaim flow.
+- SRAM unlock state preserved (no lock toggle added during reclaim/handoff).
+
 ## [Architect Audit - Build 91.1 Unification]
 
 ### 1. Analysis of Redundancy
@@ -725,6 +757,50 @@ The immediate crash-on-boot in accurate emulators (BlastEm, Exodus) is caused by
 
 ### 4. Conclusion
 The boot trap is a hardware initialization order problem, not a pointer-math bug in the shadow API. The `.sram_data` section must be designated as a `NOLOAD` type in the linker script to prevent the C runtime from attempting to clear it at boot.
+
+## [Implementer Update - Build 91.1 Reclamation & Unification (Manual SRAM Routing)]
+
+### Implementation Status
+- Removed ghost SRAM symbol usage from active code path:
+  - `genesistan_shadow_200000_words`: not referenced in active build sources/specs/tooling.
+- Removed compiler-managed SRAM section usage:
+  - `.sram_data`: not present in active linker script.
+- Kept 32KB WRAM shadow for Pages 0/1:
+  - `shadow_pages_0_1_wram[16384]`
+- Confirmed manual raw-pointer routing for Pages 2/3 in shadow API:
+  - `shadow_write16` / `shadow_read16` write/read directly at
+    `0x200000 + ((page - 2) * 0x4000) + offset` for `page >= 2`.
+
+### Launcher Scrub / Reclamation (Before Arcade Handoff)
+- In `main.c` (`scrub_launcher_runtime_buffers()`):
+  - `graphics_test_tile_buffer` freed and nulled
+  - `rastan_font_tile_buffer` scrubbed
+  - `frontend_runtime_sprite_tile_buffer` scrubbed
+  - `frontend_runtime_sprite_codes` scrubbed
+  - `status_line` scrubbed
+- In `startup_bridge.c` (`genesistan_reclaim_launcher_wram()`):
+  - `genesistan_shadow_c20000_words` scrubbed
+  - `genesistan_shadow_c40000_words` scrubbed
+- Preserved state:
+  - DIP settings (`genesistan_shadow_dip1`, `genesistan_shadow_dip2`)
+  - service word (`genesistan_shadow_service_word`)
+  - SRAM unlock control remains managed via `shadow_init()` (`0xA130F1`) and is not reset in launcher reclaim path.
+
+### Build
+- Command: `./tools/release_build.sh 91`
+- Result: success
+- Artifact: `dist/Rastan_91.bin`
+
+### Required Memory Report
+- Exact `shadow_pages_0_1_wram` address: `0xE0FF0076`
+- `_bend`: `0xE0FFFECC`
+- `__stack`: `0xE1000000`
+- Hex distance (`__stack - _bend`): `0x134`
+
+### Threshold Check
+- Required minimum free gap: `0x4000`
+- Observed gap: `0x134`
+- **Build Status by rule: FAILURE (gap below 16KB threshold).**
 
 ## [Architect Audit - Build 91.1 Boot Trap]
 

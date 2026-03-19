@@ -320,7 +320,7 @@ void shadow_init(void)
 
 void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
 {
-    volatile uint8_t *base;
+    volatile uint16_t *base;
     uint32_t linear_index;
 
     if ((page >= SHADOW_SRAM_PAGE_MAX) || (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
@@ -340,14 +340,13 @@ void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
         return;
     }
 
-    base = (volatile uint8_t *)(SHADOW_SRAM_BASE + ((uint32_t)(page - SHADOW_WRAM_PAGE_COUNT) * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
-    base[0] = (uint8_t)(value >> 8);
-    base[1] = (uint8_t)(value & 0xFF);
+    base = (volatile uint16_t *)(SHADOW_SRAM_BASE + ((uint32_t)(page - SHADOW_WRAM_PAGE_COUNT) * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
+    *base = value;
 }
 
 uint16_t shadow_read16(uint8_t page, uint16_t offset)
 {
-    volatile uint8_t *base;
+    volatile uint16_t *base;
     uint32_t linear_index;
 
     if ((page >= SHADOW_SRAM_PAGE_MAX) || (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
@@ -367,8 +366,8 @@ uint16_t shadow_read16(uint8_t page, uint16_t offset)
         return 0;
     }
 
-    base = (volatile uint8_t *)(SHADOW_SRAM_BASE + ((uint32_t)(page - SHADOW_WRAM_PAGE_COUNT) * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
-    return (uint16_t)(((uint16_t)base[0] << 8) | (uint16_t)base[1]);
+    base = (volatile uint16_t *)(SHADOW_SRAM_BASE + ((uint32_t)(page - SHADOW_WRAM_PAGE_COUNT) * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
+    return *base;
 }
 
 static u16 read_shadow_c_window_word(u16 linear_index);
@@ -486,6 +485,7 @@ static void trigger_sound_test_command(void);
 static void render_startup_preview_screen(void);
 static void render_frontend_sprite_layer(void);
 static void clear_frontend_sprite_layer(void);
+static void scrub_launcher_runtime_buffers(void);
 static u16 convert_xbgr555_to_genesis(u16 raw);
 static u16 frontend_palette_line_for_bank(u16 bank, u16 *bank_map, u16 *bank_count);
 static void frontend_decode_pc090oj_cell(u16 code, u32 *dst_tiles);
@@ -1225,7 +1225,7 @@ static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count
 
         for (color = 0; color < 16; color++)
         {
-            const u16 raw = genesistan_shadow_200000_words[(base + color) & 0x07ff];
+            const u16 raw = shadow_read16(2, (u16)(((base + color) & 0x07ff) * 2));
             PAL_setColor((line * 16) + color, convert_xbgr555_to_genesis(raw));
         }
     }
@@ -1405,15 +1405,16 @@ static void activate_selected_menu(void)
 static void request_start_rastan(void)
 {
 #if RASTAN_ENABLE_STARTUP_HOOK
+    scrub_launcher_runtime_buffers();
     genesistan_reset_startup_shadows(rastan_virtual_dip1, rastan_virtual_dip2, GENESISTAN_SERVICE_FACTORY);
     genesistan_refresh_arcade_inputs();
+    genesistan_reclaim_launcher_wram();
     genesistan_run_original_startup_common();
 
     restore_launcher_vdp_state();
 
     if (genesistan_startup_result_code == GENESISTAN_STARTUP_RESULT_NORMAL)
     {
-        genesistan_reclaim_launcher_wram();
         current_screen = SCREEN_FRONTEND_LIVE;
         VDP_clearPlane(BG_A, TRUE);
         VDP_clearPlane(BG_B, TRUE);
@@ -1439,6 +1440,20 @@ static void request_start_rastan(void)
             (unsigned long)(get_packed_romset_signature() & 0xFFFFUL));
     set_status(line);
 #endif
+}
+
+static void scrub_launcher_runtime_buffers(void)
+{
+    if (graphics_test_tile_buffer != NULL)
+    {
+        MEM_free(graphics_test_tile_buffer);
+        graphics_test_tile_buffer = NULL;
+    }
+
+    memset(rastan_font_tile_buffer, 0, sizeof(rastan_font_tile_buffer));
+    memset(frontend_runtime_sprite_tile_buffer, 0, sizeof(frontend_runtime_sprite_tile_buffer));
+    memset(frontend_runtime_sprite_codes, 0, sizeof(frontend_runtime_sprite_codes));
+    memset(status_line, 0, sizeof(status_line));
 }
 
 static u32 get_packed_romset_size(void)

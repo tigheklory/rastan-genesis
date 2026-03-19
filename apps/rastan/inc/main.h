@@ -11,7 +11,6 @@
 #define GENESISTAN_STARTUP_RESULT_NORMAL 1
 #define GENESISTAN_STARTUP_RESULT_TEST 2
 
-extern volatile uint16_t genesistan_shadow_200000_words[0x2000];
 extern volatile uint16_t genesistan_arcade_workram_words[0x2000];
 extern volatile uint16_t genesistan_shadow_d00000_words[0x0400];
 extern volatile uint16_t genesistan_shadow_c00000_words[0x2000];

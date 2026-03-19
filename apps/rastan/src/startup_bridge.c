@@ -1,4 +1,5 @@
 #include "main.h"
+#include <string.h>
 
 #ifndef RASTAN_ENABLE_STARTUP_HOOK
 #define RASTAN_ENABLE_STARTUP_HOOK 1
@@ -6,8 +7,6 @@
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 
-/* Keep this shadow backing in cart SRAM to preserve WRAM for hot startup state. */
-volatile uint16_t genesistan_shadow_200000_words[0x2000] __attribute__((section(".sram_data")));
 volatile uint16_t genesistan_arcade_workram_words[0x2000];
 volatile uint16_t genesistan_shadow_d00000_words[0x0400];
 volatile uint16_t genesistan_shadow_c20000_words[2];
@@ -116,7 +115,6 @@ void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t servi
 {
     shadow_init();
 
-    fill_words(genesistan_shadow_200000_words, 0x2000, 0);
     fill_words(genesistan_arcade_workram_words, 0x2000, 0);
     fill_words(genesistan_shadow_d00000_words, 0x0400, 0);
     fill_shadow_page_words(0, 0x2000, 0);
@@ -159,8 +157,8 @@ void genesistan_reclaim_launcher_wram(void)
      * Reclaim launcher-only state once we hand off to live game flow.
      * Keep DIP/service configuration intact so startup/game behavior stays stable.
      */
-    fill_words(genesistan_shadow_c20000_words, 2, 0);
-    fill_words(genesistan_shadow_c40000_words, 2, 0);
+    memset((void *)genesistan_shadow_c20000_words, 0, sizeof(genesistan_shadow_c20000_words));
+    memset((void *)genesistan_shadow_c40000_words, 0, sizeof(genesistan_shadow_c40000_words));
     genesistan_startup_result_code = GENESISTAN_STARTUP_RESULT_NONE;
     genesistan_sound_last_command = 0;
     genesistan_sound_last_low_nibble = 0;

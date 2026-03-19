@@ -201,7 +201,6 @@ local function add_project_symbol_watches(symbol_map)
 	add_symbol_watch("c40000_0", symbol_map["genesistan_shadow_c40000_words"], 16)
 	add_symbol_watch("c40000_1", symbol_map["genesistan_shadow_c40000_words"] and (symbol_map["genesistan_shadow_c40000_words"] + 2), 16)
 	add_symbol_watch("workram_10c000", symbol_map["genesistan_arcade_workram_words"], 16)
-	add_symbol_watch("shadow_200000", symbol_map["genesistan_shadow_200000_words"], 16)
 	add_symbol_watch("shadow_c_window", symbol_map["genesistan_shadow_c_window_words"], 16)
 
 	-- Probes derived from our shimmed 0x10c000 shadow base.
