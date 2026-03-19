@@ -2827,3 +2827,140 @@ All pre-implementation questions are now answered.
 Build 93 implementation is unblocked.
 Awaiting VDP spec review before authorising flush logic.
 Stack fix (shadow restructure) can proceed independently.
+
+## [Architect Note - VDP Research & Strategic Rendering Direction]
+## Source: Claude (Lead Architect, this session)
+
+### Genesis VDP Key Facts (confirmed from technical references)
+
+VDP VRAM: 64KB dedicated, internal to VDP chip.
+68000 cannot address VRAM directly.
+All data transfer via VDP ports at 0xC00000/0xC00004 or DMA.
+DMA from 68K address space to VRAM at double 68K speed during vblank.
+
+Genesis nametable entry (16-bit word):
+  Bit 15:     Priority (0=low, 1=high)
+  Bits 14-13: Palette line (0-3)
+  Bit 12:     Vertical flip
+  Bit 11:     Horizontal flip
+  Bits 10-0:  Tile index into VRAM (0-2047)
+
+Tile pixel data in VRAM: 32 bytes per tile (8x8 pixels, 4bpp).
+Nametable sizes: 32, 64, or 128 tiles per dimension.
+Scroll: hardware horizontal/vertical scroll registers + per-row
+  scroll table in VSRAM (80 words, one per row).
+
+### PC080SN vs Genesis VDP — Key Differences
+
+PC080SN reads tile pixel data from ROMs autonomously.
+Genesis VDP reads tile pixel data from its own internal VRAM.
+PC080SN tilemap RAM is directly on 68000 bus.
+Genesis nametable RAM is inside VDP, accessed via data port.
+PC080SN renders every scanline autonomously from RAM.
+Genesis VDP renders from VRAM — CPU must push data in.
+
+### Screenshots Analysis (from launcher graphics test tool)
+
+Image 1: PC080SN raw tile browser showing BG/text layer ROM.
+  Tiles 0000-00C5, ROM 00000-018BF, page 1 of 83.
+  Genesis is already displaying PC080SN tile graphics correctly.
+  Tile pixel data is in the ROM in VDP-compatible format.
+
+Image 2: PC090OJ raw tile browser showing sprite object ROM.
+  Cells 0000-002C, ROM 00000-0167F, page 1 of 92.
+  Genesis is already displaying sprite tile graphics correctly.
+  Rastan horse-riding animation frames render with correct colours.
+
+CONCLUSION: The tile pixel data DMA pipeline is already working.
+The launcher already knows how to put arcade tile graphics on screen.
+This is the hardest part of any arcade port and it is done.
+
+### Strategic Rendering Direction
+
+Two approaches evaluated:
+
+APPROACH A — Shadow buffer + dirty flush (current Build 93 direction)
+  Pros: Game logic 100% untouched, lower initial complexity.
+  Cons: One-frame rendering lag on all tilemap updates.
+        Rastan's continuous horizontal scroll will stutter visibly.
+        Rowscroll per-line offsets arrive one frame late.
+        NOT arcade faithful for moving content.
+  Verdict: Acceptable for static screens / logic validation only.
+
+APPROACH B — Replace graphics output calls with Genesis-native C
+  Description: Identify PC080SN write routines in arcade 68K code.
+    Replace their output path (not their logic) with direct VDP
+    writes using SGDK DMA functions. Game logic stays in 68K code.
+  Pros: Zero rendering lag. Arcade-faithful scroll behaviour.
+        Hardware scroll registers used natively like PC080SN.
+        Launcher already has infrastructure (tile browser, sprite
+        renderer) proving the translation layer works.
+  Cons: Requires identifying ~5-10 key graphics routines in 68K
+        disassembly. More upfront analysis work.
+  Verdict: CORRECT long-term approach for arcade-faithful port.
+
+### Recommended Path
+
+Phase 1 (now): Fix stack collision (Build 93 Step A).
+               Use Approach A as scaffold to validate game logic.
+               Verify arcade code runs correctly end-to-end.
+
+Phase 2: Identify PC080SN write routines via rastantrace.lua.
+         These are the routines that write to 0xC00000-0xC0FFFF.
+         Replace output path with Genesis VDP C functions.
+         Wire scroll registers to Genesis VSRAM row scroll table.
+         This eliminates the one-frame lag permanently.
+
+Phase 3: PC090OJ sprite routines — same approach.
+         Replace sprite attribute writes with Genesis sprite table
+         entries via SGDK sprite engine or direct SAT writes.
+
+The launcher tile browser and sprite renderer are the proof of
+concept for Phase 2 and 3. The translation is known to work.
+
+## [Architect Note - pc080sn.bin and pc090oj.bin Clarification]
+## Source: Claude (Lead Architect, this session)
+
+### What These Files Actually Are
+
+pc080sn.bin: De-interleaved merge of arcade graphics ROM chips
+  b04-03.65 (offset 0x40000) + b04-04.66 (offset 0x40001)
+  plus additional chips for the full tileset.
+  Result: flat 4bpp planar tile pixel data, 32 bytes per tile,
+  8x8 pixels per tile, packed sequentially. No code, no metadata.
+
+pc090oj.bin: De-interleaved merge of four arcade sprite ROM chips
+  b04-05 through b04-08, interleaved across the address space.
+  Result: flat 4bpp planar sprite tile pixel data, same format.
+
+These are passive data blobs. The PC080SN and PC090OJ chip names
+in this project refer to the ROM regions those chips addressed,
+not to any emulation of the chips themselves.
+
+### Pixel Format Compatibility
+
+Both PC080SN ROM data and Genesis VDP tile data use 4bpp planar
+encoding. No pixel format conversion is needed. Raw ROM data can
+be DMA'd directly into VDP VRAM and renders correctly.
+CONFIRMED by launcher tile browser screenshots (Build 91+).
+
+### Tile Index Translation — Likely Trivial
+
+On arcade board: PC080SN uses tile index from tilemap RAM word
+  to address graphics ROM directly via hardware address bus.
+On Genesis: tile index in VDP nametable word addresses VRAM
+  tile slots starting from a base address.
+
+If pc080sn.bin is loaded sequentially into VRAM at base offset B,
+then: genesis_tile_index = arcade_tile_index + B
+This may require no lookup table — just a fixed offset addition.
+NEEDS CONFIRMATION from main.c VRAM load address.
+
+### What Still Needs Confirming From main.c
+
+1. What VRAM base address is pc080sn.bin loaded at?
+2. What VRAM base address is pc090oj.bin loaded at?
+3. How does the tile browser translate tile index to VRAM address?
+
+These three values will confirm whether tile index translation
+is a fixed offset or requires more complex remapping.
