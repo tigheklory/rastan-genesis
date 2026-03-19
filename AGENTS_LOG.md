@@ -821,3 +821,26 @@ The immediate crash-on-boot in accurate emulators (BlastEm, Exodus) is caused by
 
 ### 4. Conclusion
 The boot trap is a hardware initialization order problem, not a pointer-math bug in the shadow API. The `.sram_data` section must be designated as a `NOLOAD` type in the linker script to prevent the C runtime from attempting to clear it at boot.
+
+## [Architect Audit - Build 92 Memory Overlay]
+
+### 1. Analysis of WRAM Exhaustion
+**Confirmed: Static Allocation Inefficiency.**
+The Build 91.1 failure to meet the 16KB stack-gap threshold (`__stack - _bend`) is caused by persistent `.bss` allocations for launcher-specific UI buffers.
+- **Mechanism:** `memset` clears the *data* within these buffers before handoff to the arcade engine but does not de-allocate the memory. The linker has already reserved the WRAM permanently.
+- **Conclusion:** The only way to reclaim this physical memory is to prevent the linker from allocating separate regions for the launcher and the engine in the first place.
+
+### 2. Design for Build 92: WRAM Unification
+To resolve the `.bss` bloat, the launcher's transient buffers and the engine's 32KB WRAM shadow buffer (`shadow_pages_0_1_wram`) will be overlaid in the same physical memory space using a C `union`.
+
+### 3. Implementation Directive
+A global `union WramOverlay` will be declared. It will contain two members:
+1.  `uint16_t engine_shadow_wram[16384]`: The 32KB buffer for the engine.
+2.  `LauncherRuntime launcher`: A `struct` containing all transient launcher UI buffers (`rastan_font_tile_buffer`, `frontend_runtime_sprite_tile_buffer`, etc.).
+
+This forces the compiler to allocate only a single 32KB block. The individual global array declarations for the launcher buffers must be deleted and all code paths refactored to access them through the single `wram_overlay` instance.
+
+### 4. Expected Outcome
+- The total size of the `.bss` section will shrink significantly.
+- The gap between `_bend` and `__stack` will increase, satisfying the 16KB safety threshold.
+- The launcher and engine will correctly share the same WRAM footprint, as they are never active simultaneously.
