@@ -256,43 +256,43 @@
     {
       "id": "genesistan_run_original_startup_common",
       "kind": "runner_wrapper",
-      "genesis_rom_start": "0x2094E4",
+      "genesis_rom_start": "0x2094F4",
       "purpose": "C/asm wrapper that calls the original startup/common slice."
     },
     {
       "id": "genesistan_sound_send_command",
       "kind": "sound_shim",
-      "genesis_rom_start": "0x20949C",
+      "genesis_rom_start": "0x2094AC",
       "purpose": "Minimal Genesis-side sound command shim for the original 0x03F084 helper."
     },
     {
       "id": "genesistan_sound_read_status",
       "kind": "sound_shim",
-      "genesis_rom_start": "0x2094CC",
+      "genesis_rom_start": "0x2094DC",
       "purpose": "Always-ready sound status shim for the original 0x03F09C helper."
     },
     {
       "id": "genesistan_run_original_frontend_tick",
       "kind": "runner_wrapper",
-      "genesis_rom_start": "0x2094F4",
+      "genesis_rom_start": "0x209504",
       "purpose": "Frame-tick wrapper that enters the original front-end dispatcher at 0x03A008 and returns via a synthetic exception frame."
     },
     {
       "id": "genesistan_startup_common_exit_normal",
       "kind": "runner_trampoline",
-      "genesis_rom_start": "0x209548",
+      "genesis_rom_start": "0x209558",
       "purpose": "Return trampoline for the normal branch after patched original flow."
     },
     {
       "id": "genesistan_startup_common_continue_normal",
       "kind": "runner_continuation",
-      "genesis_rom_start": "0x209514",
+      "genesis_rom_start": "0x209524",
       "purpose": "Replays the original 0x03B05C normal-boot continuation before returning to the Genesis host."
     },
     {
       "id": "genesistan_startup_common_exit_test",
       "kind": "runner_trampoline",
-      "genesis_rom_start": "0x209550",
+      "genesis_rom_start": "0x209560",
       "purpose": "Return trampoline for the test branch after patched original flow."
     }
   ]

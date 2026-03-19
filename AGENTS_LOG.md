@@ -3128,3 +3128,76 @@ all future build phases.
   5. Add validation gate to build pipeline
   6. Apply replacements incrementally, verify each region
   7. Delete shadow arrays as each region is verified
+
+## [Cody - Build 93 Step A, Stack Fix]
+```text
+Build 93 Step A executed with surgical changes in apps/rastan/src/main.c only.
+
+Pre-change engine_shadow_wram references found in main.c:
+- line 193
+- line 348
+- line 374
+- line 1464
+
+Exact map values (dist/build_93/rastan_build_93.map):
+- page2_shadow: 0xE0FF086C
+- dirty_words: 0xE0FF006C
+- wram_overlay: 0xE0FF486C
+- _bend: 0xE0FFA576
+- __stack: 0xE1000000
+
+Gap (__stack - _bend):
+- hex: 0x5A8A
+- bytes: 23178
+
+Gap >= 0x4000 (16KB): YES
+
+Remaining engine_shadow_wram references in main.c after change: none
+
+Build/packaging results:
+- source tools/setup_env.sh
+- make -C apps/rastan debug  (success)
+- make -C apps/rastan release (success)
+- ./tools/release_build.sh 93 (success)
+- artifact: dist/Rastan_93.bin
+```
+## [Technical Lead Review - Build 93 Step A Approved]
+## Source: Claude (Project Technical Lead)
+
+### Metrics Confirmed
+
+page2_shadow:  0xE0FF086C
+dirty_words:   0xE0FF006C
+wram_overlay:  0xE0FF486C
+_bend:         0xE0FFA576
+__stack:       0xE1000000
+Gap:           0x5A8A (23,178 bytes, ~22.6KB)
+Gap >= 0x4000: YES — PASS
+
+### Assessment
+
+All metrics within spec. No remaining engine_shadow_wram
+references. Build succeeded on debug, release, and
+release_build.sh 93. Artifact dist/Rastan_93.bin clean.
+
+Stack collision is resolved. The active crash risk that
+has been present since Build 91.1 is eliminated.
+
+### Authorisation
+
+Build 93 Step A: APPROVED.
+Cody cleared to proceed to Build 93 Step B (ROM
+fingerprint infrastructure) on receipt of Prompt 2.
+
+### Memory Layout Note
+
+BSS layout post-Step-A:
+  dirty_words   0xE0FF006C   2KB
+  page2_shadow  0xE0FF086C  16KB
+  wram_overlay  0xE0FF486C   ~3KB (LauncherRuntime only)
+  [other BSS]
+  _bend         0xE0FFA576
+  [22.6KB safe stack space]
+  __stack       0xE1000000
+
+This is a healthy layout. No concerns going into Step B.

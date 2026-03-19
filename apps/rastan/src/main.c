@@ -47,7 +47,7 @@ extern volatile uint16_t genesistan_shadow_reg_d01bfe;
 #define SHADOW_SRAM_BASE 0x200000UL
 #define SHADOW_SRAM_PAGE_STRIDE 0x4000UL
 #define SHADOW_SRAM_PAGE_MAX 4
-#define SHADOW_WRAM_PAGE_COUNT 2
+#define SHADOW_WRAM_PAGE_COUNT 0
 #define SHADOW_WRAM_TOTAL_WORDS 16384
 
 typedef enum
@@ -190,12 +190,15 @@ typedef struct {
 } LauncherRuntime;
 
 union WramOverlay {
-    uint16_t engine_shadow_wram[16384]; /* 32KB Arcade Block */
     LauncherRuntime launcher;
 } __attribute__((aligned(4)));
 
 union WramOverlay wram_overlay;
 extern union WramOverlay wram_overlay;
+uint16_t page2_shadow[8192]
+    __attribute__((aligned(4)));
+uint32_t dirty_words[512]
+    __attribute__((aligned(4)));
 
 volatile u8 rastan_virtual_dip1 = FACTORY_DIP1;
 volatile u8 rastan_virtual_dip2 = FACTORY_DIP2;
@@ -331,54 +334,56 @@ void shadow_init(void)
 
 void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
 {
-    volatile uint16_t *base;
-    uint32_t linear_index;
+    uint32_t slot;
 
-    if ((page >= SHADOW_SRAM_PAGE_MAX) || (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
-    {
+    if ((page >= SHADOW_SRAM_PAGE_MAX) ||
+        (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
+        return;
+
+    slot = ((uint32_t)page *
+            (SHADOW_SRAM_PAGE_STRIDE >> 2))
+           + ((uint32_t)offset >> 2);
+    dirty_words[slot >> 5] |=
+        (1UL << (slot & 31U));
+
+    if (page == 2) {
+        page2_shadow[offset >> 1] = value;
         return;
     }
 
-    if (page < SHADOW_WRAM_PAGE_COUNT)
     {
-        linear_index = ((uint32_t)page * 8192UL) + (uint32_t)(offset >> 1);
-
-        if (linear_index < SHADOW_WRAM_TOTAL_WORDS)
-        {
-            wram_overlay.engine_shadow_wram[linear_index] = value;
-        }
-
-        return;
+        volatile uint16_t *base =
+            (volatile uint16_t *)(SHADOW_SRAM_BASE
+            + ((uint32_t)page *
+               SHADOW_SRAM_PAGE_STRIDE)
+            + (uint32_t)offset);
+        *base = value;
     }
-
-    base = (volatile uint16_t *)(SHADOW_SRAM_BASE + ((uint32_t)(page - SHADOW_WRAM_PAGE_COUNT) * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
-    *base = value;
 }
 
 uint16_t shadow_read16(uint8_t page, uint16_t offset)
 {
-    volatile uint16_t *base;
-    uint32_t linear_index;
-
-    if ((page >= SHADOW_SRAM_PAGE_MAX) || (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
-    {
+    if ((page >= SHADOW_SRAM_PAGE_MAX) ||
+        (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
         return 0;
-    }
 
-    if (page < SHADOW_WRAM_PAGE_COUNT)
+    if (page == 2)
+        return page2_shadow[offset >> 1];
+
+#ifdef DEBUG
+    /* Cold-path read outside page2.
+       Check rastantrace coverage before suppressing. */
+    __builtin_trap();
+#endif
+
     {
-        linear_index = ((uint32_t)page * 8192UL) + (uint32_t)(offset >> 1);
-
-        if (linear_index < SHADOW_WRAM_TOTAL_WORDS)
-        {
-            return wram_overlay.engine_shadow_wram[linear_index];
-        }
-
-        return 0;
+        volatile uint16_t *base =
+            (volatile uint16_t *)(SHADOW_SRAM_BASE
+            + ((uint32_t)page *
+               SHADOW_SRAM_PAGE_STRIDE)
+            + (uint32_t)offset);
+        return *base;
     }
-
-    base = (volatile uint16_t *)(SHADOW_SRAM_BASE + ((uint32_t)(page - SHADOW_WRAM_PAGE_COUNT) * SHADOW_SRAM_PAGE_STRIDE) + (uint32_t)offset);
-    return *base;
 }
 
 static u16 read_shadow_c_window_word(u16 linear_index);
@@ -1461,7 +1466,8 @@ static void scrub_launcher_runtime_buffers(void)
         graphics_test_tile_buffer = NULL;
     }
 
-    memset(wram_overlay.engine_shadow_wram, 0, sizeof(wram_overlay.engine_shadow_wram));
+    memset(page2_shadow, 0, sizeof(page2_shadow));
+    memset(dirty_words, 0, sizeof(dirty_words));
 }
 
 static u32 get_packed_romset_size(void)
