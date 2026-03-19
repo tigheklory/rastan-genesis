@@ -2739,3 +2739,91 @@ File: apps/rastan/src/main.c lines 40-60
 
 Notes: linker script currently still defines SRAM memory and binds genesistan_shadow_c* symbols directly into 0x0020xxxx; SHADOW_WRAM_PAGE_COUNT is 2 and SHADOW_WRAM_TOTAL_WORDS is 16384 in main.c.
 ```
+## [Architect Note - Build 93 Linker Analysis, Q11/Q12 Resolved]
+## Source: Claude (Lead Architect, this session)
+
+### Linker Script Findings (linker_rastan.ld)
+
+WRAM region: ORIGIN = 0xE0FF0000, LENGTH = 0x10000 (64KB)
+Stack:       __stack = 0xE1000000 (top of WRAM, grows downward)
+_bend:       0xE0FFFECC (confirmed from Build 91.1)
+Gap:         0x134 = 308 bytes — ACTIVE STACK COLLISION
+
+genesistan_shadow_c*_words symbols are absolute SRAM pointer
+constants defined in the linker script, not BSS allocations:
+  genesistan_shadow_c00000_words = 0x00200000
+  genesistan_shadow_c04000_words = 0x00204000
+  genesistan_shadow_c08000_words = 0x00208000
+  genesistan_shadow_c0c000_words = 0x0020C000
+
+These symbols have zero WRAM cost. Pages 0/1 are routed to
+shadow_pages_0_1_wram in WRAM at runtime by the shadow API
+(SHADOW_WRAM_PAGE_COUNT = 2), NOT via these linker symbols.
+The linker symbols are vestigial from Build 88 and unused
+at runtime for pages 0/1.
+
+### Stack Fix: Shrink BSS, Not Move Stack
+
+__stack cannot be raised — WRAM ceiling is 0xE1000000.
+Fix is to reduce _bend by removing shadow_pages_0_1_wram.
+
+Current dominant BSS consumer:
+  shadow_pages_0_1_wram[16384] = 32KB at 0xE0FF0076
+
+Build 93 replacement:
+  dirty_words[512]      =  2KB  (dirty bitmap)
+  page2_shadow[8192]    = 16KB  (page 2 WRAM shadow)
+  Total new cost        = 18KB
+  Net WRAM reclaimed    = 14KB
+  New estimated gap     = 0x134 + 0x3800 = ~14.5KB
+  Threshold (>= 0x4000) = MARGINAL — see note below
+
+NOTE: 14KB is above the minimum threshold but not generous.
+After Build 93, measure actual stack depth under worst-case
+game logic (boss fights, stage transitions) and verify gap
+holds. If stack depth approaches 14KB in practice, further
+BSS reduction will be needed in Build 94.
+
+### Pages 0/1 — Z80 Contiguity Concern Revisited
+
+Build 90/91 required pages 0+1 in contiguous WRAM because
+a pointer walking past page 0 would hit unmapped memory.
+With pages 0+1 moved to dirty-bitmap-only (no WRAM shadow),
+the runtime routing changes: shadow_write16 marks dirty bits
+and stores values in EX-SSF or reconstructs at flush time.
+The 68000 never reads back from pages 0/1 (confirmed by
+ram_usage_profile.json — zero reads on those pages).
+The Z80 does not access PC080SN tilemap RAM (confirmed from
+rastan.cpp MAME driver — Z80 only accesses its own RAM,
+YM2151, MSM5205, and PC060HA mailbox).
+Therefore the Z80 contiguity requirement does NOT apply to
+pages 0/1. The Build 90/91 constraint was based on an
+incorrect assumption about Z80 access to C-Window RAM.
+Safe to remove shadow_pages_0_1_wram from WRAM.
+
+### Linker Script Change Required
+
+No linker script changes needed for stack fix.
+The stack fix comes entirely from BSS reduction.
+The vestigial genesistan_shadow_c*_words symbols in the
+linker script can be removed as cleanup but are not causing
+harm and should not be the first change made.
+
+### main.c Macro Context (lines 40-60) — Confirmed
+
+C_WINDOW_WORDS_PER_BANK = 0x2000 (8192 words = 16KB per page)
+C_WINDOW_BANK_COUNT     = 4
+C_WINDOW_TOTAL_WORDS    = 32768 (64KB total)
+SHADOW_WRAM_PAGE_COUNT  = 2 (pages 0+1 currently in WRAM)
+SHADOW_WRAM_TOTAL_WORDS = 16384 (32KB, matches shadow array)
+
+Build 93 will change SHADOW_WRAM_PAGE_COUNT from 2 to 0
+and add page2_shadow as an explicitly named array rather
+than routing through the generic wram index.
+
+### Unblocked Steps
+
+All pre-implementation questions are now answered.
+Build 93 implementation is unblocked.
+Awaiting VDP spec review before authorising flush logic.
+Stack fix (shadow restructure) can proceed independently.
