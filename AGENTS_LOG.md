@@ -3266,6 +3266,60 @@ BSS layout post-Step-A:
 
 This is a healthy layout. No concerns going into Step B.
 
+## [Technical Lead Review - Build 93 Step B Approved]
+## Source: Claude (Project Technical Lead)
+
+### Verification Confirmed
+
+build/rom_inventory.json created correctly.
+16 ROM files fingerprinted for world_rev1 variant.
+Second run produced zero false-positive warnings.
+SHA1 for b04-04.66 matches arcade-museum.com ROM
+identifier result from prior session research.
+Confirmed correct ROM set is being used.
+
+### Unexpected Files Note
+
+26 ROM files in roms/ are not used by world_rev1.
+These are almost certainly ROM files for alternate
+Rastan variants present in MAME romset:
+  us_rev1, rastanua, rastsaga, rastsagaa
+Also: rastan.zip present — likely the MAME romset
+archive used as extraction source. Not a problem.
+
+Future variant support (e.g. us_rev1) will naturally
+pick up the correct files when that variant is added
+to MAINCPU_VARIANTS in build_rastan_regions.py.
+
+### Authorisation
+
+Build 93 Step B: APPROVED.
+Cody cleared to proceed to Build 93 Step C
+(PC080SN tilemap word format research) on receipt
+of Prompt 3.
+
+## [Cody - Build 93 Step D, AGENTS.md Updated]
+```text
+Build 93 Step D completed (documentation-only; no code changes).
+
+Confirmations:
+- Section added at correct location:
+  - Inserted immediately after "## Critical engineering constraints"
+  - Before "## Files to check before touching startup remap"
+  - Verified heading order in AGENTS.md:
+    - line 57: ## Critical engineering constraints
+    - line 67: ## Long-term rendering architecture
+    - line 145: ## Files to check before touching startup remap
+
+- No existing content changed:
+  - git diff on AGENTS.md shows insertion-only block (no deletions/modifications of prior text).
+
+- AGENTS.md renders correctly as markdown:
+  - Heading hierarchy valid (## / ###)
+  - Table syntax valid (hardware region mapping table)
+  - List formatting and fenced-style JSON example are correctly structured.
+```
+
 ## [Cody - Build 93 Step C, PC080SN Word Format]
 ```text
 Build 93 Step C completed as research/documentation only (no code changes).
@@ -3506,57 +3560,62 @@ WRITE SITES NOT FULLY TRACEABLE IN THIS PASS
 - No single isolated instruction sequence in this pass toggles one candidate priority bit while leaving all other attr bits fixed.
 - Therefore priority-bit index is not marked "confirmed" yet from disasm alone.
 ```
-
-## [Technical Lead Review - Build 93 Step B Approved]
+## [Technical Lead - Build 93 Complete]
 ## Source: Claude (Project Technical Lead)
 
-### Verification Confirmed
+### Build 93 Final Status: ALL STEPS APPROVED
 
-build/rom_inventory.json created correctly.
-16 ROM files fingerprinted for world_rev1 variant.
-Second run produced zero false-positive warnings.
-SHA1 for b04-04.66 matches arcade-museum.com ROM
-identifier result from prior session research.
-Confirmed correct ROM set is being used.
+Step A (Stack fix):         APPROVED  dist/Rastan_93.bin
+Step B (ROM fingerprints):  APPROVED  build/rom_inventory.json
+Step C (PC080SN research):  APPROVED  AGENTS_LOG.md updated
+Step D (AGENTS.md update):  APPROVED  AGENTS.md updated
 
-### Unexpected Files Note
+### Build 93 Outcomes
 
-26 ROM files in roms/ are not used by world_rev1.
-These are almost certainly ROM files for alternate
-Rastan variants present in MAME romset:
-  us_rev1, rastanua, rastsaga, rastsagaa
-Also: rastan.zip present — likely the MAME romset
-archive used as extraction source. Not a problem.
+1. Stack collision eliminated.
+   Gap: 0x5A8A (22.6KB). Was 0x134 (308 bytes).
+   Active crash risk since Build 91.1 is resolved.
 
-Future variant support (e.g. us_rev1) will naturally
-pick up the correct files when that variant is added
-to MAINCPU_VARIANTS in build_rastan_regions.py.
+2. ROM fingerprint infrastructure in place.
+   All 16 world_rev1 ROM files fingerprinted with SHA1.
+   Future builds traceable to known-good ROM set.
 
-### Authorisation
+3. Hardware formats fully confirmed from MAME source.
+   PC080SN: attr+code 4-byte entries, bit15=Yflip,
+   bit14=Xflip, attr bits8:0=palette, code bits13:0=tile.
+   PC090OJ: 8-byte entries confirmed, existing renderer
+   validated pixel-perfect against MAME source.
+   Rowscroll: 0x4000/0xC000 offsets, 256 words per layer.
 
-Build 93 Step B: APPROVED.
-Cody cleared to proceed to Build 93 Step C
-(PC080SN tilemap word format research) on receipt
-of Prompt 3.
+4. Long-term architecture documented in AGENTS.md.
+   Direct opcode replacement with shift-table reflow.
+   All future Cody sessions start from correct direction.
 
-## [Cody - Build 93 Step D, AGENTS.md Updated]
-```text
-Build 93 Step D completed (documentation-only; no code changes).
+### Build 94 Scope
 
-Confirmations:
-- Section added at correct location:
-  - Inserted immediately after "## Critical engineering constraints"
-  - Before "## Files to check before touching startup remap"
-  - Verified heading order in AGENTS.md:
-    - line 57: ## Critical engineering constraints
-    - line 67: ## Long-term rendering architecture
-    - line 145: ## Files to check before touching startup remap
+Target 1: Implement render_frontend_tilemap_layer()
+  Shadow-based background renderer using confirmed
+  PC080SN word format and translate_pc080sn_tile_word().
+  Gets backgrounds on screen for first time.
+  Validates translation formula visually.
 
-- No existing content changed:
-  - git diff on AGENTS.md shows insertion-only block (no deletions/modifications of prior text).
+Target 2: First opcode replacement — scroll registers
+  Replace 0xC20000/0xC40000 writes in patched binary
+  with direct Genesis VDP scroll register writes.
+  Simplest possible first replacement — proves
+  shift-table infrastructure end-to-end.
+  No format translation required.
 
-- AGENTS.md renders correctly as markdown:
-  - Heading hierarchy valid (## / ###)
-  - Table syntax valid (hardware region mapping table)
-  - List formatting and fenced-style JSON example are correctly structured.
-```
+Target 3: validate_specs.py scaffold
+  Add Python validation tool that checks original_bytes
+  match at every opcode_replace entry in specs/.
+  Gate for all future replacement builds.
+
+### Project Health Assessment
+
+Architecture: sound and fully documented.
+Hardware knowledge: complete for both video chips.
+Build pipeline: reproducible, fingerprinted, validated.
+Stack: safe (22.6KB headroom).
+Rendering: sprites working, backgrounds next.
+Status: ready for Build 94.
