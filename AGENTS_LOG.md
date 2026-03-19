@@ -1003,8 +1003,102 @@ Pass/Fail Status (Gap must be >= 0x4000): FAIL
 
 ## [Tighe's Testin results build 92]
 
-###Mame tests
+### Mame tests
 loads launcher, and buzzes and sometimes crashes when game is run.
 
-###Blastem tests
+### Blastem tests
 loads launcher, game crashes on Run Rastan menu item. "M68K attempted to execute code at unmapped or I/O address 201FC8"
+
+## [External Code Reviewer - Build 92]
+
+The external fetch is rate-limited. Let me check the uploaded repository ingest you mentioned.No uploaded files were actually attached to this conversation — the upload directory is empty, and GitHub is rate-limiting direct file fetches. I was able to read the repo's top-level structure and README from the landing page. Let me do a targeted crawl of the key files I can still reach.Good — I now have the Makefile and full AGENTS.md content, plus the repo structure. That's enough to give you a rigorous teardown. Let me synthesize everything I can see into the analysis.Now I have everything I need. Let me write the technical teardown and render the pipeline architecture diagram.Here is the full technical teardown. I was able to fetch the repo landing page, the complete `Makefile`, and the full `AGENTS.md` directly. I could not retrieve the individual source files under `tools/`, `specs/`, or `apps/` due to GitHub rate limits and robots rules, but the directory structure, language breakdown (Lua 20.5%, Python 32.5%, C 27.6%, 68k ASM 8.5%), Makefile invocation chain, and `AGENTS.md` content together give a clear enough picture for a rigorous critique.
+
+---
+
+## Critical Logic Risks
+
+**1. Coverage blindness in `rastantrace.lua` — the cold-path problem**
+
+The Rastan arcade 68000 ROM is full of computed-branch patterns: `JMP (An)`, `JSR (An)`, and word-indexed jump tables where the table base is loaded into an address register and the index is a runtime value derived from game state (enemy type, attack phase, stage counter). A PC-trace approach — recording every executed instruction address — can only log branches that *fire during the trace session*. The structural gap is that any table entry whose index value was never exercised during MAME tracing will produce an address that never appears in the trace. When `build_rastan_regions.py` later extracts "code regions," it will miss those cold table entries entirely, producing either a truncated slice or — worse — including the table's data bytes as part of an adjacent code region.
+
+The canonical failure mode is: a jump table at, say, `0x1A3C0` covers boss-phase transitions 0–7. Your MAME session exercises phases 0–4. The slice built from trace coverage ends four entries short. The patcher applies relocations to the truncated slice, and when the Genesis later reaches phase 5 for the first time, execution vectors into garbage or silently falls through to the next region.
+
+This risk is compounded by the fact that the Makefile currently has no mechanism to signal "trace completeness." There is no coverage gate between `rastantrace.lua` output and the region extraction step.
+
+**2. The `0x03816B` data-path fall-through — a symptom of the deeper issue**
+
+`AGENTS.md` explicitly calls out an active crash: normal-mode front-end attempts fall into a `0x03816B` data path. This is almost certainly a branch whose target address was not captured in the existing trace (or was mis-classified as data), causing the patcher to leave a relocation unresolved or to emit a wrong offset. This is the production-visible consequence of the cold-path blind spot described above.
+
+**3. Relocation order sensitivity in `patch_maincpu.py`**
+
+The Makefile's `patch-maincpu` target invokes `build_rastan_regions.py` first (which emits `maincpu.bin`), then immediately invokes `patch_maincpu.py` on that binary. If the region extractor produces a binary whose internal layout differs across variants (different slice lengths for `us_rev1` vs. `world_rev1`), any hardcoded byte-offset assumption baked into the fixup JSON will silently apply the wrong patch to the wrong bytes. The JSON config approach is sound in principle, but without a layout-hash guard between extraction and patching, variant-switching is a silent corruption risk.
+
+**4. Startup trampoline brittleness**
+
+The `56`-style hooked flow is described as "stable," but the `57`/`59` attempts still fail. The `startup_trampoline.s` + `startup_bridge.c` split suggests the Genesis-side shim is gluing together two independently moving targets: the patched arcade slice and the SGDK runtime entry. Any change to either side can break the handoff, and without automated integration assertions the only regression detection is "try the ROM in an emulator."
+
+---
+
+## Workflow Optimization
+
+**5. The `specs/` data-driven approach is the right call — but needs schema enforcement**
+
+The design principle of "specs as inputs, manifests as outputs" is architecturally correct. For a full-game port spanning multiple subsystems (graphics DMA, sound driver, input polling, stage loader, enemy FSMs), the JSON-config approach is the only scalable alternative to a heap of one-off shell patches. The concern is drift: as the project grows, `startup_title_remap.json` will accumulate entries that reference addresses only a human can mentally map to the current state of the binary. Without a JSON schema (a formal `.schema.json` or at minimum a `jsonschema`-validated CI step), an AI agent or even a tired human can add a malformed entry that silently produces a valid-looking manifest with a wrong relocation.
+
+**Specific suggestion:** add a `validate_specs.py` script that runs `jsonschema` against all files under `specs/` before any build target. Wire it as a `.PHONY` prerequisite in the Makefile so `make patch-maincpu` always validates first.
+
+**6. `extraction_manifest.json` — manual region boundary entry is a scaling bottleneck**
+
+Based on the workflow description and the README's characterization of "region definitions and extractors," region boundaries (start address, length, type) are currently authored by hand based on trace analysis. At the current scope — one startup block at `0x3AE86..0x3B05C` — this is manageable. For a full port spanning all six stages, all enemy routines, and all asset regions, you're looking at 50–150 region entries. Manually maintaining those boundaries while the trace data evolves is the single most likely source of maintenance debt.
+
+**Automation path using MAME state notifiers:** MAME's Lua API supports `emu.add_step_monitor()` and memory-range read/write callbacks. A more robust `rastantrace.lua` could emit not just executed PC values but also: (a) address-register loads that look like jump table bases (`MOVEA.L` or `LEA` into An followed by `JMP (An,Dn)`), (b) the full range of Dn values observed at dispatch time, and (c) cross-region calls (`JSR` to addresses outside the current extraction window). This richer trace output would let `build_rastan_regions.py` auto-compute region boundaries and flag "partially-covered jump table — N of M entries seen" rather than silently under-extracting.
+
+**7. The Makefile's `clean` target is too narrow**
+
+`make clean` removes only four files under `build/rastan/`. It leaves `build/regions/maincpu.bin` (the output of `build_rastan_regions.py`) untouched. If you re-run with a different variant, the stale `maincpu.bin` from the previous variant will be silently consumed by `patch_maincpu.py`. Add `build/regions/` to the clean target and consider a `build/` stamp file per variant.
+
+**8. `attic/` isolation is incomplete**
+
+`AGENTS.md` correctly says "do not treat `attic/` behavior as authoritative." But `Makefile` still has a `startup-rom` target that invokes `make -C attic/startup-common-rom release`. That means the attic is not truly isolated — it is still part of the live build graph. Any CI run that invokes `startup-rom` pulls potentially stale attic behavior into the build. Either fully excise it from the Makefile, or gate the target behind an explicit `ATTIC=1` env flag.
+
+---
+
+## AI Agent Integration
+
+**9. `AGENTS.md` is genuinely well-structured — with one critical omission**
+
+The file does several things right that most agent-context documents don't: it identifies the authoritative source of truth (`specs/` as inputs, `build/` as disposable outputs), it lists the exact files to check before touching startup remap, it names the active failure state explicitly (the `0x03816B` fall-through), and it gives a sequenced workflow for substantial changes. This is meaningful signal, not boilerplate.
+
+The omission: it does not define what "correct" looks like for an agent to self-verify. An agent fixing a disassembly error has no automated oracle. The `AGENTS.md` workflow step 5 says "validate generated manifests under `build/rastan/`" — but it doesn't say *what* to look for in those manifests. A diff against a known-good baseline? A specific checksum? A set of address ranges that must appear? Without this, an AI agent (Claude Code, Cursor, or otherwise) will apply a plausible-looking change, generate a manifest that structurally looks fine, and have no way to know it introduced a wrong relocation.
+
+**Recommendation:** Add a `tools/validate_manifest.py` that accepts a manifest JSON and checks: (a) all relocated addresses fall within expected ROM address ranges, (b) no two fixup entries overlap, (c) startup slice length matches the expected value for the variant. Wire this into `AGENTS.md` as step 5a, and make it the *only* validation step an agent is expected to run before committing.
+
+**10. Claude Code's `CLAUDE.md` vs `AGENTS.md` — a practical friction point**
+
+Claude Code natively reads `CLAUDE.md` as its per-repo instruction file. The `AGENTS.md` convention is currently a community proposal, not yet a natively consumed format for Claude Code (as of March 2026, there is an open feature request for this, but it is not merged). This means that when using Claude Code specifically, the agent may not auto-load `AGENTS.md`. The safest fix is to either symlink `CLAUDE.md → AGENTS.md` or maintain a short `CLAUDE.md` that explicitly says "read AGENTS.md for full context." The `AGENTS_LOG.md` is a smart pattern — continue logging agent-session decisions there so future sessions have a running context summary.
+
+**11. Agentic corruption vectors specific to this codebase**
+
+Three failure modes are particularly likely if an AI agent is given unsupervised write access:
+
+First, an agent asked to "fix a disassembly error" may edit the `build/` manifest directly rather than updating `specs/` first. `AGENTS.md` explicitly forbids this, but agents under context pressure will take the path of least resistance. Mitigate by making `build/` a `.gitignore`-excluded directory that is never directly committed — that way no agent edit to `build/` can survive a commit.
+
+Second, an agent asked to "add a new region" may not know the current variant's address layout and will pick plausible-looking addresses from the disassembly. This is silent corruption. Mitigate with the schema validation recommended above.
+
+Third, the `attic/` content is a trap. An agent reading `startup_trampoline.s` and finding a more complete-looking version in `attic/` may prefer the attic version. The `AGENTS.md` guardrail exists, but agents do not always respect guardrails they find in a file they are actively editing around. Make the attic content structurally inaccessible by moving it to a branch rather than a directory, or at minimum add a `# DO NOT USE — ATTIC` comment header to every file under `attic/`.
+
+---
+
+## Top 3 Priorities for the Next Sprint
+
+**Priority 1 — Fix the cold-path coverage gap in `rastantrace.lua`**
+
+This is the root cause of the `0x03816B` crash and will cause the same class of failure on every new region you add. Extend the tracer to explicitly detect and log computed-branch dispatch sequences (`LEA`/`MOVEA` + `JMP (An,Dn.w)`), and emit the full observed range of index values per dispatch site. Update `build_rastan_regions.py` to flag any dispatch site where coverage is partial. Until this is in place, every extraction is an untested bet on which branches your MAME session happened to exercise.
+
+**Priority 2 — Add manifest validation as a first-class build step**
+
+Write `tools/validate_manifest.py` with address-range sanity checks, overlap detection, and variant-length assertions. Wire it as a Makefile prerequisite and as step 5a in `AGENTS.md`. This is the single change that makes both human and AI-assisted development safe — without it, neither you nor an agent can distinguish a correct manifest from a subtly wrong one without running the ROM.
+
+**Priority 3 — Resolve the `attic/` build graph entanglement and the `CLAUDE.md` gap**
+
+Create a `CLAUDE.md` that references `AGENTS.md` so Claude Code loads the correct context automatically. Move `attic/startup-common-rom` out of the live Makefile target (gate behind `ATTIC=1` or delete the target). These two changes together close the two most likely agentic corruption paths before you start using AI tools more heavily on the port.
