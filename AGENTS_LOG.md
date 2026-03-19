@@ -845,34 +845,63 @@ This forces the compiler to allocate only a single 32KB block. The individual gl
 - The gap between `_bend` and `__stack` will increase, satisfying the 16KB safety threshold.
 - The launcher and engine will correctly share the same WRAM footprint, as they are never active simultaneously.
 
-You are Chad, the External Technical Consultant for a Sega Genesis / Mega Drive arcade port.
-Your Role: You audit memory architectures for hardware legality, C-compiler safety, and M68K bus alignment.
-Your Constraints: You operate in STRICTLY READ-ONLY mode. Your only output is your technical verdict logged to AGENTS_LOG.md.
+## [External Consultant Audit - Build 90 Sound Hang]
 
-We are officially on Build 92. We need you to audit Alan's proposed "Memory Overlay" solution before we let Cody implement it.
+### Incident
+Build 90 reaches the In-Game state but produces a black screen and continuous buzzing sound.
 
-1. The Current Flaw: Build 91.1 successfully scrubbed the Launcher's UI memory with `memset`, but the global `.bss` arrays (`rastan_font_tile_buffer`, etc.) are still physically allocating WRAM. The stack gap is only 0x134 bytes.
-2. Alan's Proposed Architecture: Alan wants to use a C `union` to force the Launcher's UI buffers and the 32KB Arcade WRAM block to share the exact same physical memory footprint. 
+BlastEm reports:
+68K Write to unhandled z80 address 7FFF
 
-Alan's Code:
-typedef struct {
-    uint16_t rastan_font_tile_buffer[1024];
-    uint16_t frontend_runtime_sprite_tile_buffer[256];
-    uint16_t frontend_runtime_sprite_codes[128];
-    char     status_line[80];
-} LauncherRuntime;
+### Hardware Analysis
 
-union WramOverlay {
-    uint16_t engine_shadow_wram[16384]; // 32KB Arcade Block
-    LauncherRuntime launcher;
-};
-extern union WramOverlay wram_overlay;
+The Z80 in the Genesis cannot directly access cartridge SRAM in a reliable or portable way.
 
-3. Your Audit Task:
-- BSS Footprint: Confirm that this `union` will legitimately shrink the compiled `.bss` section footprint down to exactly 32KB, reclaiming the "empty box" space for the Stack.
-- M68K Alignment: Ensure there are no odd-byte alignment risks here. If the `char status_line[80]` throws off the alignment of the `union`, will it trigger an Address Error exception on the 68000? Advise if padding or `__attribute__((aligned(2)))` is required.
+The Z80 memory map is:
 
-4. Output (VR Requirement): 
-Update the log under `## [External Consultant Audit - Build 92 Memory Overlay]`. 
-CRITICAL: You must wrap your entire log update inside a standard markdown code block (```text ... ```) so the user can easily copy it in VR.
+0000–1FFF  Z80 RAM  
+2000–3FFF  YM2612  
+4000–5FFF  VDP  
+6000–60FF  bank register  
+8000–FFFF  banked 68K memory window
 
+Although the bank window can expose 68K memory, cartridge SRAM at $200000 is not guaranteed to behave as normal RAM due to SRAM enable logic and byte-wide implementations.
+
+### Hybrid Map Impact
+
+Build 90 uses a hybrid C-window layout:
+
+Page0 ($C00000) -> WRAM  
+Page1–3 ($C04000+) -> SRAM
+
+From the perspective of the original arcade engine this region must behave as a **contiguous 64KB block**.
+
+The WRAM/SRAM split breaks that assumption.
+
+If the sound driver reads tables or sample pointers from this region, half the data will be inaccessible or corrupted from the Z80 perspective.
+
+### Interpretation of the 7FFF Fault
+
+A write to Z80 address 7FFF indicates the sound driver is executing corrupted data or using an invalid pointer.
+
+This strongly suggests the driver read invalid memory due to the broken C-window layout.
+
+The buzzing sound matches a Z80 driver stuck executing garbage instructions.
+
+### Architectural Conclusion
+
+The sound driver likely requires the entire C-window region to behave as **linear RAM accessible to both CPUs**.
+
+The current WRAM/SRAM hybrid mapping violates this requirement.
+
+### Recommendation
+
+For the next build:
+
+1. Ensure all memory visible to the Z80 resides in 68K WRAM.
+2. Do not place sound driver tables or buffers in cartridge SRAM.
+3. If SRAM must be used, restrict it to non-audio data.
+
+### Verdict
+
+Build 90 failure is consistent with a **Z80 driver crash caused by the split C-window mapping**.
