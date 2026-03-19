@@ -1336,3 +1336,8 @@ Completed refactor of `tools/mame/scripts/rastantrace.lua` into a focused RAM co
 - No per-access console logging or per-access file I/O.
 - All tracking is in-memory bitsets/counters until stop notifier flush.
 - Added address normalization so hooks/taps are robust to absolute vs relative callback address forms.
+- **Visual Evidence (Hardware):** Screenshot saved as `B92_Hardware_In-Game_20260319_1110.png` (Stage: In-Game)
+- **Visual Evidence (Hardware):** Screenshot saved as `B92_Hardware_In-Game_20260319_1111.png` (Stage: In-Game)
+- **Visual Evidence (Hardware):** Screenshot saved as `B92_Hardware_In-Game_20260319_1111.png` (Stage: In-Game)
+- **Visual Evidence (Hardware):** Screenshot saved as `B92_Hardware_In-Game_20260319_1112.png` (Stage: In-Game)
+- **Visual Evidence (Hardware):** Screenshot saved as `B92_Hardware_Launcher_20260319_1112.png` (Stage: Launcher)
