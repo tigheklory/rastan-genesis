@@ -3266,6 +3266,247 @@ BSS layout post-Step-A:
 
 This is a healthy layout. No concerns going into Step B.
 
+## [Cody - Build 93 Step C, PC080SN Word Format]
+```text
+Build 93 Step C completed as research/documentation only (no code changes).
+
+Source used:
+- build/maincpu.disasm.txt (exists and non-empty)
+- Grep pass requested in prompt:
+  - grep -n "C0[0-9A-Fa-f]\{4\}" build/maincpu.disasm.txt  -> no hits (disasm uses lowercase 0xc0...)
+  - grep -n "0xC0" build/maincpu.disasm.txt                -> no hits (same reason)
+- Follow-up equivalent lowercase search used for actual sites:
+  - rg -n "0xc0[0-9a-f]{4}" build/maincpu.disasm.txt
+
+==================================================
+WRITE SITES FOUND
+==================================================
+
+A) Direct absolute writes to C-window
+------------------------------------
+1) 0x03A350  movew #50,0xc08a52
+   Sequence:
+   - 0x03A34A: tstw %a5@(42)
+   - 0x03A34E: beqs 0x3a358
+   - 0x03A350: movew #50,0xc08a52
+   Interpretation:
+   - Address ends with +2 within 4-byte tile stride -> code word slot.
+
+2) 0x03A55C  moveb #32,0xc09ea3
+   Sequence:
+   - 0x03A552: cmpib #48,0xc09ea3
+   - 0x03A558: bnes 0x3a572
+   - 0x03A55C: moveb #32,0xc09ea3
+   Interpretation:
+   - Byte patch into C-window text area (character cell update path).
+
+3) 0x03A6FE  movew #10052,0xc08e7a
+   Sequence:
+   - 0x03A6EE: moveq #56,%d0
+   - branch on flags
+   - 0x03A6FE: movew #10052,0xc08e7a
+   Interpretation:
+   - +2 code-word slot write (tile code constant 0x2744).
+
+4) 0x03A708  movew #10052,0xc08e66
+   Sequence:
+   - alternate branch from same block as above
+   - 0x03A708: movew #10052,0xc08e66
+   Interpretation:
+   - +2 code-word slot write.
+
+5) 0x03A72A  movew %d0,0xc08c62
+   Sequence:
+   - 0x03A720: clrw %d0
+   - 0x03A722: moveb %a5@(279),%d0
+   - 0x03A726: oriw #48,%d0
+   - 0x03A72A: movew %d0,0xc08c62
+   Interpretation:
+   - Runtime-composed code-word write (low char + bias).
+
+6) 0x03AAEA  movew #10057,0xc09172
+   Sequence:
+   - text setup via jsr 0x3bb48 calls
+   - 0x03AAEA: movew #10057,0xc09172
+   Interpretation:
+   - +2 code-word slot write.
+
+7) 0x03D04C  movew %d1,0xc08c66
+   Sequence:
+   - 0x03D044: moveq #9,%d1
+   - 0x03D046: subw %d0,%d1
+   - 0x03D048: addiw #48,%d1
+   - 0x03D04C: movew %d1,0xc08c66
+   Interpretation:
+   - Numeric char conversion -> code-word slot write.
+
+
+B) Indirect write sites (LEA into 0xC0xxxx then %aN@ writes)
+-------------------------------------------------------------
+8) 0x0002E6-0x0002FC (bulk pattern write at c08218/c08318)
+   Key instructions:
+   - 0x0002CA: lea 0xc08218,%a0
+   - 0x0002D0: lea 0xc08318,%a1
+   - 0x0002E6: movew #0,%a2@+
+   - 0x0002EA: movew %d0,%a2@+
+   - 0x0002EC: movew #0x4000,%a2@+
+   - 0x0002F0: movew %d0,%a2@+
+   - 0x0002F2: movew #0x8000,%a3@+
+   - 0x0002F6: movew %d0,%a3@+
+   - 0x0002F8: movew #0xC000,%a3@+
+   - 0x0002FC: movew %d0,%a3@+
+   Interpretation:
+   - Clear 4-byte entry pattern: [attr][code][attr][code]...
+   - Strong evidence attr word carries flip flags in bits 14/15.
+
+9) 0x000354-0x000376 (function 0x350)
+   Key instructions:
+   - 0x000354: movew %d0,%a0@(0,%d3:l)
+   - 0x000358: movew #25,%a0@(2,%d3:l)
+   - same pattern mirrored to a1/a2/a3
+   Interpretation:
+   - Writes attr at +0 and code at +2.
+   - Attr ramps 1..16 (palette/attribute exercise pattern).
+
+10) 0x0004AA-0x0004AC (function 0x4A2)
+    Key instructions:
+    - 0x0004A2: movew %a1@+,%d2
+    - 0x0004A4: moveb %a1@+,%d3
+    - 0x0004AA: movew %d2,%a2@+
+    - 0x0004AC: movew %d3,%a2@+
+    Interpretation:
+    - Table-driven pair write: first attr word, then code word.
+
+11) 0x00068A-0x00068C (hex digit writer)
+    Key instructions:
+    - 0x00068A: clrw %a0@+
+    - 0x00068C: movew %d1,%a0@+
+    Interpretation:
+    - Writes attr=0, code=ASCII for onscreen diagnostics.
+
+12) 0x00057E / 0x000590 (probe/write test used on C-window ranges)
+    Key instructions:
+    - 0x00054A: lea 0xc00000,%a0 ; 0x000550: lea 0xc04000,%a1
+    - 0x00055A: lea 0xc08000,%a0 ; 0x000560: lea 0xc0c000,%a1
+    - 0x00057E: movew #0,%a0@
+    - 0x000590: movew %d0,%a0@+
+    Interpretation:
+    - Hardware presence probe / restore loop over full C-window.
+
+13) 0x03AD3C and 0x03AD44 (generic fill writers called with C-window bases)
+    Key instructions:
+    - 0x03AD3C: movew %d0,%a0@+
+    - 0x03AD44: movel %d0,%a0@+
+    Call sites with C-window:
+    - 0x03AE64: lea 0xc00100,%a0 ; d0=0x20 ; bsr 0x3ad44
+    - 0x03AE74: lea 0xc08100,%a0 ; d0=0x20 ; bsr 0x3ad44
+    - 0x03AF2C: lea 0xc00000,%a0 ; d0=0x20 ; bsr 0x3ad44
+    - 0x03AF3C: lea 0xc08000,%a0 ; d0=0x20 ; bsr 0x3ad44
+    - 0x03AF52: lea 0xc04000,%a0 ; d0=0x0000 ; bsr 0x3ad3c
+    - 0x03AF62: lea 0xc0c000,%a0 ; d0=0x0000 ; bsr 0x3ad3c
+    Interpretation:
+    - movel fill writes two words per entry (attr then code), consistent with 4-byte tile entry model.
+
+14) 0x03B10C (strided tile writer)
+    Key instructions:
+    - 0x03B10C: movew %d0,%a0@
+    - 0x03B10E: addal #4,%a0
+    Call-site examples:
+    - 0x03B20E: lea 0xc09320,%a0 ... bsr 0x3b10c
+    - 0x03B45C: lea 0xc09140,%a0 ... bsr 0x3b10c
+    Interpretation:
+    - Writes one word per tile entry at +4 stride (same field of each 2-word entry).
+
+15) 0x03B474 block (explicit attr/code pair)
+    Key instructions:
+    - 0x03B474: lea 0xc0887c,%a0
+    - 0x03B47A: movew #1,%a0@+      ; attr
+    - 0x03B47E: movew #10052,%a0@   ; code
+    - 0x03B48A: lea 0xc08d6e,%a0
+    - 0x03B49A: movew #10059,%a0@
+    - 0x03B49E: addal #4,%a0
+    Interpretation:
+    - Clear attr/code pairing at same tile entry; later loop writes code slots every tile.
+
+16) 0x03B572 / 0x03B5F6 (runtime code swap in tile entry)
+    Key instructions:
+    - 0x03B56A: lea 0xc08d6c,%a0
+    - 0x03B572: movew #0,%a0@+      ; attr clear
+    - ... value transformed via 0x03B5FC table logic ...
+    - 0x03B5F6: movew %d0,%a0@      ; code write
+    Interpretation:
+    - Runtime attribute+code pair maintenance.
+
+
+==================================================
+CONFIRMED TILEMAP ENTRY LAYOUT (from disasm evidence)
+==================================================
+
+Primary conclusion:
+- PC080SN tilemap in this binary is written as 4-byte entries:
+  - word at offset +0: attribute word
+  - word at offset +2: tile-code word
+  - next tile entry at +4 bytes
+
+Confirmed/probable bit layout:
+- Attribute word (+0):
+  - bits [15:14] = flip flags (confirmed by explicit writes 0x0000/0x4000/0x8000/0xC000 at 0x2E6-0x2FC)
+  - bits [?:?]   = palette bank (probable; low/mid bits are varied in pattern fills at 0x350)
+  - bit  [?]     = priority (probable; no direct isolated set/clear found in traced sequences)
+- Tile-code word (+2):
+  - bits [8:0]   = tile index low bits (confirmed-in-use by code constants and decode behavior)
+  - bits [?:9]   = upper tile index/bank bits (probable; constants like 0x2744/0x274B indicate extended index usage)
+
+H/V flip bit order:
+- Two flip bits are confirmed at [15:14], but orientation mapping to H vs V is not directly labeled in disasm.
+- Horizontal/vertical assignment is therefore probable, not fully confirmed from this source alone.
+
+
+==================================================
+CROSS-REFERENCE WITH main.c decode_startup_shadow_word()
+==================================================
+
+decode_startup_shadow_word() tests masks:
+- 0x00FF
+- 0xFF00
+- 0x01FF
+
+This matches observed write behavior:
+- Code-word writes often use low-byte ASCII-style values (0x20..0x7F) -> 0x00FF path.
+- Some data may carry byte in upper halfword (legacy/format variance) -> 0xFF00 path.
+- Tile words with extended code values (e.g., 0x2744/0x274B) still decode via low 9 bits -> 0x01FF path.
+
+So the current decode logic is consistent with the disassembly findings for startup/title text reconstruction.
+
+
+==================================================
+CONFIDENCE
+==================================================
+
+Overall confidence: PROBABLE (high on entry structure; medium on exact palette/priority bit numbers).
+
+- Confirmed:
+  - 4-byte tile entry stride
+  - attr at +0, code at +2
+  - flip flags occupy top two attr bits [15:14]
+  - code low 9-bit usage is real in this binary
+
+- Probable (not fully isolated in disasm):
+  - exact palette-bank bit range in attr word
+  - exact priority bit in attr word
+  - exact H/V ordering between bits 15 and 14
+
+
+==================================================
+WRITE SITES NOT FULLY TRACEABLE IN THIS PASS
+==================================================
+
+- Some high-level table-driven writes through 0x3BB48 and downstream data blocks include many destinations,
+  but only a subset has explicit human-readable labels in disasm.
+- No single isolated instruction sequence in this pass toggles one candidate priority bit while leaving all other attr bits fixed.
+- Therefore priority-bit index is not marked "confirmed" yet from disasm alone.
+```
+
 ## [Technical Lead Review - Build 93 Step B Approved]
 ## Source: Claude (Project Technical Lead)
 
@@ -3297,3 +3538,25 @@ Build 93 Step B: APPROVED.
 Cody cleared to proceed to Build 93 Step C
 (PC080SN tilemap word format research) on receipt
 of Prompt 3.
+
+## [Cody - Build 93 Step D, AGENTS.md Updated]
+```text
+Build 93 Step D completed (documentation-only; no code changes).
+
+Confirmations:
+- Section added at correct location:
+  - Inserted immediately after "## Critical engineering constraints"
+  - Before "## Files to check before touching startup remap"
+  - Verified heading order in AGENTS.md:
+    - line 57: ## Critical engineering constraints
+    - line 67: ## Long-term rendering architecture
+    - line 145: ## Files to check before touching startup remap
+
+- No existing content changed:
+  - git diff on AGENTS.md shows insertion-only block (no deletions/modifications of prior text).
+
+- AGENTS.md renders correctly as markdown:
+  - Heading hierarchy valid (## / ###)
+  - Table syntax valid (hardware region mapping table)
+  - List formatting and fenced-style JSON example are correctly structured.
+```

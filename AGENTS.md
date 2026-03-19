@@ -64,6 +64,84 @@ Output ROMs:
    contract needs.
 5. Treat normal `START RASTAN` handoff as one-way target architecture.
 
+## Long-term rendering architecture
+
+The confirmed rendering strategy for this port is
+**direct opcode replacement with shift-table reflow**.
+
+### What this means
+
+The Python patching pipeline reads the original arcade
+ROM files directly. For each arcade hardware register
+write that needs to become a Genesis VDP operation, the
+patcher replaces the original 68000 instruction bytes
+with a Genesis-native instruction sequence inline.
+
+When a replacement sequence is longer than the original
+instruction, the patcher inserts the extra bytes at that
+location. All subsequent code shifts forward. The patcher
+maintains a shift table — a sorted list of insertion
+points and sizes — and applies accumulated offsets to
+every absolute and relative reference in the binary.
+
+No trampolines. No NOP padding. No runtime interception.
+The final ROM contains only Genesis-native code.
+
+### Shift table reference types
+
+Every reference type in the 68000 binary must be fixed:
+- Absolute: JSR, JMP, LEA, MOVEA.L, PEA operands
+- Relative: BRA, BSR, Bcc displacements (recalculated)
+- Tables: jump table word displacements (recalculated)
+
+### Hardware regions and their replacement targets
+
+| Arcade address      | Hardware          | Genesis target         |
+|---------------------|-------------------|------------------------|
+| 0xC00000-0xC0FFFF   | PC080SN tilemap   | VDP nametable writes   |
+| 0xC20000-0xC20003   | PC080SN Y scroll  | VDP scroll registers   |
+| 0xC40000-0xC40003   | PC080SN X scroll  | VDP scroll registers   |
+| 0xD00000-0xD03FFF   | PC090OJ sprites   | VDP sprite table       |
+| 0x800000 region     | CLCS palette RAM  | PAL_setColor calls     |
+
+### What stays as runtime shadows
+
+These regions are NOT replaced by opcode rewriting.
+They remain as runtime shadow variables:
+- 0x100000 arcade work RAM (genesistan_arcade_workram_words)
+- 0x390000 input registers
+- 0x3E0000 sound command registers (PC060HA mailbox)
+
+### Spec entry format for replacements
+
+New entry type in specs/startup_title_remap.json:
+
+  {
+    "type": "opcode_replace",
+    "address": "0x03XXXX",
+    "original_bytes": "<hex — validated before patching>",
+    "replacement_bytes": "<Genesis instruction sequence>",
+    "comment": "human-readable description"
+  }
+
+The patcher validates original_bytes match before
+applying any replacement. Mismatches abort the build.
+
+### Prerequisites before any opcode replacement
+
+1. ROM fingerprints captured in build/rom_inventory.json
+2. PC080SN tilemap word bit format confirmed
+3. validate_specs.py passes cleanly
+4. Stack gap >= 0x4000 confirmed in linker map
+
+### Shadow arrays deleted as regions are replaced
+
+Once opcode replacement is verified for a region,
+its shadow array is deleted from BSS. Deletion order:
+1. C-Window SRAM pages — after tilemap rewrites verified
+2. genesistan_shadow_d00000_words — after sprite rewrites
+3. Scroll/palette shadows — after those rewrites
+
 ## Files to check before touching startup remap
 
 - `docs/project/startup_title_remap_plan.md`
