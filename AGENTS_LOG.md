@@ -845,63 +845,127 @@ This forces the compiler to allocate only a single 32KB block. The individual gl
 - The gap between `_bend` and `__stack` will increase, satisfying the 16KB safety threshold.
 - The launcher and engine will correctly share the same WRAM footprint, as they are never active simultaneously.
 
-## [External Consultant Audit - Build 90 Sound Hang]
-
-### Incident
-Build 90 reaches the In-Game state but produces a black screen and continuous buzzing sound.
-
-BlastEm reports:
-68K Write to unhandled z80 address 7FFF
-
-### Hardware Analysis
-
-The Z80 in the Genesis cannot directly access cartridge SRAM in a reliable or portable way.
-
-The Z80 memory map is:
-
-0000–1FFF  Z80 RAM  
-2000–3FFF  YM2612  
-4000–5FFF  VDP  
-6000–60FF  bank register  
-8000–FFFF  banked 68K memory window
-
-Although the bank window can expose 68K memory, cartridge SRAM at $200000 is not guaranteed to behave as normal RAM due to SRAM enable logic and byte-wide implementations.
-
-### Hybrid Map Impact
-
-Build 90 uses a hybrid C-window layout:
-
-Page0 ($C00000) -> WRAM  
-Page1–3 ($C04000+) -> SRAM
-
-From the perspective of the original arcade engine this region must behave as a **contiguous 64KB block**.
-
-The WRAM/SRAM split breaks that assumption.
-
-If the sound driver reads tables or sample pointers from this region, half the data will be inaccessible or corrupted from the Z80 perspective.
-
-### Interpretation of the 7FFF Fault
-
-A write to Z80 address 7FFF indicates the sound driver is executing corrupted data or using an invalid pointer.
-
-This strongly suggests the driver read invalid memory due to the broken C-window layout.
-
-The buzzing sound matches a Z80 driver stuck executing garbage instructions.
-
-### Architectural Conclusion
-
-The sound driver likely requires the entire C-window region to behave as **linear RAM accessible to both CPUs**.
-
-The current WRAM/SRAM hybrid mapping violates this requirement.
-
-### Recommendation
-
-For the next build:
-
-1. Ensure all memory visible to the Z80 resides in 68K WRAM.
-2. Do not place sound driver tables or buffers in cartridge SRAM.
-3. If SRAM must be used, restrict it to non-audio data.
+## [External Consultant Audit - Build 92 Memory Overlay]
 
 ### Verdict
+Alan's proposed `union` overlay is **architecturally valid** and is the correct way to reclaim WRAM from mutually-exclusive launcher/engine buffers.
 
-Build 90 failure is consistent with a **Z80 driver crash caused by the split C-window mapping**.
+### BSS Footprint Audit
+Given:
+
+- `engine_shadow_wram[16384]` = 16384 * 2 bytes = **32768 bytes**
+- `LauncherRuntime` contains:
+  - `rastan_font_tile_buffer[1024]` = 2048 bytes
+  - `frontend_runtime_sprite_tile_buffer[256]` = 512 bytes
+  - `frontend_runtime_sprite_codes[128]` = 256 bytes
+  - `status_line[80]` = 80 bytes
+  - subtotal = **2896 bytes**
+
+A C `union` allocates storage equal to the size of its **largest member**, rounded up only as required by alignment.
+
+Therefore:
+
+- `sizeof(union WramOverlay)` should resolve to **32768 bytes**
+- not `32768 + 2896`
+- not separate launcher + engine allocations
+
+### Conclusion on WRAM Recovery
+Yes: this should legitimately collapse the launcher scratch buffers and the 32KB arcade block into **one shared physical `.bss` allocation**.
+
+This is the correct fix for the current "empty box still reserved in `.bss`" problem, provided the old standalone globals are removed and all code is updated to use the overlay-backed storage only.
+
+### Critical Condition
+This only works if the following are true:
+
+1. The old standalone `.bss` globals (`rastan_font_tile_buffer`, etc.) are fully deleted or converted into accessors/macros pointing into `wram_overlay.launcher`.
+2. The launcher and arcade engine are truly **non-overlapping lifetimes**.
+3. No code retains stale pointers into the launcher region after the engine begins using `engine_shadow_wram`.
+
+If any old globals remain, the `.bss` savings will not occur.
+
+---
+
+### M68K Alignment Audit
+The proposed union is safe from a 68000 alignment perspective.
+
+Reasons:
+
+- `uint16_t` members require at least **2-byte alignment**
+- a `union` is aligned to the strictest alignment required by any member
+- both `engine_shadow_wram` and the 16-bit arrays inside `LauncherRuntime` force the union to be at least **2-byte aligned**
+
+Therefore:
+
+- the presence of `char status_line[80]` does **not** reduce the union alignment to 1 byte
+- it does **not** create an odd-address risk for the union itself
+- it will **not** by itself trigger a 68000 Address Error
+
+### On `status_line[80]`
+`status_line[80]` is safe because:
+
+- it is only a byte array
+- 80 is an even size
+- it is the last field in the struct
+- it does not force misalignment of the prior `uint16_t` arrays
+
+Even if the char array had odd length, the union itself would still remain 2-byte aligned because of the 16-bit members elsewhere.
+
+### Practical Alignment Conclusion
+No extra padding is strictly required for the layout shown.
+
+### Compiler Safety Recommendation
+For belt-and-suspenders safety, it is still reasonable to declare:
+
+- `union WramOverlay wram_overlay;` on a default linker-aligned `.bss` boundary, and/or
+- explicitly enforce 2-byte alignment
+
+Recommended form:
+
+`__attribute__((aligned(2)))`
+
+This is not because the shown code is currently unsafe, but because it protects against:
+- compiler packing surprises
+- future refactors
+- accidental relocation into a custom packed section
+
+### Stronger Recommendation
+If this object may later hold `uint32_t`, DMA descriptors, or longword copy targets, use:
+
+`__attribute__((aligned(4)))`
+
+This is conservative and future-safe, though not required for the current 16-bit-only layout.
+
+---
+
+### Hardware Legality / Bus Safety
+This overlay is purely a WRAM storage optimization.
+
+It does **not** introduce:
+- illegal cartridge bus behavior
+- Z80 bus overlap
+- new 68K address-space hazards
+
+It is a compile/link-time storage overlay only.
+
+---
+
+### Final Assessment
+APPROVED.
+
+Alan's union overlay should reduce the shared launcher/engine allocation to **exactly one 32KB `.bss` object**, reclaiming the launcher buffer footprint and increasing stack headroom.
+
+No 68000 odd-byte alignment hazard is present in the design as written.
+
+### Implementation Notes
+To make this fix real:
+
+1. Remove the original standalone launcher `.bss` globals.
+2. Replace them with references into `wram_overlay.launcher`.
+3. Verify the linker map after build:
+   - `sizeof(wram_overlay) == 32768`
+   - `.bss` decreases by the size of the removed globals
+   - stack gap increases accordingly
+
+### Consultant Verdict
+**APPROVED FOR IMPLEMENTATION**
+with the recommendation to add explicit `aligned(2)` or preferably `aligned(4)` to the overlay symbol for future-proofing.
