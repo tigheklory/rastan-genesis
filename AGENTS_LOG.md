@@ -3049,3 +3049,82 @@ a game that displays both backgrounds and sprites.
 Build 93 Step A (stack fix) remains prerequisite.
 _bend to __stack gap = 0x134 bytes. Active crash risk.
 Must be fixed before any new rendering work is added to BSS.
+
+## [Architect Note - Full Binary Reflow Architecture]
+## Source: Claude (Lead Architect, this session)
+
+### Strategy Refinement: Full Binary Reflow
+
+Direct opcode replacement with full address reflow confirmed
+as the patching architecture. No trampolines. No NOP padding.
+Inserted bytes shift all subsequent code and the patcher
+fixes up all references to account for the new layout.
+
+### Core Mechanism
+
+Patcher maintains a shift table:
+  List of (original_address, inserted_byte_count)
+  sorted by address, accumulated during patch pass.
+
+  shifted_address(addr) = addr + sum of all insertion sizes
+    at or before addr.
+
+Applied to every reference type in 68000 binary:
+  Absolute:  JSR, JMP, LEA, MOVEA.L, PEA operands
+  Relative:  BRA, BSR, Bcc displacements (recalculated)
+  Tables:    Jump table word displacements (recalculated)
+
+### Spec Entry Format Extension
+
+New entry type in startup_title_remap.json:
+  type: "opcode_replace"
+  address: original instruction address
+  original_bytes: expected bytes (validation check)
+  replacement_bytes: Genesis instruction sequence
+  comment: human-readable description
+
+Patcher validates original_bytes match before applying.
+Mismatches abort the build with a clear error message.
+
+### Known Complexity: Jump Tables
+
+Computed branches (JMP (An,Dn.w)) use word displacement
+tables. Table entries need displacement recalculation when
+code shifts. Known tables annotated in specs/.
+Unknown tables are risk surface — mitigated by trace coverage.
+Incomplete trace coverage = incomplete table knowledge.
+This is the same cold-path gap problem from Build 93 audit.
+
+### Incremental Adoption Path
+
+Start with startup/frontend regions (well-traced, low risk).
+Expand to game logic regions as trace coverage improves.
+Shift table is additive — new replacements append to it.
+No architectural change required as scope expands.
+
+### Validation Gate
+
+Before any opcode replacement build:
+  python3 tools/validate_specs.py
+  Checks original_bytes match at every replacement address.
+  Checks no two replacements overlap.
+  Checks shift table produces valid reference targets.
+  Build aborts on any failure.
+
+### What This Replaces
+
+All prior shadow-based rendering discussion superseded.
+Runtime interception approach superseded.
+Trampoline/stub approach superseded.
+This note is the authoritative rendering strategy for
+all future build phases.
+
+### Prerequisites Unchanged
+
+  1. Build 93 Step A — stack fix (immediate, unblocks everything)
+  2. Confirm PC080SN tilemap word bit format
+  3. Design replacement sequences per hardware region
+  4. Extend Python patcher with shift table + reflow pass
+  5. Add validation gate to build pipeline
+  6. Apply replacements incrementally, verify each region
+  7. Delete shadow arrays as each region is verified
