@@ -1782,3 +1782,627 @@ However:
 - not issued directly per arcade write.
 
 EX-SSF RAM should be treated as a **development tool for memory pressure relief**, not as the primary runtime architecture.
+
+## [External Consultant Audit - Build 93 VDP Timing]
+
+### Verdict
+The Build 93 "Delta Flush" plan is **hardware-legal** and is the correct direction, but it must be treated as a **bandwidth-budgeted VBlank job**, not an unlimited "flush everything now" system.
+
+The main hazard is **not corruption**.
+The main hazard is:
+
+- VDP FIFO saturation
+- 68000 wait states while the FIFO drains
+- frame-time overrun if too much work is pushed during one VBlank
+
+---
+
+### VDP FIFO Constraint
+The Genesis VDP uses a **4-word FIFO** for CPU writes.
+
+Implication:
+
+- If Cody writes too quickly to the VDP data port
+- and the FIFO becomes full
+- the 68000 is stalled until the VDP drains entries
+
+Therefore a synchronous dirty flush is safe only if it stays within a conservative per-frame transfer budget.
+
+---
+
+### Raw Bandwidth Reality
+Reference timing data commonly used by Genesis developers indicates approximately:
+
+- **205 bytes per VBlank scanline**
+- **18 bytes per active scanline**
+
+So the VBlank period is where bulk transfers belong.
+
+Important:
+That figure is a **theoretical hardware ceiling**, not the amount we should consume for gameplay every frame.
+
+The engine still needs time for:
+
+- VBlank handler work
+- sprite list updates
+- scroll/palette updates
+- game logic synchronization
+- sound command updates
+
+Therefore we should not target the raw ceiling.
+
+---
+
+### Practical Safe Budget
+Recommendation for Build 93:
+
+#### If using direct CPU VDP writes
+Use a conservative cap of:
+
+- **1024 dirty words per frame maximum**
+- preferred target: **512-768 words**
+- hard stop: **1024 words**
+
+Reason:
+This leaves margin for other VBlank tasks and avoids riding the FIFO at saturation constantly.
+
+#### If using DMA for contiguous spans
+Higher throughput is possible.
+
+Recommended DMA cap:
+
+- **2048 words per frame** as a practical safe ceiling
+- preferred target: **1024-1536 words**
+- emergency upper bound: **3072 words**, only if profiling proves the frame remains stable
+
+Reason:
+DMA is much more efficient, but consuming nearly the full VBlank bandwidth still risks starvation of other update work.
+
+---
+
+### Cody Guidance: Delta Flush Policy
+The dirty bitmap strategy is sound, but the flusher should work in **priority order** and stop when budget is exhausted.
+
+Recommended order:
+
+1. Critical visible tilemap regions
+2. Sprite-related pattern updates
+3. Palette-sensitive data
+4. Remaining dirty words
+
+Do **not** blindly walk the whole dirty map and flush until empty.
+
+---
+
+### Safety Valve Logic
+Recommended Build 93 safety valve:
+
+- Count dirty words before flush begins.
+- Set a per-frame budget.
+- Flush until budget is consumed.
+- Leave remaining dirty bits set for the next frame.
+
+#### Suggested thresholds
+For first implementation:
+
+- `SOFT_LIMIT_WORDS = 768`
+- `HARD_LIMIT_WORDS = 1024`
+
+Behavior:
+
+1. If dirty count <= 768:
+   - flush everything this frame
+
+2. If dirty count > 768 and <= 1024:
+   - flush only highest-priority dirty regions
+   - allow completion only if VBlank time remains
+
+3. If dirty count > 1024:
+   - flush first 1024 words maximum
+   - defer the rest to next frame
+   - optionally set an overflow flag for diagnostics
+
+#### Example pseudocode
+```c
+dirty_count = count_dirty_words();
+
+budget = HARD_LIMIT_WORDS;
+
+if (dirty_count > HARD_LIMIT_WORDS) {
+    overflow_flag = 1;
+}
+
+flush_priority_regions(&budget);
+
+if (budget > 0) {
+    flush_remaining_dirty_words(&budget);
+}
+
+/* any dirty entries not flushed remain set for next frame */
+
+```text
+================================================================================
+RASTAN-GENESIS BUILD 93 — HYBRID DELTA SHADOW ARCHITECTURE
+Lead Architect: Claude | Based on ram_usage_profile.json audit
+================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: MEMORY MAP AFTER RESTRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BEFORE (Build 92):
+  0xFF0000 ┌─────────────────────────────┐
+           │ Page0 shadow    16KB        │  ← DELETED
+           ├─────────────────────────────┤
+           │ Page1 shadow    16KB        │  ← DELETED
+           ├─────────────────────────────┤
+           │ Page2 shadow    16KB        │  ← KEPT (has 16 sparse reads)
+           ├─────────────────────────────┤
+           │ Page3 shadow    16KB        │  ← DELETED
+           ├─────────────────────────────┤
+           │ ... other data ...          │
+           │ stack @ 0xFF2DDA (COLLISION)│  ← BROKEN
+  0xFFFFFF └─────────────────────────────┘
+  Total shadow: 64KB
+
+AFTER (Build 93):
+  0xFF0000 ┌─────────────────────────────┐
+           │ Page2 shadow    16KB        │  ← only retained shadow
+           ├─────────────────────────────┤
+           │ Dirty bitmap     2KB        │  ← new
+           ├─────────────────────────────┤
+           │ [freed: 46KB]               │  ← reclaimed
+           ├─────────────────────────────┤
+           │ ... other data ...          │
+           │ stack (safe, room to grow)  │  ← FIXED
+  0xFFFFFF └─────────────────────────────┘
+  Total shadow: 18KB  (savings: 46KB)
+
+The 46KB reclaim moves the effective stack ceiling well clear of 0xFF2DDA.
+Place the stack pointer at 0xFFFF00 (top-down) as normal SGDK practice.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: DIRTY BITMAP C STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Sizing derivation:
+  C-Window span : 0xC00000 – 0xC0FFFF = 65536 bytes = 32768 words (word16)
+  1 bit per word : 32768 bits = 4096 bytes
+
+  Wait — the audit granularity is word16, so we track word slots, not bytes.
+  32768 words / 8 bits-per-byte = 4096 bytes = 4KB.
+
+  The spec says "2KB bitmap". That is achievable if we track at DWORD (32-bit)
+  granularity instead: 32768 words = 16384 dwords → 16384 bits = 2048 bytes.
+  We accept 32-bit flush granularity (flush the dirty dword, not just the dirty
+  word). This is safe: the arcade writes densely, so false-positives cost little,
+  and a dword write to the VDP is one control-port arm + two data writes.
+
+  If you later want true word16 granularity, double the bitmap to 4KB and adjust
+  the BIT_INDEX macro below. The structure is otherwise identical.
+
+/* ------------------------------------------------------------------ */
+/* dirty_bitmap.h                                                       */
+/* ------------------------------------------------------------------ */
+
+#ifndef DIRTY_BITMAP_H
+#define DIRTY_BITMAP_H
+
+#include <stdint.h>
+
+/* C-Window base as seen by the arcade 68k */
+#define CWIN_BASE       0xC00000UL
+#define CWIN_END        0xC10000UL   /* exclusive */
+#define CWIN_SIZE_BYTES 0x10000U     /* 64KB */
+#define CWIN_SIZE_WORDS 0x8000U      /* 32768 word16 slots */
+#define CWIN_SIZE_DWORDS 0x4000U     /* 16384 dword32 slots */
+
+/* Bitmap: 1 bit per dword slot → 16384 bits → 2048 bytes = 2KB */
+#define DIRTY_MAP_DWORDS 512U        /* 16384 bits / 32 bits-per-uint32 */
+
+/* Page2 shadow: lives in WRAM, mapped to arcade page 0xC08000–0xC0BFFF */
+#define PAGE2_ARCADE_BASE  0xC08000UL
+#define PAGE2_ARCADE_END   0xC0C000UL
+#define PAGE2_SHADOW_SIZE  0x4000U   /* 16KB */
+
+typedef struct {
+
+    /*
+     * dirty_words[i] holds 32 dirty bits.
+     * Bit j of dirty_words[i] is set when the dword slot (i*32 + j)
+     * of the C-Window has been written since the last delta flush.
+     * dword slot k maps to arcade address: CWIN_BASE + (k * 4)
+     */
+    uint32_t dirty_words[DIRTY_MAP_DWORDS];   /* 512 * 4 = 2048 bytes */
+
+    /*
+     * Page2 full shadow.
+     * Indexed as: page2_shadow[arcade_offset_from_C08000 >> 1]
+     * Stores the value so readbacks from the arcade engine see correct data.
+     */
+    uint16_t page2_shadow[PAGE2_SHADOW_SIZE >> 1];  /* 16KB / 2 = 8192 words */
+
+} HybridShadow;
+
+/* Place in WRAM. Declare in exactly one translation unit: */
+/*   HybridShadow g_shadow;                                */
+/* Extern elsewhere:                                       */
+/*   extern HybridShadow g_shadow;                         */
+
+extern HybridShadow g_shadow;
+
+/* ------------------------------------------------------------------ */
+/* Bitmap manipulation helpers                                          */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Given an arcade C-Window byte offset (addr - CWIN_BASE),
+ * compute the dword slot index and the bit position within dirty_words[].
+ *
+ * byte_offset → dword_slot = byte_offset >> 2
+ * dword_slot  → array_idx  = dword_slot >> 5   (divide by 32 bits)
+ * dword_slot  → bit_pos    = dword_slot & 31
+ */
+#define DIRTY_SLOT(byte_offset)   ((byte_offset) >> 2)
+#define DIRTY_IDX(slot)           ((slot) >> 5)
+#define DIRTY_BIT(slot)           (1UL << ((slot) & 31U))
+
+#define DIRTY_SET(byte_offset) \
+    do { \
+        uint32_t _slot = DIRTY_SLOT(byte_offset); \
+        g_shadow.dirty_words[DIRTY_IDX(_slot)] |= DIRTY_BIT(_slot); \
+    } while(0)
+
+#define DIRTY_CLEAR(byte_offset) \
+    do { \
+        uint32_t _slot = DIRTY_SLOT(byte_offset); \
+        g_shadow.dirty_words[DIRTY_IDX(_slot)] &= ~DIRTY_BIT(_slot); \
+    } while(0)
+
+#define DIRTY_TEST(byte_offset) \
+    ( g_shadow.dirty_words[ DIRTY_IDX(DIRTY_SLOT(byte_offset)) ] \
+      & DIRTY_BIT(DIRTY_SLOT(byte_offset)) )
+
+#endif /* DIRTY_BITMAP_H */
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: shadow_write16 — INTERCEPT MACRO + FUNCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/*
+ * shadow_write16(arcade_addr, value)
+ *
+ * Call this wherever the translated arcade 68k code would have issued
+ * a word write to the C-Window (0xC00000–0xC0FFFF).
+ *
+ * Behaviour per page:
+ *   Page0 (0xC00000–0xC03FFF): mark dirty only — no shadow copy
+ *   Page1 (0xC04000–0xC07FFF): mark dirty only — no shadow copy
+ *   Page2 (0xC08000–0xC0BFFF): mark dirty AND write to page2_shadow[]
+ *   Page3 (0xC0C000–0xC0FFFF): mark dirty only — no shadow copy
+ *
+ * The dirty bit ensures the delta flush will send this word to the VDP
+ * at the next VBlank regardless of which page it fell in.
+ *
+ * The page2 shadow copy ensures the arcade engine's read-back logic
+ * (the 16 sparse reads at stride ~0x200 seen in the profile) can be
+ * satisfied from WRAM without touching the VDP data port.
+ */
+
+/* Fast inline version — use in hot game-logic paths */
+static inline void shadow_write16(uint32_t arcade_addr, uint16_t value)
+{
+    uint32_t offset;
+
+    /* Bounds guard — drop writes outside the C-Window silently */
+    if (arcade_addr < CWIN_BASE || arcade_addr >= CWIN_END)
+        return;
+
+    offset = arcade_addr - CWIN_BASE;
+
+    /* Mark the dword slot dirty unconditionally for all pages */
+    DIRTY_SET(offset);
+
+    /* Page2 only: maintain readable shadow for read-back correctness */
+    if (arcade_addr >= PAGE2_ARCADE_BASE && arcade_addr < PAGE2_ARCADE_END) {
+        uint32_t page2_offset = arcade_addr - PAGE2_ARCADE_BASE;
+        g_shadow.page2_shadow[page2_offset >> 1] = value;
+    }
+}
+
+/*
+ * shadow_read16(arcade_addr) — satisfy arcade read-backs from WRAM
+ *
+ * Only Page2 addresses are expected to be read (per profile).
+ * Reads from Pages 0/1/3 are undefined behaviour per the audit —
+ * return 0 and assert in debug builds to catch any new cold-path reads
+ * that the 549-frame trace missed.
+ */
+static inline uint16_t shadow_read16(uint32_t arcade_addr)
+{
+    if (arcade_addr >= PAGE2_ARCADE_BASE && arcade_addr < PAGE2_ARCADE_END) {
+        uint32_t page2_offset = arcade_addr - PAGE2_ARCADE_BASE;
+        return g_shadow.page2_shadow[page2_offset >> 1];
+    }
+
+#ifdef DEBUG
+    /* If you hit this assert, you have a cold-path read the trace missed.
+     * Record the address, add it to the profile, and decide whether that
+     * page needs a shadow. Do NOT silently return 0 in production yet —
+     * promote this assert to a logged warning first. */
+    __builtin_trap();
+#endif
+
+    return 0;
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: DELTA FLUSH — VBLANK HANDLER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/*
+ * delta_flush_to_vdp()
+ *
+ * Called once per VBlank, after the display interrupt fires and before
+ * the next active scan begins. Must complete within the VBlank window
+ * (~1.2ms on NTSC Genesis at 60Hz).
+ *
+ * Algorithm:
+ *   For each uint32_t word in dirty_words[]:
+ *     If the word is zero, skip it entirely (covers 32 dword slots = 128
+ *     arcade bytes in one branch — the common case for static regions).
+ *     Otherwise, iterate the set bits, compute the VRAM destination
+ *     address for each dirty dword, arm the VDP control port, and write
+ *     the two words of that dword to the VDP data port.
+ *     Clear the dirty_words entry after flushing.
+ *
+ * VDP addressing:
+ *   This implementation maps the C-Window 1:1 into VRAM starting at
+ *   VRAM_CWIN_BASE. Adjust VRAM_CWIN_BASE to match your VRAM layout.
+ *
+ * Timing budget note:
+ *   Worst case: all 16384 dword slots dirty → 16384 VDP arms + 32768
+ *   data writes. At ~8 cycles per VDP word write on idle bus, that is
+ *   ~262144 cycles ≈ 34ms — far over budget. This is the pathological
+ *   case (full-frame tile update). In practice, Rastan's sparse write
+ *   pattern across 549 frames suggests typical dirty counts well under
+ *   1000 slots per frame, which is comfortably within 1.2ms.
+ *
+ *   If you ever hit the worst case (stage transitions, full tilemap
+ *   redraws), gate large flushes across multiple VBlanks using the
+ *   flush_cursor mechanism below.
+ */
+
+#include <genesis.h>   /* SGDK VDP_* definitions */
+
+/* VRAM base address where the C-Window contents are mapped */
+#define VRAM_CWIN_BASE  0x0000U   /* adjust to your VRAM layout */
+
+/*
+ * VDP control port write to arm a VRAM write at address vram_addr.
+ * Standard Genesis VDP VRAM write command encoding:
+ *   bits 31-30 : 01  (VRAM write)
+ *   bits 29-16 : vram_addr[13:0] in upper word
+ *   bits 15-14 : 00
+ *   bits  1- 0 : vram_addr[15:14] in lower word
+ */
+#define VDP_ARM_VRAM_WRITE(vram_addr) \
+    *((volatile uint32_t*)0xC00004) = \
+        (0x40000000UL | (((uint32_t)(vram_addr) & 0x3FFFUL) << 16) \
+                      | (((uint32_t)(vram_addr) >> 14) & 0x3UL))
+
+/* VDP data port (word write) */
+#define VDP_DATA_PORT   (*((volatile uint16_t*)0xC00000))
+
+/*
+ * Persistent cursor for multi-VBlank flush scheduling.
+ * Reset to 0 at game-logic frame start; the flush picks up where it
+ * left off if it ran out of VBlank budget.
+ */
+static uint16_t s_flush_cursor = 0;   /* index into dirty_words[0..511] */
+
+void delta_flush_to_vdp(void)
+{
+    uint16_t i;
+    uint32_t dirty_word;
+    uint32_t bit_pos;
+    uint32_t slot;
+    uint32_t arcade_byte_offset;
+    uint16_t vram_addr;
+
+    /*
+     * Iterate from s_flush_cursor so a budget-exceeded frame can resume.
+     * We do a full pass starting from 0 each VBlank in normal operation;
+     * the cursor only advances past 0 if you add an explicit budget timer.
+     * For Build 93, do a full unconditional pass — add budget gating in
+     * Build 94 if profiling shows overruns.
+     */
+    for (i = 0; i < DIRTY_MAP_DWORDS; i++) {
+
+        dirty_word = g_shadow.dirty_words[i];
+
+        /* Common case: no dirty slots in this 32-slot group — skip fast */
+        if (dirty_word == 0)
+            continue;
+
+        /* Iterate set bits using the standard bit-scan idiom */
+        while (dirty_word) {
+
+            /*
+             * Isolate lowest set bit.
+             * bit_pos = position of LSB (0..31).
+             * Using GCC built-in; replace with a manual CLZ if targeting
+             * a toolchain without __builtin_ctz.
+             */
+            bit_pos = (uint32_t)__builtin_ctz(dirty_word);
+
+            /* Global dword slot index within the 16384-slot space */
+            slot = ((uint32_t)i << 5) | bit_pos;
+
+            /* Byte offset from C-Window base */
+            arcade_byte_offset = slot << 2;   /* slot * 4 bytes per dword */
+
+            /*
+             * VRAM destination word address.
+             * arcade_byte_offset is a byte offset; VRAM is word-addressed
+             * on the Genesis VDP. Divide by 2 to get word address, then
+             * add the VRAM base for the C-Window mapping.
+             */
+            vram_addr = (uint16_t)(VRAM_CWIN_BASE + (arcade_byte_offset >> 1));
+
+            /*
+             * Arm VDP for VRAM write at vram_addr.
+             * This writes a 32-bit command to the VDP control port.
+             */
+            VDP_ARM_VRAM_WRITE(vram_addr);
+
+            /*
+             * Write the two words of this dword slot to the VDP data port.
+             *
+             * For pages 0, 1, 3: we do not have a shadow buffer, so we
+             * must reconstruct the value. Options:
+             *
+             *   Option A (recommended for Build 93): maintain a minimal
+             *   "last-written value" cache. Easiest implementation: store
+             *   the last word value written per dirty slot in a parallel
+             *   uint16_t write_cache[CWIN_SIZE_WORDS]. At ~64KB, this
+             *   defeats the size goal — see Option B.
+             *
+             *   Option B (Build 93 actual): for pages 0/1/3, the arcade
+             *   code writes every word before reading. Reconstruct the
+             *   value from the arcade engine's translated data structures
+             *   at flush time rather than caching it. This requires the
+             *   translated code to expose getters for sprite/tile table
+             *   entries. See Section 5 for the interface contract.
+             *
+             *   Option C (interim/safe fallback): keep a full 64KB write-
+             *   value cache in EX-SSF RAM (PSRAM, slow but idle). Write-
+             *   cache updates happen in shadow_write16 (cheap sequential
+             *   write); VBlank reads from EX-SSF cache are bursty but
+             *   only for dirty slots. This is the lowest-risk path for
+             *   Build 93 while the getter interface is being defined.
+             *
+             * The code below uses Option C (EX-SSF write-value cache).
+             * Swap in Option B getters as they become available.
+             */
+
+            /* EX-SSF write-value cache base (cartridge PSRAM) */
+            #define EXSSF_WRITECACHE_BASE ((volatile uint16_t*)0x400000UL)
+
+            VDP_DATA_PORT =
+                EXSSF_WRITECACHE_BASE[(arcade_byte_offset >> 1)];
+            VDP_DATA_PORT =
+                EXSSF_WRITECACHE_BASE[(arcade_byte_offset >> 1) + 1];
+
+            /* Clear this bit from the local copy */
+            dirty_word &= dirty_word - 1UL;   /* clear lowest set bit */
+        }
+
+        /* All bits in this group flushed — clear the bitmap entry */
+        g_shadow.dirty_words[i] = 0;
+    }
+
+    s_flush_cursor = 0;   /* reset for next frame */
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 5: WRITE-VALUE CACHE UPDATE — shadow_write16 FINAL VERSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/*
+ * Update shadow_write16 to also populate the EX-SSF write-value cache
+ * so the delta flush in Section 4 (Option C) has values to send.
+ *
+ * This is the single authoritative write intercept for Build 93.
+ * Replace all direct writes to C-Window addresses with this call.
+ */
+
+static inline void shadow_write16(uint32_t arcade_addr, uint16_t value)
+{
+    uint32_t offset;
+
+    if (arcade_addr < CWIN_BASE || arcade_addr >= CWIN_END)
+        return;
+
+    offset = arcade_addr - CWIN_BASE;
+
+    /* 1. Mark dirty (all pages) */
+    DIRTY_SET(offset);
+
+    /* 2. Write value to EX-SSF cache for delta flush reconstruction */
+    EXSSF_WRITECACHE_BASE[offset >> 1] = value;
+
+    /* 3. Page2 only: also write to WRAM shadow for read-back correctness */
+    if (arcade_addr >= PAGE2_ARCADE_BASE && arcade_addr < PAGE2_ARCADE_END) {
+        uint32_t page2_offset = arcade_addr - PAGE2_ARCADE_BASE;
+        g_shadow.page2_shadow[page2_offset >> 1] = value;
+    }
+}
+
+/*
+ * NOTE ON EX-SSF TIMING:
+ * Writing to EX-SSF (0x400000, PSRAM) on every shadow_write16 call
+ * adds ~2-3 extra bus cycles per intercept compared to a WRAM write.
+ * For the 549-frame write density in the profile (8192 unique words per
+ * page per frame pass), this is acceptable. If profiling in Build 94
+ * shows CPU budget overrun in game logic, consider batching EX-SSF
+ * updates: write only to the dirty bitmap + page2 shadow in game logic,
+ * and reconstruct values from the arcade data structures at flush time
+ * (Option B above). The EX-SSF path is the safe Build 93 default.
+ */
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 6: STACK RELOCATION — specs/ ENTRY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add to specs/startup_title_remap.json:
+
+{
+  "stack_relocation": {
+    "note": "Build 93 — hybrid delta shadow frees 46KB WRAM",
+    "old_ssp": "0xFF2DDA",
+    "new_ssp": "0xFFFF00",
+    "rationale": "Page2-only shadow (16KB) + dirty bitmap (2KB) = 18KB total. Freed 46KB gives stack safe descent space. 0xFFFF00 is standard SGDK top-of-WRAM stack init.",
+    "patch_site": "startup_trampoline.s — MOVE.L #0xFFFF00, SP at entry"
+  }
+}
+
+In startup_trampoline.s, replace the current SP initialisation with:
+
+    ; Build 93 — stack relocated above C-shadow region
+    MOVE.L  #0xFFFF00, SP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 7: AGENT GUARDRAILS FOR BUILD 93 (append to AGENTS.md)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## Build 93 — Hybrid Delta Shadow constraints
+
+- The single source of truth for shadow layout is dirty_bitmap.h.
+  Do not allocate new WRAM buffers for C-Window pages 0, 1, or 3.
+  Only page2_shadow[] in HybridShadow is the authorised WRAM shadow.
+
+- EX-SSF write-value cache lives at 0x400000 (cartridge PSRAM).
+  Do not place time-critical data structures there (stack, ISR state).
+  Sound buffers may go there; use double-buffering (fill in main loop,
+  swap pointer in VBlank).
+
+- shadow_write16() is the only legal write path to C-Window addresses.
+  grep for direct assignments to 0xC0xxxx addresses before each commit.
+
+- delta_flush_to_vdp() must be the first call inside the VBlank ISR,
+  before SGDK's own DMA queue flush. Order matters for VRAM coherency.
+
+- The 16 sparse reads in page2 (offsets 0x1336–0x1EA3, stride ~0x200)
+  are the known read-back sites. If shadow_read16() asserts on a page0/
+  1/3 address, that is a new cold-path read. DO NOT suppress the assert.
+  File a trace note, re-run rastantrace.lua with the new scenario, and
+  decide whether that page needs a shadow before shipping Build 93.
+
+- Do not change VRAM_CWIN_BASE without updating docs/project/
+  startup_title_remap_plan.md and regenerating the VRAM layout diagram.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+END OF BUILD 93 SPECIFICATION
+================================================================================
+```
