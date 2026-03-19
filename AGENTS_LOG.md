@@ -2470,3 +2470,48 @@ revised before any implementation proceeds.
 Awaiting Cody's answers to Q5-Q10. Do not authorise Step 1
 until all five blocked questions are resolved and this log
 is updated with confirmed values.
+
+## [Architect Note - Build 93 Write-Only Classification Caveat]
+## Source: Claude (Lead Architect, this session)
+
+### Critical Clarification: Write-Only Means 68000-Write-Only
+
+The ram_usage_profile.json write-only classification for pages
+0, 1, and 3 reflects ONLY the 68000's access pattern as captured
+by address_space_taps on the 68000 bus. It does not and cannot
+reflect reads by other hardware on the arcade board.
+
+On the original Taito arcade hardware the following additional
+bus masters read from C-Window RAM autonomously:
+
+  PC080SN tile generator chip: reads tilemap data each scanline
+  PC090OJ sprite chip: reads sprite attribute tables each frame
+  Z80 sound CPU: may read shared mailbox regions
+
+These reads are invisible to the MAME Lua tracer because they
+occur on separate hardware paths not hooked by address_space_taps.
+
+### Implication for Delta Flush
+
+The VDP delta flush is the functional replacement for the arcade
+video chips' autonomous RAM reads. It is not optional and not
+merely an optimisation. A missed dirty bit or stale flush means
+the VDP renders from outdated data — wrong tiles, wrong sprites,
+corrupted screen. Silent failure with no 68000 read-back to
+surface the error.
+
+### Implication for Shadow Removal
+
+Pages 0, 1, and 3 being 68000-write-only does not reduce their
+importance. It means the 68000 writes them and the video hardware
+consumes them. The flush path correctness requirement is higher
+for these pages than for page 2, not lower, because there is no
+68000 read-back path to catch a flush error.
+
+### No Architecture Change Required
+
+The Hybrid Delta Shadow + dirty bitmap approach remains correct.
+This note is a confidence and testing requirement, not a redesign.
+The delta flush must be validated against known good arcade output
+frame-by-frame before pages 0/1/3 shadow removal is considered
+complete.
