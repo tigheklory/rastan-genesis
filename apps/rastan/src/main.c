@@ -181,15 +181,27 @@ static const MenuItem menu_items[MENU_COUNT] = {
     {"START RASTAN", NULL, "LAUNCH THE RASTAN STARTUP AND GAME FLOW.", "", 0},
 };
 
+typedef struct {
+    uint16_t rastan_font_tile_buffer[1024];
+    uint16_t frontend_runtime_sprite_tile_buffer[256];
+    uint16_t frontend_runtime_sprite_codes[128];
+    char     status_line[80];
+    /* Add any other scrubbed launcher globals here! */
+} LauncherRuntime;
+
+union WramOverlay {
+    uint16_t engine_shadow_wram[16384]; /* 32KB Arcade Block */
+    LauncherRuntime launcher;
+} __attribute__((aligned(4)));
+
+union WramOverlay wram_overlay;
+extern union WramOverlay wram_overlay;
+
 volatile u8 rastan_virtual_dip1 = FACTORY_DIP1;
 volatile u8 rastan_virtual_dip2 = FACTORY_DIP2;
 static u8 selected_menu = 0;
 static UndoState undo_state = {0, 0, FALSE};
-static char status_line[SCREEN_W + 1] = "READY";
-static u32 rastan_font_tile_buffer[FONT_LEN * 8];
 static u32 *graphics_test_tile_buffer = NULL;
-static u32 frontend_runtime_sprite_tile_buffer[FRONTEND_RUNTIME_MAX_UNIQUE_CODES * 4 * 8];
-static u16 frontend_runtime_sprite_codes[FRONTEND_RUNTIME_MAX_UNIQUE_CODES];
 static AppScreen current_screen = SCREEN_CONFIG;
 static u16 graphics_page = 0;
 static GraphicsRegion graphics_region = GRAPHICS_REGION_PC080SN;
@@ -199,7 +211,6 @@ static u8 sound_test_last_command = 0x00;
 static bool sound_test_has_triggered = FALSE;
 static volatile u32 packed_romset_size_cache = 0;
 static volatile u32 packed_romset_signature_cache = 0;
-uint16_t shadow_pages_0_1_wram[16384];
 
 typedef struct
 {
@@ -259,9 +270,9 @@ static const RastanFontGlyph rastan_font_glyphs[] = {
 static void build_rastan_font(void)
 {
     u16 i;
-    u8 *dst = (u8 *) rastan_font_tile_buffer;
+    u8 *dst = (u8 *) wram_overlay.launcher.rastan_font_tile_buffer;
 
-    memset(rastan_font_tile_buffer, 0, sizeof(rastan_font_tile_buffer));
+    memset(wram_overlay.launcher.rastan_font_tile_buffer, 0, sizeof(wram_overlay.launcher.rastan_font_tile_buffer));
 
     for (i = 0; i < sizeof(rastan_font_glyphs) / sizeof(rastan_font_glyphs[0]); i++)
     {
@@ -334,7 +345,7 @@ void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
 
         if (linear_index < SHADOW_WRAM_TOTAL_WORDS)
         {
-            shadow_pages_0_1_wram[linear_index] = value;
+            wram_overlay.engine_shadow_wram[linear_index] = value;
         }
 
         return;
@@ -360,7 +371,7 @@ uint16_t shadow_read16(uint8_t page, uint16_t offset)
 
         if (linear_index < SHADOW_WRAM_TOTAL_WORDS)
         {
-            return shadow_pages_0_1_wram[linear_index];
+            return wram_overlay.engine_shadow_wram[linear_index];
         }
 
         return 0;
@@ -518,9 +529,9 @@ static void draw_padded_text_palette(const char *text, u16 x, u16 y, u16 width, 
 
 static void set_status(const char *text)
 {
-    strncpy(status_line, text, SCREEN_W);
-    status_line[SCREEN_W] = '\0';
-    draw_padded_text(status_line, 0, 27, SCREEN_W);
+    strncpy(wram_overlay.launcher.status_line, text, SCREEN_W);
+    wram_overlay.launcher.status_line[SCREEN_W] = '\0';
+    draw_padded_text(wram_overlay.launcher.status_line, 0, 27, SCREEN_W);
 }
 
 static void save_undo_state(void)
@@ -746,7 +757,7 @@ static void restore_launcher_vdp_state(void)
     PAL_setPalette(PAL3, rastan_selected_font_palette, CPU);
     VDP_setTextPalette(PAL1);
     build_rastan_font();
-    VDP_loadFontData(rastan_font_tile_buffer, FONT_LEN, CPU);
+    VDP_loadFontData((const u32 *)wram_overlay.launcher.rastan_font_tile_buffer, FONT_LEN, CPU);
     VDP_loadTileSet(&rastan_dip_on, DIP_TILE_ON_INDEX, CPU);
     VDP_loadTileSet(&rastan_dip_off, DIP_TILE_OFF_INDEX, CPU);
     VDP_updateSprites(0, CPU);
@@ -766,7 +777,7 @@ static void render_full_screen(void)
     }
 
     render_help_panel();
-    set_status(status_line);
+    set_status(wram_overlay.launcher.status_line);
 }
 
 static u16 get_graphics_test_page_count(void)
@@ -1014,14 +1025,14 @@ static void render_sound_test_screen(void)
     draw_padded_text("A B C TRIGGER", 12, 21, 14);
     draw_padded_text("START BACK", 14, 22, 10);
     draw_padded_text("READY TO HOOK INTO SOUND LATCH", 5, 24, 30);
-    draw_padded_text(status_line, 0, 27, SCREEN_W);
+    draw_padded_text(wram_overlay.launcher.status_line, 0, 27, SCREEN_W);
 }
 
 static void enter_sound_test(void)
 {
     current_screen = SCREEN_SOUND_TEST;
-    strncpy(status_line, "SOUND TEST", SCREEN_W);
-    status_line[SCREEN_W] = '\0';
+    strncpy(wram_overlay.launcher.status_line, "SOUND TEST", SCREEN_W);
+    wram_overlay.launcher.status_line[SCREEN_W] = '\0';
     render_sound_test_screen();
 }
 
@@ -1040,8 +1051,8 @@ static void trigger_sound_test_command(void)
     sound_test_last_command = rastan_virtual_sound_command;
     sound_test_has_triggered = TRUE;
     sprintf(line, "COMMAND %02X QUEUED", rastan_virtual_sound_command);
-    strncpy(status_line, line, SCREEN_W);
-    status_line[SCREEN_W] = '\0';
+    strncpy(wram_overlay.launcher.status_line, line, SCREEN_W);
+    wram_overlay.launcher.status_line[SCREEN_W] = '\0';
     render_sound_test_screen();
 }
 
@@ -1114,12 +1125,12 @@ static void render_startup_preview_screen(void)
     }
 
     draw_padded_text("A/START RERUN   B/C BACK", 7, 26, 26);
-    draw_padded_text(status_line, 0, 27, SCREEN_W);
+    draw_padded_text(wram_overlay.launcher.status_line, 0, 27, SCREEN_W);
 #else
     VDP_clearPlane(BG_A, TRUE);
     VDP_clearPlane(BG_B, TRUE);
     draw_padded_text("NO HOOK PREVIEW IN PAYLOAD BUILD", 4, 12, 32);
-    draw_padded_text(status_line, 0, 27, SCREEN_W);
+    draw_padded_text(wram_overlay.launcher.status_line, 0, 27, SCREEN_W);
 #endif
 }
 
@@ -1192,7 +1203,7 @@ static s16 frontend_runtime_tile_for_code(u16 code, u16 *unique_count)
 
     for (i = 0; i < *unique_count; i++)
     {
-        if (frontend_runtime_sprite_codes[i] == code)
+        if (wram_overlay.launcher.frontend_runtime_sprite_codes[i] == code)
         {
             return (s16)(FRONTEND_RUNTIME_SPRITE_TILE_BASE + (i * 4));
         }
@@ -1203,10 +1214,10 @@ static s16 frontend_runtime_tile_for_code(u16 code, u16 *unique_count)
         return -1;
     }
 
-    frontend_runtime_sprite_codes[*unique_count] = code;
+    wram_overlay.launcher.frontend_runtime_sprite_codes[*unique_count] = code;
     frontend_decode_pc090oj_cell(
         code,
-        frontend_runtime_sprite_tile_buffer + ((u32)(*unique_count) * 4 * 8)
+        ((u32 *)wram_overlay.launcher.frontend_runtime_sprite_tile_buffer) + ((u32)(*unique_count) * 4 * 8)
     );
     (*unique_count)++;
 
@@ -1249,7 +1260,7 @@ static void render_frontend_sprite_layer(void)
     u16 sprite_count = 0;
     u16 offs;
 
-    memset(frontend_runtime_sprite_tile_buffer, 0, sizeof(frontend_runtime_sprite_tile_buffer));
+    memset(wram_overlay.launcher.frontend_runtime_sprite_tile_buffer, 0, sizeof(wram_overlay.launcher.frontend_runtime_sprite_tile_buffer));
 
     for (offs = 0; offs < 0x0400; offs += 4)
     {
@@ -1299,7 +1310,7 @@ static void render_frontend_sprite_layer(void)
     if (unique_count > 0)
     {
         VDP_loadTileData(
-            frontend_runtime_sprite_tile_buffer,
+            (const u32 *)wram_overlay.launcher.frontend_runtime_sprite_tile_buffer,
             FRONTEND_RUNTIME_SPRITE_TILE_BASE,
             unique_count * 4,
             CPU
@@ -1450,10 +1461,7 @@ static void scrub_launcher_runtime_buffers(void)
         graphics_test_tile_buffer = NULL;
     }
 
-    memset(rastan_font_tile_buffer, 0, sizeof(rastan_font_tile_buffer));
-    memset(frontend_runtime_sprite_tile_buffer, 0, sizeof(frontend_runtime_sprite_tile_buffer));
-    memset(frontend_runtime_sprite_codes, 0, sizeof(frontend_runtime_sprite_codes));
-    memset(status_line, 0, sizeof(status_line));
+    memset(wram_overlay.engine_shadow_wram, 0, sizeof(wram_overlay.engine_shadow_wram));
 }
 
 static u32 get_packed_romset_size(void)
@@ -1499,8 +1507,8 @@ static void reset_launcher_runtime_state(void)
     rastan_virtual_sound_pending = FALSE;
     sound_test_last_command = 0x00;
     sound_test_has_triggered = FALSE;
-    strncpy(status_line, "READY", SCREEN_W);
-    status_line[SCREEN_W] = '\0';
+    strncpy(wram_overlay.launcher.status_line, "READY", SCREEN_W);
+    wram_overlay.launcher.status_line[SCREEN_W] = '\0';
 }
 
 int main(bool hardReset)

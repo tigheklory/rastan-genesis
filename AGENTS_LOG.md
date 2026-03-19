@@ -969,3 +969,42 @@ To make this fix real:
 ### Consultant Verdict
 **APPROVED FOR IMPLEMENTATION**
 with the recommendation to add explicit `aligned(2)` or preferably `aligned(4)` to the overlay symbol for future-proofing.
+
+## [Implementer Update - Build 92]
+```text
+Build Command: ./tools/release_build.sh 92
+Build Result: SUCCESS (artifacts generated in dist/build_92 and dist/Rastan_92.bin)
+Exact address of wram_overlay: 0xE0FF006C
+Exact address of _bend: 0xE0FFD226
+Exact address of __stack: 0xE1000000
+Hex distance (__stack - _bend): 0x00002DDA
+Pass/Fail Status (Gap must be >= 0x4000): FAIL
+```
+- **Visual Evidence (MAME):** Screenshot saved as `B92_MAME_In-Game_20260319_0055.png` (Stage: In-Game)
+- **Visual Evidence (MAME):** Screenshot saved as `B92_MAME_In-Game_20260319_0056.png` (Stage: In-Game)
+
+### MAME Exit Summary (2026-03-19 00:58:12)
+- Final PC: 0x20A390
+- Stack Pointer (SP): 0xFFFFFFA0
+- Unique Unmapped Memory Addresses (4): 0x00FFA596, 0x0020A596, 0x2700A596, 0x00000000
+- **Visual Evidence (MAME):** Screenshot saved as `B92_MAME_Launcher_20260319_0059.png` (Stage: Launcher)
+
+### MAME Exit Summary (2026-03-19 01:00:10)
+- Final PC: 0x03B314
+- Stack Pointer (SP): 0xE0395912
+- Unique Unmapped Memory Addresses (2): 0x0020A596, 0x00000000
+
+### MAME Exit Summary (2026-03-19 01:01:12)
+- Final PC: 0xAFE65A
+- Stack Pointer (SP): 0xE037A604
+- Unique Unmapped Memory Addresses (2): 0x0020A596, 0x00000000
+- **Visual Evidence (BlastEm):** Screenshot saved as `B92_BlastEm_Launcher_20260319_0103.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B92_BlastEm_In-Game_20260319_0104.png` (Stage: In-Game)
+
+## [Tighe's Testin results build 92]
+
+###Mame tests
+loads launcher, and buzzes and sometimes crashes when game is run.
+
+###Blastem tests
+loads launcher, game crashes on Run Rastan menu item. "M68K attempted to execute code at unmapped or I/O address 201FC8"

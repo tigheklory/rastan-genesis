@@ -70,7 +70,7 @@
     { "name": "genesis_wram", "start": "0xE0000000", "end_exclusive": "0xE1000000" }
   ],
   "required_symbols": [
-    "shadow_pages_0_1_wram",
+    "wram_overlay",
     "genesistan_arcade_workram_words",
     "genesistan_shadow_d00000_words",
     "genesistan_shadow_c00000_words",
@@ -239,7 +239,7 @@
         { "old": "0x00390003", "symbol": "genesistan_shadow_input_390003" },
         { "old": "0x00390005", "symbol": "genesistan_shadow_input_390005" },
         { "old": "0x00390007", "symbol": "genesistan_shadow_input_390007" },
-        { "old": "0x00200000", "symbol": "shadow_pages_0_1_wram" },
+        { "old": "0x00200000", "symbol": "wram_overlay" },
         { "old": "0x0010C000", "symbol": "genesistan_arcade_workram_words" },
         { "old": "0x0010C002", "symbol": "genesistan_arcade_workram_words", "offset": 2 },
         { "old": "0x003C0000", "symbol": "genesistan_shadow_reg_3c0000" },
@@ -265,7 +265,7 @@
         { "old": "0x00390003", "symbol": "genesistan_shadow_input_390003" },
         { "old": "0x00390005", "symbol": "genesistan_shadow_input_390005" },
         { "old": "0x00390007", "symbol": "genesistan_shadow_input_390007" },
-        { "old": "0x00200000", "symbol": "shadow_pages_0_1_wram" },
+        { "old": "0x00200000", "symbol": "wram_overlay" },
         { "old": "0x0010C000", "symbol": "genesistan_arcade_workram_words" },
         { "old": "0x0010C002", "symbol": "genesistan_arcade_workram_words", "offset": 2 },
         { "old": "0x003C0000", "symbol": "genesistan_shadow_reg_3c0000" },
@@ -297,7 +297,7 @@
         { "old": "0x00390003", "symbol": "genesistan_shadow_input_390003" },
         { "old": "0x00390005", "symbol": "genesistan_shadow_input_390005" },
         { "old": "0x00390007", "symbol": "genesistan_shadow_input_390007" },
-        { "old": "0x00200000", "symbol": "shadow_pages_0_1_wram" },
+        { "old": "0x00200000", "symbol": "wram_overlay" },
         { "old": "0x0010C000", "symbol": "genesistan_arcade_workram_words" },
         { "old": "0x0010C002", "symbol": "genesistan_arcade_workram_words", "offset": 2 },
         { "old": "0x003C0000", "symbol": "genesistan_shadow_reg_3c0000" },
@@ -321,7 +321,7 @@
     {
       "range": "helper_200000_init",
       "mappings": [
-        { "old": "0x00200000", "symbol": "shadow_pages_0_1_wram" }
+        { "old": "0x00200000", "symbol": "wram_overlay" }
       ]
     },
     {
@@ -358,8 +358,8 @@
       "mappings": [
         { "old": "0x0010C000", "symbol": "genesistan_arcade_workram_words" },
         { "old": "0x0010D600", "symbol": "genesistan_arcade_workram_words", "offset": 5632 },
-        { "old": "0x00200000", "symbol": "shadow_pages_0_1_wram" },
-        { "old": "0x00201000", "symbol": "shadow_pages_0_1_wram", "offset": 4096 },
+        { "old": "0x00200000", "symbol": "wram_overlay" },
+        { "old": "0x00201000", "symbol": "wram_overlay", "offset": 4096 },
         { "old": "0x00390001", "symbol": "genesistan_shadow_input_390001" },
         { "old": "0x00390007", "symbol": "genesistan_shadow_input_390007" },
         { "old": "0x003C0000", "symbol": "genesistan_shadow_reg_3c0000" },
@@ -385,7 +385,7 @@
     { "range": "frontend_core", "old_start": "0x00C08000", "old_end_exclusive": "0x00C0C000", "symbol": "genesistan_shadow_c08000_words" },
     { "range": "frontend_core", "old_start": "0x00C0C000", "old_end_exclusive": "0x00C10000", "symbol": "genesistan_shadow_c0c000_words" },
     { "range": "frontend_core", "old_start": "0x0010C000", "old_end_exclusive": "0x00110000", "symbol": "genesistan_arcade_workram_words" },
-    { "range": "frontend_core", "old_start": "0x00200000", "old_end_exclusive": "0x00204000", "symbol": "shadow_pages_0_1_wram" },
+    { "range": "frontend_core", "old_start": "0x00200000", "old_end_exclusive": "0x00204000", "symbol": "wram_overlay" },
     { "range": "frontend_core", "old_start": "0x00D00000", "old_end_exclusive": "0x00D00800", "symbol": "genesistan_shadow_d00000_words" },
     { "range": "frontend_core", "old_start": "0x00C20000", "old_end_exclusive": "0x00C20004", "symbol": "genesistan_shadow_c20000_words" },
     { "range": "frontend_core", "old_start": "0x00C40000", "old_end_exclusive": "0x00C40004", "symbol": "genesistan_shadow_c40000_words" },
