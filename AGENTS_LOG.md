@@ -6011,3 +6011,77 @@ Remaining warnings:
 release_build.sh result:
 - Not run (stopped after debug failure per instruction).
 ```
+
+## [Cody - Build 96 Patcher Symbol Diagnostic]
+```text
+Diagnostic-only run. No code changes made.
+
+TASK 1
+Command:
+  grep -n "genesistan_shadow_d00000_words\|Required symbol\|symbol.txt" \
+    tools/translation/postpatch_startup_rom.py | head -30
+
+Output:
+  82:        raise RuntimeError(f"Required symbol not found in {path}: {name}")
+
+TASK 2
+Command:
+  grep "genesistan_shadow_d00000" \
+    apps/rastan/out/symbol.txt
+
+Output:
+  (no matches, grep exit code 1)
+
+TASK 3
+Command:
+  grep -n "required_symbol\|Required symbol\|symbol_map\|check_symbol" \
+    tools/translation/postpatch_startup_rom.py | head -40
+
+Output:
+  82:        raise RuntimeError(f"Required symbol not found in {path}: {name}")
+  511:    required_symbols = tuple(spec.get("required_symbols", []))
+  549:    symbol_addresses = parse_symbol_table(symbols_path, required_symbols)
+
+TASK 4
+Command:
+  python3 -c "
+  import json
+  d = json.load(open('specs/startup_title_remap.json'))
+  for s in d.get('required_symbols', []):
+      print(s)
+  "
+
+Output (required_symbols list):
+  wram_overlay
+  genesistan_arcade_workram_words
+  genesistan_shadow_d00000_words
+  genesistan_shadow_c00000_words
+  genesistan_shadow_c04000_words
+  genesistan_shadow_c08000_words
+  genesistan_shadow_c0c000_words
+  genesistan_shadow_c20000_words
+  genesistan_shadow_c40000_words
+  genesistan_shadow_reg_c50000
+  genesistan_shadow_reg_d01bfe
+  genesistan_shadow_reg_350008
+  genesistan_shadow_reg_380000
+  genesistan_shadow_reg_3c0000
+  genesistan_shadow_input_390001
+  genesistan_shadow_input_390003
+  genesistan_shadow_input_390005
+  genesistan_shadow_input_390007
+  genesistan_shadow_reg_3e0001
+  genesistan_shadow_reg_3e0003
+  genesistan_shadow_dip1
+  genesistan_shadow_dip2
+  genesistan_shadow_service_word
+  genesistan_startup_result_code
+  genesistan_sound_send_command
+  genesistan_sound_read_status
+  genesistan_run_original_startup_common
+  genesistan_run_original_frontend_tick
+  genesistan_startup_common_continue_normal
+  genesistan_startup_common_exit_normal
+  genesistan_startup_common_exit_test
+  _reset_entry
+```
