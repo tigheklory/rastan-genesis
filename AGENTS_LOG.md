@@ -4000,3 +4000,56 @@ Cody proceeds to Target 2.
 - **Visual Evidence (BlastEm):** Screenshot saved as `B94.1_BlastEm_Launcher_20260319_2043.png` (Stage: Launcher)
 - **Visual Evidence (BlastEm):** Screenshot saved as `B94.1_BlastEm_Launcher_20260319_2045.png` (Stage: Launcher)
 - **Visual Evidence (BlastEm):** Screenshot saved as `B94.1_BlastEm_In-Game_20260319_2045.png` (Stage: In-Game)
+
+## [Supervisor - Tighe] Build 94.1 Test Results
+- Graphics test: FAILS on MAME and BlastEm
+  Error: "Not enough free WRAM"
+  Cause: engine_shadow_wram (32KB) restored to union
+  leaves insufficient heap space for graphics test
+  tile buffer allocation (6,336 bytes needed).
+- In-game MAME: black screen, buzzing, eventual crash
+  Final PC: 0x1DAFAE
+  Unmapped: 0x0020A8B6 (SRAM space, offset 0xA8B6)
+- In-game BlastEm: full emulator lockup, no error
+
+## [Technical Lead - Build 94.1 Failure Analysis]
+## Source: Claude (Project Technical Lead)
+
+### Two Separate Problems
+
+PROBLEM 1: Graphics test heap exhaustion.
+  engine_shadow_wram (32KB) back in BSS leaves only
+  7.5KB headroom. Graphics test needs 6,336 bytes
+  from SGDK heap in that space. Allocation fails.
+  This is a direct consequence of restoring the union.
+
+PROBLEM 2: In-game crash still occurring.
+  0x0020A8B6 = SRAM address 0x200000 + 0xA8B6.
+  68000 PC still entering SRAM space during game.
+  Buzzing Z80 and BlastEm lockup match Build 90
+  failure pattern exactly.
+
+### Diagnostic Hypothesis
+
+tilemap_cache_get() fires up to 4096 DMA calls on
+a cold frame inside the game loop. SGDK DMA queue
+may overflow or cause bus arbitration issues during
+arcade code execution. VDP_waitDMACompletion() at
+end of render loop may be insufficient if queue fills
+during the loop itself.
+
+### Diagnostic Action
+
+Disable render_frontend_tilemap_layer() call in main
+loop (comment out). Rebuild. Test. If game runs
+without crash (sprites only, no backgrounds), the
+tilemap renderer DMA loop is confirmed as crash source
+and a precise fix will be issued.
+
+If game still crashes with tilemap disabled, a
+different root cause exists and deeper analysis needed.
+
+### Pending
+
+Awaiting diagnostic build result from Cody.
+No implementation changes until diagnosis confirmed.
