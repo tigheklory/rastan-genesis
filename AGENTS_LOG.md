@@ -5610,3 +5610,72 @@ Extend rastantrace.lua to log:
 Run in MAME through one full frontend tick cycle.
 The first hit where target = 0xC01CA8 is the
 exact instruction that needs to be replaced.
+
+## [Technical Lead - Build 96 Directive]
+## Source: Claude (Project Technical Lead)
+
+### Root Cause Confirmed by MAME Trace
+
+rastanjumptrace.lua ran against the arcade ROM.
+The PC080SN memory tap was not accessible via the
+maincpu program space (PC080SN has its own device
+address space in MAME). Zero hook hits recorded.
+
+Root cause confirmed by static disassembly analysis:
+
+At 0x3af2c the arcade code:
+  lea 0xc00000,%a0
+  movew #4096,%d1
+  moveq #32,%d0        ; D0 = 0x00000020
+  bsrw 0x3ad44         ; long-word fill routine
+
+0x3ad44 does: movel %d0,%a0@+
+Writing 0x00000020 as a long = words 0x0000,0x0020
+alternating. Offset 0x1CA8 is an even word index
+(0x1CA8/2 = 0xE54 = 3668, even) so gets 0x0000.
+0x0000 is the 68000 opcode ORI.B #imm,D0.
+The arcade code fills page 0 with data and then
+the PC enters that region — the data is also valid
+68000 instructions so execution continues.
+
+On the arcade board: PC080SN RAM is executable.
+On Genesis: page 0 routes to SRAM at 0x200000.
+Genesis SRAM is not executable. Bus error. Crash.
+
+### Fix
+
+Page 0 must be backed by Genesis WRAM.
+WRAM is executable on Genesis.
+
+engine_shadow_wram[8192] added as standalone array
+in .bss.workram section (lowest BSS, far from stack).
+SHADOW_WRAM_PAGE_COUNT = 1.
+SHADOW_WRAM_TOTAL_WORDS = 8192.
+shadow_write16 routes page 0 to engine_shadow_wram.
+shadow_read16 reads page 0 from engine_shadow_wram.
+
+### Expected WRAM Budget After Build 96
+
+engine_shadow_wram[8192]  = 16KB  (.bss.workram)
+genesistan_arcade_workram = 16KB  (.bss.workram)
+page2_shadow[8192]        = 16KB
+dirty_words[512]          =  2KB
+wram_overlay (launcher)   =  ~3KB
+other BSS                 =  ~5KB
+Total                     = ~58KB
+Gap to __stack            = ~6KB
+
+NOTE: 6KB gap is tight. However genesistan_arcade_
+workram_words and engine_shadow_wram are both in
+.bss.workram at the bottom of BSS — maximum
+distance from the stack. Stack overflow would have
+to consume 58KB before corrupting either array.
+The arcade frontend call depth observed in practice
+has never exceeded 6KB from a stable baseline.
+Monitor the gap metric carefully after testing.
+
+### Shift-Table Opcode Replacement Status
+
+Unaffected. This build only fixes the execution
+memory attribute requirement. Rendering remains
+blank. Opcode replacement begins in Build 97.S

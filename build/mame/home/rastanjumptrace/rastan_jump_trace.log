@@ -1,0 +1,5 @@
+==== rastanjumptrace start rom=rastan game=Rastan (World Rev 1) target=0xC01CA8 ====
+write tap install FAILED - will rely on frame sampling only
+C-Window page 0 read/fetch tap installed
+rastanjumptrace armed
+==== rastanjumptrace stop ====

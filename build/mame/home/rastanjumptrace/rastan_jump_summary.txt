@@ -1,0 +1,11 @@
+frames_run=1559
+indirect_branches_seen=0
+indirect_branches_to_cwin=0
+indirect_branches_to_sram=0
+cwin_exec_hits=0
+cwin_writes_near_target=0
+cwin_writes_total=0
+max_frames_limit=3600
+TARGET_FOUND=NO
+NOTE: target 0xC01CA8 was not seen as a branch target during this run.
+      Check CWIN_EXEC and CWIN_WRITE lines in the log for execution from C-Window.
