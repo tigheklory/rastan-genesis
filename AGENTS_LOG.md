@@ -4082,3 +4082,15 @@ different root cause exists and deeper analysis needed.
 
 Awaiting diagnostic build result from Cody.
 No implementation changes until diagnosis confirmed.
+- **Visual Evidence (MAME):** Screenshot saved as `B94.2_MAME_Launcher_20260319_2056.png` (Stage: Launcher)
+- **Visual Evidence (MAME):** Screenshot saved as `B94.2_MAME_Launcher_20260319_2057.png` (Stage: Launcher)
+- **Visual Evidence (MAME):** Screenshot saved as `B94.2_MAME_In-Game_20260319_2058.png` (Stage: In-Game)
+
+### MAME Exit Summary (2026-03-19 20:58:08)
+- Final PC: 0xC3C442
+- Stack Pointer (SP): 0xE0393BD4
+- Unique Unmapped Memory Addresses (4): 0x0000A5D2, 0x0020A5D2, 0x2700A5D2, 0x00000000
+- **Visual Evidence (BlastEm):** Screenshot saved as `B94.2_BlastEm_In-Game_20260319_2059.png` (Stage: In-Game)
+
+### Blastem Crash Message
+ - M68K attempted to execute code at unmapped or I/O address 202004
