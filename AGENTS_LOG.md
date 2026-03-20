@@ -3944,6 +3944,35 @@ Linker symbol map values (apps/rastan/out/symbol.txt):
 
 Build result: SUCCESS
 ```
+
+## [Cody - Build 94 Diagnostic, Tilemap Disabled]
+```text
+Diagnostic scope executed exactly as requested.
+
+Change made (single line in apps/rastan/src/main.c):
+- In SCREEN_FRONTEND_LIVE loop, commented out tilemap render call:
+  /* render_frontend_tilemap_layer(); */ /* DISABLED B94 DIAG */
+
+Requested build commands:
+- source tools/setup_env.sh
+- make -C apps/rastan release
+- ./tools/release_build.sh 94
+
+Build result:
+- make -C apps/rastan release: SUCCESS
+- ./tools/release_build.sh 94: SUCCESS
+- Output artifact: dist/Rastan_94.bin (and dist/build_94/)
+
+Compiler notes:
+- Warning observed due to intentional diagnostic disable:
+  render_frontend_tilemap_layer defined but not used
+  (-Wunused-function)
+
+No other changes made:
+- No files edited other than:
+  - apps/rastan/src/main.c (single-line diagnostic comment)
+  - AGENTS_LOG.md (this required report entry)
+```
 ## [Technical Lead Review - Build 94 Crash Fix Approved]
 ## Source: Claude (Project Technical Lead)
 

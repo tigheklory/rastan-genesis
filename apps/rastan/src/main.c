@@ -1793,7 +1793,7 @@ int main(bool hardReset)
         {
             genesistan_refresh_arcade_inputs();
             genesistan_run_original_frontend_tick();
-            render_frontend_tilemap_layer();
+            /* render_frontend_tilemap_layer(); */ /* DISABLED B94 DIAG */
             render_frontend_sprite_layer();
         }
         else if (current_screen == SCREEN_STARTUP_PREVIEW)
