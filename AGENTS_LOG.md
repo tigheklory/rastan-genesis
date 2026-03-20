@@ -6152,3 +6152,158 @@ The volatile keyword prevents compiler optimisation.
 This is the correct pattern for forcing linker
 symbol retention without changing the runtime
 behaviour.
+
+## [Cody - Build 96 Symbol Table Diagnostic]
+```text
+Re-read AGENTS_LOG.md from disk before starting and before appending.
+Diagnostic only; no code changes made.
+
+Commands run:
+1) source tools/setup_env.sh
+2) make -C apps/rastan debug 2>/dev/null || true
+3) grep -i "shadow_d000\|d00000\|genesistan_shadow_d" apps/rastan/out/symbol.txt
+4) head -5 apps/rastan/out/symbol.txt
+5) grep "genesistan_arcade_workram" apps/rastan/out/symbol.txt
+6) sed -n '70,95p' tools/translation/postpatch_startup_rom.py
+
+Findings:
+- symbol grep for d000/shadow_d000:
+  (no output; grep exit 1)
+
+- head -5 apps/rastan/out/symbol.txt:
+  00000000 t _Start_Of_Rom	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:334
+  00000000 t _Vecteurs_68K	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:334
+  00000000 A __DYNAMIC
+  00000020 a font_pal_default_data_size
+  00000020 a sgdk_logo_palette_data_size
+
+- genesistan_arcade_workram symbol:
+  e0ff004a B genesistan_arcade_workram_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:10
+
+- postpatch_startup_rom.py lines 70-95 (symbol lookup path):
+      if required_names is None:
+          return symbols
+
+      resolved: dict[str, int] = {}
+      for name in required_names:
+          if name in symbols:
+              resolved[name] = symbols[name]
+              continue
+          alt_name = f"_{name}"
+          if alt_name in symbols:
+              resolved[name] = symbols[alt_name]
+              continue
+          raise RuntimeError(f"Required symbol not found in {path}: {name}")
+
+      return resolved
+```
+
+## [Cody - Build 96 Symbol Used Attribute Fix]
+```text
+Re-read AGENTS_LOG.md from disk before starting and before appending.
+
+Requested one-file change applied in:
+- apps/rastan/src/startup_bridge.c
+
+Changes made:
+- Added __attribute__((used)) to each listed symbol declaration:
+  - genesistan_shadow_d00000_words
+  - genesistan_shadow_c20000_words
+  - genesistan_shadow_c40000_words
+  - genesistan_shadow_reg_c50000
+  - genesistan_shadow_reg_d01bfe
+  - genesistan_shadow_reg_350008
+  - genesistan_shadow_reg_380000
+  - genesistan_shadow_reg_3c0000
+  - genesistan_shadow_input_390001
+  - genesistan_shadow_input_390003
+  - genesistan_shadow_input_390005
+  - genesistan_shadow_input_390007
+  - genesistan_shadow_reg_3e0001
+  - genesistan_shadow_reg_3e0003
+  - genesistan_shadow_dip1 (after initializer)
+  - genesistan_shadow_dip2 (after initializer)
+  - genesistan_shadow_service_word (after initializer)
+  - genesistan_startup_result_code (after initializer)
+  - genesistan_sound_last_command
+  - genesistan_sound_last_low_nibble
+  - genesistan_sound_last_high_nibble
+  - genesistan_sound_status
+  - genesistan_sound_command_count
+- Updated genesistan_anchor_required_symbols() to use address-of for the 4 uint8_t input symbols:
+  - &genesistan_shadow_input_390001
+  - &genesistan_shadow_input_390003
+  - &genesistan_shadow_input_390005
+  - &genesistan_shadow_input_390007
+
+Build commands run:
+- source tools/setup_env.sh
+- make -C apps/rastan clean
+- make -C apps/rastan debug
+
+Build result:
+- DEBUG FAILED (stopped per instruction; release/release_build not run)
+- Exact compile errors:
+  - src/startup_bridge.c:42:5: error: expected ',' or ';' before '__attribute__'
+  - src/startup_bridge.c:44:5: error: expected ',' or ';' before '__attribute__'
+  - src/startup_bridge.c:46:5: error: expected ',' or ';' before '__attribute__'
+  - src/startup_bridge.c:48:5: error: expected ',' or ';' before '__attribute__'
+- Follow-on failure from make debug:
+  - postpatch_startup_rom.py FileNotFoundError for apps/rastan/out/symbol.txt
+    (because compile failed before symbol generation)
+
+release_build.sh result:
+- Not run (debug failed).
+
+Any remaining warnings:
+- None reported beyond the compile errors above in this run.
+
+Gap __stack - _bend:
+- Not available (no symbol.txt/map produced due compile failure).
+```
+
+## [Cody - Build 96 Symbol Used Attribute Fix]
+```text
+Re-read AGENTS_LOG.md from disk before starting and before appending.
+
+Scope:
+- One-file change only: apps/rastan/src/startup_bridge.c
+- No build architecture changes made.
+
+Applied updates in startup_bridge.c:
+- Kept __attribute__((used)) on all requested disappearing symbols.
+- Kept address-of fixes in genesistan_anchor_required_symbols() for:
+  - &genesistan_shadow_input_390001
+  - &genesistan_shadow_input_390003
+  - &genesistan_shadow_input_390005
+  - &genesistan_shadow_input_390007
+- Corrected initializer declaration syntax for these four to valid GCC form:
+  - genesistan_shadow_dip1
+  - genesistan_shadow_dip2
+  - genesistan_shadow_service_word
+  - genesistan_startup_result_code
+
+Build commands run:
+- source tools/setup_env.sh
+- make -C apps/rastan clean
+- make -C apps/rastan debug
+
+Build result:
+- DEBUG FAILED
+- Exact failure:
+  RuntimeError: Required symbol not found in
+  /home/tighe/projects/rastan-genesis/apps/rastan/out/symbol.txt:
+  genesistan_shadow_d00000_words
+  (raised by tools/translation/postpatch_startup_rom.py)
+
+release_build.sh result:
+- Not run (debug failed; stopped per instruction).
+
+Any remaining warnings:
+- None reported in this run.
+
+Gap __stack - _bend (available from generated symbol.txt):
+- _bend:   0xE0FF5D60
+- __stack: 0xE1000000
+- Gap:     0xA2A0 (41632 bytes)
+```
