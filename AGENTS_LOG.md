@@ -3658,4 +3658,76 @@ Cache must be invalidated whenever VDP VRAM is reset:
   - tilemap_cache_init() in leave_startup_preview()
   - tilemap_cache_init() in restore_launcher_vdp_state()
     if that path is ever called during live screen.
+
+## [Cody - Build 94 Target 1, Tilemap Renderer]
+```text
+Target 1 completed (main.c only). Target 2 not started.
+
+GRAPHICS_TEST_TILE_INDEX value: 0x14 (confirmed)
+
+Step coverage:
+- STEP 1A complete:
+  - Confirmed functions/symbols reviewed before edits:
+    - render_frontend_sprite_layer()
+    - render_graphics_test_screen()
+    - read_shadow_c_window_word(u16 linear_index)
+    - genesistan_shadow_c20000_words[] / genesistan_shadow_c40000_words[]
+- STEP 1B complete:
+  - Added translate_pc080sn_tile_word() near sprite renderer section.
+- STEP 1C complete:
+  - Added pc080sn_palette_line() helper.
+- STEP 1D complete:
+  - Added render_frontend_tilemap_layer() with PC080SN attr/code decode,
+    BG_B/BG_A writes, scroll mapping, and palette refresh.
+- STEP 1E complete:
+  - SCREEN_FRONTEND_LIVE loop order is now:
+    genesistan_refresh_arcade_inputs();
+    genesistan_run_original_frontend_tick();
+    render_frontend_tilemap_layer();
+    render_frontend_sprite_layer();
+- STEP 1F revised complete (tile streaming cache):
+  - Added constants:
+    - TILEMAP_CACHE_BASE = GRAPHICS_TEST_TILE_INDEX
+    - TILEMAP_CACHE_SIZE = 1024
+    - TILEMAP_CACHE_INVALID = 0xFFFF
+  - Added state:
+    - tilemap_cache_slots[TILEMAP_CACHE_SIZE]
+    - tilemap_cache_dirty
+  - Added cache functions:
+    - tilemap_cache_init()
+    - tilemap_cache_get()
+  - Updated translate_pc080sn_tile_word() to cache-based tile lookup.
+  - Updated render_frontend_tilemap_layer() call sites to new signature.
+  - Removed direct full-tileset preload; startup now calls tilemap_cache_init().
+  - Added cache invalidation on VDP reset transitions:
+    - leave_startup_preview()
+    - request_start_rastan() paths after restore/reset points
+    - initial launcher setup after restore_launcher_vdp_state()
+  - Added VDP_waitDMACompletion() at end of render_frontend_tilemap_layer().
+
+Build and packaging:
+- source tools/setup_env.sh
+- make -C apps/rastan debug  -> SUCCESS
+- make -C apps/rastan release -> SUCCESS
+- ./tools/release_build.sh 94 -> SUCCESS
+- Packaged output:
+  - dist/build_94/
+  - dist/Rastan_94.bin
+
+VRAM overflow status:
+- RESOLVED by tile cache streaming.
+- Full PC080SN preload (16384 tiles) is no longer attempted.
+
+Compiler warnings:
+- None observed in requested build commands.
+```
     
+- **Visual Evidence (BlastEm):** Screenshot saved as `B94_BlastEm_Launcher_20260319_2002.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B94_BlastEm_In-Game_20260319_2003.png` (Stage: In-Game)
+- **Visual Evidence (MAME):** Screenshot saved as `B94_MAME_Launcher_20260319_2004.png` (Stage: Launcher)
+- **Visual Evidence (MAME):** Screenshot saved as `B94_MAME_In-Game_20260319_2005.png` (Stage: In-Game)
+
+### MAME Exit Summary (2026-03-19 20:05:25)
+- Final PC: 0xAB3FBC
+- Stack Pointer (SP): 0xE037B116
+- Unique Unmapped Memory Addresses (2): 0x0020A88A, 0x00000000
