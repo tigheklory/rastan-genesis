@@ -3989,3 +3989,14 @@ Build 94 Crash Fix: APPROVED.
 Push to GitHub and test on MAME, BlastEm, and
 Everdrive X3. Report visual results here before
 Cody proceeds to Target 2.
+- **Visual Evidence (MAME):** Screenshot saved as `B94.1_MAME_Launcher_20260319_2041.png` (Stage: Launcher)
+- **Visual Evidence (MAME):** Screenshot saved as `B94.1_MAME_Launcher_20260319_2041.png` (Stage: Launcher)
+- **Visual Evidence (MAME):** Screenshot saved as `B94.1_MAME_In-Game_20260319_2042.png` (Stage: In-Game)
+
+### MAME Exit Summary (2026-03-19 20:42:09)
+- Final PC: 0x1DAFAE
+- Stack Pointer (SP): 0xE0393792
+- Unique Unmapped Memory Addresses (2): 0x0020A8B6, 0x00000000
+- **Visual Evidence (BlastEm):** Screenshot saved as `B94.1_BlastEm_Launcher_20260319_2043.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B94.1_BlastEm_Launcher_20260319_2045.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B94.1_BlastEm_In-Game_20260319_2045.png` (Stage: In-Game)
