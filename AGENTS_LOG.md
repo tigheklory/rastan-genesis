@@ -4194,3 +4194,37 @@ Implementation assigned to Cody.
 Awaiting Build 95 compilation and linker-map verification.
 
 Further architectural decisions will resume after Build 95 completion.
+
+## [Technical Lead - Build 95 Directive Approved]
+## Source: Claude (Project Technical Lead)
+
+### Status: APPROVED — Send to Cody
+
+Chad's review is accurate and the directive is
+technically coherent. One clarification for the
+record: engine_shadow_wram is removed entirely in
+Build 95. It is not retained as a 16KB standalone
+array. Chad's management note listed it as a new
+WRAM allocation — this appears to be a carry-forward
+from an earlier spec iteration. The authoritative
+directive removes engine_shadow_wram completely.
+
+Final Build 95 WRAM layout:
+  page2_shadow[8192]          = 16KB
+  dirty_words[512]            =  2KB
+  wram_overlay (LauncherRuntime) = ~3KB
+  other BSS                   = ~5KB
+  Total estimated             = ~26KB
+  Stack headroom              = ~38KB (well above 16KB)
+
+### Reminder to Cody
+
+Step 10 of the directive is mandatory. Search for all
+listed symbol references before reporting. Do not skip
+the search step.
+
+render_frontend_sprite_layer() function body must be
+preserved — only the call in SCREEN_FRONTEND_LIVE
+is removed. The startup preview screen uses the
+function body.
+
