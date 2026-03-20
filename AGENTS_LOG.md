@@ -4094,3 +4094,103 @@ No implementation changes until diagnosis confirmed.
 
 ### Blastem Crash Message
  - M68K attempted to execute code at unmapped or I/O address 202004
+
+## [Chad - Management Note, Build 95 Directive Alignment]
+
+### Purpose
+This note records management-level acknowledgement of the Build 95 directive issued by Claude (Project Technical Lead) and clarifies expectations for the team during this stabilization build.
+
+### Role Alignment
+Effective project authority structure:
+
+Technical Authority: Claude  
+High-Level Management / Bridge: Chad  
+Implementation: Cody  
+Human Supervisor: Tighe
+
+Claude defines architecture and implementation directives.  
+Cody executes those directives exactly.  
+Chad communicates progress and risks to Tighe and ensures Claude’s directives are transmitted accurately.  
+If any previous guidance conflicts with Claude’s directives, the conflict must be escalated to Tighe rather than independently resolved.
+
+### Build 95 Objective
+Build 95 is a **stabilization and cleanup build** whose purpose is to:
+
+1. Remove the legacy **shadow-based rendering pipeline**.
+2. Reduce WRAM pressure caused by the previous `engine_shadow_wram` allocation.
+3. Eliminate the stack collision observed in Build 91.1.
+4. Establish a clean baseline for **Build 96+ opcode replacement rendering**.
+
+This build intentionally **does not restore in-game rendering**.
+
+A blank screen during `SCREEN_FRONTEND_LIVE` is **expected behavior** and should not be considered a regression.
+
+Launcher, startup preview, graphics test, and sound test must continue to function normally.
+
+### Memory Layout Change
+The primary technical change in Build 95 is removal of the 32KB shadow rendering infrastructure.
+
+New WRAM allocations:
+
+engine_shadow_wram : 16KB (page 0 working buffer)  
+page2_shadow       : 16KB (page 2 palette readback)  
+dirty_words        :  2KB (dirty bitmap tracking)
+
+The `WramOverlay` union now contains **only the LauncherRuntime structure**, reclaiming significant WRAM previously reserved for the shadow renderer.
+
+Expected outcome:
+
+- increased `_bend → __stack` gap
+- elimination of the runtime stack collision near `0xFF2DDA`
+
+### Rendering Pipeline Status
+Rendering responsibilities are transitioning to the **Direct Opcode Replacement + Shift-Table Reflow** architecture.
+
+Under this architecture:
+
+- The Python build pipeline patches arcade hardware register writes directly in the ROM.
+- Replacement instructions emit Genesis VDP operations inline.
+- No runtime interception or shadow buffers are required.
+- The original arcade game logic remains unchanged.
+
+This architecture will be implemented starting in **Build 96**.
+
+### Expected Behavior After Build 95
+Correct behavior for Build 95:
+
+Launcher menu:                working  
+Graphics test:                working  
+Sound test:                   working  
+Startup preview scene:        working  
+Input mapping:                working  
+Z80 mailbox communication:    working  
+In-game logic loop:           running  
+In-game rendering:            intentionally blank
+
+### Implementation Risks to Watch
+The most likely issues during implementation are:
+
+1. Remaining references to:
+   - `tilemap_cache_*`
+   - `render_frontend_tilemap_layer`
+   - `wram_overlay.engine_shadow_wram`
+
+2. Failure to replace `memset(wram_overlay.engine_shadow_wram)` calls with the new standalone array clears.
+
+3. Accidentally removing `render_frontend_sprite_layer()` entirely rather than only removing the call in the live loop.
+
+Step 10 of the directive explicitly requires verifying these references.
+
+### Management Assessment
+The Build 95 directive is technically coherent and aligned with the long-term architecture.
+
+Removing the legacy shadow renderer before implementing opcode replacement simplifies the memory model and reduces WRAM pressure.
+
+This step is necessary to stabilise the project before Build 96 introduces the shift-table patching pipeline.
+
+### Status
+Directive issued by Claude.  
+Implementation assigned to Cody.  
+Awaiting Build 95 compilation and linker-map verification.
+
+Further architectural decisions will resume after Build 95 completion.
