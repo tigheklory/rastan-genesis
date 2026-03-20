@@ -5807,7 +5807,7 @@ Address report (from apps/rastan/out/symbol.txt after successful release):
 Gap:
 - __stack - _bend = 0x1E40 (7744 bytes)
 - Gap >= 0x4000 (16KB): NO
-```
+
 
 ### MAME Exit Summary (2026-03-20 01:48:38)
 - Final PC: 0x205A24
@@ -5912,3 +5912,64 @@ contain only:
   wram_overlay (LauncherRuntime)    3KB
   SGDK internals                   20KB
   Stack headroom                   25KB
+
+```
+
+## [Cody - Build 96 Revised, Skip startup_common]
+```text
+Build 96 revised implementation applied.
+
+Files changed:
+- apps/rastan/src/main.c
+- apps/rastan/src/startup_bridge.c
+- apps/rastan/inc/main.h
+- apps/rastan/src/startup_trampoline.s: no changes required
+
+Implementation confirmations:
+- startup_common is no longer called from main.c.
+  - Verified: no `genesistan_run_original_startup_common(` call in main.c.
+- request_start_rastan now does:
+  - scrub_launcher_runtime_buffers()
+  - shadow_init()
+  - genesistan_init_workram_direct(rastan_virtual_dip1, rastan_virtual_dip2)
+  - restore_launcher_vdp_state()
+  - current_screen = SCREEN_FRONTEND_LIVE
+  - clear planes and sprite layer
+- engine_shadow_wram removed from main.c.
+- page2_shadow removed from main.c.
+- dirty_words retained (2KB).
+- shadow_write16/shadow_read16 now route all pages directly to SRAM.
+- scrub_launcher_runtime_buffers now only clears dirty_words.
+- Added declaration in main.h:
+  - void genesistan_init_workram_direct(uint8_t dip1, uint8_t dip2);
+- Added implementation in startup_bridge.c:
+  - genesistan_init_workram_direct(uint8_t dip1, uint8_t dip2)
+
+Build commands executed:
+1) source tools/setup_env.sh
+2) make -C apps/rastan clean
+3) make -C apps/rastan debug
+
+Debug build result:
+- FAILED (stopped here per instruction; release/release_build not run)
+- Exact failure:
+  RuntimeError: Required symbol not found in
+  /home/tighe/projects/rastan-genesis/apps/rastan/out/symbol.txt:
+  genesistan_shadow_d00000_words
+  (from tools/translation/postpatch_startup_rom.py during make debug)
+
+Warnings seen before failure:
+- src/main.c:1240:13: warning: 'render_frontend_sprite_layer' defined but not used [-Wunused-function]
+- src/main.c:1059:13: warning: 'render_startup_preview_screen' defined but not used [-Wunused-function]
+
+Address report (from apps/rastan/out/symbol.txt generated in failing debug pass):
+- genesistan_arcade_workram_words: 0xE0FF004A
+- dirty_words:                    0xE0FF4068
+- wram_overlay:                   0xE0FF4868
+- _bend:                          0xE0FF5D60
+- __stack:                        0xE1000000
+
+Gap:
+- __stack - _bend = 0xA2A0 (41632 bytes)
+- Gap >= 0x4000 (16KB): YES
+```

@@ -1,749 +1,888 @@
-00000000 t _Start_Of_Rom
-00000000 t _Vecteurs_68K
+00000000 t _Start_Of_Rom	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:334
+00000000 t _Vecteurs_68K	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:334
 00000000 A __DYNAMIC
 00000020 a font_pal_default_data_size
 00000020 a sgdk_logo_palette_data_size
 00000040 a rastan_dip_off_data_size
 00000040 a rastan_dip_on_data_size
-0000004c A _sdata
+0000004a A _sdata
 00000080 a rastan_dip_palette_data_size
 000000ac A stop_xgm_size
-00000100 T rom_header
-00000200 t _Entry_Point
-0000023c t NoTMSS
-00000242 t SkipInit
-00000248 t _INT
-0000025a t _EXTINT
+00000100 T rom_header	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:142
+00000200 t _Entry_Point	D:\apps\SGDK/src/bmp.c:1469
+0000023c t NoTMSS	D:\apps\SGDK/src/bmp.c:1469
+00000242 t SkipInit	D:\apps\SGDK/src/bmp.c:1469
+00000248 t _INT	D:\apps\SGDK/src/bmp.c:1469
+0000025a t _EXTINT	D:\apps\SGDK/src/bmp.c:1469
 00000262 a font_default_data_size
-0000026c t _VINT
-0000028e t unlock
-000002b0 t no_user_task
-000002d2 t no_xgm_task
-000002e2 t no_bmp_task
-000002f8 t ldiv
-00000302 t ld1
-00000312 t ld2
-00000320 t ld3
-00000322 t lmul
-0000032c t lm1
-0000033c t lm2
-0000034a t lm3
-0000034c t lrem
-00000356 t lr1
-00000360 t lr2
-00000370 t lr3
-00000372 t ldivu
-00000380 t lmulu
-0000038e t lremu
-0000039e t i_lmul
-000003ba t i_ldiv
-000003ca t nz1
-000003de t is1
-000003e6 t norm
-000003f6 t not1
-00000410 t slow
+0000026c t _VINT	D:\apps\SGDK/src/bmp.c:1469
+0000028e t unlock	D:\apps\SGDK/src/bmp.c:1469
+000002b0 t no_user_task	D:\apps\SGDK/src/bmp.c:1470
+000002d2 t no_xgm_task	D:\apps\SGDK/src/bmp.c:1470
+000002e2 t no_bmp_task	D:\apps\SGDK/src/bmp.c:1470
+000002f8 t ldiv	D:\apps\SGDK/src/bmp.c:1470
+00000302 t ld1	D:\apps\SGDK/src/bmp.c:1470
+00000312 t ld2	D:\apps\SGDK/src/bmp.c:1470
+00000320 t ld3	D:\apps\SGDK/src/bmp.c:1470
+00000322 t lmul	D:\apps\SGDK/src/bmp.c:1470
+0000032c t lm1	D:\apps\SGDK/src/bmp.c:1470
+0000033c t lm2	D:\apps\SGDK/src/bmp.c:1470
+0000034a t lm3	D:\apps\SGDK/src/bmp.c:1470
+0000034c t lrem	D:\apps\SGDK/src/bmp.c:1470
+00000356 t lr1	D:\apps\SGDK/src/bmp.c:1470
+00000360 t lr2	D:\apps\SGDK/src/bmp.c:1470
+00000370 t lr3	D:\apps\SGDK/src/bmp.c:1470
+00000372 t ldivu	D:\apps\SGDK/src/bmp.c:1470
+00000380 t lmulu	D:\apps\SGDK/src/bmp.c:1470
+0000038e t lremu	D:\apps\SGDK/src/bmp.c:1470
+0000039e t i_lmul	D:\apps\SGDK/src/bmp.c:1470
+000003ba t i_ldiv	D:\apps\SGDK/src/bmp.c:1471
+000003ca t nz1	D:\apps\SGDK/src/bmp.c:1471
+000003de t is1	D:\apps\SGDK/src/bmp.c:1471
+000003e6 t norm	D:\apps\SGDK/src/bmp.c:1471
+000003f6 t not1	D:\apps\SGDK/src/bmp.c:1471
+00000410 t slow	D:\apps\SGDK/src/bmp.c:1471
 0000043a a sgdk_logo_data_size
-0000043c t slower
-00000440 t moreadj
-0000044e t adj
-00000458 t ltuns
+0000043c t slower	D:\apps\SGDK/src/bmp.c:1471
+00000440 t moreadj	D:\apps\SGDK/src/bmp.c:1471
+0000044e t adj	D:\apps\SGDK/src/bmp.c:1471
+00000458 t ltuns	D:\apps\SGDK/src/bmp.c:1471
 00010000 A rastan_adpcm_size
 00010000 A rastan_audiocpu_size
 00060000 A rastan_maincpu_size
 00080000 A rastan_pc080sn_size
 00080000 A rastan_pc090oj_size
-00200000 T TSK_init
 00200000 A __GENESISTAN_APP_ROM_BASE
 00200000 A genesistan_shadow_c00000_words
-00200026 t .loop
-0020002e T TSK_superPost
-00200044 t no_task
-00200046 T TSK_userYield
-0020004e t userYield
-00200078 T _trap_0
-0020009c T flushQueue
-002000b0 t .fq_loop
-002000be t .fq_end
-002000c0 T KDebug_Alert
-002000dc T memset_
-00200154 T memsetU16
-002001b2 T memcpy_
-00200256 T SYS_setInterruptMaskLevel
-0020026e T SYS_getAndSetInterruptMaskLevel
-00200288 T aplib_unpack
-0020028e t aplib_decrunch
-002002a2 t .copy_byte
-002002a4 t .next_sequence_init
-002002a6 t .next_sequence
-002002b6 t .get_3_bits
-002002c6 t .write_byte
-002002ca t .short_match
-002002d8 t .code_pair
-002002e4 t .normal_code_pair
-002002f2 t .compare_1280
-002002f6 t .compare_128
-002002fa t .domatch_with_2inc
-002002fc t .domatch_with_inc
-002002fe t .domatch_new_lastpos
-00200300 t .copy_code_pair
-00200306 t .loop_do_copy
-00200310 t .get_bit
-00200318 t .still_bits_left
-0020031a t .decode_gamma
-0020031c t .get_more_gamma
-00200326 t .end_decrunch
-00200330 T lz4w_unpack
-00200336 t lz4w_unpack_a
-00200350 t .jump_table
-0020084e t .lmr_len_01
-00200962 t .lmr_len_00
-00200b74 t .lm_len_00
-00200b7a t .next
-00200b8a t .litE_mat0
-00200b8c t .litC_mat0
-00200b8e t .litA_mat0
-00200b90 t .lit8_mat0
-00200b92 t .lit6_mat0
-00200b94 t .lit4_mat0
-00200b96 t .lit2_mat0
-00200b9c t .long_match_1
-00200bae t .litF_mat0
-00200bb0 t .litD_mat0
-00200bb2 t .litB_mat0
-00200bb4 t .lit9_mat0
-00200bb6 t .lit7_mat0
-00200bb8 t .lit5_mat0
-00200bba t .lit3_mat0
-00200bbc t .lit1_mat0
-00200bc2 t .long_match_2
-00200bd4 t .lit0_mat0
-00200bd8 t .long_match_3
-00200bea t .lm_rom
-00200bf6 t .done
-00200bfc t .no_byte
-00200c06 t .lmr_jump_table
-00201006 t .litE_mat1
-00201008 t .litC_mat1
-0020100a t .litA_mat1
-0020100c t .lit8_mat1
-0020100e t .lit6_mat1
-00201010 t .lit4_mat1
-00201012 t .lit2_mat1
-00201014 t .lit0_mat1
-00201032 t .litF_mat1
-00201034 t .litD_mat1
-00201036 t .litB_mat1
-00201038 t .lit9_mat1
-0020103a t .lit7_mat1
-0020103c t .lit5_mat1
-0020103e t .lit3_mat1
-00201040 t .lit1_mat1
-00201060 t .litE_mat2
-00201062 t .litC_mat2
-00201064 t .litA_mat2
-00201066 t .lit8_mat2
-00201068 t .lit6_mat2
-0020106a t .lit4_mat2
-0020106c t .lit2_mat2
-0020106e t .lit0_mat2
-0020108e t .litF_mat2
-00201090 t .litD_mat2
-00201092 t .litB_mat2
-00201094 t .lit9_mat2
-00201096 t .lit7_mat2
-00201098 t .lit5_mat2
-0020109a t .lit3_mat2
-0020109c t .lit1_mat2
-002010be t .litE_mat3
-002010c0 t .litC_mat3
-002010c2 t .litA_mat3
-002010c4 t .lit8_mat3
-002010c6 t .lit6_mat3
-002010c8 t .lit4_mat3
-002010ca t .lit2_mat3
-002010cc t .lit0_mat3
-002010ee t .litF_mat3
-002010f0 t .litD_mat3
-002010f2 t .litB_mat3
-002010f4 t .lit9_mat3
-002010f6 t .lit7_mat3
-002010f8 t .lit5_mat3
-002010fa t .lit3_mat3
-002010fc t .lit1_mat3
-00201120 t .litE_mat4
-00201122 t .litC_mat4
-00201124 t .litA_mat4
-00201126 t .lit8_mat4
-00201128 t .lit6_mat4
-0020112a t .lit4_mat4
-0020112c t .lit2_mat4
-0020112e t .lit0_mat4
-00201152 t .litF_mat4
-00201154 t .litD_mat4
-00201156 t .litB_mat4
-00201158 t .lit9_mat4
-0020115a t .lit7_mat4
-0020115c t .lit5_mat4
-0020115e t .lit3_mat4
-00201160 t .lit1_mat4
-00201186 t .litE_mat5
-00201188 t .litC_mat5
-0020118a t .litA_mat5
-0020118c t .lit8_mat5
-0020118e t .lit6_mat5
-00201190 t .lit4_mat5
-00201192 t .lit2_mat5
-00201194 t .lit0_mat5
-002011ba t .litF_mat5
-002011bc t .litD_mat5
-002011be t .litB_mat5
-002011c0 t .lit9_mat5
-002011c2 t .lit7_mat5
-002011c4 t .lit5_mat5
-002011c6 t .lit3_mat5
-002011c8 t .lit1_mat5
-002011f0 t .litE_mat6
-002011f2 t .litC_mat6
-002011f4 t .litA_mat6
-002011f6 t .lit8_mat6
-002011f8 t .lit6_mat6
-002011fa t .lit4_mat6
-002011fc t .lit2_mat6
-002011fe t .lit0_mat6
-00201226 t .litF_mat6
-00201228 t .litD_mat6
-0020122a t .litB_mat6
-0020122c t .lit9_mat6
-0020122e t .lit7_mat6
-00201230 t .lit5_mat6
-00201232 t .lit3_mat6
-00201234 t .lit1_mat6
-0020125e t .litE_mat7
-00201260 t .litC_mat7
-00201262 t .litA_mat7
-00201264 t .lit8_mat7
-00201266 t .lit6_mat7
-00201268 t .lit4_mat7
-0020126a t .lit2_mat7
-0020126c t .lit0_mat7
-00201296 t .litF_mat7
-00201298 t .litD_mat7
-0020129a t .litB_mat7
-0020129c t .lit9_mat7
-0020129e t .lit7_mat7
-002012a0 t .lit5_mat7
-002012a2 t .lit3_mat7
-002012a4 t .lit1_mat7
-002012d0 t .litE_mat8
-002012d2 t .litC_mat8
-002012d4 t .litA_mat8
-002012d6 t .lit8_mat8
-002012d8 t .lit6_mat8
-002012da t .lit4_mat8
-002012dc t .lit2_mat8
-002012de t .lit0_mat8
-0020130a t .litF_mat8
-0020130c t .litD_mat8
-0020130e t .litB_mat8
-00201310 t .lit9_mat8
-00201312 t .lit7_mat8
-00201314 t .lit5_mat8
-00201316 t .lit3_mat8
-00201318 t .lit1_mat8
-00201346 t .litE_mat9
-00201348 t .litC_mat9
-0020134a t .litA_mat9
-0020134c t .lit8_mat9
-0020134e t .lit6_mat9
-00201350 t .lit4_mat9
-00201352 t .lit2_mat9
-00201354 t .lit0_mat9
-00201382 t .litF_mat9
-00201384 t .litD_mat9
-00201386 t .litB_mat9
-00201388 t .lit9_mat9
-0020138a t .lit7_mat9
-0020138c t .lit5_mat9
-0020138e t .lit3_mat9
-00201390 t .lit1_mat9
-002013c0 t .litE_matA
-002013c2 t .litC_matA
-002013c4 t .litA_matA
-002013c6 t .lit8_matA
-002013c8 t .lit6_matA
-002013ca t .lit4_matA
-002013cc t .lit2_matA
-002013ce t .lit0_matA
-002013fe t .litF_matA
-00201400 t .litD_matA
-00201402 t .litB_matA
-00201404 t .lit9_matA
-00201406 t .lit7_matA
-00201408 t .lit5_matA
-0020140a t .lit3_matA
-0020140c t .lit1_matA
-0020143e t .litE_matB
-00201440 t .litC_matB
-00201442 t .litA_matB
-00201444 t .lit8_matB
-00201446 t .lit6_matB
-00201448 t .lit4_matB
-0020144a t .lit2_matB
-0020144c t .lit0_matB
-0020147e t .litF_matB
-00201480 t .litD_matB
-00201482 t .litB_matB
-00201484 t .lit9_matB
-00201486 t .lit7_matB
-00201488 t .lit5_matB
-0020148a t .lit3_matB
-0020148c t .lit1_matB
-002014c0 t .litE_matC
-002014c2 t .litC_matC
-002014c4 t .litA_matC
-002014c6 t .lit8_matC
-002014c8 t .lit6_matC
-002014ca t .lit4_matC
-002014cc t .lit2_matC
-002014ce t .lit0_matC
-00201502 t .litF_matC
-00201504 t .litD_matC
-00201506 t .litB_matC
-00201508 t .lit9_matC
-0020150a t .lit7_matC
-0020150c t .lit5_matC
-0020150e t .lit3_matC
-00201510 t .lit1_matC
-00201546 t .litE_matD
-00201548 t .litC_matD
-0020154a t .litA_matD
-0020154c t .lit8_matD
-0020154e t .lit6_matD
-00201550 t .lit4_matD
-00201552 t .lit2_matD
-00201554 t .lit0_matD
-0020158a t .litF_matD
-0020158c t .litD_matD
-0020158e t .litB_matD
-00201590 t .lit9_matD
-00201592 t .lit7_matD
-00201594 t .lit5_matD
-00201596 t .lit3_matD
-00201598 t .lit1_matD
-002015d0 t .litE_matE
-002015d2 t .litC_matE
-002015d4 t .litA_matE
-002015d6 t .lit8_matE
-002015d8 t .lit6_matE
-002015da t .lit4_matE
-002015dc t .lit2_matE
-002015de t .lit0_matE
-00201616 t .litF_matE
-00201618 t .litD_matE
-0020161a t .litB_matE
-0020161c t .lit9_matE
-0020161e t .lit7_matE
-00201620 t .lit5_matE
-00201622 t .lit3_matE
-00201624 t .lit1_matE
-0020165e t .litE_matF
-00201660 t .litC_matF
-00201662 t .litA_matF
-00201664 t .lit8_matF
-00201666 t .lit6_matF
-00201668 t .lit4_matF
-0020166a t .lit2_matF
-0020166c t .lit0_matF
-002016a6 t .litF_matF
-002016a8 t .litD_matF
-002016aa t .litB_matF
-002016ac t .lit9_matF
-002016ae t .lit7_matF
-002016b0 t .lit5_matF
-002016b2 t .lit3_matF
-002016b4 t .lit1_matF
-002016f0 T genesistan_sound_send_command
-00201720 T genesistan_sound_read_status
-00201738 T genesistan_run_original_startup_common
-00201748 T genesistan_run_original_frontend_tick
-00201762 t genesistan_frontend_tick_return
-00201768 T genesistan_startup_common_continue_normal
-0020179c T genesistan_startup_common_exit_normal
-002017a4 T genesistan_startup_common_exit_test
-002017ac t get_menu_value
-002018a0 t genesistan_refresh_arcade_inputs
-002019f2 t DMA_queueDmaFast
-00201b40 t DMA_doDmaFast
-00201cd0 t DMA_doCPUCopyDirect
-00201e00 t Z80_getAndRequestBus.constprop.0
-00201e2e t externalIntCB
-00201f6e t _extint_dummy_callback
-00201f70 t read6Btn
-002020b4 t readMouse
-002024dc t readTeamPlayer
-00202c92 t readLightgun
-002031ea t readTrackball
-0020341e t MEM_alloc
-002034fe t DMA_setBufferSize
-00203556 t MEM_pack
-002035be t _int_callback
-002035c0 t _vblank_dummy_callback
-002035c2 t _vint_dummy_callback
-002035c4 t _hint_dummy_callback
-002035c6 t VDP_setHVLatching
-00203606 t XGM_unloadDriver
-0020361e t XGM2_unloadDriver
-00203626 t SND_DPCM2_unloadDriver
-00203626 t SND_PCM4_unloadDriver
-00203626 t SND_PCM_unloadDriver
-00203628 t SPR_defragVRAM
-002036ac t YM2612_reset
-00203ad2 t setNextXFrame.constprop.0
-00203b20 t DMA_initEx.constprop.0
-00203b9c t VDP_setTileMapDataEx.constprop.0
-00203c7a t PAL_doFadeStep
-00203c94 t VDP_clearPlane.constprop.0
-00203dc8 t VDP_drawTextEx.constprop.0
+00200000 t save_undo_state	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:527
+0020000e t get_graphics_test_page_count	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:773
+0020003c t restore_launcher_vdp_state	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:739
+00200142 t draw_padded_text_palette	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:505
+002001d6 t draw_padded_text	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:500
+00200202 t set_status	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:520
+00200238 t render_sound_test_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:990
+002003aa t render_help_panel	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:711
+00200454 t render_dip_bank	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:670
+0020061a t render_dip_banks	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:684
+002006a2 t render_graphics_test_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:838
+00200c18 t get_menu_value	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:555
+00200d5a t render_menu_row	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:691
+00200e7e t render_full_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:757
+00200f44 t cycle_selected_setting	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:647
+002010f8 t request_start_rastan	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:1406
+00201188 T main	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:1487
+0020176e t build_player_input_byte	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:37
+002017b8 T genesistan_refresh_arcade_inputs	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:86
+00201852 T genesistan_init_workram_direct	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:151
+002019aa T TSK_init
+002019d0 t .loop
+002019d8 T TSK_superPost
+002019ee t no_task
+002019f0 T TSK_userYield
+002019f8 t userYield
+00201a22 T _trap_0
+00201a46 T BMP_doVBlankProcess	D:\apps\SGDK/src/bmp.c:1214
+00201a50 T DMA_setMaxTransferSize	D:\apps\SGDK/src/dma.c:135
+00201a60 T DMA_setMaxTransferSizeToDefault	D:\apps\SGDK/src/dma.c:141
+00201a84 T DMA_clearQueue	D:\apps\SGDK/src/dma.c:183
+00201aa2 T DMA_setBufferSize	D:\apps\SGDK/src/dma.c:151
+00201afc T DMA_setBufferSizeToDefault	D:\apps\SGDK/src/dma.c:167
+00201b10 T DMA_initEx	D:\apps\SGDK/src/dma.c:52
+00201bc0 T DMA_init	D:\apps\SGDK/src/dma.c:47
+00201bd6 T DMA_flushQueue	D:\apps\SGDK/src/dma.c:194
+00201c4a T DMA_releaseTemp	D:\apps\SGDK/src/dma.c:368
+00201c5a T DMA_allocateTemp	D:\apps\SGDK/src/dma.c:346
+00201cc6 T DMA_queueDmaFast	D:\apps\SGDK/src/dma.c:454
+00201e0a T DMA_allocateAndQueueDma	D:\apps\SGDK/src/dma.c:382
+00201e66 T DMA_copyAndQueueDma	D:\apps\SGDK/src/dma.c:406
+00201eda T DMA_queueDma	D:\apps\SGDK/src/dma.c:432
+00201f64 T DMA_doDmaFast	D:\apps\SGDK/src/dma.c:566
+00202068 T DMA_doDma	D:\apps\SGDK/src/dma.c:545
+002020ec T DMA_doCPUCopyDirect	D:\apps\SGDK/src/dma.c:663
+00202198 T DMA_doCPUCopy	D:\apps\SGDK/src/dma.c:640
+0020220c T DMA_transfer	D:\apps\SGDK/src/dma.c:322
+002022d8 T DMA_doVRamFill	D:\apps\SGDK/src/dma.c:704
+0020237c t TH_CONTROL_PHASE	D:\apps\SGDK/src/joy.c:639
+0020239a t THREELINE_HANDSHAKE	D:\apps\SGDK/src/joy.c:655
+002023ee t externalIntCB	D:\apps\SGDK/src/joy.c:281
+002024ba t read3Btn	D:\apps\SGDK/src/joy.c:675
+0020250a t read6Btn	D:\apps\SGDK/src/joy.c:693
+00202588 t start3lhs	D:\apps\SGDK/src/joy.c:722
+0020267a t readMouse	D:\apps\SGDK/src/joy.c:773
+0020287e t readTrackball	D:\apps\SGDK/src/joy.c:1175
+002029d4 t readTeamPlayer	D:\apps\SGDK/src/joy.c:844
+00202d80 t readLightgun	D:\apps\SGDK/src/joy.c:1027
+00203126 T JOY_setSupport	D:\apps\SGDK/src/joy.c:316
+002035a2 T JOY_reset	D:\apps\SGDK/src/joy.c:59
+00203970 T JOY_init	D:\apps\SGDK/src/joy.c:50
+0020397e T JOY_readJoypad	D:\apps\SGDK/src/joy.c:530
+002039ce T JOY_update	D:\apps\SGDK/src/joy.c:1248
+00203cc4 T divu	D:\apps\SGDK/src/maths.c:106
+00203cd0 T F16_toInt	D:\apps\SGDK/src/maths.c:286
+00203cd8 T MEM_init	D:\apps\SGDK/src/memory.c:155
+00203d00 T MEM_getFree	D:\apps\SGDK/src/memory.c:186
+00203d2c T MEM_getLargestFreeBlock	D:\apps\SGDK/src/memory.c:208
+00203d62 T MEM_alloc	D:\apps\SGDK/src/memory.c:259
+00203ea6 T MEM_free	D:\apps\SGDK/src/memory.c:386
+00203ed6 T MEM_pack	D:\apps\SGDK/src/memory.c:409
+00203f46 T memset	D:\apps\SGDK/src/memory.c:694
+00203f66 T memcpy	D:\apps\SGDK/src/memory.c:701
+00203f82 T PAL_setColors	D:\apps\SGDK/src/pal.c:274
+00203fb0 T PAL_setPalette	D:\apps\SGDK/src/pal.c:284
+00203fd2 T PAL_doFadeStep	D:\apps\SGDK/src/pal.c:342
 00204000 A genesistan_shadow_c04000_words
-0020401c t set_status
-00204530 t render_dip_bank
-00206600 t render_dip_banks
-00206782 t SYS_disableInts
-002067b4 t JOY_update
-00206c7c t Z80_clear
-00206d3e t Z80_upload
-00206e58 t Z80_loadDriverInternal
-00206f68 t getAccess
-002070b8 t setFMVolume
-00207150 t setPSGVolume
-002071e8 t setMusicTempo.constprop.0
-0020727e t setLoopNumber.constprop.0
-002072cc t Z80_upload.constprop.0
-002073a8 t Z80_upload.constprop.1
-00207484 t SND_NULL_loadDriver
-0020757c t memset.constprop.0
-00207596 t memset.constprop.1
-002075ae t memcpy.constprop.0
-002075c6 t memcpy.constprop.1
-002075de t sprintf
+00204092 t uint16ToStr	D:\apps\SGDK/src/string.c:197
+00204172 T strlen	D:\apps\SGDK/src/string.c:42
+00204184 T strnlen	D:\apps\SGDK/src/string.c:52
+002041bc T strcpy	D:\apps\SGDK/src/string.c:78
+002041ce T strncpy	D:\apps\SGDK/src/string.c:90
+0020420e T strcat	D:\apps\SGDK/src/string.c:121
+0020422a T intToHex	D:\apps\SGDK/src/string.c:237
+002042e4 T uintToStr	D:\apps\SGDK/src/string.c:175
+00204382 T vsprintf	D:\apps\SGDK/src/string.c:441
+002048c4 T sprintf	D:\apps\SGDK/src/string.c:707
+002048e2 T _int_callback	D:\apps\SGDK/src/sys.c:414
+002048e4 T _vblank_dummy_callback	D:\apps\SGDK/src/sys.c:421
+002048e6 T _vint_dummy_callback	D:\apps\SGDK/src/sys.c:427
+002048e8 T _hint_dummy_callback	D:\apps\SGDK/src/sys.c:433
+002048ea T _extint_dummy_callback	D:\apps\SGDK/src/sys.c:439
+002048ec t internal_reset	D:\apps\SGDK/src/sys.c:597
+002049d4 T SYS_disableInts	D:\apps\SGDK/src/sys.c:801
+00204a06 T SYS_enableInts	D:\apps\SGDK/src/sys.c:829
+00204a34 T SYS_setExtIntCallback	D:\apps\SGDK/src/sys.c:875
+00204a4a T SYS_isInVInt	D:\apps\SGDK/src/sys.c:917
+00204a56 T SYS_doVBlankProcessEx	D:\apps\SGDK/src/sys.c:660
+00204bcc T SYS_doVBlankProcess	D:\apps\SGDK/src/sys.c:655
+00204bda T _start_entry	D:\apps\SGDK/src/sys.c:445
+00204c8e T _reset_entry	D:\apps\SGDK/src/sys.c:587
+00204caa T addFrameLoad	D:\apps\SGDK/src/sys.c:977
+00204d16 T getSubTickInternal	D:\apps\SGDK/src/timer.c:44
+00204d70 T getSubTick	D:\apps\SGDK/src/timer.c:57
+00204da4 T getTick	D:\apps\SGDK/src/timer.c:63
+00204dd0 T waitSubTick	D:\apps\SGDK/src/timer.c:109
+00204e58 T waitTick	D:\apps\SGDK/src/timer.c:159
+00204ecc T waitMs	D:\apps\SGDK/src/timer.c:194
+00204f30 T setRandomSeed	D:\apps\SGDK/src/tools.c:30
+00204f48 T KLog	D:\apps\SGDK/src/tools.c:73
+00204f6c T kprintf	D:\apps\SGDK/src/tools.c:57
+00204fa8 T KLog_U2_	D:\apps\SGDK/src/tools.c:119
+0020501e T KLog_U3_	D:\apps\SGDK/src/tools.c:153
+002050b2 T allocateTileSet	D:\apps\SGDK/src/tools.c:901
+002050dc T unpack	D:\apps\SGDK/src/tools.c:1132
+00205114 T unpackTileSet	D:\apps\SGDK/src/tools.c:1053
+00205188 T VDP_getReg	D:\apps\SGDK/src/vdp.c:194
+002051a8 T VDP_setEnable	D:\apps\SGDK/src/vdp.c:328
+002051da T VDP_setScreenWidth320	D:\apps\SGDK/src/vdp.c:394
+00205212 T VDP_setScrollingMode	D:\apps\SGDK/src/vdp.c:531
+0020524a T VDP_getAutoInc	D:\apps\SGDK/src/vdp.c:559
+00205252 T VDP_setAutoInc	D:\apps\SGDK/src/vdp.c:564
+0020526c T VDP_getHVLatching	D:\apps\SGDK/src/vdp.c:591
+00205278 T VDP_setHVLatching	D:\apps\SGDK/src/vdp.c:596
+002052aa T VDP_waitDMACompletion	D:\apps\SGDK/src/vdp.c:842
+002052b8 T VDP_resetScreen	D:\apps\SGDK/src/vdp.c:134
+00205442 T getAdjustedVCounterInternal	D:\apps\SGDK/src/vdp.c:965
+002054a4 T VDP_waitVBlank	D:\apps\SGDK/src/vdp.c:887
+00205580 T VDP_waitVSync	D:\apps\SGDK/src/vdp.c:953
+0020558e T updateUserTileMaxIndex	D:\apps\SGDK/src/vdp.c:1026
+002055a8 t updateMapsAddress	D:\apps\SGDK/src/vdp.c:1032
+0020562a T VDP_init	D:\apps\SGDK/src/vdp.c:65
+0020578c T VDP_setReg	D:\apps\SGDK/src/vdp.c:200
+002059b4 T VDP_setHorizontalScroll	D:\apps\SGDK/src/vdp_bg.c:34
+002059f6 T VDP_setVerticalScrollTile	D:\apps\SGDK/src/vdp_bg.c:122
+00205a3e T VDP_doVBlankScrollProcess	D:\apps\SGDK/src/vdp_bg.c:132
+00205b00 T VDP_clearPlane	D:\apps\SGDK/src/vdp_bg.c:177
+00205bc2 T VDP_setTextPlane	D:\apps\SGDK/src/vdp_bg.c:210
+00205bcc T VDP_setTextPalette	D:\apps\SGDK/src/vdp_bg.c:215
+00205bf0 T VDP_setTextPriority	D:\apps\SGDK/src/vdp_bg.c:221
+00205c10 T VDP_drawTextEx	D:\apps\SGDK/src/vdp_bg.c:227
+00205cda T VDP_drawTextBG	D:\apps\SGDK/src/vdp_bg.c:321
+00205d0a T VDP_drawText	D:\apps\SGDK/src/vdp_bg.c:380
+00205d30 T VDP_releaseAllSprites	D:\apps\SGDK/src/vdp_spr.c:35
+00205d5e T VDP_clearSprites	D:\apps\SGDK/src/vdp_spr.c:151
+00205d6c T VDP_resetSprites	D:\apps\SGDK/src/vdp_spr.c:27
+00205d7a T VDP_updateSprites	D:\apps\SGDK/src/vdp_spr.c:224
+00205dba t prepareTileMapDataRowEx	D:\apps\SGDK/src/vdp_tile.c:942
+00205e50 T VDP_loadTileData	D:\apps\SGDK/src/vdp_tile.c:28
+00205e7e T VDP_loadFontData	D:\apps\SGDK/src/vdp_tile.c:33
+00205eaa T VDP_loadTileSet	D:\apps\SGDK/src/vdp_tile.c:38
+00205f20 T VDP_loadFont	D:\apps\SGDK/src/vdp_tile.c:60
+00205f44 T VDP_fillTileData	D:\apps\SGDK/src/vdp_tile.c:70
+00205f84 T VDP_getPlaneAddress	D:\apps\SGDK/src/vdp_tile.c:80
+0020603a T VDP_clearTileMap	D:\apps\SGDK/src/vdp_tile.c:97
+00206078 T VDP_setTileMapDataEx	D:\apps\SGDK/src/vdp_tile.c:147
+00206142 t setTileMapDataRowEx	D:\apps\SGDK/src/vdp_tile.c:451
+0020623a T VDP_setTileMapXY	D:\apps\SGDK/src/vdp_tile.c:187
+0020628c T VDP_fillTileMapRect	D:\apps\SGDK/src/vdp_tile.c:209
+00206372 T VDP_setTileMapDataRowEx	D:\apps\SGDK/src/vdp_tile.c:510
+00206432 T Z80_isBusTaken	D:\apps\SGDK/src/z80_ctrl.c:60
+00206444 T Z80_requestBus	D:\apps\SGDK/src/z80_ctrl.c:69
+0020646a T Z80_getAndRequestBus	D:\apps\SGDK/src/z80_ctrl.c:89
+002064a6 T Z80_releaseBus	D:\apps\SGDK/src/z80_ctrl.c:114
+002064b0 T Z80_startReset	D:\apps\SGDK/src/z80_ctrl.c:123
+002064ba T Z80_endReset	D:\apps\SGDK/src/z80_ctrl.c:131
+002064c4 T Z80_setBank	D:\apps\SGDK/src/z80_ctrl.c:140
+002064d8 T Z80_clear	D:\apps\SGDK/src/z80_ctrl.c:167
+00206520 T Z80_upload	D:\apps\SGDK/src/z80_ctrl.c:183
+00206588 T Z80_unloadDriver	D:\apps\SGDK/src/z80_ctrl.c:223
+002065e4 T Z80_loadDriverInternal	D:\apps\SGDK/src/z80_ctrl.c:253
+0020664a T Z80_loadDriver	D:\apps\SGDK/src/z80_ctrl.c:285
+002066f0 T Z80_init	D:\apps\SGDK/src/z80_ctrl.c:43
+00206726 T Z80_isDriverReady	D:\apps\SGDK/src/z80_ctrl.c:324
+0020675c T Z80_useBusProtection	D:\apps\SGDK/src/z80_ctrl.c:343
+00206766 T Z80_setBusProtection	D:\apps\SGDK/src/z80_ctrl.c:348
+002067ba T Z80_enableBusProtection	D:\apps\SGDK/src/z80_ctrl.c:367
+002067c8 T Z80_disableBusProtection	D:\apps\SGDK/src/z80_ctrl.c:372
+002067d4 T Z80_getForceDelayDMA	D:\apps\SGDK/src/z80_ctrl.c:377
+002067e0 T SND_NULL_loadDriver	D:\apps\SGDK/src/snd/sound.c:19
+0020683c t setNextXFrame	D:\apps\SGDK/src/snd/xgm.c:605
+00206896 T XGM_unloadDriver	D:\apps\SGDK/src/snd/xgm.c:94
+002068b2 T XGM_setMusicTempo	D:\apps\SGDK/src/snd/xgm.c:493
+002068d4 T XGM_loadDriver	D:\apps\SGDK/src/snd/xgm.c:54
+002069b8 T XGM_doVBlankProcess	D:\apps\SGDK/src/snd/xgm.c:662
+00206a0e t releaseAccess	D:\apps\SGDK/src/snd/xgm2.c:1057
+00206a24 t getAccess	D:\apps\SGDK/src/snd/xgm2.c:1029
+00206a90 t setLoopNumber	D:\apps\SGDK/src/snd/xgm2.c:747
+00206aba t setFMVolume	D:\apps\SGDK/src/snd/xgm2.c:828
+00206b12 t setPSGVolume	D:\apps\SGDK/src/snd/xgm2.c:846
+00206b6a t setMusicTempo	D:\apps\SGDK/src/snd/xgm2.c:773
+00206bca T XGM2_loadDriver	D:\apps\SGDK/src/snd/xgm2.c:211
+00206c8a T XGM2_unloadDriver	D:\apps\SGDK/src/snd/xgm2.c:242
+00206c96 T XGM2_stop	D:\apps\SGDK/src/snd/xgm2.c:421
+00206cf4 T XGM2_pause	D:\apps\SGDK/src/snd/xgm2.c:446
+00206d40 T XGM2_doVBlankFadeProcess	D:\apps\SGDK/src/snd/xgm2.c:701
+00206de4 T SND_DPCM2_loadDriver	D:\apps\SGDK/src/snd/pcm/snd_dpcm2.c:23
+00206e6c T SND_DPCM2_unloadDriver	D:\apps\SGDK/src/snd/pcm/snd_dpcm2.c:53
+00206e6e T SND_PCM_loadDriver	D:\apps\SGDK/src/snd/pcm/snd_pcm.c:22
+00206ef6 T SND_PCM_unloadDriver	D:\apps\SGDK/src/snd/pcm/snd_pcm.c:52
+00206ef8 T SND_PCM4_loadDriver	D:\apps\SGDK/src/snd/pcm/snd_pcm4.c:24
+00206f94 T SND_PCM4_unloadDriver	D:\apps\SGDK/src/snd/pcm/snd_pcm4.c:58
+00206f96 T flushQueue
+00206faa t .fq_loop
+00206fb8 t .fq_end
+00206fba T KDebug_Alert
+00206fd6 T memset_
+0020704e T memsetU16
+002070ac T memcpy_
+00207150 T SYS_getInterruptMaskLevel
+0020715a T SYS_setInterruptMaskLevel
+00207172 T SYS_getAndSetInterruptMaskLevel
+0020718c T aplib_unpack
+00207192 t aplib_decrunch
+002071a6 t .copy_byte
+002071a8 t .next_sequence_init
+002071aa t .next_sequence
+002071ba t .get_3_bits
+002071ca t .write_byte
+002071ce t .short_match
+002071dc t .code_pair
+002071e8 t .normal_code_pair
+002071f6 t .compare_1280
+002071fa t .compare_128
+002071fe t .domatch_with_2inc
+00207200 t .domatch_with_inc
+00207202 t .domatch_new_lastpos
+00207204 t .copy_code_pair
+0020720a t .loop_do_copy
+00207214 t .get_bit
+0020721c t .still_bits_left
+0020721e t .decode_gamma
+00207220 t .get_more_gamma
+0020722a t .end_decrunch
+00207234 T lz4w_unpack
+0020723a t lz4w_unpack_a
+00207254 t .jump_table
+00207752 t .lmr_len_01
+00207866 t .lmr_len_00
+00207a78 t .lm_len_00
+00207a7e t .next
+00207a8e t .litE_mat0
+00207a90 t .litC_mat0
+00207a92 t .litA_mat0
+00207a94 t .lit8_mat0
+00207a96 t .lit6_mat0
+00207a98 t .lit4_mat0
+00207a9a t .lit2_mat0
+00207aa0 t .long_match_1
+00207ab2 t .litF_mat0
+00207ab4 t .litD_mat0
+00207ab6 t .litB_mat0
+00207ab8 t .lit9_mat0
+00207aba t .lit7_mat0
+00207abc t .lit5_mat0
+00207abe t .lit3_mat0
+00207ac0 t .lit1_mat0
+00207ac6 t .long_match_2
+00207ad8 t .lit0_mat0
+00207adc t .long_match_3
+00207aee t .lm_rom
+00207afa t .done
+00207b00 t .no_byte
+00207b0a t .lmr_jump_table
+00207f0a t .litE_mat1
+00207f0c t .litC_mat1
+00207f0e t .litA_mat1
+00207f10 t .lit8_mat1
+00207f12 t .lit6_mat1
+00207f14 t .lit4_mat1
+00207f16 t .lit2_mat1
+00207f18 t .lit0_mat1
+00207f36 t .litF_mat1
+00207f38 t .litD_mat1
+00207f3a t .litB_mat1
+00207f3c t .lit9_mat1
+00207f3e t .lit7_mat1
+00207f40 t .lit5_mat1
+00207f42 t .lit3_mat1
+00207f44 t .lit1_mat1
+00207f64 t .litE_mat2
+00207f66 t .litC_mat2
+00207f68 t .litA_mat2
+00207f6a t .lit8_mat2
+00207f6c t .lit6_mat2
+00207f6e t .lit4_mat2
+00207f70 t .lit2_mat2
+00207f72 t .lit0_mat2
+00207f92 t .litF_mat2
+00207f94 t .litD_mat2
+00207f96 t .litB_mat2
+00207f98 t .lit9_mat2
+00207f9a t .lit7_mat2
+00207f9c t .lit5_mat2
+00207f9e t .lit3_mat2
+00207fa0 t .lit1_mat2
+00207fc2 t .litE_mat3
+00207fc4 t .litC_mat3
+00207fc6 t .litA_mat3
+00207fc8 t .lit8_mat3
+00207fca t .lit6_mat3
+00207fcc t .lit4_mat3
+00207fce t .lit2_mat3
+00207fd0 t .lit0_mat3
+00207ff2 t .litF_mat3
+00207ff4 t .litD_mat3
+00207ff6 t .litB_mat3
+00207ff8 t .lit9_mat3
+00207ffa t .lit7_mat3
+00207ffc t .lit5_mat3
+00207ffe t .lit3_mat3
+00208000 t .lit1_mat3
 00208000 A genesistan_shadow_c08000_words
-002089b4 t render_menu_row
-00208ed2 t render_help_panel
-00209a48 t cycle_selected_setting
-00209d62 t render_full_screen
-0020a466 t render_graphics_test_screen
+00208024 t .litE_mat4
+00208026 t .litC_mat4
+00208028 t .litA_mat4
+0020802a t .lit8_mat4
+0020802c t .lit6_mat4
+0020802e t .lit4_mat4
+00208030 t .lit2_mat4
+00208032 t .lit0_mat4
+00208056 t .litF_mat4
+00208058 t .litD_mat4
+0020805a t .litB_mat4
+0020805c t .lit9_mat4
+0020805e t .lit7_mat4
+00208060 t .lit5_mat4
+00208062 t .lit3_mat4
+00208064 t .lit1_mat4
+0020808a t .litE_mat5
+0020808c t .litC_mat5
+0020808e t .litA_mat5
+00208090 t .lit8_mat5
+00208092 t .lit6_mat5
+00208094 t .lit4_mat5
+00208096 t .lit2_mat5
+00208098 t .lit0_mat5
+002080be t .litF_mat5
+002080c0 t .litD_mat5
+002080c2 t .litB_mat5
+002080c4 t .lit9_mat5
+002080c6 t .lit7_mat5
+002080c8 t .lit5_mat5
+002080ca t .lit3_mat5
+002080cc t .lit1_mat5
+002080f4 t .litE_mat6
+002080f6 t .litC_mat6
+002080f8 t .litA_mat6
+002080fa t .lit8_mat6
+002080fc t .lit6_mat6
+002080fe t .lit4_mat6
+00208100 t .lit2_mat6
+00208102 t .lit0_mat6
+0020812a t .litF_mat6
+0020812c t .litD_mat6
+0020812e t .litB_mat6
+00208130 t .lit9_mat6
+00208132 t .lit7_mat6
+00208134 t .lit5_mat6
+00208136 t .lit3_mat6
+00208138 t .lit1_mat6
+00208162 t .litE_mat7
+00208164 t .litC_mat7
+00208166 t .litA_mat7
+00208168 t .lit8_mat7
+0020816a t .lit6_mat7
+0020816c t .lit4_mat7
+0020816e t .lit2_mat7
+00208170 t .lit0_mat7
+0020819a t .litF_mat7
+0020819c t .litD_mat7
+0020819e t .litB_mat7
+002081a0 t .lit9_mat7
+002081a2 t .lit7_mat7
+002081a4 t .lit5_mat7
+002081a6 t .lit3_mat7
+002081a8 t .lit1_mat7
+002081d4 t .litE_mat8
+002081d6 t .litC_mat8
+002081d8 t .litA_mat8
+002081da t .lit8_mat8
+002081dc t .lit6_mat8
+002081de t .lit4_mat8
+002081e0 t .lit2_mat8
+002081e2 t .lit0_mat8
+0020820e t .litF_mat8
+00208210 t .litD_mat8
+00208212 t .litB_mat8
+00208214 t .lit9_mat8
+00208216 t .lit7_mat8
+00208218 t .lit5_mat8
+0020821a t .lit3_mat8
+0020821c t .lit1_mat8
+0020824a t .litE_mat9
+0020824c t .litC_mat9
+0020824e t .litA_mat9
+00208250 t .lit8_mat9
+00208252 t .lit6_mat9
+00208254 t .lit4_mat9
+00208256 t .lit2_mat9
+00208258 t .lit0_mat9
+00208286 t .litF_mat9
+00208288 t .litD_mat9
+0020828a t .litB_mat9
+0020828c t .lit9_mat9
+0020828e t .lit7_mat9
+00208290 t .lit5_mat9
+00208292 t .lit3_mat9
+00208294 t .lit1_mat9
+002082c4 t .litE_matA
+002082c6 t .litC_matA
+002082c8 t .litA_matA
+002082ca t .lit8_matA
+002082cc t .lit6_matA
+002082ce t .lit4_matA
+002082d0 t .lit2_matA
+002082d2 t .lit0_matA
+00208302 t .litF_matA
+00208304 t .litD_matA
+00208306 t .litB_matA
+00208308 t .lit9_matA
+0020830a t .lit7_matA
+0020830c t .lit5_matA
+0020830e t .lit3_matA
+00208310 t .lit1_matA
+00208342 t .litE_matB
+00208344 t .litC_matB
+00208346 t .litA_matB
+00208348 t .lit8_matB
+0020834a t .lit6_matB
+0020834c t .lit4_matB
+0020834e t .lit2_matB
+00208350 t .lit0_matB
+00208382 t .litF_matB
+00208384 t .litD_matB
+00208386 t .litB_matB
+00208388 t .lit9_matB
+0020838a t .lit7_matB
+0020838c t .lit5_matB
+0020838e t .lit3_matB
+00208390 t .lit1_matB
+002083c4 t .litE_matC
+002083c6 t .litC_matC
+002083c8 t .litA_matC
+002083ca t .lit8_matC
+002083cc t .lit6_matC
+002083ce t .lit4_matC
+002083d0 t .lit2_matC
+002083d2 t .lit0_matC
+00208406 t .litF_matC
+00208408 t .litD_matC
+0020840a t .litB_matC
+0020840c t .lit9_matC
+0020840e t .lit7_matC
+00208410 t .lit5_matC
+00208412 t .lit3_matC
+00208414 t .lit1_matC
+0020844a t .litE_matD
+0020844c t .litC_matD
+0020844e t .litA_matD
+00208450 t .lit8_matD
+00208452 t .lit6_matD
+00208454 t .lit4_matD
+00208456 t .lit2_matD
+00208458 t .lit0_matD
+0020848e t .litF_matD
+00208490 t .litD_matD
+00208492 t .litB_matD
+00208494 t .lit9_matD
+00208496 t .lit7_matD
+00208498 t .lit5_matD
+0020849a t .lit3_matD
+0020849c t .lit1_matD
+002084d4 t .litE_matE
+002084d6 t .litC_matE
+002084d8 t .litA_matE
+002084da t .lit8_matE
+002084dc t .lit6_matE
+002084de t .lit4_matE
+002084e0 t .lit2_matE
+002084e2 t .lit0_matE
+0020851a t .litF_matE
+0020851c t .litD_matE
+0020851e t .litB_matE
+00208520 t .lit9_matE
+00208522 t .lit7_matE
+00208524 t .lit5_matE
+00208526 t .lit3_matE
+00208528 t .lit1_matE
+00208562 t .litE_matF
+00208564 t .litC_matF
+00208566 t .litA_matF
+00208568 t .lit8_matF
+0020856a t .lit6_matF
+0020856c t .lit4_matF
+0020856e t .lit2_matF
+00208570 t .lit0_matF
+002085aa t .litF_matF
+002085ac t .litD_matF
+002085ae t .litB_matF
+002085b0 t .lit9_matF
+002085b2 t .lit7_matF
+002085b4 t .lit5_matF
+002085b6 t .lit3_matF
+002085b8 t .lit1_matF
+002085f4 T PSG_reset	D:\apps\SGDK/src/psg.c:9
+0020862c T SPR_isInitialized	D:\apps\SGDK/src/sprite_eng.c:190
+00208638 T SPR_defragVRAM	D:\apps\SGDK/src/sprite_eng.c:542
+002086e8 T SRAM_disable	D:\apps\SGDK/src/sram.c:16
+002086f2 T getZeroU8	D:\apps\SGDK/src/types.c:4
+002086f6 T VRAM_releaseRegion	D:\apps\SGDK/src/vram.c:34
+00208710 T VRAM_clearRegion	D:\apps\SGDK/src/vram.c:41
+0020873a T VRAM_createRegion	D:\apps\SGDK/src/vram.c:23
+00208776 T VRAM_getFree	D:\apps\SGDK/src/vram.c:54
+002087aa T VRAM_getLargestFreeBlock	D:\apps\SGDK/src/vram.c:79
+002087e4 T VRAM_alloc	D:\apps\SGDK/src/vram.c:135
+002088fa T YM2612_write	D:\apps\SGDK/src/ym2612.c:118
+0020892a t writeSlotReg	D:\apps\SGDK/src/ym2612.c:11
+00208978 t writeChannelReg	D:\apps\SGDK/src/ym2612.c:17
+002089bc T YM2612_reset	D:\apps\SGDK/src/ym2612.c:23
+00208b7c T genesistan_sound_send_command
+00208bac T genesistan_sound_read_status
+00208bc4 T genesistan_run_original_startup_common
+00208bd4 T genesistan_run_original_frontend_tick
+00208bee t genesistan_frontend_tick_return
+00208bf4 T genesistan_startup_common_continue_normal
+00208c28 T genesistan_startup_common_exit_normal
+00208c30 T genesistan_startup_common_exit_test
+00208c38 T MDDBG__SymbolDataPtr
+00208c3c t MDDBG__ErrorHandler
+00208c3c t __ErrorHandler
+00208d64 t MDDBG__Error_IdleLoop
+00208d7e t MDDBG__Error_InitConsole
+00208d8a t MDDBG__Error_MaskStackBoundaries
+00208df4 t MDDBG__Error_DrawOffsetLocation
+00208df8 t MDDBG__Error_DrawOffsetLocation2
+00208dfe t MDDBG__Error_DrawOffsetLocation__inj
+00208e8c t MDDBG__ErrorHandler_SetupVDP
+00208ec2 t MDDBG__ErrorHandler_VDPConfig
+00208ed8 t MDDBG__ErrorHandler_VDPConfig_Nametables
+00208f14 t MDDBG__ErrorHandler_ConsoleConfig_Initial
+00208f18 t MDDBG__ErrorHandler_ConsoleConfig_Shared
+00208f48 t MDDBG__Str_OffsetLocation_24bit
+00208f51 t MDDBG__Str_OffsetLocation_32bit
+00208f8c t MDDBG__Art1bpp_Font
+00209286 t MDDBG__GetSymbolByOffset
+002095a0 t MDDBG__FormatString
+0020967a t MDDBG__Console_Init
+002096b8 t MDDBG__Console_Reset
+002096ba t MDDBG__Console_InitShared
+00209704 t MDDBG__Console_SetPosAsXY_Stack
+0020970a t MDDBG__Console_SetPosAsXY
+0020973e t MDDBG__Console_GetPosAsXY
+00209764 t MDDBG__Console_StartNewLine
+00209792 t MDDBG__Console_SetBasePattern
+002097ae t MDDBG__Console_SetWidth
+002097cc t MDDBG__Console_WriteLine_WithPattern
+002097ce t MDDBG__Console_WriteLine
+002097d2 t MDDBG__Console_Write
+00209898 t MDDBG__Console_WriteLine_Formatted
+0020989c t MDDBG__Console_Write_Formatted
+002098cc t MDDBG__Decomp1bpp
+002098e8 t MDDBG__KDebug_WriteLine_Formatted
+002098ec t MDDBG__KDebug_Write_Formatted
+00209940 t MDDBG__KDebug_FlushLine
+0020994a t MDDBG__KDebug_WriteLine
+0020994e t MDDBG__KDebug_Write
+0020997c t MDDBG__ErrorHandler_ConsoleOnly
+002099a2 t MDDBG__ErrorHandler_ClearConsole
+002099cc t MDDBG__ErrorHandler_PauseConsole
+00209a06 t MDDBG__ErrorHandler_PagesController
+00209a66 t MDDBG__VSync
+00209aa0 t MDDBG__ErrorHandler_ExtraDebuggerList
+00209aac t MDDBG__Debugger_AddressRegisters
+00209af8 t MDDBG__Debugger_Backtrace
+00209b96 t MDDBG__BusError
+00209b96 T _Bus_Error
+00209baa t MDDBG__AddressError
+00209baa T _Address_Error
+00209bc2 t MDDBG__IllegalInstr
+00209bc2 T _Illegal_Instruction
+00209be0 t MDDBG__ZeroDivide
+00209be0 T _Zero_Divide
+00209bf6 t MDDBG__ChkInstr
+00209bf6 T _Chk_Instruction
+00209c10 t MDDBG__TrapvInstr
+00209c10 T _Trapv_Instruction
+00209c2c t MDDBG__PrivilegeViol
+00209c2c T _Privilege_Violation
+00209c4a t MDDBG__Trace
+00209c4a T _Trace
+00209c5a t MDDBG__Line1010Emu
+00209c5a T _Line_1010_Emulation
+00209c76 t MDDBG__Line1111Emu
+00209c76 T _Line_1111_Emulation
+00209c92 t MDDBG__ErrorExcept
+00209c92 T _Error_Exception
+00209d00 T smp_null
+00209e00 T smp_null_dpcm
+00209e80 T __mulsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:442
+00209e80 T __mulsi3_internal	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:442
+00209ea4 T __udivsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:469
+00209ea4 T __udivsi3_internal	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:469
+00209ecc t L3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:486
+00209ece t L4	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:487
+00209efa t L5	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:508
+00209efc t L6	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:510
+00209f00 T __divsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:547
+00209f00 T __divsi3_internal	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:547
+00209f0e t L1	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:558
+00209f18 t L2	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:567
+00209f2a t L3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:576
+00209f30 T __umodsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:585
+00209f60 T __modsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:611
+00209f90 T __CTOR_LIST__
+00209f98 T __CTOR_END__
+00209f98 T __DTOR_LIST__
+00209fa0 T __DTOR_END__
+00209fa0 T rastan_dip_on
+00209fa8 T rastan_dip_off
+00209fb0 T rastan_dip_palette
+0020a7f9 t raw_lives.0	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:628
+0020a7fd t raw_bonus.1	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:622
+0020a801 t raw_difficulty.2	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:616
+0020a805 t raw_coinage.3	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:610
+0020a80a t blank_tile.4	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:840
+0020a82a t rastan_font_glyphs	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:222
+0020a87e t menu_items	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:168
+0020a968 t rastan_graphics_test_palette	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:149
+0020a988 t rastan_active_dip_palette	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:130
+0020a9a8 t rastan_selected_font_palette	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:111
+0020a9c8 t rastan_font_palette	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:92
+0020a9e8 t continue_values	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:91
+0020a9f0 t lives_values	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:90
+0020aa00 t bonus_values	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:89
+0020aa10 t difficulty_values	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:88
+0020aa20 t coinage_values	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:87
+0020aa30 t game_mode_values	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:86
+0020aa38 t monitor_values	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:85
+0020aa40 t cabinet_values	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:84
+0020aa48 t diff_table.0	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:172
+0020aa50 t bonus_table.1	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:175
+0020aa58 t xlt_all.0	D:\apps\SGDK/src/joy.c:846
+0020aa68 t xlt.1	D:\apps\SGDK/src/joy.c:970
+0020aa70 T palette_blue	D:\apps\SGDK/src/pal.c:163
+0020aa90 T palette_green	D:\apps\SGDK/src/pal.c:142
+0020aab0 T palette_red	D:\apps\SGDK/src/pal.c:121
+0020aad0 T palette_grey	D:\apps\SGDK/src/pal.c:100
+0020aaf0 t digits	D:\apps\SGDK/src/string.c:26
+0020abb9 t lowercase_hexchars	D:\apps\SGDK/src/string.c:24
+0020abca t uppercase_hexchars	D:\apps\SGDK/src/string.c:23
+0020abdb T psgVolTable	D:\apps\SGDK/src/snd/xgm2.c:148
+0020ac3f T fmVolTable	D:\apps\SGDK/src/snd/xgm2.c:133
+0020aca3 T tab_vol	D:\apps\SGDK/src/snd/pcm/tab_vol.c:4
+0020bca4 t sgdk_logo_palette
+0020bcaa T sgdk_logo
+0020bcb8 T font_default
+0020bcc0 T font_pal_default
+0020bcc6 T drv_null
+0020bd00 T drv_xgm
 0020c000 A genesistan_shadow_c0c000_words
-0020d182 t render_sound_test_screen
-0020f148 t render_startup_preview_screen
-00211716 t VDP_waitVBlank
-002118ba t SYS_doVBlankProcessEx.constprop.0.isra.0
-00211e18 t waitSubTick.part.0
-00211fd6 t XGM_loadDriver
-00212286 t XGM2_loadDriver
-0021240a t SND_DPCM2_loadDriver
-002125b4 t SND_PCM_loadDriver
-0021275e t SND_PCM4_loadDriver
-00212914 t Z80_loadDriver
-002129fe t Z80_init
-00212a64 t XGM2_stop
-00212aec t XGM2_pause
-00212b60 T VDP_setAutoInc
-00212b7a T BMP_doVBlankProcess
-00212b84 T memset
-00212b9e T memcpy
-00212bae t VDP_loadTileSet
-00212dfc t updateMapsAddress
-00212e88 t VDP_setReg.constprop.0
-00212ea2 t JOY_setSupport
-00212ec6 t JOY_reset
-00213524 t VDP_resetScreen
-002137b2 t VDP_init
-002138d6 t restore_launcher_vdp_state
-00213bb2 t request_start_rastan
-0021404a t main.isra.0
-00214c42 t internal_reset
-00214d8a T _start_entry
-00214e50 T _reset_entry
-00214e58 T XGM_doVBlankProcess
-00214ec4 T MDDBG__SymbolDataPtr
-00214ec8 t MDDBG__ErrorHandler
-00214ec8 t __ErrorHandler
-00214ff0 t MDDBG__Error_IdleLoop
-0021500a t MDDBG__Error_InitConsole
-00215016 t MDDBG__Error_MaskStackBoundaries
-00215080 t MDDBG__Error_DrawOffsetLocation
-00215084 t MDDBG__Error_DrawOffsetLocation2
-0021508a t MDDBG__Error_DrawOffsetLocation__inj
-00215118 t MDDBG__ErrorHandler_SetupVDP
-0021514e t MDDBG__ErrorHandler_VDPConfig
-00215164 t MDDBG__ErrorHandler_VDPConfig_Nametables
-002151a0 t MDDBG__ErrorHandler_ConsoleConfig_Initial
-002151a4 t MDDBG__ErrorHandler_ConsoleConfig_Shared
-002151d4 t MDDBG__Str_OffsetLocation_24bit
-002151dd t MDDBG__Str_OffsetLocation_32bit
-00215218 t MDDBG__Art1bpp_Font
-00215512 t MDDBG__GetSymbolByOffset
-0021582c t MDDBG__FormatString
-00215906 t MDDBG__Console_Init
-00215944 t MDDBG__Console_Reset
-00215946 t MDDBG__Console_InitShared
-00215990 t MDDBG__Console_SetPosAsXY_Stack
-00215996 t MDDBG__Console_SetPosAsXY
-002159ca t MDDBG__Console_GetPosAsXY
-002159f0 t MDDBG__Console_StartNewLine
-00215a1e t MDDBG__Console_SetBasePattern
-00215a3a t MDDBG__Console_SetWidth
-00215a58 t MDDBG__Console_WriteLine_WithPattern
-00215a5a t MDDBG__Console_WriteLine
-00215a5e t MDDBG__Console_Write
-00215b24 t MDDBG__Console_WriteLine_Formatted
-00215b28 t MDDBG__Console_Write_Formatted
-00215b58 t MDDBG__Decomp1bpp
-00215b74 t MDDBG__KDebug_WriteLine_Formatted
-00215b78 t MDDBG__KDebug_Write_Formatted
-00215bcc t MDDBG__KDebug_FlushLine
-00215bd6 t MDDBG__KDebug_WriteLine
-00215bda t MDDBG__KDebug_Write
-00215c08 t MDDBG__ErrorHandler_ConsoleOnly
-00215c2e t MDDBG__ErrorHandler_ClearConsole
-00215c58 t MDDBG__ErrorHandler_PauseConsole
-00215c92 t MDDBG__ErrorHandler_PagesController
-00215cf2 t MDDBG__VSync
-00215d2c t MDDBG__ErrorHandler_ExtraDebuggerList
-00215d38 t MDDBG__Debugger_AddressRegisters
-00215d84 t MDDBG__Debugger_Backtrace
-00215e22 t MDDBG__BusError
-00215e22 T _Bus_Error
-00215e36 t MDDBG__AddressError
-00215e36 T _Address_Error
-00215e4e t MDDBG__IllegalInstr
-00215e4e T _Illegal_Instruction
-00215e6c t MDDBG__ZeroDivide
-00215e6c T _Zero_Divide
-00215e82 t MDDBG__ChkInstr
-00215e82 T _Chk_Instruction
-00215e9c t MDDBG__TrapvInstr
-00215e9c T _Trapv_Instruction
-00215eb8 t MDDBG__PrivilegeViol
-00215eb8 T _Privilege_Violation
-00215ed6 t MDDBG__Trace
-00215ed6 T _Trace
-00215ee6 t MDDBG__Line1010Emu
-00215ee6 T _Line_1010_Emulation
-00215f02 t MDDBG__Line1111Emu
-00215f02 T _Line_1111_Emulation
-00215f1e t MDDBG__ErrorExcept
-00215f1e T _Error_Exception
-00216000 T smp_null
-00216100 T smp_null_dpcm
-00216180 T __udivsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:469
-00216180 T __udivsi3_internal	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:469
-002161a8 t L3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:486
-002161aa t L4	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:487
-002161d6 t L5	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:508
-002161d8 t L6	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:510
-002161dc T __divsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:547
-002161dc T __divsi3_internal	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:547
-002161ea t L1	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:558
-002161f4 t L2	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:567
-00216206 t L3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:576
-0021620c T __umodsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:585
-0021623c T __modsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:611
-0021626c T __mulsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:442
-0021626c T __mulsi3_internal	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:442
-00216290 T __CTOR_LIST__
-00216298 T __CTOR_END__
-00216298 T __DTOR_LIST__
-002162a0 T __DTOR_END__
-002162a0 T rastan_dip_on
-002162a8 T rastan_dip_off
-002162b0 T rastan_dip_palette
-002169ec t continue_values
-002169f4 t lives_values
-00216a04 t bonus_values
-00216a14 t difficulty_values
-00216a24 t coinage_values
-00216a34 t game_mode_values
-00216a3c t monitor_values
-00216a44 t cabinet_values
-00216a4c t tab_vol
-00217a4c t psgVolTable
-00217ab0 t fmVolTable
-00217b14 t palette_blue
-00217b34 t palette_green
-00217b54 t palette_red
-00217b74 t palette_grey
-00217b94 t lowercase_hexchars
-00217ba5 t uppercase_hexchars
-00217bb6 t xlt.1
-00217bbe t xlt_all.0
-00217bce t candidate_masks.0
-00217bd4 t blank_tile.5
-00217bf4 t rastan_graphics_test_palette
-00217c14 t rastan_font_glyphs
-00217c68 t rastan_selected_font_palette
-00217c88 t rastan_font_palette
-00217ca8 t rastan_active_dip_palette
-00217cc8 t raw_bonus.2
-00217cc8 t raw_lives.1
-00217ccc t raw_difficulty.3
-00217cd0 t raw_coinage.4
-00217cd4 t menu_items
-00217dbe t sgdk_logo_palette
-00217dc4 T sgdk_logo
-00217dd2 T font_default
-00217dda T font_pal_default
-00217de0 T drv_null
-00217e1a T drv_xgm
-0021951a T drv_dpcm2
-0021a31a T drv_pcm
-0021ae4a T drv_pcm4
-0021b8b8 T drv_xgm2
-0021d8b8 T __INIT_SECTION__
-0021d8ba T __FINI_SECTION__
-0021d8bc T _etext
-0021d8bc T rastan_maincpu
-0027d8bc T rastan_audiocpu
-0028d8bc T rastan_adpcm
-0029d8bc t rastan_dip_palette_data
-0029d93c T rastan_pc080sn
-0031d93c T rastan_pc090oj
-0039d93c t rastan_dip_on_data
-0039d97c t rastan_dip_off_data
-0039d9bc t sgdk_logo_palette_data
-0039d9dc t font_pal_default_data
-0039d9fc T stop_xgm
-0039daa8 t font_default_data
-0039dd0a t sgdk_logo_data
-0039e144 A _stext
-e0ff0000 d genesistan_shadow_service_word
-e0ff0002 d genesistan_shadow_dip2
-e0ff0003 d genesistan_shadow_dip1
-e0ff0004 d rastan_virtual_dip2
-e0ff0005 d rastan_virtual_dip1
-e0ff0008 D task_sr
-e0ff000a D task_pc
-e0ff000e D task_regs
-e0ff004a D task_lock
-e0ff004c D _edata
-e0ff004c B _start
-e0ff004c B genesistan_arcade_workram_words
-e0ff404c B bmp_buffer_write
-e0ff4050 B VBlankProcess
-e0ff4052 B hintCaller
-e0ff4058 B vintCB
-e0ff405c B intCB
-e0ff4060 B vtimer
-e0ff4064 B eintCB
-e0ff4068 B dmaQueues
-e0ff406c B genesistan_sound_command_count
-e0ff406e B genesistan_sound_status
-e0ff406f B genesistan_sound_last_high_nibble
-e0ff4070 B genesistan_sound_last_low_nibble
-e0ff4071 B genesistan_sound_last_command
-e0ff4072 B genesistan_shadow_reg_3e0001
-e0ff4073 B genesistan_shadow_reg_3e0003
-e0ff4074 B genesistan_startup_result_code
-e0ff4076 B intLevelSave
-e0ff4078 B intTrace
-e0ff407a b state
-e0ff407c b rastan_virtual_sound_pending
-e0ff407e b packed_romset_signature_cache
-e0ff4082 b packed_romset_size_cache
-e0ff4086 b vscroll_update
-e0ff4087 b hscroll_update
-e0ff4088 b fadePSGVol
-e0ff408a b fadeFMVol
-e0ff408c b fadeCount
-e0ff4090 b vram
-e0ff409c b xgm2WaitTab
-e0ff40a4 b xgm2IdleTab
-e0ff40ac b xgmTempoCnt
-e0ff40b0 b xgmWaitTab
-e0ff40f0 b xgmIdleTab
-e0ff4130 b xgmTempoDef
-e0ff4132 b xgmTempo
-e0ff4134 b busProtectSignalAddress
-e0ff4136 b driverFlags
-e0ff4138 b currentDriver
-e0ff413a b lastVTimer.0
-e0ff413c b allocStack
-e0ff427c b text_plan
-e0ff4280 b lastVCnt
-e0ff4282 b hscrl_addr
-e0ff4284 b screenHeight
-e0ff4286 b lastTick
-e0ff428a b spriteVramSize
-e0ff428c b spritesPool
-e0ff4290 b cpuFrameLoad
-e0ff4292 b frameLoadIndex
-e0ff4294 b frameLoads
-e0ff42a4 b flags
-e0ff42a6 b vblankCB
-e0ff42aa b fadeCounter
-e0ff42ac b heap
-e0ff42b0 b free.lto_priv.0
-e0ff42b4 b randomSeedSet
-e0ff42b6 b joyEventCB
-e0ff42ba b retry
-e0ff42bb b phase.lto_priv.1
-e0ff42bc b gun
-e0ff42bd b extSet
-e0ff42be b joyAxisY
-e0ff42ce b joyAxisX
-e0ff42de b joyType
-e0ff42e6 b portSupport
-e0ff42e8 b portType
-e0ff42ea b gport
-e0ff42ec b flag
-e0ff42ee b maxTransferPerFrame
-e0ff42f0 b queueSize
-e0ff42f2 b nextDataBuffer
-e0ff42f6 b queueTransferSize
-e0ff42f8 b queueIndexLimit
-e0ff42fa b queueIndex
-e0ff42fc b dmaDataBuffer
-e0ff4300 b dataBufferSize
-e0ff4302 b phase.lto_priv.0
-e0ff4304 b joyState
-e0ff4314 b dirty_words
-e0ff4b14 b genesistan_shadow_input_390007
-e0ff4b15 b genesistan_shadow_input_390005
-e0ff4b16 b genesistan_shadow_input_390003
-e0ff4b17 b genesistan_shadow_input_390001
-e0ff4b18 b genesistan_shadow_reg_380000
-e0ff4b1a b genesistan_shadow_reg_350008
-e0ff4b1c b genesistan_shadow_reg_d01bfe
-e0ff4b1e b genesistan_shadow_d00000_words
-e0ff531e b current_screen
-e0ff5324 b page2_shadow
-e0ff9324 b engine_shadow_wram
-e0ffd324 b genesistan_shadow_c20000_words
-e0ffd328 b genesistan_shadow_c40000_words
-e0ffd32c b genesistan_shadow_reg_c50000
-e0ffd32e b genesistan_shadow_reg_3c0000
-e0ffd330 b sound_test_last_command
-e0ffd331 b sound_test_has_triggered
-e0ffd332 b rastan_virtual_sound_command
-e0ffd334 b graphics_test_tile_buffer
-e0ffd338 b graphics_page
-e0ffd33a b graphics_region
-e0ffd33e b planeHeightSft
-e0ffd340 b text_basetile
-e0ffd342 b slist_addr
-e0ffd344 b vdpSpriteCache
-e0ffd644 b disableIntStack
-e0ffd648 b regValues
-e0ffd65c b maps_addr
-e0ffd65e b bga_addr
-e0ffd660 b window_addr
-e0ffd662 b windowWidthSft
-e0ffd664 b windowWidth
-e0ffd666 b bgb_addr
-e0ffd668 b planeWidthSft
-e0ffd66a b planeHeight
-e0ffd66c b planeWidth
-e0ffd66e b selected_menu
-e0ffd670 b wram_overlay
-e0ffe1c0 B _bend
+0020d400 T drv_dpcm2
+0020e200 T drv_pcm
+0020ed30 T drv_pcm4
+0020f79e T drv_xgm2
+002117a0 T __INIT_SECTION__
+002117a2 T __FINI_SECTION__
+002117a4 T _etext
+002117a4 T rastan_maincpu
+002717a4 T rastan_audiocpu
+002817a4 T rastan_adpcm
+002917a4 t rastan_dip_palette_data
+00291824 T rastan_pc080sn
+00311824 T rastan_pc090oj
+00391824 t rastan_dip_on_data
+00391864 t rastan_dip_off_data
+003918a4 t sgdk_logo_palette_data
+003918c4 t font_pal_default_data
+003918e4 T stop_xgm
+00391990 t font_default_data
+00391bf2 t sgdk_logo_data
+0039202c A _stext
+e0ff0000 D rastan_virtual_dip2	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:202
+e0ff0001 D rastan_virtual_dip1	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:201
+e0ff0004 D task_sr
+e0ff0006 D task_pc
+e0ff000a D task_regs
+e0ff0046 D task_lock
+e0ff0048 d randbase	D:\apps\SGDK/src/tools.c:25
+e0ff004a D _edata
+e0ff004a B _start
+e0ff004a B genesistan_arcade_workram_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:10
+e0ff404a b packed_romset_signature_cache	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:214
+e0ff404e b packed_romset_size_cache	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:213
+e0ff4052 b sound_test_has_triggered	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:212
+e0ff4053 b sound_test_last_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:211
+e0ff4054 B rastan_virtual_sound_pending	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:210
+e0ff4055 B rastan_virtual_sound_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:209
+e0ff4056 b graphics_region	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:208
+e0ff405a b graphics_page	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:207
+e0ff405c b current_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:206
+e0ff4060 b graphics_test_tile_buffer	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:205
+e0ff4064 b selected_menu	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:203
+e0ff4068 B dirty_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:198
+e0ff4868 B wram_overlay	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:196
+e0ff53b8 B genesistan_sound_command_count	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:35
+e0ff53ba B genesistan_sound_status	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:34
+e0ff53bb B genesistan_sound_last_high_nibble	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:33
+e0ff53bc B genesistan_sound_last_low_nibble	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:32
+e0ff53bd B genesistan_sound_last_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:31
+e0ff53be B genesistan_startup_result_code	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:30
+e0ff53c0 B genesistan_shadow_reg_3e0003	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:26
+e0ff53c1 B genesistan_shadow_reg_3e0001	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:25
+e0ff53c2 B genesistan_shadow_input_390007	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:24
+e0ff53c3 B genesistan_shadow_input_390005	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:23
+e0ff53c4 B genesistan_shadow_input_390003	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:22
+e0ff53c5 B genesistan_shadow_input_390001	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:21
+e0ff53c6 b phase	D:\apps\SGDK/src/bmp.c:68
+e0ff53c8 b queueTransferSize	D:\apps\SGDK/src/dma.c:41
+e0ff53ca b queueIndexLimit	D:\apps\SGDK/src/dma.c:40
+e0ff53cc b queueIndex	D:\apps\SGDK/src/dma.c:39
+e0ff53ce b dataBufferSize	D:\apps\SGDK/src/dma.c:36
+e0ff53d0 b flag	D:\apps\SGDK/src/dma.c:33
+e0ff53d2 b maxTransferPerFrame	D:\apps\SGDK/src/dma.c:32
+e0ff53d4 b queueSize	D:\apps\SGDK/src/dma.c:31
+e0ff53d6 b nextDataBuffer	D:\apps\SGDK/src/dma.c:28
+e0ff53da B dmaDataBuffer	D:\apps\SGDK/src/dma.c:27
+e0ff53de B dmaQueues	D:\apps\SGDK/src/dma.c:24
+e0ff53e2 b joyEventCB	D:\apps\SGDK/src/joy.c:47
+e0ff53e6 b gport	D:\apps\SGDK/src/joy.c:44
+e0ff53e8 b extSet	D:\apps\SGDK/src/joy.c:43
+e0ff53e9 b gun	D:\apps\SGDK/src/joy.c:42
+e0ff53ea b phase	D:\apps\SGDK/src/joy.c:40
+e0ff53eb b retry	D:\apps\SGDK/src/joy.c:39
+e0ff53ec b portType	D:\apps\SGDK/src/joy.c:37
+e0ff53ee b portSupport	D:\apps\SGDK/src/joy.c:36
+e0ff53f0 b joyAxisY	D:\apps\SGDK/src/joy.c:34
+e0ff5400 b joyAxisX	D:\apps\SGDK/src/joy.c:33
+e0ff5410 b joyState	D:\apps\SGDK/src/joy.c:32
+e0ff5420 b joyType	D:\apps\SGDK/src/joy.c:31
+e0ff5428 b heap	D:\apps\SGDK/src/memory.c:153
+e0ff542c b free	D:\apps\SGDK/src/memory.c:152
+e0ff5430 b fadeCounter	D:\apps\SGDK/src/pal.c:201
+e0ff5432 b fadeSize	D:\apps\SGDK/src/pal.c:200
+e0ff5434 b fadeInd	D:\apps\SGDK/src/pal.c:199
+e0ff5436 b fadeSB	D:\apps\SGDK/src/pal.c:197
+e0ff54b6 b fadeSG	D:\apps\SGDK/src/pal.c:196
+e0ff5536 b fadeSR	D:\apps\SGDK/src/pal.c:195
+e0ff55b6 b fadeB	D:\apps\SGDK/src/pal.c:194
+e0ff5636 b fadeG	D:\apps\SGDK/src/pal.c:193
+e0ff56b6 b fadeR	D:\apps\SGDK/src/pal.c:192
+e0ff5736 B fadeCurrentPal	D:\apps\SGDK/src/pal.c:189
+e0ff57b6 b lastVTimer.0	D:\apps\SGDK/src/sys.c:979
+e0ff57b8 b lastSubTick	D:\apps\SGDK/src/sys.c:122
+e0ff57bc b frameCnt	D:\apps\SGDK/src/sys.c:121
+e0ff57c0 b cpuFrameLoad	D:\apps\SGDK/src/sys.c:120
+e0ff57c2 b frameLoadIndex	D:\apps\SGDK/src/sys.c:119
+e0ff57c4 b frameLoads	D:\apps\SGDK/src/sys.c:118
+e0ff57d4 b flags	D:\apps\SGDK/src/sys.c:115
+e0ff57d6 b disableIntStack	D:\apps\SGDK/src/sys.c:114
+e0ff57d8 B intLevelSave	D:\apps\SGDK/src/sys.c:113
+e0ff57da B intTrace	D:\apps\SGDK/src/sys.c:110
+e0ff57dc B VBlankProcess	D:\apps\SGDK/src/sys.c:109
+e0ff57de B vblankCB	D:\apps\SGDK/src/sys.c:107
+e0ff57e2 B intCB	D:\apps\SGDK/src/sys.c:104
+e0ff57e6 B eintCB	D:\apps\SGDK/src/sys.c:103
+e0ff57ea B hintCaller	D:\apps\SGDK/src/sys.c:102
+e0ff57f0 B vintCB	D:\apps\SGDK/src/sys.c:101
+e0ff57f4 b lastTick	D:\apps\SGDK/src/timer.c:39
+e0ff57f8 B vtimer	D:\apps\SGDK/src/timer.c:36
+e0ff57fc B randomSeedSet	D:\apps\SGDK/src/tools.c:27
+e0ff57fe B lastVCnt	D:\apps\SGDK/src/vdp.c:62
+e0ff5800 B windowWidthSft	D:\apps\SGDK/src/vdp.c:60
+e0ff5802 B planeHeightSft	D:\apps\SGDK/src/vdp.c:59
+e0ff5804 B planeWidthSft	D:\apps\SGDK/src/vdp.c:58
+e0ff5806 B windowWidth	D:\apps\SGDK/src/vdp.c:57
+e0ff5808 B planeHeight	D:\apps\SGDK/src/vdp.c:56
+e0ff580a B planeWidth	D:\apps\SGDK/src/vdp.c:55
+e0ff580c B screenHeight	D:\apps\SGDK/src/vdp.c:54
+e0ff580e B screenWidth	D:\apps\SGDK/src/vdp.c:53
+e0ff5810 B userTileMaxIndex	D:\apps\SGDK/src/vdp.c:51
+e0ff5812 B maps_addr	D:\apps\SGDK/src/vdp.c:49
+e0ff5814 B slist_addr	D:\apps\SGDK/src/vdp.c:48
+e0ff5816 B hscrl_addr	D:\apps\SGDK/src/vdp.c:47
+e0ff5818 B bgb_addr	D:\apps\SGDK/src/vdp.c:46
+e0ff581a B bga_addr	D:\apps\SGDK/src/vdp.c:45
+e0ff581c B window_addr	D:\apps\SGDK/src/vdp.c:44
+e0ff581e b regValues	D:\apps\SGDK/src/vdp.c:42
+e0ff5831 b vscroll_update	D:\apps\SGDK/src/vdp_bg.c:31
+e0ff5832 b hscroll_update	D:\apps\SGDK/src/vdp_bg.c:30
+e0ff5834 b vscroll	D:\apps\SGDK/src/vdp_bg.c:29
+e0ff5838 b hscroll	D:\apps\SGDK/src/vdp_bg.c:28
+e0ff583c B curTileInd	D:\apps\SGDK/src/vdp_bg.c:26
+e0ff583e b text_basetile	D:\apps\SGDK/src/vdp_bg.c:23
+e0ff5840 b text_plan	D:\apps\SGDK/src/vdp_bg.c:22
+e0ff5844 b free	D:\apps\SGDK/src/vdp_spr.c:24
+e0ff5848 b allocStack	D:\apps\SGDK/src/vdp_spr.c:22
+e0ff5988 B highestVDPSpriteIndex	D:\apps\SGDK/src/vdp_spr.c:19
+e0ff598a B vdpSpriteCache	D:\apps\SGDK/src/vdp_spr.c:14
+e0ff5c8a B busProtectSignalAddress	D:\apps\SGDK/src/z80_ctrl.c:24
+e0ff5c8c B driverFlags	D:\apps\SGDK/src/z80_ctrl.c:23
+e0ff5c8e B currentDriver	D:\apps\SGDK/src/z80_ctrl.c:22
+e0ff5c90 b xgmWaitMean	D:\apps\SGDK/src/snd/xgm.c:41
+e0ff5c92 b xgmIdleMean	D:\apps\SGDK/src/snd/xgm.c:40
+e0ff5c94 b xgmTabInd	D:\apps\SGDK/src/snd/xgm.c:39
+e0ff5c96 b xgmWaitTab	D:\apps\SGDK/src/snd/xgm.c:38
+e0ff5cd6 b xgmIdleTab	D:\apps\SGDK/src/snd/xgm.c:37
+e0ff5d16 B xgmTempoCnt	D:\apps\SGDK/src/snd/xgm.c:34
+e0ff5d18 b xgmTempoDef	D:\apps\SGDK/src/snd/xgm.c:32
+e0ff5d1a b xgmTempo	D:\apps\SGDK/src/snd/xgm.c:31
+e0ff5d1c b xgm2WaitMean	D:\apps\SGDK/src/snd/xgm2.c:191
+e0ff5d1e b xgm2IdleMean	D:\apps\SGDK/src/snd/xgm2.c:190
+e0ff5d20 b xgm2WaitTabInd	D:\apps\SGDK/src/snd/xgm2.c:189
+e0ff5d22 b xgm2IdleTabInd	D:\apps\SGDK/src/snd/xgm2.c:188
+e0ff5d24 b xgm2WaitTab	D:\apps\SGDK/src/snd/xgm2.c:187
+e0ff5d2c b xgm2IdleTab	D:\apps\SGDK/src/snd/xgm2.c:186
+e0ff5d34 b fadeEndProcess	D:\apps\SGDK/src/snd/xgm2.c:183
+e0ff5d38 b fadeCount	D:\apps\SGDK/src/snd/xgm2.c:182
+e0ff5d3a b fadePSGVolStep	D:\apps\SGDK/src/snd/xgm2.c:181
+e0ff5d3c b fadeFMVolStep	D:\apps\SGDK/src/snd/xgm2.c:180
+e0ff5d3e b fadePSGVol	D:\apps\SGDK/src/snd/xgm2.c:179
+e0ff5d40 b fadeFMVol	D:\apps\SGDK/src/snd/xgm2.c:178
+e0ff5d42 b restoreVolume	D:\apps\SGDK/src/snd/xgm2.c:175
+e0ff5d44 b psgVol	D:\apps\SGDK/src/snd/xgm2.c:174
+e0ff5d46 b fmVol	D:\apps\SGDK/src/snd/xgm2.c:173
+e0ff5d48 b xgm2Tempo	D:\apps\SGDK/src/snd/xgm2.c:170
+e0ff5d4a B spriteVramSize	D:\apps\SGDK/src/sprite_eng.c:90
+e0ff5d4c b vram	D:\apps\SGDK/src/sprite_eng.c:87
+e0ff5d58 B firstSprite	D:\apps\SGDK/src/sprite_eng.c:83
+e0ff5d5c B spritesPool	D:\apps\SGDK/src/sprite_eng.c:80
+e0ff5d60 B _bend
 e1000000 A __stack

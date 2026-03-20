@@ -148,6 +148,116 @@ void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t servi
     genesistan_refresh_arcade_inputs();
 }
 
+void genesistan_init_workram_direct(uint8_t dip1, uint8_t dip2)
+{
+    /*
+     * Initialise genesistan_arcade_workram_words
+     * to the state that startup_common would have
+     * produced after completing its init sequence
+     * and setting state=2, sub-state=0.
+     *
+     * A5 base = genesistan_arcade_workram_words
+     * All offsets are byte offsets from that base.
+     *
+     * DIP values are active-low on the arcade
+     * hardware, so invert before use.
+     */
+    uint8_t ndip1 = (uint8_t)~dip1;
+    uint8_t ndip2 = (uint8_t)~dip2;
+    uint16_t diff_idx;
+    uint16_t bonus_idx;
+    uint16_t mode;
+
+    /* Difficulty: notted DIP2 bits 3:2, shifted right 1 */
+    static const uint16_t diff_table[4] = {
+        0x1000, 0x1500, 0x2000, 0x2500};
+    /* Bonus life: notted DIP2 bits 5:4, shifted right 3 */
+    static const uint16_t bonus_table[4] = {
+        0x0003, 0x0004, 0x0005, 0x0006};
+
+    /* Clear entire work RAM first */
+    memset((void *)genesistan_arcade_workram_words,
+           0, sizeof(genesistan_arcade_workram_words));
+
+    /* Main state machine: state=2, sub=0, step=0 */
+    genesistan_arcade_workram_words[0] = 2; /* A5@(0)  main state */
+    genesistan_arcade_workram_words[1] = 0; /* A5@(2)  sub-state */
+    genesistan_arcade_workram_words[2] = 0; /* A5@(4)  inner step */
+
+    /* Coinage: factory default = 1C:1C */
+    genesistan_arcade_workram_words[4] = 1; /* A5@(8)  coin1 */
+    genesistan_arcade_workram_words[5] = 1; /* A5@(10) coin2 */
+    genesistan_arcade_workram_words[7] = 1; /* A5@(14) */
+    genesistan_arcade_workram_words[8] = 1; /* A5@(16) */
+
+    /* Display control mirror */
+    genesistan_arcade_workram_words[10] = 0x0060; /* A5@(20) */
+
+    /* DIP mirror (notted) */
+    genesistan_arcade_workram_words[12] = ndip1; /* A5@(24) */
+    genesistan_arcade_workram_words[14] = ndip2; /* A5@(28) */
+
+    /* Init flag */
+    genesistan_arcade_workram_words[19] = 1; /* A5@(38) */
+
+    /* Initial delay timer */
+    genesistan_arcade_workram_words[22] = 160; /* A5@(44) = 0xA0 */
+
+    /* Mode from DIP2 bits 1:0 */
+    mode = ndip2 & 0x03;
+    if (mode == 0) mode = 1;
+    else if (mode == 1) mode = 0;
+    genesistan_arcade_workram_words[23] = mode; /* A5@(46) */
+
+    /* Cabinet type: DIP1 bit 0 */
+    genesistan_arcade_workram_words[24] = ndip1 & 0x01; /* A5@(48) */
+
+    /* Monitor flip: DIP1 bit 1 */
+    genesistan_arcade_workram_words[25] = ndip1 & 0x02; /* A5@(50) */
+
+    /* Bonus life from DIP2 bits 5:4 */
+    bonus_idx = ((uint16_t)ndip2 & 0x30U) >> 3;
+    if (bonus_idx > 3) bonus_idx = 3;
+    genesistan_arcade_workram_words[27] = /* A5@(54) */
+        bonus_table[bonus_idx];
+
+    /* Difficulty from DIP2 bits 3:2 */
+    diff_idx = ((uint16_t)ndip2 & 0x0CU) >> 1;
+    if (diff_idx > 3) diff_idx = 3;
+    genesistan_arcade_workram_words[28] = /* A5@(56) */
+        diff_table[diff_idx];
+
+    /* Competition/alt flags (0 for standard ROM) */
+    genesistan_arcade_workram_words[32] = 0; /* A5@(64) */
+    genesistan_arcade_workram_words[34] = 0; /* A5@(68) */
+
+    /* Sprite init marker */
+    genesistan_arcade_workram_words[37] = 0x00AA; /* A5@(74) */
+
+    /* Title init flags */
+    genesistan_arcade_workram_words[128] = 1; /* A5@(256) */
+    genesistan_arcade_workram_words[130] = 1; /* A5@(260) */
+
+    /*
+     * Copy 39 bytes of config data from ROM
+     * table at original arcade address 0x3b0d4
+     * (relocated to 0x3b2d4 in Genesis ROM)
+     * to A5@(320) = workram word offset 160.
+     * Cast to byte pointer for byte-accurate copy.
+     */
+    {
+        extern const uint8_t rastan_maincpu[];
+        const uint8_t *cfg_src =
+            rastan_maincpu + 0x3b0d4;
+        uint8_t *cfg_dst =
+            (uint8_t *)genesistan_arcade_workram_words
+            + 320;
+        uint16_t i;
+        for (i = 0; i < 39; i++)
+            cfg_dst[i] = cfg_src[i];
+    }
+}
+
 void genesistan_reclaim_launcher_wram(void)
 {
     const uint8_t saved_dip1 = genesistan_shadow_dip1;
@@ -183,6 +293,12 @@ void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t servi
 
 void genesistan_refresh_arcade_inputs(void)
 {
+}
+
+void genesistan_init_workram_direct(uint8_t dip1, uint8_t dip2)
+{
+    (void) dip1;
+    (void) dip2;
 }
 
 void genesistan_reclaim_launcher_wram(void)
