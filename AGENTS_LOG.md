@@ -5763,6 +5763,52 @@ Gap:
 - Gap >= 0x4000 (16KB): NO
 ```
 
+## [Cody - Build 96 Fix, engine_shadow_wram placement]
+```text
+Build 96 placement fix completed.
+
+Code change made (one change only):
+- apps/rastan/src/main.c
+  - engine_shadow_wram declaration changed from:
+      __attribute__((section(".bss.workram")))
+      __attribute__((aligned(4)));
+    to:
+      __attribute__((aligned(4)));
+
+No other code changes were made.
+
+Build commands run:
+1) source tools/setup_env.sh
+2) make -C apps/rastan debug
+   Result: SUCCESS
+   Warning:
+   - src/main.c:1272:13: 'render_frontend_sprite_layer' defined but not used [-Wunused-function]
+
+3) make -C apps/rastan release
+   Result: SUCCESS
+   Warning:
+   - src/main.c:1272:13: 'render_frontend_sprite_layer' defined but not used [-Wunused-function]
+
+4) ./tools/release_build.sh 96
+   Result: FAILED
+   Exact failure:
+   - cp: cannot stat 'res/res_payload.d': No such file or directory
+   - make[1]: *** ... makefile.gen:222: out/res/res_payload.o Error 1
+   - postpatch_startup_rom.py then failed because out/symbol.txt was missing
+     after that aborted build stage.
+
+Address report (from apps/rastan/out/symbol.txt after successful release):
+- engine_shadow_wram: 0xE0FF9324
+- genesistan_arcade_workram_words: 0xE0FF004C
+- wram_overlay: 0xE0FFD670
+- _bend: 0xE0FFE1C0
+- __stack: 0xE1000000
+
+Gap:
+- __stack - _bend = 0x1E40 (7744 bytes)
+- Gap >= 0x4000 (16KB): NO
+```
+
 ### MAME Exit Summary (2026-03-20 01:48:38)
 - Final PC: 0x205A24
 - Stack Pointer (SP): 0xE0FFFFB0
@@ -5807,3 +5853,62 @@ wram_overlay:                    ~0xE0FFC86C
 _bend:                           ~0xE0FFE576
 Gap:                             ~0x5A8A (22KB)
 
+## [Technical Lead - Build 96 Revised Architecture]
+## Source: Claude (Project Technical Lead)
+
+### Key Insight
+
+Skipping startup_common eliminates the C-Window
+execution crash entirely AND frees the WRAM budget.
+
+startup_common fills 0xC00000 page 0 with 0x0020
+data patterns then executes from that region as
+part of its init sequence. On Genesis page 0 routes
+to non-executable SRAM. Crash.
+
+By bypassing startup_common and initialising A5
+work RAM directly from Genesis C code, the C-Window
+fill never happens and the crash source is removed.
+
+engine_shadow_wram (16KB) and page2_shadow (16KB)
+are no longer needed. WRAM budget returns to the
+Build 95 baseline with ~22KB stack gap.
+
+### A5 Work RAM Init Values (factory defaults)
+
+Derived from static analysis of startup_common:
+  A5@(0)   = 2      main state = title/frontend
+  A5@(2)   = 0      sub-state
+  A5@(4)   = 0      inner step
+  A5@(8)   = 1      coin1 rate
+  A5@(10)  = 1      coin2 rate
+  A5@(14)  = 1
+  A5@(16)  = 1
+  A5@(20)  = 0x0060 display control mirror
+  A5@(24)  = ~DIP1  notted DIP1
+  A5@(28)  = ~DIP2  notted DIP2
+  A5@(38)  = 1      init flag
+  A5@(44)  = 160    initial delay countdown
+  A5@(46)  = mode   from DIP2 bits 1:0
+  A5@(48)  = cab    from DIP1 bit 0
+  A5@(50)  = mon    from DIP1 bit 1
+  A5@(54)  = bonus  from DIP2 bits 5:4
+  A5@(56)  = diff   from DIP2 bits 3:2
+  A5@(64)  = 0      competition flag
+  A5@(68)  = 0      alt flag
+  A5@(74)  = 0x00AA sprite init marker
+  A5@(256) = 1      title init flag
+  A5@(260) = 1      title init flag 2
+  A5@(320) = 39 bytes from ROM table at 0x3b0d4
+
+### Long-term WRAM benefit
+
+When opcode replacement (Build 97+) replaces the
+C-Window writes with direct VDP calls, the arcade
+code never writes to 0xC00000 at all. At that
+point dirty_words can also be removed. WRAM will
+contain only:
+  genesistan_arcade_workram_words  16KB
+  wram_overlay (LauncherRuntime)    3KB
+  SGDK internals                   20KB
+  Stack headroom                   25KB

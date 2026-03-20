@@ -200,7 +200,6 @@ uint16_t page2_shadow[8192]
 uint32_t dirty_words[512]
     __attribute__((aligned(4)));
 uint16_t engine_shadow_wram[8192]
-    __attribute__((section(".bss.workram")))
     __attribute__((aligned(4)));
 
 volatile u8 rastan_virtual_dip1 = FACTORY_DIP1;
