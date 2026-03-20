@@ -4539,3 +4539,570 @@ Programmatic check result:
 
 Conclusion: 0xC01CA8 is not inside any currently declared copied_ranges block.
 ```
+
+## [Cody - Build 95 Diagnosis Part 2, 0xC01CA8 Write Sites]
+```text
+Research-only task completed. No source code changes.
+Re-read AGENTS.md and AGENTS_LOG.md fully before running diagnostics.
+
+TASK 1 — grep matches + full 10-line context windows
+=====================================================
+
+Command:
+  grep -n "1ca8\|1CA8" build/maincpu.disasm.txt
+
+Matches:
+22667:   11ca8: 1436 1437       moveb %fp@(37,%d1:w:4),%d2
+24787:   13508: 1ca8 1ca9       moveb %a0@(7337),%fp@
+37662:   1ca80: 000f            .short 0x000f
+37663:   1ca82: 2048            moveal %a0,%a0
+37664:   1ca84: 000f            .short 0x000f
+37665:   1ca86: 2048            moveal %a0,%a0
+37666:   1ca88: 000f            .short 0x000f
+37667:   1ca8a: 2048            moveal %a0,%a0
+37668:   1ca8c: 000f            .short 0x000f
+37669:   1ca8e: 2048            moveal %a0,%a0
+43933:   21ca8: 0003 1000       orib #0,%d3
+63093:   31ca8: 0001 2024       orib #36,%d1
+83601:   41ca8: 6100 22a8       bsrw 0x43f52
+
+Command:
+  grep -n "c01c\|C01C" build/maincpu.disasm.txt
+
+Matches:
+14723:    c01c: 00c3            .short 0x00c3
+36874:   1c01c: 0001 1000       orib #0,%d1
+56300:   2c01c: 0007 1000       orib #0,%d7
+75444:   3c01c: 4952            .short 0x4952
+
+Context (10 lines before/after each match):
+
+===== Context for line 22667 =====
+22657:   11c8a:	14ac 14ef      	moveb %a4@(5359),%a2@
+22658:   11c8e:	14ff           	.short 0x14ff
+22659:   11c90:	145a           	.short 0x145a
+22660:   11c92:	145b           	.short 0x145b
+22661:   11c94:	145c           	.short 0x145c
+22662:   11c96:	145d           	.short 0x145d
+22663:   11c98:	1500           	moveb %d0,%a2@-
+22664:   11c9a:	0539 0539 0539 	btst %d2,0x5390539
+22665:   11ca0:	14f1 14af      	moveb %a1@(ffffffffffffffaf,%d1:w:4),%a2@+
+22666:   11ca4:	14b0 14b1      	moveb %a0@(ffffffffffffffb1,%d1:w:4),%a2@
+22667:   11ca8:	1436 1437      	moveb %fp@(37,%d1:w:4),%d2
+22668:   11cac:	1438 1439      	moveb 0x1439,%d2
+22669:   11cb0:	143a 14b2      	moveb %pc@(0x13164),%d2
+22670:   11cb4:	14b3 1501      	moveb %a3@(0,%d1:w:4)@(0),%a2@
+22671:   11cb8:	0539 0539 0539 	btst %d2,0x5390539
+22672:   11cbe:	0539 14f4 14b6 	btst %d2,0x14f414b6
+22673:   11cc4:	14b7 14b8      	moveb %sp@(ffffffffffffffb8,%d1:w:4),%a2@
+22674:   11cc8:	1442           	.short 0x1442
+22675:   11cca:	1443           	.short 0x1443
+22676:   11ccc:	1444           	.short 0x1444
+22677:   11cce:	1445           	.short 0x1445
+
+===== Context for line 24787 =====
+24777:   134f4:	04d2           	.short 0x04d2
+24778:   134f6:	1ca0           	moveb %a0@-,%fp@
+24779:   134f8:	1ca1           	moveb %a1@-,%fp@
+24780:   134fa:	04d2           	.short 0x04d2
+24781:   134fc:	1ca2           	moveb %a2@-,%fp@
+24782:   134fe:	1ca3           	moveb %a3@-,%fp@
+24783:   13500:	1ca4           	moveb %a4@-,%fp@
+24784:   13502:	1ca5           	moveb %a5@-,%fp@
+24785:   13504:	1ca6           	moveb %fp@-,%fp@
+24786:   13506:	1ca7           	moveb %sp@-,%fp@
+24787:   13508:	1ca8 1ca9      	moveb %a0@(7337),%fp@
+24788:   1350c:	1caa 1cab      	moveb %a2@(7339),%fp@
+24789:   13510:	1cac 1cad      	moveb %a4@(7341),%fp@
+24790:   13514:	1cae 1caf      	moveb %fp@(7343),%fp@
+24791:   13518:	1cb0 1cb1      	moveb %a0@(ffffffffffffffb1,%d1:l:4),%fp@
+24792:   1351c:	1cb2 1cb3      	moveb %a2@(ffffffffffffffb3,%d1:l:4),%fp@
+24793:   13520:	1cb4 1cb5      	moveb %a4@(ffffffffffffffb5,%d1:l:4),%fp@
+24794:   13524:	1cb6 1cb7      	moveb %fp@(ffffffffffffffb7,%d1:l:4),%fp@
+24795:   13528:	1cb8 1cb9      	moveb 0x1cb9,%fp@
+24796:   1352c:	1cba 1cbb      	moveb %pc@(0x151e9),%fp@
+24797:   13530:	1cbc 1cbd      	moveb #-67,%fp@
+
+===== Context for line 37662 =====
+37652:   1ca6c:	000f           	.short 0x000f
+37653:   1ca6e:	2048           	moveal %a0,%a0
+37654:   1ca70:	000f           	.short 0x000f
+37655:   1ca72:	2048           	moveal %a0,%a0
+37656:   1ca74:	000f           	.short 0x000f
+37657:   1ca76:	2048           	moveal %a0,%a0
+37658:   1ca78:	000f           	.short 0x000f
+37659:   1ca7a:	2048           	moveal %a0,%a0
+37660:   1ca7c:	000f           	.short 0x000f
+37661:   1ca7e:	2048           	moveal %a0,%a0
+37662:   1ca80:	000f           	.short 0x000f
+37663:   1ca82:	2048           	moveal %a0,%a0
+37664:   1ca84:	000f           	.short 0x000f
+37665:   1ca86:	2048           	moveal %a0,%a0
+37666:   1ca88:	000f           	.short 0x000f
+37667:   1ca8a:	2048           	moveal %a0,%a0
+37668:   1ca8c:	000f           	.short 0x000f
+37669:   1ca8e:	2048           	moveal %a0,%a0
+37670:   1ca90:	000f           	.short 0x000f
+37671:   1ca92:	2048           	moveal %a0,%a0
+37672:   1ca94:	000f           	.short 0x000f
+
+===== Context for line 37663 =====
+37653:   1ca6e:	2048           	moveal %a0,%a0
+37654:   1ca70:	000f           	.short 0x000f
+37655:   1ca72:	2048           	moveal %a0,%a0
+37656:   1ca74:	000f           	.short 0x000f
+37657:   1ca76:	2048           	moveal %a0,%a0
+37658:   1ca78:	000f           	.short 0x000f
+37659:   1ca7a:	2048           	moveal %a0,%a0
+37660:   1ca7c:	000f           	.short 0x000f
+37661:   1ca7e:	2048           	moveal %a0,%a0
+37662:   1ca80:	000f           	.short 0x000f
+37663:   1ca82:	2048           	moveal %a0,%a0
+37664:   1ca84:	000f           	.short 0x000f
+37665:   1ca86:	2048           	moveal %a0,%a0
+37666:   1ca88:	000f           	.short 0x000f
+37667:   1ca8a:	2048           	moveal %a0,%a0
+37668:   1ca8c:	000f           	.short 0x000f
+37669:   1ca8e:	2048           	moveal %a0,%a0
+37670:   1ca90:	000f           	.short 0x000f
+37671:   1ca92:	2048           	moveal %a0,%a0
+37672:   1ca94:	000f           	.short 0x000f
+37673:   1ca96:	2048           	moveal %a0,%a0
+
+===== Context for line 37664 =====
+37654:   1ca70:	000f           	.short 0x000f
+37655:   1ca72:	2048           	moveal %a0,%a0
+37656:   1ca74:	000f           	.short 0x000f
+37657:   1ca76:	2048           	moveal %a0,%a0
+37658:   1ca78:	000f           	.short 0x000f
+37659:   1ca7a:	2048           	moveal %a0,%a0
+37660:   1ca7c:	000f           	.short 0x000f
+37661:   1ca7e:	2048           	moveal %a0,%a0
+37662:   1ca80:	000f           	.short 0x000f
+37663:   1ca82:	2048           	moveal %a0,%a0
+37664:   1ca84:	000f           	.short 0x000f
+37665:   1ca86:	2048           	moveal %a0,%a0
+37666:   1ca88:	000f           	.short 0x000f
+37667:   1ca8a:	2048           	moveal %a0,%a0
+37668:   1ca8c:	000f           	.short 0x000f
+37669:   1ca8e:	2048           	moveal %a0,%a0
+37670:   1ca90:	000f           	.short 0x000f
+37671:   1ca92:	2048           	moveal %a0,%a0
+37672:   1ca94:	000f           	.short 0x000f
+37673:   1ca96:	2048           	moveal %a0,%a0
+37674:   1ca98:	000f           	.short 0x000f
+
+===== Context for line 37665 =====
+37655:   1ca72:	2048           	moveal %a0,%a0
+37656:   1ca74:	000f           	.short 0x000f
+37657:   1ca76:	2048           	moveal %a0,%a0
+37658:   1ca78:	000f           	.short 0x000f
+37659:   1ca7a:	2048           	moveal %a0,%a0
+37660:   1ca7c:	000f           	.short 0x000f
+37661:   1ca7e:	2048           	moveal %a0,%a0
+37662:   1ca80:	000f           	.short 0x000f
+37663:   1ca82:	2048           	moveal %a0,%a0
+37664:   1ca84:	000f           	.short 0x000f
+37665:   1ca86:	2048           	moveal %a0,%a0
+37666:   1ca88:	000f           	.short 0x000f
+37667:   1ca8a:	2048           	moveal %a0,%a0
+37668:   1ca8c:	000f           	.short 0x000f
+37669:   1ca8e:	2048           	moveal %a0,%a0
+37670:   1ca90:	000f           	.short 0x000f
+37671:   1ca92:	2048           	moveal %a0,%a0
+37672:   1ca94:	000f           	.short 0x000f
+37673:   1ca96:	2048           	moveal %a0,%a0
+37674:   1ca98:	000f           	.short 0x000f
+37675:   1ca9a:	2048           	moveal %a0,%a0
+
+===== Context for line 37666 =====
+37656:   1ca74:	000f           	.short 0x000f
+37657:   1ca76:	2048           	moveal %a0,%a0
+37658:   1ca78:	000f           	.short 0x000f
+37659:   1ca7a:	2048           	moveal %a0,%a0
+37660:   1ca7c:	000f           	.short 0x000f
+37661:   1ca7e:	2048           	moveal %a0,%a0
+37662:   1ca80:	000f           	.short 0x000f
+37663:   1ca82:	2048           	moveal %a0,%a0
+37664:   1ca84:	000f           	.short 0x000f
+37665:   1ca86:	2048           	moveal %a0,%a0
+37666:   1ca88:	000f           	.short 0x000f
+37667:   1ca8a:	2048           	moveal %a0,%a0
+37668:   1ca8c:	000f           	.short 0x000f
+37669:   1ca8e:	2048           	moveal %a0,%a0
+37670:   1ca90:	000f           	.short 0x000f
+37671:   1ca92:	2048           	moveal %a0,%a0
+37672:   1ca94:	000f           	.short 0x000f
+37673:   1ca96:	2048           	moveal %a0,%a0
+37674:   1ca98:	000f           	.short 0x000f
+37675:   1ca9a:	2048           	moveal %a0,%a0
+37676:   1ca9c:	000f           	.short 0x000f
+
+===== Context for line 37667 =====
+37657:   1ca76:	2048           	moveal %a0,%a0
+37658:   1ca78:	000f           	.short 0x000f
+37659:   1ca7a:	2048           	moveal %a0,%a0
+37660:   1ca7c:	000f           	.short 0x000f
+37661:   1ca7e:	2048           	moveal %a0,%a0
+37662:   1ca80:	000f           	.short 0x000f
+37663:   1ca82:	2048           	moveal %a0,%a0
+37664:   1ca84:	000f           	.short 0x000f
+37665:   1ca86:	2048           	moveal %a0,%a0
+37666:   1ca88:	000f           	.short 0x000f
+37667:   1ca8a:	2048           	moveal %a0,%a0
+37668:   1ca8c:	000f           	.short 0x000f
+37669:   1ca8e:	2048           	moveal %a0,%a0
+37670:   1ca90:	000f           	.short 0x000f
+37671:   1ca92:	2048           	moveal %a0,%a0
+37672:   1ca94:	000f           	.short 0x000f
+37673:   1ca96:	2048           	moveal %a0,%a0
+37674:   1ca98:	000f           	.short 0x000f
+37675:   1ca9a:	2048           	moveal %a0,%a0
+37676:   1ca9c:	000f           	.short 0x000f
+37677:   1ca9e:	8ed4           	divuw %a4@,%d7
+
+===== Context for line 37668 =====
+37658:   1ca78:	000f           	.short 0x000f
+37659:   1ca7a:	2048           	moveal %a0,%a0
+37660:   1ca7c:	000f           	.short 0x000f
+37661:   1ca7e:	2048           	moveal %a0,%a0
+37662:   1ca80:	000f           	.short 0x000f
+37663:   1ca82:	2048           	moveal %a0,%a0
+37664:   1ca84:	000f           	.short 0x000f
+37665:   1ca86:	2048           	moveal %a0,%a0
+37666:   1ca88:	000f           	.short 0x000f
+37667:   1ca8a:	2048           	moveal %a0,%a0
+37668:   1ca8c:	000f           	.short 0x000f
+37669:   1ca8e:	2048           	moveal %a0,%a0
+37670:   1ca90:	000f           	.short 0x000f
+37671:   1ca92:	2048           	moveal %a0,%a0
+37672:   1ca94:	000f           	.short 0x000f
+37673:   1ca96:	2048           	moveal %a0,%a0
+37674:   1ca98:	000f           	.short 0x000f
+37675:   1ca9a:	2048           	moveal %a0,%a0
+37676:   1ca9c:	000f           	.short 0x000f
+37677:   1ca9e:	8ed4           	divuw %a4@,%d7
+37678:   1caa0:	000f           	.short 0x000f
+
+===== Context for line 37669 =====
+37659:   1ca7a:	2048           	moveal %a0,%a0
+37660:   1ca7c:	000f           	.short 0x000f
+37661:   1ca7e:	2048           	moveal %a0,%a0
+37662:   1ca80:	000f           	.short 0x000f
+37663:   1ca82:	2048           	moveal %a0,%a0
+37664:   1ca84:	000f           	.short 0x000f
+37665:   1ca86:	2048           	moveal %a0,%a0
+37666:   1ca88:	000f           	.short 0x000f
+37667:   1ca8a:	2048           	moveal %a0,%a0
+37668:   1ca8c:	000f           	.short 0x000f
+37669:   1ca8e:	2048           	moveal %a0,%a0
+37670:   1ca90:	000f           	.short 0x000f
+37671:   1ca92:	2048           	moveal %a0,%a0
+37672:   1ca94:	000f           	.short 0x000f
+37673:   1ca96:	2048           	moveal %a0,%a0
+37674:   1ca98:	000f           	.short 0x000f
+37675:   1ca9a:	2048           	moveal %a0,%a0
+37676:   1ca9c:	000f           	.short 0x000f
+37677:   1ca9e:	8ed4           	divuw %a4@,%d7
+37678:   1caa0:	000f           	.short 0x000f
+37679:   1caa2:	8be8 0002      	divsw %a0@(2),%d5
+
+===== Context for line 43933 =====
+43923:   21c80:	0019 5be0      	orib #-32,%a1@+
+43924:   21c84:	0019 598c      	orib #-116,%a1@+
+43925:   21c88:	0019 5be0      	orib #-32,%a1@+
+43926:   21c8c:	0019 5be0      	orib #-32,%a1@+
+43927:   21c90:	0019 59b0      	orib #-80,%a1@+
+43928:   21c94:	0019 5be0      	orib #-32,%a1@+
+43929:   21c98:	0019 58d8      	orib #-40,%a1@+
+43930:   21c9c:	0005 20fc      	orib #-4,%d5
+43931:   21ca0:	0003 1000      	orib #0,%d3
+43932:   21ca4:	0003 1000      	orib #0,%d3
+43933:   21ca8:	0003 1000      	orib #0,%d3
+43934:   21cac:	0004 5f88      	orib #-120,%d4
+43935:   21cb0:	0004 5f64      	orib #100,%d4
+43936:   21cb4:	0004 5f40      	orib #64,%d4
+43937:   21cb8:	0004 5d00      	orib #0,%d4
+43938:   21cbc:	0004 5d24      	orib #36,%d4
+43939:   21cc0:	0004 5e8c      	orib #-116,%d4
+43940:   21cc4:	0004 5d48      	orib #72,%d4
+43941:   21cc8:	0004 5fd0      	orib #-48,%d4
+43942:   21ccc:	0004 5ff4      	orib #-12,%d4
+43943:   21cd0:	0004 6018      	orib #24,%d4
+
+===== Context for line 63093 =====
+63083:   31c80:	0001 2024      	orib #36,%d1
+63084:   31c84:	0001 2024      	orib #36,%d1
+63085:   31c88:	0001 2024      	orib #36,%d1
+63086:   31c8c:	0001 2024      	orib #36,%d1
+63087:   31c90:	0001 2024      	orib #36,%d1
+63088:   31c94:	0001 2024      	orib #36,%d1
+63089:   31c98:	0001 2024      	orib #36,%d1
+63090:   31c9c:	0001 2024      	orib #36,%d1
+63091:   31ca0:	0001 2024      	orib #36,%d1
+63092:   31ca4:	0001 2024      	orib #36,%d1
+63093:   31ca8:	0001 2024      	orib #36,%d1
+63094:   31cac:	0002 25c8      	orib #-56,%d2
+63095:   31cb0:	0002 2608      	orib #8,%d2
+63096:   31cb4:	0002 2648      	orib #72,%d2
+63097:   31cb8:	0002 92e0      	orib #-32,%d2
+63098:   31cbc:	0002 9304      	orib #4,%d2
+63099:   31cc0:	0002 1d24      	orib #36,%d2
+63100:   31cc4:	0002 1d24      	orib #36,%d2
+63101:   31cc8:	0002 1c54      	orib #84,%d2
+63102:   31ccc:	0001 2048      	orib #72,%d1
+63103:   31cd0:	0001 2048      	orib #72,%d1
+
+===== Context for line 83601 =====
+83591:   41c86:	0c41 0070      	cmpiw #112,%d1
+83592:   41c8a:	6752           	beqs 0x41cde
+83593:   41c8c:	0c41 0075      	cmpiw #117,%d1
+83594:   41c90:	6752           	beqs 0x41ce4
+83595:   41c92:	602a           	bras 0x41cbe
+83596:   41c94:	0c6d 0022 013e 	cmpiw #34,%a5@(318)
+83597:   41c9a:	6622           	bnes 0x41cbe
+83598:   41c9c:	2e0c           	movel %a4,%d7
+83599:   41c9e:	3b7c 0002 0286 	movew #2,%a5@(646)
+83600:   41ca4:	49ed 0408      	lea %a5@(1032),%a4
+83601:   41ca8:	6100 22a8      	bsrw 0x43f52
+83602:   41cac:	2847           	moveal %d7,%a4
+83603:   41cae:	3b7c 0001 0288 	movew #1,%a5@(648)
+83604:   41cb4:	3b7c 0001 02a4 	movew #1,%a5@(676)
+83605:   41cba:	302d 0218      	movew %a5@(536),%d0
+83606:   41cbe:	0440 0088      	subiw #136,%d0
+83607:   41cc2:	3940 001a      	movew %d0,%a4@(26)
+83608:   41cc6:	4e75           	rts
+83609:   41cc8:	0440 0030      	subiw #48,%d0
+83610:   41ccc:	3940 001a      	movew %d0,%a4@(26)
+83611:   41cd0:	4e75           	rts
+
+===== Context for line 14723 =====
+14713:    bff6:	2142 2143      	movel %d2,%a0@(8515)
+14714:    bffa:	2152 2145      	movel %a2@,%a0@(8517)
+14715:    bffe:	2146 2147      	movel %d6,%a0@(8519)
+14716:    c002:	2148 2149      	movel %a0,%a0@(8521)
+14717:    c006:	214a 214b      	movel %a2,%a0@(8523)
+14718:    c00a:	214c 00ff      	movel %a4,%a0@(255)
+14719:    c00e:	0000 2153      	orib #83,%d0
+14720:    c012:	2154 2155      	movel %a4@,%a0@(8533)
+14721:    c016:	00c0           	.short 0x00c0
+14722:    c018:	2156 2157      	movel %fp@,%a0@(8535)
+14723:    c01c:	00c3           	.short 0x00c3
+14724:    c01e:	00c4           	.short 0x00c4
+14725:    c020:	2158 2159      	movel %a0@+,%a0@(8537)
+14726:    c024:	00c7           	.short 0x00c7
+14727:    c026:	010b 215a      	movepw %a3@(8538),%d0
+14728:    c02a:	215b 010e      	movel %a3@+,%a0@(270)
+14729:    c02e:	010f 00ff      	movepw %sp@(255),%d0
+14730:    c032:	0001 00bd      	orib #-67,%d1
+14731:    c036:	00be           	.short 0x00be
+14732:    c038:	00bf           	.short 0x00bf
+14733:    c03a:	00c0           	.short 0x00c0
+
+===== Context for line 36874 =====
+36864:   1bff4:	0001 1000      	orib #0,%d1
+36865:   1bff8:	0001 1000      	orib #0,%d1
+36866:   1bffc:	0001 1000      	orib #0,%d1
+36867:   1c000:	0001 1000      	orib #0,%d1
+36868:   1c004:	0001 1000      	orib #0,%d1
+36869:   1c008:	0001 1000      	orib #0,%d1
+36870:   1c00c:	0001 1000      	orib #0,%d1
+36871:   1c010:	0001 1000      	orib #0,%d1
+36872:   1c014:	0001 1000      	orib #0,%d1
+36873:   1c018:	0001 1000      	orib #0,%d1
+36874:   1c01c:	0001 1000      	orib #0,%d1
+36875:   1c020:	0001 1000      	orib #0,%d1
+36876:   1c024:	0001 1000      	orib #0,%d1
+36877:   1c028:	0001 1000      	orib #0,%d1
+36878:   1c02c:	0001 1000      	orib #0,%d1
+36879:   1c030:	0001 1000      	orib #0,%d1
+36880:   1c034:	0001 1000      	orib #0,%d1
+36881:   1c038:	0001 1000      	orib #0,%d1
+36882:   1c03c:	0001 1000      	orib #0,%d1
+36883:   1c040:	0001 1000      	orib #0,%d1
+36884:   1c044:	0001 1000      	orib #0,%d1
+
+===== Context for line 56300 =====
+56290:   2bff4:	0007 1000      	orib #0,%d7
+56291:   2bff8:	0007 1000      	orib #0,%d7
+56292:   2bffc:	0007 1000      	orib #0,%d7
+56293:   2c000:	0007 1000      	orib #0,%d7
+56294:   2c004:	0007 1000      	orib #0,%d7
+56295:   2c008:	0007 1000      	orib #0,%d7
+56296:   2c00c:	0007 1000      	orib #0,%d7
+56297:   2c010:	0007 1000      	orib #0,%d7
+56298:   2c014:	0007 1000      	orib #0,%d7
+56299:   2c018:	0007 1000      	orib #0,%d7
+56300:   2c01c:	0007 1000      	orib #0,%d7
+56301:   2c020:	0007 1000      	orib #0,%d7
+56302:   2c024:	0007 1000      	orib #0,%d7
+56303:   2c028:	0007 1000      	orib #0,%d7
+56304:   2c02c:	0007 1000      	orib #0,%d7
+56305:   2c030:	0007 1000      	orib #0,%d7
+56306:   2c034:	0007 1000      	orib #0,%d7
+56307:   2c038:	0007 28c8      	orib #-56,%d7
+56308:   2c03c:	0007 2a88      	orib #-120,%d7
+56309:   2c040:	0007 2a88      	orib #-120,%d7
+56310:   2c044:	0007 2a88      	orib #-120,%d7
+
+===== Context for line 75444 =====
+75434:   3c004:	2020           	movel %a0@-,%d0
+75435:   3c006:	2032 5020      	movel %a2@(20,%d5:w),%d0
+75436:   3c00a:	5345           	subqw #1,%d5
+75437:   3c00c:	4c45           	.short 0x4c45
+75438:   3c00e:	4354           	.short 0x4354
+75439:   3c010:	3b00           	movew %d0,%a5@-
+75440:   3c012:	00c0           	.short 0x00c0
+75441:   3c014:	8b20           	orb %d5,%a0@-
+75442:   3c016:	0000 3150      	orib #80,%d0
+75443:   3c01a:	2046           	moveal %d6,%a0
+75444:   3c01c:	4952           	.short 0x4952
+75445:   3c01e:	453b           	.short 0x453b
+75446:   3c020:	2020           	movel %a0@-,%d0
+75447:   3c022:	2020           	movel %a0@-,%d0
+75448:   3c024:	2020           	movel %a0@-,%d0
+75449:   3c026:	2032 5020      	movel %a2@(20,%d5:w),%d0
+75450:   3c02a:	4649           	.short 0x4649
+75451:   3c02c:	5245           	addqw #1,%d5
+75452:   3c02e:	3b00           	movew %d0,%a5@-
+75453:   3c030:	00c0           	.short 0x00c0
+75454:   3c032:	8c20           	orb %a0@-,%d6
+
+Task 1 finding summary:
+- No explicit instruction writes directly to literal address 0xC01CA8.
+- All grep hits are either:
+  1) disassembly addresses containing "1ca8"/"c01c", or
+  2) data/table-like regions decoded as instructions.
+
+TASK 2 — Jump table mechanism near frontend tick
+================================================
+
+Command:
+  grep -n "3a208\|3A208\|3a20\|3A20" build/maincpu.disasm.txt | head -5
+
+Output:
+25232:   13a20: 051c            btst %d2,%a4@+
+27317:   14f4c: 2039 203a 203b  movel 0x203a203b,%d0
+28216:   1574c: 2039 203a 203b  movel 0x203a203b,%d0
+29111:   15f4c: 2039 203a 203b  movel 0x203a203b,%d0
+29995:   1674c: 2039 203a 203b  movel 0x203a203b,%d0
+
+Resolved frontend tick anchor:
+- Found frontend entry at 0x03A008.
+- First instruction at/after 0x03A208 in this disasm is 0x03A20C
+  (0x03A208 falls in extension-word space between labeled opcodes).
+
+~60 instructions from 0x03A20C:
+73104:   3a20c:	7201           	moveq #1,%d1
+73105:   3a20e:	6100 16f2      	bsrw 0x3b902
+73106:   3a212:	4a6d 0034      	tstw %a5@(52)
+73107:   3a216:	6724           	beqs 0x3a23c
+73108:   3a218:	303c 000e      	movew #14,%d0
+73109:   3a21c:	4a6d 0028      	tstw %a5@(40)
+73110:   3a220:	670a           	beqs 0x3a22c
+73111:   3a222:	4a6d 002a      	tstw %a5@(42)
+73112:   3a226:	6704           	beqs 0x3a22c
+73113:   3a228:	303c 000f      	movew #15,%d0
+73114:   3a22c:	3b40 004a      	movew %d0,%a5@(74)
+73115:   3a230:	6100 014a      	bsrw 0x3a37c
+73116:   3a234:	103c 001e      	moveb #30,%d0
+73117:   3a238:	6100 4e4a      	bsrw 0x3f084
+73118:   3a23c:	4e75           	rts
+73119:   3a23e:	6100 0c1a      	bsrw 0x3ae5a
+73120:   3a242:	6100 0b08      	bsrw 0x3ad4c
+73121:   3a246:	6100 0b90      	bsrw 0x3add8
+73122:   3a24a:	4a6d 0028      	tstw %a5@(40)
+73123:   3a24e:	660a           	bnes 0x3a25a
+73124:   3a250:	426d 0002      	clrw %a5@(2)
+73125:   3a254:	426d 0004      	clrw %a5@(4)
+73126:   3a258:	4e75           	rts
+73127:   3a25a:	103c 0000      	moveb #0,%d0
+73128:   3a25e:	6100 4e24      	bsrw 0x3f084
+73129:   3a262:	7201           	moveq #1,%d1
+73130:   3a264:	6100 169c      	bsrw 0x3b902
+73131:   3a268:	4a6d 002a      	tstw %a5@(42)
+73132:   3a26c:	6614           	bnes 0x3a282
+73133:   3a26e:	082d 0001 003b 	btst #1,%a5@(59)
+73134:   3a274:	66da           	bnes 0x3a250
+73135:   3a276:	6100 001c      	bsrw 0x3a294
+73136:   3a27a:	3b7c 0001 002a 	movew #1,%a5@(42)
+73137:   3a280:	60ce           	bras 0x3a250
+73138:   3a282:	082d 0000 003b 	btst #0,%a5@(59)
+73139:   3a288:	66c6           	bnes 0x3a250
+73140:   3a28a:	6100 0026      	bsrw 0x3a2b2
+73141:   3a28e:	426d 002a      	clrw %a5@(42)
+73142:   3a292:	60bc           	bras 0x3a250
+73143:   3a294:	41ed 0100      	lea %a5@(256),%a0
+73144:   3a298:	43ed 0080      	lea %a5@(128),%a1
+73145:   3a29c:	7020           	moveq #32,%d0
+73146:   3a29e:	6100 0030      	bsrw 0x3a2d0
+73147:   3a2a2:	41ed 00c0      	lea %a5@(192),%a0
+73148:   3a2a6:	43ed 0100      	lea %a5@(256),%a1
+73149:   3a2aa:	7020           	moveq #32,%d0
+73150:   3a2ac:	6100 0022      	bsrw 0x3a2d0
+73151:   3a2b0:	4e75           	rts
+73152:   3a2b2:	41ed 0100      	lea %a5@(256),%a0
+73153:   3a2b6:	43ed 00c0      	lea %a5@(192),%a1
+73154:   3a2ba:	7020           	moveq #32,%d0
+73155:   3a2bc:	6100 0012      	bsrw 0x3a2d0
+73156:   3a2c0:	41ed 0080      	lea %a5@(128),%a0
+73157:   3a2c4:	43ed 0100      	lea %a5@(256),%a1
+73158:   3a2c8:	7020           	moveq #32,%d0
+73159:   3a2ca:	6100 0004      	bsrw 0x3a2d0
+73160:   3a2ce:	4e75           	rts
+73161:   3a2d0:	32d8           	movew %a0@+,%a1@+
+73162:   3a2d2:	5340           	subqw #1,%d0
+73163:   3a2d4:	66fa           	bnes 0x3a2d0
+
+Computed branch mechanism identified in the same frontend dispatcher family:
+  3a052: pea %pc@(0x3a074)
+  3a056: movew %a5@(0),%d0
+  3a05a: addw %d0,%d0
+  3a05c: lea %pc@(0x3a06c),%a0
+  3a060: addaw %d0,%a0
+  3a062: movew %a0@,%d0
+  3a064: lea %pc@(0x3a06c),%a0
+  3a068: addaw %d0,%a0
+  3a06a: jmp %a0@
+
+And a second dispatcher:
+  3a166: movew %a5@(2),%d0
+  3a16a: addw %d0,%d0
+  3a16c: lea %pc@(0x3a17c),%a0
+  3a170: addaw %d0,%a0
+  3a172: movew %a0@,%d0
+  3a174: lea %pc@(0x3a17c),%a0
+  3a178: addaw %d0,%a0
+  3a17a: jmp %a0@
+
+TASK 3 — startup_hw_probe_052a cross-check
+===========================================
+
+Command:
+  grep -n "052[0-9a-f]\|053[0-9a-f]" build/maincpu.disasm.txt | \
+    grep -i "1ca8\|c01c"
+
+Result:
+  no matches
+
+Additional context around 0x052a confirms C-window probing exists there
+but no 0x1ca8 / 0xc01ca8 literal in that probe block:
+  52a: lea 0x10c000,%a0
+  530: lea 0x10d600,%a1
+  53a: lea 0x200000,%a0
+  540: lea 0x201000,%a1
+  54a: lea 0xc00000,%a0
+  550: lea 0xc04000,%a1
+  55a: lea 0xc08000,%a0
+  560: lea 0xc0c000,%a1
+  56a: lea 0xd00000,%a0
+  570: lea 0xd01000,%a1
+  57c..596: test-write/restore loop over the probed range
+
+Conclusion:
+- No direct write-site literal for 0x1CA8 or 0xC01CA8 was found by the
+  requested string searches.
+- Frontend code uses computed jump tables (indirect jmp via table offsets),
+  so a runtime-resolved target of C-window+0x1CA8 is consistent with an
+  indirect branch corruption/path issue rather than a direct literal callsite.
+```
