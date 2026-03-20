@@ -5368,3 +5368,19 @@ They are valid Genesis-executable code (they live in
 the patched ROM, not in C-Window). They do not need
 opcode replacement — they just need the A5 work RAM
 to contain valid data, which the stack fix provides.
+
+## [Cody - Build 95 Final Release]
+```text
+Commands run:
+  source tools/setup_env.sh
+  make -C apps/rastan release
+  ./tools/release_build.sh 95
+
+Results:
+- make -C apps/rastan release: SUCCESS
+- ./tools/release_build.sh 95: SUCCESS
+
+Output artifact path:
+- /home/tighe/projects/rastan-genesis/dist/build_95
+- /home/tighe/projects/rastan-genesis/dist/Rastan_95.bin
+```
