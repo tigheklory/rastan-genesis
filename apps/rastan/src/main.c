@@ -1490,7 +1490,6 @@ int main(bool hardReset)
 {
     u16 previous_state = 0;
 
-    genesistan_anchor_required_symbols();
     (void) hardReset;
 
     SYS_disableInts();

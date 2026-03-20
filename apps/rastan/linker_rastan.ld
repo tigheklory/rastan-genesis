@@ -63,7 +63,7 @@ SECTIONS
     *(.got.plt) *(.got)
     *(.shdata)
     *(.data .data.*)
-    *(.data.patcher)
+    KEEP(*(.data.patcher))
     *(.ramprog .ramprog.*)
     _edata = .;
   } > ram
@@ -74,7 +74,7 @@ SECTIONS
   {
     _start = .;
     *(.bss.workram)     /* arcade work RAM FIRST */
-    *(.bss.patcher)     /* required patcher symbols */
+    KEEP(*(.bss.patcher))     /* required patcher symbols */
     *(.shbss)
     *(.bss .bss.*)
     *(COMMON)

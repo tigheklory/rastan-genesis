@@ -6561,3 +6561,66 @@ fix. The genesistan_anchor_required_symbols()
 function can be removed entirely.
 
 Credit to Alan for identifying the KEEP() solution.
+
+## [Cody - Build 96 KEEP Fix]
+```text
+Re-read AGENTS_LOG.md from disk before starting and before appending.
+
+Implemented fixes:
+- linker_rastan.ld:
+  - .data now uses KEEP(*(.data.patcher))
+  - .bss now uses KEEP(*(.bss.patcher))
+- startup_bridge.c:
+  - confirmed .data.patcher on the 3 non-zero initialized symbols:
+    - genesistan_shadow_dip1
+    - genesistan_shadow_dip2
+    - genesistan_shadow_service_word
+  - genesistan_startup_result_code left in .bss.patcher (zero-init)
+- Anchor cleanup:
+  - removed genesistan_anchor_required_symbols() call from main.c
+  - removed genesistan_anchor_required_symbols() function body/stub from startup_bridge.c
+  - removed declaration from inc/main.h
+
+Build commands:
+- source tools/setup_env.sh
+- make -C apps/rastan clean
+- make -C apps/rastan debug
+- make -C apps/rastan release
+- ./tools/release_build.sh 96
+
+Build result:
+- DEBUG: SUCCESS
+- RELEASE: SUCCESS
+- release_build.sh: SUCCESS
+  - Package dir: /home/tighe/projects/rastan-genesis/dist/build_96
+  - Root ROM: /home/tighe/projects/rastan-genesis/dist/Rastan_96.bin
+
+Required symbol check:
+- Command:
+  grep "genesistan_shadow_dip1\|d00000\|service_word" apps/rastan/out/symbol.txt
+- Output confirms presence:
+  - e0ff0002 D genesistan_shadow_service_word
+  - e0ff0005 D genesistan_shadow_dip1
+  - e0ff406e B genesistan_shadow_d00000_words
+- Full required_symbols audit vs specs/startup_title_remap.json:
+  - required_count: 32
+  - missing_count: 0
+
+Gap __stack - _bend:
+- __stack: 0xE1000000
+- _bend:   0xE0FF6576
+- gap:     0x9A8A (39562 bytes)
+```
+- **Visual Evidence (BlastEm):** Screenshot saved as `B99_BlastEm_Launcher_20260320_1729.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B99_BlastEm_Launcher_20260320_1730.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B99_BlastEm_Launcher_20260320_1730.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B99_BlastEm_In-Game_20260320_1731.png` (Stage: In-Game)
+- **Visual Evidence (MAME):** Screenshot saved as `B96_MAME_Launcher_20260320_1733.png` (Stage: Launcher)
+- **Visual Evidence (MAME):** Screenshot saved as `B96_MAME_Launcher_20260320_1733.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B96_BlastEm_Launcher_20260320_1734.png` (Stage: Launcher)
+- **Visual Evidence (MAME):** Screenshot saved as `B96_MAME_In-Game_20260320_1734.png` (Stage: In-Game)
+
+### MAME Exit Summary (2026-03-20 17:34:50)
+- Final PC: 0xD00008
+- Stack Pointer (SP): 0x00005CA5
+- Unique Unmapped Memory Addresses (2): 0x00209C76, 0x00000000
