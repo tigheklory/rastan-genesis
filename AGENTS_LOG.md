@@ -6475,3 +6475,89 @@ Gap __stack - _bend:
 - __stack: 0xE1000000
 - Gap:     0x9A8E (39566 bytes)
 ```
+
+## [Cody - Build 96 Symbol Format Diagnostic]
+```text
+Re-read AGENTS_LOG.md from disk before starting and before appending.
+Diagnostic only; no code changes made.
+
+Commands run:
+1) source tools/setup_env.sh
+2) make -C apps/rastan clean
+3) make -C apps/rastan debug 2>&1 | grep -E "error:|warning:" | head -20
+4) grep -i "dip1\|dip2\|service_word\|d00000\|startup_result" \
+     apps/rastan/out/symbol.txt
+5) grep -i "dip1\|dip2\|service_word\|d00000\|startup_result" \
+     apps/rastan/out/symbol.txt | cat -A
+6) sed -n '55,90p' tools/translation/postpatch_startup_rom.py
+
+Output summary:
+- Step 3 produced no matching "error:" or "warning:" lines in the filtered output stream.
+  (pipeline exited 1 because grep found no matches)
+
+- Step 4 output:
+  e0ff0000 D rastan_virtual_dip2	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:202
+  e0ff0001 D rastan_virtual_dip1	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:201
+  e0ff4050 B genesistan_startup_result_code	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:47
+  e0ff406a B genesistan_shadow_d00000_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:12
+
+- Step 5 output (cat -A):
+  e0ff0000 D rastan_virtual_dip2^I/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:202$
+  e0ff0001 D rastan_virtual_dip1^I/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:201$
+  e0ff4050 B genesistan_startup_result_code^I/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:47$
+  e0ff406a B genesistan_shadow_d00000_words^I/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:12$
+
+- Step 6 output (lines 55-90, postpatch_startup_rom.py):
+      name = str(entry["name"])
+      kind_lookup[name] = str(entry.get("kind", "original_code_or_data"))
+  return kind_lookup
+
+
+  def parse_symbol_table(path: Path, required_names: tuple[str, ...] | None = None) -> dict[str, int]:
+      symbols: dict[str, int] = {}
+
+      for raw_line in path.read_text(encoding="utf-8").splitlines():
+          match = SYMBOL_PATTERN.match(raw_line.strip())
+          if match is None:
+              continue
+          address_text, name = match.groups()
+          symbols[name] = int(address_text, 16)
+
+      if required_names is None:
+          return symbols
+
+      resolved: dict[str, int] = {}
+      for name in required_names:
+          if name in symbols:
+              resolved[name] = symbols[name]
+              continue
+          alt_name = f"_{name}"
+          if alt_name in symbols:
+              resolved[name] = symbols[alt_name]
+              continue
+          raise RuntimeError(f"Required symbol not found in {path}: {name}")
+
+      return resolved
+
+
+  def ensure_rom_size(rom_bytes: bytearray) -> None:
+      if len(rom_bytes) < ROM_MIN_SIZE:
+          rom_bytes.extend(b"\x00" * (ROM_MIN_SIZE - len(rom_bytes)))
+```
+## [Technical Lead - Alan Analysis Accepted]
+## Source: Claude (Project Technical Lead)
+
+Alan's diagnosis is correct. Root cause confirmed:
+
+--gc-sections discards input sections even with
+__attribute__((used)) unless the linker script
+explicitly uses KEEP(). The anchor function
+approach was never going to work because it was
+fighting the linker at the wrong level.
+
+KEEP(*(.bss.patcher)) and KEEP(*(.data.patcher))
+in the linker script is the correct and complete
+fix. The genesistan_anchor_required_symbols()
+function can be removed entirely.
+
+Credit to Alan for identifying the KEEP() solution.
