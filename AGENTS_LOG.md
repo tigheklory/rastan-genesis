@@ -4228,3 +4228,84 @@ preserved — only the call in SCREEN_FRONTEND_LIVE
 is removed. The startup preview screen uses the
 function body.
 
+## [Cody - Build 95, Shadow Rendering Removed]
+```text
+Build 95 completed with main.c-only implementation changes (plus this AGENTS_LOG.md report).
+
+Step 10 mandatory search results (run before build):
+- engine_shadow_wram: no hits
+- wram_overlay.engine_shadow_wram: no hits
+- tilemap_cache_init: no hits
+- tilemap_cache_get: no hits
+- tilemap_cache_slots: no hits
+- tilemap_cache_dirty: no hits
+- translate_pc080sn_tile_word: no hits
+- pc080sn_palette_line: no hits
+- render_frontend_tilemap_layer: no hits
+- TILEMAP_CACHE_BASE: no hits
+- TILEMAP_CACHE_SIZE: no hits
+- TILEMAP_CACHE_INVALID: no hits
+
+Step 10 resolutions:
+- All non-comment references were removed before build.
+- No unresolved hits remained.
+
+Implementation confirmations:
+- TILEMAP cache constants removed.
+- SHADOW_WRAM_PAGE_COUNT set to 0.
+- SHADOW_WRAM_TOTAL_WORDS set to 0.
+- WramOverlay now contains only LauncherRuntime.
+- Added standalone arrays:
+  - page2_shadow[8192] (aligned(4))
+  - dirty_words[512] (aligned(4))
+- shadow_write16 replaced with requested SRAM routing + page2 shadow readback path.
+- shadow_read16 replaced with requested page2 readback + SRAM read path.
+- scrub_launcher_runtime_buffers() now uses:
+  - memset(page2_shadow, 0, sizeof(page2_shadow));
+  - memset(dirty_words, 0, sizeof(dirty_words));
+- Removed functions:
+  - tilemap_cache_init()
+  - tilemap_cache_get()
+  - translate_pc080sn_tile_word()
+  - pc080sn_palette_line()
+  - render_frontend_tilemap_layer()
+- Removed forward declaration:
+  - static uint16_t tilemap_cache_get(uint16_t arcade_tile);
+- SCREEN_FRONTEND_LIVE loop now:
+  - genesistan_refresh_arcade_inputs();
+  - genesistan_run_original_frontend_tick();
+  - /* Rendering via opcode replacement. Build 96+. */
+- request_start_rastan() NORMAL branch now:
+  - current_screen = SCREEN_FRONTEND_LIVE;
+  - VDP_clearPlane(BG_A, TRUE);
+  - VDP_clearPlane(BG_B, TRUE);
+  - clear_frontend_sprite_layer();
+- Removed all tilemap_cache_init() call sites.
+
+render_frontend_sprite_layer() function body preserved:
+- Confirmed function definition remains in main.c unchanged.
+
+Build commands and results:
+- source tools/setup_env.sh
+- make -C apps/rastan debug   -> SUCCESS
+- make -C apps/rastan release -> SUCCESS
+- ./tools/release_build.sh 95 -> SUCCESS
+- Packaged output:
+  - dist/build_95/
+  - dist/Rastan_95.bin
+
+Compiler warnings:
+- warning: 'render_frontend_sprite_layer' defined but not used (-Wunused-function)
+  (expected after removing SCREEN_FRONTEND_LIVE call site while preserving function body)
+
+Linker map symbols (dist/build_95/rastan_build_95.map):
+- page2_shadow: 0xE0FF086C
+- dirty_words:  0xE0FF006C
+- wram_overlay: 0xE0FF486C
+- _bend:        0xE0FFA576
+- __stack:      0xE1000000
+
+Gap:
+- __stack - _bend = 0x5A8A (23178 bytes)
+- Gap >= 0x4000 (16KB): yes
+```
