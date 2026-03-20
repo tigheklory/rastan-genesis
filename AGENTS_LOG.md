@@ -4309,3 +4309,84 @@ Gap:
 - __stack - _bend = 0x5A8A (23178 bytes)
 - Gap >= 0x4000 (16KB): yes
 ```
+
+### MAME Exit Summary (2026-03-19 22:09:10)
+- Final PC: 0x209444
+- Stack Pointer (SP): 0xE07586B0
+- Unique Unmapped Memory Addresses (3): 0x0020A216, 0x2700A216, 0x00000000
+
+### MAME Exit Summary (2026-03-19 22:10:38)
+- Final PC: 0x1A588A
+- Stack Pointer (SP): 0xE0A009AC
+- Unique Unmapped Memory Addresses (2): 0x0020A216, 0x00000000
+
+### MAME Exit Summary (2026-03-19 22:10:59)
+- Final PC: 0x209440
+- Stack Pointer (SP): 0xE05EE230
+- Unique Unmapped Memory Addresses (2): 0x0020A216, 0x00000000
+
+## [Cody - Build 95 Crash Diagnosis, 0xC01CA8]
+```text
+Research-only task completed. No code/files modified except this log entry.
+
+Requested grep commands and results:
+
+1) grep -n "c01ca8\|C01CA8\|0x1ca8\|0x1CA8" build/maincpu.disasm.txt
+   Result: no matches (exit code 1).
+
+2) grep -n "c01ca8\|C01CA8" specs/startup_title_remap.json
+   Result: no matches (exit code 1).
+
+Q1) Code at arcade address 0xC01CA8 and next 10 instructions
+-------------------------------------------------------------
+Because build/maincpu.disasm.txt has no literal C01CA8 line, I disassembled
+build/regions/maincpu.bin at VMA base 0xC00000:
+
+  source tools/setup_env.sh
+  m68k-elf-objdump -D -b binary -m m68k \
+    --adjust-vma=0x00C00000 \
+    --start-address=0x00C01CA8 \
+    --stop-address=0x00C01CE8 \
+    build/regions/maincpu.bin
+
+At 0xC01CA8:
+  c01ca8: 030e 030f       movepw %fp@(783),%d1
+
+10 following instructions:
+  c01cac: 0310            btst %d1,%a0@
+  c01cae: 0311            btst %d1,%a1@
+  c01cb0: 0312            btst %d1,%a2@
+  c01cb2: 0313            btst %d1,%a3@
+  c01cb4: 0314            btst %d1,%a4@
+  c01cb6: 0315            btst %d1,%a5@
+  c01cb8: 0316            btst %d1,%fp@
+  c01cba: 0317            btst %d1,%sp@
+  c01cbc: 0006 0006       orib #6,%d6
+  c01cc0: 0006 0006       orib #6,%d6
+
+Observation: this region decodes as instruction-like words but appears table/data-like
+in context (no direct call/jump references found to C01CA8 in disasm text).
+
+Q2) Instruction(s) that jump/call to 0xC01CA8
+----------------------------------------------
+Searches for explicit references found no call sites:
+- grep target above: no C01CA8 / 0x1CA8 reference lines in build/maincpu.disasm.txt.
+- Additional mnemonic-focused search also found none:
+  rg -n "\\b(jsr|jmp|bsr|bra|lea|pea|moveal|movel)\\b.*(0xc01ca8|0x1ca8|\\b1ca8\\b|\\bc01ca8\\b)" build/maincpu.disasm.txt
+  Result: no matches.
+
+Therefore explicit direct jump/call instructions to 0xC01CA8 were not found in
+build/maincpu.disasm.txt.
+
+Q3) Is 0xC01CA8 inside any copied_ranges block in specs/startup_title_remap.json?
+-----------------------------------------------------------------------------------
+No.
+
+I checked copied_ranges numerically using offset 0x1CA8 (C-window base-relative),
+and it is not contained in any copied_ranges [start, end_exclusive) entry.
+
+Programmatic check result:
+  hits 0
+
+Conclusion: 0xC01CA8 is not inside any currently declared copied_ranges block.
+```
