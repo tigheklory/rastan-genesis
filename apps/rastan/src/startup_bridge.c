@@ -256,6 +256,11 @@ void genesistan_init_workram_direct(uint8_t dip1, uint8_t dip2)
         for (i = 0; i < 39; i++)
             cfg_dst[i] = cfg_src[i];
     }
+
+    /* Keep required patcher symbols alive. */
+    (void)genesistan_shadow_d00000_words;
+    (void)genesistan_shadow_c20000_words;
+    (void)genesistan_shadow_c40000_words;
 }
 
 void genesistan_reclaim_launcher_wram(void)

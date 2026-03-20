@@ -483,8 +483,10 @@ static void render_sound_test_screen(void);
 static void enter_sound_test(void);
 static void leave_sound_test(void);
 static void trigger_sound_test_command(void);
-static void render_startup_preview_screen(void);
-static void render_frontend_sprite_layer(void);
+static void render_startup_preview_screen(void)
+    __attribute__((unused));
+static void render_frontend_sprite_layer(void)
+    __attribute__((unused));
 static void clear_frontend_sprite_layer(void);
 static void scrub_launcher_runtime_buffers(void);
 static u16 convert_xbgr555_to_genesis(u16 raw);

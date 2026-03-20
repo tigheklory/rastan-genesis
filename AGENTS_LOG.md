@@ -5973,3 +5973,41 @@ Gap:
 - __stack - _bend = 0xA2A0 (41632 bytes)
 - Gap >= 0x4000 (16KB): YES
 ```
+
+## [Cody - Build 96 Symbol Fix]
+```text
+Re-read AGENTS_LOG.md and AGENTS.md from disk before changes.
+
+Confirmed both requested changes applied:
+1) startup_bridge.c
+   - Added at end of genesistan_init_workram_direct():
+     (void)genesistan_shadow_d00000_words;
+     (void)genesistan_shadow_c20000_words;
+     (void)genesistan_shadow_c40000_words;
+
+2) main.c
+   - Updated forward declarations:
+     static void render_startup_preview_screen(void)
+         __attribute__((unused));
+     static void render_frontend_sprite_layer(void)
+         __attribute__((unused));
+
+Build commands run:
+- source tools/setup_env.sh
+- make -C apps/rastan clean
+- make -C apps/rastan debug
+
+Build result:
+- DEBUG FAILED
+- Exact error:
+  RuntimeError: Required symbol not found in
+  /home/tighe/projects/rastan-genesis/apps/rastan/out/symbol.txt:
+  genesistan_shadow_d00000_words
+  (raised by tools/translation/postpatch_startup_rom.py during make debug)
+
+Remaining warnings:
+- None from C compilation in this run.
+
+release_build.sh result:
+- Not run (stopped after debug failure per instruction).
+```

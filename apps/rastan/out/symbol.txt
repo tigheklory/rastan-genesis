@@ -54,23 +54,23 @@
 00080000 A rastan_pc090oj_size
 00200000 A __GENESISTAN_APP_ROM_BASE
 00200000 A genesistan_shadow_c00000_words
-00200000 t save_undo_state	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:527
-0020000e t get_graphics_test_page_count	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:773
-0020003c t restore_launcher_vdp_state	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:739
-00200142 t draw_padded_text_palette	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:505
-002001d6 t draw_padded_text	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:500
-00200202 t set_status	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:520
-00200238 t render_sound_test_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:990
-002003aa t render_help_panel	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:711
-00200454 t render_dip_bank	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:670
-0020061a t render_dip_banks	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:684
-002006a2 t render_graphics_test_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:838
-00200c18 t get_menu_value	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:555
-00200d5a t render_menu_row	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:691
-00200e7e t render_full_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:757
-00200f44 t cycle_selected_setting	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:647
-002010f8 t request_start_rastan	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:1406
-00201188 T main	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:1487
+00200000 t save_undo_state	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:529
+0020000e t get_graphics_test_page_count	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:775
+0020003c t restore_launcher_vdp_state	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:741
+00200142 t draw_padded_text_palette	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:507
+002001d6 t draw_padded_text	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:502
+00200202 t set_status	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:522
+00200238 t render_sound_test_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:992
+002003aa t render_help_panel	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:713
+00200454 t render_dip_bank	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:672
+0020061a t render_dip_banks	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:686
+002006a2 t render_graphics_test_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:840
+00200c18 t get_menu_value	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:557
+00200d5a t render_menu_row	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:693
+00200e7e t render_full_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:759
+00200f44 t cycle_selected_setting	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:649
+002010f8 t request_start_rastan	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:1408
+00201188 T main	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:1489
 0020176e t build_player_input_byte	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:37
 002017b8 T genesistan_refresh_arcade_inputs	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:86
 00201852 T genesistan_init_workram_direct	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:151
@@ -675,11 +675,11 @@
 00209fa0 T rastan_dip_on
 00209fa8 T rastan_dip_off
 00209fb0 T rastan_dip_palette
-0020a7f9 t raw_lives.0	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:628
-0020a7fd t raw_bonus.1	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:622
-0020a801 t raw_difficulty.2	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:616
-0020a805 t raw_coinage.3	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:610
-0020a80a t blank_tile.4	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:840
+0020a7f9 t raw_lives.0	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:630
+0020a7fd t raw_bonus.1	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:624
+0020a801 t raw_difficulty.2	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:618
+0020a805 t raw_coinage.3	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:612
+0020a80a t blank_tile.4	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:842
 0020a82a t rastan_font_glyphs	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:222
 0020a87e t menu_items	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:168
 0020a968 t rastan_graphics_test_palette	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:149
