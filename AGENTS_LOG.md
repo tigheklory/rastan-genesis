@@ -5106,3 +5106,46 @@ Conclusion:
   so a runtime-resolved target of C-window+0x1CA8 is consistent with an
   indirect branch corruption/path issue rather than a direct literal callsite.
 ```
+## [Technical Lead - Build 95 Root Cause Final Confirmed]
+## Source: Claude (Project Technical Lead)
+
+### Root Cause: Stack Overflow Corrupts A5 Work RAM
+
+The computed jump table dispatchers at 0x3A052 and
+0x3A166 read state from %a5@(0) and %a5@(2) where
+A5 = genesistan_arcade_workram_words. The dispatcher
+uses the state value as a jump table index to compute
+a branch target.
+
+When the stack overflows into BSS, it corrupts
+genesistan_arcade_workram_words. The dispatcher then
+reads garbage state, computes a garbage branch target,
+and jumps into SRAM space (0x200000 region) where
+there is no valid code.
+
+The variable crash addresses across runs confirm this
+— each run produces a different corrupted state value
+and therefore a different crash address.
+
+### Fix
+
+Move genesistan_arcade_workram_words to the lowest
+BSS address using a dedicated linker section
+(.bss.workram). This places it furthest from __stack
+(which grows downward from 0xE1000000). Stack
+overflow will corrupt other less-critical BSS data
+before reaching the work RAM array.
+
+This is a targeted linker fix, not an architecture
+change. Two files change: startup_bridge.c (section
+attribute) and linker_rastan.ld (section ordering).
+
+### Opcode Replacement Status
+
+The computed jump table dispatch pattern found at
+0x3A052 and 0x3A166 is noted for Build 96. These
+dispatchers use PC-relative word tables and jmp %a0@.
+They are valid Genesis-executable code (they live in
+the patched ROM, not in C-Window). They do not need
+opcode replacement — they just need the A5 work RAM
+to contain valid data, which the stack fix provides.
