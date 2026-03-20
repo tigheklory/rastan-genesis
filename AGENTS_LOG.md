@@ -3731,3 +3731,4 @@ Compiler warnings:
 - Final PC: 0xAB3FBC
 - Stack Pointer (SP): 0xE037B116
 - Unique Unmapped Memory Addresses (2): 0x0020A88A, 0x00000000
+- **Visual Evidence (Hardware):** Screenshot saved as `B94_Hardware_Launcher_20260319_2014.png` (Stage: Launcher)
