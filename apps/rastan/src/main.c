@@ -50,7 +50,7 @@ extern volatile uint16_t genesistan_shadow_reg_d01bfe;
 #define SHADOW_SRAM_BASE 0x200000UL
 #define SHADOW_SRAM_PAGE_STRIDE 0x4000UL
 #define SHADOW_SRAM_PAGE_MAX 4
-#define SHADOW_WRAM_PAGE_COUNT 0
+#define SHADOW_WRAM_PAGE_COUNT 2
 #define SHADOW_WRAM_TOTAL_WORDS 16384
 
 typedef enum
@@ -193,13 +193,12 @@ typedef struct {
 } LauncherRuntime;
 
 union WramOverlay {
+    uint16_t engine_shadow_wram[16384];
     LauncherRuntime launcher;
 } __attribute__((aligned(4)));
 
 union WramOverlay wram_overlay;
 extern union WramOverlay wram_overlay;
-uint16_t page2_shadow[8192]
-    __attribute__((aligned(4)));
 uint32_t dirty_words[512]
     __attribute__((aligned(4)));
 
@@ -340,6 +339,7 @@ void shadow_init(void)
 void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
 {
     uint32_t slot;
+    uint32_t linear_index;
 
     if ((page >= SHADOW_SRAM_PAGE_MAX) ||
         (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
@@ -351,16 +351,20 @@ void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
     dirty_words[slot >> 5] |=
         (1UL << (slot & 31U));
 
-    if (page == 2) {
-        page2_shadow[offset >> 1] = value;
+    if (page < SHADOW_WRAM_PAGE_COUNT) {
+        linear_index = ((uint32_t)page * 8192UL)
+                     + (uint32_t)(offset >> 1);
+        if (linear_index < SHADOW_WRAM_TOTAL_WORDS)
+            wram_overlay.engine_shadow_wram[linear_index]
+                = value;
         return;
     }
 
     {
         volatile uint16_t *base =
             (volatile uint16_t *)(SHADOW_SRAM_BASE
-            + ((uint32_t)page *
-               SHADOW_SRAM_PAGE_STRIDE)
+            + ((uint32_t)(page - SHADOW_WRAM_PAGE_COUNT)
+               * SHADOW_SRAM_PAGE_STRIDE)
             + (uint32_t)offset);
         *base = value;
     }
@@ -368,24 +372,35 @@ void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
 
 uint16_t shadow_read16(uint8_t page, uint16_t offset)
 {
+    uint32_t linear_index;
+
     if ((page >= SHADOW_SRAM_PAGE_MAX) ||
         (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
         return 0;
 
-    if (page == 2)
-        return page2_shadow[offset >> 1];
+    if (page < SHADOW_WRAM_PAGE_COUNT) {
+        linear_index = ((uint32_t)page * 8192UL)
+                     + (uint32_t)(offset >> 1);
+        if (linear_index < SHADOW_WRAM_TOTAL_WORDS)
+            return wram_overlay.engine_shadow_wram
+                       [linear_index];
+        return 0;
+    }
 
 #ifdef DEBUG
-    /* Cold-path read outside page2.
-       Check rastantrace coverage before suppressing. */
-    __builtin_trap();
+    if (page == 2) {
+        /* page 2 should now route through WRAM.
+           If this fires, SHADOW_WRAM_PAGE_COUNT
+           is wrong. */
+        __builtin_trap();
+    }
 #endif
 
     {
         volatile uint16_t *base =
             (volatile uint16_t *)(SHADOW_SRAM_BASE
-            + ((uint32_t)page *
-               SHADOW_SRAM_PAGE_STRIDE)
+            + ((uint32_t)(page - SHADOW_WRAM_PAGE_COUNT)
+               * SHADOW_SRAM_PAGE_STRIDE)
             + (uint32_t)offset);
         return *base;
     }
@@ -1664,7 +1679,8 @@ static void scrub_launcher_runtime_buffers(void)
         graphics_test_tile_buffer = NULL;
     }
 
-    memset(page2_shadow, 0, sizeof(page2_shadow));
+    memset(wram_overlay.engine_shadow_wram, 0,
+           sizeof(wram_overlay.engine_shadow_wram));
     memset(dirty_words, 0, sizeof(dirty_words));
 }
 

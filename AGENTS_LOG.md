@@ -3891,3 +3891,56 @@ structural improvements that did not cause problems.
 
 Do not send Cody another prompt yet.
 Technical Lead will issue a revised directive.
+
+## [Cody - Build 94 Crash Fix, Shadow Routing Restore]
+```text
+Scope executed: crash-fix only, Target 2 not started.
+Files changed for fix: apps/rastan/src/main.c only.
+
+Pre-change page2_shadow references found in main.c:
+- line 201: declaration (uint16_t page2_shadow[8192])
+- line 355: shadow_write16() write path
+- line 376: shadow_read16() read path
+- line 1667: scrub_launcher_runtime_buffers() memset
+
+Post-change page2_shadow references remaining:
+- none
+
+Confirmed changes:
+- SHADOW_WRAM_PAGE_COUNT restored to 2.
+- engine_shadow_wram restored in union:
+    union WramOverlay {
+        uint16_t engine_shadow_wram[16384];
+        LauncherRuntime launcher;
+    } __attribute__((aligned(4)));
+- Standalone page2_shadow array removed.
+- shadow_write16 routing now matches spec:
+  - dirty_words set for all pages
+  - pages < SHADOW_WRAM_PAGE_COUNT (0/1) route to
+    wram_overlay.engine_shadow_wram via
+    linear_index = page*8192 + (offset >> 1)
+  - page 3 routes to SRAM using
+    (page - SHADOW_WRAM_PAGE_COUNT) stride mapping
+- shadow_read16 routing now matches spec:
+  - pages < SHADOW_WRAM_PAGE_COUNT (0/1) read from
+    wram_overlay.engine_shadow_wram via same linear index
+  - DEBUG trap retained for unexpected page 2 SRAM path
+  - SRAM read path remains for page 3 only
+- scrub_launcher_runtime_buffers updated to:
+  - memset(wram_overlay.engine_shadow_wram, 0, sizeof(...))
+  - memset(dirty_words, 0, sizeof(dirty_words))
+
+Build and packaging:
+- source tools/setup_env.sh
+- make -C apps/rastan debug            -> SUCCESS
+- make -C apps/rastan release          -> SUCCESS
+- ./tools/release_build.sh 94          -> SUCCESS
+
+Linker symbol map values (apps/rastan/out/symbol.txt):
+- wram_overlay: 0xE0FF106C
+- _bend:        0xE0FFE226
+- __stack:      0xE1000000
+- Gap (__stack - _bend): 0x1DDA (7642 bytes)
+
+Build result: SUCCESS
+```
