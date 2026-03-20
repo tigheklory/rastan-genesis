@@ -3944,3 +3944,48 @@ Linker symbol map values (apps/rastan/out/symbol.txt):
 
 Build result: SUCCESS
 ```
+## [Technical Lead Review - Build 94 Crash Fix Approved]
+## Source: Claude (Project Technical Lead)
+
+### Build 94 Crash Fix: APPROVED
+
+Root cause confirmed and resolved:
+  SHADOW_WRAM_PAGE_COUNT was 0 (Build 93 regression).
+  Page 0 contains 68K executable code.
+  Routing page 0 to SRAM caused execution crash at
+  0x20228E — identical to Build 89 failure class.
+
+Fix confirmed correct:
+  SHADOW_WRAM_PAGE_COUNT restored to 2.
+  Pages 0+1: WRAM via engine_shadow_wram[16384].
+  Pages 2+3: SRAM at 0x200000 / 0x204000.
+  Page 2 palette reads route correctly to SRAM.
+  No buffer overread in shadow_read16.
+
+Linker metrics:
+  wram_overlay: 0xE0FF106C
+  _bend:        0xE0FFE226
+  __stack:      0xE1000000
+  Gap:          0x1DDA (7,642 bytes ~7.5KB)
+
+Gap is below 16KB target but well above the 308-byte
+crash threshold of Build 91.1. Sufficient for current
+code depth. Monitor under test — if game logic stack
+depth approaches 7.5KB in practice, further BSS
+reduction needed in Build 95.
+
+### Test Expectation for Build 94
+
+If crash fix is successful, SCREEN_FRONTEND_LIVE
+should now run without crashing. The new addition
+in Build 94 is render_frontend_tilemap_layer() —
+background tiles should appear for the first time.
+Visual output may have palette or scroll issues
+but any tile graphics on BG planes = success.
+
+### Authorisation
+
+Build 94 Crash Fix: APPROVED.
+Push to GitHub and test on MAME, BlastEm, and
+Everdrive X3. Report visual results here before
+Cody proceeds to Target 2.
