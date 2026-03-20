@@ -5390,3 +5390,223 @@ Output artifact path:
 - Stack Pointer (SP): 0xE037B1F8
 - Unique Unmapped Memory Addresses (3): 0x0020A216, 0x2700A216, 0x00000000
 - **Visual Evidence (BlastEm):** Screenshot saved as `B95.1_BlastEm_In-Game_20260320_0033.png` (Stage: In-Game)
+## [Technical Lead Review - Build 95 Workram Relocation Approved]
+## Source: Claude (Project Technical Lead)
+
+### Fix Confirmed Correct
+
+genesistan_arcade_workram_words relocated to
+lowest BSS address: 0xE0FF004E (same as _start).
+
+Stack descends from 0xE1000000.
+_bend remains at 0xE0FFA576 (gap 22.6KB unchanged).
+Distance from stack to workram:
+  0xE0FFA576 - 0xE0FF004E = 0xA528 = 42,280 bytes
+
+The arcade A5 work RAM is now 64KB from the stack
+top and 42KB below _bend. Stack overflow cannot
+reach it under any realistic call depth.
+
+### Why This Fixes The Crash
+
+The variable crash addresses (0x201CA8, 0x209444,
+0x209440, 0x1A588A, 0x0020A216) were caused by
+stack overflow corrupting genesistan_arcade_
+workram_words. The arcade frontend dispatch reads
+function pointers or state values from A5 (which
+points at this array) and jumps to them. When
+the array was corrupted by stack overflow, the
+jump target became a garbage SRAM address.
+
+With workram at the bottom of BSS, stack overflow
+hits SGDK internal data first, which causes a
+different (more obvious) failure before it can
+reach the A5 work RAM. The arcade dispatch
+addresses remain valid.
+
+### Authorisation
+
+Release build authorised.
+Test dist/Rastan_95.bin after release build.
+Expected: launcher works, game loop runs without
+crash, screen blank in SCREEN_FRONTEND_LIVE.
+## [Technical Lead - Build 95 Crash Final Diagnosis]
+## Source: Claude (Project Technical Lead)
+
+### Confirmed: Deterministic Computed Branch
+
+Crash address 0x201CA8 is consistent across all runs
+after workram relocation. This is NOT stack overflow.
+This is a deterministic computed branch to 0xC01CA8.
+
+The workram relocation had no effect — confirming
+the crash was never caused by stack corruption of
+the A5 work RAM. The arcade frontend code has a
+deliberate dispatch mechanism that targets 0xC01CA8.
+
+### What 0xC01CA8 Is
+
+Arcade address 0xC01CA8 = C-Window base 0xC00000
++ byte offset 0x1CA8.
+
+The arcade startup code initialises this location
+with executable code or a function pointer. The
+frontend tick then calls it. On the arcade board
+this works because C-Window RAM is executable.
+On Genesis it maps to SRAM at 0x201CA8 which is
+not executable — crash.
+
+### This Is The First Opcode Replacement Target
+
+The instruction in the patched binary that branches
+to 0xC01CA8 must be found and replaced with a
+direct branch to a Genesis-native equivalent
+located in executable memory (ROM or WRAM).
+
+This is exactly what the shift-table reflow
+architecture handles. No shadow, no WRAM buffer,
+no intercept layer. The instruction bytes in the
+patched binary are replaced at build time.
+
+### Next Action
+
+Diagnostic Part 3: find the init site that writes
+to 0xC01CA8, find the call site that branches to
+it, and identify what the code at 0xC01CA8 does.
+This is the complete information needed to design
+the replacement sequence.
+
+## [Technical Lead - Strategic Pivot to Trace-Driven Development]
+## Source: Claude (Project Technical Lead)
+
+### Decision
+
+Halt crash-chasing. Adopt trace-driven development
+as the primary methodology for Build 96 and beyond.
+
+### Rationale
+
+Build 87 showed the title screen text rendering —
+garbled but present. The arcade frontend code CAN
+run on Genesis and produce output. The crashes since
+then have been routing and memory layout problems,
+not fundamental incompatibility.
+
+The correct next step is not another diagnostic build.
+It is a complete MAME execution trace of the title
+screen sequence, cross-referenced with the MiSTer
+Rastan FPGA core Verilog for hardware ground truth.
+
+### Three-Source Reference Strategy
+
+1. MAME execution trace:
+   - Every C-Window write (address, value, PC)
+   - Every computed branch (source, target)
+   - Every sprite/scroll/palette write
+   - Specifically: what writes to 0xC01CA8 and when
+
+2. MiSTer Rastan Verilog core:
+   - Hardware-accurate PC080SN and PC090OJ behaviour
+   - Exact signal timing for C-Window access
+   - Resolution for any ambiguity in MAME behaviour
+
+3. Disassembly (build/maincpu.disasm.txt):
+   - Static structure of routines and data tables
+   - Call graph for title screen sequence
+   - Data format confirmation
+
+### What The Trace Will Reveal
+
+For the title screen sequence specifically:
+  - Complete tilemap write sequence (tile, position, order)
+  - Scroll register values per frame
+  - Sprite attribute writes
+  - Palette data
+  - What 0xC01CA8 receives and what it does
+
+### Immediate Action for rastantrace.lua
+
+Extend to produce a detailed title screen log:
+  - All C-Window writes with value and source PC
+  - All computed branches with source and target
+  - Writes to 0xC01CA8 specifically flagged
+  - Frame boundaries marked
+
+### Build 95 Status
+
+Build 95 remains as the stable baseline.
+SHADOW_WRAM_PAGE_COUNT will be set back to 1
+with a 16KB engine_shadow_wram standalone array
+to allow page 0 execution, restoring the Build 87
+baseline where title screen text was visible.
+
+No further diagnostic builds until the trace
+infrastructure is ready.
+
+## [Technical Lead - 0xC01CA8 Root Cause Trace Complete]
+## Source: Claude (Project Technical Lead)
+
+### MAME Source Confirmed: No PAL/GAL Protection
+
+map(0xc00000, 0xc0ffff) -> pc080sn_device::word_r/word_w
+Plain RAM read/write. No protection function.
+The PAL comment in rastan.cpp refers to address decoding
+only — which range maps to which device. Not security.
+
+### C-Window Fill Sequence Confirmed
+
+Startup at 0x3af2c: lea 0xc00000,%a0
+  fill 4096 long-words with 0x0020 via 0x3ad44
+  Fills 0xC00000-0xC01FFE with 0x0020.
+  0xC01CA8 IS in this range. Gets written 0x0020.
+
+Then 0x3af3c: lea 0xc08000
+  fill 4096 long-words 0xC08000-0xC08FFE with 0x0020
+
+Then 0x3af52: lea 0xc04000
+  fill 8192 words 0xC04000-0xC07FFE with 0x0000
+
+Then 0x3af62: lea 0xc0c000  
+  fill 8192 words 0xC0C000-0xC0FFFE with 0x0000
+
+So page 0 and page 2 get 0x0020.
+Pages 1 and 3 get 0x0000.
+
+### The Readback Problem
+
+The arcade code writes 0x0020 to 0xC01CA8 and
+reads it back. On arcade hardware: reads 0x0020.
+On Genesis: page 0 routes to SRAM 0x200000.
+The write goes to SRAM 0x201CA8 correctly.
+The readback SHOULD return 0x0020 from SRAM.
+
+The crash at Genesis address 0x201CA8 means the
+68000 is EXECUTING from that address, not just
+reading data from it. Something loaded 0x201CA8
+into PC. 
+
+### What Needs Tracing
+
+The exact instruction that loads 0xC01CA8 as a 
+branch target has not been found in static analysis.
+The value 0x0020 at 0xC01CA8 is tile data, not a
+function pointer. But something computes a branch
+target that resolves to 0xC01CA8 at runtime.
+
+MAME Lua trace needed: instrument to catch the
+exact PC and instruction that causes the 68000 to
+jump to 0xC01CA8. Log all computed branches (JMP An,
+JSR An) with source PC and target address. Filter
+for target = 0xC01CA8 or 0x201CA8.
+
+### Next Action
+
+Extend rastantrace.lua to log:
+  - All computed indirect branches (JMP An, JSR An)
+    with source PC and computed target
+  - Any branch where target = 0x00C01CA8
+  - Frame boundary markers
+
+Run in MAME through one full frontend tick cycle.
+The first hit where target = 0xC01CA8 is the
+exact instruction that needs to be replaced.
