@@ -47,8 +47,8 @@ extern volatile uint16_t genesistan_shadow_reg_d01bfe;
 #define SHADOW_SRAM_BASE 0x200000UL
 #define SHADOW_SRAM_PAGE_STRIDE 0x4000UL
 #define SHADOW_SRAM_PAGE_MAX 4
-#define SHADOW_WRAM_PAGE_COUNT 0
-#define SHADOW_WRAM_TOTAL_WORDS 0
+#define SHADOW_WRAM_PAGE_COUNT 1
+#define SHADOW_WRAM_TOTAL_WORDS 8192
 
 typedef enum
 {
@@ -199,6 +199,9 @@ uint16_t page2_shadow[8192]
     __attribute__((aligned(4)));
 uint32_t dirty_words[512]
     __attribute__((aligned(4)));
+uint16_t engine_shadow_wram[8192]
+    __attribute__((section(".bss.workram")))
+    __attribute__((aligned(4)));
 
 volatile u8 rastan_virtual_dip1 = FACTORY_DIP1;
 volatile u8 rastan_virtual_dip2 = FACTORY_DIP2;
@@ -346,34 +349,55 @@ void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
     dirty_words[slot >> 5] |=
         (1UL << (slot & 31U));
 
+    if (page == 0) {
+        const uint32_t idx =
+            (uint32_t)(offset >> 1);
+        if (idx < SHADOW_WRAM_TOTAL_WORDS)
+            engine_shadow_wram[idx] = value;
+        return;
+    }
+
     if (page == 2) {
         page2_shadow[offset >> 1] = value;
         return;
     }
 
     {
+        const uint8_t sram_slot =
+            (page == 1) ? 0 : 1;
         volatile uint16_t *base =
             (volatile uint16_t *)(SHADOW_SRAM_BASE
-            + ((uint32_t)page *
+            + ((uint32_t)sram_slot *
                SHADOW_SRAM_PAGE_STRIDE)
             + (uint32_t)offset);
         *base = value;
     }
 }
 
-uint16_t shadow_read16(uint8_t page, uint16_t offset)
+uint16_t shadow_read16(uint8_t page,
+                       uint16_t offset)
 {
     if ((page >= SHADOW_SRAM_PAGE_MAX) ||
         (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
         return 0;
 
+    if (page == 0) {
+        const uint32_t idx =
+            (uint32_t)(offset >> 1);
+        if (idx < SHADOW_WRAM_TOTAL_WORDS)
+            return engine_shadow_wram[idx];
+        return 0;
+    }
+
     if (page == 2)
         return page2_shadow[offset >> 1];
 
     {
+        const uint8_t sram_slot =
+            (page == 1) ? 0 : 1;
         volatile uint16_t *base =
             (volatile uint16_t *)(SHADOW_SRAM_BASE
-            + ((uint32_t)page *
+            + ((uint32_t)sram_slot *
                SHADOW_SRAM_PAGE_STRIDE)
             + (uint32_t)offset);
         return *base;
@@ -1460,6 +1484,8 @@ static void scrub_launcher_runtime_buffers(void)
         graphics_test_tile_buffer = NULL;
     }
 
+    memset(engine_shadow_wram, 0,
+           sizeof(engine_shadow_wram));
     memset(page2_shadow, 0, sizeof(page2_shadow));
     memset(dirty_words, 0, sizeof(dirty_words));
 }

@@ -5679,3 +5679,131 @@ Monitor the gap metric carefully after testing.
 Unaffected. This build only fixes the execution
 memory attribute requirement. Rendering remains
 blank. Opcode replacement begins in Build 97.S
+
+## [Cody - Build 96, Page 0 WRAM Execution Fix]
+```text
+Build 96 completed.
+Read AGENTS.md and AGENTS_LOG.md fully before edits.
+
+Files changed:
+- apps/rastan/src/main.c
+- apps/rastan/src/startup_bridge.c: no code change required (confirmed existing call)
+
+Implemented changes in main.c:
+1) Restored constants:
+   - SHADOW_WRAM_PAGE_COUNT = 1
+   - SHADOW_WRAM_TOTAL_WORDS = 8192
+
+2) Added standalone executable page-0 backing:
+   - uint16_t engine_shadow_wram[8192]
+     __attribute__((section(".bss.workram")))
+     __attribute__((aligned(4)));
+
+3) Replaced shadow_write16() routing exactly:
+   - page 0 -> engine_shadow_wram (WRAM)
+   - page 1 -> SRAM slot 0 (0x200000 + offset)
+   - page 2 -> page2_shadow (WRAM palette readback)
+   - page 3 -> SRAM slot 1 (0x204000 + offset)
+   - dirty_words updated for all pages
+
+4) Replaced shadow_read16() routing exactly:
+   - page 0 read from engine_shadow_wram
+   - page 2 read from page2_shadow
+   - pages 1/3 read from SRAM slots 0/1
+
+5) Updated scrub_launcher_runtime_buffers():
+   - memset(engine_shadow_wram, 0, sizeof(engine_shadow_wram));
+   - memset(page2_shadow, 0, sizeof(page2_shadow));
+   - memset(dirty_words, 0, sizeof(dirty_words));
+
+6) startup_bridge.c verification:
+   - genesistan_reset_startup_shadows() still calls:
+     fill_shadow_page_words(0, 0x2000, 0);
+   - No edit required for Change 6.
+
+Mandatory search results before build:
+- rg -n "wram_overlay\\.engine_shadow_wram" apps/rastan/src/main.c
+  -> no hits
+- rg -n "engine_shadow_wram\\[16384\\]" apps/rastan/src/main.c
+  -> no hits
+- rg -n "engine_shadow_wram\\[8192\\]" apps/rastan/src/main.c
+  -> 202:uint16_t engine_shadow_wram[8192]
+
+Union check:
+- engine_shadow_wram is NOT in union WramOverlay.
+- WramOverlay remains launcher-only.
+
+.bss.workram check:
+- engine_shadow_wram declaration includes __attribute__((section(".bss.workram"))).
+
+Build and packaging:
+- source tools/setup_env.sh
+- make -C apps/rastan debug -> SUCCESS
+- make -C apps/rastan release -> SUCCESS
+- ./tools/release_build.sh 96 -> SUCCESS
+- Artifacts:
+  - dist/build_96
+  - dist/Rastan_96.bin
+
+Compiler warnings:
+- src/main.c:1273:13: warning:
+  'render_frontend_sprite_layer' defined but not used [-Wunused-function]
+
+Addresses from linker map (dist/build_96/rastan_build_96.map):
+- engine_shadow_wram:             0xE0FF0050
+- genesistan_arcade_workram_words: 0xE0FF4050
+- dirty_words:                    0xE0FF806C
+- page2_shadow:                   0xE0FF886C
+- wram_overlay:                   0xE0FFC86C
+- _bend:                          0xE0FFE576
+- __stack:                        0xE1000000
+
+Gap:
+- __stack - _bend = 0x1A8A (6794 bytes)
+- Gap >= 0x4000 (16KB): NO
+```
+
+### MAME Exit Summary (2026-03-20 01:48:38)
+- Final PC: 0x205A24
+- Stack Pointer (SP): 0xE0FFFFB0
+- Unique Unmapped Memory Addresses: none
+## [Technical Lead - Build 96 Launcher Broken, Fix Issued]
+## Source: Claude (Project Technical Lead)
+
+### Problem
+
+Launcher does not run — black screen on both
+BlastEm and MAME after Build 96.
+
+Root cause: engine_shadow_wram placed in
+.bss.workram section alongside genesistan_arcade_
+workram_words. This moved both arrays to the
+bottom of BSS, pushing wram_overlay up to
+0xE0FFC86C — only 6KB below _bend at 0xE0FFE576.
+
+Stack gap of 6KB is insufficient. First
+SYS_doVBlankProcess() call corrupts wram_overlay
+before the launcher draws anything.
+
+### Fix
+
+Remove .bss.workram attribute from engine_shadow_wram.
+All Genesis WRAM is executable — the special section
+placement is only needed for genesistan_arcade_
+workram_words to protect the A5 base from stack
+collision. engine_shadow_wram does not need it.
+
+engine_shadow_wram will land in regular .bss,
+which restores wram_overlay to its previous
+position and restores the stack gap to ~22KB.
+
+### Expected layout after fix
+
+genesistan_arcade_workram_words: 0xE0FF004E (.bss.workram)
+engine_shadow_wram:              ~0xE0FF404E (regular .bss)
+dirty_words:                     ~0xE0FF806C
+page2_shadow:                    ~0xE0FF886C
+wram_overlay:                    ~0xE0FFC86C
+_bend:                           ~0xE0FFE576
+Gap:                             ~0x5A8A (22KB)
+
