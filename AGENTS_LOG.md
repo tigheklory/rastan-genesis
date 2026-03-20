@@ -6307,3 +6307,171 @@ Gap __stack - _bend (available from generated symbol.txt):
 - __stack: 0xE1000000
 - Gap:     0xA2A0 (41632 bytes)
 ```
+
+## [Cody - Build 96 Linker Section Fix]
+```text
+Re-read AGENTS_LOG.md from disk before starting and before appending.
+
+Files changed (two-file scope only):
+- apps/rastan/src/startup_bridge.c
+- apps/rastan/linker_rastan.ld
+
+Change confirmation:
+- Added .bss.patcher inclusion to linker .bss block immediately after .bss.workram:
+  - *(.bss.patcher)     /* required patcher symbols */
+- Converted disappearing startup_bridge symbols from __attribute__((used)) to:
+  - __attribute__((section(".bss.patcher")))
+- genesistan_arcade_workram_words kept unchanged in .bss.workram.
+- Anchor uint8_t address-of fixes remain in place.
+
+Build commands run:
+- source tools/setup_env.sh
+- make -C apps/rastan clean
+- make -C apps/rastan debug
+
+Build result:
+- DEBUG FAILED (stopped per instruction; no release build run)
+- Exact compile failure:
+  - src/startup_bridge.c:41:18: error: only zero initializers are allowed in section '.bss.patcher'
+    (genesistan_shadow_dip1)
+  - src/startup_bridge.c:43:18: error: only zero initializers are allowed in section '.bss.patcher'
+    (genesistan_shadow_dip2)
+  - src/startup_bridge.c:45:19: error: only zero initializers are allowed in section '.bss.patcher'
+    (genesistan_shadow_service_word)
+- Follow-on make failure:
+  - postpatch_startup_rom.py FileNotFoundError for apps/rastan/out/symbol.txt
+    (compile stopped before symbol generation)
+
+genesistan_shadow_d00000_words in symbol.txt:
+- Not available to verify in this run (symbol.txt not produced due compile failure).
+
+release_build.sh result:
+- Not run (debug failed).
+
+Gap __stack - _bend:
+- Not available in this run (no symbol.txt/map due compile failure).
+```
+
+## [Cody - Build 96 Symbol nm Diagnostic]
+```text
+Re-read AGENTS_LOG.md from disk before starting and before appending.
+Diagnostic only; no code changes made.
+
+Commands run:
+1) source tools/setup_env.sh
+2) make -C apps/rastan debug 2>/dev/null || true
+3) grep -i "genesistan\|shadow" apps/rastan/out/symbol.txt | sort
+4) nm apps/rastan/out/rastan.elf 2>/dev/null | grep -i "d00000\|shadow_d" | head -20
+
+Results:
+- make debug completed with stderr suppressed (no error text shown due 2>/dev/null).
+- grep on symbol table failed:
+  grep: apps/rastan/out/symbol.txt: No such file or directory
+- nm pipeline output:
+  (no output)
+
+Conclusion from this diagnostic run:
+- apps/rastan/out/symbol.txt was not generated in this build attempt.
+- No d00000/shadow_d symbols were emitted by nm from apps/rastan/out/rastan.elf in this run.
+```
+
+## [Cody - Build 96 Full Error Output]
+```text
+Re-read AGENTS_LOG.md from disk before starting and before appending.
+Diagnostic only; no code changes made.
+
+Command run:
+  source tools/setup_env.sh
+  make -C apps/rastan clean
+  make -C apps/rastan debug 2>&1 | tail -40
+
+Last 40 lines of output:
+rm res/res_ui.d
+mkdir -p out/src/
+m68k-elf-gcc -x assembler-with-cpp -Wa,--register-prefix-optional,--bitwise-or  -DSGDK_GCC -m68000 -fdiagnostics-color=always -Wall -Wextra -Wno-shift-negative-value -Wno-main -Wno-unused-parameter -fno-builtin -ffunction-sections -fdata-sections -fms-extensions -I. -Iinc -Isrc -Ires -I/home/tighe/projects/rastan-genesis/tools/sgdk/inc -I/home/tighe/projects/rastan-genesis/tools/sgdk/res -B/home/tighe/projects/rastan-genesis/tools/sgdk/bin -O1 -DDEBUG=1 -MMD -c src/startup_trampoline.s -o out/src/startup_trampoline.o
+mkdir -p out/src/
+m68k-elf-gcc  -DSGDK_GCC -m68000 -fdiagnostics-color=always -Wall -Wextra -Wno-shift-negative-value -Wno-main -Wno-unused-parameter -fno-builtin -ffunction-sections -fdata-sections -fms-extensions -I. -Iinc -Isrc -Ires -I/home/tighe/projects/rastan-genesis/tools/sgdk/inc -I/home/tighe/projects/rastan-genesis/tools/sgdk/res -B/home/tighe/projects/rastan-genesis/tools/sgdk/bin -O1 -DDEBUG=1 -ggdb -g -MMD -c src/main.c -o out/src/main.o
+mkdir -p out/src/
+m68k-elf-gcc  -DSGDK_GCC -m68000 -fdiagnostics-color=always -Wall -Wextra -Wno-shift-negative-value -Wno-main -Wno-unused-parameter -fno-builtin -ffunction-sections -fdata-sections -fms-extensions -I. -Iinc -Isrc -Ires -I/home/tighe/projects/rastan-genesis/tools/sgdk/inc -I/home/tighe/projects/rastan-genesis/tools/sgdk/res -B/home/tighe/projects/rastan-genesis/tools/sgdk/bin -O1 -DDEBUG=1 -ggdb -g -MMD -c src/startup_bridge.c -o out/src/startup_bridge.o
+[01m[Ksrc/startup_bridge.c:45:19:[m[K [01;31m[Kerror: [m[Konly zero initializers are allowed in section '[01m[K.bss.patcher[m[K'
+   45 | volatile uint16_t [01;31m[Kgenesistan_shadow_service_word[m[K
+      |                   [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[Ksrc/startup_bridge.c:43:18:[m[K [01;31m[Kerror: [m[Konly zero initializers are allowed in section '[01m[K.bss.patcher[m[K'
+   43 | volatile uint8_t [01;31m[Kgenesistan_shadow_dip2[m[K
+      |                  [01;31m[K^~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[Ksrc/startup_bridge.c:41:18:[m[K [01;31m[Kerror: [m[Konly zero initializers are allowed in section '[01m[K.bss.patcher[m[K'
+   41 | volatile uint8_t [01;31m[Kgenesistan_shadow_dip1[m[K
+      |                  [01;31m[K^~~~~~~~~~~~~~~~~~~~~~[m[K
+make[1]: *** [/home/tighe/projects/rastan-genesis/tools/sgdk/makefile.gen:213: out/src/startup_bridge.o] Error 1
+rm res/res_sprite.rs res/res_payload.rs res/res_ui.rs
+make[1]: Leaving directory '/home/tighe/projects/rastan-genesis/apps/rastan'
+Traceback (most recent call last):
+  File "/home/tighe/projects/rastan-genesis/tools/translation/postpatch_startup_rom.py", line 863, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/tighe/projects/rastan-genesis/tools/translation/postpatch_startup_rom.py", line 516, in main
+    symbol_addresses = parse_symbol_table(symbols_path, required_names=None)
+  File "/home/tighe/projects/rastan-genesis/tools/translation/postpatch_startup_rom.py", line 63, in parse_symbol_table
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+                    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/pathlib/_local.py", line 548, in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/pathlib/_abc.py", line 632, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/pathlib/_local.py", line 539, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/tighe/projects/rastan-genesis/apps/rastan/out/symbol.txt'
+make: *** [Makefile:66: debug] Error 1
+make: Leaving directory '/home/tighe/projects/rastan-genesis/apps/rastan'
+
+Command run:
+  ls -la apps/rastan/out/ 2>&1 | head -20
+
+Output:
+total 160
+drwxr-xr-x 4 tighe tighe   4096 Mar 20 17:07 .
+drwxr-xr-x 6 tighe tighe   4096 Mar 16 22:49 ..
+-rwxr-xr-x 1 tighe tighe 131072 Mar 11 16:15 rastan-rom.bin
+drwxr-xr-x 2 tighe tighe   4096 Mar 20 17:07 res
+-rw-r--r-- 1 tighe tighe    256 Mar 20 17:07 rom_head.bin
+-rw-r--r-- 1 tighe tighe    928 Mar 20 17:07 rom_head.o
+-rw-r--r-- 1 tighe tighe   4332 Mar 20 17:07 sega.o
+drwxr-xr-x 2 tighe tighe   4096 Mar 20 17:07 src
+```
+
+## [Cody - Build 96 Data Patcher Fix]
+```text
+Re-read AGENTS_LOG.md from disk before starting and before appending.
+
+Change confirmation:
+- Three non-zero-initialized symbols in startup_bridge.c now use .data.patcher:
+  - genesistan_shadow_dip1
+  - genesistan_shadow_dip2
+  - genesistan_shadow_service_word
+- linker_rastan.ld .data section now includes:
+  - *(.data.patcher)
+
+Build commands run:
+- source tools/setup_env.sh
+- make -C apps/rastan clean
+- make -C apps/rastan debug
+
+Build result:
+- DEBUG FAILED
+- Exact failure:
+  RuntimeError: Required symbol not found in
+  /home/tighe/projects/rastan-genesis/apps/rastan/out/symbol.txt:
+  genesistan_shadow_dip1
+  (raised by tools/translation/postpatch_startup_rom.py)
+
+release_build.sh result:
+- Not run (debug failed; stopped per instruction).
+
+Gap __stack - _bend:
+- _bend:   0xE0FF6572
+- __stack: 0xE1000000
+- Gap:     0x9A8E (39566 bytes)
+```

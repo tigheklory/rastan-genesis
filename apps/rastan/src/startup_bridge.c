@@ -10,52 +10,52 @@
 volatile uint16_t genesistan_arcade_workram_words[0x2000]
     __attribute__((section(".bss.workram")));
 volatile uint16_t genesistan_shadow_d00000_words[0x0400]
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint16_t genesistan_shadow_c20000_words[2]
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint16_t genesistan_shadow_c40000_words[2]
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 
 volatile uint16_t genesistan_shadow_reg_c50000
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint16_t genesistan_shadow_reg_d01bfe
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint16_t genesistan_shadow_reg_350008
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint16_t genesistan_shadow_reg_380000
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint16_t genesistan_shadow_reg_3c0000
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint8_t genesistan_shadow_input_390001
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint8_t genesistan_shadow_input_390003
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint8_t genesistan_shadow_input_390005
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint8_t genesistan_shadow_input_390007
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint8_t genesistan_shadow_reg_3e0001
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint8_t genesistan_shadow_reg_3e0003
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint8_t genesistan_shadow_dip1
-    __attribute__((used)) = GENESISTAN_DIP1_FACTORY;
+    __attribute__((section(".data.patcher"))) = GENESISTAN_DIP1_FACTORY;
 volatile uint8_t genesistan_shadow_dip2
-    __attribute__((used)) = GENESISTAN_DIP2_FACTORY;
+    __attribute__((section(".data.patcher"))) = GENESISTAN_DIP2_FACTORY;
 volatile uint16_t genesistan_shadow_service_word
-    __attribute__((used)) = GENESISTAN_SERVICE_FACTORY;
+    __attribute__((section(".data.patcher"))) = GENESISTAN_SERVICE_FACTORY;
 volatile uint16_t genesistan_startup_result_code
-    __attribute__((used)) = GENESISTAN_STARTUP_RESULT_NONE;
+    __attribute__((section(".bss.patcher"))) = GENESISTAN_STARTUP_RESULT_NONE;
 volatile uint8_t genesistan_sound_last_command
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint8_t genesistan_sound_last_low_nibble
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint8_t genesistan_sound_last_high_nibble
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint8_t genesistan_sound_status
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 volatile uint16_t genesistan_sound_command_count
-    __attribute__((used));
+    __attribute__((section(".bss.patcher")));
 
 static uint8_t build_player_input_byte(uint16_t state)
 {
