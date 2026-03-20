@@ -201,85 +201,85 @@
     {
       "range": "startup_common",
       "old": "0x00C50000",
-      "new": "0xE0FF53D2",
+      "new": "0xE0FF93D2",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00D01BFE",
-      "new": "0xE0FF53D0",
+      "new": "0xE0FF93D0",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00350008",
-      "new": "0xE0FF53CE",
+      "new": "0xE0FF93CE",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00380000",
-      "new": "0xE0FF53CC",
+      "new": "0xE0FF93CC",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x003E0001",
-      "new": "0xE0FF53C5",
+      "new": "0xE0FF93C5",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x003E0003",
-      "new": "0xE0FF53C4",
+      "new": "0xE0FF93C4",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x00390001",
-      "new": "0xE0FF53C9",
+      "new": "0xE0FF93C9",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390003",
-      "new": "0xE0FF53C8",
+      "new": "0xE0FF93C8",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390005",
-      "new": "0xE0FF53C7",
+      "new": "0xE0FF93C7",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390007",
-      "new": "0xE0FF53C6",
+      "new": "0xE0FF93C6",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00200000",
-      "new": "0xE0FF486C",
+      "new": "0xE0FF886C",
       "count": 4
     },
     {
       "range": "startup_common",
       "old": "0x0010C000",
-      "new": "0xE0FF5BDC",
+      "new": "0xE0FF004E",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x0010C002",
-      "new": "0xE0FF5BDE",
+      "new": "0xE0FF0050",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x003C0000",
-      "new": "0xE0FF53CA",
+      "new": "0xE0FF93CA",
       "count": 4
     },
     {
@@ -327,85 +327,85 @@
     {
       "range": "frontend_core",
       "old": "0x00C50000",
-      "new": "0xE0FF53D2",
+      "new": "0xE0FF93D2",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00D01BFE",
-      "new": "0xE0FF53D0",
+      "new": "0xE0FF93D0",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00350008",
-      "new": "0xE0FF53CE",
+      "new": "0xE0FF93CE",
       "count": 1
     },
     {
       "range": "frontend_core",
       "old": "0x00380000",
-      "new": "0xE0FF53CC",
+      "new": "0xE0FF93CC",
       "count": 1
     },
     {
       "range": "frontend_core",
       "old": "0x003E0001",
-      "new": "0xE0FF53C5",
+      "new": "0xE0FF93C5",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x003E0003",
-      "new": "0xE0FF53C4",
+      "new": "0xE0FF93C4",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00390001",
-      "new": "0xE0FF53C9",
+      "new": "0xE0FF93C9",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390003",
-      "new": "0xE0FF53C8",
+      "new": "0xE0FF93C8",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390005",
-      "new": "0xE0FF53C7",
+      "new": "0xE0FF93C7",
       "count": 7
     },
     {
       "range": "frontend_core",
       "old": "0x00390007",
-      "new": "0xE0FF53C6",
+      "new": "0xE0FF93C6",
       "count": 7
     },
     {
       "range": "frontend_core",
       "old": "0x00200000",
-      "new": "0xE0FF486C",
+      "new": "0xE0FF886C",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x0010C000",
-      "new": "0xE0FF5BDC",
+      "new": "0xE0FF004E",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x0010C002",
-      "new": "0xE0FF5BDE",
+      "new": "0xE0FF0050",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x003C0000",
-      "new": "0xE0FF53CA",
+      "new": "0xE0FF93CA",
       "count": 1
     },
     {
@@ -453,121 +453,121 @@
     {
       "range": "title_init_block",
       "old": "0x00C50000",
-      "new": "0xE0FF53D2",
+      "new": "0xE0FF93D2",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D01BFE",
-      "new": "0xE0FF53D0",
+      "new": "0xE0FF93D0",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00350008",
-      "new": "0xE0FF53CE",
+      "new": "0xE0FF93CE",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00380000",
-      "new": "0xE0FF53CC",
+      "new": "0xE0FF93CC",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D00000",
-      "new": "0xE0FF53DC",
+      "new": "0xE0FF93DC",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D00020",
-      "new": "0xE0FF53FC",
+      "new": "0xE0FF93FC",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x00D00088",
-      "new": "0xE0FF5464",
+      "new": "0xE0FF9464",
       "count": 2
     },
     {
       "range": "title_init_block",
       "old": "0x00D000DA",
-      "new": "0xE0FF54B6",
+      "new": "0xE0FF94B6",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D000E0",
-      "new": "0xE0FF54BC",
+      "new": "0xE0FF94BC",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x00D00128",
-      "new": "0xE0FF5504",
+      "new": "0xE0FF9504",
       "count": 2
     },
     {
       "range": "title_init_block",
       "old": "0x003E0001",
-      "new": "0xE0FF53C5",
+      "new": "0xE0FF93C5",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x003E0003",
-      "new": "0xE0FF53C4",
+      "new": "0xE0FF93C4",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390001",
-      "new": "0xE0FF53C9",
+      "new": "0xE0FF93C9",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390003",
-      "new": "0xE0FF53C8",
+      "new": "0xE0FF93C8",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390005",
-      "new": "0xE0FF53C7",
+      "new": "0xE0FF93C7",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390007",
-      "new": "0xE0FF53C6",
+      "new": "0xE0FF93C6",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00200000",
-      "new": "0xE0FF486C",
+      "new": "0xE0FF886C",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x0010C000",
-      "new": "0xE0FF5BDC",
+      "new": "0xE0FF004E",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x0010C002",
-      "new": "0xE0FF5BDE",
+      "new": "0xE0FF0050",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x003C0000",
-      "new": "0xE0FF53CA",
+      "new": "0xE0FF93CA",
       "count": 0
     },
     {
@@ -615,61 +615,61 @@
     {
       "range": "helper_d000_init",
       "old": "0x00D00000",
-      "new": "0xE0FF53DC",
+      "new": "0xE0FF93DC",
       "count": 2
     },
     {
       "range": "helper_d000_init",
       "old": "0x00D00170",
-      "new": "0xE0FF554C",
+      "new": "0xE0FF954C",
       "count": 1
     },
     {
       "range": "helper_d000_init",
       "old": "0x00D00778",
-      "new": "0xE0FF5B54",
+      "new": "0xE0FF9B54",
       "count": 1
     },
     {
       "range": "helper_200000_init",
       "old": "0x00200000",
-      "new": "0xE0FF486C",
+      "new": "0xE0FF886C",
       "count": 0
     },
     {
       "range": "helper_frontend_timers",
       "old": "0x00380000",
-      "new": "0xE0FF53CC",
+      "new": "0xE0FF93CC",
       "count": 4
     },
     {
       "range": "helper_3f084_reg_write",
       "old": "0x003E0001",
-      "new": "0xE0FF53C5",
+      "new": "0xE0FF93C5",
       "count": 1
     },
     {
       "range": "helper_3f084_reg_write",
       "old": "0x003E0003",
-      "new": "0xE0FF53C4",
+      "new": "0xE0FF93C4",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00C50000",
-      "new": "0xE0FF53D2",
+      "new": "0xE0FF93D2",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00D01BFE",
-      "new": "0xE0FF53D0",
+      "new": "0xE0FF93D0",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00380000",
-      "new": "0xE0FF53CC",
+      "new": "0xE0FF93CC",
       "count": 1
     },
     {
@@ -693,43 +693,43 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x0010C000",
-      "new": "0xE0FF5BDC",
+      "new": "0xE0FF004E",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x0010D600",
-      "new": "0xE0FF71DC",
+      "new": "0xE0FF164E",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00200000",
-      "new": "0xE0FF486C",
+      "new": "0xE0FF886C",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00201000",
-      "new": "0xE0FF586C",
+      "new": "0xE0FF986C",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390001",
-      "new": "0xE0FF53C9",
+      "new": "0xE0FF93C9",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390007",
-      "new": "0xE0FF53C6",
+      "new": "0xE0FF93C6",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x003C0000",
-      "new": "0xE0FF53CA",
+      "new": "0xE0FF93CA",
       "count": 1
     },
     {
@@ -765,20 +765,20 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00D00000",
-      "new": "0xE0FF53DC",
+      "new": "0xE0FF93DC",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00D01000",
-      "new": "0xE0FF53DC",
+      "new": "0xE0FF93DC",
       "count": 2
     },
     {
       "range": "startup_common",
       "old_window_start": "0x00C50000",
       "old_window_end_exclusive": "0x00C50002",
-      "new_window_start": "0xE0FF53D2",
+      "new_window_start": "0xE0FF93D2",
       "target": "symbol:genesistan_shadow_reg_c50000",
       "scan_step": 2,
       "count": 0
@@ -787,7 +787,7 @@
       "range": "startup_common",
       "old_window_start": "0x00D01BFE",
       "old_window_end_exclusive": "0x00D01C00",
-      "new_window_start": "0xE0FF53D0",
+      "new_window_start": "0xE0FF93D0",
       "target": "symbol:genesistan_shadow_reg_d01bfe",
       "scan_step": 2,
       "count": 0
@@ -796,7 +796,7 @@
       "range": "startup_common",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF53DC",
+      "new_window_start": "0xE0FF93DC",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 0
@@ -805,7 +805,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00C50000",
       "old_window_end_exclusive": "0x00C50002",
-      "new_window_start": "0xE0FF53D2",
+      "new_window_start": "0xE0FF93D2",
       "target": "symbol:genesistan_shadow_reg_c50000",
       "scan_step": 2,
       "count": 0
@@ -814,7 +814,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00D01BFE",
       "old_window_end_exclusive": "0x00D01C00",
-      "new_window_start": "0xE0FF53D0",
+      "new_window_start": "0xE0FF93D0",
       "target": "symbol:genesistan_shadow_reg_d01bfe",
       "scan_step": 2,
       "count": 0
@@ -823,7 +823,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF53DC",
+      "new_window_start": "0xE0FF93DC",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 0
@@ -973,7 +973,7 @@
   },
   "test_result_stub": {
     "address": "0x03B270",
-    "writes_status_to": "0xE0FF53C2",
+    "writes_status_to": "0xE0FF93C2",
     "value": 2,
     "jumps_exit_to": "0x002091D0",
     "end_exclusive": "0x03B27E"
@@ -982,7 +982,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0xA236",
+  "checksum": "0xEAC3",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x00205230",

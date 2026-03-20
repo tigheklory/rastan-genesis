@@ -5106,6 +5106,225 @@ Conclusion:
   so a runtime-resolved target of C-window+0x1CA8 is consistent with an
   indirect branch corruption/path issue rather than a direct literal callsite.
 ```
+
+## [Cody - Build 95 Stack Fix, Workram Relocation]
+```text
+Read AGENTS.md and AGENTS_LOG.md fully before changes.
+
+Scope executed:
+- Diagnostic stack-hardening change only.
+- One debug build only (no release build run).
+
+TASK 1 — Build 95 BSS layout from symbol file
+=============================================
+
+Requested command run exactly:
+  grep -E "^[0-9a-fA-F]+" \
+    apps/rastan/out/symbol.txt | \
+    sort | grep -v "^0[0-9a-fA-F]\{6\}" | \
+    grep "E0FF" | head -60
+
+Result:
+- No lines returned (symbol addresses are lowercase `e0ff...` in this file).
+
+Case-insensitive equivalent used to inspect layout:
+  grep -Ei "^[0-9a-fA-F]+" apps/rastan/out/symbol.txt | \
+    sort | grep -v "^0[0-9a-fA-F]\{6\}" | \
+    grep -i "e0ff" | head -80
+
+Full BSS-order listing (lowest->highest) used for verification:
+  awk '$1 ~ /^e0ff/ && $2 ~ /^[Bb]$/ {print}' apps/rastan/out/symbol.txt
+
+e0ff004e B _start
+e0ff004e B genesistan_arcade_workram_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:10
+e0ff404e b packed_romset_signature_cache	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:216
+e0ff4052 b packed_romset_size_cache	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:215
+e0ff4056 b sound_test_has_triggered	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:214
+e0ff4057 b sound_test_last_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:213
+e0ff4058 B rastan_virtual_sound_pending	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:212
+e0ff4059 B rastan_virtual_sound_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:211
+e0ff405a b graphics_region	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:210
+e0ff405e b graphics_page	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:209
+e0ff4060 b current_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:208
+e0ff4064 b graphics_test_tile_buffer	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:207
+e0ff4068 b selected_menu	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:205
+e0ff406c B dirty_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:200
+e0ff486c B page2_shadow	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:198
+e0ff886c B wram_overlay	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:196
+e0ff93bc B genesistan_sound_command_count	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:35
+e0ff93be B genesistan_sound_status	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:34
+e0ff93bf B genesistan_sound_last_high_nibble	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:33
+e0ff93c0 B genesistan_sound_last_low_nibble	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:32
+e0ff93c1 B genesistan_sound_last_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:31
+e0ff93c2 B genesistan_startup_result_code	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:30
+e0ff93c4 B genesistan_shadow_reg_3e0003	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:26
+e0ff93c5 B genesistan_shadow_reg_3e0001	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:25
+e0ff93c6 B genesistan_shadow_input_390007	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:24
+e0ff93c7 B genesistan_shadow_input_390005	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:23
+e0ff93c8 B genesistan_shadow_input_390003	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:22
+e0ff93c9 B genesistan_shadow_input_390001	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:21
+e0ff93ca B genesistan_shadow_reg_3c0000	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:20
+e0ff93cc B genesistan_shadow_reg_380000	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:19
+e0ff93ce B genesistan_shadow_reg_350008	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:18
+e0ff93d0 B genesistan_shadow_reg_d01bfe	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:17
+e0ff93d2 B genesistan_shadow_reg_c50000	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:16
+e0ff93d4 B genesistan_shadow_c40000_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:14
+e0ff93d8 B genesistan_shadow_c20000_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:13
+e0ff93dc B genesistan_shadow_d00000_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:12
+e0ff9bdc b phase	D:\apps\SGDK/src/bmp.c:68
+e0ff9bde b queueTransferSize	D:\apps\SGDK/src/dma.c:41
+e0ff9be0 b queueIndexLimit	D:\apps\SGDK/src/dma.c:40
+e0ff9be2 b queueIndex	D:\apps\SGDK/src/dma.c:39
+e0ff9be4 b dataBufferSize	D:\apps\SGDK/src/dma.c:36
+e0ff9be6 b flag	D:\apps\SGDK/src/dma.c:33
+e0ff9be8 b maxTransferPerFrame	D:\apps\SGDK/src/dma.c:32
+e0ff9bea b queueSize	D:\apps\SGDK/src/dma.c:31
+e0ff9bec b nextDataBuffer	D:\apps\SGDK/src/dma.c:28
+e0ff9bf0 B dmaDataBuffer	D:\apps\SGDK/src/dma.c:27
+e0ff9bf4 B dmaQueues	D:\apps\SGDK/src/dma.c:24
+e0ff9bf8 b joyEventCB	D:\apps\SGDK/src/joy.c:47
+e0ff9bfc b gport	D:\apps\SGDK/src/joy.c:44
+e0ff9bfe b extSet	D:\apps\SGDK/src/joy.c:43
+e0ff9bff b gun	D:\apps\SGDK/src/joy.c:42
+e0ff9c00 b phase	D:\apps\SGDK/src/joy.c:40
+e0ff9c01 b retry	D:\apps\SGDK/src/joy.c:39
+e0ff9c02 b portType	D:\apps\SGDK/src/joy.c:37
+e0ff9c04 b portSupport	D:\apps\SGDK/src/joy.c:36
+e0ff9c06 b joyAxisY	D:\apps\SGDK/src/joy.c:34
+e0ff9c16 b joyAxisX	D:\apps\SGDK/src/joy.c:33
+e0ff9c26 b joyState	D:\apps\SGDK/src/joy.c:32
+e0ff9c36 b joyType	D:\apps\SGDK/src/joy.c:31
+e0ff9c3e b heap	D:\apps\SGDK/src/memory.c:153
+e0ff9c42 b free	D:\apps\SGDK/src/memory.c:152
+e0ff9c46 b fadeCounter	D:\apps\SGDK/src/pal.c:201
+e0ff9c48 b fadeSize	D:\apps\SGDK/src/pal.c:200
+e0ff9c4a b fadeInd	D:\apps\SGDK/src/pal.c:199
+e0ff9c4c b fadeSB	D:\apps\SGDK/src/pal.c:197
+e0ff9ccc b fadeSG	D:\apps\SGDK/src/pal.c:196
+e0ff9d4c b fadeSR	D:\apps\SGDK/src/pal.c:195
+e0ff9dcc b fadeB	D:\apps\SGDK/src/pal.c:194
+e0ff9e4c b fadeG	D:\apps\SGDK/src/pal.c:193
+e0ff9ecc b fadeR	D:\apps\SGDK/src/pal.c:192
+e0ff9f4c B fadeCurrentPal	D:\apps\SGDK/src/pal.c:189
+e0ff9fcc b lastVTimer.0	D:\apps\SGDK/src/sys.c:979
+e0ff9fce b lastSubTick	D:\apps\SGDK/src/sys.c:122
+e0ff9fd2 b frameCnt	D:\apps\SGDK/src/sys.c:121
+e0ff9fd6 b cpuFrameLoad	D:\apps\SGDK/src/sys.c:120
+e0ff9fd8 b frameLoadIndex	D:\apps\SGDK/src/sys.c:119
+e0ff9fda b frameLoads	D:\apps\SGDK/src/sys.c:118
+e0ff9fea b flags	D:\apps\SGDK/src/sys.c:115
+e0ff9fec b disableIntStack	D:\apps\SGDK/src/sys.c:114
+e0ff9fee B intLevelSave	D:\apps\SGDK/src/sys.c:113
+e0ff9ff0 B intTrace	D:\apps\SGDK/src/sys.c:110
+e0ff9ff2 B VBlankProcess	D:\apps\SGDK/src/sys.c:109
+e0ff9ff4 B vblankCB	D:\apps\SGDK/src/sys.c:107
+e0ff9ff8 B intCB	D:\apps\SGDK/src/sys.c:104
+e0ff9ffc B eintCB	D:\apps\SGDK/src/sys.c:103
+e0ffa000 B hintCaller	D:\apps\SGDK/src/sys.c:102
+e0ffa006 B vintCB	D:\apps\SGDK/src/sys.c:101
+e0ffa00a b lastTick	D:\apps\SGDK/src/timer.c:39
+e0ffa00e B vtimer	D:\apps\SGDK/src/timer.c:36
+e0ffa012 B randomSeedSet	D:\apps\SGDK/src/tools.c:27
+e0ffa014 B lastVCnt	D:\apps\SGDK/src/vdp.c:62
+e0ffa016 B windowWidthSft	D:\apps\SGDK/src/vdp.c:60
+e0ffa018 B planeHeightSft	D:\apps\SGDK/src/vdp.c:59
+e0ffa01a B planeWidthSft	D:\apps\SGDK/src/vdp.c:58
+e0ffa01c B windowWidth	D:\apps\SGDK/src/vdp.c:57
+e0ffa01e B planeHeight	D:\apps\SGDK/src/vdp.c:56
+e0ffa020 B planeWidth	D:\apps\SGDK/src/vdp.c:55
+e0ffa022 B screenHeight	D:\apps\SGDK/src/vdp.c:54
+e0ffa024 B screenWidth	D:\apps\SGDK/src/vdp.c:53
+e0ffa026 B userTileMaxIndex	D:\apps\SGDK/src/vdp.c:51
+e0ffa028 B maps_addr	D:\apps\SGDK/src/vdp.c:49
+e0ffa02a B slist_addr	D:\apps\SGDK/src/vdp.c:48
+e0ffa02c B hscrl_addr	D:\apps\SGDK/src/vdp.c:47
+e0ffa02e B bgb_addr	D:\apps\SGDK/src/vdp.c:46
+e0ffa030 B bga_addr	D:\apps\SGDK/src/vdp.c:45
+e0ffa032 B window_addr	D:\apps\SGDK/src/vdp.c:44
+e0ffa034 b regValues	D:\apps\SGDK/src/vdp.c:42
+e0ffa047 b vscroll_update	D:\apps\SGDK/src/vdp_bg.c:31
+e0ffa048 b hscroll_update	D:\apps\SGDK/src/vdp_bg.c:30
+e0ffa04a b vscroll	D:\apps\SGDK/src/vdp_bg.c:29
+e0ffa04e b hscroll	D:\apps\SGDK/src/vdp_bg.c:28
+e0ffa052 B curTileInd	D:\apps\SGDK/src/vdp_bg.c:26
+e0ffa054 b text_basetile	D:\apps\SGDK/src/vdp_bg.c:23
+e0ffa056 b text_plan	D:\apps\SGDK/src/vdp_bg.c:22
+e0ffa05a b free	D:\apps\SGDK/src/vdp_spr.c:24
+e0ffa05e b allocStack	D:\apps\SGDK/src/vdp_spr.c:22
+e0ffa19e B highestVDPSpriteIndex	D:\apps\SGDK/src/vdp_spr.c:19
+e0ffa1a0 B vdpSpriteCache	D:\apps\SGDK/src/vdp_spr.c:14
+e0ffa4a0 B busProtectSignalAddress	D:\apps\SGDK/src/z80_ctrl.c:24
+e0ffa4a2 B driverFlags	D:\apps\SGDK/src/z80_ctrl.c:23
+e0ffa4a4 B currentDriver	D:\apps\SGDK/src/z80_ctrl.c:22
+e0ffa4a6 b xgmWaitMean	D:\apps\SGDK/src/snd/xgm.c:41
+e0ffa4a8 b xgmIdleMean	D:\apps\SGDK/src/snd/xgm.c:40
+e0ffa4aa b xgmTabInd	D:\apps\SGDK/src/snd/xgm.c:39
+e0ffa4ac b xgmWaitTab	D:\apps\SGDK/src/snd/xgm.c:38
+e0ffa4ec b xgmIdleTab	D:\apps\SGDK/src/snd/xgm.c:37
+e0ffa52c B xgmTempoCnt	D:\apps\SGDK/src/snd/xgm.c:34
+e0ffa52e b xgmTempoDef	D:\apps\SGDK/src/snd/xgm.c:32
+e0ffa530 b xgmTempo	D:\apps\SGDK/src/snd/xgm.c:31
+e0ffa532 b xgm2WaitMean	D:\apps\SGDK/src/snd/xgm2.c:191
+e0ffa534 b xgm2IdleMean	D:\apps\SGDK/src/snd/xgm2.c:190
+e0ffa536 b xgm2WaitTabInd	D:\apps\SGDK/src/snd/xgm2.c:189
+e0ffa538 b xgm2IdleTabInd	D:\apps\SGDK/src/snd/xgm2.c:188
+e0ffa53a b xgm2WaitTab	D:\apps\SGDK/src/snd/xgm2.c:187
+e0ffa542 b xgm2IdleTab	D:\apps\SGDK/src/snd/xgm2.c:186
+e0ffa54a b fadeEndProcess	D:\apps\SGDK/src/snd/xgm2.c:183
+e0ffa54e b fadeCount	D:\apps\SGDK/src/snd/xgm2.c:182
+e0ffa550 b fadePSGVolStep	D:\apps\SGDK/src/snd/xgm2.c:181
+e0ffa552 b fadeFMVolStep	D:\apps\SGDK/src/snd/xgm2.c:180
+e0ffa554 b fadePSGVol	D:\apps\SGDK/src/snd/xgm2.c:179
+e0ffa556 b fadeFMVol	D:\apps\SGDK/src/snd/xgm2.c:178
+e0ffa558 b restoreVolume	D:\apps\SGDK/src/snd/xgm2.c:175
+e0ffa55a b psgVol	D:\apps\SGDK/src/snd/xgm2.c:174
+e0ffa55c b fmVol	D:\apps\SGDK/src/snd/xgm2.c:173
+e0ffa55e b xgm2Tempo	D:\apps\SGDK/src/snd/xgm2.c:170
+e0ffa560 B spriteVramSize	D:\apps\SGDK/src/sprite_eng.c:90
+e0ffa562 b vram	D:\apps\SGDK/src/sprite_eng.c:87
+e0ffa56e B firstSprite	D:\apps\SGDK/src/sprite_eng.c:83
+e0ffa572 B spritesPool	D:\apps\SGDK/src/sprite_eng.c:80
+e0ffa576 B _bend
+
+TASK 2 — Workram relocation changes applied
+===========================================
+
+File: apps/rastan/src/startup_bridge.c
+- Updated declaration to:
+  volatile uint16_t genesistan_arcade_workram_words[0x2000]
+      __attribute__((section(".bss.workram")));
+
+File: apps/rastan/linker_rastan.ld
+- Updated .bss ordering to place .bss.workram first:
+    _start = .;
+    *(.bss.workram)     /* arcade work RAM FIRST */
+    *(.shbss)
+    *(.bss .bss.*)
+    *(COMMON)
+    _bend = .;
+
+TASK 3 — Debug build + post-build verification
+==============================================
+
+Build run:
+  source tools/setup_env.sh
+  make -C apps/rastan debug
+
+Build result:
+- SUCCESS
+- Compiler warnings:
+  src/main.c:1249:13: warning: 'render_frontend_sprite_layer' defined but not used [-Wunused-function]
+
+Post-build symbol verification:
+- genesistan_arcade_workram_words: 0xE0FF004E
+- _bend: 0xE0FFA576
+- __stack: 0xE1000000
+- Gap (__stack - _bend): 0x5A8A (23178 bytes)
+
+Checks:
+- genesistan_arcade_workram_words is now at the lowest BSS address (same as _start).
+- This places arcade A5 work RAM at the furthest point from descending stack growth.
+```
 ## [Technical Lead - Build 95 Root Cause Final Confirmed]
 ## Source: Claude (Project Technical Lead)
 

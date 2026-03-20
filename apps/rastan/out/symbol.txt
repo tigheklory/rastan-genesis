@@ -77,11 +77,11 @@
 00201274 t render_startup_preview_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:1068
 00201572 t request_start_rastan	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:1415
 00201678 T main	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:1514
-00201c5e t build_player_input_byte	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:36
-00201ca8 t fill_shadow_page_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:105
-00201cee T genesistan_refresh_arcade_inputs	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:85
-00201d88 T genesistan_reset_startup_shadows	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:114
-00201ec8 T genesistan_reclaim_launcher_wram	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:150
+00201c5e t build_player_input_byte	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:37
+00201ca8 t fill_shadow_page_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:106
+00201cee T genesistan_refresh_arcade_inputs	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:86
+00201d88 T genesistan_reset_startup_shadows	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:115
+00201ec8 T genesistan_reclaim_launcher_wram	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:151
 00201f4c T TSK_init
 00201f72 t .loop
 00201f7a T TSK_superPost
@@ -745,9 +745,9 @@
 0039273c A _stext
 e0ff0000 D rastan_virtual_dip2	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:204
 e0ff0001 D rastan_virtual_dip1	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:203
-e0ff0002 D genesistan_shadow_service_word	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:28
-e0ff0004 D genesistan_shadow_dip2	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:27
-e0ff0005 D genesistan_shadow_dip1	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:26
+e0ff0002 D genesistan_shadow_service_word	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:29
+e0ff0004 D genesistan_shadow_dip2	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:28
+e0ff0005 D genesistan_shadow_dip1	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:27
 e0ff0008 D task_sr
 e0ff000a D task_pc
 e0ff000e D task_regs
@@ -755,41 +755,41 @@ e0ff004a D task_lock
 e0ff004c d randbase	D:\apps\SGDK/src/tools.c:25
 e0ff004e D _edata
 e0ff004e B _start
-e0ff004e b packed_romset_signature_cache	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:216
-e0ff0052 b packed_romset_size_cache	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:215
-e0ff0056 b sound_test_has_triggered	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:214
-e0ff0057 b sound_test_last_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:213
-e0ff0058 B rastan_virtual_sound_pending	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:212
-e0ff0059 B rastan_virtual_sound_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:211
-e0ff005a b graphics_region	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:210
-e0ff005e b graphics_page	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:209
-e0ff0060 b current_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:208
-e0ff0064 b graphics_test_tile_buffer	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:207
-e0ff0068 b selected_menu	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:205
-e0ff006c B dirty_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:200
-e0ff086c B page2_shadow	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:198
-e0ff486c B wram_overlay	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:196
-e0ff53bc B genesistan_sound_command_count	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:34
-e0ff53be B genesistan_sound_status	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:33
-e0ff53bf B genesistan_sound_last_high_nibble	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:32
-e0ff53c0 B genesistan_sound_last_low_nibble	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:31
-e0ff53c1 B genesistan_sound_last_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:30
-e0ff53c2 B genesistan_startup_result_code	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:29
-e0ff53c4 B genesistan_shadow_reg_3e0003	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:25
-e0ff53c5 B genesistan_shadow_reg_3e0001	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:24
-e0ff53c6 B genesistan_shadow_input_390007	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:23
-e0ff53c7 B genesistan_shadow_input_390005	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:22
-e0ff53c8 B genesistan_shadow_input_390003	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:21
-e0ff53c9 B genesistan_shadow_input_390001	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:20
-e0ff53ca B genesistan_shadow_reg_3c0000	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:19
-e0ff53cc B genesistan_shadow_reg_380000	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:18
-e0ff53ce B genesistan_shadow_reg_350008	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:17
-e0ff53d0 B genesistan_shadow_reg_d01bfe	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:16
-e0ff53d2 B genesistan_shadow_reg_c50000	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:15
-e0ff53d4 B genesistan_shadow_c40000_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:13
-e0ff53d8 B genesistan_shadow_c20000_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:12
-e0ff53dc B genesistan_shadow_d00000_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:11
-e0ff5bdc B genesistan_arcade_workram_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:10
+e0ff004e B genesistan_arcade_workram_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:10
+e0ff404e b packed_romset_signature_cache	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:216
+e0ff4052 b packed_romset_size_cache	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:215
+e0ff4056 b sound_test_has_triggered	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:214
+e0ff4057 b sound_test_last_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:213
+e0ff4058 B rastan_virtual_sound_pending	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:212
+e0ff4059 B rastan_virtual_sound_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:211
+e0ff405a b graphics_region	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:210
+e0ff405e b graphics_page	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:209
+e0ff4060 b current_screen	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:208
+e0ff4064 b graphics_test_tile_buffer	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:207
+e0ff4068 b selected_menu	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:205
+e0ff406c B dirty_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:200
+e0ff486c B page2_shadow	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:198
+e0ff886c B wram_overlay	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:196
+e0ff93bc B genesistan_sound_command_count	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:35
+e0ff93be B genesistan_sound_status	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:34
+e0ff93bf B genesistan_sound_last_high_nibble	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:33
+e0ff93c0 B genesistan_sound_last_low_nibble	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:32
+e0ff93c1 B genesistan_sound_last_command	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:31
+e0ff93c2 B genesistan_startup_result_code	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:30
+e0ff93c4 B genesistan_shadow_reg_3e0003	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:26
+e0ff93c5 B genesistan_shadow_reg_3e0001	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:25
+e0ff93c6 B genesistan_shadow_input_390007	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:24
+e0ff93c7 B genesistan_shadow_input_390005	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:23
+e0ff93c8 B genesistan_shadow_input_390003	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:22
+e0ff93c9 B genesistan_shadow_input_390001	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:21
+e0ff93ca B genesistan_shadow_reg_3c0000	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:20
+e0ff93cc B genesistan_shadow_reg_380000	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:19
+e0ff93ce B genesistan_shadow_reg_350008	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:18
+e0ff93d0 B genesistan_shadow_reg_d01bfe	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:17
+e0ff93d2 B genesistan_shadow_reg_c50000	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:16
+e0ff93d4 B genesistan_shadow_c40000_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:14
+e0ff93d8 B genesistan_shadow_c20000_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:13
+e0ff93dc B genesistan_shadow_d00000_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:12
 e0ff9bdc b phase	D:\apps\SGDK/src/bmp.c:68
 e0ff9bde b queueTransferSize	D:\apps\SGDK/src/dma.c:41
 e0ff9be0 b queueIndexLimit	D:\apps\SGDK/src/dma.c:40

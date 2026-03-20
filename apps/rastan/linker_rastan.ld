@@ -72,6 +72,7 @@ SECTIONS
   .bss 0xE0FF0000 + SIZEOF(.data) :
   {
     _start = .;
+    *(.bss.workram)     /* arcade work RAM FIRST */
     *(.shbss)
     *(.bss .bss.*)
     *(COMMON)
