@@ -6085,3 +6085,30 @@ Output (required_symbols list):
   genesistan_startup_common_exit_test
   _reset_entry
 ```
+## [Technical Lead - Build 96 Symbol Anchor Fix]
+## Source: Claude (Project Technical Lead)
+
+### Problem
+
+postpatch_startup_rom.py requires all symbols in
+startup_title_remap.json required_symbols list.
+Several BSS symbols from startup_bridge.c are
+missing from symbol.txt because the linker drops
+translation units with no live references after
+render_startup_preview_screen was disabled.
+
+The (void) reference approach did not work because
+the references were inside a function that is itself
+unreachable from the call graph.
+
+### Fix
+
+Add genesistan_anchor_required_symbols() — a
+dedicated function called from main() that holds
+volatile references to all required patcher symbols.
+Called from main() so it is always in the call graph.
+The volatile keyword prevents compiler optimisation.
+
+This is the correct pattern for forcing linker
+symbol retention without changing the runtime
+behaviour.
