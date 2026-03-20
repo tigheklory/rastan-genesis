@@ -5384,3 +5384,9 @@ Output artifact path:
 - /home/tighe/projects/rastan-genesis/dist/build_95
 - /home/tighe/projects/rastan-genesis/dist/Rastan_95.bin
 ```
+
+### MAME Exit Summary (2026-03-20 00:31:02)
+- Final PC: 0xB9CB2C
+- Stack Pointer (SP): 0xE037B1F8
+- Unique Unmapped Memory Addresses (3): 0x0020A216, 0x2700A216, 0x00000000
+- **Visual Evidence (BlastEm):** Screenshot saved as `B95.1_BlastEm_In-Game_20260320_0033.png` (Stage: In-Game)
