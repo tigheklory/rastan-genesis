@@ -3732,3 +3732,162 @@ Compiler warnings:
 - Stack Pointer (SP): 0xE037B116
 - Unique Unmapped Memory Addresses (2): 0x0020A88A, 0x00000000
 - **Visual Evidence (Hardware):** Screenshot saved as `B94_Hardware_Launcher_20260319_2014.png` (Stage: Launcher)
+
+## [Supervisor - Tighe] Build 94 Test Results
+- Launcher: working on MAME, BlastEm, and real hardware
+- In-game: CRASH on all platforms
+- BlastEm: M68K attempted to execute code at 0x20228E
+- MAME Final PC: 0xAB3FBC (wild branch, stack corruption)
+- MAME unmapped: 0x0020A88A (SRAM space)
+- Graphics test: working correctly on all platforms
+- Hardware: Everdrive X3 launcher works, game crashes on load
+
+## [Technical Lead - Build 94 Crash Analysis]
+## Source: Claude (Project Technical Lead)
+
+### Crash Classification
+
+BlastEm: execution at 0x20228E = 0x200000 + 0x228E
+  This is inside SRAM page 0 (C-Window page 0 shadow).
+  Offset 0x228E = byte 8846 into the page 0 shadow.
+  The 68000 PC entered SRAM space and fetched
+  instructions from tilemap data written there.
+  This is the identical failure class as Build 89
+  (which crashed at 0x201F4C for the same reason).
+
+MAME PC 0xAB3FBC: wild branch into unmapped space.
+  Consistent with stack corruption or bad function
+  pointer after prior memory corruption.
+
+MAME unmapped 0x0020A88A: also in SRAM space.
+  Confirms SRAM region is being accessed abnormally.
+
+### Root Cause
+
+Build 93 Step A changed SHADOW_WRAM_PAGE_COUNT from
+2 to 0, routing pages 0 AND 1 to SRAM.
+
+The build history (Builds 88-91) established that
+page 0 (0xC00000-0xC03FFF) contains 68000-executable
+code. Build 89 confirmed execution at 0x201F4C (page 0
+in SRAM) caused immediate crash. Build 91 resolved
+this by keeping pages 0+1 in WRAM.
+
+Build 93 Step A re-introduced this problem by moving
+page 0 back to SRAM based on the incorrect assumption
+that the Z80 contiguity constraint was the only reason
+to keep page 0 in WRAM. The executable-code constraint
+was overlooked in the Build 93 analysis.
+
+### Why Graphics Test Still Works
+
+Graphics test does not call genesistan_run_original_
+startup_common() or genesistan_run_original_frontend_
+tick(). The arcade 68K code never runs. SRAM is never
+accessed for code execution in that path. Hence no crash.
+
+### Fix Required
+
+SHADOW_WRAM_PAGE_COUNT must be restored to at least 1
+to keep page 0 in WRAM. Page 0 contains 68K executable
+code and cannot safely reside in SRAM.
+
+The Build 91 investigation established that pages 0+1
+must be contiguous in WRAM for the Z80 sound driver.
+Therefore SHADOW_WRAM_PAGE_COUNT should be restored
+to 2, keeping both pages 0 and 1 in WRAM.
+
+This restores the Build 91.1 stable baseline for the
+shadow routing while retaining all other Build 93
+improvements (stack fix, ROM fingerprints, etc).
+
+### WRAM Budget Impact
+
+Restoring SHADOW_WRAM_PAGE_COUNT to 2 requires
+reinstating engine_shadow_wram[16384] (32KB) in WRAM
+OR finding an alternative contiguous 32KB allocation.
+
+Current BSS after Build 93:
+  gap = 0x5A8A (22.6KB)
+
+32KB does not fit in 22.6KB of available headroom.
+This means the union must be redesigned or the pages
+0+1 allocation must come from a different source.
+
+Options:
+  A. Reduce other BSS to make room (identify other
+     large allocations that can be cut or moved).
+  B. Place pages 0+1 in a dedicated 32KB array that
+     overlaps with launcher runtime buffers via union
+     (safe because launcher is not active during game).
+  C. Accept that pages 0+1 cannot be in WRAM with
+     current BSS budget and investigate whether
+     page 0 can be relocated to ROM as a patched
+     trampoline (longer-term, Build 95 scope).
+
+Option B is the correct immediate fix. The WramOverlay
+union already exists for exactly this purpose —
+sharing WRAM between launcher buffers and engine
+state that are never active simultaneously. Restore
+engine_shadow_wram[16384] to the union alongside
+LauncherRuntime. The union size is max(32KB, 3KB) =
+32KB. This is safe because the launcher scrubs the
+union before handing off to the arcade engine.
+
+The net WRAM impact of Option B:
+  Before Build 93 Step A: union was 32KB
+  After Build 93 Step A:  union was ~3KB (saved 29KB)
+  After Option B fix:     union is 32KB again
+  Stack gap will return to approximately 22.6KB - 29KB
+  which is NEGATIVE — still a problem.
+
+Wait. Let me recalculate carefully.
+
+Build 91.1 state:
+  engine_shadow_wram in union: 32KB
+  gap: 0x134 (308 bytes) — CRASH
+
+Build 93 state:
+  engine_shadow_wram removed: freed 29KB
+  page2_shadow added: cost 16KB
+  dirty_words added: cost 2KB
+  net freed: 29 - 18 = 11KB
+  gap: 0x5A8A (22.6KB) — SAFE
+
+If we restore engine_shadow_wram (32KB) alongside
+page2_shadow (16KB) and dirty_words (2KB):
+  total new BSS cost vs Build 91.1: +18KB
+  gap would be: 22.6KB - 18KB = 4.6KB — MARGINAL
+
+4.6KB is above the 0x4000 (16KB) threshold? No.
+0x4000 = 16KB. 4.6KB < 16KB. Still unsafe.
+
+This confirms there is no clean solution that keeps
+pages 0+1 in WRAM within the current BSS budget
+without also removing other large BSS consumers.
+
+### Revised Recommendation
+
+The correct fix for Build 94 is minimal and targeted:
+
+1. Restore SHADOW_WRAM_PAGE_COUNT to 2.
+2. Restore engine_shadow_wram[16384] to WramOverlay
+   union (alongside LauncherRuntime as before).
+3. Remove page2_shadow[8192] from standalone BSS
+   and route page 2 back through the union's
+   engine_shadow_wram (page 2 maps to indices
+   8192-16383 in the 16384-word array, which is
+   the upper half of the 32KB allocation).
+4. Keep dirty_words[512] as standalone (2KB, small).
+5. Accept the reduced stack gap and instrument
+   worst-case stack depth to determine if 4.6KB
+   is sufficient in practice for the current code.
+
+This is a targeted rollback of the parts of Build 93
+Step A that caused the regression, while keeping the
+structural improvements that did not cause problems.
+
+### Action
+
+Do not send Cody another prompt yet.
+Technical Lead will issue a revised directive.
