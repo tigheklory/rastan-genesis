@@ -6085,6 +6085,46 @@ Output (required_symbols list):
   genesistan_startup_common_exit_test
   _reset_entry
 ```
+
+## [Cody - Build 96 Symbol Anchor Fix]
+```text
+Re-read AGENTS_LOG.md from disk before starting and before appending.
+
+Change application status:
+- Anchor function added in startup_bridge.c:
+  - genesistan_anchor_required_symbols() inside #if RASTAN_ENABLE_STARTUP_HOOK
+  - stub added in #else: void genesistan_anchor_required_symbols(void) {}
+- Removed prior keep-alive lines from genesistan_init_workram_direct():
+  - (void)genesistan_shadow_d00000_words;
+  - (void)genesistan_shadow_c20000_words;
+  - (void)genesistan_shadow_c40000_words;
+- Added declaration in main.h:
+  - void genesistan_anchor_required_symbols(void);
+- Added call at start of main():
+  - genesistan_anchor_required_symbols();
+
+Build commands run:
+- source tools/setup_env.sh
+- make -C apps/rastan clean
+- make -C apps/rastan debug
+
+Build result:
+- DEBUG FAILED
+- Exact error:
+  RuntimeError: Required symbol not found in
+  /home/tighe/projects/rastan-genesis/apps/rastan/out/symbol.txt:
+  genesistan_shadow_d00000_words
+  (raised by tools/translation/postpatch_startup_rom.py)
+
+Remaining warnings:
+- src/startup_bridge.c:303:9 warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+- src/startup_bridge.c:304:9 warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+- src/startup_bridge.c:305:9 warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+- src/startup_bridge.c:306:9 warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+
+release_build.sh result:
+- Not run (stopped after debug failure per instruction).
+```
 ## [Technical Lead - Build 96 Symbol Anchor Fix]
 ## Source: Claude (Project Technical Lead)
 

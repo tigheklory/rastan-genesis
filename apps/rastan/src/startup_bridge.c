@@ -257,10 +257,6 @@ void genesistan_init_workram_direct(uint8_t dip1, uint8_t dip2)
             cfg_dst[i] = cfg_src[i];
     }
 
-    /* Keep required patcher symbols alive. */
-    (void)genesistan_shadow_d00000_words;
-    (void)genesistan_shadow_c20000_words;
-    (void)genesistan_shadow_c40000_words;
 }
 
 void genesistan_reclaim_launcher_wram(void)
@@ -287,6 +283,38 @@ void genesistan_reclaim_launcher_wram(void)
     genesistan_shadow_service_word = saved_service;
 }
 
+void genesistan_anchor_required_symbols(void)
+{
+    /*
+     * This function is never called at runtime.
+     * Its sole purpose is to force the linker to
+     * retain all symbols required by
+     * postpatch_startup_rom.py. The volatile
+     * keyword prevents the compiler from
+     * optimising these references away.
+     */
+    volatile void *p;
+    p = (volatile void *)genesistan_shadow_d00000_words;
+    p = (volatile void *)&genesistan_shadow_reg_c50000;
+    p = (volatile void *)&genesistan_shadow_reg_d01bfe;
+    p = (volatile void *)&genesistan_shadow_reg_350008;
+    p = (volatile void *)&genesistan_shadow_reg_380000;
+    p = (volatile void *)&genesistan_shadow_reg_3c0000;
+    p = (volatile void *)genesistan_shadow_input_390001;
+    p = (volatile void *)genesistan_shadow_input_390003;
+    p = (volatile void *)genesistan_shadow_input_390005;
+    p = (volatile void *)genesistan_shadow_input_390007;
+    p = (volatile void *)&genesistan_shadow_reg_3e0001;
+    p = (volatile void *)&genesistan_shadow_reg_3e0003;
+    p = (volatile void *)&genesistan_shadow_dip1;
+    p = (volatile void *)&genesistan_shadow_dip2;
+    p = (volatile void *)&genesistan_shadow_service_word;
+    p = (volatile void *)&genesistan_startup_result_code;
+    p = (volatile void *)genesistan_shadow_c20000_words;
+    p = (volatile void *)genesistan_shadow_c40000_words;
+    (void)p;
+}
+
 #else
 
 void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t service_word)
@@ -305,6 +333,8 @@ void genesistan_init_workram_direct(uint8_t dip1, uint8_t dip2)
     (void) dip1;
     (void) dip2;
 }
+
+void genesistan_anchor_required_symbols(void) {}
 
 void genesistan_reclaim_launcher_wram(void)
 {
