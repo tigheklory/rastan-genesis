@@ -1006,6 +1006,38 @@
       "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes."
     },
     {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0556F2",
+      "rom_pc": "0x0558F2",
+      "original_bytes": "068100c080002b4110a4",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP C-Window addr store (0x556F2-0x556FB). addil #0xC08000,d1 + movel d1,a5@(4260). Stops display-list pointer advancing into C-Window range each frame."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0558C6",
+      "rom_pc": "0x055AC6",
+      "original_bytes": "7010207c0010d0005890d1fc00000004534066f4426d10ca",
+      "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "NOP workram modifier 0x558C6-0x558DD. addql #4 loop over sprite descriptor table at 0x10D000. Harmless on Genesis but reads uninit workram causing garbage."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0558E0",
+      "rom_pc": "0x055AE0",
+      "original_bytes": "426d10cc52ad10c6302d10a83b40132c286d10c64240101433c00010d0a8526d013e",
+      "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "NOP companion reset 0x558E0-0x55901. Reads/writes sprite descriptor workram slots. Uninit workram propagation path."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x055904",
+      "rom_pc": "0x055B04",
+      "original_bytes": "207c0010d000227c0010d040247c0010d0807010285034d44281322c0002287c0000020049f4180022ccd1fc00000004534066e0286d10c64240101433c00010d0a8",
+      "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "NOP sprite descriptor reader 0x55904-0x55945. Loads LONG from workram 0x10D000 as pointer into A4, dereferences it. Zero-init workram gives A4=0 -> reads reset vectors."
+    },
+    {
       "kind": "workram_anchor",
       "rom_offset": "0x10C000",
       "value": "0xE0FF004E",
@@ -1028,7 +1060,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0xD34F",
+  "checksum": "0xEFED",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x00204D14",

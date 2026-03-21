@@ -7,1516 +7,1548 @@ arm: initial_pc=000000
 [frame 000030] pc=20556e exec=other
 [frame 000060] pc=205578 exec=other
 [frame 000060] first_window_change z80_ctrl
-[frame 000090] first_window_change wram_ff0000
+[frame 000090] pc=205578 exec=other
 [frame 000090] window_change z80_ctrl
-[frame 000120] window_change wram_ff0000
+[frame 000120] pc=205574 exec=other
 [frame 000120] window_change z80_ctrl
+[frame 000150] pc=20556e exec=other
 [frame 000150] window_change z80_ctrl
-[frame 000180] window_change wram_ff0000
+[frame 000155] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0fffbbc usp=00000000
+[frame 000155] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000155] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000155] exception_guess fmt=2704 offset_guess=00209d2a
+[frame 000155] stack +00 = 2704
+[frame 000155] stack +02 = 0020
+[frame 000155] stack +04 = 9d2a
+[frame 000155] stack +06 = 2704
+[frame 000155] stack +08 = 0020
+[frame 000155] stack +0a = 9d2a
+[frame 000155] stack +0c = 2704
+[frame 000155] stack +0e = 0020
+[frame 000155] stack +10 = 9d2a
+[frame 000155] stack +12 = 2704
+[frame 000155] stack +14 = 0020
+[frame 000155] stack +16 = 9d2a
+[frame 000155] stack +18 = 2704
+[frame 000155] stack +1a = 0020
+[frame 000155] stack +1c = 9d2a
+[frame 000155] stack +1e = 2704
+[frame 000158] first_symbol_change startup_result_code addr=ff4054 0->2704
+[frame 000158] first_symbol_change dip1 addr=ff0005 0->4
+[frame 000158] first_symbol_change dip2 addr=ff0004 0->27
+[frame 000158] first_symbol_change in_390001 addr=ff405b 0->4
+[frame 000158] first_symbol_change in_390003 addr=ff405a 0->27
+[frame 000158] first_symbol_change in_390005 addr=ff4059 0->2A
+[frame 000158] first_symbol_change in_390007 addr=ff4058 0->9D
+[frame 000158] first_symbol_change reg_3e0001 addr=ff4057 0->20
+[frame 000158] first_symbol_change reg_3c0000 addr=ff405c 0->20
+[frame 000158] first_symbol_change reg_c50000 addr=ff4064 0->9D2A
+[frame 000158] first_symbol_change reg_d01bfe addr=ff4062 0->20
+[frame 000158] first_symbol_change reg_350008 addr=ff4060 0->2704
+[frame 000158] first_symbol_change reg_380000 addr=ff405e 0->9D2A
+[frame 000158] first_symbol_change c20000_0 addr=ff406a 0->9D2A
+[frame 000158] first_symbol_change c20000_1 addr=ff406c 0->2704
+[frame 000158] first_symbol_change c40000_0 addr=ff4066 0->2704
+[frame 000158] first_symbol_change c40000_1 addr=ff4068 0->20
+[frame 000158] first_symbol_change workram_10c000 addr=ff004e 0->20
+[frame 000158] first_symbol_change arcade_page0 addr=ff004e 0->20
+[frame 000158] first_symbol_change arcade_page2 addr=ff0050 0->9D2A
+[frame 000158] first_symbol_change arcade_mode4 addr=ff0052 0->2704
+[frame 000158] first_symbol_change arcade_credits addr=ff0060 0->20
+[frame 000158] first_symbol_change arcade_stage addr=ff018c 0->20
+[frame 000158] first_symbol_change arcade_flag_2a addr=ff0078 0->20
+[frame 000158] first_symbol_change arcade_flag_34 addr=ff0082 0->2704
+[frame 000158] first_symbol_change arcade_flag_3b addr=ff0089 0->4
+[frame 000158] first_symbol_change arcade_mode_42 addr=ff0090 0->20
+[frame 000161] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000161] symbol_change dip1 addr=ff0005 4->20
+[frame 000161] symbol_change dip2 addr=ff0004 27->0
+[frame 000161] symbol_change in_390001 addr=ff405b 4->20
+[frame 000161] symbol_change in_390003 addr=ff405a 27->0
+[frame 000161] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000161] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000161] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000161] first_symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000161] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000161] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000161] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000161] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000161] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000161] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000161] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000161] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000161] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000161] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000161] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000161] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000161] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000161] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000161] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000161] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000161] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000161] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000161] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000163] symbol_change startup_result_code addr=ff4054 20->9D2A
+[frame 000163] symbol_change in_390001 addr=ff405b 20->2A
+[frame 000163] symbol_change in_390003 addr=ff405a 0->9D
+[frame 000163] symbol_change in_390005 addr=ff4059 4->20
+[frame 000163] symbol_change in_390007 addr=ff4058 27->0
+[frame 000163] symbol_change reg_3e0001 addr=ff4057 2A->4
+[frame 000163] symbol_change reg_3e0003 addr=ff4056 9D->27
+[frame 000163] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
+[frame 000163] symbol_change reg_c50000 addr=ff4064 2704->20
+[frame 000163] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
+[frame 000163] symbol_change reg_350008 addr=ff4060 20->9D2A
+[frame 000163] symbol_change reg_380000 addr=ff405e 2704->20
+[frame 000163] symbol_change c20000_0 addr=ff406a 2704->20
+[frame 000163] symbol_change c20000_1 addr=ff406c 20->9D2A
+[frame 000163] symbol_change c40000_0 addr=ff4066 20->9D2A
+[frame 000163] symbol_change c40000_1 addr=ff4068 9D2A->2704
+[frame 000164] symbol_change dip1 addr=ff0005 20->2A
+[frame 000164] symbol_change dip2 addr=ff0004 0->9D
+[frame 000164] symbol_change workram_10c000 addr=ff004e 9D2A->2704
+[frame 000164] symbol_change arcade_page0 addr=ff004e 9D2A->2704
+[frame 000164] symbol_change arcade_page2 addr=ff0050 2704->20
+[frame 000164] symbol_change arcade_mode4 addr=ff0052 20->9D2A
+[frame 000164] symbol_change arcade_credits addr=ff0060 9D2A->2704
+[frame 000164] symbol_change arcade_stage addr=ff018c 9D2A->2704
+[frame 000164] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
+[frame 000164] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
+[frame 000164] symbol_change arcade_flag_3b addr=ff0089 20->2A
+[frame 000164] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
+[frame 000166] symbol_change startup_result_code addr=ff4054 9D2A->2704
+[frame 000166] symbol_change in_390001 addr=ff405b 2A->4
+[frame 000166] symbol_change in_390003 addr=ff405a 9D->27
+[frame 000166] symbol_change in_390005 addr=ff4059 20->2A
+[frame 000166] symbol_change in_390007 addr=ff4058 0->9D
+[frame 000166] symbol_change reg_3e0001 addr=ff4057 4->20
+[frame 000166] symbol_change reg_3e0003 addr=ff4056 27->0
+[frame 000166] symbol_change reg_3c0000 addr=ff405c 2704->20
+[frame 000166] symbol_change reg_c50000 addr=ff4064 20->9D2A
+[frame 000166] symbol_change reg_d01bfe addr=ff4062 2704->20
+[frame 000166] symbol_change reg_350008 addr=ff4060 9D2A->2704
+[frame 000166] symbol_change reg_380000 addr=ff405e 20->9D2A
+[frame 000166] symbol_change c20000_0 addr=ff406a 20->9D2A
+[frame 000166] symbol_change c20000_1 addr=ff406c 9D2A->2704
+[frame 000166] symbol_change c40000_0 addr=ff4066 9D2A->2704
+[frame 000166] symbol_change c40000_1 addr=ff4068 2704->20
+[frame 000167] symbol_change dip1 addr=ff0005 2A->4
+[frame 000167] symbol_change dip2 addr=ff0004 9D->27
+[frame 000167] symbol_change workram_10c000 addr=ff004e 2704->20
+[frame 000167] symbol_change arcade_page0 addr=ff004e 2704->20
+[frame 000167] symbol_change arcade_page2 addr=ff0050 20->9D2A
+[frame 000167] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
+[frame 000167] symbol_change arcade_credits addr=ff0060 2704->20
+[frame 000167] symbol_change arcade_stage addr=ff018c 2704->20
+[frame 000167] symbol_change arcade_flag_2a addr=ff0078 2704->20
+[frame 000167] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
+[frame 000167] symbol_change arcade_flag_3b addr=ff0089 2A->4
+[frame 000167] symbol_change arcade_mode_42 addr=ff0090 2704->20
+[frame 000169] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0fb285e usp=00000000
+[frame 000169] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000169] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000169] exception_guess fmt=2704 offset_guess=00209d2a
+[frame 000169] stack +00 = 2704
+[frame 000169] stack +02 = 0020
+[frame 000169] stack +04 = 9d2a
+[frame 000169] stack +06 = 2704
+[frame 000169] stack +08 = 0020
+[frame 000169] stack +0a = 9d2a
+[frame 000169] stack +0c = 2704
+[frame 000169] stack +0e = 0020
+[frame 000169] stack +10 = 9d2a
+[frame 000169] stack +12 = 2704
+[frame 000169] stack +14 = 0020
+[frame 000169] stack +16 = 9d2a
+[frame 000169] stack +18 = 2704
+[frame 000169] stack +1a = 0020
+[frame 000169] stack +1c = 9d2a
+[frame 000169] stack +1e = 2704
+[frame 000169] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000169] symbol_change in_390001 addr=ff405b 4->20
+[frame 000169] symbol_change in_390003 addr=ff405a 27->0
+[frame 000169] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000169] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000169] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000169] symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000169] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000169] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000169] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000169] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000169] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000169] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000169] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000169] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000169] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000170] symbol_change dip1 addr=ff0005 4->20
+[frame 000170] symbol_change dip2 addr=ff0004 27->0
+[frame 000170] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000170] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000170] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000170] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000170] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000170] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000170] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000170] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000170] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000170] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000172] symbol_change startup_result_code addr=ff4054 20->9D2A
+[frame 000172] symbol_change in_390001 addr=ff405b 20->2A
+[frame 000172] symbol_change in_390003 addr=ff405a 0->9D
+[frame 000172] symbol_change in_390005 addr=ff4059 4->20
+[frame 000172] symbol_change in_390007 addr=ff4058 27->0
+[frame 000172] symbol_change reg_3e0001 addr=ff4057 2A->4
+[frame 000172] symbol_change reg_3e0003 addr=ff4056 9D->27
+[frame 000172] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
+[frame 000172] symbol_change reg_c50000 addr=ff4064 2704->20
+[frame 000172] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
+[frame 000172] symbol_change reg_350008 addr=ff4060 20->9D2A
+[frame 000172] symbol_change reg_380000 addr=ff405e 2704->20
+[frame 000172] symbol_change c20000_0 addr=ff406a 2704->20
+[frame 000172] symbol_change c20000_1 addr=ff406c 20->9D2A
+[frame 000172] symbol_change c40000_0 addr=ff4066 20->9D2A
+[frame 000172] symbol_change c40000_1 addr=ff4068 9D2A->2704
+[frame 000173] symbol_change dip1 addr=ff0005 20->2A
+[frame 000173] symbol_change dip2 addr=ff0004 0->9D
+[frame 000173] symbol_change workram_10c000 addr=ff004e 9D2A->2704
+[frame 000173] symbol_change arcade_page0 addr=ff004e 9D2A->2704
+[frame 000173] symbol_change arcade_page2 addr=ff0050 2704->20
+[frame 000173] symbol_change arcade_mode4 addr=ff0052 20->9D2A
+[frame 000173] symbol_change arcade_credits addr=ff0060 9D2A->2704
+[frame 000173] symbol_change arcade_stage addr=ff018c 9D2A->2704
+[frame 000173] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
+[frame 000173] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
+[frame 000173] symbol_change arcade_flag_3b addr=ff0089 20->2A
+[frame 000173] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
+[frame 000175] symbol_change startup_result_code addr=ff4054 9D2A->2704
+[frame 000175] symbol_change in_390001 addr=ff405b 2A->4
+[frame 000175] symbol_change in_390003 addr=ff405a 9D->27
+[frame 000175] symbol_change in_390005 addr=ff4059 20->2A
+[frame 000175] symbol_change in_390007 addr=ff4058 0->9D
+[frame 000175] symbol_change reg_3e0001 addr=ff4057 4->20
+[frame 000175] symbol_change reg_3e0003 addr=ff4056 27->0
+[frame 000175] symbol_change reg_3c0000 addr=ff405c 2704->20
+[frame 000175] symbol_change reg_c50000 addr=ff4064 20->9D2A
+[frame 000175] symbol_change reg_d01bfe addr=ff4062 2704->20
+[frame 000175] symbol_change reg_350008 addr=ff4060 9D2A->2704
+[frame 000175] symbol_change reg_380000 addr=ff405e 20->9D2A
+[frame 000175] symbol_change c20000_0 addr=ff406a 20->9D2A
+[frame 000175] symbol_change c20000_1 addr=ff406c 9D2A->2704
+[frame 000175] symbol_change c40000_0 addr=ff4066 9D2A->2704
+[frame 000175] symbol_change c40000_1 addr=ff4068 2704->20
+[frame 000176] symbol_change dip1 addr=ff0005 2A->4
+[frame 000176] symbol_change dip2 addr=ff0004 9D->27
+[frame 000176] symbol_change workram_10c000 addr=ff004e 2704->20
+[frame 000176] symbol_change arcade_page0 addr=ff004e 2704->20
+[frame 000176] symbol_change arcade_page2 addr=ff0050 20->9D2A
+[frame 000176] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
+[frame 000176] symbol_change arcade_credits addr=ff0060 2704->20
+[frame 000176] symbol_change arcade_stage addr=ff018c 2704->20
+[frame 000176] symbol_change arcade_flag_2a addr=ff0078 2704->20
+[frame 000176] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
+[frame 000176] symbol_change arcade_flag_3b addr=ff0089 2A->4
+[frame 000176] symbol_change arcade_mode_42 addr=ff0090 2704->20
+[frame 000178] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000178] symbol_change in_390001 addr=ff405b 4->20
+[frame 000178] symbol_change in_390003 addr=ff405a 27->0
+[frame 000178] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000178] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000178] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000178] symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000178] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000178] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000178] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000178] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000178] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000178] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000178] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000178] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000178] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000179] symbol_change dip1 addr=ff0005 4->20
+[frame 000179] symbol_change dip2 addr=ff0004 27->0
+[frame 000179] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000179] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000179] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000179] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000179] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000179] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000179] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000179] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000179] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000179] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000180] pc=209d2c exec=other
+[frame 000180] first_window_change wram_ff0000
 [frame 000180] window_change z80_ctrl
-[frame 000210] pc=205574 exec=other
+[frame 000181] symbol_change startup_result_code addr=ff4054 20->9D2A
+[frame 000181] symbol_change in_390001 addr=ff405b 20->2A
+[frame 000181] symbol_change in_390003 addr=ff405a 0->9D
+[frame 000181] symbol_change in_390005 addr=ff4059 4->20
+[frame 000181] symbol_change in_390007 addr=ff4058 27->0
+[frame 000181] symbol_change reg_3e0001 addr=ff4057 2A->4
+[frame 000181] symbol_change reg_3e0003 addr=ff4056 9D->27
+[frame 000181] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
+[frame 000181] symbol_change reg_c50000 addr=ff4064 2704->20
+[frame 000181] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
+[frame 000181] symbol_change reg_350008 addr=ff4060 20->9D2A
+[frame 000181] symbol_change reg_380000 addr=ff405e 2704->20
+[frame 000181] symbol_change c20000_0 addr=ff406a 2704->20
+[frame 000181] symbol_change c20000_1 addr=ff406c 20->9D2A
+[frame 000181] symbol_change c40000_0 addr=ff4066 20->9D2A
+[frame 000181] symbol_change c40000_1 addr=ff4068 9D2A->2704
+[frame 000182] symbol_change dip1 addr=ff0005 20->2A
+[frame 000182] symbol_change dip2 addr=ff0004 0->9D
+[frame 000182] symbol_change workram_10c000 addr=ff004e 9D2A->2704
+[frame 000182] symbol_change arcade_page0 addr=ff004e 9D2A->2704
+[frame 000182] symbol_change arcade_page2 addr=ff0050 2704->20
+[frame 000182] symbol_change arcade_mode4 addr=ff0052 20->9D2A
+[frame 000182] symbol_change arcade_credits addr=ff0060 9D2A->2704
+[frame 000182] symbol_change arcade_stage addr=ff018c 9D2A->2704
+[frame 000182] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
+[frame 000182] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
+[frame 000182] symbol_change arcade_flag_3b addr=ff0089 20->2A
+[frame 000182] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
+[frame 000184] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0f5fcc8 usp=00000000
+[frame 000184] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000184] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000184] exception_guess fmt=2704 offset_guess=00209d2a
+[frame 000184] stack +00 = 2704
+[frame 000184] stack +02 = 0020
+[frame 000184] stack +04 = 9d2a
+[frame 000184] stack +06 = 2704
+[frame 000184] stack +08 = 0020
+[frame 000184] stack +0a = 9d2a
+[frame 000184] stack +0c = 2704
+[frame 000184] stack +0e = 0020
+[frame 000184] stack +10 = 9d2a
+[frame 000184] stack +12 = 2704
+[frame 000184] stack +14 = 0020
+[frame 000184] stack +16 = 9d2a
+[frame 000184] stack +18 = 2704
+[frame 000184] stack +1a = 0020
+[frame 000184] stack +1c = 9d2a
+[frame 000184] stack +1e = 2704
+[frame 000184] symbol_change startup_result_code addr=ff4054 9D2A->2704
+[frame 000184] symbol_change dip1 addr=ff0005 2A->4
+[frame 000184] symbol_change dip2 addr=ff0004 9D->27
+[frame 000184] symbol_change in_390001 addr=ff405b 2A->4
+[frame 000184] symbol_change in_390003 addr=ff405a 9D->27
+[frame 000184] symbol_change in_390005 addr=ff4059 20->2A
+[frame 000184] symbol_change in_390007 addr=ff4058 0->9D
+[frame 000184] symbol_change reg_3e0001 addr=ff4057 4->20
+[frame 000184] symbol_change reg_3e0003 addr=ff4056 27->0
+[frame 000184] symbol_change reg_3c0000 addr=ff405c 2704->20
+[frame 000184] symbol_change reg_c50000 addr=ff4064 20->9D2A
+[frame 000184] symbol_change reg_d01bfe addr=ff4062 2704->20
+[frame 000184] symbol_change reg_350008 addr=ff4060 9D2A->2704
+[frame 000184] symbol_change reg_380000 addr=ff405e 20->9D2A
+[frame 000184] symbol_change c20000_0 addr=ff406a 20->9D2A
+[frame 000184] symbol_change c20000_1 addr=ff406c 9D2A->2704
+[frame 000184] symbol_change c40000_0 addr=ff4066 9D2A->2704
+[frame 000184] symbol_change c40000_1 addr=ff4068 2704->20
+[frame 000184] symbol_change workram_10c000 addr=ff004e 2704->20
+[frame 000184] symbol_change arcade_page0 addr=ff004e 2704->20
+[frame 000184] symbol_change arcade_page2 addr=ff0050 20->9D2A
+[frame 000184] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
+[frame 000184] symbol_change arcade_credits addr=ff0060 2704->20
+[frame 000184] symbol_change arcade_stage addr=ff018c 2704->20
+[frame 000184] symbol_change arcade_flag_2a addr=ff0078 2704->20
+[frame 000184] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
+[frame 000184] symbol_change arcade_flag_3b addr=ff0089 2A->4
+[frame 000184] symbol_change arcade_mode_42 addr=ff0090 2704->20
+[frame 000187] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000187] symbol_change dip1 addr=ff0005 4->20
+[frame 000187] symbol_change dip2 addr=ff0004 27->0
+[frame 000187] symbol_change in_390001 addr=ff405b 4->20
+[frame 000187] symbol_change in_390003 addr=ff405a 27->0
+[frame 000187] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000187] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000187] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000187] symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000187] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000187] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000187] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000187] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000187] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000187] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000187] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000187] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000187] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000187] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000187] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000187] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000187] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000187] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000187] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000187] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000187] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000187] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000187] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000190] symbol_change startup_result_code addr=ff4054 20->9D2A
+[frame 000190] symbol_change dip1 addr=ff0005 20->2A
+[frame 000190] symbol_change dip2 addr=ff0004 0->9D
+[frame 000190] symbol_change in_390001 addr=ff405b 20->2A
+[frame 000190] symbol_change in_390003 addr=ff405a 0->9D
+[frame 000190] symbol_change in_390005 addr=ff4059 4->20
+[frame 000190] symbol_change in_390007 addr=ff4058 27->0
+[frame 000190] symbol_change reg_3e0001 addr=ff4057 2A->4
+[frame 000190] symbol_change reg_3e0003 addr=ff4056 9D->27
+[frame 000190] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
+[frame 000190] symbol_change reg_c50000 addr=ff4064 2704->20
+[frame 000190] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
+[frame 000190] symbol_change reg_350008 addr=ff4060 20->9D2A
+[frame 000190] symbol_change reg_380000 addr=ff405e 2704->20
+[frame 000190] symbol_change c20000_0 addr=ff406a 2704->20
+[frame 000190] symbol_change c20000_1 addr=ff406c 20->9D2A
+[frame 000190] symbol_change c40000_0 addr=ff4066 20->9D2A
+[frame 000190] symbol_change c40000_1 addr=ff4068 9D2A->2704
+[frame 000190] symbol_change workram_10c000 addr=ff004e 9D2A->2704
+[frame 000190] symbol_change arcade_page0 addr=ff004e 9D2A->2704
+[frame 000190] symbol_change arcade_page2 addr=ff0050 2704->20
+[frame 000190] symbol_change arcade_mode4 addr=ff0052 20->9D2A
+[frame 000190] symbol_change arcade_credits addr=ff0060 9D2A->2704
+[frame 000190] symbol_change arcade_stage addr=ff018c 9D2A->2704
+[frame 000190] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
+[frame 000190] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
+[frame 000190] symbol_change arcade_flag_3b addr=ff0089 20->2A
+[frame 000190] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
+[frame 000192] symbol_change startup_result_code addr=ff4054 9D2A->2704
+[frame 000192] symbol_change in_390001 addr=ff405b 2A->4
+[frame 000192] symbol_change in_390003 addr=ff405a 9D->27
+[frame 000192] symbol_change in_390005 addr=ff4059 20->2A
+[frame 000192] symbol_change in_390007 addr=ff4058 0->9D
+[frame 000192] symbol_change reg_3e0001 addr=ff4057 4->20
+[frame 000192] symbol_change reg_3e0003 addr=ff4056 27->0
+[frame 000192] symbol_change reg_3c0000 addr=ff405c 2704->20
+[frame 000192] symbol_change reg_c50000 addr=ff4064 20->9D2A
+[frame 000192] symbol_change reg_d01bfe addr=ff4062 2704->20
+[frame 000192] symbol_change reg_350008 addr=ff4060 9D2A->2704
+[frame 000192] symbol_change reg_380000 addr=ff405e 20->9D2A
+[frame 000192] symbol_change c20000_0 addr=ff406a 20->9D2A
+[frame 000192] symbol_change c20000_1 addr=ff406c 9D2A->2704
+[frame 000192] symbol_change c40000_0 addr=ff4066 9D2A->2704
+[frame 000192] symbol_change c40000_1 addr=ff4068 2704->20
+[frame 000193] symbol_change dip1 addr=ff0005 2A->4
+[frame 000193] symbol_change dip2 addr=ff0004 9D->27
+[frame 000193] symbol_change workram_10c000 addr=ff004e 2704->20
+[frame 000193] symbol_change arcade_page0 addr=ff004e 2704->20
+[frame 000193] symbol_change arcade_page2 addr=ff0050 20->9D2A
+[frame 000193] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
+[frame 000193] symbol_change arcade_credits addr=ff0060 2704->20
+[frame 000193] symbol_change arcade_stage addr=ff018c 2704->20
+[frame 000193] symbol_change arcade_flag_2a addr=ff0078 2704->20
+[frame 000193] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
+[frame 000193] symbol_change arcade_flag_3b addr=ff0089 2A->4
+[frame 000193] symbol_change arcade_mode_42 addr=ff0090 2704->20
+[frame 000195] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0f2322a usp=00000000
+[frame 000195] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000195] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000195] exception_guess fmt=2704 offset_guess=00209d2a
+[frame 000195] stack +00 = 2704
+[frame 000195] stack +02 = 0020
+[frame 000195] stack +04 = 9d2a
+[frame 000195] stack +06 = 2704
+[frame 000195] stack +08 = 0020
+[frame 000195] stack +0a = 9d2a
+[frame 000195] stack +0c = 2704
+[frame 000195] stack +0e = 0020
+[frame 000195] stack +10 = 9d2a
+[frame 000195] stack +12 = 2704
+[frame 000195] stack +14 = 0020
+[frame 000195] stack +16 = 9d2a
+[frame 000195] stack +18 = 2704
+[frame 000195] stack +1a = 0020
+[frame 000195] stack +1c = 9d2a
+[frame 000195] stack +1e = 2704
+[frame 000195] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000195] symbol_change in_390001 addr=ff405b 4->20
+[frame 000195] symbol_change in_390003 addr=ff405a 27->0
+[frame 000195] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000195] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000195] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000195] symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000195] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000195] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000195] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000195] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000195] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000195] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000195] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000195] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000195] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000196] symbol_change dip1 addr=ff0005 4->20
+[frame 000196] symbol_change dip2 addr=ff0004 27->0
+[frame 000196] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000196] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000196] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000196] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000196] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000196] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000196] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000196] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000196] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000196] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000198] symbol_change startup_result_code addr=ff4054 20->9D2A
+[frame 000198] symbol_change in_390001 addr=ff405b 20->2A
+[frame 000198] symbol_change in_390003 addr=ff405a 0->9D
+[frame 000198] symbol_change in_390005 addr=ff4059 4->20
+[frame 000198] symbol_change in_390007 addr=ff4058 27->0
+[frame 000198] symbol_change reg_3e0001 addr=ff4057 2A->4
+[frame 000198] symbol_change reg_3e0003 addr=ff4056 9D->27
+[frame 000198] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
+[frame 000198] symbol_change reg_c50000 addr=ff4064 2704->20
+[frame 000198] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
+[frame 000198] symbol_change reg_350008 addr=ff4060 20->9D2A
+[frame 000198] symbol_change reg_380000 addr=ff405e 2704->20
+[frame 000198] symbol_change c20000_0 addr=ff406a 2704->20
+[frame 000198] symbol_change c20000_1 addr=ff406c 20->9D2A
+[frame 000198] symbol_change c40000_0 addr=ff4066 20->9D2A
+[frame 000198] symbol_change c40000_1 addr=ff4068 9D2A->2704
+[frame 000199] symbol_change dip1 addr=ff0005 20->2A
+[frame 000199] symbol_change dip2 addr=ff0004 0->9D
+[frame 000199] symbol_change workram_10c000 addr=ff004e 9D2A->2704
+[frame 000199] symbol_change arcade_page0 addr=ff004e 9D2A->2704
+[frame 000199] symbol_change arcade_page2 addr=ff0050 2704->20
+[frame 000199] symbol_change arcade_mode4 addr=ff0052 20->9D2A
+[frame 000199] symbol_change arcade_credits addr=ff0060 9D2A->2704
+[frame 000199] symbol_change arcade_stage addr=ff018c 9D2A->2704
+[frame 000199] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
+[frame 000199] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
+[frame 000199] symbol_change arcade_flag_3b addr=ff0089 20->2A
+[frame 000199] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
+[frame 000201] symbol_change startup_result_code addr=ff4054 9D2A->2704
+[frame 000201] symbol_change in_390001 addr=ff405b 2A->4
+[frame 000201] symbol_change in_390003 addr=ff405a 9D->27
+[frame 000201] symbol_change in_390005 addr=ff4059 20->2A
+[frame 000201] symbol_change in_390007 addr=ff4058 0->9D
+[frame 000201] symbol_change reg_3e0001 addr=ff4057 4->20
+[frame 000201] symbol_change reg_3e0003 addr=ff4056 27->0
+[frame 000201] symbol_change reg_3c0000 addr=ff405c 2704->20
+[frame 000201] symbol_change reg_c50000 addr=ff4064 20->9D2A
+[frame 000201] symbol_change reg_d01bfe addr=ff4062 2704->20
+[frame 000201] symbol_change reg_350008 addr=ff4060 9D2A->2704
+[frame 000201] symbol_change reg_380000 addr=ff405e 20->9D2A
+[frame 000201] symbol_change c20000_0 addr=ff406a 20->9D2A
+[frame 000201] symbol_change c20000_1 addr=ff406c 9D2A->2704
+[frame 000201] symbol_change c40000_0 addr=ff4066 9D2A->2704
+[frame 000201] symbol_change c40000_1 addr=ff4068 2704->20
+[frame 000202] symbol_change dip1 addr=ff0005 2A->4
+[frame 000202] symbol_change dip2 addr=ff0004 9D->27
+[frame 000202] symbol_change workram_10c000 addr=ff004e 2704->20
+[frame 000202] symbol_change arcade_page0 addr=ff004e 2704->20
+[frame 000202] symbol_change arcade_page2 addr=ff0050 20->9D2A
+[frame 000202] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
+[frame 000202] symbol_change arcade_credits addr=ff0060 2704->20
+[frame 000202] symbol_change arcade_stage addr=ff018c 2704->20
+[frame 000202] symbol_change arcade_flag_2a addr=ff0078 2704->20
+[frame 000202] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
+[frame 000202] symbol_change arcade_flag_3b addr=ff0089 2A->4
+[frame 000202] symbol_change arcade_mode_42 addr=ff0090 2704->20
+[frame 000204] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000204] symbol_change in_390001 addr=ff405b 4->20
+[frame 000204] symbol_change in_390003 addr=ff405a 27->0
+[frame 000204] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000204] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000204] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000204] symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000204] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000204] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000204] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000204] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000204] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000204] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000204] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000204] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000204] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000205] symbol_change dip1 addr=ff0005 4->20
+[frame 000205] symbol_change dip2 addr=ff0004 27->0
+[frame 000205] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000205] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000205] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000205] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000205] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000205] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000205] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000205] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000205] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000205] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000207] symbol_change startup_result_code addr=ff4054 20->9D2A
+[frame 000207] symbol_change in_390001 addr=ff405b 20->2A
+[frame 000207] symbol_change in_390003 addr=ff405a 0->9D
+[frame 000207] symbol_change in_390005 addr=ff4059 4->20
+[frame 000207] symbol_change in_390007 addr=ff4058 27->0
+[frame 000207] symbol_change reg_3e0001 addr=ff4057 2A->4
+[frame 000207] symbol_change reg_3e0003 addr=ff4056 9D->27
+[frame 000207] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
+[frame 000207] symbol_change reg_c50000 addr=ff4064 2704->20
+[frame 000207] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
+[frame 000207] symbol_change reg_350008 addr=ff4060 20->9D2A
+[frame 000207] symbol_change reg_380000 addr=ff405e 2704->20
+[frame 000207] symbol_change c20000_0 addr=ff406a 2704->20
+[frame 000207] symbol_change c20000_1 addr=ff406c 20->9D2A
+[frame 000207] symbol_change c40000_0 addr=ff4066 20->9D2A
+[frame 000207] symbol_change c40000_1 addr=ff4068 9D2A->2704
+[frame 000208] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0edb70a usp=00000000
+[frame 000208] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000208] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000208] exception_guess fmt=2704 offset_guess=00209d2a
+[frame 000208] stack +00 = 2704
+[frame 000208] stack +02 = 0020
+[frame 000208] stack +04 = 9d2a
+[frame 000208] stack +06 = 2704
+[frame 000208] stack +08 = 0020
+[frame 000208] stack +0a = 9d2a
+[frame 000208] stack +0c = 2704
+[frame 000208] stack +0e = 0020
+[frame 000208] stack +10 = 9d2a
+[frame 000208] stack +12 = 2704
+[frame 000208] stack +14 = 0020
+[frame 000208] stack +16 = 9d2a
+[frame 000208] stack +18 = 2704
+[frame 000208] stack +1a = 0020
+[frame 000208] stack +1c = 9d2a
+[frame 000208] stack +1e = 2704
+[frame 000208] symbol_change dip1 addr=ff0005 20->2A
+[frame 000208] symbol_change dip2 addr=ff0004 0->9D
+[frame 000208] symbol_change workram_10c000 addr=ff004e 9D2A->2704
+[frame 000208] symbol_change arcade_page0 addr=ff004e 9D2A->2704
+[frame 000208] symbol_change arcade_page2 addr=ff0050 2704->20
+[frame 000208] symbol_change arcade_mode4 addr=ff0052 20->9D2A
+[frame 000208] symbol_change arcade_credits addr=ff0060 9D2A->2704
+[frame 000208] symbol_change arcade_stage addr=ff018c 9D2A->2704
+[frame 000208] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
+[frame 000208] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
+[frame 000208] symbol_change arcade_flag_3b addr=ff0089 20->2A
+[frame 000208] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
+[frame 000210] symbol_change startup_result_code addr=ff4054 9D2A->2704
+[frame 000210] symbol_change in_390001 addr=ff405b 2A->4
+[frame 000210] symbol_change in_390003 addr=ff405a 9D->27
+[frame 000210] symbol_change in_390005 addr=ff4059 20->2A
+[frame 000210] symbol_change in_390007 addr=ff4058 0->9D
+[frame 000210] symbol_change reg_3e0001 addr=ff4057 4->20
+[frame 000210] symbol_change reg_3e0003 addr=ff4056 27->0
+[frame 000210] symbol_change reg_3c0000 addr=ff405c 2704->20
+[frame 000210] symbol_change reg_c50000 addr=ff4064 20->9D2A
+[frame 000210] symbol_change reg_d01bfe addr=ff4062 2704->20
+[frame 000210] symbol_change reg_350008 addr=ff4060 9D2A->2704
+[frame 000210] symbol_change reg_380000 addr=ff405e 20->9D2A
+[frame 000210] symbol_change c20000_0 addr=ff406a 20->9D2A
+[frame 000210] symbol_change c20000_1 addr=ff406c 9D2A->2704
+[frame 000210] symbol_change c40000_0 addr=ff4066 9D2A->2704
+[frame 000210] symbol_change c40000_1 addr=ff4068 2704->20
+[frame 000210] window_change wram_ff0000
 [frame 000210] window_change z80_ctrl
+[frame 000211] symbol_change dip1 addr=ff0005 2A->4
+[frame 000211] symbol_change dip2 addr=ff0004 9D->27
+[frame 000211] symbol_change workram_10c000 addr=ff004e 2704->20
+[frame 000211] symbol_change arcade_page0 addr=ff004e 2704->20
+[frame 000211] symbol_change arcade_page2 addr=ff0050 20->9D2A
+[frame 000211] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
+[frame 000211] symbol_change arcade_credits addr=ff0060 2704->20
+[frame 000211] symbol_change arcade_stage addr=ff018c 2704->20
+[frame 000211] symbol_change arcade_flag_2a addr=ff0078 2704->20
+[frame 000211] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
+[frame 000211] symbol_change arcade_flag_3b addr=ff0089 2A->4
+[frame 000211] symbol_change arcade_mode_42 addr=ff0090 2704->20
+[frame 000213] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000213] symbol_change dip1 addr=ff0005 4->20
+[frame 000213] symbol_change dip2 addr=ff0004 27->0
+[frame 000213] symbol_change in_390001 addr=ff405b 4->20
+[frame 000213] symbol_change in_390003 addr=ff405a 27->0
+[frame 000213] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000213] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000213] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000213] symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000213] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000213] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000213] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000213] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000213] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000213] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000213] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000213] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000213] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000213] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000213] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000213] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000213] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000213] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000213] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000213] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000213] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000213] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000213] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000216] symbol_change startup_result_code addr=ff4054 20->9D2A
+[frame 000216] symbol_change dip1 addr=ff0005 20->2A
+[frame 000216] symbol_change dip2 addr=ff0004 0->9D
+[frame 000216] symbol_change in_390001 addr=ff405b 20->2A
+[frame 000216] symbol_change in_390003 addr=ff405a 0->9D
+[frame 000216] symbol_change in_390005 addr=ff4059 4->20
+[frame 000216] symbol_change in_390007 addr=ff4058 27->0
+[frame 000216] symbol_change reg_3e0001 addr=ff4057 2A->4
+[frame 000216] symbol_change reg_3e0003 addr=ff4056 9D->27
+[frame 000216] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
+[frame 000216] symbol_change reg_c50000 addr=ff4064 2704->20
+[frame 000216] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
+[frame 000216] symbol_change reg_350008 addr=ff4060 20->9D2A
+[frame 000216] symbol_change reg_380000 addr=ff405e 2704->20
+[frame 000216] symbol_change c20000_0 addr=ff406a 2704->20
+[frame 000216] symbol_change c20000_1 addr=ff406c 20->9D2A
+[frame 000216] symbol_change c40000_0 addr=ff4066 20->9D2A
+[frame 000216] symbol_change c40000_1 addr=ff4068 9D2A->2704
+[frame 000216] symbol_change workram_10c000 addr=ff004e 9D2A->2704
+[frame 000216] symbol_change arcade_page0 addr=ff004e 9D2A->2704
+[frame 000216] symbol_change arcade_page2 addr=ff0050 2704->20
+[frame 000216] symbol_change arcade_mode4 addr=ff0052 20->9D2A
+[frame 000216] symbol_change arcade_credits addr=ff0060 9D2A->2704
+[frame 000216] symbol_change arcade_stage addr=ff018c 9D2A->2704
+[frame 000216] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
+[frame 000216] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
+[frame 000216] symbol_change arcade_flag_3b addr=ff0089 20->2A
+[frame 000216] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
+[frame 000219] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0e9ec6c usp=00000000
+[frame 000219] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000219] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000219] exception_guess fmt=2704 offset_guess=00209d2a
+[frame 000219] stack +00 = 2704
+[frame 000219] stack +02 = 0020
+[frame 000219] stack +04 = 9d2a
+[frame 000219] stack +06 = 2704
+[frame 000219] stack +08 = 0020
+[frame 000219] stack +0a = 9d2a
+[frame 000219] stack +0c = 2704
+[frame 000219] stack +0e = 0020
+[frame 000219] stack +10 = 9d2a
+[frame 000219] stack +12 = 2704
+[frame 000219] stack +14 = 0020
+[frame 000219] stack +16 = 9d2a
+[frame 000219] stack +18 = 2704
+[frame 000219] stack +1a = 0020
+[frame 000219] stack +1c = 9d2a
+[frame 000219] stack +1e = 2704
+[frame 000219] symbol_change startup_result_code addr=ff4054 9D2A->2704
+[frame 000219] symbol_change dip1 addr=ff0005 2A->4
+[frame 000219] symbol_change dip2 addr=ff0004 9D->27
+[frame 000219] symbol_change in_390001 addr=ff405b 2A->4
+[frame 000219] symbol_change in_390003 addr=ff405a 9D->27
+[frame 000219] symbol_change in_390005 addr=ff4059 20->2A
+[frame 000219] symbol_change in_390007 addr=ff4058 0->9D
+[frame 000219] symbol_change reg_3e0001 addr=ff4057 4->20
+[frame 000219] symbol_change reg_3e0003 addr=ff4056 27->0
+[frame 000219] symbol_change reg_3c0000 addr=ff405c 2704->20
+[frame 000219] symbol_change reg_c50000 addr=ff4064 20->9D2A
+[frame 000219] symbol_change reg_d01bfe addr=ff4062 2704->20
+[frame 000219] symbol_change reg_350008 addr=ff4060 9D2A->2704
+[frame 000219] symbol_change reg_380000 addr=ff405e 20->9D2A
+[frame 000219] symbol_change c20000_0 addr=ff406a 20->9D2A
+[frame 000219] symbol_change c20000_1 addr=ff406c 9D2A->2704
+[frame 000219] symbol_change c40000_0 addr=ff4066 9D2A->2704
+[frame 000219] symbol_change c40000_1 addr=ff4068 2704->20
+[frame 000219] symbol_change workram_10c000 addr=ff004e 2704->20
+[frame 000219] symbol_change arcade_page0 addr=ff004e 2704->20
+[frame 000219] symbol_change arcade_page2 addr=ff0050 20->9D2A
+[frame 000219] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
+[frame 000219] symbol_change arcade_credits addr=ff0060 2704->20
+[frame 000219] symbol_change arcade_stage addr=ff018c 2704->20
+[frame 000219] symbol_change arcade_flag_2a addr=ff0078 2704->20
+[frame 000219] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
+[frame 000219] symbol_change arcade_flag_3b addr=ff0089 2A->4
+[frame 000219] symbol_change arcade_mode_42 addr=ff0090 2704->20
+[frame 000221] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000221] symbol_change in_390001 addr=ff405b 4->20
+[frame 000221] symbol_change in_390003 addr=ff405a 27->0
+[frame 000221] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000221] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000221] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000221] symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000221] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000221] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000221] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000221] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000221] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000221] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000221] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000221] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000221] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000222] symbol_change dip1 addr=ff0005 4->20
+[frame 000222] symbol_change dip2 addr=ff0004 27->0
+[frame 000222] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000222] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000222] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000222] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000222] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000222] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000222] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000222] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000222] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000222] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000224] symbol_change startup_result_code addr=ff4054 20->9D2A
+[frame 000224] symbol_change in_390001 addr=ff405b 20->2A
+[frame 000224] symbol_change in_390003 addr=ff405a 0->9D
+[frame 000224] symbol_change in_390005 addr=ff4059 4->20
+[frame 000224] symbol_change in_390007 addr=ff4058 27->0
+[frame 000224] symbol_change reg_3e0001 addr=ff4057 2A->4
+[frame 000224] symbol_change reg_3e0003 addr=ff4056 9D->27
+[frame 000224] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
+[frame 000224] symbol_change reg_c50000 addr=ff4064 2704->20
+[frame 000224] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
+[frame 000224] symbol_change reg_350008 addr=ff4060 20->9D2A
+[frame 000224] symbol_change reg_380000 addr=ff405e 2704->20
+[frame 000224] symbol_change c20000_0 addr=ff406a 2704->20
+[frame 000224] symbol_change c20000_1 addr=ff406c 20->9D2A
+[frame 000224] symbol_change c40000_0 addr=ff4066 20->9D2A
+[frame 000224] symbol_change c40000_1 addr=ff4068 9D2A->2704
+[frame 000225] symbol_change dip1 addr=ff0005 20->2A
+[frame 000225] symbol_change dip2 addr=ff0004 0->9D
+[frame 000225] symbol_change workram_10c000 addr=ff004e 9D2A->2704
+[frame 000225] symbol_change arcade_page0 addr=ff004e 9D2A->2704
+[frame 000225] symbol_change arcade_page2 addr=ff0050 2704->20
+[frame 000225] symbol_change arcade_mode4 addr=ff0052 20->9D2A
+[frame 000225] symbol_change arcade_credits addr=ff0060 9D2A->2704
+[frame 000225] symbol_change arcade_stage addr=ff018c 9D2A->2704
+[frame 000225] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
+[frame 000225] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
+[frame 000225] symbol_change arcade_flag_3b addr=ff0089 20->2A
+[frame 000225] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
+[frame 000227] symbol_change startup_result_code addr=ff4054 9D2A->2704
+[frame 000227] symbol_change in_390001 addr=ff405b 2A->4
+[frame 000227] symbol_change in_390003 addr=ff405a 9D->27
+[frame 000227] symbol_change in_390005 addr=ff4059 20->2A
+[frame 000227] symbol_change in_390007 addr=ff4058 0->9D
+[frame 000227] symbol_change reg_3e0001 addr=ff4057 4->20
+[frame 000227] symbol_change reg_3e0003 addr=ff4056 27->0
+[frame 000227] symbol_change reg_3c0000 addr=ff405c 2704->20
+[frame 000227] symbol_change reg_c50000 addr=ff4064 20->9D2A
+[frame 000227] symbol_change reg_d01bfe addr=ff4062 2704->20
+[frame 000227] symbol_change reg_350008 addr=ff4060 9D2A->2704
+[frame 000227] symbol_change reg_380000 addr=ff405e 20->9D2A
+[frame 000227] symbol_change c20000_0 addr=ff406a 20->9D2A
+[frame 000227] symbol_change c20000_1 addr=ff406c 9D2A->2704
+[frame 000227] symbol_change c40000_0 addr=ff4066 9D2A->2704
+[frame 000227] symbol_change c40000_1 addr=ff4068 2704->20
+[frame 000228] symbol_change dip1 addr=ff0005 2A->4
+[frame 000228] symbol_change dip2 addr=ff0004 9D->27
+[frame 000228] symbol_change workram_10c000 addr=ff004e 2704->20
+[frame 000228] symbol_change arcade_page0 addr=ff004e 2704->20
+[frame 000228] symbol_change arcade_page2 addr=ff0050 20->9D2A
+[frame 000228] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
+[frame 000228] symbol_change arcade_credits addr=ff0060 2704->20
+[frame 000228] symbol_change arcade_stage addr=ff018c 2704->20
+[frame 000228] symbol_change arcade_flag_2a addr=ff0078 2704->20
+[frame 000228] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
+[frame 000228] symbol_change arcade_flag_3b addr=ff0089 2A->4
+[frame 000228] symbol_change arcade_mode_42 addr=ff0090 2704->20
+[frame 000230] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000230] symbol_change in_390001 addr=ff405b 4->20
+[frame 000230] symbol_change in_390003 addr=ff405a 27->0
+[frame 000230] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000230] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000230] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000230] symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000230] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000230] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000230] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000230] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000230] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000230] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000230] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000230] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000230] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000231] symbol_change dip1 addr=ff0005 4->20
+[frame 000231] symbol_change dip2 addr=ff0004 27->0
+[frame 000231] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000231] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000231] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000231] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000231] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000231] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000231] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000231] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000231] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000231] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000232] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0e5714c usp=00000000
+[frame 000232] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000232] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000232] exception_guess fmt=2704 offset_guess=00209d2a
+[frame 000232] stack +00 = 2704
+[frame 000232] stack +02 = 0020
+[frame 000232] stack +04 = 9d2a
+[frame 000232] stack +06 = 2704
+[frame 000232] stack +08 = 0020
+[frame 000232] stack +0a = 9d2a
+[frame 000232] stack +0c = 2704
+[frame 000232] stack +0e = 0020
+[frame 000232] stack +10 = 9d2a
+[frame 000232] stack +12 = 2704
+[frame 000232] stack +14 = 0020
+[frame 000232] stack +16 = 9d2a
+[frame 000232] stack +18 = 2704
+[frame 000232] stack +1a = 0020
+[frame 000232] stack +1c = 9d2a
+[frame 000232] stack +1e = 2704
+[frame 000233] symbol_change startup_result_code addr=ff4054 20->9D2A
+[frame 000233] symbol_change in_390001 addr=ff405b 20->2A
+[frame 000233] symbol_change in_390003 addr=ff405a 0->9D
+[frame 000233] symbol_change in_390005 addr=ff4059 4->20
+[frame 000233] symbol_change in_390007 addr=ff4058 27->0
+[frame 000233] symbol_change reg_3e0001 addr=ff4057 2A->4
+[frame 000233] symbol_change reg_3e0003 addr=ff4056 9D->27
+[frame 000233] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
+[frame 000233] symbol_change reg_c50000 addr=ff4064 2704->20
+[frame 000233] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
+[frame 000233] symbol_change reg_350008 addr=ff4060 20->9D2A
+[frame 000233] symbol_change reg_380000 addr=ff405e 2704->20
+[frame 000233] symbol_change c20000_0 addr=ff406a 2704->20
+[frame 000233] symbol_change c20000_1 addr=ff406c 20->9D2A
+[frame 000233] symbol_change c40000_0 addr=ff4066 20->9D2A
+[frame 000233] symbol_change c40000_1 addr=ff4068 9D2A->2704
+[frame 000234] symbol_change dip1 addr=ff0005 20->2A
+[frame 000234] symbol_change dip2 addr=ff0004 0->9D
+[frame 000234] symbol_change workram_10c000 addr=ff004e 9D2A->2704
+[frame 000234] symbol_change arcade_page0 addr=ff004e 9D2A->2704
+[frame 000234] symbol_change arcade_page2 addr=ff0050 2704->20
+[frame 000234] symbol_change arcade_mode4 addr=ff0052 20->9D2A
+[frame 000234] symbol_change arcade_credits addr=ff0060 9D2A->2704
+[frame 000234] symbol_change arcade_stage addr=ff018c 9D2A->2704
+[frame 000234] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
+[frame 000234] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
+[frame 000234] symbol_change arcade_flag_3b addr=ff0089 20->2A
+[frame 000234] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
+[frame 000236] symbol_change startup_result_code addr=ff4054 9D2A->2704
+[frame 000236] symbol_change in_390001 addr=ff405b 2A->4
+[frame 000236] symbol_change in_390003 addr=ff405a 9D->27
+[frame 000236] symbol_change in_390005 addr=ff4059 20->2A
+[frame 000236] symbol_change in_390007 addr=ff4058 0->9D
+[frame 000236] symbol_change reg_3e0001 addr=ff4057 4->20
+[frame 000236] symbol_change reg_3e0003 addr=ff4056 27->0
+[frame 000236] symbol_change reg_3c0000 addr=ff405c 2704->20
+[frame 000236] symbol_change reg_c50000 addr=ff4064 20->9D2A
+[frame 000236] symbol_change reg_d01bfe addr=ff4062 2704->20
+[frame 000236] symbol_change reg_350008 addr=ff4060 9D2A->2704
+[frame 000236] symbol_change reg_380000 addr=ff405e 20->9D2A
+[frame 000236] symbol_change c20000_0 addr=ff406a 20->9D2A
+[frame 000236] symbol_change c20000_1 addr=ff406c 9D2A->2704
+[frame 000236] symbol_change c40000_0 addr=ff4066 9D2A->2704
+[frame 000236] symbol_change c40000_1 addr=ff4068 2704->20
+[frame 000237] symbol_change dip1 addr=ff0005 2A->4
+[frame 000237] symbol_change dip2 addr=ff0004 9D->27
+[frame 000237] symbol_change workram_10c000 addr=ff004e 2704->20
+[frame 000237] symbol_change arcade_page0 addr=ff004e 2704->20
+[frame 000237] symbol_change arcade_page2 addr=ff0050 20->9D2A
+[frame 000237] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
+[frame 000237] symbol_change arcade_credits addr=ff0060 2704->20
+[frame 000237] symbol_change arcade_stage addr=ff018c 2704->20
+[frame 000237] symbol_change arcade_flag_2a addr=ff0078 2704->20
+[frame 000237] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
+[frame 000237] symbol_change arcade_flag_3b addr=ff0089 2A->4
+[frame 000237] symbol_change arcade_mode_42 addr=ff0090 2704->20
+[frame 000239] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000239] symbol_change in_390001 addr=ff405b 4->20
+[frame 000239] symbol_change in_390003 addr=ff405a 27->0
+[frame 000239] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000239] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000239] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000239] symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000239] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000239] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000239] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000239] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000239] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000239] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000239] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000239] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000239] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000240] pc=209d2a exec=other
+[frame 000240] symbol_change dip1 addr=ff0005 4->20
+[frame 000240] symbol_change dip2 addr=ff0004 27->0
+[frame 000240] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000240] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000240] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000240] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000240] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000240] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000240] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000240] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000240] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000240] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000240] window_change wram_ff0000
 [frame 000240] window_change z80_ctrl
+[frame 000242] symbol_change startup_result_code addr=ff4054 20->9D2A
+[frame 000242] symbol_change dip1 addr=ff0005 20->2A
+[frame 000242] symbol_change dip2 addr=ff0004 0->9D
+[frame 000242] symbol_change in_390001 addr=ff405b 20->2A
+[frame 000242] symbol_change in_390003 addr=ff405a 0->9D
+[frame 000242] symbol_change in_390005 addr=ff4059 4->20
+[frame 000242] symbol_change in_390007 addr=ff4058 27->0
+[frame 000242] symbol_change reg_3e0001 addr=ff4057 2A->4
+[frame 000242] symbol_change reg_3e0003 addr=ff4056 9D->27
+[frame 000242] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
+[frame 000242] symbol_change reg_c50000 addr=ff4064 2704->20
+[frame 000242] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
+[frame 000242] symbol_change reg_350008 addr=ff4060 20->9D2A
+[frame 000242] symbol_change reg_380000 addr=ff405e 2704->20
+[frame 000242] symbol_change c20000_0 addr=ff406a 2704->20
+[frame 000242] symbol_change c20000_1 addr=ff406c 20->9D2A
+[frame 000242] symbol_change c40000_0 addr=ff4066 20->9D2A
+[frame 000242] symbol_change c40000_1 addr=ff4068 9D2A->2704
+[frame 000242] symbol_change workram_10c000 addr=ff004e 9D2A->2704
+[frame 000242] symbol_change arcade_page0 addr=ff004e 9D2A->2704
+[frame 000242] symbol_change arcade_page2 addr=ff0050 2704->20
+[frame 000242] symbol_change arcade_mode4 addr=ff0052 20->9D2A
+[frame 000242] symbol_change arcade_credits addr=ff0060 9D2A->2704
+[frame 000242] symbol_change arcade_stage addr=ff018c 9D2A->2704
+[frame 000242] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
+[frame 000242] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
+[frame 000242] symbol_change arcade_flag_3b addr=ff0089 20->2A
+[frame 000242] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
+[frame 000243] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0e1a6ae usp=00000000
+[frame 000243] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000243] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000243] exception_guess fmt=2704 offset_guess=00209d2a
+[frame 000243] stack +00 = 2704
+[frame 000243] stack +02 = 0020
+[frame 000243] stack +04 = 9d2a
+[frame 000243] stack +06 = 2704
+[frame 000243] stack +08 = 0020
+[frame 000243] stack +0a = 9d2a
+[frame 000243] stack +0c = 2704
+[frame 000243] stack +0e = 0020
+[frame 000243] stack +10 = 9d2a
+[frame 000243] stack +12 = 2704
+[frame 000243] stack +14 = 0020
+[frame 000243] stack +16 = 9d2a
+[frame 000243] stack +18 = 2704
+[frame 000243] stack +1a = 0020
+[frame 000243] stack +1c = 9d2a
+[frame 000243] stack +1e = 2704
+[frame 000245] symbol_change startup_result_code addr=ff4054 9D2A->2704
+[frame 000245] symbol_change dip1 addr=ff0005 2A->4
+[frame 000245] symbol_change dip2 addr=ff0004 9D->27
+[frame 000245] symbol_change in_390001 addr=ff405b 2A->4
+[frame 000245] symbol_change in_390003 addr=ff405a 9D->27
+[frame 000245] symbol_change in_390005 addr=ff4059 20->2A
+[frame 000245] symbol_change in_390007 addr=ff4058 0->9D
+[frame 000245] symbol_change reg_3e0001 addr=ff4057 4->20
+[frame 000245] symbol_change reg_3e0003 addr=ff4056 27->0
+[frame 000245] symbol_change reg_3c0000 addr=ff405c 2704->20
+[frame 000245] symbol_change reg_c50000 addr=ff4064 20->9D2A
+[frame 000245] symbol_change reg_d01bfe addr=ff4062 2704->20
+[frame 000245] symbol_change reg_350008 addr=ff4060 9D2A->2704
+[frame 000245] symbol_change reg_380000 addr=ff405e 20->9D2A
+[frame 000245] symbol_change c20000_0 addr=ff406a 20->9D2A
+[frame 000245] symbol_change c20000_1 addr=ff406c 9D2A->2704
+[frame 000245] symbol_change c40000_0 addr=ff4066 9D2A->2704
+[frame 000245] symbol_change c40000_1 addr=ff4068 2704->20
+[frame 000245] symbol_change workram_10c000 addr=ff004e 2704->20
+[frame 000245] symbol_change arcade_page0 addr=ff004e 2704->20
+[frame 000245] symbol_change arcade_page2 addr=ff0050 20->9D2A
+[frame 000245] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
+[frame 000245] symbol_change arcade_credits addr=ff0060 2704->20
+[frame 000245] symbol_change arcade_stage addr=ff018c 2704->20
+[frame 000245] symbol_change arcade_flag_2a addr=ff0078 2704->20
+[frame 000245] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
+[frame 000245] symbol_change arcade_flag_3b addr=ff0089 2A->4
+[frame 000245] symbol_change arcade_mode_42 addr=ff0090 2704->20
+[frame 000248] symbol_change startup_result_code addr=ff4054 2704->20
+[frame 000248] symbol_change dip1 addr=ff0005 4->20
+[frame 000248] symbol_change dip2 addr=ff0004 27->0
+[frame 000248] symbol_change in_390001 addr=ff405b 4->20
+[frame 000248] symbol_change in_390003 addr=ff405a 27->0
+[frame 000248] symbol_change in_390005 addr=ff4059 2A->4
+[frame 000248] symbol_change in_390007 addr=ff4058 9D->27
+[frame 000248] symbol_change reg_3e0001 addr=ff4057 20->2A
+[frame 000248] symbol_change reg_3e0003 addr=ff4056 0->9D
+[frame 000248] symbol_change reg_3c0000 addr=ff405c 20->9D2A
+[frame 000248] symbol_change reg_c50000 addr=ff4064 9D2A->2704
+[frame 000248] symbol_change reg_d01bfe addr=ff4062 20->9D2A
+[frame 000248] symbol_change reg_350008 addr=ff4060 2704->20
+[frame 000248] symbol_change reg_380000 addr=ff405e 9D2A->2704
+[frame 000248] symbol_change c20000_0 addr=ff406a 9D2A->2704
+[frame 000248] symbol_change c20000_1 addr=ff406c 2704->20
+[frame 000248] symbol_change c40000_0 addr=ff4066 2704->20
+[frame 000248] symbol_change c40000_1 addr=ff4068 20->9D2A
+[frame 000248] symbol_change workram_10c000 addr=ff004e 20->9D2A
+[frame 000248] symbol_change arcade_page0 addr=ff004e 20->9D2A
+[frame 000248] symbol_change arcade_page2 addr=ff0050 9D2A->2704
+[frame 000248] symbol_change arcade_mode4 addr=ff0052 2704->20
+[frame 000248] symbol_change arcade_credits addr=ff0060 20->9D2A
+[frame 000248] symbol_change arcade_stage addr=ff018c 20->9D2A
+[frame 000248] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
+[frame 000248] symbol_change arcade_flag_34 addr=ff0082 2704->20
+[frame 000248] symbol_change arcade_flag_3b addr=ff0089 4->20
+[frame 000248] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
+[frame 000256] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0dd2b8e usp=00000000
+[frame 000256] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000256] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000256] exception_guess fmt=0000 offset_guess=00000000
+[frame 000256] stack +00 = 0000
+[frame 000256] stack +02 = 0000
+[frame 000256] stack +04 = 0000
+[frame 000256] stack +06 = 0000
+[frame 000256] stack +08 = 0000
+[frame 000256] stack +0a = 0000
+[frame 000256] stack +0c = 0000
+[frame 000256] stack +0e = 0000
+[frame 000256] stack +10 = 0000
+[frame 000256] stack +12 = 0000
+[frame 000256] stack +14 = 0000
+[frame 000256] stack +16 = 0000
+[frame 000256] stack +18 = 0000
+[frame 000256] stack +1a = 0000
+[frame 000256] stack +1c = 0000
+[frame 000256] stack +1e = 0000
+[frame 000270] window_change wram_ff0000
 [frame 000270] window_change z80_ctrl
+[frame 000271] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0d7fff8 usp=00000000
+[frame 000271] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000271] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000271] exception_guess fmt=0000 offset_guess=00000000
+[frame 000271] stack +00 = 0000
+[frame 000271] stack +02 = 0000
+[frame 000271] stack +04 = 0000
+[frame 000271] stack +06 = 0000
+[frame 000271] stack +08 = 0000
+[frame 000271] stack +0a = 0000
+[frame 000271] stack +0c = 0000
+[frame 000271] stack +0e = 0000
+[frame 000271] stack +10 = 0000
+[frame 000271] stack +12 = 0000
+[frame 000271] stack +14 = 0000
+[frame 000271] stack +16 = 0000
+[frame 000271] stack +18 = 0000
+[frame 000271] stack +1a = 0000
+[frame 000271] stack +1c = 0000
+[frame 000271] stack +1e = 0000
+[frame 000282] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0d4355a usp=00000000
+[frame 000282] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000282] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000282] exception_guess fmt=0000 offset_guess=00000000
+[frame 000282] stack +00 = 0000
+[frame 000282] stack +02 = 0000
+[frame 000282] stack +04 = 0000
+[frame 000282] stack +06 = 0000
+[frame 000282] stack +08 = 0000
+[frame 000282] stack +0a = 0000
+[frame 000282] stack +0c = 0000
+[frame 000282] stack +0e = 0000
+[frame 000282] stack +10 = 0000
+[frame 000282] stack +12 = 0000
+[frame 000282] stack +14 = 0000
+[frame 000282] stack +16 = 0000
+[frame 000282] stack +18 = 0000
+[frame 000282] stack +1a = 0000
+[frame 000282] stack +1c = 0000
+[frame 000282] stack +1e = 0000
+[frame 000295] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0cfba3a usp=00000000
+[frame 000295] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000295] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000295] exception_guess fmt=0000 offset_guess=00000000
+[frame 000295] stack +00 = 0000
+[frame 000295] stack +02 = 0000
+[frame 000295] stack +04 = 0000
+[frame 000295] stack +06 = 0000
+[frame 000295] stack +08 = 0000
+[frame 000295] stack +0a = 0000
+[frame 000295] stack +0c = 0000
+[frame 000295] stack +0e = 0000
+[frame 000295] stack +10 = 0000
+[frame 000295] stack +12 = 0000
+[frame 000295] stack +14 = 0000
+[frame 000295] stack +16 = 0000
+[frame 000295] stack +18 = 0000
+[frame 000295] stack +1a = 0000
+[frame 000295] stack +1c = 0000
+[frame 000295] stack +1e = 0000
+[frame 000300] pc=00002c exec=other
+[frame 000300] first_window_change vdp_ports
 [frame 000300] window_change z80_ctrl
+[frame 000306] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0cbef9c usp=00000000
+[frame 000306] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000306] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000306] exception_guess fmt=0000 offset_guess=00000000
+[frame 000306] stack +00 = 0000
+[frame 000306] stack +02 = 0000
+[frame 000306] stack +04 = 0000
+[frame 000306] stack +06 = 0000
+[frame 000306] stack +08 = 0000
+[frame 000306] stack +0a = 0000
+[frame 000306] stack +0c = 0000
+[frame 000306] stack +0e = 0000
+[frame 000306] stack +10 = 0000
+[frame 000306] stack +12 = 0000
+[frame 000306] stack +14 = 0000
+[frame 000306] stack +16 = 0000
+[frame 000306] stack +18 = 0000
+[frame 000306] stack +1a = 0000
+[frame 000306] stack +1c = 0000
+[frame 000306] stack +1e = 0000
+[frame 000319] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0c7747c usp=00000000
+[frame 000319] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000319] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000319] exception_guess fmt=0000 offset_guess=00000000
+[frame 000319] stack +00 = 0000
+[frame 000319] stack +02 = 0000
+[frame 000319] stack +04 = 0000
+[frame 000319] stack +06 = 0000
+[frame 000319] stack +08 = 0000
+[frame 000319] stack +0a = 0000
+[frame 000319] stack +0c = 0000
+[frame 000319] stack +0e = 0000
+[frame 000319] stack +10 = 0000
+[frame 000319] stack +12 = 0000
+[frame 000319] stack +14 = 0000
+[frame 000319] stack +16 = 0000
+[frame 000319] stack +18 = 0000
+[frame 000319] stack +1a = 0000
+[frame 000319] stack +1c = 0000
+[frame 000319] stack +1e = 0000
+[frame 000326] live_write reg_c50000_live pc=209d2a addr=c50000 data=9d2a mask=ffff count=1
+[frame 000330] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0c3a9de usp=00000000
+[frame 000330] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000330] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000330] exception_guess fmt=0000 offset_guess=00000000
+[frame 000330] stack +00 = 0000
+[frame 000330] stack +02 = 0000
+[frame 000330] stack +04 = 0000
+[frame 000330] stack +06 = 0000
+[frame 000330] stack +08 = 0000
+[frame 000330] stack +0a = 0000
+[frame 000330] stack +0c = 0000
+[frame 000330] stack +0e = 0000
+[frame 000330] stack +10 = 0000
+[frame 000330] stack +12 = 0000
+[frame 000330] stack +14 = 0000
+[frame 000330] stack +16 = 0000
+[frame 000330] stack +18 = 0000
+[frame 000330] stack +1a = 0000
+[frame 000330] stack +1c = 0000
+[frame 000330] stack +1e = 0000
 [frame 000330] window_change z80_ctrl
+[frame 000340] live_write vdp_ports_live pc=209d2a addr=c00008 data=9d2a mask=ffff count=3353
+[frame 000343] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0bf2ebe usp=00000000
+[frame 000343] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000343] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000343] exception_guess fmt=0000 offset_guess=00000000
+[frame 000343] stack +00 = 0000
+[frame 000343] stack +02 = 0000
+[frame 000343] stack +04 = 0000
+[frame 000343] stack +06 = 0000
+[frame 000343] stack +08 = 0000
+[frame 000343] stack +0a = 0000
+[frame 000343] stack +0c = 0000
+[frame 000343] stack +0e = 0000
+[frame 000343] stack +10 = 0000
+[frame 000343] stack +12 = 0000
+[frame 000343] stack +14 = 0000
+[frame 000343] stack +16 = 0000
+[frame 000343] stack +18 = 0000
+[frame 000343] stack +1a = 0000
+[frame 000343] stack +1c = 0000
+[frame 000343] stack +1e = 0000
+[frame 000359] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0b9aaea usp=00000000
+[frame 000359] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000359] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000359] exception_guess fmt=0000 offset_guess=00000000
+[frame 000359] stack +00 = 0000
+[frame 000359] stack +02 = 0000
+[frame 000359] stack +04 = 0000
+[frame 000359] stack +06 = 0000
+[frame 000359] stack +08 = 0000
+[frame 000359] stack +0a = 0000
+[frame 000359] stack +0c = 0000
+[frame 000359] stack +0e = 0000
+[frame 000359] stack +10 = 0000
+[frame 000359] stack +12 = 0000
+[frame 000359] stack +14 = 0000
+[frame 000359] stack +16 = 0000
+[frame 000359] stack +18 = 0000
+[frame 000359] stack +1a = 0000
+[frame 000359] stack +1c = 0000
+[frame 000359] stack +1e = 0000
 [frame 000360] window_change z80_ctrl
-[frame 000380] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0ffa354 usp=00000000
-[frame 000380] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000380] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000380] exception_guess fmt=2704 offset_guess=00009d2a
-[frame 000380] stack +00 = 2704
-[frame 000380] stack +02 = 0000
-[frame 000380] stack +04 = 9d2a
-[frame 000380] stack +06 = 2704
-[frame 000380] stack +08 = 0020
-[frame 000380] stack +0a = 9d2a
-[frame 000380] stack +0c = 2704
-[frame 000380] stack +0e = 0020
-[frame 000380] stack +10 = 9d2a
-[frame 000380] stack +12 = 2704
-[frame 000380] stack +14 = 0020
-[frame 000380] stack +16 = 9d2a
-[frame 000380] stack +18 = 2704
-[frame 000380] stack +1a = 0020
-[frame 000380] stack +1c = 9d2a
-[frame 000380] stack +1e = 2704
-[frame 000382] first_symbol_change startup_result_code addr=ff4054 0->2704
-[frame 000382] first_symbol_change dip1 addr=ff0005 0->4
-[frame 000382] first_symbol_change dip2 addr=ff0004 0->27
-[frame 000382] first_symbol_change in_390001 addr=ff405b 0->4
-[frame 000382] first_symbol_change in_390003 addr=ff405a 0->27
-[frame 000382] first_symbol_change in_390005 addr=ff4059 0->2A
-[frame 000382] first_symbol_change in_390007 addr=ff4058 0->9D
-[frame 000382] first_symbol_change reg_3e0001 addr=ff4057 0->20
-[frame 000382] first_symbol_change reg_3c0000 addr=ff405c 0->20
-[frame 000382] first_symbol_change reg_c50000 addr=ff4064 0->9D2A
-[frame 000382] first_symbol_change reg_d01bfe addr=ff4062 0->20
-[frame 000382] first_symbol_change reg_350008 addr=ff4060 0->2704
-[frame 000382] first_symbol_change reg_380000 addr=ff405e 0->9D2A
-[frame 000382] first_symbol_change c20000_0 addr=ff406a 0->9D2A
-[frame 000382] first_symbol_change c20000_1 addr=ff406c 0->2704
-[frame 000382] first_symbol_change c40000_0 addr=ff4066 0->2704
-[frame 000382] first_symbol_change c40000_1 addr=ff4068 0->20
-[frame 000382] first_symbol_change workram_10c000 addr=ff004e 0->20
-[frame 000382] first_symbol_change arcade_page0 addr=ff004e 0->20
-[frame 000382] first_symbol_change arcade_page2 addr=ff0050 0->9D2A
-[frame 000382] first_symbol_change arcade_mode4 addr=ff0052 0->2704
-[frame 000382] first_symbol_change arcade_credits addr=ff0060 0->20
-[frame 000382] first_symbol_change arcade_stage addr=ff018c 0->20
-[frame 000382] first_symbol_change arcade_flag_2a addr=ff0078 0->20
-[frame 000382] first_symbol_change arcade_flag_34 addr=ff0082 0->2704
-[frame 000382] first_symbol_change arcade_flag_3b addr=ff0089 0->4
-[frame 000382] first_symbol_change arcade_mode_42 addr=ff0090 0->20
-[frame 000385] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000385] symbol_change dip1 addr=ff0005 4->20
-[frame 000385] symbol_change dip2 addr=ff0004 27->0
-[frame 000385] symbol_change in_390001 addr=ff405b 4->20
-[frame 000385] symbol_change in_390003 addr=ff405a 27->0
-[frame 000385] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000385] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000385] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000385] first_symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000385] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000385] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000385] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000385] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000385] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000385] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000385] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000385] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000385] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000385] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000385] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000385] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000385] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000385] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000385] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000385] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000385] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000385] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000385] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000387] symbol_change startup_result_code addr=ff4054 20->9D2A
-[frame 000387] symbol_change in_390001 addr=ff405b 20->2A
-[frame 000387] symbol_change in_390003 addr=ff405a 0->9D
-[frame 000387] symbol_change in_390005 addr=ff4059 4->20
-[frame 000387] symbol_change in_390007 addr=ff4058 27->0
-[frame 000387] symbol_change reg_3e0001 addr=ff4057 2A->4
-[frame 000387] symbol_change reg_3e0003 addr=ff4056 9D->27
-[frame 000387] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
-[frame 000387] symbol_change reg_c50000 addr=ff4064 2704->20
-[frame 000387] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
-[frame 000387] symbol_change reg_350008 addr=ff4060 20->9D2A
-[frame 000387] symbol_change reg_380000 addr=ff405e 2704->20
-[frame 000387] symbol_change c20000_0 addr=ff406a 2704->20
-[frame 000387] symbol_change c20000_1 addr=ff406c 20->9D2A
-[frame 000387] symbol_change c40000_0 addr=ff4066 20->9D2A
-[frame 000387] symbol_change c40000_1 addr=ff4068 9D2A->2704
-[frame 000388] symbol_change dip1 addr=ff0005 20->2A
-[frame 000388] symbol_change dip2 addr=ff0004 0->9D
-[frame 000388] symbol_change workram_10c000 addr=ff004e 9D2A->2704
-[frame 000388] symbol_change arcade_page0 addr=ff004e 9D2A->2704
-[frame 000388] symbol_change arcade_page2 addr=ff0050 2704->20
-[frame 000388] symbol_change arcade_mode4 addr=ff0052 20->9D2A
-[frame 000388] symbol_change arcade_credits addr=ff0060 9D2A->2704
-[frame 000388] symbol_change arcade_stage addr=ff018c 9D2A->2704
-[frame 000388] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
-[frame 000388] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
-[frame 000388] symbol_change arcade_flag_3b addr=ff0089 20->2A
-[frame 000388] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
-[frame 000390] symbol_change startup_result_code addr=ff4054 9D2A->2704
-[frame 000390] symbol_change in_390001 addr=ff405b 2A->4
-[frame 000390] symbol_change in_390003 addr=ff405a 9D->27
-[frame 000390] symbol_change in_390005 addr=ff4059 20->2A
-[frame 000390] symbol_change in_390007 addr=ff4058 0->9D
-[frame 000390] symbol_change reg_3e0001 addr=ff4057 4->20
-[frame 000390] symbol_change reg_3e0003 addr=ff4056 27->0
-[frame 000390] symbol_change reg_3c0000 addr=ff405c 2704->20
-[frame 000390] symbol_change reg_c50000 addr=ff4064 20->9D2A
-[frame 000390] symbol_change reg_d01bfe addr=ff4062 2704->20
-[frame 000390] symbol_change reg_350008 addr=ff4060 9D2A->2704
-[frame 000390] symbol_change reg_380000 addr=ff405e 20->9D2A
-[frame 000390] symbol_change c20000_0 addr=ff406a 20->9D2A
-[frame 000390] symbol_change c20000_1 addr=ff406c 9D2A->2704
-[frame 000390] symbol_change c40000_0 addr=ff4066 9D2A->2704
-[frame 000390] symbol_change c40000_1 addr=ff4068 2704->20
-[frame 000390] window_change wram_ff0000
+[frame 000374] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0b47f54 usp=00000000
+[frame 000374] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000374] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000374] exception_guess fmt=0000 offset_guess=00000000
+[frame 000374] stack +00 = 0000
+[frame 000374] stack +02 = 0000
+[frame 000374] stack +04 = 0000
+[frame 000374] stack +06 = 0000
+[frame 000374] stack +08 = 0000
+[frame 000374] stack +0a = 0000
+[frame 000374] stack +0c = 0000
+[frame 000374] stack +0e = 0000
+[frame 000374] stack +10 = 0000
+[frame 000374] stack +12 = 0000
+[frame 000374] stack +14 = 0000
+[frame 000374] stack +16 = 0000
+[frame 000374] stack +18 = 0000
+[frame 000374] stack +1a = 0000
+[frame 000374] stack +1c = 0000
+[frame 000374] stack +1e = 0000
+[frame 000385] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0b0b4b6 usp=00000000
+[frame 000385] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000385] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000385] exception_guess fmt=0000 offset_guess=00000000
+[frame 000385] stack +00 = 0000
+[frame 000385] stack +02 = 0000
+[frame 000385] stack +04 = 0000
+[frame 000385] stack +06 = 0000
+[frame 000385] stack +08 = 0000
+[frame 000385] stack +0a = 0000
+[frame 000385] stack +0c = 0000
+[frame 000385] stack +0e = 0000
+[frame 000385] stack +10 = 0000
+[frame 000385] stack +12 = 0000
+[frame 000385] stack +14 = 0000
+[frame 000385] stack +16 = 0000
+[frame 000385] stack +18 = 0000
+[frame 000385] stack +1a = 0000
+[frame 000385] stack +1c = 0000
+[frame 000385] stack +1e = 0000
+[frame 000390] pc=209d2a exec=other
 [frame 000390] window_change z80_ctrl
-[frame 000391] symbol_change dip1 addr=ff0005 2A->4
-[frame 000391] symbol_change dip2 addr=ff0004 9D->27
-[frame 000391] symbol_change workram_10c000 addr=ff004e 2704->20
-[frame 000391] symbol_change arcade_page0 addr=ff004e 2704->20
-[frame 000391] symbol_change arcade_page2 addr=ff0050 20->9D2A
-[frame 000391] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
-[frame 000391] symbol_change arcade_credits addr=ff0060 2704->20
-[frame 000391] symbol_change arcade_stage addr=ff018c 2704->20
-[frame 000391] symbol_change arcade_flag_2a addr=ff0078 2704->20
-[frame 000391] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
-[frame 000391] symbol_change arcade_flag_3b addr=ff0089 2A->4
-[frame 000391] symbol_change arcade_mode_42 addr=ff0090 2704->20
-[frame 000393] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000393] symbol_change in_390001 addr=ff405b 4->20
-[frame 000393] symbol_change in_390003 addr=ff405a 27->0
-[frame 000393] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000393] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000393] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000393] symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000393] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000393] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000393] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000393] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000393] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000393] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000393] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000393] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000393] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000394] symbol_change dip1 addr=ff0005 4->20
-[frame 000394] symbol_change dip2 addr=ff0004 27->0
-[frame 000394] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000394] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000394] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000394] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000394] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000394] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000394] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000394] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000394] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000394] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000395] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0fa77be usp=00000000
-[frame 000395] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000395] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000395] exception_guess fmt=2704 offset_guess=00209d2a
-[frame 000395] stack +00 = 2704
-[frame 000395] stack +02 = 0020
-[frame 000395] stack +04 = 9d2a
-[frame 000395] stack +06 = 2704
-[frame 000395] stack +08 = 0020
-[frame 000395] stack +0a = 9d2a
-[frame 000395] stack +0c = 2704
-[frame 000395] stack +0e = 0020
-[frame 000395] stack +10 = 9d2a
-[frame 000395] stack +12 = 2704
-[frame 000395] stack +14 = 0020
-[frame 000395] stack +16 = 9d2a
-[frame 000395] stack +18 = 2704
-[frame 000395] stack +1a = 0020
-[frame 000395] stack +1c = 9d2a
-[frame 000395] stack +1e = 2704
-[frame 000396] symbol_change startup_result_code addr=ff4054 20->9D2A
-[frame 000396] symbol_change in_390001 addr=ff405b 20->2A
-[frame 000396] symbol_change in_390003 addr=ff405a 0->9D
-[frame 000396] symbol_change in_390005 addr=ff4059 4->20
-[frame 000396] symbol_change in_390007 addr=ff4058 27->0
-[frame 000396] symbol_change reg_3e0001 addr=ff4057 2A->4
-[frame 000396] symbol_change reg_3e0003 addr=ff4056 9D->27
-[frame 000396] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
-[frame 000396] symbol_change reg_c50000 addr=ff4064 2704->20
-[frame 000396] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
-[frame 000396] symbol_change reg_350008 addr=ff4060 20->9D2A
-[frame 000396] symbol_change reg_380000 addr=ff405e 2704->20
-[frame 000396] symbol_change c20000_0 addr=ff406a 2704->20
-[frame 000396] symbol_change c20000_1 addr=ff406c 20->9D2A
-[frame 000396] symbol_change c40000_0 addr=ff4066 20->9D2A
-[frame 000396] symbol_change c40000_1 addr=ff4068 9D2A->2704
-[frame 000397] symbol_change dip1 addr=ff0005 20->2A
-[frame 000397] symbol_change dip2 addr=ff0004 0->9D
-[frame 000397] symbol_change workram_10c000 addr=ff004e 9D2A->2704
-[frame 000397] symbol_change arcade_page0 addr=ff004e 9D2A->2704
-[frame 000397] symbol_change arcade_page2 addr=ff0050 2704->20
-[frame 000397] symbol_change arcade_mode4 addr=ff0052 20->9D2A
-[frame 000397] symbol_change arcade_credits addr=ff0060 9D2A->2704
-[frame 000397] symbol_change arcade_stage addr=ff018c 9D2A->2704
-[frame 000397] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
-[frame 000397] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
-[frame 000397] symbol_change arcade_flag_3b addr=ff0089 20->2A
-[frame 000397] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
-[frame 000399] symbol_change startup_result_code addr=ff4054 9D2A->2704
-[frame 000399] symbol_change in_390001 addr=ff405b 2A->4
-[frame 000399] symbol_change in_390003 addr=ff405a 9D->27
-[frame 000399] symbol_change in_390005 addr=ff4059 20->2A
-[frame 000399] symbol_change in_390007 addr=ff4058 0->9D
-[frame 000399] symbol_change reg_3e0001 addr=ff4057 4->20
-[frame 000399] symbol_change reg_3e0003 addr=ff4056 27->0
-[frame 000399] symbol_change reg_3c0000 addr=ff405c 2704->20
-[frame 000399] symbol_change reg_c50000 addr=ff4064 20->9D2A
-[frame 000399] symbol_change reg_d01bfe addr=ff4062 2704->20
-[frame 000399] symbol_change reg_350008 addr=ff4060 9D2A->2704
-[frame 000399] symbol_change reg_380000 addr=ff405e 20->9D2A
-[frame 000399] symbol_change c20000_0 addr=ff406a 20->9D2A
-[frame 000399] symbol_change c20000_1 addr=ff406c 9D2A->2704
-[frame 000399] symbol_change c40000_0 addr=ff4066 9D2A->2704
-[frame 000399] symbol_change c40000_1 addr=ff4068 2704->20
-[frame 000400] symbol_change dip1 addr=ff0005 2A->4
-[frame 000400] symbol_change dip2 addr=ff0004 9D->27
-[frame 000400] symbol_change workram_10c000 addr=ff004e 2704->20
-[frame 000400] symbol_change arcade_page0 addr=ff004e 2704->20
-[frame 000400] symbol_change arcade_page2 addr=ff0050 20->9D2A
-[frame 000400] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
-[frame 000400] symbol_change arcade_credits addr=ff0060 2704->20
-[frame 000400] symbol_change arcade_stage addr=ff018c 2704->20
-[frame 000400] symbol_change arcade_flag_2a addr=ff0078 2704->20
-[frame 000400] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
-[frame 000400] symbol_change arcade_flag_3b addr=ff0089 2A->4
-[frame 000400] symbol_change arcade_mode_42 addr=ff0090 2704->20
-[frame 000402] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000402] symbol_change in_390001 addr=ff405b 4->20
-[frame 000402] symbol_change in_390003 addr=ff405a 27->0
-[frame 000402] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000402] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000402] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000402] symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000402] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000402] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000402] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000402] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000402] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000402] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000402] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000402] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000402] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000403] symbol_change dip1 addr=ff0005 4->20
-[frame 000403] symbol_change dip2 addr=ff0004 27->0
-[frame 000403] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000403] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000403] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000403] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000403] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000403] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000403] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000403] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000403] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000403] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000405] symbol_change startup_result_code addr=ff4054 20->9D2A
-[frame 000405] symbol_change in_390001 addr=ff405b 20->2A
-[frame 000405] symbol_change in_390003 addr=ff405a 0->9D
-[frame 000405] symbol_change in_390005 addr=ff4059 4->20
-[frame 000405] symbol_change in_390007 addr=ff4058 27->0
-[frame 000405] symbol_change reg_3e0001 addr=ff4057 2A->4
-[frame 000405] symbol_change reg_3e0003 addr=ff4056 9D->27
-[frame 000405] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
-[frame 000405] symbol_change reg_c50000 addr=ff4064 2704->20
-[frame 000405] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
-[frame 000405] symbol_change reg_350008 addr=ff4060 20->9D2A
-[frame 000405] symbol_change reg_380000 addr=ff405e 2704->20
-[frame 000405] symbol_change c20000_0 addr=ff406a 2704->20
-[frame 000405] symbol_change c20000_1 addr=ff406c 20->9D2A
-[frame 000405] symbol_change c40000_0 addr=ff4066 20->9D2A
-[frame 000405] symbol_change c40000_1 addr=ff4068 9D2A->2704
-[frame 000406] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0f6ad20 usp=00000000
-[frame 000406] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000406] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000406] exception_guess fmt=2704 offset_guess=00209d2a
-[frame 000406] stack +00 = 2704
-[frame 000406] stack +02 = 0020
-[frame 000406] stack +04 = 9d2a
-[frame 000406] stack +06 = 2704
-[frame 000406] stack +08 = 0020
-[frame 000406] stack +0a = 9d2a
-[frame 000406] stack +0c = 2704
-[frame 000406] stack +0e = 0020
-[frame 000406] stack +10 = 9d2a
-[frame 000406] stack +12 = 2704
-[frame 000406] stack +14 = 0020
-[frame 000406] stack +16 = 9d2a
-[frame 000406] stack +18 = 2704
-[frame 000406] stack +1a = 0020
-[frame 000406] stack +1c = 9d2a
-[frame 000406] stack +1e = 2704
-[frame 000406] symbol_change dip1 addr=ff0005 20->2A
-[frame 000406] symbol_change dip2 addr=ff0004 0->9D
-[frame 000406] symbol_change workram_10c000 addr=ff004e 9D2A->2704
-[frame 000406] symbol_change arcade_page0 addr=ff004e 9D2A->2704
-[frame 000406] symbol_change arcade_page2 addr=ff0050 2704->20
-[frame 000406] symbol_change arcade_mode4 addr=ff0052 20->9D2A
-[frame 000406] symbol_change arcade_credits addr=ff0060 9D2A->2704
-[frame 000406] symbol_change arcade_stage addr=ff018c 9D2A->2704
-[frame 000406] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
-[frame 000406] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
-[frame 000406] symbol_change arcade_flag_3b addr=ff0089 20->2A
-[frame 000406] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
-[frame 000408] symbol_change startup_result_code addr=ff4054 9D2A->2704
-[frame 000408] symbol_change dip1 addr=ff0005 2A->4
-[frame 000408] symbol_change dip2 addr=ff0004 9D->27
-[frame 000408] symbol_change in_390001 addr=ff405b 2A->4
-[frame 000408] symbol_change in_390003 addr=ff405a 9D->27
-[frame 000408] symbol_change in_390005 addr=ff4059 20->2A
-[frame 000408] symbol_change in_390007 addr=ff4058 0->9D
-[frame 000408] symbol_change reg_3e0001 addr=ff4057 4->20
-[frame 000408] symbol_change reg_3e0003 addr=ff4056 27->0
-[frame 000408] symbol_change reg_3c0000 addr=ff405c 2704->20
-[frame 000408] symbol_change reg_c50000 addr=ff4064 20->9D2A
-[frame 000408] symbol_change reg_d01bfe addr=ff4062 2704->20
-[frame 000408] symbol_change reg_350008 addr=ff4060 9D2A->2704
-[frame 000408] symbol_change reg_380000 addr=ff405e 20->9D2A
-[frame 000408] symbol_change c20000_0 addr=ff406a 20->9D2A
-[frame 000408] symbol_change c20000_1 addr=ff406c 9D2A->2704
-[frame 000408] symbol_change c40000_0 addr=ff4066 9D2A->2704
-[frame 000408] symbol_change c40000_1 addr=ff4068 2704->20
-[frame 000408] symbol_change workram_10c000 addr=ff004e 2704->20
-[frame 000408] symbol_change arcade_page0 addr=ff004e 2704->20
-[frame 000408] symbol_change arcade_page2 addr=ff0050 20->9D2A
-[frame 000408] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
-[frame 000408] symbol_change arcade_credits addr=ff0060 2704->20
-[frame 000408] symbol_change arcade_stage addr=ff018c 2704->20
-[frame 000408] symbol_change arcade_flag_2a addr=ff0078 2704->20
-[frame 000408] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
-[frame 000408] symbol_change arcade_flag_3b addr=ff0089 2A->4
-[frame 000408] symbol_change arcade_mode_42 addr=ff0090 2704->20
-[frame 000411] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000411] symbol_change dip1 addr=ff0005 4->20
-[frame 000411] symbol_change dip2 addr=ff0004 27->0
-[frame 000411] symbol_change in_390001 addr=ff405b 4->20
-[frame 000411] symbol_change in_390003 addr=ff405a 27->0
-[frame 000411] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000411] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000411] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000411] symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000411] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000411] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000411] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000411] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000411] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000411] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000411] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000411] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000411] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000411] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000411] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000411] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000411] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000411] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000411] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000411] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000411] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000411] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000411] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000414] symbol_change startup_result_code addr=ff4054 20->9D2A
-[frame 000414] symbol_change dip1 addr=ff0005 20->2A
-[frame 000414] symbol_change dip2 addr=ff0004 0->9D
-[frame 000414] symbol_change in_390001 addr=ff405b 20->2A
-[frame 000414] symbol_change in_390003 addr=ff405a 0->9D
-[frame 000414] symbol_change in_390005 addr=ff4059 4->20
-[frame 000414] symbol_change in_390007 addr=ff4058 27->0
-[frame 000414] symbol_change reg_3e0001 addr=ff4057 2A->4
-[frame 000414] symbol_change reg_3e0003 addr=ff4056 9D->27
-[frame 000414] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
-[frame 000414] symbol_change reg_c50000 addr=ff4064 2704->20
-[frame 000414] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
-[frame 000414] symbol_change reg_350008 addr=ff4060 20->9D2A
-[frame 000414] symbol_change reg_380000 addr=ff405e 2704->20
-[frame 000414] symbol_change c20000_0 addr=ff406a 2704->20
-[frame 000414] symbol_change c20000_1 addr=ff406c 20->9D2A
-[frame 000414] symbol_change c40000_0 addr=ff4066 20->9D2A
-[frame 000414] symbol_change c40000_1 addr=ff4068 9D2A->2704
-[frame 000414] symbol_change workram_10c000 addr=ff004e 9D2A->2704
-[frame 000414] symbol_change arcade_page0 addr=ff004e 9D2A->2704
-[frame 000414] symbol_change arcade_page2 addr=ff0050 2704->20
-[frame 000414] symbol_change arcade_mode4 addr=ff0052 20->9D2A
-[frame 000414] symbol_change arcade_credits addr=ff0060 9D2A->2704
-[frame 000414] symbol_change arcade_stage addr=ff018c 9D2A->2704
-[frame 000414] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
-[frame 000414] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
-[frame 000414] symbol_change arcade_flag_3b addr=ff0089 20->2A
-[frame 000414] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
-[frame 000416] symbol_change startup_result_code addr=ff4054 9D2A->2704
-[frame 000416] symbol_change in_390001 addr=ff405b 2A->4
-[frame 000416] symbol_change in_390003 addr=ff405a 9D->27
-[frame 000416] symbol_change in_390005 addr=ff4059 20->2A
-[frame 000416] symbol_change in_390007 addr=ff4058 0->9D
-[frame 000416] symbol_change reg_3e0001 addr=ff4057 4->20
-[frame 000416] symbol_change reg_3e0003 addr=ff4056 27->0
-[frame 000416] symbol_change reg_3c0000 addr=ff405c 2704->20
-[frame 000416] symbol_change reg_c50000 addr=ff4064 20->9D2A
-[frame 000416] symbol_change reg_d01bfe addr=ff4062 2704->20
-[frame 000416] symbol_change reg_350008 addr=ff4060 9D2A->2704
-[frame 000416] symbol_change reg_380000 addr=ff405e 20->9D2A
-[frame 000416] symbol_change c20000_0 addr=ff406a 20->9D2A
-[frame 000416] symbol_change c20000_1 addr=ff406c 9D2A->2704
-[frame 000416] symbol_change c40000_0 addr=ff4066 9D2A->2704
-[frame 000416] symbol_change c40000_1 addr=ff4068 2704->20
-[frame 000417] symbol_change dip1 addr=ff0005 2A->4
-[frame 000417] symbol_change dip2 addr=ff0004 9D->27
-[frame 000417] symbol_change workram_10c000 addr=ff004e 2704->20
-[frame 000417] symbol_change arcade_page0 addr=ff004e 2704->20
-[frame 000417] symbol_change arcade_page2 addr=ff0050 20->9D2A
-[frame 000417] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
-[frame 000417] symbol_change arcade_credits addr=ff0060 2704->20
-[frame 000417] symbol_change arcade_stage addr=ff018c 2704->20
-[frame 000417] symbol_change arcade_flag_2a addr=ff0078 2704->20
-[frame 000417] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
-[frame 000417] symbol_change arcade_flag_3b addr=ff0089 2A->4
-[frame 000417] symbol_change arcade_mode_42 addr=ff0090 2704->20
-[frame 000419] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0f23200 usp=00000000
-[frame 000419] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000419] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000419] exception_guess fmt=2704 offset_guess=00209d2a
-[frame 000419] stack +00 = 2704
-[frame 000419] stack +02 = 0020
-[frame 000419] stack +04 = 9d2a
-[frame 000419] stack +06 = 2704
-[frame 000419] stack +08 = 0020
-[frame 000419] stack +0a = 9d2a
-[frame 000419] stack +0c = 2704
-[frame 000419] stack +0e = 0020
-[frame 000419] stack +10 = 9d2a
-[frame 000419] stack +12 = 2704
-[frame 000419] stack +14 = 0020
-[frame 000419] stack +16 = 9d2a
-[frame 000419] stack +18 = 2704
-[frame 000419] stack +1a = 0020
-[frame 000419] stack +1c = 9d2a
-[frame 000419] stack +1e = 2704
-[frame 000419] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000419] symbol_change in_390001 addr=ff405b 4->20
-[frame 000419] symbol_change in_390003 addr=ff405a 27->0
-[frame 000419] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000419] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000419] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000419] symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000419] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000419] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000419] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000419] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000419] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000419] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000419] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000419] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000419] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000420] symbol_change dip1 addr=ff0005 4->20
-[frame 000420] symbol_change dip2 addr=ff0004 27->0
-[frame 000420] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000420] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000420] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000420] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000420] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000420] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000420] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000420] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000420] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000420] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000420] window_change wram_ff0000
+[frame 000398] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0ac3996 usp=00000000
+[frame 000398] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000398] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000398] exception_guess fmt=0000 offset_guess=00000000
+[frame 000398] stack +00 = 0000
+[frame 000398] stack +02 = 0000
+[frame 000398] stack +04 = 0000
+[frame 000398] stack +06 = 0000
+[frame 000398] stack +08 = 0000
+[frame 000398] stack +0a = 0000
+[frame 000398] stack +0c = 0000
+[frame 000398] stack +0e = 0000
+[frame 000398] stack +10 = 0000
+[frame 000398] stack +12 = 0000
+[frame 000398] stack +14 = 0000
+[frame 000398] stack +16 = 0000
+[frame 000398] stack +18 = 0000
+[frame 000398] stack +1a = 0000
+[frame 000398] stack +1c = 0000
+[frame 000398] stack +1e = 0000
+[frame 000409] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0a86ef8 usp=00000000
+[frame 000409] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000409] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000409] exception_guess fmt=0000 offset_guess=00000000
+[frame 000409] stack +00 = 0000
+[frame 000409] stack +02 = 0000
+[frame 000409] stack +04 = 0000
+[frame 000409] stack +06 = 0000
+[frame 000409] stack +08 = 0000
+[frame 000409] stack +0a = 0000
+[frame 000409] stack +0c = 0000
+[frame 000409] stack +0e = 0000
+[frame 000409] stack +10 = 0000
+[frame 000409] stack +12 = 0000
+[frame 000409] stack +14 = 0000
+[frame 000409] stack +16 = 0000
+[frame 000409] stack +18 = 0000
+[frame 000409] stack +1a = 0000
+[frame 000409] stack +1c = 0000
+[frame 000409] stack +1e = 0000
 [frame 000420] window_change z80_ctrl
-[frame 000422] symbol_change startup_result_code addr=ff4054 20->9D2A
-[frame 000422] symbol_change in_390001 addr=ff405b 20->2A
-[frame 000422] symbol_change in_390003 addr=ff405a 0->9D
-[frame 000422] symbol_change in_390005 addr=ff4059 4->20
-[frame 000422] symbol_change in_390007 addr=ff4058 27->0
-[frame 000422] symbol_change reg_3e0001 addr=ff4057 2A->4
-[frame 000422] symbol_change reg_3e0003 addr=ff4056 9D->27
-[frame 000422] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
-[frame 000422] symbol_change reg_c50000 addr=ff4064 2704->20
-[frame 000422] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
-[frame 000422] symbol_change reg_350008 addr=ff4060 20->9D2A
-[frame 000422] symbol_change reg_380000 addr=ff405e 2704->20
-[frame 000422] symbol_change c20000_0 addr=ff406a 2704->20
-[frame 000422] symbol_change c20000_1 addr=ff406c 20->9D2A
-[frame 000422] symbol_change c40000_0 addr=ff4066 20->9D2A
-[frame 000422] symbol_change c40000_1 addr=ff4068 9D2A->2704
-[frame 000423] symbol_change dip1 addr=ff0005 20->2A
-[frame 000423] symbol_change dip2 addr=ff0004 0->9D
-[frame 000423] symbol_change workram_10c000 addr=ff004e 9D2A->2704
-[frame 000423] symbol_change arcade_page0 addr=ff004e 9D2A->2704
-[frame 000423] symbol_change arcade_page2 addr=ff0050 2704->20
-[frame 000423] symbol_change arcade_mode4 addr=ff0052 20->9D2A
-[frame 000423] symbol_change arcade_credits addr=ff0060 9D2A->2704
-[frame 000423] symbol_change arcade_stage addr=ff018c 9D2A->2704
-[frame 000423] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
-[frame 000423] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
-[frame 000423] symbol_change arcade_flag_3b addr=ff0089 20->2A
-[frame 000423] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
-[frame 000425] symbol_change startup_result_code addr=ff4054 9D2A->2704
-[frame 000425] symbol_change in_390001 addr=ff405b 2A->4
-[frame 000425] symbol_change in_390003 addr=ff405a 9D->27
-[frame 000425] symbol_change in_390005 addr=ff4059 20->2A
-[frame 000425] symbol_change in_390007 addr=ff4058 0->9D
-[frame 000425] symbol_change reg_3e0001 addr=ff4057 4->20
-[frame 000425] symbol_change reg_3e0003 addr=ff4056 27->0
-[frame 000425] symbol_change reg_3c0000 addr=ff405c 2704->20
-[frame 000425] symbol_change reg_c50000 addr=ff4064 20->9D2A
-[frame 000425] symbol_change reg_d01bfe addr=ff4062 2704->20
-[frame 000425] symbol_change reg_350008 addr=ff4060 9D2A->2704
-[frame 000425] symbol_change reg_380000 addr=ff405e 20->9D2A
-[frame 000425] symbol_change c20000_0 addr=ff406a 20->9D2A
-[frame 000425] symbol_change c20000_1 addr=ff406c 9D2A->2704
-[frame 000425] symbol_change c40000_0 addr=ff4066 9D2A->2704
-[frame 000425] symbol_change c40000_1 addr=ff4068 2704->20
-[frame 000426] symbol_change dip1 addr=ff0005 2A->4
-[frame 000426] symbol_change dip2 addr=ff0004 9D->27
-[frame 000426] symbol_change workram_10c000 addr=ff004e 2704->20
-[frame 000426] symbol_change arcade_page0 addr=ff004e 2704->20
-[frame 000426] symbol_change arcade_page2 addr=ff0050 20->9D2A
-[frame 000426] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
-[frame 000426] symbol_change arcade_credits addr=ff0060 2704->20
-[frame 000426] symbol_change arcade_stage addr=ff018c 2704->20
-[frame 000426] symbol_change arcade_flag_2a addr=ff0078 2704->20
-[frame 000426] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
-[frame 000426] symbol_change arcade_flag_3b addr=ff0089 2A->4
-[frame 000426] symbol_change arcade_mode_42 addr=ff0090 2704->20
-[frame 000428] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000428] symbol_change in_390001 addr=ff405b 4->20
-[frame 000428] symbol_change in_390003 addr=ff405a 27->0
-[frame 000428] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000428] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000428] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000428] symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000428] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000428] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000428] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000428] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000428] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000428] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000428] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000428] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000428] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000429] symbol_change dip1 addr=ff0005 4->20
-[frame 000429] symbol_change dip2 addr=ff0004 27->0
-[frame 000429] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000429] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000429] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000429] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000429] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000429] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000429] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000429] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000429] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000429] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000430] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0ee6762 usp=00000000
-[frame 000430] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000430] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000430] exception_guess fmt=2704 offset_guess=00209d2a
-[frame 000430] stack +00 = 2704
-[frame 000430] stack +02 = 0020
-[frame 000430] stack +04 = 9d2a
-[frame 000430] stack +06 = 2704
-[frame 000430] stack +08 = 0020
-[frame 000430] stack +0a = 9d2a
-[frame 000430] stack +0c = 2704
-[frame 000430] stack +0e = 0020
-[frame 000430] stack +10 = 9d2a
-[frame 000430] stack +12 = 2704
-[frame 000430] stack +14 = 0020
-[frame 000430] stack +16 = 9d2a
-[frame 000430] stack +18 = 2704
-[frame 000430] stack +1a = 0020
-[frame 000430] stack +1c = 9d2a
-[frame 000430] stack +1e = 2704
-[frame 000431] symbol_change startup_result_code addr=ff4054 20->9D2A
-[frame 000431] symbol_change in_390001 addr=ff405b 20->2A
-[frame 000431] symbol_change in_390003 addr=ff405a 0->9D
-[frame 000431] symbol_change in_390005 addr=ff4059 4->20
-[frame 000431] symbol_change in_390007 addr=ff4058 27->0
-[frame 000431] symbol_change reg_3e0001 addr=ff4057 2A->4
-[frame 000431] symbol_change reg_3e0003 addr=ff4056 9D->27
-[frame 000431] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
-[frame 000431] symbol_change reg_c50000 addr=ff4064 2704->20
-[frame 000431] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
-[frame 000431] symbol_change reg_350008 addr=ff4060 20->9D2A
-[frame 000431] symbol_change reg_380000 addr=ff405e 2704->20
-[frame 000431] symbol_change c20000_0 addr=ff406a 2704->20
-[frame 000431] symbol_change c20000_1 addr=ff406c 20->9D2A
-[frame 000431] symbol_change c40000_0 addr=ff4066 20->9D2A
-[frame 000431] symbol_change c40000_1 addr=ff4068 9D2A->2704
-[frame 000432] symbol_change dip1 addr=ff0005 20->2A
-[frame 000432] symbol_change dip2 addr=ff0004 0->9D
-[frame 000432] symbol_change workram_10c000 addr=ff004e 9D2A->2704
-[frame 000432] symbol_change arcade_page0 addr=ff004e 9D2A->2704
-[frame 000432] symbol_change arcade_page2 addr=ff0050 2704->20
-[frame 000432] symbol_change arcade_mode4 addr=ff0052 20->9D2A
-[frame 000432] symbol_change arcade_credits addr=ff0060 9D2A->2704
-[frame 000432] symbol_change arcade_stage addr=ff018c 9D2A->2704
-[frame 000432] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
-[frame 000432] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
-[frame 000432] symbol_change arcade_flag_3b addr=ff0089 20->2A
-[frame 000432] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
-[frame 000434] symbol_change startup_result_code addr=ff4054 9D2A->2704
-[frame 000434] symbol_change in_390001 addr=ff405b 2A->4
-[frame 000434] symbol_change in_390003 addr=ff405a 9D->27
-[frame 000434] symbol_change in_390005 addr=ff4059 20->2A
-[frame 000434] symbol_change in_390007 addr=ff4058 0->9D
-[frame 000434] symbol_change reg_3e0001 addr=ff4057 4->20
-[frame 000434] symbol_change reg_3e0003 addr=ff4056 27->0
-[frame 000434] symbol_change reg_3c0000 addr=ff405c 2704->20
-[frame 000434] symbol_change reg_c50000 addr=ff4064 20->9D2A
-[frame 000434] symbol_change reg_d01bfe addr=ff4062 2704->20
-[frame 000434] symbol_change reg_350008 addr=ff4060 9D2A->2704
-[frame 000434] symbol_change reg_380000 addr=ff405e 20->9D2A
-[frame 000434] symbol_change c20000_0 addr=ff406a 20->9D2A
-[frame 000434] symbol_change c20000_1 addr=ff406c 9D2A->2704
-[frame 000434] symbol_change c40000_0 addr=ff4066 9D2A->2704
-[frame 000434] symbol_change c40000_1 addr=ff4068 2704->20
-[frame 000435] symbol_change dip1 addr=ff0005 2A->4
-[frame 000435] symbol_change dip2 addr=ff0004 9D->27
-[frame 000435] symbol_change workram_10c000 addr=ff004e 2704->20
-[frame 000435] symbol_change arcade_page0 addr=ff004e 2704->20
-[frame 000435] symbol_change arcade_page2 addr=ff0050 20->9D2A
-[frame 000435] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
-[frame 000435] symbol_change arcade_credits addr=ff0060 2704->20
-[frame 000435] symbol_change arcade_stage addr=ff018c 2704->20
-[frame 000435] symbol_change arcade_flag_2a addr=ff0078 2704->20
-[frame 000435] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
-[frame 000435] symbol_change arcade_flag_3b addr=ff0089 2A->4
-[frame 000435] symbol_change arcade_mode_42 addr=ff0090 2704->20
-[frame 000437] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000437] symbol_change dip1 addr=ff0005 4->20
-[frame 000437] symbol_change dip2 addr=ff0004 27->0
-[frame 000437] symbol_change in_390001 addr=ff405b 4->20
-[frame 000437] symbol_change in_390003 addr=ff405a 27->0
-[frame 000437] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000437] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000437] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000437] symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000437] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000437] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000437] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000437] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000437] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000437] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000437] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000437] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000437] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000437] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000437] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000437] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000437] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000437] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000437] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000437] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000437] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000437] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000437] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000440] symbol_change startup_result_code addr=ff4054 20->9D2A
-[frame 000440] symbol_change dip1 addr=ff0005 20->2A
-[frame 000440] symbol_change dip2 addr=ff0004 0->9D
-[frame 000440] symbol_change in_390001 addr=ff405b 20->2A
-[frame 000440] symbol_change in_390003 addr=ff405a 0->9D
-[frame 000440] symbol_change in_390005 addr=ff4059 4->20
-[frame 000440] symbol_change in_390007 addr=ff4058 27->0
-[frame 000440] symbol_change reg_3e0001 addr=ff4057 2A->4
-[frame 000440] symbol_change reg_3e0003 addr=ff4056 9D->27
-[frame 000440] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
-[frame 000440] symbol_change reg_c50000 addr=ff4064 2704->20
-[frame 000440] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
-[frame 000440] symbol_change reg_350008 addr=ff4060 20->9D2A
-[frame 000440] symbol_change reg_380000 addr=ff405e 2704->20
-[frame 000440] symbol_change c20000_0 addr=ff406a 2704->20
-[frame 000440] symbol_change c20000_1 addr=ff406c 20->9D2A
-[frame 000440] symbol_change c40000_0 addr=ff4066 20->9D2A
-[frame 000440] symbol_change c40000_1 addr=ff4068 9D2A->2704
-[frame 000440] symbol_change workram_10c000 addr=ff004e 9D2A->2704
-[frame 000440] symbol_change arcade_page0 addr=ff004e 9D2A->2704
-[frame 000440] symbol_change arcade_page2 addr=ff0050 2704->20
-[frame 000440] symbol_change arcade_mode4 addr=ff0052 20->9D2A
-[frame 000440] symbol_change arcade_credits addr=ff0060 9D2A->2704
-[frame 000440] symbol_change arcade_stage addr=ff018c 9D2A->2704
-[frame 000440] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
-[frame 000440] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
-[frame 000440] symbol_change arcade_flag_3b addr=ff0089 20->2A
-[frame 000440] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
-[frame 000443] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0e9ec42 usp=00000000
-[frame 000443] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000443] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000443] exception_guess fmt=2704 offset_guess=00209d2a
-[frame 000443] stack +00 = 2704
-[frame 000443] stack +02 = 0020
-[frame 000443] stack +04 = 9d2a
-[frame 000443] stack +06 = 2704
-[frame 000443] stack +08 = 0020
-[frame 000443] stack +0a = 9d2a
-[frame 000443] stack +0c = 2704
-[frame 000443] stack +0e = 0020
-[frame 000443] stack +10 = 9d2a
-[frame 000443] stack +12 = 2704
-[frame 000443] stack +14 = 0020
-[frame 000443] stack +16 = 9d2a
-[frame 000443] stack +18 = 2704
-[frame 000443] stack +1a = 0020
-[frame 000443] stack +1c = 9d2a
-[frame 000443] stack +1e = 2704
-[frame 000443] symbol_change startup_result_code addr=ff4054 9D2A->2704
-[frame 000443] symbol_change dip1 addr=ff0005 2A->4
-[frame 000443] symbol_change dip2 addr=ff0004 9D->27
-[frame 000443] symbol_change in_390001 addr=ff405b 2A->4
-[frame 000443] symbol_change in_390003 addr=ff405a 9D->27
-[frame 000443] symbol_change in_390005 addr=ff4059 20->2A
-[frame 000443] symbol_change in_390007 addr=ff4058 0->9D
-[frame 000443] symbol_change reg_3e0001 addr=ff4057 4->20
-[frame 000443] symbol_change reg_3e0003 addr=ff4056 27->0
-[frame 000443] symbol_change reg_3c0000 addr=ff405c 2704->20
-[frame 000443] symbol_change reg_c50000 addr=ff4064 20->9D2A
-[frame 000443] symbol_change reg_d01bfe addr=ff4062 2704->20
-[frame 000443] symbol_change reg_350008 addr=ff4060 9D2A->2704
-[frame 000443] symbol_change reg_380000 addr=ff405e 20->9D2A
-[frame 000443] symbol_change c20000_0 addr=ff406a 20->9D2A
-[frame 000443] symbol_change c20000_1 addr=ff406c 9D2A->2704
-[frame 000443] symbol_change c40000_0 addr=ff4066 9D2A->2704
-[frame 000443] symbol_change c40000_1 addr=ff4068 2704->20
-[frame 000443] symbol_change workram_10c000 addr=ff004e 2704->20
-[frame 000443] symbol_change arcade_page0 addr=ff004e 2704->20
-[frame 000443] symbol_change arcade_page2 addr=ff0050 20->9D2A
-[frame 000443] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
-[frame 000443] symbol_change arcade_credits addr=ff0060 2704->20
-[frame 000443] symbol_change arcade_stage addr=ff018c 2704->20
-[frame 000443] symbol_change arcade_flag_2a addr=ff0078 2704->20
-[frame 000443] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
-[frame 000443] symbol_change arcade_flag_3b addr=ff0089 2A->4
-[frame 000443] symbol_change arcade_mode_42 addr=ff0090 2704->20
-[frame 000445] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000445] symbol_change in_390001 addr=ff405b 4->20
-[frame 000445] symbol_change in_390003 addr=ff405a 27->0
-[frame 000445] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000445] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000445] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000445] symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000445] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000445] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000445] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000445] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000445] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000445] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000445] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000445] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000445] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000446] symbol_change dip1 addr=ff0005 4->20
-[frame 000446] symbol_change dip2 addr=ff0004 27->0
-[frame 000446] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000446] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000446] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000446] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000446] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000446] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000446] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000446] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000446] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000446] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000448] symbol_change startup_result_code addr=ff4054 20->9D2A
-[frame 000448] symbol_change in_390001 addr=ff405b 20->2A
-[frame 000448] symbol_change in_390003 addr=ff405a 0->9D
-[frame 000448] symbol_change in_390005 addr=ff4059 4->20
-[frame 000448] symbol_change in_390007 addr=ff4058 27->0
-[frame 000448] symbol_change reg_3e0001 addr=ff4057 2A->4
-[frame 000448] symbol_change reg_3e0003 addr=ff4056 9D->27
-[frame 000448] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
-[frame 000448] symbol_change reg_c50000 addr=ff4064 2704->20
-[frame 000448] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
-[frame 000448] symbol_change reg_350008 addr=ff4060 20->9D2A
-[frame 000448] symbol_change reg_380000 addr=ff405e 2704->20
-[frame 000448] symbol_change c20000_0 addr=ff406a 2704->20
-[frame 000448] symbol_change c20000_1 addr=ff406c 20->9D2A
-[frame 000448] symbol_change c40000_0 addr=ff4066 20->9D2A
-[frame 000448] symbol_change c40000_1 addr=ff4068 9D2A->2704
-[frame 000449] symbol_change dip1 addr=ff0005 20->2A
-[frame 000449] symbol_change dip2 addr=ff0004 0->9D
-[frame 000449] symbol_change workram_10c000 addr=ff004e 9D2A->2704
-[frame 000449] symbol_change arcade_page0 addr=ff004e 9D2A->2704
-[frame 000449] symbol_change arcade_page2 addr=ff0050 2704->20
-[frame 000449] symbol_change arcade_mode4 addr=ff0052 20->9D2A
-[frame 000449] symbol_change arcade_credits addr=ff0060 9D2A->2704
-[frame 000449] symbol_change arcade_stage addr=ff018c 9D2A->2704
-[frame 000449] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
-[frame 000449] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
-[frame 000449] symbol_change arcade_flag_3b addr=ff0089 20->2A
-[frame 000449] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
-[frame 000450] window_change wram_ff0000
+[frame 000422] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0a3f3d8 usp=00000000
+[frame 000422] regs d0=00000000 d1=00000000 d2=00000080 d3=00000080 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
+[frame 000422] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
+[frame 000422] exception_guess fmt=0000 offset_guess=00000000
+[frame 000422] stack +00 = 0000
+[frame 000422] stack +02 = 0000
+[frame 000422] stack +04 = 0000
+[frame 000422] stack +06 = 0000
+[frame 000422] stack +08 = 0000
+[frame 000422] stack +0a = 0000
+[frame 000422] stack +0c = 0000
+[frame 000422] stack +0e = 0000
+[frame 000422] stack +10 = 0000
+[frame 000422] stack +12 = 0000
+[frame 000422] stack +14 = 0000
+[frame 000422] stack +16 = 0000
+[frame 000422] stack +18 = 0000
+[frame 000422] stack +1a = 0000
+[frame 000422] stack +1c = 0000
+[frame 000422] stack +1e = 0000
+[frame 000450] pc=8bcaf6 exec=other
+[frame 000450] first_window_change io_a10000
+[frame 000450] window_change vdp_ports
 [frame 000450] window_change z80_ctrl
-[frame 000451] symbol_change startup_result_code addr=ff4054 9D2A->2704
-[frame 000451] symbol_change in_390001 addr=ff405b 2A->4
-[frame 000451] symbol_change in_390003 addr=ff405a 9D->27
-[frame 000451] symbol_change in_390005 addr=ff4059 20->2A
-[frame 000451] symbol_change in_390007 addr=ff4058 0->9D
-[frame 000451] symbol_change reg_3e0001 addr=ff4057 4->20
-[frame 000451] symbol_change reg_3e0003 addr=ff4056 27->0
-[frame 000451] symbol_change reg_3c0000 addr=ff405c 2704->20
-[frame 000451] symbol_change reg_c50000 addr=ff4064 20->9D2A
-[frame 000451] symbol_change reg_d01bfe addr=ff4062 2704->20
-[frame 000451] symbol_change reg_350008 addr=ff4060 9D2A->2704
-[frame 000451] symbol_change reg_380000 addr=ff405e 20->9D2A
-[frame 000451] symbol_change c20000_0 addr=ff406a 20->9D2A
-[frame 000451] symbol_change c20000_1 addr=ff406c 9D2A->2704
-[frame 000451] symbol_change c40000_0 addr=ff4066 9D2A->2704
-[frame 000451] symbol_change c40000_1 addr=ff4068 2704->20
-[frame 000452] symbol_change dip1 addr=ff0005 2A->4
-[frame 000452] symbol_change dip2 addr=ff0004 9D->27
-[frame 000452] symbol_change workram_10c000 addr=ff004e 2704->20
-[frame 000452] symbol_change arcade_page0 addr=ff004e 2704->20
-[frame 000452] symbol_change arcade_page2 addr=ff0050 20->9D2A
-[frame 000452] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
-[frame 000452] symbol_change arcade_credits addr=ff0060 2704->20
-[frame 000452] symbol_change arcade_stage addr=ff018c 2704->20
-[frame 000452] symbol_change arcade_flag_2a addr=ff0078 2704->20
-[frame 000452] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
-[frame 000452] symbol_change arcade_flag_3b addr=ff0089 2A->4
-[frame 000452] symbol_change arcade_mode_42 addr=ff0090 2704->20
-[frame 000454] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000454] symbol_change in_390001 addr=ff405b 4->20
-[frame 000454] symbol_change in_390003 addr=ff405a 27->0
-[frame 000454] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000454] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000454] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000454] symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000454] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000454] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000454] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000454] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000454] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000454] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000454] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000454] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000454] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000455] symbol_change dip1 addr=ff0005 4->20
-[frame 000455] symbol_change dip2 addr=ff0004 27->0
-[frame 000455] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000455] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000455] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000455] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000455] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000455] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000455] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000455] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000455] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000455] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000457] symbol_change startup_result_code addr=ff4054 20->9D2A
-[frame 000457] symbol_change in_390001 addr=ff405b 20->2A
-[frame 000457] symbol_change in_390003 addr=ff405a 0->9D
-[frame 000457] symbol_change in_390005 addr=ff4059 4->20
-[frame 000457] symbol_change in_390007 addr=ff4058 27->0
-[frame 000457] symbol_change reg_3e0001 addr=ff4057 2A->4
-[frame 000457] symbol_change reg_3e0003 addr=ff4056 9D->27
-[frame 000457] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
-[frame 000457] symbol_change reg_c50000 addr=ff4064 2704->20
-[frame 000457] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
-[frame 000457] symbol_change reg_350008 addr=ff4060 20->9D2A
-[frame 000457] symbol_change reg_380000 addr=ff405e 2704->20
-[frame 000457] symbol_change c20000_0 addr=ff406a 2704->20
-[frame 000457] symbol_change c20000_1 addr=ff406c 20->9D2A
-[frame 000457] symbol_change c40000_0 addr=ff4066 20->9D2A
-[frame 000457] symbol_change c40000_1 addr=ff4068 9D2A->2704
-[frame 000458] symbol_change dip1 addr=ff0005 20->2A
-[frame 000458] symbol_change dip2 addr=ff0004 0->9D
-[frame 000458] symbol_change workram_10c000 addr=ff004e 9D2A->2704
-[frame 000458] symbol_change arcade_page0 addr=ff004e 9D2A->2704
-[frame 000458] symbol_change arcade_page2 addr=ff0050 2704->20
-[frame 000458] symbol_change arcade_mode4 addr=ff0052 20->9D2A
-[frame 000458] symbol_change arcade_credits addr=ff0060 9D2A->2704
-[frame 000458] symbol_change arcade_stage addr=ff018c 9D2A->2704
-[frame 000458] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
-[frame 000458] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
-[frame 000458] symbol_change arcade_flag_3b addr=ff0089 20->2A
-[frame 000458] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
-[frame 000459] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0e4686e usp=00000000
-[frame 000459] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000459] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000459] exception_guess fmt=2704 offset_guess=00209d2a
-[frame 000459] stack +00 = 2704
-[frame 000459] stack +02 = 0020
-[frame 000459] stack +04 = 9d2a
-[frame 000459] stack +06 = 2704
-[frame 000459] stack +08 = 0020
-[frame 000459] stack +0a = 9d2a
-[frame 000459] stack +0c = 2704
-[frame 000459] stack +0e = 0020
-[frame 000459] stack +10 = 9d2a
-[frame 000459] stack +12 = 2704
-[frame 000459] stack +14 = 0020
-[frame 000459] stack +16 = 9d2a
-[frame 000459] stack +18 = 2704
-[frame 000459] stack +1a = 0020
-[frame 000459] stack +1c = 9d2a
-[frame 000459] stack +1e = 2704
-[frame 000460] symbol_change startup_result_code addr=ff4054 9D2A->2704
-[frame 000460] symbol_change in_390001 addr=ff405b 2A->4
-[frame 000460] symbol_change in_390003 addr=ff405a 9D->27
-[frame 000460] symbol_change in_390005 addr=ff4059 20->2A
-[frame 000460] symbol_change in_390007 addr=ff4058 0->9D
-[frame 000460] symbol_change reg_3e0001 addr=ff4057 4->20
-[frame 000460] symbol_change reg_3e0003 addr=ff4056 27->0
-[frame 000460] symbol_change reg_3c0000 addr=ff405c 2704->20
-[frame 000460] symbol_change reg_c50000 addr=ff4064 20->9D2A
-[frame 000460] symbol_change reg_d01bfe addr=ff4062 2704->20
-[frame 000460] symbol_change reg_350008 addr=ff4060 9D2A->2704
-[frame 000460] symbol_change reg_380000 addr=ff405e 20->9D2A
-[frame 000460] symbol_change c20000_0 addr=ff406a 20->9D2A
-[frame 000460] symbol_change c20000_1 addr=ff406c 9D2A->2704
-[frame 000460] symbol_change c40000_0 addr=ff4066 9D2A->2704
-[frame 000460] symbol_change c40000_1 addr=ff4068 2704->20
-[frame 000461] symbol_change dip1 addr=ff0005 2A->4
-[frame 000461] symbol_change dip2 addr=ff0004 9D->27
-[frame 000461] symbol_change workram_10c000 addr=ff004e 2704->20
-[frame 000461] symbol_change arcade_page0 addr=ff004e 2704->20
-[frame 000461] symbol_change arcade_page2 addr=ff0050 20->9D2A
-[frame 000461] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
-[frame 000461] symbol_change arcade_credits addr=ff0060 2704->20
-[frame 000461] symbol_change arcade_stage addr=ff018c 2704->20
-[frame 000461] symbol_change arcade_flag_2a addr=ff0078 2704->20
-[frame 000461] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
-[frame 000461] symbol_change arcade_flag_3b addr=ff0089 2A->4
-[frame 000461] symbol_change arcade_mode_42 addr=ff0090 2704->20
-[frame 000463] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000463] symbol_change in_390001 addr=ff405b 4->20
-[frame 000463] symbol_change in_390003 addr=ff405a 27->0
-[frame 000463] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000463] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000463] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000463] symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000463] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000463] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000463] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000463] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000463] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000463] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000463] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000463] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000463] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000464] symbol_change dip1 addr=ff0005 4->20
-[frame 000464] symbol_change dip2 addr=ff0004 27->0
-[frame 000464] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000464] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000464] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000464] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000464] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000464] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000464] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000464] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000464] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000464] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000466] symbol_change startup_result_code addr=ff4054 20->9D2A
-[frame 000466] symbol_change dip1 addr=ff0005 20->2A
-[frame 000466] symbol_change dip2 addr=ff0004 0->9D
-[frame 000466] symbol_change in_390001 addr=ff405b 20->2A
-[frame 000466] symbol_change in_390003 addr=ff405a 0->9D
-[frame 000466] symbol_change in_390005 addr=ff4059 4->20
-[frame 000466] symbol_change in_390007 addr=ff4058 27->0
-[frame 000466] symbol_change reg_3e0001 addr=ff4057 2A->4
-[frame 000466] symbol_change reg_3e0003 addr=ff4056 9D->27
-[frame 000466] symbol_change reg_3c0000 addr=ff405c 9D2A->2704
-[frame 000466] symbol_change reg_c50000 addr=ff4064 2704->20
-[frame 000466] symbol_change reg_d01bfe addr=ff4062 9D2A->2704
-[frame 000466] symbol_change reg_350008 addr=ff4060 20->9D2A
-[frame 000466] symbol_change reg_380000 addr=ff405e 2704->20
-[frame 000466] symbol_change c20000_0 addr=ff406a 2704->20
-[frame 000466] symbol_change c20000_1 addr=ff406c 20->9D2A
-[frame 000466] symbol_change c40000_0 addr=ff4066 20->9D2A
-[frame 000466] symbol_change c40000_1 addr=ff4068 9D2A->2704
-[frame 000466] symbol_change workram_10c000 addr=ff004e 9D2A->2704
-[frame 000466] symbol_change arcade_page0 addr=ff004e 9D2A->2704
-[frame 000466] symbol_change arcade_page2 addr=ff0050 2704->20
-[frame 000466] symbol_change arcade_mode4 addr=ff0052 20->9D2A
-[frame 000466] symbol_change arcade_credits addr=ff0060 9D2A->2704
-[frame 000466] symbol_change arcade_stage addr=ff018c 9D2A->2704
-[frame 000466] symbol_change arcade_flag_2a addr=ff0078 9D2A->2704
-[frame 000466] symbol_change arcade_flag_34 addr=ff0082 20->9D2A
-[frame 000466] symbol_change arcade_flag_3b addr=ff0089 20->2A
-[frame 000466] symbol_change arcade_mode_42 addr=ff0090 9D2A->2704
-[frame 000469] symbol_change startup_result_code addr=ff4054 9D2A->2704
-[frame 000469] symbol_change dip1 addr=ff0005 2A->4
-[frame 000469] symbol_change dip2 addr=ff0004 9D->27
-[frame 000469] symbol_change in_390001 addr=ff405b 2A->4
-[frame 000469] symbol_change in_390003 addr=ff405a 9D->27
-[frame 000469] symbol_change in_390005 addr=ff4059 20->2A
-[frame 000469] symbol_change in_390007 addr=ff4058 0->9D
-[frame 000469] symbol_change reg_3e0001 addr=ff4057 4->20
-[frame 000469] symbol_change reg_3e0003 addr=ff4056 27->0
-[frame 000469] symbol_change reg_3c0000 addr=ff405c 2704->20
-[frame 000469] symbol_change reg_c50000 addr=ff4064 20->9D2A
-[frame 000469] symbol_change reg_d01bfe addr=ff4062 2704->20
-[frame 000469] symbol_change reg_350008 addr=ff4060 9D2A->2704
-[frame 000469] symbol_change reg_380000 addr=ff405e 20->9D2A
-[frame 000469] symbol_change c20000_0 addr=ff406a 20->9D2A
-[frame 000469] symbol_change c20000_1 addr=ff406c 9D2A->2704
-[frame 000469] symbol_change c40000_0 addr=ff4066 9D2A->2704
-[frame 000469] symbol_change c40000_1 addr=ff4068 2704->20
-[frame 000469] symbol_change workram_10c000 addr=ff004e 2704->20
-[frame 000469] symbol_change arcade_page0 addr=ff004e 2704->20
-[frame 000469] symbol_change arcade_page2 addr=ff0050 20->9D2A
-[frame 000469] symbol_change arcade_mode4 addr=ff0052 9D2A->2704
-[frame 000469] symbol_change arcade_credits addr=ff0060 2704->20
-[frame 000469] symbol_change arcade_stage addr=ff018c 2704->20
-[frame 000469] symbol_change arcade_flag_2a addr=ff0078 2704->20
-[frame 000469] symbol_change arcade_flag_34 addr=ff0082 9D2A->2704
-[frame 000469] symbol_change arcade_flag_3b addr=ff0089 2A->4
-[frame 000469] symbol_change arcade_mode_42 addr=ff0090 2704->20
-[frame 000472] symbol_change startup_result_code addr=ff4054 2704->20
-[frame 000472] symbol_change dip1 addr=ff0005 4->20
-[frame 000472] symbol_change dip2 addr=ff0004 27->0
-[frame 000472] symbol_change in_390001 addr=ff405b 4->20
-[frame 000472] symbol_change in_390003 addr=ff405a 27->0
-[frame 000472] symbol_change in_390005 addr=ff4059 2A->4
-[frame 000472] symbol_change in_390007 addr=ff4058 9D->27
-[frame 000472] symbol_change reg_3e0001 addr=ff4057 20->2A
-[frame 000472] symbol_change reg_3e0003 addr=ff4056 0->9D
-[frame 000472] symbol_change reg_3c0000 addr=ff405c 20->9D2A
-[frame 000472] symbol_change reg_c50000 addr=ff4064 9D2A->2704
-[frame 000472] symbol_change reg_d01bfe addr=ff4062 20->9D2A
-[frame 000472] symbol_change reg_350008 addr=ff4060 2704->20
-[frame 000472] symbol_change reg_380000 addr=ff405e 9D2A->2704
-[frame 000472] symbol_change c20000_0 addr=ff406a 9D2A->2704
-[frame 000472] symbol_change c20000_1 addr=ff406c 2704->20
-[frame 000472] symbol_change c40000_0 addr=ff4066 2704->20
-[frame 000472] symbol_change c40000_1 addr=ff4068 20->9D2A
-[frame 000472] symbol_change workram_10c000 addr=ff004e 20->9D2A
-[frame 000472] symbol_change arcade_page0 addr=ff004e 20->9D2A
-[frame 000472] symbol_change arcade_page2 addr=ff0050 9D2A->2704
-[frame 000472] symbol_change arcade_mode4 addr=ff0052 2704->20
-[frame 000472] symbol_change arcade_credits addr=ff0060 20->9D2A
-[frame 000472] symbol_change arcade_stage addr=ff018c 20->9D2A
-[frame 000472] symbol_change arcade_flag_2a addr=ff0078 20->9D2A
-[frame 000472] symbol_change arcade_flag_34 addr=ff0082 2704->20
-[frame 000472] symbol_change arcade_flag_3b addr=ff0089 4->20
-[frame 000472] symbol_change arcade_mode_42 addr=ff0090 20->9D2A
-[frame 000475] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0dee49a usp=00000000
-[frame 000475] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000475] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000475] exception_guess fmt=0000 offset_guess=00000000
-[frame 000475] stack +00 = 0000
-[frame 000475] stack +02 = 0000
-[frame 000475] stack +04 = 0000
-[frame 000475] stack +06 = 0000
-[frame 000475] stack +08 = 0000
-[frame 000475] stack +0a = 0000
-[frame 000475] stack +0c = 0000
-[frame 000475] stack +0e = 0000
-[frame 000475] stack +10 = 0000
-[frame 000475] stack +12 = 0000
-[frame 000475] stack +14 = 0000
-[frame 000475] stack +16 = 0000
-[frame 000475] stack +18 = 0000
-[frame 000475] stack +1a = 0000
-[frame 000475] stack +1c = 0000
-[frame 000475] stack +1e = 0000
-[frame 000480] pc=00002c exec=other
-[frame 000480] window_change wram_ff0000
+[frame 000480] pc=9a9c4a exec=other
+[frame 000480] window_change vdp_ports
 [frame 000480] window_change z80_ctrl
-[frame 000490] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0d9b904 usp=00000000
-[frame 000490] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000490] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000490] exception_guess fmt=0000 offset_guess=00000000
-[frame 000490] stack +00 = 0000
-[frame 000490] stack +02 = 0000
-[frame 000490] stack +04 = 0000
-[frame 000490] stack +06 = 0000
-[frame 000490] stack +08 = 0000
-[frame 000490] stack +0a = 0000
-[frame 000490] stack +0c = 0000
-[frame 000490] stack +0e = 0000
-[frame 000490] stack +10 = 0000
-[frame 000490] stack +12 = 0000
-[frame 000490] stack +14 = 0000
-[frame 000490] stack +16 = 0000
-[frame 000490] stack +18 = 0000
-[frame 000490] stack +1a = 0000
-[frame 000490] stack +1c = 0000
-[frame 000490] stack +1e = 0000
-[frame 000501] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0d5ee66 usp=00000000
-[frame 000501] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000501] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000501] exception_guess fmt=0000 offset_guess=00000000
-[frame 000501] stack +00 = 0000
-[frame 000501] stack +02 = 0000
-[frame 000501] stack +04 = 0000
-[frame 000501] stack +06 = 0000
-[frame 000501] stack +08 = 0000
-[frame 000501] stack +0a = 0000
-[frame 000501] stack +0c = 0000
-[frame 000501] stack +0e = 0000
-[frame 000501] stack +10 = 0000
-[frame 000501] stack +12 = 0000
-[frame 000501] stack +14 = 0000
-[frame 000501] stack +16 = 0000
-[frame 000501] stack +18 = 0000
-[frame 000501] stack +1a = 0000
-[frame 000501] stack +1c = 0000
-[frame 000501] stack +1e = 0000
-[frame 000510] pc=209d2c exec=other
+[frame 000510] pc=cc2716 exec=other
+[frame 000510] window_change vdp_ports
 [frame 000510] window_change z80_ctrl
-[frame 000514] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0d17346 usp=00000000
-[frame 000514] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000514] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000514] exception_guess fmt=0000 offset_guess=00000000
-[frame 000514] stack +00 = 0000
-[frame 000514] stack +02 = 0000
-[frame 000514] stack +04 = 0000
-[frame 000514] stack +06 = 0000
-[frame 000514] stack +08 = 0000
-[frame 000514] stack +0a = 0000
-[frame 000514] stack +0c = 0000
-[frame 000514] stack +0e = 0000
-[frame 000514] stack +10 = 0000
-[frame 000514] stack +12 = 0000
-[frame 000514] stack +14 = 0000
-[frame 000514] stack +16 = 0000
-[frame 000514] stack +18 = 0000
-[frame 000514] stack +1a = 0000
-[frame 000514] stack +1c = 0000
-[frame 000514] stack +1e = 0000
-[frame 000525] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0cda8a8 usp=00000000
-[frame 000525] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000525] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000525] exception_guess fmt=0000 offset_guess=00000000
-[frame 000525] stack +00 = 0000
-[frame 000525] stack +02 = 0000
-[frame 000525] stack +04 = 0000
-[frame 000525] stack +06 = 0000
-[frame 000525] stack +08 = 0000
-[frame 000525] stack +0a = 0000
-[frame 000525] stack +0c = 0000
-[frame 000525] stack +0e = 0000
-[frame 000525] stack +10 = 0000
-[frame 000525] stack +12 = 0000
-[frame 000525] stack +14 = 0000
-[frame 000525] stack +16 = 0000
-[frame 000525] stack +18 = 0000
-[frame 000525] stack +1a = 0000
-[frame 000525] stack +1c = 0000
-[frame 000525] stack +1e = 0000
-[frame 000538] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0c92d88 usp=00000000
-[frame 000538] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000538] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000538] exception_guess fmt=0000 offset_guess=00000000
-[frame 000538] stack +00 = 0000
-[frame 000538] stack +02 = 0000
-[frame 000538] stack +04 = 0000
-[frame 000538] stack +06 = 0000
-[frame 000538] stack +08 = 0000
-[frame 000538] stack +0a = 0000
-[frame 000538] stack +0c = 0000
-[frame 000538] stack +0e = 0000
-[frame 000538] stack +10 = 0000
-[frame 000538] stack +12 = 0000
-[frame 000538] stack +14 = 0000
-[frame 000538] stack +16 = 0000
-[frame 000538] stack +18 = 0000
-[frame 000538] stack +1a = 0000
-[frame 000538] stack +1c = 0000
-[frame 000538] stack +1e = 0000
-[frame 000540] first_window_change vdp_ports
+[frame 000540] pc=dca4e2 exec=other
+[frame 000540] window_change vdp_ports
 [frame 000540] window_change z80_ctrl
-[frame 000550] live_write reg_c50000_live pc=209d2a addr=c50000 data=9d2a mask=ffff count=1
-[frame 000554] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0c3a9b4 usp=00000000
-[frame 000554] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000554] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000554] exception_guess fmt=0000 offset_guess=00000000
-[frame 000554] stack +00 = 0000
-[frame 000554] stack +02 = 0000
-[frame 000554] stack +04 = 0000
-[frame 000554] stack +06 = 0000
-[frame 000554] stack +08 = 0000
-[frame 000554] stack +0a = 0000
-[frame 000554] stack +0c = 0000
-[frame 000554] stack +0e = 0000
-[frame 000554] stack +10 = 0000
-[frame 000554] stack +12 = 0000
-[frame 000554] stack +14 = 0000
-[frame 000554] stack +16 = 0000
-[frame 000554] stack +18 = 0000
-[frame 000554] stack +1a = 0000
-[frame 000554] stack +1c = 0000
-[frame 000554] stack +1e = 0000
-[frame 000564] live_write vdp_ports_live pc=209d2a addr=c00008 data=9d2a mask=ffff count=10629
-[frame 000570] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0be25e0 usp=00000000
-[frame 000570] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000570] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000570] exception_guess fmt=0000 offset_guess=00000000
-[frame 000570] stack +00 = 0000
-[frame 000570] stack +02 = 0000
-[frame 000570] stack +04 = 0000
-[frame 000570] stack +06 = 0000
-[frame 000570] stack +08 = 0000
-[frame 000570] stack +0a = 0000
-[frame 000570] stack +0c = 0000
-[frame 000570] stack +0e = 0000
-[frame 000570] stack +10 = 0000
-[frame 000570] stack +12 = 0000
-[frame 000570] stack +14 = 0000
-[frame 000570] stack +16 = 0000
-[frame 000570] stack +18 = 0000
-[frame 000570] stack +1a = 0000
-[frame 000570] stack +1c = 0000
-[frame 000570] stack +1e = 0000
-[frame 000570] pc=209d2a exec=other
+[frame 000570] pc=ea6088 exec=other
+[frame 000570] window_change vdp_ports
 [frame 000570] window_change z80_ctrl
-[frame 000585] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0b8fa4a usp=00000000
-[frame 000585] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000585] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000585] exception_guess fmt=0000 offset_guess=00000000
-[frame 000585] stack +00 = 0000
-[frame 000585] stack +02 = 0000
-[frame 000585] stack +04 = 0000
-[frame 000585] stack +06 = 0000
-[frame 000585] stack +08 = 0000
-[frame 000585] stack +0a = 0000
-[frame 000585] stack +0c = 0000
-[frame 000585] stack +0e = 0000
-[frame 000585] stack +10 = 0000
-[frame 000585] stack +12 = 0000
-[frame 000585] stack +14 = 0000
-[frame 000585] stack +16 = 0000
-[frame 000585] stack +18 = 0000
-[frame 000585] stack +1a = 0000
-[frame 000585] stack +1c = 0000
-[frame 000585] stack +1e = 0000
-[frame 000596] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0b52fac usp=00000000
-[frame 000596] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000596] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000596] exception_guess fmt=0000 offset_guess=00000000
-[frame 000596] stack +00 = 0000
-[frame 000596] stack +02 = 0000
-[frame 000596] stack +04 = 0000
-[frame 000596] stack +06 = 0000
-[frame 000596] stack +08 = 0000
-[frame 000596] stack +0a = 0000
-[frame 000596] stack +0c = 0000
-[frame 000596] stack +0e = 0000
-[frame 000596] stack +10 = 0000
-[frame 000596] stack +12 = 0000
-[frame 000596] stack +14 = 0000
-[frame 000596] stack +16 = 0000
-[frame 000596] stack +18 = 0000
-[frame 000596] stack +1a = 0000
-[frame 000596] stack +1c = 0000
-[frame 000596] stack +1e = 0000
+[frame 000600] pc=f618b4 exec=other
+[frame 000600] window_change vdp_ports
 [frame 000600] window_change z80_ctrl
-[frame 000609] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0b0b48c usp=00000000
-[frame 000609] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000609] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000609] exception_guess fmt=0000 offset_guess=00000000
-[frame 000609] stack +00 = 0000
-[frame 000609] stack +02 = 0000
-[frame 000609] stack +04 = 0000
-[frame 000609] stack +06 = 0000
-[frame 000609] stack +08 = 0000
-[frame 000609] stack +0a = 0000
-[frame 000609] stack +0c = 0000
-[frame 000609] stack +0e = 0000
-[frame 000609] stack +10 = 0000
-[frame 000609] stack +12 = 0000
-[frame 000609] stack +14 = 0000
-[frame 000609] stack +16 = 0000
-[frame 000609] stack +18 = 0000
-[frame 000609] stack +1a = 0000
-[frame 000609] stack +1c = 0000
-[frame 000609] stack +1e = 0000
-[frame 000620] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0ace9ee usp=00000000
-[frame 000620] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000620] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000620] exception_guess fmt=0000 offset_guess=00000000
-[frame 000620] stack +00 = 0000
-[frame 000620] stack +02 = 0000
-[frame 000620] stack +04 = 0000
-[frame 000620] stack +06 = 0000
-[frame 000620] stack +08 = 0000
-[frame 000620] stack +0a = 0000
-[frame 000620] stack +0c = 0000
-[frame 000620] stack +0e = 0000
-[frame 000620] stack +10 = 0000
-[frame 000620] stack +12 = 0000
-[frame 000620] stack +14 = 0000
-[frame 000620] stack +16 = 0000
-[frame 000620] stack +18 = 0000
-[frame 000620] stack +1a = 0000
-[frame 000620] stack +1c = 0000
-[frame 000620] stack +1e = 0000
-[frame 000630] pc=00002c exec=other
+[frame 000630] pc=b68fac exec=other
+[frame 000630] window_change vdp_ports
 [frame 000630] window_change z80_ctrl
-[frame 000633] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0a86ece usp=00000000
-[frame 000633] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000633] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000633] exception_guess fmt=0000 offset_guess=00000000
-[frame 000633] stack +00 = 0000
-[frame 000633] stack +02 = 0000
-[frame 000633] stack +04 = 0000
-[frame 000633] stack +06 = 0000
-[frame 000633] stack +08 = 0000
-[frame 000633] stack +0a = 0000
-[frame 000633] stack +0c = 0000
-[frame 000633] stack +0e = 0000
-[frame 000633] stack +10 = 0000
-[frame 000633] stack +12 = 0000
-[frame 000633] stack +14 = 0000
-[frame 000633] stack +16 = 0000
-[frame 000633] stack +18 = 0000
-[frame 000633] stack +1a = 0000
-[frame 000633] stack +1c = 0000
-[frame 000633] stack +1e = 0000
-[frame 000649] exception_handler pc=209d2a name=_Line_1111_Emulation sr=2704 sp=e0a2eafa usp=00000000
-[frame 000649] regs d0=00000000 d1=00000000 d2=00000040 d3=00000040 d4=00000000 d5=00000000 d6=00000000 d7=0020a060
-[frame 000649] regs a0=e0ff508c a1=00000010 a2=00203a04 a3=00200d5a a4=002003aa a5=0020061a a6=00000000 a7=00000000
-[frame 000649] exception_guess fmt=0000 offset_guess=00000000
-[frame 000649] stack +00 = 0000
-[frame 000649] stack +02 = 0000
-[frame 000649] stack +04 = 0000
-[frame 000649] stack +06 = 0000
-[frame 000649] stack +08 = 0000
-[frame 000649] stack +0a = 0000
-[frame 000649] stack +0c = 0000
-[frame 000649] stack +0e = 0000
-[frame 000649] stack +10 = 0000
-[frame 000649] stack +12 = 0000
-[frame 000649] stack +14 = 0000
-[frame 000649] stack +16 = 0000
-[frame 000649] stack +18 = 0000
-[frame 000649] stack +1a = 0000
-[frame 000649] stack +1c = 0000
-[frame 000649] stack +1e = 0000
-[frame 000660] pc=94a174 exec=other
-[frame 000660] first_window_change io_a10000
+[frame 000639] live_write vdp_ports_live pc=c0000a addr=c00008 data=0080 mask=ffff count=23567
+[frame 000660] pc=bcdaa8 exec=other
 [frame 000660] window_change vdp_ports
 [frame 000660] window_change z80_ctrl
-[frame 000690] pc=fa85bc exec=other
+[frame 000690] pc=9af3c4 exec=other
 [frame 000690] window_change vdp_ports
 [frame 000690] window_change z80_ctrl
-[frame 000720] pc=98858e exec=other
+[frame 000720] pc=bf1950 exec=other
 [frame 000720] window_change vdp_ports
 [frame 000720] window_change z80_ctrl
-[frame 000750] pc=a8702e exec=other
+[frame 000750] pc=ab4754 exec=other
 [frame 000750] window_change vdp_ports
 [frame 000750] window_change z80_ctrl
-[frame 000780] pc=9e08fc exec=other
+[frame 000780] pc=a9d9e8 exec=other
 [frame 000780] window_change vdp_ports
 [frame 000780] window_change z80_ctrl
-[frame 000810] pc=9ee0ea exec=other
+[frame 000810] pc=ce3d16 exec=other
 [frame 000810] window_change vdp_ports
 [frame 000810] window_change z80_ctrl
-[frame 000840] pc=83b048 exec=other
+[frame 000840] pc=cd3a94 exec=other
 [frame 000840] window_change vdp_ports
 [frame 000840] window_change z80_ctrl
-[frame 000870] pc=a49ed4 exec=other
+[frame 000870] pc=208cfe exec=other
 [frame 000870] window_change vdp_ports
 [frame 000870] window_change z80_ctrl
-[frame 000900] pc=a735ba exec=other
+[frame 000900] pc=208f64 exec=other
 [frame 000900] window_change vdp_ports
 [frame 000900] window_change z80_ctrl
-[frame 000930] pc=1e26aa exec=other
-[frame 000930] window_change io_a10000
 [frame 000930] window_change vdp_ports
 [frame 000930] window_change z80_ctrl
-[frame 000960] pc=9eaac8 exec=other
-[frame 000960] window_change io_a10000
-[frame 000960] window_change vdp_ports
+[frame 000960] pc=208f5a exec=other
 [frame 000960] window_change z80_ctrl
-[frame 000990] pc=e75ed4 exec=other
+[frame 000990] pc=208cfe exec=other
 [frame 000990] window_change vdp_ports
 [frame 000990] window_change z80_ctrl
-[frame 001020] pc=f31702 exec=other
+[frame 001020] pc=208cfe exec=other
 [frame 001020] window_change vdp_ports
 [frame 001020] window_change z80_ctrl
-[frame 001050] pc=fecf2c exec=other
+[frame 001050] pc=208cfe exec=other
 [frame 001050] window_change vdp_ports
 [frame 001050] window_change z80_ctrl
-[frame 001080] pc=91c8c0 exec=other
+[frame 001080] pc=208cf4 exec=other
 [frame 001080] window_change vdp_ports
 [frame 001080] window_change z80_ctrl
-[frame 001110] pc=9d44c0 exec=other
+[frame 001110] pc=00000c exec=other
 [frame 001110] window_change vdp_ports
 [frame 001110] window_change z80_ctrl
-[frame 001140] pc=e540f2 exec=other
+[frame 001140] pc=208f76 exec=other
 [frame 001140] window_change vdp_ports
 [frame 001140] window_change z80_ctrl
-[frame 001170] pc=f0f91c exec=other
+[frame 001170] pc=208f72 exec=other
 [frame 001170] window_change vdp_ports
 [frame 001170] window_change z80_ctrl
-[frame 001200] pc=fcb148 exec=other
+[frame 001200] pc=208f66 exec=other
 [frame 001200] window_change vdp_ports
 [frame 001200] window_change z80_ctrl
-[frame 001230] pc=ebe724 exec=other
+[frame 001230] pc=208f56 exec=other
 [frame 001230] window_change vdp_ports
 [frame 001230] window_change z80_ctrl
-[frame 001260] pc=f79f52 exec=other
-[frame 001260] window_change vdp_ports
+[frame 001260] pc=208f56 exec=other
 [frame 001260] window_change z80_ctrl
-[frame 001290] pc=1f56ac exec=other
-[frame 001290] window_change vdp_ports
+[frame 001290] pc=208f54 exec=other
 [frame 001290] window_change z80_ctrl
-[frame 001320] pc=f44778 exec=other
-[frame 001320] window_change vdp_ports
 [frame 001320] window_change z80_ctrl
-[frame 001350] pc=ffffa2 exec=other
-[frame 001350] window_change vdp_ports
+[frame 001350] pc=208f58 exec=other
 [frame 001350] window_change z80_ctrl
-[frame 001380] pc=bf7dee exec=other
+[frame 001380] pc=9ac3ba exec=other
 [frame 001380] window_change vdp_ports
 [frame 001380] window_change z80_ctrl
-[frame 001410] pc=f7d848 exec=other
+[frame 001410] pc=b96ea0 exec=other
 [frame 001410] window_change vdp_ports
 [frame 001410] window_change z80_ctrl
-[frame 001440] pc=e12566 exec=other
+[frame 001440] pc=1c66ea exec=other
 [frame 001440] window_change vdp_ports
 [frame 001440] window_change z80_ctrl
-[frame 001470] pc=ecdd90 exec=other
+[frame 001470] pc=da9c0c exec=other
 [frame 001470] window_change vdp_ports
 [frame 001470] window_change z80_ctrl
-[frame 001500] pc=f895bc exec=other
+[frame 001500] pc=99c85c exec=other
 [frame 001500] window_change vdp_ports
 [frame 001500] window_change z80_ctrl
-[frame 001530] pc=ffec26 exec=other
+[frame 001530] pc=000006 exec=other
 [frame 001530] window_change vdp_ports
 [frame 001530] window_change z80_ctrl
-[frame 001560] pc=f4b222 exec=other
+[frame 001560] pc=208f58 exec=other
 [frame 001560] window_change vdp_ports
 [frame 001560] window_change z80_ctrl
-[frame 001590] pc=208f5a exec=other
-[frame 001590] window_change vdp_ports
+[frame 001590] pc=208f54 exec=other
 [frame 001590] window_change z80_ctrl
-[frame 001620] pc=208cfe exec=other
+[frame 001620] pc=208f48 exec=other
 [frame 001620] window_change vdp_ports
 [frame 001620] window_change z80_ctrl
-[frame 001650] pc=208f6a exec=other
+[frame 001650] pc=000010 exec=other
 [frame 001650] window_change vdp_ports
 [frame 001650] window_change z80_ctrl
+[frame 001680] pc=208f54 exec=other
 [frame 001680] window_change vdp_ports
 [frame 001680] window_change z80_ctrl
-[frame 001710] pc=208f56 exec=other
+[frame 001710] pc=bf2e16 exec=other
+[frame 001710] window_change io_a10000
+[frame 001710] window_change vdp_ports
 [frame 001710] window_change z80_ctrl
-[frame 001740] pc=208cfe exec=other
+[frame 001740] pc=1baa2c exec=other
 [frame 001740] window_change vdp_ports
 [frame 001740] window_change z80_ctrl
-[frame 001770] pc=208f5a exec=other
+[frame 001770] pc=bcf592 exec=other
 [frame 001770] window_change vdp_ports
 [frame 001770] window_change z80_ctrl
-[frame 001800] pc=208f58 exec=other
+[frame 001800] pc=bd0308 exec=other
+[frame 001800] window_change vdp_ports
 [frame 001800] window_change z80_ctrl
-[frame 001830] pc=208f58 exec=other
+[frame 001830] pc=d3ca34 exec=other
+[frame 001830] window_change vdp_ports
 [frame 001830] window_change z80_ctrl
-[frame 001860] pc=208f56 exec=other
+[frame 001860] pc=1fd618 exec=other
+[frame 001860] window_change vdp_ports
 [frame 001860] window_change z80_ctrl
-[frame 001890] pc=208f54 exec=other
+[frame 001890] pc=c8f070 exec=other
 [frame 001890] window_change vdp_ports
 [frame 001890] window_change z80_ctrl
-[frame 001920] pc=208f48 exec=other
+[frame 001920] pc=1a055a exec=other
 [frame 001920] window_change vdp_ports
 [frame 001920] window_change z80_ctrl
-[frame 001950] pc=208cfe exec=other
+[frame 001950] pc=209c7a exec=other
 [frame 001950] window_change vdp_ports
 [frame 001950] window_change z80_ctrl
-[frame 001980] pc=208cfe exec=other
 [frame 001980] window_change vdp_ports
 [frame 001980] window_change z80_ctrl
-[frame 002010] pc=208cfe exec=other
-[frame 002010] window_change vdp_ports
+[frame 002010] pc=208f5a exec=other
 [frame 002010] window_change z80_ctrl
-[frame 002040] pc=208cfe exec=other
+[frame 002040] pc=208f58 exec=other
 [frame 002040] window_change vdp_ports
 [frame 002040] window_change z80_ctrl
-[frame 002070] pc=208f5a exec=other
+[frame 002070] pc=208cf6 exec=other
 [frame 002070] window_change vdp_ports
 [frame 002070] window_change z80_ctrl
-[frame 002100] pc=f69ae4 exec=other
+[frame 002100] pc=208f58 exec=other
 [frame 002100] window_change vdp_ports
 [frame 002100] window_change z80_ctrl
-[frame 002130] pc=1c62f2 exec=other
-[frame 002130] window_change vdp_ports
+[frame 002130] pc=208f56 exec=other
 [frame 002130] window_change z80_ctrl
-[frame 002160] pc=c3ad0a exec=other
-[frame 002160] window_change vdp_ports
+[frame 002160] pc=208f54 exec=other
 [frame 002160] window_change z80_ctrl
-[frame 002190] pc=e15446 exec=other
+[frame 002190] pc=208f54 exec=other
 [frame 002190] window_change vdp_ports
 [frame 002190] window_change z80_ctrl
-[frame 002220] pc=ed0c70 exec=other
+[frame 002220] pc=208f48 exec=other
 [frame 002220] window_change vdp_ports
 [frame 002220] window_change z80_ctrl
-[frame 002250] pc=f8c49c exec=other
+[frame 002250] pc=208cfe exec=other
 [frame 002250] window_change vdp_ports
 [frame 002250] window_change z80_ctrl
-[frame 002280] pc=9d905a exec=other
+[frame 002280] pc=208cfe exec=other
 [frame 002280] window_change vdp_ports
 [frame 002280] window_change z80_ctrl
+[frame 002310] pc=208cfe exec=other
+[frame 002310] window_change vdp_ports
+[frame 002310] window_change z80_ctrl
+[frame 002340] pc=208cfe exec=other
+[frame 002340] window_change vdp_ports
+[frame 002340] window_change z80_ctrl
 ==== genesistrace stop ====

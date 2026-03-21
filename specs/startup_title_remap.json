@@ -460,6 +460,30 @@
       "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
       "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
       "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes."
+    },
+    {
+      "arcade_pc": "0x0556F2",
+      "original_bytes": "068100C080002B4110A4",
+      "replacement_bytes": "4E714E714E714E714E71",
+      "note": "NOP C-Window addr store (0x556F2-0x556FB). addil #0xC08000,d1 + movel d1,a5@(4260). Stops display-list pointer advancing into C-Window range each frame."
+    },
+    {
+      "arcade_pc": "0x0558C6",
+      "original_bytes": "7010207C0010D0005890D1FC00000004534066F4426D10CA",
+      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "NOP workram modifier 0x558C6-0x558DD. addql #4 loop over sprite descriptor table at 0x10D000. Harmless on Genesis but reads uninit workram causing garbage."
+    },
+    {
+      "arcade_pc": "0x0558E0",
+      "original_bytes": "426D10CC52AD10C6302D10A83B40132C286D10C64240101433C00010D0A8526D013E",
+      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "NOP companion reset 0x558E0-0x55901. Reads/writes sprite descriptor workram slots. Uninit workram propagation path."
+    },
+    {
+      "arcade_pc": "0x055904",
+      "original_bytes": "207C0010D000227C0010D040247C0010D0807010285034D44281322C0002287C0000020049F4180022CCD1FC00000004534066E0286D10C64240101433C00010D0A8",
+      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "NOP sprite descriptor reader 0x55904-0x55945. Loads LONG from workram 0x10D000 as pointer into A4, dereferences it. Zero-init workram gives A4=0 -> reads reset vectors."
     }
   ]
 }

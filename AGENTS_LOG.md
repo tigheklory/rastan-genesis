@@ -8445,3 +8445,387 @@ PRIORITY ORDER I WOULD RECOMMEND
   5. Finish palette/sprite/tilemap hardware-contract replacement so the project
      can stop relying on partial runtime repair logic.
 ```
+
+## [Andy - Build 103 C-Window Jump Source Analysis]
+
+```text
+Build: 103 (diagnostic, no code changes)
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+STEP 1 — What does 0x55A14 do?
+  (sed -n '/   55a14:/,/   55a80:/p' build/maincpu.disasm.txt | head -40)
+
+  55a14: 3b7c 0001 1330  movew #1,%a5@(4912)
+  55a1a: 4242            clrw %d2
+  55a1c: 3091            movew %a1@,%a0@       <- writes word [A1] to [A0]
+  55a1e: 4dea 0020       lea %a2@(32),%fp
+  55a22: 3016            movew %fp@,%d0
+  55a24: 0c40 00ff       cmpiw #255,%d0
+  55a28: 6720            beqs 0x55a4a
+  55a2a: 3e2d 10ca       movew %a5@(4298),%d7
+  55a2e: 0c6d 0002 10a8  cmpiw #2,%a5@(4264)
+  55a34: 6706            beqs 0x55a3c
+  55a36: 4647            notw %d7
+  55a38: 0247 0003       andiw #3,%d7
+  55a3c: e74f            lslw #3,%d7
+  55a3e: 3002            movew %d2,%d0
+  55a40: e348            lslw #1,%d0
+  55a42: de40            addw %d0,%d7
+  55a44: 4df2 7020       lea %a2@(20,%d7:w),%fp
+  55a48: 6004            bras 0x55a4e
+  55a4a: 4dea 0022       lea %a2@(34),%fp
+  55a4e: 3016            movew %fp@,%d0
+  55a50: 2e08            movel %a0,%d7
+  55a52: 0487 00c0 8000  subil #0xC08000,%d7   <- D7 = A0 - 0xC08000
+  55a58: e28f            lsrl #1,%d7           <- D7 = offset/2
+  55a5a: 0687 0010 de00  addil #0x10DE00,%d7   <- D7 = + sprite base
+  55a60: 2c47            moveal %d7,%fp        <- FP = sprite RAM addr
+  55a62: 3c80            movew %d0,%fp@        <- write tile->sprite RAM
+  55a64: 303c 0001       movew #1,%d0
+  55a68: 2e08            movel %a0,%d7
+  55a6a: 0487 00c0 8000  subil #0xC08000,%d7
+  55a70: 0447 0100       subiw #256,%d7
+  55a74: 0247 3fff       andiw #16383,%d7
+  55a78: e28f            lsrl #1,%d7
+  55a7a: 0687 0010 de00  addil #0x10DE00,%d7
+  55a80: 2c47            moveal %d7,%fp
+
+  ANALYSIS: 0x55A14 takes A0 as a C-Window address, computes sprite RAM
+  addresses (arcade 0x10DE00 region) from it, and writes tile data there.
+  It also writes word [A1] to [A0] at line 55a1c — a direct C-Window write.
+
+STEP 2 — Which functions are NOPped in Genesis ROM?
+  (check ROM[arcade_pc + 0x200] for 4E71 pattern)
+
+  ROM[0x055C14] arcade=0x55A14: 3b7c00011330  nop=FALSE  LIVE CODE
+  ROM[0x055BB2] arcade=0x559B2: 424230914dea  nop=FALSE  LIVE CODE
+  ROM[0x055B68] arcade=0x55968: 4e714e714e71  nop=TRUE   CONFIRMED NOPped
+  ROM[0x055B90] arcade=0x55990: 4e714e714e71  nop=TRUE   CONFIRMED NOPped
+  ROM[0x0562DA] arcade=0x560DA: 4e714e714e71  nop=TRUE   CONFIRMED NOPped
+
+  ALSO VERIFIED:
+  ROM[0x055BA0] arcade=0x559A0: 4e714e714e71  nop=TRUE  (within 0x55990 NOP)
+  ROM[0x055BA4] arcade=0x559A4: 4e714e714e71  nop=TRUE  (call to 0x55A14, NOPped)
+
+  KEY FINDING: 0x55A14 itself is live code, BUT its only caller (0x559A4)
+  falls inside the 0x55990 NOP region. 0x55A14 is orphaned — the call to
+  it is suppressed by the NOP. 0x55A14 does NOT execute.
+
+STEP 3 — A5@(4260) advancement rate
+  Start: 0xC08000 (page 2 C-Window base)
+  Target crash address: 0xC09D28
+  Distance: 0x1D28 = 7464 bytes
+  Per-frame average: 17.2 bytes over 433 frames
+
+  MATCHES exactly the observed 433-frame crash window.
+  Confirms A5@(4260) is still advancing to 0xC09D28 despite the NOPs.
+
+STEP 4 — All live uses of A5@(4256) and A5@(4260)
+  (grep "10a0|10a4" ... | grep mov|jmp|jsr|lea, excluding NOPped)
+
+  Live (NOT NOPped) writes TO A5@(4260) — C-Window page-2 pointer:
+    0x5045a: movel %a5@(4260),%d0       <- loads to D0 (data reg)
+    0x50464: movel %d0,%a5@(4260)       <- stores D0 back
+    0x556f8: movel %d1,%a5@(4260)       <- STORES NEW C-WINDOW ADDR!
+    0x55784: movel %d0,%a5@(4260)       <- stores
+
+  Context at 0x556F2 (the live C-Window address writer):
+    556f2: 0681 00c0 8000  addil #0xC08000,%d1   <- D1 += C-Window base
+    556f8: 2b41 10a4       movel %d1,%a5@(4260)  <- advance pointer
+    556fc: 6100 024a       bsrw 0x55948          <- calls dispatch
+  This is the instruction that advances A5@(4260) by ~17 bytes/frame.
+  It adds 0xC08000 to a scroll offset and writes it to workram.
+
+  Live (NOT NOPped) reads FROM A5@(4256) / A5@(4260):
+    0x55968: moveal %a5@(4256),%a0  (NOPped — inside NOP region)
+    0x55990: moveal %a5@(4260),%a0  (NOPped — inside NOP region)
+    0x560da: moveal %a5@(4256),%a0  (NOPped — inside NOP region)
+    0x5045a: movel  %a5@(4260),%d0  (LIVE but to data reg D0, not A0)
+
+  CRITICAL: 0x5045a loads A5@(4260) into D0, NOT into an address register.
+  No live (non-NOPped) code loads A5@(4260) or A5@(4256) into an
+  address register (A0-A6) and then dereferences it.
+
+STEP 5 — Does 0x559B2 write through C-Window pointer?
+
+  Call chain:
+    0x55948 (live): cmpiw #0,%a5@(4264)
+      → bsrw 0x55968 (NOPped) or bsrw 0x55990 (NOPped)
+    0x559B2 is called ONLY from within the NOPped 0x55968 loop body
+      (bsrw at 0x5597E is inside the NOP region).
+    0x55A14 is called ONLY from 0x559A4 (within 0x55990 NOP region).
+
+  0x559B2 function body (live code, but called only from NOPped path):
+    559b4: movew %a1@,%a0@           <- writes word [A1] to [A0]
+    559da: movel %a0,%d7
+    559dc: subil #0xC08000,%d7       <- D7 = A0 - 0xC08000
+    559e4: addil #0x10DE00,%d7       <- D7 = sprite RAM offset
+    559ea: moveal %d7,%fp            <- FP = sprite RAM addr
+    559ec: movew %d0,%fp@            <- write to sprite RAM addr
+  These write C-Window data to arcade sprite RAM addresses.
+  Both 0x559B2 and 0x55A14 are unreachable via live code paths —
+  their only callers are within NOPped regions.
+
+ADDITIONAL FINDINGS
+
+  A. 0x55948 dispatch function (live, NOT NOPped):
+    Called from: 0x50434, 0x556FC, 0x55788, 0x55822
+    Dispatches to: 0x55968 (NOPped) or 0x55990 (NOPped)
+    Effect: calls a NOP sled and returns. Benign.
+
+  B. The "gap" at arcade 0x5598E (between the two NOP regions):
+    ROM[0x055B8E] = 4E 75 = RTS
+    The first NOP (0x55968, 38 bytes) ends at 0x5598D.
+    The original arcade RTS at 0x5598E is preserved.
+    BSR to 0x55968 → NOPs → RTS at 0x5598E → returns. Correct.
+
+  C. 0x556F8 still advances A5@(4260):
+    addil #0xC08000,%d1 at 0x556F2 builds a C-Window page-2 address
+    and stores it to A5@(4260) every frame. After ~433 frames the
+    value reaches 0xC09D28. BUT: the only non-NOPped load of A5@(4260)
+    into an address register (moveal → A0) is inside the NOPped
+    0x55990 region. So the advancing value is written but not
+    directly used as a jump/write target by any live code.
+
+OPEN QUESTION FOR CLAUDE
+
+  All visible C-Window write/jump paths appear to be suppressed by
+  the existing NOPs. Yet the F-line exception at 0x209D28 fires
+  reliably at ~frame 433.
+
+  Possible remaining path not yet identified:
+  1. A function between 0x55940-0x55948 or a caller of 0x55948 that
+     directly accesses A5@(4260) as a pointer in a non-obvious way.
+  2. The advancing value at A5@(4260) (0xC09D28 by frame 433) is
+     read via a NON-A5@(4260) path — e.g. a different workram slot
+     that mirrors or aliases the same value.
+  3. Patcher shift-table bug causing a BSR/JSR to land at 0x209D28
+     due to incorrect relocation of some reference.
+  4. The write of the advancing C-Window address to some sprite RAM
+     location (via the 0x10DE00 computation) produces, on Genesis,
+     a value that is later fetched and executed as code.
+  5. 0x5045A loads A5@(4260) into D0; if later code does
+     MOVEA.L D0,A0 (not captured by the grep filter), the C-Window
+     value could be loaded into A0 and dereferenced.
+```
+
+## [Andy - Build 103, NOP Sprite Descriptor Readers]
+
+```text
+Build: 103
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+DIAGNOSIS SUMMARY
+  Surviving crash path via uninitialised workram:
+  1. 0x55904 loads LONG from 0x10D000 into A4 (sprite
+     descriptor pointer). Workram zero-init gives A4=0,
+     which points into the reset vector table. Reading
+     and writing through A4 propagates garbage values.
+  2. 0x558C6 runs addql #4 over 16 entries in the
+     0x10D000 descriptor table (also uninit).
+  3. 0x558E0 reads/writes the same workram descriptor
+     slots and increments counters.
+  4. 0x556F2 stores advancing C-Window address 0xC08000+
+     into A5@(4260) each frame, reaching 0xC09D28 at
+     ~frame 433. Though direct callers were NOPped, the
+     value still feeds other not-yet-traced paths.
+
+VERIFICATION — exact bytes (post-relocation, as seen by patcher)
+
+  0x55904 sprite desc reader (66 bytes, body before RTS at 0x55946):
+    ORIGINAL: 207C0010D000227C0010D040247C0010D0807010285034D4
+              4281322C0002287C0000020049F4180022CCD1FC00000004
+              534066E0286D10C64240101433C00010D0A8
+    NOTE: 287C 00000200 — patcher relocated #0 to #0x200
+    REPLACE:  4E71 × 33
+
+  0x558C6 workram modifier (24 bytes, body before RTS at 0x558DE):
+    ORIGINAL: 7010207C0010D0005890D1FC00000004534066F4426D10CA
+    REPLACE:  4E71 × 12
+
+  0x556F2 C-Window addr store (10 bytes, addil+movel pair):
+    ORIGINAL: 068100C080002B4110A4
+    REPLACE:  4E71 × 5
+
+  0x558E0 companion reset (34 bytes, body before RTS at 0x55902):
+    ORIGINAL: 426D10CC52AD10C6302D10A83B40132C286D10C6
+              4240101433C00010D0A8526D013E
+    REPLACE:  4E71 × 17
+
+SPEC CHANGE — specs/startup_title_remap.json
+  opcode_replace array now has 9 entries (was 5):
+  New entries added (in order):
+    0x0556F2  (10b) — stop C-Window addr advancing into A5@(4260)
+    0x0558C6  (24b) — NOP sprite descriptor addql loop
+    0x0558E0  (34b) — NOP companion reset/descriptor reader
+    0x055904  (66b) — NOP sprite descriptor reader (A4 zero-deref)
+
+BUILD RESULT
+  Command: source tools/setup_env.sh && ./tools/release_build.sh 103
+  Result: CLEAN
+  ROM output: dist/Rastan_103.bin — CONFIRMED
+
+  NOTE: First build attempt failed — original_bytes for 0x55904 used
+  raw arcade bytes (287C 00000000) instead of post-relocation bytes
+  (287C 00000200). The patcher's abs-long relocation had already
+  converted #0 → #0x200 before the opcode_replace check runs.
+  Fixed by simulating the relocation to derive correct original_bytes.
+
+VERIFICATION — all four patches confirmed in dist/Rastan_103.bin
+  ROM[0x055B04] (0x55904): 4e714e714e71  nop=True
+  ROM[0x055AC6] (0x558C6): 4e714e714e71  nop=True
+  ROM[0x0558F2] (0x556F2): 4e714e714e71  nop=True
+  ROM[0x055AE0] (0x558E0): 4e714e714e71  nop=True
+```
+
+### MAME Exit Summary (2026-03-21 16:08:15)
+- Final PC: 0x209C62
+- Stack Pointer (SP): 0xE043803C
+- Unique Unmapped Memory Addresses (3): 0x27049D2A, 0x00209D2A, 0x00000000
+
+### MAME Exit Summary (2026-03-21 16:08:43)
+- Final PC: 0xBC786C
+- Stack Pointer (SP): 0xE0A01748
+- Unique Unmapped Memory Addresses (2): 0x00209D2A, 0x00000000
+
+### MAME Exit Summary (2026-03-21 16:09:01)
+- Final PC: 0xF72EEA
+- Stack Pointer (SP): 0xE0A01DF6
+- Unique Unmapped Memory Addresses (2): 0x00209D2A, 0x00000000
+
+### MAME Exit Summary (2026-03-21 16:09:45)
+- Final PC: 0x208F5A
+- Stack Pointer (SP): 0x0049E662
+- Unique Unmapped Memory Addresses (2): 0x00209D2A, 0x00000000
+
+## [Andy - Build 103 Exodus Frame Analysis]
+
+Task: Analyse 859 Exodus emulator frames (30fps, ~28.6s) captured from
+Build 103 running in Exodus. Frames at states/screenshots/build_103/exodus_frames/.
+Full authorisation — read-only analysis, no code changes.
+
+### Tool approach
+
+Used Python/Pillow to crop and enlarge sub-regions of each 5116×1380 frame:
+  - Register panel: img.crop((2100, 50, 2480, 730)) → resize (1520, 2720)
+  - Disasm panel:   img.crop((2480, 50, 3200, 730)) → resize (2100, 2720)
+  - Game display:   img.crop((0, 700, 900, 1380))   → resize (1800, 1360)
+
+### Step 1 — Frames 1–5 register state
+
+All five frames show identical register values (no changes frame-to-frame):
+
+  A0: 0xE0FF5C26   A1: 0x00000010   A2: 0x00203A04
+  A3: 0x00200D5A   A4: 0x002003AA   **A5: 0x0020061A**
+  A6: 0xFFFFFFFF   A7: 0xE0FFFF9C
+  D0: 0x00000000   D1: 0x00000004   D2: 0xFFFF0000
+  D3: 0xFFFF0000   D4: 0xFFFFFFFF   D5: 0xFFFFFFFF
+  D6: 0xFFFFFFFF   D7: 0x0020A060
+  PC: 0x00201308   SR: 0x2700   IPM: 7 (supervisor, all interrupts masked)
+
+Key observations:
+  - A5 = 0x0020061A (SGDK ROM address, render_dip_banks function) — wrong.
+    Correct value should be 0xE0FF004E (genesistan_arcade_workram_words).
+  - PC = 0x00201308 — deep inside SGDK ROM, not arcade ROM range.
+  - All of A2–A5 are in 0x002XXXXX (SGDK ROM) range.
+  - D7 = 0x0020A060 — also an SGDK ROM address.
+  - Game display: shows SGDK startup console text on dark background.
+
+The trace panel (Main 68000 - Trace) shows the most recent instruction at
+~0x20556C: MOVE.W #0x00C00004, D3. Branch target comments reference 0x2055**
+addresses — all SGDK ROM.
+
+### Step 2 — Frames 850–859
+
+  Frame 850:
+    A0: 0xE0FF1736   A1: 0x0000006C   A5: 0x0020061A
+    A6: 0xE0205A7C   A7: 0xE0FFFF9C
+    D0: 0xE0FF404E   D1–D5: 0x00000000 / 0xFFFF0000
+    D6: 0xE0205A3A   D7: 0x0020A060
+    PC: 0x0020147E   SR: 0x2709
+
+  Frame 859:
+    A0: 0xE0FF1A8A   A1: 0x00000070   A5: 0x0020061A
+    A6: 0xE0205A7C   A7: 0xE0FFFF9C
+    D0: 0xE0FF404E   D1–D5: same
+    D6: 0xE0205A3A   D7: 0x0020A060
+    PC: 0x00201476   SR: 0x2704
+
+  Game display: completely black from frame 190 through frame 859.
+  A5 remains 0x0020061A throughout frames 430–859.
+  PC cycles within 0x20140E–0x2014**7E — a tight SGDK rendering loop.
+
+### Step 3 — Binary search for crash frame / F-line exception
+
+RESULT: **The F-line exception at 0x209D28 was NOT observed in any of the
+859 frames. Build 103 eliminated the original crash.**
+
+Searched frames 1, 50, 100, 200, 300, 430, 500, 850, 859.
+PC values observed across all frames: 0x200182, 0x201304, 0x201308,
+0x20147E, 0x201476, 0x201484, 0x20183C, 0x201472, 0x002072D0.
+None of these match 0x209D28 or any address in the 0x209XXX range.
+
+### Step 4 — Frames in the suspect range (transition)
+
+The significant transition occurs around frame 190:
+
+  Frames 1–189:    Title menu visible on game display.
+  Frame 150:       Cursor on "START RASTAN" entry;
+                   help text reads "LAUNCH THE RASTAN STARTUP AND GAME FLOW."
+  Frame 185–189:   Still showing title menu; A5=0x00000080, PC=0x002072D0.
+                   Note: A5 has changed from 0x0020061A — SGDK code at 0x2072D0
+                   (deeper in SGDK ROM) uses A5 for its own purposes here.
+  Frame 190:       Game display first goes BLACK. Same registers as 189
+                   (A5=0x00000080, PC=0x002072D0, A7=0xE0FFFE90).
+                   Start-Rastan transition triggered.
+  Frames 190–192:  Screen black; registers unchanged (A5=0x00000080,
+                   PC=0x002072D0). SGDK is processing the launch.
+  Frame 193:       A5 transitions back to 0x0020061A, PC=0x00201484.
+                   Arcade game post-handoff state re-established.
+  Frames 193–859:  Screen stays black. PC loops in 0x20140E–0x20147E.
+
+### Step 5 — Last normal frame before abnormal state
+
+There is no F-line crash (0x209D28) to bracket.
+
+The relevant "last normal" boundary is the last frame showing a live
+title-menu display: **frame 189** (A5=0x00000080, PC=0x002072D0).
+
+The first frame showing persistent black screen: **frame 190**.
+
+Between those two frames the SGDK title-launcher code fires the
+"START RASTAN" handoff. Arcade rendering then fails to produce
+any output, leaving the screen black from frame 190 through frame 859.
+
+### Summary — what Build 103 accomplished
+
+1. **F-line exception at 0x209D28 is eliminated.** Not observed in 859 frames.
+2. **Title/front-end menu renders correctly.** Visible and responsive for
+   ~6 seconds (frames 1–189 at ~30fps). "SELECTION MOVED" text confirms
+   the input and menu-navigation code is functioning.
+3. **"START RASTAN" handoff is reached.** The launcher correctly triggers
+   the arcade startup from the menu.
+4. **Arcade game cannot render after handoff.** Screen goes black at frame 190
+   and stays black through frame 859. PC remains locked in SGDK ROM
+   rendering loop (0x20140E–0x2014**7E) — arcade ROM code is either not
+   being reached or producing no visible output.
+
+### A5 behaviour explanation
+
+The A5=0x0020061A seen in most frame captures is SGDK using A5 as a
+scratch register during its VBlank handler / rendering loop. It is NOT
+the permanent arcade workram base. The arcade code sets A5=0xE0FF004E
+during its execution window, but the Exodus frame captures happen at
+VBlank boundaries where SGDK code has temporarily overwritten A5.
+
+### Next investigation target
+
+Why does the game produce a black screen after START RASTAN is selected?
+Hypothesis: the arcade startup sequence (state=0/1 init flow) IS running
+but all its display output writes go to the C-Window shadows (SGDK ROM
+mirrored region) rather than the VDP — producing no visible tiles.
+The correct next step is to identify which display-write functions run
+immediately after the START RASTAN handoff and confirm whether they
+reach the VDP or fall into the shadow region.

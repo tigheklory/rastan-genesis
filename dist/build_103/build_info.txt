@@ -1,0 +1,4 @@
+build_number=103
+date_utc=2026-03-21T17:58:20Z
+rom_file=rom.bin
+rom_md5=709b88f42348de3ff0534ba1b37b3e5a
