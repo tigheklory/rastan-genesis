@@ -72,7 +72,6 @@ Accessing `0xD000DA` on Genesis (unmapped space) causes the observed crash/freez
 
 ### Final Status
 - Build 88: `Logic Complete / Memory Blocked`.
-
 # External Technical Consultant — Build 89 Memory Pivot Review
 Date: 2026-03-18  
 Reviewer: External Technical Consultant
@@ -6788,3 +6787,12 @@ still references old build numbers (56/57/59).
 Andy should update that section to reflect
 Build 96 as current stable baseline in a
 future cleanup pass.
+### MAME Exit Summary (2026-03-20 23:36:35)
+- Final PC: 0x2091EA
+- Stack Pointer (SP): 0xE03E709C
+- Unique Unmapped Memory Addresses: none
+- **Visual Evidence (BlastEm):** Screenshot saved as `B95_BlastEm_Launcher_20260320_2341.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B95_BlastEm_Launcher_20260320_2342.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B95_BlastEm_Launcher_20260320_2342.png` (Stage: Launcher)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B95_BlastEm_In-Game_20260320_2343.png` (Stage: In-Game)
+- **Visual Evidence (BlastEm):** Screenshot saved as `B95_BlastEm_In-Game_20260320_2344.png` (Stage: In-Game)
