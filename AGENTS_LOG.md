@@ -7853,6 +7853,163 @@ ANALYSIS SUMMARY
      0x209D28 (C-Window address for page 2, offset 0x1D28)?
 ```
 
+## [Cody - Build 103 C-Window Jump Source Analysis]
+```text
+Re-read AGENTS.md and AGENTS_LOG.md from disk before diagnostics.
+No code changes made.
+
+STEP 1 — Check what 0x55A14 does
+Command:
+  sed -n '/   55a14:/,/   55a80:/p' \
+    build/maincpu.disasm.txt | head -40
+
+Output:
+   55a14:	3b7c 0001 1330 	movew #1,%a5@(4912)
+   55a1a:	4242           	clrw %d2
+   55a1c:	3091           	movew %a1@,%a0@
+   55a1e:	4dea 0020      	lea %a2@(32),%fp
+   55a22:	3016           	movew %fp@,%d0
+   55a24:	0c40 00ff      	cmpiw #255,%d0
+   55a28:	6720           	beqs 0x55a4a
+   55a2a:	3e2d 10ca      	movew %a5@(4298),%d7
+   55a2e:	0c6d 0002 10a8 	cmpiw #2,%a5@(4264)
+   55a34:	6706           	beqs 0x55a3c
+   55a36:	4647           	notw %d7
+   55a38:	0247 0003      	andiw #3,%d7
+   55a3c:	e74f           	lslw #3,%d7
+   55a3e:	3002           	movew %d2,%d0
+   55a40:	e348           	lslw #1,%d0
+   55a42:	de40           	addw %d0,%d7
+   55a44:	4df2 7020      	lea %a2@(20,%d7:w),%fp
+   55a48:	6004           	bras 0x55a4e
+   55a4a:	4dea 0022      	lea %a2@(34),%fp
+   55a4e:	3016           	movew %fp@,%d0
+   55a50:	2e08           	movel %a0,%d7
+   55a52:	0487 00c0 8000 	subil #12615680,%d7
+   55a58:	e28f           	lsrl #1,%d7
+   55a5a:	0687 0010 de00 	addil #1105408,%d7
+   55a60:	2c47           	moveal %d7,%fp
+   55a62:	3c80           	movew %d0,%fp@
+   55a64:	303c 0001      	movew #1,%d0
+   55a68:	2e08           	movel %a0,%d7
+   55a6a:	0487 00c0 8000 	subil #12615680,%d7
+   55a70:	0447 0100      	subiw #256,%d7
+   55a74:	0247 3fff      	andiw #16383,%d7
+   55a78:	e28f           	lsrl #1,%d7
+   55a7a:	0687 0010 de00 	addil #1105408,%d7
+   55a80:	2c47           	moveal %d7,%fp
+
+STEP 2 — Check which functions are NOPped in ROM
+Command:
+  python3 -c "
+  data = open('apps/rastan/out/rom.bin','rb').read()
+  checks = [
+      (0x55A14 + 0x200, '0x55A14 companion write fn'),
+      (0x559B2 + 0x200, '0x559B2 inner write fn'),
+      (0x55968 + 0x200, '0x55968 tilemap write A'),
+      (0x55990 + 0x200, '0x55990 tilemap write B'),
+      (0x560DA + 0x200, '0x560DA display list writer'),
+  ]
+  for addr, note in checks:
+      b = data[addr:addr+6]
+      is_nop = all(
+          b[i:i+2] == bytes([0x4E,0x71])
+          for i in range(0,6,2))
+      print('ROM[0x%06X] (%s): %s nop=%s' % (
+          addr, note, b.hex(), is_nop))
+  "
+
+Output:
+ROM[0x055C14] (0x55A14 companion write fn): 3b7c00011330 nop=False
+ROM[0x055BB2] (0x559B2 inner write fn): 424230914dea nop=False
+ROM[0x055B68] (0x55968 tilemap write A): 4e714e714e71 nop=True
+ROM[0x055B90] (0x55990 tilemap write B): 4e714e714e71 nop=True
+ROM[0x0562DA] (0x560DA display list writer): 4e714e714e71 nop=True
+
+STEP 3 — Calculate A5@(4260) advancement rate
+Command:
+  python3 -c "
+  # A5@(4260) starts at 0xC08000 (set at 0x55784)
+  # Crash happens around frame 433
+  # Target crash address: 0xC09D28
+  target = 0xC09D28
+  start  = 0xC08000
+  diff   = target - start
+  frames = 433
+  print('Distance: 0x%X = %d bytes' % (diff, diff))
+  print('Per frame average: %.1f bytes over %d frames' % (
+      diff/frames, frames))
+  "
+
+Output:
+Distance: 0x1D28 = 7464 bytes
+Per frame average: 17.2 bytes over 433 frames
+
+STEP 4 — Find ALL uses of A5@(4256) and A5@(4260) not NOPped
+Command:
+  grep -n "10a0\|10a4" build/maincpu.disasm.txt | \
+    grep -iv "bclr\|btst\|tst\|cmp\|#" | \
+    grep "mov\|jmp\|jsr\|lea" | head -30
+
+Output:
+8743:    70d6:	10a0           	moveb %a0@-,%a0@
+8777:    711e:	10a4           	moveb %a4@-,%a0@
+21084:   10a02:	1154 1155      	moveb %a4@,%a0@(4437)
+21085:   10a06:	1156 1157      	moveb %fp@,%a0@(4439)
+21086:   10a0a:	1158 1159      	moveb %a0@+,%a0@(4441)
+21087:   10a0e:	115a 115b      	moveb %a2@+,%a0@(4443)
+21099:   10a48:	1177 1178 1179 	moveb %sp@(1179117a),%a0@(4475)
+82775:   410a4:	2e08           	movel %a0,%d7
+101444:   5045a:	202d 10a4      	movel %a5@(4260),%d0
+101446:   50464:	2b40 10a4      	movel %d0,%a5@(4260)
+107208:   556f8:	2b41 10a4      	movel %d1,%a5@(4260)
+107246:   55784:	2b40 10a4      	movel %d0,%a5@(4260)
+107287:   5581e:	2b40 10a0      	movel %d0,%a5@(4256)
+107374:   55968:	206d 10a0      	moveal %a5@(4256),%a0
+107380:   55982:	2b48 10a0      	movel %a0,%a5@(4256)
+107386:   55990:	206d 10a4      	moveal %a5@(4260),%a0
+107881:   560da:	206d 10a0      	moveal %a5@(4256),%a0
+107885:   560ea:	206d 10a0      	moveal %a5@(4256),%a0
+107895:   5610e:	2b48 10a0      	movel %a0,%a5@(4256)
+
+STEP 5 — Check if 0x55A14 or 0x559B2 write through the C-Window pointer
+Command:
+  sed -n '/   559b2:/,/   55a14:/p' \
+    build/maincpu.disasm.txt | head -30
+
+Output:
+   559b2:	4242           	clrw %d2
+   559b4:	3091           	movew %a1@,%a0@
+   559b6:	4dea 0020      	lea %a2@(32),%fp
+   559ba:	3016           	movew %fp@,%d0
+   559bc:	0c40 00ff      	cmpiw #255,%d0
+   559c0:	6712           	beqs 0x559d4
+   559c2:	3e2d 10ca      	movew %a5@(4298),%d7
+   559c6:	e34f           	lslw #1,%d7
+   559c8:	3002           	movew %d2,%d0
+   559ca:	e748           	lslw #3,%d0
+   559cc:	de40           	addw %d0,%d7
+   559ce:	4df2 7020      	lea %a2@(20,%d7:w),%fp
+   559d2:	6004           	bras 0x559d8
+   559d4:	4dea 0022      	lea %a2@(34),%fp
+   559d8:	3016           	movew %fp@,%d0
+   559da:	2e08           	movel %a0,%d7
+   559dc:	0487 00c0 8000 	subil #12615680,%d7
+   559e2:	e28f           	lsrl #1,%d7
+   559e4:	0687 0010 de00 	addil #1105408,%d7
+   559ea:	2c47           	moveal %d7,%fp
+   559ec:	3c80           	movew %d0,%fp@
+   559ee:	5488           	addql #2,%a0
+   559f0:	3e02           	movew %d2,%d7
+   559f2:	e74f           	lslw #3,%d7
+   559f4:	302d 10ca      	movew %a5@(4298),%d0
+   559f8:	e348           	lslw #1,%d0
+   559fa:	de40           	addw %d0,%d7
+   559fc:	4df2 7000      	lea %a2@(0,%d7:w),%fp
+   55a00:	3016           	movew %fp@,%d0
+   55a02:	3080           	movew %d0,%a0@
+```
+
 ## [Chad - Independent Code Review Build 102]
 
 ```text
