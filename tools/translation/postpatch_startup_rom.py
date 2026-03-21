@@ -791,6 +791,24 @@ def main() -> int:
             "note": replacement.get("note", ""),
         })
 
+    # Write Genesis workram base pointer at ROM offset 0x10C000.
+    # The arcade frontend tick reloads A5 from this absolute address.
+    # On arcade it is work RAM. On Genesis it is ROM, so we patch
+    # it to contain the Genesis workram base address.
+    workram_anchor_offset = 0x10C000
+    workram_addr = symbol_addresses.get("genesistan_arcade_workram_words")
+    if workram_addr is not None:
+        ensure_size_at_least(rom_bytes, workram_anchor_offset + 4)
+        rom_bytes[workram_anchor_offset:workram_anchor_offset + 4] = \
+            workram_addr.to_bytes(4, "big")
+        rewrite_log.append({
+            "kind": "workram_anchor",
+            "rom_offset": f"0x{workram_anchor_offset:06X}",
+            "value": f"0x{workram_addr:08X}",
+            "note": "Genesis workram base at ROM 0x10C000 "
+                    "so arcade A5 reload finds correct base.",
+        })
+
     stub_cfg = spec["generated_stubs"]
     test_jump_patch_address = parse_hexish(stub_cfg["test_jump_patch_address"])
     normal_stub_start = parse_hexish(stub_cfg["normal_stub_start"])

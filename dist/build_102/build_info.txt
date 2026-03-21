@@ -1,0 +1,4 @@
+build_number=102
+date_utc=2026-03-21T16:17:05Z
+rom_file=rom.bin
+rom_md5=32c45d287bc64feee5072fc4419a3d43

@@ -1486,6 +1486,38 @@ static void reset_launcher_runtime_state(void)
     wram_overlay.launcher.status_line[SCREEN_W] = '\0';
 }
 
+static void sanitize_arcade_workram(void)
+{
+    /*
+     * After each frontend tick, scan the arcade
+     * workram for any LONG values that fall in
+     * the C-Window address range 0xC00000-0xC0FFFF.
+     * These are display list / tile data pointers
+     * that are valid on arcade hardware but map to
+     * non-executable SRAM on Genesis (BlastEm crash).
+     *
+     * Zero them out so the arcade code uses address
+     * 0x000000 (ROM) as a fallback instead of SRAM.
+     * This is a stability bridge until full opcode
+     * replacement covers all C-Window pointer stores.
+     *
+     * Scan as LONGs (2 words each). The workram is
+     * 0x2000 words = 0x1000 LONGs.
+     */
+    uint16_t i;
+    volatile uint32_t *wram32 =
+        (volatile uint32_t *)genesistan_arcade_workram_words;
+    const uint16_t count = sizeof(genesistan_arcade_workram_words)
+                           / sizeof(uint32_t);
+
+    for (i = 0; i < count; i++) {
+        uint32_t v = wram32[i];
+        if ((v & 0x00FF0000UL) == 0x00C00000UL) {
+            wram32[i] = 0;
+        }
+    }
+}
+
 static void sync_arcade_scroll_to_vdp(void)
 {
     /*
@@ -1583,6 +1615,7 @@ int main(bool hardReset)
         {
             genesistan_refresh_arcade_inputs();
             genesistan_run_original_frontend_tick();
+            sanitize_arcade_workram();
             sync_arcade_scroll_to_vdp();
             /* Rendering via opcode replacement. Build 97+. */
         }

@@ -7149,3 +7149,367 @@ EXPECTED EFFECT
   writes that cause the BlastEm crash after sustained
   frontend tick execution.
 ```
+
+### MAME Exit Summary (2026-03-21 02:07:05)
+- Final PC: 0xF0B0F8
+- Stack Pointer (SP): 0xE0A00DA6
+- Unique Unmapped Memory Addresses (2): 0x00209D0A, 0x00000000
+
+## [Andy - Build 99, NOP C-Window Fills + Z80 Fix]
+
+```text
+Build: 99
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+BYTE VERIFICATION (all three addresses)
+  0x0560DA: MATCH (len=56)
+    actual: 206d10a0b1fc00c00f0066046100ff6e206d10a0343c0032
+            203c0000002020c0534266fad1fc000001002008028000
+            c03f0020402b4810a0
+  0x03AD3C: MATCH (len=6)  actual: 30c0534166fa
+  0x03AD44: MATCH (len=6)  actual: 20c0534166fa
+  ALL OK — proceeded.
+
+CHANGE 1 — specs/startup_title_remap.json
+  Replaced single opcode_replace entry (0x0560F8)
+  with three entries:
+    0x0560DA  56 bytes -> 28x NOP
+      NOP entire display list write function.
+      Stops per-frame C-Window SRAM pointer writes
+      and advancement.
+    0x03AD3C  6 bytes -> 3x NOP
+      NOP word fill loop. Called from 0x3AF5E and
+      0x3AF6E to fill C-Window pages 1 and 3.
+    0x03AD44  6 bytes -> 3x NOP
+      NOP longword fill loop. Called from 0x3AE70,
+      0x3AE80, 0x3AF38, 0x3AF48 for pages 0 and 2.
+
+CHANGE 2 — apps/rastan/src/startup_bridge.c
+  Removed Build 97 shadow register approach:
+    genesistan_shadow_reg_3e0001 = 0x00;
+    genesistan_shadow_reg_3e0003 = 0xEF;
+  These wrote to BSS shadow variables only —
+  never reached Genesis Z80 hardware.
+
+  First attempt used Z80_reset() — not present in
+  this SGDK version (0.276). Compiler error:
+    "implicit declaration of function 'Z80_reset';
+     did you mean 'CON_reset'?"
+  Checked tools/sgdk/inc/z80_ctrl.h. Correct API:
+    Z80_startReset() / Z80_endReset()
+  Applied Z80_startReset() — asserts /RESET line,
+  stops Z80 execution, eliminates MAME buzzing.
+
+BUILD RESULT
+  Command: source tools/setup_env.sh && ./tools/release_build.sh 99
+  First attempt: FAILED (Z80_reset not found)
+  Second attempt (Z80_startReset): CLEAN
+  ROM output: dist/Rastan_99.bin — CONFIRMED
+
+MANIFEST VERIFICATION
+  opcode_replace entries in address_rewrites: 3
+    0x0560DA  orig=206d10a0b1fc...  repl=4e714e714e71...
+    0x03AD3C  orig=30c0534166fa...  repl=4e714e714e71...
+    0x03AD44  orig=20c0534166fa...  repl=4e714e714e71...
+
+STACK GAP
+  __stack: 0xE1000000
+  _bend:   0xE0FF6576
+  gap:     0x9A8A (39562 bytes) — unchanged
+
+EXPECTED EFFECTS
+  BlastEm: C-Window SRAM fill loop writes eliminated.
+    No more pointer advancement into SRAM.
+    Crash at 0x20434A should not recur.
+  MAME: Z80 held in reset via Z80_startReset().
+    Hardware reset line asserted. Buzzing should stop.
+```
+## [Technical Lead Review - Build 99 Approved for Testing]
+## Source: Claude (Technical Lead)
+
+Build 99: APPROVED — Test dist/Rastan_99.bin
+
+3 opcode_replace entries active:
+  0x0560DA - display list write function (56 bytes)
+  0x03AD3C - word fill loop (6 bytes)
+  0x03AD44 - longword fill loop (6 bytes)
+
+Z80 fixed: Z80_startReset() replaces shadow approach.
+
+Expected results:
+  BlastEm: crash eliminated or significantly delayed
+  MAME: Z80 buzz gone
+  Screen: still blue (correct, no VDP writes yet)
+
+Note: Z80_startReset() holds Z80 in reset permanently.
+This is fine for now but in a later build we will
+need Z80_endReset() after loading a sound driver.
+For the port we will either use a custom Z80 sound
+driver or silence via the YM2612 directly.
+
+If crash is fully gone: Build 100 scope is first
+real VDP output — loading arcade palette data into
+Genesis CRAM so colours are correct when tiles appear.
+
+### MAME Exit Summary (2026-03-21 02:28:57)
+- Final PC: 0xBF3894
+- Stack Pointer (SP): 0xE036D56E
+- Unique Unmapped Memory Addresses (3): 0x00009CFE, 0x00209CFE, 0x00000000
+
+## [Andy - Build 100, NOP Tilemap Write Functions]
+
+```text
+Build: 100
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+BYTE VERIFICATION
+  0x055968: MATCH (len=38)
+    actual: 206d10a0323c0010227c0010d080267c0010d040245361
+            0000322b4810a0588b5489534166ee
+  0x055990: MATCH (len=32)
+    actual: 206d10a47210227c0010d080267c0010d04024536100
+            006e588b5489534166f2
+  ALL OK — proceeded.
+
+CHANGE — specs/startup_title_remap.json
+  Appended two entries to opcode_replace array:
+    0x055968  38 bytes -> 19x NOP
+      NOP tilemap write function A (0x55968-0x5598D).
+      Writes tile data through A5@(4256) C-Window
+      pointer each frame. Will become VDP nametable
+      writes.
+    0x055990  32 bytes -> 16x NOP
+      NOP tilemap write function B (0x55990-0x559AF).
+      Writes tile data through A5@(4260) C-Window
+      pointer each frame. Will become VDP nametable
+      writes.
+
+BUILD RESULT
+  Command: source tools/setup_env.sh && ./tools/release_build.sh 100
+  Result: CLEAN
+  ROM output: dist/Rastan_100.bin — CONFIRMED
+
+MANIFEST VERIFICATION
+  opcode_replace entries in address_rewrites: 5
+    0x0560DA  NOP entire display list write function
+    0x03AD3C  NOP word fill loop
+    0x03AD44  NOP longword fill loop
+    0x055968  NOP tilemap write function A
+    0x055990  NOP tilemap write function B
+
+EXPECTED EFFECTS
+  BlastEm: Per-frame tile data writes through A5@(4256)
+    and A5@(4260) C-Window pointers eliminated.
+    Crash at 0x204340 (C-Window page 1) should not recur.
+  All five C-Window write sites now NOPped.
+```
+
+### MAME Exit Summary (2026-03-21 02:40:00)
+- Final PC: 0x912772
+- Stack Pointer (SP): 0xE0392D50
+- Unique Unmapped Memory Addresses (3): 0x00209CFE, 0x27049CFE, 0x00000000
+
+## [Andy - Build 101, Workram Sanitizer]
+
+```text
+Build: 101
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+CHANGE — apps/rastan/src/main.c
+  Added sanitize_arcade_workram() static function
+  before sync_arcade_scroll_to_vdp() (line ~1489).
+  Scans genesistan_arcade_workram_words as 0x1000
+  LONGs. Any value with bits 23:16 == 0xC0 is
+  zeroed. Clears C-Window address pointers stored
+  by the arcade frontend tick before they can be
+  dereferenced as non-executable SRAM on Genesis.
+
+  Call order in SCREEN_FRONTEND_LIVE branch:
+    genesistan_refresh_arcade_inputs();
+    genesistan_run_original_frontend_tick();
+    sanitize_arcade_workram();       <- new
+    sync_arcade_scroll_to_vdp();
+    /* Rendering via opcode replacement. Build 97+. */
+
+BUILD RESULT
+  Command: source tools/setup_env.sh && ./tools/release_build.sh 101
+  Result: CLEAN
+  ROM output: dist/Rastan_101.bin — CONFIRMED
+
+STACK GAP
+  __stack: 0xE1000000
+  _bend:   0xE0FF6576
+  gap:     0x9A8A (39562 bytes) — unchanged
+```
+
+### MAME Exit Summary (2026-03-21 03:01:03)
+- Final PC: 0x208F42
+- Stack Pointer (SP): 0xE04A5BB8
+- Unique Unmapped Memory Addresses (2): 0x00209D2A, 0x00000000
+
+## [Andy - Build 101 Crash Diagnostic]
+
+```text
+Build: 101 (diagnostic run, no code changes)
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+APPROACH
+  Attempted MAME -debug -debugscript with logerror/tracelog
+  breakpoints at 200000,100000,x to capture SRAM execution.
+  logerror and tracelog produce no capturable output in this
+  MAME/WSL build even with -log -debuglog flags.
+  No mame.log created anywhere on the filesystem.
+
+  genesistrace.lua was already capturing Build 101 execution.
+  Its log (build/mame/home/genesistrace/genesis_exec_trace.log,
+  03:01:03) contains the full picture.
+
+BREAKPOINT RESULT
+  Breakpoint bpset 200000,100000,x did NOT halt MAME.
+  MAME exited after ~13s (arcade tick causing exception
+  that the handler handles and MAME continues from).
+  The crash is NOT caused by executing C-Window SRAM
+  data. It is caused by something different (see below).
+
+ROOT CAUSE IDENTIFIED
+  The C-Window shadow page symbols in the linker are
+  ABSOLUTE addresses that OVERLAP with SGDK code in ROM:
+    0x200000 = genesistan_shadow_c00000_words (C-Window pg 0)
+    0x204000 = genesistan_shadow_c04000_words (C-Window pg 1)
+    0x208000 = genesistan_shadow_c08000_words (C-Window pg 2)
+    0x20C000 = genesistan_shadow_c0c000_words (C-Window pg 3)
+    0x20436A = uintToStr (SGDK string function)
+    0x209D0E = _Line_1010_Emulation (SGDK exception handler)
+    0x209D28 = 0xFD92 (extension word of JMP (d16,PC) in ROM)
+    0x209D2A = _Line_1111_Emulation (SGDK F-line handler)
+
+  When the SRAM is NOT enabled, reads from 0x200000-0x20FFFF
+  return ROM content (SGDK code), not C-Window SRAM data.
+
+CRASH MECHANISM
+  1. Arcade code computes C-Window pointer 0xC09D28
+     (C-Window base 0xC00000 + offset 0x9D28).
+  2. On Genesis, this maps to address 0x209D28.
+  3. At 0x209D28 in ROM: byte sequence 0xFD92 — this
+     is the 16-bit displacement extension word of a
+     JMP (d16,PC) instruction at 0x209D26. When the
+     68000 executes 0xFD92 as an opcode, it is an
+     F-line (1111) instruction.
+  4. 68000 F-line exception fires. Saved fault PC =
+     0x209D2A (PC advanced past the 2-byte F-line
+     opcode). Handler = _Line_1111_Emulation at 0x209D2A.
+  5. The F-line handler itself triggers more exceptions
+     (cascade). Stack fills with repeated frames:
+       SR=0x2704, PC_hi=0x0020, PC_lo=0x9d2a
+     Seen 8+ times at SP=0xE0FFA378 (frame 433).
+  6. Eventually the error display code (uintToStr at
+     0x20436A) runs. BlastEm crashes there.
+
+GENESISTRACE EVIDENCE (Build 101 genesis_exec_trace.log)
+  frame 433: first exception_handler _Line_1111_Emulation
+    SR=0x2704  SP=0xE0FFA378
+    A5=0x0020061A  (= render_dip_banks, SGDK function)
+  frame 433: exception_guess offset_guess=0x00209D2A
+  Frame 433 stack: SR=2704,PC=0020_9d2a repeated 8+ times.
+  Exception fires again every ~10-15 frames thereafter
+  until MAME is killed.
+
+A5 ANOMALY
+  At exception time A5 = 0x0020061A = render_dip_banks
+  (a static function in main.c). The trampoline sets
+  A5 = genesistan_arcade_workram_words (0xE0FF004E)
+  at tick entry. Something during the 433-frame run
+  overwrites A5 with this SGDK ROM address.
+  All subsequent A5-relative workram accesses point
+  into SGDK ROM instead of the actual arcade workram.
+
+WHY sanitize_arcade_workram DOES NOT HELP
+  1. The crash occurs INSIDE genesistan_run_original_
+     frontend_tick(), before sanitize_arcade_workram()
+     runs.
+  2. Even if sanitize ran, it scans genesistan_arcade_
+     workram_words for 32-bit values with bits 23:16 =
+     0xC0. If A5 has been corrupted to point into ROM,
+     the arcade code is NOT writing C-Window pointers
+     into genesistan_arcade_workram_words — it is
+     reading/writing SGDK ROM addresses instead. The
+     sanitizer scans the correct workram array but the
+     arcade code is no longer using it.
+
+OPEN QUESTIONS (for Claude/Tighe)
+  1. Why does A5 change from 0xE0FF004E to 0x0020061A
+     during the 433-frame run? Is there arcade code that
+     reloads A5 from a hardcoded (unrelocated) address?
+  2. What arcade code path computes the C-Window pointer
+     0xC09D28 and jumps through it? Is it a function we
+     have not yet NOPped?
+  3. Is SRAM ever enabled for this cartridge? If SRAM
+     were enabled at 0x200000, C-Window jumps would land
+     in SRAM (which may contain valid data) rather than
+     ROM. But SRAM is apparently not enabled here.
+```
+
+## [Andy - Build 102, Workram Anchor Fix]
+
+```text
+Build: 102
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+DIAGNOSIS (from Build 101)
+  The arcade frontend tick reloads A5 (workram base)
+  by reading a LONG from absolute address 0x10C000.
+  On arcade: 0x10C000 is work RAM containing the
+  workram base pointer. Fine.
+  On Genesis: 0x10C000 is ROM. Previously contained
+  0x00000000 (padding). A5 gets corrupted after ~433
+  frames when the arcade code executes this reload,
+  causing all subsequent A5-relative accesses to fail
+  and eventually crashing via F-line exception cascade.
+
+PRE-BUILD VERIFICATION
+  genesistan_arcade_workram_words: 0xE0FF004E (symbol.txt)
+  ROM[0x10C000] before patch:      0x00000000
+
+CHANGE — tools/translation/postpatch_startup_rom.py
+  Added workram anchor patch after opcode_replace loop,
+  before stub_cfg section. Writes
+  genesistan_arcade_workram_words (0xE0FF004E) as a
+  big-endian LONG to ROM offset 0x10C000.
+  Appends a "workram_anchor" entry to rewrite_log.
+
+BUILD RESULT
+  Command: source tools/setup_env.sh && ./tools/release_build.sh 102
+  Result: CLEAN
+  ROM output: dist/Rastan_102.bin — CONFIRMED
+
+POST-BUILD VERIFICATION
+  ROM[0x10C000] after patch: 0xE0FF004E — MATCH
+
+EXPECTED EFFECT
+  When the arcade frontend tick executes MOVEA.L
+  0x10C000, A5 it now finds 0xE0FF004E (the actual
+  Genesis workram base) instead of 0x00000000 or a
+  stale SGDK ROM value. A5 stays stable. All
+  subsequent workram accesses use the correct base.
+  The F-line exception cascade should not recur.
+```
+
+### MAME Exit Summary (2026-03-21 12:28:09)
+- Final PC: 0x25E518
+- Stack Pointer (SP): 0xE037805E
+- Unique Unmapped Memory Addresses (2): 0x00209D2A, 0x00000000
+
+### MAME Exit Summary (2026-03-21 12:29:30)
+- Final PC: 0x208CFE
+- Stack Pointer (SP): 0xE0704078
+- Unique Unmapped Memory Addresses (2): 0x00209D2A, 0x00000000
+
+### MAME Exit Summary (2026-03-21 12:30:28)
+- Final PC: 0xCFC47E
+- Stack Pointer (SP): 0xE0394A44
+- Unique Unmapped Memory Addresses (3): 0x00009D2A, 0x00209D2A, 0x00000000

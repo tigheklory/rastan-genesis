@@ -1,0 +1,6 @@
+MAME debugger version 0.276 (unknown)
+Currently targeting genesis (Genesis (USA, NTSC))
+>bpset 200000,100000,x,{logerror "SRAM_EXEC PC=%08X D0=%08X A0=%08X A5=%08X SP=%08X\n",pc,d0,a0,a5,a7; g}
+ ^
+too many parameters for command
+>g

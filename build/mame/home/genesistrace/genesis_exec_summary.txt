@@ -1,4 +1,4 @@
-frames=3192
+frames=2289
 
 [execution_ranges]
 startup_common@000000 count=0
@@ -33,41 +33,41 @@ helper_5b512_rts@000200 count=0
 helper_5b512_rts@200000 count=0
 
 [window_signatures]
-wram_ff0000 changes=6 first_change=1110 last_change=1680
-io_a10000 changes=9 first_change=1260 last_change=2850
-vdp_ports changes=38 first_change=1770 last_change=2910
-z80_ctrl changes=105 first_change=60 last_change=3180
+wram_ff0000 changes=7 first_change=90 last_change=480
+io_a10000 changes=3 first_change=660 last_change=960
+vdp_ports changes=52 first_change=540 last_change=2280
+z80_ctrl changes=75 first_change=60 last_change=2280
 
 [symbol_watches]
-startup_result_code addr=ff4054 width=16 changes=32 first_change=1562 last_change=1652 last=20
-dip1 addr=ff0005 width=8 changes=31 first_change=1566 last_change=1653 last=20
-dip2 addr=ff0004 width=8 changes=32 first_change=1563 last_change=1653 last=0
-in_390001 addr=ff405b width=8 changes=31 first_change=1565 last_change=1652 last=20
-in_390003 addr=ff405a width=8 changes=32 first_change=1562 last_change=1652 last=0
-in_390005 addr=ff4059 width=8 changes=32 first_change=1562 last_change=1652 last=0
-in_390007 addr=ff4058 width=8 changes=32 first_change=1562 last_change=1652 last=27
-reg_3e0001 addr=ff4057 width=8 changes=32 first_change=1562 last_change=1652 last=16
-reg_3e0003 addr=ff4056 width=8 changes=31 first_change=1565 last_change=1652 last=A2
-reg_3c0000 addr=ff405c width=16 changes=32 first_change=1562 last_change=1652 last=A216
-reg_c50000 addr=ff4064 width=16 changes=32 first_change=1562 last_change=1652 last=2700
-reg_d01bfe addr=ff4062 width=16 changes=32 first_change=1562 last_change=1652 last=A216
-reg_350008 addr=ff4060 width=16 changes=32 first_change=1562 last_change=1652 last=20
-reg_380000 addr=ff405e width=16 changes=32 first_change=1562 last_change=1652 last=2700
-c20000_0 addr=ff406a width=16 changes=32 first_change=1562 last_change=1652 last=2700
-c20000_1 addr=ff406c width=16 changes=32 first_change=1562 last_change=1652 last=20
-c40000_0 addr=ff4066 width=16 changes=32 first_change=1562 last_change=1652 last=20
-c40000_1 addr=ff4068 width=16 changes=42 first_change=1092 last_change=1652 last=A216
-workram_10c000 addr=ff004e width=16 changes=32 first_change=1563 last_change=1653 last=A216
-arcade_page0 addr=ff004e width=16 changes=32 first_change=1563 last_change=1653 last=A216
-arcade_page2 addr=ff0050 width=16 changes=32 first_change=1563 last_change=1653 last=2700
-arcade_mode4 addr=ff0052 width=16 changes=32 first_change=1563 last_change=1653 last=20
-arcade_credits addr=ff0060 width=16 changes=32 first_change=1563 last_change=1653 last=A216
-arcade_stage addr=ff018c width=16 changes=32 first_change=1563 last_change=1653 last=A216
-arcade_flag_2a addr=ff0078 width=16 changes=32 first_change=1563 last_change=1653 last=A216
-arcade_flag_34 addr=ff0082 width=16 changes=32 first_change=1563 last_change=1653 last=20
-arcade_flag_3b addr=ff0089 width=8 changes=31 first_change=1566 last_change=1653 last=20
-arcade_mode_42 addr=ff0090 width=16 changes=32 first_change=1563 last_change=1653 last=A216
+startup_result_code addr=ff4054 width=16 changes=32 first_change=382 last_change=472 last=20
+dip1 addr=ff0005 width=8 changes=32 first_change=382 last_change=472 last=20
+dip2 addr=ff0004 width=8 changes=32 first_change=382 last_change=472 last=0
+in_390001 addr=ff405b width=8 changes=32 first_change=382 last_change=472 last=20
+in_390003 addr=ff405a width=8 changes=32 first_change=382 last_change=472 last=0
+in_390005 addr=ff4059 width=8 changes=32 first_change=382 last_change=472 last=4
+in_390007 addr=ff4058 width=8 changes=32 first_change=382 last_change=472 last=27
+reg_3e0001 addr=ff4057 width=8 changes=32 first_change=382 last_change=472 last=2A
+reg_3e0003 addr=ff4056 width=8 changes=31 first_change=385 last_change=472 last=9D
+reg_3c0000 addr=ff405c width=16 changes=32 first_change=382 last_change=472 last=9D2A
+reg_c50000 addr=ff4064 width=16 changes=32 first_change=382 last_change=472 last=2704
+reg_d01bfe addr=ff4062 width=16 changes=32 first_change=382 last_change=472 last=9D2A
+reg_350008 addr=ff4060 width=16 changes=32 first_change=382 last_change=472 last=20
+reg_380000 addr=ff405e width=16 changes=32 first_change=382 last_change=472 last=2704
+c20000_0 addr=ff406a width=16 changes=32 first_change=382 last_change=472 last=2704
+c20000_1 addr=ff406c width=16 changes=32 first_change=382 last_change=472 last=20
+c40000_0 addr=ff4066 width=16 changes=32 first_change=382 last_change=472 last=20
+c40000_1 addr=ff4068 width=16 changes=32 first_change=382 last_change=472 last=9D2A
+workram_10c000 addr=ff004e width=16 changes=32 first_change=382 last_change=472 last=9D2A
+arcade_page0 addr=ff004e width=16 changes=32 first_change=382 last_change=472 last=9D2A
+arcade_page2 addr=ff0050 width=16 changes=32 first_change=382 last_change=472 last=2704
+arcade_mode4 addr=ff0052 width=16 changes=32 first_change=382 last_change=472 last=20
+arcade_credits addr=ff0060 width=16 changes=32 first_change=382 last_change=472 last=9D2A
+arcade_stage addr=ff018c width=16 changes=32 first_change=382 last_change=472 last=9D2A
+arcade_flag_2a addr=ff0078 width=16 changes=32 first_change=382 last_change=472 last=9D2A
+arcade_flag_34 addr=ff0082 width=16 changes=32 first_change=382 last_change=472 last=20
+arcade_flag_3b addr=ff0089 width=8 changes=32 first_change=382 last_change=472 last=20
+arcade_mode_42 addr=ff0090 width=16 changes=32 first_change=382 last_change=472 last=9D2A
 
 [live_write_watches]
-vdp_ports_live count=1716195 first_frame=0 last_frame=3191 first_pc=205CE2 last_pc=209462 first_addr=C00004 last_addr=C00000 first_data=8004 last_data=0000 first_mask=FFFF last_mask=FFFF
-reg_c50000_live count=1 first_frame=1730 last_frame=1730 first_pc=20A216 last_pc=20A216 first_addr=C50000 last_addr=C50000 first_data=A216 last_data=A216 first_mask=FFFF last_mask=FFFF
+vdp_ports_live count=1810309 first_frame=0 last_frame=2282 first_pc=2057C6 last_pc=208F76 first_addr=C00004 last_addr=C00000 first_data=8004 last_data=0000 first_mask=FFFF last_mask=FFFF
+reg_c50000_live count=1 first_frame=550 last_frame=550 first_pc=209D2A last_pc=209D2A first_addr=C50000 last_addr=C50000 first_data=9D2A last_data=9D2A first_mask=FFFF last_mask=FFFF

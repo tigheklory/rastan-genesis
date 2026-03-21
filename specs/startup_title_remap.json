@@ -432,10 +432,34 @@
   },
   "opcode_replace": [
     {
-      "arcade_pc": "0x0560F8",
-      "original_bytes": "20C0 5342 66FA",
-      "replacement_bytes": "4E71 4E71 4E71",
-      "note": "NOP display list fill loop. Stops C-Window SRAM writes that cause BlastEm crash. movel d0,(a0)+ / subqw #1,d2 / bnes loop -> 3x NOP"
+      "arcade_pc": "0x0560DA",
+      "original_bytes": "206D10A0B1FC00C00F0066046100FF6E206D10A0343C0032203C0000002020C0534266FAD1FC000001002008028000C03F0020402B4810A0",
+      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "NOP entire display list write function 0x560DA-0x56111. Stops per-frame C-Window SRAM pointer writes and advancement."
+    },
+    {
+      "arcade_pc": "0x03AD3C",
+      "original_bytes": "30C0534166FA",
+      "replacement_bytes": "4E714E714E71",
+      "note": "NOP word fill loop. Called from 0x3AF5E and 0x3AF6E to fill C-Window pages 1 and 3 with 0x0000."
+    },
+    {
+      "arcade_pc": "0x03AD44",
+      "original_bytes": "20C0534166FA",
+      "replacement_bytes": "4E714E714E71",
+      "note": "NOP longword fill loop. Called from 0x3AE70, 0x3AE80, 0x3AF38, 0x3AF48 to fill C-Window pages 0 and 2 with 0x0020. Also called from 0x3AD4C sprite RAM init which is irrelevant on Genesis."
+    },
+    {
+      "arcade_pc": "0x055968",
+      "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
+      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "NOP tilemap write function A (0x55968-0x5598D). Writes tile data through A5@(4256) C-Window pointer each frame. Will become VDP nametable writes."
+    },
+    {
+      "arcade_pc": "0x055990",
+      "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
+      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes."
     }
   ]
 }
