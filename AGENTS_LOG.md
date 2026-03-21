@@ -6938,3 +6938,62 @@ Include:
   - Any errors encountered
 
 Stop. Wait for authorisation.
+## [Andy - sync_to_windows.sh Fix]
+
+```text
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+CURRENT SCRIPT (before fix)
+  Line 12 — root cause:
+    LATEST_BUILD=$(ls "$DIST_DIR"/Rastan_*.bin 2>/dev/null \
+      | grep -oP 'Rastan_\K[0-9]+' | sort -n | tail -1)
+  Extracts all numbers from filenames, sorts numerically, takes
+  the highest. Rastan_99_timestamp.bin yields 99, which beats
+  Rastan_97.bin (97), so old make-release artefacts always win.
+  Lines 22-26 then locate the source file using LATEST_BUILD,
+  inheriting the wrong number.
+
+EXACT LINES CHANGED
+  Lines 1-26 replaced — argument handling and build selection.
+  Lines 28-48 (Windows paths, copy, bat generation) are
+  structurally unchanged; only the variable LATEST_BUILD was
+  renamed to BUILD_NUM for clarity.
+
+  BEFORE (lines 11-26):
+    # 2. Look for the highest build number in the filenames within dist/
+    LATEST_BUILD=$(ls "$DIST_DIR"/Rastan_*.bin 2>/dev/null \
+      | grep -oP 'Rastan_\K[0-9]+' | sort -n | tail -1)
+    if [ -z "$LATEST_BUILD" ]; then
+        echo "ERROR: Could not find any Rastan_XX.bin files in $DIST_DIR"
+        exit 1
+    fi
+    echo "Found Latest Build Number: ${LATEST_BUILD}"
+    # 3. Find the ACTUAL source file path
+    SRC_PATH=$(ls "$DIST_DIR"/Rastan_${LATEST_BUILD}.bin 2>/dev/null | head -1)
+    if [ -z "$SRC_PATH" ]; then
+        SRC_PATH=$(ls "$DIST_DIR"/Rastan_${LATEST_BUILD}_*.bin 2>/dev/null | head -1)
+    fi
+
+  AFTER (lines 11-37):
+    if [[ $# -ge 1 ]]; then
+        BUILD_NUM="$1"
+        # validates numeric, checks file exists, uses dist/Rastan_${BUILD_NUM}.bin
+    else
+        # ls -t (modification time order), takes head -1
+        # extracts BUILD_NUM from chosen filename for bat file
+    fi
+
+HOW TO USE GOING FORWARD
+  Explicit (preferred):
+    ./tools/sync_to_windows.sh 97
+    Copies dist/Rastan_97.bin exactly. Errors if file missing.
+
+  Fallback (no argument):
+    ./tools/sync_to_windows.sh
+    Copies whichever Rastan_*.bin was most recently modified in dist/.
+    This picks up the output of the last release_build.sh run.
+    BUILD_NUM for the bat file is extracted from that filename.
+
+STATUS: Applied. Awaiting authorisation to proceed (if needed).
+```

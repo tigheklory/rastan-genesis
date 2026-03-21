@@ -1,0 +1,11 @@
+frames_run=1051
+unique_cwin_exec_sites=0
+
+UNIQUE C-WINDOW EXECUTION SITES
+(sorted by address)
+address    offset   count    first_frame  first_src 
+--------------------------------------------------------
+
+Each address above is a C-Window location the arcade
+68000 executes from. Each needs an opcode replacement
+patch to redirect to Genesis-native code.

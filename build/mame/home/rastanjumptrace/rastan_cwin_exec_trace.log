@@ -1,0 +1,21 @@
+==== rastanjumptrace v2 start rom=rastan ====
+C-Window tap installed
+armed — watching 0xC00000-0xC0FFFF
+[frame 000060] --- FRAME ---
+[frame 000120] --- FRAME ---
+[frame 000180] --- FRAME ---
+[frame 000240] --- FRAME ---
+[frame 000300] --- FRAME ---
+[frame 000360] --- FRAME ---
+[frame 000420] --- FRAME ---
+[frame 000480] --- FRAME ---
+[frame 000540] --- FRAME ---
+[frame 000600] --- FRAME ---
+[frame 000660] --- FRAME ---
+[frame 000720] --- FRAME ---
+[frame 000780] --- FRAME ---
+[frame 000840] --- FRAME ---
+[frame 000900] --- FRAME ---
+[frame 000960] --- FRAME ---
+[frame 001020] --- FRAME ---
+==== rastanjumptrace v2 stop ====
