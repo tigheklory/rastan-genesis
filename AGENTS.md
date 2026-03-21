@@ -210,8 +210,8 @@ directives from Claude before they go to implementers.
 Escalates conflicts or ambiguities to Tighe rather than
 resolving them independently.
 
-### Alan (Gemini Extension)
-Platform: ChatGPT
+### Alan (Gemini VS Code Extension)
+Platform: Gemini VS Code extension
 Role: Specialist consultant. Called in for fresh analysis
 when the team is stuck. Does not implement. Appends
 analysis to AGENTS_LOG.md only. Confirmed the KEEP()
