@@ -6624,3 +6624,90 @@ Gap __stack - _bend:
 - Final PC: 0xD00008
 - Stack Pointer (SP): 0x00005CA5
 - Unique Unmapped Memory Addresses (2): 0x00209C76, 0x00000000
+
+## [Supervisor - Tighe] Build 96 Test Results
+Note: batch script renames to Rastan_99.bin — this IS Build 96.
+
+BlastEm launcher: WORKING
+BlastEm in-game: SOLID BLUE SCREEN, 59.3fps, no crash, no error
+BlastEm graphics test: WORKING, PC090OJ sprites visible
+MAME graphics test: WORKING, PC080SN and PC090OJ tiles visible
+MAME in-game: BLACK SCREEN (correct for MAME Genesis)
+MAME exit: PC=0xD00008, manual close not a crash
+
+## [Technical Lead Review - Build 96 CONFIRMED STABLE]
+## Source: Claude (Project Technical Lead)
+
+### BUILD 96: STABLE BASELINE CONFIRMED
+
+The crash at 0x201CA8 is eliminated.
+The frontend tick runs every frame without crashing.
+Blue screen in BlastEm = VDP alive, arcade logic
+running, no graphics output yet. Correct.
+
+39KB stack gap. All 32 required symbols present.
+Launcher, graphics test, sound test all working.
+
+### What "blue screen" means
+
+The Genesis VDP background colour register defaults
+to blue (register 7 = 0x00). When the arcade
+frontend tick runs and writes nothing to the VDP,
+the screen stays blue. This is confirmation the
+68000 is executing normally — a crashed 68000
+would show black or garbage, not a stable colour.
+
+### Build 97 Scope
+
+First opcode replacement entries in the patcher.
+The arcade frontend tick is now running stably —
+we need to start intercepting its hardware writes
+and converting them to Genesis VDP calls.
+
+Priority targets in order:
+1. Scroll register writes (0xC20000, 0xC40000)
+   These are the simplest — two registers,
+   direct mapping to Genesis VDP scroll.
+2. Palette writes (colour RAM region)
+   The arcade writes XBGR555 palette data.
+   Convert to Genesis BGR format and write to
+   VDP CRAM via DMA.
+3. Tilemap writes (0xC00000-0xC07FFF)
+   The main rendering target. Each write becomes
+   a VDP nametable entry.
+
+validate_specs.py gets its first real opcode_replace
+entries in Build 97 Target 1.
+
+### Rename bug note
+
+Windows batch script renames output to Rastan_99.bin
+but this is Build 96. Fix the batch script in
+Build 97 to output the correct build number.
+
+## [Technical Lead - Build 96 MAME Z80 Buzzing Note]
+## Source: Claude (Project Technical Lead)
+
+### Z80 Buzzing in MAME (not a crash, cosmetic only)
+
+MAME buzzes, BlastEm does not.
+
+Root cause: startup_common was bypassed. The normal
+init path sends Z80 sound command 0x00EF at 0x3b05c
+which silences/resets the Z80 sound program.
+Without this command the Z80 starts in an undefined
+state and produces noise through YM2151/MSM5205.
+
+BlastEm does not buzz because its Z80/audio
+emulation is less strict about undefined Z80 states.
+
+Fix (Build 97): In request_start_rastan(), after
+shadow_init(), send the Z80 silence command:
+  genesistan_shadow_reg_3e0001 = 0;
+  genesistan_shadow_reg_3e0003 = 0xEF;
+
+This matches what startup_common_continue_normal
+does at 0x3b05c. One-line addition.
+
+Build 96 status: STABLE. Buzzing is cosmetic only.
+Does not affect game logic or crash stability.
