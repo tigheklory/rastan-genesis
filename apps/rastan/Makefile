@@ -6,6 +6,7 @@ ROOT := $(abspath ../..)
 PYTHON ?= python3
 VARIANT ?= world_rev1
 NOHOOK_FLAGS := -DRASTAN_ENABLE_STARTUP_HOOK=0
+RASTAN_BUILD_NUMBER ?= 0
 BUILD_INFO_HEADER := $(CURDIR)/inc/build_info.h
 MD_LDSCRIPT := $(CURDIR)/linker_rastan.ld
 
@@ -66,7 +67,7 @@ debug:
 	@stamp=$$(date +%Y%m%d_%H%M%S); \
 	$(PYTHON) "$(ROOT)/tools/translation/write_build_info.py" \
 		--header "$(BUILD_INFO_HEADER)" \
-		--build-number 0 \
+		--build-number "$(RASTAN_BUILD_NUMBER)" \
 		--build-stamp "$$stamp" \
 		--variant "$(VARIANT)" \
 		--hook-mode "debug-hooked"; \
@@ -90,7 +91,7 @@ debug-nohook:
 	@stamp=$$(date +%Y%m%d_%H%M%S); \
 	$(PYTHON) "$(ROOT)/tools/translation/write_build_info.py" \
 		--header "$(BUILD_INFO_HEADER)" \
-		--build-number 0 \
+		--build-number "$(RASTAN_BUILD_NUMBER)" \
 		--build-stamp "$$stamp" \
 		--variant "$(VARIANT)" \
 		--hook-mode "debug-nohook"; \

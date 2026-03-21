@@ -23,7 +23,7 @@ fi
 cd "${ROOT_DIR}"
 source tools/setup_env.sh
 
-make -C apps/rastan clean debug
+make -C apps/rastan clean debug RASTAN_BUILD_NUMBER="${BUILD_NUM}"
 
 mkdir -p "${ROOT_DIR}/dist"
 mkdir -p "${DIST_DIR}"

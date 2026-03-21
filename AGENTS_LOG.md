@@ -6796,3 +6796,95 @@ future cleanup pass.
 - **Visual Evidence (BlastEm):** Screenshot saved as `B95_BlastEm_Launcher_20260320_2342.png` (Stage: Launcher)
 - **Visual Evidence (BlastEm):** Screenshot saved as `B95_BlastEm_In-Game_20260320_2343.png` (Stage: In-Game)
 - **Visual Evidence (BlastEm):** Screenshot saved as `B95_BlastEm_In-Game_20260320_2344.png` (Stage: In-Game)
+
+## [Andy - Build Number Fix, release_build.sh]
+
+```text
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+Task: Diagnose and fix wrong build number in filename and launcher
+
+ROOT CAUSE 1 — Wrong filename (Rastan_99.bin)
+  The Makefile `release` target auto-increments a counter in
+  dist/release_counter.txt (currently 99). Previous builds used
+  `make release` directly, which incremented the counter and named
+  the output Rastan_${count}_${stamp}.bin. When the counter reached
+  99 the output became Rastan_99_timestamp.bin.
+  release_build.sh was created to replace this workflow but the
+  Makefile's release target was never updated to stop being callable.
+  release_build.sh itself uses ${BUILD_NUM} directly — its filename
+  output is correct. The 99 came from direct `make release` use.
+
+ROOT CAUSE 2 — Wrong launcher string (WORLD REV1 BASELINE UI 0 H)
+  release_build.sh line 26 called:
+      make -C apps/rastan clean debug
+  The Makefile `debug` target hardcoded:
+      --build-number 0
+  So write_build_info.py always received 0 regardless of the build
+  number argument passed to release_build.sh. The compiled ROM always
+  had RASTAN_BUILD_NUMBER 0 and RASTAN_BUILD_LINE containing 0.
+
+LINES CHANGED
+
+File 1: apps/rastan/Makefile
+
+  Added (line 8, after NOHOOK_FLAGS):
+    BEFORE: (not present)
+    AFTER:  RASTAN_BUILD_NUMBER ?= 0
+
+  debug target (was lines 68-70):
+    BEFORE: --build-number 0 \
+    AFTER:  --build-number "$(RASTAN_BUILD_NUMBER)" \
+
+  debug-nohook target (was lines 93-95):
+    BEFORE: --build-number 0 \
+    AFTER:  --build-number "$(RASTAN_BUILD_NUMBER)" \
+
+  Direct `make debug` still defaults to 0 — no behaviour change for
+  that workflow. The variable is only overridden when passed from the
+  command line.
+
+File 2: tools/release_build.sh (PENDING AUTHORISATION)
+
+  Line 26:
+    BEFORE: make -C apps/rastan clean debug
+    AFTER:  make -C apps/rastan clean debug RASTAN_BUILD_NUMBER="${BUILD_NUM}"
+
+  This passes the explicit build number as a make variable override,
+  which the Makefile propagates to write_build_info.py.
+
+BUILD 100+ CONFIRMATION
+  - Shell variable ${BUILD_NUM}: no length limit
+  - Make variable RASTAN_BUILD_NUMBER: no length limit
+  - write_build_info.py --build-number: type=int, Python int is
+    arbitrary precision, f-string formatting has no width cap
+  - C macro RASTAN_BUILD_NUMBER: integer literal, no truncation
+  - RASTAN_BUILD_LINE string: no fixed width, just a string literal
+  Build 100, 1000, and beyond will all work correctly.
+
+FILES CHANGED
+  apps/rastan/Makefile  — committed
+  tools/release_build.sh — AWAITING AUTHORISATION
+
+STATUS: Stopped. Waiting for authorisation to apply release_build.sh edit.
+```
+
+## [Andy - Build Number Fix, release_build.sh APPLIED]
+
+```text
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+Authorisation received. Applied pending change.
+
+tools/release_build.sh line 26:
+  BEFORE: make -C apps/rastan clean debug
+  AFTER:  make -C apps/rastan clean debug RASTAN_BUILD_NUMBER="${BUILD_NUM}"
+
+Both files now committed:
+  apps/rastan/Makefile        — DONE
+  tools/release_build.sh      — DONE
+
+Fix is complete. ./tools/release_build.sh 97 will now produce
+Rastan_97.bin with launcher string "WORLD REV1 BASELINE UI 97 H".
+```
