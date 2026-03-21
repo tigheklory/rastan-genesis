@@ -6441,6 +6441,219 @@ drwxr-xr-x 2 tighe tighe   4096 Mar 20 17:07 res
 drwxr-xr-x 2 tighe tighe   4096 Mar 20 17:07 src
 ```
 
+## [Codex - Independent Code Review Build 102]
+```text
+Scope reviewed from disk only (no external sources):
+- AGENTS.md
+- AGENTS_LOG.md
+- apps/rastan/src/main.c
+- apps/rastan/src/startup_bridge.c
+- apps/rastan/src/startup_trampoline.s
+- tools/translation/postpatch_startup_rom.py
+- apps/rastan/linker_rastan.ld
+- tools/release_build.sh
+- apps/rastan/Makefile
+- specs/startup_title_remap.json
+
+Review type: independent code review; no code changes made.
+
+========================================================================
+FINDINGS (ordered by severity)
+========================================================================
+
+[HIGH] Build 102 A5 anchor fix is likely inert for the known reload site.
+- File: tools/translation/postpatch_startup_rom.py:794-810
+  - Writes workram pointer to ROM offset 0x10C000.
+- Disassembly evidence:
+  - build/maincpu.disasm.txt @ 0x03AF04: `lea 0x10c000,%a5`
+  - also @ 0x03AEEA / 0x00052A: `lea 0x10c000,%a0`
+- `LEA` loads the literal address, not the contents at that address.
+  So writing data at ROM[0x10C000] does not affect this instruction.
+- Correct fix direction:
+  - Audit/patch actual A5 reload instructions and A5 clobber points.
+  - Instrument/patch the computed jump path that later targets C-window
+    addresses; do not rely on ROM data anchor unless a true memory read
+    (`movea.l <abs>,a5` / equivalent dereference) is confirmed.
+
+[HIGH] F-line cascade root cause remains architectural: executable control
+flow reaches C-window-derived addresses that are not safe executable memory.
+- Evidence in AGENTS_LOG and symbol/disasm context:
+  - crashes around 0x209D2A / _Line_1111_Emulation
+  - C-window mappings still target 0x200000 SRAM symbols in spec
+    (specs/startup_title_remap.json:383-386, 393-396).
+- This is not fully fixed by post-tick sanitization.
+- Correct fix direction:
+  - Replace/redirect computed branch targets that resolve into C-window.
+  - Implement opcode-level replacement for PC080SN-facing code paths, or
+    move truly executable subranges to WRAM with explicit ownership.
+
+[HIGH] `sanitize_arcade_workram()` timing cannot prevent in-tick crashes.
+- File: apps/rastan/src/main.c
+  - sanitizer implementation: 1489-1519
+  - call site: 1617-1619 (after `genesistan_run_original_frontend_tick()`).
+- If bad branch happens during frontend tick, sanitizer runs too late.
+- Correct fix direction:
+  - patch pointer-producing code paths or sanitize before dispatch points;
+    post-tick cleanup can remain as belt-and-suspenders only.
+
+[MEDIUM] `sanitize_arcade_workram()` mask can over-match.
+- File: apps/rastan/src/main.c:1515
+  - current check: `(v & 0x00FF0000UL) == 0x00C00000UL`
+- This matches any value with bits 23:16 == 0xC0 (e.g., 0x01C0xxxx), not
+  strictly 0x00C00000-0x00C0FFFF.
+- Safer range check for exact 24-bit window would use a stricter mask/range
+  test tied to expected pointer encoding.
+
+[MEDIUM] Long-term opcode reflow architecture is not yet implemented in code.
+- Project notes describe shift-table reflow; current code enforces same-size
+  replacement only.
+- File: tools/translation/postpatch_startup_rom.py:772-776
+  - `original_bytes` and `replacement_bytes` must be same length.
+- Current `opcode_replace` entries are effectively NOP substitutions
+  (specs/startup_title_remap.json:433+), not insertion/reflow.
+- Assessment:
+  - strategy is sound,
+  - implementation is currently an incremental subset, not full reflow.
+
+========================================================================
+ARCHITECTURE ASSESSMENT
+========================================================================
+
+Overall approach:
+- Sound direction: declarative specs + build-time patching is the right
+  architecture for preserving arcade logic while swapping hardware contracts.
+- Main remaining risk: C-window is treated as data-mapped space while parts
+  of flow still execute through addresses derived from that domain.
+
+Trampoline review (`startup_trampoline.s`):
+- `genesistan_run_original_frontend_tick`:
+  - saves/restores full D0-D7/A0-A6 (lines 45, 53),
+  - seeds A5 from `genesistan_arcade_workram_words` (line 46),
+  - builds an exception-style return frame (push return PC then SR,
+    lines 48-49) before `jmp` to arcade entry (line 50).
+- Disasm for entry 0x03A008 shows `rte` path (build/maincpu.disasm.txt
+  around 0x3A07E), so the frame model is coherent.
+- It does not initialize SP itself; that is acceptable here because this is
+  a callable wrapper invoked after C runtime startup.
+
+KEEP() linker fix:
+- Correct and necessary for `--gc-sections`.
+- Verified in linker script:
+  - `KEEP(*(.data.patcher))` at apps/rastan/linker_rastan.ld:66
+  - `KEEP(*(.bss.patcher))` at apps/rastan/linker_rastan.ld:77
+- Sectioning of patcher-required symbols in startup_bridge.c aligns with this
+  model.
+
+Opcode replace patcher approach:
+- Correct conceptually.
+- Current implementation does not yet match the stated "shift-table reflow"
+  target; this gap should be tracked explicitly as open work.
+
+========================================================================
+KNOWN BUGS (requested topics)
+========================================================================
+
+a) A5 corruption / Build 102 ROM[0x10C000] anchor
+- Assessment: likely not the right fix for the known `LEA 0x10C000,%a5`
+  site; that instruction ignores ROM contents.
+- Other explicit 0x10C000 references found in disasm are also LEA-to-address
+  patterns (`%a0`, `%a5`) rather than content loads.
+- Recommendation: find/patch true A5 clobber path(s) and computed jump source.
+
+b) F-line cascade at SGDK ROM bytes
+- Assessment: symptom is consistent with control flow entering non-code/data
+  bytes in SGDK ROM due bad pointer/dispatch into remapped C-window domain.
+- Correct fix: patch branch-producing logic (opcode replace) so no execution
+  target resolves to C-window-backed SRAM/ROM alias.
+
+c) `sanitize_arcade_workram()` correctness/timing
+- Mask: permissive/overbroad as noted above.
+- Timing: runs after tick, so it cannot prevent same-frame bad branches.
+- Keep only as temporary mitigation; primary fix must be pre-branch patching.
+
+========================================================================
+CODE QUALITY NOTES (requested files)
+========================================================================
+
+apps/rastan/src/main.c
+- Shadow API routes all C-window page reads/writes to SRAM
+  (lines 333-371), while live rendering is intentionally disabled
+  (line 1620 comment). This matches current transitional state but leaves
+  runtime behavior dependent on unresolved opcode patch coverage.
+- `render_frontend_sprite_layer()` remains present and coherent, but not used
+  in `SCREEN_FRONTEND_LIVE` path (expected for current build stage).
+
+apps/rastan/src/startup_bridge.c
+- Symbol retention sectioning is now explicit and reviewable.
+- `genesistan_init_workram_direct()` is deterministic and readable.
+- `Z80_startReset()` (line 212) is a reasonable stabilization step while sound
+  handshake replacement is incomplete.
+
+apps/rastan/src/startup_trampoline.s
+- Wrapper structure is coherent for current hook model.
+- Dead code (`genesistan_run_original_startup_common`) still exists but is not
+  harmful if intentionally retained for later phases.
+
+tools/translation/postpatch_startup_rom.py
+- Good spec validation and explicit symbol checks.
+- `required_symbols` gating is strict, which is good for determinism.
+- Current opcode replacement engine is intentionally constrained to equal-size.
+
+apps/rastan/linker_rastan.ld
+- KEEP usage is correct for patcher sections.
+- Section ordering (`.bss.workram` first) supports stack-collision mitigation.
+
+========================================================================
+BUILD SYSTEM REVIEW
+========================================================================
+
+tools/release_build.sh
+- Script is functional, but it builds via `make ... debug` (line 26), not
+  `release`. If intentional for bring-up, document it clearly to avoid
+  confusion in release QA.
+
+apps/rastan/Makefile
+- `release` target uses auto-increment `dist/release_counter.txt` (lines 17-45),
+  while debug path uses explicit `RASTAN_BUILD_NUMBER` (lines 66-88).
+- This dual scheme can produce mismatched numbering semantics across build
+  flows. Suggest unifying numbering authority for reproducibility.
+
+========================================================================
+WHAT IS MISSING (near-term critical work)
+========================================================================
+
+1) Tilemap pipeline (PC080SN -> VDP planes)
+- Required opcode replacements for write paths are not complete.
+- Spec currently NOPs key tilemap writer ranges (e.g. 0x55968, 0x55990 in
+  specs/startup_title_remap.json opcode_replace), which prevents proper output.
+
+2) Sprite pipeline (PC090OJ -> Genesis SAT)
+- Preview path renderer exists, but live path currently does not present
+  final integrated sprite behavior.
+- Need stable translation in the main runtime flow tied to arcade writes.
+
+3) Palette pipeline (arcade color RAM -> Genesis CRAM)
+- Runtime currently pulls palette via `shadow_read16(page 2)` in helper code
+  (main.c:1219-1234), but full production mapping/update strategy is not yet
+  finalized under opcode replacement mode.
+
+4) Computed branch hardening
+- Need explicit tracing and replacement of computed jump/call sites that can
+  resolve into C-window space.
+- This is the blocker for eliminating F-line exception cascades robustly.
+
+========================================================================
+Bottom line
+========================================================================
+
+The project direction is technically sound, and the KEEP() linker fix is
+correct. The current blocker is not tooling quality; it is incomplete control-
+flow replacement coverage. Build 102’s 0x10C000 anchor fix is likely targeting
+the wrong mechanism for the observed A5 failure path. Priority should be
+computed-branch source tracing + opcode replacement completion for the C-window
+execution paths.
+```
+
 ## [Cody - Build 96 Data Patcher Fix]
 ```text
 Re-read AGENTS_LOG.md from disk before starting and before appending.
@@ -7513,3 +7726,565 @@ EXPECTED EFFECT
 - Final PC: 0xCFC47E
 - Stack Pointer (SP): 0xE0394A44
 - Unique Unmapped Memory Addresses (3): 0x00009D2A, 0x00209D2A, 0x00000000
+
+## [Andy - Build 103 Pre-flight Diagnostic]
+
+```text
+Build: 103 (pre-flight diagnostic, no code changes)
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+STEP 1 — symbol.txt grep for key addresses
+  (grep "208c|208d|208e|209d|20436|10c00" apps/rastan/out/symbol.txt)
+
+  00208c30 T genesistan_sound_send_command
+  00208c60 T genesistan_sound_read_status
+  00208c78 T genesistan_run_original_startup_common
+  00208c88 T genesistan_run_original_frontend_tick
+  00208ca2 t genesistan_frontend_tick_return
+  00208ca8 T genesistan_startup_common_continue_normal
+  00208cdc T genesistan_startup_common_exit_normal
+  00208ce4 T genesistan_startup_common_exit_test
+  00208cec T MDDBG__SymbolDataPtr
+  00208cf0 t __ErrorHandler / MDDBG__ErrorHandler
+  00208e18 t MDDBG__Error_IdleLoop
+  00209d0e T _Line_1010_Emulation / MDDBG__Line1010Emu
+  00209d2a T _Line_1111_Emulation / MDDBG__Line1111Emu
+  00209d46 T _Error_Exception / MDDBG__ErrorExcept
+  0020436a T uintToStr
+
+STEP 2 — ROM bytes at key addresses (dist/Rastan_102.bin)
+
+  ROM size: 0x3A0000 (3801088 bytes)
+
+  ROM[0x209D26]: 4E FA FD 92   <- JMP (d16,PC) opcode 4EFA,
+                                   extension word FD92 at 0x209D28
+  ROM[0x209D28]: FD 92 4E BA   <- FD92 = F-line opcode when executed
+                                   directly; 4EBA = extension of next instr
+  ROM[0x209D2A]: 4E BA EF C4   <- _Line_1111_Emulation handler entry
+  ROM[0x10C000]: E0 FF 00 4E   <- workram anchor (Build 102 patch) WRITTEN
+  ROM[0x10C002]: 00 4E 00 00
+  ROM[0x10C004]: 00 00 00 00
+  ROM[0x20436A]: 48 E7 30 30   <- uintToStr entry bytes (SGDK)
+
+STEP 3 — ROM[0x10C000] region (32 bytes)
+
+  0x10C000: 0xE0FF004E  <- anchor written by Build 102
+  0x10C004: 0x00000000
+  0x10C008: 0x00000000
+  0x10C00C: 0x00000000
+  0x10C010: 0x00000000
+  0x10C014: 0x00000000
+  0x10C018: 0x00000000
+  0x10C01C: 0x00000000
+
+STEP 4 — Arcade disassembly grep for instructions referencing 0x10C000 range
+
+  build/maincpu.disasm.txt:
+    0x0000180:  lea  0x10c00c, %fp      <- init, sets A6 = 0x10C00C
+    0x00001a6:  lea  0x10c010, %a1
+    0x000052a:  lea  0x10c000, %a0
+    0x003aeea:  lea  0x10c000, %a0      <- startup_common init
+    0x003aef0:  lea  0x10c002, %a1      <- startup_common init
+    0x003af04:  lea  0x10c000, %a5      <- startup_common: sets workram base
+    0x0054bf8:  lea  0x10c242, %a0
+    0x0055db4:  lea  0x10c04c, %a0
+
+  ALL are LEA (load effective address — constant value).
+  NONE are MOVEA.L (dereference from address).
+  No instruction reads the CONTENTS of 0x10C000 into a register.
+
+STEP 4b — CRITICAL DISCOVERY: Genesis ROM bytes at arcade PC 0x3AF04
+
+  Arcade PC 0x3AF04 + relocation_delta 0x200 = ROM offset 0x3B104
+
+  ROM[0x3B104]: 4B F9 E0 FF 00 4E
+
+  Decoded: LEA 0xE0FF004E, A5
+
+  The patcher has ALREADY relocated the LEA operand from arcade
+  0x10C000 to Genesis 0xE0FF004E (= genesistan_arcade_workram_words).
+  When startup_common runs this instruction, A5 correctly becomes
+  0xE0FF004E — the patcher handles it.
+
+  IMPLICATION: The Build 102 workram anchor (writing 0xE0FF004E at
+  ROM[0x10C000]) was based on an incorrect assumption — there is no
+  MOVEA.L that reads FROM 0x10C000. The only A5-loading instruction
+  is a LEA already correctly patched. The anchor is INERT.
+
+STEP 5 — symbol.txt grep for 208c/208d/208e range
+
+  Confirmed (same results as Step 1):
+  0x208CF0 = __ErrorHandler / MDDBG__ErrorHandler
+  0x208CA2 = genesistan_frontend_tick_return
+
+  MAME Final PC 0x208CFE (Build 102 run 2) falls INSIDE the
+  error handler at 0x208CF0. This confirms the crash lands in
+  the SGDK MDDBG error/exception handler every time.
+
+ANALYSIS SUMMARY
+
+  1. LEA vs MOVEA.L: All 0x10C000 references are LEA (load constant
+     address). None dereference the memory. Build 102 anchor is inert.
+
+  2. Patcher handles startup_common correctly: ROM[0x3B104] =
+     "lea 0xE0FF004E,%a5" — the workram base is correctly relocated.
+
+  3. F-line exception still fires (Build 102 MAME exits all show
+     0x00209D2A in unmapped addresses, Final PCs land in error handler).
+
+  4. A5 corruption source unknown: A5 = 0x0020061A at exception
+     time (frame 433 in Build 101). No MOVEA.L to A5 exists in the
+     disassembly. The only A5-loading instruction is the patched LEA.
+     The ADD-to-A5 instructions at 0x3CE78, 0x4872A etc appear to be
+     in data regions being misread by the linear disassembler — they
+     are likely not real code.
+
+  5. 0x0020061A (render_dip_banks) appears in ROM at:
+       ROM[0x200F10], ROM[0x20103A], ROM[0x20129E],
+       ROM[0x201702], ROM[0x20174E]
+     All in the SGDK ROM region (C-Window shadow overlap zone).
+
+  6. Root question for Claude: if the patcher correctly relocates
+     the LEA in startup_common, and the frontend tick trampoline
+     sets A5 = 0xE0FF004E at each tick entry — what code path
+     during the 433-frame frontend tick run sets A5 to 0x0020061A?
+     And separately: what specific arcade instruction reaches
+     0x209D28 (C-Window address for page 2, offset 0x1D28)?
+```
+
+## [Chad - Independent Code Review Build 102]
+
+```text
+Independent review scope:
+- Read AGENTS.md and AGENTS_LOG.md in full before review.
+- Reviewed current repository files via GitHub:
+  - apps/rastan/src/main.c
+  - apps/rastan/src/startup_bridge.c
+  - apps/rastan/src/startup_trampoline.s
+  - tools/translation/postpatch_startup_rom.py
+  - apps/rastan/linker_rastan.ld
+  - apps/rastan/Makefile
+  - tools/release_build.sh
+
+============================================================
+1. ARCHITECTURE CORRECTNESS
+============================================================
+
+OVERALL APPROACH
+  The high-level approach is sound:
+  - keep original arcade 68000 gameplay logic alive
+  - remap hardware contracts instead of rewriting game logic
+  - move toward build-time opcode replacement rather than deep runtime hooks
+
+  That said, the codebase is still in a TRANSITIONAL state between two
+  architectures:
+
+  A) old startup/runtime-hook hosting model
+  B) new shift-table opcode replacement model described in AGENTS.md
+
+  The biggest current architectural mismatch is that AGENTS.md promises
+  variable-length opcode replacement with shift-table reflow, but the active
+  patcher still implements SAME-LENGTH replacement only.
+
+  Evidence:
+  - tools/translation/postpatch_startup_rom.py, opcode_replace loop:
+    if len(expected) != len(new_bytes): raise RuntimeError(...)
+  - This means the patcher is NOT yet doing the long-term “insert bytes,
+    shift subsequent code, then fix absolute/relative references” design.
+
+  Conclusion:
+  - The direction is correct.
+  - The implementation is not yet at the architecture described in AGENTS.md.
+  - Until the real shift-table reflow exists, all opcode replacement work is
+    constrained to same-length substitutions and small audited stubs.
+
+TRAMPOLINE REVIEW (startup_trampoline.s)
+  File review result: partially correct, but easy to misunderstand.
+
+  What is correct:
+  - genesistan_run_original_frontend_tick saves all caller state with
+    movem.l %d0-%d7/%a0-%a6,-(%sp)
+  - It seeds A5 with genesistan_arcade_workram_words
+  - It synthesizes an RTE-style return frame by pushing:
+      1) return PC (long)
+      2) SR (word)
+    then jumping into arcade code at 0x03A008 + ARCADE_ROM_BASE.
+  - This is the correct stack shape IF the arcade path eventually exits via RTE.
+
+  What is NOT true:
+  - startup_trampoline.s does NOT initialize the system stack.
+  - Stack base comes from the SGDK / linker startup path, not this file.
+  - So if anyone believes this file “sets SP”, that is incorrect.
+
+  Exit-path fragility:
+  - genesistan_startup_common_exit_normal/test do:
+      addq.l #4,%sp
+      movem.l (%sp)+,%d0-%d7/%a0-%a6
+      rts
+  - This is only correct if the generated startup stub leaves exactly one extra
+    longword on stack at exit time.
+  - In other words: the trampoline contract is not self-contained. It depends
+    on postpatch_startup_rom.py generating stubs that preserve that exact
+    stack convention.
+
+  Verdict:
+  - Frontend tick exception-frame setup is reasonable.
+  - Stack initialization is NOT in this file.
+  - The exit path is brittle but not obviously wrong, assuming the stub
+    contract is stable.
+
+KEEP() LINKER FIX
+  Confirmed correct and necessary.
+
+  linker_rastan.ld currently does all three important things:
+  - KEEP(*(.text.keepboot))
+  - KEEP(*(.data.patcher))
+  - KEEP(*(.bss.patcher))
+
+  This is the right fix for symbols/sections that exist mainly so the patcher
+  can locate or target them even when normal code-flow references are weak or
+  absent.
+
+  Verdict:
+  - KEEP() fix is correct.
+  - I would keep it.
+
+OPCODE_REPLACE PATCHER APPROACH
+  Correct in principle, incomplete in practice.
+
+  Good:
+  - Validates original bytes before patching.
+  - Refuses silent mismatches.
+  - Keeps a rewrite log.
+
+  Limitation:
+  - It currently rejects any replacement whose size differs from the original.
+  - Therefore this is NOT yet the “shift-table reflow” architecture documented
+    in AGENTS.md.
+
+  Verdict:
+  - Safe as a conservative patcher.
+  - Not yet the final architecture.
+
+============================================================
+2. KNOWN BUGS
+============================================================
+
+2a. A5 CORRUPTION / BUILD 102 WORKRAM ANCHOR
+
+QUESTION:
+  Build 102 patched ROM[0x10C000] = 0xE0FF004E.
+  Is this the right fix?
+
+VERDICT:
+  No. This fix is based on an incorrect model and is effectively inert.
+
+  AGENTS_LOG already contains the critical diagnostic:
+  - all 0x10C000 references in the disassembly are LEA instructions
+  - not MOVEA.L dereferences
+  - startup_common already gets patched to:
+      lea 0xE0FF004E,%a5
+
+  That means:
+  - the arcade code is loading the ADDRESS 0x10C000 as a constant in the
+    original ROM layout
+  - the relocation/patch path already rewrites that constant to the correct
+    Genesis workram base
+  - writing a longword value INTO ROM offset 0x10C000 does not fix A5 because
+    nothing is reading the contents of that location
+
+  Therefore the code in postpatch_startup_rom.py that writes the “workram_anchor”
+  at 0x10C000 is based on a false assumption.
+
+CORRECT FIX DIRECTION
+  The real A5 bug is not “missing ROM anchor data.”
+  The real bug is that A5 is being clobbered later during runtime.
+
+  Most likely classes of remaining causes:
+  1. an injected helper path does not preserve A5
+  2. an opcode replacement/stub path trashes A5
+  3. corrupted control flow reaches code that reuses A5 for something else
+
+OTHER RELOAD SITES?
+  Based on the logged grep already in AGENTS_LOG:
+  - startup_common LEA at 0x03AF04 is the real A5 setup site
+  - no evidence was found for a MOVEA.L reading the contents of 0x10C000
+
+  So the review conclusion is:
+  - Build 102 “anchor” fix is wrong/inert
+  - the next audit should target A5 clobber sites, not 0x10C000 contents
+
+2b. F-LINE EXCEPTION CASCADE
+
+QUESTION:
+  Arcade code jumps to C-Window addresses that now land in SGDK ROM where
+  byte 0xFD92 becomes an F-line opcode. What is the correct fix?
+
+VERDICT:
+  The correct fix is to eliminate or rewrite the SOURCE of the jump, not to
+  patch the destination symptom.
+
+  The observed failure pattern is:
+  - runtime computes or loads a 0x00C0xxxx target
+  - on Genesis that resolves into application ROM / relocated region
+  - execution lands at 0x209D28 where bytes FD92 are not code entry bytes but
+    the extension word of a different instruction
+  - CPU decodes FD92 as an F-line opcode and cascades into the SGDK exception
+    handler
+
+  Correct fix hierarchy:
+  1. Identify the specific arcade instruction or jump-table entry that produces
+     the 0x00C0xxxx execution target.
+  2. Replace that code path so it writes to VDP / shadow state instead of ever
+     treating the C-Window as executable memory.
+  3. As an interim safety measure, explicitly patch/NOP any audited jump/JSR/
+     indirect branch sites that can still resolve into 0x00C0xxxx.
+
+  Incorrect fix:
+  - patching bytes at 0x209D28
+  - patching the F-line handler
+  - treating the destination as the primary bug
+
+  The destination is just where bad control flow becomes visible.
+
+2c. sanitize_arcade_workram()
+
+QUESTION:
+  Is the mask check correct? Is there a timing issue?
+
+MASK REVIEW
+  Current check (from main.c) is effectively:
+    if ((v & 0x00FF0000UL) == 0x00C00000UL) { ... }
+
+  For detecting longwords in the exact C-Window range 0x00C00000-0x00C0FFFF,
+  that mask is correct.
+
+  Why:
+  - bits 23:16 must equal 0xC0
+  - lower 16 bits are allowed to vary across the window
+
+TIMING REVIEW
+  The timing is wrong for prevention.
+
+  Current order in SCREEN_FRONTEND_LIVE is:
+    genesistan_refresh_arcade_inputs();
+    genesistan_run_original_frontend_tick();
+    sanitize_arcade_workram();
+    sync_arcade_scroll_to_vdp();
+
+  Therefore sanitize_arcade_workram() runs AFTER the tick.
+  If the bad pointer/jump occurs inside genesistan_run_original_frontend_tick(),
+  the sanitizer cannot prevent the crash.
+
+  Additional limitation:
+  - it only scans genesistan_arcade_workram_words
+  - if A5 is already corrupted, the arcade code may no longer be using that
+    array as its true base
+
+  Verdict:
+  - Mask logic is fine.
+  - Timing makes it too late to stop the fault.
+  - It may still be useful as diagnostics/hygiene, but not as the real fix.
+
+============================================================
+3. CODE QUALITY REVIEW
+============================================================
+
+apps/rastan/src/main.c
+  Positives:
+  - clearly trying to separate launcher/test/UI duties from live frontend duties
+  - sanitizer and VDP scroll sync are at least isolated into named helpers
+
+  Concerns:
+  1. shadow_write16()/shadow_read16() still route directly into SRAM space for
+     all pages in the reviewed current file, while the long-term architecture in
+     AGENTS.md says rendering should move away from runtime shadow-backed video.
+     This suggests main.c still contains transitional infrastructure that should
+     eventually disappear.
+
+  2. shadow_init() only writes 0x01 to $A130F1 and assumes SRAM is available.
+     There is no explicit disable path, no platform guard, and no separation
+     between “dev hardware convenience” and “portable runtime contract.”
+
+  3. sanitize_arcade_workram() is conceptually a post-fault scrubber, not a
+     preventative fix. Keeping it is fine for diagnosis, but it should not be
+     mistaken for the architectural solution.
+
+  4. SCREEN_FRONTEND_LIVE currently still depends on a mixed model:
+     original frontend tick + post-tick SGDK-side repairs. That is a fragile
+     hosting model and will keep producing edge cases until the offending arcade
+     hardware interactions are fully replaced.
+
+apps/rastan/src/startup_bridge.c
+  Positives:
+  - patcher-visible/shadow-visible symbols are centralized
+  - work RAM, scroll shadows, input shadows, and sound mailbox state are named
+    clearly enough for tooling
+
+  Concerns:
+  1. genesistan_arcade_workram_words is only 0x2000 words = 16KB. That is fine
+     if this is the intended hosted arcade workram slice, but every A5-relative
+     access assumption must remain consistent with that reduced model.
+
+  2. genesistan_reset_startup_shadows() still mass-clears all four shadow pages,
+     which is consistent with the older runtime-shadow architecture and not the
+     end-state described in AGENTS.md.
+
+  3. genesistan_init_workram_direct() is doing more and more “host the board in
+     C” work. That is acceptable short-term, but it increases drift from the
+     long-term goal of preserving original behavior and replacing only hardware
+     contracts.
+
+apps/rastan/src/startup_trampoline.s
+  Main issue is not syntax or alignment.
+  Main issue is hidden contract coupling:
+  - it assumes specific stub behavior
+  - it assumes specific return mechanism from arcade code
+  - it assumes A5 stays stable after entry
+
+  The file itself is compact, but its correctness depends on external tooling.
+
+tools/translation/postpatch_startup_rom.py
+  This is currently the most strategically important file in the project.
+
+  Positives:
+  - validates original bytes before replacement
+  - validates target windows
+  - logs rewrites
+
+  Bugs / incorrect assumptions:
+  1. The Build 102 workram_anchor patch at 0x10C000 is based on an incorrect
+     comment and should not be trusted as a real fix.
+  2. opcode_replace is still fixed-length only, which means the shift-table
+     architecture is not yet implemented here.
+
+apps/rastan/linker_rastan.ld
+  Positives:
+  - KEEP() usage is correct
+  - explicit __stack is clear
+  - .boot at 0x00000000 and app ROM base at 0x00200000 are coherent with the
+    current hosted-ROM design
+
+  Concern:
+  - SRAM is still declared as a generic memory region even though the current
+    long-term architecture no longer wants runtime video shadowing to depend on
+    it. That is not a bug by itself, but it is another sign of leftover
+    transition-state infrastructure.
+
+============================================================
+4. BUILD SYSTEM REVIEW
+============================================================
+
+apps/rastan/Makefile
+  Findings:
+  - release target increments its own release_counter
+  - debug target uses externally supplied RASTAN_BUILD_NUMBER
+  - release path runs patch_maincpu.py, SGDK build, then postpatch_startup_rom.py
+
+  Concern:
+  - build numbering is split across two models:
+      a) internal release_counter in Makefile release
+      b) explicit build number passed from tools/release_build.sh for debug
+
+  This is workable, but not clean.
+
+  Bigger concern:
+  - the release orchestration is not single-source-of-truth.
+
+tools/release_build.sh
+  Findings:
+  - calls: make -C apps/rastan clean debug RASTAN_BUILD_NUMBER="${BUILD_NUM}"
+  - packages output into dist/build_<num>
+  - if no ELF exists, it copies ROM_BIN and names it .elf
+  - if no MAP exists, it copies symbol.txt and names it .map
+
+  This is a real pipeline smell.
+
+  Specific bug:
+  - A ROM binary copied to .elf is not an ELF.
+  - symbol.txt copied to .map is not a linker MAP.
+
+  That may be convenient for downstream tooling expecting filenames, but it
+  creates misleading artifacts and can trick later agents or humans into
+  believing they are reading real ELF/MAP outputs.
+
+  Recommendation:
+  - either require real .elf/.map outputs
+  - or name fallback artifacts honestly (e.g. .rom_fallback / .symbols_fallback)
+
+  Verdict:
+  - release pipeline works as packaging glue
+  - artifact naming is misleading and should be corrected
+
+============================================================
+5. WHAT IS MISSING / NEEDED SOON
+============================================================
+
+PALETTE LOADING
+  Still missing as a live arcade-driven path.
+
+  What exists:
+  - palette conversion work is present and known-good in test/launcher context
+
+  What is still needed:
+  - audited replacement of arcade palette RAM writes (0x800000 region per
+    AGENTS.md) into VDP CRAM updates
+  - correct synchronization policy so palette changes happen at safe times
+  - verification of exact arcade color packing and bank ownership in gameplay
+
+SPRITE RENDERING
+  Partially exists, not yet complete as the final in-game contract.
+
+  What exists:
+  - sprite-side work is already demonstrated in launcher/test contexts
+  - PC090OJ attribute RAM shadow exists in startup_bridge.c
+
+  What is still needed:
+  - final PC090OJ -> VDP sprite table translation in the live frontend/game path
+  - audited rewrite of sprite RAM update sites so the original logic feeds the
+    Genesis sprite list without stale shadow assumptions
+  - ordering / link / priority / flip validation against real Rastan behavior
+
+TILEMAP RENDERING
+  This is still the biggest missing production subsystem.
+
+  What exists:
+  - scroll shadow sync helper exists
+  - graphics/tile compatibility is already proven in launcher tooling
+
+  What is still needed:
+  - actual PC080SN tilemap word decode audit
+  - C-Window / tilemap source writes replaced with Genesis nametable writes
+  - elimination of the legacy assumption that C-Window can remain executable or
+    runtime-shadowed as a fake board device
+
+============================================================
+FINAL VERDICT
+============================================================
+
+1. The project direction is fundamentally correct.
+2. The current implementation is still between architectures.
+3. Build 102's 0x10C000 “workram anchor” fix is not the right fix.
+4. The real remaining bugs are:
+   - A5 clobber during runtime
+   - C-Window-derived control-flow that still becomes executable on Genesis
+   - incomplete migration from runtime shadow hosting to true opcode/device
+     replacement
+5. KEEP() linker fix is correct.
+6. startup_trampoline.s is acceptable but contract-fragile.
+7. postpatch_startup_rom.py is the current strategic bottleneck and still does
+   not implement true shift-table reflow.
+8. The next major technical milestone is not another sanitizer/anchor patch.
+   It is replacing the offending hardware-facing code paths so the arcade logic
+   can no longer generate C-Window execution targets in the first place.
+
+PRIORITY ORDER I WOULD RECOMMEND
+  1. Remove or revert the Build 102 workram_anchor assumption.
+  2. Find the real A5 clobber site (likely in injected helper/stub path).
+  3. Audit and replace the exact source path that generates the 0xC09D28 jump.
+  4. Implement true shift-table opcode reflow in the patcher before expanding
+     replacement coverage much further.
+  5. Finish palette/sprite/tilemap hardware-contract replacement so the project
+     can stop relying on partial runtime repair logic.
+```

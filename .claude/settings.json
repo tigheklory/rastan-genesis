@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python3 -c \":*)",
       "Bash(source tools/setup_env.sh)",
-      "Bash(./tools/release_build.sh 102)"
+      "Bash(./tools/release_build.sh 102)",
+      "Read(//home/tighe/projects/rastan-genesis/**)"
     ]
   }
 }
