@@ -6997,3 +6997,155 @@ HOW TO USE GOING FORWARD
 
 STATUS: Applied. Awaiting authorisation to proceed (if needed).
 ```
+
+## [Andy - Build 98 MAME Debugger Trace]
+
+```text
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+APPROACH DEVIATION — cannot use interactive MAME debugger
+  The MAME -debug flag opens a Qt GUI debugger window.
+  As a text-based VS Code extension I cannot type into GUI
+  windows. Used -debugscript automation instead, and also
+  reviewed existing rastanjumptrace output.
+
+METHOD 1 — MAME -debugscript (automated)
+  Script written to /tmp/mame_cwin_bp.txt:
+    bpset c00000,1,x,{logerror "=== CWIN EXEC BP FIRED ===\n
+      PC=%08X SR=%04X\nD0..D7 A0..A7\n",...; bpdisable 0; g}
+    g
+  Command:
+    timeout 35 mame rastan -window -skip_gameinfo
+      -rompath roms -homepath build/mame/home
+      -debug -debugscript /tmp/mame_cwin_bp.txt
+      2>/tmp/mame_cwin_stderr.txt
+  Result:
+    EXIT: 124 (timeout — ran full 35 seconds without crashing)
+    Stderr: only ALSA and Qt path warnings, no breakpoint output
+    logerror output does NOT go to stderr in this MAME build;
+    no mame.log created in homepath either.
+    BREAKPOINT DID NOT FIRE in 35 seconds.
+
+METHOD 2 — Existing rastanjumptrace output reviewed
+  build/mame/home/rastanjumptrace/rastan_cwin_exec_summary.txt:
+    frames_run=1051
+    unique_cwin_exec_sites=0
+    (table is empty — no C-Window execution events)
+
+  build/mame/home/rastanjumptrace/rastan_jump_summary.txt:
+    frames_run=1559
+    indirect_branches_seen=0
+    indirect_branches_to_cwin=0
+    indirect_branches_to_sram=0
+    cwin_exec_hits=0
+    TARGET_FOUND=NO
+    NOTE: target 0xC01CA8 was not seen as a branch target.
+
+  rastan_cwin_exec_trace.log:
+    Tap installed, 1051 frames logged, zero CWIN_PC events.
+
+KEY FINDING — arcade ROM does NOT execute from C-Window
+  After 1051-1559 frames the arcade Rastan maincpu never
+  executes from 0xC00000-0xC0FFFF (PC080SN C-Window RAM).
+  `bpset c00000,1,x` on `mame rastan` would never fire
+  during normal title screen / frontend operation.
+
+IMPLICATION FOR GENESIS CRASH AT 0x201CA8 / 0x2091EA
+  The crash in the Genesis port is NOT caused by the arcade
+  code jumping to 0xC00000. The arcade code does not jump
+  there. The Genesis 68000 ends up at 0x201CA8 or 0x2091EA
+  (C-Window SRAM at 0x200000+) via a different mechanism —
+  likely a wrong computed address in translated code.
+
+  To catch this in MAME with the Genesis driver, the
+  breakpoint needs to target the SRAM region, not 0xC00000:
+    mame genesis -cart dist/Rastan_97.bin
+    bpset 200000,e0000,x
+  This would fire when PC enters any C-Window SRAM page
+  (0x200000-0x20DFFF) in the Genesis ROM context.
+
+  0xC00000 on Genesis is the VDP data port — execution
+  there is possible but a different crash scenario.
+
+DRIVER DISTINCTION
+  mame rastan    — arcade ROM, 0xC00000 = PC080SN C-Window
+  mame genesis   — Genesis ROM, 0xC00000 = VDP registers
+                   Genesis SRAM/C-Window shadow = 0x200000
+
+RECOMMENDATION
+  To trace the 0x2091EA crash (Build 97 final PC):
+    tools/mame/run_genesis_trace_wsl.sh dist/Rastan_97.bin
+  with a modified genesistrace.lua that watches
+  0x200000-0x20DFFF for execution events.
+  Or use MAME debugger interactively:
+    bpset 200000,e0001,x
+    g
+```
+
+## [Andy - Build 98, First Opcode Replacement]
+
+```text
+Build: 98
+Date: 2026-03-21
+Agent: Andy (Claude VS Code Extension)
+
+BYTE VERIFICATION at 0x560F8
+  Command:
+    python3 -c "data=open('build/regions/maincpu.bin','rb').read();
+                print(data[0x560F8:0x560FE].hex(' '))"
+  Result:  20 c0 53 42 66 fa
+  Expected: 20 c0 53 42 66 fa
+  MATCH: YES — safe to proceed
+
+CHANGE 1 — tools/translation/postpatch_startup_rom.py
+  Added opcode_replace handler block between the shim_jumps
+  loop and stub_cfg section (before line 766).
+  Handler:
+    - iterates spec.get("opcode_replace", [])
+    - parses arcade_pc, strips spaces from hex fields
+    - validates original_bytes and replacement_bytes are same length
+    - applies relocation_delta to get rom_pc
+    - verifies actual bytes match expected before patching
+    - raises RuntimeError on mismatch or length difference
+    - appends kind/arcade_pc/rom_pc/original_bytes/
+      replacement_bytes/note to rewrite_log
+
+CHANGE 2 — specs/startup_title_remap.json
+  Added "opcode_replace" top-level array after "generated_stubs":
+    arcade_pc:         0x0560F8
+    original_bytes:    20C0 5342 66FA
+    replacement_bytes: 4E71 4E71 4E71
+    note: NOP display list fill loop. Stops C-Window SRAM
+          writes that cause BlastEm crash.
+          movel d0,(a0)+ / subqw #1,d2 / bnes loop -> 3x NOP
+
+BUILD RESULT
+  Command: source tools/setup_env.sh && ./tools/release_build.sh 98
+  Compile: CLEAN (no warnings, no errors)
+  ROM output: dist/Rastan_98.bin — CONFIRMED
+
+PATCH VERIFICATION IN ROM
+  NOP bytes at relocated offset:
+    0x0562F8 (= 0x560F8 + relocation_delta 0x200): 4e 71 4e 71 4e 71
+  Manifest (build/rastan/startup_common_rom_manifest.json):
+    address_rewrites total entries: 126
+    opcode_replace entries: 1
+      arcade_pc: 0x0560F8
+      rom_pc:    0x0562F8
+      original_bytes:    20c0534266fa
+      replacement_bytes: 4e714e714e71
+      note: NOP display list fill loop...
+
+STACK GAP
+  __stack: 0xE1000000
+  _bend:   0xE0FF6576
+  gap:     0x9A8A (39562 bytes) — unchanged from Build 96/97
+
+EXPECTED EFFECT
+  The display list fill loop at 0x560F8 is now 3x NOP.
+  A5@(4256) still advances but no longwords are written
+  to the C-Window SRAM pointer. This stops the SRAM
+  writes that cause the BlastEm crash after sustained
+  frontend tick execution.
+```

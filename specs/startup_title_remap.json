@@ -429,5 +429,13 @@
     "test_stub_address": "0x03B070",
     "test_stub_end_exclusive": "0x03B07E",
     "test_result_value": 2
-  }
+  },
+  "opcode_replace": [
+    {
+      "arcade_pc": "0x0560F8",
+      "original_bytes": "20C0 5342 66FA",
+      "replacement_bytes": "4E71 4E71 4E71",
+      "note": "NOP display list fill loop. Stops C-Window SRAM writes that cause BlastEm crash. movel d0,(a0)+ / subqw #1,d2 / bnes loop -> 3x NOP"
+    }
+  ]
 }

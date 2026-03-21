@@ -1,0 +1,4 @@
+build_number=98
+date_utc=2026-03-21T06:00:39Z
+rom_file=rom.bin
+rom_md5=5d7f6049c6b55ff32dcdb9a20f69268e

@@ -964,6 +964,14 @@
       "old_start": "0x03F29C",
       "old_end_exclusive": "0x03F2AC",
       "new_target": "0x00208C40"
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0560F8",
+      "rom_pc": "0x0562F8",
+      "original_bytes": "20c0534266fa",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP display list fill loop. Stops C-Window SRAM writes that cause BlastEm crash. movel d0,(a0)+ / subqw #1,d2 / bnes loop -> 3x NOP"
     }
   ],
   "normal_result_stub": {
@@ -982,7 +990,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0xE825",
+  "checksum": "0xF97C",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x00204CF4",

@@ -763,6 +763,34 @@ def main() -> int:
             }
         )
 
+    for replacement in spec.get("opcode_replace", []):
+        arcade_pc = parse_hexish(replacement["arcade_pc"])
+        expected = bytes.fromhex(
+            replacement["original_bytes"].replace(" ", ""))
+        new_bytes = bytes.fromhex(
+            replacement["replacement_bytes"].replace(" ", ""))
+        if len(expected) != len(new_bytes):
+            raise RuntimeError(
+                f"opcode_replace at 0x{arcade_pc:06X}: "
+                f"original_bytes and replacement_bytes "
+                f"must be the same length.")
+        rom_pc = arcade_pc + relocation_delta
+        actual = bytes(rom_bytes[rom_pc:rom_pc + len(expected)])
+        if actual != expected:
+            raise RuntimeError(
+                f"opcode_replace at 0x{arcade_pc:06X}: "
+                f"expected {expected.hex()} "
+                f"but found {actual.hex()}")
+        rom_bytes[rom_pc:rom_pc + len(new_bytes)] = new_bytes
+        rewrite_log.append({
+            "kind": "opcode_replace",
+            "arcade_pc": f"0x{arcade_pc:06X}",
+            "rom_pc": f"0x{rom_pc:06X}",
+            "original_bytes": expected.hex(),
+            "replacement_bytes": new_bytes.hex(),
+            "note": replacement.get("note", ""),
+        })
+
     stub_cfg = spec["generated_stubs"]
     test_jump_patch_address = parse_hexish(stub_cfg["test_jump_patch_address"])
     normal_stub_start = parse_hexish(stub_cfg["normal_stub_start"])
