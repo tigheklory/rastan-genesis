@@ -202,6 +202,16 @@ void genesistan_init_workram_direct(uint8_t dip1, uint8_t dip2)
     memset((void *)genesistan_arcade_workram_words,
            0, sizeof(genesistan_arcade_workram_words));
 
+    /*
+     * Send Z80 silence/reset command 0x00EF.
+     * startup_common normally sends this at
+     * 0x3b05c before title init. We bypassed
+     * startup_common so send it here instead.
+     * This stops Z80 noise in MAME.
+     */
+    genesistan_shadow_reg_3e0001 = 0x00;
+    genesistan_shadow_reg_3e0003 = 0xEF;
+
     /* Main state machine: state=2, sub=0, step=0 */
     genesistan_arcade_workram_words[0] = 2; /* A5@(0)  main state */
     genesistan_arcade_workram_words[1] = 0; /* A5@(2)  sub-state */

@@ -1486,6 +1486,42 @@ static void reset_launcher_runtime_state(void)
     wram_overlay.launcher.status_line[SCREEN_W] = '\0';
 }
 
+static void sync_arcade_scroll_to_vdp(void)
+{
+    /*
+     * The arcade frontend tick writes scroll
+     * values to genesistan_shadow_c20000_words
+     * (Y scroll) and genesistan_shadow_c40000_words
+     * (X scroll) via the window rewrite rules in
+     * the spec. Propagate those values to the
+     * Genesis VDP each frame.
+     *
+     * PC080SN has two layers. Each scroll register
+     * holds two words: [layer0, layer1].
+     * Arcade stores negated values so negate on read.
+     *
+     * Genesis VDP horizontal scroll:
+     *   VDP_setHorizontalScroll(BG_B, x) for layer 0
+     *   VDP_setHorizontalScroll(BG_A, x) for layer 1
+     * Genesis VDP vertical scroll:
+     *   VDP_setVerticalScroll(BG_B, y) for layer 0
+     *   VDP_setVerticalScroll(BG_A, y) for layer 1
+     */
+    const int16_t scroll_y_bg =
+        -(int16_t)genesistan_shadow_c20000_words[0];
+    const int16_t scroll_x_bg =
+        -(int16_t)genesistan_shadow_c40000_words[0];
+    const int16_t scroll_y_fg =
+        -(int16_t)genesistan_shadow_c20000_words[1];
+    const int16_t scroll_x_fg =
+        -(int16_t)genesistan_shadow_c40000_words[1];
+
+    VDP_setHorizontalScroll(BG_B, scroll_x_bg);
+    VDP_setVerticalScroll(BG_B, scroll_y_bg);
+    VDP_setHorizontalScroll(BG_A, scroll_x_fg);
+    VDP_setVerticalScroll(BG_A, scroll_y_fg);
+}
+
 int main(bool hardReset)
 {
     u16 previous_state = 0;
@@ -1547,7 +1583,8 @@ int main(bool hardReset)
         {
             genesistan_refresh_arcade_inputs();
             genesistan_run_original_frontend_tick();
-            /* Rendering via opcode replacement. Build 96+. */
+            sync_arcade_scroll_to_vdp();
+            /* Rendering via opcode replacement. Build 97+. */
         }
         else if (current_screen == SCREEN_STARTUP_PREVIEW)
         {

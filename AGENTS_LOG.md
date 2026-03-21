@@ -6711,3 +6711,80 @@ does at 0x3b05c. One-line addition.
 
 Build 96 status: STABLE. Buzzing is cosmetic only.
 Does not affect game logic or crash stability.
+## [Andy - Build 97, Scroll Sync and Z80 Silence]
+
+```text
+Build: 97
+Date: 2026-03-20
+Agent: Andy (Claude VS Code Extension)
+
+CHANGE 1 — startup_bridge.c: Z80 silence command
+- Added Z80 silence/reset to genesistan_init_workram_direct()
+- Inserted after the memset() of genesistan_arcade_workram_words,
+  before any workram assignments.
+- Two lines added:
+    genesistan_shadow_reg_3e0001 = 0x00;
+    genesistan_shadow_reg_3e0003 = 0xEF;
+- Matches what startup_common_continue_normal does at 0x3b05c.
+- Fixes MAME Z80 buzzing caused by bypassing startup_common.
+
+CHANGE 2 — main.c: VDP scroll propagation
+- Added static function sync_arcade_scroll_to_vdp() immediately
+  before int main().
+- Reads genesistan_shadow_c20000_words[0..1] (Y scroll, layers 0/1)
+  and genesistan_shadow_c40000_words[0..1] (X scroll, layers 0/1).
+- Negates each value (arcade stores negated scroll values).
+- Calls VDP_setHorizontalScroll / VDP_setVerticalScroll for BG_B
+  (layer 0) and BG_A (layer 1) each frame.
+- Called from SCREEN_FRONTEND_LIVE branch after
+  genesistan_run_original_frontend_tick().
+- Comment updated from "Build 96+" to "Build 97+".
+
+CHANGE 3 — AGENTS.md: Alan platform line
+- Already correct on disk: "### Alan (Gemini VS Code Extension)"
+  with "Platform: Gemini VS Code extension". No edit needed.
+
+BUILD RESULT
+- Command: source tools/setup_env.sh && ./tools/release_build.sh 97
+- Debug compile: CLEAN (no warnings, no errors)
+- Release compile: CLEAN
+- ROM output: dist/Rastan_97.bin
+- ROM packaged: dist/build_97/
+
+SYMBOL / SIZE NOTE
+- Build script ran to completion, sizebnd checksum applied.
+- Symbol file at apps/rastan/out/symbol.txt (not re-audited
+  this build; stack gap and required symbols unchanged from
+  Build 96 baseline).
+
+EXPECTED EFFECT IN EMULATOR
+- BlastEm in-game: blue screen unchanged (no tiles yet, correct).
+  Scroll registers will now track arcade values each frame —
+  tiles will scroll correctly once opcode replacement begins.
+- MAME: Z80 buzz should be silenced. Scroll registers live.
+- No new crash risk: both changes are write-only VDP/shadow ops
+  on the stable Build 96 frame loop.
+```
+
+## [Technical Lead Review - Build 97 Approved for Testing]
+## Source: Claude (Technical Lead)
+
+Build 97: APPROVED — Test dist/Rastan_97.bin
+
+Changes confirmed:
+  Z80 silence command added to
+    genesistan_init_workram_direct()
+  sync_arcade_scroll_to_vdp() added to
+    SCREEN_FRONTEND_LIVE loop
+  AGENTS.md Alan line already correct
+
+Expected results:
+  MAME: Z80 buzzing should be gone
+  BlastEm: blue screen unchanged (correct)
+  No new crashes
+
+AGENTS.md note: current startup status section
+still references old build numbers (56/57/59).
+Andy should update that section to reflect
+Build 96 as current stable baseline in a
+future cleanup pass.
