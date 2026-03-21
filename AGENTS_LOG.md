@@ -6888,3 +6888,53 @@ Both files now committed:
 Fix is complete. ./tools/release_build.sh 97 will now produce
 Rastan_97.bin with launcher string "WORLD REV1 BASELINE UI 97 H".
 ```
+Andy, read AGENTS.md and AGENTS_LOG.md from disk
+before doing anything else.
+
+TASK: Deploy and run the updated rastanjumptrace
+Lua script against the ARCADE ROM in MAME.
+
+STEP 1 — Deploy script
+Copy this file into the repo:
+  Source: /home/claude/rastanjumptrace_v2.lua
+  Dest:   tools/mame/scripts/rastanjumptrace.lua
+  (overwrite the existing v1 file)
+
+STEP 2 — Check the run script
+Read tools/mame/run_rastan_jumptrace_wsl.sh
+and confirm it points to:
+  tools/mame/scripts/rastanjumptrace.lua
+If it points elsewhere, fix it.
+
+STEP 3 — Run the trace
+Run the arcade ROM (NOT the Genesis ROM) in MAME
+with the jumptrace script for approximately 30
+seconds of title screen operation. Use:
+  tools/mame/run_rastan_jumptrace_wsl.sh
+
+Let MAME run through the title screen. Do not
+press any buttons. Let it time out naturally
+(1800 frames = 30 seconds) or close MAME after
+about 30 seconds.
+
+STEP 4 — Report results
+Show the full contents of:
+  build/mame/home/rastanjumptrace/rastan_cwin_exec_summary.txt
+
+If that file is empty or missing, show the last
+30 lines of:
+  build/mame/home/rastanjumptrace/rastan_cwin_exec_trace.log
+
+Re-read AGENTS_LOG.md from disk before appending.
+Append at EOF under:
+  ## [Andy - C-Window Execution Trace, Build 98 Prep]
+Wrap in a ```text block.
+
+Include:
+  - Confirmation script deployed
+  - frames_run count
+  - unique_cwin_exec_sites count
+  - Full table from summary.txt
+  - Any errors encountered
+
+Stop. Wait for authorisation.

@@ -676,10 +676,10 @@
 0020a0a0 T rastan_dip_on
 0020a0a8 T rastan_dip_off
 0020a0b0 T rastan_dip_palette
-0020a8f9 t raw_lives.0	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:630
-0020a8fd t raw_bonus.1	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:624
-0020a901 t raw_difficulty.2	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:618
-0020a905 t raw_coinage.3	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:612
+0020a8fa t raw_lives.0	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:630
+0020a8fe t raw_bonus.1	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:624
+0020a902 t raw_difficulty.2	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:618
+0020a906 t raw_coinage.3	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:612
 0020a90a t blank_tile.4	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:842
 0020a92a t rastan_font_glyphs	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:222
 0020a97e t menu_items	/home/tighe/projects/rastan-genesis/apps/rastan/src/main.c:168

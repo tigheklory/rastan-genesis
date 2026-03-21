@@ -982,7 +982,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x2B3B",
+  "checksum": "0xE825",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x00204CF4",
