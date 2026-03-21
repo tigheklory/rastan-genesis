@@ -178,3 +178,64 @@ its shadow array is deleted from BSS. Deletion order:
 4. Build with `make -C apps/rastan debug`.
 5. Validate generated manifests under `build/rastan/`.
 6. Then produce a release build for emulator testing.
+
+
+## Team Structure
+
+### Claude (Technical Lead)
+Platform: claude.ai chat (this session)
+Role: Architecture, disassembly analysis, hardware research,
+prompt design, build review, steering.
+Does not have direct file access. Receives uploads and
+reports from Tighe. Issues directives via Tighe.
+
+### Andy (Claude VS Code Extension)
+Platform: VS Code Claude extension
+Role: Primary implementer. Has direct file system access
+to the workspace. Receives implementation prompts from
+Claude via Tighe. Reads AGENTS_LOG.md and AGENTS.md
+before every task. Re-reads AGENTS_LOG.md from disk
+immediately before any append.
+
+### Cody (Codex / VS Code Copilot)
+Platform: VS Code Copilot chat
+Role: Secondary implementer. Used when Andy is unavailable
+or for parallel tasks. Same discipline as Andy — reads
+logs before starting, re-reads before appending.
+
+### Chad (ChatGPT)
+Platform: ChatGPT
+Role: High-level management and bridge to Tighe. Reviews
+directives from Claude before they go to implementers.
+Escalates conflicts or ambiguities to Tighe rather than
+resolving them independently.
+
+### Alan (Gemini Extension)
+Platform: ChatGPT
+Role: Specialist consultant. Called in for fresh analysis
+when the team is stuck. Does not implement. Appends
+analysis to AGENTS_LOG.md only. Confirmed the KEEP()
+linker solution in Build 96.
+
+### Gemini (Google Gemini)
+Platform: Gemini
+Role: Specialist consultant. Available for second opinions,
+cross-referencing hardware documentation, or analysis
+tasks where a different model perspective is useful.
+
+### Tighe (Human Supervisor)
+Role: Project owner and final authority. Coordinates
+between all agents. Commits and pushes to GitHub.
+Tests builds on BlastEm and MAME. Makes final decisions
+on architecture and scope.
+
+## Authority Structure
+
+Technical decisions: Claude
+Implementation: Andy (primary), Cody (secondary)
+Management review: Chad
+Specialist analysis: Alan, Gemini
+Final authority: Tighe
+
+If any agent's guidance conflicts with Claude's directives,
+escalate to Tighe. Do not resolve independently.
