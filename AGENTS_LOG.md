@@ -8829,3 +8829,147 @@ mirrored region) rather than the VDP — producing no visible tiles.
 The correct next step is to identify which display-write functions run
 immediately after the START RASTAN handoff and confirm whether they
 reach the VDP or fall into the shadow region.
+
+## [Andy - Build 104, Palette Loading]
+
+```
+STEP 0 — VERIFICATION
+
+  genesistan_shadow_c00000_words in symbol.txt:
+    00200000 A genesistan_shadow_c00000_words
+    → Confirmed: absolute symbol at 0x200000 (Sega SRAM region).
+
+  genesistan_shadow_c00000_words in startup_bridge.c:
+    → Not declared there. It is a linker-defined absolute symbol
+      (from linker_rastan.ld), visible only through the symbol table.
+
+  shadow_init / SRAM enable in main.c:
+    #define SHADOW_SRAM_ENABLE_REG ((volatile uint8_t *)0xA130F1)
+    void shadow_init(void) { *SHADOW_SRAM_ENABLE_REG = 0x01; }
+    → shadow_init() called at main.c:1412 inside request_start_rastan().
+    → SRAM is enabled before any frontend tick runs. ✓
+
+CHANGE — apps/rastan/src/main.c
+
+  Added static function load_arcade_palette() after
+  restore_launcher_vdp_state() (line 759 before edit).
+  Function body exactly as directed:
+
+    static void load_arcade_palette(void)
+    {
+        const uint16_t PALETTE_WORD_INDEX = 0x330;
+        volatile uint16_t *sram =
+            (volatile uint16_t *)0x200000UL;
+        uint16_t pal[16];
+        uint16_t i;
+
+        for (i = 0; i < 16; i++) {
+            pal[i] = sram[PALETTE_WORD_INDEX + i];
+        }
+        PAL_setColors(0, (u16 *)pal, 16, CPU);
+    }
+
+  Added call in SCREEN_FRONTEND_LIVE branch (confirmed order):
+
+    genesistan_refresh_arcade_inputs();
+    genesistan_run_original_frontend_tick();
+    sanitize_arcade_workram();
+    load_arcade_palette();        /* Build 104 */
+    sync_arcade_scroll_to_vdp();
+
+BUILD RESULT
+
+  Command: source tools/setup_env.sh && ./tools/release_build.sh 104
+  Result: CLEAN — no warnings, no errors.
+  ROM output: dist/Rastan_104.bin — CONFIRMED
+
+STACK GAP
+
+  __stack = 0xE1000000
+  _bend   = 0xE0FF6576
+  Gap     = 0x9A8A = 39562 bytes (~38.6 KB) — above 0x4000 floor. ✓
+```
+
+### MAME Exit Summary (2026-03-21 18:47:38)
+- Final PC: 0x000304
+- Stack Pointer (SP): 0xE036634E
+- Unique Unmapped Memory Addresses (3): 0x00209D66, 0x27049D66, 0x00000000
+
+### MAME Exit Summary (2026-03-21 22:05:26)
+- Final PC: 0xBEFE40
+- Stack Pointer (SP): 0xE0392EC0
+- Unique Unmapped Memory Addresses (3): 0x00209D66, 0x27049D66, 0x00000000
+
+## [Andy - Build 104 SRAM Header Check]
+
+```
+Command run:
+  python3 -c "
+  data = open('dist/Rastan_104.bin','rb').read()
+  print('Header bytes 0x1B0-0x1BB (SRAM descriptor):')
+  sram = data[0x1B0:0x1BC]
+  print('  Raw:', sram.hex())
+  print('  Flag:', chr(sram[0])+chr(sram[1]),
+        '(should be RA)')
+  import struct
+  sram_type = struct.unpack('>H', sram[2:4])[0]
+  sram_start = struct.unpack('>I', sram[4:8])[0]
+  sram_end   = struct.unpack('>I', sram[8:12])[0]
+  print('  Type:  0x%04X' % sram_type)
+  print('  Start: 0x%08X (should be 0x200001)' % sram_start)
+  print('  End:   0x%08X (should be 0x20FFFF)' % sram_end)
+  print()
+  print('Full header 0x100-0x1FF:')
+  print(data[0x100:0x200].hex())
+  "
+
+Output (verbatim):
+  Header bytes 0x1B0-0x1BB (SRAM descriptor):
+    Raw: 5241f800002000000020ffff
+    Flag: RA (should be RA)
+    Type:  0xF800
+    Start: 0x00200000 (should be 0x200001)
+    End:   0x0020FFFF (should be 0x20FFFF)
+
+  Full header 0x100-0x1FF:
+  53454741204d454741204452495645202843295347444b20323032342020202053414d504c45
+  2050524f4752414d2020202020202020202020202020202020202020202020202020202020202
+  053414d504c452050524f4752414d2020202020202020202020202020202020202020202020202
+  020202020202020474d2030303030303030302d3030d8644a44202020202020202020202020202
+  000000000000fffffe0ff0000e0ffffff5241f800002000000020ffff2020202020202020202020
+  2044454d4f4e5354524154494f4e2050524f4752414d2020202020202020202020202020202020
+  204a554520202020202020202020202020
+
+ANALYSIS
+
+  Flag bytes 0x1B0-0x1B1: "RA" — SRAM present flag is correct. ✓
+
+  Type word 0x1B2-0x1B3: 0xF800
+    Raw bytes: 0xF8, 0x00
+    Standard Genesis SRAM type byte at 0x1B2 should be 0x20 (SRAM,
+    both bytes) or 0xE0 (SRAM, odd+even). 0xF8 is non-standard.
+    The Mega Everdrive X3 may not recognise this type code and
+    therefore not enable its SRAM mapping logic. ⚠
+
+  Start address 0x1B4-0x1B7: 0x00200000
+    Standard Genesis battery-backed SRAM carts declare start as
+    0x200001 (odd byte, because the SRAM data bus connects only
+    to the odd byte lane on the 68000 bus). Declaring 0x200000
+    (even address) is non-standard and may cause the Everdrive
+    to skip SRAM enable or map it with the wrong alignment. ⚠
+
+  End address 0x1B8-0x1BB: 0x0020FFFF — correct. ✓
+
+CONCLUSION
+
+  Two anomalies found in the SRAM descriptor:
+  1. Type byte 0xF8 instead of the standard 0x20 or 0xE0.
+  2. Start address 0x200000 instead of 0x200001.
+
+  These are likely the reason the Mega Everdrive X3 does not
+  enable SRAM, causing a hardware hang when the ROM tries to
+  access 0x200000+ via the SRAM window. The fix is to correct
+  the SRAM header in the ROM header source (rom_head.c or the
+  SGDK linker configuration). No code changes made — awaiting
+  authorisation.
+```

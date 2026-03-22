@@ -956,14 +956,14 @@
       "kind": "shim_jump",
       "old_start": "0x03F284",
       "old_end_exclusive": "0x03F29C",
-      "new_target": "0x00208C30"
+      "new_target": "0x00208C6C"
     },
     {
       "range": "helper_3f09c_reg_status",
       "kind": "shim_jump",
       "old_start": "0x03F29C",
       "old_end_exclusive": "0x03F2AC",
-      "new_target": "0x00208C60"
+      "new_target": "0x00208C9C"
     },
     {
       "kind": "opcode_replace",
@@ -1046,24 +1046,24 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x00208CA8",
+    "jumps_to": "0x00208CE4",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
     "writes_status_to": "0xE0FF4054",
     "value": 2,
-    "jumps_exit_to": "0x00208CE4",
+    "jumps_exit_to": "0x00208D20",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0xEFED",
+  "checksum": "0xD864",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x00204D14",
+    "reset_pc": "0x00204D52",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

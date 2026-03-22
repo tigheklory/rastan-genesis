@@ -756,6 +756,42 @@ static void restore_launcher_vdp_state(void)
     SYS_enableInts();
 }
 
+/*
+ * Load arcade palette into VDP CRAM.
+ *
+ * The arcade palette conversion routine at
+ * 0x59AD4 runs each frontend tick. It converts
+ * arcade colour words (4 bits per channel) to
+ * Genesis VDP format (0000 BBB0 GGG0 RRR0,
+ * 3 bits per channel) and writes 16 words to
+ * SRAM at 0x200660 (= genesistan_shadow_c00000_words
+ * + byte offset 0x660 = word index 0x330).
+ *
+ * We read those 16 words and push them to VDP
+ * CRAM palette 0 via PAL_setColors(). No further
+ * conversion is needed — the arcade code already
+ * produced Genesis-format colour words.
+ */
+static void load_arcade_palette(void)
+{
+    /*
+     * genesistan_shadow_c00000_words is declared
+     * as an absolute symbol at 0x200000 (SRAM).
+     * Palette data lands at byte offset 0x660
+     * = word index 0x330.
+     */
+    const uint16_t PALETTE_WORD_INDEX = 0x330;
+    volatile uint16_t *sram =
+        (volatile uint16_t *)0x200000UL;
+    uint16_t pal[16];
+    uint16_t i;
+
+    for (i = 0; i < 16; i++) {
+        pal[i] = sram[PALETTE_WORD_INDEX + i];
+    }
+    PAL_setColors(0, (u16 *)pal, 16, CPU);
+}
+
 static void render_full_screen(void)
 {
     u16 i;
@@ -1616,6 +1652,7 @@ int main(bool hardReset)
             genesistan_refresh_arcade_inputs();
             genesistan_run_original_frontend_tick();
             sanitize_arcade_workram();
+            load_arcade_palette();        /* Build 104 */
             sync_arcade_scroll_to_vdp();
             /* Rendering via opcode replacement. Build 97+. */
         }
