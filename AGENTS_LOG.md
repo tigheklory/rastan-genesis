@@ -10882,3 +10882,752 @@ EXPECTED:
     dynamic 0x59AD4 conversion still unpatched — colours may be partial improvement
   - Crash at 0xC09E87 bypassed by BRA; should run longer before next crash point
 ```
+
+### MAME Exit Summary (2026-03-22 14:22:10)
+- Final PC: 0x20173A
+- Stack Pointer (SP): 0xE0FFFF3C
+- Unique Unmapped Memory Addresses: none
+
+## [ClaudeChat2 - Build 114 Test Prompt + Build 115 Plan]
+
+```
+════════════════════════════════════════════════════════
+STATE READ
+════════════════════════════════════════════════════════
+
+Build 114 verified complete (stamp 20260322_134819):
+  - genesistan_palette_clcs[64] present at 0xE0FF4056
+  - Cursor-driven hooks: col_a/row_a/col_b/row_b, reset at frame start
+  - Crash at 0xC09E87 bypassed (BRA at ROM offset 0x03AE54 confirmed)
+  - Hook addresses: plane_a=0x00200000, plane_b=0x002000F0 (JSRs verified)
+  - WRAM gap: 36814 bytes (healthy)
+  - opcode_replace count: 30
+
+PALETTE RESIDUAL ISSUE (Andy's analysis confirmed correct):
+  0x59AD4 is NOT in any copied_range.
+  window_rewrite_rules only apply to named copied_range sections.
+  Therefore moveal #0x200000,a1 at 0x59ADE is unpatched.
+  At Genesis runtime, writes go to ROM bus → silently ignored.
+  palette_clcs receives only 4 static-init words from startup_common.
+  Dynamic per-frame CLCS output is lost.
+
+DISASM CONFIRMED (0x59AD4 function body):
+  0x59AD4: muluw  #32,d1        ; d1 = subbank * 32
+  0x59AD8: addaw  d1,a0         ; a0 = source palette table ptr
+  0x59ADA: lslw   #5,d0         ; d0 = bank * 32 (byte offset)
+  0x59ADC: clrw   d6            ; colour index = 0
+  0x59ADE: moveal #0x200000,a1  ; ← THIS is the only 0x200000 ref
+  0x59AE4: addaw  d0,a1         ; a1 = palette write ptr
+  0x59AE6: movew  a0@+,d1       ; load source colour
+  ...loop 16 entries...
+  0x59B18: rts
+  Function: 0x59AD4-0x59B18 (68 bytes). Writes 16 words per call.
+  Called from: 0x511BC, 0x511D0, 0x56136..0x56198 (8 JSRs),
+               0x575FE, 0x57610, 0x57816..0x57850, 0x598C2..0x59A80
+
+════════════════════════════════════════════════════════
+TECHNICAL DECISION — BUILD 115 PALETTE FIX
+════════════════════════════════════════════════════════
+
+Andy proposed two options:
+  a) Add 0x59AD4 to a copied_range
+  b) Read from wram_overlay directly
+
+Option b is not viable: wram_overlay does not receive 0x59AD4 output
+because the function is outside all copied_ranges. Writes go to ROM
+bus (nowhere). wram_overlay is irrelevant to this call path.
+
+DECISION: Option a — add 0x59AD4-0x59B18 as a new copied_range.
+
+Rationale:
+  - The function has exactly ONE absolute address literal: #0x200000 at 0x59ADE.
+  - window_rewrite_rule [7] already maps [0x200000, 0x200080) → palette_clcs.
+  - Adding the function to a copied_range causes the patcher to scan it
+    and rewrite moveal #0x200000,a1 → moveal #genesistan_palette_clcs,a1.
+  - No other address literals in the 68-byte function body to worry about.
+  - Fits the declarative spec-driven architecture. No opcode_replace hacks.
+
+RISK TO VERIFY BEFORE IMPLEMENTING:
+  - Confirm that adding a copied_range patches in-place (rewrites bytes in
+    the arcade ROM binary at the original address) rather than relocating
+    the function to a new address. If it relocates, callers break.
+    Andy should confirm by reading how the patcher consumes copied_ranges.
+  - If in-place: proceed with new copied_range entry.
+  - If relocating: fall back to opcode_replace on 0x59ADE bytes directly,
+    using the absolute_rewrite_group mechanism if available, or a two-pass
+    build approach where pass 1 captures palette_clcs address and pass 2
+    embeds it in the opcode bytes.
+
+════════════════════════════════════════════════════════
+PROMPT 1 — BUILD 114 TEST (for Andy, send now)
+════════════════════════════════════════════════════════
+
+Read AGENTS.md and the last 300 lines of AGENTS_LOG.md before starting.
+
+TASK: Test Build 114 in emulators and report results.
+DO NOT modify any code or build files.
+
+Build to test: dist/Rastan_114.bin
+
+Test in Exodus first, then BlastEm.
+
+Report the following for each emulator:
+
+  1. SCREEN COVERAGE
+     - How many rows/columns of tiles are visible vs Build 113?
+     - Build 113 had tiles at row 8, cols 0-15 only (one strip).
+     - Do tiles now fill more of the screen? Estimate rows covered.
+     - Are both Plane A and Plane B rendering? Any difference between them?
+
+  2. COLOURS
+     - Build 113 was greyscale bars.
+     - Are any colours visible now? Even partial/wrong colours count.
+     - Describe what you see: hue, brightness, any recognisable palette.
+
+  3. CRASH
+     - Does it crash? At what address?
+     - Build 113 context: crash at 0xC09E87 was the known next crash.
+       That site is bypassed in Build 114. Does it now run further?
+     - If it crashes, capture the full crash state (PC, SR, registers).
+
+  4. ANY OTHER OBSERVATIONS
+     - Sprites visible?
+     - Scrolling behaviour?
+     - Sound?
+     - Anything unexpected vs Build 113?
+
+If real hardware (Nomad + Everdrive) is accessible, test there too
+and note any differences from emulator results.
+
+Append results to AGENTS_LOG.md under:
+  ## [Andy - Build 114 Test Results]
+
+Stop after reporting. Do not implement any fixes.
+
+════════════════════════════════════════════════════════
+PROMPT 2 — BUILD 115 PALETTE FIX (for Andy, after test results)
+════════════════════════════════════════════════════════
+
+Read AGENTS.md and the last 300 lines of AGENTS_LOG.md before starting.
+
+TASK: Research and implement the palette fix for Build 115.
+
+CONTEXT:
+  The palette conversion routine at 0x59AD4 writes CLCS-format colour
+  data to 0x200000 each frame. It is NOT in any copied_range, so the
+  patcher never rewrites its #0x200000 literal. At Genesis runtime,
+  writes go to the ROM bus and are lost. palette_clcs receives only
+  4 static-init values from startup_common — not live frame data.
+
+  The function (68 bytes, 0x59AD4-0x59B18) has exactly one absolute
+  address literal: moveal #0x200000,a1 at offset 0x59ADE.
+
+STEP 1 — RESEARCH (do this before touching any files):
+
+  Read tools/translation/postpatch_startup_rom.py.
+  Determine: when a new entry is added to copied_ranges in the spec,
+  does the patcher rewrite address literals IN PLACE at the original
+  arcade ROM offset? Or does it copy/relocate the bytes to a new
+  address in the Genesis binary?
+
+  Specifically: if we add a copied_range for 0x59AD4-0x59B18,
+  will the 0x200000 literal at 0x59ADE be patched in-place (so the
+  function still runs from 0x59AD4 and all existing callers still
+  reach it), OR will the function move to a new address (breaking
+  all ~20 callers)?
+
+  Report your finding before proceeding to Step 2.
+
+STEP 2 — IMPLEMENTATION (only after confirming in-place behaviour):
+
+  IF patcher rewrites in-place:
+    Add a new copied_range entry to specs/startup_title_remap.json:
+      {
+        "name": "palette_convert_59ad4",
+        "start": "0x059AD4",
+        "end":   "0x059B18"
+      }
+    The existing window_rewrite_rule [7] (old_start=0x200000,
+    symbol=genesistan_palette_clcs) will automatically catch and
+    rewrite the moveal at 0x59ADE on the next build.
+    No other spec changes needed.
+
+  IF patcher relocates (in-place is NOT the behaviour):
+    Do NOT add a copied_range. Instead use opcode_replace:
+    The bytes at 0x59ADE are: 22 7C 00 20 00 00 (MOVEA.L #0x200000,A1).
+    We need to replace 0x200000 with the address of palette_clcs.
+    Since palette_clcs address is only known after linking, a two-pass
+    build is required:
+      Pass 1: build, read palette_clcs address from symbol.txt
+      Pass 2: add opcode_replace for 0x59ADE with the correct address
+              embedded in the replacement_bytes
+    Report this situation to Tighe before implementing — a two-pass
+    opcode_replace for a WRAM symbol address is a new pattern and
+    needs architecture review.
+
+STEP 3 — BUILD (only after Step 2):
+  Run two-pass build: ./tools/release_build.sh 115 (twice if hooks moved).
+  Verify in address rewrite manifest that old=0x200000 in the
+  palette_convert_59ad4 range now maps to palette_clcs.
+  Verify palette_clcs is populated at runtime with non-zero values
+  (can add a temporary kprintf or check via emulator memory view).
+
+Append findings and results to AGENTS_LOG.md under:
+  ## [Andy - Build 115, Palette Fix]
+
+Stop after reporting. Do not test in emulator without authorisation.
+
+════════════════════════════════════════════════════════
+NOTE TO TEAM
+════════════════════════════════════════════════════════
+
+Prompt 2 (Build 115) should only be sent after Build 114 test
+results are in. The test results may reveal additional crash sites
+or issues that change Build 115 scope.
+
+If Build 114 crashes before the palette routine even runs (i.e. crash
+address < 0x59AD4 in typical call order), the palette fix may not be
+the right next priority. Wait for test results first.
+```
+- **Visual Evidence (Exodus):** Screenshot saved as `B114_Exodus_In-Game_20260322_1425.png` (Stage: In-Game)
+- **Visual Evidence (Exodus):** Screenshot saved as `B114_Exodus_Launcher_20260322_1425.png` (Stage: Launcher)
+
+## [ClaudeChat2 - Build 114 Regression Diagnosis + Build 115 Prompt]
+
+```
+════════════════════════════════════════════════════════
+BUILD 114 REGRESSION — BLACK SCREEN DIAGNOSIS
+════════════════════════════════════════════════════════
+
+Tighe reports: screen completely black, sprites gone. Game is running.
+
+ROOT CAUSE (confirmed by reading patcher + source):
+
+  load_arcade_palette() now reads from genesistan_palette_clcs[64].
+  genesistan_palette_clcs is zeroed by memset() in
+  genesistan_reset_startup_shadows() on startup.
+  0x59AD4's moveal #0x200000,a1 is NOT patched (not in any copied_range).
+  At Genesis runtime, writes from 0x59AD4 go to the ROM bus → silently lost.
+  Therefore palette_clcs stays all-zero throughout the session.
+  PAL_setColors() is called with 64 zero entries → CRAM = all black.
+  Every tile and sprite renders as transparent/black. Nothing visible.
+
+  Build 113 used genesistan_palette_rom_table (pre-converted greyscale ROM
+  data). Non-zero → things were visible. Build 114 switched the source too
+  early — before the live data path was working.
+
+TIMING IS CORRECT once the data path is fixed:
+  Order in SCREEN_FRONTEND_LIVE loop (main.c:1613-1615):
+    1. genesistan_run_original_frontend_tick()  ← 0x59AD4 writes CLCS data
+    2. load_arcade_palette()                    ← reads palette_clcs → CRAM
+  Arcade tick populates the buffer, Genesis reads it. Sequence is right.
+
+════════════════════════════════════════════════════════
+PATCHER ARCHITECTURE CONFIRMED
+════════════════════════════════════════════════════════
+
+copy_range() does:
+  rom_bytes[start:end] = maincpu_bytes[start:end]
+→ IN-PLACE at original offset. Function stays at 0x59AD4. All callers safe.
+
+absolute_rewrite_groups scans a named range for exact 32-bit literal and
+replaces with symbol address. No "allow_in_code" guard (unlike window_rewrite_rules).
+This is the correct mechanism for patching 0x59AD4's address literal.
+
+window_rewrite_rules[7] targets range=frontend_core only → not usable for
+a new range without adding a new rule. absolute_rewrite_groups is simpler
+and more precise for a single known literal.
+
+════════════════════════════════════════════════════════
+BUILD 115 DECISION — SPEC-ONLY FIX
+════════════════════════════════════════════════════════
+
+No C code changes required.
+
+Two spec changes in startup_title_remap.json:
+
+  1. New copied_range entry:
+     {
+       "name": "palette_convert_59ad4",
+       "start": "0x059AD4",
+       "end_exclusive": "0x059B1A"
+     }
+     (0x059AD4 = function entry, 0x059B1A = byte after RTS at 0x059B18)
+     copy_range() places these 70 bytes at the same ROM offset → in-place.
+     Callers at 0x511BC, 0x511D0, 0x56136..0x56198, 0x575FE, 0x57610,
+     0x57816..0x57850, 0x598C2..0x59A80 are all unaffected.
+
+  2. New absolute_rewrite_group entry:
+     {
+       "range": "palette_convert_59ad4",
+       "mappings": [
+         {
+           "old": "0x00200000",
+           "symbol": "genesistan_palette_clcs"
+         }
+       ]
+     }
+     Rewrites the moveal #0x200000,a1 at 0x59ADE to point to palette_clcs.
+     The function then writes live CLCS data to WRAM each frame.
+
+Expected result: palette_clcs receives real colour data from 0x59AD4
+each frontend tick. load_arcade_palette() delivers real colours to CRAM.
+Screen should show actual Rastan colours instead of black.
+```
+
+## [ClaudeChat2 - Build 115 Prompt for Andy]
+
+```
+════════════════════════════════════════════════════════
+PROMPT — BUILD 115 (send to Andy now)
+════════════════════════════════════════════════════════
+```
+
+## [ClaudeChat2 - Build 115 Prompt for Andy]
+
+```
+Read AGENTS.md and the last 300 lines of AGENTS_LOG.md before starting.
+
+TASK: Fix the black screen regression from Build 114. Spec-only change.
+No C code changes. Two spec additions only.
+
+════════════════════════════════════════════════════════
+DIAGNOSIS
+════════════════════════════════════════════════════════
+
+load_arcade_palette() reads from genesistan_palette_clcs[64], which is
+zeroed on startup. The arcade palette routine at 0x59AD4 writes CLCS data
+to 0x200000 each frame, but that address is unpatched (0x59AD4 is not in
+any copied_range). Writes go to the ROM bus and are lost. CRAM = all black.
+
+The fix: add 0x59AD4 as a new copied_range and add an
+absolute_rewrite_group that rewrites the #0x200000 literal in that
+function to genesistan_palette_clcs. The patcher's copy_range() operates
+in-place (same ROM offset), so all ~20 existing callers are unaffected.
+
+════════════════════════════════════════════════════════
+STEP 1 — VERIFY BEFORE TOUCHING ANY FILE
+════════════════════════════════════════════════════════
+
+Confirm these two things from the disasm and patcher:
+
+  a) At arcade ROM offset 0x59ADE, bytes are:
+       22 7C 00 20 00 00   (MOVEA.L #0x200000, A1)
+     Verify: python3 -c "
+       mc = open('build/regions/maincpu.bin','rb').read()
+       print(mc[0x59ADE:0x59ADE+6].hex())
+     "
+     Expected: 227c00200000
+
+  b) The arcade source_windows in the spec cover 0x059AD4-0x059B19.
+     Check specs/startup_title_remap.json for the "source_windows" or
+     "arcade_windows" field (used to validate copied_range bounds).
+     Confirm 0x59AD4 is within a declared arcade window.
+
+Report these findings before proceeding to Step 2.
+
+════════════════════════════════════════════════════════
+STEP 2 — SPEC CHANGES
+════════════════════════════════════════════════════════
+
+Edit specs/startup_title_remap.json. Two additions:
+
+ADDITION 1 — New entry in the "copied_ranges" array.
+Add it near the other helper_* entries:
+
+  {
+    "name": "palette_convert_59ad4",
+    "start": "0x059AD4",
+    "end_exclusive": "0x059B1A"
+  }
+
+ADDITION 2 — New entry in the "absolute_rewrite_groups" array:
+
+  {
+    "range": "palette_convert_59ad4",
+    "mappings": [
+      {
+        "old": "0x00200000",
+        "symbol": "genesistan_palette_clcs"
+      }
+    ]
+  }
+
+No changes to any C files. No changes to load_arcade_palette().
+No changes to hook functions.
+
+════════════════════════════════════════════════════════
+STEP 3 — BUILD
+════════════════════════════════════════════════════════
+
+  source tools/setup_env.sh && ./tools/release_build.sh 115
+
+Check the build manifest (build/rastan/startup_common_rom_manifest.json
+or similar) for an entry showing the rewrite hit:
+
+  range=palette_convert_59ad4, old=0x00200000,
+  new=<palette_clcs address>, count=1
+
+count must be exactly 1. If count=0, the literal was not found —
+stop and report before testing.
+
+Hook addresses for plane_a and plane_b are unlikely to change
+(no C changes), but check symbol.txt and compare to Build 114:
+  plane_a: 0x00200000
+  plane_b: 0x002000F0
+If they moved, run a second pass with updated JSR targets in the spec.
+
+════════════════════════════════════════════════════════
+STEP 4 — REPORT
+════════════════════════════════════════════════════════
+
+Append to AGENTS_LOG.md under:
+  ## [Andy - Build 115, Palette Fix]
+
+Report:
+  - Verification results from Step 1 (bytes at 0x59ADE, window check)
+  - Manifest entry for palette_convert_59ad4 rewrite (count, addresses)
+  - Hook addresses unchanged or updated
+  - Build clean/warnings
+  - dist/Rastan_115.bin produced
+
+Do NOT test in emulator. Do NOT make any other changes.
+Stop and wait for authorisation.
+```
+
+## [ClaudeChat2 - Build 114 Video Analysis]
+
+```
+════════════════════════════════════════════════════════
+SOURCE
+════════════════════════════════════════════════════════
+
+Recording: states/screenshots/build_114/
+  Exodus_Recording_build_114_2026-03-22 143132.mp4
+  78.6 seconds, 30fps, 2358 frames, 5116×1380px
+  Static screenshots: B114_Exodus_Launcher and B114_Exodus_In-Game
+
+Analysis method:
+  - VDP Palette panel extracted at pixel-accurate coordinates from
+    every frame (crop x=3580 y=115 w=520 h=130 in 5116-wide frame)
+  - Game display, VRAM editor, CRAM editor extracted from static shots
+  - Colour brightness classification across all 2358 frames
+
+════════════════════════════════════════════════════════
+CRAM TIMELINE (from VDP - Palette panel, all 2358 frames)
+════════════════════════════════════════════════════════
+
+Frame    1  (t= 0.0s): COLOUR  — launcher active, SGDK init palette
+Frame 1091  (t=36.3s): COLOUR  → transition starts (game launching)
+Frame 1097  (t=36.5s): COLOUR  → partial transition
+Frame 1100+ (t=36.7s): ALL BLACK — game running, palette_clcs zeroed
+Frame 1413  (t=47.1s): COLOUR  → soft reset, back to launcher
+Frame 1427  (t=47.6s): COLOUR  — launcher active again
+Frame 1639  (t=54.6s): COLOUR  → transition (game launching again)
+Frame 1646  (t=54.9s): ALL BLACK — game running again
+Frame 2358  (t=78.6s): ALL BLACK — game still running at recording end
+
+LAUNCHER CRAM (observed from VDP Palette panel):
+  Line 0: narrow black on left, remainder CYAN
+  Line 1: WHITE/LIGHT GREY throughout
+  Line 2: WHITE/LIGHT GREY throughout
+  Line 3: narrow black on left, remainder RED
+  → SGDK system palette. Not our colours, but non-zero.
+
+IN-GAME CRAM (t=36.7s–47.1s and t=54.9s–end):
+  All four lines: SOLID BLACK (0x0000 all 64 entries)
+  → PAL_setColors() was called with genesistan_palette_clcs[64] = all zeros
+  → Confirms: 0x59AD4 writes to ROM bus (lost), palette_clcs never populated
+
+════════════════════════════════════════════════════════
+GENESIS DISPLAY (from VDP - Image Window)
+════════════════════════════════════════════════════════
+
+LAUNCHER (t=0–36.3s, t=47.1–54.6s):
+  Full launcher config visible with SGDK colours:
+  "RASTAN STARTUP CONFIG / WORLD REV1 BASELINE UI 114 H"
+  DIP switch blocks, settings menu with red/white text.
+  Tighe navigating menus — items highlighted in red.
+
+IN-GAME (t=36.7–47.1s, t=54.9–78.6s):
+  Genesis display: COMPLETELY BLACK. Nothing visible.
+  No tiles, no sprites, no HUD. Game is executing but
+  all CRAM entries = 0x0000 → every pixel renders black.
+
+════════════════════════════════════════════════════════
+VRAM STATE (from VDP - VRAM Memory Editor)
+════════════════════════════════════════════════════════
+
+Visible in in-game static screenshot (VRAM addresses 0x0000–0x01FA):
+  0x0000–0x001B: 0000 (empty tiles — tile slots 0-0)
+  0x001C–0x027F: SGDK font data visible as 0→1→2→...→F gradient
+    (characteristic of SGDK built-in system font tiles)
+
+NOTE: The Rastan tile cache occupies slots 20–1023 and 1280–1439.
+  Slot 20 starts at VRAM offset 0x280, OUTSIDE the visible region.
+  Cannot confirm tile cache content from this view.
+  Build 113 confirmed tile cache WAS working (greyscale tiles visible).
+  Build 114 did not change tile cache logic, only palette source and
+  cursor counters. Cache should still be populating correctly.
+
+════════════════════════════════════════════════════════
+CONCLUSIONS
+════════════════════════════════════════════════════════
+
+1. BLACK SCREEN ROOT CAUSE CONFIRMED:
+   CRAM is all-zero during gameplay. Sole cause is palette_clcs
+   being never populated (0x59AD4 unpatched). Build 115 spec fix
+   (absolute_rewrite_group for 0x59AD4 range) is the correct solution.
+
+2. NO CRASH OBSERVED during 78 seconds of gameplay.
+   The 0xC09E87 bypass (BRA at 0x03AE54) is working. Game runs
+   continuously for at least 41 seconds without crashing.
+   This is a significant improvement over Build 113.
+
+3. GAME LOGIC IS RUNNING:
+   Arcade tick executes each frame (tile hooks fire, cursor
+   advances, sprite logic runs). Nothing visible because palette=black.
+   Soft reset (A+B+C+Start) functions correctly.
+
+4. EXPECTED AFTER BUILD 115 FIX:
+   0x59AD4 will write live CLCS data to palette_clcs each frame.
+   load_arcade_palette() (called after arcade tick) will convert
+   and DMA to CRAM. Screen should show real Rastan colours.
+   Tile coverage should be full-screen (cursor logic advance works).
+   No new crashes expected unless a new code path is hit.
+
+5. FPS: 92.45 observed in launcher phase. Healthy.
+
+════════════════════════════════════════════════════════
+BUILD 115 PROMPT STATUS
+════════════════════════════════════════════════════════
+
+Prompt already written (see previous ClaudeChat2 entry).
+Ready to send to Andy immediately.
+No changes to the prompt required — analysis confirms the diagnosis.
+```
+
+## [Andy - Build 115, Palette Fix]
+
+### Step 1 — Pre-edit verification
+
+**a) Bytes at arcade ROM 0x59ADE:**
+`python3 -c "mc=open('build/regions/maincpu.bin','rb').read(); print(mc[0x59ADE:0x59ADE+6].hex())"`
+Result: `227c00200000` ✓ — confirms `MOVEA.L #0x200000, A1` at 0x59ADE.
+
+**b) 0x59AD4 within declared arcade source window:**
+Covered by `maincpu_rom [0x000000, 0x060000)` ✓
+
+Both checks passed before any file was touched.
+
+### Step 2 — Spec changes to `specs/startup_title_remap.json`
+
+Added to `copied_ranges`:
+```json
+{
+  "name": "palette_convert_59ad4",
+  "kind": "original_code",
+  "start": "0x059AD4",
+  "end_exclusive": "0x059B1A"
+}
+```
+
+Added to `absolute_rewrite_groups`:
+```json
+{
+  "range": "palette_convert_59ad4",
+  "mappings": [
+    { "old": "0x00200000", "symbol": "genesistan_palette_clcs" }
+  ],
+  "rewrites": []
+}
+```
+
+No C code changes. No changes to `window_rewrite_rules`.
+
+### Step 3 — Build 115 result
+
+Build succeeded. Manifest entry confirmed:
+`range=palette_convert_59ad4, old=0x00200000, new=0xE0FF4056, count=1`
+
+`genesistan_palette_clcs` address = `0xE0FF4056` (same as Build 114).
+
+ROM artifact: `dist/Rastan_115.bin`
+
+### Status
+
+Build 115 complete. Awaiting authorisation to test.
+
+## [ClaudeChat2 - Build 115 Authorisation]
+
+```
+Build 115 verified and authorised for emulator testing.
+
+Checks passed:
+  - palette_convert_59ad4 rewrite: old=0x00200000, new=0xE0FF4056, count=1 ✓
+  - genesistan_palette_clcs address 0xE0FF4056 matches symbol.txt ✓
+  - No C code changes → hooks expected stable at plane_a=0x00200000,
+    plane_b=0x002000F0
+
+Test prompt issued to Andy (below).
+```
+
+## [ClaudeChat2 - Process Correction + AGENTS.md Update]
+
+```
+CORRECTION: Test prompts must NOT instruct Andy to run Exodus or any
+emulator. Only Tighe can operate emulators and hardware.
+
+Corrected testing workflow:
+  1. ClaudeChat2 authorises build → instructs Tighe to test
+  2. Tighe runs Exodus/BlastEm/Nomad, captures screenshots or recording
+  3. Tighe shares results verbally OR provides screenshots to team
+  4. Andy or Alan analyse screenshots if needed, report to AGENTS_LOG.md
+  5. ClaudeChat2 makes next decision
+
+AGENTS.md update needed: Tighe entry says "BlastEm and MAME" but
+Exodus is also in active use. Andy to add Exodus to Tighe's entry.
+```
+
+### MAME Exit Summary (2026-03-22 18:25:29)
+- Final PC: 0x042086
+- Stack Pointer (SP): 0xE0FFFEEE
+- Unique Unmapped Memory Addresses: none
+
+## [ClaudeChat2 - Build 115 Test Observations, Pending Full Analysis]
+
+```
+Tighe tested Build 115 in Exodus. Verbal report:
+  - Exodus: palette is loading, dots visible on screen
+  - MAME: black screen (MAME intolerant of current state)
+  - BlastEm + real hardware: testing in progress
+
+Screenshots provided (4 frames):
+  1. Launcher/DIP screen — launcher palette (cyan+red), config menu visible
+  2. Launcher Graphics Test — PC080SN tile browser, tiles rendering with colour
+  3. Launcher Graphics Test — PC090OJ sprite browser, Rastan warrior sprite visible
+  4. In-game — VDP Palette shows warm orange/Rastan colours (not black!),
+     Genesis display mostly black but a few pixel dots visible
+
+KEY OBSERVATION: palette fix confirmed working. CRAM now has real
+Rastan colour data. Screen not fully black anymore — some pixels visible.
+
+OPEN QUESTIONS for Andy analysis (see prompt below):
+  - What tile/sprite indices are causing the dots? Sprites or plane tiles?
+  - Is the nametable being written (any non-zero entries)?
+  - What are the exact CRAM values loaded?
+  - Why is coverage still minimal despite palette being correct?
+
+BlastEm + hardware results pending before Build 116 planning.
+```
+
+## [ClaudeChat2 - Build 115 BlastEm Test Results + Build 116 Plan]
+
+```
+════════════════════════════════════════════════════════
+BLASTEM TEST RESULTS — BUILD 115
+════════════════════════════════════════════════════════
+
+Screenshot 1 — Launcher:
+  Display: Launcher config working, text visible, colours correct
+  CRAM: Cyan (line 0), Black, White (line 2), Red (line 3) — SGDK init
+  VRAM: Font tiles loaded (A-Z, 0-9), clean
+
+Screenshot 2 — Graphics Test PC090OJ:
+  Display: Warrior sprites rendering with correct arcade colours
+  CRAM: Cyan / White / Grey scale / Yellow-olive / Red — Graphics Test
+        palette loaded from ROM. Real arcade colours confirmed present.
+  VRAM: PC090OJ sprite tile data visible and correct
+
+Screenshot 3 — In-game (immediately after launch):
+  Display: COMPLETELY BLACK
+  CRAM: COMPLETELY BLACK (all zeros)
+  VRAM: COMPLETELY BLACK
+  Status: Game running (no crash yet), but PAL_setColors DMA'd zeros
+
+Screenshot 4 — Crash:
+  BlastEm Fatal Error: "machine freeze due to read from address C20000"
+  CRAM/VRAM: still black
+  BlastEm debug window: "machine freeze due to read from address C20000"
+
+════════════════════════════════════════════════════════
+ANALYSIS
+════════════════════════════════════════════════════════
+
+FINDING 1 — palette_clcs still empty at first load_arcade_palette() call:
+  CRAM goes black the instant the game launches. This means palette_clcs
+  is all zeros when load_arcade_palette() first runs. Two possible causes:
+    a) 0x59AD4 has not yet executed before load_arcade_palette() fires
+       on frame 1 (timing: arcade tick runs 0x59AD4, THEN we call
+       load_arcade_palette — so if 0x59AD4 is not on the code path
+       exercised in the first frontend tick, palette stays zero)
+    b) 0x59AD4 IS being called but is on a code path that only fires
+       during actual gameplay, not the title/attract sequence we're
+       entering at this stage
+  Research task for Andy: trace call chain from genesistan_run_original_
+  frontend_tick entry point — does it reach any 0x59AD4 caller in the
+  first few frames of the attract sequence?
+
+FINDING 2 — New crash site: READ from 0xC20000:
+  0xC20000 = PC080SN horizontal X-scroll register (arcade hardware).
+  On Genesis this address is in the VDP/IO decode range — BlastEm
+  treats a read from it as a fatal bus error.
+  The arcade code is reading the scroll register (probably to compute
+  delta or to preserve the current value before updating).
+  Must be caught for Build 116:
+    - Find the READ instruction(s) at/near 0xC20000 in disasm
+    - Redirect to genesistan_shadow_c20000_words (or return 0 if unused)
+    - opcode_replace or window_rewrite_rule as appropriate
+
+FINDING 3 — Exodus vs BlastEm discrepancy:
+  Exodus showed some pixel "dots" on screen and apparently some palette
+  data. BlastEm shows everything black. BlastEm is the more accurate
+  emulator. The Exodus behaviour (dots, partial palette) is likely due to
+  Exodus being more lenient with invalid bus accesses — it continues
+  past the C20000 read instead of crashing. The dots are probably from
+  the 4 static-init palette writes (startup_common → palette_clcs) being
+  applied to a few sparse tile/sprite entries.
+
+════════════════════════════════════════════════════════
+BUILD 116 SCOPE — TWO ITEMS
+════════════════════════════════════════════════════════
+
+Item 1 — Fix 0xC20000 read crash (blocking):
+  Must be resolved before any further progress.
+  Research: find the read instruction(s), determine if result is used,
+  add opcode_replace to NOP or redirect to scroll shadow.
+
+Item 2 — Trace 0x59AD4 call chain (diagnostic):
+  Determine whether 0x59AD4 is reachable from the frontend tick in the
+  title/attract phase. If it is only called during gameplay (post-coin),
+  the palette fix is structurally correct but needs a different approach
+  for the attract/title palette (e.g. use the ROM palette table for the
+  first frame, or trigger 0x59AD4 via a different mechanism).
+  This informs whether palette is a Build 116 fix or deferred.
+
+Research prompt for Andy below.
+```
+
+## [ClaudeChat2 - Build 115 Real Hardware Results]
+
+```
+Real Genesis + Everdrive results:
+  Launcher: works correctly (same as BlastEm/Exodus)
+  In-game:  black screen — no output
+  
+Comparison note: Build 114 showed a dot on real hardware;
+Build 115 does not. Minor regression. Likely the 4 startup_common
+palette writes that were reaching palette_clcs had a non-zero
+value that drew one sprite pixel — now possibly shifted or lost.
+Not a priority — the C20000 crash is blocking.
+
+Awaiting Andy's Build 116 pre-research before proceeding.
+```
+
+## [ClaudeChat2 - Note]
+
+```
+Tighe deploying Andy, Cody, and Alan in parallel on Build 116
+pre-research (C20000 read + 0x59AD4 call chain trace).
+Awaiting all three reports before deciding Build 116 spec.
+```

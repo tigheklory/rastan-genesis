@@ -234,6 +234,17 @@
       "genesis_rom_start": "0x00072A",
       "genesis_rom_end_exclusive": "0x00086C",
       "placement": "relocated_window"
+    },
+    {
+      "id": "maincpu:059AD4-059B19",
+      "name": "palette_convert_59ad4",
+      "kind": "original_code_or_data",
+      "source_rom": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
+      "original_start": "0x059AD4",
+      "original_end_exclusive": "0x059B1A",
+      "genesis_rom_start": "0x059CD4",
+      "genesis_rom_end_exclusive": "0x059D1A",
+      "placement": "relocated_window"
     }
   ],
   "generated_blocks": [

@@ -281,6 +281,12 @@
       "kind": "original_code",
       "start": "0x00052A",
       "end_exclusive": "0x00066C"
+    },
+    {
+      "name": "palette_convert_59ad4",
+      "kind": "original_code",
+      "start": "0x059AD4",
+      "end_exclusive": "0x059B1A"
     }
   ],
   "absolute_rewrite_groups": [
@@ -655,6 +661,16 @@
         {
           "old": "0x00D01000",
           "symbol": "genesistan_shadow_d00000_words"
+        }
+      ],
+      "rewrites": []
+    },
+    {
+      "range": "palette_convert_59ad4",
+      "mappings": [
+        {
+          "old": "0x00200000",
+          "symbol": "genesistan_palette_clcs"
         }
       ],
       "rewrites": []

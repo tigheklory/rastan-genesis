@@ -164,6 +164,14 @@
       "size_bytes": 322,
       "runtime_start": "0x00072A",
       "runtime_end_exclusive": "0x00086C"
+    },
+    {
+      "name": "palette_convert_59ad4",
+      "start": "0x059AD4",
+      "end_exclusive": "0x059B1A",
+      "size_bytes": 70,
+      "runtime_start": "0x059CD4",
+      "runtime_end_exclusive": "0x059D1A"
     }
   ],
   "whole_maincpu_copy": {
@@ -655,6 +663,12 @@
       "count": 2
     },
     {
+      "range": "palette_convert_59ad4",
+      "old": "0x00200000",
+      "new": "0xE0FF4056",
+      "count": 1
+    },
+    {
       "range": "startup_common",
       "old_window_start": "0x00C50000",
       "old_window_end_exclusive": "0x00C50002",
@@ -1072,7 +1086,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x8884",
+  "checksum": "0xA9BA",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x002053EE",
