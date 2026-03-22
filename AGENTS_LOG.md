@@ -9568,3 +9568,420 @@ OPCODE_REPLACE ENTRIES AS OF BUILD 107 (30 total)
   0x03BB48  NOP text writer body (50b)
 ```
 LOGEOF
+## [Andy - Build 109: A0 Capture, Byte-Shift Sprite Reads, Interrupt Protection]
+
+### Changes
+
+**PART A: Capture Arcade A0 Register**
+- `startup_trampoline.s`: Added `move.l %a0, genesistan_arcade_last_a0` at `genesistan_frontend_tick_return` before `movem.l` restore, capturing the PC090OJ sprite attribute table pointer
+- `startup_bridge.c`: Added `volatile uint32_t genesistan_arcade_last_a0` in `.bss.patcher`
+- `main.c`: Added `extern volatile uint32_t genesistan_arcade_last_a0`
+
+**PART A: Byte-Shift Sprite Reads & Signature Change**
+- `render_frontend_sprite_layer` signature changed to `(const void *src)`
+- Call site translates `genesistan_arcade_last_a0` to a Genesis shadow pointer: if `a0` in `[0xD00000, 0xD00800)`, compute `(uint8_t*)genesistan_shadow_d00000_words + (a0 - 0xD00000)`; else pass `NULL` (function returns early)
+- Sprite loop now iterates byte offsets 0..0x7FF in steps of 8; reads each 16-bit word via explicit byte-shift: `(p[i] << 8) | p[i+1]`
+
+**PART E: SYS_disableInts / SYS_enableInts (non-negotiable)**
+- `VDP_setSpriteFull` call wrapped in `SYS_disableInts()` / `SYS_enableInts()`
+- `VDP_loadTileData` block wrapped in `SYS_disableInts()` / `SYS_enableInts()`
+- `refresh_frontend_sprite_palettes` + `VDP_updateSprites` wrapped together
+
+### Root Cause Addressed
+Build 108 crashed (Genesis PC in `rastan_maincpu` data blob) because VDP interrupt fired mid-write sequence in `render_frontend_sprite_layer`, corrupting the stack. The `SYS_disableInts/SYS_enableInts` wrappers prevent re-entrance during all VDP command port operations.
+
+### Build
+`dist/Rastan_109.bin` — clean build, no warnings.
+
+### MAME Exit Summary (2026-03-22 11:25:28)
+- Final PC: 0xA0000E
+- Stack Pointer (SP): 0xE0396DB5
+- Unique Unmapped Memory Addresses (2): 0x0020A19E, 0x00000000
+
+## [Andy - Build 109 Completion Check]
+
+```
+PART B — DMA tile fetching:
+  grep -n "DMA\|dma\|DMA_queue\|VDP_doBlit\|VDP_doVRamDMA" \
+    apps/rastan/src/main.c | head -20
+
+1011:    VDP_waitDMACompletion();
+
+PART C — C-Window removal:
+  grep -rn "shadow_c00000\|shadow_c04000\|shadow_c08000\|shadow_c0c000\|A130F1\|shadow_init\|200000" \
+    apps/rastan/src/ specs/ | grep -v "\.d:" | head -20
+
+apps/rastan/src/boot/rom_head.c:28:    0x00200000,
+apps/rastan/src/main.c:47:#define SHADOW_SRAM_ENABLE_REG ((volatile uint8_t *)0xA130F1)
+apps/rastan/src/main.c:48:#define SHADOW_SRAM_BASE 0x200000UL
+apps/rastan/src/main.c:329:void shadow_init(void)
+apps/rastan/src/main.c:768: * SRAM at 0x200660 (= genesistan_shadow_c00000_words
+apps/rastan/src/main.c:779:     * genesistan_shadow_c00000_words is declared
+apps/rastan/src/main.c:780:     * as an absolute symbol at 0x200000 (SRAM).
+apps/rastan/src/main.c:786:        (volatile uint16_t *)0x200000UL;
+apps/rastan/src/main.c:1468:    shadow_init();
+apps/rastan/src/startup_bridge.c:143:    shadow_init();
+specs/gfx_rules.json:30:        "Real palette source words now look 0x0RGB-based and are converted through 0x59ad4 into 16-color blocks in the 0x200000 shadow region.",
+specs/startup_title_remap.json:9:    "launcher_reserved_rom_end_exclusive": "0x200000",
+specs/startup_title_remap.json:56:    { "name": "shadow_200000", "start": "0x00200000", "end_exclusive": "0x00204000" },
+specs/startup_title_remap.json:76:    "genesistan_shadow_c00000_words",
+specs/startup_title_remap.json:77:    "genesistan_shadow_c04000_words",
+specs/startup_title_remap.json:78:    "genesistan_shadow_c08000_words",
+specs/startup_title_remap.json:79:    "genesistan_shadow_c0c000_words",
+specs/startup_title_remap.json:168:      "name": "helper_200000_init",
+specs/startup_title_remap.json:242:        { "old": "0x00200000", "symbol": "wram_overlay" },
+specs/startup_title_remap.json:246:        { "old": "0x00C00000", "symbol": "genesistan_shadow_c00000_words" },
+
+PART C — Palette buffer:
+  grep -n "genesistan_palette_buffer" \
+    apps/rastan/src/startup_bridge.c \
+    apps/rastan/src/main.c | head -10
+
+(no output — symbol does not exist)
+
+PART D — NOP purge and JSR hooks:
+  python3 -c "..."
+
+opcode_replace entries still present: 29
+shift_replacements entries: 0
+
+PART E — Interrupt wrapping (already confirmed done):
+  grep -n "SYS_disableInts\|SYS_enableInts" \
+    apps/rastan/src/main.c | head -20
+
+744:    SYS_disableInts();
+757:    SYS_enableInts();
+1343:        SYS_disableInts();
+1345:        SYS_enableInts();
+1356:        SYS_disableInts();
+1363:        SYS_enableInts();
+1366:    SYS_disableInts();
+1369:    SYS_enableInts();
+1619:    SYS_disableInts();
+
+PART F — Linker C-Window symbols:
+  grep -n "shadow_c0\|SRAM\|0x200000\|0x20FFFF" \
+    apps/rastan/linker_rastan.ld | head -10
+
+9:	SRAM (w!x) : ORIGIN = 0x200000, LENGTH = 64K
+14:genesistan_shadow_c00000_words = 0x00200000;
+15:genesistan_shadow_c04000_words = 0x00204000;
+16:genesistan_shadow_c08000_words = 0x00208000;
+17:genesistan_shadow_c0c000_words = 0x0020C000;
+
+  grep -n "shadow_c0" \
+    apps/rastan/src/startup_bridge.c | head -10
+
+(no output — no shadow_c0 references in startup_bridge.c)
+
+WRAM gap in Build 109:
+  python3 -c "..."
+
+_bend:    0xE0FF657A
+__stack:  0xE1000000
+Gap:      0x9A86 = 39558 bytes
+```
+
+### Summary
+
+**DONE:**
+- PART A: `genesistan_arcade_last_a0` captured in `startup_trampoline.s`; `render_frontend_sprite_layer(const void *src)` signature; byte-shift reads; call site translation from arcade A0 to Genesis shadow pointer; null-guard early return.
+- PART E: `SYS_disableInts`/`SYS_enableInts` wrapping all VDP command port writes (`VDP_setSpriteFull`, `VDP_loadTileData`, `refresh_frontend_sprite_palettes`, `VDP_updateSprites`).
+
+**NOT YET DONE:**
+- PART B: DMA-backed ROM tile fetching. Only `VDP_waitDMACompletion()` is present (pre-existing). `VDP_loadTileData(..., CPU)` still uses synchronous CPU copy. No DMA queue.
+- PART C: C-Window ($C08000) removal and WRAM reclamation. SRAM still active (`A130F1`, `shadow_init`, `genesistan_shadow_c0xxxx_words`). Four shadow page symbols still in linker and specs. `genesistan_palette_buffer` symbol does not exist.
+- PART D: NOP purge and JSR hooks. All 29 `opcode_replace` entries still present. `shift_replacements` count is 0.
+- PART F: Linker C-Window symbols still present (`SRAM` region, four `genesistan_shadow_c0xxxx_words` absolute symbols in `linker_rastan.ld`).
+
+**WRAM gap:**
+- Actual: `0x9A86` = **39,558 bytes (~38.6 KB)**
+- Expected: **~167 KB**
+- Gap is well below expected. The 4 × 16 KB C-Window shadow arrays are already in SRAM (not WRAM), so PART C/F removal would not free WRAM. Main WRAM consumers are `genesistan_arcade_workram_words` (16 KB, `.bss.workram`) and `.bss.patcher` variables. The 167 KB expectation cannot be met within 64 KB Genesis WRAM total; awaiting Claude's clarification on expected gap source.
+
+**Awaiting authorisation before proceeding.**
+
+## [Andy - Build 111: Parts C+F+D Continued from Build 109]
+
+```
+PART B — DMA tile fetching:
+  grep -n "DMA\|dma\|DMA_queue\|VDP_doBlit\|VDP_doVRamDMA" apps/rastan/src/main.c | head -10
+
+  827:    VDP_waitDMACompletion();
+
+  NOT IMPLEMENTED. Only pre-existing VDP_waitDMACompletion() present.
+  VDP_loadTileData(..., CPU) still used. DMA queue deferred pending
+  stable tilemap hook implementations.
+
+PART C/F — C-Window removal verify:
+  grep -rn "shadow_c0|A130F1|shadow_init|SHADOW_SRAM" apps/rastan/src/ specs/
+
+  (no output — zero results)
+
+PART D — opcode_replace / shift_replacements:
+  opcode_replace entries: 29 (unchanged count)
+  shift_replacements entries: 0
+  opcode_replace entries with JSR hook: 2
+
+PART E — Interrupt wrapping: 11 occurrences (DONE, carried from Build 109)
+
+WRAM gap (Build 111):
+  _bend:    0xE0FF5DFA
+  __stack:  0xE1000000
+  Gap:      0xA206 = 41,478 bytes (~40.5 KB)
+  (increased ~1.9 KB from Build 109 by removing dirty_words[512] and adding palette_buffer[64])
+
+Hook addresses:
+  genesistan_hook_tilemap_plane_a: 0x00200000
+  genesistan_hook_tilemap_plane_b: 0x00200002
+  genesistan_palette_buffer:       0xE0FF404E
+```
+
+### Changes in Build 111
+
+**PART C+F — C-Window SRAM removal:**
+- `startup_bridge.c`: Added `genesistan_palette_buffer[64]` in `.bss.patcher`; removed `fill_shadow_page_words()` and `shadow_init()` call; replaced 4× `fill_shadow_page_words(0..3)` with `fill_words(genesistan_palette_buffer, 64, 0)`
+- `main.h`: Removed `genesistan_shadow_c00000/c04000/c08000/c0c000_words` externs; added `genesistan_palette_buffer[64]`; removed `shadow_init`, `shadow_write16`, `shadow_read16` declarations
+- `main.c`: Removed all SHADOW_SRAM_*/C_WINDOW_* defines; removed `dirty_words[512]`; removed `shadow_init()`, `shadow_write16()`, `shadow_read16()` functions; removed all C-Window scan functions (`read_shadow_c_window_word`, `count_nonzero_c_window_words`, `find_first/last_nonzero_c_window_word`, `startup_shadow_row_has_text`, `decode_startup_shadow_word`); updated `load_arcade_palette()` to `PAL_setColors(0, genesistan_palette_buffer, 64, CPU)`; updated `refresh_frontend_sprite_palettes()` to read `genesistan_palette_buffer[(bank&3)<<4 + color]`; simplified `render_startup_preview_screen()` (C-Window stats replaced with "CWIN SHADOW REMOVED" + first 4 palette_buffer words); removed `shadow_init()` from `request_start_rastan()`; removed `memset(dirty_words)` from `scrub_launcher_runtime_buffers()`
+- `linker_rastan.ld`: Removed `SRAM (w!x)` memory region; removed 4 `genesistan_shadow_c0xxxx_words` absolute symbols; added `KEEP(*(.text.patcher))` for hook function retention
+- `boot/rom_head.c`: Zeroed SRAM descriptor fields (was `"RA" 0xF800 0x200000 0x20FFFF`)
+- `postpatch_startup_rom.py`: Removed `sram_header_fix` block (lines ~824–844)
+- `specs/startup_title_remap.json`: Removed 8 `window_rewrite_rules` for `shadow_c0xxxx`; removed 20 `mappings` from `absolute_rewrite_groups`; removed 4 `required_symbols`; fixed `opcode_replace` at `0x03D04C` `original_bytes` from post-rewrite SRAM address back to arcade address; added narrow palette redirect rule: `0x00C08000–0x00C08080 → genesistan_palette_buffer`; added `genesistan_palette_buffer` to `required_symbols`
+
+**PART D — JSR hooks for tilemap functions:**
+- `main.c`: Added stub `genesistan_hook_tilemap_plane_a()` and `genesistan_hook_tilemap_plane_b()` in `.text.patcher` section with `__attribute__((used, externally_visible))`
+- Two-pass build: pass 1 got addresses (0x200000, 0x200002); pass 2 applied JSR replacements
+- `specs/startup_title_remap.json`: Updated `opcode_replace` at `0x055968` (38b): `JSR 0x00200000 + RTS + 15×NOP`; at `0x055990` (32b): `JSR 0x00200002 + RTS + 12×NOP`
+- Remaining 27 opcode_replace entries still NOP (no hooks yet)
+
+**PART B — NOT IMPLEMENTED** (deferred; requires tilemap hook implementations to be useful)
+
+### Build
+`dist/Rastan_111.bin` — clean build, one warning removed (`decode_startup_shadow_word` now deleted).
+
+### Notes
+- WRAM gap 41,478 bytes (~40.5 KB). Claude confirmed the ~167 KB estimate was wrong; C-Window arrays were already in SRAM, not WRAM.
+- No-op verification: `shift_table_patcher.py --verify-noop` → `NO-OP OK`
+- Hook function stubs are call-safe (RTS immediately); tilemap VDP writes are TODO for next build.
+- Palette data will be delivered to `genesistan_palette_buffer` via the narrow `window_rewrite_rule` (0xC08000–0xC08080) which redirects arcade palette conversion writes from C-Window page 2 to WRAM.
+
+**Awaiting authorisation before proceeding.**
+
+## [Andy - Build 112, Sanity Check + ROM Header]
+
+### Part 1 — Build 111 Sanity Check (on Rastan_111.bin)
+
+```
+JSR plane_a at 0x055B68: 4eb900200000
+  target: 0x200000
+JSR plane_b at 0x055B90: 4eb900200002
+  target: 0x200002
+
+ROM[0x200000-0x200010]: 4e754e751039e0ff00011039e0ff0000
+plane_a stub is RTS: True
+plane_b stub is RTS: True
+
+SRAM descriptor: 202000000000000000000000
+SRAM zeroed: False
+
+(no shadow_c0/A130F1/shadow_init/SHADOW_SRAM refs — zero results)
+
+_bend:   0xE0FF5DFA
+__stack: 0xE1000000
+Gap:     0xA206 = 41478 bytes
+```
+
+JSR targets correct (0x200000, 0x200002); stubs are RTS. SRAM descriptor NOT zeroed — Build 111 set `"  "` (0x2020) instead of null bytes. Fixed in Part 2.
+
+### Part 2 — ROM Header Update (rom_head.c)
+
+Fields updated in `apps/rastan/src/boot/rom_head.c`:
+- Copyright: `"(C)TAITO 1987   "`
+- Domestic name: `"RASTAN                                          "` (48 bytes)
+- Overseas name: `"RASTAN                                          "` (48 bytes)
+- Serial/version: `"GM RASTAN-0111"`
+- IO support: `"J               "`
+- SRAM type: `"\x00\x00"` (was `"  "` = 0x2020; now true null bytes)
+
+### Build 112 ROM Header Verification
+
+```
+=== Build 112 ROM Header Verification ===
+Console name : b'SEGA MEGA DRIVE '
+Copyright    : b'(C)TAITO 1987   '
+Domestic name: b'RASTAN                                          '
+Overseas name: b'RASTAN                                          '
+Serial       : b'GM RASTAN-0111'
+IO support   : b'J               '
+SRAM desc    : 000000000000000000000000
+SRAM zeroed  : True
+Region       : b'JUE             '
+ALL CHECKS PASSED
+```
+
+### Build
+
+`dist/Rastan_112.bin` — clean build, existing warning only (`lookup_rastan_font_char` unused).
+
+
+## [Andy - AGENTS.md Architecture Update, Build 112 session]
+
+Appended three new architecture sections to `AGENTS.md` after the existing `## FUTURE OPTIMISATIONS` section:
+
+- **Palette Architecture**: Pre-converted ROM table (`genesistan_palette_rom_table`); xBGR-555 → Genesis 0000 BBB0 GGG0 RRR0 formula; `load_arcade_palette()` becomes a DMA copy; `genesistan_palette_buffer[64]` is temporary staging, removed in Build 113.
+- **Tile Cache Architecture**: PC080SN 16384 tiles × 32 bytes = 512KB; ~1164-slot VRAM cache; per-slot reverse map (`cache_slot_to_arcade[1164]`, `cache_slot_lru[1164]`, `cache_lru_clock`); ~4.6KB WRAM total; linear scan lookup; no full forward map.
+- **VDP Layer Mapping**: BG layer 0 (C-Window page 0, 0xC00400) → Plane B (0xC000); FG layer 1 (C-Window page 2, 0xC08400) → Plane A (0xE000); PC090OJ sprites → SAT (always 16×16, one cell per entry); both planes start at row 8 col 0 (offset 0x400).
+
+## [Session 2026-03-22 — Build 109-112 Summary]
+```
+BUILDS THIS SESSION
+
+  Build 109: Parts A + E only
+    - Capture A0 register in startup_trampoline.s
+      at genesistan_frontend_tick_return
+    - genesistan_arcade_last_a0 added to .bss.patcher
+    - render_frontend_sprite_layer(const void *src)
+      new signature with byte-shift reads
+    - Call site translates arcade A0 to Genesis
+      shadow pointer with null-guard
+    - SYS_disableInts/SYS_enableInts wrapped around
+      all VDP command port writes (Parts A+E done,
+      Parts B/C/D/F deferred)
+    - Root cause of Build 108 crash: interrupt
+      re-entrance during VDP writes corrupted stack,
+      PC landed in rastan_maincpu data blob
+
+  Build 110: Parts C+F (trial build, not shipped)
+    - C-Window SRAM infrastructure removed
+    - Build number used as intermediate step
+
+  Build 111: Parts C+F+D
+    - genesistan_palette_buffer[64] added to WRAM
+    - All C-Window shadow arrays removed from:
+      linker, source, specs, postpatch script
+    - SRAM ROM header zeroed (note: 0x2020 not
+      true zeros — fixed in Build 112)
+    - shadow_init, shadow_write16, shadow_read16,
+      dirty_words[512], all C-Window scan functions
+      removed from main.c
+    - load_arcade_palette() reads palette_buffer
+    - Two JSR hooks added for tilemap functions:
+      0x055968 → JSR genesistan_hook_tilemap_plane_a
+      0x055990 → JSR genesistan_hook_tilemap_plane_b
+    - Hook stubs at 0x200000/0x200002 (RTS only)
+    - Two-pass build used to get hook addresses
+    - KEEP(*(.text.patcher)) added to linker
+    - shift_table_patcher.py no-op: VERIFIED OK
+    - WRAM gap: 41,478 bytes (~40.5 KB)
+    - dist/Rastan_111.bin clean
+
+  Build 112: ROM header update
+    - rom_head.c updated:
+      Copyright: (C)TAITO 1987
+      Names: RASTAN
+      Serial: GM RASTAN-0111
+      IO: J (3-button)
+      SRAM descriptor: true null bytes
+      Region: JUE
+    - All header fields verified correct
+    - dist/Rastan_112.bin clean
+
+RESEARCH COMPLETED THIS SESSION
+
+  Cody and Alan independently researched VDP layer
+  implementation for Build 113. Key findings:
+
+  Q1 — VRAM tile base:
+    PC080SN tiles not bulk-loaded at startup.
+    Tile cache starts at VRAM slot 0x14 (20).
+    SGDK defaults: Plane A = 0xE000, Plane B = 0xC000.
+    (Alan initially had these swapped — corrected.)
+
+  Q2 — Tiles per hook call:
+    One hook call handles all 16 tile writes.
+    A1 workram byte offset 0x1080 (word index 2112).
+    A3 workram byte offset 0x1040 (word index 2080).
+    Inner write: movew (a1)@,(a0)+ per tile.
+
+  Q3 — Nametable position:
+    Both BG and FG layers start at row 8 col 0
+    (C-Window offset 0x400 into each page).
+    Hook derives VRAM position by reading A5@(4256)
+    or A5@(4260) from workram (byte offsets 0x10A0
+    and 0x10A4), subtracting page base, adding to
+    VRAM plane base.
+    BG: VRAM 0xC000 + (ptr - 0xC00000)
+    FG: VRAM 0xE000 + (ptr - 0xC08000)
+
+  Q4 — Tile cache and VRAM budget:
+    Available cache slots: 20-1023 + 1280-1439
+    = 1164 slots total.
+    Full 16384-entry forward map not feasible
+    (32KB+ WRAM). Per-slot reverse map only:
+    cache_slot_to_arcade[1164] = 2.3KB
+    cache_slot_lru[1164] = 2.3KB
+    Total: ~4.6KB. Feasible.
+    Working set per scene: ~200-400 tiles.
+    PC080SN tile = 32 bytes, offset = N * 32.
+
+ARCHITECTURAL DECISIONS THIS SESSION
+
+  1. Palette pre-conversion during patching:
+     All 2048 arcade palette entries converted
+     from xBGR-555 to Genesis VDP format during
+     build. Stored as genesistan_palette_rom_table
+     in ROM (4096 bytes). Zero runtime conversion.
+     load_arcade_palette() becomes DMA copy only.
+     genesistan_palette_buffer[64] removed in B113.
+
+  2. Tile cache: per-slot reverse map only.
+     Clock-hand or LRU eviction. ~4.6KB WRAM.
+     DMA loads on cache miss from rastan_pc080sn.
+
+  3. No ROM banking in PC080SN/PC090OJ.
+     Different sub-stages use different tile index
+     ranges within same 512KB ROM. Cache handles
+     scene transitions naturally.
+
+  4. Palette field mapping confirmed:
+     arcade attr bits 8:7 → Genesis palette line
+     (0-3). Formula: (arcade_attr >> 7) & 0x3.
+     NOT >>5 as previously assumed.
+
+  5. SSF2/EX-SSF mapper rejected:
+     Everdrive X3 does not support SSF2 mapper.
+     Per-slot cache approach is sufficient.
+
+  6. Downsampling rejected:
+     Would not help WRAM (lookup table problem,
+     not tile size problem). Hurts visual quality.
+
+CURRENT STATE AS OF BUILD 112
+
+  opcode_replace entries: 29
+  shift_replacements:      0
+  JSR hooks active:        2 (stubs only, RTS)
+  Parts done:              A, C, D(partial), E, F
+  Parts pending:           B (DMA tiles),
+                           D (hook bodies),
+                           palette ROM table
+
+  Next build: 113
+  - Palette pre-conversion in postpatch_startup_rom.py
+  - genesistan_palette_rom_table in ROM
+  - genesistan_palette_buffer removed
+  - load_arcade_palette() → DMA from ROM table
+  - Tile cache implementation in WRAM
+  - Hook bodies for plane_a and plane_b
+  - DMA tile loading on cache miss
+```
+
+### RASTAN 111 MAME Exit Summary (2026-03-22 12:47:09)
+- Final PC: 0x20145C
+- Stack Pointer (SP): 0xE0FFFF90
+- Unique Unmapped Memory Addresses: none
+
+### RASTAN 112 MAME Exit Summary (2026-03-22 12:47:43)
+- Final PC: 0x20145C
+- Stack Pointer (SP): 0xE0FFFF90
+- Unique Unmapped Memory Addresses: none

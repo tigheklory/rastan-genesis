@@ -9,12 +9,12 @@ const ROMHeader rom_header = {
 #else
     "SEGA MEGA DRIVE ",
 #endif
-    "(C)SGDK 2024    ",
-    "SAMPLE PROGRAM                                  ",
-    "SAMPLE PROGRAM                                  ",
-    "GM 00000000-00",
+    "(C)TAITO 1987   ",
+    "RASTAN                                          ",
+    "RASTAN                                          ",
+    "GM RASTAN-0111",
     0x000,
-    "JD              ",
+    "J               ",
     0x00000000,
 #if (ENABLE_BANK_SWITCH != 0)
     0x003FFFFF,
@@ -23,10 +23,10 @@ const ROMHeader rom_header = {
 #endif
     0xE0FF0000,
     0xE0FFFFFF,
-    "RA",
-    0xF800,
-    0x00200000,
-    0x0020FFFF,
+    "\x00\x00",
+    0x0000,
+    0x00000000,
+    0x00000000,
     "            ",
     "DEMONSTRATION PROGRAM                   ",
     "JUE             "

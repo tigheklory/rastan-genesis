@@ -252,3 +252,86 @@ escalate to Tighe. Do not resolve independently.
   bits, so the arcade software flip logic is redundant.
 - Remove SRAM header declaration from ROM header once
   C-Window shadows are eliminated.`
+## Palette Architecture (decided Build 112 session)
+
+The arcade palette RAM (2048 entries, 4096 bytes)
+is pre-converted to Genesis VDP format during the
+patching process and stored in ROM as a static
+symbol genesistan_palette_rom_table. No runtime
+colour conversion is performed.
+
+Conversion formula (per entry):
+  arcade format: xBGR-555
+    bits 14:10 = Blue (5-bit)
+    bits 9:5   = Green (5-bit)
+    bits 4:0   = Red (5-bit)
+  Genesis format: 0000 BBB0 GGG0 RRR0
+    bits 11:9  = Blue (3-bit, top 3 of arcade)
+    bits 7:5   = Green (3-bit, top 3 of arcade)
+    bits 3:1   = Red (3-bit, top 3 of arcade)
+  R_gen = (R_arc >> 2) << 1
+  G_gen = (G_arc >> 2) << 5
+  B_gen = (B_arc >> 2) << 9
+
+Tile attribute palette field (9-bit):
+  bits 8:7 → Genesis palette line (0-3)
+  bits 6:4 → sub-bank select within line
+  bits 3:0 → colour index within 16-colour bank
+
+At runtime load_arcade_palette() is a direct
+DMA copy from ROM table to CRAM. No math.
+
+genesistan_palette_buffer[64] in WRAM is
+temporary staging only during Build 111/112
+transition. Removed in Build 113 once ROM table
+is in place.
+
+## Tile Cache Architecture (decided Build 112 session)
+
+The PC080SN has 16384 tiles × 32 bytes = 512KB.
+Genesis VRAM holds ~1164 tiles in the cache
+region (slots 20–1023 plus 1280–1439).
+
+Cache design (per-slot, ~4.6KB WRAM total):
+  uint16_t cache_slot_to_arcade[1164]  — 2.3KB
+    which arcade tile occupies each slot
+  uint16_t cache_slot_lru[1164]        — 2.3KB
+    LRU counter per slot
+  uint16_t cache_lru_clock             — 2 bytes
+    global incrementing counter
+
+Cache lookup: linear scan of 1164 slots.
+Working set per scene: 200-400 tiles.
+Cache misses trigger VDP_loadTileData() DMA
+from rastan_pc080sn ROM (32 bytes per tile).
+
+Full 16384-entry forward map is NOT feasible
+in WRAM (would require 32KB+). Per-slot reverse
+map only.
+
+No ROM banking in PC080SN or PC090OJ. All 16384
+tiles always accessible. Different sub-stages
+(outdoor, fortress, boss) use different tile
+index ranges within the same ROM.
+
+## VDP Layer Mapping (confirmed Build 112 session)
+
+  Arcade BG layer 0 (C-Window page 0,
+    A5@(4256) starts 0xC00400)
+    → Genesis Plane B (VRAM 0xC000)
+    → nametable position: offset into page 0
+      divided by 2 = cell index
+
+  Arcade FG layer 1 (C-Window page 2,
+    A5@(4260) starts 0xC08400)
+    → Genesis Plane A (VRAM 0xE000)
+    → FG layer IS the text/HUD layer
+    → no separate text layer exists
+
+  PC090OJ sprites → Genesis VDP SAT
+    each entry always 16×16 pixels (one cell)
+    large chars (GAME OVER) = multiple entries
+    no size field in sprite word
+
+  Both planes start at row 8 col 0 (offset 0x400
+  into their respective C-Window pages).

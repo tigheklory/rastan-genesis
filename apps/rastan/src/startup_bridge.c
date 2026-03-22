@@ -56,6 +56,12 @@ volatile uint8_t genesistan_sound_status
     __attribute__((section(".bss.patcher")));
 volatile uint16_t genesistan_sound_command_count
     __attribute__((section(".bss.patcher")));
+/* Arcade A0 captured at genesistan_frontend_tick_return (Build 109). */
+volatile uint32_t genesistan_arcade_last_a0
+    __attribute__((section(".bss.patcher")));
+/* Palette data written by arcade palette conversion (64 colours = 4 banks × 16). */
+volatile uint16_t genesistan_palette_buffer[64]
+    __attribute__((section(".bss.patcher")));
 
 static uint8_t build_player_input_byte(uint16_t state)
 {
@@ -126,25 +132,11 @@ static void fill_words(volatile uint16_t *words, uint16_t count, uint16_t value)
     }
 }
 
-static void fill_shadow_page_words(uint8_t page, uint16_t count, uint16_t value)
-{
-    uint16_t i;
-
-    for (i = 0; i < count; i++) {
-        shadow_write16(page, (uint16_t)(i * 2), value);
-    }
-}
-
 void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t service_word)
 {
-    shadow_init();
-
     fill_words(genesistan_arcade_workram_words, 0x2000, 0);
     fill_words(genesistan_shadow_d00000_words, 0x0400, 0);
-    fill_shadow_page_words(0, 0x2000, 0);
-    fill_shadow_page_words(1, 0x2000, 0);
-    fill_shadow_page_words(2, 0x2000, 0);
-    fill_shadow_page_words(3, 0x2000, 0);
+    fill_words(genesistan_palette_buffer, 64, 0);
     fill_words(genesistan_shadow_c20000_words, 2, 0);
     fill_words(genesistan_shadow_c40000_words, 2, 0);
 

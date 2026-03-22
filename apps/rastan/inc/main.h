@@ -13,12 +13,9 @@
 
 extern volatile uint16_t genesistan_arcade_workram_words[0x2000];
 extern volatile uint16_t genesistan_shadow_d00000_words[0x0400];
-extern volatile uint16_t genesistan_shadow_c00000_words[0x2000];
-extern volatile uint16_t genesistan_shadow_c04000_words[0x2000];
-extern volatile uint16_t genesistan_shadow_c08000_words[0x2000];
-extern volatile uint16_t genesistan_shadow_c0c000_words[0x2000];
 extern volatile uint16_t genesistan_shadow_c20000_words[2];
 extern volatile uint16_t genesistan_shadow_c40000_words[2];
+extern volatile uint16_t genesistan_palette_buffer[64];
 
 extern volatile uint16_t genesistan_shadow_reg_c50000;
 extern volatile uint16_t genesistan_shadow_reg_d01bfe;
@@ -49,8 +46,5 @@ void genesistan_refresh_arcade_inputs(void);
 void genesistan_reclaim_launcher_wram(void);
 void genesistan_sound_send_command(void);
 void genesistan_sound_read_status(void);
-void shadow_init(void);
-void shadow_write16(uint8_t page, uint16_t offset, uint16_t value);
-uint16_t shadow_read16(uint8_t page, uint16_t offset);
 
 #endif

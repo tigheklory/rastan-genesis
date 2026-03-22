@@ -50,6 +50,7 @@ genesistan_run_original_frontend_tick:
     jmp (0x03A008 + ARCADE_ROM_BASE)
 
 genesistan_frontend_tick_return:
+    move.l %a0, genesistan_arcade_last_a0   /* capture sprite ptr before restore (Build 109) */
     movem.l (%sp)+,%d0-%d7/%a0-%a6
     rts
 

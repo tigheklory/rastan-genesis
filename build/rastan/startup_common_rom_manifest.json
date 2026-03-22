@@ -201,67 +201,67 @@
     {
       "range": "startup_common",
       "old": "0x00C50000",
-      "new": "0xE0FF4064",
+      "new": "0xE0FF40E8",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4062",
+      "new": "0xE0FF40E6",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00350008",
-      "new": "0xE0FF4060",
+      "new": "0xE0FF40E4",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00380000",
-      "new": "0xE0FF405E",
+      "new": "0xE0FF40E2",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x003E0001",
-      "new": "0xE0FF4057",
+      "new": "0xE0FF40DB",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x003E0003",
-      "new": "0xE0FF4056",
+      "new": "0xE0FF40DA",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x00390001",
-      "new": "0xE0FF405B",
+      "new": "0xE0FF40DF",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390003",
-      "new": "0xE0FF405A",
+      "new": "0xE0FF40DE",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390005",
-      "new": "0xE0FF4059",
+      "new": "0xE0FF40DD",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390007",
-      "new": "0xE0FF4058",
+      "new": "0xE0FF40DC",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00200000",
-      "new": "0xE0FF508C",
+      "new": "0xE0FF4910",
       "count": 4
     },
     {
@@ -279,32 +279,8 @@
     {
       "range": "startup_common",
       "old": "0x003C0000",
-      "new": "0xE0FF405C",
+      "new": "0xE0FF40E0",
       "count": 4
-    },
-    {
-      "range": "startup_common",
-      "old": "0x00C00000",
-      "new": "0x00200000",
-      "count": 1
-    },
-    {
-      "range": "startup_common",
-      "old": "0x00C04000",
-      "new": "0x00204000",
-      "count": 1
-    },
-    {
-      "range": "startup_common",
-      "old": "0x00C08000",
-      "new": "0x00208000",
-      "count": 1
-    },
-    {
-      "range": "startup_common",
-      "old": "0x00C0C000",
-      "new": "0x0020C000",
-      "count": 1
     },
     {
       "range": "startup_common",
@@ -327,67 +303,67 @@
     {
       "range": "frontend_core",
       "old": "0x00C50000",
-      "new": "0xE0FF4064",
+      "new": "0xE0FF40E8",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4062",
+      "new": "0xE0FF40E6",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00350008",
-      "new": "0xE0FF4060",
+      "new": "0xE0FF40E4",
       "count": 1
     },
     {
       "range": "frontend_core",
       "old": "0x00380000",
-      "new": "0xE0FF405E",
+      "new": "0xE0FF40E2",
       "count": 1
     },
     {
       "range": "frontend_core",
       "old": "0x003E0001",
-      "new": "0xE0FF4057",
+      "new": "0xE0FF40DB",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x003E0003",
-      "new": "0xE0FF4056",
+      "new": "0xE0FF40DA",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00390001",
-      "new": "0xE0FF405B",
+      "new": "0xE0FF40DF",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390003",
-      "new": "0xE0FF405A",
+      "new": "0xE0FF40DE",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390005",
-      "new": "0xE0FF4059",
+      "new": "0xE0FF40DD",
       "count": 7
     },
     {
       "range": "frontend_core",
       "old": "0x00390007",
-      "new": "0xE0FF4058",
+      "new": "0xE0FF40DC",
       "count": 7
     },
     {
       "range": "frontend_core",
       "old": "0x00200000",
-      "new": "0xE0FF508C",
+      "new": "0xE0FF4910",
       "count": 0
     },
     {
@@ -405,32 +381,8 @@
     {
       "range": "frontend_core",
       "old": "0x003C0000",
-      "new": "0xE0FF405C",
+      "new": "0xE0FF40E0",
       "count": 1
-    },
-    {
-      "range": "frontend_core",
-      "old": "0x00C00000",
-      "new": "0x00200000",
-      "count": 0
-    },
-    {
-      "range": "frontend_core",
-      "old": "0x00C04000",
-      "new": "0x00204000",
-      "count": 0
-    },
-    {
-      "range": "frontend_core",
-      "old": "0x00C08000",
-      "new": "0x00208000",
-      "count": 0
-    },
-    {
-      "range": "frontend_core",
-      "old": "0x00C0C000",
-      "new": "0x0020C000",
-      "count": 0
     },
     {
       "range": "frontend_core",
@@ -453,103 +405,103 @@
     {
       "range": "title_init_block",
       "old": "0x00C50000",
-      "new": "0xE0FF4064",
+      "new": "0xE0FF40E8",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4062",
+      "new": "0xE0FF40E6",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00350008",
-      "new": "0xE0FF4060",
+      "new": "0xE0FF40E4",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00380000",
-      "new": "0xE0FF405E",
+      "new": "0xE0FF40E2",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D00000",
-      "new": "0xE0FF406E",
+      "new": "0xE0FF40F2",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D00020",
-      "new": "0xE0FF408E",
+      "new": "0xE0FF4112",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x00D00088",
-      "new": "0xE0FF40F6",
+      "new": "0xE0FF417A",
       "count": 2
     },
     {
       "range": "title_init_block",
       "old": "0x00D000DA",
-      "new": "0xE0FF4148",
+      "new": "0xE0FF41CC",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D000E0",
-      "new": "0xE0FF414E",
+      "new": "0xE0FF41D2",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x00D00128",
-      "new": "0xE0FF4196",
+      "new": "0xE0FF421A",
       "count": 2
     },
     {
       "range": "title_init_block",
       "old": "0x003E0001",
-      "new": "0xE0FF4057",
+      "new": "0xE0FF40DB",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x003E0003",
-      "new": "0xE0FF4056",
+      "new": "0xE0FF40DA",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390001",
-      "new": "0xE0FF405B",
+      "new": "0xE0FF40DF",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390003",
-      "new": "0xE0FF405A",
+      "new": "0xE0FF40DE",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390005",
-      "new": "0xE0FF4059",
+      "new": "0xE0FF40DD",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390007",
-      "new": "0xE0FF4058",
+      "new": "0xE0FF40DC",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00200000",
-      "new": "0xE0FF508C",
+      "new": "0xE0FF4910",
       "count": 1
     },
     {
@@ -567,31 +519,7 @@
     {
       "range": "title_init_block",
       "old": "0x003C0000",
-      "new": "0xE0FF405C",
-      "count": 0
-    },
-    {
-      "range": "title_init_block",
-      "old": "0x00C00000",
-      "new": "0x00200000",
-      "count": 0
-    },
-    {
-      "range": "title_init_block",
-      "old": "0x00C04000",
-      "new": "0x00204000",
-      "count": 0
-    },
-    {
-      "range": "title_init_block",
-      "old": "0x00C08000",
-      "new": "0x00208000",
-      "count": 3
-    },
-    {
-      "range": "title_init_block",
-      "old": "0x00C0C000",
-      "new": "0x0020C000",
+      "new": "0xE0FF40E0",
       "count": 0
     },
     {
@@ -615,79 +543,61 @@
     {
       "range": "helper_d000_init",
       "old": "0x00D00000",
-      "new": "0xE0FF406E",
+      "new": "0xE0FF40F2",
       "count": 2
     },
     {
       "range": "helper_d000_init",
       "old": "0x00D00170",
-      "new": "0xE0FF41DE",
+      "new": "0xE0FF4262",
       "count": 1
     },
     {
       "range": "helper_d000_init",
       "old": "0x00D00778",
-      "new": "0xE0FF47E6",
+      "new": "0xE0FF486A",
       "count": 1
     },
     {
       "range": "helper_200000_init",
       "old": "0x00200000",
-      "new": "0xE0FF508C",
+      "new": "0xE0FF4910",
       "count": 0
     },
     {
       "range": "helper_frontend_timers",
       "old": "0x00380000",
-      "new": "0xE0FF405E",
+      "new": "0xE0FF40E2",
       "count": 4
     },
     {
       "range": "helper_3f084_reg_write",
       "old": "0x003E0001",
-      "new": "0xE0FF4057",
+      "new": "0xE0FF40DB",
       "count": 1
     },
     {
       "range": "helper_3f084_reg_write",
       "old": "0x003E0003",
-      "new": "0xE0FF4056",
+      "new": "0xE0FF40DA",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00C50000",
-      "new": "0xE0FF4064",
+      "new": "0xE0FF40E8",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4062",
+      "new": "0xE0FF40E6",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00380000",
-      "new": "0xE0FF405E",
-      "count": 1
-    },
-    {
-      "range": "helper_display_control",
-      "old": "0x00C00100",
-      "new": "0x00200100",
-      "count": 1
-    },
-    {
-      "range": "helper_display_control",
-      "old": "0x00C08100",
-      "new": "0x00208100",
-      "count": 1
-    },
-    {
-      "range": "helper_3d044_score_digit",
-      "old": "0x00C08C66",
-      "new": "0x00208C66",
+      "new": "0xE0FF40E2",
       "count": 1
     },
     {
@@ -705,80 +615,50 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00200000",
-      "new": "0xE0FF508C",
+      "new": "0xE0FF4910",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00201000",
-      "new": "0xE0FF608C",
+      "new": "0xE0FF5910",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390001",
-      "new": "0xE0FF405B",
+      "new": "0xE0FF40DF",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390007",
-      "new": "0xE0FF4058",
+      "new": "0xE0FF40DC",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x003C0000",
-      "new": "0xE0FF405C",
-      "count": 1
-    },
-    {
-      "range": "startup_hw_probe_052a",
-      "old": "0x00C00000",
-      "new": "0x00200000",
-      "count": 1
-    },
-    {
-      "range": "startup_hw_probe_052a",
-      "old": "0x00C04000",
-      "new": "0x00204000",
-      "count": 1
-    },
-    {
-      "range": "startup_hw_probe_052a",
-      "old": "0x00C08000",
-      "new": "0x00208000",
-      "count": 1
-    },
-    {
-      "range": "startup_hw_probe_052a",
-      "old": "0x00C0975C",
-      "new": "0x0020975C",
-      "count": 1
-    },
-    {
-      "range": "startup_hw_probe_052a",
-      "old": "0x00C0C000",
-      "new": "0x0020C000",
+      "new": "0xE0FF40E0",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00D00000",
-      "new": "0xE0FF406E",
+      "new": "0xE0FF40F2",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00D01000",
-      "new": "0xE0FF406E",
+      "new": "0xE0FF40F2",
       "count": 2
     },
     {
       "range": "startup_common",
       "old_window_start": "0x00C50000",
       "old_window_end_exclusive": "0x00C50002",
-      "new_window_start": "0xE0FF4064",
+      "new_window_start": "0xE0FF40E8",
       "target": "symbol:genesistan_shadow_reg_c50000",
       "scan_step": 2,
       "count": 0
@@ -787,7 +667,7 @@
       "range": "startup_common",
       "old_window_start": "0x00D01BFE",
       "old_window_end_exclusive": "0x00D01C00",
-      "new_window_start": "0xE0FF4062",
+      "new_window_start": "0xE0FF40E6",
       "target": "symbol:genesistan_shadow_reg_d01bfe",
       "scan_step": 2,
       "count": 0
@@ -796,7 +676,7 @@
       "range": "startup_common",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF406E",
+      "new_window_start": "0xE0FF40F2",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 0
@@ -805,7 +685,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00C50000",
       "old_window_end_exclusive": "0x00C50002",
-      "new_window_start": "0xE0FF4064",
+      "new_window_start": "0xE0FF40E8",
       "target": "symbol:genesistan_shadow_reg_c50000",
       "scan_step": 2,
       "count": 0
@@ -814,7 +694,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00D01BFE",
       "old_window_end_exclusive": "0x00D01C00",
-      "new_window_start": "0xE0FF4062",
+      "new_window_start": "0xE0FF40E6",
       "target": "symbol:genesistan_shadow_reg_d01bfe",
       "scan_step": 2,
       "count": 0
@@ -823,34 +703,10 @@
       "range": "helper_display_control",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF406E",
+      "new_window_start": "0xE0FF40F2",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 0
-    },
-    {
-      "range": "frontend_core",
-      "kind": "window_rewrite_skipped",
-      "reason": "range_is_code",
-      "hint": "Set allow_in_code=true only for audited table slices."
-    },
-    {
-      "range": "frontend_core",
-      "kind": "window_rewrite_skipped",
-      "reason": "range_is_code",
-      "hint": "Set allow_in_code=true only for audited table slices."
-    },
-    {
-      "range": "frontend_core",
-      "kind": "window_rewrite_skipped",
-      "reason": "range_is_code",
-      "hint": "Set allow_in_code=true only for audited table slices."
-    },
-    {
-      "range": "frontend_core",
-      "kind": "window_rewrite_skipped",
-      "reason": "range_is_code",
-      "hint": "Set allow_in_code=true only for audited table slices."
     },
     {
       "range": "frontend_core",
@@ -916,30 +772,6 @@
       "hint": "Set allow_in_code=true only for audited table slices."
     },
     {
-      "range": "title_init_block",
-      "kind": "window_rewrite_skipped",
-      "reason": "range_is_code",
-      "hint": "Set allow_in_code=true only for audited table slices."
-    },
-    {
-      "range": "title_init_block",
-      "kind": "window_rewrite_skipped",
-      "reason": "range_is_code",
-      "hint": "Set allow_in_code=true only for audited table slices."
-    },
-    {
-      "range": "title_init_block",
-      "kind": "window_rewrite_skipped",
-      "reason": "range_is_code",
-      "hint": "Set allow_in_code=true only for audited table slices."
-    },
-    {
-      "range": "title_init_block",
-      "kind": "window_rewrite_skipped",
-      "reason": "range_is_code",
-      "hint": "Set allow_in_code=true only for audited table slices."
-    },
-    {
       "range": "helper_frontend_timers",
       "kind": "window_rewrite_skipped",
       "reason": "range_is_code",
@@ -952,18 +784,24 @@
       "hint": "Set allow_in_code=true only for audited table slices."
     },
     {
+      "range": "frontend_core",
+      "kind": "window_rewrite_skipped",
+      "reason": "range_is_code",
+      "hint": "Set allow_in_code=true only for audited table slices."
+    },
+    {
       "range": "helper_3f084_reg_write",
       "kind": "shim_jump",
       "old_start": "0x03F284",
       "old_end_exclusive": "0x03F29C",
-      "new_target": "0x00208C6C"
+      "new_target": "0x00209068"
     },
     {
       "range": "helper_3f09c_reg_status",
       "kind": "shim_jump",
       "old_start": "0x03F29C",
       "old_end_exclusive": "0x03F2AC",
-      "new_target": "0x00208C9C"
+      "new_target": "0x00209098"
     },
     {
       "kind": "opcode_replace",
@@ -994,16 +832,16 @@
       "arcade_pc": "0x055968",
       "rom_pc": "0x055B68",
       "original_bytes": "206d10a0323c0010227c0010d080267c0010d0402453610000322b4810a0588b5489534166ee",
-      "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP tilemap write function A (0x55968-0x5598D). Writes tile data through A5@(4256) C-Window pointer each frame. Will become VDP nametable writes."
+      "replacement_bytes": "4eb9002000004e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "NOP tilemap write function A (0x55968-0x5598D). Writes tile data through A5@(4256) C-Window pointer each frame. Will become VDP nametable writes. [Build 109: replaced NOP with JSR to genesistan_hook_tilemap_plane_a + RTS]"
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055990",
       "rom_pc": "0x055B90",
       "original_bytes": "206d10a47210227c0010d080267c0010d04024536100006e588b5489534166f2",
-      "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes."
+      "replacement_bytes": "4eb9002000024e754e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes. [Build 109: replaced NOP with JSR to genesistan_hook_tilemap_plane_b + RTS]"
     },
     {
       "kind": "opcode_replace",
@@ -1046,36 +884,184 @@
       "note": "NOP second C-Window addr store to A5@(4260). addil #0xC08000,d0 + movel d0,a5@(4260) at 0x5577E. Parallel path to 0x556F2 (Build 103). Still advancing C-Window page 2 pointer causing crash at 0x209D66."
     },
     {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A350",
+      "rom_pc": "0x03A550",
+      "original_bytes": "33fc003200c08a52",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP MOVE.W #0x0032, 0xC08A52. Direct C-Window write. Length=8 only (trailing 2 bytes at 0x03A358 are start of separate instruction)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A55C",
+      "rom_pc": "0x03A75C",
+      "original_bytes": "13fc002000c09ea3",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP MOVE.B #0x20, 0xC09EA3. Direct C-Window write."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A6FE",
+      "rom_pc": "0x03A8FE",
+      "original_bytes": "33fc274400c08e7a6008",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP MOVE.W #0x2744, 0xC08E7A + BRA.S +8. Direct C-Window write and conditional branch that follows it."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A708",
+      "rom_pc": "0x03A908",
+      "original_bytes": "33fc274400c08e66",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP MOVE.W #0x2744, 0xC08E66. Direct C-Window write. Length=8 only (trailing 0x6100 is first word of BSR.W, incomplete)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A72A",
+      "rom_pc": "0x03A92A",
+      "original_bytes": "33c000c08c62",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP MOVE.W D0, 0xC08C62. Direct C-Window write."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03AAEA",
+      "rom_pc": "0x03ACEA",
+      "original_bytes": "33fc274900c09172",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP MOVE.W #0x2749, 0xC09172. Direct C-Window write. Length=8 only (trailing 0x3B7C is start of next instruction, incomplete)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03D04C",
+      "rom_pc": "0x03D24C",
+      "original_bytes": "33c100c08c66",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP MOVE.W D1, 0xC08C66. Direct C-Window write. original_bytes uses ROM form (patcher remapped 0x00C08C66 -> 0x00208C66)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x055E54",
+      "rom_pc": "0x056054",
+      "original_bytes": "2b7c00c0040010a0",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP MOVE.L #0xC00400, 0x10A0(A5). Stores C-Window base into A5 workram slot (ptr init a5@(4256))."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x055818",
+      "rom_pc": "0x055A18",
+      "original_bytes": "068000c080002b4010a0",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP ADDIL #0xC08000,D0 + MOVE.L D0,0x10A0(A5). Stores advanced C-Window base into A5@(4256) (second path)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x055B84",
+      "rom_pc": "0x055D84",
+      "original_bytes": "068000c00000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP ADDIL #0xC00000, D0. Adds C-Window base to D0 \u2014 part of pointer advancement sequence."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x056032",
+      "rom_pc": "0x056232",
+      "original_bytes": "227c00c00828",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP MOVEA.L #0xC00828, A1. Loads C-Window address into A1."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x05605C",
+      "rom_pc": "0x05625C",
+      "original_bytes": "227c00c00028",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP MOVEA.L #0xC00028, A1. Loads C-Window address into A1 (second path)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0503EC",
+      "rom_pc": "0x0505EC",
+      "original_bytes": "23fc00c080000010d0a0",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A0). Stores C-Window page 2 base into arcade workram."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0503F6",
+      "rom_pc": "0x0505F6",
+      "original_bytes": "23fc00c000000010d0f8",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP MOVE.L #0xC00000, abs.l(0x10D0F8). Stores C-Window page 0 base into arcade workram."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x050400",
+      "rom_pc": "0x050600",
+      "original_bytes": "23fc00c080000010d0a4",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A4). Stores C-Window page 2 base into arcade workram (second slot)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x05040C",
+      "rom_pc": "0x05060C",
+      "original_bytes": "23fc00c000000010d0f8",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP MOVE.L #0xC00000, abs.l(0x10D0F8). Duplicate store C-Window page 0 base into workram."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x050416",
+      "rom_pc": "0x050616",
+      "original_bytes": "23fc00c080000010d0a0",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A0). Duplicate store C-Window page 2 base into workram."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x050420",
+      "rom_pc": "0x050620",
+      "original_bytes": "203c00c0bf0023c00010d0a4",
+      "replacement_bytes": "4e714e714e714e714e714e71",
+      "note": "NOP MOVE.L #0xC0BF00,D0 + MOVE.L D0,abs.l(0x10D0A4). Length=12 only (trailing 0x33FC at 0x05042C is start of next MOVE.W, incomplete)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0561C0",
+      "rom_pc": "0x0563C0",
+      "original_bytes": "207c00c08000227c00c0000020c0",
+      "replacement_bytes": "4e714e714e714e714e714e714e71",
+      "note": "NOP MOVEA.L #0xC08000,A0 + MOVEA.L #0xC00000,A1 + MOVE.L (A0),D0. Fill-loop initialisation loading both C-Window page addresses."
+    },
+    {
       "kind": "workram_anchor",
       "rom_offset": "0x10C000",
       "value": "0xE0FF004E",
       "note": "Genesis workram base at ROM 0x10C000 so arcade A5 reload finds correct base."
-    },
-    {
-      "kind": "sram_header_fix",
-      "note": "Fix SRAM type (0xF800->0x2020) and start address (0x200000->0x200001) for Everdrive X3 SRAM enable compatibility."
     }
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x00208CE4",
+    "jumps_to": "0x002090E6",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
-    "writes_status_to": "0xE0FF4054",
+    "writes_status_to": "0xE0FF40D8",
     "value": 2,
-    "jumps_exit_to": "0x00208D20",
+    "jumps_exit_to": "0x00209122",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x9D77",
+  "checksum": "0xFB8C",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x00204D52",
+    "reset_pc": "0x00205110",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

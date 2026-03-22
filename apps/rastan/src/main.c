@@ -10,6 +10,7 @@
 extern volatile uint16_t genesistan_shadow_d00000_words[0x0400];
 extern volatile uint16_t genesistan_shadow_reg_c50000;
 extern volatile uint16_t genesistan_shadow_reg_d01bfe;
+extern volatile uint32_t genesistan_arcade_last_a0;
 
 #ifndef RASTAN_ENABLE_STARTUP_HOOK
 #define RASTAN_ENABLE_STARTUP_HOOK 1
@@ -38,17 +39,6 @@ extern volatile uint16_t genesistan_shadow_reg_d01bfe;
 #define FRONTEND_RUNTIME_MAX_SPRITES SAT_MAX_SIZE
 #define FRONTEND_RUNTIME_MAX_UNIQUE_CODES 64
 #define FRONTEND_RUNTIME_MAX_PALETTE_BANKS 4
-#define C_WINDOW_WORDS_PER_BANK 0x2000
-#define C_WINDOW_BANK_COUNT 4
-#define C_WINDOW_TOTAL_WORDS (C_WINDOW_WORDS_PER_BANK * C_WINDOW_BANK_COUNT)
-#define C_WINDOW_WORDS_PER_ROW 64
-#define C_WINDOW_TOTAL_ROWS (C_WINDOW_TOTAL_WORDS / C_WINDOW_WORDS_PER_ROW)
-#define SHADOW_SRAM_ENABLE_REG ((volatile uint8_t *)0xA130F1)
-#define SHADOW_SRAM_BASE 0x200000UL
-#define SHADOW_SRAM_PAGE_STRIDE 0x4000UL
-#define SHADOW_SRAM_PAGE_MAX 4
-#define SHADOW_WRAM_PAGE_COUNT 0
-#define SHADOW_WRAM_TOTAL_WORDS 0
 
 typedef enum
 {
@@ -195,8 +185,6 @@ union WramOverlay {
 
 union WramOverlay wram_overlay;
 extern union WramOverlay wram_overlay;
-uint32_t dirty_words[512]
-    __attribute__((aligned(4)));
 
 volatile u8 rastan_virtual_dip1 = FACTORY_DIP1;
 volatile u8 rastan_virtual_dip2 = FACTORY_DIP2;
@@ -300,161 +288,9 @@ static char lookup_rastan_font_char(u8 source_tile)
     return '\0';
 }
 
-static char decode_startup_shadow_word(u16 word)
-{
-    static const u16 candidate_masks[] = {0x00FF, 0xFF00, 0x01FF};
-    u16 i;
 
-    if (word == 0)
-    {
-        return ' ';
-    }
 
-    for (i = 0; i < sizeof(candidate_masks) / sizeof(candidate_masks[0]); i++)
-    {
-        const u16 mask = candidate_masks[i];
-        const u8 source_tile = (mask == 0xFF00) ? (u8)((word >> 8) & 0xFF) : (u8)(word & mask);
-        const char decoded = lookup_rastan_font_char(source_tile);
 
-        if (decoded != '\0')
-        {
-            return decoded;
-        }
-    }
-
-    return ' ';
-}
-
-void shadow_init(void)
-{
-    *SHADOW_SRAM_ENABLE_REG = 0x01;
-}
-
-void shadow_write16(uint8_t page, uint16_t offset, uint16_t value)
-{
-    uint32_t slot;
-
-    if ((page >= SHADOW_SRAM_PAGE_MAX) ||
-        (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
-        return;
-
-    slot = ((uint32_t)page *
-            (SHADOW_SRAM_PAGE_STRIDE >> 2))
-           + ((uint32_t)offset >> 2);
-    dirty_words[slot >> 5] |=
-        (1UL << (slot & 31U));
-
-    {
-        volatile uint16_t *base =
-            (volatile uint16_t *)(SHADOW_SRAM_BASE
-            + ((uint32_t)page *
-               SHADOW_SRAM_PAGE_STRIDE)
-            + (uint32_t)offset);
-        *base = value;
-    }
-}
-
-uint16_t shadow_read16(uint8_t page,
-                       uint16_t offset)
-{
-    if ((page >= SHADOW_SRAM_PAGE_MAX) ||
-        (offset > (SHADOW_SRAM_PAGE_STRIDE - 2)))
-        return 0;
-
-    {
-        volatile uint16_t *base =
-            (volatile uint16_t *)(SHADOW_SRAM_BASE
-            + ((uint32_t)page *
-               SHADOW_SRAM_PAGE_STRIDE)
-            + (uint32_t)offset);
-        return *base;
-    }
-}
-
-static u16 read_shadow_c_window_word(u16 linear_index);
-static u16 count_nonzero_c_window_words(void);
-static u16 find_first_nonzero_c_window_word(void);
-static u16 find_last_nonzero_c_window_word(void);
-
-static bool startup_shadow_row_has_text(u16 shadow_row)
-{
-    u16 col;
-    const u16 row_base = (u16)(shadow_row * C_WINDOW_WORDS_PER_ROW);
-
-    if (shadow_row >= C_WINDOW_TOTAL_ROWS)
-    {
-        return FALSE;
-    }
-
-    for (col = 0; col < SCREEN_W; col++)
-    {
-        if (decode_startup_shadow_word(read_shadow_c_window_word((u16)(row_base + col))) != ' ')
-        {
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
-
-static u16 read_shadow_c_window_word(u16 linear_index)
-{
-    const u8 page = (u8)(linear_index / C_WINDOW_WORDS_PER_BANK);
-    const u16 page_word = (u16)(linear_index % C_WINDOW_WORDS_PER_BANK);
-
-    if (linear_index >= C_WINDOW_TOTAL_WORDS)
-    {
-        return 0;
-    }
-
-    return shadow_read16(page, (u16)(page_word * 2));
-}
-
-static u16 count_nonzero_c_window_words(void)
-{
-    u16 i;
-    u16 total = 0;
-
-    for (i = 0; i < C_WINDOW_TOTAL_WORDS; i++)
-    {
-        if (read_shadow_c_window_word(i) != 0)
-        {
-            total++;
-        }
-    }
-
-    return total;
-}
-
-static u16 find_first_nonzero_c_window_word(void)
-{
-    u16 i;
-
-    for (i = 0; i < C_WINDOW_TOTAL_WORDS; i++)
-    {
-        if (read_shadow_c_window_word(i) != 0)
-        {
-            return i;
-        }
-    }
-
-    return 0xFFFF;
-}
-
-static u16 find_last_nonzero_c_window_word(void)
-{
-    s32 i;
-
-    for (i = (s32)C_WINDOW_TOTAL_WORDS - 1; i >= 0; i--)
-    {
-        if (read_shadow_c_window_word((u16)i) != 0)
-        {
-            return (u16)i;
-        }
-    }
-
-    return 0xFFFF;
-}
 
 static void draw_padded_text_palette(const char *text, u16 x, u16 y, u16 width, u16 palette);
 static bool menu_controls_switch(u8 menu_index, bool bank2, u8 bit);
@@ -485,8 +321,10 @@ static void leave_sound_test(void);
 static void trigger_sound_test_command(void);
 static void render_startup_preview_screen(void)
     __attribute__((unused));
-static void render_frontend_sprite_layer(void)
+static void render_frontend_sprite_layer(const void *src)
     __attribute__((unused));
+void genesistan_hook_tilemap_plane_a(void);
+void genesistan_hook_tilemap_plane_b(void);
 static void clear_frontend_sprite_layer(void);
 static void scrub_launcher_runtime_buffers(void);
 static u16 convert_xbgr555_to_genesis(u16 raw);
@@ -757,39 +595,18 @@ static void restore_launcher_vdp_state(void)
 }
 
 /*
- * Load arcade palette into VDP CRAM.
+ * Load all 4 arcade palette banks (64 colours) from
+ * genesistan_palette_buffer into VDP CRAM.
  *
- * The arcade palette conversion routine at
- * 0x59AD4 runs each frontend tick. It converts
- * arcade colour words (4 bits per channel) to
- * Genesis VDP format (0000 BBB0 GGG0 RRR0,
- * 3 bits per channel) and writes 16 words to
- * SRAM at 0x200660 (= genesistan_shadow_c00000_words
- * + byte offset 0x660 = word index 0x330).
- *
- * We read those 16 words and push them to VDP
- * CRAM palette 0 via PAL_setColors(). No further
- * conversion is needed — the arcade code already
- * produced Genesis-format colour words.
+ * The palette buffer is populated by the arcade
+ * palette conversion routine at 0x59AD4 (Build 109+:
+ * via JSR hook; earlier builds: SRAM redirect).
  */
 static void load_arcade_palette(void)
 {
-    /*
-     * genesistan_shadow_c00000_words is declared
-     * as an absolute symbol at 0x200000 (SRAM).
-     * Palette data lands at byte offset 0x660
-     * = word index 0x330.
-     */
-    const uint16_t PALETTE_WORD_INDEX = 0x330;
-    volatile uint16_t *sram =
-        (volatile uint16_t *)0x200000UL;
-    uint16_t pal[16];
-    uint16_t i;
-
-    for (i = 0; i < 16; i++) {
-        pal[i] = sram[PALETTE_WORD_INDEX + i];
-    }
-    PAL_setColors(0, (u16 *)pal, 16, CPU);
+    SYS_disableInts();
+    PAL_setColors(0, (u16 *)genesistan_palette_buffer, 64, CPU);
+    SYS_enableInts();
 }
 
 static void render_full_screen(void)
@@ -1098,11 +915,6 @@ static void render_startup_preview_screen(void)
 {
 #if RASTAN_ENABLE_STARTUP_HOOK
     char line[SCREEN_W + 1];
-    u16 first_text_row = 0;
-    u16 preview_row;
-    const u16 c_window_nonzero = count_nonzero_c_window_words();
-    const u16 c_window_first = find_first_nonzero_c_window_word();
-    const u16 c_window_last = find_last_nonzero_c_window_word();
 
     VDP_clearPlane(BG_A, TRUE);
     VDP_clearPlane(BG_B, TRUE);
@@ -1112,45 +924,19 @@ static void render_startup_preview_screen(void)
     draw_padded_text(line, 5, 2, 30);
     sprintf(line, "3E %02X/%02X  C5 %04X  3C %04X", genesistan_shadow_reg_3e0001, genesistan_shadow_reg_3e0003, genesistan_shadow_reg_c50000, genesistan_shadow_reg_3c0000);
     draw_padded_text(line, 2, 3, 36);
-    sprintf(line, "CWIN NZ %04X 1ST %04X LST %04X", c_window_nonzero, c_window_first, c_window_last);
-    draw_padded_text(line, 6, 4, 28);
+    draw_padded_text("CWIN SHADOW REMOVED (Build 109)", 5, 4, 31);
     sprintf(line, "C2 %04X %04X C4 %04X %04X",
             genesistan_shadow_c20000_words[0],
             genesistan_shadow_c20000_words[1],
             genesistan_shadow_c40000_words[0],
             genesistan_shadow_c40000_words[1]);
     draw_padded_text(line, 8, 5, 24);
-    draw_padded_text("ORIGINAL TITLE TEXT SHADOW", 7, 7, 26);
-
-    while ((first_text_row + 1 < C_WINDOW_TOTAL_ROWS) && !startup_shadow_row_has_text(first_text_row))
-    {
-        first_text_row++;
-    }
-    if (first_text_row > 1)
-    {
-        first_text_row -= 1;
-    }
-
-    for (preview_row = 0; preview_row < 18; preview_row++)
-    {
-        const u16 shadow_row = first_text_row + preview_row;
-        u16 col;
-
-        memset(line, ' ', SCREEN_W);
-        line[SCREEN_W] = '\0';
-
-        if (shadow_row < C_WINDOW_TOTAL_ROWS)
-        {
-            for (col = 0; col < SCREEN_W; col++)
-            {
-                line[col] = decode_startup_shadow_word(
-                    read_shadow_c_window_word((u16)((shadow_row * C_WINDOW_WORDS_PER_ROW) + col))
-                );
-            }
-        }
-
-        draw_padded_text(line, 0, (u16)(9 + preview_row), SCREEN_W);
-    }
+    sprintf(line, "PAL %04X %04X %04X %04X",
+            genesistan_palette_buffer[0],
+            genesistan_palette_buffer[1],
+            genesistan_palette_buffer[2],
+            genesistan_palette_buffer[3]);
+    draw_padded_text(line, 7, 6, 26);
 
     draw_padded_text("A/START RERUN   B/C BACK", 7, 26, 26);
     draw_padded_text(wram_overlay.launcher.status_line, 0, 27, SCREEN_W);
@@ -1259,12 +1045,12 @@ static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count
     for (line = 0; line < FRONTEND_RUNTIME_MAX_PALETTE_BANKS; line++)
     {
         const u16 bank = (line < bank_count) ? bank_map[line] : line;
-        const u16 base = (u16)((bank & 0x007f) << 4);
+        const u16 base = (u16)((bank & 0x03U) << 4);
         u16 color;
 
         for (color = 0; color < 16; color++)
         {
-            const u16 raw = shadow_read16(2, (u16)(((base + color) & 0x07ff) * 2));
+            const u16 raw = genesistan_palette_buffer[base + color];
             PAL_setColor((line * 16) + color, convert_xbgr555_to_genesis(raw));
         }
     }
@@ -1275,7 +1061,28 @@ static void clear_frontend_sprite_layer(void)
     VDP_updateSprites(0, CPU);
 }
 
-static void render_frontend_sprite_layer(void)
+/*
+ * JSR hooks called from arcade tilemap write functions
+ * (0x055968, 0x055990). NOPped bodies replaced with
+ * JSR + RTS via shift_replacements (Build 109).
+ * Implementations will write to VDP Plane A/B nametable
+ * from arcade workram tile data (future build).
+ */
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_hook_tilemap_plane_a(void)
+{
+    /* TODO: read tile data from genesistan_arcade_workram_words
+     * at A5@(4256) offset and write to VDP Plane A nametable. */
+}
+
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_hook_tilemap_plane_b(void)
+{
+    /* TODO: read tile data from genesistan_arcade_workram_words
+     * at A5@(4260) offset and write to VDP Plane B nametable. */
+}
+
+static void render_frontend_sprite_layer(const void *src)
 {
 #if RASTAN_ENABLE_STARTUP_HOOK
     const u16 sprite_ctrl = genesistan_shadow_reg_380000;
@@ -1286,16 +1093,28 @@ static void render_frontend_sprite_layer(void)
     u16 palette_bank_count = 0;
     u16 unique_count = 0;
     u16 sprite_count = 0;
-    u16 offs;
+    const uint8_t *p;
+    u16 byte_offs;
+
+    if (src == NULL)
+        return;
+
+    p = (const uint8_t *)src;
 
     memset(wram_overlay.launcher.frontend_runtime_sprite_tile_buffer, 0, sizeof(wram_overlay.launcher.frontend_runtime_sprite_tile_buffer));
 
-    for (offs = 0; offs < 0x0400; offs += 4)
+    /* Each PC090OJ sprite entry is 8 bytes (4 x 16-bit words):
+     *   byte 0-1: flags  (flip y/x, palette)
+     *   byte 2-3: y position
+     *   byte 4-5: tile code
+     *   byte 6-7: x position
+     * Read via byte-shifting to remain alignment-agnostic. */
+    for (byte_offs = 0; byte_offs < 0x0800; byte_offs += 8)
     {
-        const u16 data = genesistan_shadow_d00000_words[offs + 0];
-        const u16 code = (u16)(genesistan_shadow_d00000_words[offs + 2] & 0x1FFF);
-        s16 x = (s16)(genesistan_shadow_d00000_words[offs + 3] & 0x01FF);
-        s16 y = (s16)(genesistan_shadow_d00000_words[offs + 1] & 0x01FF);
+        const u16 data = (u16)(((u16)p[byte_offs + 0] << 8) | p[byte_offs + 1]);
+        const u16 code = (u16)((((u16)p[byte_offs + 4] << 8) | p[byte_offs + 5]) & 0x1FFF);
+        s16 x = (s16)((((u16)p[byte_offs + 6] << 8) | p[byte_offs + 7]) & 0x01FF);
+        s16 y = (s16)((((u16)p[byte_offs + 2] << 8) | p[byte_offs + 3]) & 0x01FF);
         bool flipy = (data & 0x8000) != 0;
         bool flipx = (data & 0x4000) != 0;
         const u16 color = (u16)((data & 0x000F) | sprite_colbank);
@@ -1326,7 +1145,10 @@ static void render_frontend_sprite_layer(void)
         }
 
         tile_attr = TILE_ATTR_FULL(palette_line, TRUE, flipy, flipx, (u16)tile_base);
+
+        SYS_disableInts();
         VDP_setSpriteFull(sprite_count, x, y, SPRITE_SIZE(2, 2), tile_attr, (u8)link);
+        SYS_enableInts();
 
         sprite_count++;
         if (sprite_count >= FRONTEND_RUNTIME_MAX_SPRITES)
@@ -1337,16 +1159,20 @@ static void render_frontend_sprite_layer(void)
 
     if (unique_count > 0)
     {
+        SYS_disableInts();
         VDP_loadTileData(
             (const u32 *)wram_overlay.launcher.frontend_runtime_sprite_tile_buffer,
             FRONTEND_RUNTIME_SPRITE_TILE_BASE,
             unique_count * 4,
             CPU
         );
+        SYS_enableInts();
     }
 
+    SYS_disableInts();
     refresh_frontend_sprite_palettes(palette_bank_map, palette_bank_count);
     VDP_updateSprites(sprite_count, CPU);
+    SYS_enableInts();
 #endif
 }
 
@@ -1445,7 +1271,6 @@ static void request_start_rastan(void)
 {
 #if RASTAN_ENABLE_STARTUP_HOOK
     scrub_launcher_runtime_buffers();
-    shadow_init();
     genesistan_init_workram_direct(
         rastan_virtual_dip1,
         rastan_virtual_dip2);
@@ -1472,7 +1297,6 @@ static void scrub_launcher_runtime_buffers(void)
         graphics_test_tile_buffer = NULL;
     }
 
-    memset(dirty_words, 0, sizeof(dirty_words));
 }
 
 static u32 get_packed_romset_size(void)
@@ -1654,7 +1478,14 @@ int main(bool hardReset)
             sanitize_arcade_workram();
             load_arcade_palette();        /* Build 104 */
             sync_arcade_scroll_to_vdp();
-            /* Rendering via opcode replacement. Build 97+. */
+            {
+                /* Translate captured arcade A0 to Genesis shadow pointer (Build 109). */
+                const uint32_t a0 = genesistan_arcade_last_a0;
+                const void *sprite_src = NULL;
+                if (a0 >= 0xD00000UL && a0 < 0xD00800UL)
+                    sprite_src = (const void *)((const uint8_t *)genesistan_shadow_d00000_words + (a0 - 0xD00000UL));
+                render_frontend_sprite_layer(sprite_src); /* Build 109 */
+            }
         }
         else if (current_screen == SCREEN_STARTUP_PREVIEW)
         {

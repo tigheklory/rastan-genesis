@@ -6,15 +6,10 @@ MEMORY
 {
 	rom (rx) : ORIGIN = 0x00000000, LENGTH = 0xE0000000
 	ram : ORIGIN = 0xE0FF0000, LENGTH = 0x00010000
-	SRAM (w!x) : ORIGIN = 0x200000, LENGTH = 64K
 }
 
 PROVIDE(__stack = 0xE1000000);
 PROVIDE(__GENESISTAN_APP_ROM_BASE = 0x00200000);
-genesistan_shadow_c00000_words = 0x00200000;
-genesistan_shadow_c04000_words = 0x00204000;
-genesistan_shadow_c08000_words = 0x00208000;
-genesistan_shadow_c0c000_words = 0x0020C000;
 
 SECTIONS
 {
@@ -25,6 +20,7 @@ SECTIONS
 
   .text __GENESISTAN_APP_ROM_BASE :
   {
+    KEEP(*(.text.patcher))  /* Hook functions called by arcade JSR replacements */
     *(.text.*) *(.text)
     . = ALIGN(0x4);
     __CTOR_LIST__ = .;
