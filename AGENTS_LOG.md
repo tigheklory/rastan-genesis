@@ -11624,10 +11624,271 @@ Not a priority — the C20000 crash is blocking.
 Awaiting Andy's Build 116 pre-research before proceeding.
 ```
 
-## [ClaudeChat2 - Note]
+## [Alan - Build 116 Pre-Research, C20000 Read + Palette Trace]
 
 ```
-Tighe deploying Andy, Cody, and Alan in parallel on Build 116
-pre-research (C20000 read + 0x59AD4 call chain trace).
-Awaiting all three reports before deciding Build 116 spec.
+Note: Alan (Gemini) could not grep disasm directly. Analysis inferred
+from documentation. Exact instruction bytes for C20000 read still
+needed from Andy/Cody who have file access.
+
+ISSUE 1 — READ from 0xC20000:
+  Root cause confirmed: no opcode_replace or absolute_rewrite_group
+  covers this read. window_rewrite_rules don't patch code instructions.
+  Remediation: opcode_replace on the read instruction.
+  Exact bytes: PENDING Andy/Cody grep.
+
+ISSUE 2 — 0x59AD4 CALL CHAIN (critical finding):
+  Attract/title sequence controlled by 0x3Axxx routines:
+    ~0x3A7AE Title Controller
+    ~0x3AA90 Attract Controller
+  All 0x59AD4 callers are in 0x5xxxx (stage init / gameplay regions).
+  Trace result: attract/title code does NOT reach 0x5xxxx.
+  
+  CONCLUSION: 0x59AD4 (palette convert) is NOT called during attract
+  sequence. It IS called during stage init and gameplay (post-coin).
+
+  This means the Build 115 palette fix is structurally correct but
+  only activates during actual gameplay. The attract screen has no
+  live palette source — palette_clcs stays zero → black screen.
+
+  Alan mentions 0x5A356 as a possible attract-phase palette loader.
+  Needs verification from Andy/Cody with disasm access.
+```
+
+## [Cody - Build 116 Pre-Research, C20000 Read + Palette Trace]
+```text
+SCOPE
+- No code changes, no build.
+- Static disassembly trace only.
+
+ISSUE 1 — READ from 0xC20000 / 0xC20002 / 0xC20004
+
+COMMANDS RUN
+1) python literal scan in disasm for 0xc2000[024]
+2) rg for 0xc200* references in disasm
+3) binary pattern scan in build/regions/maincpu.bin for 00c20000/02/04
+4) context extraction around each matching PC
+
+RAW MATCHES (DIRECT LITERAL REFERENCES)
+- 0x00016A: 41f9 00c2 0002  lea 0xc20002,%a0
+- 0x03ABBA: 42b9 00c2 0000  clrl 0xc20000
+- 0x03B098: 42b9 00c2 0000  clrl 0xc20000
+- 0x055AB4: 33ed 10ee 00c2 0000  movew %a5@(4334),0xc20000
+- 0x055AC4: 33ed 10b0 00c2 0002  movew %a5@(4272),0xc20002
+- No direct 0xC20004 literal reference found.
+
+READ-INSTRUCTION FINDINGS
+A) 0x03ABBA
+   Instruction: 42b9 00c2 0000    clrl 0xc20000
+   8-byte window: 42b900c2000042b9
+   Read usage: value not used by code.
+   IMPORTANT: on 68000, CLR to memory is a read-modify-write bus cycle,
+   so this instruction performs a read at 0xC20000 before writing zero.
+   Context: startup/front-end init sequence, paired with clrl 0xc40000.
+
+B) 0x03B098
+   Instruction: 42b9 00c2 0000    clrl 0xc20000
+   8-byte window: 42b900c2000042b9
+   Read usage: value not used by code.
+   Same RMW behavior as above; also a real read at 0xC20000.
+   Context: second init/reset path, again paired with clrl 0xc40000.
+
+NON-READ C200xx REFERENCES (FOR COMPLETENESS)
+- 0x00016A lea 0xc20002,%a0 then movew #0,%a0@+ (write path)
+- 0x055AB4 movew %a5@(4334),0xc20000 (write)
+- 0x055AC4 movew %a5@(4272),0xc20002 (write)
+
+CONCLUSION (ISSUE 1)
+- Direct C20000 reads in current disasm are the two CLR.L instructions at
+  0x03ABBA and 0x03B098 (RMW read cycle).
+- No direct literal reads from 0xC20002 or 0xC20004 found.
+
+
+ISSUE 2 — Does 0x59AD4 execute during title/attract?
+
+KNOWN 0x59AD4 callers requested
+- 511BC, 511D0
+- 56136, 5614A, 5615C, 5616E, 56184, 56198
+- 575FE, 57610
+- 57816, 5782A, 5783E, 57850
+- 598C2, 598F0, 5999A, 599F0, 59A20, 59A50, 59A80
+
+TRACE FROM THE 0x50434 OUTER LOOP
+- 0x50434 is inside 0x503DC.
+- Call chain: 0x45316 -> jsr 0x501E2 -> bsr 0x503DC -> loop at 0x50434.
+- 0x50434 loop body calls 0x55948 and 0x55C4A (64 iterations).
+- This subchain does NOT directly call any of the listed 0x59AD4 callers.
+
+TITLE/ATTRACT REACHABILITY IN THE SAME FRONTEND FLOW
+(Outside the narrow 0x50434 subroutine, but in adjacent frontend states)
+
+1) 511BC / 511D0
+- Path: 0x3A7B4 or 0x3A836 -> 0x41F0E -> 0x5100A -> 0x51156 -> 0x51190
+  -> 0x511BC / 0x511D0 -> 0x59AD4
+- Reachability: YES in title/attract controller path.
+- Timing note: gated by counter at %a5@(5142), call at count 0x50 (80), so
+  not first few frames after entering that state.
+
+2) 56136/5614A/5615C/5616E, 56184, 56198
+- Path: 0x3A6B2 or 0x3A860 -> jsr 0x55DDC ->
+  - 0x56176 (contains 0x56184)
+  - 0x56128 (contains 0x56136/4A/5C/6E)
+  - 0x5618C (contains 0x56198)
+- Reachability: YES in title/attract sequencing (state machine on %a5@(5034)).
+
+3) 57816/5782A/5783E/57850 and 575FE/57610
+- Path setup in 55DDC:
+  - 0x55F4E -> jsr 0x5725A (sets %a5@(5080)=1, %a5@(5082)=2)
+  - 0x56024 checks %a5@(5080)==1 then jsr 0x57272
+  - 0x57272 state 2 calls 0x57808 (contains 57816/2A/3E/50)
+  - later state 8 calls 0x575DC (contains 575FE/57610)
+- Reachability: YES in title/attract sub-sequence once that state path is entered.
+- Timing note: these are deeper in a timed state machine, not immediate first frames.
+
+4) 598C2/598F0/5999A/599F0/59A20/59A50/59A80
+- Contained in 0x5988C / 0x59962 / 0x599B2 family.
+- Callers include:
+  - 0x41F3A jsr 0x5988C
+  - 0x41F40 jsr 0x59882
+  - 0x5152E jsr 0x5988C
+- 0x41F30 is invoked from top-level frontend path at 0x3A03A (conditional).
+- Reachability: YES on frontend/title paths under state conditions; also used in
+  broader runtime paths (not attract-exclusive).
+
+COIN/START GATING ASSESSMENT
+- From static disassembly, none of the listed callsites is proven coin-insert-only.
+- They are state/counter gated (%a5 state words), with several in explicit
+  title/attract controllers (0x55DDC / 0x57272 / 0x41F0E paths).
+- Some (especially 598xx family) appear shared between attract and non-attract
+  runtime states.
+
+BOTTOM LINE (ISSUE 2)
+- Narrow answer: 0x50434 loop itself does not directly hit listed 0x59AD4 callers.
+- Full frontend answer: YES, listed 0x59AD4 callers are reachable in title/attract
+  control flow via sibling state handlers around 0x3A7xx/0x3A86x/0x55DDC.
+
+CONFIDENCE
+- Issue 1 direct C20000-read identification: High
+- Issue 2 reachability mapping: Medium-High (static control-flow strong,
+  exact frame timing is state/counter dependent)
+```
+
+## [Andy - Build 116 Pre-Research, C20000 Read + Palette Trace]
+
+```
+SCOPE: Read-only. Disasm search + call-chain trace. No code changes.
+
+════════════════════════════════════════════════════════
+ISSUE 1 — READ from 0xC20000
+════════════════════════════════════════════════════════
+
+GREP RESULT (build/maincpu.disasm.txt):
+  0x0016A:  41f9 00c20002     lea 0xc20002,%a0       (WRITE setup — no read)
+  0x3ABBA:  42b9 00c20000     clrl 0xc20000          (READ-MODIFY-WRITE)
+  0x3ABC0:  42b9 00c40000     clrl 0xc40000          (follows immediately)
+  0x3B098:  42b9 00c20000     clrl 0xc20000          (READ-MODIFY-WRITE)
+  0x3B09E:  42b9 00c40000     clrl 0xc40000          (follows immediately)
+  0x55AB4:  33ed 10ee 00c20000  movew A5@(4334),0xc20000  (WRITE only)
+  0x55AC4:  33ed 10b0 00c20002  movew A5@(4272),0xc20002  (WRITE only)
+  No 0xC20004 literal found.
+
+READ SITES CONFIRMED (both CLR.L, both 6 bytes):
+
+SITE 1: 0x3ABBA
+  Instruction:   clrl 0xc20000     (42b9 00c20000)
+  Next instr:    clrl 0xc40000     (42b9 00c40000) at 0x3ABC0
+  Context: Inside function 0x3AB7C.
+    Called UNCONDITIONALLY from 0x3A03E in the VBlank interrupt handler.
+    Condition to skip: only if A5@(0)=3 OR coin-insert bit (0x390007 bit 2) set.
+    During attract (A5@(0)=0 or 1, no coin): CLR.L ALWAYS EXECUTES EVERY VBLANK.
+    → This is the crash BlastEm reports. Fires on frame 1.
+  Result used? No — CLR writes zero; old value discarded.
+
+SITE 2: 0x3B098
+  Instruction:   clrl 0xc20000     (42b9 00c20000)
+  Next instr:    clrl 0xc40000     (42b9 00c40000) at 0x3B09E
+  Context: Short subroutine at 0x3B098 (zeroes both scroll regs).
+    Called from 0x3AE5E (inside 0x3AE5A: scroll init + clear scroll hardware).
+    0x3AE5A is called from 0x3A8DA (VBlank state 1 substate 0 init).
+    Also called from 0x3B06E (game-start transition init).
+    → Fires during attract state 1 setup AND during game-start transitions.
+  Result used? No — same pattern.
+
+FIX CANDIDATE:
+  Replace CLR.L 0xC20000 + CLR.L 0xC40000 (12 bytes total, two adjacent
+  opcode_replace entries OR one combined entry) with stores-of-zero to
+  genesistan_shadow_c20000_words[0] and genesistan_shadow_c40000_words[0].
+  Or NOP both — since scroll is re-written each frame from A5@(10ee)/A5@(10b0)
+  by the write at 0x55AB4/0x55AC4 anyway.
+  Both sites have identical bytes, so two opcode_replace entries needed.
+
+════════════════════════════════════════════════════════
+ISSUE 2 — Does 0x59AD4 execute during attract/title?
+════════════════════════════════════════════════════════
+
+DIRECT 0x50434 CALL TREE:
+  0x50434 calls 0x55948 (tile map) and 0x55C4A (scroll sync).
+  Neither reaches 0x59AD4. The broader 0x503DC function also calls
+  0x55904 (palette table setup) and 0x55C2E (scroll word copy).
+  None of these call 0x59AD4.
+  DIRECT ANSWER: 0x50434 loop does NOT reach any listed 0x59AD4 caller.
+
+ATTRACT/TITLE REACHABILITY (VBlank state machine, confirms Cody):
+
+Group A — 0x511BC, 0x511D0:
+  Path: VBlank state 1 → substate → 0x3A836 → bsrw 0x41F0E → jsr 0x5100A
+        → 0x51156 → 0x51190 → when A5@(5142)==80: 0x511BC / 0x511D0
+  Reachable: YES (attract/title state 1 path)
+  Timing: fires at A5@(5142)=80 (~80 frames into state 1 substate)
+  Loads: palette banks 4 and 3 from static data at 0x511DA
+
+Group B — 0x56136, 0x5614A, 0x5615C, 0x5616E, 0x56184, 0x56198:
+  Path: VBlank state 2 (A5@(0)=2), substate A5@(2)=2, sub-substate A5@(4)=6
+        → 0x3A6B2 → jsr 0x55DDC → state A5@(5034)=1: 0x55E1E → 0x56176 → 0x56184
+        OR state A5@(5034)=9: 0x55F60 → 0x56128 → 0x56136/4A/5C/6E
+        OR state A5@(5034)=12-13: 0x55F0A/0x55FF6 → 0x5618C → 0x56198
+  Reachable: A5@(0)=2 is SET when entering game-start (post-coin transition from
+    0x3AB48 inside 0x3AB00 which is called during the coin-detect/game-start state).
+    These callers appear to be GAME START (post-coin) palette initialization,
+    NOT the attract sequence.
+  Timing: post-coin, before game start
+
+Group C — 0x575FE, 0x57610:
+  Path: 0x573A0 → bsrw 0x575DC → when A5@(5096)==64: 0x575FE, 0x57610
+    → A5@(5098) used as D1 (bank selector, cycles 0-6)
+  0x573A0 is in A5@(5082) state 8 of an attract scroll demo sequencer.
+  Reachable: YES (attract sequence, scroll demo phase)
+  Timing: fires every 64 iterations of a sub-loop; bank cycles 0-6
+
+Group D — 0x57816, 0x5782A, 0x5783E, 0x57850:
+  In 0x578xx function; called from the same attract sequencer chain
+  (0x57368 → bsrw 0x57858 visible in state 7+8).
+  Reachable: YES (attract sequence, deeper in timed states)
+
+Group E — 0x598C2, 0x598F0, 0x5999A, 0x599F0, 0x59A20, 0x59A50, 0x59A80:
+  Near 0x59AD4 itself. Called from 0x41F30 (invoked at 0x3A03A conditionally).
+  0x41F30 also reachable from attract via 0x3A03A (conditional branch from
+  VBlank handler when A5@(0)=2..3 range AND A5@(5012) condition met).
+  Reachable: YES under state conditions; shared attract + gameplay
+
+BOTTOM LINE:
+  0x50434 loop itself: DOES NOT reach 0x59AD4.
+  Attract/title sequence: DOES reach 0x59AD4, but NOT on the first frame.
+    - First realistic fire: A5@(5142)==80 → Group A (≈80 VBlanks into state 1)
+    - Attract scroll demo: Group C (frames governed by A5@(5096) counter)
+  Post-coin (game-start): Group B fires during VBlank state 2 init.
+
+  KEY IMPLICATION:
+    The CLR.L crash at 0x3ABBA fires on VBlank frame 1. It kills the machine
+    BEFORE 0x59AD4 ever runs to populate palette_clcs. Fixing the CLR.L (Issue 1)
+    is the gating fix. Once CLR.L is resolved, the palette_clcs will be populated
+    by Group A around frame 80 of the attract sequence. Group B populates additional
+    banks on coin insert. Groups C/D/E add animated palette cycling during attract.
+
+NOTES CONFIRMING CODY:
+  - Both CLR.L sites confirmed identical bytes 42b9 00c20000
+  - Both immediately followed by CLR.L 0xC40000 (42b9 00c40000)
+  - 0x55AB4/0x55AC4 are WRITES only (no read issue)
+  - 0x16A is WRITE setup via A0 post-increment (no read)
+  - No 0xC20002 or 0xC20004 reads found
 ```
