@@ -9061,3 +9061,510 @@ PATCH VERIFICATION — dist/Rastan_106.bin
 - Final PC: 0x260006
 - Stack Pointer (SP): 0xE031410E
 - Unique Unmapped Memory Addresses (2): 0x00209D66, 0x00000000
+
+## [Andy - Build 107, Full C-Window NOP Pass]
+
+```
+=== STEP 0 SANITY CHECK — existing opcode_replace entries ===
+
+  0x0560DA  len=56  nop_in_106=True
+  0x03AD3C  len=6   nop_in_106=True
+  0x03AD44  len=6   nop_in_106=True
+  0x055968  len=38  nop_in_106=True
+  0x055990  len=32  nop_in_106=True
+  0x0556F2  len=10  nop_in_106=True
+  0x0558C6  len=24  nop_in_106=True
+  0x0558E0  len=34  nop_in_106=True
+  0x055904  len=66  nop_in_106=True
+  0x05577E  len=10  nop_in_106=True
+
+=== STEP 0 SANITY CHECK — candidates (all already_nop=False) ===
+
+  0x03A350 len=10  arcade=33fc003200c08a524a6d   direct write 0xC08A52
+  0x03A55C len=8   arcade=13fc002000c09ea3        direct write 0xC09EA3
+  0x03A6FE len=10  arcade=33fc274400c08e7a6008    direct write 0xC08E7A
+  0x03A708 len=10  arcade=33fc274400c08e666100    direct write 0xC08E66
+  0x03A72A len=6   arcade=33c000c08c62            direct write 0xC08C62
+  0x03AAEA len=10  arcade=33fc274900c091723b7c    direct write 0xC09172
+  0x03D04C len=6   arcade=33c100c08c66            direct write 0xC08C66
+  0x055E54 len=8   arcade=2b7c00c0040010a0        ptr init a5@(4256)
+  0x055818 len=10  arcade=068000c080002b4010a0    ptr init a5@(4256) path2
+  0x055B84 len=6   arcade=068000c00000            addil C-Window base
+  0x056032 len=6   arcade=227c00c00828            moveal C-Window a1
+  0x05605C len=6   arcade=227c00c00028            moveal C-Window a1 b
+  0x0503EC len=10  arcade=23fc00c080000010d0a0    abs store 0x10D0A0
+  0x0503F6 len=10  arcade=23fc00c000000010d0f8    abs store 0x10D0F8
+  0x050400 len=10  arcade=23fc00c080000010d0a4    abs store 0x10D0A4
+  0x05040C len=10  arcade=23fc00c000000010d0f8    abs store 0x10D0F8 b
+  0x050416 len=10  arcade=23fc00c080000010d0a0    abs store 0x10D0A0 b
+  0x050420 len=14  arcade=203c00c0bf0023c00010d0a433fc  abs store 0xC0BF00
+  0x0561C0 len=14  arcade=207c00c08000227c00c0000020c0  fill loop a0+a1
+
+=== STEP 0 C-WINDOW SCANNER (selected relevant hits) ===
+
+  Sites 0x03A350-0x03D04C cluster around 0x03Axxx (tilemap descriptor writers).
+  Sites 0x0503EC-0x050420 cluster at 0x05xxxx (frontend init).
+  Sites 0x055818-0x0561C0 are frontend pointer initialisation.
+  Many remaining scanner hits are LEA instructions in the init vector table
+  (0x0002CC-0x000632) — these load C-Window addresses into address registers
+  at startup. Those are execution-context dependent and will be left for
+  a future pass if needed.
+
+=== STEP 1 — LENGTH ADJUSTMENTS (instruction boundary analysis) ===
+
+  Four sites had trailing incomplete instructions in the candidate lengths.
+  Adjusted lengths:
+
+  0x03A350: 10→8. Last 2 bytes 4A6D = start of TST.W d16(A5) (needs +2).
+  0x03A708: 10→8. Last 2 bytes 6100 = first word of BSR.W (needs +2 disp).
+  0x03AAEA: 10→8. Last 2 bytes 3B7C = start of MOVE.W #imm,-(A5) (needs +2).
+  0x050420: 14→12. Last 2 bytes 33FC = start of MOVE.W abs.l (needs +6 more).
+
+=== STEP 1 — RELOCATION CHECK ===
+
+  0x03D04C: arcade bytes 33c100c08c66, ROM bytes 33c100208c66.
+    Patcher remapped destination 0x00C08C66 → 0x00208C66 (C-Window→SRAM shadow).
+    original_bytes uses ROM form: 33c100208c66.
+
+  All other 18 sites: arcade bytes == ROM bytes (no relocation applied).
+
+=== NEW ENTRIES ADDED (19 total) ===
+
+  arcade_pc    len  note
+  0x03A350      8   MOVE.W #0x0032, 0xC08A52
+  0x03A55C      8   MOVE.B #0x20, 0xC09EA3
+  0x03A6FE     10   MOVE.W #0x2744, 0xC08E7A + BRA.S +8
+  0x03A708      8   MOVE.W #0x2744, 0xC08E66
+  0x03A72A      6   MOVE.W D0, 0xC08C62
+  0x03AAEA      8   MOVE.W #0x2749, 0xC09172
+  0x03D04C      6   MOVE.W D1, 0xC08C66 (ROM form original_bytes)
+  0x055E54      8   MOVE.L #0xC00400, 0x10A0(A5)
+  0x055818     10   ADDIL #0xC08000,D0 + MOVE.L D0,0x10A0(A5)
+  0x055B84      6   ADDIL #0xC00000, D0
+  0x056032      6   MOVEA.L #0xC00828, A1
+  0x05605C      6   MOVEA.L #0xC00028, A1
+  0x0503EC     10   MOVE.L #0xC08000, abs.l(0x10D0A0)
+  0x0503F6     10   MOVE.L #0xC00000, abs.l(0x10D0F8)
+  0x050400     10   MOVE.L #0xC08000, abs.l(0x10D0A4)
+  0x05040C     10   MOVE.L #0xC00000, abs.l(0x10D0F8) dup
+  0x050416     10   MOVE.L #0xC08000, abs.l(0x10D0A0) dup
+  0x050420     12   MOVE.L #0xC0BF00,D0 + MOVE.L D0,abs.l(0x10D0A4)
+  0x0561C0     14   MOVEA.L #0xC08000,A0 + MOVEA.L #0xC00000,A1 + MOVE.L (A0),D0
+
+  Sites skipped: none (all 19 candidates added).
+
+=== BUILD ===
+
+  First attempt: FAILED
+    RuntimeError: opcode_replace at 0x03D04C: expected 33c100c08c66
+    but found 33c100208c66
+  Root cause: patcher had remapped C-Window destination addr 0xC08C66→0x208C66.
+  Fix: changed original_bytes for 0x03D04C to ROM form 33c100208c66.
+
+  Second attempt: CLEAN — no warnings, no errors.
+
+=== STEP 3 VERIFICATION — dist/Rastan_107.bin ===
+
+  ALL PATCHES VERIFIED OK
+  Total entries: 29
+
+  dist/Rastan_107.bin — CONFIRMED
+```
+
+### MAME Exit Summary (2026-03-21 23:54:35)
+- Final PC: 0xA00002
+- Stack Pointer (SP): 0xE039B415
+- Unique Unmapped Memory Addresses (2): 0x00209D66, 0x00000000
+
+## [Andy - Build 108 Pre-Research, PC080SN/PC090OJ Format]
+
+```
+Sources fetched from GitHub mamedev/mame master branch:
+  src/mame/taito/pc080sn.cpp (434 lines)
+  src/mame/taito/pc090oj.cpp (230 lines)
+  src/mame/taito/rastan.cpp  (823 lines)
+
+=== Q1: TEXT LAYER — does PC080SN use same ROM for both layers? ===
+
+Rastan has NO separate text layer chip.
+
+From rastan.cpp screen_update():
+
+  m_pc080sn->tilemap_draw(screen, bitmap, cliprect, 0, TILEMAP_DRAW_OPAQUE, 1);
+  m_pc080sn->tilemap_draw(screen, bitmap, cliprect, 1, 0, 2);
+  m_pc090oj->draw_sprites(screen, bitmap, cliprect);
+
+Two scrolling layers (BG = layer 0, FG = layer 1), both served by the
+single PC080SN chip, plus sprites from PC090OJ. No separate text chip.
+
+From rastan.cpp gfxdecode:
+
+  static GFXDECODE_START( gfx_rastan )
+      GFXDECODE_ENTRY( "pc080sn", 0, gfx_8x8x4_packed_msb, 0, 0x80 )
+  GFXDECODE_END
+
+BOTH layers share the SAME "pc080sn" GFX ROM region.
+Text displayed in-game (GAME OVER, scores, level names) uses the
+FG tilemap (layer 1), drawing from the same tile ROM as the background.
+
+=== Q2: PC080SN TILE WORD FORMAT ===
+
+From pc080sn.cpp get_tile_info() (standard non-dblwidth mode):
+
+  code = m_bg_ram[N][2 * tile_index + 1] & 0x3fff;
+  attr = m_bg_ram[N][2 * tile_index];
+
+  tileinfo.set(0,
+          code,
+          (attr & 0x1ff),
+          TILE_FLIPYX((attr & 0xc000) >> 14));
+
+Each tile entry is 4 bytes (2 words) at C-Window:
+
+  Offset +0 (attr word):
+    bits 15:14  flip Y, flip X  (14=flipX, 15=flipY per TILE_FLIPYX)
+    bits 13:9   unused
+    bits  8:0   palette index   (9 bits = 0..511)
+
+  Offset +2 (code word):
+    bits 15:14  unused (masked with 0x3fff)
+    bits 13:0   tile index      (14 bits = 0..16383)
+
+C-Window layout (standard mode, 64×64 tile layers):
+  0x0000-0x3FFF  BG layer (layer 0) — 0x2000 words = 0x1000 tile entries
+  0x4000-0x41FF  BG rowscroll
+  0x8000-0xBFFF  FG layer (layer 1) — 0x2000 words = 0x1000 tile entries
+  0xC000-0xC1FF  FG rowscroll
+
+Each layer is 64×64 = 4096 tiles × 2 words = 8192 words = 0x4000 bytes.
+Tile word order at C-Window[base + 2*index]:
+  word 0 = attr  (flip + palette)
+  word 1 = code  (tile number)
+
+=== Q3: PC090OJ SPRITE ENTRY FORMAT ===
+
+From pc090oj.cpp header comment (OBJECT RAM):
+
+  8 bytes/sprite (4 words), 256 sprites (0x800 bytes)
+  First sprite has HIGHEST priority.
+
+  Word 0 (bytes 0-1):
+    bit  15    flip Y
+    bit  14    flip X
+    bits 13:4  unused
+    bits  3:0  colour bank (4 bits, combined with sprite_ctrl colbank)
+
+  Word 1 (bytes 2-3):
+    bits  8:0  Y position (9-bit; treat as signed: if > 0x140, sub 0x200)
+
+  Word 2 (bytes 4-5):
+    bits 15:13 unused
+    bits 12:0  tile code (13 bits = 0..8191, 16×16 tiles)
+
+  Word 3 (bytes 6-7):
+    bits  8:0  X position (9-bit; treat as signed: if > 0x140, sub 0x200)
+
+From rastan.cpp colpri_cb:
+
+  sprite_colbank = (sprite_ctrl & 0xe0) >> 1;
+  // bits 7:5 of sprite_ctrl → bits 6:4 of colbank
+  // i.e. colbank ∈ {0, 16, 32, 48, 64, 80, 96, 112}
+  color = (word0 & 0x000f) | sprite_colbank;
+  // final palette bank = colbank OR word0[3:0]
+  // 7-bit bank index × 16 colours/bank = 2048 total palette entries
+
+Large characters (GAME OVER, etc.): NO size field. Every sprite entry is
+always one 16×16 tile. Large characters are composed of multiple adjacent
+sprite entries, each one tile, arranged by the game's sprite rendering
+code to form the complete character.
+
+=== Q4: GFX ROM REGIONS ===
+
+From rastan.cpp ROM declarations (consistent across all variants):
+
+  PC080SN tilemap ROM:
+    ROM_REGION( 0x080000, "pc080sn", 0 )
+    ROM_LOAD16_BYTE( "b04-01.40", 0x00000, 0x20000, ... )  // even bytes
+    ROM_LOAD16_BYTE( "b04-02.67", 0x00001, 0x20000, ... )  // odd bytes
+    ROM_LOAD16_BYTE( "b04-03.39", 0x40000, 0x20000, ... )  // even bytes
+    ROM_LOAD16_BYTE( "b04-04.66", 0x40001, 0x20000, ... )  // odd bytes
+
+    Total: 0x80000 bytes (512 KB)
+    Format: gfx_8x8x4_packed_msb
+      — 8×8 pixel tiles
+      — 4 bits per pixel (16 colours per tile)
+      — packed: two pixels per byte, most-significant nibble first
+      — 2-byte interleave from ROM pairs (BYTE16 = lo/hi byte lanes)
+    Total tiles: 0x80000 / 32 bytes/tile = 0x4000 = 16,384 tiles
+    Colour banks: 0x80 = 128 banks of 16 colours
+
+  PC090OJ sprite ROM:
+    ROM_REGION( 0x080000, "pc090oj", 0 )
+    ROM_LOAD16_BYTE( "b04-05.15", 0x00000, 0x20000, ... )  // even bytes
+    ROM_LOAD16_BYTE( "b04-06.28", 0x00001, 0x20000, ... )  // odd bytes
+    ROM_LOAD16_BYTE( "b04-07.14", 0x40000, 0x20000, ... )  // even bytes
+    ROM_LOAD16_BYTE( "b04-08.27", 0x40001, 0x20000, ... )  // odd bytes
+
+    Total: 0x80000 bytes (512 KB)
+    Format: gfx_16x16x4_packed_msb
+      — 16×16 pixel tiles
+      — 4 bits per pixel (16 colours per tile)
+      — packed: two pixels per byte, most-significant nibble first
+      — 2-byte interleave from ROM pairs
+    Total sprites: 0x80000 / 128 bytes/sprite = 0x1000 = 4,096 unique tiles
+
+  Arcade palette RAM:
+    map(0x200000, 0x200fff) — palette_device::write16 (2048 entries)
+    Format: xBGR_555 (bit 15 unused, bits 14:10=B, bits 9:5=G, bits 4:0=R)
+    2048 entries × 2 bytes = 4096 bytes (0x200000-0x200FFF)
+
+=== SUMMARY — ANSWERS ===
+
+1. BOTH PC080SN tilemap layers use the SAME tile ROM ("pc080sn").
+   No separate text layer exists — FG layer (layer 1) serves as the
+   "text" layer for score, game-over, etc.
+
+2. PC080SN tile format (4 bytes per tile, standard mode):
+   Word 0 = attr: [15]=flipY, [14]=flipX, [8:0]=palette(9-bit)
+   Word 1 = code: [13:0]=tile index (14-bit, 0..16383)
+   Both layers share the same 16,384 tile ROM at "pc080sn".
+   Palette: 128 banks × 16 colours = 2048 entries total.
+
+3. PC090OJ sprite format (8 bytes per sprite):
+   Word 0: [15]=flipY, [14]=flipX, [3:0]=colour bank (4-bit)
+   Word 1: [8:0]=Y position
+   Word 2: [12:0]=tile code (13-bit, 0..8191, 16×16 tiles)
+   Word 3: [8:0]=X position
+   Global colour bank offset from sprite_ctrl (bits 7:5) applied at draw time.
+   Large characters = multiple 16×16 tile entries; no size field.
+
+4. GFX ROMs:
+   "pc080sn": 512 KB, 4×128KB ROMs, 2-byte interleave, gfx_8x8x4_packed_msb
+     → 16,384 tiles of 8×8 @ 4bpp
+   "pc090oj": 512 KB, 4×128KB ROMs, 2-byte interleave, gfx_16x16x4_packed_msb
+     → 4,096 tiles of 16×16 @ 4bpp
+   Both ROM regions already present in project at:
+     build/regions/pc080sn.bin (524288 bytes)
+     build/regions/pc090oj.bin (524288 bytes)
+```
+## [Andy - Build 108, Shift Table + Full VDP + C-Window Elimination]
+
+```
+Build 108 — 2026-03-22
+Released: dist/Rastan_108.bin
+
+=== SCOPE DELIVERED ===
+
+PART A — shift_table_patcher.py (infrastructure):
+  Created tools/translation/shift_table_patcher.py with 6 phases:
+    1. Parse build/maincpu.disasm.txt (instruction address+size map)
+    2. Detect jump tables (stub — returns empty set)
+    3. Apply shift_replacements — validate original bytes, build shift table,
+       splice replacement bytes, preserving all other bytes unchanged
+    4. Fix relative branches (Bcc/BSR/BRA) — recalculate 8-bit and 16-bit
+       displacements after shifts; raises on overflow
+    5. Fix absolute long refs (JSR 4EB9, JMP 4EF9, LEA 41F9) pointing into
+       the source range — adjusts 32-bit operand by accumulated shift
+    6. Emit result via apply_shift_table() → bytearray
+
+  NO-OP VERIFICATION: empty shift_replacements → bit-identical output.
+    python3 tools/translation/shift_table_patcher.py \
+      --maincpu build/regions/maincpu.bin \
+      --disasm build/maincpu.disasm.txt \
+      --spec specs/startup_title_remap.json \
+      --output /tmp/noop_test.bin --verify-noop
+    → NO-OP OK
+
+  INTEGRATION into postpatch_startup_rom.py:
+    After parse_symbol_table/before ensure_rom_size: checks spec.get('shift_replacements'),
+    imports apply_shift_table, patches maincpu_bytes before all other patching.
+    No spec entries added yet — patcher dormant until needed.
+
+PART B — Sprite rendering:
+  Added render_frontend_sprite_layer() call to SCREEN_FRONTEND_LIVE loop
+  in apps/rastan/src/main.c (after sync_arcade_scroll_to_vdp()).
+  Function was fully implemented since Build 97+; this build activates it.
+  Reads genesistan_shadow_d00000_words (PC090OJ shadow), converts to
+  Genesis VDP sprite format, calls VDP_setSpriteFull + VDP_loadTileData.
+
+PART B — Tilemap VDP writes (DEFERRED to Build 109):
+  Analysis showed the data flow is broken at multiple levels:
+  - Pointer init stores (a5@(4256)/(4260)) are NOPped → A0=0 at runtime
+  - NOPping 0x55968/0x55990 was needed but leaves SRAM BG/FG shadows empty
+  - Subroutine at 0x559b2 does `subil #0xC08000,D7` which would compute wrong
+    offsets if A0 is SRAM address (0x208000) rather than C-Window (0xC08000)
+  - All C-Window initialization code is NOPped to prevent crashes
+  Recommendation for Build 109: implement tilemap rendering as a C-side
+  function that reconstructs tile data from arcade work RAM directly, bypassing
+  the broken C-Window pointer chain entirely.
+
+PART C — C-Window/SRAM elimination (DEFERRED to Build 109):
+  Full elimination requires:
+  1. Palette buffer in WRAM (genesistan_palette_buffer[64]) ← easy
+  2. Redirecting palette writes from SRAM to WRAM buffer ← requires
+     opcode_replace with runtime symbol address (not yet supported)
+  3. Tilemap VDP writes working without SRAM shadows ← see PART B above
+  4. Only then safe to remove SRAM shadow linker symbols
+  Removing SRAM prematurely would break palette loading (current 16-color
+  path reads from SRAM 0x200660 which works correctly today).
+
+=== VERIFICATION ===
+  make -C apps/rastan release → SUCCESS
+  29 opcode_replace entries applied (unchanged from Build 107)
+  SRAM header fix applied (unchanged from Build 105)
+  shift_table_patcher no-op verification: PASS
+
+=== FILES CHANGED ===
+  tools/translation/shift_table_patcher.py — CREATED (new infrastructure)
+  tools/translation/postpatch_startup_rom.py — added shift_table integration hook
+  apps/rastan/src/main.c — added render_frontend_sprite_layer() call in FRONTEND_LIVE
+```
+### MAME Exit Summary (2026-03-22 01:05:34)
+- Final PC: 0x216582
+- Stack Pointer (SP): 0xE0FFFE18
+- Unique Unmapped Memory Addresses (4): 0x61A60021, 0x63DAE0FF, 0x65060021, 0x61F00021
+
+## [Session 2026-03-22 — Build 105-108 Pre-Research Summary]
+```
+STRATEGIC DECISIONS THIS SESSION
+
+1. Everdrive X3 SRAM clarification:
+   The X3 has volatile Save RAM (not battery-backed).
+   It IS live during gameplay at 0x200000. The header
+   fix in Build 105 was still correct and necessary.
+   The hardware hang was caused by remaining C-Window
+   crashes, not a palette issue.
+
+2. Build 107 final NOP pass commitment:
+   Decision made to stop NOP whack-a-mole. Build 107
+   is the FINAL NOP pass covering all remaining
+   C-Window write sites. Build 108 implements the
+   shift table patcher and full VDP output.
+   Promise: no more NOP-only builds after 107.
+
+3. Shift table architecture agreed:
+   Data structure: list of records, one per instruction.
+   Each record: original_address, new_address, bytes,
+   type (CODE|REPLACED|JUMP_TABLE|DATA), ref_original,
+   ref_type (PC_RELATIVE|ABSOLUTE_LONG|JUMP_TABLE_ENTRY)
+   new_address = original_address + cumulative delta
+   from all net insertions at lower addresses.
+   Reference fixup uses original->new address map.
+   Jump tables auto-detected from dispatch pattern.
+   Calculated addresses handled automatically.
+
+4. C-Window shadow arrays to be removed in Build 108:
+   genesistan_shadow_c00000/c04000/c08000/c0c000_words
+   will be removed from linker, startup_bridge.c,
+   and specs. SRAM header removed from ROM.
+   Port will run in standard 64KB Genesis WRAM.
+   Expected WRAM gap after removal: ~167KB
+   (current ~39KB + four 32KB shadow arrays freed).
+
+5. PC080SN/PC090OJ format confirmed from MAME source:
+   PC080SN:
+   - NO separate text layer in Rastan
+   - FG layer (layer 1) IS the text/HUD layer
+   - Both layers use same 512KB tile ROM (16384 tiles)
+   - Tile entry = 4 bytes: attr(flipY|flipX|9-bit pal)
+     + code(14-bit tile index)
+   - BG (layer 0): C-Window 0x0000-0x3FFF -> Plane B
+   - FG (layer 1): C-Window 0x8000-0xBFFF -> Plane A
+   PC090OJ:
+   - 256 sprites max, 8 bytes per entry (4 words)
+   - word0: flipY|flipX|colour_bank(4-bit)
+   - word1: Y position (9-bit)
+   - word2: tile_code (13-bit, 16x16 tiles)
+   - word3: X position (9-bit)
+   - NO size field. Every entry = one 16x16 tile.
+   - Large chars (GAME OVER) = multiple 16x16 entries.
+   - Global colour bank from sprite_ctrl bits 7:5.
+
+6. Future optimisations noted in AGENTS.md:
+   - C-Window shadows removable after full VDP impl
+   - Flip/mirror routines removable (VDP handles natively)
+   - SRAM header removable when shadows gone
+   - Build numbering unification needed before release
+
+BUILD RESULTS THIS SESSION
+
+  Build 105: SRAM header fix
+    Type:  0xF800 -> 0x2020
+    Start: 0x200000 -> 0x200001
+    Result: CLEAN. Everdrive X3 now maps Save RAM.
+    Real hardware: launcher still hangs (C-Window crash
+    still active at 0x203AB8, not SRAM issue).
+
+  Build 106: NOP second C-Window page 2 pointer store
+    NOPped 0x5577E: addil #0xC08000,d0 + movel d0,a5@(4260)
+    Second parallel path to 0x556F2 (Build 103).
+    Result: CLEAN. 10 opcode_replace entries total.
+    MAME: still shows 0x209D66. Sound changed to buzz
+    then static (running longer before crash).
+    BlastEm: crashes at 0x203AB8 (C-Window page 0).
+
+  Build 107: Full C-Window NOP pass
+    29 opcode_replace entries total (19 new).
+    Groups: direct absolute writes, pointer inits,
+    fill loops, workram stores of C-Window addrs.
+    Addendum: NOPped text writer 0x3BB48 (50 bytes).
+    0x3BB48 was reading C-Window dest from descriptor
+    at 0x3BC98 (0xC08F4C) -> advancing to 0xC09D66.
+    Result: CLEAN. 30 opcode_replace entries total.
+    Exodus: address error crash after running a while
+    (PROGRESS - address error != F-line cascade).
+    BlastEm: crashes at 0x203AB8.
+    Real hardware (Nomad + Everdrive X3): hangs.
+    MAME: buzzes then static, final PC 0xA00002.
+
+  Build 108 pre-research: MAME source analysis
+    PC080SN and PC090OJ formats confirmed (see above).
+    No code changes.
+
+PENDING: Build 108
+  Shift table patcher + full VDP implementation
+  + C-Window shadow removal.
+  Prompt written and ready to send to Andy.
+  Awaiting authorisation.
+
+CRASH ADDRESS HISTORY
+  0x20436A / 0x2043A8: uintToStr (F-line cascade, early builds)
+  0x209D2A: _Line_1111_Emulation (Build 101-103, resolved)
+  0x209D66: C-Window page 2 text writer (Builds 104-107,
+            partially suppressed but still in MAME)
+  0x203AB8: C-Window page 0 (Builds 105-107, BlastEm)
+  Address error (Exodus Build 107): progress, not F-line
+
+OPCODE_REPLACE ENTRIES AS OF BUILD 107 (30 total)
+  0x0560DA  NOP display list write (56b)
+  0x03AD3C  NOP word fill loop (6b)
+  0x03AD44  NOP longword fill loop (6b)
+  0x055968  NOP tilemap write fn A (38b)
+  0x055990  NOP tilemap write fn B (32b)
+  0x0556F2  NOP C-Window addr store page1 (10b)
+  0x0558C6  NOP sprite descriptor addql loop (24b)
+  0x0558E0  NOP companion reset/descriptor reader (34b)
+  0x055904  NOP sprite descriptor reader A4 zero-deref (66b)
+  0x05577E  NOP C-Window addr store page2 parallel (10b)
+  0x03A350  NOP direct write 0xC08A52 (8b)
+  0x03A55C  NOP direct write 0xC09EA3 (8b)
+  0x03A6FE  NOP direct write 0xC08E7A (10b)
+  0x03A708  NOP direct write 0xC08E66 (8b)
+  0x03A72A  NOP direct write 0xC08C62 (6b)
+  0x03AAEA  NOP direct write 0xC09172 (8b)
+  0x03D04C  NOP direct write 0xC08C66 (6b, ROM form)
+  0x055E54  NOP ptr init a5@(4256) (8b)
+  0x055818  NOP ptr init a5@(4256) path2 (10b)
+  0x055B84  NOP addil C-Window base (6b)
+  0x056032  NOP moveal C-Window a1 (6b)
+  0x05605C  NOP moveal C-Window a1 path2 (6b)
+  0x0503EC  NOP abs store C-Window->0x10D0A0 (10b)
+  0x0503F6  NOP abs store C-Window->0x10D0F8 (10b)
+  0x050400  NOP abs store C-Window->0x10D0A4 (10b)
+  0x05040C  NOP abs store C-Window->0x10D0F8 dup (10b)
+  0x050416  NOP abs store C-Window->0x10D0A0 dup (10b)
+  0x050420  NOP abs store 0xC0BF00->workram (12b)
+  0x0561C0  NOP fill loop a0+a1 (14b)
+  0x03BB48  NOP text writer body (50b)
+```
+LOGEOF
