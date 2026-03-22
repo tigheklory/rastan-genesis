@@ -8973,3 +8973,91 @@ CONCLUSION
   SGDK linker configuration). No code changes made — awaiting
   authorisation.
 ```
+
+## [Andy - Build 105, SRAM Header Fix]
+
+```
+CHANGE — tools/translation/postpatch_startup_rom.py
+
+  Inserted sram_header_fix block immediately after the
+  workram_anchor block (after line 810) and before stub_cfg.
+  Block sets bytes 0x1B2–0x1B7 in the final ROM:
+
+    rom_bytes[0x1B2] = 0x20   # type high byte
+    rom_bytes[0x1B3] = 0x20   # type low byte  → 0x2020
+    rom_bytes[0x1B4] = 0x00   \
+    rom_bytes[0x1B5] = 0x20    > start address → 0x00200001
+    rom_bytes[0x1B6] = 0x00   /
+    rom_bytes[0x1B7] = 0x01  /
+
+VERIFICATION — before (Build 104)
+
+  SRAM descriptor: 5241f800002000000020ffff
+  Flag:   RA
+  Type:   0xF800  (non-standard — Everdrive X3 may not enable SRAM)
+  Start:  0x00200000  (even address — non-standard)
+  End:    0x0020FFFF
+
+VERIFICATION — after (Build 105)
+
+  SRAM descriptor: 52412020002000010020ffff
+  Flag:   RA
+  Type:   0x2020  (want 0x2020)  ✓
+  Start:  0x00200001  (want 0x00200001)  ✓
+  End:    0x0020FFFF  (want 0x0020FFFF)  ✓
+
+BUILD RESULT
+
+  Command: source tools/setup_env.sh && ./tools/release_build.sh 105
+  Result: CLEAN — no warnings, no errors.
+  ROM output: dist/Rastan_105.bin — CONFIRMED
+```
+
+### MAME Exit Summary (2026-03-21 22:26:11)
+- Final PC: 0xB591D6
+- Stack Pointer (SP): 0x0937A2A6
+- Unique Unmapped Memory Addresses (2): 0x00209D66, 0x00000000
+
+## [Andy - Build 106, NOP Second C-Window Store]
+
+```
+VERIFICATION — before patch
+
+  Arcade ROM 0x5577E bytes: 068000c080002b4010a4
+    addil #0xC08000, d0  = 06 80 00 C0 80 00  (6 bytes)
+    movel d0, a5@(4260)  = 2B 40 10 A4        (4 bytes)
+  No abs_long relocation applies (0xC08000 outside arcade source range).
+  original_bytes = raw arcade bytes verbatim.
+
+  ROM[0x05597E] in Build 105: 068000c080002b4010a4  (not NOPped)
+
+CHANGE — specs/startup_title_remap.json
+
+  Added one entry to opcode_replace array after the 0x055904 entry:
+
+    {
+      "arcade_pc": "0x05577E",
+      "original_bytes": "068000c080002b4010a4",
+      "replacement_bytes": "4E714E714E714E714E71",
+      "note": "NOP second C-Window addr store to A5@(4260).
+               addil #0xC08000,d0 + movel d0,a5@(4260) at 0x5577E.
+               Parallel path to 0x556F2 (Build 103). Still advancing
+               C-Window page 2 pointer causing crash at 0x209D66."
+    }
+
+BUILD RESULT
+
+  Command: source tools/setup_env.sh && ./tools/release_build.sh 106
+  Result: CLEAN — no warnings, no errors.
+
+PATCH VERIFICATION — dist/Rastan_106.bin
+
+  ROM[0x05597E] nop=True bytes=4e714e714e714e714e71  ✓
+
+  dist/Rastan_106.bin — CONFIRMED
+```
+
+### MAME Exit Summary (2026-03-21 23:15:29)
+- Final PC: 0x260006
+- Stack Pointer (SP): 0xE031410E
+- Unique Unmapped Memory Addresses (2): 0x00209D66, 0x00000000

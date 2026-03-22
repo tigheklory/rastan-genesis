@@ -809,6 +809,28 @@ def main() -> int:
                     "so arcade A5 reload finds correct base.",
         })
 
+    # Fix SRAM header descriptor for Mega Everdrive
+    # X3 compatibility. SGDK generates a non-standard
+    # type byte (0xF8) and even start address (0x200000).
+    # Correct values match licensed Genesis SRAM carts:
+    #   0x1B0-0x1B1: "RA" (already correct)
+    #   0x1B2-0x1B3: 0x2020 (full 16-bit SRAM, both lanes)
+    #   0x1B4-0x1B7: 0x00200001 (odd byte lane start)
+    #   0x1B8-0x1BB: 0x0020FFFF (already correct)
+    ensure_size_at_least(rom_bytes, 0x1BC)
+    rom_bytes[0x1B2] = 0x20
+    rom_bytes[0x1B3] = 0x20
+    rom_bytes[0x1B4] = 0x00
+    rom_bytes[0x1B5] = 0x20
+    rom_bytes[0x1B6] = 0x00
+    rom_bytes[0x1B7] = 0x01
+    rewrite_log.append({
+        "kind": "sram_header_fix",
+        "note": "Fix SRAM type (0xF800->0x2020) and start "
+                "address (0x200000->0x200001) for Everdrive "
+                "X3 SRAM enable compatibility.",
+    })
+
     stub_cfg = spec["generated_stubs"]
     test_jump_patch_address = parse_hexish(stub_cfg["test_jump_patch_address"])
     normal_stub_start = parse_hexish(stub_cfg["normal_stub_start"])

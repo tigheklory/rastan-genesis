@@ -239,3 +239,16 @@ Final authority: Tighe
 
 If any agent's guidance conflicts with Claude's directives,
 escalate to Tighe. Do not resolve independently.
+
+## FUTURE OPTIMISATIONS (post full VDP implementation)
+- C-Window shadow arrays (genesistan_shadow_c00000_words,
+  c04000, c08000, c0c000) can be removed entirely once all
+  C-Window writes are replaced by VDP opcode replacements.
+  ROM will no longer need SRAM at 0x200000 and will operate
+  within standard 64KB Genesis WRAM only.
+- Horizontal flip and vertical mirror routines in the arcade
+  code can be removed or NOPped — the Genesis VDP handles
+  flip and mirror natively per-tile in the nametable entry
+  bits, so the arcade software flip logic is redundant.
+- Remove SRAM header declaration from ROM header once
+  C-Window shadows are eliminated.`

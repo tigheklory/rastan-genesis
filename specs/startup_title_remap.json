@@ -484,6 +484,12 @@
       "original_bytes": "207C0010D000227C0010D040247C0010D0807010285034D44281322C0002287C0000020049F4180022CCD1FC00000004534066E0286D10C64240101433C00010D0A8",
       "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
       "note": "NOP sprite descriptor reader 0x55904-0x55945. Loads LONG from workram 0x10D000 as pointer into A4, dereferences it. Zero-init workram gives A4=0 -> reads reset vectors."
+    },
+    {
+      "arcade_pc": "0x05577E",
+      "original_bytes": "068000c080002b4010a4",
+      "replacement_bytes": "4E714E714E714E714E71",
+      "note": "NOP second C-Window addr store to A5@(4260). addil #0xC08000,d0 + movel d0,a5@(4260) at 0x5577E. Parallel path to 0x556F2 (Build 103). Still advancing C-Window page 2 pointer causing crash at 0x209D66."
     }
   ]
 }

@@ -1038,10 +1038,22 @@
       "note": "NOP sprite descriptor reader 0x55904-0x55945. Loads LONG from workram 0x10D000 as pointer into A4, dereferences it. Zero-init workram gives A4=0 -> reads reset vectors."
     },
     {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x05577E",
+      "rom_pc": "0x05597E",
+      "original_bytes": "068000c080002b4010a4",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP second C-Window addr store to A5@(4260). addil #0xC08000,d0 + movel d0,a5@(4260) at 0x5577E. Parallel path to 0x556F2 (Build 103). Still advancing C-Window page 2 pointer causing crash at 0x209D66."
+    },
+    {
       "kind": "workram_anchor",
       "rom_offset": "0x10C000",
       "value": "0xE0FF004E",
       "note": "Genesis workram base at ROM 0x10C000 so arcade A5 reload finds correct base."
+    },
+    {
+      "kind": "sram_header_fix",
+      "note": "Fix SRAM type (0xF800->0x2020) and start address (0x200000->0x200001) for Everdrive X3 SRAM enable compatibility."
     }
   ],
   "normal_result_stub": {
@@ -1060,7 +1072,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0xD864",
+  "checksum": "0x9D77",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x00204D52",
