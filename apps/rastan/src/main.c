@@ -594,18 +594,25 @@ static void restore_launcher_vdp_state(void)
     SYS_enableInts();
 }
 
-/*
- * Load all 4 Genesis palette lines (64 colours) from
- * genesistan_palette_rom_table into VDP CRAM via DMA.
- *
- * The ROM table is pre-converted to Genesis VDP format
- * (0000 BBB0 GGG0 RRR0) by the post-build patcher (Build 113).
- * Entries 0-63 cover CRAM lines 0-3.
- */
 static void load_arcade_palette(void)
 {
+    uint16_t buf[64];
+    uint16_t i;
+
+    /*
+     * CLCS source format from 0x59AD4 output:
+     * R=bits4:1, G=bits9:6, B=bits14:11.
+     * Genesis target format: 0000 BBB0 GGG0 RRR0.
+     */
+    for (i = 0; i < 64; i++) {
+        const uint16_t c = genesistan_palette_clcs[i];
+        buf[i] = ((c >> 1) & 0x000EU)
+               | ((c >> 2) & 0x00E0U)
+               | ((c >> 3) & 0x0E00U);
+    }
+
     SYS_disableInts();
-    PAL_setColors(0, (const u16 *)genesistan_palette_rom_table, 64, DMA);
+    PAL_setColors(0, (const u16 *)buf, 64, DMA);
     VDP_waitDMACompletion();
     SYS_enableInts();
 }
@@ -1119,9 +1126,8 @@ static uint16_t tile_cache_get(uint16_t arcade_tile)
  * 16 attributes from workram[0x820..0x82F] (4-byte stride).
  * Write to VDP Plane A (FG) and Plane B (BG) respectively.
  *
- * Position: fixed at row 8, cols 0-15 for Build 113.
- * Dynamic nametable positioning deferred to Build 114
- * (workram pointers at A5@(4256/4260) are NOPped in spec).
+ * Position: cursor-driven (Build 114), reset once per frontend tick.
+ * Original workram pointers at A5@(4256/4260) are NOPped in spec.
  *
  * Palette bits from attribute: bits 8:7 → Genesis palette line.
  * Flip bits: bit 15 = vflip, bit 14 = hflip.
@@ -1129,12 +1135,21 @@ static uint16_t tile_cache_get(uint16_t arcade_tile)
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_hook_tilemap_plane_a(void)
 {
+    const uint8_t *a3 = (const uint8_t *)genesistan_arcade_workram_words + 0x1040;
+    const uint8_t *a1 = (const uint8_t *)genesistan_arcade_workram_words + 0x1080;
+    const uint16_t mode = genesistan_arcade_workram_words[0x854U];
+    const uint16_t col = genesistan_hook_col_a;
+    const uint16_t row = genesistan_hook_row_a;
     uint16_t i;
+
+    if (mode != 0) {
+        return;
+    }
 
     SYS_disableInts();
     for (i = 0; i < 16; i++) {
-        const uint16_t code       = genesistan_arcade_workram_words[0x840U + i];
-        const uint16_t attr       = genesistan_arcade_workram_words[0x820U + i * 2U];
+        const uint16_t attr = ((uint16_t)a3[(i * 4U) + 0U] << 8) | a3[(i * 4U) + 1U];
+        const uint16_t code = ((uint16_t)a1[(i * 2U) + 0U] << 8) | a1[(i * 2U) + 1U];
         const uint16_t arcade_tile = code & 0x3FFFU;
         const uint16_t vram_tile   = tile_cache_get(arcade_tile);
         const uint16_t pal         = (attr >> 7) & 0x3U;
@@ -1142,21 +1157,40 @@ void genesistan_hook_tilemap_plane_a(void)
         const uint16_t hflip       = (attr >> 14) & 1U;
 
         VDP_setTileMapXY(BG_A,
-            TILE_ATTR_FULL(pal, 0, vflip, hflip, vram_tile),
-            i, 8);
+            TILE_ATTR_FULL(pal, 1, vflip, hflip, vram_tile),
+            col + i, row);
     }
+
+    genesistan_hook_col_a = (uint16_t)(genesistan_hook_col_a + 16U);
+    if (genesistan_hook_col_a >= 64U) {
+        genesistan_hook_col_a = 0;
+        genesistan_hook_row_a = (uint16_t)(genesistan_hook_row_a + 1U);
+        if (genesistan_hook_row_a >= 32U) {
+            genesistan_hook_row_a = 8;
+        }
+    }
+
     SYS_enableInts();
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_hook_tilemap_plane_b(void)
 {
+    const uint8_t *a3 = (const uint8_t *)genesistan_arcade_workram_words + 0x1040;
+    const uint8_t *a1 = (const uint8_t *)genesistan_arcade_workram_words + 0x1080;
+    const uint16_t mode = genesistan_arcade_workram_words[0x854U];
+    const uint16_t col = genesistan_hook_col_b;
+    const uint16_t row = genesistan_hook_row_b;
     uint16_t i;
+
+    if (mode == 0) {
+        return;
+    }
 
     SYS_disableInts();
     for (i = 0; i < 16; i++) {
-        const uint16_t code       = genesistan_arcade_workram_words[0x840U + i];
-        const uint16_t attr       = genesistan_arcade_workram_words[0x820U + i * 2U];
+        const uint16_t attr = ((uint16_t)a3[(i * 4U) + 0U] << 8) | a3[(i * 4U) + 1U];
+        const uint16_t code = ((uint16_t)a1[(i * 2U) + 0U] << 8) | a1[(i * 2U) + 1U];
         const uint16_t arcade_tile = code & 0x3FFFU;
         const uint16_t vram_tile   = tile_cache_get(arcade_tile);
         const uint16_t pal         = (attr >> 7) & 0x3U;
@@ -1164,9 +1198,19 @@ void genesistan_hook_tilemap_plane_b(void)
         const uint16_t hflip       = (attr >> 14) & 1U;
 
         VDP_setTileMapXY(BG_B,
-            TILE_ATTR_FULL(pal, 0, vflip, hflip, vram_tile),
-            i, 8);
+            TILE_ATTR_FULL(pal, 1, vflip, hflip, vram_tile),
+            col + i, row);
     }
+
+    genesistan_hook_col_b = (uint16_t)(genesistan_hook_col_b + 16U);
+    if (genesistan_hook_col_b >= 64U) {
+        genesistan_hook_col_b = 0;
+        genesistan_hook_row_b = (uint16_t)(genesistan_hook_row_b + 1U);
+        if (genesistan_hook_row_b >= 32U) {
+            genesistan_hook_row_b = 8;
+        }
+    }
+
     SYS_enableInts();
 }
 
@@ -1562,6 +1606,10 @@ int main(bool hardReset)
         else if (current_screen == SCREEN_FRONTEND_LIVE)
         {
             genesistan_refresh_arcade_inputs();
+            genesistan_hook_col_a = 0;
+            genesistan_hook_row_a = 8;
+            genesistan_hook_col_b = 0;
+            genesistan_hook_row_b = 8;
             genesistan_run_original_frontend_tick();
             sanitize_arcade_workram();
             load_arcade_palette();        /* Build 104 */

@@ -1,0 +1,4 @@
+build_number=114
+date_utc=2026-03-22T18:04:22Z
+rom_file=rom.bin
+rom_md5=97a29aeac5b4a9fd5a9111c1e1c2356d

@@ -10706,3 +10706,179 @@ CONFIDENCE
 - Problem 2a/c/d: High
 - Problem 2b exact per-frame count: Medium (static disassembly gives dispatch/callsites/64-loop path, but runtime totals are mode-dependent)
 ```
+
+## [Andy - Build 114, Colours + Position + Crash Fix]
+
+```
+════════════════════════════════════════════════════════
+PRE-BUILD STATE
+════════════════════════════════════════════════════════
+
+All three code fixes were already implemented before build:
+  - startup_bridge.c: genesistan_palette_clcs[64], hook_col_a/row_a/col_b/row_b added
+  - main.h: all new externs present
+  - main.c: load_arcade_palette() converts CLCS→Genesis; hooks use col/row cursors
+  - SCREEN_FRONTEND_LIVE: resets col_a=0, row_a=8, col_b=0, row_b=8 before arcade tick
+  - specs/.json: palette_clcs rule at [7], wram_overlay rule at [8], crash NOP at 0x03AC54
+
+════════════════════════════════════════════════════════
+FIX 3 — CRASH SITE 0x3AC54
+════════════════════════════════════════════════════════
+
+SEARCH:
+  python3 -c "
+  import struct
+  mc = open('build/regions/maincpu.bin','rb').read()
+  for i in range(0, len(mc)-4, 2):
+      w = struct.unpack('>I', mc[i:i+4])[0]
+      if w == 0x00C09E87:
+          print(f'0x{i:06X}: long = 0x{w:08X}')
+  "
+
+OUTPUT:
+  0x03AC58: long = 0x00C09E87  (appears as 32-bit operand within instruction)
+
+INSTRUCTION AT 0x03AC54:
+  bytes: 0c 39 00 43 00 c0 9e 87   (8 bytes)
+  disasm: CMPI.B #0x43, 0xC09E87
+  followed at 0x3AC5C by: 66 0a  (BNE +10 → 0x3AC68)
+
+CRASH SITE: already in spec as of current build
+  {
+    "arcade_pc": "0x03AC54",
+    "original_bytes": "0c39004300c09e87660a",
+    "replacement_bytes": "60124E714E714E714E71",
+    "note": "Bypass C-Window read probe cmpi.b #0x43,0xC09E87 + BNE by forcing
+             BRA to 0x03AC68. Prevents crash on live C-Window page 2 access."
+  }
+  Bytes covered: 10 (CMPI.B 8 bytes + BNE 2 bytes). Replacement is BRA +0x12
+  (always-taken to 0x3AC68, same destination as BNE-taken).
+  NOT ADDED by this build — was already present.
+
+ROM VERIFICATION:
+  ROM offset 0x3AE54 (= 0x3AC54 + 0x200): first byte = 0x60 (BRA) ✓
+
+════════════════════════════════════════════════════════
+SPEC CHANGE — WRAM_OVERLAY RULE OVERLAP FIX
+════════════════════════════════════════════════════════
+
+PROBLEM:
+  Window_rewrite_rules are applied sequentially. Rule [7] (palette_clcs,
+  0x200000-0x200080) runs BEFORE rule [8] (wram_overlay, 0x200000-0x204000).
+  Both rules scan the ROM for 32-bit addresses in their old_start..old_end ranges
+  and rewrite them. Since rule [8] ran AFTER rule [7], any address in
+  [0x200000, 0x200080) rewritten by rule [7] would be OVERWRITTEN by rule [8].
+  palette_clcs rule would have had no effect.
+
+FIX:
+  Changed rule [8] old_start from 0x00200000 to 0x00200080, added offset: 128.
+  This excludes [0x200000, 0x200080) from wram_overlay's scan range.
+  offset: 128 maintains the existing mapping:
+    addr 0x200080 → wram_overlay + 128 + (0x200080 - 0x200080) = wram_overlay + 128
+  which is the same as before:
+    addr 0x200080 → wram_overlay + (0x200080 - 0x200000) = wram_overlay + 128
+
+RESIDUAL LIMITATION DISCOVERED:
+  0x59AD4 (palette conversion, runs each frame) is NOT in any copied_range.
+  The window_rewrite_rules only apply to named copied_ranges.
+  Therefore the "moveal #0x200000, a1" at 0x59ADE is NOT patched.
+  At runtime on Genesis, writes from 0x59AD4 go to 0x200000 (ROM bus,
+  silently ignored or to cartridge SRAM if enabled).
+  genesistan_palette_clcs does NOT receive 0x59AD4's dynamic colour output.
+
+  What DOES reach palette_clcs:
+    - startup_common range: 4 addresses in [0x200000, 0x200080) via absolute_rewrite_group
+      (likely static init writes during startup, written once at load)
+    - Any frontend_core addresses in [0x200000, 0x200080): count=0 (none found)
+  So palette_clcs will have PARTIAL initialization from startup, not runtime
+  per-frame CLCS data. Colours may be slightly better than pure greyscale
+  but still mostly wrong. Full palette fix requires either:
+    a) Adding a copied_range for the 0x59AD4 area, OR
+    b) Reading from SRAM at 0x200000 directly in load_arcade_palette()
+
+════════════════════════════════════════════════════════
+BUILD
+════════════════════════════════════════════════════════
+
+Pass 1:
+  source tools/setup_env.sh && ./tools/release_build.sh 114
+  Result: CLEAN (2 pre-existing warnings: convert_xbgr555_to_genesis,
+          lookup_rastan_font_char unused)
+
+Hook addresses after pass 1:
+  plane_a: 0x00200000  (unchanged)
+  plane_b: 0x002000F0  (moved from 0x0020008C — cursor logic enlarged function)
+
+Spec check: opcode_replace 0x055990 replacement_bytes already contained
+  4eb9002000f0... (target 0x002000F0). No spec update needed.
+
+Pass 2:
+  ./tools/release_build.sh 114
+  Result: CLEAN
+
+════════════════════════════════════════════════════════
+POST-BUILD VERIFICATION
+════════════════════════════════════════════════════════
+
+palette_clcs:          0xE0FF4056  (WRAM, .bss.patcher)
+genesistan_hook_col_b: 0xE0FF4050
+genesistan_hook_row_b: 0xE0FF404E
+genesistan_hook_col_a: 0xE0FF4054
+genesistan_hook_row_a: 0xE0FF4052
+wram_overlay:          0xE0FF5B48  (shifted from 0xE0FF5AC0 in B113 — linker reorder)
+WRAM gap: 0x8FCE = 36814 bytes  above 32KB: True ✓
+
+plane_a: 0x00200000
+plane_b: 0x002000F0
+JSR plane_a: found at ROM offset 0x055B68, target=0x00200000  correct=True ✓
+JSR plane_b: found at ROM offset 0x055B90, target=0x002000F0  correct=True ✓
+Crash fix at ROM 0x03AE54: first byte=0x60 (BRA)  ✓
+
+ADDRESS REWRITE MANIFEST (palette-relevant entries):
+  startup_common:      old=0x00200000 → 0xE0FF4056 (palette_clcs)  count=4
+  frontend_core:       old=0x00200000 → 0xE0FF5B48 (wram_overlay)  count=0
+  title_init_block:    old=0x00200000 → 0xE0FF5B48 (wram_overlay)  count=1
+  helper_200000_init:  old=0x00200000 → 0xE0FF5B48 (wram_overlay)  count=0
+  startup_hw_probe:    old=0x00200000 → 0xE0FF5B48 (wram_overlay)  count=1
+
+Note: startup_common has 4 writes to palette_clcs (static init colours).
+All other 0x200000 references go to wram_overlay as before.
+
+dist/Rastan_114.bin produced.
+
+════════════════════════════════════════════════════════
+CHANGES SUMMARY
+════════════════════════════════════════════════════════
+
+Code changes (all pre-existing from earlier partial implementation):
+  startup_bridge.c:
+    - genesistan_palette_clcs[64] in .bss.patcher
+    - genesistan_hook_col_a/row_a/col_b/row_b in .bss.patcher
+    - genesistan_reset_startup_shadows(): memset(palette_clcs), set hook cursors
+  main.h:
+    - extern genesistan_palette_clcs[64]
+    - extern hook_col_a/row_a/col_b/row_b
+  main.c:
+    - load_arcade_palette(): CLCS→Genesis conversion loop, DMA to CRAM
+    - hook_tilemap_plane_a(): uses col_a/row_a cursors, advances after 16 tiles
+    - hook_tilemap_plane_b(): uses col_b/row_b cursors
+    - SCREEN_FRONTEND_LIVE: resets cursors before genesistan_run_original_frontend_tick()
+
+Spec changes made in this build:
+  specs/startup_title_remap.json:
+    - wram_overlay window_rewrite_rule: old_start 0x200000 → 0x200080, added offset:128
+      Ensures palette range [0x200000, 0x200080) is not re-clobbered after palette_clcs rule
+  (Crash NOP at 0x03AC54 was already present — not added by this build)
+
+════════════════════════════════════════════════════════
+VISUAL OBSERVATION IN EXODUS
+════════════════════════════════════════════════════════
+
+  Not yet tested — awaiting authorisation before running.
+
+EXPECTED:
+  - Tiles should now fill much more of the screen (cursor advances 16 cols per call)
+  - palette_clcs has 4 static-init colour entries from startup_common;
+    dynamic 0x59AD4 conversion still unpatched — colours may be partial improvement
+  - Crash at 0xC09E87 bypassed by BRA; should run longer before next crash point
+```

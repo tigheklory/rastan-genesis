@@ -158,6 +158,7 @@
     "genesistan_startup_common_exit_normal",
     "genesistan_startup_common_exit_test",
     "_reset_entry",
+    "genesistan_palette_clcs",
     "genesistan_palette_rom_table"
   ],
   "copied_ranges": [
@@ -328,7 +329,7 @@
         },
         {
           "old": "0x00200000",
-          "symbol": "wram_overlay"
+          "symbol": "genesistan_palette_clcs"
         },
         {
           "old": "0x0010C000",
@@ -711,8 +712,17 @@
     {
       "range": "frontend_core",
       "old_start": "0x00200000",
+      "old_end_exclusive": "0x00200080",
+      "symbol": "genesistan_palette_clcs",
+      "note": "Capture CLCS palette output from 0x59AD4 (banks 0-3, 64 entries). More specific than wram_overlay rule."
+    },
+    {
+      "range": "frontend_core",
+      "old_start": "0x00200080",
       "old_end_exclusive": "0x00204000",
-      "symbol": "wram_overlay"
+      "symbol": "wram_overlay",
+      "offset": 128,
+      "note": "Starts at 0x200080 to leave 0x200000-0x20007F exclusively for palette_clcs capture. offset=128 preserves same mapping: addr 0x200080 -> wram_overlay+128."
     },
     {
       "range": "frontend_core",
@@ -833,8 +843,8 @@
     {
       "arcade_pc": "0x055990",
       "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
-      "replacement_bytes": "4eb90020008c4e754e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes. [Build 113: JSR to genesistan_hook_tilemap_plane_b at 0x20008C + RTS]"
+      "replacement_bytes": "4eb9002000f04e754e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes. [Build 114: JSR to genesistan_hook_tilemap_plane_b at 0x2000F0 + RTS]"
     },
     {
       "arcade_pc": "0x0556F2",
@@ -877,6 +887,12 @@
       "original_bytes": "13fc002000c09ea3",
       "replacement_bytes": "4E714E714E714E71",
       "note": "NOP MOVE.B #0x20, 0xC09EA3. Direct C-Window write."
+    },
+    {
+      "arcade_pc": "0x03AC54",
+      "original_bytes": "0c39004300c09e87660a",
+      "replacement_bytes": "60124E714E714E714E71",
+      "note": "Bypass C-Window read probe cmpi.b #0x43,0xC09E87 + BNE by forcing BRA to 0x03AC68. Prevents crash on live C-Window page 2 access."
     },
     {
       "arcade_pc": "0x03A6FE",

@@ -201,67 +201,67 @@
     {
       "range": "startup_common",
       "old": "0x00C50000",
-      "new": "0xE0FF529A",
+      "new": "0xE0FF5322",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00D01BFE",
-      "new": "0xE0FF5298",
+      "new": "0xE0FF5320",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00350008",
-      "new": "0xE0FF5296",
+      "new": "0xE0FF531E",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00380000",
-      "new": "0xE0FF5294",
+      "new": "0xE0FF531C",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x003E0001",
-      "new": "0xE0FF528D",
+      "new": "0xE0FF5315",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x003E0003",
-      "new": "0xE0FF528C",
+      "new": "0xE0FF5314",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x00390001",
-      "new": "0xE0FF5291",
+      "new": "0xE0FF5319",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390003",
-      "new": "0xE0FF5290",
+      "new": "0xE0FF5318",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390005",
-      "new": "0xE0FF528F",
+      "new": "0xE0FF5317",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390007",
-      "new": "0xE0FF528E",
+      "new": "0xE0FF5316",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00200000",
-      "new": "0xE0FF5AC0",
+      "new": "0xE0FF4056",
       "count": 4
     },
     {
@@ -279,7 +279,7 @@
     {
       "range": "startup_common",
       "old": "0x003C0000",
-      "new": "0xE0FF5292",
+      "new": "0xE0FF531A",
       "count": 4
     },
     {
@@ -303,67 +303,67 @@
     {
       "range": "frontend_core",
       "old": "0x00C50000",
-      "new": "0xE0FF529A",
+      "new": "0xE0FF5322",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00D01BFE",
-      "new": "0xE0FF5298",
+      "new": "0xE0FF5320",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00350008",
-      "new": "0xE0FF5296",
+      "new": "0xE0FF531E",
       "count": 1
     },
     {
       "range": "frontend_core",
       "old": "0x00380000",
-      "new": "0xE0FF5294",
+      "new": "0xE0FF531C",
       "count": 1
     },
     {
       "range": "frontend_core",
       "old": "0x003E0001",
-      "new": "0xE0FF528D",
+      "new": "0xE0FF5315",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x003E0003",
-      "new": "0xE0FF528C",
+      "new": "0xE0FF5314",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00390001",
-      "new": "0xE0FF5291",
+      "new": "0xE0FF5319",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390003",
-      "new": "0xE0FF5290",
+      "new": "0xE0FF5318",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390005",
-      "new": "0xE0FF528F",
+      "new": "0xE0FF5317",
       "count": 7
     },
     {
       "range": "frontend_core",
       "old": "0x00390007",
-      "new": "0xE0FF528E",
+      "new": "0xE0FF5316",
       "count": 7
     },
     {
       "range": "frontend_core",
       "old": "0x00200000",
-      "new": "0xE0FF5AC0",
+      "new": "0xE0FF5B48",
       "count": 0
     },
     {
@@ -381,7 +381,7 @@
     {
       "range": "frontend_core",
       "old": "0x003C0000",
-      "new": "0xE0FF5292",
+      "new": "0xE0FF531A",
       "count": 1
     },
     {
@@ -405,103 +405,103 @@
     {
       "range": "title_init_block",
       "old": "0x00C50000",
-      "new": "0xE0FF529A",
+      "new": "0xE0FF5322",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D01BFE",
-      "new": "0xE0FF5298",
+      "new": "0xE0FF5320",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00350008",
-      "new": "0xE0FF5296",
+      "new": "0xE0FF531E",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00380000",
-      "new": "0xE0FF5294",
+      "new": "0xE0FF531C",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D00000",
-      "new": "0xE0FF52A4",
+      "new": "0xE0FF532C",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D00020",
-      "new": "0xE0FF52C4",
+      "new": "0xE0FF534C",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x00D00088",
-      "new": "0xE0FF532C",
+      "new": "0xE0FF53B4",
       "count": 2
     },
     {
       "range": "title_init_block",
       "old": "0x00D000DA",
-      "new": "0xE0FF537E",
+      "new": "0xE0FF5406",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D000E0",
-      "new": "0xE0FF5384",
+      "new": "0xE0FF540C",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x00D00128",
-      "new": "0xE0FF53CC",
+      "new": "0xE0FF5454",
       "count": 2
     },
     {
       "range": "title_init_block",
       "old": "0x003E0001",
-      "new": "0xE0FF528D",
+      "new": "0xE0FF5315",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x003E0003",
-      "new": "0xE0FF528C",
+      "new": "0xE0FF5314",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390001",
-      "new": "0xE0FF5291",
+      "new": "0xE0FF5319",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390003",
-      "new": "0xE0FF5290",
+      "new": "0xE0FF5318",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390005",
-      "new": "0xE0FF528F",
+      "new": "0xE0FF5317",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390007",
-      "new": "0xE0FF528E",
+      "new": "0xE0FF5316",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00200000",
-      "new": "0xE0FF5AC0",
+      "new": "0xE0FF5B48",
       "count": 1
     },
     {
@@ -519,7 +519,7 @@
     {
       "range": "title_init_block",
       "old": "0x003C0000",
-      "new": "0xE0FF5292",
+      "new": "0xE0FF531A",
       "count": 0
     },
     {
@@ -543,61 +543,61 @@
     {
       "range": "helper_d000_init",
       "old": "0x00D00000",
-      "new": "0xE0FF52A4",
+      "new": "0xE0FF532C",
       "count": 2
     },
     {
       "range": "helper_d000_init",
       "old": "0x00D00170",
-      "new": "0xE0FF5414",
+      "new": "0xE0FF549C",
       "count": 1
     },
     {
       "range": "helper_d000_init",
       "old": "0x00D00778",
-      "new": "0xE0FF5A1C",
+      "new": "0xE0FF5AA4",
       "count": 1
     },
     {
       "range": "helper_200000_init",
       "old": "0x00200000",
-      "new": "0xE0FF5AC0",
+      "new": "0xE0FF5B48",
       "count": 0
     },
     {
       "range": "helper_frontend_timers",
       "old": "0x00380000",
-      "new": "0xE0FF5294",
+      "new": "0xE0FF531C",
       "count": 4
     },
     {
       "range": "helper_3f084_reg_write",
       "old": "0x003E0001",
-      "new": "0xE0FF528D",
+      "new": "0xE0FF5315",
       "count": 1
     },
     {
       "range": "helper_3f084_reg_write",
       "old": "0x003E0003",
-      "new": "0xE0FF528C",
+      "new": "0xE0FF5314",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00C50000",
-      "new": "0xE0FF529A",
+      "new": "0xE0FF5322",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00D01BFE",
-      "new": "0xE0FF5298",
+      "new": "0xE0FF5320",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00380000",
-      "new": "0xE0FF5294",
+      "new": "0xE0FF531C",
       "count": 1
     },
     {
@@ -615,50 +615,50 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00200000",
-      "new": "0xE0FF5AC0",
+      "new": "0xE0FF5B48",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00201000",
-      "new": "0xE0FF6AC0",
+      "new": "0xE0FF6B48",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390001",
-      "new": "0xE0FF5291",
+      "new": "0xE0FF5319",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390007",
-      "new": "0xE0FF528E",
+      "new": "0xE0FF5316",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x003C0000",
-      "new": "0xE0FF5292",
+      "new": "0xE0FF531A",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00D00000",
-      "new": "0xE0FF52A4",
+      "new": "0xE0FF532C",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00D01000",
-      "new": "0xE0FF52A4",
+      "new": "0xE0FF532C",
       "count": 2
     },
     {
       "range": "startup_common",
       "old_window_start": "0x00C50000",
       "old_window_end_exclusive": "0x00C50002",
-      "new_window_start": "0xE0FF529A",
+      "new_window_start": "0xE0FF5322",
       "target": "symbol:genesistan_shadow_reg_c50000",
       "scan_step": 2,
       "count": 0
@@ -667,7 +667,7 @@
       "range": "startup_common",
       "old_window_start": "0x00D01BFE",
       "old_window_end_exclusive": "0x00D01C00",
-      "new_window_start": "0xE0FF5298",
+      "new_window_start": "0xE0FF5320",
       "target": "symbol:genesistan_shadow_reg_d01bfe",
       "scan_step": 2,
       "count": 0
@@ -676,7 +676,7 @@
       "range": "startup_common",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF52A4",
+      "new_window_start": "0xE0FF532C",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 0
@@ -685,7 +685,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00C50000",
       "old_window_end_exclusive": "0x00C50002",
-      "new_window_start": "0xE0FF529A",
+      "new_window_start": "0xE0FF5322",
       "target": "symbol:genesistan_shadow_reg_c50000",
       "scan_step": 2,
       "count": 0
@@ -694,7 +694,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00D01BFE",
       "old_window_end_exclusive": "0x00D01C00",
-      "new_window_start": "0xE0FF5298",
+      "new_window_start": "0xE0FF5320",
       "target": "symbol:genesistan_shadow_reg_d01bfe",
       "scan_step": 2,
       "count": 0
@@ -703,10 +703,16 @@
       "range": "helper_display_control",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF52A4",
+      "new_window_start": "0xE0FF532C",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 0
+    },
+    {
+      "range": "frontend_core",
+      "kind": "window_rewrite_skipped",
+      "reason": "range_is_code",
+      "hint": "Set allow_in_code=true only for audited table slices."
     },
     {
       "range": "frontend_core",
@@ -788,14 +794,14 @@
       "kind": "shim_jump",
       "old_start": "0x03F284",
       "old_end_exclusive": "0x03F29C",
-      "new_target": "0x00209230"
+      "new_target": "0x00209344"
     },
     {
       "range": "helper_3f09c_reg_status",
       "kind": "shim_jump",
       "old_start": "0x03F29C",
       "old_end_exclusive": "0x03F2AC",
-      "new_target": "0x00209260"
+      "new_target": "0x00209374"
     },
     {
       "kind": "opcode_replace",
@@ -834,8 +840,8 @@
       "arcade_pc": "0x055990",
       "rom_pc": "0x055B90",
       "original_bytes": "206d10a47210227c0010d080267c0010d04024536100006e588b5489534166f2",
-      "replacement_bytes": "4eb90020008c4e754e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes. [Build 113: JSR to genesistan_hook_tilemap_plane_b at 0x20008C + RTS]"
+      "replacement_bytes": "4eb9002000f04e754e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes. [Build 114: JSR to genesistan_hook_tilemap_plane_b at 0x2000F0 + RTS]"
     },
     {
       "kind": "opcode_replace",
@@ -892,6 +898,14 @@
       "original_bytes": "13fc002000c09ea3",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP MOVE.B #0x20, 0xC09EA3. Direct C-Window write."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03AC54",
+      "rom_pc": "0x03AE54",
+      "original_bytes": "0c39004300c09e87660a",
+      "replacement_bytes": "60124e714e714e714e71",
+      "note": "Bypass C-Window read probe cmpi.b #0x43,0xC09E87 + BNE by forcing BRA to 0x03AC68. Prevents crash on live C-Window page 2 access."
     },
     {
       "kind": "opcode_replace",
@@ -1031,7 +1045,7 @@
     },
     {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x391FA4",
+      "rom_offset": "0x3920A4",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1044,24 +1058,24 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x002092AE",
+    "jumps_to": "0x002093C2",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
-    "writes_status_to": "0xE0FF528A",
+    "writes_status_to": "0xE0FF5312",
     "value": 2,
-    "jumps_exit_to": "0x002092EA",
+    "jumps_exit_to": "0x002093FE",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x615C",
+  "checksum": "0x8884",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x002052DA",
+    "reset_pc": "0x002053EE",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

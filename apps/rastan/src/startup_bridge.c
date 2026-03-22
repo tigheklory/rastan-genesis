@@ -63,8 +63,8 @@ volatile uint32_t genesistan_arcade_last_a0
 /*
  * Palette ROM table (Build 113).
  * 2048 entries × 2 bytes = 4096 bytes, pre-converted to Genesis VDP format
- * (0000 BBB0 GGG0 RRR0) by the post-build patcher.  Source: Taito xRGB-444.
- * Stored in ROM so load_arcade_palette() can DMA directly from here.
+ * (0000 BBB0 GGG0 RRR0) by the post-build patcher. Source: Taito xRGB-444.
+ * Retained as fallback/debug data; Build 114 reads runtime CLCS capture.
  * Patcher fills in real values after link; declared as zero here for size.
  */
 __attribute__((used, section(".rodata_bin")))
@@ -81,6 +81,20 @@ uint16_t genesistan_tile_cache_arcade[TILE_CACHE_SLOTS]
 uint16_t genesistan_tile_cache_lru[TILE_CACHE_SLOTS]
     __attribute__((section(".bss.patcher")));
 uint16_t genesistan_tile_cache_clock
+    __attribute__((section(".bss.patcher")));
+
+/* Captured CLCS palette writes from arcade 0x200000-0x20007F (Build 114). */
+uint16_t genesistan_palette_clcs[64]
+    __attribute__((section(".bss.patcher")));
+
+/* Tilemap hook cursors (Build 114). */
+uint16_t genesistan_hook_col_a
+    __attribute__((section(".bss.patcher")));
+uint16_t genesistan_hook_row_a
+    __attribute__((section(".bss.patcher")));
+uint16_t genesistan_hook_col_b
+    __attribute__((section(".bss.patcher")));
+uint16_t genesistan_hook_row_b
     __attribute__((section(".bss.patcher")));
 
 static uint8_t build_player_input_byte(uint16_t state)
@@ -158,6 +172,7 @@ void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t servi
     fill_words(genesistan_shadow_d00000_words, 0x0400, 0);
     fill_words(genesistan_shadow_c20000_words, 2, 0);
     fill_words(genesistan_shadow_c40000_words, 2, 0);
+    memset(genesistan_palette_clcs, 0, sizeof(genesistan_palette_clcs));
 
     genesistan_shadow_reg_c50000 = 0;
     genesistan_shadow_reg_d01bfe = 0;
@@ -179,6 +194,10 @@ void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t servi
     genesistan_sound_last_high_nibble = 0;
     genesistan_sound_status = 0;
     genesistan_sound_command_count = 0;
+    genesistan_hook_col_a = 0;
+    genesistan_hook_row_a = 8;
+    genesistan_hook_col_b = 0;
+    genesistan_hook_row_b = 8;
     genesistan_refresh_arcade_inputs();
 }
 
