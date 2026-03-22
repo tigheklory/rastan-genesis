@@ -59,8 +59,28 @@ volatile uint16_t genesistan_sound_command_count
 /* Arcade A0 captured at genesistan_frontend_tick_return (Build 109). */
 volatile uint32_t genesistan_arcade_last_a0
     __attribute__((section(".bss.patcher")));
-/* Palette data written by arcade palette conversion (64 colours = 4 banks × 16). */
-volatile uint16_t genesistan_palette_buffer[64]
+
+/*
+ * Palette ROM table (Build 113).
+ * 2048 entries × 2 bytes = 4096 bytes, pre-converted to Genesis VDP format
+ * (0000 BBB0 GGG0 RRR0) by the post-build patcher.  Source: Taito xRGB-444.
+ * Stored in ROM so load_arcade_palette() can DMA directly from here.
+ * Patcher fills in real values after link; declared as zero here for size.
+ */
+__attribute__((used, section(".rodata_bin")))
+const uint16_t genesistan_palette_rom_table[2048] = {0};
+
+/*
+ * Tile cache (Build 113).
+ * Maps Genesis VRAM slot → arcade PC080SN tile index.
+ * 1164 slots: 20-1023 (1004 tiles) + 1280-1439 (160 tiles).
+ * TILE_CACHE_EMPTY (0xFFFF) = free slot.
+ */
+uint16_t genesistan_tile_cache_arcade[TILE_CACHE_SLOTS]
+    __attribute__((section(".bss.patcher")));
+uint16_t genesistan_tile_cache_lru[TILE_CACHE_SLOTS]
+    __attribute__((section(".bss.patcher")));
+uint16_t genesistan_tile_cache_clock
     __attribute__((section(".bss.patcher")));
 
 static uint8_t build_player_input_byte(uint16_t state)
@@ -136,7 +156,6 @@ void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t servi
 {
     fill_words(genesistan_arcade_workram_words, 0x2000, 0);
     fill_words(genesistan_shadow_d00000_words, 0x0400, 0);
-    fill_words(genesistan_palette_buffer, 64, 0);
     fill_words(genesistan_shadow_c20000_words, 2, 0);
     fill_words(genesistan_shadow_c40000_words, 2, 0);
 
@@ -295,6 +314,9 @@ void genesistan_reclaim_launcher_wram(void)
      */
     memset((void *)genesistan_shadow_c20000_words, 0, sizeof(genesistan_shadow_c20000_words));
     memset((void *)genesistan_shadow_c40000_words, 0, sizeof(genesistan_shadow_c40000_words));
+    memset(genesistan_tile_cache_arcade, 0xFF, sizeof(genesistan_tile_cache_arcade));
+    memset(genesistan_tile_cache_lru,    0,    sizeof(genesistan_tile_cache_lru));
+    genesistan_tile_cache_clock = 0;
     genesistan_startup_result_code = GENESISTAN_STARTUP_RESULT_NONE;
     genesistan_sound_last_command = 0;
     genesistan_sound_last_low_nibble = 0;

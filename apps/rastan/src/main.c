@@ -595,17 +595,18 @@ static void restore_launcher_vdp_state(void)
 }
 
 /*
- * Load all 4 arcade palette banks (64 colours) from
- * genesistan_palette_buffer into VDP CRAM.
+ * Load all 4 Genesis palette lines (64 colours) from
+ * genesistan_palette_rom_table into VDP CRAM via DMA.
  *
- * The palette buffer is populated by the arcade
- * palette conversion routine at 0x59AD4 (Build 109+:
- * via JSR hook; earlier builds: SRAM redirect).
+ * The ROM table is pre-converted to Genesis VDP format
+ * (0000 BBB0 GGG0 RRR0) by the post-build patcher (Build 113).
+ * Entries 0-63 cover CRAM lines 0-3.
  */
 static void load_arcade_palette(void)
 {
     SYS_disableInts();
-    PAL_setColors(0, (u16 *)genesistan_palette_buffer, 64, CPU);
+    PAL_setColors(0, (const u16 *)genesistan_palette_rom_table, 64, DMA);
+    VDP_waitDMACompletion();
     SYS_enableInts();
 }
 
@@ -932,10 +933,10 @@ static void render_startup_preview_screen(void)
             genesistan_shadow_c40000_words[1]);
     draw_padded_text(line, 8, 5, 24);
     sprintf(line, "PAL %04X %04X %04X %04X",
-            genesistan_palette_buffer[0],
-            genesistan_palette_buffer[1],
-            genesistan_palette_buffer[2],
-            genesistan_palette_buffer[3]);
+            genesistan_palette_rom_table[0],
+            genesistan_palette_rom_table[1],
+            genesistan_palette_rom_table[2],
+            genesistan_palette_rom_table[3]);
     draw_padded_text(line, 7, 6, 26);
 
     draw_padded_text("A/START RERUN   B/C BACK", 7, 26, 26);
@@ -1050,8 +1051,8 @@ static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count
 
         for (color = 0; color < 16; color++)
         {
-            const u16 raw = genesistan_palette_buffer[base + color];
-            PAL_setColor((line * 16) + color, convert_xbgr555_to_genesis(raw));
+            const u16 gen = genesistan_palette_rom_table[base + color];
+            PAL_setColor((line * 16) + color, gen);
         }
     }
 }
@@ -1062,24 +1063,111 @@ static void clear_frontend_sprite_layer(void)
 }
 
 /*
+ * Tile cache helpers (Build 113).
+ * Linear scan over 1164 VRAM slots.
+ * Slots 0-1003 → VRAM 20-1023 (TILE_CACHE_BASE_A + slot).
+ * Slots 1004-1163 → VRAM 1280-1439 (TILE_CACHE_BASE_B + slot - SIZE_A).
+ */
+static uint16_t tile_cache_slot_to_vram(uint16_t slot)
+{
+    if (slot < TILE_CACHE_SIZE_A)
+        return (uint16_t)(TILE_CACHE_BASE_A + slot);
+    return (uint16_t)(TILE_CACHE_BASE_B + (slot - TILE_CACHE_SIZE_A));
+}
+
+/*
+ * Look up arcade tile index in the VRAM tile cache.
+ * On hit: update LRU and return VRAM slot.
+ * On miss: evict LRU slot, DMA-load tile from rastan_pc080sn, return slot.
+ * Must be called with interrupts already disabled.
+ */
+static uint16_t tile_cache_get(uint16_t arcade_tile)
+{
+    uint16_t i;
+    uint16_t lru_slot = 0;
+    uint16_t lru_val  = genesistan_tile_cache_lru[0];
+    uint16_t vram_slot;
+
+    for (i = 0; i < TILE_CACHE_SLOTS; i++) {
+        if (genesistan_tile_cache_arcade[i] == arcade_tile) {
+            genesistan_tile_cache_lru[i] = ++genesistan_tile_cache_clock;
+            return tile_cache_slot_to_vram(i);
+        }
+        if (genesistan_tile_cache_lru[i] < lru_val) {
+            lru_val  = genesistan_tile_cache_lru[i];
+            lru_slot = i;
+        }
+    }
+
+    /* Cache miss — evict LRU slot and DMA-load tile from ROM. */
+    vram_slot = tile_cache_slot_to_vram(lru_slot);
+    genesistan_tile_cache_arcade[lru_slot] = arcade_tile;
+    genesistan_tile_cache_lru[lru_slot]    = ++genesistan_tile_cache_clock;
+
+    VDP_loadTileData(
+        (const u32 *)(rastan_pc080sn + (u32)arcade_tile * 32U),
+        vram_slot, 1, DMA);
+    VDP_waitDMACompletion();
+
+    return vram_slot;
+}
+
+/*
  * JSR hooks called from arcade tilemap write functions
- * (0x055968, 0x055990). NOPped bodies replaced with
- * JSR + RTS via shift_replacements (Build 109).
- * Implementations will write to VDP Plane A/B nametable
- * from arcade workram tile data (future build).
+ * (0x055968 → plane_a, 0x055990 → plane_b).
+ * Read 16 tile codes from workram[0x840..0x84F] and
+ * 16 attributes from workram[0x820..0x82F] (4-byte stride).
+ * Write to VDP Plane A (FG) and Plane B (BG) respectively.
+ *
+ * Position: fixed at row 8, cols 0-15 for Build 113.
+ * Dynamic nametable positioning deferred to Build 114
+ * (workram pointers at A5@(4256/4260) are NOPped in spec).
+ *
+ * Palette bits from attribute: bits 8:7 → Genesis palette line.
+ * Flip bits: bit 15 = vflip, bit 14 = hflip.
  */
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_hook_tilemap_plane_a(void)
 {
-    /* TODO: read tile data from genesistan_arcade_workram_words
-     * at A5@(4256) offset and write to VDP Plane A nametable. */
+    uint16_t i;
+
+    SYS_disableInts();
+    for (i = 0; i < 16; i++) {
+        const uint16_t code       = genesistan_arcade_workram_words[0x840U + i];
+        const uint16_t attr       = genesistan_arcade_workram_words[0x820U + i * 2U];
+        const uint16_t arcade_tile = code & 0x3FFFU;
+        const uint16_t vram_tile   = tile_cache_get(arcade_tile);
+        const uint16_t pal         = (attr >> 7) & 0x3U;
+        const uint16_t vflip       = (attr >> 15) & 1U;
+        const uint16_t hflip       = (attr >> 14) & 1U;
+
+        VDP_setTileMapXY(BG_A,
+            TILE_ATTR_FULL(pal, 0, vflip, hflip, vram_tile),
+            i, 8);
+    }
+    SYS_enableInts();
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_hook_tilemap_plane_b(void)
 {
-    /* TODO: read tile data from genesistan_arcade_workram_words
-     * at A5@(4260) offset and write to VDP Plane B nametable. */
+    uint16_t i;
+
+    SYS_disableInts();
+    for (i = 0; i < 16; i++) {
+        const uint16_t code       = genesistan_arcade_workram_words[0x840U + i];
+        const uint16_t attr       = genesistan_arcade_workram_words[0x820U + i * 2U];
+        const uint16_t arcade_tile = code & 0x3FFFU;
+        const uint16_t vram_tile   = tile_cache_get(arcade_tile);
+        const uint16_t pal         = (attr >> 7) & 0x3U;
+        const uint16_t vflip       = (attr >> 15) & 1U;
+        const uint16_t hflip       = (attr >> 14) & 1U;
+
+        VDP_setTileMapXY(BG_B,
+            TILE_ATTR_FULL(pal, 0, vflip, hflip, vram_tile),
+            i, 8);
+    }
+    SYS_enableInts();
 }
 
 static void render_frontend_sprite_layer(const void *src)

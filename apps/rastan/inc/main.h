@@ -15,7 +15,20 @@ extern volatile uint16_t genesistan_arcade_workram_words[0x2000];
 extern volatile uint16_t genesistan_shadow_d00000_words[0x0400];
 extern volatile uint16_t genesistan_shadow_c20000_words[2];
 extern volatile uint16_t genesistan_shadow_c40000_words[2];
-extern volatile uint16_t genesistan_palette_buffer[64];
+/* Palette ROM table: 2048 Genesis-format entries, filled by patcher (Build 113). */
+extern const uint16_t genesistan_palette_rom_table[2048];
+
+/* Tile cache (Build 113). */
+#define TILE_CACHE_SLOTS  1164
+#define TILE_CACHE_EMPTY  0xFFFF
+#define TILE_CACHE_BASE_A 20
+#define TILE_CACHE_BASE_B 1280
+#define TILE_CACHE_SIZE_A 1004
+#define TILE_CACHE_SIZE_B 160
+
+extern uint16_t genesistan_tile_cache_arcade[TILE_CACHE_SLOTS];
+extern uint16_t genesistan_tile_cache_lru[TILE_CACHE_SLOTS];
+extern uint16_t genesistan_tile_cache_clock;
 
 extern volatile uint16_t genesistan_shadow_reg_c50000;
 extern volatile uint16_t genesistan_shadow_reg_d01bfe;

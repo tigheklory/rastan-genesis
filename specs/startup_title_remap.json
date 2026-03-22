@@ -158,7 +158,7 @@
     "genesistan_startup_common_exit_normal",
     "genesistan_startup_common_exit_test",
     "_reset_entry",
-    "genesistan_palette_buffer"
+    "genesistan_palette_rom_table"
   ],
   "copied_ranges": [
     {
@@ -774,13 +774,6 @@
       "old_start": "0x0010C000",
       "old_end_exclusive": "0x00110000",
       "symbol": "genesistan_arcade_workram_words"
-    },
-    {
-      "range": "frontend_core",
-      "old_start": "0x00C08000",
-      "old_end_exclusive": "0x00C08080",
-      "symbol": "genesistan_palette_buffer",
-      "note": "Redirect palette conversion output (64 words) to WRAM buffer (Build 109)"
     }
   ],
   "verbatim_restores": [
@@ -840,8 +833,8 @@
     {
       "arcade_pc": "0x055990",
       "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
-      "replacement_bytes": "4eb9002000024e754e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes. [Build 109: replaced NOP with JSR to genesistan_hook_tilemap_plane_b + RTS]"
+      "replacement_bytes": "4eb90020008c4e754e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes. [Build 113: JSR to genesistan_hook_tilemap_plane_b at 0x20008C + RTS]"
     },
     {
       "arcade_pc": "0x0556F2",

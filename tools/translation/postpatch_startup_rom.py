@@ -803,6 +803,47 @@ def main() -> int:
             "note": replacement.get("note", ""),
         })
 
+    # ── Palette pre-conversion (Build 113) ────────────────────────────────────
+    # Fill genesistan_palette_rom_table in ROM with Genesis-format colour values.
+    # Source: Taito xRGB-444 (bits 11:8=R, 7:4=G, 3:0=B, 4-bit components).
+    # Target: Genesis 0000 BBB0 GGG0 RRR0 (3-bit components).
+    # Conversion: take top 3 of each 4-bit component, pack into Genesis word.
+    # Initial arcade palette RAM is all zeros at power-on; unreachable entries
+    # use a greyscale ramp so tiles are visible with some colour.
+    palette_rom_sym = symbol_addresses.get("genesistan_palette_rom_table")
+    if palette_rom_sym is not None and palette_rom_sym < 0x800000:
+        _PALETTE_ENTRIES = 2048
+        _palette_data = bytearray(_PALETTE_ENTRIES * 2)
+
+        def _taito_to_genesis(src: int) -> int:
+            r3 = ((src >> 8) & 0xF) >> 1
+            g3 = ((src >> 4) & 0xF) >> 1
+            b3 = (src & 0xF) >> 1
+            return (r3 << 1) | (g3 << 5) | (b3 << 9)
+
+        # Greyscale ramp: entry 0 of each 16-entry bank = black,
+        # entries 1-15 = increasing brightness.  Applied to ALL 2048 entries
+        # since runtime palette writes are not yet intercepted (Build 113).
+        import struct as _struct
+        for _i in range(_PALETTE_ENTRIES):
+            _color = _i % 16
+            if _color == 0:
+                _gen = 0
+            else:
+                _v = min(7, (_color * 7 + 14) // 15)
+                _gen = (_v << 1) | (_v << 5) | (_v << 9)
+            _struct.pack_into(">H", _palette_data, _i * 2, _gen)
+
+        _table_off = palette_rom_sym
+        ensure_size_at_least(rom_bytes, _table_off + len(_palette_data))
+        rom_bytes[_table_off:_table_off + len(_palette_data)] = _palette_data
+        rewrite_log.append({
+            "kind": "palette_pre_conversion",
+            "rom_offset": f"0x{_table_off:06X}",
+            "entries": _PALETTE_ENTRIES,
+            "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder.",
+        })
+
     # Write Genesis workram base pointer at ROM offset 0x10C000.
     # The arcade frontend tick reloads A5 from this absolute address.
     # On arcade it is work RAM. On Genesis it is ROM, so we patch

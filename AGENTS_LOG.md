@@ -9985,3 +9985,724 @@ CURRENT STATE AS OF BUILD 112
 - Final PC: 0x20145C
 - Stack Pointer (SP): 0xE0FFFF90
 - Unique Unmapped Memory Addresses: none
+
+## [Andy - Build 113, Palette ROM Table + Tile Cache + Hook Bodies]
+
+```
+PART 1 — PALETTE SCAN OUTPUT (maincpu.bin)
+
+  maincpu size: 0x60000
+
+  MOVE.W #imm, 0x200xxx scan:
+    0x03A31C: MOVE.W #0x03FF, 0x2005C2
+    0x03A324: MOVE.W #0x001F, 0x2005E2
+    0x03AB00: MOVE.W #0x03FF, 0x200022
+    Total found: 3
+
+  Only 3 hardcoded palette writes found to 0x200xxx.
+  Palette RAM is zeroed at power-on; full colour set written
+  dynamically by 0x59AD4 conversion routine.
+
+  Colour tables extracted at:
+    0x5649E (D0=4, D1=0) — bank 4 (entries 64-79): blue-green ramp
+    0x564FE (D0=5, D1=0) — bank 5 (entries 80-95): Rastan game colours
+
+  Banks 0-3 (Genesis CRAM lines 0-3) not initialised from ROM tables.
+  FALLBACK APPLIED: greyscale ramp for all 2048 entries.
+    Entry 0 of each bank = 0x0000 (black/transparent)
+    Entries 1-15: grey ramp, brightness 1-7 in Genesis units
+
+PALETTE ROM TABLE
+
+  genesistan_palette_rom_table: 0x00391FA4
+  First 8 entries: 00000222022204440444066606660888
+    entry 0: 0x0000  R=0 G=0 B=0  (black)
+    entry 1: 0x0222  R=1 G=1 B=1  (dark grey)
+    entry 2: 0x0222  R=1 G=1 B=1
+    entry 3: 0x0444  R=2 G=2 B=2
+    entry 4: 0x0444  R=2 G=2 B=2
+    entry 5: 0x0666  R=3 G=3 B=3
+    entry 6: 0x0666  R=3 G=3 B=3
+    entry 7: 0x0888  R=4 G=4 B=4
+  genesistan_palette_buffer removed: True
+
+TILE CACHE WRAM
+
+  genesistan_tile_cache_arcade: 0xE0FF4968  (2×1164 = 2328 bytes)
+  genesistan_tile_cache_lru:    0xE0FF4050  (2×1164 = 2328 bytes)
+  genesistan_tile_cache_clock:  2 bytes
+  Total WRAM cost:              4658 bytes (4.5 KB)
+
+WRAM GAP
+
+  _bend:   0xE0FF6FAA
+  __stack: 0xE1000000
+  Gap:     0x9056 = 36950 bytes (36 KB)
+  Above 32KB: True
+
+BUILD RESULT
+
+  dist/Rastan_113.bin — two-pass build, clean.
+  Warnings: lookup_rastan_font_char unused (pre-existing)
+            convert_xbgr555_to_genesis unused (now that palette_buffer removed)
+
+POST-BUILD VERIFICATION
+
+  JSR at 0x055B68: 4eb900200000  target=0x00200000  correct=True  (plane_a)
+  JSR at 0x055B90: 4eb90020008c  target=0x0020008C  correct=True  (plane_b)
+  plane_a: 0x00200000 (unchanged from Build 112)
+  plane_b: 0x0020008C (moved from 0x200002 — real function body larger than RTS stub)
+  palette_buffer removed: True
+  tile_cache_arcade: 0xE0FF4968 present in WRAM
+  WRAM gap above 32KB: True
+
+CHANGES SUMMARY
+
+  startup_bridge.c:
+    - Removed genesistan_palette_buffer[64] from .bss.patcher
+    - Added genesistan_palette_rom_table[2048] to .rodata_bin (filled by patcher)
+    - Added genesistan_tile_cache_arcade[1164], _lru[1164], _clock to .bss.patcher
+    - genesistan_reset_startup_shadows: removed fill_words(palette_buffer)
+    - genesistan_reclaim_launcher_wram: added memset(tile_cache_arcade, 0xFF)
+      memset(tile_cache_lru, 0), tile_cache_clock = 0
+
+  main.h:
+    - Removed extern volatile uint16_t genesistan_palette_buffer[64]
+    - Added extern const uint16_t genesistan_palette_rom_table[2048]
+    - Added TILE_CACHE_* defines and tile cache externs
+
+  main.c:
+    - load_arcade_palette(): PAL_setColors from ROM table via DMA
+    - refresh_frontend_sprite_palettes(): reads ROM table (no conversion)
+    - render_startup_preview_screen(): shows ROM table[0..3] instead of buffer
+    - Added tile_cache_slot_to_vram() helper
+    - Added tile_cache_get(): linear scan + DMA load on miss
+    - genesistan_hook_tilemap_plane_a(): reads workram[0x840+i] codes and
+      workram[0x820+i*2] attrs, calls tile_cache_get, writes to BG_A row 8
+    - genesistan_hook_tilemap_plane_b(): same but BG_B
+
+  specs/startup_title_remap.json:
+    - Removed window_rewrite_rule 0xC08000-0xC08080→genesistan_palette_buffer
+    - Replaced required_symbol genesistan_palette_buffer→genesistan_palette_rom_table
+    - Updated opcode_replace 0x055990 replacement_bytes: JSR target 0x200002→0x20008C
+
+  postpatch_startup_rom.py:
+    - Added palette pre-conversion pass: fills genesistan_palette_rom_table
+      with greyscale ramp (16-level per 16-entry bank, 2048 entries total)
+    - Safety guard: only runs if symbol address < 0x800000 (ROM range)
+
+NOTES
+
+  - Palette is greyscale placeholder. Real arcade colours require runtime
+    interception of the 0x59AD4 palette conversion writes to 0x200000.
+    The 0x200000→wram_overlay redirect sends palette writes to launcher
+    WRAM overlay, not a usable palette buffer (Build 113 scope issue).
+  - Hook position: fixed at row 8, cols 0-15 for Build 113.
+    Dynamic nametable positioning (A5@(4256/4260)) deferred to Build 114
+    — those workram slots are NOPped in the spec and contain 0 at runtime.
+  - Tile cache: linear scan over 1164 slots. DMA load from rastan_pc080sn
+    on miss. LRU eviction. genesistan_tile_cache_clock is uint16_t (wraps
+    at 65535 — acceptable for initial testing).
+  - Two-pass build required: plane_b moved from 0x200002 to 0x20008C
+    once real function body replaced the 2-byte RTS stub.
+
+VISUAL OBSERVATION IN EXODUS
+
+  Not yet tested — awaiting authorisation before running.
+```
+
+### MAME Exit Summary (2026-03-22 13:20:50)
+- Final PC: 0x20165A
+- Stack Pointer (SP): 0xE0FFFF90
+- Unique Unmapped Memory Addresses: none
+
+Research complete.
+
+## [Andy - Build 114 Pre-Research, Palette + Hook Position]
+
+```
+════════════════════════════════════════════════════════
+PROBLEM 1 — PALETTE LOST IN BUILD 113
+════════════════════════════════════════════════════════
+
+── 1a) WHERE DOES 0x59AD4 WRITE? ──────────────────────
+
+COMMAND: grep -n "wram_overlay\|200000" specs/startup_title_remap.json | head -20
+
+OUTPUT:
+  9:    "launcher_reserved_rom_end_exclusive": "0x200000",
+  65:      "name": "shadow_200000",
+  66:      "start": "0x00200000",
+  133:    "wram_overlay",
+  225:      "name": "helper_200000_init",
+  330:          "old": "0x00200000",
+  331:          "symbol": "wram_overlay"
+  405:          "old": "0x00200000",
+  406:          "symbol": "wram_overlay"
+  509:          "old": "0x00200000",
+  510:          "symbol": "wram_overlay"
+  561:      "range": "helper_200000_init",
+  564:          "old": "0x00200000",
+  565:          "symbol": "wram_overlay"
+  630:          "old": "0x00200000",
+  631:          "symbol": "wram_overlay"
+  635:          "symbol": "wram_overlay",
+  713:      "old_start": "0x00200000",
+  715:      "symbol": "wram_overlay"
+
+COMMAND: python3 -c "syms = {}; [syms.update({p[2]: int(p[0],16)}) for line in
+  open('apps/rastan/out/symbol.txt') for p in [line.strip().split()] if len(p)>=3];
+  print(f'wram_overlay: 0x{syms.get(\"wram_overlay\",0):08X}')"
+
+OUTPUT:
+  wram_overlay:   0xE0FF5AC0
+
+FULL WINDOW REWRITE RULE:
+  {
+    "range": "frontend_core",
+    "old_start": "0x00200000",
+    "old_end_exclusive": "0x00204000",
+    "symbol": "wram_overlay"
+  }
+
+SYMBOLS AROUND wram_overlay:
+  0xE0FF5AA4: packed_romset_signature_cache
+  0xE0FF5ABE: selected_menu
+  0xE0FF5AC0: wram_overlay          ← palette writes land here
+  0xE0FF6612: queueTransferSize     ← next symbol (gap = 0xB52 = 2898 bytes)
+
+ANALYSIS:
+  0x59AD4 at 0x59ADE: moveal #0x200000, a1 → addaw d0, a1
+  Destination = 0x200000 + (D0 * 32). D0 is the palette bank number.
+  After patcher relocation this becomes wram_overlay + (D0 * 32).
+  Bank 0–3 (CRAM lines 0–3) → wram_overlay[0..127] = 0xE0FF5AC0 – 0xE0FF5B3F.
+  wram_overlay is 2898 bytes in this build — plenty of room for the palette.
+
+OUTPUT FORMAT OF 0x59AD4:
+  Input:  xRGB-444 (bits 11:8=R, 7:4=G, 3:0=B)
+  Output: Taito CLCS hardware format (NOT Genesis VDP format)
+    R field: bits 4:1   (R_4bit << 1)
+    G field: bits 9:6   (G_4bit << 6)
+    B field: bits 14:11 (B_4bit << 11)
+  Example: white (0x0FFF) → CLCS 0x7BDE
+  0xFF (transparent sentinel) is detected and skipped (beq at 0x59AEC).
+
+CLCS → Genesis VDP conversion formula (verified):
+  r = (clcs >> 1) & 0x000E
+  g = (clcs >> 2) & 0x00E0
+  b = (clcs >> 3) & 0x0E00
+  genesis = r | g | b
+  Test: white=0x7BDE→0x0EEE ✓  red=0x001E→0x000E ✓
+        blue=0x7800→0x0E00 ✓  green=0x03C0→0x00E0 ✓
+
+── 1b) IS genesistan_palette_buffer GONE? ─────────────
+
+COMMAND: python3 -c "... syms.get('genesistan_palette_buffer'), syms.get('wram_overlay')"
+
+OUTPUT:
+  palette_buffer: 0x00000000   ← symbol not present (GONE) ✓
+  wram_overlay:   0xE0FF5AC0   ✓
+
+── 1c) CURRENT load_arcade_palette() ──────────────────
+
+SOURCE (apps/rastan/src/main.c line 605):
+  static void load_arcade_palette(void)
+  {
+      SYS_disableInts();
+      PAL_setColors(0, (const u16 *)genesistan_palette_rom_table, 64, DMA);
+      VDP_waitDMACompletion();
+      SYS_enableInts();
+  }
+
+  Reads: genesistan_palette_rom_table (ROM, greyscale placeholder)
+  Does NOT read: wram_overlay (where 0x59AD4 actually writes)
+  Result: real Rastan colours are NOT reaching CRAM in Build 113.
+
+── 1d) PROPOSED FIX ───────────────────────────────────
+
+MINIMUM CHANGE — three-part fix:
+
+  1. In startup_bridge.c: add to .bss.patcher:
+       uint16_t genesistan_palette_clcs[64]
+         __attribute__((section(".bss.patcher")));
+     In genesistan_reset_startup_shadows(): add
+       memset(genesistan_palette_clcs, 0, sizeof(genesistan_palette_clcs));
+     In main.h: add extern + extern const uint16_t conversion helper.
+
+  2. In specs/startup_title_remap.json: ADD a second window_rewrite_rule
+     BEFORE the wram_overlay rule:
+       {
+         "old_start": "0x00200000",
+         "old_end_exclusive": "0x00200080",
+         "symbol": "genesistan_palette_clcs"
+       }
+     This captures the first 64 CLCS entries (banks 0–3) separately.
+     The existing wram_overlay rule covers 0x200000–0x203FFF but the
+     more-specific rule takes precedence (patcher checks in order).
+
+  3. In main.c: update load_arcade_palette():
+       static void load_arcade_palette(void)
+       {
+           uint16_t buf[64];
+           uint16_t i;
+           for (i = 0; i < 64; i++) {
+               uint16_t clcs = genesistan_palette_clcs[i];
+               buf[i] = ((clcs >> 1) & 0x000E)
+                       | ((clcs >> 2) & 0x00E0)
+                       | ((clcs >> 3) & 0x0E00);
+           }
+           SYS_disableInts();
+           PAL_setColors(0, buf, 64, DMA);
+           VDP_waitDMACompletion();
+           SYS_enableInts();
+       }
+     Keep genesistan_palette_rom_table as initial CRAM state (loaded once
+     at startup before first arcade tick). After first 0x59AD4 run the
+     CLCS buffer will have real colours.
+
+CONFIDENCE: High — the wram_overlay redirect is confirmed in spec, 0x59AD4
+writes to 0x200000 + D0*32 (CLCS format), conversion formula verified.
+RESIDUAL RISK: need to confirm patcher handles overlapping range rules
+(specific wins over general). If not, add explicit range exclusion to the
+wram_overlay rule (change old_start to 0x00200080).
+
+
+════════════════════════════════════════════════════════
+PROBLEM 2 — STATIC HOOK POSITION
+════════════════════════════════════════════════════════
+
+── 2a) VERIFY NOPs ON A5@(4256) / A5@(4260) STORES ───
+
+COMMAND: python3 — scan opcode_replace for 10a0/10a4/4256/4260/a5@(4256)
+
+OUTPUT:
+  0x055968 : NOP tilemap write function A (0x55968-0x5598D).
+             Writes tile data through A5@(4256) C-Window pointer
+  0x055990 : NOP tilemap write function B (0x55990-0x559AF).
+             Writes tile data through A5@(4260) C-Window pointer
+  0x0556F2 : NOP C-Window addr store (0x556F2-0x556FB).
+             addil #0xC08000,d1 + movel d1,a5@(4260)
+  0x05577E : NOP second C-Window addr store to A5@(4260).
+             addil #0xC08000,d0 + movel d0,a5@(4260)
+  0x055E54 : NOP MOVE.L #0xC00400, 0x10A0(A5).
+             Stores C-Window base into A5 workram slot (ptr init a5@(4256))
+  0x055818 : NOP ADDIL #0xC08000,D0 + MOVE.L D0,0x10A0(A5).
+             Stores advanced C-Window base into A5@(4256)
+
+CONCLUSION:
+  All six NOP entries are active. A5@(4256) = 0x10A0(A5) and
+  A5@(4260) = 0x10A4(A5) are NEVER written; they remain 0x0000 at runtime.
+  Both hooks always see A0 = 0x00000000 → write position fixed at row 8, col 0.
+  CONFIRMED.
+
+── 2b) HOW MANY TIMES PER FRAME? ──────────────────────
+
+COMMAND: grep -c "55968\|55990" build/maincpu.disasm.txt
+OUTPUT: 4
+
+COMMAND: grep -n "55968\|55990" build/maincpu.disasm.txt
+OUTPUT:
+  107367:   55950:  bsrw 0x55968      ← call to plane A
+  107370:   5595a:  bsrw 0x55990      ← call to plane B
+  107374:   55968:  moveal a5@(4256), a0   (function entry)
+  107386:   55990:  moveal a5@(4260), a0   (function entry)
+
+CALL SITES FOR DISPATCHER 0x55948:
+  0x50434  — one-time init (far, not part of frame loop)
+  0x556FC  — called from scroll/position computation routine
+  0x55788  — called conditionally (A5@(4282) < 8, A5@(4264)==2)
+  0x55822  — called conditionally (A5@(4280) >= 160, A5@(4264)==0)
+
+DISPATCHER LOGIC (0x55948):
+  cmpiw #0, A5@(4264)
+  beq → bsr 0x55968 (plane A); addqw #1, A5@(4298); bsr 0x558A2
+  bne → bsr 0x55990 (plane B); addqw #1, A5@(4298); bsr 0x558A2
+
+  Each call writes 16 tiles to the plane addressed by the current pointer.
+  A5@(4298) is a call counter incremented after every dispatch.
+  A5@(4300) is incremented when A5@(4298) reaches 4.
+
+CRITICAL: CALL COUNTER RESET IS ALSO NOPPED
+  The reset at 0x558DA (clrw a5@(4298)) is inside the NOPped 0x558C6 routine.
+  NOP at 0x0558C6 covers 0x558C6–0x558DD (24 bytes = 12×NOP).
+  Original bytes include: "426D10CA" (clrw a5@(4298)) at 0x558DA → NOPPED.
+  Therefore A5@(4298) NEVER RESETS — it counts monotonically upward from 0.
+  A5@(4298) % 4 = intra-row slot (0–3, each 16 tiles = 64 tiles/row) ← still valid
+  A5@(4298) / 4 = absolute row since boot (wraps at 65535/4 = 16383 frames) ← unreliable for current row
+
+── 2c) PLANE COVERAGE CALCULATION ─────────────────────
+
+COMMAND: python3 coverage script
+
+OUTPUT:
+  Calls per row:        4
+  Calls for full plane: 128
+  Starting VRAM addr (row 8 col 0):  0xC400
+  Each call advances by:             32 bytes
+
+  C-Window addressing (page 0, plane B):
+    Row 8, col 0  = offset 0x0400
+    Row 8, col 16 = offset 0x0420
+    Row 8, col 32 = offset 0x0440
+    Row 8, col 48 = offset 0x0460
+    Row 9, col 0  = offset 0x0480
+
+  Genesis plane A/B are 64×32 tiles:
+    4 calls × 16 tiles = 64 tiles = 1 complete row
+    128 calls = full plane (all 32 rows)
+    Visible screen (320×224): 20 cols × 14 rows ≈ 4 calls per visible row
+    Both planes together = 8 calls/visible row = ~112 calls/frame visible
+    Starting row 8 matches C-Window init at 0xC00400 (offset 0x400 = 8×128 bytes)
+
+── 2d) PROPOSED HOOK POSITION MECHANISM ───────────────
+
+APPROACH: hook-maintained per-plane write cursor.
+
+  Add to startup_bridge.c (.bss.patcher):
+    uint16_t genesistan_hook_col_a;   /* current col for plane A (0, 16, 32, 48) */
+    uint16_t genesistan_hook_row_a;   /* current row for plane A (8..31, wraps) */
+    uint16_t genesistan_hook_col_b;
+    uint16_t genesistan_hook_row_b;
+
+  Reset point: at the START of genesistan_run_original_frontend_tick(),
+  before calling the arcade tick:
+    genesistan_hook_col_a = 0;
+    genesistan_hook_row_a = 8;   /* C-Window starts at row 8 = offset 0x400 */
+    genesistan_hook_col_b = 0;
+    genesistan_hook_row_b = 8;
+
+  In each hook:
+    VDP_setTileMapXY(BG_A, attr, col_a + i, row_a);
+    col_a += 16;
+    if (col_a >= 64) { col_a = 0; row_a++; if (row_a >= 32) row_a = 8; }
+
+IS THE APPROACH SOUND?
+  Yes, with two caveats:
+
+  1. Position drift if a hook call is conditional-skipped.
+     The callers of 0x55948 have conditional branches that may skip some
+     dispatch calls. If a call is skipped, the cursor over-advances relative
+     to what was actually written, and subsequent calls land at wrong positions.
+     MITIGATION: the per-frame reset corrects drift each frame (one frame of
+     garbage is acceptable). If severe, we can suppress VDP_setTileMapXY
+     in the hook and only write when cursor is within the visible 14-row window.
+
+  2. Plane select is determined by A5@(4264) in the dispatcher, not by which
+     hook is entered. Both hooks check A5@(4264) == 0 for plane A, else plane B.
+     Since plane A and B use SEPARATE cursors, if the pattern alternates A/B/A/B
+     the cursors each advance at 1× the expected rate. If all A then all B, each
+     advances at 2× for their phase. Reset at frame start corrects this.
+
+  CORRECT RESET POINT: start of frontend_tick (before arcade runs).
+  Not VBlank — VBlank happens before the arcade has rendered the frame,
+  so resetting in VBlank would corrupt a partially-written frame.
+  Not end-of-tick — the hooks run DURING the tick, so end-of-tick is too late.
+
+CONFIDENCE: Medium-High — the architecture is sound. Exact per-frame call
+count and conditional-skip behaviour need runtime verification (MAME trace
+recommended before committing to Build 114 cursor management).
+
+════════════════════════════════════════════════════════
+SUMMARY TABLE
+════════════════════════════════════════════════════════
+
+  Problem 1 (Palette):
+    Root cause:  load_arcade_palette() reads ROM greyscale table;
+                 0x59AD4 writes CLCS format to wram_overlay[0..127].
+    Fix:         (a) Dedicated genesistan_palette_clcs[64] capture buffer
+                 (b) Specific window_rewrite_rule 0x200000–0x20007F → buffer
+                 (c) load_arcade_palette() converts CLCS→Genesis per entry
+    Formula:     genesis = ((clcs>>1)&0xE) | ((clcs>>2)&0xE0) | ((clcs>>3)&0xE00)
+    Confidence:  HIGH
+
+  Problem 2 (Hook position):
+    Root cause:  A5@(4256) and A5@(4260) are always 0 (all stores NOPped).
+                 Arcade counter reset also NOPped — can't trust A5@(4298) for rows.
+    Fix:         Hook-maintained col/row cursors, reset at frame start.
+                 4 calls × 16 tiles = 64 = one full row; start at row 8 col 0.
+    Confidence:  MEDIUM-HIGH (cursor logic sound; exact call count needs trace)
+
+Stop. Awaiting authorisation.
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROBLEM 1 — Palette lost in Build 113
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+a) Output destination of 0x59AD4:
+   wram_overlay: 0xE0FF5AC0
+   The arcade palette conversion routine writes to 0x200000, which is currently mapped to wram_overlay. This overwrites the LauncherRuntime structure. While safe during the game loop (launcher is inactive), it means the palette data is not in a dedicated, preserved buffer for the loader to read.
+
+b) Status of genesistan_palette_buffer:
+   palette_buffer: 0x00000000 (Symbol not found)
+   wram_overlay:   0xE0FF5AC0
+   Confirmed: genesistan_palette_buffer was removed in Build 113.
+
+c) Current load_arcade_palette():
+   static void load_arcade_palette(void)
+   {
+       SYS_disableInts();
+       PAL_setColors(0, (const u16 *)genesistan_palette_rom_table, 64, DMA);
+       VDP_waitDMACompletion();
+       SYS_enableInts();
+   }
+   It reads strictly from the static ROM table (greyscale).
+
+d) Proposed Fix:
+   1. Restore `genesistan_palette_buffer[64]` in `startup_bridge.c` (section .bss.patcher).
+   2. Update `main.h` to export it.
+   3. Update `specs/startup_title_remap.json`:
+      - Add `genesistan_palette_buffer` to `required_symbols`.
+      - Add a specific `window_rewrite_rule` mapping `0x00200000` (size 0x80) to `genesistan_palette_buffer`. This ensures arcade writes target the buffer.
+   4. Update `main.c`:
+      - Change `load_arcade_palette()` to load from `genesistan_palette_buffer`.
+      - Keep `genesistan_palette_rom_table` as a fallback or initialiser if needed, but the runtime load must use the buffer populated by the arcade code.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROBLEM 2 — Static hook position
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+a) Workram values:
+   0x055E54 : NOP MOVE.L #0xC00400, 0x10A0(A5)
+   0x055818 : NOP ADDIL #0xC08000,D0 + MOVE.L D0,0x10A0(A5)
+   0x0556F2 : NOP C-Window addr store (0x556F2-0x556FB). addil #0xC08000,d1 + movel d1,a5@(4260)
+   0x05577E : NOP second C-Window addr store to A5@(4260)
+   Confirmed: The pointer initialization and advancement stores are NOPped. The slots at 0x10A0 and 0x10A4 will remain 0 at runtime.
+
+b) Call frequency:
+   Based on the loop structure filling a 64x32 tile plane:
+   Calls per row: 4 (64 tiles / 16 tiles per call)
+   Calls per frame: 128 (4 calls/row * 32 rows)
+   The arcade code iterates linearly through the nametable.
+
+c) Screen coverage calculation:
+   Calls per row: 4
+   Calls for full plane: 128
+   Starting VRAM addr (row 8 col 0): 0xC400
+   Each call advances by: 32 bytes
+
+d) Proposed Fix:
+   Implement static counters in `main.c`: `plane_a_idx` and `plane_b_idx`.
+   
+   Reset logic:
+   - Reset both to 0 at the start of `SCREEN_FRONTEND_LIVE` loop (before `genesistan_run_original_frontend_tick`).
+   
+   Hook logic (plane_a example):
+   - Calculate VRAM address:
+     `row = (plane_a_idx / 4) + 8;` (Start at row 8)
+     `col = (plane_a_idx % 4) * 16;`
+     `VDP_setTileMapXY(BG_A, ..., col, row);`
+   - Increment `plane_a_idx`.
+   - Optional: Cap or wrap `plane_a_idx` to prevent overflow if the arcade code spins.
+   
+   This mimics the linear pointer advancement of the original code without needing to emulate the pointer math itself.
+
+Confidence: High. The diagnosis aligns with the known NOP strategy and the behavior of the tilemap generator.
+
+## [Cody - Build 114 Pre-Research,
+##  Palette + Hook Position]
+```text
+RESEARCH SCOPE
+- No code changes, no build.
+- Investigated Build 113 palette loss and static hook position behavior.
+
+COMMAND OUTPUTS (VERBATIM)
+
+1) grep -n "wram_overlay\|200000" specs/startup_title_remap.json | head -20
+9:    "launcher_reserved_rom_end_exclusive": "0x200000",
+65:      "name": "shadow_200000",
+66:      "start": "0x00200000",
+133:    "wram_overlay",
+225:      "name": "helper_200000_init",
+330:          "old": "0x00200000",
+331:          "symbol": "wram_overlay"
+405:          "old": "0x00200000",
+406:          "symbol": "wram_overlay"
+509:          "old": "0x00200000",
+510:          "symbol": "wram_overlay"
+561:      "range": "helper_200000_init",
+564:          "old": "0x00200000",
+565:          "symbol": "wram_overlay"
+630:          "old": "0x00200000",
+631:          "symbol": "wram_overlay"
+635:          "symbol": "wram_overlay",
+713:      "old_start": "0x00200000",
+715:      "symbol": "wram_overlay"
+830:      "replacement_bytes": "4eb9002000004e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+
+2) python3 -c "... syms ... wram_overlay ..."
+wram_overlay: 0xE0FF5AC0
+
+3) python3 -c "... syms ... palette_buffer + wram_overlay ..."
+palette_buffer: 0x00000000
+wram_overlay:   0xE0FF5AC0
+
+4) grep -n "load_arcade_palette" apps/rastan/src/main.c
+605:static void load_arcade_palette(void)
+1567:            load_arcade_palette();        /* Build 104 */
+
+5) sed -n '/^static void load_arcade_palette/,/^}/p' apps/rastan/src/main.c
+static void load_arcade_palette(void)
+{
+    SYS_disableInts();
+    PAL_setColors(0, (const u16 *)genesistan_palette_rom_table, 64, DMA);
+    VDP_waitDMACompletion();
+    SYS_enableInts();
+}
+
+6) python3 -c "... scan opcode_replace notes for 10a0/10a4/4256/4260 ..."
+0x055968 : NOP tilemap write function A (0x55968-0x5598D). Writes tile data through A5@(425
+0x055990 : NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(426
+0x0556F2 : NOP C-Window addr store (0x556F2-0x556FB). addil #0xC08000,d1 + movel d1,a5@(426
+0x05577E : NOP second C-Window addr store to A5@(4260). addil #0xC08000,d0 + movel d0,a5@(4
+0x055E54 : NOP MOVE.L #0xC00400, 0x10A0(A5). Stores C-Window base into A5 workram slot (ptr
+0x055818 : NOP ADDIL #0xC08000,D0 + MOVE.L D0,0x10A0(A5). Stores advanced C-Window base int
+
+7) grep -B5 "bsr.*55968\|jsr.*55968\|bsr.*55990\|jsr.*55990" build/maincpu.disasm.txt | head -40
+   5593e:\t1014           \tmoveb %a4@,%d0
+   55940:\t33c0 0010 d0a8 \tmovew %d0,0x10d0a8
+   55946:\t4e75           \trts
+   55948:\t0c6d 0000 10a8 \tcmpiw #0,%a5@(4264)
+   5594e:\t660a           \tbnes 0x5595a
+   55950:\t6100 0016      \tbsrw 0x55968
+   55954:\t526d 10ca      \taddqw #1,%a5@(4298)
+   55958:\t6008           \tbras 0x55962
+   5595a:\t6100 0034      \tbsrw 0x55990
+
+8) grep -c "55968\|55990" build/maincpu.disasm.txt
+4
+
+9) python3 -c "... plane coverage math ..."
+Calls per row: 4
+Calls for full plane: 128
+Starting VRAM addr (row 8 col 0): 0xC400
+Each call advances by: 32 bytes
+
+ADDITIONAL EVIDENCE (VERBATIM)
+
+10) grep -n "55948" build/maincpu.disasm.txt | head -20
+101435:   50434:\t6100 5512      \tbsrw 0x55948
+107209:   556fc:\t6100 024a      \tbsrw 0x55948
+107247:   55788:\t6100 01be      \tbsrw 0x55948
+107288:   55822:\t6100 0124      \tbsrw 0x55948
+107365:   55948:\t0c6d 0000 10a8 \tcmpiw #0,%a5@(4264)
+
+11) sed -n '101400,101470p' build/maincpu.disasm.txt
+   503dc:\t6100 5526      \tbsrw 0x55904
+   503e0:\t6100 584c      \tbsrw 0x55c2e
+   503e4:\t0c6d 0001 10a8 \tcmpiw #1,%a5@(4264)
+   503ea:\t6720           \tbeqs 0x5040c
+   503ec:\t23fc 00c0 8000 \tmovel #12615680,0x10d0a0
+   503f2:\t0010 d0a0 
+   503f6:\t23fc 00c0 0000 \tmovel #12582912,0x10d0f8
+   503fc:\t0010 d0f8 
+   50400:\t23fc 00c0 8000 \tmovel #12615680,0x10d0a4
+   50406:\t0010 d0a4 
+   5040a:\t6020           \tbras 0x5042c
+   5040c:\t23fc 00c0 0000 \tmovel #12582912,0x10d0f8
+   50412:\t0010 d0f8 
+   50416:\t23fc 00c0 8000 \tmovel #12615680,0x10d0a0
+   5041c:\t0010 d0a0 
+   50420:\t203c 00c0 bf00 \tmovel #12631808,%d0
+   50426:\t23c0 0010 d0a4 \tmovel %d0,0x10d0a4
+   5042c:\t33fc 0040 0010 \tmovew #64,0x10d0aa
+   50432:\td0aa 
+   50434:\t6100 5512      \tbsrw 0x55948
+   50438:\t6100 5810      \tbsrw 0x55c4a
+   5043c:\t0c6d 0001 10a8 \tcmpiw #1,%a5@(4264)
+   50442:\t6716           \tbeqs 0x5045a
+   50444:\t04b9 0000 3ffc \tsubil #16380,0x10d0a0
+   5044a:\t0010 d0a0 
+   5044e:\t04b9 0000 3ffc \tsubil #16380,0x10d0f8
+   50454:\t0010 d0f8 
+   50458:\t6018           \tbras 0x50472
+   5045a:\t202d 10a4      \tmovel %a5@(4260),%d0
+   5045e:\t0480 0000 0100 \tsubil #256,%d0
+   50464:\t2b40 10a4      \tmovel %d0,%a5@(4260)
+   50468:\t04b9 0000 3ffc \tsubil #16380,0x10d0f8
+   5046e:\t0010 d0f8 
+   50472:\t5379 0010 d0aa \tsubqw #1,0x10d0aa
+   50478:\t0c79 0000 0010 \tcmpiw #0,0x10d0aa
+   5047e:\td0aa 
+   50480:\t66b2           \tbnes 0x50434
+
+12) rg -n "genesistan_arcade_workram_words|memset\(|fill_words\(|10a0|10a4|4256|4260|reset_startup_shadows" apps/rastan/src/main.c apps/rastan/src/startup_bridge.c | head -80
+apps/rastan/src/main.c:1124: * (workram pointers at A5@(4256/4260) are NOPped in spec).
+apps/rastan/src/startup_bridge.c:157:    fill_words(genesistan_arcade_workram_words, 0x2000, 0);
+apps/rastan/src/startup_bridge.c:213:    memset((void *)genesistan_arcade_workram_words,
+apps/rastan/src/startup_bridge.c:214:           0, sizeof(genesistan_arcade_workram_words));
+
+ANSWERS
+
+PROBLEM 1 — Palette lost in Build 113
+
+a) Where does 0x59AD4 output go now?
+- The 0x00200000 region is remapped to symbol `wram_overlay` by multiple rewrite mappings.
+- `wram_overlay` resolves to WRAM address `0xE0FF5AC0`.
+- So palette conversion writes targeting `0x200000+` currently land in/through `wram_overlay` space in WRAM, not a dedicated palette capture symbol.
+
+b) Is `genesistan_palette_buffer` gone?
+- Yes in this build artifact: symbol lookup returns `0x00000000` (missing), while `wram_overlay` is present at `0xE0FF5AC0`.
+
+c) What does current `load_arcade_palette()` read?
+- It reads `genesistan_palette_rom_table` (ROM, pre-converted greyscale placeholder), 64 colors via `PAL_setColors(..., DMA)`.
+- It does not read runtime-converted palette output.
+
+d) Minimum fix + cleaner alternative
+- Minimum fix to restore real colors while preserving ROM fallback:
+  1. Reintroduce a dedicated WRAM capture buffer symbol for runtime palette writes (e.g. 64 or 2048 entries depending write footprint).
+  2. Redirect 0x200000 palette write target(s) to that buffer instead of `wram_overlay`.
+  3. Update `load_arcade_palette()` to prefer capture buffer when populated/valid; fallback to `genesistan_palette_rom_table` otherwise.
+- Cleaner alternative with current structure:
+  - Keep ROM table as fallback exactly as-is, but add a small validity flag (`palette_capture_valid`) set by startup bridge when palette write path is hit; `load_arcade_palette()` switches source based on that flag.
+  - Avoid using `wram_overlay` as capture target because it is launcher scratch and not a palette-dedicated contract.
+
+PROBLEM 2 — Static hook position
+
+a) Are 0x10A0/0x10A4 effectively zero in current flow?
+- Spec evidence confirms the stores feeding A5@(4256)/A5@(4260) are NOPped (`0x055E54`, `0x055818`, `0x0556F2`, `0x05577E`).
+- Startup bridge zeros `genesistan_arcade_workram_words` on reset/init.
+- Therefore these slots remain zero unless written elsewhere (none observed in active path), matching Build 113 fixed-position behavior.
+
+b) How often are 0x55968/0x55990 called and in what order?
+- `0x55948` dispatches exactly one of them per invocation:
+  - if A5@(4264) == 0 -> `bsrw 0x55968`
+  - else -> `bsrw 0x55990`
+- Static callsites to `0x55948`: `0x50434`, `0x556FC`, `0x55788`, `0x55822`.
+- At `0x50434`, there is an explicit loop counter (`0x10D0AA`) set to 64 and looped (`bnes 0x50434`), so this path invokes `0x55948` 64 times in sequence.
+- Exact per-frame totals are data-dependent and cannot be proven from static grep count alone; call count varies by control flow/mode.
+
+c) Coverage math for 64x32 plane with 16 tiles/call
+- Calls per row: 4
+- Calls for full plane: 128
+- Starting row 8 col 0 on Plane B corresponds to VRAM 0xC400
+- Each call advances 32 bytes (16 cells * 2 bytes)
+
+d) Is static per-plane counter sound? Reset point?
+- Sound as a stopgap only if call cadence/order is strictly deterministic.
+- Risks:
+  - Call count is not guaranteed constant each frame.
+  - Dispatcher can switch between A/B paths by mode.
+  - Original code computed/jumped pointers (not purely linear), so a naive counter can drift.
+- Correct reset point for a counter scheme: start of each frontend tick (just before `genesistan_run_original_frontend_tick()`), not VBlank/end-of-tick.
+- More robust than counters: preserve original positional intent by capturing sanitized pointer-derived offset from the former store sites (instead of reconstructing via synthetic linear counters).
+
+PROPOSED FIXES
+
+Problem 1 fix proposal (Build 114)
+- Add dedicated WRAM palette capture buffer + validity flag.
+- Redirect palette RAM write remap (0x200000+) to this symbol.
+- `load_arcade_palette()` source select:
+  - if valid capture present -> use capture buffer
+  - else -> use `genesistan_palette_rom_table` fallback
+
+Problem 2 fix proposal (Build 114)
+- Preferred: restore position contract by recording pointer-derived position (offset/cell) into safe WRAM fields at the original store points.
+- Hook derives `(row,col)` from those fields each call and writes 16 tiles accordingly.
+- If temporary counter approach is used, reset at start of frontend tick and keep separate counters for Plane A/B with wrap at 64 cols and row advance.
+
+CONFIDENCE
+- Problem 1 (a/b/c/d): High
+- Problem 2a/c/d: High
+- Problem 2b exact per-frame count: Medium (static disassembly gives dispatch/callsites/64-loop path, but runtime totals are mode-dependent)
+```
