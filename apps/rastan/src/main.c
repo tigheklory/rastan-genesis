@@ -171,8 +171,9 @@ static const MenuItem menu_items[MENU_COUNT] = {
 
 typedef struct {
     uint16_t rastan_font_tile_buffer[1024];
-    uint16_t frontend_runtime_sprite_tile_buffer[256];
-    uint16_t frontend_runtime_sprite_codes[128];
+    /* 64 unique sprite cells * (2x2 tiles) * (8 u32 words per tile) = 2048 u32. */
+    uint32_t frontend_runtime_sprite_tile_buffer[FRONTEND_RUNTIME_MAX_UNIQUE_CODES * 4 * 8];
+    uint16_t frontend_runtime_sprite_codes[FRONTEND_RUNTIME_MAX_UNIQUE_CODES];
     char     status_line[80];
     /* Add any other scrubbed launcher globals here! */
 } LauncherRuntime;

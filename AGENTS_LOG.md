@@ -13729,3 +13729,58 @@ Remaining issues / next check
 - 0x41DAE/0x3D054 path may still contribute additional objects beyond the two direct blocks.
 - START button ADDRESS ERROR at 040109/041FFE remains out-of-scope for this build.
 ```
+## [Cody - Build 139, Full C-Window + D-Window Direct VDP Replacement]
+```text
+Implementation scope
+- Architecture-compliance implementation for title/front-end live rendering.
+- No temporary diagnostics, forced placeholder sprites, or shadow-driven live rendering path retained.
+
+1) Exact C-window writer/call sites replaced
+- 0x055968 (tilemap write function A) -> JSR 0x00200000 (genesistan_hook_tilemap_plane_a) + RTS
+  - manifest: arcade_pc 0x055968 -> rom_pc 0x055B68
+- 0x055990 (tilemap write function B) -> JSR 0x00200292 (genesistan_hook_tilemap_plane_b) + RTS
+  - manifest: arcade_pc 0x055990 -> rom_pc 0x055B90
+- Corrected the 0x055990 replacement target to current hook symbol address (0x00200292) so Plane B path is live.
+
+2) Exact D-window writer/call sites replaced
+- 0x041F5E -> RTS (replacement 4E75)
+  - manifest: arcade_pc 0x041F5E -> rom_pc 0x04215E
+- 0x041DAE -> RTS (replacement 4E75)
+  - manifest: arcade_pc 0x041DAE -> rom_pc 0x041FAE
+- 0x045DFA -> RTS (replacement 4E75)
+  - manifest: arcade_pc 0x045DFA -> rom_pc 0x045FFA
+- These were the active title/front-end D-window object/sprite writer routines. They are now bypassed in favor of direct Genesis sprite rendering logic.
+
+3) Runtime functions now responsible for Genesis tilemap rendering
+- genesistan_hook_tilemap_plane_a()
+- genesistan_hook_tilemap_plane_b()
+- tile_cache_get() + tile_cache_slot_to_vram() for PC080SN tile -> Genesis VRAM mapping
+- sync_arcade_scroll_to_vdp() for scroll register application to Plane A/B
+
+4) Runtime functions now responsible for Genesis sprite rendering
+- render_frontend_sprite_layer() (live frontend sprite renderer)
+- frontend_runtime_tile_for_code()
+- frontend_decode_pc090oj_cell()
+- refresh_frontend_sprite_palettes()
+- Sprite source is direct workram descriptor blocks (A5+0x11B2 and A5+0x0170), not D-window shadow memory.
+
+5) Shadow-based rendering dependencies removed/bypassed
+- Removed live SCREEN_FRONTEND_LIVE dependency on captured A0/D-window pointer path.
+- Removed live use of genesistan_shadow_d00000_words in main frontend rendering.
+- Retired D-window writer routines (0x041F5E / 0x041DAE / 0x045DFA) via opcode replacement to RTS.
+- Removed forced/one-shot diagnostic sprite path from live rendering flow.
+
+6) Remaining shadow usage and why it is NOT part of live rendering anymore
+- genesistan_shadow_d00000_words remains declared/reset in startup_bridge/spec for compatibility/safety with existing remap surface, but is no longer read by SCREEN_FRONTEND_LIVE rendering logic.
+- genesistan_shadow_c20000_words / genesistan_shadow_c40000_words remain for scroll register capture and are consumed by sync_arcade_scroll_to_vdp(); this is scroll control mapping, not C-window tilemap shadow rendering.
+
+7) Build result
+- PASS
+- Command: source tools/setup_env.sh && make -C apps/rastan clean && make -C apps/rastan
+- Produced release artifact from build system: dist/Rastan_152.bin
+- Build 139 named copy produced: dist/Rastan_139.bin
+
+8) Blocker that prevented full compliance
+- None for title/front-end architecture compliance target in this build.
+- Execution-block literal sanity check after build: D00048=[], D003C2=[], C09EA0=[]
+```

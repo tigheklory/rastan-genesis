@@ -1078,8 +1078,8 @@
       "arcade_pc": "0x055990",
       "rom_pc": "0x055B90",
       "original_bytes": "206d10a47210227c0010d080267c0010d04024536100006e588b5489534166f2",
-      "replacement_bytes": "4eb9002000f04e754e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Will become VDP nametable writes. [Build 114: JSR to genesistan_hook_tilemap_plane_b at 0x2000F0 + RTS]"
+      "replacement_bytes": "4eb9002002924e754e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Replaced with JSR genesistan_hook_tilemap_plane_b + RTS."
     },
     {
       "kind": "opcode_replace",
@@ -1451,6 +1451,30 @@
     },
     {
       "kind": "opcode_replace",
+      "arcade_pc": "0x041F5E",
+      "rom_pc": "0x04215E",
+      "original_bytes": "41ed",
+      "replacement_bytes": "4e75",
+      "note": "RTS out of D-window sprite copy routine 0x41F5E. Frontend sprite path now uses direct Genesis VDP rendering from workram descriptor blocks."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x041DAE",
+      "rom_pc": "0x041FAE",
+      "original_bytes": "49ed",
+      "replacement_bytes": "4e75",
+      "note": "RTS out of D-window object writer 0x41DAE. Prevents runtime dependency on PC090OJ window writes in frontend live mode."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x045DFA",
+      "rom_pc": "0x045FFA",
+      "original_bytes": "49ed",
+      "replacement_bytes": "4e75",
+      "note": "RTS out of alternate D-window object writer 0x45DFA (frontend/title variant). Rendering is handled by direct VDP sprite path."
+    },
+    {
+      "kind": "opcode_replace",
       "arcade_pc": "0x0004AA",
       "rom_pc": "0x0006AA",
       "original_bytes": "34c2",
@@ -1550,7 +1574,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x412B",
+  "checksum": "0x76E8",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x002171D6",

@@ -749,6 +749,6 @@ e0ff6128 b planeWidthSft
 e0ff612a b planeHeight
 e0ff612c b planeWidth
 e0ff6130 b wram_overlay
-e0ff6c80 b selected_menu
-e0ff6c81 B _bend
+e0ff8a00 b selected_menu
+e0ff8a01 B _bend
 e1000000 A __stack
