@@ -85,8 +85,8 @@ uint16_t genesistan_tile_cache_lru[TILE_CACHE_SLOTS]
 uint16_t genesistan_tile_cache_clock
     __attribute__((section(".bss.patcher")));
 
-/* Captured CLCS palette writes from arcade 0x200000-0x20007F (Build 114). */
-uint16_t genesistan_palette_clcs[64]
+/* Captured CLCS palette writes from arcade palette RAM space (Build 141). */
+uint16_t genesistan_palette_clcs[2048]
     __attribute__((section(".bss.patcher")));
 
 /* Tilemap hook cursors (Build 114). */

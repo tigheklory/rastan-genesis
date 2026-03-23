@@ -15,7 +15,7 @@ extern volatile uint16_t genesistan_arcade_workram_words[0x2000];
 extern volatile uint16_t genesistan_shadow_d00000_words[0x0400];
 extern volatile uint16_t genesistan_shadow_c20000_words[2];
 extern volatile uint16_t genesistan_shadow_c40000_words[2];
-extern uint16_t genesistan_palette_clcs[64];
+extern uint16_t genesistan_palette_clcs[2048];
 /* Palette ROM table: 2048 Genesis-format entries, filled by patcher (Build 113). */
 extern const uint16_t genesistan_palette_rom_table[2048];
 

@@ -327,6 +327,7 @@ void genesistan_hook_tilemap_plane_b(void);
 static void clear_frontend_sprite_layer(void);
 static void scrub_launcher_runtime_buffers(void);
 static u16 convert_xbgr555_to_genesis(u16 raw);
+static u16 convert_clcs_to_genesis(u16 raw);
 static u16 frontend_palette_line_for_bank(u16 bank, u16 *bank_map, u16 *bank_count);
 static void frontend_decode_pc090oj_cell(u16 code, u32 *dst_tiles);
 static s16 frontend_runtime_tile_for_code(u16 code, u16 *unique_count);
@@ -597,16 +598,23 @@ static void load_arcade_palette(void)
 {
     uint16_t buf[64];
     uint16_t i;
-    bool clcs_empty = TRUE;
+    uint16_t block = 0xFFFFU;
+    uint16_t b;
 
-    for (i = 0; i < 64; i++) {
-        if (genesistan_palette_clcs[i] != 0) {
-            clcs_empty = FALSE;
+    for (b = 0; b < (2048U / 64U); b++) {
+        const uint16_t base = (uint16_t)(b * 64U);
+        for (i = 0; i < 64U; i++) {
+            if (genesistan_palette_clcs[base + i] != 0) {
+                block = b;
+                break;
+            }
+        }
+        if (block != 0xFFFFU) {
             break;
         }
     }
 
-    if (clcs_empty) {
+    if (block == 0xFFFFU) {
         SYS_disableInts();
         PAL_setColors(0, (const u16 *)genesistan_palette_rom_table, 64, DMA);
         VDP_waitDMACompletion();
@@ -614,11 +622,9 @@ static void load_arcade_palette(void)
         return;
     }
 
-    for (i = 0; i < 64; i++) {
-        const uint16_t c = genesistan_palette_clcs[i];
-        buf[i] = ((c >> 1) & 0x000EU)
-               | ((c >> 2) & 0x00E0U)
-               | ((c >> 3) & 0x0E00U);
+    for (i = 0; i < 64U; i++) {
+        const uint16_t c = genesistan_palette_clcs[(block * 64U) + i];
+        buf[i] = convert_clcs_to_genesis(c);
     }
 
     SYS_disableInts();
@@ -978,6 +984,13 @@ static u16 convert_xbgr555_to_genesis(u16 raw)
     return (u16)((bn << 8) | (gn << 4) | rn);
 }
 
+static u16 convert_clcs_to_genesis(u16 raw)
+{
+    return (u16)(((raw >> 1) & 0x000EU)
+               | ((raw >> 2) & 0x00E0U)
+               | ((raw >> 3) & 0x0E00U));
+}
+
 static u16 frontend_palette_line_for_bank(u16 bank, u16 *bank_map, u16 *bank_count)
 {
     u16 i;
@@ -1068,7 +1081,10 @@ static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count
 
         for (color = 0; color < 16; color++)
         {
-            const u16 gen = genesistan_palette_rom_table[base + color];
+            const u16 clcs = genesistan_palette_clcs[base + color];
+            const u16 gen = (clcs != 0)
+                ? convert_clcs_to_genesis(clcs)
+                : genesistan_palette_rom_table[base + color];
             PAL_setColor((line * 16) + color, gen);
         }
     }
@@ -1132,21 +1148,41 @@ static uint16_t tile_cache_get(uint16_t arcade_tile)
 /*
  * JSR hooks called from arcade tilemap write functions
  * (0x055968 → plane_a, 0x055990 → plane_b).
- * Read 16 tile codes from workram[0x1080..] and 16 attribute pointers
- * from workram[0x1040..] (4-byte stride), then dereference attr at ptr+32.
- * Write to VDP Plane A (FG) and Plane B (BG) respectively.
  *
- * Position: cursor-driven (Build 114), reset once per frontend tick.
- * Original workram pointers at A5@(4256/4260) are NOPped in spec.
+ * Build 140: Reads tile codes directly from Genesis ROM.
  *
- * Palette bits from attribute: bits 8:7 → Genesis palette line.
- * Flip bits: bit 15 = vflip, bit 14 = hflip.
+ * Root cause of prior blank output (Build 116-139): workram[0x1040/0x1080]
+ * are NEVER populated.  The setup routine at 0x55904 (which fills them) is
+ * NOPped, and even if it ran, the absolute addresses 0x10D040/0x10D080 are
+ * not remapped to Genesis WRAM — so 0x55904's writes miss the buffer entirely.
+ *
+ * Fix: read the same ROM data the arcade code would have accessed.
+ * Arcade code at 0x502CC computes, for each of 16 tile slots i=0..15:
+ *   row_ptr[i] = (0x1691C + i*0x22C0) + frame_ctr*64   (arcade ROM addr)
+ *   tile_code  = word at row_ptr[i]+0
+ *   attr_raw   = word at row_ptr[i]+2
+ *
+ * In Genesis ROM the maincpu copy is relocated by +0x200, so:
+ *   genesis_addr = arcade_addr + 0x200
+ *   → TILEMAP_ROM_BASE = 0x1691C + 0x200 = 0x16B1C
+ *
+ * frame_ctr = A5@(0x13E) = genesistan_arcade_workram_words[0x9F]
+ * (byte value 0-255, populated each tick by game code at 0x50248-0x5025A).
+ *
+ * Layer mapping (AGENTS.md):
+ *   mode==0 (0x55968) → arcade BG layer 0 → Genesis Plane B (BG_B)
+ *   mode!=0 (0x55990) → arcade FG layer 1 → Genesis Plane A (BG_A)
+ *
+ * Position: cursor-driven, reset once per frontend tick.
  */
+#define TILEMAP_ROM_BASE   0x16B1CUL  /* 0x1691C + 0x200 reloc */
+#define TILEMAP_ROW_STRIDE 0x22C0UL   /* bytes between successive row entries */
+#define TILEMAP_FRAME_STEP 64UL       /* bytes advanced per frame_ctr unit */
+
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_hook_tilemap_plane_a(void)
 {
-    const uint8_t *a3 = (const uint8_t *)genesistan_arcade_workram_words + 0x1040;
-    const uint8_t *a1 = (const uint8_t *)genesistan_arcade_workram_words + 0x1080;
+    const uint16_t frame_ctr = genesistan_arcade_workram_words[0x9FU]; /* A5@(0x13E) */
     const uint16_t mode = genesistan_arcade_workram_words[0x854U];
     const uint16_t col = genesistan_hook_col_a;
     const uint16_t row = genesistan_hook_row_a;
@@ -1158,24 +1194,19 @@ void genesistan_hook_tilemap_plane_a(void)
 
     SYS_disableInts();
     for (i = 0; i < 16; i++) {
-        const uint32_t ptr = ((uint32_t)a3[(i * 4U) + 0U] << 24)
-                           | ((uint32_t)a3[(i * 4U) + 1U] << 16)
-                           | ((uint32_t)a3[(i * 4U) + 2U] <<  8)
-                           |  (uint32_t)a3[(i * 4U) + 3U];
-        uint16_t attr = 0;
-        if (ptr >= 0x0010C000UL && (ptr + 34U) <= 0x00110000UL) {
-            const uint8_t *s = (const uint8_t *)genesistan_arcade_workram_words
-                             + (ptr - 0x0010C000UL) + 32U;
-            attr = ((uint16_t)s[0] << 8) | s[1];
-        }
-        const uint16_t code = ((uint16_t)a1[(i * 2U) + 0U] << 8) | a1[(i * 2U) + 1U];
+        const uint32_t rom_addr  = TILEMAP_ROM_BASE
+                                 + (uint32_t)i * TILEMAP_ROW_STRIDE
+                                 + (uint32_t)frame_ctr * TILEMAP_FRAME_STEP;
+        const uint16_t code      = *(const uint16_t *)rom_addr;
+        const uint16_t attr_raw  = *(const uint16_t *)(rom_addr + 2UL);
         const uint16_t arcade_tile = code & 0x3FFFU;
         const uint16_t vram_tile   = tile_cache_get(arcade_tile);
-        const uint16_t pal         = (attr >> 7) & 0x3U;
-        const uint16_t vflip       = (attr >> 15) & 1U;
-        const uint16_t hflip       = (attr >> 14) & 1U;
+        const uint16_t pal         = (attr_raw >> 7) & 0x3U;
+        const uint16_t vflip       = (attr_raw >> 15) & 1U;
+        const uint16_t hflip       = (attr_raw >> 14) & 1U;
 
-        VDP_setTileMapXY(BG_A,
+        /* mode==0 → arcade BG layer 0 → Genesis Plane B */
+        VDP_setTileMapXY(BG_B,
             TILE_ATTR_FULL(pal, 1, vflip, hflip, vram_tile),
             col + i, row);
     }
@@ -1195,8 +1226,7 @@ void genesistan_hook_tilemap_plane_a(void)
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_hook_tilemap_plane_b(void)
 {
-    const uint8_t *a3 = (const uint8_t *)genesistan_arcade_workram_words + 0x1040;
-    const uint8_t *a1 = (const uint8_t *)genesistan_arcade_workram_words + 0x1080;
+    const uint16_t frame_ctr = genesistan_arcade_workram_words[0x9FU]; /* A5@(0x13E) */
     const uint16_t mode = genesistan_arcade_workram_words[0x854U];
     const uint16_t col = genesistan_hook_col_b;
     const uint16_t row = genesistan_hook_row_b;
@@ -1208,24 +1238,19 @@ void genesistan_hook_tilemap_plane_b(void)
 
     SYS_disableInts();
     for (i = 0; i < 16; i++) {
-        const uint32_t ptr = ((uint32_t)a3[(i * 4U) + 0U] << 24)
-                           | ((uint32_t)a3[(i * 4U) + 1U] << 16)
-                           | ((uint32_t)a3[(i * 4U) + 2U] <<  8)
-                           |  (uint32_t)a3[(i * 4U) + 3U];
-        uint16_t attr = 0;
-        if (ptr >= 0x0010C000UL && (ptr + 34U) <= 0x00110000UL) {
-            const uint8_t *s = (const uint8_t *)genesistan_arcade_workram_words
-                             + (ptr - 0x0010C000UL) + 32U;
-            attr = ((uint16_t)s[0] << 8) | s[1];
-        }
-        const uint16_t code = ((uint16_t)a1[(i * 2U) + 0U] << 8) | a1[(i * 2U) + 1U];
+        const uint32_t rom_addr  = TILEMAP_ROM_BASE
+                                 + (uint32_t)i * TILEMAP_ROW_STRIDE
+                                 + (uint32_t)frame_ctr * TILEMAP_FRAME_STEP;
+        const uint16_t code      = *(const uint16_t *)rom_addr;
+        const uint16_t attr_raw  = *(const uint16_t *)(rom_addr + 2UL);
         const uint16_t arcade_tile = code & 0x3FFFU;
         const uint16_t vram_tile   = tile_cache_get(arcade_tile);
-        const uint16_t pal         = (attr >> 7) & 0x3U;
-        const uint16_t vflip       = (attr >> 15) & 1U;
-        const uint16_t hflip       = (attr >> 14) & 1U;
+        const uint16_t pal         = (attr_raw >> 7) & 0x3U;
+        const uint16_t vflip       = (attr_raw >> 15) & 1U;
+        const uint16_t hflip       = (attr_raw >> 14) & 1U;
 
-        VDP_setTileMapXY(BG_B,
+        /* mode!=0 → arcade FG layer 1 → Genesis Plane A */
+        VDP_setTileMapXY(BG_A,
             TILE_ATTR_FULL(pal, 1, vflip, hflip, vram_tile),
             col + i, row);
     }

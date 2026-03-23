@@ -309,25 +309,25 @@
     {
       "range": "startup_common",
       "old": "0x00390001",
-      "new": "0xE0FF48F3",
+      "new": "0xE0FF5873",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390003",
-      "new": "0xE0FF48F2",
+      "new": "0xE0FF5872",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390005",
-      "new": "0xE0FF48F1",
+      "new": "0xE0FF5871",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390007",
-      "new": "0xE0FF48F0",
+      "new": "0xE0FF5870",
       "count": 0
     },
     {
@@ -411,31 +411,31 @@
     {
       "range": "frontend_core",
       "old": "0x00390001",
-      "new": "0xE0FF48F3",
+      "new": "0xE0FF5873",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390003",
-      "new": "0xE0FF48F2",
+      "new": "0xE0FF5872",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390005",
-      "new": "0xE0FF48F1",
+      "new": "0xE0FF5871",
       "count": 7
     },
     {
       "range": "frontend_core",
       "old": "0x00390007",
-      "new": "0xE0FF48F0",
+      "new": "0xE0FF5870",
       "count": 7
     },
     {
       "range": "frontend_core",
       "old": "0x00200000",
-      "new": "0xE0FF6130",
+      "new": "0xE0FF70B0",
       "count": 0
     },
     {
@@ -549,31 +549,31 @@
     {
       "range": "title_init_block",
       "old": "0x00390001",
-      "new": "0xE0FF48F3",
+      "new": "0xE0FF5873",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390003",
-      "new": "0xE0FF48F2",
+      "new": "0xE0FF5872",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390005",
-      "new": "0xE0FF48F1",
+      "new": "0xE0FF5871",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390007",
-      "new": "0xE0FF48F0",
+      "new": "0xE0FF5870",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00200000",
-      "new": "0xE0FF6130",
+      "new": "0xE0FF70B0",
       "count": 1
     },
     {
@@ -633,7 +633,7 @@
     {
       "range": "helper_200000_init",
       "old": "0x00200000",
-      "new": "0xE0FF6130",
+      "new": "0xE0FF70B0",
       "count": 0
     },
     {
@@ -687,25 +687,25 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00200000",
-      "new": "0xE0FF6130",
+      "new": "0xE0FF70B0",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00201000",
-      "new": "0xE0FF7130",
+      "new": "0xE0FF80B0",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390001",
-      "new": "0xE0FF48F3",
+      "new": "0xE0FF5873",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390007",
-      "new": "0xE0FF48F0",
+      "new": "0xE0FF5870",
       "count": 2
     },
     {
@@ -952,7 +952,7 @@
       "new_window_start": "0xE0FF404C",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
-      "count": 1
+      "count": 0
     },
     {
       "range": "game_engine_040000",
@@ -1016,14 +1016,14 @@
       "kind": "shim_jump",
       "old_start": "0x03F284",
       "old_end_exclusive": "0x03F29C",
-      "new_target": "0x00201C18"
+      "new_target": "0x00201A3C"
     },
     {
       "range": "helper_3f09c_reg_status",
       "kind": "shim_jump",
       "old_start": "0x03F29C",
       "old_end_exclusive": "0x03F2AC",
-      "new_target": "0x00201C48"
+      "new_target": "0x00201A6C"
     },
     {
       "kind": "opcode_replace",
@@ -1064,6 +1064,14 @@
       "original_bytes": "32fc0020",
       "replacement_bytes": "4e714e71",
       "note": "NOP movew #32,%a1@+ in boot text fill loop. Ghidra Build 125 report listed this as 0x000718 in relocated ROM view."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x00052A",
+      "rom_pc": "0x00072A",
+      "original_bytes": "41f9e0ff004c",
+      "replacement_bytes": "4e754e714e71",
+      "note": "RTS out of startup hardware probe routine that scans C-window/D-window ranges. Prevents early accesses to unmapped arcade window space on Genesis."
     },
     {
       "kind": "opcode_replace",
@@ -1144,6 +1152,22 @@
       "original_bytes": "13fc002000c09ea3",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP MOVE.B #0x20, 0xC09EA3. Direct C-Window write."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A6B2",
+      "rom_pc": "0x03A8B2",
+      "original_bytes": "4eb900055fdc",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP JSR 0x55DDC from title/front-end flow. Avoids unstable helper path that reaches ADDRESS ERROR around 0x055D0A on Genesis."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A860",
+      "rom_pc": "0x03AA60",
+      "original_bytes": "4eb900055fdc",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP second JSR 0x55DDC callsite in title/front-end flow. Same crash-avoidance as 0x03A6B2."
     },
     {
       "kind": "opcode_replace",
@@ -1547,7 +1571,7 @@
     },
     {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x39FBB4",
+      "rom_offset": "0x39F3B4",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1560,24 +1584,24 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x00201C96",
+    "jumps_to": "0x00201ABA",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
     "writes_status_to": "0xE0FF4858",
     "value": 2,
-    "jumps_exit_to": "0x00201CD2",
+    "jumps_exit_to": "0x00201AF6",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x76E8",
+  "checksum": "0x2C2F",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x002171D6",
+    "reset_pc": "0x00216952",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

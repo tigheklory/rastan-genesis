@@ -1029,6 +1029,12 @@
       "note": "NOP movew #32,%a1@+ in boot text fill loop. Ghidra Build 125 report listed this as 0x000718 in relocated ROM view."
     },
     {
+      "arcade_pc": "0x00052A",
+      "original_bytes": "41f9e0ff004c",
+      "replacement_bytes": "4e754e714e71",
+      "note": "RTS out of startup hardware probe routine that scans C-window/D-window ranges. Prevents early accesses to unmapped arcade window space on Genesis."
+    },
+    {
       "arcade_pc": "0x055968",
       "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
       "replacement_bytes": "4eb9002000004e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1087,6 +1093,18 @@
       "original_bytes": "13fc002000c09ea3",
       "replacement_bytes": "4E714E714E714E71",
       "note": "NOP MOVE.B #0x20, 0xC09EA3. Direct C-Window write."
+    },
+    {
+      "arcade_pc": "0x03A6B2",
+      "original_bytes": "4eb900055fdc",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP JSR 0x55DDC from title/front-end flow. Avoids unstable helper path that reaches ADDRESS ERROR around 0x055D0A on Genesis."
+    },
+    {
+      "arcade_pc": "0x03A860",
+      "original_bytes": "4eb900055fdc",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP second JSR 0x55DDC callsite in title/front-end flow. Same crash-avoidance as 0x03A6B2."
     },
     {
       "arcade_pc": "0x03AC54",

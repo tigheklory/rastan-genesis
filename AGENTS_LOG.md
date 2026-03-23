@@ -13784,3 +13784,275 @@ Implementation scope
 - None for title/front-end architecture compliance target in this build.
 - Execution-block literal sanity check after build: D00048=[], D003C2=[], C09EA0=[]
 ```
+
+## [Andy - Build 140, C-Window Direct ROM Read Tilemap Fix]
+```
+Date: 2026-03-23
+Build: 140
+Artifact: dist/Rastan_140.bin (build system counter: 153)
+Focus: Fix C-window tilemap hooks to produce real visible tile output
+
+1) Root cause analysis of blank tilemap (Builds 116–139)
+The two tilemap hooks (genesistan_hook_tilemap_plane_a / _plane_b) were
+reading tile codes from:
+  genesistan_arcade_workram_words + 0x1040  (attr pointers)
+  genesistan_arcade_workram_words + 0x1080  (tile codes)
+These buffer regions are NEVER populated. The setup routine at 0x55904
+(which fills them) is NOPped in the spec. Even if it ran, the absolute
+addresses 0x10D040/0x10D080 that it writes to are NOT remapped to Genesis
+WRAM in the game_engine_040000 spec range — so all writes silently go to
+Genesis ROM addresses and are lost. Result: hooks always see zero tile codes,
+always call tile_cache_get(0), always render tile 0 (solid color).
+
+2) Additional bug: layer assignment was inverted
+  plane_a hook (mode==0, arcade BG layer 0) was writing to BG_A — WRONG
+  plane_b hook (mode!=0, arcade FG layer 1) was writing to BG_B — WRONG
+Per AGENTS.md: "Arcade BG layer 0 → Genesis Plane B", "Arcade FG layer 1 → Genesis Plane A"
+
+3) Fix: direct ROM read
+Arcade code at 0x502CC computes 16 row pointers:
+  row_ptr[i] = (0x1691C + i * 0x22C0) + frame_ctr * 64   (arcade addr)
+  tile_code = word at row_ptr[i]+0
+  attr_raw  = word at row_ptr[i]+2
+In Genesis ROM, maincpu is relocated by +0x200, so:
+  TILEMAP_ROM_BASE = 0x1691C + 0x200 = 0x16B1C
+Note: 0x1691C is stored via movel #imm,Dn (opcode 0x203C) which is NOT
+relocated by the patcher (only MOVEA.L An forms 0x207C–0x2E7C are relocated).
+frame_ctr = A5@(0x13E) = genesistan_arcade_workram_words[0x9F] (byte 0–255),
+populated each tick by game code at 0x50248–0x5025A.
+
+4) Changes made
+apps/rastan/src/main.c:
+- Added defines: TILEMAP_ROM_BASE 0x16B1CUL, TILEMAP_ROW_STRIDE 0x22C0UL,
+  TILEMAP_FRAME_STEP 64UL
+- genesistan_hook_tilemap_plane_a: removed broken workram[0x1040/0x1080]
+  reads; replaced with direct ROM read at TILEMAP_ROM_BASE + i*STRIDE +
+  frame_ctr*STEP; fixed layer assignment to BG_B (arcade BG layer 0)
+- genesistan_hook_tilemap_plane_b: same ROM read approach; fixed layer
+  assignment to BG_A (arcade FG layer 1)
+- Palette extracted as (attr_raw >> 7) & 3
+
+No spec changes required — this is a pure C hook fix.
+
+5) What to expect visually
+Tiles should now appear in Plane B (background). ROM data at 0x16B1C
+confirms tile codes for frame_ctr=0 are predominantly 0x0003 (tile 3),
+varying to 0x0004, 0x0006, 0x0007 at higher frame_ctr values. The
+tile cache will load those tiles from rastan_pc080sn ROM on first access.
+Note: mode==0 always (workram[0x854] is zero-initialized and not explicitly
+set by active code), so only plane_a fires each tick; plane_b never fires
+until mode becomes non-zero.
+
+6) Build result
+- PASS
+- Command: source tools/setup_env.sh && make -C apps/rastan release
+- Produced release artifact from build system: dist/Rastan_153.bin
+- Build 140 named copy produced: dist/Rastan_140.bin
+```
+
+## [Cody - Build 141, Exodus instant crash + palette regression + 055D0A]
+```text
+DATE: 2026-03-23
+BUILD: 141
+OUTPUT: dist/Rastan_141.bin
+
+SCOPE
+- Read AGENTS_LOG.md in full before edits.
+- Investigated/fixed 3 reported regressions:
+  1) Exodus instant crash path (early startup probe touching arcade windows)
+  2) Frontend greyscale palette regression
+  3) ADDRESS ERROR chain involving 0x055D0A / 0x055F0A path
+
+ISSUE 1 — EXODUS INSTANT CRASH (C-window/VDP-port-touching startup path)
+
+Requested check at source ROM offsets 0x000DF0..0x000F20:
+bytes 0x000DF0-0x000F20:
+000DF0: ffffffffffffffffffffffffffffffff
+000E00: ffffffffffffffffffffffffffffffff
+000E10: ffffffffffffffffffffffffffffffff
+000E20: ffffffffffffffffffffffffffffffff
+000E30: ffffffffffffffffffffffffffffffff
+000E40: ffffffffffffffffffffffffffffffff
+000E50: ffffffffffffffffffffffffffffffff
+000E60: ffffffffffffffffffffffffffffffff
+000E70: ffffffffffffffffffffffffffffffff
+000E80: ffffffffffffffffffffffffffffffff
+000E90: ffffffffffffffffffffffffffffffff
+000EA0: ffffffffffffffffffffffffffffffff
+000EB0: ffffffffffffffffffffffffffffffff
+000EC0: ffffffffffffffffffffffffffffffff
+000ED0: ffffffffffffffffffffffffffffffff
+000EE0: ffffffffffffffffffffffffffffffff
+000EF0: ffffffffffffffffffffffffffffffff
+000F00: ffffffffffffffffffffffffffffffff
+000F10: ffffffffffffffffffffffffffffffff
+
+No executable code exists in that slice of maincpu.bin.
+
+Applied targeted startup stability patch:
+- Added opcode_replace at arcade_pc 0x00052A:
+  - original_bytes: 41f9e0ff004c  (ROM-form after rewrite)
+  - replacement_bytes: 4e754e714e71
+  - effect: early-return from startup hardware probe routine that scans arcade window ranges.
+
+Build-time byte guard adjustment detail:
+- Initial guard used source-form 41f90010c000; postpatch validation expected ROM-form 41f9e0ff004c.
+- Updated guard to ROM-form; build then passed.
+
+ISSUE 2 — GREYSCALE PALETTE REGRESSION
+
+Root cause fixed in runtime C code:
+- Sprite palette refresh path was forcing colors from genesistan_palette_rom_table fallback each frame,
+  which re-introduced greyscale over runtime CLCS colors.
+
+Changes made:
+1) Expanded CLCS capture buffer capacity:
+- apps/rastan/src/startup_bridge.c
+  - genesistan_palette_clcs[64] -> genesistan_palette_clcs[2048]
+- apps/rastan/inc/main.h
+  - extern declaration updated to [2048]
+
+2) Updated palette conversion source logic:
+- apps/rastan/src/main.c
+  - Added helper: convert_clcs_to_genesis(raw)
+  - load_arcade_palette():
+    - scans 2048-word CLCS buffer in 64-color blocks
+    - chooses first non-empty block
+    - converts CLCS -> Genesis for PAL_setColors
+    - keeps ROM-table fallback only if no CLCS block is populated
+
+3) Stopped sprite pass from forcing grayscale table values:
+- apps/rastan/src/main.c, refresh_frontend_sprite_palettes():
+  - now prefers runtime CLCS value per color (converted)
+  - falls back to genesistan_palette_rom_table only when CLCS value is zero
+
+ISSUE 3 — ADDRESS ERROR PATH (reported around 0x055F0A / arcade 0x055D0A)
+
+Source disassembly check:
+- arcade_pc 0x055D0A bytes: 0c6d0003004a (cmpiw #3,%a5@(74))
+- two callsites enter helper path via JSR 0x55DDC:
+  - arcade_pc 0x03A6B2 bytes: 4eb900055ddc
+  - arcade_pc 0x03A860 bytes: 4eb900055ddc
+
+Applied targeted fix:
+- NOP both callsites feeding that unstable helper path:
+  - opcode_replace 0x03A6B2
+    - original_bytes: 4eb900055fdc (ROM-form)
+    - replacement_bytes: 4e714e714e71
+  - opcode_replace 0x03A860
+    - original_bytes: 4eb900055fdc (ROM-form)
+    - replacement_bytes: 4e714e714e71
+
+Build-time byte guard adjustment detail:
+- Initial guard used source-form target (..55ddc); postpatch validation expected ROM-form (..55fdc).
+- Updated both entries to ROM-form; build then passed.
+
+BUILD
+- Command:
+  source tools/setup_env.sh && make -C apps/rastan clean && make -C apps/rastan
+- Result: PASS
+- Release emitted by build system: dist/Rastan_157.bin
+- Build 141 named output created:
+  cp dist/Rastan_157.bin dist/Rastan_141.bin
+
+MANIFEST VERIFICATION
+- build/rastan/startup_common_rom_manifest.json:
+  - 0x00052A -> 0x00072A : OK
+  - 0x03A6B2 -> 0x03A8B2 : OK
+  - 0x03A860 -> 0x03AA60 : OK
+
+POST-BUILD ROM CHECKS
+(against dist/Rastan_157.bin == dist/Rastan_141.bin)
+- D00048: ['0x279218', '0x279364', '0x2794a2'] total=3
+- D003C2: [] total=0
+- C09EA0: ['0x25b650'] total=1
+
+Execution-block literal counts (0x000200..0x060200):
+- C-window literals: 357
+- D-window literals: 6
+
+GHIDRA HEADLESS CHECK (requested)
+- Imported output ROM as program: Rastan_157.bin in tools/ghidra/rastan_project/rastan_genesis
+- Ran FindCWindowWrites.java
+- Raw script total hits: 541
+- Normalized to primary execution block 0x000200..0x060200 (subtracting 0x200000 base):
+  - primary_hits: 539
+  - primary literal entries with explicit 0x00Cxxxxx operand text: 83
+- Output log: tools/ghidra/cwindow_writes_build141.txt
+
+ARTIFACTS
+- dist/Rastan_141.bin (3932160 bytes)
+- dist/Rastan_157.bin (3932160 bytes)
+- tools/ghidra/genesis_import_log_build141.txt
+- tools/ghidra/cwindow_writes_build141.txt
+```
+
+## [Andy - Build 142 Research, Full C-Window/D-Window Replacement Inventory]
+```text
+1. EXECUTIVE SUMMARY
+- Completed a full title/frontend live-path replacement inventory covering C-window and D-window behavior.
+- Inventory now includes distinct routines/callsites/helpers/staging paths with execution class, replacement target, patch status, and safe-to-NOP rationale.
+- Deliverables were finalized in JSON + CSV with matching row counts and required fields populated.
+
+2. IDENTIFIED FRONTEND ENTRY + FRAME LOOP
+- Frontend entry: genesistan_run_original_frontend_tick() (startup_trampoline.s)
+- Arcade entry PC: 0x03A008 (ROM 0x03A208)
+- Frame-loop locus: frontend state machine rooted at 0x03A008, dispatching into tilemap/text/sprite/scroll paths each tick.
+
+3. TOTAL COUNTS (WINDOW)
+- total_items: 77
+- C-window items: 65
+- D-window items: 10
+- both: 1
+- none: 1
+
+4. COUNTS BY EXECUTION CLASS
+- active_every_frame_frontend: 9
+- active_conditional_frontend: 31
+- init_only: 27
+- dead_or_retired: 10
+
+5. COUNTS BY PATCH STATUS
+- already_patched: 69
+- partially_patched: 6
+- unpatched: 2
+
+6. TOP PRIORITY CATEGORIES (REQUIRED NOW FRONTEND)
+- required_now_frontend items: 17
+- By operation_type:
+  - direct write: 11
+  - scroll: 4
+  - control/state: 2
+- By replacement_target:
+  - VDP nametable write: 11
+  - VDP scroll write: 4
+  - none: 2
+
+7. SURPRISING / NON-OBVIOUS FINDINGS
+- Text writers 0x03BB48 and 0x03C3FE are structurally active but internally silenced via NOP write sites; this suppresses frontend text/overlay rendering despite live call flow.
+- Scroll writes (0x055AB4/BC/C4/CC) are NOPped, and current sync relies on values that are not being fed by those original write paths in frontend live execution; this leaves scroll behavior partially replaced.
+- Tilemap dispatch at 0x055948 remains live while mode gating keeps 0x055990 (FG path) conditional; BG path dominates in current frontend runs.
+
+8. OUTPUT FILES
+- docs/replacement_inventory/frontend_window_replacement_inventory.json
+- docs/replacement_inventory/frontend_window_replacement_inventory.csv
+```
+
+## [Cody - Build 142 Deliverables Completion]
+```text
+Completed required outputs:
+- docs/replacement_inventory/frontend_window_replacement_inventory.json
+- docs/replacement_inventory/frontend_window_replacement_inventory.csv
+
+Validation:
+- JSON rows: 77
+- CSV rows: 77
+- Row counts match: YES
+- Required fields populated (no blanks): YES
+- Every row has replacement_target: YES
+- Every active item has frontend call-chain evidence: YES
+- Sorted by arcade_addr: YES
+
+Schema note:
+- CSV now uses required field name `safe_to_nop_after_replacement`.
+```
