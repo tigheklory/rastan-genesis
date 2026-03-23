@@ -1058,6 +1058,38 @@
       "note": "NOP MOVEA.L #0xC08000,A0 + MOVEA.L #0xC00000,A1 + MOVE.L (A0),D0. Fill-loop initialisation loading both C-Window page addresses."
     },
     {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03ABBA",
+      "rom_pc": "0x03ADBA",
+      "original_bytes": "42b900c20000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP CLR.L 0xC20000. CLR.L is a read-modify-write on 68000 \u2014 the read cycle crashes Genesis bus. Result discarded; scroll register re-written each frame. Fires every VBlank during attract."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03ABC0",
+      "rom_pc": "0x03ADC0",
+      "original_bytes": "42b900c40000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP CLR.L 0xC40000. Pair with 0x03ABBA \u2014 same VBlank path."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B098",
+      "rom_pc": "0x03B298",
+      "original_bytes": "42b900c20000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP CLR.L 0xC20000. Second site \u2014 attract state-1 init and game-start transitions."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B09E",
+      "rom_pc": "0x03B29E",
+      "original_bytes": "42b900c40000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP CLR.L 0xC40000. Pair with 0x03B098."
+    },
+    {
       "kind": "palette_pre_conversion",
       "rom_offset": "0x3920A4",
       "entries": 2048,
@@ -1086,7 +1118,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0xA9BA",
+  "checksum": "0x4917",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x002053EE",

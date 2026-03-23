@@ -1,0 +1,7 @@
+    c09e:	0001 2170      	orib #112,%d1
+   3a552:	0c39 0030 00c0 	cmpib #48,0xc09ea3
+   3a55c:	13fc 0020 00c0 	moveb #32,0xc09ea3
+   3ac54:	0c39 0043 00c0 	cmpib #67,0xc09e87
+   3c09e:	9138 0000      	subb %d0,0x0
+   4c09e:	4eb9 0004 092e 	jsr 0x4092e
+   5c09e:	0003 0000      	orib #0,%d3

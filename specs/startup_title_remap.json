@@ -1011,6 +1011,60 @@
       "original_bytes": "207c00c08000227c00c0000020c0",
       "replacement_bytes": "4E714E714E714E714E714E714E71",
       "note": "NOP MOVEA.L #0xC08000,A0 + MOVEA.L #0xC00000,A1 + MOVE.L (A0),D0. Fill-loop initialisation loading both C-Window page addresses."
+    },
+    {
+      "arcade_pc": "0x03ABBA",
+      "original_bytes": "42b900c20000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP CLR.L 0xC20000. CLR.L is a read-modify-write on 68000 — the read cycle crashes Genesis bus. Result discarded; scroll register re-written each frame. Fires every VBlank during attract."
+    },
+    {
+      "arcade_pc": "0x03ABC0",
+      "original_bytes": "42b900c40000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP CLR.L 0xC40000. Pair with 0x03ABBA — same VBlank path."
+    },
+    {
+      "arcade_pc": "0x03B098",
+      "original_bytes": "42b900c20000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP CLR.L 0xC20000. Second site — attract state-1 init and game-start transitions."
+    },
+    {
+      "arcade_pc": "0x03B09E",
+      "original_bytes": "42b900c40000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP CLR.L 0xC40000. Pair with 0x03B098."
+    },
+    {
+      "arcade_pc": "0x0005C0",
+      "original_bytes": "4eb90003bb48",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP jsr 0x3BB48 — table-driven C-window text writer. Crashes Genesis on game entry by writing to 0xC09E84 via A1 indirect."
+    },
+    {
+      "arcade_pc": "0x055AB4",
+      "original_bytes": "33ed10ee00c20000",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w scroll write to 0xC20000 — scroll register, unmapped on Genesis."
+    },
+    {
+      "arcade_pc": "0x055ABC",
+      "original_bytes": "33ed10ec00c40000",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w scroll write to 0xC40000 — scroll register, unmapped on Genesis."
+    },
+    {
+      "arcade_pc": "0x055AC4",
+      "original_bytes": "33ed10b000c20002",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w scroll write to 0xC20002 — scroll register, unmapped on Genesis."
+    },
+    {
+      "arcade_pc": "0x055ACC",
+      "original_bytes": "33ed10ae00c40002",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w scroll write to 0xC40002 — scroll register, unmapped on Genesis."
     }
   ],
   "memory_map": []

@@ -1,0 +1,78 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: /home/tighe/projects/rastan-genesis/.ghidra_config/ghidra/ghidra_12.0.4_PUBLIC/application.log (LoggingInitialization)  
+INFO  Loading user preferences: /home/tighe/projects/rastan-genesis/.ghidra_config/ghidra/ghidra_12.0.4_PUBLIC/preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (1122 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (DefaultSSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: NativePRNGNonBlocking (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (DefaultTrustManagerFactory)  
+INFO  Headless startup complete (2268 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 58 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Debug/Debugger-rmi-trace/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/PDB/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/JVM/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/FileFormats/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/DecompilerDependent/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/DATA/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/WildcardAssembler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/BSim/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/Jython/ghidra_scripts
+    /home/tighe/projects/rastan-genesis/tools/ghidra
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/VersionTracking/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/PyGhidra/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/MicrosoftCodeAnalyzer/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/SystemEmulation/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/PIC/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Debug/Debugger/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/GnuDemangler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/BytePatterns/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/8051/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/Atmel/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/Base/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/Decompiler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/SwiftDemangler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/FunctionID/ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: /home/tighe/projects/rastan-genesis/tools/ghidra/rastan_project/rastan_arcade (HeadlessAnalyzer)  
+INFO  Opening project: /home/tighe/projects/rastan-genesis/tools/ghidra/rastan_project/rastan_arcade (HeadlessProject)  
+INFO  REPORT: Processing project file: /maincpu.bin (HeadlessAnalyzer)  
+INFO  REPORT: Execute script: FindPaletteCallers.java  (HeadlessAnalyzer)  
+INFO  SCRIPT: /home/tighe/projects/rastan-genesis/tools/ghidra/FindPaletteCallers.java (HeadlessAnalyzer)  
+INFO  FindPaletteCallers.java> === PALETTE ROUTINE CALL TREE === (GhidraScript)  
+INFO  FindPaletteCallers.java> Target: 0x059AD4 (palette conversion routine) (GhidraScript)  
+INFO  FindPaletteCallers.java>  (GhidraScript)  
+INFO  FindPaletteCallers.java> No direct callers found via reference manager. (GhidraScript)  
+INFO  FindPaletteCallers.java> Falling back to raw reference scan... (GhidraScript)  
+INFO  FindPaletteCallers.java>   Ref from 0x056138 type=DATA (GhidraScript)  
+INFO  FindPaletteCallers.java>   Ref from 0x05614C type=DATA (GhidraScript)  
+INFO  FindPaletteCallers.java>   Ref from 0x057818 type=DATA (GhidraScript)  
+INFO  FindPaletteCallers.java>   Ref from 0x05782C type=DATA (GhidraScript)  
+INFO  FindPaletteCallers.java>   Ref from 0x05A3BC type=DATA (GhidraScript)  
+INFO  FindPaletteCallers.java>   Ref from 0x05A420 type=DATA (GhidraScript)  
+INFO  FindPaletteCallers.java> LEVEL 1 CALLERS of 0x059AD4: 6 found (GhidraScript)  
+INFO  FindPaletteCallers.java>  (GhidraScript)  
+INFO  FindPaletteCallers.java>   CALLER: 0x056138  [in function: <no function> @ 0x056138] (GhidraScript)  
+INFO  FindPaletteCallers.java>     (Call site is not in a recognized function — checking refs to call site) (GhidraScript)  
+INFO  FindPaletteCallers.java>  (GhidraScript)  
+INFO  FindPaletteCallers.java>   CALLER: 0x05614C  [in function: <no function> @ 0x05614C] (GhidraScript)  
+INFO  FindPaletteCallers.java>     (Call site is not in a recognized function — checking refs to call site) (GhidraScript)  
+INFO  FindPaletteCallers.java>  (GhidraScript)  
+INFO  FindPaletteCallers.java>   CALLER: 0x057818  [in function: <no function> @ 0x057818] (GhidraScript)  
+INFO  FindPaletteCallers.java>     (Call site is not in a recognized function — checking refs to call site) (GhidraScript)  
+INFO  FindPaletteCallers.java>  (GhidraScript)  
+INFO  FindPaletteCallers.java>   CALLER: 0x05782C  [in function: <no function> @ 0x05782C] (GhidraScript)  
+INFO  FindPaletteCallers.java>     (Call site is not in a recognized function — checking refs to call site) (GhidraScript)  
+INFO  FindPaletteCallers.java>  (GhidraScript)  
+INFO  FindPaletteCallers.java>   CALLER: 0x05A3BC  [in function: <no function> @ 0x05A3BC] (GhidraScript)  
+INFO  FindPaletteCallers.java>     (Call site is not in a recognized function — checking refs to call site) (GhidraScript)  
+INFO  FindPaletteCallers.java>  (GhidraScript)  
+INFO  FindPaletteCallers.java>   CALLER: 0x05A420  [in function: <no function> @ 0x05A420] (GhidraScript)  
+INFO  FindPaletteCallers.java>     (Call site is not in a recognized function — checking refs to call site) (GhidraScript)  
+INFO  FindPaletteCallers.java>  (GhidraScript)  
+INFO  FindPaletteCallers.java> === END PALETTE CALL TREE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /maincpu.bin (HeadlessAnalyzer)  

@@ -1,0 +1,88 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: /home/tighe/projects/rastan-genesis/.ghidra_config/ghidra/ghidra_12.0.4_PUBLIC/application.log (LoggingInitialization)  
+INFO  Loading user preferences: /home/tighe/projects/rastan-genesis/.ghidra_config/ghidra/ghidra_12.0.4_PUBLIC/preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (1148 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (DefaultSSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: NativePRNGNonBlocking (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (DefaultTrustManagerFactory)  
+INFO  Starting cache cleanup: /home/tighe/projects/rastan-genesis/.ghidra_cache/ghidra/fscache2 (FileCacheMaintenanceDaemon)  
+INFO  Finished cache cleanup, estimated storage used: 0 (FileCacheMaintenanceDaemon)  
+INFO  Headless startup complete (2711 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 58 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Debug/Debugger-rmi-trace/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/PDB/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/JVM/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/FileFormats/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/DecompilerDependent/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/DATA/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/WildcardAssembler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/BSim/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/Jython/ghidra_scripts
+    /home/tighe/projects/rastan-genesis/tools/ghidra
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/VersionTracking/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/PyGhidra/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/MicrosoftCodeAnalyzer/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/SystemEmulation/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/PIC/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Debug/Debugger/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/GnuDemangler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/BytePatterns/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/8051/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/Atmel/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/Base/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/Decompiler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/SwiftDemangler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/FunctionID/ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: /home/tighe/projects/rastan-genesis/tools/ghidra/rastan_project/rastan_arcade (HeadlessAnalyzer)  
+INFO  Opening project: /home/tighe/projects/rastan-genesis/tools/ghidra/rastan_project/rastan_arcade (HeadlessProject)  
+INFO  REPORT: Processing project file: /maincpu.bin (HeadlessAnalyzer)  
+INFO  REPORT: Execute script: SetupArcadeMemoryMap.java  (HeadlessAnalyzer)  
+INFO  SCRIPT: /home/tighe/projects/rastan-genesis/tools/ghidra/SetupArcadeMemoryMap.java (HeadlessAnalyzer)  
+INFO  SetupArcadeMemoryMap.java> === Setting up Rastan arcade memory map segments === (GhidraScript)  
+INFO  SetupArcadeMemoryMap.java>   ADDED tilemap_regs @ 0x0C0000 size=0x20000 (GhidraScript)  
+INFO  SetupArcadeMemoryMap.java>   ADDED work_ram @ 0x100000 size=0x10000 (GhidraScript)  
+INFO  SetupArcadeMemoryMap.java>   ADDED palette_ram @ 0x200000 size=0x10000 (GhidraScript)  
+INFO  SetupArcadeMemoryMap.java>   ADDED cwindow @ 0xC00000 size=0x60000 (GhidraScript)  
+INFO  SetupArcadeMemoryMap.java>   ADDED sprite_ram @ 0xD00000 size=0x800 (GhidraScript)  
+INFO  SetupArcadeMemoryMap.java>   ADDED io_space @ 0x390000 size=0x10000 (GhidraScript)  
+INFO  SetupArcadeMemoryMap.java> === Done: 6 segments added === (GhidraScript)  
+INFO  SetupArcadeMemoryMap.java> Re-run auto-analysis (or re-import with -overwrite) after adding segments. (GhidraScript)  
+INFO  SetupArcadeMemoryMap.java> C-window range 0xC00000-0xC5FFFF is now named 'cwindow' — FindCWindowWrites.java will resolve refs correctly. (GhidraScript)  
+INFO  ANALYZING all memory and code: /maincpu.bin (HeadlessAnalyzer)  
+INFO  Packed database cache: /home/tighe/projects/rastan-genesis/.ghidra_cache/ghidra/packed-db-cache (PackedDatabaseCache)  
+INFO  Applied data type archive: generic_clib (ApplyDataArchiveAnalyzer)  
+INFO  -----------------------------------------------------
+    68000 Constant Reference Analyzer          0.517 secs
+    ASCII Strings                              0.386 secs
+    Apply Data Archives                        0.768 secs
+    Call Convention ID                         0.003 secs
+    Call-Fixup Installer                       0.005 secs
+    Create Address Tables                      0.041 secs
+    Create Address Tables - One Time           0.480 secs
+    Create Function                            0.013 secs
+    Data Reference                             0.442 secs
+    Decompiler Switch Analysis                 0.013 secs
+    Demangler GNU                              0.000 secs
+    Disassemble Entry Points                   0.053 secs
+    Embedded Media                             0.024 secs
+    External Entry References                  0.000 secs
+    Function ID                                0.039 secs
+    Function Start Search                      0.022 secs
+    Non-Returning Functions - Discovered       0.135 secs
+    Reference                                  1.101 secs
+    Shared Return Calls                        0.141 secs
+    Stack                                      0.081 secs
+    Subroutine References                      0.103 secs
+-----------------------------------------------------
+     Total Time   4 secs
+-----------------------------------------------------
+ (AutoAnalysisManager)  
+INFO  REPORT: Analysis succeeded for file: /maincpu.bin (HeadlessAnalyzer)  
+INFO  REPORT: Save succeeded for processed file: /maincpu.bin (HeadlessAnalyzer)  

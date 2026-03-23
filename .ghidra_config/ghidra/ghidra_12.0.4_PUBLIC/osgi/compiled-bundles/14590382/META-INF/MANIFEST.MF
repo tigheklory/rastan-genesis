@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Created-By: 21.0.10 (Eclipse Adoptium)
+Tool: Bnd-7.0.0.202310060912
+Bnd-LastModified: 1774225317453
+Import-Package: ghidra.app.script,ghidra.program.model.address,ghidra.pr
+ ogram.model.listing,ghidra.program.model.mem,ghidra.program.model.symbo
+ l,java.lang,java.lang.invoke,java.util,java.util.function,ghidra.app.pl
+ ugin.core.osgi
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=21))"
+Bundle-SymbolicName: 14590382
+Bundle-Version: 1.0
+Bundle-Name: 14590382
+Bundle-Activator: GeneratedActivator
+
