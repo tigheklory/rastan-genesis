@@ -7,10 +7,8 @@
 #include "res_ui.h"
 
 /* Explicitly reference SBT-linked Genesis shadow symbols used by remap rules. */
-extern volatile uint16_t genesistan_shadow_d00000_words[0x0400];
 extern volatile uint16_t genesistan_shadow_reg_c50000;
 extern volatile uint16_t genesistan_shadow_reg_d01bfe;
-extern volatile uint32_t genesistan_arcade_last_a0;
 
 #ifndef RASTAN_ENABLE_STARTUP_HOOK
 #define RASTAN_ENABLE_STARTUP_HOOK 1
@@ -321,7 +319,7 @@ static void leave_sound_test(void);
 static void trigger_sound_test_command(void);
 static void render_startup_preview_screen(void)
     __attribute__((unused));
-static void render_frontend_sprite_layer(const void *src)
+static void render_frontend_sprite_layer(void)
     __attribute__((unused));
 void genesistan_hook_tilemap_plane_a(void);
 void genesistan_hook_tilemap_plane_b(void);
@@ -1243,7 +1241,7 @@ void genesistan_hook_tilemap_plane_b(void)
     SYS_enableInts();
 }
 
-static void render_frontend_sprite_layer(const void *src)
+static void render_frontend_sprite_layer(void)
 {
 #if RASTAN_ENABLE_STARTUP_HOOK
     const u16 sprite_ctrl = genesistan_shadow_reg_380000;
@@ -1254,64 +1252,89 @@ static void render_frontend_sprite_layer(const void *src)
     u16 palette_bank_count = 0;
     u16 unique_count = 0;
     u16 sprite_count = 0;
-    const uint8_t *p;
-    u16 byte_offs;
-
-    if (src == NULL)
-        return;
-
-    p = (const uint8_t *)src;
+    const u8 *workram_bytes = (const u8 *)genesistan_arcade_workram_words;
+    static const struct
+    {
+        u16 offset;
+        u16 count;
+    } sprite_blocks[] =
+    {
+        /* 0x41F5E: A5+0x11B2, count 18 -> D003C0 */
+        {0x11B2, 18},
+        /* 0x41F6E: A5+0x0170, count 4 -> D002E0 */
+        {0x0170, 4},
+    };
+    u16 block;
 
     memset(wram_overlay.launcher.frontend_runtime_sprite_tile_buffer, 0, sizeof(wram_overlay.launcher.frontend_runtime_sprite_tile_buffer));
 
-    /* Each PC090OJ sprite entry is 8 bytes (4 x 16-bit words):
-     *   byte 0-1: flags  (flip y/x, palette)
-     *   byte 2-3: y position
-     *   byte 4-5: tile code
-     *   byte 6-7: x position
-     * Read via byte-shifting to remain alignment-agnostic. */
-    for (byte_offs = 0; byte_offs < 0x0800; byte_offs += 8)
+    /*
+     * Title/front-end sprite descriptors come from workram blocks copied by 0x41F5E.
+     * Entry layout (validated from 0x41F7A/0x41F8C):
+     *   word0: attr/flags
+     *   word1: y position (0x0180 sentinel = hidden)
+     *   word2: tile code
+     *   word3: x position
+     */
+    for (block = 0; block < (u16)(sizeof(sprite_blocks) / sizeof(sprite_blocks[0])); block++)
     {
-        const u16 data = (u16)(((u16)p[byte_offs + 0] << 8) | p[byte_offs + 1]);
-        const u16 code = (u16)((((u16)p[byte_offs + 4] << 8) | p[byte_offs + 5]) & 0x1FFF);
-        s16 x = (s16)((((u16)p[byte_offs + 6] << 8) | p[byte_offs + 7]) & 0x01FF);
-        s16 y = (s16)((((u16)p[byte_offs + 2] << 8) | p[byte_offs + 3]) & 0x01FF);
-        bool flipy = (data & 0x8000) != 0;
-        bool flipx = (data & 0x4000) != 0;
-        const u16 color = (u16)((data & 0x000F) | sprite_colbank);
-        const u16 palette_line = frontend_palette_line_for_bank((u16)(color >> 4), palette_bank_map, &palette_bank_count);
-        const s16 tile_base = frontend_runtime_tile_for_code(code, &unique_count);
-        const u16 link = (sprite_count >= (FRONTEND_RUNTIME_MAX_SPRITES - 1)) ? 0 : (u16)(sprite_count + 1);
-        u16 tile_attr;
+        const u8 *entry = workram_bytes + sprite_blocks[block].offset;
+        u16 idx;
 
-        if (tile_base < 0)
+        for (idx = 0; idx < sprite_blocks[block].count; idx++, entry += 8)
         {
-            continue;
+            u16 data = (u16)(((u16)entry[0] << 8) | entry[1]);
+            u16 y_raw = (u16)(((u16)entry[2] << 8) | entry[3]);
+            const u16 code = (u16)((((u16)entry[4] << 8) | entry[5]) & 0x3FFF);
+            s16 x = (s16)((((u16)entry[6] << 8) | entry[7]) & 0x01FF);
+            s16 y;
+            bool flipy = (data & 0x8000) != 0;
+            bool flipx = (data & 0x4000) != 0;
+            const u16 color = (u16)((data & 0x000F) | sprite_colbank);
+            const u16 palette_line = frontend_palette_line_for_bank((u16)(color >> 4), palette_bank_map, &palette_bank_count);
+            const s16 tile_base = frontend_runtime_tile_for_code(code, &unique_count);
+            const u16 link = (sprite_count >= (FRONTEND_RUNTIME_MAX_SPRITES - 1)) ? 0 : (u16)(sprite_count + 1);
+            u16 tile_attr;
+
+            /* 0x41F8C fallback path stores hidden sprites as y=0x0180 at word1. */
+            if (data == 0)
+                y_raw = 0x0180;
+            y = (s16)(y_raw & 0x01FF);
+
+            if (tile_base < 0)
+            {
+                continue;
+            }
+
+            if (x > 0x140) x -= 0x0200;
+            if (y > 0x140) y -= 0x0200;
+
+            if (flipscreen)
+            {
+                x = (s16)(320 - x - 16);
+                y = (s16)(256 - y - 16);
+                flipx = !flipx;
+                flipy = !flipy;
+            }
+
+            if ((x <= -16) || (x >= 320) || (y <= -16) || (y >= 256))
+            {
+                continue;
+            }
+
+            tile_attr = TILE_ATTR_FULL(palette_line, TRUE, flipy, flipx, (u16)tile_base);
+
+            SYS_disableInts();
+            VDP_setSpriteFull(sprite_count, x, y, SPRITE_SIZE(2, 2), tile_attr, (u8)link);
+            SYS_enableInts();
+
+            sprite_count++;
+            if (sprite_count >= FRONTEND_RUNTIME_MAX_SPRITES)
+            {
+                break;
+            }
         }
 
-        if (x > 0x140) x -= 0x0200;
-        if (y > 0x140) y -= 0x0200;
-
-        if (flipscreen)
-        {
-            x = (s16)(320 - x - 16);
-            y = (s16)(256 - y - 16);
-            flipx = !flipx;
-            flipy = !flipy;
-        }
-
-        if ((x <= -16) || (x >= 320) || (y <= -16) || (y >= 256))
-        {
-            continue;
-        }
-
-        tile_attr = TILE_ATTR_FULL(palette_line, TRUE, flipy, flipx, (u16)tile_base);
-
-        SYS_disableInts();
-        VDP_setSpriteFull(sprite_count, x, y, SPRITE_SIZE(2, 2), tile_attr, (u8)link);
-        SYS_enableInts();
-
-        sprite_count++;
         if (sprite_count >= FRONTEND_RUNTIME_MAX_SPRITES)
         {
             break;
@@ -1646,19 +1669,7 @@ int main(bool hardReset)
             sanitize_arcade_workram();
             load_arcade_palette();        /* Build 104 */
             sync_arcade_scroll_to_vdp();
-            {
-                /* Translate captured arcade A0 to Genesis shadow pointer (Build 109). */
-                const uint32_t a0 = genesistan_arcade_last_a0;
-                const uint8_t *shadow_base = (const uint8_t *)genesistan_shadow_d00000_words;
-                const u32 shadow_start = (u32)shadow_base;
-                const u32 shadow_end = shadow_start + 0x800U;
-                const void *sprite_src = NULL;
-                if (a0 >= 0xD00000UL && a0 < 0xD00800UL)
-                    sprite_src = (const void *)(shadow_base + (a0 - 0xD00000UL));
-                else if (a0 >= shadow_start && a0 < shadow_end)
-                    sprite_src = (const void *)a0;
-                render_frontend_sprite_layer(sprite_src); /* Build 109 */
-            }
+            render_frontend_sprite_layer(); /* Build 138: direct workram descriptor path */
         }
         else if (current_screen == SCREEN_STARTUP_PREVIEW)
         {

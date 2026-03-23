@@ -1,0 +1,89 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/ghidra-home -Djava.awt.headless=true
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/ghidra-home -Djava.awt.headless=true
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/ghidra-home -Djava.awt.headless=true
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: /tmp/ghidra-home/.config/ghidra/ghidra_12.0.4_PUBLIC/application.log (LoggingInitialization)  
+INFO  Loading user preferences: /tmp/ghidra-home/.config/ghidra/ghidra_12.0.4_PUBLIC/preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (1100 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (DefaultSSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: NativePRNGNonBlocking (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (DefaultTrustManagerFactory)  
+INFO  Headless startup complete (2845 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 89 extension points (43 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/SystemEmulation/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Debug/Debugger-rmi-trace/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/PDB/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/JVM/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/PIC/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/FileFormats/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Debug/Debugger/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/GnuDemangler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/DecompilerDependent/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/DATA/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/WildcardAssembler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/BSim/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/BytePatterns/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/Jython/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/8051/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Processors/Atmel/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/Base/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/VersionTracking/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/Decompiler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/SwiftDemangler/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/PyGhidra/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/FunctionID/ghidra_scripts
+    /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/MicrosoftCodeAnalyzer/ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: /home/tighe/projects/rastan-genesis/tools/ghidra/rastan_project/rastan_genesis_138 (HeadlessAnalyzer)  
+INFO  Opening project: /home/tighe/projects/rastan-genesis/tools/ghidra/rastan_project/rastan_genesis_138 (HeadlessProject)  
+INFO  REPORT: Processing input files:  (HeadlessAnalyzer)  
+INFO       project: /home/tighe/projects/rastan-genesis/tools/ghidra/rastan_project/rastan_genesis_138 (HeadlessAnalyzer)  
+INFO  IMPORTING: file:///home/tighe/projects/rastan-genesis/dist/Rastan_138.bin (HeadlessAnalyzer)  
+INFO  Successfully applied "-loader-baseaddr" to "Base Address" (old: "null", new: "0x0") (ProgramLoader)  
+INFO  Using Loader: Raw Binary (ProgramLoader)  
+INFO  Using Language/Compiler: 68000:BE:32:default:default (ProgramLoader)  
+INFO  Using Library Search Path: [., /bin, /lib, /lib64, /lib/x86_64-linux-gnu, /lib/aarch64-linux-gnu, /usr/bin, /usr/lib, /usr/X11R6/bin, /usr/X11R6/lib, /usr/java/packages/lib, /usr/lib64] (ProgramLoader)  
+INFO  IMPORTING: Loaded 0 additional files (HeadlessAnalyzer)  
+INFO  /Rastan_138.bin: file deleted (tighe) (LocalFileSystem)  
+INFO  Deleted local file Rastan_138.bin (GhidraFileData)  
+WARN  REPORT: Removed conflicting program file from project: /Rastan_138.bin (HeadlessAnalyzer)  
+INFO  ANALYZING all memory and code: file:///home/tighe/projects/rastan-genesis/dist/Rastan_138.bin (HeadlessAnalyzer)  
+WARN  PackedDatabase cache failure for: /home/tighe/tools/ghidra_12.0.4_PUBLIC/Ghidra/Features/Base/data/typeinfo/generic/generic_clib.gdt, permission denied: /var/tmp/tighe-ghidra/packed-db-cache (PackedDatabase)  
+INFO  Applied data type archive: generic_clib (ApplyDataArchiveAnalyzer)  
+INFO  -----------------------------------------------------
+    68000 Constant Reference Analyzer          2.062 secs
+    ASCII Strings                              0.568 secs
+    Apply Data Archives                        0.683 secs
+    Call-Fixup Installer                       0.004 secs
+    Create Address Tables                      0.065 secs
+    Create Address Tables - One Time           2.945 secs
+    Create Function                            0.261 secs
+    Data Reference                             1.304 secs
+    Decompiler Switch Analysis                16.209 secs
+    Demangler GNU                              0.002 secs
+    Disassemble                                0.913 secs
+    Disassemble Entry Points                   0.001 secs
+    Embedded Media                             0.065 secs
+    External Entry References                  0.000 secs
+    Function ID                                0.024 secs
+    Function Start Search                      0.078 secs
+    Non-Returning Functions - Discovered       0.092 secs
+    Reference                                  1.601 secs
+    Shared Return Calls                        0.133 secs
+    Stack                                      1.254 secs
+    Subroutine References                      0.234 secs
+    Subroutine References - One Time           0.000 secs
+-----------------------------------------------------
+     Total Time   28 secs
+-----------------------------------------------------
+ (AutoAnalysisManager)  
+INFO  REPORT: Analysis succeeded for file: file:///home/tighe/projects/rastan-genesis/dist/Rastan_138.bin (HeadlessAnalyzer)  
+INFO  /Rastan_138.bin: file created (tighe) (LocalFileSystem)  
+INFO  REPORT: Save succeeded for: /Rastan_138.bin (rastan_genesis_138:/Rastan_138.bin) (HeadlessAnalyzer)  
+INFO  REPORT: Import succeeded (HeadlessAnalyzer)  

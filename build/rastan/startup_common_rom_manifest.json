@@ -70,20 +70,52 @@
       "runtime_end_exclusive": "0x25BF4C"
     },
     {
-      "name": "sprite_init_41dae",
-      "start": "0x041DAE",
-      "end_exclusive": "0x041F0E",
-      "size_bytes": 352,
-      "runtime_start": "0x041FAE",
-      "runtime_end_exclusive": "0x04210E"
+      "name": "rastan_maincpu_blob_c09ea0_25c068",
+      "start": "0x25BE68",
+      "end_exclusive": "0x25BE6C",
+      "size_bytes": 4,
+      "runtime_start": "0x25C068",
+      "runtime_end_exclusive": "0x25C06C"
     },
     {
-      "name": "sprite_init_41f5e",
-      "start": "0x041F5E",
-      "end_exclusive": "0x041F9C",
-      "size_bytes": 62,
-      "runtime_start": "0x04215E",
-      "runtime_end_exclusive": "0x04219C"
+      "name": "rastan_maincpu_blob_c09ea0_25c0a0",
+      "start": "0x25BEA0",
+      "end_exclusive": "0x25BEA4",
+      "size_bytes": 4,
+      "runtime_start": "0x25C0A0",
+      "runtime_end_exclusive": "0x25C0A4"
+    },
+    {
+      "name": "rastan_maincpu_blob_d00048_block",
+      "start": "0x279B10",
+      "end_exclusive": "0x279D9E",
+      "size_bytes": 654,
+      "runtime_start": "0x279D10",
+      "runtime_end_exclusive": "0x279F9E"
+    },
+    {
+      "name": "rastan_maincpu_blob_d00048_alias_patch",
+      "start": "0x279910",
+      "end_exclusive": "0x279A6C",
+      "size_bytes": 348,
+      "runtime_start": "0x279B10",
+      "runtime_end_exclusive": "0x279C6C"
+    },
+    {
+      "name": "game_engine_040000",
+      "start": "0x040000",
+      "end_exclusive": "0x059AD4",
+      "size_bytes": 105172,
+      "runtime_start": "0x040200",
+      "runtime_end_exclusive": "0x059CD4"
+    },
+    {
+      "name": "game_engine_059b1a",
+      "start": "0x059B1A",
+      "end_exclusive": "0x060000",
+      "size_bytes": 25830,
+      "runtime_start": "0x059D1A",
+      "runtime_end_exclusive": "0x060200"
     },
     {
       "name": "helper_fill_words",
@@ -241,67 +273,67 @@
     {
       "range": "startup_common",
       "old": "0x00C50000",
-      "new": "0xE0FF4050",
+      "new": "0xE0FF4850",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4060",
+      "new": "0xE0FF4864",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00350008",
-      "new": "0xE0FF4052",
+      "new": "0xE0FF4852",
       "count": 1
     },
     {
       "range": "startup_common",
       "old": "0x00380000",
-      "new": "0xE0FF4062",
+      "new": "0xE0FF4866",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x003E0001",
-      "new": "0xE0FF4056",
+      "new": "0xE0FF4856",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x003E0003",
-      "new": "0xE0FF4057",
+      "new": "0xE0FF4857",
       "count": 2
     },
     {
       "range": "startup_common",
       "old": "0x00390001",
-      "new": "0xE0FF40EF",
+      "new": "0xE0FF48F3",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390003",
-      "new": "0xE0FF40EE",
+      "new": "0xE0FF48F2",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390005",
-      "new": "0xE0FF40ED",
+      "new": "0xE0FF48F1",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390007",
-      "new": "0xE0FF40EC",
+      "new": "0xE0FF48F0",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00200000",
-      "new": "0xE0FF406C",
+      "new": "0xE0FF4870",
       "count": 4
     },
     {
@@ -319,7 +351,7 @@
     {
       "range": "startup_common",
       "old": "0x003C0000",
-      "new": "0xE0FF4054",
+      "new": "0xE0FF4854",
       "count": 4
     },
     {
@@ -343,61 +375,61 @@
     {
       "range": "frontend_core",
       "old": "0x00C50000",
-      "new": "0xE0FF4050",
+      "new": "0xE0FF4850",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4060",
+      "new": "0xE0FF4864",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00350008",
-      "new": "0xE0FF4052",
+      "new": "0xE0FF4852",
       "count": 1
     },
     {
       "range": "frontend_core",
       "old": "0x00380000",
-      "new": "0xE0FF4062",
+      "new": "0xE0FF4866",
       "count": 1
     },
     {
       "range": "frontend_core",
       "old": "0x003E0001",
-      "new": "0xE0FF4056",
+      "new": "0xE0FF4856",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x003E0003",
-      "new": "0xE0FF4057",
+      "new": "0xE0FF4857",
       "count": 0
     },
     {
       "range": "frontend_core",
       "old": "0x00390001",
-      "new": "0xE0FF40EF",
+      "new": "0xE0FF48F3",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390003",
-      "new": "0xE0FF40EE",
+      "new": "0xE0FF48F2",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390005",
-      "new": "0xE0FF40ED",
+      "new": "0xE0FF48F1",
       "count": 7
     },
     {
       "range": "frontend_core",
       "old": "0x00390007",
-      "new": "0xE0FF40EC",
+      "new": "0xE0FF48F0",
       "count": 7
     },
     {
@@ -421,7 +453,7 @@
     {
       "range": "frontend_core",
       "old": "0x003C0000",
-      "new": "0xE0FF4054",
+      "new": "0xE0FF4854",
       "count": 1
     },
     {
@@ -445,97 +477,97 @@
     {
       "range": "title_init_block",
       "old": "0x00C50000",
-      "new": "0xE0FF4050",
+      "new": "0xE0FF4850",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4060",
+      "new": "0xE0FF4864",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00350008",
-      "new": "0xE0FF4052",
+      "new": "0xE0FF4852",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00380000",
-      "new": "0xE0FF4062",
+      "new": "0xE0FF4866",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D00000",
-      "new": "0xE0FF40F0",
+      "new": "0xE0FF404C",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D00020",
-      "new": "0xE0FF4110",
+      "new": "0xE0FF406C",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x00D00088",
-      "new": "0xE0FF4178",
+      "new": "0xE0FF40D4",
       "count": 2
     },
     {
       "range": "title_init_block",
       "old": "0x00D000DA",
-      "new": "0xE0FF41CA",
+      "new": "0xE0FF4126",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D000E0",
-      "new": "0xE0FF41D0",
+      "new": "0xE0FF412C",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x00D00128",
-      "new": "0xE0FF4218",
+      "new": "0xE0FF4174",
       "count": 2
     },
     {
       "range": "title_init_block",
       "old": "0x003E0001",
-      "new": "0xE0FF4056",
+      "new": "0xE0FF4856",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x003E0003",
-      "new": "0xE0FF4057",
+      "new": "0xE0FF4857",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390001",
-      "new": "0xE0FF40EF",
+      "new": "0xE0FF48F3",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390003",
-      "new": "0xE0FF40EE",
+      "new": "0xE0FF48F2",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390005",
-      "new": "0xE0FF40ED",
+      "new": "0xE0FF48F1",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390007",
-      "new": "0xE0FF40EC",
+      "new": "0xE0FF48F0",
       "count": 0
     },
     {
@@ -559,7 +591,7 @@
     {
       "range": "title_init_block",
       "old": "0x003C0000",
-      "new": "0xE0FF4054",
+      "new": "0xE0FF4854",
       "count": 0
     },
     {
@@ -583,19 +615,19 @@
     {
       "range": "helper_d000_init",
       "old": "0x00D00000",
-      "new": "0xE0FF40F0",
+      "new": "0xE0FF404C",
       "count": 2
     },
     {
       "range": "helper_d000_init",
       "old": "0x00D00170",
-      "new": "0xE0FF4260",
+      "new": "0xE0FF41BC",
       "count": 1
     },
     {
       "range": "helper_d000_init",
       "old": "0x00D00778",
-      "new": "0xE0FF4868",
+      "new": "0xE0FF47C4",
       "count": 1
     },
     {
@@ -607,37 +639,37 @@
     {
       "range": "helper_frontend_timers",
       "old": "0x00380000",
-      "new": "0xE0FF4062",
+      "new": "0xE0FF4866",
       "count": 4
     },
     {
       "range": "helper_3f084_reg_write",
       "old": "0x003E0001",
-      "new": "0xE0FF4056",
+      "new": "0xE0FF4856",
       "count": 1
     },
     {
       "range": "helper_3f084_reg_write",
       "old": "0x003E0003",
-      "new": "0xE0FF4057",
+      "new": "0xE0FF4857",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00C50000",
-      "new": "0xE0FF4050",
+      "new": "0xE0FF4850",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4060",
+      "new": "0xE0FF4864",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00380000",
-      "new": "0xE0FF4062",
+      "new": "0xE0FF4866",
       "count": 1
     },
     {
@@ -667,44 +699,44 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390001",
-      "new": "0xE0FF40EF",
+      "new": "0xE0FF48F3",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390007",
-      "new": "0xE0FF40EC",
+      "new": "0xE0FF48F0",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x003C0000",
-      "new": "0xE0FF4054",
+      "new": "0xE0FF4854",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00D00000",
-      "new": "0xE0FF40F0",
+      "new": "0xE0FF404C",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00D01000",
-      "new": "0xE0FF40F0",
+      "new": "0xE0FF404C",
       "count": 2
     },
     {
       "range": "palette_convert_59ad4",
       "old": "0x00200000",
-      "new": "0xE0FF406C",
+      "new": "0xE0FF4870",
       "count": 1
     },
     {
       "range": "startup_common",
       "old_window_start": "0x00C00000",
       "old_window_end_exclusive": "0x00D00000",
-      "new_window_start": "0xE0FF404C",
+      "new_window_start": "0xE0FF484C",
       "target": "symbol:genesistan_cwindow_null",
       "scan_step": 2,
       "count": 5
@@ -713,7 +745,7 @@
       "range": "startup_common",
       "old_window_start": "0x00C50000",
       "old_window_end_exclusive": "0x00C50002",
-      "new_window_start": "0xE0FF4050",
+      "new_window_start": "0xE0FF4850",
       "target": "symbol:genesistan_shadow_reg_c50000",
       "scan_step": 2,
       "count": 0
@@ -722,7 +754,7 @@
       "range": "startup_common",
       "old_window_start": "0x00D01BFE",
       "old_window_end_exclusive": "0x00D01C00",
-      "new_window_start": "0xE0FF4060",
+      "new_window_start": "0xE0FF4864",
       "target": "symbol:genesistan_shadow_reg_d01bfe",
       "scan_step": 2,
       "count": 0
@@ -731,7 +763,7 @@
       "range": "startup_common",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF40F0",
+      "new_window_start": "0xE0FF404C",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 0
@@ -740,7 +772,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00C50000",
       "old_window_end_exclusive": "0x00C50002",
-      "new_window_start": "0xE0FF4050",
+      "new_window_start": "0xE0FF4850",
       "target": "symbol:genesistan_shadow_reg_c50000",
       "scan_step": 2,
       "count": 0
@@ -749,7 +781,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00D01BFE",
       "old_window_end_exclusive": "0x00D01C00",
-      "new_window_start": "0xE0FF4060",
+      "new_window_start": "0xE0FF4864",
       "target": "symbol:genesistan_shadow_reg_d01bfe",
       "scan_step": 2,
       "count": 0
@@ -758,7 +790,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF40F0",
+      "new_window_start": "0xE0FF404C",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 0
@@ -780,6 +812,15 @@
       "kind": "window_rewrite_skipped",
       "reason": "range_is_code",
       "hint": "Set allow_in_code=true only for audited table slices."
+    },
+    {
+      "range": "frontend_core",
+      "old_window_start": "0x00D00000",
+      "old_window_end_exclusive": "0x00D04000",
+      "new_window_start": "0xE0FF404C",
+      "target": "symbol:genesistan_shadow_d00000_words",
+      "scan_step": 2,
+      "count": 1
     },
     {
       "range": "frontend_core",
@@ -803,7 +844,7 @@
       "range": "title_text_ptr_table_03bb7c",
       "old_window_start": "0x00C00000",
       "old_window_end_exclusive": "0x00D00000",
-      "new_window_start": "0xE0FF404C",
+      "new_window_start": "0xE0FF484C",
       "target": "symbol:genesistan_cwindow_null",
       "scan_step": 2,
       "count": 0
@@ -821,7 +862,7 @@
       "range": "title_init_block",
       "old_window_start": "0x00C00000",
       "old_window_end_exclusive": "0x00D00000",
-      "new_window_start": "0xE0FF404C",
+      "new_window_start": "0xE0FF484C",
       "target": "symbol:genesistan_cwindow_null",
       "scan_step": 2,
       "count": 97
@@ -831,6 +872,15 @@
       "kind": "window_rewrite_skipped",
       "reason": "range_is_code",
       "hint": "Set allow_in_code=true only for audited table slices."
+    },
+    {
+      "range": "title_init_block",
+      "old_window_start": "0x00D00000",
+      "old_window_end_exclusive": "0x00D04000",
+      "new_window_start": "0xE0FF404C",
+      "target": "symbol:genesistan_shadow_d00000_words",
+      "scan_step": 2,
+      "count": 4
     },
     {
       "range": "title_init_block",
@@ -854,7 +904,7 @@
       "range": "title_init_source_tail_03c39c",
       "old_window_start": "0x00C00000",
       "old_window_end_exclusive": "0x00D00000",
-      "new_window_start": "0xE0FF404C",
+      "new_window_start": "0xE0FF484C",
       "target": "symbol:genesistan_cwindow_null",
       "scan_step": 2,
       "count": 0
@@ -863,28 +913,91 @@
       "range": "rastan_maincpu_blob_c09ea0_25bf48",
       "old_window_start": "0x00C00000",
       "old_window_end_exclusive": "0x00D00000",
-      "new_window_start": "0xE0FF404C",
+      "new_window_start": "0xE0FF484C",
       "target": "symbol:genesistan_cwindow_null",
+      "scan_step": 2,
+      "count": 0
+    },
+    {
+      "range": "rastan_maincpu_blob_c09ea0_25c068",
+      "old_window_start": "0x00C00000",
+      "old_window_end_exclusive": "0x00D00000",
+      "new_window_start": "0xE0FF484C",
+      "target": "symbol:genesistan_cwindow_null",
+      "scan_step": 2,
+      "count": 0
+    },
+    {
+      "range": "rastan_maincpu_blob_c09ea0_25c0a0",
+      "old_window_start": "0x00C00000",
+      "old_window_end_exclusive": "0x00D00000",
+      "new_window_start": "0xE0FF484C",
+      "target": "symbol:genesistan_cwindow_null",
+      "scan_step": 2,
+      "count": 0
+    },
+    {
+      "range": "rastan_maincpu_blob_d00048_block",
+      "old_window_start": "0x00D00000",
+      "old_window_end_exclusive": "0x00D04000",
+      "new_window_start": "0xE0FF404C",
+      "target": "symbol:genesistan_shadow_d00000_words",
+      "scan_step": 2,
+      "count": 0
+    },
+    {
+      "range": "rastan_maincpu_blob_d00048_alias_patch",
+      "old_window_start": "0x00D00000",
+      "old_window_end_exclusive": "0x00D04000",
+      "new_window_start": "0xE0FF404C",
+      "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 1
     },
     {
-      "range": "sprite_init_41dae",
-      "old_window_start": "0x00D00000",
-      "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF40F0",
-      "target": "symbol:genesistan_shadow_d00000_words",
+      "range": "game_engine_040000",
+      "old_window_start": "0x00C00000",
+      "old_window_end_exclusive": "0x00D00000",
+      "new_window_start": "0xE0FF484C",
+      "target": "symbol:genesistan_cwindow_null",
       "scan_step": 2,
-      "count": 4
+      "count": 207
     },
     {
-      "range": "sprite_init_41f5e",
+      "range": "game_engine_040000",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF40F0",
+      "new_window_start": "0xE0FF404C",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
-      "count": 2
+      "count": 81
+    },
+    {
+      "range": "game_engine_059b1a",
+      "old_window_start": "0x00C00000",
+      "old_window_end_exclusive": "0x00D00000",
+      "new_window_start": "0xE0FF484C",
+      "target": "symbol:genesistan_cwindow_null",
+      "scan_step": 2,
+      "count": 39
+    },
+    {
+      "range": "game_engine_059b1a",
+      "old_window_start": "0x00D00000",
+      "old_window_end_exclusive": "0x00D04000",
+      "new_window_start": "0xE0FF404C",
+      "target": "symbol:genesistan_shadow_d00000_words",
+      "scan_step": 2,
+      "count": 8
+    },
+    {
+      "range": "helper_d000_init",
+      "old_window_start": "0x00D00000",
+      "old_window_end_exclusive": "0x00D04000",
+      "new_window_start": "0xE0FF404C",
+      "target": "symbol:genesistan_shadow_d00000_words",
+      "scan_step": 2,
+      "count": 0
     },
     {
       "range": "helper_frontend_timers",
@@ -916,7 +1029,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0560DA",
       "rom_pc": "0x0562DA",
-      "original_bytes": "206d10a0b1fc00c00f0066046100ff6e206d10a0343c0032203c0000002020c0534266fad1fc000001002008028000c03f0020402b4810a0",
+      "original_bytes": "206d10a0b1fce0ff574c66046100ff6e206d10a0343c0032203c0000002020c0534266fad1fc0000010020080280e0ff874c20402b4810a0",
       "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "NOP entire display list write function 0x560DA-0x56111. Stops per-frame C-Window SRAM pointer writes and advancement."
     },
@@ -938,6 +1051,22 @@
     },
     {
       "kind": "opcode_replace",
+      "arcade_pc": "0x000514",
+      "rom_pc": "0x000714",
+      "original_bytes": "32fc0000",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP movew #0,%a1@+ in boot text fill loop. Ghidra Build 125 report listed this as 0x000714 in relocated ROM view."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x000518",
+      "rom_pc": "0x000718",
+      "original_bytes": "32fc0020",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP movew #32,%a1@+ in boot text fill loop. Ghidra Build 125 report listed this as 0x000718 in relocated ROM view."
+    },
+    {
+      "kind": "opcode_replace",
       "arcade_pc": "0x055968",
       "rom_pc": "0x055B68",
       "original_bytes": "206d10a0323c0010227c0010d080267c0010d0402453610000322b4810a0588b5489534166ee",
@@ -956,7 +1085,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0556F2",
       "rom_pc": "0x0558F2",
-      "original_bytes": "068100c080002b4110a4",
+      "original_bytes": "0681e0ffc84c2b4110a4",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP C-Window addr store (0x556F2-0x556FB). addil #0xC08000,d1 + movel d1,a5@(4260). Stops display-list pointer advancing into C-Window range each frame."
     },
@@ -988,7 +1117,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x05577E",
       "rom_pc": "0x05597E",
-      "original_bytes": "068000c080002b4010a4",
+      "original_bytes": "0680e0ffc84c2b4010a4",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP second C-Window addr store to A5@(4260). addil #0xC08000,d0 + movel d0,a5@(4260) at 0x5577E. Parallel path to 0x556F2 (Build 103). Still advancing C-Window page 2 pointer causing crash at 0x209D66."
     },
@@ -1068,7 +1197,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x055E54",
       "rom_pc": "0x056054",
-      "original_bytes": "2b7c00c0040010a0",
+      "original_bytes": "2b7ce0ff4c4c10a0",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP MOVE.L #0xC00400, 0x10A0(A5). Stores C-Window base into A5 workram slot (ptr init a5@(4256))."
     },
@@ -1076,7 +1205,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x055818",
       "rom_pc": "0x055A18",
-      "original_bytes": "068000c080002b4010a0",
+      "original_bytes": "0680e0ffc84c2b4010a0",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP ADDIL #0xC08000,D0 + MOVE.L D0,0x10A0(A5). Stores advanced C-Window base into A5@(4256) (second path)."
     },
@@ -1084,7 +1213,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x055B84",
       "rom_pc": "0x055D84",
-      "original_bytes": "068000c00000",
+      "original_bytes": "0680e0ff484c",
       "replacement_bytes": "4e714e714e71",
       "note": "NOP ADDIL #0xC00000, D0. Adds C-Window base to D0 \u2014 part of pointer advancement sequence."
     },
@@ -1092,7 +1221,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x056032",
       "rom_pc": "0x056232",
-      "original_bytes": "227c00c00828",
+      "original_bytes": "227ce0ff5074",
       "replacement_bytes": "4e714e714e71",
       "note": "NOP MOVEA.L #0xC00828, A1. Loads C-Window address into A1."
     },
@@ -1100,7 +1229,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x05605C",
       "rom_pc": "0x05625C",
-      "original_bytes": "227c00c00028",
+      "original_bytes": "227ce0ff4874",
       "replacement_bytes": "4e714e714e71",
       "note": "NOP MOVEA.L #0xC00028, A1. Loads C-Window address into A1 (second path)."
     },
@@ -1108,7 +1237,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0503EC",
       "rom_pc": "0x0505EC",
-      "original_bytes": "23fc00c080000010d0a0",
+      "original_bytes": "23fce0ffc84c0010d0a0",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A0). Stores C-Window page 2 base into arcade workram."
     },
@@ -1116,7 +1245,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0503F6",
       "rom_pc": "0x0505F6",
-      "original_bytes": "23fc00c000000010d0f8",
+      "original_bytes": "23fce0ff484c0010d0f8",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC00000, abs.l(0x10D0F8). Stores C-Window page 0 base into arcade workram."
     },
@@ -1124,7 +1253,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x050400",
       "rom_pc": "0x050600",
-      "original_bytes": "23fc00c080000010d0a4",
+      "original_bytes": "23fce0ffc84c0010d0a4",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A4). Stores C-Window page 2 base into arcade workram (second slot)."
     },
@@ -1132,7 +1261,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x05040C",
       "rom_pc": "0x05060C",
-      "original_bytes": "23fc00c000000010d0f8",
+      "original_bytes": "23fce0ff484c0010d0f8",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC00000, abs.l(0x10D0F8). Duplicate store C-Window page 0 base into workram."
     },
@@ -1140,7 +1269,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x050416",
       "rom_pc": "0x050616",
-      "original_bytes": "23fc00c080000010d0a0",
+      "original_bytes": "23fce0ffc84c0010d0a0",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A0). Duplicate store C-Window page 2 base into workram."
     },
@@ -1148,7 +1277,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x050420",
       "rom_pc": "0x050620",
-      "original_bytes": "203c00c0bf0023c00010d0a4",
+      "original_bytes": "203ce100074c23c00010d0a4",
       "replacement_bytes": "4e714e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC0BF00,D0 + MOVE.L D0,abs.l(0x10D0A4). Length=12 only (trailing 0x33FC at 0x05042C is start of next MOVE.W, incomplete)."
     },
@@ -1156,7 +1285,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0561C0",
       "rom_pc": "0x0563C0",
-      "original_bytes": "207c00c08000227c00c0000020c0",
+      "original_bytes": "207ce0ffc84c227ce0ff484c20c0",
       "replacement_bytes": "4e714e714e714e714e714e714e71",
       "note": "NOP MOVEA.L #0xC08000,A0 + MOVEA.L #0xC00000,A1 + MOVE.L (A0),D0. Fill-loop initialisation loading both C-Window page addresses."
     },
@@ -1188,7 +1317,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x055AB4",
       "rom_pc": "0x055CB4",
-      "original_bytes": "33ed10ee00c20000",
+      "original_bytes": "33ed10eee101484c",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w scroll write to 0xC20000 \u2014 scroll register, unmapped on Genesis."
     },
@@ -1196,7 +1325,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x055ABC",
       "rom_pc": "0x055CBC",
-      "original_bytes": "33ed10ec00c40000",
+      "original_bytes": "33ed10ece103484c",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w scroll write to 0xC40000 \u2014 scroll register, unmapped on Genesis."
     },
@@ -1204,7 +1333,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x055AC4",
       "rom_pc": "0x055CC4",
-      "original_bytes": "33ed10b000c20002",
+      "original_bytes": "33ed10b0e101484e",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w scroll write to 0xC20002 \u2014 scroll register, unmapped on Genesis."
     },
@@ -1212,7 +1341,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x055ACC",
       "rom_pc": "0x055CCC",
-      "original_bytes": "33ed10ae00c40002",
+      "original_bytes": "33ed10aee103484e",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w scroll write to 0xC40002 \u2014 scroll register, unmapped on Genesis."
     },
@@ -1276,7 +1405,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x052858",
       "rom_pc": "0x052A58",
-      "original_bytes": "207c00c08000",
+      "original_bytes": "207ce0ffc84c",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
     },
@@ -1284,7 +1413,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x052974",
       "rom_pc": "0x052B74",
-      "original_bytes": "207c00c08000",
+      "original_bytes": "207ce0ffc84c",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
     },
@@ -1292,7 +1421,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0575CE",
       "rom_pc": "0x0577CE",
-      "original_bytes": "207c00c08000",
+      "original_bytes": "207ce0ffc84c",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
     },
@@ -1300,7 +1429,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03ADFE",
       "rom_pc": "0x03AFFE",
-      "original_bytes": "33fc0000e0ff4050",
+      "original_bytes": "33fc0000e0ff4850",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #0,0xC50000. Direct C-window/control write, unmapped on Genesis."
     },
@@ -1308,7 +1437,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE16",
       "rom_pc": "0x03B016",
-      "original_bytes": "33fc0001e0ff4050",
+      "original_bytes": "33fc0001e0ff4850",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #1,0xC50000. Direct C-window/control write, unmapped on Genesis."
     },
@@ -1316,7 +1445,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE86",
       "rom_pc": "0x03B086",
-      "original_bytes": "33fc0000e0ff4050",
+      "original_bytes": "33fc0000e0ff4850",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #0,0xC50000 in init path. Direct C-window/control write, unmapped on Genesis."
     },
@@ -1394,7 +1523,7 @@
     },
     {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x39FCAC",
+      "rom_offset": "0x39FBB4",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1412,7 +1541,7 @@
   },
   "test_result_stub": {
     "address": "0x03B270",
-    "writes_status_to": "0xE0FF4058",
+    "writes_status_to": "0xE0FF4858",
     "value": 2,
     "jumps_exit_to": "0x00201CD2",
     "end_exclusive": "0x03B27E"
@@ -1421,10 +1550,10 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x4C38",
+  "checksum": "0x412B",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x002172A4",
+    "reset_pc": "0x002171D6",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

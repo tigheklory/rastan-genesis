@@ -39,7 +39,7 @@ release:
 		--symbols "$(CURDIR)/out/symbol.txt" \
 		--manifest "$(ROOT)/build/rastan/startup_common_rom_manifest.json"; \
 	printf "%s" "$$count" > ../../dist/release_counter.txt; \
-	name="Rastan_$${count}_$${stamp}.bin"; \
+	name="Rastan_$${count}.bin"; \
 	cp out/rom.bin ../../dist/$$name; \
 	printf "%s\n" "$$name" > ../../dist/latest_release_name.txt; \
 	echo "Release: ../../dist/$$name"
@@ -58,7 +58,7 @@ release-nohook:
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"; \
 	$(MAKE) -f $(GDK)/makefile.gen release EXTRA_FLAGS="$(NOHOOK_FLAGS)" MD_LDSCRIPT="$(MD_LDSCRIPT)"; \
 	printf "%s" "$$count" > ../../dist/release_counter.txt; \
-	name="Rastan_$${count}_$${stamp}.bin"; \
+	name="Rastan_$${count}.bin"; \
 	cp out/rom.bin ../../dist/$$name; \
 	printf "%s\n" "$$name" > ../../dist/latest_release_name.txt; \
 	echo "Release: ../../dist/$$name"

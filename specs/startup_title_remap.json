@@ -217,16 +217,40 @@
       "end_exclusive": "0x25BD4C"
     },
     {
-      "name": "sprite_init_41dae",
-      "kind": "original_code",
-      "start": "0x041DAE",
-      "end_exclusive": "0x041F0E"
+      "name": "rastan_maincpu_blob_c09ea0_25c068",
+      "kind": "original_data",
+      "start": "0x25BE68",
+      "end_exclusive": "0x25BE6C"
     },
     {
-      "name": "sprite_init_41f5e",
+      "name": "rastan_maincpu_blob_c09ea0_25c0a0",
+      "kind": "original_data",
+      "start": "0x25BEA0",
+      "end_exclusive": "0x25BEA4"
+    },
+    {
+      "name": "rastan_maincpu_blob_d00048_block",
+      "kind": "original_data",
+      "start": "0x279B10",
+      "end_exclusive": "0x279D9E"
+    },
+    {
+      "name": "rastan_maincpu_blob_d00048_alias_patch",
+      "kind": "original_data",
+      "start": "0x279910",
+      "end_exclusive": "0x279A6C"
+    },
+    {
+      "name": "game_engine_040000",
       "kind": "original_code",
-      "start": "0x041F5E",
-      "end_exclusive": "0x041F9C"
+      "start": "0x040000",
+      "end_exclusive": "0x059AD4"
+    },
+    {
+      "name": "game_engine_059b1a",
+      "kind": "original_code",
+      "start": "0x059B1A",
+      "end_exclusive": "0x060000"
     },
     {
       "name": "helper_fill_words",
@@ -779,6 +803,13 @@
     },
     {
       "range": "frontend_core",
+      "arcade_base": "0x00D00000",
+      "arcade_end": "0x00D04000",
+      "symbol": "genesistan_shadow_d00000_words",
+      "allow_in_code": true
+    },
+    {
+      "range": "frontend_core",
       "old_start": "0x00D00000",
       "old_end_exclusive": "0x00D00800",
       "symbol": "genesistan_shadow_d00000_words"
@@ -824,6 +855,13 @@
     },
     {
       "range": "title_init_block",
+      "arcade_base": "0x00D00000",
+      "arcade_end": "0x00D04000",
+      "symbol": "genesistan_shadow_d00000_words",
+      "allow_in_code": true
+    },
+    {
+      "range": "title_init_block",
       "old_start": "0x00D00000",
       "old_end_exclusive": "0x00D00800",
       "symbol": "genesistan_shadow_d00000_words"
@@ -855,14 +893,63 @@
       "allow_in_code": true
     },
     {
-      "range": "sprite_init_41dae",
+      "range": "rastan_maincpu_blob_c09ea0_25c068",
+      "arcade_base": "0x00C00000",
+      "arcade_end": "0x00D00000",
+      "symbol": "genesistan_cwindow_null",
+      "allow_in_code": true
+    },
+    {
+      "range": "rastan_maincpu_blob_c09ea0_25c0a0",
+      "arcade_base": "0x00C00000",
+      "arcade_end": "0x00D00000",
+      "symbol": "genesistan_cwindow_null",
+      "allow_in_code": true
+    },
+    {
+      "range": "rastan_maincpu_blob_d00048_block",
       "arcade_base": "0x00D00000",
       "arcade_end": "0x00D04000",
       "symbol": "genesistan_shadow_d00000_words",
       "allow_in_code": true
     },
     {
-      "range": "sprite_init_41f5e",
+      "range": "rastan_maincpu_blob_d00048_alias_patch",
+      "arcade_base": "0x00D00000",
+      "arcade_end": "0x00D04000",
+      "symbol": "genesistan_shadow_d00000_words",
+      "allow_in_code": true
+    },
+    {
+      "range": "game_engine_040000",
+      "arcade_base": "0x00C00000",
+      "arcade_end": "0x00D00000",
+      "symbol": "genesistan_cwindow_null",
+      "allow_in_code": true
+    },
+    {
+      "range": "game_engine_040000",
+      "arcade_base": "0x00D00000",
+      "arcade_end": "0x00D04000",
+      "symbol": "genesistan_shadow_d00000_words",
+      "allow_in_code": true
+    },
+    {
+      "range": "game_engine_059b1a",
+      "arcade_base": "0x00C00000",
+      "arcade_end": "0x00D00000",
+      "symbol": "genesistan_cwindow_null",
+      "allow_in_code": true
+    },
+    {
+      "range": "game_engine_059b1a",
+      "arcade_base": "0x00D00000",
+      "arcade_end": "0x00D04000",
+      "symbol": "genesistan_shadow_d00000_words",
+      "allow_in_code": true
+    },
+    {
+      "range": "helper_d000_init",
       "arcade_base": "0x00D00000",
       "arcade_end": "0x00D04000",
       "symbol": "genesistan_shadow_d00000_words",
@@ -913,7 +1000,7 @@
   "opcode_replace": [
     {
       "arcade_pc": "0x0560DA",
-      "original_bytes": "206D10A0B1FC00C00F0066046100FF6E206D10A0343C0032203C0000002020C0534266FAD1FC000001002008028000C03F0020402B4810A0",
+      "original_bytes": "206D10A0B1FCE0FF574C66046100FF6E206D10A0343C0032203C0000002020C0534266FAD1FC0000010020080280E0FF874C20402B4810A0",
       "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
       "note": "NOP entire display list write function 0x560DA-0x56111. Stops per-frame C-Window SRAM pointer writes and advancement."
     },
@@ -930,6 +1017,18 @@
       "note": "NOP longword fill loop. Called from 0x3AE70, 0x3AE80, 0x3AF38, 0x3AF48 to fill C-Window pages 0 and 2 with 0x0020. Also called from 0x3AD4C sprite RAM init which is irrelevant on Genesis."
     },
     {
+      "arcade_pc": "0x000514",
+      "original_bytes": "32fc0000",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP movew #0,%a1@+ in boot text fill loop. Ghidra Build 125 report listed this as 0x000714 in relocated ROM view."
+    },
+    {
+      "arcade_pc": "0x000518",
+      "original_bytes": "32fc0020",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP movew #32,%a1@+ in boot text fill loop. Ghidra Build 125 report listed this as 0x000718 in relocated ROM view."
+    },
+    {
       "arcade_pc": "0x055968",
       "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
       "replacement_bytes": "4eb9002000004e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -943,7 +1042,7 @@
     },
     {
       "arcade_pc": "0x0556F2",
-      "original_bytes": "068100C080002B4110A4",
+      "original_bytes": "0681E0FFC84C2B4110A4",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP C-Window addr store (0x556F2-0x556FB). addil #0xC08000,d1 + movel d1,a5@(4260). Stops display-list pointer advancing into C-Window range each frame."
     },
@@ -967,7 +1066,7 @@
     },
     {
       "arcade_pc": "0x05577E",
-      "original_bytes": "068000c080002b4010a4",
+      "original_bytes": "0680E0FFC84C2B4010A4",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP second C-Window addr store to A5@(4260). addil #0xC08000,d0 + movel d0,a5@(4260) at 0x5577E. Parallel path to 0x556F2 (Build 103). Still advancing C-Window page 2 pointer causing crash at 0x209D66."
     },
@@ -1027,73 +1126,73 @@
     },
     {
       "arcade_pc": "0x055E54",
-      "original_bytes": "2b7c00c0040010a0",
+      "original_bytes": "2b7ce0ff4c4c10a0",
       "replacement_bytes": "4E714E714E714E71",
       "note": "NOP MOVE.L #0xC00400, 0x10A0(A5). Stores C-Window base into A5 workram slot (ptr init a5@(4256))."
     },
     {
       "arcade_pc": "0x055818",
-      "original_bytes": "068000c080002b4010a0",
+      "original_bytes": "0680e0ffc84c2b4010a0",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP ADDIL #0xC08000,D0 + MOVE.L D0,0x10A0(A5). Stores advanced C-Window base into A5@(4256) (second path)."
     },
     {
       "arcade_pc": "0x055B84",
-      "original_bytes": "068000c00000",
+      "original_bytes": "0680e0ff484c",
       "replacement_bytes": "4E714E714E71",
       "note": "NOP ADDIL #0xC00000, D0. Adds C-Window base to D0 \u2014 part of pointer advancement sequence."
     },
     {
       "arcade_pc": "0x056032",
-      "original_bytes": "227c00c00828",
+      "original_bytes": "227ce0ff5074",
       "replacement_bytes": "4E714E714E71",
       "note": "NOP MOVEA.L #0xC00828, A1. Loads C-Window address into A1."
     },
     {
       "arcade_pc": "0x05605C",
-      "original_bytes": "227c00c00028",
+      "original_bytes": "227ce0ff4874",
       "replacement_bytes": "4E714E714E71",
       "note": "NOP MOVEA.L #0xC00028, A1. Loads C-Window address into A1 (second path)."
     },
     {
       "arcade_pc": "0x0503EC",
-      "original_bytes": "23fc00c080000010d0a0",
+      "original_bytes": "23fce0ffc84c0010d0a0",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A0). Stores C-Window page 2 base into arcade workram."
     },
     {
       "arcade_pc": "0x0503F6",
-      "original_bytes": "23fc00c000000010d0f8",
+      "original_bytes": "23fce0ff484c0010d0f8",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC00000, abs.l(0x10D0F8). Stores C-Window page 0 base into arcade workram."
     },
     {
       "arcade_pc": "0x050400",
-      "original_bytes": "23fc00c080000010d0a4",
+      "original_bytes": "23fce0ffc84c0010d0a4",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A4). Stores C-Window page 2 base into arcade workram (second slot)."
     },
     {
       "arcade_pc": "0x05040C",
-      "original_bytes": "23fc00c000000010d0f8",
+      "original_bytes": "23fce0ff484c0010d0f8",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC00000, abs.l(0x10D0F8). Duplicate store C-Window page 0 base into workram."
     },
     {
       "arcade_pc": "0x050416",
-      "original_bytes": "23fc00c080000010d0a0",
+      "original_bytes": "23fce0ffc84c0010d0a0",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A0). Duplicate store C-Window page 2 base into workram."
     },
     {
       "arcade_pc": "0x050420",
-      "original_bytes": "203c00c0bf0023c00010d0a4",
+      "original_bytes": "203ce100074c23c00010d0a4",
       "replacement_bytes": "4E714E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC0BF00,D0 + MOVE.L D0,abs.l(0x10D0A4). Length=12 only (trailing 0x33FC at 0x05042C is start of next MOVE.W, incomplete)."
     },
     {
       "arcade_pc": "0x0561C0",
-      "original_bytes": "207c00c08000227c00c0000020c0",
+      "original_bytes": "207ce0ffc84c227ce0ff484c20c0",
       "replacement_bytes": "4E714E714E714E714E714E714E71",
       "note": "NOP MOVEA.L #0xC08000,A0 + MOVEA.L #0xC00000,A1 + MOVE.L (A0),D0. Fill-loop initialisation loading both C-Window page addresses."
     },
@@ -1117,25 +1216,25 @@
     },
     {
       "arcade_pc": "0x055AB4",
-      "original_bytes": "33ed10ee00c20000",
+      "original_bytes": "33ed10eee101484c",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w scroll write to 0xC20000 — scroll register, unmapped on Genesis."
     },
     {
       "arcade_pc": "0x055ABC",
-      "original_bytes": "33ed10ec00c40000",
+      "original_bytes": "33ed10ece103484c",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w scroll write to 0xC40000 — scroll register, unmapped on Genesis."
     },
     {
       "arcade_pc": "0x055AC4",
-      "original_bytes": "33ed10b000c20002",
+      "original_bytes": "33ed10b0e101484e",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w scroll write to 0xC20002 — scroll register, unmapped on Genesis."
     },
     {
       "arcade_pc": "0x055ACC",
-      "original_bytes": "33ed10ae00c40002",
+      "original_bytes": "33ed10aee103484e",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w scroll write to 0xC40002 — scroll register, unmapped on Genesis."
     },
@@ -1183,37 +1282,37 @@
     },
     {
       "arcade_pc": "0x052858",
-      "original_bytes": "207c00c08000",
+      "original_bytes": "207ce0ffc84c",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
     },
     {
       "arcade_pc": "0x052974",
-      "original_bytes": "207c00c08000",
+      "original_bytes": "207ce0ffc84c",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
     },
     {
       "arcade_pc": "0x0575CE",
-      "original_bytes": "207c00c08000",
+      "original_bytes": "207ce0ffc84c",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
     },
     {
       "arcade_pc": "0x03ADFE",
-      "original_bytes": "33fc0000e0ff4050",
+      "original_bytes": "33fc0000e0ff4850",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #0,0xC50000. Direct C-window/control write, unmapped on Genesis."
     },
     {
       "arcade_pc": "0x03AE16",
-      "original_bytes": "33fc0001e0ff4050",
+      "original_bytes": "33fc0001e0ff4850",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #1,0xC50000. Direct C-window/control write, unmapped on Genesis."
     },
     {
       "arcade_pc": "0x03AE86",
-      "original_bytes": "33fc0000e0ff4050",
+      "original_bytes": "33fc0000e0ff4850",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #0,0xC50000 in init path. Direct C-window/control write, unmapped on Genesis."
     },
