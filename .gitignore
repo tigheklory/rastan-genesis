@@ -39,6 +39,7 @@ tools/local/
 tools/sgdk/
 
 # Ignore all screenshots and recordings
+states/
 states/screenshots/**/*.png
 states/screenshots/**/*.mp4
 states/screenshots/**/*.jpg
