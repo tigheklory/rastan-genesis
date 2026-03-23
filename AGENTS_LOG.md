@@ -12620,3 +12620,40 @@ STOP CONDITION
 
 Tighe is at 75% Claude.ai weekly usage. Cody (Codex) has separate resource pool.
 Cody will handle builds AND research until 2026-03-27. Andy is paused.
+
+## [Cody - Build 117, C09E84 NOP + Scroll Writes]
+```text
+Byte verification results (build/regions/maincpu.bin)
+- 0x0005C0: OK  expected=4eb90003bb48  got=4eb90003bb48
+- 0x055AB4: OK  expected=33ed10ee00c20000  got=33ed10ee00c20000
+- 0x055ABC: OK  expected=33ed10ec00c40000  got=33ed10ec00c40000
+- 0x055AC4: OK  expected=33ed10b000c20002  got=33ed10b000c20002
+- 0x055ACC: OK  expected=33ed10ae00c40002  got=33ed10ae00c40002
+
+Spec changes made (specs/startup_title_remap.json)
+- Added opcode_replace entries for:
+  - 0x0005C0 (NOP JSR to table-driven C-window writer)
+  - 0x055AB4 (NOP write to 0xC20000)
+  - 0x055ABC (NOP write to 0xC40000)
+  - 0x055AC4 (NOP write to 0xC20002)
+  - 0x055ACC (NOP write to 0xC40002)
+- Build-time fix applied after first patcher validation error:
+  - 0x0005C0 original_bytes adjusted from 4eb90003bb48 to 4eb90003bd48
+    (ROM-form absolute target expected by postpatch validation in relocated image).
+
+Build status
+- Command: source tools/setup_env.sh && ./tools/release_build.sh 117
+- First run: failed at opcode validation for 0x0005C0 expected-bytes mismatch.
+- Second run: PASS.
+- Output ROM created successfully.
+
+Manifest verification (build/rastan/startup_common_rom_manifest.json)
+- 0x0005C0: OK expected=0x0007C0 got=0x0007C0
+- 0x055AB4: OK expected=0x055CB4 got=0x055CB4
+- 0x055ABC: OK expected=0x055CBC got=0x055CBC
+- 0x055AC4: OK expected=0x055CC4 got=0x055CC4
+- 0x055ACC: OK expected=0x055CCC got=0x055CCC
+
+Path to ROM
+- dist/Rastan_117.bin
+```

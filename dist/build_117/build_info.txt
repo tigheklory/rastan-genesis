@@ -1,0 +1,4 @@
+build_number=117
+date_utc=2026-03-23T00:35:59Z
+rom_file=rom.bin
+rom_md5=2754720724c24dce9c100969fee9b436

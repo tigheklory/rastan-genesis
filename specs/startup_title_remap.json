@@ -1038,7 +1038,7 @@
     },
     {
       "arcade_pc": "0x0005C0",
-      "original_bytes": "4eb90003bb48",
+      "original_bytes": "4eb90003bd48",
       "replacement_bytes": "4e714e714e71",
       "note": "NOP jsr 0x3BB48 — table-driven C-window text writer. Crashes Genesis on game entry by writing to 0xC09E84 via A1 indirect."
     },

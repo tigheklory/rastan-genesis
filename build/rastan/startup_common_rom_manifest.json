@@ -1090,6 +1090,46 @@
       "note": "NOP CLR.L 0xC40000. Pair with 0x03B098."
     },
     {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0005C0",
+      "rom_pc": "0x0007C0",
+      "original_bytes": "4eb90003bd48",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP jsr 0x3BB48 \u2014 table-driven C-window text writer. Crashes Genesis on game entry by writing to 0xC09E84 via A1 indirect."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x055AB4",
+      "rom_pc": "0x055CB4",
+      "original_bytes": "33ed10ee00c20000",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w scroll write to 0xC20000 \u2014 scroll register, unmapped on Genesis."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x055ABC",
+      "rom_pc": "0x055CBC",
+      "original_bytes": "33ed10ec00c40000",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w scroll write to 0xC40000 \u2014 scroll register, unmapped on Genesis."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x055AC4",
+      "rom_pc": "0x055CC4",
+      "original_bytes": "33ed10b000c20002",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w scroll write to 0xC20002 \u2014 scroll register, unmapped on Genesis."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x055ACC",
+      "rom_pc": "0x055CCC",
+      "original_bytes": "33ed10ae00c40002",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w scroll write to 0xC40002 \u2014 scroll register, unmapped on Genesis."
+    },
+    {
       "kind": "palette_pre_conversion",
       "rom_offset": "0x3920A4",
       "entries": 2048,
@@ -1118,7 +1158,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x4917",
+  "checksum": "0x2480",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x002053EE",
