@@ -94,7 +94,7 @@
     {
       "name": "c_window",
       "start": "0x00C00000",
-      "end_exclusive": "0x00C10000"
+      "end_exclusive": "0x00D00000"
     },
     {
       "name": "reg_c20000",
@@ -135,6 +135,7 @@
     "genesistan_shadow_d00000_words",
     "genesistan_shadow_c20000_words",
     "genesistan_shadow_c40000_words",
+    "genesistan_cwindow_null",
     "genesistan_shadow_reg_c50000",
     "genesistan_shadow_reg_d01bfe",
     "genesistan_shadow_reg_350008",
@@ -679,6 +680,13 @@
   "window_rewrite_rules": [
     {
       "range": "startup_common",
+      "arcade_base": "0x00C00000",
+      "arcade_end": "0x00D00000",
+      "symbol": "genesistan_cwindow_null",
+      "allow_in_code": true
+    },
+    {
+      "range": "startup_common",
       "arcade_base": "0x00C50000",
       "arcade_end": "0x00C50002",
       "symbol": "genesistan_shadow_reg_c50000",
@@ -899,6 +907,12 @@
       "note": "NOP MOVE.W #0x0032, 0xC08A52. Direct C-Window write. Length=8 only (trailing 2 bytes at 0x03A358 are start of separate instruction)."
     },
     {
+      "arcade_pc": "0x03A552",
+      "original_bytes": "0c39003000c09ea36608",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP cmpib #48,0xC09EA3 + BNE. READ from VDP-range 0xC09EA3 crashes BlastEm. Called from BSR at 0x3A54A. moveb at 0x3A55C already NOPed in prior build."
+    },
+    {
       "arcade_pc": "0x03A55C",
       "original_bytes": "13fc002000c09ea3",
       "replacement_bytes": "4E714E714E714E71",
@@ -1065,6 +1079,144 @@
       "original_bytes": "33ed10ae00c40002",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w scroll write to 0xC40002 — scroll register, unmapped on Genesis."
+    },
+    {
+      "arcade_pc": "0x03BB66",
+      "original_bytes": "32c2",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d2,(a1)+ inside text writer 0x3BB48 — silences all C-window writes via this function (normal write path)"
+    },
+    {
+      "arcade_pc": "0x03BB68",
+      "original_bytes": "32c0",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d0,(a1)+ inside text writer 0x3BB48 (normal write path)"
+    },
+    {
+      "arcade_pc": "0x03BB74",
+      "original_bytes": "32c2",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d2,(a1)+ inside text writer 0x3BB48 (space-fill path)"
+    },
+    {
+      "arcade_pc": "0x03BB76",
+      "original_bytes": "32c1",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d1,(a1)+ inside text writer 0x3BB48 (space-fill path)"
+    },
+    {
+      "arcade_pc": "0x03C42A",
+      "original_bytes": "32c7",
+      "replacement_bytes": "4e71",
+      "note": "NOP MOVE.W D7,(A1) in text writer 0x03C3FE. A1 = C08000 + sub_table_offset; fires first each iteration before character write. Crash: write to C09EA0."
+    },
+    {
+      "arcade_pc": "0x03C446",
+      "original_bytes": "32c1",
+      "replacement_bytes": "4e71",
+      "note": "NOP MOVE.W D1,(A1) in text writer 0x03C3FE (character tile write path)."
+    },
+    {
+      "arcade_pc": "0x03C44A",
+      "original_bytes": "32fc0020",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP MOVE.W #0x20,(A1) in text writer 0x03C3FE (space fill path)."
+    },
+    {
+      "arcade_pc": "0x03C418",
+      "original_bytes": "d3fc00c08000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP ADDA.L #0xC08000,A1 in text writer 0x03C3FE (computed C-window base)."
+    },
+    {
+      "arcade_pc": "0x052858",
+      "original_bytes": "207c00c08000",
+      "replacement_bytes": "4e754e714e71",
+      "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
+    },
+    {
+      "arcade_pc": "0x052974",
+      "original_bytes": "207c00c08000",
+      "replacement_bytes": "4e754e714e71",
+      "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
+    },
+    {
+      "arcade_pc": "0x0575CE",
+      "original_bytes": "207c00c08000",
+      "replacement_bytes": "4e754e714e71",
+      "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
+    },
+    {
+      "arcade_pc": "0x03ADFE",
+      "original_bytes": "33fc0000e0ff5322",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w #0,0xC50000. Direct C-window/control write, unmapped on Genesis."
+    },
+    {
+      "arcade_pc": "0x03AE16",
+      "original_bytes": "33fc0001e0ff5322",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w #1,0xC50000. Direct C-window/control write, unmapped on Genesis."
+    },
+    {
+      "arcade_pc": "0x03AE86",
+      "original_bytes": "33fc0000e0ff5322",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w #0,0xC50000 in init path. Direct C-window/control write, unmapped on Genesis."
+    },
+    {
+      "arcade_pc": "0x0004AA",
+      "original_bytes": "34c2",
+      "replacement_bytes": "4e71",
+      "note": "NOP movew d2,(a2)+ inside secondary text writer 0x4A2"
+    },
+    {
+      "arcade_pc": "0x0004AC",
+      "original_bytes": "34c3",
+      "replacement_bytes": "4e71",
+      "note": "NOP movew d3,(a2)+ inside secondary text writer 0x4A2"
+    },
+    {
+      "arcade_pc": "0x00068C",
+      "original_bytes": "30c1",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d1,(a0)+ where A0 is C-window text address base (0xC0975C)."
+    },
+    {
+      "arcade_pc": "0x03B1CC",
+      "original_bytes": "3080",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d0,(a0) in c-window text/status writer (A0 based at 0xC09376 + offset)."
+    },
+    {
+      "arcade_pc": "0x03B47A",
+      "original_bytes": "30fc0001",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP move.w #1,(a0)+ in c-window writer helper (A0=0xC0887C)."
+    },
+    {
+      "arcade_pc": "0x03B47E",
+      "original_bytes": "30bc2744",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP move.w #0x2744,(a0) in c-window writer helper (A0=0xC0887C)."
+    },
+    {
+      "arcade_pc": "0x03B49A",
+      "original_bytes": "30bc274b",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP move.w #0x274B,(a0) in c-window writer helper (A0=0xC08D6E + offset)."
+    },
+    {
+      "arcade_pc": "0x03B572",
+      "original_bytes": "30fc0000",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP move.w #0,(a0)+ in c-window writer helper (A0=0xC08D6C + offset)."
+    },
+    {
+      "arcade_pc": "0x03B5F6",
+      "original_bytes": "3080",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d0,(a0) in c-window writer helper (A0=0xC08D6E + offset)."
     }
   ],
   "memory_map": []

@@ -598,12 +598,23 @@ static void load_arcade_palette(void)
 {
     uint16_t buf[64];
     uint16_t i;
+    bool clcs_empty = TRUE;
 
-    /*
-     * CLCS source format from 0x59AD4 output:
-     * R=bits4:1, G=bits9:6, B=bits14:11.
-     * Genesis target format: 0000 BBB0 GGG0 RRR0.
-     */
+    for (i = 0; i < 64; i++) {
+        if (genesistan_palette_clcs[i] != 0) {
+            clcs_empty = FALSE;
+            break;
+        }
+    }
+
+    if (clcs_empty) {
+        SYS_disableInts();
+        PAL_setColors(0, (const u16 *)genesistan_palette_rom_table, 64, DMA);
+        VDP_waitDMACompletion();
+        SYS_enableInts();
+        return;
+    }
+
     for (i = 0; i < 64; i++) {
         const uint16_t c = genesistan_palette_clcs[i];
         buf[i] = ((c >> 1) & 0x000EU)
@@ -1122,8 +1133,8 @@ static uint16_t tile_cache_get(uint16_t arcade_tile)
 /*
  * JSR hooks called from arcade tilemap write functions
  * (0x055968 → plane_a, 0x055990 → plane_b).
- * Read 16 tile codes from workram[0x840..0x84F] and
- * 16 attributes from workram[0x820..0x82F] (4-byte stride).
+ * Read 16 tile codes from workram[0x1080..] and 16 attribute pointers
+ * from workram[0x1040..] (4-byte stride), then dereference attr at ptr+32.
  * Write to VDP Plane A (FG) and Plane B (BG) respectively.
  *
  * Position: cursor-driven (Build 114), reset once per frontend tick.
@@ -1148,7 +1159,16 @@ void genesistan_hook_tilemap_plane_a(void)
 
     SYS_disableInts();
     for (i = 0; i < 16; i++) {
-        const uint16_t attr = ((uint16_t)a3[(i * 4U) + 0U] << 8) | a3[(i * 4U) + 1U];
+        const uint32_t ptr = ((uint32_t)a3[(i * 4U) + 0U] << 24)
+                           | ((uint32_t)a3[(i * 4U) + 1U] << 16)
+                           | ((uint32_t)a3[(i * 4U) + 2U] <<  8)
+                           |  (uint32_t)a3[(i * 4U) + 3U];
+        uint16_t attr = 0;
+        if (ptr >= 0x0010C000UL && (ptr + 34U) <= 0x00110000UL) {
+            const uint8_t *s = (const uint8_t *)genesistan_arcade_workram_words
+                             + (ptr - 0x0010C000UL) + 32U;
+            attr = ((uint16_t)s[0] << 8) | s[1];
+        }
         const uint16_t code = ((uint16_t)a1[(i * 2U) + 0U] << 8) | a1[(i * 2U) + 1U];
         const uint16_t arcade_tile = code & 0x3FFFU;
         const uint16_t vram_tile   = tile_cache_get(arcade_tile);
@@ -1189,7 +1209,16 @@ void genesistan_hook_tilemap_plane_b(void)
 
     SYS_disableInts();
     for (i = 0; i < 16; i++) {
-        const uint16_t attr = ((uint16_t)a3[(i * 4U) + 0U] << 8) | a3[(i * 4U) + 1U];
+        const uint32_t ptr = ((uint32_t)a3[(i * 4U) + 0U] << 24)
+                           | ((uint32_t)a3[(i * 4U) + 1U] << 16)
+                           | ((uint32_t)a3[(i * 4U) + 2U] <<  8)
+                           |  (uint32_t)a3[(i * 4U) + 3U];
+        uint16_t attr = 0;
+        if (ptr >= 0x0010C000UL && (ptr + 34U) <= 0x00110000UL) {
+            const uint8_t *s = (const uint8_t *)genesistan_arcade_workram_words
+                             + (ptr - 0x0010C000UL) + 32U;
+            attr = ((uint16_t)s[0] << 8) | s[1];
+        }
         const uint16_t code = ((uint16_t)a1[(i * 2U) + 0U] << 8) | a1[(i * 2U) + 1U];
         const uint16_t arcade_tile = code & 0x3FFFU;
         const uint16_t vram_tile   = tile_cache_get(arcade_tile);
@@ -1408,9 +1437,12 @@ static void request_start_rastan(void)
         rastan_virtual_dip2);
     restore_launcher_vdp_state();
     current_screen = SCREEN_FRONTEND_LIVE;
+    VDP_setHInterrupt(0);
+    VDP_setHIntCounter(0xFF);
     VDP_clearPlane(BG_A, TRUE);
     VDP_clearPlane(BG_B, TRUE);
     clear_frontend_sprite_layer();
+    VDP_waitDMACompletion();
 #else
     char line[SCREEN_W + 1];
 

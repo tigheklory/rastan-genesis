@@ -371,7 +371,7 @@
     {
       "range": "frontend_core",
       "old": "0x00200000",
-      "new": "0xE0FF5B48",
+      "new": "0xE0FF5B4C",
       "count": 0
     },
     {
@@ -437,37 +437,37 @@
     {
       "range": "title_init_block",
       "old": "0x00D00000",
-      "new": "0xE0FF532C",
+      "new": "0xE0FF5330",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D00020",
-      "new": "0xE0FF534C",
+      "new": "0xE0FF5350",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x00D00088",
-      "new": "0xE0FF53B4",
+      "new": "0xE0FF53B8",
       "count": 2
     },
     {
       "range": "title_init_block",
       "old": "0x00D000DA",
-      "new": "0xE0FF5406",
+      "new": "0xE0FF540A",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00D000E0",
-      "new": "0xE0FF540C",
+      "new": "0xE0FF5410",
       "count": 1
     },
     {
       "range": "title_init_block",
       "old": "0x00D00128",
-      "new": "0xE0FF5454",
+      "new": "0xE0FF5458",
       "count": 2
     },
     {
@@ -509,7 +509,7 @@
     {
       "range": "title_init_block",
       "old": "0x00200000",
-      "new": "0xE0FF5B48",
+      "new": "0xE0FF5B4C",
       "count": 1
     },
     {
@@ -551,25 +551,25 @@
     {
       "range": "helper_d000_init",
       "old": "0x00D00000",
-      "new": "0xE0FF532C",
+      "new": "0xE0FF5330",
       "count": 2
     },
     {
       "range": "helper_d000_init",
       "old": "0x00D00170",
-      "new": "0xE0FF549C",
+      "new": "0xE0FF54A0",
       "count": 1
     },
     {
       "range": "helper_d000_init",
       "old": "0x00D00778",
-      "new": "0xE0FF5AA4",
+      "new": "0xE0FF5AA8",
       "count": 1
     },
     {
       "range": "helper_200000_init",
       "old": "0x00200000",
-      "new": "0xE0FF5B48",
+      "new": "0xE0FF5B4C",
       "count": 0
     },
     {
@@ -623,13 +623,13 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00200000",
-      "new": "0xE0FF5B48",
+      "new": "0xE0FF5B4C",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00201000",
-      "new": "0xE0FF6B48",
+      "new": "0xE0FF6B4C",
       "count": 2
     },
     {
@@ -653,13 +653,13 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00D00000",
-      "new": "0xE0FF532C",
+      "new": "0xE0FF5330",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00D01000",
-      "new": "0xE0FF532C",
+      "new": "0xE0FF5330",
       "count": 2
     },
     {
@@ -667,6 +667,15 @@
       "old": "0x00200000",
       "new": "0xE0FF4056",
       "count": 1
+    },
+    {
+      "range": "startup_common",
+      "old_window_start": "0x00C00000",
+      "old_window_end_exclusive": "0x00D00000",
+      "new_window_start": "0xE0FF5324",
+      "target": "symbol:genesistan_cwindow_null",
+      "scan_step": 2,
+      "count": 5
     },
     {
       "range": "startup_common",
@@ -690,7 +699,7 @@
       "range": "startup_common",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF532C",
+      "new_window_start": "0xE0FF5330",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 0
@@ -717,7 +726,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00D00000",
       "old_window_end_exclusive": "0x00D04000",
-      "new_window_start": "0xE0FF532C",
+      "new_window_start": "0xE0FF5330",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
       "count": 0
@@ -808,14 +817,14 @@
       "kind": "shim_jump",
       "old_start": "0x03F284",
       "old_end_exclusive": "0x03F29C",
-      "new_target": "0x00209344"
+      "new_target": "0x00209494"
     },
     {
       "range": "helper_3f09c_reg_status",
       "kind": "shim_jump",
       "old_start": "0x03F29C",
       "old_end_exclusive": "0x03F2AC",
-      "new_target": "0x00209374"
+      "new_target": "0x002094C4"
     },
     {
       "kind": "opcode_replace",
@@ -904,6 +913,14 @@
       "original_bytes": "33fc003200c08a52",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP MOVE.W #0x0032, 0xC08A52. Direct C-Window write. Length=8 only (trailing 2 bytes at 0x03A358 are start of separate instruction)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A552",
+      "rom_pc": "0x03A752",
+      "original_bytes": "0c39003000c09ea36608",
+      "replacement_bytes": "4e714e714e714e714e71",
+      "note": "NOP cmpib #48,0xC09EA3 + BNE. READ from VDP-range 0xC09EA3 crashes BlastEm. Called from BSR at 0x3A54A. moveb at 0x3A55C already NOPed in prior build."
     },
     {
       "kind": "opcode_replace",
@@ -1130,8 +1147,192 @@
       "note": "NOP move.w scroll write to 0xC40002 \u2014 scroll register, unmapped on Genesis."
     },
     {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03BB66",
+      "rom_pc": "0x03BD66",
+      "original_bytes": "32c2",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d2,(a1)+ inside text writer 0x3BB48 \u2014 silences all C-window writes via this function (normal write path)"
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03BB68",
+      "rom_pc": "0x03BD68",
+      "original_bytes": "32c0",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d0,(a1)+ inside text writer 0x3BB48 (normal write path)"
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03BB74",
+      "rom_pc": "0x03BD74",
+      "original_bytes": "32c2",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d2,(a1)+ inside text writer 0x3BB48 (space-fill path)"
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03BB76",
+      "rom_pc": "0x03BD76",
+      "original_bytes": "32c1",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d1,(a1)+ inside text writer 0x3BB48 (space-fill path)"
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03C42A",
+      "rom_pc": "0x03C62A",
+      "original_bytes": "32c7",
+      "replacement_bytes": "4e71",
+      "note": "NOP MOVE.W D7,(A1) in text writer 0x03C3FE. A1 = C08000 + sub_table_offset; fires first each iteration before character write. Crash: write to C09EA0."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03C446",
+      "rom_pc": "0x03C646",
+      "original_bytes": "32c1",
+      "replacement_bytes": "4e71",
+      "note": "NOP MOVE.W D1,(A1) in text writer 0x03C3FE (character tile write path)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03C44A",
+      "rom_pc": "0x03C64A",
+      "original_bytes": "32fc0020",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP MOVE.W #0x20,(A1) in text writer 0x03C3FE (space fill path)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03C418",
+      "rom_pc": "0x03C618",
+      "original_bytes": "d3fc00c08000",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP ADDA.L #0xC08000,A1 in text writer 0x03C3FE (computed C-window base)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x052858",
+      "rom_pc": "0x052A58",
+      "original_bytes": "207c00c08000",
+      "replacement_bytes": "4e754e714e71",
+      "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x052974",
+      "rom_pc": "0x052B74",
+      "original_bytes": "207c00c08000",
+      "replacement_bytes": "4e754e714e71",
+      "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0575CE",
+      "rom_pc": "0x0577CE",
+      "original_bytes": "207c00c08000",
+      "replacement_bytes": "4e754e714e71",
+      "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03ADFE",
+      "rom_pc": "0x03AFFE",
+      "original_bytes": "33fc0000e0ff5322",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w #0,0xC50000. Direct C-window/control write, unmapped on Genesis."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03AE16",
+      "rom_pc": "0x03B016",
+      "original_bytes": "33fc0001e0ff5322",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w #1,0xC50000. Direct C-window/control write, unmapped on Genesis."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03AE86",
+      "rom_pc": "0x03B086",
+      "original_bytes": "33fc0000e0ff5322",
+      "replacement_bytes": "4e714e714e714e71",
+      "note": "NOP move.w #0,0xC50000 in init path. Direct C-window/control write, unmapped on Genesis."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0004AA",
+      "rom_pc": "0x0006AA",
+      "original_bytes": "34c2",
+      "replacement_bytes": "4e71",
+      "note": "NOP movew d2,(a2)+ inside secondary text writer 0x4A2"
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x0004AC",
+      "rom_pc": "0x0006AC",
+      "original_bytes": "34c3",
+      "replacement_bytes": "4e71",
+      "note": "NOP movew d3,(a2)+ inside secondary text writer 0x4A2"
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x00068C",
+      "rom_pc": "0x00088C",
+      "original_bytes": "30c1",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d1,(a0)+ where A0 is C-window text address base (0xC0975C)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B1CC",
+      "rom_pc": "0x03B3CC",
+      "original_bytes": "3080",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d0,(a0) in c-window text/status writer (A0 based at 0xC09376 + offset)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B47A",
+      "rom_pc": "0x03B67A",
+      "original_bytes": "30fc0001",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP move.w #1,(a0)+ in c-window writer helper (A0=0xC0887C)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B47E",
+      "rom_pc": "0x03B67E",
+      "original_bytes": "30bc2744",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP move.w #0x2744,(a0) in c-window writer helper (A0=0xC0887C)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B49A",
+      "rom_pc": "0x03B69A",
+      "original_bytes": "30bc274b",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP move.w #0x274B,(a0) in c-window writer helper (A0=0xC08D6E + offset)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B572",
+      "rom_pc": "0x03B772",
+      "original_bytes": "30fc0000",
+      "replacement_bytes": "4e714e71",
+      "note": "NOP move.w #0,(a0)+ in c-window writer helper (A0=0xC08D6C + offset)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B5F6",
+      "rom_pc": "0x03B7F6",
+      "original_bytes": "3080",
+      "replacement_bytes": "4e71",
+      "note": "NOP move.w d0,(a0) in c-window writer helper (A0=0xC08D6E + offset)."
+    },
+    {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x3920A4",
+      "rom_offset": "0x3921A4",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1144,24 +1345,24 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x002093C2",
+    "jumps_to": "0x00209512",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
     "writes_status_to": "0xE0FF5312",
     "value": 2,
-    "jumps_exit_to": "0x002093FE",
+    "jumps_exit_to": "0x0020954E",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x2480",
+  "checksum": "0xE020",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x002053EE",
+    "reset_pc": "0x002054F2",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

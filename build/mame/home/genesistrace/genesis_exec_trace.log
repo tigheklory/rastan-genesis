@@ -12,587 +12,623 @@ arm: initial_pc=000000
 [frame 000150] window_change z80_ctrl
 [frame 000180] pc=205c48 exec=other
 [frame 000180] window_change z80_ctrl
+[frame 000182] first_symbol_change workram_10c000 addr=ff004e 0->2
+[frame 000182] first_symbol_change arcade_page0 addr=ff004e 0->2
+[frame 000185] first_symbol_change in_390001 addr=ff5319 0->FF
+[frame 000185] first_symbol_change in_390003 addr=ff5318 0->FF
+[frame 000185] first_symbol_change in_390005 addr=ff5317 0->FF
+[frame 000185] first_symbol_change in_390007 addr=ff5316 0->F7
+[frame 000185] first_symbol_change reg_380000 addr=ff531c 0->60
+[frame 000194] symbol_change in_390007 addr=ff5316 F7->FF
+[frame 000210] pc=201734 exec=other
+[frame 000210] first_window_change wram_ff0000
 [frame 000210] window_change z80_ctrl
-[frame 000240] pc=205c4c exec=other
+[frame 000240] pc=201734 exec=other
 [frame 000240] window_change z80_ctrl
-[frame 000270] pc=205c4e exec=other
-[frame 000270] first_window_change wram_ff0000
+[frame 000270] pc=201738 exec=other
 [frame 000270] window_change z80_ctrl
-[frame 000300] pc=205c52 exec=other
-[frame 000300] window_change wram_ff0000
+[frame 000284] symbol_change in_390001 addr=ff5319 FF->EF
+[frame 000284] symbol_change in_390005 addr=ff5317 FF->EF
+[frame 000284] symbol_change reg_380000 addr=ff531c 60->62
+[frame 000300] pc=20172c exec=other
+[frame 000300] first_window_change io_a10000
 [frame 000300] window_change z80_ctrl
-[frame 000330] pc=205c52 exec=other
+[frame 000305] symbol_change in_390005 addr=ff5317 EF->AF
+[frame 000305] symbol_change in_390007 addr=ff5316 FF->FE
+[frame 000330] pc=20173a exec=other
 [frame 000330] window_change z80_ctrl
-[frame 000360] pc=205c52 exec=other
+[frame 000356] symbol_change in_390001 addr=ff5319 EF->FF
+[frame 000356] symbol_change in_390005 addr=ff5317 AF->FF
+[frame 000356] symbol_change in_390007 addr=ff5316 FE->FF
+[frame 000356] first_symbol_change reg_d01bfe addr=ff5320 0->1
+[frame 000356] symbol_change reg_380000 addr=ff531c 62->60
+[frame 000356] symbol_change workram_10c000 addr=ff004e 2->1
+[frame 000356] symbol_change arcade_page0 addr=ff004e 2->1
+[frame 000356] first_symbol_change arcade_credits addr=ff0060 0->1
+[frame 000357] first_symbol_change arcade_page2 addr=ff0050 0->1
+[frame 000360] pc=201740 exec=other
 [frame 000360] window_change wram_ff0000
-[frame 000360] first_window_change io_a10000
+[frame 000360] window_change io_a10000
 [frame 000360] window_change z80_ctrl
-[frame 000390] pc=205c52 exec=other
-[frame 000390] window_change io_a10000
+[frame 000390] pc=20173a exec=other
 [frame 000390] window_change z80_ctrl
-[frame 000420] pc=205c52 exec=other
+[frame 000420] pc=20172e exec=other
 [frame 000420] window_change z80_ctrl
-[frame 000450] pc=205c48 exec=other
-[frame 000450] window_change wram_ff0000
+[frame 000450] pc=201740 exec=other
 [frame 000450] window_change z80_ctrl
-[frame 000480] pc=205c4e exec=other
+[frame 000480] pc=201740 exec=other
 [frame 000480] window_change z80_ctrl
-[frame 000510] window_change wram_ff0000
+[frame 000510] pc=20173a exec=other
 [frame 000510] window_change z80_ctrl
+[frame 000540] pc=201730 exec=other
 [frame 000540] window_change z80_ctrl
-[frame 000570] pc=205c48 exec=other
+[frame 000570] pc=20172c exec=other
 [frame 000570] window_change z80_ctrl
-[frame 000600] pc=205c4c exec=other
+[frame 000584] symbol_change in_390007 addr=ff5316 FF->F7
+[frame 000584] first_symbol_change reg_3e0003 addr=ff5314 0->2
+[frame 000584] symbol_change reg_380000 addr=ff531c 60->63
+[frame 000584] symbol_change workram_10c000 addr=ff004e 1->2
+[frame 000584] symbol_change arcade_page0 addr=ff004e 1->2
+[frame 000584] symbol_change arcade_page2 addr=ff0050 1->0
+[frame 000584] symbol_change arcade_credits addr=ff0060 1->0
+[frame 000584] first_symbol_change arcade_flag_34 addr=ff0082 0->1
+[frame 000587] exec_enter pc=03a4d2 range=frontend_core@000000
+[frame 000587] symbol_change reg_380000 addr=ff531c 63->60
+[frame 000588] exec_enter pc=201732 range=other
+[frame 000588] first_symbol_change arcade_mode4 addr=ff0052 0->1
+[frame 000591] symbol_change arcade_mode4 addr=ff0052 1->2
+[frame 000594] symbol_change in_390007 addr=ff5316 F7->FF
+[frame 000594] symbol_change arcade_page2 addr=ff0050 0->2
+[frame 000594] symbol_change arcade_mode4 addr=ff0052 2->0
+[frame 000598] symbol_change arcade_mode4 addr=ff0052 0->1
+[frame 000600] pc=042104 exec=other
 [frame 000600] window_change wram_ff0000
 [frame 000600] window_change z80_ctrl
-[frame 000630] pc=205c4c exec=other
+[frame 000601] symbol_change arcade_mode4 addr=ff0052 1->6
+[frame 000604] symbol_change arcade_mode4 addr=ff0052 6->7
+[frame 000618] symbol_change in_390007 addr=ff5316 FF->F7
+[frame 000624] symbol_change in_390007 addr=ff5316 F7->FF
+[frame 000630] exec_enter pc=03bc72 range=title_init_block@000000
+[frame 000630] pc=03bc72 exec=title_init_block@000000
 [frame 000630] window_change wram_ff0000
-[frame 000630] window_change io_a10000
 [frame 000630] window_change z80_ctrl
-[frame 000660] pc=205c4c exec=other
-[frame 000660] window_change io_a10000
+[frame 000631] exec_enter pc=201734 range=other
+[frame 000640] symbol_change in_390007 addr=ff5316 FF->F7
+[frame 000652] symbol_change in_390007 addr=ff5316 F7->FF
+[frame 000660] pc=201740 exec=other
+[frame 000660] window_change wram_ff0000
 [frame 000660] window_change z80_ctrl
-[frame 000690] pc=205c50 exec=other
-[frame 000690] window_change wram_ff0000
+[frame 000661] symbol_change in_390007 addr=ff5316 FF->F7
+[frame 000670] symbol_change in_390007 addr=ff5316 F7->FF
+[frame 000682] symbol_change in_390007 addr=ff5316 FF->F7
+[frame 000685] symbol_change in_390007 addr=ff5316 F7->FF
+[frame 000690] pc=201740 exec=other
 [frame 000690] window_change z80_ctrl
-[frame 000712] first_symbol_change workram_10c000 addr=ff004e 0->2
-[frame 000712] first_symbol_change arcade_page0 addr=ff004e 0->2
-[frame 000715] first_symbol_change in_390001 addr=ff5319 0->FF
-[frame 000715] first_symbol_change in_390003 addr=ff5318 0->FF
-[frame 000715] first_symbol_change in_390005 addr=ff5317 0->BF
-[frame 000715] first_symbol_change in_390007 addr=ff5316 0->FE
-[frame 000718] symbol_change in_390005 addr=ff5317 BF->FF
-[frame 000718] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 000718] first_symbol_change reg_d01bfe addr=ff5320 0->1
-[frame 000718] first_symbol_change reg_380000 addr=ff531c 0->60
-[frame 000718] symbol_change workram_10c000 addr=ff004e 2->1
-[frame 000718] symbol_change arcade_page0 addr=ff004e 2->1
-[frame 000718] first_symbol_change arcade_credits addr=ff0060 0->1
-[frame 000719] first_symbol_change arcade_page2 addr=ff0050 0->1
-[frame 000720] pc=20172e exec=other
-[frame 000720] window_change wram_ff0000
+[frame 000720] pc=20173a exec=other
 [frame 000720] window_change z80_ctrl
-[frame 000750] pc=20173a exec=other
+[frame 000750] pc=20172e exec=other
 [frame 000750] window_change z80_ctrl
-[frame 000780] pc=20173e exec=other
+[frame 000754] symbol_change in_390001 addr=ff5319 FF->EF
+[frame 000754] symbol_change in_390005 addr=ff5317 FF->EF
+[frame 000755] symbol_change reg_380000 addr=ff531c 60->62
+[frame 000780] pc=201734 exec=other
+[frame 000780] window_change io_a10000
 [frame 000780] window_change z80_ctrl
-[frame 000810] pc=201740 exec=other
+[frame 000810] pc=20172e exec=other
 [frame 000810] window_change z80_ctrl
-[frame 000840] pc=20172e exec=other
+[frame 000811] symbol_change in_390005 addr=ff5317 EF->AF
+[frame 000811] symbol_change in_390007 addr=ff5316 FF->FE
+[frame 000840] pc=201740 exec=other
 [frame 000840] window_change z80_ctrl
-[frame 000870] pc=20173a exec=other
+[frame 000870] pc=20172c exec=other
 [frame 000870] window_change z80_ctrl
-[frame 000900] pc=20173e exec=other
+[frame 000900] pc=201740 exec=other
 [frame 000900] window_change z80_ctrl
-[frame 000930] pc=20173a exec=other
+[frame 000919] symbol_change in_390005 addr=ff5317 AF->EF
+[frame 000919] symbol_change in_390007 addr=ff5316 FE->FF
+[frame 000920] symbol_change reg_3e0003 addr=ff5314 2->0
+[frame 000920] symbol_change arcade_credits addr=ff0060 0->1
+[frame 000930] pc=201732 exec=other
 [frame 000930] window_change z80_ctrl
-[frame 000960] pc=201738 exec=other
+[frame 000941] symbol_change arcade_mode4 addr=ff0052 7->4
+[frame 000944] symbol_change arcade_mode4 addr=ff0052 4->5
+[frame 000946] symbol_change reg_3e0003 addr=ff5314 0->2
+[frame 000947] symbol_change arcade_page2 addr=ff0050 2->3
+[frame 000947] symbol_change arcade_mode4 addr=ff0052 5->0
+[frame 000949] symbol_change reg_3e0003 addr=ff5314 2->1
+[frame 000953] exec_enter pc=03af10 range=startup_common@000000
+[frame 000954] exec_enter pc=201732 range=other
+[frame 000956] exec_enter pc=03af08 range=startup_common@000000
+[frame 000956] symbol_change in_390001 addr=ff5319 EF->FF
+[frame 000956] symbol_change in_390005 addr=ff5317 EF->FF
+[frame 000957] exec_enter pc=20173a range=other
+[frame 000957] symbol_change reg_380000 addr=ff531c 62->60
+[frame 000959] exec_enter pc=03aefe range=startup_common@000000
+[frame 000960] exec_enter pc=20173a range=other
+[frame 000960] pc=20173a exec=other
+[frame 000960] window_change wram_ff0000
+[frame 000960] window_change io_a10000
 [frame 000960] window_change z80_ctrl
+[frame 000962] exec_enter pc=03af00 range=startup_common@000000
+[frame 000963] exec_enter pc=20172e range=other
+[frame 000965] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 000966] exec_enter pc=20173a range=other
+[frame 000968] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 000969] exec_enter pc=20172e range=other
+[frame 000971] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 000972] exec_enter pc=201740 range=other
+[frame 000974] exec_enter pc=03aef8 range=startup_common@000000
+[frame 000975] exec_enter pc=20172e range=other
+[frame 000977] exec_enter pc=03aef8 range=startup_common@000000
+[frame 000978] exec_enter pc=201730 range=other
+[frame 000980] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 000981] exec_enter pc=20172e range=other
+[frame 000983] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 000984] exec_enter pc=201732 range=other
+[frame 000986] exec_enter pc=03aef4 range=startup_common@000000
+[frame 000987] exec_enter pc=201730 range=other
+[frame 000989] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 000990] exec_enter pc=201740 range=other
 [frame 000990] pc=201740 exec=other
 [frame 000990] window_change z80_ctrl
-[frame 001020] pc=201740 exec=other
+[frame 000992] exec_enter pc=03aef8 range=startup_common@000000
+[frame 000993] exec_enter pc=20172e range=other
+[frame 000995] exec_enter pc=03adec range=helper_display_control@000000
+[frame 000995] symbol_change in_390001 addr=ff5319 FF->DF
+[frame 000995] symbol_change in_390005 addr=ff5317 FF->DF
+[frame 000996] exec_enter pc=201732 range=other
+[frame 000996] symbol_change reg_380000 addr=ff531c 60->63
+[frame 000998] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 000999] exec_enter pc=20173a range=other
+[frame 001001] exec_enter pc=03adec range=helper_display_control@000000
+[frame 001002] exec_enter pc=20172e range=other
+[frame 001004] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001004] symbol_change in_390001 addr=ff5319 DF->FF
+[frame 001004] symbol_change in_390005 addr=ff5317 DF->FF
+[frame 001005] exec_enter pc=201740 range=other
+[frame 001005] symbol_change reg_380000 addr=ff531c 63->60
+[frame 001007] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001008] exec_enter pc=20172e range=other
+[frame 001010] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001011] exec_enter pc=201740 range=other
+[frame 001013] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001014] exec_enter pc=20172c range=other
+[frame 001016] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001017] exec_enter pc=201740 range=other
+[frame 001019] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001020] exec_enter pc=201738 range=other
+[frame 001020] pc=201738 exec=other
 [frame 001020] window_change z80_ctrl
-[frame 001050] pc=20173a exec=other
+[frame 001022] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001023] exec_enter pc=201740 range=other
+[frame 001025] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001025] symbol_change in_390001 addr=ff5319 FF->DF
+[frame 001025] symbol_change in_390005 addr=ff5317 FF->DF
+[frame 001026] exec_enter pc=201738 range=other
+[frame 001026] symbol_change reg_380000 addr=ff531c 60->63
+[frame 001028] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001028] symbol_change in_390001 addr=ff5319 DF->FF
+[frame 001028] symbol_change in_390005 addr=ff5317 DF->FF
+[frame 001029] exec_enter pc=20173e range=other
+[frame 001029] symbol_change reg_380000 addr=ff531c 63->60
+[frame 001031] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001032] exec_enter pc=201732 range=other
+[frame 001034] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001035] exec_enter pc=201732 range=other
+[frame 001037] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001038] exec_enter pc=201738 range=other
+[frame 001040] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001041] exec_enter pc=201740 range=other
+[frame 001043] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001044] exec_enter pc=201740 range=other
+[frame 001046] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001047] exec_enter pc=201740 range=other
+[frame 001049] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001050] exec_enter pc=201740 range=other
+[frame 001050] pc=201740 exec=other
 [frame 001050] window_change z80_ctrl
-[frame 001080] pc=20173a exec=other
+[frame 001052] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001053] exec_enter pc=201732 range=other
+[frame 001055] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001056] exec_enter pc=201732 range=other
+[frame 001058] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001059] exec_enter pc=20172e range=other
+[frame 001061] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001062] exec_enter pc=20172e range=other
+[frame 001064] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001065] exec_enter pc=20173a range=other
+[frame 001067] exec_enter pc=03aea6 range=startup_common@000000
+[frame 001067] symbol_change in_390001 addr=ff5319 FF->EF
+[frame 001067] symbol_change in_390005 addr=ff5317 FF->EF
+[frame 001068] exec_enter pc=201730 range=other
+[frame 001068] symbol_change reg_380000 addr=ff531c 60->62
+[frame 001070] exec_enter pc=03adec range=helper_display_control@000000
+[frame 001071] exec_enter pc=201732 range=other
+[frame 001073] exec_enter pc=03adec range=helper_display_control@000000
+[frame 001074] exec_enter pc=20172e range=other
+[frame 001076] exec_enter pc=03adec range=helper_display_control@000000
+[frame 001077] exec_enter pc=201732 range=other
+[frame 001079] exec_enter pc=03adec range=helper_display_control@000000
+[frame 001080] exec_enter pc=201738 range=other
+[frame 001080] pc=201738 exec=other
+[frame 001080] window_change io_a10000
 [frame 001080] window_change z80_ctrl
-[frame 001110] pc=201734 exec=other
+[frame 001082] exec_enter pc=03adec range=helper_display_control@000000
+[frame 001083] exec_enter pc=201740 range=other
+[frame 001085] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001086] exec_enter pc=201734 range=other
+[frame 001088] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001088] symbol_change in_390001 addr=ff5319 EF->FF
+[frame 001088] symbol_change in_390005 addr=ff5317 EF->FF
+[frame 001089] exec_enter pc=201732 range=other
+[frame 001089] symbol_change reg_380000 addr=ff531c 62->60
+[frame 001091] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001092] exec_enter pc=201730 range=other
+[frame 001094] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001095] exec_enter pc=20172c range=other
+[frame 001097] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001098] exec_enter pc=20172c range=other
+[frame 001100] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001101] exec_enter pc=20173a range=other
+[frame 001103] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001104] exec_enter pc=201730 range=other
+[frame 001106] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001107] exec_enter pc=20172c range=other
+[frame 001109] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001110] exec_enter pc=201740 range=other
+[frame 001110] pc=201740 exec=other
+[frame 001110] window_change io_a10000
 [frame 001110] window_change z80_ctrl
-[frame 001140] pc=201740 exec=other
+[frame 001112] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001113] exec_enter pc=201730 range=other
+[frame 001115] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001116] exec_enter pc=20173e range=other
+[frame 001118] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001119] exec_enter pc=201740 range=other
+[frame 001121] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001122] exec_enter pc=201740 range=other
+[frame 001124] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001125] exec_enter pc=201730 range=other
+[frame 001127] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001128] exec_enter pc=20173a range=other
+[frame 001130] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001131] exec_enter pc=201740 range=other
+[frame 001133] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001134] exec_enter pc=201740 range=other
+[frame 001136] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001137] exec_enter pc=20173a range=other
+[frame 001139] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001140] exec_enter pc=201738 range=other
+[frame 001140] pc=201738 exec=other
 [frame 001140] window_change z80_ctrl
-[frame 001170] pc=20173e exec=other
+[frame 001142] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001142] symbol_change in_390005 addr=ff5317 FF->BF
+[frame 001142] symbol_change in_390007 addr=ff5316 FF->FE
+[frame 001143] exec_enter pc=201732 range=other
+[frame 001145] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001146] exec_enter pc=201730 range=other
+[frame 001148] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001149] exec_enter pc=201734 range=other
+[frame 001151] exec_enter pc=03aefc range=startup_common@000000
+[frame 001152] exec_enter pc=201734 range=other
+[frame 001154] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001155] exec_enter pc=201730 range=other
+[frame 001157] exec_enter pc=03ae6e range=helper_display_control@000000
+[frame 001157] symbol_change in_390005 addr=ff5317 BF->FF
+[frame 001157] symbol_change in_390007 addr=ff5316 FE->FF
+[frame 001157] symbol_change arcade_credits addr=ff0060 1->2
+[frame 001158] exec_enter pc=201732 range=other
+[frame 001158] symbol_change reg_3e0003 addr=ff5314 1->0
+[frame 001160] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001161] exec_enter pc=201740 range=other
+[frame 001163] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001164] exec_enter pc=201734 range=other
+[frame 001166] exec_enter pc=03adec range=helper_display_control@000000
+[frame 001167] exec_enter pc=20173a range=other
+[frame 001169] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001170] exec_enter pc=20173a range=other
+[frame 001170] pc=20173a exec=other
 [frame 001170] window_change z80_ctrl
-[frame 001200] pc=20173a exec=other
+[frame 001172] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001173] exec_enter pc=20173e range=other
+[frame 001175] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001176] exec_enter pc=20173e range=other
+[frame 001178] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001179] exec_enter pc=20172e range=other
+[frame 001181] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001182] exec_enter pc=20172c range=other
+[frame 001184] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001185] exec_enter pc=20173e range=other
+[frame 001187] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001188] exec_enter pc=20173e range=other
+[frame 001190] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001191] exec_enter pc=201740 range=other
+[frame 001193] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001194] exec_enter pc=201740 range=other
+[frame 001196] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001197] exec_enter pc=201730 range=other
+[frame 001199] exec_enter pc=03adec range=helper_display_control@000000
+[frame 001200] exec_enter pc=201730 range=other
+[frame 001200] pc=201730 exec=other
 [frame 001200] window_change z80_ctrl
-[frame 001230] pc=201738 exec=other
+[frame 001202] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001203] exec_enter pc=201740 range=other
+[frame 001205] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001206] exec_enter pc=201740 range=other
+[frame 001208] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001209] exec_enter pc=20172c range=other
+[frame 001211] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001212] exec_enter pc=201732 range=other
+[frame 001214] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001215] exec_enter pc=20172c range=other
+[frame 001217] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001218] exec_enter pc=20172e range=other
+[frame 001220] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001221] exec_enter pc=201740 range=other
+[frame 001223] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001224] exec_enter pc=201740 range=other
+[frame 001226] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001227] exec_enter pc=201740 range=other
+[frame 001229] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001230] exec_enter pc=201740 range=other
+[frame 001230] pc=201740 exec=other
 [frame 001230] window_change z80_ctrl
-[frame 001260] pc=201740 exec=other
+[frame 001232] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001233] exec_enter pc=201732 range=other
+[frame 001235] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001236] exec_enter pc=201732 range=other
+[frame 001238] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001239] exec_enter pc=20172e range=other
+[frame 001241] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001242] exec_enter pc=20172c range=other
+[frame 001244] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001245] exec_enter pc=20173a range=other
+[frame 001247] exec_enter pc=03adec range=helper_display_control@000000
+[frame 001248] exec_enter pc=20173a range=other
+[frame 001250] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001251] exec_enter pc=20172c range=other
+[frame 001253] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001254] exec_enter pc=201740 range=other
+[frame 001256] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001257] exec_enter pc=201730 range=other
+[frame 001259] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001260] exec_enter pc=20173e range=other
+[frame 001260] pc=20173e exec=other
 [frame 001260] window_change z80_ctrl
-[frame 001290] pc=201740 exec=other
+[frame 001262] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001263] exec_enter pc=201740 range=other
+[frame 001265] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001266] exec_enter pc=201740 range=other
+[frame 001268] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001269] exec_enter pc=201730 range=other
+[frame 001271] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001272] exec_enter pc=201730 range=other
+[frame 001274] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001275] exec_enter pc=201740 range=other
+[frame 001277] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001278] exec_enter pc=201740 range=other
+[frame 001280] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001281] exec_enter pc=20172c range=other
+[frame 001283] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001284] exec_enter pc=20173a range=other
+[frame 001286] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001287] exec_enter pc=201740 range=other
+[frame 001289] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001290] exec_enter pc=20173e range=other
+[frame 001290] pc=20173e exec=other
 [frame 001290] window_change z80_ctrl
-[frame 001320] pc=20173a exec=other
+[frame 001292] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001293] exec_enter pc=201730 range=other
+[frame 001295] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001296] exec_enter pc=20172e range=other
+[frame 001298] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001299] exec_enter pc=20173e range=other
+[frame 001301] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001302] exec_enter pc=20173e range=other
+[frame 001304] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001305] exec_enter pc=20172e range=other
+[frame 001307] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001308] exec_enter pc=20173a range=other
+[frame 001310] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001311] exec_enter pc=201740 range=other
+[frame 001313] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001314] exec_enter pc=201740 range=other
+[frame 001316] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001317] exec_enter pc=201740 range=other
+[frame 001319] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001320] exec_enter pc=201740 range=other
+[frame 001320] pc=201740 exec=other
 [frame 001320] window_change z80_ctrl
-[frame 001350] pc=20173a exec=other
+[frame 001322] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001323] exec_enter pc=201732 range=other
+[frame 001325] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001326] exec_enter pc=20173a range=other
+[frame 001328] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001329] exec_enter pc=20173a range=other
+[frame 001331] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001332] exec_enter pc=201734 range=other
+[frame 001334] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001335] exec_enter pc=201732 range=other
+[frame 001337] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001338] exec_enter pc=201734 range=other
+[frame 001340] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001341] exec_enter pc=20173e range=other
+[frame 001343] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001344] exec_enter pc=201738 range=other
+[frame 001346] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001347] exec_enter pc=20173a range=other
+[frame 001349] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001350] exec_enter pc=201740 range=other
+[frame 001350] pc=201740 exec=other
 [frame 001350] window_change z80_ctrl
-[frame 001380] pc=201734 exec=other
+[frame 001352] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001353] exec_enter pc=201740 range=other
+[frame 001355] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001356] exec_enter pc=201740 range=other
+[frame 001358] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001359] exec_enter pc=201732 range=other
+[frame 001361] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001362] exec_enter pc=201734 range=other
+[frame 001364] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001365] exec_enter pc=201740 range=other
+[frame 001367] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001368] exec_enter pc=201740 range=other
+[frame 001370] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001371] exec_enter pc=201740 range=other
+[frame 001373] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001374] exec_enter pc=201740 range=other
+[frame 001376] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001377] exec_enter pc=201732 range=other
+[frame 001379] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001380] exec_enter pc=201732 range=other
+[frame 001380] pc=201732 exec=other
 [frame 001380] window_change z80_ctrl
+[frame 001382] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001383] exec_enter pc=20172e range=other
+[frame 001385] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001386] exec_enter pc=20172e range=other
+[frame 001388] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001389] exec_enter pc=20173a range=other
+[frame 001391] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001392] exec_enter pc=20173a range=other
+[frame 001394] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001395] exec_enter pc=20172e range=other
+[frame 001397] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001398] exec_enter pc=201740 range=other
+[frame 001400] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001401] exec_enter pc=201732 range=other
+[frame 001403] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001404] exec_enter pc=20173e range=other
+[frame 001406] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001407] exec_enter pc=201740 range=other
+[frame 001409] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001410] exec_enter pc=201740 range=other
 [frame 001410] pc=201740 exec=other
 [frame 001410] window_change z80_ctrl
-[frame 001440] pc=20173e exec=other
+[frame 001412] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001413] exec_enter pc=201730 range=other
+[frame 001415] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001415] symbol_change in_390005 addr=ff5317 FF->BF
+[frame 001415] symbol_change in_390007 addr=ff5316 FF->FE
+[frame 001416] exec_enter pc=20173a range=other
+[frame 001418] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001419] exec_enter pc=201734 range=other
+[frame 001421] symbol_change in_390005 addr=ff5317 BF->FF
+[frame 001421] symbol_change in_390007 addr=ff5316 FE->FF
+[frame 001421] symbol_change arcade_credits addr=ff0060 2->3
+[frame 001424] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001425] exec_enter pc=20173a range=other
+[frame 001427] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001428] exec_enter pc=201730 range=other
+[frame 001430] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001431] exec_enter pc=201740 range=other
+[frame 001433] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001434] exec_enter pc=201740 range=other
+[frame 001436] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001437] exec_enter pc=201730 range=other
+[frame 001439] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001440] exec_enter pc=201730 range=other
+[frame 001440] pc=201730 exec=other
 [frame 001440] window_change z80_ctrl
+[frame 001442] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001443] exec_enter pc=20173e range=other
+[frame 001445] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001446] exec_enter pc=20173e range=other
+[frame 001448] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001449] exec_enter pc=201730 range=other
+[frame 001451] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001452] exec_enter pc=20173a range=other
+[frame 001454] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001455] exec_enter pc=201740 range=other
+[frame 001457] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001458] exec_enter pc=201740 range=other
+[frame 001460] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001461] exec_enter pc=20172c range=other
+[frame 001463] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001464] exec_enter pc=201740 range=other
+[frame 001466] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001467] exec_enter pc=201732 range=other
+[frame 001469] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001470] exec_enter pc=20173a range=other
 [frame 001470] pc=20173a exec=other
 [frame 001470] window_change z80_ctrl
-[frame 001500] pc=201738 exec=other
+[frame 001472] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001473] exec_enter pc=201740 range=other
+[frame 001475] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001476] exec_enter pc=20172e range=other
+[frame 001478] exec_enter pc=03adf0 range=helper_display_control@000000
+[frame 001479] exec_enter pc=201732 range=other
+[frame 001481] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001482] exec_enter pc=201730 range=other
+[frame 001484] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001485] exec_enter pc=201740 range=other
+[frame 001487] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001488] exec_enter pc=201734 range=other
+[frame 001490] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001491] exec_enter pc=201732 range=other
+[frame 001493] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001494] exec_enter pc=201740 range=other
+[frame 001496] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001497] exec_enter pc=201740 range=other
+[frame 001499] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001500] exec_enter pc=201740 range=other
+[frame 001500] pc=201740 exec=other
 [frame 001500] window_change z80_ctrl
-[frame 001525] symbol_change in_390007 addr=ff5316 FF->F7
-[frame 001525] first_symbol_change reg_3e0003 addr=ff5314 0->2
-[frame 001525] symbol_change reg_380000 addr=ff531c 60->63
-[frame 001525] symbol_change workram_10c000 addr=ff004e 1->2
-[frame 001525] symbol_change arcade_page0 addr=ff004e 1->2
-[frame 001525] symbol_change arcade_page2 addr=ff0050 1->0
-[frame 001525] symbol_change arcade_credits addr=ff0060 1->0
-[frame 001525] first_symbol_change arcade_flag_34 addr=ff0082 0->1
-[frame 001528] exec_enter pc=03a4d4 range=frontend_core@000000
-[frame 001528] symbol_change reg_380000 addr=ff531c 63->60
-[frame 001529] exec_enter pc=201734 range=other
-[frame 001529] first_symbol_change arcade_mode4 addr=ff0052 0->1
+[frame 001502] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001503] exec_enter pc=201732 range=other
+[frame 001505] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001506] exec_enter pc=201738 range=other
+[frame 001508] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001509] exec_enter pc=201740 range=other
+[frame 001511] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001512] exec_enter pc=201740 range=other
+[frame 001514] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001515] exec_enter pc=201740 range=other
+[frame 001517] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001518] exec_enter pc=201740 range=other
+[frame 001520] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001521] exec_enter pc=201740 range=other
+[frame 001523] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001524] exec_enter pc=201738 range=other
+[frame 001526] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001527] exec_enter pc=20173a range=other
+[frame 001529] exec_enter pc=03aefc range=startup_common@000000
+[frame 001529] symbol_change in_390005 addr=ff5317 FF->BF
+[frame 001529] symbol_change in_390007 addr=ff5316 FF->FE
+[frame 001530] exec_enter pc=201732 range=other
 [frame 001530] pc=201732 exec=other
-[frame 001530] window_change wram_ff0000
 [frame 001530] window_change z80_ctrl
-[frame 001532] symbol_change in_390007 addr=ff5316 F7->FF
-[frame 001532] symbol_change arcade_mode4 addr=ff0052 1->2
-[frame 001535] symbol_change arcade_page2 addr=ff0050 0->2
-[frame 001535] symbol_change arcade_mode4 addr=ff0052 2->0
-[frame 001539] symbol_change arcade_mode4 addr=ff0052 0->1
-[frame 001542] symbol_change arcade_mode4 addr=ff0052 1->6
-[frame 001545] symbol_change arcade_mode4 addr=ff0052 6->7
-[frame 001550] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 001550] symbol_change in_390005 addr=ff5317 FF->EF
-[frame 001551] symbol_change reg_380000 addr=ff531c 60->62
-[frame 001560] pc=201738 exec=other
+[frame 001532] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001533] exec_enter pc=201732 range=other
+[frame 001535] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001536] exec_enter pc=201732 range=other
+[frame 001538] symbol_change in_390005 addr=ff5317 BF->FF
+[frame 001538] symbol_change in_390007 addr=ff5316 FE->FF
+[frame 001538] symbol_change arcade_credits addr=ff0060 3->4
+[frame 001541] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001542] exec_enter pc=201740 range=other
+[frame 001544] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001545] exec_enter pc=201732 range=other
+[frame 001547] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001548] exec_enter pc=201740 range=other
+[frame 001550] exec_enter pc=03aef4 range=startup_common@000000
+[frame 001551] exec_enter pc=201738 range=other
+[frame 001553] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001554] exec_enter pc=201730 range=other
+[frame 001556] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001557] exec_enter pc=201740 range=other
+[frame 001559] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001560] exec_enter pc=201734 range=other
+[frame 001560] pc=201734 exec=other
 [frame 001560] window_change z80_ctrl
-[frame 001562] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 001562] symbol_change in_390005 addr=ff5317 EF->FF
-[frame 001563] symbol_change reg_380000 addr=ff531c 62->60
-[frame 001571] exec_enter pc=03bc70 range=title_init_block@000000
-[frame 001572] exec_enter pc=201732 range=other
-[frame 001575] symbol_change in_390005 addr=ff5317 FF->BF
-[frame 001575] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 001584] symbol_change in_390005 addr=ff5317 BF->FF
-[frame 001584] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 001585] symbol_change reg_3e0003 addr=ff5314 2->0
-[frame 001585] symbol_change arcade_credits addr=ff0060 0->1
-[frame 001590] pc=0420f8 exec=other
-[frame 001590] window_change wram_ff0000
-[frame 001590] window_change z80_ctrl
-[frame 001599] symbol_change in_390001 addr=ff5319 FF->DF
-[frame 001599] symbol_change in_390005 addr=ff5317 FF->DF
-[frame 001600] symbol_change reg_380000 addr=ff531c 60->63
-[frame 001605] symbol_change in_390001 addr=ff5319 DF->FF
-[frame 001605] symbol_change in_390005 addr=ff5317 DF->FF
-[frame 001606] symbol_change reg_380000 addr=ff531c 63->60
-[frame 001620] pc=0420b4 exec=other
-[frame 001620] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 001620] symbol_change in_390005 addr=ff5317 FF->EF
-[frame 001620] window_change io_a10000
-[frame 001620] window_change z80_ctrl
-[frame 001621] symbol_change reg_380000 addr=ff531c 60->62
-[frame 001635] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 001635] symbol_change in_390005 addr=ff5317 EF->FF
-[frame 001636] symbol_change reg_380000 addr=ff531c 62->60
-[frame 001647] symbol_change in_390005 addr=ff5317 FF->BF
-[frame 001647] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 001650] pc=0420fe exec=other
-[frame 001650] window_change io_a10000
-[frame 001650] window_change z80_ctrl
-[frame 001656] symbol_change in_390005 addr=ff5317 BF->FF
-[frame 001656] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 001657] symbol_change arcade_credits addr=ff0060 1->2
-[frame 001668] symbol_change in_390007 addr=ff5316 FF->F7
-[frame 001674] symbol_change in_390007 addr=ff5316 F7->FF
-[frame 001680] pc=042086 exec=other
-[frame 001680] window_change z80_ctrl
-[frame 001692] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 001692] symbol_change in_390005 addr=ff5317 FF->EF
-[frame 001693] symbol_change reg_380000 addr=ff531c 60->62
-[frame 001701] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 001701] symbol_change in_390005 addr=ff5317 EF->FF
-[frame 001702] symbol_change reg_380000 addr=ff531c 62->60
-[frame 001710] pc=042100 exec=other
-[frame 001710] window_change z80_ctrl
-[frame 001716] symbol_change in_390001 addr=ff5319 FF->DF
-[frame 001716] symbol_change in_390005 addr=ff5317 FF->DF
-[frame 001717] symbol_change reg_380000 addr=ff531c 60->63
-[frame 001725] symbol_change in_390001 addr=ff5319 DF->FF
-[frame 001725] symbol_change in_390005 addr=ff5317 DF->FF
-[frame 001726] symbol_change reg_380000 addr=ff531c 63->60
-[frame 001740] pc=042104 exec=other
-[frame 001740] symbol_change in_390005 addr=ff5317 FF->BF
-[frame 001740] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 001740] window_change z80_ctrl
-[frame 001746] symbol_change in_390005 addr=ff5317 BF->FF
-[frame 001746] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 001747] symbol_change arcade_credits addr=ff0060 2->3
-[frame 001767] symbol_change in_390001 addr=ff5319 FF->DF
-[frame 001767] symbol_change in_390005 addr=ff5317 FF->DF
-[frame 001768] symbol_change reg_380000 addr=ff531c 60->63
-[frame 001770] pc=0420b4 exec=other
-[frame 001770] window_change io_a10000
-[frame 001770] window_change z80_ctrl
-[frame 001773] symbol_change in_390001 addr=ff5319 DF->FF
-[frame 001773] symbol_change in_390005 addr=ff5317 DF->FF
-[frame 001774] symbol_change reg_380000 addr=ff531c 63->60
-[frame 001776] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 001776] symbol_change in_390005 addr=ff5317 FF->EF
-[frame 001777] symbol_change reg_380000 addr=ff531c 60->62
-[frame 001785] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 001785] symbol_change in_390005 addr=ff5317 EF->FF
-[frame 001786] symbol_change reg_380000 addr=ff531c 62->60
-[frame 001788] symbol_change in_390001 addr=ff5319 FF->DF
-[frame 001788] symbol_change in_390005 addr=ff5317 FF->DF
-[frame 001789] symbol_change reg_380000 addr=ff531c 60->63
-[frame 001791] symbol_change in_390001 addr=ff5319 DF->FF
-[frame 001791] symbol_change in_390005 addr=ff5317 DF->FF
-[frame 001792] symbol_change reg_380000 addr=ff531c 63->60
-[frame 001794] symbol_change in_390005 addr=ff5317 FF->BF
-[frame 001794] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 001800] pc=042086 exec=other
-[frame 001800] symbol_change in_390001 addr=ff5319 FF->DF
-[frame 001800] symbol_change in_390005 addr=ff5317 BF->DF
-[frame 001800] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 001800] window_change io_a10000
-[frame 001800] window_change z80_ctrl
-[frame 001801] symbol_change reg_380000 addr=ff531c 60->63
-[frame 001801] symbol_change arcade_credits addr=ff0060 3->4
-[frame 001803] symbol_change in_390001 addr=ff5319 DF->FF
-[frame 001803] symbol_change in_390005 addr=ff5317 DF->FF
-[frame 001804] symbol_change reg_380000 addr=ff531c 63->60
-[frame 001806] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 001806] symbol_change in_390005 addr=ff5317 FF->AF
-[frame 001806] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 001812] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 001812] symbol_change in_390005 addr=ff5317 AF->BF
-[frame 001815] symbol_change in_390005 addr=ff5317 BF->FF
-[frame 001815] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 001816] symbol_change arcade_credits addr=ff0060 4->5
-[frame 001827] symbol_change in_390005 addr=ff5317 FF->BF
-[frame 001827] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 001830] pc=04208a exec=other
-[frame 001830] symbol_change in_390007 addr=ff5316 FE->F6
-[frame 001830] window_change z80_ctrl
-[frame 001833] symbol_change in_390007 addr=ff5316 F6->FE
-[frame 001839] symbol_change in_390005 addr=ff5317 BF->FF
-[frame 001839] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 001840] symbol_change arcade_credits addr=ff0060 5->6
-[frame 001848] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 001848] symbol_change in_390005 addr=ff5317 FF->EF
-[frame 001849] symbol_change reg_380000 addr=ff531c 60->62
-[frame 001854] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 001854] symbol_change in_390005 addr=ff5317 EF->FF
-[frame 001855] symbol_change reg_380000 addr=ff531c 62->60
-[frame 001860] pc=042086 exec=other
-[frame 001860] window_change z80_ctrl
-[frame 001881] symbol_change in_390005 addr=ff5317 FF->BF
-[frame 001881] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 001882] symbol_change arcade_mode4 addr=ff0052 7->4
-[frame 001885] symbol_change arcade_mode4 addr=ff0052 4->5
-[frame 001887] symbol_change reg_3e0003 addr=ff5314 0->2
-[frame 001888] symbol_change arcade_page2 addr=ff0050 2->3
-[frame 001888] symbol_change arcade_mode4 addr=ff0052 5->0
-[frame 001890] pc=0420aa exec=other
-[frame 001890] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 001890] symbol_change in_390005 addr=ff5317 BF->AF
-[frame 001890] symbol_change reg_3e0003 addr=ff5314 2->1
-[frame 001890] window_change wram_ff0000
-[frame 001890] window_change io_a10000
-[frame 001890] window_change z80_ctrl
-[frame 001894] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 001894] symbol_change in_390005 addr=ff5317 AF->FF
-[frame 001894] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 001894] symbol_change arcade_credits addr=ff0060 6->7
-[frame 001895] symbol_change reg_3e0003 addr=ff5314 1->0
-[frame 001897] exec_enter pc=03af02 range=startup_common@000000
-[frame 001898] exec_enter pc=201738 range=other
-[frame 001900] exec_enter pc=03aef8 range=startup_common@000000
-[frame 001901] exec_enter pc=20173a range=other
-[frame 001903] exec_enter pc=03aef4 range=startup_common@000000
-[frame 001904] exec_enter pc=20173a range=other
-[frame 001906] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001907] exec_enter pc=201732 range=other
-[frame 001909] exec_enter pc=03adec range=helper_display_control@000000
-[frame 001910] exec_enter pc=20173a range=other
-[frame 001912] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001913] exec_enter pc=201732 range=other
-[frame 001915] exec_enter pc=03aea4 range=startup_common@000000
-[frame 001916] exec_enter pc=201732 range=other
-[frame 001918] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001919] exec_enter pc=201734 range=other
-[frame 001920] pc=201732 exec=other
-[frame 001920] window_change wram_ff0000
-[frame 001920] window_change io_a10000
-[frame 001920] window_change z80_ctrl
-[frame 001921] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001922] exec_enter pc=201732 range=other
-[frame 001924] exec_enter pc=03adec range=helper_display_control@000000
-[frame 001925] exec_enter pc=20172e range=other
-[frame 001927] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001928] exec_enter pc=20173a range=other
-[frame 001930] exec_enter pc=03aea4 range=startup_common@000000
-[frame 001931] exec_enter pc=201732 range=other
-[frame 001933] exec_enter pc=03adec range=helper_display_control@000000
-[frame 001934] exec_enter pc=20173a range=other
-[frame 001936] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001937] exec_enter pc=201732 range=other
-[frame 001939] exec_enter pc=03adf0 range=helper_display_control@000000
-[frame 001940] exec_enter pc=201740 range=other
-[frame 001942] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001943] exec_enter pc=201734 range=other
-[frame 001945] exec_enter pc=03aea4 range=startup_common@000000
-[frame 001946] exec_enter pc=201732 range=other
-[frame 001948] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001949] exec_enter pc=20173a range=other
-[frame 001950] pc=201734 exec=other
-[frame 001950] window_change z80_ctrl
-[frame 001951] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001952] exec_enter pc=201732 range=other
-[frame 001954] exec_enter pc=03adec range=helper_display_control@000000
-[frame 001955] exec_enter pc=20173a range=other
-[frame 001957] exec_enter pc=03adec range=helper_display_control@000000
-[frame 001958] exec_enter pc=20173a range=other
-[frame 001960] exec_enter pc=03aea4 range=startup_common@000000
-[frame 001961] exec_enter pc=201740 range=other
-[frame 001963] exec_enter pc=03adf0 range=helper_display_control@000000
-[frame 001964] exec_enter pc=201740 range=other
-[frame 001966] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001967] exec_enter pc=201734 range=other
-[frame 001969] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001970] exec_enter pc=201732 range=other
-[frame 001972] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001973] exec_enter pc=20172e range=other
-[frame 001975] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001976] exec_enter pc=201732 range=other
-[frame 001978] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001979] exec_enter pc=201732 range=other
-[frame 001980] pc=20172e exec=other
-[frame 001980] window_change z80_ctrl
-[frame 001981] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001982] exec_enter pc=20173a range=other
-[frame 001984] exec_enter pc=03adec range=helper_display_control@000000
-[frame 001985] exec_enter pc=20173a range=other
-[frame 001987] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001988] exec_enter pc=201732 range=other
-[frame 001990] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001991] exec_enter pc=201734 range=other
-[frame 001993] exec_enter pc=03aea4 range=startup_common@000000
-[frame 001994] exec_enter pc=201734 range=other
-[frame 001996] exec_enter pc=03aea6 range=startup_common@000000
-[frame 001997] exec_enter pc=20172c range=other
-[frame 001999] exec_enter pc=03adf0 range=helper_display_control@000000
-[frame 002000] exec_enter pc=20173e range=other
-[frame 002002] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002003] exec_enter pc=201732 range=other
-[frame 002005] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002006] exec_enter pc=201738 range=other
-[frame 002008] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002009] exec_enter pc=20173a range=other
-[frame 002010] pc=201734 exec=other
-[frame 002010] window_change z80_ctrl
-[frame 002011] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002012] exec_enter pc=20173a range=other
-[frame 002014] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002015] exec_enter pc=201734 range=other
-[frame 002017] exec_enter pc=03adf0 range=helper_display_control@000000
-[frame 002018] exec_enter pc=201740 range=other
-[frame 002020] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002021] exec_enter pc=20173a range=other
-[frame 002023] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002024] exec_enter pc=201730 range=other
-[frame 002026] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002027] exec_enter pc=201732 range=other
-[frame 002029] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002030] exec_enter pc=20173a range=other
-[frame 002032] exec_enter pc=03adf0 range=helper_display_control@000000
-[frame 002033] exec_enter pc=201730 range=other
-[frame 002035] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002036] exec_enter pc=201738 range=other
-[frame 002038] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002039] exec_enter pc=20173a range=other
-[frame 002040] pc=201734 exec=other
-[frame 002040] window_change z80_ctrl
-[frame 002041] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002042] exec_enter pc=201732 range=other
-[frame 002044] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002045] exec_enter pc=201734 range=other
-[frame 002047] exec_enter pc=03adf0 range=helper_display_control@000000
-[frame 002048] exec_enter pc=201740 range=other
-[frame 002050] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002051] exec_enter pc=201732 range=other
-[frame 002053] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002054] exec_enter pc=20173a range=other
-[frame 002056] exec_enter pc=03adf2 range=helper_display_control@000000
-[frame 002056] symbol_change in_390005 addr=ff5317 FF->BF
-[frame 002056] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 002057] exec_enter pc=20172e range=other
-[frame 002059] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002060] exec_enter pc=20173e range=other
-[frame 002062] exec_enter pc=03ae50 range=helper_display_control@000000
-[frame 002062] symbol_change in_390005 addr=ff5317 BF->FF
-[frame 002062] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 002062] symbol_change arcade_credits addr=ff0060 7->8
-[frame 002063] exec_enter pc=201740 range=other
-[frame 002065] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002066] exec_enter pc=20173a range=other
-[frame 002068] exec_enter pc=03aea4 range=startup_common@000000
-[frame 002069] exec_enter pc=201740 range=other
-[frame 002070] pc=20173a exec=other
-[frame 002070] window_change z80_ctrl
-[frame 002071] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002072] exec_enter pc=20173a range=other
-[frame 002074] exec_enter pc=03adf0 range=helper_display_control@000000
-[frame 002075] exec_enter pc=20173e range=other
-[frame 002077] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002078] exec_enter pc=20172e range=other
-[frame 002080] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002081] exec_enter pc=20172c range=other
-[frame 002083] exec_enter pc=03aea4 range=startup_common@000000
-[frame 002084] exec_enter pc=201732 range=other
-[frame 002086] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002086] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 002086] symbol_change in_390005 addr=ff5317 FF->AF
-[frame 002086] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 002087] exec_enter pc=201734 range=other
-[frame 002089] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002089] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 002089] symbol_change in_390005 addr=ff5317 AF->BF
-[frame 002090] exec_enter pc=20173e range=other
-[frame 002092] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002093] exec_enter pc=201740 range=other
-[frame 002095] exec_enter pc=03aea4 range=startup_common@000000
-[frame 002095] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 002095] symbol_change in_390005 addr=ff5317 BF->AF
-[frame 002096] exec_enter pc=201734 range=other
-[frame 002098] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002099] exec_enter pc=201740 range=other
-[frame 002100] pc=20173a exec=other
-[frame 002100] window_change io_a10000
-[frame 002100] window_change z80_ctrl
-[frame 002101] exec_enter pc=03ae52 range=helper_display_control@000000
-[frame 002101] symbol_change in_390005 addr=ff5317 AF->EF
-[frame 002101] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 002101] symbol_change arcade_credits addr=ff0060 8->9
-[frame 002102] exec_enter pc=201734 range=other
-[frame 002104] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002104] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 002104] symbol_change in_390005 addr=ff5317 EF->FF
-[frame 002105] exec_enter pc=201740 range=other
-[frame 002107] exec_enter pc=03adf2 range=helper_display_control@000000
-[frame 002107] symbol_change in_390005 addr=ff5317 FF->BF
-[frame 002107] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 002108] exec_enter pc=201732 range=other
-[frame 002110] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002111] exec_enter pc=201740 range=other
-[frame 002113] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002113] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 002113] symbol_change in_390005 addr=ff5317 BF->AF
-[frame 002114] exec_enter pc=20173a range=other
-[frame 002116] exec_enter pc=03ae4a range=helper_display_control@000000
-[frame 002116] symbol_change in_390005 addr=ff5317 AF->EF
-[frame 002116] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 002117] exec_enter pc=20172c range=other
-[frame 002117] symbol_change arcade_credits addr=ff0060 9->10
-[frame 002119] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002119] symbol_change in_390005 addr=ff5317 EF->AF
-[frame 002119] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 002120] exec_enter pc=201740 range=other
-[frame 002122] exec_enter pc=03adf2 range=helper_display_control@000000
-[frame 002122] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 002122] symbol_change in_390005 addr=ff5317 AF->BF
-[frame 002123] exec_enter pc=20173e range=other
-[frame 002125] exec_enter pc=03b050 range=startup_common@000000
-[frame 002125] symbol_change in_390005 addr=ff5317 BF->FF
-[frame 002125] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 002125] symbol_change arcade_credits addr=ff0060 10->11
-[frame 002126] exec_enter pc=201740 range=other
-[frame 002128] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002129] exec_enter pc=201732 range=other
-[frame 002130] pc=201730 exec=other
-[frame 002130] window_change io_a10000
-[frame 002130] window_change z80_ctrl
-[frame 002131] exec_enter pc=03adf2 range=helper_display_control@000000
-[frame 002131] symbol_change in_390005 addr=ff5317 FF->BF
-[frame 002131] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 002132] exec_enter pc=201740 range=other
-[frame 002134] exec_enter pc=03adf2 range=helper_display_control@000000
-[frame 002135] exec_enter pc=20172e range=other
-[frame 002137] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002138] exec_enter pc=20172c range=other
-[frame 002140] exec_enter pc=03adf2 range=helper_display_control@000000
-[frame 002141] exec_enter pc=201734 range=other
-[frame 002143] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002144] exec_enter pc=201740 range=other
-[frame 002146] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002146] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 002146] symbol_change in_390005 addr=ff5317 BF->AF
-[frame 002147] exec_enter pc=20173e range=other
-[frame 002149] exec_enter pc=03ae52 range=helper_display_control@000000
-[frame 002149] symbol_change in_390005 addr=ff5317 AF->EF
-[frame 002149] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 002149] symbol_change arcade_credits addr=ff0060 11->12
-[frame 002150] exec_enter pc=201732 range=other
-[frame 002152] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002153] exec_enter pc=201732 range=other
-[frame 002155] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002156] exec_enter pc=201740 range=other
-[frame 002158] exec_enter pc=03adf2 range=helper_display_control@000000
-[frame 002158] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 002158] symbol_change in_390005 addr=ff5317 EF->BF
-[frame 002158] symbol_change in_390007 addr=ff5316 FF->FE
-[frame 002159] exec_enter pc=201740 range=other
-[frame 002160] pc=20173a exec=other
-[frame 002160] window_change z80_ctrl
-[frame 002161] exec_enter pc=03adf2 range=helper_display_control@000000
-[frame 002162] exec_enter pc=201730 range=other
-[frame 002164] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002164] symbol_change in_390001 addr=ff5319 FF->EF
-[frame 002164] symbol_change in_390005 addr=ff5317 BF->AF
-[frame 002165] exec_enter pc=20173a range=other
-[frame 002167] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002168] exec_enter pc=201738 range=other
-[frame 002170] exec_enter pc=03adf0 range=helper_display_control@000000
-[frame 002171] exec_enter pc=20172c range=other
-[frame 002173] exec_enter pc=03ae4a range=helper_display_control@000000
-[frame 002173] symbol_change in_390005 addr=ff5317 AF->EF
-[frame 002173] symbol_change in_390007 addr=ff5316 FE->FF
-[frame 002174] exec_enter pc=20172e range=other
-[frame 002174] symbol_change arcade_credits addr=ff0060 12->13
-[frame 002176] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002176] symbol_change in_390001 addr=ff5319 EF->FF
-[frame 002176] symbol_change in_390005 addr=ff5317 EF->FF
-[frame 002177] exec_enter pc=201740 range=other
-[frame 002179] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002179] symbol_change in_390001 addr=ff5319 FF->DF
-[frame 002179] symbol_change in_390005 addr=ff5317 FF->DF
-[frame 002180] exec_enter pc=201730 range=other
-[frame 002182] exec_enter pc=03aea0 range=startup_common@000000
-[frame 002183] exec_enter pc=20173e range=other
-[frame 002185] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002185] symbol_change in_390001 addr=ff5319 DF->FF
-[frame 002185] symbol_change in_390005 addr=ff5317 DF->FF
-[frame 002186] exec_enter pc=201732 range=other
-[frame 002188] exec_enter pc=03aea4 range=startup_common@000000
-[frame 002188] symbol_change in_390001 addr=ff5319 FF->DF
-[frame 002188] symbol_change in_390005 addr=ff5317 FF->DF
-[frame 002189] exec_enter pc=201740 range=other
-[frame 002190] pc=20173e exec=other
-[frame 002190] window_change io_a10000
-[frame 002190] window_change z80_ctrl
-[frame 002191] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002192] exec_enter pc=201732 range=other
-[frame 002194] exec_enter pc=03aea4 range=startup_common@000000
-[frame 002195] exec_enter pc=20173a range=other
-[frame 002197] exec_enter pc=03aea2 range=startup_common@000000
-[frame 002198] exec_enter pc=201740 range=other
-[frame 002200] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002200] symbol_change in_390001 addr=ff5319 DF->FF
-[frame 002200] symbol_change in_390005 addr=ff5317 DF->FF
-[frame 002201] exec_enter pc=201734 range=other
-[frame 002203] exec_enter pc=03adf0 range=helper_display_control@000000
-[frame 002204] exec_enter pc=20173a range=other
-[frame 002206] exec_enter pc=03aea4 range=startup_common@000000
-[frame 002207] exec_enter pc=201732 range=other
-[frame 002209] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002209] symbol_change in_390007 addr=ff5316 FF->F7
-[frame 002210] exec_enter pc=20173a range=other
-[frame 002212] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002213] exec_enter pc=201730 range=other
-[frame 002215] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002215] symbol_change in_390007 addr=ff5316 F7->FF
-[frame 002216] exec_enter pc=201734 range=other
-[frame 002218] exec_enter pc=03adec range=helper_display_control@000000
-[frame 002219] exec_enter pc=20173a range=other
-[frame 002220] pc=201734 exec=other
-[frame 002220] window_change io_a10000
-[frame 002220] window_change z80_ctrl
-[frame 002221] exec_enter pc=03aea6 range=startup_common@000000
-[frame 002222] exec_enter pc=201732 range=other
+[frame 001562] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001563] exec_enter pc=201732 range=other
+[frame 001565] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001566] exec_enter pc=201740 range=other
+[frame 001568] exec_enter pc=03aef6 range=startup_common@000000
+[frame 001569] exec_enter pc=201740 range=other
+[frame 001571] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 001572] exec_enter pc=201740 range=other
+[frame 001574] exec_enter pc=03aef8 range=startup_common@000000
+[frame 001575] exec_enter pc=201732 range=other
 ==== genesistrace stop ====

@@ -1,4 +1,5 @@
 *.mp4
+states/screenshots/**/Exodus_Recording_*.mp4
 
 roms/*
 !roms/.gitkeep

@@ -1,0 +1,4 @@
+build_number=120
+date_utc=2026-03-23T03:04:21Z
+rom_file=rom.bin
+rom_md5=a02e624ca05d19ff9f833c4eae8d97f7

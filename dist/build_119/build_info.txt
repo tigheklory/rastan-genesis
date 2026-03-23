@@ -1,0 +1,4 @@
+build_number=119
+date_utc=2026-03-23T01:55:39Z
+rom_file=rom.bin
+rom_md5=b7570b7fe6bc89f4f828253aeedce72f

@@ -15,6 +15,8 @@ volatile uint16_t genesistan_shadow_c20000_words[2]
     __attribute__((section(".bss.patcher")));
 volatile uint16_t genesistan_shadow_c40000_words[2]
     __attribute__((section(".bss.patcher")));
+volatile uint16_t genesistan_cwindow_null[2]
+    __attribute__((section(".bss.patcher")));
 
 volatile uint16_t genesistan_shadow_reg_c50000
     __attribute__((section(".bss.patcher")));
@@ -172,6 +174,7 @@ void genesistan_reset_startup_shadows(uint8_t dip1, uint8_t dip2, uint16_t servi
     fill_words(genesistan_shadow_d00000_words, 0x0400, 0);
     fill_words(genesistan_shadow_c20000_words, 2, 0);
     fill_words(genesistan_shadow_c40000_words, 2, 0);
+    fill_words(genesistan_cwindow_null, 2, 0);
     memset(genesistan_palette_clcs, 0, sizeof(genesistan_palette_clcs));
 
     genesistan_shadow_reg_c50000 = 0;
