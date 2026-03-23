@@ -15,5 +15,33 @@ examples/*/res/*.d
 tools/local/
 tools/sgdk/
 
+# Logs
+*.log
+
+# Build & Output
+build/
+dist/
+*.bin
+*.gen
+
+# Ghidra 
+.ghidra_cache/
+.ghidra_config/
+*.rep/
+*.gpr
+
+# Python
 __pycache__/
 *.pyc
+
+# Local Toolchain (if not already handled)
+tools/local/
+tools/sgdk/
+
+# Ignore all screenshots and recordings
+states/screenshots/**/*.png
+states/screenshots/**/*.mp4
+states/screenshots/**/*.jpg
+
+# Keep the directory structure
+!states/screenshots/**/.gitkeep

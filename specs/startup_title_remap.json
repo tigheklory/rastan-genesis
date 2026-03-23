@@ -67,6 +67,11 @@
       "end_exclusive": "0x00204000"
     },
     {
+      "name": "payload_maincpu_blob",
+      "start": "0x0021F000",
+      "end_exclusive": "0x002A0000"
+    },
+    {
       "name": "reg_350008",
       "start": "0x00350008",
       "end_exclusive": "0x0035000A"
@@ -198,6 +203,30 @@
       "kind": "original_data",
       "start": "0x03BB7C",
       "end_exclusive": "0x03BC98"
+    },
+    {
+      "name": "title_init_source_tail_03c39c",
+      "kind": "original_data",
+      "start": "0x03C19C",
+      "end_exclusive": "0x03C284"
+    },
+    {
+      "name": "rastan_maincpu_blob_c09ea0_25bf48",
+      "kind": "original_data",
+      "start": "0x25BD48",
+      "end_exclusive": "0x25BD4C"
+    },
+    {
+      "name": "sprite_init_41dae",
+      "kind": "original_code",
+      "start": "0x041DAE",
+      "end_exclusive": "0x041F0E"
+    },
+    {
+      "name": "sprite_init_41f5e",
+      "kind": "original_code",
+      "start": "0x041F5E",
+      "end_exclusive": "0x041F9C"
     },
     {
       "name": "helper_fill_words",
@@ -768,10 +797,24 @@
     },
     {
       "range": "title_text_ptr_table_03bb7c",
+      "arcade_base": "0x00C00000",
+      "arcade_end": "0x00D00000",
+      "symbol": "genesistan_cwindow_null",
+      "allow_in_code": true
+    },
+    {
+      "range": "title_text_ptr_table_03bb7c",
       "old_start": "0x000000",
       "old_end_exclusive": "0x00060000",
       "new_start": "0x000200",
       "scan_step": 4
+    },
+    {
+      "range": "title_init_block",
+      "arcade_base": "0x00C00000",
+      "arcade_end": "0x00D00000",
+      "symbol": "genesistan_cwindow_null",
+      "allow_in_code": true
     },
     {
       "range": "title_init_block",
@@ -796,6 +839,34 @@
       "old_start": "0x00C40000",
       "old_end_exclusive": "0x00C40004",
       "symbol": "genesistan_shadow_c40000_words"
+    },
+    {
+      "range": "title_init_source_tail_03c39c",
+      "arcade_base": "0x00C00000",
+      "arcade_end": "0x00D00000",
+      "symbol": "genesistan_cwindow_null",
+      "allow_in_code": true
+    },
+    {
+      "range": "rastan_maincpu_blob_c09ea0_25bf48",
+      "arcade_base": "0x00C00000",
+      "arcade_end": "0x00D00000",
+      "symbol": "genesistan_cwindow_null",
+      "allow_in_code": true
+    },
+    {
+      "range": "sprite_init_41dae",
+      "arcade_base": "0x00D00000",
+      "arcade_end": "0x00D04000",
+      "symbol": "genesistan_shadow_d00000_words",
+      "allow_in_code": true
+    },
+    {
+      "range": "sprite_init_41f5e",
+      "arcade_base": "0x00D00000",
+      "arcade_end": "0x00D04000",
+      "symbol": "genesistan_shadow_d00000_words",
+      "allow_in_code": true
     },
     {
       "range": "helper_frontend_timers",
@@ -1039,18 +1110,6 @@
       "note": "NOP CLR.L 0xC40000. Pair with 0x03ABBA — same VBlank path."
     },
     {
-      "arcade_pc": "0x03B098",
-      "original_bytes": "42b900c20000",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP CLR.L 0xC20000. Second site — attract state-1 init and game-start transitions."
-    },
-    {
-      "arcade_pc": "0x03B09E",
-      "original_bytes": "42b900c40000",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP CLR.L 0xC40000. Pair with 0x03B098."
-    },
-    {
       "arcade_pc": "0x0005C0",
       "original_bytes": "4eb90003bd48",
       "replacement_bytes": "4e714e714e71",
@@ -1123,12 +1182,6 @@
       "note": "NOP MOVE.W #0x20,(A1) in text writer 0x03C3FE (space fill path)."
     },
     {
-      "arcade_pc": "0x03C418",
-      "original_bytes": "d3fc00c08000",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP ADDA.L #0xC08000,A1 in text writer 0x03C3FE (computed C-window base)."
-    },
-    {
       "arcade_pc": "0x052858",
       "original_bytes": "207c00c08000",
       "replacement_bytes": "4e754e714e71",
@@ -1148,19 +1201,19 @@
     },
     {
       "arcade_pc": "0x03ADFE",
-      "original_bytes": "33fc0000e0ff5322",
+      "original_bytes": "33fc0000e0ff4050",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #0,0xC50000. Direct C-window/control write, unmapped on Genesis."
     },
     {
       "arcade_pc": "0x03AE16",
-      "original_bytes": "33fc0001e0ff5322",
+      "original_bytes": "33fc0001e0ff4050",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #1,0xC50000. Direct C-window/control write, unmapped on Genesis."
     },
     {
       "arcade_pc": "0x03AE86",
-      "original_bytes": "33fc0000e0ff5322",
+      "original_bytes": "33fc0000e0ff4050",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #0,0xC50000 in init path. Direct C-window/control write, unmapped on Genesis."
     },

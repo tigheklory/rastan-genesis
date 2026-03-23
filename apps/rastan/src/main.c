@@ -1649,9 +1649,14 @@ int main(bool hardReset)
             {
                 /* Translate captured arcade A0 to Genesis shadow pointer (Build 109). */
                 const uint32_t a0 = genesistan_arcade_last_a0;
+                const uint8_t *shadow_base = (const uint8_t *)genesistan_shadow_d00000_words;
+                const u32 shadow_start = (u32)shadow_base;
+                const u32 shadow_end = shadow_start + 0x800U;
                 const void *sprite_src = NULL;
                 if (a0 >= 0xD00000UL && a0 < 0xD00800UL)
-                    sprite_src = (const void *)((const uint8_t *)genesistan_shadow_d00000_words + (a0 - 0xD00000UL));
+                    sprite_src = (const void *)(shadow_base + (a0 - 0xD00000UL));
+                else if (a0 >= shadow_start && a0 < shadow_end)
+                    sprite_src = (const void *)a0;
                 render_frontend_sprite_layer(sprite_src); /* Build 109 */
             }
         }
