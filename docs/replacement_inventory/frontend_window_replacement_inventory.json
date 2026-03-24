@@ -1,27 +1,27 @@
 {
   "metadata": {
-    "total_items": 77,
+    "total_items": 84,
     "totals_by_window": {
       "C": 65,
       "both": 1,
-      "none": 1,
-      "D": 10
+      "none": 2,
+      "D": 16
     },
     "totals_by_execution_class": {
       "init_only": 27,
       "active_every_frame_frontend": 9,
-      "active_conditional_frontend": 31,
-      "dead_or_retired": 10
+      "dead_or_retired": 29,
+      "active_conditional_frontend": 19
     },
     "totals_by_patch_status": {
-      "already_patched": 69,
-      "unpatched": 2,
-      "partially_patched": 6
+      "already_patched": 71,
+      "unpatched": 4,
+      "partially_patched": 9
     },
     "totals_by_priority": {
-      "not_needed": 58,
-      "required_now_frontend": 17,
-      "later_gameplay": 2
+      "not_needed": 61,
+      "required_now_frontend": 20,
+      "later_gameplay": 3
     },
     "frontend_entry": {
       "function": "genesistan_run_original_frontend_tick()",
@@ -173,9 +173,9 @@
       "replacement_target": "none",
       "source_origin": "other",
       "patch_status": "unpatched",
-      "priority": "required_now_frontend",
+      "priority": "not_needed",
       "confidence": "High",
-      "notes": "Trampoline entry. A5 = genesistan_arcade_workram_words on entry. Not a C/D window routine itself but is the root of all frontend rendering calls."
+      "notes": "Trampoline entry. A5 = genesistan_arcade_workram_words on entry. Not a C/D window routine itself but is the root of all frontend rendering calls. [Build 142 repair: entry/dispatch control path, not a direct rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03A350",
@@ -183,7 +183,7 @@
       "role": "Direct C-window write: MOVE.W #0x0032 to 0xC08A52 (sprite frame counter register)",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 callsite at 0x03A350 (conditional on state).",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped. Sprite frame counter in C-window region. No Genesis equivalent needed for title screen.",
@@ -192,7 +192,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd. 0xC08A52 is in PC080SN internal register area, not the nametable. No direct Genesis mapping needed."
+      "notes": "NOP'd. 0xC08A52 is in PC080SN internal register area, not the nametable. No direct Genesis mapping needed. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03A552",
@@ -200,7 +200,7 @@
       "role": "Read probe bypass: CMPI.B #48, 0xC09EA3 + BNE (read from C-window crashes BlastEm)",
       "window": "C",
       "operation_type": "control/state",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 A5@(0) state check \u2192 0x03A552.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Bypassed via forced BRA. Read from C-window address crashes Genesis (unmapped HW).",
@@ -209,7 +209,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "Opcode replaced to BRA past the CMP. 0xC09EA3 is PC080SN register, not nametable data."
+      "notes": "Opcode replaced to BRA past the CMP. 0xC09EA3 is PC080SN register, not nametable data. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03A55C",
@@ -217,7 +217,7 @@
       "role": "Direct C-window write: MOVE.B #0x20 to 0xC09EA3 (PC080SN register write)",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 0x03A55C (follows 0x03A552 probe path).",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped. PC080SN register not needed on Genesis.",
@@ -226,7 +226,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd. 0xC09EA3 is a PC080SN control register, not nametable."
+      "notes": "NOP'd. 0xC09EA3 is a PC080SN control register, not nametable. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03A6B2",
@@ -251,7 +251,7 @@
       "role": "Direct C-window write: MOVE.W #0x2744 to 0xC08E7A + BRA (PC080SN sprite attr)",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine conditional branch \u2192 0x03A6FE.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped. PC080SN internal sprite attribute area; no direct Genesis equivalent.",
@@ -260,7 +260,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd. 0xC08E7A is PC080SN sprite attribute RAM, not nametable or SAT data needed for Genesis."
+      "notes": "NOP'd. 0xC08E7A is PC080SN sprite attribute RAM, not nametable or SAT data needed for Genesis. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03A708",
@@ -268,7 +268,7 @@
       "role": "Direct C-window write: MOVE.W #0x2744 to 0xC08E66 (PC080SN sprite attr alt path)",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 0x03A708 (alternate path from 0x03A6FE).",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped.",
@@ -277,7 +277,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "NOP'd. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03A72A",
@@ -285,7 +285,7 @@
       "role": "Direct C-window write: MOVE.W D0 to 0xC08C62 (PC080SN sprite data)",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 0x03A72A.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped. PC080SN internal sprite RAM.",
@@ -294,7 +294,41 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "NOP'd. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
+    },
+    {
+      "arcade_addr": "0x03A818",
+      "rom_addr": "0x03AA18",
+      "role": "Active callsite: JSR 0x45DFA from frontend state path (sprite writer variant entry).",
+      "window": "D",
+      "operation_type": "control/state",
+      "execution_class": "active_conditional_frontend",
+      "evidence": "genesistan_run_original_frontend_tick -> 0x03A008 state machine -> 0x03A7FA branch -> JSR 0x45DFA at 0x03A818.",
+      "safe_to_nop_after_replacement": "NO",
+      "safe_to_nop_reason": "Callsite is part of live frontend sprite sequencing; remove only after equivalent SAT path confirmed.",
+      "replacement_target": "VDP SAT",
+      "source_origin": "workram",
+      "patch_status": "unpatched",
+      "priority": "required_now_frontend",
+      "confidence": "High",
+      "notes": "Build 142 repair add: missing active D-window helper callsite coverage."
+    },
+    {
+      "arcade_addr": "0x03A854",
+      "rom_addr": "0x03AA54",
+      "role": "Active callsite: BSR 0x41F5E from frontend state path (descriptor copy entry).",
+      "window": "D",
+      "operation_type": "staging",
+      "execution_class": "active_conditional_frontend",
+      "evidence": "genesistan_run_original_frontend_tick -> 0x03A008 state machine -> 0x03A832 path -> BSR 0x41F5E at 0x03A854.",
+      "safe_to_nop_after_replacement": "NO",
+      "safe_to_nop_reason": "Part of live frontend sprite descriptor staging sequence.",
+      "replacement_target": "VDP SAT",
+      "source_origin": "workram",
+      "patch_status": "partially_patched",
+      "priority": "required_now_frontend",
+      "confidence": "High",
+      "notes": "Build 142 repair add: callsite remains active while callee entry is RTS-patched in current build."
     },
     {
       "arcade_addr": "0x03A860",
@@ -319,7 +353,7 @@
       "role": "Direct C-window write: MOVE.W #0x2749 to 0xC09172 (PC080SN sprite config)",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 0x03AAEA.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped. PC080SN internal register.",
@@ -328,7 +362,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "NOP'd. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03ABBA",
@@ -370,7 +404,7 @@
       "role": "Read probe bypass: CMPI.B #0x43 to 0xC09E87 + BNE (PC080SN register read)",
       "window": "C",
       "operation_type": "control/state",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 0x03AC54.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Bypassed; BRA forced to skip. C-window read crashes BlastEm.",
@@ -379,7 +413,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "Opcode replaced to BRA past probe. 0xC09E87 is PC080SN status register."
+      "notes": "Opcode replaced to BRA past probe. 0xC09E87 is PC080SN status register. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03AD3C",
@@ -574,7 +608,7 @@
       "role": "C-window helper: MOVE.W #1,(A0)+ where A0=0xC0887C (sprite/tile data region)",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 sprite-related helper \u2192 0x03B47A.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped. PC080SN sprite attribute data, not VDP nametable.",
@@ -583,7 +617,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "NOP'd. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03B47E",
@@ -591,7 +625,7 @@
       "role": "C-window helper: MOVE.W #0x2744,(A0) where A0=0xC0887C",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 sprite helper \u2192 0x03B47E (paired with 0x03B47A).",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped.",
@@ -600,7 +634,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "NOP'd. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03B49A",
@@ -608,7 +642,7 @@
       "role": "C-window helper: MOVE.W #0x274B,(A0) where A0=0xC08D6E+offset",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 sprite helper \u2192 0x03B49A.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped.",
@@ -617,7 +651,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "NOP'd. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03B572",
@@ -625,7 +659,7 @@
       "role": "C-window helper: MOVE.W #0,(A0)+ where A0=0xC08D6C+offset",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 animation helper \u2192 0x03B572.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped.",
@@ -634,7 +668,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "NOP'd. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03B5F6",
@@ -642,7 +676,7 @@
       "role": "C-window helper: MOVE.W D0,(A0) where A0=0xC08D6E+offset",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 animation helper \u2192 0x03B5F6.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped.",
@@ -651,7 +685,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "NOP'd. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x03BB48",
@@ -668,7 +702,7 @@
       "patch_status": "partially_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "CRITICAL GAP: All text writes are silenced. Text overlay (coin msg, GAME OVER, credits, attract mode text) is missing from frontend. Needs opcode_replace of write instructions to emit VDP_setTileMapXY calls. A1 holds target C-window address, D2/D0 hold tile and attr words."
+      "notes": "CRITICAL GAP: All text writes are silenced. Text overlay (coin msg, GAME OVER, credits, attract mode text) is missing from frontend. Needs opcode_replace of write instructions to emit VDP_setTileMapXY calls. A1 holds target C-window address, D2/D0 hold tile and attr words. [Build 142 repair: required_now because dispatcher remains active while write sites are silenced; must route live text path to Genesis nametable writes.]"
     },
     {
       "arcade_addr": "0x03BB66",
@@ -753,7 +787,7 @@
       "patch_status": "partially_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "CRITICAL GAP: Second text writer for FG layer text (HUD/score). All writes silenced. Needs same treatment as 0x3BB48 \u2014 replace write instructions with VDP nametable writes to BG_A."
+      "notes": "CRITICAL GAP: Second text writer for FG layer text (HUD/score). All writes silenced. Needs same treatment as 0x3BB48 \u2014 replace write instructions with VDP nametable writes to BG_A. [Build 142 repair: required_now because dispatcher remains active while write sites are silenced; must route live text path to Genesis nametable writes.]"
     },
     {
       "arcade_addr": "0x03C42A",
@@ -812,7 +846,7 @@
       "role": "Sprite data: MOVE.W D1 to 0xC08C66 (PC080SN sprite data RAM)",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 frontend state machine \u2192 sprite-related sub-routine \u2192 0x03D04C.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped (patcher used ROM-form bytes). PC080SN internal RAM, no Genesis mapping.",
@@ -821,7 +855,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "Medium",
-      "notes": "NOP'd. PC080SN sprite attribute RAM at 0xC08C66."
+      "notes": "NOP'd. PC080SN sprite attribute RAM at 0xC08C66. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x041DAE",
@@ -841,6 +875,57 @@
       "notes": "RTS'd (Build 139). Replaced by render_frontend_sprite_layer() which reads workram descriptor blocks and writes to Genesis VDP SAT directly."
     },
     {
+      "arcade_addr": "0x041F4A",
+      "rom_addr": "0x04214A",
+      "role": "Sprite helper callsite: BSR 0x41F5E inside sprite dispatch helper 0x41F30.",
+      "window": "D",
+      "operation_type": "staging",
+      "execution_class": "active_conditional_frontend",
+      "evidence": "genesistan_run_original_frontend_tick -> frontend state paths -> helper 0x41F30 -> BSR 0x41F5E at 0x41F4A.",
+      "safe_to_nop_after_replacement": "NO",
+      "safe_to_nop_reason": "Branch point in live sprite helper flow; replacement requires equivalent SAT descriptor handling.",
+      "replacement_target": "VDP SAT",
+      "source_origin": "workram",
+      "patch_status": "partially_patched",
+      "priority": "required_now_frontend",
+      "confidence": "Medium",
+      "notes": "Build 142 repair add: D-window-adjacent active helper callsite."
+    },
+    {
+      "arcade_addr": "0x041F54",
+      "rom_addr": "0x042154",
+      "role": "Sprite helper conditional dispatch: BEQ 0x45DFA from helper after 0x41F5E.",
+      "window": "D",
+      "operation_type": "control/state",
+      "execution_class": "active_conditional_frontend",
+      "evidence": "genesistan_run_original_frontend_tick -> helper 0x41F30 -> 0x41F4A/0x41F54 conditional branch to 0x45DFA.",
+      "safe_to_nop_after_replacement": "NO",
+      "safe_to_nop_reason": "Controls live branch between sprite writer variants.",
+      "replacement_target": "VDP SAT",
+      "source_origin": "workram",
+      "patch_status": "unpatched",
+      "priority": "required_now_frontend",
+      "confidence": "Medium",
+      "notes": "Build 142 repair add: missing active D-window branch control coverage."
+    },
+    {
+      "arcade_addr": "0x041F58",
+      "rom_addr": "0x042158",
+      "role": "Sprite helper callsite: BSR 0x41DAE from helper (alternate sprite writer branch).",
+      "window": "D",
+      "operation_type": "copy",
+      "execution_class": "active_conditional_frontend",
+      "evidence": "genesistan_run_original_frontend_tick -> helper 0x41F30 -> BSR 0x41DAE at 0x41F58 when BEQ 0x45DFA not taken.",
+      "safe_to_nop_after_replacement": "NO",
+      "safe_to_nop_reason": "Active branch in live sprite helper flow.",
+      "replacement_target": "VDP SAT",
+      "source_origin": "workram",
+      "patch_status": "partially_patched",
+      "priority": "required_now_frontend",
+      "confidence": "Medium",
+      "notes": "Build 142 repair add: missing active D-window callsite coverage."
+    },
+    {
       "arcade_addr": "0x041F5E",
       "rom_addr": "0x04215E",
       "role": "D-window sprite copy: copies sprite attrs from A5+0x11B2 (18 entries) and A5+0x0170 (4 entries) to D003C0 / D002E0",
@@ -856,6 +941,23 @@
       "priority": "not_needed",
       "confidence": "High",
       "notes": "RTS'd (Build 139). Workram blocks at A5+0x11B2, A5+0x0170 are the confirmed source for render_frontend_sprite_layer()."
+    },
+    {
+      "arcade_addr": "0x041F7A",
+      "rom_addr": "0x04217A",
+      "role": "Sprite descriptor copy loop inside 0x41F5E: copies 4 words per descriptor from A0 blocks to D003C0/D002E0 targets.",
+      "window": "D",
+      "operation_type": "staging",
+      "execution_class": "dead_or_retired",
+      "evidence": "Reached from 0x41F5E body after LEA A5+0x11B2/A5+0x0170; currently unreachable in patched build because 0x41F5E entry RTS.",
+      "safe_to_nop_after_replacement": "YES",
+      "safe_to_nop_reason": "Loop is unreachable with current entry RTS patch; retained as descriptor semantics reference.",
+      "replacement_target": "VDP SAT",
+      "source_origin": "workram",
+      "patch_status": "already_patched",
+      "priority": "later_gameplay",
+      "confidence": "High",
+      "notes": "Build 142 repair add: explicit descriptor staging loop coverage for sprite planning."
     },
     {
       "arcade_addr": "0x045DFA",
@@ -1125,9 +1227,9 @@
       "replacement_target": "none",
       "source_origin": "workram",
       "patch_status": "unpatched",
-      "priority": "required_now_frontend",
+      "priority": "not_needed",
       "confidence": "High",
-      "notes": "The dispatch runs unmodified. mode = A5@(0x10A8) = workram[0x854]. Currently always 0, so only plane_a fires. FG layer (plane_b) never renders until mode becomes non-zero. Mode investigation needed."
+      "notes": "The dispatch runs unmodified. mode = A5@(0x10A8) = workram[0x854]. Currently always 0, so only plane_a fires. FG layer (plane_b) never renders until mode becomes non-zero. Mode investigation needed. [Build 142 repair: entry/dispatch control path, not a direct rendering replacement target.]"
     },
     {
       "arcade_addr": "0x055968",
@@ -1178,7 +1280,7 @@
       "patch_status": "partially_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "CRITICAL GAP: scroll shadow is never populated. game_engine_040000 range does NOT remap 0xC20000 to scroll shadow (maps to cwindow_null). Fix: read workram[0x877] directly in sync_arcade_scroll_to_vdp() instead of relying on shadow."
+      "notes": "CRITICAL GAP: scroll shadow is never populated. game_engine_040000 range does NOT remap 0xC20000 to scroll shadow (maps to cwindow_null). Fix: read workram[0x877] directly in sync_arcade_scroll_to_vdp() instead of relying on shadow. [Build 142 repair: required_now because source scroll values must be driven from frontend live path into Genesis VDP scroll registers.]"
     },
     {
       "arcade_addr": "0x055ABC",
@@ -1195,7 +1297,7 @@
       "patch_status": "partially_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "CRITICAL GAP: Same scroll shadow issue. Source A5@(0x10EC) = workram[0x876]."
+      "notes": "CRITICAL GAP: Same scroll shadow issue. Source A5@(0x10EC) = workram[0x876]. [Build 142 repair: required_now because source scroll values must be driven from frontend live path into Genesis VDP scroll registers.]"
     },
     {
       "arcade_addr": "0x055AC4",
@@ -1212,7 +1314,7 @@
       "patch_status": "partially_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "CRITICAL GAP: Source A5@(0x10B0) = workram[0x858]."
+      "notes": "CRITICAL GAP: Source A5@(0x10B0) = workram[0x858]. [Build 142 repair: required_now because source scroll values must be driven from frontend live path into Genesis VDP scroll registers.]"
     },
     {
       "arcade_addr": "0x055ACC",
@@ -1229,7 +1331,7 @@
       "patch_status": "partially_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "CRITICAL GAP: Source A5@(0x10AE) = workram[0x857]. Fix all 4 scroll writes together in sync_arcade_scroll_to_vdp()."
+      "notes": "CRITICAL GAP: Source A5@(0x10AE) = workram[0x857]. Fix all 4 scroll writes together in sync_arcade_scroll_to_vdp(). [Build 142 repair: required_now because source scroll values must be driven from frontend live path into Genesis VDP scroll registers.]"
     },
     {
       "arcade_addr": "0x055B84",
@@ -1247,6 +1349,23 @@
       "priority": "not_needed",
       "confidence": "High",
       "notes": "NOP'd."
+    },
+    {
+      "arcade_addr": "0x055DDC",
+      "rom_addr": "0x055FDC",
+      "role": "Sprite-phase control helper state machine (calls 0x5602A branch tree; formerly reached from 0x03A6B2/0x03A860).",
+      "window": "none",
+      "operation_type": "control/state",
+      "execution_class": "dead_or_retired",
+      "evidence": "Frontend callsites 0x03A6B2 and 0x03A860 were opcode-NOPed; helper is not reached in current frontend build.",
+      "safe_to_nop_after_replacement": "YES",
+      "safe_to_nop_reason": "Current frontend path already bypasses this helper via patched callsites.",
+      "replacement_target": "none",
+      "source_origin": "workram",
+      "patch_status": "already_patched",
+      "priority": "not_needed",
+      "confidence": "High",
+      "notes": "Build 142 repair add: D-window-adjacent control/state path explicitly catalogued as non-target in current frontend rendering replacement."
     },
     {
       "arcade_addr": "0x055E54",
@@ -1271,7 +1390,7 @@
       "role": "Pointer load: MOVEA.L #0xC00828,A1 \u2014 loads C-window address into A1 for subsequent writes",
       "window": "C",
       "operation_type": "pointer init",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 game engine path \u2192 0x056032.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped.",
@@ -1280,7 +1399,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "NOP'd. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x05605C",
@@ -1288,7 +1407,7 @@
       "role": "Pointer load: MOVEA.L #0xC00028,A1 \u2014 second C-window base load (alternate path)",
       "window": "C",
       "operation_type": "pointer init",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 game engine \u2192 0x05605C (alternate to 0x056032).",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped.",
@@ -1297,7 +1416,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "NOP'd. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x0560DA",
@@ -1322,7 +1441,7 @@
       "role": "C-window copy: MOVEA.L #0xC08000,A0 + MOVEA.L #0xC00000,A1 + MOVE.L (A0),(A1) \u2014 copies FG-page data to BG-page",
       "window": "C",
       "operation_type": "copy",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] \u2192 JMP 0x03A208 (arcade 0x03A008) \u2192 arcade frontend state machine \u2192 game engine \u2192 0x0561C0.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped. Intra-C-window copy; irrelevant on Genesis since VDP planes are separate.",
@@ -1331,7 +1450,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd. Cross-page copy within C-window. Genesis VDP manages BG_A/BG_B independently."
+      "notes": "NOP'd. Cross-page copy within C-window. Genesis VDP manages BG_A/BG_B independently. [Build 142 repair: patched-out runtime path; retained for traceability, not a live rendering replacement target.]"
     },
     {
       "arcade_addr": "0x0575CE",

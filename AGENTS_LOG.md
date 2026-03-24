@@ -14056,3 +14056,166 @@ Validation:
 Schema note:
 - CSV now uses required field name `safe_to_nop_after_replacement`.
 ```
+
+## [Cody - Build 143 — HUD Trace + Validation Pass]
+```text
+Date/time: 2026-03-24 10:55:56 EDT
+Scope: Combined validation + targeted trace (no broad blind rescan)
+
+Cheat anchors identified:
+- Lives: 0x10C101 (Infinite Lives cheat)
+- Health/Energy: 0x10C13A (Infinite Energy cheat)
+
+Systems analyzed:
+- Health bar (bottom HUD)
+- Lives display
+- Score/stage display path
+- Lower-right item/status icons
+- Palette system (0x200000 CLCS)
+
+Inventory updates:
+- New items added: 63
+- Items reclassified/reprioritized: 3 (0x041DAE, 0x041F5E, 0x045DFA -> required_now_gameplay anchors)
+- Palette path items in inventory after repair: 41
+
+Deliverables updated:
+- docs/replacement_inventory/fullgame_window_replacement_inventory.json
+- docs/replacement_inventory/fullgame_window_replacement_inventory.csv
+
+Final verdict:
+- B) INVENTORY STILL INCOMPLETE
+
+Key remaining gaps:
+- Active none-target dispatch/control nodes remain (validated non-rendering), but broader full-game gameplay call-chain closure still needs additional pass for complete certainty across all modules.
+```
+
+## [Cody - Build 144 — Stage Text Closure Pass]
+```text
+Date/time: 2026-03-24 12:13:00 EDT
+Scope: Final-closure targeted trace only (no broad rescan)
+
+Stage_text result:
+- NOT_REQUIRED as a separate gameplay HUD system.
+
+Targeted trace findings:
+- Stage source value: A5@(0x0118) (with mirror at A5@(0x0117)).
+- Stage update routines confirmed:
+  - 0x045292: initializes A5@(0x0118)/A5@(0x0117) from 0x05FF9E-derived setup.
+  - 0x03A878: increments A5@(0x0118)/A5@(0x0117) with cap logic.
+- Stage rendering fanout (frontend/transition text path):
+  - 0x03B2DA / 0x03B302 / 0x03B35E / 0x03B3AA / 0x03B3F8 copy A5@(0x0118) into staged text bytes.
+  - 0x03B414 / 0x03B41A / 0x03B420 call 0x03BB48 (C-window text writer path).
+  - Final rendering target is C-window text pipeline (VDP nametable replacement target), not a separate gameplay-only HUD renderer.
+
+Inventory updates in this closure pass:
+- New items added: 0
+- Reclassified items: 0
+
+Final verdict:
+- A) FULL RENDERING COVERAGE ACHIEVED
+```
+[Tighe - Build XXX — Text Rendering Replacement Plan (Pre-C/D Window Removal)]
+Date/time: <fill in>
+Scope: Define correct implementation order for replacing dynamic text rendering before C-window/D-window removal
+
+Objective:
+Ensure all runtime-generated text (score, stage, UI, messages) is rendered via Genesis VDP and no longer depends on C-window RAM before proceeding with full subsystem removal.
+
+---
+
+PLAN
+
+1) Build Runtime Text Rendering Path (Genesis-side)
+
+- Create reusable VDP-based text rendering routines designed for arcade-driven inputs (NOT launcher-only path)
+- Required capabilities:
+  - Write single tile cell (tile + attributes)
+  - Write character at (x, y)
+  - Write string/span at (x, y)
+  - Accept prebuilt tile/attribute pairs where applicable
+
+---
+
+2) Define Arcade → Genesis Interface Contract (CRITICAL)
+
+Target routine: 0x03BB48 (primary text writer)
+
+You MUST document:
+
+- Register usage at entry
+- Source data format (character/tile indices)
+- Attribute format (palette, priority, flip)
+- Destination semantics (C-window pointer → X/Y translation)
+- Loop structure / iteration behavior
+
+Output:
+- Exact mapping from arcade register state → Genesis text API inputs
+
+---
+
+3) Implement Replacement for 0x03BB48 ONLY
+
+- Replace C-window writes with VDP nametable writes
+- Use new Genesis text rendering path
+- DO NOT modify other systems yet
+
+Validation requirement:
+- Dynamic text must be visible in emulator
+  (score, stage, UI, messages)
+
+---
+
+4) Validate Behavior
+
+Confirm:
+
+- Text appears correctly positioned
+- No flickering
+- Correct tile indices and attributes
+- No dependency on C-window RAM for this path
+
+---
+
+5) Implement Replacement for 0x03C3FE
+
+- Apply same process as 0x03BB48
+- Validate again after implementation
+
+---
+
+6) Narrow Re-Audit (Text Systems Only)
+
+Verify:
+
+- All dynamic text paths now render via VDP
+- No remaining runtime C-window text writers affecting output
+- Stage/score/UI text no longer depend on C-window memory
+
+---
+
+7) Proceed with Subsystem-Based Removal
+
+Continue removal in THIS ORDER:
+
+1. Dynamic C-window text (completed in steps above)
+2. Scroll paths (C-window scroll → VDP scroll)
+3. Remaining tilemap runtime behavior
+4. D-window gameplay sprite paths → VDP SAT
+5. Final cleanup of shadow systems and dead code
+
+---
+
+RULES
+
+- Do NOT skip validation after each replacement
+- Do NOT mark system complete without visible confirmation
+- Do NOT attempt full C-window/D-window removal until text path is proven working
+- Focus on functional replacement, not just callsite mapping
+
+---
+
+SUCCESS CRITERIA
+
+- Runtime-generated text is fully visible via VDP
+- No C-window dependency for text rendering remains
+- System is ready for broader C-window/D-window removal
