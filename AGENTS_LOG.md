@@ -14219,3 +14219,47 @@ SUCCESS CRITERIA
 - Runtime-generated text is fully visible via VDP
 - No C-window dependency for text rendering remains
 - System is ready for broader C-window/D-window removal
+### MAME Exit Summary (2026-03-24 12:47:24)
+- Final PC: 0x210B88
+- Stack Pointer (SP): 0xE0FFFDFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 145 — 0x03BB48 Text Writer Replacement]
+```text
+Date/time: 2026-03-24 12:50:34 EDT
+Scope: Replace primary C-window text writer with VDP-based rendering
+
+Work completed:
+
+- Contract defined for 0x03BB48: YES
+- VDP text routine used/created: rastan_draw_tile_xy
+- Opcode replacement applied: YES
+
+Validation:
+
+- Text visible: NO
+- Dynamic updates working: NO
+- Alignment correct: NO
+
+Notes:
+
+- Pointer → (x,y) mapping:
+  Each 0x03BB48 character write advances destination by 4 bytes (ATTR word + TILE word).
+  Mapping used:
+    cell_index = (dst_ptr_page2_offset_bytes / 4)
+    x = cell_index & 0x3F
+    y = (cell_index >> 6) & 0x1F
+  Supports both direct C-window page-2 pointers (0x00C08000 base) and rewritten shadow aliases
+  (genesistan_arcade_workram_words + 0xC800 base).
+
+- Any assumptions:
+  - 0x03BB48 text writes target the foreground text page corresponding to Genesis Plane A.
+  - glyph byte values map to PC080SN tile indices (loaded through tile_cache_get).
+  - attr_word low bits carry palette selection; flip/priority bits are passed through.
+  - Visual confirmation was not possible in this headless environment because we could not drive
+    the launcher into live front-end text rendering with an observable framebuffer capture.
+
+Result:
+
+- PARTIAL
+```

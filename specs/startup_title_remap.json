@@ -1233,6 +1233,12 @@
       "note": "NOP jsr 0x3BB48 — table-driven C-window text writer. Crashes Genesis on game entry by writing to 0xC09E84 via A1 indirect."
     },
     {
+      "arcade_pc": "0x03BB48",
+      "original_bytes": "32000240007fe548",
+      "replacement_bytes": "4eb90020034c4e75",
+      "note": "Replace 0x3BB48 dispatcher entry with JSR genesistan_hook_text_writer_3bb48 + RTS. Converts C-window text writer output to direct Genesis VDP nametable writes."
+    },
+    {
       "arcade_pc": "0x055AB4",
       "original_bytes": "33ed10eee101484c",
       "replacement_bytes": "4e714e714e714e71",
