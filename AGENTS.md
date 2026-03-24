@@ -335,3 +335,53 @@ index ranges within the same ROM.
 
   Both planes start at row 8 col 0 (offset 0x400
   into their respective C-Window pages).
+
+## Project Rule Update — Mandatory Replacement Discipline
+- Shift-table / proper redirected replacement is now mandatory by default.
+- NOP/RTS/equal-length workaround/same-size redirect are forbidden without prior approval.
+- Any unapproved bypass-style patch is considered broken.
+- “Equal-length constraint” is not an acceptable final justification when broader hook/stub/shift-table mechanisms exist.
+
+## Project Rule Update — Definition of Success
+
+Success is defined as FOLLOWING INSTRUCTIONS EXACTLY.
+
+Success is NOT defined as:
+- “no crash”
+- “more stable”
+- “runs longer”
+- “fewer exceptions”
+
+If a directive is given (e.g. fix a crash, replace a system, remove a dependency):
+
+- The directive itself defines success
+- Partial compliance is NOT success
+- Workarounds that change behavior outside the directive are NOT success
+
+Crash handling rule:
+- If a crash is reported and the directive is to fix it:
+  - The crash must be resolved WITHOUT altering unrelated systems
+  - No bypass (NOP/RTS) is allowed unless explicitly approved
+  - No functionality may be removed unless explicitly approved
+
+Forbidden behaviors:
+- “stabilizing” by removing logic
+- masking crashes instead of fixing root cause
+- modifying unrelated systems to avoid failure
+- redefining scope of the task
+
+If a proper fix is not possible:
+- STOP
+- report the limitation
+- request guidance
+
+Do NOT improvise outside the directive.
+
+## Project Rule Update — Patch Discipline
+
+- Shift-table / proper redirected replacement is mandatory
+- NOP/RTS/equal-length workaround is forbidden without approval
+- Any unapproved bypass is considered broken
+
+Combined with success definition:
+- A crash “fixed” via bypass is NOT considered fixed
