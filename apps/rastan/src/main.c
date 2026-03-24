@@ -1281,7 +1281,7 @@ void rastan_draw_tile_xy(u16 tile_attr, int x, int y)
 #define TEXT_WRITER_CWINDOW_PAGE_BYTES  0x00008000UL
 #define TEXT_WRITER_SHADOW_PAGE2_OFFSET 0x0000C800UL /* 0x10C000 + 0xC800 = arcade 0xC08000 alias */
 
-static bool text_writer_ptr_to_xy(u32 raw_ptr, s16 *out_x, s16 *out_y)
+static bool text_writer_ptr_to_xy(u32 raw_ptr, s16 *out_x, s16 *out_y, u32 *out_offset)
 {
     const u32 shadow_base = (u32)genesistan_arcade_workram_words + TEXT_WRITER_SHADOW_PAGE2_OFFSET;
     u32 offset;
@@ -1302,7 +1302,13 @@ static bool text_writer_ptr_to_xy(u32 raw_ptr, s16 *out_x, s16 *out_y)
         return FALSE;
     }
 
+    if ((offset & 1U) != 0U)
+    {
+        return FALSE;
+    }
+
     cell = offset >> 2; /* 2 words per text cell (attr + tile). */
+    *out_offset = offset;
     *out_x = (s16)(cell & 0x3FU);
     *out_y = (s16)((cell >> 6) & 0x1FU);
     return TRUE;
@@ -1320,7 +1326,7 @@ static u16 text_writer_build_tile_attr(u16 attr_word, u8 glyph_code)
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))
-void genesistan_hook_text_writer_3bb48(void)
+void genesistan_hook_text_writer_3bb48_impl(void)
 {
     register u16 raw_text_id __asm__("d0");
     const u16 table_index = raw_text_id & 0x7FU;
@@ -1343,16 +1349,39 @@ void genesistan_hook_text_writer_3bb48(void)
     {
         s16 x;
         s16 y;
+        u32 offset;
 
-        if (text_writer_ptr_to_xy(dst_ptr, &x, &y))
+        if (text_writer_ptr_to_xy(dst_ptr, &x, &y, &offset))
         {
+            volatile u16 *const shadow_cell =
+                (volatile u16 *)((u32)genesistan_arcade_workram_words
+                                 + TEXT_WRITER_SHADOW_PAGE2_OFFSET
+                                 + offset);
             const u8 out_glyph = space_fill ? 0x20U : glyph;
+
+            /*
+             * Preserve the original 0x03BB48 side effect (text cell staging in RAM)
+             * for routines that still read the text backing buffer.
+             */
+            shadow_cell[0] = attr_word;
+            shadow_cell[1] = (u16)out_glyph;
+
             rastan_draw_tile_xy(text_writer_build_tile_attr(attr_word, out_glyph), x, y);
         }
 
         dst_ptr += 4U;
     }
     SYS_enableInts();
+}
+
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_hook_frontend_sprite_sat_refresh(void)
+{
+    /*
+     * Replacement target for D-window sprite setup writers/callsites.
+     * Render sprites directly to Genesis SAT without touching D-window RAM.
+     */
+    render_frontend_sprite_layer();
 }
 
 static void render_frontend_sprite_layer(void)

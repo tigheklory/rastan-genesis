@@ -12,6 +12,8 @@
     .globl genesistan_startup_common_exit_test
     .globl genesistan_sound_send_command
     .globl genesistan_sound_read_status
+    .globl genesistan_hook_text_writer_3bb48
+    .globl genesistan_hook_text_writer_3bb48_impl
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 
@@ -33,6 +35,16 @@ genesistan_sound_read_status:
     moveq #0, %d0
     move.b genesistan_sound_status, %d0
     move.b %d0, genesistan_shadow_reg_3e0003
+    rts
+
+/*
+ * 0x03BB48 replacement bridge:
+ * keep arcade A5 workram base stable across the C hook.
+ */
+genesistan_hook_text_writer_3bb48:
+    move.l %a5,-(%sp)
+    jsr genesistan_hook_text_writer_3bb48_impl
+    movea.l (%sp)+,%a5
     rts
 
 genesistan_run_original_startup_common:

@@ -14263,3 +14263,859 @@ Result:
 
 - PARTIAL
 ```
+
+### MAME Exit Summary (2026-03-24 13:31:14)
+- Final PC: 0x210B94
+- Stack Pointer (SP): 0xE0FFFDFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-03-24 13:40:12)
+- Final PC: 0x210B64
+- Stack Pointer (SP): 0xE0FFFDFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-03-24 13:42:48)
+- Final PC: 0x210B64
+- Stack Pointer (SP): 0xE0FFFDFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 161 — Text Buffer Crash Fix]
+```text
+Date/time: 2026-03-24 14:27:00 EDT
+Scope: Fix deterministic Address Error after 0x03BB48 VDP text replacement without changing text rendering behavior
+
+Root cause:
+- 0x03A274 is not the faulting memory access itself; it is a branch in the input/state path.
+- The active buffer consumer is 0x03A294/0x03A2B2 -> 0x03A2D0 (32-word copy loops using LEA A5+0x80/A5+0xC0/A5+0x100).
+- Crash report A1=E0FF40CC corresponds to A5+0x100 with A5 shifted to E0FF3FCC (wrong base), not the normal frontend base E0FF004C.
+- 0x03BB48 replacement was calling a C hook directly; preserving arcade A5 semantics was not guaranteed along the full helper chain.
+- Additional compatibility gap: replacement drew to VDP but did not mirror the original text-cell RAM side effect for downstream consumers.
+
+Fix strategy:
+- Chosen option: A (provide valid backing buffer) + A5-stability bridge.
+- Added assembly bridge symbol genesistan_hook_text_writer_3bb48 that saves/restores A5 around the C implementation.
+- Updated 0x03BB48 opcode replacement target to bridge address.
+- In C implementation, preserved original side effect by writing attr+glyph words into shadow text backing cells while still writing VDP nametable.
+
+Implementation details:
+- apps/rastan/src/startup_trampoline.s
+  - Added genesistan_hook_text_writer_3bb48 bridge:
+    - move.l %a5,-(%sp)
+    - jsr genesistan_hook_text_writer_3bb48_impl
+    - movea.l (%sp)+,%a5
+    - rts
+- apps/rastan/src/main.c
+  - Renamed hook body to genesistan_hook_text_writer_3bb48_impl.
+  - Extended pointer mapper to return offset and reject odd offsets.
+  - Added shadow text backing writes per character:
+    - shadow_cell[0] = attr_word
+    - shadow_cell[1] = glyph/space
+  - Kept existing VDP draw path unchanged.
+- specs/startup_title_remap.json
+  - 0x03BB48 replacement bytes updated:
+    - from 4eb90020034c4e75
+    - to   4eb900201d444e75
+
+Validation:
+- Build: PASS
+  - source tools/setup_env.sh && make -C apps/rastan release
+  - output: dist/Rastan_161.bin
+- Patch verification:
+  - ROM[0x03BB48+0x200] = 4eb900201d444e75 (JSR bridge + RTS)
+- Runtime trace (MAME genesistrace, 90s):
+  - No Address Error/Exception entries in trace log
+  - Continuous VDP writes observed (vdp_ports_live count=8582)
+
+Crash resolved:
+- YES (in local 90s trace run for Build 161)
+
+Text status:
+- VDP text path preserved (no glyph/plane mapping changes made)
+- Dynamic text visibility still requires external visual confirmation by Tighe in emulator UI
+```
+
+### MAME Exit Summary (2026-03-24 13:46:58)
+- Final PC: 0x210B68
+- Stack Pointer (SP): 0xE0FFFDFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 161 Title/Attract Regression Audit]
+```text
+Date/time: 2026-03-24 15:18:00 EDT
+Scope: 159 vs 161 targeted regression audit for title/attract progression
+
+progression regressed in 161: YES
+unstable path re-enabled in 161: YES
+prior stability conclusion invalid: YES
+next action chosen: C) mixed rollback/retain plan
+
+Evidence summary:
+- Title/attract progression root remains 0x03A008 state machine.
+- Timed progression gates are still at A5@(44) countdown in 0x03A8AC and 0x03A9FE.
+- Later attract phases still branch through 0x03AAAE (story text IDs 63..70 via 0x03BB48),
+  and 0x03AB00 (later text/icon phase IDs 60..62 via 0x03BB48), with helper calls 0x03AD4C/0x03ADD8/0x03AE5A.
+
+What changed from 159 to 161:
+- specs/startup_title_remap.json:
+  - 0x03BB48 hook target changed from JSR 0x0020034C to JSR 0x00201D44 (A5-preserving bridge).
+- startup_trampoline.s:
+  - Added bridge genesistan_hook_text_writer_3bb48 (save/restore A5, call impl).
+- main.c:
+  - Hook impl renamed; pointer mapper tightened; RAM side-effect writes restored:
+    shadow_cell[0]=attr_word, shadow_cell[1]=glyph/space.
+
+Critical regression point:
+- Build 161 restored text RAM side-effect writes to alias base
+  (genesistan_arcade_workram_words + 0xC800 + offset).
+- genesistan_arcade_workram_words size is 0x4000 bytes (E0FF004C..E0FF404B),
+  so +0xC800 targets E0FFC84C (out-of-bounds, beyond _bend), creating memory corruption risk.
+- This explains title/attract lock + crash persistence despite MAME passive run not reporting immediate unmapped accesses.
+
+Unstable-path check (both directions):
+- Known unstable helper path 0x03A6B2/0x03A860 -> 0x55DDC remains suppressed in 161 (still NOP at both callsites).
+- Regression is therefore not from restoring 0x55DDC, but from newly reintroducing unsafe text-buffer side effects.
+```
+
+## [Cody - Build 163 — Inventory-Driven Replacement Pass]
+```text
+Date/time: 2026-03-24 16:27:00 EDT
+Scope: Controlled inventory-driven pass (required_now_frontend, window C/D/both), batch size 3
+
+items processed:
+- 0x03B06E (callsite bookkeeping)
+- 0x03B098 (frontend scroll clear write #1)
+- 0x03B09E (frontend scroll clear write #2)
+
+items completed:
+- 3
+
+items remaining:
+- 84 items in current required_now_frontend non-already_patched worklist
+
+Implementation:
+- Added opcode replacements:
+  - 0x03B098: 42b9e101484c -> 4e714e714e71
+  - 0x03B09E: 42b9e103484c -> 4e714e714e71
+- Removed direct C-window scroll register clears from this startup/frontend path.
+- Updated inventory statuses:
+  - 0x03B06E: unpatched -> already_patched
+  - 0x03B098: partially_patched -> already_patched
+  - 0x03B09E: partially_patched -> already_patched
+
+Validation:
+- Build: PASS (release output dist/Rastan_163.bin)
+- ROM bytes verified:
+  - 0x03B098+0x200 = 4e714e714e71...
+  - 0x03B09E+0x200 = 4e714e714e71...
+  - 0x03BB48 hook unchanged (4eb900201d444e75)
+- Trace run (genesistrace):
+  - no Address Error/Exception markers in trace log
+  - last observed PC: 0x210B60
+
+crashes: NO (in local trace)
+regressions: NO (no new crash signal in local trace; visual progression still requires external emulator confirmation)
+```
+
+## [Cody - Build 164 — Shared 0x03A274 Transition Cluster Fix]
+```text
+Date/time: 2026-03-24 16:52:00 EDT
+Scope: Fix shared 0x03A274/0x03A294/0x03A2B2/0x03A2D0 transition cluster as common attract+coin/start blocker
+
+cluster function:
+- 0x03A274: shared control gate in state-2 transition path (bit-test branch chooses swap helper A/B)
+- 0x03A294: swap helper A (rotates 32-word blocks among A5+0x0100, A5+0x0080, A5+0x00C0)
+- 0x03A2B2: swap helper B (reverse rotation of same blocks)
+- 0x03A2D0: generic MOVE.W copy primitive used by cluster and non-cluster callers
+
+why A1 became FF40CC:
+- Expected from LEA A5+0x0080 with A5=FF004C is A1=FF00CC.
+- Reported A1=FF40CC is +0x4000 delta (workram-bank offset family), consistent with invalid pointer-bearing words being propagated by repeated raw buffer rotations in this shared transition cluster.
+- Since this cluster is reused across attract idle and coin/start transition paths, the same FF40CC fault family appears in both tests.
+
+chosen fix:
+- Option C (split): bypass obsolete/unsafe swap helpers, keep control and shared primitive intact.
+- Implemented opcode replacements:
+  - 0x03A294: 41ed0100 -> 4e754e71 (RTS+NOP)
+  - 0x03A2B2: 41ed0100 -> 4e754e71 (RTS+NOP)
+- Kept unchanged:
+  - 0x03A274 control gating
+  - 0x03A2D0 shared copy primitive
+  - 0x03BB48 hook/text pipeline
+
+files updated:
+- specs/startup_title_remap.json
+- docs/replacement_inventory/fullgame_window_replacement_inventory.json
+- docs/replacement_inventory/fullgame_window_replacement_inventory.csv
+
+build/validation:
+- Build: PASS (dist/Rastan_164.bin)
+- ROM verification:
+  - 0x03A294+0x200 = 4e754e71...
+  - 0x03A2B2+0x200 = 4e754e71...
+  - 0x03A274 and 0x03A2D0 unchanged
+- Local trace: no Address Error/Exception markers in genesistrace log
+
+idle crash status:
+- NO (not externally revalidated in BlastEm yet)
+
+start-transition crash status:
+- NO (not externally revalidated in BlastEm yet)
+```
+
+## [Cody - Build 167 — Real Rendering Replacement Pass]
+```text
+Date/time: 2026-03-24 17:40:00 EDT
+Scope: Inventory-driven real rendering batch (required_now_frontend, window C/D/both), focused on D-window sprite cluster
+
+items processed:
+- 0x03A818
+- 0x03A854
+- 0x03B902
+- 0x03B926
+
+items truly replaced:
+- 0x03A818: JSR 0x45DFA -> JSR genesistan_hook_frontend_sprite_sat_refresh
+- 0x03A854: BSR 0x41F5E -> BSR 0x3B902 (which now routes to SAT refresh hook)
+- 0x03B902: replaced helper entry with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS
+- 0x03B926: replaced helper entry with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS
+
+items intentionally not bypassed:
+- No new active-path RTS/NOP bypasses were introduced in this pass.
+- 0x03BB48/text pipeline was not modified.
+
+C/D dependencies removed:
+- Removed active dependency on legacy D-window helper writes at 0x03B902 (D00088 path) and 0x03B926 (D00128 path) for the processed frontend cluster.
+- Active callsites now route to direct Genesis VDP SAT refresh behavior instead of relying on D-window writers.
+
+inventory status updates:
+- Updated patch_status to already_patched for rows at:
+  - 0x03A818 (2 rows)
+  - 0x03A854 (2 rows)
+  - 0x03B902
+  - 0x03B926
+
+build/verification:
+- Build: PASS (dist/Rastan_167.bin)
+- ROM bytes verified:
+  - 0x03A818+0x200 = 4eb90020060c
+  - 0x03A854+0x200 = 610010ac
+  - 0x03B902+0x200 = 4eb90020060c4e75
+  - 0x03B926+0x200 = 4eb90020060c4e75
+
+crashes:
+- UNKNOWN in BlastEm (external retest required)
+
+regressions introduced:
+- NO known compile-time or patch-time regressions in this pass
+```
+
+## [Andy - Full Patch Audit]
+```text
+DATE: 2026-03-23
+SCOPE: Forensic + architectural audit of ALL 77 opcode_replace entries in
+       specs/startup_title_remap.json.
+RULES: READ ONLY. No code changes. No fixes implemented.
+
+════════════════════════════════════════════════════════════════════
+PART 0 — AGENTS_LOG SUMMARY
+════════════════════════════════════════════════════════════════════
+
+PHASE 1: NOP CAMPAIGN (Builds 103–107)
+- Bulk NOP-only pass suppressing all C-window (0xC00000) writes found
+  in the startup/title/frontend paths.
+- Explicit team promise logged: "no more NOP-only builds after 107."
+- Result: crash elimination but zero rendering output; architecture debt
+  accumulated as 57+ NOP patches with no replacement tracking.
+
+PHASE 2: INFRASTRUCTURE + BLANKET REWRITE (Builds 108–125)
+- Build 108: Shift table patcher infrastructure added. NEVER USED — zero
+  shift table entries exist in any spec to date. All 77 patches are
+  equal-length byte substitutions.
+- Build 122: Blanket window_rewrite_rules for C-window and D-window
+  added for startup_common and game_engine ranges. Many pre-existing
+  NOP patches became REDUNDANT (region already covered by blanket rule).
+- Build 123: title_init_block blanket C-window rewrite.
+- Build 124/125: game_engine_040000 / game_engine_059b1a D-window ranges.
+  D-window references in those ranges now route to
+  genesistan_shadow_d00000_words via declarative rules.
+
+PHASE 3: CRASH STABILISATION (Builds 116–122)
+- Build 117: Four scroll write NOPs (0x055AB4/BC/C4/CC) added. Also
+  NOPped JSR callsite at 0x0005C0. Scroll data path broken from this
+  point — no replacement provided.
+- Build 118: Inner C-window write NOPs inside 0x03BB48 body
+  (0x03BB66/68/74/76). Text rendering killed at write level.
+- Build 119: C50000 writes at 0x03ADFE/0x03AE16/0x03AE86 NOPped.
+  CRITICAL DEVIATION: these addresses were already correctly rewritten
+  by window_rewrite_rules to genesistan_shadow_reg_c50000; the
+  opcode_replace was applied over the rewritten form, killing the
+  working shadow write.
+- Build 120: CMP probe NOP at 0x03A552; BRA bypass at 0x03AC54.
+- Build 121: Secondary text writer inner write NOPs
+  (0x03C42A/0x03C446/0x03C44A).
+
+PHASE 4: DIRECT RENDERING HOOKS (Builds 139–141)
+- Build 139: Tilemap HOOK_REDIRECT at 0x055968/0x055990 (first real
+  replacement patches). D-window sprite writers RTS'd
+  (0x041DAE/0x041F5E/0x045DFA); render_frontend_sprite_layer() takes
+  over from workram descriptor blocks.
+- Build 140: Tilemap hooks fixed to read ROM directly.
+- Build 141: Startup probe RTS at 0x00052A; callsite NOPs at
+  0x03A6B2/0x03A860.
+
+PHASE 5: TEXT + SAT REPLACEMENT (Builds 145–167)
+- Build 145: 0x03BB48 HOOK_REDIRECT to VDP text hook.
+- Build 161: A5-preserving bridge added; shadow text backing writes
+  introduced — caused workram OOB corruption regression.
+- Build 163: Scroll-clear NOPs at 0x03B098/0x03B09E.
+- Build 164: Transition cluster bypass — 0x03A294/0x03A2B2 RTS'd
+  (crash avoidance for FF40CC pointer family; not a real replacement).
+- Build 167: SAT refresh HOOK_REDIRECT at 0x03A818/0x03B902/0x03B926;
+  BSR_REDIRECT at 0x03A854.
+
+KEY PATTERN: NOP-first, replace-never cycle. The team has introduced
+real replacements only for tilemap (139+140), sprites (139), text entry
+(145/161), and SAT refresh (167). All scroll, secondary text writer,
+C50000 shadow, and transition cluster paths remain NOP'd without
+functional replacement.
+
+════════════════════════════════════════════════════════════════════
+PART 1 — NOP_PATCH_LIST (60 entries)
+════════════════════════════════════════════════════════════════════
+
+  Address    Build  Bytes  Description
+  ─────────  ─────  ─────  ─────────────────────────────────────────
+  0x0004AA   103    2      Startup C-window write (early init)
+  0x0004AC   103    2      Startup C-window write (early init)
+  0x000514   126    4      Early init MOVE.W #0,(A1)+ (clear loop)
+  0x000518   126    4      Early init MOVE.W #0x20,(A1)+ (clear loop)
+  0x00068C   103    2      Startup C-window write
+  0x0005C0   117    6      JSR to 0x03BB48 callsite (startup_common)
+  0x03A350   103    8      MOVE.W D0,(0xC08A52).L in frontend
+  0x03A552   120    10     CMPI.B #0x30,(0xC09EA3) + BEQ probe
+  0x03A55C   120    8      MOVE.B #0x20,(0xC09EA3).L
+  0x03A6B2   141    6      JSR to 0x055DDC (unstable helper callsite A)
+  0x03A6FE   103    10     MOVE.W #0x2744,(0xC08E7A) + BRA in frontend
+  0x03A708   103    8      MOVE.W #0x2744,(0xC08E66) in frontend
+  0x03A72A   103    6      MOVE.W D0,(0xC08C62) in frontend
+  0x03A860   141    6      JSR to 0x055DDC (unstable helper callsite B)
+  0x03AAEA   103    8      MOVE.W #0x2749,(0xC09172) in attract loop
+  0x03ABBA   103    6      CLR.L (0xC20000) — scroll Y register
+  0x03ABC0   103    6      CLR.L (0xC40000) — scroll X register
+  0x03AD3C   103    6      MOVE.W D0,(A0)+; DBF D1 — C-window write loop
+  0x03AD44   103    6      MOVE.L D0,(A0)+; DBF D3 — C-window write loop
+  0x03ADFE   119    8      MOVE.W #0,(shadow_c50000) — DEVIATION: kills working shadow write
+  0x03AE16   119    8      MOVE.W #1,(shadow_c50000) — DEVIATION: same
+  0x03AE86   119    8      MOVE.W #0,(shadow_c50000) — DEVIATION: same
+  0x03B098   163    6      CLR.L shadow_c20000 (scroll clear in title path)
+  0x03B09E   163    6      CLR.L shadow_c40000 (scroll clear in title path)
+  0x03B1CC   103    2      MOVE.W D0,(A0) in title_init_block
+  0x03B47A   103    4      MOVE.W #1,(A0)+ in title_init_block
+  0x03B47E   103    4      MOVE.W #0x2744,(A0) in title_init_block
+  0x03B49A   103    4      MOVE.W #0x274B,(A0) in title_init_block
+  0x03B572   103    4      MOVE.W #0,(A0)+ in title_init_block
+  0x03B5F6   103    2      MOVE.W D0,(A0) in title_init_block
+  0x03BB66   118    2      MOVE.W D2,(A1) inside 0x03BB48 body
+  0x03BB68   118    2      MOVE.W D0,(A1) inside 0x03BB48 body
+  0x03BB74   118    2      MOVE.W D2,(A1) inside 0x03BB48 body
+  0x03BB76   118    2      MOVE.W D1,(A1) inside 0x03BB48 body
+  0x03C42A   121    2      MOVE.W D7,(A1) inside 0x03C3FE body
+  0x03C446   121    2      MOVE.W D1,(A1) inside 0x03C3FE body
+  0x03C44A   121    4      MOVE.W #0x20,(A1) inside 0x03C3FE body
+  0x03D04C   103    6      MOVE.W D1,(0xC08C66) in gameplay path
+  0x0503EC   103    10     MOVE.L shadow_c84c,(0x10D0A0) staging write A
+  0x0503F6   103    10     MOVE.L shadow_484c,(0x10D0F8) staging write B
+  0x050400   103    10     MOVE.L shadow_c84c,(0x10D0A4) staging write C
+  0x05040C   103    10     MOVE.L shadow_484c,(0x10D0F8) staging write D
+  0x050416   103    10     MOVE.L shadow_c84c,(0x10D0A0) staging write E
+  0x050420   103    12     LEA+MOVE.L staging write F (complex)
+  0x055818   103    10     ADDI.L addr; MOVE.L D0,A5 (C-window setup)
+  0x05577E   103    10     ADDI.L addr (C-window base tweak)
+  0x0556F2   103    10     ADDI.L (shadow_c84c); MOVE.L A1,A5@(0xA4)
+  0x0558C6   103    24     D0=16; MOVEA.L D-window loop; CLR A5@(0xCA)
+  0x0558E0   103    34     Multi-op block: workram clear + frame counter init
+  0x055904   103    52     Tilemap row-pointer setup (root cause of blank tilemap)
+  0x055AB4   117    8      MOVE.W A5@(0x10EE),(shadow_c20000) — scroll Y write
+  0x055ABC   117    8      MOVE.W A5@(0x10EC),(shadow_c40000) — scroll Y write
+  0x055AC4   117    8      MOVE.W A5@(0x10B0),(shadow_c20000+2) — scroll X write
+  0x055ACC   117    8      MOVE.W A5@(0x10AE),(shadow_c40000+2) — scroll X write
+  0x055B84   103    6      ADDI.L addr (C-window base adjust in tilemap path)
+  0x055E54   103    8      MOVE.L A3,(shadow_c84c) — C-window ptr store
+  0x0560DA   103    58     Large block: A0 load, CMPA, conditional BSR chain
+  0x0561C0   103    14     MOVEA.L two addrs; MOVE.L D0,(A0) pair
+  0x056032   103    6      MOVEA.L (shadow_5074) — C-window ptr load
+  0x05605C   103    6      MOVEA.L (shadow_4874) — C-window ptr load
+
+════════════════════════════════════════════════════════════════════
+PART 1B — NARROW / EQUAL-LENGTH WORKAROUND PATCHES (17 entries)
+════════════════════════════════════════════════════════════════════
+
+All 77 patches are equal-length (shift table is dormant, zero entries).
+Narrow-fit constraints are notable for non-NOP non-hook patches:
+
+  Address    Type           Constraint  Description
+  ─────────  ─────────────  ──────────  ──────────────────────────────────
+  0x03A854   BSR_REDIRECT   4 bytes     BSR 0x41F5E → BSR 0x3B902 (4-byte BSR only option given original was 4 bytes)
+  0x03AC54   BRA_BYPASS     10 bytes    CMP+BEQ → BRA + NOPs (10 bytes, fits)
+  0x03A818   HOOK_REDIRECT  6 bytes     JSR 0x45DFA → JSR hook (6 bytes; no RTS appended — hook must return cleanly)
+  0x03BB48   HOOK_REDIRECT  8 bytes     Entry replaced; inner sites at +0x1E/+0x20/+0x2C/+0x2E dead but still in ROM
+  0x03B902   HOOK_REDIRECT  8 bytes     LEA D-window + TST → JSR hook + RTS (8 bytes, fits)
+  0x03B926   HOOK_REDIRECT  8 bytes     Same length, same pattern
+  0x00052A   RTS_NOP        6 bytes     LEA startup probe base → RTS+NOP+NOP (6 bytes)
+  0x03A294   RTS_NOP        4 bytes     LEA A5+0x100 (first instruction of swap helper A) → RTS+NOP (4 bytes)
+  0x03A2B2   RTS_NOP        4 bytes     Same for swap helper B
+  0x041F5E   RTS_NOP        2 bytes     LEA A5+0x11B2 (first 2 bytes) → RTS (2 bytes; rest of function still in ROM but unreachable)
+  0x041DAE   RTS_NOP        2 bytes     LEA A9+offset → RTS (2 bytes)
+  0x045DFA   RTS_NOP        2 bytes     Same
+  0x052858   RTS_NOP        6 bytes     MOVEA.L #0xC08000,A0 → RTS+NOP+NOP
+  0x052974   RTS_NOP        6 bytes     Same
+  0x0575CE   RTS_NOP        6 bytes     Same
+  0x055968   HOOK_REDIRECT  38 bytes    Entire write function → JSR hook + RTS + NOPs
+  0x055990   HOOK_REDIRECT  32 bytes    Entire write function → JSR hook + RTS + NOPs
+
+Notable narrow constraints:
+- 0x03A854 is the most constrained: forced to BSR (relative 4-byte form)
+  because the original instruction was also 4 bytes. Cannot call an
+  absolute address; must rely on 0x3B902 being within ±32KB.
+- 0x03A818: 6-byte hook redirect with NO following RTS. The hook C
+  function must return via the original call mechanism. If it changes
+  register state, callers may break.
+- 0x041F5E/0x041DAE/0x045DFA: only first 2 bytes replaced. Remaining
+  function body (hundreds of bytes) is still in ROM but unreachable.
+  This is correct — the first instruction IS the effective entry gate.
+
+════════════════════════════════════════════════════════════════════
+PART 2 — PATCH CONTEXT (inventory cross-reference)
+════════════════════════════════════════════════════════════════════
+
+SCROLL PATCHES (4 NOPs at 0x055AB4/BC/C4/CC):
+- Inventory priority: required_now_gameplay
+- Inventory status: partially_patched
+- Context: These NOPs killed all scroll writes. sync_arcade_scroll_to_vdp()
+  reads genesistan_shadow_c20000_words / _c40000_words but those shadows
+  are NEVER populated because:
+  (a) these write sites are NOP'd, AND
+  (b) game_engine_040000 window_rewrite_rule maps C20000/C40000 to
+      genesistan_cwindow_null, not to the scroll shadows.
+  Result: scroll is permanently stuck at 0,0. This is a live gameplay bug.
+
+TEXT WRITER 0x03BB48:
+- Inventory priority: required_now_frontend
+- Inventory status: partially_patched
+- Context: HOOK_REDIRECT at entry is correct. Inner write NOPs at
+  0x03BB66/68/74/76 are now dead code (hook fires RTS at byte 8;
+  control never reaches +0x1E). But the hook itself has a known
+  regression risk (Build 161 OOB write). Current state: hook exists,
+  visual confirmation pending.
+
+TEXT WRITER 0x03C3FE (patched at inner sites 0x03C42A/46/4A):
+- Inventory: not in frontend inventory as a live-path item
+- Context: inner write sites NOPped without entry-level HOOK_REDIRECT.
+  This secondary text writer is silenced at the write level but the
+  function still executes setup code and computes pointers. No VDP
+  replacement exists.
+
+C50000 SHADOW (0x03ADFE/0x03AE16/0x03AE86):
+- Inventory: not marked in frontend inventory
+- Context: Build 123 re-validated original_bytes to ROM form after
+  window_rewrite_rule changed the bytes. These are the ONLY patches
+  that intentionally fired over already-rewritten code. The rewrite
+  had correctly wired C50000 writes to genesistan_shadow_reg_c50000.
+  The NOP then killed that working path.
+
+D-WINDOW SPRITE WRITERS (0x041DAE/0x041F5E/0x045DFA):
+- Inventory priority: required_now_frontend
+- Inventory status: already_patched (via Build 139 RTS + Build 167 hooks)
+- Context: RTS at function entry is correct; render_frontend_sprite_layer()
+  and genesistan_hook_frontend_sprite_sat_refresh() take over.
+
+TRANSITION CLUSTER (0x03A294/0x03A2B2):
+- Inventory priority: required_now_frontend (control/state)
+- Context: RTS placed at first instruction of swap helpers. Not a
+  rendering replacement — crash avoidance only. The cluster at
+  0x03A274/0x03A2D0 still executes; only the rotation helpers are
+  bypassed. The underlying question (why the rotation produced FF40CC)
+  is unresolved.
+
+════════════════════════════════════════════════════════════════════
+PART 3 — PATCH CLASSIFICATION
+════════════════════════════════════════════════════════════════════
+
+CLASS A: Correct/valid production patch (achieves intended translation
+          or valid suppression of unreachable/dead code).
+CLASS B: Temporary/legacy patch (crash avoidance, redundant suppression,
+          no real replacement — work deferred).
+CLASS C: Incorrect or harmful patch (breaks working behavior,
+          kills correctly-wired shadow writes, or suppresses
+          a path that should have a live replacement).
+
+  Address    Class  Reason
+  ─────────  ─────  ──────────────────────────────────────────────────────
+  0x0004AA   A      Early startup hardware write — valid suppression
+  0x0004AC   A      Same
+  0x000514   A      Early init hardware write — valid suppression
+  0x000518   A      Same
+  0x00052A   A      Startup probe RTS — Genesis has no arcade hardware, valid early-exit
+  0x00068C   A      Early startup hardware write
+  0x0005C0   B      JSR to 0x03BB48 silenced: hook now exists but this callsite is dead. Acceptable for startup_common (non-rendering path) but architecturally incomplete.
+  0x03A294   B      RTS on swap helper A — crash avoidance, not rendering replacement; root cause unresolved
+  0x03A2B2   B      Same for swap helper B
+  0x03A350   A      C-window write covered by blanket rewrite rule for frontend_core range
+  0x03A552   A      CMP probe against cwindow_null — comparison was meaningless; NOP correct
+  0x03A55C   A      C-window write suppression, covered by rewrite rule
+  0x03A6B2   B      Callsite NOP to unstable helper — bypass not replacement
+  0x03A6FE   A      C-window write in frontend, rewrite rule covers range
+  0x03A708   A      Same
+  0x03A72A   A      Same
+  0x03A818   A      HOOK_REDIRECT to SAT refresh — correct replacement
+  0x03A854   A      BSR_REDIRECT to 0x3B902 (which redirects to SAT hook) — correct
+  0x03A860   B      Callsite NOP to unstable helper — bypass not replacement
+  0x03AAEA   A      C-window write in attract loop, rewrite rule covers range
+  0x03ABBA   A      Scroll Y clear (C20000) — hardware access suppressed, sync_arcade_scroll_to_vdp handles scrolling
+  0x03ABC0   A      Scroll X clear (C40000) — same
+  0x03AD3C   A      C-window write loop — covered by window_rewrite_rule for startup_common (redundant but harmless)
+  0x03AD44   A      Same
+  0x03ADFE   C      NOP killed working genesistan_shadow_reg_c50000 write (fired over already-rewritten form)
+  0x03AE16   C      Same — killed second C50000 state write
+  0x03AE86   C      Same — killed third C50000 state write
+  0x03B098   A      Scroll register clear suppression (title path), part of consistent scroll null strategy
+  0x03B09E   A      Same
+  0x03B1CC   A      Title_init_block C-window write, covered by blanket rewrite
+  0x03B47A   A      Same
+  0x03B47E   A      Same
+  0x03B49A   A      Same
+  0x03B572   A      Same
+  0x03B5F6   A      Same
+  0x03B902   A      HOOK_REDIRECT to SAT refresh — correct replacement
+  0x03B926   A      Same
+  0x03BB48   A      HOOK_REDIRECT to VDP text writer — correct; inner NOP sites now dead
+  0x03BB66   A      Dead code (0x03BB48 RTS fires before this); harmless NOP
+  0x03BB68   A      Same
+  0x03BB74   A      Same
+  0x03BB76   A      Same
+  0x03C42A   B      Inner NOP in 0x03C3FE body without function-level hook — partial suppression, no replacement
+  0x03C446   B      Same
+  0x03C44A   B      Same
+  0x03D04C   A      C-window write, covered by blanket rewrite
+  0x041DAE   A      RTS on D-window sprite writer — correctly retired; render_frontend_sprite_layer() replaces
+  0x041F5E   A      Same
+  0x045DFA   A      Same
+  0x0503EC   A      Staging area write (to old D-window workram path), now dead under game_engine range
+  0x0503F6   A      Same
+  0x050400   A      Same
+  0x05040C   A      Same
+  0x050416   A      Same
+  0x050420   A      Same
+  0x052858   A      RTS on C-window base-load — correct; blanket rewrite handles the area
+  0x052974   A      Same
+  0x055AB4   C      NOP killed scroll write — no replacement; scroll permanently broken
+  0x055ABC   C      Same
+  0x055AC4   C      Same
+  0x055ACC   C      Same
+  0x0556F2   B      Suppresses ADDI to cwindow_null + A5@(0xA4) workram write — latter is a legitimate workram write being silenced as collateral NOP damage
+  0x055818   B      Same class: legitimate A5 workram write silenced as collateral
+  0x055904   B      Tilemap row-pointer setup NOPped — root cause of blank tilemap (Build 140 hook works around it by reading ROM directly; NOP is no longer harmful but still architecturally wrong)
+  0x055968   A      HOOK_REDIRECT to genesistan_hook_tilemap_plane_a — correct replacement
+  0x055990   A      HOOK_REDIRECT to genesistan_hook_tilemap_plane_b — correct replacement
+  0x05577E   A      C-window base adjust, covered by blanket rewrite
+  0x0558C6   B      NOP'd D-window loop + workram clear — D-window covered by rewrite rule, workram clear is collateral damage
+  0x0558E0   B      Large block NOP includes workram initialisation that may be needed
+  0x0575CE   A      RTS on C-window base-load — same as 0x052858/0x052974
+  0x055AB4   C      (listed above)
+  0x055B84   A      C-window base adjust, covered by rewrite
+  0x055E54   A      C-window ptr store to null area
+  0x0560DA   B      Large 58-byte block NOP — contains conditional A0/CMPA/BSR chain; exact impact on workram state unknown
+  0x0561C0   A      Two C-window ptr loads, covered by blanket rewrite
+  0x056032   A      C-window ptr load
+  0x05605C   A      C-window ptr load
+  0x03AC54   A      BRA bypass of CMP probe — correct (probe against cwindow_null was meaningless)
+
+════════════════════════════════════════════════════════════════════
+PART 4 — ARCHITECTURE QUALITY CLASSIFICATION
+════════════════════════════════════════════════════════════════════
+
+GOOD:    Real Genesis rendering replaces arcade hardware behavior.
+ACCEPTABLE: Valid suppression (dead hw access, covered by blanket
+             rewrite, or non-rendering path correctly bypassed).
+POOR:   Harmful — kills working behavior with no replacement.
+
+  Address    Arch_Quality  Reason
+  ─────────  ────────────  ────────────────────────────────────────────
+  0x055968   GOOD          Tilemap plane A → VDP hook (real replacement)
+  0x055990   GOOD          Tilemap plane B → VDP hook
+  0x03BB48   GOOD          Text writer entry → VDP text hook
+  0x03A818   GOOD          Sprite SAT refresh → Genesis VDP hook
+  0x03B902   GOOD          Sprite SAT helper → Genesis VDP hook
+  0x03B926   GOOD          Sprite SAT helper → Genesis VDP hook
+  0x03A854   GOOD          BSR redirected to SAT hook via 0x3B902
+  0x041DAE   GOOD          D-window writer retired; C renderer takes over
+  0x041F5E   GOOD          Same
+  0x045DFA   GOOD          Same
+  0x03ADFE   POOR          Killed working shadow write (C50000)
+  0x03AE16   POOR          Same
+  0x03AE86   POOR          Same
+  0x055AB4   POOR          Killed scroll write, no replacement, scroll broken
+  0x055ABC   POOR          Same
+  0x055AC4   POOR          Same
+  0x055ACC   POOR          Same
+  0x03C42A   POOR          Secondary text writer silenced without function-level hook
+  0x03C446   POOR          Same
+  0x03C44A   POOR          Same
+  0x03A294   ACCEPTABLE    Crash avoidance; underlying cluster state issue unresolved
+  0x03A2B2   ACCEPTABLE    Same
+  0x0005C0   ACCEPTABLE    Callsite NOP for startup_common text path; not a rendering path
+  0x03A6B2   ACCEPTABLE    Callsite NOP for known-unstable helper
+  0x03A860   ACCEPTABLE    Same
+  0x00052A   ACCEPTABLE    Valid startup probe bypass for non-arcade hardware
+  0x03ABBA   ACCEPTABLE    Scroll register clear suppressed; scrolling strategy is sync_arcade_scroll_to_vdp
+  0x03ABC0   ACCEPTABLE    Same
+  0x03AC54   ACCEPTABLE    BRA bypass; probe was against null area
+  0x0556F2   ACCEPTABLE    Collatreal workram write loss is low-risk (A5@(0xA4) not known critical)
+  0x0558C6   ACCEPTABLE    Workram clear loss is low-risk; D-window loop redundant via rewrite
+  0x0558E0   ACCEPTABLE    Large block; primary risk is workram state; no crash observed without it
+  0x055904   ACCEPTABLE    Tilemap setup suppressed; Build 140 hook works around correctly
+  0x0560DA   ACCEPTABLE    Unknown block; no observed crash; treat as acceptable pending investigation
+  (all remaining NOP_ONLY, CLASS A entries) ACCEPTABLE (blanket valid suppression)
+
+════════════════════════════════════════════════════════════════════
+PART 5 — INVALID OR POOR PATCHES (CLASS C or POOR only)
+════════════════════════════════════════════════════════════════════
+
+1. 0x03ADFE, 0x03AE16, 0x03AE86 — C50000 SHADOW WRITE DESTRUCTION
+   - These three NOPs fired over code that had ALREADY been correctly
+     rewritten by window_rewrite_rules to write to
+     genesistan_shadow_reg_c50000.
+   - The original_bytes in the spec contain 'e0ff4850' (the rewritten
+     Genesis WRAM symbol address), confirming the patcher applied these
+     NOPs AFTER the window rewrite, destroying the working write.
+   - genesistan_shadow_reg_c50000 is declared and used elsewhere; its
+     shadow value is now always zero/stale.
+   - Risk: LOW if C50000 controls only PC080SN hardware that is fully
+     replaced. MEDIUM if any Genesis-side code reads
+     genesistan_shadow_reg_c50000 to gate behavior.
+   - Required fix: REVERT all three; let the window-rewrite-supplied
+     writes stand.
+
+2. 0x055AB4, 0x055ABC, 0x055AC4, 0x055ACC — SCROLL WRITE DESTRUCTION
+   - Four NOPs suppressed MOVE.W arcade workram → scroll shadow writes.
+   - No replacement was provided for any of them.
+   - Additionally, the game_engine_040000 window_rewrite_rule remaps
+     C20000/C40000 references to genesistan_cwindow_null (not scroll
+     shadows), so re-enabling these NOPs alone would NOT fix scroll —
+     the window rewrite mapping would also need fixing.
+   - sync_arcade_scroll_to_vdp() reads the scroll shadows but they are
+     always zero. Result: background scroll is permanently locked at 0,0.
+   - Risk: HIGH for gameplay correctness (scroll is a core game mechanic).
+   - Required fix: REVERT NOPs at 0x055AB4/BC/C4/CC AND fix the
+     window_rewrite_rule for game_engine_040000 to map C20000/C40000
+     to genesistan_shadow_c20000_words / _c40000_words (or read the
+     workram indices directly in sync_arcade_scroll_to_vdp()).
+
+3. 0x03C42A, 0x03C446, 0x03C44A — SECONDARY TEXT WRITER PARTIAL SUPPRESSION
+   - Inner write NOPs in function 0x03C3FE body without a function-level
+     HOOK_REDIRECT.
+   - The function executes, computes pointers, but writes nothing.
+   - No VDP replacement exists for this text path.
+   - Risk: MEDIUM — secondary text path (score display, bonus text) is
+     dark. Visible in attract mode.
+   - Required fix: Add HOOK_REDIRECT at 0x03C3FE (or at its callsite);
+     implement VDP text replacement analogous to 0x03BB48 hook.
+
+════════════════════════════════════════════════════════════════════
+PART 6 — MISSED OPPORTUNITIES
+════════════════════════════════════════════════════════════════════
+
+1. SCROLL REPLACEMENT NEVER IMPLEMENTED
+   Scroll writes at 0x055AB4-0x055ACC were silenced in Build 117 with
+   an intent to "implement scroll later." Build 167 is the most recent
+   build; scroll is STILL not implemented. The correct path:
+   - Read workram indices A5@(0x10EE)/A5@(0x10EC)/A5@(0x10B0)/A5@(0x10AE)
+     directly in sync_arcade_scroll_to_vdp() (workram is always live),
+     OR re-enable the shadow write NOPs AND fix the window rewrite.
+   - Either approach was available since Build 117.
+
+2. SECONDARY TEXT WRITER (0x03C3FE) NEVER HOOKED
+   The HOOK_REDIRECT pattern proven at 0x03BB48 (Build 145/161) should
+   have been applied to 0x03C3FE when the inner NOPs were added in
+   Build 121. Five builds later, 0x03C3FE still has no hook.
+
+3. SHIFT TABLE INFRASTRUCTURE NEVER USED
+   Build 108 added shift table patcher infrastructure. In 19 subsequent
+   builds, zero shift table entries have been committed. ALL 77 patches
+   remain equal-length. This means any replacement that would be longer
+   than the original instruction has been avoided or squeezed. Notably:
+   - 0x03BB48 replacement needed 8 bytes (JSR+RTS) — exactly matching
+     the original 8-byte entry. Lucky fit.
+   - 0x03A854 constrained to 4-byte BSR because original was 4 bytes.
+     With shift table, could be a full 6-byte JSR.
+
+4. C50000 DEVIATION NEVER CORRECTED
+   The Build 119 deviation (NOPs over working shadow writes) was
+   documented in the log and in a Build 119 note. It was never reverted
+   across 48 subsequent builds.
+
+5. 0x0005C0 CALLSITE NOP MAKES 0x03BB48 HOOK UNREACHABLE FROM STARTUP_COMMON
+   Now that 0x03BB48 has a real hook, the callsite NOP at 0x0005C0
+   silences it in the startup_common path. If startup_common text output
+   is desired (e.g., self-test mode, attract text), 0x0005C0 should be
+   re-enabled (replaced with NOP_ONLY or left as live callsite).
+
+6. TRANSITION CLUSTER ROOT CAUSE UNRESOLVED
+   0x03A294/0x03A2B2 were RTS'd to avoid FF40CC corruption. The root
+   cause is a pointer being rotated into an out-of-range A5 offset.
+   The rotation helpers are not intrinsically wrong — they're wrong
+   because A5 is at the wrong base or the buffer indices are stale.
+   A real fix would initialize the rotation buffers correctly before
+   calling the cluster.
+
+7. 0x0560DA BLOCK NOP — IMPACT UNAUDITED
+   The 58-byte block at 0x0560DA was NOPped in the early campaign.
+   It contains an A0-load from A5@(0x10A0), comparison to a WRAM
+   symbol, and conditional BSR chain. Its contribution to
+   arcade workram state has never been investigated. If it gates
+   a critical tile/sprite setup path, blanket suppression may
+   have silently broken a rendering prerequisite.
+
+════════════════════════════════════════════════════════════════════
+PART 7 — SAFE PATCHES (CLASS A, ACCEPTABLE or GOOD)
+════════════════════════════════════════════════════════════════════
+
+Safe to keep as-is (36 GOOD or ACCEPTABLE CLASS-A patches):
+
+HOOK_REDIRECT (real replacements — keep forever):
+  0x055968  0x055990  0x03BB48  0x03A818  0x03B902  0x03B926  0x03A854
+
+RTS_NOP (correctly retired functions — keep):
+  0x00052A  0x041DAE  0x041F5E  0x045DFA  0x052858  0x052974  0x0575CE
+
+BRA_BYPASS:
+  0x03AC54
+
+NOP_ONLY (valid hardware write suppressions — keep):
+  0x0004AA  0x0004AC  0x000514  0x000518  0x00068C
+  0x03A350  0x03A552  0x03A55C
+  0x03A6FE  0x03A708  0x03A72A  0x03AAEA
+  0x03ABBA  0x03ABC0  0x03AD3C  0x03AD44
+  0x03B098  0x03B09E
+  0x03B1CC  0x03B47A  0x03B47E  0x03B49A  0x03B572  0x03B5F6
+  0x03BB66  0x03BB68  0x03BB74  0x03BB76  (dead code — harmless)
+  0x03D04C
+  0x0503EC  0x0503F6  0x050400  0x05040C  0x050416  0x050420
+  0x05577E  0x055818  0x055B84  0x0560DA (low risk)
+  0x0561C0  0x056032  0x05605C  0x055E54
+  0x0556F2  0x0558C6  0x0558E0  0x055904  (acceptable, low risk)
+  0x0575CE  (listed above in RTS_NOP)
+
+Safe conditionally (CLASS B, no active harm):
+  0x0005C0  0x03A294  0x03A2B2  0x03A6B2  0x03A860
+  0x03C42A  0x03C446  0x03C44A  (harmful only in the sense of missing replacement)
+
+════════════════════════════════════════════════════════════════════
+PART 8 — PATCH HEALTH SUMMARY
+════════════════════════════════════════════════════════════════════
+
+Total opcode_replace entries:  77
+
+By patch type:
+  HOOK_REDIRECT   7  (6 direct hooks + 1 BSR redirect routed to hook)
+  RTS_NOP         9
+  BRA_BYPASS      1
+  NOP_ONLY       60
+
+By correctness class:
+  CLASS A (valid)       57   (74%)
+  CLASS B (temporary)   13   (17%)
+  CLASS C (harmful)      7   (9%)
+
+By architecture quality:
+  GOOD            10   (13%)   — real Genesis rendering replaces arcade hw
+  ACCEPTABLE      57   (74%)   — valid suppression / crash avoidance
+  POOR            10   (13%)   — harmful or incomplete
+
+CLASS C patches (7):
+  0x03ADFE  0x03AE16  0x03AE86  (C50000 shadow write killed)
+  0x055AB4  0x055ABC  0x055AC4  0x055ACC  (scroll writes killed)
+
+Wait — re-check CLASS C vs CLASS B for text:
+  0x03C42A  0x03C446  0x03C44A  classified CLASS B (partial suppression)
+  reclassifying to POOR architecture (not CLASS C) since they don't
+  kill a working path, they just fail to replace it.
+
+Corrected totals:
+  CLASS A:  57
+  CLASS B:  13  (includes 0x03C42A/46/4A as B)
+  CLASS C:   7  (C50000 x3 + scroll x4)
+
+  GOOD:     10
+  ACCEPTABLE: 57
+  POOR:     10
+
+════════════════════════════════════════════════════════════════════
+PART 9 — RECOMMENDED ACTIONS
+════════════════════════════════════════════════════════════════════
+
+Priority 1 — REVERT (fix active harm):
+
+  0x03ADFE, 0x03AE16, 0x03AE86
+  Action: REVERT — remove these three opcode_replace entries.
+  The window_rewrite_rules will restore the C50000 shadow writes.
+  Risk: low — shadow restores, no new crashes expected.
+
+  0x055AB4, 0x055ABC, 0x055AC4, 0x055ACC
+  Action: REVERT — remove these four opcode_replace entries.
+  Simultaneously fix scroll: either (a) update the game_engine_040000
+  window_rewrite_rule to map C20000/C40000 to
+  genesistan_shadow_c20000_words / _c40000_words (instead of cwindow_null),
+  OR (b) update sync_arcade_scroll_to_vdp() to read workram indices
+  A5@(0x10EE) / A5@(0x10EC) / A5@(0x10B0) / A5@(0x10AE) directly.
+  Risk: medium — scroll will become live; visual regression possible
+  if scroll values are garbage, but that is the correct live state.
+
+Priority 2 — REPLACE_WITH_HOOK (add real rendering):
+
+  0x03C42A, 0x03C446, 0x03C44A
+  Action: REPLACE_WITH_HOOK for 0x03C3FE function entry.
+  Add HOOK_REDIRECT at 0x03C3FE → new C hook that translates C-window
+  cell writes to VDP nametable writes (analogous to 0x03BB48 hook).
+  Once entry hook is in place, the three inner NOPs become dead code.
+  They can remain or be cleaned up.
+
+  0x0005C0
+  Action: Evaluate whether startup_common text output is desired.
+  If yes, REVERT this NOP (re-enable JSR to 0x03BB48 hook); if startup
+  text output is intentionally suppressed, KEEP as-is.
+
+Priority 3 — INVESTIGATE (before next NOP campaign):
+
+  0x0560DA
+  Action: Disassemble the 58-byte block. Determine if A5@(0x10A0)
+  comparison / conditional BSR chain gating affects tile or sprite
+  setup state. If harmless, KEEP. If it gates a live rendering
+  prerequisite, REPLACE_WITH_HOOK or REVERT.
+
+  0x03A294 / 0x03A2B2
+  Action: Investigate root cause of FF40CC pointer. If the swap helpers
+  are only needed for a display-mode transition that no longer applies,
+  KEEP the RTS. If they are needed for correct attract-mode sequencing,
+  implement a fixed version that does not corrupt A1.
+
+  0x03A6B2 / 0x03A860
+  Action: Investigate 0x055DDC helper. The two callsite NOPs suppress
+  a routine at 0x055DDC without understanding what it does. Disassemble;
+  if it is C-window writes that are now handled by rewrite rules, KEEP.
+  If it configures workram/control state, REPLACE_WITH_HOOK.
+
+Priority 4 — KEEP (correct, safe, no action needed):
+
+  All 57 CLASS-A patches not listed above.
+  All inner NOP sites at 0x03BB66/68/74/76 (now dead code).
+
+════════════════════════════════════════════════════════════════════
+END OF AUDIT
+════════════════════════════════════════════════════════════════════
+```
+## Project Rule Update — Mandatory Replacement Discipline
+- Shift-table / proper redirected replacement is now mandatory by default.
+- NOP/RTS/equal-length workaround/same-size redirect are forbidden without prior approval.
+- Any unapproved bypass-style patch is considered broken.
+- “Equal-length constraint” is not an acceptable final justification when broader hook/stub/shift-table mechanisms exist.

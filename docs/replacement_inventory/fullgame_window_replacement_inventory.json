@@ -1025,6 +1025,23 @@
       "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902`"
     },
     {
+      "arcade_addr": "0x03A274",
+      "rom_addr": "0x03A474",
+      "role": "Shared transition cluster control gate: bit-test branch selecting swap path A (0x03A294) or path B (0x03A2B2) during state-2 frontend transitions.",
+      "window": "none",
+      "operation_type": "control/state",
+      "execution_class": "active_conditional_frontend",
+      "evidence": "genesistan_run_original_frontend_tick -> 0x03A008 (state dispatch) -> 0x03A15A -> 0x03A196 -> 0x03A200 -> 0x03A26E/0x03A274 and 0x03A282, used in shared attract/coin/start transition path.",
+      "safe_to_nop_after_replacement": "NO",
+      "safe_to_nop_reason": "Control gate remains required to preserve state toggling at A5@(42) and transition flow after helper bypass.",
+      "replacement_target": "none",
+      "source_origin": "workram",
+      "patch_status": "unpatched",
+      "priority": "not_needed",
+      "confidence": "High",
+      "notes": "Cluster controller only; does not touch C-window/D-window directly."
+    },
+    {
       "arcade_addr": "0x03A294",
       "rom_addr": "0x03A494",
       "role": "Lives buffer swap helper (path A): copies A5@(0x0100)-anchored 32-word block into active HUD buffer",
@@ -1032,14 +1049,14 @@
       "operation_type": "copy",
       "execution_class": "active_conditional_frontend",
       "evidence": "frontend entry 0x03A008 -> 0x03A25A/0x03A276 path -> BSR 0x03A294.",
-      "safe_to_nop_after_replacement": "NO",
-      "safe_to_nop_reason": "Staging copy feeding downstream D-window HUD digit/symbol writers.",
-      "replacement_target": "VDP SAT",
+      "safe_to_nop_after_replacement": "YES",
+      "safe_to_nop_reason": "Build 164 replaces entry with RTS+NOP to stop shared transition buffer rotation that propagates invalid pointer-bearing words across attract/coin/start transitions.",
+      "replacement_target": "none",
       "source_origin": "workram",
-      "patch_status": "unpatched",
-      "priority": "required_now_frontend",
+      "patch_status": "already_patched",
+      "priority": "not_needed",
       "confidence": "Medium",
-      "notes": "Loop-driven state staging for lives-related display state."
+      "notes": "Loop-driven state staging for lives-related display state. [Build 164] Entry opcode replaced to RTS+NOP in startup_title_remap.json; 0x03A274 control gating kept, 0x03A2D0 copy primitive left intact for other callers."
     },
     {
       "arcade_addr": "0x03A2B2",
@@ -1049,14 +1066,31 @@
       "operation_type": "copy",
       "execution_class": "active_conditional_frontend",
       "evidence": "frontend entry 0x03A008 -> 0x03A282/0x03A28A path -> BSR 0x03A2B2.",
+      "safe_to_nop_after_replacement": "YES",
+      "safe_to_nop_reason": "Build 164 replaces entry with RTS+NOP to stop shared transition buffer rotation that propagates invalid pointer-bearing words across attract/coin/start transitions.",
+      "replacement_target": "none",
+      "source_origin": "workram",
+      "patch_status": "already_patched",
+      "priority": "not_needed",
+      "confidence": "Medium",
+      "notes": "Part of full lives state transfer cycle. [Build 164] Entry opcode replaced to RTS+NOP in startup_title_remap.json; 0x03A274 control gating kept, 0x03A2D0 copy primitive left intact for other callers."
+    },
+    {
+      "arcade_addr": "0x03A2D0",
+      "rom_addr": "0x03A4D0",
+      "role": "Generic 32-word copy primitive (MOVE.W (A0)+,(A1)+ loop) shared by multiple callers; consumed by 0x03A294/0x03A2B2 and many non-cluster paths.",
+      "window": "none",
+      "operation_type": "copy",
+      "execution_class": "active_conditional_frontend",
+      "evidence": "Called from 0x03A294 and 0x03A2B2 in the shared transition cluster; also referenced broadly from other frontend helpers, so primitive is retained.",
       "safe_to_nop_after_replacement": "NO",
-      "safe_to_nop_reason": "Complements 0x03A294 for bidirectional lives staging.",
-      "replacement_target": "VDP SAT",
+      "safe_to_nop_reason": "Global primitive; NOP would break non-cluster copy callsites.",
+      "replacement_target": "none",
       "source_origin": "workram",
       "patch_status": "unpatched",
-      "priority": "required_now_frontend",
-      "confidence": "Medium",
-      "notes": "Part of full lives state transfer cycle."
+      "priority": "not_needed",
+      "confidence": "High",
+      "notes": "Build 164 bypasses cluster at 0x03A294/0x03A2B2 entries instead of altering this shared primitive."
     },
     {
       "arcade_addr": "0x03A32C",
@@ -1580,10 +1614,10 @@
       "safe_to_nop_reason": "Callsite is part of live frontend sprite sequencing; remove only after equivalent SAT path confirmed.",
       "replacement_target": "VDP SAT",
       "source_origin": "workram",
-      "patch_status": "unpatched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "Build 142 repair add: missing active D-window helper callsite coverage."
+      "notes": "Build 142 repair add: missing active D-window helper callsite coverage. Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x45DFA path no longer required at this callsite."
     },
     {
       "arcade_addr": "0x03A818",
@@ -1597,10 +1631,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `jsr 0x45dfa`"
+      "notes": "Auto-added callsite from disassembly: `jsr 0x45dfa` Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x45DFA path no longer required at this callsite."
     },
     {
       "arcade_addr": "0x03A820",
@@ -1631,10 +1665,10 @@
       "safe_to_nop_reason": "Part of live frontend sprite descriptor staging sequence.",
       "replacement_target": "VDP SAT",
       "source_origin": "workram",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "Build 142 repair add: callsite remains active while callee entry is RTS-patched in current build."
+      "notes": "Build 142 repair add: callsite remains active while callee entry is RTS-patched in current build. Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x41F5E descriptor-copy path bypassed by SAT refresh."
     },
     {
       "arcade_addr": "0x03A854",
@@ -1648,10 +1682,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x41f5e`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x41f5e` Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x41F5E descriptor-copy path bypassed by SAT refresh."
     },
     {
       "arcade_addr": "0x03A860",
@@ -2838,10 +2872,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP scroll write",
       "source_origin": "other",
-      "patch_status": "unpatched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b098`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b098` [Build 162] Callsite kept; target 0x03B098 routine is now opcode-replaced to NOP scroll-register clears and frontend scroll is synced via Genesis VDP path."
     },
     {
       "arcade_addr": "0x03B098",
@@ -2855,10 +2889,10 @@
       "safe_to_nop_reason": "Direct window/palette behavior is replaced by target hardware path once replacement is complete.",
       "replacement_target": "VDP scroll write",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added from full disassembly scan: `clrl 0xc20000` in range `title_init_block`."
+      "notes": "Auto-added from full disassembly scan: `clrl 0xc20000` in range `title_init_block`. [Build 162] Covered by opcode_replace at 0x03B098 replacing CLR.L 0xC20000/0xC40000 with NOP+RTS; no direct C-window scroll register access remains in this routine."
     },
     {
       "arcade_addr": "0x03B09E",
@@ -2872,10 +2906,10 @@
       "safe_to_nop_reason": "Direct window/palette behavior is replaced by target hardware path once replacement is complete.",
       "replacement_target": "VDP scroll write",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added from full disassembly scan: `clrl 0xc40000` in range `title_init_block`."
+      "notes": "Auto-added from full disassembly scan: `clrl 0xc40000` in range `title_init_block`. [Build 162] Covered by opcode_replace at 0x03B098 replacing CLR.L 0xC20000/0xC40000 with NOP+RTS; no direct C-window scroll register access remains in this routine."
     },
     {
       "arcade_addr": "0x03B0A6",
@@ -3603,10 +3637,10 @@
       "safe_to_nop_reason": "Direct window/palette behavior is replaced by target hardware path once replacement is complete.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added from full disassembly scan: `lea 0xd00088,%a1` in range `title_init_block`."
+      "notes": "Auto-added from full disassembly scan: `lea 0xd00088,%a1` in range `title_init_block`. Build 165: helper entry now replaced with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS. Removed runtime dependency on D00088 helper writes."
     },
     {
       "arcade_addr": "0x03B926",
@@ -3620,10 +3654,10 @@
       "safe_to_nop_reason": "Direct window/palette behavior is replaced by target hardware path once replacement is complete.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added from full disassembly scan: `lea 0xd00128,%a1` in range `title_init_block`."
+      "notes": "Auto-added from full disassembly scan: `lea 0xd00128,%a1` in range `title_init_block`. Build 165: helper entry now replaced with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS. Removed runtime dependency on D00128 helper writes."
     },
     {
       "arcade_addr": "0x03B9FE",

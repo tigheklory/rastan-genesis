@@ -1095,6 +1095,42 @@
       "note": "NOP MOVE.B #0x20, 0xC09EA3. Direct C-Window write."
     },
     {
+      "arcade_pc": "0x03A294",
+      "original_bytes": "41ed0100",
+      "replacement_bytes": "4e754e71",
+      "note": "RTS+NOP transition-cluster swap helper path A. Bypasses 0x0100/0x0080/0x00C0 32-word buffer rotation used across attract/coin/start transitions."
+    },
+    {
+      "arcade_pc": "0x03A2B2",
+      "original_bytes": "41ed0100",
+      "replacement_bytes": "4e754e71",
+      "note": "RTS+NOP transition-cluster swap helper path B. Pair with 0x03A294; keeps 0x03A274 control gating while removing raw pointer-bearing buffer shuffles."
+    },
+    {
+      "arcade_pc": "0x03A818",
+      "original_bytes": "4eb900045ffa",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Replace active frontend callsite JSR 0x45DFA with JSR genesistan_hook_frontend_sprite_sat_refresh. Route sprite update to direct Genesis VDP SAT refresh."
+    },
+    {
+      "arcade_pc": "0x03A854",
+      "original_bytes": "61007708",
+      "replacement_bytes": "610010AC",
+      "note": "Redirect active frontend callsite BSR 0x41F5E to BSR 0x3B902. 0x3B902 is replaced with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS, providing direct Genesis VDP SAT refresh without legacy D-window descriptor copy."
+    },
+    {
+      "arcade_pc": "0x03B902",
+      "original_bytes": "43f9e0ff40d44a41",
+      "replacement_bytes": "4eb90020060c4e75",
+      "note": "Replace D-window helper entry 0x3B902 (D00088 block path) with direct Genesis VDP SAT refresh hook + RTS."
+    },
+    {
+      "arcade_pc": "0x03B926",
+      "original_bytes": "43f9e0ff41747009",
+      "replacement_bytes": "4eb90020060c4e75",
+      "note": "Replace D-window helper entry 0x3B926 (D00128 block path) with direct Genesis VDP SAT refresh hook + RTS."
+    },
+    {
       "arcade_pc": "0x03A6B2",
       "original_bytes": "4eb900055fdc",
       "replacement_bytes": "4e714e714e71",
@@ -1227,6 +1263,18 @@
       "note": "NOP CLR.L 0xC40000. Pair with 0x03ABBA — same VBlank path."
     },
     {
+      "arcade_pc": "0x03B098",
+      "original_bytes": "42b9e101484c",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP frontend startup scroll clear write 1 (CLR.L remapped 0xC20000). Removes direct PC080SN scroll register access; Genesis scroll is driven by sync_arcade_scroll_to_vdp()."
+    },
+    {
+      "arcade_pc": "0x03B09E",
+      "original_bytes": "42b9e103484c",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP frontend startup scroll clear write 2 (CLR.L remapped 0xC40000). Pair with 0x03B098."
+    },
+    {
       "arcade_pc": "0x0005C0",
       "original_bytes": "4eb90003bd48",
       "replacement_bytes": "4e714e714e71",
@@ -1235,8 +1283,8 @@
     {
       "arcade_pc": "0x03BB48",
       "original_bytes": "32000240007fe548",
-      "replacement_bytes": "4eb90020034c4e75",
-      "note": "Replace 0x3BB48 dispatcher entry with JSR genesistan_hook_text_writer_3bb48 + RTS. Converts C-window text writer output to direct Genesis VDP nametable writes."
+      "replacement_bytes": "4eb900201d444e75",
+      "note": "Replace 0x3BB48 dispatcher entry with JSR genesistan_hook_text_writer_3bb48 bridge + RTS. Bridge preserves A5, then calls implementation that mirrors RAM backing + writes direct Genesis VDP nametable."
     },
     {
       "arcade_pc": "0x055AB4",

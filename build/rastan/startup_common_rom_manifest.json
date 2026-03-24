@@ -279,7 +279,7 @@
     {
       "range": "startup_common",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4864",
+      "new": "0xE0FF5870",
       "count": 1
     },
     {
@@ -291,7 +291,7 @@
     {
       "range": "startup_common",
       "old": "0x00380000",
-      "new": "0xE0FF4866",
+      "new": "0xE0FF5872",
       "count": 2
     },
     {
@@ -309,25 +309,25 @@
     {
       "range": "startup_common",
       "old": "0x00390001",
-      "new": "0xE0FF5873",
+      "new": "0xE0FF486F",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390003",
-      "new": "0xE0FF5872",
+      "new": "0xE0FF486E",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390005",
-      "new": "0xE0FF5871",
+      "new": "0xE0FF486D",
       "count": 0
     },
     {
       "range": "startup_common",
       "old": "0x00390007",
-      "new": "0xE0FF5870",
+      "new": "0xE0FF486C",
       "count": 0
     },
     {
@@ -381,7 +381,7 @@
     {
       "range": "frontend_core",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4864",
+      "new": "0xE0FF5870",
       "count": 0
     },
     {
@@ -393,7 +393,7 @@
     {
       "range": "frontend_core",
       "old": "0x00380000",
-      "new": "0xE0FF4866",
+      "new": "0xE0FF5872",
       "count": 1
     },
     {
@@ -411,25 +411,25 @@
     {
       "range": "frontend_core",
       "old": "0x00390001",
-      "new": "0xE0FF5873",
+      "new": "0xE0FF486F",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390003",
-      "new": "0xE0FF5872",
+      "new": "0xE0FF486E",
       "count": 2
     },
     {
       "range": "frontend_core",
       "old": "0x00390005",
-      "new": "0xE0FF5871",
+      "new": "0xE0FF486D",
       "count": 7
     },
     {
       "range": "frontend_core",
       "old": "0x00390007",
-      "new": "0xE0FF5870",
+      "new": "0xE0FF486C",
       "count": 7
     },
     {
@@ -483,7 +483,7 @@
     {
       "range": "title_init_block",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4864",
+      "new": "0xE0FF5870",
       "count": 0
     },
     {
@@ -495,7 +495,7 @@
     {
       "range": "title_init_block",
       "old": "0x00380000",
-      "new": "0xE0FF4866",
+      "new": "0xE0FF5872",
       "count": 0
     },
     {
@@ -549,25 +549,25 @@
     {
       "range": "title_init_block",
       "old": "0x00390001",
-      "new": "0xE0FF5873",
+      "new": "0xE0FF486F",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390003",
-      "new": "0xE0FF5872",
+      "new": "0xE0FF486E",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390005",
-      "new": "0xE0FF5871",
+      "new": "0xE0FF486D",
       "count": 0
     },
     {
       "range": "title_init_block",
       "old": "0x00390007",
-      "new": "0xE0FF5870",
+      "new": "0xE0FF486C",
       "count": 0
     },
     {
@@ -639,7 +639,7 @@
     {
       "range": "helper_frontend_timers",
       "old": "0x00380000",
-      "new": "0xE0FF4866",
+      "new": "0xE0FF5872",
       "count": 4
     },
     {
@@ -663,13 +663,13 @@
     {
       "range": "helper_display_control",
       "old": "0x00D01BFE",
-      "new": "0xE0FF4864",
+      "new": "0xE0FF5870",
       "count": 2
     },
     {
       "range": "helper_display_control",
       "old": "0x00380000",
-      "new": "0xE0FF4866",
+      "new": "0xE0FF5872",
       "count": 1
     },
     {
@@ -699,13 +699,13 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390001",
-      "new": "0xE0FF5873",
+      "new": "0xE0FF486F",
       "count": 2
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00390007",
-      "new": "0xE0FF5870",
+      "new": "0xE0FF486C",
       "count": 2
     },
     {
@@ -754,7 +754,7 @@
       "range": "startup_common",
       "old_window_start": "0x00D01BFE",
       "old_window_end_exclusive": "0x00D01C00",
-      "new_window_start": "0xE0FF4864",
+      "new_window_start": "0xE0FF5870",
       "target": "symbol:genesistan_shadow_reg_d01bfe",
       "scan_step": 2,
       "count": 0
@@ -781,7 +781,7 @@
       "range": "helper_display_control",
       "old_window_start": "0x00D01BFE",
       "old_window_end_exclusive": "0x00D01C00",
-      "new_window_start": "0xE0FF4864",
+      "new_window_start": "0xE0FF5870",
       "target": "symbol:genesistan_shadow_reg_d01bfe",
       "scan_step": 2,
       "count": 0
@@ -1016,14 +1016,14 @@
       "kind": "shim_jump",
       "old_start": "0x03F284",
       "old_end_exclusive": "0x03F29C",
-      "new_target": "0x00201D30"
+      "new_target": "0x00201D04"
     },
     {
       "range": "helper_3f09c_reg_status",
       "kind": "shim_jump",
       "old_start": "0x03F29C",
       "old_end_exclusive": "0x03F2AC",
-      "new_target": "0x00201D60"
+      "new_target": "0x00201D34"
     },
     {
       "kind": "opcode_replace",
@@ -1152,6 +1152,54 @@
       "original_bytes": "13fc002000c09ea3",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP MOVE.B #0x20, 0xC09EA3. Direct C-Window write."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A294",
+      "rom_pc": "0x03A494",
+      "original_bytes": "41ed0100",
+      "replacement_bytes": "4e754e71",
+      "note": "RTS+NOP transition-cluster swap helper path A. Bypasses 0x0100/0x0080/0x00C0 32-word buffer rotation used across attract/coin/start transitions."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A2B2",
+      "rom_pc": "0x03A4B2",
+      "original_bytes": "41ed0100",
+      "replacement_bytes": "4e754e71",
+      "note": "RTS+NOP transition-cluster swap helper path B. Pair with 0x03A294; keeps 0x03A274 control gating while removing raw pointer-bearing buffer shuffles."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A818",
+      "rom_pc": "0x03AA18",
+      "original_bytes": "4eb900045ffa",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Replace active frontend callsite JSR 0x45DFA with JSR genesistan_hook_frontend_sprite_sat_refresh. Route sprite update to direct Genesis VDP SAT refresh."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A854",
+      "rom_pc": "0x03AA54",
+      "original_bytes": "61007708",
+      "replacement_bytes": "610010ac",
+      "note": "Redirect active frontend callsite BSR 0x41F5E to BSR 0x3B902. 0x3B902 is replaced with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS, providing direct Genesis VDP SAT refresh without legacy D-window descriptor copy."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B902",
+      "rom_pc": "0x03BB02",
+      "original_bytes": "43f9e0ff40d44a41",
+      "replacement_bytes": "4eb90020060c4e75",
+      "note": "Replace D-window helper entry 0x3B902 (D00088 block path) with direct Genesis VDP SAT refresh hook + RTS."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B926",
+      "rom_pc": "0x03BB26",
+      "original_bytes": "43f9e0ff41747009",
+      "replacement_bytes": "4eb90020060c4e75",
+      "note": "Replace D-window helper entry 0x3B926 (D00128 block path) with direct Genesis VDP SAT refresh hook + RTS."
     },
     {
       "kind": "opcode_replace",
@@ -1331,6 +1379,22 @@
     },
     {
       "kind": "opcode_replace",
+      "arcade_pc": "0x03B098",
+      "rom_pc": "0x03B298",
+      "original_bytes": "42b9e101484c",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP frontend startup scroll clear write 1 (CLR.L remapped 0xC20000). Removes direct PC080SN scroll register access; Genesis scroll is driven by sync_arcade_scroll_to_vdp()."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B09E",
+      "rom_pc": "0x03B29E",
+      "original_bytes": "42b9e103484c",
+      "replacement_bytes": "4e714e714e71",
+      "note": "NOP frontend startup scroll clear write 2 (CLR.L remapped 0xC40000). Pair with 0x03B098."
+    },
+    {
+      "kind": "opcode_replace",
       "arcade_pc": "0x0005C0",
       "rom_pc": "0x0007C0",
       "original_bytes": "4eb90003bd48",
@@ -1342,8 +1406,8 @@
       "arcade_pc": "0x03BB48",
       "rom_pc": "0x03BD48",
       "original_bytes": "32000240007fe548",
-      "replacement_bytes": "4eb90020034c4e75",
-      "note": "Replace 0x3BB48 dispatcher entry with JSR genesistan_hook_text_writer_3bb48 + RTS. Converts C-window text writer output to direct Genesis VDP nametable writes."
+      "replacement_bytes": "4eb900201d444e75",
+      "note": "Replace 0x3BB48 dispatcher entry with JSR genesistan_hook_text_writer_3bb48 bridge + RTS. Bridge preserves A5, then calls implementation that mirrors RAM backing + writes direct Genesis VDP nametable."
     },
     {
       "kind": "opcode_replace",
@@ -1579,7 +1643,7 @@
     },
     {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x39F6B4",
+      "rom_offset": "0x39F5B4",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1592,24 +1656,24 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x00201DAE",
+    "jumps_to": "0x00201D8E",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
     "writes_status_to": "0xE0FF4858",
     "value": 2,
-    "jumps_exit_to": "0x00201DEA",
+    "jumps_exit_to": "0x00201DCA",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0xB615",
+  "checksum": "0x45DC",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x00216C46",
+    "reset_pc": "0x00216BFC",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",
