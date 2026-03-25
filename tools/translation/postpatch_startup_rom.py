@@ -347,6 +347,16 @@ def build_absolute_jump(target_address: int, length: int) -> bytes:
     return bytes((0x4E, 0xF9)) + target_address.to_bytes(4, "big") + (b"\x4E\x71" * ((length - 6) // 2))
 
 
+def accumulated_shift_before(addr: int, shift_deltas: list[tuple[int, int]]) -> int:
+    total = 0
+    for shift_addr, delta in shift_deltas:
+        if shift_addr < addr:
+            total += delta
+        else:
+            break
+    return total
+
+
 def update_genesis_checksum(rom_bytes: bytearray) -> int:
     checksum = 0
     for offset in range(0x200, len(rom_bytes), 2):
@@ -552,12 +562,19 @@ def main() -> int:
     maincpu_bytes = maincpu_path.read_bytes()
 
     # Apply variable-length opcode replacements before any other patching.
+    shift_deltas: list[tuple[int, int]] = []
     if spec.get("shift_replacements"):
         from shift_table_patcher import apply_shift_table as _apply_shift_table
         _whole = spec.get("whole_maincpu_copy", {})
         _src_start = parse_hexish(_whole.get("source_start", "0x000000"))
         _src_end = parse_hexish(_whole.get("source_end_exclusive", "0x060000"))
         _disasm = str(Path(__file__).resolve().parents[2] / "build" / "maincpu.disasm.txt")
+        for _rep in spec["shift_replacements"]:
+            _pc = parse_hexish(_rep["arcade_pc"])
+            _orig = bytes.fromhex(_rep["original_bytes"].replace(" ", ""))
+            _repl = bytes.fromhex(_rep["replacement_bytes"].replace(" ", ""))
+            shift_deltas.append((_pc, len(_repl) - len(_orig)))
+        shift_deltas.sort(key=lambda x: x[0])
         maincpu_bytes = bytes(
             _apply_shift_table(maincpu_bytes, spec["shift_replacements"], _disasm, _src_start, _src_end)
         )
@@ -786,7 +803,7 @@ def main() -> int:
                 f"opcode_replace at 0x{arcade_pc:06X}: "
                 f"original_bytes and replacement_bytes "
                 f"must be the same length.")
-        rom_pc = arcade_pc + relocation_delta
+        rom_pc = arcade_pc + relocation_delta + accumulated_shift_before(arcade_pc, shift_deltas)
         actual = bytes(rom_bytes[rom_pc:rom_pc + len(expected)])
         if actual != expected:
             raise RuntimeError(

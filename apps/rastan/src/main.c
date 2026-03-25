@@ -37,6 +37,8 @@ extern volatile uint16_t genesistan_shadow_reg_d01bfe;
 #define FRONTEND_RUNTIME_MAX_SPRITES SAT_MAX_SIZE
 #define FRONTEND_RUNTIME_MAX_UNIQUE_CODES 64
 #define FRONTEND_RUNTIME_MAX_PALETTE_BANKS 4
+/* Arcade visible height is 240; Genesis visible height is 224 in this mode. */
+#define RASTAN_VERTICAL_CROP_BIAS 8
 
 typedef enum
 {
@@ -1277,6 +1279,7 @@ void rastan_draw_tile_xy(u16 tile_attr, int x, int y)
 }
 
 #define TEXT_WRITER_3BB48_TABLE_BASE    0x003BD7CUL /* 0x03BB7C + relocation delta 0x200 */
+#define TEXT_WRITER_3C3FE_TABLE_BASE    0x003C654UL /* 0x03C454 + relocation delta 0x200 */
 #define TEXT_WRITER_CWINDOW_PAGE2_BASE  0x00C08000UL
 #define TEXT_WRITER_CWINDOW_PAGE_BYTES  0x00008000UL
 #define TEXT_WRITER_SHADOW_PAGE2_OFFSET 0x0000C800UL /* 0x10C000 + 0xC800 = arcade 0xC08000 alias */
@@ -1317,6 +1320,17 @@ static bool text_writer_ptr_to_xy(u32 raw_ptr, s16 *out_x, s16 *out_y, u32 *out_
 static u16 text_writer_build_tile_attr(u16 attr_word, u8 glyph_code)
 {
     const u16 vram_tile = tile_cache_get((u16)glyph_code);
+    const u16 palette   = attr_word & 0x3U;
+    const u16 priority  = (attr_word >> 13) & 1U;
+    const u16 vflip     = (attr_word >> 15) & 1U;
+    const u16 hflip     = (attr_word >> 14) & 1U;
+
+    return TILE_ATTR_FULL(palette, priority, vflip, hflip, vram_tile);
+}
+
+static u16 text_writer_build_tile_attr_from_arcade_code(u16 attr_word, u16 arcade_code)
+{
+    const u16 vram_tile = tile_cache_get(arcade_code & 0x3FFFU);
     const u16 palette   = attr_word & 0x3U;
     const u16 priority  = (attr_word >> 13) & 1U;
     const u16 vflip     = (attr_word >> 15) & 1U;
@@ -1375,22 +1389,86 @@ void genesistan_hook_text_writer_3bb48_impl(void)
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))
-void genesistan_hook_frontend_sprite_sat_refresh(void)
+void genesistan_render_sprites_vdp(void);
+
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_scroll_from_workram_vdp(void)
 {
-    /*
-     * Replacement target for D-window sprite setup writers/callsites.
-     * Render sprites directly to Genesis SAT without touching D-window RAM.
-     */
-    render_frontend_sprite_layer();
+    const int16_t vertical_bias = RASTAN_VERTICAL_CROP_BIAS;
+    const int16_t scroll_y_bg =
+        (int16_t)(-(int16_t)genesistan_arcade_workram_words[0x10EEU / 2U] + vertical_bias);
+    const int16_t scroll_x_bg =
+        -(int16_t)genesistan_arcade_workram_words[0x10ECU / 2U];
+    const int16_t scroll_y_fg =
+        (int16_t)(-(int16_t)genesistan_arcade_workram_words[0x10B0U / 2U] + vertical_bias);
+    const int16_t scroll_x_fg =
+        -(int16_t)genesistan_arcade_workram_words[0x10AEU / 2U];
+
+    VDP_setHorizontalScroll(BG_B, scroll_x_bg);
+    VDP_setVerticalScroll(BG_B, scroll_y_bg);
+    VDP_setHorizontalScroll(BG_A, scroll_x_fg);
+    VDP_setVerticalScroll(BG_A, scroll_y_fg);
 }
 
-static void render_frontend_sprite_layer(void)
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_hook_text_writer_3c3fe(void)
+{
+    register u16 raw_text_id __asm__("d0");
+    const bool space_fill = (raw_text_id & 0x0080U) != 0;
+    const u16 table_index = raw_text_id & 0x7FU;
+    const u32 entry_ptr   = TEXT_WRITER_3C3FE_TABLE_BASE + ((u32)table_index * 6U);
+    u16 count             = *(const u16 *)entry_ptr;
+    const u16 dst_off     = *(const u16 *)(entry_ptr + 2U);
+    const u16 src_off     = *(const u16 *)(entry_ptr + 4U);
+    u32 dst_ptr           = TEXT_WRITER_CWINDOW_PAGE2_BASE + (u32)dst_off;
+    const u8 *src         = (const u8 *)((u32)genesistan_arcade_workram_words + (u32)src_off);
+
+    SYS_disableInts();
+    while (count-- > 0U)
+    {
+        u16 arcade_tile = (u16)(*src++);
+        s16 x;
+        s16 y;
+        u32 offset;
+
+        if (arcade_tile == 0x003FU)
+        {
+            arcade_tile = 0x274BU;
+        }
+        else if (arcade_tile == 0x0021U)
+        {
+            arcade_tile = 0x2744U;
+        }
+
+        if (space_fill)
+        {
+            arcade_tile = 0x0020U;
+        }
+
+        if (text_writer_ptr_to_xy(dst_ptr, &x, &y, &offset))
+        {
+            (void)offset;
+            rastan_draw_tile_xy(text_writer_build_tile_attr_from_arcade_code(0U, arcade_tile), x, y);
+        }
+
+        dst_ptr += 4U;
+    }
+    SYS_enableInts();
+}
+
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_hook_frontend_sprite_sat_refresh(void)
+{
+    genesistan_render_sprites_vdp();
+}
+
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_render_sprites_vdp(void)
 {
 #if RASTAN_ENABLE_STARTUP_HOOK
-    const u16 sprite_ctrl = genesistan_shadow_reg_380000;
-    const u16 obj_ctrl = genesistan_shadow_reg_d01bfe;
+    const u16 sprite_ctrl = genesistan_arcade_workram_words[10]; /* A5@(20), source for 0x380000 writes */
     const u16 sprite_colbank = (u16)((sprite_ctrl & 0x00E0) >> 1);
-    const bool flipscreen = ((obj_ctrl & 0x0001) == 0);
+    const bool flipscreen = (genesistan_arcade_workram_words[15] != 0); /* A5@(30), paired control for 0xD01BFE path */
     u16 palette_bank_map[FRONTEND_RUNTIME_MAX_PALETTE_BANKS] = {0, 1, 2, 3};
     u16 palette_bank_count = 0;
     u16 unique_count = 0;
@@ -1501,6 +1579,11 @@ static void render_frontend_sprite_layer(void)
     VDP_updateSprites(sprite_count, CPU);
     SYS_enableInts();
 #endif
+}
+
+static void render_frontend_sprite_layer(void)
+{
+    genesistan_render_sprites_vdp();
 }
 
 static void leave_startup_preview(void)
@@ -1710,38 +1793,7 @@ static void sanitize_arcade_workram(void)
 
 static void sync_arcade_scroll_to_vdp(void)
 {
-    /*
-     * The arcade frontend tick writes scroll
-     * values to genesistan_shadow_c20000_words
-     * (Y scroll) and genesistan_shadow_c40000_words
-     * (X scroll) via the window rewrite rules in
-     * the spec. Propagate those values to the
-     * Genesis VDP each frame.
-     *
-     * PC080SN has two layers. Each scroll register
-     * holds two words: [layer0, layer1].
-     * Arcade stores negated values so negate on read.
-     *
-     * Genesis VDP horizontal scroll:
-     *   VDP_setHorizontalScroll(BG_B, x) for layer 0
-     *   VDP_setHorizontalScroll(BG_A, x) for layer 1
-     * Genesis VDP vertical scroll:
-     *   VDP_setVerticalScroll(BG_B, y) for layer 0
-     *   VDP_setVerticalScroll(BG_A, y) for layer 1
-     */
-    const int16_t scroll_y_bg =
-        -(int16_t)genesistan_shadow_c20000_words[0];
-    const int16_t scroll_x_bg =
-        -(int16_t)genesistan_shadow_c40000_words[0];
-    const int16_t scroll_y_fg =
-        -(int16_t)genesistan_shadow_c20000_words[1];
-    const int16_t scroll_x_fg =
-        -(int16_t)genesistan_shadow_c40000_words[1];
-
-    VDP_setHorizontalScroll(BG_B, scroll_x_bg);
-    VDP_setVerticalScroll(BG_B, scroll_y_bg);
-    VDP_setHorizontalScroll(BG_A, scroll_x_fg);
-    VDP_setVerticalScroll(BG_A, scroll_y_fg);
+    genesistan_scroll_from_workram_vdp();
 }
 
 int main(bool hardReset)

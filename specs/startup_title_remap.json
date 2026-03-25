@@ -1000,7 +1000,7 @@
   "opcode_replace": [
     {
       "arcade_pc": "0x0560DA",
-      "original_bytes": "206D10A0B1FCE0FF574C66046100FF6E206D10A0343C0032203C0000002020C0534266FAD1FC0000010020080280E0FF874C20402B4810A0",
+      "original_bytes": "206D10A0B1FCE0FF575466046100FF6E206D10A0343C0032203C0000002020C0534266FAD1FC0000010020080280E0FF875420402B4810A0",
       "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
       "note": "NOP entire display list write function 0x560DA-0x56111. Stops per-frame C-Window SRAM pointer writes and advancement."
     },
@@ -1048,7 +1048,7 @@
     },
     {
       "arcade_pc": "0x0556F2",
-      "original_bytes": "0681E0FFC84C2B4110A4",
+      "original_bytes": "0681E0FFC8542B4110A4",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP C-Window addr store (0x556F2-0x556FB). addil #0xC08000,d1 + movel d1,a5@(4260). Stops display-list pointer advancing into C-Window range each frame."
     },
@@ -1072,7 +1072,7 @@
     },
     {
       "arcade_pc": "0x05577E",
-      "original_bytes": "0680E0FFC84C2B4010A4",
+      "original_bytes": "0680E0FFC8542B4010A4",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP second C-Window addr store to A5@(4260). addil #0xC08000,d0 + movel d0,a5@(4260) at 0x5577E. Parallel path to 0x556F2 (Build 103). Still advancing C-Window page 2 pointer causing crash at 0x209D66."
     },
@@ -1105,30 +1105,6 @@
       "original_bytes": "41ed0100",
       "replacement_bytes": "4e754e71",
       "note": "RTS+NOP transition-cluster swap helper path B. Pair with 0x03A294; keeps 0x03A274 control gating while removing raw pointer-bearing buffer shuffles."
-    },
-    {
-      "arcade_pc": "0x03A818",
-      "original_bytes": "4eb900045ffa",
-      "replacement_bytes": "4eb90020060c",
-      "note": "Replace active frontend callsite JSR 0x45DFA with JSR genesistan_hook_frontend_sprite_sat_refresh. Route sprite update to direct Genesis VDP SAT refresh."
-    },
-    {
-      "arcade_pc": "0x03A854",
-      "original_bytes": "61007708",
-      "replacement_bytes": "610010AC",
-      "note": "Redirect active frontend callsite BSR 0x41F5E to BSR 0x3B902. 0x3B902 is replaced with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS, providing direct Genesis VDP SAT refresh without legacy D-window descriptor copy."
-    },
-    {
-      "arcade_pc": "0x03B902",
-      "original_bytes": "43f9e0ff40d44a41",
-      "replacement_bytes": "4eb90020060c4e75",
-      "note": "Replace D-window helper entry 0x3B902 (D00088 block path) with direct Genesis VDP SAT refresh hook + RTS."
-    },
-    {
-      "arcade_pc": "0x03B926",
-      "original_bytes": "43f9e0ff41747009",
-      "replacement_bytes": "4eb90020060c4e75",
-      "note": "Replace D-window helper entry 0x3B926 (D00128 block path) with direct Genesis VDP SAT refresh hook + RTS."
     },
     {
       "arcade_pc": "0x03A6B2",
@@ -1180,73 +1156,73 @@
     },
     {
       "arcade_pc": "0x055E54",
-      "original_bytes": "2b7ce0ff4c4c10a0",
+      "original_bytes": "2B7CE0FF4C5410A0",
       "replacement_bytes": "4E714E714E714E71",
       "note": "NOP MOVE.L #0xC00400, 0x10A0(A5). Stores C-Window base into A5 workram slot (ptr init a5@(4256))."
     },
     {
       "arcade_pc": "0x055818",
-      "original_bytes": "0680e0ffc84c2b4010a0",
+      "original_bytes": "0680E0FFC8542B4010A0",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP ADDIL #0xC08000,D0 + MOVE.L D0,0x10A0(A5). Stores advanced C-Window base into A5@(4256) (second path)."
     },
     {
       "arcade_pc": "0x055B84",
-      "original_bytes": "0680e0ff484c",
+      "original_bytes": "0680E0FF4854",
       "replacement_bytes": "4E714E714E71",
       "note": "NOP ADDIL #0xC00000, D0. Adds C-Window base to D0 \u2014 part of pointer advancement sequence."
     },
     {
       "arcade_pc": "0x056032",
-      "original_bytes": "227ce0ff5074",
+      "original_bytes": "227CE0FF507C",
       "replacement_bytes": "4E714E714E71",
       "note": "NOP MOVEA.L #0xC00828, A1. Loads C-Window address into A1."
     },
     {
       "arcade_pc": "0x05605C",
-      "original_bytes": "227ce0ff4874",
+      "original_bytes": "227CE0FF487C",
       "replacement_bytes": "4E714E714E71",
       "note": "NOP MOVEA.L #0xC00028, A1. Loads C-Window address into A1 (second path)."
     },
     {
       "arcade_pc": "0x0503EC",
-      "original_bytes": "23fce0ffc84c0010d0a0",
+      "original_bytes": "23FCE0FFC8540010D0A0",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A0). Stores C-Window page 2 base into arcade workram."
     },
     {
       "arcade_pc": "0x0503F6",
-      "original_bytes": "23fce0ff484c0010d0f8",
+      "original_bytes": "23FCE0FF48540010D0F8",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC00000, abs.l(0x10D0F8). Stores C-Window page 0 base into arcade workram."
     },
     {
       "arcade_pc": "0x050400",
-      "original_bytes": "23fce0ffc84c0010d0a4",
+      "original_bytes": "23FCE0FFC8540010D0A4",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A4). Stores C-Window page 2 base into arcade workram (second slot)."
     },
     {
       "arcade_pc": "0x05040C",
-      "original_bytes": "23fce0ff484c0010d0f8",
+      "original_bytes": "23FCE0FF48540010D0F8",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC00000, abs.l(0x10D0F8). Duplicate store C-Window page 0 base into workram."
     },
     {
       "arcade_pc": "0x050416",
-      "original_bytes": "23fce0ffc84c0010d0a0",
+      "original_bytes": "23FCE0FFC8540010D0A0",
       "replacement_bytes": "4E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A0). Duplicate store C-Window page 2 base into workram."
     },
     {
       "arcade_pc": "0x050420",
-      "original_bytes": "203ce100074c23c00010d0a4",
+      "original_bytes": "203CE100075423C00010D0A4",
       "replacement_bytes": "4E714E714E714E714E714E71",
       "note": "NOP MOVE.L #0xC0BF00,D0 + MOVE.L D0,abs.l(0x10D0A4). Length=12 only (trailing 0x33FC at 0x05042C is start of next MOVE.W, incomplete)."
     },
     {
       "arcade_pc": "0x0561C0",
-      "original_bytes": "207ce0ffc84c227ce0ff484c20c0",
+      "original_bytes": "207CE0FFC854227CE0FF485420C0",
       "replacement_bytes": "4E714E714E714E714E714E714E71",
       "note": "NOP MOVEA.L #0xC08000,A0 + MOVEA.L #0xC00000,A1 + MOVE.L (A0),D0. Fill-loop initialisation loading both C-Window page addresses."
     },
@@ -1254,67 +1230,37 @@
       "arcade_pc": "0x03ABBA",
       "original_bytes": "42b900c20000",
       "replacement_bytes": "4e714e714e71",
-      "note": "NOP CLR.L 0xC20000. CLR.L is a read-modify-write on 68000 — the read cycle crashes Genesis bus. Result discarded; scroll register re-written each frame. Fires every VBlank during attract."
+      "note": "NOP CLR.L 0xC20000. CLR.L is a read-modify-write on 68000 \u2014 the read cycle crashes Genesis bus. Result discarded; scroll register re-written each frame. Fires every VBlank during attract."
     },
     {
       "arcade_pc": "0x03ABC0",
       "original_bytes": "42b900c40000",
       "replacement_bytes": "4e714e714e71",
-      "note": "NOP CLR.L 0xC40000. Pair with 0x03ABBA — same VBlank path."
+      "note": "NOP CLR.L 0xC40000. Pair with 0x03ABBA \u2014 same VBlank path."
     },
     {
       "arcade_pc": "0x03B098",
-      "original_bytes": "42b9e101484c",
+      "original_bytes": "42B9E1014854",
       "replacement_bytes": "4e714e714e71",
       "note": "NOP frontend startup scroll clear write 1 (CLR.L remapped 0xC20000). Removes direct PC080SN scroll register access; Genesis scroll is driven by sync_arcade_scroll_to_vdp()."
     },
     {
       "arcade_pc": "0x03B09E",
-      "original_bytes": "42b9e103484c",
+      "original_bytes": "42B9E1034854",
       "replacement_bytes": "4e714e714e71",
       "note": "NOP frontend startup scroll clear write 2 (CLR.L remapped 0xC40000). Pair with 0x03B098."
     },
     {
-      "arcade_pc": "0x0005C0",
-      "original_bytes": "4eb90003bd48",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP jsr 0x3BB48 — table-driven C-window text writer. Crashes Genesis on game entry by writing to 0xC09E84 via A1 indirect."
-    },
-    {
       "arcade_pc": "0x03BB48",
       "original_bytes": "32000240007fe548",
-      "replacement_bytes": "4eb900201d444e75",
-      "note": "Replace 0x3BB48 dispatcher entry with JSR genesistan_hook_text_writer_3bb48 bridge + RTS. Bridge preserves A5, then calls implementation that mirrors RAM backing + writes direct Genesis VDP nametable."
-    },
-    {
-      "arcade_pc": "0x055AB4",
-      "original_bytes": "33ed10eee101484c",
-      "replacement_bytes": "4e714e714e714e71",
-      "note": "NOP move.w scroll write to 0xC20000 — scroll register, unmapped on Genesis."
-    },
-    {
-      "arcade_pc": "0x055ABC",
-      "original_bytes": "33ed10ece103484c",
-      "replacement_bytes": "4e714e714e714e71",
-      "note": "NOP move.w scroll write to 0xC40000 — scroll register, unmapped on Genesis."
-    },
-    {
-      "arcade_pc": "0x055AC4",
-      "original_bytes": "33ed10b0e101484e",
-      "replacement_bytes": "4e714e714e714e71",
-      "note": "NOP move.w scroll write to 0xC20002 — scroll register, unmapped on Genesis."
-    },
-    {
-      "arcade_pc": "0x055ACC",
-      "original_bytes": "33ed10aee103484e",
-      "replacement_bytes": "4e714e714e714e71",
-      "note": "NOP move.w scroll write to 0xC40002 — scroll register, unmapped on Genesis."
+      "replacement_bytes": "4eb9002027b84e75",
+      "note": "Replace 0x3BB48 dispatcher entry with JSR genesistan_hook_text_writer_3bb48 + RTS. Direct Genesis VDP nametable rendering path."
     },
     {
       "arcade_pc": "0x03BB66",
       "original_bytes": "32c2",
       "replacement_bytes": "4e71",
-      "note": "NOP move.w d2,(a1)+ inside text writer 0x3BB48 — silences all C-window writes via this function (normal write path)"
+      "note": "NOP move.w d2,(a1)+ inside text writer 0x3BB48 \u2014 silences all C-window writes via this function (normal write path)"
     },
     {
       "arcade_pc": "0x03BB68",
@@ -1335,76 +1281,40 @@
       "note": "NOP move.w d1,(a1)+ inside text writer 0x3BB48 (space-fill path)"
     },
     {
-      "arcade_pc": "0x03C42A",
-      "original_bytes": "32c7",
-      "replacement_bytes": "4e71",
-      "note": "NOP MOVE.W D7,(A1) in text writer 0x03C3FE. A1 = C08000 + sub_table_offset; fires first each iteration before character write. Crash: write to C09EA0."
-    },
-    {
-      "arcade_pc": "0x03C446",
-      "original_bytes": "32c1",
-      "replacement_bytes": "4e71",
-      "note": "NOP MOVE.W D1,(A1) in text writer 0x03C3FE (character tile write path)."
-    },
-    {
-      "arcade_pc": "0x03C44A",
-      "original_bytes": "32fc0020",
-      "replacement_bytes": "4e714e71",
-      "note": "NOP MOVE.W #0x20,(A1) in text writer 0x03C3FE (space fill path)."
-    },
-    {
       "arcade_pc": "0x052858",
-      "original_bytes": "207ce0ffc84c",
+      "original_bytes": "207CE0FFC854",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
     },
     {
       "arcade_pc": "0x052974",
-      "original_bytes": "207ce0ffc84c",
+      "original_bytes": "207CE0FFC854",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
     },
     {
       "arcade_pc": "0x0575CE",
-      "original_bytes": "207ce0ffc84c",
+      "original_bytes": "207CE0FFC854",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
     },
     {
       "arcade_pc": "0x03ADFE",
-      "original_bytes": "33fc0000e0ff4850",
+      "original_bytes": "33FC0000E0FF4858",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #0,0xC50000. Direct C-window/control write, unmapped on Genesis."
     },
     {
       "arcade_pc": "0x03AE16",
-      "original_bytes": "33fc0001e0ff4850",
+      "original_bytes": "33FC0001E0FF4858",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #1,0xC50000. Direct C-window/control write, unmapped on Genesis."
     },
     {
       "arcade_pc": "0x03AE86",
-      "original_bytes": "33fc0000e0ff4850",
+      "original_bytes": "33FC0000E0FF4858",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #0,0xC50000 in init path. Direct C-window/control write, unmapped on Genesis."
-    },
-    {
-      "arcade_pc": "0x041F5E",
-      "original_bytes": "41ed",
-      "replacement_bytes": "4e75",
-      "note": "RTS out of D-window sprite copy routine 0x41F5E. Frontend sprite path now uses direct Genesis VDP rendering from workram descriptor blocks."
-    },
-    {
-      "arcade_pc": "0x041DAE",
-      "original_bytes": "49ed",
-      "replacement_bytes": "4e75",
-      "note": "RTS out of D-window object writer 0x41DAE. Prevents runtime dependency on PC090OJ window writes in frontend live mode."
-    },
-    {
-      "arcade_pc": "0x045DFA",
-      "original_bytes": "49ed",
-      "replacement_bytes": "4e75",
-      "note": "RTS out of alternate D-window object writer 0x45DFA (frontend/title variant). Rendering is handled by direct VDP sprite path."
     },
     {
       "arcade_pc": "0x0004AA",
@@ -1461,5 +1371,127 @@
       "note": "NOP move.w d0,(a0) in c-window writer helper (A0=0xC08D6E + offset)."
     }
   ],
-  "memory_map": []
+  "memory_map": [],
+  "shift_replacements": [
+    {
+      "arcade_pc": "0x03A20E",
+      "original_bytes": "610016f2",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03A264",
+      "original_bytes": "6100169c",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03A640",
+      "original_bytes": "610012c0",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03A6C4",
+      "original_bytes": "6100123c",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03A818",
+      "original_bytes": "4eb900045dfa",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03A820",
+      "original_bytes": "610010e0",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03A854",
+      "original_bytes": "61007708",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03A8E0",
+      "original_bytes": "61001020",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03A9C6",
+      "original_bytes": "61000f5e",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03A9D4",
+      "original_bytes": "61000f50",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03B8E8",
+      "original_bytes": "61000018",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03B8F0",
+      "original_bytes": "61000010",
+      "replacement_bytes": "4eb90020060c",
+      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+    },
+    {
+      "arcade_pc": "0x03C3FE",
+      "original_bytes": "3e3c0000",
+      "replacement_bytes": "4ef900200ddc",
+      "note": "Replace secondary C-window text writer entry with direct JMP to Genesis VDP nametable hook."
+    },
+    {
+      "arcade_pc": "0x041DAE",
+      "original_bytes": "49ed0508",
+      "replacement_bytes": "4ef90020060c",
+      "note": "Replace PC090OJ sprite writer entry with direct JMP to Genesis VDP SAT renderer."
+    },
+    {
+      "arcade_pc": "0x041F5E",
+      "original_bytes": "41ed11b2",
+      "replacement_bytes": "4ef90020060c",
+      "note": "Replace PC090OJ sprite writer entry with direct JMP to Genesis VDP SAT renderer."
+    },
+    {
+      "arcade_pc": "0x045DFA",
+      "original_bytes": "49ed05c8",
+      "replacement_bytes": "4ef90020060c",
+      "note": "Replace PC090OJ sprite writer entry with direct JMP to Genesis VDP SAT renderer."
+    },
+    {
+      "arcade_pc": "0x055AB4",
+      "original_bytes": "33ed10ee00c20000",
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace PC080SN scroll write with direct Genesis VDP scroll sync from live workram."
+    },
+    {
+      "arcade_pc": "0x055ABC",
+      "original_bytes": "33ed10ec00c40000",
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace PC080SN scroll write with direct Genesis VDP scroll sync from live workram."
+    },
+    {
+      "arcade_pc": "0x055AC4",
+      "original_bytes": "33ed10b000c20002",
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace PC080SN scroll write with direct Genesis VDP scroll sync from live workram."
+    },
+    {
+      "arcade_pc": "0x055ACC",
+      "original_bytes": "33ed10ae00c40002",
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace PC080SN scroll write with direct Genesis VDP scroll sync from live workram."
+    }
+  ]
 }

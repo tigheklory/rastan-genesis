@@ -14,6 +14,8 @@
     .globl genesistan_sound_read_status
     .globl genesistan_hook_text_writer_3bb48
     .globl genesistan_hook_text_writer_3bb48_impl
+    .globl genesistan_render_sprites_vdp
+    .globl genesistan_render_sprites_vdp_bridge
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 
@@ -45,6 +47,16 @@ genesistan_hook_text_writer_3bb48:
     move.l %a5,-(%sp)
     jsr genesistan_hook_text_writer_3bb48_impl
     movea.l (%sp)+,%a5
+    rts
+
+/*
+ * Sprite replacement bridge:
+ * keep full arcade register state stable around the C SAT renderer.
+ */
+genesistan_render_sprites_vdp_bridge:
+    movem.l %d0-%d7/%a0-%a6,-(%sp)
+    jsr genesistan_render_sprites_vdp
+    movem.l (%sp)+,%d0-%d7/%a0-%a6
     rts
 
 genesistan_run_original_startup_common:

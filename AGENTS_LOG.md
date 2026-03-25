@@ -15163,3 +15163,1147 @@ Do NOT improvise outside the directive.
 
 Combined with success definition:
 - A crash “fixed” via bypass is NOT considered fixed
+## [Andy — Architecture Audit (Post-Rule Update)]
+```text
+DATE: 2026-03-24
+SCOPE: Re-audit of all 77 opcode_replace entries under updated project rules.
+RULES: READ ONLY. No code changes.
+
+RULE UPDATE SUMMARY:
+  Project is no longer in scaffolding phase.
+  Goal: eliminate C-window, D-window, and ALL shadow RAM dependencies.
+  A patch is ONLY correct if it moves toward direct Genesis VDP rendering.
+  NOP/RTS/equal-length-workaround are NOT acceptable as final state.
+
+NEW CLASSIFICATION MODEL:
+  A1 = FINAL:    direct VDP, no shadow, proper hook/redirect
+  A2 = NOT FINAL: shadow RAM or mirrored buffers in the data path
+  B  = BYPASS:   NOP/RTS/disabled, crash avoidance without replacement
+  C  = INVALID:  removes required behavior or hides real dependencies
+
+════════════════════════════════════════════════════════════════════
+PART 1 — PATCH RECLASSIFICATION (all 77 entries)
+════════════════════════════════════════════════════════════════════
+
+=== PATCH_RECLASSIFICATION ===
+
+- arcade_addr: 0x000514
+- old_classification: A (valid suppression)
+- new_classification: B
+- reason: NOP on early init hardware write. No VDP replacement. Suppression only.
+
+- arcade_addr: 0x000518
+- old_classification: A (valid suppression)
+- new_classification: B
+- reason: Same — NOP without VDP replacement.
+
+- arcade_addr: 0x00052A
+- old_classification: A (startup probe bypass)
+- new_classification: B
+- reason: RTS on startup hardware probe. Crash avoidance. No VDP implementation.
+
+- arcade_addr: 0x0004AA
+- old_classification: A
+- new_classification: B
+- reason: NOP on early startup C-window write. No VDP replacement.
+
+- arcade_addr: 0x0004AC
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x00068C
+- old_classification: A
+- new_classification: B
+- reason: NOP on startup C-window write. No VDP replacement.
+
+- arcade_addr: 0x0005C0
+- old_classification: B (acceptable)
+- new_classification: C
+- reason: Kills a live JSR callsite to 0x03BB48, which now has a working VDP hook.
+  Suppressing this callsite removes required text rendering from the startup_common
+  path. The hook exists; this callsite SHOULD call it.
+
+- arcade_addr: 0x03A294
+- old_classification: B (crash avoidance)
+- new_classification: B
+- reason: RTS on swap helper A. Crash avoidance only. Root cause (FF40CC pointer
+  family) unresolved. No rendering impact directly, but control-flow bypass.
+
+- arcade_addr: 0x03A2B2
+- old_classification: B
+- new_classification: B
+- reason: Same — RTS on swap helper B.
+
+- arcade_addr: 0x03A350
+- old_classification: A
+- new_classification: B
+- reason: NOP on C-window write in frontend. Covered by blanket rewrite to
+  cwindow_null, but cwindow_null itself is a bypass sink, not a VDP replacement.
+  No VDP nametable write provided for this cell.
+
+- arcade_addr: 0x03A552
+- old_classification: A (probe NOP)
+- new_classification: B
+- reason: NOP on CMP against cwindow_null. Valid that comparison was meaningless,
+  but the surrounding conditional path and its purpose are not confirmed as fully dead.
+
+- arcade_addr: 0x03A55C
+- old_classification: A
+- new_classification: B
+- reason: NOP on C-window write. No VDP replacement.
+
+- arcade_addr: 0x03A6B2
+- old_classification: B (callsite NOP)
+- new_classification: B
+- reason: NOP on callsite to 0x055DDC. Helper function never disassembled; may
+  configure workram state needed by rendering. Hidden dependency.
+
+- arcade_addr: 0x03A6FE
+- old_classification: A
+- new_classification: B
+- reason: NOP on conditional C-window write. No VDP nametable write for these cells.
+
+- arcade_addr: 0x03A708
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x03A72A
+- old_classification: A
+- new_classification: B
+- reason: NOP on C-window write. No VDP replacement.
+
+- arcade_addr: 0x03A818
+- old_classification: A (GOOD — real replacement)
+- new_classification: A1
+- reason: JSR to genesistan_hook_frontend_sprite_sat_refresh. Hook reads live arcade
+  workram (A5+0x11B2, A5+0x0170) and writes Genesis VDP SAT. Direct VDP path,
+  no shadow intermediary. Proper hook redirect.
+
+- arcade_addr: 0x03A854
+- old_classification: A (BSR redirect)
+- new_classification: A1
+- reason: BSR to 0x3B902 which contains JSR to SAT refresh hook. Destination is
+  correct direct VDP path. Equal-length constraint forced BSR form (4 bytes) instead
+  of absolute JSR (6 bytes). Functionally correct but shift-table JSR would be
+  architecturally cleaner.
+
+- arcade_addr: 0x03A860
+- old_classification: B
+- new_classification: B
+- reason: NOP on second callsite to 0x055DDC. Same as 0x03A6B2.
+
+- arcade_addr: 0x03AAEA
+- old_classification: A
+- new_classification: B
+- reason: NOP on C-window write in attract loop. No VDP replacement.
+
+- arcade_addr: 0x03ABBA
+- old_classification: A (scroll suppression)
+- new_classification: B
+- reason: NOP on CLR.L to C20000 (scroll Y register). No VDP scroll write provided.
+  sync_arcade_scroll_to_vdp() reads a shadow that is never populated. Scroll frozen.
+
+- arcade_addr: 0x03ABC0
+- old_classification: A
+- new_classification: B
+- reason: Same — NOP on CLR.L to C40000 (scroll X register).
+
+- arcade_addr: 0x03AC54
+- old_classification: A (BRA bypass)
+- new_classification: B
+- reason: BRA past CMP probe. The probe target (cwindow_null) is a bypass sink.
+  Path suppressed without confirming it is truly dead.
+
+- arcade_addr: 0x03AD3C
+- old_classification: A
+- new_classification: B
+- reason: NOP on C-window write loop in startup_common. Blanket rewrite also covers
+  this range, but cwindow_null is a bypass not a VDP replacement. Doubly bypassed.
+
+- arcade_addr: 0x03AD44
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x03ADFE
+- old_classification: C (killed working shadow write)
+- new_classification: C
+- reason: NOP killed working write to genesistan_shadow_reg_c50000. Even under new
+  rules where shadow RAM must be eliminated, destroying the shadow write before
+  providing a direct VDP replacement is invalid. No VDP path for C50000 control.
+
+- arcade_addr: 0x03AE16
+- old_classification: C
+- new_classification: C
+- reason: Same — C50000 shadow write killed.
+
+- arcade_addr: 0x03AE86
+- old_classification: C
+- new_classification: C
+- reason: Same.
+
+- arcade_addr: 0x03B098
+- old_classification: A
+- new_classification: B
+- reason: NOP on CLR.L to shadow_c20000 in title path. Scroll still not live.
+
+- arcade_addr: 0x03B09E
+- old_classification: A
+- new_classification: B
+- reason: Same — shadow_c40000.
+
+- arcade_addr: 0x03B1CC
+- old_classification: A
+- new_classification: B
+- reason: NOP on C-window write in title_init_block. No VDP replacement.
+
+- arcade_addr: 0x03B47A
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x03B47E
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x03B49A
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x03B572
+- old_classification: A
+- new_classification: B
+- reason: NOP on C-window write in title_init_block.
+
+- arcade_addr: 0x03B5F6
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x03B902
+- old_classification: A (GOOD)
+- new_classification: A1
+- reason: HOOK_REDIRECT to genesistan_hook_frontend_sprite_sat_refresh. Direct VDP
+  SAT write. No shadow intermediary for the sprite data path.
+
+- arcade_addr: 0x03B926
+- old_classification: A (GOOD)
+- new_classification: A1
+- reason: Same.
+
+- arcade_addr: 0x03BB48
+- old_classification: A (GOOD)
+- new_classification: A1
+- reason: HOOK_REDIRECT to VDP text writer. Hook writes VDP nametable entries
+  directly via tile_cache_get + VDP_setTileMapXY.
+  CAVEAT: Build 161 added shadow backing writes (genesistan_arcade_workram_words +
+  0xC800 offset, which is OOB). Those backing writes must be removed — they are
+  vestigial, OOB, and shadow-dependent. The A1 classification applies to the VDP
+  write path; the shadow backing is a defect to eliminate.
+
+- arcade_addr: 0x03BB66
+- old_classification: A (dead code)
+- new_classification: B
+- reason: NOP on inner text writer write site. Although dead code since 0x03BB48
+  hook fires RTS before reaching this site, the NOP's existence masks the fact
+  that the inner write path was never properly replaced. Classify B (bypass in
+  place) not A1.
+
+- arcade_addr: 0x03BB68
+- old_classification: A (dead code)
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x03BB74
+- old_classification: A (dead code)
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x03BB76
+- old_classification: A (dead code)
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x03C42A
+- old_classification: B
+- new_classification: C
+- reason: NOP on inner write site of function 0x03C3FE (secondary text writer).
+  Function entry is NOT hooked — function runs, computes pointers, then writes
+  nothing. No VDP replacement exists for this path. Required behavior removed.
+
+- arcade_addr: 0x03C446
+- old_classification: B
+- new_classification: C
+- reason: Same — inner write site of 0x03C3FE without entry hook.
+
+- arcade_addr: 0x03C44A
+- old_classification: B
+- new_classification: C
+- reason: Same.
+
+- arcade_addr: 0x03D04C
+- old_classification: A
+- new_classification: B
+- reason: NOP on C-window write in gameplay path. No VDP replacement.
+
+- arcade_addr: 0x041DAE
+- old_classification: A (retired writer)
+- new_classification: B
+- reason: RTS at entry of D-window sprite writer function. Replacement (C renderer
+  reading live workram) is logically correct but the patch itself is a bypass.
+  Proper architecture: JSR to genesistan_hook_frontend_sprite_sat_refresh at entry
+  (with shift-table if needed), not a bare RTS that silently skips the function.
+
+- arcade_addr: 0x041F5E
+- old_classification: A
+- new_classification: B
+- reason: Same — RTS on D-window sprite writer entry.
+
+- arcade_addr: 0x045DFA
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x0503EC
+- old_classification: A
+- new_classification: B
+- reason: NOP on staging write. No VDP replacement provided for this path.
+
+- arcade_addr: 0x0503F6
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x050400
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x05040C
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x050416
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x050420
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x052858
+- old_classification: A (RTS on base-load)
+- new_classification: B
+- reason: RTS on MOVEA.L #C08000,A0 — kills function that sets up C-window base
+  pointer. No VDP replacement. Loop body that follows is also not rendering.
+
+- arcade_addr: 0x052974
+- old_classification: A
+- new_classification: B
+- reason: Same.
+
+- arcade_addr: 0x0556F2
+- old_classification: A (acceptable)
+- new_classification: B
+- reason: NOP on ADDI to cwindow_null + A5 workram write. The workram write at
+  A5@(0xA4) is being silenced as collateral damage. Impact unconfirmed.
+
+- arcade_addr: 0x055818
+- old_classification: A
+- new_classification: B
+- reason: NOP on workram write + C-window base adjust. Collateral workram write loss.
+
+- arcade_addr: 0x0558C6
+- old_classification: A (acceptable)
+- new_classification: B
+- reason: NOP on D-window clear loop + workram zero. D-window covered by rewrite
+  rule but workram clear (A5@(0xCA)) may be a rendering gate silenced as collateral.
+
+- arcade_addr: 0x0558E0
+- old_classification: A (acceptable)
+- new_classification: B
+- reason: Large 34-byte NOP includes workram init path. Unknown impact on rendering
+  prerequisites.
+
+- arcade_addr: 0x055904
+- old_classification: A (acceptable — hook works around)
+- new_classification: B
+- reason: NOP on tilemap row-pointer setup. Build 140 hook reads ROM directly and
+  works around this, but the NOP hides what would be a valid data path. Should be
+  replaced with proper hook or confirmed dead under new architecture.
+
+- arcade_addr: 0x055968
+- old_classification: A (GOOD)
+- new_classification: A1
+- reason: HOOK_REDIRECT to genesistan_hook_tilemap_plane_a. Hook reads tile codes
+  from Genesis ROM + arcade workram (frame counter), calls tile_cache_get for VRAM
+  DMA, writes VDP nametable entries. Direct VDP path. No shadow intermediary.
+
+- arcade_addr: 0x055990
+- old_classification: A (GOOD)
+- new_classification: A1
+- reason: Same — HOOK_REDIRECT to genesistan_hook_tilemap_plane_b. Direct VDP path.
+
+- arcade_addr: 0x055AB4
+- old_classification: C (killed scroll write)
+- new_classification: C
+- reason: NOP on MOVE.W A5@(0x10EE) → shadow_c20000. Killed scroll Y source write.
+  No VDP scroll replacement. sync_arcade_scroll_to_vdp() reads shadow that is
+  always zero. Scroll permanently frozen. Even under new rules where shadow is
+  wrong architecture, the scroll WRITE must be replaced before the shadow is
+  removed. Removing the write without the replacement is invalid.
+
+- arcade_addr: 0x055ABC
+- old_classification: C
+- new_classification: C
+- reason: Same — NOP on scroll Y write B.
+
+- arcade_addr: 0x055AC4
+- old_classification: C
+- new_classification: C
+- reason: NOP on MOVE.W A5@(0x10B0) → shadow_c20000+2 (X scroll). Killed.
+
+- arcade_addr: 0x055ACC
+- old_classification: C
+- new_classification: C
+- reason: Same — scroll X write B.
+
+- arcade_addr: 0x055B84
+- old_classification: A
+- new_classification: B
+- reason: NOP on C-window base adjust. No VDP replacement.
+
+- arcade_addr: 0x055E54
+- old_classification: A
+- new_classification: B
+- reason: NOP on C-window ptr store. No VDP replacement.
+
+- arcade_addr: 0x0560DA
+- old_classification: A (acceptable, low risk)
+- new_classification: B
+- reason: 58-byte NOP. Contains A5@(0x10A0) load, CMPA against WRAM symbol,
+  conditional BSR chain. Impact on rendering prerequisites unconfirmed. Treated as
+  B (bypass) until the block is disassembled.
+
+- arcade_addr: 0x0561C0
+- old_classification: A
+- new_classification: B
+- reason: NOP on two C-window ptr loads. No VDP replacement.
+
+- arcade_addr: 0x056032
+- old_classification: A
+- new_classification: B
+- reason: NOP on MOVEA.L (shadow_5074) load. No VDP replacement.
+
+- arcade_addr: 0x05605C
+- old_classification: A
+- new_classification: B
+- reason: NOP on MOVEA.L (shadow_4874) load. No VDP replacement.
+
+- arcade_addr: 0x0575CE
+- old_classification: A
+- new_classification: B
+- reason: RTS on MOVEA.L #C08000,A0. Same as 0x052858/0x052974.
+
+════════════════════════════════════════════════════════════════════
+PART 2 — SHADOW DEPENDENCY DETECTION
+════════════════════════════════════════════════════════════════════
+
+=== SHADOW_DEPENDENCIES ===
+
+-- C-window null sink (genesistan_cwindow_null) dependencies --
+
+The window_rewrite_rules route all C-window (0xC00000-0xCFFFFF) writes in
+patched ranges to genesistan_cwindow_null. This is a shadow sink, not a VDP
+write. ALL patches in ranges covered by blanket C-window rules are implicitly
+shadow-dependent — they write to a 2-word null buffer instead of to VDP.
+This affects every C-window write that is NOT replaced by a HOOK_REDIRECT.
+
+Affected patches that produce C-window writes reaching cwindow_null:
+(All the NOPs in this list ALSO reach cwindow_null via the blanket rule
+if the NOP is removed; the NOP is currently masking this dependency.)
+
+- arcade_addr: 0x03AD3C, 0x03AD44
+- type: write
+- system: C-window (cwindow_null sink)
+- why_not_allowed: Route to null sink, not VDP nametable. Blanket rule
+  is a bypass architecture, not a replacement.
+
+- arcade_addr: (all title_init_block NOPs: 0x03B1CC through 0x03B5F6,
+  0x03A6FE, 0x03A708, 0x03A72A, 0x03AAEA, 0x03D04C, 0x03A350, 0x03A55C,
+  0x055B84, 0x055E54, 0x0561C0, 0x0558C6, 0x0558E0, 0x055904, 0x05577E,
+  0x0556F2, 0x055818, 0x0503EC through 0x050420)
+- type: write (suppressed by NOP; would write to cwindow_null if NOP removed)
+- system: C-window
+- why_not_allowed: cwindow_null is a bypass sink. None of these become
+  VDP nametable writes.
+
+-- Scroll register shadows --
+
+- arcade_addr: 0x055AB4, 0x055ABC
+- type: write (NOP'd — shadow write path destroyed)
+- system: C-window scroll (genesistan_shadow_c20000_words)
+- why_not_allowed: Shadow must be eliminated; but destroying the write
+  before providing a direct VDP scroll write is invalid. Currently: both
+  the shadow write AND the shadow-to-VDP path are broken.
+
+- arcade_addr: 0x055AC4, 0x055ACC
+- type: write (NOP'd)
+- system: C-window scroll (genesistan_shadow_c40000_words)
+- why_not_allowed: Same as above.
+
+- arcade_addr: 0x03ABBA, 0x03ABC0, 0x03B098, 0x03B09E
+- type: write (NOP'd — scroll clear sites)
+- system: C-window scroll shadows
+- why_not_allowed: These clear sites should eventually become direct
+  VDP_setHScroll / VDP_setVScroll calls. Currently bypassed with no replacement.
+
+-- C50000 register shadow --
+
+- arcade_addr: 0x03ADFE, 0x03AE16, 0x03AE86
+- type: write (NOP'd — shadow write destroyed)
+- system: genesistan_shadow_reg_c50000
+- why_not_allowed: Shadow write was working; destroyed without replacement.
+  Even if shadow must be removed long-term, the write must be replaced
+  with direct hardware behavior mapping BEFORE the shadow is removed.
+
+-- D-window shadow (genesistan_shadow_d00000_words) --
+
+The window_rewrite_rules for game_engine_040000 / game_engine_059b1a route
+all D-window (0xD00000) writes to genesistan_shadow_d00000_words.
+The HOOK_REDIRECT patches at 0x03A818/0x03B902/0x03B926 now bypass this shadow
+and read from live arcade workram (A5+0x11B2, A5+0x0170) instead.
+The shadow buffer genesistan_shadow_d00000_words is therefore:
+  - still being written to by game code in game_engine ranges (via blanket rule)
+  - NO LONGER READ by the active sprite rendering hooks
+  - becoming stale orphaned data
+
+Under new rules: genesistan_shadow_d00000_words itself must be eliminated.
+All game_engine range D-window writes should eventually become direct VDP
+sprite table writes or be confirmed dead.
+
+The RTS patches at 0x041DAE/0x041F5E/0x045DFA suppressed D-window writers
+that wrote to the shadow. The shadow is being populated elsewhere (by blanket
+rule) but not consumed. This is a dependency that must be cleaned up.
+
+-- Palette shadow --
+
+- arcade_addr: (not in opcode_replace spec; captured in C code)
+- type: read (load_arcade_palette / refresh_frontend_sprite_palettes)
+- system: genesistan_palette_clcs (CLCS capture buffer)
+- why_not_allowed: Palette CLCS buffer is a shadow. Final architecture
+  should DMA directly from ROM table (genesistan_palette_rom_table already
+  exists) or compute CRAM writes inline.
+
+════════════════════════════════════════════════════════════════════
+PART 3 — NOP/BYPASS VALIDATION
+════════════════════════════════════════════════════════════════════
+
+=== BYPASS_PATCHES ===
+
+-- RTS patches (9) --
+
+- arcade_addr: 0x00052A
+- classification: B
+- why_invalid_now: Startup probe bypassed. Acceptable for platform safety (no
+  arcade hardware present) but not a VDP replacement. Must verify probe function
+  is fully dead before marking final.
+
+- arcade_addr: 0x03A294
+- classification: B
+- why_invalid_now: RTS on swap helper A. Root cause of FF40CC pointer unresolved.
+  Control flow in attract/transition cluster partially broken.
+
+- arcade_addr: 0x03A2B2
+- classification: B
+- why_invalid_now: Same.
+
+- arcade_addr: 0x052858
+- classification: B
+- why_invalid_now: RTS kills C-window base-load setup function entirely. No VDP
+  replacement for the rendering operations this setup enabled.
+
+- arcade_addr: 0x052974
+- classification: B
+- why_invalid_now: Same.
+
+- arcade_addr: 0x0575CE
+- classification: B
+- why_invalid_now: Same.
+
+- arcade_addr: 0x041F5E
+- classification: B
+- why_invalid_now: RTS on D-window sprite writer. Replacement (SAT hook at separate
+  callsite) is correct, but this patch is a bypass not a redirect. Proper form: JSR
+  to genesistan_hook_frontend_sprite_sat_refresh + RTS (or shift-table JSR).
+
+- arcade_addr: 0x041DAE
+- classification: B
+- why_invalid_now: Same.
+
+- arcade_addr: 0x045DFA
+- classification: B
+- why_invalid_now: Same.
+
+-- BRA patch (1) --
+
+- arcade_addr: 0x03AC54
+- classification: B
+- why_invalid_now: BRA past CMP probe. Probe target is cwindow_null (bypass sink).
+  Acceptable as stable but not a VDP replacement. Must confirm path beyond probe is
+  safe before marking final.
+
+-- NOP patches classified C (11) --
+
+- arcade_addr: 0x0005C0
+- classification: C
+- why_invalid_now: Kills JSR callsite to 0x03BB48. Hook at 0x03BB48 now exists and
+  produces VDP nametable output. This NOP silences a live text rendering call.
+  The hook should be receiving this callsite's arguments.
+
+- arcade_addr: 0x03ADFE
+- classification: C
+- why_invalid_now: NOP fired over correctly-remapped C50000 shadow write (ROM form).
+  Destroyed working shadow. No VDP replacement exists for C50000 control behavior.
+
+- arcade_addr: 0x03AE16
+- classification: C
+- why_invalid_now: Same — C50000 shadow write #2.
+
+- arcade_addr: 0x03AE86
+- classification: C
+- why_invalid_now: Same — C50000 shadow write #3.
+
+- arcade_addr: 0x055AB4
+- classification: C
+- why_invalid_now: Killed scroll Y source write (A5@(0x10EE) → shadow_c20000).
+  No VDP scroll write replacement. Scroll frozen. Window rewrite rule also does
+  not correctly route C20000 to scroll shadow in game_engine range.
+
+- arcade_addr: 0x055ABC
+- classification: C
+- why_invalid_now: Killed scroll Y write B. Same as above.
+
+- arcade_addr: 0x055AC4
+- classification: C
+- why_invalid_now: Killed scroll X source write. No VDP replacement.
+
+- arcade_addr: 0x055ACC
+- classification: C
+- why_invalid_now: Killed scroll X write B.
+
+- arcade_addr: 0x03C42A
+- classification: C
+- why_invalid_now: Inner write site NOP in 0x03C3FE (secondary text writer) with
+  no entry-level hook. Function body runs; writes nothing; no VDP output.
+  Required behavior removed without replacement.
+
+- arcade_addr: 0x03C446
+- classification: C
+- why_invalid_now: Same.
+
+- arcade_addr: 0x03C44A
+- classification: C
+- why_invalid_now: Same.
+
+-- NOP patches classified B (49) --
+
+(All remaining NOP-only entries: 0x0004AA, 0x0004AC, 0x000514, 0x000518,
+ 0x00068C, 0x03A350, 0x03A552, 0x03A55C, 0x03A6B2, 0x03A6FE, 0x03A708,
+ 0x03A72A, 0x03A860, 0x03AAEA, 0x03ABBA, 0x03ABC0, 0x03AD3C, 0x03AD44,
+ 0x03B098, 0x03B09E, 0x03B1CC, 0x03B47A, 0x03B47E, 0x03B49A, 0x03B572,
+ 0x03B5F6, 0x03BB66, 0x03BB68, 0x03BB74, 0x03BB76, 0x03D04C,
+ 0x0503EC, 0x0503F6, 0x050400, 0x05040C, 0x050416, 0x050420,
+ 0x0556F2, 0x055818, 0x055904, 0x055B84, 0x055E54, 0x0558C6,
+ 0x0558E0, 0x0560DA, 0x0561C0, 0x056032, 0x05605C, 0x05577E)
+
+All B for the same reason: suppress C-window, D-window, or workram writes
+without providing a direct VDP replacement. Acceptable in scaffolding phase;
+not acceptable as final architecture.
+
+════════════════════════════════════════════════════════════════════
+PART 4 — NARROW / EQUAL-LENGTH PATCHES
+════════════════════════════════════════════════════════════════════
+
+=== ARCH_VIOLATIONS ===
+
+GLOBAL VIOLATION: Shift table exists in patcher infrastructure (Build 108)
+but has zero entries. ALL 77 patches are equal-length substitutions.
+This means any patch that needed more bytes than the original instruction
+has either been squeezed into the same size via clever encoding or has been
+deferred/avoided. This is a systemic architectural constraint that should be
+lifted.
+
+- arcade_addr: 0x03A854
+- issue_type: narrow_patch / redirect_chain
+- why_wrong: Original instruction was 4 bytes (BSR rel16: 61007708).
+  Needed to call genesistan_hook_frontend_sprite_sat_refresh (absolute address).
+  A 6-byte JSR (4EB9 + 4 bytes) would not fit. Used BSR 0x3B902 (4 bytes)
+  which then contains the JSR to the hook. Two-hop call chain adds latency and
+  creates an indirect dependency on 0x3B902 always routing to the hook.
+- correct_approach: Use shift-table to insert 2 extra bytes, enabling a direct
+  6-byte JSR to genesistan_hook_frontend_sprite_sat_refresh in place of the BSR.
+
+- arcade_addr: 0x041F5E, 0x041DAE, 0x045DFA
+- issue_type: narrow_patch / local_logic
+- why_wrong: First 2 bytes of each D-window sprite writer replaced with RTS (4E75).
+  Remaining function body (100s of bytes) stays in ROM, unreachable.
+  Replacement behavior (SAT refresh) is at a completely different call site
+  (0x03A818), not co-located. The patch-site and the replacement are not
+  connected by the same call mechanism.
+- correct_approach: Replace entry with JSR genesistan_hook_frontend_sprite_sat_refresh
+  (6 bytes, shift table for +4 bytes). Alternatively, confirm these functions are
+  never called and remove them from spec entirely.
+
+- arcade_addr: 0x03BB48
+- issue_type: narrow_patch
+- why_wrong: Original entry bytes were exactly 8 bytes (32000240007fe548).
+  Replacement is 8 bytes (4eb900201d444e75 = JSR hook_bridge + RTS). This was
+  a lucky fit — the hook call happened to be exactly the same size as the original
+  entry sequence. If the hook address changes or the bridge moves, the replacement
+  bytes must be manually updated.
+- correct_approach: Use shift-table entry to make this robust to symbol address
+  changes. Current equal-length approach requires regenerating spec bytes when
+  symbol addresses shift.
+
+- arcade_addr: 0x03A818
+- issue_type: narrow_patch
+- why_wrong: 6-byte JSR (4EB9 + 4 bytes) replaced original 6-byte JSR. Fits
+  exactly but leaves no RTS trailing. Hook must return to the caller cleanly
+  WITHOUT an RTS in the patch site. If hook changes calling convention, this breaks.
+- correct_approach: Shift-table ensures correct byte budget. A 6+2 = 8-byte
+  replacement (JSR + RTS) would be safer and matches the pattern used at 0x03B902
+  and 0x03B926.
+
+- arcade_addr: (all 77 patches)
+- issue_type: equal-length global constraint
+- why_wrong: Shift table has zero entries. The BUILD constraint that forces equal
+  length is a patcher infrastructure gap, not a hardware constraint. Every patch
+  that needed an extra 2-6 bytes has either been squeezed, split across two
+  patches, or deferred.
+- correct_approach: The shift-table infrastructure from Build 108 must be activated.
+  Commit the first shift-table entries for the highest-priority replacements
+  (scroll, secondary text writer, sprite writer entries).
+
+════════════════════════════════════════════════════════════════════
+PART 5 — TRUE COMPLETION STATUS
+════════════════════════════════════════════════════════════════════
+
+=== TRUE_COMPLETION ===
+
+- fully_replaced_systems:
+  NONE — no system has zero shadow/bypass dependencies end-to-end.
+  The tilemap and sprite SAT systems are closest to complete but still
+  depend on the arcade workram (which is the live game state, acceptable)
+  and the legacy blanket cwindow_null architecture (which is a bypass).
+
+- partially_replaced_systems:
+  TILEMAP (C-window):
+    Entry hooks exist (0x055968/0x055990 → A1). These correctly read ROM
+    and write VDP nametable. But dozens of surrounding NOPs remain for C-window
+    writes in other ranges (title_init_block, frontend_core, game_engine).
+    The complete tilemap system is not replaced — only the primary write
+    functions for the frontend tick path.
+  SPRITES (D-window / SAT):
+    SAT refresh hook exists and reads live workram (A1). D-window writers
+    retired (B). But the RTS method leaves function bodies in ROM and the
+    SAT hook is called from a subset of callsites, not all.
+  TEXT (C-window nametable):
+    0x03BB48 hook exists (A1) but has shadow backing defect. Startup_common
+    callsite NOP'd (C). Secondary writer 0x03C3FE not hooked (C).
+
+- systems_still_shadow_based:
+  SCROLL:
+    scroll writes NOP'd (C). sync_arcade_scroll_to_vdp() reads scroll shadows
+    that are never populated. Scroll permanently frozen at (0,0).
+    VDP scroll write never implemented.
+  C50000 CONTROL:
+    Shadow write NOP'd (C). No direct VDP or Genesis replacement for C50000
+    (PC080SN control register). Behavior unknown without shadow.
+  D-WINDOW (general gameplay):
+    game_engine_040000 / game_engine_059b1a blanket rules write all D-window
+    accesses to genesistan_shadow_d00000_words (A2 shadow intermediary).
+    This shadow is populated but no longer consumed by the active sprite hook.
+    Orphaned shadow accumulating stale data.
+
+- systems_blocked_by_bypass:
+  SCROLL: blocked by 4 C-class NOPs (0x055AB4/BC/C4/CC) + wrong window_rewrite_rule
+    mapping for C20000/C40000 in game_engine_040000.
+  SECONDARY TEXT WRITER: blocked by inner write NOPs (0x03C42A/46/4A) without
+    entry hook. Function runs but produces nothing.
+  STARTUP_COMMON TEXT: blocked by callsite NOP (0x0005C0).
+  TRANSITION CLUSTER: blocked by RTS on swap helpers (0x03A294/0x03A2B2);
+    root cause unresolved, attract-mode progression uncertain.
+
+════════════════════════════════════════════════════════════════════
+PART 6 — ACTION PLAN
+════════════════════════════════════════════════════════════════════
+
+=== REQUIRED_NEXT_ACTIONS ===
+
+- must_replace_immediately: (CLASS C patches — causing active harm or
+  blocking required behavior)
+
+  1. SCROLL (0x055AB4/BC/C4/CC — 4 C patches):
+     Action: implement direct VDP scroll path.
+     Option A: modify sync_arcade_scroll_to_vdp() to read arcade workram
+       indices A5@(0x10EE)/A5@(0x10EC)/A5@(0x10B0)/A5@(0x10AE) directly
+       (workram is live; no shadow needed). Then REVERT all 4 NOP entries.
+     Option B: shift-table replace scroll write sites with inline VDP_setHScroll
+       / VDP_setVScroll calls. Eliminates shadow_c20000/c40000 entirely.
+     ALSO: fix game_engine_040000 window_rewrite_rule for C20000/C40000
+       to NOT route to cwindow_null.
+
+  2. C50000 (0x03ADFE/0x03AE16/0x03AE86 — 3 C patches):
+     Action: REVERT all three opcode_replace entries. Window_rewrite_rule
+       will restore writes to genesistan_shadow_reg_c50000. Then determine
+       what C50000 controls (PC080SN attribute/control) and decide whether
+       a Genesis mapping exists.
+
+  3. SECONDARY TEXT WRITER (0x03C42A/0x03C446/0x03C44A — 3 C patches):
+     Action: Add HOOK_REDIRECT at 0x03C3FE entry. Implement C hook mirroring
+       the 0x03BB48 hook (translate C-window cell pointer → VDP nametable
+       (x,y) + tile_cache_get). Once entry hook provides VDP output, inner
+       NOPs are dead code (acceptable to leave or clean up).
+
+  4. STARTUP_COMMON CALLSITE (0x0005C0 — 1 C patch):
+     Action: REVERT. The JSR to 0x03BB48 hook should be live. Hook now
+       exists and produces correct VDP output from this callsite's arguments.
+
+- must_remove_bypass: (highest-impact B patches to replace next)
+
+  Priority order:
+  A. 0x041DAE / 0x041F5E / 0x045DFA — RTS on D-window sprite writers.
+     Replace with shift-table JSR to genesistan_hook_frontend_sprite_sat_refresh.
+     This makes the hook explicit at each entry site rather than relying on
+     the callsite re-routing through 0x03A818.
+
+  B. 0x052858 / 0x052974 / 0x0575CE — RTS on C-window base-load functions.
+     Requires determining what these functions do beyond loading the base address.
+     If the loop bodies are also C-window writes, shift-table replace with VDP calls.
+
+  C. 0x03A294 / 0x03A2B2 — RTS on transition swap helpers.
+     Requires disassembly to determine correct workram buffer state.
+     Fix root cause of FF40CC corruption; re-enable cluster if needed.
+
+  D. 0x03A6B2 / 0x03A860 — NOP on 0x055DDC callsites.
+     Disassemble 0x055DDC. If C-window writes: replace with hook. If workram
+     state: restore and verify.
+
+- highest_priority_real_replacements:
+
+  1. SCROLL — scroll is a core gameplay mechanic. Every scene requires
+     correct BG scroll. Zero lines of VDP scroll code exist today.
+
+  2. SECONDARY TEXT WRITER (0x03C3FE) — score, stage label, bonus text all
+     route through this path. Dark text = unplayable game.
+
+  3. SHIFT TABLE ACTIVATION — the patcher has the infrastructure. Committing
+     the first shift-table entries unblocks all equal-length-constrained
+     replacements: BSR→JSR at 0x03A854, full JSR at D-window writer entries,
+     inline scroll writes.
+
+  4. genesistan_shadow_d00000_words ELIMINATION — orphaned shadow buffer
+     accumulating stale D-window writes. Once SAT hook is confirmed sufficient
+     for all sprite paths, remove the game_engine_040000 D-window window_rewrite
+     rule and the shadow buffer declaration.
+
+════════════════════════════════════════════════════════════════════
+PART 7 — CLASSIFICATION COUNTS
+════════════════════════════════════════════════════════════════════
+
+Total opcode_replace entries: 77
+
+  A1 (FINAL — direct VDP):            7   ( 9%)
+    0x055968, 0x055990 — tilemap hooks
+    0x03A818, 0x03B902, 0x03B926, 0x03A854 — SAT refresh / BSR redirect
+    0x03BB48 — text writer hook (caveat: shadow backing must be removed)
+
+  A2 (NOT FINAL — shadow dependent):   0   ( 0%)
+    No patches qualify as A2; all "working" patches are either A1 or B.
+
+  B  (BYPASS — NOP/RTS/disable):      59   (77%)
+    9 RTS patches, 1 BRA patch, 49 NOP patches
+
+  C  (INVALID — removes required behavior): 11   (14%)
+    0x0005C0 — kills callsite to working hook
+    0x03ADFE, 0x03AE16, 0x03AE86 — C50000 shadow write destroyed
+    0x055AB4, 0x055ABC, 0x055AC4, 0x055ACC — scroll writes destroyed
+    0x03C42A, 0x03C446, 0x03C44A — secondary text writer writes killed
+
+Shadow-dependent patches: 7 (NOP'd shadow write sites) + 8 (shadow read dependencies via C code) = ~15 total in the system
+Bypass patches: 59 (B + BRA)
+Architectural violations (equal-length constraint): 77 (global) / 5 notable narrow-fit patches
+
+TOP 3 BLOCKERS:
+
+  1. SCROLL SYSTEM — 4 C-class NOPs + wrong window_rewrite_rule mapping.
+     No VDP scroll implementation. Gameplay scroll behavior is zero.
+     Blocking: all scroll during frontend, attract, and gameplay.
+
+  2. SECONDARY TEXT WRITER 0x03C3FE — inner writes NOP'd, no entry hook.
+     Score, stage, bonus text all dark.
+     Blocking: game text visibility beyond what 0x03BB48 covers.
+
+  3. SHIFT TABLE NOT ACTIVATED — zero shift-table entries in 19 builds.
+     Forces all replacements to equal-length constraint.
+     Blocking: direct JSR replacements for scroll (inline), D-window sprite
+     entry re-hooks, and the 0x03A854 BSR→JSR upgrade.
+```
+
+## [Cody — Build 171 — PC090OJ Sprite Replacement]
+```text
+Date/time: 2026-03-24 19:10:00 EDT
+Scope: Real PC090OJ -> Genesis VDP SAT replacement using direct shift-table callsite redirection
+
+sprite system status:
+- genesistan_render_sprites_vdp() implemented as the direct SAT renderer.
+- Renderer reads sprite descriptors from workram blocks (A5+0x11B2, A5+0x0170), writes SAT via VDP_setSpriteFull/VDP_updateSprites.
+- Renderer no longer depends on D-window shadow RAM or genesistan_shadow_reg_d01bfe / genesistan_shadow_reg_380000.
+
+callsites replaced (direct redirection):
+- 12 active frontend sprite callsites moved to direct JSR abs.l genesistan_render_sprites_vdp_bridge via shift_replacements:
+  0x03A20E, 0x03A264, 0x03A640, 0x03A6C4, 0x03A818, 0x03A820,
+  0x03A854, 0x03A8E0, 0x03A9C6, 0x03A9D4, 0x03B8E8, 0x03B8F0.
+
+blocked replacements:
+- none in this pass.
+
+tooling update:
+- postpatch_startup_rom.py updated so opcode_replace checks are applied at shift-adjusted ROM PCs when shift_replacements are active.
+
+validation:
+- Build PASS: dist/Rastan_171.bin
+- shift_table_patcher applied 12 replacements.
+- Verified each redirected callsite at its shift-adjusted ROM PC matches JSR 0x002026A0.
+
+confirmation:
+- no NOP used in this pass: YES
+- no equal-length workaround used in this pass: YES
+- no helper redirect chain used in this pass: YES
+- no shadow RAM used for sprite rendering path in genesistan_render_sprites_vdp: YES
+
+notes:
+- Runtime visual/crash confirmation in BlastEm remains required externally.
+```
+
+## [Cody — Build 173 — PC090OJ Sprite Replacement Finalisation]
+```text
+Date/time: 2026-03-24 19:22:00 EDT
+Scope: Finalize direct PC090OJ->VDP SAT pass after symbol shift and workram-control update
+
+final renderer behavior:
+- genesistan_render_sprites_vdp uses workram descriptor blocks directly:
+  - A5+0x11B2 (18 entries)
+  - A5+0x0170 (4 entries)
+- Sprite control sources are now workram-backed (no D-window/control shadow dependency):
+  - sprite_ctrl from A5@(20) (genesistan_arcade_workram_words[10])
+  - flipscreen control from A5@(30) (genesistan_arcade_workram_words[15])
+
+final direct call target:
+- genesistan_render_sprites_vdp_bridge @ 0x00202498
+- All 12 shift_replacement callsites now emit JSR 0x00202498
+
+validation updates:
+- Build PASS: dist/Rastan_173.bin
+- shift_table_patcher: 12 replacements applied
+- Verified callsite bytes at shift-adjusted ROM PCs all match replacement bytes
+
+notes:
+- This finalisation supersedes Build 171 bridge-address verification value.
+- External BlastEm visual/no-crash confirmation still required.
+```
+
+## [Cody — Build 178 — Invalid Patch Cleanup Pass]
+```text
+Date/time: 2026-03-24 20:14:00 EDT
+Scope: Audit-targeted invalid patch cleanup (scroll -> secondary text/startup callsite -> sprite entries)
+
+scroll fixes completed:
+- Replaced invalid NOP sites with real shift-table redirects:
+  - 0x055AB4, 0x055ABC, 0x055AC4, 0x055ACC
+- New direct routine: genesistan_scroll_from_workram_vdp()
+  - Reads live workram scroll sources: A5@(0x10EE), A5@(0x10EC), A5@(0x10B0), A5@(0x10AE)
+  - Writes Genesis VDP scroll directly via BG_A/BG_B horizontal+vertical calls
+- sync_arcade_scroll_to_vdp() now delegates to genesistan_scroll_from_workram_vdp()
+  (shadow scroll registers are no longer read in this path)
+
+secondary text writer status:
+- Added entry-level replacement for 0x03C3FE:
+  - shift_replacement uses direct JMP to genesistan_hook_text_writer_3c3fe
+- genesistan_hook_text_writer_3c3fe implemented:
+  - decodes 0x03C454 table format (count + dst_off + src_off)
+  - maps C-window destination pointer to (x,y)
+  - emits Genesis BG_A nametable writes through tile cache
+- Legacy inner write-site NOP suppressions at 0x03C42A/0x03C446/0x03C44A removed from opcode_replace list
+  and marked superseded by entry redirection in inventory.
+
+startup-common text callsite status:
+- Restored 0x0005C0 by removing suppression patch.
+- Runtime behavior at callsite is now original JSR 0x03BB48 (ROM check: 4eb90003bd48),
+  which flows into the active 0x03BB48 VDP replacement.
+
+sprite entry cleanup status:
+- Removed RTS bypass patches for:
+  - 0x041DAE
+  - 0x041F5E
+  - 0x045DFA
+- Added direct shift-table JMP entry redirects for all three to genesistan_render_sprites_vdp.
+
+build / verification:
+- Build PASS: dist/Rastan_178.bin
+- shift_table_patcher: 20 replacement(s), 7194 branch fix(es), 0 abs-long fix(es)
+- Verified patched ROM bytes at shift-adjusted PCs:
+  - 0x055AB4/BC/C4/CC -> JSR 0x00200D4E
+  - 0x03C3FE -> JMP 0x00200DDC
+  - 0x041DAE/0x041F5E/0x045DFA -> JMP 0x0020060C
+  - 0x0005C0 restored -> JSR 0x0003BD48
+
+inventory updates:
+- Updated fullgame inventory JSON+CSV for the above addresses only.
+- Scroll rows moved from partially_patched -> already_patched with direct-workram VDP notes.
+- 0x03C3FE moved to already_patched; 0x03C42A/0x03C446/0x03C44A marked superseded/dead_or_retired.
+- Sprite entry rows updated from RTS-bypass notes to direct JMP redirection notes.
+
+confirmation for this pass:
+- no NOP used: YES
+- no RTS used: YES
+- no equal-length workaround used: YES
+- no shadow RAM used as replacement mechanism: YES
+
+external retest required:
+- BlastEm validation still required for visual behavior and progression regression checks.
+```
+
+## [Cody — Build 179 — Direct VDP Scroll Replacement]
+```text
+Date/time: 2026-03-24 20:27:00 EDT
+Scope: Scroll replacement only (0x055AB4 / 0x055ABC / 0x055AC4 / 0x055ACC)
+
+source fields used:
+- BG_Y source: A5@(0x10EE)  (workram word index 0x10EE/2)
+- BG_X source: A5@(0x10EC)  (workram word index 0x10EC/2)
+- FG_Y source: A5@(0x10B0)  (workram word index 0x10B0/2)
+- FG_X source: A5@(0x10AE)  (workram word index 0x10AE/2)
+
+direct VDP calls used:
+- VDP_setHorizontalScroll(BG_B, scroll_x_bg)
+- VDP_setVerticalScroll(BG_B, scroll_y_bg)
+- VDP_setHorizontalScroll(BG_A, scroll_x_fg)
+- VDP_setVerticalScroll(BG_A, scroll_y_fg)
+
+chosen vertical bias:
+- Constant: RASTAN_VERTICAL_CROP_BIAS = 8
+- Policy: crop 8 top / 8 bottom (arcade 240 -> Genesis 224)
+- Mapping applies +8 vertical bias after arcade negation for BOTH BG and FG Y
+
+same-bias policy confirmation:
+- YES, same vertical bias is applied to both layers (BG and FG).
+
+implementation notes:
+- Active scroll path remains direct and shadow-free:
+  - genesistan_scroll_from_workram_vdp reads live workram and writes VDP directly.
+  - sync_arcade_scroll_to_vdp delegates to genesistan_scroll_from_workram_vdp.
+- Shift-table scroll replacements remain in place at 0x055AB4/BC/C4/CC.
+
+validation:
+- Build PASS: dist/Rastan_179.bin
+- shift_table_patcher: 20 replacement(s), 7194 branch fix(es), 0 abs-long fix(es)
+- Verified scroll patch bytes at shift-adjusted ROM PCs:
+  - 0x055AB4 -> 4eb900200d4e
+  - 0x055ABC -> 4eb900200d4e
+  - 0x055AC4 -> 4eb900200d4e
+  - 0x055ACC -> 4eb900200d4e
+
+inventory update:
+- Updated only the four scroll rows in fullgame_window_replacement_inventory.json/.csv notes to include explicit 240->224 bias handling.
+
+rule compliance for this pass:
+- no NOP used: YES
+- no RTS used: YES
+- no equal-length workaround used: YES
+- no redirect chain used: YES
+- no shadow RAM used as solution: YES
+```
+
+## [Cody — Build 180 — Direct VDP Scroll Replacement]
+```text
+Date/time: 2026-03-24 20:44:00 EDT
+Scope: Scroll replacement only (0x055AB4 / 0x055ABC / 0x055AC4 / 0x055ACC)
+
+source fields used:
+- BG_Y source: A5@(0x10EE)  (workram word index 0x10EE/2)
+- BG_X source: A5@(0x10EC)  (workram word index 0x10EC/2)
+- FG_Y source: A5@(0x10B0)  (workram word index 0x10B0/2)
+- FG_X source: A5@(0x10AE)  (workram word index 0x10AE/2)
+
+direct VDP calls used:
+- VDP_setHorizontalScroll(BG_B, scroll_x_bg)
+- VDP_setVerticalScroll(BG_B, scroll_y_bg)
+- VDP_setHorizontalScroll(BG_A, scroll_x_fg)
+- VDP_setVerticalScroll(BG_A, scroll_y_fg)
+
+chosen vertical bias:
+- Constant: RASTAN_VERTICAL_CROP_BIAS = 8
+- Policy: crop 8 top / 8 bottom (arcade 240 -> Genesis 224)
+- Same +8 vertical bias is applied to BOTH BG and FG Y mappings.
+
+implementation notes:
+- Active scroll path is direct and shadow-free:
+  - genesistan_scroll_from_workram_vdp reads live workram and writes VDP directly.
+  - sync_arcade_scroll_to_vdp delegates to genesistan_scroll_from_workram_vdp.
+- Shift-table replacements remain active at 0x055AB4/0x055ABC/0x055AC4/0x055ACC.
+
+validation:
+- Build PASS: dist/Rastan_180.bin
+- shift_table_patcher: 20 replacement(s), 7194 branch fix(es), 0 abs-long fix(es)
+- Verified scroll replacement bytes at shift-adjusted ROM PCs:
+  - 0x055AB4 -> 4eb900200d4e
+  - 0x055ABC -> 4eb900200d4e
+  - 0x055AC4 -> 4eb900200d4e
+  - 0x055ACC -> 4eb900200d4e
+
+inventory update:
+- Scroll rows (0x055AB4/0x055ABC/0x055AC4/0x055ACC) remain marked already_patched with direct-workram VDP scroll + 240->224 bias notes.
+
+rule compliance for this pass:
+- no NOP used: YES
+- no RTS used: YES
+- no equal-length workaround used: YES
+- no redirect chain used: YES
+- no shadow RAM used as solution: YES
+```
+
+## [Cody — Scroll System Verification]
+```text
+Date/time: 2026-03-24 21:05:00 EDT
+Scope: Verification-only pass for scroll completeness (no new patches)
+
+total scroll callsites found: 29
+classification counts:
+- A (Correct direct VDP replacement): 4
+- B (Indirect but valid feeder path): 16
+- C (Bypass/disabled legacy path): 6
+- D (Broken/missing/UNKNOWN reachability): 3
+
+legacy site status:
+- 0x03ABBA: SUPERSEDED (opcode_replace NOP; replacement route via 0x055AB4->genesistan_scroll_from_workram_vdp)
+- 0x03ABC0: SUPERSEDED (opcode_replace NOP; replacement route via 0x055ABC->genesistan_scroll_from_workram_vdp)
+- 0x03B098: SUPERSEDED (opcode_replace NOP; callers remain at 0x03AE5E/0x03B06E/startup_trampoline continue path)
+- 0x03B09E: SUPERSEDED (opcode_replace NOP paired with 0x03B098)
+
+fully correct:
+- NO
+
+remaining issues proven in this pass:
+- Legacy NOP scroll-clear sites remain (0x03ABBA/0x03ABC0/0x03B098/0x03B09E).
+- Boot-path direct hardware scroll writes at 0x00016A/0x000170 have UNKNOWN reachability under current trampoline entry architecture and are not replaced by direct VDP mapping.
+- Shadow scroll reads still exist in startup preview diagnostics UI (main.c render_startup_preview_screen), though not in SCREEN_FRONTEND_LIVE scroll path.
+```

@@ -869,7 +869,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "Suppression patch removed. Startup/common now calls 0x03BB48 again, and the active 0x03BB48 VDP hook handles rendering path."
     },
     {
       "arcade_addr": "0x0005C0",
@@ -886,7 +886,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `jsr 0x3bb48`"
+      "notes": "Suppression patch removed. Startup/common now calls 0x03BB48 again, and the active 0x03BB48 VDP hook handles rendering path."
     },
     {
       "arcade_addr": "0x000630",
@@ -1002,10 +1002,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902` Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A264",
@@ -1019,10 +1019,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902` Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A274",
@@ -1444,10 +1444,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902` Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A6B2",
@@ -1495,10 +1495,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902` Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A6FE",
@@ -1617,7 +1617,7 @@
       "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "Build 142 repair add: missing active D-window helper callsite coverage. Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x45DFA path no longer required at this callsite."
+      "notes": "Build 142 repair add: missing active D-window helper callsite coverage. Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x45DFA path no longer required at this callsite. Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A818",
@@ -1634,7 +1634,7 @@
       "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `jsr 0x45dfa` Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x45DFA path no longer required at this callsite."
+      "notes": "Auto-added callsite from disassembly: `jsr 0x45dfa` Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x45DFA path no longer required at this callsite. Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A820",
@@ -1648,10 +1648,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902` Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A854",
@@ -1668,7 +1668,7 @@
       "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "Build 142 repair add: callsite remains active while callee entry is RTS-patched in current build. Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x41F5E descriptor-copy path bypassed by SAT refresh."
+      "notes": "Build 142 repair add: callsite remains active while callee entry is RTS-patched in current build. Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x41F5E descriptor-copy path bypassed by SAT refresh. Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A854",
@@ -1685,7 +1685,7 @@
       "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x41f5e` Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x41F5E descriptor-copy path bypassed by SAT refresh."
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x41f5e` Build 165: callsite now patched to JSR genesistan_hook_frontend_sprite_sat_refresh (direct VDP SAT refresh). Legacy 0x41F5E descriptor-copy path bypassed by SAT refresh. Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A860",
@@ -1733,10 +1733,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902` Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A8EC",
@@ -1852,10 +1852,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b926`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b926` Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03A9D4",
@@ -1869,10 +1869,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b926`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b926` Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03AA68",
@@ -3603,10 +3603,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902` Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03B8F0",
@@ -3620,10 +3620,10 @@
       "safe_to_nop_reason": "Callsite controls execution of downstream window writer/staging path.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "Medium",
-      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902`"
+      "notes": "Auto-added callsite from disassembly: `bsrw 0x3b902` Build 171: direct shift-table redirection to genesistan_render_sprites_vdp_bridge (JSR abs.l), no helper chain."
     },
     {
       "arcade_addr": "0x03B902",
@@ -3631,16 +3631,16 @@
       "role": "Window pointer setup (lea)",
       "window": "D",
       "operation_type": "pointer init",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() -> 0x03A008 frontend state-machine -> title_init_block -> instruction 0x03B902 (Window pointer setup (lea)).",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Direct window/palette behavior is replaced by target hardware path once replacement is complete.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "already_patched",
-      "priority": "required_now_frontend",
+      "patch_status": "partially_patched",
+      "priority": "not_needed",
       "confidence": "Medium",
-      "notes": "Auto-added from full disassembly scan: `lea 0xd00088,%a1` in range `title_init_block`. Build 165: helper entry now replaced with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS. Removed runtime dependency on D00088 helper writes."
+      "notes": "Auto-added from full disassembly scan: `lea 0xd00088,%a1` in range `title_init_block`. Build 165: helper entry now replaced with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS. Removed runtime dependency on D00088 helper writes. Build 171: retired from active frontend path; active callsites now redirected directly to genesistan_render_sprites_vdp_bridge via shift-table entries."
     },
     {
       "arcade_addr": "0x03B926",
@@ -3648,16 +3648,16 @@
       "role": "Window pointer setup (lea)",
       "window": "D",
       "operation_type": "pointer init",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() -> 0x03A008 frontend state-machine -> title_init_block -> instruction 0x03B926 (Window pointer setup (lea)).",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Direct window/palette behavior is replaced by target hardware path once replacement is complete.",
       "replacement_target": "VDP SAT",
       "source_origin": "other",
-      "patch_status": "already_patched",
-      "priority": "required_now_frontend",
+      "patch_status": "partially_patched",
+      "priority": "not_needed",
       "confidence": "Medium",
-      "notes": "Auto-added from full disassembly scan: `lea 0xd00128,%a1` in range `title_init_block`. Build 165: helper entry now replaced with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS. Removed runtime dependency on D00128 helper writes."
+      "notes": "Auto-added from full disassembly scan: `lea 0xd00128,%a1` in range `title_init_block`. Build 165: helper entry now replaced with JSR genesistan_hook_frontend_sprite_sat_refresh + RTS. Removed runtime dependency on D00128 helper writes. Build 171: retired from active frontend path; active callsites now redirected directly to genesistan_render_sprites_vdp_bridge via shift-table entries."
     },
     {
       "arcade_addr": "0x03B9FE",
@@ -3773,10 +3773,10 @@
       "safe_to_nop_reason": "Internal writes NOPped (0x03C42A, 0x03C446, 0x03C44A). Silenced.",
       "replacement_target": "VDP nametable write",
       "source_origin": "pointer table",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_frontend",
       "confidence": "High",
-      "notes": "CRITICAL GAP: Second text writer for FG layer text (HUD/score). All writes silenced. Needs same treatment as 0x3BB48 \u2014 replace write instructions with VDP nametable writes to BG_A. [Build 142 repair: required_now because dispatcher remains active while write sites are silenced; must route live text path to Genesis nametable writes.]"
+      "notes": "Entry is now direct shift-table JMP to genesistan_hook_text_writer_3c3fe, which translates the 0x03C454 descriptor format into Genesis BG_A nametable writes with tile_cache_get()."
     },
     {
       "arcade_addr": "0x03C42A",
@@ -3784,16 +3784,16 @@
       "role": "Text writer 0x3C3FE: MOVE.W D7,(A1) \u2014 fires first each iteration before char write",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] -> JMP 0x03A208 (arcade 0x03A008) -> arcade frontend state machine -> 0x03C3FE -> 0x03C42A.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped.",
       "replacement_target": "VDP nametable write",
       "source_origin": "pointer table",
       "patch_status": "already_patched",
-      "priority": "required_now_frontend",
+      "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "Superseded by 0x03C3FE entry redirection to genesistan_hook_text_writer_3c3fe; legacy inner C-window write instruction is no longer on active path."
     },
     {
       "arcade_addr": "0x03C446",
@@ -3801,16 +3801,16 @@
       "role": "Text writer 0x3C3FE: MOVE.W D1,(A1) \u2014 character tile write path",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] -> JMP 0x03A208 (arcade 0x03A008) -> arcade frontend state machine -> 0x03C3FE -> 0x03C446.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped.",
       "replacement_target": "VDP nametable write",
       "source_origin": "pointer table",
       "patch_status": "already_patched",
-      "priority": "required_now_frontend",
+      "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "Superseded by 0x03C3FE entry redirection to genesistan_hook_text_writer_3c3fe; legacy inner C-window write instruction is no longer on active path."
     },
     {
       "arcade_addr": "0x03C44A",
@@ -3818,16 +3818,16 @@
       "role": "Text writer 0x3C3FE: MOVE.W #0x20,(A1) \u2014 space fill path",
       "window": "C",
       "operation_type": "direct write",
-      "execution_class": "active_conditional_frontend",
+      "execution_class": "dead_or_retired",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] -> JMP 0x03A208 (arcade 0x03A008) -> arcade frontend state machine -> 0x03C3FE -> 0x03C44A.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Already NOPped.",
       "replacement_target": "VDP nametable write",
       "source_origin": "pointer table",
       "patch_status": "already_patched",
-      "priority": "required_now_frontend",
+      "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "Superseded by 0x03C3FE entry redirection to genesistan_hook_text_writer_3c3fe; legacy inner C-window write instruction is no longer on active path."
     },
     {
       "arcade_addr": "0x03D04C",
@@ -3886,7 +3886,7 @@
       "role": "D-window object writer: writes sprite data from A5+0x508 to PC090OJ D00000 region (multiple blocks)",
       "window": "D",
       "operation_type": "copy",
-      "execution_class": "dead_or_retired",
+      "execution_class": "active_conditional_frontend",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] -> JMP 0x03A208 (arcade 0x03A008) -> arcade frontend state machine -> state machine -> sprite dispatch -> JSR 0x041DAE. Now RTS'd at entry.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "RTS'd at entry. render_frontend_sprite_layer() handles all sprite output via direct VDP SAT writes.",
@@ -3895,7 +3895,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "RTS'd (Build 139). Replaced by render_frontend_sprite_layer() which reads workram descriptor blocks and writes to Genesis VDP SAT directly."
+      "notes": "RTS bypass removed. Entry now uses direct shift-table JMP to genesistan_render_sprites_vdp (Genesis SAT path, no D-window dependency)."
     },
     {
       "arcade_addr": "0x041DB2",
@@ -4090,7 +4090,7 @@
       "role": "D-window sprite copy: copies sprite attrs from A5+0x11B2 (18 entries) and A5+0x0170 (4 entries) to D003C0 / D002E0",
       "window": "D",
       "operation_type": "copy",
-      "execution_class": "dead_or_retired",
+      "execution_class": "active_conditional_frontend",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] -> JMP 0x03A208 (arcade 0x03A008) -> arcade frontend state machine -> state machine -> sprite dispatch -> JSR 0x041F5E. Now RTS'd at entry.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "RTS'd at entry. render_frontend_sprite_layer() uses same workram blocks (A5+0x11B2, A5+0x0170) directly.",
@@ -4099,7 +4099,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "RTS'd (Build 139). Workram blocks at A5+0x11B2, A5+0x0170 are the confirmed source for render_frontend_sprite_layer()."
+      "notes": "RTS bypass removed. Entry now uses direct shift-table JMP to genesistan_render_sprites_vdp (Genesis SAT path, no D-window dependency)."
     },
     {
       "arcade_addr": "0x041F64",
@@ -4243,7 +4243,7 @@
       "role": "D-window alternate sprite writer: writes sprites from A5+0x5C8 / A5+0x748 to D00460 / D00170",
       "window": "D",
       "operation_type": "copy",
-      "execution_class": "dead_or_retired",
+      "execution_class": "active_conditional_frontend",
       "evidence": "genesistan_run_original_frontend_tick() [startup_trampoline.s] -> JMP 0x03A208 (arcade 0x03A008) -> arcade frontend state machine -> state machine -> alternate sprite dispatch -> JSR 0x045DFA. Now RTS'd at entry.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "RTS'd at entry. Sprites handled by render_frontend_sprite_layer().",
@@ -4252,7 +4252,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "RTS'd (Build 139). Frontend/title alternate sprite writer."
+      "notes": "RTS bypass removed. Entry now uses direct shift-table JMP to genesistan_render_sprites_vdp (Genesis SAT path, no D-window dependency)."
     },
     {
       "arcade_addr": "0x045DFE",
@@ -4997,10 +4997,10 @@
       "safe_to_nop_reason": "Currently NOPped AND the shadow is never populated. GAP: scroll is stuck at 0,0. The source value A5@(0x10EE) = workram[0x877] is set by game code. Either un-NOP + remap to shadow, or read workram directly in sync_arcade_scroll_to_vdp().",
       "replacement_target": "VDP scroll write",
       "source_origin": "workram",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_gameplay",
       "confidence": "High",
-      "notes": "CRITICAL GAP: scroll shadow is never populated. game_engine_040000 range does NOT remap 0xC20000 to scroll shadow (maps to cwindow_null). Fix: read workram[0x877] directly in sync_arcade_scroll_to_vdp() instead of relying on shadow. [Build 142 repair: required_now because source scroll values must be driven from frontend live path into Genesis VDP scroll registers.]"
+      "notes": "Direct shift-table replacement routes this site to genesistan_scroll_from_workram_vdp(), reading live A5 workram scroll fields and issuing direct VDP scroll writes. Vertical crop policy 240->224 is explicit via RASTAN_VERTICAL_CROP_BIAS=8, applied to BG and FG Y equally."
     },
     {
       "arcade_addr": "0x055ABC",
@@ -5014,10 +5014,10 @@
       "safe_to_nop_reason": "Same gap as 0x055AB4. Source: workram[0x876].",
       "replacement_target": "VDP scroll write",
       "source_origin": "workram",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_gameplay",
       "confidence": "High",
-      "notes": "CRITICAL GAP: Same scroll shadow issue. Source A5@(0x10EC) = workram[0x876]. [Build 142 repair: required_now because source scroll values must be driven from frontend live path into Genesis VDP scroll registers.]"
+      "notes": "Direct shift-table replacement routes this site to genesistan_scroll_from_workram_vdp(), reading live A5 workram scroll fields and issuing direct VDP scroll writes. Vertical crop policy 240->224 is explicit via RASTAN_VERTICAL_CROP_BIAS=8, applied to BG and FG Y equally."
     },
     {
       "arcade_addr": "0x055AC4",
@@ -5031,10 +5031,10 @@
       "safe_to_nop_reason": "Same gap. Source: workram[0x858].",
       "replacement_target": "VDP scroll write",
       "source_origin": "workram",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_gameplay",
       "confidence": "High",
-      "notes": "CRITICAL GAP: Source A5@(0x10B0) = workram[0x858]. [Build 142 repair: required_now because source scroll values must be driven from frontend live path into Genesis VDP scroll registers.]"
+      "notes": "Direct shift-table replacement routes this site to genesistan_scroll_from_workram_vdp(), reading live A5 workram scroll fields and issuing direct VDP scroll writes. Vertical crop policy 240->224 is explicit via RASTAN_VERTICAL_CROP_BIAS=8, applied to BG and FG Y equally."
     },
     {
       "arcade_addr": "0x055ACC",
@@ -5048,10 +5048,10 @@
       "safe_to_nop_reason": "Same gap. Source: workram[0x857].",
       "replacement_target": "VDP scroll write",
       "source_origin": "workram",
-      "patch_status": "partially_patched",
+      "patch_status": "already_patched",
       "priority": "required_now_gameplay",
       "confidence": "High",
-      "notes": "CRITICAL GAP: Source A5@(0x10AE) = workram[0x857]. Fix all 4 scroll writes together in sync_arcade_scroll_to_vdp(). [Build 142 repair: required_now because source scroll values must be driven from frontend live path into Genesis VDP scroll registers.]"
+      "notes": "Direct shift-table replacement routes this site to genesistan_scroll_from_workram_vdp(), reading live A5 workram scroll fields and issuing direct VDP scroll writes. Vertical crop policy 240->224 is explicit via RASTAN_VERTICAL_CROP_BIAS=8, applied to BG and FG Y equally."
     },
     {
       "arcade_addr": "0x055B84",
