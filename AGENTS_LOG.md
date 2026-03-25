@@ -17434,3 +17434,46 @@ SUCCESS DEFINITION:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 END ENTRY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## 🔴 CURRENT STATE — ACTIVE BLOCKER
+
+**Current Issue**
+
+* Selector (`A5+0x0118`) = 0 → causes underflow → crash
+
+**Crash Location**
+
+* 0x0561D6 / 0x0561FE
+* Backtrace includes 0x03A274
+* A1 = 0x0000FF (invalid pointer from table)
+
+**Root Cause (PROVEN)**
+
+* Selector should be seeded at 0x04527E
+* Seed is skipped because:
+
+  * `A5+0x0104` is set to 1 too early
+
+**Why This Happens**
+
+* Initialization order is broken
+* Launcher bypass altered execution timeline
+* Required state is never created before use
+
+**What Is NOT Allowed**
+
+* ❌ Manual seeding of selector (unless proven unavoidable)
+* ❌ NOP / RTS / bypass fixes
+* ❌ Reintroducing startup_common wholesale
+* ❌ Shadow RAM or fallback logic
+
+**What MUST Be Done**
+
+* Trace all writes to `A5+0x0104`
+* Identify correct timing vs current timing
+* Restore correct execution order
+
+**Next Step**
+
+* Build full write map of `A5+0x0104`
+* Compare arcade vs current execution flow

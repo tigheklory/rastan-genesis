@@ -385,3 +385,97 @@ Do NOT improvise outside the directive.
 
 Combined with success definition:
 - A crash “fixed” via bypass is NOT considered fixed
+
+## 🚨 Definition of Done (MANDATORY)
+
+A task is ONLY considered complete if ALL of the following are true:
+
+* No use of:
+
+  * NOP (unless explicitly approved)
+  * RTS as a bypass
+  * equal-length replacement hacks
+  * shadow RAM (full or partial)
+  * “stability” or “fallback” logic
+
+* The fix:
+
+  * preserves correct execution behavior
+  * preserves correct state flow
+  * matches arcade logic expectations
+
+* “No crash” is NOT success
+
+* Visual output must be real (VDP-backed), not suppressed or bypassed
+
+* All fixes must align with shift-table patching architecture
+
+If any shortcut is used → the fix is INVALID
+
+## 🧠 State Causality Rule (MANDATORY BEFORE ANY FIX)
+
+Before applying ANY patch, you MUST answer:
+
+1. What state should exist at this PC?
+2. Which earlier code is responsible for creating that state?
+3. Why did that state not get created?
+
+If these are not proven:
+→ DO NOT PATCH
+
+Fix the cause, not the symptom.
+
+## ⏱ Execution Order Integrity Rule
+
+Initialization is NOT a function — it is a timeline.
+
+* State is created across multiple phases
+* Order of execution is critical
+* Moving or skipping writes breaks downstream logic
+
+DO NOT:
+
+* reorder initialization blindly
+* “set values earlier” without proving correctness
+* manually seed values unless absolutely unavoidable
+
+ALWAYS:
+
+* restore correct execution order
+* preserve original state sequencing
+
+## 🔍 Validation Requirements (REQUIRED)
+
+Every change MUST include validation evidence:
+
+* What state changed?
+* Where is it written?
+* When is it written (relative order)?
+* What downstream logic depends on it?
+
+AND:
+
+* Confirm no unintended side effects
+* Confirm no state is being skipped or duplicated
+
+## 🤖 Agent Operating Rules
+
+All agents MUST:
+
+* Read:
+
+  * `AGENTS.md`
+  * latest relevant section of `AGENTS_LOG.md`
+
+* Treat `AGENTS_LOG.md` as the **source of current truth**
+
+* NEVER:
+
+  * rely on summaries
+  * assume previous fixes were correct
+  * reuse old approaches without verification
+
+* ALWAYS:
+
+  * cite the build / log section being continued
+  * verify assumptions against current state
