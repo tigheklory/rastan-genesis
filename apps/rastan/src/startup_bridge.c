@@ -299,9 +299,41 @@ void genesistan_init_workram_direct(uint8_t dip1, uint8_t dip2)
     /* Sprite init marker */
     genesistan_arcade_workram_words[37] = 0x00AA; /* A5@(74) */
 
+    /*
+     * Transition-buffer baseline (Option 2):
+     * Recreate the proven non-video startup template used by 0x03A99A/0x03A9E6
+     * for the first 32-word swap window consumed by 0x03A294/0x03A2B2.
+     *
+     * Source proof (arcade disassembly):
+     * - 0x03A99A: clear transition region
+     * - 0x03A9E6: seed block A (A5+0x80) from A5+0x36/A5+0x38 and bytes 0x17/0x18
+     * - 0x03A294/0x03A2B2: operate on 32 words (64 bytes) per block
+     */
+    {
+        uint8_t *workram_bytes = (uint8_t *)genesistan_arcade_workram_words;
+
+        /* Keep first swap window deterministic in block A/B. */
+        memset(workram_bytes + 0x80, 0, 0x80); /* A5+0x80..0x0FF */
+
+        /* Block A (A5+0x80) seeded fields from proven arcade init helper. */
+        genesistan_arcade_workram_words[0x80 / 2] = genesistan_arcade_workram_words[0x36 / 2];
+        workram_bytes[0x97] = 1; /* A5+0x80+23 */
+        workram_bytes[0x98] = 1; /* A5+0x80+24 */
+        genesistan_arcade_workram_words[0xB2 / 2] = genesistan_arcade_workram_words[0x38 / 2];
+
+        /*
+         * Mirror only the first 32-word window into block B (A5+0xC0),
+         * matching the exact window size used by swap helpers.
+         */
+        memcpy(workram_bytes + 0xC0, workram_bytes + 0x80, 0x40);
+    }
+
     /* Title init flags */
     genesistan_arcade_workram_words[128] = 1; /* A5@(256) */
-    genesistan_arcade_workram_words[130] = 1; /* A5@(260) */
+    /*
+     * Keep A5@(260) clear here so the original runtime path can
+     * open-gate selector seeding at 0x04527E.
+     */
 
     /*
      * Copy 39 bytes of config data from ROM

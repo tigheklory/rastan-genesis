@@ -17477,3 +17477,764 @@ END ENTRY
 
 * Build full write map of `A5+0x0104`
 * Compare arcade vs current execution flow
+
+## [Cody - Research, A5+0x0104 Execution Order / Selector Seed Analysis]
+```text
+1) Objective
+- Reconstruct full write/read/control causality around A5+0x0104 and prove whether selector seeding at 0x04527E is skipped by execution-order divergence.
+
+2) Inputs Used
+- AGENTS.md, AGENTS_LOG.md, README.md
+- Ghidra arcade project: tools/ghidra/rastan_project/rastan_arcade:maincpu.bin
+- Ghidra Genesis project: tools/ghidra/rastan_project/rastan_genesis:Rastan_5.bin and maincpu_patched.bin
+- build/maincpu.disasm.txt
+- specs/startup_title_remap.json
+- build/rastan/startup_common_rom_manifest.json
+- build/rastan/startup_common_relocations.json
+- build/rastan/maincpu_patch_manifest.json
+- apps/rastan/src/main.c
+- apps/rastan/src/startup_bridge.c
+- apps/rastan/src/startup_trampoline.s
+- dist/Rastan_5.bin
+- MAME references: src/mame/taito/rastan.cpp, src/mame/taito/taitoipt.h
+
+3) All Writes to A5+0x0104
+- Launcher write (C path): startup_bridge.c genesistan_init_workram_direct(), genesistan_arcade_workram_words[130] = 1 (A5+0x0104), unconditional, early launcher/init.
+- Arcade write #1:
+  - arcade_addr: 0x03A1F2
+  - genesis_rom_addr: 0x03A3F2
+  - instruction: move.b #1,(0x0104,A5)
+  - phase: startup phase frontend handler
+- Arcade write #2:
+  - arcade_addr: 0x03A7EC
+  - genesis_rom_addr: 0x03A9F4
+  - instruction: move.b #1,(0x0104,A5)
+  - phase: late init frontend transition handler
+- Additional disassembly decode artifacts found at 0x0001264/0x0001790/0x0002F58/0x0003798 (low-confidence data-region decodes; no proven executable call chain).
+
+4) All Reads/Tests of A5+0x0104
+- Read/test #1:
+  - arcade_addr: 0x03A624
+  - genesis_rom_addr: 0x03A828
+  - instruction: tst.b (0x0104,A5), beq 0x03A63E
+  - effect: non-zero path changes A5@(0x1394)/A5@(0x1242) behavior
+- Read/test #2:
+  - arcade_addr: 0x03A714
+  - genesis_rom_addr: 0x03A91C
+  - instruction: tst.b (0x0104,A5), bne 0x03A730
+  - effect: gates selector-digit display branch using A5+0x0117
+- Read/test #3 (critical seed gate):
+  - arcade_addr: 0x04528C
+  - genesis_rom_addr: 0x0454A8
+  - instruction: tst.b (0x0104,A5), bne 0x04529A
+  - effect: if non-zero, selector seed writes are skipped
+- Read/test #4:
+  - arcade_addr: 0x0452BA
+  - genesis_rom_addr: 0x0454D6
+  - instruction: tst.b (0x0104,A5), bne 0x0452C4
+- Read/test #5:
+  - arcade_addr: 0x0452CE
+  - genesis_rom_addr: 0x0454EA
+  - instruction: tst.b (0x0104,A5), bne 0x0452DA
+- One low-confidence read-like decode artifact at 0x00013D0 (data-like region).
+
+5) Selector Seed Path
+- Seed routine:
+  - arcade_addr: 0x04527E
+  - genesis_rom_addr: 0x04549A
+- Seed writes:
+  - 0x045292: move.b D1,(0x0118,A5)
+  - 0x045296: move.b D1,(0x0117,A5)
+- Gate:
+  - 0x04528C tst.b (0x0104,A5)
+  - non-zero => skip writes
+- Caller:
+  - 0x03A736 jsr 0x04527E (mapped Genesis ROM 0x03A93E)
+- Expected precondition: A5+0x0104 must be 0 when this call is reached.
+
+6) Crash Path Reconstruction
+- Entry into failing sequence:
+  - 0x055DDC state machine (mapped 0x055FF2)
+  - state calls at 0x055F8C -> 0x0561D6 and 0x055FCE -> 0x0561FE
+- Underflow site:
+  - 0x0561D8 move.b 0x10C118,D0
+  - 0x0561DE subq.w #1,D0
+  - selector=0 => D0 underflows to 0xFFFF, then lsl #3 => 0xFFF8
+- Table lookup failure:
+  - 0x0561E2/0x05620A table base + (D0.w) => base-8 when selector=0
+  - invalid pointer pair loaded into A0/A1
+- Fault consumer:
+  - 0x0563A6 copy/write routine consumes pointer pair
+  - bad pointer path can produce A1 low/odd invalid target (observed family includes A1=0x0000FF)
+
+7) Arcade vs Genesis Order Divergence
+- Intended arcade order:
+  - startup/common and frontend progression reaches 0x04527E with gate open, seeding 0x0117/0x0118 before 0x0561D6/0x0561FE usage.
+- Current Genesis launcher order:
+  - request_start_rastan() -> genesistan_init_workram_direct() writes A5+0x0104=1 before frontend tick reaches 0x04527E.
+  - 0x04527E runs later but seed is skipped due non-zero gate.
+- First proven divergence point:
+  - early launcher write to A5+0x0104 in startup_bridge.c.
+
+8) Root Cause Judgment
+- PROVEN: early write to A5+0x0104 is the direct cause of skipped selector seeding.
+- Proven chain: early write -> gate at 0x04528C closed -> no writes to 0x0118/0x0117 -> selector=0 at 0x0561D6/0x0561FE -> d0-- underflow -> invalid table index -> bad pointer consumed at 0x0563A6 -> crash family.
+
+9) Recommended Next Fix Target
+- Target area only: startup launcher initialization ordering around genesistan_init_workram_direct() and the A5+0x0104 gate semantics relative to the 0x04527E call path.
+
+10) What Is Explicitly NOT Approved
+- no manual selector seeding
+- no NOP/RTS bypass
+- no wholesale startup_common restoration
+- no shadow RAM
+```
+
+## Opcode Depth Estimate (Derived)
+
+* Start PC: 0x03A008
+* Crash PC: 0x0563A6
+* Minimum Depth: ~80 opcodes
+* Working Estimate: ~35,000 opcodes
+* Confidence: Low
+* Notes:
+  * Minimum depth is the straight-line count along the already-identified crashing tick path (`0x03A008` dispatch -> `0x055DDC` state branch -> `0x0561D6/0x0561FE` -> `0x0563A6`) without expanding loop bodies.
+  * Working estimate includes repeated per-frame frontend tick traversal from post-launcher handoff to crash and bounded wait/state counters observed on this path.
+  * Loops NOT expanded in detail:
+    * per-frame frontend loop re-entry (`SCREEN_FRONTEND_LIVE` + `0x03A008` dispatch)
+    * state wait counters in `0x055DDC` flow (`A5@(0x1392)` bounded waits)
+    * countdown/timer loops in frontend state handlers (`A5@(0x002C)`, `A5@(0x0C4E)`)
+    * inner byte/word copy loops inside `0x0563A6`
+Opcode Depth Estimate (Corrected Interpretation)
+
+- Start PC: 0x03A008
+- First bad state use PC: 0x0561D6 / 0x0561FE
+- Fault consumer / crash PC: 0x0563A6
+- Minimum Known Depth: ~80 opcodes
+- Prior Working Estimate (~35,000): REJECTED
+- Reason Rejected:
+  - observed behavior shows illegal-instruction debug output on the very next frame after launcher start
+  - repeated frontend/frame-loop assumptions are not supported for this failing run
+- Correct Interpretation:
+  - this is an early deterministic startup-path failure
+- Confidence:
+  - minimum slice: Medium
+  - large repeated-loop estimate: Low / invalid
+## [Cody - Research, Correct Launcher Init Design While Skipping C/D Window Init]
+```text
+1) Objective
+- Design the minimal correct launcher init that preserves required non-video runtime state and execution order while continuing to skip full arcade C-window/D-window startup behavior.
+
+2) Current Launcher Init Inventory
+- `genesistan_init_workram_direct()` currently does:
+  - full game workram clear
+  - Z80 reset assert
+  - direct seeds for state/timers/config fields (`A5+0x0000/+0x0002/+0x0004`, coinage, DIP mirrors, mode, bonus, difficulty, marker `A5+0x004A`, config copy to `A5+0x0140`)
+  - title flags `A5+0x0100 = 1` and `A5+0x0104 = 1`
+- Critical finding: `A5+0x0104 = 1` is currently asserted too early in launcher init.
+
+3) Original Arcade Init Responsibility
+- KEEP_EFFECT responsibilities:
+  - WRAM baseline clear (`0x03AEEA..0x03AF02`)
+  - DIP mirrors/derived gameplay fields (`0x03AF7A..0x03AFEA`)
+  - coin/config table initialization (`0x03B020..0x03B044`, `0x03B04A/0x03B0C2`)
+  - selector seeding ownership in `0x04527E`
+- SKIP_EFFECT responsibilities:
+  - raw C-window and board MMIO writes (`0x03AF2C..0x03AF72`, `0x03AE86`, `0x03AE8E`, `0x03AE96`, `0x03AE28` mechanism)
+- MIXED_EFFECT responsibilities:
+  - routines like `0x03B098`, `0x03ADD8`, and startup handoff composites that blend useful state with arcade-only hardware side effects.
+
+4) Flag / Gate Semantics
+- `A5+0x0104`:
+  - writes: launcher C path, `0x03A1F2`, `0x03A7EC`
+  - critical read/gate: `0x04528C` (seed gate)
+  - if non-zero at `0x04528C`, selector writes at `0x045292/0x045296` are skipped.
+- `A5+0x0100`:
+  - written/read as transition counter/buffer anchor (`0x03A522`, `0x03AB42`, `0x03B798`, `0x057800`; read/use at `0x03A200`, `0x03A294/0x03A2B2` family).
+  - not proven as the direct selector crash cause.
+
+5) Required Non-Video State
+- Required baseline to seed immediately in launcher:
+  - frontend state/substate/step
+  - coinage and DIP mirrors
+  - mode/difficulty/bonus fields
+  - non-debug defaults
+  - marker `A5+0x004A`
+  - config copy at `A5+0x0140..0x0166`
+  - deterministic WRAM clear baseline
+- Required ordering constraint:
+  - `A5+0x0104` must remain clear until selector seed path runs.
+
+6) Explicitly Rejected C/D-Window or Arcade-Only Init
+- Reject as startup mechanism:
+  - direct C-window fill/clear startup writes
+  - direct D-window/orientation board register writes
+  - wholesale startup_common replay with raw arcade hardware side effects
+- Keep only their necessary non-video effects via selective launcher-side state seeding.
+
+7) Minimal Correct Launcher Init Design
+- Initialize required non-video baseline in launcher.
+- Leave `A5+0x0104` clear initially.
+- Let `0x04527E` seed `A5+0x0118/+0x0117` naturally.
+- Let arcade runtime own first assertion of `A5+0x0104` afterward.
+- Treat `A5+0x0100` timing as conditional (not yet changed by design default).
+
+8) Recommended Fix Plan
+- Keep launcher seeding for required non-video baseline fields.
+- Remove/delay launcher write to `A5+0x0104` until after natural selector seeding.
+- Do not manually seed selector in launcher.
+- Preserve natural ownership:
+  - selector seed via `0x04527E`
+  - first `A5+0x0104` assertion by original runtime handlers.
+- Validate `A5+0x0100` separately before changing its timing.
+
+9) Open Uncertainties
+- Exact first-value timing requirements for `A5+0x0100` under all launcher-driven branches remain partially unproven.
+- Current transition-cluster patch state (`0x03A294/0x03A2B2`) may distort observed buffer-order behavior and should be controlled during implementation.
+
+10) What Is NOT Approved
+- no full startup_common restore
+- no manual selector seed as final design
+- no NOP/RTS bypass
+- no shadow RAM
+- no reintroduction of raw C-window / D-window init as the mechanism
+```
+
+## [Cody - Build 179, Launcher A5+0x0104 Gate Fix]
+```text
+1) Objective
+- Fix launcher init ordering so A5+0x0104 is not asserted before the natural selector seed gate path at 0x04527E.
+
+2) Proven Design Basis
+- Prior research established the proven chain:
+  launcher A5+0x0104=1 -> gate at 0x04528C closed -> no writes at 0x045292/0x045296 -> selector remains 0 -> underflow path at 0x0561D6/0x0561FE -> bad pointer consumed at 0x0563A6.
+- Required narrow fix for this pass: keep launcher baseline init, remove early launcher assertion of A5+0x0104 only.
+
+3) Exact Code Change
+- File changed: apps/rastan/src/startup_bridge.c
+- Function: genesistan_init_workram_direct()
+- Change made:
+  - Removed launcher assignment `genesistan_arcade_workram_words[130] = 1; /* A5@(260) */`
+  - Left explanatory comment indicating A5@(260) must remain clear for natural selector seeding.
+- Line-level location (current file): around 302-307.
+
+4) What Was Explicitly NOT Changed
+- No spec/opcode/shift-table files changed.
+- No manual selector seeding added for A5+0x0117/A5+0x0118.
+- No change to A5+0x0100 launcher write (`genesistan_arcade_workram_words[128] = 1`) in this pass.
+- No transition-buffer logic changes.
+- No startup_common restore.
+
+5) Validation Observations
+- Launcher-init static state (from startup_bridge.c after edit):
+  - A5+0x0104 launcher assignment is absent (no `[130]` write remains in function).
+  - A5+0x0100 launcher assignment remains present (`[128] = 1`).
+  - No launcher writes to A5+0x0117/A5+0x0118 were introduced.
+- Seed-gate static path (from disassembly, unchanged logic):
+  - 0x03A736: `jsr 0x4527e`
+  - 0x04528C: `tst.b %a5@(260)` gate
+  - 0x045292 / 0x045296: selector seed writes to A5+0x0118 / A5+0x0117.
+- Runtime gate-open execution at 0x04528C and runtime execution of 0x045292/0x045296:
+  - Not directly observed in this pass.
+- Runtime first-owner assertion of A5+0x0104 by original arcade handlers:
+  - Not directly observed in this pass.
+
+6) Crash / Behavior Result
+- Build completed successfully and produced a new ROM artifact.
+- Prior crash path status at 0x0561D6/0x0561FE -> 0x0563A6:
+  - Not directly confirmed as gone/changed/unchanged in this pass (no targeted runtime register/PC capture reached those checkpoints).
+- Execution-depth progression beyond prior immediate next-frame illegal-instruction behavior:
+  - Not directly observed in this pass.
+
+7) Remaining Uncertainties
+- Whether the first post-launch path to 0x04527E now occurs with gate open at runtime in current build.
+- Whether selector seed writes execute before any runtime write re-asserts A5+0x0104.
+- Whether the external crash family is fully resolved versus changed form.
+
+8) Rule Compliance Check
+- No opcode/spec patch changes: YES
+- No manual selector seed: YES
+- No change to A5+0x0100: YES
+- No shadow RAM: YES
+- No startup_common restore: YES
+
+9) Artifact Path
+- dist/Rastan_179.bin
+```
+
+### MAME Exit Summary (2026-03-25 13:30:16)
+- Final PC: 0x2115EC
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 180, Launcher Transition Buffer Init]
+```text
+1) Objective
+- Implement Option 2 launcher-side transition-buffer initialization so early transition copy/swap paths have deterministic non-video buffer state, without changing specs/opcodes or restoring startup_common.
+
+2) Proven Buffer Initialization Basis
+- Proven source routines in arcade disassembly:
+  - 0x03A99A: initializes transition region via helper 0x03AD3C.
+  - 0x03AD3C: `movew d0,(a0)+` loop; with d0=0 and d1=0x60 at 0x03A998, this clears 0xC0 bytes from A5+0x80..A5+0x13F.
+  - 0x03A9E6: seeds block A (A5+0x80) fields:
+    - word at A5+0x80 from A5+0x36
+    - byte at A5+0x97 = 1
+    - byte at A5+0x98 = 1
+    - word at A5+0xB2 from A5+0x38
+  - 0x03A9AA..0x03A9B4 + 0x03A2D0: copy 64 words from A5+0x80 to A5+0xC0 destination windowing.
+- Early swap helper window size is proven at 0x03A294/0x03A2B2: 32 words (64 bytes) per call.
+- Minimal proven requirement for launcher seeding in this pass:
+  - deterministic first 64-byte windows for A5+0x80 and A5+0xC0
+  - leave A5+0x0100 timing/ownership unchanged from prior approved state.
+
+3) Exact Code Change
+- File changed: apps/rastan/src/startup_bridge.c
+- Function: genesistan_init_workram_direct()
+- Added transition-buffer init block:
+  - clear A5+0x80..A5+0x0FF (0x80 bytes)
+  - seed A5+0x80 template words/bytes using A5+0x36 and A5+0x38
+  - mirror first 0x40 bytes from A5+0x80 to A5+0xC0
+- Preserved prior gate fix by keeping A5+0x0104 launcher write absent.
+
+4) What Was Explicitly NOT Changed
+- No spec/opcode/shift-table edits.
+- No manual selector seed writes to A5+0x0117/A5+0x0118.
+- No change to A5+0x0100 launcher write.
+- No startup_common restore.
+- No C-window/D-window startup init reintroduction.
+
+5) Buffer State After Launcher Init
+- A5+0x0080..0x00BF:
+  - mostly zero; seeded fields:
+    - A5+0x0080 word = A5+0x0036 word
+    - A5+0x0097 byte = 0x01
+    - A5+0x0098 byte = 0x01
+    - A5+0x00B2 word = A5+0x0038 word
+- A5+0x00C0..0x00FF:
+  - first 0x40 bytes mirror A5+0x0080..0x00BF first 0x40 bytes (same seeded pattern)
+- A5+0x0100..0x013F:
+  - A5+0x0100 word remains 0x0001 from existing launcher behavior
+  - remainder remains zero-baseline in this pass
+
+6) Validation Observations
+- Static validation from source confirms:
+  - transition seeding code exists only in startup_bridge.c
+  - A5+0x0104 launcher write remains absent
+  - no A5+0x0117/A5+0x0118 launcher writes added
+- Runtime trace attempt (MAME genesistrace, 20s, ROM dist/Rastan_180.bin):
+  - trace completed and produced summary
+  - summary execution ranges for frontend/startup slices remained 0 hits in this run
+  - therefore no direct runtime observation of 0x03A294/0x03A2B2 behavior in this pass
+  - no direct register capture for A1 in the failing path in this pass
+
+7) Crash / Behavior Result
+- Build: PASS
+- Artifact: dist/Rastan_180.bin
+- Immediate ADDRESS ERROR / A1=0x0000FF status:
+  - Not directly observed in this pass (trace run did not traverse the target frontend execution slices)
+- Execution farther than Build 179:
+  - Not directly observed in this pass.
+
+8) Remaining Uncertainties
+- Whether the target run path now reaches and uses seeded transition buffers before any failing table-copy path.
+- Whether A1=0x0000FF failure is eliminated versus shifted to a later point.
+- Whether additional non-video ordering (outside this narrowed buffer seed) is still missing in the active launcher-to-frontend path.
+
+9) Rule Compliance Check
+- No opcode/spec patch changes: YES
+- No manual selector seed: YES
+- Prior A5+0x0104 fix preserved: YES
+- No shadow RAM: YES
+- No startup_common restore: YES
+- No C/D-window reintroduction: YES
+
+10) Artifact Path
+- dist/Rastan_180.bin
+```
+
+### MAME Exit Summary (2026-03-25 14:25:31)
+- Final PC: 0x217DC8
+- Stack Pointer (SP): 0xE0FFFC10
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-03-25 14:30:30)
+- Final PC: 0x217DC2
+- Stack Pointer (SP): 0xE0FFFC10
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 206, Optional QR Crash Dumper]
+```text
+1) Objective
+- Add an optional compile-time-gated QR crash dumper path while preserving default SGDK exception behavior when disabled.
+
+2) Toggle Design
+- Flag name: RASTAN_USE_QR_EXCEPTION_DUMPER.
+- Build wiring: apps/rastan/Makefile now passes EXTRA_FLAGS with -DRASTAN_USE_QR_EXCEPTION_DUMPER=$(RASTAN_USE_QR_EXCEPTION_DUMPER) for release/debug and nohook variants.
+- Flag OFF (default): vectors in src/boot/sega.s map to SGDK handlers (_Bus_Error, _Address_Error, etc.).
+- Flag ON: vectors map to custom _Rastan_QR_* handlers.
+
+3) Files Changed
+- apps/rastan/Makefile
+- apps/rastan/src/boot/sega.s
+- apps/rastan/src/z_qr_exception_handlers.s
+- apps/rastan/src/z_qr_exception.c
+- apps/rastan/src/z_qrcodegen.c
+- apps/rastan/src/qrcodegen.h
+- docs/research/qr_crash_dumper_usage.md
+
+4) Exception Hook Method
+- Hook method: 68K vector redirection at boot vector table (sega.s) via compile-time macros.
+- Custom handler path (_Rastan_QR_*): capture D0-D7, A0-A7, SSP, USP, and first 16 exception-frame words in assembly, then call rastan_qr_exception_render().
+- Renderer prints readable crash summary and draws QR code on BG_A, then halts in infinite loop.
+
+5) QR Payload Format
+- Primary deterministic compact payload:
+  V1|E%02X|P%08lX|S%04X|0%08lX|1%08lX|A0%08lX|A1%08lX|A5%08lX|T%08lX|U%08lX|W%04X%04X%04X%04X|F%08lX|B%u
+- Fallback payload used when full encode fails:
+  V1|E%02X|P%08lX|S%04X|A1%08lX|A5%08lX|T%08lX|B%u
+
+6) Validation With Flag Disabled
+- Build command: make -C apps/rastan release
+- Build result: PASS
+- Artifact: dist/Rastan_205.bin
+- Evidence default SGDK behavior remains:
+  - out/symbol.txt contains _Bus_Error/_Address_Error and no _Rastan_QR_* symbols.
+  - Vector entries in ROM:
+    - bus=0x217F5E
+    - addr=0x217F72
+    - ill=0x217F8A
+    - zdiv=0x217FA8
+  - QR marker strings absent in ROM (find() returned -1 for RASTAN QR CRASH DUMP / SCAN QR FOR FULL DUMP / V1|E).
+
+7) Validation With Flag Enabled
+- Build command: make -C apps/rastan release RASTAN_USE_QR_EXCEPTION_DUMPER=1
+- Build result:
+  - SGDK compile/link stage: PASS
+  - Postpatch startup validation: reports opcode_replace mismatch at 0x0560DA (existing startup postpatch absolute-address coupling), but ROM artifact is still emitted by current release recipe.
+- Artifact: dist/Rastan_206.bin
+- Evidence custom handler path is installed:
+  - out/symbol.txt contains _Rastan_QR_Bus_Error.._Rastan_QR_Error_Exception and rastan_qr_exception_render.
+  - Enabled ROM vectors:
+    - bus=0x2028E2
+    - addr=0x2028EE
+    - ill=0x2028FA
+    - zdiv=0x202906
+  - QR payload/display strings present in ROM:
+    - RASTAN QR CRASH DUMP @ 2218937
+    - SCAN QR FOR FULL DUMP @ 2219184
+    - V1|E @ 2219032
+- Runtime trace attempt (MAME genesistrace, 30s, enabled artifact): no exception reached during capture window, so direct on-screen handler execution was not observed in this pass.
+
+8) Limitations
+- Enabled hooked release currently collides with existing startup postpatch opcode validation at 0x0560DA; this predates/depends on the startup remap coupling and is outside this narrow exception-dumper change.
+- No automated QR scan validation in this pass.
+- No forced crash trigger was added (to avoid changing gameplay/startup logic).
+
+9) Rule Compliance Check
+- Default SGDK behavior preserved when disabled: YES
+- No opcode/spec patch changes: YES
+- No startup/gameplay logic changes: YES
+- QR dumper compile-time gated: YES
+- No shadow RAM: YES
+
+10) Artifact Path(s)
+- Disabled baseline: dist/Rastan_205.bin
+- Enabled QR path (with postpatch mismatch warning in release pipeline): dist/Rastan_206.bin
+```
+
+### MAME Exit Summary (2026-03-25 15:12:35)
+- Final PC: 0x2115A4
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-03-25 15:13:11)
+- Final PC: 0x2115A0
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 215, Three-Mode Exception Dumper With Text-Only Mode]
+```text
+1) Objective
+- Add a 3-mode compile-time exception dumper selector with a new mode-1 text-only crash dump, while preserving mode-0 default SGDK behavior and mode-2 QR behavior.
+
+2) Mode Design
+- Compile-time selector: RASTAN_EXCEPTION_DUMPER_MODE
+  - 0 = default SGDK exception vectors/handlers
+  - 1 = custom text-only dumper (no QR buffers or QR encode/render path)
+  - 2 = custom QR dumper
+- Boot vector routing now keys off mode value in src/boot/sega.s.
+- Custom exception vectors for mode 1/2 route to shared assembly capture handlers (_Rastan_EX_*), then dispatch to mode-selected C renderer.
+
+3) Files Changed
+- apps/rastan/Makefile
+- apps/rastan/src/boot/sega.s
+- apps/rastan/src/z_qr_exception_handlers.s
+- apps/rastan/src/z_qr_exception.c
+- apps/rastan/src/z_qrcodegen.c
+- docs/research/qr_crash_dumper_usage.md
+- docs/research/exception_dumper_modes.md
+
+4) Text-Only Output Format
+- Mode-1 renderer prints one-screen compact dump with fixed-width hex:
+  - EX + code + build
+  - PC/SR
+  - A0/A1
+  - A5/SP
+  - D0/D1
+  - BT line pair (up to 6 entries)
+  - S0/S1/S2 (first 12 frame words)
+- Implemented via format strings in mode-1-only path:
+  - "EX %-13s C%02X  B%u"
+  - "PC %08lX  SR %04X"
+  - "A0 %08lX  A1 %08lX"
+  - "A5 %08lX  SP %08lX"
+  - "D0 %08lX  D1 %08lX"
+  - "BT %06lX %06lX %06lX"
+  - "S0/S1/S2 ..."
+
+5) Validation: Mode 0
+- Build: PASS
+  - command: make -C apps/rastan release RASTAN_EXCEPTION_DUMPER_MODE=0
+  - artifact: dist/Rastan_213.bin
+- Evidence default SGDK behavior preserved:
+  - vectors: bus=0x217F5E, addr=0x217F72, ill=0x217F8A, zdiv=0x217FA8
+  - symbols include _Bus_Error and _Address_Error
+  - no custom text-mode or QR marker strings in ROM
+
+6) Validation: Mode 1
+- Build: PASS
+  - command: make -C apps/rastan release RASTAN_EXCEPTION_DUMPER_MODE=1
+  - artifact: dist/Rastan_214.bin
+- Evidence custom text-only path installed:
+  - vectors: bus=0x2028E2, addr=0x2028EE, ill=0x2028FA, zdiv=0x202906
+  - symbols include _Rastan_EX_* and rastan_exception_render
+  - mode-1 text format strings present in ROM
+- Evidence QR path is not used in mode 1:
+  - QR marker strings absent (RASTAN QR CRASH DUMP / SCAN QR FOR FULL DUMP / V1|E%02X|)
+  - no qrcodegen* symbols in out/symbol.txt for mode-1 build
+- Runtime note:
+  - MAME genesistrace run (20s) completed; no exception was hit during capture, so direct on-screen text dump was not observed in this pass.
+
+7) Validation: Mode 2
+- Build:
+  - command: make -C apps/rastan release RASTAN_EXCEPTION_DUMPER_MODE=2
+  - SGDK compile/link stage: PASS
+  - postpatch startup validation reports existing opcode_replace mismatch at 0x0560DA (same startup coupling issue family)
+  - artifact emitted: dist/Rastan_215.bin
+- Evidence QR mode preserved:
+  - vectors: bus=0x2028E2, addr=0x2028EE, ill=0x2028FA, zdiv=0x202906
+  - symbols include _Rastan_EX_* and qrcodegen_encodeText
+  - QR strings present in ROM (RASTAN QR CRASH DUMP, SCAN QR FOR FULL DUMP, V1|E%02X|)
+
+8) Limitations
+- Direct crash-screen observation was not captured in this pass for mode 1 or mode 2 (no exception reached during trace window).
+- Mode-2 release still encounters existing postpatch startup validation mismatch at 0x0560DA, though a ROM artifact is emitted.
+- No automated scanner verification for mode-2 QR payload in this pass.
+
+9) Rule Compliance Check
+- Default SGDK behavior preserved: YES
+- Text-only mode added: YES
+- QR mode preserved: YES
+- No opcode/spec patch changes: YES
+- No startup/gameplay logic changes: YES
+- Compile-time mode selection implemented: YES
+- Mode 1 avoids QR path: YES
+
+10) Artifact Path(s)
+- Mode 0: dist/Rastan_213.bin
+- Mode 1: dist/Rastan_214.bin
+- Mode 2: dist/Rastan_215.bin
+```
+
+## [Cody - Research, A1=0x000000FF Origin Trace at 0x055E94]
+```text
+1) Objective
+- Trace the exact producer chain for A1=0x000000FF at Build 214 crash site PC=0x055E94, with research-only constraints.
+
+2) Crash Signature
+- EX ADDRESS_ERROR C02 B214
+- PC 00055E94
+- A0 0003A458
+- A1 000000FF
+- A5 E0FF004C
+- D0 00000000
+- D1 00000000
+- BT includes 03A27A
+
+3) Instruction at 0x055E94
+- Build 214 disassembly/Ghidra:
+  - 0x055E94 = move.w D2,D7
+  - preceding 0x055E92 = move.w (A1),(A0)+
+- Address error is explained by the 0x055E92 word read through odd invalid A1=0x000000FF.
+- Reported PC at 0x055E94 is consistent with prior-instruction memory-fault reporting in this exception path.
+
+4) A1 Producer Chain
+- Proven intended chain:
+  - 0x055E78: movea.l #0x0010D104,A1
+  - 0x055E86: bsr.w 0x055E90
+  - 0x055E92: move.w (A1),(A0)+
+- Proven mismatch:
+  - Crash A1=0x000000FF is incompatible with the intended immediate setup at 0x055E78.
+- Last exact writer of literal 0x000000FF:
+  - UNKNOWN from static-only slice.
+- Last proven expected writer remains 0x055E78.
+
+5) Relationship to 0x03A27A Transition Cluster
+- In Build 214, 0x03A274/0x03A27A is the interrupt-dispatch epilogue region:
+  - 0x03A274: jsr 0x055EA2
+  - 0x03A27A: andi #$F0FF,SR
+  - 0x03A27E: rte
+- 0x03A27A in BT is a context marker, not the direct dereference site.
+- Direct fault site is still 0x055E92.
+- Causality link: 0x03A274 currently calls 0x055EA2 (wrong entry in this build window).
+
+6) Source Classification of 0x00FF
+- Classification: OTHER (stale/invalid address-register state at copy-loop entry).
+- 0x00FF is not a valid destination/source pointer for 16-bit memory access.
+- The loop body executes with broken setup contract (A1 should be 0x0010D104 before dereference).
+
+7) Root Cause
+- ROOT CAUSE:
+  - A1 becomes 0x000000FF at fault because execution enters/loops through copy-kernel body (0x055E92) without valid A1 setup.
+  - Immediate bad source: stale A1 at loop entry.
+  - Why wrong: call target at 0x03A274 points to 0x055EA2 (mid-copy body in Build 214) instead of the relocated dispatcher start block (observed at 0x055EB8 with cmpi.w #0,(0x4A,A5)).
+- Primary class: BAD COPY PATH.
+
+8) Minimal Fix Target
+- fix_area: absolute call target relocation for 0x03A274 (arcade source callsite 0x03A074).
+- exact_state_or_path_to_change:
+  - retarget the call to the relocated start of the intended dispatcher routine (Build 214: 0x055EB8), not 0x055EA2.
+- why this is minimum:
+  - restores routine-entry contract for A1 without broad startup redesign.
+- what must NOT change:
+  - no manual selector seed
+  - no NOP/RTS bypass
+  - no startup_common wholesale restore
+  - no shadow RAM workaround
+
+9) Uncertainties
+- Exact final instruction that wrote literal A1=0x000000FF is not directly proven by static backward slice alone.
+- Exception-frame PC formatting details are implementation-specific; dereference fault at 0x055E92 remains the proven memory access failure.
+
+10) What Was NOT Done
+- no code changes
+- no spec changes
+- no build changes
+- no opcode bypassing
+- no startup restoration
+- no shadow RAM
+```
+
+## [Cody - Research/Tooling, Semantic Entry Validation Step 1]
+```text
+1) Objective
+- Build a minimal read-only semantic routine-entry validation layer that detects when a callsite lands at a non-entry internal address instead of the intended semantic routine entry.
+
+2) Manifest Design
+- Added: docs/research/semantic_entry_manifest.json
+- Structure:
+  - routines[]: logical_name, arcade_entry, genesis_entry, known_non_entry_internal_targets, notes
+  - validation_cases[]: case_id, callsite_genesis, callsite_arcade_context, logical_target, observed_target_genesis, evidence
+- Step-1 scope intentionally includes one routine only:
+  - logical_name: frontend_copy_dispatch_entry
+  - declared semantic entry: genesis 0x055EB8
+  - known non-entry internal target: genesis 0x055EA2
+
+3) Validation Script Design
+- Added: tools/check_semantic_entries.py (read-only)
+- Behavior:
+  - reads manifest JSON
+  - resolves callsite targets from ROM bytes first (dist/Rastan_214.bin)
+  - optional disasm fallback (build/maincpu.disasm.txt)
+  - optional manifest-observed fallback when decode is unavailable
+  - classifies each case as MATCH_ENTRY / INSIDE_BODY / OUTSIDE_EXPECTED / UNRESOLVED
+- No file modification, no patch generation, no auto-fix logic.
+
+4) Current Test Case
+- case_id: build214_wrong_entry_03A274
+- callsite:
+  - arcade context: 0x03A074
+  - genesis: 0x03A274
+- resolved target from ROM decode: 0x055EA2
+- declared semantic entry: 0x055EB8
+- classification: INSIDE_BODY
+
+5) Whether Current Build 214 Bug Is Detected
+- YES.
+- The checker flags 0x03A274 -> 0x055EA2 as INSIDE_BODY against semantic entry 0x055EB8.
+
+6) Deliverables Written
+- docs/research/semantic_entry_manifest.json
+- tools/check_semantic_entries.py
+- docs/research/semantic_entry_validation_build214.md
+
+7) Limitations
+- Step-1 coverage is intentionally minimal (one routine + one case).
+- INSIDE_BODY detection currently depends on manifest-listed internal addresses (not full CFG/function-boundary inference).
+- build/maincpu.disasm.txt is not a full Build-214 relocated disassembly source for this case; ROM-byte decode is primary.
+- No CI integration in this pass.
+
+8) What Was Explicitly NOT Done
+- no opcode/spec patch changes
+- no callsite retargeting
+- no startup/gameplay changes
+- no shift-table changes
+- no automatic fixes
+```
+
+## [Cody - Research/Tooling, Semantic Entry Validation Step 2 Batch Coverage]
+```text
+1) Objective
+- Expand semantic entry validation from the single proven Build 214 case into a proactive, read-only batch checker over a curated high-risk routine set.
+
+2) Manifest Coverage Expansion
+- Updated docs/research/semantic_entry_manifest.json from Step-1 single routine to Step-2 curated coverage.
+- Added high-risk routines focused on entry-vs-mid-body sensitivity (copy/dispatch, selector seed gate, bridge prologue-sensitive entries, startup/frontend helper gates).
+- Retained existing proven routine/case for 0x03A274 -> 0x055EA2 vs intended 0x055EB8.
+
+3) Batch Checker Changes
+- Updated tools/check_semantic_entries.py for batch operation:
+  - supports expanded multi-routine, multi-case manifests
+  - decodes JSR/JMP abs.l, BSR.b, and BSR.w targets from ROM bytes
+  - prints routine/case coverage totals
+  - prints per-classification counts (MATCH_ENTRY / INSIDE_BODY / OUTSIDE_EXPECTED / UNRESOLVED)
+  - prints explicit "Cases Requiring Human Review" list
+  - added optional --fail-on-suspect (nonzero exit when INSIDE_BODY/OUTSIDE_EXPECTED/UNRESOLVED exists)
+- Corrected BSR.W target computation to match 68000 branch displacement semantics.
+
+4) Number of Routines Covered
+- 8 routines.
+
+5) Number of Validation Cases
+- 15 cases.
+
+6) Batch Results Summary
+- MATCH_ENTRY: 12
+- INSIDE_BODY: 3
+- OUTSIDE_EXPECTED: 0
+- UNRESOLVED: 0
+- Existing known Build 214 wrong-entry case remains detected: YES (build214_wrong_entry_03A274).
+
+7) Additional Suspect Cases Found
+- YES: 2 additional INSIDE_BODY cases (MEDIUM confidence)
+  - build214_selector_seed_callsite_03A93E -> 0x04547E vs declared entry 0x04549A
+  - build214_selector_seed_callsite_03A85C -> 0x04549C vs declared entry 0x04549A
+
+8) Deliverables Written
+- docs/research/semantic_entry_manifest.json (expanded Step-2 coverage)
+- tools/check_semantic_entries.py (batch-oriented checker updates)
+- docs/research/semantic_entry_validation_batch_build214.md (batch validation report)
+
+9) Limitations
+- Coverage is intentionally curated (not whole-ROM).
+- INSIDE_BODY detection still depends on manifest-listed internal targets, not full CFG/function-boundary inference.
+- Additional selector-seed suspects are currently MEDIUM confidence and require focused human/Ghidra confirmation.
+- No CI/build integration enabled in this pass.
+
+10) What Was Explicitly NOT Done
+- no opcode/spec patch changes
+- no callsite retargeting
+- no startup/gameplay changes
+- no shift-table changes
+- no automatic fixes
+```

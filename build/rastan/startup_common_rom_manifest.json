@@ -435,7 +435,7 @@
     {
       "range": "frontend_core",
       "old": "0x00200000",
-      "new": "0xE0FF70B0",
+      "new": "0xE0FF711C",
       "count": 0
     },
     {
@@ -573,7 +573,7 @@
     {
       "range": "title_init_block",
       "old": "0x00200000",
-      "new": "0xE0FF70B0",
+      "new": "0xE0FF711C",
       "count": 1
     },
     {
@@ -633,7 +633,7 @@
     {
       "range": "helper_200000_init",
       "old": "0x00200000",
-      "new": "0xE0FF70B0",
+      "new": "0xE0FF711C",
       "count": 0
     },
     {
@@ -687,13 +687,13 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00200000",
-      "new": "0xE0FF70B0",
+      "new": "0xE0FF711C",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00201000",
-      "new": "0xE0FF80B0",
+      "new": "0xE0FF811C",
       "count": 2
     },
     {
@@ -943,7 +943,7 @@
       "new_window_start": "0xE0FF404C",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
-      "count": 2
+      "count": 0
     },
     {
       "range": "rastan_maincpu_blob_d00048_alias_patch",
@@ -1523,7 +1523,7 @@
     },
     {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x39F9B4",
+      "rom_offset": "0x39F320",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1550,10 +1550,10 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x7C03",
+  "checksum": "0x26D4",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x00216F46",
+    "reset_pc": "0x00217850",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

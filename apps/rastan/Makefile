@@ -6,6 +6,8 @@ ROOT := $(abspath ../..)
 PYTHON ?= python3
 VARIANT ?= world_rev1
 NOHOOK_FLAGS := -DRASTAN_ENABLE_STARTUP_HOOK=0
+RASTAN_EXCEPTION_DUMPER_MODE ?= 0
+EXCEPTION_DUMPER_FLAGS := -DRASTAN_EXCEPTION_DUMPER_MODE=$(RASTAN_EXCEPTION_DUMPER_MODE)
 RASTAN_BUILD_NUMBER ?= 0
 BUILD_INFO_HEADER := $(CURDIR)/inc/build_info.h
 MD_LDSCRIPT := $(CURDIR)/linker_rastan.ld
@@ -31,7 +33,7 @@ release:
 		--manifest "$(ROOT)/build/rastan/maincpu_patch_manifest.json" \
 		--startup-output "$(ROOT)/build/rastan/startup_common_slice.bin" \
 		--startup-manifest "$(ROOT)/build/rastan/startup_common_manifest.json"; \
-	$(MAKE) -f $(GDK)/makefile.gen release MD_LDSCRIPT="$(MD_LDSCRIPT)"; \
+	$(MAKE) -f $(GDK)/makefile.gen release EXTRA_FLAGS="$(EXCEPTION_DUMPER_FLAGS)" MD_LDSCRIPT="$(MD_LDSCRIPT)"; \
 	$(PYTHON) "$(ROOT)/tools/translation/postpatch_startup_rom.py" \
 		--variant "$(VARIANT)" \
 		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
@@ -56,7 +58,7 @@ release-nohook:
 		--variant "$(VARIANT)" \
 		--hook-mode "nohook"; \
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"; \
-	$(MAKE) -f $(GDK)/makefile.gen release EXTRA_FLAGS="$(NOHOOK_FLAGS)" MD_LDSCRIPT="$(MD_LDSCRIPT)"; \
+	$(MAKE) -f $(GDK)/makefile.gen release EXTRA_FLAGS="$(NOHOOK_FLAGS) $(EXCEPTION_DUMPER_FLAGS)" MD_LDSCRIPT="$(MD_LDSCRIPT)"; \
 	printf "%s" "$$count" > ../../dist/release_counter.txt; \
 	name="Rastan_$${count}.bin"; \
 	cp out/rom.bin ../../dist/$$name; \
@@ -79,7 +81,7 @@ debug:
 		--manifest "$(ROOT)/build/rastan/maincpu_patch_manifest.json" \
 		--startup-output "$(ROOT)/build/rastan/startup_common_slice.bin" \
 		--startup-manifest "$(ROOT)/build/rastan/startup_common_manifest.json"; \
-	$(MAKE) -f $(GDK)/makefile.gen debug MD_LDSCRIPT="$(MD_LDSCRIPT)"; \
+	$(MAKE) -f $(GDK)/makefile.gen debug EXTRA_FLAGS="$(EXCEPTION_DUMPER_FLAGS)" MD_LDSCRIPT="$(MD_LDSCRIPT)"; \
 	$(PYTHON) "$(ROOT)/tools/translation/postpatch_startup_rom.py" \
 		--variant "$(VARIANT)" \
 		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
@@ -96,7 +98,7 @@ debug-nohook:
 		--variant "$(VARIANT)" \
 		--hook-mode "debug-nohook"; \
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"; \
-	$(MAKE) -f $(GDK)/makefile.gen debug EXTRA_FLAGS="$(NOHOOK_FLAGS)" MD_LDSCRIPT="$(MD_LDSCRIPT)"
+	$(MAKE) -f $(GDK)/makefile.gen debug EXTRA_FLAGS="$(NOHOOK_FLAGS) $(EXCEPTION_DUMPER_FLAGS)" MD_LDSCRIPT="$(MD_LDSCRIPT)"
 
 clean:
 	$(MAKE) -f $(GDK)/makefile.gen clean

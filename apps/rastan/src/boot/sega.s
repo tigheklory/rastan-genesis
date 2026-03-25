@@ -1,5 +1,35 @@
 #include "task_cst.h"
 
+#ifndef RASTAN_EXCEPTION_DUMPER_MODE
+#define RASTAN_EXCEPTION_DUMPER_MODE 0
+#endif
+
+#if RASTAN_EXCEPTION_DUMPER_MODE == 0
+#define RASTAN_VEC_BUS _Bus_Error
+#define RASTAN_VEC_ADDR _Address_Error
+#define RASTAN_VEC_ILL _Illegal_Instruction
+#define RASTAN_VEC_ZDIV _Zero_Divide
+#define RASTAN_VEC_CHK _Chk_Instruction
+#define RASTAN_VEC_TRAPV _Trapv_Instruction
+#define RASTAN_VEC_PRIV _Privilege_Violation
+#define RASTAN_VEC_TRACE _Trace
+#define RASTAN_VEC_LINE1010 _Line_1010_Emulation
+#define RASTAN_VEC_LINE1111 _Line_1111_Emulation
+#define RASTAN_VEC_ERR _Error_Exception
+#else
+#define RASTAN_VEC_BUS _Rastan_EX_Bus_Error
+#define RASTAN_VEC_ADDR _Rastan_EX_Address_Error
+#define RASTAN_VEC_ILL _Rastan_EX_Illegal_Instruction
+#define RASTAN_VEC_ZDIV _Rastan_EX_Zero_Divide
+#define RASTAN_VEC_CHK _Rastan_EX_Chk_Instruction
+#define RASTAN_VEC_TRAPV _Rastan_EX_Trapv_Instruction
+#define RASTAN_VEC_PRIV _Rastan_EX_Privilege_Violation
+#define RASTAN_VEC_TRACE _Rastan_EX_Trace
+#define RASTAN_VEC_LINE1010 _Rastan_EX_Line_1010_Emulation
+#define RASTAN_VEC_LINE1111 _Rastan_EX_Line_1111_Emulation
+#define RASTAN_VEC_ERR _Rastan_EX_Error_Exception
+#endif
+
 .section .text.keepboot
 
 *-------------------------------------------------------
@@ -21,20 +51,20 @@ _Start_Of_Rom:
 _Vecteurs_68K:
         dc.l    __stack                 /* Stack address */
         dc.l    _Entry_Point            /* Program start address */
-        dc.l    _Bus_Error
-        dc.l    _Address_Error
-        dc.l    _Illegal_Instruction
-        dc.l    _Zero_Divide
-        dc.l    _Chk_Instruction
-        dc.l    _Trapv_Instruction
-        dc.l    _Privilege_Violation
-        dc.l    _Trace
-        dc.l    _Line_1010_Emulation
-        dc.l    _Line_1111_Emulation
-        dc.l     _Error_Exception, _Error_Exception, _Error_Exception, _Error_Exception
-        dc.l     _Error_Exception, _Error_Exception, _Error_Exception, _Error_Exception
-        dc.l     _Error_Exception, _Error_Exception, _Error_Exception, _Error_Exception
-        dc.l    _Error_Exception
+        dc.l    RASTAN_VEC_BUS
+        dc.l    RASTAN_VEC_ADDR
+        dc.l    RASTAN_VEC_ILL
+        dc.l    RASTAN_VEC_ZDIV
+        dc.l    RASTAN_VEC_CHK
+        dc.l    RASTAN_VEC_TRAPV
+        dc.l    RASTAN_VEC_PRIV
+        dc.l    RASTAN_VEC_TRACE
+        dc.l    RASTAN_VEC_LINE1010
+        dc.l    RASTAN_VEC_LINE1111
+        dc.l     RASTAN_VEC_ERR, RASTAN_VEC_ERR, RASTAN_VEC_ERR, RASTAN_VEC_ERR
+        dc.l     RASTAN_VEC_ERR, RASTAN_VEC_ERR, RASTAN_VEC_ERR, RASTAN_VEC_ERR
+        dc.l     RASTAN_VEC_ERR, RASTAN_VEC_ERR, RASTAN_VEC_ERR, RASTAN_VEC_ERR
+        dc.l    RASTAN_VEC_ERR
         dc.l    _INT
         dc.l    _EXTINT
         dc.l    _INT
