@@ -952,11 +952,11 @@ static void render_startup_preview_screen(void)
     sprintf(line, "3E %02X/%02X  C5 %04X  3C %04X", genesistan_shadow_reg_3e0001, genesistan_shadow_reg_3e0003, genesistan_shadow_reg_c50000, genesistan_shadow_reg_3c0000);
     draw_padded_text(line, 2, 3, 36);
     draw_padded_text("CWIN SHADOW REMOVED (Build 109)", 5, 4, 31);
-    sprintf(line, "C2 %04X %04X C4 %04X %04X",
-            genesistan_shadow_c20000_words[0],
-            genesistan_shadow_c20000_words[1],
-            genesistan_shadow_c40000_words[0],
-            genesistan_shadow_c40000_words[1]);
+    sprintf(line, "BG %04X/%04X FG %04X/%04X",
+            genesistan_arcade_workram_words[0x10EC / 2],
+            genesistan_arcade_workram_words[0x10EE / 2],
+            genesistan_arcade_workram_words[0x10AE / 2],
+            genesistan_arcade_workram_words[0x10B0 / 2]);
     draw_padded_text(line, 8, 5, 24);
     sprintf(line, "PAL %04X %04X %04X %04X",
             genesistan_palette_rom_table[0],

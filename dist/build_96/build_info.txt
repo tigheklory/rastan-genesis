@@ -1,4 +1,0 @@
-build_number=96
-date_utc=2026-03-20T21:27:02Z
-rom_file=rom.bin
-rom_md5=33da0c96b4612d6b40b22aba6b351f65

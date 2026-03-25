@@ -113,15 +113,15 @@
       "window": "C",
       "operation_type": "scroll",
       "execution_class": "init_only",
-      "evidence": "startup/common init path -> outside_copied_ranges -> instruction 0x00016A (PC080SN scroll register access (lea)).",
+      "evidence": "genesistan_run_original_frontend_tick() -> frontend state dispatch block around 0x03B020 -> conditional branch at 0x03B056 (DIP-selected test path) -> jump target 0x000100 -> BSR 0x00016A. Build 184 shift_replacement redirects 0x00016A to direct JMP genesistan_scroll_from_workram_vdp.",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Direct window/palette behavior is replaced by target hardware path once replacement is complete.",
       "replacement_target": "VDP scroll write",
       "source_origin": "other",
-      "patch_status": "unpatched",
+      "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "Medium",
-      "notes": "Auto-added from full disassembly scan: `lea 0xc20002,%a0` in range `outside_copied_ranges`."
+      "notes": "Resolved via shift-table replacement to direct JMP 0x00200D4E (genesistan_scroll_from_workram_vdp). This removes direct PC080SN register pointer setup from the reachable diagnostic branch."
     },
     {
       "arcade_addr": "0x000170",
@@ -129,16 +129,16 @@
       "role": "PC080SN scroll register access (lea)",
       "window": "C",
       "operation_type": "scroll",
-      "execution_class": "init_only",
-      "evidence": "startup/common init path -> outside_copied_ranges -> instruction 0x000170 (PC080SN scroll register access (lea)).",
+      "execution_class": "dead_or_retired",
+      "evidence": "No direct call/jump references to 0x000170 in build/maincpu.disasm.txt. After Build 184 replacement at 0x00016A, control no longer falls through into 0x000170 (0x00016A is now JMP to genesistan_scroll_from_workram_vdp followed by RTS in target).",
       "safe_to_nop_after_replacement": "YES",
       "safe_to_nop_reason": "Direct window/palette behavior is replaced by target hardware path once replacement is complete.",
       "replacement_target": "VDP scroll write",
       "source_origin": "other",
-      "patch_status": "unpatched",
+      "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "Medium",
-      "notes": "Auto-added from full disassembly scan: `lea 0xc40002,%a1` in range `outside_copied_ranges`."
+      "notes": "Resolved: companion boot scroll setup site is now unreachable from normal control flow and independently patched to JMP 0x00200D4E. No direct C200/C400 pointer setup remains active here."
     },
     {
       "arcade_addr": "0x000264",
@@ -2212,7 +2212,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd. This was zeroing the scroll each frame. VDP scroll is now managed by sync_arcade_scroll_to_vdp()."
+      "notes": "Direct opcode replacement now issues JSR 0x00200D4E (genesistan_scroll_from_workram_vdp). Legacy CLR.L hardware scroll clear removed without NOP bypass."
     },
     {
       "arcade_addr": "0x03ABC0",
@@ -2229,7 +2229,7 @@
       "patch_status": "already_patched",
       "priority": "not_needed",
       "confidence": "High",
-      "notes": "NOP'd."
+      "notes": "Direct opcode replacement now issues JSR 0x00200D4E (genesistan_scroll_from_workram_vdp). Legacy CLR.L hardware scroll clear removed without NOP bypass."
     },
     {
       "arcade_addr": "0x03ABC6",
@@ -2890,9 +2890,9 @@
       "replacement_target": "VDP scroll write",
       "source_origin": "other",
       "patch_status": "already_patched",
-      "priority": "required_now_frontend",
+      "priority": "not_needed",
       "confidence": "Medium",
-      "notes": "Auto-added from full disassembly scan: `clrl 0xc20000` in range `title_init_block`. [Build 162] Covered by opcode_replace at 0x03B098 replacing CLR.L 0xC20000/0xC40000 with NOP+RTS; no direct C-window scroll register access remains in this routine."
+      "notes": "Direct opcode replacement now issues JSR 0x00200D4E (genesistan_scroll_from_workram_vdp). Legacy CLR.L hardware scroll clear removed without NOP/RTS bypass."
     },
     {
       "arcade_addr": "0x03B09E",
@@ -2907,9 +2907,9 @@
       "replacement_target": "VDP scroll write",
       "source_origin": "other",
       "patch_status": "already_patched",
-      "priority": "required_now_frontend",
+      "priority": "not_needed",
       "confidence": "Medium",
-      "notes": "Auto-added from full disassembly scan: `clrl 0xc40000` in range `title_init_block`. [Build 162] Covered by opcode_replace at 0x03B098 replacing CLR.L 0xC20000/0xC40000 with NOP+RTS; no direct C-window scroll register access remains in this routine."
+      "notes": "Direct opcode replacement now issues JSR 0x00200D4E (genesistan_scroll_from_workram_vdp). Legacy CLR.L hardware scroll clear removed without NOP/RTS bypass."
     },
     {
       "arcade_addr": "0x03B0A6",

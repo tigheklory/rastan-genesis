@@ -1334,32 +1334,32 @@
       "arcade_pc": "0x03ABBA",
       "rom_pc": "0x03ADCC",
       "original_bytes": "42b900c20000",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP CLR.L 0xC20000. CLR.L is a read-modify-write on 68000 \u2014 the read cycle crashes Genesis bus. Result discarded; scroll register re-written each frame. Fires every VBlank during attract."
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03ABC0",
       "rom_pc": "0x03ADD2",
       "original_bytes": "42b900c40000",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP CLR.L 0xC40000. Pair with 0x03ABBA \u2014 same VBlank path."
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03B098",
       "rom_pc": "0x03B2AA",
       "original_bytes": "42b9e1014854",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP frontend startup scroll clear write 1 (CLR.L remapped 0xC20000). Removes direct PC080SN scroll register access; Genesis scroll is driven by sync_arcade_scroll_to_vdp()."
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03B09E",
       "rom_pc": "0x03B2B0",
       "original_bytes": "42b9e1034854",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP frontend startup scroll clear write 2 (CLR.L remapped 0xC40000). Pair with 0x03B098."
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
       "kind": "opcode_replace",
@@ -1550,7 +1550,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0xF2FD",
+  "checksum": "0x7C03",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x00216F46",

@@ -16307,3 +16307,884 @@ remaining issues proven in this pass:
 - Boot-path direct hardware scroll writes at 0x00016A/0x000170 have UNKNOWN reachability under current trampoline entry architecture and are not replaced by direct VDP mapping.
 - Shadow scroll reads still exist in startup preview diagnostics UI (main.c render_startup_preview_screen), though not in SCREEN_FRONTEND_LIVE scroll path.
 ```
+
+## [Andy — Required Genesis Graphics Function Surface]
+```text
+DATE: 2026-03-24
+SCOPE: Function-surface analysis. No code modifications. No builds.
+GOAL:  Identify the complete set of Genesis-side rendering functions required
+       to fully eliminate C-window, D-window, and graphics shadow RAM.
+
+Sources consulted:
+  AGENTS.md, AGENTS_LOG.md (full history),
+  docs/replacement_inventory/fullgame_window_replacement_inventory.json (344 items),
+  specs/startup_title_remap.json (77 opcode_replace entries),
+  apps/rastan/src/main.c, apps/rastan/src/startup_bridge.c,
+  build/maincpu.disasm.txt
+
+═══════════════════════════════════════════════════════════════════
+=== REQUIRED_FUNCTION_SURFACE ===
+═══════════════════════════════════════════════════════════════════
+
+─────────────────────────────────────────────────────────────────
+SUBSYSTEM: TILEMAP (PC080SN → VDP nametable)
+─────────────────────────────────────────────────────────────────
+
+- function_name: vdp_tilemap_write_bg_cell
+  (current impl: genesistan_hook_tilemap_plane_a)
+- subsystem: tilemap
+- arcade_chip_source: PC080SN
+- replaces: All C-window BG-plane cell writes routed through 0x055968
+  (MOVE.W to C-window page-0 cells, arcade BG layer 0)
+- required_inputs:
+    arcade tile code (14-bit index into rastan_pc080sn ROM)
+    attribute word (palette line bits 8:7, flip bits)
+    destination cell address (col, row in nametable)
+- required_outputs:
+    VDP nametable cell written to BG_B (Plane B, VRAM 0xC000)
+    PC080SN tile data uploaded to VRAM via tile_cache_get()
+- call_frequency: per_frame (16 columns per invocation; full 40-col
+  screen built over 3 invocations per frame cycle)
+- current_status: PARTIAL
+- evidence:
+    Hook at 0x055968 in spec, function genesistan_hook_tilemap_plane_a
+    in main.c:1186. Reads ROM directly at TILEMAP_ROM_BASE + stride.
+    Correctly writes BG_B. Cursor advance logic (col_a, row_a) exists.
+    BUT: only the 0x055968 dispatch path is hooked. The full game has
+    many other C-window write callers (all 210 C-window items in
+    fullgame inventory) that still route to genesistan_cwindow_null.
+    Tilemap is correct for frontend tick; not covered for gameplay
+    level transitions, enemy reveals, or dynamic cell updates.
+- notes:
+    The two write-function hooks cover the primary per-frame dispatch.
+    Full coverage requires all scroll-driven dynamic cell writes to also
+    reach this hook or an equivalent. Currently suppressed by blanket
+    window_rewrite_rule mapping to cwindow_null.
+
+- function_name: vdp_tilemap_write_fg_cell
+  (current impl: genesistan_hook_tilemap_plane_b)
+- subsystem: tilemap
+- arcade_chip_source: PC080SN
+- replaces: All C-window FG-plane cell writes routed through 0x055990
+  (MOVE.W to C-window page-2 cells, arcade FG layer 1 / text/HUD plane)
+- required_inputs: same as vdp_tilemap_write_bg_cell
+- required_outputs: VDP nametable cell written to BG_A (Plane A, VRAM 0xE000)
+- call_frequency: per_frame (conditional on mode != 0 gating in workram)
+- current_status: PARTIAL
+- evidence: Hook at 0x055990, genesistan_hook_tilemap_plane_b main.c:1230.
+    Same limitations as BG hook — only covers the 0x055990 dispatch path.
+- notes: In current build, mode at workram[0x854] is typically zero so
+    this hook rarely fires. FG plane may be blank in practice.
+
+- function_name: vdp_tile_cache
+  (current impl: tile_cache_get + tile_cache_slot_to_vram)
+- subsystem: tilemap
+- arcade_chip_source: PC080SN
+- replaces: PC080SN tile ROM access — tiles fetched on-demand from
+  rastan_pc080sn ROM (512KB / 16384 tiles) into VRAM cache
+- required_inputs: arcade tile index (0..16383)
+- required_outputs: VRAM tile slot (20..1023 or 1280..1439); tile data
+  DMA'd into VRAM on cache miss via VDP_loadTileData
+- call_frequency: per_cell_write (called by tilemap and text hooks)
+- current_status: PARTIAL
+- evidence: tile_cache_get() in main.c:1120. LRU eviction over 1164
+    slots. Confirmed working for frontend tilemap. NOT validated for
+    full gameplay tile working set (different stages use different index
+    ranges). Cache clear on scene transition not exposed as callable
+    function — only done at session init via genesistan_reclaim_launcher_wram.
+- notes: O(n) linear scan; working set per scene ~200-400 tiles, well
+    within 1164-slot budget.
+
+- function_name: vdp_tile_cache_clear
+- subsystem: tilemap
+- arcade_chip_source: PC080SN
+- replaces: PC080SN implicit tile state reset on level transition
+- required_inputs: none (resets all 1164 slots to TILE_CACHE_EMPTY)
+- required_outputs: cache arrays zeroed; VRAM tile region implicitly
+    stale (all subsequent writes will miss and re-upload)
+- call_frequency: per_state_transition (on area change, game start, continue)
+- current_status: MISSING
+- evidence: Cache init exists in genesistan_reclaim_launcher_wram()
+    (startup_bridge.c:339-341) but is not exposed as a standalone callable.
+    Gameplay level transitions have no mechanism to invalidate the cache.
+- notes: Without cache clear on transition, VRAM may contain stale
+    tiles from the previous area, causing visual corruption on new-area entry.
+
+- function_name: vdp_plane_region_clear
+- subsystem: tilemap
+- arcade_chip_source: PC080SN
+- replaces: PC080SN CLR operations that zero regions of C-window tilemap
+  (various CLR loops in startup_common, title_init_block, game_engine ranges)
+- required_inputs: plane (BG_A or BG_B), region (start col/row, width, height)
+- required_outputs: VDP nametable region filled with blank/transparent tile
+- call_frequency: per_state_transition (area start, game over, continue screen)
+- current_status: MISSING
+- evidence: At session start, request_start_rastan() calls VDP_clearPlane()
+    (main.c:1691-1692). But this is a launcher-level one-shot, not a
+    callable function reachable from within the running arcade code's
+    transition paths. All C-window CLR operations in the running code
+    route to cwindow_null — no VDP clear is issued.
+- notes: Needed for correct area transition, game over, and attract-mode
+    screen clearing.
+
+─────────────────────────────────────────────────────────────────
+SUBSYSTEM: TEXT (PC080SN FG nametable → VDP Plane A text layer)
+─────────────────────────────────────────────────────────────────
+
+- function_name: vdp_text_write_primary
+  (current impl: genesistan_hook_text_writer_3bb48_impl +
+                 genesistan_hook_text_writer_3bb48 bridge)
+- subsystem: text
+- arcade_chip_source: PC080SN
+- replaces: 0x03BB48 — table-driven C-window text writer dispatcher.
+  Writes attr+glyph word pairs to C-window page-2 FG nametable.
+  Drives all UI text: score labels, stage text, attract mode story
+  text, continue countdown, attract mode labels.
+- required_inputs:
+    D0 = text_id (7-bit index into ROM table at 0x03BB7C)
+    D0 bit 7 = space_fill flag
+    ROM table entry: destination C-window pointer, attr word, glyph string
+- required_outputs:
+    VDP nametable cell written to BG_A (Plane A) for each glyph
+    tile_cache_get() called per glyph character
+- call_frequency: per_event (called from 30+ BSR callsites in frontend
+    state machine, attract phase handlers, game state transitions)
+- current_status: PARTIAL
+- evidence: Hook at 0x03BB48 in spec (Build 145/161). C impl
+    genesistan_hook_text_writer_3bb48_impl in main.c:1343.
+    VDP write path via rastan_draw_tile_xy is correct.
+    DEFECT: shadow backing writes (main.c:1380-1381) to
+    genesistan_arcade_workram_words + 0xC800 are OOB (WRAM is 0x4000
+    bytes; +0xC800 exceeds bounds). These must be removed.
+    DEFECT: callsite at 0x0005C0 (startup_common path) is NOP'd,
+    silencing text output from that path.
+- notes: The hook architecture (JSR bridge + RTS) is correct.
+    Once shadow backing is removed and 0x0005C0 callsite is live,
+    this function can be considered complete.
+
+- function_name: vdp_text_write_dynamic
+  (current impl: genesistan_hook_text_writer_3c3fe — EXISTS IN CODE,
+                 NOT WIRED IN SPEC)
+- subsystem: text
+- arcade_chip_source: PC080SN
+- replaces: 0x03C3FE — second text writer, handles count-driven writes
+  from workram source buffers. Drives: score digits, lives digit,
+  stage number, health indicator text, bonus score display.
+- required_inputs:
+    D0 = text_id (7-bit) → ROM table at 0x03C454
+    D0 bit 7 = space_fill flag
+    Table entry: count, dst_offset (C-window page-2), src_offset (workram)
+- required_outputs:
+    VDP nametable cell written to BG_A (Plane A) for each character
+- call_frequency: per_event (called from 0x03B700 and other stage-text paths)
+- current_status: PARTIAL
+- evidence: C implementation genesistan_hook_text_writer_3c3fe exists at
+    main.c:1413. Reads from ROM table, maps workram bytes to arcade tile
+    indices, calls rastan_draw_tile_xy.
+    NO opcode_replace entry at 0x03C3FE in spec — hook NOT WIRED.
+    Inner write NOPs at 0x03C42A/0x03C446/0x03C44A suppress the existing
+    write sites without redirecting to the hook.
+- notes: This is the #2 highest-priority missing wiring in the current
+    architecture. The C implementation is complete; only the spec entry
+    is missing.
+
+─────────────────────────────────────────────────────────────────
+SUBSYSTEM: SCROLL (PC080SN scroll registers → VDP scroll)
+─────────────────────────────────────────────────────────────────
+
+- function_name: vdp_scroll_update
+  (current impl: genesistan_scroll_from_workram_vdp)
+- subsystem: scroll
+- arcade_chip_source: PC080SN
+- replaces: 0x055AB4/BC/C4/CC — MOVE.W from workram scroll fields to
+  PC080SN scroll hardware registers (0xC20000/0xC40000).
+  Source values: A5@(0x10EE)=BG Y, A5@(0x10EC)=BG X,
+                 A5@(0x10B0)=FG Y, A5@(0x10AE)=FG X
+- required_inputs: live arcade workram words at the above offsets
+  (set by game logic every frame; these are live workram state,
+   not hardware registers — the workram always has the canonical values)
+- required_outputs:
+    VDP_setHorizontalScroll(BG_B, scroll_x_bg)
+    VDP_setVerticalScroll(BG_B, scroll_y_bg)
+    VDP_setHorizontalScroll(BG_A, scroll_x_fg)
+    VDP_setVerticalScroll(BG_A, scroll_y_fg)
+    Vertical crop bias: -8 pixels (240→224 mapping)
+- call_frequency: per_frame
+- current_status: COMPLETE
+- evidence: genesistan_scroll_from_workram_vdp() at main.c:1395.
+    Reads workram words[0x10EE/2], [0x10EC/2], [0x10B0/2], [0x10AE/2]
+    directly. Applies RASTAN_VERTICAL_CROP_BIAS=8 to Y scroll.
+    Called every frame via sync_arcade_scroll_to_vdp() (main.c:1794).
+    The NOP'd hardware write sites (0x055AB4/BC/C4/CC) are CORRECTLY
+    suppressed — they were intermediate hardware writes; the workram
+    values (source of truth) are always live. The function reads
+    workram directly, bypassing the hardware write step entirely.
+- notes: COMPLETE. No shadow dependency. No C-window dependency.
+    The NOP sites are correctly classified as B (bypass of obsolete
+    arcade hardware write), not C (harmful).
+
+─────────────────────────────────────────────────────────────────
+SUBSYSTEM: SPRITE (PC090OJ → VDP SAT)
+─────────────────────────────────────────────────────────────────
+
+- function_name: vdp_sprite_sat_build_frontend
+  (current impl: genesistan_render_sprites_vdp)
+- subsystem: sprite
+- arcade_chip_source: PC090OJ
+- replaces: D-window write paths at 0x041F5E (A5+0x11B2, 18 entries →
+  D003C0) and 0x041DAE (A5+0x0170, 4 entries → D002E0)
+  Title/attract sprite descriptors: player, sword, logo elements
+- required_inputs:
+    genesistan_arcade_workram_words at offset +0x11B2 (18 × 8-byte entries)
+    genesistan_arcade_workram_words at offset +0x0170 (4 × 8-byte entries)
+    Entry layout: word0=attr/flags, word1=y, word2=code(14-bit), word3=x
+    rastan_pc090oj ROM for tile pixel data
+- required_outputs:
+    VRAM tile data uploaded via VDP_loadTileData (up to 64 unique codes)
+    VDP SAT entries written via VDP_setSpriteFull
+    VDP_updateSprites commit
+    CRAM entries updated for sprite palette banks
+- call_frequency: per_frame (SCREEN_FRONTEND_LIVE loop)
+- current_status: PARTIAL
+- evidence: genesistan_render_sprites_vdp() in main.c:1466. Correctly
+    reads two workram blocks, decodes PC090OJ descriptor format,
+    uploads tiles via frontend_decode_pc090oj_cell + VDP_loadTileData,
+    emits VDP_setSpriteFull, commits with VDP_updateSprites.
+    Flipscreen support present. Visibility clipping present.
+    LIMITATION: hardcoded to exactly two workram blocks (18+4 entries).
+    Does not cover gameplay sprite system (enemies, player combat,
+    effects). Does not cover HUD sprites (health bar, score, icons).
+    LIMIT: FRONTEND_RUNTIME_MAX_UNIQUE_CODES=64 tile slots shared
+    across all sprites in a frame.
+- notes: Architecturally correct for the frontend path.
+    Needs extension or separate function for gameplay.
+
+- function_name: vdp_sprite_sat_build_gameplay
+- subsystem: sprite
+- arcade_chip_source: PC090OJ
+- replaces: General D-window writes in game_engine_040000 range
+  (0x040000..0x059AD4). These cover: player character sprites,
+  enemies, effects, sword animations, death animations.
+  The D-window descriptor format for gameplay uses the same
+  PC090OJ 8-byte layout (word0=attr, word1=y, word2=code, word3=x).
+  In gameplay, D-window is populated by many routines across the
+  whole game_engine range, not just two fixed workram blocks.
+- required_inputs:
+    D-window descriptor table (0xD00000..0xD00800 range, up to
+    256 entries × 8 bytes = 2048 bytes total)
+    rastan_pc090oj ROM for tile data
+- required_outputs:
+    Full VDP SAT from all active D-window entries
+    Tiles uploaded via DMA per unique code
+- call_frequency: per_frame (gameplay loop)
+- current_status: MISSING
+- evidence: The game_engine_040000 blanket window_rewrite_rule routes
+    all D-window writes to genesistan_shadow_d00000_words. The shadow
+    buffer IS being populated correctly by the blanket rule (verified:
+    83 address rewrites in game_engine_040000 range per manifest).
+    But no function reads genesistan_shadow_d00000_words to build a
+    VDP SAT in gameplay. The existing genesistan_render_sprites_vdp()
+    only reads the two fixed workram blocks. Inventory shows 67 D-window
+    items; 37 unpatched/partially_patched in required_now_gameplay.
+- notes: This is the single largest missing function for gameplay.
+    The shadow buffer provides the data; the function must read it
+    and emit VDP SAT entries. This is the correct transition path
+    before eventually replacing the shadow with inline VDP writes.
+
+- function_name: vdp_sprite_sat_build_hud
+- subsystem: sprite
+- arcade_chip_source: PC090OJ
+- replaces: Three distinct HUD D-window write paths:
+  (a) 0x05A098/0x05A11A — health bar descriptor builder + write loop
+      (D00048 block, fired every frame from 0x051054 callsite)
+  (b) 0x059F92 — item/status icon descriptor builder
+      (D00048 block, fired every frame from 0x051060 callsite)
+  (c) 0x03B802/0x03B866 — score digit + lives digit D-window emitter
+      (fired on score/lives change from 0x03B726, called from 4 gameplay
+      callsites: 0x044862, 0x044874, 0x044E84, 0x046AAC)
+- required_inputs:
+    (a) A5@(0x013A) = energy/health word (0..0x3000 range)
+    (b) A5 item/status flag bytes (various offsets)
+    (c) A5 score BCD bytes, A5@(0x0100/0x0102) lives count
+    rastan_pc090oj ROM for digit/icon tile data
+- required_outputs:
+    VDP SAT entries for health bar segment sprites
+    VDP SAT entries for item icon sprites
+    VDP SAT entries for score/lives digit sprites
+    All committed via VDP_updateSprites
+- call_frequency: per_frame (health/icons); per_event (score/lives)
+- current_status: MISSING
+- evidence: fullgame inventory shows 0x059F62 (direct write, active_every_frame),
+    0x05A11A (direct write, active_every_frame), 0x03B802 (direct write,
+    active_conditional_gameplay) all unpatched. These routines write
+    to D-window descriptor regions that are currently collected into
+    genesistan_shadow_d00000_words by the blanket rule but never rendered.
+    Inventory items 0x051054/0x051060 confirm health/icon callsites are
+    active every frame in gameplay.
+- notes: The HUD must remain visible during gameplay — score, health,
+    and lives are critical game information.
+
+- function_name: vdp_sprite_tile_upload
+  (current impl: frontend_decode_pc090oj_cell within genesistan_render_sprites_vdp)
+- subsystem: sprite
+- arcade_chip_source: PC090OJ
+- replaces: PC090OJ tile ROM access (rastan_pc090oj, 524288 bytes)
+- required_inputs: 14-bit cell code (each cell = 4 tiles = 128 bytes in PC090OJ ROM)
+- required_outputs: 4 tiles (128 bytes) decoded and uploaded to VRAM
+- call_frequency: per_unique_code_per_frame (max 64 unique codes in current impl)
+- current_status: PARTIAL
+- evidence: frontend_decode_pc090oj_cell() in main.c:1019. Reads 4-tile
+    PC090OJ cell from rastan_pc090oj ROM. Correct decoding confirmed.
+    Limited to FRONTEND_RUNTIME_MAX_UNIQUE_CODES=64 per frame —
+    acceptable for frontend (title sprites are few), but gameplay may
+    need more unique codes on screen simultaneously.
+- notes: The 64-code limit was chosen for frontend; gameplay enemy-heavy
+    scenes may exceed this. Needs capacity review for gameplay.
+
+─────────────────────────────────────────────────────────────────
+SUBSYSTEM: PALETTE (CLCS/800000 shadow → Genesis CRAM)
+─────────────────────────────────────────────────────────────────
+
+- function_name: vdp_palette_upload_initial
+  (current impl: load_arcade_palette with ROM table fallback)
+- subsystem: palette
+- arcade_chip_source: supporting (CLCS palette RAM at 0x800000)
+- replaces: Initial CRAM load on session start
+- required_inputs: genesistan_palette_rom_table (pre-converted 2048-entry ROM table)
+    or populated genesistan_palette_clcs buffer
+- required_outputs: PAL_setColors(0, ..., 64, DMA) — 4 lines × 16 colors to CRAM
+- call_frequency: per_frame (currently called every frame as part of
+    SCREEN_FRONTEND_LIVE loop; more correctly: once on session start,
+    then per_event on palette change)
+- current_status: PARTIAL
+- evidence: load_arcade_palette() in main.c:600. Scans CLCS buffer for
+    first non-zero 64-word block; if found, converts and uploads; otherwise
+    falls back to genesistan_palette_rom_table ROM DMA.
+    For frontend, ROM table fallback is correct and functional.
+    For gameplay, CLCS buffer population depends on 0x59AD4 hook (MISSING)
+    so the runtime palette changes never reach CRAM correctly.
+- notes: The ROM table covers the static color set. Dynamic palette
+    changes during gameplay (boss intros, flash effects, color cycling)
+    require the 0x59AD4 hook to be implemented.
+
+- function_name: vdp_palette_writer_core
+  (no current impl — 0x59AD4 is NOT hooked)
+- subsystem: palette
+- arcade_chip_source: supporting (CLCS at 0x200000 shadow)
+- replaces: 0x59AD4 — arcade palette writer core. Called from 20+
+  gameplay callsites (boss transitions, stage start, attract palette
+  changes, continue screen). Converts 15-bit arcade colors (xBGR555)
+  and writes to CLCS shadow at 0x200000.
+  Called with: A0 = CLCS target address, D0 = color bank index, D1 = entry
+- required_inputs:
+    D0 = color bank/offset (determines which of the 2048 CLCS entries to write)
+    D1 = 15-bit arcade color in xBGR555 format
+    A0 = CLCS target pointer (in 0x200000 shadow region)
+- required_outputs:
+    Direct VDP CRAM write of converted Genesis color (format: 0BBB0GGG0RRR0)
+    No shadow write required (shadow can be eliminated once hook is in place)
+- call_frequency: per_event (boss intro, stage start, attract transitions,
+    continue screen, ~20 callsites across gameplay and frontend)
+- current_status: MISSING
+- evidence: Inventory shows 0x059AD4 as "CLCS palette writer core,
+    active_conditional_gameplay, unpatched". 20+ callsites at
+    0x056136/0x05614A/.../0x05783E/0x0598C2/.../0x05A488 all call
+    0x059AD4. None are patched. genesistan_palette_clcs buffer is
+    declared and sized at 2048 entries but is never populated during
+    gameplay (only at CLCS capture time during startup, if at all).
+    load_arcade_palette() falls back to ROM table because CLCS is empty.
+- notes: This is the palette system blocker. Without hooking 0x59AD4,
+    all runtime palette effects (boss flash, area color changes) are
+    invisible. The hook signature is simple: (A0, D0, D1) → CRAM write.
+
+- function_name: vdp_sprite_palette_update
+  (current impl: refresh_frontend_sprite_palettes)
+- subsystem: palette
+- arcade_chip_source: supporting
+- replaces: Per-sprite palette bank CRAM updates during SAT build
+- required_inputs: sprite palette bank map, bank count, CLCS buffer or ROM table
+- required_outputs: PAL_setColors for each active sprite palette bank
+- call_frequency: per_frame (called within genesistan_render_sprites_vdp)
+- current_status: PARTIAL
+- evidence: refresh_frontend_sprite_palettes() in main.c:1075. Reads
+    genesistan_palette_clcs or falls back to genesistan_palette_rom_table.
+    Correct for frontend. Same limitation as vdp_palette_upload_initial
+    for gameplay: CLCS is empty, runtime changes not reflected.
+- notes: Depends on vdp_palette_writer_core being implemented.
+
+─────────────────────────────────────────────────────────────────
+SUBSYSTEM: CONTROL / BRIDGE
+─────────────────────────────────────────────────────────────────
+
+- function_name: genesistan_frontend_frame_loop
+  (current impl: SCREEN_FRONTEND_LIVE block in main() main.c:1856)
+- subsystem: control/state bridge
+- arcade_chip_source: both (orchestrates all hardware-replacement calls)
+- replaces: The full-system per-frame render pipeline that the arcade OS
+  performed automatically (hardware DMA timing, VBlank sync)
+- required_inputs: none (reads game state via genesistan_run_original_frontend_tick)
+- required_outputs: all rendering functions called in correct order per frame
+- call_frequency: per_frame
+- current_status: PARTIAL
+- evidence: Frame loop at main.c:1856. Calls in order:
+    genesistan_refresh_arcade_inputs() → reset hook cursors →
+    genesistan_run_original_frontend_tick() → sanitize_arcade_workram() →
+    load_arcade_palette() → sync_arcade_scroll_to_vdp() →
+    render_frontend_sprite_layer()
+    Correct ordering for frontend. PARTIAL because:
+    (a) sanitize_arcade_workram() is a scaffold bridge (scans for C-window
+        pointers in workram) — final architecture removes this requirement
+        by complete opcode replacement coverage.
+    (b) text hook calls are interleaved within arcade tick (BSR to 0x03BB48)
+        rather than in the post-tick render call — correct architecture but
+        means text relies on hook firing correctly inside the tick.
+    (c) Frame loop does not have a gameplay branch — when gameplay begins,
+        the per-frame dispatch needs to be extended to call
+        vdp_sprite_sat_build_gameplay() and vdp_sprite_sat_build_hud().
+- notes: This function must eventually not call sanitize_arcade_workram()
+    (that's a scaffold; when C-window pointer writes are fully replaced,
+    workram will not contain dangling C-window pointers).
+
+═══════════════════════════════════════════════════════════════════
+=== FUNCTION_STATUS_SUMMARY ===
+═══════════════════════════════════════════════════════════════════
+
+total_required_functions: 17
+
+complete: 2
+  - vdp_scroll_update (genesistan_scroll_from_workram_vdp)
+  - genesistan_run_original_frontend_tick (startup_trampoline.s)
+
+partial: 10
+  - vdp_tilemap_write_bg_cell (hook exists, coverage limited to 0x055968 path)
+  - vdp_tilemap_write_fg_cell (hook exists, same limitation)
+  - vdp_tile_cache (exists, not exposed as clearable, gameplay not validated)
+  - vdp_text_write_primary (hook exists, OOB shadow backing + callsite NOP)
+  - vdp_text_write_dynamic (C impl exists, NOT WIRED in spec)
+  - vdp_sprite_sat_build_frontend (works for frontend blocks, not gameplay)
+  - vdp_sprite_tile_upload (works for 64 unique codes, may need capacity)
+  - vdp_palette_upload_initial (ROM table fallback works, runtime CLCS broken)
+  - vdp_sprite_palette_update (partial, same CLCS dependency)
+  - genesistan_frontend_frame_loop (correct for frontend, needs gameplay extension)
+
+missing: 5
+  - vdp_tile_cache_clear (no callable transition hook)
+  - vdp_plane_region_clear (no in-game VDP CLR callable from arcade transitions)
+  - vdp_sprite_sat_build_gameplay (no function reads D-window shadow for gameplay SAT)
+  - vdp_sprite_sat_build_hud (health bar, score, icons — no renderer)
+  - vdp_palette_writer_core (0x59AD4 hook missing — all runtime palette changes broken)
+
+═══════════════════════════════════════════════════════════════════
+=== MISSING_CRITICAL_FUNCTIONS ===
+═══════════════════════════════════════════════════════════════════
+
+Functions that block removal of shadow RAM / C-window / D-window:
+
+1. vdp_palette_writer_core (MISSING)
+   Blocks: genesistan_palette_clcs shadow removal.
+   Without this, all runtime palette events are invisible. The CLCS
+   shadow buffer (2048 entries) cannot be removed until every caller
+   of 0x59AD4 is redirected to a direct CRAM write hook.
+
+2. vdp_sprite_sat_build_gameplay (MISSING)
+   Blocks: genesistan_shadow_d00000_words removal.
+   The D-window shadow is populated by blanket window_rewrite_rules
+   for game_engine_040000. That shadow cannot be removed until a
+   function reads it (or reads workram directly) to build a VDP SAT.
+   Without this function, gameplay has no sprite rendering at all.
+
+3. vdp_sprite_sat_build_hud (MISSING)
+   Blocks: genesistan_shadow_d00000_words removal (HUD portion).
+   Health bar, score, and icons write to D-window. These must be
+   rendered to VDP before D-window shadow can be eliminated.
+
+4. vdp_tile_cache_clear (MISSING)
+   Blocks: complete C-window elimination across level transitions.
+   Without cache clear on scene change, VRAM tile data is stale
+   on area entry. Manifestation: wrong tiles on new-area start.
+
+5. vdp_plane_region_clear (MISSING)
+   Blocks: complete C-window elimination for clear operations.
+   All CLR loops in the running arcade code route to cwindow_null.
+   On-screen remnants from previous phases will not be cleared.
+   Visible as ghost text/tiles persisting across state transitions.
+
+=== PARTIAL_FUNCTIONS_NEEDING_COMPLETION ===
+
+1. vdp_text_write_primary (genesistan_hook_text_writer_3bb48_impl)
+   Required action:
+   (a) Remove shadow backing writes (OOB write at workram+0xC800).
+   (b) Re-enable callsite NOP at 0x0005C0 (startup_common text).
+   Blocks: Cannot mark 0x03BB48 as architecturally final while OOB write exists.
+
+2. vdp_text_write_dynamic (genesistan_hook_text_writer_3c3fe)
+   Required action: Add opcode_replace at 0x03C3FE entry.
+   Replace: 8-byte JSR-to-hook + RTS (same pattern as 0x03BB48).
+   Spec entries at 0x03C42A/0x03C446/0x03C44A become dead code.
+   Blocks: Score, stage number, bonus text — visible game information.
+
+3. vdp_tilemap_write_bg_cell / _fg_cell
+   Required action: Determine how to cover all remaining C-window write
+   callers in game_engine_040000 and other ranges. The blanket
+   cwindow_null rule must eventually be replaced by either:
+   (a) Individual per-callsite opcode_replace entries redirecting
+       to the tilemap write hooks (with shift table for sizing), OR
+   (b) A single macro-hook that intercepts all C-window writes
+       dynamically and dispatches to the correct VDP nametable write.
+   Blocks: Dynamic tilemap updates during gameplay scroll.
+
+4. vdp_palette_upload_initial / vdp_sprite_palette_update
+   Required action: These become correct once vdp_palette_writer_core
+   is implemented and 0x59AD4 callsites redirect to it. The CLCS
+   buffer can then be eliminated.
+
+═══════════════════════════════════════════════════════════════════
+=== MINIMUM_IMPLEMENTATION_SET_TO_REMOVE_SHADOWING ===
+═══════════════════════════════════════════════════════════════════
+
+To eliminate C-WINDOW dependency:
+  1. Wire vdp_text_write_dynamic (add opcode_replace at 0x03C3FE)
+  2. Implement vdp_plane_region_clear + connect to all CLR callsites
+  3. Extend vdp_tilemap_write_bg_cell / _fg_cell to cover game_engine
+     D-window write callers (or implement blanket tilemap hook)
+  4. Remove shadow backing from vdp_text_write_primary
+  After: cwindow_null rule can be removed; genesistan_shadow_c20000/c40000 eliminated.
+
+To eliminate D-WINDOW dependency:
+  1. Implement vdp_sprite_sat_build_gameplay (reads shadow or workram, builds SAT)
+  2. Implement vdp_sprite_sat_build_hud (health bar, score, icons)
+  3. Implement vdp_tile_cache_clear for transition support
+  After: game_engine_040000 D-window blanket rewrite rule can be removed;
+         genesistan_shadow_d00000_words eliminated.
+
+To eliminate GRAPHICS SHADOW RAM:
+  1. Implement vdp_palette_writer_core (hook at 0x59AD4)
+  2. Redirect all ~20 palette callsites to the hook
+  3. Remove genesistan_palette_clcs declaration (no longer populated or read)
+  4. Remove load_arcade_palette CLCS branch (ROM table becomes sole source
+     until gameplay palette hook is proven; then ROM table also removed)
+  After: genesistan_palette_clcs, genesistan_shadow_reg_c50000,
+         genesistan_shadow_d00000_words all removed.
+
+═══════════════════════════════════════════════════════════════════
+=== IMPLEMENTATION_ORDER ===
+═══════════════════════════════════════════════════════════════════
+
+Step 1 — Wire vdp_text_write_dynamic (0x03C3FE)
+  Why first: C implementation already exists. Only spec entry missing.
+  Cost: Add one opcode_replace in spec. Inner NOPs become dead code.
+  Unblocks: Score/stage/bonus text visible. Partial text → C-window done.
+
+Step 2 — Fix vdp_text_write_primary shadow backing + 0x0005C0 callsite
+  Why: Removes only known defect in an otherwise complete function.
+  Cost: Edit main.c to remove 2 shadow write lines. Revert one NOP.
+  Unblocks: 0x03BB48 hook marked architecturally final.
+
+Step 3 — Implement vdp_palette_writer_core (0x59AD4 hook)
+  Why: Unblocks all runtime palette effects. All 20+ callsites need routing.
+  Cost: New C function converting (D0, D1, A0) → direct VDP CRAM write.
+        opcode_replace entries at each 0x59AD4 callsite.
+  Unblocks: Gameplay color effects, boss intros, palette cycling.
+  Dependency: Shift table likely needed (6-byte JSR vs variable-size callsites).
+
+Step 4 — Implement vdp_sprite_sat_build_gameplay
+  Why: Gameplay has no sprites without this. The D-window shadow is already
+  populated; function just needs to read it and build SAT.
+  Cost: New C function iterating genesistan_shadow_d00000_words, calling
+        vdp_sprite_tile_upload per unique code, emitting VDP SAT.
+  Unblocks: All gameplay sprites (player, enemies, effects).
+
+Step 5 — Implement vdp_sprite_sat_build_hud
+  Why: HUD is player-critical information.
+  Cost: Hook at 0x05A098 (health bar) and callsite routing for 0x03B802 (score).
+  Unblocks: Health bar, score display, item icons visible in gameplay.
+
+Step 6 — Implement vdp_tile_cache_clear + vdp_plane_region_clear
+  Why: Required for correct level transitions and area changes.
+  Cost: Expose tile cache clear as callable function.
+        Add VDP plane region clear (wrapper around VDP_fillTileMapRect).
+        Hook the CLR callsites in the game's transition code paths.
+  Unblocks: Clean area transitions; correct tilemap state on new-area entry.
+
+Step 7 — Complete vdp_tilemap_write_bg_cell / _fg_cell coverage
+  Why: Full tilemap fidelity during gameplay scroll requires all
+  C-window write callers to route to the VDP hooks.
+  Cost: Either shift-table opcode_replace at each caller, OR a
+        dynamic dispatch hook that intercepts all C-window writes.
+  This is the highest-cost step (many callsites in game_engine range).
+  Unblocks: Removal of cwindow_null blanket rewrite rule.
+
+Step 8 — Remove shadow buffers in dependency order:
+  genesistan_palette_clcs → after Step 3 confirmed
+  genesistan_shadow_d00000_words → after Steps 4+5 confirmed
+  genesistan_shadow_c20000/c40000 → after scroll COMPLETE (already done)
+  genesistan_shadow_reg_c50000 → after C50000 behavior mapped (low priority)
+  genesistan_cwindow_null → after Step 7 complete
+
+═══════════════════════════════════════════════════════════════════
+SUMMARY FOR AGENTS_LOG INDEX
+═══════════════════════════════════════════════════════════════════
+
+total required functions: 17
+  complete:  2  (12%)
+  partial:  10  (59%)
+  missing:   5  (29%)
+
+top missing blockers:
+  1. vdp_palette_writer_core — 0x59AD4 hook MISSING; all runtime
+     palette events broken; 20+ callsites unpatched
+  2. vdp_sprite_sat_build_gameplay — no gameplay SAT builder;
+     D-window shadow populated but not consumed
+  3. vdp_sprite_sat_build_hud — health bar, score, icons dark
+
+minimum implementation set to eliminate shadow graphics paths:
+  WIRE: vdp_text_write_dynamic (spec entry only)
+  FIX:  vdp_text_write_primary (remove OOB backing writes)
+  IMPLEMENT: vdp_palette_writer_core (hook 0x59AD4)
+  IMPLEMENT: vdp_sprite_sat_build_gameplay
+  IMPLEMENT: vdp_sprite_sat_build_hud
+  IMPLEMENT: vdp_tile_cache_clear
+  IMPLEMENT: vdp_plane_region_clear
+  EXTEND: vdp_tilemap_write coverage to all game_engine callers
+```
+
+## [Cody — Clean Rebuild + Scroll Finalization]
+```text
+Date/time: 2026-03-24 22:25:00 EDT
+Scope: Clean rebuild + scroll finalization proof
+
+clean build confirmation:
+- Artifact wipe step: SKIPPED by user request.
+- Build status from current source/spec: PASS
+- Output ROM: dist/Rastan_5.bin
+
+scroll system status:
+- Direct scroll function present: genesistan_scroll_from_workram_vdp()
+- Live workram sources used:
+  - BG_Y: A5@(0x10EE)
+  - BG_X: A5@(0x10EC)
+  - FG_Y: A5@(0x10B0)
+  - FG_X: A5@(0x10AE)
+- Direct VDP calls:
+  - VDP_setHorizontalScroll(BG_B, ...)
+  - VDP_setVerticalScroll(BG_B, ...)
+  - VDP_setHorizontalScroll(BG_A, ...)
+  - VDP_setVerticalScroll(BG_A, ...)
+- Vertical crop bias: RASTAN_VERTICAL_CROP_BIAS = 8 (applied to BG+FG Y)
+
+resolved legacy/boot scroll sites:
+- 0x03ABBA, 0x03ABC0, 0x03B098, 0x03B09E
+  - opcode_replace now JSR 0x00200D4E (direct VDP scroll sync), no NOP bypass.
+- 0x055AB4, 0x055ABC, 0x055AC4, 0x055ACC
+  - shift_replacements direct to JSR 0x00200D4E.
+- 0x00016A, 0x000170
+  - shift_replacements now JMP 0x00200D4E.
+
+proof snippets:
+- Disasm xrefs show 0x03B098 called from 0x03AE5E and 0x03B06E.
+- Disasm shows diagnostic branch path includes 0x03B056 -> 0x000100 -> 0x00016A.
+- Shift-table patcher run shows 22 replacements applied (includes the two boot sites).
+- Shift-stage patched maincpu bytes confirm:
+  - 0x00016A = 4EF900200D4E
+  - 0x000170 = 4EF900200D4E
+  - 0x055AB4/BC/C4/CC = 4EB900200D4E sequence
+
+shadow/bypass audit:
+- main.c no longer reads genesistan_shadow_c20000_words / genesistan_shadow_c40000_words.
+- Scroll-target replacements in spec are direct JSR/JMP to 0x00200D4E, not NOP/RTS.
+
+remaining issues:
+- None in scroll path under the finalized address set.
+
+confirmation:
+- no NOP: YES (for resolved scroll targets)
+- no RTS: YES (for resolved scroll targets)
+- no shadow scroll: YES (active path)
+- no unknown paths: YES (resolved set)
+```
+
+## [Cody — Crash Forensics for 0x055E94 / 0x03A274]
+```text
+Date/time: 2026-03-25 01:02:10 EDT
+Scope: analysis-only crash forensics (no patching)
+
+faulting instruction:
+- Reported crash offset 0x055E94 (Build 5) maps into the 0x055DDC state-machine region.
+- With current shift deltas, patched PC 0x055E94 corresponds to original PC 0x055E7E,
+  which is inside `movew #4,%a5@(0x13AA)` (state advance immediate word).
+- That instruction itself is not an A1-based memory dereference.
+- The A1=0x0000FF address-error signature matches downstream word-copy writers
+  (notably `movew (a0)+,(a1)+` at 0x03A2D0, and table-driven copy path via 0x563A6).
+
+A1 source trace:
+- In the active 0x055DDC flow, states 10/12 call 0x561D6 / 0x561FE.
+- 0x561D6 / 0x561FE compute index from 0x10C118 as:
+  `d0 = byte(0x10C118); d0--; d0 <<= 3; a1 = table_base + d0; a1 = (a1+4)`.
+- If byte(0x10C118)==0, `d0--` underflows to 0xFFFF before scaling,
+  so pointer fetch reads before table base (bogus pointer-bearing data).
+- Expected destination pointers from valid table entries are WRAM addresses
+  in the E0FFxxxx range (confirmed from ROM table bytes).
+- Actual crash register A1=0x0000FF is an invalid odd pointer and faults on word access.
+
+0x03A274 cluster role:
+- 0x03A274: input-gated branch controlling whether to execute swap helper A/B.
+- 0x03A294: swap helper A (rotates 32-word blocks among A5+0x0100/A5+0x0080/A5+0x00C0).
+- 0x03A2B2: swap helper B (reverse rotation of same blocks).
+- 0x03A2D0: generic 16-bit block copy primitive used by many callers.
+- 0x03A45A: state assignment in handler (`movew #1,%a5@(0)`), not a pointer producer.
+- Overall purpose: maintain transitional/frontend buffer state and controller-mode-dependent block ordering used across attract/coin/start transition logic.
+
+required state before the crashing family:
+- workram selector byte at A5+0x0118 (abs 0x10C118) must be in valid domain expected by 0x561D6/0x561FE table indexing.
+- table bases at 0x562CA / 0x562FA (and related table-driven copy metadata) must be indexed with non-underflow d0.
+- transition buffer blocks A5+0x0080/A5+0x00C0/A5+0x0100 must be kept coherent by swap helpers when path requires them.
+- call order must reach initialization/updater path that seeds A5+0x0118 before entering 0x055DDC states 10/12.
+
+what is missing/malformed:
+- selector underflow condition exists when A5+0x0118 is zero at 0x561D6/0x561FE entry.
+- current spec still has opcode replacements at 0x03A294 and 0x03A2B2 as RTS+NOP,
+  removing active buffer-rotation behavior in a shared transition path.
+- This leaves transition state progression malformed and is consistent with recurring pointer-family failures.
+
+recommended fix direction:
+- Chosen option: A) missing initialization/state integrity
+- Reason: crash signature is invalid pointer consumed by copy/write paths caused by malformed transition state (selector/buffer state), not by scroll code itself.
+- What must be fixed next (implementation pass, not done here):
+  1) restore valid non-bypass behavior for active transition setup at 0x03A294/0x03A2B2,
+  2) guarantee A5+0x0118 is initialized to valid range before 0x561D6/0x561FE,
+  3) verify 0x055DDC state progression reaches those calls only after required state is established.
+```
+
+## [Cody — Startup Initialization Forensics]
+```text
+Date/time: 2026-03-25 01:37:20 EDT
+Scope: forensics + recovery design only (no patching)
+
+launcher init history:
+- Introduced in Build 96 entries ("Technical Lead - Build 96 Revised Architecture" and "Cody - Build 96 Revised, Skip startup_common").
+- Change: launcher path stopped calling startup_common and switched to genesistan_init_workram_direct() before entering SCREEN_FRONTEND_LIVE.
+- Skipped original routines: startup_common body at 0x03AE86->0x03B07E (including 0x03AF04 A5 base setup, RAM clears, C-window clears/fills, DIP-driven setup, startup_common_continue_normal behavior).
+- Reason recorded then: avoid startup_common C-window page execution/fill crash and reduce WRAM pressure; keep frontend running via direct seeded workram.
+- Side-effect notes in log: bypass required follow-up compensations (e.g., Z80 silence command equivalent to 0x03B05C path) and introduced long-tail state integrity gaps.
+
+arcade init breakdown:
+- Main arcade init entry: 0x03AE86 (startup_common region).
+- Core init sequence (from disasm + Ghidra project cross-check):
+  - 0x03AEEA/0x03AEF0/0x03AEFE: clear/copy loop over 0x10C000 work RAM.
+  - 0x03AF04: LEA 0x10C000,A5 (canonical A5 base setup).
+  - 0x03AF7A..0x03AF8E: load/invert DSWA/DSWB into A5@(24)/A5@(28).
+  - 0x03AFBA/0x03AFCA: cabinet and monitor-flip latches into A5@(48)/A5@(50).
+  - 0x03AF96..0x03AFB6: DIP-derived difficulty/bonus values into A5@(56)/A5@(54).
+  - 0x03B020..0x03B044: init flags/coinage table setup.
+  - 0x03B04A: copy config table to A5@(320).
+  - 0x03B05C: send 0x00EF sound command in normal continue path.
+- Selector/buffer state used by crash path:
+  - 0x4527E writes A5@(0x0118)/A5@(0x0117) from 0x05FF9E-derived value, but ONLY when A5@(0x0104)==0.
+  - 0x03A878 later increments A5@(0x0118)/A5@(0x0117).
+  - 0x03A294/0x03A2B2 rotate A5+0x80/+0xC0/+0x100 transition buffers through 0x03A2D0 copy primitive.
+  - 0x561D6/0x561FE index pointer tables at 0x562CA/0x562FA using byte(0x10C118)-1.
+
+mame init analysis:
+- MAME map confirms game-owned init RAM at 0x10C000-0x10FFFF and hardware regions (PC080SN 0xC00000/0xC20000/0xC40000, PC090OJ 0xD00000).
+- DIP controls in MAME:
+  - DSWA bit0 = Cabinet
+  - DSWA bit1 = Flip_Screen
+  - DSWB bits = gameplay (difficulty, bonus life, lives, continue)
+- Separation:
+  - Flip/mirror orientation controls are DSWA cabinet/flip and related display-orientation writes.
+  - Gameplay-state controls are DSWB-derived values and state variables in workram.
+- machine_reset() in MAME only resets emulation-side device state; game workram init is done by game code path (startup_common).
+
+required vs unwanted init:
+REQUIRED:
+- A5 base + workram clear semantics (0x03AF04 and surrounding clear loops): required so state machine fields/buffers start coherent.
+- Selector seed path for A5@(0x0118)/A5@(0x0117) (0x4527E preconditioned by A5@(0x0104)): required to avoid 0x561D6/0x561FE underflow.
+- Transition buffer integrity for A5+0x80/+0xC0/+0x100 and 0x03A294/0x03A2B2 behavior: required for shared attract/coin/start transition flow.
+- DIP-derived gameplay fields (difficulty/bonus/lives mode and init flags/tables): required for valid runtime branching and table selection.
+UNWANTED (for Genesis target architecture):
+- Direct arcade hardware clear/fill writes to C-window and scroll regs as final behavior (0xC00000/0xC20000/0xC40000 direct semantics).
+- Arcade orientation hardware writes to 0xC50000 / 0xD01BFE as final mechanism (cabinet/flip should map to Genesis-native behavior, not raw arcade register emulation path).
+- Full startup_common replay wholesale (brings back non-target hardware side effects and C-window dependency).
+
+root cause of A1=0x00FF family:
+- Missing init step: selector seed never established (A5@(0x0118) remains 0).
+- Original location for seed: 0x4527E (writes A5@(0x0118)/A5@(0x0117) when A5@(0x0104)==0).
+- Why missing now:
+  - launcher direct init sets A5@(0x0104)=1 early,
+  - direct init does not seed A5@(0x0118)/A5@(0x0117),
+  - therefore 0x4527E guard blocks seed write.
+- Resulting failure chain:
+  - 0x055DDC state 10/12 -> 0x561D6/0x561FE,
+  - d0 = byte(0x10C118)=0; subq -> 0xFFFF; lsl #3 -> 0xFFF8,
+  - table index underflows 8 bytes before 0x562CA/0x562FA,
+  - bogus pointer pair consumed by 0x563A6 text copy writer,
+  - odd/invalid A1 destination causes Address Error (external symptom A1 near 0x0000FF family).
+
+minimal init plan (design only, no implementation):
+- fields_to_initialize (minimum safe set):
+  - A5@(0x0118) and A5@(0x0117): seed to valid stage selector domain [1..6] before any path reaching 0x561D6/0x561FE.
+  - A5+0x80 / +0xC0 / +0x100 transition buffers: must be initialized in the same ordering expected by 0x03A294/0x03A2B2.
+  - A5@(0x0104): preserve original call-order semantics so 0x4527E seed gate is not skipped prematurely.
+- where_to_initialize:
+  - in launcher handoff staging immediately before SCREEN_FRONTEND_LIVE activation, in a dedicated minimal-init routine that sets only required runtime state integrity fields.
+- what NOT to restore:
+  - do not restore full startup_common, do not re-enable arcade C-window fill/clear hardware semantics, do not restore cabinet/flip hardware-register side effects as the mechanism.
+- why this avoids flip/mirror issues:
+  - keeps orientation/hardware-control side effects out of startup replay while still seeding selector/buffer state required by transition logic.
+
+validation plan:
+- should no longer crash:
+  - shared transition path crashes in attract idle and coin/start transition that currently pass through 0x055DDC->0x561D6/0x561FE->0x563A6.
+- expected behaviors after correct minimal init:
+  - selector-dependent transition text/copy path runs without underflow,
+  - attract/coin/start progression advances through transition states instead of faulting on bad A1 destination.
+- indicators of incorrect init:
+  - A5@(0x0118)==0 observed before 0x561D6/0x561FE,
+  - underflow index behavior (table_base-8),
+  - Address Error with odd/low A1 destination during copy/write paths.
+```
+
+## [Cody — Arcade Post-Init WRAM Profiling]
+```text
+Date/time: 2026-03-25 02:05:00 EDT
+Scope: Ghidra + MAME default-DIP profiling only (no patching)
+
+init endpoint:
+- init_entry: 0x03AE86 (startup_common body entered from 0x03A000 BRA)
+- init_handoff: 0x03B07E (normal-loop entry after 0x03B06E/0x03B072/0x03B076 setup calls)
+- stable capture point: immediately before first iteration at 0x03B07E
+
+factory-default DIPs (MAME):
+- DSWA default byte: 0xFE (Cabinet Upright, Flip Off, Service Off, coinage defaults)
+- DSWB default byte: 0xFF (Difficulty Medium, Bonus_Life 100k.., Lives 3, Continue On)
+
+key post-init WRAM results at handoff:
+- A5+0x0104: 0x00 at handoff (not written in 0x03AE86..0x03B07E)
+- A5+0x0117: 0x00 at handoff (WRAM clear value; seed occurs later via 0x4527E when A5+0x0104==0)
+- A5+0x0118: 0x00 at handoff (same as above)
+- A5+0x0080..0x00BF: zeroed (no writes in startup_common init/handoff window)
+- A5+0x00C0..0x00FF: zeroed (no writes in startup_common init/handoff window)
+- A5+0x0100..0x013F: zeroed at handoff (later runtime paths mutate)
+- A5+0x0018: 0x0001 (from ~DSWA default)
+- A5+0x001C: 0x0000 (from ~DSWB default)
+- A5+0x0030: 0x0001 (Cabinet bit from A5+0x0018 & 1)
+- A5+0x0032: 0x0000 (Flip bit from A5+0x0018 & 2)
+- A5+0x0036: 0x0003 (table at 0x03B018 indexed by A5+0x001C bits 4:5)
+- A5+0x0038: 0x1000 (table at 0x03B010 indexed by A5+0x001C bits 2:3)
+- A5+0x0140..+0x0166: 39-byte config copy from ROM table at 0x03B0D4 via 0x03B0C2
+
+minimum safe init candidate (design target):
+- preserve startup_common-equivalent WRAM clear semantics for game-owned state only
+- seed A5+0x0018/0x001C-derived config fields (or seed post-derived fields directly)
+- force valid selector domain for A5+0x0117/0x0118 before 0x561D6/0x561FE reachable
+- keep A5+0x0104 at semantics-compatible value so 0x4527E gate behaves correctly
+- initialize A5+0x0080/+0x00C0/+0x0100 transition buffers coherently for 0x03A294/0x03A2B2 usage
+
+excluded arcade-hardware-only state:
+- direct startup writes to C-window/scroll/orientation hardware regions (0xC00000/0xC20000/0xC40000/0xC50000/0xD01BFE)
+- full startup_common hardware side effects not required for game-state coherency on Genesis
+
+notes:
+- Ghidra headless profiling was run on tools/ghidra/rastan_project/rastan_arcade:maincpu.bin with targeted disassembly seeds at 0x03A000/0x03AE86/0x03A008/0x04527E/0x0561D6/0x0561FE/0x03B098.
+- MAME defaults sourced from rastan.cpp + taitoipt.h macros (TAITO_DIFFICULTY_LOC / TAITO_COINAGE_WORLD_LOC).
+```

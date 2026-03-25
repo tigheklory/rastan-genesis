@@ -1229,26 +1229,26 @@
     {
       "arcade_pc": "0x03ABBA",
       "original_bytes": "42b900c20000",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP CLR.L 0xC20000. CLR.L is a read-modify-write on 68000 \u2014 the read cycle crashes Genesis bus. Result discarded; scroll register re-written each frame. Fires every VBlank during attract."
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x03ABC0",
       "original_bytes": "42b900c40000",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP CLR.L 0xC40000. Pair with 0x03ABBA \u2014 same VBlank path."
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x03B098",
       "original_bytes": "42B9E1014854",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP frontend startup scroll clear write 1 (CLR.L remapped 0xC20000). Removes direct PC080SN scroll register access; Genesis scroll is driven by sync_arcade_scroll_to_vdp()."
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x03B09E",
       "original_bytes": "42B9E1034854",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP frontend startup scroll clear write 2 (CLR.L remapped 0xC40000). Pair with 0x03B098."
+      "replacement_bytes": "4eb900200d4e",
+      "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x03BB48",
@@ -1492,6 +1492,18 @@
       "original_bytes": "33ed10ae00c40002",
       "replacement_bytes": "4eb900200d4e",
       "note": "Replace PC080SN scroll write with direct Genesis VDP scroll sync from live workram."
+    },
+    {
+      "arcade_pc": "0x00016A",
+      "original_bytes": "41f900c20002",
+      "replacement_bytes": "4ef900200d4e",
+      "note": "Replace boot scroll setup entry with direct JMP to Genesis VDP scroll sync."
+    },
+    {
+      "arcade_pc": "0x000170",
+      "original_bytes": "43f900c40002",
+      "replacement_bytes": "4ef900200d4e",
+      "note": "Replace boot scroll setup companion entry with direct JMP to Genesis VDP scroll sync."
     }
   ]
 }
