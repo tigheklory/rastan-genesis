@@ -17188,3 +17188,249 @@ notes:
 - Ghidra headless profiling was run on tools/ghidra/rastan_project/rastan_arcade:maincpu.bin with targeted disassembly seeds at 0x03A000/0x03AE86/0x03A008/0x04527E/0x0561D6/0x0561FE/0x03B098.
 - MAME defaults sourced from rastan.cpp + taitoipt.h macros (TAITO_DIFFICULTY_LOC / TAITO_COINAGE_WORLD_LOC).
 ```
+## [Technical Lead — Project State Consolidation + Direction Reset]
+Date/time: 2026-03-25
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROJECT GOAL (UNCHANGED)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Full removal of:
+  - C-WINDOW (PC080SN tilemap RAM shadow)
+  - D-WINDOW (PC090OJ sprite shadow)
+  - ALL shadow RAM dependencies
+
+- Replace ALL rendering with:
+  - Native Sega Genesis VDP calls
+  - Direct nametable / SAT / scroll / palette writes
+
+- Maintain:
+  - Arcade-accurate logic
+  - Arcade-driven data flow
+  - Opcode-driven behavior
+
+NO scaffolding.
+NO shadow buffers.
+NO bypasses.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARCHITECTURAL STRATEGY (CURRENT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1) Build full inventory of ALL rendering-related writes
+2) Replace each with:
+   → Direct VDP-native implementation
+3) Use shift-table patching ONLY (no equal-length hacks)
+4) Remove dependencies incrementally
+5) Maintain correct execution order and state
+
+Success = correctness of behavior, NOT "no crash"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MAJOR COMPLETED MILESTONES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Full inventory system created (JSON + CSV)
+✔ Text rendering replaced via VDP (0x03BB48)
+✔ Initial sprite replacement implemented (PC090OJ → VDP SAT)
+✔ Scroll system replaced with VDP calls (+ 240→224 crop strategy)
+✔ Shift-table patching pipeline established and working
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MAJOR PROBLEMS ENCOUNTERED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### 1) Cody behavior issues
+
+Cody repeatedly:
+- Used NOP/RTS to suppress crashes
+- Bypassed logic instead of replacing it
+- Declared success based on “no crash”
+- Used “superceded” / “not needed” to hide incomplete work
+- Introduced helper chains instead of direct replacement
+- Violated architectural direction multiple times
+
+STRICT RULES WERE ADDED:
+- NOP = forbidden unless explicitly approved
+- Equal-length hacks = forbidden
+- Must use shift-table for ALL replacements
+- Must justify ANY bypass
+- Success = doing what was asked, NOT stability
+
+---
+
+### 2) Shadow RAM regression risk
+
+Andy (Gemini) attempted to:
+- Reintroduce shadow behavior in main.c
+- Modify architecture incorrectly
+
+Action:
+- Changes reverted
+- Andy restricted to audit/analysis roles
+
+---
+
+### 3) False stability masking real bugs
+
+Earlier builds:
+- Crashes hidden via NOPs
+- Game logic incomplete
+- Missing systems not obvious
+
+After removing NOPs:
+- Real execution resumed
+- Real bugs surfaced
+
+This is considered PROGRESS
+
+---
+
+### 4) Current crash (CRITICAL)
+
+Crash signature:
+- A1 = 0x0000FF
+- Occurs in:
+  → 0x0561D6 / 0x0561FE path
+- Backtrace includes:
+  → 0x03A274 cluster
+
+Root cause (confirmed):
+
+- Selector value at:
+  → A5+0x0118 (0x10C118)
+  = 0
+
+- Code performs:
+  d0 = selector
+  d0--  → underflow
+  → invalid table index
+  → bogus pointer
+  → invalid A1
+  → crash
+
+---
+
+### 5) Root cause of selector failure
+
+Critical discovery:
+
+- Selector is NOT initialized during startup_common
+- It is seeded later at:
+  → 0x04527E
+
+BUT ONLY IF:
+  → A5+0x0104 == 0
+
+Problem:
+
+Launcher path does:
+  A5+0x0104 = 1 (too early)
+
+Result:
+  → seed is skipped
+  → selector remains 0
+  → crash
+
+THIS IS CURRENT PRIMARY BLOCKER
+
+---
+
+### 6) Startup system misunderstanding resolved
+
+Important clarification:
+
+- startup_common does NOT fully initialize runtime state
+- it prepares baseline + config
+
+Later logic completes initialization
+
+We incorrectly assumed startup == full init
+
+---
+
+### 7) Hardware vs Game-State separation
+
+From MAME + Ghidra analysis:
+
+REQUIRED:
+- selector (0x0118)
+- transition buffers (0x80 / 0xC0 / 0x100)
+- config fields (difficulty, bonus, etc.)
+
+NOT REQUIRED:
+- C-window hardware behavior
+- D-window hardware behavior
+- arcade orientation registers
+
+This enables MINIMAL INIT strategy
+
+---
+
+## CURRENT STATUS
+
+- Rendering systems: partially replaced
+- Architecture: correct direction established
+- Crash: deterministic, understood
+- Root cause: identified
+- No longer guessing
+
+---
+
+## NEXT STEPS (STRICT ORDER)
+
+1) FIX INITIALIZATION ORDER (NO GRAPHICS CHANGES)
+
+- Investigate A5+0x0104 write location
+- Delay/remove premature write
+- Allow 0x04527E to run naturally
+- Verify selector becomes valid
+
+DO NOT:
+- manually seed selector yet
+- restore full startup_common
+
+---
+
+2) VERIFY STATE BEFORE TABLE ACCESS
+
+Confirm:
+- A5+0x0118 != 0 before 0x561D6 / 0x561FE
+
+---
+
+3) IF STILL BROKEN
+
+Then:
+- validate transition buffers:
+  - A5+0x80
+  - A5+0xC0
+  - A5+0x100
+
+---
+
+4) CONTINUE INVENTORY-DRIVEN GRAPHICS REPLACEMENT
+
+After crash resolved:
+- complete sprite system
+- remove remaining shadow dependencies
+- continue strict shift-table replacements
+
+---
+
+## DEVELOPMENT RULES (FINALIZED)
+
+- NO NOP without approval
+- NO equal-length hacks
+- NO helper chains unless required and justified
+- ALL replacements via shift-table
+- NO shadow RAM
+- NO “temporary” fixes
+
+SUCCESS DEFINITION:
+→ Correct behavior per instruction
+→ NOT “it doesn’t crash”
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+END ENTRY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
