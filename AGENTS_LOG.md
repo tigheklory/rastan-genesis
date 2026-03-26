@@ -18850,3 +18850,476 @@ If attract mode runs correctly:
 If it crashes before attract:
 - core execution is still broken
 - must fix before any visual work matters
+## [Cody - Research, Title Screen State Cluster and Opcode Ownership]
+```text
+1) Objective
+- Identify the exact title-screen state/substate cluster and opcode ownership for the arcade-style title presentation, without applying fixes.
+
+2) Title-Screen State
+- State variables:
+  - major: A5+0x0000
+  - substate: A5+0x0002
+  - step: A5+0x0004
+  - timer gate: A5+0x002C
+- Title-screen semantic state is major-state value 1 with:
+  - init substate (draw/setup) then
+  - idle/coin substate (waiting loop)
+- Entry/exit mapping:
+  - enters title major cluster via major dispatcher table (`0x03A26C` region)
+  - exits on coin-triggered transition path that sets major state to 2 (`A5+0x0000=2`) and clears sub/step.
+
+3) Code Cluster Identified
+- Major dispatch core: `0x03A252..0x03A26A`
+- Title major cluster bracket: `0x03AAB8..0x03ABF6`
+- Title substate dispatch: `0x03AAC4..0x03AAD8` (table at `0x03AADA`)
+- Title init body: `0x03AADE..0x03AB20`
+- Title idle/coin body: `0x03AB28..0x03ABF6`
+- Display helpers used by title cluster:
+  - text bridge callsite family: `0x03BD5E`
+  - helper calls: `0x05A174`, `0x05A626`, `0x059F36`, `0x059CEA` family
+  - frame pipeline in frontend live loop: frontend tick + palette + scroll + sprite layer render.
+
+4) Opcode Responsibility Summary
+- Top HUD text: title init text-id dispatch (`0x03AAFA..0x03AB0A`) via `0x03BD5E`.
+- Large RASTAN logo/sword-T: helper call `0x03AAF2 -> 0x05A174` plus frontend sprite layer render.
+- TAITO/copyright lines: `0x03AB0E -> 0x05A626` plus text IDs at `0x03AB14/0x03AB1C`.
+- CREDIT display/updates: title idle/coin logic (`0x03AB28..`) with text/refresh calls in same cluster.
+- Title background/tile preparation: init helper group (`0x03AADE..0x03AAE6`) plus conversion helpers (`0x059F36/0x059CEA`).
+
+5) NOP / Wrong-Target Audit
+- `0x03A26C` title major-state table entry lands `0x03AAAC` instead of semantic title entry region (`~0x03AAB8`): STALE_TARGET.
+- `0x03AADA` title substate entry[1] lands `0x03AB26` instead of semantic idle/coin entry `0x03AB28`: STALE_TARGET.
+- `0x03AF56` helper body is NOP/RTS scaffold and is used by title helper wrappers: NOP_SCaffold_RISK.
+- `0x03AF5E` and `0x03B06C` depend on scaffolded no-op helper path: NOP_SCaffold_RISK.
+- Direct title callsites audited as OK:
+  - `0x03AAFA/0x03AB0A/0x03AB14/0x03AB1C -> 0x03BD5E`
+  - `0x03AAF2 -> 0x05A174`
+  - `0x03AB0E -> 0x05A626`
+  - `0x03A274 -> 0x055EB8`
+
+6) Required Systems
+- Text/tile path must work: title text-id dispatch -> text bridge/hook and valid descriptor conversion.
+- Sprite/logo path must work: title descriptor builders + frontend SAT render.
+- Palette path must work: per-frame palette load plus conversion-table helpers.
+- Scroll path must remain valid (not dominant visually, but still frame-active).
+- State dispatch integrity must be correct: major/substate tables must land on semantic entry boundaries.
+
+7) Root Cause Risk Summary
+- Primary: CONTROL_FLOW_BREAK
+  - title major/substate dispatch entries in Build 218 show stale/mid-body landing points.
+- Secondary: STALE_TABLE_BASE
+  - pre-coin title conversion helper family uses shift-sensitive absolute table/data-base immediates.
+- Secondary: TITLE_TEXT_PATH_BROKEN
+  - title text composition depends on bridge/helper correctness and dispatch integrity.
+
+8) Minimal Next Fix Target
+- === TITLE_SCREEN_MINIMAL_FIX_TARGET ===
+  - fix_area: title-state dispatch displacement correctness for major/substate jump-table target integrity.
+  - exact_state_or_helper_path: `A5+0x0000` table at `0x03A26C` and `A5+0x0002` table at `0x03AADA`, ensuring semantic entry landings for title init/idle paths.
+  - why_this_is_the_minimum_title_screen_step: restores control-flow correctness for title display without redesigning startup/render systems.
+  - what_must_NOT_be_changed: no forced state changes, no NOP insertion, no startup/launcher/gameplay redesign, no shadow-RAM reintroduction.
+
+9) Uncertainties
+- Exact string-ID to literal text mapping (`IDs 9/10/11/30/32`) is inferred from cluster usage and visual composition, not fully table-decoded in this pass.
+- Some helper internals (`0x05A174`, `0x05A626`) remain medium confidence for fine-grain element mapping.
+
+10) What Was NOT Done
+- no code changes
+- no spec changes
+- no patcher changes
+- no forced state changes
+- no NOP insertion
+- no shadow RAM reintroduction
+```
+
+### MAME Exit Summary (2026-03-25 22:08:15)
+- Final PC: 0x2115A4
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-03-25 22:09:12)
+- Final PC: 0x21159C
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 220, Title-State Dispatch Fix]
+```text
+1) Objective
+- Fix title-state dispatch displacement correctness so major/substate handlers land on semantic title entries instead of stale mid-body targets.
+
+2) Proven Mechanical Cause
+- Cause: shift-application gap for jump-table displacement entries.
+- Specifically, word-displacement dispatch tables (base+signed word offsets) were not being recomputed after shift insertions.
+- Resulting stale offsets produced wrong landings:
+  - major table at 0x03A26C entry[1] -> 0x03AAAC (stale)
+  - substate table at 0x03AADA entry[1] -> 0x03AB26 (stale)
+
+3) Exact Fix Applied
+- Added explicit jump-table displacement relocation support to the patch pipeline.
+- Files changed:
+  - tools/translation/shift_table_patcher.py
+    - added fix_word_displacement_jump_tables(...)
+    - apply_shift_table(...) now accepts jump_table_word_displacements and applies a jump-table-fix phase
+    - patcher summary now reports jump-table fix count
+  - tools/translation/postpatch_startup_rom.py
+    - passes spec jump_table_word_displacements into apply_shift_table(...)
+  - specs/startup_title_remap.json
+    - added jump_table_word_displacements entries for:
+      - 0x03A06C (major-state table, 4 entries)
+      - 0x03A8CE (title substate table, 2 entries)
+- No runtime forcing or state bypass used.
+
+4) Dispatch Validation Results
+- Title major dispatch (table 0x03A26C, entry[1]):
+  - old target: 0x03AAAC
+  - new target: 0x03AAB8
+  - expected target: 0x03AAB8
+  - classification after fix: MATCH_ENTRY
+- Title substate dispatch (table 0x03AADA, entry[1]):
+  - old target: 0x03AB26
+  - new target: 0x03AB28
+  - expected target: 0x03AB28
+  - classification after fix: MATCH_ENTRY
+- Semantic checker rerun on final ROM confirms known critical callsites remain MATCH_ENTRY:
+  - 0x03A274 -> 0x055EB8
+  - 0x03A93E -> 0x04549A
+  - 0x03A85C -> 0x0454B8
+
+5) Runtime Title-Screen Result
+- Build/run mode used: RASTAN_EXCEPTION_DUMPER_MODE=1.
+- Mode-1 wiring checks passed on final ROM:
+  - text-dumper format strings present
+  - QR strings absent
+  - vectors point to _Rastan_EX_* handlers
+- Bounded runtime probe (MAME Genesis, sound=none, -nothrottle, 30s emulated):
+  - no exception capture observed in this probe window
+  - no direct on-screen title capture available in this environment
+- Runtime classification for this pass:
+  - title screen reached but still visually incomplete (provisional; direct screenshot confirmation unavailable here)
+
+6) Remaining Uncertainties
+- Direct on-screen title confirmation was not captured in this environment (no BlastEm/Exodus screenshot proof in-pass).
+- Bounded run did not produce an exception signature, so post-fix crash-shape beyond this probe window remains unproven.
+
+7) Rule Compliance Check
+- No forced state changes: YES
+- No NOP insertion: YES
+- No startup/launcher redesign: YES
+- Text dumper mode used: YES
+- Title dispatch targets validated: YES
+
+8) Artifact Path(s)
+- Final ROM artifact: dist/Rastan_220.bin
+- Semantic check command target: dist/Rastan_220.bin
+- Runtime trace artifacts:
+  - build/mame/home/genesistrace/genesis_exec_trace.log
+  - build/mame/home/genesistrace/genesis_exec_summary.txt
+```
+
+## [Cody - Research, Title Screen Visual Ownership and Data Path]
+```text
+1) Objective
+- Identify the exact title-screen visual ownership path (text/logo/credits/background helpers and their data sources) after title dispatch correction, and isolate why Build 220 title output is still incomplete/garbage-heavy.
+
+2) Title Visual Entry Path
+- Active title handlers (Build 220):
+  - major/title cluster: 0x03AAB8..0x03ABF6
+  - init body: 0x03AADE..0x03AB20
+  - idle body: 0x03AB28..0x03ABF6
+- Title init visible-output call chain:
+  - 0x03AADE -> 0x03AFEA
+  - 0x03AAE2 -> 0x03AF5E
+  - 0x03AAE6 -> 0x03B06C
+  - 0x03AAEC -> 0x20060C (genesistan_render_sprites_vdp)
+  - 0x03AAF2 -> 0x05A174
+  - 0x03AAFA/0x03AB0A/0x03AB16/0x03AB1C -> 0x03BD5E -> 0x2027B8 (text bridge)
+  - 0x03AB0E -> 0x05A626
+- Additional pre-coin visual helper in same state family:
+  - 0x03AA9C -> 0x059F36
+
+3) Title Element Ownership Summary
+- Top HUD text:
+  - trigger: 0x03AAFA / 0x03AB0A
+  - owner path: 0x03BD5E -> 0x2027B8 (genesistan_hook_text_writer_3bb48)
+- Large RASTAN logo / sword-T:
+  - trigger: 0x03AAF2
+  - owner path: 0x05A174 + 0x20060C sprite-render bridge
+- TAITO / copyright lines:
+  - trigger: 0x03AB0E + 0x03AB14 + 0x03AB1C
+  - owner path: 0x05A626 + 0x03BD5E bridge text IDs
+- CREDIT 0:
+  - trigger: idle body 0x03AB28..
+  - owner path: coin/credit logic + text/refresh helper chain
+- Title background/tile prep:
+  - owner path: 0x03AFEA / 0x03AF5E / 0x03B06C and pre-coin 0x059F36 helper family
+
+4) Data/Table Validation Summary
+- STALE_TABLE_BASE (proven):
+  - text hook base in C: TEXT_WRITER_3BB48_TABLE_BASE currently 0x003BD7C, expected 0x003BD92 after shifts
+  - helper family base immediate: 0x059F36 (and 0x059E6A/0x059EE4) uses movea.l #0x059E9A,a3; this points into code bytes in Build 220, not the shifted table blob region
+- POSSIBLE_STALE_TABLE_BASE:
+  - TEXT_WRITER_3C3FE_TABLE_BASE currently 0x003C654, expected 0x003C66C after shifts
+- VALID (no stale proof found in this pass):
+  - 0x05A626 immediate data bases (0x05A970, 0x05B178) and 0x059CEA call path
+  - 0x05A174 immediate work/shadow targets used for logo descriptor setup
+- SCAFFOLD_DEPENDENCY:
+  - 0x03AF5E / 0x03B06C title prep helpers call into 0x03AF56 scaffold body
+
+5) Title-Specific Scaffold Audit
+- 0x03AAE2 -> 0x03AF5E -> 0x03AF56 (NOP/NOP/NOP/RTS): TITLE_TEXT_SCAFFOLD_RISK
+- 0x03AAE6 -> 0x03B06C -> 0x03B076 -> 0x03AF56 (NOP/NOP/NOP/RTS): TITLE_TEXT_SCAFFOLD_RISK
+- 0x03AAFA/0x03AB0A/0x03AB14/0x03AB1C -> 0x03BD5E -> 0x2027B8 with stale text table base: TITLE_DATA_STALE_RISK
+- 0x03AAF2 -> 0x05A174 -> 0x20060C logo/sprite path: SAFE
+- 0x03AA9C -> 0x059F36 with stale A3 table base: TITLE_DATA_STALE_RISK
+
+6) Ranked Title Blockers
+1. TITLE_DATA_TABLE_STALE
+2. TITLE_SCAFFOLD_DEPENDENCY
+3. TITLE_BACKGROUND_TILEMAP_PATH_BROKEN
+
+7) Minimal Next Fix Target
+- === TITLE_VISUAL_MINIMAL_FIX_TARGET ===
+  - fix_area: title-visual data-base correctness in active title text/conversion helpers.
+  - exact_helper_or_data_path: stale table bases in genesistan_hook_text_writer_3bb48_impl (and same-family 3C3FE constant) plus helper-family A3 base immediate in 0x059F36/0x059E6A/0x059EE4.
+  - why_this_is_the_minimum_title-visual_step: title dispatch targets are now correct; the next proven blockers are stale data/table bases and scaffolded prep on live title-output paths.
+  - what_must_NOT_be_changed: no forced state changes, no NOP insertion/bypass, no startup/launcher/gameplay redesign, no shadow RAM reintroduction.
+
+8) Uncertainties
+- Exact one-to-one mapping of each text ID to each visible line was not fully table-decoded in this pass.
+- Fine-grained ownership split between 0x05A626 helper output and bridge text IDs remains medium confidence without correlated on-screen capture.
+
+9) What Was NOT Done
+- no code changes
+- no spec changes
+- no patcher changes
+- no forced state changes
+- no NOP insertion
+- no shadow RAM reintroduction
+```
+
+### MAME Exit Summary (2026-03-25 22:32:57)
+- Final PC: 0x21159C
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 221, Title Visual Data/Table Base Fix]
+```text
+1) Objective
+- Fix proven stale data/table bases on live title-visual paths (title text and pre-coin title conversion helper family) without forcing state or bypassing logic.
+
+2) Proven Stale Targets
+- Target group 1 (C hook text table base):
+  - TEXT_WRITER_3BB48_TABLE_BASE
+  - old: 0x003BD7C
+  - expected shifted: 0x003BD92
+- Target group 2 (same-family C table base):
+  - TEXT_WRITER_3C3FE_TABLE_BASE
+  - old: 0x003C654
+  - expected shifted: 0x003C66C
+- Target group 3 (title-active helper-family A3 base immediate):
+  - in 0x059E6A / 0x059EE4 / 0x059F36
+  - old immediate: 0x059E9A
+  - expected shifted table base in Build 221 path: 0x059EB0
+
+3) Exact Fix Mechanism Used
+- Target groups 1+2 mechanism: C-side constant correction in `main.c` (runtime text hook uses these constants directly).
+- Target group 3 mechanism: class-level patch-pipeline fix in `shift_table_patcher.py` so abs-long immediate operands are shift-adjusted for the same opcode family used by the stale A3 loads (MOVEA.L #imm32,An and related absolute-long forms), not a one-off site patch.
+- Mechanism rationale:
+  - C constants are consumed by host-side hook code and must be corrected where defined.
+  - 0x059E6A/0x059EE4/0x059F36 are copied arcade code; correct solution is shift pipeline relocation coverage, not hand-retargeting individual callsites.
+
+4) Exact Changes Applied
+- File changed: `apps/rastan/src/main.c`
+  - `TEXT_WRITER_3BB48_TABLE_BASE`: `0x003BD7C` -> `0x003BD92`
+  - `TEXT_WRITER_3C3FE_TABLE_BASE`: `0x003C654` -> `0x003C66C`
+- File changed: `tools/translation/shift_table_patcher.py`
+  - expanded abs-long reference opcode coverage in `fix_absolute_longs()` to include project relocation opcode family (including MOVEA.L immediate forms such as `0x207C..0x2E7C`, plus existing JSR/JMP/LEA family).
+  - result: title helper-family A3 table-base immediates now receive cumulative shift adjustment.
+- No spec changes in this pass.
+
+5) Title Path Validation Results
+- TEXT_WRITER_3BB48_TABLE_BASE:
+  - old: 0x003BD7C
+  - new: 0x003BD92
+  - expected: 0x003BD92
+  - status: MATCH
+- TEXT_WRITER_3C3FE_TABLE_BASE:
+  - old: 0x003C654
+  - new: 0x003C66C
+  - expected: 0x003C66C
+  - status: MATCH
+- Helper-family A3 base immediate (`0x059E6A/0x059EE4/0x059F36`):
+  - old immediate: 0x059E9A
+  - new immediate: 0x059EB0
+  - expected target: 0x059EB0
+  - per-site confirmation:
+    - site 0x059E7A: old 0x059E9A -> new 0x059EB0
+    - site 0x059EE4: old 0x059E9A -> new 0x059EB0
+    - site 0x059F46: old 0x059E9A -> new 0x059EB0
+- Shift stage evidence:
+  - abs-long fix count increased from 483 to 608 in release pipeline output.
+- Data-region consumption validation:
+  - new target 0x059EB0 resolves to table-like longword entries (`0x0004EAF6`, `0x0004EEF8`, ...), while old 0x059E9A bytes were code-pattern bytes.
+
+6) Runtime Title-Screen Result
+- Build/run mode used: `RASTAN_EXCEPTION_DUMPER_MODE=1`.
+- Mode wiring checks:
+  - text dumper vectors active
+  - QR markers absent
+- Bounded runtime probe (MAME Genesis, sound=none, `-nothrottle`, 30s emulated):
+  - no exception captured in probe window
+  - no direct on-screen screenshot capture available in this environment
+- Runtime visual classification for this pass:
+  - UNKNOWN (direct visual title-quality confirmation unavailable in-pass).
+
+7) Remaining Uncertainties
+- Direct visual confirmation of title improvement (HUD/TAITO/logo/credit composition) was not captured in this environment.
+- If title remains incomplete, the next blocker is likely the already-identified scaffold dependency in title-prep helpers (`0x03AF56` path), which was intentionally not changed in this pass.
+
+8) Rule Compliance Check
+- No forced state changes: YES
+- No NOP insertion: YES
+- No startup/launcher redesign: YES
+- Title dispatch fix preserved: YES
+- Text dumper mode used: YES
+
+9) Artifact Path(s)
+- Release artifact: `dist/Rastan_221.bin`
+- Runtime trace artifacts:
+  - `build/mame/home/genesistrace/genesis_exec_trace.log`
+  - `build/mame/home/genesistrace/genesis_exec_summary.txt`
+```
+
+### MAME Exit Summary (2026-03-25 22:58:13)
+- Final PC: 0x2115A8
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-03-25 22:58:27)
+- Final PC: 0x2115A8
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 223, Title Prep Scaffold Replacement]
+```text
+1) Objective
+- Replace the active title-prep scaffold path at relocated 0x03AF56 with real behavior so title-state prep callers no longer land in NOP/NOP/NOP/RTS.
+
+2) Original Scaffold Role (Proven)
+- Proven role: multi-step prep routine built on a fill primitive.
+- Evidence from active title call context in Build 221/223 disassembly:
+  - 0x03AAE2 -> 0x03AF5E -> 0x03AF56
+  - 0x03AAE6 -> 0x03B06C -> 0x03B076 -> 0x03AF56
+- Callers load A0/D0/D1 and then branch to 0x03AF56, so downstream assumes a bulk fill side effect (staging/clearing title buffers and prep regions) before later text/logo composition.
+
+3) Replacement Behavior Implemented
+- Restored real fill behavior at the active scaffold target by removing the NOP replacement on arcade helper 0x03AD44 (relocates to 0x03AF56 in current Build 223 layout).
+- Also restored arcade helper 0x03AD3C to original bytes (relocates to 0x03AF4E), keeping both paired fill primitives real.
+- Implementation mechanism: spec-level opcode_replace correction only (no callsite bypassing, no forced state changes).
+
+4) Data Structures Now Produced
+- In final Build 223 disassembly:
+  - 0x03AF56 now executes `movel %d0,%a0@+ ; subq #1,%d1 ; bne 0x03AF56 ; rts`.
+- Active title-prep caller effects now restored:
+  - 0x03AF5E path fills:
+    - A0=0xE0FF404C, D1=0x0008, D0=0x00000100
+    - A0=0xE0FF41BC, D1=0x0182, D0=0x00000100
+  - 0x03AF84 path fills:
+    - A0=0xE0FF404C, D1=0x01E0, D0=0x00000100
+  - 0x03B076 path fills:
+    - A0=0x00C00100, D1=0x076C, D0=0x00000020
+    - A0=0xE0FFC954, D1=0x076C, D0=0x00000020
+- These were previously no-op at the active destination due 0x03AF56 scaffold.
+
+5) Runtime Result
+- Build/run mode used: RASTAN_EXCEPTION_DUMPER_MODE=1.
+- Bounded runtime probes (MAME Genesis, 15-20s windows, no throttle, sound none) for Build 221 vs Build 223 both end in the same exception-loop signature:
+  - final PC around 0x2115A8
+  - SP around 0xE0FFFE1C
+  - no observed progression into frontend/title execution ranges in genesistrace summary.
+- Runtime classification for this pass: no change observed in bounded runtime window.
+
+6) Remaining Gaps
+- Although 0x03AF56 scaffold is now replaced with real fill behavior, bounded runtime in this environment is still trapped in the same early exception-loop path, so title-screen visual improvement could not be directly observed in-pass.
+- Next blocker is outside this narrow scaffold replacement change and needs separate crash-path tracing from the mode-1 exception loop state.
+
+7) Rule Compliance
+- No forced state changes: YES
+- No NOP insertion: YES
+- No startup/launcher redesign: YES
+- Title dispatch fix preserved: YES
+- Text dumper mode used: YES
+
+8) Artifact Path(s)
+- Release artifact: dist/Rastan_223.bin
+- Runtime probe artifacts:
+  - build/mame/home/genesistrace/genesis_exec_trace.log
+  - build/mame/home/genesistrace/genesis_exec_summary.txt
+  - /tmp/titleprep2_221.txt
+  - /tmp/titleprep2_223.txt
+```
+
+## [Cody - Research, Title Prep Output Final-State Audit]
+```text
+1) Objective
+- Determine whether restored title-prep outputs in Build 223 are final-architecture-valid Genesis outputs or legacy shadow/hardware-era outputs that should be replaced.
+
+2) Restored Output Inventory
+- 0xE0FF404C
+  - semantic role: base of `genesistan_shadow_d00000_words` (shadowed PC090OJ region)
+  - classification: LEGACY_D_WINDOW_SHADOW
+- 0xE0FF41BC
+  - semantic role: active descriptor subregion in the same D-window shadow block
+  - classification: TITLE_SPRITE_DESCRIPTOR_BUFFER
+- 0x00C00100
+  - semantic role: direct C-window/hardware-era write target in title-prep helper path
+  - classification: DIRECT_HARDWARE_OUTPUT
+- 0xE0FFC954
+  - semantic role: WRAM shadow-style staging sink paired with 0x00C00100 fill in 0x03B076 path
+  - classification: LEGACY_C_WINDOW_SHADOW
+
+3) Final-State Validity Summary
+- 0xE0FF404C: NO (legacy D-window shadow; final owner should be Genesis-native sprite SAT pipeline)
+- 0xE0FF41BC: NO (active today, but still D-window shadow ownership; final owner should be Genesis-native sprite SAT pipeline)
+- 0x00C00100: NO (direct hardware-era output; final owner should be VDP-native tilemap/text clear/write path)
+- 0xE0FFC954: NO (legacy shadow-style sink with no proven standalone final-owner role)
+
+4) Downstream Consumer Summary
+- 0xE0FF404C
+  - live producer/consumer cluster seen at: 0x03AF5E/0x03AF84, 0x52CC0, 0x542CA, 0x54A2E, 0x56656, 0x579C0
+  - status: live, but legacy-only shadow chain
+- 0xE0FF41BC
+  - live consumer cluster seen at: 0x42094, 0x46062, 0x5625C->0x54369, 0x56286->0x5632A, 0x562C6, 0x5788A, 0x578E8, 0x57908, 0x579C0
+  - status: live, but legacy-only shadow chain
+- 0x00C00100
+  - write site: 0x03B076 via restored fill helper
+  - software consumer: not proven
+  - status: direct hardware-side effect path, not final Genesis ownership
+- 0xE0FFC954
+  - write site: 0x03B086
+  - consumer: not proven in Build 223 disassembly scan
+  - status: legacy staging/shadow-style output
+
+5) Final Architecture Judgment
+- Primary judgment: REPLACE.
+- Restored helper behavior in Build 223 re-enables legacy shadow/hardware-era outputs rather than final Genesis-native ownership endpoints.
+
+6) Minimal Correct Next Step
+- === TITLE_PREP_FINAL_STATE_NEXT_STEP ===
+  - keep_or_replace: REPLACE
+  - exact_target_or_path: title-prep fill path 0x03AF5E/0x03B076 that emits to 0xE0FF404C, 0xE0FF41BC, 0x00C00100, 0xE0FFC954
+  - final_owner_system: Genesis-native title render ownership (direct sprite SAT builder + VDP tilemap/text clear/write path)
+  - why_this_is_the_correct_next_step: restored outputs are legacy endpoints; replacing ownership here aligns title-prep with final architecture
+  - what_must_NOT_be_done: no additional legacy-helper restoration, no bypass/NOP scaffolding, no shadow-RAM long-term mechanism
+
+7) Uncertainties
+- 0xE0FFC954 has no proven downstream consumer in this pass; full runtime provenance is still unverified.
+- Some 0xE0FF404C references outside the title subset may belong to broader frontend/runtime paths; this audit is title-prep scoped.
+
+8) What Was NOT Done
+- no code changes
+- no spec changes
+- no helper restoration
+- no NOP insertion
+- no shadow RAM reintroduction
+```

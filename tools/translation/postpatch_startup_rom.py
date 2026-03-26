@@ -615,7 +615,14 @@ def main() -> int:
             shift_deltas.append((_pc, len(_repl) - len(_orig)))
         shift_deltas.sort(key=lambda x: x[0])
         maincpu_bytes = bytes(
-            _apply_shift_table(maincpu_bytes, spec["shift_replacements"], _disasm, _src_start, _src_end)
+            _apply_shift_table(
+                maincpu_bytes,
+                spec["shift_replacements"],
+                _disasm,
+                _src_start,
+                _src_end,
+                spec.get("jump_table_word_displacements", []),
+            )
         )
 
     ensure_rom_size(rom_bytes)

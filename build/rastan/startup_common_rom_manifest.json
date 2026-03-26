@@ -1040,8 +1040,8 @@
       "rom_pc": "0x03AF4E",
       "original_bytes": "30c0534166fa",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP word fill loop. Called from 0x3AF5E and 0x3AF6E to fill C-Window pages 1 and 3 with 0x0000."
+      "replacement_bytes": "30c0534166fa",
+      "note": "Restore original word-fill primitive used by title/front-end prep call chains (0x3AF5E, 0x3AF6E, and 0x3B076)."
     },
     {
       "kind": "opcode_replace",
@@ -1049,8 +1049,8 @@
       "rom_pc": "0x03AF56",
       "original_bytes": "20c0534166fa",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4e714e714e71",
-      "note": "NOP longword fill loop. Called from 0x3AE70, 0x3AE80, 0x3AF38, 0x3AF48 to fill C-Window pages 0 and 2 with 0x0020. Also called from 0x3AD4C sprite RAM init which is irrelevant on Genesis."
+      "replacement_bytes": "20c0534166fa",
+      "note": "Restore longword fill primitive for active title-prep callers landing at relocated 0x03AF56."
     },
     {
       "kind": "opcode_replace",
@@ -1612,7 +1612,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x4E82",
+  "checksum": "0x4AAF",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x00217850",

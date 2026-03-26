@@ -1278,8 +1278,8 @@ void rastan_draw_tile_xy(u16 tile_attr, int x, int y)
     VDP_setTileMapXY(BG_A, tile_attr, (u16)x, (u16)y);
 }
 
-#define TEXT_WRITER_3BB48_TABLE_BASE    0x003BD7CUL /* 0x03BB7C + relocation delta 0x200 */
-#define TEXT_WRITER_3C3FE_TABLE_BASE    0x003C654UL /* 0x03C454 + relocation delta 0x200 */
+#define TEXT_WRITER_3BB48_TABLE_BASE    0x003BD92UL /* shifted arcade 0x03BB7C */
+#define TEXT_WRITER_3C3FE_TABLE_BASE    0x003C66CUL /* shifted arcade 0x03C454 */
 #define TEXT_WRITER_CWINDOW_PAGE2_BASE  0x00C08000UL
 #define TEXT_WRITER_CWINDOW_PAGE_BYTES  0x00008000UL
 #define TEXT_WRITER_SHADOW_PAGE2_OFFSET 0x0000C800UL /* 0x10C000 + 0xC800 = arcade 0xC08000 alias */

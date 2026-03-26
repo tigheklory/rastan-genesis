@@ -8,6 +8,7 @@ shifting subsequent code and fixing all relative and absolute references.
 PHASES:
   1. Parse build/maincpu.disasm.txt into an instruction map.
   2. Detect jump table regions (mark as data, skip reference fixing).
+  2b. Fix explicit word-displacement jump tables declared in spec.
   3. Apply shift_replacements: insert replacement bytes, build shift table.
   4. Fix relative references (Bcc, BSR, BRA) displaced by shifts.
   5. Fix absolute long references (JSR, JMP, LEA) in code regions.
@@ -79,6 +80,59 @@ def detect_jump_tables(
     """
     # TODO: implement jump-table boundary detection
     return set()
+
+
+def fix_word_displacement_jump_tables(
+    result: bytearray,
+    maincpu_bytes: bytes,
+    jump_tables: list[dict],
+    shifts: list[tuple[int, int]],
+    source_start: int,
+    source_end: int,
+) -> int:
+    """
+    Fix PC-relative jump-table word displacements declared explicitly in spec.
+
+    Each entry describes a table whose words are signed 16-bit displacements
+    from table base to handler entry. We recompute each displacement so it
+    lands on the shifted semantic entry.
+    """
+    if not shifts or not jump_tables:
+        return 0
+
+    count = 0
+    for table in jump_tables:
+        table_addr = int(table["table_address"], 0)
+        entry_count = int(table["entry_count"])
+        entry_size = int(table.get("entry_size_bytes", 2))
+
+        if entry_size != 2:
+            raise RuntimeError(
+                f"jump table at 0x{table_addr:06X}: unsupported entry_size_bytes={entry_size}"
+            )
+
+        if table_addr < source_start or (table_addr + (entry_count * entry_size)) > source_end:
+            raise RuntimeError(
+                f"jump table at 0x{table_addr:06X}: outside source range "
+                f"0x{source_start:06X}..0x{source_end:06X}"
+            )
+
+        new_table_addr = new_offset(table_addr, shifts)
+        for i in range(entry_count):
+            src_entry_addr = table_addr + (i * 2)
+            dst_entry_addr = new_table_addr + (i * 2)
+            old_disp = struct.unpack_from(">h", maincpu_bytes, src_entry_addr)[0]
+            old_target = table_addr + old_disp
+            new_target = new_offset(old_target, shifts)
+            new_disp = new_target - new_table_addr
+            if not -32768 <= new_disp <= 32767:
+                raise RuntimeError(
+                    f"jump table at 0x{table_addr:06X}[{i}]: displacement overflow {new_disp}"
+                )
+            struct.pack_into(">h", result, dst_entry_addr, new_disp)
+            count += 1
+
+    return count
 
 
 # ---------------------------------------------------------------------------
@@ -241,15 +295,23 @@ def fix_relative_branches(
 # Fix absolute long references
 # ---------------------------------------------------------------------------
 
-# Opcodes with abs_long operand (4 bytes) immediately following the 2-byte opcode:
+# Opcodes with abs_long operand (4 bytes) immediately following the 2-byte opcode.
+# This matches the project relocation coverage for source-range absolute targets.
+#
+# Examples:
 #   4E B9  JSR   abs.l
 #   4E F9  JMP   abs.l
-#   41 F9  LEA   abs.l, An   (many forms, first byte 0x41..0x47, second 0xF9)
-#   61 00  BSR.W (handled by branch fixer above)
-
-def is_lea_with_absl(b0: int, b1: int) -> bool:
-    """Return True if (b0, b1) is LEA abs.l, An."""
-    return (b0 & 0xC1) == 0x41 and b1 == 0xF9
+#   41 F9  LEA   abs.l, An
+#   20 7C  MOVEA.L #imm32, A0  (and A1..A7 variants)
+#
+# BSR.W (61 00) is handled by branch fixer above.
+ABS_LONG_REF_OPCODES = {
+    0x4EB9,  # JSR abs.l
+    0x4EF9,  # JMP abs.l
+    0x4879,  # PEA abs.l
+    0x41F9, 0x43F9, 0x45F9, 0x47F9, 0x49F9, 0x4BF9, 0x4DF9, 0x4FF9,  # LEA abs.l,An
+    0x207C, 0x227C, 0x247C, 0x267C, 0x287C, 0x2A7C, 0x2C7C, 0x2E7C,  # MOVEA.L #imm32,An
+}
 
 
 def fix_absolute_longs(
@@ -259,8 +321,8 @@ def fix_absolute_longs(
     source_start: int,
     source_end: int,
 ) -> int:
-    """Fix absolute long code references (JSR, JMP, LEA) after shifts.
-    Only adjusts references that point into [source_start, source_end).
+    """Fix absolute long references after shifts for known opcode forms.
+    Only adjusts operands that point into [source_start, source_end).
     Returns count of fixes.
     """
     if not shifts:
@@ -273,14 +335,8 @@ def fix_absolute_longs(
         new_addr = new_offset(orig_addr, shifts)
         if new_addr + 6 > len(result):
             continue
-        b0 = result[new_addr]
-        b1 = result[new_addr + 1]
-
-        is_jsr = (b0 == 0x4E and b1 == 0xB9)
-        is_jmp = (b0 == 0x4E and b1 == 0xF9)
-        is_lea = is_lea_with_absl(b0, b1)
-
-        if not (is_jsr or is_jmp or is_lea):
+        opcode = (result[new_addr] << 8) | result[new_addr + 1]
+        if opcode not in ABS_LONG_REF_OPCODES:
             continue
 
         ref_addr = struct.unpack_from(">I", result, new_addr + 2)[0]
@@ -303,6 +359,7 @@ def apply_shift_table(
     disasm_path: str,
     source_start: int,
     source_end: int,
+    jump_table_word_displacements: list[dict] | None = None,
 ) -> bytearray:
     """
     Apply shift_replacements to maincpu_bytes, fixing all internal references.
@@ -329,6 +386,16 @@ def apply_shift_table(
     # --- PHASE 3: apply replacements ---
     result = apply_replacements(maincpu_bytes, shift_replacements, shifts)
 
+    # --- PHASE 3b: fix explicit jump-table word displacements ---
+    jtable_fixes = fix_word_displacement_jump_tables(
+        result,
+        maincpu_bytes,
+        jump_table_word_displacements or [],
+        shifts,
+        source_start,
+        source_end,
+    )
+
     # --- PHASE 4: fix relative branches ---
     branch_fixes = fix_relative_branches(result, insns, shifts, source_start, source_end)
 
@@ -336,6 +403,7 @@ def apply_shift_table(
     abs_fixes = fix_absolute_longs(result, insns, shifts, source_start, source_end)
 
     print(f"shift_table_patcher: {len(shift_replacements)} replacement(s), "
+          f"{jtable_fixes} jump-table fix(es), "
           f"{branch_fixes} branch fix(es), {abs_fixes} abs-long fix(es)")
 
     return result
@@ -380,7 +448,15 @@ def main() -> int:
         return 0
 
     shift_replacements = spec.get("shift_replacements", [])
-    result = apply_shift_table(maincpu_bytes, shift_replacements, args.disasm, source_start, source_end)
+    jump_tables = spec.get("jump_table_word_displacements", [])
+    result = apply_shift_table(
+        maincpu_bytes,
+        shift_replacements,
+        args.disasm,
+        source_start,
+        source_end,
+        jump_tables,
+    )
     Path(args.output).write_bytes(result)
     print(f"Written {len(result)} bytes to {args.output}")
     return 0
