@@ -244,8 +244,8 @@ void genesistan_init_workram_direct(uint8_t dip1, uint8_t dip2)
      */
     Z80_startReset();
 
-    /* Main state machine: state=2, sub=0, step=0 */
-    genesistan_arcade_workram_words[0] = 2; /* A5@(0)  main state */
+    /* Main state machine: state=1, sub=0, step=0 */
+    genesistan_arcade_workram_words[0] = 1; /* A5@(0)  main state */
     genesistan_arcade_workram_words[1] = 0; /* A5@(2)  sub-state */
     genesistan_arcade_workram_words[2] = 0; /* A5@(4)  inner step */
 

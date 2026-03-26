@@ -19323,3 +19323,883 @@ If it crashes before attract:
 - no NOP insertion
 - no shadow RAM reintroduction
 ```
+
+### MAME Exit Summary (2026-03-26 00:00:49)
+- Final PC: 0x211900
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-03-26 00:08:56)
+- Final PC: 0x211788
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 227, Genesis-Native Title Prep Replacement]
+```text
+1) Objective
+- Replace title-prep legacy output ownership in the active title path so 0x03AF5E/0x03B076 no longer use legacy D-window/C-window shadow or direct hardware-era fill targets as final endpoints.
+
+2) Legacy Outputs Replaced
+- 0x03AF5E path (old):
+  - 0xE0FF404C
+  - 0xE0FF41BC
+- 0x03B076 path (old):
+  - 0x00C00100
+  - 0xE0FFC954
+- These outputs were previously reached by title init through:
+  - 0x03AAE2 -> 0x03AF5E
+  - 0x03AAE6 -> 0x03B06C -> 0x03B076
+
+3) Genesis-Native Owners Implemented
+- New owner for former 0x03AF5E legacy sprite-prep fills:
+  - 0x03AF5E now JMP -> genesistan_title_prep_sprite_bridge (0x202C2C)
+  - bridge calls genesistan_title_prep_sprite_buffers()
+  - final owner products:
+    - WRAM sprite descriptor staging blocks used by Genesis SAT path
+    - frontend SAT clear via clear_frontend_sprite_layer()
+- New owner for former 0x03B076 legacy tile/text-prep fills:
+  - 0x03B076 now JMP -> genesistan_title_prep_tile_text_bridge (0x202C3C)
+  - bridge calls genesistan_title_prep_tile_text_buffers()
+  - final owner products:
+    - text shadow staging clear (space-filled cells)
+    - VDP plane clears (BG_A + BG_B)
+
+4) Exact Title Prep Products Now Produced
+- Sprite-prep product set (instead of 0xE0FF404C/0xE0FF41BC legacy fills):
+  - zeroed descriptor block A: A5+0x11B2 (18 * 8 bytes)
+  - zeroed descriptor block B: A5+0x0170 (4 * 8 bytes)
+  - cleared frontend SAT staging/render layer
+- Tile/text-prep product set (instead of 0x00C00100/0xE0FFC954 legacy fills):
+  - cleared text shadow page cells to attr=0 + glyph=0x20
+  - cleared BG_A and BG_B planes via VDP_clearPlane()
+
+5) Runtime Title Result
+- Build/run mode: RASTAN_EXCEPTION_DUMPER_MODE=1.
+- Mode-1 validation on final ROM (dist/Rastan_227.bin):
+  - vectors at 0x000008..0x000014 point to _Rastan_EX_* handlers (0x202AC2, 0x202ACE, 0x202ADA, 0x202AE6)
+  - text-dumper strings present ("EX %-13s C%02X  B%u", "PC %08lX  SR %04X")
+  - QR strings absent
+- Bounded runtime probe (MAME Genesis, -seconds_to_run 25, -nothrottle, sound none):
+  - execution remains in early exception-loop region (PC sampled around 0x21177C..0x211788)
+  - no entry into traced frontend/title execution ranges in genesistrace summary
+- Runtime visual classification: NO_CHANGE
+
+6) Remaining Gaps
+- Title-prep ownership replacement is in place, but current bounded runtime still loops in early exception handling before observable title-state execution.
+- The next blocker is an earlier exception-loop root cause outside this narrow title-prep ownership replacement pass.
+
+7) Rule Compliance Check
+- No additional legacy helper restoration: YES
+- No NOP scaffolding: YES
+- No forced state changes: YES
+- Legacy title outputs no longer final owners: YES
+- Text dumper mode used: YES
+
+8) Artifact Path(s)
+- Final ROM: dist/Rastan_227.bin
+- Runtime probe logs:
+  - build/mame/home/genesistrace/genesis_exec_trace.log
+  - build/mame/home/genesistrace/genesis_exec_summary.txt
+```
+
+### MAME Exit Summary (2026-03-26 00:27:51)
+- Final PC: 0x2115A8
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 228, Direct Title Prep Replacement Without Shims]
+```text
+1) Objective
+- Remove the rejected Build 227 title-prep shim/trampoline path and replace it with direct in-path title-prep ownership implementation, then verify mode-1 runtime behavior.
+
+2) Shim Path Removed
+- Removed shim detours from active title-prep path:
+  - 0x03AF5E -> JMP 0x202C2C (removed)
+  - 0x03B076 -> JMP 0x202C3C (removed)
+- Removed title-prep shim symbols/functions:
+  - genesistan_title_prep_sprite_bridge
+  - genesistan_title_prep_tile_text_bridge
+  - genesistan_title_prep_sprite_buffers
+  - genesistan_title_prep_tile_text_buffers
+- Updated required symbol list to remove title-prep bridge requirements.
+
+3) Direct Final-State Ownership Implemented
+- Direct sprite-prep ownership at arcade_pc 0x03AD4C (runtime 0x03AF5E):
+  - clear WRAM descriptor block A: target 0xE0FF11FE, count 0x24 longwords, value 0
+  - clear WRAM descriptor block B: target 0xE0FF01BC, count 0x08 longwords, value 0
+  - uses in-path longword fill primitive via bsr to 0x03AF56
+- Direct title text/tile staging ownership at arcade_pc 0x03AE64 (runtime 0x03B076):
+  - fill text shadow staging base 0xE0FFC84C with 0x00000020
+  - count 0x0800 longwords (space-filled text cell backing)
+  - second pass repeats deterministic fill to same staging base
+  - uses in-path longword fill primitive via bsr to 0x03AF56
+
+4) Shift / Relocation Changes
+- Changed opcode replacement bytes for direct ownership regions:
+  - arcade_pc 0x03AD4C
+  - arcade_pc 0x03AE64
+- Relocation pipeline rerun output:
+  - shift_table_patcher: 22 replacement(s), 6 jump-table fix(es), 7194 branch fix(es), 608 abs-long fix(es)
+- No new jump/trampoline targets introduced; no remaining references to 0x202C2C/0x202C3C.
+
+5) Crash Path Verification
+- Previous rejected shim-path crash target:
+  - PC around 0x200B7A/0x200B7C, A1=0x000000FF, caller including 0x03ADD2.
+- Verification results after direct replacement:
+  - static disassembly confirms no title-prep JMPs to shim bridges remain.
+  - runtime bounded trace (25s) contains no observed 0x200B7A/0x200B7C or 0x03ADD2 markers.
+- Result: shim-specific crash path not observed in this pass.
+
+6) Runtime Result
+- Build/run mode enforced: RASTAN_EXCEPTION_DUMPER_MODE=1.
+- Text-dumper mode proof:
+  - _Rastan_EX_* vectors/symbols active
+  - text-dumper strings present
+  - QR strings absent
+- Bounded runtime (MAME Genesis, 25s, no throttle, sound none):
+  - execution remains in early exception-loop region (PC sampled around 0x21159C..0x2115A8)
+  - no observed entry into frontend/title traced ranges
+- Runtime classification: NEW_EARLIER_BLOCKER_EXPOSED
+
+7) Remaining Gaps
+- Title-prep direct ownership path is now in place, but runtime still hits an earlier exception-loop blocker before title-state execution.
+- Visual title improvement cannot be observed until that earlier blocker is cleared.
+
+8) Rule Compliance Check
+- No shim/trampoline/bridge used: YES
+- No new NOP scaffolding: YES
+- Text dumper mode used: YES
+- Shift table updated for direct implementation: YES
+- Legacy outputs not kept as final owners: YES
+
+9) Artifact Path(s)
+- Final ROM artifact: dist/Rastan_228.bin
+- Runtime probe logs:
+  - build/mame/home/genesistrace/genesis_exec_trace.log
+  - build/mame/home/genesistrace/genesis_exec_summary.txt
+- Detailed pass report:
+  - docs/research/build228_direct_title_prep_replacement_no_shims.md
+```
+
+## [Cody - Research, Build 228 Earlier Blocker Trace]
+```text
+1) Objective
+- Trace the Build 228 "earlier blocker" sampled at `PC 0x21159C..0x2115A8` to first cause and determine whether it is a true exception fault or a pre-title control-flow stall.
+
+2) Loop Region Identified
+- `0x21159C..0x2115A8` is inside SGDK `VDP_waitVBlank` (`symbol 0x211550`), not relocated arcade title logic and not `_Rastan_EX_*` exception-handler code.
+- Loop instructions in the sampled band:
+  - `0x21159A: movea.l #0x00C00004,a0`
+  - `0x2115A0: move.w (a0),d0`
+  - `0x2115A2: btst #3,d0`
+  - `0x2115A6: bne 0x21159A`
+  - `0x2115A8: move.w (a0),d0`
+
+3) First Fault Cause
+- No fault/exception was captured in the bounded Build 228 probes.
+- Proven runtime evidence:
+  - `rastan_qr_exc_type` at `0xE0FF6B38` remained `0x0000`.
+  - sampled PCs cycled in `0x21159C..0x2115A8` with no `_Rastan_EX_*` entry.
+- First blocker cause is launcher idle/handoff not triggered:
+  - `current_screen` (`0xE0FF6DCC`) remained `0x0000` (launcher menu screen).
+  - joy sample remained `0x0000` (no START edge observed).
+  - `main.c` loop therefore stays in `SYS_doVBlankProcess()` tail path, which calls `SYS_doVBlankProcessEx` -> `VDP_waitVBlank`.
+
+4) Title Relation
+- This occurs before title-state execution.
+- In this capture context, no transition into `SCREEN_FRONTEND_LIVE` / arcade frontend tick path was observed; title handlers were not reached.
+
+5) Final-State Judgment
+- OTHER.
+- This sampled blocker is a pre-handoff launcher idle condition (no observed handoff trigger), not an exception-loop root fault.
+
+6) Minimal Next Fix Target
+- === BUILD228_EARLIER_BLOCKER_MINIMAL_FIX_TARGET ===
+  - fix_area: runtime validation/handoff trigger path (launcher input -> `request_start_rastan()`), not title-prep internals.
+  - exact_first_fault_path: no first-fault path proven; observed path is `main` loop -> `SYS_doVBlankProcessEx (0x2116F4)` -> `VDP_waitVBlank (0x211550)` with `current_screen=0` and `ex_type=0`.
+  - why_this_is_the_real_blocker: without verified handoff execution, runs remain in launcher idle polling and cannot validate title-state behavior.
+  - what_must_NOT_be_done: no shims, no NOP/bypass, no forced state changes, no reopening title-prep replacement in this step.
+
+7) Uncertainties
+- Bounded automated probes did not include explicit input injection; conclusion is for the tested no-input run window.
+- Exact single `main.isra.0` callsite of each sampled VBlank wait iteration is not uniquely isolated from frame-level sampling alone.
+
+8) What Was NOT Done
+- no code changes
+- no spec changes
+- no shims
+- no NOP insertion
+- no forced state changes
+```
+
+### MAME Exit Summary (2026-03-26 00:48:08)
+- Final PC: 0x2115A0
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-03-26 00:54:15)
+- Final PC: 0x2115A0
+- Stack Pointer (SP): 0xE0FFFE1C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Research, Build 228 Started-Path Trace Correction]
+```text
+1) Objective
+- Correct prior no-input tracing by running Build 228 with explicit launcher START input and proving post-launcher frontend path execution before any visual-path conclusions.
+
+2) Valid Startup Method
+- MAME Lua input injection used on launcher:
+  - frame 20: `P1 Start` set to 1
+  - frame 23: `P1 Start` set to 0
+- Verification file: `/tmp/build228_start_probe.txt`
+
+3) Proof The Game Left Launcher
+- `current_screen` (`0xE0FF6DCC`) observed transition:
+  - before input: `0x00000000` (SCREEN_CONFIG)
+  - after START pulse: `0x00000004` (SCREEN_FRONTEND_LIVE)
+- Sample lines:
+  - `f=25 ... screen=00000000 joy=0080`
+  - `f=30 ... screen=00000004`
+
+4) Proof Frontend Path Is Executing
+- Post-start sampled PCs are in `main.isra.0` frontend-live branch after the call to original frontend tick:
+  - `0x2158A0: jsr 0x2027EC` (`genesistan_run_original_frontend_tick`)
+  - active follow-on blocks sampled: `0x2158B2..0x2158C8`, `0x2158CA...`
+- Arcade workram timing field changed in started run:
+  - `A5+0x002C` (`0xFF0078`) decremented from `0x009E` to `0x0079` in sampled started frames.
+- This confirms started-game post-launcher execution, not launcher-idle-only behavior.
+
+5) Exception Status In Started Window
+- `rastan_qr_exc_type` (`0xE0FF6B38`) remained `0x0000` in this bounded started-window sampling.
+- No direct `_Rastan_EX_*` entry was captured in this started-window probe.
+
+6) Correct Debug Focus After Correction
+- Valid path to debug title/frontend garbage is now confirmed as:
+  - `genesistan_run_original_frontend_tick()`
+  - `sanitize_arcade_workram()` pointer scrub loop
+  - `load_arcade_palette()` conversion/DMA path
+  - frontend sprite push path (`genesistan_render_sprites_vdp` adjacency in same branch)
+- Launcher-idle-only interpretation is invalid for this issue.
+
+7) Artifacts
+- `docs/research/build228_started_path_visible_trace.md`
+- `/tmp/build228_start_probe.txt`
+- `/tmp/build228_started_state_trace_long.txt`
+
+8) What Was NOT Done
+- no code changes
+- no spec changes
+- no patcher changes
+- no shims
+- no NOP insertion
+- no forced state changes
+```
+
+## [Cody - Research, Build 228 Visible Output Trace]
+```text
+1) Objective
+- Trace the exact started-path visible-output pipeline in Build 228, prove real VDP hardware writes, and identify why output is mostly black with sparse dots.
+
+2) Active Execution Path
+- Started-path proof remains valid (START injected, `current_screen=0x00000004`, `SCREEN_FRONTEND_LIVE`).
+- Active per-frame branch in `main.c`:
+  - `genesistan_refresh_arcade_inputs()`
+  - `genesistan_run_original_frontend_tick()`
+  - `sanitize_arcade_workram()`
+  - `load_arcade_palette()`
+  - `sync_arcade_scroll_to_vdp()`
+  - `render_frontend_sprite_layer()` -> `genesistan_render_sprites_vdp()`
+- Runtime state while sampling:
+  - `A5+0x0000=0x0002`, `A5+0x0002=0x0000`, `A5+0x0004=0x0000`
+  - `A5+0x002C` decrements across frames.
+
+3) Final Output Owners
+- Tilemap/text expected owner hooks:
+  - `0x200000` (`genesistan_hook_tilemap_plane_a`)
+  - `0x2001A6` (`genesistan_hook_tilemap_plane_b`)
+  - `0x20034C` (`genesistan_hook_text_writer_3bb48_impl`)
+  - `0x200DE2` (`genesistan_hook_text_writer_3c3fe`)
+- Execution probe results for those entries in started run:
+  - all `count=0`.
+- Active output owner observed:
+  - `0x20060C` (`genesistan_render_sprites_vdp`) `count=143`.
+- Proven VDP write sites (68k writes to real ports):
+  - `0xC00000` data writes from `0x200AB4`, `0x200B98`, `0x202D80..0x202DDE`, `0x2159B2/BA/E2/EA`
+  - `0xC00004` control writes from `0x200AAE`, `0x200B92`, `0x202C74..0x202D08`, `0x202D58`, `0x202E66`, `0x21196A`, `0x2159AA/B8/E0/E8`.
+
+4) Data Summary
+- Started 600-frame write totals:
+  - `0xC00000`: 14872 writes
+  - `0xC00004`: 11583 writes
+- Palette stream is valid and nonzero:
+  - frequent color words `0222/0444/0666/0888/0AAA/0CCC/0EEE` from `0x200AAE/0x200AB4` and `0x200B92/0x200B98`.
+- Sprite/tile payload stream is mostly zero in active CPU copy path:
+  - `0x202D80..0x202DDE` data values are overwhelmingly `0000`.
+- Descriptor/source backing in started run:
+  - sprite block A (`0xFF11B2`, 18*8): nonzero count `0`
+  - sprite block B (`0xFF0170`, 4*8): mostly zero (few nonzero bytes).
+
+5) Root Cause
+- Sparse-dot output is caused by missing tile/text producer execution plus near-empty sprite payload:
+  - tile/text hook entry points never execute in this started path,
+  - active sprite path writes mostly zero payload,
+  - palette updates remain valid.
+- Result: colors update, but geometry/text backing data is mostly absent/zero.
+
+6) Breakpoint
+- Expected producer chain:
+  - frontend tick -> tile/text hook producers (`0x200000/0x2001A6/0x20034C/0x200DE2`) + populated sprite descriptors.
+- Actual producer chain (proven):
+  - frontend tick -> sprite renderer (`0x20060C`) + palette/scroll writes.
+- Exact break condition proven by runtime probes:
+  - tile/text producer entries have zero execution hits,
+  - active sprite-source buffers are near-empty, and copy stream is mostly `0000`.
+
+7) Minimal Fix Target
+- === BUILD228_VISIBLE_OUTPUT_MINIMAL_FIX_TARGET ===
+  - fix_area: started frontend output-producer activation and payload production (tile/text + sprite descriptors)
+  - exact_output_path: `genesistan_run_original_frontend_tick()` downstream path that must reach `0x200000/0x2001A6/0x20034C/0x200DE2` and populate descriptor blocks before `genesistan_render_sprites_vdp`
+  - current_wrong_data: no tile/text producer execution; sprite copy stream mostly `0000`; descriptor block A fully zero
+  - correct_data_needed: nonzero plane tile/text writes plus valid non-hidden sprite descriptor payload for title/logo elements
+  - why_this_is_the_next_step: VDP writes are already live and palette is valid; missing/empty content producers are the immediate blocker
+  - what_must_NOT_be_done: no shims/bridges/trampolines, no fake data injection, no forced state changes, no launcher-path reanalysis
+
+8) Uncertainties
+- This pass proves missing/empty producers in started path, but does not yet isolate the single earliest branch condition inside `genesistan_run_original_frontend_tick()` that suppresses tile/text producer execution.
+- No in-pass screenshot capture was produced; conclusions are based on direct started-path execution + VDP-port/data evidence.
+
+9) What Was NOT Done
+- no code changes
+- no spec changes
+- no shims
+- no NOP insertion
+- no launcher analysis
+- no forced state changes
+```
+
+## [Cody - Research, Build 228 State Machine Trace]
+```text
+1) Objective
+- Identify the exact frontend state-machine reason Build 228 started-path never reaches the title-producing output path.
+
+2) State Mapping
+- Frontend tick dispatch at `0x03A208` uses:
+  - major state: `A5+0x0000`
+  - substate: `A5+0x0002`
+  - step: `A5+0x0004`
+- Major jump table at `0x03A26C` decodes to:
+  - state0 -> `0x03AC10`
+  - state1 -> `0x03AAB8` (title cluster)
+  - state2 -> `0x03A35A`
+  - state3 -> `0x03AD80`
+- Runtime started-path values remain `A5+0x0000=2`, `A5+0x0002=0`, `A5+0x0004=0`.
+
+3) Blocking Condition
+- Exact major-state gate:
+  - `0x03A256` reads `A5+0x0000`; value `2` routes `0x03A26A` jump to `0x03A35A` (not title `0x03AAB8`).
+- Exact substate gate inside state2:
+  - `0x03A366` reads `A5+0x0002`; value `0` routes `0x03A37A` jump to `0x03A766`.
+  - `0x03A766..0x03A768` is `NOP; RTS`.
+- Result: immediate return before title init calls (`0x03AADE..0x03AB1C`), so producer chain to `0x200000/0x2001A6/0x20034C/0x200DE2` is never entered.
+
+4) Root Cause
+- First upstream broken input is launcher seed state in `startup_bridge.c`:
+  - `A5+0x0000=2`, `A5+0x0002=0`, `A5+0x0004=0`.
+- This seeds the frontend directly into state2/substate0 no-op dispatch instead of entering title-producing state1 path.
+
+5) Minimal Fix Target
+- === BUILD228_STATE_MACHINE_FIX_TARGET ===
+  - fix_area: frontend state seed / earliest transition ownership before first live frontend tick.
+  - exact_branch_or_condition: `0x03A256..0x03A26A` + `0x03A366..0x03A37A` currently consume `2/0/0` and land at `0x03A766` (NOP/RTS).
+  - current_wrong_value: `A5+0x0000=0x0002`, `A5+0x0002=0x0000`, `A5+0x0004=0x0000`.
+  - correct_expected_value: state/sequence that naturally routes first title entry through major-state target `0x03AAB8`.
+  - why_this_blocks_title_execution: title producers are in major-state1 cluster; current dispatch never reaches it.
+  - minimal_change_required: restore correct initial state/transition ordering so state machine reaches title init naturally.
+  - what_must_NOT_be_done: no manual producer calls, no fake data injection, no shims/trampolines, no forced mid-frame state write.
+
+6) Uncertainties
+- This pass isolates the blocking dispatch and upstream seed cause, but does not yet choose implementation policy for whether to seed state1 directly or re-enter via an earlier natural transition stage.
+
+7) What Was NOT Done
+- no code changes
+- no spec changes
+- no shims
+- no NOP insertion
+- no launcher analysis
+- no forced state changes
+```
+
+## [Cody - Build 229, State Seed Correction]
+```text
+- Objective
+  - Correct only the initial frontend state seed so started-path execution naturally routes into title-producing state ownership.
+
+- Change made
+  - File changed: `apps/rastan/src/startup_bridge.c`
+  - `genesistan_arcade_workram_words[0]`: `2 -> 1`
+  - `genesistan_arcade_workram_words[1]`: kept `0`
+  - `genesistan_arcade_workram_words[2]`: kept `0`
+  - No branch/path/helper/VDP logic changes.
+
+- Execution proof
+  - Build artifact: `dist/Rastan_229.bin`
+  - START-injected started-path probe (`/tmp/build229_state_seed_probe.txt`) shows:
+    - `current_screen` enters `0x00000004` at frame 26
+    - frames 26..120 hold `A5+0x0000/+0x0002/+0x0004 = 0001/0000/0000`
+  - Required title-address hits (20s run):
+    - `0x03AAB8`: count 294
+    - `0x03AADE`: count 1
+    - `0x03AF5E`: count 5
+    - `0x03B06C`: count 1
+    - `0x03BD5E`: count 5
+
+- Visual result classification
+  - PARTIAL_TITLE_TEXT (data-path activation only; no direct screenshot capture in-pass).
+  - Title control-flow and title text-dispatch path now execute, but output remains incomplete in this run window.
+
+- What changed vs Build 228
+  - Before: started-path state remained `0002/0000/0000`, dispatching away from title producers.
+  - After: started-path state is `0001/0000/0000`, and title cluster/title prep/title text dispatch addresses are executed.
+  - Remaining gaps still observed:
+    - hook counts: `0x200000=0`, `0x2001A6=0`, `0x20034C=0`, `0x200DE2=2`
+    - sprite descriptor A (`0xFF11B2`) max nonzero stays 0; descriptor B (`0xFF0170`) max nonzero 3.
+```
+
+## [Cody - Research, Build 229 Post-Seed Trace]
+```text
+- Objective
+  - Trace the downstream title path after Build 229 state-seed correction and identify why full title producers still do not activate.
+
+- Downstream title trace summary
+  - Title major state is active (`A5+0x0000=1`), entering `0x03AAB8`.
+  - Timer gate at `A5+0x002C` causes repeated early returns until zero; then substate 0 executes once (`0x03AADE`) and advances to substate 1 idle (`0x03AB28`).
+  - Observed 20s started-run hits:
+    - `0x03AAB8`: 294
+    - `0x03AADE`: 1
+    - `0x03AF5E`: 5
+    - `0x03B06C`: 1
+    - `0x03BD5E`: 5
+
+- Text/tilemap blocking condition
+  - `0x03BD5E` is currently patched to `jsr 0x2027B8; rts`.
+  - `0x2027B8` is a byte-mirror stub (`move.b d0,0xE0FF4863; rts`), not a text producer.
+  - Real 3bb48 path (`0x2027C0 -> 0x20034C`) is not reached from active title callsites.
+  - Result: title text dispatch executes, but full tile/text producer execution is short-circuited.
+
+- Sprite blocking condition
+  - Title path clear/prep executes (`0x03AF5E`), but this is clear-only behavior.
+  - `0x05A174` writes to legacy buffers (`0xFF4094`, `0x10C170`) during title init.
+  - Active renderer path consumes descriptor sources at `0xFF11B2` / `0xFF0170`; block A remains effectively empty and block B minimal.
+  - Result: sprite renderer runs but payload is near-empty.
+
+- First post-seed breakpoint
+  - Earliest concrete post-seed break is the text dispatch remap at `0x03BD5E -> 0x2027B8`.
+  - This is the first point after title-state entry where output-producing flow is diverted away from the intended text writer path.
+
+- Minimal next fix target
+  - === BUILD229_POST_SEED_FIX_TARGET ===
+    - fix_area: title text dispatch remap in the title init chain.
+    - exact_blocking_path: `0x03AAFA/0x03AB0A/0x03AB16/0x03AB1C -> 0x03BD5E -> 0x2027B8 -> rts`.
+    - current_wrong_condition: text IDs dispatch into a non-producer stub; `0x20034C` remains unreachable from this active path.
+    - correct_expected_condition: dispatch must route into the real text producer path (`0x2027C0 -> 0x20034C`, or equivalent direct producer target).
+    - why_this_blocks_full_title_output: title text IDs are emitted but no tile/text producer work is performed.
+    - minimal_correct_change: correct only the `0x03BD5E` remap target to the true producer path.
+    - what_must_NOT_be_done: no shims/trampolines, no fake data injection, no manual producer calls, no forced state writes, no launcher analysis.
+
+- Uncertainties
+  - `0x200DE2` low hit count appears to come from separate/indirect flow and is not sufficient for full title ownership.
+  - Sprite-side legacy output usage is proven, but this pass intentionally prioritizes the first text-path breakpoint.
+
+- What Was NOT Done
+  - no code changes
+  - no spec changes
+  - no shims
+  - no NOP insertion
+  - no fake data injection
+  - no launcher analysis
+  - no forced state changes
+```
+
+## [Cody - Build 230, Title Text Dispatch Fix]
+```text
+- Objective
+  - Correct only the active title text dispatch remap so live title callsites no longer terminate in the non-producer stub and instead reach the real text producer path.
+
+- Exact target/path change
+  - File changed: `specs/startup_title_remap.json`
+  - Entry changed: `arcade_pc 0x03BB48` (runtime callsite `0x03BD5E`)
+  - replacement bytes:
+    - before: `4eb9002027b84e75` (`jsr 0x2027B8 ; rts`)
+    - after:  `4eb9002027c04e75` (`jsr 0x2027C0 ; rts`)
+  - Build 230 disassembly proof:
+    - `0x03BD5E: jsr 0x2027C0`
+    - `0x2027C0: ... jsr 0x20034C ...`
+
+- Execution proof
+  - Build command: `make -C apps/rastan release RASTAN_EXCEPTION_DUMPER_MODE=1`
+  - Artifact: `dist/Rastan_230.bin`
+  - Mode-1 proof:
+    - `_Rastan_EX_*` vectors/symbols present
+    - QR strings absent (`RASTAN QR CRASH DUMP`, `SCAN QR FOR FULL DUMP`, `V1|E%02X|` all not found)
+    - text-dumper strings present (`EX %-13s C%02X  B%u`, `PC %08lX  SR %04X`)
+  - Started-path runtime probe (START injected, 20s):
+    - `0x03BD5E` count=9
+    - `0x2027B8` count=0
+    - `0x2027C0` count=5
+    - `0x20034C` count=5
+    - `0x200000` count=0
+    - `0x2001A6` count=0
+
+- Visual result classification
+  - PARTIAL_TITLE_TEXT
+  - Evidence basis: title dispatch now reaches `0x20034C`, while tilemap producer hooks (`0x200000/0x2001A6`) remain inactive in this 20s window.
+
+- What changed vs Build 229
+  - Build 229 title dispatch path: `0x03BD5E -> 0x2027B8` (stub), with `0x20034C` not executing from the live title path.
+  - Build 230 title dispatch path: `0x03BD5E -> 0x2027C0 -> 0x20034C` (producer active).
+  - The first post-seed text-path breakpoint identified in Build 229 is now corrected.
+```
+
+## [Cody - Research, Build 230 Sprite/Logo Trace]
+```text
+- Objective
+  - Identify the first concrete sprite/logo producer breakpoint in the live Build 230 title path so title/logo data can reach active renderer-owned descriptor buffers.
+
+- Live sprite/logo path summary
+  - Active title init executes `0x03AAF2 -> 0x05A174` (started-path proven).
+  - `0x05A174` writes only to legacy targets:
+    - clears `0xFF4094`
+    - writes descriptor words to `0x10C170`
+  - Active renderer runs per frame at `0x20060C` and consumes active descriptor ownership at `A5+0x11B2` / `A5+0x0170`.
+
+- Buffer ownership summary
+  - `0xFF4094`: LEGACY, produced by `0x05A174`, no live consumer observed (`reads=0`, `writes=32`).
+  - `0x10C170`: LEGACY, produced by `0x05A174`, no live consumer observed (`reads=0`, `writes=16`).
+  - `0xFF11B2`: ACTIVE, consumed by renderer (`reads_renderer=19992` at `0x200696/0x20069A/0x2006A4/0x2006AA...`), but remains effectively empty (`0/144` nonzero in started probe).
+  - `0xFF0170`: ACTIVE, minimal writes only (`writes=18`, `3/32` nonzero in started probe), no renderer-window reads observed in this 20s run.
+
+- First sprite breakpoint
+  - First exact break is at `0x05A174` (called from `0x03AAF2`):
+    - expected: title/logo producer writes active descriptor ownership (`0xFF11B2` / `0xFF0170` path)
+    - actual: producer writes legacy buffers (`0xFF4094` / `0x10C170`)
+  - Result: active renderer never receives meaningful title/logo payload even though it is running.
+
+- Minimal next fix target
+  - === BUILD230_SPRITE_LOGO_FIX_TARGET ===
+    - fix_area: title/logo sprite producer ownership at `0x03AAF2 -> 0x05A174`.
+    - exact_blocking_path: `0x05A174` emits to legacy buffers while live renderer consumes active descriptor buffers.
+    - current_wrong_target_or_condition: `0xFF4094`/`0x10C170` output has no active consumer.
+    - correct_expected_target_or_condition: producer must emit active descriptor-format data into renderer-owned path (`0xFF11B2`/`0xFF0170` or equivalent directly consumed active format).
+    - why_this_blocks_logo/sprite_output: renderer input remains empty/near-empty despite title/logo helper execution.
+    - minimal_correct_change: direct opcode-path producer retarget/format correction at `0x05A174` ownership output (no detours).
+    - what_must_NOT_be_done: no fake sprite injection, no manual unrelated buffer population, no shims/trampolines/bridges, no state-machine bypass.
+
+- Uncertainties
+  - Exact final descriptor-format transform details for preserving full arcade logo semantics in active buffers are not finalized in this pass.
+  - Block-B (`0xFF0170`) consumption may be phase-dependent; this 20s run showed no renderer-window reads for that range.
+
+- What Was NOT Done
+  - no code changes
+  - no spec changes
+  - no shims
+  - no NOP insertion
+  - no fake sprite injection
+  - no launcher analysis
+  - no forced state changes
+```
+
+## [Cody - Build 231, Sprite/Logo Producer Fix]
+```text
+- Objective
+  - Correct the live title/logo sprite producer ownership path so active title/logo output can reach renderer-owned descriptor buffers.
+
+- Exact producer/output change
+  - File changed: `specs/startup_title_remap.json`.
+  - Direct opcode-path producer retarget at `0x03AAF2 -> 0x05A174` helper body (`arcade_pc 0x059F62` / `0x059F76`):
+    - `movea.l #0xE0FF4094,a0` -> `movea.l #0xE0FF11B2,a0`
+    - `movea.l #0x0010C170,a0` -> `movea.l #0xE0FF0170,a0`
+  - Build 231 disassembly proof at `0x05A174`:
+    - `0x05A178: movea.l #0xE0FF11B2,a0`
+    - `0x05A18C: movea.l #0xE0FF0170,a0`
+
+- Execution proof
+  - Build command: `make -C apps/rastan release RASTAN_EXCEPTION_DUMPER_MODE=1`
+  - Artifact: `dist/Rastan_231.bin`
+  - Started-path probe (START injected, first 20s):
+    - `0x03AAF2` count = 1
+    - `0x05A174` count = 1
+    - `0x20060C` (`genesistan_render_sprites_vdp`) count = 294
+
+- Active descriptor population proof
+  - Ownership read/write counts (`/tmp/build231_sprite_probe.txt`):
+    - legacy `0xFF4094`: reads=0 writes=0
+    - legacy `0x10C170`: reads=0 writes=0
+    - active `0xFF11B2`: reads=41088 writes=138
+    - active `0xFF0170`: reads=4704 writes=34
+  - Nonzero snapshot (first 20s after START):
+    - `0xFF11B2`: 0/144 nonzero bytes
+    - `0xFF0170`: 4/32 nonzero bytes
+
+- Visual result classification
+  - no change
+
+- What changed vs Build 230
+  - Build 230: `0x05A174` writes only to legacy targets (`0xFF4094`/`0x10C170`) and strands sprite/logo output away from active renderer ownership.
+  - Build 231: `0x05A174` write ownership now targets active renderer buffers (`0xFF11B2`/`0xFF0170`), and legacy targets show zero accesses in the started probe.
+  - Remaining gap: descriptor content is still insufficient for visible title/logo composition in this 20s window (block A remains all-zero).
+```
+
+## [Cody - Research, Build 231 Descriptor Content Trace]
+```text
+- Objective
+  - Identify the first exact point where meaningful title/logo descriptor content is lost/never generated after Build 231 ownership retarget.
+
+- Live descriptor trace summary
+  - Started-path probe (20s, START injected) confirms active path execution:
+    - hits: `0x03AAF2=1`, `0x05A174=1`, `0x03AF5E=5`, `0x20060C=294`.
+  - Active block A (`0xFF11B2..0xFF1241`):
+    - writes=138, reads=41088, nonzero_writes=0.
+    - all observed writes are zero (clear-only), including producer writes at `0x05A184/0x05A186`.
+  - Active block B (`0xFF0170..0xFF018F`):
+    - writes=34, reads=4704.
+    - producer writes at `0x05A198/0x05A19C/0x05A1A0/0x05A1A4` produce repeated `0080,0000,0000,0000` tuples.
+    - earlier unrelated nonzero words at `0xFF018C/0xFF018E` (PC `0x2149AA`) are later zeroed by producer path (`0x05A1A0`).
+
+- Descriptor format summary
+  - Renderer (`genesistan_render_sprites_vdp`) expects per-entry words:
+    - word0 attr/flags
+    - word1 y
+    - word2 tile code
+    - word3 x
+  - Build 231 final field nonzero counts:
+    - block A (18 entries): word0=0, word1=0, word2=0, word3=0; nonzero bytes `0/144`.
+    - block B (4 entries): word0=4, word1=0, word2=0, word3=0; nonzero bytes `4/32`.
+  - Net: no full descriptor tuples with nonzero tile code + position for title/logo composition.
+
+- First content breakpoint
+  - First exact failure point: `0x05A174` producer body (`0x05A184..0x05A1A4`).
+  - Expected: full active descriptor tuples for logo sprites.
+  - Actual: block A clear-only zeros; block B attr-only template records (`w0=0x0080`, `w1/w2/w3=0`).
+  - Why nothing meaningful renders: renderer consumes active buffers, but receives hidden/empty or template-only records with no tile/position payload.
+
+- Minimal next fix target
+  - === BUILD231_DESCRIPTOR_CONTENT_FIX_TARGET ===
+    - fix_area: descriptor content generation in live title/logo producer `0x03AAF2 -> 0x05A174`.
+    - exact_blocking_path: `0x05A174` writes clear/template records only and never emits full descriptor tuples.
+    - current_wrong_content_or_format: block A all zero; block B uses `w0-only` records with `w2(tile)=0`, `w1/w3(position)=0`.
+    - correct_expected_content_or_format: producer must populate active format entries with nonzero tile code + valid x/y + attr for logo sprites.
+    - why_this_blocks_logo_visibility: active renderer input lacks drawable descriptor content despite correct ownership routing.
+    - minimal_correct_change: replace template/clear emission in `0x05A174` with real descriptor-content population on the same direct opcode path.
+    - what_must_NOT_be_done: no fake sprite injection, no manual unrelated buffer population, no shims/trampolines, no state-machine bypass.
+
+- Uncertainties
+  - Exact upstream table/source block to feed final nonzero logo `word2/word1/word3` fields is not fully pinned in this pass.
+  - Block-B phase behavior may vary across longer runs; this pass is bounded to the first 20s started-path window.
+
+- What Was NOT Done
+  - no code changes
+  - no spec changes
+  - no shims
+  - no NOP insertion
+  - no fake sprite injection
+  - no launcher analysis
+  - no forced state changes
+```
+
+## [Cody - Build 232, Descriptor Content Fix]
+```text
+- Objective
+  - Implement direct-path descriptor-content generation updates for the live title/logo producer chain (`0x03AAF2 -> 0x05A174`) so active renderer buffers receive drawable tuples.
+
+- Exact producer/content change
+  - File changed: `specs/startup_title_remap.json`.
+  - Added/kept direct-path descriptor-content updates in the `0x05A174` family:
+    - block-B builder base/slot retargets to active `0xFF0170/0xFF0178/0xFF0180/0xFF0188` (`0x059F9A`, `0x059FDE`, `0x059FFC`, `0x05A014`, `0x05A032`, `0x05A04A`, `0x05A068`, `0x05A080`)
+    - block-A builder base retargets to active `0xFF11B2` (`0x05A0AE`, `0x05A1EC`)
+    - attr writes set nonzero (`0x05A11A`, `0x05A13E`, `0x05A188`, `0x05A1AC`, `0x05A1D0`: `0x0000 -> 0x0080`)
+    - `0x059F90` return path extended to run additional descriptor-builder calls before `RTS`.
+
+- Execution proof
+  - Build: `make -C apps/rastan release RASTAN_EXCEPTION_DUMPER_MODE=1`
+  - Artifact used for validation: `dist/Rastan_232.bin`
+  - Started-path probe confirms game start into frontend live screen (`current_screen=0x00000004`) and active sprite renderer execution in the run window.
+
+- Descriptor population proof
+  - Probe artifacts:
+    - `/tmp/build232_descriptor_content_probe.txt`
+    - `/tmp/build232_descriptor_content_probe2.txt`
+    - `/tmp/build232_sprite_probe.txt`
+  - Active block A (`0xFF11B2`) remains all zero in sampled window:
+    - nonzero bytes: `0/144`
+    - field nonzero: `word0=0 word1=0 word2=0 word3=0`
+  - Active block B (`0xFF0170`) remains minimally populated:
+    - nonzero bytes: `3/32`
+    - no stable full drawable descriptor tuples observed.
+
+- Visual result classification
+  - no change
+
+- What changed vs Build 231
+  - Build 231 fixed ownership but still emitted zero/template content.
+  - Build 232 adds direct-path content-generation retarget/attr/call-sequence updates in the `0x05A174` family.
+  - Despite those updates, started-path probes in this pass still do not show confirmed drawable title/logo descriptor tuples reaching active buffers.
+```
+
+## [Cody - Research, Title Screen Forward Progress Trace]
+```text
+- Objective
+  - Trace the live title-screen path forward and identify the first concrete still-broken output path preventing visible title composition.
+
+- Live checklist summary
+  - title state entered: PASS (`state=0001/0000/0000`, `0x03AAB8` active)
+  - title init path executes: PARTIAL (`0x03AADE` hit once)
+  - text producer path executes: PARTIAL (`0x03BD5E` and `0x2027C0` hit; `0x20034C` not hit)
+  - visible text on active plane: FAIL
+  - logo/title sprite producer executes: PARTIAL
+  - logo/title descriptors drawable: FAIL (`blockA 0/144 nonzero`, `blockB 3/32`)
+  - logo/title sprite data reaching VRAM meaningfully: PARTIAL (VDP traffic active, payload not meaningful)
+  - title tilemap/background path execution (if required): FAIL (`0x200000/0x2001A6` inactive)
+
+- First still-broken path
+  - `0x03BD5E` dispatch target is stale/wrong in current image.
+  - Current target: `0x2027C0` (wrong function body in Build 232 runtime image).
+  - Real text wrapper signature (`movel a5,-(sp); jsr 0x20034C; movea.l (sp)+,a5; rts`) is now at `0x202A4C`.
+
+- Text visibility result
+  - Dispatch executes but visible text producer does not:
+    - `0x03BD5E=1`, `0x2027C0=1`, `0x20034C=0`
+    - `0x200000=0`, `0x2001A6=0`
+  - text-shadow writes are dominated by clear/space-fill paths, not proven title text producer writes.
+
+- Sprite/logo visibility result
+  - Renderer runs (`0x20060C` active), but descriptors are non-drawable:
+    - block A remains all zero
+    - block B remains minimal/residual
+  - VDP writes continue, but no meaningful title/logo descriptor payload is proven.
+
+- Shift/reflow sanity result
+  - PASS: major dispatch table (`0x03A26C`) still routes state1 to `0x03AAB8`.
+  - PASS: title substate table (`0x03AADA`) resolves to `0x03AADE` / `0x03AB28`.
+  - PASS (static): `0x03AAF2` still encodes `JSR 0x05A174`.
+  - FAIL: text dispatch remap semantic target (`0x03BD5E -> 0x2027C0`) is stale vs real wrapper at `0x202A4C`.
+
+- Next fix target
+  - === TITLE_SCREEN_FORWARD_FIX_TARGET ===
+    - fix_area: title text dispatch remap target.
+    - exact_live_path: `0x03AAFA/0x03AB0A/0x03AB16/0x03AB1C -> 0x03BD5E`.
+    - current_failure: target lands at stale wrong-function address (`0x2027C0`) and misses `0x20034C`.
+    - correct_expected_behavior: route to active wrapper at `0x202A4C -> 0x20034C` (or equivalent direct producer).
+    - why_this_is_the_next_forward_step: earliest proven post-entry output handoff failure.
+    - what_must_NOT_be_done: no rollback, no shims, no broad speculative rewrite, no fake data injection.
+
+- Uncertainties
+  - `dist/Rastan_232.bin` started-path runtime evidence is valid for title-path behavior, but it does not satisfy the mandatory mode-1 exception-handler enforcement rule.
+  - Clean mode-1 rebuild in this pass produced custom handler vectors/symbols but failed postpatch release validation.
+
+- What Was NOT Done
+  - no code changes
+  - no rollback
+  - no shims
+  - no broad speculative rewrite
+  - no later-state crash chasing
+  - no default exception handler use
+```
+
+## [Cody - Research, Graphics Translation Mapping Design]
+```text
+- Objective
+  - Design a reusable, intent-based graphics translation mapping system for Genesis-native output (title/frontend first), avoiding one-off per-screen hacks.
+
+- Arcade graphics operation classes
+  - Text emission (`0x03BD5E` / `0x03C3FE` families).
+  - Sprite/logo descriptor emission (`0x03AAF2 -> 0x05A174` family).
+  - Tile plane updates (`0x055968` / `0x055990` families).
+  - Scroll updates (PC080SN scroll write families).
+  - Palette updates (CLCS/palette sync path).
+  - Clear/fill prep (title-prep clear/fill families).
+
+- Genesis equivalents
+  - Text: descriptor decode -> `VDP_setTileMapXY` on active plane with cache-backed tiles.
+  - Sprites: active descriptor tuples -> `VDP_setSpriteFull` / `VDP_updateSprites` (+ tile uploads).
+  - Tilemaps: cache-backed plane writes for BG_A/B.
+  - Scroll: `VDP_setHorizontalScroll`/`VDP_setVerticalScroll` from live workram.
+  - Palette: `PAL_setColors`/`PAL_setColor` CRAM updates.
+  - Clears/fills: active-owner clears only (`VDP_clearPlane` and active staging resets).
+
+- Translation table design summary
+  - Proposed `graphics_translation_map` keyed by `op_id` + `intent` (not random PCs alone).
+  - Each mapping defines source callsite group, semantic entry contract, target implementation, output owner, and validator set.
+  - Validator examples: semantic-entry match, execution hit, non-space plane writes, drawable sprite tuple presence, tile upload presence.
+
+- First practical mapping set
+  - `TEXT_EMIT_PRIMARY` (`0x03BB48` family).
+  - `TEXT_EMIT_SECONDARY` (`0x03C3FE` family).
+  - `SPRITE_DESC_BUILD_TITLE` (`0x03AAF2 -> 0x05A174` family).
+  - `SPRITE_RENDER_FRONTEND` (renderer callsite group).
+  - `TITLE_PREP_CLEAR` (active-owner clears).
+  - `TITLE_TILEMAP_UPDATE` (title-required plane updates).
+
+- DIP normalization decision
+  - Lock display-orientation DIP behaviors (mirror/flip/cocktail/reverse display variants) to factory/default console-safe behavior on Genesis.
+  - Rationale: these variants are non-essential user-facing features on this platform and add divergent graphics ownership paths that reduce deterministic translation validation.
+
+- Uncertainties
+  - `docs/research/graphics_pipeline_gap_analysis.md` was not present in the workspace during this pass.
+  - Exact final table/source feed for full drawable title/logo descriptor tuples remains to be finalized in a follow-up mapping-validation pass.
+
+- What Was NOT Done
+  - no code changes
+  - no spec changes
+  - no shims
+  - no broad speculative rewrite
+  - no implementation of the mapping system in this pass
+```
+
+## [Cody - Research, Cadash Arcade vs Genesis Graphics Comparison]
+```text
+- Objective
+  - Compare Cadash arcade and Genesis graphics pipelines to extract reusable arcade-intent -> Genesis-VDP translation patterns applicable to Rastan, without implementing changes.
+
+- Arcade model summary
+  - Cadash arcade graphics ownership is chip-window based (per MAME and disasm evidence):
+    - TC0100SCN tile/text RAM at `0xC00000-0xC0FFFF`
+    - TC0100SCN control/scroll at `0xC20000-0xC2000F`
+    - PC090OJ sprite RAM at `0xB00000-0xB03FFF`
+    - TC0110PCR palette at `0xA00000-0xA0000F`
+  - Arcade reset/init writes and clears those regions directly (`0x0A86+`, `0x0B6C+`, `0x0C40+`).
+
+- Genesis model summary
+  - Cadash Genesis uses direct VDP ownership:
+    - frequent writes to `0xC00004` (control) and `0xC00000` (data)
+    - staging in WRAM then streamed output to VDP
+  - DMA-capable setup is present in `0x2CA4..0x2D5C` (VDP registers `0x93..0x97` programming pattern).
+  - Tile/text/sprite/palette/scroll operations all converge through shared VDP command/data helpers.
+
+- Translation pattern summary
+  - Reusable pattern classes identified:
+    - arcade tile/text RAM writes -> Genesis plane/tilemap writes
+    - arcade sprite RAM list updates -> Genesis SAT/descriptor emission
+    - arcade palette writes -> Genesis CRAM updates
+    - arcade scroll/control writes -> Genesis VDP register writes
+    - arcade chip-RAM clear/fill -> Genesis active-owner clear/fill primitives
+  - Core lesson: group by graphics intent and ownership contract, not by one-off screen patches.
+
+- Most useful lesson for Rastan
+  - Formalize a small shared set of VDP output primitives (command setup, stream write, SAT emit, CRAM load, scroll write, clear/fill) and map arcade intents to those primitives with explicit producer->consumer validation.
+
+- What not to do
+  - do not copy Cadash-specific tables/addresses blindly
+  - do not assume identical chip behavior/data formats between Cadash and Rastan
+  - do not regress into per-screen hacks instead of intent-based translation
+
+- Uncertainties
+  - No Cadash-specific MiSTer Verilog source path was identified in available public checks during this pass (`jotego/jtcores` tree + repository searches).
+  - This pass is static-only (disassembly + source comparison), not dynamic Cadash runtime tracing.
+
+- What Was NOT Done
+  - no code changes
+  - no spec changes
+  - no shims
+  - no implementation
+  - no blind Cadash code copying
+```
