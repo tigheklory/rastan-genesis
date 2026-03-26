@@ -31,9 +31,13 @@ from pathlib import Path
 # Disassembly parsing
 # ---------------------------------------------------------------------------
 
-# Format:  "   <hex_offset>:\t<hex bytes>\t<mnemonic>..."
+# Format:  "   <hex_offset>:\t<hex words>\t<mnemonic>..."
+# Example: "   3a074:\t4eb9 0005 5ca2 \tjsr 0x55ca2"
+# We must capture the full instruction-byte column (all words), not just the
+# first word, otherwise instruction sizes are under-counted (e.g. JSR abs.l
+# incorrectly treated as 2 bytes instead of 6).
 DISASM_LINE_RE = re.compile(
-    r"^\s*([0-9a-fA-F]+):\s+([0-9a-fA-F ]+?)\s+\S"
+    r"^\s*([0-9a-fA-F]+):\s+([0-9a-fA-F]{2,}(?:\s+[0-9a-fA-F]{2,})*)\s+\S"
 )
 
 

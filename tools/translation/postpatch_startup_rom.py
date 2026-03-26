@@ -357,6 +357,45 @@ def accumulated_shift_before(addr: int, shift_deltas: list[tuple[int, int]]) -> 
     return total
 
 
+def is_lea_abs_long_opcode(opcode: int) -> bool:
+    """Return True for LEA abs.l,An encoding in the low 16-bit opcode."""
+    b0 = (opcode >> 8) & 0xFF
+    b1 = opcode & 0xFF
+    return (b0 & 0xC1) == 0x41 and b1 == 0xF9
+
+
+def maybe_shift_abs_long_expected_bytes(
+    expected: bytes,
+    shift_deltas: list[tuple[int, int]],
+    source_start: int,
+    source_end: int,
+) -> bytes:
+    """
+    Adjust single-instruction abs.l expected bytes to match shifted output.
+
+    This keeps opcode_replace validation coupled to shift_table_patcher output
+    when the expected sequence is exactly one 6-byte abs.l control-transfer or
+    LEA abs.l instruction with a source-range target.
+    """
+    if len(expected) != 6:
+        return expected
+
+    opcode = int.from_bytes(expected[0:2], "big")
+    is_abs_long_ref = opcode in (0x4EB9, 0x4EF9) or is_lea_abs_long_opcode(opcode)
+    if not is_abs_long_ref:
+        return expected
+
+    old_target = int.from_bytes(expected[2:6], "big")
+    if not (source_start <= old_target < source_end):
+        return expected
+
+    shifted_target = old_target + accumulated_shift_before(old_target, shift_deltas)
+    if shifted_target == old_target:
+        return expected
+
+    return expected[0:2] + shifted_target.to_bytes(4, "big")
+
+
 def update_genesis_checksum(rom_bytes: bytearray) -> int:
     checksum = 0
     for offset in range(0x200, len(rom_bytes), 2):
@@ -796,6 +835,12 @@ def main() -> int:
         arcade_pc = parse_hexish(replacement["arcade_pc"])
         expected = bytes.fromhex(
             replacement["original_bytes"].replace(" ", ""))
+        expected_shifted = maybe_shift_abs_long_expected_bytes(
+            expected,
+            shift_deltas,
+            source_start,
+            source_end,
+        )
         new_bytes = bytes.fromhex(
             replacement["replacement_bytes"].replace(" ", ""))
         if len(expected) != len(new_bytes):
@@ -805,7 +850,7 @@ def main() -> int:
                 f"must be the same length.")
         rom_pc = arcade_pc + relocation_delta + accumulated_shift_before(arcade_pc, shift_deltas)
         actual = bytes(rom_bytes[rom_pc:rom_pc + len(expected)])
-        if actual != expected:
+        if actual != expected and actual != expected_shifted:
             raise RuntimeError(
                 f"opcode_replace at 0x{arcade_pc:06X}: "
                 f"expected {expected.hex()} "
@@ -816,6 +861,7 @@ def main() -> int:
             "arcade_pc": f"0x{arcade_pc:06X}",
             "rom_pc": f"0x{rom_pc:06X}",
             "original_bytes": expected.hex(),
+            "original_bytes_shift_adjusted": expected_shifted.hex() if expected_shifted != expected else "",
             "replacement_bytes": new_bytes.hex(),
             "note": replacement.get("note", ""),
         })

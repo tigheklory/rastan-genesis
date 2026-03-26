@@ -52,4 +52,4 @@ out/src/z_qr_exception.o: src/z_qr_exception.c \
  /home/tighe/projects/rastan-genesis/tools/sgdk/inc/string.h \
  /home/tighe/projects/rastan-genesis/tools/sgdk/inc/maths.h \
  /home/tighe/projects/rastan-genesis/tools/sgdk/inc/dma.h \
- inc/build_info.h src/qrcodegen.h
+ inc/build_info.h

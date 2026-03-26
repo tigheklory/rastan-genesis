@@ -1,75 +1,49 @@
 {
-  "version": 2,
-  "description": "Step-2 curated semantic entry manifest for proactive high-risk batch validation (Build 214).",
+  "version": 3,
+  "mode": "arcade_anchored",
+  "description": "Arcade-truth semantic entry manifest for Build 214 validation. Genesis entries are derived from arcade_entry + shift table + relocation delta.",
+  "mapping": {
+    "shift_spec": "specs/startup_title_remap.json",
+    "relocation_delta": "0x000200",
+    "source_start": "0x000000",
+    "source_end_exclusive": "0x060000"
+  },
   "routines": [
     {
       "logical_name": "frontend_copy_dispatch_entry",
       "arcade_entry": "0x055CA2",
-      "genesis_entry": "0x055EB8",
-      "known_non_entry_internal_targets": [
-        "0x055EA2"
+      "internal_non_entry_arcade": [
+        "0x055C7A",
+        "0x055C7C",
+        "0x055C8C",
+        "0x055CD6"
       ],
-      "why_this_routine_is_sensitive": "Entry block gates state and dispatch before copy-loop body. Mid-body entry can bypass register/setup contract and fault on stale address registers.",
-      "notes": "Proven Build 214 crash family anchor from Step 1."
+      "why_this_routine_is_sensitive": "Entry performs state-gated dispatch; internal copy-kernel addresses require prior register setup.",
+      "notes": "Primary proven crash-family routine."
     },
     {
       "logical_name": "frontend_selector_seed_gate_entry",
-      "arcade_entry": "0x04529A",
-      "genesis_entry": "0x04549A",
-      "known_non_entry_internal_targets": [
-        "0x04547E",
-        "0x04549C"
+      "arcade_entry": "0x04527E",
+      "internal_non_entry_arcade": [
+        "0x045284",
+        "0x04528C",
+        "0x045292",
+        "0x045296"
       ],
-      "why_this_routine_is_sensitive": "Selector and gate semantics around A5+0x0104 and A5+0x0117/0x0118 are timing-critical for early frontend transition behavior.",
-      "notes": "Includes known non-entry landings observed in current Build 214 startup/frontend path."
+      "why_this_routine_is_sensitive": "Seeds selector bytes behind A5+0x0104 gate; mid-body entry can bypass intended preconditions.",
+      "notes": "Called from arcade 0x03A736 path."
     },
     {
-      "logical_name": "frontend_sprite_bridge_entry",
-      "arcade_entry": "UNKNOWN",
-      "genesis_entry": "0x20060C",
-      "known_non_entry_internal_targets": [],
-      "why_this_routine_is_sensitive": "Bridge has a prologue that allocates stack frame and saves registers. Entry drift into body would violate frame/register assumptions.",
-      "notes": "Direct bridge used by multiple frontend callsites."
-    },
-    {
-      "logical_name": "frontend_scroll_sync_bridge_entry",
-      "arcade_entry": "0x055AB4_cluster_replacement",
-      "genesis_entry": "0x200D4E",
-      "known_non_entry_internal_targets": [],
-      "why_this_routine_is_sensitive": "Central direct-VDP scroll synchronization bridge; wrong entry would break per-frame scroll contract.",
-      "notes": "Directly tied to scroll replacement enforcement."
-    },
-    {
-      "logical_name": "text_writer_primary_entry",
-      "arcade_entry": "0x03BB48",
-      "genesis_entry": "0x03BD48",
-      "known_non_entry_internal_targets": [],
-      "why_this_routine_is_sensitive": "Primary table-driven text writer used by startup/frontend screens; semantic entry drift can corrupt text dispatch behavior.",
-      "notes": "Startup-common and frontend callsites should land on this exact entry."
-    },
-    {
-      "logical_name": "frontend_sound_dispatch_entry",
-      "arcade_entry": "0x0510C6",
-      "genesis_entry": "0x0512C6",
-      "known_non_entry_internal_targets": [],
-      "why_this_routine_is_sensitive": "Used in early frontend/interrupt phase transitions; mis-entry can alter state progression and timing side effects.",
-      "notes": "Included due direct call from the 0x03A274 cluster neighborhood."
-    },
-    {
-      "logical_name": "frontend_transition_mode_helper_entry",
-      "arcade_entry": "0x05A442",
-      "genesis_entry": "0x05A642",
-      "known_non_entry_internal_targets": [],
-      "why_this_routine_is_sensitive": "Frontend transition helper called from state handlers that steer early mode progression.",
-      "notes": "Curated from startup/frontend call map in 0x03A000..0x03B200."
-    },
-    {
-      "logical_name": "frontend_orientation_gate_entry",
-      "arcade_entry": "0x03ADEA",
-      "genesis_entry": "0x03AFEA",
-      "known_non_entry_internal_targets": [],
-      "why_this_routine_is_sensitive": "Branch-heavy gate routine that controls follow-on startup/frontend path selection.",
-      "notes": "Relative-call semantic entry included to exercise BSR decoding in checker."
+      "logical_name": "frontend_selector_layout_gate_entry",
+      "arcade_entry": "0x04529C",
+      "internal_non_entry_arcade": [
+        "0x0452A2",
+        "0x0452BA",
+        "0x0452CE",
+        "0x0452DA"
+      ],
+      "why_this_routine_is_sensitive": "Companion gate/layout routine using A5+0x0104 tests and state writes.",
+      "notes": "Called from arcade 0x03A656 path."
     }
   ],
   "validation_cases": [
@@ -78,134 +52,23 @@
       "callsite_genesis": "0x03A274",
       "callsite_arcade_context": "0x03A074",
       "logical_target": "frontend_copy_dispatch_entry",
-      "observed_target_genesis": "0x055EA2",
-      "evidence": "Build 214 ROM decode + Step-1 forensic proof",
+      "evidence": "Build 214 crash forensics and ROM decode",
       "confidence": "HIGH"
     },
     {
-      "case_id": "build214_selector_seed_callsite_03A93E",
+      "case_id": "build214_wrong_entry_03A93E",
       "callsite_genesis": "0x03A93E",
       "callsite_arcade_context": "0x03A736",
       "logical_target": "frontend_selector_seed_gate_entry",
-      "observed_target_genesis": "0x04547E",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214)",
-      "confidence": "MEDIUM"
+      "evidence": "Arcade disassembly callsite + Build 214 ROM decode",
+      "confidence": "HIGH"
     },
     {
-      "case_id": "build214_selector_seed_callsite_03A85C",
+      "case_id": "build214_wrong_entry_03A85C",
       "callsite_genesis": "0x03A85C",
-      "callsite_arcade_context": "0x03A654",
-      "logical_target": "frontend_selector_seed_gate_entry",
-      "observed_target_genesis": "0x04549C",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214)",
-      "confidence": "MEDIUM"
-    },
-    {
-      "case_id": "build214_sprite_bridge_03A40E",
-      "callsite_genesis": "0x03A40E",
-      "callsite_arcade_context": "0x03A206",
-      "logical_target": "frontend_sprite_bridge_entry",
-      "observed_target_genesis": "0x20060C",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214)",
-      "confidence": "HIGH"
-    },
-    {
-      "case_id": "build214_sprite_bridge_03A466",
-      "callsite_genesis": "0x03A466",
-      "callsite_arcade_context": "0x03A25E",
-      "logical_target": "frontend_sprite_bridge_entry",
-      "observed_target_genesis": "0x20060C",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214)",
-      "confidence": "HIGH"
-    },
-    {
-      "case_id": "build214_sprite_bridge_03AAEC",
-      "callsite_genesis": "0x03AAEC",
-      "callsite_arcade_context": "0x03A8E4",
-      "logical_target": "frontend_sprite_bridge_entry",
-      "observed_target_genesis": "0x20060C",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214)",
-      "confidence": "HIGH"
-    },
-    {
-      "case_id": "build214_scroll_bridge_03ADCC",
-      "callsite_genesis": "0x03ADCC",
-      "callsite_arcade_context": "0x03ABC4",
-      "logical_target": "frontend_scroll_sync_bridge_entry",
-      "observed_target_genesis": "0x200D4E",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214)",
-      "confidence": "HIGH"
-    },
-    {
-      "case_id": "build214_scroll_bridge_03ADD2",
-      "callsite_genesis": "0x03ADD2",
-      "callsite_arcade_context": "0x03ABCA",
-      "logical_target": "frontend_scroll_sync_bridge_entry",
-      "observed_target_genesis": "0x200D4E",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214)",
-      "confidence": "HIGH"
-    },
-    {
-      "case_id": "build214_text_writer_000592",
-      "callsite_genesis": "0x000592",
-      "callsite_arcade_context": "0x0005C0",
-      "logical_target": "text_writer_primary_entry",
-      "observed_target_genesis": "0x03BD48",
-      "evidence": "m68k-elf-objdump Build 214 reset/startup region",
-      "confidence": "HIGH"
-    },
-    {
-      "case_id": "build214_text_writer_0007C0",
-      "callsite_genesis": "0x0007C0",
-      "callsite_arcade_context": "0x0007EE",
-      "logical_target": "text_writer_primary_entry",
-      "observed_target_genesis": "0x03BD48",
-      "evidence": "m68k-elf-objdump Build 214 reset/startup region",
-      "confidence": "HIGH"
-    },
-    {
-      "case_id": "build214_sound_dispatch_03A284",
-      "callsite_genesis": "0x03A284",
-      "callsite_arcade_context": "0x03A07C",
-      "logical_target": "frontend_sound_dispatch_entry",
-      "observed_target_genesis": "0x0512C6",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214)",
-      "confidence": "HIGH"
-    },
-    {
-      "case_id": "build214_sound_dispatch_0553E2",
-      "callsite_genesis": "0x0553E2",
-      "callsite_arcade_context": "0x0551CA",
-      "logical_target": "frontend_sound_dispatch_entry",
-      "observed_target_genesis": "0x0512C6",
-      "evidence": "ROM absolute-call decode + target frequency scan",
-      "confidence": "MEDIUM"
-    },
-    {
-      "case_id": "build214_mode_helper_03A5A6",
-      "callsite_genesis": "0x03A5A6",
-      "callsite_arcade_context": "0x03A39E",
-      "logical_target": "frontend_transition_mode_helper_entry",
-      "observed_target_genesis": "0x05A642",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214)",
-      "confidence": "HIGH"
-    },
-    {
-      "case_id": "build214_mode_helper_03A624",
-      "callsite_genesis": "0x03A624",
-      "callsite_arcade_context": "0x03A41C",
-      "logical_target": "frontend_transition_mode_helper_entry",
-      "observed_target_genesis": "0x05A642",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214)",
-      "confidence": "HIGH"
-    },
-    {
-      "case_id": "build214_orientation_gate_03ADC0",
-      "callsite_genesis": "0x03ADC0",
-      "callsite_arcade_context": "0x03ABB8",
-      "logical_target": "frontend_orientation_gate_entry",
-      "observed_target_genesis": "0x03AFEA",
-      "evidence": "m68k-elf-objdump startup/frontend disassembly (Build 214), BSR decode",
+      "callsite_arcade_context": "0x03A656",
+      "logical_target": "frontend_selector_layout_gate_entry",
+      "evidence": "Arcade disassembly callsite + Build 214 ROM decode",
       "confidence": "HIGH"
     }
   ]

@@ -18238,3 +18238,615 @@ Opcode Depth Estimate (Corrected Interpretation)
 - no shift-table changes
 - no automatic fixes
 ```
+
+## [Cody - Critical Correction, Arcade-Anchored Semantic Entry Validation + Shift Table Verification]
+```text
+1) Objective
+- Correct semantic validation to use arcade entry addresses as the authoritative source, then verify shift-table behavior against failing Build 214 callsites.
+
+2) Arcade Ground Truth (Confirmed)
+- frontend_copy_dispatch_entry
+  - arcade entry: 0x055CA2
+  - first instructions: cmpi.w/beq/cmpi.w/bne/cmpi.w/bne/move.b/move.w/bra/addq.w sequence
+  - non-entry internal addresses: 0x055C7A, 0x055C7C, 0x055C8C, 0x055CD6
+  - mid-body breakage: copy loop assumes register setup already done
+- frontend_selector_seed_gate_entry
+  - arcade entry: 0x04527E
+  - first instructions: move.w/not.w/andi.w/addq.w/tst.b/bne/move.b/move.b/rts
+  - non-entry internal addresses: 0x045284, 0x04528C, 0x045292, 0x045296
+  - mid-body breakage: D1 normalization/gate semantics skipped or malformed
+- Related companion routine (needed for failing case 0x03A85C):
+  - arcade entry: 0x04529C
+
+3) Arcade->Genesis Derived Entries (Shift + Relocation)
+- relocation_delta: 0x000200
+- shift_table_entry_count: 22
+- derived expected entries:
+  - 0x055CA2 -> 0x055EB8
+  - 0x04527E -> 0x04549A
+  - 0x04529C -> 0x0454B8
+- comparison vs previous manifest values:
+  - 0x055EB8 and 0x04549A were already correct as derived entries
+  - previous case grouping around 0x03A85C targeted the wrong logical routine
+
+4) Failing Callsite Validation (Build 214)
+- 0x03A274
+  - actual target: 0x055EA2
+  - expected target: 0x055EB8
+  - classification: INSIDE_BODY
+- 0x03A93E
+  - actual target: 0x04547E
+  - expected target: 0x04549A
+  - classification: WRONG_FUNCTION
+- 0x03A85C
+  - actual target: 0x04549C
+  - expected target: 0x0454B8
+  - classification: WRONG_FUNCTION
+
+5) Shift Table Audit (Requested Regions)
+- region around 0x03A274: affected by entries <=0x03A3FF (0x00016A, 0x000170, 0x03A20E, 0x03A264)
+- region around 0x04527E: affected by entries <=0x0452FF (17 entries, cumulative +28)
+- region 0x055E00..0x056000: affected by all 22 entries (cumulative +22)
+
+6) Root Cause Determination (A/B/C)
+- SHIFT_MISSING: NO
+- SHIFT_INCORRECT: YES (primary)
+- SEMANTIC_ENTRY_ERROR: secondary manifest-grouping issue only for prior 0x03A85C logical target assignment
+
+7) Per-Case Root Cause Type + Required Fix Type
+- case 0x03A274
+  - ROOT CAUSE TYPE: SHIFT_INCORRECT
+  - REQUIRED FIX TYPE: correct shift offset
+- case 0x03A93E
+  - ROOT CAUSE TYPE: SHIFT_INCORRECT
+  - REQUIRED FIX TYPE: correct shift offset
+- case 0x03A85C
+  - ROOT CAUSE TYPE: SHIFT_INCORRECT
+  - REQUIRED FIX TYPE: correct shift offset
+
+8) Evidence for Shift-Application Failure Mode
+- shift_table_patcher reports 0 abs-long fix(es) despite known abs-long callsites.
+- parse_disasm() currently yields size=2 for JSR abs.l lines (instead of size=6), so abs-long retarget pass is skipped.
+- observed target deltas exactly match missing cumulative shift:
+  - 0x055EB8-0x055EA2 = +0x16 (22)
+  - 0x04549A-0x04547E = +0x1C (28)
+  - 0x0454B8-0x04549C = +0x1C (28)
+
+9) Deliverables Updated
+- docs/research/semantic_entry_manifest.json (arcade-anchored v3)
+- tools/check_semantic_entries.py (arcade-anchored derivation + WRONG_FUNCTION class)
+- docs/research/semantic_entry_arcade_anchored_shift_verification_build214.md (full analysis report)
+
+10) What Was Explicitly NOT Done
+- no opcode/spec patch changes
+- no callsite retargeting
+- no startup/launcher/gameplay behavior changes
+- no shift-table content changes
+- no automatic runtime fixes
+```
+
+### MAME Exit Summary (2026-03-25 18:13:34)
+- Final PC: 0x217DC2
+- Stack Pointer (SP): 0xE0FFFC10
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 216, Abs-Long Shift Application Fix]
+```text
+1. Objective
+- Fix the shift patcher so abs-long control-transfer references are shift-adjusted correctly, then rebuild and revalidate the known wrong-entry callsites.
+
+2. Proven Tooling Defect
+- Root defect: disassembly line parsing captured only the first word in multi-word instructions, so `JSR/JMP abs.l` sites were treated as size 2 instead of size 6.
+- Why this broke retargeting: `fix_absolute_longs()` gates on `size >= 6`; mis-sized entries were skipped entirely, yielding 0 abs-long fixes.
+- Why size 6 is correct: 68000 `JSR abs.l` / `JMP abs.l` encode as 2-byte opcode + 4-byte absolute address operand.
+
+3. Exact Tooling Change
+- File changed: `tools/translation/shift_table_patcher.py`
+- Functionality changed: disasm regex used by `parse_disasm()`.
+- Change detail:
+  - from non-greedy byte-column capture that truncated multi-word encodings
+  - to full byte-column capture:
+    `^\s*([0-9a-fA-F]+):\s+([0-9a-fA-F]{2,}(?:\s+[0-9a-fA-F]{2,})*)\s+\S`
+- Effect: `JSR/JMP abs.l` instruction sizes are now parsed as 6 bytes, so abs-long retarget pass runs on them.
+
+4. New Abs-Long Fix Count
+- Previous proven count: 0 abs-long fix(es)
+- New count after tooling fix (same spec/shift entries): 483 abs-long fix(es)
+- Evidence points:
+  - direct patcher run: `shift_table_patcher: 22 replacement(s), 7194 branch fix(es), 483 abs-long fix(es)`
+  - release pipeline run also prints 483 abs-long fix(es).
+
+5. Semantic Validation Results After Fix
+- Semantic checker rerun on patcher output artifact (`/tmp/maincpu_shift_test.bin`) with relocation-adjusted equivalent mapping.
+- Case 1 (genesis callsite 0x03A274):
+  - actual target after fix: 0x055EB8
+  - expected target: 0x055EB8
+  - classification: MATCH_ENTRY
+- Case 2 (genesis callsite 0x03A93E):
+  - actual target after fix: 0x04549A
+  - expected target: 0x04549A
+  - classification: MATCH_ENTRY
+- Case 3 (genesis callsite 0x03A85C):
+  - actual target after fix: 0x0454B8
+  - expected target: 0x0454B8
+  - classification: MATCH_ENTRY
+
+6. Build / Runtime Result
+- Rebuild command executed: `source tools/setup_env.sh && make -C apps/rastan release`
+- Build pipeline status:
+  - shift patcher stage: ran with corrected abs-long fixing (483)
+  - downstream release path still has existing linker/postpatch coupling issues (undefined `_Rastan_EX_*` symbol set in mode-0 link step and opcode_replace mismatch at `0x0560DA`), but artifact emitted: `dist/Rastan_216.bin`
+- Runtime check attempt:
+  - MAME genesistrace run on `dist/Rastan_216.bin` for 12s completed
+  - no observed exception hit in trace window
+  - no direct observation of `A1=0x000000FF` and no direct confirmation of crash-PC movement in this pass.
+
+7. Remaining Uncertainties
+- `dist/Rastan_216.bin` does not present the same directly decodable callsite layout used in Build 214 semantic checks (checker at prior fixed offsets returns unresolved), due downstream build/postpatch state.
+- Runtime crash-family change (at/near 0x055E94 with A1=0x000000FF) was not directly observed in this bounded trace window.
+
+8. Rule Compliance Check
+- No manual callsite retargeting: YES
+- No opcode/spec patch edits for the 3 failing sites: YES
+- No startup/launcher/gameplay changes: YES
+- Shift entries unchanged unless proven necessary: YES
+- Semantic checker rerun: YES
+
+9. Artifact Path(s)
+- Release artifact: `dist/Rastan_216.bin`
+- Patcher validation artifact (read-only tooling output): `/tmp/maincpu_shift_test.bin`
+```
+
+## [Cody - Build 218, Final ROM Preservation After Abs-Long Fix]
+```text
+1. Objective
+- Fix downstream build/postpatch coupling so final emitted ROM preserves the corrected abs-long-retargeted semantic entry targets, then validate runtime in text-dumper mode.
+
+2. Proven Upstream State
+- Upstream shift patcher fix remains active:
+  - full-byte disasm parse for multi-word instructions
+  - abs-long retargeting enabled
+- Upstream patcher output still reports:
+  - shift_table_patcher: 22 replacement(s), 7194 branch fix(es), 483 abs-long fix(es)
+- Upstream semantic intent remains unchanged (arcade-anchored manifest/spec unchanged).
+
+3. Downstream Pipeline Break Identified
+- Divergence stage: `tools/translation/postpatch_startup_rom.py` opcode_replace validation stage.
+- Exact cause:
+  - `opcode_replace` validation compared ROM bytes only against pre-shift `original_bytes` literals from spec.
+  - After abs-long retargeting is correctly applied upstream, some 6-byte abs.l forms in ROM have shifted targets, so strict pre-shift compare failed (observed at 0x03A6B2 before fix).
+- Coupling hazard in release recipe:
+  - `apps/rastan/Makefile` release/debug recipe command chains did not enforce fail-fast, allowing stale artifact copy-through when an intermediate stage failed.
+
+4. Exact Fix Applied
+- File changed: `tools/translation/postpatch_startup_rom.py`
+  - Added abs.l-aware helper (`maybe_shift_abs_long_expected_bytes`) for opcode_replace validation.
+  - For 6-byte `JSR/JMP abs.l` and `LEA abs.l,An` expected patterns targeting source-range code, expected operand is shift-adjusted before validation comparison.
+  - Validation now accepts either the literal pre-shift expected bytes or the correctly shift-adjusted equivalent.
+- File changed: `apps/rastan/Makefile`
+  - Added `set -e` to `release`, `release-nohook`, `debug`, and `debug-nohook` shell command chains to prevent stale output propagation on stage failure.
+
+5. Final ROM Semantic Validation
+- Checker rerun on final emitted ROM: `dist/Rastan_218.bin`
+- Case: 0x03A274
+  - actual target: 0x055EB8
+  - expected target: 0x055EB8
+  - classification: MATCH_ENTRY
+- Case: 0x03A93E
+  - actual target: 0x04549A
+  - expected target: 0x04549A
+  - classification: MATCH_ENTRY
+- Case: 0x03A85C
+  - actual target: 0x0454B8
+  - expected target: 0x0454B8
+  - classification: MATCH_ENTRY
+- Summary: all three known failing cases now preserve MATCH_ENTRY in the final emitted ROM artifact.
+
+6. Runtime Validation With Text Dumper
+- Build mode used: `RASTAN_EXCEPTION_DUMPER_MODE=1`.
+- Mode wiring validation:
+  - text-dumper strings present in final ROM (`EX %-13s C%02X  B%u`, `PC %08lX  SR %04X`)
+  - QR strings absent (`RASTAN QR CRASH DUMP`, `SCAN QR FOR FULL DUMP`, `V1|E%02X|` all not found)
+  - exception vectors point to custom `_Rastan_EX_*` handlers.
+- Bounded runtime probe (MAME Genesis, mode-1 build, 20s, direct read of `rastan_qr_exc_*` capture globals):
+  - result: NO_EXCEPTION_CAPTURED
+- Runtime classification for this pass:
+  - no crash observed in bounded run.
+
+7. Remaining Uncertainties
+- No BlastEm/Exodus on-screen text-dumper capture was available in this environment; runtime proof used mode-1 exception-capture globals under MAME.
+- No long-duration soak run was performed; bounded window only.
+
+8. Rule Compliance Check
+- Abs-long patcher fix preserved: YES
+- No manual callsite retargeting: YES
+- Text dumper mode used: YES
+- No startup/launcher/gameplay changes: YES
+- Final ROM checker rerun: YES
+
+9. Artifact Path(s)
+- Final emitted ROM: `dist/Rastan_218.bin`
+- Runtime probe output: `/tmp/exception_probe_218.txt`
+```
+
+## [Cody - Research, Build 218 Coin-Triggered Crash At 0x03AAAC]
+```text
+1) Objective
+- Trace the new Build 218 post-coin crash signature (PC 0x03AAAC, A0 0x03AA9C, A1 0x000000FF) and identify the exact producer path/cause without applying fixes.
+
+2) Crash Signature
+- Exception family: ADDRESS_ERROR (reported in mode-1 text dumper context)
+- Reported registers:
+  - PC=0x03AAAC
+  - A0=0x03AA9C
+  - A1=0x000000FF
+  - A5=0xE0FF004C
+  - D0=0x00000840
+- Reported backtrace includes: 0x03AAAC, 0x03A274, 0x202806.
+
+3) Instruction at 0x03AAAC
+- Build 218 ROM disassembly at site:
+  - 0x03AA9C: jsr 0x059F36
+  - 0x03AAA8: move.w #0x0011,(0x0C4E,A5)
+  - 0x03AAAE: move.w #0x0008,(0x0004,A5)
+- 0x03AAAC is the displacement/immediate word of the 0x03AAA8 instruction, not an instruction boundary.
+- Effective write target from 0x03AAA8 with A5 value is even-aligned, so this site itself is not a direct odd-address A1 dereference.
+
+4) A1 Producer Chain
+- Proven local context:
+  - A0=0x03AA9C matches active post-coin handler dispatch entry.
+  - This handler calls 0x059F36.
+- In 0x059F36, expected path initializes A1 (`lea 0x10D600,A1`) before table-driven conversion loop.
+- Proven defect in same helper family:
+  - stale absolute table-base immediate (`movea.l #0x059E9A,A3`) is unshifted for Build 218 in this path.
+  - shifted table/data block is displaced (+0x16), so pointer fetches are sourced from wrong region.
+- Exact final instruction writing literal A1=0x000000FF is not directly proven from static-only slice.
+- Last proven intended writer in active path remains 0x059F36 prologue (`lea 0x10D600,A1`), implying A1 corruption or prologue bypass in the failing execution path.
+
+5) Coin-Triggered Path
+- Coin-trigger logic observed at 0x03AB28 block:
+  - input read at 0xE0FF4870
+  - updates credits A5+0x0012
+  - sets transition flags/timers and clears step fields
+  - state fields involved: A5+0x0000, +0x0002, +0x0004, +0x0028, +0x002A, +0x002C, +0x0117, +0x0118
+- Post-coin progression reaches handler 0x03AA9C (A0 value aligns), which calls helper 0x059F36.
+- Active helper associated with flicker/garbage phase: 0x059F36 table-driven conversion/write path.
+
+6) Semantic Entry Findings
+- Checked coin-region callsites against arcade-derived shifted entries:
+  - 0x03AA9C -> 0x059F36 (expected from arcade 0x03A890 -> 0x059D20): MATCH_ENTRY
+  - 0x03AC66 -> 0x05A56C (expected from arcade 0x03AA54 -> 0x05A356): MATCH_ENTRY
+  - 0x03ACC0 -> 0x05A5F4 (expected from arcade 0x03AAAE -> 0x05A3DE): MATCH_ENTRY
+  - Dispatcher marker 0x03A274 -> 0x055EB8 remains MATCH_ENTRY
+- No new INSIDE_BODY/WRONG_FUNCTION callsite was proven in this crash-local coin region.
+
+7) Root Cause
+- ROOT CAUSE:
+  - A1 becomes 0x000000FF because the post-coin table-driven helper path consumes malformed pointer/data flow from a stale (unshifted) absolute table-base immediate in the shifted Build 218 image.
+  - immediate bad source is the unshifted 0x059E9A table-base immediate used in the active helper family reached from 0x03AA9C.
+  - this occurs post-coin because coin transition advances into the 0x03AA9C -> 0x059F36 branch where that stale base is exercised.
+- Primary classification: TABLE / POINTER SOURCE ERROR.
+
+8) Minimal Fix Target
+- === MINIMAL_FIX_TARGET ===
+  - fix_area: shift-fix relocation coverage for absolute-long source-range immediate table-base loads in the 0x03AA9C -> 0x059F36 helper family.
+  - exact_state_or_path_to_change: ensure movea.l table-base immediates (notably 0x059E9A in this path) are shift-adjusted to the shifted table base before runtime.
+  - why_this_is_the_minimum_change: local callsites are already MATCH_ENTRY; failure is pointer-source correctness inside the called helper.
+  - what_must_NOT_be_changed: no manual callsite retargeting, no startup/launcher/gameplay logic changes, no shift-table content edits, no shadow-RAM workaround.
+
+9) Uncertainties
+- Exact final writer of literal A1=0x000000FF is not statically proven to a single instruction.
+- Reported PC 0x03AAAC is at an operand location; address-error frame decode may not correspond to exact opcode boundary in this event.
+- Full BlastEm/Exodus on-screen capture not available in this environment; analysis used ROM disassembly plus provided crash signature.
+
+10) What Was NOT Done
+- no code changes
+- no spec changes
+- no patcher changes
+- no callsite retargeting
+- no startup redesign
+- no shadow RAM
+```
+
+## [Research, Pre-Coin Flickering Garbage In Attract/Front-End]
+```text
+1) Objective
+- Trace the pre-coin (before coin-up) attract/front-end flickering garbage as a separate earlier visual-output issue, independent of the post-coin crash chain.
+
+2) Active Pre-Coin State Path
+- Proven active pre-coin branch is the `0x03AAB8` cluster:
+  - setup phase runs `0x03AADE/0x03AAE2/0x03AAE6` and text-id emissions through `0x03AAFA..0x03AB1C`, then sets `A5+0x0002=1` at `0x03AB20`.
+  - coin polling loop is `0x03AB28` (`move.b 0xE0FF4870,d0`) and remains active before coin.
+  - coin transition path starts at `0x03AB50` and only then advances major state via `A5+0x0000=2` at `0x03ABF0`.
+- Separate pre-coin substep family (`0x03A8B8`/`0x03A9A4`) calls `0x059F36` at `0x03A8D6` and `0x03A944` before coin transition, so this helper is active in pre-coin visuals.
+
+3) Display/Render Helpers Involved
+- Global per-frame frontend render path in `SCREEN_FRONTEND_LIVE` (`main.c`):
+  - `genesistan_run_original_frontend_tick()`
+  - `load_arcade_palette()`
+  - `sync_arcade_scroll_to_vdp()`
+  - `render_frontend_sprite_layer()`
+- Pre-coin display helpers seen in disassembly:
+  - text/tile dispatch: `0x03BD5E -> jsr 0x2027B8` (patched text writer bridge)
+  - conversion helper family: `0x059CEA` called from `0x05A56C/0x05A626/0x05A658`
+  - high-signal pre-coin helper: `0x059F36` (table-driven conversion loop)
+- Absolute-long table/data-base immediates in active pre-coin helper family:
+  - `0x059F46: movea.l #0x059E9A,a3`
+  - `0x059E7A: movea.l #0x059E9A,a3`
+  - `0x059EE4: movea.l #0x059E9A,a3`
+- Remaining dependency notes:
+  - text hook still carries C-window/shadow-derived pointer semantics in `genesistan_hook_text_writer_3bb48_impl()` side-effect path.
+  - sprite renderer remains descriptor-staged from workram blocks in frontend mode.
+
+4) Likely Source Classification
+- Primary: stale table/data-base reference.
+- Reason:
+  - pre-coin callsites (`0x03A8D6`, `0x03A944`) execute `0x059F36` before coin,
+  - `0x059F36` relies on shift-sensitive absolute table base immediate (`0x059E9A`) in the same helper family,
+  - malformed table dereference/conversion is consistent with flickering garbage output.
+- Secondary (not primary in this pass): residual C-window/text staging assumptions in text side-effect paths.
+
+5) Minimal Visual Fix Target
+- === MINIMAL_VISUAL_FIX_TARGET ===
+  - fix_area: pre-coin helper-family absolute-long table-base relocation correctness in `0x059E6A/0x059EE4/0x059F36`.
+  - exact path/helper/state involved: pre-coin substep path `0x03A8D6/0x03A944 -> 0x059F36` during attract/front-end display before coin transition at `0x03AB28`.
+  - why this is the minimum next visual-output step: local pre-coin callsites are active and the earliest proven corruption risk is pointer/table-base correctness inside the called helper.
+  - what must NOT be changed: no startup/launcher/gameplay redesign, no manual callsite retargeting, no opcode/spec bypassing, no shadow-RAM reintroduction.
+
+6) Uncertainties
+- Exact frame-by-frame visual artifact mapping (which converted line corresponds to each flicker tile) was not captured in this pass.
+- Whether text-writer shadow side effects amplify the same symptom remains unproven in this isolated pass.
+
+7) What Was NOT Done
+- no code changes
+- no spec changes
+- no patcher changes
+- no startup redesign
+- no shadow RAM reintroduction
+```
+# 📺 Attract Mode Reconstruction – Rastan (Arcade → Genesis)
+
+## Status Summary
+
+- **Current build:** 218 → crashes before attract mode becomes visible
+- **Previous reference build:** 159 → reached text screens via heavy NOP scaffolding
+- Build 159 is **NOT valid behavior**, only used as a visual reference
+- Current goal is to restore **correct execution flow**, not force output
+
+---
+
+## 🧠 Core Insight
+
+Attract mode is a **deterministic, time-driven state machine**, not input-driven logic.
+
+All observed behavior from the original arcade board confirms:
+
+- No randomness
+- No branching required
+- Linear progression of states
+- Looping back to title after demo
+
+---
+
+# 📺 Attract Mode Reconstruction – Rastan (Arcade → Genesis)
+
+## Status Summary
+
+- **Current build:** 218 → crashes before attract mode becomes visible
+- **Previous reference build:** 159 → reached text screens via heavy NOP scaffolding
+- Build 159 is **NOT valid behavior**, only used as a visual reference
+- Current goal is to restore **correct execution flow**, not force output
+
+---
+
+## 🧠 Core Insight
+
+Attract mode is a deterministic, time-driven state machine, not input-driven logic.
+
+All observed behavior from the original arcade board confirms:
+
+- No randomness
+- No branching required
+- Linear progression of states
+- Looping back to title after demo
+
+---
+
+## 🔁 Attract Mode State Machine
+
+INIT →
+WHITE_SCREEN →
+TITLE →
+STORY_1 →
+STORY_2 →
+ITEM_SCROLL →
+BLANK →
+DEMO_PLAY →
+LOOP → TITLE
+
+---
+
+## 📋 State Definitions
+
+### STATE: INIT
+- Hardware + RAM initialization
+- Sets up rendering systems
+- Transitions immediately
+
+---
+
+### STATE: WHITE_SCREEN (~1 second)
+- White screen with scattered sprite/tile artifacts
+- This is correct arcade behavior
+- Likely uninitialized or transitional VRAM usage
+
+---
+
+### STATE: TITLE (~6 seconds)
+- Displays:
+  - 1UP 00
+  - HIGH SCORE
+  - 2UP 00
+  - CREDIT 0
+- Large Rastan logo (sprite-based)
+- No scrolling
+
+---
+
+### STATE: STORY_1
+- Throne + Rastan illustration (sprite)
+- Story text
+- INSERT COIN(S)
+- HUD persists
+
+---
+
+### STATE: STORY_2
+- Story continuation
+- High score table (BEST 5)
+- Tilemap-driven layout
+
+---
+
+### STATE: ITEM_SCROLL (~30 seconds)
+- Vertical scrolling list of:
+  - item icons (sprites)
+  - item names + descriptions (tilemap)
+
+CRITICAL:
+- Uses hardware vertical scrolling
+- Not redrawing text per frame
+
+---
+
+### STATE: BLANK
+- Short transition
+- Likely clears or resets display
+
+---
+
+### STATE: DEMO_PLAY (~70 seconds)
+- Real gameplay logic runs
+- AI-controlled player
+- Full renderer active:
+  - scrolling background
+  - sprites
+  - collision systems
+
+Entry:
+- Rastan falls from sky (level start)
+
+---
+
+## ⚠️ Current Problem (Build 218)
+
+- Crash occurs before attract mode begins
+- PC jumps to invalid region (e.g., 0x27000070)
+- Indicates:
+  - corrupted control flow
+  - bad pointer / jump table / relocation issue
+
+This is NOT a rendering issue
+
+---
+
+## 🧪 Build 159 Context (Important)
+
+- Attract mode visuals were observed in build 159
+- Achieved via:
+  - NOP scaffolding
+  - bypassing real control flow
+- Behavior included:
+  - skipping attract sequence
+  - jumping directly to coin/start screens
+
+Conclusion:
+- Build 159 is not trustworthy for logic validation
+- Only useful as a visual reference
+
+---
+
+## 🎯 Current Objective
+
+Restore correct attract-mode state progression and control flow before addressing rendering.
+
+---
+
+## 🤖 Cody Task
+
+### 1. Identify Attract Mode State Controller
+
+Locate:
+- main loop or dispatcher
+- state variable (likely A5-relative RAM)
+
+Look for patterns like:
+    move.b (A5 + offset), D0
+    cmpi.b #state_id, D0
+    beq    state_handler
+
+---
+
+### 2. Identify Transition Logic
+
+For each state:
+- where is timer incremented?
+- where is transition condition checked?
+- what triggers next state?
+
+---
+
+### 3. Map State Flow
+
+Produce:
+
+STATE_NAME
+- entry address
+- exit condition
+- next state
+- key routines
+
+---
+
+### 4. Verify Against Crash
+
+Determine:
+
+- Does crash occur:
+  - before INIT completes?
+  - during first state transition?
+  - inside jump table / indirect branch?
+
+Focus on:
+- corrupted PC values
+- invalid jump targets
+- broken relocation
+
+---
+
+### 5. Do NOT
+
+- Do NOT insert NOPs
+- Do NOT bypass logic
+- Do NOT force states
+
+---
+
+## ✅ Success Criteria
+
+- State machine is identified and mapped
+- Control flow matches expected attract sequence
+- Crash location is tied to a specific state or transition
+
+---
+
+## 📌 Key Insight
+
+If attract mode runs correctly:
+- control flow is stable
+- shift-table system is working
+- remaining issues are rendering + VDP mapping
+
+If it crashes before attract:
+- core execution is still broken
+- must fix before any visual work matters

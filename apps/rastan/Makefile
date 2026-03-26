@@ -17,6 +17,7 @@ all: release
 release:
 	@mkdir -p ../../dist
 	@count=$$(cat ../../dist/release_counter.txt 2>/dev/null || echo 0); \
+	set -e; \
 	count=$$((count + 1)); \
 	stamp=$$(date +%Y%m%d_%H%M%S); \
 	$(PYTHON) "$(ROOT)/tools/translation/write_build_info.py" \
@@ -49,6 +50,7 @@ release:
 release-nohook:
 	@mkdir -p ../../dist
 	@count=$$(cat ../../dist/release_counter.txt 2>/dev/null || echo 0); \
+	set -e; \
 	count=$$((count + 1)); \
 	stamp=$$(date +%Y%m%d_%H%M%S); \
 	$(PYTHON) "$(ROOT)/tools/translation/write_build_info.py" \
@@ -67,6 +69,7 @@ release-nohook:
 
 debug:
 	@stamp=$$(date +%Y%m%d_%H%M%S); \
+	set -e; \
 	$(PYTHON) "$(ROOT)/tools/translation/write_build_info.py" \
 		--header "$(BUILD_INFO_HEADER)" \
 		--build-number "$(RASTAN_BUILD_NUMBER)" \
@@ -91,6 +94,7 @@ debug:
 
 debug-nohook:
 	@stamp=$$(date +%Y%m%d_%H%M%S); \
+	set -e; \
 	$(PYTHON) "$(ROOT)/tools/translation/write_build_info.py" \
 		--header "$(BUILD_INFO_HEADER)" \
 		--build-number "$(RASTAN_BUILD_NUMBER)" \
