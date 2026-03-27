@@ -1367,7 +1367,7 @@
     {
       "arcade_pc": "0x03BB48",
       "original_bytes": "32000240007fe548",
-      "replacement_bytes": "4eb9002027c04e75",
+      "replacement_bytes": "4eb900202a4c4e75",
       "note": "Replace 0x3BB48 dispatcher entry with JSR genesistan_hook_text_writer_3bb48 + RTS. Direct Genesis VDP nametable rendering path."
     },
     {

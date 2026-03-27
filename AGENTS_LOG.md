@@ -20320,3 +20320,219 @@ If it crashes before attract:
   - no per-screen hacks
   - no partial “VDP active means success” interpretation
 ```
+
+## [Cody - Research, First Graphics Execution Breakpoint]
+```text
+- Objective
+  - Forensically trace one real graphics producer through live execution and identify the first exact execution breakpoint where visible output fails.
+
+- Selected producer
+  - `0x03BD5E` (title text producer dispatch).
+  - Runtime entry observed at frame 665 with `D0=0x00000002`.
+
+- Execution trace summary
+  - Observed live chain:
+    - `0x03BD5E: jsr 0x2027C0`
+    - `0x2027C0..0x2027D2` executes copy/index/jump logic (`movew`, `moveq`, `moveb`, `addw`, `movea`, `jmp a4@`).
+  - Real text wrapper and producer are not entered:
+    - `0x202A4C` hit count = 0
+    - `0x20034C` hit count = 0
+
+- Data flow result
+  - Producer data in `D0` is overwritten inside wrong target path (`0x2027C4` sets `D0=0`, then reload from `A0` stream).
+  - No handoff into text producer path, no plane producer execution (`0x200000=0`, `0x2001A6=0`).
+  - Text-shadow writes are dominated by clear/maintenance PCs (`0x03AF5A`, `0x20161E`), with sampled cell `attr=0000 glyph=0020`.
+
+- Breakpoint
+  - === FIRST_GRAPHICS_BREAKPOINT ===
+  - PC: `0x03BD5E`
+  - expected: semantic dispatch to `0x202A4C -> 0x20034C`
+  - actual: dispatch to `0x2027C0` path, never reaches `0x202A4C`/`0x20034C`
+  - failure reason: wrong jump target
+
+- Why producers are not executing
+  - `0x20034C` not executing because of wrong jump target at `0x03BD5E`.
+  - `0x200000` and `0x2001A6` not executing in this traced window because producer payload path is not established (wrong data preventing execution downstream).
+
+- Final conclusion
+  - The first real graphics failure occurs at `0x03BD5E` because it dispatches to the wrong target (`0x2027C0`), preventing text producer output from reaching plane-visible VDP output.
+```
+
+## [Cody - Build 235, First Text Handoff Fix]
+```text
+- Objective
+  - Fix only the first title text handoff breakpoint so `0x03BD5E` no longer dispatches to `0x2027C0`, then validate execution/visibility on a mode-1 artifact.
+
+- Exact target change
+  - File: `specs/startup_title_remap.json`
+  - Entry: `arcade_pc 0x03BB48`
+  - before: `4eb9002027c04e75`
+  - after:  `4eb900202a4c4e75`
+  - Static ROM check (`dist/Rastan_235.bin`): `0x03BD5E` bytes = `4EB900202A4C4E75`.
+
+- Execution proof
+  - Runtime probe (`/tmp/first_graphics_break_trace.txt`, START injected, 20s):
+    - `HIT pc=03BD5E count=1`
+    - `HIT pc=2027C0 count=0`
+    - `HIT pc=202A4C count=1`
+    - `HIT pc=20034C count=0`
+  - Producer-plane hooks in same run:
+    - `HIT pc=200000 count=0`
+    - `HIT pc=2001A6 count=0`
+
+- Visible result classification
+  - NOT_VISIBLE (requirement not met).
+  - Evidence:
+    - `/tmp/text_cell_scan.txt`: `nonspace_cells=0/256`
+    - `/tmp/title_forward_probe.txt`: sampled text cells remain `glyph=0x0020`
+    - no producer-plane execution (`200000/2001A6` remain zero).
+
+- Remaining issues
+  - Retargeted dispatch reaches `0x202A4C`, but this build path does not reach `0x20034C`.
+  - Active plane writer producer hooks are still not executing in the probed started-path window.
+  - Therefore visible non-space title text is still not proven after this single dispatch-only fix.
+```
+
+## [Cody - Research, Second Text Chain Breakpoint]
+```text
+- objective
+  - Forensically trace live execution beginning at `0x202A4C` (post-`0x03BD5E` correction) and identify the exact control-flow reason `0x20034C` is not reached.
+
+- entry trace summary
+  - Live path captured (`/tmp/second_text_chain_trace.txt`):
+    - `0x202A4C: cmpl %d1,%d2`
+    - `0x202A4E: beqs 0x202A16` (not taken)
+    - `0x202A50: subql #5,%d1`
+    - `0x202A52: bnew 0x2029B8` (taken)
+    - `0x2029B8: movel %sp@+,%d2`
+    - `0x2029BA: rts` -> returns to `0x03BD64`
+  - `0x20034C` hit count in this traced chain: `0`.
+
+- blocking point
+  - Blocking branch is at `0x202A52` (`bnew 0x2029B8`), which diverts execution into return-unwind path (`0x2029B8 -> 0x2029BA`) before any `jsr 0x20034C`.
+
+- register/stack finding
+  - Entry at `0x202A4C`: `A0=00000008`, `A4=00000000`, `A5=E0FF004C`, `D0=00000002`, `SP=E0FFFDFA`.
+  - At blocking site path: `D1` transitions `00000003 -> FFFFFFFE`, making `bne` true.
+  - Stack is consistent for unwind (`[SP]=0003BD64` at branch-target stage), indicating return path is intentional for this routine.
+  - Root cause classification: wrong semantic entry point (in Build 235, `0x202A4C` is not the text-wrapper body).
+
+- final conclusion
+  - After `0x03BD5E` correction, execution enters a non-wrapper compare/branch routine at `0x202A4C`; taken branch at `0x202A52` exits via `0x2029B8/0x2029BA`, so `0x20034C` is never executed.
+```
+
+## [Cody - Research, True Text Producer Entry]
+```text
+- objective
+  - Resolve the true semantic entry target for the title text producer chain by working backward from `0x20034C` and classifying valid entry vs internal/mid-body paths.
+
+- caller analysis summary
+  - Explicit direct callers of `0x20034C` in `dist/Rastan_235.bin`: exactly one.
+    - `0x2027C2: jsr 0x20034C`
+  - Literal target scan for `0x0020034C` also yields one occurrence (operand at `0x2027C4`).
+  - Caller classification:
+    - `0x2027C2` is internal call site (mid-body), not a safe external semantic entry.
+    - enclosing wrapper entry is `0x2027C0`.
+
+- wrapper identification
+  - True wrapper block:
+    - `0x2027C0: move.l a5,-(sp)`
+    - `0x2027C2: jsr 0x20034C`
+    - `0x2027C8: movea.l (sp)+,a5`
+    - `0x2027CA: rts`
+  - `0x202A4C` is unrelated to this wrapper in Build 235 (compare/branch/return routine body, not wrapper entry).
+
+- dispatch compatibility result
+  - `0x03BD5E` title dispatch context has compatible call-state (`D0` text id, valid `A5`, standard `SP` return frame).
+  - Direct target compatibility:
+    - `0x2027C0`: compatible semantic entry (preserves A5 + balanced stack + direct producer call).
+    - `0x2027C2`: not compatible as external entry (skips prologue, breaks return/restore contract).
+    - `0x202A4C`: not compatible (branches/returns before any producer call).
+
+- final target
+  - `0x2027C0` is the true semantic entry for this build family.
+
+- conclusion
+  - The title text dispatch should land on the wrapper entry that executes `jsr 0x20034C` with preserved call-state, which is `0x2027C0` in Build 235.
+```
+
+## [Cody - Research, Text Producer Execution Failure]
+```text
+- objective
+  - Validate live call contract at `0x2027C0 -> 0x20034C` and determine whether producer execution/state is why visible text is absent.
+
+- entry confirmation
+  - Runtime hits (`/tmp/text_producer_exec_probe.txt`):
+    - `0x2027C0`: 1
+    - `0x2027C2`: 1
+    - `0x20034C`: 1
+  - Conclusion: producer entry is reached.
+
+- register state at producer entry
+  - Pre-call (`0x2027C2`): `A0=00000008 A4=00000000 A5=E0FF004C D0=00000002 SP=E0FFFDF6`
+  - Entry (`0x20034C`): `A0=00000008 A4=00000000 A5=E0FF004C D0=00000002 SP=E0FFFDF2`
+  - Contract interpretation: `D0` carries selector id, `A5` is preserved work/state base, stack frame is valid for wrapper->producer call.
+
+- execution trace summary
+  - First producer instructions execute as expected (`0x20034C..0x200366` prologue/table-lookup sequence).
+  - Trace path evidence (`/tmp/text_producer_contract_trace.txt`) shows this invocation reaches check/return-side PCs and returns (`0x200398`, `0x20039A`, `0x2004B2`, `0x2004B8`, `0x20036C`, `0x200370`) without hitting producer VDP write site.
+
+- failure mode
+  - Selected: **B) 0x20034C executes but exits early (non-productive path).**
+  - Evidence:
+    - producer executed (`HIT 20034C 1`)
+    - producer VDP write site not observed (`HIT 2004A2 0`)
+    - no producer-family text-shadow writes (`/tmp/text_producer_write_probe.txt`: `from_20034c_exact=0`, `from_20034c_family=0`).
+
+- breakpoint
+  - === TEXT_PRODUCER_EXECUTION_FAILURE ===
+  - wrapper_entry: `0x2027C0`
+  - producer_entry: `0x20034C`
+  - failure_type: `B) executes but exits early`
+  - exact_reason: call contract is valid enough to enter producer, but this invocation follows a non-productive branch/return path and does not reach the producer VDP data-write operation.
+
+- final conclusion
+  - `0x20034C` fails to produce visible output because it executes once on a non-productive branch/return path and does not reach its VDP text write site.
+```
+
+## [Cody - Research, Text Record Rejection Point]
+```text
+- objective
+  - Forensically trace internal `0x20034C` decision flow and identify the exact branch/condition that rejects the current title text descriptor before `0x2004A2`.
+
+- executed branch path summary
+  - Decision sequence for the live call (`frame=666`, `/tmp/text_record_branch_trace.txt`):
+    - `0x20036A bne 0x200372`: taken (`A2=0x3BCBE` non-null)
+    - `0x200380 bne 0x200398`: not taken (`D0(word)=0` from `0xE0FF6B3C`)
+    - `0x200394 beq 0x2005F6`: not taken (`D0(word)=1`)
+    - `0x20039A beq 0x2004B2`: not taken (first code byte non-zero)
+    - `0x2003A6 bmi 0x2004E6`: not taken
+    - loop decisions:
+      - `0x2003E0 bls 0x200406`: not taken 156/156
+      - `0x2003EC bhi 0x2004AA`: taken 156/156
+      - `0x2004AE bne 0x2003D2`: taken 155 times, then not taken on terminator byte `0x00`
+    - post-loop:
+      - `0x2004B8 bne 0x20036C`: not taken
+      - `0x2004CA bne 0x20036C`: taken -> return at `0x200370`
+
+- descriptor analysis summary
+  - selector/table resolution is consistent:
+    - selector `D0=2`, table base `0x3BD92`, entry2 -> `0x3BCBE`
+  - descriptor at `0x3BCBE`:
+    - `+0x00..+0x03` long = `0x0B0B0F0C` -> loaded into `D6`
+    - `+0x04..+0x05` word = `0x1210` -> loaded into `D3`
+    - `+0x06..` byte codes ending with `0x00` at `0x3BD60`
+  - per-character reject compare uses `D0=0xE0FFC84C` vs `D6`; this rejects immediately each iteration.
+
+- exact rejection point
+  - rejecting PC: `0x2003EC`
+  - condition: `bhi.w 0x2004AA` after `cmp.l %d6,%d0`
+  - value causing rejection: descriptor-derived `D6` (`0x0B0B0F0C` series), always below `0xE0FFC84C`
+
+- root cause classification
+  - **wrong descriptor contents**
+  - proof: selector and table target are internally consistent, but the descriptor destination longword is out of expected drawable range and drives 156/156 rejections at `0x2003EC`.
+
+- conclusion
+  - `0x20034C` rejects the text record at `0x2003EC` because descriptor `D6` fails the destination-range compare, so execution never reaches `0x2004A2`.
+```
