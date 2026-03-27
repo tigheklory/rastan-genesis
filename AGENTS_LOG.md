@@ -20203,3 +20203,120 @@ If it crashes before attract:
   - no implementation
   - no blind Cadash code copying
 ```
+
+## [Cody - Research, Rainbow Islands Arcade vs Genesis Graphics Comparison]
+```text
+- Objective
+  - Analyze Rainbow Islands arcade vs Genesis graphics pipelines as the primary comparative case, extract reusable translation patterns for Rastan, and explicitly separate graphics behavior from C-Chip-dependent logic.
+
+- Arcade model summary
+  - MAME `rbisland` map shows graphics ownership at:
+    - palette `0x200000-0x200fff`
+    - PC080SN tile/scroll/control `0xc00000-0xc0ffff`, `0xc20000`, `0xc40000`, `0xc50000`
+    - PC090OJ sprite RAM `0xd00000-0xd03fff`
+  - `screen_update` confirms hardware-owned rendering order: PC080SN tilemaps then PC090OJ sprites.
+  - Arcade disassembly confirms direct chip-window writes/clears and tile RAM event writes (e.g. secret-room writes at `0x55ee+` into `0xc00b08+`).
+
+- Genesis model summary
+  - Genesis disassembly shows pervasive direct VDP ownership via `0xc00004` control and `0xc00000` data writes.
+  - DMA-capable VDP register programming patterns (`0x93..0x97`) are repeatedly present before bulk graphics transfers.
+  - Plane/tile write helpers (`0x28d6/0x28fa/0x291e/0x2942` + `0x2966/0x2992/0x29b0/0x29d4`) stream data to VDP with plane base computations.
+  - WRAM staging/buffering appears around `0xfff800`, `0xfffb00`, and append-pointer/state at `0xfffa80` before VDP-facing output.
+
+- Translation pattern summary
+  - Reusable classes identified:
+    - arcade tile RAM writes -> Genesis plane write streams
+    - arcade sprite RAM/object updates -> Genesis SAT/descriptor staging + upload
+    - arcade palette writes -> Genesis CRAM update sequences
+    - arcade scroll/control writes -> Genesis VDP register/control writes
+    - arcade clear/fill on chip RAM -> Genesis active-owner clear/fill + upload discipline
+  - Core portability rule: translate by graphics intent and producer->consumer ownership, not by copying per-screen logic.
+
+- C-Chip relevance summary
+  - Rainbow C-Chip is mapped in separate windows (`0x800000-0x800fff`) and modeled as MCU/EPROM/banked shared RAM service logic.
+  - Graphics composition ownership remains PC080SN/PC090OJ/palette path; C-Chip is not the direct graphics renderer.
+  - Reusable for Rastan: keep graphics translation independent from C-Chip assumptions.
+
+- Most useful lesson for Rastan
+  - Enforce a producer->consumer ownership validation rule so every translated graphics producer (tile/sprite/palette/scroll/clear) is proven to feed the active Genesis VDP path.
+
+- Comparison vs Cadash
+  - Reinforces Cadash findings: arcade chip-window writes become unified Genesis VDP operations.
+  - Adds stronger C-Chip separation evidence and close PC080SN/PC090OJ model relevance for Rastan-style translation.
+  - More directly applicable to Rastan than Cadash where board/game-specific differences are larger.
+
+- What not to do
+  - do not copy Rainbow Islands code/tables blindly
+  - do not assume Rainbow data formats are identical to Rastan
+  - do not assume C-Chip behavior applies to Rastan
+  - do not regress to per-screen hacks instead of reusable intent translation
+
+- Uncertainties
+  - Genesis routine semantics are inferred from disassembly structure without source-level symbols.
+  - DMA mode details are inferred from VDP register-programming patterns and control-flow shape.
+  - MiSTer/FPGA use in this pass was schematic/doc cross-check, not deep HDL path tracing.
+
+- What Was NOT Done
+  - no code changes
+  - no spec changes
+  - no shims
+  - no implementation
+  - no blind Rainbow Islands code copying
+  - no assumption that C-Chip applies to Rastan
+```
+
+## [Cody - Design, Rastan Graphics Translation Layer]
+```text
+- Objective
+  - Define a complete, design-only graphics translation architecture that maps Rastan arcade graphics intent to Genesis VDP-visible output using relocation-safe opcode-replacement workflows.
+
+- Architecture summary
+  - Producer/consumer model is mandatory:
+    - arcade producers (tile/sprite/palette/scroll/clear intent)
+    - genesis consumers (VRAM, SAT, Plane A/B, CRAM, VDP register state)
+  - Success depends on proven continuity from producer intent to VDP-visible payload, not on VDP activity alone.
+  - Design is explicitly aligned to shift-table reflow architecture and excludes shim/trampoline runtime interception.
+
+- Translation layers
+  - TILE: arcade tile/cell writes -> Genesis plane nametable writes + guaranteed VRAM pattern residency.
+  - SPRITE: arcade object descriptors -> valid Genesis SAT tuples + guaranteed sprite pattern residency.
+  - PALETTE: arcade palette writes -> CRAM updates with stable line/index ownership.
+  - SCROLL: arcade control/scroll writes -> VDP register/scroll state updates with ordering preserved.
+  - CLEAR: arcade clear/fill intent -> active-owner clears only, preserving phase order.
+
+- DMA strategy
+  - DMA is the bulk publication path for translated non-zero payloads (patterns, plane data, SAT, palette blocks).
+  - DMA activity is considered valid only when payload and destination layout are both correct.
+  - Current observed problem context is captured: DMA is active, but geometry-path payload is mostly zero, so visuals remain absent.
+
+- Minimal working path
+  - Defined minimum viable visible path as one title text string:
+    - text intent dispatch -> decoded glyph/cell data -> non-space plane writes -> visible pixels.
+  - Alternative equivalent minimum path: one valid sprite SAT entry with valid tile pattern in VRAM.
+
+- Validation rules
+  - Required concurrently:
+    - VRAM contains referenced non-zero tile pattern data
+    - SAT contains drawable entries (tile/x/y/attr validity)
+    - planes receive non-space/non-clear intended cell writes
+    - DMA transfers carry non-zero drawable payload where expected
+    - producer->consumer continuity is proven in-frame
+    - visible pixels appear for the targeted minimal element
+
+- Failure analysis
+  - Biggest proven break is early producer handoff failure:
+    - `0x03BD5E` routes to `0x2027C0` instead of semantic text producer path `0x202A4C -> 0x20034C`.
+  - Additional confirmed blockers:
+    - plane producers not executing in observed title runs
+    - sprite descriptor content remains empty/invalid
+    - DMA/register traffic exists but largely carries clear/zero geometry payload
+  - Net effect: no complete translation chain from arcade intent to visible Genesis output.
+
+- What must NOT be done
+  - no shims
+  - no trampolines
+  - no wrapper-based bypass architecture
+  - no fake data injection
+  - no per-screen hacks
+  - no partial “VDP active means success” interpretation
+```
