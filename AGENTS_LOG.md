@@ -21604,3 +21604,75 @@ This is the turning point of the project.
 - output file
   docs/design/absolute_call_target_fix_plan.md
 ```
+
+## [Andy - Design, Multi-Pass Operand Relocation]
+```text
+- objective
+  - Design a durable architecture for operand relocation in shift_replacement entries that
+    contain raw embedded arcade addresses. The goal is to eliminate stale hardcoded addresses
+    and ensure correctness as the shift table evolves.
+  - Design only. No spec, .c, or Makefile changes.
+
+- preferred architecture summary
+  - Two conceptual passes:
+  - Pass A (Structural):
+    Apply all insertions/deletions/replacements. Compute final ROM layout. Produce a
+    finalized cumulative shift table at every arcade address position.
+  - Pass B (Deferred Operand Relocation):
+    For entries flagged with relocate_after_shift: true, compute:
+      final_operand = operand_arcade_target + 0x200 + shift_before(operand_arcade_target)
+    Write template opcode + final_operand bytes at the computed genesis callsite.
+    Emit a relocation report per entry.
+  - Separation is the core insight: layout changes happen in Pass A; Pass B reads the
+    completed, stable shift table to derive operand values. No value goes stale.
+
+- key spec metadata fields
+  - arcade_pc: callsite location (source of truth for where to patch)
+  - original_bytes: original arcade bytes (for patch verification)
+  - replacement_template: opcode bytes only, no operand (e.g., 4EB9 for JSR abs.l)
+  - operand_kind: operand encoding type (e.g., abs_l_32bit)
+  - operand_arcade_target: original arcade address of the target — the ONLY value stored
+    in the spec for the target; never a derived or pre-shifted Genesis address
+  - operand_width: width in bytes (e.g., 4 for abs.l)
+  - relocate_after_shift: true — triggers Pass B processing for this entry
+  - opcode_class: optional coverage label (e.g., jsr_abs_l)
+
+- concrete example (Patch A, arcade 0x03A8E0, target 0x059F5E)
+  - operand_arcade_target = 0x059F5E
+  - shift_before(0x059F5E) = 22 (current shift table)
+  - final_operand = 0x059F5E + 0x200 + 22 = 0x05A174
+  - genesis_callsite = 0x03A8E0 + 0x200 + 12 = 0x03AAEC
+  - ROM output: 4EB9 0005A174 — JSR to producer function entry (correct)
+  - If a new +2 byte entry is added before 0x059F5E, shift_before becomes 24,
+    final_operand becomes 0x05A176 automatically. No spec edit needed.
+
+- opcode coverage summary
+  - Pass B should support abs_l_32bit operands for:
+    JSR abs.l (4EB9), JMP abs.l (4EF9), LEA abs.l (41F9–4FF9),
+    MOVEA.l imm (207C–2E7C), PEA abs.l (4879)
+  - PC-relative forms (BSR, BRA, Bcc, DBRA) are out of scope for Pass B
+  - rom_absolute_call_relocation already handles all these for original ROM code;
+    Pass B extends the same coverage to patcher-authored replacement entries
+  - Minimum viable: JSR abs.l and JMP abs.l
+
+- migration summary
+  - Symbol-based entries ({symbol:...}) are not affected; they resolve at link time
+  - Raw embedded address entries in shift_replacements must be converted to the
+    relocate_after_shift format as the long-term fix
+  - Immediate fix for Build 273: Strategy B from absolute_call_target_fix_plan.md
+    (change 4eb900059f5e to 4eb900059f74)
+  - Long-term: once Pass B is implemented, convert Patch A entry to new format
+  - Original ROM code (rom_absolute_call_relocation region) is unchanged and unaffected
+
+- validation summary
+  - Static: ROM at genesis 0x03AAEC must read 4eb90005a174 after correct build
+  - Patcher emits relocation report: arcade_target, shift_before_target, final_operand,
+    genesis_callsite, rom_bytes_written per deferred entry
+  - Shift evolution test: adding a +2 byte entry before 0x059F5E should automatically
+    produce 0x05A176 at 0x03AAEC without any spec edit (verifiable statically)
+  - Runtime: tap 0x05A174 fires after callsite 0x03AAEC; tap 0x05A15E does NOT fire;
+    A5 at 0x05A174 matches A5 at callsite (no context drift)
+
+- output file
+  docs/design/multi_pass_operand_relocation_design.md
+```
