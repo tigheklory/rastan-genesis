@@ -21076,3 +21076,120 @@ This is the turning point of the project.
     - `tilebuf_nonzero=0/2048`
     - `sat_writes=0`
 ```
+
+## [Andy - Design, Arcade VBlank Audit and Genesis VDP Buffer Architecture]
+
+- objective
+  - Design the correct Genesis graphics publish architecture for Rastan based on a verified
+    assembly-level audit of arcade Rastan VBlank. Devise a PC080SN/PC090OJ/scroll opcode
+    identification strategy. Define the WRAM buffer model, VBlank publish sequence, scroll
+    conversion, DMA routines, semantic relocation strategy, and title-screen application.
+    Research-only pass — no implementation.
+
+- arcade VBlank audit summary
+  - Level 5 hardware interrupt (NOT level 4 — level 4 routes to a crash handler deliberately).
+  - Single rte in ROM at 0x3A07E. All interrupt returns go through this one exit.
+  - Handler entry at 0x3A008:
+    - Disables interrupts (oriw #0x0F00, sr).
+    - Watchdog clear (0x350008).
+    - Hardware sync latch write (0x3C0000).
+    - Frame counter / watchdog check (0x3AB7C).
+    - Per-frame bookkeeping: coin detect, BCD counter (0x3ABE2).
+    - Input polling: reads TC0040IOC at 0x390005 (0x3A0A8).
+    - Sound/game timing sync (0x3EEFA, 0x3EF5C).
+    - Per-state dispatch via jump table indexed by A5@(0) — the core of the VBlank.
+    - Post-dispatch cleanup (0x55CA2).
+    - Restores interrupt mask + rte.
+  - Title state (state=1) handler at 0x3A8AC:
+    - Timer gate check.
+    - Display orientation → write 0xC50000 (PC080SN control).
+    - Sprite RAM clear: fills D00000 with 0x00000100 (off-screen sentinel).
+    - Tile plane clear: fills C00100 and C08100 with 0x20 (space chars).
+    - Scroll/control init (0x3B098).
+    - Text dispatch selectors 9, 10/11 via 0x3BB48 — TEXT PRODUCERS RUN INSIDE VBLANK.
+
+- classified responsibilities
+  - MUST KEEP EXACTLY: interrupt mask ops, frame counter, input polling, sound sync,
+    per-state dispatch table, post-dispatch cleanup, rte.
+  - MUST KEEP SEMANTICALLY (ADAPT): coin bookkeeping (no graphics impact, keep as-is),
+    per-state dispatch structure (keep exactly, add Genesis publish steps inside).
+  - HARDWARE-SPECIFIC → REPLACE:
+    - Watchdog clear: remove.
+    - 0x3C0000 sync latch: remove.
+    - Sprite RAM clear (D00000): replace with SAT staging buffer clear.
+    - Tile plane clear (C00100/C08100): replace with text shadow clear.
+    - Text producers in VBlank (0x3BB48): adapt to write WRAM staging + trigger VDP publish.
+    - Scroll/control writes (C50000/C20000/C40000): replace with VDP register/VSRAM writes.
+
+- opcode identification strategy summary
+  - PC080SN: direct moves to 0xC00000–0xC0FFFF, lea into C-Window + fill loops,
+    text dispatch via 0x3BD5E/0x3BB48 selector chains.
+  - PC090OJ: direct moves to 0xD00000–0xD03FFF, longword clear fills (0x00000100 sentinel),
+    descriptor producer paths at 0x05A174 writing to 0xE0FF0170+/0xE0FF11B2+;
+    renderer at 0x2005C4 reading 0xE0FF11FE+/0xE0FF01BC+.
+  - Scroll/control: direct writes to 0xC20000/C40000/C50000, WRAM source reads
+    (0xE0FF113A/1138/10FC/10FA), 0x200DC2 wrapper callsites.
+
+- WRAM buffer architecture summary
+  - SAT staging (genesistan_shadow_d00000_words): 640 bytes, 80 Genesis SAT entries,
+    cleared each VBlank, populated by sprite renderer (0x2005C4), DMA'd to VRAM 0xF800.
+  - Text shadow (0xE0FFC84C): 2KB, cleared each VBlank to space cells, populated by
+    0x20034C/0x200E56 producers, DMA'd to Plane A (0xE000) and Plane B (0xC000).
+  - Palette: ROM table genesistan_palette_rom_table, DMA to CRAM on scene change only.
+  - Tile cache: 4.6KB (cache_slot_to_arcade[1164] + cache_slot_lru[1164] + clock),
+    VRAM slots 20–1023 and 1280–1439, DMA on miss.
+  - Scroll staging: 4 WRAM words at 0xE0FF113A/1138/10FC/10FA, published to VSRAM in VBlank.
+
+- VBlank publish sequence summary
+  1. Preserve interrupt mask setup.
+  2. Preserve frame counter, bookkeeping, input, sound timing.
+  3. Preserve per-state dispatch entry.
+  4. GENESIS: Palette DMA (ROM → CRAM) on dirty flag.
+  5. REPLACE: SAT staging buffer clear (sentinel fill).
+  6. REPLACE: Text shadow clear (space cells).
+  7. ADAPT: Text producers fire (0x3BB48) — write to text shadow.
+  8. ADAPT: Logo producer (0x05A174) fires before sprite renderer.
+  9. GENESIS: Tile cache resolve — DMA missing tiles to VRAM.
+  10. ADAPT: Sprite renderer (0x2005C4) builds SAT tuples → DMA to VRAM 0xF800.
+  11. GENESIS: Text shadow DMA → Plane A (0xE000) and Plane B (0xC000).
+  12. ADAPT/REPLACE: Scroll words → VDP VSRAM writes.
+  13. Post-dispatch cleanup + restore mask + rte.
+
+- scroll conversion summary
+  - Arcade: 0xC20000 (Y scroll), 0xC40000 (X scroll), 0xC50000 (control) are PC080SN registers.
+  - Genesis: VSRAM words 0/2 for V-scroll planes A/B; VSRAM table for H-scroll (mode 00 full-screen).
+  - Staged in WRAM (0xE0FF113A/1138/10FC/10FA), published last in VBlank.
+  - VDP DMA registers 0x93..0x97 are NOT scroll registers — never confuse them.
+
+- DMA design summary
+  - DMA A: tile pattern — ROM → VRAM (32 bytes per miss); fires on cache miss; before plane/SAT.
+  - DMA B: SAT — WRAM shadow → VRAM 0xF800 (640 bytes); every frame; after tile DMA.
+  - DMA C: text/plane — WRAM shadow → Plane A/B VRAM (dirty rows only); every frame.
+  - DMA D: palette — ROM table → CRAM (128 bytes); per scene change only.
+
+- semantic relocation strategy summary
+  - original_bytes validation on every spec entry (already done).
+  - Semantic anchoring: store first 4–6 bytes of target function as signature alongside address;
+    verify before applying relocation fix.
+  - Jump table entries computed at patch time from current (shifted) table base, not pre-computed.
+  - Batch insertions then full relocation pass before next batch — never skip the pass.
+  - WRAM buffer addresses defined as named linker symbols, not hardcoded literals in spec.
+  - Semantic entry validation (Build 214) kept as required pre-patch gate.
+  - Post-patch manifest emitted after every batch for reproducible verification.
+
+- title-screen application summary
+  - Root cause of current logo failure (Build 271): sprite renderer (0x03AAEC) fires BEFORE
+    logo producer (0x03AAF2) in the 0x03AAB8 title init sequence — consumer reads zeros.
+  - Fix: swap call order so 0x03AAF2 (producer) precedes 0x03AAEC (renderer) — opcode replacement.
+  - After swap: producer fills descriptor windows → renderer reads live tuples → SAT has entries.
+  - Text plane (already working): text shadow → Plane A DMA gives visible text.
+  - Timeline correctness: full buffer/publish sequence ensures no zero-payload DMA reaches VDP.
+
+- recommended first implementation slice
+  - Swap producer/renderer call order in 0x03AAB8 title init cluster (opcode replacement, no shims).
+  - Confirm SAT DMA fires after renderer populates staging buffer.
+  - Confirm tile cache resolves logo tile indices before SAT DMA.
+  - Validation: sprite_code0 != 0, tilebuf_nonzero > 0, sat_writes > 0, logo pixels visible.
+
+- output file
+  - docs/design/rastan_vblank_and_vdp_buffer_architecture.md
