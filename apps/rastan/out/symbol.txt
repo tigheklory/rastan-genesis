@@ -1,6 +1,6 @@
-00000000 A __DYNAMIC
 00000000 t _Start_Of_Rom	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:172
 00000000 t _Vecteurs_68K	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:172
+00000000 A __DYNAMIC
 00000020 a font_pal_default_data_size
 00000020 a sgdk_logo_palette_data_size
 00000040 a rastan_dip_off_data_size
@@ -474,8 +474,8 @@
 00217098 T Z80_startReset
 002170a2 T XGM_doVBlankProcess
 0021710c T MDDBG__SymbolDataPtr
-00217110 t __ErrorHandler
 00217110 t MDDBG__ErrorHandler
+00217110 t __ErrorHandler
 00217238 t MDDBG__Error_IdleLoop
 00217252 t MDDBG__Error_InitConsole
 0021725e t MDDBG__Error_MaskStackBoundaries
@@ -520,28 +520,28 @@
 00217f74 t MDDBG__ErrorHandler_ExtraDebuggerList
 00217f80 t MDDBG__Debugger_AddressRegisters
 00217fcc t MDDBG__Debugger_Backtrace
-0021806a T _Bus_Error
 0021806a t MDDBG__BusError
-0021807e T _Address_Error
+0021806a T _Bus_Error
 0021807e t MDDBG__AddressError
-00218096 T _Illegal_Instruction
+0021807e T _Address_Error
 00218096 t MDDBG__IllegalInstr
+00218096 T _Illegal_Instruction
 002180b4 t MDDBG__ZeroDivide
 002180b4 T _Zero_Divide
-002180ca T _Chk_Instruction
 002180ca t MDDBG__ChkInstr
+002180ca T _Chk_Instruction
 002180e4 t MDDBG__TrapvInstr
 002180e4 T _Trapv_Instruction
 00218100 t MDDBG__PrivilegeViol
 00218100 T _Privilege_Violation
 0021811e t MDDBG__Trace
 0021811e T _Trace
-0021812e T _Line_1010_Emulation
 0021812e t MDDBG__Line1010Emu
-0021814a T _Line_1111_Emulation
+0021812e T _Line_1010_Emulation
 0021814a t MDDBG__Line1111Emu
-00218166 T _Error_Exception
+0021814a T _Line_1111_Emulation
 00218166 t MDDBG__ErrorExcept
+00218166 T _Error_Exception
 00218200 T smp_null
 00218300 T smp_null_dpcm
 00218380 T __udivsi3	/home/runner/work/m68k-elf-gcc/m68k-elf-gcc/.build/m68k-elf/src/gcc/libgcc/config/m68k/lb1sf68.S:469
@@ -637,8 +637,8 @@ e0ff000a D task_pc
 e0ff000e D task_regs
 e0ff004a D task_lock
 e0ff004c D _edata
-e0ff004c B genesistan_arcade_workram_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:10
 e0ff004c B _start
+e0ff004c B genesistan_arcade_workram_words	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:10
 e0ff404c B genesistan_hook_row_b	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:99
 e0ff404e B genesistan_hook_col_b	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:97
 e0ff4050 B genesistan_hook_row_a	/home/tighe/projects/rastan-genesis/apps/rastan/src/startup_bridge.c:95

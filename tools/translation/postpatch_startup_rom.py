@@ -629,7 +629,11 @@ def main() -> int:
     maincpu_bytes = maincpu_path.read_bytes()
 
     # Apply variable-length opcode replacements before any other patching.
+    # Pass A behavior for entries with relocate_after_shift=true:
+    # write replacement_template + zero operand placeholder, then defer operand
+    # materialization to Pass B after the final shift table is known.
     shift_deltas: list[tuple[int, int]] = []
+    deferred_operand_entries: list[dict[str, object]] = []
     if spec.get("shift_replacements"):
         from shift_table_patcher import apply_shift_table as _apply_shift_table
         _whole = spec.get("whole_maincpu_copy", {})
@@ -639,13 +643,44 @@ def main() -> int:
         resolved_shift_replacements: list[dict[str, object]] = []
         for _rep in spec["shift_replacements"]:
             _resolved_rep = dict(_rep)
-            _resolved_rep["replacement_bytes"] = resolve_replacement_hex(
-                str(_rep["replacement_bytes"]),
-                symbol_addresses,
-            )
-            resolved_shift_replacements.append(_resolved_rep)
             _pc = parse_hexish(_rep["arcade_pc"])
             _orig = bytes.fromhex(_rep["original_bytes"].replace(" ", ""))
+            _is_deferred = bool(_rep.get("relocate_after_shift", False))
+            if _is_deferred:
+                _template_hex = resolve_replacement_hex(
+                    str(_rep["replacement_template"]),
+                    symbol_addresses,
+                )
+                _operand_kind = str(_rep.get("operand_kind", ""))
+                _operand_width = int(_rep.get("operand_width", 0))
+                _operand_arcade_target = parse_hexish(_rep["operand_arcade_target"])
+                if _operand_kind != "abs_l_32bit":
+                    raise RuntimeError(
+                        f"shift_replacement at 0x{_pc:06X}: "
+                        f"unsupported deferred operand_kind={_operand_kind!r}"
+                    )
+                if _operand_width != 4:
+                    raise RuntimeError(
+                        f"shift_replacement at 0x{_pc:06X}: "
+                        f"unsupported deferred operand_width={_operand_width}"
+                    )
+                _resolved_rep["replacement_bytes"] = _template_hex + ("00" * _operand_width)
+                deferred_operand_entries.append(
+                    {
+                        "arcade_pc": _pc,
+                        "operand_arcade_target": _operand_arcade_target,
+                        "operand_width": _operand_width,
+                        "operand_kind": _operand_kind,
+                        "replacement_template": _template_hex,
+                        "opcode_size": len(bytes.fromhex(_template_hex)),
+                    }
+                )
+            else:
+                _resolved_rep["replacement_bytes"] = resolve_replacement_hex(
+                    str(_rep["replacement_bytes"]),
+                    symbol_addresses,
+                )
+            resolved_shift_replacements.append(_resolved_rep)
             _repl = bytes.fromhex(str(_resolved_rep["replacement_bytes"]))
             shift_deltas.append((_pc, len(_repl) - len(_orig)))
         shift_deltas.sort(key=lambda x: x[0])
@@ -983,6 +1018,70 @@ def main() -> int:
                 "note": replacement.get("note", ""),
             }
         )
+
+    # Pass B: resolve deferred abs.l operands after Pass A finalizes layout.
+    operand_relocation_log: list[dict[str, object]] = []
+    for deferred in deferred_operand_entries:
+        arcade_pc = int(deferred["arcade_pc"])
+        operand_arcade_target = int(deferred["operand_arcade_target"])
+        operand_width = int(deferred["operand_width"])
+        opcode_size = int(deferred["opcode_size"])
+        replacement_template = bytes.fromhex(str(deferred["replacement_template"]))
+        shift_before_target = accumulated_shift_before(operand_arcade_target, shift_deltas)
+        final_operand = operand_arcade_target + relocation_delta + shift_before_target
+        genesis_callsite = arcade_pc + relocation_delta + accumulated_shift_before(arcade_pc, shift_deltas)
+
+        template_actual = bytes(rom_bytes[genesis_callsite:genesis_callsite + opcode_size])
+        if template_actual != replacement_template:
+            raise RuntimeError(
+                f"relocate_after_shift at 0x{arcade_pc:06X}: "
+                f"template mismatch at ROM 0x{genesis_callsite:06X}; "
+                f"expected {replacement_template.hex()} got {template_actual.hex()}"
+            )
+
+        max_operand = (1 << (operand_width * 8)) - 1
+        if final_operand < 0 or final_operand > max_operand:
+            raise RuntimeError(
+                f"relocate_after_shift at 0x{arcade_pc:06X}: "
+                f"final operand 0x{final_operand:X} exceeds width={operand_width}"
+            )
+
+        operand_rom_pc = genesis_callsite + opcode_size
+        rom_bytes[operand_rom_pc:operand_rom_pc + operand_width] = final_operand.to_bytes(operand_width, "big")
+        rom_bytes_written = bytes(
+            rom_bytes[genesis_callsite:genesis_callsite + opcode_size + operand_width]
+        ).hex().upper()
+        entry_log = {
+            "kind": "relocate_after_shift_operand",
+            "arcade_pc": f"0x{arcade_pc:06X}",
+            "arcade_target": f"0x{operand_arcade_target:06X}",
+            "shift_before_target": shift_before_target,
+            "final_operand": f"0x{final_operand:06X}",
+            "genesis_callsite": f"0x{genesis_callsite:06X}",
+            "rom_bytes_written": rom_bytes_written,
+        }
+        operand_relocation_log.append(entry_log)
+        rewrite_log.append(entry_log)
+
+    # Required report for relocate_after_shift processing.
+    operand_report_path = Path(__file__).resolve().parents[2] / "dist" / "operand_relocation_report.txt"
+    operand_report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_lines: list[str] = []
+    for item in operand_relocation_log:
+        report_lines.extend(
+            [
+                f"arcade_pc: {item['arcade_pc']}",
+                f"arcade_target: {item['arcade_target']}",
+                f"shift_before_target: {item['shift_before_target']}",
+                f"final_operand: {item['final_operand']}",
+                f"genesis_callsite: {item['genesis_callsite']}",
+                f"rom_bytes_written: {item['rom_bytes_written']}",
+                "",
+            ]
+        )
+    if not report_lines:
+        report_lines.append("no relocate_after_shift entries processed")
+    operand_report_path.write_text("\n".join(report_lines).rstrip() + "\n", encoding="utf-8")
 
     # ── Palette pre-conversion (Build 113) ────────────────────────────────────
     # Fill genesistan_palette_rom_table in ROM with Genesis-format colour values.

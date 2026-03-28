@@ -1567,8 +1567,13 @@
     {
       "arcade_pc": "0x03A8E0",
       "original_bytes": "61001020",
-      "replacement_bytes": "4eb900059f5e",
-      "note": "ORDER FIX PATCH A: producer (0x059F5E clear+B-block-init) now runs first at this slot. Was: jsr genesistan_render_sprites_vdp_bridge (renderer). Size: 4->6 bytes (+2 shift, same as before). rom_absolute_call_relocation will update 0x059F5E to correct relocated address."
+      "replacement_bytes": "4eb900000000",
+      "replacement_template": "4eb9",
+      "operand_kind": "abs_l_32bit",
+      "operand_arcade_target": "0x059F5E",
+      "operand_width": 4,
+      "relocate_after_shift": true,
+      "note": "ORDER FIX PATCH A: producer (arcade target 0x059F5E) now runs first at this slot. Pass A writes JSR abs.l template with zero operand; Pass B derives final shifted operand from operand_arcade_target + relocation + shift_before(target)."
     },
     {
       "arcade_pc": "0x03A9C6",

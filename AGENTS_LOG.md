@@ -21676,3 +21676,58 @@ This is the turning point of the project.
 - output file
   docs/design/multi_pass_operand_relocation_design.md
 ```
+
+## [Cody - Implementation, Multi-Pass Operand Relocation]
+```text
+- files modified
+  - tools/translation/postpatch_startup_rom.py
+  - specs/startup_title_remap.json
+
+- number of entries processed
+  - relocate_after_shift entries in final spec: 1
+  - processed in Pass B (final build): 1
+
+- sample calculation (Patch A)
+  - arcade_pc: 0x03A8E0
+  - operand_arcade_target: 0x059F5E
+  - shift_before_target: 22
+  - final_operand = 0x059F5E + 0x200 + 22 = 0x05A174
+  - genesis_callsite = 0x03A8E0 + 0x200 + shift_before(0x03A8E0=12) = 0x03AAEC
+  - ROM write (operand-only at callsite+opcode_size): 4EB9 0005A174
+
+- implementation summary
+  - Pass A (structural)
+    - Existing flow retained: shift_replacements -> opcode_replace -> rom_absolute_call_relocation.
+    - Added relocate_after_shift handling for shift_replacements:
+      - uses replacement_template + zero operand placeholder (no raw address embedding)
+      - records deferred metadata: arcade_pc, operand_arcade_target, operand_width,
+        replacement_template, opcode_size.
+  - Pass B (new)
+    - Runs after Pass A completes and shift table is finalized.
+    - Computes final_operand from operand_arcade_target + relocation_delta + shift_before_target.
+    - Computes genesis_callsite from arcade_pc + relocation_delta + shift_before(callsite).
+    - Writes operand bytes only at genesis_callsite + opcode_size.
+    - Emits dist/operand_relocation_report.txt with per-entry fields.
+
+- validation results
+  - static baseline (final build: dist/Rastan_276.bin)
+    - ROM @0x03AAEC = 4EB90005A174 (PASS)
+    - dist/operand_relocation_report.txt:
+      - shift_before_target: 22
+      - final_operand: 0x05A174
+      - genesis_callsite: 0x03AAEC
+      - rom_bytes_written: 4EB90005A174
+  - mandatory shift test
+    - temporary +2 shift introduced before target (via temporary spec edit on 0x03A9C6)
+    - temporary expected-bytes adjustment at opcode_replace 0x03A8E4 to allow guarded build
+    - test build (dist/Rastan_275.bin): ROM @0x03AAEC = 4EB90005A176 (PASS)
+    - temporary edits removed; rebuilt to final baseline (dist/Rastan_276.bin)
+  - regression checks
+    - symbol-based shift_replacement entries in runtime region (pc >= 0x400): 19 checked, 0 mismatches
+    - rom_absolute_call_relocation remains active in manifest
+      - kind=absolute_rom_target_relocation present, count=610, unresolved_before_fix=608
+
+- notes
+  - No Genesis hardcoded target was introduced for deferred entries; target source of truth is operand_arcade_target.
+  - Existing non-deferred behavior remains unchanged.
+```

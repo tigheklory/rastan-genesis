@@ -1771,6 +1771,15 @@
       "note": "NOP move.w d0,(a0) in c-window writer helper (A0=0xC08D6E + offset)."
     },
     {
+      "kind": "relocate_after_shift_operand",
+      "arcade_pc": "0x03A8E0",
+      "arcade_target": "0x059F5E",
+      "shift_before_target": 22,
+      "final_operand": "0x05A174",
+      "genesis_callsite": "0x03AAEC",
+      "rom_bytes_written": "4EB90005A174"
+    },
+    {
       "kind": "palette_pre_conversion",
       "rom_offset": "0x39FAB4",
       "entries": 2048,
@@ -1799,7 +1808,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x3658",
+  "checksum": "0x3671",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x00217090",
