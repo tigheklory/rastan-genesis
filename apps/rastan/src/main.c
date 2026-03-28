@@ -1929,10 +1929,6 @@ int main(bool hardReset)
         else if (current_screen == SCREEN_FRONTEND_LIVE)
         {
             genesistan_refresh_arcade_inputs();
-            genesistan_hook_col_a = 0;
-            genesistan_hook_row_a = 8;
-            genesistan_hook_col_b = 0;
-            genesistan_hook_row_b = 8;
             genesistan_run_original_frontend_tick();
             genesistan_sync_title_vdp_layout();
             sanitize_arcade_workram();

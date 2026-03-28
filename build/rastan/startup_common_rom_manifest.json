@@ -267,8 +267,8 @@
       "source_start": "0x000000",
       "source_end_exclusive": "0x060000",
       "relocation_delta": "0x000200",
-      "count": 609,
-      "unresolved_before_fix": 607
+      "count": 610,
+      "unresolved_before_fix": 608
     },
     {
       "range": "startup_common",
@@ -1038,8 +1038,17 @@
       "rom_pc": "0x0562F0",
       "original_bytes": "206d10a0b1fce0ff71a266046100ff6e206d10a0343c0032203c0000002020c0534266fad1fc0000010020080280e0ffa1a220402b4810a0",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP entire display list write function 0x560DA-0x56111. Stops per-frame C-Window SRAM pointer writes and advancement."
+      "replacement_bytes": "206d10a0b1fce0ff71a266046100ff6e206d10a0343c0032203c0000002020c0534266fad1fc0000010020080280e0ffa1a220402b4810a0",
+      "note": "T-9 REVERT: function body restored. Original pointer-range check and fill-call sequence preserved. Was: NOP entire display list write function 0x560DA-0x56111."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03A8E4",
+      "rom_pc": "0x03AAF2",
+      "original_bytes": "4eb90005a174",
+      "original_bytes_shift_adjusted": "4eb90005a18a",
+      "replacement_bytes": "4eb900202b80",
+      "note": "ORDER FIX PATCH B: renderer now runs at this slot (after producer at 0x03A8E0). original_bytes is the post-relocation value (0x059F5E + 0x200 base + 0x16 accumulated shift = 0x05A174). Size: 6->6 bytes (no shift). Renderer runs after producer \u2014 correct ordering."
     },
     {
       "kind": "opcode_replace",
@@ -1110,8 +1119,8 @@
       "rom_pc": "0x055B86",
       "original_bytes": "206d10a0323c0010227c0010d080267c0010d0402453610000322b4810a0588b5489534166ee",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9002000004e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP tilemap write function A (0x55968-0x5598D). Writes tile data through A5@(4256) C-Window pointer each frame. Will become VDP nametable writes. [Build 109: replaced NOP with JSR to genesistan_hook_tilemap_plane_a + RTS]"
+      "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "C-3 REVERT: tilemap plane-A hook removed. NOP fill at original size (38 bytes). Col/row counter approach was wrong-direction. Proper address-decode implementation is Phase 2."
     },
     {
       "kind": "opcode_replace",
@@ -1119,8 +1128,8 @@
       "rom_pc": "0x055BAE",
       "original_bytes": "206d10a47210227c0010d080267c0010d04024536100006e588b5489534166f2",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9002001a64e754e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Replaced with JSR genesistan_hook_tilemap_plane_b + RTS."
+      "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "C-4 REVERT: tilemap plane-B hook removed. NOP fill at original size (32 bytes). Col/row counter approach was wrong-direction. Proper address-decode implementation is Phase 2."
     },
     {
       "kind": "opcode_replace",
@@ -1413,7 +1422,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059F9A",
-      "rom_pc": "0x05A1B8",
+      "rom_pc": "0x05A1B0",
       "original_bytes": "207c0010c170",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01bc",
@@ -1422,7 +1431,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059FDE",
-      "rom_pc": "0x05A1FC",
+      "rom_pc": "0x05A1F4",
       "original_bytes": "207c0010c170",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01bc",
@@ -1431,7 +1440,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059FFC",
-      "rom_pc": "0x05A21A",
+      "rom_pc": "0x05A212",
       "original_bytes": "207c0010c178",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01c4",
@@ -1440,7 +1449,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A014",
-      "rom_pc": "0x05A232",
+      "rom_pc": "0x05A22A",
       "original_bytes": "207c0010c178",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01c4",
@@ -1449,7 +1458,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A032",
-      "rom_pc": "0x05A250",
+      "rom_pc": "0x05A248",
       "original_bytes": "207c0010c180",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01cc",
@@ -1458,7 +1467,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A04A",
-      "rom_pc": "0x05A268",
+      "rom_pc": "0x05A260",
       "original_bytes": "207c0010c180",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01cc",
@@ -1467,7 +1476,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A068",
-      "rom_pc": "0x05A286",
+      "rom_pc": "0x05A27E",
       "original_bytes": "207c0010c188",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01d4",
@@ -1476,7 +1485,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A080",
-      "rom_pc": "0x05A29E",
+      "rom_pc": "0x05A296",
       "original_bytes": "207c0010c188",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01d4",
@@ -1485,7 +1494,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A0AE",
-      "rom_pc": "0x05A2CC",
+      "rom_pc": "0x05A2C4",
       "original_bytes": "207ce0ff62f6",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff11fe",
@@ -1494,52 +1503,52 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A11A",
-      "rom_pc": "0x05A338",
+      "rom_pc": "0x05A330",
       "original_bytes": "30fc0000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "30fc0080",
-      "note": "Adapt block-A descriptor attr write to active renderer-visible nonzero attr."
+      "replacement_bytes": "30fc0000",
+      "note": "D-5 REVERT: descriptor attr force removed. Real arcade value 0x0000 restored. Was: 30FC0080 (forced 0x0080 to pass renderer non-empty check \u2014 fake data injection)."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A13E",
-      "rom_pc": "0x05A35C",
+      "rom_pc": "0x05A354",
       "original_bytes": "30fc0000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "30fc0080",
-      "note": "Adapt block-A descriptor attr write to active renderer-visible nonzero attr."
+      "replacement_bytes": "30fc0000",
+      "note": "D-5 REVERT: descriptor attr force removed. Real arcade value 0x0000 restored. Was: 30FC0080."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A188",
-      "rom_pc": "0x05A3A6",
+      "rom_pc": "0x05A39E",
       "original_bytes": "30fc0000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "30fc0080",
-      "note": "Adapt block-A descriptor attr write to active renderer-visible nonzero attr."
+      "replacement_bytes": "30fc0000",
+      "note": "D-5 REVERT: descriptor attr force removed. Real arcade value 0x0000 restored. Was: 30FC0080."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A1AC",
-      "rom_pc": "0x05A3CA",
+      "rom_pc": "0x05A3C2",
       "original_bytes": "30fc0000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "30fc0080",
-      "note": "Adapt block-A descriptor attr write to active renderer-visible nonzero attr."
+      "replacement_bytes": "30fc0000",
+      "note": "D-5 REVERT: descriptor attr force removed. Real arcade value 0x0000 restored. Was: 30FC0080."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A1D0",
-      "rom_pc": "0x05A3EE",
+      "rom_pc": "0x05A3E6",
       "original_bytes": "30fc0000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "30fc0080",
-      "note": "Adapt block-A descriptor attr write to active renderer-visible nonzero attr."
+      "replacement_bytes": "30fc0000",
+      "note": "D-5 REVERT: descriptor attr force removed. Real arcade value 0x0000 restored. Was: 30FC0080."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A1EC",
-      "rom_pc": "0x05A40A",
+      "rom_pc": "0x05A402",
       "original_bytes": "207ce0ff62f6",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff11fe",
@@ -1790,10 +1799,10 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x99E9",
+  "checksum": "0x3658",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x002170AC",
+    "reset_pc": "0x00217090",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

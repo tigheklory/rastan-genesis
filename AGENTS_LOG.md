@@ -21193,3 +21193,242 @@ This is the turning point of the project.
 
 - output file
   - docs/design/rastan_vblank_and_vdp_buffer_architecture.md
+
+## [Andy - Audit, Opcode Changes Keep/Rework/Revert]
+```text
+- objective
+  - Complete audit of all accumulated opcode, spec, and translation changes in Rastan Genesis.
+    Classify each change as KEEP, REWORK, or REVERT against the final architecture:
+    arcade-intent → WRAM staging → Genesis VBlank DMA → VDP.
+    Research-only pass — no implementation.
+
+- scope
+  - 5 change categories: Infrastructure (I-1..I-5), Hardware Shadows (H-1..H-7),
+    Title Init Helper Patches (T-1..T-16), Sprite Renderer Redirects (S-1),
+    Logo/Descriptor Retargets (D-1..D-7), C-Level Hooks (C-1..C-9).
+  - Total: 40 distinct changes audited across spec, patcher, and C code.
+
+- KEEP (solid foundation)
+  - All infrastructure: I-1 (whole_maincpu_copy), I-2 (absolute call relocation),
+    I-3 (shift_table_patcher), I-4 (postpatch orchestration), I-5 (rom_opcode_replace cleared).
+  - Hardware shadows: H-1 (input), H-2 (watchdog/control), H-3 (sound mailbox),
+    H-4 (workram), H-6 (C50000 stub), H-7 (DIP switches).
+  - Title helpers: T-2 (tile plane clear → text shadow), T-3 (scroll init → VDP scroll publisher),
+    T-4 (text dispatch hook 3BB48), T-5 (secondary text dispatch 3C3FE),
+    T-6 (scroll writes in game engine), T-7 (C-Window base store NOPs),
+    T-8 (direct C-Window write NOPs), T-10 (startup zero-writes + boot flow),
+    T-13 (display control NOPs), T-14/T-15 (C-Window tile write NOPs).
+  - Descriptor retargets: D-1 through D-4 and D-6 (block-A/B bases and slots to renderer-consumed WRAM windows).
+  - C code: C-6 (scroll from workram to VDP), C-9 (tile attribute builder).
+
+- REWORK (directionally correct, needs correction)
+  - H-5: palette shadow uses different symbols (genesistan_palette_clcs vs wram_overlay)
+    in different scan windows — consolidate to single symbol.
+  - T-1: sprite RAM clear targets descriptor input windows (0xE0FF11FE/01BC), not SAT staging
+    buffer (genesistan_shadow_d00000_words). Uses hardcoded WRAM addresses. Should clear
+    SAT staging and use {symbol:...} form.
+  - T-11/T-12: tilemap plane A/B hooks use stateful col/row counters (wrong-direction).
+    Correct: decode actual arcade destination address per call.
+  - T-16: rts+NOP at 0x052858/052974/0575CE bails early instead of redirecting A1 load.
+  - S-1: 15 sprite renderer callsites redirected to bridge — correct concept, but some
+    callsites may fire before producer state is valid. Verify producer context per callsite.
+  - C-1/C-2: text hooks write directly to VDP (rastan_draw_tile_xy), bypassing text shadow staging.
+    Must write to 0xE0FFC84C text shadow; VBlank DMA publishes to Plane A/B.
+  - C-5: sprite renderer called from both main loop and VBlank bridge — must be VBlank-only.
+  - C-7: genesistan_sync_title_vdp_layout called every frame from SCREEN_FRONTEND_LIVE loop —
+    must be called once at scene entry only.
+  - C-8: text_writer_ptr_to_xy col_bias=32 hardcoded — must derive from page layout constant.
+
+- REVERT (wrong approach, scaffolding, or architecture violation)
+  - D-5: attr force 0x0000→0x0080 at 0x05A11A/13E/188/1AC/1D0. Fake descriptor content
+    injection. The real arcade attr is 0. The fix must come from correct descriptor population,
+    not forced overwrite.
+  - D-7: RTS extension at 0x059F90 (`rts` → `bsr +0x124; bsr +0x04; rts`). Trampoline-style
+    hook. Forbidden by architecture. Replace with explicit call-order swap at 0x03AAB8.
+  - T-9: 0x0560DA full function body → 52 NOPs. Function was silenced without analysis.
+    Restore original bytes; analyze; NOP only graphics-output portions.
+  - C-3/C-4: tilemap col/row counter approach in genesistan_hook_tilemap_plane_a/b.
+    State drifts under any non-sequential update pattern. Replace with address-decode approach.
+
+- scaffolding summary
+  - Descriptor attr force: fake data injection to pass renderer "non-empty" check.
+  - RTS extension: trampoline at function return boundary.
+  - Full-function NOP: blanket suppression of unknown-purpose function.
+  - Col/row counters: position-by-call-count assumption that breaks on non-sequential updates.
+  - Immediate VDP draw in text hooks: bypasses WRAM staging → VBlank DMA pipeline.
+  - VDP layout re-sync in frame loop: workaround for one-time scene initialization.
+
+- semantic relocation audit
+  - Safe: all {symbol:...} references, absolute_rewrite_groups, hardware windows.
+  - Brittle: T-1, T-2, D-1..D-4/D-6 use hardcoded 0xE0FF... WRAM addresses in replacement_bytes.
+    All should be converted to {symbol:named_buffer} form.
+  - D-7 relative bsr displacements would break silently if any insertion shifts the target range.
+
+- original intent judgment by subsystem
+  - Text path (C-1, T-4): working (CREDI visible), staging layer incomplete.
+  - Logo/sprite path (D-1..D-7, S-1): descriptor data present in windows (Build 271),
+    but renderer fires before producer populates windows (timing/ordering root cause confirmed).
+  - Tilemap path (T-11/T-12, C-3/C-4): wrong-direction; counter approach not proven active.
+  - Sprite SAT DMA: bridge in place; SAT DMA not yet proven to fire after valid descriptor data.
+  - Palette: closest to final architecture; CRAM non-zero confirmed (Build 259).
+  - Scroll: closest to final architecture alongside palette.
+  - VBlank publish pipeline: largest remaining gap; not yet systematically implemented.
+
+- cleanup plan
+  - Phase 1 — revert immediately: D-5, D-7, T-9, C-3/C-4.
+  - Phase 2 — rework before new implementation: T-1, T-11/T-12, S-1, C-1, C-2, C-5, C-7, C-8, H-5.
+  - Phase 3 — implement new: VBlank publish pipeline, producer/renderer ordering fix,
+    address-decode tilemap hooks, SAT DMA verification.
+
+- output file
+  - docs/design/opcode_change_audit_keep_rework_revert.md
+```
+
+## [Andy - Implementation Plan, Phase 1 Revert + Ordering Fix]
+```text
+- objective
+  - Produce a precise, minimal, relocation-safe patch plan for:
+    (1) reverting all Phase 1 items from the opcode change audit
+    (2) correcting the producer → renderer ordering bug in the title init cluster
+  - No implementation performed. Plan only.
+
+- reverted items
+  - D-5 (attr force 0x0000→0x0080):
+    - 5 opcode_replace entries at 0x05A11A/13E/188/1AC/1D0
+    - action: change replacement_bytes 30FC0080 → 30FC0000 (restore real arcade zero)
+    - impact: none (same size); renderer will see real attribute value (zero)
+  - D-7 (RTS trampoline extension at 0x059F90):
+    - 1 opcode_replace entry, replacement 61000124 61000004 4E75 (10 bytes) → 4E75 (2 bytes)
+    - action: restore plain rts; block-A/block-B builder calls removed
+    - additional hazard: D-7 had corrupted 0x059F92-0x059F99 (cmpiw + beqs bytes);
+      revert restores them, fixing the broken jsr at 0x051060 → 0x059F92 path
+  - T-9 (0x0560DA full function NOP):
+    - 1 opcode_replace entry, 52-byte NOP fill → original_bytes (52 bytes)
+    - action: function body restored; will likely skip the fill call harmlessly
+      (stale A5@(0x10A0) pointer is below the 0xE0FF71A2 threshold)
+  - C-3 / C-4 (tilemap col/row counter hooks):
+    - 2 shift_replacements at 0x055968 and 0x055990
+    - action: replace hook calls with NOP fill at ORIGINAL SIZE (38 bytes and 32 bytes)
+    - rationale: restoring to original size unblocks correct shift calculations
+      for all subsequent entries; original C-Window writes are not restored
+      (they would hit stale pointers from T-7 NOPs)
+    - C code: remove 4 dead col/row counter reset lines from SCREEN_FRONTEND_LIVE loop
+
+- ordering fix summary
+  - root cause: in title init substate=0 path (arcade 0x03A8D2), the renderer
+    (originally bsrw 0x3B902 at arcade 0x03A8E0, patched by S-1 to jsr renderer bridge)
+    fires BEFORE the producer (jsr 0x059F5E at arcade 0x03A8E4)
+  - genesis execution address of renderer slot: 0x03AAEC (= 0x03A8E0 + 12 shift + 0x200)
+  - genesis execution address of producer slot: 0x03AAF2 (= 0x03A8E4 + 14 shift + 0x200)
+  - fix (two spec changes, no new code):
+    A) modify shift_replacement at arcade_pc 0x03A8E0:
+       change replacement_bytes from {symbol:genesistan_render_sprites_vdp_bridge}
+       to 4eb9 0005 9f5e (jsr to producer at 0x059F5E)
+       size: still 4→6 bytes (+2 shift, unchanged from before)
+       rom_absolute_call_relocation will update 0x059F5E to correct relocated address
+    B) add new opcode_replace entry at arcade_pc 0x03A8E4:
+       original_bytes: 4eb9 0005 9f5e
+       replacement_bytes: {symbol:genesistan_render_sprites_vdp_bridge}
+       size: 6→6 bytes (no shift)
+  - result: producer (clear + B-block init) runs first; renderer runs after
+    with D-7 reverted, block-A remains zero after ordering fix (content building is Phase 2)
+
+- validation approach
+  - build succeeds with no patcher original_bytes mismatch errors
+  - execution trace shows: HIT 059F5E fires before HIT renderer_bridge within state=0 init
+  - no attr contamination: 0x05A188 etc write 0x0000 not 0x0080
+  - 0x0560DA restored: confirm function runs without exception (stale pointer → branch skipped)
+  - C-3/C-4 hooks gone: genesistan_hook_tilemap_plane_a/b never called
+  - text output (CREDI) still visible: T-4/T-5/C-1 path unaffected
+  - no regression in shift calculations after C-3/C-4 size correction
+
+- output file
+  - docs/design/phase1_revert_and_order_fix_patch_plan.md
+```
+
+## [Andy - Execution, Phase 1 Revert + Ordering Fix]
+```text
+- objective
+  - Apply surgical spec and C code changes per docs/design/phase1_revert_and_order_fix_patch_plan.md.
+  - Revert all Phase 1 scaffolding. Fix producer → renderer ordering.
+  - No improvisation. No new hooks. No Phase 2 work.
+
+- applied reversions
+  - D-5 (x5): replacement_bytes 30FC0080 → 30FC0000 at 0x05A11A/13E/188/1AC/1D0.
+    Descriptor attr fields restored to real arcade zero. No forced 0x0080 values remain.
+  - D-7: replacement_bytes 61000124610000044E75 → 4E75 at 0x059F90.
+    RTS trampoline removed. Bytes at 0x059F92-0x059F99 restored: cmpiw + beqs live again.
+    The jsr 0x059F92 path from 0x051060 is no longer corrupted.
+  - T-9: replacement_bytes set to original_bytes (52 bytes) at 0x0560DA.
+    Full function body restored. With T-7 NOPs keeping A5@(0x10A0) stale,
+    cmpa comparison expected to fail → fill-call branch skipped → harmless.
+  - C-3: 0x055968 replacement → 19×4E71 (38 bytes, original size). Hook call removed.
+    Size restored from 36→38 bytes (+2 shift budget restored for subsequent entries).
+  - C-4: 0x055990 replacement → 16×4E71 (32 bytes, original size). Hook call removed.
+    Size restored from 30→32 bytes (+2 shift budget). Total +4 after 0x055990.
+  - main.c: removed 4 dead col/row counter reset lines from SCREEN_FRONTEND_LIVE loop.
+
+- ordering fix
+  - Patch A (shift_replacements, 0x03A8E0): replacement_bytes changed from
+    {symbol:genesistan_render_sprites_vdp_bridge} to 4eb900059f5e (jsr to producer).
+    Size still 4→6 bytes (+2 shift, unchanged). rom_absolute_call_relocation updates address.
+  - Patch B (opcode_replace, NEW at 0x03A8E4): original_bytes 4eb900059f5e,
+    replacement_bytes {symbol:genesistan_render_sprites_vdp_bridge}. Size 6→6 (no shift).
+  - Result: in title init state=0, producer (0x059F5E) runs BEFORE renderer bridge.
+
+- post-D-7-revert state of 0x059F5E producer
+  - Clears block-A (8 longs at 0xE0FF11FE) to zero.
+  - Writes 4 initial B-block entries (0x0080,0,0,0 each) at 0xE0FF01BC.
+  - Returns. No block-A content building (was D-7's job — Phase 2 adds this explicitly).
+  - Block-A remains zero; logo sprites not visible. Expected for Phase 1 baseline.
+
+- validation summary
+  - All 5 D-5 entries: grep confirms 30FC0000 in replacement_bytes.
+  - D-7: grep confirms plain 4E75.
+  - T-9: grep confirms identity replacement (original_bytes == replacement_bytes).
+  - C-3/C-4: sizes verified — 38 and 32 bytes of NOP fill respectively.
+  - Patch A: 4eb900059f5e confirmed in 0x03A8E0 entry.
+  - Patch B: new entry at 0x03A8E4 confirmed with renderer symbol.
+  - main.c loop: col/row reset lines absent from SCREEN_FRONTEND_LIVE.
+  - No other files modified. No new functions or hooks introduced.
+
+- "The renderer now executes after the producer, and all Phase 1 scaffolding has been removed or disabled."
+
+- output file
+  - docs/design/phase1_execution_results.md
+```
+
+## [Cody - Verification, Runtime Ordering Proof]
+```text
+- method used
+  - Used existing Genesis harness: `tools/mame/run_genesis_trace_wsl.sh`.
+  - Tested ROM: `dist/Rastan_272.bin`.
+  - Runtime tap script: `/tmp/phase1_runtime_ordering_genesis_probe.lua`.
+  - Command:
+    `timeout 120s tools/mame/run_genesis_trace_wsl.sh dist/Rastan_272.bin -autoboot_script /tmp/phase1_runtime_ordering_genesis_probe.lua -sound none -video none`
+  - Raw trace log: `/tmp/phase1_runtime_ordering_genesis_probe.txt`.
+
+- runtime results
+  - Producer tap (`0x059F5E`) hit count in this run: `0`.
+  - Renderer bridge tap (`0x202B80`) hit count in this run: `3`.
+  - Raw renderer lines captured:
+    - `seq=001 frame=000671 tag=renderer pc=202B80 A5=E0FF004C state=0001/0000/0000 ... A=0000... B=0000...`
+    - `seq=002 frame=000672 tag=renderer pc=202B80 A5=E0FF004B state=5000/0100/0000 ... A=0000... B=0080...`
+    - `seq=003 frame=000672 tag=renderer pc=202B80 A5=E0FF004B state=5000/0100/0000 ... A=0000... B=0080...`
+
+- ordering result
+  - In title-init observation window, renderer bridge executes while producer `0x059F5E` is not observed.
+  - Ordering is therefore not validated as producer-before-renderer in this runtime capture.
+
+- descriptor state summary
+  - First renderer entry (`frame=671`):
+    - block-A: `0000 0000 0000 0000`
+    - block-B: `0000 0000 0000 0000`
+  - Next renderer entries (`frame=672`):
+    - block-A: `0000 0000 0000 0000`
+    - block-B: `0080 0000 0000 0000`
+  - Unexpected sampled state on frame 672 renderer hits: `A5=E0FF004B`, state words `5000/0100/0000`.
+
+- final conclusion
+  - Runtime proof shows that the ordering is incorrect during the real title-init path.
+```

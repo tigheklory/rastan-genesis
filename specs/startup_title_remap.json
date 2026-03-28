@@ -1007,8 +1007,14 @@
     {
       "arcade_pc": "0x0560DA",
       "original_bytes": "206D10A0B1FCE0FF71A266046100FF6E206D10A0343C0032203C0000002020C0534266FAD1FC0000010020080280E0FFA1A220402B4810A0",
-      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
-      "note": "NOP entire display list write function 0x560DA-0x56111. Stops per-frame C-Window SRAM pointer writes and advancement."
+      "replacement_bytes": "206D10A0B1FCE0FF71A266046100FF6E206D10A0343C0032203C0000002020C0534266FAD1FC0000010020080280E0FFA1A220402B4810A0",
+      "note": "T-9 REVERT: function body restored. Original pointer-range check and fill-call sequence preserved. Was: NOP entire display list write function 0x560DA-0x56111."
+    },
+    {
+      "arcade_pc": "0x03A8E4",
+      "original_bytes": "4eb90005a174",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
+      "note": "ORDER FIX PATCH B: renderer now runs at this slot (after producer at 0x03A8E0). original_bytes is the post-relocation value (0x059F5E + 0x200 base + 0x16 accumulated shift = 0x05A174). Size: 6->6 bytes (no shift). Renderer runs after producer — correct ordering."
     },
     {
       "arcade_pc": "0x03AD3C",
@@ -1055,14 +1061,14 @@
     {
       "arcade_pc": "0x055968",
       "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
-      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_a}4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP tilemap write function A (0x55968-0x5598D). Writes tile data through A5@(4256) C-Window pointer each frame. Will become VDP nametable writes. [Build 109: replaced NOP with JSR to genesistan_hook_tilemap_plane_a + RTS]"
+      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "C-3 REVERT: tilemap plane-A hook removed. NOP fill at original size (38 bytes). Col/row counter approach was wrong-direction. Proper address-decode implementation is Phase 2."
     },
     {
       "arcade_pc": "0x055990",
       "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
-      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_b}4e754e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Replaced with JSR genesistan_hook_tilemap_plane_b + RTS."
+      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "C-4 REVERT: tilemap plane-B hook removed. NOP fill at original size (32 bytes). Col/row counter approach was wrong-direction. Proper address-decode implementation is Phase 2."
     },
     {
       "arcade_pc": "0x0556F2",
@@ -1313,32 +1319,32 @@
     {
       "arcade_pc": "0x05A11A",
       "original_bytes": "30FC0000",
-      "replacement_bytes": "30FC0080",
-      "note": "Adapt block-A descriptor attr write to active renderer-visible nonzero attr."
+      "replacement_bytes": "30FC0000",
+      "note": "D-5 REVERT: descriptor attr force removed. Real arcade value 0x0000 restored. Was: 30FC0080 (forced 0x0080 to pass renderer non-empty check — fake data injection)."
     },
     {
       "arcade_pc": "0x05A13E",
       "original_bytes": "30FC0000",
-      "replacement_bytes": "30FC0080",
-      "note": "Adapt block-A descriptor attr write to active renderer-visible nonzero attr."
+      "replacement_bytes": "30FC0000",
+      "note": "D-5 REVERT: descriptor attr force removed. Real arcade value 0x0000 restored. Was: 30FC0080."
     },
     {
       "arcade_pc": "0x05A188",
       "original_bytes": "30FC0000",
-      "replacement_bytes": "30FC0080",
-      "note": "Adapt block-A descriptor attr write to active renderer-visible nonzero attr."
+      "replacement_bytes": "30FC0000",
+      "note": "D-5 REVERT: descriptor attr force removed. Real arcade value 0x0000 restored. Was: 30FC0080."
     },
     {
       "arcade_pc": "0x05A1AC",
       "original_bytes": "30FC0000",
-      "replacement_bytes": "30FC0080",
-      "note": "Adapt block-A descriptor attr write to active renderer-visible nonzero attr."
+      "replacement_bytes": "30FC0000",
+      "note": "D-5 REVERT: descriptor attr force removed. Real arcade value 0x0000 restored. Was: 30FC0080."
     },
     {
       "arcade_pc": "0x05A1D0",
       "original_bytes": "30FC0000",
-      "replacement_bytes": "30FC0080",
-      "note": "Adapt block-A descriptor attr write to active renderer-visible nonzero attr."
+      "replacement_bytes": "30FC0000",
+      "note": "D-5 REVERT: descriptor attr force removed. Real arcade value 0x0000 restored. Was: 30FC0080."
     },
     {
       "arcade_pc": "0x05A1EC",
@@ -1561,8 +1567,8 @@
     {
       "arcade_pc": "0x03A8E0",
       "original_bytes": "61001020",
-      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
-      "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
+      "replacement_bytes": "4eb900059f5e",
+      "note": "ORDER FIX PATCH A: producer (0x059F5E clear+B-block-init) now runs first at this slot. Was: jsr genesistan_render_sprites_vdp_bridge (renderer). Size: 4->6 bytes (+2 shift, same as before). rom_absolute_call_relocation will update 0x059F5E to correct relocated address."
     },
     {
       "arcade_pc": "0x03A9C6",
@@ -1651,8 +1657,8 @@
     {
       "arcade_pc": "0x059F90",
       "original_bytes": "4E75",
-      "replacement_bytes": "61000124610000044E75",
-      "note": "Extend 0x05A174 to execute live descriptor-content builders (0x05A0AE-family block-A + 0x059F92 block-B) from the stable pre-coin path without descriptor constant patching."
+      "replacement_bytes": "4E75",
+      "note": "D-7 REVERT: RTS trampoline extension removed. Plain rts restored. Was: bsr+0x124; bsr+0x04; rts (10 bytes clobbering cmpiw at 0x059F92 and beqs at 0x059F98). Block-A/B builder calls from this path are gone; will be added explicitly in Phase 2."
     }
   ]
 }
