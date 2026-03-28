@@ -21558,3 +21558,49 @@ This is the turning point of the project.
 - output file
   docs/design/rom_absolute_call_relocation_vs_shift_proof.md
 ```
+
+## [Andy - Design, Absolute Call Target Fix Plan]
+```text
+- objective
+  - Identify all shift_replacements entries containing raw JSR absolute targets (4EB9 + raw addr)
+    without symbol substitution, compute the correct genesis addresses, and define a precise
+    spec patch plan to fix each one.
+  - Design only. No implementation.
+
+- affected entries
+  - Total: 1
+  - Entry: arcade_pc=0x03A8E0 (Patch A, Phase 1 ordering fix)
+    replacement_bytes: 4eb900059f5e
+    embedded arcade target: 0x059F5E (producer function)
+
+- per-entry analysis (Patch A only)
+  - arcade_target: 0x059F5E
+  - base (arcade_target + 0x200): 0x05A15E
+  - accumulated_shift_before_target: 22 bytes (entries 0x03A20E through 0x055ACC, net +22)
+  - correct genesis addr: 0x059F5E + 0x200 + 22 = 0x05A174
+  - current ROM (Build 273): JSR 0x05A15E (sprite table data — WRONG)
+  - patcher behavior: adds +0x200 to whatever is embedded in replacement_bytes
+  - therefore: embedded_value must be arcade_target + shift_before_target = 0x059F5E + 22 = 0x059F74
+    so that patcher produces 0x059F74 + 0x200 = 0x05A174 (correct producer entry)
+
+- chosen strategy
+  - STRATEGY B: pre-adjust replacement_bytes to embed shift-pre-compensated address
+  - Justification: The producer at 0x059F5E/0x05A174 is arcade ROM code with no genesistan_ symbol.
+    Strategy A (symbol-based) is impossible without modifying .c files (prohibited).
+    Strategy B embeds 0x059F74 = arcade_target + shift_before_target, so patcher +0x200 yields 0x05A174.
+    Entry size remains 6 bytes. No shift table impact.
+
+- key example (Patch A)
+  BEFORE: replacement_bytes = 4eb900059f5e  -> ROM: JSR 0x05A15E (data, wrong)
+  AFTER:  replacement_bytes = 4eb900059f74  -> ROM: JSR 0x05A174 (producer entry, correct)
+  Cross-check: Patch B original_bytes = 4eb90005a174 independently confirms 0x05A174 is correct.
+
+- validation summary
+  - Static: ROM at 0x03AAEC should read 4eb90005a174 after rebuild
+  - Runtime: tap 0x05A174 fires (not 0x05A15E) after callsite 0x03AAEC is hit
+  - Descriptor: A5 context at 0x05A174 tap matches A5 at callsite 0x03AAEC (no context drift)
+  - Patch B at 0x03AAF2 remains 4eb900202b80 (renderer bridge, unaffected)
+
+- output file
+  docs/design/absolute_call_target_fix_plan.md
+```
