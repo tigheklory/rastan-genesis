@@ -21432,3 +21432,76 @@ This is the turning point of the project.
 - final conclusion
   - Runtime proof shows that the ordering is incorrect during the real title-init path.
 ```
+
+## [Andy - Verification, Runtime Ordering Proof]
+```text
+- objective
+  - Build Build 273 from current tree, confirm Phase 1 ordering patch statically present,
+    and run runtime probe via Genesis MAME harness to prove or disprove producer-before-renderer
+    ordering during the real title-init path.
+
+- build 273 artifact used
+  - Path: dist/Rastan_273.bin
+  - Size: 3,932,160 bytes
+  - Timestamp: 2026-03-28 14:50:59 -0400
+  - Release counter: 273 (confirmed in dist/release_counter.txt and dist/latest_release_name.txt)
+  - Source files (main.c: 01:26, startup_title_remap.json: 01:50) are older than ROM (14:50) — fresh confirmed.
+
+- tools used
+  - Build: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Symbol file: apps/rastan/out/symbol.txt
+  - MAME harness: tools/mame/run_genesis_trace_wsl.sh
+  - Probe 1: /tmp/build273_ordering_proof.lua (written by Andy)
+  - Probe 2: /tmp/phase1_runtime_ordering_genesis_probe.lua (pre-existing Cody probe)
+
+- static patch confirmation summary
+  - Patch A at genesis 0x03AAEC: 4EB9 0005A15E (JSR to producer path)
+    - Note: 0x05A15E = 0x059F5E + 0x200 (base only); full shifted addr would be 0x05A174
+    - rom_absolute_call_relocation only applied +0x200, not accumulated shifts — pre-existing issue
+  - Patch B at genesis 0x03AAF2: 4EB9 00202B80 (JSR to genesistan_render_sprites_vdp_bridge)
+    - Confirmed: 0x202B80 = genesistan_render_sprites_vdp_bridge in symbol.txt
+  - Ordering structure: PRODUCER slot first (0x03AAEC), RENDERER slot second (0x03AAF2) — CORRECT
+
+- path-entry proof summary
+  - current_screen (0xE0FF6DCC / 0xFF6DCC) = 0 (SCREEN_CONFIG) throughout all runs.
+  - SCREEN_FRONTEND_LIVE = 4 was never observed.
+  - The DOWN button ioport field was not found (down_field=false) — menu navigation to
+    item 12 ("START RASTAN") was not possible via automated button injection.
+  - A-button press at frame 168 caused callsite hits at frame 180 while screen=0 —
+    this is NOT the intended SCREEN_FRONTEND_LIVE path.
+  - Path-entry NOT proven.
+
+- runtime ordering result
+  - Phase1 probe (direct comparison to Build 272 Cody run):
+    - Producer 0x059F5E hits: 0 (same as Build 272)
+    - Renderer 0x202B80 hits: 3 (same as Build 272)
+    - screen=0000 throughout (same as Build 272)
+  - Andy's probe (frame 180):
+    - seq=041 renderer fires FIRST (before callsite_a)
+    - seq=042 callsite_a (producer slot 0x03AAEC) fetched
+    - seq=043 producer_0x05A15E fetched (ROM's JSR target — data area)
+    - seq=044 producer_0x05A174 fetched (actual function, different A5 context)
+    - seq=045 callsite_b (renderer slot 0x03AAF2) fetched
+    - seq=046 renderer fires at second call slot
+    - CALLSITE_VERDICT: A_BEFORE_B (correct ordering patch in place)
+    - BLOCK_A_VERDICT: SAME_SEQ (insufficient to determine causality)
+
+- descriptor state summary
+  - First renderer entry (seq=041, frame=180, state=0001/0000/0000):
+    block-A (0xFF11FE): 0000 0000 0000 0000 (zero)
+    block-B (0xFF01BC): 0000 0000 0000 0000 (zero)
+  - Second renderer entry (seq=046, frame=180, state=5000/0100/0000):
+    block-A (0xFF11FE): 0000 0000 0000 0000 (zero — expected Phase 1)
+    block-B (0xFF01BC): 0080 0000 0000 0000 (initial B-block from 0x059F7C fill loop)
+
+- whether Exodus was used
+  - Not used.
+
+- final conclusion
+  - "Runtime proof is inconclusive because the intended title-init path was not proven
+    to be reached before measurement."
+  - The current_screen never reached SCREEN_FRONTEND_LIVE during the automated run.
+  - The DOWN ioport field was unavailable for menu navigation.
+  - Static patch confirms correct ordering structure is in place (Patch A before Patch B).
+  - Output file: docs/design/phase1_runtime_ordering_proof.md
+```
