@@ -21505,3 +21505,56 @@ This is the turning point of the project.
   - Static patch confirms correct ordering structure is in place (Patch A before Patch B).
   - Output file: docs/design/phase1_runtime_ordering_proof.md
 ```
+
+## [Andy - Verification, Absolute Call Relocation vs Shift]
+```text
+- objective
+  - Prove or disprove: rom_absolute_call_relocation applies target = arcade_address + 0x200
+    (base only), when it SHOULD apply target = arcade_address + 0x200 + accumulated_shift_at_callsite.
+  - ROM used: dist/Rastan_273.bin (Build 273)
+  - Spec used: specs/startup_title_remap.json
+
+- test cases used
+  - TC1 (REQUIRED): shift_replacement Patch A at arcade 0x03A8E0 -> Genesis 0x03AAEC
+    arcade_target=0x059F5E, shift_at_callsite=12, actual=0x05A15E
+  - TC2: original ROM callsite at arcade 0x51266 -> Genesis 0x051484
+    arcade_target=0x059F5E, shift_at_callsite=30, actual=0x05A174
+  - TC3: original ROM callsite at arcade 0x519A0 -> Genesis 0x051BBE
+    arcade_target=0x059F5E, shift_at_callsite=30, actual=0x05A174
+
+- accumulated shift calculations
+  - shift before target 0x059F5E: 22 bytes (entries 0x3A20E through 0x55ACC with net +22)
+  - shift before callsite 0x03A8E0 (TC1): 12 bytes
+  - shift before callsite 0x51266 (TC2): 30 bytes
+  - shift before callsite 0x519A0 (TC3): 30 bytes
+
+- summary results
+  TC1 (Patch A, shift_replacement):
+    base only: 0x05A15E -> MATCHES actual (0x05A15E)
+    base+shift_at_callsite(12): 0x05A16A -> does NOT match
+    base+shift_at_target(22): 0x05A174 -> does NOT match
+    ROM bytes at 0x03AAEC: 4eb9 0005 a15e
+    0x05A15E content: sprite table data (00 40 00 80...) - NOT executable code
+
+  TC2 (original ROM code):
+    base only: 0x05A15E -> does NOT match actual (0x05A174)
+    base+shift_at_callsite(30): 0x05A17C -> does NOT match
+    base+shift_at_target(22): 0x05A174 -> MATCHES actual
+    ROM bytes at 0x051484: 4eb9 0005 a174
+    0x05A174 content: MOVEW #8,D1 / MOVEAL #0xE0FF11FE,A0 - producer function entry
+
+  TC3 (original ROM code):
+    base only: 0x05A15E -> does NOT match actual (0x05A174)
+    base+shift_at_callsite(30): 0x05A17C -> does NOT match
+    base+shift_at_target(22): 0x05A174 -> MATCHES actual
+    ROM bytes at 0x051BBE: 4eb9 0005 a174
+
+- final determination
+  "A rom_absolute_call_relocation applies only base relocation and ignores accumulated shift."
+  (Specifically for shift_replacement entries with raw arcade addresses in replacement_bytes.)
+  For original ROM code, the patcher applies base+shift_before_target (not shift_at_callsite).
+  TC1 (Patch A) gets base only: JSR lands at 0x05A15E (data), not 0x05A174 (function entry).
+
+- output file
+  docs/design/rom_absolute_call_relocation_vs_shift_proof.md
+```
