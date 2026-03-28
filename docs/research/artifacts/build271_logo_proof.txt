@@ -1,0 +1,18 @@
+frame300 screen=00000004 state=0001/0000/0000 credits=0000
+frame300 producer_raw_A@11B2=0000 0000 0000 0000 B@0170=0000 0000 0000 0000
+frame300 renderer_A5_A@11FE=0000 0000 0000 0000 B@01BC=0000 0000 0000 0000
+frame300 sprite_code0=0000 tilebuf_nonzero=0/2048
+frame673 screen=00000004 state=0001/0000/0000 credits=0000
+frame673 producer_raw_A@11B2=0000 0000 0000 0000 B@0170=0000 0000 0000 0000
+frame673 renderer_A5_A@11FE=0080 FEAB 03CA 0000 B@01BC=0003 00E8 0A6A 00A0
+frame673 sprite_code0=0000 tilebuf_nonzero=0/2048
+frame700 screen=00000004 state=0001/0000/0000 credits=0000
+frame700 producer_raw_A@11B2=0000 0000 0000 0000 B@0170=0000 0000 0000 0000
+frame700 renderer_A5_A@11FE=0080 FEAB 03CA 0000 B@01BC=0003 00E8 0A6A 00A0
+frame700 sprite_code0=0000 tilebuf_nonzero=0/2048
+stop frame=760
+HIT 03AAF2 1
+HIT 05A174 1
+HIT 202B80 2
+HIT 2005C4 161
+vram_writes=1028 vram_nonzero=766 sat_writes=0 sat_nonzero=0

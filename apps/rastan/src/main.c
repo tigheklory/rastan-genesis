@@ -201,7 +201,6 @@ static u8 sound_test_last_command = 0x00;
 static bool sound_test_has_triggered = FALSE;
 static volatile u32 packed_romset_size_cache = 0;
 static volatile u32 packed_romset_signature_cache = 0;
-
 typedef struct
 {
     u8 code;
@@ -1278,27 +1277,54 @@ void rastan_draw_tile_xy(u16 tile_attr, int x, int y)
     VDP_setTileMapXY(BG_A, tile_attr, (u16)x, (u16)y);
 }
 
-#define TEXT_WRITER_3BB48_TABLE_BASE    0x003BD92UL /* shifted arcade 0x03BB7C */
-#define TEXT_WRITER_3C3FE_TABLE_BASE    0x003C66CUL /* shifted arcade 0x03C454 */
+#define TEXT_WRITER_3BB48_TABLE_SOURCE  0x003BD92UL /* shifted runtime table (build-time relocated) */
+#define TEXT_WRITER_3C3FE_TABLE_SOURCE  0x003C66CUL /* shifted runtime table (build-time relocated) */
 #define TEXT_WRITER_CWINDOW_PAGE2_BASE  0x00C08000UL
 #define TEXT_WRITER_CWINDOW_PAGE_BYTES  0x00008000UL
 #define TEXT_WRITER_SHADOW_PAGE2_OFFSET 0x0000C800UL /* 0x10C000 + 0xC800 = arcade 0xC08000 alias */
+#define TEXT_WRITER_VISIBLE_ROW_BIAS    4U /* 0x400 byte page viewport offset / 0x100 bytes per row */
+#define TITLE_PLANE_A_VRAM_ADDR         0xE000U
+#define TITLE_PLANE_B_VRAM_ADDR         0xC000U
+#define TITLE_SAT_VRAM_ADDR             0xF800U
+
+static u16 text_writer_read_be16(const u8 *src)
+{
+    return (u16)(((u16)src[0] << 8) | src[1]);
+}
+
+static u32 text_writer_read_be32(const u8 *src)
+{
+    return ((u32)src[0] << 24)
+         | ((u32)src[1] << 16)
+         | ((u32)src[2] << 8)
+         | (u32)src[3];
+}
 
 static bool text_writer_ptr_to_xy(u32 raw_ptr, s16 *out_x, s16 *out_y, u32 *out_offset)
 {
-    const u32 shadow_base = (u32)genesistan_arcade_workram_words + TEXT_WRITER_SHADOW_PAGE2_OFFSET;
+    const u32 shadow_base24 =
+        (((u32)genesistan_arcade_workram_words + TEXT_WRITER_SHADOW_PAGE2_OFFSET) & 0x00FFFFFFU);
+    const u32 shadow_base_e = 0xE0000000U | shadow_base24;
+    const u32 raw24 = raw_ptr & 0x00FFFFFFU;
     u32 offset;
     u32 cell;
+    u32 row;
+    const u32 col_bias = 32U;
 
     if (raw_ptr >= TEXT_WRITER_CWINDOW_PAGE2_BASE
         && raw_ptr < (TEXT_WRITER_CWINDOW_PAGE2_BASE + TEXT_WRITER_CWINDOW_PAGE_BYTES))
     {
         offset = raw_ptr - TEXT_WRITER_CWINDOW_PAGE2_BASE;
     }
-    else if (raw_ptr >= shadow_base
-             && raw_ptr < (shadow_base + TEXT_WRITER_CWINDOW_PAGE_BYTES))
+    else if (raw_ptr >= shadow_base_e
+             && raw_ptr < (shadow_base_e + TEXT_WRITER_CWINDOW_PAGE_BYTES))
     {
-        offset = raw_ptr - shadow_base;
+        offset = raw_ptr - shadow_base_e;
+    }
+    else if (raw24 >= shadow_base24
+             && raw24 < (shadow_base24 + TEXT_WRITER_CWINDOW_PAGE_BYTES))
+    {
+        offset = raw24 - shadow_base24;
     }
     else
     {
@@ -1311,19 +1337,44 @@ static bool text_writer_ptr_to_xy(u32 raw_ptr, s16 *out_x, s16 *out_y, u32 *out_
     }
 
     cell = offset >> 2; /* 2 words per text cell (attr + tile). */
+    row = (cell >> 6) & 0x1FU;
+    if (row < TEXT_WRITER_VISIBLE_ROW_BIAS)
+    {
+        return FALSE;
+    }
+    {
+        u32 col = cell & 0x3FU;
+        if (col < col_bias)
+        {
+            col += 64U;
+        }
+        *out_x = (s16)(col - col_bias);
+    }
     *out_offset = offset;
-    *out_x = (s16)(cell & 0x3FU);
-    *out_y = (s16)((cell >> 6) & 0x1FU);
+    *out_y = (s16)(row - TEXT_WRITER_VISIBLE_ROW_BIAS);
     return TRUE;
 }
 
 static u16 text_writer_build_tile_attr(u16 attr_word, u8 glyph_code)
 {
-    const u16 vram_tile = tile_cache_get((u16)glyph_code);
+    u16 i;
+    u16 arcade_tile = (u16)glyph_code;
+    u16 vram_tile;
     const u16 palette   = attr_word & 0x3U;
     const u16 priority  = (attr_word >> 13) & 1U;
     const u16 vflip     = (attr_word >> 15) & 1U;
     const u16 hflip     = (attr_word >> 14) & 1U;
+
+    for (i = 0; i < sizeof(rastan_font_glyphs) / sizeof(rastan_font_glyphs[0]); i++)
+    {
+        if (rastan_font_glyphs[i].code == glyph_code)
+        {
+            arcade_tile = rastan_font_glyphs[i].src_tile;
+            break;
+        }
+    }
+
+    vram_tile = tile_cache_get(arcade_tile);
 
     return TILE_ATTR_FULL(palette, priority, vflip, hflip, vram_tile);
 }
@@ -1339,24 +1390,38 @@ static u16 text_writer_build_tile_attr_from_arcade_code(u16 attr_word, u16 arcad
     return TILE_ATTR_FULL(palette, priority, vflip, hflip, vram_tile);
 }
 
+static void genesistan_sync_title_vdp_layout(void)
+{
+    SYS_disableInts();
+    VDP_setPlaneSize(64, 32, FALSE);
+    VDP_setBGAAddress(TITLE_PLANE_A_VRAM_ADDR);
+    VDP_setBGBAddress(TITLE_PLANE_B_VRAM_ADDR);
+    VDP_setSpriteListAddress(TITLE_SAT_VRAM_ADDR);
+    VDP_setWindowOff();
+    SYS_enableInts();
+}
+
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_hook_text_writer_3bb48_impl(void)
 {
     register u16 raw_text_id __asm__("d0");
     const u16 table_index = raw_text_id & 0x7FU;
     const bool space_fill = (raw_text_id & 0x0080U) != 0;
-    const u32 descriptor_ptr = *(const u32 *)(TEXT_WRITER_3BB48_TABLE_BASE + ((u32)table_index << 2));
+    const u8 *const table = (const u8 *)TEXT_WRITER_3BB48_TABLE_SOURCE;
+    const u32 descriptor_ptr = text_writer_read_be32(table + ((u32)table_index << 2));
+    const u8 *descriptor;
     u32 dst_ptr;
     const u8 *src;
     u16 attr_word;
     u8 glyph;
 
-    if (descriptor_ptr == 0)
+    if ((descriptor_ptr == 0U) || (descriptor_ptr >= 0x00800000U))
         return;
 
-    dst_ptr   = *(const u32 *)(descriptor_ptr + 0U);
-    attr_word = *(const u16 *)(descriptor_ptr + 4U);
-    src       = (const u8 *)(descriptor_ptr + 6U);
+    descriptor = (const u8 *)descriptor_ptr;
+    dst_ptr    = text_writer_read_be32(descriptor + 0U);
+    attr_word  = text_writer_read_be16(descriptor + 4U);
+    src        = descriptor + 6U;
 
     SYS_disableInts();
     while ((glyph = *src++) != 0U)
@@ -1367,18 +1432,22 @@ void genesistan_hook_text_writer_3bb48_impl(void)
 
         if (text_writer_ptr_to_xy(dst_ptr, &x, &y, &offset))
         {
-            volatile u16 *const shadow_cell =
-                (volatile u16 *)((u32)genesistan_arcade_workram_words
-                                 + TEXT_WRITER_SHADOW_PAGE2_OFFSET
-                                 + offset);
+            const u32 shadow_addr =
+                (((u32)genesistan_arcade_workram_words
+                  + TEXT_WRITER_SHADOW_PAGE2_OFFSET
+                  + offset) & 0x00FFFFFFU);
             const u8 out_glyph = space_fill ? 0x20U : glyph;
 
             /*
              * Preserve the original 0x03BB48 side effect (text cell staging in RAM)
              * for routines that still read the text backing buffer.
              */
-            shadow_cell[0] = attr_word;
-            shadow_cell[1] = (u16)out_glyph;
+            if (shadow_addr >= 0x00FF0000U)
+            {
+                volatile u16 *const shadow_cell = (volatile u16 *)shadow_addr;
+                shadow_cell[0] = attr_word;
+                shadow_cell[1] = (u16)out_glyph;
+            }
 
             rastan_draw_tile_xy(text_writer_build_tile_attr(attr_word, out_glyph), x, y);
         }
@@ -1416,10 +1485,11 @@ void genesistan_hook_text_writer_3c3fe(void)
     register u16 raw_text_id __asm__("d0");
     const bool space_fill = (raw_text_id & 0x0080U) != 0;
     const u16 table_index = raw_text_id & 0x7FU;
-    const u32 entry_ptr   = TEXT_WRITER_3C3FE_TABLE_BASE + ((u32)table_index * 6U);
-    u16 count             = *(const u16 *)entry_ptr;
-    const u16 dst_off     = *(const u16 *)(entry_ptr + 2U);
-    const u16 src_off     = *(const u16 *)(entry_ptr + 4U);
+    const u8 *const table = (const u8 *)TEXT_WRITER_3C3FE_TABLE_SOURCE;
+    const u8 *const entry = table + ((u32)table_index * 6U);
+    u16 count             = text_writer_read_be16(entry + 0U);
+    const u16 dst_off     = text_writer_read_be16(entry + 2U);
+    const u16 src_off     = text_writer_read_be16(entry + 4U);
     u32 dst_ptr           = TEXT_WRITER_CWINDOW_PAGE2_BASE + (u32)dst_off;
     const u8 *src         = (const u8 *)((u32)genesistan_arcade_workram_words + (u32)src_off);
 
@@ -1569,14 +1639,16 @@ void genesistan_render_sprites_vdp(void)
             (const u32 *)wram_overlay.launcher.frontend_runtime_sprite_tile_buffer,
             FRONTEND_RUNTIME_SPRITE_TILE_BASE,
             unique_count * 4,
-            CPU
+            DMA
         );
+        VDP_waitDMACompletion();
         SYS_enableInts();
     }
 
     SYS_disableInts();
     refresh_frontend_sprite_palettes(palette_bank_map, palette_bank_count);
-    VDP_updateSprites(sprite_count, CPU);
+    VDP_updateSprites(sprite_count, DMA);
+    VDP_waitDMACompletion();
     SYS_enableInts();
 #endif
 }
@@ -1690,6 +1762,7 @@ static void request_start_rastan(void)
     VDP_setHIntCounter(0xFF);
     VDP_clearPlane(BG_A, TRUE);
     VDP_clearPlane(BG_B, TRUE);
+    genesistan_sync_title_vdp_layout();
     clear_frontend_sprite_layer();
     VDP_waitDMACompletion();
 #else
@@ -1861,6 +1934,7 @@ int main(bool hardReset)
             genesistan_hook_col_b = 0;
             genesistan_hook_row_b = 8;
             genesistan_run_original_frontend_tick();
+            genesistan_sync_title_vdp_layout();
             sanitize_arcade_workram();
             load_arcade_palette();        /* Build 104 */
             sync_arcade_scroll_to_vdp();

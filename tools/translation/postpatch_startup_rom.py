@@ -13,6 +13,7 @@ ROM_MIN_SIZE = 0x80000
 DEFAULT_SPEC_PATH = Path(__file__).resolve().parents[2] / "specs" / "startup_title_remap.json"
 
 SYMBOL_PATTERN = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)")
+SYMBOL_TOKEN_PATTERN = re.compile(r"\{symbol:([A-Za-z_][A-Za-z0-9_]*)([+-](?:0x[0-9A-Fa-f]+|\d+))?\}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -82,6 +83,33 @@ def parse_symbol_table(path: Path, required_names: tuple[str, ...] | None = None
         raise RuntimeError(f"Required symbol not found in {path}: {name}")
 
     return resolved
+
+
+def resolve_symbol_address(symbol_addresses: dict[str, int], name: str) -> int:
+    if name in symbol_addresses:
+        return symbol_addresses[name]
+    alt_name = f"_{name}"
+    if alt_name in symbol_addresses:
+        return symbol_addresses[alt_name]
+    raise RuntimeError(f"Replacement references missing symbol: {name}")
+
+
+def resolve_replacement_hex(raw_hex: str, symbol_addresses: dict[str, int]) -> str:
+    def _replace(match: re.Match[str]) -> str:
+        symbol_name = match.group(1)
+        offset_text = match.group(2)
+        addr = resolve_symbol_address(symbol_addresses, symbol_name)
+        if offset_text:
+            addr += int(offset_text, 0)
+        return f"{addr & 0xFFFFFFFF:08X}"
+
+    expanded = SYMBOL_TOKEN_PATTERN.sub(_replace, raw_hex)
+    compact = "".join(expanded.split())
+    if len(compact) % 2 != 0:
+        raise RuntimeError(f"replacement_bytes is not byte-aligned after symbol expansion: {raw_hex!r}")
+    if compact and re.fullmatch(r"[0-9A-Fa-f]+", compact) is None:
+        raise RuntimeError(f"replacement_bytes contains non-hex data after symbol expansion: {raw_hex!r}")
+    return compact
 
 
 def ensure_rom_size(rom_bytes: bytearray) -> None:
@@ -608,20 +636,28 @@ def main() -> int:
         _src_start = parse_hexish(_whole.get("source_start", "0x000000"))
         _src_end = parse_hexish(_whole.get("source_end_exclusive", "0x060000"))
         _disasm = str(Path(__file__).resolve().parents[2] / "build" / "maincpu.disasm.txt")
+        resolved_shift_replacements: list[dict[str, object]] = []
         for _rep in spec["shift_replacements"]:
+            _resolved_rep = dict(_rep)
+            _resolved_rep["replacement_bytes"] = resolve_replacement_hex(
+                str(_rep["replacement_bytes"]),
+                symbol_addresses,
+            )
+            resolved_shift_replacements.append(_resolved_rep)
             _pc = parse_hexish(_rep["arcade_pc"])
             _orig = bytes.fromhex(_rep["original_bytes"].replace(" ", ""))
-            _repl = bytes.fromhex(_rep["replacement_bytes"].replace(" ", ""))
+            _repl = bytes.fromhex(str(_resolved_rep["replacement_bytes"]))
             shift_deltas.append((_pc, len(_repl) - len(_orig)))
         shift_deltas.sort(key=lambda x: x[0])
         maincpu_bytes = bytes(
             _apply_shift_table(
                 maincpu_bytes,
-                spec["shift_replacements"],
+                resolved_shift_replacements,
                 _disasm,
                 _src_start,
                 _src_end,
                 spec.get("jump_table_word_displacements", []),
+                [],
             )
         )
 
@@ -838,6 +874,44 @@ def main() -> int:
             }
         )
 
+    for table in spec.get("absolute_long_pointer_tables", []):
+        table_addr = parse_hexish(table["table_address"])
+        entry_count = int(table["entry_count"])
+        entry_size = int(table.get("entry_size_bytes", 4))
+        if entry_size != 4:
+            raise RuntimeError(
+                f"absolute_long_pointer_table at 0x{table_addr:06X}: "
+                f"unsupported entry_size_bytes={entry_size}"
+            )
+
+        rom_table_addr = table_addr + relocation_delta + accumulated_shift_before(table_addr, shift_deltas)
+        fixes = 0
+        target_relocation = relocation_delta if execute_from_relocated_base else 0
+        for i in range(entry_count):
+            entry_addr = rom_table_addr + (i * 4)
+            old_target = int.from_bytes(rom_bytes[entry_addr:entry_addr + 4], "big")
+            if not (source_start <= old_target < source_end):
+                continue
+            new_target = (
+                old_target
+                + target_relocation
+                + accumulated_shift_before(old_target, shift_deltas)
+            )
+            if new_target == old_target:
+                continue
+            rom_bytes[entry_addr:entry_addr + 4] = new_target.to_bytes(4, "big")
+            fixes += 1
+
+        rewrite_log.append(
+            {
+                "kind": "absolute_long_pointer_table",
+                "table_address": f"0x{table_addr:06X}",
+                "rom_table_address": f"0x{rom_table_addr:06X}",
+                "entry_count": entry_count,
+                "fixes": fixes,
+            }
+        )
+
     for replacement in spec.get("opcode_replace", []):
         arcade_pc = parse_hexish(replacement["arcade_pc"])
         expected = bytes.fromhex(
@@ -849,7 +923,11 @@ def main() -> int:
             source_end,
         )
         new_bytes = bytes.fromhex(
-            replacement["replacement_bytes"].replace(" ", ""))
+            resolve_replacement_hex(
+                str(replacement["replacement_bytes"]),
+                symbol_addresses,
+            )
+        )
         if len(expected) != len(new_bytes):
             raise RuntimeError(
                 f"opcode_replace at 0x{arcade_pc:06X}: "
@@ -872,6 +950,39 @@ def main() -> int:
             "replacement_bytes": new_bytes.hex(),
             "note": replacement.get("note", ""),
         })
+
+    # Direct ROM-site opcode replacement (for fixed Genesis ROM addresses that are
+    # outside source-space arcade_pc + relocation mapping).
+    for replacement in spec.get("rom_opcode_replace", []):
+        rom_pc = parse_hexish(replacement["rom_pc"])
+        expected = bytes.fromhex(replacement["original_bytes"].replace(" ", ""))
+        new_bytes = bytes.fromhex(
+            resolve_replacement_hex(
+                str(replacement["replacement_bytes"]),
+                symbol_addresses,
+            )
+        )
+        if len(expected) != len(new_bytes):
+            raise RuntimeError(
+                f"rom_opcode_replace at 0x{rom_pc:06X}: "
+                f"original_bytes and replacement_bytes must be the same length."
+            )
+        actual = bytes(rom_bytes[rom_pc:rom_pc + len(expected)])
+        if actual != expected:
+            raise RuntimeError(
+                f"rom_opcode_replace at 0x{rom_pc:06X}: "
+                f"expected {expected.hex()} but found {actual.hex()}"
+            )
+        rom_bytes[rom_pc:rom_pc + len(new_bytes)] = new_bytes
+        rewrite_log.append(
+            {
+                "kind": "rom_opcode_replace",
+                "rom_pc": f"0x{rom_pc:06X}",
+                "original_bytes": expected.hex(),
+                "replacement_bytes": new_bytes.hex(),
+                "note": replacement.get("note", ""),
+            }
+        )
 
     # ── Palette pre-conversion (Build 113) ────────────────────────────────────
     # Fill genesistan_palette_rom_table in ROM with Genesis-format colour values.

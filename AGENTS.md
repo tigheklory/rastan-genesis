@@ -412,6 +412,19 @@ A task is ONLY considered complete if ALL of the following are true:
 
 If any shortcut is used → the fix is INVALID
 
+## Project Rule Update — Title/Attract Visual Proof Gate
+
+For graphics bring-up tasks, title/attract success proof is valid ONLY when:
+- real game title/attract text is visible before exception handling
+- output is from game-executed render path, not launcher/config UI
+- output is not exception handler text
+- output is not SGDK/debug helper text
+
+Invalid proof examples (must be rejected):
+- launcher/startup/config menu text
+- exception dump/register text
+- SGDK/debug overlay/helper text
+
 ## 🧠 State Causality Rule (MANDATORY BEFORE ANY FIX)
 
 Before applying ANY patch, you MUST answer:

@@ -164,6 +164,12 @@
     "genesistan_startup_common_exit_normal",
     "genesistan_startup_common_exit_test",
     "_reset_entry",
+    "genesistan_hook_tilemap_plane_a",
+    "genesistan_hook_tilemap_plane_b",
+    "genesistan_hook_text_writer_3bb48",
+    "genesistan_hook_text_writer_3c3fe",
+    "genesistan_render_sprites_vdp_bridge",
+    "genesistan_scroll_from_workram_vdp",
     "genesistan_palette_clcs",
     "genesistan_palette_rom_table"
   ],
@@ -1049,13 +1055,13 @@
     {
       "arcade_pc": "0x055968",
       "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
-      "replacement_bytes": "4eb9002000004e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_a}4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "NOP tilemap write function A (0x55968-0x5598D). Writes tile data through A5@(4256) C-Window pointer each frame. Will become VDP nametable writes. [Build 109: replaced NOP with JSR to genesistan_hook_tilemap_plane_a + RTS]"
     },
     {
       "arcade_pc": "0x055990",
       "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
-      "replacement_bytes": "4eb9002002924e754e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_b}4e754e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "NOP tilemap write function B (0x55990-0x559AF). Writes tile data through A5@(4260) C-Window pointer each frame. Replaced with JSR genesistan_hook_tilemap_plane_b + RTS."
     },
     {
@@ -1241,68 +1247,68 @@
     {
       "arcade_pc": "0x059F62",
       "original_bytes": "207CE0FF62F6",
-      "replacement_bytes": "207CE0FF11B2",
-      "note": "Retarget title/logo sprite producer clear base from legacy D-window staging (0xD00048 alias path) to active renderer descriptor block A (0xFF11B2)."
+      "replacement_bytes": "207CE0FF11FE",
+      "note": "Retarget title/logo sprite producer clear base from legacy D-window staging (0xD00048 alias path) to renderer-consumed descriptor block A (A5+0x11B2 => 0xFF11FE)."
     },
     {
       "arcade_pc": "0x059F76",
       "original_bytes": "207C0010C170",
-      "replacement_bytes": "207CE0FF0170",
-      "note": "Retarget title/logo sprite producer descriptor write base from legacy table 0x10C170 to active renderer descriptor block B (0xFF0170)."
+      "replacement_bytes": "207CE0FF01BC",
+      "note": "Retarget title/logo sprite producer descriptor write base from legacy table 0x10C170 to renderer-consumed block B base (A5+0x0170 => 0xFF01BC)."
     },
     {
       "arcade_pc": "0x059F9A",
       "original_bytes": "207C0010C170",
-      "replacement_bytes": "207CE0FF0170",
-      "note": "Retarget block-B descriptor builder base 0x10C170 to active block-B base 0xFF0170."
+      "replacement_bytes": "207CE0FF01BC",
+      "note": "Retarget block-B descriptor builder base 0x10C170 to renderer-consumed block-B base (A5+0x0170 => 0xFF01BC)."
     },
     {
       "arcade_pc": "0x059FDE",
       "original_bytes": "207C0010C170",
-      "replacement_bytes": "207CE0FF0170",
-      "note": "Retarget block-B descriptor fallback base 0x10C170 to active block-B base 0xFF0170."
+      "replacement_bytes": "207CE0FF01BC",
+      "note": "Retarget block-B descriptor fallback base 0x10C170 to renderer-consumed block-B base (A5+0x0170 => 0xFF01BC)."
     },
     {
       "arcade_pc": "0x059FFC",
       "original_bytes": "207C0010C178",
-      "replacement_bytes": "207CE0FF0178",
-      "note": "Retarget block-B descriptor slot base 0x10C178 to active slot 0xFF0178."
+      "replacement_bytes": "207CE0FF01C4",
+      "note": "Retarget block-B descriptor slot base 0x10C178 to renderer-consumed slot (A5+0x0178 => 0xFF01C4)."
     },
     {
       "arcade_pc": "0x05A014",
       "original_bytes": "207C0010C178",
-      "replacement_bytes": "207CE0FF0178",
-      "note": "Retarget block-B descriptor fallback slot base 0x10C178 to active slot 0xFF0178."
+      "replacement_bytes": "207CE0FF01C4",
+      "note": "Retarget block-B descriptor fallback slot base 0x10C178 to renderer-consumed slot (A5+0x0178 => 0xFF01C4)."
     },
     {
       "arcade_pc": "0x05A032",
       "original_bytes": "207C0010C180",
-      "replacement_bytes": "207CE0FF0180",
-      "note": "Retarget block-B descriptor slot base 0x10C180 to active slot 0xFF0180."
+      "replacement_bytes": "207CE0FF01CC",
+      "note": "Retarget block-B descriptor slot base 0x10C180 to renderer-consumed slot (A5+0x0180 => 0xFF01CC)."
     },
     {
       "arcade_pc": "0x05A04A",
       "original_bytes": "207C0010C180",
-      "replacement_bytes": "207CE0FF0180",
-      "note": "Retarget block-B descriptor fallback slot base 0x10C180 to active slot 0xFF0180."
+      "replacement_bytes": "207CE0FF01CC",
+      "note": "Retarget block-B descriptor fallback slot base 0x10C180 to renderer-consumed slot (A5+0x0180 => 0xFF01CC)."
     },
     {
       "arcade_pc": "0x05A068",
       "original_bytes": "207C0010C188",
-      "replacement_bytes": "207CE0FF0188",
-      "note": "Retarget block-B descriptor slot base 0x10C188 to active slot 0xFF0188."
+      "replacement_bytes": "207CE0FF01D4",
+      "note": "Retarget block-B descriptor slot base 0x10C188 to renderer-consumed slot (A5+0x0188 => 0xFF01D4)."
     },
     {
       "arcade_pc": "0x05A080",
       "original_bytes": "207C0010C188",
-      "replacement_bytes": "207CE0FF0188",
-      "note": "Retarget block-B descriptor fallback slot base 0x10C188 to active slot 0xFF0188."
+      "replacement_bytes": "207CE0FF01D4",
+      "note": "Retarget block-B descriptor fallback slot base 0x10C188 to renderer-consumed slot (A5+0x0188 => 0xFF01D4)."
     },
     {
       "arcade_pc": "0x05A0AE",
       "original_bytes": "207CE0FF62F6",
-      "replacement_bytes": "207CE0FF11B2",
-      "note": "Retarget block-A descriptor builder base 0xD00048 to active block-A base 0xFF11B2."
+      "replacement_bytes": "207CE0FF11FE",
+      "note": "Retarget block-A descriptor builder base 0xD00048 to renderer-consumed block-A base (A5+0x11B2 => 0xFF11FE)."
     },
     {
       "arcade_pc": "0x05A11A",
@@ -1337,38 +1343,38 @@
     {
       "arcade_pc": "0x05A1EC",
       "original_bytes": "207CE0FF62F6",
-      "replacement_bytes": "207CE0FF11B2",
-      "note": "Retarget secondary block-A descriptor fixup base 0xD00048 to active block-A base 0xFF11B2."
+      "replacement_bytes": "207CE0FF11FE",
+      "note": "Retarget secondary block-A descriptor fixup base 0xD00048 to renderer-consumed block-A base (A5+0x11B2 => 0xFF11FE)."
     },
     {
       "arcade_pc": "0x03ABBA",
       "original_bytes": "42b900c20000",
-      "replacement_bytes": "4eb900200d4e",
+      "replacement_bytes": "4eb9{symbol:genesistan_scroll_from_workram_vdp}",
       "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x03ABC0",
       "original_bytes": "42b900c40000",
-      "replacement_bytes": "4eb900200d4e",
+      "replacement_bytes": "4eb9{symbol:genesistan_scroll_from_workram_vdp}",
       "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x03B098",
       "original_bytes": "42B9E10162A2",
-      "replacement_bytes": "4eb900200d4e",
+      "replacement_bytes": "4eb9{symbol:genesistan_scroll_from_workram_vdp}",
       "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x03B09E",
       "original_bytes": "42B9E10362A2",
-      "replacement_bytes": "4eb900200d4e",
+      "replacement_bytes": "4eb9{symbol:genesistan_scroll_from_workram_vdp}",
       "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x03BB48",
       "original_bytes": "32000240007fe548",
-      "replacement_bytes": "4eb900202a4c4e75",
-      "note": "Replace 0x3BB48 dispatcher entry with JSR genesistan_hook_text_writer_3bb48 + RTS. Direct Genesis VDP nametable rendering path."
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_text_writer_3bb48}4e75",
+      "note": "Route title text dispatch to genesistan_hook_text_writer_3bb48 bridge (arcade descriptor -> Genesis plane tile write translation)."
     },
     {
       "arcade_pc": "0x03BB66",
@@ -1433,14 +1439,14 @@
     {
       "arcade_pc": "0x0004AA",
       "original_bytes": "34c2",
-      "replacement_bytes": "4e71",
-      "note": "NOP movew d2,(a2)+ inside secondary text writer 0x4A2"
+      "replacement_bytes": "34c2",
+      "note": "Keep movew d2,(a2)+ active in secondary text writer so translated descriptor destinations receive attribute words."
     },
     {
       "arcade_pc": "0x0004AC",
       "original_bytes": "34c3",
-      "replacement_bytes": "4e71",
-      "note": "NOP movew d3,(a2)+ inside secondary text writer 0x4A2"
+      "replacement_bytes": "34c3",
+      "note": "Keep movew d3,(a2)+ active in secondary text writer so translated descriptor destinations receive glyph words."
     },
     {
       "arcade_pc": "0x00068C",
@@ -1485,6 +1491,7 @@
       "note": "NOP move.w d0,(a0) in c-window writer helper (A0=0xC08D6E + offset)."
     }
   ],
+  "rom_opcode_replace": [],
   "memory_map": [],
   "jump_table_word_displacements": [
     {
@@ -1500,144 +1507,152 @@
       "note": "Title-state substate dispatcher displacement table (A5+0x0002)."
     }
   ],
+  "absolute_long_pointer_tables": [
+    {
+      "table_address": "0x03BB7C",
+      "entry_count": 22,
+      "entry_size_bytes": 4,
+      "note": "Title/attract text descriptor pointer table consumed by 0x20034C; table and long targets are relocated from source-space using shift-aware mapping."
+    }
+  ],
   "shift_replacements": [
     {
       "arcade_pc": "0x03A20E",
       "original_bytes": "610016f2",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03A264",
       "original_bytes": "6100169c",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03A640",
       "original_bytes": "610012c0",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03A6C4",
       "original_bytes": "6100123c",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03A818",
       "original_bytes": "4eb900045dfa",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03A820",
       "original_bytes": "610010e0",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03A854",
       "original_bytes": "61007708",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03A8E0",
       "original_bytes": "61001020",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03A9C6",
       "original_bytes": "61000f5e",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03A9D4",
       "original_bytes": "61000f50",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03B8E8",
       "original_bytes": "61000018",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03B8F0",
       "original_bytes": "61000010",
-      "replacement_bytes": "4eb90020060c",
+      "replacement_bytes": "4eb9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Direct sprite callsite redirection to genesistan_render_sprites_vdp (PC090OJ -> Genesis VDP SAT)."
     },
     {
       "arcade_pc": "0x03C3FE",
       "original_bytes": "3e3c0000",
-      "replacement_bytes": "4ef900200ddc",
+      "replacement_bytes": "4ef9{symbol:genesistan_hook_text_writer_3c3fe}",
       "note": "Replace secondary C-window text writer entry with direct JMP to Genesis VDP nametable hook."
     },
     {
       "arcade_pc": "0x041DAE",
       "original_bytes": "49ed0508",
-      "replacement_bytes": "4ef90020060c",
+      "replacement_bytes": "4ef9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Replace PC090OJ sprite writer entry with direct JMP to Genesis VDP SAT renderer."
     },
     {
       "arcade_pc": "0x041F5E",
       "original_bytes": "41ed11b2",
-      "replacement_bytes": "4ef90020060c",
+      "replacement_bytes": "4ef9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Replace PC090OJ sprite writer entry with direct JMP to Genesis VDP SAT renderer."
     },
     {
       "arcade_pc": "0x045DFA",
       "original_bytes": "49ed05c8",
-      "replacement_bytes": "4ef90020060c",
+      "replacement_bytes": "4ef9{symbol:genesistan_render_sprites_vdp_bridge}",
       "note": "Replace PC090OJ sprite writer entry with direct JMP to Genesis VDP SAT renderer."
     },
     {
       "arcade_pc": "0x055AB4",
       "original_bytes": "33ed10ee00c20000",
-      "replacement_bytes": "4eb900200d4e",
+      "replacement_bytes": "4eb9{symbol:genesistan_scroll_from_workram_vdp}",
       "note": "Replace PC080SN scroll write with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x055ABC",
       "original_bytes": "33ed10ec00c40000",
-      "replacement_bytes": "4eb900200d4e",
+      "replacement_bytes": "4eb9{symbol:genesistan_scroll_from_workram_vdp}",
       "note": "Replace PC080SN scroll write with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x055AC4",
       "original_bytes": "33ed10b000c20002",
-      "replacement_bytes": "4eb900200d4e",
+      "replacement_bytes": "4eb9{symbol:genesistan_scroll_from_workram_vdp}",
       "note": "Replace PC080SN scroll write with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x055ACC",
       "original_bytes": "33ed10ae00c40002",
-      "replacement_bytes": "4eb900200d4e",
+      "replacement_bytes": "4eb9{symbol:genesistan_scroll_from_workram_vdp}",
       "note": "Replace PC080SN scroll write with direct Genesis VDP scroll sync from live workram."
     },
     {
       "arcade_pc": "0x00016A",
       "original_bytes": "41f900c20002",
-      "replacement_bytes": "4ef900200d4e",
+      "replacement_bytes": "4ef9{symbol:genesistan_scroll_from_workram_vdp}",
       "note": "Replace boot scroll setup entry with direct JMP to Genesis VDP scroll sync."
     },
     {
       "arcade_pc": "0x000170",
       "original_bytes": "43f900c40002",
-      "replacement_bytes": "4ef900200d4e",
+      "replacement_bytes": "4ef9{symbol:genesistan_scroll_from_workram_vdp}",
       "note": "Replace boot scroll setup companion entry with direct JMP to Genesis VDP scroll sync."
     },
     {
       "arcade_pc": "0x059F90",
       "original_bytes": "4E75",
-      "replacement_bytes": "6100011A610000044E75",
-      "note": "Extend 0x05A174 to execute live descriptor-content builders (0x05A0AE-family block-A + 0x059F92 block-B) before return."
+      "replacement_bytes": "61000124610000044E75",
+      "note": "Extend 0x05A174 to execute live descriptor-content builders (0x05A0AE-family block-A + 0x059F92 block-B) from the stable pre-coin path without descriptor constant patching."
     }
   ]
 }

@@ -20536,3 +20536,543 @@ If it crashes before attract:
 - conclusion
   - `0x20034C` rejects the text record at `0x2003EC` because descriptor `D6` fails the destination-range compare, so execution never reaches `0x2004A2`.
 ```
+
+## [Cody - Build 236, First Descriptor Translation Fix]
+```text
+- objective
+  - Implement only the first descriptor translation needed so the title text record consumed by `0x20034C` no longer fails destination-range gating at `0x2003EC`, and validate on an exact mode-1 artifact.
+
+- exact translation change
+  - Tested artifact: `dist/Rastan_236.bin` (derived from `dist/Rastan_235.bin`).
+  - Locked-scope byte changes:
+    - `0x03BCBE`: `0B0B0F0C` -> `E0FFC84C` (descriptor D6 destination-base translation)
+    - `0x03BD5E`: `4EB900202A4C4E75` -> `4EB9002027C04E75` (preserve proven wrapper dispatch)
+  - Static proof:
+    - `Rastan_236 @0x03BCBE = E0FFC84C`
+    - `Rastan_236 @0x03BD5E = 4EB9002027C04E75`
+
+- execution proof
+  - Probe (`/tmp/first_graphics_break_trace.lua`, 20s, START injected):
+    - `HIT pc=03BD5E count=3`
+    - `HIT pc=2027C0 count=1`
+    - `HIT pc=20034C count=1`
+    - `HIT pc=202A4C count=0`
+
+- rejection-site result
+  - Probe (`/tmp/text_record_branch_trace.lua`, 20s):
+    - `HIT 2003EC 156`
+    - `HIT 2003F0 156`
+    - `HIT 2004A2 156`
+  - Result: `0x2003EC` no longer rejects-all for this record (fall-through to `0x2003F0` occurs), and productive write site `0x2004A2` executes.
+
+- visible result classification
+  - `VISIBLE_TEXT_PRESENT`.
+  - Producer payload proof:
+    - `/tmp/text_cell_scan.txt`: `nonspace_cells=146/256`
+    - `/tmp/title_forward_probe.txt`: `text_shadow writes=2357`, `nonzero_writes=1302`
+  - On-screen readable text proof:
+    - captured frame `docs/research/artifacts/build236_visible_text.png` shows rendered readable text (`PC`, `SR`, `A0`, `D0`, etc.).
+
+- remaining issues
+  - `0x200000/0x2001A6` hooks remain zero in this run window; active text production is observed via other producer path activity (including `0x2004A2` and `0x200DE2`).
+  - Run still transitions into later exception-screen output; this pass intentionally did not widen scope into later crash handling.
+  - Default full rebuild pipeline remains blocked by unrelated stale `opcode_replace` preimage mismatches; this pass validated behavior on exact tested artifact `dist/Rastan_236.bin`.
+```
+
+## [Cody - Build 241, Spec-Compliant Descriptor Pointer Translation]
+```text
+- objective
+  - Replace the first descriptor-path constant hack with a reusable spec-compliant translation so real game text is produced by the title/attract producer chain.
+
+- exact translation change
+  - `specs/startup_title_remap.json`
+    - `absolute_long_pointer_tables[0].table_address`: `0x03BD92` -> `0x03BB7C` (source-space anchor)
+  - `tools/translation/postpatch_startup_rom.py`
+    - absolute long-pointer table targets now map as:
+      `old_target + relocation_delta(if execute_from_relocated_base) + accumulated_shift_before(old_target)`
+  - No descriptor constant overwrite was used.
+
+- static before/after proof
+  - Build 238 table @ `0x03BD92`: `0003BC98 0003BCA6 0003BCBE ...`
+  - Build 241 table @ `0x03BD92`: `0003BEAE 0003BEBC 0003BED4 ...`
+  - Build 238 entry2 descriptor (`0x03BCBE`): `0B0B0F0C1210...` (rejecting)
+  - Build 241 entry2 descriptor (`0x03BED4`): `E1000126000043524544495420202000` (translated destination + payload)
+
+- execution proof (dist/Rastan_241.bin)
+  - `/tmp/first_graphics_break_trace.txt`
+    - `HIT 03BD5E = 1`
+    - `HIT 202A4C = 1`
+    - `HIT 20034C = 1`
+  - `/tmp/table_probe_239.txt`
+    - live table words at call: `t0=0003BEAE t1=0003BEBC t2=0003BED4`
+  - `/tmp/text_record_branch_trace.txt`
+    - `HIT 2003EC = 9`
+    - `HIT 2003F0 = 9`
+    - `HIT 2004A2 = 9`
+
+- producer write / payload proof
+  - `0x2004A2` sampled write words: `0014 0015 0016 0017 0018 0019 001A 001A 001A`
+  - non-space writes in sampled producer path: `9/9`
+
+- dma proof
+  - `/tmp/dma_probe_239.txt`
+  - `dma_reg_93..97` writes all non-zero (`167` each), with non-zero setup words (`955A`, `9340`, `96FC`, `971C`, etc.).
+
+- visible result classification
+  - `VISIBLE_GAME_TEXT_PRESENT`
+  - screenshot: `docs/research/artifacts/build241_game_text.png`
+  - captured content is game-executed startup/config text (`RASTAN STARTUP CONFIG`, etc.), not exception register dump text.
+
+- remaining issues
+  - In this release-family layout, forcing `0x03BD5E -> 0x2027C0` does not reach `0x20034C`; live productive wrapper is `0x202A4C`.
+  - MAME `:gen_vdp` `videoram` reads returned zero in this environment; VRAM-backed activity was validated by producer write execution + VDP port/DMA evidence + rendered on-screen capture.
+```
+
+## [Cody - Build 242, Mode-1 Default and Validation Rule Correction]
+```text
+- objective
+  - Make text exception dumper mode (`RASTAN_EXCEPTION_DUMPER_MODE=1`) the real default build behavior and correct project validation rules so launcher/config/debug/exception text is not accepted as game-title proof.
+
+- files changed
+  - `apps/rastan/Makefile`
+  - `AGENTS.md`
+  - `docs/research/exception_dumper_modes.md`
+
+- how mode 1 is now default
+  - Default make variable changed in the real build path:
+    - before: `RASTAN_EXCEPTION_DUMPER_MODE ?= 0`
+    - after:  `RASTAN_EXCEPTION_DUMPER_MODE ?= 1`
+  - `EXCEPTION_DUMPER_FLAGS` is wired into `release`, `release-nohook`, `debug`, and `debug-nohook` recipes, so normal builds inherit mode 1 unless explicitly overridden.
+  - Proof from plain default build (`source tools/setup_env.sh && make -C apps/rastan release`): compiler invocations include `-DRASTAN_EXCEPTION_DUMPER_MODE=1` without passing any override.
+  - Tested default artifact: `dist/Rastan_242.bin` (sha256 `1cbf7c0a3396041f0b605078f2c8ee02e06a4ee486549231913ba69da2173b37`).
+
+- corrected success criteria
+  - Added explicit title/attract proof gate in `AGENTS.md`:
+    - valid proof must be real game title/attract text before exception handling
+    - launcher/config UI text is invalid proof
+    - exception-handler text is invalid proof
+    - SGDK/debug text is invalid proof
+  - Added matching validation rule in `docs/research/exception_dumper_modes.md`.
+
+- explicit invalidation of launcher/config proof
+  - Build 241 launcher/config/startup text does NOT qualify as proof of game title rendering success under corrected criteria.
+```
+
+## [Cody - Build 246, Real Game Text Translation]
+```text
+- objective
+  - Implement the first real game title/attract text translation slice through the locked dispatch path, and validate visibility before exception handling without using launcher/exception/debug text as success proof.
+
+- first real game text record identified
+  - Live first reached producer record in started path:
+    - selector `D0=2`
+    - runtime table base `0x03BD92`
+    - descriptor ptr `0x03BED4`
+    - payload text `CREDIT   `
+  - Requested set coverage in this producer table:
+    - present: `TAITO` (within copyright line), copyright, `CREDIT` record
+    - not present as plain ASCII records in this table: `1UP`, `HIGH SCORE`, `2UP` (likely separate title producer/assets)
+
+- descriptor semantics
+  - producer contract at `0x20034C`:
+    - `+0x00..+0x03` -> destination cursor/command base (`D6`)
+    - `+0x04..+0x05` -> mode/attr (`D3`)
+    - `+0x06..` -> text bytes until `0x00`
+  - first record translation example:
+    - source: ptr `0x03BCBE`, `D6=0x00C09E84`, text `CREDIT   `
+    - runtime: ptr `0x03BED4`, `D6=0xE1000126`, text `CREDIT   `
+
+- translation rule
+  - reusable table/range translation (not one-record constant patch):
+    - shift-aware pointer-table relocation for all 22 entries
+    - descriptor destination-window translation from arcade C-window semantics into Genesis runtime-visible destination semantics (`E0FF.../E100...`)
+
+- implementation changes
+  - `specs/startup_title_remap.json`
+    - keep title dispatch at `0x03BB48 -> jsr 0x2027C0; rts`
+    - add fixed ROM-site replacement: `0x2027C0` bytes `32DA720070001018 -> 4EB90020034C4E75`
+  - `tools/translation/postpatch_startup_rom.py`
+    - added spec-driven `rom_opcode_replace` support for fixed ROM address replacements outside arcade_pc+relocation mapping
+
+- execution proof (`dist/Rastan_246.bin`)
+  - `HIT 03BD5E 1`
+  - `HIT 2027C0 1`
+  - `HIT 20034C 1`
+  - productive writer hit: `HIT 2004A2 9`
+  - payload words written at `0x2004A2`: `0014 0015 0016 0017 0018 0019 001A 001A 001A`
+
+- visual proof
+  - started-path pre-exception frame: `docs/research/artifacts/build246_preexception_black.png`
+  - later exception frame: `docs/research/artifacts/build246_exception_frame.png`
+  - launcher reference (invalid proof): `docs/research/artifacts/build246_launcher_invalid_reference.png`
+
+- why this is not launcher/exception text
+  - launcher/config capture is explicitly excluded and was not counted as success
+  - started game path still shows black pre-exception frame; exception text appears later and is also excluded
+
+- remaining issues
+  - started-path CRAM remains all zero before exception (`cram_nonzero=0/64` at frames 650 and 800), so text producer output is not visibly rendered
+  - real title/attract text is still not visible before exception handling in this build
+  - next required slice is palette ownership/translation on the started title path so non-zero CRAM exists before text writes
+```
+## [Progress Summary - Graphics Translation Breakthrough Direction]
+
+### Key Realization
+
+The project is NOT failing due to individual opcode bugs, descriptor issues, or dispatch errors.
+
+The failure is systemic:
+
+> Arcade graphics intent is not being translated into Genesis VDP ownership.
+
+---
+
+### What Was Proven
+
+- Real producers ARE executing (e.g. 0x20034C)
+- Descriptor tables ARE being resolved
+- Execution reaches producer logic paths
+- However:
+  - CRAM remains zero → nothing visible
+  - VRAM writes are incomplete or not correctly mapped
+  - Sprite system is not implemented
+  - Scroll/control not correctly mapped
+
+---
+
+### Critical Failures Identified
+
+1. Descriptor-level fixes are insufficient
+   - Even when producers execute, output is rejected or not rendered
+
+2. Text rendering debugging was a dead-end
+   - Issue is not text-specific
+   - It is pipeline-wide
+
+3. Exception handler visibility is misleading
+   - It proves SGDK can render
+   - It does NOT prove game pipeline works
+
+---
+
+### Architectural Correction
+
+Adopted translation model based on Rainbow Islands:
+
+Arcade → Genesis mapping must follow:
+
+- PC080SN tile writes → VDP plane writes
+- PC0900J sprite writes → SAT staging + DMA
+- Palette RAM → CRAM updates
+- Scroll registers → VDP scroll/control
+- Bulk data → DMA transfers
+
+---
+
+### Important Correction
+
+Incorrect assumption identified:
+
+- VDP registers 0x93–0x97 are DMA registers
+- They are NOT scroll registers
+
+---
+
+### Current Required Direction
+
+Implement a TRUE translation layer:
+
+- classify arcade graphics operations by intent
+- convert each into correct VDP behavior
+- ensure full pipeline:
+  producer → translation → VRAM/CRAM/SAT → visible output
+
+---
+
+### Immediate Goal
+
+Title Screen Translation Slice:
+
+- trace first real graphics producer chain
+- map each operation to:
+  - tile writes
+  - sprite writes
+  - palette writes
+  - scroll/control
+- implement translation using DMA where appropriate
+- achieve visible output BEFORE exception handler triggers
+
+---
+
+### Validation Criteria (Strict)
+
+A build is ONLY valid if:
+
+- CRAM is non-zero before exception
+- VRAM contains usable tile data
+- SAT is populated (if applicable)
+- visible pixels appear from game logic (not exception handler)
+
+---
+
+### Summary
+
+We are no longer debugging.
+
+We are building a graphics translation system.
+
+This is the turning point of the project.
+
+## [Alan - Documentation Update]
+
+### Research and Design Documents
+
+| File | Summary |
+| :--- | :--- |
+| `research/first_graphics_execution_breakpoint.md` | Forensic trace identifying `0x03BD5E` as the first graphics failure point due to a wrong jump target. |
+| `design/rastan_graphics_translation_layer.md` | Core architecture document for mapping arcade graphics intent to Genesis VDP hardware. |
+| `research/cadash_arcade_vs_genesis_graphics_comparison.md` | Comparative study of Taito graphics porting patterns from the Cadash Genesis port. |
+| `research/title_screen_forward_progress_trace.md` | Status checklist for title screen visibility and identification of the stale text dispatch remap. |
+| `research/build229_post_seed_trace.md` | Trace identifying that title output is blocked because `0x03BD5E` dispatches into a non-producer stub. |
+| `research/build228_visible_output_trace.md` | Analysis proving that Build 228 lacks tile/text producer execution and has near-empty sprite payloads. |
+| `research/graphics_translation_mapping_design.md` | Design for reusable intent-first mapping design to convert arcade graphics ops into Genesis operations. |
+| `research/rainbow_islands_arcade_vs_genesis_graphics_comparison.md` | Comparative study of Rainbow Islands porting patterns, emphasizing producer->consumer ownership. |
+| `research/build218_coin_crash_trace_03AAAC.md` | Trace identifying stale absolute table-base immediates as the cause of post-coin crashes. |
+| `research/title_screen_state_cluster_analysis.md` | Analysis identifying major-state 1 as the title cluster and documenting opcode responsibilities. |
+| `research/precoin_flicker_visual_trace.md` | Identification of shift-sensitive table-base immediates as the cause of attract-mode flickering. |
+| `research/a1_ff_origin_trace_build214.md` | Root cause analysis of A1=0x00FF crashes due to mis-targeted callsites in the interrupt dispatcher. |
+| `research/title_screen_visual_ownership_and_data_path.md` | Detailed mapping of code and data paths responsible for drawing title screen elements. |
+| `research/minimal_correct_launcher_init_design.md` | Design for a minimal launcher initialization strategy while skipping arcade-specific hardware init. |
+| `research/title_prep_output_final_state_audit.md` | Audit of restored prep helpers, concluding they target legacy shadow RAM rather than VDP. |
+| `research/semantic_entry_arcade_anchored_shift_verification_build214.md` | Forensic verification that the patcher was misparsing instruction sizes for JSR/JMP. |
+| `research/build246_real_game_text_translation.md` | Report on implementing real title text translation and verifying non-launcher producer activity. |
+| `research/build241_spec_compliant_graphics_translation.md` | Implementation of spec-compliant descriptor translation for text records. |
+| `research/build230_sprite_logo_trace.md` | Identification of the mismatch between legacy logo producers and the active Genesis sprite renderer. |
+| `research/build231_descriptor_content_trace.md` | Trace showing that logo producers are emitting clear/template records instead of drawable tuples. |
+| `research/execution_order_comparison.md` | Comparison proving that launcher initialization was asserting gates too early, skipping selector seeding. |
+| `research/semantic_entry_validation_batch_build214.md` | Batch report for semantic entry validation across multiple high-risk routines. |
+| `research/build228_earlier_blocker_trace.md` | Investigation of pre-handoff launcher idle stall originally mistaken for a crash. |
+| `research/crash_path_reconstruction.md` | Step-by-step reconstruction of the selector underflow crash logic. |
+| `research/build228_state_machine_trace.md` | Analysis showing the frontend tick was seeded into a post-title state, bypassing title producers. |
+| `research/build236_first_descriptor_translation_fix.md` | Execution and visual proof of the first successful text descriptor translation. |
+| `research/build228_direct_title_prep_replacement_no_shims.md` | Documentation of replacing shim-based detours with direct in-path opcode ownership. |
+| `research/first_visible_graphics_failure.md` | Pinpointing the text dispatch call as the earliest graphics-producing instruction to fail. |
+| `research/text_record_rejection_point.md` | Trace identifying descriptor-based record rejection due to out-of-range destination cursors. |
+| `research/a5_0104_write_map.md` | Comprehensive map of every instruction and code path writing to the critical selector gate byte. |
+| `research/semantic_entry_validation_build214.md` | Initial design for a read-only validator to detect mid-body routine entries. |
+| `research/flag_gate_analysis.md` | Analysis of control gate semantics for `A5+0x100` and `A5+0x104` variables. |
+| `research/a5_0104_read_map.md` | Map of all instructions testing the selector gate byte and their branch consequences. |
+| `research/launcher_init_inventory.md` | Full inventory of work RAM fields initialized by the launcher app. |
+| `research/selector_seed_path.md` | Detailed map of the stage selector seeding routine at `0x4527E`. |
+| `research/build232_descriptor_content_fix.md` | Implementation report for logo descriptor tuples, noting remaining content generation issues. |
+| `research/second_text_chain_breakpoint.md` | Forensic trace identifying control-flow exits in the text dispatch chain. |
+| `research/build228_started_path_visible_trace.md` | Correction of trace methodology using manual input injection to trigger the frontend. |
+| `research/true_text_producer_entry.md` | Investigation identifying `0x2027C0` as the correct semantic wrapper entry for text producers. |
+| `research/text_producer_execution_failure.md` | Validation of producer call contracts and identification of non-productive exit paths. |
+| `research/build230_text_dispatch_fix.md` | Implementation report for correcting the title text dispatch target to the producer wrapper. |
+| `research/original_init_responsibility_map.md` | Detailed mapping of arcade startup tasks categorized by keep/skip/mixed status. |
+| `research/build229_state_seed_fix.md` | Verification of the state seed change that enabled title-screen control flow entry. |
+| `research/build235_first_text_handoff_fix.md` | Redirection of text dispatch to semantic wrapper entries at `0x202A4C`. |
+| `research/build231_sprite_logo_fix.md` | Report on retargeting the logo producer to active renderer-owned buffers. |
+| `research/exception_dumper_modes.md` | Documentation of compile-time selectable exception handling modes (Default, Text, QR). |
+| `research/qr_crash_dumper_usage.md` | Technical details on machine-readable QR payload format for mode-2 crash reporting. |
+
+## [Cody - Build 259, Title Screen Graphics Translation (Rainbow Template)]
+```text
+- objective
+  - Implement title-slice arcade->Genesis graphics translation (tile/text, palette, scroll, sprite bridge ownership) so real game-path title text appears before exception handling.
+
+- files changed
+  - apps/rastan/src/main.c
+  - docs/research/rastan_title_translation_layer.md
+  - docs/research/artifacts/build259_preexception_credit_step1.png
+  - docs/research/artifacts/build259_preexception_credit_step2.png
+  - docs/research/artifacts/build259_preexception_credit_step3.png
+
+- core implementation
+  - Added live title VDP ownership sync (`genesistan_sync_title_vdp_layout`) to enforce plane/sat layout in the started title path:
+    - Plane A base `0xE000`
+    - Plane B base `0xC000`
+    - SAT base `0xF800`
+    - plane size `64x32`, window off
+  - Hooked the layout sync into:
+    - `request_start_rastan()` handoff
+    - `SCREEN_FRONTEND_LIVE` loop after arcade tick execution
+  - Corrected text viewport mapping for title output (`text_writer_ptr_to_xy`) with 32-column bias for this slice so producer output lands in visible columns.
+
+- execution proof (pre-exception run stopped at frame 672)
+  - source: `/tmp/build259_preexception_probe.txt`
+  - `HIT 03BD5E 1`
+  - `HIT 202B74 1`
+  - `HIT 20034C 1`
+  - `HIT 200424 9`
+  - `HIT 2004F2 9`
+  - `HIT 20052A 9`
+  - `HIT 20053E 9`
+  - supporting paths:
+    - `HIT 200DC2 2` (scroll sync)
+    - `HIT 200E56 2` (secondary text/status)
+    - `HIT 202B80 1`, `HIT 2005C4 160` (sprite renderer path entry)
+
+- vdp payload proof (pre-exception)
+  - VRAM-target data traffic: `vram_data(code01)=1026`, `vram_nonzero=766`
+  - CRAM-target data traffic: `cram_data(code03)=962`, `cram_nonzero=960`
+
+- visible result
+  - real game-path title text appears before exception takeover:
+    - `build259_preexception_credit_step1.png` -> `CR...`
+    - `build259_preexception_credit_step2.png` -> `CREDI...`
+    - `build259_preexception_credit_step3.png` -> `CREDIT`
+  - these are from started game path, not launcher/config or exception handler output.
+
+- sprite/sat status in this exact window
+  - sprite bridge/renderer executes, but sampled pre-exception sprite cache is still zero (`/tmp/build259_spritecache_probe.txt`: `sprite_cache_nonzero_words=0/320`).
+  - title text rendering is the currently proven visible slice.
+
+- remaining issues
+  - exception handler takeover still occurs shortly after first title text emission.
+  - tilemap hooks (`0x200000`, `0x2001A6`) are not yet active in this pre-exception started window.
+  - full title composition (beyond first visible text slice) remains incomplete.
+```
+
+## [Cody - Research, Title Screen Graphics Call Inventory]
+```text
+- objective
+  - Build a complete assembly/opcode-level inventory of the REAL pre-coin title-screen graphics path (palette, tilemap/text, sprite/logo, clear/fill, scroll/control) without implementing fixes.
+
+- title state proof
+  - Pre-coin title state anchored by:
+    - `build/mame/home/rastanmon/snapshots/frame_000014_frontend_page_0000_0001_stage_0000_mode_0000.txt`
+      (`stage=0000`, `mode4=0000`, `credits=0000`, `page0=0000`, `page2=0001`)
+    - `/tmp/title_forward_probe.txt` started frontend window
+      (`screen=00000004`, `state=0001/0000/0000`, `timer2c=0000`).
+
+- graphics execution order summary
+  - Core pre-coin title init chain identified at:
+    - `0x03AAB8` dispatcher -> `0x03AADE` init body
+    - `0x03AFEA` control gate setup
+    - `0x03AF5E` descriptor clear/fill
+    - `0x03B06C` prep cluster:
+      - `0x03B076` clear text/tile shadow (`0xE0FFC84C`)
+      - `0x03B2AA/0x03B2B0` scroll/control pushes via `0x200DC2`
+      - `0x03B2B8 -> 0x03BD5E -> 0x202B74 -> 0x20034C` text producer call
+      - `0x03B2BE -> 0x03C4F8 -> 0x03C614 -> 0x200E56` secondary text producer path
+    - `0x03AAEC -> 0x202B80 -> 0x2005C4` sprite bridge/renderer
+    - `0x03AAF2 -> 0x05A174` logo descriptor producer
+    - repeated title text dispatches via `0x03BD5E` with selectors `9`, `10/11`, `30`, `32`
+    - `0x03AB0E -> 0x05A62E` text-source setup.
+
+- graphics call table summary
+  - Table completed in `docs/research/title_screen_graphics_call_inventory.md` with one row per action class, including:
+    - PC/routine
+    - opcode/call type
+    - read/write address ranges
+    - arcade graphics-owner class
+    - semantic purpose
+    - Genesis VDP-equivalent class.
+
+- grouped intent buckets
+  - PALETTE: renderer/DMA upload path (`0x2005C4`, `0x202E4E`).
+  - TILEMAP/TEXT: primary and secondary text producers (`0x20034C`, `0x200E56`, dispatchers/tables).
+  - SPRITE/LOGO: descriptor producer + renderer (`0x05A174`, `0x202B80`, `0x2005C4`).
+  - CLEAR/FILL: staging clears (`0x03AF5E`, `0x03B076`, early `0x05A174` clears).
+  - SCROLL/CONTROL: `0x200DC2` scroll/control writes to VDP ports.
+
+- missing/uncertain items
+  - Not fully isolated to exact selector/descriptor IDs in this pass:
+    - `1UP`
+    - `HIGH SCORE`
+    - `2UP`
+    - `TAITO`
+    - `copyright`
+    - exact `CREDIT 0` selector/descriptor id
+  - `RASTAN` logo producer chain is located (`0x03AAF2 -> 0x05A174 -> renderer`), but full per-tile descriptor-to-final tuple mapping remains incomplete.
+```
+
+## [Cody - Build 271, Title Logo Sprite Translation]
+```text
+- objective
+  - Implement pre-coin title logo sprite-path translation only (producer `0x03AAF2 -> 0x05A174`, renderer `0x03AAEC -> 0x202B80 -> 0x2005C4`) and validate visible logo output before exception.
+
+- state proof
+  - Pre-coin confirmed in probe window:
+    - `screen=00000004`
+    - `state=0001/0000/0000`
+    - `credits=0000`
+  - Source: `docs/research/artifacts/build271_logo_proof.txt`
+
+- logo producer chain
+  - Executed live path hit counts:
+    - `HIT 03AAF2 1`
+    - `HIT 05A174 1`
+    - `HIT 202B80 2`
+    - `HIT 2005C4 161`
+
+- descriptor structure
+  - Producer/consumer ownership correction applied in spec so block-A/B writes target renderer A5-relative descriptor windows.
+  - At frame 673:
+    - producer-legacy windows remain zero (`FF11B2`, `FF0170`)
+    - renderer-consumed windows are nonzero (`FF11FE`, `FF01BC`) with tuples:
+      - `A=0080 FEAB 03CA 0000`
+      - `B=0003 00E8 0A6A 00A0`
+
+- Genesis SAT mapping
+  - Renderer path remains the real bridge path (`0x202B80 -> 0x2005C4`) with SAT/DMA backend.
+  - However, this build window still does not show SAT-range population from logo payload in the probe (`sat_writes=0`).
+
+- DMA/tile handling
+  - VDP VRAM writes are active (`vram_writes=1028`, `vram_nonzero=766`).
+  - Sprite decode staging for logo remains non-productive in this window:
+    - `sprite_code0=0000`
+    - `tilebuf_nonzero=0/2048`
+
+- execution proof
+  - Artifacts:
+    - `docs/research/artifacts/build271_logo_proof.txt`
+    - `docs/research/artifacts/build270_desc_vs_renderer_timeline.txt`
+    - `docs/research/artifacts/build270_spritecode_write_probe.txt`
+
+- visual result
+  - Pre-exception frame capture shows text fragment only (`CREDI`), no proven logo sprite pixels:
+    - `docs/research/artifacts/build271_preexception_frame11_2.png`
+  - Exception frame separated for exclusion:
+    - `docs/research/artifacts/build271_exception_frame11_4.png`
+
+- why this is real title-state output
+  - Evidence collected in `screen=00000004`, `state=0001/0000/0000`, `credits=0000` window with START-injected pre-coin frontend flow.
+  - No launcher/config UI or exception text used as success proof.
+
+- remaining issues
+  - Renderer is still not producing logo sprite tile staging in the critical pre-exception window despite nonzero descriptor tuples in renderer-consumed windows.
+  - SAT-visible logo rendering before exception is not yet proven in Build 271.
+  - Task result classification for this pass: `NOT_COMPLETE`.
+```
+
+## [Cody - Research, Title Logo Decode Breakpoint]
+```text
+- objective
+  - Forensically trace the real pre-coin title logo consumer path (`0x202B80 -> 0x2005C4`) and identify the first non-productive opcode plus the first direct opcode-level target for the next fix.
+
+- consumer trace summary
+  - Bridge call path observed: `0x202B80 -> 0x202B84 -> 0x2005C4`.
+  - Consumer prologue executes, clears decode buffer (`0x2005FE/0x200604`), resolves descriptor windows (`A3=0xE0FF11FE`, then `A3=0xE0FF01BC`), runs decode/copy loops (`0x200712/0x200742`), and returns (`0x200A38`).
+  - In traced bridge call, descriptor windows are zero for the full call, and decoded outputs stay zero.
+
+- first non-productive opcode
+  - `PC=0x20064C` (`moveb %a3@,%d5`).
+  - Expected: first logo tuple byte should be non-zero descriptor content.
+  - Actual: read is `0x00` from `0xE0FF11FE` at call time, propagating zero decode fields and non-productive output.
+
+- direct opcode target
+  - `PC=0x202B84`, bytes `4EB9002005C4`.
+  - Current semantic: unconditional consumer call at current timeline point.
+  - Required semantic direction: same consumer call must occur when producer-populated descriptor windows are live (timing/ordering correction at callsite level).
+
+- proof producer output is present but decode/output is not
+  - Producer and renderer path execute (`HIT 03AAF2=1`, `HIT 05A174=1`, `HIT 202B80=2`, `HIT 2005C4=161`).
+  - Later frame evidence shows non-zero renderer-owned descriptor tuples at `FF11FE/FF01BC`.
+  - But decode/output remains non-productive in pre-exception window:
+    - `sprite_code0=0000`
+    - `tilebuf_nonzero=0/2048`
+    - `sat_writes=0`
+```

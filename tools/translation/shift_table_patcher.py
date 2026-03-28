@@ -135,6 +135,61 @@ def fix_word_displacement_jump_tables(
     return count
 
 
+def fix_absolute_long_pointer_tables(
+    result: bytearray,
+    maincpu_bytes: bytes,
+    pointer_tables: list[dict],
+    shifts: list[tuple[int, int]],
+    source_start: int,
+    source_end: int,
+) -> int:
+    """
+    Fix absolute long pointer tables declared explicitly in spec.
+
+    Each table entry is a 32-bit absolute pointer. For entries that point into
+    the shifted source range, apply new_offset() so data-pointer dispatch tables
+    stay aligned with relocated records.
+    """
+    if not shifts or not pointer_tables:
+        return 0
+
+    count = 0
+    for table in pointer_tables:
+        table_addr = int(table["table_address"], 0)
+        entry_count = int(table["entry_count"])
+        entry_size = int(table.get("entry_size_bytes", 4))
+
+        if entry_size != 4:
+            raise RuntimeError(
+                f"absolute long pointer table at 0x{table_addr:06X}: "
+                f"unsupported entry_size_bytes={entry_size}"
+            )
+
+        table_end = table_addr + (entry_count * entry_size)
+        if table_addr < source_start or table_end > source_end:
+            raise RuntimeError(
+                f"absolute long pointer table at 0x{table_addr:06X}: outside source range "
+                f"0x{source_start:06X}..0x{source_end:06X}"
+            )
+
+        new_table_addr = new_offset(table_addr, shifts)
+        for i in range(entry_count):
+            src_entry_addr = table_addr + (i * 4)
+            dst_entry_addr = new_table_addr + (i * 4)
+            old_target = struct.unpack_from(">I", maincpu_bytes, src_entry_addr)[0]
+
+            if source_start <= old_target < source_end:
+                new_target = new_offset(old_target, shifts)
+                if new_target != old_target:
+                    count += 1
+            else:
+                new_target = old_target
+
+            struct.pack_into(">I", result, dst_entry_addr, new_target)
+
+    return count
+
+
 # ---------------------------------------------------------------------------
 # Shift-table helpers
 # ---------------------------------------------------------------------------
@@ -360,6 +415,7 @@ def apply_shift_table(
     source_start: int,
     source_end: int,
     jump_table_word_displacements: list[dict] | None = None,
+    absolute_long_pointer_tables: list[dict] | None = None,
 ) -> bytearray:
     """
     Apply shift_replacements to maincpu_bytes, fixing all internal references.
@@ -396,6 +452,16 @@ def apply_shift_table(
         source_end,
     )
 
+    # --- PHASE 3c: fix explicit absolute-long pointer tables ---
+    long_ptr_fixes = fix_absolute_long_pointer_tables(
+        result,
+        maincpu_bytes,
+        absolute_long_pointer_tables or [],
+        shifts,
+        source_start,
+        source_end,
+    )
+
     # --- PHASE 4: fix relative branches ---
     branch_fixes = fix_relative_branches(result, insns, shifts, source_start, source_end)
 
@@ -404,6 +470,7 @@ def apply_shift_table(
 
     print(f"shift_table_patcher: {len(shift_replacements)} replacement(s), "
           f"{jtable_fixes} jump-table fix(es), "
+          f"{long_ptr_fixes} long-pointer-table fix(es), "
           f"{branch_fixes} branch fix(es), {abs_fixes} abs-long fix(es)")
 
     return result
@@ -449,6 +516,7 @@ def main() -> int:
 
     shift_replacements = spec.get("shift_replacements", [])
     jump_tables = spec.get("jump_table_word_displacements", [])
+    long_pointer_tables = spec.get("absolute_long_pointer_tables", [])
     result = apply_shift_table(
         maincpu_bytes,
         shift_replacements,
@@ -456,6 +524,7 @@ def main() -> int:
         source_start,
         source_end,
         jump_tables,
+        long_pointer_tables,
     )
     Path(args.output).write_bytes(result)
     print(f"Written {len(result)} bytes to {args.output}")
