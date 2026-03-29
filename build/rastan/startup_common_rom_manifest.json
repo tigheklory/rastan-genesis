@@ -952,7 +952,7 @@
       "new_window_start": "0xE0FF62AE",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
-      "count": 0
+      "count": 2
     },
     {
       "range": "game_engine_040000",
@@ -1781,7 +1781,7 @@
     },
     {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x39F5B4",
+      "rom_offset": "0x39F7D4",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1794,24 +1794,24 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x00202E5E",
+    "jumps_to": "0x00202E52",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
     "writes_status_to": "0xE0FF6290",
     "value": 2,
-    "jumps_exit_to": "0x00202E9A",
+    "jumps_exit_to": "0x00202E8E",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x9C2F",
+  "checksum": "0x69FA",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x00216B98",
+    "reset_pc": "0x00216D62",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

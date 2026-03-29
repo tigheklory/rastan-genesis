@@ -1395,11 +1395,21 @@ static u16 text_writer_build_tile_attr_from_arcade_code(u16 attr_word, u16 arcad
 
 static void genesistan_sync_title_vdp_layout(void)
 {
+    static const u32 genesistan_visibility_tile_slot1[8] = {
+        0x11111111, 0x11111111, 0x11111111, 0x11111111,
+        0x11111111, 0x11111111, 0x11111111, 0x11111111
+    };
+
     SYS_disableInts();
     VDP_setPlaneSize(64, 32, FALSE);
     VDP_setBGAAddress(TITLE_PLANE_A_VRAM_ADDR);
     VDP_setBGBAddress(TITLE_PLANE_B_VRAM_ADDR);
     VDP_setSpriteListAddress(TITLE_SAT_VRAM_ADDR);
+    /*
+     * Temporary system-wide sprite visibility bring-up tile:
+     * write one solid visible tile to VRAM tile slot 1 (addr 0x0020).
+     */
+    VDP_loadTileData(genesistan_visibility_tile_slot1, 1, 1, CPU);
     VDP_setWindowOff();
     SYS_enableInts();
 }

@@ -90,10 +90,7 @@ genesistan_sprite_commit_asm:
 
     addi.w  #0x0080, %d0            /* SAT y bias */
 
-    move.w  4(%a0), %d1             /* word2: tile */
-    andi.w  #0x3FFF, %d1
-    addi.w  #0x0400, %d1            /* temporary tile base */
-    ori.w   #0x8000, %d1            /* hardcoded priority/palette policy */
+    move.w  #0x8001, %d1            /* temporary system-wide tile_attr bring-up */
 
     move.w  6(%a0), %d2             /* word3: x */
     addi.w  #0x0080, %d2            /* SAT x bias */

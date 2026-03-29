@@ -22687,3 +22687,66 @@ Full plan: `docs/design/first_real_graphics_replacement_slice.md`
   - Gameplay state sprite pipeline (states 2-4)
 
 Full plan: docs/design/system_wide_sprite_visibility_bringup_plan.md
+
+## [Cody - Implementation, System-Wide Tile Visibility Bring-Up]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - apps/rastan/src/startup_trampoline.s
+  - docs/design/system_wide_tile_visibility_results.md
+
+- tile slot 1 init summary
+  - Added one-time visible tile upload in `genesistan_sync_title_vdp_layout()`.
+  - Tile slot 1 (`VRAM 0x0020`) is loaded with a solid `0x1111` pattern (all 16 words nonzero).
+
+- tile_attr override summary
+  - In `genesistan_sprite_commit_asm` loop, replaced dynamic tile_attr build with:
+    - `move.w #0x8001, %d1`
+  - Applies uniformly to all valid Block-A entries; no entry-specific branch.
+
+- build artifact
+  - Command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Artifact: `dist/Rastan_281.bin`
+
+- call frequency result
+  - Probe: `/tmp/system_wide_tile_visibility_probe.txt`
+  - Hits:
+    - `HIT 03A208 791`
+    - `HIT 202DC8 793` (`genesistan_sprite_commit_asm`)
+    - `HIT 202E2C 791` (`genesistan_run_original_frontend_tick`)
+    - `HIT 2005C4 2`
+  - Result: non-C assembly commit remains sustained per-vblank.
+
+- VRAM tile result
+  - Frame 700 sample:
+    - `tile1_words=1111 ... (16 words)`
+    - `tile1_nonzero_words=16/16`
+  - Result: tile slot 1 contains visible nonzero data.
+
+- SAT result
+  - Frame 700 sample:
+    - `sat[00]=0168 0500 8001 0090`
+    - `sat[01]=0080 0500 8001 0080`
+    - `...`
+    - `sat[11]=0080 0500 8001 0080`
+    - `sat_nonzero_entries_0_11=12`
+    - `sat_attr_8001_entries_0_11=12`
+  - Result: multiple SAT entries use `0x8001` system-wide in sampled set.
+
+- visual result
+  - Capture: `/tmp/build281_system_wide_visibility_frame700.png`
+  - Observed: no visible yellow-green sprite blocks.
+  - Classification: `FAIL`.
+
+- no-special-case confirmation
+  - No entry-0-only logic added.
+  - No logo-specific logic added.
+  - Single uniform tile rule applied for all valid entries in current Block-A stream.
+
+- final verdict
+  - Approved system-wide temporary bring-up slice implemented exactly:
+    - tile slot 1 initialized
+    - system-wide `0x8001` override active
+    - non-C commit path sustained
+  - Visual blocks are still not visible in current capture; visual classification remains FAIL.
+```
