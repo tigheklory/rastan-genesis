@@ -21934,3 +21934,53 @@ breakdown:         JSR + embedded(0x05A0B4) + RTS
 ROM output:        JSR 0x05A2B4 + RTS  (patcher: 0x05A0B4 + 0x200 = 0x05A2B4)
 delta:             +6 bytes (2 -> 8)
 ```
+
+## [Cody - Implementation, Phase 2 Block-A Builder Restore]
+```text
+- single file changed
+  - specs/startup_title_remap.json
+
+- exact spec entry changed
+  - arcade_pc: 0x059F90
+  - original_bytes: 4E75 (unchanged)
+  - replacement_bytes: 4eb90005a0b44e75
+
+- build artifact name
+  - dist/Rastan_277.bin
+  - build command used: source tools/setup_env.sh && make -C apps/rastan release
+
+- static callsite verification result
+  - ROM @ 0x05A1A6 = 4eb90005a2b44e75 (PASS)
+  - decoded call operand = 0x05A2B4 (PASS)
+  - wrong targets excluded: not 0x05A4B4, not 0x05A2CE (PASS)
+  - ROM @ 0x05A2B4 preamble = 302d013a0800000f (PASS)
+
+- block-A runtime result
+  - runtime probe: /tmp/phase2_blocka_restore_probe.txt
+  - producer/restore path hits:
+    - HIT 03AAEC 1
+    - HIT 05A1A6 4
+    - HIT 05A174 1
+    - HIT 05A2B4 1
+  - block-A transitioned from zero to nonzero:
+    - frame 300: A=0000 0000 0000 0000
+    - frame 700: A=0000 00E8 03CA 0010
+
+- renderer result
+  - renderer path hits:
+    - HIT 03AAF2 1
+    - HIT 202B80 6
+    - HIT 2005C4 198
+  - usable sprite payload observed:
+    - renderer_blocka_nonzero_hits=38
+    - frame 700: code0=03CA, tilebuf_nonzero=128
+
+- visual result
+  - MAME AVI capture: /tmp/build277_phase2_logo.avi
+  - extracted frame: /tmp/build277_phase2_frame_11_6.png
+  - observed: CREDIT text visible; title-logo sprite pixels not yet visually confirmed in this capture
+
+- final verdict
+  - single approved bytes implemented and static/runtime producer+payload checks pass
+  - logo pixel visibility is not yet confirmed in current pre-coin capture
+```

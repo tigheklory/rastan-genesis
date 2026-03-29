@@ -267,8 +267,8 @@
       "source_start": "0x000000",
       "source_end_exclusive": "0x060000",
       "relocation_delta": "0x000200",
-      "count": 610,
-      "unresolved_before_fix": 608
+      "count": 611,
+      "unresolved_before_fix": 609
     },
     {
       "range": "startup_common",
@@ -1046,7 +1046,7 @@
       "arcade_pc": "0x03A8E4",
       "rom_pc": "0x03AAF2",
       "original_bytes": "4eb90005a174",
-      "original_bytes_shift_adjusted": "4eb90005a18a",
+      "original_bytes_shift_adjusted": "4eb90005a190",
       "replacement_bytes": "4eb900202b80",
       "note": "ORDER FIX PATCH B: renderer now runs at this slot (after producer at 0x03A8E0). original_bytes is the post-relocation value (0x059F5E + 0x200 base + 0x16 accumulated shift = 0x05A174). Size: 6->6 bytes (no shift). Renderer runs after producer \u2014 correct ordering."
     },
@@ -1422,7 +1422,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059F9A",
-      "rom_pc": "0x05A1B0",
+      "rom_pc": "0x05A1B6",
       "original_bytes": "207c0010c170",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01bc",
@@ -1431,7 +1431,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059FDE",
-      "rom_pc": "0x05A1F4",
+      "rom_pc": "0x05A1FA",
       "original_bytes": "207c0010c170",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01bc",
@@ -1440,7 +1440,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059FFC",
-      "rom_pc": "0x05A212",
+      "rom_pc": "0x05A218",
       "original_bytes": "207c0010c178",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01c4",
@@ -1449,7 +1449,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A014",
-      "rom_pc": "0x05A22A",
+      "rom_pc": "0x05A230",
       "original_bytes": "207c0010c178",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01c4",
@@ -1458,7 +1458,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A032",
-      "rom_pc": "0x05A248",
+      "rom_pc": "0x05A24E",
       "original_bytes": "207c0010c180",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01cc",
@@ -1467,7 +1467,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A04A",
-      "rom_pc": "0x05A260",
+      "rom_pc": "0x05A266",
       "original_bytes": "207c0010c180",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01cc",
@@ -1476,7 +1476,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A068",
-      "rom_pc": "0x05A27E",
+      "rom_pc": "0x05A284",
       "original_bytes": "207c0010c188",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01d4",
@@ -1485,7 +1485,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A080",
-      "rom_pc": "0x05A296",
+      "rom_pc": "0x05A29C",
       "original_bytes": "207c0010c188",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff01d4",
@@ -1494,7 +1494,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A0AE",
-      "rom_pc": "0x05A2C4",
+      "rom_pc": "0x05A2CA",
       "original_bytes": "207ce0ff62f6",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff11fe",
@@ -1503,7 +1503,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A11A",
-      "rom_pc": "0x05A330",
+      "rom_pc": "0x05A336",
       "original_bytes": "30fc0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "30fc0000",
@@ -1512,7 +1512,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A13E",
-      "rom_pc": "0x05A354",
+      "rom_pc": "0x05A35A",
       "original_bytes": "30fc0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "30fc0000",
@@ -1521,7 +1521,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A188",
-      "rom_pc": "0x05A39E",
+      "rom_pc": "0x05A3A4",
       "original_bytes": "30fc0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "30fc0000",
@@ -1530,7 +1530,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A1AC",
-      "rom_pc": "0x05A3C2",
+      "rom_pc": "0x05A3C8",
       "original_bytes": "30fc0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "30fc0000",
@@ -1539,7 +1539,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A1D0",
-      "rom_pc": "0x05A3E6",
+      "rom_pc": "0x05A3EC",
       "original_bytes": "30fc0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "30fc0000",
@@ -1548,7 +1548,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A1EC",
-      "rom_pc": "0x05A402",
+      "rom_pc": "0x05A408",
       "original_bytes": "207ce0ff62f6",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff11fe",
@@ -1808,7 +1808,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x3671",
+  "checksum": "0x2A85",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x00217090",

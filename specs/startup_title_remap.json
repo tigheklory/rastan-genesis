@@ -1662,7 +1662,7 @@
     {
       "arcade_pc": "0x059F90",
       "original_bytes": "4E75",
-      "replacement_bytes": "4E75",
+      "replacement_bytes": "4eb90005a0b44e75",
       "note": "D-7 REVERT: RTS trampoline extension removed. Plain rts restored. Was: bsr+0x124; bsr+0x04; rts (10 bytes clobbering cmpiw at 0x059F92 and beqs at 0x059F98). Block-A/B builder calls from this path are gone; will be added explicitly in Phase 2."
     }
   ]
