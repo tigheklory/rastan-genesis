@@ -21780,3 +21780,57 @@ output: docs/design/credit_tilt_provenance_report.md
   TILT verdict: REAL — arcade-original text, patcher-translated destination, no C-code injection
   Fake text path status: NONE FOUND
 ```
+
+## [Andy - Phase 2, Title Screen State Analysis]
+```text
+date: 2026-03-28
+build: Rastan_276.bin
+mandate: READ-ONLY forensic analysis
+output: docs/design/title_screen_state_analysis.md
+
+- current state summary
+  - screen=0x00000004 (SCREEN_FRONTEND_LIVE confirmed)
+  - A5+0x0000 = 0x0001 (title/frontend major state)
+  - A5+0x0002 = 0x0000 (substate = 0 = title-init)
+  - A5+0x0004 = 0x0000, A5+0x002C = 0x0000 (timer expired)
+  - credits = 0x0000 (pre-coin baseline)
+  - correct arcade state machine path is being executed
+  - secondary state context (state=5000/0100/0000, A5=E0FF004B) also appears;
+    this is a different game-area state, not the title-init path
+
+- selector mapping — CREDIT
+  - selector: D0=2
+  - table entry: genesis 0x3BD9A -> descriptor 0x3BED4
+  - descriptor D6: 0xE1000126 (translated WRAM dest)
+  - call origin: arcade 0x03B09C (credit counter update, inside title_init_block range)
+  - producer: 0x20034C via wrapper 0x2027C0, reaches write site 0x2004A2
+  - status: CONFIRMED WORKING in Build 276
+
+- selector mapping — TILT
+  - selector: D0=14
+  - table entry: genesis 0x3BDC6 -> descriptor 0x3BFE2
+  - descriptor D6: 0xE0FFEDF2 (translated WRAM dest, upper-left region)
+  - call origin: arcade 0x03ABCA (BTST #2,(0x390007) in pre-coin title loop)
+  - trigger: bit 2 of genesistan_shadow_input_390007 clear = A+B+C held on Genesis
+  - status: CONFIRMED WORKING in Build 276
+
+- state machine path correctness
+  - title-init state-0 sequence confirmed active: 0x03AADE -> 0x03B076 -> 0x03B2B8 ->
+    0x03AAEC (producer slot) -> 0x03AAF2 (renderer slot) -> 0x03AB20 (substate advance)
+  - Phase 1 ordering fix in place: producer (0x05A174) at 0x03AAEC, renderer (0x202B80) at 0x03AAF2
+  - build IS on the correct path, NOT trapped in coin-entry or wrong-branch state
+
+- failure point — SINGLE PRIMARY FAILURE
+  - block-A sprite descriptor content never built
+  - producer 0x05A174 executes but returns with block-A (0xE0FF11FE) all zeros
+  - reason: block-A content-building subroutines deferred from Phase 1 (D-7 revert removed them)
+  - this is the expected Phase 1 baseline — Phase 2 must add translated block-A building
+  - secondary factor: CRAM was zero in Build 246; Build 276 shows CREDIT visible,
+    suggesting partial palette improvement, but full CRAM coverage not yet re-validated
+
+- conclusion
+  - build executes real arcade descriptor paths
+  - CREDIT and TILT prove real arcade execution (two independent text paths working)
+  - full title screen blocked by missing block-A content, not wrong state machine path
+  - correct fix: Phase 2 translation of block-A content-building logic in 0x05A174
+```
