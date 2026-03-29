@@ -16,6 +16,7 @@
     .globl genesistan_hook_text_writer_3bb48_impl
     .globl genesistan_render_sprites_vdp
     .globl genesistan_render_sprites_vdp_bridge
+    .globl genesistan_sprite_commit_asm
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 
@@ -56,6 +57,56 @@ genesistan_hook_text_writer_3bb48:
 genesistan_render_sprites_vdp_bridge:
     movem.l %d0-%d7/%a0-%a6,-(%sp)
     jsr genesistan_render_sprites_vdp
+    movem.l (%sp)+,%d0-%d7/%a0-%a6
+    rts
+
+/*
+ * Non-C SAT commit slice:
+ *   - reads Block-A tuples from 0xE0FF11FE
+ *   - skips hidden sentinel entries (word1 == 0x0180)
+ *   - writes SAT entries directly to VDP data port at VRAM 0xF800
+ *
+ * Temporary limitations (intentional in this slice):
+ *   - size/link hardcoded to 0x0500
+ *   - tile base hardcoded to +0x0400
+ *   - priority hardcoded on, palette hardcoded
+ *   - no flipscreen/link-chain/animation handling here
+ */
+genesistan_sprite_commit_asm:
+    movem.l %d0-%d7/%a0-%a6,-(%sp)
+
+    movea.l #0xC00004, %a1          /* VDP control port */
+    movea.l #0xC00000, %a2          /* VDP data port */
+    move.w  #0x8F02, (%a1)          /* auto-increment = 2 bytes */
+    move.l  #0x78000003, (%a1)      /* VDP_WRITE_VRAM_ADDR(0xF800) */
+
+    movea.l #0xE0FF11FE, %a0        /* Block-A base */
+    moveq   #17, %d7                /* 18 entries */
+
+.Lsprite_commit_loop:
+    move.w  2(%a0), %d0             /* word1: y */
+    cmpi.w  #0x0180, %d0
+    beq.s   .Lsprite_commit_skip
+
+    addi.w  #0x0080, %d0            /* SAT y bias */
+
+    move.w  4(%a0), %d1             /* word2: tile */
+    andi.w  #0x3FFF, %d1
+    addi.w  #0x0400, %d1            /* temporary tile base */
+    ori.w   #0x8000, %d1            /* hardcoded priority/palette policy */
+
+    move.w  6(%a0), %d2             /* word3: x */
+    addi.w  #0x0080, %d2            /* SAT x bias */
+
+    move.w  %d0, (%a2)              /* SAT word0: Y */
+    move.w  #0x0500, (%a2)          /* SAT word1: size/link (temporary fixed) */
+    move.w  %d1, (%a2)              /* SAT word2: tile/attr */
+    move.w  %d2, (%a2)              /* SAT word3: X */
+
+.Lsprite_commit_skip:
+    adda.w  #8, %a0
+    dbra    %d7, .Lsprite_commit_loop
+
     movem.l (%sp)+,%d0-%d7/%a0-%a6
     rts
 
@@ -114,6 +165,9 @@ genesistan_startup_common_exit_normal:
     rts
 
 genesistan_startup_common_exit_test:
+    rts
+
+genesistan_sprite_commit_asm:
     rts
 
 #endif

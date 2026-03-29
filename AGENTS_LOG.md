@@ -22574,3 +22574,75 @@ entirely — called from `genesistan_frontend_live_vint_handoff()` in place of
 Full plan: `docs/design/first_non_c_graphics_migration_slice.md`
 
 Full plan: `docs/design/first_real_graphics_replacement_slice.md`
+
+## [Cody - Implementation, Non-C Sprite Commit Slice]
+```text
+- files changed
+  - apps/rastan/src/startup_trampoline.s
+  - apps/rastan/src/main.c
+  - docs/design/non_c_sprite_commit_results.md
+
+- helper removal from handoff
+  - In `genesistan_frontend_live_vint_handoff()`, replaced handoff call:
+    - before: `genesistan_render_sprites_vdp();`
+    - after:  `genesistan_sprite_commit_asm();`
+  - Static location: `apps/rastan/src/main.c:1891-1893`.
+
+- assembly routine summary
+  - Added `genesistan_sprite_commit_asm` in `startup_trampoline.s`.
+  - Behavior:
+    - set VDP auto-inc (`0x8F02`)
+    - set SAT write address VRAM `0xF800` (`0x78000003`)
+    - read Block-A `0xE0FF11FE` (18 entries)
+    - skip entries only when `word1 == 0x0180`
+    - write SAT words directly via `0xC00000`:
+      - `Y = word1 + 0x80`
+      - `size/link = 0x0500`
+      - `tile/attr = (word2 & 0x3FFF) + 0x0400`, OR `0x8000`
+      - `X = word3 + 0x80`
+
+- build artifact
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Artifact: `dist/Rastan_280.bin`
+
+- call frequency result
+  - Probe: `/tmp/non_c_sprite_commit_probe.txt`
+  - Hits:
+    - `HIT 03A208 791` (arcade level-5 entry)
+    - `HIT 202E38 791` (`genesistan_run_original_frontend_tick`)
+    - `HIT 202DC8 793` (`genesistan_sprite_commit_asm`)
+    - `HIT 2005C4 2` (`genesistan_render_sprites_vdp`)
+    - `HIT 202B80 0` (bridge)
+  - Result: assembly commit runs sustained per-vblank in live handoff path.
+
+- VRAM SAT result
+  - Frame 700 sample (`/tmp/non_c_sprite_commit_probe.txt`):
+    - `sat_f800=0168 0500 87CA 0090` (nonzero SAT at active base)
+  - Assembly-origin write counts:
+    - `asm_vdp_ctrl_writes=1582`
+    - `asm_vdp_data_writes=37440`
+    - `asm_sat_word_writes=512`
+
+- visual result
+  - Artifact: `/tmp/build280_non_c_sprite_commit_frame700.png`
+  - Observed: `CREDIT` text visible, no confirmed sprite/logo pixels
+  - Classification: `FAIL`
+
+- regression result
+  - Artifact: `/tmp/build280_non_c_prelaunch_frame120.png`
+  - Observed: launcher/config screen still renders before launch
+  - Result: no obvious pre-launch regression in this pass
+
+- temporary limitations
+  - tile lookup remains stubbed/hardcoded
+  - palette remains hardcoded
+  - size/link remains hardcoded (`0x0500`)
+  - flipscreen/link-chain/animation handling deferred
+
+- final verdict
+  - Architectural ownership migration succeeded for this slice:
+    - live handoff now commits sprites through `genesistan_sprite_commit_asm`
+    - helper is no longer the live handoff owner
+    - SAT at `0xF800` is nonzero from assembly-driven writes
+  - Visual sprite correctness is not yet achieved in this build.
+```

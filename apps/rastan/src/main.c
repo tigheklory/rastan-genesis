@@ -340,6 +340,7 @@ static u32 get_packed_romset_signature(void);
 static void restore_launcher_vdp_state(void);
 static void genesistan_frontend_live_vint_handoff(void);
 void rastan_draw_tile_xy(u16 tile_attr, int x, int y);
+void genesistan_sprite_commit_asm(void);
 
 static void draw_padded_text(const char *text, u16 x, u16 y, u16 width)
 {
@@ -1889,7 +1890,7 @@ static void genesistan_frontend_live_vint_handoff(void)
     /* Post-launch frame ownership: arcade level-5 tick runs from V-Int only. */
     genesistan_refresh_arcade_inputs();
     genesistan_run_original_frontend_tick();
-    genesistan_render_sprites_vdp();
+    genesistan_sprite_commit_asm();
 #endif
 }
 
