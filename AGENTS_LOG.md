@@ -22316,3 +22316,56 @@ The `sat_port_writes_words = 0` measurement is a probe blind-spot — hardware D
 ### Minimal Next Step
 
 Call `genesistan_render_sprites_vdp()` unconditionally from `genesistan_frontend_live_vint_handoff()` on every V-INT, after `genesistan_run_original_frontend_tick()` completes, instead of relying on the arcade ROM state machine to dispatch via 0x03AAF2. This ensures SAT DMA fires every frame.
+
+## [Andy - Opcode/VBlank Sprite Migration Plan]
+
+Date: 2026-03-28
+
+### Helper Responsibility Split (summary table)
+
+| Bucket | Classification |
+|--------|---------------|
+| Block-A / Block-B descriptor scan | KEEP TEMPORARILY |
+| Validity filtering (zero-tuple, 0x0180 sentinel, out-of-bounds) | KEEP TEMPORARILY |
+| Coordinate conversion (sign-extend, +128 via SGDK) | MOVE TO ARCADE VBLANK COMMIT |
+| Tile lookup / tile residency (frontend_runtime_tile_for_code) | KEEP TEMPORARILY → MOVE TO OPCODE/ROM-SIDE (Phase 3) |
+| SAT entry formation (TILE_ATTR_FULL + VDP_setSpriteFull) | MOVE TO ARCADE VBLANK COMMIT |
+| SAT publish / DMA (VDP_updateSprites + VDP_waitDMACompletion) | MOVE TO ARCADE VBLANK COMMIT (Phase 2 first target) |
+| Palette interactions (bank map, refresh_frontend_sprite_palettes) | DEFER TO LATER PHASE |
+| Flipscreen handling (WRAM word 15, coord invert, flip invert) | KEEP TEMPORARILY |
+
+Block-A format (word0=attr, word1=y, word2=tile, word3=x) IS sufficient intermediate format — no normalization needed for Phase 1 or Phase 2.
+
+### Chosen First Migration Slice
+
+**Option A — Move CALL POINT from arcade-state-dependent dispatch to unconditional vblank hook.**
+
+Add `genesistan_render_sprites_vdp()` call unconditionally in `genesistan_frontend_live_vint_handoff()` after `genesistan_run_original_frontend_tick()` returns. One first slice only. C code change — no ROM patch required.
+
+### Vblank Adaptation Summary
+
+- **Function**: `genesistan_frontend_live_vint_handoff()` — main.c line 1881
+- **Location**: After `genesistan_run_original_frontend_tick()` returns, before closing brace of `#if RASTAN_ENABLE_STARTUP_HOOK` block
+- **Mechanism**: Insert `genesistan_render_sprites_vdp();` — unconditional call every V-INT during SCREEN_FRONTEND_LIVE
+- **Guard**: Existing `!frontend_live_handoff_active || current_screen != SCREEN_FRONTEND_LIVE` guard already gates correctness
+- **Type**: C code change only; no opcode_replace, no shift_replacement, no trampoline modification
+
+### Phase Order
+
+- Phase 1 (IMMEDIATE): Add unconditional `genesistan_render_sprites_vdp()` call in vint_handoff — SAT DMA fires every frame — success: VRAM 0xF800 nonzero at frame 700, sprite pixels visible
+- Phase 2 (STRUCTURAL): Split SAT publish (DMA) out of C helper into standalone vblank-owned `genesistan_vblank_sat_commit()`; suppress redundant 0x03AAF2 arcade dispatch — success: VDP_updateSprites no longer inside renderer body
+- Phase 3 (MIGRATION): Move Block-A scan + SAT formation to assembly trampoline/ROM-side routine; C helper becomes unused — success: `genesistan_render_sprites_vdp` not called in active sprite path
+- Phase 4 (CLEANUP): Delete `genesistan_render_sprites_vdp`, `render_frontend_sprite_layer`, bridge trampoline, and all associated scaffolding — success: C helper does not exist in compiled binary
+
+### Out-of-Scope for Phase 1
+
+- Full PC080SN tilemap conversion (plane DMA pipeline)
+- Final palette correctness (dirty-flag DMA, CLCS capture)
+- Full sprite size decoding (fixed SPRITE_SIZE(2,2) for now)
+- Scroll system (VSRAM updates)
+- Full flipscreen fidelity
+- Tile upload system correctness
+- Multi-sprite link field correctness
+- Animation system / frame data sequencing
+- Gameplay state sprite pipeline (states 2–4)
+- Suppression of redundant 0x03AAF2 arcade dispatch (Phase 2 task)
