@@ -1577,7 +1577,8 @@ void genesistan_render_sprites_vdp(void)
             u16 data = (u16)(((u16)entry[0] << 8) | entry[1]);
             u16 y_raw = (u16)(((u16)entry[2] << 8) | entry[3]);
             const u16 code = (u16)((((u16)entry[4] << 8) | entry[5]) & 0x3FFF);
-            s16 x = (s16)((((u16)entry[6] << 8) | entry[7]) & 0x01FF);
+            const u16 x_raw = (u16)(((u16)entry[6] << 8) | entry[7]);
+            s16 x = (s16)(x_raw & 0x01FF);
             s16 y;
             bool flipy = (data & 0x8000) != 0;
             bool flipx = (data & 0x4000) != 0;
@@ -1587,8 +1588,8 @@ void genesistan_render_sprites_vdp(void)
             const u16 link = (sprite_count >= (FRONTEND_RUNTIME_MAX_SPRITES - 1)) ? 0 : (u16)(sprite_count + 1);
             u16 tile_attr;
 
-            /* 0x41F8C fallback path stores hidden sprites as y=0x0180 at word1. */
-            if (data == 0)
+            /* Hide only truly empty tuples; valid arcade tuples can have word0 == 0. */
+            if ((data == 0) && (y_raw == 0) && (code == 0) && (x_raw == 0))
                 y_raw = 0x0180;
             y = (s16)(y_raw & 0x01FF);
 

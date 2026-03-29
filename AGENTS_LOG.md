@@ -22007,3 +22007,47 @@ delta:             +6 bytes (2 -> 8)
 
 - next step
   - fix the renderer guard: remove or narrow the `if (data == 0) y_raw = 0x0180` check in genesistan_render_sprites_vdp (main.c line 1591-1592); replace with a test that hides only entries where the full entry is zero (all four words zero), or where word1 itself is already 0x0180 — not where word0 alone is zero
+
+## [Cody - Implementation, Renderer Hide Guard Fix]
+```text
+- single file changed
+  - apps/rastan/src/main.c
+
+- exact guard change
+  - before: if (data == 0) y_raw = 0x0180;
+  - after:  if ((data == 0) && (y_raw == 0) && (code == 0) && (x_raw == 0)) y_raw = 0x0180;
+  - supporting parse change: introduced x_raw (unmasked word3) so empty-tuple detection checks all four descriptor words.
+
+- build artifact name
+  - dist/Rastan_278.bin
+  - build command: source tools/setup_env.sh && make -C apps/rastan release
+
+- runtime tuple result
+  - probe: /tmp/phase2_guardfix_probe.txt
+  - required tuple observed repeatedly: w0=0000 w1=00E8 w2=03CA w3=0010
+  - counts:
+    - target_tuple_hits=38
+    - old_guard_true=38
+    - new_guard_true=0
+  - execution hits:
+    - HIT 03AAEC 1
+    - HIT 03AAF2 1
+    - HIT 05A174 1
+    - HIT 2005C4 198
+
+- visual result
+  - capture: /tmp/build278_guardfix_logo.avi
+  - extracted frame: /tmp/build278_guardfix_frame700.png
+  - classification: FAIL (no visible sprite/logo pixels confirmed in this capture)
+
+- regression result
+  - empty-entry suppression preserved (guard now applies only to fully-zero tuple)
+  - text producer path still executes:
+    - HIT 03BD5E 5
+    - HIT 20034C 5
+    - D0_AT_03BD5E includes selector 0x00000002 once (CREDIT dispatch observed)
+
+- final verdict
+  - renderer hide-guard bug was narrowed as requested and runtime evidence confirms valid block-A tuples are no longer hidden by word0 alone.
+  - visible logo pixels are not yet confirmed in this build capture.
+```
