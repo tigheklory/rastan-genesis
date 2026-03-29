@@ -22750,3 +22750,73 @@ Full plan: docs/design/system_wide_sprite_visibility_bringup_plan.md
     - non-C commit path sustained
   - Visual blocks are still not visible in current capture; visual classification remains FAIL.
 ```
+
+## [Andy - Full Prototype Sprite Execution Path]
+
+### Chosen Prototype Path (one sentence)
+
+Option A: per-vblank flat scan of Block-A (18 entries at 0xE0FF11FE), decode unique PC090OJ
+cells via `frontend_decode_pc090oj_cell()`, DMA-upload to VRAM tile region starting at
+`FRONTEND_RUNTIME_SPRITE_TILE_BASE` (1024), populate `genesistan_sprite_tile_lut[18]`,
+then have `genesistan_sprite_commit_asm` read that LUT for real VRAM tile indices instead of
+the current `move.w #0x8001` hardcode.
+
+### What Moves NOW
+
+- Tile decode: call `frontend_decode_pc090oj_cell(code, dst)` per unique Block-A tile code,
+  new C function `genesistan_sprite_tile_prepare()` called from vblank handoff before commit
+- VRAM tile residency: DMA decoded tiles to VRAM tile 1024+ via `VDP_loadTileData(... DMA)`
+  before assembly commit fires; region 0x8000–0x9FFF reserved for prototype sprite tiles
+- LUT publication: `genesistan_sprite_tile_lut[18]` populated by prepare step (new WRAM var)
+- SAT tile index: assembly commit replaces `#0x8001` hardcode with LUT read per entry N
+
+### Tile Decode / VRAM Ownership Summary
+
+- **Source**: `rastan_pc090oj[]` embedded in Genesis ROM; 4096 cells × 128 bytes each
+- **Format**: PC090OJ 4bpp packed; each 128-byte cell = 16×16 pixel sprite = 4 Genesis 8×8
+  tiles; decode splits rows 0–7 and 8–15 into top/bottom pairs, each pair into left/right tiles;
+  output: 4 × 32 byte Genesis tiles in VDP 4bpp format (no reformat needed)
+- **VRAM destination**: tiles 1024–1279 (0x8000–0x9FFF); FRONTEND_RUNTIME_SPRITE_TILE_BASE=1024
+- **Residency policy**: per-frame flat dedup; no eviction; LUT rebuilt every vblank from Block-A
+- **Index formula**: `vram_tile = FRONTEND_RUNTIME_SPRITE_TILE_BASE + (slot * 4)`;
+  `slot` = index of code in current frame's unique code list;
+  SAT word2 = `(vram_tile & 0x07FF) | 0x8000`
+
+### Vblank-Owned Flow (numbered)
+
+1. `genesistan_refresh_arcade_inputs()` — input shadow update
+2. `genesistan_run_original_frontend_tick()` — arcade level-5 handler; Block-A producer at
+   0x03AAEC fills 0xE0FF11FE with 18 fresh entries
+3. `genesistan_sprite_tile_prepare()` [NEW C] — scan Block-A 18 entries, decode unique PC090OJ
+   cells, DMA upload to VRAM tile 1024+, populate `genesistan_sprite_tile_lut[18]`
+4. `genesistan_sprite_commit_asm()` [MODIFIED ASM] — reads Block-A + LUT, writes real SAT
+   entries to VDP VRAM 0xF800 via direct CPU writes to 0xC00000
+
+### Success Criteria (numbered)
+
+1. `genesistan_sprite_tile_prepare()` called every vblank before `genesistan_sprite_commit_asm()`
+   — static code check in main.c
+2. VRAM 0x8000 (tile 1024) contains non-zero, non-uniform data at frame 700 — proves real
+   decoded pixels, not test pattern
+3. SAT entry 0 tile_attr (at 0xF804) NOT equal to 0x8001 — equals 0x8400 for tile 1024 slot 0
+4. `genesistan_sprite_tile_lut[0]` at runtime equals 0x0400 (1024) — WRAM probe verification
+5. Visible sprite pixels with recognizable non-uniform content at frame 700 — visual PASS
+6. `genesistan_render_sprites_vdp()` NOT called from vblank handoff — static code check
+7. Both prepare and commit fire at ~791-vblank rate matching arcade tick — probe hit counts
+
+### Out-of-Scope
+
+- One-sprite or logo-specific handling
+- PC080SN tilemap/background conversion
+- Final palette correctness
+- Final animation fidelity (cycling)
+- Final flipscreen fidelity
+- Final sprite size decoding (all sizes)
+- Text/background system
+- Scroll system
+- Block-B entries (0xE0FF01BC) in tile prepare step
+- `genesistan_render_sprites_vdp()` function body deletion
+- ROM/spec JSON changes
+- Exception handlers
+
+Full plan: docs/design/full_prototype_sprite_execution_path.md
