@@ -22051,3 +22051,48 @@ delta:             +6 bytes (2 -> 8)
   - renderer hide-guard bug was narrowed as requested and runtime evidence confirms valid block-A tuples are no longer hidden by word0 alone.
   - visible logo pixels are not yet confirmed in this build capture.
 ```
+
+## [Andy - VBlank Architecture Plan]
+
+### Architecture Summary
+
+The arcade Level 5 VBlank handler at 0x3A008 is the authoritative frame controller; all per-frame
+graphics production, state dispatch, input polling, and sound timing run inside it. Genesis-specific
+VDP/DMA commit steps are inserted into this arcade VBlank flow, replacing only the hardware-facing
+operations (PC090OJ sprite RAM writes, PC080SN tilemap writes, PC080SN scroll register writes) with
+WRAM-buffered equivalents followed by VDP DMA. No separate SGDK/C renderer may own display after
+the arcade code launches.
+
+### VBlank Ownership Decision
+
+Arcade vblank (0x3A008, Level 5 interrupt) is the sole frame owner. The SGDK VBlank framework
+(`SYS_doVBlankProcess`) operates only during the launcher/config phase (before SCREEN_FRONTEND_LIVE).
+After handoff, all display commit runs inside the arcade interrupt handler.
+
+### Commit Phase (Ordered)
+
+1. Interrupt mask (KEEP — `oriw #0x0F00, sr`)
+2. Non-graphics housekeeping (KEEP with hardware removals: watchdog + sync latch removed)
+3. Per-state dispatch (KEEP EXACTLY — `jmp a0@` via 0x3A06C table)
+4. GENESIS: Palette publish — DMA `genesistan_palette_rom_table` → CRAM on palette-dirty flag
+5. Clear SAT staging — fill `genesistan_shadow_d00000_words` with zero (replaces `0x3AD4C`)
+6. Clear text shadow — fill 0xE0FFC84C with 0x0020 (replaces `0x3AE64`)
+7. Text producers execute — `genesistan_hook_text_writer_3bb48_impl` writes to text shadow
+8. Logo/sprite descriptor producer — block-A builder 0x05A2B4 fills WRAM descriptor blocks (must precede step 10)
+9. GENESIS: Tile cache resolve — DMA cache-miss tiles from `rastan_pc080sn` → VRAM
+10. Sprite renderer — `genesistan_render_sprites_vdp` builds SAT tuples in `genesistan_shadow_d00000_words`
+11. GENESIS: DMA B — SAT staging → VRAM 0xF800
+12. GENESIS: DMA C — text shadow → VDP plane A/B nametables
+12b. Scroll publish — `genesistan_scroll_from_workram_vdp` reads WRAM → VDP VSRAM
+13. Post-dispatch cleanup (KEEP — `jsr 0x55CA2`)
+14. Interrupt restore + RTE (KEEP — `andiw #-3841, sr` + `rte`)
+
+### Implementation Phases (1–5 Names)
+
+1. Sprite Pipeline (Block-A → SAT → VDP)
+2. Tile Upload System (tile queue → DMA)
+3. Tilemap Updates (text shadow → VDP planes)
+4. Scroll Handling (WRAM scroll state → VDP registers)
+5. Palette Handling (palette buffer → CRAM)
+
+Output file: `docs/design/vblank_graphics_architecture_plan.md`
