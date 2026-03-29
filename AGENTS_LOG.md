@@ -21871,18 +21871,66 @@ Confirmed from `main.c` line 1563–1568 and `build231_descriptor_content_trace.
 
 - patch location: `shift_replacements` entry at arcade `0x059F90` (producer RTS)
 - current: `original_bytes: "4e75"`, `replacement_bytes: "4e75"` (identity, delta=0)
-- Phase 2 change: `replacement_bytes: "4eb90005a2b44e75"` (JSR + RTS, delta=+6)
-- target `0x05A2B4` = arcade `0x05A098` + `0x200` + 28 (shift after Phase 2 self-change)
+- Phase 2 change: `replacement_bytes: "4eb90005a0b44e75"` (JSR + RTS, delta=+6)
+- target genesis `0x05A2B4` = arcade `0x05A098` + `0x200` + 28 (shift after Phase 2 self-change)
 - shift before `0x05A098` after Phase 2: 22 (existing) + 6 (self) = 28 bytes
-- the replacement bytes are hardcoded final genesis address (not auto-relocated by patcher)
+- embedded value `0x05A0B4` is pre-compensated: patcher adds +0x200 -> ROM target `0x05A2B4`
+- formula (per absolute_call_target_fix_plan.md Strategy B): embedded = correct_genesis - 0x200
+- do NOT embed `0x05A2B4` directly — patcher would produce `0x05A4B4` (wrong)
 - must call FULL entry `0x05A098` (not `0x05A0B8`) to include preamble with A0 setup
 - no `.c` files, Makefile, or other spec files require modification
 
 ### Validation summary
 
-1. static: ROM at genesis `0x05A1A6` reads `4eb9 0005a2b4 4e75`; ROM at `0x05A2B4` reads `302d 013a`
+1. static: ROM at genesis `0x05A1A6` reads `4eb9 0005a2b4 4e75` (patcher: `0x05A0B4 + 0x200 = 0x05A2B4`); ROM at `0x05A2B4` reads `302d 013a` (preamble)
 2. memory: `0xE0FF11FE` (block-A base) contains nonzero words after producer executes
 3. renderer: `sprite_cache_nonzero_words > 0`; `sprite_code0` nonzero
 4. visual: logo sprite tiles appear on screen (any nonzero pixels in logo position)
 
 output file: `docs/design/blockA_producer_reconstruction_plan.md`
+
+---
+
+## [Andy - Phase 2, Block-A Finalization — COMPLETED]
+
+build: Rastan_276.bin (read-only analysis)
+mandate: Confirm 0x05A2CE analysis, verify patch address formula, finalize plan doc
+correction: previous entry had wrong `replacement_bytes` — fixed to `4eb90005a0b44e75`
+
+### Key correction — embedded address pre-compensation
+
+Per `absolute_call_target_fix_plan.md` Strategy B (TC1 proof):
+- patcher adds exactly +0x200 to embedded raw address in replacement_bytes
+- previous entry embedded `0x05A2B4` (final genesis addr) — patcher would produce `0x05A4B4` (WRONG)
+- correct: embed `0x05A0B4` (= `0x05A2B4 - 0x200`) so patcher produces `0x05A2B4` (CORRECT)
+
+### Builder 0x05A2CE / 0x05A2AE analysis — confirmed from ROM bytes
+
+ROM-confirmed preamble at genesis `0x05A2AE` (arcade `0x05A098`):
+```
+302D 013A   MOVE.W a5@(0x013A),D0   ; load animation counter
+0800 000F   BTST #15,D0             ; test reset flag
+6704        BEQ.S +4
+426D 013A   CLR.W a5@(0x013A)       ; clear if reset
+343C 0010   MOVE.W #0x10,D2         ; tile width
+363C 00E8   MOVE.W #0xE8,D3         ; Y base
+207C E0FF11FE  MOVEA.L #0xE0FF11FE,A0  ; block-A base
+302D 013A   MOVE.W a5@(0x013A),D0   ; reload
+```
+
+ROM-confirmed mid-entry at genesis `0x05A2CE` (arcade `0x05A0B8`): E048 (ASR.W #8,D0) — first body instruction.
+
+### Sufficiency verdict
+
+- 0x05A2CE (mid-entry) alone: NOT SUFFICIENT — skips preamble, A0/D2/D3 unset
+- 0x05A098 / 0x05A2B4 (full entry): YES SUFFICIENT — preamble sets everything, function self-contained
+
+### Final patch definition
+
+```
+spec entry:        shift_replacements at arcade_pc 0x059F90
+replacement_bytes: 4eb90005a0b44e75
+breakdown:         JSR + embedded(0x05A0B4) + RTS
+ROM output:        JSR 0x05A2B4 + RTS  (patcher: 0x05A0B4 + 0x200 = 0x05A2B4)
+delta:             +6 bytes (2 -> 8)
+```
