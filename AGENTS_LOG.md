@@ -22499,4 +22499,78 @@ Extract `VDP_updateSprites(sprite_count, DMA)` + `VDP_waitDMACompletion()` from 
 - Gameplay state sprite pipeline (states 2–4)
 - `startup_bridge.c` or any assembly trampoline changes
 
+## [Andy - First Non-C Graphics Migration Slice]
+
+Date: 2026-03-28
+
+### Chosen Slice (one sentence)
+
+New assembly routine `genesistan_sprite_commit_asm` in `startup_trampoline.s` reads Block-A
+WRAM descriptors at 0xE0FF11FE/0xE0FF01BC, converts coordinates and tile attr in 68000
+registers, and writes SAT entries directly to VDP data port (0xC00000) after setting VRAM
+address 0xF800 — bypassing `vdpSpriteCache`, `VDP_setSpriteFull`, and `VDP_updateSprites`
+entirely — called from `genesistan_frontend_live_vint_handoff()` in place of
+`genesistan_render_sprites_vdp()`.
+
+### What Moves NOW (to assembly)
+
+- SAT formation: Block-A 4-word layout → Genesis SAT 4-word layout, all arithmetic in 68000
+  assembly (add 0x80 for Y/X bias, mask tile code 0x3FFF, OR size+link constant 0x0500)
+- SAT direct VDP write: assembly sets VDP write address to VRAM 0xF800 via 0xC00004, then
+  writes 4 words per entry to 0xC00000 (CPU data-port writes — no DMA, no SGDK)
+- Coordinate conversion: `y + 0x80` and `x + 0x80` done as `add.w #0x80, dn` in assembly
+- Sentinel filtering: all-zero tuple skip and y==0x0180 off-screen skip in assembly branches
+
+### What Stays Temporary
+
+- Tile lookup: stubbed — assembly ORs tile code with a hardcoded VRAM base constant; no cache
+  miss resolution; tiles assumed already resident from prior scene init
+- Palette selection: hardcoded (palette 0, priority 1) in assembly tile_attr constant stub
+- Sprite size: hardcoded 0x0500 (2×2) in assembly size+link field
+- Flipscreen: deferred — not implemented in this slice
+- Link chain: sequential (entry N links to N+1, last = 0)
+
+### Fully Bypassed by New Assembly Path
+
+- `vdpSpriteCache` (SGDK SAT staging buffer at 0xE0FF6DF0) — not written
+- `VDP_setSpriteFull()` — not called
+- `VDP_updateSprites()` — not called
+- `genesistan_vblank_sprite_commit()` — not called from hot path
+- `genesistan_render_sprites_vdp()` — removed from vblank handoff call
+
+### Implementation Boundary
+
+- **GAINS**: `startup_trampoline.s` (or new `sprite_commit_asm.s`) — new exported symbol
+  `genesistan_sprite_commit_asm`; `main.c` — forward declaration added, one call-site change
+  in `genesistan_frontend_live_vint_handoff()`
+- **LOSES**: `main.c` `genesistan_render_sprites_vdp()` removed from vblank handoff call;
+  `genesistan_vblank_sprite_commit()` also removed from vblank handoff call
+- **UNTOUCHED**: all `specs/` JSON files, `startup_bridge.c`, exception handlers, tilemap/
+  palette/scroll code, Block-A WRAM locations, Block-A producer, SGDK init
+
+### Success Criteria
+
+1. `genesistan_render_sprites_vdp()` NOT called from vblank handoff — static code check
+2. `genesistan_sprite_commit_asm` called every vblank — hit count == arcade tick count (~791)
+3. VDP VRAM 0xF800 nonzero at frame 700 — `read_u16(0xF800)` returns nonzero (expect 0x0168)
+4. `vdpSpriteCache` at 0xE0FF6DF0 NOT updated each frame — stale value confirms bypass
+5. Visible sprite pixels on screen — any nonzero pixels in sprite plane confirm end-to-end
+
+### Out-of-Scope
+
+- Full tilemap conversion
+- Final palette correctness
+- Full sprite size decoding
+- Scroll system
+- Flipscreen
+- Tile upload / cache redesign
+- Sprite link chain correctness beyond sequential
+- Animation frame cycling
+- ROM/spec patch changes
+- Suppression of 0x03AAF2 arcade dispatch
+- Gameplay state sprite pipeline (states 2–4)
+- `genesistan_render_sprites_vdp()` body deletion (Phase 4 cleanup)
+
+Full plan: `docs/design/first_non_c_graphics_migration_slice.md`
+
 Full plan: `docs/design/first_real_graphics_replacement_slice.md`
