@@ -22419,3 +22419,25 @@ Add `genesistan_render_sprites_vdp()` call unconditionally in `genesistan_fronte
   - approved Phase 1 per-vblank helper-call insertion is implemented and validated for sustained runtime invocation and SAT publish activity.
   - visible sprite pixels are still not confirmed in the captured frame.
 ```
+
+## [Andy - Minimal Post-Launch Crash Handling Plan]
+
+### Current Exception State
+
+The project already has a fully custom exception subsystem (`z_qr_exception_handlers.s` + `z_qr_exception.c`), controlled by `RASTAN_EXCEPTION_DUMPER_MODE`. The Makefile default is **mode 1** (text dump). In mode 1, all eleven M68K exception vectors in the ROM header point to project-owned handlers that: (1) immediately mask all interrupts including the arcade vblank ISR, (2) capture all D/A registers, SSP, USP, and 16 stack frame words, (3) call `rastan_exception_render()` which writes exception type, PC, SR, key registers, and a backtrace to VDP BG_A in text mode, then (4) loop forever. This handler is active for the entire session and does not interact with SGDK frame ownership.
+
+### Preferred Option
+
+**D — Retain the project's existing custom exception display (`RASTAN_EXCEPTION_DUMPER_MODE=1`).** The handler already exists, is compiled into every build, and is fully independent of SGDK frame timing.
+
+### Justification
+
+The project solved this problem before this design task was written. Mode 1 masks the vblank ISR on entry so the arcade vblank owner is silenced immediately; it displays enough crash information (PC, registers, backtrace) to diagnose bad-pointer bugs during graphics bring-up; and it requires zero new implementation. The only verification needed is that the Makefile default remains `RASTAN_EXCEPTION_DUMPER_MODE ?= 1`, which it currently does. Adding auto-reset after the crash screen is deferred until post-bring-up.
+
+### Implementation Boundary
+
+**Cody touches:** Confirm `Makefile` default is mode 1 (no code change expected). Optionally: run a deliberate bad-pointer test to verify the crash screen appears.
+
+**Cody does NOT touch:** `main.c`, `startup_bridge.c`, `z_qr_exception.c`, `z_qr_exception_handlers.s`, `boot/sega.s`, any `.json` spec files, vblank handlers, SAT/sprite pipeline work.
+
+Full plan: `docs/design/minimal_post_launch_crash_handling_plan.md`
