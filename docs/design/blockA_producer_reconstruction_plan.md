@@ -344,3 +344,33 @@ target `0x05A2B4` (the post-Phase-2 genesis address of the full builder entry pr
 0x05A2CE sufficiency verdict: NO — mid-entry lacks preamble; A0/D2/D3 not set. Full entry 0x05A098 IS sufficient (YES).
 Phase 2 patch target: shift_replacement at arcade 0x059F90 → JSR 0x05A2B4 (embedded 0x05A0B4) + RTS (8 bytes)
 Block-A builder at 0x05A2CE is confirmed as the missing sprite producer; Phase 2 requires restoring its execution in the producer path.
+
+---
+
+## Phase 2 Failure Analysis — No Visible Sprites
+
+### State at Builder Execution
+
+The builder at genesis `0x05A2B4` executes correctly. Block-A becomes nonzero: `word0=0000 word1=00E8 word2=03CA word3=0010`. This confirms the builder runs and writes all four words. The screen value (`0xFF6DCC`) and state values (`A5+0x004C/4E/50`) have not been directly captured in this analysis pass, but are not needed — the block-A data itself confirms the builder reached the write path.
+
+The builder preamble loads `A5+0x013A` (animation counter), tests bit 15 (`BTST #0F`), conditionally clears it, then sets `D2=0x0010`, `D3=0x00E8`, and `A0=0xE0FF11FE`. All three registers are established correctly by the full-entry preamble.
+
+### word0 (attr) Source Analysis
+
+Instruction at ROM `0x05A336`: `MOVE.W #0000,(A0)+` — this is the first write to block-A for each sprite entry.
+
+`word0 = 0x0000` is **hardcoded** as an immediate constant `#0000` in the builder. It is not computed from state, not loaded from A5-relative workram, and not conditional on any branch. Both branch paths in the main loop (bit 0 of D6 taken/not-taken) converge to this same `MOVE.W #0000,(A0)+` instruction. A second loop iteration also shows `0x05A35A: MOVE.W #0000,(A0)+`. The value `0x0000` for `word0` is the authentic arcade value — the arcade PC090OJ hardware did not require a nonzero attribute word; it used y=0x0180 as its own hidden sentinel, not attr=0.
+
+In the Genesis renderer (`main.c` line 1591): `if (data == 0) y_raw = 0x0180;` — `data` is `word0`. When `word0=0`, the renderer **overrides** `word1` (the actual y=`0x00E8`) with the off-screen sentinel `0x0180`, placing every sprite off-screen regardless of the real y coordinate.
+
+### Root Cause Classification
+
+**D) VALID BUT HIDDEN ENTRY**
+
+The builder produces correct arcade-format data. `word0=0x0000` is the authentic arcade attr value — the arcade PC090OJ hardware never used attr=0 as a hidden signal. The Genesis renderer, however, treats `data==0` (word0==0) as the hidden/off-screen sentinel, overriding `y_raw` to `0x0180` on every entry. All logo sprites have word0=0, so all are forced off-screen. The x/y/tile data (words 1–3) are correct and on-screen, but they are never reached because the sentinel override fires first.
+
+This is a renderer–producer contract mismatch: the arcade contract is "use y=0x0180 to hide"; the Genesis renderer contract is "use word0=nonzero to show". The builder honors the arcade contract; the renderer enforces the Genesis contract.
+
+### Next Action
+
+Remove the `if (data == 0) y_raw = 0x0180;` guard from `genesistan_render_sprites_vdp` in `main.c` line 1591–1592, or replace it with a test that only applies the sentinel when the full entry is zero (all four words zero), not when word0 alone is zero. The arcade valid-entry signal is nonzero tile code (word2) and on-screen y (word1 < 0x0180), not nonzero attr (word0).

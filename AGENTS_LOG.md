@@ -21984,3 +21984,26 @@ delta:             +6 bytes (2 -> 8)
   - single approved bytes implemented and static/runtime producer+payload checks pass
   - logo pixel visibility is not yet confirmed in current pre-coin capture
 ```
+
+## [Andy - Phase 2, No Sprite Visibility Root Cause]
+
+- state at builder execution
+  - builder at genesis 0x05A2B4 executes and writes all four words to block-A
+  - block-A result confirmed nonzero: word0=0000 word1=00E8 word2=03CA word3=0010
+  - D2=0x0010, D3=0x00E8, A0=0xE0FF11FE all correctly initialized by preamble
+  - state0/state1/state2 and screen value not directly observed this pass; not required since block-A data confirms builder reached write path
+
+- word0 source (instruction + value)
+  - instruction at ROM 0x05A336: MOVE.W #0000,(A0)+
+  - word0 = 0x0000 is a hardcoded immediate constant, not computed from state
+  - same hardcoded pattern repeats at 0x05A35A for every entry in the loop
+  - this is the authentic arcade attr value; arcade PC090OJ hardware used y=0x0180 as hidden sentinel, not attr=0
+
+- classification: D) VALID BUT HIDDEN ENTRY
+  - builder produces correct arcade-format data; word0=0 is the real arcade value
+  - Genesis renderer at main.c line 1591 applies: if (data == 0) y_raw = 0x0180
+  - this overrides word1 (actual y=0x00E8, on-screen) with the off-screen sentinel 0x0180
+  - all logo entries have word0=0, so all are forced off-screen; x/y/tile data are correct but suppressed by sentinel
+
+- next step
+  - fix the renderer guard: remove or narrow the `if (data == 0) y_raw = 0x0180` check in genesistan_render_sprites_vdp (main.c line 1591-1592); replace with a test that hides only entries where the full entry is zero (all four words zero), or where word1 itself is already 0x0180 — not where word0 alone is zero
