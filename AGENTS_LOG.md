@@ -22646,3 +22646,44 @@ Full plan: `docs/design/first_real_graphics_replacement_slice.md`
     - SAT at `0xF800` is nonzero from assembly-driven writes
   - Visual sprite correctness is not yet achieved in this build.
 ```
+
+## [Andy - System-Wide Sprite Visibility Bring-Up Plan]
+
+- chosen slice: Option A — tile visibility bring-up: write a known solid-color tile to VRAM tile slot 1 at startup and override all SAT tile_attr fields in `genesistan_sprite_commit_asm` to reference tile 1 (0x8001) for all Block-A entries.
+
+- why chosen: PAL0 in CRAM is already nonzero and visible (rastan_active_dip_palette loaded by restore_launcher_vdp_state() at launch; entries 1-15 = 0x0EE0, bright yellow-green). Palette is not the blocker. The assembly commit references VRAM tile index 0x07CA and neighbors for Block-A entries, but no tile upload occurs in the live vblank path — genesistan_render_sprites_vdp() (which contained the tile DMA upload) is dead code. VRAM at those tile slots is empty or residual. Tile data is the only remaining gate.
+
+- system-wide rule: All SAT entries built from the Block-A stream (all 18 entries at 0xE0FF11FE processed by genesistan_sprite_commit_asm each vblank) will reference VRAM tile index 1 (0x8001 = priority on, palette 0, tile 1). A solid-color test tile (all pixels = index 1) is written to VRAM tile 1 once at title screen initialization. No per-entry exception; no entry-0-specific path.
+
+- implementation boundary:
+  - `apps/rastan/src/main.c` — one-time 32-byte CPU write to VDP VRAM tile slot 1 (address 0x0020), called from the launch path at or after genesistan_sync_title_vdp_layout() (line 1773); pattern = 0x1111 repeated (all pixels = PAL0 index 1)
+  - `apps/rastan/src/startup_trampoline.s` — in genesistan_sprite_commit_asm loop, replace the three-instruction tile index build (andi/addi/ori) with a single `move.w #0x8001, %d1`; applies to every iteration of the Block-A loop
+  - All spec/JSON files — UNTOUCHED
+  - Block-A producer (0x05A2B4) — UNTOUCHED
+  - Block-A WRAM (0xE0FF11FE) — UNTOUCHED
+  - Exception handlers — UNTOUCHED
+  - Tilemap/scroll/palette code — UNTOUCHED
+
+- success criteria:
+  1. At least 3 sprites from the live Block-A stream have visible solid-color pixels on screen simultaneously (frame 700 or equivalent)
+  2. VDP VRAM tile slot 1 (address 0x0020) contains nonzero pattern bytes — read_u16(0x0020) returns nonzero (expect 0x1111)
+  3. All non-sentinel SAT entries at 0xF800 have tile_attr word == 0x8001 — confirmed by SAT region inspection
+  4. genesistan_sprite_commit_asm fires every vblank and processes all 18 Block-A entries — hit count equals arcade tick count (~791 per 791-vblank run)
+
+- out-of-scope:
+  - Title-logo-specific handling
+  - Entry-0-specific handling
+  - Full PC080SN tilemap conversion
+  - Final arcade palette correctness
+  - Final tile residency/cache design
+  - Full sprite size decoding (size stays 2x2)
+  - Flipscreen fidelity
+  - Animation correctness (all entries use tile 1)
+  - Sprite link chain correctness
+  - ROM/spec patch changes
+  - Block-B entries (0xE0FF01BC, 4 entries)
+  - load_arcade_palette() integration
+  - refresh_frontend_sprite_palettes() integration
+  - Gameplay state sprite pipeline (states 2-4)
+
+Full plan: docs/design/system_wide_sprite_visibility_bringup_plan.md
