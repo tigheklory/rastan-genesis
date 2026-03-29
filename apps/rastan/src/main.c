@@ -201,6 +201,7 @@ static u8 sound_test_last_command = 0x00;
 static bool sound_test_has_triggered = FALSE;
 static volatile u32 packed_romset_size_cache = 0;
 static volatile u32 packed_romset_signature_cache = 0;
+static volatile bool frontend_live_handoff_active = FALSE;
 typedef struct
 {
     u8 code;
@@ -337,6 +338,7 @@ static void leave_startup_preview(void);
 static u32 get_packed_romset_size(void);
 static u32 get_packed_romset_signature(void);
 static void restore_launcher_vdp_state(void);
+static void genesistan_frontend_live_vint_handoff(void);
 void rastan_draw_tile_xy(u16 tile_attr, int x, int y);
 
 static void draw_padded_text(const char *text, u16 x, u16 y, u16 width)
@@ -1754,11 +1756,15 @@ static void request_start_rastan(void)
 {
 #if RASTAN_ENABLE_STARTUP_HOOK
     scrub_launcher_runtime_buffers();
+    genesistan_reclaim_launcher_wram();
     genesistan_init_workram_direct(
         rastan_virtual_dip1,
         rastan_virtual_dip2);
     restore_launcher_vdp_state();
     current_screen = SCREEN_FRONTEND_LIVE;
+    frontend_live_handoff_active = TRUE;
+    SYS_setVIntCallback(genesistan_frontend_live_vint_handoff);
+    SYS_enableInts();
     VDP_setHInterrupt(0);
     VDP_setHIntCounter(0xFF);
     VDP_clearPlane(BG_A, TRUE);
@@ -1816,6 +1822,8 @@ static u32 get_packed_romset_signature(void)
 static void reset_launcher_runtime_state(void)
 {
     /* Always start the launcher from known factory defaults. */
+    frontend_live_handoff_active = FALSE;
+    SYS_setVIntCallback(NULL);
     rastan_virtual_dip1 = FACTORY_DIP1;
     rastan_virtual_dip2 = FACTORY_DIP2;
     selected_menu = 0;
@@ -1868,6 +1876,20 @@ static void sanitize_arcade_workram(void)
 static void sync_arcade_scroll_to_vdp(void)
 {
     genesistan_scroll_from_workram_vdp();
+}
+
+static void genesistan_frontend_live_vint_handoff(void)
+{
+#if RASTAN_ENABLE_STARTUP_HOOK
+    if (!frontend_live_handoff_active || (current_screen != SCREEN_FRONTEND_LIVE))
+    {
+        return;
+    }
+
+    /* Post-launch frame ownership: arcade level-5 tick runs from V-Int only. */
+    genesistan_refresh_arcade_inputs();
+    genesistan_run_original_frontend_tick();
+#endif
 }
 
 int main(bool hardReset)
@@ -1929,13 +1951,10 @@ int main(bool hardReset)
         }
         else if (current_screen == SCREEN_FRONTEND_LIVE)
         {
-            genesistan_refresh_arcade_inputs();
-            genesistan_run_original_frontend_tick();
-            genesistan_sync_title_vdp_layout();
-            sanitize_arcade_workram();
-            load_arcade_palette();        /* Build 104 */
-            sync_arcade_scroll_to_vdp();
-            render_frontend_sprite_layer(); /* Build 138: direct workram descriptor path */
+            /*
+             * Ownership handoff: launcher loop no longer drives live-frame
+             * progression or post-launch display updates.
+             */
         }
         else if (current_screen == SCREEN_STARTUP_PREVIEW)
         {
@@ -2023,7 +2042,10 @@ int main(bool hardReset)
         }
 
         previous_state = state;
-        SYS_doVBlankProcess();
+        if (current_screen != SCREEN_FRONTEND_LIVE)
+        {
+            SYS_doVBlankProcess();
+        }
     }
 
     return 0;

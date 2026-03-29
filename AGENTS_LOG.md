@@ -22096,3 +22096,62 @@ After handoff, all display commit runs inside the arcade interrupt handler.
 5. Palette Handling (palette buffer → CRAM)
 
 Output file: `docs/design/vblank_graphics_architecture_plan.md`
+
+## [Cody - Implementation, VBlank Ownership Handoff]
+```text
+- file(s) changed
+  - apps/rastan/src/main.c
+
+- exact handoff logic
+  - Identified old post-launch owner path in SCREEN_FRONTEND_LIVE main-loop branch:
+    - genesistan_refresh_arcade_inputs
+    - genesistan_run_original_frontend_tick
+    - genesistan_sync_title_vdp_layout
+    - sanitize_arcade_workram
+    - load_arcade_palette
+    - sync_arcade_scroll_to_vdp
+    - render_frontend_sprite_layer
+    - plus unconditional SYS_doVBlankProcess at loop tail
+  - Added V-Int handoff callback `genesistan_frontend_live_vint_handoff` gated by:
+    - frontend_live_handoff_active == TRUE
+    - current_screen == SCREEN_FRONTEND_LIVE
+  - Callback now drives only:
+    - genesistan_refresh_arcade_inputs
+    - genesistan_run_original_frontend_tick (arcade level-5 flow)
+  - Handoff activation at launch (`request_start_rastan`):
+    - genesistan_reclaim_launcher_wram
+    - frontend_live_handoff_active = TRUE
+    - SYS_setVIntCallback(genesistan_frontend_live_vint_handoff)
+    - SYS_enableInts
+  - Pre-launch reset (`reset_launcher_runtime_state`):
+    - frontend_live_handoff_active = FALSE
+    - SYS_setVIntCallback(NULL)
+  - Main loop change:
+    - SCREEN_FRONTEND_LIVE branch no longer performs post-launch update/render calls
+    - SYS_doVBlankProcess now runs only when current_screen != SCREEN_FRONTEND_LIVE
+
+- build artifact
+  - dist/Rastan_278.bin
+  - build command: source tools/setup_env.sh && make -C apps/rastan release
+
+- proof launcher ownership stops post-launch
+  - probe: /tmp/vblank_handoff_probe.txt
+  - launch_detected frame=241
+  - STAT sys_dovblankprocess_ex total=227 pre=227 post=0 last=240
+
+- proof arcade level-5 remains active
+  - probe: /tmp/vblank_handoff_probe.txt
+  - STAT frontend_live_vint_handoff total=371 pre=0 post=371 last=619
+  - STAT run_original_frontend_tick total=371 pre=0 post=371 last=619
+  - STAT arcade_level5_entry total=371 pre=0 post=371 last=619
+
+- pre-launch regression check
+  - visual capture: /tmp/build278_vblank_handoff.avi
+  - pre-launch frame: /tmp/build278_vblank_handoff_frame_001.png
+  - launcher/config screen visible before launch
+
+- final verdict
+  - post-launch launcher/SGDK owner path is disabled
+  - arcade level-5 path remains active as sole post-launch frame owner
+  - dual ownership removed after launch
+```
