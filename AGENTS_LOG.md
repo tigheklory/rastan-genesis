@@ -22286,3 +22286,33 @@ Output file: `docs/design/vblank_graphics_architecture_plan.md`
   - Selected: **E. VDP sprite table base/write issue**
   - Basis: producer + Block-A + SAT staging are active/nonzero, but SAT VRAM region at `0xF800` is still zero in measured frame.
 ```
+
+## [Andy - SAT Publish Failure Diagnosis]
+
+Date: 2026-03-28
+
+### Publish Path Summary
+
+`genesistan_render_sprites_vdp` is invoked via: SGDK V-INT → `genesistan_frontend_live_vint_handoff` → `genesistan_run_original_frontend_tick` → arcade ROM 0x03A208 → arcade state machine → dispatch at 0x03AAF2 → `genesistan_render_sprites_vdp_bridge` → `genesistan_render_sprites_vdp`.
+
+Inside the function: `VDP_setSpriteFull()` loop fills `vdpSpriteCache`, then `VDP_updateSprites(sprite_count, DMA)` + `VDP_waitDMACompletion()` fires an **immediate hardware DMA** (not queued) to VRAM at `VDP_SPRITE_TABLE = slist_addr = 0xF800`.
+
+### SAT Base Verdict: YES — 0xF800 is the active SAT base
+
+`genesistan_sync_title_vdp_layout()` calls `VDP_setSpriteListAddress(0xF800)`. In H40 mode: `slist_addr = 0xF800 & 0xFC00 = 0xF800`. VDP reg5 = 0x7C → SAT base = 0xF800. Confirmed correct.
+
+### SGDK Dependency Verdict: NOT APPLICABLE
+
+`SYS_doVBlankProcess()` is suppressed in the main loop during `SCREEN_FRONTEND_LIVE` (main.c:2045-2048). This would block `DMA_flushQueue()` for any queued transfers. However, `genesistan_render_sprites_vdp` uses `DMA` mode (not `DMA_QUEUE`), so the DMA is immediate and no SGDK flush step is needed or missing.
+
+### Primary Failure Classification: B
+
+**B — Publish function not executing (VDP_updateSprites not called each frame)**
+
+The arcade ROM frontend tick runs 791 times (`HIT 03A208 791`) but `genesistan_render_sprites_vdp` is only hit **2 times** (`HIT 2005C4 2`). The arcade state machine at 0x03A208 only dispatches the renderer hook at 0x03AAF2 for a brief initial window (1-7 frames). After the arcade state advances past that window, the renderer is never called again. The SAT DMA is not sustained per-frame. VRAM 0xF800 reverts to zeros at frame 700 because no fresh DMA fires after the first 2 frames.
+
+The `sat_port_writes_words = 0` measurement is a probe blind-spot — hardware DMA never produces CPU data-port writes and is invisible to the tap. The real failure evidence is `vram_f800 = 0000` at frame 700 combined with the hit-count discrepancy (791 vblanks, 2 renderer calls).
+
+### Minimal Next Step
+
+Call `genesistan_render_sprites_vdp()` unconditionally from `genesistan_frontend_live_vint_handoff()` on every V-INT, after `genesistan_run_original_frontend_tick()` completes, instead of relying on the arcade ROM state machine to dispatch via 0x03AAF2. This ensures SAT DMA fires every frame.
