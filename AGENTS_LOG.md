@@ -21731,3 +21731,52 @@ This is the turning point of the project.
   - No Genesis hardcoded target was introduced for deferred entries; target source of truth is operand_arcade_target.
   - Existing non-deferred behavior remains unchanged.
 ```
+
+## [Andy - Verification, CREDIT/TILT Provenance]
+
+```
+date: 2026-03-28
+build: Rastan_276.bin
+mandate: READ-ONLY forensic analysis
+output: docs/design/credit_tilt_provenance_report.md
+
+- investigation summary
+  - determined provenance of two onscreen text strings observed in build ~276 on BlastEm/Exodus
+  - "CREDIT" appears after coin-up
+  - "TILT" appears in upper-left after A+B+C+Start input, then system returns to launcher
+
+- CREDIT findings
+  - arcade ROM descriptor: 0x3BCBE, text "CREDIT   " at 0x3BCC4, D6=0x00C09E84 (C-window)
+  - genesis ROM descriptor: 0x3BED4, text "CREDIT   " at 0x3BEDA, D6=0xE1000126 (WRAM)
+  - genesis selector table entry[2] at 0x3BD9A -> 0x3BED4
+  - callsite: arcade 0x03B09C, MOVEQ #2, D0, BSR to text dispatch at 0x2027C0
+  - text bytes byte-for-byte identical between arcade and genesis ROM
+  - address arithmetic: 0x3BCC4 + 0x200 + 22 = 0x3BEDA (confirmed)
+  - verdict: REAL — 100% arcade-original, patcher-translated D6 destination, no C-code injection
+
+- TILT findings
+  - arcade ROM descriptor: 0x3BDCC, text "TILT" at 0x3BDD2, D6=0x00C08B50 (C-window)
+  - genesis ROM descriptor: 0x3BFE2, text "TILT" at 0x3BFE8, D6=0xE0FFEDF2 (WRAM)
+  - genesis selector table entry[14] at 0x3BDC6 -> 0x3BFE2
+  - callsite: arcade 0x03ABCA, BTST #2,(0x390007) / BNE skip / MOVEQ #14, D0 / BSR to text dispatch
+  - trigger condition: bit 2 of 0x390007 clear = tilt/service active
+  - genesis mapping: build_system_input_byte() clears bit 2 when A+B+C simultaneously held
+  - A+B+C+Start behavior: A+B+C -> bit 2 clear -> TILT displayed (arcade logic);
+    +Start -> Genesis hardware soft-reset -> return to launcher (SGDK/hardware, independent)
+    These are two independent effects of the same button combination, not a TILT-induced reset.
+  - text bytes byte-for-byte identical between arcade and genesis ROM
+  - address arithmetic: 0x3BDD2 + 0x200 + 22 = 0x3BFE8 (confirmed)
+  - verdict: REAL — 100% arcade-original, patcher-translated D6 destination, no C-code injection
+
+- fake text path audit
+  - main.c: "CREDIT" appears only in settings menu help strings (launcher UI), not game logic
+  - startup_bridge.c: neither CREDIT nor TILT found
+  - postpatch_startup_rom.py: neither CREDIT nor TILT found
+  - startup_title_remap.json: neither CREDIT nor TILT found
+  - result: NO FAKE OR SCAFFOLD TEXT PATHS for either string
+
+- final verdicts
+  CREDIT verdict: REAL — arcade-original text, patcher-translated destination, no C-code injection
+  TILT verdict: REAL — arcade-original text, patcher-translated destination, no C-code injection
+  Fake text path status: NONE FOUND
+```
