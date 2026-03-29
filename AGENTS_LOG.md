@@ -21834,3 +21834,55 @@ output: docs/design/title_screen_state_analysis.md
   - full title screen blocked by missing block-A content, not wrong state machine path
   - correct fix: Phase 2 translation of block-A content-building logic in 0x05A174
 ```
+
+## [Andy - Phase 2, Block-A Finalization]
+
+build: Rastan_276.bin (read-only analysis)
+mandate: Analyze 0x05A2CE, define block-A entry format, define Phase 2 patch target
+output: docs/design/blockA_producer_reconstruction_plan.md
+
+### Builder address and function analysis
+
+- block-A builder: arcade entry `0x05A098`, current genesis `0x05A2AE`
+- D-7 historical mid-function entry: arcade `0x05A0B8`, current genesis `0x05A2CE`
+- D-7 BSR from arcade `0x059F90` (+0x0124 displacement) targeted `0x05A0B8` (mid-entry),
+  bypassing the 32-byte preamble that sets `A0 = 0xE0FF11FE`, `D2 = 0x0010`, `D3 = 0x00E8`
+- function preamble (at `0x05A2AE`): loads animation counter from `a5@(0x013A)`, conditionally
+  clears it, sets `D2 = 0x0010` (tile width), `D3 = 0x00E8` (Y-base), `A0 = 0xE0FF11FE` (block-A)
+- function body (from `0x05A2CE`): extracts attr from D0, increments animation phase, iterates
+  sprite entries from A5-relative workram, writes 4-word descriptors to `(A0)+`
+- function ends at genesis `0x05A458` with `RTS`
+- the function is self-contained when called at full entry `0x05A098`; NO pre-setup required
+
+### Block-A entry format summary
+
+8 bytes (4 words) per entry, base `0xE0FF11FE` (18 entries):
+
+```
+word0 (+0): attr/flags  — if 0, renderer forces y_raw=0x0180 (hidden)
+word1 (+2): y_raw       — Y coordinate; >0x0140 sign-extended negative
+word2 (+4): tile code   — code & 0x3FFF; if tile_base<0, entry skipped
+word3 (+6): x position  — X coordinate; >0x0140 sign-extended negative
+```
+
+Confirmed from `main.c` line 1563–1568 and `build231_descriptor_content_trace.md`.
+
+### Minimal patch plan
+
+- patch location: `shift_replacements` entry at arcade `0x059F90` (producer RTS)
+- current: `original_bytes: "4e75"`, `replacement_bytes: "4e75"` (identity, delta=0)
+- Phase 2 change: `replacement_bytes: "4eb90005a2b44e75"` (JSR + RTS, delta=+6)
+- target `0x05A2B4` = arcade `0x05A098` + `0x200` + 28 (shift after Phase 2 self-change)
+- shift before `0x05A098` after Phase 2: 22 (existing) + 6 (self) = 28 bytes
+- the replacement bytes are hardcoded final genesis address (not auto-relocated by patcher)
+- must call FULL entry `0x05A098` (not `0x05A0B8`) to include preamble with A0 setup
+- no `.c` files, Makefile, or other spec files require modification
+
+### Validation summary
+
+1. static: ROM at genesis `0x05A1A6` reads `4eb9 0005a2b4 4e75`; ROM at `0x05A2B4` reads `302d 013a`
+2. memory: `0xE0FF11FE` (block-A base) contains nonzero words after producer executes
+3. renderer: `sprite_cache_nonzero_words > 0`; `sprite_code0` nonzero
+4. visual: logo sprite tiles appear on screen (any nonzero pixels in logo position)
+
+output file: `docs/design/blockA_producer_reconstruction_plan.md`
