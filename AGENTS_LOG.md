@@ -22369,3 +22369,53 @@ Add `genesistan_render_sprites_vdp()` call unconditionally in `genesistan_fronte
 - Animation system / frame data sequencing
 - Gameplay state sprite pipeline (states 2–4)
 - Suppression of redundant 0x03AAF2 arcade dispatch (Phase 2 task)
+
+## [Cody - Implementation, Phase 1 Per-VBlank Sprite Commit]
+```text
+- file changed
+  - apps/rastan/src/main.c
+
+- exact inserted call
+  - inserted in `genesistan_frontend_live_vint_handoff()` after `genesistan_run_original_frontend_tick();`
+  - inserted line: `genesistan_render_sprites_vdp();`
+
+- build artifact
+  - dist/Rastan_279.bin
+  - build command: `source tools/setup_env.sh && make -C apps/rastan release`
+
+- helper call frequency result
+  - probe: `/tmp/phase1_per_vblank_commit_probe.txt`
+  - `HIT 202DD8 791` (`genesistan_run_original_frontend_tick`)
+  - `HIT 03A208 791` (arcade level-5 path)
+  - `HIT 2005C4 793` (`genesistan_render_sprites_vdp`)
+  - result: helper now runs continuously/per-vblank (no longer transient 2-hit behavior).
+
+- SAT result
+  - frame 300: `vdpSpriteCache_entry0=0168 0501 8400 0090`, `sat_cache_nonzero_entries=19`
+  - frame 700: `vdpSpriteCache_entry0=0168 0501 8400 0090`, `sat_cache_nonzero_entries=19`
+  - `max_sat_cache_nonzero_entries=19`
+  - result: SAT staging remains nonzero and stable.
+
+- VDP publish result
+  - DMA command probe: `/tmp/phase1_dma_publish_probe.txt`
+    - `sat_dma_cmd_post_launch=632` (decoded DMA VRAM commands with `code=0x21`, `addr=0xF800`)
+    - repeated DMA setup registers: `reg93=1649 reg94=1649 reg95=1594 reg96=1594 reg97=1649`
+  - direct VDP read-port probe: `/tmp/vdp_port_read_sat.txt`
+    - `frame700_vdp_port_read_f800=0168 0501 8400 0090`
+    - `frame700_vdp_port_read_f400=0000 0000 0000 0000`
+  - result: sustained SAT publish to active base `0xF800` is now confirmed.
+
+- visual result
+  - artifact: `docs/design/artifacts/build279_per_vblank_commit_frame700.png`
+  - observed: `CREDIT` visible, no confirmed sprite/logo pixels
+  - classification: FAIL
+
+- regression result
+  - artifact: `docs/design/artifacts/build279_prelaunch_frame120.png`
+  - observed: launcher/startup config screen still renders pre-launch
+  - result: no obvious pre-launch regression in this pass
+
+- final verdict
+  - approved Phase 1 per-vblank helper-call insertion is implemented and validated for sustained runtime invocation and SAT publish activity.
+  - visible sprite pixels are still not confirmed in the captured frame.
+```

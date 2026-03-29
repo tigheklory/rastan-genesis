@@ -1808,10 +1808,10 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x647B",
+  "checksum": "0x5ED4",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x00216B32",
+    "reset_pc": "0x00216B38",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

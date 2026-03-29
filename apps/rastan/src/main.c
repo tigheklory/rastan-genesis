@@ -1889,6 +1889,7 @@ static void genesistan_frontend_live_vint_handoff(void)
     /* Post-launch frame ownership: arcade level-5 tick runs from V-Int only. */
     genesistan_refresh_arcade_inputs();
     genesistan_run_original_frontend_tick();
+    genesistan_render_sprites_vdp();
 #endif
 }
 
