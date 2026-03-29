@@ -22441,3 +22441,62 @@ The project solved this problem before this design task was written. Mode 1 mask
 **Cody does NOT touch:** `main.c`, `startup_bridge.c`, `z_qr_exception.c`, `z_qr_exception_handlers.s`, `boot/sega.s`, any `.json` spec files, vblank handlers, SAT/sprite pipeline work.
 
 Full plan: `docs/design/minimal_post_launch_crash_handling_plan.md`
+
+## [Andy - First Real Graphics Replacement Slice]
+
+Date: 2026-03-28
+
+### Chosen Slice (one sentence)
+
+Extract `VDP_updateSprites(sprite_count, DMA)` + `VDP_waitDMACompletion()` from `genesistan_render_sprites_vdp()` into a new vblank-owned function `genesistan_vblank_sprite_commit()`, called unconditionally from `genesistan_frontend_live_vint_handoff()` after the helper — this is Phase 2 of the opcode_vblank_sprite_migration_plan.
+
+### What Moves Now
+
+- `VDP_updateSprites(sprite_count, DMA)` extracted from helper body into `genesistan_vblank_sprite_commit()`
+- `VDP_waitDMACompletion()` (paired with VDP_updateSprites) extracted from helper body
+- `sprite_count` promoted to file-scope `static u16 genesistan_vblank_sprite_count` (written by helper, read by commit)
+- New function `genesistan_vblank_sprite_commit()` added to `main.c` inside `#if RASTAN_ENABLE_STARTUP_HOOK` guard
+- Call to `genesistan_vblank_sprite_commit()` inserted in `genesistan_frontend_live_vint_handoff()` after existing `genesistan_render_sprites_vdp()` call
+
+### What Stays Temporary (in helper)
+
+- Block-A / Block-B descriptor scan loop (moves to Phase 3)
+- Validity filtering (all-zero guard, 0x0180 sentinel, out-of-bounds check) (moves to Phase 3)
+- Coordinate conversion (9-bit sign-extend x/y, flipscreen transform) (moves to Phase 3)
+- Tile lookup / tile residency (`frontend_runtime_tile_for_code`, `VDP_loadTileData`) (moves to Phase 3)
+- SAT entry formation (`TILE_ATTR_FULL` + `VDP_setSpriteFull` fills `vdpSpriteCache`) (moves to Phase 3)
+- Palette interactions (`refresh_frontend_sprite_palettes`) (defers to palette system phase)
+- Flipscreen handling (`workram_words[15]` read, x/y inversion) (moves to Phase 3)
+
+### VBlank-Owned Flow Summary
+
+1. `genesistan_refresh_arcade_inputs()` — updates input shadow
+2. `genesistan_run_original_frontend_tick()` — arcade tick runs (Block-A producer, etc.)
+3. `genesistan_render_sprites_vdp()` — helper: scan Block-A, fill `vdpSpriteCache`, set `genesistan_vblank_sprite_count` (NO DMA)
+4. `genesistan_vblank_sprite_commit()` — NEW: DMA `vdpSpriteCache` → VDP VRAM 0xF800
+
+### Success Criteria
+
+1. `genesistan_vblank_sprite_commit()` hit count equals arcade tick hit count per run (~791 in a 791-vblank run)
+2. `VDP_updateSprites` callsite is ONLY inside `genesistan_vblank_sprite_commit`, NOT inside `genesistan_render_sprites_vdp` (static code check)
+3. VDP VRAM 0xF800 contains nonzero SAT entries at frame 700 via direct VDP read-port probe (expected: `0168 0501 8400 0090`)
+4. SAT DMA fires from commit function point, not from helper invocation timing
+5. No regression from build 279 baseline: CREDIT text visible, `sat_cache_nonzero_entries >= 19`
+
+### Out-of-Scope List
+
+- Full PC080SN tilemap conversion
+- Final palette correctness
+- Full sprite size decoding (SPRITE_SIZE(2,2) stays fixed)
+- Scroll system
+- Final flipscreen fidelity
+- Tile upload / cache redesign
+- Sprite link chain correctness
+- Animation frame cycling
+- Block-A scan / SAT formation logic (stays in helper until Phase 3)
+- ROM/spec patch changes
+- Suppression of redundant 0x03AAF2 arcade dispatch (Phase 2 follow-on)
+- Gameplay state sprite pipeline (states 2–4)
+- `startup_bridge.c` or any assembly trampoline changes
+
+Full plan: `docs/design/first_real_graphics_replacement_slice.md`
