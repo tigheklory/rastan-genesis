@@ -22155,3 +22155,134 @@ Output file: `docs/design/vblank_graphics_architecture_plan.md`
   - arcade level-5 path remains active as sole post-launch frame owner
   - dual ownership removed after launch
 ```
+
+## [Andy - Phase 1 VBlank Implementation Slice]
+```text
+- definition of slice
+  - Minimal executable architecture slice is Block-A sprite intent -> SAT staging -> SAT publish, executed only inside arcade level-5 vblank after launch.
+  - Scope is intentionally limited to sprite visibility proof under correct ownership; full tilemap/scroll/palette systems are deferred.
+
+- vblank insertion point
+  - authoritative entry: arcade level-5 vblank `0x3A008` (relocated observed entry `0x03A208`)
+  - insertion location: title-state dispatch region (`0x3A8AC` / `0x3A8D2` arcade region)
+  - concrete call-slot ordering in current relocated title-init path:
+    - producer slot: `0x03AAEC`
+    - commit slot: `0x03AAF2`
+  - commit runs after producer and before top-level vblank cleanup (`jsr 0x55CA2`) / `rte`
+
+- SAT pipeline summary
+  - producer writes Block-A tuples at `0xE0FF11FE` (A5+0x11B2)
+  - commit step reads Block-A tuples, converts tuple semantics to Genesis SAT semantics, and writes staging buffer `genesistan_shadow_d00000_words[0x0400]`
+  - SAT staging is published to VRAM SAT base `0xF800` via DMA in the same vblank
+  - ownership:
+    - producer owns Block-A writes
+    - vblank commit owns SAT staging + publish
+    - launcher/main loop does not own post-launch display updates
+
+- success criteria
+  - at least one visible sprite from post-launch game path
+  - SAT contains nonzero entries in vblank commit window
+  - Block-A is consumed in vblank flow
+  - no dual ownership post-launch (arcade level-5 is sole frame owner)
+```
+
+## [Andy - Phase 1 Sprite Pipeline Plan]
+```text
+- insert point (address + context)
+  - arcade level-5 vblank entry: arcade 0x3A008, genesis 0x3A208 (relocated)
+  - per-state dispatch → title state=1 → substate=0 handler
+  - 0x03AAEC: JSR 0x05A174  — producer (block-A builder) fires first
+  - 0x03AAF2: JSR 0x202B80  — genesistan_render_sprites_vdp_bridge fires second
+  - SAT pipeline executes inside genesistan_render_sprites_vdp() [main.c:1538]
+    which is called by the bridge at 0x03AAF2
+  - insert is AFTER producer (0x03AAEC) and BEFORE post-dispatch cleanup (0x03A274)
+  - no new C hook needed; pipeline already wired at correct location
+  - ORDER FIX PATCH B (manifest arcade_pc=0x03A8E4) confirmed: producer before renderer
+
+- SAT pipeline summary (Block-A format → SAT format mapping)
+  - source buffer A: 18 entries at 0xE0FF11FE (WRAM offset 0x11B2)
+  - source buffer B:  4 entries at 0xE0FF01BC (WRAM offset 0x0170)
+  - entry format: word0=attr/flags, word1=y_raw, word2=tile_code&0x3FFF, word3=x_raw
+  - validity checks (skip if any):
+    - all four words zero (unfilled slot)
+    - word1 == 0x0180 (off-screen sentinel)
+    - tile_base < 0 (tile cache miss)
+    - final x/y out of screen bounds
+  - word0==0 alone is NOT a skip condition; arcade writes 0x0000 for all logo sprites
+  - SAT.Y    = sign_extend_9bit(word1); if > 0x0140 subtract 0x0200; pass to VDP_setSpriteFull (SGDK adds +128)
+  - SAT.size = SPRITE_SIZE(2,2) fixed for Phase 1 (16x16px, 2x2 tiles)
+  - SAT.link = next sprite_count, 0 for last entry
+  - SAT.tile = TILE_ATTR_FULL(palette_line, TRUE, flipy, flipx, tile_base)
+  - SAT.X    = sign_extend_9bit(word3); if > 0x0140 subtract 0x0200; pass to VDP_setSpriteFull (SGDK adds +128)
+  - confirmed Block-A data: word0=0x0000, word1=0x00E8, word2=0x03CA, word3=0x0010
+
+- SAT buffer
+  - existing SGDK vdpSpriteCache at WRAM 0xE0FF6DF0
+  - written by VDP_setSpriteFull() per entry
+  - uploaded by VDP_updateSprites(sprite_count, DMA) → VDP VRAM 0xF800
+  - SAT VRAM base 0xF800 configured by VDP_setSpriteListAddress(TITLE_SAT_VRAM_ADDR)
+
+- execution flow (ordered steps inside vblank)
+  1. SGDK VInt → genesistan_frontend_live_vint_handoff() [main.c:1881]
+  2. genesistan_refresh_arcade_inputs()
+  3. genesistan_run_original_frontend_tick() → jmp 0x03A208
+  4. arcade level-5: interrupt mask, frame counter, bookkeeping, input, sound, state dispatch
+  5. 0x03AAEC: JSR 0x05A174 — block-A builder fills 0xE0FF11FE with sprite tuples
+  6. 0x03AAF2: JSR 0x202B80 — renderer bridge
+  7. genesistan_render_sprites_vdp(): iterate blocks, validity checks, tile load, VDP_setSpriteFull per entry
+  8. VDP_updateSprites(sprite_count, DMA) — SAT DMA → VRAM 0xF800
+  9. VDP_waitDMACompletion()
+  10. dispatch returns, post-dispatch cleanup, interrupt restore, rte
+  11. genesistan_frontend_tick_return restores regs, returns to SGDK
+
+- only change needed to activate Phase 1
+  - spec patch at arcade_pc=0x059F90: replacement_bytes 4e75 → 4eb90005a0b44e75
+  - embedded 0x05A0B4 + patcher +0x200 = genesis target 0x05A2B4 (block-A builder full entry)
+  - no .c file changes needed
+
+- output file
+  - docs/design/vblank_phase1_sprite_pipeline.md
+```
+
+## [Cody - Implementation, Phase 1 Sprite Pipeline]
+```text
+- whether spec patch needed correction
+  - No correction needed.
+  - Verified `specs/startup_title_remap.json` entry at `arcade_pc=0x059F90` already set to `replacement_bytes=4eb90005a0b44e75`.
+
+- runtime hits
+  - Probe: `/tmp/phase1_sprite_pipeline_probe_v2.txt`
+  - `HIT 03A208 791` (arcade vblank active)
+  - `HIT 03AAEC 1` (producer slot)
+  - `HIT 03AAF2 1` (renderer slot)
+  - `HIT 05A174 1` (producer target)
+  - `HIT 05A1A6 4` (restored callsite)
+  - `HIT 05A2B4 1` (full builder entry)
+  - `HIT 202DB8 7` (bridge symbol in this build)
+  - `HIT 2005C4 2` (renderer function)
+
+- Block-A result
+  - Frame 700 sample: `blockA_entry0=0000 00E8 03CA 0010`
+  - `blockA_nonzero_entries=1`
+  - Conclusion: producer-fed Block-A input is present.
+
+- SAT result
+  - `vdpSpriteCache` base verified from symbols as `0xE0FF6DF2`.
+  - Frame 700 sample: `vdpSpriteCache_entry0=0168 0501 8400 0090`
+  - `sat_cache_nonzero_entries=19`
+  - Conclusion: SAT staging is nonzero (sprite_count effectively >0).
+
+- VDP VRAM result
+  - Frame 700 SAT-region sample: `vram_sat_words_nonzero=0`
+  - `vram_f800=0000 0000 0000 0000`
+  - data-port SAT writes observed in this run: `sat_port_writes_words=0`, `sat_port_writes_nonzero=0`
+
+- visual result
+  - Artifact: `docs/design/artifacts/build278_phase1_pipeline_frame700.png`
+  - Observed: black screen with `CREDIT` text only; no confirmed sprite/logo pixels.
+  - Classification: FAIL.
+
+- primary failure classification if FAIL
+  - Selected: **E. VDP sprite table base/write issue**
+  - Basis: producer + Block-A + SAT staging are active/nonzero, but SAT VRAM region at `0xF800` is still zero in measured frame.
+```
