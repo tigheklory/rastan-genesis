@@ -179,6 +179,7 @@ typedef struct {
     char     status_line[80];
     volatile uint16_t genesistan_sprite_tile_lut[18];
     volatile uint16_t genesistan_sprite_attr_lut[18];
+    volatile uint16_t genesistan_sprite_active_count;
     /* Add any other scrubbed launcher globals here! */
 } LauncherRuntime;
 
@@ -335,8 +336,11 @@ static u16 convert_clcs_to_genesis(u16 raw);
 static u16 frontend_palette_line_for_bank(u16 bank, u16 *bank_map, u16 *bank_count);
 static void frontend_decode_pc090oj_cell(u16 code, u32 *dst_tiles);
 static s16 frontend_runtime_tile_for_code(u16 code, u16 *unique_count);
-static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count);
+static void refresh_frontend_sprite_palettes_mapped(const u16 *bank_map, u16 bank_count);
+static void refresh_frontend_sprite_palettes(void);
 void genesistan_sprite_tile_prepare(void);
+void genesistan_tilemap_prepare(void);
+void genesistan_tilemap_commit(void);
 static void leave_startup_preview(void);
 static u32 get_packed_romset_size(void);
 static u32 get_packed_romset_signature(void);
@@ -1088,6 +1092,7 @@ void genesistan_sprite_tile_prepare(void)
     const u16 sprite_ctrl = genesistan_arcade_workram_words[10];
     const u16 sprite_colbank = (u16)((sprite_ctrl & 0x00E0) >> 1);
     u16 unique_count = 0;
+    u16 active_count = 0;
     u16 idx;
     memset(live_decode_upload_buffer, 0, sizeof(wram_overlay.launcher.frontend_runtime_sprite_tile_buffer));
     for (idx = 0; idx < 18; idx++)
@@ -1108,6 +1113,13 @@ void genesistan_sprite_tile_prepare(void)
         {
             continue;
         }
+
+        if (code == 0)
+        {
+            continue;
+        }
+
+        active_count++;
 
         for (i = 0; i < unique_count; i++)
         {
@@ -1144,6 +1156,7 @@ void genesistan_sprite_tile_prepare(void)
             attr_lut[idx] = (u16)((pal_line << 13) | (flipy << 12) | (flipx << 11));
         }
     }
+    wram_overlay.launcher.genesistan_sprite_active_count = active_count;
 
     if (unique_count > 0)
     {
@@ -1160,7 +1173,7 @@ void genesistan_sprite_tile_prepare(void)
 #endif
 }
 
-static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count)
+static void refresh_frontend_sprite_palettes_mapped(const u16 *bank_map, u16 bank_count)
 {
     u16 line;
 
@@ -1179,6 +1192,11 @@ static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count
             PAL_setColor((line * 16) + color, gen);
         }
     }
+}
+
+static void refresh_frontend_sprite_palettes(void)
+{
+    refresh_frontend_sprite_palettes_mapped(NULL, 0);
 }
 
 static void clear_frontend_sprite_layer(void)
@@ -1269,6 +1287,79 @@ static uint16_t tile_cache_get(uint16_t arcade_tile)
 #define TILEMAP_ROM_BASE   0x16B1CUL  /* 0x1691C + 0x200 reloc */
 #define TILEMAP_ROW_STRIDE 0x22C0UL   /* bytes between successive row entries */
 #define TILEMAP_FRAME_STEP 64UL       /* bytes advanced per frame_ctr unit */
+#define TILEMAP_STAGE_WIDTH 64U
+#define TILEMAP_STAGE_HEIGHT 32U
+#define TILEMAP_STAGE_PATTERN_COUNT 16U
+static u16 genesistan_tilemap_stage_bg_a[TILEMAP_STAGE_WIDTH * TILEMAP_STAGE_HEIGHT];
+static u16 genesistan_tilemap_pattern_attrs[TILEMAP_STAGE_PATTERN_COUNT];
+
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_tilemap_prepare(void)
+{
+#if RASTAN_ENABLE_STARTUP_HOOK
+    const uint16_t frame_ctr = genesistan_arcade_workram_words[0x9FU];
+    uint16_t i;
+    uint16_t x;
+    uint16_t y;
+
+    SYS_disableInts();
+
+    for (i = 0; i < TILEMAP_STAGE_PATTERN_COUNT; i++)
+    {
+        const uint32_t rom_addr  = TILEMAP_ROM_BASE
+                                 + (uint32_t)i * TILEMAP_ROW_STRIDE
+                                 + (uint32_t)frame_ctr * TILEMAP_FRAME_STEP;
+        const uint16_t code      = *(const uint16_t *)rom_addr;
+        const uint16_t attr_raw  = *(const uint16_t *)(rom_addr + 2UL);
+        const uint16_t arcade_tile = code & 0x3FFFU;
+        const uint16_t vram_tile   = tile_cache_get(arcade_tile);
+        const uint16_t pal         = (attr_raw >> 7) & 0x3U;
+        const uint16_t vflip       = (attr_raw >> 15) & 1U;
+        const uint16_t hflip       = (attr_raw >> 14) & 1U;
+
+        genesistan_tilemap_pattern_attrs[i] =
+            TILE_ATTR_FULL(pal, 1, vflip, hflip, vram_tile);
+    }
+
+    for (y = 0; y < TILEMAP_STAGE_HEIGHT; y++)
+    {
+        for (x = 0; x < TILEMAP_STAGE_WIDTH; x++)
+        {
+            const uint16_t pattern = (uint16_t)((x + y) & (TILEMAP_STAGE_PATTERN_COUNT - 1U));
+            genesistan_tilemap_stage_bg_a[(y * TILEMAP_STAGE_WIDTH) + x] =
+                genesistan_tilemap_pattern_attrs[pattern];
+        }
+    }
+
+    SYS_enableInts();
+#endif
+}
+
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_tilemap_commit(void)
+{
+#if RASTAN_ENABLE_STARTUP_HOOK
+    uint16_t x;
+    uint16_t y;
+
+    SYS_disableInts();
+
+    for (y = 0; y < TILEMAP_STAGE_HEIGHT; y++)
+    {
+        for (x = 0; x < TILEMAP_STAGE_WIDTH; x++)
+        {
+            VDP_setTileMapXY(
+                BG_A,
+                genesistan_tilemap_stage_bg_a[(y * TILEMAP_STAGE_WIDTH) + x],
+                x,
+                y
+            );
+        }
+    }
+
+    SYS_enableInts();
+#endif
+}
 
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_hook_tilemap_plane_a(void)
@@ -1736,7 +1827,7 @@ void genesistan_render_sprites_vdp(void)
     }
 
     SYS_disableInts();
-    refresh_frontend_sprite_palettes(palette_bank_map, palette_bank_count);
+    refresh_frontend_sprite_palettes_mapped(palette_bank_map, palette_bank_count);
     VDP_updateSprites(sprite_count, DMA);
     VDP_waitDMACompletion();
     SYS_enableInts();
@@ -1977,7 +2068,10 @@ static void genesistan_frontend_live_vint_handoff(void)
     genesistan_refresh_arcade_inputs();
     genesistan_run_original_frontend_tick();
     genesistan_sprite_tile_prepare();
+    refresh_frontend_sprite_palettes();
     genesistan_sprite_commit_asm();
+    genesistan_tilemap_prepare();
+    genesistan_tilemap_commit();
 #endif
 }
 

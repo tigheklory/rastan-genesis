@@ -23224,3 +23224,235 @@ Full plan: docs/design/full_prototype_sprite_execution_path.md
     2) word0 attr decode carried into SAT word2 via attr LUT
   - Visual impact could not be re-verified with an emitted screenshot artifact in this environment.
 ```
+
+## [Andy - Next Sprite System Slice: Content Selection / Object Composition]
+
+```text
+- chosen slice
+  - Add zero-tile-code content filter in genesistan_sprite_tile_prepare() so that
+    Block-A entries with code==0x0000 are treated as inactive and produce no LUT
+    entry, no tile decode, and no SAT output; add genesistan_sprite_active_count
+    to wram_overlay.launcher to track the number of active (nonzero-code) entries
+    per prepare pass.
+
+- why chosen
+  - Build 283 runtime evidence: unique_codes=2, entries idx1-idx17 all have code=0x0000.
+    The current prepare path treats code=0 entries as valid content, decodes PC090OJ
+    cell 0, and writes nonzero LUT values for all 17 zero-code entries. The commit
+    assembly then emits 17 SAT entries for placeholder tiles. 17 of 18 SAT slots are
+    consumed by zero-code content. The one active entry (idx0, code=0x03CA) is correct
+    but surrounded by 17 inactive entries. Object composition of the multi-cell title
+    logo is impossible when most cells are zero-code placeholders occupying SAT slots.
+    This is the content-selection rule that the system currently lacks.
+
+- core content/composition rule
+  - After extracting code = (word2 & 0x3FFF): if code == 0x0000, skip the entry
+    entirely (no decode, lut[idx] stays 0, attr_lut[idx] stays 0).
+  - The commit assembly already skips entries where lut[idx]==0, so zero-code entries
+    are automatically excluded from SAT output with no assembly changes.
+  - The spatial arrangement of the N nonzero-code entries at their word1/word3 x/y
+    positions IS the object composition. No additional grouping logic is needed.
+
+- implementation boundary
+  - apps/rastan/src/main.c:
+    - genesistan_sprite_tile_prepare(): add `if (code == 0) { continue; }` guard
+      after sentinel check and before unique-code lookup; add local active_count
+      incremented per nonzero-code entry; store in
+      wram_overlay.launcher.genesistan_sprite_active_count after loop.
+    - wram_overlay.launcher: add volatile uint16_t genesistan_sprite_active_count.
+  - apps/rastan/src/startup_trampoline.s: NO CHANGES — existing zero-LUT skip in
+    commit already handles zero-code entries correctly once prepare stops writing
+    nonzero LUT values for them.
+  - No spec/JSON changes. No assembly changes. No tile-ordering changes.
+    No attr-decode changes. No link-chain changes.
+
+- live flow summary
+  1. genesistan_run_original_frontend_tick() — arcade produces Block-A at 0xE0FF11FE
+  2. genesistan_sprite_tile_prepare() [C, MODIFIED] — skips entries with code==0;
+     decodes only nonzero-code entries; writes lut[idx] only for active entries;
+     stores active_count in WRAM
+  3. genesistan_sprite_commit_asm() [Assembly, UNCHANGED] — skips lut[idx]==0 entries
+     (which now includes all zero-code entries); emits SAT entries only for active
+     nonzero-code entries at their correct x/y positions with correct tile/attr
+
+- success criteria
+  1. Zero-code guard present in prepare after sentinel check (source inspection)
+  2. genesistan_sprite_active_count field exists in wram_overlay.launcher (build check)
+  3. For entries with code==0x0000: lut[idx]==0 after prepare (runtime probe)
+  4. For idx0 (code=0x03CA): lut[0]==0x0400 unchanged (runtime probe)
+  5. SAT traversal_len equals active entry count, not 18 (probe: chain_ok=true)
+  6. SAT word2 for idx0 remains 0xE400 (palette=3, no flip, tile 1024) unchanged
+  7. active_count equals nonzero-code entry count (runtime probe)
+  8. System-wide: filter applies to all 18 indices, not entry-specific
+  9. SAT link chain correct for reduced active set (chain_ok=true, last link=0)
+
+- out-of-scope list
+  - Block-B sprite descriptors (0xE0FF01BC, 4 entries)
+  - SAT link chain assembly logic (already correct after build 284; no change)
+  - Tile decode ordering (correct after build 284; no change)
+  - word0 attr decode (correct after build 286; no change)
+  - Canonical Block-A source address (unified at 0xE0FF11FE after build 286; no change)
+  - VRAM layout constants and tile region 1024+
+  - genesistan_sprite_attr_lut[18] and genesistan_sprite_tile_lut[18] structures
+  - The 0x0180 sentinel filter (correct; must not be modified)
+  - genesistan_render_sprites_vdp() function body (dead code; leave in place)
+  - specs/ JSON patch files
+  - Palette system / CRAM management
+  - Background/tilemap rendering
+  - genesistan_sprite_commit_asm assembly (no changes needed for this slice)
+```
+
+## [Cody - Implementation, Zero-Code Content Filter]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - docs/design/zero_code_filter_results.md
+
+- zero-code filter summary
+  - In `genesistan_sprite_tile_prepare()`, after `code = word2 & 0x3FFF` and before unique-code lookup/decode/LUT writes, added:
+    - `if (code == 0) { continue; }`
+  - Canonical Block-A source remains unchanged at `0xE0FF11FE`.
+  - Zero-code entries now stay inactive with `lut[idx]=0` and `attr_lut[idx]=0`.
+
+- active_count summary
+  - Added `volatile uint16_t genesistan_sprite_active_count` in launcher WRAM overlay.
+  - Added local `active_count` in prepare, incremented only for entries that pass sentinel and zero-code filters.
+  - Stored each pass to `wram_overlay.launcher.genesistan_sprite_active_count`.
+
+- build artifact
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Compile/link succeeded; normal release postpatch failed at known gate (`opcode_replace at 0x0560DA`).
+  - Runtime artifact: `dist/Rastan_287.bin` via manual postpatch with `/tmp/startup_title_remap_temp.json`.
+  - Classification: unofficial exploratory runtime evidence only.
+
+- proof summary
+  - Zero-code proof (3 entries):
+    - `idx=1 word2=0000 code=0000 lut=0000 attr_lut=0000`
+    - `idx=2 word2=0000 code=0000 lut=0000 attr_lut=0000`
+    - `idx=3 word2=0000 code=0000 lut=0000 attr_lut=0000`
+  - Nonzero preservation:
+    - `idx=0 word2=03CA code=03CA lut=0400 attr_lut=6000`
+
+- SAT reduction result
+  - `active_count=1`
+  - `sat_chain traversal_len=1 chain_ok=true last_link=0`
+  - `active_vs_chain ... match=true`
+  - Result: SAT output reduced to active entries only.
+
+- visual result
+  - Classification: PARTIAL.
+  - Runtime reduction is proven; snapshot call returned success in probe but no new PNG artifact was emitted in this environment.
+
+- no-scope-drift confirmation
+  - no spec/json changes
+  - no assembly changes in this pass
+  - no SAT link-chain logic changes
+  - no attr decode logic changes
+  - helper not restored as live owner
+
+- final verdict
+  - The approved zero-code content-selection slice is implemented exactly in scope.
+  - Inactive `code==0` entries are now filtered out before decode/LUT/SAT contribution.
+  - Active-count tracking is added and matches SAT traversal length at runtime.
+```
+
+## [Andy - Architecture, Full Graphics System Completion Plan]
+```text
+- output artifact
+  - docs/design/full_graphics_system_completion_plan.md
+
+- plan scope
+  - complete model of all remaining graphics work across all subsystems
+  - sprites, tilemaps, backgrounds, scrolling, HUD/text, palette
+  - per-phase implementation targets with exact files/functions
+  - mandatory immediate implementation phase (Phase 3) fully specified for Cody
+
+- baseline confirmed
+  - Build 287: zero-code filter active, active_count=1, SAT mechanically correct
+  - Block-A producer (Phase 2 spec patch) applied: code=0x03CA confirmed at renderer entry
+  - Primary visual failure: VRAM tile 1024+ empty (no upload) + CRAM palette bank(s) not loaded
+  - Evidence: Build 281 SAT had 12 valid entries at valid x/y with solid tile override; still
+    no visible pixels → CRAM[1] zero is primary suspect
+
+- system model defined
+  - Sprite pipeline: Block-A → prepare() → [BROKEN: upload] → VRAM 1024+ → commit_asm() → SAT → VDP
+  - Tilemap pipeline: PC080SN hooks (0x055968/0x055990 = NOPs) → tile cache → Plane B/A
+  - Palette pipeline: CLCS capture → convert → CRAM; fallback = genesistan_palette_rom_table
+  - Scrolling: scroll_from_workram_vdp() exists, not confirmed wired per-vblank
+  - HUD/text: CREDIT/TILT working; full title text set + in-game HUD not validated/not started
+
+- phases defined
+  Phase 3 (immediate): sprite VRAM tile upload + CRAM palette load (main.c only)
+  Phase 4: full 18-entry sprites + 4-bank palette bring-up
+  Phase 5: tilemap restoration (PC080SN hooks + scroll wiring)
+  Phase 6: full title screen completion (all text strings, palette accuracy)
+  Phase 7: in-game graphics (scrolling level, all sprites, HUD digit system)
+
+- Phase 3 Cody specification
+  - files: apps/rastan/src/main.c, apps/rastan/src/startup_bridge.c
+  - change 1: add genesistan_sprite_unique_count field to wram_overlay.launcher
+  - change 2: in genesistan_sprite_tile_prepare(), track unique code count + store to field
+  - change 3: in genesistan_frontend_live_vint_handoff(), after prepare(), add
+    VDP_loadTileData(frontend_runtime_sprite_tile_buffer, FRONTEND_RUNTIME_SPRITE_TILE_BASE,
+    unique_count*4, CPU)
+  - change 4: in genesistan_frontend_live_vint_handoff(), after tile upload, call
+    refresh_frontend_sprite_palettes() for all 4 palette banks
+  - no spec changes, no assembly changes
+
+- success criteria (Phase 3)
+  - CRAM nonzero >= 8 entries; CRAM[1] != 0x0000
+  - VRAM tile 1024 (0x8000) all 32 words nonzero
+  - SAT entry 0 tile word contains non-zero tile index
+  - At least one sprite-pixel region visible at expected screen position (x≈16, y≈232)
+  - No regressions: CREDIT/TILT still visible, chain_ok=true
+
+- out of scope (Phase 3)
+  - assembly changes
+  - spec/JSON changes
+  - tilemap hooks
+  - Block-B descriptors
+  - in-game HUD
+  - scrolling validation
+```
+
+## [Andy - Architecture, Full Graphics System Plan — Self-Audit Revision]
+```text
+- revision trigger
+  - Prompt 020-A self-audit: required reading verification revealed critical factual error
+    in Phase 3 specification
+
+- critical correction
+  - First draft Phase 3 described adding VDP_loadTileData() and genesistan_sprite_unique_count
+  - live_decode_buffer_wiring_fix_results.md (Build 285) confirms BOTH are already in the code:
+    VDP_loadTileData fires every vblank; VRAM 0x8000 = 1199 8111 1898 8888... (real sprite tiles)
+  - First draft was written without reading that document — factual error
+
+- corrected Phase 3
+  - The single remaining break in the sprite pipeline is CRAM line 3
+  - canonical_blocka_attr_decode_results.md (Build 286): attr_lut=0x6000 → pal_line=3
+  - Sprites use CRAM line 3 exclusively; PAL0 was valid for text; PAL3 was never loaded
+  - Phase 3 is now: add refresh_frontend_sprite_palettes() call to vblank handoff
+  - One function call addition in main.c genesistan_frontend_live_vint_handoff()
+  - No spec changes, no assembly changes
+
+- other corrections
+  - PC080SN hook approach: now specified as opcode_replace at hardware write callsites
+    (per AGENTS.md confirmed rendering strategy), not function-entry JSR hooks
+  - Probe/validation steps removed from Phase 3 success criteria (were scaffolding)
+  - Partial CRAM acceptance removed: Phase 3 loads all active sprite palette lines
+  - Sprite animation lifecycle documented (a5@0x013A counter, a5@0x1306 control flags)
+  - Producer→consumer ownership principle (from RI/Cadash) applied to each phase explicitly
+
+- required reading verified
+  - AGENTS.md, CURRENT_STATE.md (stale), rainbow_islands comparison, cadash comparison,
+  - live_decode_buffer_wiring_fix_results.md, canonical_blocka_attr_decode_results.md,
+  - sprite_interpretation_failure_diagnosis.md, sprite_interpretation_fix_results.md,
+  - full_prototype_sprite_execution_path.md, zero_code_filter_results.md,
+  - blockA_producer_reconstruction_plan.md
+
+- final Phase 3 specification
+  - file: apps/rastan/src/main.c
+  - change: refresh_frontend_sprite_palettes() called from genesistan_frontend_live_vint_handoff()
+  - pre-check: confirm function loads CRAM line 3 from genesistan_palette_rom_table
+  - success: sprite-shaped non-background pixels at y≈104, x=16 in frame capture
+```
