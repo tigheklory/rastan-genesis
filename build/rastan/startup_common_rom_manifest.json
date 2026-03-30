@@ -1119,8 +1119,8 @@
       "rom_pc": "0x055B86",
       "original_bytes": "206d10a0323c0010227c0010d080267c0010d0402453610000322b4810a0588b5489534166ee",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "C-3 REVERT: tilemap plane-A hook removed. NOP fill at original size (38 bytes). Col/row counter approach was wrong-direction. Proper address-decode implementation is Phase 2."
+      "replacement_bytes": "4eb90020027a4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "Restore real PC080SN plane-A hook path: call existing Genesis tilemap handler at this arcade write-site and preserve original instruction size with NOP padding."
     },
     {
       "kind": "opcode_replace",
@@ -1128,8 +1128,8 @@
       "rom_pc": "0x055BAE",
       "original_bytes": "206d10a47210227c0010d080267c0010d04024536100006e588b5489534166f2",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "C-4 REVERT: tilemap plane-B hook removed. NOP fill at original size (32 bytes). Col/row counter approach was wrong-direction. Proper address-decode implementation is Phase 2."
+      "replacement_bytes": "4eb9002004204e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "Restore real PC080SN plane-B hook path: call existing Genesis tilemap handler at this arcade write-site and preserve original instruction size with NOP padding."
     },
     {
       "kind": "opcode_replace",
@@ -1808,7 +1808,7 @@
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x7937",
+  "checksum": "0x46DE",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x002170D6",

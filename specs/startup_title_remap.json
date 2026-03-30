@@ -1061,14 +1061,14 @@
     {
       "arcade_pc": "0x055968",
       "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
-      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
-      "note": "C-3 REVERT: tilemap plane-A hook removed. NOP fill at original size (38 bytes). Col/row counter approach was wrong-direction. Proper address-decode implementation is Phase 2."
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_a}4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "Restore real PC080SN plane-A hook path: call existing Genesis tilemap handler at this arcade write-site and preserve original instruction size with NOP padding."
     },
     {
       "arcade_pc": "0x055990",
       "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
-      "replacement_bytes": "4E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
-      "note": "C-4 REVERT: tilemap plane-B hook removed. NOP fill at original size (32 bytes). Col/row counter approach was wrong-direction. Proper address-decode implementation is Phase 2."
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_b}4e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "Restore real PC080SN plane-B hook path: call existing Genesis tilemap handler at this arcade write-site and preserve original instruction size with NOP padding."
     },
     {
       "arcade_pc": "0x0556F2",

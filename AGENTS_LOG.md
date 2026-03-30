@@ -23456,3 +23456,34 @@ Full plan: docs/design/full_prototype_sprite_execution_path.md
   - pre-check: confirm function loads CRAM line 3 from genesistan_palette_rom_table
   - success: sprite-shaped non-background pixels at y≈104, x=16 in frame capture
 ```
+
+## [Cody - Revert, Invalid Tilemap Implementation]
+```text
+- Previous pass introduced synthetic tilemap scaffolding (generated BG_A patterns and frame-step fill logic).
+- This violates project rules: no generated/placeholder graphics paths.
+- Removed all synthetic tilemap additions from `apps/rastan/src/main.c`.
+- Deleted `genesistan_tilemap_prepare()` / `genesistan_tilemap_commit()` and related stage buffers/defines.
+- Removed tilemap calls from live vblank handoff.
+- Restored live handoff baseline to sprite-only pipeline:
+  `genesistan_sprite_tile_prepare(); refresh_frontend_sprite_palettes(); genesistan_sprite_commit_asm();`
+```
+
+## [Cody - Implementation, Real PC080SN Hook Path]
+```text
+- files changed
+  - specs/startup_title_remap.json
+  - AGENTS_LOG.md
+
+- real hook/call path added
+  - Restored arcade callsites `0x055968` and `0x055990` from NOP blocks to real JSR hook path:
+    - `0x055968 -> genesistan_hook_tilemap_plane_a`
+    - `0x055990 -> genesistan_hook_tilemap_plane_b`
+  - Replacements preserve original instruction sizes via NOP padding.
+
+- synthetic content confirmation
+  - No synthetic/generated tilemap content was introduced in this pass.
+  - No tilemap staging/pattern/demo-map logic was added.
+
+- ROM artifact
+  - `dist/Rastan_290.bin`
+```
