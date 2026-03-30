@@ -21,6 +21,8 @@
 #if RASTAN_ENABLE_STARTUP_HOOK
 
 #define ARCADE_ROM_BASE 0x000200
+#define FRONTEND_RUNTIME_SPRITE_LUT_OFFSET 0x28D0
+#define FRONTEND_RUNTIME_SPRITE_ATTR_LUT_OFFSET 0x28F4
 
 genesistan_sound_send_command:
     move.b #0, genesistan_shadow_reg_3e0001
@@ -63,14 +65,14 @@ genesistan_render_sprites_vdp_bridge:
 /*
  * Non-C SAT commit slice:
  *   - reads Block-A tuples from 0xE0FF11FE
+ *   - reads per-entry VRAM tile indices from launcher WRAM LUT (18 entries)
  *   - skips hidden sentinel entries (word1 == 0x0180)
  *   - writes SAT entries directly to VDP data port at VRAM 0xF800
  *
  * Temporary limitations (intentional in this slice):
- *   - size/link hardcoded to 0x0500
- *   - tile base hardcoded to +0x0400
+ *   - size fixed to 2x2 (0x0500 upper bits), link chain built from written entries
  *   - priority hardcoded on, palette hardcoded
- *   - no flipscreen/link-chain/animation handling here
+ *   - no flipscreen/animation handling here
  */
 genesistan_sprite_commit_asm:
     movem.l %d0-%d7/%a0-%a6,-(%sp)
@@ -81,7 +83,31 @@ genesistan_sprite_commit_asm:
     move.l  #0x78000003, (%a1)      /* VDP_WRITE_VRAM_ADDR(0xF800) */
 
     movea.l #0xE0FF11FE, %a0        /* Block-A base */
+    lea     wram_overlay+FRONTEND_RUNTIME_SPRITE_LUT_OFFSET, %a3
     moveq   #17, %d7                /* 18 entries */
+    moveq   #0, %d6                 /* valid/written entry count for link chain */
+
+.Lsprite_count_loop:
+    move.w  2(%a0), %d0             /* word1: y */
+    cmpi.w  #0x0180, %d0
+    beq.s   .Lsprite_count_skip
+
+    move.w  (%a3), %d1              /* per-entry VRAM tile index from prepare step */
+    tst.w   %d1
+    beq.s   .Lsprite_count_skip
+
+    addq.w  #1, %d6
+
+.Lsprite_count_skip:
+    adda.w  #8, %a0
+    adda.w  #2, %a3
+    dbra    %d7, .Lsprite_count_loop
+
+    movea.l #0xE0FF11FE, %a0        /* Block-A base (write pass) */
+    lea     wram_overlay+FRONTEND_RUNTIME_SPRITE_LUT_OFFSET, %a3
+    lea     wram_overlay+FRONTEND_RUNTIME_SPRITE_ATTR_LUT_OFFSET, %a4
+    moveq   #17, %d7                /* 18 entries */
+    moveq   #0, %d5                 /* current written SAT entry index */
 
 .Lsprite_commit_loop:
     move.w  2(%a0), %d0             /* word1: y */
@@ -90,18 +116,40 @@ genesistan_sprite_commit_asm:
 
     addi.w  #0x0080, %d0            /* SAT y bias */
 
-    move.w  #0x8001, %d1            /* temporary system-wide tile_attr bring-up */
+    move.w  (%a3), %d1              /* per-entry VRAM tile index from prepare step */
+    tst.w   %d1
+    beq.s   .Lsprite_commit_skip
+    andi.w  #0x07FF, %d1
+    ori.w   #0x8000, %d1
+    or.w    (%a4), %d1              /* per-entry pal/flip bits from prepare step */
 
     move.w  6(%a0), %d2             /* word3: x */
     addi.w  #0x0080, %d2            /* SAT x bias */
 
     move.w  %d0, (%a2)              /* SAT word0: Y */
-    move.w  #0x0500, (%a2)          /* SAT word1: size/link (temporary fixed) */
+    cmpi.w  #1, %d6
+    ble.s   .Lsprite_link_last
+
+    move.w  %d5, %d3
+    addq.w  #1, %d3
+    andi.w  #0x007F, %d3
+    ori.w   #0x0500, %d3
+    bra.s   .Lsprite_link_ready
+
+.Lsprite_link_last:
+    move.w  #0x0500, %d3
+
+.Lsprite_link_ready:
+    move.w  %d3, (%a2)              /* SAT word1: size/link */
     move.w  %d1, (%a2)              /* SAT word2: tile/attr */
     move.w  %d2, (%a2)              /* SAT word3: X */
+    addq.w  #1, %d5
+    subq.w  #1, %d6
 
 .Lsprite_commit_skip:
     adda.w  #8, %a0
+    adda.w  #2, %a3
+    adda.w  #2, %a4
     dbra    %d7, .Lsprite_commit_loop
 
     movem.l (%sp)+,%d0-%d7/%a0-%a6

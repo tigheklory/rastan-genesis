@@ -177,6 +177,8 @@ typedef struct {
     uint32_t frontend_runtime_sprite_tile_buffer[FRONTEND_RUNTIME_MAX_UNIQUE_CODES * 4 * 8];
     uint16_t frontend_runtime_sprite_codes[FRONTEND_RUNTIME_MAX_UNIQUE_CODES];
     char     status_line[80];
+    volatile uint16_t genesistan_sprite_tile_lut[18];
+    volatile uint16_t genesistan_sprite_attr_lut[18];
     /* Add any other scrubbed launcher globals here! */
 } LauncherRuntime;
 
@@ -334,6 +336,7 @@ static u16 frontend_palette_line_for_bank(u16 bank, u16 *bank_map, u16 *bank_cou
 static void frontend_decode_pc090oj_cell(u16 code, u32 *dst_tiles);
 static s16 frontend_runtime_tile_for_code(u16 code, u16 *unique_count);
 static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count);
+void genesistan_sprite_tile_prepare(void);
 static void leave_startup_preview(void);
 static u32 get_packed_romset_size(void);
 static u32 get_packed_romset_signature(void);
@@ -1034,11 +1037,11 @@ static void frontend_decode_pc090oj_cell(u16 code, u32 *dst_tiles)
         if (y < 8)
         {
             tile_left = dst + (0 * 32) + (y * 4);
-            tile_right = dst + (1 * 32) + (y * 4);
+            tile_right = dst + (2 * 32) + (y * 4);
         }
         else
         {
-            tile_left = dst + (2 * 32) + ((y - 8) * 4);
+            tile_left = dst + (1 * 32) + ((y - 8) * 4);
             tile_right = dst + (3 * 32) + ((y - 8) * 4);
         }
 
@@ -1072,6 +1075,89 @@ static s16 frontend_runtime_tile_for_code(u16 code, u16 *unique_count)
     (*unique_count)++;
 
     return (s16)(FRONTEND_RUNTIME_SPRITE_TILE_BASE + ((*unique_count - 1) * 4));
+}
+
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_sprite_tile_prepare(void)
+{
+#if RASTAN_ENABLE_STARTUP_HOOK
+    const u8 *entry = (const u8 *)0xE0FF11FE; /* canonical Block-A source, 18 entries */
+    u32 *const live_decode_upload_buffer = wram_overlay.launcher.frontend_runtime_sprite_tile_buffer;
+    volatile u16 *const lut = wram_overlay.launcher.genesistan_sprite_tile_lut;
+    volatile u16 *const attr_lut = wram_overlay.launcher.genesistan_sprite_attr_lut;
+    const u16 sprite_ctrl = genesistan_arcade_workram_words[10];
+    const u16 sprite_colbank = (u16)((sprite_ctrl & 0x00E0) >> 1);
+    u16 unique_count = 0;
+    u16 idx;
+    memset(live_decode_upload_buffer, 0, sizeof(wram_overlay.launcher.frontend_runtime_sprite_tile_buffer));
+    for (idx = 0; idx < 18; idx++)
+    {
+        lut[idx] = 0;
+        attr_lut[idx] = 0;
+    }
+
+    for (idx = 0; idx < 18; idx++, entry += 8)
+    {
+        const u16 word0 = (u16)(((u16)entry[0] << 8) | entry[1]);
+        const u16 y_raw = (u16)(((u16)entry[2] << 8) | entry[3]);
+        const u16 code = (u16)((((u16)entry[4] << 8) | entry[5]) & 0x3FFF);
+        u16 slot = 0xFFFF;
+        u16 i;
+
+        if (y_raw == 0x0180)
+        {
+            continue;
+        }
+
+        for (i = 0; i < unique_count; i++)
+        {
+            if (wram_overlay.launcher.frontend_runtime_sprite_codes[i] == code)
+            {
+                slot = i;
+                break;
+            }
+        }
+
+        if (slot == 0xFFFF)
+        {
+            if (unique_count >= FRONTEND_RUNTIME_MAX_UNIQUE_CODES)
+            {
+                continue;
+            }
+
+            slot = unique_count;
+            wram_overlay.launcher.frontend_runtime_sprite_codes[slot] = code;
+            frontend_decode_pc090oj_cell(
+                code,
+                live_decode_upload_buffer + ((u32)slot * 4U * 8U)
+            );
+            unique_count++;
+        }
+
+        lut[idx] = (u16)(FRONTEND_RUNTIME_SPRITE_TILE_BASE + (slot * 4U));
+        {
+            const u16 flipy = (u16)((word0 >> 15) & 1U);
+            const u16 flipx = (u16)((word0 >> 14) & 1U);
+            const u16 raw_bank = (u16)(word0 & 0x000FU);
+            const u16 color = (u16)(raw_bank | sprite_colbank);
+            const u16 pal_line = (u16)((color >> 4) & 0x0003U);
+            attr_lut[idx] = (u16)((pal_line << 13) | (flipy << 12) | (flipx << 11));
+        }
+    }
+
+    if (unique_count > 0)
+    {
+        SYS_disableInts();
+        VDP_loadTileData(
+            (const u32 *)live_decode_upload_buffer,
+            FRONTEND_RUNTIME_SPRITE_TILE_BASE,
+            unique_count * 4U,
+            DMA
+        );
+        VDP_waitDMACompletion();
+        SYS_enableInts();
+    }
+#endif
 }
 
 static void refresh_frontend_sprite_palettes(const u16 *bank_map, u16 bank_count)
@@ -1395,21 +1481,11 @@ static u16 text_writer_build_tile_attr_from_arcade_code(u16 attr_word, u16 arcad
 
 static void genesistan_sync_title_vdp_layout(void)
 {
-    static const u32 genesistan_visibility_tile_slot1[8] = {
-        0x11111111, 0x11111111, 0x11111111, 0x11111111,
-        0x11111111, 0x11111111, 0x11111111, 0x11111111
-    };
-
     SYS_disableInts();
     VDP_setPlaneSize(64, 32, FALSE);
     VDP_setBGAAddress(TITLE_PLANE_A_VRAM_ADDR);
     VDP_setBGBAddress(TITLE_PLANE_B_VRAM_ADDR);
     VDP_setSpriteListAddress(TITLE_SAT_VRAM_ADDR);
-    /*
-     * Temporary system-wide sprite visibility bring-up tile:
-     * write one solid visible tile to VRAM tile slot 1 (addr 0x0020).
-     */
-    VDP_loadTileData(genesistan_visibility_tile_slot1, 1, 1, CPU);
     VDP_setWindowOff();
     SYS_enableInts();
 }
@@ -1900,6 +1976,7 @@ static void genesistan_frontend_live_vint_handoff(void)
     /* Post-launch frame ownership: arcade level-5 tick runs from V-Int only. */
     genesistan_refresh_arcade_inputs();
     genesistan_run_original_frontend_tick();
+    genesistan_sprite_tile_prepare();
     genesistan_sprite_commit_asm();
 #endif
 }

@@ -22820,3 +22820,407 @@ the current `move.w #0x8001` hardcode.
 - Exception handlers
 
 Full plan: docs/design/full_prototype_sprite_execution_path.md
+
+## [Cody - Implementation, Full Prototype Sprite Execution Path]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - apps/rastan/src/startup_trampoline.s
+  - apps/rastan/inc/main.h
+  - docs/design/full_prototype_sprite_execution_results.md
+
+- objective
+  - Implement the full prototype live path: `genesistan_run_original_frontend_tick()` -> `genesistan_sprite_tile_prepare()` -> `genesistan_sprite_commit_asm()`, with LUT-driven SAT tile indices and no hardcoded `0x8001` fallback.
+
+- live path ownership result
+  - Runtime hits (`/tmp/full_prototype_sprite_probe_v2.txt`):
+    - `HIT 03A208 801`
+    - `HIT 202D2C 801`
+    - `HIT 200000 801` (`genesistan_sprite_tile_prepare`)
+    - `HIT 202CB4 802` (`genesistan_sprite_commit_asm`)
+    - `HIT 2007EA 2` (`genesistan_render_sprites_vdp`, not live per-vblank owner)
+  - Result: sustained live ownership is prepare + asm, not helper.
+
+- LUT + SAT mapping result
+  - Frame 700 (`/tmp/full_prototype_sprite_probe_v2.txt`):
+    - `idx0 code=03CA lut=0400 sat_tile=0400`
+    - `idx1 code=0000 lut=0404 sat_tile=0404`
+    - `idx2 code=0000 lut=0404 sat_tile=0404`
+  - Tile arithmetic checks:
+    - `slot0 -> expected 0400 -> sat_tile 0400`
+    - `slot1 -> expected 0404 -> sat_tile 0404`
+  - `sat_attr_8001=0` (fallback removed from active SAT output).
+
+- multi-entry result
+  - Frame 700:
+    - `processed_entries=18`
+    - `unique_codes=2`
+    - `lut_nonzero=18`
+
+- VRAM result
+  - Pre-launch control (`/tmp/vram8000_prelaunch.txt`):
+    - `f120` and `f240` at `0x8000` are all zero
+  - Post-launch frame 700:
+    - `vram8000_words=1199 8111 1898 8888 1881 1889 1111 8889`
+    - `vram8000_nonzero_words=8/8`
+    - `vram_stability_8000_8words_same=yes` (700 vs 720)
+
+- decode staging observation
+  - Sampled decode staging bytes at configured buffer address were zero in this capture:
+    - `decode_first16=00 ... 00`
+    - `decode_first_nonzero_offset=-1`
+  - Despite that sampled zero staging snapshot, post-launch VRAM tile region 1024+ is nonzero and SAT maps to that region.
+
+- visual result
+  - Frame artifact: `/tmp/build283_full_prototype_frame700.png`
+  - Classification: `FAIL` (no confirmed sprite/logo pixels)
+
+- pre-launch regression result
+  - `/tmp/build283_prelaunch_frame120.png` still shows launcher/config screen
+  - no obvious pre-launch regression
+
+- build artifact
+  - Build command run: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Compile/link succeeded; standard postpatch preimage guard remained blocked in normal release flow.
+  - Runtime validation artifact for this pass: `dist/Rastan_283.bin` (freshly built ROM postpatched with temporary external spec copy, without modifying repo specs).
+
+- final verdict
+  - Full prototype execution wiring is implemented and LUT->SAT mapping is active on the live non-C path.
+  - Visual sprite output remains unconfirmed in this build and is still classified FAIL.
+```
+
+## [Andy - Sprite Interpretation Failure Diagnosis]
+
+```text
+- root cause classification
+  - PRIMARY: C — Missing SAT link chain
+    - `genesistan_sprite_commit_asm` hardcodes `move.w #0x0500, (%a2)` for SAT word1 on
+      every entry. `0x0500` has bits 6-0 = 0x00 → link field = 0 for all 18 entries.
+    - Genesis VDP follows the link chain from entry 0; link=0 terminates the chain.
+    - Result: VDP renders only the first written entry. All subsequent entries are in SAT
+      memory but invisible to the hardware. Consistent with "one sprite visible, FAIL."
+  - SECONDARY: A — Incorrect PC090OJ tile decode layout (row-major vs column-major)
+    - `frontend_decode_pc090oj_cell()` writes tiles in row-major order:
+      [top-left, top-right, bottom-left, bottom-right] → slots [0, 1, 2, 3]
+    - Genesis VDP renders a 2×2 sprite column-first:
+      T+0=top-left, T+1=bottom-left, T+2=top-right, T+3=bottom-right
+    - Current decode: slot 1 holds top-right data; VDP displays slot 1 as bottom-left.
+      slot 2 holds bottom-left data; VDP displays slot 2 as top-right. Columns are swapped.
+    - Result: even the one visible sprite has its right-column and left-column quadrants
+      geometrically transposed.
+  - TERTIARY: F — LUT source buffer inconsistency (0x11B2 vs 0x11FE)
+    - `genesistan_sprite_tile_prepare()` reads from `workram_bytes + 0x11B2` (0xE0FF11B2,
+      producer-owned window). `genesistan_sprite_commit_asm` reads from `0xE0FF11FE`
+      (renderer-consumed window). Offset delta = 0x4C bytes = 9.5 entry positions.
+    - lut[N] is populated from 0x11B2 entry N but consumed by assembly for 0x11FE entry N.
+    - Effect currently masked (probe shows lut=0400, sat_tile=0400 for entry 0 — matching),
+      likely because retarget patches make both windows reflect the same live data in
+      current title state. Architectural inconsistency that must be resolved before
+      multi-sprite correctness can be verified.
+
+- primary fix
+  - File: `apps/rastan/src/startup_trampoline.s`
+  - In `genesistan_sprite_commit_asm`, replace the hardcoded `move.w #0x0500, (%a2)` with
+    a computed SAT word1 that:
+    - Keeps size bits 11-8 = 0x05 (2×2 = 16×16 sprite)
+    - Sets link bits 6-0 = sequential output entry index + 1 for each written entry
+    - Sets link = 0 for the last written entry (chain terminator)
+  - Output entry counter must track only written entries (not skipped ones).
+  - Approach: maintain a write counter in a data register; write link=counter+1 initially,
+    then patch the last entry's word1 link bits to 0 after the loop completes.
+
+- secondary fix
+  - File: `apps/rastan/src/main.c`
+  - In `frontend_decode_pc090oj_cell()` (line 1023), swap the tile slot assignments:
+    - Top-right pixels (rows 0-7, right half): move from slot 1 → slot 2
+    - Bottom-left pixels (rows 8-15, left half): move from slot 2 → slot 1
+  - Corrected output order: [TL=slot0, BL=slot1, TR=slot2, BR=slot3] = column-major
+
+- files to modify
+  - `apps/rastan/src/startup_trampoline.s` — primary fix: link chain computation
+  - `apps/rastan/src/main.c` — secondary fix: tile decode column-major reorder
+
+- why this fixes it
+  - Primary: With correct link chain (entry N → N+1, last → 0), the Genesis VDP will
+    traverse all N written SAT entries. All 18 (or however many non-skipped) sprites
+    become visible simultaneously instead of only the first one.
+  - Secondary: With column-major tile slot assignment, each 16×16 sprite displays with
+    correct pixel geometry — tile quadrants appear in correct spatial positions.
+  - Combined: multi-sprite output at correct positions with correct per-sprite pixel layout.
+
+- Rainbow Islands / Cadash reference
+  - Rainbow Islands Genesis (`rainbow_islands_arcade_vs_genesis_graphics_comparison.md`):
+    staging routine at 0x19A2 builds per-entry link fields dynamically during SAT staging,
+    not as a constant. Confirms link is always computed per-entry.
+  - Cadash Genesis (`cadash_arcade_vs_genesis_graphics_comparison.md`): script-driven
+    sprite emit at 0x8C9A–0x8F60 programs VDP descriptor words including link fields as
+    part of the emit sequence. Same pattern: link is dynamic, not hardcoded.
+  - Both references confirm that hardcoding link=0 for all entries is not consistent with
+    any correct Genesis SAT implementation.
+
+- full diagnosis
+  - docs/design/sprite_interpretation_failure_diagnosis.md
+```
+
+## [Cody - Implementation, Sprite Interpretation Fixes]
+```text
+- files changed
+  - apps/rastan/src/startup_trampoline.s
+  - apps/rastan/src/main.c
+  - docs/design/sprite_interpretation_fix_results.md
+
+- objective
+  - Implement only the two confirmed blockers: SAT link chain and decoder 2x2 tile ordering/layout.
+
+- link-chain fix summary
+  - In `genesistan_sprite_commit_asm`, replaced fixed `word1=0x0500` behavior with link-chain generation over written entries only:
+    - count pass for valid entries (`y != 0x0180` and LUT nonzero)
+    - write pass sets sequential links (1..N-1)
+    - last written entry link set to 0
+    - size bits remain 2x2 (`size_nibble=5`).
+
+- decode-layout fix summary
+  - In `frontend_decode_pc090oj_cell()`, swapped slot assignment to required `[TL, BL, TR, BR]` output order:
+    - top-right moved slot1 -> slot2
+    - bottom-left moved slot2 -> slot1.
+
+- build artifact
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Compile/link succeeded; standard postpatch failed at known `opcode_replace` preimage gate (`0x0560DA`).
+  - Runtime validation artifact: `dist/Rastan_284.bin` (manual postpatch using `/tmp/startup_title_remap_temp.json`) — unofficial exploratory runtime evidence only.
+
+- SAT proof summary
+  - Probe file: `/tmp/sprite_interpretation_fix_probe.txt`
+  - Link proof (first 5):
+    - idx0 `word1=0501` link=1
+    - idx1 `word1=0502` link=2
+    - idx2 `word1=0503` link=3
+    - idx3 `word1=0504` link=4
+    - idx4 `word1=0505` link=5
+  - Last written entry:
+    - idx17 `word1=0500` link=0
+  - Chain result:
+    - `sat_chain traversal_len=18 chain_ok=true`
+  - Fallback check:
+    - `sat_attr_8001_entries=0`
+
+- visual result
+  - Current frame capture and previous baseline are byte-identical (`md5=772d9e9357388e71a32ea2f94658f9f3`).
+  - Classification: FAIL (no meaningful visual improvement in sampled frame).
+
+- no-scope-drift confirmation
+  - no spec/json changes
+  - no helper reintroduced as live path owner
+  - no one-sprite or logo-specific logic
+  - no LUT redesign
+  - no palette/flip/background additions
+
+- final verdict
+  - Both scoped fixes are implemented and verified at code/runtime level.
+  - Primary blocker (link chain) is fixed and multi-entry SAT traversal is now valid.
+  - Visual output did not improve in sampled frame; remaining blocker(s) are outside this pass scope.
+```
+
+## [Cody - Implementation, Live Decode Buffer Wiring Fix]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - docs/design/live_decode_buffer_wiring_fix_results.md
+
+- exact wiring mismatch found
+  - Prior implementation used equivalent addresses but through separate expressions, which left ambiguity in live-path verification.
+  - Confirmed live decode/upload concrete address in compiled code is `0xE0FF72D4` (`wram_overlay + 0x800`), but this pass enforced one explicit shared pointer path in source.
+
+- exact fix applied
+  - In `genesistan_sprite_tile_prepare()`, introduced:
+    - `u32 *const live_decode_upload_buffer = wram_overlay.launcher.frontend_runtime_sprite_tile_buffer;`
+  - Switched all three live operations to this single pointer:
+    - `memset(...)`
+    - `frontend_decode_pc090oj_cell(..., live_decode_upload_buffer + slot*32)`
+    - `VDP_loadTileData((const u32 *)live_decode_upload_buffer, ...)`
+
+- build artifact
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Compile/link succeeded; normal release postpatch failed at known `opcode_replace` preimage gate (`0x0560DA`).
+  - Runtime artifact: `dist/Rastan_285.bin` (manual postpatch with `/tmp/startup_title_remap_temp.json`) — unofficial exploratory runtime evidence only.
+
+- decode buffer proof summary
+  - Probe file: `/tmp/live_decode_buffer_wiring_probe.txt`
+  - Representative decode event:
+    - `decode_event frame=202 pc=20010E code=03CA slot=0 slot_addr=00FF72D4`
+    - `decode_first16=11 99 81 11 18 98 88 88 18 81 18 89 11 11 88 89`
+    - `decode_first_nonzero_offset=0`
+
+- upload source proof summary
+  - Same probe:
+    - `upload_event frame=202 pc=200174 upload_base=E0FF72D4`
+    - `upload_first16=11 99 81 11 18 98 88 88 18 81 18 89 11 11 88 89`
+    - `upload_first_nonzero_offset=0`
+
+- same-buffer proof
+  - Probe end state: `decode_base=E0FF72D4 upload_base=E0FF72D4`
+  - Decode and upload sampled bytes are identical in live runtime window.
+  - Disassembly corroboration: upload callsite uses `pea e0ff72d4` before DMA transfer.
+
+- VRAM change result
+  - Frame 700 sample remains:
+    - `vram8000_words=1199 8111 1898 8888 1881 1889 1111 8889`
+  - Relative to prior known values: unchanged.
+
+- visual result
+  - Current frame `/tmp/build285_live_decode_wiring_frame700.png` is byte-identical to prior baseline captures (`md5=772d9e9357388e71a32ea2f94658f9f3`).
+  - Classification: FAIL (no meaningful visual change).
+
+- no-scope-drift confirmation
+  - no spec/json changes
+  - no helper reintroduced
+  - no SAT logic changes
+  - no palette/flip/background additions
+  - no LUT redesign
+  - no `startup_trampoline.s` edits in this pass
+
+- final verdict
+  - Live decode destination and live upload source are now explicitly unified via one pointer in source and proven identical at runtime (`0xE0FF72D4`).
+  - Output visuals remain unchanged in this pass.
+```
+
+## [Andy - Next Sprite System Slice: Size / Grouping]
+
+```text
+- chosen slice
+  - Option A: full word0 attribute decode + canonical Block-A source unification
+  - Two inseparable rules:
+    1. genesistan_sprite_tile_prepare() must read from 0xE0FF11FE (same as commit assembly),
+       not workram_bytes + 0x11B2 (which resolves to a different address)
+    2. word0 attr must be decoded per entry: flipy=bit15, flipx=bit14, palette_line from bits
+       3-0 combined with sprite_colbank; result stored in new genesistan_sprite_attr_lut[18];
+       applied to SAT tile_attr in genesistan_sprite_commit_asm
+
+- why chosen
+  - Sprite size is confirmed 2x2 (16x16) per entry — no size field exists in word0 or word2.
+    PC090OJ cell is the atomic 16x16 unit. Each Block-A entry is always one 16x16 cell.
+    Multi-tile objects are composed from multiple independently positioned 16x16 entries.
+    The 2x2 assumption is architecturally correct and does not change.
+  - The actual missing rules are: (1) unified Block-A source so lut[N] corresponds to the
+    same descriptor the commit loop processes for entry N, and (2) word0 attr decode so
+    SAT tile_attr carries correct palette and flip bits instead of hardcoded palette=0, flip=0.
+  - These are the two sprite system rules that remain unimplemented after builds 283-285.
+
+- core sprite rule to implement
+  - word0 bits: bit15=flipy, bit14=flipx, bits 3-0=color bank
+  - color bank + sprite_colbank → palette_line (0-3)
+  - Pre-shift in prepare: attr_lut[N] = (pal_line << 13) | (flipy << 12) | (flipx << 11)
+  - In assembly commit: OR attr_lut[N] into SAT word2 after tile_index masking
+  - SAT word2 result: bit15=1(priority), bits14-13=pal_line, bit12=flipy, bit11=flipx,
+    bits10-0=tile_index
+  - Block-A source: change prepare from workram_bytes + 0x11B2 to absolute 0xE0FF11FE
+
+- implementation boundary
+  - apps/rastan/src/main.c:
+    - genesistan_sprite_tile_prepare(): change entry base to 0xE0FF11FE; read word0 per
+      entry; compute pal_line from word0 + sprite_colbank; store in genesistan_sprite_attr_lut[N]
+    - wram_overlay.launcher: add volatile uint16_t genesistan_sprite_attr_lut[18]
+  - apps/rastan/src/startup_trampoline.s:
+    - genesistan_sprite_commit_asm: load genesistan_sprite_attr_lut base into a register;
+      per entry: load attr_lut[N]; OR into tile_attr after tile_index mask and priority OR
+    - Add FRONTEND_RUNTIME_SPRITE_ATTR_LUT_OFFSET constant
+  - No spec/JSON changes; no size logic changes; no tile count changes; no link chain changes
+
+- live flow summary
+  1. genesistan_run_original_frontend_tick() — arcade produces Block-A at 0xE0FF11FE
+  2. genesistan_sprite_tile_prepare() — reads from 0xE0FF11FE; decodes tiles; stores tile
+     index in tile_lut[N] and pre-shifted attr in attr_lut[N] for all 18 entries
+  3. genesistan_sprite_commit_asm() — reads Block-A from 0xE0FF11FE; builds SAT word2 as
+     tile_index | 0x8000 | attr_lut[N]; writes SAT entries with correct palette and flip
+
+- success criteria
+  1. prepare reads from 0xE0FF11FE (static code check)
+  2. genesistan_sprite_attr_lut[18] exists in wram_overlay.launcher (build check)
+  3. attr_lut[N] == (pal_line << 13) | (flipy << 12) | (flipx << 11) for each live entry (probe)
+  4. SAT word2 for each entry == (tile_index & 0x07FF) | 0x8000 | attr_lut[N] (probe)
+  5. title logo entries (word0=0x0000): SAT word2 unchanged from current behavior
+  6. gameplay entries with nonzero word0: SAT word2 carries correct pal/flip bits
+  7. all 18 Block-A entries processed; system-wide (not entry-0-only)
+  8. SAT link chain still correct (traversal_len=N, chain_ok=true)
+
+- out-of-scope list
+  - Block-B sprite descriptors (0xE0FF01BC, 4 entries)
+  - Sprite size decoding (confirmed 2x2; no size field exists)
+  - Flipscreen transform
+  - Full palette correctness / CRAM calibration
+  - Animation cycling beyond Block-A automatic update
+  - Background/tilemap rendering (PC080SN, scroll, planes)
+  - genesistan_render_sprites_vdp() function body
+  - specs/ JSON files
+  - frontend_decode_pc090oj_cell() tile-ordering (correct after build 284)
+  - VRAM layout constants and tile region 1024+
+  - SAT link chain logic (correct after build 284)
+  - genesistan_sprite_tile_lut[18] structure (unchanged; parallel attr_lut is new addition)
+```
+
+## [Cody - Implementation, Canonical Block-A Source + word0 Attr Decode]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - apps/rastan/src/startup_trampoline.s
+  - docs/design/canonical_blocka_attr_decode_results.md
+
+- canonical source change summary
+  - `genesistan_sprite_tile_prepare()` now reads Block-A from `0xE0FF11FE` (same as commit asm), replacing the prior `workram_bytes + 0x11B2` source.
+  - Static proof: `main.c:1084`.
+  - Compiled proof: prepare disasm `200044 moveal ... 0xE0FF11FE`; commit disasm `202d16/202d44 moveal ... 0xE0FF11FE`.
+
+- attr LUT summary
+  - Added `volatile uint16_t genesistan_sprite_attr_lut[18]` in launcher WRAM overlay (`main.c:181`).
+  - Prepare now computes per-entry attr bits:
+    - `flipy=bit15`, `flipx=bit14`, `raw_bank=bits3-0`
+    - `sprite_colbank=(A5@(0x14) & 0x00E0) >> 1`
+    - `pal_line=(raw_bank | sprite_colbank) >> 4`
+    - `attr_lut[idx]=(pal_line<<13)|(flipy<<12)|(flipx<<11)`
+
+- SAT word2 summary
+  - Added `FRONTEND_RUNTIME_SPRITE_ATTR_LUT_OFFSET=0x28F4` and commit OR path:
+    - asm `or.w (%a4), %d1` after tile mask + priority set.
+  - Runtime proof (`/tmp/canonical_blocka_attr_probe.txt`):
+    - `sat_word2 idx=0 ... sat_w2=E400 expected=E400 match=true`
+    - `sat_word2 idx=1 ... sat_w2=E404 expected=E404 match=true`
+    - `sat_word2 idx=2 ... sat_w2=E404 expected=E404 match=true`
+
+- build artifact
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Compile/link succeeded; standard release postpatch failed at known preimage gate (`opcode_replace at 0x0560DA`).
+  - Runtime artifact: `dist/Rastan_286.bin` via manual postpatch with `/tmp/startup_title_remap_temp.json`.
+  - Classification: unofficial exploratory runtime evidence only.
+
+- proof summary
+  - Attr decode proof (3 entries):
+    - `attr_decode idx=0/1/2 ... attr_lut=6000 expected=6000 match=true`
+  - SAT/link/fallback proof:
+    - `sat_chain traversal_len=18 chain_ok=true nonzero_entries=18 sat_attr_8001_entries=0`
+  - Live ownership/hits:
+    - `HIT 200000 801` (prepare)
+    - `HIT 202CFC 802` (commit)
+    - `HIT 200834 2` (helper, non-owner)
+
+- title-logo stability note
+  - Sampled title entry has `word0=0000` but `sprite_colbank=0x30`, so decoded `pal_line=3` and `attr_lut=6000`.
+  - Result: title SAT word2 is not unchanged vs prior hardcoded palette behavior; it now includes decoded palette-line bits as designed.
+
+- visual result
+  - Probe reported snapshot call success, but no PNG file was emitted in this environment.
+  - Classification: FAIL (no new verifiable frame artifact emitted in-pass).
+
+- no-scope-drift confirmation
+  - no spec/json changes
+  - no size/grouping logic changes
+  - no SAT link-chain logic changes
+  - no tile ordering changes
+  - no helper reintroduction
+  - no palette/flip/background system expansion beyond required word0 attr decode
+
+- final verdict
+  - The exact two approved rules are implemented and runtime-proven:
+    1) canonical Block-A source unification
+    2) word0 attr decode carried into SAT word2 via attr LUT
+  - Visual impact could not be re-verified with an emitted screenshot artifact in this environment.
+```

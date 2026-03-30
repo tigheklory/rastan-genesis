@@ -64,5 +64,6 @@ void genesistan_refresh_arcade_inputs(void);
 void genesistan_reclaim_launcher_wram(void);
 void genesistan_sound_send_command(void);
 void genesistan_sound_read_status(void);
+void genesistan_sprite_tile_prepare(void);
 
 #endif
