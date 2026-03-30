@@ -1,9 +1,27 @@
 #include "main.h"
+#include "res_ui.h"
 #include <string.h>
 
 #ifndef RASTAN_ENABLE_STARTUP_HOOK
 #define RASTAN_ENABLE_STARTUP_HOOK 1
 #endif
+
+const u8 *const rastan_pc090oj_genesis = rastan_pc090oj;
+
+__attribute__((used, section(".rodata_bin")))
+const uint16_t genesistan_pc080sn_tile_vram_lut[16384] = {
+#include "../../../build/pc080sn_tile_vram_lut_words.inc"
+};
+
+__attribute__((used, section(".rodata_bin")))
+const uint16_t genesistan_pc080sn_attr_lut[32] = {
+#include "../../../build/pc080sn_attr_lut_words.inc"
+};
+
+__attribute__((used, section(".rodata_bin")))
+const uint16_t genesistan_pc080sn_vram_preload[] = {
+#include "../../../build/pc080sn_vram_preload_words.inc"
+};
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 

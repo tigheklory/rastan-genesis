@@ -17,12 +17,16 @@
     .globl genesistan_render_sprites_vdp
     .globl genesistan_render_sprites_vdp_bridge
     .globl genesistan_sprite_commit_asm
+    .globl genesistan_asm_tilemap_commit_bg
+    .globl genesistan_asm_tilemap_commit_fg
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 
 #define ARCADE_ROM_BASE 0x000200
 #define FRONTEND_RUNTIME_SPRITE_LUT_OFFSET 0x28D0
 #define FRONTEND_RUNTIME_SPRITE_ATTR_LUT_OFFSET 0x28F4
+#define PC080SN_DESC_LIST_OFFSET 0x1000
+#define PC080SN_MAINCPU_MAX_ADDR 0x00060000
 
 genesistan_sound_send_command:
     move.b #0, genesistan_shadow_reg_3e0001
@@ -155,6 +159,273 @@ genesistan_sprite_commit_asm:
     movem.l (%sp)+,%d0-%d7/%a0-%a6
     rts
 
+/*
+ * PC080SN BG tilemap hot path.
+ * Args (C ABI, all promoted to 32-bit):
+ *   4(%sp):  dest_ptr
+ *   8(%sp):  strip_index
+ *  12(%sp):  dest_row (raw 0..31)
+ *  16(%sp):  dest_col (0..63)
+ * Returns:
+ *   %d0 = updated dest_ptr
+ */
+genesistan_asm_tilemap_commit_bg:
+    movem.l %d2-%d7/%a2-%a6,-(%sp)
+
+    movea.l #0xC00004, %a5          /* VDP control port */
+    movea.l #0xC00000, %a6          /* VDP data port */
+    move.w  #0x8F02, (%a5)          /* auto-increment = 2 bytes */
+
+    lea     genesistan_arcade_workram_words+PC080SN_DESC_LIST_OFFSET, %a0
+    lea     rastan_maincpu, %a1
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     genesistan_pc080sn_attr_lut, %a3
+
+    move.l  48(%sp), %d5            /* dest_ptr accumulator */
+    move.l  52(%sp), %d7            /* strip_index */
+    move.l  56(%sp), %d1            /* dest_row (raw) */
+    move.l  60(%sp), %d2            /* dest_col */
+    andi.w  #0x0003, %d7
+    andi.w  #0x001F, %d1
+    andi.w  #0x003F, %d2
+
+    moveq   #15, %d6                /* 16 descriptors */
+
+.Lpc080sn_bg_desc_loop:
+    move.l  (%a0)+, %d3             /* desc_addr */
+    btst    #0, %d3
+    bne     .Lpc080sn_bg_invalid
+    cmpi.l  #0x0005FFFC, %d3
+    bhi     .Lpc080sn_bg_invalid
+
+    movea.l %a1, %a4
+    adda.l  %d3, %a4
+    move.w  (%a4), %d4              /* attr_word */
+    move.w  2(%a4), %d3             /* table_base (u16) */
+    cmpi.w  #0x7FE0, %d3
+    bhi     .Lpc080sn_bg_invalid
+
+    movea.l %a1, %a4
+    move.w  %d3, %d0
+    andi.l  #0x0000FFFF, %d0
+    adda.l  %d0, %a4
+    move.w  %d7, %d0
+    lsl.w   #1, %d0
+    adda.w  %d0, %a4
+
+    move.w  %d4, %d0
+    andi.w  #0x0003, %d0
+    move.w  %d4, %d3
+    lsr.w   #8, %d3
+    lsr.w   #6, %d3
+    andi.w  #0x0001, %d3
+    lsl.w   #2, %d3
+    or.w    %d3, %d0
+    move.w  %d4, %d3
+    lsr.w   #8, %d3
+    lsr.w   #7, %d3
+    andi.w  #0x0001, %d3
+    lsl.w   #3, %d3
+    or.w    %d3, %d0
+    move.w  %d4, %d3
+    lsr.w   #8, %d3
+    lsr.w   #5, %d3
+    andi.w  #0x0001, %d3
+    lsl.w   #4, %d3
+    or.w    %d3, %d0
+    add.w   %d0, %d0
+    move.w  0(%a3,%d0.w), %d0
+    move.w  %d0, -(%sp)             /* attr partial */
+
+    moveq   #3, %d4
+.Lpc080sn_bg_row_loop:
+    move.w  (%a4), %d3
+    andi.w  #0x3FFF, %d3
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+    or.w    (%sp), %d3
+
+    move.w  %d1, %d0
+    cmpi.w  #4, %d0
+    blo     .Lpc080sn_bg_skip_write
+
+    subi.w  #4, %d0
+    lsl.w   #7, %d0
+    add.w   %d2, %d0
+    add.w   %d2, %d0
+    addi.w  #0xC000, %d0
+
+    move.w  %d4, -(%sp)
+    move.w  %d0, %d4
+    andi.w  #0x3FFF, %d0
+    lsl.l   #8, %d0
+    lsl.l   #8, %d0
+    lsr.w   #8, %d4
+    lsr.w   #6, %d4
+    andi.w  #0x0003, %d4
+    or.w    %d4, %d0
+    ori.l   #0x40000003, %d0
+    move.l  %d0, (%a5)
+    move.w  %d3, (%a6)
+    move.w  (%sp)+, %d4
+
+.Lpc080sn_bg_skip_write:
+    adda.w  #8, %a4
+    addq.w  #1, %d1
+    andi.w  #0x001F, %d1
+    dbra    %d4, .Lpc080sn_bg_row_loop
+
+    addq.l  #2, %sp
+    bra     .Lpc080sn_bg_desc_done
+
+.Lpc080sn_bg_invalid:
+    addq.w  #4, %d1
+    andi.w  #0x001F, %d1
+
+.Lpc080sn_bg_desc_done:
+    addi.l  #0x00000400, %d5
+    dbra    %d6, .Lpc080sn_bg_desc_loop
+
+    move.l  %d5, %d0
+    movem.l (%sp)+,%d2-%d7/%a2-%a6
+    rts
+
+/*
+ * PC080SN FG tilemap hot path.
+ * Args/return contract matches genesistan_asm_tilemap_commit_bg.
+ */
+genesistan_asm_tilemap_commit_fg:
+    movem.l %d2-%d7/%a2-%a6,-(%sp)
+
+    movea.l #0xC00004, %a5          /* VDP control port */
+    movea.l #0xC00000, %a6          /* VDP data port */
+    move.w  #0x8F02, (%a5)          /* auto-increment = 2 bytes */
+
+    lea     genesistan_arcade_workram_words+PC080SN_DESC_LIST_OFFSET, %a0
+    lea     rastan_maincpu, %a1
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     genesistan_pc080sn_attr_lut, %a3
+
+    move.l  48(%sp), %d5            /* dest_ptr accumulator */
+    move.l  52(%sp), %d7            /* strip_index */
+    move.l  56(%sp), %d1            /* dest_row (raw) */
+    move.l  60(%sp), %d2            /* dest_col */
+    andi.w  #0x0003, %d7
+    andi.w  #0x001F, %d1
+    andi.w  #0x003F, %d2
+
+    moveq   #15, %d6                /* 16 descriptors */
+
+.Lpc080sn_fg_desc_loop:
+    move.l  (%a0)+, %d3             /* desc_addr */
+    btst    #0, %d3
+    bne     .Lpc080sn_fg_invalid
+    cmpi.l  #0x0005FFFC, %d3
+    bhi     .Lpc080sn_fg_invalid
+
+    movea.l %a1, %a4
+    adda.l  %d3, %a4
+    move.w  (%a4), %d4              /* attr_word */
+    move.w  2(%a4), %d3             /* table_base (u16) */
+    cmpi.w  #0x7FE0, %d3
+    bhi     .Lpc080sn_fg_invalid
+
+    movea.l %a1, %a4
+    move.w  %d3, %d0
+    andi.l  #0x0000FFFF, %d0
+    adda.l  %d0, %a4
+    move.w  %d7, %d0
+    lsl.w   #3, %d0
+    adda.w  %d0, %a4
+
+    move.w  %d4, %d0
+    andi.w  #0x0003, %d0
+    move.w  %d4, %d3
+    lsr.w   #8, %d3
+    lsr.w   #6, %d3
+    andi.w  #0x0001, %d3
+    lsl.w   #2, %d3
+    or.w    %d3, %d0
+    move.w  %d4, %d3
+    lsr.w   #8, %d3
+    lsr.w   #7, %d3
+    andi.w  #0x0001, %d3
+    lsl.w   #3, %d3
+    or.w    %d3, %d0
+    move.w  %d4, %d3
+    lsr.w   #8, %d3
+    lsr.w   #5, %d3
+    andi.w  #0x0001, %d3
+    lsl.w   #4, %d3
+    or.w    %d3, %d0
+    add.w   %d0, %d0
+    move.w  0(%a3,%d0.w), %d0
+    move.w  %d0, -(%sp)             /* attr partial */
+
+    moveq   #3, %d4
+.Lpc080sn_fg_col_loop:
+    move.w  (%a4), %d3
+    andi.w  #0x3FFF, %d3
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+    or.w    (%sp), %d3
+
+    move.w  %d1, %d0
+    cmpi.w  #4, %d0
+    blo     .Lpc080sn_fg_skip_write
+
+    subi.w  #4, %d0
+    lsl.w   #7, %d0
+    add.w   %d2, %d0
+    add.w   %d2, %d0
+    addi.w  #0xE000, %d0
+
+    move.w  %d4, -(%sp)
+    move.w  %d0, %d4
+    andi.w  #0x3FFF, %d0
+    lsl.l   #8, %d0
+    lsl.l   #8, %d0
+    lsr.w   #8, %d4
+    lsr.w   #6, %d4
+    andi.w  #0x0003, %d4
+    or.w    %d4, %d0
+    ori.l   #0x40000003, %d0
+    move.l  %d0, (%a5)
+    move.w  %d3, (%a6)
+    move.w  (%sp)+, %d4
+
+.Lpc080sn_fg_skip_write:
+    adda.w  #2, %a4
+    addq.w  #1, %d2
+    cmpi.w  #64, %d2
+    blo     .Lpc080sn_fg_no_wrap
+    moveq   #0, %d2
+    addq.w  #1, %d1
+    andi.w  #0x001F, %d1
+
+.Lpc080sn_fg_no_wrap:
+    addi.l  #4, %d5
+    dbra    %d4, .Lpc080sn_fg_col_loop
+
+    addq.l  #2, %sp
+    bra     .Lpc080sn_fg_desc_done
+
+.Lpc080sn_fg_invalid:
+    addi.l  #0x10, %d5
+    addi.w  #4, %d2
+    cmpi.w  #64, %d2
+    blo     .Lpc080sn_fg_desc_done
+    subi.w  #64, %d2
+    addq.w  #1, %d1
+    andi.w  #0x001F, %d1
+
+.Lpc080sn_fg_desc_done:
+    dbra    %d6, .Lpc080sn_fg_desc_loop
+
+    move.l  %d5, %d0
+    movem.l (%sp)+,%d2-%d7/%a2-%a6
+    rts
+
 genesistan_run_original_startup_common:
     movem.l %d0-%d7/%a0-%a6,-(%sp)
     jsr (0x03AE86 + ARCADE_ROM_BASE)
@@ -213,6 +484,14 @@ genesistan_startup_common_exit_test:
     rts
 
 genesistan_sprite_commit_asm:
+    rts
+
+genesistan_asm_tilemap_commit_bg:
+    move.l 4(%sp), %d0
+    rts
+
+genesistan_asm_tilemap_commit_fg:
+    move.l 4(%sp), %d0
     rts
 
 #endif

@@ -27,6 +27,21 @@ release:
 		--variant "$(VARIANT)" \
 		--hook-mode "hooked"; \
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"; \
+	$(PYTHON) "$(ROOT)/tools/translation/preconvert_pc090oj_tiles.py" \
+		--input "$(ROOT)/build/regions/pc090oj.bin" \
+		--output "$(ROOT)/build/pc090oj_genesis.bin"; \
+	cp "$(ROOT)/build/pc090oj_genesis.bin" "$(ROOT)/build/regions/pc090oj.bin"; \
+	$(PYTHON) "$(ROOT)/tools/translation/precompute_pc080sn_tile_lut.py" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
+		--pc080sn "$(ROOT)/build/regions/pc080sn.bin" \
+		--lut-output "$(ROOT)/build/pc080sn_tile_vram_lut.bin" \
+		--preload-output "$(ROOT)/build/pc080sn_vram_preload.bin" \
+		--count-output "$(ROOT)/build/pc080sn_unique_tile_count.txt" \
+		--lut-include "$(ROOT)/build/pc080sn_tile_vram_lut_words.inc" \
+		--preload-include "$(ROOT)/build/pc080sn_vram_preload_words.inc"; \
+	$(PYTHON) "$(ROOT)/tools/translation/precompute_pc080sn_attr_lut.py" \
+		--output "$(ROOT)/build/pc080sn_attr_lut.bin" \
+		--include "$(ROOT)/build/pc080sn_attr_lut_words.inc"; \
 	$(PYTHON) "$(ROOT)/tools/translation/patch_maincpu.py" \
 		--variant "$(VARIANT)" \
 		--input "$(ROOT)/build/regions/maincpu.bin" \
@@ -60,6 +75,21 @@ release-nohook:
 		--variant "$(VARIANT)" \
 		--hook-mode "nohook"; \
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"; \
+	$(PYTHON) "$(ROOT)/tools/translation/preconvert_pc090oj_tiles.py" \
+		--input "$(ROOT)/build/regions/pc090oj.bin" \
+		--output "$(ROOT)/build/pc090oj_genesis.bin"; \
+	cp "$(ROOT)/build/pc090oj_genesis.bin" "$(ROOT)/build/regions/pc090oj.bin"; \
+	$(PYTHON) "$(ROOT)/tools/translation/precompute_pc080sn_tile_lut.py" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
+		--pc080sn "$(ROOT)/build/regions/pc080sn.bin" \
+		--lut-output "$(ROOT)/build/pc080sn_tile_vram_lut.bin" \
+		--preload-output "$(ROOT)/build/pc080sn_vram_preload.bin" \
+		--count-output "$(ROOT)/build/pc080sn_unique_tile_count.txt" \
+		--lut-include "$(ROOT)/build/pc080sn_tile_vram_lut_words.inc" \
+		--preload-include "$(ROOT)/build/pc080sn_vram_preload_words.inc"; \
+	$(PYTHON) "$(ROOT)/tools/translation/precompute_pc080sn_attr_lut.py" \
+		--output "$(ROOT)/build/pc080sn_attr_lut.bin" \
+		--include "$(ROOT)/build/pc080sn_attr_lut_words.inc"; \
 	$(MAKE) -f $(GDK)/makefile.gen release EXTRA_FLAGS="$(NOHOOK_FLAGS) $(EXCEPTION_DUMPER_FLAGS)" MD_LDSCRIPT="$(MD_LDSCRIPT)"; \
 	printf "%s" "$$count" > ../../dist/release_counter.txt; \
 	name="Rastan_$${count}.bin"; \
@@ -77,6 +107,21 @@ debug:
 		--variant "$(VARIANT)" \
 		--hook-mode "debug-hooked"; \
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"; \
+	$(PYTHON) "$(ROOT)/tools/translation/preconvert_pc090oj_tiles.py" \
+		--input "$(ROOT)/build/regions/pc090oj.bin" \
+		--output "$(ROOT)/build/pc090oj_genesis.bin"; \
+	cp "$(ROOT)/build/pc090oj_genesis.bin" "$(ROOT)/build/regions/pc090oj.bin"; \
+	$(PYTHON) "$(ROOT)/tools/translation/precompute_pc080sn_tile_lut.py" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
+		--pc080sn "$(ROOT)/build/regions/pc080sn.bin" \
+		--lut-output "$(ROOT)/build/pc080sn_tile_vram_lut.bin" \
+		--preload-output "$(ROOT)/build/pc080sn_vram_preload.bin" \
+		--count-output "$(ROOT)/build/pc080sn_unique_tile_count.txt" \
+		--lut-include "$(ROOT)/build/pc080sn_tile_vram_lut_words.inc" \
+		--preload-include "$(ROOT)/build/pc080sn_vram_preload_words.inc"; \
+	$(PYTHON) "$(ROOT)/tools/translation/precompute_pc080sn_attr_lut.py" \
+		--output "$(ROOT)/build/pc080sn_attr_lut.bin" \
+		--include "$(ROOT)/build/pc080sn_attr_lut_words.inc"; \
 	$(PYTHON) "$(ROOT)/tools/translation/patch_maincpu.py" \
 		--variant "$(VARIANT)" \
 		--input "$(ROOT)/build/regions/maincpu.bin" \
@@ -102,6 +147,21 @@ debug-nohook:
 		--variant "$(VARIANT)" \
 		--hook-mode "debug-nohook"; \
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"; \
+	$(PYTHON) "$(ROOT)/tools/translation/preconvert_pc090oj_tiles.py" \
+		--input "$(ROOT)/build/regions/pc090oj.bin" \
+		--output "$(ROOT)/build/pc090oj_genesis.bin"; \
+	cp "$(ROOT)/build/pc090oj_genesis.bin" "$(ROOT)/build/regions/pc090oj.bin"; \
+	$(PYTHON) "$(ROOT)/tools/translation/precompute_pc080sn_tile_lut.py" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
+		--pc080sn "$(ROOT)/build/regions/pc080sn.bin" \
+		--lut-output "$(ROOT)/build/pc080sn_tile_vram_lut.bin" \
+		--preload-output "$(ROOT)/build/pc080sn_vram_preload.bin" \
+		--count-output "$(ROOT)/build/pc080sn_unique_tile_count.txt" \
+		--lut-include "$(ROOT)/build/pc080sn_tile_vram_lut_words.inc" \
+		--preload-include "$(ROOT)/build/pc080sn_vram_preload_words.inc"; \
+	$(PYTHON) "$(ROOT)/tools/translation/precompute_pc080sn_attr_lut.py" \
+		--output "$(ROOT)/build/pc080sn_attr_lut.bin" \
+		--include "$(ROOT)/build/pc080sn_attr_lut_words.inc"; \
 	$(MAKE) -f $(GDK)/makefile.gen debug EXTRA_FLAGS="$(NOHOOK_FLAGS) $(EXCEPTION_DUMPER_FLAGS)" MD_LDSCRIPT="$(MD_LDSCRIPT)"
 
 clean:

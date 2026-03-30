@@ -23487,3 +23487,242 @@ Full plan: docs/design/full_prototype_sprite_execution_path.md
 - ROM artifact
   - `dist/Rastan_290.bin`
 ```
+
+## [Cody - Implementation, PC080SN Tilemap Translation]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - AGENTS_LOG.md
+
+- translation implementation
+  - Replaced the frame/cursor synthetic hook logic in `genesistan_hook_tilemap_plane_a/b` with real PC080SN descriptor translation:
+    - reads live descriptor pointers from A5 workram list (`A5+0x1000..0x103C`)
+    - decodes descriptor `word0` (attr) + `word1` (tile-strip base) from `rastan_maincpu`
+    - derives tile strip entries using live strip selector (`A5+0x10CA`) with plane-specific stride rules from arcade flow
+    - derives `(x,y)` from emulated C-window write addresses and maps directly to VDP planes
+    - emits `VDP_setTileMapXY(BG_B, ...)` for plane-A hook and `VDP_setTileMapXY(BG_A, ...)` for plane-B hook
+    - tile index translation uses `tile_cache_get(arcade_tile)` only
+
+- synthetic logic confirmation
+  - No stage buffers, pattern tables, frame_ctr-generated tilemaps, or manual BG fill logic were added.
+
+- build and ROM artifact
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Standard release failed at known postpatch gate (`opcode_replace` preimage at `0x0560DA`).
+  - Exploratory workaround used (existing path):
+    `postpatch_startup_rom.py --spec /tmp/startup_title_remap_temp.json`
+  - ROM artifact: `dist/Rastan_291.bin`
+```
+
+## [Andy - Next Major Graphics Phase, Python-First Architecture]
+```text
+- documents created
+  - docs/design/next_major_graphics_phase_python_first.md
+  - docs/design/full_graphics_system_completion_plan.md (revised via self-audit)
+
+- chosen next phase
+  Python pre-decode of PC090OJ tile ROM + runtime DMA-from-blob replacement + CRAM palette load (bundled)
+
+- ownership split (Python / C / Assembly)
+  Python  — static: preconvert_pc090oj_tiles.py bakes all 4096 PC090OJ cells at build time
+              algorithm: exact replica of frontend_decode_pc090oj_cell() memcpy rearrangement
+              input:  build/regions/pc090oj.bin  (4096 × 128 bytes, arcade column layout)
+              output: build/pc090oj_genesis.bin  (4096 × 128 bytes, Genesis column-major layout)
+  C       — runtime thin: genesistan_sprite_tile_prepare() does per-unique-code direct DMA from
+              rastan_pc090oj_genesis blob; no decode loop, no staging buffer, no memset
+              adds refresh_frontend_sprite_palettes() call to genesistan_frontend_live_vint_handoff()
+  Assembly — genesistan_sprite_commit_asm() unchanged; owns SAT write hot path
+
+- preprocessing deliverables
+  tools/translation/preconvert_pc090oj_tiles.py
+    for each cell c in 0..4095:
+      for y in 0..15:
+        src_row = src_data[c*128 + y*8 : c*128 + y*8 + 8]
+        if y < 8:
+          dst[c*128 + 0*32 + y*4 : +4] = src_row[0:4]   # TL tile
+          dst[c*128 + 2*32 + y*4 : +4] = src_row[4:8]   # TR tile
+        else:
+          dst[c*128 + 1*32 + (y-8)*4 : +4] = src_row[0:4]  # BL tile
+          dst[c*128 + 3*32 + (y-8)*4 : +4] = src_row[4:8]  # BR tile
+    assert cell 0x03CA output matches known reference bytes
+
+- exact implementation boundary
+  Eliminated from runtime: frontend_decode_pc090oj_cell(), frontend_runtime_sprite_tile_buffer[2048],
+    bulk VDP_loadTileData() call, memset() clear, frontend_runtime_tile_for_code()
+  Replaced with: VDP_loadTileData(rastan_pc090oj_genesis + code*128, SPRITE_TILE_BASE+slot*4, 4, DMA)
+  WRAM freed: 8KB (2048 u32 words)
+
+- why this phase is next
+  1. CRAM line 3 blocker (sprites invisible): refresh_frontend_sprite_palettes() never called from
+     vblank handoff — one-line fix that unblocks all sprite visibility
+  2. Runtime decode is pure byte rearrangement (memcpy only, no arithmetic) — provably eliminates
+     8KB WRAM staging and bulk upload in favor of direct ROM→VRAM DMA per unique code
+  3. PC080SN tiles confirmed already in Genesis format (tile_cache_get uses arcade_tile*32 DMA-copy)
+     — PC080SN requires no Python preprocessing, only hook/descriptor translation
+  4. Follows MAME gfxdecode ≡ Python preconvert principle: static data conversion belongs at
+     build time, not in 68000 runtime hot path
+
+- new runtime hot path (post-phase)
+  [1] arcade tick → Block-A populated (0xE0FF11FE, 18 entries)
+  [2] sprite_tile_prepare: per unique nonzero code → DMA(rastan_pc090oj_genesis + code*128, slot)
+  [3] refresh_frontend_sprite_palettes() → CRAM line 3 loaded from genesistan_palette_rom_table
+  [4] genesistan_sprite_commit_asm() → SAT formed at VRAM 0xF800 (assembly, unchanged)
+
+- rainbow islands / cadash alignment
+  Producer→consumer ownership validated: Block-A (arcade intent) → sprite_tile_prepare (Genesis
+  tile upload) → refresh_frontend_sprite_palettes (CRAM) → genesistan_sprite_commit_asm (SAT)
+  — unbroken path confirmed for sprite subsystem after this phase
+```
+
+## [Cody - Implementation, PC090OJ Python Predecode + Direct DMA]
+```text
+- files changed
+  - tools/translation/preconvert_pc090oj_tiles.py (new)
+  - apps/rastan/Makefile
+  - apps/rastan/src/main.c
+  - apps/rastan/src/startup_bridge.c
+  - AGENTS_LOG.md
+
+- runtime decode removal
+  - Removed `frontend_decode_pc090oj_cell()` from runtime.
+  - Removed WRAM sprite tile staging buffer usage and all staging `memset`/bulk upload paths.
+
+- ROM→VRAM DMA path
+  - `genesistan_sprite_tile_prepare()` now DMA-loads unique sprite cells directly from preconverted ROM blob:
+    `VDP_loadTileData((const u32 *)(rastan_pc090oj_genesis + code*128), FRONTEND_RUNTIME_SPRITE_TILE_BASE + slot*4, 4, DMA)`
+  - Same direct-DMA behavior applied in `frontend_runtime_tile_for_code()` for the non-live helper path.
+
+- preprocessing/build integration
+  - Added `tools/translation/preconvert_pc090oj_tiles.py` to convert `build/regions/pc090oj.bin` -> `build/pc090oj_genesis.bin` (TL, BL, TR, BR tile layout, byte-rearrangement only).
+  - Makefile now runs the preconvert step automatically before SGDK resource compile and copies the converted blob into the consumed region file.
+
+- WRAM freed
+  - Removed `frontend_runtime_sprite_tile_buffer` from launcher WRAM overlay (8KB freed).
+
+- ROM artifact
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Standard release postpatch still fails at known gate (`opcode_replace` preimage at `0x0560DA`).
+  - Exploratory workaround used (existing path): `postpatch_startup_rom.py --spec /tmp/startup_title_remap_temp.json`
+  - ROM: `dist/Rastan_292.bin`
+```
+
+## [Andy - Architecture, PC080SN Tilemap Translation Architecture]
+```text
+- document created
+  - docs/design/pc080sn_tilemap_architecture.md
+
+- design decisions made
+  UPDATE STRATEGY: Strip-tracking (mirror arcade cadence). No full redraw, no dirty cache, no shadow WRAM.
+    Reason: arcade builder at 0x055968/0x055990 updates exactly the cells that changed. Hooking the builder
+    gives the exact strip set. Full redraw = 7168 VDP writes/frame = ~14ms, too slow.
+
+  TILE LOOKUP: Replaced O(N) LRU scan (tile_cache_get) with Python-generated flat 16384-entry ROM LUT.
+    pc080sn_tile_vram_lut[16384] — ROM-resident, u16, indexed by 14-bit arcade tile code → VRAM slot.
+    Eliminates: genesistan_tile_cache_arcade[], tile_cache_lru[], tile_cache_clock from tilemap hot path.
+    Enables assembly hot path with zero function calls on cache hit (all hits by construction).
+
+  ATTR TRANSLATION: Python-generated 32-entry u16 LUT (pc080sn_attr_lut).
+    5-bit key: (prio<<4)|(vflip<<3)|(hflip<<2)|pal — extracted from PC080SN attr word.
+    Value: Genesis TILE_ATTR upper word, ORable with VRAM slot.
+
+  ASSEMBLY OWNERSHIP: genesistan_asm_tilemap_commit_bg and _fg in startup_trampoline.s.
+    All desc iteration, ROM reads, LUT lookups, VDP control/data writes — zero SGDK calls.
+    C dispatcher (thin): reads strip_index, dest_ptr from workram, derives dest_row/col, calls assembly.
+
+  SCROLL: genesistan_scroll_from_workram_vdp() frozen as final form (already correct in Build 291).
+    BG: A5+0x10EC/EE → BG_B. FG: A5+0x10AE/B0 → BG_A. Vertical bias +8 for 240→224 crop.
+    Per-line scroll NOT required (full-plane only).
+
+  PLANE MAPPING: PC080SN layer 0 (C-window 0xC00000) → BG_B (VRAM 0xC000).
+                  PC080SN layer 1 (C-window 0xC08000) → BG_A (VRAM 0xE000).
+
+- python deliverables specified
+  tools/translation/precompute_pc080sn_tile_lut.py
+    input: rastan_maincpu ROM tile strip tables (static ROM scan)
+    output: build/pc080sn_tile_vram_lut.bin (16384 × u16, 32KB, ROM-resident)
+            build/pc080sn_vram_preload.bin   (N × (u16 tile, u16 slot) pairs + 0xFFFF sentinel)
+            build/pc080sn_unique_tile_count.txt
+  tools/translation/precompute_pc080sn_attr_lut.py
+    input: pure bit logic (no ROM input)
+    output: build/pc080sn_attr_lut.bin (32 × u16, 64 bytes, ROM-resident)
+
+- references used
+  MAME PC080SN: two planes, 64×64 tile RAM each, word0=attr (prio=b13, vflip=b15, hflip=b14, pal=b1:0),
+    word1=tile index (14-bit). C-window 0xC00000 (BG) / 0xC08000 (FG). Scroll at 0xC20000/0xC40000.
+  Rainbow Islands: arcade tile-plane write intent → Genesis VDP plane write stream (direct pattern match).
+  Cadash: intent-to-owner mapping as reusable strategy. Tile/plane intent → VDP stream, scroll → VDP reg.
+```
+
+## [Cody - Implementation, PC080SN Python LUTs + Assembly Hot Path]
+```text
+- files changed
+  - tools/translation/precompute_pc080sn_tile_lut.py (new)
+  - tools/translation/precompute_pc080sn_attr_lut.py (new)
+  - apps/rastan/Makefile
+  - apps/rastan/src/main.c
+  - apps/rastan/src/startup_trampoline.s
+  - apps/rastan/src/startup_bridge.c
+  - AGENTS_LOG.md
+
+- Python deliverables created
+  - build/pc080sn_tile_vram_lut.bin (16384-entry u16 LUT)
+  - build/pc080sn_attr_lut.bin (32-entry u16 attr LUT)
+  - build/pc080sn_vram_preload.bin (u16 tile/slot pairs + 0xFFFF sentinel)
+  - build/pc080sn_unique_tile_count.txt (1104)
+
+- hot path ownership move
+  - `genesistan_hook_tilemap_plane_a/b` in C are now thin dispatchers only (strip+dest decode, FG mode fix, workram writeback).
+  - Descriptor iteration, ROM tile reads, LUT lookups, and direct VDP control/data writes moved to:
+    - `genesistan_asm_tilemap_commit_bg`
+    - `genesistan_asm_tilemap_commit_fg`
+  - No SGDK tilemap write calls remain in the tilemap hot path.
+
+- preload integration
+  - Added one-time title/frontend preload in `request_start_rastan()` via
+    `genesistan_preload_pc080sn_title_frontend()`.
+  - Preload walks `genesistan_pc080sn_vram_preload` sentinel manifest and DMA-loads
+    `rastan_pc080sn + arcade_tile*32` into assigned VRAM slots.
+
+- synthetic logic confirmation
+  - No synthetic/staged/pattern-generated tilemap content introduced.
+
+- ROM artifact
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Compile/link succeeded; standard postpatch failed at known gate (`opcode_replace` preimage at `0x0560DA`).
+  - Existing exploratory workaround used: `postpatch_startup_rom.py --spec /tmp/startup_title_remap_temp.json`
+  - ROM: `dist/Rastan_293.bin`
+```
+
+## [Andy - Analysis, PC080SN Semantic Mismatch (Build 293)]
+```text
+- summary
+  Strict semantic comparison of arcade PC080SN tile builder (0x55968/0x55990) against Build 293
+  Genesis assembly (genesistan_asm_tilemap_commit_bg/fg). Four confirmed mismatches identified.
+  Primary failure causes wrong tile indices on every VDP write for both planes.
+
+- root cause: missing +0x14 byte offset in tile code read (both BG and FG)
+
+- mismatches:
+  - mismatch #1 (BG+FG, PRIMARY): tile code read missing 0x14 byte offset from table base
+      arcade BG: table_base + 0x14 + strip<<1 + row*8
+      arcade FG: table_base + 0x14 + strip<<3 + col*2
+      current:   table_base + 0          + strip<<1/3 + row*8/col*2
+      fix: adda.w #0x0014, %a4 after strip-offset adda.w in both commit_bg and commit_fg
+  - mismatch #2 (BG ONLY): BG strip_index masked to 0..3 in assembly (andi.w #0x0003, %d7)
+      arcade BG at 0x559C2 uses raw strip counter (monotonically increasing, no mask)
+      current wraps at 4, BG loops through only 4 strip positions
+  - mismatch #3 (BG ONLY, secondary): Python LUT discovery scans only strips 0..3
+      precompute_pc080sn_tile_lut.py:62 has for strip in range(4)
+      BG tiles at strip_raw > 3 not collected → lut[code]=0 → blank tiles
+  - mismatch #4 (FG ONLY): FG dest_ptr incorrectly written back to workram
+      arcade 0x55990 outer loop has no movel %a0, %a5@(4260)
+      current main.c:1337 writes accumulated dest → FG position drifts +256 bytes per frame
+
+- sources verified
+  build/maincpu.disasm.txt lines 107346-107483 (0x55904/55968/55990/559B2/55A14)
+  apps/rastan/src/startup_trampoline.s lines 172-427
+  apps/rastan/src/main.c lines 1287-1338
+  tools/translation/precompute_pc080sn_tile_lut.py line 62
+
+- document: docs/design/pc080sn_semantic_mismatch_analysis_build293.md
+```

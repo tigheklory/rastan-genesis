@@ -51,4 +51,7 @@ out/src/startup_bridge.o: src/startup_bridge.c inc/main.h \
  /home/tighe/projects/rastan-genesis/tools/sgdk/inc/config.h \
  /home/tighe/projects/rastan-genesis/tools/sgdk/inc/string.h \
  /home/tighe/projects/rastan-genesis/tools/sgdk/inc/maths.h \
- /home/tighe/projects/rastan-genesis/tools/sgdk/inc/dma.h
+ /home/tighe/projects/rastan-genesis/tools/sgdk/inc/dma.h res/res_ui.h \
+ src/../../../build/pc080sn_tile_vram_lut_words.inc \
+ src/../../../build/pc080sn_attr_lut_words.inc \
+ src/../../../build/pc080sn_vram_preload_words.inc
