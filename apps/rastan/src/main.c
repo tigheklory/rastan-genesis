@@ -1405,13 +1405,13 @@ static bool text_writer_ptr_to_xy(u32 raw_ptr, s16 *out_x, s16 *out_y, u32 *out_
     }
 
     cell = offset >> 2; /* 2 words per text cell (attr + tile). */
-    row = (cell >> 6) & 0x1FU;
+    row = cell & 0x3FU;
     if (row < TEXT_WRITER_VISIBLE_ROW_BIAS)
     {
         return FALSE;
     }
     {
-        u32 col = cell & 0x3FU;
+        u32 col = (cell >> 6) & 0x3FU;
         if (col < col_bias)
         {
             col += 64U;
@@ -1962,6 +1962,9 @@ static void genesistan_frontend_live_vint_handoff(void)
     /* Post-launch frame ownership: arcade level-5 tick runs from V-Int only. */
     genesistan_refresh_arcade_inputs();
     genesistan_run_original_frontend_tick();
+    sanitize_arcade_workram();
+    load_arcade_palette();
+    sync_arcade_scroll_to_vdp();
     genesistan_sprite_tile_prepare();
     refresh_frontend_sprite_palettes();
     genesistan_sprite_commit_asm();

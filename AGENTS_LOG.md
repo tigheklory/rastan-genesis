@@ -23963,6 +23963,38 @@ No input work needed. Unblock on tilemap (Build 295 PC080SN tile offset fix).
   - dist/Rastan_298.bin
 ```
 
+## [Andy - Analysis, Title Screen Composition Ownership Audit]
+
+- document created
+  - docs/design/title_screen_composition_audit.md
+
+- summary
+  - RASTAN sword logo is PC080SN BG tilemap tiles — 28×20 tile block from ROM 0x5B0B2 written to C-window 0xC00328 via 0x5A38E→0x5A4DE. On Genesis, C-window write is null-sunk by spec patcher (genesistan_cwindow_null). Nametable data discarded → tile indices never referenced → tile graphics never DMA'd to VRAM.
+  - PC090OJ sprites ARE used (42 entries from 0x3B8B0 to D00020-D00128) for sword animation/glint overlays. On Genesis, these go to shadow memory but the sprite pipeline only reads workram Block-A (offset 0x11B2) — static logo sprites are invisible.
+  - TAITO logo, copyright text, and credits are FG text writer output via 0x3BB48 — working after Build 300 fix.
+  - Palette conversion at 0x59AD4 (writes to 0x200000) IS correctly redirected to genesistan_palette_clcs — palette data captured.
+  - ROOT CAUSE: Strip builder hooks (0x55968/0x55990) only intercept scrolling tilemap updates. Title screen uses direct C-window block writes that bypass strip builder entirely. No mechanism exists to capture and replay bulk C-window nametable writes to VDP.
+
+- key finding
+  - RASTAN logo = PC080SN BG tilemap (primary) + PC090OJ sprites (overlay)
+  - Both systems' data is null-sunk or shadow-captured but never rendered
+  - The Genesis translation has NO path for bulk tilemap block loads — only strip-by-strip scrolling updates
+
+## [Andy - Analysis, Build 299 Theory vs Reality Reconciliation]
+
+- document created
+  - docs/design/build299_theory_vs_reality_reconciliation.md
+
+- summary
+  - Prior conclusion INCORRECT: row/col inversion was ONE of FOUR active failures, not the only one
+  - FAILURE 1: `text_writer_ptr_to_xy()` (main.c:1408–1422) has identical row/col inversion — NOT fixed in Build 298. All text mispositioned + actively corrupts FG tilemap plane
+  - FAILURE 2: `load_arcade_palette()` (main.c:610) is dead code — never called. Tilemap tiles render with stale launcher palette. Primary cause of "purple-dominant" screen
+  - FAILURE 3: `sync_arcade_scroll_to_vdp()` (main.c:1949) is dead code — never called. VDP scroll registers never updated from arcade workram
+  - FAILURE 4: `sanitize_arcade_workram()` (main.c:1917) is dead code — never called. C-window pointers persist as invalid descriptor addresses
+  - V-Int handler (main.c:1954–1969) calls sprite pipeline but OMITS palette sync, scroll sync, and workram sanitization
+  - If BG were the ONLY broken system, screen would still show correct FG text + sprites — observed screen contradicts this
+  - "row/col inversion" reclassified: PARTIAL CAUSE (fixed for tilemap strips, unfixed for text writer)
+
 ## [Andy - Analysis, Real Attract State Progression + Coin Audit]
 
 - document created
@@ -23992,4 +24024,29 @@ No input work needed. Unblock on tilemap (Build 295 PC080SN tile offset fix).
 
 - ROM artifact path
   - dist/Rastan_299.bin
+```
+
+## [Cody - Implementation, Runtime Wiring Fix (Build 300)]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - AGENTS_LOG.md
+
+- text writer row/col fix applied
+  - In `text_writer_ptr_to_xy()`, row/col extraction now uses column-major decode (`row = cell & 0x3F`, `col = (cell >> 6) & 0x3F`).
+
+- palette sync now active
+  - `load_arcade_palette()` is now called from `genesistan_frontend_live_vint_handoff()` every live V-Int.
+
+- scroll sync now active
+  - `sync_arcade_scroll_to_vdp()` is now called from `genesistan_frontend_live_vint_handoff()` every live V-Int.
+
+- workram sanitize now active
+  - `sanitize_arcade_workram()` is now called from `genesistan_frontend_live_vint_handoff()` every live V-Int.
+
+- confirmation no C rendering logic added
+  - No new C rendering loops or pipeline logic were added; only function calls were wired and one coordinate decode bug was corrected.
+
+- ROM artifact path
+  - dist/Rastan_300.bin
 ```

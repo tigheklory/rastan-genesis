@@ -952,7 +952,7 @@
       "new_window_start": "0xE0FF404C",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
-      "count": 1
+      "count": 0
     },
     {
       "range": "game_engine_040000",
@@ -1016,14 +1016,14 @@
       "kind": "shim_jump",
       "old_start": "0x03F284",
       "old_end_exclusive": "0x03F29C",
-      "new_target": "0x002027FC"
+      "new_target": "0x00202820"
     },
     {
       "range": "helper_3f09c_reg_status",
       "kind": "shim_jump",
       "old_start": "0x03F29C",
       "old_end_exclusive": "0x03F2AC",
-      "new_target": "0x0020282C"
+      "new_target": "0x00202850"
     },
     {
       "kind": "absolute_long_pointer_table",
@@ -1047,7 +1047,7 @@
       "rom_pc": "0x03AAF2",
       "original_bytes": "4eb90005a174",
       "original_bytes_shift_adjusted": "4eb90005a190",
-      "replacement_bytes": "4eb900202850",
+      "replacement_bytes": "4eb900202874",
       "note": "ORDER FIX PATCH B: renderer now runs at this slot (after producer at 0x03A8E0). original_bytes is the post-relocation value (0x059F5E + 0x200 base + 0x16 accumulated shift = 0x05A174). Size: 6->6 bytes (no shift). Renderer runs after producer \u2014 correct ordering."
     },
     {
@@ -1560,7 +1560,7 @@
       "rom_pc": "0x03ADCC",
       "original_bytes": "42b900c20000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d1e",
+      "replacement_bytes": "4eb900200d3e",
       "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1569,7 +1569,7 @@
       "rom_pc": "0x03ADD2",
       "original_bytes": "42b900c40000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d1e",
+      "replacement_bytes": "4eb900200d3e",
       "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1578,7 +1578,7 @@
       "rom_pc": "0x03B2AA",
       "original_bytes": "42b9e101484c",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d1e",
+      "replacement_bytes": "4eb900200d3e",
       "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1587,7 +1587,7 @@
       "rom_pc": "0x03B2B0",
       "original_bytes": "42b9e103484c",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d1e",
+      "replacement_bytes": "4eb900200d3e",
       "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1596,7 +1596,7 @@
       "rom_pc": "0x03BD5E",
       "original_bytes": "32000240007fe548",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9002028444e75",
+      "replacement_bytes": "4eb9002028684e75",
       "note": "Route title text dispatch to genesistan_hook_text_writer_3bb48 bridge (arcade descriptor -> Genesis plane tile write translation)."
     },
     {
@@ -1781,7 +1781,7 @@
     },
     {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x3A807A",
+      "rom_offset": "0x3A867A",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1794,24 +1794,24 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x00202BD6",
+    "jumps_to": "0x00202BFA",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
     "writes_status_to": "0xE0FF486A",
     "value": 2,
-    "jumps_exit_to": "0x00202C12",
+    "jumps_exit_to": "0x00202C36",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x4CD0",
+  "checksum": "0xB69A",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x0021711E",
+    "reset_pc": "0x0021771E",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",
