@@ -137,6 +137,9 @@ _EXTINT:
         rte
 
 _VINT:
+        tst.w   arcade_vblank_active    /* Arcade mode? Skip ALL SGDK dispatch */
+        bne     _VINT_arcade_mode
+
         btst    #5, (%sp)       /* Skip context switch if not in user task */
         bne.s   no_user_task
 
@@ -188,6 +191,21 @@ no_bmp_task:
         jsr    (%a0)                        /* call user callback */
         andi.w  #0xFFFE, intTrace           /* out V-Int */
         movem.l (%sp)+,%d0-%d1/%a0-%a1
+        rte
+
+*------------------------------------------------
+*       Arcade VBlank fast path — bypasses ALL SGDK dispatch.
+*       Called when arcade_vblank_active != 0.
+*       No task scheduler, no XGM, no BMP, no vtimer, no intTrace.
+*------------------------------------------------
+
+_VINT_arcade_mode:
+        movem.l %d0-%d7/%a0-%a6,-(%sp)
+        jsr     genesistan_refresh_arcade_inputs
+        jsr     genesistan_run_original_frontend_tick
+        jsr     sanitize_arcade_workram
+        jsr     genesistan_palette_commit_asm
+        movem.l (%sp)+,%d0-%d7/%a0-%a6
         rte
 
 *------------------------------------------------

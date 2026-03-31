@@ -359,9 +359,10 @@ static void leave_startup_preview(void);
 static u32 get_packed_romset_size(void);
 static u32 get_packed_romset_signature(void);
 static void restore_launcher_vdp_state(void);
-static void genesistan_frontend_live_vint_handoff(void);
 void rastan_draw_tile_xy(u16 tile_attr, int x, int y);
 void genesistan_sprite_commit_asm(void);
+void genesistan_palette_commit_asm(void);
+extern volatile u16 arcade_vblank_active;
 u32 genesistan_asm_tilemap_commit_bg(u32 dest_ptr, u32 strip_index, u32 dest_row, u32 dest_col);
 u32 genesistan_asm_tilemap_commit_fg(u32 dest_ptr, u32 strip_index, u32 dest_row, u32 dest_col);
 void genesistan_run_title_init_sequence(void);
@@ -1992,8 +1993,13 @@ static void request_start_rastan(void)
     genesistan_run_title_init_sequence();
     current_screen = SCREEN_FRONTEND_LIVE;
     frontend_live_handoff_active = TRUE;
-    SYS_setVIntCallback(genesistan_frontend_live_vint_handoff);
-    SYS_enableInts();
+    /*
+     * Activate arcade VBlank ownership: the mode flag at the top of _VINT
+     * bypasses ALL SGDK dispatch and routes directly to the arcade frame
+     * handler. No SYS_setVIntCallback, no SGDK mediation.
+     */
+    arcade_vblank_active = 1;
+    __asm__ volatile("andi.w #0xF8FF, %sr");  /* unmask all interrupts */
 #else
     char line[SCREEN_W + 1];
 
@@ -2045,6 +2051,7 @@ static void reset_launcher_runtime_state(void)
 {
     /* Always start the launcher from known factory defaults. */
     frontend_live_handoff_active = FALSE;
+    arcade_vblank_active = 0;
     SYS_setVIntCallback(NULL);
     rastan_virtual_dip1 = FACTORY_DIP1;
     rastan_virtual_dip2 = FACTORY_DIP2;
@@ -2063,7 +2070,7 @@ static void reset_launcher_runtime_state(void)
     wram_overlay.launcher.status_line[SCREEN_W] = '\0';
 }
 
-static void sanitize_arcade_workram(void)
+void sanitize_arcade_workram(void)
 {
     /*
      * After each frontend tick, scan the arcade
@@ -2100,25 +2107,11 @@ static void sync_arcade_scroll_to_vdp(void)
     genesistan_scroll_from_workram_vdp();
 }
 
-static void genesistan_frontend_live_vint_handoff(void)
-{
-#if RASTAN_ENABLE_STARTUP_HOOK
-    if (!frontend_live_handoff_active || (current_screen != SCREEN_FRONTEND_LIVE))
-    {
-        return;
-    }
-
-    /* Post-launch frame ownership: arcade level-5 tick runs from V-Int only. */
-    genesistan_refresh_arcade_inputs();
-    genesistan_run_original_frontend_tick();
-    sanitize_arcade_workram();
-    load_arcade_palette();
-    sync_arcade_scroll_to_vdp();
-    genesistan_sprite_tile_prepare();
-    refresh_frontend_sprite_palettes();
-    genesistan_sprite_commit_asm();
-#endif
-}
+/*
+ * RETIRED: genesistan_frontend_live_vint_handoff is no longer the frame owner.
+ * After launch, _VINT_arcade_mode (sega.s) owns the frame directly —
+ * no SGDK callback mediation. See docs/design/complete_interrupt_handoff_analysis.md.
+ */
 
 int main(bool hardReset)
 {
@@ -2180,9 +2173,11 @@ int main(bool hardReset)
         else if (current_screen == SCREEN_FRONTEND_LIVE)
         {
             /*
-             * Ownership handoff: launcher loop no longer drives live-frame
-             * progression or post-launch display updates.
+             * Halt CPU until next VBlank interrupt. The arcade frame is
+             * driven entirely by _VINT_arcade_mode — no main-loop work.
+             * SR 0x2000 = supervisor mode, all interrupts unmasked.
              */
+            __asm__ volatile("stop #0x2000");
         }
         else if (current_screen == SCREEN_STARTUP_PREVIEW)
         {

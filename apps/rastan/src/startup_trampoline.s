@@ -16,11 +16,14 @@
     .globl genesistan_hook_text_writer_3bb48_impl
     .globl genesistan_render_sprites_vdp
     .globl genesistan_render_sprites_vdp_bridge
+    .globl genesistan_render_sprites_vdp_asm
     .globl genesistan_sprite_commit_asm
+    .globl genesistan_palette_commit_asm
     .globl genesistan_asm_tilemap_commit_bg
     .globl genesistan_asm_tilemap_commit_fg
     .globl genesistan_bulk_tilemap_commit
     .globl genesistan_run_title_init_sequence
+    .globl arcade_vblank_active
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 
@@ -29,6 +32,9 @@
 #define FRONTEND_RUNTIME_SPRITE_ATTR_LUT_OFFSET 0x28F4
 #define PC080SN_DESC_LIST_OFFSET 0x1000
 #define PC080SN_MAINCPU_MAX_ADDR 0x00060000
+#define SPRITE_TILE_BASE 1024
+#define SPRITE_TILE_BYTES 128
+#define PC090OJ_CELL_COUNT 4096
 
 genesistan_sound_send_command:
     move.b #0, genesistan_shadow_reg_3e0001
@@ -60,25 +66,302 @@ genesistan_hook_text_writer_3bb48:
 
 /*
  * Sprite replacement bridge:
- * keep full arcade register state stable around the C SAT renderer.
+ * keep full arcade register state stable around the assembly sprite renderer.
  */
 genesistan_render_sprites_vdp_bridge:
     movem.l %d0-%d7/%a0-%a6,-(%sp)
-    jsr genesistan_render_sprites_vdp
+    bsr genesistan_render_sprites_vdp_asm
     movem.l (%sp)+,%d0-%d7/%a0-%a6
     rts
 
 /*
- * Non-C SAT commit slice:
+ * Assembly palette commit: single per-frame CLCS -> CRAM owner.
+ * Reads genesistan_palette_clcs[0..63], converts xRGB-444 to Genesis,
+ * streams 64 colors to CRAM via VDP data port. Falls back to
+ * genesistan_palette_rom_table if CLCS is empty.
+ */
+genesistan_palette_commit_asm:
+    movem.l %d0-%d4/%a0-%a2,-(%sp)
+
+    lea     genesistan_palette_clcs, %a0
+    movea.l #0xC00004, %a1          /* VDP control port */
+    movea.l #0xC00000, %a2          /* VDP data port */
+
+    /* Check if CLCS has any data (test first entry) */
+    tst.w   (%a0)
+    bne.s   .Lpal_have_clcs
+
+    /* Fallback: use ROM table */
+    lea     genesistan_palette_rom_table, %a0
+    /* ROM table is already in Genesis format, write directly */
+    move.l  #0xC0000000, (%a1)      /* CRAM write addr 0 */
+    moveq   #63, %d0
+.Lpal_rom_loop:
+    move.w  (%a0)+, (%a2)
+    dbra    %d0, .Lpal_rom_loop
+    bra.s   .Lpal_done
+
+.Lpal_have_clcs:
+    /* Set CRAM write address to 0 */
+    move.l  #0xC0000000, (%a1)      /* CRAM write addr 0 */
+
+    moveq   #63, %d0
+.Lpal_clcs_loop:
+    move.w  (%a0)+, %d1             /* raw CLCS xRGB-444 */
+
+    /* Convert: genesis = ((raw>>1)&0x000E) | ((raw>>2)&0x00E0) | ((raw>>3)&0x0E00) */
+    move.w  %d1, %d2
+    lsr.w   #1, %d2
+    andi.w  #0x000E, %d2            /* R component */
+
+    move.w  %d1, %d3
+    lsr.w   #2, %d3
+    andi.w  #0x00E0, %d3            /* G component */
+    or.w    %d3, %d2
+
+    move.w  %d1, %d3
+    lsr.w   #3, %d3
+    andi.w  #0x0E00, %d3            /* B component */
+    or.w    %d3, %d2
+
+    move.w  %d2, (%a2)              /* write to CRAM */
+    dbra    %d0, .Lpal_clcs_loop
+
+.Lpal_done:
+    movem.l (%sp)+,%d0-%d4/%a0-%a2
+    rts
+
+/*
+ * Assembly sprite renderer: single per-frame sprite owner.
+ * Called from the opcode-replace bridge during arcade tick.
+ * Reads 2 sprite blocks from workram:
+ *   Block-A: A5+0x11B2, 18 entries (title/logo sprites)
+ *   Block-B: A5+0x0170, 4 entries (secondary sprites)
+ * Each entry: word0=attr, word1=y, word2=code, word3=x
+ *
+ * Pass 1: DMA tile data from PC090OJ ROM to VRAM for each visible sprite.
+ * Pass 2: Write SAT entries directly to VDP data port.
+ */
+genesistan_render_sprites_vdp_asm:
+    movem.l %d0-%d7/%a0-%a6,-(%sp)
+
+    lea     genesistan_arcade_workram_words, %a5
+    movea.l #0xC00004, %a3          /* VDP control port */
+    movea.l #0xC00000, %a4          /* VDP data port */
+    move.w  #0x8F02, (%a3)          /* auto-increment = 2 */
+    move.w  10*2(%a5), %d6          /* sprite_ctrl for colbank */
+
+    /* --- Pass 1: DMA tile data for visible sprites --- */
+    moveq   #0, %d5                 /* slot index (visible count) */
+
+    /* Block-A: 18 entries at A5+0x11B2 */
+    lea     0x11B2(%a5), %a0
+    moveq   #17, %d7
+.Lspr_tile_a:
+    bsr     .Lspr_dma_tile
+    adda.w  #8, %a0
+    dbra    %d7, .Lspr_tile_a
+
+    /* Block-B: 4 entries at A5+0x0170 */
+    lea     0x0170(%a5), %a0
+    moveq   #3, %d7
+.Lspr_tile_b:
+    bsr     .Lspr_dma_tile
+    adda.w  #8, %a0
+    dbra    %d7, .Lspr_tile_b
+
+    move.w  %d5, %d4                /* total_visible for link calc */
+
+    /* --- Pass 2: SAT commit --- */
+    move.l  #0x78000003, (%a3)      /* VDP write VRAM 0xF800 (SAT) */
+    moveq   #0, %d5                 /* reset slot index */
+
+    /* Block-A SAT */
+    lea     0x11B2(%a5), %a0
+    moveq   #17, %d7
+.Lspr_sat_a:
+    bsr     .Lspr_write_sat
+    adda.w  #8, %a0
+    dbra    %d7, .Lspr_sat_a
+
+    /* Block-B SAT */
+    lea     0x0170(%a5), %a0
+    moveq   #3, %d7
+.Lspr_sat_b:
+    bsr     .Lspr_write_sat
+    adda.w  #8, %a0
+    dbra    %d7, .Lspr_sat_b
+
+    movem.l (%sp)+,%d0-%d7/%a0-%a6
+    rts
+
+/* --- Subroutine: DMA one sprite's tiles to VRAM --- */
+/* Entry: A0 = sprite entry, D5 = slot index (incremented on success) */
+/* Uses: D0-D3, A1 */
+.Lspr_dma_tile:
+    move.w  2(%a0), %d0             /* y_raw */
+    cmpi.w  #0x0180, %d0
+    beq     .Lspr_dma_skip
+
+    move.w  4(%a0), %d1             /* code */
+    andi.w  #0x3FFF, %d1
+    beq     .Lspr_dma_skip
+
+    /* Check all-zero entry */
+    tst.l   (%a0)
+    bne.s   .Lspr_dma_go
+    tst.l   4(%a0)
+    beq     .Lspr_dma_skip
+
+.Lspr_dma_go:
+    /* Source: rastan_pc090oj + (code % PC090OJ_CELL_COUNT) * 128 */
+    /* PC090OJ_CELL_COUNT = 4096, so code & 0x0FFF */
+    andi.w  #0x0FFF, %d1
+    move.w  %d1, %d0
+    mulu.w  #SPRITE_TILE_BYTES, %d0 /* code * 128 */
+    lea     rastan_pc090oj, %a1
+    adda.l  %d0, %a1                /* source address in ROM */
+
+    /* DMA source = address / 2 (68000 bus address for VDP DMA) */
+    move.l  %a1, %d0
+    lsr.l   #1, %d0
+
+    /* DMA length = 64 words (128 bytes = 4 tiles) */
+    move.w  #0x9340, (%a3)          /* length low = 0x40 */
+    move.w  #0x9400, (%a3)          /* length high = 0x00 */
+
+    /* DMA source address (3 registers) */
+    move.w  %d0, %d1
+    andi.w  #0x00FF, %d1
+    ori.w   #0x9500, %d1
+    move.w  %d1, (%a3)
+
+    move.l  %d0, %d1
+    lsr.l   #8, %d1
+    andi.w  #0x00FF, %d1
+    ori.w   #0x9600, %d1
+    move.w  %d1, (%a3)
+
+    swap    %d0
+    lsr.w   #1, %d0
+    andi.w  #0x007F, %d0
+    ori.w   #0x9700, %d0
+    move.w  %d0, (%a3)
+
+    /* VRAM destination = (SPRITE_TILE_BASE + slot*4) * 32 */
+    move.w  %d5, %d0
+    lsl.w   #2, %d0
+    addi.w  #SPRITE_TILE_BASE, %d0
+    lsl.l   #5, %d0                 /* * 32 bytes per tile */
+
+    /* Build VDP DMA command word */
+    move.w  %d0, %d1
+    andi.w  #0x3FFF, %d1
+    swap    %d1
+    clr.w   %d1
+    move.l  %d0, %d2
+    swap    %d2
+    andi.w  #0x0003, %d2
+    or.w    %d2, %d1
+    ori.l   #0x40000080, %d1        /* VRAM write + DMA trigger */
+    move.l  %d1, (%a3)              /* trigger DMA */
+
+    addq.w  #1, %d5
+.Lspr_dma_skip:
+    rts
+
+/* --- Subroutine: Write one SAT entry --- */
+/* Entry: A0 = sprite entry, D4 = total_visible, D5 = current index, D6 = sprite_ctrl */
+/* Uses: D0-D3 */
+.Lspr_write_sat:
+    move.w  2(%a0), %d0             /* y_raw */
+    cmpi.w  #0x0180, %d0
+    beq     .Lspr_sat_skip
+
+    move.w  4(%a0), %d1             /* code */
+    andi.w  #0x3FFF, %d1
+    beq     .Lspr_sat_skip
+
+    /* Check all-zero */
+    tst.l   (%a0)
+    bne.s   .Lspr_sat_go
+    tst.l   4(%a0)
+    beq     .Lspr_sat_skip
+
+.Lspr_sat_go:
+    /* SAT word0: Y = (y_raw & 0x1FF) + 0x80 */
+    andi.w  #0x01FF, %d0
+    addi.w  #0x0080, %d0
+    move.w  %d0, (%a4)
+
+    /* SAT word1: size(2x2) + link */
+    move.w  %d5, %d0
+    addq.w  #1, %d0
+    cmp.w   %d4, %d0
+    bge.s   .Lspr_sat_last
+    andi.w  #0x007F, %d0
+    ori.w   #0x0500, %d0
+    bra.s   .Lspr_sat_link_ok
+
+.Lspr_sat_last:
+    move.w  #0x0500, %d0            /* size 2x2, link=0 (end chain) */
+
+.Lspr_sat_link_ok:
+    move.w  %d0, (%a4)
+
+    /* SAT word2: tile attr = priority | palette | vflip | hflip | tile_index */
+    move.w  (%a0), %d0              /* word0: attr/flags */
+
+    /* Extract flipy (bit 15) and flipx (bit 14) */
+    move.w  %d0, %d2
+    andi.w  #0x8000, %d2            /* flipy in bit 15 */
+    lsr.w   #3, %d2                 /* -> bit 12 */
+    move.w  %d0, %d3
+    andi.w  #0x4000, %d3            /* flipx in bit 14 */
+    lsr.w   #3, %d3                 /* -> bit 11 */
+
+    /* palette_line = ((data & 0xF) | colbank) >> 4) & 3 */
+    move.w  %d0, %d1
+    andi.w  #0x000F, %d1
+    move.w  %d6, %d0               /* sprite_ctrl */
+    andi.w  #0x00E0, %d0
+    lsr.w   #1, %d0                /* colbank = (ctrl & 0xE0) >> 1 */
+    or.w    %d0, %d1               /* color = (data & 0xF) | colbank */
+    lsr.w   #4, %d1
+    andi.w  #0x0003, %d1           /* palette_line */
+    lsl.w   #8, %d1
+    lsl.w   #5, %d1                /* palette << 13 */
+
+    or.w    %d2, %d1               /* | vflip << 12 */
+    or.w    %d3, %d1               /* | hflip << 11 */
+    ori.w   #0x8000, %d1           /* priority on */
+
+    /* tile index = SPRITE_TILE_BASE + d5 * 4 */
+    move.w  %d5, %d0
+    lsl.w   #2, %d0
+    addi.w  #SPRITE_TILE_BASE, %d0
+    andi.w  #0x07FF, %d0
+    or.w    %d0, %d1
+
+    move.w  %d1, (%a4)             /* SAT word2 */
+
+    /* SAT word3: X = (x_raw & 0x1FF) + 0x80 */
+    move.w  6(%a0), %d0
+    andi.w  #0x01FF, %d0
+    addi.w  #0x0080, %d0
+    move.w  %d0, (%a4)
+
+    addq.w  #1, %d5
+
+.Lspr_sat_skip:
+    rts
+
+/*
+ * Legacy SAT commit (kept for reference, no longer called from hot path).
  *   - reads Block-A tuples from 0xE0FF11FE
  *   - reads per-entry VRAM tile indices from launcher WRAM LUT (18 entries)
  *   - skips hidden sentinel entries (word1 == 0x0180)
  *   - writes SAT entries directly to VDP data port at VRAM 0xF800
- *
- * Temporary limitations (intentional in this slice):
- *   - size fixed to 2x2 (0x0500 upper bits), link chain built from written entries
- *   - priority hardcoded on, palette hardcoded
- *   - no flipscreen/animation handling here
  */
 genesistan_sprite_commit_asm:
     movem.l %d0-%d7/%a0-%a6,-(%sp)
@@ -668,6 +951,12 @@ genesistan_startup_common_exit_test:
 genesistan_sprite_commit_asm:
     rts
 
+genesistan_palette_commit_asm:
+    rts
+
+genesistan_render_sprites_vdp_asm:
+    rts
+
 genesistan_asm_tilemap_commit_bg:
     move.l 4(%sp), %d0
     rts
@@ -680,3 +969,8 @@ genesistan_bulk_tilemap_commit:
     rts
 
 #endif
+
+    .section .bss.patcher,"aw",@nobits
+    .balign 2
+arcade_vblank_active:
+    .space 2

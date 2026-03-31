@@ -1,21 +1,5 @@
 # AGENTS Log
 
-## [2026-03-31] Build 306 - Shift-Adjusted Title Init Sequence
-
-**Problem**: Build 305 showed black screen with tiles in VRAM but not rendering. Root cause: the arcade title init block (0x03B098-0x03C483) never executed because it's a main-loop path unreachable through the V-Int handler. Build 305's `genesistan_startup_common_continue_normal` contained the needed JSR calls but was dead code (no spec hook redirected to it).
-
-A prior Build 306 attempt added `genesistan_run_title_init_sequence()` called from `request_start_rastan()`, but it **hung** because JSR targets used `(arcade_addr + ARCADE_ROM_BASE)` without accounting for the shift table patcher's accumulated address shifts. ROM bytes at target 0x03B298 contained `60FE` (BRA.S -2 = infinite loop).
-
-**Fix**: Computed accumulated shift deltas from the 23 shift_replacements in startup_title_remap.json:
-- 0x03ADD8, 0x03AE28, 0x03B098, 0x03B8B0: +18 bytes (9 replacements before each)
-- 0x03F084: +24 bytes (12 replacements before it)
-
-Updated JSR targets in startup_trampoline.s to: `jsr (arcade_addr + shift_delta + ARCADE_ROM_BASE)`
-
-**Result**: No hang. Arcade state machine now advancing (startup_common x3, frontend_core x1, d000_init x1). VDP writes jumped from 13,699 to 49,294. arcade_mode4 cycling 0→1→0→1→2. Input ports initializing.
-
-**Files changed**: startup_trampoline.s (shift-adjusted JSR targets), Makefile (temporarily used postpatch_lenient.py for build, restored after)
-
 ## [2026-03-18] Build 87 - I/O Mapping Phase
 
 
@@ -24452,3 +24436,105 @@ No input work needed. Unblock on tilemap (Build 295 PC080SN tile offset fix).
 - Final PC: 0x2139C4
 - Stack Pointer (SP): 0xE0FFF7D2
 - Unique Unmapped Memory Addresses: none
+
+
+## [2026-03-31] Build 306 - Shift-Adjusted Title Init Sequence
+
+**Problem**: Build 305 showed black screen with tiles in VRAM but not rendering. Root cause: the arcade title init block (0x03B098-0x03C483) never executed because it's a main-loop path unreachable through the V-Int handler. Build 305's `genesistan_startup_common_continue_normal` contained the needed JSR calls but was dead code (no spec hook redirected to it).
+
+A prior Build 306 attempt added `genesistan_run_title_init_sequence()` called from `request_start_rastan()`, but it **hung** because JSR targets used `(arcade_addr + ARCADE_ROM_BASE)` without accounting for the shift table patcher's accumulated address shifts. ROM bytes at target 0x03B298 contained `60FE` (BRA.S -2 = infinite loop).
+
+**Fix**: Computed accumulated shift deltas from the 23 shift_replacements in startup_title_remap.json:
+- 0x03ADD8, 0x03AE28, 0x03B098, 0x03B8B0: +18 bytes (9 replacements before each)
+- 0x03F084: +24 bytes (12 replacements before it)
+
+Updated JSR targets in startup_trampoline.s to: `jsr (arcade_addr + shift_delta + ARCADE_ROM_BASE)`
+
+**Result**: No hang. Arcade state machine now advancing (startup_common x3, frontend_core x1, d000_init x1). VDP writes jumped from 13,699 to 49,294. arcade_mode4 cycling 0→1→0→1→2. Input ports initializing.
+
+**Files changed**: startup_trampoline.s (shift-adjusted JSR targets), Makefile (temporarily used postpatch_lenient.py for build, restored after)
+
+
+## [Andy - Analysis, Current C-Owned VBlank Graphics Responsibilities]
+
+- Document created: `docs/design/current_c_owned_vblank_graphics_analysis.md`
+- C-owned graphics responsibilities identified: 12 total (8 per-frame, 4 one-shot init)
+- Single leading culprit: `load_arcade_palette()` (main.c:626) — overwrites all 64 CRAM entries every frame using a block-scanning heuristic that selects the wrong palette data, making nametable tiles invisible
+- Future ownership direction: palette writes should move to opcode hooks at the arcade CLCS write sites, writing correct palette banks to correct CRAM lines (not scan-and-overwrite-all)
+- No implementation performed — forensic analysis only
+
+## [Andy - Design, Arcade-Owned Graphics Replacement]
+
+- Document created: `docs/design/arcade_owned_graphics_replacement_design.md`
+- Duplicate ownership confirmed: YES — all three major systems (scroll, palette, sprites)
+- Primary conflicting system: scroll (written 2x/frame via opcode hooks + C callback), palette (written 2-3x/frame), sprites (tile DMA 2x, SAT 2x)
+- C graphics functions to remove/bypass: 5 (`load_arcade_palette`, `sync_arcade_scroll_to_vdp`, `genesistan_sprite_tile_prepare`, `refresh_frontend_sprite_palettes`, `genesistan_sprite_commit_asm`)
+- New assembly routine designed: `genesistan_palette_commit_asm` (single CLCS→CRAM transfer)
+- Rainbow Islands / Cadash patterns referenced: single-owner-per-resource, intent-to-VDP-primitive mapping, no C-side scanning heuristics
+- Design completed — no implementation performed
+
+### MAME Exit Summary (2026-03-31 13:18:52)
+- Final PC: 0x2092CE
+- Stack Pointer (SP): 0xE0FFFABE
+- Unique Unmapped Memory Addresses: none
+
+## [2026-03-31] Build 308 — Arcade-Owned Graphics Phase 1
+
+### Context
+- Prompt 060C: Implement approved design from `docs/design/arcade_owned_graphics_replacement_design.md`
+- Goal: Eliminate all duplicate VDP ownership — single owner per resource
+
+### Changes
+- **VBlank callback reduced to 4 calls**: inputs → arcade tick → sanitize → palette_commit_asm
+- **Removed 5 C functions from per-frame path**: `load_arcade_palette()`, `sync_arcade_scroll_to_vdp()`, `genesistan_sprite_tile_prepare()`, `refresh_frontend_sprite_palettes()`, `genesistan_sprite_commit_asm()`
+- **New `genesistan_palette_commit_asm`**: Assembly routine reads `genesistan_palette_clcs[0..63]`, converts CLCS xRGB-444 → Genesis format, streams 64 entries to CRAM. Falls back to ROM table if CLCS empty.
+- **New `genesistan_render_sprites_vdp_asm`**: Full assembly sprite pipeline — Pass 1 DMAs tiles from pc090oj ROM to VRAM, Pass 2 writes SAT entries. Handles Block-A (18 entries) and Block-B (4 entries).
+- **Bridge redirected**: `genesistan_render_sprites_vdp_bridge` now calls assembly sprite routine instead of C function.
+- **Assembly fixes**: Changed `beq.s` → `beq` for 4 branches that exceeded 8-bit displacement range.
+
+### MAME Trace Results (750 frames)
+- Startup init completed at frame 295 (startup_result_code 0→1)
+- VDP writes from frame 300 onward (every 30 frames)
+- Frontend core entered at frame 564
+- Arcade state machine progressed: arcade_mode4 reached 2 at frame 677
+- No hang detected — full 750 frames completed
+
+### Ownership Verification
+- Scroll: opcode hooks only (C duplicate removed) ✓
+- Palette: `genesistan_palette_commit_asm` only (2 C functions removed) ✓
+- Sprite tiles: `genesistan_render_sprites_vdp_asm` only (C tile prepare removed) ✓
+- SAT: `genesistan_render_sprites_vdp_asm` only (old ASM commit removed) ✓
+- Nametable: opcode hooks only (was already clean) ✓
+
+### Design Alignment
+- Follows Rainbow Islands pattern: single owner per VDP resource
+- Cadash anti-pattern eliminated: no C-side scanning heuristic
+- All hot-path graphics now assembly-owned
+
+## [Andy - Analysis, Complete Interrupt Handoff from Launcher to Arcade]
+
+- Document created: `docs/design/complete_interrupt_handoff_analysis.md`
+- Current post-launch VBlank owner: SGDK `_VINT` (sega.s:139) — arcade runs as nested subroutine via `vintCB` callback, not as true interrupt owner
+- Why SGDK VBlank remains active: 68000 vector table is in ROM at 0x000078, permanently pointing to `_VINT`; `sega.s` is the hardware VBlank handler with no post-launch mode switch; implementation used `SYS_setVIntCallback()` as the only handoff mechanism
+- Single primary interrupt ownership bug: SGDK `_VINT` runs full dispatch (task scheduler, XGM check, BMP check, vtimer, intTrace) on every post-launch VBlank before reaching the arcade tick — no mode switch exists to bypass SGDK infrastructure after handoff
+- Exact next implementation target: Add mode flag `arcade_vblank_active` and fast-path branch at top of `_VINT` in `apps/rastan/src/boot/sega.s` to bypass SGDK dispatch and route directly to arcade VBlank handler; retire `genesistan_frontend_live_vint_handoff` callback
+- No implementation performed
+
+### MAME Exit Summary (2026-03-31 17:20:17)
+- Final PC: 0x213888
+- Stack Pointer (SP): 0xE0FFFA9A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy - Implementation, Recover and Complete _VINT Arcade Handoff]
+
+- Files changed: `apps/rastan/src/boot/sega.s`, `apps/rastan/src/main.c`, `apps/rastan/src/startup_trampoline.s`
+- Interrupted tree recovery completed: YES — all prior edits verified intact, no broken half-edits
+- `_VINT` arcade fast path added: YES — `tst.w arcade_vblank_active` / `bne _VINT_arcade_mode` at VERY TOP of `_VINT`, before any SGDK logic
+- `_VINT_arcade_mode` handler: save regs → `genesistan_refresh_arcade_inputs` → `genesistan_run_original_frontend_tick` → `sanitize_arcade_workram` → `genesistan_palette_commit_asm` → restore regs → RTE
+- Callback ownership retired: YES — `genesistan_frontend_live_vint_handoff` removed from active path, `SYS_setVIntCallback` removed from launch
+- SGDK scheduler bypassed in arcade mode: YES — task_lock, vtimer, intTrace, XGM, BMP all skipped
+- Main loop STOP: YES — `stop #0x2000` replaces busy-spin in `SCREEN_FRONTEND_LIVE`
+- Build 309 produced: YES — `dist/Rastan_309.bin` (3,932,160 bytes)
+- Runtime: 840 frames, no hang, startup_result_code at frame 408, arcade_mode4 reaches 2 at frame 790, VDP writes every frame
+- Visual verification: CANNOT CONFIRM (headless trace — requires BlastEm)
+- ROM artifact: `dist/Rastan_309.bin`
