@@ -1243,8 +1243,9 @@ static uint16_t tile_cache_get(uint16_t arcade_tile)
 #define PC080SN_MODE_OFFSET           0x10A8U
 #define PC080SN_STRIP_INDEX_OFFSET    0x10CAU
 #define PC080SN_FLAG_1330_OFFSET      0x1330U
-#define PC080SN_CWINDOW_BASE          0x00C08000UL
-#define PC080SN_CWINDOW_BYTES         0x00008000UL
+#define PC080SN_CWINDOW_BASE_BG       0x00C00000UL
+#define PC080SN_CWINDOW_BASE_FG       0x00C08000UL
+#define PC080SN_CWINDOW_BYTES         0x00004000UL
 #define PC080SN_VISIBLE_ROW_BIAS      4U
 
 static u32 pc080sn_workram_read_u32(u16 offset)
@@ -1265,21 +1266,21 @@ static void pc080sn_workram_write_u32(u16 offset, u32 value)
     wr[offset + 3U] = (u8)value;
 }
 
-static bool pc080sn_dest_ptr_to_row_col(u32 dest_ptr, u16 *out_row, u16 *out_col)
+static bool pc080sn_dest_ptr_to_row_col(u32 dest_ptr, u32 cwindow_base, u16 *out_row, u16 *out_col)
 {
     const u32 addr24 = dest_ptr & 0x00FFFFFFUL;
-    const u32 offset = addr24 - PC080SN_CWINDOW_BASE;
+    const u32 offset = addr24 - cwindow_base;
     const u32 cell = offset >> 2;
 
-    if ((addr24 < PC080SN_CWINDOW_BASE)
-        || (addr24 >= (PC080SN_CWINDOW_BASE + PC080SN_CWINDOW_BYTES))
+    if ((addr24 < cwindow_base)
+        || (addr24 >= (cwindow_base + PC080SN_CWINDOW_BYTES))
         || ((offset & 0x3U) != 0U))
     {
         return FALSE;
     }
 
-    *out_row = (u16)((cell >> 6) & 0x1FU);
-    *out_col = (u16)(cell & 0x3FU);
+    *out_row = (u16)(cell & 0x3FU);
+    *out_col = (u16)((cell >> 6) & 0x3FU);
     return TRUE;
 }
 
@@ -1291,7 +1292,7 @@ void genesistan_hook_tilemap_plane_a(void)
     u16 dest_row;
     u16 dest_col;
 
-    if (!pc080sn_dest_ptr_to_row_col(dest, &dest_row, &dest_col))
+    if (!pc080sn_dest_ptr_to_row_col(dest, PC080SN_CWINDOW_BASE_BG, &dest_row, &dest_col))
     {
         dest += (u32)PC080SN_DESC_COUNT * 0x400U;
     }
@@ -1320,7 +1321,7 @@ void genesistan_hook_tilemap_plane_b(void)
 
     genesistan_arcade_workram_words[PC080SN_FLAG_1330_OFFSET / 2U] = 1U;
 
-    if (!pc080sn_dest_ptr_to_row_col(dest, &dest_row, &dest_col))
+    if (!pc080sn_dest_ptr_to_row_col(dest, PC080SN_CWINDOW_BASE_FG, &dest_row, &dest_col))
     {
         dest += (u32)PC080SN_DESC_COUNT * 16U;
     }
@@ -1334,7 +1335,6 @@ void genesistan_hook_tilemap_plane_b(void)
         );
     }
 
-    pc080sn_workram_write_u32(PC080SN_DEST_PTR_B_OFFSET, dest);
 }
 
 void rastan_draw_tile_xy(u16 tile_attr, int x, int y)

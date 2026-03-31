@@ -1016,14 +1016,14 @@
       "kind": "shim_jump",
       "old_start": "0x03F284",
       "old_end_exclusive": "0x03F29C",
-      "new_target": "0x00202854"
+      "new_target": "0x002027FC"
     },
     {
       "range": "helper_3f09c_reg_status",
       "kind": "shim_jump",
       "old_start": "0x03F29C",
       "old_end_exclusive": "0x03F2AC",
-      "new_target": "0x00202884"
+      "new_target": "0x0020282C"
     },
     {
       "kind": "absolute_long_pointer_table",
@@ -1047,7 +1047,7 @@
       "rom_pc": "0x03AAF2",
       "original_bytes": "4eb90005a174",
       "original_bytes_shift_adjusted": "4eb90005a190",
-      "replacement_bytes": "4eb9002028a8",
+      "replacement_bytes": "4eb900202850",
       "note": "ORDER FIX PATCH B: renderer now runs at this slot (after producer at 0x03A8E0). original_bytes is the post-relocation value (0x059F5E + 0x200 base + 0x16 accumulated shift = 0x05A174). Size: 6->6 bytes (no shift). Renderer runs after producer \u2014 correct ordering."
     },
     {
@@ -1128,7 +1128,7 @@
       "rom_pc": "0x055BAE",
       "original_bytes": "206d10a47210227c0010d080267c0010d04024536100006e588b5489534166f2",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9002002e04e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9002002d64e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Restore real PC080SN plane-B hook path: call existing Genesis tilemap handler at this arcade write-site and preserve original instruction size with NOP padding."
     },
     {
@@ -1560,7 +1560,7 @@
       "rom_pc": "0x03ADCC",
       "original_bytes": "42b900c20000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d78",
+      "replacement_bytes": "4eb900200d1e",
       "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1569,7 +1569,7 @@
       "rom_pc": "0x03ADD2",
       "original_bytes": "42b900c40000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d78",
+      "replacement_bytes": "4eb900200d1e",
       "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1578,7 +1578,7 @@
       "rom_pc": "0x03B2AA",
       "original_bytes": "42b9e101484c",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d78",
+      "replacement_bytes": "4eb900200d1e",
       "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1587,7 +1587,7 @@
       "rom_pc": "0x03B2B0",
       "original_bytes": "42b9e103484c",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d78",
+      "replacement_bytes": "4eb900200d1e",
       "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1596,7 +1596,7 @@
       "rom_pc": "0x03BD5E",
       "original_bytes": "32000240007fe548",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb90020289c4e75",
+      "replacement_bytes": "4eb9002028444e75",
       "note": "Route title text dispatch to genesistan_hook_text_writer_3bb48 bridge (arcade descriptor -> Genesis plane tile write translation)."
     },
     {
@@ -1781,7 +1781,7 @@
     },
     {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x3A8D36",
+      "rom_offset": "0x3A807A",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1794,24 +1794,24 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x00202C2E",
+    "jumps_to": "0x00202BD6",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
     "writes_status_to": "0xE0FF486A",
     "value": 2,
-    "jumps_exit_to": "0x00202C6A",
+    "jumps_exit_to": "0x00202C12",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x89A1",
+  "checksum": "0x4CD0",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x00217176",
+    "reset_pc": "0x0021711E",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

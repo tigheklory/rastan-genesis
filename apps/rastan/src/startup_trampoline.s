@@ -185,7 +185,6 @@ genesistan_asm_tilemap_commit_bg:
     move.l  52(%sp), %d7            /* strip_index */
     move.l  56(%sp), %d1            /* dest_row (raw) */
     move.l  60(%sp), %d2            /* dest_col */
-    andi.w  #0x0003, %d7
     andi.w  #0x001F, %d1
     andi.w  #0x003F, %d2
 

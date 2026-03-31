@@ -23726,3 +23726,270 @@ Full plan: docs/design/full_prototype_sprite_execution_path.md
 
 - document: docs/design/pc080sn_semantic_mismatch_analysis_build293.md
 ```
+
+## [Cody - Implementation, PC080SN Semantic Correction Bundle]
+```text
+- files changed
+  - apps/rastan/src/startup_trampoline.s
+  - apps/rastan/src/main.c
+  - tools/translation/precompute_pc080sn_tile_lut.py
+  - AGENTS_LOG.md
+
+- correction #1 applied (tile data +0x14 offset, BG+FG)
+  - Added `adda.w #0x0014, %a4` in both:
+    - `genesistan_asm_tilemap_commit_bg`
+    - `genesistan_asm_tilemap_commit_fg`
+  - Placement is immediately after strip-offset add (`strip<<1` BG, `strip<<3` FG).
+
+- correction #2 applied (BG strip masking removed)
+  - Removed `andi.w #0x0003, %d7` from BG assembly path.
+  - FG strip masking remains unchanged.
+
+- correction #3 applied (Python LUT BG strip coverage)
+  - Replaced BG strip scan from fixed `range(4)` to `range(MAX_STRIP_RANGE)`.
+  - `MAX_STRIP_RANGE` is derived from real PC080SN plane width (`64` columns), not a guessed literal.
+  - BG/FG tile collection now reads tile words from `table_base + 0x14 + ...` per arcade formula.
+
+- correction #4 applied (FG dest_ptr ownership)
+  - Removed FG dispatcher writeback to workram dest pointer (`PC080SN_DEST_PTR_B_OFFSET`).
+
+- architecture boundary confirmation
+  - No LUT format change, no tile_attr logic change, no VRAM addressing change, no scroll/sprite/spec architecture changes.
+
+- ROM artifact
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Standard release still fails at known postpatch gate (`opcode_replace` preimage at `0x0560DA`).
+  - Existing workaround path used: `postpatch_startup_rom.py --spec /tmp/startup_title_remap_temp.json`.
+  - ROM: `dist/Rastan_294.bin`
+```
+
+## [Andy - Analysis, PC080SN Semantic Mismatch (Build 294)]
+
+**date:** 2026-03-30
+**analysis doc:** `docs/design/pc080sn_semantic_mismatch_analysis_build294.md`
+
+### summary
+
+Second-pass semantic comparison after Build 294 correction bundle. Identified that the primary Build 293 mismatch diagnosis (+0x14 tile offset) was inverted — the arcade BG inner loop (`0x559B2`) and FG inner loop (`0x55A14`) both write the hardware-rendered tile number from `A2 + 0 + D7` (no displacement), and write a WRAM shadow copy from `A2 + 0x14 + D7`. Build 294's `adda.w #0x0014, %a4` caused both planes to read the WRAM-shadow region as tile codes. Python LUT was updated in the same direction, so assembly and LUT are consistently wrong together (producing wrong-tiles rather than blank-tiles).
+
+### mismatches identified
+
+- **mismatch #1 (BG + FG):** `adda.w #0x0014, %a4` present in both `genesistan_asm_tilemap_commit_bg` (line 214) and `genesistan_asm_tilemap_commit_fg` (line 340). Must be deleted. Correct arcade tile read is `A2 + 0 + D7`.
+- **mismatch #2 (BG + FG, Python):** `precompute_pc080sn_tile_lut.py` BG and FG tile address formulas use `table_base + PC080SN_TABLE_TILE_OFFSET + ...`. Must revert to `table_base + (strip<<1) + (row<<3)` (BG) and `table_base + (strip<<3) + (col<<1)` (FG). Keep `MAX_STRIP_RANGE = 64` BG loop unchanged.
+
+### verified correct in build 294 (do not revert)
+
+- BG strip masking removal (strip_raw unmasked, arcade-correct)
+- BG strip range expansion to `range(MAX_STRIP_RANGE)` in Python
+- FG dest_ptr no-writeback
+- FG strip masking retained
+- Attr LUT, VRAM addressing, scroll system
+
+### next build target
+
+Remove two `adda.w #0x0014, %a4` lines. Fix two Python tile-address formulas. Rebuild LUT and ROM → Build 295.
+
+## [Cody - Implementation, PC080SN Semantic Rollback Bundle (Build 295)]
+```text
+- files changed
+  - apps/rastan/src/startup_trampoline.s
+  - tools/translation/precompute_pc080sn_tile_lut.py
+  - AGENTS_LOG.md
+
+- rollback #1: removed BG +0x14
+  - Deleted `adda.w #0x0014, %a4` from `genesistan_asm_tilemap_commit_bg`.
+
+- rollback #2: removed FG +0x14
+  - Deleted `adda.w #0x0014, %a4` from `genesistan_asm_tilemap_commit_fg`.
+
+- rollback #3: reverted Python BG tile-address formula
+  - `table_base + PC080SN_TABLE_TILE_OFFSET + (strip << 1) + (row << 3)`
+    -> `table_base + (strip << 1) + (row << 3)`.
+
+- rollback #4: reverted Python FG tile-address formula
+  - `table_base + PC080SN_TABLE_TILE_OFFSET + (strip << 3) + (col << 1)`
+    -> `table_base + (strip << 3) + (col << 1)`.
+
+- preserved from Build 294
+  - BG unmasked strip handling kept.
+  - BG `range(MAX_STRIP_RANGE)` kept.
+  - FG masking kept.
+  - FG no dest_ptr writeback kept.
+  - attr LUT / VRAM destination / scroll behavior unchanged.
+
+- ROM artifact path
+  - dist/Rastan_295.bin
+```
+
+## [Andy - Analysis, Live Gameplay Input Ownership Audit]
+
+**date:** 2026-03-30
+**audit doc:** `docs/design/live_gameplay_input_ownership_audit.md`
+
+### current status: YES
+
+Live gameplay input mapping is fully active after launch. No ownership break. No assembly implementation required.
+
+### verified path
+
+- `genesistan_refresh_arcade_inputs()` (`startup_bridge.c:169`) called every V-Int from `genesistan_frontend_live_vint_handoff()` (`main.c:1962`) **before** arcade tick runs.
+- All four shadow registers (`genesistan_shadow_input_390001/3/5/7`) updated every frame via `JOY_readJoypad()` + three active-low mapping functions.
+- Arcade reads from those shadows via opcode-rewritten port accesses (rules in `startup_title_remap.json`).
+- `SCREEN_FRONTEND_LIVE` set at `main.c:1835` and never changed during arcade runtime — guard passes on every V-Int through all arcade phases (attract, title, gameplay, game-over).
+
+### shadow register coverage
+
+| Port | Shadow | Mapped inputs |
+|------|--------|---------------|
+| 0x390001 | `genesistan_shadow_input_390001` | P1 d-pad + B/C (attack/jump) |
+| 0x390003 | `genesistan_shadow_input_390003` | P2 d-pad + B/C |
+| 0x390005 | `genesistan_shadow_input_390005` | B/C/A mirrored to bits 4/5/6 (title/service probes) |
+| 0x390007 | `genesistan_shadow_input_390007` | A=coin, START=start1, P2 START=start2, A+B+C=service/tilt |
+
+### assembly-owned gameplay input handling required: NO
+
+C path is correct, complete, and sequenced correctly in V-Int. No conversion to assembly needed.
+
+### next action
+
+No input work needed. Unblock on tilemap (Build 295 PC080SN tile offset fix).
+
+## [Andy - Analysis, PC080SN Semantic Mismatch (Build 295)]
+
+- document created
+  - docs/design/pc080sn_semantic_mismatch_analysis_build295.md
+
+- summary
+  - Build 295 tile read formula (+0x14 removal), strip masking, Python LUT, and FG hook are all confirmed correct against arcade disassembly.
+  - Primary remaining failure: `PC080SN_CWINDOW_BASE = 0x00C08000UL` (main.c:1246) causes `pc080sn_dest_ptr_to_row_col()` to always return FALSE for BG dest_ptrs, which are in the `0xC00000`–`0xC03FFF` range. `genesistan_asm_tilemap_commit_bg()` is never called; Genesis BG_B plane (VRAM `0xC000`) is never written.
+  - FG assembly fires correctly: FG dest_ptr is always in `0xC08000+` range, passes the check; FG plane writes reach the VDP.
+  - Next required change: split or parameterize `PC080SN_CWINDOW_BASE` per plane — BG needs `0xC00000`, FG uses `0xC08000`. No other system changes are required for the BG fix.
+  - One unknown remains after that fix: BG VDP address formula correctness is unverifiable until the hook fires; structural analysis indicates it is correct (identical pattern to confirmed FG formula, different plane base only).
+
+## [Andy - Analysis, Arcade Init vs Launcher Fake Init Audit]
+
+- document created
+  - docs/design/arcade_init_vs_launcher_fake_init_audit.md
+
+- summary
+  - `genesistan_init_workram_direct()` is substantially correct: DIP tables, difficulty/bonus/coinage/config data, credit counter (=0), and init flags all match arcade `startup_common` outputs. The only intentional deviation is `A5@(0) = 1` (workram word 0 = 1).
+  - **Credited/start-ready state caused by initialization: YES.** `A5@(0) = 1` places the arcade state machine directly in state 1 (player-select screen). In the arcade, state 1 is only entered after coins are inserted (`A5@(18) > 0` gate at disasm `0x3a454`). Our launcher bypasses the attract loop and coin-insert requirement by design.
+  - **Live input cause: NO.** `A5@(18)` (credit counter) is correctly initialized to 0. No coin input runs before the state machine starts. The "start-ready" appearance is 100% from `A5@(0) = 1`.
+  - All tilemap bugs identified today (+0x14 offset, cwindow base, cwindow bytes, row/col inversion) are true runtime path bugs in Genesis code constants and decode logic. None are initialization artifacts — they would be present regardless of attract vs player-select state.
+  - One unverified field: `A5@(64/68)` competition flags from ROM `0x5ff9e`. Launcher sets to 0; expected 0 on standard ROM but not confirmed.
+
+## [Andy - Analysis, Build 297 PC080SN BG VDP Mapping Audit]
+
+- document created
+  - docs/design/build297_pc080sn_bg_vdp_mapping_audit.md
+
+- summary
+  - BG execution: **YES, continuous.** Arcade column-advance routine at `0x560DA` (disasm line 107881) wraps `workram[0x10A0]` within `[0xC00000, 0xC03F00]` after each hook call, cycling dest_ptr through all 64 BG columns. Genesis hook fires on every call.
+  - Root cause of purple screen: `pc080sn_dest_ptr_to_row_col()` (`main.c:1282–1283`) inverts `out_row` and `out_col` for the column-major BG C-window. `dest_col = cell & 0x3F = 0` for all column-start dest_ptrs. D2 (VDP column offset) = 0 always. All BG tile writes target **VDP column 0 only** (8px wide). Columns 1-63 of BG_B never written.
+  - VDP formula `(D1-4)*128 + D2*2` and skip guard `< 4` are architecturally correct — they require D1=row_within_column and D2=column_index. The decode provides the wrong values to D1 and D2.
+  - FG plane (BG_A) continuously active, unaffected. Purple comes from FG content over blank BG with attract palette.
+  - **Failure classification: MAPPING ERROR — row/column inversion in `pc080sn_dest_ptr_to_row_col()`**
+
+- exact fix for next Cody prompt
+  - Swap `*out_row` and `*out_col` in `pc080sn_dest_ptr_to_row_col()` (`main.c:1282–1283`). No assembly changes required.
+
+## [Andy - Analysis, Build 296 Attract Progression + Text Position Audit]
+
+- document created
+  - docs/design/build296_attract_progression_and_text_position_audit.md
+
+- summary
+  - Progression lock introduced by Build 296: **NO** — `genesistan_frontend_live_vint_handoff()` guard conditions unchanged; arcade state machine advances every V-Int.
+  - Visual-only failure: **YES** — BG plane freezes after 2 assembly calls due to `PC080SN_CWINDOW_BYTES = 0x8000` being double the actual BG C-window size (should be `0x4000`). After dest_ptr advances from `0xC00400` → `0xC04400` → `0xC08400`, it permanently exits the valid range `[0xC00000, 0xC08000)` and the BG hook falls back forever.
+  - FG assembly fires continuously and is unaffected. FG plane updates are live.
+  - Text position issue is pre-existing (unchanged from Build 295): `TEXT_WRITER_VISIBLE_ROW_BIAS = 4` maps arcade row 4 → VDP row 0; exact clipping interaction with FG scroll requires runtime measurement.
+  - Required next fix: `PC080SN_CWINDOW_BYTES` must be corrected to `0x4000` for BG (or BG upper bound hardened to `PC080SN_CWINDOW_BASE_BG + 0x4000`).
+
+## [Cody - Implementation, PC080SN BG C-window Base Fix (Build 296)]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - AGENTS_LOG.md
+
+- BG base fix applied
+  - Dest-ptr validation now uses BG C-window base `0xC00000` for `genesistan_hook_tilemap_plane_a()`.
+  - BG valid range now resolves against `[0xC00000, 0xC04000)`.
+
+- FG base preserved
+  - Dest-ptr validation now explicitly uses FG C-window base `0xC08000` for `genesistan_hook_tilemap_plane_b()`.
+  - FG valid range remains `[0xC08000, 0xC0C000)`.
+
+- no other Build 295 semantics changed
+  - No assembly/Python/spec/sprite/scroll/input changes in this pass.
+
+- ROM artifact path
+  - dist/Rastan_296.bin
+```
+
+## [Cody - Implementation, PC080SN BG C-window Size Fix (Build 297)]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - AGENTS_LOG.md
+
+- BG size fix applied
+  - Corrected C-window validation byte range to 0x4000 so BG dest_ptr validation uses [0xC00000, 0xC04000).
+
+- FG size preserved/corrected to 0x4000
+  - FG validation remains base 0xC08000 with range [0xC08000, 0xC0C000).
+
+- confirmation no other Build 296 semantics changed
+  - No assembly, Python LUT, spec, sprite, scroll, input, or text-writer logic changes in this pass.
+
+- ROM artifact path
+  - dist/Rastan_297.bin
+```
+
+## [Cody - Implementation, PC080SN BG Row/Col Swap Fix (Build 298)]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - AGENTS_LOG.md
+
+- row/col swap applied
+  - In `pc080sn_dest_ptr_to_row_col()`, swapped decode assignments to:
+    - `out_row = cell & 0x3F`
+    - `out_col = (cell >> 6) & 0x3F`
+
+- confirmation no other Build 297 semantics changed
+  - No assembly, Python LUT/spec, sprite, scroll, VDP formula, strip, attr, input, or text-writer logic changes in this pass.
+
+- ROM artifact path
+  - dist/Rastan_298.bin
+```
+
+## [Andy - Analysis, Real Attract State Progression + Coin Audit]
+
+- document created
+  - docs/design/real_attract_state_progression_and_coin_audit.md
+
+- summary
+  - Startup state confirmed: A5@(0) = 0, A5@(18) = 0 (no credits), A5@(32) = 0 (coin latch clear), A5@(44) = 160 (delay timer)
+  - Attract progression traced: 160-frame delay → sub-state 0 inner 1 fires first attract screen at frame 161 → timer 208 → second screen at ~frame 370
+  - Coin insert path fully traced: BUTTON_A → shadow bit 0 cleared → arcade 0x3ac04 edge detector → A5@(32) latch → BCD increment A5@(18) → state 0→1 transition gate
+  - Both attract auto-progression and coin insert are logically correct; arcade disassembly confirms all paths execute as designed
+  - Missing visual feedback classified as visual-only failure caused by BG row/col inversion in pc080sn_dest_ptr_to_row_col() (main.c:1282–1283)
+  - coin insert logically working: YES
+  - attract progression logically working: YES
+  - missing feedback is visual-only: YES
+
+## [Cody - Implementation, Restore Arcade Attract Start State (Build 299)]
+```text
+- files changed
+  - apps/rastan/src/startup_bridge.c
+  - AGENTS_LOG.md
+
+- state seed changed from 1 to 0
+  - In `genesistan_init_workram_direct()`, changed `genesistan_arcade_workram_words[0]` from `1` to `0` (A5@(0) main state).
+
+- confirmation all other fake-init values preserved
+  - No other fake-init fields were changed (sub-state/step/credits/DIP tables/config copies/input/runtime paths preserved).
+
+- ROM artifact path
+  - dist/Rastan_299.bin
+```

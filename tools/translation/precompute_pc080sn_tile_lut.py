@@ -13,6 +13,10 @@ TILE_CACHE_BASE_A = 20
 TILE_CACHE_SIZE_A = 1004
 TILE_CACHE_BASE_B = 1280
 TILE_CACHE_SIZE_B = 160
+PC080SN_TILEMAP_WIDTH = 64
+PC080SN_TABLE_TILE_OFFSET = 0x14
+PC080SN_FG_STRIP_RANGE = 4
+MAX_STRIP_RANGE = PC080SN_TILEMAP_WIDTH
 
 
 def read_u16_be(blob: bytes, offset: int) -> int:
@@ -33,8 +37,20 @@ def descriptor_valid(maincpu: bytes, desc_addr: int) -> bool:
         return False
     if desc_addr + 3 >= len(maincpu):
         return False
+    attr_word = read_u16_be(maincpu, desc_addr)
+    if (attr_word & 0x1FFC) != 0:
+        return False
     table_base = read_u16_be(maincpu, desc_addr + 2)
-    return (table_base & 1) == 0 and (table_base + 0x20) < len(maincpu)
+    if (table_base & 1) != 0:
+        return False
+    max_bg_addr = (
+        table_base
+        + PC080SN_TABLE_TILE_OFFSET
+        + ((MAX_STRIP_RANGE - 1) << 1)
+        + (3 << 3)
+        + 1
+    )
+    return max_bg_addr < len(maincpu)
 
 
 def discover_descriptor_tables(maincpu: bytes) -> list[int]:
@@ -59,11 +75,12 @@ def collect_tiles_from_tables(maincpu: bytes, table_bases: list[int]) -> set[int
             if not descriptor_valid(maincpu, desc_addr):
                 continue
             table_base = read_u16_be(maincpu, desc_addr + 2)
-            for strip in range(4):
+            for strip in range(MAX_STRIP_RANGE):
                 for row in range(4):
                     addr = table_base + (strip << 1) + (row << 3)
                     if addr + 1 < len(maincpu):
                         tiles.add(read_u16_be(maincpu, addr) & 0x3FFF)
+            for strip in range(PC080SN_FG_STRIP_RANGE):
                 for col in range(4):
                     addr = table_base + (strip << 3) + (col << 1)
                     if addr + 1 < len(maincpu):

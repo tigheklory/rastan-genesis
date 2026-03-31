@@ -1,238 +1,475 @@
 [{
-    "script":{
-      "run":" maincpup:writev_u8(0x10c101,0x03) "
-    },
     "desc":"Infinite Lives",
     "space":{
       "maincpup":{
         "type":"program",
         "tag":":maincpu"
       }
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10c101,0x03) "
     }
   },{
-    "script":{
-      "run":" maincpup:writev_u8(0x10c13a,0x30) "
-    },
     "desc":"Infinite Energy",
     "space":{
       "maincpup":{
         "type":"program",
         "tag":":maincpu"
       }
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10c13a,0x30) "
     }
   },{
-    "script":{
-      "on":" temp0 =maincpup:readv_u16(0x10c040) ",
-      "off":" maincpup:writev_u16(0x10c040,temp0) ",
-      "run":" maincpup:writev_u16(0x10c040,0x0040|(maincpup:readv_u16(0x10c040)& ~0x0040)) "
-    },
+    "desc":"Invincibility",
+    "comment":"You die though when fall down into the water",
     "space":{
       "maincpup":{
         "type":"program",
         "tag":":maincpu"
       }
     },
-    "desc":"Invincibility",
-    "comment":"You die though when fall down into the water"
-  },{
     "script":{
-      "on":" temp0 =maincpum:read_u16(0x044af0) ",
-      "off":" maincpum:write_u16(0x044af0,temp0) ",
-      "run":" maincpum:write_u16(0x044af0,0x4e71) "
-    },
+      "run":" maincpup:writev_u16(0x10c040,0x0040|(maincpup:readv_u16(0x10c040)& ~0x0040)) ",
+      "off":" maincpup:writev_u16(0x10c040,temp0) ",
+      "on":" temp0 =maincpup:readv_u16(0x10c040) "
+    }
+  },{
+    "desc":"Hit Anywhere",
+    "comment":"Jumping hits the enemy too",
     "region":{
       "maincpum":":maincpu"
     },
-    "desc":"Hit Anywhere",
-    "comment":"Jumping hits the enemy too"
-  },{
     "script":{
-      "on":" temp0=maincpup:readv_u8(0x10d243)  temp1=0x02  if (temp0 == 0x89) then temp2=0x89  temp1=0x01 end if (temp0 >= 0x83) and (temp0 < 0x89) then temp2=0x89 end if (temp0 >= 0x73) and (temp0 < 0x83) then temp2=0x83 end if (temp0 == 0x72) then temp2=0x73  temp1=0x01 end if (temp0 >= 0x6c) and (temp0 < 0x72) then temp2=0x72 end if (temp0 >= 0x5c) and (temp0 < 0x6c) then temp2=0x6c end if (temp0 == 0x5b) then temp2=0x5c  temp1=0x01 end if (temp0 >= 0x55) and (temp0 < 0x5b) then temp2=0x5b end if (temp0 >= 0x45) and (temp0 < 0x55) then temp2=0x55 end if (temp0 == 0x44) then temp2=0x45  temp1=0x01 end if (temp0 >= 0x3e) and (temp0 < 0x44) then temp2=0x44 end if (temp0 >= 0x2e) and (temp0 < 0x3f) then temp2=0x3f end if (temp0 == 0x2d) then temp2=0x2e  temp1=0x01 end if (temp0 >= 0x27) and (temp0 < 0x2d) then temp2=0x2d end if (temp0 >= 0x17) and (temp0 < 0x27) then temp2=0x27 end if (temp0 == 0x16) then temp2=0x17  temp1=0x01 end if (temp0 >= 0x10) and (temp0 < 0x16) then temp2=0x16 end if (temp0 >= 0x00) and (temp0 < 0x10) then temp2=0x10 end maincpup:writev_u8(0x10d243,temp2)  if (temp1 == 0x02) then maincpup:writev_u8(0x10c047,0x01) end if (temp1 == 0x01) then maincpup:writev_u16(0x10c708,0x0000)  maincpup:writev_u16(0x10c688,0x0000) end if (temp1 == 0x02) then maincpup:writev_u8(0x10c005,0x02) end maincpup:writev_u8(0x10c104,0x01)  if (temp1 == 0x02) then maincpup:writev_u8(0x10c003,0x02) end"
-    },
+      "run":" maincpum:write_u16(0x044af0,0x4e71) ",
+      "off":" maincpum:write_u16(0x044af0,temp0) ",
+      "on":" temp0 =maincpum:read_u16(0x044af0) "
+    }
+  },{
     "desc":"Finish Current Sub-Round Now!",
     "space":{
       "maincpup":{
         "type":"program",
         "tag":":maincpu"
       }
+    },
+    "script":{
+      "on":" temp0=maincpup:readv_u8(0x10d243)  temp1=0x02  if (temp0 == 0x89) then temp2=0x89  temp1=0x01 end if (temp0 >= 0x83) and (temp0 < 0x89) then temp2=0x89 end if (temp0 >= 0x73) and (temp0 < 0x83) then temp2=0x83 end if (temp0 == 0x72) then temp2=0x73  temp1=0x01 end if (temp0 >= 0x6c) and (temp0 < 0x72) then temp2=0x72 end if (temp0 >= 0x5c) and (temp0 < 0x6c) then temp2=0x6c end if (temp0 == 0x5b) then temp2=0x5c  temp1=0x01 end if (temp0 >= 0x55) and (temp0 < 0x5b) then temp2=0x5b end if (temp0 >= 0x45) and (temp0 < 0x55) then temp2=0x55 end if (temp0 == 0x44) then temp2=0x45  temp1=0x01 end if (temp0 >= 0x3e) and (temp0 < 0x44) then temp2=0x44 end if (temp0 >= 0x2e) and (temp0 < 0x3f) then temp2=0x3f end if (temp0 == 0x2d) then temp2=0x2e  temp1=0x01 end if (temp0 >= 0x27) and (temp0 < 0x2d) then temp2=0x2d end if (temp0 >= 0x17) and (temp0 < 0x27) then temp2=0x27 end if (temp0 == 0x16) then temp2=0x17  temp1=0x01 end if (temp0 >= 0x10) and (temp0 < 0x16) then temp2=0x16 end if (temp0 >= 0x00) and (temp0 < 0x10) then temp2=0x10 end maincpup:writev_u8(0x10d243,temp2)  if (temp1 == 0x02) then maincpup:writev_u8(0x10c047,0x01) end if (temp1 == 0x01) then maincpup:writev_u16(0x10c708,0x0000)  maincpup:writev_u16(0x10c688,0x0000) end if (temp1 == 0x02) then maincpup:writev_u8(0x10c005,0x02) end maincpup:writev_u8(0x10c104,0x01)  if (temp1 == 0x02) then maincpup:writev_u8(0x10c003,0x02) end"
     }
   },{
-    "script":{
-      "on":" temp0 =maincpum:read_u8(0x05ff9f) ",
-      "off":" maincpum:write_u8(0x05ff9f,temp0) ",
-      "run":" maincpum:write_u8(0x05ff9f,param) "
-    },
-    "parameter":{
-      "item":[{
-          "text":"Round 1",
-          "value":"0xFF"
-        },{
-          "text":"Round 1 Castle",
-          "value":"0xDF"
-        },{
-          "text":"Round 1 Boss",
-          "value":"0xF7"
-        },{
-          "text":"Round 2",
-          "value":"0xFE"
-        },{
-          "text":"Round 2 Castle",
-          "value":"0xDE"
-        },{
-          "text":"Round 2 Boss",
-          "value":"0xF6"
-        },{
-          "text":"Round 3",
-          "value":"0xFD"
-        },{
-          "text":"Round 3 Castle",
-          "value":"0xDD"
-        },{
-          "text":"Round 3 Boss",
-          "value":"0xF5"
-        },{
-          "text":"Round 4",
-          "value":"0xFC"
-        },{
-          "text":"Round 4 Castle",
-          "value":"0xDC"
-        },{
-          "text":"Round 4 Boss",
-          "value":"0xF4"
-        },{
-          "text":"Round 5",
-          "value":"0xFB"
-        },{
-          "text":"Round 5 Castle",
-          "value":"0xDB"
-        },{
-          "text":"Round 5 Boss",
-          "value":"0xF3"
-        },{
-          "text":"Round 6",
-          "value":"0xFA"
-        },{
-          "text":"Round 6 Castle",
-          "value":"0xDA"
-        },{
-          "text":"Round 6 Boss",
-          "value":"0xF2"
-        }]
-    },
     "desc":"Select Starting Round/Sub-Round",
     "region":{
       "maincpum":":maincpu"
-    }
-  },{
-    "script":{
-      "run":" maincpup:writev_u8(0x10d2fb,param) "
     },
     "parameter":{
       "item":[{
-          "text":"Sword",
-          "value":"0x01"
+          "value":"0xFF",
+          "text":"Round 1"
         },{
-          "text":"Big Axe",
-          "value":"0x02"
+          "value":"0xDF",
+          "text":"Round 1 Castle"
         },{
-          "text":"Ball + Chain",
-          "value":"0x03"
+          "value":"0xF7",
+          "text":"Round 1 Boss"
         },{
-          "text":"Fire Sword",
-          "value":"0x04"
+          "value":"0xFE",
+          "text":"Round 2"
         },{
-          "text":"No Weapons",
-          "value":"0x05"
+          "value":"0xDE",
+          "text":"Round 2 Castle"
+        },{
+          "value":"0xF6",
+          "text":"Round 2 Boss"
+        },{
+          "value":"0xFD",
+          "text":"Round 3"
+        },{
+          "value":"0xDD",
+          "text":"Round 3 Castle"
+        },{
+          "value":"0xF5",
+          "text":"Round 3 Boss"
+        },{
+          "value":"0xFC",
+          "text":"Round 4"
+        },{
+          "value":"0xDC",
+          "text":"Round 4 Castle"
+        },{
+          "value":"0xF4",
+          "text":"Round 4 Boss"
+        },{
+          "value":"0xFB",
+          "text":"Round 5"
+        },{
+          "value":"0xDB",
+          "text":"Round 5 Castle"
+        },{
+          "value":"0xF3",
+          "text":"Round 5 Boss"
+        },{
+          "value":"0xFA",
+          "text":"Round 6"
+        },{
+          "value":"0xDA",
+          "text":"Round 6 Castle"
+        },{
+          "value":"0xF2",
+          "text":"Round 6 Boss"
         }]
     },
+    "script":{
+      "run":" maincpum:write_u8(0x05ff9f,param) ",
+      "off":" maincpum:write_u8(0x05ff9f,temp0) ",
+      "on":" temp0 =maincpum:read_u8(0x05ff9f) "
+    }
+  },{
     "desc":"Select Weapon",
     "space":{
       "maincpup":{
         "type":"program",
         "tag":":maincpu"
       }
-    }
-  },{
-    "script":{
-      "run":" maincpup:writev_u8(0x10d389,param) "
     },
     "parameter":{
       "item":[{
-          "text":"No Armour",
-          "value":"0xFF"
+          "value":"0x01",
+          "text":"Sword"
         },{
-          "text":"Shield",
-          "value":"0x00"
+          "value":"0x02",
+          "text":"Big Axe"
         },{
-          "text":"Mantel",
-          "value":"0x01"
+          "value":"0x03",
+          "text":"Ball + Chain"
         },{
-          "text":"Armature",
-          "value":"0x02"
+          "value":"0x04",
+          "text":"Fire Sword"
         },{
-          "text":"Golden Armature",
-          "value":"0x03"
+          "value":"0x05",
+          "text":"No Weapons"
         }]
     },
+    "script":{
+      "run":" maincpup:writev_u8(0x10d2fb,param) "
+    }
+  },{
     "desc":"Select Armour",
     "space":{
       "maincpup":{
         "type":"program",
         "tag":":maincpu"
       }
+    },
+    "parameter":{
+      "item":[{
+          "value":"0xFF",
+          "text":"No Armour"
+        },{
+          "value":"0x00",
+          "text":"Shield"
+        },{
+          "value":"0x01",
+          "text":"Mantel"
+        },{
+          "value":"0x02",
+          "text":"Armature"
+        },{
+          "value":"0x03",
+          "text":"Golden Armature"
+        }]
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10d389,param) "
     }
   },{
-    "script":{
-      "run":" maincpup:writev_u8(0x10d3c9,0xff) "
-    },
     "desc":"Rapid Fire",
     "space":{
       "maincpup":{
         "type":"program",
         "tag":":maincpu"
       }
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10d3c9,0xff) "
     }
   },{
+    "desc":"Select Ring Status",
+    "comment":"Having the ring let's you fire faster",
     "space":{
       "maincpup":{
         "type":"program",
         "tag":":maincpu"
       }
     },
-    "script":{
-      "run":" if (param==0x01) then maincpup:writev_u8(0x10d391,0x0f) end if (param==0x01) then maincpup:writev_u8(0x10d40f,0x01) end if (param==0x02) then maincpup:writev_u8(0x10d391,0x18) end if (param==0x02) then maincpup:writev_u8(0x10d40f,0xff) end"
-    },
     "parameter":{
       "item":[{
-          "text":"Have Ring",
-          "value":"0x01"
+          "value":"0x01",
+          "text":"Have Ring"
         },{
-          "text":"No Ring",
-          "value":"0x02"
+          "value":"0x02",
+          "text":"No Ring"
         }]
     },
-    "desc":"Select Ring Status",
-    "comment":"Having the ring let's you fire faster"
-  },{
     "script":{
-      "run":" maincpup:writev_u8(0x10d411,0x01) "
-    },
+      "run":" if (param==0x01) then maincpup:writev_u8(0x10d391,0x0f) end if (param==0x01) then maincpup:writev_u8(0x10d40f,0x01) end if (param==0x02) then maincpup:writev_u8(0x10d391,0x18) end if (param==0x02) then maincpup:writev_u8(0x10d40f,0xff) end"
+    }
+  },{
     "desc":"Always have the Rod",
     "space":{
       "maincpup":{
         "type":"program",
         "tag":":maincpu"
       }
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10d411,0x01) "
     }
   },{
-    "script":{
-      "run":" maincpup:writev_u8(0x10d40d,0x01) "
-    },
     "desc":"Always have the Necklace",
     "space":{
       "maincpup":{
         "type":"program",
         "tag":":maincpu"
       }
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10d40d,0x01) "
+    }
+  },{
+    "desc":"Infinite Lives",
+    "space":{
+      "maincpup":{
+        "type":"program",
+        "tag":":maincpu"
+      }
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10c101,0x03) "
+    }
+  },{
+    "desc":"Infinite Energy",
+    "space":{
+      "maincpup":{
+        "type":"program",
+        "tag":":maincpu"
+      }
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10c13a,0x30) "
+    }
+  },{
+    "desc":"Invincibility",
+    "comment":"You die though when fall down into the water",
+    "space":{
+      "maincpup":{
+        "type":"program",
+        "tag":":maincpu"
+      }
+    },
+    "script":{
+      "run":" maincpup:writev_u16(0x10c040,0x0040|(maincpup:readv_u16(0x10c040)& ~0x0040)) ",
+      "off":" maincpup:writev_u16(0x10c040,temp0) ",
+      "on":" temp0 =maincpup:readv_u16(0x10c040) "
+    }
+  },{
+    "desc":"Hit Anywhere",
+    "comment":"Jumping hits the enemy too",
+    "region":{
+      "maincpum":":maincpu"
+    },
+    "script":{
+      "run":" maincpum:write_u16(0x044af0,0x4e71) ",
+      "off":" maincpum:write_u16(0x044af0,temp0) ",
+      "on":" temp0 =maincpum:read_u16(0x044af0) "
+    }
+  },{
+    "desc":"Finish Current Sub-Round Now!",
+    "space":{
+      "maincpup":{
+        "type":"program",
+        "tag":":maincpu"
+      }
+    },
+    "script":{
+      "on":" temp0=maincpup:readv_u8(0x10d243)  temp1=0x02  if (temp0 == 0x89) then temp2=0x89  temp1=0x01 end if (temp0 >= 0x83) and (temp0 < 0x89) then temp2=0x89 end if (temp0 >= 0x73) and (temp0 < 0x83) then temp2=0x83 end if (temp0 == 0x72) then temp2=0x73  temp1=0x01 end if (temp0 >= 0x6c) and (temp0 < 0x72) then temp2=0x72 end if (temp0 >= 0x5c) and (temp0 < 0x6c) then temp2=0x6c end if (temp0 == 0x5b) then temp2=0x5c  temp1=0x01 end if (temp0 >= 0x55) and (temp0 < 0x5b) then temp2=0x5b end if (temp0 >= 0x45) and (temp0 < 0x55) then temp2=0x55 end if (temp0 == 0x44) then temp2=0x45  temp1=0x01 end if (temp0 >= 0x3e) and (temp0 < 0x44) then temp2=0x44 end if (temp0 >= 0x2e) and (temp0 < 0x3f) then temp2=0x3f end if (temp0 == 0x2d) then temp2=0x2e  temp1=0x01 end if (temp0 >= 0x27) and (temp0 < 0x2d) then temp2=0x2d end if (temp0 >= 0x17) and (temp0 < 0x27) then temp2=0x27 end if (temp0 == 0x16) then temp2=0x17  temp1=0x01 end if (temp0 >= 0x10) and (temp0 < 0x16) then temp2=0x16 end if (temp0 >= 0x00) and (temp0 < 0x10) then temp2=0x10 end maincpup:writev_u8(0x10d243,temp2)  if (temp1 == 0x02) then maincpup:writev_u8(0x10c047,0x01) end if (temp1 == 0x01) then maincpup:writev_u16(0x10c708,0x0000)  maincpup:writev_u16(0x10c688,0x0000) end if (temp1 == 0x02) then maincpup:writev_u8(0x10c005,0x02) end maincpup:writev_u8(0x10c104,0x01)  if (temp1 == 0x02) then maincpup:writev_u8(0x10c003,0x02) end"
+    }
+  },{
+    "desc":"Select Starting Round/Sub-Round",
+    "region":{
+      "maincpum":":maincpu"
+    },
+    "parameter":{
+      "item":[{
+          "value":"0xFF",
+          "text":"Round 1"
+        },{
+          "value":"0xDF",
+          "text":"Round 1 Castle"
+        },{
+          "value":"0xF7",
+          "text":"Round 1 Boss"
+        },{
+          "value":"0xFE",
+          "text":"Round 2"
+        },{
+          "value":"0xDE",
+          "text":"Round 2 Castle"
+        },{
+          "value":"0xF6",
+          "text":"Round 2 Boss"
+        },{
+          "value":"0xFD",
+          "text":"Round 3"
+        },{
+          "value":"0xDD",
+          "text":"Round 3 Castle"
+        },{
+          "value":"0xF5",
+          "text":"Round 3 Boss"
+        },{
+          "value":"0xFC",
+          "text":"Round 4"
+        },{
+          "value":"0xDC",
+          "text":"Round 4 Castle"
+        },{
+          "value":"0xF4",
+          "text":"Round 4 Boss"
+        },{
+          "value":"0xFB",
+          "text":"Round 5"
+        },{
+          "value":"0xDB",
+          "text":"Round 5 Castle"
+        },{
+          "value":"0xF3",
+          "text":"Round 5 Boss"
+        },{
+          "value":"0xFA",
+          "text":"Round 6"
+        },{
+          "value":"0xDA",
+          "text":"Round 6 Castle"
+        },{
+          "value":"0xF2",
+          "text":"Round 6 Boss"
+        }]
+    },
+    "script":{
+      "run":" maincpum:write_u8(0x05ff9f,param) ",
+      "off":" maincpum:write_u8(0x05ff9f,temp0) ",
+      "on":" temp0 =maincpum:read_u8(0x05ff9f) "
+    }
+  },{
+    "desc":"Select Weapon",
+    "space":{
+      "maincpup":{
+        "type":"program",
+        "tag":":maincpu"
+      }
+    },
+    "parameter":{
+      "item":[{
+          "value":"0x01",
+          "text":"Sword"
+        },{
+          "value":"0x02",
+          "text":"Big Axe"
+        },{
+          "value":"0x03",
+          "text":"Ball + Chain"
+        },{
+          "value":"0x04",
+          "text":"Fire Sword"
+        },{
+          "value":"0x05",
+          "text":"No Weapons"
+        }]
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10d2fb,param) "
+    }
+  },{
+    "desc":"Select Armour",
+    "space":{
+      "maincpup":{
+        "type":"program",
+        "tag":":maincpu"
+      }
+    },
+    "parameter":{
+      "item":[{
+          "value":"0xFF",
+          "text":"No Armour"
+        },{
+          "value":"0x00",
+          "text":"Shield"
+        },{
+          "value":"0x01",
+          "text":"Mantel"
+        },{
+          "value":"0x02",
+          "text":"Armature"
+        },{
+          "value":"0x03",
+          "text":"Golden Armature"
+        }]
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10d389,param) "
+    }
+  },{
+    "desc":"Rapid Fire",
+    "space":{
+      "maincpup":{
+        "type":"program",
+        "tag":":maincpu"
+      }
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10d3c9,0xff) "
+    }
+  },{
+    "desc":"Select Ring Status",
+    "comment":"Having the ring let's you fire faster",
+    "space":{
+      "maincpup":{
+        "type":"program",
+        "tag":":maincpu"
+      }
+    },
+    "parameter":{
+      "item":[{
+          "value":"0x01",
+          "text":"Have Ring"
+        },{
+          "value":"0x02",
+          "text":"No Ring"
+        }]
+    },
+    "script":{
+      "run":" if (param==0x01) then maincpup:writev_u8(0x10d391,0x0f) end if (param==0x01) then maincpup:writev_u8(0x10d40f,0x01) end if (param==0x02) then maincpup:writev_u8(0x10d391,0x18) end if (param==0x02) then maincpup:writev_u8(0x10d40f,0xff) end"
+    }
+  },{
+    "desc":"Always have the Rod",
+    "space":{
+      "maincpup":{
+        "type":"program",
+        "tag":":maincpu"
+      }
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10d411,0x01) "
+    }
+  },{
+    "desc":"Always have the Necklace",
+    "space":{
+      "maincpup":{
+        "type":"program",
+        "tag":":maincpu"
+      }
+    },
+    "script":{
+      "run":" maincpup:writev_u8(0x10d40d,0x01) "
     }
   }]
