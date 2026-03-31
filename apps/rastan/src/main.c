@@ -12,7 +12,17 @@ extern volatile uint16_t genesistan_shadow_reg_d01bfe;
 extern const u8 *const rastan_pc090oj_genesis;
 extern const uint16_t genesistan_pc080sn_tile_vram_lut[16384];
 extern const uint16_t genesistan_pc080sn_attr_lut[32];
-extern const uint16_t genesistan_pc080sn_vram_preload[];
+extern const uint8_t genesistan_pc080sn_scene_preload_title[];
+extern const uint8_t genesistan_pc080sn_scene_preload_title_end[];
+extern const uint8_t genesistan_pc080sn_scene_preload_gameplay[];
+extern const uint8_t genesistan_pc080sn_scene_preload_gameplay_end[];
+extern const uint8_t genesistan_pc080sn_scene_preload_endround[];
+extern const uint8_t genesistan_pc080sn_scene_preload_endround_end[];
+extern const uint8_t genesistan_pc080sn_source_scene_map[];
+extern const uint8_t genesistan_pc080sn_source_scene_map_end[];
+extern volatile uint8_t genesistan_current_scene_id;
+extern volatile uint32_t genesistan_scene_a0_lo;
+extern volatile uint32_t genesistan_scene_a0_hi;
 
 #ifndef RASTAN_ENABLE_STARTUP_HOOK
 #define RASTAN_ENABLE_STARTUP_HOOK 1
@@ -41,6 +51,11 @@ extern const uint16_t genesistan_pc080sn_vram_preload[];
 #define FRONTEND_RUNTIME_MAX_SPRITES SAT_MAX_SIZE
 #define FRONTEND_RUNTIME_MAX_UNIQUE_CODES 64
 #define FRONTEND_RUNTIME_MAX_PALETTE_BANKS 4
+#define GENESISTAN_SCENE_TITLE 0U
+#define GENESISTAN_SCENE_GAMEPLAY 1U
+#define GENESISTAN_SCENE_ENDROUND 2U
+#define GENESISTAN_SCENE_UNKNOWN 0xFFU
+#define GENESISTAN_SOURCE_SCENE_MAP_MAGIC 0x53324D50UL
 /* Arcade visible height is 240; Genesis visible height is 224 in this mode. */
 #define RASTAN_VERTICAL_CROP_BIAS 8
 
@@ -1178,56 +1193,6 @@ static void clear_frontend_sprite_layer(void)
 }
 
 /*
- * Tile cache helpers (Build 113).
- * Linear scan over 1164 VRAM slots.
- * Slots 0-1003 → VRAM 20-1023 (TILE_CACHE_BASE_A + slot).
- * Slots 1004-1163 → VRAM 1280-1439 (TILE_CACHE_BASE_B + slot - SIZE_A).
- */
-static uint16_t tile_cache_slot_to_vram(uint16_t slot)
-{
-    if (slot < TILE_CACHE_SIZE_A)
-        return (uint16_t)(TILE_CACHE_BASE_A + slot);
-    return (uint16_t)(TILE_CACHE_BASE_B + (slot - TILE_CACHE_SIZE_A));
-}
-
-/*
- * Look up arcade tile index in the VRAM tile cache.
- * On hit: update LRU and return VRAM slot.
- * On miss: evict LRU slot, DMA-load tile from rastan_pc080sn, return slot.
- * Must be called with interrupts already disabled.
- */
-static uint16_t tile_cache_get(uint16_t arcade_tile)
-{
-    uint16_t i;
-    uint16_t lru_slot = 0;
-    uint16_t lru_val  = genesistan_tile_cache_lru[0];
-    uint16_t vram_slot;
-
-    for (i = 0; i < TILE_CACHE_SLOTS; i++) {
-        if (genesistan_tile_cache_arcade[i] == arcade_tile) {
-            genesistan_tile_cache_lru[i] = ++genesistan_tile_cache_clock;
-            return tile_cache_slot_to_vram(i);
-        }
-        if (genesistan_tile_cache_lru[i] < lru_val) {
-            lru_val  = genesistan_tile_cache_lru[i];
-            lru_slot = i;
-        }
-    }
-
-    /* Cache miss — evict LRU slot and DMA-load tile from ROM. */
-    vram_slot = tile_cache_slot_to_vram(lru_slot);
-    genesistan_tile_cache_arcade[lru_slot] = arcade_tile;
-    genesistan_tile_cache_lru[lru_slot]    = ++genesistan_tile_cache_clock;
-
-    VDP_loadTileData(
-        (const u32 *)(rastan_pc080sn + (u32)arcade_tile * 32U),
-        vram_slot, 1, DMA);
-    VDP_waitDMACompletion();
-
-    return vram_slot;
-}
-
-/*
  * PC080SN tilemap hook bridge (0x055968 / 0x055990).
  *
  * C side is a thin dispatcher only:
@@ -1442,14 +1407,14 @@ static u16 text_writer_build_tile_attr(u16 attr_word, u8 glyph_code)
         }
     }
 
-    vram_tile = tile_cache_get(arcade_tile);
+    vram_tile = genesistan_pc080sn_tile_vram_lut[arcade_tile & 0x3FFFU];
 
     return TILE_ATTR_FULL(palette, priority, vflip, hflip, vram_tile);
 }
 
 static u16 text_writer_build_tile_attr_from_arcade_code(u16 attr_word, u16 arcade_code)
 {
-    const u16 vram_tile = tile_cache_get(arcade_code & 0x3FFFU);
+    const u16 vram_tile = genesistan_pc080sn_tile_vram_lut[arcade_code & 0x3FFFU];
     const u16 palette   = attr_word & 0x3U;
     const u16 priority  = (attr_word >> 13) & 1U;
     const u16 vflip     = (attr_word >> 15) & 1U;
@@ -1469,25 +1434,207 @@ static void genesistan_sync_title_vdp_layout(void)
     SYS_enableInts();
 }
 
-static void genesistan_preload_pc080sn_title_frontend(void)
+static bool genesistan_scene_manifest_for_id(u8 scene_id, const u8 **begin, const u8 **end)
 {
-    const u16 *entry = genesistan_pc080sn_vram_preload;
+    switch (scene_id)
+    {
+        case GENESISTAN_SCENE_TITLE:
+            *begin = genesistan_pc080sn_scene_preload_title;
+            *end = genesistan_pc080sn_scene_preload_title_end;
+            return TRUE;
+        case GENESISTAN_SCENE_GAMEPLAY:
+            *begin = genesistan_pc080sn_scene_preload_gameplay;
+            *end = genesistan_pc080sn_scene_preload_gameplay_end;
+            return TRUE;
+        case GENESISTAN_SCENE_ENDROUND:
+            *begin = genesistan_pc080sn_scene_preload_endround;
+            *end = genesistan_pc080sn_scene_preload_endround_end;
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
+
+static bool genesistan_source_scene_map_layout(
+    const u8 **map_entries,
+    u16 *map_count,
+    const u8 **range_entries,
+    u16 *range_count)
+{
+    const u8 *const map_begin = genesistan_pc080sn_source_scene_map;
+    const u8 *const map_end = genesistan_pc080sn_source_scene_map_end;
+    const u32 map_size = (u32)(map_end - map_begin);
+    u32 magic;
+    u16 maps;
+    u16 ranges;
+    u32 map_bytes;
+    u32 range_bytes;
+
+    if (map_size < 8U)
+    {
+        return FALSE;
+    }
+
+    magic = text_writer_read_be32(map_begin);
+    maps = text_writer_read_be16(map_begin + 4U);
+    ranges = text_writer_read_be16(map_begin + 6U);
+    map_bytes = (u32)maps * 8U;
+    range_bytes = (u32)ranges * 12U;
+
+    if (magic != GENESISTAN_SOURCE_SCENE_MAP_MAGIC)
+    {
+        return FALSE;
+    }
+    if ((8U + map_bytes + range_bytes) > map_size)
+    {
+        return FALSE;
+    }
+
+    *map_entries = map_begin + 8U;
+    *map_count = maps;
+    *range_entries = map_begin + 8U + map_bytes;
+    *range_count = ranges;
+    return TRUE;
+}
+
+static bool genesistan_scene_bounds_from_map(u8 scene_id, u32 *out_lo, u32 *out_hi)
+{
+    const u8 *map_entries;
+    const u8 *range_entries;
+    u16 map_count;
+    u16 range_count;
+    u16 i;
+
+    if (!genesistan_source_scene_map_layout(
+            &map_entries,
+            &map_count,
+            &range_entries,
+            &range_count))
+    {
+        return FALSE;
+    }
+    (void)map_entries;
+    (void)map_count;
+
+    for (i = 0; i < range_count; i++)
+    {
+        const u8 *const entry = range_entries + ((u32)i * 12U);
+        if (entry[0] != scene_id)
+        {
+            continue;
+        }
+        *out_lo = text_writer_read_be32(entry + 4U);
+        *out_hi = text_writer_read_be32(entry + 8U);
+        return TRUE;
+    }
+    return FALSE;
+}
+
+static bool genesistan_scene_id_from_source_addr(u32 source_addr, u8 *out_scene_id)
+{
+    const u8 *map_entries;
+    const u8 *range_entries;
+    u16 map_count;
+    u16 range_count;
+    u16 i;
+    const u32 source24 = source_addr & 0x00FFFFFFUL;
+
+    if (!genesistan_source_scene_map_layout(
+            &map_entries,
+            &map_count,
+            &range_entries,
+            &range_count))
+    {
+        return FALSE;
+    }
+
+    for (i = 0; i < map_count; i++)
+    {
+        const u8 *const entry = map_entries + ((u32)i * 8U);
+        const u32 mapped_addr = text_writer_read_be32(entry + 0U);
+        if ((mapped_addr & 0x00FFFFFFUL) == source24)
+        {
+            *out_scene_id = entry[4];
+            return TRUE;
+        }
+    }
+
+    for (i = 0; i < range_count; i++)
+    {
+        const u8 *const entry = range_entries + ((u32)i * 12U);
+        const u32 lo = text_writer_read_be32(entry + 4U) & 0x00FFFFFFUL;
+        const u32 hi = text_writer_read_be32(entry + 8U) & 0x00FFFFFFUL;
+        if ((source24 >= lo) && (source24 <= hi))
+        {
+            *out_scene_id = entry[0];
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_preload_scene_tiles(u8 scene_id)
+{
+    const u8 *manifest;
+    const u8 *manifest_end;
+    u32 scene_lo;
+    u32 scene_hi;
+
+    if (!genesistan_scene_manifest_for_id(scene_id, &manifest, &manifest_end))
+    {
+        return;
+    }
+    if (!genesistan_scene_bounds_from_map(scene_id, &scene_lo, &scene_hi))
+    {
+        return;
+    }
 
     SYS_disableInts();
-    while (entry[0] != 0xFFFFU)
+    while ((manifest + 3U) < manifest_end)
     {
-        const u16 arcade_tile = entry[0];
-        const u16 vram_slot = entry[1];
+        const u16 arcade_tile = text_writer_read_be16(manifest + 0U);
+        const u16 vram_slot = text_writer_read_be16(manifest + 2U);
+
+        if (arcade_tile == 0xFFFFU)
+        {
+            break;
+        }
+
         VDP_loadTileData(
             (const u32 *)(rastan_pc080sn + ((u32)arcade_tile * 32U)),
             vram_slot,
             1U,
             DMA
         );
-        entry += 2;
+        manifest += 4U;
     }
     VDP_waitDMACompletion();
     SYS_enableInts();
+
+    genesistan_current_scene_id = scene_id;
+    genesistan_scene_a0_lo = scene_lo;
+    genesistan_scene_a0_hi = scene_hi;
+}
+
+__attribute__((used, externally_visible, section(".text.patcher")))
+void genesistan_bulk_preload_check(u32 source_addr)
+{
+    u8 mapped_scene_id = GENESISTAN_SCENE_UNKNOWN;
+
+    if (!genesistan_scene_id_from_source_addr(source_addr, &mapped_scene_id))
+    {
+        return;
+    }
+
+    if ((genesistan_current_scene_id == mapped_scene_id)
+        && ((genesistan_scene_a0_lo & 0x00FFFFFFUL) <= (source_addr & 0x00FFFFFFUL))
+        && ((source_addr & 0x00FFFFFFUL) <= (genesistan_scene_a0_hi & 0x00FFFFFFUL)))
+    {
+        return;
+    }
+
+    genesistan_preload_scene_tiles(mapped_scene_id);
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))
@@ -1842,7 +1989,7 @@ static void request_start_rastan(void)
     VDP_clearPlane(BG_A, TRUE);
    VDP_clearPlane(BG_B, TRUE);
     genesistan_sync_title_vdp_layout();
-    genesistan_preload_pc080sn_title_frontend();
+    genesistan_preload_scene_tiles(GENESISTAN_SCENE_TITLE);
     clear_frontend_sprite_layer();
     VDP_waitDMACompletion();
 #else

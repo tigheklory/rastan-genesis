@@ -1,5 +1,5 @@
 {
-  "variant": "world_rev1",
+  "variant": "rastan",
   "rom": "/home/tighe/projects/rastan-genesis/apps/rastan/out/rom.bin",
   "symbols": "/home/tighe/projects/rastan-genesis/apps/rastan/out/symbol.txt",
   "maincpu": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
@@ -333,7 +333,7 @@
     {
       "range": "startup_common",
       "old": "0x00200000",
-      "new": "0xE0FF5AA6",
+      "new": "0xE0FF487E",
       "count": 4
     },
     {
@@ -435,7 +435,7 @@
     {
       "range": "frontend_core",
       "old": "0x00200000",
-      "new": "0xE0FF6ACC",
+      "new": "0xE0FF58A4",
       "count": 0
     },
     {
@@ -573,7 +573,7 @@
     {
       "range": "title_init_block",
       "old": "0x00200000",
-      "new": "0xE0FF6ACC",
+      "new": "0xE0FF58A4",
       "count": 1
     },
     {
@@ -633,7 +633,7 @@
     {
       "range": "helper_200000_init",
       "old": "0x00200000",
-      "new": "0xE0FF6ACC",
+      "new": "0xE0FF58A4",
       "count": 0
     },
     {
@@ -687,13 +687,13 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00200000",
-      "new": "0xE0FF6ACC",
+      "new": "0xE0FF58A4",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00201000",
-      "new": "0xE0FF7ACC",
+      "new": "0xE0FF68A4",
       "count": 2
     },
     {
@@ -729,7 +729,7 @@
     {
       "range": "palette_convert_59ad4",
       "old": "0x00200000",
-      "new": "0xE0FF5AA6",
+      "new": "0xE0FF487E",
       "count": 1
     },
     {
@@ -1016,14 +1016,14 @@
       "kind": "shim_jump",
       "old_start": "0x03F284",
       "old_end_exclusive": "0x03F29C",
-      "new_target": "0x00202820"
+      "new_target": "0x00202C4C"
     },
     {
       "range": "helper_3f09c_reg_status",
       "kind": "shim_jump",
       "old_start": "0x03F29C",
       "old_end_exclusive": "0x03F2AC",
-      "new_target": "0x00202850"
+      "new_target": "0x00202C7C"
     },
     {
       "kind": "absolute_long_pointer_table",
@@ -1047,7 +1047,7 @@
       "rom_pc": "0x03AAF2",
       "original_bytes": "4eb90005a174",
       "original_bytes_shift_adjusted": "4eb90005a190",
-      "replacement_bytes": "4eb900202874",
+      "replacement_bytes": "4eb900202ca0",
       "note": "ORDER FIX PATCH B: renderer now runs at this slot (after producer at 0x03A8E0). original_bytes is the post-relocation value (0x059F5E + 0x200 base + 0x16 accumulated shift = 0x05A174). Size: 6->6 bytes (no shift). Renderer runs after producer \u2014 correct ordering."
     },
     {
@@ -1130,6 +1130,15 @@
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9002002d64e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Restore real PC080SN plane-B hook path: call existing Genesis tilemap handler at this arcade write-site and preserve original instruction size with NOP padding."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x05A4DE",
+      "rom_pc": "0x05A6FA",
+      "original_bytes": "3800244932c232d85340",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "4eb900202fec4e714e71",
+      "note": "Hook PC080SN block-write copy engine to direct assembly VDP commit path with scene-range fast path and rare preload fallback."
     },
     {
       "kind": "opcode_replace",
@@ -1560,7 +1569,7 @@
       "rom_pc": "0x03ADCC",
       "original_bytes": "42b900c20000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d3e",
+      "replacement_bytes": "4eb900201162",
       "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1569,7 +1578,7 @@
       "rom_pc": "0x03ADD2",
       "original_bytes": "42b900c40000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d3e",
+      "replacement_bytes": "4eb900201162",
       "note": "Replace legacy scroll clear with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1578,7 +1587,7 @@
       "rom_pc": "0x03B2AA",
       "original_bytes": "42b9e101484c",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d3e",
+      "replacement_bytes": "4eb900201162",
       "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1587,7 +1596,7 @@
       "rom_pc": "0x03B2B0",
       "original_bytes": "42b9e103484c",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900200d3e",
+      "replacement_bytes": "4eb900201162",
       "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
     },
     {
@@ -1596,7 +1605,7 @@
       "rom_pc": "0x03BD5E",
       "original_bytes": "32000240007fe548",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9002028684e75",
+      "replacement_bytes": "4eb900202c944e75",
       "note": "Route title text dispatch to genesistan_hook_text_writer_3bb48 bridge (arcade descriptor -> Genesis plane tile write translation)."
     },
     {
@@ -1781,7 +1790,7 @@
     },
     {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x3A867A",
+      "rom_offset": "0x3ABCE8",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1794,24 +1803,24 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x00202BFA",
+    "jumps_to": "0x0020318E",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
     "writes_status_to": "0xE0FF486A",
     "value": 2,
-    "jumps_exit_to": "0x00202C36",
+    "jumps_exit_to": "0x002031CA",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0xB69A",
+  "checksum": "0x51C7",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x0021771E",
+    "reset_pc": "0x00217A12",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

@@ -1,5 +1,5 @@
 {
-  "variant": "world_rev1",
+  "variant": "rastan",
   "rom": "/home/tighe/projects/rastan-genesis/apps/rastan/out/rom.bin",
   "source_maincpu": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
   "policy": "Build from original ROM bytes every time; never patch forward from derived binaries.",
@@ -355,43 +355,43 @@
     {
       "id": "genesistan_run_original_startup_common",
       "kind": "runner_wrapper",
-      "genesis_rom_start": "0x202BC4",
+      "genesis_rom_start": "0x203158",
       "purpose": "C/asm wrapper that calls the original startup/common slice."
     },
     {
       "id": "genesistan_sound_send_command",
       "kind": "sound_shim",
-      "genesis_rom_start": "0x202820",
+      "genesis_rom_start": "0x202C4C",
       "purpose": "Minimal Genesis-side sound command shim for the original 0x03F084 helper."
     },
     {
       "id": "genesistan_sound_read_status",
       "kind": "sound_shim",
-      "genesis_rom_start": "0x202850",
+      "genesis_rom_start": "0x202C7C",
       "purpose": "Always-ready sound status shim for the original 0x03F09C helper."
     },
     {
       "id": "genesistan_run_original_frontend_tick",
       "kind": "runner_wrapper",
-      "genesis_rom_start": "0x202BD4",
+      "genesis_rom_start": "0x203168",
       "purpose": "Frame-tick wrapper that enters the original front-end dispatcher at 0x03A008 and returns via a synthetic exception frame."
     },
     {
       "id": "genesistan_startup_common_exit_normal",
       "kind": "runner_trampoline",
-      "genesis_rom_start": "0x202C2E",
+      "genesis_rom_start": "0x2031C2",
       "purpose": "Return trampoline for the normal branch after patched original flow."
     },
     {
       "id": "genesistan_startup_common_continue_normal",
       "kind": "runner_continuation",
-      "genesis_rom_start": "0x202BFA",
+      "genesis_rom_start": "0x20318E",
       "purpose": "Replays the original 0x03B05C normal-boot continuation before returning to the Genesis host."
     },
     {
       "id": "genesistan_startup_common_exit_test",
       "kind": "runner_trampoline",
-      "genesis_rom_start": "0x202C36",
+      "genesis_rom_start": "0x2031CA",
       "purpose": "Return trampoline for the test branch after patched original flow."
     }
   ]

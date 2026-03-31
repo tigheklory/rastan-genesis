@@ -24131,3 +24131,217 @@ No input work needed. Unblock on tilemap (Build 295 PC080SN tile offset fix).
   - assembly entry: pushes context, calls C scene-check (preload if scene changed), iterates D1 columns × D0 rows, translates each tile through LUT, writes VDP command + data, restores context and returns
   - no intermediate buffer; translated data goes directly to VDP data port
 ```
+
+## [Andy - Architecture Amendment, Block-Write Hook Without Runtime C Call]
+```text
+- document created
+  - docs/design/final_block_write_and_scene_scoped_tile_loading_architecture_amendment.md
+
+- summary
+  - Per-invocation C call (genesistan_bulk_preload_check) removed from 0x5A4DE hot path common case
+  - Replaced with 2-instruction assembly range check: CMP.L A0 against stored scene bounds (~50 cycles vs ~300+ cycles)
+  - C fallback fires only on actual scene transitions (once per transition, ~3-4 times per full game)
+  - Identified 4 explicit scene-entry trigger points (0x3AA40 title, 0x3A5E4 gameplay, 0x55F58 pre-HUD, 0x5725A end-round) but rejected explicit-hook approach (Option B) due to trampoline complexity and fragility
+  - Source ROM address ranges per scene are fully disjoint: Gameplay 0x56A22-0x570C2, End-Round 0x5822A-0x59614, Title 0x5A7DA-0x5B0B2 — enables reliable assembly-only range check
+
+- answer: YES — preload CAN move out of per-call C path
+  - common path is now assembly-only (2 CMP.L + 2 conditional branches)
+  - C function still exists but fires only on scene change (A0 outside stored range)
+
+- final trigger strategy: Option C — assembly range check + rare C fallback
+  - self-organizing: catches any transition regardless of state machine path
+  - no additional spec patches needed (still just one at 0x5A4DE)
+  - Option B (explicit hooks) rejected: 3 extra spec patches, trampoline assembly, no safety net if transition missed
+
+- hot hook purity: ASSEMBLY-ONLY on common path
+  - no C call, no stack frame, no register save/restore beyond VDP loop requirements
+  - C fires only when A0 falls outside current scene's range bounds (~once per scene transition)
+```
+
+## [Cody - Implementation, Scene-Scoped Tile Data Generation]
+```text
+- files changed
+  - tools/translation/precompute_pc080sn_tile_lut.py
+  - AGENTS_LOG.md
+
+- generated outputs
+  - build/pc080sn_tile_vram_lut.bin
+  - build/pc080sn_scene_preload_title.bin
+  - build/pc080sn_scene_preload_gameplay.bin
+  - build/pc080sn_scene_preload_endround.bin
+  - build/pc080sn_source_scene_map.bin
+  - (legacy compatibility kept) build/pc080sn_vram_preload.bin
+
+- tile counts per scene
+  - Title: 793
+  - Gameplay: 783
+  - End-Round: 1021
+
+- total unique tile count
+  - 2280
+
+- VRAM max usage (largest scene)
+  - 1021 / 1164
+
+- range validation
+  - Title range: 0x5A7DA - 0x5B0B2
+  - Gameplay range: 0x56A22 - 0x570C2
+  - End-Round range: 0x5822A - 0x59614
+  - ranges are disjoint: YES
+```
+
+## [Cody - Validation, Scene Tile Data Audit]
+```text
+- manifest counts
+  - Title: 793
+  - Gameplay: 783
+  - End-Round: 1021
+
+- tile breakdown per scene
+  - Title: block=781, strip=0, text=12, union=793
+  - Gameplay: block=492, strip=289, text=12, union=783
+  - End-Round: block=727, strip=289, text=12, union=1021
+
+- text glyph count
+  - extracted glyph byte codes: 3
+  - resulting text tiles in manifests: 12
+
+- block-write validation result
+  - Title block unique tiles: 781 (match)
+  - Gameplay block unique tiles: 492 (match)
+  - End-Round block unique tiles: 727 (match)
+
+- duplicates: NO
+- slot collisions: NO
+
+- LUT coverage: FAIL
+  - block/strip/source-scene coverage is internally consistent
+  - text glyph extraction is under-covered (12 tiles vs expected full text-glyph set from architecture budget assumptions)
+
+- final verdict: FAIL
+```
+
+## [Cody - Implementation, Text Glyph Discovery Fix]
+```text
+- files changed
+  - tools/translation/precompute_pc080sn_tile_lut.py
+  - AGENTS_LOG.md
+
+- updated manifest counts
+  - Title: 841
+  - Gameplay: 829
+  - End-Round: 1067
+
+- updated tile breakdown per scene
+  - Title: block=781, strip=0, text=60, union=841
+  - Gameplay: block=492, strip=289, text=60, union=829
+  - End-Round: block=727, strip=289, text=60, union=1067
+
+- updated text glyph count
+  - extracted glyph byte codes: 59
+  - resulting text tiles in manifests: 60
+
+- block-write counts unchanged confirmation
+  - Title block unique tiles: 781 (match)
+  - Gameplay block unique tiles: 492 (match)
+  - End-Round block unique tiles: 727 (match)
+
+- duplicates: NO
+- slot collisions: NO
+- final verdict: PASS
+```
+
+## [Cody - Implementation, Scene Preload Runtime Infrastructure]
+```text
+- files changed
+  - apps/rastan/src/main.c
+  - apps/rastan/src/startup_bridge.c
+  - AGENTS_LOG.md
+
+- ROM declarations added
+  - Added runtime ROM symbols for:
+    - `genesistan_pc080sn_scene_preload_title` (+end)
+    - `genesistan_pc080sn_scene_preload_gameplay` (+end)
+    - `genesistan_pc080sn_scene_preload_endround` (+end)
+    - `genesistan_pc080sn_source_scene_map` (+end)
+  - Kept existing global LUT declaration (`genesistan_pc080sn_tile_vram_lut`).
+
+- scene preload functions added
+  - Implemented `genesistan_preload_scene_tiles(scene_id)`:
+    - selects scene manifest
+    - parses sentinel-terminated BE `(tile, slot)` pairs
+    - DMA-loads `rastan_pc080sn + tile*32` into assigned VRAM slot
+    - updates `genesistan_current_scene_id`, `genesistan_scene_a0_lo`, `genesistan_scene_a0_hi`
+  - Implemented `genesistan_bulk_preload_check(source_addr)`:
+    - resolves scene via generated source-scene map (exact map entries + range fallback)
+    - preloads only on scene change / out-of-range current bounds
+
+- boot preload switched to scene preload
+  - Startup handoff now calls `genesistan_preload_scene_tiles(GENESISTAN_SCENE_TITLE)`.
+  - Old monolithic title preload function removed from active path.
+
+- text writer switched to static LUT
+  - Replaced text-writer `tile_cache_get()` lookups with direct
+    `genesistan_pc080sn_tile_vram_lut[arcade_tile & 0x3FFF]` in both 0x3BB48 and 0x3C3FE tile-attr builders.
+
+- dead cache pieces removed or retained
+  - Removed dead runtime tile-cache function path from `main.c` (`tile_cache_get` and slot helper).
+  - Removed dead tile-cache state arrays/clock from `startup_bridge.c` and related reclaim resets.
+
+- validation summary
+  - Scene manifests are readable with valid sentinels:
+    - title: 841 entries
+    - gameplay: 829 entries
+    - end-round: 1067 entries
+  - Boot preload path now uses scene preload function.
+  - Text writer paths no longer reference `tile_cache_get()`.
+
+- confirmation `0x5A4DE` hook/spec NOT touched
+  - No `startup_trampoline.s` changes.
+  - No spec/remap JSON changes.
+
+- ROM/build artifact path
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Standard postpatch still fails at known gate (`opcode_replace` preimage at `0x0560DA`).
+  - Existing exploratory workaround used: `postpatch_startup_rom.py --spec /tmp/startup_title_remap_temp.json`.
+  - ROM: `dist/Rastan_302.bin`.
+```
+
+## [Cody - Implementation, 0x5A4DE Block-Write Assembly Hook]
+```text
+- files changed
+  - apps/rastan/src/startup_trampoline.s
+  - specs/startup_title_remap.json
+  - AGENTS_LOG.md
+
+- `0x5A4DE` hook added
+  - Added opcode_replace entry at `0x05A4DE`:
+    - `original_bytes=3800244932C232D85340`
+    - `replacement_bytes=4eb9{symbol:genesistan_bulk_tilemap_commit}4e714e71`
+
+- `genesistan_bulk_tilemap_commit` added
+  - Implemented full direct block-write PC080SN commit path in assembly:
+    - A1 c-window decode to BG/FG plane
+    - attr key -> `genesistan_pc080sn_attr_lut`
+    - tile index -> `genesistan_pc080sn_tile_vram_lut`
+    - direct VDP control/data writes in column-major D1 x D0 loop
+    - existing visible-row skip behavior preserved (`row < 4` skip)
+
+- assembly range-check common path active
+  - Fast-path check in assembly only:
+    - `A0 > genesistan_scene_a0_hi` or `A0 < genesistan_scene_a0_lo` => range miss
+
+- rare C fallback only on range miss
+  - Calls `genesistan_bulk_preload_check(A0)` only on out-of-range source address.
+
+- no extra hook points added
+  - No additional opcode hook addresses added in this pass.
+
+- build / ROM result
+  - Build command: `source tools/setup_env.sh && make -C apps/rastan release`
+  - Compile/link succeeded; normal postpatch failed at known gate (`opcode_replace` preimage at `0x0560DA`).
+  - Existing exploratory workaround used: `postpatch_startup_rom.py --spec /tmp/startup_title_remap_temp.json`.
+
+- ROM artifact path
+  - `dist/Rastan_303.bin`
+```

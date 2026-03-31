@@ -23,6 +23,34 @@ const uint16_t genesistan_pc080sn_vram_preload[] = {
 #include "../../../build/pc080sn_vram_preload_words.inc"
 };
 
+__asm__(
+    ".section .rodata_bin,\"a\"\n"
+    ".balign 2\n"
+    ".global genesistan_pc080sn_scene_preload_title\n"
+    ".global genesistan_pc080sn_scene_preload_title_end\n"
+    "genesistan_pc080sn_scene_preload_title:\n"
+    ".incbin \"../../build/pc080sn_scene_preload_title.bin\"\n"
+    "genesistan_pc080sn_scene_preload_title_end:\n"
+    ".balign 2\n"
+    ".global genesistan_pc080sn_scene_preload_gameplay\n"
+    ".global genesistan_pc080sn_scene_preload_gameplay_end\n"
+    "genesistan_pc080sn_scene_preload_gameplay:\n"
+    ".incbin \"../../build/pc080sn_scene_preload_gameplay.bin\"\n"
+    "genesistan_pc080sn_scene_preload_gameplay_end:\n"
+    ".balign 2\n"
+    ".global genesistan_pc080sn_scene_preload_endround\n"
+    ".global genesistan_pc080sn_scene_preload_endround_end\n"
+    "genesistan_pc080sn_scene_preload_endround:\n"
+    ".incbin \"../../build/pc080sn_scene_preload_endround.bin\"\n"
+    "genesistan_pc080sn_scene_preload_endround_end:\n"
+    ".balign 2\n"
+    ".global genesistan_pc080sn_source_scene_map\n"
+    ".global genesistan_pc080sn_source_scene_map_end\n"
+    "genesistan_pc080sn_source_scene_map:\n"
+    ".incbin \"../../build/pc080sn_source_scene_map.bin\"\n"
+    "genesistan_pc080sn_source_scene_map_end:\n"
+    ".previous\n");
+
 #if RASTAN_ENABLE_STARTUP_HOOK
 
 volatile uint16_t genesistan_arcade_workram_words[0x2000]
@@ -79,6 +107,12 @@ volatile uint16_t genesistan_sound_command_count
 /* Arcade A0 captured at genesistan_frontend_tick_return (Build 109). */
 volatile uint32_t genesistan_arcade_last_a0
     __attribute__((section(".bss.patcher")));
+volatile uint32_t genesistan_scene_a0_lo
+    __attribute__((section(".bss.patcher")));
+volatile uint32_t genesistan_scene_a0_hi
+    __attribute__((section(".bss.patcher")));
+volatile uint8_t genesistan_current_scene_id
+    __attribute__((section(".bss.patcher")));
 
 /*
  * Palette ROM table (Build 113).
@@ -89,19 +123,6 @@ volatile uint32_t genesistan_arcade_last_a0
  */
 __attribute__((used, section(".rodata_bin")))
 const uint16_t genesistan_palette_rom_table[2048] = {0};
-
-/*
- * Tile cache (Build 113).
- * Maps Genesis VRAM slot → arcade PC080SN tile index.
- * 1164 slots: 20-1023 (1004 tiles) + 1280-1439 (160 tiles).
- * TILE_CACHE_EMPTY (0xFFFF) = free slot.
- */
-uint16_t genesistan_tile_cache_arcade[TILE_CACHE_SLOTS]
-    __attribute__((section(".bss.patcher")));
-uint16_t genesistan_tile_cache_lru[TILE_CACHE_SLOTS]
-    __attribute__((section(".bss.patcher")));
-uint16_t genesistan_tile_cache_clock
-    __attribute__((section(".bss.patcher")));
 
 /* Captured CLCS palette writes from arcade palette RAM space (Build 141). */
 uint16_t genesistan_palette_clcs[2048]
@@ -386,9 +407,6 @@ void genesistan_reclaim_launcher_wram(void)
      */
     memset((void *)genesistan_shadow_c20000_words, 0, sizeof(genesistan_shadow_c20000_words));
     memset((void *)genesistan_shadow_c40000_words, 0, sizeof(genesistan_shadow_c40000_words));
-    memset(genesistan_tile_cache_arcade, 0xFF, sizeof(genesistan_tile_cache_arcade));
-    memset(genesistan_tile_cache_lru,    0,    sizeof(genesistan_tile_cache_lru));
-    genesistan_tile_cache_clock = 0;
     genesistan_startup_result_code = GENESISTAN_STARTUP_RESULT_NONE;
     genesistan_sound_last_command = 0;
     genesistan_sound_last_low_nibble = 0;

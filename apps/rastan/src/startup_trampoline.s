@@ -19,6 +19,7 @@
     .globl genesistan_sprite_commit_asm
     .globl genesistan_asm_tilemap_commit_bg
     .globl genesistan_asm_tilemap_commit_fg
+    .globl genesistan_bulk_tilemap_commit
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 
@@ -425,6 +426,164 @@ genesistan_asm_tilemap_commit_fg:
     movem.l (%sp)+,%d2-%d7/%a2-%a6
     rts
 
+/*
+ * PC080SN block-write hot path (0x5A4DE replacement).
+ * Entry register contract (arcade routine):
+ *   d0.w = rows per column
+ *   d1.w = columns
+ *   d2.w = attr word
+ *   a0   = source ROM words (tile indices)
+ *   a1   = destination C-window pointer
+ *
+ * Common path:
+ *   - assembly-only A0 range check vs current scene bounds
+ *   - direct VDP nametable writes via LUT + attr LUT
+ * Rare path:
+ *   - call genesistan_bulk_preload_check(a0) only on range miss
+ */
+genesistan_bulk_tilemap_commit:
+    movem.l %d2-%d7/%a2-%a6,-(%sp)
+
+    cmp.l   genesistan_scene_a0_hi, %a0
+    bhi     .Lbulk_scene_range_miss
+    cmp.l   genesistan_scene_a0_lo, %a0
+    blo     .Lbulk_scene_range_miss
+    bra     .Lbulk_scene_range_ok
+
+.Lbulk_scene_range_miss:
+    movem.l %d0-%d2/%a0-%a1, -(%sp)
+    move.l  %a0, -(%sp)
+    jsr     genesistan_bulk_preload_check
+    addq.l  #4, %sp
+    movem.l (%sp)+, %d0-%d2/%a0-%a1
+
+.Lbulk_scene_range_ok:
+    move.l  %a1, %d7
+    andi.l  #0x00FFFFFF, %d7
+
+    cmpi.l  #0x00C00000, %d7
+    blo     .Lbulk_exit
+    cmpi.l  #0x00C04000, %d7
+    blo     .Lbulk_bg_plane
+    cmpi.l  #0x00C08000, %d7
+    blo     .Lbulk_exit
+    cmpi.l  #0x00C0C000, %d7
+    blo     .Lbulk_fg_plane
+    bra     .Lbulk_exit
+
+.Lbulk_bg_plane:
+    subi.l  #0x00C00000, %d7
+    move.w  #0xC000, %d6
+    bra     .Lbulk_dest_ready
+
+.Lbulk_fg_plane:
+    subi.l  #0x00C08000, %d7
+    move.w  #0xE000, %d6
+
+.Lbulk_dest_ready:
+    btst    #0, %d7
+    bne     .Lbulk_exit
+    btst    #1, %d7
+    bne     .Lbulk_exit
+
+    lsr.l   #2, %d7
+    move.w  %d7, %d4
+    andi.w  #0x003F, %d4            /* row within column (column-major decode) */
+    lsr.l   #6, %d7
+    move.w  %d7, %d5
+    andi.w  #0x003F, %d5            /* column index */
+    andi.w  #0x001F, %d4            /* 32-row plane wrap */
+    move.w  %d4, %a4                /* preserve row start */
+
+    tst.w   %d0
+    beq     .Lbulk_exit
+    tst.w   %d1
+    beq     .Lbulk_exit
+
+    move.w  %d2, %d7                /* preserve incoming attr word */
+    move.w  %d0, %d3                /* rows loop count */
+    subq.w  #1, %d3
+    move.w  %d1, %d2                /* columns loop count */
+    subq.w  #1, %d2
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     genesistan_pc080sn_attr_lut, %a3
+    movea.l #0xC00004, %a5
+    movea.l #0xC00000, %a6
+    move.w  #0x8F02, (%a5)
+
+    move.w  %d7, %d4                /* attr LUT key */
+    andi.w  #0x0003, %d4
+    move.w  %d7, %d1
+    lsr.w   #8, %d1
+    lsr.w   #6, %d1                 /* hflip -> key bit2 */
+    andi.w  #0x0001, %d1
+    lsl.w   #2, %d1
+    or.w    %d1, %d4
+    move.w  %d7, %d1
+    lsr.w   #8, %d1
+    lsr.w   #7, %d1                 /* vflip -> key bit3 */
+    andi.w  #0x0001, %d1
+    lsl.w   #3, %d1
+    or.w    %d1, %d4
+    move.w  %d7, %d1
+    lsr.w   #8, %d1
+    lsr.w   #5, %d1                 /* priority -> key bit4 */
+    andi.w  #0x0001, %d1
+    lsl.w   #4, %d1
+    or.w    %d1, %d4
+    add.w   %d4, %d4
+    move.w  0(%a3,%d4.w), %d7       /* attr partial */
+
+.Lbulk_col_loop:
+    move.w  %a4, %d0                /* row cursor */
+    move.w  %d3, %d1                /* row loop counter */
+
+.Lbulk_row_loop:
+    move.w  (%a0)+, %d4
+    andi.w  #0x3FFF, %d4
+    add.w   %d4, %d4
+    move.w  0(%a2,%d4.w), %d4
+    or.w    %d7, %d4
+
+    cmpi.w  #4, %d0
+    blo.s   .Lbulk_skip_write
+
+    move.w  %d1, -(%sp)
+    move.w  %d4, -(%sp)
+    move.w  %d0, %d1
+    subi.w  #4, %d1
+    lsl.w   #7, %d1
+    add.w   %d5, %d1
+    add.w   %d5, %d1
+    add.w   %d6, %d1
+
+    move.w  %d1, %d4
+    andi.w  #0x3FFF, %d1
+    lsl.l   #8, %d1
+    lsl.l   #8, %d1
+    lsr.w   #8, %d4
+    lsr.w   #6, %d4
+    andi.w  #0x0003, %d4
+    or.w    %d4, %d1
+    ori.l   #0x40000003, %d1
+    move.l  %d1, (%a5)
+    move.w  (%sp)+, (%a6)
+    move.w  (%sp)+, %d1
+
+.Lbulk_skip_write:
+    addq.w  #1, %d0
+    andi.w  #0x001F, %d0
+    dbra    %d1, .Lbulk_row_loop
+
+    addq.w  #1, %d5
+    andi.w  #0x003F, %d5
+    dbra    %d2, .Lbulk_col_loop
+
+.Lbulk_exit:
+    movem.l (%sp)+,%d2-%d7/%a2-%a6
+    rts
+
 genesistan_run_original_startup_common:
     movem.l %d0-%d7/%a0-%a6,-(%sp)
     jsr (0x03AE86 + ARCADE_ROM_BASE)
@@ -491,6 +650,9 @@ genesistan_asm_tilemap_commit_bg:
 
 genesistan_asm_tilemap_commit_fg:
     move.l 4(%sp), %d0
+    rts
+
+genesistan_bulk_tilemap_commit:
     rts
 
 #endif

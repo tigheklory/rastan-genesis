@@ -166,6 +166,7 @@
     "_reset_entry",
     "genesistan_hook_tilemap_plane_a",
     "genesistan_hook_tilemap_plane_b",
+    "genesistan_bulk_tilemap_commit",
     "genesistan_hook_text_writer_3bb48",
     "genesistan_hook_text_writer_3c3fe",
     "genesistan_render_sprites_vdp_bridge",
@@ -1069,6 +1070,12 @@
       "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
       "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_b}4e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Restore real PC080SN plane-B hook path: call existing Genesis tilemap handler at this arcade write-site and preserve original instruction size with NOP padding."
+    },
+    {
+      "arcade_pc": "0x05A4DE",
+      "original_bytes": "3800244932C232D85340",
+      "replacement_bytes": "4eb9{symbol:genesistan_bulk_tilemap_commit}4e714e71",
+      "note": "Hook PC080SN block-write copy engine to direct assembly VDP commit path with scene-range fast path and rare preload fallback."
     },
     {
       "arcade_pc": "0x0556F2",
