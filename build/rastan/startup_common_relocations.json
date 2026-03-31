@@ -1,5 +1,5 @@
 {
-  "variant": "rastan",
+  "variant": "world_rev1",
   "rom": "/home/tighe/projects/rastan-genesis/apps/rastan/out/rom.bin",
   "source_maincpu": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
   "policy": "Build from original ROM bytes every time; never patch forward from derived binaries.",
@@ -379,19 +379,19 @@
     {
       "id": "genesistan_startup_common_exit_normal",
       "kind": "runner_trampoline",
-      "genesis_rom_start": "0x2031C2",
+      "genesis_rom_start": "0x203202",
       "purpose": "Return trampoline for the normal branch after patched original flow."
     },
     {
       "id": "genesistan_startup_common_continue_normal",
       "kind": "runner_continuation",
-      "genesis_rom_start": "0x20318E",
+      "genesis_rom_start": "0x2031CE",
       "purpose": "Replays the original 0x03B05C normal-boot continuation before returning to the Genesis host."
     },
     {
       "id": "genesistan_startup_common_exit_test",
       "kind": "runner_trampoline",
-      "genesis_rom_start": "0x2031CA",
+      "genesis_rom_start": "0x20320A",
       "purpose": "Return trampoline for the test branch after patched original flow."
     }
   ]

@@ -364,6 +364,7 @@ void rastan_draw_tile_xy(u16 tile_attr, int x, int y);
 void genesistan_sprite_commit_asm(void);
 u32 genesistan_asm_tilemap_commit_bg(u32 dest_ptr, u32 strip_index, u32 dest_row, u32 dest_col);
 u32 genesistan_asm_tilemap_commit_fg(u32 dest_ptr, u32 strip_index, u32 dest_row, u32 dest_col);
+void genesistan_run_title_init_sequence(void);
 
 static void draw_padded_text(const char *text, u16 x, u16 y, u16 width)
 {
@@ -1980,18 +1981,19 @@ static void request_start_rastan(void)
         rastan_virtual_dip1,
         rastan_virtual_dip2);
     restore_launcher_vdp_state();
-    current_screen = SCREEN_FRONTEND_LIVE;
-    frontend_live_handoff_active = TRUE;
-    SYS_setVIntCallback(genesistan_frontend_live_vint_handoff);
-    SYS_enableInts();
     VDP_setHInterrupt(0);
     VDP_setHIntCounter(0xFF);
     VDP_clearPlane(BG_A, TRUE);
-   VDP_clearPlane(BG_B, TRUE);
+    VDP_clearPlane(BG_B, TRUE);
     genesistan_sync_title_vdp_layout();
     genesistan_preload_scene_tiles(GENESISTAN_SCENE_TITLE);
     clear_frontend_sprite_layer();
     VDP_waitDMACompletion();
+    genesistan_run_title_init_sequence();
+    current_screen = SCREEN_FRONTEND_LIVE;
+    frontend_live_handoff_active = TRUE;
+    SYS_setVIntCallback(genesistan_frontend_live_vint_handoff);
+    SYS_enableInts();
 #else
     char line[SCREEN_W + 1];
 

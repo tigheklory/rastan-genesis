@@ -1,9 +1,9 @@
 {
-  "variant": "rastan",
+  "variant": "world_rev1",
   "rom": "/home/tighe/projects/rastan-genesis/apps/rastan/out/rom.bin",
   "symbols": "/home/tighe/projects/rastan-genesis/apps/rastan/out/symbol.txt",
   "maincpu": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
-  "spec": "/tmp/startup_title_remap_temp.json",
+  "spec": "/home/tighe/projects/rastan-genesis/specs/startup_title_remap.json",
   "copied_ranges": [
     {
       "name": "startup_common",
@@ -435,7 +435,7 @@
     {
       "range": "frontend_core",
       "old": "0x00200000",
-      "new": "0xE0FF58A4",
+      "new": "0xE0FF5910",
       "count": 0
     },
     {
@@ -573,7 +573,7 @@
     {
       "range": "title_init_block",
       "old": "0x00200000",
-      "new": "0xE0FF58A4",
+      "new": "0xE0FF5910",
       "count": 1
     },
     {
@@ -633,7 +633,7 @@
     {
       "range": "helper_200000_init",
       "old": "0x00200000",
-      "new": "0xE0FF58A4",
+      "new": "0xE0FF5910",
       "count": 0
     },
     {
@@ -687,13 +687,13 @@
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00200000",
-      "new": "0xE0FF58A4",
+      "new": "0xE0FF5910",
       "count": 1
     },
     {
       "range": "startup_hw_probe_052a",
       "old": "0x00201000",
-      "new": "0xE0FF68A4",
+      "new": "0xE0FF6910",
       "count": 2
     },
     {
@@ -943,7 +943,7 @@
       "new_window_start": "0xE0FF404C",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
-      "count": 0
+      "count": 1
     },
     {
       "range": "rastan_maincpu_blob_d00048_alias_patch",
@@ -952,7 +952,7 @@
       "new_window_start": "0xE0FF404C",
       "target": "symbol:genesistan_shadow_d00000_words",
       "scan_step": 2,
-      "count": 0
+      "count": 1
     },
     {
       "range": "game_engine_040000",
@@ -1036,7 +1036,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0560DA",
       "rom_pc": "0x0562F0",
-      "original_bytes": "206d10a0b1fce0ff574c66046100ff6e206d10a0343c0032203c0000002020c0534266fad1fc0000010020080280e0ff874c20402b4810a0",
+      "original_bytes": "206d10a0b1fce0ff71a266046100ff6e206d10a0343c0032203c0000002020c0534266fad1fc0000010020080280e0ffa1a220402b4810a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "206d10a0b1fce0ff71a266046100ff6e206d10a0343c0032203c0000002020c0534266fad1fc0000010020080280e0ffa1a220402b4810a0",
       "note": "T-9 REVERT: function body restored. Original pointer-range check and fill-call sequence preserved. Was: NOP entire display list write function 0x560DA-0x56111."
@@ -1072,7 +1072,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03AD4C",
       "rom_pc": "0x03AF5E",
-      "original_bytes": "323c000841f9e0ff404c203c0000010061e6323c018241f9e0ff41bc203c0000010061d44e75",
+      "original_bytes": "323c000841f9e0ff62ae203c0000010061e6323c018241f9e0ff641e203c0000010061d44e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "323c002441f9e0ff11fe203c0000000061e6323c000841f9e0ff01bc203c0000000061d44e75",
       "note": "Direct title sprite-prep ownership: clear WRAM descriptor blocks (A5+0x11B2 and A5+0x0170) via in-path longword fill primitive."
@@ -1081,7 +1081,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE64",
       "rom_pc": "0x03B076",
-      "original_bytes": "41f900c00100323c076c70206100fed241f9e0ffc94c323c076c70206100fec24e75",
+      "original_bytes": "41f900c00100323c076c70206100fed241f9e0ffe3a2323c076c70206100fec24e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "41f9e0ffc84c323c080070206100fed241f9e0ffc84c323c080070206100fec24e75",
       "note": "Direct title text/tile prep ownership: fill text-shadow staging page with 0x00000020 cells (space glyph) using in-path longword fill primitive."
@@ -1137,14 +1137,14 @@
       "rom_pc": "0x05A6FA",
       "original_bytes": "3800244932c232d85340",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900202fec4e714e71",
-      "note": "Hook PC080SN block-write copy engine to direct assembly VDP commit path with scene-range fast path and rare preload fallback."
+      "replacement_bytes": "4ef900202fec4e714e71",
+      "note": "Hook PC080SN block-write copy engine: JMP (not JSR) to assembly VDP commit \u2014 RTS returns to original caller, not to overwritten routine body."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0556F2",
       "rom_pc": "0x055910",
-      "original_bytes": "0681e0ffc84c2b4110a4",
+      "original_bytes": "0681e0ffe2a22b4110a4",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP C-Window addr store (0x556F2-0x556FB). addil #0xC08000,d1 + movel d1,a5@(4260). Stops display-list pointer advancing into C-Window range each frame."
@@ -1180,7 +1180,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x05577E",
       "rom_pc": "0x05599C",
-      "original_bytes": "0680e0ffc84c2b4010a4",
+      "original_bytes": "0680e0ffe2a22b4010a4",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP second C-Window addr store to A5@(4260). addil #0xC08000,d0 + movel d0,a5@(4260) at 0x5577E. Parallel path to 0x556F2 (Build 103). Still advancing C-Window page 2 pointer causing crash at 0x209D66."
@@ -1306,7 +1306,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x055E54",
       "rom_pc": "0x05606A",
-      "original_bytes": "2b7ce0ff4c4c10a0",
+      "original_bytes": "2b7ce0ff66a210a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP MOVE.L #0xC00400, 0x10A0(A5). Stores C-Window base into A5 workram slot (ptr init a5@(4256))."
@@ -1315,7 +1315,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x055818",
       "rom_pc": "0x055A36",
-      "original_bytes": "0680e0ffc84c2b4010a0",
+      "original_bytes": "0680e0ffe2a22b4010a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP ADDIL #0xC08000,D0 + MOVE.L D0,0x10A0(A5). Stores advanced C-Window base into A5@(4256) (second path)."
@@ -1324,7 +1324,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x055B84",
       "rom_pc": "0x055D9A",
-      "original_bytes": "0680e0ff484c",
+      "original_bytes": "0680e0ff62a2",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
       "note": "NOP ADDIL #0xC00000, D0. Adds C-Window base to D0 \u2014 part of pointer advancement sequence."
@@ -1333,7 +1333,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x056032",
       "rom_pc": "0x056248",
-      "original_bytes": "227ce0ff5074",
+      "original_bytes": "227ce0ff6aca",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
       "note": "NOP MOVEA.L #0xC00828, A1. Loads C-Window address into A1."
@@ -1342,7 +1342,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x05605C",
       "rom_pc": "0x056272",
-      "original_bytes": "227ce0ff4874",
+      "original_bytes": "227ce0ff62ca",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
       "note": "NOP MOVEA.L #0xC00028, A1. Loads C-Window address into A1 (second path)."
@@ -1351,7 +1351,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0503EC",
       "rom_pc": "0x05060A",
-      "original_bytes": "23fce0ffc84c0010d0a0",
+      "original_bytes": "23fce0ffe2a20010d0a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A0). Stores C-Window page 2 base into arcade workram."
@@ -1360,7 +1360,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0503F6",
       "rom_pc": "0x050614",
-      "original_bytes": "23fce0ff484c0010d0f8",
+      "original_bytes": "23fce0ff62a20010d0f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC00000, abs.l(0x10D0F8). Stores C-Window page 0 base into arcade workram."
@@ -1369,7 +1369,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x050400",
       "rom_pc": "0x05061E",
-      "original_bytes": "23fce0ffc84c0010d0a4",
+      "original_bytes": "23fce0ffe2a20010d0a4",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A4). Stores C-Window page 2 base into arcade workram (second slot)."
@@ -1378,7 +1378,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x05040C",
       "rom_pc": "0x05062A",
-      "original_bytes": "23fce0ff484c0010d0f8",
+      "original_bytes": "23fce0ff62a20010d0f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC00000, abs.l(0x10D0F8). Duplicate store C-Window page 0 base into workram."
@@ -1387,7 +1387,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x050416",
       "rom_pc": "0x050634",
-      "original_bytes": "23fce0ffc84c0010d0a0",
+      "original_bytes": "23fce0ffe2a20010d0a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC08000, abs.l(0x10D0A0). Duplicate store C-Window page 2 base into workram."
@@ -1396,7 +1396,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x050420",
       "rom_pc": "0x05063E",
-      "original_bytes": "203ce100074c23c00010d0a4",
+      "original_bytes": "203ce10021a223c00010d0a4",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e714e714e71",
       "note": "NOP MOVE.L #0xC0BF00,D0 + MOVE.L D0,abs.l(0x10D0A4). Length=12 only (trailing 0x33FC at 0x05042C is start of next MOVE.W, incomplete)."
@@ -1405,7 +1405,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0561C0",
       "rom_pc": "0x0563D6",
-      "original_bytes": "207ce0ffc84c227ce0ff484c20c0",
+      "original_bytes": "207ce0ffe2a2227ce0ff62a220c0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e714e714e714e71",
       "note": "NOP MOVEA.L #0xC08000,A0 + MOVEA.L #0xC00000,A1 + MOVE.L (A0),D0. Fill-loop initialisation loading both C-Window page addresses."
@@ -1414,7 +1414,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x059F62",
       "rom_pc": "0x05A178",
-      "original_bytes": "207ce0ff4094",
+      "original_bytes": "207ce0ff62f6",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff11fe",
       "note": "Retarget title/logo sprite producer clear base from legacy D-window staging (0xD00048 alias path) to renderer-consumed descriptor block A (A5+0x11B2 => 0xFF11FE)."
@@ -1504,7 +1504,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x05A0AE",
       "rom_pc": "0x05A2CA",
-      "original_bytes": "207ce0ff4094",
+      "original_bytes": "207ce0ff62f6",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff11fe",
       "note": "Retarget block-A descriptor builder base 0xD00048 to renderer-consumed block-A base (A5+0x11B2 => 0xFF11FE)."
@@ -1558,7 +1558,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x05A1EC",
       "rom_pc": "0x05A408",
-      "original_bytes": "207ce0ff4094",
+      "original_bytes": "207ce0ff62f6",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207ce0ff11fe",
       "note": "Retarget secondary block-A descriptor fixup base 0xD00048 to renderer-consumed block-A base (A5+0x11B2 => 0xFF11FE)."
@@ -1585,7 +1585,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03B098",
       "rom_pc": "0x03B2AA",
-      "original_bytes": "42b9e101484c",
+      "original_bytes": "42b9e10162a2",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900201162",
       "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
@@ -1594,7 +1594,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03B09E",
       "rom_pc": "0x03B2B0",
-      "original_bytes": "42b9e103484c",
+      "original_bytes": "42b9e10362a2",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900201162",
       "note": "Replace startup scroll clear write with direct Genesis VDP scroll sync from live workram."
@@ -1648,7 +1648,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x052858",
       "rom_pc": "0x052A76",
-      "original_bytes": "207ce0ffc84c",
+      "original_bytes": "207ce0ffe2a2",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
@@ -1657,7 +1657,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x052974",
       "rom_pc": "0x052B92",
-      "original_bytes": "207ce0ffc84c",
+      "original_bytes": "207ce0ffe2a2",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
@@ -1666,7 +1666,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x0575CE",
       "rom_pc": "0x0577E4",
-      "original_bytes": "207ce0ffc84c",
+      "original_bytes": "207ce0ffe2a2",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e754e714e71",
       "note": "RTS+NOP movea.l #0xC08000,A0 base load path. Prevent computed C-window access."
@@ -1675,7 +1675,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03ADFE",
       "rom_pc": "0x03B010",
-      "original_bytes": "33fc0000e0ff4850",
+      "original_bytes": "33fc0000e0ff62a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #0,0xC50000. Direct C-window/control write, unmapped on Genesis."
@@ -1684,7 +1684,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE16",
       "rom_pc": "0x03B028",
-      "original_bytes": "33fc0001e0ff4850",
+      "original_bytes": "33fc0001e0ff62a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #1,0xC50000. Direct C-window/control write, unmapped on Genesis."
@@ -1693,7 +1693,7 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE86",
       "rom_pc": "0x03B098",
-      "original_bytes": "33fc0000e0ff4850",
+      "original_bytes": "33fc0000e0ff62a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
       "note": "NOP move.w #0,0xC50000 in init path. Direct C-window/control write, unmapped on Genesis."
@@ -1790,7 +1790,7 @@
     },
     {
       "kind": "palette_pre_conversion",
-      "rom_offset": "0x3ABCE8",
+      "rom_offset": "0x3AB654",
       "entries": 2048,
       "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder."
     },
@@ -1803,24 +1803,24 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x0020318E",
+    "jumps_to": "0x002031CE",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
     "writes_status_to": "0xE0FF486A",
     "value": 2,
-    "jumps_exit_to": "0x002031CA",
+    "jumps_exit_to": "0x0020320A",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x51C7",
+  "checksum": "0xC13F",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
-    "reset_pc": "0x00217A12",
+    "reset_pc": "0x002181BC",
     "forced_reset_pc_symbol": "_reset_entry"
   },
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan/startup_common_relocations.json",

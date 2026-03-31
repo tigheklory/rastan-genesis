@@ -1074,8 +1074,8 @@
     {
       "arcade_pc": "0x05A4DE",
       "original_bytes": "3800244932C232D85340",
-      "replacement_bytes": "4eb9{symbol:genesistan_bulk_tilemap_commit}4e714e71",
-      "note": "Hook PC080SN block-write copy engine to direct assembly VDP commit path with scene-range fast path and rare preload fallback."
+      "replacement_bytes": "4ef9{symbol:genesistan_bulk_tilemap_commit}4e714e71",
+      "note": "Hook PC080SN block-write copy engine: JMP (not JSR) to assembly VDP commit — RTS returns to original caller, not to overwritten routine body."
     },
     {
       "arcade_pc": "0x0556F2",

@@ -20,6 +20,7 @@
     .globl genesistan_asm_tilemap_commit_bg
     .globl genesistan_asm_tilemap_commit_fg
     .globl genesistan_bulk_tilemap_commit
+    .globl genesistan_run_title_init_sequence
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 
@@ -603,6 +604,26 @@ genesistan_frontend_tick_return:
     movem.l (%sp)+,%d0-%d7/%a0-%a6
     rts
 
+/*
+ * C-callable title init sequence. Runs the arcade's title screen
+ * initialization code that was never being reached through the V-Int
+ * handler path. Sets up A5 (workram pointer) and calls the same
+ * subroutines as genesistan_startup_common_continue_normal.
+ */
+genesistan_run_title_init_sequence:
+    movem.l %d0-%d7/%a0-%a6,-(%sp)
+    lea genesistan_arcade_workram_words, %a5
+    move.w #1, genesistan_startup_result_code
+    move.w #0x00EF, %d0
+    jsr (0x03F084 + 24 + ARCADE_ROM_BASE)  /* +24 shift: 12 replacements before 0x3F084 */
+    move.w #0x00AA, 74(%a5)
+    jsr (0x03B8B0 + 18 + ARCADE_ROM_BASE)  /* +18 shift: 9 replacements before 0x3B8B0 */
+    jsr (0x03B098 + 18 + ARCADE_ROM_BASE)  /* +18 shift: 9 replacements before 0x3B098 */
+    jsr (0x03ADD8 + 18 + ARCADE_ROM_BASE)  /* +18 shift: 9 replacements before 0x3ADD8 */
+    jsr (0x03AE28 + 18 + ARCADE_ROM_BASE)  /* +18 shift: 9 replacements before 0x3AE28 */
+    movem.l (%sp)+,%d0-%d7/%a0-%a6
+    rts
+
 genesistan_startup_common_continue_normal:
     move.w #1, genesistan_startup_result_code
     move.w #0x00EF, %d0
@@ -633,6 +654,9 @@ genesistan_run_original_frontend_tick:
     rts
 
 genesistan_startup_common_continue_normal:
+    rts
+
+genesistan_run_title_init_sequence:
     rts
 
 genesistan_startup_common_exit_normal:
