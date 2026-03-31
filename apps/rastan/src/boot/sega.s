@@ -202,7 +202,7 @@ no_bmp_task:
 _VINT_arcade_mode:
         movem.l %d0-%d7/%a0-%a6,-(%sp)
         jsr     genesistan_refresh_arcade_inputs
-        jsr     genesistan_run_original_frontend_tick
+        jsr     genesistan_run_arcade_tick_lean
         jsr     sanitize_arcade_workram
         jsr     genesistan_palette_commit_asm
         movem.l (%sp)+,%d0-%d7/%a0-%a6

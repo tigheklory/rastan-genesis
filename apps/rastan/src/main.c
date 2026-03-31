@@ -221,7 +221,7 @@ static u8 sound_test_last_command = 0x00;
 static bool sound_test_has_triggered = FALSE;
 static volatile u32 packed_romset_size_cache = 0;
 static volatile u32 packed_romset_signature_cache = 0;
-static volatile bool frontend_live_handoff_active = FALSE;
+/* frontend_live_handoff_active removed — arcade_vblank_active is the sole mode flag */
 typedef struct
 {
     u8 code;
@@ -1992,7 +1992,6 @@ static void request_start_rastan(void)
     VDP_waitDMACompletion();
     genesistan_run_title_init_sequence();
     current_screen = SCREEN_FRONTEND_LIVE;
-    frontend_live_handoff_active = TRUE;
     /*
      * Activate arcade VBlank ownership: the mode flag at the top of _VINT
      * bypasses ALL SGDK dispatch and routes directly to the arcade frame
@@ -2050,7 +2049,6 @@ static u32 get_packed_romset_signature(void)
 static void reset_launcher_runtime_state(void)
 {
     /* Always start the launcher from known factory defaults. */
-    frontend_live_handoff_active = FALSE;
     arcade_vblank_active = 0;
     SYS_setVIntCallback(NULL);
     rastan_virtual_dip1 = FACTORY_DIP1;
@@ -2173,11 +2171,12 @@ int main(bool hardReset)
         else if (current_screen == SCREEN_FRONTEND_LIVE)
         {
             /*
-             * Halt CPU until next VBlank interrupt. The arcade frame is
-             * driven entirely by _VINT_arcade_mode — no main-loop work.
-             * SR 0x2000 = supervisor mode, all interrupts unmasked.
+             * Arcade-owned execution: the main loop is permanently
+             * surrendered. _VINT_arcade_mode owns the frame completely.
+             * This tight STOP loop never returns to launcher logic.
              */
-            __asm__ volatile("stop #0x2000");
+            for (;;)
+                __asm__ volatile("stop #0x2000");
         }
         else if (current_screen == SCREEN_STARTUP_PREVIEW)
         {

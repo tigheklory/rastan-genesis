@@ -24538,3 +24538,21 @@ Updated JSR targets in startup_trampoline.s to: `jsr (arcade_addr + shift_delta 
 - Runtime: 840 frames, no hang, startup_result_code at frame 408, arcade_mode4 reaches 2 at frame 790, VDP writes every frame
 - Visual verification: CANNOT CONFIRM (headless trace — requires BlastEm)
 - ROM artifact: `dist/Rastan_309.bin`
+
+### MAME Exit Summary (2026-03-31 17:48:27)
+- Final PC: 0x213892
+- Stack Pointer (SP): 0xE0FFFD7E
+- Unique Unmapped Memory Addresses: none
+
+## [Andy - Implementation, Complete Arcade-Owned Execution Model]
+
+- Files changed: `apps/rastan/src/boot/sega.s`, `apps/rastan/src/main.c`, `apps/rastan/src/startup_trampoline.s`
+- Remaining execution-model steps completed: YES
+  - Main loop: permanent `for (;;) stop #0x2000` — zero launcher-era logic between frames
+  - Lean arcade tick: `genesistan_run_arcade_tick_lean` eliminates double register save (saves ~40 cycles/frame)
+  - Redundant flag removed: `frontend_live_handoff_active` eliminated, `arcade_vblank_active` is sole mode flag
+- Any remaining hybrid frame ownership removed: YES — no SGDK joypad polling, no loop body re-entry, no dual mode flags
+- Build 310 produced: YES — `dist/Rastan_310.bin` (3,932,160 bytes)
+- Runtime: 1290 frames, no hang, startup_result_code at frame 439, arcade_mode4 reaches 2 at frame 825, arcade_page0 reaches 2 at frame 1212 (deepest state progression yet), VDP writes every frame
+- Visual verification: CANNOT CONFIRM (headless trace)
+- ROM artifact: `dist/Rastan_310.bin`

@@ -23,6 +23,7 @@
     .globl genesistan_asm_tilemap_commit_fg
     .globl genesistan_bulk_tilemap_commit
     .globl genesistan_run_title_init_sequence
+    .globl genesistan_run_arcade_tick_lean
     .globl arcade_vblank_active
 
 #if RASTAN_ENABLE_STARTUP_HOOK
@@ -888,6 +889,21 @@ genesistan_frontend_tick_return:
     rts
 
 /*
+ * Lean arcade tick — called from _VINT_arcade_mode where registers are
+ * already saved by the interrupt handler. Skips the redundant
+ * movem.l save/restore that the full trampoline performs.
+ */
+genesistan_run_arcade_tick_lean:
+    lea genesistan_arcade_workram_words, %a5
+    moveq #0, %d0
+    move.l #.Llean_tick_return, -(%sp)
+    move.w %sr, -(%sp)
+    jmp (0x03A008 + ARCADE_ROM_BASE)
+.Llean_tick_return:
+    move.l %a0, genesistan_arcade_last_a0
+    rts
+
+/*
  * C-callable title init sequence. Runs the arcade's title screen
  * initialization code that was never being reached through the V-Int
  * handler path. Sets up A5 (workram pointer) and calls the same
@@ -934,6 +950,9 @@ genesistan_run_original_startup_common:
     rts
 
 genesistan_run_original_frontend_tick:
+    rts
+
+genesistan_run_arcade_tick_lean:
     rts
 
 genesistan_startup_common_continue_normal:

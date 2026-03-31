@@ -379,19 +379,19 @@
     {
       "id": "genesistan_startup_common_exit_normal",
       "kind": "runner_trampoline",
-      "genesis_rom_start": "0x203556",
+      "genesis_rom_start": "0x203574",
       "purpose": "Return trampoline for the normal branch after patched original flow."
     },
     {
       "id": "genesistan_startup_common_continue_normal",
       "kind": "runner_continuation",
-      "genesis_rom_start": "0x203522",
+      "genesis_rom_start": "0x203540",
       "purpose": "Replays the original 0x03B05C normal-boot continuation before returning to the Genesis host."
     },
     {
       "id": "genesistan_startup_common_exit_test",
       "kind": "runner_trampoline",
-      "genesis_rom_start": "0x20355E",
+      "genesis_rom_start": "0x20357C",
       "purpose": "Return trampoline for the test branch after patched original flow."
     }
   ]
