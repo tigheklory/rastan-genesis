@@ -24050,3 +24050,84 @@ No input work needed. Unblock on tilemap (Build 295 PC080SN tile offset fix).
 - ROM artifact path
   - dist/Rastan_300.bin
 ```
+
+## [Andy - Architecture, Direct PC080SN Bulk Tilemap Translation Design]
+```text
+- document created
+  - docs/design/direct_pc080sn_bulk_tilemap_translation_design.md
+
+- summary
+  - Identified 0x5A4DE as the single core routine through which ALL bulk/block PC080SN tilemap writes flow (12+ callers across attract mode and gameplay).
+  - Hook strategy: replace 0x5A4DE entry with JMP to new assembly function `genesistan_bulk_tilemap_commit` — one hook covers all callers.
+  - No intermediate buffer: direct VDP writes from assembly, matching the existing strip builder pattern.
+  - Python precompute extension: `precompute_pc080sn_tile_lut.py` must scan block-write ROM data tables to populate tile_vram_lut with additional tile indices not seen by the strip builder.
+  - Block writer and strip builder are complementary subsystems (scene setup vs scrolling update), not competing — both share the same LUTs and VDP plane targets.
+  - This is translation of arcade tilemap intent to Genesis VDP writes, NOT C-window emulation or memory mirroring.
+
+- key hook strategy
+  - Replace 0x5A4DE entry with JMP to `genesistan_bulk_tilemap_commit` (assembly hot path in startup_trampoline.s).
+  - Register contract preserved: D0=width, D1=height, D2=attr, A0=source ROM, A1=C-window dest (dest used only for plane/position decode, not written).
+  - Assembly reads source ROM tiles, translates via tile_vram_lut[] and attr_lut[], writes directly to VDP nametable RAM.
+
+- rejected approaches
+  - C-window shadow emulation (too much RAM, wrong abstraction)
+  - Broad memory range mirroring (violates translation-not-emulation principle)
+  - Old C renderer revival (too slow, already deprecated)
+  - Per-caller interception (12+ hooks vs 1 hook at 0x5A4DE)
+  - Title-screen-only hack (fails to cover gameplay callers)
+```
+
+## [Andy - Analysis, Bulk Tilemap Design Validation Gate]
+```text
+- document created
+  - docs/design/direct_pc080sn_bulk_tilemap_validation_gate.md
+
+- summary
+  - All 17 call sites of 0x5A4DE write complete, self-contained rectangles. No partial updates, no cross-call accumulation, no read-back dependency.
+  - Recurring animation callers (0x57502, 0x57542, 0x57582) overwrite the same VDP region each cycle — safe for bufferless design.
+  - Tile LUT coverage is critically insufficient: only 2 of 781 unique block-write tiles exist in the current LUT (0.3% coverage). 779 tiles missing.
+  - Design doc errors identified: 0x5A474 does NOT call 0x5A4DE (calls 0x563A6 text renderer instead); 0x5A370 has no callers (likely dead code).
+  - VRAM budget: SAFE WITH MANAGEMENT (scene-scoped loading required)
+    - 2272 total unique tiles across all sources; 1164 VRAM slots; global static assignment overflows by 1108
+    - per-scene budgets (block + strip + ~42 text glyphs): Title/Attract 1110, End-Round 1055, Gameplay 817 — all fit
+    - Title/Attract is tightest at 54 slots headroom
+    - sprites (slots 1024-1279) and SGDK font (slots 1440-1535) do NOT compete with PC080SN cache
+    - in-game text glyphs (~42) DO compete via tile_cache_get() — included in per-scene budgets
+
+- implementation gate: GO WITH PRECONDITIONS
+  - BLOCKING: Python LUT must be extended with scene-aware slot assignment and per-scene preload manifests
+  - BLOCKING: scene-scoped VRAM loading must be implemented (global static assignment impossible)
+  - NON-BLOCKING: design doc caller catalog corrections (remove 0x5A474, mark 0x5A370 as dead code)
+
+- no-buffer design: VALID
+  - Every call writes a complete rectangle; no caller depends on previous C-window contents; recurring callers atomically overwrite same region
+
+- LUT/preload coverage: CRITICALLY INSUFFICIENT
+  - 289 tiles currently in LUT (strip builder only); 1992 block-write tiles across all scenes; only 9 overlap with strip builder
+  - all source tables now scanned: Title/Attract 781, End-Round 727, Gameplay 492
+```
+
+## [Andy - Architecture, Final Block-Write + Scene-Scoped Tile Loading]
+```text
+- document created
+  - docs/design/final_block_write_and_scene_scoped_tile_loading_architecture.md
+
+- summary
+  - Defines integrated architecture solving both block-write tilemap translation and scene-scoped VRAM tile loading in a single design
+  - Hook at 0x5A4DE: spec patcher overwrites first instruction with JMP to assembly entry point; assembly calls C for scene detection/preload, then translates each cell (tile LUT + attr LUT) and writes directly to VDP
+  - Three scene categories (Title/Attract, Gameplay, End-Round) with per-scene preload manifests; scene transitions detected inline by checking A0 source address against a ROM lookup table
+  - Python build-time generates all data: global LUT with cross-scene slot reuse (greedy coloring), per-scene preload manifests, source-to-scene map
+  - tile_cache_get() and LRU cache eliminated entirely; text glyphs receive permanent static VRAM slots in the LUT
+
+- global static VRAM assignment: REJECTED
+  - 2272 unique tiles across all scenes; 1164 available VRAM slots; overflow by 1108 makes global assignment impossible
+
+- scene-scoped loading: REQUIRED
+  - per-scene budgets all fit within 1164 slots: Title/Attract 1110, Gameplay 817, End-Round 1055
+  - tiles loaded from ROM to VRAM at scene transitions; cross-scene slot reuse via greedy coloring keeps single global LUT
+
+- final hook strategy for 0x5A4DE
+  - spec patcher writes JMP at 0x5A4DE to genesistan_asm_block_write_entry
+  - assembly entry: pushes context, calls C scene-check (preload if scene changed), iterates D1 columns × D0 rows, translates each tile through LUT, writes VDP command + data, restores context and returns
+  - no intermediate buffer; translated data goes directly to VDP data port
+```
