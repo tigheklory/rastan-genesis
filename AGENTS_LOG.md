@@ -24556,3 +24556,109 @@ Updated JSR targets in startup_trampoline.s to: `jsr (arcade_addr + shift_delta 
 - Runtime: 1290 frames, no hang, startup_result_code at frame 439, arcade_mode4 reaches 2 at frame 825, arcade_page0 reaches 2 at frame 1212 (deepest state progression yet), VDP writes every frame
 - Visual verification: CANNOT CONFIRM (headless trace)
 - ROM artifact: `dist/Rastan_310.bin`
+
+## [Andy - Analysis, VDP + Input Timing Audit]
+
+- Document created: `docs/design/build310_vdp_and_input_timing_audit.md`
+- Active VDP write sites identified: 9 per-frame arcade (8 regular + 1 conditional scene preload), 6 one-shot init, launcher SGDK wrappers
+- Whether active-display writes are a real current problem: NO — all arcade-mode per-frame VDP writes occur during VBlank
+- Whether Genesis A correctly maps to arcade coin: YES — bit 0 of `genesistan_shadow_input_390007`, sampled and consumed within same VBlank frame
+- Single primary timing/input-related finding: Three C opcode-hook functions (`genesistan_hook_text_writer_3bb48_impl`, `genesistan_hook_text_writer_3c3fe`, `genesistan_preload_scene_tiles`) call `SYS_enableInts()` inside the VBlank interrupt handler, re-enabling interrupts and creating a re-entrant VBlank hazard that can corrupt frame state
+- Exact next target: Remove `SYS_disableInts()` / `SYS_enableInts()` from the three affected C functions — they are unnecessary inside the VBlank handler and the `enableInts` call actively causes re-entrancy risk
+- No implementation performed
+
+### MAME Exit Summary (2026-03-31 19:08:03)
+- Final PC: 0x213742
+- Stack Pointer (SP): 0xE0FFFD7E
+- Unique Unmapped Memory Addresses: none
+
+## [2026-03-31] Build 311 — Re-entrant VBlank Hazard Fix (Prompt 067)
+
+### Goal
+Remove `SYS_disableInts()` / `SYS_enableInts()` from three C functions called inside `_VINT_arcade_mode`, eliminating a re-entrant VBlank hazard where `SYS_enableInts()` re-enables interrupts mid-handler.
+
+### Changes
+- **main.c**: Removed `SYS_disableInts()` and `SYS_enableInts()` from:
+  1. `genesistan_hook_text_writer_3bb48_impl` — text writer for 0x03BB48 hook
+  2. `genesistan_hook_text_writer_3c3fe` — text writer for 0x03C3FE hook
+  3. `genesistan_preload_scene_tiles` — scene tile DMA preloader
+- No assembly changes, no logic changes — only interrupt toggle removal.
+- Other `SYS_disableInts()`/`SYS_enableInts()` pairs in launcher-path functions left intact (correct for that context).
+
+### Build Verification
+- `dist/Rastan_311.bin` produced (3,932,160 bytes)
+- 28 postpatch warnings (pre-existing, applied anyway)
+- 5 unused-function compiler warnings (pre-existing)
+
+### MAME Trace (622 frames)
+- `startup_result_code` 0→1 at frame 214
+- VDP writes every frame (24,036 total VDP port writes)
+- `arcade_mode4` reaches 2 (frame 600)
+- `arcade_page2` set (frame 598)
+- No hang detected
+- Arcade state machine progressing normally
+
+### Design Document
+- `docs/design/build311_reentrant_vblank_fix.md`
+
+## [Andy - Analysis, Rainbow Islands vs Rastan VDP / VRAM / Buffering Comparative Trace]
+
+### Document Created
+- `docs/design/rainbow_islands_vs_rastan_vdp_vram_buffering_comparative_trace.md`
+
+### Analysis Targets
+- Rainbow Islands arcade analyzed (m68k-elf-objdump disassembly of interleaved program ROMs b22-10-1.19 + b22-11-1.20): YES
+- Rainbow Islands Genesis analyzed (m68k-elf-objdump disassembly of full ROM, VBlank handler at 0x380, main loop at 0x11D2): YES
+- Rastan arcade analyzed (disassembly of maincpu.bin, VBlank handler at 0x3A008): YES
+- Build 311 Genesis analyzed (source code + design docs): YES
+
+### Key Finding: Rainbow Islands Genesis Staged Two-Phase Commit Model
+Rainbow Islands Genesis uses a fundamentally different architecture from Build 311:
+- Game logic runs in main loop (outside VBlank), populates WRAM staging buffers
+- VBlank handler commits staged data to VDP via DMA, with display disabled
+- WRAM staging buffers for: SAT (0xFFFFF800), tiles (0xFFFFFB00), tilemap rows (pointer at 0xFFFFF644), scroll (0xFFFFF630), palette (0xFF0000)
+- Display explicitly disabled (VDP reg 1 bit 6 cleared) before any VDP writes, re-enabled after
+
+### Top Off-Track Area Identified
+**Display-disable bracketing**: Rainbow Islands Genesis disables display output before VDP writes and re-enables after. Build 311 writes to VDP with display active. This is the most likely cause of visible rendering issues and the simplest fix.
+
+### Ranked Top 3 Off-Track Areas
+1. No display-disable/re-enable bracketing around VDP writes in `_VINT_arcade_mode`
+2. No WRAM SAT staging buffer — sprites written directly to VDP during arcade tick
+3. Per-cell tilemap commit granularity — slower than Rainbow Islands' row-based approach
+
+### Single Best Next Focus Area
+Implement display-disable/re-enable bracketing in `_VINT_arcade_mode` (VDP register 1, bit 6)
+
+### No implementation performed
+
+### MAME Exit Summary (2026-03-31 19:45:34)
+- Final PC: 0x213756
+- Stack Pointer (SP): 0xE0FFFDCA
+- Unique Unmapped Memory Addresses: none
+
+## [Andy - Implementation, Display-Disable Bracketing Experiment]
+
+### Files Changed
+- `apps/rastan/src/boot/sega.s` — added display-disable/re-enable bracketing in `_VINT_arcade_mode`
+- `docs/design/build312_display_disable_bracketing.md` — created
+- `AGENTS_LOG.md` — appended
+
+### Display-Disable Bracketing Added: YES
+- Before arcade tick: `move.w #0x8134, 0x00C00004` (VDP reg 1 = 0x34, display OFF)
+- After palette commit: `move.w #0x8174, 0x00C00004` (VDP reg 1 = 0x74, display ON)
+- Register 1 value source: SGDK default 0x74 (constant, never modified after init)
+
+### Build 312 Produced: YES
+- `dist/Rastan_312.bin` (3,932,160 bytes)
+
+### Runtime Result Summary (MAME Trace, 1027 frames)
+- Arcade state machine progressing: mode4→2, page2 set
+- No hang detected
+- 28,411 VDP port writes (up from 24,036 in Build 311)
+- 1027 frames traced (up from 622 in Build 311 — 65% more frames in same trace window)
+- Display-disable write confirmed in VDP port log (last_data=0x8134)
+- Visual verification pending (headless trace cannot confirm display output)
+
+### ROM Artifact Path
+- `dist/Rastan_312.bin`

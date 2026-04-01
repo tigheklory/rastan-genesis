@@ -1592,7 +1592,6 @@ void genesistan_preload_scene_tiles(u8 scene_id)
         return;
     }
 
-    SYS_disableInts();
     while ((manifest + 3U) < manifest_end)
     {
         const u16 arcade_tile = text_writer_read_be16(manifest + 0U);
@@ -1612,7 +1611,6 @@ void genesistan_preload_scene_tiles(u8 scene_id)
         manifest += 4U;
     }
     VDP_waitDMACompletion();
-    SYS_enableInts();
 
     genesistan_current_scene_id = scene_id;
     genesistan_scene_a0_lo = scene_lo;
@@ -1661,7 +1659,6 @@ void genesistan_hook_text_writer_3bb48_impl(void)
     attr_word  = text_writer_read_be16(descriptor + 4U);
     src        = descriptor + 6U;
 
-    SYS_disableInts();
     while ((glyph = *src++) != 0U)
     {
         s16 x;
@@ -1692,7 +1689,6 @@ void genesistan_hook_text_writer_3bb48_impl(void)
 
         dst_ptr += 4U;
     }
-    SYS_enableInts();
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))
@@ -1731,7 +1727,6 @@ void genesistan_hook_text_writer_3c3fe(void)
     u32 dst_ptr           = TEXT_WRITER_CWINDOW_PAGE2_BASE + (u32)dst_off;
     const u8 *src         = (const u8 *)((u32)genesistan_arcade_workram_words + (u32)src_off);
 
-    SYS_disableInts();
     while (count-- > 0U)
     {
         u16 arcade_tile = (u16)(*src++);
@@ -1761,7 +1756,6 @@ void genesistan_hook_text_writer_3c3fe(void)
 
         dst_ptr += 4U;
     }
-    SYS_enableInts();
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))

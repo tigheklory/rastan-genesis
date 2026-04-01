@@ -202,9 +202,13 @@ no_bmp_task:
 _VINT_arcade_mode:
         movem.l %d0-%d7/%a0-%a6,-(%sp)
         jsr     genesistan_refresh_arcade_inputs
+        /* --- display-disable bracket: turn off display before VDP writes --- */
+        move.w  #0x8134, 0x00C00004     /* VDP reg 1 = 0x34: display OFF, VInt ON, DMA ON, V28 */
         jsr     genesistan_run_arcade_tick_lean
         jsr     sanitize_arcade_workram
         jsr     genesistan_palette_commit_asm
+        /* --- display-disable bracket: restore display after VDP writes --- */
+        move.w  #0x8174, 0x00C00004     /* VDP reg 1 = 0x74: display ON, VInt ON, DMA ON, V28 */
         movem.l (%sp)+,%d0-%d7/%a0-%a6
         rte
 
