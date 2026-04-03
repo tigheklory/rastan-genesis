@@ -363,6 +363,25 @@ void rastan_draw_tile_xy(u16 tile_attr, int x, int y);
 void genesistan_sprite_commit_asm(void);
 void genesistan_palette_commit_asm(void);
 extern volatile u16 arcade_vblank_active;
+extern volatile u16 fg_debug_before;
+extern volatile u16 fg_debug_after;
+extern volatile u32 bulk_debug_pre_read_a0;
+extern volatile u16 vdp_commit_frame_id;
+extern volatile u16 vdp_commit_planes_count;
+extern volatile u16 vdp_commit_palette_count;
+extern volatile u16 vdp_commit_scroll_count;
+extern volatile u16 vdp_commit_last_frame_id_0;
+extern volatile u16 vdp_commit_last_frame_id_1;
+extern volatile u16 vdp_commit_last_frame_id_2;
+extern volatile u16 vdp_commit_last_planes_count_0;
+extern volatile u16 vdp_commit_last_planes_count_1;
+extern volatile u16 vdp_commit_last_planes_count_2;
+extern volatile u16 vdp_commit_last_palette_count_0;
+extern volatile u16 vdp_commit_last_palette_count_1;
+extern volatile u16 vdp_commit_last_palette_count_2;
+extern volatile u16 vdp_commit_last_scroll_count_0;
+extern volatile u16 vdp_commit_last_scroll_count_1;
+extern volatile u16 vdp_commit_last_scroll_count_2;
 u32 genesistan_asm_tilemap_commit_bg(u32 dest_ptr, u32 strip_index, u32 dest_row, u32 dest_col);
 u32 genesistan_asm_tilemap_commit_fg(u32 dest_ptr, u32 strip_index, u32 dest_row, u32 dest_col);
 void genesistan_run_title_init_sequence(void);
@@ -1304,12 +1323,14 @@ void genesistan_hook_tilemap_plane_b(void)
 
 }
 
+extern u16 pc080sn_fg_buffer[];
+
 void rastan_draw_tile_xy(u16 tile_attr, int x, int y)
 {
     if (x < 0 || x >= 64 || y < 0 || y >= 32)
         return;
 
-    VDP_setTileMapXY(BG_A, tile_attr, (u16)x, (u16)y);
+    pc080sn_fg_buffer[y * 64 + x] = tile_attr;
 }
 
 #define TEXT_WRITER_3BB48_TABLE_SOURCE  0x003BD92UL /* shifted runtime table (build-time relocated) */
@@ -1343,7 +1364,6 @@ static bool text_writer_ptr_to_xy(u32 raw_ptr, s16 *out_x, s16 *out_y, u32 *out_
     const u32 raw24 = raw_ptr & 0x00FFFFFFU;
     u32 offset;
     u32 cell;
-    u32 row;
     const u32 col_bias = 32U;
 
     if (raw_ptr >= TEXT_WRITER_CWINDOW_PAGE2_BASE
@@ -1372,21 +1392,30 @@ static bool text_writer_ptr_to_xy(u32 raw_ptr, s16 *out_x, s16 *out_y, u32 *out_
     }
 
     cell = offset >> 2; /* 2 words per text cell (attr + tile). */
-    row = cell & 0x3FU;
-    if (row < TEXT_WRITER_VISIBLE_ROW_BIAS)
+
+    /*
+     * Row-major decode for C-window text layer (Build 324 fix).
+     * The C-window uses TILEMAP_SCAN_ROWS: cell = row * 64 + col.
+     * Low 6 bits = column, high bits = row.
+     * (The PC080SN scene layers are column-major — handled separately
+     * in the assembly bulk tilemap writer.)
+     */
     {
-        return FALSE;
-    }
-    {
-        u32 col = (cell >> 6) & 0x3FU;
+        u32 col = cell & 0x3FU;
+        u32 row_val = (cell >> 6) & 0x3FU;
+
+        /* TEMP DEBUG: disable row visibility filtering to diagnose empty plane */
+        /* if (row_val < TEXT_WRITER_VISIBLE_ROW_BIAS)
+            return FALSE; */
+
         if (col < col_bias)
         {
             col += 64U;
         }
         *out_x = (s16)(col - col_bias);
+        *out_offset = offset;
+        *out_y = (s16)(row_val - TEXT_WRITER_VISIBLE_ROW_BIAS);
     }
-    *out_offset = offset;
-    *out_y = (s16)(row - TEXT_WRITER_VISIBLE_ROW_BIAS);
     return TRUE;
 }
 
@@ -1620,21 +1649,13 @@ void genesistan_preload_scene_tiles(u8 scene_id)
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_bulk_preload_check(u32 source_addr)
 {
-    u8 mapped_scene_id = GENESISTAN_SCENE_UNKNOWN;
-
-    if (!genesistan_scene_id_from_source_addr(source_addr, &mapped_scene_id))
-    {
-        return;
-    }
-
-    if ((genesistan_current_scene_id == mapped_scene_id)
-        && ((genesistan_scene_a0_lo & 0x00FFFFFFUL) <= (source_addr & 0x00FFFFFFUL))
-        && ((source_addr & 0x00FFFFFFUL) <= (genesistan_scene_a0_hi & 0x00FFFFFFUL)))
-    {
-        return;
-    }
-
-    genesistan_preload_scene_tiles(mapped_scene_id);
+    /*
+     * Build 335:
+     * Disable tick-phase scene preload DMA to remove the non-VBlank
+     * VDP writer path reached from genesistan_bulk_tilemap_commit.
+     */
+    (void)source_addr;
+    return;
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))
@@ -1694,23 +1715,86 @@ void genesistan_hook_text_writer_3bb48_impl(void)
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_render_sprites_vdp(void);
 
+/*
+ * WRAM scroll staging variables. Written by genesistan_scroll_from_workram_vdp()
+ * during the arcade tick, committed to VDP once per frame by
+ * genesistan_scroll_commit_vdp() in VBlank.
+ *
+ * Placed in regular .bss (not .bss.patcher) to avoid shifting patcher BSS
+ * addresses that are referenced by the opcode_replace spec.
+ */
+static volatile int16_t staged_scroll_x_bg;
+static volatile int16_t staged_scroll_y_bg;
+static volatile int16_t staged_scroll_x_fg;
+static volatile int16_t staged_scroll_y_fg;
+
+/*
+ * Scroll staging: reads arcade workram scroll fields, applies axis
+ * conversion (negation + vertical crop bias), stores final converted
+ * values into WRAM staging. Does NOT write to VDP.
+ *
+ * Conversion logic (preserved from Build 316):
+ *   BG X = -(workram[0x10EC/2])          (negated, horizontal)
+ *   BG Y = -(workram[0x10EE/2]) + 8      (negated + crop bias, vertical)
+ *   FG X = -(workram[0x10AE/2])          (negated, horizontal)
+ *   FG Y = -(workram[0x10B0/2]) + 8      (negated + crop bias, vertical)
+ *
+ * The negation converts from arcade scroll convention (positive = scroll
+ * content left/up) to Genesis convention (positive = shift viewport right/down).
+ * The +8 vertical bias compensates for 240→224 vertical crop.
+ */
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_scroll_from_workram_vdp(void)
 {
     const int16_t vertical_bias = RASTAN_VERTICAL_CROP_BIAS;
-    const int16_t scroll_y_bg =
-        (int16_t)(-(int16_t)genesistan_arcade_workram_words[0x10EEU / 2U] + vertical_bias);
-    const int16_t scroll_x_bg =
-        -(int16_t)genesistan_arcade_workram_words[0x10ECU / 2U];
-    const int16_t scroll_y_fg =
-        (int16_t)(-(int16_t)genesistan_arcade_workram_words[0x10B0U / 2U] + vertical_bias);
-    const int16_t scroll_x_fg =
-        -(int16_t)genesistan_arcade_workram_words[0x10AEU / 2U];
 
-    VDP_setHorizontalScroll(BG_B, scroll_x_bg);
-    VDP_setVerticalScroll(BG_B, scroll_y_bg);
-    VDP_setHorizontalScroll(BG_A, scroll_x_fg);
-    VDP_setVerticalScroll(BG_A, scroll_y_fg);
+    staged_scroll_y_bg =
+        (int16_t)(-(int16_t)genesistan_arcade_workram_words[0x10EEU / 2U] + vertical_bias);
+    staged_scroll_x_bg =
+        -(int16_t)genesistan_arcade_workram_words[0x10ECU / 2U];
+    staged_scroll_y_fg =
+        (int16_t)(-(int16_t)genesistan_arcade_workram_words[0x10B0U / 2U] + vertical_bias);
+    staged_scroll_x_fg =
+        -(int16_t)genesistan_arcade_workram_words[0x10AEU / 2U];
+}
+
+/*
+ * Single final VBlank scroll commit. Reads staged WRAM values and writes
+ * to VDP HScroll table (VRAM 0xF000) and VSRAM (offset 0).
+ * Called once per frame from _VINT_arcade_mode, after palette commit.
+ *
+ * HScroll table layout (full-screen scroll, VDP reg 11 = 0x00):
+ *   VRAM 0xF000 word 0 = BG_A (foreground) horizontal scroll
+ *   VRAM 0xF000 word 1 = BG_B (background) horizontal scroll
+ *
+ * VSRAM layout (full-screen scroll):
+ *   VSRAM offset 0 = BG_A (foreground) vertical scroll
+ *   VSRAM offset 2 = BG_B (background) vertical scroll
+ */
+__attribute__((used, externally_visible))
+void genesistan_scroll_commit_vdp(void)
+{
+    vu16 *const ctrl = (vu16 *)0xC00004;
+    vu32 *const ctrl32 = (vu32 *)0xC00004;
+    vu16 *const data = (vu16 *)0xC00000;
+    vdp_commit_scroll_count++;
+    const u16 scroll_x_fg = (u16)staged_scroll_x_fg;
+    const u16 scroll_x_bg = (u16)staged_scroll_x_bg;
+    const u16 scroll_y_fg = (u16)staged_scroll_y_fg;
+    const u16 scroll_y_bg = (u16)staged_scroll_y_bg;
+
+    /* Auto-increment = 2 */
+    *ctrl = 0x8F02;
+
+    /* HScroll: write staged values to VRAM 0xF000 */
+    *ctrl32 = 0x70000003;          /* VDP cmd: VRAM write addr 0xF000 */
+    *data = scroll_x_fg;           /* BG_A */
+    *data = scroll_x_bg;           /* BG_B */
+
+    /* VScroll: write staged values to VSRAM offset 0 */
+    *ctrl32 = 0x40000010;          /* VDP cmd: VSRAM write addr 0x0000 */
+    *data = scroll_y_fg;           /* BG_A */
+    *data = scroll_y_bg;           /* BG_B */
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))
@@ -1756,6 +1840,111 @@ void genesistan_hook_text_writer_3c3fe(void)
 
         dst_ptr += 4U;
     }
+}
+
+/*
+ * TEMP DEBUG (Build 330):
+ *   Row 1: "B:XXXX A:XXXX" (FG buffer[0] before/after arcade tick)
+ *   Row 2: "P:XXXXXXXX" (A0 captured immediately before bulk-read dereference)
+ *   Row 3: "M:XXXX XXXX XXXX" (workram state words A5@(0/2/4))
+ *   Row 4: "I:XXXX" (raw input: 0x390001:0x390007)
+ *   Row 5: "K:UDLR12SC" (live pressed summary; '-' means not pressed)
+ * Called from _VINT_arcade_mode after sanitize, before commit.
+ */
+__attribute__((used, externally_visible))
+void genesistan_debug_fg_proof(void)
+{
+    static const char hex[] = "0123456789ABCDEF";
+    const u16 attr = 0x2000U; /* priority=1 (bit 13 of attr_word), palette=0 */
+    const u16 bv = fg_debug_before;
+    const u16 av = fg_debug_after;
+    const u32 pv = bulk_debug_pre_read_a0;
+    const u16 mode0 = genesistan_arcade_workram_words[0];
+    const u16 mode1 = genesistan_arcade_workram_words[1];
+    const u16 mode2 = genesistan_arcade_workram_words[2];
+    const u8 input_p1 = genesistan_shadow_input_390001;
+    const u8 input_sys = genesistan_shadow_input_390007;
+    const u16 input_raw = (u16)(((u16)input_p1 << 8) | input_sys);
+    char keys[8];
+    int col = 1;
+    const int row = 1;
+    int pcol = 1;
+    const int prow = 2;
+    int mcol = 1;
+    const int mrow = 3;
+    int icol = 1;
+    const int irow = 4;
+    int kcol = 1;
+    const int krow = 5;
+
+    keys[0] = ((input_p1 & 0x01U) == 0U) ? 'U' : '-';
+    keys[1] = ((input_p1 & 0x02U) == 0U) ? 'D' : '-';
+    keys[2] = ((input_p1 & 0x04U) == 0U) ? 'L' : '-';
+    keys[3] = ((input_p1 & 0x08U) == 0U) ? 'R' : '-';
+    keys[4] = ((input_p1 & 0x10U) == 0U) ? '1' : '-';
+    keys[5] = ((input_p1 & 0x20U) == 0U) ? '2' : '-';
+    keys[6] = ((input_sys & 0x08U) == 0U) ? 'S' : '-';
+    keys[7] = ((input_sys & 0x01U) == 0U) ? 'C' : '-';
+
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, 'B'), col++, row);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, ':'), col++, row);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(bv >> 12) & 0xFU]), col++, row);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(bv >>  8) & 0xFU]), col++, row);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(bv >>  4) & 0xFU]), col++, row);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[ bv        & 0xFU]), col++, row);
+    col++; /* gap */
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, 'A'), col++, row);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, ':'), col++, row);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(av >> 12) & 0xFU]), col++, row);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(av >>  8) & 0xFU]), col++, row);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(av >>  4) & 0xFU]), col++, row);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[ av        & 0xFU]), col++, row);
+
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, 'P'), pcol++, prow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, ':'), pcol++, prow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(pv >> 28) & 0xFU]), pcol++, prow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(pv >> 24) & 0xFU]), pcol++, prow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(pv >> 20) & 0xFU]), pcol++, prow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(pv >> 16) & 0xFU]), pcol++, prow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(pv >> 12) & 0xFU]), pcol++, prow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(pv >>  8) & 0xFU]), pcol++, prow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(pv >>  4) & 0xFU]), pcol++, prow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[ pv        & 0xFU]), pcol++, prow);
+
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, 'M'), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, ':'), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(mode0 >> 12) & 0xFU]), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(mode0 >>  8) & 0xFU]), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(mode0 >>  4) & 0xFU]), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[ mode0        & 0xFU]), mcol++, mrow);
+    mcol++;
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(mode1 >> 12) & 0xFU]), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(mode1 >>  8) & 0xFU]), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(mode1 >>  4) & 0xFU]), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[ mode1        & 0xFU]), mcol++, mrow);
+    mcol++;
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(mode2 >> 12) & 0xFU]), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(mode2 >>  8) & 0xFU]), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(mode2 >>  4) & 0xFU]), mcol++, mrow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[ mode2        & 0xFU]), mcol++, mrow);
+
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, 'I'), icol++, irow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, ':'), icol++, irow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(input_raw >> 12) & 0xFU]), icol++, irow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(input_raw >>  8) & 0xFU]), icol++, irow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[(input_raw >>  4) & 0xFU]), icol++, irow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, hex[ input_raw        & 0xFU]), icol++, irow);
+
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, 'K'), kcol++, krow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, ':'), kcol++, krow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, keys[0]), kcol++, krow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, keys[1]), kcol++, krow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, keys[2]), kcol++, krow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, keys[3]), kcol++, krow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, keys[4]), kcol++, krow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, keys[5]), kcol++, krow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, keys[6]), kcol++, krow);
+    rastan_draw_tile_xy(text_writer_build_tile_attr(attr, keys[7]), kcol++, krow);
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))
@@ -1865,8 +2054,9 @@ void genesistan_render_sprites_vdp(void)
 
     SYS_disableInts();
     refresh_frontend_sprite_palettes_mapped(palette_bank_map, palette_bank_count);
-    VDP_updateSprites(sprite_count, DMA);
-    VDP_waitDMACompletion();
+    /* Build 339 proof-only: keep sprite path logic active, suppress only SAT DMA commit. */
+    /* VDP_updateSprites(sprite_count, DMA); */
+    /* VDP_waitDMACompletion(); */
     SYS_enableInts();
 #endif
 }
@@ -1967,6 +2157,90 @@ static void activate_selected_menu(void)
     }
 }
 
+/*
+ * Build 316: forced clean VRAM/CRAM/VSRAM init at arcade handoff.
+ * Eliminates all launcher tile residue before scene preload.
+ */
+static void force_clean_vram_init(void)
+{
+    vu16 *const ctrl = (vu16 *)0xC00004;
+    vu16 *const data = (vu16 *)0xC00000;
+    vu32 *const ctrl32 = (vu32 *)0xC00004;
+    u16 i;
+
+    /* Display OFF */
+    *ctrl = 0x8134; /* reg 1: VInt ON, DMA ON, display OFF, V28 */
+
+    /* Auto-increment = 2 */
+    *ctrl = 0x8F02;
+
+    /* Clear entire VRAM (64KB = 32768 words) via CPU fill */
+    *ctrl32 = 0x40000000; /* VRAM write at address 0x0000 */
+    for (i = 0; i < 32768U; i++)
+        *data = 0x0000;
+
+    /* Clear entire CRAM (128 bytes = 64 words) */
+    *ctrl32 = 0xC0000000; /* CRAM write at address 0x0000 */
+    for (i = 0; i < 64U; i++)
+        *data = 0x0000;
+
+    /* Clear VSRAM (80 bytes = 40 words) */
+    *ctrl32 = 0x40000010; /* VSRAM write at address 0x0000 */
+    for (i = 0; i < 40U; i++)
+        *data = 0x0000;
+
+    /* Reset VDP registers to known baseline */
+    *ctrl = 0x8004; /* reg 0: no HInt */
+    *ctrl = 0x8134; /* reg 1: VInt ON, DMA ON, display OFF, V28 */
+    *ctrl = 0x8238; /* reg 2: plane A = 0xE000 */
+    *ctrl = 0x8334; /* reg 3: window = 0xD000 */
+    *ctrl = 0x8406; /* reg 4: plane B = 0xC000 */
+    *ctrl = 0x857C; /* reg 5: SAT = 0xF800 */
+    *ctrl = 0x8600; /* reg 6: unused */
+    *ctrl = 0x8700; /* reg 7: bg color = 0 */
+    *ctrl = 0x8800; /* reg 8: unused */
+    *ctrl = 0x8900; /* reg 9: unused */
+    *ctrl = 0x8AFF; /* reg 10: HInt counter = 0xFF (disabled) */
+    *ctrl = 0x8B00; /* reg 11: ext int off, full vscroll, full hscroll */
+    *ctrl = 0x8C81; /* reg 12: H40 mode, no shadow, no interlace */
+    *ctrl = 0x8D3C; /* reg 13: HScroll = 0xF000 */
+    *ctrl = 0x8E00; /* reg 14: unused */
+    *ctrl = 0x8F02; /* reg 15: auto-increment = 2 */
+    *ctrl = 0x9001; /* reg 16: scroll size = 64x32 */
+    *ctrl = 0x9180; /* reg 17: window H OFF (left mode, 0 cols) */
+    *ctrl = 0x9280; /* reg 18: window V OFF (up mode, 0 rows) */
+}
+
+/*
+ * Build 331 proof-only:
+ * Write a known visible palette immediately after force_clean_vram_init()
+ * so the early post-reset black period can be validated independently of
+ * runtime CLCS palette flow.
+ */
+static void apply_post_reset_test_palette(void)
+{
+    vu16 *const ctrl = (vu16 *)0xC00004;
+    vu16 *const data = (vu16 *)0xC00000;
+    vu32 *const ctrl32 = (vu32 *)0xC00004;
+    static const u16 test_palette_line[16] = {
+        0x0000, 0x0EEE, 0x00EE, 0x0E0E,
+        0x0EE0, 0x000E, 0x00E0, 0x0E00,
+        0x0888, 0x0444, 0x0AAA, 0x0666,
+        0x0CCC, 0x0222, 0x0E88, 0x088E
+    };
+    u16 line;
+    u16 idx;
+
+    *ctrl = 0x8F02;
+    *ctrl32 = 0xC0000000; /* CRAM write at address 0x0000 */
+
+    for (line = 0; line < 4U; line++)
+    {
+        for (idx = 0; idx < 16U; idx++)
+            *data = test_palette_line[idx];
+    }
+}
+
 static void request_start_rastan(void)
 {
 #if RASTAN_ENABLE_STARTUP_HOOK
@@ -1981,6 +2255,11 @@ static void request_start_rastan(void)
     VDP_clearPlane(BG_A, TRUE);
     VDP_clearPlane(BG_B, TRUE);
     genesistan_sync_title_vdp_layout();
+
+    /* Build 316: forced clean VRAM baseline before scene preload */
+    force_clean_vram_init();
+    apply_post_reset_test_palette();
+
     genesistan_preload_scene_tiles(GENESISTAN_SCENE_TITLE);
     clear_frontend_sprite_layer();
     VDP_waitDMACompletion();

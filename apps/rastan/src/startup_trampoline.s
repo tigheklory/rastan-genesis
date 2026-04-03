@@ -24,7 +24,13 @@
     .globl genesistan_bulk_tilemap_commit
     .globl genesistan_run_title_init_sequence
     .globl genesistan_run_arcade_tick_lean
+    .globl genesistan_pc080sn_commit_planes
+    .globl bulk_debug_pre_read_a0
+    .globl pc080sn_bg_buffer
+    .globl pc080sn_fg_buffer
     .globl arcade_vblank_active
+    .globl vdp_commit_planes_count
+    .globl vdp_commit_palette_count
 
 #if RASTAN_ENABLE_STARTUP_HOOK
 
@@ -76,60 +82,120 @@ genesistan_render_sprites_vdp_bridge:
     rts
 
 /*
- * Assembly palette commit: single per-frame CLCS -> CRAM owner.
- * Reads genesistan_palette_clcs[0..63], converts xRGB-444 to Genesis,
- * streams 64 colors to CRAM via VDP data port. Falls back to
- * genesistan_palette_rom_table if CLCS is empty.
+ * Assembly palette commit: TEMPORARY PROOF FIX (Build 320).
+ * Finds the first populated 16-color CLCS block among blocks 0-3,
+ * converts xBGR-555 to Genesis format, and mirrors that block into
+ * all 4 CRAM lines.  Enforces low-index visibility: if the converted
+ * entry 1 would be black (0x0000), it is replaced with the first
+ * non-black converted entry from indices 1-15.
+ *
+ * This is a TEMPORARY diagnostic fix — not final palette architecture.
  */
 genesistan_palette_commit_asm:
-    movem.l %d0-%d4/%a0-%a2,-(%sp)
+    movem.l %d0-%d7/%a0-%a4,-(%sp)
+    addq.w  #1, vdp_commit_palette_count
 
     lea     genesistan_palette_clcs, %a0
-    movea.l #0xC00004, %a1          /* VDP control port */
-    movea.l #0xC00000, %a2          /* VDP data port */
 
-    /* Check if CLCS has any data (test first entry) */
-    tst.w   (%a0)
-    bne.s   .Lpal_have_clcs
-
-    /* Fallback: use ROM table */
-    lea     genesistan_palette_rom_table, %a0
-    /* ROM table is already in Genesis format, write directly */
-    move.l  #0xC0000000, (%a1)      /* CRAM write addr 0 */
+    /* --- Phase 1: find first populated 16-color block (0-3) ---
+     * Scan blocks 0,1,2,3.  A block is "populated" if any of its
+     * 16 entries is non-zero.  d4 = block offset in words (0,16,32,48).
+     */
+    moveq   #0, %d4                 /* candidate block word-offset */
+    moveq   #3, %d5                 /* 4 blocks to check */
+.Lpal_scan_block:
+    move.w  %d4, %d6
+    add.w   %d6, %d6                /* byte offset = word-offset * 2 */
+    lea     0(%a0,%d6.w), %a3       /* pointer to block start */
+    moveq   #15, %d6
+.Lpal_scan_entry:
+    tst.w   (%a3)+
+    bne     .Lpal_found             /* non-zero → this block is populated */
+    dbra    %d6, .Lpal_scan_entry
+    addi.w  #16, %d4                /* next block */
+    dbra    %d5, .Lpal_scan_block
+    /* No populated block found — write black to all 64 CRAM entries */
+    movea.l #0xC00004, %a1
+    move.l  #0xC0000000, (%a1)
+    movea.l #0xC00000, %a2
     moveq   #63, %d0
-.Lpal_rom_loop:
-    move.w  (%a0)+, (%a2)
-    dbra    %d0, .Lpal_rom_loop
-    bra.s   .Lpal_done
+.Lpal_black_loop:
+    move.w  #0x0000, (%a2)
+    dbra    %d0, .Lpal_black_loop
+    bra     .Lpal_done
 
-.Lpal_have_clcs:
-    /* Set CRAM write address to 0 */
-    move.l  #0xC0000000, (%a1)      /* CRAM write addr 0 */
+.Lpal_found:
+    /* d4 = word-offset of populated block (0, 16, 32, or 48) */
 
-    moveq   #63, %d0
-.Lpal_clcs_loop:
-    move.w  (%a0)+, %d1             /* raw CLCS xRGB-444 */
+    /* --- Phase 2: convert the 16-entry block into a temp area on stack ---
+     * Push 16 converted Genesis-format words onto the stack (32 bytes).
+     */
+    move.w  %d4, %d6
+    add.w   %d6, %d6                /* byte offset */
+    lea     0(%a0,%d6.w), %a3       /* source: CLCS block start */
 
-    /* Convert: genesis = ((raw>>1)&0x000E) | ((raw>>2)&0x00E0) | ((raw>>3)&0x0E00) */
+    lea     -32(%sp), %sp           /* reserve 32 bytes on stack */
+    movea.l %sp, %a4                /* a4 = temp buffer pointer */
+
+    moveq   #15, %d0
+.Lpal_convert_loop:
+    move.w  (%a3)+, %d1             /* raw xBGR-555 */
     move.w  %d1, %d2
     lsr.w   #1, %d2
-    andi.w  #0x000E, %d2            /* R component */
-
+    andi.w  #0x000E, %d2            /* R */
     move.w  %d1, %d3
     lsr.w   #2, %d3
-    andi.w  #0x00E0, %d3            /* G component */
+    andi.w  #0x00E0, %d3            /* G */
     or.w    %d3, %d2
-
     move.w  %d1, %d3
     lsr.w   #3, %d3
-    andi.w  #0x0E00, %d3            /* B component */
+    andi.w  #0x0E00, %d3            /* B */
     or.w    %d3, %d2
+    move.w  %d2, (%a4)+            /* store converted entry */
+    dbra    %d0, .Lpal_convert_loop
 
-    move.w  %d2, (%a2)              /* write to CRAM */
-    dbra    %d0, .Lpal_clcs_loop
+    /* --- Phase 3: low-index visibility enforcement ---
+     * If converted entry 0 AND entry 1 are both 0x0000, replace entry 1
+     * with the first non-black color found in entries 1-15.
+     */
+    movea.l %sp, %a4                /* reset to buffer start */
+    tst.w   (%a4)                   /* entry 0 */
+    bne     .Lpal_vis_ok            /* entry 0 non-black → skip */
+    tst.w   2(%a4)                  /* entry 1 */
+    bne     .Lpal_vis_ok            /* entry 1 non-black → skip */
+    /* Both black — search entries 1-15 for first non-black */
+    moveq   #14, %d0               /* entries 1..15 */
+    lea     2(%a4), %a3             /* start at entry 1 */
+.Lpal_vis_search:
+    tst.w   (%a3)+
+    bne     .Lpal_vis_found
+    dbra    %d0, .Lpal_vis_search
+    bra     .Lpal_vis_ok            /* all black — nothing to do */
+.Lpal_vis_found:
+    move.w  -2(%a3), 2(%a4)         /* copy found color into entry 1 */
+.Lpal_vis_ok:
+
+    /* --- Phase 4: mirror 16-entry buffer into all 4 CRAM lines ---
+     * Write the same 16 converted entries to CRAM[0..15], [16..31],
+     * [32..47], [48..63].
+     */
+    movea.l #0xC00004, %a1          /* VDP control port */
+    movea.l #0xC00000, %a2          /* VDP data port */
+    move.l  #0xC0000000, (%a1)      /* CRAM write addr 0 */
+
+    moveq   #3, %d5                 /* 4 lines */
+.Lpal_mirror_line:
+    movea.l %sp, %a4                /* reset to buffer start each line */
+    moveq   #15, %d0
+.Lpal_mirror_entry:
+    move.w  (%a4)+, (%a2)           /* write to CRAM (auto-increments) */
+    dbra    %d0, .Lpal_mirror_entry
+    dbra    %d5, .Lpal_mirror_line
+
+    lea     32(%sp), %sp            /* free temp buffer */
 
 .Lpal_done:
-    movem.l (%sp)+,%d0-%d4/%a0-%a2
+    movem.l (%sp)+,%d0-%d7/%a0-%a4
     rts
 
 /*
@@ -144,6 +210,8 @@ genesistan_palette_commit_asm:
  * Pass 2: Write SAT entries directly to VDP data port.
  */
 genesistan_render_sprites_vdp_asm:
+    /* Build 329 proof-only: suppress sprite-layer output to isolate Plane A visibility. */
+    rts
     movem.l %d0-%d7/%a0-%a6,-(%sp)
 
     lea     genesistan_arcade_workram_words, %a5
@@ -458,9 +526,7 @@ genesistan_sprite_commit_asm:
 genesistan_asm_tilemap_commit_bg:
     movem.l %d2-%d7/%a2-%a6,-(%sp)
 
-    movea.l #0xC00004, %a5          /* VDP control port */
-    movea.l #0xC00000, %a6          /* VDP data port */
-    move.w  #0x8F02, (%a5)          /* auto-increment = 2 bytes */
+    lea     pc080sn_bg_buffer, %a5          /* WRAM buffer (replaces VDP port) */
 
     lea     genesistan_arcade_workram_words+PC080SN_DESC_LIST_OFFSET, %a0
     lea     rastan_maincpu, %a1
@@ -531,30 +597,10 @@ genesistan_asm_tilemap_commit_bg:
     or.w    (%sp), %d3
 
     move.w  %d1, %d0
-    cmpi.w  #4, %d0
-    blo     .Lpc080sn_bg_skip_write
-
-    subi.w  #4, %d0
-    lsl.w   #7, %d0
+    lsl.w   #7, %d0                 /* row * 128 */
     add.w   %d2, %d0
-    add.w   %d2, %d0
-    addi.w  #0xC000, %d0
-
-    move.w  %d4, -(%sp)
-    move.w  %d0, %d4
-    andi.w  #0x3FFF, %d0
-    lsl.l   #8, %d0
-    lsl.l   #8, %d0
-    lsr.w   #8, %d4
-    lsr.w   #6, %d4
-    andi.w  #0x0003, %d4
-    or.w    %d4, %d0
-    ori.l   #0x40000003, %d0
-    move.l  %d0, (%a5)
-    move.w  %d3, (%a6)
-    move.w  (%sp)+, %d4
-
-.Lpc080sn_bg_skip_write:
+    add.w   %d2, %d0               /* + col * 2 */
+    move.w  %d3, 0(%a5, %d0.w)     /* write to WRAM buffer */
     adda.w  #8, %a4
     addq.w  #1, %d1
     andi.w  #0x001F, %d1
@@ -582,9 +628,7 @@ genesistan_asm_tilemap_commit_bg:
 genesistan_asm_tilemap_commit_fg:
     movem.l %d2-%d7/%a2-%a6,-(%sp)
 
-    movea.l #0xC00004, %a5          /* VDP control port */
-    movea.l #0xC00000, %a6          /* VDP data port */
-    move.w  #0x8F02, (%a5)          /* auto-increment = 2 bytes */
+    lea     pc080sn_fg_buffer, %a5          /* WRAM buffer (replaces VDP port) */
 
     lea     genesistan_arcade_workram_words+PC080SN_DESC_LIST_OFFSET, %a0
     lea     rastan_maincpu, %a1
@@ -656,30 +700,10 @@ genesistan_asm_tilemap_commit_fg:
     or.w    (%sp), %d3
 
     move.w  %d1, %d0
-    cmpi.w  #4, %d0
-    blo     .Lpc080sn_fg_skip_write
-
-    subi.w  #4, %d0
-    lsl.w   #7, %d0
+    lsl.w   #7, %d0                 /* row * 128 */
     add.w   %d2, %d0
-    add.w   %d2, %d0
-    addi.w  #0xE000, %d0
-
-    move.w  %d4, -(%sp)
-    move.w  %d0, %d4
-    andi.w  #0x3FFF, %d0
-    lsl.l   #8, %d0
-    lsl.l   #8, %d0
-    lsr.w   #8, %d4
-    lsr.w   #6, %d4
-    andi.w  #0x0003, %d4
-    or.w    %d4, %d0
-    ori.l   #0x40000003, %d0
-    move.l  %d0, (%a5)
-    move.w  %d3, (%a6)
-    move.w  (%sp)+, %d4
-
-.Lpc080sn_fg_skip_write:
+    add.w   %d2, %d0               /* + col * 2 */
+    move.w  %d3, 0(%a5, %d0.w)     /* write to WRAM buffer */
     adda.w  #2, %a4
     addq.w  #1, %d2
     cmpi.w  #64, %d2
@@ -758,12 +782,12 @@ genesistan_bulk_tilemap_commit:
 
 .Lbulk_bg_plane:
     subi.l  #0x00C00000, %d7
-    move.w  #0xC000, %d6
+    lea     pc080sn_bg_buffer, %a5          /* WRAM buffer for BG */
     bra     .Lbulk_dest_ready
 
 .Lbulk_fg_plane:
     subi.l  #0x00C08000, %d7
-    move.w  #0xE000, %d6
+    lea     pc080sn_fg_buffer, %a5          /* WRAM buffer for FG */
 
 .Lbulk_dest_ready:
     btst    #0, %d7
@@ -793,9 +817,6 @@ genesistan_bulk_tilemap_commit:
 
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     genesistan_pc080sn_attr_lut, %a3
-    movea.l #0xC00004, %a5
-    movea.l #0xC00000, %a6
-    move.w  #0x8F02, (%a5)
 
     move.w  %d7, %d4                /* attr LUT key */
     andi.w  #0x0003, %d4
@@ -825,38 +846,18 @@ genesistan_bulk_tilemap_commit:
     move.w  %d3, %d1                /* row loop counter */
 
 .Lbulk_row_loop:
+    move.l  %a0, bulk_debug_pre_read_a0
     move.w  (%a0)+, %d4
     andi.w  #0x3FFF, %d4
     add.w   %d4, %d4
     move.w  0(%a2,%d4.w), %d4
     or.w    %d7, %d4
 
-    cmpi.w  #4, %d0
-    blo.s   .Lbulk_skip_write
-
-    move.w  %d1, -(%sp)
-    move.w  %d4, -(%sp)
-    move.w  %d0, %d1
-    subi.w  #4, %d1
-    lsl.w   #7, %d1
-    add.w   %d5, %d1
-    add.w   %d5, %d1
-    add.w   %d6, %d1
-
-    move.w  %d1, %d4
-    andi.w  #0x3FFF, %d1
-    lsl.l   #8, %d1
-    lsl.l   #8, %d1
-    lsr.w   #8, %d4
-    lsr.w   #6, %d4
-    andi.w  #0x0003, %d4
-    or.w    %d4, %d1
-    ori.l   #0x40000003, %d1
-    move.l  %d1, (%a5)
-    move.w  (%sp)+, (%a6)
-    move.w  (%sp)+, %d1
-
-.Lbulk_skip_write:
+    move.w  %d0, %d6               /* row */
+    lsl.w   #7, %d6                /* row * 128 */
+    add.w   %d5, %d6
+    add.w   %d5, %d6              /* + col * 2 */
+    move.w  %d4, 0(%a5, %d6.w)    /* write to WRAM buffer */
     addq.w  #1, %d0
     andi.w  #0x001F, %d0
     dbra    %d1, .Lbulk_row_loop
@@ -867,6 +868,37 @@ genesistan_bulk_tilemap_commit:
 
 .Lbulk_exit:
     movem.l (%sp)+,%d2-%d7/%a2-%a6
+    rts
+
+/*
+ * PC080SN WRAM buffer commit — streams both tilemap buffers to VDP.
+ * Called from _VINT_arcade_mode after sanitize, before palette commit.
+ * BG buffer → VRAM 0xC000 (2048 words), FG buffer → VRAM 0xE000 (2048 words).
+ * Uses word-by-word streaming (no DMA) to match existing VDP write model.
+ */
+genesistan_pc080sn_commit_planes:
+    movem.l %d0-%d1/%a0-%a1, -(%sp)
+    addq.w  #1, vdp_commit_planes_count
+    movea.l #0xC00004, %a1          /* VDP control port */
+    move.w  #0x8F02, (%a1)          /* auto-increment = 2 */
+
+    /* --- BG plane: VRAM write at 0xC000 --- */
+    move.l  #0x40000003, (%a1)      /* VDP cmd: VRAM write addr 0xC000 */
+    lea     pc080sn_bg_buffer, %a0
+    move.w  #2047, %d0              /* 2048 words */
+.Lcommit_bg_loop:
+    move.w  (%a0)+, 0x00C00000      /* VDP data port */
+    dbra    %d0, .Lcommit_bg_loop
+
+    /* --- FG plane: VRAM write at 0xE000 --- */
+    move.l  #0x60000003, (%a1)      /* VDP cmd: VRAM write addr 0xE000 */
+    lea     pc080sn_fg_buffer, %a0
+    move.w  #2047, %d0              /* 2048 words */
+.Lcommit_fg_loop:
+    move.w  (%a0)+, 0x00C00000      /* VDP data port */
+    dbra    %d0, .Lcommit_fg_loop
+
+    movem.l (%sp)+, %d0-%d1/%a0-%a1
     rts
 
 genesistan_run_original_startup_common:
@@ -987,9 +1019,17 @@ genesistan_asm_tilemap_commit_fg:
 genesistan_bulk_tilemap_commit:
     rts
 
+genesistan_pc080sn_commit_planes:
+    rts
+
 #endif
 
     .section .bss.patcher,"aw",@nobits
     .balign 2
 arcade_vblank_active:
     .space 2
+    .balign 2
+pc080sn_bg_buffer:
+    .space 4096                     /* 64 × 32 × 2 bytes = BG nametable buffer */
+pc080sn_fg_buffer:
+    .space 4096                     /* 64 × 32 × 2 bytes = FG nametable buffer */
