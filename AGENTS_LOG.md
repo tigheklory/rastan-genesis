@@ -25598,3 +25598,33 @@ Full comparison of VBlank interrupt paths and non-interrupt VDP access between R
 * rolling display changed: USER MUST VERIFY
 * display stabilized: USER MUST VERIFY
 * no unrelated regressions: USER MUST VERIFY
+
+## [Cody - Analysis, Sprite SAT Hook Side-Effect Audit]
+
+* hook body fully audited: YES
+* sprite renderer body fully audited: YES
+* all non-VDP side effects identified: YES
+* build 339 clean two-call isolation: NO
+* single black-screen cause: CALLER_EXPECTS_HARDWARE_COMMIT_SIDE_EFFECT
+* single root cause: CALLER_EXPECTS_HARDWARE_COMMIT_SIDE_EFFECT
+* single next implementation target: implement a VBlank-owned sprite SAT publish step that keeps hook-side sprite preparation active but performs SAT hardware commit in `_VINT_arcade_mode` only
+* no implementation performed
+
+## [Cody - Analysis, Diagnostic Debt Audit]
+
+* total active temporary/diagnostic items found: 17
+* total historical temporary/diagnostic items found: 4
+* high-risk contaminants found: 11
+* master cleanup candidates listed: YES
+* single most important next non-code step: BUILD_MASTER_DIAGNOSTIC_DEBT_DOCUMENT
+* no implementation performed
+
+## [Andy - Analysis, Diagnostic Debt Audit]
+
+* total active temporary/diagnostic items found: 11
+* total historical temporary/diagnostic items found: 2
+* high-risk contaminants found: 4 (Items 1, 3, 7, 8: FG sentinel force write, debug FG overlay, sprite assembly early return, sprite SAT DMA suppression)
+* master cleanup candidates listed: YES
+* single most important next non-code step: BUILD_MASTER_DIAGNOSTIC_DEBT_DOCUMENT
+* design doc: docs/design/Andy_diagnostic_debt_audit.md
+* no implementation performed

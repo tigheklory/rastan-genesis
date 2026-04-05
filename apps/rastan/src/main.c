@@ -366,22 +366,6 @@ extern volatile u16 arcade_vblank_active;
 extern volatile u16 fg_debug_before;
 extern volatile u16 fg_debug_after;
 extern volatile u32 bulk_debug_pre_read_a0;
-extern volatile u16 vdp_commit_frame_id;
-extern volatile u16 vdp_commit_planes_count;
-extern volatile u16 vdp_commit_palette_count;
-extern volatile u16 vdp_commit_scroll_count;
-extern volatile u16 vdp_commit_last_frame_id_0;
-extern volatile u16 vdp_commit_last_frame_id_1;
-extern volatile u16 vdp_commit_last_frame_id_2;
-extern volatile u16 vdp_commit_last_planes_count_0;
-extern volatile u16 vdp_commit_last_planes_count_1;
-extern volatile u16 vdp_commit_last_planes_count_2;
-extern volatile u16 vdp_commit_last_palette_count_0;
-extern volatile u16 vdp_commit_last_palette_count_1;
-extern volatile u16 vdp_commit_last_palette_count_2;
-extern volatile u16 vdp_commit_last_scroll_count_0;
-extern volatile u16 vdp_commit_last_scroll_count_1;
-extern volatile u16 vdp_commit_last_scroll_count_2;
 u32 genesistan_asm_tilemap_commit_bg(u32 dest_ptr, u32 strip_index, u32 dest_row, u32 dest_col);
 u32 genesistan_asm_tilemap_commit_fg(u32 dest_ptr, u32 strip_index, u32 dest_row, u32 dest_col);
 void genesistan_run_title_init_sequence(void);
@@ -1649,13 +1633,21 @@ void genesistan_preload_scene_tiles(u8 scene_id)
 __attribute__((used, externally_visible, section(".text.patcher")))
 void genesistan_bulk_preload_check(u32 source_addr)
 {
-    /*
-     * Build 335:
-     * Disable tick-phase scene preload DMA to remove the non-VBlank
-     * VDP writer path reached from genesistan_bulk_tilemap_commit.
-     */
-    (void)source_addr;
-    return;
+    u8 mapped_scene_id = GENESISTAN_SCENE_UNKNOWN;
+
+    if (!genesistan_scene_id_from_source_addr(source_addr, &mapped_scene_id))
+    {
+        return;
+    }
+
+    if ((genesistan_current_scene_id == mapped_scene_id)
+        && ((genesistan_scene_a0_lo & 0x00FFFFFFUL) <= (source_addr & 0x00FFFFFFUL))
+        && ((source_addr & 0x00FFFFFFUL) <= (genesistan_scene_a0_hi & 0x00FFFFFFUL)))
+    {
+        return;
+    }
+
+    genesistan_preload_scene_tiles(mapped_scene_id);
 }
 
 __attribute__((used, externally_visible, section(".text.patcher")))
@@ -1777,7 +1769,6 @@ void genesistan_scroll_commit_vdp(void)
     vu16 *const ctrl = (vu16 *)0xC00004;
     vu32 *const ctrl32 = (vu32 *)0xC00004;
     vu16 *const data = (vu16 *)0xC00000;
-    vdp_commit_scroll_count++;
     const u16 scroll_x_fg = (u16)staged_scroll_x_fg;
     const u16 scroll_x_bg = (u16)staged_scroll_x_bg;
     const u16 scroll_y_fg = (u16)staged_scroll_y_fg;
@@ -2055,8 +2046,8 @@ void genesistan_render_sprites_vdp(void)
     SYS_disableInts();
     refresh_frontend_sprite_palettes_mapped(palette_bank_map, palette_bank_count);
     /* Build 339 proof-only: keep sprite path logic active, suppress only SAT DMA commit. */
-    /* VDP_updateSprites(sprite_count, DMA); */
-    /* VDP_waitDMACompletion(); */
+    VDP_updateSprites(sprite_count, DMA);
+    VDP_waitDMACompletion();
     SYS_enableInts();
 #endif
 }
@@ -2257,8 +2248,6 @@ static void request_start_rastan(void)
     genesistan_sync_title_vdp_layout();
 
     /* Build 316: forced clean VRAM baseline before scene preload */
-    force_clean_vram_init();
-    apply_post_reset_test_palette();
 
     genesistan_preload_scene_tiles(GENESISTAN_SCENE_TITLE);
     clear_frontend_sprite_layer();

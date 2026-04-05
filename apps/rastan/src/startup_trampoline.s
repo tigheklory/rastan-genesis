@@ -93,7 +93,6 @@ genesistan_render_sprites_vdp_bridge:
  */
 genesistan_palette_commit_asm:
     movem.l %d0-%d7/%a0-%a4,-(%sp)
-    addq.w  #1, vdp_commit_palette_count
 
     lea     genesistan_palette_clcs, %a0
 
@@ -846,7 +845,6 @@ genesistan_bulk_tilemap_commit:
     move.w  %d3, %d1                /* row loop counter */
 
 .Lbulk_row_loop:
-    move.l  %a0, bulk_debug_pre_read_a0
     move.w  (%a0)+, %d4
     andi.w  #0x3FFF, %d4
     add.w   %d4, %d4
@@ -878,7 +876,6 @@ genesistan_bulk_tilemap_commit:
  */
 genesistan_pc080sn_commit_planes:
     movem.l %d0-%d1/%a0-%a1, -(%sp)
-    addq.w  #1, vdp_commit_planes_count
     movea.l #0xC00004, %a1          /* VDP control port */
     move.w  #0x8F02, (%a1)          /* auto-increment = 2 */
 

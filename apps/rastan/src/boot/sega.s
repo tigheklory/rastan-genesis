@@ -222,38 +222,6 @@ no_bmp_task:
 
 _VINT_arcade_mode:
         movem.l %d0-%d7/%a0-%a6,-(%sp)
-        /* Build 336 instrumentation: roll 3-frame history and reset per-frame commit counters. */
-        move.w  vdp_commit_last_frame_id_1, %d0
-        move.w  %d0, vdp_commit_last_frame_id_2
-        move.w  vdp_commit_last_planes_count_1, %d0
-        move.w  %d0, vdp_commit_last_planes_count_2
-        move.w  vdp_commit_last_palette_count_1, %d0
-        move.w  %d0, vdp_commit_last_palette_count_2
-        move.w  vdp_commit_last_scroll_count_1, %d0
-        move.w  %d0, vdp_commit_last_scroll_count_2
-
-        move.w  vdp_commit_last_frame_id_0, %d0
-        move.w  %d0, vdp_commit_last_frame_id_1
-        move.w  vdp_commit_last_planes_count_0, %d0
-        move.w  %d0, vdp_commit_last_planes_count_1
-        move.w  vdp_commit_last_palette_count_0, %d0
-        move.w  %d0, vdp_commit_last_palette_count_1
-        move.w  vdp_commit_last_scroll_count_0, %d0
-        move.w  %d0, vdp_commit_last_scroll_count_1
-
-        move.w  vdp_commit_frame_id, %d0
-        move.w  %d0, vdp_commit_last_frame_id_0
-        move.w  vdp_commit_planes_count, %d0
-        move.w  %d0, vdp_commit_last_planes_count_0
-        move.w  vdp_commit_palette_count, %d0
-        move.w  %d0, vdp_commit_last_palette_count_0
-        move.w  vdp_commit_scroll_count, %d0
-        move.w  %d0, vdp_commit_last_scroll_count_0
-
-        addq.w  #1, vdp_commit_frame_id
-        clr.w   vdp_commit_planes_count
-        clr.w   vdp_commit_palette_count
-        clr.w   vdp_commit_scroll_count
         jsr     JOY_update
         jsr     genesistan_refresh_arcade_inputs
         /* --- display-disable bracket: turn off display before VDP writes --- */
@@ -263,17 +231,10 @@ _VINT_arcade_mode:
          * If FG buffer[0] is zero in the plane viewer, the arcade tick is clearing it.
          * Cell (x=0, y=0): buffer index 0, byte offset 0. */
         /* Sentinel: pre-set buffer[0] = 0xFFFF before tick */
-        move.w  #0xFFFF, pc080sn_fg_buffer
         /* Capture BEFORE: read buffer[0] into fg_debug_before */
-        move.w  pc080sn_fg_buffer, %d0
-        move.w  %d0, fg_debug_before
         jsr     genesistan_run_arcade_tick_lean
         /* Capture AFTER: read buffer[0] into fg_debug_after */
-        move.w  pc080sn_fg_buffer, %d0
-        move.w  %d0, fg_debug_after
-        jsr     sanitize_arcade_workram
         /* Render B:XXXX A:XXXX into FG buffer before commit */
-        jsr     genesistan_debug_fg_proof
         jsr     genesistan_pc080sn_commit_planes
         jsr     genesistan_palette_commit_asm
         jsr     genesistan_scroll_commit_vdp
