@@ -210,7 +210,6 @@ genesistan_palette_commit_asm:
  */
 genesistan_render_sprites_vdp_asm:
     /* Build 329 proof-only: suppress sprite-layer output to isolate Plane A visibility. */
-    rts
     movem.l %d0-%d7/%a0-%a6,-(%sp)
 
     lea     genesistan_arcade_workram_words, %a5

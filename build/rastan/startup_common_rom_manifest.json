@@ -1128,7 +1128,7 @@
       "rom_pc": "0x05A6FA",
       "original_bytes": "3800244932c232d85340",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4ef9002030984e714e71",
+      "replacement_bytes": "4ef9002030964e714e71",
       "note": "Hook PC080SN block-write copy engine: JMP (not JSR) to assembly VDP commit \u2014 RTS returns to original caller, not to overwritten routine body."
     },
     {
@@ -1794,21 +1794,21 @@
   ],
   "normal_result_stub": {
     "address": "0x03B25C",
-    "jumps_to": "0x002032A8",
+    "jumps_to": "0x002032A6",
     "end_exclusive": "0x03B270"
   },
   "test_result_stub": {
     "address": "0x03B270",
     "writes_status_to": "0xE0FF686A",
     "value": 2,
-    "jumps_exit_to": "0x002032E4",
+    "jumps_exit_to": "0x002032E2",
     "end_exclusive": "0x03B27E"
   },
   "test_jump_patch": {
     "patched_at": "0x03B258",
     "new_target": "0x03B270"
   },
-  "checksum": "0x263F",
+  "checksum": "0xD8AF",
   "startup_vectors": {
     "initial_sp": "0xE1000000",
     "reset_pc": "0x00219BC4",
