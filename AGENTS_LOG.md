@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy - Analysis, PC080SN Tilemap Correctness Audit]
+
+* attr LUT bit mapping verified: YES — PC080SN attr_word bits 0-1 (palette), 13 (priority), 14 (hflip), 15 (vflip) correctly map to Genesis nametable bits 14-13, 15, 11, 12
+* tile VRAM LUT verified: YES — arcade tile index masked to 14 bits, precomputed slot lookup, tile 0 maps to VRAM slot 0 (blank), scene tiles to slots 20–1183
+* WRAM buffer geometry verified: YES — row*128 + col*2 offset, 64×32 words per buffer, row-major layout matches Genesis nametable
+* VDP commit commands verified: YES — 0x40000003 (VRAM 0xC000 = Plane B/BG), 0x60000003 (VRAM 0xE000 = Plane A/FG), both correct
+* strip access pattern verified: YES — BG: table_base + strip*2 + row*8; FG: table_base + strip*8 + col*2; matches precompute scan
+* VDP register configuration verified: YES — reg2=0x38 to 0xE000 (Plane A), reg4=0x06 to 0xC000 (Plane B), Window OFF after Build 327 fix
+* translation pipeline bugs found: NONE — all bit mappings, LUT indexing, and commit mechanisms are correct
+* single root cause identified: YES — DEST_PTR_NEVER_INITIALIZED
+* root cause description: workram 0x10A0 (BG dest_ptr) and 0x10A4 (FG dest_ptr) start at 0 and remain 0 for entire session; all arcade stores to these offsets are either inside replaced hook routines (gone) or covered by NOP patches (0x055E54, 0x055818 for BG; 0x0556F2, 0x05577E for FG); hooks always take out-of-range branch, WRAM buffers never written
+* secondary items audited: YES — tile VRAM coverage, desc list validity, VSRAM command format, tile preload timing — all correct
+* single correction path: initialize workram bytes at 0x10A0 = 0x00C00000 and 0x10A4 = 0x00C08000 in startup_bridge.c before first arcade tick; hooks will function from frame 1
+* design doc: docs/design/Andy_tilemap_correctness_audit.md
+* no implementation performed
+
 ## [Andy - Implementation, Window Plane Disable Fix]
 
 - **Files changed**: `apps/rastan/src/main.c`
@@ -25627,4 +25643,53 @@ Full comparison of VBlank interrupt paths and non-interrupt VDP access between R
 * master cleanup candidates listed: YES
 * single most important next non-code step: BUILD_MASTER_DIAGNOSTIC_DEBT_DOCUMENT
 * design doc: docs/design/Andy_diagnostic_debt_audit.md
+* no implementation performed
+
+## [Cody - Analysis, No-SGDK Direct-Execution Proposal]
+
+* parallel app structure proposed: YES
+* execution model defined: YES
+* VDP ownership model defined: YES
+* input model defined: YES
+* migration phases defined: YES
+* risks and assumptions documented: YES
+* single final recommendation: create `apps/rastan-direct/` as a minimal C+assembly direct-boot branch with no SGDK runtime ownership
+* no implementation performed
+
+## [Cody - Analysis, Rainbow Islands VDP Template Analysis]
+
+* rainbow islands video / vdp routines identified: YES
+* VBlank model identified: YES
+* tilemap commit model identified: YES
+* sprite commit model identified: YES
+* palette commit model identified: YES
+* scroll commit model identified: YES
+* template-relevant patterns extracted: YES
+* non-transferable assumptions identified: YES
+* single final template recommendation: adopt Rainbow Islands’ ROM-owned direct-boot + single VBlank commit orchestrator + WRAM-staged video state contract, adapted to Rastan-specific staging/data/layout contracts
+* no implementation performed
+
+## [Cody - Analysis, Rainbow Islands Sound Translation Analysis]
+
+* sound architecture identified: YES
+* 68000 ↔ Z80 communication model identified: YES
+* Z80 driver structure identified: YES
+* sound command format identified: YES
+* arcade-to-genesis translation model identified: YES
+* timing model identified: YES
+* template patterns extracted: YES
+* non-transferable assumptions identified: YES
+* rastan direct sound model defined: YES
+* single final recommendation: use Rainbow Islands’ 68000 ring-queue + VBlank mailbox transfer + Z80-owned synthesis model, adapted with Rastan-specific command translation tables and data
+* no implementation performed
+
+## [Cody - Analysis, Rastan vs Rainbow Tilemap Mismatch]
+
+* rainbow tilemap pipeline defined: YES
+* rastan tilemap pipeline defined: YES
+* full pipeline comparison completed: YES
+* destination pointer model matches: NO
+* first divergence point identified: YES
+* andy root cause validated: YES
+* single root cause: Rastan does not initialize workram tilemap destination pointers `0x10A0`/`0x10A4`, so hook execution stays on invalid-destination branch and skips assembly tilemap buffer writes
 * no implementation performed
