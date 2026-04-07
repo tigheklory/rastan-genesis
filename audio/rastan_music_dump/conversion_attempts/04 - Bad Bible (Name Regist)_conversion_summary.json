@@ -1,0 +1,31 @@
+{
+  "input_vgm": "audio/rastan_music_dump/converted_vgm/04 - Bad Bible (Name Regist).vgm",
+  "data_start_offset": 128,
+  "commands_parsed": 2448,
+  "last_sample_clock": 98173,
+  "last_time_seconds": 2.2261451247165533,
+  "cmd_counts_hex": {
+    "0x54": 1141,
+    "0x61": 229,
+    "0x66": 1,
+    "0x70": 185,
+    "0x71": 182,
+    "0x72": 112,
+    "0x73": 116,
+    "0x74": 25,
+    "0x75": 28,
+    "0x76": 82,
+    "0x77": 40,
+    "0x78": 12,
+    "0x79": 10,
+    "0x7A": 43,
+    "0x7B": 24,
+    "0x7C": 6,
+    "0x7D": 15,
+    "0x7E": 14,
+    "0x7F": 183
+  },
+  "parse_errors": [],
+  "events_csv": "audio/rastan_music_dump/conversion_attempts/04 - Bad Bible (Name Regist)_events.csv",
+  "ym2151_csv": "audio/rastan_music_dump/conversion_attempts/04 - Bad Bible (Name Regist)_ym2151_writes.csv"
+}

@@ -1,0 +1,31 @@
+{
+  "input_vgm": "audio/rastan_music_dump/converted_vgm/09 - The Man Of Saga (Ending).vgm",
+  "data_start_offset": 128,
+  "commands_parsed": 106119,
+  "last_sample_clock": 3740439,
+  "last_time_seconds": 84.81721088435374,
+  "cmd_counts_hex": {
+    "0x54": 42606,
+    "0x61": 10657,
+    "0x66": 1,
+    "0x70": 15964,
+    "0x71": 4254,
+    "0x72": 2145,
+    "0x73": 566,
+    "0x74": 90,
+    "0x75": 399,
+    "0x76": 1001,
+    "0x77": 396,
+    "0x78": 31,
+    "0x79": 13,
+    "0x7A": 359,
+    "0x7B": 535,
+    "0x7C": 192,
+    "0x7D": 260,
+    "0x7E": 105,
+    "0x7F": 26545
+  },
+  "parse_errors": [],
+  "events_csv": "audio/rastan_music_dump/conversion_attempts/09 - The Man Of Saga (Ending)_events.csv",
+  "ym2151_csv": "audio/rastan_music_dump/conversion_attempts/09 - The Man Of Saga (Ending)_ym2151_writes.csv"
+}

@@ -25693,3 +25693,312 @@ Full comparison of VBlank interrupt paths and non-interrupt VDP access between R
 * andy root cause validated: YES
 * single root cause: Rastan does not initialize workram tilemap destination pointers `0x10A0`/`0x10A4`, so hook execution stays on invalid-destination branch and skips assembly tilemap buffer writes
 * no implementation performed
+
+## [Andy - Analysis, Rastan Arcade Sound and Rainbow Bridge]
+
+* rastan arcade sound hardware path identified: YES
+* rastan sound command write sites identified: YES
+* rastan sound command format identified: YES
+* rastan sound command flow identified: YES
+* rastan sound command categories identified: YES
+* rastan direct capture model defined: YES
+* rainbow-style bridge model defined for rastan: YES
+* risks and non-transferable assumptions documented: YES
+* single final recommendation: patch 0x3F084 entry point; enqueue (0x00 << 8) | arcade_cmd_byte into 68000 WRAM ring; VBlank mailbox transfer to Z80; Z80 decodes class 0x00 and dispatches via Rastan-specific command table to YM2612/PSG/DAC; no 68000-side translation
+* no implementation performed
+
+## [Andy - Analysis, PC0900J Sprite Correctness Audit]
+
+* pc0900j sprite format defined: YES
+* arcade sprite write mechanism identified: YES
+* genesis sat format defined: YES
+* translation path traced: YES
+* sprite tile index mapping correct: NO
+* attribute mapping correct: YES
+* position mapping correct: YES
+* sprite linking/order correct: YES
+* root cause identified: VDP DMA command address encoding in .Lspr_dma_tile drops bits 14-15 of VRAM destination — swap/andi extracts 0 for all 16-bit addresses; DMA writes sprite tiles to VRAM 0x0000-0x0B80 (tiles 0-87) instead of 0x8000-0x8B80 (tiles 1024-1108); SAT entries reference tiles 1024+ which receive no pixel data
+* single correction path defined: YES — replace `move.l %d0,%d2; swap %d2; andi.w #0x0003,%d2` with `move.l %d0,%d2; lsr.l #14,%d2; andi.w #0x0003,%d2` in startup_trampoline.s .Lspr_dma_tile subroutine (lines 330-332)
+* no implementation performed
+
+## [Cody - Implementation, Rastan Music Dump Conversion Attempt]
+
+* source music dump inventory completed: YES
+* vgz files decompressed to vgm: YES
+* vgm validation completed: YES
+* practical conversion attempt completed: YES
+* usable intermediate artifacts produced: YES
+* exact tool availability documented: YES
+* single next-step recommendation: USE_TEXT_OR_EVENT_DUMPS_AS_DRIVER_INPUT_REFERENCE
+* no game-source implementation performed
+
+## [Cody - Implementation, VGZ to MIDI Conversion]
+
+- vgz files processed: 9
+- vgm files generated: 9
+- midi files generated: 9
+- any failures: NO
+- conversion method used: python3 custom YM2151 VGM parser + MIDI Type-1 writer (8 YM channels + meta track)
+- no game-source changes made
+
+## [Cody - Implementation, VGZ/VGM to Furnace Conversion Attempt]
+
+* source dump inventory completed: YES
+* vgz files decompressed to vgm: YES
+* `vgm2fur` acquired: YES
+* `vgm2fur` build/run attempted: YES
+* `.fur` conversion attempted for all sources: YES
+* any valid `.fur` files produced: NO
+* exact failures documented: YES
+* no game-source changes made
+
+## [Cody - Implementation, Direct VGM-to-Furnace Generation Attempt]
+
+* `.fur` generation inventory completed: YES
+* minimum `.fur` structure determined: YES
+* vgm event extraction completed: YES
+* automated `.fur` generation attempted: YES
+* any plausibly valid `.fur` files produced: YES
+* extracted event artifacts produced: YES
+* exact blockers documented: YES
+* no game-source changes made
+
+## [Andy - Analysis, Rastan Sound Command Execution Verified]
+
+* entry point confirmed: YES
+* register state at call defined: YES
+* exact command format defined: YES
+* write sequence to hardware defined: YES
+* timing characteristics defined: YES
+* command frequency characterized: YES
+* queue vs immediate behavior determined: YES
+* edge cases documented: YES
+* strict contract defined: YES
+* no implementation performed
+
+## [Cody - Implementation, Minimal Genesis Sound Bring-Up]
+
+* standalone ROM builds: YES
+* Z80 initialized: YES
+* YM2612 produces sound: NO
+* command switching works: NO
+* no SGDK used: YES
+
+## [Cody - Implementation, Forced Z80 YM2612 Tone Debug]
+
+* files changed: `apps/rastan-direct/src/sound/z80_driver.s`, `apps/rastan-direct/src/sound/sound_comm.s`, `docs/design/Cody_rastan_direct_forced_z80_tone_debug.md`, `AGENTS_LOG.md`
+* build produced: YES
+* ROM artifact path: `apps/rastan-direct/dist/rastan_direct_sound_test.bin`
+* permanent items added: none
+* temporary items added: none
+* diagnostic items added: Z80 run marker/heartbeat writes in `z80_driver_start`; marker probe + diagnostic log write block in `z80_init_and_start`
+* bringup-only items added: forced hardcoded tone loop in `z80_driver_start` replacing mailbox command decode
+* scaffolding inventory documented: YES
+* removal / revert plan documented: YES
+* z80 code definitely running: YES
+* ym2612 init writes executed: NO
+* hardcoded tone attempted: YES
+* audible output produced: NO
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, rastan-direct video bring-up plan]
+
+* first real video test target defined: YES
+* required arcade opcode paths identified: YES
+* ordered video bring-up phases defined: YES
+* prior audit fixes integrated: YES
+* required WRAM contracts defined: YES
+* exact VBlank commit order defined: YES
+* out-of-scope items defined: YES
+* single final implementation order: 29-step linear sequence across 6 phases (boot, tilemap+palette, scroll, sprites, attract output)
+* no implementation performed
+
+## [Cody - Implementation, rastan-direct video backbone bring-up]
+
+* rainbow islands model enforced: YES
+* single VDP owner enforced: YES
+* staging vs commit separation enforced: YES
+* files changed: `apps/rastan-direct/src/main_68k.s`, `apps/rastan-direct/src/boot/boot.s`, `apps/rastan-direct/Makefile`, `docs/design/Cody_rastan_direct_video_backbone_bringup.md`, `AGENTS_LOG.md`
+* build produced: YES
+* ROM artifact path: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* tilemap visible: NO
+* palette correct: NO
+* scroll staged: YES
+* sprites active: NO
+* mandatory tilemap fix integrated: YES
+* mandatory sprite DMA fix integrated: YES
+* permanent items added: VBlank-owned staged commit backbone, VBlank vector ownership, DEST_PTR initialization, sprite DMA high-bit fix helper, renamed video test artifact
+* temporary items added: none
+* diagnostic items added: none
+* bringup-only items added: synthetic staged tile/palette data and checkerboard/FG stripe population in `init_staging_state`
+* scaffolding inventory documented: YES
+* removal / revert plan documented: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, audit of Cody rastan-direct video backbone]
+
+* code audited: YES
+* phase compliance verified: YES
+* rainbow islands model compliance verified: YES
+* VDP initialization audited: YES
+* palette path audited: YES
+* tilemap path audited: YES
+* mandatory fix integration audited: YES
+* single white-screen cause identified: VDP reg 4 set to 0x07 (Plane B display maps to VRAM 0xE000) instead of 0x06 (Plane B display maps to VRAM 0xC000); vdp_commit_bg correctly writes to 0xC000 every VBlank but the VDP reads Plane B from 0xE000 during display; BG content is never rendered
+* single next correction for Cody: change vdp_boot_setup register 4 write from moveq #0x07 to moveq #0x06 (main_68k.s line 100)
+* no implementation performed
+
+## [Cody - Implementation, Plane B base register fix]
+
+* files changed: `apps/rastan-direct/src/main_68k.s`, `docs/design/Cody_plane_b_base_fix.md`, `AGENTS_LOG.md`
+* build produced: YES
+* ROM/binary artifact path: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* ROM artifact path: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* plane b register corrected to 0x06: YES
+* no other behavioral changes made: YES
+* permanent items added: Plane B base register correction in `vdp_boot_setup` (`0x07` -> `0x06`)
+* temporary items added: none
+* diagnostic items added: none
+* bringup-only items added: none
+* scaffolding inventory documented: YES
+* removal / revert plan documented: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, post-plane-b-fix palette audit]
+
+* code audited: YES
+* post-fix VDP state audited: YES
+* CRAM write path audited: YES
+* palette source data audited: YES
+* tile attribute / palette selection audited: YES
+* single white-display cause identified: vdp_commit_bg and vdp_commit_fg write 4096 words unconditionally every VBlank via CPU loops (~57,000 cycles vs ~7,400 available); display-ON fires ~50,000 cycles after VBlank ends during active display; VDP outputs CRAM[0] (background color) for the entire visible frame; CRAM[0] = 0x0EEE (white) from emulator power-on until palette commit fires
+* single next correction for Cody: add bg_dirty and fg_dirty flags (same pattern as existing palette_dirty and tiles_dirty); set both to 1 in init_staging_state; guard vdp_commit_bg and vdp_commit_fg with tst/beq/clr guards so nametables commit only once on first VBlank; drops per-frame VBlank CPU usage from ~57,000 cycles to ~200 cycles; allows display-ON to fire inside VBlank from frame 2 onward
+* no implementation performed
+
+## [Andy - Analysis, rastan-direct display tightening against Rainbow]
+
+* current VBlank work characterized: YES
+* exact wasted work identified: YES
+* Rainbow Islands timing/commit model compared directly: YES
+* Rainbow Islands DMA usage characterized: YES
+* correct rastan-direct DMA policy defined: YES
+* current DMA misuse / non-use assessed: YES
+* single next DMA-related instruction for Cody: Do not add DMA to fix the current VBlank overrun; add bg_dirty and fg_dirty flags to gate the existing CPU copy loops so they fire only when the arcade tick has set the dirty flags
+* Rainbow Islands arcade-to-Genesis translation discipline characterized: YES
+* lessons for rastan-direct extracted: YES
+* Cody current approach matches Rainbow Islands porting discipline: NO
+* single most important porting lesson for Cody: Never write a full nametable plane unconditionally — all nametable commits must be gated by a dirty flag, and once the arcade tick is integrated, commits must be strip-sized to match only what the arcade hook actually changed
+* exact tighter display strategy defined: YES
+* exact code-change classes identified: YES
+* single next implementation target for Cody: Add bg_dirty and fg_dirty byte flags in .bss, initialize both to 1 in init_staging_state, and wrap vdp_commit_bg and vdp_commit_fg with the same tst.b / beq.s / clr.b guard pattern already used by vdp_commit_tiles_if_dirty — so nametable CPU copy loops execute only when flagged and skip in approximately 8 cycles when not flagged
+* ordered follow-on optimization sequence defined: YES
+* no implementation performed
+
+## [Cody - Implementation, bg_dirty/fg_dirty guard fix]
+
+* files changed: `apps/rastan-direct/src/main_68k.s`, `docs/design/Cody_bg_fg_dirty_guard_fix.md`, `AGENTS_LOG.md`
+* build produced: YES
+* ROM artifact path: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* bg_dirty added: YES
+* fg_dirty added: YES
+* BG commit executes only when dirty: YES
+* FG commit executes only when dirty: YES
+* no DMA introduced: YES
+* no other behavioral changes made: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, palette diagnosis after recent fixes]
+
+* code audited: YES
+* current palette/cram failure diagnosed: YES
+* current palette data diagnostic usefulness assessed: YES
+* exact diagnostic palette defined: YES
+* tile attribute / palette usage audited: YES
+* single current cause identified: palette_init_words entry 7 = 0x0EEE (white) is identical to emulator power-on CRAM state; CRAM writes ARE occurring but the committed value at entry 7 is non-falsifiable against the unwritten state; additionally 32 of 64 CRAM entries are all-zero (black, entries 8-15 of all palette lines) which are equally non-diagnostic; the palette cannot prove CRAM write function for 33 of 64 entries
+* single next correction for Cody: replace palette_init_words palette 0 entry 7 from 0x0EEE (white) to 0x020C (orange-red), and replace all 32 zero-value entries at positions 32-63 of palette_init_words with distinct non-zero non-white mid-tone values; white display then DEFINITIVELY means CRAM not written; any colored display DEFINITIVELY proves CRAM write function; no entry in the corrected palette equals the emulator power-on CRAM state (0x0EEE)
+* no implementation performed
+
+## [Cody - Implementation, diagnostic palette replacement]
+
+* files changed: `apps/rastan-direct/src/main_68k.s`, `docs/design/Cody_diagnostic_palette_replacement.md`, `AGENTS_LOG.md`
+* build produced: YES
+* ROM artifact path: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* palette 0 entry 7 replaced with 0x020C: YES
+* zero-filled diagnostic-hostile entries replaced: YES
+* permanent items added: none
+* temporary items added: none
+* diagnostic items added: replacement diagnostic `palette_init_words` values
+* bringup-only items added: none
+* scaffolding inventory documented: YES
+* removal / revert plan documented: YES
+* no other behavioral changes made: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, VDP init mismatch vs Rainbow Islands]
+
+* VDP init fully extracted: YES
+* required Genesis VDP init defined: YES
+* compared against Rainbow Islands / working branch: YES
+* root cause identified: linker script (`apps/rastan-direct/link.ld`) places `.bss` section at ROM address space (immediately after `.text`/`.rodata`/`.data` with no VMA override), not at Genesis WRAM (0xFF0000+); all `.bss` variables (`palette_dirty`, `bg_dirty`, `fg_dirty`, `tiles_dirty`, `frame_counter`, `staged_bg_buffer`, `staged_fg_buffer`, `staged_palette_words`, `staged_tile_words`) resolve to ROM addresses; writes to ROM addresses are silently ignored on Genesis; all dirty flags always read as 0 from ROM binary; `vdp_commit_palette` is never called → CRAM never written → BlastEm CRAM debugger empty; display-ON fires but all tile/palette content is zero or random → black screen in BlastEm; Exodus handles ROM-space BSS differently → white/invalid display
+* single next correction for Cody: in `apps/rastan-direct/link.ld`, add a VMA of `0xFF0000` to the `.bss` section so it is linked at WRAM start: change `.bss (NOLOAD) :` to `.bss 0xFF0000 (NOLOAD) :` — this causes all `.bss` variables to resolve to valid writable WRAM addresses, dirty flags work correctly, palette commit fires on first VINT, CRAM is populated, and the display shows correct tile content
+* no implementation performed
+
+## [Cody - Implementation, .bss VMA WRAM fix]
+
+* files changed: `apps/rastan-direct/link.ld`, `docs/design/Cody_bss_vma_wram_fix.md`, `AGENTS_LOG.md`
+* build produced: YES
+* ROM artifact path: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* `.bss` VMA set to 0xFF0000: YES
+* no other behavioral changes made: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, post-bss video artifact diagnosis]
+
+* BG plane correct: YES
+* FG plane correct: NO
+* commit timing correct: YES
+* dirty flag behavior correct: YES
+* scroll behavior correct: NO
+* root cause identified: `init_staging_state` fills FG row 0 with tile-3/palette-1 entries (`0x2003`); palette 1 color index 3 = `0x0E00` = BLUE; `arcade_tick_logic` drives `staged_scroll_y_fg` from `(tick_counter >> 1) & 0x001F` (cycles 0–31 every 64 frames); when y_fg scroll wraps back to 0 the blue row-0 stripe of Plane A appears at the top of the visible display — causing the periodic blue region from top; no race condition, no intermittent commit — the stripe is always in VRAM, the scroll animation periodically scrolls it into view
+* single next correction for Cody: in `apps/rastan-direct/src/main_68k.s`, in `init_staging_state`, change the `.Lfg_row0` fill loop to write `0x0000` instead of `0x2003` (or delete the loop entirely, since the buffer was already cleared to all zeros in the preceding `.Lfg_clear` loop); this makes the entire FG plane transparent for the bring-up test and eliminates the blue artifact
+* no implementation performed
+
+## [Andy - Analysis, verify FG top-band artifact]
+
+* BG plane verified: YES
+* FG plane verified: YES
+* FG scroll behavior verified: YES
+* deeper timing/commit issue required: NO
+* single root cause identified: init_staging_state .Lfg_row0 loop writes 0x2003 (tile 3, palette 1, entry 3 = 0x0800 = blue) to FG row 0; arcade_tick_logic drives staged_scroll_y_fg = (tick_counter >> 1) & 0x001F cycling 0-31 every 64 frames; when scroll returns to 0 the blue row-0 stripe of Plane A appears at the top of the visible display
+* single next correction for Cody: in apps/rastan-direct/src/main_68k.s, in init_staging_state, delete the .Lfg_row0 fill loop (the lea staged_fg_buffer + move.w #(64-1) + .Lfg_row0: label + move.w #0x2003 + dbra block); the .Lfg_clear loop already zeroes all 2048 words so no additional write to row 0 is needed; this makes the entire FG plane transparent and eliminates the artifact
+* no implementation performed
+
+## [Cody - Implementation, FG row0 bring-up stripe removal]
+
+* files changed: `apps/rastan-direct/src/main_68k.s`, `docs/design/Cody_fg_row0_bringup_stripe_removal.md`, `AGENTS_LOG.md`
+* build produced: YES
+* ROM artifact path: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* FG row0 stripe removed or zeroed: YES
+* no other behavioral changes made: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, VBlank efficiency audit and transition plan]
+
+* VBlank workload measured: YES
+* steady-state within safe budget: YES
+* inefficiencies fully identified: YES
+* compared against Rainbow Islands: YES
+* target model defined: YES
+* single next step defined: Remove vdp_commit_fg from VBlank path and delete fg_dirty flag (eliminates 49,208-cycle unnecessary zero-plane FG upload on frame 1; zero functional regression; direct alignment with Rainbow Islands strip-only model)
+* ordered transition plan defined: YES
+* no implementation performed
+
+## [Cody - Implementation, remove FG full-plane commit]
+
+* files changed: `apps/rastan-direct/src/main_68k.s`, `docs/design/Cody_remove_fg_full_plane_commit.md`, `AGENTS_LOG.md`
+* build produced: YES
+* ROM artifact path: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* vdp_commit_fg removed: YES
+* fg_dirty removed: YES
+* no other behavioral changes made: YES
+* no undocumented scaffolding added: YES

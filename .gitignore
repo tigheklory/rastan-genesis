@@ -46,3 +46,5 @@ states/screenshots/**/*.jpg
 
 # Keep the directory structure
 !states/screenshots/**/.gitkeep
+
+audio/rastan_music_dump/tools/vgm2fur/

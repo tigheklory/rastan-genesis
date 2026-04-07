@@ -1,0 +1,3 @@
+channel,midi_note,furnace_note,start_sample,end_sample,start_row,end_row
+6,32,80,4886,6279,6,8
+7,32,80,5619,7009,7,9

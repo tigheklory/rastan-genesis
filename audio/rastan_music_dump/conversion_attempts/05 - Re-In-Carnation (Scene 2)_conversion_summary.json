@@ -1,0 +1,31 @@
+{
+  "input_vgm": "audio/rastan_music_dump/converted_vgm/05 - Re-In-Carnation (Scene 2).vgm",
+  "data_start_offset": 128,
+  "commands_parsed": 106199,
+  "last_sample_clock": 4355932,
+  "last_time_seconds": 98.77396825396825,
+  "cmd_counts_hex": {
+    "0x54": 44340,
+    "0x61": 7333,
+    "0x66": 1,
+    "0x70": 18869,
+    "0x71": 5845,
+    "0x72": 2956,
+    "0x73": 1267,
+    "0x74": 169,
+    "0x75": 694,
+    "0x76": 2020,
+    "0x77": 977,
+    "0x78": 5,
+    "0x79": 9,
+    "0x7A": 617,
+    "0x7B": 748,
+    "0x7C": 37,
+    "0x7D": 395,
+    "0x7E": 49,
+    "0x7F": 19868
+  },
+  "parse_errors": [],
+  "events_csv": "audio/rastan_music_dump/conversion_attempts/05 - Re-In-Carnation (Scene 2)_events.csv",
+  "ym2151_csv": "audio/rastan_music_dump/conversion_attempts/05 - Re-In-Carnation (Scene 2)_ym2151_writes.csv"
+}
