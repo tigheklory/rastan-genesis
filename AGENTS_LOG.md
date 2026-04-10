@@ -26485,3 +26485,96 @@ DEFERRED — DO NOT INVESTIGATE UNTIL ARCHITECTURE CLEANUP COMPLETE
 * single root issue identified: the profiling plan directed Genesis hook instrumentation to measure arcade tile working sets, but the Genesis wrapper is non-functional as a display system and cannot produce representative observations; the arcade tile working set data was already fully available from the static analysis that generated the LUT
 * single corrected next step defined: no additional profiling needed; confirm per-scene tile counts match estimates by re-running precompute_pc080sn_tile_lut.py, then direct Cody to implement init_arcade_tile_vram using the already-generated LUT — without adding any WRAM bitmask instrumentation to main_68k.s
 * no implementation performed
+## [Cody - Analysis, independent VRAM budget verification]
+
+* LUT completeness verified: NO
+* LUT limitations identified: YES
+* PC080SN tile space derived: YES
+* PC090OJ sprite usage estimated: YES
+* mode variation evaluated: YES
+* VRAM budget independently calculated: YES
+* preload safety determined: YES
+* failure scenarios identified: YES
+* rainbow islands comparison completed: YES
+* single root risk identified: scene-aliased LUT cannot be used as a globally unique preload map
+* single verified next step: B. Require mode-based loading system
+* no implementation performed
+
+## [Andy - Analysis, mode-based PC080SN tile residency system]
+
+* residency buckets defined exactly: YES — three buckets: Title/Attract (scene 0, 841 pairs, max slot 860), Gameplay (scene 1, 829 pairs, max slot 848), End-Round (scene 2, 1067 pairs, max slot 1342); source address ranges fully disjoint; confirmed from binary inspection of build/pc080sn_scene_preload_*.bin
+* global preload rejection explained exactly: YES — 779 of 1067 occupied VRAM slots are aliased across scenes (different arcade tile indices per scene for the same slot); one-time global upload leaves wrong tile data per aliased slot for every scene that is not the one that was preloaded; this is a deterministic correctness failure on all scene transitions
+* mode-based residency system defined exactly: YES — Option A: full reload on mode change; display disabled; iterate new scene manifest (u16 arcade_tile, u16 vram_slot) pairs; write 16 words raw from genesistan_pc080sn_tile_rom + (arcade_tile << 5) to VDP; re-enable display; no diff, no incremental, no LRU
+* mode transition trigger defined exactly: YES — block-write hook compares A0 (PC080SN source address) against genesistan_scene_a0_lo/hi; on range miss: determine new scene_id by comparing A0 against three hardcoded (lo, hi) pairs; call load_scene_tiles(new_scene_id); update scene state
+* upload timing / visibility rule defined exactly: YES — display disabled before first tile write; interrupts masked; all writes synchronous CPU (no DMA); display re-enabled after last tile write; brief black period during transition is acceptable
+* VRAM partition defined exactly: YES — slot 0: transparent; slots 1-3: synthetic scaffolding tiles; slots 4-19: unused; slots 20-1342: PC080SN current scene tiles (mode-dependent); slots 1343-1535: reserved for PC090OJ sprites; N=1342 (largest manifest max slot)
+* minimal first implementation defined exactly: YES — Title scene only; embed pc080sn.bin + three manifest files via .incbin in main_68k.s rodata; add 3 BSS WRAM fields; implement load_scene_tiles function in assembly; call load_scene_tiles(0) from main_68k between vdp_boot_setup and init_staging_state; single file change
+* Rainbow Islands residency model identified exactly: YES — genesistan_preload_scene_tiles in apps/rastan/src/main.c: iterates (arcade_tile, vram_slot) manifest; VDP_loadTileData per pair; scene-change detection via genesistan_bulk_preload_check comparing source_addr against stored scene bounds; Title preloaded explicitly at boot before first arcade tick
+* reusable parts identified exactly: YES — scene-scoped preload principle; manifest format; source address range detection; display-disable bracketing; per-scene (lo, hi) bounds table; genesistan_current_scene_id/scene_a0_lo/scene_a0_hi WRAM state
+* non-reusable parts identified exactly: YES — VDP_loadTileData SGDK API; VDP_waitDMACompletion; genesistan_scene_manifest_for_id C switch; genesistan_scene_id_from_source_addr source-scene map binary scan; all SGDK types and DMA modes
+* Rainbow-derived design rules defined exactly: YES — 8 rules: tile data before nametable reference; manifests are authority; full reload per transition; display off during upload; scene state in WRAM; scene detection by source address range; boot loads Title first; scaffolding slots 1-3 and PC080SN slots 20-1342 do not overlap
+* single root cause identified: PC080SN tile VRAM LUT is scene-aliased (779 of 1067 occupied slots map to different arcade tile indices in different scenes), making one-time global preload a deterministic wrong-tile rendering failure on all scene transitions
+* single next correction defined: implement load_scene_tiles in apps/rastan-direct/src/main_68k.s; embed pc080sn.bin + three manifest files via .incbin; add WRAM scene state; call load_scene_tiles(SCENE_TITLE=0) from main_68k between vdp_boot_setup and init_staging_state
+* what-must-not-be-changed-yet defined: YES — checkerboard scaffolding; sprite system; genesistan_pc080sn_tile_vram_lut and .incbin; _VINT_handler structure; genesistan_hook_tilemap_plane_a translation logic; patcher; Makefile; all 34 opcode_replace entries; rom_absolute_call_relocation; A5 init; VRAM_TILE_BASE; WRAM profiling bitmask instrumentation must not be added
+* no implementation performed
+## [Andy - Analysis, tile reference correctness under mode residency]
+
+* reference chain defined exactly: YES — 8-step chain from arcade descriptor write to VDP pixel render; hook extracts 14-bit tile index, LUT maps to vram_slot, nametable word committed via staged_bg_buffer, VDP renders from vram_slot*32
+* LUT semantic meaning defined exactly: YES — globally consistent scene-aware slot assignment: lut[T]=S invariant across all scenes containing T; slot pixel data changes per scene for aliased slots (779 aliased), slot assignment does not
+* LUT/manifest consistency validated exactly: YES — programmatic: all 841 title pairs, all 829 gameplay pairs, all 1067 endround pairs match LUT; 2326 nonzero LUT entries all in at least one manifest; 0 inconsistencies; each manifest is a bijection on slots
+* single-scene residency correctness proven: YES — correctness condition holds for all three scenes: every tile in scene X's tile set is in scene X's manifest; every manifest entry matches the LUT; each manifest is bijective; 349 cross-scene tiles use same slot in all scenes; 0 tiles with different slots across scenes
+* additional remap layer requirement defined exactly: YES — NO additional remap layer required; LUT is globally consistent; no arcade tile index maps to different slots in different scenes; single LUT + per-scene manifests is sufficient
+* SGDK failure mode explained exactly: YES — Build 293/294: adda.w #0x0014,%a4 caused BG+FG assembly commit functions to read tile codes from WRAM shadow region (A2+0x14+D7) instead of hardware tile region (A2+0+D7); LUT updated in same wrong direction; both consistently wrong together (wrong-tiles not blank-tiles); fixed in Build 295 by deleting +0x14 displacement and reverting Python tile-address formula
+* recurrence risk in current design determined exactly: YES — ZERO recurrence risk; genesistan_hook_tilemap_plane_a reads tile code at offset 0 from strip table pointer (move.w (%a4),%d3) matching the A2+0 correct arcade formula; no WRAM-shadow region ambiguity; +0x14 displacement is not present and has no path to be introduced
+* ROM-resident lookup design validated: YES — LUT already .incbin in .rodata (ROM); scene manifests to be .incbin in .rodata (ROM); only WRAM needed: genesistan_current_scene_id (1 byte) + genesistan_scene_a0_lo/hi (8 bytes) = 9 bytes total; no runtime writes to LUT or manifests ever required
+* final lookup/residency contract defined exactly: YES — precondition: load_scene_tiles(X) called with display off before first nametable commit of scene X; invariant: lut[T]=S nonzero for every T referenced by X; VRAM[S*32] holds pixel data for T; WRAM: 3 variables gate scene-change detection; ROM: LUT and manifests read-only
+* Rainbow Islands reference-correctness model identified exactly: YES — single global LUT with cross-scene slot reuse (greedy coloring) + per-scene manifests + scene-scoped preload at scene entry; NOT per-scene LUTs; same model as rastan implementation; forced by VRAM overflow in RI SGDK port; forced by slot-aliasing correctness in rastan-direct; both arrive at identical architecture
+* single root risk identified: scene-transition preload trigger not yet wired to genesistan_hook_tilemap_plane_a; load_scene_tiles(SCENE_TITLE) is called at boot but hook does not yet call load_scene_tiles for Gameplay or End-Round transitions; aliased slots retain Title pixel data on scene change
+* single next correction defined: wire load_scene_tiles to genesistan_hook_tilemap_plane_a — add A0 range check before descriptor loop; compare A0 against stored lo/hi bounds; if out of range, determine new scene ID from hardcoded bounds table, call load_scene_tiles(new_scene_id), update WRAM scene state
+* what-must-not-be-changed-yet defined: YES — genesistan_pc080sn_tile_vram_lut and .incbin; all three scene manifest binaries; genesistan_hook_tilemap_plane_a translation logic (descriptor loop unchanged, only scene-detection preamble added); checkerboard scaffolding; sprite system; _VINT_handler; patcher; Makefile; 34 opcode_replace entries; rom_absolute_call_relocation; A5 init; VRAM_TILE_BASE; precompute_pc080sn_tile_lut.py
+* no implementation performed
+
+## [Andy - Analysis, scene/mode transition trigger spec]
+
+* trigger location defined exactly: YES — after dest-validation block, before line 222 (where A0 is overwritten with descriptor list base); specifically between `andi.w #0x001F, %d1` (line 221) and `lea ARCADE_PC080SN_DESC_BG_LIST_OFFSET(%a5), %a0` (line 222); A0 holds source address up to that point; A5 = 0xFF0000 already live; all registers saved
+* A0 range model defined exactly: YES — Scene 0 Title: lo=0x0005A7DA hi=0x0005B0B2; Scene 1 Gameplay: lo=0x00056A22 hi=0x000570C2; Scene 2 End-Round: lo=0x0005822A hi=0x00059614; all inclusive; all disjoint; A0 masked to 24 bits before comparison; ROM-resident 3-entry table (genesistan_scene_a0_ranges, 24 bytes)
+* fast-path condition defined exactly: YES — (A0 & 0x00FFFFFF) >= genesistan_scene_a0_lo AND (A0 & 0x00FFFFFF) <= genesistan_scene_a0_hi; two unsigned cmp.l + two branches; ~25 cycles; no reload; fall through to descriptor loop
+* scene-change path defined exactly: YES — (1) scan genesistan_scene_a0_ranges 3 entries for matching range; (2) if found, call load_scene_tiles(matched_scene_id) immediately before descriptor loop; (3) load_scene_tiles encapsulates: SR=0x2700, display off, manifest iteration (16 words per tile, synchronous CPU writes), state update (scene_id then lo/hi), display on, SR=0x2000; (4) after return, fall through to descriptor loop; (5) unknown A0 falls through silently with no reload
+* unknown-A0 behavior defined exactly: YES — Option A: leave current scene unchanged, continue hook; no state change; descriptor loop proceeds with current scene tiles; rationale: unknown addresses are transient; forced black frame is worse than potentially wrong tiles for one frame
+* boot-time interaction defined exactly: YES — load_scene_tiles(0) called from main_68k between vdp_boot_setup and init_staging_state; sets current_scene_id=0, scene_a0_lo=0x5A7DA, scene_a0_hi=0x5B0B2; .bss zero-init alone is NOT safe (lo=0 would pass fast path vacuously for all A0, hi=0 would fail fast path for all A0 > 0); explicit call required; 0xFF sentinel approach not recommended
+* display/interrupt contract defined exactly: YES — load_scene_tiles owns the contract; SR=0x2700 before first VDP write; VDP_MODE2_DISPLAY_OFF before tile writes; synchronous CPU move.w to VDP_DATA (no DMA, no wait); state update after last tile write; VDP_MODE2_DISPLAY_ON then SR=0x2000 on exit; hook does not manage display or SR directly
+* re-entrancy / repeat-load safety defined exactly: YES — state update (lo/hi/id) happens inside load_scene_tiles BEFORE rts; next hook call takes fast path for new scene; no oscillation possible (disjoint ranges + deterministic arcade state machine); bounds update before return is the safety invariant
+* Rainbow Islands trigger model identified exactly: YES — genesistan_bulk_preload_check (main.c line 1634): fast-path scene_id+bounds check, slow-path call to genesistan_preload_scene_tiles; genesistan_preload_scene_tiles (line 1592): manifest iteration via VDP_loadTileData, VDP_waitDMACompletion, state update (id/lo/hi) in that order; AGENTS_LOG amendment (line 24222): assembly range check replaced per-invocation C call on hot path; 50 cycles vs 300+ cycles; fires ~3-4 times per game on actual transitions only
+* reusable trigger rules identified exactly: YES — fast-path lo/hi range check; slow-path fires only on change; state update order (id then lo then hi) inside preload before return; manifest format (u16 arcade_tile, u16 vram_slot, 0xFFFF sentinel); disjoint ranges enable O(1) detection; boot-time explicit preload; per-scene ROM-resident bounds table; display-off bracketing
+* non-reusable implementation details identified exactly: YES — VDP_loadTileData SGDK API; VDP_waitDMACompletion; genesistan_scene_id_from_source_addr reading pc080sn_source_scene_map.bin; genesistan_scene_bounds_from_map; genesistan_scene_manifest_for_id C switch; C struct pointer arithmetic; text_writer_read_be16 helper; SGDK DMA modes
+* final trigger contract defined exactly: YES — inputs, fast-path condition, slow-path sequence, state update order, post-reload continuation, unknown-A0 fallthrough, re-entrancy guarantee, boot interaction all fully specified in docs/design/Andy_scene_mode_transition_trigger_spec.md
+* single root risk identified: WRAM state variables genesistan_current_scene_id / genesistan_scene_a0_lo / genesistan_scene_a0_hi are entirely absent from main_68k.s .bss; if omitted, cmp.l instructions reference arbitrary memory producing nondeterministic scene-change behavior on every hook call
+* single next correction defined: Cody adds the three WRAM variables to .bss, adds genesistan_scene_a0_ranges to .rodata, adds state-update tail to load_scene_tiles, and inserts scene-detection preamble between lines 221 and 222 of genesistan_hook_tilemap_plane_a — all in apps/rastan-direct/src/main_68k.s only
+* what-must-not-be-changed-yet defined: YES — descriptor loop (lines 229-315); LUT and .incbin; three manifest binaries in build/; init_staging_state; synthetic tiles slots 1-3; _VINT_handler; sprite system; patcher; Makefile; 34 opcode_replace entries; rom_absolute_call_relocation; A5 init; VRAM_TILE_BASE; precompute_pc080sn_tile_lut.py; pc080sn_source_scene_map.bin
+* no implementation performed
+## [Cody - Analysis, full arcade scene/state taxonomy + sprite validation]
+
+* distinction defined exactly: YES
+* arcade state model identified: YES
+* full scene list derived: YES
+* PC080SN classification complete: YES
+* per-scene sprite working set derived: YES
+* any scene exceeding 48 cells identified: YES
+* tile index usage per scene derived: YES
+* sprite VRAM budget validated: NO
+* 3-bucket sufficiency evaluated: YES
+* MAME correlation complete: YES
+* Rainbow Islands comparison complete: YES
+* single root uncertainty identified: whether frontend_0002_0003 56/59 peak is exact onscreen requirement or conservative probe overcount
+* single verified next step: collect one additional dataset
+* no implementation performed
+## [Cody - Analysis, full playthrough scene/state validation]
+
+* prior full-game artifact located exactly: YES
+* coverage difference identified exactly: YES
+* scene/state taxonomy expanded exactly: YES
+* 3-bucket BG model revalidated exactly: YES
+* fuller sprite peak analysis completed exactly: YES
+* root uncertainty resolution status defined exactly: YES
+* updated verified next step defined exactly: YES
+* no implementation performed

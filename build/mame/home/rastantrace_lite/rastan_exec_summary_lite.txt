@@ -1,13 +1,13 @@
-frames=463
+frames=2701
 
 [execution_ranges]
 startup_common count=7 first_frame=1 last_frame=7 first_pc=03aec6 last_pc=03af00
 helper_title_credit_trim count=0
 frontend_title_cluster count=0
-helper_fill_words count=6 first_frame=8 last_frame=13 first_pc=03ad46 last_pc=03ad48
+helper_fill_words count=7 first_frame=8 last_frame=546 first_pc=03ad46 last_pc=03ad46
 helper_d000_init count=0
 helper_cfg_copy count=0
-title_init_block count=30 first_frame=16 last_frame=452 first_pc=03b098 last_pc=03b098
+title_init_block count=202 first_frame=16 last_frame=2701 first_pc=03b098 last_pc=03b098
 helper_200000_init count=0
 helper_3f084_reg_write count=0
 table_4eaf6 count=0
@@ -16,16 +16,16 @@ helper_5b512_rts count=0
 helper_5ffa2_5ffb2 count=0
 
 [windows]
-workram_10c000 changes=127 first_change_frame=8 first_change_pc=03ad46 last_change_frame=461 last_change_pc=039faa first_nonzero_addr=- first_nonzero_value=-
-palette_200000 changes=4 first_change_frame=8 first_change_pc=03ad46 last_change_frame=386 last_change_pc=03b086 first_nonzero_addr=- first_nonzero_value=-
-tile_c00000 changes=4 first_change_frame=12 first_change_pc=03ad42 last_change_frame=386 last_change_pc=03b086 first_nonzero_addr=- first_nonzero_value=-
+workram_10c000 changes=749 first_change_frame=8 first_change_pc=03ad46 last_change_frame=2701 last_change_pc=03b098 first_nonzero_addr=- first_nonzero_value=-
+palette_200000 changes=10 first_change_frame=8 first_change_pc=03ad46 last_change_frame=2589 last_change_pc=03b086 first_nonzero_addr=- first_nonzero_value=-
+tile_c00000 changes=27 first_change_frame=12 first_change_pc=03ad42 last_change_frame=2589 last_change_pc=03b086 first_nonzero_addr=- first_nonzero_value=-
 tile_c04000 changes=0 first_change_frame=- first_change_pc=- last_change_frame=- last_change_pc=- first_nonzero_addr=- first_nonzero_value=-
-tile_c08000 changes=5 first_change_frame=9 first_change_pc=03ad4a last_change_frame=387 last_change_pc=03b080 first_nonzero_addr=- first_nonzero_value=-
+tile_c08000 changes=12 first_change_frame=9 first_change_pc=03ad4a last_change_frame=2590 last_change_pc=03b094 first_nonzero_addr=- first_nonzero_value=-
 tile_c0c000 changes=0 first_change_frame=- first_change_pc=- last_change_frame=- last_change_pc=- first_nonzero_addr=- first_nonzero_value=-
 c20000 changes=0 first_change_frame=- first_change_pc=- last_change_frame=- last_change_pc=- first_nonzero_addr=- first_nonzero_value=-
 c40000 changes=0 first_change_frame=- first_change_pc=- last_change_frame=- last_change_pc=- first_nonzero_addr=- first_nonzero_value=-
 c50000 changes=0 first_change_frame=- first_change_pc=- last_change_frame=- last_change_pc=- first_nonzero_addr=- first_nonzero_value=-
-d00000 changes=2 first_change_frame=10 first_change_pc=03ad40 last_change_frame=13 last_change_pc=03ad48 first_nonzero_addr=- first_nonzero_value=-
+d00000 changes=403 first_change_frame=10 first_change_pc=03ad40 last_change_frame=2699 last_change_pc=03b094 first_nonzero_addr=- first_nonzero_value=-
 d01bfe changes=1 first_change_frame=13 first_change_pc=03ad48 last_change_frame=13 last_change_pc=03ad48 first_nonzero_addr=- first_nonzero_value=-
 reg_350008 changes=0 first_change_frame=- first_change_pc=- last_change_frame=- last_change_pc=- first_nonzero_addr=- first_nonzero_value=-
 reg_380000 changes=0 first_change_frame=- first_change_pc=- last_change_frame=- last_change_pc=- first_nonzero_addr=- first_nonzero_value=-
