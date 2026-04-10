@@ -1,0 +1,306 @@
+{
+  "version": 1,
+  "scope": "rastan_direct_execution",
+  "description": "Spec-driven ROM relocation and opcode patching for apps/rastan-direct using the existing postpatch pipeline.",
+  "policy": {
+    "patcher_profile": "rastan_direct",
+    "current_copy_mode": "whole_maincpu_relocated",
+    "target_copy_mode": "whole_maincpu_relocated",
+    "planned_arcade_rom_base": "0x000200",
+    "execute_from_relocated_base": true,
+    "keep_identity_overlays_for_bringup": false
+  },
+  "direct_execution": {
+    "entry_arcade_pc": "0x03A008",
+    "entry_symbol": "rastan_direct_arcade_tick_entry"
+  },
+  "whole_maincpu_copy": {
+    "enabled": true,
+    "source_start": "0x000000",
+    "source_end_exclusive": "0x060000",
+    "dest_start": "0x000200"
+  },
+  "rom_absolute_call_relocation": {
+    "enabled": true,
+    "description": "Rewrite absolute long ROM targets in relocated arcade code.",
+    "source_start": "0x000000",
+    "source_end_exclusive": "0x060000",
+    "scan_ranges": "whole_maincpu_copy_window",
+    "opcodes_with_abs_long_operand": [
+      "0x4EB9",
+      "0x4EF9",
+      "0x4879",
+      "0x41F9",
+      "0x43F9",
+      "0x45F9",
+      "0x47F9",
+      "0x49F9",
+      "0x4BF9",
+      "0x4DF9",
+      "0x4FF9",
+      "0x207C",
+      "0x227C",
+      "0x247C",
+      "0x267C",
+      "0x287C",
+      "0x2A7C",
+      "0x2C7C",
+      "0x2E7C"
+    ]
+  },
+  "declared_arcade_windows": [
+    {
+      "name": "maincpu_rom",
+      "start": "0x000000",
+      "end_exclusive": "0x060000"
+    },
+    {
+      "name": "io_390000",
+      "start": "0x00390000",
+      "end_exclusive": "0x00390010"
+    },
+    {
+      "name": "c_window",
+      "start": "0x00C00000",
+      "end_exclusive": "0x00D00000"
+    }
+  ],
+  "declared_rewrite_target_windows": [
+    {
+      "name": "genesis_rom",
+      "start": "0x00000000",
+      "end_exclusive": "0x00800000"
+    },
+    {
+      "name": "genesis_wram",
+      "start": "0x00FF0000",
+      "end_exclusive": "0x01000000"
+    }
+  ],
+  "required_symbols": [
+    "genesistan_hook_tilemap_plane_a",
+    "genesistan_shadow_input_390001",
+    "genesistan_shadow_input_390003",
+    "genesistan_shadow_input_390005",
+    "genesistan_shadow_input_390007",
+    "rastan_direct_arcade_tick_entry"
+  ],
+  "copied_ranges": [
+    {
+      "name": "whole_maincpu_copy_window",
+      "kind": "original_code",
+      "start": "0x000000",
+      "end_exclusive": "0x060000"
+    }
+  ],
+  "opcode_replace": [
+    {
+      "arcade_pc": "0x055968",
+      "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_a}4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "Route PC080SN BG strip producer through rastan-direct hook symbol at 0x055968."
+    },
+    {
+      "arcade_pc": "0x03A4A2",
+      "original_bytes": "103900390001",
+      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390001}",
+      "note": "TC0040IOC P1 read -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03A4A8",
+      "original_bytes": "123900390003",
+      "replacement_bytes": "1239{symbol:genesistan_shadow_input_390003}",
+      "note": "TC0040IOC P2 read -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03A778",
+      "original_bytes": "103900390001",
+      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390001}",
+      "note": "Secondary TC0040IOC P1 read -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03A77E",
+      "original_bytes": "123900390003",
+      "replacement_bytes": "1239{symbol:genesistan_shadow_input_390003}",
+      "note": "Secondary TC0040IOC P2 read -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03A0A8",
+      "original_bytes": "0839000600390005",
+      "replacement_bytes": "08390006{symbol:genesistan_shadow_input_390005}",
+      "note": "Coin input bit 6 -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03A0B2",
+      "original_bytes": "0839000400390005",
+      "replacement_bytes": "08390004{symbol:genesistan_shadow_input_390005}",
+      "note": "Coin input bit 4 -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03A0C0",
+      "original_bytes": "0839000500390005",
+      "replacement_bytes": "08390005{symbol:genesistan_shadow_input_390005}",
+      "note": "Coin input bit 5 -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03A490",
+      "original_bytes": "103900390007",
+      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390007}",
+      "note": "System input read -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03A47E",
+      "original_bytes": "0c79004900c0883a6608303c009a610016ba",
+      "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
+      "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis)."
+    },
+    {
+      "arcade_pc": "0x03A552",
+      "original_bytes": "0c39003000c09ea3660813fc002000c09ea3",
+      "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
+      "note": "Bypass PC080SN readback cmp/bne path (read from 0xC09EA3 invalid on Genesis)."
+    },
+    {
+      "arcade_pc": "0x03AC04",
+      "original_bytes": "0839000000390007",
+      "replacement_bytes": "08390000{symbol:genesistan_shadow_input_390007}",
+      "note": "Service/system bit test -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03AF7A",
+      "original_bytes": "103900390009",
+      "replacement_bytes": "103C00FE4E71",
+      "note": "DIP1 default constant (0xFE), preserving downstream NOT/store logic."
+    },
+    {
+      "arcade_pc": "0x03AF86",
+      "original_bytes": "10390039000B",
+      "replacement_bytes": "103C00FF4E71",
+      "note": "DIP2 default constant (0xFF), preserving downstream NOT/store logic."
+    },
+    {
+      "arcade_pc": "0x03A7B8",
+      "original_bytes": "0839000100390007",
+      "replacement_bytes": "08390001{symbol:genesistan_shadow_input_390007}",
+      "note": "Tilt bit test -> direct shadow system byte."
+    },
+    {
+      "arcade_pc": "0x03AB96",
+      "original_bytes": "0839000200390007",
+      "replacement_bytes": "08390002{symbol:genesistan_shadow_input_390007}",
+      "note": "Test button bit test -> direct shadow system byte."
+    },
+    {
+      "arcade_pc": "0x03A91A",
+      "original_bytes": "103900390007",
+      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390007}",
+      "note": "System input read -> direct shadow system byte."
+    },
+    {
+      "arcade_pc": "0x03AC94",
+      "original_bytes": "0839000500390007",
+      "replacement_bytes": "08390005{symbol:genesistan_shadow_input_390007}",
+      "note": "System input bit 5 test -> direct shadow system byte."
+    },
+    {
+      "arcade_pc": "0x03AC54",
+      "original_bytes": "0c39004300c09e87660a7003610016806100",
+      "replacement_bytes": "60124e714e714e714e714e714e714e714e71",
+      "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis)."
+    },
+    {
+      "arcade_pc": "0x03ACB2",
+      "original_bytes": "0839000600390005",
+      "replacement_bytes": "08390006{symbol:genesistan_shadow_input_390005}",
+      "note": "Coin input bit 6 test -> direct shadow coin byte."
+    },
+    {
+      "arcade_pc": "0x03ACBC",
+      "original_bytes": "0839000400390005",
+      "replacement_bytes": "08390004{symbol:genesistan_shadow_input_390005}",
+      "note": "Coin input bit 4 test -> direct shadow coin byte."
+    },
+    {
+      "arcade_pc": "0x03ACFE",
+      "original_bytes": "0839000600390007",
+      "replacement_bytes": "08390006{symbol:genesistan_shadow_input_390007}",
+      "note": "System input bit 6 test -> direct shadow system byte."
+    },
+    {
+      "arcade_pc": "0x03AD1C",
+      "original_bytes": "0839000600390005",
+      "replacement_bytes": "08390006{symbol:genesistan_shadow_input_390005}",
+      "note": "Coin input bit 6 test -> direct shadow coin byte."
+    },
+    {
+      "arcade_pc": "0x03AD26",
+      "original_bytes": "0839000500390005",
+      "replacement_bytes": "08390005{symbol:genesistan_shadow_input_390005}",
+      "note": "Coin input bit 5 test -> direct shadow coin byte."
+    },
+    {
+      "arcade_pc": "0x03A1D8",
+      "original_bytes": "33C000380000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+    },
+    {
+      "arcade_pc": "0x03AE34",
+      "original_bytes": "33C000380000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+    },
+    {
+      "arcade_pc": "0x03AE9C",
+      "original_bytes": "427900380000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress unsupported TC0040IOC control clear at 0x380000."
+    },
+    {
+      "arcade_pc": "0x03AF1E",
+      "original_bytes": "33C000380000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+    },
+    {
+      "arcade_pc": "0x03AF04",
+      "original_bytes": "4BF90010C000",
+      "replacement_bytes": "4BF900FF0000",
+      "note": "Redirect arcade A5 workram base from 0x10C000 (ROM on Genesis) to Genesis WRAM 0xFF0000."
+    },
+    {
+      "arcade_pc": "0x03EF28",
+      "original_bytes": "33C000380000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+    },
+    {
+      "arcade_pc": "0x03EF48",
+      "original_bytes": "33C000380000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+    },
+    {
+      "arcade_pc": "0x03EF8A",
+      "original_bytes": "33C000380000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+    },
+    {
+      "arcade_pc": "0x03EFAA",
+      "original_bytes": "33C000380000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+    },
+    {
+      "arcade_pc": "0x045306",
+      "original_bytes": "33C000380000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+    }
+  ],
+  "rom_opcode_replace": [],
+  "expectations": {
+    "opcode_replace_count": 34
+  }
+}

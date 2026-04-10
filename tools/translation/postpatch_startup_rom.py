@@ -583,6 +583,9 @@ def main() -> int:
     relocation_path = manifest_path.with_name("startup_common_relocations.json")
     spec_path = Path(args.spec)
     spec = load_remap_spec(spec_path)
+    policy = spec.get("policy", {})
+    patcher_profile = str(policy.get("patcher_profile", "startup_title_remap"))
+    is_rastan_direct_profile = patcher_profile == "rastan_direct"
     range_lookup = build_range_lookup(spec)
     range_kind_lookup = build_range_kind_lookup(spec)
     required_symbols = tuple(spec.get("required_symbols", []))
@@ -592,7 +595,7 @@ def main() -> int:
 
     symbol_addresses = parse_symbol_table(symbols_path, required_names=None)
 
-    if "genesistan_run_original_startup_common" not in symbol_addresses:
+    if (not is_rastan_direct_profile) and ("genesistan_run_original_startup_common" not in symbol_addresses):
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
         manifest_path.write_text(
             json.dumps(
@@ -738,7 +741,11 @@ def main() -> int:
     # Keep SGDK/launcher vector table intact (all 256 vectors, 0x000000..0x0003FF).
     # 68000 vectors extend beyond 0x0001FF; clobbering 0x000200..0x0003FF causes
     # exception vectors to point into garbage and crash before launcher UI draws.
-    rom_bytes[0x000000:0x000400] = preserved_genesis_vectors
+    #
+    # For rastan_direct, apply the preserved block *after* rewrite passes so scan/rewrite
+    # logic cannot mutate boot code bytes in the final executable ROM artifact.
+    if not is_rastan_direct_profile:
+        rom_bytes[0x000000:0x000400] = preserved_genesis_vectors
 
     copied_ranges: list[dict[str, object]] = []
     copied_range_entries = spec["copied_ranges"]
@@ -1142,36 +1149,68 @@ def main() -> int:
                     "so arcade A5 reload finds correct base.",
         })
 
-    stub_cfg = spec["generated_stubs"]
-    test_jump_patch_address = parse_hexish(stub_cfg["test_jump_patch_address"])
-    normal_stub_start = parse_hexish(stub_cfg["normal_stub_start"])
-    normal_stub_end = parse_hexish(stub_cfg["normal_stub_end_exclusive"])
-    test_stub_address = parse_hexish(stub_cfg["test_stub_address"])
-    test_stub_end = parse_hexish(stub_cfg["test_stub_end_exclusive"])
-    test_result_value = int(stub_cfg["test_result_value"])
-    if execute_from_relocated_base:
-        test_jump_patch_address += relocation_delta
-        normal_stub_start += relocation_delta
-        normal_stub_end += relocation_delta
-        test_stub_address += relocation_delta
-        test_stub_end += relocation_delta
+    expectations = spec.get("expectations", {})
+    expected_opcode_replace_count = expectations.get("opcode_replace_count")
+    if expected_opcode_replace_count is not None:
+        expected_count = int(expected_opcode_replace_count)
+        applied_count = sum(
+            1 for item in rewrite_log
+            if str(item.get("kind", "")) in ("opcode_replace", "rom_opcode_replace")
+        )
+        if applied_count != expected_count:
+            raise RuntimeError(
+                f"Expected {expected_count} opcode replacements but applied {applied_count}."
+            )
 
-    rom_bytes[test_jump_patch_address:test_jump_patch_address + 4] = test_stub_address.to_bytes(4, "big")
-    rom_bytes[normal_stub_start:normal_stub_end] = build_normal_continue_stub(
-        symbol_addresses["genesistan_startup_common_continue_normal"],
-    )
-    rom_bytes[test_stub_address:test_stub_end] = build_status_stub(
-        test_result_value,
-        symbol_addresses["genesistan_startup_result_code"],
-        symbol_addresses["genesistan_startup_common_exit_test"],
-    )
+    test_jump_patch_address: int | None = None
+    normal_stub_start: int | None = None
+    normal_stub_end: int | None = None
+    test_stub_address: int | None = None
+    test_stub_end: int | None = None
+    test_result_value: int | None = None
 
-    patch_startup_vectors(rom_bytes, symbol_addresses["_reset_entry"])
+    if not is_rastan_direct_profile:
+        stub_cfg = spec["generated_stubs"]
+        test_jump_patch_address = parse_hexish(stub_cfg["test_jump_patch_address"])
+        normal_stub_start = parse_hexish(stub_cfg["normal_stub_start"])
+        normal_stub_end = parse_hexish(stub_cfg["normal_stub_end_exclusive"])
+        test_stub_address = parse_hexish(stub_cfg["test_stub_address"])
+        test_stub_end = parse_hexish(stub_cfg["test_stub_end_exclusive"])
+        test_result_value = int(stub_cfg["test_result_value"])
+        if execute_from_relocated_base:
+            test_jump_patch_address += relocation_delta
+            normal_stub_start += relocation_delta
+            normal_stub_end += relocation_delta
+            test_stub_address += relocation_delta
+            test_stub_end += relocation_delta
+
+        rom_bytes[test_jump_patch_address:test_jump_patch_address + 4] = test_stub_address.to_bytes(4, "big")
+        rom_bytes[normal_stub_start:normal_stub_end] = build_normal_continue_stub(
+            symbol_addresses["genesistan_startup_common_continue_normal"],
+        )
+        rom_bytes[test_stub_address:test_stub_end] = build_status_stub(
+            test_result_value,
+            symbol_addresses["genesistan_startup_result_code"],
+            symbol_addresses["genesistan_startup_common_exit_test"],
+        )
+
+        patch_startup_vectors(rom_bytes, symbol_addresses["_reset_entry"])
+
+    direct_cfg = spec.get("direct_execution", {})
+    direct_entry_symbol = str(direct_cfg.get("entry_symbol", "")) if is_rastan_direct_profile else ""
+    direct_entry_symbol_addr = None
+    if is_rastan_direct_profile and direct_entry_symbol:
+        direct_entry_symbol_addr = resolve_symbol_address(symbol_addresses, direct_entry_symbol)
+
+    if is_rastan_direct_profile:
+        rom_bytes[0x000000:0x000400] = preserved_genesis_vectors
+
     checksum = update_genesis_checksum(rom_bytes)
     rom_path.write_bytes(rom_bytes)
 
-    manifest = {
+    manifest: dict[str, object] = {
         "variant": args.variant,
+        "patcher_profile": patcher_profile,
         "rom": str(rom_path.resolve()),
         "symbols": str(symbols_path.resolve()),
         "maincpu": str(maincpu_path.resolve()),
@@ -1188,51 +1227,114 @@ def main() -> int:
             "source_end_exclusive": rom_call_reloc_cfg.get("source_end_exclusive"),
             "opcode_count": len(rom_call_reloc_cfg.get("opcodes_with_abs_long_operand", [])),
         },
+        "preserved_low_rom_bootstrap": {
+            "start": "0x000000",
+            "end_exclusive": "0x000400",
+            "why": (
+                "Preserve reset/vectors/header/bootstrap in low ROM while relocated arcade ROM "
+                "occupies 0x000200.."
+                if is_rastan_direct_profile
+                else "Preserve SGDK/launcher exception vectors during offset-carry maincpu copy."
+            ),
+        },
         "preserved_genesis_vector_table": {
             "start": "0x000000",
             "end_exclusive": "0x000400",
-            "why": "Preserve SGDK/launcher exception vectors during offset-carry maincpu copy.",
+            "why": (
+                "Preserve reset/vectors/header/bootstrap in low ROM while relocated arcade ROM "
+                "occupies 0x000200.."
+                if is_rastan_direct_profile
+                else "Preserve SGDK/launcher exception vectors during offset-carry maincpu copy."
+            ),
         },
         "address_rewrites": rewrite_log,
-        "normal_result_stub": {
+        "checksum": f"0x{checksum:04X}",
+        "relocation_map": str(relocation_path.resolve()),
+        "goal": (
+            "Execute the original startup/title/front-end remap from original ROM bytes using a spec-driven translation pass."
+            if not is_rastan_direct_profile
+            else "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline."
+        ),
+        "expectations": {
+            "opcode_replace_count": expected_opcode_replace_count,
+        },
+        "patch_counts": {
+            "opcode_replace_and_rom_opcode_replace": sum(
+                1 for item in rewrite_log
+                if str(item.get("kind", "")) in ("opcode_replace", "rom_opcode_replace")
+            ),
+        },
+    }
+
+    if not is_rastan_direct_profile:
+        manifest["normal_result_stub"] = {
             "address": f"0x{normal_stub_start:06X}",
             "jumps_to": f"0x{symbol_addresses['genesistan_startup_common_continue_normal']:08X}",
             "end_exclusive": f"0x{normal_stub_end:06X}",
-        },
-        "test_result_stub": {
+        }
+        manifest["test_result_stub"] = {
             "address": f"0x{test_stub_address:06X}",
             "writes_status_to": f"0x{symbol_addresses['genesistan_startup_result_code']:08X}",
             "value": test_result_value,
             "jumps_exit_to": f"0x{symbol_addresses['genesistan_startup_common_exit_test']:08X}",
             "end_exclusive": f"0x{test_stub_end:06X}",
-        },
-        "test_jump_patch": {
+        }
+        manifest["test_jump_patch"] = {
             "patched_at": f"0x{test_jump_patch_address:06X}",
             "new_target": f"0x{test_stub_address:06X}",
-        },
-        "checksum": f"0x{checksum:04X}",
-        "startup_vectors": {
+        }
+        manifest["startup_vectors"] = {
             "initial_sp": f"0x{int.from_bytes(rom_bytes[0x000000:0x000004], 'big'):08X}",
             "reset_pc": f"0x{int.from_bytes(rom_bytes[0x000004:0x000008], 'big'):08X}",
             "forced_reset_pc_symbol": "_reset_entry",
-        },
-        "relocation_map": str(relocation_path.resolve()),
-        "goal": "Execute the original startup/title/front-end remap from original ROM bytes using a spec-driven translation pass.",
-    }
+        }
+    else:
+        manifest["direct_execution"] = {
+            "entry_arcade_pc": direct_cfg.get("entry_arcade_pc"),
+            "entry_symbol": direct_entry_symbol,
+            "entry_symbol_address": (
+                f"0x{direct_entry_symbol_addr:08X}"
+                if direct_entry_symbol_addr is not None
+                else None
+            ),
+        }
 
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     relocation_path.parent.mkdir(parents=True, exist_ok=True)
-    relocation_map = build_relocation_map(
-        args.variant,
-        rom_path,
-        maincpu_path,
-        copied_ranges,
-        symbol_addresses,
-        test_stub_address,
-        whole_copy_summary,
-        keep_identity_overlays,
-        relocation_delta if execute_from_relocated_base else 0,
-    )
+    if is_rastan_direct_profile:
+        relocation_map = {
+            "variant": args.variant,
+            "mode": "rastan_direct",
+            "rom": str(rom_path.resolve()),
+            "source_maincpu": str(maincpu_path.resolve()),
+            "policy": "Build from original ROM bytes every time; never patch forward from derived binaries.",
+            "objects": [
+                {
+                    "id": "maincpu:whole_relocated",
+                    "name": "whole_maincpu_relocated",
+                    "kind": "original_code_or_data",
+                    "source_rom": str(maincpu_path.resolve()),
+                    "original_start": str(whole_copy_summary["source_start"]) if whole_copy_summary else None,
+                    "original_end_exclusive": str(whole_copy_summary["source_end_exclusive"]) if whole_copy_summary else None,
+                    "genesis_rom_start": str(whole_copy_summary["dest_start"]) if whole_copy_summary else None,
+                    "genesis_rom_end_exclusive": str(whole_copy_summary["dest_end_exclusive"]) if whole_copy_summary else None,
+                    "placement": "relocated_whole_copy",
+                }
+            ],
+            "generated_blocks": [],
+        }
+    else:
+        relocation_map = build_relocation_map(
+            args.variant,
+            rom_path,
+            maincpu_path,
+            copied_ranges,
+            symbol_addresses,
+            test_stub_address,
+            whole_copy_summary,
+            keep_identity_overlays,
+            relocation_delta if execute_from_relocated_base else 0,
+        )
     relocation_path.write_text(json.dumps(relocation_map, indent=2) + "\n", encoding="utf-8")
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return 0

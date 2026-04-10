@@ -26002,3 +26002,486 @@ Full comparison of VBlank interrupt paths and non-interrupt VDP access between R
 * fg_dirty removed: YES
 * no other behavioral changes made: YES
 * no undocumented scaffolding added: YES
+
+## [Andy - Analysis, FG regression after commit removal]
+
+* FG VRAM ownership analyzed: YES
+* FG data flow verified: YES
+* root cause identified: After removing `vdp_commit_fg`, Plane A VRAM is never initialized; Genesis VRAM at power-on contains undefined data; `staged_fg_buffer` in WRAM is correctly zeroed but never committed to VRAM; Plane A displays undefined VRAM contents as garbage/blue tiles
+* correct FG model defined: YES
+* single next correction defined: Add a one-time 2048-word zero write to Plane A VRAM (0xE000) inside `init_staging_state` after the `.Lfg_clear` loop, outside VBlank, before main loop starts; cost ~49,200 cycles at init time only, zero VBlank cost
+* efficiency preserved: YES
+* no implementation performed
+
+## [Cody - Implementation, Plane A init clear]
+
+* files changed: `apps/rastan-direct/src/main_68k.s`, `docs/design/Cody_plane_a_init_clear.md`, `AGENTS_LOG.md`
+* build produced: YES
+* ROM artifact path: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* one-time Plane A VRAM clear added: YES
+* no VBlank FG publish path reintroduced: YES
+* no other behavioral changes made: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, first arcade-driven BG hook plan]
+
+* first real arcade BG producer identified: YES
+* Genesis translation model defined: YES
+* Rainbow Islands alignment analyzed: YES
+* address/hook/conversion drift risks analyzed: YES
+* dirty-tracking model defined: YES
+* single next step defined: implement BG strip hook (assembly stub at 0x055968 target) + replace bg_dirty byte with bg_row_dirty 32-bit mask + replace vdp_commit_bg with vdp_commit_bg_strips_if_dirty
+* immediate follow-on sequence defined: YES
+* what-must-not-be-done-yet defined: YES
+* no implementation performed
+
+## [Andy - Analysis, TC0040IOC and arcade execution plan]
+
+* TC0040IOC model defined: YES
+* input timing model defined: YES
+* arcade execution model defined: YES
+* entry/control flow defined: YES
+* patch strategy defined: YES
+* drift risks analyzed: YES
+* Rainbow Islands alignment analyzed: YES
+* single next step defined: implement TC0040IOC shadow byte infrastructure (BSS declarations for shadow_p1_input/shadow_p2_input/shadow_coin_input/shadow_sys_input + rastan_direct_update_inputs Genesis pad read stub + port direction init + wire into arcade_tick_logic entry + patcher symbol declarations in startup_title_remap.json)
+* what-must-not-be-done-yet defined: YES
+* no implementation performed
+
+## [Cody - Implementation, rastan-direct patcher reuse and extension]
+
+* existing patcher audited: YES
+* existing patcher reused instead of replaced: YES
+* rastan-direct patcher support added: YES
+* rastan-direct build wiring added: YES
+* symbol resolution strategy implemented: YES
+* first rastan-direct patch targets supported: YES
+* output ROM artifact produced: YES
+* no silent patch skips: YES
+* backward compatibility impact documented: YES
+* no undocumented scaffolding added: YES
+
+## [Cody - Implementation, first arcade execution bringup]
+
+* input update implemented: YES
+* arcade execution invoked: YES
+* hook reachable: YES
+* system stable: YES
+* no unintended VBlank changes: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, early control-flow loop diagnosis]
+
+* 0x000200 content identified: YES
+* 0x00038A content identified: YES
+* loop traced exactly: YES
+* arcade tick reachability analyzed: YES
+* BG hook reachability analyzed: YES
+* single root cause identified: stale binary — patcher preserved_genesis_vectors restore locked in old boot code (ADDI.B at 0x38A writes to ROM 0x00FFCC, bus error every VBlank, RTE returns to 0x38A, infinite loop; ELF has correct BEQ.S at 0x38A but binary does not)
+* single next correction defined: make -C apps/rastan-direct clean && make -C apps/rastan-direct to force full rebuild from current ELF; Makefile $(BIN) rule must ensure objcopy regenerates .bin before patcher reads it
+* what-must-not-be-changed-yet defined: YES
+* no implementation performed
+
+## [Cody - Implementation, rastan-direct stale bin pipeline fix]
+
+* stale binary reuse eliminated: YES
+* hard failsafe added: YES
+* existing patcher lineage preserved: YES
+* rastan-direct build flow clarified: YES
+* clean build verified: YES
+* repeat build without manual clean verified: YES
+* final ROM artifact produced: YES
+* no unrelated runtime changes made: YES
+* no undocumented scaffolding added: YES
+
+## [Cody - Implementation, rastan-direct final ROM boot-byte fix]
+
+* bad-byte reintroduction point identified: YES
+* final-ROM corruption fixed: YES
+* final-ROM postpatch guard added: YES
+* existing patcher lineage preserved: YES
+* fresh prepatch bytes verified: YES
+* final ROM bytes verified: YES
+* repeat build without manual clean verified: YES
+* final ROM artifact produced: YES
+* no unrelated runtime changes made: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, VBlank interrupt block diagnosis]
+
+* observed loop addresses identified exactly: YES
+* main loop wait condition identified: YES
+* waited-on frame variable identified: YES
+* runtime SR/interrupt mask analyzed: YES
+* VBlank vector path verified: YES
+* frame_counter increment path verified: NO (vdp_commit_scroll never returns; frame_counter never incremented)
+* arcade tick non-reachability explained exactly: YES
+* BG hook non-reachability explained exactly: YES
+* single root cause identified: vdp_commit_scroll (0x3D6-0x413) overflows patcher's preserved genesis region (0x000000-0x0003FF) by 20 bytes; bytes at 0x000400-0x000413 are arcade ROM data, not genesis instructions; execution falls into arcade ROM bytes at 0x400 and loops; vdp_commit_scroll never returns; frame_counter never incremented; SR frozen at IPL=6 (Level 6 interrupt accepted, handler never returned via RTE)
+* single next correction defined: extend patcher preserved region in postpatch_startup_rom.py from 0x000400 to at least 0x000800 (or full .text section size) for rastan_direct profile, so vdp_commit_scroll tail (0x400-0x413) and all remaining genesis code survives the arcade ROM copy
+* what-must-not-be-changed-yet defined: YES
+* no implementation performed
+
+## [Andy - Analysis, SGDK vs rastan-direct address mapping diagnosis]
+
+* address-mapping authorities fully identified: YES
+* SGDK-era mapping assumptions compared against rastan-direct: YES
+* current JSON/spec targets validated against current fork layout: YES
+* 0x46FC runtime PC pattern explained by mapping analysis: YES
+* single root cause identified: rastan_direct_remap.json is missing 7 TC0040IOC read patches and 3 hardware write suppressions (specifically DIP1 at 0x03AF7A and DIP2 at 0x03AF86, plus tilt/test/system-switch suppressions and 0x380000 write suppresses); unpatched DIP reads during arcade initialization cause bus errors; _default_handler=rte resumes with garbage D0; game config state is corrupted; the game enters an attract/init dispatch loop at relocated arcade ROM addresses 0x046FCxx (original offset 0x046DCxx); the 0x46FC PC pattern is those real relocated arcade ROM addresses, not wrong JSR targets; the SGDK-era stale address hypothesis is FALSE
+* single next correction defined: add the 10 missing opcode_replace entries (7 read patches + 3 write suppresses) to specs/rastan_direct_remap.json as defined in Andy_tc0040ioc_and_arcade_execution_plan.md Section 3.7; verify original_bytes against build/maincpu.disasm.txt; update expectations.opcode_replace_count from 10 to 18+
+* what-must-not-be-changed-yet defined: YES
+* no implementation performed
+
+## [Cody - Implementation, permanent rastan-direct ROM layout and numbered builds]
+
+* permanent ROM layout migration implemented: YES
+* low-ROM bootstrap minimized: YES
+* Genesis wrapper moved to safe high-ROM region: YES
+* patcher lineage preserved: YES
+* fragile low-ROM wrapper overlap eliminated: YES
+* numbered build artifacts restored: YES
+* canonical latest ROM path documented: YES
+* final ROM artifact produced: YES
+* no unrelated runtime redesign performed: YES
+* no undocumented scaffolding added: YES
+## [Andy - Analysis, Rastan DIP defaults and flip behavior]
+
+* DIP definitions extracted: YES
+* factory default DIP values identified: YES
+* flip/cabinet derivation fully understood: YES
+* DIP return values for TC0040IOC defined: YES
+* current DIP assumption validated: YES
+* dependency on 0x380000 writes determined: YES
+* single final DIP value set defined: DIP1=0xFE (active-low, after NOT=0x01: Cabinet=Upright, Flip=OFF, Service=OFF, Coin=1C/1C), DIP2=0xFF (active-low, after NOT=0x00: Difficulty=Medium, BonusLife=100k series, Lives=3, Continue=ON)
+* what-must-not-be-changed-yet defined: YES
+* no implementation performed
+
+## [Cody - Implementation, TC0040IOC verification + full coverage]
+
+* files changed: `specs/rastan_direct_remap.json`, `apps/rastan-direct/src/main_68k.s`, `docs/design/Cody_tc0040ioc_verification_and_full_implementation.md`, `AGENTS_LOG.md`
+* build produced: YES
+* ROM/binary artifact path: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* permanent items added: TC0040IOC/DIP opcode replacements and `0x380000` write suppressions in `specs/rastan_direct_remap.json`; input shadow coin/system behavior updates in `apps/rastan-direct/src/main_68k.s`
+* temporary items added: none
+* diagnostic items added: none
+* bringup-only items added: none
+* scaffolding inventory documented: YES
+* removal / revert plan documented: YES
+* no undocumented scaffolding added: YES
+* Verification phase completed: YES
+* DIP values validated against MAME: YES
+* Flip derivation confirmed WRAM-based: YES
+* 0x380000 dependency ruled out: YES
+* All TC0040IOC reads patched: YES
+* Input mapping implemented correctly: YES
+* Active-low behavior verified: YES
+* 0x380000 writes NOPed: YES
+* No bus errors observed: USER MUST VERIFY
+* No unintended behavior introduced: USER MUST VERIFY
+
+## [Andy - Analysis, Rastan credit/start non-progression diagnosis]
+
+* coin read sites identified: YES
+* credit increment logic fully traced: YES
+* start condition identified: YES
+* system input byte requirements defined: YES
+* input shadow implementation validated: YES
+* exact blocking condition identified: YES
+* single root cause identified: rastan_direct_update_inputs writes shadow_390007 = 0xFF every frame; coin gate bit 5 of shadow_390007 never transitions 1→0; edge detector at 0x3AC94 never fires; credit counter at a5@(0x12) never increments; game cannot leave attract state
+* single next correction defined: in apps/rastan-direct/src/main_68k.s rastan_direct_update_inputs — when Genesis A is pressed, pulse bit 5 of shadow_390007 LOW for exactly 1 frame then return to 1 (provides 1→0→1 edge required by 0x3AC94); additionally clear bit 3 of shadow_390007 while Genesis Start is held (P1 Start detection at 0x3A490 reads bit 3, not bit 7 of joystick byte)
+* what-must-not-be-changed-yet defined: YES
+* no implementation performed
+
+## [Cody - Implementation, coin pulse and start bit fix]
+
+* coin remains mapped to A: YES
+* start remains mapped to Start: YES
+* one-frame coin pulse implemented: YES
+* correct system start bit implemented: YES
+* previous-state tracking added: YES
+* no automatic coin behavior introduced: YES
+* no unrelated runtime redesign performed: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, arcade execution reachability vs static checkerboard diagnosis]
+
+* arcade tick entry reachability identified: YES
+* arcade tick actually reachable in current build: YES
+* BG hook reachability identified: YES
+* BG hook actually reachable in current build: YES
+* checkerboard producer identified exactly: YES
+* arcade graphics production path identified: YES
+* arcade graphics publication path actually active: NO
+* 0x046FCxxx execution meaning explained exactly: YES
+* exact checkerboard-to-arcade blocking condition identified: YES
+* single root cause identified: genesistan_hook_tilemap_plane_a in apps/rastan-direct/src/main_68k.s is an unimplemented stub (addq.w #1, hook_plane_a_hits; rts) — no tile data staged, bg_dirty never re-set after first frame, checkerboard persists unchanged every frame
+* single next correction defined: implement genesistan_hook_tilemap_plane_a in apps/rastan-direct/src/main_68k.s to perform full PC080SN BG strip decode, write tile words to staged_bg_buffer, and set bg_dirty = 1; reference implementation is genesistan_asm_tilemap_commit_bg in apps/rastan/src/startup_trampoline.s
+* what-must-not-be-changed-yet defined: YES
+* no implementation performed
+## [Cody - Implementation, PC080SN BG hook implementation]
+
+* stub replaced with real hook body: YES
+* Rainbow Islands used as Genesis-side architecture model: YES
+* Rastan arcade semantics used as decode source of truth: YES
+* SGDK treated only as limited reference artifact: YES
+* staged_bg_buffer updated by hook: YES
+* bg_dirty set by hook: YES
+* build produced: YES
+* no unrelated renderer/input/layout redesign performed: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, BG hook no visible change diagnosis]
+
+* implemented hook body verified exactly: YES
+* live hook input data validity analyzed: YES
+* staged write target correctness analyzed: YES
+* bg_dirty to commit path verified: YES
+* visible-difference potential analyzed: YES
+* exact no-visible-change blocking condition identified: YES
+* single root cause identified: %a5 holds arcade hardware WRAM base 0x0010C000 (set by unpatched arcade lea instruction at 0x3AF04, never redirected to Genesis WRAM 0xFF0000); hook reads dest_ptr from 0x0010D0A0 (Genesis ROM space, not 0xFF10A0 WRAM); value is ROM data not 0xC00000; dest_ptr range check always fails; hook always takes .Lbg_hook_dest_invalid; staged_bg_buffer never written; bg_dirty never set; checkerboard persists
+* single next correction defined: insert `lea 0x00FF0000, %a5` in genesistan_hook_tilemap_plane_a in apps/rastan-direct/src/main_68k.s immediately after the movem.l register save (line 194), so %a5-relative workram reads target Genesis WRAM (0xFF0000+) where init_staging_state has initialized dest_ptr to 0xC00000
+* what-must-not-be-changed-yet defined: YES
+* no implementation performed
+
+## [Andy - Analysis, PC080SN WRAM write path diagnosis]
+
+* pc080sn write sites identified: YES
+* write target addresses validated: YES
+* write redirection patches verified: YES
+* WRAM population verified: YES
+* exact blocking condition identified: YES
+* single root cause identified: A5 = 0x10C000 makes all arcade A5-relative writes (desc list 0x10D000-0x10D03C, dest_ptr 0x10D0A0/A4, strip index 0x10D0CA) target Genesis ROM space; all writes discarded; WRAM 0xFF1000-0xFF103F (desc list) stays zero; hook reads zero entries, maps them to ROM vector table at offset 0, produces corrupt or no tile data; dest_ptr initialization by init_staging_state is effective but immaterial because the desc list is empty
+* single next correction defined: patch arcade PC 0x03AF04 `lea 0x10C000,%a5` -> `lea 0xFF0000,%a5` in rastan_direct_remap.json; redirects all A5-relative game-state writes to Genesis WRAM; no hook or assembly changes required
+* no implementation performed
+## [Cody - Implementation, A5 WRAM base redirect]
+
+* original bytes at 0x03AF04 verified: YES
+* opcode_replace entry for 0x03AF04 added: YES
+* A5 redirected from 0x10C000 to 0xFF0000: YES
+* expectation count updated correctly: YES
+* rastan-direct build passes: YES
+* manifest reflects new patch: YES
+* no unrelated runtime/spec redesign performed: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, arcade state producer non-progression diagnosis]
+
+* BG producer write sites identified: YES
+* producer-state write execution reachability analyzed: YES
+* current state-machine loop identified exactly: YES
+* input non-effect explained exactly: YES
+* producer-state status determined exactly: YES
+* exact blocking condition identified: YES
+* single root cause identified: Patched instruction at arcade 0x03AF04 (`lea 0xFF0000,%a5`) is in the arcade's one-time power-on init path (0x3AE86), which is only reached via arcade reset entry 0x3A000. The Genesis wrapper calls per-frame tick 0x3A208 directly, bypassing the init path entirely. The lea instruction never executes. A5 retains Exodus power-on value 0xFFFFFFFF. All A5-relative writes (state counters, descriptor list, dest_ptr) target ROM addresses and are discarded. Game state never advances, BG hook never fires, descriptor list stays zero.
+* single next correction defined: Add `lea 0xFF0000, %a5` to `init_staging_state` in `apps/rastan-direct/src/main_68k.s` before the main loop starts, so A5 = 0xFF0000 is established before the first arcade tick call; the patch at 0x03AF04 in rastan_direct_remap.json is correct and must remain.
+* what-must-not-be-changed-yet defined: YES
+* no implementation performed
+## [Cody - Implementation, A5 init before first arcade tick]
+
+* A5 initialized to 0xFF0000 before first arcade tick: YES
+* existing 0x03AF04 patch preserved: YES
+* change limited to wrapper initialization: YES
+* rastan-direct build passes: YES
+* no unrelated runtime/spec redesign performed: YES
+* no undocumented scaffolding added: YES
+
+## [Andy - Analysis, PC080SN readback interception strategy]
+
+* read sites identified exactly: YES — 3 reachable sites (0x03A47E cmpiw #73 0xC0883A, 0x03A552 cmpib #48 0xC09EA3, 0x03AC54 cmpib #67 0xC09E87); startup RAM-test reads at 0x57C are unreachable in Genesis context (only called from 0x52A → 0x114, bypassed by entry at 0x3A008)
+* read usage classified: YES — all 3 are CMPI instructions setting CCR only; no value stored to data register; no arithmetic use; all feed a single BNE branch
+* SGDK read set validated: YES — sites 2 and 3 fall within SGDK-traced page2 range 0x1336–0x1EA3; site 1 (offset +0x083A) is cold-path outside trace coverage, consistent with SGDK caveat
+* correct strategy selected: constant — BRA bypass (replace CMPI+BNE with BRA to not-equal path + NOPs); no shadow memory required
+* patch plan defined: YES — 3 entries x 10 bytes each; exact original_bytes and replacement_bytes computed; opcode_replace_count increments 31 → 34
+* single root cause identified: Three unpatched CMPI instructions read from PC080SN tilemap RAM (page 2, 0xC08000–0xC0BFFF); on Genesis this address range maps to the VDP, which is write-only from the 68000's perspective; any read causes illegal VDP bus access and BlastEm machine freeze; current crash is site 3 at 0x03AC54 (address 0xC09E87)
+* single next correction defined: add three opcode_replace entries to specs/rastan_direct_remap.json for arcade PCs 0x03A47E, 0x03A552, 0x03AC54; increment opcode_replace_count expectation from 31 to 34
+* no implementation performed
+## [Cody - Implementation, PC080SN readback bypass]
+
+* read sites patched: 3
+* opcode_replace_count updated: YES
+* instruction size preserved: YES
+* no shadow memory introduced: YES
+* no unrelated changes made: YES
+
+## [Andy - Analysis, 0xDFFFFE hardware identification]
+
+* hardware at 0xDFFFFE identified: YES
+* hardware type: NONE — unmapped open bus; PC090OJ sprite RAM ends at 0xD03FFF; nothing is mapped at 0xD04000–0xDFFFFF; watchdog is at 0x3C0000 (unrelated)
+* write sites fully characterized: NO — address is dynamically computed at runtime; no static opcode in the ROM encodes 0x00DFFFFE; all statically-traceable sprite writes are within 0xD00000–0xD03FFF; exact write PC requires BlastEm runtime trace
+* suppression is correct permanent answer: YES — 0xDFFFFE is open bus on arcade hardware; no chip responds; no state is carried; the write is a dead write that the arcade silently ignores
+* patch plan defined: YES — declare 0xD00000–0xDFFFFF as a write-sink arcade window in specs/rastan_direct_remap.json, redirecting writes in this range to a 256-byte scratch area in Genesis WRAM (e.g., 0xFF3F00–0xFF3FFF); this prevents the BlastEm machine freeze without altering arcade game logic; no opcode bytes need to be patched
+* single root cause: arcade code writes to 0xDFFFFE (dynamically computed address above PC090OJ sprite RAM) via register-indirect instruction; on arcade this is open bus and silently ignored; on Genesis the D-range is unmapped; BlastEm machine-freezes on the write; no D-range window declaration exists in rastan_direct_remap.json to prevent this
+* single next correction: add declared_arcade_windows entry covering 0xD00000–0xDFFFFF with a Genesis WRAM sink destination in specs/rastan_direct_remap.json; if patcher window mechanism does not support write-redirection, instrument BlastEm debug session to capture exact write PC and add targeted opcode_replace NOP
+* no implementation performed
+
+## [Andy - Analysis, DFFFFE exact write PC diagnosis]
+
+* candidate write instructions identified exactly: YES — 21 D-range write sites fully catalogued; all bounded within 0xD00B00; all sprite RAM init and render loops account for; binary search found 118 D-range pointers in ROM, all within 0xD00000–0xD03FFF; none at 0xDFFFFE
+* crash-site instruction path identified exactly: NO — the 0xDFFFFE write is produced by a register-indirect instruction (movel %d0, %a0@+) in the sprite init loop starting at 0xD00000; on Genesis this write passes to VDP mirror space; BlastEm fires machine freeze at 0xDFFFFE because D-range maps to VDP space on Genesis; exact PC of the crash-triggering instruction requires BlastEm debugger runtime trace
+* targeted opcode_replace patchability determined: YES — NOT feasible: the write instruction at 0x3AD44 is shared by all 480 sprite-slot writes; NOP-patching it would destroy the sprite init entirely; a targeted opcode_replace cannot isolate only the out-of-range write without a runtime trace to a unique instruction PC
+* exact patch plan defined: YES — add `d_window_sprite_ram_sink` entry to `declared_arcade_windows` in specs/rastan_direct_remap.json: `{"name": "d_window_sprite_ram_sink", "start": "0x00D00000", "end_exclusive": "0x00E00000"}`; this prevents all D-range writes from reaching Genesis VDP mirror space; if patcher window mechanism does not support write-redirection, the alternative is BlastEm debugger session to capture exact write PC
+* single root cause identified: D-range writes by arcade sprite init code (0x3AD44 movel loop starting at 0xD00000) pass through to Genesis VDP mirror space unredirected because rastan_direct_remap.json has no declared_arcade_windows entry covering 0xD00000–0xDFFFFF; writes above 0xD03FFF hit VDP-invalid addresses and BlastEm machine-freezes at 0xDFFFFE
+* single next correction defined: add `d_window_sprite_ram_sink` (0x00D00000–0x00E00000) to `declared_arcade_windows` array in specs/rastan_direct_remap.json
+* what-must-not-be-changed-yet defined: YES — all 34 opcode_replace entries, c_window declaration, rom_absolute_call_relocation, A5 init in main_68k.s, genesistan_hook_tilemap_plane_a implementation
+* design doc: docs/design/Andy_dffffe_exact_write_pc_diagnosis.md
+* no implementation performed
+[Decision - Defer BlastEm DFFFFE crash investigation]
+
+Context:
+During build progression, BlastEm reports a fatal error:
+"machine freeze due to write to address DFFFFE"
+
+Extensive investigation attempted:
+- Attempted BlastEm debugger breakpoints (execution + address)
+- Verified BlastEm debugger limitations (no watchpoints support)
+- Confirmed crash occurs before debugger interaction unless started in -d mode
+- Attempted breakpoint placement near suspected sprite init loop (0x03AD44)
+- No confirmed execution breakpoint hit prior to crash
+- Emulator halts before reliable register capture in current workflow
+
+Key Finding:
+This crash is caused by a runtime-computed address write (likely (a0)+),
+which cannot be intercepted via current static patcher or BlastEm breakpoint system
+without deeper instrumentation or emulator-assisted tracing.
+
+Decision:
+This issue is NOT blocking architectural progress.
+
+We are explicitly deferring this investigation to avoid:
+- Debugger-driven development
+- Emulator-specific behavior chasing
+- Reintroduction of scaffolding patterns
+
+Rationale:
+- Current project priority is transition to final architecture:
+  - Removal of synthetic VBlank
+  - Removal of checkerboard scaffolding
+  - Full control handed to arcade execution path
+- This crash exists within a partially scaffolded runtime and may not exist
+  in final architecture
+- Fixing it now risks solving a non-final-state problem
+
+Next Action:
+Proceed with Andy’s architecture plan:
+- Eliminate synthetic VBlank
+- Integrate with arcade VBlank
+- Remove scaffolding systems
+- Re-evaluate crash ONLY after architecture is correct
+
+Status:
+DEFERRED — DO NOT INVESTIGATE UNTIL ARCHITECTURE CLEANUP COMPLETE
+## [Cody - Implementation, remove hook_plane_a_hits]
+
+* diagnostic increment removed: YES
+* bss allocation removed: YES
+* remaining references checked: YES
+* build passes: YES
+* no unrelated changes made: YES
+## [Cody - Implementation, remove fg_dirty infrastructure]
+
+* fg_dirty variable removed: YES
+* fg_dirty usage removed: YES
+* dead FG paths removed: NO
+* remaining references checked: YES
+* build passes: YES
+* no unrelated changes made: YES
+## [Cody - Implementation, bg_row_dirty strip commit]
+
+* bg_dirty replaced with bg_row_dirty: YES
+* init sets all rows dirty: YES
+* hook marks row bits correctly: YES
+* whole-plane commit removed: YES
+* row-based commit added: YES
+* VINT updated: YES
+* build passes: YES
+* no unrelated changes made: YES
+
+## [Andy - Analysis, SSP corruption source exposed by Step 4]
+
+* Step 4 call-nesting change identified exactly: PARTIAL — new strip commit adds bsr vdp_commit_tiles_if_dirty inside vdp_commit_bg_strips_if_dirty; whether old vdp_commit_bg also called it via bsr cannot be determined (old code absent); nesting depth of new path confirmed at 3 levels
+* direct Step 4 stack bug found: NO — vdp_commit_bg_strips_if_dirty and vdp_commit_tiles_if_dirty have no mismatched push/pop, no fallthrough bypass, no A7 modification, registers safely clobbered within VINT handler context
+* SSP corruption source path identified exactly: YES — arcade_tick_entry (Genesis 0x0003A208, arcade ROM offset 0x3A008) terminates with RTE not RTS; called via JSR; JSR pushes 4 bytes, RTE pops 6; SP drifts +2 per call; PC is garbled from first frame; this is not introduced by Step 4
+* exception-to-0x00000200 path explained exactly: YES — all exception vectors except VBlank (vec[30]) point to 0x000200 (_default_handler = RTE); with SSP=0x00E0000A the RTE reads ROM bytes there which reconstruct PC=0x000200; system locks in stable exception loop
+* Step 4 keep/revert decision defined: YES — KEEP Step 4; it is structurally correct and unrelated to the crash
+* single root cause identified: arcade_tick_logic calls the arcade VBlank ISR at 0x0003A208 via jsr but that routine terminates with rte not rts; each call pops 2 more bytes than were pushed, corrupting the return PC and drifting SSP into an invalid range on the first game frame
+* single next correction defined: replace jsr rastan_direct_arcade_tick_entry with a wrapper that pushes a 6-byte RTE frame (SR + return address) then uses jmp to transfer control, so the arcade rte returns correctly
+* what-must-not-be-changed-yet defined: YES — all opcode_replace entries, c_window, rom_absolute_call_relocation, A5 init, genesistan_hook_tilemap_plane_a, all VDP commit functions, _VINT_handler structure, boot.s vector table
+* no implementation performed
+## [Cody - Implementation, fix arcade_tick_logic jsr/rte mismatch]
+
+* broken jsr call removed: YES
+* proper exception frame constructed before arcade tick entry: YES
+* jmp used instead of jsr: YES
+* arcade ISR left unchanged: YES
+* additional active jsr/rte mismatches checked: YES
+* build passes: YES
+* no unrelated changes made: YES
+## [Cody - Implementation, move tile commit to top-level vblank]
+
+* tile commit removed from bg commit path: YES
+* tile commit added as top-level VBlank step: YES
+* tile upload behavior preserved: YES
+* bg commit now owns only row publication: YES
+* remaining coupling checked: YES
+* build passes: YES
+* no unrelated changes made: YES
+
+## [Andy - Analysis, graphics pipeline break diagnosis]
+
+* PC080SN graphics present in ROM: NO — pc080sn.bin (524,288 bytes) exists in build/regions/ but is never embedded in the Genesis ROM image; no .incbin or patcher step includes it
+* PC090OJ graphics present in ROM: NO — pc090oj.bin exists in build/regions/ but is similarly absent from the Genesis ROM
+* graphics read paths reachable: NO — no runtime function reads from pc080sn.bin; tile pixel data is entirely absent from the execution environment
+* staged_bg_buffer contains real tile data: NO — staged_bg_buffer receives correct Genesis nametable words (VRAM slot indices from tile_vram_lut), but those slots are empty in VRAM; display is transparent for all arcade tile references
+* staged_tile_words populated: YES — but only with 3 synthetic tiles (tile_init_words: solid-1, solid-2, checkerboard-3) loaded once at boot; no arcade tile data ever written
+* tiles_dirty triggered beyond init: NO — tiles_dirty is set once in init_staging_state, cleared after first VBlank upload, never set again
+* sprite path active: UNKNOWN — PC090OJ data also absent from ROM; sprite tile data upload state not audited in this pass
+* rainbow islands alignment: PARTIAL — nametable hook (genesistan_hook_tilemap_plane_a), LUT (tile_vram_lut, 2326 tiles mapped to slots 20–1342), WRAM staging (staged_bg_buffer), display-disable bracketing all present and correct; tile pixel data upload step is entirely absent
+* divergence points identified: YES — two coupled: (1) pc080sn.bin not embedded in ROM; (2) no tile preload/convert/upload function exists
+* exact break point identified: YES — missing init-time tile preload function; missing ROM inclusion of pc080sn.bin
+* single root cause identified: PC080SN tile pixel ROM data is never embedded in the Genesis ROM and no code path uploads it to VRAM, leaving all 2326 LUT-assigned VRAM slots zero-initialized; VDP renders transparent tiles for every arcade tile reference
+* single next correction defined: embed pc080sn.bin in Genesis ROM (incbin in main_68k.s rodata or patcher append) and implement one init-time function that iterates the scene preload manifest, converts PC080SN planar 4bpp to Genesis chunky 4bpp, and writes tile data to VRAM slots 20–1342 before first nametable commit
+* what-must-not-be-changed-yet defined: YES — all 34 opcode_replace entries, genesistan_hook_tilemap_plane_a, tile_vram_lut/attr_lut, staged_bg_buffer/vdp_commit_bg_strips_if_dirty, _VINT_handler structure, vdp_commit_tiles_if_dirty, A5 init, VRAM_TILE_BASE, rom_absolute_call_relocation
+* no implementation performed
+
+## [Andy - Analysis, PC080SN tile preload system design]
+
+* SGDK preload strategy identified exactly: YES — genesistan_preload_scene_tiles iterates (u16 arcade_tile, u16 vram_slot) manifest pairs, calls VDP_loadTileData(rastan_pc080sn + arcade_tile*32, vram_slot, 1, DMA) with no format conversion, scene-scoped at scene entry
+* SGDK compatibility defined exactly: YES — raw pc080sn.bin bytes are VDP-native; no conversion required; confirmed by Build 91+ launcher tile browser screenshots
+* tile ROM embedding design defined: YES — .incbin "../../build/regions/pc080sn.bin" in main_68k.s .rodata section, labeled genesistan_pc080sn_tile_rom; patcher does not touch above 0x070000; no Makefile changes needed
+* tile conversion contract defined exactly: YES — no conversion; raw bytes copied directly to VRAM
+* preload scope chosen exactly: YES — bulk preload all 1,067 unique tiles at init (before init_staging_state, between vdp_boot_setup and init_staging_state in main_68k); scene-scoped preload rejected as unnecessary complexity
+* VRAM upload mechanism defined exactly: YES — function init_arcade_tile_vram; iterates all 16384 LUT entries; for each nonzero vram_slot: vdp_set_vram_write_addr(vram_slot << 5), write 16 words from genesistan_pc080sn_tile_rom + (i << 5)
+* minimal first implementation defined exactly: YES — one .incbin directive + one function + one call site in main_68k; no other changes
+* rainbow islands alignment: YES — all 5 checks pass; tile upload before nametable reference, no placeholder reliance, clear separation, no coupling, explicit VDP memory target
+* divergence points identified: YES — previous diagnosis doc incorrectly stated planar-to-chunky conversion required; AGENTS_LOG Build 91+ evidence and pre-confirmed facts override this; no conversion needed
+* single root cause identified: PC080SN tile pixel ROM never embedded in Genesis ROM and no upload function exists; all VRAM slots 20-1342 remain zero-initialized
+* single next correction defined: embed pc080sn.bin via .incbin in main_68k.s rodata (labeled genesistan_pc080sn_tile_rom), implement init_arcade_tile_vram iterating genesistan_pc080sn_tile_vram_lut, call from main_68k between vdp_boot_setup and init_staging_state
+* what-must-not-be-changed-yet defined: YES
+* no implementation performed
+
+## [Andy - Analysis, per-mode VRAM working-set profiling plan]
+
+* mode buckets defined exactly: YES -- Title/Attract (scene 0, A0 range 0x5A7DA-0x5B0B2), Gameplay (scene 1, A0 range 0x56A22-0x570C2), End-Round (scene 2, A0 range 0x5822A-0x59614)
+* PC080SN profiling target defined exactly: YES -- instrument genesistan_hook_tilemap_plane_a with 3x192-byte WRAM bitmask (genesistan_tile_slot_observed) recording which VRAM slots are written per scene bucket; count set bits per scene to get per-mode unique slot totals
+* PC090OJ profiling target defined exactly: YES -- record all observed 16x16 cell codes in 512-byte WRAM bitmask (genesistan_sprite_cell_observed); maintain genesistan_sprite_peak_unique peak per-frame unique cell count
+* profiling method defined exactly: YES -- two non-destructive bit-set additions to main_68k.s; one in hook_tilemap_plane_a after LUT lookup; one in sprite tile prepare path; capture via emulator WRAM dump after full attract + gameplay + end-round traversal
+* VRAM budget decision rule defined exactly: YES -- PASS if S_peak_slots <= (1535 - 1342) = 193; at 18 unique cells: 72 <= 193 (PASS, margin 121 slots); at 32 cells: 128 <= 193 (PASS, margin 65 slots); FAIL threshold is 49+ unique cells simultaneously
+* expected final direction chosen exactly: YES -- Option A: bulk preload all 1,067 PC080SN tiles at boot; condition: sprite tile base must be 1343 not 1024; budget passes at confirmed worst-case (18 cells = 72 slots needed, 193 available)
+* Rainbow Islands alignment evaluated: YES -- Rainbow Islands used scene-scoped preload due to VRAM overflow (2,272 tiles vs 1,164 slots); rastan-direct has 1,067 tiles vs 1,535 slots; overflow condition does not exist; bulk preload is valid; scene-scoped not required
+* single root concern identified: unmeasured per-mode PC080SN working set; bulk preload may permanently occupy VRAM no single mode uses simultaneously, constraining sprite streaming to 193 slots when larger reserves may be achievable with mode-scoped discipline
+* single next correction defined: instrument genesistan_hook_tilemap_plane_a with 3x192-byte per-scene tile-slot bitmask and add peak-unique sprite cell counter in sprite prepare path; run attract + gameplay + end-round to capture data; verify VRAM budget math against actual runtime behavior before committing to final sprite base address
+* what-must-not-be-changed-yet defined: YES -- hook_tilemap_plane_a logic (observational instrumentation only), tile_vram_lut, staged_bg_buffer/vdp_commit_bg_strips_if_dirty, _VINT_handler, vdp_commit_tiles_if_dirty, init_staging_state internals, all opcode_replace entries, VRAM_TILE_BASE, A5 init, patcher, Step 6 checkerboard removal must NOT happen yet
+* no implementation performed
+
+## [Andy - Analysis, arcade vs genesis profiling correction]
+
+* misunderstanding identified: YES
+* genesis-side profiling rejected for this phase: YES
+* arcade profiling requirement defined: YES — the measurement question (which PC080SN tile indices does the arcade game reference per mode) is an arcade ROM question; the answer already exists in the LUT and scene manifests produced by precompute_pc080sn_tile_lut.py via static analysis of maincpu.bin
+* profiling plan updated if needed: NO — the VRAM budget math and architecture direction in the original plan remain correct; only the stated profiling method (Genesis hook instrumentation) is superseded by this correction
+* acceptable methods defined: YES — (A) re-run precompute_pc080sn_tile_lut.py for verbose per-scene counts; (B) parse existing build/pc080sn_scene_preload_*.bin manifests; (C) MAME dynamic tracing if static analysis is disputed; Genesis hook instrumentation is NOT acceptable as primary data source at this phase
+* future genesis profiling role clarified: YES — post-implementation correctness check after init_arcade_tile_vram is working; performance timing of VBlank upload path; sprite peak unique cell count verification after sprite pipeline is functional
+* single root issue identified: the profiling plan directed Genesis hook instrumentation to measure arcade tile working sets, but the Genesis wrapper is non-functional as a display system and cannot produce representative observations; the arcade tile working set data was already fully available from the static analysis that generated the LUT
+* single corrected next step defined: no additional profiling needed; confirm per-scene tile counts match estimates by re-running precompute_pc080sn_tile_lut.py, then direct Cody to implement init_arcade_tile_vram using the already-generated LUT — without adding any WRAM bitmask instrumentation to main_68k.s
+* no implementation performed
