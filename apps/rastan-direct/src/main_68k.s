@@ -3,6 +3,7 @@
     .global _VINT_handler
     .global sprite_dma_addr_high_bits_fix
     .global genesistan_hook_tilemap_plane_a
+    .global genesistan_hook_tilemap_bg_fill
     .global genesistan_shadow_input_390001
     .global genesistan_shadow_input_390003
     .global genesistan_shadow_input_390005
@@ -56,6 +57,8 @@ main_68k:
     move.w  #0x2700, %sr
 
     bsr     vdp_boot_setup
+    moveq   #0, %d0
+    bsr     load_scene_tiles
     bsr     init_staging_state
 
     move.w  #0x2000, %sr
@@ -219,6 +222,48 @@ genesistan_hook_tilemap_plane_a:
     lsr.w   #6, %d2
     andi.w  #0x003F, %d2
 
+.Lscene_preamble_fast_path:
+    move.l  %a0, %d0
+    andi.l  #0x00FFFFFF, %d0
+
+    cmp.l   genesistan_scene_a0_lo, %d0
+    blo.s   .Lscene_slow_path
+
+    cmp.l   genesistan_scene_a0_hi, %d0
+    bhi.s   .Lscene_slow_path
+
+    bra.s   .Lscene_preamble_done
+
+.Lscene_slow_path:
+    lea     genesistan_scene_a0_ranges, %a1
+    move.l  %d5, %d6
+    moveq   #0, %d3
+
+.Lscene_loop:
+    move.l  (%a1)+, %d4
+    move.l  (%a1)+, %d5
+
+    cmp.l   %d4, %d0
+    blo.s   .Lnext_scene
+
+    cmp.l   %d5, %d0
+    bls.s   .Lscene_match
+
+.Lnext_scene:
+    addq.w  #1, %d3
+    cmpi.w  #3, %d3
+    blt.s   .Lscene_loop
+
+    move.l  %d6, %d5
+    bra.s   .Lscene_preamble_done
+
+.Lscene_match:
+    move.l  %d3, %d0
+    bsr     load_scene_tiles
+    move.l  %d6, %d5
+    bra.w   .Lscene_preamble_done
+
+.Lscene_preamble_done:
     lea     ARCADE_PC080SN_DESC_BG_LIST_OFFSET(%a5), %a0
     movea.l #ARCADE_MAINCPU_ROM_BASE, %a1
     lea     genesistan_pc080sn_tile_vram_lut, %a2
@@ -284,6 +329,8 @@ genesistan_hook_tilemap_plane_a:
     lsl.w   #7, %d0
     add.w   %d2, %d0
     add.w   %d2, %d0
+    add.w   %d7, %d0
+    add.w   %d7, %d0
     move.w  %d3, 0(%a6,%d0.w)
     move.l  bg_row_dirty, %d0
     bset    %d1, %d0
@@ -303,6 +350,10 @@ genesistan_hook_tilemap_plane_a:
 
 .Lbg_hook_desc_done:
     addi.l  #0x00000400, %d5
+    addq.w  #4, %d2
+    andi.w  #0x003F, %d2
+    subq.w  #4, %d1
+    andi.w  #0x001F, %d1
     dbra    %d6, .Lbg_hook_desc_loop
 
     move.l  %d5, ARCADE_PC080SN_DEST_BG_OFFSET(%a5)
@@ -312,6 +363,93 @@ genesistan_hook_tilemap_plane_a:
 .Lbg_hook_dest_invalid:
     addi.l  #0x00004000, %d5
     move.l  %d5, ARCADE_PC080SN_DEST_BG_OFFSET(%a5)
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_tilemap_bg_fill:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+
+    movea.l %a0, %a4
+    move.l  %a4, %d2
+    andi.l  #0x00FFFFFF, %d2
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_BG, %d2
+    blo     .Lbg_fill_done
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_BG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs     .Lbg_fill_done
+
+    move.w  %d1, %d6
+    tst.w   %d6
+    beq     .Lbg_fill_done
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     genesistan_pc080sn_attr_lut, %a3
+    lea     staged_bg_buffer, %a6
+
+    move.w  %d0, %d3
+    andi.w  #0x3FFF, %d3
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+
+    move.l  %d0, %d4
+    swap    %d4
+    move.w  %d4, %d5
+    andi.w  #0x0003, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #6, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #2, %d7
+    or.w    %d7, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #7, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #3, %d7
+    or.w    %d7, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #5, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #4, %d7
+    or.w    %d7, %d5
+
+    add.w   %d5, %d5
+    move.w  0(%a3,%d5.w), %d5
+    or.w    %d5, %d3
+
+.Lbg_fill_loop:
+    move.l  %a4, %d2
+    andi.l  #0x00FFFFFF, %d2
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_BG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs     .Lbg_fill_done
+
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_BG, %d2
+    lsr.l   #2, %d2
+
+    move.w  %d2, %d4
+    andi.w  #0x003F, %d4
+    move.w  %d2, %d5
+    lsr.w   #6, %d5
+    andi.w  #0x001F, %d5
+
+    move.w  %d5, %d0
+    lsl.w   #7, %d0
+    add.w   %d4, %d0
+    add.w   %d4, %d0
+    move.w  %d3, 0(%a6,%d0.w)
+
+    move.l  bg_row_dirty, %d0
+    bset    %d5, %d0
+    move.l  %d0, bg_row_dirty
+
+    adda.l  #4, %a4
+    subq.w  #1, %d6
+    bne.s   .Lbg_fill_loop
+
+.Lbg_fill_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -478,6 +616,74 @@ arcade_tick_logic:
 .Ltick_return:
     rts
 
+load_scene_tiles:
+    movem.l %d1-%d7/%a0-%a4, -(%sp)
+
+    move.w  %d0, %d6
+    andi.w  #0x00FF, %d6
+
+    lea     genesistan_scene_preload_title, %a0
+    cmpi.w  #1, %d6
+    bne.s   .Lload_scene_check_endround
+    lea     genesistan_scene_preload_gameplay, %a0
+    bra.s   .Lload_scene_manifest_ready
+.Lload_scene_check_endround:
+    cmpi.w  #2, %d6
+    bne.s   .Lload_scene_force_title
+    lea     genesistan_scene_preload_endround, %a0
+    bra.s   .Lload_scene_manifest_ready
+.Lload_scene_force_title:
+    moveq   #0, %d6
+.Lload_scene_manifest_ready:
+    move.w  #0x2700, %sr
+
+    moveq   #VDP_REG_MODE2, %d0
+    moveq   #VDP_MODE2_DISPLAY_OFF, %d1
+    bsr     vdp_set_reg
+
+.Lload_scene_pair_loop:
+    move.w  (%a0)+, %d2
+    cmpi.w  #0xFFFF, %d2
+    beq.s   .Lload_scene_pairs_done
+    move.w  (%a0)+, %d3
+
+    lea     genesistan_pc080sn_tile_rom, %a2
+    moveq   #0, %d4
+    move.w  %d2, %d4
+    lsl.l   #5, %d4
+    adda.l  %d4, %a2
+
+    moveq   #0, %d0
+    move.w  %d3, %d0
+    lsl.l   #5, %d0
+    bsr     vdp_set_vram_write_addr
+
+    moveq   #15, %d7
+.Lload_scene_tile_words:
+    move.w  (%a2)+, VDP_DATA
+    dbra    %d7, .Lload_scene_tile_words
+    bra.s   .Lload_scene_pair_loop
+
+.Lload_scene_pairs_done:
+    move.b  %d6, genesistan_current_scene_id
+    lea     genesistan_scene_a0_ranges, %a3
+    moveq   #0, %d4
+    move.w  %d6, %d4
+    lsl.w   #3, %d4
+    adda.w  %d4, %a3
+    move.l  (%a3)+, %d0
+    move.l  (%a3), %d1
+    move.l  %d0, genesistan_scene_a0_lo
+    move.l  %d1, genesistan_scene_a0_hi
+
+    moveq   #VDP_REG_MODE2, %d0
+    moveq   #VDP_MODE2_DISPLAY_ON, %d1
+    bsr     vdp_set_reg
+
+    move.w  #0x2000, %sr
+    movem.l (%sp)+, %d1-%d7/%a0-%a4
+    rts
+
 init_staging_state:
     lea     0x00FF0000, %a5
     clr.w   frame_counter
@@ -576,6 +782,33 @@ genesistan_pc080sn_tile_vram_lut:
 genesistan_pc080sn_attr_lut:
     .incbin "../../build/pc080sn_attr_lut.bin"
 
+    .align 2
+genesistan_pc080sn_tile_rom:
+    .incbin "../../build/regions/pc080sn.bin"
+
+    .align 2
+genesistan_scene_preload_title:
+    .incbin "../../build/pc080sn_scene_preload_title.bin"
+genesistan_scene_preload_title_end:
+
+    .align 2
+genesistan_scene_preload_gameplay:
+    .incbin "../../build/pc080sn_scene_preload_gameplay.bin"
+genesistan_scene_preload_gameplay_end:
+
+    .align 2
+genesistan_scene_preload_endround:
+    .incbin "../../build/pc080sn_scene_preload_endround.bin"
+genesistan_scene_preload_endround_end:
+
+genesistan_scene_a0_ranges:
+    .long 0x0005A7DA
+    .long 0x0005B0B2
+    .long 0x00056A22
+    .long 0x000570C2
+    .long 0x0005822A
+    .long 0x00059614
+
     .section .bss
     .align 2
 
@@ -590,6 +823,14 @@ tiles_dirty:
     .byte 0
     .align 2
 bg_row_dirty:
+    .long 0
+    .align 2
+genesistan_current_scene_id:
+    .byte 0
+    .align 2
+genesistan_scene_a0_lo:
+    .long 0
+genesistan_scene_a0_hi:
     .long 0
 genesistan_shadow_input_390001:
     .byte 0

@@ -1,5 +1,37 @@
 # AGENTS Log
 
+## [Andy - Design, Genesis BSS Relocation and WRAM Ownership Model (rastan-direct)]
+
+* option A (arcade workram → 0xFF2200) superseded by option B (Genesis BSS → 0xFF4000); arcade stays at natural 0xFF0000 home
+* WRAM ownership model defined: 0xFF0000–0xFF3FFF arcade, 0xFF4000+ Genesis BSS; 14.7 KB headroom in arcade zone
+* parameterization strategy: single literal in link.ld; all BSS symbols auto-relocate; zero hardcoded Genesis BSS addresses remain in main_68k.s after change
+* hook audit: genesistan_hook_tilemap_plane_a:199 `lea 0xFF0000, %a5` is arcade workram access (DEST_BG_OFFSET 0x10A0, STRIP_INDEX_OFFSET 0x10CA) — no change needed under option B
+* init_staging_state:688 `lea 0xFF0000, %a5` confirmed dead instruction — A5 not used in that function body; leave as-is
+* four changes scoped: link.ld BSS base, arcade_tick_logic A5 setup, bg_row_dirty clr.l fix, factory defaults block at 0xFF0000
+* WRAM_memory_map.md spec defined: required sections, content rules, update rules, maintenance cadence
+* design doc: docs/design/Andy_genesis_bss_relocation_and_wram_map_design.md
+* cody prompt: docs/design/Cody_genesis_bss_relocation.md
+* supersedes: docs/design/Cody_arcade_workram_relocation.md (option A)
+* no implementation performed
+
+---
+
+## [Andy - Analysis, Arcade Workram Overlap Root Cause (rastan-direct)]
+
+* problem confirmed: warm restart loop every ~223 frames; title_init_block count=0; block copy at 0x05A4E0 never called
+* root cause 1 identified: arcade A5@(0) = 0xFF0000 = frame_counter — incremented by VINT every frame, corrupts state machine dispatch
+* root cause 2 identified: arcade A5@(44/0x2C) = 0xFF002C = staged_bg_buffer[0] = 0x0001 after checkerboard init; countdown fires after 1 tick, triggers 4-second warm restart delay loop (0x39F92–0x39F9C inner loop = PCs seen in MAME trace)
+* warm restart sequence confirmed: arcade 0x39F9E `MOVEA.L ($0000).W, SP; MOVEA.L ($0004).W, A0; JMP (A0)` → Genesis 0x202 (_start) → main_68k cycle repeats
+* cycle time explained: 1 tick + 655360-iteration busy wait at 7.67MHz ≈ 3.7s = 223 frames/cycle matches trace
+* startup_common reference confirmed: A5@(44) factory default = 160; A5@(38) init flag = 1; A5@(256) title init = 1
+* fix identified: relocate arcade workram base to 0xFF2200 (above Genesis BSS end at 0xFF212B); add factory defaults init at 0xFF2200 in init_staging_state
+* spec patch at 0x03AF04 (LEA 0x10C000→0xFF0000) confirmed permanently inert (startup_common never reached from tick entry 0x3A208)
+* design doc: docs/design/Andy_arcade_workram_relocation_analysis.md
+* cody prompt: docs/design/Cody_arcade_workram_relocation.md
+* no implementation performed
+
+---
+
 ## [Andy - Analysis, PC080SN Tilemap Correctness Audit]
 
 * attr LUT bit mapping verified: YES — PC080SN attr_word bits 0-1 (palette), 13 (priority), 14 (hflip), 15 (vflip) correctly map to Genesis nametable bits 14-13, 15, 11, 12
@@ -26577,4 +26609,285 @@ DEFERRED — DO NOT INVESTIGATE UNTIL ARCHITECTURE CLEANUP COMPLETE
 * fuller sprite peak analysis completed exactly: YES
 * root uncertainty resolution status defined exactly: YES
 * updated verified next step defined exactly: YES
+* no implementation performed
+## [Cody - Implementation, load_scene_tiles and boot-time title preload]
+
+* preconditions verified: YES
+* PC080SN tile ROM embedded in .rodata: YES
+* scene manifests embedded in .rodata: YES
+* ROM scene range table added: YES
+* WRAM scene-state variables added: YES
+* load_scene_tiles implemented: YES
+* boot-time title preload call added: YES
+* hook left unchanged in this step: YES
+* build passes: YES
+* no unrelated changes made: YES
+## [Cody - Implementation, load_scene_tiles register-clobber fix]
+
+* preconditions verified: YES
+* bug mechanism confirmed: YES
+* source-pointer calculation moved before helper call: YES
+* loop semantics preserved: YES
+* build passes: YES
+* no unrelated changes made: YES
+## [Andy - Analysis, verification of load_scene_tiles fix]
+
+* bug fix correctly applied: YES
+* no remaining register-clobber risk: YES
+* source pointer calculation correct: YES
+* VRAM addressing correct: YES
+* tile write loop correct: YES
+* manifest iteration correct: YES
+* boot preload path correct: YES
+* no regressions introduced: YES
+* visual state explained: YES
+* ready for Step 2: YES
+* blocker: NONE
+* no implementation performed
+## [Cody - Implementation, scene/mode transition trigger wiring]
+
+* preconditions verified: YES
+* preamble inserted at correct location: YES
+* fast path implemented (unsigned): YES
+* slow path implemented: YES
+* scene reload call implemented: YES
+* no-match fallthrough implemented: YES
+* descriptor loop unchanged: YES
+* build passes: YES
+* no unrelated changes made: YES
+## [Andy - Analysis, scene trigger runtime diagnosis]
+
+* hook executing: YES
+* preamble executing: YES
+* fast path always taken: YES
+* slow path reachable: YES
+* load_scene_tiles call behavior: once at boot only
+* scenes visually distinct: YES
+* hook produces meaningful tile indices: YES
+* checkerboard still dominating: YES
+* BG commit occurring: YES
+* root cause: fast path always matches during Title scene; trigger dormant; no scene transition has occurred; Step 2 has no observable effect until Gameplay/End-Round transition
+* next required fix: slow-path register clobber — %d1 and %d2 destroyed by scene scan loop, corrupting staged_bg_buffer row/column addressing on first scene transition; fix by using non-conflicting scratch registers in slow-path scan
+* no implementation performed
+## [Cody - Implementation, scene trigger slow-path register fix]
+
+* preconditions verified: YES
+* bug mechanism confirmed: YES
+* slow path moved to non-conflicting scratch registers: YES
+* fast path preserved: YES
+* descriptor loop semantics preserved: YES
+* build passes: YES
+* no unrelated changes made: YES
+## [Andy - Analysis, scene transition readiness]
+
+* slow-path fix correct: YES
+* descriptor entry state correct: YES
+* load_scene_tiles safe in hook context: YES
+* scene switch will correctly change VRAM content: YES
+* hook output valid post-transition: YES
+* BG commit will reflect new scene: YES
+* hidden failure present: NO
+* transition prediction: load_scene_tiles(1) runs on first Gameplay address; 1-frame display-off flicker; correct Gameplay tiles in VRAM; nametable rows committed on next VBlank; wrong palette and checkerboard in unwritten rows are pre-existing conditions
+* final verdict: READY FOR TRANSITION TEST
+* blocker: NONE
+* no implementation performed
+## [Andy - Analysis, title screen zero-input diagnosis]
+
+* title should render with zero input: YES
+* title assets present and usable: YES
+* title hook coverage sufficient for full visible title: NO
+* destination validation correct for title: YES
+* row/column mapping correct: NO
+* staged buffer converging correctly for title: NO
+* committed BG data targets visible screen region: YES
+* root cause: %d2 (column index) never updated per descriptor; all 16 descriptors write to same column; 63 of 64 columns retain checkerboard permanently
+* next fix: add addq.w #4, %d2 / andi.w #0x003F, %d2 at .Lbg_hook_desc_done before dbra to advance column by 4 per descriptor
+* no implementation performed
+## [Cody - Implementation, BG descriptor column advance fix]
+
+* preconditions verified: YES
+* bug mechanism confirmed: YES
+* %d2 column advance added at .Lbg_hook_desc_done: YES
+* outer loop semantics preserved: YES
+* build passes: YES
+* no unrelated changes made: YES
+## [Andy - Analysis, post-%d2-fix no-visible-change diagnosis]
+
+* %d2 fix live in executed path: YES
+* current %d2 advance semantics correct: YES
+* row/column/dest relationship remains coherent: NO
+* descriptor coverage model for title is correct: NO
+* checkerboard persistence explained by a different cause: YES
+* both emulator outputs consistent with same root cause: YES
+* root cause: %d1 (row index) accumulates +4 per descriptor via inner loop, but 0x400 dest advance has zero row bits — row should remain constant across all 16 descriptors; diagonal writes produce 2 real-tile cells per row per hook call (97% checkerboard per committed row); %d2 fix is correct but insufficient
+* next fix: add subq.w #4, %d1 / andi.w #0x001F, %d1 at .Lbg_hook_desc_done after existing andi.w #0x003F, %d2 to restore %d1 to initial_row after each descriptor
+* no implementation performed
+## [Cody - Implementation, BG descriptor row reset fix]
+
+* preconditions verified: YES
+* bug mechanism confirmed: YES
+* %d1 row reset added at .Lbg_hook_desc_done: YES
+* outer loop semantics preserved: YES
+* invalid-descriptor path preserved: YES
+* build passes: YES
+* no unrelated changes made: YES
+## [Andy - Analysis, descriptor model validation]
+
+* descriptor count correct: YES
+* row grouping correct: YES
+* dest→row/column extraction correct: NO
+* horizontal sweep model correct: NO
+* writes land in visible region: YES
+* root cause: %d7 (strip_index) offsets source tile selection but is not applied to destination column; all 4 strip calls per frame write to same columns (0,4,8,...,60); sub-columns 1,2,3 of every group never written; 48 of 64 columns remain checkerboard
+* next fix: inside .Lbg_hook_row_loop after existing add.w %d2,%d0 pair, insert add.w %d7,%d0 / add.w %d7,%d0 so destination column = %d2 + strip_index
+* no implementation performed
+## [Cody - Implementation, strip-index destination offset fix]
+
+* preconditions verified: YES
+* bug mechanism confirmed: YES
+* %d7 destination offset added inside .Lbg_hook_row_loop: YES
+* row-loop semantics preserved: YES
+* bounds verified: YES
+* build passes: YES
+* no unrelated changes made: YES
+## [Andy - Analysis, PC080SN data collection spec]
+
+* dest trace requirements defined: YES
+* MAME extraction requirements defined: YES
+* arcade memory requirements defined: YES
+* correlation method defined: YES
+* output format defined: YES
+* no mapping assumptions made: YES
+* no implementation performed
+## [Cody - Analysis, PC080SN mapping ground-truth data collection]
+
+* dest trace collected: NO
+* MAME PC080SN extraction completed: YES
+* arcade tilemap RAM dump collected: YES
+* strip write observations collected: NO
+* Genesis staged_bg_buffer dump collected: YES
+* 4x4 arcade/genesis correlation table completed: YES
+* temporary instrumentation removed: YES
+* no permanent code changes left behind: YES
+## [Andy - Analysis, Reconcile PC080SN Ground-Truth Data]
+
+* hook produces real staged_bg_buffer writes: NO — trace_hook_call_total=0 over 3000 frames
+* zero real-data result explained: YES — direct consequence of zero hook calls
+* dest trace failure explained: YES — hook never ran; Lua script read uninitialized WRAM; anomalous desc_val=0xC0 is WRAM residual
+* arcade/genesis mismatch explained: YES — arcade writes valid PC080SN data; Genesis hook never ran; systems structurally decoupled
+* layer A/B discrepancy explained: YES — Layer B (Plane B, 0xC000) sole write source is BG hook (never ran); Layer A content from separate FG path (functional)
+* arithmetic fixes (%d1, %d2, %d7) verified correct: YES — correct code, never executed
+* root cause identified: PARTIAL — hook at 0x055968 never invoked; primary candidate is wrong patch site (gameplay-only path, Title scene uses different arcade PC); secondary candidate is patch byte mismatch
+* next investigation: (1) hexdump built ROM at 0x055B68 to verify patch applied; (2) MAME watchpoint on 0xC00000–0xC03FFF to find actual Title-scene BG write PC(s); (3) MAME breakpoint at 0x055968 to confirm it never fires in 3000 Title frames
+* design doc: docs/design/Andy_reconcile_pc080sn_ground_truth.md
+* no implementation performed
+## [Cody - Analysis, verify BG hook patch and title write site]
+
+* patch presence at 0x055B68 verified: YES
+* 0x055968 execution during Title verified: YES
+* Title-scene BG write PCs collected: YES
+* write PCs classified by hit count: YES
+* root outcome classified: YES
+* single next patch target identified: YES
+* no implementation performed
+## [Andy - Final design, PC080SN hook strategy]
+
+* no-scaffolding definition complete: YES
+* Rainbow Islands strategy analyzed: YES
+* hook strategy selected: YES — Option A, multi-site hook (0x055968 keep + 0x03AD48 add)
+* hook contract defined: YES
+* patch set defined: YES — two BG sites; FG and transition sites deferred until evidence found
+* failure modes defined: YES
+* final implementation plan defined: YES
+* no implementation performed
+
+## [Andy - Analysis, title hook failure diagnosis]
+
+* crash root cause identified: YES — arcade PC090OJ sprite RAM init calls longword block-fill (FUNC B) with count large enough to advance A0 from 0xD00000 past 0xD03FFF into unmapped Genesis expansion space; write to 0xDFFFFE triggers BlastEm machine freeze; pre-existing issue, separate from BG hook
+* DFFFFE write source identified: YES — sprite RAM block-fill primitive at arcade 0x03AD44 with non-BG A0 target; not related to BG hook
+* 0x03AD48 classification complete: YES — BNE.S loop-back branch at byte +4 of FUNC B; NOT a function entry point; patching here would break loop contract
+* MAME Lua tap timing root cause identified: YES — install_write_tap fires AFTER instruction completes; PC observed in callback = instruction following the write; MOVE.L at 0x03AD44 (2 bytes) + SUBQ.W at 0x03AD46 (2 bytes) = PC advanced to 0x03AD48 (BNE.S) at callback time; off-by-4 from actual write instruction
+* correct hook insertion point identified: YES — arcade PC 0x03AD44 (Genesis ROM 0x03AF44); function entry; 8-byte span (MOVE.L + SUBQ.W + BNE.S + RTS); original bytes confirmed: 20 C0 53 41 66 FA 4E 75
+* hook contract compatibility verified: YES — existing genesistan_hook_tilemap_plane_a uses WRAM desc-list protocol; FUNC B uses register convention (D0=tile data, A0=dest, D1=count); fundamentally incompatible; new hook genesistan_hook_tilemap_bg_fill required
+* single root cause defined: YES — MAME Lua write tap reports PC 4 bytes past write instruction; caused 0x03AD48 (BNE.S) to be identified as patch target instead of 0x03AD44 (MOVE.L); boundary validation correctly rejected 0x03AF48
+* existing 0x055968 patch disposition: KEEP UNCHANGED — correct for gameplay BG strip writes; zero hits in Title is expected
+* design doc: docs/design/Andy_title_hook_failure_analysis.md
+* no implementation performed
+
+## [Andy - Design, genesistan_hook_tilemap_bg_fill specification]
+
+* register calling convention documented: YES — D0=tile_data, A0=dest, D1=count
+* precondition range check specified: YES — A0 & 0xFFFFFF in [0xC00000, 0xC04000)
+* nametable_word precompute algorithm specified: YES — code from D0[15:0] via tile LUT; attr from D0[31:16] via attr LUT; identical extraction logic to existing hook
+* fill loop algorithm specified: YES — row/col from A0 byte offset; staged_bg_buffer write; dirty bit set; A0 += 4; early exit on BG window overflow
+* patch target confirmed: YES — arcade PC 0x03AD44, Genesis ROM 0x03AF44, original bytes 20C0534166FA4E75 (8 bytes)
+* replacement bytes specified: YES — 4eb9{symbol:genesistan_hook_tilemap_bg_fill}4e71 (6-byte JSR + 2-byte NOP = 8 bytes)
+* required_symbols update specified: YES — add genesistan_hook_tilemap_bg_fill
+* opcode_replace_count update specified: YES — 34 → 35
+* scaffolding audit: NONE — hook is permanent translation logic, no scene conditionals, no state-based branches
+* no implementation performed
+* cody prompt: docs/design/Cody_bg_fill_hook_implementation.md
+## [Cody - Implementation, BG fill hook]
+
+* preconditions verified: YES
+* new global symbol added: YES
+* genesistan_hook_tilemap_bg_fill implemented: YES
+* A0 BG-range guard implemented: YES
+* nametable word precompute implemented: YES
+* fill loop implemented: YES
+* required_symbols updated: YES
+* 0x03AD44 patch entry added: YES
+* existing 0x055968 patch preserved: YES
+* opcode_replace_count updated to 35: YES
+* build passes: YES
+* post-build patch presence at 0x03AF44 verified: YES
+* no scaffolding introduced: YES
+* no unrelated changes made: YES
+
+## [Andy - Analysis, BG fill hook no-visible-output diagnosis]
+
+* patch/hook chain structurally correct: YES
+* hook logic should produce staged writes if called: YES
+* most likely failure point identified: YES
+* screenshots reconciled with hook behavior: YES
+* hook classified as not-called vs called-but-wrong: called-but-wrong (incorrect patch spec)
+* root cause: replacement_bytes ends with 4e71 (NOP) instead of 4e75 (RTS); original FUNC B RTS at bytes +6-7 was replaced by NOP; hook's own RTS returns to NOP at 0x03AF4A which falls through to 0x03AF4C with CALLER_RET stranded on stack; corrupts execution flow after every FUNC B call
+* next step: change 4e71 to 4e75 in replacement_bytes for 0x03AD44 in rastan_direct_remap.json; rebuild
+* note: bug originated in Andy's spec; carried through 231S unchanged; Cody correctly implemented as specified
+* no implementation performed
+## [Cody - Implementation, BG fill patch RTS tail fix]
+
+* preconditions verified: YES
+* 0x03AD44 patch entry located: YES
+* replacement tail changed from 4e71 to 4e75: YES
+* no other patch entries changed: YES
+* build passes: YES
+* post-build 0x03AF44 bytes verified: YES
+* no unrelated changes made: YES
+
+## [Andy - Analysis, BG fill hook post-RTS no-change diagnosis]
+
+* RTS contract correct: YES — 4e75 at position +6 restores call/return discipline; no stack corruption
+* hook logic should produce Plane B updates if called with valid BG data: YES — precompute + fill loop + dirty bit + vblank flush all verified correct
+* FUNC B BG-window callers inventoried: YES — only two callers pass range check: 0x03AE70 (A0=0xC00100, D0=0x20, D1=1900) and 0x03AF38 (A0=0xC00000, D0=0x20, D1=4096); both use tile code 32 (blank/clear tile, all-zero pixels)
+* Title BG tilemap write path identified: YES — block copy function at 0x05A4DC called via BSR.W $0154 from 0x05A388; reads per-cell tile codes from ROM table (0x5A7DA: 28×21 title_alt, dominant tile 0xAD); writes to [0xC00000, 0xC04000) — NOT FUNC B
+* hook classification: C — hook called and correctly implemented; FUNC B is not the function that writes Title BG content
+* root cause: Title BG tilemap written by block copy function 0x05A4DC (not FUNC B); writes go directly to Genesis VDP data port at 0xC00000; bypass staged_bg_buffer entirely; no Plane B nametable update occurs
+* tile code 32 pixel data confirmed: all 0x00 bytes = all palette index 0 = invisible on black backdrop; hook correctly stages 0x0014 (all-black) for all BG clear calls
+* tile code 0xAD pixel data confirmed: all 0x00 bytes; preloaded to slot 80 by load_scene_tiles; content correct but never reaches staged_bg_buffer via current hook
+* next step: characterize block copy function 0x05A4DC register contract; design opcode_replace hook genesistan_hook_tilemap_bg_blockcopy at that entry point
+* design doc: docs/design/Andy_bg_fill_hook_post_rts_no_change_diagnosis.md
+* no implementation performed
+
+## [Andy - Analysis, BG block copy hook & warm restart architecture]
+
+* warm restart discovery: YES — arcade delay loop at 0x39F92-0x39F9C counts down D1; after loop exits at 0x39F9E does MOVEA.L (0x0000).W, SP + MOVEA.L (0x0004).W, A0 + JMP (A0); ROM[0x0004]=0x00000202=main_68k; arcade never RTEs; warm-restarts Genesis wrapper every cycle
+* consequence of warm restart: YES — init_staging_state runs every cycle; sets bg_row_dirty=0xFFFFFFFF; next VINT flushes full checkerboard staged_bg_buffer over any valid BG content
+* block copy function address corrected: YES — prior doc said 0x05A4DC; actual entry is 0x05A4E0 (4E75 at 0x05A4DC is RTS of prior function; BSR.W 0x0154 from 0x05A388: PC_after=0x05A38C + 0x0154 = 0x05A4E0)
+* block copy register contract confirmed: YES — A0=source ROM ptr, A1=dest BG RAM base, D0=cols, D1=rows, D2=attr word; two known callers: (A1=0xC00320, A0=0x5A7DA, D0=28, D1=21, D2=1) and (A1=0xC00328, A0=0x5B0B2, D0=28, D1=20, D2=1)
+* row stride mapping verified: YES — function does ADDA.L #0x100, A2 per row; matches FUNC B hook's longword row stride (64 longwords × 4 bytes = 256 = 0x100); start_row/col derived from A1 via same formula: longword_off=(byte_off>>2), col=longword_off&0x3F, row=(longword_off>>6)&0x1F
+* init_staging_state fix identified: YES — change move.l #0xFFFFFFFF, bg_row_dirty to clr.l bg_row_dirty; prevents warm-restart cycle from re-flushing checkerboard over valid BG VRAM content
+* new design doc: docs/design/Andy_bg_blockcopy_hook_warm_restart_analysis.md
+* new Cody prompt: docs/design/Cody_bg_blockcopy_hook_implementation.md
+* two changes to implement: (1) init_staging_state dirty flag fix, (2) genesistan_hook_tilemap_bg_blockcopy at 0x05A4E0 + opcode_replace entry
 * no implementation performed

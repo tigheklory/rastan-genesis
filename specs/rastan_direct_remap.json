@@ -79,6 +79,7 @@
   ],
   "required_symbols": [
     "genesistan_hook_tilemap_plane_a",
+    "genesistan_hook_tilemap_bg_fill",
     "genesistan_shadow_input_390001",
     "genesistan_shadow_input_390003",
     "genesistan_shadow_input_390005",
@@ -99,6 +100,12 @@
       "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
       "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_a}4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route PC080SN BG strip producer through rastan-direct hook symbol at 0x055968."
+    },
+    {
+      "arcade_pc": "0x03AD44",
+      "original_bytes": "20C0534166FA4E75",
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_bg_fill}4e75",
+      "note": "Title/attract BG write path longword fill -> rastan-direct BG fill hook symbol."
     },
     {
       "arcade_pc": "0x03A4A2",
@@ -301,6 +308,6 @@
   ],
   "rom_opcode_replace": [],
   "expectations": {
-    "opcode_replace_count": 34
+    "opcode_replace_count": 35
   }
 }
