@@ -3,6 +3,8 @@
     .global _VINT_handler
     .global sprite_dma_addr_high_bits_fix
     .global genesistan_hook_tilemap_plane_a
+    .global genesistan_hook_tilemap_fg
+    .global genesistan_hook_cwindow_clear
     .global genesistan_hook_tilemap_bg_fill
     .global genesistan_shadow_input_390001
     .global genesistan_shadow_input_390003
@@ -43,9 +45,13 @@
     .equ ARCADE_FIX_DEST_BG,    0x00FF10A0
     .equ ARCADE_FIX_DEST_FG,    0x00FF10A4
     .equ ARCADE_PC080SN_DESC_BG_LIST_OFFSET, 0x1000
+    .equ ARCADE_PC080SN_DESC_FG_LIST_OFFSET, 0x1000
     .equ ARCADE_PC080SN_DEST_BG_OFFSET,      0x10A0
+    .equ ARCADE_PC080SN_DEST_FG_OFFSET,      0x10A4
     .equ ARCADE_PC080SN_STRIP_INDEX_OFFSET,  0x10CA
+    .equ ARCADE_PC080SN_STRIP_INDEX_FG_OFFSET, 0x10CA
     .equ ARCADE_PC080SN_CWINDOW_BASE_BG,     0x00C00000
+    .equ ARCADE_PC080SN_CWINDOW_BASE_FG,     0x00C08000
     .equ ARCADE_PC080SN_CWINDOW_BYTES,       0x00004000
     .equ ARCADE_MAINCPU_ROM_BASE,            0x00000200
     .equ rastan_direct_arcade_tick_entry, 0x0003A208
@@ -83,6 +89,7 @@ _VINT_handler:
 
     bsr     vdp_commit_tiles_if_dirty
     bsr     vdp_commit_bg_strips_if_dirty
+    bsr     vdp_commit_fg_strips_if_dirty
 
     tst.b   palette_dirty
     beq.s   .Lskip_palette
@@ -366,6 +373,178 @@ genesistan_hook_tilemap_plane_a:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
+genesistan_hook_tilemap_fg:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    lea     0x00FF0000, %a5
+
+    move.w  ARCADE_PC080SN_STRIP_INDEX_FG_OFFSET(%a5), %d7
+    move.l  ARCADE_PC080SN_DEST_FG_OFFSET(%a5), %d5
+
+    move.l  %d5, %d0
+    andi.l  #0x00FFFFFF, %d0
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d0
+    blo     .Lfg_hook_dest_invalid
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d0
+    bhs     .Lfg_hook_dest_invalid
+
+    move.l  %d0, %d4
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d4
+    move.l  %d4, %d0
+    andi.l  #0x00000003, %d0
+    bne     .Lfg_hook_dest_invalid
+
+    lsr.l   #2, %d4
+    move.w  %d4, %d1
+    andi.w  #0x003F, %d1
+    andi.w  #0x001F, %d1
+    move.w  %d4, %d2
+    lsr.w   #6, %d2
+    andi.w  #0x003F, %d2
+
+.Lfg_scene_preamble_fast_path:
+    move.l  %a0, %d0
+    andi.l  #0x00FFFFFF, %d0
+
+    cmp.l   genesistan_scene_a0_lo, %d0
+    blo.s   .Lfg_scene_slow_path
+
+    cmp.l   genesistan_scene_a0_hi, %d0
+    bhi.s   .Lfg_scene_slow_path
+
+    bra.s   .Lfg_scene_preamble_done
+
+.Lfg_scene_slow_path:
+    lea     genesistan_scene_a0_ranges, %a1
+    move.l  %d5, %d6
+    moveq   #0, %d3
+
+.Lfg_scene_loop:
+    move.l  (%a1)+, %d4
+    move.l  (%a1)+, %d5
+
+    cmp.l   %d4, %d0
+    blo.s   .Lfg_next_scene
+
+    cmp.l   %d5, %d0
+    bls.s   .Lfg_scene_match
+
+.Lfg_next_scene:
+    addq.w  #1, %d3
+    cmpi.w  #3, %d3
+    blt.s   .Lfg_scene_loop
+
+    move.l  %d6, %d5
+    bra.s   .Lfg_scene_preamble_done
+
+.Lfg_scene_match:
+    move.l  %d3, %d0
+    bsr     load_scene_tiles
+    move.l  %d6, %d5
+    bra.w   .Lfg_scene_preamble_done
+
+.Lfg_scene_preamble_done:
+    lea     ARCADE_PC080SN_DESC_FG_LIST_OFFSET(%a5), %a0
+    movea.l #ARCADE_MAINCPU_ROM_BASE, %a1
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     genesistan_pc080sn_attr_lut, %a3
+    lea     staged_fg_buffer, %a6
+
+    moveq   #15, %d6
+.Lfg_hook_desc_loop:
+    move.l  (%a0)+, %d3
+    btst    #0, %d3
+    bne     .Lfg_hook_invalid_desc
+    cmpi.l  #0x0005FFFC, %d3
+    bhi     .Lfg_hook_invalid_desc
+
+    movea.l %a1, %a4
+    adda.l  %d3, %a4
+    move.w  (%a4), %d4
+    move.w  2(%a4), %d3
+    cmpi.w  #0x7FE0, %d3
+    bhi     .Lfg_hook_invalid_desc
+
+    movea.l %a1, %a4
+    move.w  %d3, %d0
+    andi.l  #0x0000FFFF, %d0
+    adda.l  %d0, %a4
+    move.w  %d7, %d0
+    lsl.w   #1, %d0
+    adda.w  %d0, %a4
+
+    move.w  %d4, %d0
+    andi.w  #0x0003, %d0
+    move.w  %d4, %d3
+    lsr.w   #8, %d3
+    lsr.w   #6, %d3
+    andi.w  #0x0001, %d3
+    lsl.w   #2, %d3
+    or.w    %d3, %d0
+    move.w  %d4, %d3
+    lsr.w   #8, %d3
+    lsr.w   #7, %d3
+    andi.w  #0x0001, %d3
+    lsl.w   #3, %d3
+    or.w    %d3, %d0
+    move.w  %d4, %d3
+    lsr.w   #8, %d3
+    lsr.w   #5, %d3
+    andi.w  #0x0001, %d3
+    lsl.w   #4, %d3
+    or.w    %d3, %d0
+    add.w   %d0, %d0
+    move.w  0(%a3,%d0.w), %d0
+    move.w  %d0, -(%sp)
+
+    moveq   #3, %d4
+.Lfg_hook_row_loop:
+    move.w  (%a4), %d3
+    andi.w  #0x3FFF, %d3
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+    or.w    (%sp), %d3
+
+    move.w  %d1, %d0
+    lsl.w   #7, %d0
+    add.w   %d2, %d0
+    add.w   %d2, %d0
+    add.w   %d7, %d0
+    add.w   %d7, %d0
+    move.w  %d3, 0(%a6,%d0.w)
+    move.l  fg_row_dirty, %d0
+    bset    %d1, %d0
+    move.l  %d0, fg_row_dirty
+
+    adda.w  #8, %a4
+    addq.w  #1, %d1
+    andi.w  #0x001F, %d1
+    dbra    %d4, .Lfg_hook_row_loop
+
+    addq.l  #2, %sp
+    bra.s   .Lfg_hook_desc_done
+
+.Lfg_hook_invalid_desc:
+    addq.w  #4, %d1
+    andi.w  #0x001F, %d1
+
+.Lfg_hook_desc_done:
+    addi.l  #0x00000400, %d5
+    addq.w  #4, %d2
+    andi.w  #0x003F, %d2
+    subq.w  #4, %d1
+    andi.w  #0x001F, %d1
+    dbra    %d6, .Lfg_hook_desc_loop
+
+    move.l  %d5, ARCADE_PC080SN_DEST_FG_OFFSET(%a5)
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+.Lfg_hook_dest_invalid:
+    addi.l  #0x00004000, %d5
+    move.l  %d5, ARCADE_PC080SN_DEST_FG_OFFSET(%a5)
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
 genesistan_hook_tilemap_bg_fill:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 
@@ -453,6 +632,38 @@ genesistan_hook_tilemap_bg_fill:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
+genesistan_hook_cwindow_clear:
+    movem.l %d0-%d3/%a0-%a3, -(%sp)
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    move.w  #0x0020, %d0
+    add.w   %d0, %d0
+    move.w  0(%a2,%d0.w), %d3
+
+    lea     genesistan_pc080sn_attr_lut, %a3
+    moveq   #0, %d0
+    add.w   %d0, %d0
+    move.w  0(%a3,%d0.w), %d0
+    or.w    %d0, %d3
+
+    lea     staged_bg_buffer, %a0
+    move.w  #(2048 - 1), %d0
+.Lcw_clear_bg:
+    move.w  %d3, (%a0)+
+    dbra    %d0, .Lcw_clear_bg
+
+    lea     staged_fg_buffer, %a0
+    move.w  #(2048 - 1), %d0
+.Lcw_clear_fg:
+    move.w  %d3, (%a0)+
+    dbra    %d0, .Lcw_clear_fg
+
+    move.l  #0xFFFFFFFF, bg_row_dirty
+    move.l  #0xFFFFFFFF, fg_row_dirty
+
+    movem.l (%sp)+, %d0-%d3/%a0-%a3
+    rts
+
 vdp_commit_tiles_if_dirty:
     tst.b   tiles_dirty
     beq.s   .Ltiles_done
@@ -505,6 +716,43 @@ vdp_commit_bg_strips_if_dirty:
     cmpi.w  #32, %d5
     blo.s   .Lbg_row_scan
 .Lbg_done:
+    rts
+
+vdp_commit_fg_strips_if_dirty:
+    move.l  fg_row_dirty, %d6
+    beq.s   .Lfg_done
+
+    moveq   #0, %d5
+.Lfg_row_scan:
+    btst    %d5, %d6
+    beq.s   .Lfg_next_row
+
+    moveq   #0, %d4
+    move.w  %d5, %d4
+    lsl.l   #7, %d4
+
+    move.l  #VRAM_PLANE_A_BASE, %d0
+    add.l   %d4, %d0
+    bsr     vdp_set_vram_write_addr
+
+    lea     staged_fg_buffer, %a0
+    adda.l  %d4, %a0
+    move.w  #(64 - 1), %d7
+.Lfg_row_copy:
+    move.w  (%a0)+, VDP_DATA
+    dbra    %d7, .Lfg_row_copy
+
+    move.l  %d6, %d0
+    bclr    %d5, %d0
+    move.l  %d0, %d6
+    move.l  %d6, fg_row_dirty
+    beq.s   .Lfg_done
+
+.Lfg_next_row:
+    addq.w  #1, %d5
+    cmpi.w  #32, %d5
+    blo.s   .Lfg_row_scan
+.Lfg_done:
     rts
 
 vdp_commit_palette:
@@ -610,6 +858,7 @@ rastan_direct_update_inputs:
 
 arcade_tick_logic:
     bsr     rastan_direct_update_inputs
+    lea     0x00FF0000, %a5
     pea     .Ltick_return
     move.w  %sr, -(%sp)
     jmp     rastan_direct_arcade_tick_entry
@@ -697,7 +946,8 @@ init_staging_state:
 
     move.b  #1, palette_dirty
     move.b  #1, tiles_dirty
-    move.l  #0xFFFFFFFF, bg_row_dirty
+    clr.l   bg_row_dirty
+    clr.l   fg_row_dirty
 
     lea     palette_init_words, %a0
     lea     staged_palette_words, %a1
@@ -747,6 +997,82 @@ init_staging_state:
     clr.w   staged_scroll_x_fg
     clr.w   staged_scroll_y_bg
     clr.w   staged_scroll_y_fg
+
+    /* ------------------------------------------------------------------ */
+    /* Arcade workram factory defaults at 0xFF0000                         */
+    /* Equivalent to startup_common / genesistan_init_workram_direct       */
+    /* Called on every warm restart; re-initializes all factory state      */
+    /* ------------------------------------------------------------------ */
+
+    /* Step 1: zero first 0x100 bytes (0xFF0000..0xFF00FF) */
+    lea     0x00FF0000, %a0
+    moveq   #(64-1), %d7
+.Larcade_wram_clear:
+    clr.l   (%a0)+
+    dbra    %d7, .Larcade_wram_clear
+
+    /* Step 2: write factory defaults */
+    lea     0x00FF0000, %a0
+
+    /* Coinage defaults: 1 coin = 1 credit */
+    move.w  #1,      0x0008(%a0)    /* A5@(8)  coin1 */
+    move.w  #1,      0x000A(%a0)    /* A5@(10) coin2 */
+    move.w  #1,      0x000E(%a0)    /* A5@(14) */
+    move.w  #1,      0x0010(%a0)    /* A5@(16) */
+
+    /* Display control mirror */
+    move.w  #0x0060, 0x0014(%a0)    /* A5@(20) = 0x0060 */
+
+    /* DIP mirrors: active-low; hardcoded 0xFF = all switches off (factory) */
+    move.w  #0x0001, 0x0018(%a0)    /* A5@(24) = ~DIP1 */
+    move.w  #0x0000, 0x001C(%a0)    /* A5@(28) = ~DIP2 */
+
+    /* Init flag */
+    move.w  #1,      0x0026(%a0)    /* A5@(38) = 1 */
+
+    /* Delay countdown: 160 ticks before warm restart (startup_common default) */
+    move.w  #160,    0x002C(%a0)    /* A5@(44) = 160 = 0xA0 */
+
+    /* Mode, cabinet, monitor from DIP defaults (ndip=0xFF) */
+    move.w  #0,      0x002E(%a0)    /* A5@(46) mode = ndip2 & 3 = 3 */
+    move.w  #1,      0x0030(%a0)    /* A5@(48) cab  = ndip1 & 1 = 1 */
+    move.w  #0,      0x0032(%a0)    /* A5@(50) mon  = ndip1 & 2 = 2 */
+
+    /* Bonus and difficulty (DIP defaults: max table indices, capped at 3) */
+    move.w  #6,      0x0036(%a0)    /* A5@(54) bonus = bonus_table[3] = 6 */
+    move.w  #0x2500, 0x0038(%a0)    /* A5@(56) diff  = diff_table[3]  = 0x2500 */
+
+    /* Sprite init marker */
+    move.w  #0x00AA, 0x004A(%a0)    /* A5@(74) = 0x00AA */
+
+    /* Transition buffer block A seeding (from arcade 0x03A9E6 init helper) */
+    move.w  0x0036(%a0), 0x0080(%a0)  /* A5+0x80 = A5+0x36 (bonus) */
+    move.w  0x0038(%a0), 0x00B2(%a0)  /* A5+0xB2 = A5+0x38 (difficulty) */
+    move.b  #1, 0x0097(%a0)           /* A5+0x97 = 1 */
+    move.b  #1, 0x0098(%a0)           /* A5+0x98 = 1 */
+
+    /* Copy block A (A5+0x80..0xBF) → block B (A5+0xC0..0xFF) */
+    lea     0x0080(%a0), %a1
+    lea     0x00C0(%a0), %a2
+    moveq   #(16-1), %d7              /* 16 longwords = 64 bytes */
+.Lblock_b_copy:
+    move.l  (%a1)+, (%a2)+
+    dbra    %d7, .Lblock_b_copy
+
+    /* Restore A0 to workram base */
+    lea     0x00FF0000, %a0
+
+    /* Title init flag */
+    move.w  #1,      0x0100(%a0)    /* A5@(256) = 1 */
+
+    /* Config table: 39 bytes from ROM at Genesis 0x3B2D4 (arcade 0x3B0D4) */
+    /* to A5@(320) = workram byte offset 0x0140 */
+    lea     0x0003B2D4, %a1
+    lea     0x0140(%a0), %a2
+    moveq   #(39-1), %d7
+.Larcade_cfg_copy:
+    move.b  (%a1)+, (%a2)+
+    dbra    %d7, .Larcade_cfg_copy
 
     rts
 
@@ -823,6 +1149,8 @@ tiles_dirty:
     .byte 0
     .align 2
 bg_row_dirty:
+    .long 0
+fg_row_dirty:
     .long 0
     .align 2
 genesistan_current_scene_id:

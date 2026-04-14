@@ -73,6 +73,7 @@ local FALLBACK_EXCEPTION_UI_END = 0x216FFF
 local WRITE_TAP_WINDOWS = {
 	{name = "vdp_ports_live", start_addr = 0xC00000, end_addr = 0xC0001F},
 	{name = "reg_c50000_live", start_addr = 0xC50000, end_addr = 0xC50001},
+	{name = "fg_cwindow_live", start_addr = 0xC08000, end_addr = 0xC0BFFF},
 }
 
 local function append_log(line)

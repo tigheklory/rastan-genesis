@@ -18,7 +18,7 @@ SECTIONS
     *(.data .data.*)
   }
 
-  .bss 0xFF0000 (NOLOAD) :
+  .bss 0xFF4000 (NOLOAD) :
   {
     *(.bss .bss.*)
     *(COMMON)

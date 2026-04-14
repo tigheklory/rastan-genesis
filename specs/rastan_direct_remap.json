@@ -79,11 +79,17 @@
   ],
   "required_symbols": [
     "genesistan_hook_tilemap_plane_a",
+    "genesistan_hook_tilemap_fg",
     "genesistan_hook_tilemap_bg_fill",
+    "genesistan_hook_cwindow_clear",
     "genesistan_shadow_input_390001",
     "genesistan_shadow_input_390003",
     "genesistan_shadow_input_390005",
     "genesistan_shadow_input_390007",
+    "staged_scroll_x_bg",
+    "staged_scroll_y_bg",
+    "staged_scroll_x_fg",
+    "staged_scroll_y_fg",
     "rastan_direct_arcade_tick_entry"
   ],
   "copied_ranges": [
@@ -102,10 +108,52 @@
       "note": "Route PC080SN BG strip producer through rastan-direct hook symbol at 0x055968."
     },
     {
+      "arcade_pc": "0x055990",
+      "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_fg}4e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "Route PC080SN FG strip producer through rastan-direct hook symbol at 0x055990."
+    },
+    {
+      "arcade_pc": "0x055AB4",
+      "original_bytes": "33ED10EE00C2000033ED10EC00C4000033ED10B000C2000233ED10AE00C400024E75",
+      "replacement_bytes": "33ED10EE{symbol:staged_scroll_y_bg}33ED10EC{symbol:staged_scroll_x_bg}33ED10B0{symbol:staged_scroll_y_fg}33ED10AE{symbol:staged_scroll_x_fg}4E75",
+      "note": "Rewrite PC080SN scroll register write function: redirect all four MOVE.W destinations from hardware (0xC20000/0xC40000/0xC20002/0xC40002) to Genesis staged scroll variables. Same opcodes, same A5-relative sources, same RTS. Fixes scroll for ALL callers including gameplay."
+    },
+    {
+      "arcade_pc": "0x0561B6",
+      "original_bytes": "323C1000203C00000020207C00C08000227C00C0000020C022C0534166F8",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_cwindow_clear}4E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Replace PC080SN C-window fill loop with JSR to Genesis-side staged buffer clear hook. Hook fills staged_bg_buffer and staged_fg_buffer with LUT-translated blank tile and marks all rows dirty."
+    },
+    {
       "arcade_pc": "0x03AD44",
       "original_bytes": "20C0534166FA4E75",
       "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_bg_fill}4e75",
       "note": "Title/attract BG write path longword fill -> rastan-direct BG fill hook symbol."
+    },
+    {
+      "arcade_pc": "0x03ADFE",
+      "original_bytes": "33FC000000C50000",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
+    },
+    {
+      "arcade_pc": "0x03AE06",
+      "original_bytes": "33FC000100D01BFE",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
+    },
+    {
+      "arcade_pc": "0x03AE16",
+      "original_bytes": "33FC000100C50000",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
+    },
+    {
+      "arcade_pc": "0x03AE1E",
+      "original_bytes": "33FC000000D01BFE",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
     },
     {
       "arcade_pc": "0x03A4A2",
@@ -196,6 +244,30 @@
       "original_bytes": "0839000200390007",
       "replacement_bytes": "08390002{symbol:genesistan_shadow_input_390007}",
       "note": "Test button bit test -> direct shadow system byte."
+    },
+    {
+      "arcade_pc": "0x03ABBA",
+      "original_bytes": "42B900C20000",
+      "replacement_bytes": "42B9{symbol:staged_scroll_y_bg}",
+      "note": "Redirect PC080SN yscroll clear write to Genesis staged BG Y scroll mirror."
+    },
+    {
+      "arcade_pc": "0x03ABC0",
+      "original_bytes": "42B900C40000",
+      "replacement_bytes": "42B9{symbol:staged_scroll_x_bg}",
+      "note": "Redirect PC080SN xscroll clear write to Genesis staged BG X scroll mirror."
+    },
+    {
+      "arcade_pc": "0x03B098",
+      "original_bytes": "42B900C20000",
+      "replacement_bytes": "42B9{symbol:staged_scroll_y_bg}",
+      "note": "Redirect title-path PC080SN yscroll clear write to Genesis staged BG Y scroll mirror."
+    },
+    {
+      "arcade_pc": "0x03B09E",
+      "original_bytes": "42B900C40000",
+      "replacement_bytes": "42B9{symbol:staged_scroll_x_bg}",
+      "note": "Redirect title-path PC080SN xscroll clear write to Genesis staged BG X scroll mirror."
     },
     {
       "arcade_pc": "0x03A91A",
@@ -308,6 +380,6 @@
   ],
   "rom_opcode_replace": [],
   "expectations": {
-    "opcode_replace_count": 35
+    "opcode_replace_count": 46
   }
 }

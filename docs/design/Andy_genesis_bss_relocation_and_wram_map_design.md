@@ -201,9 +201,11 @@ data lives here.
     /* Display control mirror */
     move.w  #0x0060, 0x0014(%a0)    /* A5@(20) = 0x0060 */
 
-    /* DIP mirrors: active-low; hardcoded 0xFF = all switches off (factory) */
-    move.w  #0x00FF, 0x0018(%a0)    /* A5@(24) = ~DIP1 */
-    move.w  #0x00FF, 0x001C(%a0)    /* A5@(28) = ~DIP2 */
+    /* DIP mirrors: active-low (ndip = NOT(raw)).
+       DIP1 raw=0xFE injected by remap.json → ndip1=0x01.
+       DIP2 raw=0xFF (no remap patch) → ndip2=0x00. */
+    move.w  #0x0001, 0x0018(%a0)    /* A5@(24) = ndip1 = NOT(DIP1=0xFE) = 0x01 */
+    move.w  #0x0000, 0x001C(%a0)    /* A5@(28) = ndip2 = NOT(DIP2=0xFF) = 0x00 */
 
     /* Init flag */
     move.w  #1,      0x0026(%a0)    /* A5@(38) = 1 */
@@ -211,10 +213,12 @@ data lives here.
     /* Delay countdown: 160 ticks before warm restart (startup_common default) */
     move.w  #160,    0x002C(%a0)    /* A5@(44) = 160 = 0xA0 */
 
-    /* Mode, cabinet, monitor from DIP defaults (ndip=0xFF) */
-    move.w  #3,      0x002E(%a0)    /* A5@(46) mode = ndip2 & 3 = 3 */
-    move.w  #1,      0x0030(%a0)    /* A5@(48) cab  = ndip1 & 1 = 1 */
-    move.w  #2,      0x0032(%a0)    /* A5@(50) mon  = ndip1 & 2 = 2 */
+    /* Mode, cabinet, monitor from DIP defaults.
+       remap.json injects DIP1=0xFE; ndip1=NOT(0xFE)=0x01.
+       remap.json does not patch DIP2; DIP2 raw=0xFF; ndip2=NOT(0xFF)=0x00. */
+    move.w  #0,      0x002E(%a0)    /* A5@(46) mode = ndip2 & 3 = 0x00 & 3 = 0 */
+    move.w  #1,      0x0030(%a0)    /* A5@(48) cab  = ndip1 & 1 = 0x01 & 1 = 1 */
+    move.w  #0,      0x0032(%a0)    /* A5@(50) mon  = ndip1 & 2 = 0x01 & 2 = 0 (Flip_Screen OFF) */
 
     /* Bonus and difficulty (DIP defaults: max table indices, capped at 3) */
     move.w  #6,      0x0036(%a0)    /* A5@(54) bonus = bonus_table[3] = 6 */
@@ -521,9 +525,11 @@ Reference C implementation: `apps/rastan/src/startup_bridge.c:246–396`
     /* Display control mirror */
     move.w  #0x0060, 0x0014(%a0)    /* A5@(20) = 0x0060 */
 
-    /* DIP mirrors: active-low; 0xFF = all switches off (factory) */
-    move.w  #0x00FF, 0x0018(%a0)    /* A5@(24) = ~DIP1 */
-    move.w  #0x00FF, 0x001C(%a0)    /* A5@(28) = ~DIP2 */
+    /* DIP mirrors: active-low (ndip = NOT(raw)).
+       DIP1 raw=0xFE injected by remap.json → ndip1=0x01.
+       DIP2 raw=0xFF (no remap patch) → ndip2=0x00. */
+    move.w  #0x0001, 0x0018(%a0)    /* A5@(24) = ndip1 = NOT(DIP1=0xFE) = 0x01 */
+    move.w  #0x0000, 0x001C(%a0)    /* A5@(28) = ndip2 = NOT(DIP2=0xFF) = 0x00 */
 
     /* Init flag */
     move.w  #1,      0x0026(%a0)    /* A5@(38) = 1 */
@@ -531,10 +537,12 @@ Reference C implementation: `apps/rastan/src/startup_bridge.c:246–396`
     /* Delay countdown: 160 ticks before warm restart */
     move.w  #160,    0x002C(%a0)    /* A5@(44) = 160 = 0xA0 */
 
-    /* Mode, cabinet, monitor from DIP defaults (ndip=0xFF) */
-    move.w  #3,      0x002E(%a0)    /* A5@(46) mode = ndip2 & 3 = 3 */
-    move.w  #1,      0x0030(%a0)    /* A5@(48) cab  = ndip1 & 1 = 1 */
-    move.w  #2,      0x0032(%a0)    /* A5@(50) mon  = ndip1 & 2 = 2 */
+    /* Mode, cabinet, monitor from DIP defaults.
+       remap.json injects DIP1=0xFE; ndip1=NOT(0xFE)=0x01.
+       remap.json does not patch DIP2; DIP2 raw=0xFF; ndip2=NOT(0xFF)=0x00. */
+    move.w  #0,      0x002E(%a0)    /* A5@(46) mode = ndip2 & 3 = 0x00 & 3 = 0 */
+    move.w  #1,      0x0030(%a0)    /* A5@(48) cab  = ndip1 & 1 = 0x01 & 1 = 1 */
+    move.w  #0,      0x0032(%a0)    /* A5@(50) mon  = ndip1 & 2 = 0x01 & 2 = 0 (Flip_Screen OFF) */
 
     /* Bonus and difficulty (DIP defaults: max table indices) */
     move.w  #6,      0x0036(%a0)    /* A5@(54) bonus = bonus_table[3] = 6 */

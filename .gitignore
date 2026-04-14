@@ -48,3 +48,6 @@ states/screenshots/**/*.jpg
 !states/screenshots/**/.gitkeep
 
 audio/rastan_music_dump/tools/vgm2fur/
+
+# Local MAME source snapshots for reference only
+docs/reference/mame/

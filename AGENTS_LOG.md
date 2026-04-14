@@ -1,5 +1,58 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0028 FG Hook Failure (rastan-direct)]
+
+* FG hook execution verified: NO — layer selector A5@(0x10A8) = 0xFF10A8 permanently 0; arcade code updates it via absolute 0x10D0A8 (ROM on Genesis, silently ignored); dispatcher always takes BG path
+* FG hook call count: 0
+* crash write PC identified: YES — arcade 0x561CC / Genesis 0x563CC; `movel d0, a0@+` with D0=0x20, A0=0xC09EA0 (fill loop iteration 1960)
+* crash instruction: direct C-window fill loop at 0x561A0 (not the strip producer)
+* register state captured: YES — A0=0xC09EA0, D0=0x20, D1=2136, A1=0xC01EA0
+* FG offsets validated: YES — DEST_FG=0x10A4 correct; DESC accessed via absolute ROM addrs (not A5-relative, secondary issue)
+* multiple producers detected: YES — 0x55990 (strip producer, patched), 0x561C0 (init fill loop, NOT patched) — root cause is the second unhooked writer
+* scroll system validated: YES — CLR.W redirects confirmed correct (0xFF402C/0xFF4028); scroll stuck at 0,0 (expected); JSR 0x55AB4 is an unredirected scroll HW write path (secondary)
+* video correlation completed: YES — corruption visible ~frame 662; upper VRAM noise from BG fill at VDP data port; checkerboard init pattern survives below fill boundary
+* root cause identified: YES — unhooked direct C-window fill function at 0x561A0 called from scene init paths; 4096×4-byte fill to both 0xC08000 (FG) and 0xC00000 (BG); bypasses all hooks
+* next step defined: YES — NOP 30-byte fill loop at arcade_pc 0x0561B6 with 15 NOPs; opcode_replace_count 44→45
+* design doc: docs/design/Andy_build_0028_fg_hook_failure_analysis.md
+
+---
+
+## [Andy - Analysis, Build 0027 Runtime Diagnosis + Scroll Transition Plan (rastan-direct)]
+
+* build 0027 patch effect verified: YES — reg_c50000_live count=0; NOP patches for C50000/D01BFE confirmed working
+* C09EA0 address analyzed: YES — write to PC080SN FG tilemap at tile row 30, col 40; no FG hook intercepts it; raw write hits Genesis VDP space → BlastEm freeze
+* active code path identified: YES — arcade FG tilemap producer running; FG writes going unhooked to 0xC08000–0xC0BFFF
+* Exodus screenshot reconciled: YES — BG hook working (Plane B data visible); FG writes corrupting VRAM via VDP data port; scroll stuck at 0; pink screen = undefined palette entries
+* scroll NOP scaffolding assessed: YES — 4 CLR.W NOPs suppress meaningful writes; vdp_commit_scroll infrastructure complete; staged_scroll_* vars exist; NOPs must be replaced not extended
+* Rainbow Islands-style scroll transition designed: YES — CLR.W redirect via {symbol:staged_scroll_*} substitution; no new functions; raw value pass-through (no negation needed); future MOVE.W handlers deferred
+* scroll scaffolding removal plan defined: YES — replace replacement_bytes in-place; opcode_replace_count unchanged at 43
+* primary blocker classified: YES — FG tilemap hook missing (BlastEm); scroll NOPs (logic error); title_init_block=0 deferred pending FG/scroll fix
+* single root cause identified: YES — FG layer has no hook and no commit path; BG complete, FG entirely absent
+* Cody handoff specification written: YES — Task A (scroll CLR.W redirect, remap.json only) + Task B (FG hook: new function, commit path, VINT wire-up, remap.json redirect; precondition: find FG strip producer PC by disassembly)
+* no implementation performed: YES
+* design doc: docs/design/Andy_build_0027_runtime_diagnosis_scroll_plan.md
+
+---
+
+## [Andy - Analysis, Arcade Hardware I/O Stub Strategy (rastan-direct)]
+
+* functions analyzed: YES — two tail-code paths (path_OFF 0x03ADFA–0x03AE0E, path_ON 0x03AE10–0x03AE26) within a screen-flip state-selector function, reached via BRA.S not BSR/JSR
+* hardware identified: YES — corrected from MAME source (docs/reference/mame/rastan/):
+  - 0xC50000 = PC080SN ctrl_word_w — screen flip register (bit 0 = TILEMAP_FLIPX|FLIPY on BG+FG). Confirmed rastan.cpp: `map(0xc50000, 0xc50003).w(m_pc080sn, FUNC(pc080sn_device::ctrl_word_w))`
+  - 0xD01BFE = PC090OJ sprite RAM at byte offset 0x1BFE (entry 0x07FF). Confirmed rastan.cpp: `map(0xd00000, 0xd03fff).rw(m_pc090oj, ...)`
+  - 0xC20000 = PC080SN yscroll_word_w; 0xC40000 = PC080SN xscroll_word_w (watch items)
+* MAME references verified: YES — rastan.cpp memory map and pc080sn.cpp ctrl_word_w implementation reviewed
+* behavioral role determined: YES — screen flip gate; updates A5@(0x1E) flag (0=no flip / 1=flip). Factory defaults: ndip1=NOT(0xFE)=0x01 → A5@(50)=0 → path_OFF → flip disabled.
+* impact assessed: YES — NOPing hardware writes only: zero impact (no PC080SN on Genesis; A5@(0x1E) preserved). Stubbing entire function: A5@(0x1E) stuck 0 → downstream flip gate may block rendering. Option A correct.
+* final strategy selected: A — NOP four absolute hardware writes (MOVE.W abs.l to C50000 and D01BFE); preserve A5-relative workram updates
+* patch spec provided: YES — 4 entries for rastan_direct_remap.json with exact bytes; opcode_replace_count 35 → 39
+* factory defaults correction: A5@(50)=0 (was 2), A5@(46)=0 (was 3), A5@(24)=0x0001 (was 0xFF), A5@(28)=0x0000 (was 0xFF) — all corrected in Andy_genesis_bss_relocation_and_wram_map_design.md
+* no ambiguity remaining: YES
+* design doc: docs/design/Andy_arcade_hw_io_stub_strategy.md (updated with MAME-sourced hardware identification)
+* watch items noted: CLR.W 0xC20000 (PC080SN yscroll) and 0xC40000 (PC080SN xscroll) at 0x03ABBA/0x03ABC0/0x03B098/0x03B09E — pre-patch if reached
+
+---
+
 ## [Andy - Design, Genesis BSS Relocation and WRAM Ownership Model (rastan-direct)]
 
 * option A (arcade workram → 0xFF2200) superseded by option B (Genesis BSS → 0xFF4000); arcade stays at natural 0xFF0000 home
@@ -26891,3 +26944,145 @@ DEFERRED — DO NOT INVESTIGATE UNTIL ARCHITECTURE CLEANUP COMPLETE
 * new Cody prompt: docs/design/Cody_bg_blockcopy_hook_implementation.md
 * two changes to implement: (1) init_staging_state dirty flag fix, (2) genesistan_hook_tilemap_bg_blockcopy at 0x05A4E0 + opcode_replace entry
 * no implementation performed
+[Cody - Implementation, Genesis BSS Relocation + Arcade Factory Init]
+
+* preconditions verified: YES
+* BSS relocated to 0xFF4000: YES
+* arcade A5 base restored: YES
+* bg_row_dirty fixed: YES
+* factory defaults added: YES
+* hooks unchanged: YES
+* no WRAM overlap: YES
+* build passes: YES
+* title_init_block fires: NO
+* implementation report created: YES
+* memory map created: YES
+* no unrelated changes made: YES
+
+### MAME Exit Summary (2026-04-12 22:55:53)
+- Final PC: 0x000202
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+[Cody - Implementation, build 0026 arcade hardware write NOP patch + factory defaults correction]
+
+* preconditions verified: YES
+* 0x03ADFE NOP patch added: YES
+* 0x03AE06 NOP patch added: YES
+* 0x03AE16 NOP patch added: YES
+* 0x03AE1E NOP patch added: YES
+* A5(0x1E) software mirror writes preserved: YES
+* opcode_replace_count updated to 39: YES
+* A5@(24) corrected 0x00FF → 0x0001: YES
+* A5@(28) corrected 0x00FF → 0x0000: YES
+* A5@(46) corrected 3 → 0: YES
+* A5@(50) corrected 2 → 0: YES
+* build passes: YES
+* post-build ROM bytes verified: YES
+* reg_c50000_live count: 0
+* title_init_block count: 0
+* no unrelated changes made: YES
+
+### MAME Exit Summary (2026-04-12 23:25:48)
+- Final PC: 0x000202
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+[Cody - Implementation, build 0027 PC080SN CLR.W NOP patches]
+
+* preconditions verified: YES
+* 0x03ABBA CLR.W 0xC20000 NOP patch added: YES
+* 0x03ABC0 CLR.W 0xC40000 NOP patch added: YES
+* 0x03B098 CLR.W 0xC20000 NOP patch added: YES
+* 0x03B09E CLR.W 0xC40000 NOP patch added: YES
+* opcode_replace_count updated to 43: YES
+* build passes: YES
+* post-build ROM bytes verified at all four Genesis offsets: YES
+* reg_c50000_live count (regression check): 0
+* title_init_block count: 0
+* trace saved to: states/traces/rastan_direct_video_test_build_0027_mame_30s_20260412_232548
+* no unrelated changes made: YES
+
+### MAME Exit Summary (2026-04-13 11:24:40)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+[Cody - Implementation, build 0028 scroll redirect + FG hook]
+
+* preconditions verified: YES
+* scroll patches replaced: YES
+* FG producer PC identified: YES
+* DEST_FG offset identified: 0x10A4
+* DESC_FG offset identified: 0x1000
+* STRIP_INDEX_FG offset identified: 0x10CA
+* FG hook added: YES
+* fg_row_dirty added: YES
+* FG commit added: YES
+* VINT wiring complete: YES
+* FG patch added: YES
+* opcode_replace_count updated: YES
+* build passes: YES
+* ROM verification: YES
+* reg_c50000_live count: 0
+* title_init_block count: 0
+* trace saved to: states/traces/rastan_direct_video_test_build_0028_mame_30s_20260413_112440
+* no unrelated changes made: YES
+
+### MAME Exit Summary (2026-04-13 11:35:38)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-04-13 18:15:00)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+[Cody - Implementation, build 0029 scroll rewrite + cwindow hook]
+
+* preconditions verified (all 6): YES
+* scroll function disassembly confirmed HW-only: YES
+* genesistan_hook_cwindow_clear implemented: YES
+* hook performs LUT translation of tile 0x0020: YES
+* hook fills staged_bg_buffer (2048 words): YES
+* hook fills staged_fg_buffer (2048 words): YES
+* hook sets bg_row_dirty and fg_row_dirty to 0xFFFFFFFF: YES
+* hook does NOT contain scroll logic: YES
+* .global export added: YES
+* Patch A applied (scroll rewrite at 0x055AB4, 34 bytes): YES
+* Patch B applied (fill redirect at 0x0561B6, 30 bytes): YES
+* required_symbols updated (3 new entries): YES
+* opcode_replace_count = 46: YES
+* build successful: YES
+* ROM bytes verified at 0x55CB4 (34 bytes): YES
+* ROM bytes verified at 0x563B6 (30 bytes): YES
+* all 9 symbol addresses reported: YES
+* MAME trace completed: YES
+* no behavioral NOPs used: YES
+* no unrelated changes made: YES
+
+### MAME Exit Summary (2026-04-13 21:21:08)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+[Cody - Audit, PC080SN + PC090OJ writer inventory]
+
+* Step 1 complete (chip base loads identified for both chips): YES
+* Step 2 complete (direct absolute writes for both chips identified): YES
+* Step 3 complete (register flow indirect writes identified): YES
+* Step 4 complete (all writers classified with Chip column): YES
+* Step 5 complete (trace cross-check for both chips): YES
+* All verification checkboxes passed: YES
+* Total writers found: 187
+* PC080SN BG_TILEMAP writers: 6
+* PC080SN BG_ROWSCROLL writers: 0
+* PC080SN FG_TILEMAP writers: 65
+* PC080SN FG_ROWSCROLL writers: 0
+* PC080SN YSCROLL_REG writers: 5
+* PC080SN XSCROLL_REG writers: 5
+* PC090OJ SPRITE_RAM writers: 100
+* UNKNOWN destination writers: 6
+* Already-hooked writers: 13
+* Unhooked writers: 174
+* Every trace PC (PC080SN range) accounted for: YES
+* Every trace PC (PC090OJ range) accounted for: YES
+* No source files modified: YES
+* No remap.json modified: YES
+* No builds run: YES

@@ -2,133 +2,145 @@
 arm: genesistrace armed root=/home/tighe/projects/rastan-genesis symbols=/home/tighe/projects/rastan-genesis/apps/rastan/out/symbol.txt
 arm: symbol_watches=28
 arm: initial_pc=000000
-[frame 000000] live_write vdp_ports_live pc=206b3a addr=c00004 data=8004 mask=ffff count=1
-[frame 000001] exec_enter pc=208962 range=other
-[frame 000030] pc=2068e6 exec=other
-[frame 000060] pc=2068e2 exec=other
+[frame 000000] live_write vdp_ports_live pc=070100 addr=c00004 data=8004 mask=ffff count=1
+[frame 000001] exec_enter pc=07082c range=other
+[frame 000007] first_symbol_change arcade_flag_34 addr=ff0080 0->6
+[frame 000030] pc=070022 exec=other
+[frame 000060] pc=07001e exec=other
+[frame 000060] first_window_change wram_ff0000
 [frame 000060] first_window_change z80_ctrl
-[frame 000090] pc=2068ec exec=other
+[frame 000090] window_change wram_ff0000
 [frame 000090] window_change z80_ctrl
-[frame 000120] pc=2068e8 exec=other
+[frame 000120] window_change wram_ff0000
 [frame 000120] window_change z80_ctrl
-[frame 000149] first_symbol_change startup_result_code addr=ff706c 0->1
-[frame 000149] first_symbol_change reg_3e0001 addr=ff706f 0->4
-[frame 000150] pc=201f52 exec=other
-[frame 000150] first_symbol_change in_390001 addr=ff7073 0->FF
-[frame 000150] first_symbol_change in_390003 addr=ff7072 0->FF
-[frame 000150] first_symbol_change in_390005 addr=ff7071 0->FF
-[frame 000150] first_symbol_change in_390007 addr=ff7070 0->F7
-[frame 000150] first_symbol_change reg_d01bfe addr=ff707a 0->1
-[frame 000150] first_symbol_change reg_380000 addr=ff7076 0->60
-[frame 000150] first_window_change wram_ff0000
+[frame 000150] pc=070022 exec=other
+[frame 000150] window_change wram_ff0000
 [frame 000150] window_change z80_ctrl
-[frame 000180] pc=201f54 exec=other
+[frame 000170] live_write fg_cwindow_live pc=03c52a addr=c09ea0 data=0000 mask=ffff count=1
+[frame 000171] first_symbol_change dip1 addr=ff0005 0->1
+[frame 000173] symbol_change dip1 addr=ff0005 1->0
+[frame 000180] pc=07001e exec=other
+[frame 000180] window_change wram_ff0000
 [frame 000180] window_change z80_ctrl
-[frame 000210] pc=201f5a exec=other
+[frame 000210] pc=070024 exec=other
+[frame 000210] window_change wram_ff0000
 [frame 000210] window_change z80_ctrl
-[frame 000240] exec_enter pc=055ec6 range=helper_55ca2_dispatch@000200
-[frame 000240] pc=055ec6 exec=helper_55ca2_dispatch@000200
 [frame 000240] window_change wram_ff0000
-[frame 000240] first_window_change vdp_ports
 [frame 000240] window_change z80_ctrl
-[frame 000241] exec_enter pc=201f52 range=other
-[frame 000270] pc=20a96c exec=other
 [frame 000270] window_change wram_ff0000
-[frame 000270] window_change vdp_ports
 [frame 000270] window_change z80_ctrl
-[frame 000300] pc=20a952 exec=other
-[frame 000300] window_change vdp_ports
+[frame 000300] pc=070024 exec=other
+[frame 000300] window_change wram_ff0000
 [frame 000300] window_change z80_ctrl
-[frame 000330] pc=20a950 exec=other
-[frame 000330] window_change vdp_ports
+[frame 000330] window_change wram_ff0000
 [frame 000330] window_change z80_ctrl
-[frame 000360] pc=201f5a exec=other
+[frame 000360] pc=070022 exec=other
 [frame 000360] window_change wram_ff0000
-[frame 000360] window_change vdp_ports
 [frame 000360] window_change z80_ctrl
-[frame 000390] pc=201f50 exec=other
+[frame 000385] symbol_change dip1 addr=ff0005 0->1
+[frame 000389] first_symbol_change startup_result_code addr=ff686a 0->4E73
+[frame 000389] first_symbol_change in_390001 addr=ff6875 0->12
+[frame 000389] first_symbol_change in_390003 addr=ff6863 0->73
+[frame 000389] first_symbol_change in_390005 addr=ff6862 0->4E
+[frame 000389] first_symbol_change in_390007 addr=ff6874 0->6
+[frame 000389] first_symbol_change reg_3e0001 addr=ff685c 0->6
+[frame 000389] first_symbol_change reg_3e0003 addr=ff685d 0->12
+[frame 000389] first_symbol_change reg_3c0000 addr=ff685a 0->4E73
+[frame 000389] first_symbol_change reg_c50000 addr=ff6852 0->4E73
+[frame 000389] first_symbol_change reg_d01bfe addr=ff6854 0->612
+[frame 000389] first_symbol_change reg_380000 addr=ff6858 0->202
+[frame 000389] first_symbol_change c20000_0 addr=ff6870 0->202
+[frame 000389] first_symbol_change c20000_1 addr=ff6872 0->4E73
+[frame 000389] first_symbol_change c40000_0 addr=ff686c 0->612
+[frame 000390] pc=000202 exec=other
+[frame 000390] window_change wram_ff0000
+[frame 000390] first_window_change vdp_ports
 [frame 000390] window_change z80_ctrl
-[frame 000420] pc=201f5a exec=other
+[frame 000391] symbol_change dip1 addr=ff0005 1->12
+[frame 000391] first_symbol_change dip2 addr=ff0004 0->6
+[frame 000391] first_symbol_change workram_10c000 addr=ff004c 0->612
+[frame 000391] first_symbol_change arcade_page0 addr=ff004c 0->612
+[frame 000391] first_symbol_change arcade_mode4 addr=ff0050 0->202
+[frame 000391] first_symbol_change arcade_stage addr=ff018a 0->4E73
+[frame 000391] symbol_change arcade_flag_34 addr=ff0080 6->202
+[frame 000420] window_change wram_ff0000
 [frame 000420] window_change z80_ctrl
-[frame 000450] pc=201f50 exec=other
+[frame 000450] pc=205741 exec=other
 [frame 000450] window_change z80_ctrl
-[frame 000480] pc=201f5a exec=other
+[frame 000480] pc=000202 exec=other
 [frame 000480] window_change z80_ctrl
-[frame 000510] pc=201f50 exec=other
+[frame 000510] pc=00000c exec=other
 [frame 000510] window_change z80_ctrl
-[frame 000540] pc=201f4e exec=other
-[frame 000540] window_change wram_ff0000
+[frame 000540] window_change vdp_ports
 [frame 000540] window_change z80_ctrl
-[frame 000570] exec_enter pc=03a27e range=frontend_core@000000
-[frame 000570] pc=03a27e exec=frontend_core@000000
-[frame 000570] window_change vdp_ports
+[frame 000570] pc=000010 exec=other
 [frame 000570] window_change z80_ctrl
-[frame 000571] exec_enter pc=201f54 range=other
-[frame 000600] pc=20a96a exec=other
-[frame 000600] window_change wram_ff0000
-[frame 000600] window_change vdp_ports
+[frame 000600] pc=000202 exec=other
 [frame 000600] window_change z80_ctrl
-[frame 000630] pc=20a950 exec=other
-[frame 000630] window_change vdp_ports
+[frame 000630] pc=000010 exec=other
 [frame 000630] window_change z80_ctrl
-[frame 000660] pc=20a958 exec=other
-[frame 000660] window_change vdp_ports
+[frame 000660] pc=000202 exec=other
 [frame 000660] window_change z80_ctrl
-[frame 000675] exec_enter pc=03af5c range=startup_common@000000
-[frame 000676] exec_enter pc=200c04 range=other
-[frame 000676] first_symbol_change arcade_mode4 addr=ff0052 0->1
-[frame 000677] exec_enter pc=03af58 range=startup_common@000000
-[frame 000677] first_symbol_change arcade_page2 addr=ff0050 0->1
-[frame 000677] symbol_change arcade_mode4 addr=ff0052 1->0
-[frame 000678] exec_enter pc=2006a2 range=other
-[frame 000678] symbol_change arcade_mode4 addr=ff0052 0->1
-[frame 000679] symbol_change arcade_mode4 addr=ff0052 1->2
-[frame 000690] pc=201f56 exec=other
-[frame 000690] window_change wram_ff0000
-[frame 000690] window_change vdp_ports
 [frame 000690] window_change z80_ctrl
-[frame 000720] pc=201f56 exec=other
-[frame 000720] window_change wram_ff0000
+[frame 000720] pc=000000 exec=other
 [frame 000720] window_change z80_ctrl
-[frame 000750] pc=201f62 exec=other
 [frame 000750] window_change z80_ctrl
-[frame 000780] pc=201f56 exec=other
-[frame 000780] window_change vdp_ports
+[frame 000780] pc=000000 exec=other
 [frame 000780] window_change z80_ctrl
-[frame 000810] pc=20a96a exec=other
-[frame 000810] window_change vdp_ports
 [frame 000810] window_change z80_ctrl
-[frame 000840] pc=20a950 exec=other
-[frame 000840] window_change vdp_ports
+[frame 000840] pc=000010 exec=other
 [frame 000840] window_change z80_ctrl
-[frame 000870] pc=20a958 exec=other
-[frame 000870] window_change vdp_ports
+[frame 000870] pc=000202 exec=other
 [frame 000870] window_change z80_ctrl
-[frame 000900] pc=201f50 exec=other
-[frame 000900] window_change wram_ff0000
-[frame 000900] window_change vdp_ports
+[frame 000900] pc=000010 exec=other
 [frame 000900] window_change z80_ctrl
-[frame 000930] pc=201f5a exec=other
+[frame 000930] pc=000202 exec=other
 [frame 000930] window_change z80_ctrl
-[frame 000960] pc=201f50 exec=other
 [frame 000960] window_change z80_ctrl
-[frame 000990] pc=201f5a exec=other
+[frame 000990] pc=000000 exec=other
 [frame 000990] window_change z80_ctrl
-[frame 001020] pc=201f50 exec=other
 [frame 001020] window_change z80_ctrl
-[frame 001050] pc=201f4e exec=other
-[frame 001050] window_change wram_ff0000
+[frame 001050] pc=000000 exec=other
 [frame 001050] window_change z80_ctrl
-[frame 001080] pc=201f56 exec=other
 [frame 001080] window_change z80_ctrl
-[frame 001110] pc=201f50 exec=other
-[frame 001110] window_change vdp_ports
+[frame 001110] pc=000010 exec=other
 [frame 001110] window_change z80_ctrl
-[frame 001140] pc=20a970 exec=other
-[frame 001140] window_change wram_ff0000
-[frame 001140] window_change vdp_ports
+[frame 001140] pc=000202 exec=other
 [frame 001140] window_change z80_ctrl
-[frame 001170] pc=20a958 exec=other
-[frame 001170] window_change vdp_ports
+[frame 001170] pc=000010 exec=other
 [frame 001170] window_change z80_ctrl
+[frame 001200] pc=000202 exec=other
+[frame 001200] window_change z80_ctrl
+[frame 001230] window_change z80_ctrl
+[frame 001260] pc=000000 exec=other
+[frame 001260] window_change z80_ctrl
+[frame 001290] window_change z80_ctrl
+[frame 001320] pc=000010 exec=other
+[frame 001320] window_change z80_ctrl
+[frame 001350] window_change z80_ctrl
+[frame 001380] pc=000010 exec=other
+[frame 001380] window_change z80_ctrl
+[frame 001410] pc=000202 exec=other
+[frame 001410] window_change z80_ctrl
+[frame 001440] pc=000010 exec=other
+[frame 001440] window_change z80_ctrl
+[frame 001470] pc=000202 exec=other
+[frame 001470] window_change z80_ctrl
+[frame 001500] window_change z80_ctrl
+[frame 001530] pc=000000 exec=other
+[frame 001530] window_change z80_ctrl
+[frame 001560] window_change z80_ctrl
+[frame 001590] pc=000010 exec=other
+[frame 001590] window_change z80_ctrl
+[frame 001620] pc=000202 exec=other
+[frame 001620] window_change z80_ctrl
+[frame 001650] pc=000010 exec=other
+[frame 001650] window_change z80_ctrl
+[frame 001680] pc=000202 exec=other
+[frame 001680] window_change z80_ctrl
+[frame 001710] pc=000010 exec=other
+[frame 001710] window_change z80_ctrl
+[frame 001740] pc=000202 exec=other
+[frame 001740] window_change z80_ctrl
+[frame 001770] window_change z80_ctrl
 ==== genesistrace stop ====
