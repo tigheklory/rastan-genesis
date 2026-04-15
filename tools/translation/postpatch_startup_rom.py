@@ -142,6 +142,321 @@ def parse_windows(spec_windows: list[dict[str, object]]) -> list[tuple[int, int]
     return out
 
 
+def _hex6(value: int) -> str:
+    return f"0x{value:06X}"
+
+
+def _hex8(value: int) -> str:
+    return f"0x{value:08X}"
+
+
+def _segment_bounds(segment: dict[str, object]) -> tuple[int, int]:
+    return parse_hexish(segment["genesis_start"]), parse_hexish(segment["genesis_end_exclusive"])
+
+
+def _append_segment(segments: list[dict[str, object]], sequence: list[int], record: dict[str, object]) -> None:
+    sequence[0] += 1
+    rec = dict(record)
+    rec["_seq"] = sequence[0]
+    segments.append(rec)
+
+
+def _slice_segment(segment: dict[str, object], new_start: int, new_end: int) -> dict[str, object]:
+    old_start, old_end = _segment_bounds(segment)
+    if not (old_start <= new_start <= new_end <= old_end):
+        raise RuntimeError("Invalid segment slice bounds.")
+
+    out = dict(segment)
+    out["genesis_start"] = _hex6(new_start)
+    out["genesis_end_exclusive"] = _hex6(new_end)
+    out["size_bytes"] = new_end - new_start
+
+    kind = str(segment["kind"])
+    if kind == "arcade_copy":
+        identity_offset = int(segment["identity_offset"])
+        out["arcade_start"] = _hex6(new_start - identity_offset)
+        out["arcade_end_exclusive"] = _hex6(new_end - identity_offset)
+    elif kind == "patched_site":
+        shift_delta = int(segment["shift_delta"])
+        offset = new_start - old_start
+        if shift_delta != 0 and (new_start != old_start or new_end != old_end):
+            raise RuntimeError(
+                "Cannot slice a non-zero shift_delta patched_site segment; "
+                "no interior mapping is defined."
+            )
+        if shift_delta == 0:
+            arc_start = parse_hexish(segment["arcade_start"]) + offset
+            out["arcade_start"] = _hex6(arc_start)
+            out["arcade_end_exclusive"] = _hex6(arc_start + (new_end - new_start))
+            hex_off = offset * 2
+            hex_len = (new_end - new_start) * 2
+            out["original_bytes"] = str(segment["original_bytes"])[hex_off:hex_off + hex_len]
+            out["replacement_bytes"] = str(segment["replacement_bytes"])[hex_off:hex_off + hex_len]
+    return out
+
+
+def _segment_signature(segment: dict[str, object]) -> tuple[object, ...]:
+    kind = str(segment["kind"])
+    if kind == "arcade_copy":
+        return (
+            kind,
+            segment["source"],
+            int(segment["identity_offset"]),
+        )
+    if kind == "patched_site":
+        return (
+            kind,
+            segment["origin"],
+            segment["arcade_start"],
+            segment["arcade_end_exclusive"],
+            segment["original_bytes"],
+            segment["replacement_bytes"],
+            segment["note"],
+            int(segment["shift_delta"]),
+        )
+    if kind == "preserved_vectors":
+        return (kind, segment["tag"])
+    if kind == "genesis_only":
+        return (kind, segment["tag"])
+    raise RuntimeError(f"Unknown segment kind for signature: {kind}")
+
+
+def _merge_adjacent_segments(segments: list[dict[str, object]]) -> list[dict[str, object]]:
+    if not segments:
+        return []
+    merged: list[dict[str, object]] = [dict(segments[0])]
+    for segment in segments[1:]:
+        prev = merged[-1]
+        prev_start, prev_end = _segment_bounds(prev)
+        cur_start, cur_end = _segment_bounds(segment)
+        if prev_end == cur_start and _segment_signature(prev) == _segment_signature(segment):
+            prev["genesis_end_exclusive"] = _hex6(cur_end)
+            prev["size_bytes"] = cur_end - prev_start
+            if str(prev["kind"]) == "arcade_copy":
+                identity_offset = int(prev["identity_offset"])
+                prev["arcade_end_exclusive"] = _hex6(cur_end - identity_offset)
+            continue
+        merged.append(dict(segment))
+    return merged
+
+
+def _overlay_segment(intervals: list[dict[str, object]], overlay: dict[str, object]) -> list[dict[str, object]]:
+    ov_start, ov_end = _segment_bounds(overlay)
+    if ov_end <= ov_start:
+        raise RuntimeError("Overlay segment has non-positive size.")
+
+    result: list[dict[str, object]] = []
+    inserted = False
+
+    for segment in intervals:
+        seg_start, seg_end = _segment_bounds(segment)
+
+        if seg_end <= ov_start:
+            result.append(segment)
+            continue
+        if seg_start >= ov_end:
+            if not inserted:
+                result.append(dict(overlay))
+                inserted = True
+            result.append(segment)
+            continue
+
+        # overlap
+        if seg_start < ov_start:
+            result.append(_slice_segment(segment, seg_start, ov_start))
+
+        if not inserted:
+            result.append(dict(overlay))
+            inserted = True
+
+        if seg_end > ov_end:
+            right_piece = _slice_segment(segment, ov_end, seg_end)
+            if (
+                str(segment["kind"]) == "arcade_copy"
+                and str(overlay["kind"]) == "patched_site"
+                and str(overlay["origin"]) == "shift_replacement"
+                and int(overlay["shift_delta"]) != 0
+            ):
+                right_arc_start = parse_hexish(overlay["arcade_end_exclusive"])
+                right_piece["arcade_start"] = _hex6(right_arc_start)
+                right_piece["arcade_end_exclusive"] = _hex6(right_arc_start + (seg_end - ov_end))
+                right_piece["identity_offset"] = ov_end - right_arc_start
+            result.append(right_piece)
+
+    if not inserted:
+        result.append(dict(overlay))
+
+    result.sort(key=lambda s: parse_hexish(s["genesis_start"]))
+    return result
+
+
+def _strip_internal_keys(segment: dict[str, object]) -> dict[str, object]:
+    out = {k: v for k, v in segment.items() if not k.startswith("_")}
+    return out
+
+
+def _validate_segment_keys(segment: dict[str, object]) -> None:
+    common = {"genesis_start", "genesis_end_exclusive", "size_bytes", "kind"}
+    kind = str(segment["kind"])
+    if kind == "arcade_copy":
+        allowed = common | {"arcade_start", "arcade_end_exclusive", "source", "identity_offset"}
+    elif kind == "patched_site":
+        allowed = common | {
+            "arcade_start",
+            "arcade_end_exclusive",
+            "origin",
+            "original_bytes",
+            "replacement_bytes",
+            "note",
+            "shift_delta",
+        }
+    elif kind == "preserved_vectors":
+        allowed = common | {"tag"}
+    elif kind == "genesis_only":
+        allowed = common | {"tag"}
+    else:
+        raise RuntimeError(f"Unknown segment kind: {kind}")
+
+    extras = set(segment.keys()) - allowed
+    missing = allowed - set(segment.keys())
+    if extras:
+        raise RuntimeError(f"Segment has unexpected keys for kind={kind}: {sorted(extras)}")
+    if missing:
+        raise RuntimeError(f"Segment missing required keys for kind={kind}: {sorted(missing)}")
+
+
+def _finalize_address_map_segments(
+    raw_segments: list[dict[str, object]],
+    rom_size: int,
+    wrapper_start: int,
+) -> tuple[list[dict[str, object]], dict[str, object]]:
+    if rom_size <= 0:
+        raise RuntimeError("ROM size must be positive for address_map emission.")
+
+    base = [dict(s) for s in raw_segments if str(s.get("kind")) == "arcade_copy"]
+    patched = [dict(s) for s in raw_segments if str(s.get("kind")) == "patched_site"]
+    preserved = [dict(s) for s in raw_segments if str(s.get("kind")) == "preserved_vectors"]
+    genesis_only = [dict(s) for s in raw_segments if str(s.get("kind")) == "genesis_only"]
+
+    intervals = sorted(base, key=lambda s: parse_hexish(s["genesis_start"]))
+
+    for overlay in sorted(patched, key=lambda s: parse_hexish(s["genesis_start"])):
+        intervals = _overlay_segment(intervals, overlay)
+
+    wrapper = [s for s in genesis_only if str(s.get("tag")) == "wrapper"]
+    non_wrapper_genesis = [s for s in genesis_only if str(s.get("tag")) != "wrapper"]
+
+    for overlay in sorted(wrapper, key=lambda s: parse_hexish(s["genesis_start"])):
+        if parse_hexish(overlay["genesis_start"]) != wrapper_start:
+            raise RuntimeError(
+                f"Wrapper lower bound mismatch: expected 0x{wrapper_start:06X}, "
+                f"got {overlay['genesis_start']}"
+            )
+        intervals = _overlay_segment(intervals, overlay)
+
+    for overlay in sorted(non_wrapper_genesis, key=lambda s: parse_hexish(s["genesis_start"])):
+        intervals = _overlay_segment(intervals, overlay)
+
+    for overlay in sorted(preserved, key=lambda s: parse_hexish(s["genesis_start"])):
+        intervals = _overlay_segment(intervals, overlay)
+
+    intervals = _merge_adjacent_segments(
+        sorted(intervals, key=lambda s: parse_hexish(s["genesis_start"]))
+    )
+
+    padded: list[dict[str, object]] = []
+    cursor = 0
+    raw_gaps: list[dict[str, str]] = []
+    overlaps: list[dict[str, str]] = []
+    for segment in intervals:
+        seg_start, seg_end = _segment_bounds(segment)
+        if seg_start < cursor:
+            overlaps.append({"at": _hex6(seg_start), "cursor": _hex6(cursor)})
+        if seg_start > cursor:
+            raw_gaps.append({"start": _hex6(cursor), "end_exclusive": _hex6(seg_start)})
+            padded.append(
+                {
+                    "genesis_start": _hex6(cursor),
+                    "genesis_end_exclusive": _hex6(seg_start),
+                    "size_bytes": seg_start - cursor,
+                    "kind": "genesis_only",
+                    "tag": "padding",
+                }
+            )
+        padded.append(segment)
+        cursor = max(cursor, seg_end)
+    if cursor < rom_size:
+        raw_gaps.append({"start": _hex6(cursor), "end_exclusive": _hex6(rom_size)})
+        padded.append(
+            {
+                "genesis_start": _hex6(cursor),
+                "genesis_end_exclusive": _hex6(rom_size),
+                "size_bytes": rom_size - cursor,
+                "kind": "genesis_only",
+                "tag": "padding",
+            }
+        )
+
+    final_segments = _merge_adjacent_segments(
+        sorted((_strip_internal_keys(s) for s in padded), key=lambda s: parse_hexish(s["genesis_start"]))
+    )
+
+    if not final_segments:
+        raise RuntimeError("Final address map has no segments.")
+    if parse_hexish(final_segments[0]["genesis_start"]) != 0:
+        raise RuntimeError("First segment does not start at genesis offset 0x000000.")
+    if parse_hexish(final_segments[-1]["genesis_end_exclusive"]) != rom_size:
+        raise RuntimeError("Last segment does not end at ROM size.")
+
+    gaps_after: list[dict[str, str]] = []
+    overlaps_after: list[dict[str, str]] = []
+    covered = 0
+    for idx, segment in enumerate(final_segments):
+        _validate_segment_keys(segment)
+        seg_start, seg_end = _segment_bounds(segment)
+        if segment["size_bytes"] != (seg_end - seg_start):
+            raise RuntimeError("Segment size_bytes does not match start/end bounds.")
+        covered += segment["size_bytes"]
+
+        if idx + 1 < len(final_segments):
+            next_start, _ = _segment_bounds(final_segments[idx + 1])
+            if seg_end < next_start:
+                gaps_after.append({"start": _hex6(seg_end), "end_exclusive": _hex6(next_start)})
+            elif seg_end > next_start:
+                overlaps_after.append({"at": _hex6(next_start), "prev_end": _hex6(seg_end)})
+
+        if str(segment["kind"]) == "arcade_copy":
+            arc_start = parse_hexish(segment["arcade_start"])
+            arc_end = parse_hexish(segment["arcade_end_exclusive"])
+            if (arc_end - arc_start) != (seg_end - seg_start):
+                raise RuntimeError("arcade_copy segment has mismatched arcade/genesis lengths.")
+            if (seg_start - arc_start) != int(segment["identity_offset"]):
+                raise RuntimeError("arcade_copy segment identity_offset mismatch.")
+        if str(segment["kind"]) == "patched_site":
+            arc_start = parse_hexish(segment["arcade_start"])
+            arc_end = parse_hexish(segment["arcade_end_exclusive"])
+            if (len(str(segment["original_bytes"])) // 2) != (arc_end - arc_start):
+                raise RuntimeError("patched_site original_bytes length mismatch.")
+            if (len(str(segment["replacement_bytes"])) // 2) != (seg_end - seg_start):
+                raise RuntimeError("patched_site replacement_bytes length mismatch.")
+
+    if covered != rom_size:
+        raise RuntimeError(
+            f"Segment coverage mismatch: covered=0x{covered:X} expected=0x{rom_size:X}"
+        )
+    if gaps_after or overlaps_after:
+        raise RuntimeError(
+            f"Address map segment continuity failure: gaps={gaps_after}, overlaps={overlaps_after}"
+        )
+
+    coverage = {
+        "total_genesis_bytes_covered": covered,
+        "gaps": [],
+        "overlaps": [],
+    }
+    return final_segments, coverage
+
+
 def validate_spec_addresses(
     spec: dict,
     range_lookup: dict[str, tuple[int, int]],
@@ -592,6 +907,19 @@ def main() -> int:
     source_windows = parse_windows(spec.get("declared_arcade_windows", []))
     target_windows = parse_windows(spec.get("declared_rewrite_target_windows", []))
     validate_spec_addresses(spec, range_lookup, target_windows, source_windows)
+    wrapper_start = 0x00070000
+
+    whole_copy_cfg = spec.get("whole_maincpu_copy", {})
+    whole_copy_mode = spec.get("policy", {}).get("current_copy_mode")
+    execute_from_relocated_base = bool(spec.get("policy", {}).get("execute_from_relocated_base", False))
+    keep_identity_overlays = bool(spec.get("policy", {}).get("keep_identity_overlays_for_bringup", True))
+    whole_copy_enabled = bool(whole_copy_cfg.get("enabled", False))
+    planned_relocation_delta = 0
+    if whole_copy_enabled and whole_copy_mode == "whole_maincpu_relocated":
+        planned_relocation_delta = (
+            parse_hexish(whole_copy_cfg["dest_start"])
+            - parse_hexish(whole_copy_cfg["source_start"])
+        )
 
     symbol_addresses = parse_symbol_table(symbols_path, required_names=None)
 
@@ -630,6 +958,8 @@ def main() -> int:
     rom_bytes = bytearray(rom_path.read_bytes())
     preserved_genesis_vectors = bytes(rom_bytes[0x000000:0x000400])
     maincpu_bytes = maincpu_path.read_bytes()
+    segments: list[dict[str, object]] = []
+    segment_sequence = [0]
 
     # Apply variable-length opcode replacements before any other patching.
     # Pass A behavior for entries with relocate_after_shift=true:
@@ -698,14 +1028,30 @@ def main() -> int:
                 [],
             )
         )
+        for _resolved_rep in resolved_shift_replacements:
+            _pc = parse_hexish(_resolved_rep["arcade_pc"])
+            _orig = bytes.fromhex(str(_resolved_rep["original_bytes"]).replace(" ", ""))
+            _repl = bytes.fromhex(str(_resolved_rep["replacement_bytes"]).replace(" ", ""))
+            _rom_pc = _pc + planned_relocation_delta + accumulated_shift_before(_pc, shift_deltas)
+            _append_segment(
+                segments,
+                segment_sequence,
+                {
+                    "genesis_start": _hex6(_rom_pc),
+                    "genesis_end_exclusive": _hex6(_rom_pc + len(_repl)),
+                    "size_bytes": len(_repl),
+                    "kind": "patched_site",
+                    "arcade_start": _hex6(_pc),
+                    "arcade_end_exclusive": _hex6(_pc + len(_orig)),
+                    "origin": "shift_replacement",
+                    "original_bytes": _orig.hex(),
+                    "replacement_bytes": _repl.hex(),
+                    "note": str(_resolved_rep.get("note", "")),
+                    "shift_delta": len(_repl) - len(_orig),
+                },
+            )
 
     ensure_rom_size(rom_bytes)
-
-    whole_copy_cfg = spec.get("whole_maincpu_copy", {})
-    whole_copy_mode = spec.get("policy", {}).get("current_copy_mode")
-    execute_from_relocated_base = bool(spec.get("policy", {}).get("execute_from_relocated_base", False))
-    keep_identity_overlays = bool(spec.get("policy", {}).get("keep_identity_overlays_for_bringup", True))
-    whole_copy_enabled = bool(whole_copy_cfg.get("enabled", False))
     whole_copy_summary: dict[str, object] | None = None
     relocation_delta = 0
     if whole_copy_enabled and whole_copy_mode == "whole_maincpu_relocated":
@@ -730,6 +1076,20 @@ def main() -> int:
             )
         ensure_size_at_least(rom_bytes, dest_start + source_size)
         rom_bytes[dest_start:dest_start + source_size] = maincpu_bytes[source_start:source_end]
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": _hex6(dest_start),
+                "genesis_end_exclusive": _hex6(dest_start + source_size),
+                "size_bytes": source_size,
+                "kind": "arcade_copy",
+                "arcade_start": _hex6(source_start),
+                "arcade_end_exclusive": _hex6(source_end),
+                "source": "whole_maincpu_copy",
+                "identity_offset": dest_start - source_start,
+            },
+        )
         whole_copy_summary = {
             "source_start": f"0x{source_start:06X}",
             "source_end_exclusive": f"0x{source_end:06X}",
@@ -746,6 +1106,17 @@ def main() -> int:
     # logic cannot mutate boot code bytes in the final executable ROM artifact.
     if not is_rastan_direct_profile:
         rom_bytes[0x000000:0x000400] = preserved_genesis_vectors
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": "0x000000",
+                "genesis_end_exclusive": "0x000400",
+                "size_bytes": 0x400,
+                "kind": "preserved_vectors",
+                "tag": "genesis_vectors_header",
+            },
+        )
 
     copied_ranges: list[dict[str, object]] = []
     copied_range_entries = spec["copied_ranges"]
@@ -756,6 +1127,20 @@ def main() -> int:
         name = entry["name"]
         if keep_identity_overlays:
             copy_range(rom_bytes, maincpu_bytes, start, end)
+            _append_segment(
+                segments,
+                segment_sequence,
+                {
+                    "genesis_start": _hex6(start),
+                    "genesis_end_exclusive": _hex6(end),
+                    "size_bytes": end - start,
+                    "kind": "arcade_copy",
+                    "arcade_start": _hex6(start),
+                    "arcade_end_exclusive": _hex6(end),
+                    "source": f"copied_range:{name}",
+                    "identity_offset": 0,
+                },
+            )
         copied_ranges.append(
             {
                 "name": name,
@@ -915,6 +1300,17 @@ def main() -> int:
                 "new_target": f"0x{target:08X}",
             }
         )
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": _hex6(start),
+                "genesis_end_exclusive": _hex6(end),
+                "size_bytes": end - start,
+                "kind": "genesis_only",
+                "tag": "shim_jump",
+            },
+        )
 
     for table in spec.get("absolute_long_pointer_tables", []):
         table_addr = parse_hexish(table["table_address"])
@@ -992,6 +1388,23 @@ def main() -> int:
             "replacement_bytes": new_bytes.hex(),
             "note": replacement.get("note", ""),
         })
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": _hex6(rom_pc),
+                "genesis_end_exclusive": _hex6(rom_pc + len(new_bytes)),
+                "size_bytes": len(new_bytes),
+                "kind": "patched_site",
+                "arcade_start": _hex6(arcade_pc),
+                "arcade_end_exclusive": _hex6(arcade_pc + len(expected)),
+                "origin": "opcode_replace",
+                "original_bytes": expected.hex(),
+                "replacement_bytes": new_bytes.hex(),
+                "note": str(replacement.get("note", "")),
+                "shift_delta": len(new_bytes) - len(expected),
+            },
+        )
 
     # Direct ROM-site opcode replacement (for fixed Genesis ROM addresses that are
     # outside source-space arcade_pc + relocation mapping).
@@ -1024,6 +1437,17 @@ def main() -> int:
                 "replacement_bytes": new_bytes.hex(),
                 "note": replacement.get("note", ""),
             }
+        )
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": _hex6(rom_pc),
+                "genesis_end_exclusive": _hex6(rom_pc + len(new_bytes)),
+                "size_bytes": len(new_bytes),
+                "kind": "genesis_only",
+                "tag": "rom_patch",
+            },
         )
 
     # Pass B: resolve deferred abs.l operands after Pass A finalizes layout.
@@ -1130,6 +1554,17 @@ def main() -> int:
             "entries": _PALETTE_ENTRIES,
             "note": "Greyscale ramp, 2048 entries, 16-level per bank.  Build 113 placeholder.",
         })
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": _hex6(_table_off),
+                "genesis_end_exclusive": _hex6(_table_off + len(_palette_data)),
+                "size_bytes": len(_palette_data),
+                "kind": "genesis_only",
+                "tag": "palette_table",
+            },
+        )
 
     # Write Genesis workram base pointer at ROM offset 0x10C000.
     # The arcade frontend tick reloads A5 from this absolute address.
@@ -1148,6 +1583,17 @@ def main() -> int:
             "note": "Genesis workram base at ROM 0x10C000 "
                     "so arcade A5 reload finds correct base.",
         })
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": _hex6(workram_anchor_offset),
+                "genesis_end_exclusive": _hex6(workram_anchor_offset + 4),
+                "size_bytes": 4,
+                "kind": "genesis_only",
+                "tag": "workram_anchor",
+            },
+        )
 
     expectations = spec.get("expectations", {})
     expected_opcode_replace_count = expectations.get("opcode_replace_count")
@@ -1193,6 +1639,28 @@ def main() -> int:
             symbol_addresses["genesistan_startup_result_code"],
             symbol_addresses["genesistan_startup_common_exit_test"],
         )
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": _hex6(normal_stub_start),
+                "genesis_end_exclusive": _hex6(normal_stub_end),
+                "size_bytes": normal_stub_end - normal_stub_start,
+                "kind": "genesis_only",
+                "tag": "generated_stub",
+            },
+        )
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": _hex6(test_stub_address),
+                "genesis_end_exclusive": _hex6(test_stub_end),
+                "size_bytes": test_stub_end - test_stub_address,
+                "kind": "genesis_only",
+                "tag": "generated_stub",
+            },
+        )
 
         patch_startup_vectors(rom_bytes, symbol_addresses["_reset_entry"])
 
@@ -1204,9 +1672,123 @@ def main() -> int:
 
     if is_rastan_direct_profile:
         rom_bytes[0x000000:0x000400] = preserved_genesis_vectors
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": "0x000000",
+                "genesis_end_exclusive": "0x000400",
+                "size_bytes": 0x400,
+                "kind": "preserved_vectors",
+                "tag": "genesis_vectors_header",
+            },
+        )
 
     checksum = update_genesis_checksum(rom_bytes)
     rom_path.write_bytes(rom_bytes)
+
+    address_map_path = manifest_path.with_name("address_map.json")
+    if is_rastan_direct_profile:
+        _append_segment(
+            segments,
+            segment_sequence,
+            {
+                "genesis_start": _hex6(wrapper_start),
+                "genesis_end_exclusive": _hex6(len(rom_bytes)),
+                "size_bytes": len(rom_bytes) - wrapper_start,
+                "kind": "genesis_only",
+                "tag": "wrapper",
+            },
+        )
+        finalized_segments, segment_coverage = _finalize_address_map_segments(
+            segments,
+            len(rom_bytes),
+            wrapper_start,
+        )
+
+        opcode_replace_logs = [
+            item for item in rewrite_log
+            if str(item.get("kind", "")) == "opcode_replace"
+        ]
+        opcode_replace_sites = [
+            seg for seg in finalized_segments
+            if str(seg.get("kind", "")) == "patched_site"
+            and str(seg.get("origin", "")) == "opcode_replace"
+        ]
+        if len(opcode_replace_logs) != len(opcode_replace_sites):
+            raise RuntimeError(
+                "Address-map invariant failure: opcode_replace rewrite_log count "
+                "does not match patched_site opcode_replace segment count."
+            )
+        if (
+            int(segment_coverage["total_genesis_bytes_covered"]) != 0xFB7C4
+            or len(opcode_replace_sites) != 46
+        ):
+            raise RuntimeError(
+                "Build 0029 invariant failure: expected "
+                "total_genesis_bytes_covered=0xFB7C4 and "
+                "opcode_replace patched_site count=46; got "
+                f"total_genesis_bytes_covered=0x{int(segment_coverage['total_genesis_bytes_covered']):X} "
+                f"opcode_replace patched_site count={len(opcode_replace_sites)}."
+            )
+        _site_keys = {
+            (
+                str(seg["arcade_start"]),
+                str(seg["genesis_start"]),
+                str(seg["original_bytes"]),
+                str(seg["replacement_bytes"]),
+                str(seg["note"]),
+            )
+            for seg in opcode_replace_sites
+        }
+        _log_keys = {
+            (
+                str(item["arcade_pc"]),
+                str(item["rom_pc"]),
+                str(item["original_bytes"]),
+                str(item["replacement_bytes"]),
+                str(item.get("note", "")),
+            )
+            for item in opcode_replace_logs
+        }
+        if _site_keys != _log_keys:
+            raise RuntimeError(
+                "Build 0029 invariant failure: opcode_replace patched_site segments "
+                "do not correspond 1:1 with rewrite_log opcode_replace entries."
+            )
+
+        arcade_source_start = parse_hexish(whole_copy_cfg.get("source_start", "0x000000"))
+        arcade_source_end = parse_hexish(
+            whole_copy_cfg.get(
+                "source_end_exclusive",
+                f"0x{len(maincpu_bytes):06X}",
+            )
+        )
+        address_map = {
+            "schema_version": 1,
+            "build_inputs": {
+                "variant": args.variant,
+                "patcher_profile": patcher_profile,
+                "spec_path": str(spec_path.resolve()),
+                "manifest_path": str(manifest_path.resolve()),
+                "rom_path": str(rom_path.resolve()),
+                "symbols_path": str(symbols_path.resolve()),
+                "maincpu_path": str(maincpu_path.resolve()),
+            },
+            "genesis_rom_size_bytes": len(rom_bytes),
+            "relocation_delta": _hex6(relocation_delta),
+            "arcade_source_start": _hex6(arcade_source_start),
+            "arcade_source_end_exclusive": _hex6(arcade_source_end),
+            "wrapper_region": {
+                "genesis_start": _hex6(wrapper_start),
+                "genesis_end_exclusive": _hex6(len(rom_bytes)),
+            },
+            "segments": finalized_segments,
+            "segment_coverage": segment_coverage,
+            "shift_deltas": [[_hex6(addr), delta] for addr, delta in shift_deltas],
+        }
+        address_map_path.parent.mkdir(parents=True, exist_ok=True)
+        address_map_path.write_text(json.dumps(address_map, indent=2) + "\n", encoding="utf-8")
 
     manifest: dict[str, object] = {
         "variant": args.variant,

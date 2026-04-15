@@ -14,13 +14,40 @@ State the exact goal in one sentence.
 
 # 🧠 PROJECT MODEL (MANDATORY CONTEXT)
 
-This project follows the Rainbow Islands arcade → Sega Genesis translation model.
+This project follows the **Rainbow Islands arcade → Sega Genesis transition model**.
 
-- Arcade produces intent
-- Genesis translates intent → VDP operations
-- No framebuffer emulation
-- No shadowing
-- All rendering via staging + VBlank commit
+This is the **authoritative reference model and proven path to success**.
+
+Key principles:
+
+- Arcade hardware produces **intent**, not pixels  
+- Genesis must **translate intent → VDP operations**  
+- No framebuffer emulation  
+- No hardware mirroring  
+- No shadowing  
+- All rendering must flow through staging buffers → VBlank commit  
+
+All solutions MUST align with this model.
+
+---
+
+# 🚨 PRIME DIRECTIVE (NON-NEGOTIABLE)
+
+NO SCAFFOLDING. EVER.
+
+- No temporary systems  
+- No reconstruction of data later  
+- No approximations  
+- No fallback logic  
+- No “we’ll fix it later”  
+
+If data is required later, it MUST be recorded at the moment it is created.
+
+If a system cannot be implemented correctly at the source of truth:
+→ STOP
+
+A stub that does nothing is acceptable.  
+A system that approximates or reconstructs later is NOT.
 
 ---
 
@@ -33,20 +60,25 @@ This project follows the Rainbow Islands arcade → Sega Genesis translation mod
 5. STOP CONDITIONS (MANDATORY)  
 6. NO MEMORY SHADOWING  
 7. ALL OUTPUT THROUGH STAGING BUFFERS  
-8. NO SCAFFOLDING  
+8. NO SCAFFOLDING (see PRIME DIRECTIVE)  
 9. NO MISREPRESENTATION  
+10. NO HEURISTIC MAPPING  
+11. NO IMPLEMENTATION (for design tasks)  
+12. TOTAL COVERAGE REQUIRED  
+13. NON-ROM ADDRESSES MUST BE EXPLICITLY CLASSIFIED  
 
 ---
 
-# 🔍 PHASE 1 — ANALYSIS / VERIFICATION
+# 📚 REQUIRED READING (MANDATORY)
 
-Must complete before implementation.
+Before ANY work:
 
----
+1. AGENTS_LOG.md (latest entries FIRST)
+2. Latest docs in docs/design/
+3. All Rainbow Islands reference docs in docs/design/
+4. Any files explicitly listed in the prompt
 
-# ⚙️ PHASE 2 — IMPLEMENTATION
-
-Scope strictly limited.
+FAILURE TO READ = INVALID RESULT
 
 ---
 
@@ -54,7 +86,7 @@ Scope strictly limited.
 
 docs/design/<Agent>_<task>.md
 
-Must include full or partial results (even on STOP).
+Must ALWAYS be produced (even on STOP)
 
 ---
 
@@ -73,22 +105,16 @@ Must include full or partial results (even on STOP).
 
 ## AGENTS_LOG DETAIL REQUIREMENT (IMPORTANT)
 
-The format above defines the MINIMUM required fields.
+The above is MINIMUM.
 
-You MUST include additional technical detail whenever available, including:
-
-- exact addresses (arcade_pc / runtime_genesis_pc / genesis_rom_offset)
-- opcode_replace entries and counts
-- patch offsets and byte verification
-- trace file paths and log references
+You MUST include additional technical detail:
+- exact addresses
+- trace logs
 - disassembly references
-- emulator behavior (BlastEm, Exodus, MAME)
-- crash signatures or failure states
-- verification steps and observed outcomes
+- emulator behavior
+- verification steps
 
-DO NOT reduce detail to match the template.
-
-The template is a floor, NOT a ceiling.
+This is a floor, NOT a ceiling.
 
 ---
 
@@ -111,15 +137,17 @@ The template is a floor, NOT a ceiling.
 
 # 🚫 FAILURE CONDITIONS
 
-- guessing
-- skipping verification
-- incorrect mapping
-- scaffolding
-- misrepresentation
-- missing docs/logs
+- guessing  
+- skipping verification  
+- incorrect mapping  
+- scaffolding  
+- misrepresentation  
+- missing documentation  
 
 ---
 
 # 🧠 FINAL INSTRUCTION
 
 Complete Phase 1 first. Only proceed if proven.
+
+Do not deviate.

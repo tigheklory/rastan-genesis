@@ -27171,3 +27171,120 @@ Evidence for opcode_replace presence/absence:
 - key present only in specs/rastan_direct_remap.json:103 and specs/startup_title_remap.json:1007 (rg -n '"opcode_replace"' specs/*.json).
 - all per-file opcode_replace field lists from direct JSON parse; no opcode_replace field named rom_pc or other Genesis ROM offset field.
 ```
+
+## [Andy - Design, address lookup tool]
+
+* manifest confirmed: YES (build/rastan-direct/rastan_direct_patch_manifest.json, 46 opcode_replace entries, each with arcade_pc + rom_pc)
+* rom_pc field in manifest: YES (example: entry 0 arcade_pc=0x055968, rom_pc=0x055B68)
+* unpatched formula: genesis_rom_offset = arcade_pc + 0x000200 (proven from postpatch_startup_rom.py:978 with shift_deltas=[] because specs/rastan_direct_remap.json contains no shift_replacements key and rom_opcode_replace=[])
+* gaps identified: Genesis vectors 0x000000-0x0001FF, wrapper/hooks 0x070000-0x080000, inter-region padding 0x060200-0x070000, PC080SN hw 0xC00000-0xC0FFFF + 0xC20000 + 0xC40000, PC090OJ hw 0xD00000-0xD03FFF, TC0040IOC 0x380000-0x38000F, Genesis WRAM 0xFF0000-0xFFFFFF
+* validation cases: YES (patched site 0x055B68->0x055968, unpatched 0x03C3FE->0x03C5FE, hw address 0xC09EA0 -> PC080SN/FG_TILEMAP offset 0x1EA0)
+* tool interface defined: YES (tools/addr_lookup.py, --addr/--space/--format/--manifest/--spec/--symbols, JSON + human output, guard-rail preconditions on relocation_delta and shift_replacements)
+* design doc created: YES (docs/design/Andy_address_lookup_tool_design.md)
+* no implementation performed: YES
+* spec complete: YES
+
+Technical detail:
+- relocation_delta = dest_start(0x000200) - source_start(0x000000) = 0x000200, from manifest whole_maincpu_copy block and postpatch_startup_rom.py:715.
+- runtime_genesis_pc == genesis_rom_offset proven via verify_rastan_direct_boot_guard.py:11 (EXPECTED_RESET_VECTOR=0x00000202 == EXPECTED_START_PROLOGUE_OFFSET 0x000202). Genesis cart mapping is 1:1 identity in [0x000000, 0x3FFFFF] with no bank switching configured.
+- specs/rastan_direct_remap.json opcode_replace_count=46 (line 383) matches manifest rom_pc count=46 -> 100% patched-site coverage.
+- Tool pre-condition guards fire if either shift_replacements appears in spec or rom_opcode_replace becomes non-empty; protects the +0x200 shortcut from silent drift.
+- Tool scope: PC-space resolution only. Hardware-memory writer identification remains the job of Cody_pc080sn_writer_audit.md.
+
+## [Andy - Design, address map artifact]
+
+* AGENTS_LOG read: YES
+* postpatch_startup_rom.py read in full: YES (all 1344 lines)
+* transformation inventory complete: YES
+* all transformation classes found: 19 (preserved_vectors_snapshot, shift_replacements_passA, ensure_rom_size, whole_maincpu_copy, copied_ranges_identity, rom_absolute_call_relocation, absolute_rewrite_groups, window_rewrite_rules, verbatim_restores, shim_jumps, absolute_long_pointer_tables, opcode_replace, rom_opcode_replace, deferred_operand_passB, palette_pre_conversion, workram_anchor, generated_stubs, preserved_vectors_restore, update_genesis_checksum)
+* schema defined: YES (address_map.json; segments list with arcade_copy / patched_site / preserved_vectors / genesis_only kinds; no formula fields)
+* total coverage enforced: YES (segments[0].genesis_start==0, segments[-1].genesis_end_exclusive==genesis_rom_size_bytes, adjacent-equality invariant, segment_coverage.gaps==[] overlaps==[])
+* emission points defined: YES (per-transformation table in section 4 with exact line numbers; finalization pass with 7 explicit interval steps in 4.1)
+* wrapper boundaries confirmed from source: YES (link.ld line `. = 0x00070000;` for lower bound, observed wc -c on dist/rastan_direct_video_test.bin = 1030084 = 0x000FB944 for upper bound, plus z80_driver_end symbol at 0x000FB7C1 corroborates)
+* lookup algorithm defined: YES (forward 7.1, reverse 7.2, non-ROM classification 7.3; binary search over segments; no range inference, no fallbacks)
+* non-ROM classification defined: YES (section 7.3; hardware + WRAM ranges terminal; arcade_pc mapping explicitly not attempted)
+* validation cases complete: YES (5 worked examples: 0x055968 patched, 0x03C3FE unpatched, 0x000100 preserved_vectors, 0x0007002A wrapper _VINT_handler, 0xC09EA0 hardware PC080SN/FG_TILEMAP)
+* impact on existing manifest defined: YES (supplement; manifest unchanged; new artifact at build/rastan-direct/address_map.json)
+* design doc created: YES (docs/design/Andy_address_map_artifact_design.md)
+* no implementation performed: YES
+* spec complete: YES
+
+Technical detail:
+- Segment kinds: arcade_copy (identity_offset + arcade_start/end), patched_site (origin=opcode_replace|shift_replacement, original/replacement_bytes, shift_delta), preserved_vectors, genesis_only (tag in {wrapper,padding,shim_jump,rom_patch,generated_stub,palette_table,workram_anchor}).
+- Finalization pass collapses tentative whole_maincpu_copy segment plus emitted patched/genesis_only segments into a non-overlapping gap-free list through interval carving.
+- Patched_site invariant len(original_bytes)/2 == arcade_size and len(replacement_bytes)/2 == genesis_size; opcode_replace path has shift_delta=0 (enforced at postpatch line 973-977); shift_replacement path allows non-zero shift_delta (interior lookup returns UNKNOWN_INTERIOR in that case).
+- rom_opcode_replace and shim_jumps carve genesis_only holes in arcade_copy, removing arcade identity for those bytes.
+- Emission is at exact line numbers: whole_copy 732, opcode_replace 985, rom_opcode_replace after 1018, shim_jump 908, palette 1126, workram 1143, preserved_vectors restore 748/1206, generated_stubs 1187-1195.
+- Output file: build/rastan-direct/address_map.json written just before manifest_path.write_text at line 1339. Existing manifest untouched. No new CLI flags, no new spec keys.
+- Build 0029 correctness assertion: total_genesis_bytes_covered == 0xFB944, 46 patched_site segments match 46 opcode_replace rewrite_log entries.
+
+### MAME Exit Summary (2026-04-14 23:31:31)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, address map artifact]
+
+* AGENTS_LOG read: YES
+* design doc read in full: YES
+* phase 1 complete: YES
+* emission model confirmed: YES
+* postpatch_startup_rom.py modified: YES
+* segments list implemented: YES
+* all 11 emission points implemented: YES
+* finalization pass implemented: YES
+* invariants enforced: YES
+* build passes: YES
+* address_map.json produced: YES
+* total_genesis_bytes_covered: 0xFB7C4 (1030084)
+* patched_site segments: 46 (opcode_replace origin=46)
+* gaps: 0
+* overlaps: 0
+* manifest regression confirmed: YES (byte-for-byte identical; cmp=0, SHA256 unchanged)
+* MAME trace final PC: UNKNOWN (genesistrace summary has no explicit final-PC field; last observed PCs in trace tail alternate 0x000010/0x000202)
+* no unrelated changes: YES
+* design doc created: YES
+
+Technical details:
+- Implemented raw segment emission at all mapping-affecting transformation points in `tools/translation/postpatch_startup_rom.py`.
+- Added canonical finalization pass between `rom_path.write_bytes(rom_bytes)` and `manifest_path.write_text(...)`.
+- Artifact emitted to `build/rastan-direct/address_map.json` via `manifest_path.with_name("address_map.json")`.
+- Wrapper guard enforced (`genesis_start == 0x00070000`).
+- Segment-key schema validated per kind (`arcade_copy`, `patched_site`, `preserved_vectors`, `genesis_only`).
+- Build 0029 count invariant enforced: 46 `opcode_replace` rewrite-log entries ↔ 46 `patched_site` segments (`origin=opcode_replace`) with 1:1 key-match.
+- Coverage invariant uses mathematically correct ROM size conversion for this build output:
+  - `1030084 decimal = 0xFB7C4`
+  - design doc line stating `0xFB944` for 1030084 is a hex conversion error.
+
+## [Cody - Implementation, address map artifact, validation correction]
+
+- MAME trace final PC evidence available in AGENTS_LOG build summary at 2026-04-14 23:31:31.
+- Final PC: 0x000010
+- Stack Pointer: 0x00DEA634
+- Unmapped addresses: none
+- Previous UNKNOWN placeholder in prior entry is superseded by this confirmed value.
+
+## [Cody - Verification, address map artifact]
+
+* AGENTS_LOG read: YES
+* design doc read: YES
+* implementation doc read: YES
+* command run: YES
+* total_covered: 0xfb7c4
+* gaps: []
+* overlaps: []
+* patched_site count: 46
+* arcade_copy count: 40
+* preserved_vectors count: 1
+* genesis_only count: 2
+* first segment start: 0x000000
+* last segment end: 0x0FB7C4
+* rom size: 0xfb7c4
+* all invariants pass: YES
+* no files modified: YES
+
+Technical detail:
+- Verification command executed exactly as provided in directive against `build/rastan-direct/address_map.json`.
+- Coverage and continuity invariants are satisfied: full ROM coverage, zero gaps, zero overlaps.
+- Segment cardinality check for patched sites matches required Build 0029 value (46).
+- Boundary check satisfied: first segment starts at ROM base 0x000000 and final segment end equals ROM size (same numeric value despite normalized hex formatting differences: `0x0FB7C4 == 0xfb7c4`).
