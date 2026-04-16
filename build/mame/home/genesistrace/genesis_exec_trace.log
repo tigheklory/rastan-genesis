@@ -3,7 +3,7 @@ arm: genesistrace armed root=/home/tighe/projects/rastan-genesis symbols=/home/t
 arm: symbol_watches=28
 arm: initial_pc=000000
 [frame 000000] live_write vdp_ports_live pc=070100 addr=c00004 data=8004 mask=ffff count=1
-[frame 000001] exec_enter pc=07082c range=other
+[frame 000001] exec_enter pc=070efa range=other
 [frame 000007] first_symbol_change arcade_flag_34 addr=ff0080 0->6
 [frame 000030] pc=070022 exec=other
 [frame 000060] pc=07001e exec=other

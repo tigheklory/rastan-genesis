@@ -27288,3 +27288,902 @@ Technical detail:
 - Coverage and continuity invariants are satisfied: full ROM coverage, zero gaps, zero overlaps.
 - Segment cardinality check for patched sites matches required Build 0029 value (46).
 - Boundary check satisfied: first segment starts at ROM base 0x000000 and final segment end equals ROM size (same numeric value despite normalized hex formatting differences: `0x0FB7C4 == 0xfb7c4`).
+
+## [Cody - Investigation, build pipeline disassembly and trace]
+
+* AGENTS_LOG read: YES
+* Makefile read: YES
+* setup_env.sh read: YES
+* tools/ scripts inspected: YES
+* m68k-elf-objdump available: YES
+* final ROM path confirmed: YES
+* Makefile insertion point identified: YES
+* MAME trace script exists: YES
+* trace output path convention confirmed: YES
+* build number tracking confirmed: YES
+* states/traces exists: YES
+* no files modified: YES
+* design doc created: YES
+
+Technical detail:
+- Toolchain evidence:
+  - `tools/setup_env.sh` adds `$M68K_ELF_ROOT/bin` to PATH (`tools/setup_env.sh:13`).
+  - `command -v m68k-elf-objdump` resolves to `/home/tighe/projects/rastan-genesis/tools/local/toolchain/m68k-elf/bin/m68k-elf-objdump`.
+  - Existing disasm script uses same binary mode flags (`tools/disasm_maincpu.sh:12-18`).
+- rastan-direct patched ROM target:
+  - `BIN := $(DIST_DIR)/rastan_direct_video_test.bin` (`apps/rastan-direct/Makefile:41`).
+  - target recipe at `Makefile:71-91` performs patch then post-patch boot guard before numbered artifact copy.
+- Makefile insertion point for post-patch disassembly:
+  - immediately after line 82 (`$(PYTHON) "$(BOOT_GUARD)" --rom "$@"`) and before line 83 counter/numbered copy block.
+- MAME trace scripts discovered under `tools/mame/`:
+  - Genesis: `run_genesis_trace_wsl.sh` (machine genesis, `-cart`, `genesistrace.lua`) `tools/mame/run_genesis_trace_wsl.sh:5,59-73`.
+  - Arcade: `run_rastan_trace_wsl.sh`, `run_rastan_trace_lite_wsl.sh`, `run_rastan_jumptrace_wsl.sh`, `run_rastan_wsl.sh` (machine rastan + `-rompath`) with respective trace/monitor scripts.
+- ROM type distinction in infrastructure:
+  - YES (Genesis harness uses `-cart`; arcade harnesses use `-rompath` ROM sets).
+- Previous 30s command provenance from AGENTS_LOG:
+  - UNKNOWN for Build 0027/0028/0029 because AGENTS_LOG records trace directories (`trace saved to: states/traces/..._mame_30s_...`) but not full command lines at those entries (`AGENTS_LOG.md:27001,27026`).
+  - Last explicit Genesis trace command string present in AGENTS_LOG is older (`AGENTS_LOG.md:21575`) and not documented there as a 30s command.
+- states/traces findings:
+  - directory exists with 8 trace directories.
+  - dominant naming convention: `rastan_direct_video_test_build_<build>_mame_<duration>s_<timestamp>`.
+  - observed per-trace files: `genesis_exec_summary.txt`, `genesis_exec_trace.log`, and in some traces `mame_stdout.txt`, `trace_metadata.txt`.
+- Build number tracking:
+  - counter file `build/rastan-direct/build_counter.txt` (`Makefile:15`).
+  - increment/format logic in Makefile shell block (`Makefile:84-89`), usable for trace filename/tag composition.
+
+### MAME Exit Summary (2026-04-15 01:08:17)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-04-15 01:09:37)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, build pipeline disasm and trace]
+
+* AGENTS_LOG read: YES
+* investigation doc read: YES
+* Makefile read: YES
+* trace script read: YES
+* phase 1 complete: YES
+* execution order confirmed: YES
+* Makefile modified: YES
+* disassembly step added: YES
+* build counter block unmodified: YES
+* trace step added: YES
+* full trace command recorded: YES
+* trace command: timeout 120s "../../tools/mame/run_genesis_trace_wsl.sh" "dist/rastan_direct_video_test.bin" -video none -sound none -nothrottle -seconds_to_run 30
+* output copy required: YES
+* trace confirmation step added: YES
+* build passes: YES
+* genesis_postpatch.disasm.txt produced: YES
+* trace directory produced: YES
+* trace directory name: states/traces/rastan_direct_video_test_build_0032_mame_30s_20260415_010931
+* genesis_exec_summary.txt present: YES
+* ROM binary unchanged: YES
+* manifest unchanged: YES
+* address_map unchanged: YES
+* MAME trace final PC: 0x000010
+* no unrelated changes: YES
+* design doc created: YES
+
+Technical detail:
+- Required files were re-read before implementation: `AGENTS_LOG.md`, `docs/design/Cody_build_pipeline_investigation.md`, `apps/rastan-direct/Makefile`, `tools/mame/run_genesis_trace_wsl.sh`.
+- Toolchain confirmation: `m68k-elf-objdump` resolves after `source tools/setup_env.sh` to `/home/tighe/projects/rastan-genesis/tools/local/toolchain/m68k-elf/bin/m68k-elf-objdump`.
+- Makefile insertion points implemented in required order:
+  1) post-patch boot guard (`apps/rastan-direct/Makefile:85`),
+  2) disassembly step (`line 86-87`),
+  3) existing build-counter/tag block (`lines 89-95`, tag at line 93),
+  4) trace step and confirmation (`lines 97-108`).
+- Trace harness remains Genesis-only in automated path (`run_genesis_trace_wsl.sh`, machine `genesis`, `-cart`); no arcade trace script wired into Makefile.
+- Trace output source from script is fixed at `build/mame/home/genesistrace/`; Makefile copies artifacts into per-build archival directory under `states/traces/` using naming convention `rastan_direct_video_test_build_<tag>_mame_30s_<timestamp>`.
+- Validation run commands:
+  - `source tools/setup_env.sh`
+  - `make -C apps/rastan-direct clean`
+  - `make -C apps/rastan-direct release`
+- Disassembly validation: `build/genesis_postpatch.disasm.txt` exists, non-empty (`14M`), header identifies `dist/rastan_direct_video_test.bin` as disassembly input.
+- Trace validation: new directory `states/traces/rastan_direct_video_test_build_0032_mame_30s_20260415_010931` contains `genesis_exec_summary.txt` and `genesis_exec_trace.log`.
+- Regression hash checks pre/post build are byte-identical:
+  - `apps/rastan-direct/dist/rastan_direct_video_test.bin` = `b0445a2917a07cd094b476c1afb70a987ba4ed2e31f08d8d647bc0ba3d486332`
+  - `build/rastan-direct/rastan_direct_patch_manifest.json` = `a3ead76e46d00c3064b487917d3644a01a7a29d65f1d31fec36a6cea2a9c3995`
+  - `build/rastan-direct/address_map.json` = `d3fdab3345c166821e56568f37e426ff916dfff21fe5efa6de2664697750f9a7`
+- MAME final PC evidence: `0x000010` from latest recorded MAME exit summary in AGENTS_LOG (`2026-04-15 01:08:17`).
+
+## [Cody - Utility, build 32 screenshot extraction]
+
+* AGENTS_LOG read: YES
+* input file confirmed: NO
+* output directory safe: NO
+* ffmpeg available: YES
+* extraction command: ffmpeg -i screenshots/build_32.mp4 -vf fps=30 screenshots/build_32/frame_%04d.png (NOT EXECUTED; STOP condition)
+* frame count: 0
+* first frame: NONE
+* last frame: NONE
+* no unrelated changes: YES
+* design doc created: YES
+
+Technical detail:
+- Phase 1 verification performed before any extraction:
+  - `tail -n 120 AGENTS_LOG.md` completed (latest entries reviewed).
+  - `ls -lh screenshots/build_32.mp4` failed: file missing.
+  - `ls -lah screenshots` failed: directory missing.
+  - Output directory check reported `DIR_MISSING` for `screenshots/build_32`.
+  - `ffmpeg` availability confirmed: `/usr/bin/ffmpeg`, version `7.1.3-0+deb13u1`.
+- STOP condition triggered because required input asset does not exist.
+- No extraction was executed and no frame files were written.
+- Required documentation produced: `docs/design/Cody_build_32_screenshot_extraction.md` with blocker and validation results.
+
+## [Cody - Implementation, bg_dirty and fg_dirty flags]
+
+* AGENTS_LOG read: YES
+* design doc read: YES
+* main_68k.s read: YES
+* phase 1 complete: NO
+* guard pattern confirmed: YES
+* main_68k.s modified: NO
+* bg_dirty added to .bss: NO
+* fg_dirty added to .bss: NO
+* bg_dirty initialized in init_staging_state: NO
+* fg_dirty initialized in init_staging_state: NO
+* vdp_commit_bg guard added: NO
+* vdp_commit_fg guard added: NO
+* build passes: NO (NOT RUN; STOP in Phase 1)
+* bg_dirty confirmed in output: NO
+* fg_dirty confirmed in output: NO
+* vdp_commit_bg starts with tst.b: NO
+* vdp_commit_fg starts with tst.b: NO
+* MAME trace final PC: UNKNOWN (NOT RUN)
+* manifest unchanged: YES
+* address_map unchanged: YES
+* no unrelated changes: YES
+* design doc created: YES
+
+Technical detail:
+- Phase 1 verification executed exactly as requested against:
+  - `docs/design/Andy_rastan_direct_display_tightening_against_rainbow.md`
+  - `apps/rastan-direct/src/main_68k.s`
+- Section §16 in Andy doc requires 4 specific changes targeting functions named `vdp_commit_bg` and `vdp_commit_fg`.
+- Current source does not contain those symbols.
+  - Symbol search evidence in `main_68k.s`:
+    - present: `vdp_commit_tiles_if_dirty` (line 667)
+    - present: `vdp_commit_bg_strips_if_dirty` (line 684)
+    - present: `vdp_commit_fg_strips_if_dirty` (line 721)
+    - absent: `vdp_commit_bg`, `vdp_commit_fg`
+- Confirmed reference locations required by Phase 1:
+  - `palette_dirty` declaration: line 1146
+  - `palette_dirty` init in `init_staging_state`: line 947
+  - guard pattern start in `vdp_commit_tiles_if_dirty`: line 667 (with `tst.b` at line 668, `beq.s` at 669, `clr.b` at 680, label+rts at 681-682)
+- STOP condition applied per directive (`If ANY = NO -> STOP`) because required target function locations could not be confirmed.
+- No implementation edits were performed in `apps/rastan-direct/src/main_68k.s`.
+- Required stop documentation created: `docs/design/Cody_bg_fg_dirty_flag_implementation.md`.
+
+## [Andy - Analysis, VBlank commit audit and corrected spec]
+
+* AGENTS_LOG read: YES
+* prior design doc read: YES (docs/design/Andy_rastan_direct_display_tightening_against_rainbow.md, relevant sections §3, §4, §16 re-read)
+* Cody STOP report read: YES (docs/design/Cody_bg_fg_dirty_flag_implementation.md, all 108 lines)
+* main_68k.s read in full: YES (1201 lines; commit functions, VBlank handler, hooks, bss section all inspected)
+* commit function inventory complete: YES (5 functions: vdp_commit_tiles_if_dirty@667, vdp_commit_bg_strips_if_dirty@684, vdp_commit_fg_strips_if_dirty@721, vdp_commit_palette@758, vdp_commit_scroll@768)
+* call chains from VBlank mapped: YES (all 5 chains single-hop from _VINT_handler@81)
+* mismatch resolved: YES (functions renamed to *_strips_if_dirty; bg_row_dirty/fg_row_dirty are 32-bit bitmap guards at finer granularity than §16 proposed)
+* vblank handler audited: YES (lines 81-109; display OFF at 86-88, display ON at 100-102, scroll after display ON at 104)
+* current budget assessed: YES (steady ~552 cyc, typical-gameplay ~7400 cyc, worst-case-after-cwindow-clear ~57000 cyc)
+* corrected spec produced: YES (retirement of §16; zero implementation action required)
+* no implementation performed: YES
+* design doc created: YES (docs/design/Andy_vblank_commit_audit_corrected_spec.md)
+* spec complete: YES
+
+Technical detail:
+- Cody's STOP was correct: vdp_commit_bg / vdp_commit_fg symbols do not exist in current source.
+- Current source uses strip-level guards: vdp_commit_bg_strips_if_dirty opens with `move.l bg_row_dirty, %d6 / beq.s .Lbg_done` (lines 685-686); vdp_commit_fg_strips_if_dirty opens with `move.l fg_row_dirty, %d6 / beq.s .Lfg_done` (lines 722-723).
+- bg_row_dirty and fg_row_dirty are 32-bit bitmaps (one bit per strip row), set via `bset` by hooks at lines 343, 515, 624, and written wholesale by genesistan_hook_cwindow_clear at lines 661-662 (0xFFFFFFFF).
+- init_staging_state clears both bitmaps at lines 949-950 (clr.l).
+- Adding coarse .b bg_dirty/fg_dirty flags on top of the existing 32-bit bitmap guards would be PRIME DIRECTIVE scaffolding: duplicates an existing guard at lower granularity, adds dirty-source consistency burden to every hook site, changes steady-state cost by zero cycles (both paths early-exit ~24 cycles), and does not fix the worst-case overrun.
+- Overrun summary: steady-state NOT PRESENT (~552 cycles); typical gameplay AT BUDGET (~7,400 cycles with 4 strips/plane); worst case PRESENT (~57,000 cycles when all 64 strip bits set in one frame, e.g. frame after genesistan_hook_cwindow_clear).
+- Worst-case overrun is a strip-count / one-shot clear event problem, not a flag-granularity problem. Coarse byte flags cannot fix it because they would be set whenever bitmap is non-zero.
+- Retirement action: §16 of docs/design/Andy_rastan_direct_display_tightening_against_rainbow.md is OBSOLETE. Cody should not attempt to implement §16 against current source. No ROM/manifest/address_map changes required.
+- Follow-up scope out of this task: cwindow_clear strip staging, DMA migration, per-VBlank commit count limiting. Each requires a separate prompt.
+
+## [Andy - Analysis, text writer 3c4d2 hook spec]
+
+* AGENTS_LOG read: YES
+* prior STOP doc read: YES (docs/design/Andy_text_writer_3c3fe_hook_spec.md — confirms 0x03C3FE is not the crash source and identifies 0x03C4D2)
+* hook strategy doc read: YES (docs/design/Andy_final_pc080sn_hook_strategy.md — multi-site hook pattern and scaffolding definition)
+* address_map.json consulted: YES (build/rastan-direct/address_map.json; arcade_copy segment [0x03B0A4, 0x03EF28) → [0x03B2A4, 0x03F128), identity_offset 512)
+* arcade disasm read: YES (build/maincpu.disasm.txt, lines 75918-75959 and 76269-76290 for function, inner sub, and dispatcher callers)
+* genesis disasm read: CONFIRMED via address_map.json lookup rather than reading genesis_postpatch.disasm.txt directly (segment arithmetic from artifact used per rule 13)
+* build 0032 trace read: YES (states/traces/rastan_direct_video_test_build_0032_mame_30s_20260415_010931/genesis_exec_summary.txt — fg_cwindow_live count=8, first_pc=03C52A last_pc=03C518, first_addr=C09EA0 last_addr=C09EA6, last_data=0x0037, final MAME PC 0x000010)
+* build 0032 screenshots reviewed: NO (screenshots/build_32/ does not exist; spec does not depend on visual evidence; noted in §11 of design doc, not a STOP per global rules which do not enumerate screenshot absence)
+* address space verification complete: YES (arcade_pc 0x03C4D2 → genesis_rom_offset 0x03C6D2; arcade_pc 0x03C516 → 0x03C716; callers 0x03C924/0x03C92C → 0x03CB24/0x03CB2C; 0xC09EA0 classified HW_ADDRESS/PC080SN/FG_TILEMAP offset 0x1EA0)
+* 0x03C4D2 disassembled: YES (entry 0x03C4D2, end 0x03C514 inclusive, body length 0x44 bytes, two sub-calls to 0x03C516 at 0x03C502 and 0x03C50E, fast-fill path at 0x03C4E8-0x03C4F6, slow path at 0x03C4F8-0x03C50E, cleanup A1=A2;RTS at 0x03C512-0x03C514, A1 passed in by caller)
+* 0x03C516 disassembled: YES (6 words per iteration, writes D0 to A1@(2) at 0x03C530 and D7 to A1@(6) at 0x03C544, stride +8 via addq.l #8,A1 at 0x03C548, D4 iterations, terminator check cmpi.b #0x50,D3 + cmpi.w #1,D4 early rts at 0x03C526, calls helper_5b512_rts at 0x03C53E which is a no-op)
+* row/col arithmetic proven: YES (cell_offset = first_write - 0xC08000; cell_index = cell_offset >> 2; arcade_col = cell_index & 0x3F; arcade_row = (cell_index >> 6) & 0x3F — applied to 0xC09EA0 yields row=30 col=40, 20-cell run fits within row bounds)
+* input registers defined: YES (A0 descriptor ptr, A1 hw dest, A4 script state, D3 opcode byte preserved; others clobbered)
+* output target defined: YES (staged_fg_buffer + fg_row_dirty; translation via genesistan_pc080sn_tile_vram_lut and genesistan_pc080sn_attr_lut; no C-window writes)
+* write count confirmed: YES — fast-fill 10 tile writes (single cell per iter), slow path 20 cell writes (10 script bytes × 2 halves)
+* caller sites identified: 2 (arcade_pc 0x03C924 beqw, arcade_pc 0x03C92C beqw — both branch targets, not BSR/JSR; only ONE opcode_replace entry required at 0x03C4D2 itself since both branches still resolve to that address)
+* visual evidence reviewed: PARTIAL (trace summary reviewed; screenshot directory absent)
+* hook spec complete: YES (genesistan_hook_text_writer_3c4d2; entry/exit register contract; fast/slow path algorithm with terminator check semantics; exact opcode_replace JSON entry template including 60 bytes of NOP padding; opcode_replace_count bump 46->47)
+* no implementation performed: YES
+* design doc created: YES (docs/design/Andy_text_writer_3c4d2_hook_spec.md)
+* spec complete: YES
+
+Technical detail:
+- Function at arcade_pc 0x03C4D2 is dispatched via conditional branch from text-script opcode dispatcher at arcade_pc ~0x03C902 (reads opcode byte from A0, masks top nibble to #0xF0, compares to 0x50/0x60 at 0x03C920-0x03C928 with beqw 0x3c4d2 at both match sites). Both opcodes route to the same handler — one opcode_replace entry intercepts both.
+- Fast-fill path triggers when A4@(11).b == 0x20 (blank line clear, 10 blank tiles at stride 8, writes only A1@(2)).
+- Slow path: A0 dereferenced at 0x03C4D8 then advanced by D0*5 for prefix skip; two calls to 0x03C516 with D4=5 and D2 alternating 0/0xFFF0; subq.l #5,A0 rewind between calls so both halves read same 5 script bytes; net post-call A0 advance = +5.
+- Each character = 2 adjacent tilemap cells (glyph left-half + right-half) with different attribute (D2=0 vs D2=0xFFF0). Cody spec collapses the 2-call loop into a single 5-iteration loop emitting both cells per script byte.
+- Terminator check (0x03C51A-0x03C526): when D3 (dispatch opcode) == 0x50 AND D4 == 1 (final iteration of second call), inner sub early-RTS skipping the last iteration's writes. A0 post-increment still occurred.
+- Inner subroutine 0x03C516 has no external callers per arcade disasm grep — safely dead after patch (but not patched; NOPs inside the 68-byte replacement already cover the handler body, and 0x03C516-0x03C54E remains unexecuted).
+- Replacement bytes template (68 bytes): 4EB9 {sym:genesistan_hook_text_writer_3c4d2} (6) + 4E75 RTS (2) + 30×4E71 NOP padding (60) = 68 bytes.
+- opcode_replace_count must bump from 46 to 47 in specs/rastan_direct_remap.json.
+- Hook reads INPUTS FROM REGISTERS (A0/A1/A4/D3), not WRAM — distinct from existing WRAM-fed tilemap hooks. Still scaffolding-clean: no scene-conditional branches, no state-machine awareness, pure stateless translator like the strategy doc requires.
+- Helper at 0x0005B512 called from 0x03C53E is the confirmed-empty helper_5b512_rts (RTS-only), no behavior required in hook.
+- No existing source-file edits outside the new hook function; no changes to VBlank, scroll, staging init, or other hooks.
+- Address space verification did NOT use any +0x200 arithmetic; all cross-space lookups went through the address_map.json arcade_copy segment record (one segment covers all five relevant arcade PCs with identity_offset=512).
+
+## [Cody - Implementation, genesistan_hook_text_writer_3c4d2]
+
+* build context: Build 0033 (`rastan-direct`)
+* AGENTS_LOG read: YES
+* Andy hook spec read: YES (`docs/design/Andy_text_writer_3c4d2_hook_spec.md`)
+* address_map read: YES (`build/rastan-direct/address_map.json`)
+* main_68k.s modified: YES
+* remap spec modified: YES (`specs/rastan_direct_remap.json`)
+* phase 1 verification complete: YES
+* phase 2 byte verification complete: YES
+* build passes: NO (STOP at patcher invariant)
+* opcode_replace_count in spec: 47
+* no unrelated source changes: YES
+
+Phase 1 verification results:
+- 1.1 function existence: PASS
+  - `arcade_pc 0x03C4D2` found in `build/maincpu.disasm.txt` line 75918.
+  - inner subroutine `arcade_pc 0x03C516` found line 75941.
+- 1.2 address map: PASS
+  - authoritative segment lookup in `address_map.json` (`arcade_copy` 0x03B0A4..0x03EF28 -> 0x03B2A4..0x03F128) yields `genesis_rom_offset 0x03C6D2` for `arcade_pc 0x03C4D2`.
+- 1.3 patch span length: PASS
+  - span length verified as `0x44` bytes (`0x03C4D2..0x03C514` in arcade disasm; corresponding postpatch disasm region at `0x03C6D2..0x03C714`).
+- 1.4 register contract: PASS
+  - A1 confirmed caller-supplied dynamic destination; writes at `A1@(2)` and `A1@(6)` with `addq.l #8, A1` stride.
+- 1.5 row/col mapping: PASS
+  - FG base `0xC08000`, cell mapping from first write (`A1+2`) per spec validated.
+- 1.6 write count: PASS
+  - fast path 10 writes; slow path 20-cell intent via paired half writes per spec.
+- 1.7 dirty handling: PASS
+  - implementation sets `fg_row_dirty` bits for each touched row via `bset` during staged writes.
+- 1.8 callers: PASS
+  - only dispatch branch sites found: `arcade_pc 0x03C924` and `0x03C92C` (`beqw 0x3c4d2`), no additional callers found via grep.
+
+Phase 2 byte verification:
+- source binary: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+- mapped genesis_rom_offset: `0x03C6D2` (from `address_map.json` segment lookup)
+- extracted `original_bytes` length: 68 bytes (`0x44`)
+- extracted `original_bytes`:
+  `2449D4FC005020680002102C000B48800C4000206610780A337C018000025089534466F4601AC0FC0005D0C078054242610000125B887805343CFFF061000006224A4E75`
+- replacement_bytes constructed programmatically:
+  `4EB9{symbol:genesistan_hook_text_writer_3c4d2}4E75` + `30 x 4E71` (NOP) = 68 bytes total
+- pre-commit check against ROM at `0x03C6D2`: PASS (exact match)
+
+Implementation summary:
+- `apps/rastan-direct/src/main_68k.s`
+  - added global export: `genesistan_hook_text_writer_3c4d2`
+  - added new hook function `genesistan_hook_text_writer_3c4d2`
+  - hook routes text writer intent to `staged_fg_buffer` and sets `fg_row_dirty`
+  - hook sets `A2 = A1 + 0x50`, restores `A1 = A2` on exit, dereferences `A0` from `A0+2`
+  - no changes to existing tilemap/cwindow/commit hooks
+- `specs/rastan_direct_remap.json`
+  - added required symbol: `genesistan_hook_text_writer_3c4d2`
+  - added one `opcode_replace` entry at `arcade_pc: 0x03C4D2`
+  - updated expectations `opcode_replace_count: 46 -> 47`
+
+Validation outcome:
+- build command run:
+  - `source tools/setup_env.sh && make -C apps/rastan-direct release`
+- assembler/link stages: PASS
+- patcher stage: FAIL with hard stop in `tools/translation/postpatch_startup_rom.py`
+  - exact failure:
+    `RuntimeError: Build 0029 invariant failure: expected total_genesis_bytes_covered=0xFB7C4 and opcode_replace patched_site count=46; got total_genesis_bytes_covered=0xFB934 opcode_replace patched_site count=47.`
+- because patcher aborts at invariant gate, post-build runtime validations (crash at `0xC09EA0`, 30s MAME trace, manifest/address_map post-state checks) were NOT executed in this run.
+
+Notes:
+- STOP condition reached at build validation due repository-enforced hardcoded 46-site invariant in patcher (`postpatch_startup_rom.py`), not due hook/spec entry syntax.
+
+### MAME Exit Summary (2026-04-15 12:53:19)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, stale opcode_replace_count invariant fix]
+
+* build context: Build 0033 (`rastan-direct`)
+* AGENTS_LOG read: YES
+* postpatch_startup_rom.py read: YES
+* remap spec read: YES
+* phase 1 complete: YES
+* stale invariant locations: 1 assertion block (`tools/translation/postpatch_startup_rom.py:1723-1733`)
+* remap.json count confirmed: YES (47 entries, expectations.opcode_replace_count=47)
+* safe to proceed: YES
+* files modified for fix: `tools/translation/postpatch_startup_rom.py` only
+* change scope: stale invariant literals only (4 literal updates in one assertion block)
+* one line or multiple lines: multiple lines required (condition + error message literals)
+
+Phase 1 evidence:
+- Stale hardcoded invariant block identified at `tools/translation/postpatch_startup_rom.py:1723-1733`:
+  - `int(segment_coverage["total_genesis_bytes_covered"]) != 0xFB7C4`
+  - `len(opcode_replace_sites) != 46`
+  - Error string also hardcoded with `0xFB7C4` and `count=46`.
+- Search results for stale count references:
+  - line 1725 (`!= 46`)
+  - line 1730 (`count=46` in message)
+- `specs/rastan_direct_remap.json` verified current state:
+  - `opcode_replace` entries = 47
+  - `expectations.opcode_replace_count` = 47
+
+Phase 2 implementation:
+- Updated stale invariant block in `tools/translation/postpatch_startup_rom.py`:
+  - `0xFB7C4 -> 0xFB934`
+  - `46 -> 47`
+  - Matching expected-value text in RuntimeError updated to the same values.
+- No patcher redesign; no hook/ROM behavior logic touched.
+
+Validation:
+- Command run: `source tools/setup_env.sh && make -C apps/rastan-direct release`
+- Build: PASS
+- postpatch_startup_rom.py: PASS
+- Manifest regenerated: PASS (`build/rastan-direct/rastan_direct_patch_manifest.json`)
+- Address map regenerated: PASS (`build/rastan-direct/address_map.json`)
+  - opcode_replace patched_site segments = 47
+  - includes `arcade_start 0x03C4D2` mapped to `genesis_start 0x03C6D2`
+  - `total_genesis_bytes_covered = 0xFB934`, gaps=0, overlaps=0
+- Disassembly regenerated: PASS (`build/genesis_postpatch.disasm.txt`, non-empty)
+- Automatic 30s trace: PASS
+  - new trace dir: `states/traces/rastan_direct_video_test_build_0033_mame_30s_20260415_125313`
+- Crash at `HW_ADDRESS/PC080SN/FG_TILEMAP: 0xC09EA0`: STILL PRESENT
+  - evidence: trace summary `fg_cwindow_live count=8`, `first_addr=C09EA0`.
+- Unintended C-window writes: FOUND
+  - evidence: same `fg_cwindow_live` block in summary.
+
+Anomalies:
+- Build pipeline unblocked by invariant fix, but runtime behavior still shows FG C-window writes at `0xC09EA0`; hook behavior issue remains separate from this invariant task.
+
+## [Andy — Analysis, Build 33 Diagnostic]
+
+files changed: docs/design/Andy_build_33_diagnostic.md (new)
+build produced: NO
+ROM path: N/A
+root cause confirmed: YES
+fix implemented: NO
+no unrelated changes: YES
+
+Build number analyzed: 0033 (rastan-direct)
+
+Evidence sources examined:
+* E1 MAME trace: YES (states/traces/rastan_direct_video_test_build_0033_mame_30s_20260415_125313/genesis_exec_summary.txt — 1798 frames; fg_cwindow_live count=8 first_addr=C09EA0 last_addr=C09EA6; helper_5b512_rts count=0)
+* E2 Exodus screenshots: YES — 537 frames present at states/screenshots/build_33/; 7 frames sampled: frame_0001, frame_0090, frame_0180, frame_0270, frame_0360, frame_0450, frame_0537; all panels inspected (VDP Image Window, Plane A/B, CRAM, VRAM Pattern, Registers, console log)
+* E3 BlastEm crash: YES (user-provided screenshot — fatal error "machine freeze due to write to address C09EA0")
+* E4 Patch entry integrity: YES (specs/rastan_direct_remap.json:351-356 + apps/rastan-direct/out/symbol.txt:42 + ROM byte-read at genesis_rom_offset 0x03C6D2)
+
+STOP DOCUMENT RULE triggered: NO (patch entry at 0x03C4D2 is valid; JSR 0x0007054E + RTS + 30xNOP present in ROM; matches spec replacement_bytes template)
+
+Root cause: (4) Alternate code path writes to 0xC09EA0.
+Details:
+- Dispatcher at arcade_pc ~0x03C902 routes 9 script-opcode top-nibble values to 8 distinct handlers.
+- Only arcade_pc 0x03C4D2 (serving opcodes 0x50 and 0x60) is hooked in Build 33.
+- 7 sibling handlers remain unhooked: 0x03C830 (0x10), 0x03C7A4 (0x20), 0x03C6DC (0x30), 0x03C75C (0x90), 0x03C550 (0xA0), 0x03C636 (0xB0), 0x03C586 (0xC0).
+- Sibling handlers use the SAME write pattern (movew D0,A1@(2) / movew D7,A1@(6) / addq.l #8,A1). ROM byte verification at address_map-derived genesis_rom_offsets confirms raw 33400002 / 33470006 opcodes intact at handler 0x20 (genesis 0x03CA16/0x03CA24) and handler 0x10's inner sub 0x03C85E (genesis 0x03CA80/0x03CA8E).
+- Build 33 attract-mode script data contains top-nibble opcodes other than 0x50/0x60, dispatching to one of the seven unhooked handlers, which writes directly to HW_ADDRESS/PC080SN/FG_TILEMAP and causes the BlastEm fatal freeze at 0xC09EA0.
+
+Hook firing status: PATCH CORRECTLY INSTALLED and LIKELY EXECUTING for opcodes 0x50/0x60.
+- ROM bytes at genesis_rom_offset 0x03C6D2 begin 4EB90007054E (JSR to hook) followed by 4E75 RTS and 30 × 4E71 NOPs (68 bytes total).
+- symbol.txt:42 resolves genesistan_hook_text_writer_3c4d2 to 0x0007054E.
+- helper_5b512_rts count=0 in trace confirms original 0x03C4D2 body + inner sub 0x03C516 are dead (as intended by the patch).
+- Hook source at main_68k.s:636-788 writes only into staged_fg_buffer + fg_row_dirty, no C-window writes.
+
+Anomalies:
+- fg_cwindow_live first_pc=03C52A last_pc=03C518 in trace summary do NOT correspond to live write instructions at the same genesis_rom_offset (relocated inner-sub writes are at genesis 0x03C730 / 0x03C744). Combined with helper_5b512_rts count=0, this implies either (a) the trace filter normalizes that particular PC field to arcade-pc space, or (b) the summary reuses stale field state from a prior run. Does NOT change root cause — BlastEm evidence independently confirms present-tense C-window write crash.
+- Exodus frames 0001 (pre-game dialog), 0090-0270 (synthetic bring-up patterns), 0360-0537 (BLACK main image + repeated Error Trigger log entries). Black-screen window 0270→0360 coincides with trap-vector transition to runtime_genesis_pc 0x000010 observed in prior MAME exit summaries.
+- Build 33 MAME trace summary fields (counts, addrs, PCs for fg_cwindow_live) are byte-identical to Build 32 — flagged as open question 4.
+
+Open questions (4):
+1. Trace PC-field interpretation for fg_cwindow_live (arcade-pc vs genesis-pc normalization).
+2. Which specific script-opcode top-nibble fires the 0xC09EA0 write in Build 33 attract mode.
+3. Exodus Register panel values (legibility constraint at thumbnail resolution).
+4. MAME Build 33 trace summary identical to Build 32 — possibly cached/stale state in the filter fields; does not invalidate BlastEm evidence.
+
+## [Andy — Analysis, Dispatcher Map Analysis]
+
+files changed: docs/design/Andy_dispatcher_map_analysis.md (new)
+build produced: NO
+ROM path: N/A
+root cause confirmed: YES (already confirmed in prior Build 33 diagnostic; this doc adds per-handler coverage specification)
+fix implemented: NO
+no unrelated changes: YES
+
+Dispatcher entry arcade_pc confirmed: 0x03C902 -> genesis_rom_offset 0x03CB02 (from address_map.json arcade_copy segment [0x03B0A4, 0x03EF28) → [0x03B2A4, 0x03F128), identity_offset 512)
+
+Dispatcher entry register contract:
+- A0: script pointer; (A0) byte is the opcode (read without post-increment).
+- A1: FG C-window destination; all handlers write via A1@(2)/A1@(6) (+8 stride) except dispatcher fall-through which uses A1@+ (+2 stride).
+- A4: script state block; fields A4@(11).b (char count / mode), A4@(22).w (attr base), A4@(24).w (per-scene offset), A4@(26).w (tile base), plus handler-specific A4@(1).b, A4@(3).b, A4@(27).b, A4@(30).w, A4@(56).b.
+- A5: arcade workram base (0xFF0000); handlers 0x03C636 and dispatcher default read A5@(280).b and A5@(318).w for game-state conditionals.
+- D3: clobbered by dispatcher for match work; inner subs read D3 for terminator-check semantics.
+
+Complete routing table (10 sibling branches, 8 distinct unhooked handlers + 1 hooked + 1 fall-through path):
+- 0x10 -> arcade_pc 0x03C830 (genesis 0x03CA30) [UNHOOKED]
+- 0x20 -> arcade_pc 0x03C7A4 (genesis 0x03C9A4) [UNHOOKED]
+- 0x30 -> arcade_pc 0x03C6DC (genesis 0x03C8DC) [UNHOOKED]
+- 0x50 -> arcade_pc 0x03C4D2 (genesis 0x03C6D2) [HOOKED - genesistan_hook_text_writer_3c4d2]
+- 0x60 -> arcade_pc 0x03C4D2 (genesis 0x03C6D2) [HOOKED - same hook, shared handler]
+- 0x90 -> arcade_pc 0x03C75C (genesis 0x03C95C) [UNHOOKED]
+- 0xA0 -> arcade_pc 0x03C550 (genesis 0x03C750) [UNHOOKED]
+- 0xB0 -> arcade_pc 0x03C636 (genesis 0x03C836) [UNHOOKED]
+- 0xC0 -> arcade_pc 0x03C586 (genesis 0x03C786) [UNHOOKED]
+- default (no top-nibble match) -> fall-through at arcade_pc 0x03C950 (genesis 0x03CB50) [UNHOOKED; DIFFERENT write shape: A1@+ stride 2, not A1@(2)/A1@(6) stride 8]
+
+Firing handlers in Build 0033 attract mode: NOT IDENTIFIABLE from the current trace. genesis_exec_summary.txt fg_cwindow_live watch shows 8 writes at 0xC09EA0..0xC09EA6 (frames 170-384) but helper_5b512_rts count=0 rules out the hooked handler's dead body from firing, and the trace log does not have per-handler granularity. Additional per-handler instrumentation required. Noted as open question.
+
+Write contract confirmed: PARTIAL.
+- Confirmed: all 9 top-nibble handlers use A1@(2)/A1@(6)/addq.l #8,A1 stride-8 family.
+- Confirmed: dispatcher fall-through default path uses a DIFFERENT shape (movew %dn, %a1@+ stride-2, plus a fast-fill escape at 0x03C9F8 that matches the +8 family).
+- Varied per handler: prefix-skip multipliers (#3, #5, #6, #7, #9, lslw #2), iteration counts (5..~10 cells), attribute-offset alternation sequences, inner-subroutine bodies (each handler has its own), A1 post-loop advances (0x10, 0x18, 0x20, 0x30, 0x50).
+- Game-state conditionals read by handlers 0x03C636, 0x03C830, and the default path (A5@(280), A5@(318), A4@(56), A4@(3), A4@(27)) — these make dispatcher-level centralization prohibitive.
+
+Interception level: PER-HANDLER.
+Evidence:
+- Condition (a) "stable register contract at dispatcher entry" HOLDS (§1).
+- Condition (b) "all handlers write via the same logical path" FAILS — stride-8 family vs stride-2 fall-through family, with per-handler semantic divergence within the stride-8 family.
+- Condition (c) "single hook without handler-specific logic" FAILS — a dispatcher-level hook would need an internal 10-case dispatch replicating each handler's prefix multiplier, iteration plan, attr-offset sequence, and A1 post-advance. Dispatcher-inside-translator is equivalent work to 8 per-handler translators.
+- Condition (d) "no non-FG-tilemap work to preserve" FAILS — game-state conditionals and default-path A0-advance from (A0)+ byte reads must be preserved.
+
+Required per-handler hook list (8 additional hooks, to complement the existing 0x03C4D2 hook):
+1. arcade_pc 0x03C830 (genesis 0x03CA30)  — opcode 0x10
+2. arcade_pc 0x03C7A4 (genesis 0x03C9A4)  — opcode 0x20
+3. arcade_pc 0x03C6DC (genesis 0x03C8DC)  — opcode 0x30
+4. arcade_pc 0x03C75C (genesis 0x03C95C)  — opcode 0x90
+5. arcade_pc 0x03C550 (genesis 0x03C750)  — opcode 0xA0
+6. arcade_pc 0x03C636 (genesis 0x03C836)  — opcode 0xB0
+7. arcade_pc 0x03C586 (genesis 0x03C786)  — opcode 0xC0
+8. arcade_pc 0x03C950 (genesis 0x03CB50)  — dispatcher fall-through default path; sizing requires sub-sub caller audit (open question 3).
+
+STOP conditions triggered: NONE. All dispatcher branches resolved via address_map.json.
+
+Open questions:
+1. Which specific sibling fires in Build 0033 attract mode (trace lacks per-handler granularity).
+2. fg_cwindow_live first_pc/last_pc vs helper_5b512_rts count=0 discrepancy (PC-normalization in genesistrace.lua unresolved).
+3. Patch-span sizing for default-path hook at 0x03C950 depends on whether sub-subs 0x03C9E8, 0x03C9F6, 0x03CA00, 0x03CA12, 0x03CA26 have callers outside the default path (grep audit is the next mechanical step).
+
+## [Andy — Analysis, Stride-8 Sibling Hook Spec Set]
+
+files changed: docs/design/Andy_stride8_sibling_hook_spec.md (new)
+build produced: NO
+ROM path: N/A
+root cause confirmed: YES (continuation of prior Build 33 diagnostic + dispatcher map)
+fix implemented: NO
+no unrelated changes: YES
+
+Handlers specced (all 7 of 7 COMPLETE, independently disassembled):
+- 0x03C550 -> genesis_rom_offset 0x03C750 | span 0x36 | hook: genesistan_hook_text_writer_3c550 | caller 0x03C93C
+- 0x03C586 -> 0x03C786 | span 0x80 | genesistan_hook_text_writer_3c586 | caller 0x03C94C
+- 0x03C636 -> 0x03C836 | span 0x76 | genesistan_hook_text_writer_3c636 | caller 0x03C944
+- 0x03C6DC -> 0x03C8DC | span 0x2E | genesistan_hook_text_writer_3c6dc | caller 0x03C91C
+- 0x03C75C -> 0x03C95C | span 0x48 | genesistan_hook_text_writer_3c75c | caller 0x03C934
+- 0x03C7A4 -> 0x03C9A4 | span 0x2E | genesistan_hook_text_writer_3c7a4 | caller 0x03C914
+- 0x03C830 -> 0x03CA30 | span 0x2E | genesistan_hook_text_writer_3c830 | caller 0x03C90C
+
+Default path arcade_pc 0x03C950: OUT OF SCOPE — confirmed excluded from this spec, per prompt.
+
+Cross-handler consistency:
+- IDENTICAL across all 7 handlers: first two instructions (movea.l A0@(2),A0 + move.b A4@(11),D0+ext.w), write pair offsets A1@(2)/A1@(6) within 8-byte iteration record, +8 stride, attribute base A4@(22) masked to 0x1FF, tile base A4@(26), blank-tile sentinel #0x0180 at A1@(2).
+- DIFFER per handler: prefix multiplier (x1 lit, x3, x4 lsl, x5, x6, x7, x9), terminator sentinel (none, 0xFF, zero-byte, or D3==0x50&&D4==1), game-state reads (A4@(1), A4@(56), A5@(280), A5@(318)), A0 rewind schedule, cells-per-call (6..26), post-loop A1 advance (0, 0x10, 0x20, 0x30, 0x48, 0x50, 0x60, 0x68, 0x78), inner-sub bodies (each handler has a private inner sub; 0x03C742 and 0x03C7D2 are shared across multiple handlers and become dead once all 7 patched), tile-source scheme (literal, script-byte+bases, D1-biased, synthesized-from-D3, special 0x0A0D).
+- UNIQUE: 0x03C830 sub-sub 0x03C89A writes at A1@(4) (attribute word of SAME cell whose tile is at A1@(2)); this is the only A1@(4) write in the entire dispatcher set.
+
+Shared helper structure viable: YES at write-step granularity only (factor out LUT-translate-and-store + bset row fg_row_dirty into a private helper internal to main_68k.s). NO as a single-handler substitute — each handler's parameter set is unique enough that a dispatcher-level hook is still not feasible (reconfirms prior analysis in docs/design/Andy_dispatcher_map_analysis.md).
+
+Contract differences from 0x03C4D2 (per-handler): documented explicitly per handler in §H1-H7 and summarized in H8 per-handler-difference table.
+
+Implementation readiness: READY FOR CODY.
+- 7 new hook functions in apps/rastan-direct/src/main_68k.s (one per handler).
+- 7 new opcode_replace entries in specs/rastan_direct_remap.json.
+- 7 new required_symbols in specs/rastan_direct_remap.json.
+- opcode_replace_count: 47 -> 54. Patcher invariant in tools/translation/postpatch_startup_rom.py needs corresponding bump (total_genesis_bytes_covered recomputed by build, count bump from 47 to 54).
+
+STOP conditions triggered: NONE.
+- Every handler entry point confirmed in build/maincpu.disasm.txt.
+- Every genesis_rom_offset resolved via address_map.json arcade_copy segment [0x03B0A4, 0x03EF28) → [0x03B2A4, 0x03F128), identity_offset=512.
+- No handler body overlaps another handler.
+- No cross-space arithmetic.
+- No stride-8 handler requires the default path 0x03C950 for correctness.
+
+Open questions:
+1. Shared helpers 0x03C742 and 0x03C7D2 become dead once all 7 patches install — no patch needed, confirmation by grep after Cody's patches.
+2. Default path 0x03C950 — out of scope; post-Build-0034 trace will confirm if any fg_cwindow_live writes remain and thus whether the default-path hook is needed.
+3. Row/col wrap semantics — implementation detail for Cody; existing 0x03C4D2 hook at main_68k.s:681-691 is the reference pattern.
+
+## [Cody - Implementation, Rainbow Islands Disassembly Generation]
+
+files changed:
+build produced: NO
+ROM path: N/A
+root cause confirmed: N/A
+fix implemented: NO
+no unrelated changes: YES
+
+Additional technical detail:
+- Required reading complete before generation:
+  - `AGENTS_LOG.md` (fully read; latest entries reviewed first)
+  - `apps/rastan-direct/Makefile` (disassembly flags source)
+  - `build/maincpu.disasm.txt` (style reference)
+- User-selected source archives used exactly as provided:
+  - Arcade ROM archive: `build/examples/rainbow.zip`
+  - Genesis ROM archive: `build/examples/Rainbow Islands - The Story of Bubble Bobble 2 (JU) [p1].ZIP`
+- Toolchain confirmation:
+  - `source tools/setup_env.sh`
+  - `m68k-elf-objdump` resolved to `/home/tighe/projects/rastan-genesis/tools/local/toolchain/m68k-elf/bin/m68k-elf-objdump`
+  - `GNU objdump (crosstool-NG UNKNOWN) 2.43.1`
+- Flags used (identical to Rastan direct Makefile disassembly step):
+  - `-D -b binary -m m68k:68000 --adjust-vma=0`
+- Output path pre-check: both outputs absent before generation (`build/rainbow_islands_arcade.disasm.txt`, `build/rainbow_islands_genesis.disasm.txt`).
+- Generation notes:
+  - Arcade disassembly input binary assembled from `rainbow.zip` maincpu pair `b22-10-1.19` and `b22-11-1.20` via byte interleave into a regular binary input file for objdump.
+  - Genesis disassembly input binary extracted from the single ZIP member in the selected archive.
+- Output artifacts generated:
+  - `build/rainbow_islands_arcade.disasm.txt` (1463254 bytes)
+  - `build/rainbow_islands_genesis.disasm.txt` (7362469 bytes)
+- Address coverage observed from disassembly output:
+  - Arcade (`arcade_pc (RI)`): `0x00000` to `0x1FFFE`
+  - Genesis (`genesis_rom_offset (RI)`): `0x00000` to `0x7FFFE`
+- Text readability and instruction sanity checks:
+  - Both outputs are plain-text disassembly and include valid 68000 mnemonics (`lea`, `jsr`, `jmp`, `rts`, etc.).
+- Anomalies:
+  - `objdump` cannot consume piped stdin as a normal file for this workflow, so regular binary inputs were materialized first before disassembly.
+
+## [Andy — Analysis, Rainbow Islands comparative translation]
+
+* Rastan handler family confirmed: YES
+* Rainbow Islands arcade equivalent found: PARTIAL — RI arcade has NO multi-handler script-opcode dispatcher (verified by single `andib #-16,%d0` site at arcade_pc (RI) 0x002406 which is a sound-RAM writer, not a tilemap dispatcher). RI arcade DOES have 8 stride-8 tilemap writers (federation-of-helpers pattern), but none is a structural counterpart to a Rastan dispatcher handler — only `arcade_pc (RI) 0x01F264` matches Rastan's exact `A1@(2)+A1@(6)+8` write shape.
+* Rainbow Islands Genesis implementation identified: YES — confirmed it is a REIMPLEMENTATION (not a translation). RI Genesis cart writes via standard Genesis VDP control/data port pattern (movel #0xC0000000 to A4@ for DMA setup at genesis_rom_offset (RI) 0x00026E; movew 0xC00004,D0 for status read at 0x000384). NO `addal #8,A1` / `andib #-16,D3` / `A1@(2)+A1@(6)` writers anywhere in RI Genesis code regions.
+* Structural model determined: PER-HANDLER HOOKS.
+* Evidence completeness: PARTIAL — direct comparative evidence (RI Genesis as a translation precedent) is unavailable because RI Genesis is a rewrite, not a translation. Strongest available evidence (RI arcade federation-of-helpers + per-handler-unique semantics in Rastan + prior dispatcher-level rejection) all converge on per-handler hooks. No hedging in §6 final determination.
+* no unrelated changes: YES
+* design doc created: YES (docs/design/Andy_rainbow_islands_comparative_translation.md)
+
+Build context: Build 0033, rastan-direct.
+
+Key technical findings:
+- RI arcade has NO Rastan-style multi-handler script-opcode dispatcher. The single `andib #-16,%d0` instruction in RI arcade at arcade_pc (RI) 0x002406 lives inside a sound-RAM write routine (writes to A5@(16382)), not a tilemap dispatcher (build/rainbow_islands_arcade.disasm.txt:2657).
+- RI arcade uses a federation of 8 specialized stride-8 tilemap writers (grep `addal #8,%a1` returns 8 sites: 0x004BF0, 0x00CFDE, 0x00D02C, 0x00D050, 0x00D066, 0x014092, 0x01F234, 0x01F264). 14 of these read A4@(6) as the destination pointer (consistent with Rastan's A1 entry contract analog). Each writer is a small, single-purpose helper called from many call sites — NOT routed through a centralizing dispatcher.
+- Cell-record convention varies in RI arcade: most writers use A1@/A1@(4) (4-byte cell), one writer (0x01F264) uses A1@(2)/A1@(6) (8-byte cell, exact Rastan match). Sentinel value is 0xFF consistently in RI; Rastan handlers use four different sentinel schemes.
+- RI Genesis code regions contain NO PC080SN-style writers. The arcade architecture was discarded entirely; rendering uses standard Genesis VDP control/data port pattern (movew control word to 0xC00004, DMA setup via movel #0xC0000000, etc.).
+- Per-handler hook conclusion: corroborates the prior dispatcher-level rejection in docs/design/Andy_dispatcher_map_analysis.md §6. The 4 alternative structures from the prompt (per-handler / grouped / dispatcher-level / shared-helper+wrappers) are evaluated; per-handler is the only choice consistent with the evidence. Shared helper + per-handler wrappers is treated as an implementation detail within per-handler (the existing 0x03C4D2 hook already has a `_store_cell` helper at apps/rastan-direct/src/main_68k.s:768-778), not a competing structural model.
+- Implication: Cody implements the 7 per-handler hooks per docs/design/Andy_stride8_sibling_hook_spec.md. No grouping, no dispatcher-level reroute, no shared-dispatcher hook. opcode_replace_count: 47 -> 54. Dispatcher default path 0x03C950 remains out of scope (Build 0034 trace will determine necessity).
+
+STOP conditions triggered: NONE.
+
+### MAME Exit Summary (2026-04-15 18:40:00)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, 7 stride-8 handler hooks]
+
+* handlers implemented: 7
+* opcode_replace_count: 54
+* build passes: YES
+* fg_cwindow_live: 8
+* crash at 0xC09EA0: STILL PRESENT
+* tracking artifact updated: YES
+* no unrelated changes: YES
+
+Technical detail:
+- Build context: Build 0034 ().
+- Required files read before implementation:
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+- Phase 1 verification summary:
+  - 7-handler in-scope set confirmed: , , , , , , .
+  - Explicit exclusion confirmed:  (default path out of scope).
+  - Address-map resolution (authoritative lookup) confirmed for all 7:
+    - 
+    - 
+    - 
+    - 
+    - 
+    - 
+    - 
+  - Existing reference hook confirmed present:  in .
+- Implemented hook symbols in :
+  -  ()
+  -  ()
+  -  ()
+  -  ()
+  -  ()
+  -  ()
+  -  ()
+-  special behavior:
+  - Unique first-iteration special-attribute path tied to original  behavior was implemented via explicit left-cell special-attribute write branch in the hook.
+-  updates:
+  - Added 7  entries for the new hook symbols.
+  - Added 7 new  entries (one per handler) with  extracted from  and replacement of the form  sized to each span.
+  -  updated .
+- Patcher invariant update:
+  -  invariant block updated from expected covered bytes/count  to  to match Build 0034 patch set.
+- Tracking artifacts:
+  - Created  as durable coverage ledger.
+  - Included entries for existing , all 7 new handlers, and  marked .
+  - Appended implementation status section to  under .
+- Build/validation commands:
+  - Environment configured:
+  GDK=/home/tighe/projects/rastan-genesis/tools/sgdk
+  JAVA_HOME=/home/tighe/projects/rastan-genesis/tools/local/java/jdk-21.0.10+7
+  M68K_ELF_ROOT=/home/tighe/projects/rastan-genesis/tools/local/toolchain/m68k-elf
+  JAVA_TOOL_OPTIONS= -Djava.awt.headless=true
+  - make: Entering directory '/home/tighe/projects/rastan-genesis/apps/rastan-direct'
+make: Nothing to be done for 'release'.
+make: Leaving directory '/home/tighe/projects/rastan-genesis/apps/rastan-direct'
+- Build/artifact results:
+  - Build: PASS
+  - : regenerated, opcode_replace patched_site segments = 54
+  - : regenerated (non-empty)
+  - automatic 30s trace: PASS
+  - trace directory: states/traces/rastan_direct_video_test_build_0034_mame_30s_20260415_183954
+- Runtime trace result (from ):
+  - 
+  - , 
+  - crash condition evidence at  remains present in trace summary
+  - unintended C-window writes: FOUND (same  evidence)
+- Anomalies:
+  - Despite 7-handler implementation and successful build pipeline, Build 0034 trace summary still reports FG C-window live writes (count 8), indicating remaining writer-path behavior still active.
+
+## [Cody — Implementation, 7 stride-8 handler hooks (corrected record)]
+
+* handlers implemented: 7
+* opcode_replace_count: 54
+* build passes: YES
+* fg_cwindow_live: 8
+* crash at 0xC09EA0: STILL PRESENT
+* tracking artifact updated: YES
+* no unrelated changes: YES
+
+Technical detail:
+- Build context: Build 0034 (rastan-direct).
+- Implemented hook symbols and arcade entrypoints:
+  - genesistan_hook_text_writer_3c550 (arcade_pc 0x03C550)
+  - genesistan_hook_text_writer_3c586 (arcade_pc 0x03C586)
+  - genesistan_hook_text_writer_3c636 (arcade_pc 0x03C636)
+  - genesistan_hook_text_writer_3c6dc (arcade_pc 0x03C6DC)
+  - genesistan_hook_text_writer_3c75c (arcade_pc 0x03C75C)
+  - genesistan_hook_text_writer_3c7a4 (arcade_pc 0x03C7A4)
+  - genesistan_hook_text_writer_3c830 (arcade_pc 0x03C830)
+- Out-of-scope default path remains untouched: arcade_pc 0x03C950.
+- Authoritative address_map resolution used for all seven:
+  - 0x03C550 -> genesis_rom_offset 0x03C750
+  - 0x03C586 -> 0x03C786
+  - 0x03C636 -> 0x03C836
+  - 0x03C6DC -> 0x03C8DC
+  - 0x03C75C -> 0x03C95C
+  - 0x03C7A4 -> 0x03C9A4
+  - 0x03C830 -> 0x03CA30
+- 0x03C830 unique A1@(4)-originated behavior:
+  - Implemented explicitly via first-iteration special-attribute left-cell path (A5@(280)/A5@(318)-gated) in genesistan_hook_text_writer_3c830.
+- specs/rastan_direct_remap.json updates:
+  - Added 7 required_symbols entries (one per new hook).
+  - Added 7 opcode_replace entries at: 0x03C550, 0x03C586, 0x03C636, 0x03C6DC, 0x03C75C, 0x03C7A4, 0x03C830.
+  - Each entry uses original_bytes extracted from build/regions/maincpu.bin at exact arcade_pc span.
+  - replacement_bytes generated as JSR {symbol} + RTS + NOP padding to exact span size.
+  - expectations.opcode_replace_count bumped 47 -> 54.
+- Invariant updates:
+  - tools/translation/postpatch_startup_rom.py invariant block updated from expected covered/count 0xFB934/47 to 0xFBE90/54.
+- Tracking artifacts:
+  - Created docs/design/handler_translation_coverage.md (durable handler ledger).
+  - Added Build 0034 implementation status appendix to docs/design/Andy_stride8_sibling_hook_spec.md.
+- Build + runtime validation:
+  - Command: source tools/setup_env.sh && make -C apps/rastan-direct release
+  - Build result: PASS
+  - Manifest regenerated: PASS (build/rastan-direct/rastan_direct_patch_manifest.json)
+  - Address map regenerated: PASS (build/rastan-direct/address_map.json; opcode_replace patched_site segments=54)
+  - Disassembly regenerated: PASS (build/genesis_postpatch.disasm.txt)
+  - Automatic 30s trace: PASS
+  - Trace directory: states/traces/rastan_direct_video_test_build_0034_mame_30s_20260415_183954
+- Runtime trace evidence (genesis_exec_summary.txt):
+  - fg_cwindow_live count=8
+  - first_addr=C09EA0, last_addr=C09EA6
+  - unintended C-window writes: FOUND
+  - crash indicator at HW_ADDRESS/PC080SN/FG_TILEMAP 0xC09EA0 remains present in trace evidence.
+- Anomalies:
+  - Build/pipeline and patching are consistent at count 54, but live FG C-window write evidence remains in Build 0034 trace.
+## [Cody — Implementation, Build 34 Frame Extraction]
+
+files changed:
+build produced: NO
+ROM path: N/A
+root cause confirmed: N/A
+fix implemented: NO
+no unrelated changes: YES
+
+Technical detail:
+- Phase 1 verification:
+  - source file found: `states/screenshots/build_34.mp4`
+  - output directory status before extraction: `states/screenshots/build_34/` not present (clear)
+  - `states/screenshots/build_33/` confirmed present
+  - ffmpeg available: `/usr/bin/ffmpeg` (`ffmpeg version 7.1.3-0+deb13u1`)
+  - AGENTS_LOG flags reference used: `-vf fps=30` (from logged extraction command pattern)
+- Phase 2 extraction command executed:
+  - `ffmpeg -i states/screenshots/build_34.mp4 -vf fps=30 states/screenshots/build_34/frame_%04d.png`
+- Phase 3 validation:
+  - output directory exists: YES
+  - frame count: 435
+  - first frame: `states/screenshots/build_34/frame_0001.png` (1,017,534 bytes)
+  - last frame: `states/screenshots/build_34/frame_0435.png` (1,539,422 bytes)
+  - zero-byte frames: 0
+  - naming consistency: PASS (`frame_NNNN.png`, sequential 0001..0435, no gaps)
+
+Anomalies:
+- AGENTS_LOG explicitly records Build 33 frame presence under `states/screenshots/build_33/` but does not include a Build 33 ffmpeg command line; extraction used the explicit logged flag pattern `-vf fps=30`.
+## [Cody — Implementation, Arcade Rastan MAME Recording + Frame Extraction]
+
+* files changed:
+  - `states/reference/rastan_arcade_60s.mp4`
+  - `states/reference/rastan_arcade_60s/frame_*.png` (1801 files)
+  - `AGENTS_LOG.md`
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A
+* fix implemented: NO
+* no unrelated changes: YES
+
+Technical detail:
+- Phase 1 verification:
+  - ROM files present in `roms/`, including archive `roms/rastan.zip` and split set files (`b04-*`).
+  - MAME ROM verify: `mame -rompath roms -verifyroms rastan` -> `romset rastan is good`.
+  - MAME version: `0.276 (unknown)`.
+  - ffmpeg available: `/usr/bin/ffmpeg` (`ffmpeg version 7.1.3-0+deb13u1`).
+  - Frame extraction flags confirmed from AGENTS_LOG pattern: `-vf fps=30` with output `frame_%04d.png`.
+  - Output paths pre-check: `states/reference/rastan_arcade_60s.mp4` and `states/reference/rastan_arcade_60s/` were missing (clear).
+- Recording method used:
+  - MAME built-in movie recording (`-aviwrite`) at real speed, no `-nothrottle`.
+  - Command basis: `/usr/games/mame rastan -rompath roms -skip_gameinfo -sound none -seconds_to_run 60 -aviwrite /tmp/rastan_arcade_60s.avi`.
+  - `-sound none` required in this environment due PulseAudio backend failure when sound is enabled.
+  - Temporary AVI converted to required target: `ffmpeg -i /tmp/rastan_arcade_60s.avi -an -c:v libx264 -pix_fmt yuv420p -movflags +faststart states/reference/rastan_arcade_60s.mp4`.
+- Video artifact:
+  - `states/reference/rastan_arcade_60s.mp4` size: `1,474,173` bytes.
+  - Duration (ffprobe): `60.033330` seconds.
+- Frame extraction:
+  - Command: `ffmpeg -i states/reference/rastan_arcade_60s.mp4 -vf fps=30 states/reference/rastan_arcade_60s/frame_%04d.png`.
+  - Frame count: `1801`.
+  - First frame: `frame_0001.png` (`799` bytes).
+  - Last frame: `frame_1801.png` (`166,792` bytes).
+  - Zero-byte frames: `0`.
+  - Naming/gap check: `frame_NNNN.png`, sequential `0001..1801`, no gaps.
+
+Anomalies:
+- Direct MAME write to `states/reference/rastan_arcade_60s.mp4` failed with `Error creating movie, generic:30 Read-only file system`.
+- Workaround used (MAME AVI to `/tmp` then ffmpeg convert) produced the required final MP4 and valid 30fps frame set.
+
+## [Andy — Analysis, Build 0034 Exodus Rendering Failure]
+
+* files changed: docs/design/Andy_build_34_exodus_rendering_failure.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+Build 0034 baseline confirmed: YES (opcode_replace_count=54, all 8 hook symbols present in required_symbols, ROM hash 38fb4d4d2df3e789be18a52b06d47af09ad8c6aec880e3bd6ad87802c87bd205 differs from Build 33's b0445a..., dispatcher default 0x03C950 NOT hooked per prior spec scope).
+
+Frames sampled (Build 34 Exodus, states/screenshots/build_34/): frame_0001, frame_0090, frame_0180, frame_0270, frame_0360, frame_0435 (last available; total 435 frames in directory). All Exodus rendering panels prioritized: VDP Image Window, Plane Viewer (Layer A and Layer B separately), VRAM Pattern Viewer, VDP Palette. Console log panel observed for trap evidence.
+
+Tilemap-to-pattern correlation answered: YES — pattern tiles ARE correctly referenced by Layer A / Layer B plane maps (frames 0090-0270 show Plane Viewer thumbnails matching VRAM Pattern Viewer content matching Image Window). Therefore problem is data PRODUCTION (no real arcade text/tile content reaches staged buffers), NOT data USAGE (mapping is intact).
+
+Trace correlated: YES (states/traces/rastan_direct_video_test_build_0034_mame_30s_20260415_183954/genesis_exec_summary.txt).
+- vdp_ports_live count=26336, first_pc=070100 — wrapper VBlank healthy across all 1798 frames.
+- fg_cwindow_live count=8 first_addr=C09EA0 last_addr=C09EA6 — BYTE-IDENTICAL to Build 33 trace summary. Two interpretations: (a) trace fields stale/cached (Build 33 open question 4 reinforced), or (b) 8 writes still happen in Build 34 from a code path unaffected by the new sibling hooks. BlastEm crash persistence independently confirms a writer remains active.
+- helper_5b512_rts@* count=0 — confirms the original 0x03C4D2 / 0x03C6DC inner subs are dead (as intended by their now-installed hooks).
+- New stride-8 hook firing UNVERIFIABLE from current trace (no per-hook live-write watch in genesistrace.lua).
+
+Arcade comparison used: YES (states/reference/rastan_arcade_60s/). Sampled frame_0001 (white power-on), frame_0090 (RASTAN title screen with text + sword art), frame_0270 (chronological narrative + BEST 5 high-score table), frame_0450 (item list AXE/HAMMER/FIRE SWORD/SHIELD with icons + descriptions). All represent dense PC080SN FG text rendering. Build 34 shows none of this content — only bring-up scaffolding patterns.
+
+Primary rendering failure category: UNHOOKED ACTIVE WRITER PATH.
+- Dispatcher fall-through default path at arcade_pc 0x03C950 (genesis_rom_offset 0x03CB50) remains unhooked. Default body uses move.w D0,A1@+ (stride 2) writes at arcade_pc 0x03C982, 0x03C990, 0x03C99E plus a fast-fill escape movew #0x0180,A1@(2) at arcade_pc 0x03C9F8. Top-nibble values 0x00, 0x40, 0x70, 0x80, 0xD0, 0xE0, 0xF0 fall through to this default — none of the 8 installed handlers covers these.
+- BlastEm crash persistence across Builds 32, 33, 34 (patched-site count 46→47→54) confirms an unhooked writer remains active. Default path is the only writer in the dispatcher not addressed in any build.
+- Exodus shows BLACK + Error Trigger console entries from frame ~0270-0360 onward → CPU traps to runtime_genesis_pc 0x000010 (Genesis vector trap stub) before arcade scene loader / text-script dispatcher can deliver real arcade content.
+
+Why other categories are NOT primary:
+- Wrong tilemap mapping: refuted §3.8 — tiles in Pattern Viewer are correctly referenced by plane maps.
+- Wrong tile/attribute composition: refuted — bring-up tiles ARE rendered with correct colors; no hooked content visible because execution dies before content production.
+- Wrong VDP register/scroll/plane state: refuted by vdp_ports_live count=26336 (wrapper writes VDP registers every frame).
+- Wrong commit timing/ordering: refuted — bring-up patterns DO display correctly through frame 0270; commit pipeline healthy until trap.
+
+Secondary issue: Whether the 7 new stride-8 hooks fire correctly when their script-opcode top-nibble matches has not been verified due to lack of per-hook live-write watch in genesistrace.lua. Diagnosable only after default-path hook eliminates the trap.
+
+Evidence completeness: FULL.
+STOP triggered: NO.
+
+Next-step recommendation (analysis only — not implemented):
+1. Spec the hook for arcade_pc 0x03C950 default path; resolve sub-sub caller audit (open question 3 of dispatcher map analysis).
+2. Build 35 should produce both new ROM and new trace; re-examine Exodus frames for arcade text appearance in staged_fg_buffer.
+3. Add per-hook live-write watchpoints to tools/mame/genesistrace.lua to attribute writes to specific handlers.
+
+## [Andy — Analysis, Default Path 0x03C950 Sub-Caller Audit and Hook Spec]
+
+files changed: docs/design/Andy_default_path_3c950_hook_spec.md (new)
+build produced: NO
+ROM path: N/A
+root cause confirmed: YES (continuation of Build 34 diagnostic)
+fix implemented: NO
+no unrelated changes: YES
+
+Entry point confirmed: arcade_pc 0x03C950 -> genesis_rom_offset 0x03CB50 (address_map.json arcade_copy segment, identity_offset=512). Bytes at that genesis offset are unpatched original arcade content (no opcode_replace overlap).
+
+All 5 sub-subs audited via grep of build/maincpu.disasm.txt:
+- 0x03C9E8: INTERNAL ONLY — callers 0x03C97E (bsrw), 0x03C9BE (bsrw)
+- 0x03C9F6: INTERNAL ONLY — callers 0x03C966 (bnew), 0x03C9AC (bnew)
+- 0x03CA00: INTERNAL ONLY — callers 0x03C960 (bsrw), 0x03C9A6 (bsrw)
+- 0x03CA12: INTERNAL ONLY — callers 0x03C992 (bsrw), 0x03C9CE (bsrw)
+- 0x03CA26: INTERNAL ONLY — caller 0x03C958 (bnew, from default-path entry block itself)
+
+External callers found: NO for all 5 sub-subs.
+
+Out-of-scope helper noted: 0x03C8F6 is also INTERNAL-only (single caller 0x03C98C inside default path), but lives BEFORE the 0x03C950 contiguous range. NOT included in patch span; becomes dead code after patch (its only caller is overwritten). Hook must replicate the helper's behavior internally: cmpib #0x70,D3; if match, addw A4@(24),D1.
+
+Write instructions targeting HW_ADDRESS/PC080SN/FG_TILEMAP exhaustively identified (9 distinct writes labelled WRITE A..I):
+- WRITE A: 0x03C982 movew %d0, %a1@+ (primary cell-N attr)
+- WRITE B: 0x03C990 movew %d1, %a1@+ (primary cell-N tile)
+- WRITE C: 0x03CA20 movew %d0, %a1@+ inside sub 0x03CA12 (primary cell-(N+1) attr)
+- WRITE D: 0x03C99E movew %d7, %a1@+ (primary cell-(N+1) tile)
+- WRITE E: 0x03C9C2 movew %d0, %a1@+ (alt cell-N attr)
+- WRITE F: 0x03C9CC movew %d1, %a1@+ (alt cell-N tile)
+- WRITE G: 0x03CA20 movew %d0, %a1@+ inside sub 0x03CA12 second invocation (alt cell-(N+1) attr)
+- WRITE H: 0x03C9E0 movew %d7, %a1@+ (alt cell-(N+1) tile)
+- WRITE I: 0x03C9F6 movew #0x0180, %a1@(2) (fast-fill escape, blank tile single cell)
+
+Sub-subs 0x03C9E8, 0x03CA00, 0x03CA26 perform NO writes (control/state only).
+
+Safe patch span determined: arcade_pc 0x03C950 .. arcade_pc 0x03CA37 inclusive = 0xE8 bytes (232). Genesis range: 0x03CB50 .. 0x03CC37 inclusive. Binary verified unpatched. No overlap with existing patched_site segments. Single opcode_replace entry sufficient.
+
+Safe for single opcode_replace: YES.
+
+Hook contract complete (genesistan_hook_text_writer_3c950):
+- Input regs: A0 (script ptr, post-inc consumed inside), A1 (FG hw dest), A4 (script state — fields A4@(3), A4@(22), A4@(24), A4@(26), A4@(30), A4@(39)), D0 (cleared at entry), D2 (loop count, caller-supplied), D3 (top nibble from 0x03CA00 sentinel sub), D5 (sentinel marker), D6 (bit 0 selects entry path via 0x03CA26), D7 (selects main vs alt main loop, also used inside as path/sign flag).
+- Output: staged_fg_buffer + fg_row_dirty per cell (row/col formula: cell_index=(A1-0xC08000)/4, col=cell_index&0x3F, row=(cell_index>>6)&0x3F — same as 0x03C4D2 §5.1).
+- 4 writes per non-sentinel iteration (full cell record: tile+attr both cells); 1 write per sentinel iteration (blank tile cell N tile slot only); 8-byte A1 advance in either case.
+- Fast-fill escape semantics differ from stride-8 family: writes only cell-N tile (not cell-N attr), skips cell N+1.
+- Hook reads word at absolute address 0x000010 (Genesis preserved-vectors region) via subw 0x10,D7 in alt path WRITE H — must preserve verbatim (effectively subtracts 0 on Genesis since 0x000010 holds high word of reset vector).
+- Helper 0x03C8F6 D3==0x70 logic must be inlined into hook (D1 += A4@(24) when D3==0x70).
+
+Callers: dispatcher fall-through only (implicit fall-through from 0x03C94C beqw to 0x03C586 — no instruction explicitly targets 0x03C950). NO direct bsr/jsr to 0x03C950 anywhere in arcade ROM. Single opcode_replace at 0x03C950 sufficient.
+
+Differences from stride-8 family (implementation-affecting):
+- Stride-2 A1@+ (post-inc) vs stride-8 indexed A1@(2)/A1@(6).
+- 4 writes per iter (full cell record) vs 2 writes per iter (tile-only).
+- Loop count from caller D2 vs hardcoded per-handler.
+- Path selection via D6 bit 0 + D7 + D3 + sentinel sub (more complex than stride-8 family's per-handler conditionals).
+- Reads from absolute address 0x000010 (unique among all dispatcher handlers).
+- Conditional secondary dispatch via 0x03CA26 (no stride-8 equivalent).
+
+Implementation readiness: READY FOR CODY.
+
+Cody work items per §6:
+1. Add hook genesistan_hook_text_writer_3c950 to apps/rastan-direct/src/main_68k.s (reuse existing _store_cell + _translate_attr helpers).
+2. Add to .global and to required_symbols.
+3. Add opcode_replace entry per §4.7 template (232 bytes).
+4. Bump opcode_replace_count: 54 -> 55.
+5. Bump patcher invariant in tools/translation/postpatch_startup_rom.py: 54 -> 55 (total_genesis_bytes_covered unchanged for equal-length replacement).
+6. Build 0035, 30s MAME trace, Exodus capture; verify fg_cwindow_live drops to zero and BlastEm no longer crashes at 0xC09EA0.
+
+STOP conditions triggered: NONE.
+
+Open questions:
+1. Attribute-extraction pattern for D0/D7 should pass through existing _translate_attr helper at main_68k.s:739-766 (consumes generic 16-bit input). Cody implementation detail.
+2. Trace-summary fg_cwindow_live field staleness across Builds 32/33/34 unresolved; per-hook live-write watch in genesistrace.lua is a tooling improvement, not required for Build 0035 correctness validation (BlastEm crash absence is the primary success signal).

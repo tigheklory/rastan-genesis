@@ -6,6 +6,14 @@
     .global genesistan_hook_tilemap_fg
     .global genesistan_hook_cwindow_clear
     .global genesistan_hook_tilemap_bg_fill
+    .global genesistan_hook_text_writer_3c4d2
+    .global genesistan_hook_text_writer_3c550
+    .global genesistan_hook_text_writer_3c586
+    .global genesistan_hook_text_writer_3c636
+    .global genesistan_hook_text_writer_3c6dc
+    .global genesistan_hook_text_writer_3c75c
+    .global genesistan_hook_text_writer_3c7a4
+    .global genesistan_hook_text_writer_3c830
     .global genesistan_shadow_input_390001
     .global genesistan_shadow_input_390003
     .global genesistan_shadow_input_390005
@@ -630,6 +638,733 @@ genesistan_hook_tilemap_bg_fill:
 
 .Lbg_fill_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_text_writer_3c4d2:
+    movem.l %d1/%d5/%d6/%a3/%a5/%a6, -(%sp)
+
+    movea.l %a1, %a2
+    adda.w  #0x0050, %a2
+    movea.l 2(%a0), %a0
+
+    move.b  11(%a4), %d0
+    ext.w   %d0
+
+    move.l  %a1, %d4
+    addq.l  #2, %d4
+    move.l  %d4, %d1
+    andi.l  #0x00FFFFFF, %d1
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d1
+    blo     .Ltw_finish
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d1
+    bhs     .Ltw_finish
+
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d1
+    lsr.l   #2, %d1
+    move.w  %d1, %d6
+    andi.w  #0x003F, %d6
+    move.w  %d1, %d5
+    lsr.w   #6, %d5
+    andi.w  #0x001F, %d5
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    cmpi.w  #0x0020, %d0
+    bne.s   .Ltw_slow_path
+
+    move.w  #0x0180, %d1
+    andi.w  #0x3FFF, %d1
+    add.w   %d1, %d1
+    move.w  0(%a3,%d1.w), %d0
+
+    moveq   #0, %d2
+    bsr     .Ltw_translate_attr
+
+    move.w  %d0, %d1
+    or.w    %d2, %d1
+    moveq   #9, %d4
+.Ltw_fast_loop:
+    bsr     .Ltw_store_cell
+    addq.w  #2, %d6
+    cmpi.w  #64, %d6
+    blo.s   .Ltw_fast_next
+    subi.w  #64, %d6
+    addq.w  #1, %d5
+    andi.w  #0x001F, %d5
+.Ltw_fast_next:
+    dbra    %d4, .Ltw_fast_loop
+    bra.s   .Ltw_finish
+
+.Ltw_slow_path:
+    mulu.w  #5, %d0
+    adda.w  %d0, %a0
+
+    moveq   #0, %d4
+.Ltw_slow_loop:
+    move.b  (%a0)+, %d1
+    ext.w   %d1
+    move.w  %d1, %d0
+    add.w   26(%a4), %d0
+    add.w   24(%a4), %d0
+    andi.w  #0x3FFF, %d0
+    add.w   %d0, %d0
+    move.w  0(%a3,%d0.w), %d0
+
+    move.w  22(%a4), %d2
+    andi.w  #0x01FF, %d2
+    bsr     .Ltw_translate_attr
+    move.w  %d0, %d1
+    or.w    %d2, %d1
+    bsr     .Ltw_store_cell
+    bsr     .Ltw_advance_cell
+
+    cmpi.b  #0x50, %d3
+    bne.s   .Ltw_half1_emit
+    cmpi.w  #4, %d4
+    beq.s   .Ltw_after_half1
+.Ltw_half1_emit:
+    move.w  22(%a4), %d2
+    addi.w  #-16, %d2
+    andi.w  #0x01FF, %d2
+    bsr     .Ltw_translate_attr
+    move.w  %d0, %d1
+    or.w    %d2, %d1
+    bsr     .Ltw_store_cell
+    bsr     .Ltw_advance_cell
+.Ltw_after_half1:
+    addq.w  #1, %d4
+    cmpi.w  #5, %d4
+    blt.s   .Ltw_slow_loop
+
+.Ltw_finish:
+    movea.l %a2, %a1
+    movem.l (%sp)+, %d1/%d5/%d6/%a3/%a5/%a6
+    rts
+
+.Ltw_translate_attr:
+    move.w  %d2, %d1
+    andi.w  #0x0003, %d1
+
+    move.w  %d2, %d7
+    lsr.w   #8, %d7
+    lsr.w   #6, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #2, %d7
+    or.w    %d7, %d1
+
+    move.w  %d2, %d7
+    lsr.w   #8, %d7
+    lsr.w   #7, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #3, %d7
+    or.w    %d7, %d1
+
+    move.w  %d2, %d7
+    lsr.w   #8, %d7
+    lsr.w   #5, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #4, %d7
+    or.w    %d7, %d1
+
+    add.w   %d1, %d1
+    move.w  0(%a5,%d1.w), %d2
+    rts
+
+.Ltw_store_cell:
+    move.w  %d5, %d2
+    lsl.w   #7, %d2
+    move.w  %d6, %d7
+    add.w   %d7, %d2
+    add.w   %d7, %d2
+    move.w  %d1, 0(%a6,%d2.w)
+    move.l  fg_row_dirty, %d2
+    bset    %d5, %d2
+    move.l  %d2, fg_row_dirty
+    rts
+
+.Ltw_advance_cell:
+    addq.w  #1, %d6
+    cmpi.w  #64, %d6
+    blo.s   .Ltw_advance_done
+    subi.w  #64, %d6
+    addq.w  #1, %d5
+    andi.w  #0x001F, %d5
+.Ltw_advance_done:
+    rts
+
+.Ltw_store_from_components_at_a2:
+    bsr     .Ltw_compose_d1_from_d0_d2
+    bsr     .Ltw_store_d1_at_a2
+    rts
+
+.Ltw_compose_d1_from_d0_d2:
+    move.w  %d0, %d7
+    andi.w  #0x3FFF, %d7
+    add.w   %d7, %d7
+    move.w  0(%a3,%d7.w), %d7
+
+    move.w  %d2, %d1
+    andi.w  #0x01FF, %d1
+    move.w  %d1, %d2
+    bsr     .Ltw_translate_attr
+
+    move.w  %d7, %d1
+    or.w    %d2, %d1
+    rts
+
+.Ltw_store_d1_at_a2:
+    movem.l %d2/%d5-%d7, -(%sp)
+
+    move.l  %a2, %d0
+    andi.l  #0x00FFFFFF, %d0
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d0
+    blo.s   .Ltw_store_d1_done
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d0
+    bhs.s   .Ltw_store_d1_done
+
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d0
+    lsr.l   #2, %d0
+    move.w  %d0, %d6
+    andi.w  #0x003F, %d6
+    move.w  %d0, %d5
+    lsr.w   #6, %d5
+    andi.w  #0x001F, %d5
+    bsr     .Ltw_store_cell
+
+.Ltw_store_d1_done:
+    movem.l (%sp)+, %d2/%d5-%d7
+    rts
+
+.Ltw_write_pair_same:
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+    movea.l %a1, %a2
+    adda.w  #6, %a2
+    bsr     .Ltw_store_from_components_at_a2
+    rts
+
+genesistan_hook_text_writer_3c550:
+    movem.l %d1-%d7/%a2-%a6, -(%sp)
+
+    movea.l 2(%a0), %a0
+    move.b  11(%a4), %d0
+    ext.w   %d0
+    adda.w  %d0, %a0
+
+    move.b  (%a0), %d7
+    ext.w   %d7
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    moveq   #4, %d3
+    clr.w   %d4
+.L3c550_loop:
+    move.w  %d7, %d2
+    add.w   22(%a4), %d2
+    add.w   %d4, %d2
+    move.w  26(%a4), %d0
+    bsr     .Ltw_write_pair_same
+    adda.w  #8, %a1
+    addi.w  #16, %d4
+    dbra    %d3, .L3c550_loop
+
+    adda.w  #48, %a1
+
+    movem.l (%sp)+, %d1-%d7/%a2-%a6
+    rts
+
+genesistan_hook_text_writer_3c586:
+    movem.l %d1-%d7/%a2-%a6, -(%sp)
+
+    movea.l 2(%a0), %a0
+    move.b  11(%a4), %d0
+    ext.w   %d0
+    mulu.w  #3, %d0
+    adda.w  %d0, %a0
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    cmpi.b  #6, 1(%a4)
+    beq.s   .L3c586_alt
+
+    moveq   #3, %d3
+    clr.w   %d4
+    bsr     .L3c586_inner_606
+
+    clr.w   %d6
+    clr.w   %d7
+    bsr     .L3c586_helper_742
+    adda.w  #8, %a1
+
+    suba.w  #3, %a0
+    moveq   #3, %d3
+    move.w  #-16, %d4
+    bsr     .L3c586_inner_606
+
+    clr.w   %d6
+    move.w  #-16, %d7
+    bsr     .L3c586_helper_742
+    adda.w  #24, %a1
+    bra.s   .L3c586_done
+
+.L3c586_alt:
+    clr.w   %d6
+    clr.w   %d7
+    bsr     .L3c586_helper_742
+    adda.w  #8, %a1
+
+    moveq   #3, %d3
+    clr.w   %d4
+    bsr     .L3c586_inner_606
+
+    suba.w  #3, %a0
+    clr.w   %d6
+    move.w  #-16, %d7
+    bsr     .L3c586_helper_742
+    adda.w  #8, %a1
+
+    moveq   #3, %d3
+    move.w  #-16, %d4
+    bsr     .L3c586_inner_606
+
+    adda.w  #16, %a1
+
+.L3c586_done:
+    movem.l (%sp)+, %d1-%d7/%a2-%a6
+    rts
+
+.L3c586_inner_606:
+    move.b  (%a0)+, %d0
+    ext.w   %d0
+    cmpi.b  #-1, %d0
+    bne.s   .L3c586_emit_pair
+
+    move.w  #0x0180, %d0
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+    bra.s   .L3c586_inner_advance
+
+.L3c586_emit_pair:
+    move.w  %d0, %d2
+    add.w   22(%a4), %d2
+
+    move.w  26(%a4), %d0
+    add.w   %d4, %d0
+    andi.w  #0x01FF, %d0
+    bsr     .Ltw_write_pair_same
+
+.L3c586_inner_advance:
+    adda.w  #8, %a1
+    dbra    %d3, .L3c586_inner_606
+    rts
+
+.L3c586_helper_742:
+    move.w  26(%a4), %d0
+    add.w   %d6, %d0
+    andi.w  #0x01FF, %d0
+
+    move.w  22(%a4), %d2
+    add.w   %d7, %d2
+    bsr     .Ltw_write_pair_same
+    rts
+
+genesistan_hook_text_writer_3c636:
+    movem.l %d1-%d7/%a2-%a6, -(%sp)
+
+    moveq   #0, %d7
+    cmpi.b  #2, 280(%a5)
+    beq.s   .L3c636_include
+    cmpi.w  #98, 318(%a5)
+    bcs.s   .L3c636_exclude
+    cmpi.w  #100, 318(%a5)
+    bcs.s   .L3c636_include
+    bra.s   .L3c636_exclude
+.L3c636_include:
+    moveq   #1, %d7
+.L3c636_exclude:
+
+    movea.l 2(%a0), %a0
+    move.b  11(%a4), %d0
+    ext.w   %d0
+    lsl.w   #2, %d0
+    adda.w  %d0, %a0
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    tst.w   %d7
+    beq.s   .L3c636_no_prelude
+
+    clr.w   %d6
+    clr.w   %d4
+    bsr     .L3c636_helper_742
+    adda.w  #8, %a1
+
+    clr.w   %d6
+    move.w  #-16, %d4
+    bsr     .L3c636_helper_742
+    adda.w  #8, %a1
+
+.L3c636_no_prelude:
+    moveq   #2, %d3
+    clr.w   %d4
+    bsr     .L3c636_inner_6ac
+
+    moveq   #2, %d3
+    move.w  #-16, %d4
+    bsr     .L3c636_inner_6ac
+
+    tst.w   %d7
+    beq.s   .L3c636_post48
+    adda.w  #32, %a1
+    bra.s   .L3c636_done
+.L3c636_post48:
+    adda.w  #48, %a1
+
+.L3c636_done:
+    movem.l (%sp)+, %d1-%d7/%a2-%a6
+    rts
+
+.L3c636_inner_6ac:
+    move.b  (%a0)+, %d0
+    ext.w   %d0
+    cmpi.b  #-1, %d0
+    bne.s   .L3c636_emit_pair
+
+    move.w  #0x0180, %d0
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+    bra.s   .L3c636_advance
+
+.L3c636_emit_pair:
+    move.w  %d0, %d1
+    add.w   26(%a4), %d1
+    move.w  %d1, %d0
+
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    bsr     .Ltw_write_pair_same
+
+.L3c636_advance:
+    adda.w  #8, %a1
+    dbra    %d3, .L3c636_inner_6ac
+    rts
+
+.L3c636_helper_742:
+    move.w  26(%a4), %d0
+    add.w   %d6, %d0
+    andi.w  #0x01FF, %d0
+
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    bsr     .Ltw_write_pair_same
+    rts
+
+genesistan_hook_text_writer_3c6dc:
+    movem.l %d1-%d7/%a2-%a6, -(%sp)
+
+    movea.l 2(%a0), %a0
+    move.b  11(%a4), %d0
+    ext.w   %d0
+    mulu.w  #9, %d0
+    adda.w  %d0, %a0
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    move.w  #-48, %d1
+    move.w  #16, %d4
+    moveq   #6, %d3
+    bsr     .L3c6dc_inner_70a
+
+    move.w  #-48, %d1
+    clr.w   %d4
+    moveq   #3, %d3
+    bsr     .L3c6dc_inner_70a
+
+    adda.w  #8, %a1
+
+    movem.l (%sp)+, %d1-%d7/%a2-%a6
+    rts
+
+.L3c6dc_inner_70a:
+    move.b  (%a0)+, %d2
+    ext.w   %d2
+    tst.w   %d2
+    bne.s   .L3c6dc_emit_pair
+
+    move.w  #0x0180, %d0
+    move.w  22(%a4), %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+    bra.s   .L3c6dc_after_pair
+
+.L3c6dc_emit_pair:
+    move.w  %d1, %d0
+    add.w   26(%a4), %d0
+
+    move.w  22(%a4), %d2
+    add.b   (%a0,-1), %d2
+    bsr     .Ltw_write_pair_same
+
+    add.w   %d4, %d1
+
+.L3c6dc_after_pair:
+    adda.w  #8, %a1
+    dbra    %d3, .L3c6dc_inner_70a
+    rts
+
+genesistan_hook_text_writer_3c75c:
+    movem.l %d1-%d7/%a2-%a6, -(%sp)
+
+    movea.l 2(%a0), %a0
+    move.b  11(%a4), %d0
+    ext.w   %d0
+    mulu.w  #7, %d0
+    adda.w  %d0, %a0
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    move.w  #-16, %d6
+    move.w  #-8, %d7
+    bsr     .L3c75c_helper_742
+    adda.w  #8, %a1
+
+    moveq   #1, %d3
+    move.w  #-8, %d4
+    bsr     .L3c75c_inner_7d2
+
+    moveq   #1, %d3
+    clr.w   %d4
+    bsr     .L3c75c_inner_7d2
+
+    moveq   #1, %d3
+    move.w  #-16, %d4
+    bsr     .L3c75c_inner_7d2
+
+    moveq   #4, %d3
+    move.w  #-8, %d4
+    bsr     .L3c75c_inner_7d2
+
+    adda.w  #16, %a1
+
+    movem.l (%sp)+, %d1-%d7/%a2-%a6
+    rts
+
+.L3c75c_inner_7d2:
+    move.b  (%a0)+, %d0
+    ext.w   %d0
+    cmpi.b  #-1, %d0
+    bne.s   .L3c75c_emit_pair
+
+    move.w  #0x0180, %d0
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+    bra.s   .L3c75c_advance
+
+.L3c75c_emit_pair:
+    add.w   26(%a4), %d0
+    move.w  %d0, %d1
+    move.w  %d1, %d0
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    bsr     .Ltw_write_pair_same
+
+.L3c75c_advance:
+    adda.w  #8, %a1
+    dbra    %d3, .L3c75c_inner_7d2
+    rts
+
+.L3c75c_helper_742:
+    move.w  26(%a4), %d0
+    add.w   %d6, %d0
+    andi.w  #0x01FF, %d0
+    move.w  22(%a4), %d2
+    add.w   %d7, %d2
+    bsr     .Ltw_write_pair_same
+    rts
+
+genesistan_hook_text_writer_3c7a4:
+    movem.l %d1-%d7/%a2-%a6, -(%sp)
+
+    movea.l 2(%a0), %a0
+    move.b  11(%a4), %d0
+    ext.w   %d0
+    mulu.w  #6, %d0
+    adda.w  %d0, %a0
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    moveq   #2, %d3
+    clr.w   %d4
+    bsr     .L3c7a4_inner_804
+
+    moveq   #2, %d3
+    move.w  #-16, %d4
+    bsr     .L3c7a4_inner_804
+
+    moveq   #6, %d3
+    move.w  #-8, %d4
+    bsr     .L3c75c_inner_7d2
+
+    movem.l (%sp)+, %d1-%d7/%a2-%a6
+    rts
+
+.L3c7a4_inner_804:
+    move.w  #-32, %d0
+    cmpi.w  #2, %d3
+    beq.s   .L3c7a4_tile_ready
+    move.w  #-48, %d0
+.L3c7a4_tile_ready:
+    add.w   26(%a4), %d0
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    bsr     .Ltw_write_pair_same
+    adda.w  #8, %a1
+    dbra    %d3, .L3c7a4_inner_804
+    rts
+
+genesistan_hook_text_writer_3c830:
+    movem.l %d1-%d7/%a2-%a6, -(%sp)
+
+    move.b  56(%a4), %d7
+    move.b  280(%a5), %d6
+    move.w  318(%a5), %d5
+
+    movea.l 2(%a0), %a0
+    move.b  11(%a4), %d0
+    ext.w   %d0
+    lsl.w   #2, %d0
+    adda.w  %d0, %a0
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    tst.b   %d7
+    bne.s   .L3c830_alt_path
+
+    moveq   #5, %d3
+    move.w  #-8, %d4
+    bsr     .L3c830_inner_85e
+
+    suba.l  #4, %a0
+    moveq   #5, %d3
+    move.w  #-24, %d4
+    bsr     .L3c830_inner_85e
+    bra.s   .L3c830_done
+
+.L3c830_alt_path:
+    clr.w   %d0
+    clr.w   %d2
+    bsr     .Ltw_write_pair_same
+    adda.w  #8, %a1
+
+    move.w  22(%a4), %d2
+    addi.w  #-16, %d2
+    move.w  26(%a4), %d0
+    bsr     .Ltw_write_pair_same
+    adda.w  #8, %a1
+
+    moveq   #2, %d3
+    move.w  #-8, %d4
+    bsr     .L3c830_inner_85e
+
+    moveq   #2, %d3
+    move.w  #-16, %d4
+    bsr     .L3c830_inner_85e
+
+    suba.l  #2, %a0
+    moveq   #2, %d3
+    clr.w   %d4
+    bsr     .L3c830_inner_85e
+
+    adda.w  #16, %a1
+
+.L3c830_done:
+    movem.l (%sp)+, %d1-%d7/%a2-%a6
+    rts
+
+.L3c830_inner_85e:
+    clr.w   %d0
+    clr.w   %d2
+
+    cmpi.w  #5, %d3
+    bne.s   .L3c830_not_first
+
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    cmpi.b  #3, %d6
+    bne.s   .L3c830_first_tile
+    move.w  #0x0A0D, %d2
+    cmpi.w  #-8, %d4
+    bne.s   .L3c830_check_318
+    addq.w  #1, %d2
+.L3c830_check_318:
+    cmpi.w  #63, %d5
+    bcs.s   .L3c830_first_tile
+    addq.w  #7, %d2
+    bsr     .L3c830_store_left_with_special_attr
+    bra.s   .L3c830_emit_right
+
+.L3c830_not_first:
+    move.b  (%a0)+, %d0
+    ext.w   %d0
+    tst.w   %d0
+    bne.s   .L3c830_first_tile
+    move.w  #0x0180, %d0
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+    bra.s   .L3c830_emit_right
+
+.L3c830_first_tile:
+    add.w   26(%a4), %d0
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+
+.L3c830_emit_right:
+    movea.l %a1, %a2
+    adda.w  #6, %a2
+    bsr     .Ltw_store_from_components_at_a2
+
+    adda.w  #8, %a1
+    dbra    %d3, .L3c830_inner_85e
+    rts
+
+.L3c830_store_left_with_special_attr:
+    move.w  26(%a4), %d0
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
     rts
 
 genesistan_hook_cwindow_clear:

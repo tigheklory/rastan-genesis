@@ -1721,13 +1721,13 @@ def main() -> int:
                 "does not match patched_site opcode_replace segment count."
             )
         if (
-            int(segment_coverage["total_genesis_bytes_covered"]) != 0xFB7C4
-            or len(opcode_replace_sites) != 46
+            int(segment_coverage["total_genesis_bytes_covered"]) != 0xFBE90
+            or len(opcode_replace_sites) != 54
         ):
             raise RuntimeError(
                 "Build 0029 invariant failure: expected "
-                "total_genesis_bytes_covered=0xFB7C4 and "
-                "opcode_replace patched_site count=46; got "
+                "total_genesis_bytes_covered=0xFBE90 and "
+                "opcode_replace patched_site count=54; got "
                 f"total_genesis_bytes_covered=0x{int(segment_coverage['total_genesis_bytes_covered']):X} "
                 f"opcode_replace patched_site count={len(opcode_replace_sites)}."
             )

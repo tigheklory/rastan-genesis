@@ -81,6 +81,7 @@
     "genesistan_hook_tilemap_plane_a",
     "genesistan_hook_tilemap_fg",
     "genesistan_hook_tilemap_bg_fill",
+    "genesistan_hook_text_writer_3c4d2",
     "genesistan_hook_cwindow_clear",
     "genesistan_shadow_input_390001",
     "genesistan_shadow_input_390003",
@@ -90,7 +91,14 @@
     "staged_scroll_y_bg",
     "staged_scroll_x_fg",
     "staged_scroll_y_fg",
-    "rastan_direct_arcade_tick_entry"
+    "rastan_direct_arcade_tick_entry",
+    "genesistan_hook_text_writer_3c550",
+    "genesistan_hook_text_writer_3c586",
+    "genesistan_hook_text_writer_3c636",
+    "genesistan_hook_text_writer_3c6dc",
+    "genesistan_hook_text_writer_3c75c",
+    "genesistan_hook_text_writer_3c7a4",
+    "genesistan_hook_text_writer_3c830"
   ],
   "copied_ranges": [
     {
@@ -101,84 +109,6 @@
     }
   ],
   "opcode_replace": [
-    {
-      "arcade_pc": "0x055968",
-      "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
-      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_a}4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "Route PC080SN BG strip producer through rastan-direct hook symbol at 0x055968."
-    },
-    {
-      "arcade_pc": "0x055990",
-      "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
-      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_fg}4e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "Route PC080SN FG strip producer through rastan-direct hook symbol at 0x055990."
-    },
-    {
-      "arcade_pc": "0x055AB4",
-      "original_bytes": "33ED10EE00C2000033ED10EC00C4000033ED10B000C2000233ED10AE00C400024E75",
-      "replacement_bytes": "33ED10EE{symbol:staged_scroll_y_bg}33ED10EC{symbol:staged_scroll_x_bg}33ED10B0{symbol:staged_scroll_y_fg}33ED10AE{symbol:staged_scroll_x_fg}4E75",
-      "note": "Rewrite PC080SN scroll register write function: redirect all four MOVE.W destinations from hardware (0xC20000/0xC40000/0xC20002/0xC40002) to Genesis staged scroll variables. Same opcodes, same A5-relative sources, same RTS. Fixes scroll for ALL callers including gameplay."
-    },
-    {
-      "arcade_pc": "0x0561B6",
-      "original_bytes": "323C1000203C00000020207C00C08000227C00C0000020C022C0534166F8",
-      "replacement_bytes": "4EB9{symbol:genesistan_hook_cwindow_clear}4E714E714E714E714E714E714E714E714E714E714E714E71",
-      "note": "Replace PC080SN C-window fill loop with JSR to Genesis-side staged buffer clear hook. Hook fills staged_bg_buffer and staged_fg_buffer with LUT-translated blank tile and marks all rows dirty."
-    },
-    {
-      "arcade_pc": "0x03AD44",
-      "original_bytes": "20C0534166FA4E75",
-      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_bg_fill}4e75",
-      "note": "Title/attract BG write path longword fill -> rastan-direct BG fill hook symbol."
-    },
-    {
-      "arcade_pc": "0x03ADFE",
-      "original_bytes": "33FC000000C50000",
-      "replacement_bytes": "4E714E714E714E71",
-      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
-    },
-    {
-      "arcade_pc": "0x03AE06",
-      "original_bytes": "33FC000100D01BFE",
-      "replacement_bytes": "4E714E714E714E71",
-      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
-    },
-    {
-      "arcade_pc": "0x03AE16",
-      "original_bytes": "33FC000100C50000",
-      "replacement_bytes": "4E714E714E714E71",
-      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
-    },
-    {
-      "arcade_pc": "0x03AE1E",
-      "original_bytes": "33FC000000D01BFE",
-      "replacement_bytes": "4E714E714E714E71",
-      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
-    },
-    {
-      "arcade_pc": "0x03A4A2",
-      "original_bytes": "103900390001",
-      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390001}",
-      "note": "TC0040IOC P1 read -> direct shadow byte symbol."
-    },
-    {
-      "arcade_pc": "0x03A4A8",
-      "original_bytes": "123900390003",
-      "replacement_bytes": "1239{symbol:genesistan_shadow_input_390003}",
-      "note": "TC0040IOC P2 read -> direct shadow byte symbol."
-    },
-    {
-      "arcade_pc": "0x03A778",
-      "original_bytes": "103900390001",
-      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390001}",
-      "note": "Secondary TC0040IOC P1 read -> direct shadow byte symbol."
-    },
-    {
-      "arcade_pc": "0x03A77E",
-      "original_bytes": "123900390003",
-      "replacement_bytes": "1239{symbol:genesistan_shadow_input_390003}",
-      "note": "Secondary TC0040IOC P2 read -> direct shadow byte symbol."
-    },
     {
       "arcade_pc": "0x03A0A8",
       "original_bytes": "0839000600390005",
@@ -198,10 +128,10 @@
       "note": "Coin input bit 5 -> direct shadow byte symbol."
     },
     {
-      "arcade_pc": "0x03A490",
-      "original_bytes": "103900390007",
-      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390007}",
-      "note": "System input read -> direct shadow byte symbol."
+      "arcade_pc": "0x03A1D8",
+      "original_bytes": "33C000380000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
     },
     {
       "arcade_pc": "0x03A47E",
@@ -210,34 +140,52 @@
       "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis)."
     },
     {
+      "arcade_pc": "0x03A490",
+      "original_bytes": "103900390007",
+      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390007}",
+      "note": "System input read -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03A4A2",
+      "original_bytes": "103900390001",
+      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390001}",
+      "note": "TC0040IOC P1 read -> direct shadow byte symbol."
+    },
+    {
+      "arcade_pc": "0x03A4A8",
+      "original_bytes": "123900390003",
+      "replacement_bytes": "1239{symbol:genesistan_shadow_input_390003}",
+      "note": "TC0040IOC P2 read -> direct shadow byte symbol."
+    },
+    {
       "arcade_pc": "0x03A552",
       "original_bytes": "0c39003000c09ea3660813fc002000c09ea3",
       "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
       "note": "Bypass PC080SN readback cmp/bne path (read from 0xC09EA3 invalid on Genesis)."
     },
     {
-      "arcade_pc": "0x03AC04",
-      "original_bytes": "0839000000390007",
-      "replacement_bytes": "08390000{symbol:genesistan_shadow_input_390007}",
-      "note": "Service/system bit test -> direct shadow byte symbol."
+      "arcade_pc": "0x03A778",
+      "original_bytes": "103900390001",
+      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390001}",
+      "note": "Secondary TC0040IOC P1 read -> direct shadow byte symbol."
     },
     {
-      "arcade_pc": "0x03AF7A",
-      "original_bytes": "103900390009",
-      "replacement_bytes": "103C00FE4E71",
-      "note": "DIP1 default constant (0xFE), preserving downstream NOT/store logic."
-    },
-    {
-      "arcade_pc": "0x03AF86",
-      "original_bytes": "10390039000B",
-      "replacement_bytes": "103C00FF4E71",
-      "note": "DIP2 default constant (0xFF), preserving downstream NOT/store logic."
+      "arcade_pc": "0x03A77E",
+      "original_bytes": "123900390003",
+      "replacement_bytes": "1239{symbol:genesistan_shadow_input_390003}",
+      "note": "Secondary TC0040IOC P2 read -> direct shadow byte symbol."
     },
     {
       "arcade_pc": "0x03A7B8",
       "original_bytes": "0839000100390007",
       "replacement_bytes": "08390001{symbol:genesistan_shadow_input_390007}",
       "note": "Tilt bit test -> direct shadow system byte."
+    },
+    {
+      "arcade_pc": "0x03A91A",
+      "original_bytes": "103900390007",
+      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390007}",
+      "note": "System input read -> direct shadow system byte."
     },
     {
       "arcade_pc": "0x03AB96",
@@ -258,34 +206,22 @@
       "note": "Redirect PC080SN xscroll clear write to Genesis staged BG X scroll mirror."
     },
     {
-      "arcade_pc": "0x03B098",
-      "original_bytes": "42B900C20000",
-      "replacement_bytes": "42B9{symbol:staged_scroll_y_bg}",
-      "note": "Redirect title-path PC080SN yscroll clear write to Genesis staged BG Y scroll mirror."
-    },
-    {
-      "arcade_pc": "0x03B09E",
-      "original_bytes": "42B900C40000",
-      "replacement_bytes": "42B9{symbol:staged_scroll_x_bg}",
-      "note": "Redirect title-path PC080SN xscroll clear write to Genesis staged BG X scroll mirror."
-    },
-    {
-      "arcade_pc": "0x03A91A",
-      "original_bytes": "103900390007",
-      "replacement_bytes": "1039{symbol:genesistan_shadow_input_390007}",
-      "note": "System input read -> direct shadow system byte."
-    },
-    {
-      "arcade_pc": "0x03AC94",
-      "original_bytes": "0839000500390007",
-      "replacement_bytes": "08390005{symbol:genesistan_shadow_input_390007}",
-      "note": "System input bit 5 test -> direct shadow system byte."
+      "arcade_pc": "0x03AC04",
+      "original_bytes": "0839000000390007",
+      "replacement_bytes": "08390000{symbol:genesistan_shadow_input_390007}",
+      "note": "Service/system bit test -> direct shadow byte symbol."
     },
     {
       "arcade_pc": "0x03AC54",
       "original_bytes": "0c39004300c09e87660a7003610016806100",
       "replacement_bytes": "60124e714e714e714e714e714e714e714e71",
       "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis)."
+    },
+    {
+      "arcade_pc": "0x03AC94",
+      "original_bytes": "0839000500390007",
+      "replacement_bytes": "08390005{symbol:genesistan_shadow_input_390007}",
+      "note": "System input bit 5 test -> direct shadow system byte."
     },
     {
       "arcade_pc": "0x03ACB2",
@@ -318,10 +254,34 @@
       "note": "Coin input bit 5 test -> direct shadow coin byte."
     },
     {
-      "arcade_pc": "0x03A1D8",
-      "original_bytes": "33C000380000",
-      "replacement_bytes": "4E714E714E71",
-      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+      "arcade_pc": "0x03AD44",
+      "original_bytes": "20C0534166FA4E75",
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_bg_fill}4e75",
+      "note": "Title/attract BG write path longword fill -> rastan-direct BG fill hook symbol."
+    },
+    {
+      "arcade_pc": "0x03ADFE",
+      "original_bytes": "33FC000000C50000",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
+    },
+    {
+      "arcade_pc": "0x03AE06",
+      "original_bytes": "33FC000100D01BFE",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
+    },
+    {
+      "arcade_pc": "0x03AE16",
+      "original_bytes": "33FC000100C50000",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
+    },
+    {
+      "arcade_pc": "0x03AE1E",
+      "original_bytes": "33FC000000D01BFE",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
     },
     {
       "arcade_pc": "0x03AE34",
@@ -336,16 +296,88 @@
       "note": "Suppress unsupported TC0040IOC control clear at 0x380000."
     },
     {
+      "arcade_pc": "0x03AF04",
+      "original_bytes": "4BF90010C000",
+      "replacement_bytes": "4BF900FF0000",
+      "note": "Redirect arcade A5 workram base from 0x10C000 (ROM on Genesis) to Genesis WRAM 0xFF0000."
+    },
+    {
       "arcade_pc": "0x03AF1E",
       "original_bytes": "33C000380000",
       "replacement_bytes": "4E714E714E71",
       "note": "Suppress unsupported TC0040IOC control write at 0x380000."
     },
     {
-      "arcade_pc": "0x03AF04",
-      "original_bytes": "4BF90010C000",
-      "replacement_bytes": "4BF900FF0000",
-      "note": "Redirect arcade A5 workram base from 0x10C000 (ROM on Genesis) to Genesis WRAM 0xFF0000."
+      "arcade_pc": "0x03AF7A",
+      "original_bytes": "103900390009",
+      "replacement_bytes": "103C00FE4E71",
+      "note": "DIP1 default constant (0xFE), preserving downstream NOT/store logic."
+    },
+    {
+      "arcade_pc": "0x03AF86",
+      "original_bytes": "10390039000B",
+      "replacement_bytes": "103C00FF4E71",
+      "note": "DIP2 default constant (0xFF), preserving downstream NOT/store logic."
+    },
+    {
+      "arcade_pc": "0x03B098",
+      "original_bytes": "42B900C20000",
+      "replacement_bytes": "42B9{symbol:staged_scroll_y_bg}",
+      "note": "Redirect title-path PC080SN yscroll clear write to Genesis staged BG Y scroll mirror."
+    },
+    {
+      "arcade_pc": "0x03B09E",
+      "original_bytes": "42B900C40000",
+      "replacement_bytes": "42B9{symbol:staged_scroll_x_bg}",
+      "note": "Redirect title-path PC080SN xscroll clear write to Genesis staged BG X scroll mirror."
+    },
+    {
+      "arcade_pc": "0x03C4D2",
+      "original_bytes": "2449D4FC005020680002102C000B48800C4000206610780A337C018000025089534466F4601AC0FC0005D0C078054242610000125B887805343CFFF061000006224A4E75",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_text_writer_3c4d2}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Route text writer handler at arcade_pc 0x03C4D2 to Genesis FG staging hook and prevent direct C-window FG writes."
+    },
+    {
+      "arcade_pc": "0x03C550",
+      "original_bytes": "20680002102C000B4880D0C042447604121048813001D06C0016D04433400006336C001A0002508906440010534366E4D2FC00304E75",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_text_writer_3c550}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Route text-writer handler (script opcode 0xA0) to Genesis FG staging hook; prevent direct C-window writes."
+    },
+    {
+      "arcade_pc": "0x03C586",
+      "original_bytes": "20680002102C000B4880C0FC0003D0C00C2C00060001673276034242610000624247424661000196D2FC000890FC00037603343CFFF06100004842473C3CFFF06100017AD2FC00184E75424742466100016CD2FC0008760342426100002490FC000342473C3CFFF061000152D2FC00087603343CFFF061000008D2FC00104E75",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_text_writer_3c586}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Route text-writer handler (script opcode 0xC0) to Genesis FG staging hook; prevent direct C-window writes."
+    },
+    {
+      "arcade_pc": "0x03C636",
+      "original_bytes": "20680002102C000B4880E548D0C00C2D0002011867120C6D0062013E65200C6D0064013E6502601642464247610000DE508942463E3CFFF0610000D2508976024242610000327602343CFFF0610000280C2D0002011867120C6D0062013E65100C6D0064013E65026006D2FC00204E75D2FC00304E75",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_text_writer_3c636}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Route text-writer handler (script opcode 0xB0) to Genesis FG staging hook; prevent direct C-window writes."
+    },
+    {
+      "arcade_pc": "0x03C6DC",
+      "original_bytes": "20680002102C000B4880C0FC0009D0C0323CFFD0383C0010760661000012323CFFD0424476036100000650894E75",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_text_writer_3c6dc}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Route text-writer handler (script opcode 0x30) to Genesis FG staging hook; prevent direct C-window writes."
+    },
+    {
+      "arcade_pc": "0x03C75C",
+      "original_bytes": "20680002102C000B4880C0FC0007D0C03C3CFFF03E3CFFF861CC50897601343CFFF861000052760142426100004A7601343CFFF0610000407604343CFFF861000036D2FC00104E75",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_text_writer_3c75c}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Route text-writer handler (script opcode 0x90) to Genesis FG staging hook; prevent direct C-window writes."
+    },
+    {
+      "arcade_pc": "0x03C7A4",
+      "original_bytes": "20680002102C000B4880C0FC0006D0C0760242426100004A7602343CFFF0610000407606343CFFF8610000044E75",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_text_writer_3c7a4}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Route text-writer handler (script opcode 0x20) to Genesis FG staging hook; prevent direct C-window writes."
+    },
+    {
+      "arcade_pc": "0x03C830",
+      "original_bytes": "20680002102C000B4880E548D0C04A2C00386600007A7605343CFFF86100001059887605343CFFE8610000044E75",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_text_writer_3c830}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Route text-writer handler (script opcode 0x10) to Genesis FG staging hook; prevent direct C-window writes."
     },
     {
       "arcade_pc": "0x03EF28",
@@ -376,10 +408,34 @@
       "original_bytes": "33C000380000",
       "replacement_bytes": "4E714E714E71",
       "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+    },
+    {
+      "arcade_pc": "0x055968",
+      "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_a}4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "Route PC080SN BG strip producer through rastan-direct hook symbol at 0x055968."
+    },
+    {
+      "arcade_pc": "0x055990",
+      "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_fg}4e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "Route PC080SN FG strip producer through rastan-direct hook symbol at 0x055990."
+    },
+    {
+      "arcade_pc": "0x055AB4",
+      "original_bytes": "33ED10EE00C2000033ED10EC00C4000033ED10B000C2000233ED10AE00C400024E75",
+      "replacement_bytes": "33ED10EE{symbol:staged_scroll_y_bg}33ED10EC{symbol:staged_scroll_x_bg}33ED10B0{symbol:staged_scroll_y_fg}33ED10AE{symbol:staged_scroll_x_fg}4E75",
+      "note": "Rewrite PC080SN scroll register write function: redirect all four MOVE.W destinations from hardware (0xC20000/0xC40000/0xC20002/0xC40002) to Genesis staged scroll variables. Same opcodes, same A5-relative sources, same RTS. Fixes scroll for ALL callers including gameplay."
+    },
+    {
+      "arcade_pc": "0x0561B6",
+      "original_bytes": "323C1000203C00000020207C00C08000227C00C0000020C022C0534166F8",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_cwindow_clear}4E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Replace PC080SN C-window fill loop with JSR to Genesis-side staged buffer clear hook. Hook fills staged_bg_buffer and staged_fg_buffer with LUT-translated blank tile and marks all rows dirty."
     }
   ],
   "rom_opcode_replace": [],
   "expectations": {
-    "opcode_replace_count": 46
+    "opcode_replace_count": 54
   }
 }

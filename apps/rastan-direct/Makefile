@@ -19,12 +19,14 @@ AS := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-as
 LD := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-ld
 OBJCOPY := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-objcopy
 NM := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-nm
+OBJDUMP := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-objdump
 
 ifeq ($(wildcard $(AS)),)
 AS := m68k-elf-as
 LD := m68k-elf-ld
 OBJCOPY := m68k-elf-objcopy
 NM := m68k-elf-nm
+OBJDUMP := m68k-elf-objdump
 endif
 
 ASFLAGS := --register-prefix-optional
@@ -40,9 +42,10 @@ ELF := $(OUT_DIR)/rastan_direct_video_test.elf
 PREPATCH_BIN := $(OUT_DIR)/rastan_direct_video_test.prepatch.bin
 BIN := $(DIST_DIR)/rastan_direct_video_test.bin
 
-.PHONY: all clean
+.PHONY: all clean release
 
 all: $(BIN)
+release: $(BIN)
 
 $(OUT_DIR) $(DIST_DIR):
 	@mkdir -p $@
@@ -80,6 +83,8 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DI
 		--manifest "$(PATCH_MANIFEST)" \
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
+	@mkdir -p "$(ROOT)/build"
+	$(OBJDUMP) -D -b binary -m m68k:68000 --adjust-vma=0 "$@" > "$(ROOT)/build/genesis_postpatch.disasm.txt"
 	@mkdir -p "$(NUMBERED_DIST_DIR)" "$(dir $(NUMBERED_COUNTER))"
 	@counter_file="$(NUMBERED_COUNTER)"; \
 	if [ -f "$$counter_file" ]; then n=$$(cat "$$counter_file"); else n=0; fi; \
@@ -88,7 +93,19 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DI
 	tag=$$(printf "%04d" "$$n"); \
 	numbered="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}.bin"; \
 	cp "$@" "$$numbered"; \
-	echo "numbered build artifact: $$numbered"
+	echo "numbered build artifact: $$numbered"; \
+	trace_ts=$$(date +%Y%m%d_%H%M%S); \
+	trace_dir="$(ROOT)/states/traces/$(NUMBERED_PREFIX)_$${tag}_mame_30s_$${trace_ts}"; \
+	mkdir -p "$$trace_dir" || exit 1; \
+	trace_cmd='timeout 120s "$(ROOT)/tools/mame/run_genesis_trace_wsl.sh" "$@" -video none -sound none -nothrottle -seconds_to_run 30'; \
+	echo "trace command: $$trace_cmd"; \
+	if ! eval "$$trace_cmd"; then echo "ERROR: Genesis trace command failed"; exit 1; fi; \
+	cp "$(ROOT)/build/mame/home/genesistrace/genesis_exec_summary.txt" "$$trace_dir/" || exit 1; \
+	cp "$(ROOT)/build/mame/home/genesistrace/genesis_exec_trace.log" "$$trace_dir/" || exit 1; \
+	if [ -f "$(ROOT)/build/mame/home/genesistrace/trace_metadata.txt" ]; then cp "$(ROOT)/build/mame/home/genesistrace/trace_metadata.txt" "$$trace_dir/"; fi; \
+	if [ -f "$(ROOT)/build/mame/home/genesistrace/mame_stdout.txt" ]; then cp "$(ROOT)/build/mame/home/genesistrace/mame_stdout.txt" "$$trace_dir/"; fi; \
+	if [ ! -f "$$trace_dir/genesis_exec_summary.txt" ]; then echo "ERROR: Missing genesis_exec_summary.txt in trace output: $$trace_dir"; exit 1; fi; \
+	echo "trace saved to: $$trace_dir"
 
 clean:
 	rm -rf $(OUT_DIR) $(DIST_DIR)
