@@ -9,6 +9,16 @@ local last_pc = nil
 local last_exec_label = nil
 local tap_refs = {}
 local write_watch_stats = {}
+local exec_pc_history = {}
+local exec_pc_history_count = 0
+local exec_history_hook_ref = nil
+local exec_history_hook_installed = false
+local exec_history_available = false
+local exec_history_method = "not_available"
+local exec_history_note = nil
+
+local FG_WINDOW_NAME = "fg_cwindow_live"
+local EXEC_PC_HISTORY_CAPACITY = 16
 
 _G.genesistrace_reset_subscription = nil
 _G.genesistrace_stop_subscription = nil
@@ -149,6 +159,48 @@ local function read_state_u32(name)
 	return cpu.state[name].value & 0xFFFFFFFF
 end
 
+local function push_exec_pc_history(pc)
+	local i
+	if not pc then
+		return
+	end
+	if exec_pc_history_count < EXEC_PC_HISTORY_CAPACITY then
+		exec_pc_history_count = exec_pc_history_count + 1
+		exec_pc_history[exec_pc_history_count] = pc
+		return
+	end
+	for i = 1, EXEC_PC_HISTORY_CAPACITY - 1 do
+		exec_pc_history[i] = exec_pc_history[i + 1]
+	end
+	exec_pc_history[EXEC_PC_HISTORY_CAPACITY] = pc
+end
+
+local function format_exec_pc_history()
+	local i
+	local parts = {}
+	if exec_pc_history_count == 0 then
+		return ""
+	end
+	for i = 1, exec_pc_history_count do
+		parts[#parts + 1] = string.format("0x%06X", exec_pc_history[i])
+	end
+	return table.concat(parts, ",")
+end
+
+local function required_registers_available()
+	local required = {"A0", "A1", "A4", "A5", "D2", "D3", "D6", "D7"}
+	local i
+	if not cpu or not cpu.state then
+		return false
+	end
+	for i = 1, #required do
+		if not cpu.state[required[i]] then
+			return false
+		end
+	end
+	return true
+end
+
 local function setup_exec_ranges()
 	local i
 	local j
@@ -237,6 +289,40 @@ local function current_pc()
 	return normalize_24(cpu.state["PC"].value)
 end
 
+local function setup_exec_history_hook()
+	local ok
+	local ref
+	if exec_history_hook_installed then
+		return
+	end
+	exec_history_hook_installed = true
+	exec_history_available = false
+	exec_history_method = "not_available"
+	exec_history_note = nil
+
+	if not cpu then
+		exec_history_note = "cpu unavailable"
+		return
+	end
+
+	if type(cpu.add_exec) == "function" then
+		ok, ref = pcall(function()
+			return cpu:add_exec(function()
+				push_exec_pc_history(current_pc())
+			end)
+		end)
+		if ok and ref then
+			exec_history_available = true
+			exec_history_method = "cpu:add_exec"
+			exec_history_hook_ref = ref
+			return
+		end
+		exec_history_note = "cpu:add_exec failed: " .. tostring(ref)
+	else
+		exec_history_note = "cpu:add_exec unavailable in MAME Lua API"
+	end
+end
+
 local function find_exec_range(pc)
 	local i
 	if not pc then
@@ -277,6 +363,8 @@ local function ensure_write_watch_stat(name)
 			last_data = nil,
 			first_mask = nil,
 			last_mask = nil,
+			unique_pc_set = {},
+			unique_pc_list = {},
 		}
 		write_watch_stats[name] = stat
 	end
@@ -287,20 +375,59 @@ local function log_live_write(window_name, addr, data, mem_mask)
 	local pc = current_pc() or 0
 	local stat = ensure_write_watch_stat(window_name)
 	local is_first = (stat.count == 0)
+	local data_word = (data or 0) & 0xFFFF
+	local mask_word = (mem_mask or 0) & 0xFFFF
 
 	stat.count = stat.count + 1
 	if is_first then
 		stat.first_frame = frame_count
 		stat.first_pc = pc
 		stat.first_addr = addr
-		stat.first_data = data
-		stat.first_mask = mem_mask
+		stat.first_data = data_word
+		stat.first_mask = mask_word
 	end
 	stat.last_frame = frame_count
 	stat.last_pc = pc
 	stat.last_addr = addr
-	stat.last_data = data
-	stat.last_mask = mem_mask
+	stat.last_data = data_word
+	stat.last_mask = mask_word
+
+	if not stat.unique_pc_set[pc] then
+		stat.unique_pc_set[pc] = true
+		stat.unique_pc_list[#stat.unique_pc_list + 1] = pc
+	end
+
+	if window_name == FG_WINDOW_NAME then
+		local a0 = read_state_u32("A0") or 0
+		local a1 = read_state_u32("A1") or 0
+		local a4 = read_state_u32("A4") or 0
+		local a5 = read_state_u32("A5") or 0
+		local d2 = read_state_u32("D2") or 0
+		local d3 = read_state_u32("D3") or 0
+		local d6 = read_state_u32("D6") or 0
+		local d7 = read_state_u32("D7") or 0
+		local base = string.format(
+			"FG_WRITE event=%d pc=0x%06X dest=0x%06X value=0x%04X A0=0x%08X A1=0x%08X A4=0x%08X A5=0x%08X D2=0x%04X D3=0x%04X D6=0x%04X D7=0x%04X",
+			stat.count,
+			pc,
+			addr & 0xFFFFFF,
+			data_word,
+			a0,
+			a1,
+			a4,
+			a5,
+			d2 & 0xFFFF,
+			d3 & 0xFFFF,
+			d6 & 0xFFFF,
+			d7 & 0xFFFF
+		)
+		if exec_history_available then
+			append_log(base .. string.format(" history=[%s]", format_exec_pc_history()))
+		else
+			append_log(base)
+		end
+		return
+	end
 
 	if is_first or addr == 0xC00008 or addr == 0xC50000 then
 		append_log(string.format(
@@ -309,8 +436,8 @@ local function log_live_write(window_name, addr, data, mem_mask)
 			window_name,
 			pc,
 			addr & 0xFFFFFF,
-			data or 0,
-			mem_mask or 0,
+			data_word,
+			mask_word,
 			stat.count
 		))
 	end
@@ -636,21 +763,46 @@ local function write_summary()
 		local window = WRITE_TAP_WINDOWS[i]
 		local stat = write_watch_stats[window.name]
 		if stat then
-			fh:write(string.format(
-				"%s count=%d first_frame=%s last_frame=%s first_pc=%s last_pc=%s first_addr=%s last_addr=%s first_data=%s last_data=%s first_mask=%s last_mask=%s\n",
-				window.name,
-				stat.count,
-				stat.first_frame or "-",
-				stat.last_frame or "-",
-				stat.first_pc and string.format("%06X", stat.first_pc) or "-",
-				stat.last_pc and string.format("%06X", stat.last_pc) or "-",
-				stat.first_addr and string.format("%06X", stat.first_addr & 0xFFFFFF) or "-",
-				stat.last_addr and string.format("%06X", stat.last_addr & 0xFFFFFF) or "-",
-				stat.first_data and string.format("%04X", stat.first_data & 0xFFFF) or "-",
-				stat.last_data and string.format("%04X", stat.last_data & 0xFFFF) or "-",
-				stat.first_mask and string.format("%04X", stat.first_mask & 0xFFFF) or "-",
-				stat.last_mask and string.format("%04X", stat.last_mask & 0xFFFF) or "-"
-			))
+			if window.name == FG_WINDOW_NAME then
+				local pcs = {}
+				local j
+				for j = 1, #stat.unique_pc_list do
+					pcs[#pcs + 1] = string.format("%06X", stat.unique_pc_list[j])
+				end
+				fh:write(string.format(
+					"%s count=%d first_frame=%s last_frame=%s first_pc=%s last_pc=%s first_addr=%s last_addr=%s first_data=%s last_data=%s first_mask=%s last_mask=%s unique_pcs=%d pc_list=%s\n",
+					window.name,
+					stat.count,
+					stat.first_frame or "-",
+					stat.last_frame or "-",
+					stat.first_pc and string.format("%06X", stat.first_pc) or "-",
+					stat.last_pc and string.format("%06X", stat.last_pc) or "-",
+					stat.first_addr and string.format("%06X", stat.first_addr & 0xFFFFFF) or "-",
+					stat.last_addr and string.format("%06X", stat.last_addr & 0xFFFFFF) or "-",
+					stat.first_data and string.format("%04X", stat.first_data & 0xFFFF) or "-",
+					stat.last_data and string.format("%04X", stat.last_data & 0xFFFF) or "-",
+					stat.first_mask and string.format("%04X", stat.first_mask & 0xFFFF) or "-",
+					stat.last_mask and string.format("%04X", stat.last_mask & 0xFFFF) or "-",
+					#stat.unique_pc_list,
+					#pcs > 0 and table.concat(pcs, ",") or "-"
+				))
+			else
+				fh:write(string.format(
+					"%s count=%d first_frame=%s last_frame=%s first_pc=%s last_pc=%s first_addr=%s last_addr=%s first_data=%s last_data=%s first_mask=%s last_mask=%s\n",
+					window.name,
+					stat.count,
+					stat.first_frame or "-",
+					stat.last_frame or "-",
+					stat.first_pc and string.format("%06X", stat.first_pc) or "-",
+					stat.last_pc and string.format("%06X", stat.last_pc) or "-",
+					stat.first_addr and string.format("%06X", stat.first_addr & 0xFFFFFF) or "-",
+					stat.last_addr and string.format("%06X", stat.last_addr & 0xFFFFFF) or "-",
+					stat.first_data and string.format("%04X", stat.first_data & 0xFFFF) or "-",
+					stat.last_data and string.format("%04X", stat.last_data & 0xFFFF) or "-",
+					stat.first_mask and string.format("%04X", stat.first_mask & 0xFFFF) or "-",
+					stat.last_mask and string.format("%04X", stat.last_mask & 0xFFFF) or "-"
+				))
+			end
 		else
 			fh:write(string.format("%s count=0\n", window.name))
 		end
@@ -668,6 +820,8 @@ local function reset_state()
 	window_hits = {}
 	symbol_watches = {}
 	write_watch_stats = {}
+	exec_pc_history = {}
+	exec_pc_history_count = 0
 	exception_handlers = {}
 	last_exception_pc = nil
 	last_exception_frame = -999999
@@ -700,9 +854,24 @@ local function arm_trace()
 	add_project_symbol_watches(symbol_map)
 	setup_exception_handlers(symbol_map)
 	install_write_taps()
+	setup_exec_history_hook()
 
 	append_log(string.format("arm: genesistrace armed root=%s symbols=%s", root, symbol_path))
 	append_log(string.format("arm: symbol_watches=%d", #symbol_watches))
+	append_log(string.format(
+		"api_probe writer_pc=%s method=current_pc(cpu.state.PC)",
+		(cpu and cpu.state and cpu.state["PC"]) and "yes" or "no"
+	))
+	append_log(string.format(
+		"api_probe register_snapshot=%s method=cpu.state regs=A0,A1,A4,A5,D2,D3,D6,D7",
+		required_registers_available() and "yes" or "no"
+	))
+	append_log(string.format(
+		"api_probe rolling_pc_history=%s method=%s note=%s",
+		exec_history_available and "yes" or "no",
+		exec_history_method,
+		exec_history_note or "-"
+	))
 	local pc = current_pc()
 	if pc then
 		append_log(string.format("arm: initial_pc=%06x", pc))

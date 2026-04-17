@@ -120,14 +120,28 @@ This ledger tracks the text-writer dispatcher family coverage and is the durable
 
 ### 9) `arcade_pc: 0x03C950` (default path)
 - `genesis_rom_offset`: `0x03CB50`
-- hook symbol: `N/A`
-- patch span: `N/A`
+- hook symbol: `genesistan_hook_text_writer_3c950`
+- patch span: `arcade_pc: 0x03C950..0x03CA37` (`0xE8` bytes)
 - caller site(s): dispatcher fall-through
-- write shape: different from stride-8 sibling set (out of current scope)
-- sentinel behavior: `N/A`
-- game-state reads: includes dispatcher/default-path specific state reads
-- A1 post-advance contract: `PENDING`
-- unique behavior notes: explicitly excluded from Build 0034 scope
-- build introduced: `N/A`
-- build last verified: `0034`
-- implementation status: `OUT OF SCOPE / PENDING`
+- write shape: `A1@+` stride-2 default path; per non-sentinel iter writes ordered as `attr(N) -> tile(N) -> attr(N+1) -> tile(N+1)` with staged FG translation
+- sentinel behavior: fast-fill writes blank tile `0x0180` at cell-N tile slot only, then advances `A1` by `+8`
+- game-state reads: `A4@(3)/(22)/(24)/(26)/(30)/(39)`, `D3` top nibble, `D6` bit 0, `D7` selector/sign, absolute word read at address `0x000010`
+- A1 post-advance contract: exactly `+8` bytes per iteration in all paths
+- unique behavior notes: inlines `arcade_pc: 0x03C8F6` behavior (`D3==0x70 => D1 += A4@(24)`); preserves alt-path absolute word read from `0x000010`; write family differs from stride-8 hooks
+- build introduced: `0035`
+- build last verified: `0035`
+- implementation status: `IMPLEMENTED`
+
+### 10) `arcade_pc: 0x03C2E2` (number renderer)
+- `genesis_rom_offset`: `0x03C4E2`
+- hook symbol: `genesistan_hook_number_renderer_3c2e2`
+- patch span: `arcade_pc: 0x03C2E2..0x03C37B` (`0x9A` bytes)
+- caller site(s): `0x03A546`, `0x03A96E`, `0x03B0AC`, `0x03B426`, `0x03B42C`, `0x03B714` (live); `0x03AC60` (dead via prior patched-site overwrite)
+- write shape: stride-4 digit loop (`A1@+` attr then tile per digit), indexed leading-zero suppression (`A1@(2)`), and `"ALL"` sequence writes (`A1@+`/final `A1@`) translated to staged FG writes
+- sentinel behavior: `count==0xFFFF` enters `"ALL"` path; `count==6` enables leading-zero suppression (`0x30 -> 0x20`)
+- game-state reads: table-driven values at `genesis_rom_offset: 0x03C57C`; `A5` (Genesis WRAM base for A2 relocation)
+- A1 post-advance contract: `+4` bytes per digit in digit loop; `+4` per scanned digit in suppression loop; `"ALL"` literal path net `+2` bytes from entry position
+- unique behavior notes: absolute table access at `0x0003C57C`; `A2 = A5 + (table_a2_value & 0xFFFF)` relocation; all tile codes (`0x30+nibble`, `0x20`, `0x41`, `0x4C`) translated through `genesistan_pc080sn_tile_vram_lut`; all 13 decoded table destinations are FG-range
+- build introduced: `0036`
+- build last verified: `0036`
+- implementation status: `VERIFIED`

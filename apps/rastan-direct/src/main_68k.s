@@ -14,6 +14,8 @@
     .global genesistan_hook_text_writer_3c75c
     .global genesistan_hook_text_writer_3c7a4
     .global genesistan_hook_text_writer_3c830
+    .global genesistan_hook_text_writer_3c950
+    .global genesistan_hook_number_renderer_3c2e2
     .global genesistan_shadow_input_390001
     .global genesistan_shadow_input_390003
     .global genesistan_shadow_input_390005
@@ -844,6 +846,371 @@ genesistan_hook_text_writer_3c4d2:
     movea.l %a1, %a2
     adda.w  #6, %a2
     bsr     .Ltw_store_from_components_at_a2
+    rts
+
+genesistan_hook_text_writer_3c950:
+    movem.l %d4/%d6/%a2/%a3/%a5/%a6, -(%sp)
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    clr.w   %d0
+    clr.w   %d5
+
+    btst    #0, %d6
+    bne.s   .L3c950_dispatch_d6
+    tst.b   %d7
+    beq     .L3c950_alt_loop
+    bra     .L3c950_primary_loop
+
+.L3c950_dispatch_d6:
+    tst.b   3(%a4)
+    bne     .L3c950_primary_loop
+    tst.b   %d7
+    beq     .L3c950_primary_loop
+    bra     .L3c950_alt_loop
+
+.L3c950_primary_loop:
+    bsr     .L3c950_read_opcode
+    tst.w   %d5
+    bne     .L3c950_sentinel_primary
+
+    clr.w   %d7
+    cmpi.b  #0x40, %d3
+    bne.s   .L3c950_primary_check_80
+    addq.w  #1, %d7
+.L3c950_primary_check_80:
+    cmpi.b  #0x80, %d3
+    bne.s   .L3c950_primary_attr
+    ori.w   #0x4000, %d0
+.L3c950_primary_attr:
+    bsr     .L3c950_apply_attr_gate
+    move.w  %d0, %d4
+
+    move.b  (%a0)+, %d1
+    ext.w   %d1
+    add.w   26(%a4), %d1
+    cmpi.b  #0x70, %d3
+    bne.s   .L3c950_primary_tile_ready
+    add.w   24(%a4), %d1
+.L3c950_primary_tile_ready:
+    move.w  %d1, %d0
+    move.w  %d4, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+
+    bsr     .L3c950_compute_next_attr
+
+    move.b  (%a0)+, %d7
+    ext.w   %d7
+    add.w   22(%a4), %d7
+    move.w  %d7, %d0
+    move.w  %d4, %d2
+    movea.l %a1, %a2
+    adda.w  #6, %a2
+    bsr     .Ltw_store_from_components_at_a2
+
+    adda.w  #8, %a1
+.L3c950_primary_iter_done:
+    subq.l  #1, %d2
+    bne     .L3c950_primary_loop
+    bra     .L3c950_done
+
+.L3c950_alt_loop:
+    bsr     .L3c950_read_opcode
+    tst.w   %d5
+    bne     .L3c950_sentinel_primary
+
+    clr.w   %d7
+    cmpi.b  #0x40, %d3
+    bne.s   .L3c950_alt_attr
+    addq.w  #1, %d7
+.L3c950_alt_attr:
+    ori.w   #0x4000, %d0
+    bsr     .L3c950_apply_attr_gate
+    move.w  %d0, %d4
+
+    move.b  (%a0)+, %d1
+    ext.w   %d1
+    add.w   26(%a4), %d1
+    move.w  %d1, %d0
+    move.w  %d4, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+
+    bsr     .L3c950_compute_next_attr
+
+    move.b  (%a0)+, %d7
+    ext.w   %d7
+    neg.w   %d7
+    sub.w   0x0010, %d7
+    add.w   22(%a4), %d7
+    move.w  %d7, %d0
+    move.w  %d4, %d2
+    movea.l %a1, %a2
+    adda.w  #6, %a2
+    bsr     .Ltw_store_from_components_at_a2
+
+    adda.w  #8, %a1
+.L3c950_alt_iter_done:
+    subq.l  #1, %d2
+    bne     .L3c950_alt_loop
+    bra     .L3c950_done
+
+.L3c950_sentinel_primary:
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .L3c950_store_blank_tile_preserve_attr
+    adda.w  #8, %a1
+    bra     .L3c950_primary_iter_done
+
+.L3c950_read_opcode:
+    move.b  (%a0)+, %d0
+    move.b  %d0, %d3
+    andi.b  #0xF0, %d3
+    cmpi.b  #0xFF, %d0
+    bne.s   .L3c950_read_done
+    moveq   #1, %d5
+.L3c950_read_done:
+    rts
+
+.L3c950_apply_attr_gate:
+    btst    #6, 39(%a4)
+    beq.s   .L3c950_apply_done
+    move.b  39(%a4), %d0
+.L3c950_apply_done:
+    rts
+
+.L3c950_compute_next_attr:
+    clr.w   %d0
+    move.b  (%a0)+, %d0
+    tst.w   %d7
+    beq.s   .L3c950_next_add
+    neg.w   %d0
+.L3c950_next_add:
+    add.w   30(%a4), %d0
+    move.w  %d0, %d4
+    clr.w   %d0
+    rts
+
+.L3c950_store_blank_tile_preserve_attr:
+    movem.l %d0/%d1/%d4-%d7, -(%sp)
+
+    move.l  %a2, %d4
+    andi.l  #0x00FFFFFF, %d4
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d4
+    blo.s   .L3c950_blank_done
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d4
+    bhs.s   .L3c950_blank_done
+
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d4
+    lsr.l   #2, %d4
+    move.w  %d4, %d6
+    andi.w  #0x003F, %d6
+    move.w  %d4, %d5
+    lsr.w   #6, %d5
+    andi.w  #0x001F, %d5
+
+    move.w  %d5, %d7
+    lsl.w   #7, %d7
+    add.w   %d6, %d7
+    add.w   %d6, %d7
+
+    move.w  0(%a6,%d7.w), %d1
+    andi.w  #0xF800, %d1
+
+    move.w  #0x0180, %d0
+    andi.w  #0x3FFF, %d0
+    add.w   %d0, %d0
+    move.w  0(%a3,%d0.w), %d0
+    or.w    %d0, %d1
+
+    move.w  %d1, 0(%a6,%d7.w)
+
+    move.l  fg_row_dirty, %d1
+    bset    %d5, %d1
+    move.l  %d1, fg_row_dirty
+
+.L3c950_blank_done:
+    movem.l (%sp)+, %d0/%d1/%d4-%d7
+    rts
+
+.L3c950_done:
+    movem.l (%sp)+, %d4/%d6/%a2/%a3/%a5/%a6
+    rts
+
+genesistan_hook_number_renderer_3c2e2:
+    movem.l %d0-%d7/%a0/%a2-%a6, -(%sp)
+
+    move.w  %d0, %d6
+    mulu.w  #10, %d6
+    movea.l #0x0003C57C, %a0
+    adda.w  %d6, %a0
+
+    move.w  (%a0), %d3
+    movea.l 2(%a0), %a1
+    move.l  6(%a0), %d2
+    move.w  %d3, %d7
+
+    move.l  %a1, %d6
+    andi.l  #0x00FFFFFF, %d6
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d6
+    blo     .Lnr3c2e2_done
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d6
+    bhs     .Lnr3c2e2_done
+
+    move.l  %a1, %d4
+
+    movea.l %a5, %a4
+    andi.l  #0x0000FFFF, %d2
+    adda.l  %d2, %a4
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    clr.w   %d5
+
+    cmpi.w  #-1, %d3
+    beq     .Lnr3c2e2_all_handler
+    bra     .Lnr3c2e2_digit_loop
+
+.Lnr3c2e2_all_handler:
+    moveq   #0, %d1
+    move.b  (%a4), %d1
+    andi.w  #0x000F, %d1
+    cmpi.w  #0x0007, %d1
+    bne.s   .Lnr3c2e2_all_single_digit
+
+    movea.l %d4, %a1
+    suba.w  #8, %a1
+
+    move.w  #0x0041, %d0
+    move.w  %d5, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+    adda.w  #4, %a1
+
+    move.w  #0x004C, %d0
+    move.w  %d5, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+    adda.w  #4, %a1
+
+    move.w  #0x004C, %d0
+    move.w  %d5, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+
+    movea.l %d4, %a1
+    adda.w  #2, %a1
+    bra     .Lnr3c2e2_done
+
+.Lnr3c2e2_all_single_digit:
+    movea.l %d4, %a1
+    moveq   #1, %d3
+
+.Lnr3c2e2_digit_loop:
+    btst    #0, %d3
+    beq.s   .Lnr3c2e2_high_nibble
+
+    moveq   #0, %d1
+    move.b  (%a4), %d1
+    andi.w  #0x000F, %d1
+    ori.w   #0x0030, %d1
+    subq.l  #1, %a4
+    bra.s   .Lnr3c2e2_emit_digit
+
+.Lnr3c2e2_high_nibble:
+    moveq   #0, %d1
+    move.b  (%a4), %d1
+    lsr.w   #4, %d1
+    andi.w  #0x000F, %d1
+    ori.w   #0x0030, %d1
+
+.Lnr3c2e2_emit_digit:
+    move.w  %d1, %d0
+    move.w  %d5, %d2
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Ltw_store_from_components_at_a2
+    adda.w  #4, %a1
+
+    subq.w  #1, %d3
+    bne     .Lnr3c2e2_digit_loop
+
+    cmpi.w  #6, %d7
+    bne     .Lnr3c2e2_done
+
+    moveq   #6, %d3
+    movea.l %d4, %a1
+
+    move.w  #0x0030, %d0
+    andi.w  #0x3FFF, %d0
+    add.w   %d0, %d0
+    move.w  0(%a3,%d0.w), %d6
+
+.Lnr3c2e2_suppress_loop:
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    bsr     .Lnr3c2e2_read_staged_cell_at_a2
+    cmpi.w  #-1, %d1
+    beq     .Lnr3c2e2_done
+
+    move.w  %d1, %d0
+    andi.w  #0x07FF, %d0
+    cmp.w   %d6, %d0
+    bne     .Lnr3c2e2_done
+
+    move.w  #0x0020, %d0
+    move.w  %d5, %d2
+    bsr     .Ltw_store_from_components_at_a2
+
+    adda.w  #4, %a1
+    subq.w  #1, %d3
+    bne     .Lnr3c2e2_suppress_loop
+
+.Lnr3c2e2_done:
+    movem.l (%sp)+, %d0-%d7/%a0/%a2-%a6
+    rts
+
+.Lnr3c2e2_read_staged_cell_at_a2:
+    movem.l %d2/%d5-%d7, -(%sp)
+
+    move.l  %a2, %d2
+    andi.l  #0x00FFFFFF, %d2
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d2
+    blo.s   .Lnr3c2e2_read_oob
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs.s   .Lnr3c2e2_read_oob
+
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d2
+    lsr.l   #2, %d2
+
+    move.w  %d2, %d6
+    andi.w  #0x003F, %d6
+    move.w  %d2, %d5
+    lsr.w   #6, %d5
+    andi.w  #0x001F, %d5
+
+    move.w  %d5, %d7
+    lsl.w   #7, %d7
+    add.w   %d6, %d7
+    add.w   %d6, %d7
+    move.w  0(%a6,%d7.w), %d1
+    bra.s   .Lnr3c2e2_read_done
+
+.Lnr3c2e2_read_oob:
+    move.w  #-1, %d1
+
+.Lnr3c2e2_read_done:
+    movem.l (%sp)+, %d2/%d5-%d7
     rts
 
 genesistan_hook_text_writer_3c550:

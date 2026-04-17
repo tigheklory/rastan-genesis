@@ -1,9 +1,12 @@
 ==== genesistrace start rom=genesis game=Genesis (USA, NTSC) machine=genesis ====
 arm: genesistrace armed root=/home/tighe/projects/rastan-genesis symbols=/home/tighe/projects/rastan-genesis/apps/rastan/out/symbol.txt
 arm: symbol_watches=28
+api_probe writer_pc=yes method=current_pc(cpu.state.PC)
+api_probe register_snapshot=yes method=cpu.state regs=A0,A1,A4,A5,D2,D3,D6,D7
+api_probe rolling_pc_history=no method=not_available note=cpu:add_exec unavailable in MAME Lua API
 arm: initial_pc=000000
 [frame 000000] live_write vdp_ports_live pc=070100 addr=c00004 data=8004 mask=ffff count=1
-[frame 000001] exec_enter pc=070efa range=other
+[frame 000001] exec_enter pc=071252 range=other
 [frame 000007] first_symbol_change arcade_flag_34 addr=ff0080 0->6
 [frame 000030] pc=070022 exec=other
 [frame 000060] pc=07001e exec=other
@@ -16,7 +19,6 @@ arm: initial_pc=000000
 [frame 000150] pc=070022 exec=other
 [frame 000150] window_change wram_ff0000
 [frame 000150] window_change z80_ctrl
-[frame 000170] live_write fg_cwindow_live pc=03c52a addr=c09ea0 data=0000 mask=ffff count=1
 [frame 000171] first_symbol_change dip1 addr=ff0005 0->1
 [frame 000173] symbol_change dip1 addr=ff0005 1->0
 [frame 000180] pc=07001e exec=other
@@ -63,84 +65,87 @@ arm: initial_pc=000000
 [frame 000391] first_symbol_change arcade_mode4 addr=ff0050 0->202
 [frame 000391] first_symbol_change arcade_stage addr=ff018a 0->4E73
 [frame 000391] symbol_change arcade_flag_34 addr=ff0080 6->202
+[frame 000420] pc=00000c exec=other
 [frame 000420] window_change wram_ff0000
 [frame 000420] window_change z80_ctrl
-[frame 000450] pc=205741 exec=other
+[frame 000450] pc=000202 exec=other
 [frame 000450] window_change z80_ctrl
-[frame 000480] pc=000202 exec=other
 [frame 000480] window_change z80_ctrl
-[frame 000510] pc=00000c exec=other
+[frame 000510] pc=205741 exec=other
 [frame 000510] window_change z80_ctrl
+[frame 000540] pc=000010 exec=other
 [frame 000540] window_change vdp_ports
 [frame 000540] window_change z80_ctrl
-[frame 000570] pc=000010 exec=other
+[frame 000570] pc=000202 exec=other
 [frame 000570] window_change z80_ctrl
-[frame 000600] pc=000202 exec=other
+[frame 000600] pc=000010 exec=other
 [frame 000600] window_change z80_ctrl
-[frame 000630] pc=000010 exec=other
+[frame 000630] pc=000202 exec=other
 [frame 000630] window_change z80_ctrl
-[frame 000660] pc=000202 exec=other
+[frame 000660] pc=000010 exec=other
 [frame 000660] window_change z80_ctrl
+[frame 000690] pc=000202 exec=other
 [frame 000690] window_change z80_ctrl
-[frame 000720] pc=000000 exec=other
 [frame 000720] window_change z80_ctrl
+[frame 000750] pc=000000 exec=other
 [frame 000750] window_change z80_ctrl
-[frame 000780] pc=000000 exec=other
 [frame 000780] window_change z80_ctrl
+[frame 000810] pc=000010 exec=other
 [frame 000810] window_change z80_ctrl
-[frame 000840] pc=000010 exec=other
+[frame 000840] pc=000202 exec=other
 [frame 000840] window_change z80_ctrl
-[frame 000870] pc=000202 exec=other
+[frame 000870] pc=000010 exec=other
 [frame 000870] window_change z80_ctrl
-[frame 000900] pc=000010 exec=other
+[frame 000900] pc=000202 exec=other
 [frame 000900] window_change z80_ctrl
-[frame 000930] pc=000202 exec=other
+[frame 000930] pc=000010 exec=other
 [frame 000930] window_change z80_ctrl
+[frame 000960] pc=000202 exec=other
 [frame 000960] window_change z80_ctrl
-[frame 000990] pc=000000 exec=other
 [frame 000990] window_change z80_ctrl
+[frame 001020] pc=000000 exec=other
 [frame 001020] window_change z80_ctrl
-[frame 001050] pc=000000 exec=other
 [frame 001050] window_change z80_ctrl
+[frame 001080] pc=000010 exec=other
 [frame 001080] window_change z80_ctrl
-[frame 001110] pc=000010 exec=other
+[frame 001110] pc=000202 exec=other
 [frame 001110] window_change z80_ctrl
-[frame 001140] pc=000202 exec=other
+[frame 001140] pc=000010 exec=other
 [frame 001140] window_change z80_ctrl
-[frame 001170] pc=000010 exec=other
+[frame 001170] pc=000202 exec=other
 [frame 001170] window_change z80_ctrl
-[frame 001200] pc=000202 exec=other
+[frame 001200] pc=000010 exec=other
 [frame 001200] window_change z80_ctrl
+[frame 001230] pc=000202 exec=other
 [frame 001230] window_change z80_ctrl
-[frame 001260] pc=000000 exec=other
 [frame 001260] window_change z80_ctrl
+[frame 001290] pc=000000 exec=other
 [frame 001290] window_change z80_ctrl
-[frame 001320] pc=000010 exec=other
 [frame 001320] window_change z80_ctrl
+[frame 001350] pc=000010 exec=other
 [frame 001350] window_change z80_ctrl
-[frame 001380] pc=000010 exec=other
+[frame 001380] pc=000202 exec=other
 [frame 001380] window_change z80_ctrl
-[frame 001410] pc=000202 exec=other
+[frame 001410] pc=000010 exec=other
 [frame 001410] window_change z80_ctrl
-[frame 001440] pc=000010 exec=other
+[frame 001440] pc=000202 exec=other
 [frame 001440] window_change z80_ctrl
-[frame 001470] pc=000202 exec=other
 [frame 001470] window_change z80_ctrl
+[frame 001500] pc=000202 exec=other
 [frame 001500] window_change z80_ctrl
-[frame 001530] pc=000000 exec=other
 [frame 001530] window_change z80_ctrl
+[frame 001560] pc=000000 exec=other
 [frame 001560] window_change z80_ctrl
-[frame 001590] pc=000010 exec=other
 [frame 001590] window_change z80_ctrl
-[frame 001620] pc=000202 exec=other
+[frame 001620] pc=000010 exec=other
 [frame 001620] window_change z80_ctrl
-[frame 001650] pc=000010 exec=other
+[frame 001650] pc=000202 exec=other
 [frame 001650] window_change z80_ctrl
-[frame 001680] pc=000202 exec=other
+[frame 001680] pc=000010 exec=other
 [frame 001680] window_change z80_ctrl
-[frame 001710] pc=000010 exec=other
+[frame 001710] pc=000202 exec=other
 [frame 001710] window_change z80_ctrl
-[frame 001740] pc=000202 exec=other
 [frame 001740] window_change z80_ctrl
+[frame 001770] pc=000000 exec=other
 [frame 001770] window_change z80_ctrl
 ==== genesistrace stop ====

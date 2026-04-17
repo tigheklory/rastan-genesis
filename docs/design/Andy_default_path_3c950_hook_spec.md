@@ -450,3 +450,13 @@ Cody work items:
    is a tooling decision; this spec does not require it for
    correctness validation since the BlastEm crash is the primary
    Build 0035 success signal.
+
+## Implementation Status — Build 0035
+
+- Hook implemented: YES (`genesistan_hook_text_writer_3c950` in `apps/rastan-direct/src/main_68k.s`).
+- Spec matched source cleanly: YES.
+- `0x03C8F6` inlined: YES (`D3==0x70` path adds `A4@(24)` directly in the hook).
+- `0x000010` read preserved as absolute word read: YES (`sub.w 0x0010,%d7` in alt path).
+- Patch entry added: YES (`arcade_pc: 0x03C950`, span `0xE8`) in `specs/rastan_direct_remap.json`.
+- Validation result summary: Build/trace validation performed in Build 0035 run; see `AGENTS_LOG.md` entry and coverage ledger status for latest runtime outcome.
+- Tracking artifact pointer: `docs/design/handler_translation_coverage.md`.

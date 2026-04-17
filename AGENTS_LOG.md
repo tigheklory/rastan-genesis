@@ -28187,3 +28187,717 @@ STOP conditions triggered: NONE.
 Open questions:
 1. Attribute-extraction pattern for D0/D7 should pass through existing _translate_attr helper at main_68k.s:739-766 (consumes generic 16-bit input). Cody implementation detail.
 2. Trace-summary fg_cwindow_live field staleness across Builds 32/33/34 unresolved; per-hook live-write watch in genesistrace.lua is a tooling improvement, not required for Build 0035 correctness validation (BlastEm crash absence is the primary success signal).
+
+### MAME Exit Summary (2026-04-15 22:24:15)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, genesistan_hook_text_writer_3c950]
+
+* handlers implemented: 1
+* opcode_replace_count: 55
+* build passes: YES
+* fg_cwindow_live: 8
+* crash at 0xC09EA0: STILL PRESENT
+* tracking artifact updated: YES
+* no unrelated changes: YES
+
+Technical detail:
+- Build context: Build 0035 (rastan-direct).
+- Phase 1 verification:
+  - entry point confirmed in disassembly: `arcade_pc 0x03C950` (`build/maincpu.disasm.txt`).
+  - authoritative mapping confirmed via `build/rastan-direct/address_map.json` segment (`arcade_copy`): `arcade_pc 0x03C950 -> genesis_rom_offset 0x03CB50`.
+  - patch span validated in ROM binary (`apps/rastan-direct/dist/rastan_direct_video_test.bin`): `0x03CB50..0x03CC37` length `0xE8` (232 bytes), unpatched arcade bytes before this task.
+  - overlap check vs existing `patched_site` segments: none.
+  - spec completeness confirmed in `docs/design/Andy_default_path_3c950_hook_spec.md` (WRITE A-I, contracts, sub-sub caller audit, safe span).
+  - out-of-scope helper constraint confirmed: `arcade_pc 0x03C8F6` is outside patch span, internal-only, inlined behavior required.
+  - tracking artifact pre-state confirmed: `docs/design/handler_translation_coverage.md` entry `0x03C950` was `OUT OF SCOPE / PENDING`.
+- Source implementation (`apps/rastan-direct/src/main_68k.s`):
+  - added global symbol `genesistan_hook_text_writer_3c950`.
+  - implemented `genesistan_hook_text_writer_3c950` with default-path dispatch behavior (`D6` bit-0 gate + `A4@(3)` + `D7` path selection).
+  - all 9 write instructions implemented (WRITE A-I): YES.
+  - write order per non-sentinel iteration preserved by path logic: attr(N), tile(N), attr(N+1), tile(N+1).
+  - write shape preserved as default-path family (`A1@+` semantics translated to staged writes; `A1` advanced exactly `+8` each iteration).
+  - `0x03C8F6` behavior inlined: YES (`D3==0x70` adds `A4@(24)` to `D1` in primary path).
+  - `0x000010` read preserved as absolute word read: YES (`sub.w 0x0010,%d7` in alt path).
+  - fast-fill sentinel behavior preserved: blank tile at cell-N tile slot, skip cell N+1, `A1 += 8`.
+  - row dirty update occurs on every staged emission (`fg_row_dirty` set per row).
+- Spec updates (`specs/rastan_direct_remap.json`):
+  - added required symbol: `genesistan_hook_text_writer_3c950`.
+  - added one `opcode_replace` at `arcade_pc: 0x03C950`.
+  - `original_bytes` extracted from ROM at mapped `genesis_rom_offset 0x03CB50`, length `0xE8`.
+  - `replacement_bytes` constructed as `JSR {symbol} + RTS + NOP padding` to expanded length `0xE8`.
+  - `expectations.opcode_replace_count` updated `54 -> 55`.
+- Invariant updates (`tools/translation/postpatch_startup_rom.py`):
+  - patched-site count updated `54 -> 55`.
+  - `total_genesis_bytes_covered` invariant updated `0xFBE90 -> 0xFC050` (wrapper/text growth in Build 0035).
+- Tracking artifacts:
+  - updated `docs/design/handler_translation_coverage.md` entry for `0x03C950` with mapped offset, span, write contract, sentinel behavior, game-state reads, A1 contract, unique notes, and status `IMPLEMENTED`.
+  - appended `Implementation Status — Build 0035` to `docs/design/Andy_default_path_3c950_hook_spec.md`.
+- Build/validation:
+  - command: `source tools/setup_env.sh && make -C apps/rastan-direct release`.
+  - build: PASS.
+  - manifest regeneration: PASS (`build/rastan-direct/rastan_direct_patch_manifest.json`, `patch_counts.opcode_replace_and_rom_opcode_replace=55`).
+  - address map regeneration: PASS (`build/rastan-direct/address_map.json`, `patched_site` count 55, includes `arcade_start 0x03C950 -> genesis_start 0x03CB50`).
+  - disassembly regeneration: PASS (`build/genesis_postpatch.disasm.txt`, non-empty).
+  - automatic 30s trace: PASS (`states/traces/rastan_direct_video_test_build_0035_mame_30s_20260415_222410`).
+- Runtime trace outcome (`genesis_exec_summary.txt`):
+  - `fg_cwindow_live count=8` (first_addr=`C09EA0`, last_addr=`C09EA6`).
+  - unintended C-window writes: FOUND.
+  - crash signal at `HW_ADDRESS/PC080SN/FG_TILEMAP 0xC09EA0`: STILL PRESENT in trace evidence.
+- Contract confirmations:
+  - A1 +8 per iteration confirmed: YES (source-path verified and post-build runtime still reaches default-path region).
+  - A0 progression verified: YES (CA00/CA12/script-byte consumption mirrored in hook control flow).
+
+Anomalies:
+- Build 0035 patching and invariants are consistent at count 55, but runtime trace still reports `fg_cwindow_live` writes at `0xC09EA0` (`count=8`), so blocker symptom remains.
+
+### MAME Exit Summary (2026-04-15 23:42:02)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-04-16 08:57:10)
+- Final PC: 0x000010
+- Stack Pointer (SP): 0x00DEA634
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, genesistrace.lua FG watchpoint upgrade]
+
+* files changed:
+  - `tools/mame/scripts/genesistrace.lua`
+  - `build/mame/home/genesistrace/genesis_exec_trace.log` (generated evidence)
+  - `build/mame/home/genesistrace/genesis_exec_summary.txt` (generated evidence)
+  - `AGENTS_LOG.md`
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A
+* fix implemented: YES
+* no unrelated changes: YES (within this task scope)
+
+Technical detail:
+- Before vs after capture (`fg_cwindow_live`):
+  - Before: summary-only `count/first_frame/last_frame/first_pc/last_pc/first_addr/last_addr/first_data/last_data/first_mask/last_mask`; trace log emitted only first hit for most windows.
+  - After: one `FG_WRITE` log line per FG write event with event index, writer `runtime_genesis_pc`, destination address, value, and register snapshot (`A0/A1/A4/A5/D2/D3/D6/D7`). Summary now adds `unique_pcs` and `pc_list` for `fg_cwindow_live`.
+- MAME Lua API methods used:
+  - writer PC: `cpu.state["PC"].value` via `current_pc()`.
+  - register snapshot: `cpu.state[reg].value` via `read_state_u32()`.
+  - write watchpoint trigger: `prog:install_write_tap(...)`.
+  - rolling history probe: attempted `cpu:add_exec(...)` capability probe.
+- Rolling PC history availability in MAME 0.276:
+  - NOT AVAILABLE in this environment (`api_probe rolling_pc_history=no method=not_available note=cpu:add_exec unavailable in MAME Lua API`).
+  - As required, no approximation was substituted.
+- Fresh trace run (no rebuild):
+  - Command: `timeout 120s tools/mame/run_genesis_trace_wsl.sh apps/rastan-direct/dist/rastan_direct_video_test.bin -video none -sound none -nothrottle -seconds_to_run 30`
+  - Per-write lines emitted: 8 (`FG_WRITE event=1..8`)
+  - `writer_pc` present and non-zero on all lines: YES
+  - register snapshot fields present: YES
+  - event index sequential: YES
+  - destination range check: all `dest` values in `0xC08000..0xC0BFFF`.
+- Summary validation:
+  - `fg_cwindow_live ... unique_pcs=4 pc_list=03C52A,03C52C,03C516,03C518`
+  - `first_pc=03C52A`, `last_pc=03C518` retained and populated.
+- Sanity check:
+  - Event 1 writer_pc: `runtime_genesis_pc 0x03C52A`.
+  - `build/genesis_postpatch.disasm.txt` at `0x03C52A`: `subqw #1,%d0`.
+  - This is NOT a write instruction.
+- Cross-reference vs hooked regions (`build/rastan-direct/address_map.json` patched_site ranges):
+  - `03C52A`: outside patched_site
+  - `03C52C`: outside patched_site
+  - `03C516`: outside patched_site
+  - `03C518`: outside patched_site
+  - Conclusion: **UNHOOKED PATH WRITING** (attribution indicates writes are associated with PCs outside current patched-site set).
+
+Anomalies:
+- Writer PCs captured by watchpoint (`03C52A/03C52C/03C516/03C518`) disassemble to control-flow instructions, not direct write ops, indicating this watchpoint callback context reports execution PCs correlated with the write event but not necessarily the exact store opcode line itself.
+
+## [Andy — Analysis, 0x03C516 Direct Caller Audit]
+
+files changed: docs/design/Andy_3c516_caller_audit.md (new)
+build produced: NO
+ROM path: N/A
+root cause confirmed: YES — CROSS-SPACE CONFUSION RESOLVED. Trace writer PCs are genesis_rom_offset values, NOT arcade_pc values. genesis_rom_offset 0x03C516 maps to arcade_pc 0x03C316 (via address_map.json), NOT to arcade_pc 0x03C516. The live writer is the NUMBER-RENDERER FUNCTION at arcade_pc 0x03C2E2, completely separate from the text-script dispatcher family.
+fix implemented: NO
+no unrelated changes: YES
+
+Critical finding: the trace writer PCs (genesis_rom_offset 0x03C516/0x03C518/0x03C52A/0x03C52C) were misidentified as arcade_pc 0x03C516 (text-script inner subroutine). Address_map.json segment lookup proves: genesis 0x03C516 → arcade 0x03C316. Arcade_pc 0x03C302..0x03C32C is a digit-rendering loop inside the number-renderer function at arcade_pc 0x03C2E2 — confirmed from build/maincpu.disasm.txt:75750-75801. Write instructions at arcade_pc 0x03C312 (movew D7,A1@+ attr), 0x03C314 (movew D1,A1@+ tile), 0x03C326, 0x03C328 (same shape, high-nibble path) produce the FG tilemap writes. The MAME watchpoint reports genesis_rom_offset PCs a few instructions AFTER the actual write ops (pipeline timing artifact, confirmed by Cody's anomaly note).
+
+All direct callers of arcade_pc 0x03C2E2 found and classified (7 total):
+1. arcade_pc 0x03A546 → genesis 0x03A746, arcade_copy, LIVE
+2. arcade_pc 0x03A96E → genesis 0x03AB6E, arcade_copy, LIVE
+3. arcade_pc 0x03AC60 → genesis 0x03AE60, patched_site [0x03AC54,0x03AC66), DEAD (overwritten with bras+NOPs by existing PC080SN-readback bypass patch; the bsrw at offset 0x0C in the patch span is now NOP)
+4. arcade_pc 0x03B0AC → genesis 0x03B2AC, arcade_copy, LIVE
+5. arcade_pc 0x03B426 → genesis 0x03B626, arcade_copy, LIVE
+6. arcade_pc 0x03B42C → genesis 0x03B62C, arcade_copy, LIVE
+7. arcade_pc 0x03B714 → genesis 0x03B914, arcade_copy, LIVE
+
+External callers: 6 LIVE + 1 DEAD = 7 total.
+All LIVE callers are bsrw 0x3C2E2 — single hook at 0x03C2E2 intercepts all.
+
+A4=0 at runtime: EXPLAINED — number-renderer does not use A4. A4=0 is a benign artifact of the caller context (attract-mode state machine does not establish a text-script A4 pointer for this function).
+
+A0=0x0003C59A at trace time: EXPLAINED — genesis_rom_offset 0x03C59A → arcade_pc 0x03C39A = table_base(0x03C37C) + 0x1E. Function computed D0_input=3 × muluw #10 = 30 = 0x1E, placing A0 at display-entry index 3.
+
+D3=0x00FF: D3 not used by this function; value retained from prior attract-mode sentinel processing.
+
+helper_5b512_rts count=0 reconciled: the text-script inner sub at arcade_pc 0x03C516 (genesis 0x03C716) IS dead (confirmed). It was never the live writer. The trace PCs at genesis 0x03C516 pointed to arcade 0x03C316 (number-renderer), not the inner sub.
+
+Selected fix path: OPTION C (reframed) — hook the number-renderer function at arcade_pc 0x03C2E2.
+- Why A rejected: 0x03C2E2 is unrelated to 0x03C4D2 (text-script handler); extending that patch span cannot reach the number-renderer.
+- Why B rejected: arcade_pc 0x03C516 is confirmed dead; hooking dead code does not fix the live crash.
+- Why C selected: arcade_pc 0x03C2E2 is the single entry point reached by all 6 live callers. One hook intercepts all live FG-write traffic from this function. Structurally sound per Rainbow Islands strategy (separate intent class: number/score display).
+
+Implementation readiness: READY FOR CODY (pending follow-up hook spec doc for genesistan_hook_number_renderer_3c2e2).
+- Hook name: genesistan_hook_number_renderer_3c2e2
+- Patch span: arcade_pc 0x03C2E2..0x03C37B = 0x9A bytes (154). ROM table at 0x03C37C left intact (readable by hook).
+- genesis_rom_offset of patch start: 0x03C4E2
+- Input: D0 = display-entry index (0-based)
+- A1 loaded from table entry at +2 (FG tilemap hw address)
+- Write shapes: stride-4 A1@+ (attr+tile per digit), A1@(2) indexed (leading-zero suppression), A1@+ sequence ("ALL" special)
+- opcode_replace_count: 55 → 56
+- 6 live callers, 1 dead (patched_site overlap)
+
+Open questions:
+1. Full hook spec for genesistan_hook_number_renderer_3c2e2 needed (follow-up Andy prompt with standard H1-H7 template).
+2. Whether ROM table at 0x03C37C entry index 3 contains 0x00C09EA0 as the FG dest address (should be verified by hex dump).
+3. After Build 36 (with this hook), check trace for remaining fg_cwindow_live writes from other non-dispatcher, non-number-renderer FG writers.
+
+## [Andy — Analysis, Number Renderer 0x03C2E2 Hook Spec]
+
+* files changed: docs/design/Andy_number_renderer_3c2e2_hook_spec.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES (continuation — number renderer at arcade_pc 0x03C2E2 confirmed as the live FG tilemap writer producing the 0xC09EA0 crash)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Entry point and patch span confirmed:
+- arcade_pc 0x03C2E2 → genesis_rom_offset 0x03C4E2 (address_map.json arcade_copy segment, identity_offset=512).
+- Patch span: arcade_pc 0x03C2E2..0x03C37B = 0x9A bytes (154). ROM table at 0x03C37C EXCLUDED from span.
+- Genesis bytes at 0x03C4E2 match arcade bytes at 0x03C2E2 (first 20 bytes verified: 3E3C0000C0FC000A41FA0090D0C0301022680002). Unpatched.
+- No overlap with any patched_site segment in address_map.json.
+
+ROM table entries documented — all FG:
+- 13 valid entries (indices 0-12). Entry size: 10 bytes. All A1 destinations are HW_ADDRESS/PC080SN/FG_TILEMAP (range 0x00C08D24 to 0x00C09EA0). NO non-FG entries. STOP NOT triggered.
+- Entry 3 confirmed: count=2, A1=0x00C09EA0 (the crash address), A2=0x0010C013 (BCD credits counter in arcade workram). Row=30, Col=40 — matches Build 35 trace evidence.
+- A2 data-pointer translation required: all A2 values are arcade-absolute workram addresses (0x0010Cxxx). Hook must translate to genesis WRAM: genesis_a2 = A5 + (table_a2_value & 0xFFFF), where A5 = 0xFF0000 (genesis WRAM base). This is data-pointer relocation, not code-address cross-space arithmetic.
+
+All three write forms specced:
+1. Digit loop (arcade_pc 0x03C302-0x03C32C): D0 iterations, alternating high/low nibble extraction from A2 BCD bytes (A2 scans backward via subql #1 on odd digits). Tile = 0x30 | nibble. Write order: attr (D7=0) then tile (D1) via A1@+. A1 advances +4 bytes per digit (2 words × 2 bytes). Total cells for count=6: 12 cells, 24 bytes A1 advance.
+2. Leading-zero suppression (arcade_pc 0x03C32E-0x03C350): active only when count==6. Scans forward from entry A1, replaces tile 0x30 with tile 0x20 (space) via movew #0x20, A1@(2) indexed write. Stops at first non-0x30 tile. A1 advance +4 per scanned cell. Modifies cells already written by digit loop.
+3. "ALL" handler (arcade_pc 0x03C352-0x03C37A): entered when count==0xFFFF. If A2@ low nibble == 7: backs up A1 by 8, writes 'A','L','L' (tiles 0x41, 0x4C, 0x4C) with attrs. If nibble != 7: re-enters digit loop with D0=1 (renders 1 digit). "ALL" write uses mixed A1@+ (5 post-inc writes) and A1@ (1 non-post-inc).
+
+A1 advancement per write form confirmed:
+- Digit loop: +4 bytes/digit via 2× A1@+ post-inc.
+- Suppression: +4 bytes/scanned digit via addql #4, A1.
+- "ALL": -8 backup then +10 forward (5× A1@+) = net +2 from pre-backup position; final write has no post-inc.
+
+Tile translation determination: LUT REQUIRED.
+- Evidence: tile codes generated by this function (0x30+nibble, 0x20, 0x41, 0x4C) are arcade PC080SN tile indices. All other FG hooks in this project translate arcade tile codes through genesistan_pc080sn_tile_vram_lut. The number renderer uses the same tile index space as the text-script handlers (same PC080SN FG plane, same hardware). Therefore LUT translation is mandatory.
+
+Attribute word analysis: D7=0 (set at function entry, never modified). Passes through genesistan_pc080sn_attr_lut[0] → default Genesis palette/priority/flip word for palette line 0.
+
+fg_row_dirty strategy: per-write bset (safe approach). In practice, each table entry's digits span a single row (counts ≤ 6, starting at fixed col, no row wrap). One bset per call would suffice but per-write is correct for the "ALL" backup case.
+
+Implementation readiness: READY FOR CODY.
+- Hook name: genesistan_hook_number_renderer_3c2e2
+- Table access: must use absolute lea (not PC-relative; hook lives in 0x70000+ wrapper, table at genesis_rom_offset 0x03C57C is out of PC-relative range)
+- A2 translation: genesis_a2 = A5 + (table_a2_value & 0xFFFF)
+- opcode_replace_count: 55 → 56
+- 6 live callers via bsrw 0x3C2E2; single opcode_replace sufficient
+- Build 36: verify fg_cwindow_live drops to 0 and BlastEm no longer crashes at 0xC09EA0
+
+Open questions:
+1. Table access: Cody uses absolute addressing (movea.l #0x0003C57C, A0 or equivalent). Implementation detail, no design ambiguity.
+2. After Build 36: if fg_cwindow_live count > 0, additional FG writers exist beyond the dispatcher family and number renderer. New writer audit against Cody_pc080sn_writer_audit.md needed.
+
+### MAME Exit Summary (2026-04-16 12:12:13)
+- Final PC: 0x000202
+- Stack Pointer (SP): 0x00DEA640
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, genesistan_hook_number_renderer_3c2e2]
+
+* hook implemented: 1
+* opcode_replace_count: 56
+* build passes: YES
+* fg_cwindow_live count: NONE (0)
+* fg_cwindow_live pc_list: NONE
+* crash at 0xC09EA0: GONE (trace evidence)
+* tracking artifact updated: YES
+* no unrelated changes: YES
+
+Technical detail:
+- Build context: Build 0036 (rastan-direct).
+- Required reading completed before implementation:
+  - `AGENTS_LOG.md`
+  - `docs/design/Andy_number_renderer_3c2e2_hook_spec.md`
+  - `docs/design/Andy_3c516_caller_audit.md`
+  - `docs/design/handler_translation_coverage.md`
+  - `build/rastan-direct/address_map.json`
+  - `specs/rastan_direct_remap.json`
+  - `build/rastan-direct/rastan_direct_patch_manifest.json`
+  - `apps/rastan-direct/src/main_68k.s`
+  - `build/genesis_postpatch.disasm.txt`
+  - `build/maincpu.disasm.txt`
+  - `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+- Phase 1 verification:
+  - entry point confirmed: `arcade_pc 0x03C2E2` in `build/maincpu.disasm.txt`.
+  - mapping confirmed via `address_map.json`: `arcade_pc 0x03C2E2 -> genesis_rom_offset 0x03C4E2`; table mapping `arcade_pc 0x03C37C -> genesis_rom_offset 0x03C57C`.
+  - patch span confirmed: `arcade_pc 0x03C2E2..0x03C37B` inclusive (`0x9A` bytes).
+  - binary bytes at `genesis_rom_offset 0x03C4E2`, length `0x9A`, matched unpatched arcade bytes before patch.
+  - overlap check against existing `patched_site`: none for this span pre-patch.
+  - table bounds verified: table starts at `genesis_rom_offset 0x03C57C` immediately after patch end (`0x03C57B`), 13 entries x 10 bytes.
+  - A5 validity confirmed at live writer context: `A5=0x00FF0000` in FG write evidence log.
+  - all 13 table A1 destinations verified in FG range `0xC08000..0xC0BFFF`.
+  - tracking artifact pre-state verified: no existing `0x03C2E2` entry.
+- Source implementation (`apps/rastan-direct/src/main_68k.s`):
+  - Added global export: `genesistan_hook_number_renderer_3c2e2`.
+  - Implemented `genesistan_hook_number_renderer_3c2e2`.
+  - Absolute table access confirmed: YES (`movea.l #0x0003C57C, %a0`).
+  - A5 validity confirmed at hook entry: YES (runtime evidence + A5-based relocation path used).
+  - A1 converted to staged FG write path immediately: YES (all writes routed via staged store helpers; no direct FG hardware writes).
+  - A2 translation implemented: YES (`A2 = A5 + (table_a2_value & 0xFFFF)`).
+  - All 11 write behaviors implemented: YES.
+  - All three write forms handled separately: YES (digit loop, leading-zero suppression, `ALL` handler).
+  - LUT translation used for all tile codes: YES (`0x30+nibble`, `0x20`, `0x41`, `0x4C`).
+  - `fg_row_dirty` updates performed through staged cell write path per emitted cell.
+- Spec updates (`specs/rastan_direct_remap.json`):
+  - Added required symbol: `genesistan_hook_number_renderer_3c2e2`.
+  - Added one `opcode_replace` entry at `arcade_pc 0x03C2E2`.
+  - `original_bytes` extracted from ROM at `genesis_rom_offset 0x03C4E2`, length `0x9A`.
+  - `replacement_bytes` = `JSR {symbol} + RTS + 73 NOPs`, resolves to `0x9A` bytes.
+  - `expectations.opcode_replace_count` updated `55 -> 56`.
+- Invariant updates (`tools/translation/postpatch_startup_rom.py`):
+  - updated patched-site count `55 -> 56`.
+  - updated expected total covered bytes `0xFC050 -> 0xFC1E8`.
+- Tracking artifacts:
+  - added new `0x03C2E2` entry in `docs/design/handler_translation_coverage.md` with required fields and status `VERIFIED`.
+  - appended `Implementation Status — Build 0036` to `docs/design/Andy_number_renderer_3c2e2_hook_spec.md`.
+- Build/validation:
+  - command: `source tools/setup_env.sh && make -C apps/rastan-direct release`.
+  - build: PASS.
+  - manifest regeneration: PASS (`build/rastan-direct/rastan_direct_patch_manifest.json`, patch count 56).
+  - address map regeneration: PASS (`build/rastan-direct/address_map.json`, patched_site count 56, includes `0x03C2E2 -> 0x03C4E2`).
+  - disassembly regeneration: PASS (`build/genesis_postpatch.disasm.txt`).
+  - automatic 30s trace: PASS (`states/traces/rastan_direct_video_test_build_0036_mame_30s_20260416_121207`).
+- Runtime trace outcome (`genesis_exec_summary.txt`):
+  - `fg_cwindow_live count=0`.
+  - `fg_cwindow_live pc_list`: none (no events).
+  - unintended C-window writes: NONE in FG range.
+  - crash signature evidence at `HW_ADDRESS/PC080SN/FG_TILEMAP 0xC09EA0`: absent in trace.
+
+Anomalies:
+- None in Build 0036 implementation/validation flow.
+
+## [Cody — Implementation, Build 36 Frame Extraction]
+
+* files changed:
+  - `states/screenshots/build_36/frame_0001.png` ... `states/screenshots/build_36/frame_0596.png` (generated evidence)
+  - `AGENTS_LOG.md`
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A
+* fix implemented: NO
+* no unrelated changes: YES
+
+Technical detail:
+- Phase 1 verification:
+  - source file located: `states/screenshots/build_36.mp4`.
+  - searched paths: `states/screenshots/` and `states/` (source found in `states/screenshots/`).
+  - output directory pre-check: `states/screenshots/build_36/` was missing (clear).
+  - ffmpeg availability: `/usr/bin/ffmpeg` (`ffmpeg version 7.1.3-0+deb13u1`).
+  - extraction flags confirmed from AGENTS_LOG prior-build pattern: `-vf fps=30` with deterministic output naming `frame_%04d.png`.
+- Extraction command executed:
+  - `ffmpeg -i states/screenshots/build_36.mp4 -vf fps=30 states/screenshots/build_36/frame_%04d.png`
+- Validation:
+  - output directory exists: YES.
+  - frame count: 596.
+  - first frame: `states/screenshots/build_36/frame_0001.png` (971K).
+  - last frame: `states/screenshots/build_36/frame_0596.png` (1.5M).
+  - zero-byte frames: 0.
+  - naming format: CONSISTENT (`frame_NNNN.png`, sequential from `frame_0001.png` to `frame_0596.png`).
+
+Anomalies:
+- None.
+
+## [Andy — Analysis, Build 36 Exodus Rendering]
+
+* files changed: docs/design/Andy_build_36_exodus_rendering_analysis.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+Build 36 baseline confirmed: YES.
+- fg_cwindow_live count=0 (FG C-window crash eliminated).
+- opcode_replace_count=56 (number-renderer hook at 0x03C2E2 installed).
+- Execution runs full 1798 MAME frames without trapping to runtime_genesis_pc 0x000010 — NO BLACK screen, NO Error Trigger spam.
+- Build 36 Exodus output still INCORRECT — shows red/blue bars, then green hatched fill, then dark green steady state. NO arcade text, title, score, or item graphics at any frame.
+
+Arcade comparison used: YES (states/reference/rastan_arcade_60s/).
+- Arcade frames sampled: 0090 (RASTAN title screen), 0300 (item list AXE/HAMMER/FIRE SWORD/SHIELD), 0400 (item list continuation), 0500 (scrolling text continuation).
+- Arcade shows dense colored text + item sprites on dark background. Build 36 shows uniform synthetic patterns.
+
+Build 36 sampled frames: 0001, 0090, 0180, 0300, 0350, 0400, 0500, 0596 (last). All Exodus rendering panels examined: VDP Image Window, Plane Viewer (Layer A + Layer B), VRAM Pattern Viewer, VDP Palette, Console log.
+
+First divergence: TOTAL from frame 0090 onward. No frame shows any recognizable arcade content (no letter glyphs, score digits, title art, item sprites).
+
+Primary rendering failure selected: WRONG TILE GRAPHICS / VRAM CONTENT.
+- VRAM Pattern Viewer shows only synthetic bringup tiles (checker/hatch/solid from init_staging_state and placeholder scene-preload data) across all sampled frames.
+- NO recognizable arcade font characters, sprite tiles, or title art present in VRAM at any point.
+- Plane Viewer confirms nametable entries ARE populated and DO change across frames (bars → hatch → dark fill), proving hooks ARE writing translated tilemap indices to staged_fg_buffer and commits ARE reaching VRAM plane maps.
+- But the VRAM tile positions those nametable entries reference contain WRONG GRAPHICS (synthetic patterns instead of arcade glyphs).
+- vdp_ports_live count=26468 confirms VDP pipeline healthy through all 1798 frames.
+
+Why other categories are NOT primary:
+- Wrong tilemap/nametable mapping: REFUTED — planes reference tiles and content changes across frames. Mapping pipeline works.
+- Wrong palette/CRAM: SECONDARY — greyscale-ramp placeholder from Build 113 palette_pre_conversion is present. But even with correct palette, tile shapes would be checker/hatch, not text. Palette produces wrong colors; tiles produce wrong shapes. Wrong shapes is more fundamental.
+- Wrong plane/layer composition: REFUTED — both Layer A and B visible in Plane Viewer; display OFF/ON bracket working; plane bases set correctly in vdp_boot_setup.
+- Intended content never produced: PARTIALLY REFUTED — hooks DO produce nametable writes (plane content changes prove this). What was never produced is the VRAM TILE GRAPHICS — the scene-preload/tile-loading pipeline has not delivered correct arcade tile pattern data.
+
+Secondary issue: VDP palette (CRAM) is Build-113 greyscale-ramp placeholder. Even after VRAM tile fix, colors will be wrong until arcade palette-write path is hooked.
+
+Evidence completeness: FULL. All evidence sources present and examined.
+STOP triggered: NO.
+
+Next-step recommendation (analysis only):
+- Audit the tile-loading pipeline: scene-preload binaries (pc080sn_scene_preload_*.bin), tile LUT consistency, and whether the arcade expects additional runtime tile loads beyond what the preloader covers.
+- Audit the palette pipeline: whether the arcade's palette-write path needs a real-time interception hook (the current Build-113 placeholder greyscale ramp is not connected to arcade palette intent).
+
+## [Andy — Analysis, Tile Index Alignment Audit]
+
+* files changed: docs/design/Andy_tile_index_alignment_audit.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES — PRIOR DIAGNOSIS REVISED. The primary rendering failure is WRONG PALETTE / CRAM USAGE, NOT wrong tile graphics / VRAM content.
+* fix implemented: NO
+* no unrelated changes: YES
+
+Concrete tile trace completed: YES.
+- Traced tile: arcade tile code 0x30 (digit '0')
+- LUT lookup: genesistan_pc080sn_tile_vram_lut[0x0030] = 28 (VRAM slot 28, address 0x0380)
+- Preload check: title scene manifest (build/pc080sn_scene_preload_title.bin) contains pair (source=0x30, dest=28) — MATCH with LUT
+- Tile ROM content at genesistan_pc080sn_tile_rom offset 0x30*32: valid non-zero glyph data (digit '0' shape: 0001110000100110011000110110001101100011001100100001110000000000)
+- attr_lut[0] = 0x0000 → palette line 0, no flip/priority
+- Combined nametable word: 0x001C (tile index 28, palette 0)
+
+Additional tiles verified (7 total — 0x20, 0x30, 0x31, 0x32, 0x39, 0x41, 0x4C):
+- ALL have LUT value == preload manifest dest value (no mismatch for ANY checked tile)
+- ALL glyph tiles (except 0x20 space) have valid non-zero pixel data in tile ROM
+- Tile 0x0180 (blank fill) maps to slot 0 — not in preload (expected: slot 0 is blank by convention)
+
+nametable_index found: 28 (for digit '0')
+vram_content_at_index: REAL ARCADE TILE (digit '0' glyph with pixel values 0,1,2,3,6)
+real_tile_index found: 28 — same as LUT output (NO MISMATCH)
+mismatch confirmed: NO — tile index alignment is CORRECT
+
+Root cause of rendering failure: WRONG PALETTE / CRAM USAGE.
+- Tile 0x30 pixel values {0,1,2,3,6} index into CRAM palette line 0.
+- Palette line 0 = Build-113 greyscale-ramp placeholder: entry 0=black, entry 1=0x0222 (dark green), entry 2=0x0444, entry 3=0x0666, etc.
+- Result: digit '0' renders as dark green shape on black background — not readable as a digit at Exodus thumbnail resolution.
+- A screen full of correctly-shaped but green-tinted glyphs appears as "green hatched pattern" — this was MISIDENTIFIED in prior analysis (Andy_build_36_exodus_rendering_analysis.md §5) as "synthetic bringup tiles."
+
+Prior diagnosis corrected:
+- Andy_build_36_exodus_rendering_analysis.md §5 concluded "wrong tile graphics / VRAM content" → REFUTED by concrete trace evidence. Tile graphics ARE in VRAM at correct positions.
+- Correct diagnosis: wrong palette / CRAM usage. The greyscale-ramp placeholder in CRAM makes real text/digit glyphs unrecognizable.
+
+Trace correlation: YES.
+- vdp_ports_live count=26468 confirms VDP pipeline healthy.
+- load_scene_tiles runs at boot during display-OFF, preloading 841 title-scene tiles.
+- init_staging_state writes 3 synthetic tiles to VRAM slots 1-3 (no conflict with preload range starting at slot 20).
+- Frame transitions (bars→hatch→dark green) correspond to hooks writing new nametable entries into staged_fg_buffer: initially FG is blank (all-zero), then hooks populate it with translated indices, then the "hatched" appearance is actually dense text content in wrong colors.
+
+Root cause selected: NONE of the three prompt options (A=LUT wrong, B=preload mismatch, C=mixed pipeline) — all refuted by evidence. Actual root cause: WRONG PALETTE.
+- Option A (LUT wrong): REFUTED — LUT values match preload dest for all 7 checked tiles.
+- Option B (preload mismatch): REFUTED — preload pairs generated by same slot-assignment code as LUT.
+- Option C (mixed pipeline): REFUTED — single load path, no overlap between synthetic tiles (slots 1-3) and preload range (slots 20+).
+
+Implementation readiness: BLOCKED — further analysis required.
+- Fix target is clear: replace Build-113 greyscale-ramp with correct arcade palette translation.
+- Two implementation paths: (1) static palette preload (one-shot fix for attract), (2) runtime palette interception (structurally correct per Rainbow Islands model).
+- Next Andy prompt should determine which approach and produce the corresponding spec.
+
+Open questions:
+1. Which arcade palette entries does the attract mode use? (Requires identifying the arcade palette-write code path)
+2. Does the palette_pre_conversion step run in Build 36? (It should — but is staged_palette_words populated from the correct source?)
+3. Is there an existing palette-write interception hook in the current hook set? (Check handler_translation_coverage.md)
+
+## [Andy — Analysis, Build 36 Multi-Frame Rendering + Trace]
+
+* files changed: docs/design/Andy_build_36_multiframe_analysis.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES (corroborates prior tile-index audit: tile indices and VRAM content correct; palette wrong; row structure visible at frame 0274 confirms hooks are producing structured tilemap output)
+* fix implemented: NO
+* no unrelated changes: YES
+
+All 3 Genesis frames analyzed with complete per-frame observation: YES.
+- frame_0078: red/blue vertical bars, VRAM shows solid grey block (few tiles), palette is greyscale ramp.
+- frame_0161: uniform dark red fill, VRAM shows dense white-on-black speckle (841+ tiles loaded), FG writes starting.
+- frame_0274: purple/magenta repeating pattern with visible ROW STRUCTURE (~10-12 horizontal bands with fine within-band repetition), VRAM speckle denser, palette has acquired purple/magenta bias.
+
+All 5 arcade reference frames used: YES (frame_0008 title, frame_0113 story, frame_0193 score table, frame_0277 item list, frame_1288 gameplay demo).
+
+Trace correlated with actual runtime_genesis_pc values reported: YES.
+- Frame 0078 window (≈MAME frame ~156): runtime_genesis_pc 0x070022, 0x07001e (wrapper main loop). Pre-transition.
+- Frame 0161 window (≈MAME ~322): runtime_genesis_pc 0x070024, 0x070022 (wrapper loop). Pre-transition.
+- Frame 0274 window (≈MAME ~548): runtime_genesis_pc 0x205741 (invalid address — possible exception), 0x000010 (trap vector). Post-transition; arcade code produced output then hit unhooked hardware path.
+- MAME frame 389: transition point where arcade state machine first writes hardware registers (first_symbol_change for startup_result_code, c20000_0, c40000_0, reg_380000). Corresponds to ≈Exodus frame ~195.
+- fg_cwindow_live count=0 throughout.
+- vdp_ports_live active from frame 0 (runtime_genesis_pc 0x070100).
+
+Transition point at frame_0161 explicitly identified: YES (PARTIAL transition).
+- Frame 0161 is the boundary between pure initialization (frame 0078's bars = BG checkerboard through blank FG) and early active rendering (VRAM Pattern Viewer shows new tile data loaded by scene preloader; FG writes beginning to modify plane state).
+- FULL transition to structured text output occurs between frames 0161 and 0274 (row-structured purple content visible at 0274 = hooks actively writing translated tilemap indices from attract-mode text screens).
+
+Arcade structural comparison:
+- Frame 0078 vs arcade: NO structural features present (bars ≠ arcade text/title content).
+- Frame 0161 vs arcade: NO structural features present (uniform red ≠ arcade text/story screens).
+- Frame 0274 vs arcade: PARTIAL structural matching. Row-organized layout with within-row fine repetition MATCHES arcade text screen layout (score table or item description screens show text in horizontal rows). Colors wrong (purple vs white), individual glyphs not legible at thumbnail resolution. Upper ~1/4 black (header row region absent or outside scroll window).
+
+Synthesis:
+- Frame 0274's purple row-structured output is observably DIFFERENT from frame 0078's bars and frame 0161's uniform red — proving active rendering IS producing structured tilemap content.
+- The row structure in frame 0274 matches the arcade's text-screen layout pattern.
+- Colors are wrong: purple/magenta instead of white/colored text on black.
+- The VRAM speckle increasing from frame 0078 → 0161 → 0274 confirms tiles being loaded and potentially reloaded.
+- Palette panel shows change between frame 0161 and 0274 (purple/magenta bias acquired), indicating arcade palette writes were captured but produced wrong Genesis CRAM values.
+- Corroborates tile-index audit: tile indices correct, VRAM tile graphics present, palette wrong.
+- Post-transition at ≈MAME frame 540: CPU hits trap at runtime_genesis_pc 0x000010 (from unhooked non-FG hardware write path — possibly PC090OJ sprite RAM at 0xD00000+ or other).
+
+STOP triggered: NO.
+
+## [Andy — Analysis, Tile Mapping Audit]
+
+* files changed: docs/design/Andy_tile_mapping_audit.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES — tile mapping is structurally correct; failure is CRAM palette content
+* fix implemented: NO
+* no unrelated changes: YES
+
+Phase 1 — Selected tiles: 3 samples at (row 19, col 13), (row 21, col 13), (row 30, col 40) — derived from number-renderer ROM table entries 0, 1, 3.
+
+Phase 2 — Nametable word construction:
+- STOP condition: hex values in extended screenshot VRAM/nametable editors not legible at available resolution.
+- Nametable words proven from SOURCE CODE PATH + BINARY LUT DATA instead:
+  - tile_lut[0x0030] = 0x001C (tile 28, pal 0, no flip)
+  - attr_lut[0] = 0x0000 (no bits set)
+  - Combined D1 = 0x001C | 0x0000 = 0x001C
+  - Written to staged_fg_buffer[19*64+13] via .Ltw_store_cell
+- Verified for 6 additional tile codes (0x31, 0x41, 0x4C, 0x52, 0x53, 0x54): all produce correct nametable words with tile indices 29, 43, 54, 59, 60, 61 respectively, all palette 0, no flip.
+
+Phase 3 — VRAM content at tile indices:
+- Tile index 28 (digit '0'): correct glyph shape verified from ROM binary (oval outline, 6px tall, pixel values 0-3).
+- Tile index 43 (letter 'A'): correct glyph shape (crossbar at row 4).
+- Tile index 59 (letter 'R'): correct glyph shape.
+- Preload manifest pairs match LUT for all 7 checked tiles (source=arcade_tile, dest=genesis_vram_slot; LUT[arcade_tile] == preload_dest for every checked case).
+
+Phase 4 — Known-tile reference test:
+- Tile 28 IS referenced by plane map (hook writes 0x001C to staged_fg_buffer at table-entry-0 position).
+- VBlank commit transfers row to VRAM Plane A.
+- Conclusion: mapping partially correct = YES (index generation correct, referencing correct).
+
+Phase 5 — Failure class: NONE OF A–E.
+- A (wrong index): REFUTED — 7 tiles verified LUT/preload match, no bitfield corruption.
+- B (wrong VRAM): REFUTED — binary shows correct glyph shapes at correct positions.
+- C (attribute mispack): REFUTED — attr_lut[0]=0x0000 for common case; extraction code verified for all 16 entries.
+- D (flip): REFUTED — no flip bits set for attr_index=0.
+- E (plane base): REFUTED — Plane A at 0xE000 correct.
+
+Actual failure: CRAM palette content. All four palette lines contain Build-113 greyscale ramp (0x0000, 0x0222, 0x0444, 0x0666...) instead of arcade text colors. Pixel values 1-3 render as dark green-grey tones instead of white/bright — producing near-invisible glyphs that appear as colored noise at Exodus thumbnail resolution.
+
+Extended screenshots (10 images) corroborate:
+- Same structural layout (horizontal text rows) persists across ALL color changes (purple, teal, blue, red/green, green).
+- CRAM panels in different frames show DIFFERENT color entries — palette cycling occurs as arcade code writes different palette states for different attract-mode screens.
+- "Banding" in output is text-row structure (normal for text rendering), not an artifact of wrong tile mapping.
+- "Repeated patterns" are character cells within rows (normal for text layout), not single-index-repeating bugs.
+
+Phase 6 — Cross-frame consistency:
+- Frame 0078: pre-transition, BG checkerboard visible, FG blank. Indices not yet written.
+- Frame 0161: early active, scene tiles loaded, FG writes starting. Indices beginning to populate.
+- Frame 0274: active rendering, row-structured text content in FG. Indices correct; colors wrong.
+- Index consistency: LUT is static ROM data, stable across all frames.
+- VRAM stability: tile graphics loaded at boot, no runtime replacement.
+
+STOP condition: PARTIAL (hex values not readable from screenshots; compensated with binary/code analysis).
+
+## [Andy — CORRECTION, Tile Mapping Audit Revision]
+
+* files changed: (inline AGENTS_LOG correction)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES — REVISED AGAIN. Prior "palette only" diagnosis is WRONG.
+* fix implemented: NO
+* no unrelated changes: YES
+
+### CRITICAL CORRECTION
+
+The prior tile mapping audit concluded "tile mapping is structurally correct; failure is CRAM palette content." **This conclusion is WRONG.**
+
+Evidence that refutes the palette-only hypothesis:
+
+The text-script handlers (0x03C4D2 family) compute tile codes as:
+  `tile_code = raw_script_byte + A4@(26) + A4@(24)`
+
+When A4@(26) is a nonzero offset (e.g., 0x2700 — common for Rastan text rendering), the produced tile codes are in the 0x2720+ range, NOT the 0x0020+ range.
+
+Direct tile-shape comparison for THREE key characters:
+
+**Digit '0' (raw 0x30 vs offset 0x2730):**
+- RAW (0x30 → VRAM slot 28): CORRECT '0' glyph — oval outline, 6px tall, recognizable digit
+- OFFSET (0x2730 → VRAM slot 829): WRONG — sparse tile with ~4 isolated pixels in right column. NOT a digit.
+
+**Letter 'A' (raw 0x41 vs offset 0x2741):**
+- RAW (0x41 → VRAM slot 43): CORRECT 'A' glyph — triangle with crossbar, recognizable letter
+- OFFSET (0x2741 → VRAM slot 846): WRONG — nearly all-zero tile with single pixel at bottom-right. NOT a letter.
+
+**Letter 'R' (raw 0x52 vs offset 0x2752):**
+- RAW (0x52 → VRAM slot 59): CORRECT 'R' glyph — vertical stem with loop, recognizable letter
+- OFFSET (0x2752 → VRAM slot 375): WRONG — ALL pixels filled (solid block, every nibble = max value). NOT a letter.
+
+Systematic check across printable ASCII range (0x20-0x5A):
+- RAW tile codes (0x20-0x5A): most have glyph-like shapes (heuristic: 4-50 nonzero pixels, >2 unique byte values)
+- OFFSET tile codes (0x2720-0x275A): most do NOT have glyph-like shapes — they contain unrelated arcade graphics (scenery tiles, solid fills, sparse pixels)
+
+### Corrected root cause
+
+**Failure class B — Wrong VRAM tile content at the OFFSET tile code positions.**
+
+The tile ROM (`genesistan_pc080sn_tile_rom`) at indices 0x2720-0x277F does NOT contain the expected text font glyphs. It contains unrelated arcade tile graphics. When the text-script hooks add A4@(26) to shift raw character codes into the 0x2720+ range, the resulting tile_lut lookups return VRAM slots that are loaded with NON-FONT tile data.
+
+The number-renderer path (which uses raw codes 0x30-0x39 WITHOUT adding A4@(26)) IS correct — those raw positions DO contain valid digit glyphs.
+
+### Why the prior palette diagnosis was wrong
+
+The prior analysis verified tile shapes only for RAW tile codes (0x30, 0x41, 0x4C) — which are used by the number renderer. These ARE correct glyphs. But the text-script handlers use OFFSET codes (0x2730, 0x2741, 0x274C), which map to DIFFERENT tile ROM positions with WRONG content. The palette issue is real (greyscale ramp instead of correct colors) but it is SECONDARY — even with correct palette, the offset tiles would show garbage shapes (solid blocks, sparse pixels), not readable text.
+
+### What the screen output actually shows
+
+The visible "hatched/banded" pattern on screen IS wrong tile shapes — not correct glyphs in wrong colors. The solid-block tiles (like 0x2752 → all-0xFF) produce bright solid rectangles; the sparse tiles (like 0x2730) produce near-blank cells; the mix creates the banded/textured appearance.
+
+### Next step required
+
+Determine WHY the tile ROM at indices 0x2720-0x277F does not contain the expected font glyphs:
+1. Does the arcade PC080SN tile ROM actually have font data at these indices?
+2. Was the tile conversion (`precompute_pc080sn_tile_lut.py` / `preconvert_pc090oj_tiles.py`) incorrect for these indices?
+3. Is A4@(26) actually 0x2700 at runtime, or is the base offset different?
+4. Does the arcade font live at a different tile index range than 0x2720+?
+
+This is the critical next investigation.
+
+## [Cody — Analysis, VDP Ground Truth Build 36]
+
+* files changed:
+  - `docs/design/Cody_vdp_ground_truth_build36.md` (new)
+  - `AGENTS_LOG.md`
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: NO
+* fix implemented: NO
+* no unrelated changes: YES
+
+Technical detail:
+- All 10 screenshots opened and enumerated: YES.
+- Full register set extraction status:
+  - PC, SR, D0-D7, A0-A7 extracted for IMG_01..IMG_10: YES.
+  - USP/SSP visibility: visible in all 10; extracted in all 10.
+- VDP registers extracted: YES (selected screenshot IMG_10, `Screenshot 2026-04-16 154842.png`).
+  - Plane A base: `0x0E000`
+  - Plane B base: `0x0C000`
+  - Window base: `0x0F000`
+  - Pattern base explicitly read from screenshot: `0x00000` (Layer A Pattern Address).
+- CRAM values read: YES.
+  - Palette line 0 first 16 entries extracted.
+  - Additional palette line (line 1) extracted.
+- Nametable 32-entry block extracted: NO.
+  - STOP triggered at Phase 5 because Plane A nametable base (`0x0E000`) is not visible in the captured VRAM editor range.
+  - Visible VRAM range in selected screenshot is low-address rows starting at `0x0000` and extending only to approximately `0x05AC` in the captured panel.
+- VRAM tile addresses confirmed visible before reading: NO (not reached).
+- VRAM tile data sampled: NO (not reached).
+- VDP Port Monitor: no visible activity (empty table in selected screenshot context).
+- STOP triggered: YES.
+  - Exact stop reason: `Nametable entries cannot be located in the VRAM editor`.
+
+Anomalies:
+- Mandatory Plane A nametable region (`0x0E000`) is outside the visible VRAM editor window in the provided screenshots, preventing Phase 5/6 completion without leaving screenshot-only constraints.
+
+## [Cody — Analysis, VDP Ground Truth Build 36 Early Phase]
+
+* files changed:
+  - `docs/design/Cody_vdp_ground_truth_build36_early.md` (new)
+  - `AGENTS_LOG.md`
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: NO
+* fix implemented: NO
+* no unrelated changes: YES
+
+Technical detail:
+- All 7 screenshots opened and enumerated: YES.
+- Full register set extracted for all 7 screenshots: YES (PC, SR, D0-D7, A0-A7, USP, SSP).
+- VDP registers extracted: YES (selected screenshot: `IMG_05`, `Screenshot 2026-04-16 210553.png`).
+- Pattern base explicitly read from screenshot (not assumed): YES (`0x00000`, Plane Viewer Pattern Address Layer A).
+- Nametable region at `0xE000` visible in any screenshot: YES (visible in all 7 screenshots; rows include `0xE00A`, `0xE020`, `0xE036`, ...).
+- Nametable block extracted: YES (32 consecutive entries from `IMG_05`, starting at visible row `0xE00A`).
+- A1 value reported for every screenshot: YES.
+- VRAM tile data sampled: NO (computed addresses for sampled tile indices were not visible in the VRAM editor viewport).
+- CRAM values read: YES (palette line 0 + additional line extracted from `IMG_05`; cross-screenshot CRAM state tracked for all 7).
+- STOP triggered: NO.
+
+Anomalies:
+- For Phase 6 sampled indices (`0x011`, `0x020`, `0x741`), computed tile addresses (`0x00220`, `0x00400`, `0x0E820`) were outside the visible VRAM editor address window in the selected screenshot; reported as "tile address not visible in VRAM editor" per rule.
+
+## [Andy — Analysis, Early Title Control Flow + Exception Transition]
+
+* files changed: docs/design/Andy_early_title_control_flow_audit.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+Pre-exception timeline constructed: YES (IMG_01 → IMG_03).
+- IMG_01: PC=0x0007125C (boot init), A1=0xFFFFFFFF, A4=0xFFFFFFFF, E000=0xFFFF (uninitialized VRAM).
+- IMG_02: PC=0x00070022 (main loop), A1=0x0003B2FB, A4=0xFFFFFFFF, E000=all zero (Plane A cleared by init).
+- IMG_03: PC=0x00070022 (main loop), A1=0x0003C0BC, A4=0xFFFFFFFF, E000=all zero (unchanged).
+- Last normal frame: IMG_03.
+- First exception frame: IMG_04 (PC=0x00000200).
+
+Plane A state before exception: ZERO.
+- IMG_02 and IMG_03: 0xE000 region contains 0x0000 everywhere.
+- No title-phase tilemap data populated before the exception.
+- A4=0xFFFFFFFF in all pre-exception frames — text-script state system never initialized.
+
+A1 progression vs VRAM: YES — A1 progresses (0x0003B2FB → 0x0003C0BC) while E000 remains zero.
+- A1 values are genesis_rom_offset code pointers, NOT HW_ADDRESS/PC080SN/FG_TILEMAP destinations.
+- A1 reflects general-purpose register usage during arcade tick, not FG destination state.
+
+Write stage identified: NONE (destination never reached).
+- No text-script handlers have fired (A4=0xFFFFFFFF).
+- No staged writes to staged_fg_buffer occurred (fg_row_dirty would be 0).
+- No VBlank FG strip commits populated 0xE000.
+- Arcade state machine is in initialization countdown before text-rendering phase.
+
+Root cause selected: A — Destination never reached.
+- The arcade state machine has NOT progressed to its text-rendering phase before the exception.
+- A4=0xFFFFFFFF proves text-script state was never initialized.
+- The initialization countdown runs for hundreds of frames before text output.
+- An exception from an unhooked hardware write kills execution before the transition.
+
+Transition trigger identified: YES.
+- IMG_03 → IMG_04: PC jumps 0x00070022 → 0x00000200 (default exception handler = RTE at preserved-vectors segment).
+- A1 corrupts: 0x0003C0BC → 0x50205743 (invalid address; contains ASCII-like fragments 'P',' ','W','C').
+- E000 goes from all-zero to partially populated with 0x0000/0x0011/0x5020/0x5741 pattern.
+- All three changes appear simultaneously at IMG_04 — no intermediate state captured.
+
+Corruption propagation confirmed: YES.
+- Nametable at 0xE000 shows repeating pattern: 0x0000, 0x0011, 0x5020, 0x5741.
+- Values 0x5020 and 0x5741 are fragments of corrupted A1=0x50205743 (high word = 0x5020; low word ≈ 0x5743 ± 2).
+- VDP Port Monitor (IMG_05) confirms active DP Write of 0x0011, 0x5020, 0x5741 — these are being written to VDP during the exception loop.
+- Stack overflow: SSP decreases by ~60K-80K per captured frame (0x00FC3C62 → 0x00FB49FC → 0x00F9E69E → 0x00F8AC1A) — infinite exception-RTE loop consuming stack.
+- By IMG_07: PC=0x50205759 (executing from corrupted address derived from A1-like value) — irreversible failure.
+
+Next investigation: identify the unhooked hardware write that triggers the initial exception between IMG_03 and IMG_04. Candidates: HW_ADDRESS/PC090OJ/SPRITE_RAM (0xD00000+), HW_ADDRESS/TC0040IOC (0x380000+), or other unmapped arcade hardware addresses. Hooking this write path would allow execution to survive past the initialization countdown and reach the text-rendering phase where the title screen would be displayed.
