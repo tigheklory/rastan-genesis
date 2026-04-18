@@ -69,6 +69,9 @@
     .equ VDP_MODE2_DISPLAY_OFF, 0x34
     .equ VDP_MODE2_DISPLAY_ON,  0x74
 
+    .include "src/crash_handler.s"
+    .section .text,"ax"
+
 main_68k:
     move.w  #0x2700, %sr
 
@@ -2046,41 +2049,28 @@ init_staging_state:
     move.l  #0x00C00000, ARCADE_FIX_DEST_BG
     move.l  #0x00C08000, ARCADE_FIX_DEST_FG
 
-    move.b  #1, palette_dirty
-    move.b  #1, tiles_dirty
+    clr.b   palette_dirty
+    clr.b   tiles_dirty
     clr.l   bg_row_dirty
     clr.l   fg_row_dirty
 
-    lea     palette_init_words, %a0
-    lea     staged_palette_words, %a1
+    lea     staged_palette_words, %a0
     move.w  #(64 - 1), %d7
-.Lpal_init:
-    move.w  (%a0)+, (%a1)+
-    dbra    %d7, .Lpal_init
+.Lpal_init_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lpal_init_clear
 
-    lea     tile_init_words, %a0
-    lea     staged_tile_words, %a1
+    lea     staged_tile_words, %a0
     move.w  #(48 - 1), %d7
-.Ltile_init:
-    move.w  (%a0)+, (%a1)+
-    dbra    %d7, .Ltile_init
+.Ltile_init_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Ltile_init_clear
 
     lea     staged_bg_buffer, %a0
-    moveq   #31, %d6
-.Lbg_row:
-    moveq   #63, %d5
-.Lbg_col:
-    move.w  %d6, %d0
-    eor.w   %d5, %d0
-    andi.w  #0x0001, %d0
-    bne.s   .Lbg_tile_two
-    move.w  #0x0001, (%a0)+
-    bra.s   .Lbg_next
-.Lbg_tile_two:
-    move.w  #0x0002, (%a0)+
-.Lbg_next:
-    dbra    %d5, .Lbg_col
-    dbra    %d6, .Lbg_row
+    move.w  #(2048 - 1), %d7
+.Lbg_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lbg_clear
 
     lea     staged_fg_buffer, %a0
     move.w  #(2048 - 1), %d7

@@ -921,7 +921,8 @@ def main() -> int:
             - parse_hexish(whole_copy_cfg["source_start"])
         )
 
-    symbol_addresses = parse_symbol_table(symbols_path, required_names=None)
+    all_symbol_addresses = parse_symbol_table(symbols_path, required_names=None)
+    symbol_addresses = all_symbol_addresses
 
     if (not is_rastan_direct_profile) and ("genesistan_run_original_startup_common" not in symbol_addresses):
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -956,7 +957,18 @@ def main() -> int:
 
     symbol_addresses = parse_symbol_table(symbols_path, required_symbols)
     rom_bytes = bytearray(rom_path.read_bytes())
-    preserved_genesis_vectors = bytes(rom_bytes[0x000000:0x000400])
+    preserve_low_rom_end = 0x000400
+    if is_rastan_direct_profile:
+        crash_handler_end = all_symbol_addresses.get("genesistan_crash_handler_end")
+        if crash_handler_end is None:
+            crash_handler_end = all_symbol_addresses.get("_genesistan_crash_handler_end")
+        if crash_handler_end is not None:
+            preserve_low_rom_end = max(preserve_low_rom_end, int(crash_handler_end))
+    if preserve_low_rom_end > len(rom_bytes):
+        raise RuntimeError(
+            f"preserve_low_rom_end 0x{preserve_low_rom_end:06X} exceeds ROM size 0x{len(rom_bytes):06X}"
+        )
+    preserved_genesis_vectors = bytes(rom_bytes[0x000000:preserve_low_rom_end])
     maincpu_bytes = maincpu_path.read_bytes()
     segments: list[dict[str, object]] = []
     segment_sequence = [0]
@@ -1105,14 +1117,14 @@ def main() -> int:
     # For rastan_direct, apply the preserved block *after* rewrite passes so scan/rewrite
     # logic cannot mutate boot code bytes in the final executable ROM artifact.
     if not is_rastan_direct_profile:
-        rom_bytes[0x000000:0x000400] = preserved_genesis_vectors
+        rom_bytes[0x000000:preserve_low_rom_end] = preserved_genesis_vectors
         _append_segment(
             segments,
             segment_sequence,
             {
                 "genesis_start": "0x000000",
-                "genesis_end_exclusive": "0x000400",
-                "size_bytes": 0x400,
+                "genesis_end_exclusive": _hex6(preserve_low_rom_end),
+                "size_bytes": preserve_low_rom_end,
                 "kind": "preserved_vectors",
                 "tag": "genesis_vectors_header",
             },
@@ -1671,14 +1683,14 @@ def main() -> int:
         direct_entry_symbol_addr = resolve_symbol_address(symbol_addresses, direct_entry_symbol)
 
     if is_rastan_direct_profile:
-        rom_bytes[0x000000:0x000400] = preserved_genesis_vectors
+        rom_bytes[0x000000:preserve_low_rom_end] = preserved_genesis_vectors
         _append_segment(
             segments,
             segment_sequence,
             {
                 "genesis_start": "0x000000",
-                "genesis_end_exclusive": "0x000400",
-                "size_bytes": 0x400,
+                "genesis_end_exclusive": _hex6(preserve_low_rom_end),
+                "size_bytes": preserve_low_rom_end,
                 "kind": "preserved_vectors",
                 "tag": "genesis_vectors_header",
             },
@@ -1721,12 +1733,12 @@ def main() -> int:
                 "does not match patched_site opcode_replace segment count."
             )
         if (
-            int(segment_coverage["total_genesis_bytes_covered"]) != 0xFC1E8
+            int(segment_coverage["total_genesis_bytes_covered"]) != 0xFC1C4
             or len(opcode_replace_sites) != 56
         ):
             raise RuntimeError(
                 "Build 0029 invariant failure: expected "
-                "total_genesis_bytes_covered=0xFC1E8 and "
+                "total_genesis_bytes_covered=0xFC1C4 and "
                 "opcode_replace patched_site count=56; got "
                 f"total_genesis_bytes_covered=0x{int(segment_coverage['total_genesis_bytes_covered']):X} "
                 f"opcode_replace patched_site count={len(opcode_replace_sites)}."
@@ -1811,7 +1823,7 @@ def main() -> int:
         },
         "preserved_low_rom_bootstrap": {
             "start": "0x000000",
-            "end_exclusive": "0x000400",
+            "end_exclusive": _hex6(preserve_low_rom_end),
             "why": (
                 "Preserve reset/vectors/header/bootstrap in low ROM while relocated arcade ROM "
                 "occupies 0x000200.."
@@ -1821,7 +1833,7 @@ def main() -> int:
         },
         "preserved_genesis_vector_table": {
             "start": "0x000000",
-            "end_exclusive": "0x000400",
+            "end_exclusive": _hex6(preserve_low_rom_end),
             "why": (
                 "Preserve reset/vectors/header/bootstrap in low ROM while relocated arcade ROM "
                 "occupies 0x000200.."
