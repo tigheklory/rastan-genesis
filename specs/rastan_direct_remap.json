@@ -11,8 +11,8 @@
     "keep_identity_overlays_for_bringup": false
   },
   "direct_execution": {
-    "entry_arcade_pc": "0x03A008",
-    "entry_symbol": "rastan_direct_arcade_tick_entry"
+    "entry_arcade_pc": "0x03A000",
+    "entry_symbol": "_bootstrap"
   },
   "whole_maincpu_copy": {
     "enabled": true,
@@ -111,6 +111,18 @@
     }
   ],
   "opcode_replace": [
+    {
+      "arcade_pc": "0x03A00C",
+      "original_bytes": "427900350008",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress arcade TC0140SYT coin-counter clear in L5 handler; no Genesis equivalent."
+    },
+    {
+      "arcade_pc": "0x03A012",
+      "original_bytes": "33C0003C0000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress arcade TC0040IOC video-control write in L5 handler; no Genesis equivalent."
+    },
     {
       "arcade_pc": "0x03A0A8",
       "original_bytes": "0839000600390005",
@@ -292,10 +304,76 @@
       "note": "Suppress unsupported TC0040IOC control write at 0x380000."
     },
     {
+      "arcade_pc": "0x03AE86",
+      "original_bytes": "33FC000000C50000",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade PC080SN screen-flip write; no Genesis equivalent."
+    },
+    {
+      "arcade_pc": "0x03AE8E",
+      "original_bytes": "33FC000000D01BFE",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade PC090OJ sprite-DMA trigger; no Genesis equivalent."
+    },
+    {
+      "arcade_pc": "0x03AE96",
+      "original_bytes": "427900350008",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress arcade TC0140SYT coin-counter clear in startup; no Genesis equivalent."
+    },
+    {
       "arcade_pc": "0x03AE9C",
       "original_bytes": "427900380000",
       "replacement_bytes": "4E714E714E71",
       "note": "Suppress unsupported TC0040IOC control clear at 0x380000."
+    },
+    {
+      "arcade_pc": "0x03AEA2",
+      "original_bytes": "13FC0004003E0001",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade TC0140SYT sound-CPU reset write; no Genesis equivalent."
+    },
+    {
+      "arcade_pc": "0x03AEAA",
+      "original_bytes": "13FC0001003E0003",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade TC0140SYT sound-CPU bank write; no Genesis equivalent."
+    },
+    {
+      "arcade_pc": "0x03AEBC",
+      "original_bytes": "33C100200000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress arcade RAM-probe write-back at 0x200000 (unmapped on Genesis)."
+    },
+    {
+      "arcade_pc": "0x03AEC6",
+      "original_bytes": "13FC0004003E0001",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade TC0140SYT sound-CPU reset write (second pass)."
+    },
+    {
+      "arcade_pc": "0x03AECE",
+      "original_bytes": "13FC0000003E0003",
+      "replacement_bytes": "4E714E714E714E71",
+      "note": "Suppress arcade TC0140SYT sound-CPU bank clear (second pass)."
+    },
+    {
+      "arcade_pc": "0x03AEE0",
+      "original_bytes": "33C100200000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress arcade RAM-probe write-back at 0x200000 (second pass)."
+    },
+    {
+      "arcade_pc": "0x03AEEA",
+      "original_bytes": "41F90010C000",
+      "replacement_bytes": "41F900FF0000",
+      "note": "Redirect arcade work-RAM base A0 from 0x10C000 (unmapped on Genesis) to Genesis WRAM 0xFF0000; matches A5 remap at 0x3AF04. Downstream zero-propagate loop at 0x3AEF6..0x3AF02 inherits."
+    },
+    {
+      "arcade_pc": "0x03AEF0",
+      "original_bytes": "43F90010C002",
+      "replacement_bytes": "43F900FF0002",
+      "note": "Redirect arcade work-RAM propagate-destination A1 from 0x10C002 to Genesis WRAM 0xFF0002; matches A5 and A0 remaps. Loop ends at 0xFF3FFE, no BSS clobber."
     },
     {
       "arcade_pc": "0x03AF04",
@@ -304,10 +382,34 @@
       "note": "Redirect arcade A5 workram base from 0x10C000 (ROM on Genesis) to Genesis WRAM 0xFF0000."
     },
     {
+      "arcade_pc": "0x03AF0A",
+      "original_bytes": "33C0003C0000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress arcade TC0040IOC video-control write in startup (first)."
+    },
+    {
+      "arcade_pc": "0x03AF14",
+      "original_bytes": "33C0003C0000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress arcade TC0040IOC video-control write in startup (second)."
+    },
+    {
       "arcade_pc": "0x03AF1E",
       "original_bytes": "33C000380000",
       "replacement_bytes": "4E714E714E71",
       "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+    },
+    {
+      "arcade_pc": "0x03AF4C",
+      "original_bytes": "33C0003C0000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress arcade TC0040IOC video-control write in startup (third)."
+    },
+    {
+      "arcade_pc": "0x03AF72",
+      "original_bytes": "33C0003C0000",
+      "replacement_bytes": "4E714E714E71",
+      "note": "Suppress arcade TC0040IOC video-control write in startup (fourth)."
     },
     {
       "arcade_pc": "0x03AF7A",
@@ -450,6 +552,6 @@
   ],
   "rom_opcode_replace": [],
   "expectations": {
-    "opcode_replace_count": 56
+    "opcode_replace_count": 73
   }
 }

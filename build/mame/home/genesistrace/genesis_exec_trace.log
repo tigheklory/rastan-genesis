@@ -5,51 +5,29 @@ api_probe writer_pc=yes method=current_pc(cpu.state.PC)
 api_probe register_snapshot=yes method=cpu.state regs=A0,A1,A4,A5,D2,D3,D6,D7
 api_probe rolling_pc_history=no method=not_available note=cpu:add_exec unavailable in MAME Lua API
 arm: initial_pc=000000
-[frame 000000] live_write vdp_ports_live pc=070100 addr=c00004 data=8004 mask=ffff count=1
-[frame 000001] exec_enter pc=071252 range=other
-[frame 000007] first_symbol_change arcade_flag_34 addr=ff0080 0->6
-[frame 000030] pc=070022 exec=other
-[frame 000060] pc=07001e exec=other
-[frame 000060] first_window_change wram_ff0000
+[frame 000000] live_write vdp_ports_live pc=07008e addr=c00004 data=8004 mask=ffff count=1
+[frame 000001] exec_enter pc=0002e4 range=other
+[frame 000011] exec_enter pc=03b0c0 range=startup_common@000200
+[frame 000013] exec_enter pc=07060c range=other
+[frame 000017] exec_enter pc=03a21a range=frontend_core@000000
+[frame 000018] exec_enter pc=03bc7c range=title_init_block@000000
+[frame 000019] exec_enter pc=07060a range=other
+[frame 000025] first_symbol_change reg_3c0000 addr=ff685a 0->C0
+[frame 000025] first_symbol_change reg_d01bfe addr=ff6854 0->FF
+[frame 000025] first_symbol_change reg_350008 addr=ff6856 0->4B53
+[frame 000025] first_symbol_change reg_380000 addr=ff6858 0->3D85
 [frame 000060] first_window_change z80_ctrl
-[frame 000090] window_change wram_ff0000
 [frame 000090] window_change z80_ctrl
-[frame 000120] window_change wram_ff0000
 [frame 000120] window_change z80_ctrl
-[frame 000150] pc=070022 exec=other
-[frame 000150] window_change wram_ff0000
 [frame 000150] window_change z80_ctrl
-[frame 000171] first_symbol_change dip1 addr=ff0005 0->1
-[frame 000173] symbol_change dip1 addr=ff0005 1->0
-[frame 000180] pc=07001e exec=other
-[frame 000180] window_change wram_ff0000
 [frame 000180] window_change z80_ctrl
-[frame 000210] pc=070024 exec=other
-[frame 000210] window_change wram_ff0000
 [frame 000210] window_change z80_ctrl
-[frame 000240] window_change wram_ff0000
 [frame 000240] window_change z80_ctrl
-[frame 000270] window_change wram_ff0000
 [frame 000270] window_change z80_ctrl
-[frame 000300] pc=070024 exec=other
-[frame 000300] window_change wram_ff0000
 [frame 000300] window_change z80_ctrl
-[frame 000330] window_change wram_ff0000
 [frame 000330] window_change z80_ctrl
-[frame 000360] pc=070022 exec=other
-[frame 000360] window_change wram_ff0000
 [frame 000360] window_change z80_ctrl
-[frame 000385] symbol_change dip1 addr=ff0005 0->1
-[frame 000386] first_symbol_change reg_3c0000 addr=ff685a 0->C0
-[frame 000386] first_symbol_change reg_c50000 addr=ff6852 0->179
-[frame 000386] first_symbol_change reg_d01bfe addr=ff6854 0->5020
-[frame 000386] first_symbol_change reg_350008 addr=ff6856 0->5741
-[frame 000386] first_symbol_change reg_380000 addr=ff6858 0->32C5
-[frame 000390] pc=0009ce exec=other
-[frame 000390] window_change wram_ff0000
-[frame 000390] first_window_change vdp_ports
 [frame 000390] window_change z80_ctrl
-[frame 000420] window_change vdp_ports
 [frame 000420] window_change z80_ctrl
 [frame 000450] window_change z80_ctrl
 [frame 000480] window_change z80_ctrl

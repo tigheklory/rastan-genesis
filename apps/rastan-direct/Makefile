@@ -34,7 +34,9 @@ LDFLAGS := -T link.ld -nostdlib
 
 OBJS := \
 	$(OUT_DIR)/boot.o \
-	$(OUT_DIR)/main_68k.o \
+	$(OUT_DIR)/vdp_comm.o \
+	$(OUT_DIR)/tilemap_hooks.o \
+	$(OUT_DIR)/scene_load.o \
 	$(OUT_DIR)/sound_comm.o \
 	$(OUT_DIR)/z80_driver.o
 
@@ -53,7 +55,13 @@ $(OUT_DIR) $(DIST_DIR):
 $(OUT_DIR)/boot.o: $(SRC_DIR)/boot/boot.s | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/main_68k.o: $(SRC_DIR)/main_68k.s | $(OUT_DIR)
+$(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+$(OUT_DIR)/scene_load.o: $(SRC_DIR)/scene_load.s | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/sound_comm.o: $(SRC_DIR)/sound/sound_comm.s | $(OUT_DIR)

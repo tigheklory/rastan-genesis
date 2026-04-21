@@ -1,0 +1,24 @@
+arcade_pc: 0x03AF04
+label: a5_init_site
+purpose_note: A5 work RAM initialization site
+confidence: HIGH
+ghidra_function: <no_function>
+
+== Raw Disassembly Snippet (+/- 0x20) ==
+0003af04: lea (0x10c000).l,A5
+0003af0a: move.w D0w,(0x003c0000).l
+0003af10: bsr.w 0x0003b9f8
+0003af14: move.w D0w,(0x003c0000).l
+0003af1a: move.w #0x60,D0w
+0003af1e: move.w D0w,(0x00380000).l
+0003af24: move.w D0w,(0x14,A5)
+0003af28: bsr.w 0x0003ad72
+0003af2c: lea (0xc00000).l,A0
+0003af32: move.w #0x1000,D1w
+0003af36: moveq 0x20,D0
+0003af38: bsr.w 0x0003ad44
+0003af3c: lea (0xc08000).l,A0
+0003af42: move.w #0x1000,D1w
+
+== Decompiler Output ==
+<no containing function>

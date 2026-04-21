@@ -1,0 +1,5 @@
+0x03A000	thunk_FUN_0003ae86	startup_common	RENAMED	Known startup entry from vector and project traces
+0x03A008	FUN_0003a008	level5_vblank_handler	RENAMED	Known arcade level-5 handler entry
+0x039F80	FUN_00039f80	warm_restart_watchdog_gate	RENAMED	Known countdown/reset gate leading to 0x39F9E
+0x03AB7C	FUN_0003ab7c	warm_restart_gate_caller_a	RENAMED	Known caller path into warm-restart gate
+0x03B084	FUN_0003b084	warm_restart_gate_caller_b	RENAMED	Known alternate caller path into warm-restart gate

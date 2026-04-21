@@ -1,2 +1,27 @@
 MAME debugger version 0.276 (unknown)
-Currently targeting megadriv (Mega Drive (Europe, PAL))
+Currently targeting genesis (Genesis (USA, NTSC))
+>trace /tmp/build0050_a5_lifecycle.trace,,noloop,{tracelog "PRE pc=%06X sr=%04X sp=%08X a5=%08X d0=%08X d1=%08X d2=%08X d3=%08X d4=%08X d5=%08X d6=%08X d7=%08X a0=%08X a1=%08X a2=%08X a3=%08X a4=%08X a6=%08X\n",pc,sr,sp,a5,d0,d1,d2,d3,d4,d5,d6,d7,a0,a1,a2,a3,a4,a6}
+Tracing CPU ':maincpu' to file /tmp/build0050_a5_lifecycle.trace
+>bp 226,,{ printf "CP1 pc=%06X sp=%08X a5=%08X sr=%04X\n",pc,sp,a5,sr ; g }
+Breakpoint 1 set
+>bp 232,,{ printf "CP2 pc=%06X sp=%08X a5=%08X sr=%04X\n",pc,sp,a5,sr ; g }
+Breakpoint 2 set
+>bp 238,,{ printf "CP3 pc=%06X sp=%08X a5=%08X sr=%04X\n",pc,sp,a5,sr ; g }
+Breakpoint 3 set
+>bp 23E,,{ printf "CP4 pc=%06X sp=%08X a5=%08X sr=%04X\n",pc,sp,a5,sr ; g }
+Breakpoint 4 set
+>bp 242,,{ printf "CP5 pc=%06X sp=%08X a5=%08X sr=%04X\n",pc,sp,a5,sr ; g }
+Breakpoint 5 set
+>bp 3A200,,{ printf "CP6_CP7 pc=%06X sp=%08X a5=%08X sr=%04X\n",pc,sp,a5,sr ; g }
+Breakpoint 6 set
+>bp 700C2,,{ printf "CP8 pc=%06X sp=%08X a5=%08X sr=%04X\n",pc,sp,a5,sr ; trace off ; quit }
+Breakpoint 7 set
+>go
+CP1 pc=000228 sp=00FEFFFC a5=00000000 sr=2700
+
+CP2 pc=000234 sp=00FEFFFC a5=00000000 sr=2714
+
+CP8 pc=0700C4 sp=00FEFFC2 a5=00000000 sr=2600
+
+Stopped tracing on CPU ':maincpu'
+Stopped at breakpoint 7

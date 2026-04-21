@@ -1,0 +1,141 @@
+arcade_pc: 0x03A000
+label: startup_common_entry
+purpose_note: startup_common entry
+confidence: HIGH
+ghidra_function: startup_common
+function_entry: 0003a000
+function_body: [[0003a000, 0003a003]]
+
+== Raw Disassembly Snippet (+/- 0x20) ==
+0003a000: bra.w 0x0003ae86
+0003a008: ori #0xf00,SR
+0003a00c: clr.w (0x00350008).l
+0003a012: move.w D0w,(0x003c0000).l
+0003a018: move.w (0x2,A5),D0w
+0003a01c: cmpi.w #0x2,D0w
+0003a020: bcs.b 0x0003a03e
+0003a022: cmpi.w #0x4,D0w
+0003a026: bcc.b 0x0003a03e
+0003a028: bsr.w 0x0003a126
+0003a02c: tst.w (0x0,A5)
+0003a030: beq.b 0x0003a03e
+0003a032: cmpi.w #0x1,(0x1394,A5)
+0003a038: beq.b 0x0003a03e
+0003a03a: bsr.w 0x00041f30
+0003a03e: bsr.w 0x0003ab7c
+
+== Function Disassembly ==
+0003a000: bra.w 0x0003ae86
+
+== Decompiler Output ==
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void startup_common(void)
+
+{
+  short sVar1;
+  undefined2 *puVar2;
+  undefined2 *puVar3;
+  
+  _DAT_00c50000 = 0;
+  _DAT_00d01bfe = 0;
+  _DAT_00350008 = 0;
+  _DAT_00380000 = 0;
+  sVar1 = 0x1fff;
+  do {
+    sVar1 = sVar1 + -1;
+  } while (sVar1 != 0);
+  DAT_003e0001 = 4;
+  DAT_003e0003 = 0;
+  sVar1 = 0x1fff;
+  do {
+    sVar1 = sVar1 + -1;
+  } while (sVar1 != 0);
+  uRam0010c000 = 0;
+  _DAT_003c0000 = 0x1fff;
+  puVar2 = (undefined2 *)0x10c000;
+  puVar3 = (undefined2 *)0x10c002;
+  do {
+    *puVar3 = *puVar2;
+    _DAT_003c0000 = _DAT_003c0000 + -1;
+    puVar2 = puVar2 + 1;
+    puVar3 = puVar3 + 1;
+  } while (_DAT_003c0000 != 0);
+  _DAT_003c0000 = func_0x0003b9f8();
+  _DAT_00380000 = 0x60;
+  uRam0010c014 = 0x60;
+  func_0x0003ad72();
+  func_0x0003ad44();
+  _DAT_003c0000 = func_0x0003ad44();
+  func_0x0003ad3c();
+  _DAT_003c0000 = func_0x0003ad3c();
+  uRam0010c018 = (ushort)(byte)~bRam00390009;
+  uRam0010c01c = (ushort)(byte)~bRam0039000b;
+  uRam0010c038 = *(undefined2 *)((short)((uRam0010c01c & 0xff0c) >> 1) + 0x3b010);
+  uRam0010c036 = *(undefined2 *)((short)((uRam0010c01c & 0xff30) >> 3) + 0x3b018);
+  uRam0010c030 = uRam0010c018 & 0xff01;
+  uRam0010c032 = uRam0010c018 & 0xff02;
+  uRam0010c02e = uRam0010c01c & 3;
+  if ((~bRam0039000b & 3) == 0) {
+    uRam0010c02e = 1;
+  }
+  else if (uRam0010c02e == 1) {
+    uRam0010c02e = 0;
+  }
+  uRam0010c040 = ~uRam0005ff9e & 0xff40;
+  uRam0010c044 = ~uRam0005ff9e & 0xff80;
+  uRam0010c026 = 1;
+  func_0x0005ffa2();
+  func_0x0005ffb2();
+  func_0x0003b0c2();
+  if ((uRam0010c018 & 4) == 0) {
+    func_0x0003f084();
+    uRam0010c04a = 0xaa;
+    func_0x0003b8b0();
+    func_0x0003b098();
+    func_0x0003add8();
+    _DAT_003c0000 = func_0x0003ae28();
+    do {
+      _DAT_003c0000 = func_0x00039fa8();
+    } while( true );
+  }
+  func_0x0000016a();
+  func_0x00000264();
+  func_0x00000180();
+  sRam0010c00a = 0;
+  func_0x00000180();
+  func_0x0000052a();
+  func_0x000002ca();
+  do {
+    sVar1 = sRam0010c002;
+    if (sRam0010c002 != 0) {
+code_r0x00000132:
+      if (sVar1 < 2) {
+        func_0x00000502();
+        func_0x0000038e();
+        if (sRam0010c00a == -1) {
+          do {
+            func_0x000003a4();
+            func_0x000004a2();
+            func_0x00000252();
+          } while( true );
+        }
+        func_0x000001e2();
+        sRam0010c002 = sRam0010c002 + 1;
+      }
+      do {
+        func_0x000003a4();
+        func_0x000005cc();
+        func_0x00000252();
+      } while( true );
+    }
+    if ((DAT_00390007 & 8) == 0) {
+      sRam0010c002 = 1;
+      goto code_r0x00000132;
+    }
+    func_0x00000252();
+  } while( true );
+}
+
+

@@ -29620,3 +29620,1250 @@ Evidence: init_staging_state line 2054 (clr.l bg_row_dirty) + lines 2069-2073 (c
 Fix direction: split init_staging_state into boot-only and per-restart paths; per-restart must NOT clear staged_bg/fg_buffer or bg/fg_row_dirty.
 
 Additional capture needed: NO.
+
+## [Andy — Design, init_staging_state Lifecycle Split]
+
+* files changed: docs/design/Andy_init_staging_state_split_design.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+* permanent items added:
+  - `init_boot_state` (function — replaces `init_staging_state` full body)
+  - `init_restart_state` (function — per-warm-restart subset init)
+  - `boot_initialized` (BSS byte — cold-boot latch)
+  - `.Lwarm_restart`, `.Lenter_main_loop` (local labels inside `main_68k`)
+* temporary items added: NONE
+* diagnostic items added: NONE
+* bringup-only items added: NONE
+* scaffolding inventory documented: YES (section 5 — none introduced)
+* removal / revert plan documented: YES (section 6 — not applicable, all permanent)
+* no undocumented scaffolding added: YES
+
+Minimum detail:
+- All fields classified: YES
+- BOOT-ONLY fields count: 13
+- RESTART-SAFE fields count: 20
+- init_boot_state defined: YES
+- init_restart_state defined: YES
+- vdp_boot_setup call site resolved: YES (cold boot only)
+- load_scene_tiles call site resolved: YES (cold boot only for startup; scene-transition hook calls at main_68k.s:282 and :454 unchanged)
+- Risk assessment complete: YES
+- Ready for Cody implementation: YES
+
+BOOT-ONLY classification (13):
+1. palette_dirty (line 2052)
+2. tiles_dirty (line 2053)
+3. bg_row_dirty (line 2054) — confirmed root cause
+4. fg_row_dirty (line 2055)
+5. staged_palette_words clear (lines 2057–2061)
+6. staged_tile_words clear (lines 2063–2067)
+7. staged_bg_buffer clear (lines 2069–2073) — confirmed root cause
+8. staged_fg_buffer clear (lines 2075–2079)
+9. Plane A VRAM direct clear (lines 2081–2086)
+10. staged_scroll_x_bg (line 2088)
+11. staged_scroll_x_fg (line 2089)
+12. staged_scroll_y_bg (line 2090)
+13. staged_scroll_y_fg (line 2091)
+
+RESTART-SAFE classification (20):
+1. frame_counter (line 2043)
+2. tick_counter (line 2044)
+3. staged_dest_ptr_bg (line 2046)
+4. staged_dest_ptr_fg (line 2047)
+5. ARCADE_FIX_DEST_BG (line 2049)
+6. ARCADE_FIX_DEST_FG (line 2050)
+7. Arcade workram zero (0xFF0000..0xFF00FF, lines 2100–2104)
+8–14. Coinage/display/DIP/init/delay/mode/cab/mon defaults (lines 2110–2131)
+15–16. Bonus/difficulty defaults (lines 2134–2135)
+17. Sprite init marker (line 2138)
+18. Block A seeding + Block A→B copy (lines 2141–2152)
+19. Title init flag (line 2158)
+20. Config table copy from ROM 0x3B2D4 (lines 2162–2167)
+
+Entry dispatch design:
+```
+main_68k:
+    move.w  #0x2700, %sr
+    tst.b   boot_initialized
+    bne.s   .Lwarm_restart
+    bsr     vdp_boot_setup
+    moveq   #0, %d0
+    bsr     load_scene_tiles
+    bsr     init_boot_state
+    move.b  #1, boot_initialized
+    bra.s   .Lenter_main_loop
+.Lwarm_restart:
+    bsr     init_restart_state
+.Lenter_main_loop:
+    move.w  #0x2000, %sr
+    ; .Lmain_loop unchanged
+```
+
+Prerequisite for Cody: verify `apps/rastan-direct/src/boot/boot.s` zero-initializes BSS (so `boot_initialized` starts at 0 on cold boot). If not, add BSS zero-init to boot.s; fallback is explicit `clr.b boot_initialized` as the very first main_68k instruction (before `tst.b`).
+
+Scope kept strictly within `apps/rastan-direct/src/main_68k.s`. No STOP conditions triggered.
+
+## [Andy — Design, Rastan-Direct Runtime Decomposition]
+
+* files changed: docs/design/Andy_rastan_direct_runtime_decomposition.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES (current `main_68k` and `_VINT_handler` violate RULES §1, §3, §6, §7)
+* fix implemented: NO
+* no unrelated changes: YES
+
+* permanent items added:
+  - `_bootstrap` (boot.s — cold-boot helper, non-looping, JMPs to arcade_pc 0x3A000 permanently)
+  - `_vblank_service` (vdp_comm.s — level-5 vector target; VDP commits then tail-JMP to arcade L5 handler)
+  - New modules `vdp_comm.s`, `tilemap_hooks.s`, `scene_load.s`
+* temporary items added: NONE
+* diagnostic items added: NONE
+* bringup-only items added: NONE
+* scaffolding inventory documented: YES (none introduced; many existing violations removed)
+* removal / revert plan documented: YES (N/A — all added items permanent; removals are RULES-mandated)
+* no undocumented scaffolding added: YES
+
+Minimum detail:
+- architectural violations identified: 6
+    1. `main_68k` / `.Lmain_loop` (Genesis-owned loop) — §1, §2, §4, §9
+    2. `_VINT_handler` as top-level level-5 vector — §3, §1
+    3. `arcade_tick_logic` (Genesis-side caller of arcade) — §1, §3, §4, §7
+    4. `frame_counter` BSS + wait spin — §1, §2, §7
+    5. Warm-restart re-entry into `main_68k` via ROM[0x0004] — §6 (literal)
+    6. `init_staging_state` running on warm restart — §1, §6, §7
+- routines classified: 39 (full table in design doc Phase 2)
+- new modules defined: 3 (plus boot.s and crash_handler.s modified)
+- Genesis-owned loop preserved: NO (all loops deleted)
+- Genesis-owned VBlank preserved: NO (top-level identity removed; `_vblank_service` is a pure servicing stub)
+- cold-boot handoff target resolved: YES — arcade_pc `0x0003A000` = Genesis ROM `0x00003A200`
+    (verified via arcade ROM vector at file offset 0x4: `00 03 A0 00`)
+- runtime owner resolved: YES — arcade code in arcade ROM, post-translation
+- VBlank helper graph resolved: YES
+    vector 29 → `_vblank_service` → vdp_commit_{tiles,bg,fg,palette,scroll}_if_dirty
+    → JMP arcade_pc `0x0003A008` (arcade's own L5 handler)
+    (arcade L5 vector verified at file offset 0x74: `00 03 A0 08`)
+- ready for Cody implementation: YES, conditional on prerequisite resolution
+
+Key architectural finding — arcade's own vectors:
+  - ROM[0x0000] = 0x0010DE00 (arcade's initial SP)
+  - ROM[0x0004] = 0x0003A000 (arcade's own startup_common — BRA.W 0x3A886)
+  - L5 vector (offset 0x74) = 0x0003A008 (arcade's own VBlank IRQ handler)
+Current Genesis translation overrode ROM[0x0004] with `main_68k` (0x0202) and
+overrode L5 vector with `_VINT_handler`. Both overrides usurp arcade ownership.
+Correct architecture: Genesis boot enters at `_start` (ROM 0x0200) only via 68000
+reset; after `_bootstrap` completes, Genesis JMPs to arcade_pc 0x3A000 and never
+owns execution again. Arcade warm restart at arcade_pc `0x39F9E` is opcode_replaced
+to `JMP 0x0003A000` directly, bypassing ROM[0x0004] so arcade code never re-enters
+Genesis code.
+
+Key decisions:
+- `main_68k` REMOVED entirely (no rename, no alias).
+- `_VINT_handler` identity REMOVED; body repurposed into `_vblank_service`.
+- `arcade_tick_logic` REMOVED; arcade's L5 handler reachable via vector naturally.
+- `frame_counter`, `tick_counter` BSS REMOVED (no consumer).
+- `init_staging_state` REMOVED; body split: Genesis staging init → `_bootstrap`
+  (one-time, cold boot only); arcade-workram factory defaults DELETED
+  (arcade's own startup_common is authoritative per RULES §8).
+- `_vblank_service` uses `jmp` (not `jsr`) to arcade L5 handler so arcade's
+  handler owns the `rte` and resumes the correctly-interrupted arcade PC.
+- Warm-restart opcode_replace at arcade_pc `0x00039F9E` requires explicit
+  approval for 4-byte structural padding (unreachable post-JMP infinite-BRA).
+  Per feedback_no_nops_rts memory, padding bytes must be flagged as
+  structural and approved before Cody commits the remap.json entry.
+
+Supersedes: Andy_init_staging_state_split_design.md
+  — that design's `boot_initialized` latch is a "safe re-entry" mechanism
+    forbidden by RULES §7. Under this decomposition, the latch is unnecessary
+    because warm restart never reaches Genesis bootstrap code at all.
+
+Prerequisites for Cody implementation (specified in design Phase 7):
+  P1. Verify arcade_pc `0x3A000` cold init runs cleanly under current
+      remap.json (without Genesis workram-factory-defaults substitute).
+  P2. Spot-check first ~40 instructions at arcade_pc `0x3A008` for
+      unhooked hardware writes that would need new opcode_replace entries.
+  P3. Identify arcade_pc that reads input ports so
+      `rastan_direct_update_inputs` can be hooked at the arcade read site.
+      Fallback: call from `_vblank_service` prior to tail JMP.
+
+Architecture compliance: CONFIRMED against RULES.md and ARCHITECTURE.md.
+No STOP conditions triggered.
+
+## [Andy — Forensic Analysis, Reset Path Root Cause arcade_pc 0x39F9E]
+
+* files changed: docs/design/Andy_reset_path_root_cause.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: NO — STOP
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- instruction at 0x39F9E identified: YES
+    arcade_pc 0x00039F9E: `2E 78 00 00` = MOVEA.L (0x00).W, SP
+    (first instruction of warm-restart trampoline)
+- uses ROM[0x0004]: YES — two instructions downstream:
+    arcade_pc 0x00039FA2: MOVEA.L (0x04).W, A0
+    arcade_pc 0x00039FA6: JMP (A0)
+- failing condition identified: NO — TWO candidate conditions exist
+    without proof distinguishing them
+- expected value (Path A — BEQ at arcade_pc 0x00039F84):
+    HW_ADDRESS 0x00FF002C (A5@(0x2C)) > 0
+- actual value (Path A if taken): HW_ADDRESS 0x00FF002C == 0
+    Classification: Watchdog or timer (countdown word seeded to
+    #160, #512, or #16 at various arcade_pc sites)
+- expected value (Path B — BCS at arcade_pc 0x00039FA8):
+    HW_ADDRESS 0x00FF0012 (A5@(18)) < 256
+- actual value (Path B if taken): HW_ADDRESS 0x00FF0012 >= 256
+    Classification: State flag or sentinel value (CMPI.W #256 at
+    arcade_pc 0x0003AB84 and 0x0003B08C)
+- confidence: LOW (multiple candidate causes)
+- STOP triggered: YES — multiple possible causes without proof
+    distinguishing them
+
+Static evidence summary (all proven from disassembly):
+- 3 callers of the warm-restart cascade entries in arcade ROM:
+    arcade_pc 0x0003AB6E: BRA.W 0x00039F80 (Path A thunk)
+    arcade_pc 0x0003AB8A: BSR.W 0x00039FA8 (Path B1, after CMPI #256,A5@(18) at 0x0003AB84)
+    arcade_pc 0x0003B092: BSR.W 0x00039FA8 (Path B2, after CMPI #256,A5@(18) at 0x0003B08C)
+- Immediate fall-through from 0x39F9C BNE.S to 0x39F9E is
+    structurally forced once D1=0xA0000 load at 0x39F8C executes;
+    no state-dependent decision at that point.
+- First STATE-DEPENDENT conditional branch upstream of 0x39F9E
+    is not unique: either BEQ at 0x39F84 (Path A) or BCS at 0x39FA8
+    (Path B).
+
+Data required to resolve (any one sufficient; #1 preferred):
+  #1. PC trace slice of ~200 instructions immediately preceding the
+      PC arrival at arcade_pc 0x00039F9E. Presence of 0x0003AB6E vs
+      0x0003AB8A/0x0003B092 in the trace is dispositive.
+  #2. Breakpoint at arcade_pc 0x0003AB6E, 0x0003AB8A, 0x0003B092 —
+      which one fires and the word values at HW_ADDRESS 0x00FF002C
+      and HW_ADDRESS 0x00FF0012 when it does.
+  #3. Register/memory snapshot on entry to arcade_pc 0x00039F9E —
+      return-stack state (Path B leaves an RA; Path A does not) plus
+      the two candidate memory words.
+
+No fix, no design change, no architecture change proposed.
+Architecture compliance: CONFIRMED.
+
+
+## [Cody — Runtime Trace, Reset Path Disambiguation]
+
+* files changed: docs/design/Cody_reset_path_runtime_trace.md (new), AGENTS_LOG.md (append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: NO
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- Breakpoints set: arcade_pc 0x0003AB6E, 0x0003AB8A, 0x0003B092, 0x00039F9E
+- Which breakpoints fired on first reset occurrence: N/A — first arcade_pc 0x00039F9E did not occur in this capture window
+- 0x00FF002C value at deciding branch: N/A for first-reset decision (nearest observed BCS@arcade_pc 0x039FA8 showed 0x00A0 initially, 0x0000 at end)
+- 0x00FF0012 value at deciding branch: N/A for first-reset decision (nearest observed BCS@arcade_pc 0x039FA8 showed 0x0000 throughout)
+- Branch condition taken: N/A for first-reset decision (nearest observed BCS@arcade_pc 0x039FA8: YES)
+- Path A condition met: N/A for first-reset decision (nearest observed branch sample at end: YES, 0x00FF002C==0)
+- Path B condition met: N/A for first-reset decision (nearest observed branch sample at end: NO, 0x00FF0012<256)
+- Conclusion: insufficient evidence
+- STOP triggered: YES — current build trace did not reach first arcade_pc 0x39F9E, so caller-immediately-before-first-reset-entry cannot be proven
+
+## [Cody — Runtime Trace, Path A Countdown Reset Confirmation]
+
+* files changed: docs/design/Cody_path_a_countdown_reset_confirmation.md (new), AGENTS_LOG.md (append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: NO
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- Initial 0x00FF002C value: 0x00A0
+- Zero-cross observed: YES (write event old=0x0001 -> wpdata=0x0000 at runtime_genesis_pc 0x03AC0A)
+- Zero-cross confirmed stable (not transient): NO for the first write-event zero-cross (next instruction read returned 0x0001); later caller-context reads observed 0x0000 twice
+- arcade_pc 0x39F84 BEQ full instruction captured: NO (runtime capture missing at this site)
+- Z flag at BEQ: N/A (site not captured at runtime)
+- BEQ taken: N/A (site not captured at runtime)
+- A5 base pointer at BEQ: N/A (site not captured at runtime)
+- D-registers at BEQ: N/A (site not captured at runtime)
+- arcade_pc 0x39F9E reached: NO (not captured in immediate post-zero trace window for this attempt)
+- 0x00FF0012 at zero-cross context: 0x0000
+- Path B condition met at zero-cross: NO (0x0000 < 0x0100)
+- Conclusion: Path A leads to reset INDETERMINATE
+- STOP triggered: YES — required BEQ-site runtime capture (full instruction, Z, A5, D0-D3) and immediate stable-zero post-trace were not captured in the same decisive sequence
+
+## [Andy — Analysis, P1/P2 Prerequisite Verification]
+
+* files changed: docs/design/Andy_p1_p2_prerequisite_verification.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES — both prerequisites FAIL under strict pass criteria
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- P1 arcade_pc 0x0003A000 mapped: YES — genesis_rom_offset 0x00003A200
+    (arcade-copy segment, identity_offset 512, from address_map.json:30-37;
+     first opcode_replace is at arcade_pc 0x0003A0A8, so bytes
+     0x3A000..0x3A0A7 run with original arcade encoding)
+    Note: arcade_pc 0x3A000 is BRA.W 0x0003AE86 (startup_common body);
+    verification scope extended to target of that branch.
+- P1 hardware writes found: 14 in first ~80 instructions of startup_common
+    (arcade_pc 0x3AE86..0x3B030)
+- P1 unhooked writes: 13 (all writes enumerated in design doc blocking-issues table)
+    Targets: 0xC50000 (PC080SN flip), 0xD01BFE (PC090OJ DMA),
+             0x350008 (sound/coin), 0x3E0001, 0x3E0003 (x2 each,
+             sound-CPU reset/bank), 0x200000 (RAM probe, x2),
+             0x10C000 work-RAM fill via A0/A1 literal loads not redirected,
+             0x3C0000 video-control (x4).
+    Only 0x380000 watchdog writes, 0x390009/0x39000B DIP reads,
+    and A5 work-RAM base at 0x3AF04 are hooked in the region.
+- P1 control flow escapes classified: YES — 10 escapes, all arcade code
+    (some arcade-code-via-hook like BSR.W 0x3AD44 which redirects to
+    genesistan_hook_tilemap_bg_fill via spec line 259)
+- P1 result: FAIL
+
+- P2 arcade_pc 0x0003A008 mapped: YES — genesis_rom_offset 0x00003A208
+- P2 hardware writes found: 2
+    arcade_pc 0x0003A00C: CLR.W HW 0x00350008 (sound/coin)
+    arcade_pc 0x0003A012: MOVE.W D0, HW 0x003C0000 (video-control)
+- P2 unhooked writes: 2
+- P2 RTE confirmed: YES at arcade_pc 0x0003A07E (bytes 4E 73)
+- P2 RTE return class: arcade_pc-derived runtime_genesis_pc
+    (IRQ pushes interrupted arcade PC; RTE pops same)
+- P2 VDP conflict: NO (L5 handler performs no VDP port writes in 0xC00000..0xC0001F)
+- P2 result: FAIL
+
+- P2 empirical note (not proof): these two writes execute every frame
+    in the current rastan-direct build (via arcade_tick_logic →
+    arcade_pc 0x3A008 JMP pattern) without observed bus error. This
+    does NOT constitute proof of safety per Global Rule 7 (no
+    speculation). Addresses remain unhooked; verdict remains FAIL.
+
+- P2 control flow escapes classified: YES — 13 escapes
+    9 direct BSR.W / BCS / BCC / BEQ targets: all arcade code
+    1 computed JMP via table at 0x3A06C, 4 table targets
+      (0x3A9FE, 0x3A8AC, 0x3A15A, 0x3AB6E — all arcade code)
+    1 JSR 0x55CA2: arcade code
+    1 BSR.W 0x3A0A8: itself hooked to Genesis shadow-input RTS-helper
+      (spec line 115)
+    Note: mode=3 dispatch lands at arcade_pc 0x3AB6E = Path-A thunk
+    identified in Andy_reset_path_root_cause.md. Under decomposition's
+    warm-restart opcode_replace, that path stays arcade-owned.
+
+- Ready for Cody implementation: NO
+- STOP triggered: NO (verification completed with definitive FAIL;
+    not an INDETERMINATE/data-missing state)
+
+Scope-note per prompt Global Rule 7 and Failure Conditions:
+  No fix proposed. No design change proposed. No architecture change
+  proposed. Blocking issues are enumerated at instruction-level
+  precision so implementation work can be scoped without re-analysis.
+
+Architecture compliance: CONFIRMED.
+
+## [Andy — Design, P1/P2 Hook Closure]
+
+* files changed: docs/design/Andy_p1_p2_hook_closure_design.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- P1 blocking sites designed: 16 / 16
+    (13 suppress + 2 pointer_fix + 1 inherited-group covering
+     0x3AEF6 and the 0x3AEFE..0x3AF02 loop)
+- P2 blocking sites designed: 2 / 2 (both suppress)
+- Suppress treatments: 15 (2 × 8-byte instructions need 4 NOPs;
+    10 × 6-byte instructions need 3 NOPs; 3 × 8-byte sound-CPU
+    writes need 4 NOPs)
+- Pointer-fix treatments: 2 (arcade_pc 0x3AEEA / 0x3AEF0,
+    redirect A0/A1 from 0x0010C000/0x0010C002 to Genesis WRAM
+    0x00FF0000/0x00FF0002, consistent with existing A5 remap
+    at 0x3AF04)
+- Redirect treatments: 0
+- New helper treatments: 0
+- New remap.json entries required: 17
+- Inherited sites (no new entry): 2
+    (0x3AEF6 MOVE.W #0, (A0); and loop 0x3AEFE..0x3AF02)
+- New helpers required: 0
+- P1 readiness after application: YES
+- P2 readiness after application: YES
+- STOP triggered: NO
+- Ready for Cody implementation: YES — 17 JSON insertions into
+    specs/rastan_direct_remap.json, nothing else
+
+Byte-count verification:
+- 2-word instructions (4 bytes): none in blocker list
+- 3-word instructions (6 bytes): 10 sites → 3 × 4E71 each
+    (0x3A00C, 0x3A012, 0x3AE96, 0x3AEBC, 0x3AEE0, 0x3AF0A,
+     0x3AF14, 0x3AF4C, 0x3AF72, plus P1.3 pattern)
+- 4-word instructions (8 bytes): 5 sites → 4 × 4E71 each
+    (0x3AE86, 0x3AE8E, 0x3AEA2, 0x3AEAA, 0x3AEC6, 0x3AECE)
+- 3-word LEA instructions (6 bytes): 2 sites → modified 4-byte
+    immediate field
+    (0x3AEEA: 41F90010C000 → 41F900FF0000;
+     0x3AEF0: 43F90010C002 → 43F900FF0002)
+
+Pointer-fix range proof (for 0x3AEEA + 0x3AEF0 pair):
+  Before loop: A0 = 0x00FF0000, A1 = 0x00FF0002, D0 = 8191
+  Per iteration: read (A0)+, write (A1)+
+  After iter 8191:
+    A0 = 0x00FF0000 + 8191×2 = 0x00FF3FFE (no further reads)
+    last write lands at A1_initial + (8191-1)×2
+           = 0x00FF0002 + 0x3FFC = 0x00FF3FFE
+  WRAM range cleared: 0x00FF0000..0x00FF3FFE (16 KB)
+  BSS start: 0x00FF4000 (per crash handler spec / earlier Andy docs)
+  BSS clobber: NO — last write ends at 0x00FF3FFE < 0x00FF4000
+
+Scope note: no code changes, no architecture changes. Design
+supersedes implementation scope — Cody action is 17 JSON
+insertions only.
+
+Architecture compliance: CONFIRMED.
+
+## [Cody — Implementation, Hook Closure Phase A]
+
+* files changed: specs/rastan_direct_remap.json, docs/design/Cody_hook_closure_implementation.md, AGENTS_LOG.md
+* build produced: NO
+* ROM path: N/A (release build stopped in postpatch step)
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- 17 remap entries added: YES
+- original_bytes verified for all 17: YES
+- replacement_bytes verified for all 17: YES
+- note fields copied verbatim for all 17: YES
+- no existing entries modified: YES
+- no inherited sites given entries: YES
+- no source files modified: YES
+- all 17 sites: replacement present AND original absent in ROM: NO (not reachable; build failed before patched ROM emission)
+- P1 result: FAIL (blocked by build STOP)
+- P2 result: FAIL (blocked by build STOP)
+- Build result: fail
+- STOP triggered: YES — `postpatch_startup_rom.py` hard-count guard mismatch (`Expected 56 opcode replacements but applied 73`)
+
+Additional evidence:
+- Added entry line anchors in spec:
+  `0x03A00C`(115), `0x03A012`(121), `0x03AE86`(307), `0x03AE8E`(313), `0x03AE96`(319), `0x03AEA2`(331), `0x03AEAA`(337), `0x03AEBC`(343), `0x03AEC6`(349), `0x03AECE`(355), `0x03AEE0`(361), `0x03AEEA`(367), `0x03AEF0`(373), `0x03AF0A`(385), `0x03AF14`(391), `0x03AF4C`(403), `0x03AF72`(409).
+- Inherited-site exclusion verified ABSENT: `0x03AEF6`, `0x03AEFE`, `0x03AF00`, `0x03AF02`.
+- Build command executed:
+  `source tools/setup_env.sh && make -C apps/rastan-direct -B release`
+- Failure location:
+  `tools/translation/postpatch_startup_rom.py` (`expected_opcode_replace_count=56` guard; applied count now 73).
+
+### MAME Exit Summary (2026-04-19 22:53:54)
+- Final PC: 0x00041C
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-04-19 22:56:49)
+- Final PC: 0x00041C
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Phase A Count Guard Fix]
+
+* files changed: specs/rastan_direct_remap.json, tools/translation/postpatch_startup_rom.py, docs/design/Cody_phase_a_count_guard_fix.md, AGENTS_LOG.md
+* build produced: YES
+* ROM path: dist/rastan-direct/rastan_direct_video_test_build_0048.bin
+* root cause confirmed: YES — stale count guard
+* fix implemented: YES
+* no unrelated changes: YES
+
+Minimum detail:
+- remap.json count field updated: 56 -> 73: YES
+- postpatch_startup_rom.py count updated: 56 -> 73: YES
+- no other changes made to Phase A remap entries: YES
+- no existing remap entries modified/removed: YES
+- build result: pass
+- P1 result: PASS
+- P2 result: PASS
+- STOP triggered: NO
+
+Verification details (replacement present / original absent at ROM offset):
+- P1 sites: 0x3AE86 YES, 0x3AE8E YES, 0x3AE96 YES, 0x3AEA2 YES, 0x3AEAA YES, 0x3AEBC YES, 0x3AEC6 YES, 0x3AECE YES, 0x3AEE0 YES, 0x3AEEA YES, 0x3AEF0 YES, 0x3AF0A YES, 0x3AF14 YES, 0x3AF4C YES, 0x3AF72 YES
+- P2 sites: 0x3A00C YES, 0x3A012 YES
+- Verification source: build/rastan-direct/rastan_direct_patch_manifest.json + apps/rastan-direct/dist/rastan_direct_video_test.bin
+
+Architecture compliance: CONFIRMED.
+
+## [Cody — Implementation, Runtime Decomposition Phase B]
+
+* files changed: apps/rastan-direct/src/boot/boot.s, apps/rastan-direct/src/vdp_comm.s, apps/rastan-direct/src/tilemap_hooks.s, apps/rastan-direct/src/scene_load.s, apps/rastan-direct/src/crash_handler.s, apps/rastan-direct/Makefile, apps/rastan-direct/src/main_68k.s (deleted), docs/design/Cody_decomposition_implementation.md, AGENTS_LOG.md
+* build produced: NO
+* ROM path: N/A (release failed during postpatch stage)
+* root cause confirmed: YES
+* fix implemented: NO (STOP)
+* no unrelated changes: YES
+
+Minimum detail:
+- main_68k.s deleted: YES
+- vdp_comm.s created: YES — symbol count 24 (`.global` count)
+- tilemap_hooks.s created: YES — symbol count 21 (`.global` count)
+- scene_load.s created: YES — symbol count 14 (`.global` count)
+- _bootstrap added: YES — ends with `jmp (0x00003A200).l`, no loop, no return
+- _vblank_service added: YES — ends with `jmp (0x00003A208).l`, no `RTE`
+- crash_handler.s adjusted: YES (`clr.w CRASH_FRAME_COUNTER`)
+- Makefile updated: YES (removed `main_68k.o`; added `vdp_comm.o`, `tilemap_hooks.o`, `scene_load.o`)
+- Phase A entries intact: YES (all 17 required `arcade_pc` entries present in `specs/rastan_direct_remap.json`)
+- build result: fail
+- STOP triggered: YES — postpatch validation failure: required symbol missing from symbol table, `rastan_direct_arcade_tick_entry`
+
+Build/trace evidence:
+- Command: `source tools/setup_env.sh && make -C apps/rastan-direct -B release`
+- Assembly and link completed successfully.
+- Failure point: `tools/translation/postpatch_startup_rom.py` `parse_symbol_table()`
+- Exact error: `RuntimeError: Required symbol not found in out/symbol.txt: rastan_direct_arcade_tick_entry`
+
+Verification snapshot at STOP:
+- vector table VINT slot now points to `_vblank_service`: YES
+- `_VINT_handler` symbol present in `out/symbol.txt`: NO
+- `main_68k` symbol present in `out/symbol.txt`: NO
+- `_vblank_service` contains `RTE`: NO
+- `_bootstrap` tail handoff to `0x00003A200`: YES
+- `specs/rastan_direct_remap.json` changed in this phase: NO
+
+Architecture compliance: CONFIRMED (implementation shape); blocked by tooling symbol invariant not aligned with deleted symbol requirement.
+
+## [Cody — Implementation, Stale Symbol Fix]
+
+* files changed: tools/translation/postpatch_startup_rom.py, docs/design/Cody_stale_symbol_fix.md, AGENTS_LOG.md
+* build produced: NO
+* ROM path: N/A (release stopped in postpatch stage)
+* root cause confirmed: YES — stale postpatch validation for deleted symbol
+* fix implemented: NO (STOP)
+* no unrelated changes: YES
+
+Minimum detail:
+- references found: 3 relevant lines in tool path (literal filter + direct-entry resolve path)
+- all references were validation checks only: NO
+- lines removed: 0 in this pass (validation stale dependency was already filtered prior to this run)
+- no address computation references found: NO
+- no other files modified (code path): YES
+- build result: fail
+- all decomposition verification items: FAIL (blocked by address-computation symbol dependency)
+- STOP triggered: YES — `direct_execution.entry_symbol` still resolves `rastan_direct_arcade_tick_entry`
+
+Reference evidence:
+- validation-filter path:
+  - `tools/translation/postpatch_startup_rom.py:906` `required_symbols = tuple(spec.get("required_symbols", []))`
+  - `tools/translation/postpatch_startup_rom.py:910-911` stale-name filter for `rastan_direct_arcade_tick_entry`
+- address-computation path:
+  - `tools/translation/postpatch_startup_rom.py:1686` reads `direct_execution.entry_symbol`
+  - `tools/translation/postpatch_startup_rom.py:1689` `resolve_symbol_address(symbol_addresses, direct_entry_symbol)`
+  - `specs/rastan_direct_remap.json:15` sets `entry_symbol` to `rastan_direct_arcade_tick_entry`
+
+Build trace:
+- Command: `source tools/setup_env.sh && make -C apps/rastan-direct -B release`
+- Failure: `RuntimeError: Replacement references missing symbol: rastan_direct_arcade_tick_entry`
+- Throw site: `tools/translation/postpatch_startup_rom.py:1689`
+
+Architecture compliance: CONFIRMED for this bookkeeping pass; STOP required because symbol is still consumed by address-computation logic.
+
+## [Andy — Analysis, direct_execution.entry_symbol Replacement]
+
+* files changed: docs/design/Andy_direct_execution_entry_symbol_design.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- downstream uses of direct_entry_symbol_addr traced: YES
+    * Total references in postpatch_startup_rom.py: 4 (lines 1687, 1689, 1896, plus guard at 1688).
+    * What the tool does with the value: writes to manifest as
+      direct_execution.entry_symbol_address hex string (line 1896).
+      No ROM bytes written. No patches reference it. No validation
+      uses it. No downstream tool in this repo consumes the manifest
+      field (searched entry_symbol_address across the tree —
+      only historical doc mentions of the prior 0x0003A208 value).
+    * Conclusion: PURE MANIFEST METADATA. Build fails because
+      resolve_symbol_address(symbol_addresses, "rastan_direct_arcade_tick_entry")
+      raises on the missing symbol, not because the resolved value
+      is needed by downstream logic.
+
+- correct replacement symbol identified: YES — _bootstrap
+    Address in symbol table: 0x00000226
+    Reasoning: _bootstrap is the Genesis symbol whose execution owns
+    cold-boot setup and permanently JMPs to arcade code at arcade_pc
+    0x0003A000 (Genesis ROM 0x00003A200). It is the definitional
+    "entry into direct execution" under the Phase B architecture.
+    _start was considered (0x00000202) but is generic 68000 reset
+    logic and less specific to direct-execution semantics. The raw
+    genesis_rom_offset 0x3A200 was considered but the entry_symbol
+    field resolves via symbol name against the build symbol table;
+    using a literal offset would require tool changes.
+
+- fix specified for Cody: YES
+    File: specs/rastan_direct_remap.json
+    Field: direct_execution.entry_symbol
+    Current value: "rastan_direct_arcade_tick_entry"
+    New value: "_bootstrap"
+    Additional postpatch_startup_rom.py changes: NONE beyond the
+    required_symbols filter Cody already applied at line 911.
+
+- consistency recommendation (out of strict scope): the sibling field
+    direct_execution.entry_arcade_pc is currently "0x03A008" (old
+    L5-handler target, matched the old Genesis-loop pattern). Under
+    Phase B, the cold-boot handoff target is arcade_pc 0x3A000, not
+    0x3A008. If _bootstrap becomes entry_symbol, entry_arcade_pc
+    should be updated to "0x03A000" for metadata coherence. Not
+    strictly required for the build to succeed (metadata only); noted
+    for Cody's awareness.
+
+- STOP triggered: NO
+- Ready for Cody implementation: YES (single one-line JSON edit)
+
+Architecture compliance: CONFIRMED.
+
+## [Cody — Implementation, direct_execution Spec Metadata Fix]
+
+* files changed: specs/rastan_direct_remap.json, docs/design/Cody_direct_execution_spec_fix.md, AGENTS_LOG.md
+* build produced: NO
+* ROM path: N/A (postpatch failed before final patched ROM output)
+* root cause confirmed: YES — stale entry_symbol metadata
+* fix implemented: NO (STOP)
+* no unrelated changes: YES
+
+Minimum detail:
+- entry_symbol updated to _bootstrap: YES
+- entry_arcade_pc updated to 0x03A000: YES
+- no other spec fields changed: YES (in direct_execution block)
+- JSON structure and formatting preserved: YES
+- no source files modified: YES
+- no tool files modified: YES
+- pre-build _bootstrap in symbol table: YES — 0x00000226 (`t _bootstrap`)
+- _bootstrap resolves without error: NO
+- postpatch completed without error: NO
+- ROM emitted: NO
+- Phase B structure verified intact: YES (source/symbol-level checks)
+- Phase A 17 entries verified in ROM: NO (build stopped before patched ROM emission)
+- STOP triggered: YES — `RuntimeError: Replacement references missing symbol: _bootstrap` at `tools/translation/postpatch_startup_rom.py:1689`
+
+Build trace:
+- Command: `source tools/setup_env.sh && make -C apps/rastan-direct -B release`
+- Failure location: `resolve_symbol_address(symbol_addresses, direct_entry_symbol)`
+- Exact error: `Replacement references missing symbol: _bootstrap`
+
+Architecture compliance: CONFIRMED; metadata update applied, then STOP per build/symbol-error rule.
+
+## [Andy — Analysis, _bootstrap Symbol Visibility]
+
+* files changed: docs/design/Andy_bootstrap_symbol_visibility.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- symbol_addresses construction traced: YES
+    Line 15:  SYMBOL_PATTERN = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)")
+              → type column matched by \S+; accepts any type (t, T, a, A, etc.)
+    Line 906: required_symbols = tuple(spec.get("required_symbols", []))
+    Line 907-912: Cody's stale-name filter for rastan_direct_arcade_tick_entry
+    Line 930: all_symbol_addresses = parse_symbol_table(symbols_path, required_names=None)
+              → FULL dict; contains every symbol including _bootstrap at 0x00000226
+    Line 931: symbol_addresses = all_symbol_addresses  (alias to full dict)
+    Line 964: symbol_addresses = parse_symbol_table(symbols_path, required_symbols)
+              → REASSIGNMENT to name-filtered dict; drops everything not in spec's
+                required_symbols whitelist; _bootstrap is dropped here
+    Line 1689: resolve_symbol_address(symbol_addresses, direct_entry_symbol)
+              → uses the filtered dict; raises "missing symbol: _bootstrap"
+- Symbol types included by regex: ALL (no type filter)
+- Local symbols (type t) included: YES in all_symbol_addresses; NO in filtered
+    symbol_addresses at line 1689 unless also in required_symbols whitelist.
+
+- root cause confirmed: YES
+    The filter at line 964 is by NAME (required_symbols whitelist), not by
+    type. _bootstrap is not in that whitelist, so symbol_addresses at line
+    1689 lacks it regardless of whether _bootstrap is type t or T.
+
+- option 1 evaluated: YES — .global _bootstrap in boot.s
+    Fixes root cause: NO
+    Reason: making _bootstrap global flips nm type from t to T, but the
+    filter at line 964 is name-based, not type-based. Name still absent
+    from the filtered whitelist.
+    Architecturally correct: N/A (doesn't fix bug)
+    Recommended: NO
+
+- option 2 evaluated: YES — change tool to use all_symbol_addresses
+    Fixes root cause: YES
+    Scope: minimal (one-line change)
+    Risk: NONE — direct_execution.entry_symbol resolves to manifest
+    metadata only (no ROM patch, no validation, no downstream consumer;
+    confirmed in Andy_direct_execution_entry_symbol_design.md). Switching
+    this one lookup to the unfiltered dict does not affect any
+    replacement_bytes symbol resolution; those remain on the filtered
+    symbol_addresses which preserves the required_symbols validation
+    contract for actual patches.
+    Architecturally correct: YES
+    Recommended: YES
+
+- recommended fix: Option 2
+    File: tools/translation/postpatch_startup_rom.py
+    Line: 1689
+    Before: direct_entry_symbol_addr = resolve_symbol_address(symbol_addresses, direct_entry_symbol)
+    After:  direct_entry_symbol_addr = resolve_symbol_address(all_symbol_addresses, direct_entry_symbol)
+    Single-character-scope diff: change symbol_addresses → all_symbol_addresses.
+
+- expected post-fix manifest entry:
+    "direct_execution": {
+      "entry_arcade_pc": "0x03A000",
+      "entry_symbol": "_bootstrap",
+      "entry_symbol_address": "0x00000226"
+    }
+
+- STOP triggered: NO
+- Ready for Cody implementation: YES
+
+Architecture compliance: CONFIRMED.
+
+## [Cody — Implementation, _bootstrap Symbol Resolution Fix]
+
+* files changed: tools/translation/postpatch_startup_rom.py, docs/design/Cody_bootstrap_symbol_fix.md, AGENTS_LOG.md
+* build produced: NO
+* ROM path: N/A (release stops during postpatch)
+* root cause confirmed: YES — name-filter reassignment at line 964 excluded _bootstrap from symbol_addresses
+* fix implemented: NO (STOP)
+* no unrelated changes: YES
+
+Minimum detail:
+- line 1689 changed: symbol_addresses -> all_symbol_addresses: YES
+- no other lines modified (this pass): YES
+- no abstraction introduced: YES
+- required_symbols whitelist intact for all other calls: YES
+- build result: fail
+- manifest entry_symbol_address: 0x00000226: NO (manifest not updated because build stopped)
+- Phase B structure intact: YES
+- Phase A 17 entries in ROM: NO (no postpatch-complete ROM emitted)
+- STOP triggered: YES — Build 0029 invariant failure (`total_genesis_bytes_covered` mismatch) at `postpatch_startup_rom.py:1745`
+
+Build trace:
+- Command: `source tools/setup_env.sh && make -C apps/rastan-direct -B release`
+- resolve_symbol_address missing-symbol errors: NONE
+- New failure: `RuntimeError: Build 0029 invariant failure: expected total_genesis_bytes_covered=0xFC1C4 and opcode_replace patched_site count=73; got total_genesis_bytes_covered=0xFBF20 opcode_replace patched_site count=73.`
+
+Architecture compliance: CONFIRMED; one-line tool change applied exactly, then STOP on new invariant failure.
+
+## [Andy — Analysis, total_genesis_bytes_covered Invariant]
+
+* files changed: docs/design/Andy_coverage_invariant_analysis.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- total_genesis_bytes_covered computation traced: YES
+    Line 413-419: covered = Σ segment["size_bytes"] over final address-map segments.
+    Line 443-446: `if covered != rom_size: raise RuntimeError(...)` — by
+      construction, total_genesis_bytes_covered == len(rom_bytes).
+    Line 452-456: covered is packaged into coverage dict returned to caller.
+    Line 1721: _finalize_address_map_segments(segments, len(rom_bytes), wrapper_start).
+    Line 1742-1745: invariant check against hardcoded 0xFC1C4 and count=73.
+- Regions contributing: preserved_vectors, arcade_copy, patched_site,
+    genesis_only/wrapper, genesis_only/padding.
+
+- source of 0x2A4 reduction identified: YES
+    Description: Wrapper region (Genesis-side helper code,
+    tag genesis_only/wrapper) shrank by 676 bytes because Phase B
+    decomposition deletes more source than it adds.
+    Dominant deleted source: init_staging_state arcade-workram factory-defaults
+    block at main_68k.s:2094-2167 (~400-500 bytes); main_68k loop (~60 bytes);
+    arcade_tick_logic (~24 bytes); _VINT_handler top-level identity merged
+    into _vblank_service with rte→jmp + frame_counter++ removal (~10 bytes
+    net).
+    Additions: _bootstrap (~90 bytes), _bootstrap_clear_staging (~120 bytes),
+    _vblank_service body ≈ old _VINT_handler body.
+    Arithmetic net ≈ 540 − 210 = ~330 bytes of instruction deletion plus
+    section-alignment / linker-padding differences after the three-file
+    split, totaling the observed 676-byte wrapper shrinkage.
+
+- removed segment vs uncounted segment: REMOVED (expected).
+    Confirmation from postpatch_startup_rom.py:443-446 proves
+    total_genesis_bytes_covered == rom_size by construction; if any segment
+    were present-but-uncounted the tool would raise "Segment coverage
+    mismatch" at line 443, not the "Build 0029 invariant failure" at line
+    1745. The observed error text matches line 1745 exactly (hardcoded ROM
+    size compare), confirming the mismatch is the hardcoded pre-Phase-B
+    value vs. the legitimately smaller new ROM.
+
+- classification: B — stale bookkeeping.
+    The invariant is a hardcoded ROM-size assertion bound to the pre-Phase-B
+    build snapshot (Build 0029 era). The coverage-integrity safety property
+    (covered == rom_size) is enforced separately at line 443-446 and
+    continues to hold in the new build. The 676-byte ROM shrink is
+    legitimate.
+
+- confidence: HIGH.
+    No residual ambiguity. Tool's own assertion at line 443 guarantees
+    the value equals ROM size; ROM size changed because source changed;
+    hardcoded expected value is bound to old snapshot.
+
+- fix specified for Cody: YES
+    File: tools/translation/postpatch_startup_rom.py
+    Line 1742: `0xFC1C4` → `0xFBF20` (conditional check value)
+    Line 1747: `"0xFC1C4"` → `"0xFBF20"` (string literal in error message)
+    Both literal-only changes; do not rename the "Build 0029" marker or
+    refactor the check; 73 opcode_replace count is unchanged and already
+    matches.
+
+- post-fix expected output in build/rastan-direct/address_map.json:
+    genesis_rom_size_bytes: 1031968
+    wrapper_region.genesis_end_exclusive: "0x0FBF20"
+    segment_coverage.total_genesis_bytes_covered: 1031968
+    These three values will agree, confirming the line-443 assertion
+    still holds post-fix.
+
+- STOP triggered: NO
+- Ready for Cody implementation: YES
+
+Architecture compliance: CONFIRMED.
+
+### MAME Exit Summary (2026-04-20 17:07:25)
+- Final PC: 0x03A196
+- Stack Pointer (SP): 0x00FEFFBA
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Coverage Invariant Fix]
+
+* files changed: tools/translation/postpatch_startup_rom.py, docs/design/Cody_coverage_invariant_fix.md, AGENTS_LOG.md
+* build produced: YES
+* ROM path: dist/rastan-direct/rastan_direct_video_test_build_0049.bin
+* root cause confirmed: YES — stale Build 0029 hardcoded ROM size constant
+* fix implemented: YES
+* no unrelated changes: YES
+
+Minimum detail:
+- line 1742 updated 0xFC1C4 -> 0xFBF20: YES
+- line 1747 updated 0xFC1C4 -> 0xFBF20: YES
+- no other lines modified (this pass): YES
+- Build 0029 marker preserved: YES
+- count 73 unchanged: YES
+- no source files modified: YES
+- no spec files modified: YES
+- build result: pass
+- manifest entry_symbol_address 0x00000226: YES
+- Phase B structure intact: YES
+- Phase A 17 entries in ROM: YES
+- STOP triggered: NO
+
+Build trace:
+- Command: `source tools/setup_env.sh && make -C apps/rastan-direct -B release`
+- Coverage invariant error: NONE
+- Symbol resolution errors: NONE
+- Postpatch RuntimeError: NONE
+- ROM outputs:
+  - `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+  - `dist/rastan-direct/rastan_direct_video_test_build_0049.bin`
+
+Architecture compliance: CONFIRMED.
+
+## [Cody — Runtime Trace, Build 0049 First Exception]
+
+* files changed: docs/design/Cody_build0049_first_exception_trace.md, AGENTS_LOG.md
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: NO
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- `_start` reached: YES
+- LEA SP init reached: YES — SP before: 0x00FF0000 SP after: 0x00FF0000
+- `_bootstrap` reached: YES
+- `0x3A200` reached: NO
+- first exception captured: NO
+- faulting PC: N/A
+- faulting instruction: N/A
+- fault address: N/A
+- fault classification: INDETERMINATE (no exception frame captured)
+- STOP triggered: YES — first address-error exception did not occur in bounded MAME runtime windows (179s and 899s emulated), so required trap frame + pre-fault instruction slice could not be captured
+
+Runtime evidence captured:
+- `runtime_genesis_pc 0x00000202` (`_start`) hit with `SP=0x00FF0000`, `A5=0x00000000`
+- `runtime_genesis_pc 0x00000206` LEA path executed (trace shows `lea $ff0000.l, A7`)
+- `runtime_genesis_pc 0x00000226` (`_bootstrap`) hit with `SP=0x00FEFFFC`
+- `runtime_genesis_pc 0x000700C2` (`_vblank_service`) hit with `SP=0x00FEFFC2`
+- `runtime_genesis_pc 0x0003A208` (arcade L5 path) hit via `_vblank_service` tail-JMP
+- `runtime_genesis_pc 0x0003A200` not hit in captured windows
+- exception stubs `runtime_genesis_pc 0x000002FA` and `0x00000300` not hit in captured windows
+
+Additional capture required:
+- Runtime where first address error actually reproduces (reported Exodus fault), with instruction-level pre-fault history and full trap-frame register snapshot.
+
+Architecture compliance: CONFIRMED (trace-only task; no runtime/system fixes applied).
+
+## [Andy — Analysis, A5 Initialization and Startup Path]
+
+* files changed: docs/design/Andy_a5_initialization_analysis.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- first A5 init site: arcade_pc 0x0003AF04 (only pre-main-loop A5 init in
+    arcade ROM; already opcode_replaced via spec line 301 to redirect
+    literal 0x0010C000 → 0x00FF0000)
+- reachable from 0x3A000: YES — straight-line path via BRA.W 0x3AE86
+    and startup_common body, no branching-away before A5 load
+- reachable from 0x3A008 without 0x3A000: NO — L5 handler body
+    (0x3A008..0x3A07E) contains no path that reaches 0x3AF04
+- 0x3A008 uses A5-relative: YES — count = 3 direct in body + many
+    indirect via BSR targets
+    Direct reads in handler body:
+      arcade_pc 0x3A018: MOVE.W A5@(2),  D0   → if A5=0, reads 0x00000002 (vector table)
+      arcade_pc 0x3A02C: TST.W  A5@(0)        → if A5=0, reads 0x00000000 (vector table)
+      arcade_pc 0x3A032: CMPI.W #1, A5@(5012) → if A5=0, reads 0x00001394 (arcade-copy ROM)
+    Indirect via BSR 0x3AB7C → arcade_pc 0x3AB84 CMPI.W #256, A5@(18)
+    (Cody MAME trace confirmed this site executes with A5=0; reads
+    Genesis vector-table word at 0x00000012 = 0x0306, i.e. value >= 256,
+    so BSR.W 0x39FA8 BCS NOT taken → BRA 0x39F8C → warm-restart delay
+    loop hit — observed in Cody_build0049_first_exception_trace.md
+    Phase 4).
+
+- _bootstrap sets A5: NO (confirmed from boot.s:154-160)
+- vdp_boot_setup sets A5: NO
+- _bootstrap_clear_staging sets A5: NO (uses A0 exclusively; boot.s:162-209)
+- load_scene_tiles sets A5: NO
+- Any Genesis cold-boot code sets A5: NO
+- A5 = 0 at first VBlank possible: YES
+    _bootstrap enables IRQ at boot.s:159 (`move.w #0x2000, %sr`) BEFORE
+    the jmp to 0x00003A200 at boot.s:160. Arcade startup_common's A5
+    load at arcade_pc 0x3AF04 sits ~116 ms into startup_common execution
+    due to two 8191-iteration RAM-probe loops (0x3AEB6..0x3AEC4 and
+    0x3AEDA..0x3AEE8) and one 8191-iteration zero-propagate loop
+    (0x3AEFA..0x3AF02). First NTSC VBlank fires ~16.67 ms after IRQ
+    enable — many VBlanks before A5 is ever loaded.
+
+- root cause confirmed: YES (HIGH confidence)
+    A5 = 0 at VBlank because _bootstrap enables interrupts before A5 is
+    initialized, and arcade's own A5 load is tens of ms later down the
+    startup path. The L5 handler at arcade_pc 0x3A008 performs
+    A5-relative reads whose results drive control flow; with A5=0 those
+    reads return vector-table / low-ROM garbage and the handler (and
+    every subroutine it invokes) runs on garbage state.
+
+- fix direction: CLASSIFICATION = "_bootstrap must initialize A5 to 0x00FF0000 before enabling interrupts"
+    File: apps/rastan-direct/src/boot/boot.s
+    Change: insert one instruction — `lea 0x00FF0000, %a5` — in
+    _bootstrap between line 158 (`jsr load_scene_tiles`) and line 159
+    (`move.w #0x2000, %sr`).
+    Rationale:
+      - _bootstrap is a BOOT-ONLY helper whose job is exactly to prepare
+        Genesis state for arcade execution; setting A5 is a register-
+        init analogous to vdp_boot_setup's VDP register setup.
+      - The value written matches what arcade's existing opcode_replace
+        at 0x3AF04 would load (0x00FF0000); arcade's later execution of
+        0x3AF04 is idempotent.
+      - No RULES violation: no Genesis-owned loop / no new VBlank
+        identity / no state machine; single register-init instruction.
+    Alternative rejected: "_bootstrap does NOT enable interrupts; arcade
+        enables them itself" — requires modifying arcade control flow
+        (new opcode_replace at a yet-unidentified arcade_pc) — broader
+        scope than necessary and out of this task's analysis.
+
+- STOP triggered: NO
+
+Architecture compliance: CONFIRMED.
+
+### MAME Exit Summary (2026-04-20 19:43:52)
+- Final PC: 0x03A196
+- Stack Pointer (SP): 0x00FEFFBA
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, _bootstrap A5 Initialization Fix]
+
+* files changed: apps/rastan-direct/src/boot/boot.s, docs/design/Cody_a5_init_fix.md, AGENTS_LOG.md
+* build produced: YES
+* ROM path: dist/rastan-direct/rastan_direct_video_test_build_0050.bin
+* root cause confirmed: YES — A5 not initialized before interrupts enabled in _bootstrap
+* fix implemented: NO (STOP)
+* no unrelated changes: YES
+
+Minimum detail:
+- `lea 0x00FF0000, %a5` inserted in `_bootstrap`: YES
+- insertion point: between `jsr load_scene_tiles` and `move.w #0x2000, %sr`
+- no other lines modified: YES (in this pass)
+- no other files modified: NO (required docs/log updated)
+- build result: pass
+- postpatch completed without error: YES
+- `_bootstrap` ends with jmp `0x3A200`: YES
+- `_vblank_service` ends with jmp `0x3A208`: YES
+- A5 non-zero on first `_vblank_service` entry: NO (`a5=0x00000000`)
+- opcode_replace at `arcade_pc 0x3AF04` intact: YES
+- Phase A 17 entries in ROM: YES
+- STOP triggered: YES — required runtime verification item failed (`A5` remained zero on first `_vblank_service` entry)
+
+Verification evidence:
+- boot insertion in source: `apps/rastan-direct/src/boot/boot.s` lines 158-160
+- first `_vblank_service` capture (MAME debugger breakpoint @ `runtime_genesis_pc 0x000700C2`):
+  `FIRST_VBLANK_SERVICE pc=0700C4 sp=00FEFFC2 a5=00000000 sr=2600`
+- Phase A + 0x3AF04 integrity verified against:
+  - `specs/rastan_direct_remap.json`
+  - `build/rastan-direct/rastan_direct_patch_manifest.json`
+  - `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+
+Architecture compliance: CONFIRMED.
+
+## [Cody — Runtime Trace, A5 Lifecycle _bootstrap -> First VBlank]
+
+* files changed: docs/design/Cody_a5_lifecycle_trace.md, AGENTS_LOG.md (append)
+* build produced: NO (existing ROM traced)
+* ROM path: dist/rastan-direct/rastan_direct_video_test_build_0050.bin
+* root cause confirmed: YES
+* classification: CASE 1
+* no unrelated changes: YES
+* capture method: MAME native `bpset` + native `trace`/`tracelog` fallback post-process
+* Lua harness used: NO
+* STOP triggered: YES — CP8 reached before CP6/CP7 (and before CP3/CP4/CP5)
+
+Minimum detail:
+- `_bootstrap` CP1 reached: YES (`runtime_genesis_pc target 0x00000226`, hit log `pc=0x00000228`, `A5=0x00000000`)
+- `jsr load_scene_tiles` CP2 reached: YES (`runtime_genesis_pc target 0x00000232`, hit log `pc=0x00000234`, `A5=0x00000000`)
+- `lea 0x00FF0000,%a5` CP3 reached before first VBlank: NO
+- `move.w #0x2000,%sr` CP4 reached before first VBlank: NO
+- `jmp 0x3A200` CP5 reached before first VBlank: NO
+- handoff `runtime_genesis_pc 0x0003A200` (CP6/CP7) reached before first VBlank: NO
+- first `_vblank_service` CP8 reached: YES (`runtime_genesis_pc target 0x000700C2`, hit log `pc=0x000700C4`, `A5=0x00000000`)
+- A5 write events CP1..CP8 window: 0 (no writes producing `0x00FF0000`)
+- definitive classification: CASE 1 (A5 never became `0x00FF0000` before first VBlank)
+
+Evidence snippets:
+- debugger hit order: `CP1 -> CP2 -> CP8`
+- trace at interrupt boundary:
+  - `runtime_genesis_pc 0x071246: move #$2000, SR`
+  - `(interrupted at 07124A, IRQ 6)`
+  - `runtime_genesis_pc 0x0700C2: movem.l D0-D7/A0-A6, -(A7)`
+- deterministic post-process over `/tmp/build0050_a5_lifecycle.trace` window [`PRE pc=000228` .. first `PRE pc=0700C4`]: `TOTAL_CHANGES=0` for A5
+
+Integrity confirmations:
+- Build 0050 ROM SHA-256: `de90634339cff7b00ed7167899b8cf9399f579d923943cdc743d1d85cab47ee1`
+- `boot.s` line 159 still `lea 0x00FF0000, %a5`: YES
+- `_vblank_service` first instruction still `movem.l %d0-%d7/%a0-%a6, -(%sp)`: YES
+- 17 Phase A entries present in spec and verified in ROM (replacement present + original absent): YES
+- opcode_replace at `arcade_pc 0x03AF04` present in spec and applied in ROM: YES
+
+Architecture compliance: CONFIRMED (trace-only; no source/spec/tool edits).
+
+## [Cody — Ghidra Reference Decompilation, Arcade Rastan]
+
+* files changed: docs/design/Cody_ghidra_arcade_reference.md, docs/design/Cody_ghidra_arcade_function_index.md, AGENTS_LOG.md
+* build produced: NO
+* ROM path: build/regions/maincpu.bin
+* root cause confirmed: N/A
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- arcade binary imported into Ghidra: YES
+- headless export method used: YES (`analyzeHeadless` with custom Java export scripts; plain-text outputs under `docs/design/ghidra_exports/`)
+- address base aligned with known arcade_pc references: YES
+- key functions decompiled and exported to docs/design/ghidra_exports/: YES
+- safe renames applied: YES — 5
+- reference docs produced: YES
+- STOP triggered: NO
+
+Reference artifacts:
+- Ghidra project: `tools/ghidra/rastan_project/rastan_arcade_ref.gpr` (+ `.rep`)
+- alignment check: `docs/design/ghidra_exports/00_alignment_verification.txt`
+- function export index: `docs/design/ghidra_exports/00_export_index.tsv`
+- rename log: `docs/design/ghidra_exports/00_safe_rename_log.txt`
+
+Architecture compliance: CONFIRMED (reference-only analysis; no Genesis source/spec/tool modifications).
+
+## [Andy — Analysis, load_scene_tiles SR Violation]
+
+* files changed: docs/design/Andy_load_scene_tiles_sr_analysis.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO
+* no unrelated changes: YES
+
+Minimum detail:
+- Phase 1 trace linkage (from Cody_a5_lifecycle_trace.md Table A):
+    CP2 entry to jsr load_scene_tiles: SR=0x2714 (mask 7)
+    CP3 lea 0x00FF0000,%a5 at boot.s:159: NOT HIT
+    CP8 _vblank_service entry: SR=0x2600 (auto-mask 6 on L5 entry)
+    Observed hit order: CP1 → CP2 → CP8
+    Trace tail immediately before CP8: "runtime_genesis_pc 0x071246: move #$2000, SR"
+      — this is scene_load.s:91 linked into the wrapper.
+    Therefore: SR mask was lowered < 5 inside load_scene_tiles before rts. YES.
+
+- Phase 2 SR writes in scene_load.s:
+    scene_load.s:46  move.w #0x2700, %sr  (mask 7 at entry — helper-contract defect in miniature)
+    scene_load.s:91  move.w #0x2000, %sr  (mask 0 at exit — THE PREEMPTION TRIGGER)
+    Other SR/CCR/RTR/RTE/STOP/TRAP in the helper: NONE.
+    Preemption trigger identified: scene_load.s:91.
+
+- Phase 3 RULES/ARCHITECTURE classification: VIOLATION
+    Violated:
+      RULES.md §1 (arcade owns execution — helper schedules IRQ delivery)
+      RULES.md §4 (helper functions only — line 91 is helper-side control-flow scheduling)
+      RULES.md §5 partial (production intent — unmask-on-exit is scaffolding-shaped)
+      ARCHITECTURE.md "Helper Functions" (must not own control flow)
+      ARCHITECTURE.md "Frame Ownership" (helper gates first L5 delivery, belongs to arcade)
+      PROMPT_TEMPLATE.md CONTROL FLOW INVARIANT
+        (observed exit path is IRQ → _vblank_service, not rts to caller)
+    Concise why: scene_load.s:91 unconditionally drops the CPU IRQ mask to 0
+      before the helper's rts, which (i) overwrites caller-owned SR, (ii)
+      schedules the next IRQ inside the helper, (iii) cedes control-flow to
+      the VBlank vector. Helper-side control-flow ownership is exactly what
+      §4 / Helper Functions forbids.
+
+- Phase 4 fix options evaluated:
+    A (delete line 91 only):       fixes bug, but exits with mask 7 overwriting
+                                   caller SR; partial §4 fit only.
+    B (delete both 46 and 91):     preserves caller SR but loses VDP critical-
+                                   section protection; unsafe if any caller ever
+                                   enters with mask < 5.
+    C (save/raise/restore SR):     standard 68000 helper convention; preserves
+                                   caller SR exactly AND retains VDP protection.
+    D (other):                     N/A.
+    Recommended option: C.
+    Confidence: HIGH.
+
+- Recommended fix (minimum source scope):
+    File: apps/rastan-direct/src/scene_load.s
+    Line 46 REPLACED:
+      Before:  move.w #0x2700, %sr
+      After:   move.w %sr, -(%sp)
+               ori.w  #0x0700, %sr
+    Line 91 REPLACED:
+      Before:  move.w #0x2000, %sr
+      After:   move.w (%sp)+, %sr
+    No other file / spec / tool changes.
+
+- Callers of load_scene_tiles and caller-compatibility:
+    boot.s:158              jsr, mask-7 caller (via _start's move.w #0x2700, %sr)
+    tilemap_hooks.s:108     bsr, mask-7 caller (inside arcade L5 handler — ORI #0x0F00, SR)
+    tilemap_hooks.s:280     bsr, mask-7 caller (same)
+    All three callers preserved by Option C.
+
+- Phase 5 audit — SR-touching helpers across entire rastan-direct/src/ tree:
+    boot.s:140   _boot_guard_legacy_rte  rte                  LEGITIMATE (padding/guard)
+    boot.s:143   _start                  move #0x2700, %sr    LEGITIMATE (boot owner)
+    boot.s:160   _bootstrap              move #0x2000, %sr    LEGITIMATE (boot owner, handoff)
+    scene_load.s:46  load_scene_tiles    move #0x2700, %sr    VIOLATION (subject)
+    scene_load.s:91  load_scene_tiles    move #0x2000, %sr    VIOLATION (subject)
+    crash_handler.s:180  _crash_common   move #0x2700, %sr    LEGITIMATE (fault owner)
+    crash_handler.s:262,266              stop #0x2700         LEGITIMATE (halt)
+    vdp_comm.s (including _vblank_service):   NONE            CLEAN
+    tilemap_hooks.s:                          NONE            CLEAN
+    sound/sound_comm.s:                       NONE            CLEAN
+    sound/z80_driver.s:                       NONE            CLEAN
+
+- _vblank_service SR handling: 68000 auto-vector pushes SR + raises mask to 6
+    on entry; JMP (0x3A208).l reaches arcade L5 handler which ends in RTE
+    that pops the auto-saved SR. _vblank_service itself writes SR ZERO
+    times. CONFIRMED by grep.
+
+- Additional SR-touching helpers needing separate prompts: NONE.
+
+- STOP triggered: NO
+- Ready for Cody implementation: YES
+
+Architecture compliance: CONFIRMED.
+
+## [Andy — Analysis, VRAM Tile-Start Offset]
+
+* files changed: docs/design/Andy_vram_tile_offset_analysis.md (new)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES
+* fix implemented: NO (analysis only)
+* no unrelated changes: YES
+
+Minimum detail:
+- Producer VRAM destination identified: YES
+    VRAM_OFFSET 0x00000280 = tile index 0x14 (slot 20).
+    Source chain:
+      tools/translation/precompute_pc080sn_tile_lut.py:39
+        TILE_CACHE_BASE_A = 20
+      → build_slot_sequence() at line 347-351 starts at slot 20
+      → assign_scene_aware_slots() picks slot 20 for first tile
+      → write_scene_manifest() writes pair (arcade_tile=0x20, dst_slot=0x14)
+        as first entry of build/pc080sn_scene_preload_title.bin
+      → scene_load.s:66 `lsl.l #5, %d0` converts dst_slot to VRAM byte offset
+      → 0x14 × 0x20 = 0x0280 (verified by xxd on the binary)
+
+- Consumer tile base(s) identified: YES
+    Consumer: genesistan_pc080sn_tile_vram_lut runtime read in every hook
+              of apps/rastan-direct/src/tilemap_hooks.s.
+    Hook pattern: read arcade tile, index into LUT (×2 for word), use LUT
+                  value VERBATIM as nametable tile index.
+    No hardcoded offset exists anywhere in tilemap_hooks.s.
+    LUT is generated by the SAME tool with the SAME TILE_CACHE_BASE_A
+    constant, so producer and consumer are synchronised by construction.
+    specs/rastan_direct_remap.json: no opcode_replace entry encodes a
+      VRAM tile slot (all are WRAM symbols or hook redirects).
+
+- Producer/consumer agreement: YES. Mismatch sites: NONE.
+
+- SGDK origin evidence: YES
+    Primary:
+      docs/design/direct_pc080sn_bulk_tilemap_validation_gate.md:190 —
+        explicit table row "| 0–15 | 16 | SGDK system (reserved) | No |"
+    Corroborating:
+      docs/design/Andy_pc080sn_tile_preload_system_design.md §3
+        "SGDK Reference Pipeline"
+      docs/design/Cody_no_sgdk_direct_execution_proposal.md
+      docs/design/Andy_sgdk_vs_rastan_direct_address_mapping_diagnosis.md
+      docs/design/pc080sn_semantic_mismatch_analysis_build294.md
+      apps/rastan/ (SGDK-based predecessor, still in repo)
+
+- Origin verdict: INHERITED_FROM_SGDK.
+
+- Offset still required: NO.
+    No Genesis-side consumer in rastan-direct uses slots 0x01..0x13.
+    Crash handler sits at slot 1024+ (fault-only).
+    Slot 0 IS implicitly used as:
+      (a) LUT "unmapped" sentinel (hooks emit LUT[0]=0 verbatim)
+      (b) Plane A boot clear writes tile 0 to every cell
+    Both rely on slot 0 rendering as "blank" — so slot 0 should stay
+    reserved, but slots 1..0x13 (19 slots, ~608 bytes VRAM) are waste.
+
+- Recommended fix scope:
+    Producer: tools/translation/precompute_pc080sn_tile_lut.py:39
+      Before:  TILE_CACHE_BASE_A = 20
+      After:   TILE_CACHE_BASE_A = 1
+    Consumer(s): NONE — no source edit needed.
+    Total source lines affected: 1 (optional +1 to remove dead constant
+      PC080SN_TABLE_TILE_OFFSET = 0x14 at line 44 of the same file).
+    Simultaneous producer+consumer change required: NO — the tool
+      regenerates LUT binary AND all three scene-preload binaries in one
+      invocation, atomically propagating the constant change to both
+      sides.
+
+- Fix confidence: HIGH.
+    One-constant change in one tool file. Producer and consumer binaries
+    regenerate together. Risk is limited to NOT setting the constant to
+    0 (which would collide with LUT's "0 = unmapped" sentinel); stopping
+    at 1 preserves that convention. No arcade-side changes needed.
+
+- Not fix-blocked: the briefing's classification "deferred optimization,
+    not a blocking bug" is correct — producer/consumer agree, rendering
+    is visually correct modulo the 19 wasted VRAM slots.
+
+- STOP triggered: NO.
+
+Architecture compliance: CONFIRMED (analysis-only; nothing touched).
+
+
+### MAME Exit Summary (2026-04-20 22:38:08)
+- Final PC: 0x0004EC
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none

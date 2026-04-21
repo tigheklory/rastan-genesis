@@ -1,0 +1,23 @@
+arcade_pc: 0x03AB22
+label: seed_defaults_site
+purpose_note: major work RAM default seed site
+confidence: MEDIUM
+ghidra_function: <no_function>
+
+== Raw Disassembly Snippet (+/- 0x20) ==
+0003ab22: move.w #0xa0,(0x2c,A5)
+0003ab28: lea (0x100,A5),A0
+0003ab2c: move.w #0x0,(A0)
+0003ab30: lea (0x102,A5),A1
+0003ab34: moveq 0x1f,D0
+0003ab36: bsr.w 0x0003a2d0
+0003ab3a: lea (0x100,A5),A0
+0003ab3e: bsr.w 0x0003a9e6
+0003ab42: move.w #0x1,(0x100,A5)
+0003ab48: move.w #0x2,(0x0,A5)
+0003ab4e: clr.w (0x2,A5)
+0003ab52: clr.w (0x4,A5)
+0003ab56: rts
+
+== Decompiler Output ==
+<no containing function>

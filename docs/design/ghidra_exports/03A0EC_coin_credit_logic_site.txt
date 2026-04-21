@@ -1,0 +1,82 @@
+arcade_pc: 0x03A0EC
+label: coin_credit_logic_site
+purpose_note: coin/credit handling region
+confidence: MEDIUM
+ghidra_function: FUN_0003a0ec
+function_entry: 0003a0ec
+function_body: [[0003a0ec, 0003a115]]
+
+== Raw Disassembly Snippet (+/- 0x20) ==
+0003a0ce: rts
+0003a0d0: cmpi.w #0x9,(0x12,A5)
+0003a0d6: bcc.b 0x0003a0bc
+0003a0d8: bsr.w 0x0003ae28
+0003a0dc: bra.b 0x0003a0c0
+0003a0de: cmpi.w #0x9,(0x12,A5)
+0003a0e4: bcc.b 0x0003a0ca
+0003a0e6: bsr.w 0x0003ae28
+0003a0ea: bra.b 0x0003a0ce
+0003a0ec: tst.w (0x34,A5)
+0003a0f0: beq.b 0x0003a114
+0003a0f2: cmpi.b #0x23,D0b
+0003a0f6: beq.b 0x0003a114
+0003a0f8: movem.l {  A6 D1},-(SP)
+0003a0fc: lea (0x292,A5),A6
+0003a100: moveq 0x6,D1
+0003a102: tst.b (A6)
+0003a104: bne.b 0x0003a10a
+0003a106: move.b D0b,(A6)
+0003a108: bra.b 0x0003a110
+0003a10a: addq.w #0x1,A6
+0003a10c: subq.w #0x1,D1w
+0003a10e: bne.b 0x0003a102
+0003a110: movem.l (SP)+,{  D1 A6}
+0003a114: rts
+0003a126: tst.w (0x34,A5)
+0003a12a: bne.b 0x0003a134
+0003a12c: cmpi.w #0x1,(0x1394,A5)
+
+== Function Disassembly ==
+0003a0ec: tst.w (0x34,A5)
+0003a0f0: beq.b 0x0003a114
+0003a0f2: cmpi.b #0x23,D0b
+0003a0f6: beq.b 0x0003a114
+0003a0f8: movem.l {  A6 D1},-(SP)
+0003a0fc: lea (0x292,A5),A6
+0003a100: moveq 0x6,D1
+0003a102: tst.b (A6)
+0003a104: bne.b 0x0003a10a
+0003a106: move.b D0b,(A6)
+0003a108: bra.b 0x0003a110
+0003a10a: addq.w #0x1,A6
+0003a10c: subq.w #0x1,D1w
+0003a10e: bne.b 0x0003a102
+0003a110: movem.l (SP)+,{  D1 A6}
+0003a114: rts
+
+== Decompiler Output ==
+
+void FUN_0003a0ec(void)
+
+{
+  char in_D0b;
+  short sVar1;
+  int unaff_A5;
+  char *pcVar2;
+  
+  if ((*(short *)(unaff_A5 + 0x34) != 0) && (in_D0b != '#')) {
+    pcVar2 = (char *)(unaff_A5 + 0x292);
+    sVar1 = 6;
+    do {
+      if (*pcVar2 == '\0') {
+        *pcVar2 = in_D0b;
+        return;
+      }
+      pcVar2 = pcVar2 + 1;
+      sVar1 = sVar1 + -1;
+    } while (sVar1 != 0);
+  }
+  return;
+}
+
+

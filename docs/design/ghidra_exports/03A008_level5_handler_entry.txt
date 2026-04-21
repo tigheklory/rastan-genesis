@@ -1,0 +1,88 @@
+arcade_pc: 0x03A008
+label: level5_handler_entry
+purpose_note: arcade L5 / VBlank handler
+confidence: HIGH
+ghidra_function: level5_vblank_handler
+function_entry: 0003a008
+function_body: [[0003a008, 0003a06b]]
+
+== Raw Disassembly Snippet (+/- 0x20) ==
+0003a000: bra.w 0x0003ae86
+0003a008: ori #0xf00,SR
+0003a00c: clr.w (0x00350008).l
+0003a012: move.w D0w,(0x003c0000).l
+0003a018: move.w (0x2,A5),D0w
+0003a01c: cmpi.w #0x2,D0w
+0003a020: bcs.b 0x0003a03e
+0003a022: cmpi.w #0x4,D0w
+0003a026: bcc.b 0x0003a03e
+0003a028: bsr.w 0x0003a126
+0003a02c: tst.w (0x0,A5)
+0003a030: beq.b 0x0003a03e
+0003a032: cmpi.w #0x1,(0x1394,A5)
+0003a038: beq.b 0x0003a03e
+0003a03a: bsr.w 0x00041f30
+0003a03e: bsr.w 0x0003ab7c
+0003a042: bsr.w 0x0003abe2
+0003a046: bsr.w 0x0003a0a8
+
+== Function Disassembly ==
+0003a008: ori #0xf00,SR
+0003a00c: clr.w (0x00350008).l
+0003a012: move.w D0w,(0x003c0000).l
+0003a018: move.w (0x2,A5),D0w
+0003a01c: cmpi.w #0x2,D0w
+0003a020: bcs.b 0x0003a03e
+0003a022: cmpi.w #0x4,D0w
+0003a026: bcc.b 0x0003a03e
+0003a028: bsr.w 0x0003a126
+0003a02c: tst.w (0x0,A5)
+0003a030: beq.b 0x0003a03e
+0003a032: cmpi.w #0x1,(0x1394,A5)
+0003a038: beq.b 0x0003a03e
+0003a03a: bsr.w 0x00041f30
+0003a03e: bsr.w 0x0003ab7c
+0003a042: bsr.w 0x0003abe2
+0003a046: bsr.w 0x0003a0a8
+0003a04a: bsr.w 0x0003eefa
+0003a04e: bsr.w 0x0003ef5c
+0003a052: pea (0x20,PC)
+0003a056: move.w (0x0,A5),D0w
+0003a05a: add.w D0w,D0w
+0003a05c: lea (0xe,PC),A0
+0003a060: adda.w D0w,A0
+0003a062: move.w (A0),D0w
+0003a064: lea (0x6,PC),A0
+0003a068: adda.w D0w,A0
+0003a06a: jmp (A0)
+
+== Decompiler Output ==
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void level5_vblank_handler(void)
+
+{
+  undefined2 in_D0w;
+  short *unaff_A5;
+  
+  _DAT_00350008 = 0;
+  _DAT_003c0000 = in_D0w;
+  if ((1 < (ushort)unaff_A5[1]) && ((ushort)unaff_A5[1] < 4)) {
+    func_0x0003a126();
+    if ((*unaff_A5 != 0) && (unaff_A5[0x9ca] != 1)) {
+      func_0x00041f30();
+    }
+  }
+  warm_restart_gate_caller_a();
+  func_0x0003abe2();
+  func_0x0003a0a8();
+  func_0x0003eefa();
+  func_0x0003ef5c();
+                    /* WARNING: Could not recover jumptable at 0x0003a06a. Too many branches */
+                    /* WARNING: Treating indirect jump as call */
+  (*(code *)(*(short *)((short)(*unaff_A5 * 2) + 0x3a06c) + 0x3a06c))();
+  return;
+}
+
+

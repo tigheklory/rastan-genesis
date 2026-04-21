@@ -1,7 +1,23 @@
     .section .text.boot,"ax"
     .global _start
-    .extern main_68k
-    .extern _VINT_handler
+    .extern _vblank_service
+    .extern vdp_boot_setup
+    .extern vdp_set_vram_write_addr
+    .extern load_scene_tiles
+    .extern palette_dirty
+    .extern tiles_dirty
+    .extern bg_row_dirty
+    .extern fg_row_dirty
+    .extern staged_dest_ptr_bg
+    .extern staged_dest_ptr_fg
+    .extern staged_scroll_x_bg
+    .extern staged_scroll_x_fg
+    .extern staged_scroll_y_bg
+    .extern staged_scroll_y_fg
+    .extern staged_bg_buffer
+    .extern staged_fg_buffer
+    .extern staged_palette_words
+    .extern staged_tile_words
     .extern _crash_stub_bus_error
     .extern _crash_stub_address_error
     .extern _crash_stub_illegal
@@ -32,6 +48,10 @@
 
     .equ HW_VERSION,  0x00A10001
     .equ TMSS_REG,    0x00A14000
+    .equ VDP_DATA,    0x00C00000
+    .equ VRAM_PLANE_A_BASE, 0x0000E000
+    .equ ARCADE_FIX_DEST_BG, 0x00FF10A0
+    .equ ARCADE_FIX_DEST_FG, 0x00FF10A4
 
     .org 0x000000
     .long 0x00FF0000
@@ -64,7 +84,7 @@
     .long _crash_stub_other             /* 27 */
     .long _crash_stub_other             /* 28 */
     .long _crash_stub_other             /* 29 */
-    .long _VINT_handler
+    .long _vblank_service
     .long _crash_stub_other             /* 31 */
     .long _crash_stub_trap_00           /* 32 */
     .long _crash_stub_trap_01           /* 33 */
@@ -129,7 +149,65 @@ _start:
     move.l  #0x53454741, TMSS_REG
 .Ltmss_done:
 
-    jsr     main_68k
+    jsr     _bootstrap
+
+_bootstrap:
+    jsr     vdp_boot_setup
+    bsr     _bootstrap_clear_staging
+    moveq   #0, %d0
+    jsr     load_scene_tiles
+    lea     0x00FF0000, %a5
+    move.w  #0x2000, %sr
+    jmp     (0x00003A200).l
+
+_bootstrap_clear_staging:
+    move.l  #0x00C00000, staged_dest_ptr_bg
+    move.l  #0x00C08000, staged_dest_ptr_fg
+
+    move.l  #0x00C00000, ARCADE_FIX_DEST_BG
+    move.l  #0x00C08000, ARCADE_FIX_DEST_FG
+
+    clr.b   palette_dirty
+    clr.b   tiles_dirty
+    clr.l   bg_row_dirty
+    clr.l   fg_row_dirty
+
+    lea     staged_palette_words, %a0
+    move.w  #(64 - 1), %d7
+.Lboot_pal_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lboot_pal_clear
+
+    lea     staged_tile_words, %a0
+    move.w  #(48 - 1), %d7
+.Lboot_tile_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lboot_tile_clear
+
+    lea     staged_bg_buffer, %a0
+    move.w  #(2048 - 1), %d7
+.Lboot_bg_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lboot_bg_clear
+
+    lea     staged_fg_buffer, %a0
+    move.w  #(2048 - 1), %d7
+.Lboot_fg_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lboot_fg_clear
+
+    move.l  #VRAM_PLANE_A_BASE, %d0
+    jsr     vdp_set_vram_write_addr
+    move.w  #(2048 - 1), %d7
+.Lboot_plane_a_clear:
+    move.w  #0x0000, VDP_DATA
+    dbra    %d7, .Lboot_plane_a_clear
+
+    clr.w   staged_scroll_x_bg
+    clr.w   staged_scroll_x_fg
+    clr.w   staged_scroll_y_bg
+    clr.w   staged_scroll_y_fg
+    rts
 
 .Lhang:
     bra.s   .Lhang

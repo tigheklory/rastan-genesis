@@ -1,0 +1,62 @@
+arcade_pc: 0x039F9E
+label: warm_restart_trampoline
+purpose_note: reset / warm-restart trampoline
+confidence: HIGH
+ghidra_function: warm_restart_watchdog_gate
+function_entry: 00039f80
+function_body: [[00039f80, 00039fa7]]
+
+== Raw Disassembly Snippet (+/- 0x20) ==
+00039f80: tst.w (0x2c,A5)
+00039f84: beq.b 0x00039f8c
+00039f86: subq.w #0x1,(0x2c,A5)
+00039f8a: rts
+00039f8c: move.l #0xa0000,D1
+00039f92: move.l (0x00000000).w,D0
+00039f96: subi.l #0x1,D1
+00039f9c: bne.b 0x00039f92
+00039f9e: movea.l (0x00000000).w,SP
+00039fa2: movea.l (0x00000004).w,A0
+00039fa6: jmp (A0)
+00039fa8: bcs.b 0x00039fac
+00039faa: bra.b 0x00039f8c
+00039fac: rts
+
+== Function Disassembly ==
+00039f80: tst.w (0x2c,A5)
+00039f84: beq.b 0x00039f8c
+00039f86: subq.w #0x1,(0x2c,A5)
+00039f8a: rts
+00039f8c: move.l #0xa0000,D1
+00039f92: move.l (0x00000000).w,D0
+00039f96: subi.l #0x1,D1
+00039f9c: bne.b 0x00039f92
+00039f9e: movea.l (0x00000000).w,SP
+00039fa2: movea.l (0x00000004).w,A0
+00039fa6: jmp (A0)
+
+== Decompiler Output ==
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void warm_restart_watchdog_gate(void)
+
+{
+  int iVar1;
+  int unaff_A5;
+  
+  if (*(short *)(unaff_A5 + 0x2c) != 0) {
+    *(short *)(unaff_A5 + 0x2c) = *(short *)(unaff_A5 + 0x2c) + -1;
+    return;
+  }
+  iVar1 = 0xa0000;
+  do {
+    iVar1 = iVar1 + -1;
+  } while (iVar1 != 0);
+                    /* WARNING: Could not recover jumptable at 0x00039fa6. Too many branches */
+                    /* WARNING: Treating indirect jump as call */
+  (*_DAT_00000004)();
+  return;
+}
+
+

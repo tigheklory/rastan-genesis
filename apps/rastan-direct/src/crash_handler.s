@@ -231,8 +231,7 @@ _crash_common:
     move.l  %usp, %a1
     move.l  %a1, CRASH_USP
 
-    move.w  frame_counter, %d6
-    move.w  %d6, CRASH_FRAME_COUNTER
+    clr.w   CRASH_FRAME_COUNTER
 
     move.l  ARCADE_FIX_DEST_BG, %d6
     move.l  %d6, CRASH_ARCADE_DEST_BG

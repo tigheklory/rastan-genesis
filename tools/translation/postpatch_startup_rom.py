@@ -904,6 +904,12 @@ def main() -> int:
     range_lookup = build_range_lookup(spec)
     range_kind_lookup = build_range_kind_lookup(spec)
     required_symbols = tuple(spec.get("required_symbols", []))
+    if is_rastan_direct_profile:
+        # main_68k/arcade_tick_logic were removed in the runtime decomposition;
+        # this symbol is a stale validation requirement for that deleted path.
+        required_symbols = tuple(
+            name for name in required_symbols if name != "rastan_direct_arcade_tick_entry"
+        )
     source_windows = parse_windows(spec.get("declared_arcade_windows", []))
     target_windows = parse_windows(spec.get("declared_rewrite_target_windows", []))
     validate_spec_addresses(spec, range_lookup, target_windows, source_windows)
@@ -1680,7 +1686,7 @@ def main() -> int:
     direct_entry_symbol = str(direct_cfg.get("entry_symbol", "")) if is_rastan_direct_profile else ""
     direct_entry_symbol_addr = None
     if is_rastan_direct_profile and direct_entry_symbol:
-        direct_entry_symbol_addr = resolve_symbol_address(symbol_addresses, direct_entry_symbol)
+        direct_entry_symbol_addr = resolve_symbol_address(all_symbol_addresses, direct_entry_symbol)
 
     if is_rastan_direct_profile:
         rom_bytes[0x000000:preserve_low_rom_end] = preserved_genesis_vectors
@@ -1733,13 +1739,13 @@ def main() -> int:
                 "does not match patched_site opcode_replace segment count."
             )
         if (
-            int(segment_coverage["total_genesis_bytes_covered"]) != 0xFC1C4
-            or len(opcode_replace_sites) != 56
+            int(segment_coverage["total_genesis_bytes_covered"]) != 0xFBF20
+            or len(opcode_replace_sites) != 73
         ):
             raise RuntimeError(
                 "Build 0029 invariant failure: expected "
-                "total_genesis_bytes_covered=0xFC1C4 and "
-                "opcode_replace patched_site count=56; got "
+                "total_genesis_bytes_covered=0xFBF20 and "
+                "opcode_replace patched_site count=73; got "
                 f"total_genesis_bytes_covered=0x{int(segment_coverage['total_genesis_bytes_covered']):X} "
                 f"opcode_replace patched_site count={len(opcode_replace_sites)}."
             )
