@@ -6,72 +6,176 @@ api_probe register_snapshot=yes method=cpu.state regs=A0,A1,A4,A5,D2,D3,D6,D7
 api_probe rolling_pc_history=no method=not_available note=cpu:add_exec unavailable in MAME Lua API
 arm: initial_pc=000000
 [frame 000000] live_write vdp_ports_live pc=07008e addr=c00004 data=8004 mask=ffff count=1
-[frame 000001] exec_enter pc=0002e4 range=other
-[frame 000011] exec_enter pc=03b0c0 range=startup_common@000200
-[frame 000013] exec_enter pc=07060c range=other
-[frame 000017] exec_enter pc=03a21a range=frontend_core@000000
-[frame 000018] exec_enter pc=03bc7c range=title_init_block@000000
-[frame 000019] exec_enter pc=07060a range=other
-[frame 000025] first_symbol_change reg_3c0000 addr=ff685a 0->C0
-[frame 000025] first_symbol_change reg_d01bfe addr=ff6854 0->FF
-[frame 000025] first_symbol_change reg_350008 addr=ff6856 0->4B53
-[frame 000025] first_symbol_change reg_380000 addr=ff6858 0->3D85
+[frame 000001] exec_enter pc=000308 range=other
+[frame 000007] exec_enter pc=03b0c6 range=startup_common@000200
+[frame 000014] exec_enter pc=0712d6 range=other
+[frame 000023] exec_enter pc=03af3e range=startup_common@000000
+[frame 000026] exec_enter pc=07133a range=other
+[frame 000030] pc=070608 exec=other
+[frame 000046] exec_enter pc=03a198 range=frontend_core@000000
+[frame 000060] pc=03a194 exec=frontend_core@000000
+[frame 000060] first_window_change wram_ff0000
 [frame 000060] first_window_change z80_ctrl
 [frame 000090] window_change z80_ctrl
+[frame 000120] pc=03a196 exec=frontend_core@000000
 [frame 000120] window_change z80_ctrl
+[frame 000150] pc=03a19e exec=frontend_core@000000
 [frame 000150] window_change z80_ctrl
+[frame 000180] pc=03a19c exec=frontend_core@000000
 [frame 000180] window_change z80_ctrl
+[frame 000210] pc=03a196 exec=frontend_core@000000
 [frame 000210] window_change z80_ctrl
+[frame 000240] pc=03a19e exec=frontend_core@000000
 [frame 000240] window_change z80_ctrl
+[frame 000261] exec_enter pc=00030a range=other
+[frame 000267] exec_enter pc=03b0c6 range=startup_common@000200
+[frame 000270] pc=03b0dc exec=startup_common@000200
+[frame 000270] window_change wram_ff0000
 [frame 000270] window_change z80_ctrl
+[frame 000274] exec_enter pc=071314 range=other
+[frame 000284] exec_enter pc=03af40 range=startup_common@000000
+[frame 000286] exec_enter pc=07176a range=other
+[frame 000300] window_change wram_ff0000
+[frame 000300] first_window_change vdp_ports
 [frame 000300] window_change z80_ctrl
+[frame 000306] exec_enter pc=03a198 range=frontend_core@000000
+[frame 000330] pc=03a19c exec=frontend_core@000000
+[frame 000330] window_change wram_ff0000
+[frame 000330] window_change vdp_ports
 [frame 000330] window_change z80_ctrl
+[frame 000360] pc=03a196 exec=frontend_core@000000
 [frame 000360] window_change z80_ctrl
+[frame 000390] pc=03a19e exec=frontend_core@000000
 [frame 000390] window_change z80_ctrl
+[frame 000420] pc=03a19c exec=frontend_core@000000
 [frame 000420] window_change z80_ctrl
+[frame 000450] pc=03a196 exec=frontend_core@000000
 [frame 000450] window_change z80_ctrl
+[frame 000480] pc=03a19e exec=frontend_core@000000
 [frame 000480] window_change z80_ctrl
+[frame 000510] pc=03a198 exec=frontend_core@000000
 [frame 000510] window_change z80_ctrl
+[frame 000521] exec_enter pc=00030a range=other
+[frame 000527] exec_enter pc=03b0c6 range=startup_common@000200
+[frame 000534] exec_enter pc=071314 range=other
+[frame 000540] pc=070614 exec=other
+[frame 000540] window_change wram_ff0000
 [frame 000540] window_change z80_ctrl
+[frame 000544] exec_enter pc=03af40 range=startup_common@000000
+[frame 000546] exec_enter pc=07176c range=other
+[frame 000566] exec_enter pc=03a196 range=frontend_core@000000
+[frame 000570] pc=03a198 exec=frontend_core@000000
+[frame 000570] window_change wram_ff0000
 [frame 000570] window_change z80_ctrl
+[frame 000600] pc=03a194 exec=frontend_core@000000
 [frame 000600] window_change z80_ctrl
 [frame 000630] window_change z80_ctrl
+[frame 000660] pc=03a196 exec=frontend_core@000000
 [frame 000660] window_change z80_ctrl
+[frame 000690] pc=03a19e exec=frontend_core@000000
 [frame 000690] window_change z80_ctrl
+[frame 000720] pc=03a19c exec=frontend_core@000000
 [frame 000720] window_change z80_ctrl
+[frame 000750] pc=03a196 exec=frontend_core@000000
 [frame 000750] window_change z80_ctrl
+[frame 000780] pc=03a19e exec=frontend_core@000000
 [frame 000780] window_change z80_ctrl
+[frame 000781] exec_enter pc=00030a range=other
+[frame 000787] exec_enter pc=03b0c4 range=startup_common@000200
+[frame 000794] exec_enter pc=071314 range=other
+[frame 000804] exec_enter pc=03af3e range=startup_common@000000
+[frame 000806] exec_enter pc=071760 range=other
+[frame 000810] pc=070632 exec=other
+[frame 000810] window_change wram_ff0000
 [frame 000810] window_change z80_ctrl
+[frame 000826] exec_enter pc=03a19e range=frontend_core@000000
+[frame 000840] pc=03a196 exec=frontend_core@000000
+[frame 000840] window_change wram_ff0000
 [frame 000840] window_change z80_ctrl
+[frame 000870] pc=03a19e exec=frontend_core@000000
 [frame 000870] window_change z80_ctrl
+[frame 000900] pc=03a198 exec=frontend_core@000000
 [frame 000900] window_change z80_ctrl
+[frame 000930] pc=03a196 exec=frontend_core@000000
 [frame 000930] window_change z80_ctrl
+[frame 000960] pc=03a19e exec=frontend_core@000000
 [frame 000960] window_change z80_ctrl
+[frame 000990] pc=03a198 exec=frontend_core@000000
 [frame 000990] window_change z80_ctrl
+[frame 001020] pc=03a196 exec=frontend_core@000000
 [frame 001020] window_change z80_ctrl
+[frame 001041] exec_enter pc=00030e range=other
+[frame 001047] exec_enter pc=03b0b8 range=startup_common@000200
+[frame 001050] pc=03b0e2 exec=startup_common@000200
+[frame 001050] window_change wram_ff0000
 [frame 001050] window_change z80_ctrl
+[frame 001054] exec_enter pc=0712a8 range=other
+[frame 001063] exec_enter pc=03af4c range=startup_common@000000
+[frame 001066] exec_enter pc=071770 range=other
+[frame 001080] window_change wram_ff0000
+[frame 001080] window_change vdp_ports
 [frame 001080] window_change z80_ctrl
+[frame 001086] exec_enter pc=03a198 range=frontend_core@000000
+[frame 001110] pc=03a19c exec=frontend_core@000000
+[frame 001110] window_change vdp_ports
 [frame 001110] window_change z80_ctrl
+[frame 001140] pc=03a196 exec=frontend_core@000000
 [frame 001140] window_change z80_ctrl
+[frame 001170] pc=03a19e exec=frontend_core@000000
 [frame 001170] window_change z80_ctrl
+[frame 001200] pc=03a19c exec=frontend_core@000000
 [frame 001200] window_change z80_ctrl
+[frame 001230] pc=03a196 exec=frontend_core@000000
 [frame 001230] window_change z80_ctrl
+[frame 001260] pc=03a19e exec=frontend_core@000000
 [frame 001260] window_change z80_ctrl
+[frame 001290] pc=03a198 exec=frontend_core@000000
 [frame 001290] window_change z80_ctrl
+[frame 001301] exec_enter pc=00030a range=other
+[frame 001307] exec_enter pc=03b0c6 range=startup_common@000200
+[frame 001314] exec_enter pc=071314 range=other
+[frame 001320] pc=070614 exec=other
+[frame 001320] window_change wram_ff0000
 [frame 001320] window_change z80_ctrl
+[frame 001324] exec_enter pc=03af40 range=startup_common@000000
+[frame 001326] exec_enter pc=07176c range=other
+[frame 001346] exec_enter pc=03a196 range=frontend_core@000000
+[frame 001350] pc=03a198 exec=frontend_core@000000
+[frame 001350] window_change wram_ff0000
 [frame 001350] window_change z80_ctrl
+[frame 001380] pc=03a194 exec=frontend_core@000000
 [frame 001380] window_change z80_ctrl
 [frame 001410] window_change z80_ctrl
+[frame 001440] pc=03a196 exec=frontend_core@000000
 [frame 001440] window_change z80_ctrl
+[frame 001470] pc=03a19e exec=frontend_core@000000
 [frame 001470] window_change z80_ctrl
+[frame 001500] pc=03a19c exec=frontend_core@000000
 [frame 001500] window_change z80_ctrl
+[frame 001530] pc=03a196 exec=frontend_core@000000
 [frame 001530] window_change z80_ctrl
+[frame 001560] pc=03a19e exec=frontend_core@000000
 [frame 001560] window_change z80_ctrl
+[frame 001561] exec_enter pc=00030a range=other
+[frame 001567] exec_enter pc=03b0c4 range=startup_common@000200
+[frame 001574] exec_enter pc=071314 range=other
+[frame 001584] exec_enter pc=03af3e range=startup_common@000000
+[frame 001586] exec_enter pc=071760 range=other
+[frame 001590] pc=070632 exec=other
+[frame 001590] window_change wram_ff0000
 [frame 001590] window_change z80_ctrl
+[frame 001606] exec_enter pc=03a19e range=frontend_core@000000
+[frame 001620] pc=03a196 exec=frontend_core@000000
+[frame 001620] window_change wram_ff0000
 [frame 001620] window_change z80_ctrl
+[frame 001650] pc=03a19e exec=frontend_core@000000
 [frame 001650] window_change z80_ctrl
+[frame 001680] pc=03a198 exec=frontend_core@000000
 [frame 001680] window_change z80_ctrl
+[frame 001710] pc=03a196 exec=frontend_core@000000
 [frame 001710] window_change z80_ctrl
+[frame 001740] pc=03a19e exec=frontend_core@000000
 [frame 001740] window_change z80_ctrl
+[frame 001770] pc=03a198 exec=frontend_core@000000
 [frame 001770] window_change z80_ctrl
 ==== genesistrace stop ====

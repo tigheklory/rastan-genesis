@@ -7,7 +7,18 @@
       "Bash(xxd -l 64 /home/tighe/projects/rastan-genesis/build/pc080sn_scene_preload_title.bin)",
       "Bash(xxd -l 128 /home/tighe/projects/rastan-genesis/build/pc080sn_tile_vram_lut.bin)",
       "Bash(xxd -s 0 -l 640 /home/tighe/projects/rastan-genesis/build/pc080sn_tile_vram_lut.bin)",
-      "Bash(awk 'BEGIN{found=0} {for\\(i=2;i<=9;i++\\){val=strtonum\\(\"0x\"$i\\); if\\(val!=0 && val<0x14\\){print NR\": word \"\\(i-1\\)\" = 0x\"$i}}}')"
+      "Bash(awk 'BEGIN{found=0} {for\\(i=2;i<=9;i++\\){val=strtonum\\(\"0x\"$i\\); if\\(val!=0 && val<0x14\\){print NR\": word \"\\(i-1\\)\" = 0x\"$i}}}')",
+      "Bash(wait)",
+      "Read(//usr/**)",
+      "Read(//opt/**)",
+      "Read(//home/**)",
+      "Bash(awk 'NR>=180 && NR<=240' /home/tighe/projects/rastan-genesis/build/maincpu.disasm.txt)",
+      "Bash(awk 'NR>=380 && NR<=415' /home/tighe/projects/rastan-genesis/build/maincpu.disasm.txt)",
+      "Bash(awk 'NR>=380 && NR<=420' /home/tighe/projects/rastan-genesis/build/genesis_postpatch.disasm.txt)",
+      "Bash(awk 'NR>=350 && NR<=410' /home/tighe/projects/rastan-genesis/build/genesis_postpatch.disasm.txt)",
+      "Bash(awk 'NR>=1 && NR<=120' /home/tighe/projects/rastan-genesis/apps/rastan-direct/src/scene_load.s)",
+      "Bash(awk 'NR>=240 && NR<=300' /home/tighe/projects/rastan-genesis/apps/rastan-direct/src/crash_handler.s)",
+      "Bash(xxd /home/tighe/projects/rastan-genesis/build/pc080sn_attr_lut.bin)"
     ]
   }
 }

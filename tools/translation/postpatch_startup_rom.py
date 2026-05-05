@@ -1738,14 +1738,27 @@ def main() -> int:
                 "Address-map invariant failure: opcode_replace rewrite_log count "
                 "does not match patched_site opcode_replace segment count."
             )
+        # Build 0052+ baseline (PC090OJ v3.2 dispatch integration):
+        # - Adds pc090oj_hooks.s helper code + 524 KB pc090oj_assets.s sprite-tile blob + 256-byte slot LUT
+        # - 18 PC090OJ opcode_replace sites integrated; 0x03AD44 was a pre-existing tilemap entry,
+        #   replaced in-place with the v3.2 polymorphic dispatch helper (genesistan_hook_3ad44_dispatch)
+        # - The v3.2 dispatch helper adds 0x58 bytes (88) over the prior PC090OJ-only helper baseline
+        #   (0x17C914 -> 0x17C96C) due to A0 range comparison logic + tilemap branch invocation + audit
+        #   fall-through wiring
+        # - Build 0054: D6 save/restore patches in _3b930 and _54810 (per Andy classification)
+        # - Build 0055 palette translation (revised Option D): +3 opcode_replace sites
+        #   (0x03AB00, 0x045DB8, 0x059AD4) and +0xEC genesis wrapper bytes vs Build 0054
+        # - Build 0055b active writer hook: +1 opcode_replace site at 0x03BA64
+        #   (runtime 0x03BC64) and +0x88 genesis wrapper bytes vs Build 0055
+        # - Final baseline: count=94, bytes=0x17CAE8
         if (
-            int(segment_coverage["total_genesis_bytes_covered"]) != 0xFBF20
-            or len(opcode_replace_sites) != 73
+            int(segment_coverage["total_genesis_bytes_covered"]) != 0x17CAE8
+            or len(opcode_replace_sites) != 94
         ):
             raise RuntimeError(
                 "Build 0029 invariant failure: expected "
-                "total_genesis_bytes_covered=0xFBF20 and "
-                "opcode_replace patched_site count=73; got "
+                "total_genesis_bytes_covered=0x17CAE8 and "
+                "opcode_replace patched_site count=94; got "
                 f"total_genesis_bytes_covered=0x{int(segment_coverage['total_genesis_bytes_covered']):X} "
                 f"opcode_replace patched_site count={len(opcode_replace_sites)}."
             )

@@ -11,9 +11,14 @@ PATCH_MANIFEST := $(ROOT)/build/rastan-direct/rastan_direct_patch_manifest.json
 SYMBOLS := $(OUT_DIR)/symbol.txt
 PATCHER := $(ROOT)/tools/translation/postpatch_startup_rom.py
 BOOT_GUARD := $(ROOT)/tools/translation/verify_rastan_direct_boot_guard.py
+REGION_BUILDER := $(ROOT)/tools/build_rastan_regions.py
 NUMBERED_DIST_DIR := $(ROOT)/dist/rastan-direct
 NUMBERED_COUNTER := $(ROOT)/build/rastan-direct/build_counter.txt
 NUMBERED_PREFIX := rastan_direct_video_test_build
+
+PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
+PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
+PC090OJ_SLOT_LUT := $(ROOT)/build/pc090oj_slot_lut.bin
 
 AS := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-as
 LD := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-ld
@@ -36,6 +41,9 @@ OBJS := \
 	$(OUT_DIR)/boot.o \
 	$(OUT_DIR)/vdp_comm.o \
 	$(OUT_DIR)/tilemap_hooks.o \
+	$(OUT_DIR)/palette_hooks.o \
+	$(OUT_DIR)/pc090oj_hooks.o \
+	$(OUT_DIR)/pc090oj_assets.o \
 	$(OUT_DIR)/scene_load.o \
 	$(OUT_DIR)/sound_comm.o \
 	$(OUT_DIR)/z80_driver.o
@@ -59,6 +67,25 @@ $(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s | $(OUT_
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+$(PC090OJ_REGION): $(REGION_BUILDER)
+	$(PYTHON) "$(REGION_BUILDER)" --variant "$(VARIANT)"
+
+$(PC090OJ_PRECONV): $(PC090OJ_REGION) $(ROOT)/tools/translation/preconvert_pc090oj_tiles.py
+	$(PYTHON) "$(ROOT)/tools/translation/preconvert_pc090oj_tiles.py" \
+		--input "$<" --output "$@"
+
+$(PC090OJ_SLOT_LUT): $(ROOT)/tools/translation/build_pc090oj_slot_lut.py
+	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_slot_lut.py" --output "$@"
+
+$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_PRECONV) $(PC090OJ_SLOT_LUT) | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/scene_load.o: $(SRC_DIR)/scene_load.s | $(OUT_DIR)

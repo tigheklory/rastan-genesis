@@ -18,6 +18,11 @@
     .extern staged_fg_buffer
     .extern staged_palette_words
     .extern staged_tile_words
+    .extern staged_sprite_sat
+    .extern staged_sprite_descriptor_table
+    .extern staged_sprite_dirty
+    .extern staged_sprite_active_count
+    .extern genesistan_pc090oj_dma_self_test
     .extern _crash_stub_bus_error
     .extern _crash_stub_address_error
     .extern _crash_stub_illegal
@@ -157,7 +162,7 @@ _bootstrap:
     moveq   #0, %d0
     jsr     load_scene_tiles
     lea     0x00FF0000, %a5
-    move.w  #0x2000, %sr
+    jsr     genesistan_pc090oj_dma_self_test
     jmp     (0x00003A200).l
 
 _bootstrap_clear_staging:
@@ -195,6 +200,21 @@ _bootstrap_clear_staging:
 .Lboot_fg_clear:
     clr.w   (%a0)+
     dbra    %d7, .Lboot_fg_clear
+
+    lea     staged_sprite_sat, %a0
+    move.w  #((80 * 8 / 2) - 1), %d7
+.Lboot_sprite_sat_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lboot_sprite_sat_clear
+
+    lea     staged_sprite_descriptor_table, %a0
+    move.w  #((80 * 12 / 2) - 1), %d7
+.Lboot_sprite_desc_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lboot_sprite_desc_clear
+
+    clr.l   staged_sprite_dirty
+    clr.w   staged_sprite_active_count
 
     move.l  #VRAM_PLANE_A_BASE, %d0
     jsr     vdp_set_vram_write_addr

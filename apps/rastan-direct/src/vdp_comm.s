@@ -7,6 +7,7 @@
     .global vdp_commit_tiles_if_dirty
     .global vdp_commit_bg_strips_if_dirty
     .global vdp_commit_fg_strips_if_dirty
+    .extern vdp_commit_sprites
     .global vdp_commit_palette
     .global vdp_commit_scroll
     .global _vblank_service
@@ -162,6 +163,7 @@ _vblank_service:
     bsr     vdp_commit_tiles_if_dirty
     bsr     vdp_commit_bg_strips_if_dirty
     bsr     vdp_commit_fg_strips_if_dirty
+    bsr     vdp_commit_sprites
 
     tst.b   palette_dirty
     beq.s   .Lvs_skip_palette
