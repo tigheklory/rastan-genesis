@@ -73,6 +73,39 @@ Closure note format:
 - **Original title:** All-white CRAM / no visible palette in Exodus
 - **Closed by:** Tighe visual verification after Build 55b active-writer hook
 - **Build/artifact:** Build 55b (per Cody's `0055b.bin` / `0057.bin` — OPEN-002 ROM identity)
-- **Evidence:** Tighe visual observation that palette is loaded in Exodus after Build 55b active-writer hook.
+- **Evidence:**
+  - Tighe visual observation that palette is loaded in Exodus after Build 55b active-writer hook.
+  - Cody video extraction (`docs/design/Cody_build55b_video_30fps_debug_windows.md`) confirms CRAM is NOT all `0x0EEE`. Sampled rows at sec 20/sec 50 include:
+    - Row `00`: `0000 0EEE 000E 0468 08AC 04EA`
+    - Row `0C`: `0246 0EEE 0EEE 0EEE 0EEE 0EEE`
+    - Row `60`: `0000 0868 0846 0646 0624 0424`
+    - Row `6C`: `0402 0202 0202 028C 044C 0226`
+    - Row `78`: `0004 0002 0222 0424`
 - **Closure note:** Closed ONLY for "all-white palette in Exodus" symptom. The MAME trace disagreement (which suggests the palette pipeline differs between emulators) remains open as OPEN-003.
 - **Related still-open issue:** OPEN-003 (MAME vs Exodus disagreement).
+
+---
+
+## CLOSED-007 — SGDK-era slot 0..19 tile reservation in direct-rastan
+
+- **Status:** CLOSED
+- **Closed in build/artifact:** `dist/rastan-direct/rastan_direct_video_test_build_0059.bin`
+- **ROM SHA256:** `1135e1aaa2e2c39d64a8390c024dd8e67a998b53f829f2cd7e4eabea2d02ec23`
+- **Closed by:** Cody SGDK Slot Reservation Removal Implementation + Tighe Pattern Viewer visual confirmation in Exodus
+- **Original priority:** MEDIUM
+- **Discovered by:** Tighe (Pattern Viewer screenshot in Exodus)
+- **Original summary:** Pattern Viewer showed real Rastan tile data beginning at slot `0x14` / VRAM `0x0280`, leaving slots 0..19 unused — appeared to be SGDK-era reservation no longer serving any purpose in direct-rastan.
+- **Root cause:** Single constant `TILE_CACHE_BASE_A = 20` at `tools/translation/precompute_pc080sn_tile_lut.py:39`. Andy classified reservation NOT justified in direct-rastan (no SGDK runtime, no font/debug/system tile dependency, `crash_init_cram` writes CRAM only, `tiles_dirty` never set to 1, `tilemap_hooks.s` no post-LUT offset).
+- **Fix:** One-line edit `TILE_CACHE_BASE_A = 20 → 0`. Tool re-run atomically regenerated LUT + 3 preload manifests from same allocator state (lockstep automatic via single producer). `pc080sn_attr_lut.bin` SHA unchanged. No source/spec edits.
+- **Evidence:**
+  - Andy classification: `docs/design/Andy_slot_reservation_removal_classification.md`
+  - Cody implementation: `docs/design/Cody_slot_reservation_removal_implementation.md`
+  - Cody Build 59 video debug capture: `docs/design/Cody_build59_video_30fps_debug_windows.md`
+  - 8 verification gates PASS (postpatcher, D00778, VRAM roundtrip, tile data at slot 0 manifest proof, 5 LUT examples, palette helpers intact, active palette writer hook intact, blank-tile sentinel preserved at new slot 0)
+  - LUT examples post-fix: tile `0x20 → 0x00` (was `0x14`), tile `0x23 → 0x01` (was `0x15`), tile `0x01 → 0x3E` (was `0x52`)
+  - Tighe visual confirmation in Exodus VDP Pattern Viewer: 20-slot reservation gap is gone; tile data begins immediately at slot 0 / VRAM 0x0000
+- **Closure note:** Reservation removed via single-constant change in single producer tool. Lockstep coherence preserved automatically (one tool emits LUT + all 3 preload manifests). R1 cosmetic risk (`lut[unmapped]=0` collision with real tile at slot 0) substantially mitigated because the tile that moved into slot 0 is itself blank — old slot 0x14 was tile `0x0020` with all-zero pattern bytes, now at slot 0 still all-zero. R2 dormant scaffolding (`vdp_commit_tiles_if_dirty` — `tiles_dirty` never set) flagged for separate follow-up but not opened as new issue.
+- **Related still-open issues:**
+  - OPEN-001 — visible composed output remains incorrect despite correct preload + active VRAM + populated CRAM; symptom transformed but root cause separate
+  - OPEN-003 — MAME Build 59 progression unverified vs. Exodus active state
+  - OPEN-004 — bootstrap re-entry status on Build 59 unverified

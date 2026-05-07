@@ -33772,3 +33772,263 @@ Floor details:
 - No traces or builds run: YES
 - No ROMs renamed: YES
 - STOP triggered: NO
+
+## [Andy — PROMPT_TEMPLATE.md Update + CLOSED-006 Evidence Completion]
+
+* files changed: PROMPT_TEMPLATE.md, CLOSED_ISSUES.md, AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (documentation completion)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Floor details:
+- PROMPT_TEMPLATE.md REQUIRED READING updated: YES — added `OPEN_ISSUES.md` (#4) and `CLOSED_ISSUES.md` (#5); existing items 1-3 preserved verbatim; existing items at #4-5 renumbered to #6-7
+- PROMPT_TEMPLATE.md new "🐛 OPEN/CLOSED ISSUES IMPACT — REQUIRED" section added: YES — inserted between PRIME DIRECTIVE / CONTROL FLOW INVARIANT (ends with `---`) and GLOBAL RULES; section is self-contained per Rule 20 (future agents reading PROMPT_TEMPLATE.md alone understand the convention without needing to read OPEN_ISSUES.md first)
+- PROMPT_TEMPLATE.md REQUIRED FINAL RESPONSE FORMAT updated: YES — appended "Open/Closed Issues Impact" subsection (4 fields: Open touched / New opened / Closed / Deferred) immediately after `USER MUST VERIFY: [item]`; existing fields preserved
+- CLOSED_ISSUES.md CLOSED-006 evidence completed: YES — replaced single-line evidence with two-item bulleted list: (1) Tighe visual observation (preserved); (2) Cody video extraction `docs/design/Cody_build55b_video_30fps_debug_windows.md` with five sampled CRAM rows verbatim (Row 00, 0C, 60, 6C, 78) confirming CRAM is NOT all `0x0EEE`
+- No other CLOSED-006 fields modified: YES (closed-by, build/artifact, closure note, related still-open issue all unchanged)
+- No new OPEN issues added: YES (Rule 18)
+- No additional issues closed: YES (Rule 18)
+- No source/spec/tool/ROM/build modifications: YES
+- PROMPT_TEMPLATE.md edits are ADDITIONS ONLY (Rule 19): YES — three insertions, no removals or restructuring
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-008 (this task is the prompt-template completion that enables OPEN-008's closure condition; OPEN-008 itself remains open until used in 3 consecutive prompts)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+## [Cody — Build 58 Offset Graphics / Tile Base Evidence]
+
+* files changed: `docs/design/Cody_build58_offset_graphics_evidence.md` (new), `OPEN_ISSUES.md` (OPEN-001 + OPEN-002 evidence updates), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A (canonical ROM identified in evidence)
+* root cause confirmed: NO (evidence pass; Andy classifies next)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Floor details:
+- §1 SHA256 evidence:
+  - `0057.bin`: `703fe9d6c96b6264bb5911be5581acf31845e282e6bb827fab7e2c502c00ee16`
+  - `0055b.bin`: `703fe9d6c96b6264bb5911be5581acf31845e282e6bb827fab7e2c502c00ee16`
+  - byte-identical: YES
+- §2 VDP register decoding source + plane base finding (Hypothesis D):
+  - source: `apps/rastan-direct/src/vdp_comm.s` + `docs/design/build318_vdp_plane_base_nametable_correlation.md`
+  - runtime corroboration: trace lines with `0x8238/0x833C/0x8406/0x857C`
+  - result: plane/table base config consistent; D REFUTED
+- §3 VRAM tile load + tile0/reservation vs prior audit (Hypothesis A):
+  - load base from manifests + trace control writes starts at slot `0x14` (`VRAM 0x280`)
+  - slot 0 visible capture not all-zero in sampled frame
+  - prior audit comparison: reservation start preserved, "tile0 blank" not preserved in sampled state
+  - result: A REFUTED for load-base mismatch
+- §4 Plane A/B tile index findings (Hypothesis B):
+  - `0xE000..0xEFFF` and `0xC000..0xCFFF` NOT VISIBLE in current captures
+  - result: B INSUFFICIENT pending scoped nametable capture/dump
+- §5 PC080SN translation + LUT (Hypothesis C):
+  - LUT path active in `tilemap_hooks.s`; checked LUT/preload alignment found
+  - result: C REFUTED (for checked LUT/preload consistency)
+- §6 Plane/Pattern interpretation (Hypothesis E):
+  - offset treated as real render issue (not viewer-only artifact)
+  - result: E REFUTED
+- §7.2 most likely origin: F (insufficient to discriminate final nametable-index-level cause)
+- §0 dumps run: NONE
+- New sub-issues opened: NONE
+- STOP triggered: NO
+
+## [Cody — Build 58b Nametable Dump Evidence]
+
+* files changed: `docs/design/Cody_build58b_nametable_dump_evidence.md` (new), `states/dumps/build58b_20260505_175403/*` (new), `states/dumps/build58b_20260505_175922/*` (new confirmation dump), `OPEN_ISSUES.md` (OPEN-001 update only), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A (canonical `0057.bin` referenced)
+* root cause confirmed: NO (Hypothesis B INSUFFICIENT)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Floor details:
+- Stable-timestamp dump captured: YES
+- Plane A index summary: min=0 max=0 zero=2048 <0x14=2048 >=0x14=0
+- Plane B index summary: min=0 max=0 zero=2048 <0x14=2048 >=0x14=0
+- Hypothesis B classification: INSUFFICIENT
+- If CONFIRMED: offset value N/A
+- OPEN-008 status: touched (closure pending separate task)
+- New sub-issues: NONE
+- STOP triggered: NO
+
+## [Andy — Add OPEN-009 SGDK-Era Tile Slot Reservation Issue]
+
+* files changed: OPEN_ISSUES.md (OPEN-009 appended), AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (documentation; root cause for OPEN-001 still pending Build 58c)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Floor:
+- OPEN-009 appended at correct location (between OPEN-008 and Prompt Template Requirement section): YES
+- OPEN-009 entry format matches existing entries (Status / Priority / Discovered by / Observed in / Summary / Evidence / Suspected area / Next required task / Closure condition): YES
+- OPEN-009 evidence cites: Tighe Exodus VDP Pattern Viewer screenshot; Build 58 evidence (`docs/design/Cody_build58_offset_graphics_evidence.md` — scene preload at slot `0x14`, `slot << 5` loader, manifests + LUT aligned at `0x14+`); Build 58b evidence (`docs/design/Cody_build58b_nametable_dump_evidence.md` — nametables all-zero in MAME stuck-PC state, behavior unresolved)
+- OPEN-009 next-required-task explicitly defers to Build 58c with branching outcomes (slot `0x14+` → cleanup-only; slot `0..19` → contributes to OPEN-001 root cause)
+- OPEN-009 closure condition specifies lockstep regeneration of preload manifests AND `pc080sn_tile_vram_lut` if reservation is unjustified
+- OPEN-001 unchanged: YES (Build 58 + 58b evidence sections preserved verbatim)
+- OPEN-008 unchanged: YES
+- All other open issues unchanged: YES
+- CLOSED_ISSUES.md unchanged: YES
+- No source/spec/tool/build/ROM modifications: YES
+- No fix work performed: YES
+- No issue merging (OPEN-009 is its own issue, separate from OPEN-001): YES
+- No closures: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (context only — unchanged), OPEN-008 (context only — another consecutive use of new template convention; closure pending separate housekeeping task)
+- New issues opened: OPEN-009 (SGDK-era slot 0..19 tile reservation in direct-rastan)
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-002, OPEN-003, OPEN-004, OPEN-005, OPEN-006, OPEN-007
+
+## [Cody — Build 58c Visible-State VRAM Acquisition]
+
+* files changed: `docs/design/Cody_build58c_visible_state_acquisition.md` (new), `OPEN_ISSUES.md` (OPEN-001 update only), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A (canonical `0057.bin` referenced)
+* root cause confirmed: NO (state-validation gate failed; Hypothesis B remains unresolved)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Floor details:
+- State validation gate: FAILED (paths tried: MAME at sec 5/10/20/30/60/120)
+- Capture source: NONE (MAME gate failed; Exodus dump/export unavailable in-session)
+- Plane A/B index summaries (if decoded): N/A (no validated dump)
+- Hypothesis B classification: N/A (gate failed)
+- If CONFIRMED with +0x14: not applicable
+- OPEN-008 status: touched (closure pending separate task)
+- OPEN-009 status: untouched (separate task)
+- New sub-issues: NONE
+- STOP triggered: YES (validation gate failure across all sampled MAME timestamps)
+
+## [Andy — Extend OPEN-002 Policy to Cover All Task/Doc/Dump Names]
+
+* files changed: OPEN_ISSUES.md (OPEN-002 policy/evidence/next-task fields updated), AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (policy extension)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Floor:
+- OPEN-002 policy extended to ban letter suffixes across all artifact types: YES — policy section retitled "Build and task naming policy (mandatory) — UPDATED"; bans letter suffixes in ROM filenames, task labels, design doc filenames, dump directories, and trace folders explicitly
+- Distinction between ROM-producing and evidence-only tasks documented: YES — ROM-producing tasks use sequential build numbers; evidence-only tasks use descriptive names without build numbers; new ROM-producing build numbering increments based on prior ROM-producing build, not prior evidence task
+- Historical artifacts preserved (no renames): YES — policy explicitly states `Cody_build58b_*`, `Cody_build58c_*`, `states/dumps/build58b_*`, `states/dumps/build58c_*`, and `0055b.bin` ROM alias remain as-is as historical evidence trail
+- Build 58c violation pattern evidence appended: YES — cites `docs/design/Cody_build58b_nametable_dump_evidence.md`, `docs/design/Cody_build58c_visible_state_acquisition.md`, `states/dumps/build58b_20260505_175403/`, `states/dumps/build58b_20260505_175922/`, `states/dumps/build58c_20260506_132350/` (all verified to exist via `ls`)
+- Next required task updated: YES — closure requires 3 consecutive ROM-producing builds with strictly sequential numbering and no letter suffixes anywhere; SHA256 verification step marked DONE
+- OPEN-002 Status / Priority / Discovered by / Observed in / Summary / Decision / Suspected area / Closure condition unchanged: YES
+- Other open issues unchanged: YES (verified via grep — OPEN-001, OPEN-003 through OPEN-009 untouched)
+- CLOSED_ISSUES.md unchanged: YES
+- Prompt Template Requirement section unchanged: YES
+- No source/spec/tool/build/ROM modifications: YES
+- No historical artifacts renamed: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-002 (policy extended), OPEN-008 (continued convention use)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-001, OPEN-003, OPEN-004, OPEN-005, OPEN-006, OPEN-007, OPEN-009
+
+## [Andy — SGDK Slot Reservation Removal Classification]
+
+* files changed: docs/design/Andy_slot_reservation_removal_classification.md (new), AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES (Pattern Viewer offset = 20-slot reservation per `TILE_CACHE_BASE_A = 20` in `tools/translation/precompute_pc080sn_tile_lut.py:39`; cited via Cody Build 58 evidence + direct source inspection)
+* fix implemented: NO (downstream Cody task per §1.7)
+* no unrelated changes: YES
+
+Floor:
+- Reservation justified: **NO** — cited dependency search confirms no live direct-rastan code path requires slots 0..19; SGDK runtime not used; no font/debug/system tile path; `crash_init_cram` writes only CRAM; `vdp_commit_tiles_if_dirty` is dormant scaffolding (`tiles_dirty` never set to 1 anywhere in source); `tilemap_hooks.s` LUT lookup has no post-offset
+- Fix shape: lockstep regeneration via single tool invocation — change `TILE_CACHE_BASE_A = 20 → 0` in `tools/translation/precompute_pc080sn_tile_lut.py:39`; tool atomically regenerates `pc080sn_tile_vram_lut.bin` + 3 scene preload manifests + ancillary outputs from same allocator state (lockstep is automatic)
+- Affected artifacts enumerated: YES — 1 EDIT (precompute tool single-line change), 9 REGENERATE (LUT, 3 preloads, legacy preload, 2 .inc mirrors, count, source-scene map), 6 UNCHANGED (attr LUT, scene_load.s, tilemap_hooks.s, opcode_replace spec, Makefile, Build 55a/55b helpers)
+- Risks documented: 7 risks (R1 LUT-unmapped sentinel residual cosmetic — `lut[0]=0` collides with "unmapped" convention; R2 `vdp_commit_tiles_if_dirty` dormant scaffolding referencing `VRAM_TILE_BASE = 0x20` — separate concern, not in lockstep scope; R3 lockstep coherence automatic; R4 OPEN-004 compatibility independent for Pattern Viewer; R5 hook post-offset confirmed absent; R6 postpatcher measure-not-presume per Build 54 D6-fix discipline; R7 build numbering via Makefile auto-increment per OPEN-002 extended policy — no letter suffix anywhere)
+- Can proceed before OPEN-004: YES — Pattern Viewer is the verification gate; tile preload runs during bootstrap regardless of bootstrap re-entry; full in-game render verification blocked by OPEN-004 but not required for OPEN-009 closure
+- Cody next task: implementation plan COMPLETE — descriptive task name "Cody — SGDK Slot Reservation Removal Implementation"; design doc filename `Cody_slot_reservation_removal_implementation.md` (no build number); ROM number = next sequential after `0057.bin` per Makefile auto-increment; Phase A precheck + Phase B single-line edit + tool re-run + Phase C 7 verification gates + Phase D AGENTS_LOG/OPEN-009/OPEN-002 evidence updates
+- Naming convention compliance: YES — Andy output doc uses descriptive name `Andy_slot_reservation_removal_classification.md` (no build number); recommended Cody task uses descriptive task name and design doc name with no build number; ROM filename will use next sequential number per Makefile counter; no letter suffix anywhere in proposed downstream artifacts
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-009 (classification produced; closure pending Cody implementation + Tighe Pattern Viewer visual verification), OPEN-001 (context only — separate root cause; pattern viewer fix does not address nametable rendering pending Exodus-side evidence per Build 58c finding), OPEN-002 (this task DEMONSTRATES the new naming convention — descriptive output filename; recommended Cody task uses descriptive name; build counter auto-increment), OPEN-004 (context only — bootstrap re-entry does not block Pattern Viewer verification), OPEN-008 (continued convention use)
+- New issues opened: NONE (R2 vdp_commit_tiles_if_dirty dormant scaffolding flagged for separate follow-up; not opened now per Andy scope discipline)
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-003, OPEN-005, OPEN-006, OPEN-007
+
+### MAME Exit Summary (2026-05-07 09:15:08)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-05-07 09:16:24)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — SGDK Slot Reservation Removal Implementation]
+
+* files changed:
+  - `tools/translation/precompute_pc080sn_tile_lut.py` (1-line edit: `TILE_CACHE_BASE_A = 20` -> `0`)
+  - `build/pc080sn_tile_vram_lut.bin` (regenerated)
+  - `build/pc080sn_scene_preload_title.bin` (regenerated)
+  - `build/pc080sn_scene_preload_gameplay.bin` (regenerated)
+  - `build/pc080sn_scene_preload_endround.bin` (regenerated)
+  - `dist/rastan-direct/rastan_direct_video_test_build_0059.bin` (new sequential ROM containing fix)
+  - `docs/design/Cody_slot_reservation_removal_implementation.md` (new)
+  - `OPEN_ISSUES.md` (OPEN-009 + OPEN-002 evidence append)
+  - `AGENTS_LOG.md` (this append)
+* build produced: YES — `dist/rastan-direct/rastan_direct_video_test_build_0059.bin`
+* ROM SHA256: `1135e1aaa2e2c39d64a8390c024dd8e67a998b53f829f2cd7e4eabea2d02ec23`
+* root cause confirmed: YES (`TILE_CACHE_BASE_A = 20` was reservation source)
+* fix implemented: YES (Andy recommended primary fix; full reservation removal)
+* no unrelated changes: YES
+
+Floor:
+- Phase A precheck passed: YES (constant/location, `tiles_dirty` writer check, no post-LUT offset, blank tile at old slot `0x14`)
+- Phase B implementation single-line: YES
+- Phase C verification gates 1-8 passed: YES
+- Phase D documentation: YES
+- Naming convention compliance: YES (sequential ROM, no letter suffix, descriptive doc/log names)
+- OPEN-009 evidence added: YES
+- OPEN-002 clean-build evidence added: YES
+- STOP triggered: NO
+
+Notes:
+- Intermediate numbered ROM `0058` was produced in first pass but remained byte-identical to `0057` due stale `.incbin` object dependency; clean rebuild produced `0059` containing the actual slot/LUT shift.
+
+## [Andy — Close OPEN-009 + Update OPEN-001 + Record Build 59 OPEN-002 Progress]
+
+* files changed:
+  - OPEN_ISSUES.md (OPEN-009 removed; OPEN-001 Summary/Evidence/Suspected Area/Next Required Task updated with prior evidence preserved)
+  - CLOSED_ISSUES.md (CLOSED-007 appended)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (documentation only — references existing Cody implementation evidence and Tighe visual confirmation)
+* fix implemented: NO (this task documents a previously-implemented fix's closure)
+* no unrelated changes: YES
+
+Floor:
+- OPEN-009 closed as CLOSED-007: YES — full closure metadata cites Cody implementation (`docs/design/Cody_slot_reservation_removal_implementation.md`), Andy classification predecessor (`docs/design/Andy_slot_reservation_removal_classification.md`), Cody Build 59 video debug capture (`docs/design/Cody_build59_video_30fps_debug_windows.md`), 8 verification gates PASS, LUT examples shifted by -0x14, ROM SHA256 `1135e1aaa2e2c39d64a8390c024dd8e67a998b53f829f2cd7e4eabea2d02ec23`, and Tighe Pattern Viewer visual confirmation
+- OPEN-001 transformed: YES — Summary updated to reflect new symptom ("wrong composed output despite correct preload + active VRAM + populated CRAM" instead of "wrong slot base"); Evidence (Build 58/58b/58c) preserved verbatim; new Build 59 evidence appended (CLOSED-007 reference, video debug capture details, Tighe blank-tile-sentinel confirmation, "first truly debuggable visual state" milestone note); Suspected Area updated (preload base no longer suspect; nametable composition / plane priority / window plane / palette mapping suspected); Next Required Task updated (Build 59 MAME-vs-Exodus runtime state comparison; Exodus-side nametable extraction fallback)
+- OPEN-002 build 1 of 3 evidence already recorded: YES (existing OPEN-002 evidence subsection at lines 97-105 already documents Build 59 implementation with sequential naming, descriptive design doc, descriptive AGENTS_LOG header, and "build 1 of 3" marker; no duplicate append needed)
+- No other open issues changed: YES (OPEN-003 through OPEN-008 unchanged)
+- No new issues opened: YES
+- No closures beyond OPEN-009: YES
+- No prior evidence deleted from OPEN-001: YES (Build 58/58b/58c evidence subsections preserved)
+- No source/spec/tool/build/ROM modifications: YES
+- No historical artifacts renamed: YES
+- Naming convention compliance: YES (no letter suffixes anywhere; CLOSED-007 cites historical artifacts including `Cody_build59_video_30fps_debug_windows.md` and `0059.bin` — sequential numbering preserved)
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (transformed — Summary, Evidence, Suspected Area, Next Required Task all updated; prior Build 58/58b/58c evidence preserved), OPEN-002 (Evidence verified — Build 59 record already present from prior implementation task), OPEN-008 (continued convention use)
+- New issues opened: NONE
+- Issues closed: OPEN-009 → CLOSED-007 (SGDK-era slot 0..19 tile reservation; closed by Cody Build 59 implementation + Tighe Pattern Viewer visual confirmation)
+- Issues intentionally deferred: OPEN-003, OPEN-004, OPEN-005, OPEN-006, OPEN-007

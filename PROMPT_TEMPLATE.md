@@ -74,6 +74,29 @@ Any control transfer that does not return directly to arcade flow via RTS is a v
 
 ---
 
+# 🐛 OPEN/CLOSED ISSUES IMPACT — REQUIRED
+
+This project maintains two issue ledgers that all agents must consult and update:
+
+- `OPEN_ISSUES.md` — unresolved issues
+- `CLOSED_ISSUES.md` — resolved issues with closure metadata
+
+**Before work:**
+1. Read `OPEN_ISSUES.md`.
+2. Read `CLOSED_ISSUES.md`.
+3. Identify which open issues this task touches.
+4. Do not reopen closed issues unless new evidence directly contradicts the closure note.
+
+**During work:**
+- If a new unresolved issue is discovered, add it to `OPEN_ISSUES.md` BEFORE final response.
+- If an issue is resolved, move it from `OPEN_ISSUES.md` to `CLOSED_ISSUES.md` with full closure metadata (closing build, evidence, closure note).
+- Do not delete issue history.
+- Do not close an issue without evidence and closure condition citation.
+
+**Final response must include "Open/Closed Issues Impact" section.** See REQUIRED FINAL RESPONSE FORMAT.
+
+---
+
 # ⚠️ GLOBAL RULES (APPLY ALWAYS)
 
 1. NO GUESSING  
@@ -101,8 +124,10 @@ Before ANY work:
 1. `RULES.md` — read completely
 2. `ARCHITECTURE.md` — read completely  
 3. `AGENTS_LOG.md` — latest entries first
-4. `docs/design/Andy_init_staging_state_split_design.md` — if relevant
-5. Any files explicitly listed in this prompt
+4. `OPEN_ISSUES.md` — read all open issues; identify which this task touches
+5. `CLOSED_ISSUES.md` — read closed issues to avoid re-investigating resolved questions
+6. `docs/design/Andy_init_staging_state_split_design.md` — if relevant
+7. Any files explicitly listed in this prompt
 
 **FAILURE TO READ = INVALID RESULT**
 
@@ -162,6 +187,11 @@ No unrelated changes: YES/NO
 Architecture compliance: CONFIRMED / VIOLATION FOUND — [describe]
 Verification result:
 USER MUST VERIFY: [item]
+Open/Closed Issues Impact:
+- Open issues touched: [IDs or NONE]
+- New issues opened: [IDs or NONE]
+- Issues closed: [IDs or NONE]
+- Issues intentionally deferred: [IDs or NONE]
 
 ---
 
