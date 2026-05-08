@@ -1750,14 +1750,16 @@ def main() -> int:
         #   (0x03AB00, 0x045DB8, 0x059AD4) and +0xEC genesis wrapper bytes vs Build 0054
         # - Build 0055b active writer hook: +1 opcode_replace site at 0x03BA64
         #   (runtime 0x03BC64) and +0x88 genesis wrapper bytes vs Build 0055
-        # - Final baseline: count=94, bytes=0x17CAE8
+        # - Build 0060 diagnostic bookmark helper introduction:
+        #   +2 bytes helper body (0x60FE) +2 bytes wrapper alignment padding
+        # - Final baseline: count=94, bytes=0x17CAEC
         if (
-            int(segment_coverage["total_genesis_bytes_covered"]) != 0x17CAE8
+            int(segment_coverage["total_genesis_bytes_covered"]) != 0x17CAEC
             or len(opcode_replace_sites) != 94
         ):
             raise RuntimeError(
                 "Build 0029 invariant failure: expected "
-                "total_genesis_bytes_covered=0x17CAE8 and "
+                "total_genesis_bytes_covered=0x17CAEC and "
                 "opcode_replace patched_site count=94; got "
                 f"total_genesis_bytes_covered=0x{int(segment_coverage['total_genesis_bytes_covered']):X} "
                 f"opcode_replace patched_site count={len(opcode_replace_sites)}."

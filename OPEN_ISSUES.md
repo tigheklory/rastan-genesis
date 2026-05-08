@@ -18,7 +18,7 @@ Rules:
 - **Priority:** HIGH
 - **Discovered by:** Tighe
 - **Observed in build/artifact:** Build 55b / sequential ROM (per OPEN-002 ROM identity ambiguity)
-- **Summary:** Palette is visible in Exodus and tile preload base is now corrected (CLOSED-007). However, the visible composed output remains incorrect — Build 59 Image Window shows green fill blocks, black regions, and striped artifacts despite correct preload placement, populated CRAM, active VRAM, and sane VDP plane bases. Root cause is no longer "wrong slot base" but rather wrong nametable composition / plane priority / window plane / palette mapping.
+- **Summary:** Palette is populated in CRAM and tile preload base is corrected (CLOSED-007). VDP internals show populated state in Exodus debug panes — Pattern Viewer contains real Rastan tile data starting at slot 0, VRAM Memory Editor shows structured data, CRAM contains mixed non-default values. However, the actual composed video output (game screen) remains essentially blank in both MAME and Exodus on Build 59 (Tighe direct visual verification: black with minor purple artifact). Root cause: the rendering pipeline failure is downstream of VRAM/CRAM/preload — most likely in nametable composition (writes to Plane A/B at `0xC000`/`0xE000` not happening or producing wrong indices/attributes), plane enable bits in VDP registers, display enable sequencing, or runtime control flow that should reach nametable-writer code paths but does not.
 - **Evidence:** Tighe visual observation from Exodus session post-Build-55b.
 - **Evidence (Build 58 evidence pass):**
   - Canonical ROM identity reconciled to `0057.bin` with SHA256 match against `0055b.bin` alias (see OPEN-002 update below).
@@ -56,19 +56,36 @@ Rules:
     - gate result `FAIL`
   - Build 58c conclusion: MAME did not reproduce a validated visible-state capture for OPEN-001 byte-level nametable evidence in this run window; 5-range dump/decode was intentionally skipped by gate rule.
   - Full report: `docs/design/Cody_build58c_visible_state_acquisition.md`.
-- **Evidence (Build 59 post-CLOSED-007 transformation):**
+- **Evidence (Build 59 post-CLOSED-007 — corrected interpretation):**
   - SGDK-era 20-slot reservation removed in Build 59 (`dist/rastan-direct/rastan_direct_video_test_build_0059.bin`, SHA256 `1135e1aaa2e2c39d64a8390c024dd8e67a998b53f829f2cd7e4eabea2d02ec23`); see CLOSED-007.
-  - Build 59 video debug capture (`docs/design/Cody_build59_video_30fps_debug_windows.md`):
-    - Pattern Viewer: nontrivial tile glyph content visible (text fragments "RASTA...", dense tile content)
-    - VRAM Memory Editor: structured non-zero tile data at low addresses (e.g., `0x0026`, `0x00B0`, `0x0108`, `0x02AA`, `0x0302`)
-    - Image Window: ACTIVE but INCORRECT — large green fill blocks, black regions, striped artifacts
+  - Build 59 video debug capture (`docs/design/Cody_build59_video_30fps_debug_windows.md`) confirmed VDP internal state populated:
+    - Pattern Viewer: nontrivial tile glyph content visible (text fragments "RASTA...", dense tile content) — Tighe directly verified
+    - VRAM Memory Editor: structured non-zero data at low addresses (e.g., `0x0026`, `0x00B0`, `0x0108`, `0x02AA`, `0x0302`)
     - CRAM: populated with mixed non-default values (Row 00: `0000 0EEE 000E 0468 08AC 046A...`)
-    - 68000 PC samples in active runtime: `0x000719E0`, `0x0003B100` (Exodus only — MAME Build 59 progression unverified)
-    - Plane Viewer: A=`0xE000`, B=`0xC000`, Window=`0xF000`, Sprites=`0xF800` (consistent with Build 58 verified bases)
-  - Tighe visual confirmation: VRAM 0x0000..0x001F is blank in Build 59 Exodus state (slot 0 sentinel preserved as expected per CLOSED-007 closure conditions)
-  - This is the FIRST truly debuggable visual state for the project — visible palette, populated CRAM, active VRAM, non-empty Pattern Viewer, corrected preload alignment, and an active (though incorrect) composed output window all coexist for the first time.
-- **Suspected area:** Nametable composition for Plane A/B at populated active state — what tile indices are being written to nametable cells, with what palette line/priority/flip bits. Possible secondary suspects: window plane composition (`0xF000`), plane priority configuration in VDP registers, palette-line-to-CRAM mapping for sprite vs background tiles. Tile preload base is no longer suspect (resolved in CLOSED-007).
-- **Next required task:** Build 59 runtime state comparison — verify whether MAME on Build 59 also reaches the active VDP/CRAM state Exodus shows, OR whether MAME remains stuck (which would mean Exodus is the only viable evidence source for OPEN-001 going forward). If MAME progresses, capture Plane A/B nametable bytes from MAME at populated state and decode tile indices, palette lines, priority bits. If MAME stuck, plan Exodus-side nametable extraction (manual Memory Editor capture or save-state export) for the same five ranges (VRAM 0x0000..0x1FFF, VRAM 0xC000..0xCFFF, VRAM 0xE000..0xEFFF, VRAM 0xF000..0xFFFF, VDP regs 0x00..0x17).
+    - 68000 PC samples in active runtime: `0x000719E0`, `0x0003B100`
+    - Plane Viewer base addresses: A=`0xE000`, B=`0xC000`, Window=`0xF000`, Sprites=`0xF800` (consistent with Build 58 verified bases)
+  - **Correction:** the Cody report's description of Image Window content as "green rectangular fill regions plus black regions and striped artifact bands" was an interpretation error. Those green rectangular regions were Plane Viewer boundary overlays (Screen Boundaries / Sprite Boundaries checkboxes enabled in the Plane Viewer panes), NOT actual rendered game video output.
+  - **Tighe direct visual verification (May 7, 2026):** the actual game video output (Image Window in Exodus, game window in MAME) on Build 59 is essentially blank — black screen with a small purple artifact near the top — same fundamental visual state in both emulators, same as canonical Build 57.
+  - Tighe direct verification of slot 0 in Exodus: VRAM `0x0000` area is blank (CLOSED-007 sentinel preservation confirmed).
+  - **Architectural significance:** CLOSED-007 was a real cosmetic / data-organization fix (tile data now at correct slot, Pattern Viewer reflects it), but it did NOT change actual game rendering behavior. The rendering pipeline downstream of VRAM/CRAM is what's broken. Tile patterns are loaded into VDP memory; CRAM is populated; but the composition step that should produce visible rendered output does not happen (or does not happen correctly).
+  - **MAME script anomaly:** Cody's MAME validation.txt (`Cody_build59_runtime_state_comparison.md`) reported all-zero VRAM sentinels and all-zero nametable first cells across all 6 timestamps in MAME. This contradicts the populated state Exodus debug panes show on the same ROM. Possible causes: MAME instrumentation issue, wrong address space interpretation in the script, genuine MAME-vs-Exodus runtime divergence, timing/race between sampling and VRAM writes, or stale readback. Insufficient evidence to classify; tracked as OPEN-003 sub-finding.
+- **Evidence (Build 59 runtime state comparison):**
+  - Validation artifact: `states/dumps/build59_runtime_state_20260507_142931/validation.txt`.
+  - Timestamp coverage: `sec_5`, `sec_10`, `sec_20`, `sec_30`, `sec_60`, `sec_120`.
+  - Build 59 MAME sampled values:
+    - `VRAM 0x029A/0x02AA/0x02C0` all `0x0000` at all timestamps.
+    - `VRAM 0x0020` sentinel `0x0000` at all timestamps.
+    - `VRAM 0xC000` (Plane B first cell) `0x0000` at all timestamps.
+    - `VRAM 0xE000` (Plane A first cell) `0x0000` at all timestamps.
+    - Non-zero word counts: `0x0000..0x1FFF=0`, `0xC000..0xCFFF=0`, `0xE000..0xEFFF=0` at all timestamps.
+  - PC progression:
+    - `sec_5/10/20/120`: `PC` in `0x03A19x`.
+    - `sec_30`: `PC=0x071A48`, `SR=0x2600`, `IPM=6`.
+    - `sec_60`: `PC=0x070610`, `SR=0x2700`, `IPM=7`.
+  - Interpretation for OPEN-001 objective: despite transient non-`0x03A19x` PC states, no populated VRAM state matching Exodus was captured; full 5-range decode was intentionally skipped to avoid non-diagnostic all-zero decode.
+  - Full report: `docs/design/Cody_build59_runtime_state_comparison.md`.
+- **Suspected area:** **Strongly likely blocked by OPEN-004 bootstrap re-entry.** Per `docs/design/Andy_nametable_composition_path_classification.md`, Plane A/B nametable population requires arcade execution to reach the PC080SN strip producer call sites at arcade_pc `0x055968` (BG; `genesistan_hook_tilemap_plane_a`) and `0x055990` (FG; `genesistan_hook_tilemap_fg`). Parent dispatcher at arcade_pc `0x055948` is called from `0x050434`, `0x0556FC`, `0x055788`, `0x055822` — all four in the post-bootstrap arcade game-loop range. Bootstrap re-entry per OPEN-004 keeps execution looping at `0x0202..0x03BC64` and never advances to the `0x055xxx` range. Build 59 MAME PC samples confirm: sec_30 hits `0x071A48` (inside `vdp_commit_sprites` — `_vblank_service` IS firing), sec_60 hits `0x070610` (inside `genesistan_hook_tilemap_bg_fill` via 0x03AD44 polymorphic dispatch transit), but no sample reaches the `0x055xxx` strip producer range. Tile preload base is NOT suspect (CLOSED-007). Tile pattern memory is NOT suspect (Pattern Viewer). CRAM is NOT suspect (Exodus). Plane enable bits / display enable sequencing are NOT primary suspects (VBlank service runs and disables/re-enables display correctly per `vdp_comm.s:159-178`).
+- **Next required task:** **OPEN-004 bootstrap re-entry trigger investigation must complete first** (per `docs/design/Andy_nametable_composition_path_classification.md` §3.2). The previous Next Required Task (Tighe Exodus Memory Editor capture of nametable ranges) is **SUPERSEDED** — the empty-nametable result is now classified as a DEPENDENT symptom rather than an independent root cause. Once OPEN-004 resolves and arcade progresses into the post-bootstrap game loop, OPEN-001 will likely self-resolve OR transform again into a downstream symptom that can be classified at that point. Cody next task: `Cody — Bootstrap Re-entry Trigger Investigation` (descriptive name, evidence-only, no ROM produced); OPEN-004's existing Next Required Task is the appropriate scope.
 - **Closure condition:** emulator screenshot/video shows tile graphics referenced from correct base; trace/doc proves tile data load base and tilemap indices agree.
 
 ---
@@ -133,6 +150,26 @@ Rules:
 - **Suspected area:** ROM identity (per OPEN-002), MAME trace harness setup, `_vblank_service` reachability, alternative CRAM writers (crash_init_cram, direct VDP writes).
 - **Next required task:** Cody video/debug extraction (in progress) may help reconcile; reconcile ROM identity by SHA256; trace exact ROM used in Exodus if possible; compare MAME and Exodus CRAM state over time; verify whether CRAM is changed by `vdp_commit_palette`, crash handler, direct VDP write, or another path.
 - **Closure condition:** one report explains why MAME trace and Exodus visual result differ; trace identifies actual CRAM writer for the visible palette.
+- **Evidence (Build 59 runtime state comparison):**
+  - Validation artifact: `states/dumps/build59_runtime_state_20260507_142931/validation.txt`.
+  - MAME on Build 59 (`0059.bin`) sampled at `sec_5/10/20/30/60/120`.
+  - Outcome:
+    - VRAM populated-state sentinels remained zero at every sampled timestamp.
+    - Nametable first cells and sampled non-zero counts remained zero at every sampled timestamp.
+    - `PC` left `0x03A19x` at `sec_30` and `sec_60`, but this did not correlate with populated VRAM evidence.
+  - Conclusion: post-CLOSED-007, emulator divergence remains unresolved for active-state evidence capture; MAME did not provide a populated state matching Exodus for OPEN-001 composition decode in this run.
+  - Full report: `docs/design/Cody_build59_runtime_state_comparison.md`.
+- **Next required task:** perform Exodus-side synchronized byte capture for the same five ranges used by MAME validation, then compare against MAME captures to isolate divergence at VRAM/nametable/register level.
+- **Evidence (Build 59 MAME script anomaly — sub-finding):**
+  - Cody Build 59 runtime state comparison (`docs/design/Cody_build59_runtime_state_comparison.md`) MAME validation.txt across 6 timestamps reported all-zero VRAM sentinels (`0x029A`, `0x02AA`, `0x02C0`, `0x0020`), all-zero Plane A/B first cells, all-zero non-zero word counts in `0x0000..0x1FFF`, `0xC000..0xCFFF`, `0xE000..0xEFFF`.
+  - Same ROM in Exodus (per `Cody_build59_video_30fps_debug_windows.md` accurate findings + Tighe direct verification) shows populated VRAM (Pattern Viewer with real tile data, VRAM Memory Editor with structured non-zero data), populated CRAM with mixed values.
+  - Possible explanations:
+    - MAME script reads wrong address space (e.g., reading raw RAM instead of VDP VRAM through the proper VDP debug interface)
+    - MAME instrumentation captures VRAM at a moment before tile data is written
+    - Genuine MAME-vs-Exodus runtime divergence: MAME execution path differs from Exodus, never writes the VDP state Exodus reaches
+    - Timing/race: sampling happens between writes
+    - Stale readback: MAME VDP debug interface returns cached state
+  - Insufficient evidence to discriminate. Tracked as OPEN-003 sub-finding rather than new issue. Resolution may come from: comparing Cody MAME script against MAME debug API documentation, capturing MAME state via a different instrumentation path, or correlating Cody MAME PC samples (`0x071A48`, `0x070610` at `sec_30/60`) with arcade code that writes VDP — if those PC samples ARE in VDP-write code paths but VRAM remains empty, instrumentation is suspect; if NOT in VDP-write paths, MAME execution genuinely doesn't reach the writes.
 
 ---
 
@@ -205,6 +242,23 @@ Rules:
 - **Suspected area:** prompt-template convention, agent workflow.
 - **Next required task:** prompt template addition (this file's "Prompt Template Requirement" section addresses this); enforce by inclusion in next 3 consecutive Cody/Andy prompts.
 - **Closure condition:** prompt template updated and used in next 3 consecutive Cody/Andy prompts with proper Open/Closed Issues Impact section.
+
+---
+
+## OPEN-010 — Build pipeline determinism / Makefile `.incbin` dependency completeness
+
+- **Status:** OPEN
+- **Priority:** HIGH
+- **Discovered by:** Cody forensics + implementation follow-up
+- **Observed in build/artifact:** Build 60 regression (`0060`) and Build 61 remediation context (`0061`)
+- **Summary:** Make does not auto-track `.incbin` inputs, and at least one object (`scene_load.o`) was previously missing explicit `.incbin` dependencies. This allowed stale objects to be linked, causing Build 60 to embed pre-CLOSED-007 tile/LUT data despite source and generated artifacts being correct.
+- **Evidence:**
+  - `docs/design/Cody_build60_regression_forensics.md` (scenario C: stale `scene_load.o` linkage)
+  - `docs/design/Cody_build60_regression_fix_and_audit.md` (scene_load dependency fix, Build 61 verification, `.incbin` audit)
+- **Suspected area:** `apps/rastan-direct/Makefile` dependency completeness for every `.s` file using `.incbin`, and per-build deterministic verification of embedded ROM regions vs generated artifacts.
+- **Next required task:** Andy gate design **DONE** — see `docs/design/Andy_build_pipeline_determinism_gate_design.md` (six-part trustworthiness predicate; six §2 verification checks; Makefile-recipe integration with `.DELETE_ON_ERROR:` failure semantics; baseline maintenance via on-disk source-of-truth derivation). **Next:** Cody implements the gate per the design (separate Cody-pattern task), then Cody systematically remediates any remaining `.incbin` dependency holes the gate's §2.6 audit might surface (so far audit found only `scene_load.o`, fixed in Build 0061).
+- **Closure condition:** determinism gate is implemented and active in ROM-producing builds, `.incbin` dependency audit is complete with no unresolved holes, and a clean canonical ROM is produced under the gate.
+- **Cross-references:** `CLOSED-007` (source fix remains valid), `OPEN-002` (sequential build discipline), helper integrity baseline in Build 60+.
 
 ---
 

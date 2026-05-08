@@ -34032,3 +34032,412 @@ Open/Closed Issues Impact:
 - New issues opened: NONE
 - Issues closed: OPEN-009 → CLOSED-007 (SGDK-era slot 0..19 tile reservation; closed by Cody Build 59 implementation + Tighe Pattern Viewer visual confirmation)
 - Issues intentionally deferred: OPEN-003, OPEN-004, OPEN-005, OPEN-006, OPEN-007
+
+## [Cody — Build 59 Runtime State Comparison]
+
+* files changed: `docs/design/Cody_build59_runtime_state_comparison.md` (new), `states/dumps/build59_runtime_state_20260507_142931/validation.txt` (validation artifact), `OPEN_ISSUES.md` (OPEN-001 + OPEN-003 evidence append), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A (canonical Build 59 `0059.bin` referenced)
+* root cause confirmed: NO (gate-level comparison indicates MAME capture path did not yield populated-state composition bytes)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Floor:
+- State validation gate: FAILED for active-state comparison objective (timestamps tried: sec 5/10/20/30/60/120)
+- Capture source: MAME
+- Plane A/B index summaries (if decoded): N/A (decode skipped; non-populated state)
+- Composition classification: N/A (no validated populated-state dump)
+- OPEN-001 evidence appended: YES
+- OPEN-003 evidence appended: YES
+- OPEN-008 status: touched (continued use)
+- New sub-issues: NONE
+- STOP triggered: YES (state validation did not produce populated VRAM state suitable for decode)
+
+## [Andy — Correct OPEN-001 Build 59 Evidence Interpretation]
+
+* files changed:
+  - OPEN_ISSUES.md (OPEN-001 Summary updated; OPEN-001 Build 59 evidence subsection corrected; OPEN-001 Suspected Area updated; OPEN-001 Next Required Task updated; OPEN-003 evidence appended with MAME script anomaly sub-finding)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (correction of prior interpretation)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Floor:
+- OPEN-001 Summary corrected: YES — game output described as essentially blank in both MAME and Exodus (Tighe direct visual verification: black with minor purple artifact); root cause framed as downstream of VRAM/CRAM/preload (nametable composition, plane enable bits, display enable sequencing, runtime control flow)
+- OPEN-001 Build 59 evidence subsection corrected: YES — preserved accurate findings (Pattern Viewer populated with RASTA text fragments, VRAM Memory Editor structured non-zero data, CRAM mixed non-default values, Plane Viewer base addresses, 68000 PC samples); REMOVED inaccurate Image Window "green fill blocks" line; REMOVED overstated "first truly debuggable visual state" framing; ADDED explicit Correction note attributing green regions to Plane Viewer boundary overlays; ADDED Tighe direct visual verification (May 7, 2026) of essentially blank actual game output in both emulators; ADDED Architectural significance note clarifying CLOSED-007 was a real cosmetic / data-organization fix but did not change rendering behavior; ADDED MAME script anomaly cross-reference to OPEN-003 sub-finding
+- OPEN-001 Build 58/58b/58c evidence preserved verbatim: YES (verified — all three subsections intact)
+- OPEN-001 Build 59 runtime state comparison subsection (separately added) preserved: YES
+- OPEN-001 CLOSED-007 reference preserved: YES
+- OPEN-001 Suspected Area refined: YES — nametable population (whether populated at all), plane enable bits in VDP registers, display enable sequencing, runtime control flow reaching nametable-writer code paths (with possible OPEN-004 bootstrap re-entry interaction); explicit NOT-suspect list (tile preload base per CLOSED-007, tile pattern memory per Pattern Viewer, CRAM per Exodus debug panes)
+- OPEN-001 Next Required Task updated: YES — Tighe Exodus Memory Editor manual capture of Plane A/B nametable ranges with explicit branching outcomes (populated → decode and classify indices/palette/priority/flips; empty → upstream control flow, possible OPEN-004 tie-in); VDP register dump for display enable / plane priority confirmation
+- OPEN-003 evidence appended with MAME script anomaly sub-finding: YES (Build 59 MAME validation.txt all-zero contradiction with Exodus populated state; 5 possible explanations enumerated; resolution path tied to PC sample correlation)
+- No new issues opened: YES (MAME instrumentation question kept in OPEN-003 evidence, NOT new OPEN-010 — closed issue ID OPEN-009 NOT reused)
+- No closures: YES (CLOSED-007 stands; OPEN-001 / OPEN-003 / OPEN-008 all stay open)
+- No source/spec/tool/build/ROM modifications: YES
+- No CLOSED_ISSUES.md modifications: YES (CLOSED-007 unchanged)
+- No Cody historical design doc modifications: YES (Cody_build59_video_30fps_debug_windows.md, Cody_build59_runtime_state_comparison.md, Cody_slot_reservation_removal_implementation.md all unchanged)
+- Other open issues unchanged: YES (OPEN-002, OPEN-004, OPEN-005, OPEN-006, OPEN-007, OPEN-008 all intact at expected anchors per grep)
+- Naming convention compliance: YES (no letter suffixes anywhere)
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (Summary + Build 59 evidence + Suspected Area + Next Required Task corrected), OPEN-003 (MAME script anomaly sub-finding appended), OPEN-008 (continued convention use)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-002, OPEN-004, OPEN-005, OPEN-006, OPEN-007
+
+## [Andy — Nametable Composition Path Classification]
+
+* files changed:
+  - docs/design/Andy_nametable_composition_path_classification.md (new — descriptive name per OPEN-002 extended policy)
+  - OPEN_ISSUES.md (OPEN-001 Suspected Area + Next Required Task augmented with OPEN-004 dependency note)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES — OPEN-001 nametable-empty symptom is DEPENDENT on OPEN-004 bootstrap re-entry; arcade execution never reaches PC080SN strip producer call sites at arcade_pc 0x055968/0x055990
+* fix implemented: NO (downstream Cody task is OPEN-004 trigger investigation, evidence-only)
+* no unrelated changes: YES
+
+Floor:
+- Nametable writer routines identified: YES — vdp_commit_bg_strips_if_dirty (Plane B at 0xC000 via vdp_comm.s:200-235); vdp_commit_fg_strips_if_dirty (Plane A at 0xE000 via vdp_comm.s:237-272); both VBlank-gated commit consumers reading bg_row_dirty/fg_row_dirty flags from staged_bg_buffer/staged_fg_buffer
+- Producer hooks identified: YES — genesistan_hook_tilemap_plane_a (arcade_pc 0x055968), genesistan_hook_tilemap_fg (arcade_pc 0x055990), genesistan_hook_tilemap_bg_fill (polymorphic via 0x03AD44 dispatch from 0x03AE70/0x03AE80/0x03AF38/0x03AF48), genesistan_hook_cwindow_clear (arcade_pc 0x0561B6); all 4 set their respective dirty flags and populate staging buffers
+- Architectural classification per writer: VBlank commit paths (bg/fg_strips_if_dirty) + PC080SN hooks (4 producers) + polymorphic dispatch (tilemap_bg_fill via 0x03AD44); all RTS-returning Genesis helpers per project model; architecture-compliant
+- Caller chain traced: parent dispatcher arcade_pc 0x055948 (BG/FG strip producers gated by workram flag at %a5@(4264)) called from 4 sites at arcade_pc 0x050434/0x0556FC/0x055788/0x055822 (all post-bootstrap game-loop range); polymorphic dispatch at 0x03AD44 reachable during bootstrap transit; cwindow_clear at 0x0561B6 in post-bootstrap range
+- OPEN-004 dependency relationship: **DEPENDENT** — strip producers and cwindow_clear are unreachable while bootstrap re-entry loops at 0x0202..0x03BC64; only polymorphic tilemap_bg_fill reachable during transit (Build 59 sec_60 PC sample at 0x070610 inside this hook confirms transit reach, but only emits sentinel/init content not real game tilemap)
+- Build 59 MAME PC sample decoding: sec_5/10/20/120 = 0x03A19x (bootstrap zone); sec_30 = 0x071A48 (inside vdp_commit_sprites — confirms _vblank_service IS firing); sec_60 = 0x070610 (inside genesistan_hook_tilemap_bg_fill — confirms polymorphic dispatch firing during transit); NO sample in 0x055xxx strip producer range
+- Additional missing hooks/triggers: NONE — architecture is complete; all 4 producers patched; all 2 VBlank consumers wired; the only missing piece is arcade game-loop progression to reach producer call sites
+- Cody next task: `Cody — Bootstrap Re-entry Trigger Investigation` (descriptive name, no build number per OPEN-002 extended policy; matches OPEN-004's existing Next Required Task; evidence-only; output filename `Cody_bootstrap_reentry_trigger_investigation.md`); scope = static call source identification for 0x0202, MAME breakpoint trace with last-8-PCs capture, exception vector inspection at 0x0008..0x003C, optional HV Counter 0xC00008 write watchpoint, stack/SR snapshot at re-entry; output classifies single trigger / multiple triggers / unknown
+- OPEN-001 updated: YES (Suspected Area augmented with OPEN-004 dependency citation; Next Required Task superseded with explicit OPEN-004-first dependency)
+- OPEN-001 and OPEN-004 NOT merged: YES (OPEN-001 stays separate, tagged as dependent)
+- CLOSED-007 NOT rolled back: YES (slot reservation closure stands; tile preload base is NOT suspect for OPEN-001)
+- No source/spec/tool/build/ROM modifications: YES
+- No fix proposed: YES (classification only)
+- No closures: YES (OPEN-001 / OPEN-004 / OPEN-008 all stay open)
+- Naming convention compliance: YES (descriptive output filename; descriptive Cody task name; no letter suffixes anywhere)
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (Suspected Area + Next Required Task augmented to reflect OPEN-004 dependency; classification produced in `docs/design/Andy_nametable_composition_path_classification.md`), OPEN-004 (classification context — dependency relationship analyzed; no field modifications; OPEN-004's existing Next Required Task confirmed as correct scope), OPEN-008 (continued convention use — third+ consecutive task with proper "Open/Closed Issues Impact" section and OPEN-002-compliant naming)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-002, OPEN-003, OPEN-005, OPEN-006, OPEN-007
+
+## [Andy — Add Diagnostic Bookmark Rule]
+
+* files changed:
+  - RULES.md (new Rule 10 "Diagnostic Bookmarks" inserted before Summary section)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (policy documentation)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Floor:
+- Diagnostic bookmark rule added to RULES.md as Rule 10: YES — placed between Rule 9 ("If It Doesn't Belong in Final Build, It Doesn't Belong Here") and the closing Summary section so the Summary remains last
+- All 8 conceptual constraints from Tighe+Chad agreement preserved:
+  1. Observation-only (no alteration of game data, dirty flags, hardware state, return values, rendering output, control flow): YES — explicit in "Constraints / Observation only"
+  2. Activator reverted in immediately-following ROM-producing build: YES — explicit in Activator section
+  3. Persistence across two consecutive ROM-producing builds forbidden: YES — explicit
+  4. Insert + revert logged in AGENTS_LOG; byte-verified against canonical ROM: YES — explicit in "Logged on both ends" + "Byte-verified against canonical ROM"
+  5. Helper persists as immutable project infrastructure with SHA256 verification: YES — explicit in Helper section
+  6. Default helper body self-loop, not STOP: YES — explicit in Helper + Constraints
+  7. STOP #$2700 only when supervisor mode independently proven OR privilege-violation is the observation: YES — explicit in Constraints
+  8. Bookmark task scoped (no other source/spec/tool/build changes): YES — explicit in "Scoped task"
+- Helper address/bytes deferred to separate future task: YES — explicit "Out of scope for this rule" subsection
+- PROMPT_TEMPLATE.md updated: NO. Rationale: RULES.md is already in PROMPT_TEMPLATE.md REQUIRED READING (item #1). The bookmark rule is sometimes-applicable (only when a task involves a bookmark cycle), unlike always-applicable rules (issue ledger, OPEN/CLOSED IMPACT) which warrant template entries. Sometimes-applicable rules belong in RULES.md and are cited by task framing as needed. Adding every conditional rule to PROMPT_TEMPLATE.md would dilute the template's purpose.
+- Surfaced ambiguities (chosen interpretation in rule text):
+  - "Immediately-following ROM-producing build" measured in ROM-producing builds; non-ROM-producing tasks (evidence reports, classification docs) do not shift the revert obligation. Chosen because the alternative (any task counts) would let an insertion linger across many non-ROM tasks while still being "next" by some reading; rule text now explicit.
+  - At most one bookmark cycle in flight at any time; single ROM build does not combine insert with another bookmark's revert. Chosen because the "scoped task" constraint says one bookmark action per task and no other changes; rule text now explicit.
+  - "Canonical ROM" baseline for byte verification = current canonical post-patch artifact (0057.bin and successors per OPEN-002), NOT raw arcade bytes. The activator may overlay a production opcode_replace patch; revert restores the patched bytes, not the arcade-original bytes. Chosen because production patches are the working baseline; treating them as "the ROM" preserves the meaning of "canonical." Rule text now explicit.
+- No source/spec/tool/build/ROM modifications: YES
+- No issue-ledger changes (OPEN_ISSUES.md, CLOSED_ISSUES.md untouched): YES
+- No closures, no openings, no closed-ID reuse, no letter-suffix naming: YES
+- ARCHITECTURE.md unchanged: YES (no architectural invariant change required; bookmarks comply with Rule 9 as stated in rule's "Distinction from scaffolding" section)
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-008 (continued convention use)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-001, OPEN-002, OPEN-003, OPEN-004, OPEN-005, OPEN-006, OPEN-007
+
+## [Andy — Diagnostic Bookmark Helper Design]
+
+* files changed:
+  - docs/design/Andy_diagnostic_bookmark_helper_design.md (new — descriptive name per OPEN-002 extended policy)
+  - RULES.md (Rule 10 "Out of scope for this rule" subsection updated to cite the new design doc, replacing the prior placeholder)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (infrastructure design)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Floor:
+- Helper design document produced: YES
+- All §OBJECTIVE items resolved with cited evidence: YES
+  - Helper location: `.text.wrapper >= 0x00070000` (cited via apps/rastan-direct/link.ld:14-19 + existing helper precedent in apps/rastan-direct/out/symbol.txt:151-180)
+  - Helper bytes: `60 FE` (BRA self, 2 bytes; rationale: smallest unprivileged self-loop; STOP rejected because privilege-violation in user mode)
+  - Symbol name: `genesistan_diag_bookmark` (matches existing genesistan_* hook convention)
+  - Source file: `apps/rastan-direct/src/diag_bookmark.s` (new file; clean separation of concerns)
+  - Build pipeline integration: identical to existing helpers (new OBJS entry + assemble rule in Makefile; no link.ld change; existing {symbol:NAME} postpatch template handles activator resolution)
+  - SHA256 verification: 2-byte content hash; canonical reference recorded in first-build AGENTS_LOG entry; build-time verify procedure documented; mismatch → STOP
+  - Activator form: `4EF9{symbol:genesistan_diag_bookmark}` + NOP padding (JMP absolute long, 6 bytes resolved at postpatch); production-entry conflict handled by suspend-on-insert / restore-on-revert
+  - AGENTS_LOG required fields: three template entries (first-build helper introduction; insert; revert) with cycle ID, target arcade_pc, byte sequences before/after, helper SHA256, evidence question/outcome, build number
+  - Byte-verification mechanics: insert/revert/helper procedures all specified; mismatch → STOP per Rule 10
+- Safe high-ROM region identified with evidence: YES — `.text.wrapper >= 0x00070000` is outside arcade ROM copy (specs/rastan_direct_remap.json:18-22 defines whole_maincpu copy as 0x000200..0x060200), outside opcode_replace target ranges (all production arcade_pc values < 0x060000), and matches existing helper region precedent
+- Rule 9 compliance demonstrated: helper IS final-build infrastructure (immutable, harmless if never reached, ships in production ROM); activator transient and provably absent by next ROM revert log
+- Rule 10 compliance demonstrated: 14-constraint table in §1.6 (helper inert, ROM not WRAM, BRA-self default, byte-verifiable, scoped task discipline, single-cycle in flight, etc.) all addressed
+- RULES.md updated: YES — Rule 10's "Out of scope for this rule" subsection's placeholder ("Until that task lands, no bookmark cycle may begin") replaced with citation to `docs/design/Andy_diagnostic_bookmark_helper_design.md` plus go-ahead language ("Bookmark cycles may begin once Tighe approves that design and Cody ships the first build introducing the helper"). Rationale: future agents reading Rule 10 should know where the helper specifics live without grepping AGENTS_LOG; one-line citation; minimal cost.
+- Surfaced ambiguities: 4 (with chosen interpretations in §1.7)
+  1. Helper address stability: shifts with link order; symbol-table indirection provides stability without link.ld pinning
+  2. Bookmark over existing production opcode_replace: canonical baseline = production entry's replacement_bytes (not raw arcade); production entry suspended on insert, restored on revert
+  3. Multi-target cycles: out of scope; each cycle handles one target; multi-target evidence questions answered via sequential single-target cycles
+  4. First-build helper introduction: NOT a bookmark cycle — it's an infrastructure introduction (no activator, no revert obligation); counts as a clean ROM-producing build for OPEN-002 progress
+- No source/spec/tool/build/ROM modifications: YES (this task is documentation only; the helper itself is added to source by Cody on first build, not by Andy)
+- No bookmark cycle initiated: YES
+- No issue-ledger changes (OPEN_ISSUES.md, CLOSED_ISSUES.md untouched): YES
+- No closures, no openings, no closed-ID reuse: YES
+- Naming convention compliance: YES (descriptive output filename, no build number; descriptive cycle templates `[Cody — Diagnostic Bookmark Insert: BM-NNN]` etc.)
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-008 (continued convention use)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-001, OPEN-002, OPEN-003, OPEN-004, OPEN-005, OPEN-006, OPEN-007
+
+## [Cody — Diagnostic Bookmark Helper Introduction]
+
+* files changed: `apps/rastan-direct/src/diag_bookmark.s` (new), `apps/rastan-direct/Makefile` (helper object/rule added), `AGENTS_LOG.md` (this append)
+* build produced: NO (STOP condition)
+* ROM path: N/A
+* root cause confirmed: N/A (infrastructure introduction blocked by build invariant)
+* fix implemented: NO
+* no unrelated changes: YES
+
+**Helper introduction (NOT a bookmark cycle):**
+- Helper symbol: `genesistan_diag_bookmark`
+- Activator: NONE (no opcode_replace entry added)
+- Revert obligation: NONE (helper introduction task)
+
+**STOP reason:**
+- Build failed at postpatcher invariant gate:
+  - `expected total_genesis_bytes_covered=0x17CAE8`
+  - `got total_genesis_bytes_covered=0x17CAEC`
+  - `opcode_replace patched_site count=94` (matched expected)
+- Per task STOP conditions, no workaround applied.
+
+Floor:
+- Helper added to source: YES
+- Makefile updated: YES
+- ROM built: NO
+- No activator added: YES
+- No opcode_replace entries added: YES
+- No other source files modified: YES
+- No spec/link.ld/tool modifications: YES
+- Naming convention compliance: YES
+- STOP triggered: YES
+
+### MAME Exit Summary (2026-05-08 11:07:47)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Diagnostic Bookmark Helper Introduction (Continuation)]
+
+* files changed: `apps/rastan-direct/src/diag_bookmark.s` (corrected to raw bytes), `tools/translation/postpatch_startup_rom.py` (invariant updated at lines 1757/1762), `dist/rastan-direct/rastan_direct_video_test_build_0060.bin` (new), `AGENTS_LOG.md` (this append)
+* build produced: YES
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0060.bin`
+* root cause confirmed: prior STOPs resolved (helper bytes corrected via raw .byte directive; postpatcher invariant updated after +4 decomposition proof)
+* fix implemented: helper source correction + postpatcher invariant update
+* no unrelated changes: YES
+
+**Continuation from prior task STOPs:**
+- STOP 1 (helper bytes were `60 00` not `60 FE`): RESOLVED via `.byte 0x60, 0xFE` directive
+- STOP 2 (+4 coverage delta): RESOLVED — decomposition proven; invariant updated `0x17CAE8 -> 0x17CAEC`
+
+**Helper introduction (NOT a bookmark cycle):**
+- Helper symbol: `genesistan_diag_bookmark`
+- Resolved address: `0x00071C78`
+- Canonical helper bytes: `60 FE` (verified at resolved address in 0060.bin)
+- Canonical helper SHA256 (of 2-byte sequence `60 FE`): `20825b3611f3c2bbcf2a401045fa74256f8b549d4d509834eb8d928861d9fecb` — IMMUTABLE BASELINE
+- Activator: NONE (helper introduction only; no opcode_replace entry added)
+- Revert obligation: NONE (helper introduction is permanent infrastructure, not a bookmark cycle)
+
+**Postpatcher invariant update:**
+- File: `tools/translation/postpatch_startup_rom.py`
+- Line: 1757 (value check), 1762 (error-string expected value)
+- Before: `total_genesis_bytes_covered = 0x17CAE8`
+- After: `total_genesis_bytes_covered = 0x17CAEC`
+- +4 decomposition proof:
+  - helper object body size = 2 bytes (`apps/rastan-direct/out/diag_bookmark.o` section `.text.wrapper` = `00000002`, contents `60fe`)
+  - final ROM bytes at helper address = `60 FE 00 00 ...`, with next symbol `load_scene_tiles` at `0x00071C7C`
+  - helper symbol at `0x00071C78` and next symbol at `0x00071C7C` => 4-byte occupied span = 2 helper bytes + 2 linker alignment bytes
+- Other invariants: unchanged (`patched_site = 94`, no additional invariant failures)
+
+**Verification:**
+- Source corrected to raw bytes: YES
+- Build: SUCCESS
+- Symbol resolved in `.text.wrapper`: YES (`0x00071C78` >= `0x00070000`)
+- Helper bytes at resolved address match `60 FE` (exactly 2 bytes): YES
+- SHA256 computed and recorded (over 2-byte sequence, not 4): YES
+- Postpatcher invariant updated only after +4 decomposition: YES
+- All other postpatcher invariants unchanged: YES
+
+**OPEN-002 progress:** sequential ROM produced (`0060` from `0059`). No letter suffixes used.
+
+Floor:
+- Helper source corrected to raw bytes: YES
+- Postpatcher invariant location identified: YES (`tools/translation/postpatch_startup_rom.py:1757`, `:1762`)
+- +4 decomposition proven: YES
+- Postpatcher invariant updated: YES (`0x17CAE8 -> 0x17CAEC`)
+- ROM built: YES (`0060.bin`)
+- Symbol resolved at `.text.wrapper` address: YES (`0x00071C78`)
+- Helper bytes verified `60 FE` exactly: YES
+- Canonical SHA256 recorded (over 2-byte sequence): YES
+- No activator added: YES
+- No opcode_replace entries added: YES
+- No other tool/source/spec changes: YES
+- Naming convention compliance: YES
+- STOP triggered: NO
+
+## [Cody — Build 60 Regression Forensics]
+
+* files changed: `docs/design/Cody_build60_regression_forensics.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A (forensics only)
+* root cause confirmed: C (stale ROM linkage)
+* fix implemented: NO
+* no unrelated changes: YES
+* forensic scene preserved: YES (no regenerations, no rebuilds, no cleaning, no timestamp touches)
+
+Floor:
+- §1.1 Generator source state verified: YES (`TILE_CACHE_BASE_A = 0`)
+- §1.2 File timestamps documented: YES
+- §1.3 Git status / diff / log inspected: YES
+- §2.1 Generated artifact SHAs computed and compared to CLOSED-007 evidence context: YES
+- §2.2 LUT first bytes inspected: YES (post-fix pattern in `build/pc080sn_tile_vram_lut.bin`)
+- §3.1 Expected ROM diff documented: YES
+- §3.2 Binary diff between 0059 and 0060 performed: YES
+- §3.3 Embedded LUT/preload regions extracted and compared: YES (different between 0059 and 0060)
+- §4.1 Makefile dependencies documented: YES (`scene_load.o` missing `.incbin` input deps)
+- §4.2 Helper introduction interaction analyzed: YES (stale `scene_load.o` linked into Build 60)
+- §4.3 Postpatcher lines 1757 and 1762 inspected: YES (invariant check/error string only)
+- §5.1 Scenario classified: C (stale ROM linkage)
+- §5.2 Next task recommended: YES (build-pipeline determinism classification + scoped implementation)
+- No regenerations performed: YES
+- No rebuilds performed: YES
+- No make invocations: YES
+- No timestamp touches: YES
+- No source/spec/tool/build/ROM modifications: YES
+- CLOSED-007 not reopened: YES
+- STOP triggered: NO
+
+### MAME Exit Summary (2026-05-08 14:59:00)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 60 Regression Fix: Makefile Dependencies + Clean Rebuild]
+
+* files changed: `apps/rastan-direct/Makefile` (scene_load.o `.incbin` deps added), `apps/rastan-direct/out/scene_load.o` (deleted, then regenerated), `OPEN_ISSUES.md` (OPEN-010 added), `dist/rastan-direct/rastan_direct_video_test_build_0061.bin` (new), `docs/design/Cody_build60_regression_fix_and_audit.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: YES
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0061.bin`
+* root cause confirmed: scenario C from forensics (stale `scene_load.o` linkage)
+* fix implemented: YES (`scene_load.o` Makefile dependency hole closed + stale object rebuild)
+* no unrelated changes: YES
+
+Regression fix verification:
+- Pre-fix: Build 60 embedded stale pre-CLOSED-007 LUT/preload bytes.
+- Post-fix: Build 61 embedded regions match current generated artifacts and Build 59 baseline.
+- Embedded region SHA match vs generated artifacts:
+  - LUT: `ca9c3dcf1aa3624c3660aa3b7443625433341941955c2c3f7c5956f44f5d3e92`
+  - Attr LUT: `2614c7b4c5ba7716fa6cc985f65ad2832c029956243d5570da52975d230fba3b`
+  - Title preload: `e0a814f2638c638e2ec710a91bc88e2603af6ea95afbcd3fb34203c5002fe52f`
+  - Gameplay preload: `462c428c771428682e1be618dd2b72c54136c49a665fe4b09e1f935d6a7cdb6c`
+  - Endround preload: `690835b85f60451935a325db066a10139f946125b354c3f100412149ef730acc`
+- Build 59 comparison used expected helper-era offset adjustment (`0059 offset = 0061 offset - 0x4`): all embedded region hashes match.
+- Helper preserved: bytes `60 FE` at `0x00071C78`, SHA `20825b3611f3c2bbcf2a401045fa74256f8b549d4d509834eb8d928861d9fecb`.
+- Postpatcher invariant gate passed in build:
+  - expected `total_genesis_bytes_covered=0x17CAEC`
+  - expected `patched_site` count `94`
+  - source check location unchanged at `tools/translation/postpatch_startup_rom.py:1757-1763`
+  - manifest confirms `94` `opcode_replace` entries.
+
+Audit findings (other `.s` files using `.incbin`):
+- `src/scene_load.s`: dependency hole existed, fixed in this task (Classification B: mandatory for trusted ROM).
+- `src/pc090oj_assets.s`: no dependency hole (`pc090oj_assets.o` rule already depends on both `.incbin` inputs).
+- Additional Classification B fixes beyond `scene_load.o`: NONE.
+- Classification A deferred holes: NONE found in this audit.
+
+OPEN-010 opened in `OPEN_ISSUES.md` to track systematic build-pipeline determinism / `.incbin` dependency completeness and gate implementation before bookmark cycles resume.
+
+OPEN-002 progress: sequential ROM produced (`0061`), no letter suffixes.
+CLOSED-007 remains closed; source fix was intact and regression was build dependency linkage.
+
+Floor:
+- Makefile fix applied: YES
+- §2.3 classification applied: YES (B for scene_load, none additional)
+- Stale object removed and rebuilt: YES
+- Build 61 produced: YES
+- Embedded regions verified match generated artifacts: YES
+- Embedded regions verified match Build 59 baseline: YES
+- Helper preserved: YES
+- Postpatcher invariants pass: YES
+- Audit completed with classification rationale: YES
+- OPEN-010 opened: YES
+- No other modifications: YES
+- STOP triggered: NO
+
+## [Andy — Build Pipeline Determinism Gate Design]
+
+* files changed:
+  - docs/design/Andy_build_pipeline_determinism_gate_design.md (new — descriptive name per OPEN-002 extended policy)
+  - OPEN_ISSUES.md (OPEN-010 Next Required Task updated with design-doc citation; design portion marked DONE; implementation portion remains)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (infrastructure design)
+* fix implemented: NO (Cody implements gate after this design lands)
+* no unrelated changes: YES
+
+Floor:
+- Gate design document produced: YES
+- Trustworthiness predicate stated explicitly: YES — six-part predicate in §1: (1) embedded `.incbin` byte-match, (2) helper integrity per Rule 10, (3) postpatcher structural invariants, (4) ROM naming compliance per OPEN-002, (5) symbol resolution, (6) `.incbin` Makefile dependency completeness. ROM is canonical iff all six pass; otherwise non-canonical and forbidden as baseline for subsequent work.
+- All §OBJECTIVE items resolved with cited evidence: YES
+  - What gate verifies: §2 (six checks; each with what/why-load-bearing/procedure)
+  - Pipeline integration point: §3 (Makefile recipe step inside `$(BIN)` after postpatcher and disasm, before numbered-artifact copy; rationale = hardest-to-bypass placement because Make itself enforces gate passage)
+  - STOP behavior on mismatch: §4 (non-zero exit, recipe abort, `.DELETE_ON_ERROR:` candidate ROM cleanup, no build-counter increment for failed builds, AGENTS_LOG failure record, Rule 10 bookmark cycles blocked until next clean canonical)
+  - What "canonical" means: explicit predicate in §1; gate enforces exactly that predicate
+  - Baseline maintenance: §5 (per-check baseline source table; silent-regression detection via comparing ROM-embedded bytes to ON-DISK source-of-truth — intentional updates change both sides consistently, silent regressions diverge them)
+  - Coverage: §6 (content-scanner approach; §2.1 and §2.6 iterate over `.s` files at gate-run time; new files/artifacts auto-discovered without gate code change)
+- General gate (not scene_load-specific): YES — §2.1 iterates over all `apps/rastan-direct/src/*.s`; §2.6 audits all of them; §6 explicitly addresses scope-expansion (new `.s` files, new `.incbin` directives, new helpers all covered without gate modification)
+- Rule 9 compliance demonstrated: YES — §8 (gate IS final-build infrastructure; production-pipeline integration; runs every ROM-producing build; no scaffolding added to ROM)
+- Rule 10 compliance demonstrated: YES — §8 + §2.2 (helper-immutability + SHA-verifiability mechanically enforced; canonical-ROM definition that bookmark cycles depend on is now made explicit by gate's predicate)
+- Pipeline integration point specified with rationale: YES — §3 (after postpatcher delegates §2.3; before numbered-artifact copy ensures failed gate produces no numbered ROM; inside `$(BIN)` recipe makes Make enforce passage)
+- Failure semantics specified: YES — §4 six-step flow (exit non-zero → recipe abort → ROM removed → no counter increment → AGENTS_LOG record → bookmark cycles blocked)
+- Baseline maintenance specified: YES — §5 (per-check sources: §2.1 derives expected SHAs from on-disk artifacts at gate-run time, no sidecar; §2.2 helper SHA in Makefile arg + design doc + AGENTS_LOG, three-place friction by design; §2.3 trusts postpatcher's existing constants; §2.4 uses build_counter.txt; §2.5 uses symbol.txt; §2.6 uses Makefile + .s files)
+- Coverage approach specified: YES — content scanner (§6); unbounded checks (§2.1 + §2.6); bounded checks driven by external standards that themselves can grow (§2.2 by Rule revisions, §2.3 by postpatcher source, §2.4 by OPEN-002, §2.5 by symbol map)
+- Interaction with existing mechanisms: §7 — postpatcher orthogonal (gate trusts postpatcher's success implicitly via §2.3); Make defense-in-depth (deps necessary but not sufficient; gate verifies content even with perfect deps); manual SHA recording superseded for automated checks; boot guard orthogonal
+- OPEN-010 updated: YES — Next Required Task field updated with citation to new design doc plus go-ahead language for Cody implementation. Rationale: future agents reading OPEN-010 should immediately know where the gate design lives and what's blocking closure (Cody implementation). One-line citation; minimal cost.
+- Surfaced ambiguities: 5 (with chosen interpretations in §9):
+  1. Where canonical helper SHA lives → Makefile arg + design doc + AGENTS_LOG (three-place friction prevents silent drift)
+  2. Gate as Make recipe vs. wrapper around make → recipe step inside Make (bypass-resistance)
+  3. Failed-build cleanup mechanism → `.DELETE_ON_ERROR:` directive (standard Make idiom)
+  4. Build counter increment timing → AFTER gate (failed builds don't consume sequential numbers per OPEN-002)
+  5. `.incbin` path normalization for §2.6 → resolve both sides to absolute paths anchored at project root
+- No source/spec/tool/Makefile/build/ROM modifications: YES (this task is documentation only; the gate script itself is implemented by Cody after this design lands)
+- No bookmark cycle initiated: YES
+- No closures (OPEN-010 stays open until gate IS implemented and a clean canonical produced under it): YES
+- Naming convention compliance: YES (descriptive output filename, no build number; OPEN-002 sequential ROM naming addressed by §2.4 enforcement)
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-010 (design portion produced; implementation portion remains — bookmark cycles still blocked until Cody implements the gate AND a canonical ROM passes it), OPEN-002 (gate's §2.4 mechanically enforces sequential build numbering; gate's §4 ensures failed builds don't consume sequential numbers), OPEN-008 (continued convention use)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-001, OPEN-003, OPEN-004, OPEN-005, OPEN-006, OPEN-007

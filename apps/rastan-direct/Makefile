@@ -44,6 +44,7 @@ OBJS := \
 	$(OUT_DIR)/palette_hooks.o \
 	$(OUT_DIR)/pc090oj_hooks.o \
 	$(OUT_DIR)/pc090oj_assets.o \
+	$(OUT_DIR)/diag_bookmark.o \
 	$(OUT_DIR)/scene_load.o \
 	$(OUT_DIR)/sound_comm.o \
 	$(OUT_DIR)/z80_driver.o
@@ -88,7 +89,18 @@ $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s | $(OUT_DIR)
 $(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_PRECONV) $(PC090OJ_SLOT_LUT) | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/scene_load.o: $(SRC_DIR)/scene_load.s | $(OUT_DIR)
+$(OUT_DIR)/diag_bookmark.o: $(SRC_DIR)/diag_bookmark.s | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+$(OUT_DIR)/scene_load.o: \
+	$(SRC_DIR)/scene_load.s \
+	$(ROOT)/build/pc080sn_tile_vram_lut.bin \
+	$(ROOT)/build/pc080sn_attr_lut.bin \
+	$(ROOT)/build/regions/pc080sn.bin \
+	$(ROOT)/build/pc080sn_scene_preload_title.bin \
+	$(ROOT)/build/pc080sn_scene_preload_gameplay.bin \
+	$(ROOT)/build/pc080sn_scene_preload_endround.bin \
+	| $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/sound_comm.o: $(SRC_DIR)/sound/sound_comm.s | $(OUT_DIR)
