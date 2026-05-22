@@ -109,3 +109,88 @@ Closure note format:
   - OPEN-001 — visible composed output remains incorrect despite correct preload + active VRAM + populated CRAM; symptom transformed but root cause separate
   - OPEN-003 — MAME Build 59 progression unverified vs. Exodus active state
   - OPEN-004 — bootstrap re-entry status on Build 59 unverified
+
+---
+
+## CLOSED-008 — Build pipeline determinism / Makefile .incbin dependency completeness
+
+- **Closed by:**
+  - Andy gate design (`docs/design/Andy_build_pipeline_determinism_gate_design.md`)
+  - Cody gate implementation (`docs/design/Cody_build_pipeline_determinism_gate_implementation.md`)
+  - Build 0062 produced under active determinism gate
+  - Build 0062 byte-identical to Build 0061 (SHA `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`)
+  - Gate rejects known-bad Build 0060 (`GATE_FAIL_2_1_INCBIN_SHA_MISMATCH`)
+  - Gate rejects synthetic Build-60-class stale-object regression
+  - Gate rejects synthetic helper corruption, missing Makefile dep, ROM naming violation
+  - End-to-end failure semantics verified (`.DELETE_ON_ERROR` removes ROM, `build_counter` does not increment, machine-readable failure ID emitted)
+  - Tighe visual verification of Build 0062 in Exodus (Pattern Viewer at slot 0, helper preserved, expected blank Plane A/B state matching Build 0061)
+- **Originally opened:** Build 0060 regression forensics (`docs/design/Cody_build60_regression_forensics.md`)
+- **Originally fixed:** Build 0061 Makefile dependency fix (`docs/design/Cody_build60_regression_fix_and_audit.md`)
+- **Systematically prevented going forward:** by determinism gate active on every ROM-producing build
+
+---
+
+## CLOSED-009 — Postpatch invariant model + diagnostic symbol allowlist + gate context-awareness
+
+- **Closed by:**
+  - Andy invariant design (`docs/design/Andy_diagnostic_bookmark_postpatch_invariant_design.md`)
+  - Cody implementation (`docs/design/Cody_diagnostic_bookmark_postpatch_invariant_implementation.md`)
+  - 13-test validation matrix all PASS (canonical build, diagnostic insert, authorized revert, 9 failure-mode tests, end-to-end synthetic BM-001 cycle)
+  - Build 0065 (synthetic Insert) and Build 0066 (synthetic Revert) produced under context-aware gate
+  - Build 0066 SHA byte-identical to Build 0062 canonical baseline (`72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`)
+  - Andy independent verification (`docs/design/Andy_OPEN011_verification_report.md`): 7/7 items PASS with cited evidence
+    - Item 1 spec integrity: PASS (canonical spec untouched, SHA match)
+    - Item 2 failure ID coverage: PASS (9/9 failure-mode tests emit correct GATE_FAIL_* IDs)
+    - Item 3 Build 0066 byte-identity to Build 0062: PASS (SHA match)
+    - Item 4 state file lifecycle: PASS (atomic write/read/delete with all required fields)
+    - Item 5 issue ledger compliance: PASS (Cody respected closure boundary)
+    - Item 6 implementation alignment with design: PASS (load-bearing decisions present at cited line ranges)
+    - Item 7 Revert context explicit: PASS (Makefile BOOKMARK_REVERT → gate --bookmark-revert; no inference)
+  - Tighe approval of Andy verification report
+- **Closure note:** The bookmark cycle infrastructure is now operational. Canonical builds enforce strict invariants (94 opcode replacements, 0x17CAEC bytes covered). Diagnostic builds get context-aware treatment (94 + N opcode replacements, 0x17CAEC + Σ bytes covered) without weakening canonical protections. Insert/revert lifecycle is byte-reversible via §2.8 SHA-identical check. Explicit revert context (BOOKMARK_REVERT=BM-NNN) prevents misclassification.
+- **Originated:** BM-001 Insert STOP exposed two postpatcher conflicts (required_symbols allowlist + hardcoded 94 count invariant) that the original Andy helper design did not anticipate.
+- **Resolved:** context-aware build modes (canonical vs diagnostic), DIAGNOSTIC_SYMBOLS hardcoded allowlist with three-place friction, cross-reference consistency check, explicit Revert context per Chad's refinement.
+- **Next ROM-producing task:** the real BM-001 research cycle (insert activator at arcade_pc 0x055948, capture trace, produce diagnostic evidence for OPEN-001 and OPEN-004 analysis).
+
+---
+
+## CLOSED-010 — Bookmark coordinate model fault (was OPEN-012)
+
+- **Status:** CLOSED
+- **Date closed:** 2026-05-20
+- **Closed by:** BM-003 Outcome A confirmation on two independent emulators + BM-003 Revert byte-identical closure
+- **Origin:** Opened from Andy's BM-002 investigation (`docs/design/Andy_BM002_runtime_failure_investigation.md`) classifying BM-001/BM-002 failures as coordinate-space mismatch (runtime Genesis PC pasted into `arcade_pc` bookmark target path).
+- **Summary:** The bookmark coordinate model was replaced by `bookmarks_v2`: trace-derived entries store `runtime_genesis_pc` and activators are written post-relocation at file offset = `runtime_genesis_pc` directly. This removes the fault class structurally (no hand bookmark-side cross-space arithmetic).
+- **Closure evidence chain:**
+  - Design landed: `docs/design/Andy_OPEN012_bookmark_coordinate_model_design.md` (schema, postpatch stage, new §2.7 semantics, CLOSED-009 ripple walk, BM-001/BM-002 retirement).
+  - Implementation landed: `docs/design/Cody_OPEN012_OPEN013_implementation.md` (`bookmarks_v2` schema, `_apply_bookmarks_v2`, fail-closed validations including vector-region and helper-overlap STOPs, old path removals, OPEN-013 matrix).
+  - Failure-ID hygiene landed: `docs/design/Cody_OPEN012_OPEN013_implementation.md` (retired overloaded cross-reference-labeled ID; split into `GATE_FAIL_LEGACY_BOOKMARK_SCHEMA` and `GATE_FAIL_2_5_BOOKMARK_SCHEMA_VALIDATION` with specific diagnostics).
+  - Positive control landed: `docs/design/Cody_BM003_insert.md`, Build 0076 SHA `be6fbef330311a9bfbb9da49a869f925b24a154619709de1515527f8aed102a2`, activator bytes `4ef900071c784e71` at `0x0003A19C`, gate PASS including §2.7.
+  - Outcome A confirmed on two emulators: Tighe Exodus direct observation (helper `0x00071C78` reached almost immediately) + MAME exit summary final PC `0x071C7A` (recorded in BM-003 logs/notes).
+  - Cycle closure landed: `docs/design/Cody_BM003_revert.md`, Build 0077 SHA `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`, §2.8 PASS, state file deleted by gate, spec restored canonical, helper preserved.
+- **Cross-references:**
+  - Co-closed with CLOSED-011 (OPEN-013 child issue).
+  - BM-001 and BM-002 remain permanently retired as invalid evidence cycles under the old model.
+  - OPEN-014 remains OPEN (MAME parked-helper sampled-trace gap; track-only; does not block this closure).
+  - OPEN-001 and OPEN-004 bookmark investigations are now unblocked on a validated instrument.
+
+---
+
+## CLOSED-011 — CLOSED-009 re-verification under `bookmarks_v2` schema (was OPEN-013)
+
+- **Status:** CLOSED
+- **Date closed:** 2026-05-20
+- **Closed by:** OPEN-013 matrix pass + BM-003 real-runtime positive-control Outcome A + BM-003 Revert byte-identical closure
+- **Origin:** Opened by Andy as OPEN-012 child (`docs/design/Andy_OPEN012_bookmark_coordinate_model_design.md` §5.10) to re-verify CLOSED-009 mechanisms on the new schema substrate.
+- **Summary:** CLOSED-009 mechanisms were re-verified under `bookmarks_v2`: mode detection rekeyed, opcode_replace invariants restored to strict canonical values in all modes, obsolete cross-reference path removed, §2.7 replaced with direct activator-byte check at runtime file offset, §2.8 and state-file lifecycle preserved.
+- **Closure evidence chain:**
+  - Implementation + matrix: `docs/design/Cody_OPEN012_OPEN013_implementation.md`:
+    - CLOSED-009 analog matrix: 13/13 PASS.
+    - New failure-mode matrix: 7/7 PASS (includes fail-closed `runtime_genesis_pc < 0x00000400` and helper-byte-overlap STOPs).
+    - Synthetic end-to-end lifecycle verified and reverted byte-identical.
+  - Real-runtime validation: BM-003 (`docs/design/Cody_BM003_insert.md`) produced Outcome A on the trace-derived target under `bookmarks_v2`.
+  - Revert verification: BM-003 Revert (`docs/design/Cody_BM003_revert.md`) produced Build 0077 byte-identical to Build 0070 baseline with §2.8 PASS and state-file deletion.
+- **Cross-references:**
+  - Parent issue CLOSED-010 (OPEN-012) closed on the same evidence chain.
+  - Re-verifies CLOSED-009 in the replacement schema context.
+  - OPEN-014 remains OPEN (trace sampling gap) and does not invalidate matrix/revert correctness.

@@ -34441,3 +34441,811 @@ Open/Closed Issues Impact:
 - New issues opened: NONE
 - Issues closed: NONE
 - Issues intentionally deferred: OPEN-001, OPEN-003, OPEN-004, OPEN-005, OPEN-006, OPEN-007
+
+### MAME Exit Summary (2026-05-08 17:48:35)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build Pipeline Determinism Gate Implementation]
+
+* files changed: `tools/translation/verify_canonical_rom.py` (new), `apps/rastan-direct/Makefile` (gate recipe step + `.DELETE_ON_ERROR` + counter timing), `OPEN_ISSUES.md` (OPEN-010 status updated), `dist/rastan-direct/rastan_direct_video_test_build_0062.bin` (new), `docs/design/Cody_build_pipeline_determinism_gate_implementation.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: YES
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0062.bin`
+* root cause confirmed: N/A (infrastructure implementation)
+* fix implemented: YES (gate live; OPEN-010 implementation portion complete)
+* no unrelated changes: YES
+
+**Gate implementation:**
+- Six checks (§2.1-§2.6) implemented per Andy design.
+- Each check emits machine-readable failure ID (table in `docs/design/Cody_build_pipeline_determinism_gate_implementation.md`).
+- Pipeline integration: Make recipe inside `$(BIN)` after postpatcher/disasm, before numbered copy.
+- Failure semantics: non-zero exit + `.DELETE_ON_ERROR` + counter-after-gate.
+- Canonical helper SHA wired as Makefile arg (`HELPER_CANONICAL_SHA`).
+
+**Validation results:**
+- Phase 3.1: Gate passes Build 0061 (unit test) — YES.
+- Phase 3.2: Gate fails Build 0060 with `GATE_FAIL_2_1_INCBIN_SHA_MISMATCH` — YES.
+- Phase 4: Gate passes Build 0061 via Makefile-path invocation — YES.
+- Phase 5.1: Stale-object scenario (Build 60-class) caught by `GATE_FAIL_2_1_INCBIN_SHA_MISMATCH` — YES.
+- Phase 5.2: Helper corruption simulation caught by `GATE_FAIL_2_2_HELPER_SHA_MISMATCH` — YES.
+- Phase 5.3: Missing Makefile dep simulation caught by `GATE_FAIL_2_6_DEPENDENCY_AUDIT` — YES.
+- Phase 5.4: ROM naming violation simulation caught by `GATE_FAIL_2_4_ROM_NAMING` — YES.
+- Phase 5.5: End-to-end failure semantics verified — YES:
+  - Make aborted on gate failure,
+  - `.DELETE_ON_ERROR` removed `apps/rastan-direct/dist/rastan_direct_video_test.bin`,
+  - `build_counter.txt` did not increment,
+  - failure ID emitted in build output.
+- Phase 6: Build 0062 produced under gate — YES.
+- Build 0062 canonical verification:
+  - Build 0062 SHA256: `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`
+  - Build 0061 SHA256: `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`
+  - Byte relationship: IDENTICAL.
+  - Helper bytes `60 FE` at `0x00071C78`, helper SHA canonical match: YES.
+  - Embedded region SHAs (`lut`, `attr`, `tile_rom`, `title`, `gameplay`, `endround`) match both on-disk artifacts and Build 0061: YES.
+  - Postpatcher invariants source checks unchanged (`0x17CAEC`, `94`) and manifest opcode_replace count `94`: YES.
+  - Counter after pass: `62`.
+
+**OPEN-010 status:** implementation complete; closure pending Tighe confirmation.
+**OPEN-002 progress:** sequential ROM `0062` produced under active gate; no letter suffixes.
+
+Floor:
+- Six checks implemented with failure IDs: YES
+- Makefile integration: YES
+- Gate passes Build 0061: YES
+- Gate fails Build 0060 with §2.1 ID: YES
+- Stale-object synthetic regression caught: YES
+- Three other synthetic regressions caught: YES
+- End-to-end failure semantics work: YES
+- Build 0062 produced and canonical: YES
+- OPEN-010 updated (not closed): YES
+- No design changes: YES
+- STOP triggered: NO
+
+## [Cody — OPEN-010 Closure (CLOSED-008)]
+
+* files changed: `OPEN_ISSUES.md` (OPEN-010 removed), `CLOSED_ISSUES.md` (CLOSED-008 added), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A
+* fix implemented: N/A
+* no unrelated changes: YES
+
+**Closure:**
+OPEN-010 — Build pipeline determinism / Makefile .incbin dependency completeness
+→ CLOSED-008
+
+Closure basis: Andy gate design + Cody gate implementation + Build 0062 produced under gate + gate verified against known-good/known-bad/synthetic regressions + Tighe visual verification of Build 0062 in Exodus.
+
+The build pipeline now mechanically prevents Build 60-class regressions from shipping silently. Bookmark cycles are unblocked. BM-001 Insert is the next ROM-producing task.
+
+Floor:
+- OPEN-010 removed from OPEN_ISSUES.md: YES
+- CLOSED-008 added to CLOSED_ISSUES.md: YES
+- No other ledger changes: YES
+- No source/spec/tool/build modifications: YES
+- STOP triggered: NO
+
+## [Andy — Diagnostic Bookmark Postpatch Invariant Design]
+
+* files changed:
+  - docs/design/Andy_diagnostic_bookmark_postpatch_invariant_design.md (new — descriptive name per OPEN-002 extended policy)
+  - OPEN_ISSUES.md (new OPEN-011 tracking Cody implementation)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES — BM-001 STOP exposed two postpatcher invariant conflicts (symbol allowlist + count invariant); design addresses both with context-aware mechanism
+* fix implemented: NO (Cody implements per design)
+* no unrelated changes: YES
+
+Floor:
+- Design document produced: YES
+- All 8 §OBJECTIVE items resolved with cited evidence: YES
+  1. Activator representation: §1.4 + §2.2 — confirms prior `4EF9{symbol:genesistan_diag_bookmark}` template; adds `bookmark_cycle: "BM-NNN"` self-identifying field on the opcode_replace entry
+  2. Approved diagnostic symbol mechanism: §4 — hardcoded `DIAGNOSTIC_SYMBOLS` tuple in postpatcher source with three-place friction governance (postpatcher edit + design doc + AGENTS_LOG); merges into symbol_addresses regardless of required_symbols
+  3. Build context distinction: §2 — new top-level spec field `diagnostic_bookmarks` array; absent/empty = canonical; non-empty = diagnostic; entries carry cycle_id + target + pre-insert canonical bytes + pre-insert canonical ROM SHA + linked opcode_replace index
+  4. Context-aware count invariant: §3 — formulas `expected_count = canonical_count + N` and `expected_coverage = canonical_coverage + Σ`; preserves canonical (94, 0x17CAEC) as constants; Σ computed from activator span lengths (no static drift surface); validation pseudocode + cross-reference consistency check
+  5. Insert/revert lifecycle: §5 — Insert task (3 spec edits + build + AGENTS_LOG); Revert task (3 spec edits + build + AGENTS_LOG + §2.8 byte-identical verification); §5.3 cycle constraints from Rule 10 carry forward
+  6. Gate behavior per check on diagnostic builds: §6 — per-check matrix table; §2.1/§2.2/§2.4/§2.6 unchanged across modes; §2.3 delegates to postpatcher context-aware invariant; §2.5 expanded with diagnostic resolution + cross-reference; NEW §2.7 (activator integrity, diagnostic-only) + §2.8 (byte-identical revert, Revert-only)
+  7. Formal definitions: §7 — canonical, diagnostic, canonical baseline, revert-to-canonical, cycle integrity invariant (SHA-identical to pre-Insert baseline)
+  8. Interaction with gate's six checks: §6 matrix + §8.2 implementation summary
+- Canonical invariant preserved as strict for canonical builds: YES — §3.1 explicitly preserves `canonical_count = 94`, `canonical_coverage = 0x17CAEC` as hardcoded constants; canonical mode runs unchanged invariant check
+- required_symbols allowlist remains principled (not permissive): YES — §4.3 + §4.4 (hardcoded DIAGNOSTIC_SYMBOLS tuple; three-place friction; NOT spec-driven, NOT permissive expansion)
+- Rule 9 + Rule 10 compliance demonstrated: YES — §9 (Rule 9 explanation; Rule 10 14-row compliance table; §2.8 strengthens "byte-verified against canonical ROM" from predicate-equivalence to SHA-equality)
+- Helper design cross-reference: NOT added by Andy to keep scope clean (prior helper design's activator section remains accurate; this design extends not replaces; cross-reference via AGENTS_LOG entries is sufficient; Cody can add forward link at implementation time if preferred)
+- New OPEN issue: YES — OPEN-011 opened in OPEN_ISSUES.md tracking Cody implementation; cites this design doc; closure condition = BM-001 end-to-end cycle passes including §2.8 SHA-identical revert
+- Surfaced ambiguities: 6 (with chosen interpretations in §10):
+  1. Diagnostic build numbering → sequential per OPEN-002; no separate scheme
+  2. DIAGNOSTIC_SYMBOLS location → hardcoded postpatcher source; three-place friction
+  3. Σ computed vs static → computed from activator span lengths; no drift surface
+  4. Revert SHA-identical vs predicate-equivalent → SHA-identical per Rule 10 wording; §2.8 enforces
+  5. Revert detection mechanism → transient state file `active_bookmark_baseline.json` written by Insert, consumed by Revert
+  6. Multi-target cycles → NO; single-entry only per Rule 10 single-cycle-in-flight constraint
+- No source/spec/tool/Makefile/build/ROM modifications: YES (Andy task is documentation only)
+- No bookmark cycle initiated: YES — BM-001 stays blocked until OPEN-011 is implemented and a clean end-to-end test passes
+- No closures (OPEN-001/OPEN-004/OPEN-011 all open; CLOSED-008 unaffected): YES
+- Naming convention compliance: YES (descriptive output filename; new OPEN-011 brief uses descriptive language; OPEN-002 sequential ROM convention preserved for diagnostic builds per Ambiguity 1)
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-011 (NEW — implementation tracking), OPEN-001 (CONTEXT — BM-001 unblocking is downstream), OPEN-004 (CONTEXT — bootstrap-related bookmark cycles unblock once OPEN-011 closes), OPEN-002 (CONTEXT — design preserves sequential numbering for diagnostic builds), OPEN-008 (continued convention use)
+- New issues opened: OPEN-011 (Postpatch invariant model + diagnostic symbol allowlist + gate context-awareness)
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-003, OPEN-005, OPEN-006, OPEN-007
+
+### MAME Exit Summary (2026-05-12 15:44:55)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-05-12 15:45:31)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-05-12 15:48:21)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-05-12 15:48:54)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Diagnostic Bookmark Postpatch Invariant Implementation]
+
+* files changed: `tools/translation/postpatch_startup_rom.py` (canonical/diagnostic mode + DIAGNOSTIC_SYMBOLS + cross-reference check), `tools/translation/verify_canonical_rom.py` (context-aware gate + new §2.7/§2.8 + state file lifecycle + 10 new failure IDs), `apps/rastan-direct/Makefile` (Revert context integration), `OPEN_ISSUES.md` (OPEN-011 status updated), `docs/design/Cody_diagnostic_bookmark_postpatch_invariant_implementation.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: YES (test ROMs only; canonical state restored after all tests)
+* ROM path: N/A (no permanent ROM update; canonical baseline remains Build 0062 SHA)
+* root cause confirmed: N/A (implementation per Andy design)
+* fix implemented: YES (OPEN-011 implementation portion complete; closure pending Tighe verification)
+* no unrelated changes: YES
+
+**Implementation summary:**
+- Postpatcher:
+  - Added `DIAGNOSTIC_SYMBOLS = ("genesistan_diag_bookmark",)` hardcoded allowlist.
+  - Added canonical/diagnostic context detection via `diagnostic_bookmarks`.
+  - Added strict cross-reference validation between `diagnostic_bookmarks` and `bookmark_cycle`-tagged `opcode_replace` entries.
+  - Added context-aware invariant checks: canonical `94/0x17CAEC`; diagnostic `94+N/0x17CAEC+Σ`.
+  - Added Insert-state atomic write to `build/rastan-direct/active_bookmark_baseline.json`.
+- Gate:
+  - Added explicit state-machine truth-table enforcement with fail-closed behavior.
+  - Added explicit Revert context input (`--bookmark-revert`, wired from `BOOKMARK_REVERT`).
+  - Added expanded §2.5 cross-reference verification ID.
+  - Added §2.7 activator integrity (diagnostic-only).
+  - Added §2.8 byte-identical revert (authorized-revert only) with state-file delete only after PASS.
+  - Added all ten required failure IDs.
+- Revert context mechanism selected: **Makefile variable + gate arg** (`BOOKMARK_REVERT=BM-001` passed as `--bookmark-revert BM-001`), explicit and never inferred.
+
+**State file path:** `build/rastan-direct/active_bookmark_baseline.json`
+
+**13-test matrix results:**
+- Test 1 canonical build context: PASS (`GATE_PASS`, context canonical)
+- Test 2 BM-001 Insert synthetic: PASS (Build 0063, context diagnostic, state file written, expected 95 / 0x17CAF4)
+- Test 3 BM-001 Revert synthetic: PASS (Build 0064, context authorized_revert, §2.8 SHA match, state file deleted)
+- Test 4 orphaned file: `GATE_FAIL_STATE_ORPHANED_FILE` detected
+- Test 5 orphaned spec: `GATE_FAIL_STATE_ORPHANED_SPEC` detected
+- Test 6 cycle mismatch: `GATE_FAIL_STATE_MISMATCH` detected
+- Test 7 revert wrong cycle: `GATE_FAIL_STATE_REVERT_CONTEXT_MISMATCH` detected
+- Test 8 revert during active: `GATE_FAIL_STATE_REVERT_DURING_ACTIVE_CYCLE` detected
+- Test 9 revert no cycle: `GATE_FAIL_STATE_REVERT_NO_CYCLE` detected
+- Test 10 corrupted state: `GATE_FAIL_STATE_CORRUPTED` detected
+- Test 11 malformed activator: `GATE_FAIL_2_7_ACTIVATOR_INTEGRITY` detected
+- Test 12 tampered revert: `GATE_FAIL_2_8_REVERT_NOT_BYTE_IDENTICAL` detected
+- Test 13 BM-001 end-to-end synthetic cycle: PASS
+  - Insert Build 0065 PASS (diagnostic)
+  - Revert Build 0066 PASS (authorized revert)
+  - Final SHA identity: Build 0066 == Build 0062 (`72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`)
+
+**OPEN-011 status:** Implementation complete; closure pending Tighe verification.
+
+**Bookmark cycle status:** Real BM-001 research bookmark run remains a separate next task after independent verification.
+
+Floor:
+- Postpatcher changes per Andy design: YES
+- Gate changes per Andy design: YES
+- State file lifecycle strict: YES
+- Revert context explicit: YES
+- All 13 tests passed: YES
+- End-to-end BM-001 synthetic cycle: PASS
+- Spec mutations reverted: YES (`specs/rastan_direct_remap.json` unchanged; SHA check PASS)
+- OPEN-011 updated (not closed): YES
+- STOP triggered: NO
+
+## [Andy — OPEN-011 Implementation Verification]
+
+* files changed:
+  - docs/design/Andy_OPEN011_verification_report.md (new)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (read-only verification task)
+* fix implemented: NO (verification only)
+* no unrelated changes: YES
+* no test re-runs: YES (verified via existing artifacts in `build/rastan-direct/open011_test_artifacts/`)
+
+Verification results (each cited with file paths, line numbers, log content, or computed SHAs in the report):
+- Item 1 spec integrity: PASS — current spec SHA256 `80d53a526d9f5dea8c3d56ee0075a0712377334254a3f6c06c78b574edaad677` matches `spec_canonical.sha256` baseline byte-for-byte
+- Item 2 failure ID coverage (tests 4-12): PASS (9/9)
+  - Test 4 GATE_FAIL_STATE_ORPHANED_FILE: PASS (first-line match)
+  - Test 5 GATE_FAIL_STATE_ORPHANED_SPEC: PASS
+  - Test 6 GATE_FAIL_STATE_MISMATCH: PASS
+  - Test 7 GATE_FAIL_STATE_REVERT_CONTEXT_MISMATCH: PASS
+  - Test 8 GATE_FAIL_STATE_REVERT_DURING_ACTIVE_CYCLE: PASS
+  - Test 9 GATE_FAIL_STATE_REVERT_NO_CYCLE: PASS
+  - Test 10 GATE_FAIL_STATE_CORRUPTED: PASS
+  - Test 11 GATE_FAIL_2_7_ACTIVATOR_INTEGRITY: PASS
+  - Test 12 GATE_FAIL_2_8_REVERT_NOT_BYTE_IDENTICAL: PASS
+- Item 3 Build 0066 byte-identity: PASS
+  - Build 0066 SHA: `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`
+  - Build 0062 SHA: `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`
+  - Match: YES
+  - Build 0065 (Insert) SHA: `501fbce58fc8ee6b2354e6ed8f390500a7895b81a95d7c6d0a95d8d60f2094bb` (differs from canonical, as expected for diagnostic build)
+- Item 4 state file lifecycle: PASS
+  - Current `build/rastan-direct/active_bookmark_baseline.json`: ABSENT (correctly removed by §2.8 atomic delete)
+  - Preserved snapshot `state_valid_bm001.json` has all 4 required fields (cycle_id, pre_insert_canonical_rom_sha256, pre_insert_build_counter, timestamp)
+  - Test 13 Revert log: `State context: authorized_revert` confirms gate read state file
+- Item 5 issue ledger compliance: PASS
+  - OPEN-011 still in OPEN_ISSUES.md (line 248) ✓
+  - OPEN-011 NOT in CLOSED_ISSUES.md ✓
+  - No CLOSED-009 anywhere (no premature closure) ✓
+  - CLOSED-001 through CLOSED-008 intact ✓
+- Item 6 implementation alignment: PASS
+  - Postpatcher load-bearing decisions verified at lines 16-31 (constants + DIAGNOSTIC_SYMBOLS with three-place friction comment), 74-207 (cross-reference validator returning N and Σ), 211-230 (state file write), 1845-1858 (context-aware count invariant `expected_count += diagnostic_count`)
+  - Gate load-bearing decisions verified at lines 13-29 (all 10 failure IDs), 372 (state file parser), 436-479 (truth-table resolver with Chad's "no explicit revert context provided" wording at line 453), 823-842 (§2.8 byte-identical check + atomic delete), 860 (`--bookmark-revert` CLI arg)
+- Item 7 Revert context explicit (not inferred): PASS
+  - Makefile line 20: `BOOKMARK_REVERT ?=` (default empty)
+  - Makefile line 158: `--bookmark-revert "$(BOOKMARK_REVERT)"` passed through
+  - Gate refuses to infer Revert from state-file presence alone (test 4 log: GATE_FAIL_STATE_ORPHANED_FILE with explicit "no explicit revert context provided" message)
+  - Chad's refinement: confirmed enforced at every layer
+
+Overall recommendation: **OPEN-011 closeable as CLOSED-009.** All seven items PASS with cited evidence; no discrepancies. Closure decision is Tighe's; this report provides the evidence.
+
+Floor:
+- All 7 items verified with cited evidence: YES
+- No modifications to source/spec/tool/build/ROM: YES
+- No test re-runs: YES
+- No issue closures or openings: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-011 (verification report produced; closure decision still Tighe's), OPEN-008 (continued convention use)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-001, OPEN-002, OPEN-003, OPEN-004, OPEN-005, OPEN-006, OPEN-007
+
+## [Cody — OPEN-011 Closure (CLOSED-009)]
+
+* files changed: `OPEN_ISSUES.md` (OPEN-011 removed), `CLOSED_ISSUES.md` (CLOSED-009 added), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A
+* fix implemented: N/A
+* no unrelated changes: YES
+
+**Closure:**
+OPEN-011 — Postpatch invariant model + diagnostic symbol allowlist + gate context-awareness
+→ CLOSED-009
+
+Closure basis: Andy invariant design + Cody implementation + 13-test validation matrix all PASS + Build 0066 byte-identical to Build 0062 + Andy independent verification 7/7 PASS + Tighe approval.
+
+The bookmark cycle infrastructure is operational. Canonical builds enforce strict invariants; diagnostic builds get context-aware treatment without weakening protections. Insert/revert lifecycle is byte-reversible. Explicit Revert context prevents misclassification.
+
+The next ROM-producing task is the real BM-001 research cycle — actual diagnostic evidence collection for OPEN-001 and OPEN-004.
+
+Floor:
+- OPEN-011 removed from OPEN_ISSUES.md: YES
+- CLOSED-009 added to CLOSED_ISSUES.md: YES
+- No other ledger changes: YES
+- No source/spec/tool/build modifications: YES
+- STOP triggered: NO
+
+### MAME Exit Summary (2026-05-13 12:13:27)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — BM-001 Bookmark Insert (Research Cycle)]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-001 diagnostic_bookmarks entry + bookmark_cycle-tagged opcode_replace entry added), `dist/rastan-direct/rastan_direct_video_test_build_0067.bin` (new diagnostic ROM), `build/rastan-direct/active_bookmark_baseline.json` (written automatically by postpatcher), `dist/rastan-direct/bookmarks/build_0067_pc_0x055948/insert_meta.txt` (new), `dist/rastan-direct/bookmarks/build_0067_pc_0x055948/mame_run_log.txt` (new), `dist/rastan-direct/bookmarks/build_0067_pc_0x055948/NOTES.md` (new), `docs/design/Cody_BM001_insert.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: YES (diagnostic-only)
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0067.bin`
+* root cause confirmed: N/A (research task; reachability evidence only)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+**Bookmark insert:**
+- Target arcade_pc: `0x055948`
+- Helper target: `0x00071C78` (genesistan_diag_bookmark)
+- Activator representation: diagnostic_bookmarks array entry (cycle_id BM-001) + opcode_replace entry with bookmark_cycle: "BM-001" tag, cross-referenced via linked_opcode_replace_index
+- patched_site observed: `95` (matches postpatcher manifest expectation `95`)
+- total_genesis_bytes_covered observed: `0x17CAF4` (matches postpatcher manifest expectation `0x17CAF4`)
+- Determinism gate: PASS (all context-aware checks including §2.7)
+- State file: written automatically by postpatcher with BM-001 metadata
+- Helper integrity: verified (`60 FE`, canonical SHA)
+
+**MAME trace:**
+- Trace currency verified: YES (trace generated in the same `make -C apps/rastan-direct release` invocation as Build 0067 and trace file timestamp is newer than Build 0067 ROM timestamp)
+- Trace artifact path: `dist/rastan-direct/bookmarks/build_0067_pc_0x055948/mame_run_log.txt`
+- Build 0067 ROM SHA: `501fbce58fc8ee6b2354e6ed8f390500a7895b81a95d7c6d0a95d8d60f2094bb`
+- Outcome: **B — helper not reached within trace window**
+- Evidence per outcome: 30-second trace window, `frames=1798` captured, and no `0x00071C78` occurrence in trace log
+
+**Reachability classification only.** No interpretation beyond whether `arcade_pc = 0x055948` was reached. Follow-up tasks will analyze what the outcome means for OPEN-001 / OPEN-004.
+
+**Diagnostic-only flag:** Build 0067 is diagnostic-only. The immediate next ROM-producing task MUST be BM-001 Revert. Only non-ROM-producing analysis may occur between this task and the revert.
+
+Floor:
+- Activator per Andy invariant design: YES
+- Spec modified (two coupled entries), no other changes: YES
+- Build 0067 produced under gate: YES
+- Gate passed all context-aware checks: YES
+- patched_site matches postpatcher manifest (not hardcoded): YES
+- Helper preserved: YES
+- State file written automatically: YES
+- Trace captured: YES
+- Trace verified current to Build 0067: YES
+- Outcome documented (A/B/C) with required evidence: YES
+- No interpretation beyond classification: YES
+- Bookmark folder populated: YES
+- No revert performed: YES
+- STOP triggered: NO
+
+### MAME Exit Summary (2026-05-15 18:09:53)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-05-15 18:12:08)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — BM-001 Revert + BM-002 Insert (Positive-Control Cycle)]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-001 removed, BM-002 added), `dist/rastan-direct/rastan_direct_video_test_build_0068.bin` (canonical), `dist/rastan-direct/rastan_direct_video_test_build_0069.bin` (diagnostic), `build/rastan-direct/active_bookmark_baseline.json` (deleted by BM-001 Revert, re-written by BM-002 Insert), `dist/rastan-direct/bookmarks/build_0067_pc_0x055948/REVERT_NOTES.md` (new), `dist/rastan-direct/bookmarks/build_0069_pc_0x03A19C/insert_meta.txt` (new), `dist/rastan-direct/bookmarks/build_0069_pc_0x03A19C/mame_run_log.txt` (new), `dist/rastan-direct/bookmarks/build_0069_pc_0x03A19C/NOTES.md` (new), `docs/design/Cody_BM001_revert_BM002_insert.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: YES (two ROMs: Build 0068 canonical + Build 0069 diagnostic)
+* ROM paths: dist/rastan-direct/rastan_direct_video_test_build_0068.bin, dist/rastan-direct/rastan_direct_video_test_build_0069.bin
+* root cause confirmed: N/A (research task)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+**Phase 2 — BM-001 Revert:**
+- Build 0068 SHA: `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc` (matches Build 0062)
+- §2.8: PASS
+- State file deleted: YES
+- Spec canonicalized: YES
+- patched_site=94, coverage=0x17CAEC
+
+**Phase 3 — BM-002 Positive-Control Target Derivation:**
+- Target arcade_pc: `0x03A19C`
+- Trace evidence: Build 0067 trace contains repeated hits to `0x03A19C` (first at line 24, frame 000180; total 7 sampled hits)
+- Span safety: instruction-aligned 8-byte span at 0x03A19C (`41fa000ed0c03010`) from `build/maincpu.disasm.txt`; no disassembly-text branch-target references found to 0x3A19C/0x3A19E
+- Rejected candidates: `0x03A196`, `0x03A198`, `0x03A19E` (less clean 8-byte instruction-boundary replacement behavior than 0x03A19C)
+
+**Phase 4 — BM-002 Insert:**
+- Build 0069 SHA: `e206d3cf3f50639727119ceded4271e95d8f3c1fb93f44eb6607dfc865aaf96a`
+- patched_site=95 (matches postpatcher manifest expectation)
+- coverage=0x17CAF4 (matches postpatcher manifest expectation)
+- State file: cycle_id BM-002, pre_insert_canonical_rom_sha256 `72f9f33d...`, pre_insert_build_counter 68
+- Activator bytes at target: `4ef900071c784e71`
+
+**Phase 5 — MAME trace:**
+- Trace currency verified: YES (same Make invocation; trace timestamp newer than Build 0069 ROM timestamp)
+- Outcome: **B** (BM-002 did not fire in 30-second window)
+- Evidence:
+  - Helper hit count at `0x00071C78`: 0
+  - Target `0x03A19C` appears in Build 0069 trace: YES (sampled hits present, first at line 24 frame 000180)
+
+**Mechanism validation:** Outcome B on a positive-control target reached in runtime indicates a real-runtime mechanism problem requiring investigation before further bookmark-cycle trust assumptions.
+
+**Diagnostic-only flag (Build 0069):** must be followed by BM-002 Revert as next ROM-producing task.
+
+Floor:
+- Phase 2 succeeded fully before Phase 3 began: YES
+- BM-002 target derived from trace evidence with cited disassembly: YES
+- Both builds passed gate: YES
+- Both manifests' patched_site matched postpatcher's expected: YES
+- Helper preserved across both builds: YES
+- No infrastructure modifications: YES
+- STOP triggered: NO
+
+## [Cody — Append Tighe Exodus Observation to BM-002 Evidence Folder]
+
+* files changed: `dist/rastan-direct/bookmarks/build_0069_pc_0x03A19C/EXODUS_OBSERVATION.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (preservation task)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+**Preservation:**
+Tighe's direct runtime observation of Build 0069 in Exodus captured before BM-002 Revert.
+
+**Key observation:** PC reached BM-002 target (0x03A19C), then `0x00070628`, then `0x00000518`, then crashed with Address Error (Fault PC 0x00000116). Helper at 0x00071C78 NOT reached.
+
+**Why this matters:** Cody's MAME trace summary's "mechanism silently fails to fire" framing was incomplete. Build 0069 has rich real-runtime evidence requiring post-Revert investigation.
+
+**Next steps:**
+1. BM-002 Revert (next ROM-producing task, separate prompt) — restores canonical build state; Build 0069 persists as frozen diagnostic artifact
+2. Andy investigation (post-Revert, non-ROM-producing) — classify root cause from preserved evidence
+
+Floor:
+- EXODUS_OBSERVATION.md created with verbatim Tighe observation: YES
+- Cody's prior BM-002 evidence intact: YES
+- No cycle state changes: YES
+- No issue ledger changes: YES
+- No ROM produced: YES
+- STOP triggered: NO
+
+### MAME Exit Summary (2026-05-17 15:49:45)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — BM-002 Revert]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-002 entries removed, spec returns to canonical), `dist/rastan-direct/rastan_direct_video_test_build_0070.bin` (new canonical ROM), `build/rastan-direct/active_bookmark_baseline.json` (deleted by gate after §2.8 PASS), `dist/rastan-direct/bookmarks/build_0069_pc_0x03A19C/REVERT_NOTES.md` (new), `docs/design/Cody_BM002_revert.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: YES (canonical ROM)
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0070.bin`
+* root cause confirmed: N/A (Revert task; root cause investigation is post-Revert Andy task)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+**BM-002 cycle closure:**
+- Build 0070 SHA: `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc` (matches Build 0068/0062 canonical)
+- §2.8 byte-identical check: PASS
+- State file deleted by gate after §2.8: YES
+- Spec canonicalized (empty diagnostic_bookmarks, 94 opcode_replace entries): YES
+- Helper preserved at 0x00071C78 (60 FE, canonical SHA): YES
+- BM-002 cycle officially closed
+
+**Build 0069 preserved for investigation:**
+- ROM intact at dist/rastan-direct/rastan_direct_video_test_build_0069.bin (SHA e206d3cf...)
+- BM-002 evidence folder intact with insert_meta, mame_run_log, NOTES.md, EXODUS_OBSERVATION.md, plus new REVERT_NOTES.md
+- Next non-ROM task: Andy investigation of Build 0069 runtime crash
+
+Floor:
+- Pre-flight state matched expected: YES
+- Spec canonicalized cleanly: YES
+- Gate §2.8 PASS with state file deletion: YES
+- Build 0070 byte-identical to canonical baseline: YES
+- Helper preserved: YES
+- Build 0069 and prior evidence intact: YES
+- No infrastructure modifications: YES
+- One ROM produced: YES
+- STOP triggered: NO
+
+## [Andy — BM-002 Activator Runtime Failure Investigation]
+
+* files changed:
+  - docs/design/Andy_BM002_runtime_failure_investigation.md (new — descriptive name per OPEN-002 extended policy)
+  - OPEN_ISSUES.md (new OPEN-012 tracking workflow remediation)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES — Classification (A) address-space / translation mismatch in bookmark target-selection workflow. Cody equated trace's runtime PC `pc=03a19c` with spec's `arcade_pc 0x03A19C`. They differ by identity_offset 0x200 per address_map.json.
+* fix implemented: NO (recommendations only per design constraints)
+* no unrelated changes: YES
+
+Investigation summary (each cited in report with file path/line/SHA):
+- Question 1 (activator bytes at CPU-executed offset): activator IS at file offset 0x03A39C (`4ef9 0007 1c78 4e71`); CPU executing at `pc=03a19c` reads from file offset 0x03A19C which contains original `66f4 2e78 0000 2078 0004 4ed0` (delay loop / soft-reset preamble) — NOT the activator
+- Question 2 (address space of 0x03A19C): trace's `pc=03a19c` is the 68000's literal runtime PC; spec's `arcade_pc 0x03A19C` is arcade-source space; they differ by identity_offset 0x200
+- Question 3 (patched offset vs executed offset): DIFFERENT — patched 0x03A39C, executed 0x03A19C; address_map.json segment for arcade_pc 0x03A19C confirms identity_offset 512
+- Question 4 (crash control flow): delay loop at 0x03A19x → fall-through `moveal 0x4, %a0` reads reset vector → `jmp (a0)` jumps to bootstrap entry 0x202 → OPEN-004 re-entry → 0x00070628 (inside `genesistan_hook_tilemap_bg_fill`) → 0x00000518 (crash-trap region) → Address Error at 0x00000116 (ASCII title-region bytes interpreted as instruction)
+- Question 5 (span safety / PC-relative): replaced span `41FA 000E D0C0 3010` is coupled PC-relative LEA-ADD-MOVE jump-table-lookup pattern. SAFE if JMP fires (helper parks; downstream `A0`/`D0` irrelevant). NOT primary cause of BM-002 failure (activator never executed). Recommended as Class B preventive criterion for target-selection going forward.
+- Root cause classification: **(A) address-space / translation mismatch** primary; (B) contributory preventive concern only; (C) ruled out (helper resolution correct); (D) ruled out (mechanism sound)
+- BM-001 reassessment: BM-001 has the SAME fault — patched file offset 0x055B48 but trace `pc=055948` was at file offset 0x055948 (different arcade source 0x055748). BM-001 Outcome B does NOT prove arcade source 0x055948 dispatcher unreached; original OPEN-001/OPEN-004 hypothesis still open. Re-run required after workflow fix.
+- New OPEN issue: OPEN-012 (Bookmark target-selection: arcade_pc vs trace runtime PC translation workflow fault)
+- Recommended next steps:
+  1. Revise target-selection workflow to translate `trace_pc → arcade_pc = trace_pc - identity_offset(trace_pc)` via `address_map.json` (documentation + procedure; no postpatcher/gate change required)
+  2. Add PC-relative-instruction screening as Class B preventive target-selection criterion
+  3. Re-issue BM-002 as positive control with `arcade_pc = 0x039F9C` (= delay-loop code at runtime PC 0x03A19C); verify helper park (Outcome A)
+  4. Re-run BM-001 with corrected target(s) for OPEN-001/OPEN-004 evidence
+  5. Optionally extend gate §2.7 to verify activator's runtime PC vs trace observations
+- Surfaced ambiguities: 4 (§9 — trace pc semantics documentation gap; Cody's awareness of identity_offset; whether crash is Build-0069-specific or general OPEN-004 pathology; whether §2.7 gate check should extend)
+
+Floor:
+- All 5 investigation questions answered with cited evidence: YES
+- Root cause classified with decisive evidence: YES
+- BM-001 reassessed: YES (same fault; result invalidated; re-run required)
+- Recommendations provided (not implemented): YES
+- New OPEN issue opened: YES (OPEN-012)
+- No source/spec/tool/build/ROM modifications: YES
+- No evidence-file modifications: YES (Build 0069, Build 0070, bookmark folder files all unchanged)
+- No fixes implemented: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (still blocked; BM-001 re-run required after OPEN-012 fix), OPEN-004 (same), OPEN-008 (continued convention use), OPEN-012 (NEW — tracks workflow remediation)
+- New issues opened: OPEN-012 (Bookmark target-selection: arcade_pc vs trace runtime PC translation workflow fault)
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-002, OPEN-003, OPEN-005, OPEN-006, OPEN-007
+
+## [Andy — OPEN-012 Bookmark Coordinate Model Replacement Design]
+
+* files changed:
+  - docs/design/Andy_OPEN012_bookmark_coordinate_model_design.md (new — descriptive name per OPEN-002 extended policy)
+  - OPEN_ISSUES.md (OPEN-012 augmented with replacement design citation; new OPEN-013 opened tracking CLOSED-009 re-verification)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (design responds to BM-002 investigation Classification A)
+* fix implemented: NO (Cody implements per design)
+* no unrelated changes: YES
+
+Deliverables (each in design §):
+- 1 runtime_genesis_pc spec format: SPECIFIED — new top-level `bookmarks_v2` array, separate from `opcode_replace`; 9-field schema (cycle_id, runtime_genesis_pc, span_length, pre_insert_canonical_bytes, helper_symbol, activator_pattern, nop_padding_byte, pre_insert_canonical_rom_sha256, note); hard lock — no `arcade_pc` field on bookmark side ever
+- 2 post-relocation insertion stage: NAMED — new `_apply_bookmarks_v2` stage inside postpatcher, between opcode_replace application and bytearray flush; uses fixed Genesis ROM-to-CPU 1:1 mapping (PC value = file offset; no translation required)
+- 3 gate verification semantics: SPECIFIED — mandatory `GATE_FAIL_2_7_BOOKMARK_ACTIVATOR_BYTES` check; reads bytes at file offset = runtime_genesis_pc; verifies activator pattern with resolved helper address; replaces old §2.7 activator-integrity check
+- 4 CLOSED-009 ripple walked: 8 mechanisms enumerated individually
+  - Build-mode detection: REVISED (new schema; same predicate `len(bookmarks_v2) > 0`)
+  - Count invariant `94+N`: REVISED (opcode_replace strict 94 always; N tracked separately)
+  - Coverage invariant `0x17CAEC+Σ`: REVISED (opcode_replace strict `0x17CAEC` always; activator overwrites outside segment_coverage)
+  - DIAGNOSTIC_SYMBOLS allowlist: REVISED (same allowlist; new consumer code path)
+  - Cross-reference consistency: OBSOLETE (single-entry bookmarks; no second location to cross-reference)
+  - §2.7 activator integrity: REPLACED (new check per Deliverable 3)
+  - §2.8 byte-identical revert: UNCHANGED
+  - State file lifecycle: UNCHANGED
+  - CLOSED-009 re-verification needed: YES — OPEN-013 opened
+- 5 PC-relative span safety: SPECIFIED — workflow checklist screens first instruction in span at canonical baseline file offset = runtime_genesis_pc; rejects target if first instruction is PC-relative (`41FA`, `43FA`...`4FFA`, `4EFA`, `4EFB`, etc.); subsequent PC-relative instructions are warnings only (JMP-fires assumption); check runs at target-selection time, not at gate time
+- 6 identity_offset semantics SETTLED: GLOBAL CONSTANT 0x200 for all 75 arcade_copy segments per address_map.json query; no other value appears; non-arcade-copy segments have identity_offset absent (None); BM-002 report's prose "0x200" is empirically correct for current configuration; recommendation §7.1's function notation `identity_offset(trace_pc)` is over-cautious. Design eliminates the question entirely — bookmark workflow under new model never reads identity_offset.
+- 7 BM-001/BM-002 cycle IDs RETIRED: BM-001 (Build 0067) and BM-002 (Build 0069) permanently retired; corrected cycles resume at BM-003; evidence folders frozen as OPEN-012 evidence; reuse forbidden (matches closed-issue-ID non-reuse discipline)
+- 8 opcode_replace UNTOUCHED + no `arcade_pc` on bookmark side: CONFIRMED — opcode_replace keeps `arcade_pc` (arcade-source coordinate, translated via identity_offset per Global Rule 13); new `bookmarks_v2` schema has no `arcade_pc` field; postpatcher rejects bookmark entries containing `arcade_pc` as STOP condition; legacy `diagnostic_bookmarks` field also rejected to prevent schema-version confusion
+- New OPEN issue: OPEN-013 — CLOSED-009 re-verification under bookmarks_v2 schema (parent: OPEN-012)
+- Surfaced ambiguities: 4 (§7 — field naming choice `bookmarks_v2` over alternatives; state-file write location in postpatcher; activator_pattern enum vs hardcoded; out-of-arcade-copy targets allowed with warning for sensitive regions)
+
+Floor:
+- All 8 deliverables resolved with cited evidence: YES
+- Coordinate model specified, not re-deliberated: YES
+- Bookmark spec path separate from opcode_replace (Constraint 1): YES
+- No `arcade_pc` field on bookmark side (Constraint 2): YES (hard lock + spec rejection)
+- CLOSED-009 ripple walked individually for every mechanism: YES (8/8)
+- identity_offset finding settled definitively on the record: YES (constant 0x200)
+- BM-001/BM-002 retired: YES
+- New OPEN issue opened where warranted: YES (OPEN-013)
+- No source/spec/tool/Makefile/build/ROM modifications: YES
+- No evidence-file modifications: YES (BM-001/BM-002 folders frozen)
+- No fixes implemented: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-012 (design specified; replacement design citation added to entry; closure later requires positive-control BM-003 Outcome A on new model), OPEN-013 (NEW — tracks CLOSED-009 re-verification under bookmarks_v2 schema), OPEN-001 (blocked pending fix), OPEN-004 (blocked pending fix), OPEN-008 (continued convention use)
+- New issues opened: OPEN-013 (CLOSED-009 re-verification under bookmarks_v2 schema; parent OPEN-012)
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-002, OPEN-003, OPEN-005, OPEN-006, OPEN-007
+
+### MAME Exit Summary (2026-05-18 16:41:40)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-05-18 16:45:33)
+- Final PC: 0x071C7A
+- Stack Pointer (SP): 0x00FEFFF2
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-05-18 16:45:56)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-05-18 16:46:16)
+- Final PC: 0x071C7A
+- Stack Pointer (SP): 0x00FEFFF2
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-05-18 16:46:31)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — OPEN-012 Implementation + OPEN-013 Re-Verification]
+
+* files changed: specs/rastan_direct_remap.json (bookmarks_v2 added/retained, legacy diagnostic_bookmarks removed), tools/translation/postpatch_startup_rom.py (_apply_bookmarks_v2 stage + CLOSED-009 revisions + old-path removal), tools/translation/verify_canonical_rom.py (new §2.7 + obsolete validator removed), OPEN_ISSUES.md (OPEN-012/OPEN-013 status), docs/design/Cody_OPEN012_OPEN013_implementation.md (new), AGENTS_LOG.md (this append)
+* build produced: YES (synthetic test ROMs only; canonical state restored)
+* ROM path: N/A (no permanent new ROM; Build 0070 remains canonical baseline)
+* root cause confirmed: N/A (implementation per Andy OPEN-012 design)
+* fix implemented: YES (OPEN-012 implementation + OPEN-013 matrix; closure of both pending BM-003)
+* no unrelated changes: YES
+
+Phase A — OPEN-012 implementation:
+- bookmarks_v2 schema added; legacy diagnostic_bookmarks removed from canonical spec
+- _apply_bookmarks_v2 postpatcher stage with STOP validations incl. runtime_genesis_pc<0x400 and helper-byte-overlap
+- CLOSED-009 revisions: mode detection rekeyed; 94+N and 0x17CAEC+Σ removed; cross-reference validator removed; §2.7 replaced; §2.8 + state file unchanged
+- old-path removal confirmed (no dead diagnostic_bookmarks detection / count adjustment / cross-reference code)
+- Phase A validation: PASS
+
+Phase B — OPEN-013 re-verification matrix:
+- CLOSED-009-analog matrix under bookmarks_v2: 13/13 PASS
+- new failure-mode tests (out-of-bounds, forbidden arcade_pc, legacy-field rejection, vector-region STOP, helper-overlap STOP, allowlist, span_length): 7/7 PASS
+- synthetic end-to-end cycle: PASS (Build 0075 byte-identical to canonical baseline)
+- spec reverted to canonical: YES (diff-confirmed)
+
+OPEN-012 / OPEN-013 status: implementation complete + matrix passed; closure pending BM-003 positive-control Outcome A.
+
+Floor:
+- Andy OPEN-012 design implemented as specified: YES
+- Hard Phase A→B gate honored: YES
+- old paths removed not bypassed: YES
+- Tighe STOP decisions (vector region, helper overlap) implemented: YES
+- spec ends canonical: YES
+- no real BM-003: YES
+- STOP triggered: NO
+
+## [Cody — Failure-ID Hygiene: Split GATE_FAIL_2_5 Cross-Reference Overload]
+
+* files changed: tools/translation/verify_canonical_rom.py (retired overloaded ID constant; introduced `GATE_FAIL_LEGACY_BOOKMARK_SCHEMA` + `GATE_FAIL_2_5_BOOKMARK_SCHEMA_VALIDATION`; 11 sites reclassified), tools/translation/postpatch_startup_rom.py (untouched), docs/design/Cody_OPEN012_OPEN013_implementation.md (failure-ID table corrected + record-correction note), build/rastan-direct/open013_test_artifacts/* (targeted hygiene fixtures/log IDs), docs/design/Cody_diagnostic_bookmark_postpatch_invariant_implementation.md (historical identifier wording adjusted to avoid retired literal), AGENTS_LOG.md (this append)
+* build produced: NO (targeted gate re-validation only; no new ROM build)
+* ROM path: N/A
+* root cause confirmed: N/A (naming hygiene — classification split)
+* fix implemented: YES (overloaded failure-ID split into two single-meaning IDs)
+* no unrelated changes: YES
+
+Hygiene fix:
+- Retired: old cross-reference-labeled 2.5 mismatch ID (previously overloaded across dead legacy meaning + legacy-schema rejection + live bookmarks_v2 schema-validation)
+- Introduced: `GATE_FAIL_LEGACY_BOOKMARK_SCHEMA` (legacy `diagnostic_bookmarks` field or legacy `opcode_replace[].bookmark_cycle` tag)
+- Introduced: `GATE_FAIL_2_5_BOOKMARK_SCHEMA_VALIDATION` (live `bookmarks_v2` schema-validation failures)
+- Emission sites reclassified: 2 LEGACY sites (`verify_canonical_rom.py` lines 233, 244), 10 SCHEMA-VALIDATION sites (`verify_canonical_rom.py` lines 254, 260, 263, 269, 271, 278, 285, 289, 297, 314)
+- Schema-validation sites cite specific failing field/constraint: YES
+- Record corrected: original OPEN-012/OPEN-013 implementation note under-described the overload as legacy-only; table now reflects full split
+- No validation logic changed; all checks fire on identical conditions
+- Spec canonical; OPEN-012/OPEN-013 remain open pending BM-003
+
+Floor:
+- Retired overloaded ID fully removed as a literal in active source/docs: YES
+- Two distinct single-meaning IDs: YES
+- Schema-validation messages cite specifics: YES
+- No logic/model/schema changes: YES
+- Minimal re-validation only: YES
+- STOP triggered: NO
+
+### MAME Exit Summary (2026-05-19 14:28:48)
+- Final PC: 0x071C7A
+- Stack Pointer (SP): 0x00FEFFF2
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — BM-003 Insert (Positive-Control Validation of bookmarks_v2)]
+
+* files changed: specs/rastan_direct_remap.json (BM-003 bookmarks_v2 entry added), dist/rastan-direct/rastan_direct_video_test_build_0076.bin (new diagnostic ROM), build/rastan-direct/active_bookmark_baseline.json (written automatically by postpatcher), dist/rastan-direct/bookmarks/build_0076_pc_0x0003A19C/{insert_meta.txt,mame_run_log.txt,NOTES.md} (new), docs/design/Cody_BM003_insert.md (new), AGENTS_LOG.md (this append)
+* build produced: YES (diagnostic-only)
+* ROM path: dist/rastan-direct/rastan_direct_video_test_build_0076.bin
+* root cause confirmed: N/A (positive-control validation)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+BM-003 Insert (bookmarks_v2 positive control):
+- Target re-derived from evidence: runtime_genesis_pc 0x0003A19C; BM-002 trace shows `pc=03a19c` at lines 24/42/50/77/119/126/153; first instruction at file offset 0x0003A19C is `66F4` (`BNE.S`) and passes the OPEN-012 first-instruction screening; canonical bytes from Build 0070 = `66f42e7800002078`
+- bookmarks_v2 entry: cycle_id BM-003, span_length 8, helper_symbol genesistan_diag_bookmark, activator_pattern JMP_LONG_ABS
+- Build: gate PASS including §2.7; opcode_replace strict 94 / coverage strict 0x17CAEC; state file written (cycle_id BM-003, baseline SHA 72f9f33d..., pre_insert_build_counter 75)
+- Activator bytes at 0x0003A19C: `4ef900071c784e71`
+- Helper preserved at 0x00071C78 (`60 FE`, canonical SHA)
+- MAME trace currency verified against Build 0076 via same make invocation + monotonic timestamps (ROM at 14:28:41, trace at 14:28:48, matching build tag 0076)
+- Outcome: A (helper parks)
+- Mechanism validation: bookmarks_v2 coordinate model fires helper on real-runtime executed code
+
+Sampling note:
+- `mame_run_log.txt` did not emit explicit sampled `pc=071c78/071c7a` lines due tracer sampling behavior.
+- Same-run MAME Exit Summary appended at `2026-05-19 14:28:48` recorded final PC `0x071C7A`, consistent with helper-loop park after jump to `0x071C78`.
+
+This is BM-003 Insert only. NO revert performed. On Outcome A, BM-003 Revert is a separate ROM-producing task after Tighe review.
+
+Floor:
+- Target re-derived, not inherited: YES
+- bookmarks_v2 schema only (no arcade_pc, no legacy fields): YES
+- Gate PASS including §2.7: YES
+- Trace currency verified: YES
+- Outcome classified with cited evidence: YES
+- No revert; no issue closures: YES
+- STOP triggered: NO
+
+### MAME Exit Summary (2026-05-19 16:05:44)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — BM-003 Revert + OPEN-014]
+
+* files changed: specs/rastan_direct_remap.json (BM-003 bookmarks_v2 entry removed), dist/rastan-direct/rastan_direct_video_test_build_0077.bin (new canonical ROM), build/rastan-direct/active_bookmark_baseline.json (deleted by gate after §2.8 PASS), OPEN_ISSUES.md (OPEN-014 opened), dist/rastan-direct/bookmarks/build_0076_pc_0x0003A19C/REVERT_NOTES.md (new), docs/design/Cody_BM003_revert.md (new), AGENTS_LOG.md (this append)
+* build produced: YES (canonical)
+* ROM path: dist/rastan-direct/rastan_direct_video_test_build_0077.bin
+* root cause confirmed: N/A (Revert task)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+BM-003 cycle closure:
+- Revert ROM SHA: 72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc (matches Build 0070 / Build 0062 canonical)
+- §2.8 byte-identical check: PASS
+- State file deleted by gate after §2.8: YES
+- Spec canonicalized (empty bookmarks_v2, 94 opcode_replace): YES
+- Helper preserved at 0x00071C78 (60 FE, canonical SHA): YES
+- BM-003 cycle officially closed
+
+BM-003 Outcome A — confirmed:
+- Exodus (Tighe direct observation): helper park at 0x00071C78 reached almost immediately
+- MAME exit summary: Final PC 0x071C7A, consistent with helper park
+- bookmarks_v2 coordinate model validated on real runtime
+
+OPEN-014 opened: MAME tracer does not reliably sample a parked helper (BRA-self loop). BM-003 helper park was not directly sampled in the MAME trace; confirmed via Exodus + MAME exit summary. Future work only; not fixed here.
+
+Build 0076 preserved as frozen BM-003 diagnostic evidence.
+
+Next task: close OPEN-012 and OPEN-013 (BM-003 confirmed Outcome A + this Revert satisfy closure conditions).
+
+Floor:
+- Pre-flight state matched expected: YES
+- Spec canonicalized cleanly: YES
+- Gate §2.8 PASS with state file deletion: YES
+- Revert ROM byte-identical to Build 0070: YES
+- Helper preserved: YES
+- Build 0076 + BM-003 evidence intact: YES
+- OPEN-014 opened (track-only): YES
+- No issue closures: YES
+- STOP triggered: NO
+
+## [Cody — Close OPEN-012 → CLOSED-010 + OPEN-013 → CLOSED-011]
+
+* files changed: OPEN_ISSUES.md (OPEN-012, OPEN-013 closed; OPEN-014 unchanged), CLOSED_ISSUES.md (CLOSED-010, CLOSED-011 added), AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (ledger closure)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Bundled closure:
+- CLOSED-010 (was OPEN-012): Bookmark coordinate model fault. Closed by BM-003 Outcome A confirmation on two emulators + BM-003 Revert byte-identical to Build 0070.
+- CLOSED-011 (was OPEN-013): CLOSED-009 re-verification under bookmarks_v2. Closed by 13+7 matrix PASS plus BM-003 real-runtime positive-control validation and BM-003 Revert.
+- OPEN-014 remains OPEN (MAME parked-helper sampled-trace gap; future Andy design work).
+
+Canonical baseline on record: Build 0077 SHA `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc` (byte-identical to Builds 0070 / 0068 / 0062).
+
+The bookmarks_v2 coordinate model is validated on real runtime and formally recorded closed under OPEN-012/OPEN-013 lineage.
+
+Floor:
+- All closure-record claims cited to project artifacts: YES
+- OPEN-014 unchanged: YES
+- No other issues touched: YES
+- No ROM / code / spec / evidence-folder modifications: YES
+- STOP triggered: NO
+
+## [Andy — Polling Loop Investigation (0x0003A192 ↔ 0x0003A19C in Canonical Build 0077)]
+
+* files changed:
+  - docs/design/Andy_polling_loop_investigation.md (new — descriptive name per OPEN-002 extended policy)
+  - AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES — the "polling loop" framing is corrected to "broken watchdog mechanism"; OPEN-001 and OPEN-004 collapse to the same root cause (arcade game-loop post-bootstrap progression is blocked, so the watchdog kicks at 0x0003A5D4..0x0003ADD0 are never reached, so the watchdog expires every ~3.6s and soft-resets to bootstrap)
+* fix implemented: NO (separate task after Chad routes next-step choice)
+* no unrelated changes: YES
+
+Investigation findings:
+- Phase 1 BM-002 byte reading verification: CONFIRMED — bytes at canonical Build 0077 file offset 0x0003A19C are `66 F4` = BNE.S -12 → target 0x0003A192
+- Deliverable 1 — full routine disassembled at 0x0003A180..0x0003A1AC: prologue at 0x0003A180 checks workram counter at %a5@(44); if positive, decrements and returns (RTS); if zero, falls through to ~655360-iteration delay loop at 0x0003A18C..0x0003A19C, then reloads SP from 0x0000 and PC from reset vector 0x0004 (= 0x00000202 = _bootstrap), JMPs there
+- Deliverable 2 — wait condition: the loop body has NO polling read (MOVE.L $0.W, D0 reads constant initial-SSP from ROM; D0 discarded next iteration). The IMPLICIT routine-entry wait condition is %a5@(44) = 0x00FF002C — a software watchdog timer. Caller-facing semantics: "if 0x00FF002C is positive, kick happens; if zero, system soft-resets after delay."
+- Deliverable 3 — writers to 0x00FF002C: 11 KICK sites at runtime PCs 0x0003A5D4 (#0xA0), 0x0003A63E (#0xA0), 0x0003AC88 (#0xD0), 0x0003ACF2 (#0xA0), 0x0003AD22 (#0xA0), 0x0003AD5E (#0x200), 0x0003ADD0 (#0x10), 0x0009A3B0 / 0x0009A3D0 / 0x0009A4B0 / 0x0009A4D0 (deeper ORI.B side effects); 1 FORCE-EXPIRE site at 0x0003AE76 (CLRW — Rastan's intentional reset trigger); 5 decrement sites in watchdog and adjacent routines. All writers are in arcade-translated code (not Genesis-native helpers).
+- Deliverable 4 — writer reachability/execution: NONE of the 11 kick sites is in any of the excursion-visited regions (0x000002D4 vector dispatch; 0x0003B0B6/0x0003B0E6 arcade-translated handlers; 0x000705F6/0x0007060C/0x00070614/0x00070624/0x000719D4/0x000719E0/0x00071B60/0x00071CE2 Genesis-native helpers including vdp_commit_sprites at 0x000719B0 and genesistan_hook_tilemap_bg_fill body). The CPU is reaching the polymorphic-dispatch tilemap_bg_fill helper and vdp_commit_sprites via interrupt-driven excursions, but no kick site is on those excursion paths. Arcade game-loop main progression is blocked upstream of all 11 kick sites.
+- Deliverable 5 — architectural read: BROKEN WATCHDOG (functionally a "broken polling wait" in spirit — kick code exists, was supposed to run, isn't running). Confidence: HIGH. Evidence: routine structure (unconditional soft-reset at expiry; no exit branch besides expiry); kick site locations (post-bootstrap arcade game-loop range); observed excursion pattern (interrupts firing but not reaching kicks); OPEN-004's ~15 re-entries in 64s timing matches 3.6s/cycle estimate; Andy nametable composition path classification's independent "game-loop blocked" finding. Correctly-idle-wait alternative ruled out (no input-poll, no input-state branch). OPEN-001 + OPEN-004 collapse: same root cause; routing call (formal merger vs separate-with-cross-reference) is Chad's.
+- Recommended next diagnostic step (Chad routes; Andy does NOT route): arcade-source cross-reference with MAME rastan.cpp / docs/reference/mame/rastan/ to identify the "primary" kick site the arcade game-loop reaches under normal Rastan operation. Alternative: bookmark cycle (BM-NNN, post-OPEN-013 closure) targeting the suspected primary kick. Alternative: static control-flow trace from _bootstrap exit (0x00003A200) to the first watchdog routine call. Each has different cost/evidence.
+- Record corrections noted (this design doc, NOT modifications to BM-002 / BM-003 / CLOSED-010 / CLOSED-011): BM-002 characterization NOT superseded (was correct; investigation adds context about routine's role as OPEN-004 re-entry mechanism); BM-002 trace 7-hits reinterpreted as OPEN-014-style undersampling of saturated loop; BM-003 Outcome A "almost immediate" clarified as constant-loop saturation effect, not normal-flow visit
+- New OPEN issue(s): NONE opened (rationale in §7.2: refinement-not-new-fault; record corrections don't warrant separate tracking; next-step routing is Chad's call, not a tracked issue)
+- STOP triggered: NO
+
+Floor:
+- Phase 1 loop disassembly via direct ROM hex + static-disasm artifact (functionally equivalent to interactive Ghidra for this scope): YES
+- Phase 1 BM-002 byte verification independent of inherited characterization: YES (CONFIRMED match)
+- Deliverables 1-5 all resolved with cited evidence: YES
+- Record corrections documented: YES
+- No ROM/source/spec/Makefile/build/tool/evidence modifications: YES
+- No bookmark cycles initiated: YES
+- No issue closures: YES
+- No architectural routing decisions (Andy provides findings; Chad routes): YES
+- Ambiguities surfaced explicitly: YES (§5.3 hypothesis flagged; §5.4 recommended-next-step alternatives surfaced for Chad's choice)
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (proximate cause narrowed: arcade game-loop progression blocked upstream of all 11 watchdog kick sites; collapses to same root cause as OPEN-004), OPEN-004 (mechanism identified as watchdog at 0x0003A180 expiring every ~3.6s and soft-resetting to bootstrap; collapses to same root cause as OPEN-001), OPEN-014 (BM-002 trace 7-hits reinterpretation cited as instance of the parked-helper sampling gap pattern), OPEN-002 (continued naming convention compliance — descriptive design doc filename), OPEN-008 (continued convention use)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-003, OPEN-005, OPEN-006, OPEN-007, OPEN-009 (does not exist; CLOSED already), OPEN-010 (CLOSED already), OPEN-011 (CLOSED-009 already), OPEN-012 (CLOSED-010 already; per current ledger state), OPEN-013 (CLOSED-011 already; per current ledger state)

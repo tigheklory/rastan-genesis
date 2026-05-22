@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import re
 from pathlib import Path
@@ -11,9 +12,234 @@ from pathlib import Path
 
 ROM_MIN_SIZE = 0x80000
 DEFAULT_SPEC_PATH = Path(__file__).resolve().parents[2] / "specs" / "startup_title_remap.json"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ACTIVE_BOOKMARK_BASELINE_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "active_bookmark_baseline.json"
+BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.txt"
+
+CANONICAL_OPCODE_REPLACE_COUNT = 94
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17CAEC
+
+# DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
+#
+# Adding a new symbol to this tuple requires:
+#   1. A Rule 10 (or successor) amendment justifying the diagnostic role
+#   2. A design doc revision documenting the symbol's purpose
+#   3. An AGENTS_LOG entry recording the addition
+# This three-place friction prevents silent expansion. Do NOT add symbols
+# speculatively.
+DIAGNOSTIC_SYMBOLS = ("genesistan_diag_bookmark",)
 
 SYMBOL_PATTERN = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)")
 SYMBOL_TOKEN_PATTERN = re.compile(r"\{symbol:([A-Za-z_][A-Za-z0-9_]*)([+-](?:0x[0-9A-Fa-f]+|\d+))?\}")
+
+
+def _compact_hex(value: str) -> str:
+    compact = "".join(value.split())
+    if len(compact) % 2 != 0 or re.fullmatch(r"[0-9A-Fa-f]*", compact) is None:
+        raise RuntimeError(f"Invalid hex string: {value!r}")
+    return compact
+
+
+def _hex_len_bytes(value: str) -> int:
+    return len(_compact_hex(value)) // 2
+
+
+def _to_upper_hex(value: str) -> str:
+    return _compact_hex(value).upper()
+
+
+def _read_counter_value(path: Path) -> int:
+    if not path.exists():
+        return 0
+    raw = path.read_text(encoding="utf-8").strip()
+    if not raw:
+        return 0
+    try:
+        return int(raw)
+    except ValueError as exc:
+        raise RuntimeError(f"Invalid build counter value in {path}: {raw!r}") from exc
+
+
+def _atomic_write_json(path: Path, payload: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    text = json.dumps(payload, indent=2) + "\n"
+    with tmp.open("w", encoding="utf-8") as handle:
+        handle.write(text)
+        handle.flush()
+    tmp.replace(path)
+
+
+def _bookmarks_v2(spec: dict[str, object]) -> list[dict[str, object]]:
+    if "diagnostic_bookmarks" in spec:
+        raise RuntimeError(
+            "Legacy field 'diagnostic_bookmarks' is no longer supported. "
+            "Use top-level 'bookmarks_v2' entries with runtime_genesis_pc."
+        )
+    raw = spec.get("bookmarks_v2", [])
+    if raw in (None, {}):
+        return []
+    if not isinstance(raw, list):
+        raise RuntimeError("bookmarks_v2 must be a JSON array when present.")
+    out: list[dict[str, object]] = []
+    seen_cycle_ids: set[str] = set()
+    for idx, item in enumerate(raw):
+        if not isinstance(item, dict):
+            raise RuntimeError(f"bookmarks_v2[{idx}] must be an object.")
+        cycle_id = str(item.get("cycle_id", "")).strip()
+        if not cycle_id:
+            raise RuntimeError(f"bookmarks_v2[{idx}] missing required cycle_id.")
+        if cycle_id in seen_cycle_ids:
+            raise RuntimeError(f"bookmarks_v2 contains duplicate cycle_id={cycle_id!r}.")
+        seen_cycle_ids.add(cycle_id)
+        out.append(item)
+    if len(out) > 1:
+        raise RuntimeError(
+            "bookmarks_v2 has more than one entry. Rule 10 allows at most one in-flight bookmark cycle."
+        )
+    return out
+
+
+def _reject_legacy_bookmark_cycle(spec: dict[str, object]) -> None:
+    for idx, entry in enumerate(spec.get("opcode_replace", [])):
+        if not isinstance(entry, dict):
+            continue
+        cycle = str(entry.get("bookmark_cycle", "")).strip()
+        if cycle:
+            raise RuntimeError(
+                "Legacy opcode_replace bookmark field 'bookmark_cycle' is no longer supported under bookmarks_v2. "
+                f"Found at opcode_replace[{idx}]={cycle!r}."
+            )
+
+
+def _build_bookmark_activator_bytes(helper_addr: int, span_length: int, nop_padding_word: int) -> bytes:
+    if span_length < 6 or ((span_length - 6) % 2) != 0:
+        raise RuntimeError(
+            f"bookmarks_v2 span_length must be >= 6 and (span_length-6) divisible by 2; got {span_length}."
+        )
+    out = bytearray()
+    out.extend((0x4E, 0xF9))
+    out.extend((helper_addr & 0xFFFFFFFF).to_bytes(4, "big"))
+    for _ in range((span_length - 6) // 2):
+        out.extend((nop_padding_word & 0xFFFF).to_bytes(2, "big"))
+    return bytes(out)
+
+
+def _write_active_bookmark_baseline(bookmark_entry: dict[str, object]) -> None:
+    cycle_id = str(bookmark_entry.get("cycle_id", "")).strip()
+    pre_insert_sha = str(bookmark_entry.get("pre_insert_canonical_rom_sha256", "")).strip()
+    if not cycle_id:
+        raise RuntimeError("bookmarks_v2[0] missing required cycle_id for state-file write.")
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", pre_insert_sha):
+        raise RuntimeError(
+            "bookmarks_v2[0] pre_insert_canonical_rom_sha256 must be a 64-hex SHA256 string."
+        )
+    payload = {
+        "cycle_id": cycle_id,
+        "pre_insert_canonical_rom_sha256": pre_insert_sha.lower(),
+        "pre_insert_build_counter": _read_counter_value(BUILD_COUNTER_PATH),
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+    }
+    _atomic_write_json(ACTIVE_BOOKMARK_BASELINE_PATH, payload)
+
+
+def _apply_bookmarks_v2(
+    rom_bytes: bytearray,
+    bookmarks_v2: list[dict[str, object]],
+    symbol_addresses: dict[str, int],
+    helper_guard_symbol: str = "genesistan_diag_bookmark",
+) -> list[dict[str, object]]:
+    if not bookmarks_v2:
+        return []
+
+    helper_guard_addr = resolve_symbol_address(symbol_addresses, helper_guard_symbol)
+    helper_guard_start = helper_guard_addr
+    helper_guard_end = helper_guard_addr + 2
+    sensitive_region_low = 0x00000400
+    helper_data_region_end = 0x000F1DBC
+    applied: list[dict[str, object]] = []
+
+    for idx, entry in enumerate(bookmarks_v2):
+        if "arcade_pc" in entry:
+            raise RuntimeError(
+                f"bookmarks_v2[{idx}] must not contain arcade_pc. "
+                "Use runtime_genesis_pc (trace-space coordinate) only."
+            )
+        cycle_id = str(entry.get("cycle_id", "")).strip()
+        runtime_genesis_pc = parse_hexish(entry.get("runtime_genesis_pc"))
+        span_length = int(entry.get("span_length"))
+        helper_symbol = str(entry.get("helper_symbol", "")).strip()
+        activator_pattern = str(entry.get("activator_pattern", "")).strip()
+        nop_padding_raw = str(entry.get("nop_padding_byte", "")).strip() or "0x4E71"
+        pre_insert_bytes = str(entry.get("pre_insert_canonical_bytes", "")).strip()
+
+        if helper_symbol not in DIAGNOSTIC_SYMBOLS:
+            raise RuntimeError(
+                f"bookmarks_v2[{idx}] helper_symbol={helper_symbol!r} is not in DIAGNOSTIC_SYMBOLS allowlist."
+            )
+        if activator_pattern != "JMP_LONG_ABS":
+            raise RuntimeError(
+                f"bookmarks_v2[{idx}] unsupported activator_pattern={activator_pattern!r}; "
+                "supported: JMP_LONG_ABS."
+            )
+        if runtime_genesis_pc < sensitive_region_low:
+            raise RuntimeError(
+                f"bookmarks_v2[{idx}] runtime_genesis_pc=0x{runtime_genesis_pc:08X} is in preserved-vectors region "
+                "(< 0x00000400)."
+            )
+        if span_length < 6 or ((span_length - 6) % 2) != 0:
+            raise RuntimeError(
+                f"bookmarks_v2[{idx}] invalid span_length={span_length}; must be >=6 and (span_length-6) divisible by 2."
+            )
+        if runtime_genesis_pc < 0 or runtime_genesis_pc + span_length > len(rom_bytes):
+            raise RuntimeError(
+                f"bookmarks_v2[{idx}] out of bounds: runtime_genesis_pc=0x{runtime_genesis_pc:08X}, "
+                f"span_length={span_length}, rom_size=0x{len(rom_bytes):X}."
+            )
+
+        span_start = runtime_genesis_pc
+        span_end = runtime_genesis_pc + span_length
+        if not (span_end <= helper_guard_start or span_start >= helper_guard_end):
+            raise RuntimeError(
+                f"bookmarks_v2[{idx}] span overlaps helper bytes: cycle_id={cycle_id!r}, "
+                f"span=[0x{span_start:08X},0x{span_end:08X}), "
+                f"helper=[0x{helper_guard_start:08X},0x{helper_guard_end:08X})."
+            )
+        if span_end > helper_data_region_end:
+            print(
+                "WARNING: bookmarks_v2 target extends beyond helper/data-adjacent region upper bound "
+                f"(0x{helper_data_region_end:08X}): cycle_id={cycle_id!r} span_end=0x{span_end:08X}"
+            )
+
+        if pre_insert_bytes:
+            if _hex_len_bytes(pre_insert_bytes) != span_length:
+                raise RuntimeError(
+                    f"bookmarks_v2[{idx}] pre_insert_canonical_bytes length mismatch: "
+                    f"expected {span_length} bytes, got {_hex_len_bytes(pre_insert_bytes)} bytes."
+                )
+
+        helper_addr = resolve_symbol_address(symbol_addresses, helper_symbol)
+        nop_padding_word = int(nop_padding_raw, 0)
+        if nop_padding_word < 0 or nop_padding_word > 0xFFFF:
+            raise RuntimeError(
+                f"bookmarks_v2[{idx}] nop_padding_byte must fit 16-bit word; got {nop_padding_raw!r}."
+            )
+        activator_bytes = _build_bookmark_activator_bytes(helper_addr, span_length, nop_padding_word)
+        rom_bytes[span_start:span_end] = activator_bytes
+        applied.append(
+            {
+                "cycle_id": cycle_id,
+                "runtime_genesis_pc": f"0x{runtime_genesis_pc:08X}",
+                "span_length": span_length,
+                "helper_symbol": helper_symbol,
+                "helper_address": f"0x{helper_addr:08X}",
+                "activator_pattern": activator_pattern,
+                "activator_bytes": activator_bytes.hex(),
+            }
+        )
+
+    _write_active_bookmark_baseline(bookmarks_v2[0])
+    return applied
 
 
 def parse_args() -> argparse.Namespace:
@@ -898,6 +1124,9 @@ def main() -> int:
     relocation_path = manifest_path.with_name("startup_common_relocations.json")
     spec_path = Path(args.spec)
     spec = load_remap_spec(spec_path)
+    _reject_legacy_bookmark_cycle(spec)
+    bookmarks_v2 = _bookmarks_v2(spec)
+    is_diagnostic_mode = len(bookmarks_v2) > 0
     policy = spec.get("policy", {})
     patcher_profile = str(policy.get("patcher_profile", "startup_title_remap"))
     is_rastan_direct_profile = patcher_profile == "rastan_direct"
@@ -961,7 +1190,16 @@ def main() -> int:
         )
         return 0
 
-    symbol_addresses = parse_symbol_table(symbols_path, required_symbols)
+    required_symbol_addresses = parse_symbol_table(symbols_path, required_symbols)
+    diagnostic_symbol_addresses: dict[str, int] = {}
+    for name in DIAGNOSTIC_SYMBOLS:
+        if name in all_symbol_addresses:
+            diagnostic_symbol_addresses[name] = all_symbol_addresses[name]
+            continue
+        alt_name = f"_{name}"
+        if alt_name in all_symbol_addresses:
+            diagnostic_symbol_addresses[name] = all_symbol_addresses[alt_name]
+    symbol_addresses = {**required_symbol_addresses, **diagnostic_symbol_addresses}
     rom_bytes = bytearray(rom_path.read_bytes())
     preserve_low_rom_end = 0x000400
     if is_rastan_direct_profile:
@@ -1532,6 +1770,10 @@ def main() -> int:
         report_lines.append("no relocate_after_shift entries processed")
     operand_report_path.write_text("\n".join(report_lines).rstrip() + "\n", encoding="utf-8")
 
+    # Apply runtime-PC bookmarks after opcode_replace (and deferred operand fixes)
+    # so activator bytes target the final post-relocation instruction stream.
+    bookmarks_v2_applied = _apply_bookmarks_v2(rom_bytes, bookmarks_v2, symbol_addresses)
+
     # ── Palette pre-conversion (Build 113) ────────────────────────────────────
     # Fill genesistan_palette_rom_table in ROM with Genesis-format colour values.
     # Source: Taito xRGB-444 (bits 11:8=R, 7:4=G, 3:0=B, 4-bit components).
@@ -1705,6 +1947,9 @@ def main() -> int:
     checksum = update_genesis_checksum(rom_bytes)
     rom_path.write_bytes(rom_bytes)
 
+    expected_opcode_replace_sites_for_context: int | None = None
+    expected_total_coverage_for_context: int | None = None
+    build_context_label = "diagnostic" if is_diagnostic_mode else "canonical"
     address_map_path = manifest_path.with_name("address_map.json")
     if is_rastan_direct_profile:
         _append_segment(
@@ -1723,7 +1968,6 @@ def main() -> int:
             len(rom_bytes),
             wrapper_start,
         )
-
         opcode_replace_logs = [
             item for item in rewrite_log
             if str(item.get("kind", "")) == "opcode_replace"
@@ -1738,31 +1982,23 @@ def main() -> int:
                 "Address-map invariant failure: opcode_replace rewrite_log count "
                 "does not match patched_site opcode_replace segment count."
             )
-        # Build 0052+ baseline (PC090OJ v3.2 dispatch integration):
-        # - Adds pc090oj_hooks.s helper code + 524 KB pc090oj_assets.s sprite-tile blob + 256-byte slot LUT
-        # - 18 PC090OJ opcode_replace sites integrated; 0x03AD44 was a pre-existing tilemap entry,
-        #   replaced in-place with the v3.2 polymorphic dispatch helper (genesistan_hook_3ad44_dispatch)
-        # - The v3.2 dispatch helper adds 0x58 bytes (88) over the prior PC090OJ-only helper baseline
-        #   (0x17C914 -> 0x17C96C) due to A0 range comparison logic + tilemap branch invocation + audit
-        #   fall-through wiring
-        # - Build 0054: D6 save/restore patches in _3b930 and _54810 (per Andy classification)
-        # - Build 0055 palette translation (revised Option D): +3 opcode_replace sites
-        #   (0x03AB00, 0x045DB8, 0x059AD4) and +0xEC genesis wrapper bytes vs Build 0054
-        # - Build 0055b active writer hook: +1 opcode_replace site at 0x03BA64
-        #   (runtime 0x03BC64) and +0x88 genesis wrapper bytes vs Build 0055
-        # - Build 0060 diagnostic bookmark helper introduction:
-        #   +2 bytes helper body (0x60FE) +2 bytes wrapper alignment padding
-        # - Final baseline: count=94, bytes=0x17CAEC
-        if (
-            int(segment_coverage["total_genesis_bytes_covered"]) != 0x17CAEC
-            or len(opcode_replace_sites) != 94
-        ):
+        # Opcode-replace invariants are strict canonical values in all build
+        # contexts. bookmarks_v2 writes are a separate post-relocation stage.
+        expected_count = CANONICAL_OPCODE_REPLACE_COUNT
+        expected_coverage = CANONICAL_TOTAL_GENESIS_BYTES_COVERED
+
+        observed_coverage = int(segment_coverage["total_genesis_bytes_covered"])
+        observed_count = len(opcode_replace_sites)
+        expected_opcode_replace_sites_for_context = expected_count
+        expected_total_coverage_for_context = expected_coverage
+        if observed_coverage != expected_coverage or observed_count != expected_count:
             raise RuntimeError(
                 "Build 0029 invariant failure: expected "
-                "total_genesis_bytes_covered=0x17CAEC and "
-                "opcode_replace patched_site count=94; got "
-                f"total_genesis_bytes_covered=0x{int(segment_coverage['total_genesis_bytes_covered']):X} "
-                f"opcode_replace patched_site count={len(opcode_replace_sites)}."
+                f"total_genesis_bytes_covered=0x{expected_coverage:X} and "
+                f"opcode_replace patched_site count={expected_count}; got "
+                f"total_genesis_bytes_covered=0x{observed_coverage:X} "
+                f"opcode_replace patched_site count={observed_count}. "
+                f"build_context={build_context_label}."
             )
         _site_keys = {
             (
@@ -1879,7 +2115,14 @@ def main() -> int:
                 if str(item.get("kind", "")) in ("opcode_replace", "rom_opcode_replace")
             ),
         },
+        "build_context": build_context_label,
     }
+    if expected_opcode_replace_sites_for_context is not None:
+        manifest["postpatch_expected_opcode_replace_sites"] = expected_opcode_replace_sites_for_context
+    if expected_total_coverage_for_context is not None:
+        manifest["postpatch_expected_total_genesis_bytes_covered"] = f"0x{expected_total_coverage_for_context:X}"
+    manifest["bookmarks_v2_count"] = len(bookmarks_v2)
+    manifest["bookmarks_v2_applied"] = bookmarks_v2_applied
 
     if not is_rastan_direct_profile:
         manifest["normal_result_stub"] = {

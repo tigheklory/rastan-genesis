@@ -11,10 +11,14 @@ PATCH_MANIFEST := $(ROOT)/build/rastan-direct/rastan_direct_patch_manifest.json
 SYMBOLS := $(OUT_DIR)/symbol.txt
 PATCHER := $(ROOT)/tools/translation/postpatch_startup_rom.py
 BOOT_GUARD := $(ROOT)/tools/translation/verify_rastan_direct_boot_guard.py
+CANONICAL_GATE := $(ROOT)/tools/translation/verify_canonical_rom.py
 REGION_BUILDER := $(ROOT)/tools/build_rastan_regions.py
 NUMBERED_DIST_DIR := $(ROOT)/dist/rastan-direct
 NUMBERED_COUNTER := $(ROOT)/build/rastan-direct/build_counter.txt
 NUMBERED_PREFIX := rastan_direct_video_test_build
+HELPER_CANONICAL_SHA ?= 20825b3611f3c2bbcf2a401045fa74256f8b549d4d509834eb8d928861d9fecb
+BOOKMARK_REVERT ?=
+BOOKMARK_STATE_FILE := $(ROOT)/build/rastan-direct/active_bookmark_baseline.json
 
 PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
 PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
@@ -53,6 +57,7 @@ ELF := $(OUT_DIR)/rastan_direct_video_test.elf
 PREPATCH_BIN := $(OUT_DIR)/rastan_direct_video_test.prepatch.bin
 BIN := $(DIST_DIR)/rastan_direct_video_test.bin
 
+.DELETE_ON_ERROR:
 .PHONY: all clean release
 
 all: $(BIN)
@@ -135,10 +140,25 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DI
 	@mkdir -p "$(NUMBERED_DIST_DIR)" "$(dir $(NUMBERED_COUNTER))"
 	@counter_file="$(NUMBERED_COUNTER)"; \
 	if [ -f "$$counter_file" ]; then n=$$(cat "$$counter_file"); else n=0; fi; \
-	n=$$((n + 1)); \
-	printf "%d\n" "$$n" > "$$counter_file"; \
-	tag=$$(printf "%04d" "$$n"); \
-	numbered="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}.bin"; \
+	next=$$((n + 1)); \
+	tag=$$(printf "%04d" "$$next"); \
+	numbered_name="$(NUMBERED_PREFIX)_$${tag}.bin"; \
+	"$(PYTHON)" "$(CANONICAL_GATE)" \
+		--rom "$@" \
+		--symbols "$(SYMBOLS)" \
+		--spec "$(PATCH_SPEC)" \
+		--src-dir "$(SRC_DIR)" \
+		--makefile "$(CURDIR)/Makefile" \
+		--postpatch-script "$(PATCHER)" \
+		--patch-manifest "$(PATCH_MANIFEST)" \
+		--helper-symbol genesistan_diag_bookmark \
+		--helper-canonical-sha "$(HELPER_CANONICAL_SHA)" \
+		--numbered-counter "$$counter_file" \
+		--numbered-name "$$numbered_name" \
+		--bookmark-revert "$(BOOKMARK_REVERT)" \
+		--state-file "$(BOOKMARK_STATE_FILE)" || exit $$?; \
+	printf "%d\n" "$$next" > "$$counter_file"; \
+	numbered="$(NUMBERED_DIST_DIR)/$$numbered_name"; \
 	cp "$@" "$$numbered"; \
 	echo "numbered build artifact: $$numbered"; \
 	trace_ts=$$(date +%Y%m%d_%H%M%S); \

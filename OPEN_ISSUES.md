@@ -245,20 +245,18 @@ Rules:
 
 ---
 
-## OPEN-010 — Build pipeline determinism / Makefile `.incbin` dependency completeness
+## OPEN-014 — MAME tracer does not reliably sample a parked diagnostic-bookmark helper
 
 - **Status:** OPEN
-- **Priority:** HIGH
-- **Discovered by:** Cody forensics + implementation follow-up
-- **Observed in build/artifact:** Build 60 regression (`0060`) and Build 61 remediation context (`0061`)
-- **Summary:** Make does not auto-track `.incbin` inputs, and at least one object (`scene_load.o`) was previously missing explicit `.incbin` dependencies. This allowed stale objects to be linked, causing Build 60 to embed pre-CLOSED-007 tile/LUT data despite source and generated artifacts being correct.
-- **Evidence:**
-  - `docs/design/Cody_build60_regression_forensics.md` (scenario C: stale `scene_load.o` linkage)
-  - `docs/design/Cody_build60_regression_fix_and_audit.md` (scene_load dependency fix, Build 61 verification, `.incbin` audit)
-- **Suspected area:** `apps/rastan-direct/Makefile` dependency completeness for every `.s` file using `.incbin`, and per-build deterministic verification of embedded ROM regions vs generated artifacts.
-- **Next required task:** Andy gate design **DONE** — see `docs/design/Andy_build_pipeline_determinism_gate_design.md` (six-part trustworthiness predicate; six §2 verification checks; Makefile-recipe integration with `.DELETE_ON_ERROR:` failure semantics; baseline maintenance via on-disk source-of-truth derivation). **Next:** Cody implements the gate per the design (separate Cody-pattern task), then Cody systematically remediates any remaining `.incbin` dependency holes the gate's §2.6 audit might surface (so far audit found only `scene_load.o`, fixed in Build 0061).
-- **Closure condition:** determinism gate is implemented and active in ROM-producing builds, `.incbin` dependency audit is complete with no unresolved holes, and a clean canonical ROM is produced under the gate.
-- **Cross-references:** `CLOSED-007` (source fix remains valid), `OPEN-002` (sequential build discipline), helper integrity baseline in Build 60+.
+- **Priority:** MEDIUM
+- **Discovered by:** BM-003 Insert (Cody), surfaced during Outcome-A classification
+- **Observed in build/artifact:** Build 0076 BM-003 diagnostic cycle
+- **Summary:** The diagnostic helper `genesistan_diag_bookmark` at `0x00071C78` is a 2-byte `BRA -2` self-loop (`60 FE`). In BM-003, helper park was confirmed by Tighe's direct Exodus observation and corroborated by MAME exit summary (`Final PC 0x071C7A`), but the BM-003 MAME sampled trace log did not directly sample the parked helper loop. Because helper park is the Outcome-A signal for bookmark cycles, this is a known instrumentation gap in the current MAME trace path.
+- **Evidence:** `dist/rastan-direct/bookmarks/build_0076_pc_0x0003A19C/`; `docs/design/Cody_BM003_insert.md`.
+- **Impact:** Bookmark cycles can be confirmed via Exodus/BlastEm and MAME exit summaries, but the primary sampled MAME trace path does not always self-evidence helper-park Outcome A.
+- **Next required task:** Andy design question for reliable helper-park capture (e.g., tracer sampling mode for helper PC range, alternate trace tool path, or helper observability construct). Not fixed in BM-003 Revert.
+- **Closure condition:** Trace mechanism update demonstrably captures helper park directly and reliably in a bookmark Outcome-A run.
+- **Cross-references:** OPEN-012, OPEN-013, Rule 10, diagnostic bookmark helper design.
 
 ---
 
