@@ -17,7 +17,8 @@ ACTIVE_BOOKMARK_BASELINE_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "acti
 BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.txt"
 
 CANONICAL_OPCODE_REPLACE_COUNT = 94
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17CAEC
+# KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17CAF0
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

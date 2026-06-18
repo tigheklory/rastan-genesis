@@ -260,6 +260,39 @@ Rules:
 
 ---
 
+## OPEN-015 — crash_handler.s numeric renderer prints cursor offsets instead of saved crash values
+
+- **Status:** OPEN
+- **Priority:** HIGH
+- **Discovered by:** Andy / Tighe
+- **Observed in build/artifact:** KF-028 patched ROM crash triage, `docs/design/Andy_kf028_patched_rom_address_error_triage.md`
+- **Summary:** The crash handler stores real diagnostic values in WRAM, but the on-screen hex fields are wrong. `crash_put_hexN_at` calls `crash_set_cursor` after the caller loads the value into `%d2`; `crash_set_cursor` clobbers `%d2` with `row*128 + col*2`. As a result, `VECTOR`, `FAULT PC`, `FAULT ADDR`, `SR`, registers, and the DEST/DIRTY/FRAME block display cursor offsets, not saved diagnostic values. A second reliability defect exists in `_crash_common`: it decodes the group-0 frame into `d1-d5`, sets `a0=sp`, and sets `a1=.Lhandler_pc_marker` before saving registers, so saved `D0-D5/A0/A1` are frame/handler values rather than true at-fault registers.
+- **Reliable fields:** The exception name is reliable because it is string-rendered. The stack dump is reliable because each stack word is loaded into `%d2` after cursor setup.
+- **Scope of impact:** This is a pre-existing baseline diagnostic defect in `crash_handler.s`, not caused by the KF-028 input-shim wiring fix. Any crash rendered through this handler can show bogus numeric fields and mislead triage.
+- **Workaround (verified working):** Read the real crash record directly from WRAM in the emulator memory viewer:
+  - `0xFF6804` = `CRASH_STACKED_SR` word
+  - `0xFF6806` = `CRASH_STACKED_PC` long
+  - `0xFF6854` = `CRASH_FAULT_ADDRESS` long
+  - `0xFF6816..0xFF684E` = saved D0-A6 register block
+- **Saved-register caveat:** In the current crash record, saved `D0-D5/A0/A1` are not true at-fault register values:
+  - `D0` = exception type
+  - `D1` = stacked SR
+  - `D2` = stacked PC
+  - `D3` = IR
+  - `D4` = fault address
+  - `D5` = SSW
+  - `A0` = handler SP
+  - `A1` = handler marker
+  - Only `D6/D7/A2-A6` are genuine at-fault register values in this crash record.
+- **Evidence:** Andy's corrected triage proves every on-screen numeric field equals that field's cursor offset, not the intended value. The WRAM workaround was used successfully on 2026-06-17 to recover the real fault PC `0x0003BD68` and fault address `0x50205741` from the KF-028 patched ROM crash, after the on-screen render showed cursor-offset artifacts.
+- **Evidence (second reliability defect):** `docs/design/Andy_kf028_real_fault_triage.md` shows `_crash_common` overwrites `d1-d5/a0/a1` with frame/handler values before saving the register block. This loses true at-fault `D1-D5/A0/A1` values; the real faulting `a1` is not preserved, while the fault address from the exception frame remains reliable.
+- **Suspected area:** `crash_handler.s` numeric rendering wrappers (`crash_put_hex8_at`, `crash_put_hex16_at`, `crash_put_hex32_at`), `crash_set_cursor` register preservation, and `_crash_common` register-save ordering.
+- **Fix direction:** Either preserve `%d2` across `crash_set_cursor`, or restructure the `crash_put_hexN_at` wrappers so the cursor is set first and the value is loaded into `%d2` afterward. Also preserve true at-fault `D0-D5/A0/A1` before `_crash_common` repurposes those registers for exception-frame decode and handler bookkeeping.
+- **Next required task:** Fix both crash-handler reliability defects, rebuild, and reproduce a crash or unit-style crash-render validation to confirm on-screen numeric fields match the WRAM crash record and saved register fields preserve true at-fault values where architecturally available.
+- **Closure condition:** A crash-render validation shows `FAULT PC`, `FAULT ADDR`, `SR`, registers, and DEST/DIRTY/FRAME fields display the saved WRAM crash-record values rather than cursor offsets, and the saved register block no longer replaces `D0-D5/A0/A1` with frame/handler scratch values.
+
+---
+
 ## Prompt Template Requirement (mandatory for all Cody/Andy prompts)
 
 Before work:

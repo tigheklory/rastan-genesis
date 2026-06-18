@@ -35249,3 +35249,1087 @@ Open/Closed Issues Impact:
 - New issues opened: NONE
 - Issues closed: NONE
 - Issues intentionally deferred: OPEN-003, OPEN-005, OPEN-006, OPEN-007, OPEN-009 (does not exist; CLOSED already), OPEN-010 (CLOSED already), OPEN-011 (CLOSED-009 already), OPEN-012 (CLOSED-010 already; per current ledger state), OPEN-013 (CLOSED-011 already; per current ledger state)
+
+## [Andy — Create KNOWN_FINDINGS.md with KF-001 Watchdog Entry]
+
+* files changed: KNOWN_FINDINGS.md (new), AGENTS_LOG.md (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (documentation creation; KF-001 indexes prior findings)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+KNOWN_FINDINGS.md created with:
+- Rulebook preamble (526 words; under the ~600 target): file-purpose statement, "curated memory not exhaustive memory" line, "What belongs" / "What does NOT belong" lists, three-axis schema (Status / Confidence / Applicability), Rediscovery Hazard binary flag, observation-vs-interpretation rule with BAD/GOOD example, entry format with field definitions, maintenance rule
+- KF-001 — Watchdog/reset routine (verbatim from prompt §F): metadata block (Status ACTIVE; Confidence CONFIRMED for mechanism/addresses + WORKING_HYPOTHESIS for OPEN-001+OPEN-004 collapse; Applicability GLOBAL post-determinism-gate; Rediscovery Hazard HIGH); Addresses (routine 0x0003A180..0x0003A1AC, delay loop 0x0003A192↔0x0003A19C, counter 0x00FF002C, 11 kick sites enumerated); Source Documents (Andy_polling_loop_investigation.md, Andy_BM002_runtime_failure_investigation.md, BM-003 evidence folder build_0076_pc_0x0003A19C/); Related Issues OPEN-001, OPEN-004; Last verified 2026-05-22 (Build 0077); Finding / Use as prior / Working hypotheses / Supersession notes prose subsections all populated
+
+Locked design decisions implemented:
+- Three orthogonal axes (Status / Confidence / Applicability): YES
+- Binary Rediscovery Hazard flag: YES
+- Observation-vs-interpretation rule with BAD/GOOD example: YES
+- KF-001 verbatim per prompt §F (including the multi-rating confidence syntax, the 11 kick sites enumerated verbatim, the working-hypotheses references to specific sections of Andy_polling_loop_investigation): YES
+- No additional KF-NNN entries beyond KF-001: YES
+- No task history / build logs / workflow prose in KNOWN_FINDINGS.md: YES
+- Preamble brevity (526 words; under ~600 target): YES
+- All KF-001 source document citations verified to resolve to real files (Andy_polling_loop_investigation.md exists, Andy_BM002_runtime_failure_investigation.md exists, dist/rastan-direct/bookmarks/build_0076_pc_0x0003A19C/ folder exists): YES
+
+Locked decisions NOT modified by Andy:
+- Three-axis schema (settled by Tighe + Chad Sr.)
+- KF-001 text (settled through extensive review)
+- Confidence ratings (CONFIRMED for mechanism, WORKING_HYPOTHESIS for collapse claim — implemented as specified, NOT self-promoted)
+
+Files NOT modified (per scope):
+- PROMPT_TEMPLATE.md (separate Andy task follows)
+- RULES.md / ARCHITECTURE.md
+- OPEN_ISSUES.md / CLOSED_ISSUES.md
+- All source/spec/tool/Makefile/ROM/evidence files
+- All historical design docs (referenced; not modified)
+
+Next tasks (separate; NOT this task):
+- PROMPT_TEMPLATE.md patch (Andy) — mandatory Phase 0 priors check at start of every Andy/Cody task
+- KNOWN_FINDINGS.md curation (Cody) — populate additional entries from root-level .md files and docs/design/*.md
+
+Floor:
+- KNOWN_FINDINGS.md created with rulebook preamble + KF-001 only: YES
+- Preamble under ~600 words: YES (526)
+- KF-001 verbatim per §F: YES
+- All cited source documents resolve: YES
+- No PROMPT_TEMPLATE.md modifications (separate task): YES
+- No source/spec/tool/Makefile/ROM/evidence modifications: YES
+- No issue closures or openings: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (cited in KF-001 Related Issues field), OPEN-004 (cited in KF-001 Related Issues; KF-001 codifies the watchdog mechanism that IS OPEN-004), OPEN-002 (file naming compliance — descriptive `KNOWN_FINDINGS.md`, no build number), OPEN-008 (continued convention use)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: OPEN-003, OPEN-005, OPEN-006, OPEN-007, OPEN-014
+
+## [Cody — KNOWN_FINDINGS Curation Task 1: Inventory + Extraction]
+
+* files changed: `docs/design/Cody_KNOWN_FINDINGS_curation_candidates.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (extraction task; no investigation)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Curation Task 1 output:
+- Inventory: [403 files in scope; FINDINGS_SUBSTANTIAL=23, FINDINGS_PARTIAL=6, NO_FINDINGS=369, INFRASTRUCTURE_ONLY=5]
+- Total candidates extracted: [40]
+- Soft warning fired (>50 candidates): NO
+- Candidate distribution by category: [BOOT_PATH=2, WATCHDOG=4, COORDINATE_MODEL=5, MEMORY_MAP=4, VDP_BEHAVIOR=4, INTERRUPT_BEHAVIOR=3, GRAPHICS_PIPELINE=4, TRANSLATION_MODEL=3, DIAGNOSTIC_LIMITATION=5, HARDWARE_MAPPING=4, OTHER_REQUIRES_REVIEW=2]
+- OTHER_REQUIRES_REVIEW count: [2] (suggested categories: [SPRITE_ENGINE, SOUND_SUBSYSTEM])
+- Judgment calls surfaced: [6]
+- Hardening constraints applied:
+  - Survival-outside-source filter: YES (excluded candidates not surfaced)
+  - Candidate IDs only (no KF numbers): YES
+  - No cross-source consolidation: YES
+  - AGENTS_LOG admissibility restriction: YES (runtime/system observations only)
+  - Judgment calls surfaced separately: YES
+  - No invented taxonomy categories: YES
+  - No interpretation in finding statements: YES
+
+Bootstrap state: KNOWN_FINDINGS.md contains KF-001 only at task start; this task extracts candidates for Task 2 to synthesize into additional KF-NNN entries.
+
+Next task: Tighe/Chad review candidate list and judgment calls; Task 2 (synthesis + write to KNOWN_FINDINGS.md) is drafted after review.
+
+STOP triggered: NO
+
+
+## [Cody — KNOWN_FINDINGS Curation Task 2: Synthesis + Write]
+
+* files changed: `KNOWN_FINDINGS.md` (KF-001 surgically updated; KF-002 through KF-027 appended; deferred appendix appended), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (synthesis task; no investigation)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Curation Task 2 output:
+- KF-001 surgical updates: 4 applied per §F
+  - Addresses field: vector sources added
+  - Use-as-prior: countdown-not-polling clarification appended
+  - Source Documents: 2 corroborating citations added
+  - Last verified: updated to 2026-05-29 (Build 0077)
+- New KF entries: 26 (KF-002 through KF-027) in §H numerical order
+- Deferred appendix entries: 5 (DEF-001 through DEF-005)
+- Anti-mega-entry tripwires: applied to every entry; results: none triggered
+- Independent-intelligibility test: applied to every entry; results: all pass
+- Observation-vs-interpretation rule: applied to every Finding statement; results: all pass
+- KF-001 prose: unchanged except for the 4 surgical updates
+- KF-001 structure: unchanged
+
+Final KNOWN_FINDINGS.md state:
+- Rulebook preamble (unchanged)
+- KF-001 (surgically updated; structure preserved)
+- KF-002 through KF-027 (26 new canonical entries)
+- Deferred Candidates Appendix (DEF-001 through DEF-005)
+
+Next task: Andy patches PROMPT_TEMPLATE.md to make KNOWN_FINDINGS.md / OPEN_ISSUES.md / CLOSED_ISSUES.md mandatory reading at the start of every future Andy/Cody task (separate prompt). After that, the curated-memory architecture is fully in place.
+
+STOP triggered: NO
+
+## [Andy — PROMPT_TEMPLATE.md Patch: Phase 0 Canonical-Prior Discipline]
+
+* files changed: PROMPT_TEMPLATE.md (seven insertions per §A), AGENTS_LOG.md (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (template patch; not an investigation)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Template patch applied (seven insertions):
+- Insertion 1: KNOWN_FINDINGS.md added at position 3 of mandatory reading; load-bearing reading-order note added (project rules → curated priors → issue ledger → recent activity → task-specific evidence). Reordering included moving AGENTS_LOG.md from position 3 to position 6 and consolidating prior items 6+7 into a single item 7 "Task-specific source files / design docs / evidence" — these reorderings are required by the new ordering specified in §A and are within scope.
+- Insertion 2: PHASE 0 — REQUIRED PRIORS CHECK section inserted between MANDATORY ARCHITECTURE COMPLIANCE and OBJECTIVE (location interpreted per §0.6 semantic intent "between Phase 0 and the OBJECTIVE phase"; see "Discrepancy note" below). Section contains §0.1 (read the baseline), §0.2 (baseline statement template), §0.3 (EXTENDING/NEW/INFRASTRUCTURE classification semantics), §0.4 (contradiction handling with six classes), §0.5 (Phase 0 STOP conditions), §0.6 (what Phase 0 is NOT).
+- Insertion 3: PHASE 0 DISCIPLINE (DO NOT) subsection appended to PRIME DIRECTIVE with six Do NOT items per §A.
+- Insertion 4: STOP CONDITIONS extended with three new cases (Phase 0 cannot complete; CONFIRMED/STRONG contradiction; CONFIRMED/STRONG demotion requirement).
+- Insertion 5: KNOWN_FINDINGS impact section added to REQUIRED FINAL RESPONSE FORMAT with Options A/B/C/D (No new finding / Proposed new entry / Proposed update to KF-NNN / Contradiction-classification report) and Option A default note for INFRASTRUCTURE tasks.
+- Insertion 6: FAILURE CONDITIONS extended with eleven new failure cases (Phase 0 skipped; proceeding past Phase 0 STOP; proceeding past contradiction; silent KF revision; failing to classify contradiction; KF entry for INFRASTRUCTURE work; KF entry with interpretation in Finding; forced classification; self-promoted confidence; silent KF update; interpretation smuggled into report Finding statements).
+- Insertion 7: "Observation vs. interpretation in task reports" subsection added to REQUIRED FINAL RESPONSE FORMAT with BAD/GOOD example.
+
+Verification (§C):
+- Phase 0 section present between OPEN/CLOSED ISSUES IMPACT and OBJECTIVE: YES (semantically; see Discrepancy note)
+- KNOWN_FINDINGS.md at position 3 in mandatory reading: YES (line 41 of patched file)
+- EXTENDING / NEW / INFRASTRUCTURE classification in §0.3: YES (lines 85-93)
+- Contradiction-of-CONFIRMED/STRONG STOP condition: YES (lines 271-272 in STOP CONDITIONS; mirrored in §0.5)
+- Six-class contradiction-classification requirement in §0.4: YES (lines 95-119; six classes enumerated)
+- Propose-update A/B/C/D output requirement: YES (lines 321/326/332/340)
+- Observation-vs-interpretation discipline in report format: YES (line 347 "Observation vs. interpretation in task reports" subsection with BAD/GOOD example)
+- Adjacent sections unmodified: YES (PRIME DIRECTIVE / OBJECTIVE / PROJECT MODEL / OPEN/CLOSED ISSUES IMPACT body content unchanged; only specified additions made)
+- KNOWN_FINDINGS.md unmodified: YES
+- OPEN_ISSUES.md unmodified: YES
+- CLOSED_ISSUES.md unmodified: YES
+
+Discrepancy note (location interpretation for Insertion 2):
+The prompt's §A Insertion 2 location specification reads "Between the existing 'OPEN/CLOSED ISSUES IMPACT — REQUIRED' section and the 'OBJECTIVE' section." The current PROMPT_TEMPLATE.md has OBJECTIVE at line 35 (early in the template) and OPEN/CLOSED ISSUES IMPACT at line 77 (after OBJECTIVE) — the reverse of the prompt's assumed ordering. Literal application is impossible. §0.6 of the locked Phase 0 text reads "between Phase 0 and the OBJECTIVE phase unless a STOP fired", making the semantic intent unambiguous: Phase 0 immediately precedes OBJECTIVE. Andy applied the semantic intent (Phase 0 inserted between MANDATORY ARCHITECTURE COMPLIANCE and OBJECTIVE; OPEN/CLOSED ISSUES IMPACT remains at its existing location later in the file). If Tighe/Chad disagree with this resolution, the section can be moved by a follow-up patch.
+
+Architecture preservation:
+- KNOWN_FINDINGS.md (rulebook preamble; KF-001..KF-027; deferred appendix DEF-001..DEF-005): unmodified
+- Three-axis schema (Status / Confidence / Applicability): unchanged
+- Rediscovery Hazard binary flag: unchanged
+- Anti-mega-entry discipline: unchanged
+- Deferred-candidates appendix machinery: unchanged
+- Issue ledger machinery (OPEN_ISSUES.md / CLOSED_ISSUES.md and their PROMPT_TEMPLATE.md OPEN/CLOSED ISSUES IMPACT section): unchanged
+
+Future-work flag (NOT modified in this task):
+- The OPEN/CLOSED ISSUES IMPACT section currently sits after PRIME DIRECTIVE and before GLOBAL RULES (lines 192-214 of patched file). A more sensible ordering — and one closer to the prompt's assumed ordering — would place it adjacent to Phase 0 since both are priors-reading steps. This is a structural improvement that may be worth a future template-cleanup patch, but it is OUT OF SCOPE for this task per §D ("If Andy finds an existing section of PROMPT_TEMPLATE.md that 'could be improved' while applying the patch, the improvement is OUT OF SCOPE"). Flagging here as a future consideration only.
+
+This patch operationalizes the curated-memory architecture for all future Andy/Cody tasks. The architecture itself (KNOWN_FINDINGS rulebook, three-axis schema, hazard flag, deferred appendix) is unchanged. The architecture arc is now complete.
+
+Floor:
+- All seven insertions applied in order per §A: YES
+- §C verification: all seven items pass: YES
+- Adjacent template content not modified beyond what insertions require: YES
+- No source/spec/tool/Makefile/ROM/evidence modifications: YES
+- No KNOWN_FINDINGS / OPEN_ISSUES / CLOSED_ISSUES modifications: YES
+- No issue closures or openings: YES
+- No reopening of settled architectural decisions: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: NONE (template patch; no investigation)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+## [Cody — INFRASTRUCTURE, Arcade Rastan Disassembly Pointer Document]
+
+* files changed: `docs/design/Cody_arcade_disassembly_pointer.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (INFRASTRUCTURE task; not an investigation)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Phase 0 classification: INFRASTRUCTURE
+Phase 0 priors statement: produced; no KNOWN_FINDINGS entries directly apply (KF-001/KF-003/KF-004 contextual only)
+Phase 0 STOP: not triggered
+
+Pointer document content summary:
+- Arcade disassembly path(s): `build/maincpu.disasm.txt`, `build/regions/maincpu.bin`
+- Annotation level: main disassembly = decoded instructions/no labels (flat); reverse-engineering docs = partial labeled references
+- Entry points: literal reset vectors recorded (`0x000000` SP=`0x0010DE00`, `0x000004` PC=`0x0003A000`)
+- Function boundaries: main disassembly = no-flat; reverse-engineering docs = yes-partial
+- Related artifacts: 6 items listed
+- Caveats: 3 structural caveats listed
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Rationale: INFRASTRUCTURE classification per Phase 0.
+
+STOP triggered: NO
+
+## [Andy — Arcade Watchdog First-Kick Path Cross-Reference (Tight Scope)]
+
+* files changed: `docs/design/Andy_first_kick_path_cross_reference.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (static cross-reference; no investigation modifying runtime behavior)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (extends KF-001, KF-003, KF-004, KF-006, KF-011 line of analysis)
+Phase 0 priors statement: produced in design doc §0
+Phase 0 STOP: not triggered
+Contradictions of CONFIRMED/STRONG priors: NONE
+
+Static trace summary:
+- Arcade trace from reset `0x3A000` forward verified at: `0x3A000` (reset branch), `0x3AE86` (init start), `0x3AEEA / 0x3AF04` (arcade WRAM `0x10C000` setup), `0x3B07A` (interrupt enable), `0x3B07E … 0x3B096` (main loop: hardware write, pretest, watchdog call, branch back), `0x39FA8 / 0x39FAC` (watchdog test wrapper).
+- Arcade kick sites verified read: `0x3A3D4`, `0x3A43E`, `0x3AA88` (counter #208), `0x3AAF2` (counter #160). Source: `build/maincpu.disasm.txt`.
+- Genesis-translated parallel trace verified at: `0x3B0EA / 0x3B104` (Genesis WRAM rebase to `0xFF0000` — translation-patched), `0x3B27E … 0x3B296` (main loop, byte-perfect translated-flow equivalent: `bsrw` offset `0xef14` preserved, target relocated by `+0x200`), `0x3A1A8` (watchdog test wrapper, byte-identical).
+- Genesis kick sites verified at: `0x3A5D4`, `0x3AC88`, `0x3ACF2` (= arcade + `0x200`). Source: `build/genesis_postpatch.disasm.txt`.
+
+Outcome: B — first-kick reachability is the open RUNTIME question.
+- No causally-meaningful static divergence identified on the reset-to-kick path.
+- WRAM rebase `0x10C000` → `0xFF0000` preserves the `%a5@(44)` invariant (KF-001 confirms live counter at `0xFF002C`).
+- Main loop is watchdog-test-only; kicks live inside state-machine handlers dispatched by Level-5 VBlank (KF-011).
+- Reachability of any kick is determined at runtime by VBlank vector configuration and state-machine dispatch.
+
+KNOWN_FINDINGS impact: Option C — proposed update to KF-003 (additive; preserves existing Finding/Use-as-prior wording; appends static-cross-reference clause and "do NOT search for static divergence on reset-to-main-loop layers" guidance). Confidence axis unchanged at STRONG. Last verified bump 2026-05-30 proposed.
+
+Recommended next task: BM-004 cycle on Genesis runtime PC `0x0003AC88` (arcade source `0x0003AA88`) — title-state ENTRY kick. Alternatives: `0x0003ACF2` (state-1 transition), `0x0003A5D4` (lowest-address kick). BM-004 NOT initiated in this task.
+
+Floor:
+- Documentation only: YES
+- No source / spec / tool / Makefile / ROM modifications: YES
+- No bookmark cycle initiated: YES
+- No runtime probing: YES
+- No KF / OPEN_ISSUES / CLOSED_ISSUES file modifications: YES (KF-003 update is a PROPOSAL for Cody, not applied here)
+- KF-001 watchdog body NOT re-traced: YES (out of scope per prompt)
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-004 (referenced; static-vs-runtime boundary refined; no status change)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+## [Cody — INFRASTRUCTURE, KF-003 Surgical Refinement (Apply Andy's Approved Propose-Update)]
+
+* files changed: `KNOWN_FINDINGS.md` (KF-003 surgically refined per Andy's approved Option C propose-update; four edits applied per §A), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (INFRASTRUCTURE task; not an investigation)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Phase 0 classification: INFRASTRUCTURE
+Phase 0 priors statement: produced; KF-003 mechanically touched as edit target; no other KF entries extended
+Phase 0 STOP: not triggered
+
+KF-003 edits applied:
+- Edit 1 (Finding paragraph append): applied
+- Edit 2 (Use-as-prior paragraph append): applied
+- Edit 3 (Last verified updated to 2026-05-30): applied
+- Edit 4 (Source Documents appended with Andy's design doc): applied
+
+KF-003 preserved:
+- Status: unchanged (ACTIVE)
+- Confidence: unchanged (STRONG)
+- Applicability: unchanged
+- Rediscovery Hazard: unchanged (HIGH)
+- Addresses: unchanged
+- Related Issues: unchanged
+- Finding paragraph existing text: preserved verbatim
+- Use-as-prior paragraph existing text: preserved verbatim
+
+Other KF entries: unchanged
+Rulebook preamble: unchanged
+Deferred-candidates appendix: unchanged
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Rationale: INFRASTRUCTURE classification per Phase 0; this task applies an existing approved propose-update produced by Andy's earlier task.
+
+STOP triggered: NO
+
+## [Cody — EXTENDING (BM-004 Insert), BM-004 Insert: Title-State ENTRY Kick Site at runtime_genesis_pc 0x0003AC88]
+
+* files changed: BM-004 bookmark entry (bookmarks_v2 schema), `dist/rastan-direct/bookmarks/build_0077_pc_0x0003AC88/` (new directory; 7 evidence artifacts per §D), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: YES — patched ROM at `dist/rastan-direct/bookmarks/build_0077_pc_0x0003AC88/patched_rom.bin`
+* ROM path: `dist/rastan-direct/bookmarks/build_0077_pc_0x0003AC88/patched_rom.bin`
+* root cause confirmed: N/A (Insert task; runtime probe is the next step)
+* fix implemented: N/A (BM-004 is a diagnostic bookmark cycle, not a fix)
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (BM-004 cycle extends KF-003 with runtime evidence; this Insert is task 1 of 3)
+Phase 0 priors statement: produced; KF-003 / KF-004 / KF-005 / KF-007 / KF-009 / KF-017 / KF-018 / KF-019 all loaded as priors
+Phase 0 STOP: not triggered
+
+Insert sub-phase results:
+- Phase 1 (baseline verify): PASS
+- Phase 2 (schema validation): PASS
+- Phase 3 (build): PASS — patched SHA `b4412e961a59e5c25973ad36cb23f861407841f2cdf9beb369e065afd769a442`
+- Phase 4 (activator placement): PASS — bytes at `0x0003AC88` are bookmarks_v2 redirect-to-helper; bytes at `0x0003AE88` unchanged from baseline (KF-005 discipline preserved)
+- Phase 5 (helper canonicality): PASS — bytes at `0x00071C78` are `60 FE`; SHA matches BM-003 canonical helper
+- Phase 6 (build determinism): PASS — rebuild SHA-identical to first build
+- Phase 7 (insert summary): written
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Rationale: Insert produces patched ROM and evidence; runtime probe interpretation (next step, by Tighe/Chad Sr.) is what produces the finding. This Insert task is mechanical instrumentation; the EXTENDING update to KF-003 will be proposed AFTER runtime observation and AFTER BM-004 Revert, in a separate task.
+
+Next step: Tighe/Chad Sr. execute runtime probe per §F (informational), governed by the §F.1 observation-window authority rule and the §G.1 smallest-proven-statement reporting discipline. After runtime observation, separate BM-004 Revert prompt (Cody) will be drafted to restore byte-identity and delete state file.
+
+STOP triggered: NO
+
+### MAME Exit Summary (2026-05-31 15:28:46)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — INFRASTRUCTURE (BM-004 Revert), Restore Byte-Identity at runtime_genesis_pc 0x0003AC88]
+
+* files changed: BM-004 bookmark entry removed from `specs/rastan_direct_remap.json`, `dist/rastan-direct/bookmarks/build_0077_pc_0x0003AC88/` (4 new Revert artifacts; Insert and runtime observation artifacts preserved unchanged), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: YES — reverted ROM at `dist/rastan-direct/bookmarks/build_0077_pc_0x0003AC88/reverted_rom.bin`
+* ROM path: `dist/rastan-direct/bookmarks/build_0077_pc_0x0003AC88/reverted_rom.bin`
+* root cause confirmed: N/A (Revert task; mechanical cleanup)
+* fix implemented: N/A (BM-004 was a diagnostic bookmark cycle; Revert restores baseline)
+* no unrelated changes: YES
+
+Phase 0 classification: INFRASTRUCTURE (mechanical Revert; no new investigation)
+Phase 0 priors statement: produced; KF-004 / KF-005 / KF-007 / KF-009 / KF-017 all mechanically applied (none extended)
+Phase 0 STOP: not triggered
+
+Revert sub-phase results:
+- Phase 1 (Insert artifacts verified present): PASS
+- Phase 2 (bookmark entry removed; reverted ROM built): PASS
+- Phase 3 (reverted ROM SHA matches baseline): PASS — SHA `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`
+- Phase 4 (discipline-check locations verified):
+  - `0x0003AC88` bytes after Revert: `3b7c00d0002c4e75` (matches Insert evidence baseline)
+  - `0x0003AE88` bytes throughout cycle: unchanged (KF-005 discipline preserved across full Insert -> Revert lifecycle)
+  - `0x00071C78` bytes: `60 FE` (KF-009 helper canonicality)
+  - Helper SHA: matches BM-003 canonical (`20825b3611f3c2bbcf2a401045fa74256f8b549d4d509834eb8d928861d9fecb`)
+- Phase 5 (Revert evidence packaged): written
+
+BM-004 Cycle Outcome (recorded; not interpreted in this task):
+Outcome B (clean) per Tighe/Chad Sr. review:
+"Within the 35.067-second Exodus observation window, execution did not reach the title-state ENTRY watchdog-refresh kick site at Genesis runtime PC `0x0003AC88`. The non-reach is runtime evidence (not instrumentation ambiguity), corroborated by the contrast with BM-003's successful helper park at `0x0003A19C` using the identical instrument."
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Rationale: BM-004 Outcome B corroborates KF-003's existing framing without materially refining it. Per Tighe/Chad Sr.: KNOWN_FINDINGS updates wait for substantive shifts; this Revert is mechanical cleanup.
+
+Next step: Andy behavior-centered dispatch investigation (separate prompt, drafted by Claude). The investigation explores what execution path is expected to lead from active runtime cadence toward `0x0003AC88` and where the divergence localizes.
+
+STOP triggered: NO
+
+## [Andy — Immediate Predecessor Chain to runtime_genesis_pc 0x0003AC88]
+
+* files changed: `docs/design/Andy_predecessor_chain_0x0003AC88.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (static backward trace)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING KF-003. Priors statement produced in doc §0. Phase 0 STOP: not triggered. No CONFIRMED/STRONG contradiction.
+
+Backward trace (9-node chain, kick → tie-in), all verified against `build/maincpu.disasm.txt` (arcade) and `build/genesis_postpatch.disasm.txt` (Genesis):
+- `0x3ac88` (kick, `movew #208,%a5@(44)`) ← in-routine ← `0x3ac54` (handler entry, falls through to kick) — STATICALLY_PROVEN
+- ← inner jmp `0x3ac3a` via inner table `0x3ac3c` (word[1]=`0x18`→`0x3ac54`); selector `%a5@(4)==1` — EXPECTED_BUT_RUNTIME_DEPENDENT
+- ← outer jmp `0x3ac1e` via outer table `0x3ac20` (word[0]=`0x06`→inner dispatch `0x3ac26`); selector `%a5@(2)==0` — EXPECTED_BUT_RUNTIME_DEPENDENT
+- ← title dispatcher `0x3abfe`, gated on `%a5@(44)==0` (decrement-and-return otherwise) — STATICALLY_PROVEN structure
+- ← master jmp `0x3a26a` via master table `0x3a26c` (word[0]=`0x992`→`0x3abfe`); selector `%a5@(0)==0` — EXPECTED_BUT_RUNTIME_DEPENDENT
+- ← master dispatch read `0x3a256` ← VBlank handler entry `0x3a208`
+- ← `jmp 0x3a208` at `0x70100` (sole referencer; grep-confirmed) ← Genesis Level-6 service `0x700c2` ← Level-6 autovector (vector offset `0x78`=`0x000700c2`)
+
+Caller-uniqueness confirmed: `0x3a208` referenced only by `0x70100`; `0x3abfe`/`0x3ac54` reached only via computed dispatch (no symbolic callers).
+
+Genesis comparison: every chain node translated-flow equivalent. Only byte-level difference = VBlank entry hardware-write substitution: arcade `clrw 0x350008` + `movew %d0,0x3c0000` (12 bytes) → 6× `4e71` NOP on Genesis. Neither write feeds any branch on the kick path; reachability-neutral hardware-elision shim, NOT a divergence (translated-flow-equivalence test applied). Disclosed as observation; not patch scaffolding.
+
+New durable observation: `%a5@(44)` is dual-use — both the KF-001 watchdog expiry counter AND the title dispatcher's (`0x3abfe`) per-frame delay timer; both decrement the same cell.
+
+Outcome: B — Runtime dependency. Chain statically equivalent to a point gated entirely by runtime WRAM state selectors (`%a5@(0)/%a5@(2)/%a5@(4)/%a5@(44)`). Stopping condition: chain ties into validated Level-6 VBlank territory but only through runtime gates (so NOT the special-case full-static-connection STOP).
+
+Timing evaluation: chain duration ~low-thousands of cycles per VBlank pass vs ~21.6M-cycle (~3.6s) watchdog window. Timing starvation plausible: NO (gating is by state-selector values / counter race, not chain duration). Counter-race nuance flagged as KF-001-scope, not pursued.
+
+KNOWN_FINDINGS impact: Option C — proposed KF-003 Use-as-prior refinement (concrete 9-node chain + `%a5@(44)` dual-use). Additive; existing wording preserved; STRONG unchanged; last-verified bump 2026-06-11 proposed. Cody applies after Tighe ack.
+
+Recommended next task: BM-005 bookmark on Genesis runtime PC `0x0003A256` (master-dispatch, one node upstream of all four state gates) — cheapest decisive bisection of "VBlank dispatch machinery runs" vs "state values select kick path." Secondary follow-up: `0x0003ABFE`. Evidence-capture handoff, not implementation (no Outcome-A divergence exists).
+
+Floor:
+- Documentation only; no source/spec/tool/Makefile/ROM modifications: YES
+- No bookmark cycle initiated; no runtime probing: YES
+- No KF/OPEN/CLOSED file modifications (KF-003 update is a proposal for Cody): YES
+- KF-001 watchdog routine not traced (counter-race flagged, not pursued): YES
+- §0.1 evidence labels applied throughout: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-004 (context; localization sharpened; no status change)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+### MAME Exit Summary (2026-06-11 17:39:58)
+- Final PC: 0x071C7A
+- Stack Pointer (SP): 0x00FEFFF2
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-11 17:40:30)
+- Final PC: 0x071C7A
+- Stack Pointer (SP): 0x00FEFFF2
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Combined: KF-003 Refinement (INFRASTRUCTURE) + BM-005 Insert (EXTENDING), runtime_genesis_pc 0x0003A256]
+
+* files changed: `KNOWN_FINDINGS.md` (KF-003 refined per Andy's approved propose-update; three edits per §A), `specs/rastan_direct_remap.json` (BM-005 `bookmarks_v2` entry), `dist/rastan-direct/bookmarks/build_0077_pc_0x0003A256/` (new directory; 7 Insert artifacts), `AGENTS_LOG.md` (this single Cody append)
+* build produced: YES — patched ROM at `dist/rastan-direct/bookmarks/build_0077_pc_0x0003A256/patched_rom.bin`
+* ROM path: `dist/rastan-direct/bookmarks/build_0077_pc_0x0003A256/patched_rom.bin`
+* root cause confirmed: N/A (Insert task; runtime probe interpretation is next step)
+* fix implemented: N/A (BM-005 is a diagnostic bookmark cycle, not a fix)
+* no unrelated changes: YES
+
+Phase 0 classification: Combined (Part A INFRASTRUCTURE, Part B EXTENDING)
+Phase 0 priors statement: produced; KF-001 / KF-003 / KF-004 / KF-005 / KF-006 / KF-007 / KF-009 / KF-011 / KF-013 / KF-017 / KF-018 / KF-019 loaded as priors
+Phase 0 STOP: not triggered
+
+Part A (KF-003 refinement):
+- Edit 1 (Use-as-prior append): applied
+- Edit 2 (Last verified -> 2026-06-11): applied
+- Edit 3 (Source Documents append with Andy's design doc): applied
+- KF-003 metadata block: unchanged except Last verified and Source Documents as authorized
+- KF-003 existing Finding prose: preserved verbatim
+- Other KF entries / rulebook / deferred appendix: unchanged
+
+Part B (BM-005 Insert):
+- Phase 2 (schema validation): PASS
+- Phase 3 (build): PASS — patched SHA `407b42071bfa13fdbcb30e15f16664d15f28d5873b679e7349f889ad7b824547`
+- Phase 4 (activator placement): PASS — bytes at `0x0003A256` are `4ef900071c784e71`; bytes at `0x0003A456` unchanged (`00044e75103c000061004e2472016100`); KF-005/KF-007 discipline preserved
+- Phase 5 (helper canonicality): PASS — `60 FE` at `0x00071C78`; SHA matches BM-003 canonical (`20825b3611f3c2bbcf2a401045fa74256f8b549d4d509834eb8d928861d9fecb`)
+- Phase 6 (build determinism): PASS — Build 0080 and Build 0081 SHA-identical
+- Phase 7 (insert summary): written (`188` words)
+
+KNOWN_FINDINGS impact: Option C applied (Part A) — Andy's approved KF-003 propose-update applied per §A. Part B Option A — Insert produces patched ROM and evidence only; runtime probe interpretation generates the next finding candidate after observation.
+
+Next step: Tighe/Chad Sr. runtime observation per the BM-005 informational matrix in `insert_summary.md`. After observation, separate BM-005 Revert prompt restores byte-identity.
+
+STOP triggered: NO
+
+### MAME Exit Summary (2026-06-12 15:41:28)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-12 15:43:04)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-12 15:43:31)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Combined: BM-005 Revert (INFRASTRUCTURE) + BM-006 Insert (INFRASTRUCTURE touching KF-003), runtime_genesis_pc 0x0003ABFE]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-005 entry removed; BM-006 entry added), `dist/rastan-direct/bookmarks/build_0077_pc_0x0003A256/` (4 new Revert artifacts), `dist/rastan-direct/bookmarks/build_0077_pc_0x0003ABFE/` (new directory; 7 Insert artifacts), `AGENTS_LOG.md` (this single new append)
+* build produced: YES — two sequential lifecycle builds plus BM-006 determinism rebuild; reverted ROM at `dist/rastan-direct/bookmarks/build_0077_pc_0x0003A256/reverted_rom.bin` (SHA `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`), patched ROM at `dist/rastan-direct/bookmarks/build_0077_pc_0x0003ABFE/patched_rom.bin` (SHA `a2707bf5f46b195e5c45cdbb2371204223c3854e7b62685e9ad0b5f9273dd700`)
+* root cause confirmed: N/A
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Phase 0 classification: Combined (Phase A INFRASTRUCTURE, Phase B INFRASTRUCTURE touching KF-003)
+Phase 0 priors statement: produced; KF-001 / KF-003 / KF-004 / KF-005 / KF-006 / KF-007 / KF-009 / KF-011 / KF-017 / KF-018 / KF-019 loaded as priors
+Phase 0 STOP: not triggered
+Lifecycle rule preserved: BM-005 Revert build completed and verified before BM-006 Insert build began; no single ROM build combined Revert and Insert.
+
+Phase A (BM-005 Revert):
+- A.1 (Insert artifacts verified): PASS
+- A.2 (bookmark removed; reverted ROM built): PASS
+- A.3 (reverted ROM SHA matches baseline): PASS — `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`
+- A.4 (discipline-check verifications): PASS
+  - `0x0003A256` after Revert: `302d0000d04041fa`
+  - `0x0003A456` across BM-005 cycle: unchanged (`00044e75103c000061004e2472016100`)
+  - `0x00071C78`: `60 FE`; helper SHA matches BM-003 canonical (`20825b3611f3c2bbcf2a401045fa74256f8b549d4d509834eb8d928861d9fecb`)
+- A.5 (Revert summary written): YES
+
+Phase B (BM-006 Insert):
+- B.1 (original bytes at `0x0003ABFE` captured from clean baseline): PASS — `4a6d002c6706536d002c4e75302d0002`
+- B.2 (schema validation): PASS
+- B.3 (build): PASS — patched SHA `a2707bf5f46b195e5c45cdbb2371204223c3854e7b62685e9ad0b5f9273dd700`
+- B.4 (activator placement): PASS — bytes at `0x0003ABFE` are bookmarks_v2 redirect-to-helper; bytes at `0x0003ADFE` unchanged (`426d00244e750839000000ff60ff6608`)
+- B.5 (helper canonicality): PASS — `60 FE`; SHA matches BM-003 canonical
+- B.6 (build determinism): PASS — Build 0083 and Build 0084 SHA-identical
+- B.7 (Insert summary written): YES
+
+BM-005 Cycle Outcome (recorded as prior context only; not newly interpreted in this task): Outcome A clean per Tighe/Chad Jr. review.
+
+Release target note: the standard release builds appended MAME exit summaries to `AGENTS_LOG.md`; Cody did not execute or interpret a separate runtime probe for BM-006.
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Rationale: BM-005 Outcome A corroborates KF-003's chain without substantive shift; BM-006 Insert is mechanical instrumentation that does not produce a finding (the finding, if any, comes from runtime observation interpretation in a separate later task).
+
+Next step: Tighe runtime observation of BM-006 patched ROM in Exodus. After observation, separate BM-006 Revert prompt.
+
+STOP triggered: NO
+
+## [Andy — Master Dispatch Selector Audit: 0x0003A256 → 0x0003ABFE]
+
+* files changed: `docs/design/Andy_master_dispatch_selector_audit.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (static audit; runtime evidence still needed)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (touches KF-003). Phase 0 STOP: not triggered. No CONFIRMED/STRONG contradiction.
+
+Bounded question: why does reaching `0x0003A256` not visibly lead to `0x0003ABFE`? Audit limited to master selector `%a5@(0)` + master dispatch table.
+
+Master dispatch table targets (Genesis; `target = 0x3a26c + word`; STATICALLY_PROVEN, byte-identical to arcade `0x3a06c`):
+- `%a5@(0)==0` → word `0x0992` → `0x3abfe` (title dispatcher — the BM-006 target)
+- `%a5@(0)==1` → word `0x0840` → `0x3aaac` (counter-gated sub-dispatcher)
+- `%a5@(0)==2` → word `0x00ee` → `0x3a35a` (counter-gated sub-dispatcher)
+- `%a5@(0)==3` → word `0x0b02` → `0x3ad6e` → `braw 0x3a180` (KF-001 watchdog routine)
+
+Only state 0 reaches `0x3abfe`. State 3 branches into the watchdog whose `0x3a192/0x3a196/0x3a19c` loop dominates the BM-006 window.
+
+`%a5@(0)` writer audit: 7 direct writers, ALL translated-flow equivalent (identical encodings at arcade = Genesis − 0x200):
+- `0x3a4ea` clrw→0; `0x3a650` clrw→0; `0x3a65a` #1; `0x3abde` #2; `0x3ad48` #2; `0x3add6` #3; `0x3ae7a` #1.
+- Load-bearing: writer #6 `0x3add6` (`movew #3,%a5@(0)`) lives in VBlank-prologue routine `0x3ad7c`, called at `0x3a23e` BEFORE the dispatch read at `0x3a256`. Gate to reach the state-3 write: `%a5@(0)!=3` AND `btst #2,0xff60ff == 0`. Arcade gate is `btst #2,0x390007` (TC0040IOC input port, KF-022 active-low); Genesis redirects to WRAM input-mirror `0xff60ff`. Standard hardware-input-redirect translation; gate branch structure preserved. If mirror bit 2 == 1 (arcade idle) → state-3 skipped → `%a5@(0)` stays 0 → reaches `0x3abfe`. If bit 2 == 0 → `%a5@(0)`=3 → routes to watchdog → never reaches `0x3abfe`.
+
+Initialization: `%a5@(0)`=`0xFF0000` is BSS-cleared to 0 by boot zero-fill at `0x3b0ea` (STATICALLY_PROVEN); no boot-path writer sets it non-zero before main loop. First-frame value is 0 unless the same-frame prologue `0x3ad7c` sets it to 3 (EXPECTED_BUT_RUNTIME_DEPENDENT).
+
+Observation cross-reference (NOT proof): BM-006 register samples during the dominant watchdog loop (frames 128/132/140) show A0=`0x0003AD6E` = exactly the state-3 dispatch residue (`0x3a26c + 0x0b02`). Consistent with `%a5@(0)==3` routing to the watchdog.
+
+Outcome: B — Static path translated-flow equivalent; runtime evidence needed. Whole master-state machinery (read + table + 7 writers) is translated-flow equivalent; only differences are standard hardware-address redirects, load-bearing one being the state-3 gate source (`0x390007`→`0xff60ff`). Whether `%a5@(0)` is 0 vs 3 at dispatch hinges on the runtime value of mirror `0xff60ff` bit 2, populated by a shim outside this bounded scope. Smallest runtime evidence: `%a5@(0)` at `0x0003A256` (expected 3 if cross-reference holds). Instrument NOT designed (per directive).
+
+KNOWN_FINDINGS impact: Option A — no update. Outcome B; per directive no KF update unless Outcome A concrete durable mechanism. Master-table target map documented in design doc for a future KF-003 refinement once runtime value confirmed (not canonized now — runtime-dependent).
+
+Recommended next task: BM-007 parked-helper bookmark on Genesis runtime PC `0x0003ADD6` (state-3 writer) — reuses existing instrument, decisive. Reached → state-3 transition fires → routes to watchdog → explains non-reach of `0x3abfe`; next task then audits the `0xff60ff` input-shim vs arcade `0x390007` (KF-022). Not reached → gate taken, `%a5@(0)` stays 0, non-reach needs re-examination of VBlank-handler completion to `0x3a256`. Alternative: direct `%a5@(0)` state-capture at `0x0003A256`.
+
+Floor:
+- Documentation only; no source/spec/tool/Makefile/ROM modifications: YES
+- No bookmark cycle initiated; no instrument designed; no runtime probing: YES
+- Scope held to `%a5@(0)` + master table (did NOT extend to `%a5@(2)/%a5@(4)/%a5@(44)`; did NOT chase `0x0003AF40`; did NOT relitigate KF-003 reset-to-main-loop equivalence): YES
+- §0.1 evidence labels applied throughout: YES
+- No KF/OPEN/CLOSED file modifications: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-004 (context; localization sharpened to state-3 input gate; no status change)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+### MAME Exit Summary (2026-06-12 18:05:18)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-12 18:07:12)
+- Final PC: 0x071C7A
+- Stack Pointer (SP): 0x00FEFFF2
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-12 18:07:40)
+- Final PC: 0x071C7A
+- Stack Pointer (SP): 0x00FEFFF2
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Combined: BM-006 Revert (INFRASTRUCTURE) + BM-007 Insert (INFRASTRUCTURE touching KF-003), runtime_genesis_pc 0x0003ADD6]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-006 entry removed; BM-007 entry added), `dist/rastan-direct/bookmarks/build_0077_pc_0x0003ABFE/` (4 new Revert artifacts), `dist/rastan-direct/bookmarks/build_0077_pc_0x0003ADD6/` (new directory; 7 Insert artifacts), `AGENTS_LOG.md` (this single new append)
+* build produced: YES — two sequential lifecycle builds plus BM-007 determinism rebuild; reverted ROM at `dist/rastan-direct/bookmarks/build_0077_pc_0x0003ABFE/reverted_rom.bin` (SHA `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`), patched ROM at `dist/rastan-direct/bookmarks/build_0077_pc_0x0003ADD6/patched_rom.bin` (SHA `47f1dbdb87c684f9e91837e2bca64e3332a18292b445d623c4b757f6bfa1eeb5`)
+* root cause confirmed: N/A
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Phase 0 classification: Combined (Phase A INFRASTRUCTURE, Phase B INFRASTRUCTURE touching KF-003)
+Phase 0 priors statement: produced; KF-001 / KF-003 / KF-004 / KF-005 / KF-006 / KF-007 / KF-009 / KF-017 / KF-018 / KF-019 / KF-022 loaded as priors
+Phase 0 STOP: not triggered
+Lifecycle rule preserved: BM-006 Revert build completed and verified before BM-007 Insert build began; no single ROM build combined Revert and Insert.
+
+Phase A (BM-006 Revert):
+- A.1 (Insert artifacts verified): PASS
+- A.2 (bookmark removed; reverted ROM built): PASS
+- A.3 (reverted ROM SHA matches baseline): PASS — `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`
+- A.4 (discipline-check verifications): PASS
+  - `0x0003ABFE` after Revert: `4a6d002c6706536d002c4e75302d0002`
+  - `0x0003ADFE` across BM-006 cycle: unchanged (`426d00244e750839000000ff60ff6608`)
+  - `0x00071C78`: `60 FE`; helper SHA matches BM-003 canonical (`20825b3611f3c2bbcf2a401045fa74256f8b549d4d509834eb8d928861d9fecb`)
+- A.5 (Revert summary written): YES
+
+Phase B (BM-007 Insert):
+- B.1 (original bytes at `0x0003ADD6` captured from clean baseline): PASS — `3b7c00030000426d00024e7561000020`
+- B.2 (schema validation): PASS
+- B.3 (build): PASS — patched SHA `47f1dbdb87c684f9e91837e2bca64e3332a18292b445d623c4b757f6bfa1eeb5`
+- B.4 (activator placement): PASS — bytes at `0x0003ADD6` are bookmarks_v2 redirect-to-helper; bytes at `0x0003AFD6` unchanged (`00034a6d003266084a6d003067106014`)
+- B.5 (helper canonicality): PASS — `60 FE`; SHA matches BM-003 canonical
+- B.6 (build determinism): PASS — Build 0086 and Build 0087 SHA-identical
+- B.7 (Insert summary written): YES
+
+BM-006 Cycle Outcome (recorded as prior context only; not newly interpreted): Outcome B clean per Tighe/Chad Jr. review.
+
+Release target note: the standard release builds appended MAME exit summaries to `AGENTS_LOG.md`; Cody did not execute or interpret a separate runtime probe for BM-007.
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Rationale: BM-006 Outcome B corroborates KF-003 chain without substantive shift; BM-007 Insert is mechanical instrumentation that does not produce a finding (runtime observation may justify later KF-003 refinement if it confirms state-3 route).
+
+Next step: Tighe runtime observation of BM-007 patched ROM in Exodus. After observation, separate BM-007 Revert prompt.
+
+STOP triggered: NO
+
+### MAME Exit Summary (2026-06-13 18:15:37)
+- Final PC: 0x03A19C
+- Stack Pointer (SP): 0x00FEFFEE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — INFRASTRUCTURE (BM-007 Revert), Restore Byte-Identity at runtime_genesis_pc 0x0003ADD6]
+
+* files changed: BM-007 bookmark entry removed from `specs/rastan_direct_remap.json`, `dist/rastan-direct/bookmarks/build_0077_pc_0x0003ADD6/` (4 new Revert artifacts; Insert and runtime observation artifacts preserved), `AGENTS_LOG.md` (this single new append)
+* build produced: YES — reverted ROM at `dist/rastan-direct/bookmarks/build_0077_pc_0x0003ADD6/reverted_rom.bin`
+* ROM path: `dist/rastan-direct/bookmarks/build_0077_pc_0x0003ADD6/reverted_rom.bin`
+* root cause confirmed: N/A (Revert task; mechanical cleanup)
+* fix implemented: N/A (BM-007 was a diagnostic bookmark cycle; Revert restores baseline)
+* no unrelated changes: YES
+
+Phase 0 classification: INFRASTRUCTURE
+Phase 0 priors statement: produced; KF-004 / KF-005 / KF-007 / KF-009 / KF-017 mechanically applied (none extended)
+Phase 0 STOP: not triggered
+
+Revert sub-phase results:
+- Phase 1 (Insert artifacts verified): PASS
+- Phase 2 (bookmark removed; reverted ROM built): PASS
+- Phase 3 (reverted ROM SHA matches baseline): PASS — `72f9f33dac332d7fb6294799f936714cc4aa4c320f63baf35000adabc0c7e7cc`
+- Phase 4 (discipline-check verifications):
+  - `0x0003ADD6` after Revert: `3b7c00030000426d00024e7561000020` (matches Insert baseline evidence)
+  - `0x0003AFD6` across Insert->Revert: unchanged (`00034a6d003266084a6d003067106014`)
+  - `0x00071C78`: `60 FE`
+  - Helper SHA: `20825b3611f3c2bbcf2a401045fa74256f8b549d4d509834eb8d928861d9fecb` (matches BM-003 canonical)
+- Phase 5 (Revert evidence packaged): YES
+
+BM-007 Cycle Outcome (recorded; not interpreted in this task):
+Outcome A (clean) per Tighe/Chad Jr. review.
+
+Release target note: the standard release build appended a MAME exit summary to `AGENTS_LOG.md`; Cody did not execute or interpret a separate runtime probe for BM-007 in this Revert task.
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Rationale: KF-003 refinement waits for Andy's pending `0xff60ff` input-shim audit, after which the whole durable mechanism can be canonized in one update.
+
+Next step: Andy short audit of `0xff60ff` input mirror/shim versus arcade `0x390007` active-low TC0040IOC behavior, drafted separately.
+
+STOP triggered: NO
+
+## [Andy — 0xff60ff Input-Shim Audit vs Arcade 0x390007 (TC0040IOC Bit 2)]
+
+* files changed: `docs/design/Andy_0xff60ff_input_shim_audit.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: localized (static defect; fix + post-fix reachability check pending)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (touches KF-003). Phase 0 STOP: not triggered. No CONFIRMED/STRONG contradiction.
+
+Bounded question: what writes `0xff60ff`, and does it correctly mirror arcade TC0040IOC `0x390007` per KF-022 active-low?
+
+Findings:
+- `0xff60ff` writers identified: 1 — `0x711ac` (`moveb %d5,0xff60ff`), inside controller-poll shim at `0x710ca`. STATICALLY_PROVEN sole writer (full-file grep).
+- `0xff60ff` readers identified: 7 — `0x3a690`,`0x3a9b8`,`0x3ab1a`,`0x3ad96` (the state-3 gate, `btst #2`),`0x3ae04`,`0x3ae94`,`0x3aefe`. Mirror of arcade `0x390007`.
+- `0x390007` arcade reads: 11 (bits 0,1,2,3,5,6 read across game); software writes: NONE (read-only TC0040IOC hardware port).
+- Shim bit-2 logic: `%d5 = moveq #-1`; only bits 3,4,5 conditionally cleared; **bit 2 never cleared** → shim writes `0xff60ff` bit 2 = 1 = active-low idle = CORRECT value IF it ran. STATICALLY_PROVEN.
+- Caller analysis: shim entry `0x710ca` is **unreferenced** in Build 0077 — no jsr/bsr/jmp immediate, no pointer-table `0007 10ca`, not fall-through (preceded by rts). STATICALLY_PROVEN. → shim does not execute (INFERRED; can't statically exclude indirect call, but none evident; corroborated by BM-007 gate fall-through).
+- Initialization: `0xff60ff` is Genesis BSS domain (>0xff4000, KF-008); NOT covered by arcade WRAM zero-fill (`0xFF0000..0xFF3FFF`); in boot-clear GAP `0xff60fa..0xff6103` (boot clears stop at `0xff60f8`, resume at `0xff6104`). So never initialized. STATICALLY_PROVEN.
+
+Translated-flow-equivalence at bit 2: NO — shim computes the correct value but is unreferenced AND the byte is uninitialized, so the idle value is never delivered; gate reads uninitialized bit 2 = 0 (per BM-007) → fall-through → `%a5@(0)=3` → master dispatch → `0x3ad6e→0x3a180` watchdog. Complete explanation of BM-007 Outcome A.
+
+Outcome: A — Static defect found. Mechanism: Genesis input mirror `0xff60ff` (translating TC0040IOC `0x390007`) populated only by the unreferenced shim at `0x710ca`, and the byte is in the boot-clear gap, so it is never written; the state-3 gate at `0x0003AD96` reads the uninitialized bit 2 = 0 and routes the master state machine to the watchdog instead of the title dispatcher.
+
+Recommended Cody fix SCOPE (recommendation only; not drafted): establish/restore invocation of the input-poll shim `0x710ca` on the Genesis per-frame input-servicing path BEFORE the arcade VBlank handler consumes the mirror; first determine whether a call site was dropped (regression) vs never wired. Note: BSS-initializing `0xff60ff` alone would unblock this gate but leave the input mirror stale/non-functional — not the real fix. Targets OPEN-004; likely unblocks OPEN-001 downstream.
+
+KNOWN_FINDINGS impact: Option B — proposed NEW KF entry (KF-028 candidate): "Genesis input mirror `0xff60fc..0xff6100` is unpopulated in Build 0077" (sole writer `0x711ac` in unreferenced shim `0x710ca`; boot-clear gap `0xff60fa..0xff6103`; shim would write bit 2 = 1 active-low). Confidence CONFIRMED (static facts) / STRONG (causal link). BUILD_SPECIFIC, HIGH hazard. Cross-ref KF-003, KF-022. Cody applies after Tighe ack.
+
+Recommended next task: Cody implementation — wire input-poll shim `0x710ca` into the per-frame input path ahead of the arcade VBlank handler (determine dropped-vs-never-wired first); after fix, re-run reachability check on `0x0003ABFE` to confirm master state stays 0 and the title path is reached.
+
+Floor:
+- Documentation only; no source/spec/tool/Makefile/ROM modifications: YES
+- No bookmark cycle initiated; no instrument designed; no implementation code drafted; no runtime probing: YES
+- Scope held to `0xff60ff` bit 2 / `0x390007` bit 2 (no other ports, no other bits): YES
+- Did NOT relitigate KF-022 active-low semantics: YES
+- §0.1 evidence labels applied throughout: YES
+- No KF/OPEN/CLOSED file modifications (KF-028 is a proposal): YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-004 (context; root cause localized to input-mirror wiring gap; no status change pending fix verification)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+## [Cody — INFRASTRUCTURE, KF-028 New Entry (Apply Approved Canonical Text from §A)]
+
+* files changed: `KNOWN_FINDINGS.md` (new KF-028 entry added per §A; expanded canonical form derived from Andy's input-shim audit), `AGENTS_LOG.md` (this single new append)
+* build produced: NO
+* no unrelated changes: YES
+
+Phase 0 classification: INFRASTRUCTURE
+Phase 0 STOP: not triggered (previous STOP on verbatim-mismatch resolved by Tighe/Chad Jr. canonization of §A)
+
+KF-028 added per §A:
+- Status: ACTIVE
+- Confidence: CONFIRMED / STRONG
+- Applicability: BUILD_SPECIFIC (Build 0077)
+- Rediscovery Hazard: HIGH
+
+Other KF entries: unchanged
+Rulebook preamble: unchanged
+Deferred-candidates appendix: unchanged
+
+KNOWN_FINDINGS impact: Option D — New entry KF-028.
+
+Next step: Andy short investigation to locate the intended call site for shim `0x710ca` (dropped-vs-never-wired question).
+
+STOP triggered: NO
+
+## [Andy — Locate Intended Call Site for Input-Poll Shim 0x710ca]
+
+* files changed: `docs/design/Andy_0x710ca_call_site_investigation.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: fix site localized (implementation + verification pending)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING KF-028. Phase 0 STOP: not triggered. No CONFIRMED/STRONG contradiction.
+
+Bounded question: where should `0x710ca` be invoked, and is its absence a dropped call (regression) or a never-wired gap (incomplete port)?
+
+Symbol resolution (STATICALLY_PROVEN, `apps/rastan-direct/out/symbol.txt`):
+- `0x710ca` = `rastan_direct_update_inputs` (`tilemap_hooks.s:1598`), `.global`-exported.
+- `0xff60ff` = `genesistan_shadow_input_390007` (and `0xff60fc/fd/fe` = shadow_input_390001/390003/390005). Confirms shadow↔port mapping; gate `0x3ad96` reads `genesistan_shadow_input_390007`.
+
+Phase 1 — Arcade has NO dedicated controller-poll routine; TC0040IOC port reads are scattered inline at consumer sites (0x124,0x3a6,...,0x3a490,0x3ab96,0x3ac04,...). STATICALLY_PROVEN. ⇒ the Genesis shim is a Genesis-introduced consolidation with NO arcade-counterpart call to translate. INFERRED.
+
+Phase 2 — Caller search: `rastan_direct_update_inputs` referenced in source only at the `.global` (line 17) and label (line 1598); NO jsr/bsr/jmp to it in any source file. STATICALLY_PROVEN. Per-frame service is `_vblank_service` (`vdp_comm.s:156`, Level-6 vector `boot.s:92`, runtime `0x700c2`): movem save → display off → commit tiles/bg/fg/sprites/palette/scroll → display on → movem restore → `jmp 0x3a208` (arcade VBlank handler, the shadow consumer). No input call; no NOP/padding/stub gap. STATICALLY_PROVEN. Shim clobbers regs but doesn't save them; `_vblank_service`'s movem bracket covers a call placed inside it (register-safe).
+
+Phase 3 — Dropped-vs-never-wired: NEVER-WIRED (INFERRED, strongly supported). No structural drop indicator (clean complete service, no hole); `.global` export with zero callers in any unit; no arcade counterpart call. Caveat: git history not consulted (out of static scope); `git blame`/log on vdp_comm.s/tilemap_hooks.s would fully confirm.
+
+Outcome: B — Never-wired location identified.
+Recommended call site: `bsr rastan_direct_update_inputs` at the TOP of `_vblank_service` (`vdp_comm.s`, immediately after the `movem.l` save at line 157; runtime within `0x700c2`, before the `0x70100 jmp 0x3a208`). Any point before line 181 is functionally sufficient; top is cleanest and register-safe.
+Architectural justification: `_vblank_service` runs every VBlank before handing to the arcade handler that consumes the shadows (gate `0x3ad96` + state-handler reads); refreshing shadows first guarantees valid input each frame, consistent with KF-011 servicing-only model. Evidence category: INFERRED (architectural; consumption path).
+
+Recommended Cody fix SCOPE (recommendation only; not drafted): add one `bsr rastan_direct_update_inputs` at the top of `_vblank_service` in `vdp_comm.s` (no change to the shim itself). After fix, re-run reachability on `0x0003ABFE` to confirm master state stays 0 and the title path is reached. Targets OPEN-004; likely unblocks OPEN-001 downstream.
+
+KNOWN_FINDINGS impact: Option C — proposed minimal refinement to KF-028 Use-as-prior, naming the shim (`rastan_direct_update_inputs`), its intended caller (`_vblank_service` / `0x700c2`, before `jmp 0x3a208`), and that the absence is a never-wired Genesis-side gap (no arcade-counterpart call), not a translated-routine regression. Completes KF-028's existing "until the shim is wired in" pointer; no new mechanism. Cody applies after Tighe ack.
+
+Recommended next task: Cody implementation — add `bsr rastan_direct_update_inputs` at top of `_vblank_service` (vdp_comm.s), rebuild, re-run reachability check on `0x0003ABFE`. Optionally precede with `git log`/`blame` on vdp_comm.s to confirm never-wired vs dropped.
+
+Floor:
+- Documentation only; no source/spec/tool/Makefile/ROM modifications: YES
+- No bookmark cycle; no implementation code drafted; no instrument designed; no runtime probing: YES
+- Scope held to the call-site question for `0x710ca` (no frame-path survey, no shim-correctness re-audit, no other input subsystems): YES
+- Did NOT relitigate KF-022/KF-028 semantics: YES
+- §0.1 evidence labels applied throughout: YES
+- No KF/OPEN/CLOSED file modifications (KF-028 refinement is a proposal): YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-004 (context; fix site localized; no status change pending implementation + verification)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+### MAME Exit Summary (2026-06-17 12:18:15)
+- Final PC: 0x00051A
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-17 12:19:28)
+- Final PC: 0x00051A
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — IMPLEMENTATION (continuation), KF-028 Fix: Authorize Expected +4 Byte Invariant Delta and Complete Build]
+
+* files changed: `apps/rastan-direct/src/vdp_comm.s` (+1 line; from prior task, preserved), `tools/translation/postpatch_startup_rom.py` and `tools/translation/verify_canonical_rom.py` (`total_genesis_bytes_covered` `0x17CAEC` -> `0x17CAF0`, single expected value in each gate location), `dist/rastan-direct/fixes/build_0077_kf028_input_shim_wiring/` (fix evidence artifacts written/completed), `AGENTS_LOG.md` (this single new append)
+* build produced: YES — patched ROM at `dist/rastan-direct/fixes/build_0077_kf028_input_shim_wiring/patched_rom.bin`
+* ROM path: `dist/rastan-direct/fixes/build_0077_kf028_input_shim_wiring/patched_rom.bin`
+* root cause confirmed: PENDING runtime verification (KF-028 identifies cause; this fix wires the shim; runtime confirmation is the separate Tighe step)
+* fix implemented: YES — single `bsr` insertion + matching invariant update
+* no unrelated changes: YES (shim unchanged; service body otherwise unchanged; no other invariants modified; `opcode_replace` patched-site count preserved at 94)
+
+Phase 0 classification: IMPLEMENTATION (continuation)
+Phase 0 STOP: not triggered
+Prior STOP resolved: YES
+
+Phase results:
+- Phase 1 (prior state verified): PASS
+- Phase 2 (invariant update applied): PASS — `total_genesis_bytes_covered` `0x17CAEC` -> `0x17CAF0`; `opcode_replace` patched-site count preserved at 94
+- Phase 3 (build): PASS — patched SHA `b63512abd4aa1e50a774442c44e0918233fc2d06625138c51f46f7125b5b5c1e`
+- Phase 4 (call-site verification): PASS — `0x000700C6: bsrw 0x710ce` immediately after `_vblank_service` save at `0x000700C2`; current `rastan_direct_update_inputs` symbol is `0x000710CE`; `jmp 0x0003A208` handoff remains after restore at `0x00070104`
+- Phase 5 (build determinism): PASS — rebuild SHA-identical (`0089` and `0090` both `b63512abd4aa1e50a774442c44e0918233fc2d06625138c51f46f7125b5b5c1e`)
+- Phase 6 (fix summary written): YES
+
+Release target note: `make -C apps/rastan-direct release` emitted its standard MAME trace/exit-summary artifacts for builds `0089` and `0090`; Cody did not initiate a separate runtime probe or interpret runtime behavior in this task.
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Rationale: KF-028 refinement (per Andy's Option C proposal) is held pending runtime verification per Chad Jr. guidance. The fix targets KF-028's Use-as-prior guidance; runtime verification will determine whether KF-028 refinement is justified.
+
+Next step: Tighe runs `patched_rom.bin` in Exodus. Expected: master state stays 0, master dispatch routes to title dispatcher (`0x0003ABFE`), title path proceeds. Observable via normal PC trace (no bookmark required) or visible title-screen progress.
+
+STOP triggered: NO
+
+## [Andy — KF-028 Patched ROM Crash Triage: Address Error Exception Screen]
+
+* files changed: `docs/design/Andy_kf028_patched_rom_address_error_triage.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A (analysis of existing `dist/rastan-direct/fixes/build_0077_kf028_input_shim_wiring/patched_rom.bin`)
+* root cause confirmed: failure mode changed + crash localized; full attribution pending one audit
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Question: why did the KF-028 patched ROM crash to the exception screen, and what does the screen tell us with this build's instruction sequence?
+
+Crash-handler decode (from `crash_handler.s`, group-0 frame, type 3 = ADDRESS ERROR; vector offset `0x0C`=`0x334`=`_crash_stub_address_error` confirmed):
+- FAULT PC `0x00000116` = stacked PC. Disasm `2032 3032` = cartridge-header ASCII (" 202…") executed as code. Data, not real code.
+- FAULT ADDR `0x00000196` = access address. Header padding (`2020…` ASCII spaces). Data.
+- SR `0x013C` = stacked SR (S=0 user mode, IPM=1) — plausibly real, not necessarily artifact.
+- On-screen VECTOR `C8` = transcription artifact (handler renders hex8(type)=`03`; if truly 0xC8 the name would decode "OTHER", not "ADDRESS ERROR"). On-screen register block is a regular arithmetic progression inconsistent with the live panel — unreliable transcription.
+- `0x518`=`.Lcrash_halt` (stop #0x2700 loop); `0xA16`=`crash_set_cursor` VDP_CTRL write (crash renderer). Both are the handler, not the fault origin.
+
+Conclusion: the CPU was executing the cartridge header (`0x100-0x1FF`, ASCII data) as code after a corrupted control transfer — classic wild-jump/bad-return crash.
+
+Patched-vs-baseline: the +4 byte growth from the inserted `bsr` is at `0x700c6`; `_vblank_service` stayed at `0x700c2`, shim moved `0x710ca→0x710ce`. ALL crash-involved addresses (`0x116/0x196/0x334/0x514/0xA16`) are below `0x700c6` → byte-identical patched-vs-baseline. Disproves "+4 moved the crash code"; does NOT exclude a stale absolute reference to a shifted (≥`0x700c6`) helper as the causal bad-jump.
+
+Path: pre-crash cadence = main loop (`0x3b284/28c/292`) + Level-6 VBlank service helpers (`0x700ae`, `0x719f0`, `0x71a1c/1e`, IPM 6) — NOT the pre-fix watchdog-delay-loop cadence. Stack dump return addresses: `0x3a27e` (arcade VBlank handler tail), `0x3accc` (title sub-state handler — unreachable pre-fix per BM-006), `0x3b292` (main loop). Execution progressed into the title state machine the fix enabled, then jumped into the header and faulted.
+
+Outcome: B — Fix-revealed downstream crash (primary). The shim wiring is architecturally working: cadence changed and stack evidence places execution in the newly-reached title sub-state machine; the run then crashed downstream with an address error to the header. Residual Outcome-A NOT fully excluded (stale absolute reference to a +4-shifted helper could be causal — disproven for crash-code location, not for causation). Outcome-C caveat: VECTOR/register-block transcriptions unreliable, but exception name + group-0 fault decode + stack dump are dependable; decoding is sufficient to classify.
+
+KNOWN_FINDINGS impact: Option A — no update now. Hold the KF-028 refinement until Outcome A is excluded. Once confirmed B, refine KF-028 to note the wiring changed the failure mode (watchdog-state-3 → main-loop/VBlank/title) and exposed a downstream address-error blocker. Do not canonize yet.
+
+Recommended next task: patched-vs-baseline absolute-reference integrity audit — verify the +4 Genesis-native shift propagated to all absolute references into shifted code (94 opcode_replace targets; absolute jsr/jmp to helpers e.g. boot `0x71c7c`/`0x71b72`; level vectors). All valid → exclude A, confirm B, then localize the downstream bad-jump origin in the title path. Any stale → Outcome A (re-relocate that reference). Secondary: re-capture crash screen at higher resolution to resolve the VECTOR/register transcription.
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No fix designed/applied; no bookmark cycle; no runtime probing: YES
+- Did NOT assume watchdog fixed / title confirmed reached (held as stack evidence with transcription caveat): YES
+- Did NOT assume `0x116` is early boot, nor that +4 caused the crash — decoded handler + disassembled patched build + reasoned the shift boundary: YES
+- Used this build's actual instruction sequence; did not ignore stack breadcrumbs: YES
+- No KF/OPEN/CLOSED file modifications: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-004 (context; failure mode advanced past the watchdog-state-3 block; downstream address-error blocker identified; no status change)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+## [Andy — CORRECTION to KF-028 Crash Triage after Full-Resolution Image Review]
+
+* files changed: `docs/design/Andy_kf028_patched_rom_address_error_triage.md` (revised in place — outcome reclassified B→C), `AGENTS_LOG.md` (this correction append; the prior triage entry above is left intact per log rules)
+* build produced: NO
+* root cause confirmed: crash-screen numerics proven to be display artifacts; real fault location still unknown
+* no unrelated changes: YES
+
+Correction trigger: Tighe supplied the full-resolution crash image. The prior entry (immediately above) classified the crash as Outcome B and treated `FAULT PC=0x116` / `FAULT ADDR=0x196` as the real fault location, and called `VECTOR: C8` a transcription artifact. That was WRONG.
+
+What the full-res image proves: EVERY numeric field on the crash screen equals `row*128 + col*2` (the VRAM cursor offset of that field's own screen position), not the intended value. Root cause is a `crash_handler.s` display bug: `crash_set_cursor` leaves `row*128+col*2` in `%d2` and clobbers it, and every `crash_put_hexN_at` wrapper calls `crash_set_cursor` AFTER the caller loaded the value into `%d2`, so it prints the cursor offset. Verified field-by-field:
+- VECTOR r1c36 = 0xC8 ✓ (matches screen `C8` — NOT a transcription error; it is the literal buggy render)
+- FAULT PC r2c11 = 0x116 ✓; FAULT ADDR r3c11 = 0x196 ✓; SR r2c30 = 0x13C ✓
+- D0 r5c3 = 0x286 ✓; D1 r5c15 = 0x29E ✓; … all D/A/DEST/DIRTY/PAL_D/TILE_D/FRAME fields match `row*128+col*2`.
+
+Reliable fields only: the exception NAME ("ADDRESS ERROR", string-rendered) and the STACK DUMP (loaded via `(a2)+` into `%d2` AFTER the cursor set, then printed inline). The fault PC/addr ARE correctly stored in WRAM (`0xFF6806`, `0xFF6854`) by `_crash_common` but are never displayed.
+
+Reclassified Outcome: C — Crash-report decoding issue. The reported FAULT PC/ADDR do not identify the failing instruction. The earlier "executed the cartridge header at 0x116" narrative is WITHDRAWN (it rested on the bogus 0x116).
+
+What still holds (from reliable evidence, unchanged): exception is a genuine ADDRESS ERROR; the fix changed the failure mode; the stack dump (clean arcade addresses at 2-byte alignment: `0x3A274` [VBlank master-dispatch return], `0x3A27E`, `0x3ACCC` [title sub-state handler], `0x3BD68`, `0x3B292`) plus the live PC run segments place execution in the arcade VBlank master-dispatch / title sub-state machine — newly reached vs pre-fix. A-vs-B is now SUSPENDED pending recovery of the real fault PC.
+
+The crash-handler display bug is PRE-EXISTING (baseline `crash_handler.s`, below the +4 insertion point), not introduced by the KF-028 fix.
+
+KNOWN_FINDINGS impact: Option A — no update (was Option A before; unchanged). The display bug is better tracked as a code defect to fix than a KF entry.
+
+Recommended next task (revised): (1) Cody fix the `crash_handler.s` `%d2`-clobber display bug (preserve `%d2` across `crash_set_cursor`, or load the value after the cursor set), OR dump WRAM crash record `0xFF6804/0x6806/0x6854/0x6816..0x684E` at the halt to read the REAL fault PC/addr/registers; (2) re-triage A-vs-B with the genuine fault PC.
+
+Floor:
+- Files changed: only the triage design doc (revised) + this AGENTS_LOG append: YES
+- Prior triage entry left intact (correction appended, not overwritten): YES
+- No fix designed/applied; no bookmark; no runtime probing: YES
+- Correction made faithfully (prior conclusion was wrong; stated plainly): YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-004 (context; no status change)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+## [Cody — INFRASTRUCTURE, Open crash_handler.s Numeric-Renderer Defect]
+
+* files changed: `OPEN_ISSUES.md` (new `OPEN-015`), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (issue-tracking task; Andy's triage identified the diagnostic defect)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Issue opened:
+- `OPEN-015 — crash_handler.s numeric renderer prints cursor offsets instead of saved crash values`
+
+Rationale:
+- Andy's corrected KF-028 patched-ROM crash triage identified a project-wide diagnostic defect in `crash_handler.s`: `crash_put_hexN_at` loads a value into `%d2`, then calls `crash_set_cursor`, which clobbers `%d2` with `row*128 + col*2`, causing on-screen numeric fields to print cursor offsets instead of saved crash values.
+- Reliable crash-screen fields are the exception name and stack dump only; numeric fields such as `VECTOR`, `FAULT PC`, `FAULT ADDR`, `SR`, registers, and DEST/DIRTY/FRAME are not trustworthy until the renderer is fixed.
+- Workaround verified on 2026-06-17: reading the WRAM crash record directly recovered the real KF-028 patched-ROM crash values, including fault PC `0x0003BD68` and fault address `0x50205741`, after the on-screen render showed cursor-offset artifacts.
+
+Scope discipline:
+- Source unchanged: YES
+- Build run: NO
+- ROM modified: NO
+- Bookmark cycle: NO
+- Runtime probing: NO
+- KNOWN_FINDINGS modified: NO
+- Issues closed: NONE
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Rationale: this task only opens infrastructure tracking for a diagnostic-renderer defect; no new system-behavior finding is proposed.
+
+STOP triggered: NO
+
+## [Andy — KF-028 Re-triage with Real Crash Record: PC 0x0003BD68 / Fault Addr 0x50205741]
+
+* files changed: `docs/design/Andy_kf028_real_fault_triage.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* root cause confirmed: fault locus + mechanism localized (B); exact upstream id/descriptor source pending one caller trace
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Real crash record read from WRAM `0xFF6800` (only name + stack dump + WRAM record trusted; on-screen numerics remain bogus per prior triage):
+- Exception ADDRESS ERROR (type 3); Stacked SR `0x2700` (supervisor, IPM7 → inside VBlank ISR); Stacked PC `0x0003BD68`; Fault addr `0x50205741` (odd → addr error); IR `0x32C2`; SSW `0x000D` (WRITE, supervisor data).
+- Register-record caveat (2nd crash-handler bug): `_crash_common` overwrites d1-d5/a0 with frame values and `lea .Lhandler_pc_marker,%a1` before saving, so saved D0=type(3), D1=SR, D2=PC, D3=IR, D4=faultaddr, D5=SSW, A0=SP, A1=0x442(marker) are NOT at-fault regs; only D6/D7/A2-A6 are real (A2=0xC01C18, A3=0x050082, A5=0xFF0000). Real faulting a1 is lost; fault addr from frame is reliable.
+
+Disassembly (0x3bd48 routine, arcade-translated, BELOW 0x700c6 → unshifted, byte-identical to baseline): glyph/string renderer. `andiw #127,%d0; lslw #2,%d0` → idx; `lea 0x3bd7c,%a0; addaw %d0; moveal (a0),%a0` → a0=table[idx] (128 ROM descriptor ptrs); `moveal (a0)+,%a1` → a1=descriptor[0]=dest ptr; `movew %d2,(a1)+` at 0x3bd66 = faulting write (IR 0x32C2 matches); 0x3bd68 (movew %d0,(a1)+) = imprecise "next-instr" stacked PC.
+
+Faulting op + source: word WRITE through a1 at 0x3bd66; a1 = descriptor[0] = `0x50205741` = ASCII "P WA" = text/glyph data dereferenced as a destination pointer. table(0x3bd7c)+descriptors(0x3bcxx) are unshifted ROM, so the bad value is produced by the path being DRIVEN with an input that resolves table[idx] to text — input arrives from the title text-producer path the KF-028 fix newly enabled.
+
+Stack/call-context: consistent. main loop → Level-6 VBlank → master dispatch (pea 0x3a274) → title sub-state handler (0x3accc) → glyph renderer (0x3bd68) → addr-error write; SR=0x2700 confirms VBlank ISR. Matches KF-013.
+
+Outcome: B — Fix-revealed downstream issue. Wiring correct; execution advanced into newly-reached title text path; crash is a downstream glyph-renderer bug (text-as-pointer deref). Outcome A not supported (faulting routine/table/descriptors unshifted; no stale reference evidence) — speculative +4 audit not warranted.
+
+Recommended next task: trace the caller of glyph renderer `0x3bd48` from the title sub-state path (0x3accc) — what char/string-id (d0) it passes and the WRAM/ROM state computing it; read ROM table 0x3bd7c[idx] + the descriptor to confirm bad-index vs malformed-descriptor source of 0x50205741. Bounded to that. Secondary: Cody fix BOTH crash-handler defects (display %d2-clobber + register-save clobber) so future crash reports are trustworthy.
+
+KNOWN_FINDINGS impact: Option C — proposed KF-028 refinement (A-vs-B now classified as B): wiring changed failure mode to main-loop/VBlank/title; downstream ADDRESS ERROR write at `0x0003BD66` in glyph renderer `0x3bd48` (dest ptr = text `0x50205741`); not a layout-shift (unshifted ROM machinery); exact upstream id/descriptor source pending caller trace. STRONG (locus/write/text-as-pointer/unshifted) / WORKING_HYPOTHESIS (exact upstream root). Cross-ref KF-013. Cody applies after Tighe ack.
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No fix designed/applied; no bookmark; no runtime probing: YES
+- Did NOT trust on-screen numerics (only name + stack dump + WRAM record); did NOT assume 0x116/0x196 real; verified stacked-PC convention via IR=0x32C2: YES
+- Did NOT run +4 absolute-reference audit speculatively (no Outcome-A evidence): YES
+- A-vs-B classified (B) before proposing KF-028 refinement: YES
+- No KF/OPEN/CLOSED file modifications (KF-028 refinement is a proposal): YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-004 (context; downstream addr-error localized to glyph renderer 0x3bd48; no status change)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+## [Cody — INFRASTRUCTURE, Amend OPEN-015 with crash_handler.s Register-Record Reliability Defect]
+
+* files changed: `OPEN_ISSUES.md` (`OPEN-015` amended), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: N/A (issue-tracking amendment; Andy's real-fault triage identified the second diagnostic reliability defect)
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Verification:
+- Prior Cody AGENTS_LOG entry for opening `OPEN-015` was already present on disk before this follow-up.
+- `OPEN-015` now tracks both crash-handler reliability defects:
+  - numeric renderer defect: `crash_put_hexN_at` calls `crash_set_cursor`, which clobbers `%d2` with `row*128 + col*2`, so on-screen numeric fields print cursor offsets instead of saved values
+  - register-record defect: `_crash_common` decodes the group-0 frame into `d1-d5`, sets `a0=sp`, and sets `a1=.Lhandler_pc_marker` before saving registers, so saved `D0-D5/A0/A1` are frame/handler values; only `D6/D7/A2-A6` are genuine at-fault registers in this crash record
+
+Scope discipline:
+- Source unchanged: YES
+- Build run: NO
+- ROM modified: NO
+- Bookmark cycle: NO
+- Runtime probing: NO
+- KNOWN_FINDINGS modified: NO
+- Issues closed: NONE
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Rationale: this follow-up only amends issue tracking for crash-handler diagnostic reliability defects; no system-behavior finding is proposed.
+
+STOP triggered: NO
+
+## [Andy — KF-028 Caller Trace: Source of Bad Glyph-Renderer Input at 0x3BD48]
+
+* files changed: `docs/design/Andy_kf028_glyph_renderer_caller_trace.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* root cause confirmed: full fault chain proven; U3-vs-U2 provenance pending one check
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Closed the gap from the real-fault triage by identifying the active caller, d0 source, and table/descriptor path (all in unshifted arcade-translated ROM, byte-identical to baseline).
+
+Phase 1 — `0x3BD48` reached only by direct `bsrw` (~48 sites); no indirect/table route. Each caller sets d0 via a preceding `moveq #N`.
+
+Phase 2 — active caller (renderer is a leaf; top return address above the group-0 frame is the caller's): **`0x0003ACC8 bsrw 0x3bd48`**, return addr `0x3ACCC` = the prior reliable stack breadcrumb. STATICALLY_PROVEN. In the title sub-state handler (`0x3ACAE`/`0x3ACCC`; SR 0x2700 = VBlank ISR; KF-013).
+
+Phase 3 — d0 source: hardcoded `moveq #65,%d0` at `0x3ACC6` (static immediate, arcade-intended; part of the run 17,63,64,65,66,67,68,69,70). NOT WRAM/computed/uninitialized → rules out U1.
+
+Phase 4 — `idx = 65`; `table` base `0x3BD7C`; `table[65]` @ `0x3BE80` = `0x0003C246`; descriptor[0] @ `0x3C246` = bytes `50 20 57 41` = `0x50205741` = EXACTLY the recorded fault address ("P WA", odd → addr-error write at `0x3BD66`). Region `0x3C2xx` is ASCII text ("SELECT","WARP","1P","2P",spaces) → table[65] points into text data, not a descriptor header. Sampled other entries also lack valid Genesis dest pointers (table[0]→0x0B1E1E0C, table[63]→0x00003150, table[64]→0x8C200000). STATICALLY_PROVEN.
+
+Phase 5 — Upstream cause: **U3 — missing/incomplete translation** (primary): the title text-render descriptor table/data is arcade-origin verbatim and carries no valid Genesis destination pointers in descriptor[0]; renderer writes (attr,glyph) tilemap pairs to descriptor[0] as dest → garbage/odd → crash. Alternative **U2** (table mis-targets text / malformed descriptors). NOT U1, NOT layout shift (unshifted ROM). Consistent with prior Outcome B.
+
+Phase 6 — Recommended next task: determine descriptor/table provenance for the title-string indices — (1) how the `0x3BD7C` table + `0x3BCxx-0x3C2xx` descriptors are produced and how descriptor[0] dest is meant to be set/translated for Genesis; (2) cross-check arcade reference (arcade `0x3bb48` = Genesis `0x3bd48-0x200`) for how descriptor[0] resolves there. Pins U3-vs-U2 and the exact fix locus. Bounded; no +4 audit; no title-path survey. (Separately: Cody fix the two crash-handler defects.)
+
+KNOWN_FINDINGS impact: Option C — proposed KF-028 refinement (caller trace landed; full chain known): title sub-state handler `0x3ACC8` (d0=65) → table[65]=`0x3C246` (text) → descriptor[0]=`0x50205741` → odd-addr write at `0x3BD66`; descriptor table/data is unshifted arcade ROM with no valid Genesis dest pointers (U3; possibly U2). Full chain STATICALLY_PROVEN; U3-vs-U2 root WORKING_HYPOTHESIS pending provenance check. Cross-ref KF-013. Cody applies after Tighe ack.
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No fix designed/applied; no bookmark; no runtime probing; no +4 absolute-reference audit: YES
+- Trusted only exception name + stack dump + WRAM record (no on-screen numerics; did not assume 0x116/0x196 real): YES
+- Did NOT treat call-chain as proven before identifying the caller instruction (0x3ACC8 identified in disasm): YES
+- Searched beyond direct bsr/jsr for indirect routes (none found): YES
+- Upstream cause classified before proposing KF-028 refinement: YES
+- No KF/OPEN/CLOSED file modifications (KF-028 refinement is a proposal): YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-004 (context; downstream title-text crash chain fully traced to a descriptor-data/translation gap; no status change)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE
+
+## [Andy — KF-028 Title Text Descriptor Provenance: U3 vs U2]
+
+* files changed: `docs/design/Andy_kf028_title_text_descriptor_provenance.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* root cause confirmed: YES — U3, exact mechanism + fix locus identified
+* fix implemented: N/A
+* no unrelated changes: YES
+
+Question: is the title-text table/descriptor data untranslated arcade-origin (U3) or malformed/mis-targeted (U2)?
+
+Findings (Genesis = arcade + 0x200, KF-006):
+- Descriptors WERE relocated correctly: Genesis `0x3BE98` (=arcade 0x3BC98) = `00C08F4C | 0000 | "BEST…"`; Genesis `0x3C446` (=arcade 0x3C246) = `00C0914C | 0000 | "OTHERW…"`. Both well-formed `[long dest=0x00C0xxxx][word attr][text]`. STATICALLY_PROVEN.
+- The descriptor-pointer TABLE at `0x3BD7C` was NOT relocated: Genesis entries are IDENTICAL to arcade (`table[0]=0x0003BC98`, `table[65]=0x0003C246` in BOTH). So table[65] points 0x200 below the real relocated descriptor (0x3C446), into text `…"P WA"…` (0x50205741, odd) → fault. STATICALLY_PROVEN.
+- Arcade side is valid: arcade table[65]=0x3C246 → arcade descriptor[0]=0x00C0914C (valid even dest). The arcade data is correct; only the Genesis table pointers are stale.
+- Tooling gap: `tools/translation/postpatch_lenient.py` relocates absolute targets in INSTRUCTION operands (jsr/jmp; `absolute_rom_target_relocation`) but NOT absolute pointers embedded in DATA tables. The 0x3BD7C table is data → left at pre-relocation arcade values. The renderer reaches the table via PC-relative `lea %pc@(0x3bd7c)` (auto-relocated), so only the table's absolute contents are stale.
+
+Descriptor dest (0x00C0xxxx) is a hardware-region address, correctly NOT +0x200-relocated (outside ROM window), identical arcade↔Genesis. Only the table's ROM-range pointers (0x3Bxxxx–0x3C2xx) needed +0x200.
+
+Classification: **U3 — missing/incomplete Genesis translation** (un-relocated absolute descriptor-pointer table). NOT U2 (data valid, descriptors well-formed & correctly relocated), NOT layout shift, NOT U1.
+
+Exact fix locus: relocate the absolute descriptor-pointer table at Genesis ROM offset `0x3BD7C` by +0x200 per entry (128 longwords, ~0x3BD7C..0x3BF7C) so table[idx] → relocated descriptors (table[65]→0x3C446, dest 0x00C0914C, even). 
+
+Recommended next task (Cody, investigate→implement; not designed here): (1) relocate the 0x3BD7C table +0x200 via rastan_direct_remap.json/postpatch (confirm exact table length first); (2) SURVEY for other absolute data-pointer tables in the relocated blob with the same gap — postpatch only relocates instruction operands, so other embedded pointer tables are latent crashes. Separately: Cody fix the two crash-handler defects.
+
+KNOWN_FINDINGS impact: Option C — proposed KF-028 refinement with the U3 root (un-relocated 0x3BD7C table; descriptors correctly relocated; postpatch relocates instruction operands not data-pointer tables). STRONG/CONFIRMED. Flagged a possible GLOBAL KF for the general gap pending the table survey. Cody applies after Tighe ack.
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No source/spec/tool/Makefile/ROM modifications; no bookmark; no runtime probing; no +4 audit: YES
+- Trusted only exception name + stack dump + WRAM record (no on-screen numerics): YES
+- U3-vs-U2 classified before recommending fix: YES
+- Did NOT broaden into a general title-system survey (bounded to 0x3BD7C table + descriptor region + arcade ref): YES
+- KNOWN_FINDINGS.md NOT modified; no issues opened/closed: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-004 (context; title-text crash root = un-relocated descriptor-pointer table / translation-tool gap; no status change)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: NONE

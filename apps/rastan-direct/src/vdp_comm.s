@@ -155,6 +155,7 @@ sprite_dma_addr_high_bits_fix:
 
 _vblank_service:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+    bsr     rastan_direct_update_inputs
 
     moveq   #VDP_REG_MODE2, %d0
     moveq   #VDP_MODE2_DISPLAY_OFF, %d1
