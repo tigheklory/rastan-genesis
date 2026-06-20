@@ -14,6 +14,7 @@
     .global genesistan_hook_text_writer_3c830
     .global genesistan_hook_text_writer_3c950
     .global genesistan_hook_number_renderer_3c2e2
+    .global genesistan_hook_glyph_renderer_3bd48
     .global rastan_direct_update_inputs
 
     .global genesistan_shadow_input_390001
@@ -1040,6 +1041,54 @@ genesistan_hook_number_renderer_3c2e2:
 
 .Lnr3c2e2_read_done:
     movem.l (%sp)+, %d2/%d5-%d7
+    rts
+
+genesistan_hook_glyph_renderer_3bd48:
+    move.w  %d0, %d1
+    andi.w  #0x007F, %d0
+    lsl.w   #2, %d0
+    movea.l #0x0003BD7C, %a0
+    adda.w  %d0, %a0
+    movea.l (%a0), %a0
+    movea.l (%a0)+, %a1
+    move.w  (%a0)+, %d2
+    tst.b   %d1
+    bmi.s   .Lgr_space_mode
+
+.Lgr_glyph_loop:
+    move.b  (%a0)+, %d0
+    beq.s   .Lgr_done
+    ext.w   %d0
+    move.w  %d0, %d3
+    bsr     .Lgr_store_cell
+    bra.s   .Lgr_glyph_loop
+
+.Lgr_space_mode:
+    move.w  #0x0020, %d1
+.Lgr_space_loop:
+    move.b  (%a0)+, %d0
+    beq.s   .Lgr_done
+    move.w  %d1, %d3
+    bsr     .Lgr_store_cell
+    bra.s   .Lgr_space_loop
+
+.Lgr_done:
+    rts
+
+.Lgr_store_cell:
+    movem.l %d0-%d7/%a2-%a6, -(%sp)
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a5
+    lea     staged_fg_buffer, %a6
+
+    movea.l %a1, %a2
+    adda.w  #2, %a2
+    move.w  %d3, %d0
+    bsr     .Ltw_store_from_components_at_a2
+
+    movem.l (%sp)+, %d0-%d7/%a2-%a6
+    adda.w  #4, %a1
     rts
 
 genesistan_hook_text_writer_3c550:

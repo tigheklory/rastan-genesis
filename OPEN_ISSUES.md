@@ -293,6 +293,29 @@ Rules:
 
 ---
 
+## OPEN-016 — embedded absolute data-pointer tables are not relocated by +0x200
+
+- **Status:** OPEN
+- **Priority:** HIGH
+- **Discovered by:** Andy
+- **Observed in build/artifact:** KF-028 patched ROM crash, `docs/design/Andy_kf028_title_text_descriptor_provenance.md`
+- **Summary:** The title glyph-renderer descriptor table at Genesis `0x3BD7C` is a confirmed embedded absolute data-pointer table whose entries were not relocated by the `+0x200` identity offset when the arcade ROM blob moved into the Genesis image. The table entries are absolute ROM pointers into the relocated arcade blob, but they remain arcade addresses.
+- **Confirmed instance:** The glyph/string renderer at `0x3BD48` indexes the descriptor-pointer table at `0x3BD7C`. For index 65, `table[65]` is read from `0x3BE80`.
+- **Concrete example:**
+  - arcade descriptor index 65 = `0x3C246`
+  - relocated Genesis descriptor = `0x3C446`
+  - current Genesis `table[65]` incorrectly remains `0x3C246`
+  - Genesis `0x3C446` contains the valid descriptor header `0x00C0914C | 0x0000 | "OTHERW..."`
+- **Crash mechanism:** Because `table[65]` stayed stale at `0x0003C246`, the renderer read text bytes at Genesis `0x3C246` as `descriptor[0]`. Those bytes are `0x50205741` (`"P WA"`, odd-aligned), so the write at `0x3BD66` (`movew %d2,%a1@+`) address-errored when using text data as a destination pointer.
+- **Scope of impact:** This is a missing/incomplete Genesis translation of embedded absolute data-pointer tables. `postpatch_lenient.py` relocates absolute targets in instruction operands, but this confirmed table is data, not an instruction operand. Other embedded absolute data-pointer tables in the relocated arcade blob may also be stale and latent crash sources.
+- **Immediate fix direction:** Relocate the `0x3BD7C` descriptor-pointer table entries by `+0x200`, after confirming the exact table length.
+- **Immediate instance status (2026-06-18, Cody):** FIXED for the confirmed title glyph/string descriptor-pointer table instance only. Cody confirmed the actual table is 71 longwords (`0x03BD7C..0x03BE97` runtime Genesis), added a narrow `absolute_long_pointer_tables` entry in `specs/rastan_direct_remap.json`, and verified `table[65]` at `0x03BE80` now changes from `0x0003C246` to `0x0003C446`. See `docs/design/Cody_OPEN016_descriptor_pointer_table_relocation.md`.
+- **Broader follow-up:** Survey the relocated arcade blob for other embedded absolute data-pointer tables with the same unrelocated-pointer gap. This survey is needed after the immediate crash fix or alongside it, but was not performed when this issue was opened.
+- **Related findings/issues:** KF-028, KF-013, OPEN-001, OPEN-004, OPEN-015.
+- **Closure condition:** The `0x3BD7C` table is relocated correctly in the Genesis image, the KF-028 patched-ROM title-text crash no longer dereferences text bytes as a destination pointer, and a bounded survey either relocates or explicitly clears other embedded absolute data-pointer tables in the relocated arcade blob.
+
+---
+
 ## Prompt Template Requirement (mandatory for all Cody/Andy prompts)
 
 Before work:

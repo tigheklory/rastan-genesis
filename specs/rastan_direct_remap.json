@@ -101,6 +101,7 @@
     "genesistan_hook_text_writer_3c830",
     "genesistan_hook_text_writer_3c950",
     "genesistan_hook_number_renderer_3c2e2",
+    "genesistan_hook_glyph_renderer_3bd48",
     "genesistan_pc090oj_hook_target_3b902",
     "genesistan_pc090oj_hook_target_3b926",
     "genesistan_pc090oj_hook_target_3b930",
@@ -477,6 +478,12 @@
       "note": "Redirect title-path PC080SN xscroll clear write to Genesis staged BG X scroll mirror."
     },
     {
+      "arcade_pc": "0x03BB48",
+      "original_bytes": "32000240007FE54841FA002AD0C02050225834184A016B0C10186716488032C232C060F4323C00201018670632C232C160F64E75",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_glyph_renderer_3bd48}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
+      "note": "Route title glyph/string renderer at arcade_pc 0x03BB48 (runtime Genesis 0x03BD48) through Genesis FG staging hook; preserve descriptor loop semantics while preventing direct PC080SN FG C-window writes."
+    },
+    {
       "arcade_pc": "0x03C2E2",
       "original_bytes": "3E3C0000C0FC000A41FA0090D0C0301022680002246800060C40FFFF6700005208000000671212120241000F0041003032C732C1538A60101212E8090241000F0041003032C732C1534066D40C500006661C301022680002322900020C410030660C337C002000025889534066EA4E7512120241000F0C010007661A93FC0000000832C732FC004132C732FC004C32C732BC004C4E7570016086",
       "replacement_bytes": "4EB9{symbol:genesistan_hook_number_renderer_3c2e2}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
@@ -718,7 +725,15 @@
     }
   ],
   "rom_opcode_replace": [],
+  "absolute_long_pointer_tables": [
+    {
+      "table_address": "0x03BB7C",
+      "entry_count": 71,
+      "entry_size_bytes": 4,
+      "note": "OPEN-016/KF-028: title glyph/string descriptor-pointer table consumed at Genesis 0x03BD7C by renderer 0x03BD48. Relocate embedded source ROM descriptor pointers by +0x200; table ends before first descriptor at Genesis 0x03BE98."
+    }
+  ],
   "expectations": {
-    "opcode_replace_count": 94
+    "opcode_replace_count": 95
   }
 }
