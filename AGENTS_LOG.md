@@ -36911,3 +36911,351 @@ OPEN / KNOWN_FINDINGS impact:
 - Issues closed: NONE
 
 STOP triggered: NO
+
+## [Andy — Investigation Design, Build 0092 VDP/VBlank Refresh Frequency]
+
+* files changed: `docs/design/Andy_build_0092_vdp_vblank_refresh_frequency_investigation.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* root cause confirmed: NO (investigation design only)
+* fix designed: NO
+* no unrelated changes: YES
+* architecture compliance: CONFIRMED (violation criterion = Genesis-visible VDP churn, not arcade-VBlank execution)
+
+Phase 0: EXTENDING (downstream of OPEN-001/OPEN-016 graphics failure). Priors KF-028/013/011/010/004/006/001. No CONTRADICTION. KF-001 watchdog referenced (does not write VDP), not rediscovered.
+
+VDP write-path map: VDP_DATA=0xC00000, VDP_CTRL=0xC00004; VDP decodes 0xC00000-0xDFFFFF so PC080SN(0xC0xxxx)/scroll(0xC2/0xC4)/sprites(0xD0xxxx) alias VDP. Direct data-port writes (15 sites) almost all in `_vblank_service` commit helpers (0x70122/0x70160/0x701ae/0x701e4/0x701fa/0x70204/0x70218/0x70222) + boot/crash; control-port writes (22) = boot/crash reg sets + per-frame MODE2 toggle. Arcade PC080SN/scroll/sprite writes are REGISTER-INDIRECT (pointer=0xC0xxxx) → not in absolute greps → not statically enumerable. ~102 opcode_replace hooks redirect KNOWN writer functions to WRAM staging (staged_bg/fg_buffer, staged_sprite_sat, staged_scroll_*); any writer NOT in that set writes raw to VDP.
+
+Canonical contract (STATICALLY_PROVEN): `_vblank_service` (0x700C2, Level-6 vector) runs once/VBlank: MODE2 off → commit tiles/bg/fg/sprites/(palette if dirty)/scroll → MODE2 on → jmp 0x3A208. vdp_commit_*/vdp_set_reg called only from vdp_comm.s (no external callers). Display toggled once/frame; plane bases/mode set once at boot.
+
+Suspect paths: S1 (primary) unhooked register-indirect writers to 0xC0/C2/C4/D0 → raw VDP per frame (not statically enumerable; the deferred unhooked-writer survey); S2 commit re-entry/extra cycles; S3 extra display-enable toggles; S4 (FAIL-alt) bad staged data (descriptor/LUT/%a3/%a5/plane-base/palette/patterns). Watchdog 0x3A180 referenced (no VDP writes), not a suspect.
+
+Measurement spec for Cody (runtime, read-only emulator observer; no scaffolding): M1 watchpoints on VDP ports 0xC00000-0xC00007 (+mirrors 0xC08000/0xC20000/0xC40000/0xD00000), log (frame,PC,port,value) over ≥10 steady-state no-input frames; M2 classify writer PC canonical vs non-canonical; M3 per-frame counters (total writes / distinct PCs / non-canonical / reg-1 toggles / full commit cycles); M4 top-N non-canonical writers; M5 dump Plane A/B nametable + CRAM + staged_fg/bg_buffer at VBlank exit to distinguish churn (S1-S3) from bad-data (S4).
+
+Pass/fail: PASS if >1 commit cycle/frame, repeated mid-frame nametable/CRAM/display churn, non-canonical (esp. arcade-region) VDP-port writes, repeated display toggles, or racing producers. FAIL if exactly one commit cycle/frame, no non-canonical VDP writes, stable display/bases → S4 staged-data investigation.
+
+Static evidence sufficient to rule out hypothesis: NO — canonical path proven one-commit/VBlank, but unhooked register-indirect VDP-aliased writers are not statically enumerable → Cody runtime measurement required.
+
+KNOWN_FINDINGS impact: Option A — no update (design task; no new durable mechanism proven; refinement waits on measurement). KNOWN_FINDINGS.md not modified.
+
+Recommended next task: Cody runtime VDP-write profiling (M1-M5) over a no-input steady-state window; result selects next step (PASS → hook the offending unhooked writer; FAIL → S4 staged-data-correctness investigation).
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No source/spec/tool/Makefile/ROM modifications; no build; no runtime probing; no bookmark; no fix: YES
+- Did NOT re-inspect the Build 0092 video (read Cody's evidence doc as documentation): YES
+- Did NOT treat arcade-VBlank execution as the violation (criterion = VDP-visible churn): YES
+- Did NOT rediscover KF-001 watchdog (referenced as non-VDP); did not broaden to graphics rewrite; did not investigate Start→C→A; did not close OPEN-016/OPEN-001: YES
+- KNOWN_FINDINGS.md not modified: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-016 (active; not closed), OPEN-001 (active; the sparse-dot symptom; not closed), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start→C→A crash, OPEN-015 crash-handler fix
+
+### MAME Exit Summary (2026-06-20 10:53:29)
+- Final PC: 0x071AB2
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-20 10:54:00)
+- Final PC: 0x071AB2
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-20 10:54:34)
+- Final PC: 0x071AB2
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-20 10:55:02)
+- Final PC: 0x071AB2
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-20 10:59:06)
+- Final PC: 0x071AB4
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Runtime Measurement, Build 0092 VDP/VBlank Write Frequency Audit]
+
+* files changed: `docs/design/Cody_build_0092_vdp_vblank_frequency_audit.md` (new), `states/traces/build_0092_vdp_vblank_frequency_audit_20260620_105746/` (new read-only MAME/debugger evidence artifacts), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0092.bin`
+* ROM SHA verified: YES — `4cc782854a40ccf3333ec8ecbe40f71a7617201576c124b60b49e5008fdd20e2`
+* root cause confirmed: NO (runtime write-frequency measurement; M5 coherence dump not collected)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (OPEN-001/OPEN-016 graphics-output investigation downstream of KF-028)
+Phase 0 priors statement: produced; KF-028 / KF-013 / KF-011 / KF-010 / KF-004 / KF-006 / KF-001 loaded as priors/context
+Contradiction detected: NO
+
+Measurement run:
+- Existing Build 0092 ROM only; no build, no source/spec/tool/ROM/invariant changes
+- Read-only MAME/native-debugger watchpoint run completed with status `0`
+- Trace directory: `states/traces/build_0092_vdp_vblank_frequency_audit_20260620_105746/`
+- Native events extracted: `78,786`
+- VDP/VDP-aliased write events: `76,699`
+- VBlank entries/exits: `926` / `925` (final frame truncated by run end)
+
+Results:
+- Steady no-input samples at frames `590-610` and `890-910`: exactly `83` VDP-port writes/frame, `2` MODE2 reg1 writes/frame (`0x34` off, `0x74` on), and `1` VBlank entry/handoff per full frame
+- S2/S3 extra commit/display-toggle churn: NOT supported by collected M1-M4 evidence
+- Raw scroll/sprite mirror watchpoints (`0xC20000`, `0xC40000`, `0xD00000`) fired: `0`
+- Non-canonical PC080SN/FG C-window write observed: exactly `1` event — `runtime_genesis_pc 0x0003ACEA` (watchpoint post-PC `0x0003ACF2`) writes `0x2749` to `HW 0x00C09172`
+- This confirms one remaining direct C-window writer outside `_vblank_service`, but not repeated per-frame refresh-frequency churn
+
+M5 status:
+- Requested VRAM/CRAM/staged-buffer coherence dump at VBlank exit was NOT collected
+- Reason: existing read-only trace/debugger workflow captured write events/counters, but not synchronized VRAM/CRAM/staged memory snapshots without additional dump scripting or instrumentation
+- STOP-limited measurement gap recorded in the design note
+
+Assessment:
+- The repeated refresh-frequency / multiple-commit hypothesis is not supported by M1-M4
+- S1 is narrowly supported only as one direct unhooked C-window write presence (`0x0003ACEA`), not as broad churn
+- Next implementation focus should remain graphics-output correctness; likely next diagnostic direction is staged-data/content correctness, while preserving the direct `0x0003ACEA` writer as a concrete follow-up item
+
+KNOWN_FINDINGS impact: Option A — no update from this measurement alone; no durable mechanism-level graphics finding is fully settled because M5 was not captured.
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-016 (active), OPEN-001 (active), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start/C/A crash, OPEN-015 crash-handler fixes, source/tool changes, bookmark cycles
+
+STOP triggered: YES — limited to missing M5 coherence dump; M1-M4 were captured and documented.
+
+### MAME Exit Summary (2026-06-20 20:56:02)
+- Final PC: 0x000206
+- Stack Pointer (SP): 0x00FF0000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-20 20:56:15)
+- Final PC: 0x000206
+- Stack Pointer (SP): 0x00FF0000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-20 20:56:55)
+- Final PC: 0x070102
+- Stack Pointer (SP): 0x00FEFFBA
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-20 20:57:25)
+- Final PC: 0x071AB4
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-20 20:57:56)
+- Final PC: 0x070102
+- Stack Pointer (SP): 0x00FEFFB4
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-20 20:58:57)
+- Final PC: 0x070102
+- Stack Pointer (SP): 0x00FEFFBA
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Runtime Title-Screen Path Trace, Build 0092 First Failing Layer]
+
+* files changed: `docs/design/Cody_build_0092_title_screen_first_failing_layer.md` (new), `states/traces/build_0092_title_screen_first_failing_layer_20260620_205816/` (new snapshot/dump evidence artifacts), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0092.bin`
+* ROM SHA verified: YES — `4cc782854a40ccf3333ec8ecbe40f71a7617201576c124b60b49e5008fdd20e2`
+* root cause confirmed: PARTIAL (first failing layer identified)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (OPEN-001/OPEN-016 graphics-output investigation downstream of KF-028)
+Phase 0 priors statement: produced; KF-028 / KF-013 / KF-011 / KF-010 / KF-004 / KF-006 loaded as priors, with KF-001 as context only
+Contradiction detected: NO
+
+Snapshot methodology:
+- Existing Build 0092 ROM only; no build, no source/spec/tool/ROM/invariant changes
+- MAME debugger `go 70100` repeated to the 600th VBlank handoff, then debugger `dump` commands captured WRAM staging and LUT state
+- VBlank exit/handoff PC: `0x00070100`
+- No source instrumentation, no diagnostic counters, no diagnostic build, and no script modifications
+- Evidence directory: `states/traces/build_0092_title_screen_first_failing_layer_20260620_205816/`
+
+Gated layer results:
+- Layer 0 (title-state / runtime-progression gate): PASS — no-input steady-state window reached; Lua trace progressed through frames `000600-000630`; WRAM `0x00FF0000` sampled as `0x0000`
+- Layer 1 (producer staging gate): FAIL — `staged_fg_buffer` and `staged_bg_buffer` each contained `2048` words with `0` nonzero words at the sampled VBlank handoff; dirty flags were clear; tile and attr LUTs were populated
+- Layer 2 (commit-to-VRAM), Layer 3 (VDP-visible configuration), and Layer 4 (visual symptom correlation): NOT REACHED, per first-failing-layer discipline
+
+First failing layer: Layer 1 — Title-producer staging. At the sampled stable no-input VBlank handoff, the visible-plane staging buffers are empty before any downstream VRAM/VDP correctness question can be answered.
+
+Evidence artifacts:
+- `layer0_wram_state_ff0000.txt`
+- `layer1_flags_ff4000.txt`
+- `layer1_staged_bg_buffer_ff401a.txt`
+- `layer1_staged_fg_buffer_ff501a.txt`
+- `layer1_tile_vram_lut_0f1f2c.txt`
+- `layer1_attr_lut_0f9f2c.txt`
+- `layer1_staging_analysis.json`
+- `layer1_staging_analysis.md`
+
+KNOWN_FINDINGS impact: Option C proposed only — no `KNOWN_FINDINGS.md` edit in this task. Rationale: the evidence materially narrows Build 0092 graphics failure to the producer/staging layer, but canonical update should accompany the next mechanism-level fix or Claude/Tighe approval.
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-016 (active), OPEN-001 (active), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start/C/A crash, OPEN-015 crash-handler fixes, `0x0003ACEA` one-shot writer, broader unhooked-writer survey
+
+Recommended next task: bounded implementation investigation/fix for the title producer/staging path. Prove which title producer call should populate `staged_fg_buffer` / `staged_bg_buffer`, why both buffers remain empty at the stable no-input VBlank handoff, and patch the cause while preserving the existing VBlank ownership and commit architecture.
+
+STOP triggered: NO
+
+## [Andy — Static Audit, Single VBlank Lifecycle Placement]
+
+* files changed: `docs/design/Andy_build_0092_vblank_lifecycle_placement_audit.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* root cause confirmed: NO (audit/classification only)
+* fix designed: NO (bounded recommendation only)
+* no unrelated changes: YES
+* architecture compliance: CONFIRMED (single arcade-controlled VBlank lifecycle; classified evidentially)
+
+Phase 0: EXTENDING (tests validity of Cody's 0x70100 Layer-1 sample point). Priors KF-028/013/011/010/004/006/001. No contradiction.
+
+Single VBlank lifecycle map (STATICALLY_PROVEN): HW Level-6 (vector 0x78 → 0x700C2) → `_vblank_service`: [0x700C2 movem save] → [0x700C6 bsr 0x710CE = input-mirror update] → [DISPLAY OFF] → commits tiles(0x7010A)/bg(0x70134)/fg(0x70182)/sprites(0x719B4)/palette(if dirty, clr 0xff4000)/scroll(0x701F0) → [DISPLAY ON] → [0x70100 movem restore] → [0x70104 jmp 0x3A208 = arcade VBlank body] → master dispatch %a5@(0) at 0x3A256 → title sub-state handler → title PRODUCERS (glyph renderer 0x3BD48 + hooks) write staged_fg/bg_buffer → rte (0x3A27E).
+
+Two decisive facts:
+1. Within one lifecycle, COMMITS run BEFORE the arcade producers (deferred-commit pattern: commit prior frame's staging at VBlank start under display-off, then produce this frame's staging for next commit). Input update correctly precedes the producer body.
+2. Commits do NOT clear staging — vdp_commit_bg/fg_strips read staged_bg/fg_buffer into VDP_DATA and clear only the dirty flag (bclr → bg_row_dirty/fg_row_dirty); tiles clears tiles_dirty only. So staged content PERSISTS across frames until a producer overwrites it.
+
+Location of 0x70100: verified = `moveml %sp@+` restore immediately before `jmp 0x3A208`. After all commits + display-on + dirty-clears; before this lifecycle's producers.
+
+Should staged content exist at 0x70100? YES in steady state — producers run in the prior lifecycle (step 13), output persists through the commit (commit doesn't clear staging), so the prior frame's title cells should be present and equal to this frame's expected output. Empty across the steady window ⟹ producers genuinely not populating staging (dirty-clear at 0x70100 is expected post-commit state, not independent evidence).
+
+Classification: C — current placement semantically correct; empty-buffer evidence implies real producer failure. A ruled out (commit does NOT clear staging → no silent wipe at the sample point; deferred commit is legitimate, not wrongly front-loaded). B not indicated (input already before producers; commit/dirty-clear after prior producers). D not needed (placement fully determinable statically).
+
+Cody's Layer 1 conclusion validity: SUPPORTED. "Title producers do not populate staged_fg/bg_buffer" stands — the sample point captures persisted output and the commit does not clear staging.
+
+Recommended next task: producer trace (bounded) of the title producer→staging path in the arcade VBlank body — (1) is the title sub-state producer path reached each lifecycle (master %a5@(0)==0 → 0x3ABFE → handler → renderer)? (2) when the glyph renderer hook / FG-BG producers run, do they write staged_fg/bg_buffer — verify the Build 0092 OPEN-016 Part-2 fix actually set %a6=staged_fg_buffer + %a3/%a5 LUTs so the staging write lands (continuation of Andy_build_0091_helper_crash_triage; "no crash" ≠ "writes staging"); (3) do producer dests fall in the hooked C-window ranges (BG 0xC00000-0xC03FFF, FG 0xC08000-0xC0BFFF)? Preserves the single-lifecycle deferred-commit architecture; no rewrite.
+
+KNOWN_FINDINGS impact: Option C — proposed refinement of KF-011/KF-013 recording the explicit single-lifecycle ordering + the staging-persistence fact (commit clears only dirty flags, never the staged buffers; a post-commit/pre-producer sample validly reflects persisted producer output). STRONG/CONFIRMED. NOT applied (assess-only; Cody applies after Tighe ack).
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No source/spec/tool/Makefile/ROM modifications; no build; no runtime probing; no bookmark; no fix: YES
+- Single-lifecycle framing (no "Genesis VBlank vs arcade VBlank" as two lifecycles): YES
+- Did NOT pre-judge `_vblank_service` as scaffolding/wrong; classified evidentially (deferred commit is legitimate): YES
+- Did NOT drift into producer-tracing before classifying placement; did not broaden to graphics rewrite: YES
+- KNOWN_FINDINGS.md not modified; OPEN-001/OPEN-016 not closed: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; root narrowed to producer→staging), OPEN-016 (active; producer/staging path is the live thread; not closed), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start→C→A crash, OPEN-015 crash-handler fix, 0x0003ACEA one-shot writer, broader unhooked-writer survey
+
+## [Andy — Analysis, Build 0092 Title Producer to Staging Trace]
+
+* files changed: `docs/design/Andy_build_0092_title_producer_staging_trace.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: NO (P5 — static evidence insufficient; bounded runtime spec provided)
+* fix implemented: NO (fix locus only)
+* no unrelated changes: YES
+* architecture compliance: CONFIRMED (glyph renderer = arcade-called hook, RTS return; no Genesis control-flow ownership proposed)
+
+Disasm confirmed = Build 0092 (same mtime as ROM; hook fix `lea 0xff501a,%fp` at 0x70bd8 present).
+
+Producer chain (all links STATICALLY_PROVEN correct):
+- Steady state (Cody WRAM): %a5@(0)=0, %a5@(2)=1, %a5@(4)=2 → dispatch 0x3A256→0x3ABFE→0x3AC90→(%a5@(4)=2)→0x3AD00→jsr 0x712B4 (genesistan_palette_hook_03ab00 — PALETTE only; does NOT clear tilemap staging).
+- Title FG glyph producer = 0x3ACAE (runs only at %a5@(4)==1, one-shot); unconditional renders moveq #17/63/64/65/66/67/68/69/70 → bsrw 0x3BD48.
+- 0x3BD48 = `jsr 0x70B8E` (opcode-replaced → glyph hook). Dispatch CONFIRMED.
+- Phase 3: hook .Lgr_store_cell (0x70BC8) sets %a3=tile_vram_lut, %a5=attr_lut, %a6=staged_fg_buffer (0xff501a) before the store — Build 0091 fix present. Writes staging when run.
+- Phase 4: FG-range gate 0x707E4 accepts dest 0xC0914C (in [0xC08000,0xC0C000)). cwindow_clear (0x710D6, zeros both staging buffers) called only from 0x563B6 (game loop), NOT the steady title handler.
+- Phase 5: store 0x70794 (movew %d1,(%a6+%d2)) lands in-bounds in the 2048-word staged_fg_buffer.
+- Phase 6: Part-1 relocation intact — table[65]@0x3BE80=0x0003C446; descriptor 0x3C446 = dest 0x00C0914C, attr 0, glyph "OTHERW..." (non-empty).
+
+Classification: P5 — static evidence insufficient. Every static link is correct, and nothing clears staging in the steady title state, so IF 0x3ACAE executed its renders, staged_fg_buffer would be non-empty AND persist (commits clear only dirty flags). It is empty. Unresolvable statically because it turns on runtime execution history: (a) %a5@(4)=2 has FIVE writers (0x3a406/0x3a96a/0x3a9e6/0x3aa58/0x3acf8) — the steady (0,1,2) state does NOT prove 0x3ACAE ran; (b) Cody sampled only the steady window (~frame 600), far after the one-shot title-entry where the producer runs, so the producer execution is unobserved.
+
+Decisive evidence: the d0=17 render at 0x3ACB6 → 0x3BD48 → 0x70B8E → store 0x70794 should place the first nonzero word in staged_fg_buffer; statically it would; why it doesn't appear cannot be determined without observing the producer at title entry.
+
+P5 bounded runtime measurement (single MAME task; decides P1/P2/P3/P4): from reset through title-entry (frames ~0-120, not only 600): BP 0x3ACAE/0x3ACB6 (count + log %a5@(0/2/4)); BP 0x70794 (count/frame + log %a6/%d2/%d1); write-watchpoint WRAM 0xFF501A..0xFF601A (FG) and 0xFF401A..0xFF501A (BG) logging (frame,PC,offset,value). Decision: producer never runs → P1; runs but 0x70794 never hit → P2/P3 (range-gate/descriptor logs distinguish); 0x70794 writes then later filled with clear-cell → report clearing PC (fix locus = that clear); writes+persist but frame-600 read empty → re-examine the read.
+
+Fix locus (pending measurement): the title FG producer EXECUTION at entry (which %a5@(4)=2 writer fires; whether 0x3ACAE's render handler runs) — NOT the glyph hook (verified correct), NOT commit/clear placement (settled Classification C). Did NOT pre-blame the hook.
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. Verifies existing structure; lands at P5; no durable new fact until the runtime measurement resolves P1/P2/P3/P4.
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No source/spec/tool/Makefile/ROM modifications; no build; no runtime probing; no bookmark; no fix: YES
+- Verified disasm = Build 0092 before tracing (not stale): YES
+- Did NOT treat "no crash" as proof of staging write (verified the precondition directly): YES
+- Did NOT pre-blame the glyph hook; ruled out P3 (dispatch confirmed) / clear (steady handler palette-only); honest P5 with concrete bounded runtime spec rather than a forced P1-P4: YES
+- Address spaces labeled; single title-producer chain only (did not broaden to sprite/palette/scroll/BG-logo): YES
+- KNOWN_FINDINGS.md / OPEN_ISSUES.md not modified; no issues closed: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-016 (active; Part-1 intact + Part-2 hook precondition verified; live gap = producer execution at entry; not closed), OPEN-001 (active; narrowed; not closed), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start→C→A crash, OPEN-015 crash-handler fix, 0x0003ACEA one-shot writer, BG logo/artwork producer path, broader unhooked-writer survey
+
+### MAME Exit Summary (2026-06-22 16:03:23)
+- Final PC: 0x071AB4
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-22 16:04:42)
+- Final PC: 0x071AB4
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-22 16:07:28)
+- Final PC: 0x071AB4
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — EXTENDING, Build 0092 Title Producer Entry-Window Runtime Measurement]
+
+* files changed: `docs/design/Cody_build_0092_title_producer_runtime_measurement.md` (new), `states/traces/build_0092_title_producer_entry_window_trace_20260622_160411/` (reduced analysis classification corrected to P2 zero-cell output), `AGENTS_LOG.md` (this append; MAME workflow also appended exit summaries during the run)
+* build produced: NO
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0092.bin`
+* ROM SHA verified: YES — `4cc782854a40ccf3333ec8ecbe40f71a7617201576c124b60b49e5008fdd20e2`
+* root cause confirmed: YES — P2 zero-cell output in the title glyph/FG cell-composition path
+* fix implemented: NO (runtime evidence capture only)
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING. Relevant priors loaded: KF-028, KF-013, KF-011, KF-010, KF-004, KF-006, and KF-001 as context. Open issues touched: OPEN-016, OPEN-001, OPEN-015. Contradiction detected: NO.
+
+Measurement artifacts:
+- Main trace: `states/traces/build_0092_title_producer_entry_window_trace_20260622_160411/`
+- Component probe: `states/traces/build_0092_title_producer_component_probe_20260622_160657/`
+- Reduced report: `docs/design/Cody_build_0092_title_producer_runtime_measurement.md`
+
+Required evidence results:
+- `0x3ACAE` producer entry executed once at frame 212 with `%a5@(0/2/4)=0/1/1`.
+- `0x3ACB6` first render executed once at frame 212 with `d0=0x11`.
+- `0x707E4` FG range gate hit 258 times and `0x70816` accept path hit 258 times; no range rejection observed.
+- `0x70794` FG staging store hit 258 times with `%a6=0x00FF501A` and in-buffer offsets, but every store had `%d1=0x0000`.
+- FG staging watchpoint saw 2306 writes and 0 nonzero writes.
+- BG staging was observe-only: 9944 writes and 0 nonzero writes; no BG producer investigation performed.
+- Only `%a5@(4)=2` writer site observed was `0x3ACF8`; the alternate writer sites did not fire.
+
+Resolved class: P2 — producer emits no nonzero staged cells (zero-cell output). This is not P1 (producer non-reach), not P3 (range rejection), and not P4 (later clear), because the producer runs, the accepted store lands in `staged_fg_buffer`, and no nonzero cell is ever produced.
+
+Component probe finding: tile LUT results become nonzero after `0x707D2` (example `d7_tile=0x001F`), but by `0x707E0` the final composed cell is `d1_cell=0x0000`; the zero value is then written at `0x70794`. Evidence points to cell-value composition before the FG staging write.
+
+KNOWN_FINDINGS impact: Option C — proposed KF-028 refinement only. `KNOWN_FINDINGS.md` was not modified.
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-016 (active; live gap now zero-cell composition output), OPEN-001 (active; graphics still fail), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start/C/A crash, OPEN-015 crash-handler defects, BG producer path, `0x3ACEA` direct writer, sprites/palette/scroll/general graphics, broader unhooked-writer survey
+
+STOP triggered: NO.
