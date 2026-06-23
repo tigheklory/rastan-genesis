@@ -37259,3 +37259,279 @@ Open/Closed Issues Impact:
 - Issues intentionally deferred: Start/C/A crash, OPEN-015 crash-handler defects, BG producer path, `0x3ACEA` direct writer, sprites/palette/scroll/general graphics, broader unhooked-writer survey
 
 STOP triggered: NO.
+
+## [Andy — Analysis, Build 0092 FG Cell-Composition Diagnosis]
+
+* files changed: `docs/design/Andy_build_0092_fg_cell_composition_diagnosis.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES (F4 — proven from disasm + register lifecycle)
+* fix implemented: NO (fix locus + shape only)
+* no unrelated changes: YES
+* architecture compliance: CONFIRMED (register-preservation correctness fix in an arcade-called helper; no Genesis control-flow ownership)
+
+Phase 0: EXTENDING (KF-028/OPEN-016). No CONFIRMED/STRONG KF contradiction ("text writers reported working" is a task premise, not a KF — refuted statically, as the prompt invited).
+
+Fix-locus classification: F4 — attr lookup clobbers the tile register.
+
+Loss instruction: runtime_genesis_pc 0x707DE `movew %d7,%d1` (= tilemap_hooks.s:645 `move.w %d7,%d1`). It reads %d7 after %d7 was clobbered by `.Ltw_translate_attr`.
+
+Mechanism (STATICALLY_PROVEN, disasm + source):
+- `.Ltw_compose_d1_from_d0_d2` (0x707C6 / tilemap_hooks.s:634): 0x707CE (line 638) loads tile into %d7 = tile_vram_lut[d0]; 0x707DA (line 643) bsr `.Ltw_translate_attr`; 0x707DE (line 645) movew %d7,%d1; 0x707E0 (line 646) or.w %d2,%d1.
+- `.Ltw_translate_attr` (0x70752 / tilemap_hooks.s:578-605) uses %d7 as scratch 3× (move.w %d2,%d7 at lines 582/589/596), NO save/restore (no movem; exit %d7=((d2>>13)&1)<<4). So tile (loaded at line 638) is destroyed before line 645 reads it.
+- Stored cell d1 = clobbered-%d7 | attr_lut[%d2]; tile-index bits absent → 0x0000 when attr_lut value is 0. Runtime corroborated (d7 0x001F→0x00).
+
+Helper register contract (.Ltw_store_from_components_at_a2): %d0=tile/glyph index, %d2=raw attr word, %a3=tile_vram_lut, %a5=attr_lut, %a6=staged_fg_buffer, %a2=dest C-window addr. Tile carried internally in %d7, contract ASSUMES %d7 survives `.Ltw_translate_attr` — it does not (the defect).
+
+Glyph-hook vs text-writer comparison: BOTH enter the SAME label `.Ltw_store_from_components_at_a2` → `.Ltw_compose_d1_from_d0_d2` → `.Ltw_translate_attr`. Glyph hook `.Lgr_store_cell:1088`; text writers `_3c550:1116`/`_3c586:1209/1223` → `.Ltw_write_pair_same:672` → same helper. So the known-good hooks would NOT survive the glyph hook's path — they take it identically. The "text writers reported working" premise is REVISED: per static analysis they share the d7-clobber (may only appear to render where attr_lut≠0, producing wrong-tile cells). USER MUST VERIFY text-writer visual output.
+
+Ruled out: F1 (glyph-hook contract mismatch — its a3/a5/a6/d0/d2 setup matches text writers), F2 (wrong entry label — both use the same label), F5 (compose reads the correct register — d1 is right; the problem is d7 is clobbered before the read). Not F6 (mechanism proven statically).
+
+Fix shape (no implementation): locus `.Ltw_compose_d1_from_d0_d2`/`.Ltw_translate_attr`. Option A (byte-neutral, PREFERRED): change `.Ltw_translate_attr` scratch from %d7 to a free reg (e.g. %d3), leaving the tile in %d7 — pure register rename, 0-byte delta, no invariant shift; follow-on MUST confirm the chosen reg is free across all `.Ltw_store_from_components_at_a2` callers. Option B (fallback): preserve %d7 across the call (`move.w %d7,-(%sp)` before line 643; `move.w (%sp)+,%d1` at line 645) — +2/+4 bytes → shifts subsequent 0x70xxx addresses + total_genesis_bytes_covered (0x17CAF0) + absolute refs (OPEN-016-class re-relocation), needs invariant pre-authorization. Do NOT touch store/range/offset code (verified correct).
+
+KNOWN_FINDINGS impact: Option C — proposed refinement to KF-028 recording the proven zero-cell root cause (shared FG compose clobbers tile %d7 via `.Ltw_translate_attr`; affects glyph + text-writer hooks; fix = preserve the tile register). STRONG. NOT applied (assess-only; Tighe/Chad Sr. approve).
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No source/spec/tool/Makefile/ROM modifications; no build; no runtime probing; no fix written: YES
+- Did the MANDATORY glyph-hook-vs-text-writer comparison BEFORE assigning the F-class; did not assume the attr-clobber — proved it from disasm+source: YES
+- Did NOT reopen producer reachability / range acceptance / staging base / commit placement; single compose path + caller only: YES
+- Address spaces labeled; KNOWN_FINDINGS.md / OPEN_ISSUES.md not modified; no issues closed: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-016 (active; zero-cell root cause proven + fix locus named; not closed), OPEN-001 (active; narrowed; not closed), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start→C→A crash, OPEN-015 crash-handler fix, BG producer path, 0x3ACEA direct writer, sprites/palette/scroll, broader unhooked-writer survey, text-writer visual re-verification
+
+## [Cody — Analysis, FG Cell-Composition Fix Liveness Audit — STOP, Option B Proposed]
+
+* files changed: `docs/design/Cody_build_0092_fg_cell_composition_fix.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A
+* root cause confirmed: YES (F4, pre-proven)
+* fix implemented: NO (NOT-SAFE; Option B proposed, awaiting explicit approval)
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (KF-028 / OPEN-016). Relevant priors loaded: KF-004, KF-006, KF-010, KF-011, KF-013, KF-028. Open issues touched: OPEN-016, OPEN-001, OPEN-015. Contradiction detected: NO. Architecture compliance: CONFIRMED.
+
+Phase A liveness verdict: NOT-SAFE. No byte-neutral replacement scratch register for `.Ltw_translate_attr` is proven safe across the complete caller set.
+
+Caller inventory:
+- Direct `.Ltw_translate_attr` callers: `genesistan_hook_text_writer_3c4d2` at `tilemap_hooks.s:515`, `549`, `563`; shared compose at `tilemap_hooks.s:643`.
+- `.Ltw_compose_d1_from_d0_d2` caller: `.Ltw_store_from_components_at_a2` at `tilemap_hooks.s:630`.
+- `.Ltw_store_from_components_at_a2` callers include `.Ltw_write_pair_same`, `genesistan_hook_glyph_renderer_3bd48.Lgr_store_cell`, `genesistan_hook_text_writer_3c950`, `genesistan_hook_number_renderer_3c2e2`, and text writer paths `_3c586`, `_3c636`, `_3c6dc`, `_3c75c`, `_3c830`.
+- `.Ltw_write_pair_same` callers include text writers `_3c550`, `_3c586`, `_3c636`, `_3c6dc`, `_3c75c`, `_3c7a4`, `_3c830`.
+
+Candidate table:
+- `%d0`: NOT-SAFE — direct `3c4d2` callers need `%d0` after attr translation as tile/LUT result.
+- `%d1`: NOT-SAFE — attr-index accumulator inside `.Ltw_translate_attr`.
+- `%d2`: NOT-SAFE — raw attr input and attr-LUT output.
+- `%d3`: NOT-SAFE — direct `3c4d2` slow path tests `%d3` after attr call (`cmpi.b #0x50,%d3`), and shared callers use it as loop/state.
+- `%d4`: NOT-SAFE — direct `3c4d2` slow path uses `%d4` after attr calls (`cmpi.w #4,%d4`, `addq.w #1,%d4`, `cmpi.w #5,%d4`), and shared callers use it as offset/counter.
+- `%d5`: NOT-SAFE — row state for `.Ltw_store_cell`.
+- `%d6`: NOT-SAFE — column state for `.Ltw_store_cell`.
+- `%d7`: NOT-SAFE — tile-carrying register; current clobber is the defect.
+
+Inner/outer safety summary: `%d3/%d4` do not appear inside runtime range `0x70752..0x7081E`, but the helper does not save them. Direct `genesistan_hook_text_writer_3c4d2` slow-path callers and several shared-helper caller loops keep `%d3/%d4` live across the call, so a pure register rename would leak the clobber to callers.
+
+Option A implementation: NOT performed. Source/spec/tool/Makefile/ROM/invariant files were not modified. No build was run.
+
+Option B proposed shape (separate approval required): preserve `%d7` across the attr call in `.Ltw_compose_d1_from_d0_d2` by inserting `move.w %d7,-(%sp)` before `bsr .Ltw_translate_attr`, and replacing `move.w %d7,%d1` with `move.w (%sp)+,%d1`. This preserves the tile value without requiring a globally free scratch register.
+
+Projected Option B invariant impact:
+- Expected byte delta: `+2` bytes.
+- Current checked-in gate values: opcode_replace count `95`, total_genesis_bytes_covered `0x17CB58`.
+- Projected current-source-of-truth coverage after Option B: `0x17CB5A`; opcode_replace count remains `95`.
+- Prompt's `0x17CAF0` value is stale relative to current gates; same `+2` delta would be `0x17CAF2` only if using that stale textual baseline.
+- `address_map.json` would regenerate; helper addresses after the insertion point in the `0x70xxx` region would shift by `+2`, so absolute references into shifted helpers require re-relocation verification.
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. F4 is already proven; this task produced a liveness-gate STOP and proposed Option B only.
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-016 (active; byte-neutral F4 fix blocked, Option B proposed), OPEN-001 (active graphics context), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start/C/A crash, OPEN-015 crash-handler defects, BG producer path, `0x3ACEA`, sprites/palette/scroll/general graphics, broader unhooked-writer survey, Option B implementation
+
+STOP triggered: YES — Phase A could not prove any safe byte-neutral scratch register.
+
+## [Cody — Implementation Attempt, FG Cell-Composition Fix (Option B) — STOP at Invariant Gate]
+
+* files changed: `apps/rastan-direct/src/tilemap_hooks.s` (approved Option B source edit), `tools/translation/postpatch_startup_rom.py` and `tools/translation/verify_canonical_rom.py` (pre-authorized invariant expectation changed to `0x17CB5A`), `docs/design/Cody_fg_cell_composition_fix_implementation.md` (new STOP report), `AGENTS_LOG.md` (this append)
+* build produced: NO — release invocation stopped before numbered artifact production
+* ROM path: N/A
+* root cause confirmed: YES (F4, pre-proven)
+* fix implemented: source edit applied, but no ROM artifact produced and runtime verification not performed because the invariant gate STOP fired
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (KF-028 / OPEN-016). Relevant priors loaded: KF-004, KF-006, KF-010, KF-011, KF-013, KF-028. Open issues touched: OPEN-016, OPEN-001, OPEN-015. Contradiction detected: NO. Architecture compliance: CONFIRMED.
+
+Diff applied exactly as authorized in `.Ltw_compose_d1_from_d0_d2`:
+- inserted `move.w %d7,-(%sp)` immediately before `bsr .Ltw_translate_attr`
+- replaced `move.w %d7,%d1` with `move.w (%sp)+,%d1`
+- did not touch `.Ltw_translate_attr`, store/range/offset code, caller setup, VBlank, BG, Start/C/A, OPEN-015, sprites, palette, or scroll
+
+Gate constants were updated from `0x17CB58` to authorized `0x17CB5A` in both canonical invariant files before the build.
+
+Build command run exactly once:
+`source tools/setup_env.sh && make -C apps/rastan-direct release`
+
+STOP failure:
+`RuntimeError: Build 0029 invariant failure: expected total_genesis_bytes_covered=0x17CB5A and opcode_replace patched_site count=95; got total_genesis_bytes_covered=0x17CB58 opcode_replace patched_site count=95. build_context=canonical.`
+
+Counters/artifacts:
+- `build/rastan-direct/build_counter.txt`: stayed `92`
+- `dist/release_counter.txt`: stayed `350`
+- Build 0093 ROM: NOT produced
+- rolling `apps/rastan-direct/dist/rastan_direct_video_test.bin`: deleted by Make failure behavior
+
+Static failed-build evidence before generated intermediates were restored: assembled ELF showed intended instructions at runtime helper site (`0x707DA: movew %d7,%sp@-`, `0x707E0: movew %sp@+,%d1`) and the downstream helper shifted by `+2`; however, the guarded `total_genesis_bytes_covered` metric did not change from `0x17CB58`, so the authorized invariant condition was not met.
+
+Address map / relocation guard: fresh `address_map.json` was not generated because postpatch stopped at the invariant gate. Existing `build/rastan-direct/address_map.json` remains prior Build 0092 evidence and was not used as verification for this attempt.
+
+Runtime verification: NOT performed because no ROM artifact was produced.
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. F4 remains proven; this task stopped at build invariant verification before runtime evidence.
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-016 (active; Option B source edit applied but blocked by invariant STOP), OPEN-001 (active graphics context), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start/C/A crash, OPEN-015 crash-handler defects, BG producer path, `0x3ACEA`, sprites/palette/scroll/general graphics, broader unhooked-writer survey, runtime verification
+
+STOP triggered: YES — observed coverage `0x17CB58` did not match authorized `0x17CB5A`; no workaround or second build attempted.
+
+### MAME Exit Summary (2026-06-22 18:19:44)
+- Final PC: 0x071AB2
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation Follow-up, Build 0093 FG Cell-Composition Fix (Option B) Build — STOP at Static Guard]
+
+* files changed: `tools/translation/postpatch_startup_rom.py` and `tools/translation/verify_canonical_rom.py` (mistaken `0x17CB5A` invariant reverted to `0x17CB58`), `docs/design/Cody_fg_cell_composition_fix_build.md` (new), `AGENTS_LOG.md` (this append); approved Option B source edit in `apps/rastan-direct/src/tilemap_hooks.s` remains present in workspace
+* build produced: YES — but artifact does **not** contain the Option B source edit
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0093.bin`
+* ROM SHA256: `4cc782854a40ccf3333ec8ecbe40f71a7617201576c124b60b49e5008fdd20e2`
+* root cause confirmed: YES (F4, pre-proven)
+* fix implemented: source edit remains applied; produced ROM did NOT incorporate it, so implementation verification STOPPED
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (KF-028 / OPEN-016). Relevant priors loaded: KF-004, KF-006, KF-010, KF-011, KF-013, KF-028. Open issues touched: OPEN-016 and OPEN-001; OPEN-015 context only. Contradiction detected: NO. Architecture compliance: CONFIRMED.
+
+Gate-metric definition: `total_genesis_bytes_covered` is the sum of finalized address-map segment sizes and must equal final ROM length; in `rastan-direct`, the native helper area is represented as one `genesis_only` wrapper segment from `wrapper_start` to `len(rom_bytes)`, not as per-symbol helper spans (`postpatch_startup_rom.py:643-683`, `1958-1974`, `1979-2006`). Therefore native-helper instruction growth only affects this metric if final ROM length changes.
+
+Constant correction:
+- `CANONICAL_TOTAL_GENESIS_BYTES_COVERED` reverted from `0x17CB5A` to `0x17CB58` in both canonical gate files.
+- `CANONICAL_OPCODE_REPLACE_COUNT` stayed `95`.
+
+Build command run exactly once:
+`source tools/setup_env.sh && make -C apps/rastan-direct release`
+
+Build result:
+- `GATE_PASS`
+- build counter advanced `92 -> 93`
+- numbered artifact: `dist/rastan-direct/rastan_direct_video_test_build_0093.bin`
+- SHA: `4cc782854a40ccf3333ec8ecbe40f71a7617201576c124b60b49e5008fdd20e2`
+- invariant result: `total_genesis_bytes_covered=0x17CB58`, `opcode_replace patched_site count=95`
+
+STOP static guard:
+- Build 0093 SHA is byte-identical to Build 0092 (`4cc78285...`).
+- Produced disassembly still shows old cell-compose sequence at `0x707DA`: `bsrw 0x70752`; `0x707DE: movew %d7,%d1`; no `move.w %d7,-(%sp)` / `move.w (%sp)+,%d1`.
+- Required `+2` helper-address shift and absolute-reference verification could not be verified in the produced artifact.
+- Timestamp evidence shows `apps/rastan-direct/out/tilemap_hooks.o` was newer than `apps/rastan-direct/src/tilemap_hooks.s`, so the release invocation linked a stale object and did not reassemble the edited source.
+
+Runtime verification: NOT performed. Because the produced ROM does not contain the fix, title-entry runtime tracing would only re-measure prior Build 0092 behavior (258 stores at `0x70794`, all `%d1=0x0000`).
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. No ROM containing the fix and no runtime evidence were produced.
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-016 (active; source edit present but artifact did not include it), OPEN-001 (active graphics context), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start→C→A crash, OPEN-015 crash-handler defects, BG producer path, `0x3ACEA`, sprites/palette/scroll/general graphics, broader unhooked-writer survey, runtime verification
+
+STOP triggered: YES — relocation/static guard failed because the produced Build 0093 ROM is byte-identical to Build 0092 and lacks the Option B instructions. No workaround or second build attempted.
+
+### MAME Exit Summary (2026-06-22 18:30:55)
+- Final PC: 0x071AB2
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-22 18:35:06)
+- Final PC: 0x071AB2
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build-Integrity Fix + Build 0094, tilemap_hooks Rebuild Dependency]
+
+* files changed: `apps/rastan-direct/Makefile` (assembler object rebuild invalidation), `apps/rastan-direct/src/tilemap_hooks.s` (approved Option B source retained), generated Build 0094 artifacts and trace outputs, `docs/design/Cody_tilemap_hooks_rebuild_dependency_fix.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: YES
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0094.bin`
+* ROM SHA256: `558c88b39b359af7ee1f2cee1fa2318dde34b20ebfab7d25e25c0a18e0a819e2`
+* root cause confirmed: YES — F4 cell-composition bug plus stale assembler-object build-integrity defect
+* fix implemented: YES — Option B source remained applied; Makefile now forces assembler objects to rebuild so stale `.o` files cannot shadow edited `.s` sources in release builds
+* no unrelated changes: YES
+
+Phase 0 classification: INFRASTRUCTURE with EXTENDING verification tail. Relevant priors loaded: KF-004, KF-006, KF-010, KF-011, KF-013, KF-028. Open issues touched: OPEN-016 and OPEN-001; OPEN-015 context only. Contradiction detected: NO. Architecture compliance: CONFIRMED.
+
+Build-integrity cause:
+- Build 0093 was invalid because `apps/rastan-direct/out/tilemap_hooks.o` was newer than `apps/rastan-direct/src/tilemap_hooks.s` but stale, so `make release` linked an object that did not contain the Option B source edit.
+- This is a CLOSED-008 sibling recurrence in build determinism/stale-input discipline, not the same missing `.incbin` prerequisite root.
+
+Build-rule fix:
+- Added `FORCE_ASM_REBUILD` as a normal prerequisite for assembled object rules in `apps/rastan-direct/Makefile`.
+- The release build reassembled all assembler objects, including `tilemap_hooks.o`, before linking.
+
+Build 0094:
+- Command run exactly once: `source tools/setup_env.sh && make -C apps/rastan-direct release`
+- Result: PASS (`GATE_PASS`)
+- Build counter advanced `93 -> 94`
+- Numbered ROM: `dist/rastan-direct/rastan_direct_video_test_build_0094.bin`
+- Rolling ROM: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+- SHA: `558c88b39b359af7ee1f2cee1fa2318dde34b20ebfab7d25e25c0a18e0a819e2`
+- Not byte-identical to Build 0092 / invalid Build 0093 (`4cc782854a40ccf3333ec8ecbe40f71a7617201576c124b60b49e5008fdd20e2`)
+
+Static validity gate:
+- Produced disassembly contains Option B at runtime `0x707D2..0x707E4`: preserve tile low bits, save translated tile word on stack, call `.Ltw_translate_attr`, restore tile word to `%d1`, OR attr bits from `%d2`, return.
+- `opcode_replace` patched-site count: `95`
+- `total_genesis_bytes_covered`: `0x17CB58`
+- Address-map coverage: no gaps or overlaps; wrapper segment remains `0x070000..0x17CB58`.
+- Reference guard: shared store entry `0x707BC` and store instruction `0x70794` unchanged; shifted helper references are coherent (`0x707C0 -> 0x707E6`, glyph per-cell callers -> `0x70BCA`).
+
+Runtime verification:
+- Trace directory: `states/traces/build_0094_title_producer_entry_window_trace_20260622_183218/`
+- Producer `0x3ACAE`: 1 hit
+- First render `0x3ACB6`: 1 hit
+- FG range gate: 258 hits
+- FG range accept: 258 hits
+- FG store `0x70794`: 258 hits
+- `%a6=0x00FF501A` for all stores; all `%d2` offsets in `staged_fg_buffer` range
+- Nonzero composed `%d1` stores: 213
+- Zero `%d1` stores: 45
+- Crash halt hits: 0
+
+Before/after comparison:
+- Build 0092 producer trace: 258 FG stores, all `%d1=0x0000`.
+- Build 0094 producer trace: 258 FG stores, 213 nonzero composed cells.
+- Raw `C/R/E/D/I` bytes are visible at the range-gate stage in `%d0`; at `0x70794`, `%d1` is correctly a composed Genesis cell/tile word, not literal ASCII.
+
+Release 30s trace:
+- `states/traces/rastan_direct_video_test_build_0094_mame_30s_20260622_183048/`
+- Completed normally with no unique unmapped memory addresses.
+
+KNOWN_FINDINGS impact: Option A — No new finding to index. KF-028 already records the path; this task fixed build integrity and verified the previously scoped Option B implementation in a real artifact.
+
+Open / Closed Issues Impact:
+- Open issues touched: OPEN-016 (active; Option B now present and runtime-verified in Build 0094), OPEN-001 (active graphics context), OPEN-015 (context only)
+- Closed issues touched: CLOSED-008 (context/sibling recurrence only; not reopened)
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Start/C/A crash, OPEN-015 crash-handler defects, BG producer path, `0x3ACEA`, sprites/palette/scroll/general graphics, broader unhooked-writer survey, visual acceptance testing
+
+STOP triggered: NO.

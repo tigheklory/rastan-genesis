@@ -58,7 +58,7 @@ PREPATCH_BIN := $(OUT_DIR)/rastan_direct_video_test.prepatch.bin
 BIN := $(DIST_DIR)/rastan_direct_video_test.bin
 
 .DELETE_ON_ERROR:
-.PHONY: all clean release
+.PHONY: all clean release FORCE_ASM_REBUILD
 
 all: $(BIN)
 release: $(BIN)
@@ -66,16 +66,16 @@ release: $(BIN)
 $(OUT_DIR) $(DIST_DIR):
 	@mkdir -p $@
 
-$(OUT_DIR)/boot.o: $(SRC_DIR)/boot/boot.s | $(OUT_DIR)
+$(OUT_DIR)/boot.o: $(SRC_DIR)/boot/boot.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s | $(OUT_DIR)
+$(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s | $(OUT_DIR)
+$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s | $(OUT_DIR)
+$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(PC090OJ_REGION): $(REGION_BUILDER)
@@ -88,13 +88,13 @@ $(PC090OJ_PRECONV): $(PC090OJ_REGION) $(ROOT)/tools/translation/preconvert_pc090
 $(PC090OJ_SLOT_LUT): $(ROOT)/tools/translation/build_pc090oj_slot_lut.py
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_slot_lut.py" --output "$@"
 
-$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s | $(OUT_DIR)
+$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_PRECONV) $(PC090OJ_SLOT_LUT) | $(OUT_DIR)
+$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_PRECONV) $(PC090OJ_SLOT_LUT) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/diag_bookmark.o: $(SRC_DIR)/diag_bookmark.s | $(OUT_DIR)
+$(OUT_DIR)/diag_bookmark.o: $(SRC_DIR)/diag_bookmark.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/scene_load.o: \
@@ -105,13 +105,14 @@ $(OUT_DIR)/scene_load.o: \
 	$(ROOT)/build/pc080sn_scene_preload_title.bin \
 	$(ROOT)/build/pc080sn_scene_preload_gameplay.bin \
 	$(ROOT)/build/pc080sn_scene_preload_endround.bin \
-	| $(OUT_DIR)
+		FORCE_ASM_REBUILD \
+		| $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/sound_comm.o: $(SRC_DIR)/sound/sound_comm.s | $(OUT_DIR)
+$(OUT_DIR)/sound_comm.o: $(SRC_DIR)/sound/sound_comm.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/z80_driver.o: $(SRC_DIR)/sound/z80_driver.s | $(OUT_DIR)
+$(OUT_DIR)/z80_driver.o: $(SRC_DIR)/sound/z80_driver.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(ELF): $(OBJS)

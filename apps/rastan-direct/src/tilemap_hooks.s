@@ -640,9 +640,10 @@ genesistan_hook_text_writer_3c4d2:
     move.w  %d2, %d1
     andi.w  #0x01FF, %d1
     move.w  %d1, %d2
+    move.w  %d7, -(%sp)
     bsr     .Ltw_translate_attr
 
-    move.w  %d7, %d1
+    move.w  (%sp)+, %d1
     or.w    %d2, %d1
     rts
 
