@@ -1,3 +1,16 @@
+# TODO.md
+
+## Build 0094 Current TODO
+
+1. **Graphics-only diagnostic for title/attract completion.** Classify each missing/incomplete visual element through producer -> staging -> clear/dirty -> VBlank commit -> tile-pattern availability -> palette -> plane/priority/scroll.
+2. **Later gameplay-start exception triage.** Tighe reports gameplay start can reach the exception handler. Do not trust on-screen crash fields under OPEN-015; recover fault data from the WRAM crash record before analysis.
+3. **Later real-hardware compatibility task.** Build 0094 does not currently run on real Genesis hardware (OPEN-017). Keep this separate from graphics completion unless evidence ties them.
+4. **Later ledger/KF cleanup if routing remains.** Revisit only if future evidence changes issue ownership or contradicts current KFs.
+
+---
+
+## Historical Deferred Item
+
 [Deferred] Investigate BlastEm DFFFFE write crash
 
 Observed:

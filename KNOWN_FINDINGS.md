@@ -451,6 +451,52 @@ Last verified: 2026-06-19 (Build 0091 / OPEN-016 Part 2 ROM)
 
 ---
 
+
+## KF-029 — Build 0094 FG cell-composition fix produces nonzero staged cells
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED
+- **Applicability:** BUILD_SPECIFIC (Build 0094, `rastan-direct`)
+- **Rediscovery Hazard:** HIGH (treat as canonical prior unless contradicted by explicit evidence)
+- **Addresses:** title producer `runtime_genesis_pc 0x0003ACAE`; first render call `runtime_genesis_pc 0x0003ACB6`; FG store `runtime_genesis_pc 0x00070794`; compose-site instructions `runtime_genesis_pc 0x000707DA`, `0x000707DC`, `0x000707E0`; FG range gate `runtime_genesis_pc 0x000707E6`; staged FG buffer `WRAM 0x00FF501A`
+- **Source Documents:** docs/design/Cody_tilemap_hooks_rebuild_dependency_fix.md; states/traces/build_0094_title_producer_entry_window_trace_20260622_183218/title_producer_runtime_analysis.md; docs/design/Cody_fg_cell_composition_fix_build.md
+- **Related Issues:** OPEN-016, OPEN-001
+- **Last verified:** 2026-06-22 (Build 0094)
+
+**Finding.** In Build 0094 (`dist/rastan-direct/rastan_direct_video_test_build_0094.bin`, SHA256 `558c88b39b359af7ee1f2cee1fa2318dde34b20ebfab7d25e25c0a18e0a819e2`), preserving `%d7` across `.Ltw_translate_attr` in `.Ltw_compose_d1_from_d0_d2` fixes the previously observed zero-cell mechanism. The produced ROM contains the Option B instructions at `0x707DA` (`move.w %d7,-(%sp)`), `0x707DC` (`bsr 0x70752`), and `0x707E0` (`move.w (%sp)+,%d1`). Runtime title-entry trace records producer `0x3ACAE` hit once, first render `0x3ACB6` hit once, FG range gate `0x707E6` hit 258 times, and FG store `0x70794` hit 258 times with `%a6=0x00FF501A` and in-buffer offsets. Build 0094 produced 213 nonzero composed `%d1` stores and 45 zero stores; Build 0092 had 258 stores all `%d1=0x0000`.
+
+**Use as prior.** Store-time `%d1` at `0x70794` is a composed Genesis cell word, not raw ASCII. Do not expect literal text bytes at the store point. The 45 zero stores are a raw observed count only and are not classified as a defect without further evidence.
+
+## KF-030 — `total_genesis_bytes_covered` is finalized address-map coverage, not per-helper semantic growth
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED
+- **Applicability:** GLOBAL (current `rastan-direct` postpatch invariant model)
+- **Rediscovery Hazard:** HIGH (treat as canonical prior unless contradicted by explicit evidence)
+- **Addresses:** invariant `total_genesis_bytes_covered`; `genesis_only` wrapper segment `0x070000..len(rom_bytes)`
+- **Source Documents:** docs/design/Cody_fg_cell_composition_fix_build.md; docs/design/Cody_tilemap_hooks_rebuild_dependency_fix.md; tools/translation/postpatch_startup_rom.py:643-683; tools/translation/postpatch_startup_rom.py:1958-1974; tools/translation/postpatch_startup_rom.py:1979-2006
+- **Related Issues:** CLOSED-008, OPEN-016
+- **Last verified:** 2026-06-22 (Build 0094)
+
+**Finding.** `total_genesis_bytes_covered` is the sum of finalized address-map segment coverage and must equal final ROM length. In `rastan-direct`, the native helper area is represented as one `genesis_only` wrapper segment, not as per-helper symbol spans. Helper-local instruction growth does not move `total_genesis_bytes_covered` unless final ROM length changes.
+
+**Use as prior.** Do not treat helper-local semantic growth as requiring a `total_genesis_bytes_covered` change. Verify the produced ROM's bytes/disassembly and branch references directly when helper-local code shifts inside the wrapper segment.
+
+## KF-031 — Build 0093 stale assembler object recurrence and Build 0094 assembler rebuild hardening
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED
+- **Applicability:** BUILD_SPECIFIC (invalid Build 0093 / fixed Build 0094) / ERA_SPECIFIC (Makefile timestamp-based assembler rules before Build 0094 hardening)
+- **Rediscovery Hazard:** HIGH (treat as canonical prior unless contradicted by explicit evidence)
+- **Addresses:** stale object `apps/rastan-direct/out/tilemap_hooks.o`; edited source `apps/rastan-direct/src/tilemap_hooks.s`; Build 0093 SHA `4cc782854a40ccf3333ec8ecbe40f71a7617201576c124b60b49e5008fdd20e2`; Build 0094 SHA `558c88b39b359af7ee1f2cee1fa2318dde34b20ebfab7d25e25c0a18e0a819e2`
+- **Source Documents:** docs/design/Cody_fg_cell_composition_fix_build.md; docs/design/Cody_tilemap_hooks_rebuild_dependency_fix.md; CLOSED_ISSUES.md (CLOSED-008 post-closure addendum)
+- **Related Issues:** CLOSED-008, OPEN-016
+- **Last verified:** 2026-06-22 (Build 0094)
+
+**Finding.** Invalid Build 0093 linked a stale `tilemap_hooks.o` that was newer than the edited `tilemap_hooks.s`, producing a ROM byte-identical to Build 0092 despite the source edit. Build 0094 fixed this sibling build-integrity recurrence by forcing assembler object rebuilds and verified that the produced ROM contains the Option B compose-site instructions.
+
+**Use as prior.** Classify this as a sibling recurrence of CLOSED-008's stale-input/determinism class, not the same original missing-`.incbin` prerequisite root. For assembler-source changes in this era, verify the produced ROM/disassembly rather than trusting source diffs alone.
+
 ## Deferred Candidates Appendix
 
 **This appendix is NOT canonical priors. Entries here are pre-canonical observations that did not meet promotion criteria at the time of the most recent curation pass. They may be promoted, refined, or rejected in future curation passes.**

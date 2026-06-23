@@ -1,3 +1,55 @@
+# GRAPHICS_STATUS.md
+
+## Build 0094 Snapshot (Current, 2026-06-22)
+
+This section supersedes the pre-Build-0094 status notes below for current planning. Older percentage claims and C-helper/prototype language are retained only as historical context.
+
+### Proven Build 0094 Evidence
+
+- ROM: `dist/rastan-direct/rastan_direct_video_test_build_0094.bin`
+- SHA256: `558c88b39b359af7ee1f2cee1fa2318dde34b20ebfab7d25e25c0a18e0a819e2`
+- Build 0094 is not byte-identical to Build 0092/0093.
+- Option B FG cell composition is present at runtime `0x707DA` / `0x707DC` / `0x707E0`.
+- Runtime title-entry trace: producer `0x3ACAE` hit once; first render `0x3ACB6` hit once; FG store `0x70794` hit 258 times with `%a6=0x00FF501A` and in-buffer offsets.
+- FG composition is no longer all-zero: Build 0094 produced 213 nonzero composed `%d1` stores out of 258. The remaining 45 zero stores are a count only and are not classified as a defect.
+
+### User-Visual Working Observations
+
+- Text renders.
+- Large TAITO logo partly renders.
+- Credits work.
+- Attract mode proceeds.
+- Coin/start input works.
+
+### User-Visual Not Working Observations
+
+- Sword/logo artwork is absent.
+- TAITO logo is incomplete / missing tiles.
+- Text is not cleared between attract states.
+- Scrolling/item page shows rows of dots.
+- Starting gameplay later reaches the exception handler; specific on-screen crash fields are not trusted under OPEN-015 until verified from WRAM.
+- Build 0094 does not currently run on real Genesis hardware (tracked as OPEN-017).
+
+### Next Graphics Diagnostic
+
+Run a graphics-only diagnostic for Build 0094 title/attract completion. Classify each missing/incomplete element through:
+
+1. producer execution
+2. staging writes
+3. clear/dirty behavior
+4. VBlank commit
+5. tile-pattern availability
+6. palette
+7. plane/priority/scroll
+
+Do not assert sprite/BG/FG/palette completion percentages without current Build 0094 evidence.
+
+---
+
+## Historical / Pre-Build-0094 Content (Superseded)
+
+The content below predates the Build 0094 validated FG cell-composition fix and current user-visual observations. It is preserved for traceability only.
+
 
 # 🧠 CURRENT GRAPHICS SYSTEM STATUS (REALISTIC VIEW)
 

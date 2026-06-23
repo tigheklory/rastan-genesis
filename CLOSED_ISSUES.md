@@ -128,6 +128,9 @@ Closure note format:
 - **Originally fixed:** Build 0061 Makefile dependency fix (`docs/design/Cody_build60_regression_fix_and_audit.md`)
 - **Systematically prevented going forward:** by determinism gate active on every ROM-producing build
 
+
+**Post-closure addendum (2026-06-22, Build 0094):** Build 0093 exposed a sibling stale-object recurrence: `apps/rastan-direct/out/tilemap_hooks.o` was newer than the edited `apps/rastan-direct/src/tilemap_hooks.s`, so Make linked stale bytes and produced a ROM byte-identical to Build 0092 despite the source edit. This was NOT the original CLOSED-008 missing-`.incbin` prerequisite root. Build 0094 fixed the sibling path by forcing assembler object rebuilds and verified the produced ROM contained the Option B instructions at runtime `0x707DA` / `0x707DC` / `0x707E0`.
+
 ---
 
 ## CLOSED-009 — Postpatch invariant model + diagnostic symbol allowlist + gate context-awareness

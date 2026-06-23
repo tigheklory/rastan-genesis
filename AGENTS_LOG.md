@@ -37535,3 +37535,423 @@ Open / Closed Issues Impact:
 - Issues intentionally deferred: Start/C/A crash, OPEN-015 crash-handler defects, BG producer path, `0x3ACEA`, sprites/palette/scroll/general graphics, broader unhooked-writer survey, visual acceptance testing
 
 STOP triggered: NO.
+
+## [Cody — Documentation Sync, Build 0094 Project State]
+
+* files changed: `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, `GRAPHICS_STATUS.md`, `CLOSED_ISSUES.md`, `CURRENT_STATE.md`, `TODO.md`, `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A (documentation-only task)
+* root cause confirmed: N/A (ledger/documentation sync)
+* fix implemented: N/A (no code/source/spec/tool changes)
+* no unrelated changes: YES
+
+Phase 0 classification: INFRASTRUCTURE. Relevant priors loaded from `KNOWN_FINDINGS.md`; issues touched: OPEN-001, OPEN-016, OPEN-015, CLOSED-008, and new OPEN-017. Contradiction detected: NO. Architecture compliance: CONFIRMED; arcade code remains the program and this task made documentation updates only.
+
+Documentation sync results:
+- OPEN-001 updated from stale Build-59 blank-output/bootstrap wording to current Build 0094 title/attract incomplete-graphics state. It remains OPEN.
+- OPEN-016 updated with Build 0094 status: descriptor table immediate instance fixed, glyph renderer routed into FG staging, Build 0091 helper-base crash fixed, and Build 0094 validates Option B zero-cell runtime fix. It remains OPEN pending broader data-pointer-table survey and visual acceptance.
+- OPEN-015 updated with Build 0094 gameplay-start exception discipline: on-screen crash fields remain unreliable unless verified from WRAM crash record; gameplay crash deferred relative to graphics completion.
+- OPEN-017 added for Tighe's user-visual/hardware observation that Build 0094 does not currently run on real Genesis hardware.
+- KF-029 added for confirmed Build 0094 FG cell-composition validation (213 nonzero composed stores at `0x70794` vs Build 0092 all-zero stores).
+- KF-030 added for confirmed `total_genesis_bytes_covered` definition as finalized address-map coverage / final ROM length, not per-helper semantic growth.
+- KF-031 added for confirmed Build 0093 stale assembler object recurrence and Build 0094 assembler rebuild hardening.
+- GRAPHICS_STATUS.md marked stale pre-Build-0094 content historical and added current Build 0094 snapshot.
+- CURRENT_STATE.md rewritten around the Build 0094 baseline.
+- TODO.md updated to current graphics-only diagnostic priority, later WRAM-verified gameplay crash triage, and later real-hardware compatibility.
+- CLOSED-008 received a post-closure addendum for the sibling stale-object recurrence; it was not reopened.
+
+Proven facts and user-visual observations were kept separate. No specific gameplay-start fault PC, fault address, or vector was recorded because OPEN-015 makes on-screen crash fields unreliable. The 45 zero stores were recorded only as a count and not characterized as a defect.
+
+Open / Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-015, OPEN-016, OPEN-017
+- Closed issues touched: CLOSED-008 addendum only
+- New issues opened: OPEN-017
+- Issues closed: NONE
+- Issues intentionally deferred: gameplay-start exception triage, OPEN-015 crash-handler fix, broader embedded data-pointer-table survey, real-hardware compatibility investigation after current graphics focus
+
+KNOWN_FINDINGS impact: KF-029, KF-030, and KF-031 added. No existing KF was rewritten.
+
+STOP triggered: NO.
+
+## [Cody - Diagnostic, Build 0094 Attract Text-Clear Lifecycle]
+
+* files changed: `docs/design/Cody_build_0094_attract_text_clear_lifecycle_diagnostic.md`, `states/traces/build_0094_attract_text_clear_lifecycle_20260622_231814/` (runtime evidence artifacts), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0094.bin`
+* ROM SHA256: `558c88b39b359af7ee1f2cee1fa2318dde34b20ebfab7d25e25c0a18e0a819e2`
+* root cause confirmed: YES - classification E for the observed title/attract text-clear lifecycle gap
+* fix implemented: NO (diagnostic-first task)
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING. Relevant priors loaded: KF-028, KF-013, KF-011, KF-010, KF-004, KF-006, and KF-001 as context. Open issues touched: OPEN-001 active, OPEN-016 context, OPEN-015 do-not-touch. Contradiction detected: NO. Architecture compliance: CONFIRMED.
+
+Runtime evidence:
+- Trace directory: `states/traces/build_0094_attract_text_clear_lifecycle_20260622_231814/`
+- MAME/debugger workflow used as read-only runtime observation; no ROM instrumentation and no build.
+- Input script pulsed P1 A at frames 520-522 and held P1 Start at frames 640-700.
+- `0x0003ACAE` title text producer executed once at frame 211.
+- `0x0003ACB6` first render call executed once at frame 211 with `d0=0x11`.
+- `0x00070794` FG staging store executed 401 times, 313 with nonzero cell values, and wrote through `%a6=0x00FF501A` (`staged_fg_buffer`).
+- VBlank FG commit executed each frame and committed 26 dirty FG rows; commit clears dirty flags only and does not clear staging.
+- `0x000563B6` clear caller, `0x000710D8` cwindow clear entry, and `0x00071130` clear done were not observed.
+- The trace reached crash-handler halt at frame 699; gameplay exception cause was not investigated.
+
+VDP-vs-WRAM clear finding:
+- Static source/disassembly proves `genesistan_hook_cwindow_clear` clears both WRAM staging buffers (`staged_bg_buffer` and `staged_fg_buffer`) and marks dirty rows when reached.
+- The known clear helper is not a VDP-only clear and not wrong-range for BG/FG staging.
+- In the observed title/attract transition, no clear helper ran before text was produced and committed into persistent staging.
+
+Classification: E - no arcade clear exists at the title/attract text transition; the correct fix target is a translation-layer WRAM staging clear at the semantic transition point. A is partially true for the observed path, but E is the tighter classification because the missing clear is a Genesis staging lifecycle obligation with no direct arcade staging-buffer equivalent. B/C are not supported for the known clear helper; D is not proven because no clear was observed before later producer/staging replay in this run.
+
+Two-transition comparison:
+- Title/attract entry (`0x3ACAE -> 0x3ACB6`): producer/render observed, FG staging stores observed, no clear observed.
+- Input-driven game-start attempt: A/Start input sent; trace halted before `0x563B6`/`0x710D8`; no clear observed before halt. Tighe's user-visual game-start clear/redraw source remains unidentified by this run. Crash analysis intentionally deferred.
+
+Recommended next fix target: prove the exact title/attract semantic boundary where prior text should stop existing, then add a production translation-layer WRAM tilemap staging clear and dirty-row marking there. Candidate boundary starts with the observed one-shot title/attract producer entry path at `runtime_genesis_pc 0x0003ACAE`; follow-on attract producer `0x0003AD08` needs separate observation before inclusion. Do not clear per frame, do not bypass producers, and do not modify gameplay exception handling.
+
+BG relevance: possible, because the clear helper clears both BG and FG staging when reached; BG/logo/artwork producer correctness was not investigated in this task.
+
+Open / Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-016, OPEN-015 context only
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: gameplay-start exception, OPEN-015 crash-handler defects, BG artwork producer path, TAITO logo completeness, sprites/palette/scroll, dot rows, broader unhooked-writer survey
+
+KNOWN_FINDINGS impact: Option C candidate only; `KNOWN_FINDINGS.md` not edited. Candidate refinement: Build 0094 title/attract text producers can populate persistent Genesis FG staging without a semantic translation-layer clear at the title/attract text transition; the known `cwindow_clear` helper is WRAM-backed but was not reached in the observed transition.
+
+STOP triggered: NO. Scope boundary honored; gameplay exception used only as halt boundary and not diagnosed.
+
+## [Cody - Diagnostic, Build 0094 Text-Clear Boundary Proof]
+
+* files changed: `docs/design/Cody_build_0094_text_clear_boundary_proof.md`, `states/traces/build_0094_text_clear_boundary_proof_20260623_111454/` (runtime evidence artifacts), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0094.bin`
+* ROM SHA256: `558c88b39b359af7ee1f2cee1fa2318dde34b20ebfab7d25e25c0a18e0a819e2`
+* root cause confirmed: NO for game-start redraw (NOT-REPRODUCED); YES for the currently proven title/attract boundary set remaining `0x0003ACAE` only
+* fix implemented: NO (diagnostic-only task)
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING. Relevant priors loaded: KF-028, KF-029, KF-013, KF-011, KF-010, KF-004, KF-006, and KF-001 as context. Open issues touched: OPEN-001 active, OPEN-016 context, OPEN-015 do-not-touch. Contradiction detected: NO. Architecture compliance: CONFIRMED.
+
+Runtime evidence:
+- Trace directory: `states/traces/build_0094_text_clear_boundary_proof_20260623_111454/`
+- Existing MAME/debugger workflow used as read-only runtime observation; no ROM instrumentation and no build.
+- Prior diagnostic timing referenced: P1 A frames 520-522; P1 Start frames 640-700.
+- Attempt 1 timing: P1 A frames 520-525; P1 Start frames 1080-1140. Result: `0x3AD08`, `0x563B6`, `0x710D8`, and `0x71130` all 0 hits; crash halt 1 hit.
+- Attempt 2 timing: no P1 A and no P1 Start, long no-input attract/title window interrupted after 2042 VBlank entries. Result: `0x3AD08`, `0x563B6`, `0x710D8`, and `0x71130` all 0 hits; crash halt 0 hits.
+- Attempt 3 timing: P1 A frames 520-525; P1 Start frames 1800-1880. Result: `0x3AD08`, `0x563B6`, `0x710D8`, and `0x71130` all 0 hits; crash halt 1 hit.
+- Common observed boundary: `0x0003ACAE` and first render `0x0003ACB6` each executed once; `0x0003ACF8` advanced `%a5@(4)` from 1 to 2.
+
+Boundary observations:
+- Follow-on attract producer `runtime_genesis_pc 0x0003AD08` was not observed in a long no-input window with 2042 VBlank entries.
+- Game-start clear path `runtime_genesis_pc 0x000563B6 -> 0x000710D8 -> 0x00071130` was not observed under the tuned game-start timings tried.
+- Post-clear WRAM staging contents were not observed because no clear event occurred.
+- The B-vs-D-vs-already-cleared discriminator for the user-visual game-start clear/redraw could not be measured because no post-clear runtime interval was captured.
+
+Classification: NOT-REPRODUCED for the game-start redraw. The user-visual observation remains labeled user-visual only: near game start, the screen visibly clears, then stale attract/title text redraws for 1-2 frames before exception. This task did not reproduce that clear path as runtime events and therefore does not classify it as SAME-E or SEPARATE-D.
+
+Proven boundary set: `runtime_genesis_pc 0x0003ACAE` only. `0x0003AD08` and the game-start clear path are not proven implementation boundaries from this evidence.
+
+Recommended implementation target: if proceeding to implementation, target only the proven title/attract producer boundary at `runtime_genesis_pc 0x0003ACAE` for a production translation-layer WRAM tilemap staging clear plus dirty-row marking. Do not include `0x3AD08` or a separate game-start boundary without further runtime proof. Do not clear per frame, bypass arcade producers, or use the gameplay exception path as placement evidence.
+
+Open / Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-016, OPEN-015 context only
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: gameplay-start exception, OPEN-015 crash-handler defects, BG artwork producer path, TAITO logo completeness, sprites/palette/scroll, dot rows, broader unhooked-writer survey, real-hardware compatibility
+
+KNOWN_FINDINGS impact: Option A - no update. This task adds bounded non-observation evidence and preserves the prior E-class candidate refinement, but it does not prove a new durable mechanism beyond the already established title/attract staging lifecycle gap.
+
+STOP triggered: NO. The clear path not being reached is reported as NOT-REPRODUCED, not treated as a STOP. Gameplay exception used only as halt boundary and not diagnosed.
+
+## [Cody - Documentation Addendum, Build 0094 Manual Video Reachability Correction]
+
+* files changed: `docs/design/Cody_build_0094_text_clear_boundary_proof.md`, `states/screenshots/mame_build_94_unique_screens/unique_screens_report.md`, `states/screenshots/mame_build_94_unique_screens/unique_screens_summary.json`, `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A (documentation/evidence correction only)
+* root cause confirmed: NO (addendum scopes prior NOT-REPRODUCED result; no new runtime diagnosis)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Correction applied:
+- Manual MAME video evidence proves the coin-up/start visual path was reachable outside the scripted boundary-proof trace.
+- Valid manual-video sequence: coin accepted at frame `000371` / `12.333s`; `PUSH 1 OR 2 PLAYER BUTTON` at frame `000411` / `13.667s`; start clear at frame `000473` / `15.733s`; stale redraw at frame `000474` / `15.767s`; second clear at frame `000477` / `15.867s`; `ROUND` at frame `000534` / `17.767s`.
+- The previous Build 0094 boundary-proof **NOT-REPRODUCED** classification is now explicitly scoped narrowly: the scripted runtime trace did not reproduce the manual coin-up/start path. It must not be cited as evidence that the game-start clear/redraw is absent, unreachable, or irrelevant.
+- The gray arrow-with-line visible in extracted screenshots/contact-sheet cells is documented as host overlay contamination and must be ignored as game evidence.
+
+Implementation guardrail added:
+- Before any implementation claiming to address game-start redraw, collect a video-anchored runtime trace across the observed manual frames (`000473`-`000477`) to distinguish surviving `staged_fg_buffer`, producer re-emission, VDP residue, or clear/dirty ordering.
+- The exception remains a halt boundary only; on-screen crash PC/address/vector must not be recorded as proven without debugger-side or WRAM crash-record verification.
+
+Open / Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-016, OPEN-015 context only
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: game-start redraw implementation, gameplay exception triage, OPEN-015 crash-handler fix
+
+KNOWN_FINDINGS impact: Option A - no update. This is a documentation/evidence-scope correction and does not establish a new durable mechanism.
+
+STOP triggered: NO.
+
+## [Cody - Evidence Capture, Build 0094 Debug Video 30 FPS Pane Report]
+
+* files changed: `states/screenshots/build_94_debug_30fps/` (new 30 FPS extraction, unique debug frames, pane crops, contact sheets, JSON summary, report), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: N/A (video evidence capture only)
+* root cause confirmed: NO (evidence/correlation only)
+* fix implemented: NO
+* no unrelated changes: YES
+
+Evidence source:
+- Video inspected: `states/screenshots/build_94.mp4`
+- Resolution/framerate: `5118x1396`, `30 FPS`
+- Duration/frames: `40.100s`, `1203` frames
+- Full extraction: `states/screenshots/build_94_debug_30fps/all_frames/`
+- Unique debug frames: `states/screenshots/build_94_debug_30fps/unique_debug_frames/`
+- Pane crops: `states/screenshots/build_94_debug_30fps/pane_crops/`
+- Report: `states/screenshots/build_94_debug_30fps/build_94_debug_capture_report.md`
+
+Captured debug panes:
+- Main game output
+- VDP image/palette side window
+- VDP CRAM memory editor
+- VDP VRAM memory editor
+- VDP Port Monitor
+- Four VDP Plane Viewer windows
+- Main 68000 Registers window
+
+Correlated visible sequence:
+- `000114` / `3.767s`: TAITO logo/copyright
+- `000223` / `7.400s`: attract story / `INSERT COIN S`
+- `000924` / `30.767s`: coin accepted / `PUSH ONLY 1 PLAYER BUTTON`
+- `000977` / `32.533s`: start clear / partial bottom residue
+- `000981` / `32.667s`: stale redraw / `PUSH 1 OR 2 PLAYER BUTTON`
+- `001035` / `34.467s`: second clear / mostly blank
+- `001090` / `36.300s`: `ROUND` visible before exception
+- `001093` / `36.400s`: exception handler visible
+
+Debug-pane observations:
+- At `ROUND` frame `001090`, VDP Plane A contains the visible text/round scene; Plane B, Window, and Sprites are blank/black.
+- At exception frame `001093`, VDP Plane A contains the exception text; Plane B and Sprites remain blank/black; Window shows thin vertical marks.
+- Register-window values were transcribed for frames `000981`, `001090`, and `001093` in the report.
+- VDP Port Monitor / CRAM / VRAM crops were preserved for every unique state and summarized in the report.
+
+Cautions:
+- Host cursor/arrow contamination in the video is ignored as non-game output.
+- On-screen exception numeric fields are recorded only as visible text, not verified crash facts; OPEN-015 caution remains in force unless debugger-side or WRAM crash-record evidence verifies them.
+
+Open / Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-016, OPEN-015 context only
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: game-start redraw implementation, gameplay exception triage, OPEN-015 crash-handler fix
+
+KNOWN_FINDINGS impact: Option A - no update. Evidence capture/correlation only; no durable new mechanism proven.
+
+STOP triggered: NO.
+
+## [Cody - Runtime Diagnostic, Build 0094 Additive-FG Text Replacement Classification]
+
+* files changed: `docs/design/Cody_build_0094_additive_fg_text_replacement_classification.md`, `states/traces/build_0094_additive_fg_text_replacement_20260623_140821/` (runtime trace events, WRAM snapshots, reduced analysis), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0094.bin` (existing Build 0094 ROM only)
+* root cause confirmed: YES - R1, WRAM FG staging is not cleared at the observed text-layout replacement boundary
+* fix implemented: NO
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (OPEN-001 / OPEN-016 graphics-output diagnostic; Build 0094 evidence only)
+Phase 0 priors statement: produced; KF-010 / KF-011 / KF-013 / KF-028 / KF-029 applied; OPEN-015 crash-screen caution preserved
+Phase 0 STOP: not triggered
+
+Runtime evidence captured:
+- Primary no-input transition: pre-existing title/attract FG staging -> `0x3ACAE` story / insert-coin producer.
+- Producer hit: `0x3ACAE` count `1`; first render `0x3ACB6` count `1`.
+- FG store path hit: `0x70794` count `258`; all stores used `%a6=0x00FF501A` and in-buffer offsets.
+- FG staging writes: `2306` total during the primary run.
+- Clear path at boundary: NOT observed; `0x563B6`, `0x710D8`, and `0x71130` all count `0`.
+- Dirty/commit activity: dirty writes and FG commit-row starts were observed, but the commit path clears dirty flags only; it does not clear `staged_fg_buffer` contents.
+
+WRAM before/after evidence:
+- `staged_fg_buffer` before `0x3ACAE`: `62` nonzero cells.
+- `staged_fg_buffer` after `0x3ACAE`: `191` nonzero cells.
+- Retained nonzero offsets: `62`.
+- Retained same value: `56`.
+- Added nonzero offsets: `129`.
+- Cleared offsets: `0`.
+- Result: the transition accumulated new text over surviving prior text; it did not replace the previous layout.
+
+Secondary coin/start evidence:
+- Scripted secondary run proved input acceptance (`credits=1`, active-low Start sample `0xF7`, credit subtract, `0x3ABDE` game-start state write).
+- Clear path still not observed in the captured secondary evidence.
+- Secondary staging showed partial additive changes over retained attract/story cells; the run did not capture a complete clean game-start redraw block (`0x3ADCA` / `0x3ADD6` not hit).
+- Exception used only as a halt boundary; on-screen crash numerics were not treated as proven.
+
+Classification result:
+- R1 - staging never cleared between states.
+- Not R2: no clear occurred, so stale text was not caused by post-clear re-emission.
+- Not R3: WRAM staging itself retained old cells, so this is not merely VDP residue.
+- Not R4: no clear/commit ordering race occurred at the observed boundary.
+
+Recommended target:
+- Add a production translation-layer WRAM FG staging clear plus dirty-row marking at semantic title/attract FG layout replacement boundaries, beginning with the proven no-input `0x3ACAE` boundary.
+- Do not use per-frame clearing, VDP-only clearing, producer bypasses, or exception/start-workarounds.
+
+Open / Closed Issues Impact:
+- Open issues touched: OPEN-001, OPEN-016, OPEN-015 context only
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, game-start redraw full trace, Start/C/A crash, OPEN-015 crash-handler fix
+
+KNOWN_FINDINGS impact: Option C candidate only. Rationale: Build 0094 now has mechanism-level evidence that text replacement accumulates because WRAM FG staging is not cleared at the observed layout boundary; `KNOWN_FINDINGS.md` was not edited in this task.
+
+STOP triggered: NO.
+
+## [Andy — Static, Build 0094 FG Text Lifecycle Map]
+
+* files changed: `docs/design/Andy_build_0094_fg_text_lifecycle_static_map.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* runtime probing: NO
+* root cause confirmed: PARTIAL (static structure proven; additive-FG causation = hypothesis for parallel Cody runtime task)
+* recommended boundary: attract page-start (`%a5@(0)`/`%a5@(2)` transition) in master 0/1/2 — reuse cwindow_clear FG mechanism
+* no unrelated changes: YES
+* architecture compliance: CONFIRMED
+
+Phase 0: EXTENDING (OPEN-001). Priors KF-028/013/011/010/003/001. No contradiction. Framed as hypothesis set for the parallel Cody runtime classification; runtime reachability is Cody's.
+
+Producer map [STATIC]: title/attract text = THREE counter-gated master-state machines via master dispatch 0x3A256 on %a5@(0): master 0→0x3ABFE (table 0x3AC20), 1→0x3AAAC (table 0x3AACE), 2→0x3A35A (table 0x3A37C); 3→0x3AD6E→watchdog 0x3A180. Master-0 producers: 0x3AC40, 0x3AC54 (glyph IDs 30/12/32/18/19; coin/credit conditional cmpiw #1,0x5fffe), 0x3ACAE (IDs 17/63-70), 0x3AD08 (IDs 60/61/62; sets master→2), 0x3AD12, 0x3AD5E. ALL producers draw via bsrw 0x3BD48 (glyph renderer → FG staging hook), additive per-glyph.
+
+State vars/gates: %a5@(0)=0xFF0000 master page (writers 0x3A45A/0x3A9DE/0x3AB48/0x3AD48); %a5@(2)=0xFF0002 sub-page; %a5@(4)=0xFF0004 producer-phase (0x3AC4C/0x3ACF8/0x3AD52/...); %a5@(44)=0xFF002C frame-delay+watchdog counter (KF-001/003 dual-use). Page transitions = %a5@(0)/(2) writes (state resets, NOT FG clears).
+
+Clear/replacement mechanism [STATIC]: the ONLY translated FG clear = genesistan_hook_cwindow_clear (0x710D8), which the remap spec confirms replaces arcade_pc 0x0561B6 (inline PC080SN C-window fill loop blanking BOTH 0xC08000 FG and 0xC00000 BG ×0x1000; hook fills staged_bg+staged_fg, marks all rows dirty). It is reached ONLY from the game-scene setup routine 0x563A0 (callers 0x56022/0x56164/0x561CA, all 0x560xx). A full scan of the attract text state machine (0x3A35A/0x3AAAC/0x3ABFE-0x3AD60) finds NO FG C-window clear / no staged_fg fill / no cwindow_clear call — only %a5@() state resets + the out-of-scope 0x3ACEA direct write. So the attract text path has NO FG page-replacement clear; the only one is wired to the game-scene phase. Consistent with additive FG (commit doesn't clear staging, Classification C → new pages overlay old).
+
+0x3ACAE = a producer (one sub-state), NOT a page boundary. Ranking-page producer exists statically (one of the master 0/1/2 producers); route via dispatch; identity + runtime reachability = Cody. 0x710D8/0x563A0 = correct clear MECHANISM but bound to game-scene, not attract replacement.
+
+Cody watch list (PRIORITY): (1) write-watchpoint WRAM 0xFF0000..0xFF0005 (%a5@0/2/4) log (frame,PC,value) = page-transition timeline; (2) DECISIVE: write-watchpoint staged_fg_buffer 0xFF501A..0xFF601A + full-buffer dump before/after each transition = does prior page persist (additive)?; (3) BP 0x710D8 cwindow_clear — confirm it does NOT fire in attract; (4) BP producers 0x3AC40/0x3AC54/0x3ACAE/0x3AD08/0x3AD12 + master-1/2; (5) BP 0x3BD48 log d0 per page; (6) fg_row_dirty 0xFF4006 + FG commit BP 0x70182. If (2) shows survival across (1) with (3) silent → additive-FG with missing attract clear; the (1) transition PC = boundary.
+
+Recommended boundary [STATIC-justified, exact PC = Cody]: FG page-replacement clear belongs at the attract page-start (the %a5@(0)/%a5@(2) transition beginning a new page in master 0/1/2), before the new page's producers draw, reusing the cwindow_clear FG mechanism. Exact transition PC + granularity (per-master-page vs per-sub-page) await Cody watch-list (1)+(2); if Cody shows producers attempt full-page blanks that are lost, that supersedes (runtime wins). Not a STOP (boundary region + mechanism are statically justified).
+
+KNOWN_FINDINGS impact: Option C — proposed refinement to KF-028 (only FG clear = cwindow_clear 0x710D8 ← arcade 0x561B6, game-scene-only; attract text state machine has no FG clear → additive pages). STRONG for static structure; additive causation = WORKING_HYPOTHESIS pending Cody. NOT applied.
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No source/spec/tool/Makefile/ROM modifications; no build; no runtime probing; no fix: YES
+- Framed as hypothesis set for parallel Cody task; deferred runtime reachability/page-identity/ranking-reachability to Cody; did not infer reachability from visual presence: YES
+- Stayed on FG/Plane-A text lifecycle; did NOT analyze the exception/OPEN-015/OPEN-017/sprites/palette/scroll/BG: YES
+- Address spaces labeled; observable/static vs inference tagged throughout: YES
+- KNOWN_FINDINGS.md / OPEN_ISSUES.md not modified; no issues closed: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; additive FG localized to missing attract-path FG clear; boundary region named; not closed), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: post-Start exception/OPEN-015, OPEN-017, sprites/palette/scroll/BG-logo/sword/TAITO-logo, per-frame/per-glyph clearing, page-identity decode, ranking-producer runtime reachability
+
+## [Cody - Diagnostic, Build 0094 FG Clear Boundary Pin]
+
+* files changed: `docs/design/Cody_build_0094_fg_clear_boundary_pin.md`, `states/traces/build_0094_fg_clear_boundary_pin_20260623_163748/` (MAME debugger command files, event logs, FG staging dumps, reduced analysis), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0094.bin` (existing Build 0094 ROM only)
+* root cause confirmed: YES - captured page replacement is CLEAR-needed at the `%a5@(2)` page-start transition; no full-page overwrite/blank emission was observed
+* fix implemented: NO
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (OPEN-001; OPEN-016 context; OPEN-015 do-not-touch)
+Architecture compliance: CONFIRMED - existing ROM runtime observation only; no source/spec/tool/Makefile/ROM/invariant/build/bookmark changes
+Phase 0 STOP: not triggered
+
+Boundary pin result:
+- Exact captured page-start transition PC: `runtime_genesis_pc 0x0003AC82` (`movew #1,%a5@(2)`).
+- Transition values: `%a5@(0)=0`, `%a5@(2)` changes `0 -> 1`, `%a5@(4)=0` after the preceding `0x3AC7E` clear.
+- Setup before producer: `0x3ACA6` later writes `%a5@(4)=1`; `0x3ACAE` then enters the producer.
+- Producer tail: `0x3ACF8` writes `%a5@(4)=2`; post-confirmed at `0x3ACFE` with `%a5@(4)=2`.
+
+FG staging snapshots:
+- Before `0x3AC82`: `62` nonzero cells.
+- After `0x3AC82` / at `0x3AC88`: `62` nonzero cells.
+- Before `0x3ACAE`: `62` nonzero cells.
+- After `0x3ACAE`: `191` nonzero cells.
+- Before-transition -> after-transition: retained `62`, retained-same `62`, cleared `0`, added `0`.
+- After-transition -> before-`0x3ACAE`: retained `62`, retained-same `62`, cleared `0`, added `0`.
+- Before-`0x3ACAE` -> after-`0x3ACAE`: retained `62`, retained-same `56`, cleared `0`, added `129`.
+
+Clear / overwrite classification:
+- `0x710D8` (`genesistan_hook_cwindow_clear`) fired: NO (`0` hits).
+- `0x3ACAE` store window: `160` FG stores, `135` nonzero, `25` zero, `160` distinct offsets (`0x0420..0x0DD2`).
+- The zero stores are bounded per-glyph/per-string stores, not a full-page blank/fill pattern.
+- Current translated runtime behavior is additive glyph emission into persistent WRAM staging; no full-page overwrite was emitted and lost.
+- Verdict: CLEAR-needed, not emitted-but-lost OVERWRITE.
+
+Recommended insertion point and granularity:
+- Insert/route a production FG staging clear immediately after preserving the `0x3AC82` `%a5@(2)=1` transition write, before the next page's producers draw.
+- Granularity for the captured boundary: per-sub-page (`%a5@(2)`), not per-master-page (`%a5@(0)`, which remains `0`).
+- `0x3ACAE` is not the preferred insertion point; it is a producer-local fallback only, not the page boundary.
+- Implementation is safely placeable for this captured page boundary: YES. Broader all-attract clear policy still requires additional boundary proof before broadening beyond this transition.
+
+Open / Closed Issues Impact:
+- Open issues touched: OPEN-001 (active), OPEN-016 (context), OPEN-015 (do-not-touch context)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, other attract page boundaries, game-start redraw full trace, Start/C/A exception, OPEN-015 crash-handler fix, BG/sprites/palette/logo/sword/HV-counter/real-hardware work
+
+KNOWN_FINDINGS impact: Option C candidate only. This diagnostic pins `0x3AC82` as the captured page-start clear boundary and resolves CLEAR-needed vs emitted-but-lost overwrite for that page; `KNOWN_FINDINGS.md` was not edited.
+
+STOP triggered: NO.
+
+## [Cody — Arcade Runtime, Original Rastan Attract Page Replacement]
+
+* files changed: `docs/design/Cody_original_arcade_attract_page_replacement_runtime.md`, `states/traces/original_arcade_attract_page_replacement_20260623_171701/` (original arcade MAME debugger command, events, PC080SN dumps, reduced analysis), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* original arcade ROM tested: YES (`mame` driver/romset `rastan`, `Rastan (World Rev 1)`, `romset rastan is good`)
+* fix implemented: NO
+* source/spec/tool/Makefile/ROM/invariant changes: NO
+* no unrelated changes: YES
+
+Phase 0 classification: EXTENDING (OPEN-001; OPEN-016 context; OPEN-015 do-not-touch)
+Architecture compliance: CONFIRMED - original arcade ROM runtime observation only; no Genesis implementation, no build, no bookmark cycle, no diagnostic ROM/scaffolding.
+
+Address mapping gate:
+- Authoritative map: `build/rastan-direct/address_map.json`.
+- `runtime_genesis_pc 0x0003AC82` maps via segment index 27 (`arcade_copy`, `genesis_start=0x03AB20`, `genesis_end_exclusive=0x03AD00`, `arcade_start=0x03A920`, `arcade_end_exclusive=0x03AB00`, `identity_offset=512`) to `arcade_pc 0x0003AA82`.
+- `runtime_genesis_pc 0x0003ACAE` maps via the same segment index 27 to `arcade_pc 0x0003AAAE`.
+- Candidate clear/fill `arcade_pc 0x000561B6` confirmed via segment index 162 (`patched_site`, `arcade_start=0x0561B6`, `arcade_end_exclusive=0x0561D4`, `genesis_start=0x0563B6`, note: replacement with Genesis staged-buffer clear hook).
+- Mapping succeeded: YES. No `-0x200` arithmetic was used as authority.
+
+Original arcade runtime result:
+- Mapped page-start `0x03AA82`: hit once (`%a5@(0)=0`, `%a5@(2):0->1`, `%a5@(4)=0`).
+- Mapped producer `0x03AAAE`: hit once; first render at `0x03AAB6` with `d0=0x11`; producer tail at `0x03AAF8`, post-state at `0x03AAFE` with `%a5@(4)=2`.
+- `0x0561B6` fired during attract transition: NO (`0` hits; no callers observed).
+
+FG/BG write behavior at mapped boundary:
+- The original arcade clears using a different path before the producer: `0x03AE64`/`0x03AE74` call the generic fill loop `0x03AD44`; watchpoints report the fill-loop PC as `0x03AD48`.
+- In the page-start-to-producer window, FG had `3,823` writes total, dominated by `0x03AD48` with `3,800` writes over `0x00C08100..0x00C09EAE`, values `0x0000`/`0x0020` from longword `0x00000020`.
+- In the same window, BG had `3,800` writes from `0x03AD48` over `0x00C00100..0x00C01EAE`, values `0x0000`/`0x0020`.
+- FG snapshots: before `0x03AA82` = `69` nonblank cells; after `0x03AA88` = `69`; before `0x03AAAE` = `7`; after `0x03AAF8` = `145`.
+- BG snapshots: before `0x03AA82` = `560` nonblank cells; after `0x03AA88` = `560`; before `0x03AAAE` = `0`; after `0x03AAF8` = `168`.
+- Scroll/page-switch corroboration: only zero writes to `0xC20000/0xC40000`; no evidence of page/bank/window/scroll switch replacing the page.
+
+Mechanism classification:
+- Replacement mechanism: CLEAR.
+- Layer scope: both FG and BG for the captured transition.
+- Not `0x0561B6`; source-of-truth arcade mechanism for this boundary is the `0x03AE64`/`0x03AE74 -> 0x03AD44` partial C-window fill before producer redraw.
+- Rejected for this boundary: overwrite-only, page-switch, retain, unknown.
+
+Recommended faithful Genesis action (recommendation only; no implementation): translate the arcade attract setup clear intent at the corresponding setup path before the mapped producer draws. Do not justify the fix as the `0x0561B6` game-scene clear; inspect/translate the `0x03AE64`/`0x03AE74 -> 0x03AD44` clear path for active staged FG/BG regions and dirty-row marking.
+
+Open / Closed Issues Impact:
+- Open issues touched: OPEN-001 (active), OPEN-016 (context), OPEN-015 (do-not-touch context)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Genesis implementation, other attract boundaries, game-start redraw, Start/C/A exception, OPEN-015 crash-handler defects, sprites/palette/logo/sword/real-hardware work
+
+KNOWN_FINDINGS impact: Option C candidate only. The original arcade runtime proves a durable candidate behavior for this boundary: clear both active PC080SN FG/BG page regions via `0x03AE64`/`0x03AE74 -> 0x03AD44`; `KNOWN_FINDINGS.md` was not edited.
+
+STOP triggered: NO.

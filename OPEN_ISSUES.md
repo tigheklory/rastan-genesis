@@ -12,81 +12,34 @@ Rules:
 
 ---
 
-## OPEN-001 — Offset graphics / tile slot base mismatch
+## OPEN-001 — Build 0094 title/attract graphics incomplete
 
 - **Status:** OPEN
 - **Priority:** HIGH
-- **Discovered by:** Tighe
-- **Observed in build/artifact:** Build 55b / sequential ROM (per OPEN-002 ROM identity ambiguity)
-- **Summary:** Palette is populated in CRAM and tile preload base is corrected (CLOSED-007). VDP internals show populated state in Exodus debug panes — Pattern Viewer contains real Rastan tile data starting at slot 0, VRAM Memory Editor shows structured data, CRAM contains mixed non-default values. However, the actual composed video output (game screen) remains essentially blank in both MAME and Exodus on Build 59 (Tighe direct visual verification: black with minor purple artifact). Root cause: the rendering pipeline failure is downstream of VRAM/CRAM/preload — most likely in nametable composition (writes to Plane A/B at `0xC000`/`0xE000` not happening or producing wrong indices/attributes), plane enable bits in VDP registers, display enable sequencing, or runtime control flow that should reach nametable-writer code paths but does not.
-- **Evidence:** Tighe visual observation from Exodus session post-Build-55b.
-- **Evidence (Build 58 evidence pass):**
-  - Canonical ROM identity reconciled to `0057.bin` with SHA256 match against `0055b.bin` alias (see OPEN-002 update below).
-  - VDP plane bases verified consistent from source+trace+viewer: A=`0xE000`, B=`0xC000`, Window=`0xF000`, SAT=`0xF800`.
-  - Scene tile preload/load base verified at slot `0x14` (VRAM `0x280`) via manifests + runtime control-port trace.
-  - PC080SN tile LUT path verified active and aligned with checked preload slots.
-  - Plane A/B nametable word ranges (`0xE000..0xEFFF`, `0xC000..0xCFFF`) are **NOT VISIBLE** in current screenshot set; this blocks direct constant-offset proof/refutation for nametable indices.
-  - Full report: `docs/design/Cody_build58_offset_graphics_evidence.md`.
-- **Evidence (Build 58b nametable dump continuation):**
-  - Read-only dump captured with canonical ROM state (`states/dumps/build58b_20260505_175403/`), including all required ranges:
-    - `VRAM 0x0000..0x1FFF`
-    - `VRAM 0x0C000..0x0CFFF` (Plane B nametable)
-    - `VRAM 0x0E000..0x0EFFF` (Plane A nametable)
-    - `VRAM 0x0F000..0x0FFFF`
-    - `VDP regs 0x00..0x17`
-  - Capture metadata: frame `900`, `PC=0x03A198`, `SR=0x2700`, `IPM=7`.
-  - Plane B (`0xC000..0xCFFF`) decode: all 2048 cells `0x0000` (`index=0`, flips/palette/priority clear).
-  - Plane A (`0xE000..0xEFFF`) decode: all 2048 cells `0x0000` (`index=0`, flips/palette/priority clear).
-  - Statistics:
-    - Plane A: min=`0`, max=`0`, cells `<0x14`=`2048`, cells `>=0x14`=`0`
-    - Plane B: min=`0`, max=`0`, cells `<0x14`=`2048`, cells `>=0x14`=`0`
-  - Late confirmation run (`states/dumps/build58b_20260505_175922/`, frame `5000`, `PC=0x03A194`) also produced all-zero target VRAM ranges.
-  - Hypothesis B classification from this continuation: **INSUFFICIENT** (dump state non-diagnostic; no live nametable index stream present).
-  - Full report: `docs/design/Cody_build58b_nametable_dump_evidence.md`.
-- **Evidence (Build 58c visible-state acquisition):**
-  - State-validation gate run in MAME across required timestamps (`sec_5`, `sec_10`, `sec_20`, `sec_30`, `sec_60`, `sec_120`) using canonical `0057.bin`.
-  - Validation artifact: `states/dumps/build58c_20260506_132350/validation.txt`.
-  - At every sampled timestamp:
-    - `VRAM 0x029A = 0x0000`
-    - `VRAM 0x02AA = 0x0000`
-    - `VRAM 0x02C0 = 0x0000`
-    - `VRAM 0xC000 = 0x0000`
-    - `VRAM 0xE000 = 0x0000`
-    - non-zero counts for `0x0280..0x037F`, `0xC000..0xCFFF`, `0xE000..0xEFFF` all `0`
-    - gate result `FAIL`
-  - Build 58c conclusion: MAME did not reproduce a validated visible-state capture for OPEN-001 byte-level nametable evidence in this run window; 5-range dump/decode was intentionally skipped by gate rule.
-  - Full report: `docs/design/Cody_build58c_visible_state_acquisition.md`.
-- **Evidence (Build 59 post-CLOSED-007 — corrected interpretation):**
-  - SGDK-era 20-slot reservation removed in Build 59 (`dist/rastan-direct/rastan_direct_video_test_build_0059.bin`, SHA256 `1135e1aaa2e2c39d64a8390c024dd8e67a998b53f829f2cd7e4eabea2d02ec23`); see CLOSED-007.
-  - Build 59 video debug capture (`docs/design/Cody_build59_video_30fps_debug_windows.md`) confirmed VDP internal state populated:
-    - Pattern Viewer: nontrivial tile glyph content visible (text fragments "RASTA...", dense tile content) — Tighe directly verified
-    - VRAM Memory Editor: structured non-zero data at low addresses (e.g., `0x0026`, `0x00B0`, `0x0108`, `0x02AA`, `0x0302`)
-    - CRAM: populated with mixed non-default values (Row 00: `0000 0EEE 000E 0468 08AC 046A...`)
-    - 68000 PC samples in active runtime: `0x000719E0`, `0x0003B100`
-    - Plane Viewer base addresses: A=`0xE000`, B=`0xC000`, Window=`0xF000`, Sprites=`0xF800` (consistent with Build 58 verified bases)
-  - **Correction:** the Cody report's description of Image Window content as "green rectangular fill regions plus black regions and striped artifact bands" was an interpretation error. Those green rectangular regions were Plane Viewer boundary overlays (Screen Boundaries / Sprite Boundaries checkboxes enabled in the Plane Viewer panes), NOT actual rendered game video output.
-  - **Tighe direct visual verification (May 7, 2026):** the actual game video output (Image Window in Exodus, game window in MAME) on Build 59 is essentially blank — black screen with a small purple artifact near the top — same fundamental visual state in both emulators, same as canonical Build 57.
-  - Tighe direct verification of slot 0 in Exodus: VRAM `0x0000` area is blank (CLOSED-007 sentinel preservation confirmed).
-  - **Architectural significance:** CLOSED-007 was a real cosmetic / data-organization fix (tile data now at correct slot, Pattern Viewer reflects it), but it did NOT change actual game rendering behavior. The rendering pipeline downstream of VRAM/CRAM is what's broken. Tile patterns are loaded into VDP memory; CRAM is populated; but the composition step that should produce visible rendered output does not happen (or does not happen correctly).
-  - **MAME script anomaly:** Cody's MAME validation.txt (`Cody_build59_runtime_state_comparison.md`) reported all-zero VRAM sentinels and all-zero nametable first cells across all 6 timestamps in MAME. This contradicts the populated state Exodus debug panes show on the same ROM. Possible causes: MAME instrumentation issue, wrong address space interpretation in the script, genuine MAME-vs-Exodus runtime divergence, timing/race between sampling and VRAM writes, or stale readback. Insufficient evidence to classify; tracked as OPEN-003 sub-finding.
-- **Evidence (Build 59 runtime state comparison):**
-  - Validation artifact: `states/dumps/build59_runtime_state_20260507_142931/validation.txt`.
-  - Timestamp coverage: `sec_5`, `sec_10`, `sec_20`, `sec_30`, `sec_60`, `sec_120`.
-  - Build 59 MAME sampled values:
-    - `VRAM 0x029A/0x02AA/0x02C0` all `0x0000` at all timestamps.
-    - `VRAM 0x0020` sentinel `0x0000` at all timestamps.
-    - `VRAM 0xC000` (Plane B first cell) `0x0000` at all timestamps.
-    - `VRAM 0xE000` (Plane A first cell) `0x0000` at all timestamps.
-    - Non-zero word counts: `0x0000..0x1FFF=0`, `0xC000..0xCFFF=0`, `0xE000..0xEFFF=0` at all timestamps.
-  - PC progression:
-    - `sec_5/10/20/120`: `PC` in `0x03A19x`.
-    - `sec_30`: `PC=0x071A48`, `SR=0x2600`, `IPM=6`.
-    - `sec_60`: `PC=0x070610`, `SR=0x2700`, `IPM=7`.
-  - Interpretation for OPEN-001 objective: despite transient non-`0x03A19x` PC states, no populated VRAM state matching Exodus was captured; full 5-range decode was intentionally skipped to avoid non-diagnostic all-zero decode.
-  - Full report: `docs/design/Cody_build59_runtime_state_comparison.md`.
-- **Suspected area:** **Strongly likely blocked by OPEN-004 bootstrap re-entry.** Per `docs/design/Andy_nametable_composition_path_classification.md`, Plane A/B nametable population requires arcade execution to reach the PC080SN strip producer call sites at arcade_pc `0x055968` (BG; `genesistan_hook_tilemap_plane_a`) and `0x055990` (FG; `genesistan_hook_tilemap_fg`). Parent dispatcher at arcade_pc `0x055948` is called from `0x050434`, `0x0556FC`, `0x055788`, `0x055822` — all four in the post-bootstrap arcade game-loop range. Bootstrap re-entry per OPEN-004 keeps execution looping at `0x0202..0x03BC64` and never advances to the `0x055xxx` range. Build 59 MAME PC samples confirm: sec_30 hits `0x071A48` (inside `vdp_commit_sprites` — `_vblank_service` IS firing), sec_60 hits `0x070610` (inside `genesistan_hook_tilemap_bg_fill` via 0x03AD44 polymorphic dispatch transit), but no sample reaches the `0x055xxx` strip producer range. Tile preload base is NOT suspect (CLOSED-007). Tile pattern memory is NOT suspect (Pattern Viewer). CRAM is NOT suspect (Exodus). Plane enable bits / display enable sequencing are NOT primary suspects (VBlank service runs and disables/re-enables display correctly per `vdp_comm.s:159-178`).
-- **Next required task:** **OPEN-004 bootstrap re-entry trigger investigation must complete first** (per `docs/design/Andy_nametable_composition_path_classification.md` §3.2). The previous Next Required Task (Tighe Exodus Memory Editor capture of nametable ranges) is **SUPERSEDED** — the empty-nametable result is now classified as a DEPENDENT symptom rather than an independent root cause. Once OPEN-004 resolves and arcade progresses into the post-bootstrap game loop, OPEN-001 will likely self-resolve OR transform again into a downstream symptom that can be classified at that point. Cody next task: `Cody — Bootstrap Re-entry Trigger Investigation` (descriptive name, evidence-only, no ROM produced); OPEN-004's existing Next Required Task is the appropriate scope.
-- **Closure condition:** emulator screenshot/video shows tile graphics referenced from correct base; trace/doc proves tile data load base and tilemap indices agree.
+- **Discovered by:** Tighe / project visual evidence
+- **Observed in build/artifact:** Build 0094, `dist/rastan-direct/rastan_direct_video_test_build_0094.bin`, SHA256 `558c88b39b359af7ee1f2cee1fa2318dde34b20ebfab7d25e25c0a18e0a819e2`
+- **Current summary:** Build 0094 supersedes the stale Build-59 blank-output framing. The title/attract path now reaches visible output, and the FG cell-composition zero-cell mechanism is fixed at runtime. The remaining OPEN-001 problem is incomplete/incorrect graphics output, not blank output and not the gameplay-start exception.
+- **Proven Build 0094 evidence:**
+  - Build 0094 is not byte-identical to Build 0092/0093 and contains the Option B compose-site instructions at runtime `0x707DA` / `0x707DC` / `0x707E0`.
+  - Invariant passed: `total_genesis_bytes_covered=0x17CB58`, `opcode_replace=95`.
+  - Address-map/helper-shift guard passed: range helper shifted to `0x707E6`, glyph per-cell helper to `0x70BCA`, shared store entry `0x707BC` unchanged.
+  - Runtime title-entry trace: producer `0x3ACAE` hit once at frame 212; first render `0x3ACB6` hit once; FG range gate `0x707E6` hit 258 times; FG store `0x70794` hit 258 times, all with `%a6=0x00FF501A` and in-buffer offsets; 213 nonzero composed `%d1` stores, 45 zero stores; crash-halt events 0.
+  - Before/after: Build 0092 had 258 stores all `%d1=0x0000`; Build 0094 has 258 stores with 213 nonzero composed cells. Store-time `%d1` is a composed Genesis cell word, not raw ASCII. The 45 zero stores are recorded only as a count and are not classified as a defect.
+  - Evidence docs: `docs/design/Cody_tilemap_hooks_rebuild_dependency_fix.md`, `states/traces/build_0094_title_producer_entry_window_trace_20260622_183218/title_producer_runtime_analysis.md`.
+- **User-visual observations from Tighe (not yet promoted to proven runtime facts):**
+  - Text renders.
+  - Large TAITO logo partly renders but is incomplete / missing tiles.
+  - Sword/logo artwork is not displaying.
+  - Text is not cleared between attract states.
+  - Scrolling/item page shows rows of dots.
+  - Credits work; attract mode proceeds; coin/start works.
+  - Starting gameplay later reaches the exception handler.
+  - The ROM does not currently run on real Genesis hardware (tracked separately as OPEN-017).
+- **Current unresolved graphics symptoms:** sword/logo artwork absent; TAITO logo incomplete/missing tiles; stale text between attract states; dot rows on scrolling/item page; no complete title/game graphics acceptance yet.
+- **Next required task:** a graphics-only diagnostic for Build 0094 title/attract completion. Classify each missing/incomplete element through producer -> staging -> clear/dirty -> VBlank commit -> tile-pattern availability -> palette -> plane/priority/scroll. The gameplay-start exception is deferred and is not the next OPEN-001 task.
+- **Gameplay-start crash discipline:** gameplay start reaches the exception handler, but on-screen crash fields are suspect under OPEN-015 and must be verified from the WRAM crash record before being treated as real. Do not record a specific fault PC, fault address, or vector from the on-screen fields.
+- **Historical note:** Prior Build-58/59 blank-output, C-helper, and bootstrap-blocked wording is superseded for current Build 0094 planning. Those historical artifacts remain in their cited design docs and AGENTS_LOG entries; the active OPEN-001 state is the Build 0094 incomplete-graphics state above.
+- **Closure condition:** title/attract graphics are visibly complete from game-executed render paths (not launcher/config/debug/exception text), with evidence that producer/staging/commit/tile/palette/plane-priority paths produce correct VDP-backed output.
 
 ---
 
@@ -286,6 +239,7 @@ Rules:
   - Only `D6/D7/A2-A6` are genuine at-fault register values in this crash record.
 - **Evidence:** Andy's corrected triage proves every on-screen numeric field equals that field's cursor offset, not the intended value. The WRAM workaround was used successfully on 2026-06-17 to recover the real fault PC `0x0003BD68` and fault address `0x50205741` from the KF-028 patched ROM crash, after the on-screen render showed cursor-offset artifacts.
 - **Evidence (second reliability defect):** `docs/design/Andy_kf028_real_fault_triage.md` shows `_crash_common` overwrites `d1-d5/a0/a1` with frame/handler values before saving the register block. This loses true at-fault `D1-D5/A0/A1` values; the real faulting `a1` is not preserved, while the fault address from the exception frame remains reliable.
+- **Build 0094 gameplay-start note:** Tighe reports Build 0094 can reach Start/gameplay and then crash to the exception handler. This issue remains the crash-data discipline gate: on-screen crash fields are unreliable unless verified from the WRAM crash record. Gameplay-start crash triage is deferred relative to graphics completion.
 - **Suspected area:** `crash_handler.s` numeric rendering wrappers (`crash_put_hex8_at`, `crash_put_hex16_at`, `crash_put_hex32_at`), `crash_set_cursor` register preservation, and `_crash_common` register-save ordering.
 - **Fix direction:** Either preserve `%d2` across `crash_set_cursor`, or restructure the `crash_put_hexN_at` wrappers so the cursor is set first and the value is loaded into `%d2` afterward. Also preserve true at-fault `D0-D5/A0/A1` before `_crash_common` repurposes those registers for exception-frame decode and handler bookkeeping.
 - **Next required task:** Fix both crash-handler reliability defects, rebuild, and reproduce a crash or unit-style crash-render validation to confirm on-screen numeric fields match the WRAM crash record and saved register fields preserve true at-fault values where architecturally available.
@@ -310,9 +264,24 @@ Rules:
 - **Scope of impact:** This is a missing/incomplete Genesis translation of embedded absolute data-pointer tables. `postpatch_lenient.py` relocates absolute targets in instruction operands, but this confirmed table is data, not an instruction operand. Other embedded absolute data-pointer tables in the relocated arcade blob may also be stale and latent crash sources.
 - **Immediate fix direction:** Relocate the `0x3BD7C` descriptor-pointer table entries by `+0x200`, after confirming the exact table length.
 - **Immediate instance status (2026-06-18, Cody):** FIXED for the confirmed title glyph/string descriptor-pointer table instance only. Cody confirmed the actual table is 71 longwords (`0x03BD7C..0x03BE97` runtime Genesis), added a narrow `absolute_long_pointer_tables` entry in `specs/rastan_direct_remap.json`, and verified `table[65]` at `0x03BE80` now changes from `0x0003C246` to `0x0003C446`. See `docs/design/Cody_OPEN016_descriptor_pointer_table_relocation.md`.
+- **Build 0094 status (2026-06-22, Cody):** OPEN-016 remains OPEN. The immediate descriptor-pointer table instance is relocated; the glyph renderer is routed into the FG staging path; the Build 0091 missing-helper-base-register address error is fixed; and Build 0094 validates the Option B zero-cell composition fix at runtime (`0x70794` stores: 258 total, 213 nonzero composed `%d1`, 45 zero). Do not close OPEN-016 on nonzero cells alone: the broader embedded absolute data-pointer-table survey remains, and title/attract visual acceptance is incomplete.
 - **Broader follow-up:** Survey the relocated arcade blob for other embedded absolute data-pointer tables with the same unrelocated-pointer gap. This survey is needed after the immediate crash fix or alongside it, but was not performed when this issue was opened.
 - **Related findings/issues:** KF-028, KF-013, OPEN-001, OPEN-004, OPEN-015.
 - **Closure condition:** The `0x3BD7C` table is relocated correctly in the Genesis image, the KF-028 patched-ROM title-text crash no longer dereferences text bytes as a destination pointer, and a bounded survey either relocates or explicitly clears other embedded absolute data-pointer tables in the relocated arcade blob.
+
+---
+
+## OPEN-017 — Build 0094 ROM does not currently run on real Genesis hardware
+
+- **Status:** OPEN
+- **Priority:** HIGH
+- **Discovered by:** Tighe
+- **Observed in build/artifact:** Build 0094, `dist/rastan-direct/rastan_direct_video_test_build_0094.bin`, SHA256 `558c88b39b359af7ee1f2cee1fa2318dde34b20ebfab7d25e25c0a18e0a819e2`
+- **Summary:** User-visual / hardware observation: the Build 0094 ROM does not currently run on real Genesis hardware. This is tracked separately from Build 0094 title/attract graphics completion unless later evidence ties the failure mechanism to the same graphics pipeline issue.
+- **Evidence:** Tighe report during Build 0094 documentation sync. No hardware fault PC/vector/address is recorded here.
+- **Suspected area:** unknown. Potentially hardware compatibility, ROM/header/mapper behavior, timing, VDP/interrupt behavior, or another real-hardware-only constraint; no mechanism has been proven.
+- **Next required task:** after the current graphics-completion task, perform a bounded real-hardware compatibility capture that records the exact device/flashcart path, visible behavior, and any available bus/exception evidence without conflating it with emulator graphics symptoms.
+- **Closure condition:** Build 0094-or-later ROM runs on real Genesis hardware, or the real-hardware incompatibility mechanism is identified and fixed or explicitly tracked under a narrower successor issue.
 
 ---
 

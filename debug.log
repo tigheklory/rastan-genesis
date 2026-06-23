@@ -1,5 +1,40 @@
 MAME debugger version 0.276 (unknown)
-Currently targeting genesis (Genesis (USA, NTSC))
->memdump /tmp/build58_memory_maps.txt
-Dumping memory maps to /tmp/build58_memory_maps.txt
->quit
+Currently targeting rastan (Rastan (World Rev 1))
+>trace states/traces/original_arcade_attract_page_replacement_20260623_171701/native_debug_trace.log,,noloop
+Tracing CPU ':maincpu' to file states/traces/original_arcade_attract_page_replacement_20260623_171701/native_debug_trace.log
+>bp 03aa82,,{ tracelog "EVENT PAGE_START_WRITE_03AA82 cyc=%d pc=%06X sr=%04X a5=%08X s0=%04X s2_before=%04X s4=%04X cnt=%04X\n",totalcycles(),pc,sr,a5,w@10c000,w@10c002,w@10c004,w@10c02c ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/fg_before_page_start_03aa82.bin,c08000,4000 ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/bg_before_page_start_03aa82.bin,c00000,4000 ; g }
+Breakpoint 1 set
+>bp 03aa88,,{ tracelog "EVENT AFTER_PAGE_START_03AA88 cyc=%d pc=%06X sr=%04X a5=%08X s0=%04X s2=%04X s4=%04X cnt_before=%04X\n",totalcycles(),pc,sr,a5,w@10c000,w@10c002,w@10c004,w@10c02c ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/fg_after_page_start_03aa88.bin,c08000,4000 ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/bg_after_page_start_03aa88.bin,c00000,4000 ; g }
+Breakpoint 2 set
+>bp 03aaae,,{ tracelog "EVENT PRODUCER_03AAAE_BEFORE cyc=%d pc=%06X sr=%04X a5=%08X s0=%04X s2=%04X s4=%04X cnt=%04X d0=%08X d1=%08X sp=%08X\n",totalcycles(),pc,sr,a5,w@10c000,w@10c002,w@10c004,w@10c02c,d0,d1,sp ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/fg_before_producer_03aaae.bin,c08000,4000 ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/bg_before_producer_03aaae.bin,c00000,4000 ; g }
+Breakpoint 3 set
+>bp 03aab6,,{ tracelog "EVENT PRODUCER_FIRST_RENDER_03AAB6 cyc=%d pc=%06X sr=%04X a5=%08X s0=%04X s2=%04X s4=%04X cnt=%04X d0=%08X d1=%08X sp=%08X\n",totalcycles(),pc,sr,a5,w@10c000,w@10c002,w@10c004,w@10c02c,d0,d1,sp ; g }
+Breakpoint 4 set
+>bp 03aaf8,,{ tracelog "EVENT PRODUCER_AFTER_BEFORE_STATE4_03AAF8 cyc=%d pc=%06X sr=%04X a5=%08X s0=%04X s2=%04X s4_before=%04X cnt=%04X sp=%08X\n",totalcycles(),pc,sr,a5,w@10c000,w@10c002,w@10c004,w@10c02c,sp ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/fg_after_producer_03aaf8.bin,c08000,4000 ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/bg_after_producer_03aaf8.bin,c00000,4000 ; g }
+Breakpoint 5 set
+>bp 03aafe,,{ tracelog "EVENT AFTER_STATE4_WRITE_03AAFE cyc=%d pc=%06X sr=%04X a5=%08X s0=%04X s2=%04X s4=%04X cnt=%04X sp=%08X\n",totalcycles(),pc,sr,a5,w@10c000,w@10c002,w@10c004,w@10c02c,sp ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/fg_after_producer_post_state4_03aafe.bin,c08000,4000 ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/bg_after_producer_post_state4_03aafe.bin,c00000,4000 ; quit }
+Breakpoint 6 set
+>bp 0561b6,,{ tracelog "EVENT CLEAR_0561B6_ENTRY cyc=%d pc=%06X sr=%04X caller=%08X a5=%08X s0=%04X s2=%04X s4=%04X cnt=%04X sp=%08X a0=%08X a1=%08X d0=%08X d1=%08X\n",totalcycles(),pc,sr,l@sp,a5,w@10c000,w@10c002,w@10c004,w@10c02c,sp,a0,a1,d0,d1 ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/fg_before_clear_0561b6.bin,c08000,4000 ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/bg_before_clear_0561b6.bin,c00000,4000 ; g }
+Breakpoint 7 set
+>bp 0561d4,,{ tracelog "EVENT CLEAR_0561B6_DONE cyc=%d pc=%06X sr=%04X caller=%08X a5=%08X s0=%04X s2=%04X s4=%04X cnt=%04X sp=%08X a0=%08X a1=%08X d0=%08X d1=%08X\n",totalcycles(),pc,sr,l@sp,a5,w@10c000,w@10c002,w@10c004,w@10c02c,sp,a0,a1,d0,d1 ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/fg_after_clear_0561d4.bin,c08000,4000 ; dump states/traces/original_arcade_attract_page_replacement_20260623_171701/bg_after_clear_0561d4.bin,c00000,4000 ; g }
+Breakpoint 8 set
+>wp c08000,4000,w,,{ tracelog "EVENT FG_PC080SN_WRITE cyc=%d pc=%06X addr=%08X size=%d data=%08X sr=%04X a5=%08X s0=%04X s2=%04X s4=%04X cnt=%04X d0=%08X d1=%08X a0=%08X a1=%08X\n",totalcycles(),pc,wpaddr,wpsize,wpdata,sr,a5,w@10c000,w@10c002,w@10c004,w@10c02c,d0,d1,a0,a1 ; g }
+Watchpoint 1 set
+>wp c00000,4000,w,,{ tracelog "EVENT BG_PC080SN_WRITE cyc=%d pc=%06X addr=%08X size=%d data=%08X sr=%04X a5=%08X s0=%04X s2=%04X s4=%04X cnt=%04X d0=%08X d1=%08X a0=%08X a1=%08X\n",totalcycles(),pc,wpaddr,wpsize,wpdata,sr,a5,w@10c000,w@10c002,w@10c004,w@10c02c,d0,d1,a0,a1 ; g }
+Watchpoint 2 set
+>wp c20000,4,w,,{ tracelog "EVENT PC080SN_YSCROLL_WRITE cyc=%d pc=%06X addr=%08X size=%d data=%08X sr=%04X a5=%08X s0=%04X s2=%04X s4=%04X\n",totalcycles(),pc,wpaddr,wpsize,wpdata,sr,a5,w@10c000,w@10c002,w@10c004 ; g }
+Watchpoint 3 set
+>wp c40000,4,w,,{ tracelog "EVENT PC080SN_XSCROLL_WRITE cyc=%d pc=%06X addr=%08X size=%d data=%08X sr=%04X a5=%08X s0=%04X s2=%04X s4=%04X\n",totalcycles(),pc,wpaddr,wpsize,wpdata,sr,a5,w@10c000,w@10c002,w@10c004 ; g }
+Watchpoint 4 set
+>go
+Data dumped successfully
+Data dumped successfully
+Data dumped successfully
+Data dumped successfully
+Data dumped successfully
+Data dumped successfully
+Data dumped successfully
+Data dumped successfully
+Data dumped successfully
+Data dumped successfully
+Stopped at breakpoint 6
