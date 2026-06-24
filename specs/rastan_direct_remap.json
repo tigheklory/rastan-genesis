@@ -81,6 +81,7 @@
     "genesistan_hook_tilemap_plane_a",
     "genesistan_hook_tilemap_fg",
     "genesistan_hook_tilemap_bg_fill",
+    "genesistan_hook_tilemap_bg_blockcopy",
     "genesistan_hook_text_writer_3c4d2",
     "genesistan_hook_cwindow_clear",
     "genesistan_shadow_input_390001",
@@ -592,6 +593,12 @@
       "note": "Rewrite PC080SN scroll register write function: redirect all four MOVE.W destinations from hardware (0xC20000/0xC40000/0xC20002/0xC40002) to Genesis staged scroll variables. Same opcodes, same A5-relative sources, same RTS. Fixes scroll for ALL callers including gameplay."
     },
     {
+      "arcade_pc": "0x05A4DE",
+      "original_bytes": "3800244932C232D85340",
+      "replacement_bytes": "4EF9{symbol:genesistan_hook_tilemap_bg_blockcopy}4E714E71",
+      "note": "Route PC080SN BG block-copy engine through rastan-direct staging helper. Used by title/attract art block setup at arcade 0x05A38E (JSON segment 171 maps runtime 0x05A58E -> 0x05A6DE): preserves width/height/source/dest/attr contract and stages cells into staged_bg_buffer with bg_row_dirty."
+    },
+    {
       "arcade_pc": "0x0561B6",
       "original_bytes": "323C1000203C00000020207C00C08000227C00C0000020C022C0534166F8",
       "replacement_bytes": "4EB9{symbol:genesistan_hook_cwindow_clear}4E714E714E714E714E714E714E714E714E714E714E714E71",
@@ -734,6 +741,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 95
+    "opcode_replace_count": 96
   }
 }

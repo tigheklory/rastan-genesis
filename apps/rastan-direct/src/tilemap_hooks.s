@@ -5,6 +5,7 @@
     .global genesistan_hook_cwindow_clear
     .global genesistan_hook_tilemap_bg_fill
     .global genesistan_hook_tilemap_fg_fill
+    .global genesistan_hook_tilemap_bg_blockcopy
     .global genesistan_hook_text_writer_3c4d2
     .global genesistan_hook_text_writer_3c550
     .global genesistan_hook_text_writer_3c586
@@ -558,6 +559,96 @@ genesistan_hook_tilemap_fg_fill:
 
 .Lfg_fill_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_tilemap_bg_blockcopy:
+    movem.l %d3/%d5-%d7/%a3-%a6, -(%sp)
+
+    move.w  %d0, %d4
+    movea.l %a1, %a2
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a3
+    lea     genesistan_pc080sn_attr_lut, %a4
+    lea     staged_bg_buffer, %a6
+
+.Lbg_blockcopy_row_loop:
+    move.w  %d4, %d0
+
+.Lbg_blockcopy_cell_loop:
+    move.l  %a1, %d6
+    andi.l  #0x00FFFFFF, %d6
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_BG, %d6
+    blo     .Lbg_blockcopy_consume_cell
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_BG + ARCADE_PC080SN_CWINDOW_BYTES), %d6
+    bhs     .Lbg_blockcopy_consume_cell
+
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_BG, %d6
+    lsr.l   #2, %d6
+
+    move.w  %a0@, %d3
+    andi.w  #0x3FFF, %d3
+    add.w   %d3, %d3
+    move.w  0(%a3,%d3.w), %d5
+
+    move.w  %d2, %d3
+    andi.w  #0x0003, %d3
+
+    move.w  %d2, %d7
+    lsr.w   #8, %d7
+    lsr.w   #6, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #2, %d7
+    or.w    %d7, %d3
+
+    move.w  %d2, %d7
+    lsr.w   #8, %d7
+    lsr.w   #7, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #3, %d7
+    or.w    %d7, %d3
+
+    move.w  %d2, %d7
+    lsr.w   #8, %d7
+    lsr.w   #5, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #4, %d7
+    or.w    %d7, %d3
+
+    add.w   %d3, %d3
+    move.w  0(%a4,%d3.w), %d3
+    or.w    %d3, %d5
+
+    move.w  %d6, %d7
+    andi.w  #0x003F, %d7
+    move.w  %d6, %d3
+    lsr.w   #6, %d3
+    andi.w  #0x001F, %d3
+
+    move.w  %d3, %d6
+    lsl.w   #7, %d6
+    add.w   %d7, %d6
+    add.w   %d7, %d6
+    move.w  %d5, 0(%a6,%d6.w)
+
+    move.l  bg_row_dirty, %d5
+    bset    %d3, %d5
+    move.l  %d5, bg_row_dirty
+
+.Lbg_blockcopy_consume_cell:
+    addq.l  #2, %a0
+    addq.l  #4, %a1
+    subq.w  #1, %d0
+    cmpi.w  #0, %d0
+    bne     .Lbg_blockcopy_cell_loop
+
+    adda.l  #0x00000100, %a2
+    movea.l %a2, %a1
+    move.w  %d4, %d0
+    subq.w  #1, %d1
+    cmpi.w  #0, %d1
+    bne     .Lbg_blockcopy_row_loop
+
+    movem.l (%sp)+, %d3/%d5-%d7/%a3-%a6
     rts
 
 genesistan_hook_text_writer_3c4d2:

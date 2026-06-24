@@ -38179,3 +38179,33 @@ Open/Closed Issues Impact:
 - New issues opened: NONE
 - Issues closed: NONE
 - Issues intentionally deferred: implementation, unrelated FG/sprite/palette/input/crash-handler work, Start/C/A exception, BlastEm/Nomad/HV-counter
+
+### MAME Exit Summary (2026-06-24 11:03:52)
+- Final PC: 0x071C6C
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Reconcile+Implement, Build 0096 Title BG Block-Copy Staging]
+
+* files changed: `apps/rastan-direct/src/tilemap_hooks.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build_0096_title_bg_blockcopy_staging_impl.md` (new), `states/traces/build_0096_title_bg_blockcopy_staging_validation_20260624_110646/` (new evidence), generated build outputs/manifests, `AGENTS_LOG.md` (this append)
+* Part-1 reconciliation: large stylized red TAITO visibility in Build 0095 was not a proven separate correct BG staging source; prior evidence showed the title block was not staged (`bg_dirty=0`) while the original arcade block-copy still raw-wrote PC080SN/VDP-aliased addresses. Verdict: fix-safety (iii)/(i)-leaning; proceed because translating `0x05B0B2` block into BG staging should complete/add intended title art, not duplicate a legitimate staged BG source. Final on-screen non-duplication remains USER MUST VERIFY.
+* address mapping discipline: arcade `0x05A4DE`, caller `0x05A38E`, and table `0x05B0B2` mapped through `build/rastan-direct/address_map.json` segment 171 only; no arithmetic offset used as proof
+* implementation: added `genesistan_hook_tilemap_bg_blockcopy` in `tilemap_hooks.s`; added one `opcode_replace` at arcade `0x05A4DE` in `specs/rastan_direct_remap.json`; did not import legacy `genesistan_bulk_tilemap_commit`
+* build produced: YES, Build 0096
+* ROM: `dist/rastan-direct/rastan_direct_video_test_build_0096.bin`, SHA256 `c054107bc6dfccb45b1703a0896be9905f729b89d1e0b16a4677d30badfde51c`; rolling ROM byte-identical path `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+* not byte-identical to Build 0095 SHA `273508a23ddd7b37e10e7ba4a7355f78e95bbe539ba3145b4e844b59ace53ef6`: YES
+* invariant/category: opcode_replace `95 -> 96`; helper growth measured as `+0xD4`; total covered bytes `0x17CC40 -> 0x17CD14`; manifest count `96`; address-map coverage `0x17CD14` with no gaps/overlaps
+* static verification: Genesis `0x05A6DE` now begins `4ef9000707204e714e71` (`jmp 0x70720`), no longer original `3800244932c232d85340`; symbol `genesistan_hook_tilemap_bg_blockcopy = 0x00070720`
+* runtime verification: helper reached once; `28x20 = 560` BG block-copy stores observed; all 560 helper-composed cells nonzero; `bg_dirty` changed from `0x00000000` at helper entry to `0x007FFFF8` by `0x05A58E` return and remained `0x007FFFF8` at `0x3AC88`
+* staging dump proof: `bg_before_3ac54.bin` had `0/2048` nonzero words; `bg_after_5a58e.bin` and `bg_after_3ac88.bin` had `560/2048` nonzero words; focused title region had `0 -> 560` nonzero words and persisted through `0x3AC88`
+* visual verification: headless debugger trace did not capture a new on-screen frame; USER MUST VERIFY title art appears/materially advances, RASTAN/sword visibility, and large red TAITO not duplicated/overlapped
+* non-regression: no OPEN-015/Start-C-A/crash-handler/preload/LUT/FG/glyph/sprite/palette changes; FG staging remained active (`fg_dirty=0x15800000` at `0x3AC88`); no new crash before the trace validation boundary
+* KNOWN_FINDINGS impact: Option A — no edit; wait for visual confirmation before canonicalizing
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; title-art BG block-copy staging gap fixed for `0x05B0B2` / `0x00C00328`, not closed), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: visual confirmation, Start/C/A exception, OPEN-015 crash-handler defects, preload/LUT, FG/glyph, sprites, palette, throne, BlastEm/Nomad/HV-counter

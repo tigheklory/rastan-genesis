@@ -16,11 +16,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ACTIVE_BOOKMARK_BASELINE_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "active_bookmark_baseline.json"
 BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.txt"
 
-CANONICAL_OPCODE_REPLACE_COUNT = 95
+CANONICAL_OPCODE_REPLACE_COUNT = 96
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17CC40
+# Build 0096 title BG block-copy staging helper: +0xD4 bytes.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17CD14
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
