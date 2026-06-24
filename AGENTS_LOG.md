@@ -38083,3 +38083,99 @@ Open/Closed Issues Impact:
 KNOWN_FINDINGS impact: Option A — no update. Existing KF/OPEN context is extended by implementation evidence, but no new canonical finding was indexed in this task.
 
 STOP triggered: NO.
+
+## [Andy — Static, Build 0095 TAITO Logo Producer Attribution]
+
+* files changed: `docs/design/Andy_build_0095_taito_logo_producer_attribution.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* runtime probing: NO
+* producer PCs: title producers arcade 0x03AA54→Genesis 0x03AC54, arcade 0x03AAAE→Genesis 0x03ACAE (SEG#27 arcade_copy); glyph/text renderer arcade 0x03BB48→Genesis 0x03BD48 (SEG#106 patched_site)
+* layer: mixed — FG font text (copyright/scores/CREDIT/PUSH, works) + PC080SN tile-art graphics (TAITO logo / RASTAN / sword, partial/missing)
+* dropout cause: incomplete title tile-pattern PRELOAD → cells using non-preloaded tile codes render blank → SCATTERED interior holes (NOT trailing truncation)
+* romset finding: world_rev1 contains BOTH copyright strings (US arcade 0x3BD9C→gen 0x3BF9C, JP 0x3BF26→gen 0x3C126, same SEG#107 arcade_copy) → "AMERICA vs JAPAN" = region/DIP string selection within ONE ROM, NOT a data-set difference; data-set RULED OUT for missing tiles
+* RASTAN/sword same path: YES (PC080SN tile-art via same title preload; fully missing = tiles unpreloaded) [INFERENCE]
+* root cause confirmed: PARTIAL (mechanism proven static; exact missing-tile set needs §7 audit/trace)
+* no unrelated changes: YES
+* architecture compliance: CONFIRMED
+
+Mechanism [STATIC]: `load_scene_tiles` (scene_load.s:27) preloads only the PC080SN tiles in `pc080sn_scene_preload_title.bin` (~840 tile pairs) into Genesis VRAM (cap ~2048 tiles). `pc080sn_tile_vram_lut.bin` (16384 entries) maps all tile codes, but only preloaded codes have loaded patterns. Title-art cells referencing non-preloaded codes render blank. Build-time data/tooling coverage gap (NOT runtime translation, NOT the FG-clear path). `tools/audit_vram_tile_usage.py` exists to enumerate the gap.
+
+Trailing-vs-scattered: SCATTERED (per-tile-code pattern availability → isolated blanks throughout; visible cells align with arcade positions; RASTAN/sword whole-set absence). Trailing-truncation NOT supported.
+
+Recommended next step: NOT safe to hand a blind fix. Bounded confirm: (1 preferred) run tools/audit_vram_tile_usage.py to list title unique tile codes vs ~840-preload + VRAM budget; (2) or runtime trace of title nametable tile codes vs preloaded slots. Then the fix = complete pc080sn_scene_preload_title.bin (+ LUT regen) to cover title-art tiles, OR a VRAM-slot allocation strategy if over budget. Build-time data fix; safe-to-implement only AFTER the audit confirms the missing set fits budget.
+
+KNOWN_FINDINGS impact: Option C — proposed refinement to KF-014 (title scene preload + tile LUT don't cover the full title-artwork tile set within VRAM budget → scattered blank logo cells; copyright AMERICA/JAPAN = region/DIP selection within one ROM). STRONG mechanism; exact missing set WORKING_HYPOTHESIS pending audit. NOT applied.
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No source/spec/tool/Makefile/ROM modifications; no build; no runtime probing; no fix; did NOT run the audit tool (recommended for Cody): YES
+- Addresses mapped via build/rastan-direct/address_map.json (JSON only, never arithmetic); static vs inference labeled: YES
+- Did NOT reopen the FG-clear fix; did NOT treat missing tiles as a Build 0095 regression: YES
+- Ruled romset/data-set difference in-or-out (ruled OUT for tiles); stayed on TAITO/RASTAN/sword (throne deferred): YES
+- KNOWN_FINDINGS.md / OPEN_ISSUES.md not modified; no issues closed: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; title-art dropout attributed to incomplete title tile-pattern preload; not closed), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: throne, exact missing-tile enumeration (audit/trace), Start crash/OPEN-015, BlastEm/Nomad/HV, implementation
+
+## [Cody — Arcade+Genesis Audit, Build 0095 Title Tile Usage]
+
+* files changed: `docs/design/Cody_build_0095_arcade_title_tile_usage_audit.md` (new), `states/traces/original_arcade_title_tile_usage_audit_20260623_223832/` (new evidence), `states/traces/build_0095_title_art_tile_usage_audit_20260623_223322/title_tile_usage_audit.json` (new reduced evidence), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* source/spec/tool/Makefile/ROM/invariant changes: NO
+* implementation/fix: NO
+* arcade romset/driver: MAME `rastan` / `Rastan (World Rev 1)` using local `roms/rastan.zip`; original maincpu variant `world_rev1`
+* arcade runtime/source fact: complete title art is PC080SN BG C-window block `0x05A38E -> 0x05A4DE`, source table `0x05B0B2` (`28x20`), destination `0x00C00328`; original arcade PC080SN BG dump matched table `0x05B0B2` with zero mismatches
+* per-element arcade layer: red TAITO / RASTAN wordmark / sword all resolve to the composed PC080SN BG title-art block; PC090OJ sprite RAM was dumped but is not the source path for these audited elements
+* per-element A/B fork: TAITO = B, RASTAN = B, sword = B; all audited tile codes are present in Build 0095 title preload and assigned in LUT, but the title block cells are not staged/dirty/committed through BG staging
+* audit undercounts: NO for the audited title-art source; `tools/audit_vram_tile_usage.py` includes `0x5B0B2 28x20` and related title/attract ranges
+* budget feasible: YES for the audited source (`0x5B0B2` has 174 unique nonblank codes; all are already in title preload/LUT)
+* recommended fix class: B-class PC080SN BG block-copy staging/dirty translation coverage, specifically reconcile why Build 0095 runtime `0x05A58E -> 0x05A6DE` executes without BG staging despite the spec entry for arcade `0x05A4DE`; do not first expand title preload
+* KNOWN_FINDINGS impact: Option A — no edit; candidate future refinement notes title-art preload is already complete for `0x05B0B2`, and missing TAITO/RASTAN/sword is a cell/staging translation gap
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; missing title art narrowed to B-class block-copy staging/dirty path), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, throne, Start/C/A exception, OPEN-015 crash-handler defects, BlastEm/Nomad/HV-counter
+
+## [Cody — Documentation Correction, Build 0095 Title Tile Usage Address Mapping]
+
+* files changed: `docs/design/Cody_build_0095_arcade_title_tile_usage_audit.md`, `AGENTS_LOG.md` (this append)
+* build produced: NO
+* source/spec/tool/Makefile/ROM/invariant changes: NO
+* implementation/fix: NO
+* runtime probing: NO
+* correction: clarified that Genesis equivalents for arcade `0x05A38E`, `0x05A4DE`, and `0x05B0B2` were re-checked against `build/rastan-direct/address_map.json` segment `171` (`arcade_copy`), yielding `0x05A58E`, `0x05A6DE`, and `0x05B2B2`
+* discipline note: matching `+0x200` is descriptive only for that JSON segment, not used as proof authority
+* STOP status: NO
+
+## [Cody — Diagnostic, Build 0095 Title BG Block-Copy Staging Gap]
+
+* files changed: `docs/design/Cody_build_0095_title_bg_blockcopy_staging_diagnostic.md` (new), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* source/spec/tool/Makefile/ROM/invariant changes: NO
+* implementation/fix: NO
+* runtime probing: NO
+* address mapping discipline: all arcade↔Genesis mappings were resolved through `build/rastan-direct/address_map.json` segment 171 (`arcade_copy`); no arithmetic offset was used as proof
+* mapped path: arcade `0x05A38E -> 0x05A4DE`, table `0x05B0B2` maps to Genesis `0x05A58E -> 0x05A6DE`, table `0x05B2B2`
+* produced ROM check: Build 0095 at Genesis `0x05A6DE` still contains original block-copy bytes `3800244932c232d85340...`; no `genesistan_bulk_tilemap_commit` replacement is present at the mapped site
+* spec comparison: `startup_title_remap.json` contains a legacy/startup `0x05A4DE` replacement, but current `specs/rastan_direct_remap.json` has no `0x05A4DE` entry and no `genesistan_bulk_tilemap_commit` symbol requirement; Build 0095 follows the rastan-direct spec
+* candidate resolution: Candidate 4 is the current-runtime behavior — the path remains `arcade_copy` and writes arcade-style PC080SN BG memory (`0x00C00328`) that Genesis BG staging never consumes; not a postpatch failure in the consumed spec, not a wrong-address target, and not an already-wired helper failure
+* recommended fix class: add/port a rastan-direct production BG block-copy staging helper and opcode_replace for arcade `0x05A4DE` in `specs/rastan_direct_remap.json`; helper ownership likely `apps/rastan-direct/src/tilemap_hooks.s`; no fix performed
+* safe-to-implement: YES, with a narrow implementation prompt bounded to this block-copy engine and preserving original arcade routine contract
+* KNOWN_FINDINGS impact: Option A — no edit in this diagnostic; wait for implementation + verification before canonicalizing
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; missing title BG art explained as block-copy staging coverage gap), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, unrelated FG/sprite/palette/input/crash-handler work, Start/C/A exception, BlastEm/Nomad/HV-counter
