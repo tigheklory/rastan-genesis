@@ -20,7 +20,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 95
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17CB58
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17CC40
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

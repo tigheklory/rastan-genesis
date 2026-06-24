@@ -4,6 +4,7 @@
     .global genesistan_hook_tilemap_fg
     .global genesistan_hook_cwindow_clear
     .global genesistan_hook_tilemap_bg_fill
+    .global genesistan_hook_tilemap_fg_fill
     .global genesistan_hook_text_writer_3c4d2
     .global genesistan_hook_text_writer_3c550
     .global genesistan_hook_text_writer_3c586
@@ -469,6 +470,93 @@ genesistan_hook_tilemap_bg_fill:
     bne.s   .Lbg_fill_loop
 
 .Lbg_fill_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_tilemap_fg_fill:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+
+    movea.l %a0, %a4
+    move.l  %a4, %d2
+    andi.l  #0x00FFFFFF, %d2
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d2
+    blo     .Lfg_fill_done
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs     .Lfg_fill_done
+
+    move.w  %d1, %d6
+    tst.w   %d6
+    beq     .Lfg_fill_done
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     genesistan_pc080sn_attr_lut, %a3
+    lea     staged_fg_buffer, %a6
+
+    move.w  %d0, %d3
+    andi.w  #0x3FFF, %d3
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+
+    move.l  %d0, %d4
+    swap    %d4
+    move.w  %d4, %d5
+    andi.w  #0x0003, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #6, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #2, %d7
+    or.w    %d7, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #7, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #3, %d7
+    or.w    %d7, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #5, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #4, %d7
+    or.w    %d7, %d5
+
+    add.w   %d5, %d5
+    move.w  0(%a3,%d5.w), %d5
+    or.w    %d5, %d3
+
+.Lfg_fill_loop:
+    move.l  %a4, %d2
+    andi.l  #0x00FFFFFF, %d2
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs     .Lfg_fill_done
+
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d2
+    lsr.l   #2, %d2
+
+    move.w  %d2, %d4
+    andi.w  #0x003F, %d4
+    move.w  %d2, %d5
+    lsr.w   #6, %d5
+    andi.w  #0x001F, %d5
+
+    move.w  %d5, %d0
+    lsl.w   #7, %d0
+    add.w   %d4, %d0
+    add.w   %d4, %d0
+    move.w  %d3, 0(%a6,%d0.w)
+
+    move.l  fg_row_dirty, %d0
+    bset    %d5, %d0
+    move.l  %d0, fg_row_dirty
+
+    adda.l  #4, %a4
+    subq.w  #1, %d6
+    bne.s   .Lfg_fill_loop
+
+.Lfg_fill_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 

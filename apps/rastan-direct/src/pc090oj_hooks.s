@@ -396,6 +396,12 @@ genesistan_hook_3ad44_dispatch:
     bra.s   .Lhook_3ad44_loop
 
 .Lhook_3ad44_tilemap:
+    cmpi.l  #0x00C08000, %d2
+    blo.s   .Lhook_3ad44_tilemap_bg
+    bsr     genesistan_hook_tilemap_fg_fill
+    bra.s   .Lhook_3ad44_finish
+
+.Lhook_3ad44_tilemap_bg:
     bsr     genesistan_hook_tilemap_bg_fill
     bra.s   .Lhook_3ad44_finish
 

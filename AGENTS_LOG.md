@@ -37955,3 +37955,131 @@ Open / Closed Issues Impact:
 KNOWN_FINDINGS impact: Option C candidate only. The original arcade runtime proves a durable candidate behavior for this boundary: clear both active PC080SN FG/BG page regions via `0x03AE64`/`0x03AE74 -> 0x03AD44`; `KNOWN_FINDINGS.md` was not edited.
 
 STOP triggered: NO.
+
+## [Andy — Static, Build 0094 3ad44_dispatch Hook Body]
+
+* files changed: `docs/design/Andy_build_0094_3ad44_dispatch_hook_body.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* runtime probing: NO
+* hook stages FG: NO
+* stages BG: YES
+* dirty marked: BG yes / FG no
+* bug class: (b) hook reached but writes wrong/no staging range
+* recommended target: dispatch FG C-window range to an FG-fill mirror (staged_fg_buffer / base 0xC08000 / fg_row_dirty)
+* root cause confirmed: YES
+* no unrelated changes: YES
+* architecture compliance: CONFIRMED
+
+Narrow resume (mapping settled; not re-done). Corrects prior `Andy_build_0094_fg_text_lifecycle_static_map.md` ("no FG clear") — the clear IS translated; the defect is inside it.
+
+Hook body (source-confirmed):
+- Clear-path 0x3B064/0x3B074 (= arcade 0x3AE64/0x3AE74): BG `lea 0xc00100,%a0; #1900; #32; bsrw 0x3af44`; FG `lea 0xc08100,%a0; #1900; #32; bsrw 0x3af44`.
+- 0x3AF44 (= arcade 0x3AD44, patched) = `jsr 0x71618` (genesistan_hook_3ad44_dispatch, pc090oj_hooks.s:353).
+- Dispatch: A0 ∈ [0xC00000,0xC10000) → `.Lhook_3ad44_tilemap` → UNCONDITIONAL `bsr genesistan_hook_tilemap_bg_fill` (no BG/FG split).
+- genesistan_hook_tilemap_bg_fill (tilemap_hooks.s:388) is BG-ONLY: range gate [0xC00000, 0xC04000) (CWINDOW_BYTES=0x4000), base 0xC00000, target staged_bg_buffer, dirty bg_row_dirty.
+
+Q-answers (all STATIC):
+1. Dispatch detects A0∈[0xC00000,0xC10000) → bg_fill. YES.
+2. FG A0=0xC08100 → bg_fill top gate `bhs .Lbg_fill_done` (0xC08100 ≥ 0xC04000) → NO-OP. staged_fg_buffer NOT written. FG clear DROPPED.
+3. BG A0=0xC00100 ∈ range → staged_bg_buffer written; offset (0xC00100-0xC00000)>>2 = cell 0x40 (0x100 page offset preserved); d6=d1=1900 (ends 0xC01EB0 < 0xC04000, full extent); YES.
+4. Fill 0x20 → tile_vram_lut[32] | attr_lut → staged blank-cell. YES (BG; N/A FG).
+5. Dirty: BG yes (bset bg_row_dirty per row); FG no (dropped before write).
+6. Bug class (b): hook reached but FG routed to BG-only bg_fill which rejects A0=0xC08100 → FG attract clear dropped → staged_fg_buffer never cleared → additive FG text. BG correct. (Not a — reached; not c — BG dirties; not d — failure is here; not e — determinable.)
+
+Distinct from cwindow_clear/0x710D8 (the game-scene clear, correctly silent here). Cody's prior "no clear fired" watched 0x710D8, not 0x71618 — the actual hook fired but dropped FG.
+
+Recommended fix: `.Lhook_3ad44_tilemap` (pc090oj_hooks.s:398) must split on A0 — BG C-window [0xC00000,0xC04000)→bg_fill (unchanged); FG C-window [0xC08000,0xC0C000)→a mirror FG fill (staged_fg_buffer, base 0xC08000 = ARCADE_PC080SN_CWINDOW_BASE_FG, fg_row_dirty), structurally identical to bg_fill. Scope FG+BG (ADD missing FG; don't touch working BG). Preserve 0x100/cell-0x40 offset + 1900 extent (leading 0x100 intentionally uncleared; producer redraws from cell 0x40). Byte growth shifts addresses + total_genesis_bytes_covered → OPEN-016-class invariant update / re-relocation; Cody carries pre-authorization. Safe to hand to Cody: YES.
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No source/spec/tool/Makefile/ROM modifications; no build; no runtime probing; no fix written: YES
+- Did NOT re-map / search other JSON / touch open011/open013 artifacts (narrow resume): YES
+- Used settled address_map.json mapping only; static vs inference labeled: YES
+- KNOWN_FINDINGS.md / OPEN_ISSUES.md not modified; no issues closed: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; additive FG root cause proven = FG attract clear dropped by BG-only bg_fill; fix locus named; not closed), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: Genesis implementation, other attract boundaries, game-start redraw, Start/C/A exception, OPEN-015, sprites/palette/logo/sword
+
+## [Cody — Implementation Attempt, Build 0095 3AD44 Dispatch FG/BG Split]
+
+* files changed: `apps/rastan-direct/src/pc090oj_hooks.s`, `apps/rastan-direct/src/tilemap_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build_0095_3ad44_dispatch_fg_bg_split.md`, `AGENTS_LOG.md` (this append)
+* build produced: NO
+* numbered artifact: NO (`build_counter` remained `94`; no Build 0095 artifact produced)
+* runtime probing: NO
+* fix intent: split `genesistan_hook_3ad44_dispatch` tilemap path so BG C-window fills continue through `genesistan_hook_tilemap_bg_fill` and FG C-window fills route through a new `genesistan_hook_tilemap_fg_fill` mirror using `staged_fg_buffer` / `fg_row_dirty`
+* source/spec/tool scope: source + invariant constants only; no specs, Makefiles, ROM artifacts, bookmark cycle, exception/input/sprite/palette/scroll work
+* predeclared invariant: opcode_replace count `95`; `total_genesis_bytes_covered 0x17CB58 -> 0x17CC3C` (`+0xE4`)
+* single release invocation result: STOP at postpatch invariant gate — observed `total_genesis_bytes_covered=0x17CC40`, opcode_replace count `95`
+* gate discipline: observed `+0x04` mismatch was NOT accepted; invariant gates were NOT adjusted; release target was NOT rerun
+* runtime validation status: not attempted because no produced Build 0095 ROM exists
+* architecture compliance: source intent remains production repair, but task STOPs before artifact/validation due predeclared invariant mismatch
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; attract FG clear repair attempted but not built), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: runtime validation, Build 0095 artifact production, game-start redraw, Start/C/A exception, OPEN-015, sprites/palette/logo/sword
+
+KNOWN_FINDINGS impact: Option A — no update. No produced/validated build; no new durable finding indexed.
+
+STOP triggered: YES — invariant mismatch (`expected 0x17CC3C`, observed `0x17CC40`) under single-release rule.
+
+### MAME Exit Summary (2026-06-23 20:32:56)
+- Final PC: 0x071B98
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-23 20:35:05)
+- Final PC: 0x03ACFC
+- Stack Pointer (SP): 0x00FEFFE8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-23 20:41:12)
+- Final PC: 0x070184
+- Stack Pointer (SP): 0x00FEFFA6
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Continuation, Build 0095 3AD44 Dispatch FG/BG Split]
+
+* continuation accepted: YES
+* files changed: `apps/rastan-direct/src/pc090oj_hooks.s`, `apps/rastan-direct/src/tilemap_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build_0095_3ad44_dispatch_fg_bg_split.md`, `states/traces/build_0095_3ad44_fg_bg_split_validation_20260623_203427/`, `states/traces/build_0095_3ad44_fg_bg_split_commit_after_3acfe_20260623_204048/`, `AGENTS_LOG.md`; generated build artifacts updated under `apps/rastan-direct/dist/`, `dist/rastan-direct/`, and `build/rastan-direct/`
+* build produced: YES
+* build number: `0095`
+* ROM path: `dist/rastan-direct/rastan_direct_video_test_build_0095.bin`
+* SHA256: `273508a23ddd7b37e10e7ba4a7355f78e95bbe539ba3145b4e844b59ace53ef6`
+* opcode_replace count: `95`
+* total_genesis_bytes_covered: `0x17CC40`
+* +0x04 cause: benign linker alignment padding — raw object growth is `+0xE4` (`tilemap_hooks.o +0xD6`, `pc090oj_hooks.o +0x0E`), but both edited `.text` sections are 4-byte aligned and now end on halfword boundaries, adding `+2` padding after each object
+* invariant constants reconciled to build-measured `0x17CC40`: YES
+* address_map limited to native/helper growth: YES (`wrapper` ends `0x17CC40`, opcode_replace/patched-site count unchanged, no shift_delta table changes)
+* FG split in produced disasm: YES (`0x3AF44 -> 0x716F0`; dispatch compares `0x00C08000`; FG `bsrw 0x7064A`; BG `bsrw 0x70574`)
+* BG path unchanged: YES (`genesistan_hook_tilemap_bg_fill` still BG base/range/staged_bg_buffer/bg_row_dirty)
+* runtime validation: PASS for scoped attract FG clear boundary
+
+Runtime validation summary:
+- Primary trace: `states/traces/build_0095_3ad44_fg_bg_split_validation_20260623_203427/fg_bg_split_validation_analysis.md`
+- Commit check trace: `states/traces/build_0095_3ad44_fg_bg_split_commit_after_3acfe_20260623_204048/`
+- FG fill path fired for captured boundary: YES (`A0=0x00C08100`, `D0=0x20`, `D1=0x076C`; 1900 FG blank writes at post-PC `0x70702`)
+- BG fill path still fired: YES (`A0=0x00C00100`, `D0=0x20`, `D1=0x076C`; 1900 BG blank writes at post-PC `0x7062C`)
+- FG prior-page blanked before producer: YES (`62 -> 8` nonzero cells before `0x3ACAE`)
+- Pages replace, not accumulate: YES (`8 -> 143`, not Build 0094's `62 -> 191` additive pattern)
+- FG commit boundary reached: YES (`0x70182` after `0x3ACFE`, `fg_dirty=0x0AAAA100`, `143` nonzero FG cells at commit dump)
+- New attract-loop crash observed: NO (no crash halt in bounded validation; release 30s trace completed)
+- `0x711AE` cwindow_clear fired: NO (expected; game-scene clear remains untouched)
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; additive FG text retention mechanism repaired for this attract boundary, not closed), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: visual/manual verification, BG/logo/sword/game-start/red-fragment, Start/C/A exception, OPEN-015, sprites/palette/scroll/HV/Nomad/BlastEm work
+
+KNOWN_FINDINGS impact: Option A — no update. Existing KF/OPEN context is extended by implementation evidence, but no new canonical finding was indexed in this task.
+
+STOP triggered: NO.
