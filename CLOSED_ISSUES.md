@@ -197,3 +197,37 @@ Closure note format:
   - Parent issue CLOSED-010 (OPEN-012) closed on the same evidence chain.
   - Re-verifies CLOSED-009 in the replacement schema context.
   - OPEN-014 remains OPEN (trace sampling gap) and does not invalidate matrix/revert correctness.
+
+---
+
+## CLOSED-012 — REFUTED: TAITO magenta cells are a mirror/flip defect
+
+- **Status:** CLOSED (hypothesis REFUTED for the exact four magenta cells)
+- **Date closed:** 2026-06-26
+- **Closed by:** Build 0106 magenta-cell decode (Cody) + Andy canonicalization
+- **Scope:** the four exact user-marked magenta cells — FG `(23,17)/(23,22)/(23,24)/(24,20)`, codes `0x0022/0x0027/0x002C/0x003F`.
+- **Refutation evidence:** attr `0x0000` for all four; no flip bits; no H/V flip relationship between them; they are unique low-code glyphs. The defect is a blank LUT result (KF-033), not a mirror/flip transform loss.
+- **Cross-references:** KF-033, OPEN-019; docs/design/Cody_build_0106_taito_magenta_cell_arcade_intent.md; docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md.
+- **Boundary:** refutation applies only to these four cells; not a general statement about flip handling elsewhere.
+
+---
+
+## CLOSED-013 — REFUTED: TAITO magenta cells are a no-op/suppression defect
+
+- **Status:** CLOSED (hypothesis REFUTED for the exact four magenta cells)
+- **Date closed:** 2026-06-26
+- **Closed by:** Build 0106 magenta-cell decode (Cody) + Andy canonicalization
+- **Scope:** the four exact magenta cells (codes `0x0022/0x0027/0x002C/0x003F`).
+- **Refutation evidence:** the original writer is the glyph-renderer span (`arcade_pc 0x0003BB66/0x0003BB68`; Build 0106 routed `runtime_genesis_pc 0x0003BD48..0x0003BD7C`, patched_site arcade `0x3BB48`); the actual staging store is `runtime_genesis_pc 0x00070952`. Historical NOP/suppression sites (e.g. CLOSED-003 screen-flip/DMA-trigger NOPs) do not match these writers. The failure is a blank LUT result, not no-op/suppression.
+- **Note:** historical no-op/suppression precedent exists in the project record, but **not** for these cells.
+- **Cross-references:** KF-033, CLOSED-003, OPEN-019; docs/design/Cody_build_0106_correction_taito_arcade_intent_paren_lut.md; docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md.
+
+---
+
+## CLOSED-014 — BOUNDED: earlier BG `0x22CB..0x22CE` TAITO audit (not the visual symptom)
+
+- **Status:** CLOSED as BOUNDED EVIDENCE (not closure of the visual TAITO symptom)
+- **Date closed:** 2026-06-26
+- **Closed by:** Build 0106 two-context coordinate reconciliation (Cody) + Andy canonicalization
+- **Summary:** The Build 0095 audit attributed the red TAITO logo to BG block `0x5B0B2` geometry cells `0x22CB..0x22CE`. Those BG cells stage correctly, but they are **not** the exact visually-missing magenta cells. The actual missing cells are FG low-code glyphs (`0x0022/0x0027/0x002C/0x003F`) on the glyph-renderer/FG staging path. Record the BG `0x22CB..0x22CE` result as bounded evidence; it does **not** close the visual TAITO symptom (tracked under OPEN-001 / OPEN-019).
+- **Cross-references:** KF-034, KF-035, OPEN-001, OPEN-019; docs/design/Cody_build_0095_arcade_title_tile_usage_audit.md; docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md.

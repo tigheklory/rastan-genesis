@@ -38855,3 +38855,50 @@ Open/Closed Issues Impact:
 - New issues opened: NONE
 - Issues closed: NONE
 - Issues intentionally deferred: fix design/implementation for low-code LUT/preload coverage, raw `0x00C09172`, OPEN-015 work, any bookmark cycle
+
+## [Andy - Evidence/Docs, Build 0106 Fixed-Tile Findings Canonicalization + Original-Audit Blind-Spot Verification (rastan-direct)]
+
+* design note: docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md
+* scope: EVIDENCE/DOCS only; no source/spec/tool/ROM/build/bookmark/diagnostic changes; no fix design; no implementation; all instruction-PC correlation via address_map.json (no +-0x200 authority); independently verified LUT/preload binaries, TEXT_SPECIAL_GLYPH_MAP, byte-identity, and all mappings
+* TWO-CLASS taxonomy canonicalized: Class A = raw copied PC080SN write bypassing staging (strict-crash class); Class B = low-code FG glyph/symbol LUT coverage failure (routed but staged blank, no crash)
+* Class A confirmed instance (story comma): runtime_genesis_pc 0x0003ACEA = arcade_pc 0x0003AAEA (arcade_copy seg 0x03AB20..0x03AD00), move.w #0x2749,0x00C09172, FG row17/col28; tile 0x2749 IS mapped (LUT->slot 0x0039); defect = raw write to VDP mirror, never staged
+* Class B parens reclassified: NOT preload gap -> low-code alias/LUT omission; 0x0028==0x2747 (byte-identical, verified) ->slot 0x0037, 0x0029==0x2748 ->slot 0x0038; patterns already in VRAM, only LUT[low]=0; LUT-entry-only fix likely
+* Class B TAITO magenta cells (HIGH-conf two-context reconciliation): FG (23,17)/(23,22)/(23,24)/(24,20) codes 0x0022/0x0027/0x002C/0x003F attr 0x0000 no flip; routed via glyph renderer 0x3BD48 (patched_site arc 0x3BB48) store 0x70952; LUT[those]=0 -> blank; codes NOT byte-identical to mapped 0x2745/0x2746/0x2749/0x274B and have own nonblank ROM patterns -> may need PRELOAD+LUT, not LUT-only
+* ROOT mechanism (verified in binaries): precompute_pc080sn_tile_lut.py extract_text_writer_tiles applies TEXT_SPECIAL_GLYPH_MAP (0x21->0x2744..0x3F->0x274B) and registers only mapped punctuation tiles; title preload missing EXACTLY the 8 map keys (0x21,0x22,0x27,0x28,0x29,0x2C,0x2D,0x3F) while present for 0x20,0x23-0x26,0x2B,0x2E,0x2F,0x30-0x3E; LUT[lowcode]=0, LUT[0x2745..0x274B]=0x35..0x3B; 0x21/0x2D are latent gaps
+* TASK 1 blind-spot verdict: CONFIRMED (dual mechanism): (i) Build 0095 audit scoped red TAITO to BG block 0x5B0B2 geometry cells 0x22CB..0x22CE and never audited the FG glyph path; (ii) relied on the preload/LUT generator coverage assertions which embed the mapping assumption that drops the 8 low codes. Not overclaimed: 0095 never looked at the low codes (wrong cells), while trusting a tool whose mapping hides them
+* mirror/flip and no-op/suppression hypotheses REFUTED for the exact four TAITO cells; earlier BG 0x22CB..0x22CE audit BOUNDED (stages correctly but not the visual symptom)
+* coordinate reconciliation method succeeded HIGH confidence via two independent transforms (Genesis rendered->staged row/col; arcade rendered->PC080SN row/col) + adjacent anchors
+* KNOWN_FINDINGS updated: KF-032 (raw PC080SN writes must route through staging - Class A, consolidates scroll-RAM raw-fill + story comma), KF-033 (low-code FG glyph LUT gaps - Class B), KF-034 (two-context coordinate reconciliation), KF-035 (process guardrail: derive intent from arcade tilemap, not Genesis LUT/staging)
+* OPEN_ISSUES updated: OPEN-018 (route raw story-comma write), OPEN-019 (repair low-code FG glyph LUT coverage), OPEN-020 (comprehensive low-code glyph audit, all 8 map keys)
+* CLOSED_ISSUES updated: CLOSED-012 (TAITO mirror/flip REFUTED), CLOSED-013 (TAITO no-op/suppression REFUTED), CLOSED-014 (BG 0x22CB..0x22CE audit BOUNDED, not visual closure)
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; TAITO/paren symptom reattributed to Class-B low-code LUT failure; not closed), OPEN-005 (context; Class A same strict-crash family), OPEN-016/OPEN-017 (context), OPEN-015 (not touched)
+- New issues opened: OPEN-018, OPEN-019, OPEN-020
+- Issues closed: NONE (CLOSED-012/013/014 are refuted-hypothesis / bounded-evidence records, not OPEN-issue resolutions)
+- Issues intentionally deferred: story-comma routing fix, LUT/preload repair, per-line-scroll work, implementation
+
+## [Andy - Design, OPEN-018 Class A Raw Story-Comma PC080SN Write Routing (rastan-direct)]
+
+* design note: docs/design/Andy_open_018_class_a_raw_story_comma_routing_design.md
+* scope: DESIGN only; no source/spec/ROM/build/bookmark/diagnostic/implementation; outputs = doc + this log; all PC correlation via address_map.json (no +-0x200 authority); Class A only (Class B KF-033/OPEN-019/020 untouched)
+* target: runtime_genesis_pc 0x3ACEA = arcade_pc 0x3AAEA (arcade_copy 0x3AB20..0x3AD00), move.w #0x2749,0x00C09172; FG row17/col28 cell 0x45C; tile 0x2749->slot 0x0039 (mapping/preload OK; defect = raw write path); context = lone inline write inside glyph sequence (chars 0x40-0x46 route via 0x3bd48); CCR dead (overwritten by 0x3ACF2), a5 live but untouched
+* staging mechanics (Task 1): staged_fg_buffer WRAM 0xFF501A, offset row*128+col*2; LUT genesistan_pc080sn_tile_vram_lut 0xF213C (slot=lut[code&0x3FFF]); attr genesistan_pc080sn_attr_lut 0xFA13C; dirty fg_row_dirty 0xFF4006 (bset #row); REUSABLE WORKER genesistan_hook_tilemap_fg_fill 0x7065E (IN A0=HW addr, D0=(attr<<16|code), D1=count; movem saves/restores ALL regs; range-gates FG; LUT-translate+compose+stage+dirty); verified single-cell A0=0xC09170 D0=0x00002749 D1=1 -> staged_fg_buffer+0x8B8, fg_row_dirty bit17
+* patch-site design (Task 2): replace 6-byte move.w #imm,abs with 6-byte jsr abs.l (byte-neutral, delta 0); jsr not bsr.w (helper in genesis_only out of bsr range); helper rts -> returns 0x3ACF2; stack balanced; opcode_replace +1 (arcade 0x3AAEA arcade_copy->patched_site)
+* routing helper (Task 3/3B): CHOSEN = Option 1 dedicated entry genesistan_hook_inline_fg_write_3acea DELEGATING to generalized Option-3 worker fg_fill; body = movem.l d0-d7/a0-a6 save; lea 0xC09170,a0; move.l #0x00002749,d0 (attr 0<<16|code 0x2749); moveq #1,d1; bsr fg_fill; movem restore; rts; LITERAL SLOT 0x0039 NOT embedded (live LUT resolves at runtime - Constraint 2); row/col derived from A0 by fg_fill (not hardcoded); attr 0x0000 embedded (decode-confirmed)
+* why Option 1+3: byte-neutral 6-byte jsr leaves no room to set up A0/D0/D1 at site (Option 2 direct reusable call would force >6 bytes -> byte growth/relocation); dedicated entry supplies only the 2 site-intrinsic values, delegates all translation/staging/dirty to proven fg_fill
+* expected byte delta (Task 5 pre-auth): arcade space delta 0 (site 6->6); genesis_only +~22 bytes (one helper); total_genesis_bytes_covered += helper; relocation genesis_only-internal only; opcode_replace +1; any other delta = STOP
+* SIBLING SCAN (Task 4): raw PC080SN C-window writes found beyond comma (same CLASS): inline-immediate-absolute 0x3A550(#0x32->C08A52 r10c20), 0x3A8FE(#0x2744->C08E7A r14c30), 0x3A908(#0x2744->C08E66 r14c25) [same shape as comma]; register-absolute 0x3A92A(d0->C08C62 r12c24), 0x3D24C(d1->C08C66 r12c25); producer-loop 0x3B3CC/0x3B7F6/0x3B7F8 (move.w dN,(aN)) [different shape]; 0xC00000/0xC00004 hits are legal VDP port boot writes (excluded)
+* include siblings in THIS fix? NO -- only comma fully decoded; others need per-site attr/reachability decode; register-absolute need tile-code confirmation; producer loops need loop-routing design; keep impl limited to 0x3ACEA
+* CLOSURE CAVEAT: comma is 1 of >=6 reachable raw FG writes -> routing only 0x3ACEA removes 0xC09172 raw write but may NOT stop strict-target crash if a sibling faults first; recommend treating 0x3ACEA as template + sweeping same-shape immediate-absolute siblings next; validation must capture WHICH HW addr the strict target faults on
+* validation (Task 5): build+opcode_replace+1; byte-delta check; MAME watchpoint 0xC09172 no raw fire; staging staged_fg_buffer+0x8B8 = live-LUT slot|attr (not literal 0x0039), fg_row_dirty bit17; strict-target (BlastEm/Nomad/HW) - honest caveat re siblings; visual comma at r17c28; OUT OF SCOPE: title/INSERT COIN parens, sibling raws, Class B
+* risks (Task 6): stale-slot ELIMINATED (live LUT), wrong row/col LOW (A0-derived), dirty LOW, reg-clobber LOW (full movem + a5 untouched), CCR NONE (dead), embedded-attr LOW (decode-confirmed 0), hidden siblings CONFIRMED (>=5, enumerated), lifecycle LOW (same staged_fg_buffer/fg_row_dirty VBlank commit)
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-018 (active; Class-A comma routing fully designed; not closed pending implementation + sibling sweep for strict-target closure), OPEN-001 (context), OPEN-005/OPEN-017 (context; strict-crash family), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE (recommend filing sibling raw-FG-write sweep as OPEN-018-class follow-ups: 0x3A550/0x3A8FE/0x3A908 same-shape, 0x3A92A/0x3D24C register-absolute, 0x3B3CC/0x3B7F6/0x3B7F8 producer-loop)
+- Issues closed: NONE
+- Issues intentionally deferred: all sibling raw writes, Class B (KF-033/OPEN-019/OPEN-020), implementation

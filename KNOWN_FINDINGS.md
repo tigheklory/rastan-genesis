@@ -497,6 +497,66 @@ Last verified: 2026-06-19 (Build 0091 / OPEN-016 Part 2 ROM)
 
 **Use as prior.** Classify this as a sibling recurrence of CLOSED-008's stale-input/determinism class, not the same original missing-`.incbin` prerequisite root. For assembler-source changes in this era, verify the produced ROM/disassembly rather than trusting source diffs alone.
 
+## KF-032 — Raw copied arcade PC080SN writes must route through Genesis staging, not VDP mirror
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED
+- **Applicability:** GENERAL (any verbatim-copied arcade write to PC080SN/PC090OJ hardware space)
+- **Rediscovery Hazard:** HIGH (MAME-tolerant; BlastEm/Nomad/real-HW fatal — symptom hides on the common dev emulator)
+- **Addresses:** Class-A confirmed instances — (1) PC080SN per-line scroll-RAM raw fill: raw primitive `runtime_genesis_pc 0x0003AF3C` called from `0x0003B15E`/`0x0003B16E` with A0=`HW_ADDRESS 0x00C04000`/`0x00C0C000` (Build 0106 HV-crash root cause); (2) story comma/special glyph: `runtime_genesis_pc 0x0003ACEA` = `arcade_pc 0x0003AAEA` (`arcade_copy` seg `0x03AB20..0x03AD00`), `move.w #0x2749,0x00C09172`, FG row17/col28, tile `0x2749 → slot 0x0039`.
+- **Source Documents:** docs/design/Andy_build_0105_hv_counter_root_cause_fix_design.md; docs/design/Cody_build_0106_correction_taito_arcade_intent_paren_lut.md; docs/design/Cody_build_0106_c09172_writer_watchpoint.md; docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md
+- **Related Issues:** OPEN-005, OPEN-018, OPEN-017
+- **Last verified:** 2026-06-26 (Build 0106)
+
+**Finding.** Verbatim-copied arcade `move.w`/`move.l` writes (and raw fill loops) targeting `HW_ADDRESS 0x00C00000..0x00C0FFFF` (PC080SN) or `0x00D00000..0x00D007FF` (PC090OJ) execute on Genesis as raw 68000 writes into VDP-mirror space. Because `(address & 0x1F)` can select the read-only HV-counter port (offset 0x08), strict targets fatal ("Illegal write to HV Counter port 8"); even when they don't crash, the cell never reaches Genesis staging and renders blank. These writes must route through the PC080SN/PC090OJ dispatch/staging path or a named site-specific staging helper, preserving arcade intent.
+
+**Use as prior.** Do NOT fix by NOP/suppression, VDP-port sanitizer, suppressing 0xC00008, MAME-tolerance mimicry, or dropping the write unless arcade intent is proven irrelevant — route the intent to staging. Scan for sibling raw writes/fills; fixing one site commonly exposes the next (e.g. the C0C000 scroll clear and the inline title producer `0x0003B392`). This is the same class as the Build 0106 scroll-RAM HV crash and the story-comma write.
+
+## KF-033 — Low-code FG glyph/symbol LUT coverage gaps (routed but staged blank)
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED
+- **Applicability:** BUILD_SPECIFIC (Build 0106 / current LUT) but ROOT is TOOL-LEVEL (`precompute_pc080sn_tile_lut.py` mapping assumption — persists until the tool/LUT is fixed)
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** affected arcade tile codes `0x0021,0x0022,0x0027,0x0028,0x0029,0x002C,0x002D,0x003F` (the 8 `TEXT_SPECIAL_GLYPH_MAP` keys); confirmed-failing subset `0x0022,0x0027,0x0028,0x0029,0x002C,0x003F`; LUT `build/pc080sn_tile_vram_lut.bin`; generator `tools/translation/precompute_pc080sn_tile_lut.py` (`extract_text_writer_tiles` + `TEXT_SPECIAL_GLYPH_MAP`); FG store `runtime_genesis_pc 0x00070952`; glyph renderer `0x0003BD48..0x0003BD7C` (patched_site, `arcade_pc 0x0003BB48`).
+- **Source Documents:** docs/design/Cody_build_0106_correction_taito_arcade_intent_paren_lut.md; docs/design/Cody_build_0106_taito_magenta_cell_arcade_intent.md; docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md
+- **Related Issues:** OPEN-001, OPEN-019, OPEN-020
+- **Last verified:** 2026-06-26 (Build 0106; LUT/preload binaries inspected)
+
+**Finding.** The Build 0106 glyph renderer can route a cell correctly and still stage blank when the direct tile LUT maps a low arcade glyph/symbol code to slot `0x0000`. Root cause: `precompute_pc080sn_tile_lut.py` applies `TEXT_SPECIAL_GLYPH_MAP` (0x21→0x2744 … 0x3F→0x274B) and registers only the **mapped** punctuation tiles (0x2744–0x274B), assuming the runtime applies the same 0x563CE mapping. Verified: the title preload contains low codes `0x20,0x23–0x26,0x2B,0x2E,0x2F,0x30–0x3E` but is missing **exactly** the 8 map keys; `LUT[0x0022/0x0027/0x0028/0x0029/0x002C/0x003F]=0x0000` while `LUT[0x2745..0x274B]=0x0035..0x003B`. Symptoms: missing `INSERT COIN(S)` parens; four missing small red TAITO cells. No strict crash (writes are routed); the staged value is blank.
+
+**Use as prior.** Two sub-cases differ by byte-identity: **(a)** parens `0x0028/0x0029` are byte-identical to preloaded aliases `0x2747/0x2748` (slots 0x37/0x38) → fixable by adding the LUT entry alone (pattern already in VRAM). **(b)** TAITO low codes `0x0022/0x0027/0x002C/0x003F` are NOT byte-identical to their mapped tiles and have their own nonblank ROM patterns → may need preload/slot coverage **plus** LUT entries; do not assume LUT-only. `0x0021 ('!')` and `0x002D ('-')` are latent gaps (LUT=0, not yet observed failing).
+
+## KF-034 — Rendered-cell audits require two-context coordinate reconciliation
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED
+- **Applicability:** GENERAL (any audit comparing a Genesis rendered cell to arcade tilemap intent)
+- **Rediscovery Hazard:** MEDIUM-HIGH
+- **Addresses:** wrong-cell precedent BG `0x22CB..0x22CE`; correct magenta cells FG `(23,17)/(23,22)/(23,24)/(24,20)`; evidence `states/screenshots/build_106_missing_TAITO_logo_tiles_highlighted_in_magenta_hex_code_#ff00ff.png`
+- **Source Documents:** docs/design/Cody_build_0106_taito_magenta_cell_arcade_intent.md; docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md
+- **Related Issues:** OPEN-001
+- **Last verified:** 2026-06-26 (Build 0106)
+
+**Finding.** Genesis rendered-screen cells and arcade PC080SN tilemap cells require two independent transforms before comparison: (1) Build rendered screen → staged row/col via the Genesis display scroll/origin/title positioning; (2) arcade rendered title position → arcade PC080SN row/col via arcade PC080SN scroll/visible-area/title positioning. Both must be validated with adjacent visible anchor tiles. A naive pixel→row/col conversion on the wrong layer mis-located the missing TAITO cells onto the BG `0x22CB..0x22CE` block; the two-context method correctly resolved them to FG low-code glyphs.
+
+**Use as prior.** Do not audit guessed cells from single-context pixel math. Always anchor against adjacent known-good cells in both contexts and confirm the layer (BG vs FG) before attributing a coverage/staging defect.
+
+## KF-035 — Tile usage/preload audits must derive intent from arcade tilemap, not Genesis LUT/staging
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED
+- **Applicability:** GENERAL (process guardrail for all tile usage/preload/coverage audits)
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** original audit `docs/design/Cody_build_0095_arcade_title_tile_usage_audit.md`; generator `tools/translation/precompute_pc080sn_tile_lut.py`; blind-spot codes `0x0021,0x0022,0x0027,0x0028,0x0029,0x002C,0x002D,0x003F`
+- **Source Documents:** docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md (§4 Task-1 verification)
+- **Related Issues:** OPEN-001, OPEN-019, OPEN-020
+- **Last verified:** 2026-06-26 (Build 0106; blind spot CONFIRMED)
+
+**Finding.** The Build 0095 title tile-usage/preload audit was CONFIRMED blind to the low-code FG glyph cells via a dual mechanism: (i) it scoped the "red TAITO logo" to the BG block `0x5B0B2` geometry (codes `0x22CB..0x22CE`) and never audited the FG glyph-renderer path; (ii) it relied on the preload/LUT generator's coverage assertions, which embed `TEXT_SPECIAL_GLYPH_MAP` and silently drop the 8 raw low glyph codes (LUT=0). Standing rules: staging nonzero does not prove visual correctness; staging zero does not prove a tile is not preloaded; Genesis LUT results cannot be the only source of truth for arcade tile usage; cross-check arcade tilemap intent, VRAM/pattern table, rendered output, and writer evidence.
+
+**Use as prior.** Tile usage/preload analysis must derive "what should render" from original arcade tilemap/runtime intent (and the actual runtime-staged cell codes), not solely from Genesis-side LUT results or staging values. A tool that remaps codes (e.g. punctuation mapping) can hide whole code classes from a coverage check.
+
 ## Deferred Candidates Appendix
 
 **This appendix is NOT canonical priors. Entries here are pre-canonical observations that did not meet promotion criteria at the time of the most recent curation pass. They may be promoted, refined, or rejected in future curation passes.**

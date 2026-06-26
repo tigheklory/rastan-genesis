@@ -285,6 +285,50 @@ Rules:
 
 ---
 
+## OPEN-018 — Route raw copied PC080SN story-comma write through staging
+
+- **Status:** OPEN
+- **Priority:** HIGH (strict-emulator / real-hardware crash class)
+- **Discovered by:** Cody (Build 0106 c09172 writer watchpoint) / canonicalized by Andy
+- **Observed in build/artifact:** Build 0106, `dist/rastan-direct/rastan_direct_video_test_build_0106.bin`, SHA256 `ad894a86029738d8ab0b933b1acc55c2c6de06b5cc2d0e6535f121af28326d4e`
+- **Summary:** `runtime_genesis_pc 0x0003ACEA` (= `arcade_pc 0x0003AAEA`, `arcade_copy`) executes `move.w #0x2749, 0x00C09172` — a raw copied PC080SN FG write (story comma/special glyph, FG row17/col28) that bypasses Genesis staging. Class A (KF-032). Tile `0x2749` is already mapped (slot `0x0039`); the defect is the raw write path into VDP-mirror space.
+- **Evidence:** docs/design/Cody_build_0106_c09172_writer_watchpoint.md; docs/design/Cody_build_0106_correction_taito_arcade_intent_paren_lut.md; address_map.json segment `0x03AB20..0x03AD00`.
+- **Suspected area:** translated-arcade-write routing; same class as the Build 0106 scroll-RAM raw fill (0x3AF3C).
+- **Next required task:** design a routing fix that delivers the arcade intent (stage tile 0x2749 at FG row17/col28) through the FG staging path; do NOT NOP/suppress. Scan for sibling raw PC080SN/PC090OJ writes (e.g. inline producer `0x0003B392`).
+- **Closure condition:** the story-comma cell is staged (not raw-written) and renders on strict targets without an HV/port fatal.
+
+---
+
+## OPEN-019 — Repair low-code FG glyph/symbol LUT coverage
+
+- **Status:** OPEN
+- **Priority:** MEDIUM-HIGH
+- **Discovered by:** Cody (Build 0106 paren/TAITO evidence) / canonicalized by Andy
+- **Observed in build/artifact:** Build 0106, SHA256 `ad894a86029738d8ab0b933b1acc55c2c6de06b5cc2d0e6535f121af28326d4e`
+- **Summary:** Routed FG glyph cells stage blank because the tile LUT maps low arcade glyph/symbol codes to slot `0x0000` (KF-033). Confirmed-failing codes: `0x0022, 0x0027, 0x0028, 0x0029, 0x002C, 0x003F` (symptoms: missing `INSERT COIN(S)` parens; four missing small red TAITO cells).
+- **Design constraints:**
+  - `0x0028/0x0029` are byte-identical to preloaded aliases `0x2747/0x2748` (slots `0x0037/0x0038`) → likely LUT-entry-only fix (pattern already in VRAM).
+  - `0x0022/0x0027/0x002C/0x003F` are NOT byte-identical to their mapped tiles and have their own nonblank ROM patterns → may need preload/slot coverage **plus** LUT entries; do not assume LUT-only.
+  - Root is the generator `tools/translation/precompute_pc080sn_tile_lut.py` (`TEXT_SPECIAL_GLYPH_MAP` registers only mapped tiles). Fix should avoid one-off whack-a-mole; see OPEN-020.
+- **Evidence:** docs/design/Cody_build_0106_correction_taito_arcade_intent_paren_lut.md; docs/design/Cody_build_0106_taito_magenta_cell_arcade_intent.md; docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md; LUT/preload binaries inspected.
+- **Next required task:** decide the fix shape (LUT-only for parens vs preload+LUT for TAITO codes) per OPEN-020 audit; repair generator/LUT so routed low-code glyphs stage their correct pattern.
+- **Closure condition:** the confirmed-failing low-code FG glyphs render correctly, with the generator updated so the gap does not recur.
+
+---
+
+## OPEN-020 — Comprehensive low-code FG glyph/symbol coverage audit
+
+- **Status:** OPEN
+- **Priority:** MEDIUM
+- **Discovered by:** Andy (Build 0106 canonicalization, Task 1)
+- **Observed in build/artifact:** Build 0106, SHA256 `ad894a86029738d8ab0b933b1acc55c2c6de06b5cc2d0e6535f121af28326d4e`
+- **Summary:** Six low-code FG gaps were found by visible symptom; the root mechanism (KF-033/KF-035) implicates the full set of 8 `TEXT_SPECIAL_GLYPH_MAP` keys (`0x0021,0x0022,0x0027,0x0028,0x0029,0x002C,0x002D,0x003F`), of which `0x0021 ('!')` and `0x002D ('-')` are latent (LUT=0, not yet observed failing). Audit the low-code FG glyph/symbol range against arcade title/story tilemap intent and existing LUT/preload coverage before finalizing OPEN-019, to avoid whack-a-mole.
+- **Method (per KF-034/KF-035):** derive "what should render" from arcade tilemap/runtime staged cell codes (not Genesis LUT/staging results); cross-check VRAM/pattern table, rendered output, writer evidence; use two-context coordinate reconciliation with anchors.
+- **Evidence:** docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md (§3a, §4).
+- **Closure condition:** a complete inventory of low-code FG glyph/symbol coverage gaps (LUT-only vs preload+LUT) is produced and fed into the OPEN-019 fix.
+
+---
+
 ## Prompt Template Requirement (mandatory for all Cody/Andy prompts)
 
 Before work:
