@@ -19,7 +19,8 @@
       "Bash(awk 'NR>=1 && NR<=120' /home/tighe/projects/rastan-genesis/apps/rastan-direct/src/scene_load.s)",
       "Bash(awk 'NR>=240 && NR<=300' /home/tighe/projects/rastan-genesis/apps/rastan-direct/src/crash_handler.s)",
       "Bash(xxd /home/tighe/projects/rastan-genesis/build/pc080sn_attr_lut.bin)",
-      "Bash(awk '/^## KF-001/{exit}{print}' /home/tighe/projects/rastan-genesis/KNOWN_FINDINGS.md)"
+      "Bash(awk '/^## KF-001/{exit}{print}' /home/tighe/projects/rastan-genesis/KNOWN_FINDINGS.md)",
+      "Bash(python3 -)"
     ]
   }
 }

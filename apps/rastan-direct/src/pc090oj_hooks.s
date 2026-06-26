@@ -42,6 +42,9 @@
     .extern rastan_pc090oj
     .extern pc090oj_slot_lut
     .extern genesistan_hook_tilemap_bg_fill
+    .extern genesistan_hook_tilemap_fg_fill
+    .extern genesistan_hook_pc080sn_bg_scroll_fill
+    .extern genesistan_hook_pc080sn_fg_scroll_fill
 
     .equ VDP_DATA,      0x00C00000
     .equ VDP_CTRL,      0x00C00004
@@ -366,22 +369,22 @@ genesistan_hook_3ad44_dispatch:
 
 .Lhook_3ad44_check_pc090oj:
     cmpi.l  #0x00D00000, %d2
-    blo.s   .Lhook_3ad44_audit
+    blo     .Lhook_3ad44_audit
     cmpi.l  #0x00D00800, %d2
-    bhs.s   .Lhook_3ad44_audit
+    bhs     .Lhook_3ad44_audit
 
     /* PC090OJ branch: idx = (A0 - 0xD00000) >> 3 */
     move.l  %a0, %d2
     subi.l  #0x00D00000, %d2
-    bmi.s   .Lhook_3ad44_finish
+    bmi     .Lhook_3ad44_finish
     lsr.l   #3, %d2
     cmpi.l  #255, %d2
-    bhi.s   .Lhook_3ad44_finish
+    bhi     .Lhook_3ad44_finish
 
     lea     pc090oj_slot_lut, %a1
     move.b  0(%a1,%d2.l), %d0
     cmpi.b  #0xFF, %d0
-    beq.s   .Lhook_3ad44_finish
+    beq     .Lhook_3ad44_finish
 
     andi.w  #0x00FF, %d0
     move.w  %d1, %d3
@@ -396,14 +399,26 @@ genesistan_hook_3ad44_dispatch:
     bra.s   .Lhook_3ad44_loop
 
 .Lhook_3ad44_tilemap:
+    cmpi.l  #0x00C04000, %d2
+    blo.s   .Lhook_3ad44_bg_names
     cmpi.l  #0x00C08000, %d2
-    blo.s   .Lhook_3ad44_tilemap_bg
-    bsr     genesistan_hook_tilemap_fg_fill
-    bra.s   .Lhook_3ad44_finish
+    blo.s   .Lhook_3ad44_bg_scroll
+    cmpi.l  #0x00C0C000, %d2
+    blo.s   .Lhook_3ad44_fg_names
+    bsr     genesistan_hook_pc080sn_fg_scroll_fill
+    bra     .Lhook_3ad44_finish
 
-.Lhook_3ad44_tilemap_bg:
+.Lhook_3ad44_bg_names:
     bsr     genesistan_hook_tilemap_bg_fill
-    bra.s   .Lhook_3ad44_finish
+    bra     .Lhook_3ad44_finish
+
+.Lhook_3ad44_bg_scroll:
+    bsr     genesistan_hook_pc080sn_bg_scroll_fill
+    bra     .Lhook_3ad44_finish
+
+.Lhook_3ad44_fg_names:
+    bsr     genesistan_hook_tilemap_fg_fill
+    bra     .Lhook_3ad44_finish
 
 .Lhook_3ad44_audit:
     /* Reuse §7.3 audit-guard capture + heartbeat halt loop. */

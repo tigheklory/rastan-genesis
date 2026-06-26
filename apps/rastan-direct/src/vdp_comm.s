@@ -56,6 +56,8 @@
 
     .equ VDP_MODE2_DISPLAY_OFF, 0x34
     .equ VDP_MODE2_DISPLAY_ON,  0x74
+    .equ VDP_DISPLAY_ORIGIN_X_BIAS, 16
+    .equ VDP_DISPLAY_ORIGIN_Y_BIAS, 8
 
     .include "src/crash_handler.s"
     .section .text,"ax"
@@ -286,12 +288,20 @@ vdp_commit_scroll:
     move.l  #VRAM_HSCROLL_BASE, %d0
     bsr     vdp_set_vram_write_addr
 
-    move.w  staged_scroll_x_fg, VDP_DATA
-    move.w  staged_scroll_x_bg, VDP_DATA
+    move.w  staged_scroll_x_fg, %d0
+    subi.w  #VDP_DISPLAY_ORIGIN_X_BIAS, %d0
+    move.w  %d0, VDP_DATA
+    move.w  staged_scroll_x_bg, %d0
+    subi.w  #VDP_DISPLAY_ORIGIN_X_BIAS, %d0
+    move.w  %d0, VDP_DATA
 
     move.l  #0x40000010, VDP_CTRL
-    move.w  staged_scroll_y_fg, VDP_DATA
-    move.w  staged_scroll_y_bg, VDP_DATA
+    move.w  staged_scroll_y_fg, %d0
+    addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
+    move.w  %d0, VDP_DATA
+    move.w  staged_scroll_y_bg, %d0
+    addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
+    move.w  %d0, VDP_DATA
     rts
 
     .section .bss

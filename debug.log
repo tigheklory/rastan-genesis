@@ -1,32 +1,24 @@
 MAME debugger version 0.276 (unknown)
 Currently targeting genesis (Genesis (USA, NTSC))
->trace /home/tighe/projects/rastan-genesis/states/traces/build_0096_title_bg_blockcopy_staging_validation_20260624_110646/native_debug_trace.log,,noloop
-Tracing CPU ':maincpu' to file /home/tighe/projects/rastan-genesis/states/traces/build_0096_title_bg_blockcopy_staging_validation_20260624_110646/native_debug_trace.log
->bp 000518,,{ tracelog "EVENT CRASH_HALT cyc=%d pc=%06X sr=%04X sp=%08X\n",totalcycles(),pc,sr,sp ; quit }
-Breakpoint 1 set
->bp 3ac54,,{ tracelog "EVENT TITLE_HANDLER_3AC54_ENTRY cyc=%d pc=%06X sr=%04X s0=%04X s2=%04X s4=%04X cnt=%04X bg_dirty=%08X fg_dirty=%08X\n",totalcycles(),pc,sr,w@ff0000,w@ff0002,w@ff0004,w@ff002c,d@ff4002,d@ff4006 ; dump /home/tighe/projects/rastan-genesis/states/traces/build_0096_title_bg_blockcopy_staging_validation_20260624_110646/bg_before_3ac54.bin,ff401a,1000 ; dump /home/tighe/projects/rastan-genesis/states/traces/build_0096_title_bg_blockcopy_staging_validation_20260624_110646/fg_before_3ac54.bin,ff501a,1000 ; g }
-Breakpoint 2 set
->bp 5a58e,,{ tracelog "EVENT TITLE_BLOCK_5A58E_ENTRY cyc=%d pc=%06X sr=%04X a0=%08X a1=%08X d0=%08X d1=%08X d2=%08X bg_dirty=%08X\n",totalcycles(),pc,sr,a0,a1,d0,d1,d2,d@ff4002 ; g }
-Breakpoint 3 set
->bp 5a6de,,{ tracelog "EVENT TITLE_BLOCK_ROUTINE_5A6DE_ENTRY cyc=%d pc=%06X sr=%04X a0=%08X a1=%08X d0=%08X d1=%08X d2=%08X\n",totalcycles(),pc,sr,a0,a1,d0,d1,d2 ; g }
-Breakpoint 4 set
->bp 70720,,{ tracelog "EVENT BG_BLOCKCOPY_HELPER_70720_ENTRY cyc=%d pc=%06X sr=%04X a0=%08X a1=%08X d0=%08X d1=%08X d2=%08X bg_dirty=%08X\n",totalcycles(),pc,sr,a0,a1,d0,d1,d2,d@ff4002 ; g }
-Breakpoint 5 set
->bp 707ba,,{ tracelog "EVENT BG_BLOCKCOPY_STORE_707BA cyc=%d pc=%06X sr=%04X a0=%08X a1=%08X d3=%08X d5=%08X d6=%08X d7=%08X eff=%08X bg_dirty=%08X\n",totalcycles(),pc,sr,a0,a1,d3,d5,d6,d7,a6+d6,d@ff4002 ; g }
-Breakpoint 6 set
->bp 5a5aa,,{ tracelog "EVENT TITLE_BLOCK_5A58E_DONE cyc=%d pc=%06X sr=%04X a0=%08X a1=%08X d0=%08X d1=%08X d2=%08X bg_dirty=%08X\n",totalcycles(),pc,sr,a0,a1,d0,d1,d2,d@ff4002 ; dump /home/tighe/projects/rastan-genesis/states/traces/build_0096_title_bg_blockcopy_staging_validation_20260624_110646/bg_after_5a58e.bin,ff401a,1000 ; dump /home/tighe/projects/rastan-genesis/states/traces/build_0096_title_bg_blockcopy_staging_validation_20260624_110646/fg_after_5a58e.bin,ff501a,1000 ; g }
-Breakpoint 7 set
->bp 3ac88,,{ tracelog "EVENT TITLE_HANDLER_3AC88_BEFORE_KICK cyc=%d pc=%06X sr=%04X s0=%04X s2=%04X s4=%04X cnt=%04X fg_dirty=%08X bg_dirty=%08X\n",totalcycles(),pc,sr,w@ff0000,w@ff0002,w@ff0004,w@ff002c,d@ff4006,d@ff4002 ; dump /home/tighe/projects/rastan-genesis/states/traces/build_0096_title_bg_blockcopy_staging_validation_20260624_110646/bg_after_3ac88.bin,ff401a,1000 ; dump /home/tighe/projects/rastan-genesis/states/traces/build_0096_title_bg_blockcopy_staging_validation_20260624_110646/fg_after_3ac88.bin,ff501a,1000 ; quit }
-Breakpoint 8 set
->wp ff401a,1000,w,,{ tracelog "EVENT BG_STAGING_WRITE cyc=%d pc=%06X addr=%08X size=%d data=%08X post=%04X sr=%04X offset=%08X\n",totalcycles(),pc,wpaddr,wpsize,wpdata,w@wpaddr,sr,wpaddr-ff401a ; g }
+>trace /home/tighe/projects/rastan-genesis/states/traces/build_0106_missing_fixed_tiles_attr_flip_inventory_20260626_111500/staging_watch_trace.log,,noloop
+Tracing CPU ':maincpu' to file /home/tighe/projects/rastan-genesis/states/traces/build_0106_missing_fixed_tiles_attr_flip_inventory_20260626_111500/staging_watch_trace.log
+>wp FF5450,2,w,,{ tracelog "EVENT STAGED_WRITE label=insert_left_paren layer=FG row=8 col=27 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
 Watchpoint 1 set
->wp ff501a,1000,w,,{ tracelog "EVENT FG_STAGING_WRITE cyc=%d pc=%06X addr=%08X size=%d data=%08X post=%04X sr=%04X offset=%08X\n",totalcycles(),pc,wpaddr,wpsize,wpdata,w@wpaddr,sr,wpaddr-ff501a ; g }
+>wp FF5452,2,w,,{ tracelog "EVENT STAGED_WRITE label=insert_S layer=FG row=8 col=28 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
 Watchpoint 2 set
+>wp FF5454,2,w,,{ tracelog "EVENT STAGED_WRITE label=insert_right_paren layer=FG row=8 col=29 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
+Watchpoint 3 set
+>wp FF58D2,2,w,,{ tracelog "EVENT STAGED_WRITE label=story_comma_special layer=FG row=17 col=28 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
+Watchpoint 4 set
+>wp FF4AC8,2,w,,{ tracelog "EVENT STAGED_WRITE label=red_taito_tl layer=BG row=21 col=23 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
+Watchpoint 5 set
+>wp FF4ACA,2,w,,{ tracelog "EVENT STAGED_WRITE label=red_taito_tr layer=BG row=21 col=24 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
+Watchpoint 6 set
+>wp FF4B48,2,w,,{ tracelog "EVENT STAGED_WRITE label=red_taito_bl layer=BG row=22 col=23 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
+Watchpoint 7 set
+>wp FF4B4A,2,w,,{ tracelog "EVENT STAGED_WRITE label=red_taito_br layer=BG row=22 col=24 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
+Watchpoint 8 set
+>bp 03ACFE,,{ quit }
+Breakpoint 1 set
 >go
-Data dumped successfully
-Data dumped successfully
-Data dumped successfully
-Data dumped successfully
-Data dumped successfully
-Data dumped successfully
-Stopped at breakpoint 8
+Stopped at breakpoint 1

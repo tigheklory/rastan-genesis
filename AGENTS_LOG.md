@@ -38209,3 +38209,649 @@ Open/Closed Issues Impact:
 - New issues opened: NONE
 - Issues closed: NONE
 - Issues intentionally deferred: visual confirmation, Start/C/A exception, OPEN-015 crash-handler defects, preload/LUT, FG/glyph, sprites, palette, throne, BlastEm/Nomad/HV-counter
+
+## [Andy — Static, Build 0096 Title Coordinate/Origin Audit]
+
+* files changed: `docs/design/Andy_build_0096_title_coordinate_origin_audit.md` (new), `AGENTS_LOG.md` (this single new append; no existing entries modified)
+* build produced: NO
+* runtime probing: NO
+* Layer A offset: ~+1 col/+1 row; Layer B offset: ~+1 col/+1 row — SAME (shared)
+* shared-or-independent: SHARED (one upstream cause)
+* 0x00C00328 arcade-vs-genesis row/col: arcade cell (row 3, col 10) → Genesis nametable (row 3, col 10), staged offset 0x194 — IDENTICAL, no +1/+1
+* bg_fill-vs-blockcopy math: IDENTICAL (subtract BASE_BG, lsr #2, col=&0x3F, row=>>6&0x1F, offset=row*128+col*2) → no per-helper offset → shared cause
+* cause class: SHARED display/scroll-origin (staged_scroll_* = 0; arcade scroll/window origin not applied)
+* recommended fix site: scroll/display-origin layer (NOT the block-copy helper) — exact value pending bounded trace
+* root cause confirmed: PARTIAL (shared verdict + helper exoneration proven static; exact origin value/mechanism needs trace)
+* no unrelated changes: YES
+* architecture compliance: CONFIRMED
+
+Key static facts:
+- staged_scroll_x/y_bg/fg are .bss, NEVER written by any producer → vdp_commit_scroll writes 0 to HSCROLL+VSRAM for both planes → arcade scroll/window origin (KF-015 "+8 vertical bias"; A5 0x10EC/0x10EE/0x10AE/0x10B0) NOT applied. Both planes display from nametable (0,0) → uniform +1/+1.
+- Cell decode `(A0-base)>>2 → col=&0x3F, row=>>6&0x1F, offset=row*128+col*2` is faithful + IDENTICAL across bg_fill / bg_blockcopy (tilemap_hooks.s:564) / FG store 0x70794. Commit writes staged row R → VRAM_PLANE_BASE+R*128 (faithful). So per-producer (A), decode (B), commit-origin (C) are RULED OUT as the +1/+1 source; (D/E) scroll/display-origin is it.
+- Layer A producer = glyph/text renderer arcade 0x03BB48 → Genesis 0x03BD48 (SEG#106 patched_site); BG block-copy arcade 0x05A4DE → Genesis 0x05A6DE (SEG#172 patched_site). Both share the identical decode→stage→commit→display(scroll=0) origin rule.
+- Clean +1/+1 is the one-based signature, BUT the indexing is 0-based/faithful → the off-by-one is in the DISPLAY origin (viewport/scroll), not cell indexing.
+
+Offscreen ALL RIGHTS/CREDIT (Q6): could be the +1-down origin bias AND/OR true 320x240→320x224 clip (arcade 30 rows vs Genesis 28; bottom 2 rows lost regardless of origin). Separate effects, may compound — trace splits them. Top SCORE/1UP/2UP (Q7): a missing top line is more consistent with "not staged / separate HUD path" than the (downward) bias — flagged, not concluded.
+
+Recommended next step: do NOT edit the block-copy helper (byte-identical to proven bg_fill; faithful). Shared fix = scroll/display-origin. Bounded Cody trace before fixing: (1) confirm staged_scroll_*=0 at steady title; (2) read arcade scroll source A5 0x10EC/0x10EE/0x10AE/0x10B0 + whether 0xC20000/0xC40000 writes are hooked; (3) measure exact pixel offset (=8/8?); (4) capture staged row indices of ALL RIGHTS/CREDIT + SCORE vs 28-row window to split bias from clip + classify HUD. Then one upstream scroll/origin correction (both planes). Safe to implement now: NO (pending trace).
+
+KNOWN_FINDINGS impact: Option C — proposed refinement to KF-015 (staged_scroll_* unwired to 0 → arcade scroll/window origin not applied → shared +1/+1; decode+commit faithful+identical across helpers; separate 240→224 bottom-row clip). STRONG (shared verdict + helper exoneration); exact value WORKING_HYPOTHESIS pending trace. NOT applied.
+
+Floor:
+- Files changed: only the design doc + this AGENTS_LOG append: YES
+- No source/spec/tool/Makefile/ROM modifications; no build; no runtime probing; no fix: YES
+- Did NOT assume the new block-copy helper is root cause (proved it identical to bg_fill + exonerated); did NOT reopen the Build 0096 fix: YES
+- Kept red TAITO logo in Layer A lane (not grouped with RASTAN/sword); separated 240→224 clip from origin bias: YES
+- Addresses via address_map.json (JSON only, never arithmetic); arcade-intent/Genesis-behavior/inference labeled: YES
+- KNOWN_FINDINGS.md / OPEN_ISSUES.md not modified; no issues closed: YES
+- STOP triggered: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; +1/+1 shift attributed to shared display/scroll-origin gap, helper exonerated; not closed), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: 4 red-TAITO Layer-A tiles (attribute-only), high-score-table mechanism (note-only), exact origin value (trace), 240→224 viewport policy (user decision), Start/OPEN-015/OPEN-017, preload/LUT, block-copy fix, implementation
+
+## [Cody — Diagnostic, Build 0096 Scroll / Display-Origin Runtime Trace]
+
+* files changed: `docs/design/Cody_build_0096_scroll_origin_trace.md` (new), `states/traces/build_0096_scroll_origin_trace_20260624_162530/scroll_origin_reduced_summary.json` (new), `states/traces/build_0096_scroll_origin_trace_20260624_162530/scroll_origin_reduced_analysis.md` (new), `AGENTS_LOG.md` (this append)
+* evidence artifacts used: `states/traces/build_0096_scroll_origin_trace_20260624_162530/` and `states/traces/original_arcade_scroll_origin_trace_20260624_162530/`
+* build produced: NO
+* source/spec/tool/Makefile/ROM/invariant changes: NO
+* fix/implementation: NO
+* bookmark cycle: NO
+* OPEN-015 / Start-C-A / crash-handler work: NO
+* address mapping discipline: arcade-to-Genesis code addresses in the report were checked against `build/rastan-direct/address_map.json`; arithmetic offset was not used as proof
+* Genesis staged scroll values: `staged_scroll_x_bg`, `staged_scroll_x_fg`, `staged_scroll_y_bg`, and `staged_scroll_y_fg` were all `0x0000` at `0x3AC88`, at `0x3ACF8`, and at all 546 observed `vdp_commit_scroll` entries
+* Genesis VDP scroll commits: `vdp_commit_scroll` ran 546 times; HScroll FG, HScroll BG, VSRAM FG, and VSRAM BG all wrote `0x0000` every time
+* Genesis staged-scroll writers: only zero writes observed from boot/init PCs `0x00031A/0x000320/0x000326/0x00032C` and redirected clear post-PCs `0x03B2A0/0x03B2A6`; no nonzero staged-scroll write observed
+* original arcade runtime scroll intent: at title boundary `0x03AA88`, A5 scroll/window fields were all zero (`bg_x_10ec=0000`, `bg_y_10ee=0000`, `fg_x_10ae=0000`, `fg_y_10b0=0000`); PC080SN X/Y scroll writes to `0xC20000/0xC40000` before the title boundary also wrote zero
+* measured scroll-space delta: Layer A X/Y = `0/0`, Layer B X/Y = `0/0`; the user/Andy visual +1/+1 symptom is not explained by a missing nonzero raw scroll word in this bounded title state
+* row evidence: BG title art block staged at rows `3..22`, cols `10..37`; FG copyright row `26`, `ALL RIGHTS` row `28`, `CREDIT` row `30`; `ALL RIGHTS`/`CREDIT` absence is consistent with 224-line clipping independent of raw scroll values
+* conclusion: raw scroll-word hypothesis not supported by this trace; remaining likely class is fixed viewport/display-origin policy or visual-window convention, but exact correction is not proven
+* implementation safety: NO — do not patch `staged_scroll_*` or origin policy from this trace alone; next step should be a visual/VRAM-correlated arcade-vs-Genesis plane-origin capture
+* KNOWN_FINDINGS impact: Option A — no update; this narrows a hypothesis but does not prove a durable fix mechanism
+* STOP status: NO for diagnostic completion; YES for implementation safety (fix not safely placeable yet)
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; shared visual-origin problem narrowed, not closed), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, exact visual-origin correction, crash/OPEN-015, Start-C-A, BG/sprite/palette/logo/sword follow-ups outside this bounded trace
+
+Note: `debug.log` was also modified as a MAME debugger transcript side-effect from the read-only trace command. It is not source/spec/tool/Makefile/ROM/invariant content and was not intentionally edited.
+
+## [Cody — Diagnostic, Build 0096 Visible-Window Origin Correlation]
+
+* files changed: `docs/design/Cody_build_0096_visible_window_origin_correlation.md` (new), `states/screenshots/build_0096_visible_origin_probe/visible_coordinate_measurements_frame060.json` (new), `states/screenshots/build_0096_visible_origin_probe/visible_window_origin_correlation_summary.json` (new), measured-frame/annotation artifacts under `states/screenshots/build_0096_visible_origin_probe/`, `AGENTS_LOG.md` (this append)
+* evidence artifacts used/created: fresh native MAME AVI `states/screenshots/build_0096_visible_origin_probe/mame_native/build0096.avi`, exact Genesis frame `states/screenshots/build_0096_visible_origin_probe/mame_native/exact_frames/build0096_frame_000060_title.png`, arcade reference `/home/tighe/.mame/snap/rastan/RASTAN TITLE REFERENCE MAME.png`, prior original-arcade dumps in `states/traces/original_arcade_title_tile_usage_audit_20260623_223832/`
+* build produced: NO
+* source/spec/tool/Makefile/ROM/invariant changes: NO
+* implementation/fix: NO
+* bookmark cycle: NO
+* OPEN-015 / Start-crash / HV-counter work: NO
+* address mapping discipline: arcade-to-Genesis addresses checked against `build/rastan-direct/address_map.json`; mappings recorded for segments 27, 106, 171, 172, and 173; arithmetic offset was not used as proof
+* arcade-intent final display: original arcade reference is `320x240`; MAME driver sets `screen.set_size(40*8,32*8)` and visible area X `0..319`, Y `8..247` (40x30 visible cells, source row 0 clipped)
+* Genesis-behavior final display: fresh Build 0096 native MAME capture is `256x224`; exact measured title frame is `frame_000060`, 32x28 visible cells
+* four-coordinate result: Layer B raw title block remains faithful (`0x00C00328`, row 3 col 10; Build 0096 rows 3..22 cols 10..37); final visible title elements share a +1 visible-row component, explained by arcade visible Y starting at pixel 8 while Genesis displays row 0 at the top
+* X result: native evidence does NOT prove a uniform +1-cell X scroll/origin delta; X mismatch is dominated by Genesis native 32-column/256px output and right-side clipping versus arcade 40-column/320px intent
+* Layer A raw result: copyright / ALL RIGHTS / CREDIT raw rows/cols carried forward from prior trace; large red TAITO semantic raw bbox not safely isolated, so no Layer-A-specific raw offset was proven
+* ALL RIGHTS/CREDIT: absence confirmed as native 224-line clipping (`ALL RIGHTS` row 28, `CREDIT` row 30) with CREDIT also horizontally outside the 32-column window
+* SCORE/1UP/2UP: present in arcade reference; absent semantically from Build 0096 title frame and not present in captured staging rows 0..2, so classified as missing/separate HUD path, not merely clipped by the +1 row display-window effect
+* verdict: final display/window policy mismatch, not BG helper math, not a nonzero scroll-word wiring fix, and not a proven Layer-A raw-offset bug
+* recommended fix class: VDP display-register / visible-window setup investigation; safe to implement now: NO, because runtime VDP mode/register decode and the 320x240-to-Genesis viewport policy still need an explicit decision
+* KNOWN_FINDINGS impact: Option A — no update from this diagnostic alone
+* STOP status: NO for diagnostic completion; YES for implementation safety (do not patch from this evidence alone)
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; narrowed to final display/window policy plus separate HUD path), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, runtime VDP register/mode decode, viewport policy decision, SCORE/HUD producer path, Start crash, OPEN-015, HV-counter, raw BG block-copy helper changes
+
+Note: a MAME debugger run was attempted for VDP-control tracing, but it did not produce a usable Build 0096 transcript. The report does not claim runtime VDP register facts from that attempted trace. `debug.log` remains a debugger side-effect file and was not intentionally edited as source/spec/tool/Makefile/ROM content.
+
+## [Cody - Documentation Correction, Build 0096 H40 / Placement Evidence]
+
+* files changed: `docs/design/Cody_build_0096_visible_window_origin_correlation.md` (correction section appended), `docs/design/Cody_build_0096_scroll_origin_trace.md` (correction addendum appended), `states/screenshots/build_0096_visible_origin_probe/visible_window_origin_correlation_summary.json` (correction fields added), `AGENTS_LOG.md` (this append)
+* build produced: NO
+* source/spec/tool/Makefile/ROM/invariant changes: NO
+* implementation/fix: NO
+* new diagnostic/runtime trace: NO
+* bookmark cycle: NO
+* OPEN-015 / Start-crash / BlastEm/Nomad/HV-counter work: NO
+* correction recorded: YES
+* evidence source: user-provided live Exodus VDP register inspection and user-provided same-ROM MAME screenshot; not Cody-generated capture
+* confirmed display mode: Build 0096 is H40 / 320x224; user-provided VDP register 12 / Mode Set 4 = `0x81`, RS1 set; corroborating registers include Plane A `0xE000`, Plane B `0xC000`, Window `0xF000`, HScroll `0xFC00`, H-scroll size 64, V-scroll size 32
+* retracted: prior Cody interpretation that the ROM display mode was 256x224/H32, and the conclusion that horizontal mismatch was right-side clipping from a real 256-wide Genesis window
+* retained measurement caveat: the prior native-MAME AVI genuinely measured 256x224, but it is now classified as a capture-path artifact, not Build 0096 display mode
+* corrected placement: user addition-blend overlay measures Genesis title composition at +16 px X / +2 cols and +8 px Y / +1 row versus arcade; this supersedes rough +1/+1 wording
+* placement status: OPEN; asymmetric +2/+1 bug remains unexplained and under OPEN-001
+* still valid: Layer B raw staging for `0x00C00328` remains faithful; raw scroll words remain zero on arcade and Genesis in the sampled title state; BG block-copy helper remains exonerated; ALL RIGHTS row 28 and CREDIT row 30 remain below 224-line output; SCORE/1UP/2UP remains a separate missing/not-staged HUD thread
+* red TAITO status: explicitly still incomplete; four internal missing tiles remain a separate Layer A glyph/tile defect
+* KNOWN_FINDINGS impact: Option C proposed assess-only in the report; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO for documentation correction; YES for implementation safety (do not patch from this correction alone)
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; placement bug corrected to +16/+8 and remains open), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, coordinate/origin root cause, TAITO missing-tile defect, SCORE/HUD producer path, vertical viewport policy, Start crash, OPEN-015, HV-counter
+
+## [Andy - Analysis, Build 0096 Placement-Offset Attribution (+16 X / +8 Y), per-axis (rastan-direct)]
+
+* design note: docs/design/Andy_build_0096_placement_offset_attribution.md
+* scope: static analysis only; no source/spec/tool/Makefile/ROM edits; no build; no runtime probing; JSON-mapped addresses; hardware constants from in-repo MAME reference docs/reference/mame/rastan/
+* symptom under attribution: USER-VISUAL addition-blend overlay = +16 px X (+2 cols) / +8 px Y (+1 row) vs same-ROM arcade; supersedes rough +1/+1; asymmetry (16 != 8) drove the two-mechanism hypothesis
+* X (+16) CONFIRMED: un-replicated PC080SN fixed scrolldx = -16, applied to BOTH tilemap[0] (BG) and tilemap[1] (FG) -- pc080sn.cpp:93,95; m_x_offset=0 (pc080sn.cpp:63-64) and Rastan NEVER calls set_offsets (no set_offsets in rastan.cpp) -> scrolldx is exactly -16; the task-flagged "-16 ~ +16" coincidence is real and causal
+* X is ARCADE-INTENT display behavior to REPLICATE, not a Genesis staging bug
+* Y (+8) attributed INDEPENDENTLY of X (never via the vertical path): Candidate PC080SN scrolldy = REJECTED (scrolldy = m_y_offset = 0, pc080sn.cpp:94,96 -> zero vertical chip offset); Candidate screen visarea Y-start = CONFIRMED (set_visarea(0,319,8,247), rastan.cpp:451 -> visible Y starts at 8, top tile row cropped). +8 Y = un-replicated visarea Y=8 crop
+* one mechanism or two: TWO distinct hardware facilities -- X = PC080SN tilemap scrolldx (-16); Y = CRT screen visarea top crop (Y=8). Asymmetry fully explained; PC080SN scrolldy=0 proves X chip-offset does NOT extend to Y
+* Layer A / Layer B share offset: YES on BOTH axes -- scrolldx -16 set on both tilemaps (pc080sn.cpp:93 BG / :95 FG); visarea Y=8 crops whole screen. One shared display-origin correction fixes both planes; consistent with prior "shift present on plane the helper never writes -> shared/upstream" finding, now given exact arcade source
+* genuine bug vs replicate: BOTH are ARCADE-INTENT display behavior to REPLICATE (viewport-policy), NOT staging bugs -- raw staging/cell-decode/commit proven faithful; the only defect is the port failing to reproduce the arcade fixed display origin (scrolldx + visarea crop) downstream of the nametable
+* fix locus (per-axis, mechanism-level): fixed display-origin bias -16 px X / -8 px Y applied ONCE to both planes at the display layer, as an ADDITIVE term layered on the (correctly-zero) dynamic scroll, feeding staged_scroll_x/y_* -> vdp_commit_scroll (vdp_comm.s:285); NOT in producers/staging/cell-decode (those faithful). Sign: content currently +16 right/+8 down -> needs left 16/up 8 -> H-scroll +16, V-scroll +8
+* critical distinction honored: proven-zero "scroll words" = dynamic per-frame scroll (keep wiring to arcade source); the -16/-8 are PC080SN/visarea FIXED display offsets, a separate additive term -- baking them in is NOT wiring a nonzero dynamic scroll word. KF-015 documented "+8 vertical bias" = the Y term; its arcade source = visarea Y=8
+* 240->224 vertical extent: SEPARATE viewport-policy decision, parked for Tighe -- arcade visible height 240 (Y 8..247) vs Genesis 224; even after replicating the Y=8 top crop, Genesis has 16 fewer lines so arcade bottom 16 px (ALL RIGHTS row ~28 / CREDIT row ~30) have no Genesis scanline. Top-crop replication does NOT create bottom room; distinct from the +8 origin
+* attribution status: COMPLETE and STATIC -- values proven from hardware reference (scrolldx -16 both tilemaps, scrolldy 0, visarea Y=8, offsets not overridden); NO runtime trace required to fix the X/Y origin (unlike the prior +1/+1 audit which deferred the value)
+* recommended next step: (1) Tighe viewport-policy decision = REPLICATE arcade display origin via fixed -16/-8 both-plane bias; (2) parked separate 240->224 extent decision; (3) on approval, Cody implements fixed -16/-8 bias in staged_scroll_x/y_* feeding vdp_commit_scroll, additive on zero dynamic scroll, both planes, X/Y independent; no producer/staging/cell-decode change; no NOP/RTS
+* safe to implement: X/Y origin VALUES settled and safe [STATIC]; gate is policy confirmation (#1 + parked #2), not missing analysis
+* established facts NOT reopened: display H40/320x224; raw dynamic scroll words zero both sides; Layer B raw staging faithful; BG block-copy helper exonerated
+* scaffolding inventory: NONE introduced (analysis only); proposed fix is a fixed scroll-bias data term, no NOP/RTS/test code
+* KNOWN_FINDINGS impact: Option C proposed assess-only (refine KF-015 with the two-mechanism per-axis attribution); KNOWN_FINDINGS.md NOT edited
+* STOP status: NO for documentation; implementation gated on Tighe viewport-policy confirmation
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; +16/+8 now attributed per-axis to PC080SN scrolldx -16 and visarea Y=8 crop, Layer A/B shared, fix locus named; NOT closed pending policy + implementation), OPEN-016 (context; small localized fixed-bias change), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: 240->224 vertical-extent viewport policy (parked, user decision), four missing red-TAITO Layer-A tiles (separate KF-014 preload defect), SCORE/1UP/2UP HUD producer thread, Start crash/OPEN-015/OPEN-017, implementation, PC090OJ sprite offsets (separate facility)
+
+### MAME Exit Summary (2026-06-24 20:53:32)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-24 20:54:26)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-24 20:54:34)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0097 PC080SN Display-Origin Bias]
+
+* files changed: `apps/rastan-direct/src/vdp_comm.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build_0097_display_origin_bias_impl.md`, `AGENTS_LOG.md`; generated evidence under `states/screenshots/build_0097_display_origin_bias/`; release artifact `dist/rastan-direct/rastan_direct_video_test_build_0097.bin`
+* build produced: YES - Build 0097
+* ROM: `dist/rastan-direct/rastan_direct_video_test_build_0097.bin`
+* SHA256: `b8e16f7c670dc8225584679b88d5a4ea71efb0dc5938d38420fca524ec71db72`
+* baseline comparison: not byte-identical to Build 0096 SHA `c054107bc6dfccb45b1703a0896be9905f729b89d1e0b16a4677d30badfde51c`
+* implementation locus: `apps/rastan-direct/src/vdp_comm.s`, centralized `vdp_commit_scroll`
+* sign proof: local VDP helpers write scroll values directly; SGDK map convention uses horizontal `-x` and vertical `+y`, so the proven register terms for visible left/up are HScroll `-16` (`0xFFF0`) and VScroll `+8` (`0x0008`)
+* fixed bias applied to both planes: YES - Plane A/FG and Plane B/BG both receive dynamic staged scroll plus the same fixed display-origin term
+* dynamic scroll preserved: YES - staged scroll words are still read first; fixed bias is additive, not a replacement
+* opcode/invariant result: `opcode_replace` unchanged at `96`; `total_genesis_bytes_covered` reconciled from `0x17CD14` to `0x17CD28`, exactly `+0x14` from native scroll-helper growth
+* visual evidence: MAME AVI and frames captured under `states/screenshots/build_0097_display_origin_bias/`; same-capture-path sec006 bbox moved from `(50,64,255,223)` to `(34,56,255,215)` = left 16/up 8
+* ALL RIGHTS visibility: visible in Build 0097 MAME contact-sheet title frames; CREDIT/bottom-16px policy remains untouched and parked
+* H40 preservation: source VDP Mode 4 register setup remains `0x0081`; MAME AVI still reports the known 256x224 capture-path artifact, so live H40 alignment remains USER MUST VERIFY
+* non-regression: release 30s no-input trace completed without a new crash; BG title art still visible; FG clear path not touched; producers/staging/cell-decode/BG block-copy helper not touched
+* no source systems outside scope: no producer/staging/cell-decode/block-copy/bottom-viewport/Start-crash/OPEN-015/HV-counter work
+* KNOWN_FINDINGS impact: Option C proposed - later refine KF-015 with fixed X/Y display-origin source and signed Genesis scroll terms; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (active; shared display-origin bias implemented and validated by same-capture-path evidence, not closed), OPEN-016 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: red TAITO tile completeness, SCORE/HUD, CREDIT/bottom viewport policy, post-Start exception, OPEN-015, OPEN-017, BlastEm/Nomad/HV-counter
+
+### MAME Exit Summary (2026-06-24 21:27:33)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Diagnostic, Build 0097 BlastEm HV Counter Write]
+
+* files changed: `docs/design/Cody_blastem_hv_counter_write_diagnostic.md`, `AGENTS_LOG.md`; generated runtime evidence under `states/traces/build_0097_blastem_hv_counter_write_20260624_212731/`, `states/traces/build_0097_blastem_hv_counter_write_20260624_212521/`, and `states/traces/build_0097_blastem_hv_counter_readwrite_20260624_212842/`
+* build produced: NO
+* source/spec/tool/Makefile/ROM/invariant changes: NO
+* implementation/fix: NO
+* bookmark cycle: NO
+* OPEN-015 work: NO
+* Build 0097 display-origin fix touched: NO
+* local BlastEm availability: NO - executable not found in this environment, so the BlastEm fatal could not be reproduced directly
+* static literal `0x00C00008` scan: two executable references only; both are `move.w 0x00C00008,audit_guard_vcount` reads in audit guards, not HV writes
+* address mapping discipline: JSON checked; arcade `0x03AD44..0x03AD4C` maps to Genesis patched site `0x03AF44..0x03AF4C`, replacement dispatches to `genesistan_hook_3ad44_dispatch` at `0x000717D8`; no arithmetic mapping used as proof
+* original arcade context: existing arcade runtime trace shows PC080SN writes to `0x00C00008/0x00C0000A` from the `0x03AD44` fill primitive; Build 0097 maps that primitive to the dispatch helper, so the known arcade write path should be staged, not raw VDP/HV
+* MAME write-watch result: event-only watchpoint on `0x00C00008..0x00C0000F` produced no `HV_COUNTER_WRITE` event during a 9-second Build 0097 no-input run
+* classification: E / unknown - exact BlastEm first-write PC was not captured; A-D not proven
+* conditional fix decision: no fix; STOP because the exact site/correct behavior are not unambiguous and a sanitizer/bypass would violate project rules
+* recommended next evidence: capture BlastEm-side halt PC/registers/instruction/effective address, or an instruction trace ending at the fatal dialog, then reclassify
+* KNOWN_FINDINGS impact: Option A - no update
+* STOP status: YES for implementation safety
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (context), OPEN-005 (HV-counter historical context), OPEN-001 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, sanitizer/bypass, OPEN-015, post-Start exception, display-origin changes
+
+### MAME Exit Summary (2026-06-25 09:18:51)
+- Final PC: 0x071EB6
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Bookmark Probe + Static Audit, Build 0098 BlastEm HV Counter Bisection]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-008 `bookmarks_v2` entry), `docs/design/Cody_build_0098_blastem_bookmark_probe_early.md`, `dist/rastan-direct/bookmarks/build_0098_pc_0x00070000/{bookmark.json,insert_summary.md}`, `dist/rastan-direct/rastan_direct_video_test_build_0098.bin`, `build/rastan-direct/active_bookmark_baseline.json`, generated release trace `states/traces/rastan_direct_video_test_build_0098_mame_30s_20260625_091844/`, `AGENTS_LOG.md` (this append)
+* task type: bookmark probe + static audit only; no HV fix, no sanitizer, no broad VDP rewrite, no title/display-origin implementation change beyond diagnostic bookmark activator
+* build produced: YES - Build 0098 diagnostic bookmark ROM
+* ROM: `dist/rastan-direct/rastan_direct_video_test_build_0098.bin`
+* SHA256: `b751a5ad897eca5671eb4f2824a9e83d4a553baf09b9a644902f9e4fb1b5effc`
+* bookmark cycle: BM-008; active state file written with pre-insert Build 0097 SHA `b8e16f7c670dc8225584679b88d5a4ea71efb0dc5938d38420fca524ec71db72` and pre-insert counter `97`
+* bookmark target: runtime Genesis PC `0x00070000` (`vdp_boot_setup`, earliest safe native startup helper label after reset/bootstrap entry); reset-near `_start`/`_bootstrap` targets below `0x400` were not used because `bookmarks_v2` rejects them
+* activator verification: Build 0097 bytes at `0x00070000` were `7000720461000078`; Build 0098 bytes are `4ef900071eb44e71`; helper `genesistan_diag_bookmark` at `0x00071EB4` begins `60 FE`
+* expected BlastEm marker: immediate early helper park before VDP setup, likely stable black/frozen early boot; if debugger-visible, PC should remain in `genesistan_diag_bookmark`/`0x071EB4` loop
+* static literal `0x00C00008` audit: confirmed two executable references only (`0x7186C`, `0x71BC6`), both reads into `audit_guard_vcount`, no literal writes
+* computed-write audit: reviewed native absolute VDP writes, VDP-base address-register writers, `@(8)` destination writes, original arcade `0x03AD44` fill, and `0x0561B6` clear loop; no unresolved computed write to `0x00C00008` proven
+* 3AD44 dispatch bypass risk: NO from current static evidence; address-map JSON maps arcade `0x03AD44..0x03AD4C` to Genesis `0x03AF44..0x03AF4C` with `JSR genesistan_hook_3ad44_dispatch; RTS`, and helper routes tilemap ranges to staging
+* SGDK/Build-54 clues reviewed: YES - prior literal-read pattern, false low-ROM `0x590` candidate, covered `0x3AD44`/`0x0561B6` paths, and MAME timeout limitation carried forward only as concrete context
+* MAME release trace: standard summary ended in the helper region (`Final PC: 0x071EB6`) with no unmapped memory addresses; this corroborates the bookmark park mechanically but does not replace Tighe's BlastEm test
+* user test request: run Build 0098 in BlastEm and report whether the bookmark park happens before fatal, whether fatal still appears first, and exact BlastEm text if any
+* next bisection: if bookmark fires/no fatal, move later after `vdp_boot_setup` then toward bootstrap handoff/VBlank/audit-guard region; if fatal happens before bookmark, failure is earlier than `0x70000` and below current bookmark reach, requiring low-startup BlastEm evidence rather than a speculative fix
+* Rule 10: Build 0098 is diagnostic-only; the immediate next ROM-producing task must revert BM-008 unless Tighe explicitly directs otherwise
+* KNOWN_FINDINGS impact: Option A - no update; exact BlastEm site/root cause remains unproven
+* STOP status: NO for probe production; implementation remains blocked pending BlastEm result
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active BlastEm/Nomad context), OPEN-005 (HV-counter historical context), OPEN-001 (context only), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: HV fix, illegal-port sanitizer, display-origin/title changes, post-Start exception, OPEN-015 work
+
+### MAME Exit Summary (2026-06-25 10:12:37)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-25 10:13:15)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Bookmark Revert, BM-008 -> Build 0099]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-008 removed before release), `dist/rastan-direct/bookmarks/build_0098_pc_0x00070000/revert_summary.md`, release artifact `dist/rastan-direct/rastan_direct_video_test_build_0099.bin`, generated release trace `states/traces/rastan_direct_video_test_build_0099_mame_30s_20260625_101230/`, `AGENTS_LOG.md` (this append)
+* task type: bookmark revert build only; no HV fix, no sanitizer, no broad VDP rewrite, no display-origin/title changes, no OPEN-015 work
+* command: `source tools/setup_env.sh && make -C apps/rastan-direct release BOOKMARK_REVERT=BM-008`
+* build produced: YES - Build 0099 authorized revert ROM
+* ROM: `dist/rastan-direct/rastan_direct_video_test_build_0099.bin`
+* SHA256: `b8e16f7c670dc8225584679b88d5a4ea71efb0dc5938d38420fca524ec71db72`
+* Build 0097 comparison: byte-identical to `dist/rastan-direct/rastan_direct_video_test_build_0097.bin`; SHA matches Build 0097 `b8e16f7c670dc8225584679b88d5a4ea71efb0dc5938d38420fca524ec71db72`; `cmp` PASS
+* active bookmark state: `build/rastan-direct/active_bookmark_baseline.json` deleted/absent after the authorized revert
+* restored bytes: runtime `0x00070000` restored to `7000720461000078`; runtime `0x0007186C` canonical bytes remain `33f900c0000800ff678c`; helper `genesistan_diag_bookmark` at `0x00071EB4` remains canonical `60 FE`
+* one-bookmark discipline: BM-008 removed before the next insert; no active bookmark remained after Build 0099
+* KNOWN_FINDINGS impact: Option A - no update; this was diagnostic bookmark-cycle housekeeping only
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active BlastEm/Nomad context), OPEN-005 (HV-counter historical context), OPEN-001 (context only), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: HV fix, sanitizer, display-origin/title changes, post-Start exception, OPEN-015 work
+
+## [Cody - Bookmark Insert, BM-009 -> Build 0100]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-009 `bookmarks_v2` entry), `docs/design/Cody_build_0100_blastem_bookmark_BM009.md`, `dist/rastan-direct/bookmarks/build_0100_pc_0x0007186C/{bookmark.json,insert_summary.md}`, `dist/rastan-direct/rastan_direct_video_test_build_0100.bin`, `build/rastan-direct/active_bookmark_baseline.json`, generated release trace `states/traces/rastan_direct_video_test_build_0100_mame_30s_20260625_101309/`, `AGENTS_LOG.md` (this append)
+* task type: bookmark insert build only; no HV fix, no sanitizer, no broad VDP rewrite, no display-origin/title changes, no OPEN-015 work
+* command: `source tools/setup_env.sh && make -C apps/rastan-direct release`
+* build produced: YES - Build 0100 diagnostic bookmark ROM
+* ROM: `dist/rastan-direct/rastan_direct_video_test_build_0100.bin`
+* SHA256: `e5f7512a5064f0e85749c99901d653ca3104ab18b6021b076f9ee3f0d824a0ac`
+* bookmark cycle: BM-009; active state file written with pre-insert Build 0099/0097 SHA `b8e16f7c670dc8225584679b88d5a4ea71efb0dc5938d38420fca524ec71db72` and pre-insert counter `99`
+* bookmark target: runtime Genesis PC `0x0007186C`, first known executable audit-guard HV read (`movew 0x00c00008,0x00ff678c`) in native wrapper/helper code; bookmark parks before the read executes
+* address-map discipline: target resolved through `build/rastan-direct/address_map.json` as `genesis_only` segment `0x070000..0x17CD28`, tag `wrapper`; no arcade equivalent claimed and no +0x200 arithmetic used as proof
+* activator verification: Build 0099 bytes at `0x0007186C` were `33f900c0000800ff678c`; Build 0100 bytes are `4ef900071eb44e714e71`; helper `genesistan_diag_bookmark` at `0x00071EB4` begins `60 FE`
+* production entry suspended: NO - target is a diagnostic native helper/wrapper boundary, not an arcade `opcode_replace` production entry
+* diagnostic invariants: canonical gate passed in diagnostic context; opcode-replace manifest invariants remain canonical while the BM-009 activator is applied by the bookmark stage (`N=1`, span `0x0A`)
+* user BlastEm test request: run Build 0100 and report HIT if it parks at `0x00071EB4`/`bra #-2` with no HV fatal first; report MISS if the HV fatal appears before the helper park, including exact fatal text
+* next bisection interpretation: HIT means execution reached just before `0x7186C`, so the fault is at/after the audit-guard read; MISS means the fault is between `0x70000` and `0x7186C`
+* Rule 10: Build 0100 is diagnostic-only; the immediate next ROM-producing task must revert BM-009 unless Tighe explicitly directs otherwise
+* KNOWN_FINDINGS impact: Option A - no update; exact BlastEm root cause remains unproven
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active BlastEm/Nomad context), OPEN-005 (HV-counter historical context), OPEN-001 (context only), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: HV fix, sanitizer, display-origin/title changes, post-Start exception, OPEN-015 work
+
+### MAME Exit Summary (2026-06-25 11:41:23)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-25 11:42:48)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Hybrid, BM-009 Revert + BM-010 Insert]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-009 removed, BM-010 `bookmarks_v2` entry added), `docs/design/Cody_build_0102_blastem_bookmark_BM010.md`, `dist/rastan-direct/bookmarks/build_0100_pc_0x0007186C/revert_summary.md`, `dist/rastan-direct/bookmarks/build_0102_pc_0x00070C36/{bookmark.json,insert_summary.md}`, release artifacts `dist/rastan-direct/rastan_direct_video_test_build_0101.bin` and `dist/rastan-direct/rastan_direct_video_test_build_0102.bin`, generated release traces `states/traces/rastan_direct_video_test_build_0101_mame_30s_20260625_114116/` and `states/traces/rastan_direct_video_test_build_0102_mame_30s_20260625_114241/`, `build/rastan-direct/active_bookmark_baseline.json`, `AGENTS_LOG.md` (this append)
+* build produced: YES - Build 0101 authorized revert ROM and Build 0102 diagnostic bookmark ROM
+* root cause confirmed: NO - diagnostic bisection evidence only
+* fix implemented: NO - no HV fix, no sanitizer, no VDP rewrite, no display-origin/title/exception changes
+* no unrelated changes: YES within this task scope; pre-existing dirty workspace files were not reverted or intentionally modified except generated build outputs/logs
+* Build 0101 revert: BM-009 removed via `BOOKMARK_REVERT=BM-009`; ROM `dist/rastan-direct/rastan_direct_video_test_build_0101.bin`; SHA256 `b8e16f7c670dc8225584679b88d5a4ea71efb0dc5938d38420fca524ec71db72`; byte-identical to Build 0097/0099 canonical SHA; `cmp` PASS; active bookmark state deleted; `0x0007186C` restored to `33f900c0000800ff678c`
+* Focused audit `0x70000..0x7186C`: no earliest strong computed-write candidate to `HW 0x00C00008` found; audited canonical VDP writes at `0x70088/0x700AE/0x70122/0x70160/0x701AE/0x701E4/0x70204/0x70214/0x7022C/0x7023A`, staging/helper WRAM writes in `0x70242..0x70658`, `0x7065E..0x70CFE`, sprite staging around `0x7156C..0x7165A`, and `0x717D8..0x7186A`; none proves a computed HV offset-8 write before `0x7186C`
+* BM-010 target: `runtime_genesis_pc 0x00070C36`, nearest safe instruction boundary to midpoint `~0x70C36` after no strong candidate was found; original bytes `2449d4fc0002`; original instructions `movea.l %a1,%a2; adda.w #2,%a2`; JSON segment `genesis_only` `0x070000..0x17CD28`, tag `wrapper`; no arcade equivalent claimed
+* Build 0102 insert: ROM `dist/rastan-direct/rastan_direct_video_test_build_0102.bin`; SHA256 `12104def7693c611a63e3ee1c8284218f64b77dc2fcdd75de64dbc03a5f643f6`; active bookmark state written for BM-010 with pre-insert counter `101`
+* activator/helper bytes: `0x00070C36` after `4ef900071eb4`; helper `genesistan_diag_bookmark` at `0x00071EB4` bytes `60 FE`; helper symbol resolved in `apps/rastan-direct/out/symbol.txt`
+* opcode_replace invariants: canonical `postpatch_expected_opcode_replace_sites=96`, `postpatch_expected_total_genesis_bytes_covered=0x17CD28`, patch count `96`; bookmark activator applied by bookmark stage, outside opcode_replace segment accounting
+* one-bookmark discipline: YES - BM-009 was reverted and state deleted before BM-010 was inserted; only BM-010 is active after Build 0102
+* user BlastEm test request: run Build 0102 with `b 0x71EB4` then `c`; HIT narrows interval to `(0x70C36, 0x7186C)`; MISS narrows interval to `(0x70000, 0x70C36)` and requires exact BlastEm fatal text
+* Rule 10: Build 0102 is diagnostic-only; immediate next ROM-producing task must revert BM-010 unless Tighe explicitly directs otherwise
+* KNOWN_FINDINGS impact: Option A - no update; root cause not proven
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active BlastEm/Nomad context), OPEN-005 (HV-counter historical context), OPEN-001 (context only), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: HV fix, sanitizer, display-origin/title changes, post-Start exception, OPEN-015 work
+
+### MAME Exit Summary (2026-06-25 12:06:58)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-25 12:08:07)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Hybrid, BM-010 Revert + BM-011 Insert]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-010 removed, BM-011 `bookmarks_v2` entry added), `docs/design/Cody_build_0104_blastem_bookmark_BM011.md`, `dist/rastan-direct/bookmarks/build_0102_pc_0x00070C36/revert_summary.md`, `dist/rastan-direct/bookmarks/build_0104_pc_0x00070244/{bookmark.json,insert_summary.md}`, release artifacts `dist/rastan-direct/rastan_direct_video_test_build_0103.bin` and `dist/rastan-direct/rastan_direct_video_test_build_0104.bin`, generated release traces `states/traces/rastan_direct_video_test_build_0103_mame_30s_20260625_120651/` and `states/traces/rastan_direct_video_test_build_0104_mame_30s_20260625_120800/`, `build/rastan-direct/active_bookmark_baseline.json`, `AGENTS_LOG.md` (this append)
+* build produced: YES - Build 0103 authorized revert ROM and Build 0104 diagnostic bookmark ROM
+* root cause confirmed: NO - diagnostic bisection evidence only
+* fix implemented: NO - no HV fix, no sanitizer, no VDP rewrite, no display-origin/title/exception changes
+* no unrelated changes: YES within this task scope; pre-existing dirty workspace files were not reverted or intentionally modified except generated build outputs/logs
+* Build 0103 revert: BM-010 removed via `BOOKMARK_REVERT=BM-010`; ROM `dist/rastan-direct/rastan_direct_video_test_build_0103.bin`; SHA256 `b8e16f7c670dc8225584679b88d5a4ea71efb0dc5938d38420fca524ec71db72`; byte-identical to Build 0097/0099/0101 canonical SHA; `cmp` PASS; active bookmark state deleted; `0x00070C36` restored to `2449d4fc0002`
+* Re-focused audit `0x70000..0x70C36`: no strong computed/register-indirect candidate to `HW 0x00C00008` found; audited VDP register/init/commit cluster (`0x70088`, `0x700AE`, `0x70122`, `0x70160`, `0x701AE`, `0x701E4`, `0x70204`, `0x70214`, `0x7021A`, `0x7022C`, `0x7023A`) and found visible absolute writes to `0xC00004` or `0xC00000`, not offset 8; bisection remains the oracle
+* BM-011 target: `runtime_genesis_pc 0x00070244`, first safe complete-instruction/function boundary after the VDP register/init/commit cluster; `0x70240` is only a 2-byte `rts` and cannot safely host a 6-byte activator without corrupting the next helper entry; original bytes `48e7fffe4bf900ff0000`; JSON segment `genesis_only` `0x070000..0x17CD28`, tag `wrapper`; no arcade equivalent claimed
+* Build 0104 insert: ROM `dist/rastan-direct/rastan_direct_video_test_build_0104.bin`; SHA256 `109e0af71de8dcd3e2ee391b5da0b7d71824af4089113182b073b1919bd9ab91`; active bookmark state written for BM-011 with pre-insert counter `103`
+* activator/helper bytes: raw ROM at `0x00070244` is `4ef900071eb44e714e71`; helper `genesistan_diag_bookmark` at `0x00071EB4` bytes `60 FE`; helper symbol resolved in `apps/rastan-direct/out/symbol.txt`
+* opcode_replace invariants: canonical `postpatch_expected_opcode_replace_sites=96`, `postpatch_expected_total_genesis_bytes_covered=0x17CD28`, patch count `96`; bookmark activator applied by bookmark stage, outside opcode_replace segment accounting
+* one-bookmark discipline: YES - BM-010 was reverted and state deleted before BM-011 was inserted; only BM-011 is active after Build 0104
+* user BlastEm test request: run Build 0104 with `b 0x71EB4` then `c`; HIT narrows interval to `(0x70244, 0x70C36)`; MISS narrows interval to `(0x70000, 0x70244)` and pins the fault inside the VDP register/init/commit cluster; exact fatal text requested on MISS
+* Rule 10: Build 0104 is diagnostic-only; immediate next ROM-producing task must revert BM-011 unless Tighe explicitly directs otherwise
+* KNOWN_FINDINGS impact: Option A - no update; root cause not proven
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active BlastEm/Nomad context), OPEN-005 (HV-counter historical context), OPEN-001 (context only), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: HV fix, sanitizer, display-origin/title changes, post-Start exception, OPEN-015 work
+
+### MAME Exit Summary (2026-06-25 12:33:44)
+- Final PC: 0x071C82
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Bookmark Revert, BM-011 -> Build 0105]
+
+* files changed: `specs/rastan_direct_remap.json` (BM-011 removed; no `bookmarks_v2` active), `docs/design/Cody_build_0105_blastem_bookmark_BM011_revert.md`, release artifact `dist/rastan-direct/rastan_direct_video_test_build_0105.bin`, generated release trace `states/traces/rastan_direct_video_test_build_0105_mame_30s_20260625_123336/`, `AGENTS_LOG.md` (this append)
+* task type: bookmark revert cleanup only; no new bookmark, no HV fix, no sanitizer, no VDP rewrite, no display-origin/title/exception changes, no OPEN-015 work
+* confirmed user result consumed: Build 0104 / BM-011 at `runtime_genesis_pc 0x00070244` MISSed in BlastEm with `Illegal write to HV Counter port 8` before bookmark; current crash interval is `0x00070000 < offending HV access < 0x00070244`
+* command: `source tools/setup_env.sh && make -C apps/rastan-direct release BOOKMARK_REVERT=BM-011`
+* build produced: YES - Build 0105 authorized revert ROM
+* ROM: `dist/rastan-direct/rastan_direct_video_test_build_0105.bin`
+* SHA256: `b8e16f7c670dc8225584679b88d5a4ea71efb0dc5938d38420fca524ec71db72`
+* canonical comparison: byte-identical to Build 0097/0099/0101/0103 SHA `b8e16f7c670dc8225584679b88d5a4ea71efb0dc5938d38420fca524ec71db72`; `cmp` PASS
+* active bookmark state: `build/rastan-direct/active_bookmark_baseline.json` deleted/absent after authorized revert
+* restored bytes: `runtime_genesis_pc 0x00070244` restored to `48e7fffe4bf900ff0000`; helper `genesistan_diag_bookmark` at `0x00071EB4` remains `60 FE`
+* opcode_replace invariants: canonical `postpatch_expected_opcode_replace_sites=96`, `postpatch_expected_total_genesis_bytes_covered=0x17CD28`, patch count `96`
+* one-bookmark discipline: YES - no bookmark active after Build 0105; BM-012 not inserted
+* KNOWN_FINDINGS impact: Option A - no update; Rule 10 cleanup only, root cause remains unproven
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active BlastEm/Nomad context), OPEN-005 (HV-counter historical context), OPEN-001 (context only), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: HV fix, sanitizer, display-origin/title changes, post-Start exception, OPEN-015 work
+
+## [Andy - Static Decode, Build 0104 HV-Counter Cluster Decode (BlastEm "Illegal write to HV Counter port 8") (rastan-direct)]
+
+* design note: docs/design/Andy_build_0104_hv_counter_cluster_decode.md
+* scope: static only; no source/spec/tool/ROM/build/bookmark/HV-fix/sanitizer changes; disasm from canonical 0105 ROM via m68k-elf-objdump + ELF symbols; runtime_genesis_pc == ROM file offset (verified at 0x70244)
+* crash-predates-scroll-fix acknowledged: YES; Build 0097 scroll commit (0x701F0 region; 0x7021A move.l #0x40000010,0xC00004 VSRAM setup) analyzed as CONTEXT only and EXONERATED (all legal writes)
+* HEADLINE (proven): the "HV Counter port 8" access is the diagnostic AUDIT-GUARD's HV-counter READ, NOT any boot/init VDP write
+* interval 0x70000-0x70244: NO access to 0xC00008 of any kind; full VDP table decoded -- every access legal (register-set words 0x8xxx to 0xC00004; address-command LONGs to 0xC00004 spilling only to 0xC00006 = control mirror; data words to 0xC00000); no malformed command word, no out-of-range register, no DMA trigger
+* actual 0xC00008 accesses in WHOLE ROM = exactly TWO, both READS: 0x7186C and 0x71BC6, `move.w 0x00C00008, audit_guard_vcount(0xFF678C)`; arcade space 0x200-0x70000 has none (0x4A728 00c0000b is an ori.l immediate operand, not a VDP access)
+* CORRECTS Cody scan: prior "NO instruction with effective address 0xC00008" is incomplete -- two instructions target it as the READ SOURCE (likely missed by a write/destination-only scan)
+* both reads are AUDIT-GUARD SCAFFOLDING: .Lhook_3ad44_audit (pc090oj_hooks.s:408/:420, runtime 0x71850, fired-flag 0x3AD4) and sibling genesistan_pc090oj_hook_audit_guard (0x71BA6, read 0x71BC6, flag 0x510E); each captures caller PC + 15-reg snapshot + HV vcount, then BRAs to heartbeat halt loop 0x71BD8 (inc 0xFF678E forever = hang)
+* MECHANISM (proven): genesistan_hook_3ad44_dispatch (pc090oj_hooks.s:353) routes A0; A0 in [0xC00000,0xC10000)->tilemap, [0xD00000,0xD00800)->PC090OJ, ELSE -> .Lhook_3ad44_audit; during arcade title render (after jmp 0x3A200) the 3AD44 fill-dispatch gets an unexpected A0 -> audit fall-through -> reads HV (0xC00008) -> BlastEm fatal / MAME falls into heartbeat halt (matches cross-emu: BlastEm strict fatal/blank, MAME tolerant shows nothing)
+* bisection reconciliation: only reliable probes are BM-008@0x70000 HIT and BM-009@0x7186C MISS -> offending access in (0x70000, 0x7186C], and the ONLY HV access there is AT 0x7186C; the "< 0x70244" bound is invalid because vdp_boot_setup rts-returns to low ROM 0x22C and 0x70244/0x70C36 sit on the _vblank_service/non-boot path (their MISS does not bound the crash)
+* classification: (C) genuine access prior scans missed; underlying = Genesis-side diagnostic SCAFFOLDING reading HV, reached via unexpected A0; Genesis-bug NOT arcade-intent (arcade never reads Genesis HV counter); NOT (A) malformed cmd word / NOT (B) mis-sequenced control-then-data / NOT (E) register-DMA
+* read-vs-write caveat (the one non-byte-provable item): instruction is observably a READ; BlastEm "write" wording likely its HV-port-violation message text or report paraphrase; confirm via BlastEm logged PC (expect 0x7186C)
+* fix CANDIDATE only (NOT implemented; Tighe decision; scaffolding rules): symptom site .Lhook_3ad44_audit HV read pc090oj_hooks.s:420 (0x7186C) + sibling 0x71BC6; root site genesistan_hook_3ad44_dispatch A0-range logic pc090oj_hooks.s:353; symptom-only removal still hangs in heartbeat halt -> insufficient; real defect is the unexpected A0 (upstream)
+* safe local fix: NO -- not a one-line local change; flagged access is intentional scaffolding; actionable defect is upstream bad A0; identify FIRST from captured WRAM record
+* next step (NO further bisection needed for location): read WRAM audit record at the halt -- audit_guard_caller_pc 0xFF674A, audit_guard_register_snapshot 0xFF674E (15 longs incl A0/D1), audit_guard_fired_flag 0xFF678A (0x3AD4 vs 0x510E), audit_guard_vcount 0xFF678C, audit_guard_heartbeat 0xFF678E; optional BM-012 at dispatch entry to log A0 per call
+* KNOWN_FINDINGS impact: Option C proposed assess-only (new finding: HV cluster = audit-guard HV read fired by unexpected A0 in 3AD44 dispatch, not a boot VDP write); KNOWN_FINDINGS.md NOT edited
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active; HV cluster mechanism PROVEN = audit-guard HV read at 0x7186C fired by unexpected A0 in 3AD44 dispatch; bisection interval shown invalid; not closed pending WRAM-record read of the real trigger), OPEN-005 (context; distinct scaffolding-driven instance vs historical HV), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE (recommend team log "3AD44 dispatch unexpected-A0 audit fall-through" if not already tracked)
+- Issues closed: NONE
+- Issues intentionally deferred: offending caller/A0 identity (-> read WRAM audit record), upstream A0-range fix, scaffolding removal plan, Start crash/OPEN-015
+
+## [Andy - Static Attribution + Fix Design, Build 0105 HV-Counter ROOT CAUSE (raw PC080SN fill into VDP mirror) (rastan-direct)]
+
+* design note: docs/design/Andy_build_0105_hv_counter_root_cause_fix_design.md
+* scope: static attribution + fix DESIGN only; no source/spec/tool/ROM/build/bookmark/sanitizer/implementation; disasm from canonical 0105 ROM + ELF symbols; all arcade<->Genesis via address_map.json (no +-0x200 authority)
+* SUPERSEDES my prior 0x70000-0x70244 bisection bracket AND withdraws my 0x7186C audit-guard theory: user's Build 0105 BlastEm single-step proves 0x7186C not reached before fatal; the fatal is the raw fill 0x3AF3C
+* ROOT CAUSE CONFIRMED: raw arcade word-fill primitive 0x3AF3C, called from 0x3B152 with A0=0xC04000/D1=0x2000/D0=0, walks 0xC04000..0xC08000; BlastEm fatals "Illegal write to HV Counter port 8" at first HV alias 0xC04008 ((addr & 0x1F)==0x08)
+* JSON mapping (exact): 0x3B152..0x3B172 arcade_copy arc 0x3AF52; 0x3AF3C in 0x3AF2E..0x3AF44 arcade_copy arc 0x3AD3C (raw fill primitive); 0x3AF44..0x3AF4C patched_site arc 0x3AD44 (=jsr 0x717D8 dispatch); helpers 0x717D8 genesistan_hook_3ad44_dispatch, 0x70588 bg_fill, 0x7065E fg_fill (genesis_only)
+* 0x3AF3C vs 0x3AF44: distinct adjacent routines -- 0x3AF3C raw word-fill (move.w d0,(a0)+;subq;bne;rts) arcade_copy NEVER hooked; 0x3AF44 patched dispatch entry; arcade used two primitives (tilemap-fill 0x3AD44 hooked, generic word-fill 0x3AD3C left raw)
+* the four title-init clears (runtime): 0x3B12C C00000 names ->bsr 0x3AF44 HOOKED clean; 0x3B13C C08000 names ->0x3AF44 HOOKED clean; 0x3B152 C04000 ->bsr 0x3AF3C RAW FATAL; 0x3B162/call 0x3B16E C0C000 ->0x3AF3C RAW LATENT
+* what C04000/C0C000 ARE (MAME pc080sn.cpp:104-164): C04000-C08000 = m_bgscroll_ram[0] BG per-line SCROLL RAM; C0C000-C10000 = m_bgscroll_ram[1] FG scroll RAM; C00000/C08000 are the tilemap nametables. So raw clears target SCROLL RAM, not nametables; project full-plane scroll model (KF-015) has no per-line target, staged_scroll_*=0 at boot -> faithful translation of these clears = absorb (NO-OP)
+* dispatch already absorbs C04000/C0C000 safely: A0 in [0xC00000,0xC10000) -> tilemap path -> bg_fill/fg_fill range-gate [0xC00000,0xC04000)/[0xC08000,0xC0C000) -> clean NO-OP, NO audit fall-through, NO fatal; this is NOT a dropped-nametable-clear (it is scroll RAM)
+* FIX SHAPE = Candidate A (recommended): repoint call sites 0x3B15E (6100 fddc -> 6100 fde4) and 0x3B16E (6100 fdcc -> 6100 fdd4) from raw 0x3AF3C to hooked 0x3AF44; byte-neutral 2-byte displacement edits, reuses proven dispatch, mismatched d0/d1 irrelevant (range gate NO-OPs first)
+* Candidate B REJECTED: raw primitive 0x3AF3C has a legit WRAM caller 0x3AB9E (A0=a5+128=0xFF0080, D1=96 legal Genesis WRAM clear) -> cannot redirect the primitive
+* Candidate C optional: explicit scroll-RAM branch in dispatch (documents intent / future per-line scroll home) but adds helper code + relocation
+* invariant impact (Candidate A): opcode_replace 96->98; total_genesis_bytes_covered UNCHANGED; no helper growth; no relocation; risks to title gfx/plane staging/dirty bits = none (scroll RAM, not nametable)
+* OTHER unhooked raw writes (required scan): 0x3B16E C0C000 (latent, same class); inline title-text producer 0x3B392 writes move.w d0,(a0) to 0xC09376+ FG tilemap raw (0xC09376&0x1F=0x16) = LATENT FATAL, same CLASS different MECHANISM (inline producer not fill-primitive), runs after clears (~3 raw movew in 0x3B380..0x3B800 incl SEX->AHA censor); 0x3AB9E SAFE (WRAM); sprites 0x3BAB4/0x3BACC/0x3BADC HOOKED via 0x3BB30->jsr 0x7173A; C00100/C08100 attract clears + D00000 all hooked via 0x3AF44/0x3AF72
+* complete cause: PARTIAL -- clear class needs BOTH 0x3B152 + 0x3B16E; producer 0x3B392 is the next exposure (separate routing design)
+* Genesis-bug vs arcade-intent: GENESIS TRANSLATION BUG (arcade code is faithful legal PC080SN clear; translation failed to route two raw-fill call sites through staging); NOT arcade-intent, NOT a VDP command-word defect
+* safe-to-implement-as-designed: YES for Candidate A; one confirm item (MAME pointer overlap re scroll-RAM vs inactive code plane) does NOT block -- fix is safe either way
+* KNOWN_FINDINGS: Option C proposed verbatim (KF-XXX: Raw arcade PC080SN/PC090OJ fills must route through staging, not Genesis VDP mirror space) with confidence/rediscovery-hazard/proven trace/(addr&0x1F)==0x08 mechanism/sibling paths/general rule/detection signature/other-instances; KNOWN_FINDINGS.md NOT edited (Andy not authorized)
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active; HV root cause confirmed = raw PC080SN scroll-RAM fill into VDP mirror at 0x3B152/0x3AF3C; fix designed; not closed pending implementation + producer-class follow-up), OPEN-005 (context; distinct from historical HV), OPEN-001 (context; producer raw-writes likely also affect MAME title render)
+- Closed issues touched: NONE
+- New issues opened: NONE (recommend tracking "raw PC080SN/PC090OJ writes bypassing staging" class + separate 0x3B392 producer item)
+- Issues closed: NONE
+- Issues intentionally deferred: title-text producer raw-write fix (0x3B392 et al., separate routing design), per-line-scroll translation (future), implementation
+
+## [Andy - Fix Design REVISION (Candidate A -> C-lite, intent-preserving), Build 0105 HV scroll-RAM clear (rastan-direct)]
+
+* design note: docs/design/Andy_build_0105_hv_counter_root_cause_fix_design.md (REVISION section appended; root cause kept)
+* scope: static design REVISION only; no implementation/source/spec/ROM/build; all correlation via address_map.json (no +-0x200 authority)
+* root cause UNCHANGED: raw fill 0x3AF3C from 0x3B152/0x3B16E walks PC080SN per-line scroll RAM 0xC04000/0xC0C000 (m_bgscroll_ram BG/FG) into Genesis VDP HV mirror -> BlastEm fatal at 0xC04008 ((addr&0x1F)==0x08)
+* WHY revised (user decision authoritative): REJECT silent range-gate NO-OP absorb; arcade intent (clear BG/FG per-line scroll RAM) is REAL; full-plane model (KF-015) not rendering per-line scroll is a property of TODAY's impl, not the arcade program; visually inert today must NOT become architecturally invisible
+* REVISED fix shape = Candidate C-lite (3 parts): (a) NEW NAMED handlers genesistan_hook_pc080sn_bg_scroll_fill + genesistan_hook_pc080sn_fg_scroll_fill in tilemap_hooks.s, IN: A0=target/D0=fill/D1=count, BG/FG by handler+A0 range, STUB bodies (movem save/restore, NO VDP write), comment = future home (KF-015: per-line scroll -> Genesis HSCROLL table, or uniform-per-line -> full-plane staged_scroll_*); (b) EXPLICIT NAMED 4-way branch in genesistan_hook_3ad44_dispatch .Lhook_3ad44_tilemap = names|scroll|names|scroll ([C00000,C04000)->bg_fill, [C04000,C08000)->bg_scroll_fill NEW, [C08000,C0C000)->fg_fill, [C0C000,C10000)->fg_scroll_fill NEW), no silent fall-through; (c) call-site repoint to dispatch 0x3AF44
+* dispatch mechanism choice: NEW NAMED BRANCH INSIDE existing genesistan_hook_3ad44_dispatch (reached via existing patched site 0x3AF44), NOT a new direct entry -- because bsr.w from call site reaches arcade-space 0x3AF44 byte-neutrally but CANNOT reach genesis_only 0x70000+ without 4->6 byte growth (relocation); also matches sibling pattern
+* call-site repoint bytes (unchanged from Candidate A, in-place 2-byte bsr.w disp, arcade_copy->patched): 0x3B15E/arc 0x3AF5E 6100 FDDC -> 6100 FDE4; 0x3B16E/arc 0x3AF6E 6100 FDCC -> 6100 FDD4 (both ->0x3AF44); still pass A0=0xC04000/0xC0C000, D0=0, D1=0x2000
+* inputs preserved: YES -- dispatch consumes only d2 (=copy of A0); a0/d0/d1 intact at each bsr; handlers receive original A0/D0/D1; BG/FG identity by range/handler
+* 0x3AF3C UNTOUCHED: YES (WRAM caller 0x3AB9E A0=0xFF0080 D1=96 preserved)
+* invariant impact (revised): opcode_replace +2 (96->98, call sites); total_genesis_bytes_covered INCREASES (helper growth EXPECTED ~50-90 B genesis_only: dispatch 4-way split + 2 stub handlers); helper growth YES; relocation = genesis_only-internal only (arcade space 0x200-0x70000 unaffected; absolute jsr 0x717D8 in patched site re-resolved), standard re-link/regen OPEN-016; place stubs at end of genesis_only to minimize churn
+* KF-015 future-home documented in handler comment: YES
+* 0x3B392 producer: restated SEPARATE next task (inline raw producer to 0xC093xx, different mechanism, surfaces on BlastEm after this fix)
+* safe-to-implement-as-revised: YES (crash fix identical to Candidate A; intent now has named input-preserving home; relocation = standard helper-growth class)
+* KNOWN_FINDINGS proposal UPDATED (verbatim in doc, NOT edited into KNOWN_FINDINGS.md - Andy not authorized): added "Scroll-RAM intent is NOT a no-op -> named input-preserving stub handlers, future per-line-scroll/full-plane-reduction home (KF-015 link)"
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active; fix design revised to C-lite intent-preserving; root cause unchanged; not closed pending implementation + 0x3B392 producer follow-up), OPEN-005 (context), OPEN-001 (context)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: 0x3B392 producer raw-write routing (separate task), per-line-scroll real implementation (future, KF-015), implementation of this design
+
+### MAME Exit Summary (2026-06-25 21:50:39)
+- Final PC: 0x071CC2
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0106 PC080SN Scroll-RAM Clear C-lite]
+
+* files changed: `specs/rastan_direct_remap.json`, `apps/rastan-direct/src/tilemap_hooks.s`, `apps/rastan-direct/src/pc090oj_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build_0106_pc080sn_scroll_clear_clite_impl.md`, release artifacts `dist/rastan-direct/rastan_direct_video_test_build_0106.bin` and rolling `apps/rastan-direct/dist/rastan_direct_video_test.bin`, generated trace `states/traces/rastan_direct_video_test_build_0106_mame_30s_20260625_215031/`, `AGENTS_LOG.md` (this append)
+* task type: implementation + evidence for Andy Build 0105 C-lite design; no bookmark cycle, no HV sanitizer, no VDP rewrite, no display-origin/title/exception changes, no OPEN-015 work
+* build produced: YES - Build 0106 canonical release ROM
+* ROM: `dist/rastan-direct/rastan_direct_video_test_build_0106.bin`
+* SHA256: `ad894a86029738d8ab0b933b1acc55c2c6de06b5cc2d0e6535f121af28326d4e`
+* rolling artifact: `apps/rastan-direct/dist/rastan_direct_video_test.bin`, byte-identical to numbered artifact (`cmp=0`)
+* implementation: added two byte-neutral opcode replacements routing runtime `0x03B15E` / arcade `0x03AF5E` (`6100FDDC -> 6100FDE4`) and runtime `0x03B16E` / arcade `0x03AF6E` (`6100FDCC -> 6100FDD4`) from raw `0x3AF3C` to dispatch `0x3AF44`
+* implementation: added named input-preserving scroll-RAM semantic handlers `genesistan_hook_pc080sn_bg_scroll_fill` and `genesistan_hook_pc080sn_fg_scroll_fill`; handlers save/restore registers, do not raw-write `0xC04000`/`0xC0C000`, and document future PC080SN per-line scroll translation home under KF-015
+* implementation: revised `genesistan_hook_3ad44_dispatch` to explicit 4-way split: `[C00000,C04000)->bg_fill`, `[C04000,C08000)->bg_scroll_fill`, `[C08000,C0C000)->fg_fill`, `[C0C000,C10000)->fg_scroll_fill`; dispatch copies A0 to D2 only before tilemap handler calls, preserving A0/D0/D1 for handlers
+* static verification: Build 0106 bytes `0x03B15E=6100fde4`, `0x03B16E=6100fdd4`, `0x03AF3C=30c0534166fa4e75` unchanged, `0x03AB9E=6100039c` still calls raw WRAM fill, `0x03AF44=4eb9000717ec4e75` calls relocated `genesistan_hook_3ad44_dispatch`
+* address-map verification: `0x03B15E..0x03B162` and `0x03B16E..0x03B172` are opcode_replace patched sites with shift_delta `0`; `0x03AF3C` remains arcade_copy; `0x03AF44` remains opcode_replace; new helpers live in genesis_only wrapper segment
+* symbols: `genesistan_hook_pc080sn_bg_scroll_fill=0x000713DE`, `genesistan_hook_pc080sn_fg_scroll_fill=0x000713E8`, `genesistan_hook_3ad44_dispatch=0x000717EC`, `genesistan_diag_bookmark=0x00071EF4`
+* build gates: boot guard PASS pre/post postpatch; `GATE_PASS`; opcode_replace count `96 -> 98`; total_genesis_bytes_covered `0x17CD28 -> 0x17CD68` (+0x40 helper/dispatch growth); `patch_counts.opcode_replace_and_rom_opcode_replace=98`; `postpatch_expected_opcode_replace_sites=98`; `postpatch_expected_total_genesis_bytes_covered=0x17CD68`
+* bookmark state: `bookmarks_v2_count=0`, `bookmarks_v2_applied=[]`, `build/rastan-direct/active_bookmark_baseline.json` absent; no bookmark active
+* BlastEm validation: NOT RUN in this workspace because neither `blastem` nor `blastem.exe` is available on PATH or bundled under `tools/`/`apps/`; pending Tighe external run. Expected result: no fatal during `0x3B152` C04000 clear or `0x3B16E` C0C000 clear; if the next fatal is around inline producer `0x3B392` raw C093xx writes, record as expected next exposure, not this fix failing
+* KNOWN_FINDINGS impact: Option A - no update; Andy's proposed KF remains pending explicit canonicalization approval
+* STOP status: NO for implementation/build/static verification; BlastEm runtime validation remains an external pending check due unavailable tool
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active; Build 0106 implements C-lite scroll-clear routing; not closed pending BlastEm validation and separate 0x3B392 producer follow-up), OPEN-005 (context), OPEN-001 (context)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: 0x3B392 inline producer raw-write routing, real per-line scroll implementation, external BlastEm validation, OPEN-015 work
+
+## [Cody - Diagnostic, Build 0106 C09172 Writer Watchpoint]
+
+* files changed: `docs/design/Cody_build_0106_c09172_writer_watchpoint.md`, `states/traces/build_0106_c09172_writer_watchpoint_20260626_092815/`, `AGENTS_LOG.md` (this append)
+* task type: MAME watchpoint evidence capture only; Build 0106 Genesis ROM under MAME `genesis` driver; no source/spec/tool/ROM/build changes, no bookmark cycle, no inserted diagnostics, no fix design
+* ROM: `dist/rastan-direct/rastan_direct_video_test_build_0106.bin`; SHA256 `ad894a86029738d8ab0b933b1acc55c2c6de06b5cc2d0e6535f121af28326d4e`
+* first MAME attempt failed before runtime because Qt debugger could not connect to display; successful rerun used `QT_QPA_PLATFORM=offscreen` with the same ROM/driver/watchpoint
+* exact watchpoint `wp 00c09172,2,w` fired; debugger stopped at `PC=0003ACEA` writing word `0x2749` to `HW 0x00C09172`; action printf `pc=3ACF2` is post-instruction PC
+* exact writer: `runtime_genesis_pc 0x0003ACEA: 33fc 2749 00c0 9172  movew #0x2749,0x00c09172`
+* registers captured: D0=0 D1=0x46 D2=0 D3=0x2E D4=0x0C D5=0 D6=0 D7=0xFFFF A0=0x3C4E2 A1=0xC09BA8 A2=0xC01C18 A3=0x50082 A4=0 A5=0xFF0000 A6=0 SP=0xFEFFEC SR=0x2700; stack samples `0x3A274`, `0x20040003`, `0xA27E2000`
+* address_map.json classification: `0x03ACEA` lies in segment `0x03AB20..0x03AD00`, kind `arcade_copy`, source `whole_maincpu_copy`; JSON segment-relative arcade mapping gives `arcade_pc 0x03AAEA`
+* routed-vs-raw verdict: RAW C-window / PC080SN-style absolute write from copied arcade code; not staged FG helper, not `genesis_only`, not `opcode_replace`
+* STOP status: NO; exact watchpoint worked and writer was mapped through `address_map.json`
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active; Build 0106 next exposure localized to raw copied title-producer write at `0x3ACEA`), OPEN-001 (context), OPEN-005 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: fix design/implementation for the raw title-producer write, OPEN-015 work, any bookmark cycle
+
+## [Cody - Evidence, Build 0106 C09172 Tile Decode Export]
+
+* files changed: `docs/design/Cody_build_0106_tile_c09172_decode_export.md`, `states/scripts/export_c09172_tile.py`, `states/screenshots/tile_c09172_ARCADE_code2749_color000.png`, `states/screenshots/tile_c09172_BUILD0106_code2749_color000.png`, `states/screenshots/tile_c09172_COMPARE.png`, `states/screenshots/tile_c09172_export_summary.txt`, `states/traces/build_0106_c09172_tile_palette_arcade_dump_20260626_100941/`, `AGENTS_LOG.md` (this append)
+* task type: evidence/analysis only; no source/spec/tool/ROM/build changes, no bookmark cycle, no inserted diagnostics, no fix design
+* MAME/PC080SN source used: `docs/reference/mame/rastan/src/mame/taito/pc080sn.cpp` and `rastan.cpp`; standard PC080SN layout decodes paired attr/code words, `code = word & 0x3fff`, `color = attr & 0x1ff`, flip from `attr & 0xc000`, graphics via `gfx_8x8x4_packed_msb`, palette xBGR-555
+* original arcade runtime evidence captured with MAME `rastan (World Rev 1)` and ROM path `roms/`: after `arcade_pc 0x03AAEA`, dump row `C09170: 0000 2749 ...` confirms paired attr `0x0000` at `HW_ADDRESS 0xC09170` and code `0x2749` at `HW_ADDRESS 0xC09172`
+* decoded entry: FG tilemap base `HW_ADDRESS 0xC08000`; byte offset `0x1172`; word index `0x08B9`; entry index `0x045C`; row `17`, column `28`; unscrolled pixel origin `x=224,y=136`; exact on-screen position not asserted because synchronized scroll state was not dumped
+* decoded fields: tile code `0x2749`, color/palette bank `0x000`, no flip, no per-tile priority field; priority is draw-call/layer-level in Rastan `screen_update`
+* Build 0106 mapping: `build/pc080sn_tile_vram_lut.bin` maps tile `0x2749 -> Genesis VRAM slot 0x0039`; `build/pc080sn_scene_preload_title.bin` includes `(0x2749,0x0039)`; `build/pc080sn_attr_lut.bin` maps attr index `0x00 -> 0x0000`; `genesistan_pc080sn_tile_rom` incbins `build/regions/pc080sn.bin`, and the Build 0106 ROM tile bytes match source exactly
+* palette sources: arcade PNG uses original arcade runtime palette bank 0 from `0x200000`; Build PNG uses project xBGR-555 -> Genesis CRAM conversion from `apps/rastan-direct/src/palette_hooks.s`
+* PNG verdict: DIFFER narrowly -- graphic/shape matches and tile is present; visible difference is palette quantization only (`0x7BDE` arcade white-ish -> Build Genesis CRAM `0x0EEE`); no flip/missing/blank difference
+* Build 0106 currently stages this entry: NO for the confirmed write path (`runtime_genesis_pc 0x03ACEA` is raw copied arcade absolute write to `HW_ADDRESS 0xC09172`); no claim made about independent duplicate staging paths
+* STOP status: NO; PC080SN format, arcade graphics region, Build mapping, and JSON address mapping were all identified
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (active; arcade intent and Build mapping for raw `0xC09172` writer documented), OPEN-001 (context), OPEN-005 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: fix design/implementation for the raw title-producer write, any bookmark cycle, OPEN-015 work
+
+## [Cody - Evidence, Build 0106 Missing Fixed Tiles Attr/Flip Inventory]
+
+* files changed: `docs/design/Cody_build_0106_missing_fixed_tiles_attr_flip_inventory.md`, `states/traces/build_0106_missing_fixed_tiles_attr_flip_inventory_20260626_111500/`, `states/screenshots/build_0106_missing_fixed_tiles_attr_flip_inventory/`, `states/scripts/build0106_missing_fixed_tiles_inventory.py`, `AGENTS_LOG.md` (this append)
+* task type: evidence/analysis only; no source/spec/tool/ROM/build changes, no bookmark cycle, no diagnostics inserted into ROM, no fix design or implementation
+* architecture/address discipline: `RULES.md` and `ARCHITECTURE.md` read; arcade code treated as program; PC correlations used `build/rastan-direct/address_map.json`; hardware/staged addresses labeled separately
+* PC080SN format source: local MAME `pc080sn.cpp` / `rastan.cpp`; paired attr/code words, `code & 0x3fff`, `color = attr & 0x1ff`, flip from `attr & 0xc000`
+* INSERT COIN(S) arcade intent: original arcade FG row 8 has one-tile distinct parens, left `HW 0xC0886C/0xC0886E attr=0x0000 code=0x0028`, `S` `0xC08870/0xC08872 code=0x0053`, right `0xC08874/0xC08876 code=0x0029`; parens are distinct glyph codes, not flipped comma copies
+* Build 0106 punctuation comparison: parens are routed through FG staging but stage `0x0000` at `WRAM 0xFF5450/0xFF5454` because tile slots for `0x0028/0x0029` are zero; `S` stages correctly as `0x0028`; staging writer exact `runtime_genesis_pc 0x00070952` (watchpoint post-PC `0x00070956`), JSON class `genesis_only`
+* special comma/story glyph: original arcade cell `FG row 17 col 28`, `HW attr/code 0xC09170/0xC09172`, attr `0x0000`, code `0x2749`, no flip; Build 0106 mapping exists (`0x2749 -> slot 0x0039`) but confirmed raw copied write at exact `runtime_genesis_pc 0x0003ACEA` / mapped `arcade_pc 0x0003AAEA` bypasses staging; staged cell remains zero
+* red TAITO arcade intent: four audited BG cells are row/col `(21,23),(21,24),(22,23),(22,24)` with attr `0x0001`, codes `0x22CB..0x22CE`, color bank 1, no flip bits; each code appears only at its listed cell in the title BG dump, so mirror/flip-source hypothesis is not supported for these cells
+* Build 0106 red TAITO comparison: cells stage correctly at title boundary (`WRAM 0xFF4AC8/0xFF4ACA/0xFF4B48/0xFF4B4A` = `0x2157/0x2158/0x2159/0x215A`), exact staging store `runtime_genesis_pc 0x000707CE` (post-PC `0x000707D2`), JSON class `genesis_only`; later story page clear zeros them, which is page replacement, not title-stage failure
+* routed attr/flip check: `0x3BD48 -> 0x70D4E -> 0x70984/0x70910/0x709A4 -> 0x70952` stages code+attr; attr LUT index carries attr bits 14/15 (flip), bit 13, and low bits 0..1; full `attr & 0x01ff` color-bank field is only partially represented; audited cells have no flip bits, so flip is not load-bearing here
+* unified verdict: MIXED CLASS; one routing/attr-preservation pass would fix the raw `0xC09172` class only, not the paren tile-slot/preload gap, and it is not implicated by the audited red TAITO cells
+* STOP status: NO; all audited cells identified from arcade runtime dumps, Build 0106 staging inspected, raw writer PC mapped exactly, and no implementation was performed
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-017 (context extended: raw `0xC09172` writer remains one class; parens are separate tile mapping/preload class), OPEN-001 (context for visible fixed-tile rendering), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: fix design/implementation for raw writer routing, punctuation tile preload/mapping repair, downstream red-TAITO visual diagnosis if still absent, any bookmark cycle, OPEN-015 work
+
+## [Cody - Evidence, Build 0106 TAITO/Paren Correction Pass]
+
+* files changed: `docs/design/Cody_build_0106_correction_taito_arcade_intent_paren_lut.md`, `states/screenshots/build_0106_correction_taito_arcade_intent_paren_lut/`, `states/scripts/build0106_correction_paren_alias_lut.py`, `AGENTS_LOG.md` (this append)
+* task type: evidence/analysis correction only; no source/spec/tool/ROM/build changes, no bookmark cycle, no inserted diagnostics, no fix design or implementation
+* architecture/address discipline: `RULES.md` and `ARCHITECTURE.md` read; arcade code treated as program; instruction PC correlations used `build/rastan-direct/address_map.json`; hardware/staged addresses labeled separately
+* ledger search: historical PC080SN NOP/suppression evidence exists at class level, but no-op/suppression is NOT proven for the exact user-visible red TAITO missing cells because those exact cells are not identified in current workspace visual evidence
+* TAITO correction: previous four audited red TAITO BG cells (`0x22CB..0x22CE`, rows/cols `21,23`/`21,24`/`22,23`/`22,24`) remain valid audited evidence and stage correctly in Build 0106, but they are not proven to be the exact visually missing Build 0106 cells; TAITO visual-cell identification is PARTIAL/UNKNOWN
+* TAITO mapped-site status for audited cells: `runtime_genesis_pc 0x05A58E` maps exactly to `arcade_pc 0x05A38E` as `arcade_copy`; `runtime_genesis_pc 0x05A6DE` maps exactly to `arcade_pc 0x05A4DE` as `patched_site`; staging store is `runtime_genesis_pc 0x0707CE` in `genesis_only`; exact visually missing cells remain unmapped/unknown
+* paren correction: original arcade `INSERT COIN(S)` parens are distinct low tile codes `0x0028`/`0x0029` with no flip; Build 0106 direct LUT entries for both are `0x0000`, so routed FG staging writes blank
+* paren preload correction: raw tile bytes prove `0x0028 == 0x2747` and `0x0029 == 0x2748`; aliases `0x2747`/`0x2748` are title-preloaded at slots `0x0037`/`0x0038`, so preload absence is NOT proven; corrected class is tile-code-to-slot alias/LUT omission, not a proven preload gap
+* accepted prior preserved: story/special glyph `0x2749` at `HW_ADDRESS 0x00C09172` remains a raw copied PC080SN write at exact `runtime_genesis_pc 0x03ACEA` / mapped `arcade_pc 0x03AAEA`
+* STOP status: PARTIAL for TAITO visual-cell identification due insufficient rendered Build 0106 visual evidence; overall correction deliverable completed; no implementation performed
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (graphics evidence correction), OPEN-017 (context), OPEN-015 (context only)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: exact rendered Build 0106 red TAITO missing-cell identification, raw `0xC09172` routing fix, paren LUT repair, OPEN-015 work, any bookmark cycle
+
+## [Cody - Evidence, Build 0106 TAITO Magenta-Cell Arcade Intent]
+
+* files changed: `docs/design/Cody_build_0106_taito_magenta_cell_arcade_intent.md`, `states/scripts/build0106_taito_magenta_cell_audit.py`, `states/traces/build_0106_taito_magenta_cell_arcade_intent_20260626_134949/`, `states/screenshots/build_0106_taito_magenta_cell_arcade_intent/`, `AGENTS_LOG.md` (this append)
+* task type: evidence/analysis only for the exact user-marked magenta TAITO cells; no source/spec/tool/ROM/build changes, no bookmark cycle, no ROM diagnostics, no fix design or implementation
+* architecture/address discipline: `RULES.md` and `ARCHITECTURE.md` read; arcade code treated as program; instruction PC correlations used `build/rastan-direct/address_map.json`; hardware and staged WRAM addresses labeled separately
+* coordinate reconciliation: Build 0106 rendered screen cells use Build 0097 display-origin bias (`HScroll=-16`, `VScroll=+8`) -> staged row/col = screen row/col + `(1,+2)`; original arcade uses PC080SN scrolldx `-16` and visible area Y `8..247` -> PC080SN row/col = screen row/col + `(1,+2)`; visible anchor cells line up in both contexts
+* exact magenta cells: screen `(15,22)`, `(20,22)`, `(22,22)`, `(18,23)` map to FG row/col `(23,17)`, `(23,22)`, `(23,24)`, `(24,20)` with arcade codes `0x0022`, `0x0027`, `0x002C`, `0x003F`, attr `0x0000`, color bank `0`, no flip bits
+* Build 0106 handling: all four exact cells route through glyph renderer replacement (`runtime_genesis_pc 0x03BD48`, JSON `patched_site`, mapped arcade `0x03BB48`) to actual FG staging store `runtime_genesis_pc 0x070952` (`genesis_only`); runtime watchpoints report post-PC `0x070956` writing `0x0000` for each exact cell while adjacent anchors write nonzero values
+* direct LUT/preload result: `0x0022/0x0027/0x002C/0x003F` all map to slot `0x0000`; no byte-identical preloaded aliases found; exported arcade tiles are nonblank while Build direct slot renders blank
+* no-op/suppression cross-check: historical sites `0x055968`, `0x055990`, `0x0560DA`, and CLOSED-003 NOP records do not match the exact glyph writer; original writer PCs are `arcade_pc 0x03BB66/0x03BB68`, mapped exactly inside the `0x03BD48..0x03BD7C` patched renderer span; no-op/suppression is disproven for these exact cells
+* corrected defect class: exact magenta-marked TAITO holes are low-code punctuation/symbol tile LUT/title-preload coverage gap in the FG glyph path; not the earlier audited BG `0x22CB..0x22CE` cells, not raw `0x00C09172`, not attr/flip, and not no-op suppression
+* KNOWN_FINDINGS impact: Option A - no update; evidence/classification only
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-001 (exact visible TAITO holes classified), OPEN-017 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: fix design/implementation for low-code LUT/preload coverage, raw `0x00C09172`, OPEN-015 work, any bookmark cycle

@@ -5,6 +5,8 @@
     .global genesistan_hook_cwindow_clear
     .global genesistan_hook_tilemap_bg_fill
     .global genesistan_hook_tilemap_fg_fill
+    .global genesistan_hook_pc080sn_bg_scroll_fill
+    .global genesistan_hook_pc080sn_fg_scroll_fill
     .global genesistan_hook_tilemap_bg_blockcopy
     .global genesistan_hook_text_writer_3c4d2
     .global genesistan_hook_text_writer_3c550
@@ -1901,6 +1903,23 @@ rastan_direct_update_inputs:
 .Lsys_store_done:
     move.b  %d5, genesistan_shadow_input_390007
 
+    rts
+
+/* PC080SN per-line scroll-RAM fill/clear translation homes.
+ * IN: A0 = arcade target, D0 = fill word, D1 = word count.
+ * These preserve the arcade operands for a future per-line scroll translation
+ * (Genesis HSCROLL table, or uniform clear folded into staged full-plane scroll).
+ * Under the current KF-015 full-plane model there is no visible per-line output,
+ * and these handlers must not raw-write the PC080SN/VDP mirror space.
+ */
+genesistan_hook_pc080sn_bg_scroll_fill:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_pc080sn_fg_scroll_fill:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 
