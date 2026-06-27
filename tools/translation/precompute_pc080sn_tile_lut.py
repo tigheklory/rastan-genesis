@@ -93,6 +93,16 @@ TEXT_SPECIAL_GLYPH_MAP = {
     0x3F: 0x274B,  # '?'
 }
 
+# Scoped Class-B coverage for the confirmed title/attract gaps.
+#
+# Keep this intentionally narrower than TEXT_SPECIAL_GLYPH_MAP: 0x21/0x2D are
+# latent follow-ups under OPEN-020 and must not be pulled into this pass.
+SCOPED_TITLE_RAW_LOW_CODE_TILES = (0x0022, 0x0027, 0x002C, 0x003F)
+SCOPED_LOW_CODE_LUT_ALIASES = {
+    0x0028: 0x2747,
+    0x0029: 0x2748,
+}
+
 SOURCE_SCENE_MAP_MAGIC = 0x53324D50  # 'S2MP'
 
 
@@ -412,6 +422,49 @@ def assign_scene_aware_slots(
     return assigned, scene_tile_sets
 
 
+def tile_pattern(pc080sn: bytes, tile: int) -> bytes:
+    tile &= 0x3FFF
+    start = tile * PC080SN_TILE_BYTES
+    end = start + PC080SN_TILE_BYTES
+    if end > len(pc080sn):
+        raise SystemExit(f"tile pattern out of range: {tile:#06x}")
+    return pc080sn[start:end]
+
+
+def append_title_only_tiles(
+    assigned_slots: dict[int, int],
+    scene_tile_sets: dict[int, set[int]],
+    tiles: tuple[int, ...],
+) -> None:
+    """Append title-only tiles without perturbing existing slot assignments."""
+    slot_sequence = build_slot_sequence()
+    title_slots = {
+        assigned_slots[tile]
+        for tile in scene_tile_sets[SCENE_TITLE]
+        if tile in assigned_slots
+    }
+
+    for tile in tiles:
+        tile &= 0x3FFF
+        if tile in (0x0021, 0x002D):
+            raise SystemExit(f"latent low-code tile not in scoped pass: {tile:#06x}")
+        if tile in assigned_slots:
+            raise SystemExit(f"scoped raw low-code tile already assigned: {tile:#06x}")
+
+        for slot in slot_sequence:
+            if slot in title_slots:
+                continue
+            assigned_slots[tile] = slot
+            scene_tile_sets[SCENE_TITLE].add(tile)
+            title_slots.add(slot)
+            break
+        else:
+            raise SystemExit(
+                f"failed to append title raw low-code tile {tile:#06x}; "
+                "title scene budget exhausted"
+            )
+
+
 def write_u16_be_bin(path: Path, words: list[int]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("wb") as f:
@@ -559,6 +612,11 @@ def main() -> int:
     }
 
     assigned_slots, scene_tile_sets = assign_scene_aware_slots(scene_tiles, text_tiles)
+    append_title_only_tiles(
+        assigned_slots,
+        scene_tile_sets,
+        SCOPED_TITLE_RAW_LOW_CODE_TILES,
+    )
 
     lut = [0] * PC080SN_TILE_COUNT
     for tile, slot in assigned_slots.items():
@@ -566,11 +624,43 @@ def main() -> int:
             raise SystemExit(f"tile index out of LUT range: {tile:#x}")
         lut[tile] = slot
 
+    for low_code, mapped_code in SCOPED_LOW_CODE_LUT_ALIASES.items():
+        if low_code in (0x0021, 0x002D) or mapped_code in (0x2744, 0x274A):
+            raise SystemExit(
+                "latent 0x21/0x2D special glyph touched by scoped LUT alias pass"
+            )
+        if tile_pattern(pc080sn, low_code) != tile_pattern(pc080sn, mapped_code):
+            raise SystemExit(
+                f"scoped LUT alias requires byte-identical tiles: "
+                f"{low_code:#06x} != {mapped_code:#06x}"
+            )
+        mapped_slot = lut[mapped_code & 0x3FFF]
+        if mapped_slot == 0:
+            raise SystemExit(
+                f"scoped LUT alias target is not loaded: {mapped_code:#06x}"
+            )
+        if lut[low_code & 0x3FFF] not in (0, mapped_slot):
+            raise SystemExit(
+                f"scoped LUT alias would overwrite existing mapping: {low_code:#06x}"
+            )
+        lut[low_code & 0x3FFF] = mapped_slot
+
     scene_manifest_pairs: dict[int, list[tuple[int, int]]] = {}
     for scene_id in SCENE_IDS:
+        manifest_tiles = sorted(scene_tile_sets[scene_id])
+        if scene_id == SCENE_TITLE:
+            scoped_raw = [
+                tile & 0x3FFF
+                for tile in SCOPED_TITLE_RAW_LOW_CODE_TILES
+                if (tile & 0x3FFF) in scene_tile_sets[scene_id]
+            ]
+            scoped_raw_set = set(scoped_raw)
+            manifest_tiles = [
+                tile for tile in manifest_tiles if tile not in scoped_raw_set
+            ] + scoped_raw
         scene_manifest_pairs[scene_id] = [
             (tile, assigned_slots[tile])
-            for tile in sorted(scene_tile_sets[scene_id])
+            for tile in manifest_tiles
             if tile in assigned_slots
         ]
 

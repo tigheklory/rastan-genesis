@@ -38902,3 +38902,172 @@ Open/Closed Issues Impact:
 - New issues opened: NONE (recommend filing sibling raw-FG-write sweep as OPEN-018-class follow-ups: 0x3A550/0x3A8FE/0x3A908 same-shape, 0x3A92A/0x3D24C register-absolute, 0x3B3CC/0x3B7F6/0x3B7F8 producer-loop)
 - Issues closed: NONE
 - Issues intentionally deferred: all sibling raw writes, Class B (KF-033/OPEN-019/OPEN-020), implementation
+
+## [Andy - Design, OPEN-018 Follow-up: Same-Shape Raw FG Immediate-Write Sweep (rastan-direct)]
+
+* design note: docs/design/Andy_open_018_same_shape_raw_fg_immediate_sweep_design.md
+* scope: DESIGN only; no source/spec/ROM/build/bookmark/diagnostic/implementation; outputs = doc + this log; all PC correlation via address_map.json (no +-0x200); Class A only (Class B KF-033/OPEN-019/020 untouched); builds on the comma template (Andy_open_018_class_a_raw_story_comma_routing_design.md)
+* three same-shape inline-immediate-absolute FG siblings decoded:
+  - 0x3A550 = arcade_pc 0x3A350, move.w #0x0032,0xC08A52, FG row10 col20 cell 0x028A, attr addr 0xC08A50; LUT[0x0032]=0x000A NONZERO
+  - 0x3A8FE = arcade_pc 0x3A6FE, move.w #0x2744,0xC08E7A, FG row14 col30 cell 0x039E, attr addr 0xC08E78; LUT[0x2744]=0x0034 NONZERO
+  - 0x3A908 = arcade_pc 0x3A708, move.w #0x2744,0xC08E66, FG row14 col25 cell 0x0399, attr addr 0xC08E64; LUT[0x2744]=0x0034 NONZERO
+* LUT/Class-B classification: ALL THREE = CLEAN CLASS A (LUT nonzero -> crash fixed + visible tile expected). 0x2744 is the MAPPED high-code of low-code 0x21 '!' written DIRECTLY (not the low code), so no Class B entanglement; 0x0032 preloaded (slot 0x000A), not in missing 8-key set
+* include/defer: 0x3A550 INCLUDE, 0x3A8FE INCLUDE, 0x3A908 INCLUDE -- all gated on attr-confirm (§3a); register-absolute 0x3A92A/0x3D24C and producer-loop 0x3B3CC/0x3B7F6/0x3B7F8 remain DEFER (different shape, separate follow-up)
+* CRITICAL register-liveness (NEW vs comma): at 0x3A8FE/0x3A908 %d0 is LIVE across the write (holds glyph char 4/5/56 consumed by glyph renderer bsr 0x3bd48 at 0x3a910); raw move.w doesn't touch d0 so it survives; routing helper MUST preserve d0 -> full movem d0-d7/a0-a6 covers it (load-bearing); CCR dead at all sites; a5 live untouched
+* attr-confirm gate (§3a): paired attr inferred 0x0000 (single code-word write leaving FG-cleared attr; same model as comma) but NOT independently runtime-dumped for these 3 cells (comma was dump-proven); Cody must dump-confirm attr=0 at 0xC08A50/0xC08E78/0xC08E64; nonzero -> that single site DEFERs
+* helper plan: ONE dedicated trampoline per site (4 total incl comma); shared helper NOT byte-neutral-feasible (distinct A0/code baked in instruction; 6-byte jsr cannot pass params); each: full movem; lea cellbase,a0; move.l #attr<<16|code,d0; moveq #1,d1; bsr/jsr fg_fill; movem; rts; LIVE LUT (no literal slot embed); A0 = cell base (attr word): 0xC08A50/0xC08E78/0xC08E64
+* patch-site mechanics: each 6-byte move.w #imm,abs -> 6-byte jsr abs.l (byte-neutral, site delta 0); returns 0x3A558/0x3A906/0x3A910 (= existing post-write fall-through, conditional structure preserved); opcode_replace +3 (siblings) = +4 total OPEN-018 pass; genesis_only +~66B (3 trampolines), ~88B with comma; relocation genesis_only-internal only; STOP if any site delta!=0 / opcode_replace!=+4 / extra growth / unexpected arcade change
+* validation: build+opcode_replace+4; site byte-neutrality; attr-confirm dump gate; raw HW watchpoints 0xC09172/0xC08A52/0xC08E7A/0xC08E66 no raw fire; staging checks (offsets 0x08B8/0x0528/0x073C/0x0732 = live-LUT slot|attr, dirty rows 17/10/14/14); ALL FOUR expected "crash fixed + visible tile"; visual d0 glyph at 0x3a910 still correct (proves d0 preserved); strict-target check with HONEST caveat that register-absolute + producer-loop raws remain out of scope and may still fault; OUT OF SCOPE Class B / title-INSERT-COIN completeness
+* closure: raises OPEN-018 impl pass to 4 byte-neutral CLEAN-CLASS-A sites; does NOT alone complete strict-target closure (register-absolute + producer-loop remain); recommend implementing comma + 3 siblings together as one opcode_replace +4 pass
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-018 (active; comma + 3 same-shape siblings designed for one implementation pass; not closed pending implementation + register-absolute/producer-loop follow-ups), OPEN-001/OPEN-005/OPEN-017 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE (recommend tracking register-absolute 0x3A92A/0x3D24C and producer-loop 0x3B3CC/0x3B7F6/0x3B7F8 as explicit OPEN-018-class follow-ups)
+- Issues closed: NONE
+- Issues intentionally deferred: register-absolute and producer-loop raw writes, Class B (KF-033/OPEN-019/OPEN-020), implementation
+
+## [Cody - STOP, OPEN-018 Class A Raw FG Immediate Routing Attempt (rastan-direct)]
+
+* design/STOP note: docs/design/Cody_open018_class_a_raw_fg_immediate_routing_stop.md
+* scope attempted: implementation of four Class A raw PC080SN FG immediate-write routes (runtime_genesis_pc 0x3ACEA/0x3A550/0x3A8FE/0x3A908) via dedicated trampolines delegating to genesistan_hook_tilemap_fg_fill; no bookmark; no diagnostic ROM; OPEN-015 not touched
+* required context read: RULES.md, ARCHITECTURE.md, current findings/issues/log context, Andy fixed-tile canonicalization, OPEN-018 comma routing design, and OPEN-018 same-shape sweep design
+* address mapping: all four runtime_genesis_pc values resolved through build/rastan-direct/address_map.json to arcade_pc 0x03AAEA/0x03A350/0x03A6FE/0x03A708 (arcade_copy segments); no arithmetic offset used as authority
+* attr gate evidence captured before source edits: original arcade MAME trace states/traces/open018_attr_gate_original_arcade_20260626_163825/native_debug_trace.log; at live title/story page state, attr_C09170=0000, attr_C08A50=0000, attr_C08E78=0000, attr_C08E64=0000; attr gate PASS for all four cells
+* implementation attempt details: added four full-movem trampolines and four opcode_replace entries, then build stopped before artifact production because postpatch requires equal replacement length
+* STOP reason: prompt required each replacement be a 6-byte byte-neutral jsr abs.l, but each target instruction is an 8-byte 68000 move.w #imm16,abs.l (33 FC + imm16 + abs32). A jsr abs.l is 6 bytes and is therefore not byte-neutral for these sites; postpatch rejected opcode_replace at 0x03A350 with original/replacement length mismatch
+* cleanup: all source/spec/tool edits from the failed attempt were backed out; specs/rastan_direct_remap.json restored to opcode_replace_count 98; postpatch/verify invariants restored to 98 / 0x17CD68; no release ROM produced
+* generated byproducts: failed build refreshed apps/rastan-direct/out/* and debug.log; valid attr-gate trace artifacts under states/traces/open018_attr_gate_original_arcade_* remain
+* required next directive: clarify/approve an 8-byte-safe production patch shape (for example jsr abs.l + approved padding, or shift-table replacement) before implementation proceeds
+* STOP status: YES
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-018 (active; implementation blocked by replacement-shape contradiction), OPEN-001/OPEN-005/OPEN-017 context, OPEN-015 not touched
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: actual raw-write routing implementation, Class B OPEN-019/020, register-absolute/producer-loop raw FG writers
+
+### MAME Exit Summary (2026-06-26 17:17:54)
+- Final PC: 0x071D2E
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, OPEN-018 Class A Immediate Raw FG Routing With Approved 8-Byte Shape (rastan-direct)]
+
+* scope: implemented only the four approved OPEN-018 Class A immediate-absolute raw PC080SN FG writes; no Class B glyph/LUT work; no register-absolute routing; no producer-loop routing; no bookmark; no diagnostic ROM; OPEN-015 not touched
+* Phase 0 byte/mapping verification: runtime_genesis_pc/genesis_rom_offset 0x03ACEA/0x03A550/0x03A8FE/0x03A908 resolved through build/rastan-direct/address_map.json to arcade_pc 0x03AAEA/0x03A350/0x03A6FE/0x03A708 (arcade_copy); original bytes exactly matched 8-byte move.w #imm16,abs.l forms: 33FC274900C09172 / 33FC003200C08A52 / 33FC274400C08E7A / 33FC274400C08E66
+* attr gate: reused states/traces/open018_attr_gate_original_arcade_20260626_163825/native_debug_trace.log; attrs confirmed 0xC09170=0000, 0xC08A50=0000, 0xC08E78=0000, 0xC08E64=0000
+* implementation: added four full-movem trampolines in apps/rastan-direct/src/tilemap_hooks.s: genesistan_hook_inline_fg_write_3a550/3a8fe/3a908/3acea; each sets A0 to aligned FG attr address, D0 to attr<<16|code, D1=1, calls genesistan_hook_tilemap_fg_fill live-LUT path, restores d0-d7/a0-a6, returns; no literal Genesis slot embedding
+* opcode replacement: specs/rastan_direct_remap.json now routes arcade_pc 0x03A350/0x03A6FE/0x03A708/0x03AAEA with approved 8-byte shape 4EB9{helper}4E71; per-site notes document the trailing 4E71 as OPEN-018 byte-padding after 6-byte jsr abs.l, NOT behavior suppression
+* build/invariants: opcode_replace count 98->102; helper sizes 0x18/0x1C/0x1C/0x1C (total genesis_only growth 0x6C); total_genesis_bytes_covered 0x17CD68->0x17CDD4 in both postpatch_startup_rom.py and verify_canonical_rom.py; trampoline-to-fg_fill call form = bsr.w for all four helpers
+* release: produced Build 0107 dist/rastan-direct/rastan_direct_video_test_build_0107.bin and rolling apps/rastan-direct/dist/rastan_direct_video_test.bin; both SHA256 4b4a588b1da2ccec6b31cac781bd53627993eaa6170ec013da56f349c99ef1e3; canonical gate PASS; numbered/rolling ROMs byte-identical
+* static post-build verification: runtime bytes are 0x03ACEA=4EB9000707844E71, 0x03A550=4EB9000707344E71, 0x03A8FE=4EB90007074C4E71, 0x03A908=4EB9000707684E71; return-to-padding/fall-through addresses preserved (0x3ACF0->0x3ACF2, 0x3A556->0x3A558, 0x3A904->0x3A906, 0x3A90E->0x3A910)
+* MAME validation artifacts: states/traces/build_0107_open018_class_a_validation_20260626_172043/ and states/traces/build_0107_open018_class_a_coinstart_validation_20260626_172447/; raw watchpoints for 0xC09172/0xC08A52/0xC08E7A/0xC08E66 did not fire in captured windows; release trace also reported fg_cwindow_live count=0
+* runtime staging validation observed: 0x3ACEA helper fired and staged 0x0039 to staged-WRAM 0xFF58D2 (staged_fg_buffer+0x08B8, dirty row 17); 0x3A908 helper fired on the coin/start validation path and staged 0x0034 to 0xFF574C (staged_fg_buffer+0x0732, dirty row 14); 0x3A910 immediately after 0x3A908 saw d0=0x38, proving helper preserved live d0 on that branch path
+* validation caveat: 0x3A550 and 0x3A8FE replacements/helpers are byte/static verified and raw watchpoints did not fire, but those producer branches were not reached in the sampled no-input or scripted coin/start windows, so their positive staging writes were not runtime-observed in this task
+* strict target: attempted BlastEm debug run on Build 0107; launch emitted only host vsync warning before tool/session cleanup, with no captured fault text for the four routed HW addresses; result is inconclusive as a strict-target proof, and deferred raw register-absolute/producer-loop sites may still fault
+* remaining out of scope/deferred OPEN-018 raw sites: register-absolute 0x3A92A and 0x3D24C; producer-loop 0x3B3CC, 0x3B7F6, 0x3B7F8; Class B OPEN-019/OPEN-020 unchanged
+* STOP status: NO for implementation/build/static validation; runtime validation is partial for branch coverage as noted above
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-018 (active; four immediate-absolute Class A sites routed, not closed because register-absolute/producer-loop raws remain), OPEN-001/OPEN-005/OPEN-017 context, OPEN-015 not touched
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: register-absolute raw FG writes, producer-loop raw FG writes, Class B low-code glyph/LUT fixes, strict-target full closure
+
+## [Andy - Docs, Build 0107 Validation + Remaining Class B Visual Defects (rastan-direct)]
+
+* status note: docs/design/Andy_build_0107_validation_and_class_b_remaining_status.md
+* scope: DOCUMENTATION/ledger only; no source/spec/tool/ROM/build/bookmark/diagnostic/implementation; no Class B fix design (future scope)
+* Build 0107 SHA256: 4b4a588b1da2ccec6b31cac781bd53627993eaa6170ec013da56f349c99ef1e3 -> NEW validated working baseline (supersedes 0106 for the OPEN-018 immediate-absolute Class A arc)
+* BlastEm AND real Genesis no longer crash at the story-page comma point [user-confirmed]; comma renders visibly [user-confirmed]
+* Class A routing model VALIDATED: raw PC080SN write -> trampoline -> live LUT -> genesistan_hook_tilemap_fg_fill -> FG staging -> dirty -> VBlank commit
+* Cody invariants: opcode_replace 98->102 (+4); total_genesis_bytes_covered 0x17CD68->0x17CDD4 (helper growth 0x6C); four immediate-absolute raw FG writes routed via approved BYTE-NEUTRAL 8-byte jsr abs.l + nop shape; attr gate passed all four; raw HW watchpoints no longer observed for the 4 routed addrs; runtime staging observed for 0x3ACEA and 0x3A908; %d0 preservation runtime-proven for 0x3A908->0x3A910
+* patch-shape correction: original move.w #imm,(abs).L is 8 bytes (op2+imm2+absL4), NOT 6 (prior sweep design mislabeled); Cody's 8-byte jsr+nop is byte-neutral against the true 8-byte original; invariants confirm arcade space unchanged, all growth in 0x6C helper region
+* OPEN-018 immediate-absolute Class A: VALIDATED for the observed blocker (0x3ACEA/arc 0x3AAEA). Same-shape siblings implemented: 0x3A908/arc 0x3A708 (staging+d0 runtime-proven), 0x3A550/arc 0x3A350 and 0x3A8FE/arc 0x3A6FE (implemented, structurally covered, NOT runtime-reached in sampled windows -> no overclaim of visual proof)
+* remaining OPEN-018 raw-write follow-ups DEFERRED (did not block story-page path): register-absolute 0x3A92A, 0x3D24C; producer-loop 0x3B3CC, 0x3B7F6, 0x3B7F8 -- real raw shapes, may matter for full raw-write closure/other screens; OPEN-018 NOT globally closed (immediate-absolute portion implemented+validated)
+* Class B still open in 0107 (NOT regressions, NOT Class A failures): TAITO logo missing tiles + INSERT COIN(S) parens still missing -> KF-033/OPEN-019/OPEN-020; parens low codes 0x0028/0x0029 LUT->0x0000 while aliases 0x2747/0x2748 have slots 0x0037/0x0038 (LUT-coverage, not routing); TAITO low codes 0x0022/0x0027/0x002C/0x003F remain Class B; OPEN question kept: raw low-code intent vs runtime 0x563CE low->0x274x mapping (do NOT assume LUT-only)
+* taxonomy POSITIVE confirmation: Class A (raw writes bypassing staging) fixed by fg_fill routing -> crash gone + comma rendered; Class B (low-code glyph LUT gaps) parens/TAITO persist after Class A fix -> distinct defects confirmed, not the same crash/routing problem
+* ledger updates: OPEN-018 status line updated (immediate-absolute implemented+validated Build 0107; remaining shapes listed; not globally closed); KF-032 Build 0107 validation note added; OPEN-019/020 reaffirmed open
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-018 (immediate-absolute portion implemented+validated Build 0107; register-absolute + producer-loop remain; NOT closed), OPEN-019/OPEN-020 (reaffirmed open; parens/TAITO still missing in 0107 = Class B), OPEN-001 (context), OPEN-005/OPEN-017 (context; comma instance resolved), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: register-absolute + producer-loop raw writes (OPEN-018), Class B parens/TAITO (KF-033/OPEN-019/OPEN-020), all implementation and Class B design
+
+## [Cody - Evidence, Class B TAITO 0x563CE Runtime Watchpoints (rastan-direct)]
+
+* evidence note: docs/design/Cody_class_b_taito_0x563ce_runtime_evidence.md
+* scope: original arcade runtime evidence only; no source/spec/tool/ROM/build changes; no bookmark; no diagnostics inserted into ROM; no fix design or implementation
+* Phase 0 context read: RULES.md, ARCHITECTURE.md, latest AGENTS_LOG.md tail, KNOWN_FINDINGS.md, OPEN_ISSUES.md, CLOSED_ISSUES.md, Andy Build 0107 Class B status, fixed-tile canonicalization, TAITO magenta-cell arcade intent, and correction pass docs
+* arcade target confirmed: /usr/games/mame `rastan` / `Rastan (World Rev 1)` with `/home/tighe/projects/rastan-genesis/roms`; `-verifyroms rastan` reported `romset rastan is good`; MAME sourcefile `taito/rastan.cpp`
+* trace artifacts: states/traces/original_arcade_taito_0x563ce_runtime_evidence_20260627_124127/; MAME exited via debugger with status 0; debug_events.log contains 538 event lines
+* address discipline: required writer instruction resolved through build/rastan-direct/address_map.json, not arithmetic; arcade_pc 0x03BB68 (glyph renderer code-word store) maps inside patched_site segment 0x03BB48..0x03BB7C -> runtime_genesis_pc 0x03BD48..0x03BD7C, exact mapped site 0x03BD68; watchpoint-reported post-PC 0x03BB6C maps to 0x03BD6C; secondary 0x0563CE maps to runtime_genesis_pc 0x0565CE
+* tilemap address derivation: PC080SN FG base HW_ADDRESS 0x00C08000; attr = base + row*0x100 + col*4; code = attr+2; prior code addresses confirmed: row23 col17 0x00C09746, row23 col22 0x00C0975A, row23 col24 0x00C09762, row24 col20 0x00C09852
+* primary runtime evidence: original arcade writes raw low codes to the audited TAITO cells via arcade_pc 0x03BB68 / watchpoint post-PC 0x03BB6C: 0x0022 at 0x00C09746, 0x0027 at 0x00C0975A, 0x002C at 0x00C09762, 0x003F at 0x00C09852; each prior value was 0x0020 space
+* secondary evidence: `ROUTINE_0563CE_ENTRY` count was 0 in the captured TAITO-composition window; no 0x563CE low->0x274x transform reached the watched destination cells
+* pattern comparison: build/regions/pc080sn.bin confirms 0x0022 vs 0x2745, 0x0027 vs 0x2746, 0x002C vs 0x2749, and 0x003F vs 0x274B are all nonblank but byte-different
+* result: 0x0022/0x0027/0x002C/0x003F classified RAW-LOW-CODE; later Genesis work should preserve raw low-code arcade intent, while implementation details remain deferred
+* OPEN / KNOWN_FINDINGS impact: OPEN-019 and OPEN-020 remain open; KF-033 is consistent but not edited; no issues opened or closed
+* STOP status: NO
+
+## [Andy - Design, Class B Parens LUT-Alias + TAITO Raw-Low-Code Preload Coverage (rastan-direct)]
+
+* design note: docs/design/Andy_class_b_parens_taito_coverage_design.md
+* scope: DESIGN only; no source/spec/tool/ROM/build/bookmark/diagnostic/implementation; Class B (KF-033/OPEN-019/OPEN-020) only; baseline Build 0107 SHA 4b4a588b1da2ccec6b31cac781bd53627993eaa6170ec013da56f349c99ef1e3
+* address discipline: code-PC via address_map.json (glyph renderer 0x3BD48=arc 0x3BB48 patched_site; fg_fill 0x7065E genesis_only); tilemap-content (codes/slots/preload/staging) grounded in build/regions/pc080sn.bin + pc080sn_tile_vram_lut.bin + pc080sn_scene_preload_title.bin + pc080sn_attr_lut.bin (no cross-space arithmetic)
+* settled (not re-litigated, Cody evidence): TAITO writes raw low codes direct (0x0022->C09746,0x0027->C0975A,0x002C->C09762,0x003F->C09852); ROUTINE_0563CE_ENTRY=0; attr d2=0 (writer 0x3BB66 attr/0x3BB68 code); raw tiles byte-different from mapped 0x274x -> preserve raw, do NOT alias to 0x2745/46/49/4B
+* compose path: fg_fill composes tile_vram_lut[code&0x3FFF] | attr_lut[attrbits]; attr_lut[0]=0x0000 VERIFIED -> arcade attr 0 = Genesis palette line 0, no flip/prio -> composed cell = bare slot
+* BUCKET A parens (LUT-alias only): VERIFIED LUT[0x2747]=0x0037, LUT[0x2748]=0x0038; byte-identity 0x0028==0x2747 True, 0x0029==0x2748 True; current LUT[0x28]=LUT[0x29]=0; DESIGN LUT[0x0028]->0x0037, LUT[0x0029]->0x0038 (alias to existing slots); NO preload growth, NO new slots
+* BUCKET B TAITO (raw preload + new slots + LUT): codes 0x0022/0x0027/0x002C/0x003F all LUT=0, nonblank, byte-diff from aliases, not in preload; current title slot map = 841 tiles -> slots 0x0000..0x0348 contiguous; budget=1164 (range 0-1003 + 1280-1439), FREE=323, first-free 841-844; assign 0x0022->0x0349,0x0027->0x034A,0x002C->0x034B,0x003F->0x034C (generator allocator authoritative, conflict-aware, SystemExits on overflow); 845<=1164 budget clean NO STOP; collision-free vs 0..0x348/0x34-0x3B/0x37-0x38/each other; preload grows 841->845 (4 tiles, source pc080sn.bin[code*32]); LUT raw->new slots, explicitly NOT mapped 0x274x
+* attr/palette decision = A (with stated dependency, NOT B/C): attr=0 evidence-supported -> color bank 0; red from raw 4bpp pixels indexing palette line 0 (offline per-CRAM-entry conversion of full arcade palette incl bank-0 red, independent of tile preload; bank-0 FG already renders e.g. 0107 comma 0x2749 attr 0); residual dependency = palette line 0 must contain converted TAITO red -> explicit "red not gray" validation gate; NO contradictory evidence -> A, STOP NOT triggered; gray at validation -> reclassify B (palette-line-0 handling), do not invent color bank
+* shared: existing mapped 0x2744-0x274B -> 0x0034-0x003B PRESERVED; six-entry LUT delta (2 alias + 4 raw); GENERATOR change in tools/translation/precompute_pc080sn_tile_lut.py (root: extract_text_writer_tiles line ~330 registers only mapped tile via TEXT_SPECIAL_GLYPH_MAP) -- Bucket A emit byte-identical low-code alias to mapped slot; Bucket B add raw byte-different low codes to title scene set for own slot+preload+LUT; generalizes to all 8 keys (covers latent 0x21/0x2D); direct data edit REJECTED as committed fix (non-durable); 0x563CE UNTOUCHED
+* validation: parens render -> slots 0x0037/0x0038 via attr_lut[0], no preload growth; TAITO 4 magenta cells render -> 4 new raw slots via attr_lut[0], RED not gray, NOT 0x274x aliases; general: strict crash stays fixed, no Class A regression, no OPEN-018 change, preload +4 tiles only, LUT +6 entries, regen budget passes (845<=1164)
+* risks: slot collision/budget (323 free, allocator+SystemExit), wrong color gray (decision-A gate, B fallback no invented bank), generator/data consistency (single source, regen both), missing one of 6 (coherent 6-entry delta), wrong aliasing (raw own slots, byte-diff verified, assert TAITO slots != 0x35/36/39/3B)
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-019 (concrete parens+TAITO coverage design; not closed pending implementation + red-palette validation gate), OPEN-020 (covers 6 of 8 keys; generalized generator fix covers latent 0x21/0x2D), OPEN-001 (context), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, generalized 8-key generator form (scope-validated on 6), palette-line-0 handling if TAITO validates gray (decision-B fallback)
+
+### MAME Exit Summary (2026-06-27 13:28:34)
+- Final PC: 0x071D2E
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0108 Class B Scoped-6 Coverage (rastan-direct)]
+
+* scope: IMPLEMENTATION + verification for the user-approved scoped six Class B entries only; no source/spec/tool changes outside the generator/invariant path; no bookmark; no OPEN-018 raw-write routing changes; no 0x0021/0x002D work
+* prompt baseline: continued from Build 0107 (SHA 4b4a588b1da2ccec6b31cac781bd53627993eaa6170ec013da56f349c99ef1e3), KF-033/OPEN-019/OPEN-020 Class B coverage; OPEN-018 context only, not modified
+* generator change: tools/translation/precompute_pc080sn_tile_lut.py now adds scoped parens LUT aliases 0x0028->slot 0x0037 and 0x0029->slot 0x0038 only after byte-identity checks against 0x2747/0x2748; TAITO raw low-code tiles 0x0022/0x0027/0x002C/0x003F are appended as title-only raw preload tiles
+* hard exclusions preserved: LUT[0x0021]=0x0000 and LUT[0x002D]=0x0000; no latent 0x0021/0x002D preload growth; TAITO low-code tiles were NOT aliased to 0x2745/0x2746/0x2749/0x274B
+* append-only validation: LUT delta exactly six entries: 0x0022->0x0349, 0x0027->0x034A, 0x0028->0x0037, 0x0029->0x0038, 0x002C->0x034B, 0x003F->0x034C; mapped entries 0x2744..0x274B remain 0x0034..0x003B; title preload payload grew 841->845 with existing prefix byte-identical and new raw entries appended before terminator
+* locality/contiguity check: consumers use genesistan_pc080sn_tile_vram_lut for code->slot resolution, not slot arithmetic; scene_load.s preloads explicit (tile,slot) pairs and therefore uploads the new far slots 0x0349..0x034C directly; gameplay/endround preload and source_scene_map were unchanged
+* release build: Build 0108 produced dist/rastan-direct/rastan_direct_video_test_build_0108.bin, SHA256 bd0c7faa187f6d9aded904638e8d7cb8c9e3df6304c5178a36ec02e6c8bbad09; rolling apps/rastan-direct/dist/rastan_direct_video_test.bin byte-identical; build counter 108; canonical gate PASS
+* invariant update: opcode_replace count remains 102; total_genesis_bytes_covered updated to 0x17CDE4, matching the mechanical +0x10 from four appended preload pairs; no opcode_replace site added by this task
+* runtime staging evidence: states/traces/build_0108_classb_scoped6_runtime_20260627_133221/debug_events.log shows staged_fg_buffer stores through runtime_genesis_pc 0x0709BE/0x0709C0 with a6=0x00FF501A for TAITO raw slots 0x0349/0x034A/0x034B/0x034C and parens alias slots 0x0037/0x0038
+* visual evidence: states/screenshots/build_0108_classb_scoped6/build0108_classb.avi plus contact_sheet.png show the red TAITO mark on the title page and INSERT COIN(S) with parentheses on the attract/story page; this is visual validation of the scoped Class B targets in MAME capture
+* raw-write regression context: Build 0108 release trace reported fg_cwindow_live count=0 for the captured MAME window; no OPEN-018 routing sites were edited in this task; BlastEm debug attempt produced no captured illegal-write text but is not claimed as a definitive strict-target proof
+* OPEN / KNOWN_FINDINGS impact: OPEN-019/OPEN-020 improved by scoped-six implementation but not closed here; OPEN-018 not touched; OPEN-001 context; OPEN-015 not touched; no KNOWN_FINDINGS edit in this task
+* STOP status: NO
+
+## [Cody - Evidence, Build 0108 High-Score State Entry Attempt]
+
+* scope: evidence/runtime analysis only for original arcade vs Build 0108 high-score/interstitial state entry; no source/spec/tool/Makefile/ROM/build/bookmark changes; no implementation or fix design
+* prompt baseline: Build 0108 ROM `dist/rastan-direct/rastan_direct_video_test_build_0108.bin`, SHA256 `bd0c7faa187f6d9aded904638e8d7cb8c9e3df6304c5178a36ec02e6c8bbad09`; Class B context respected but not re-derived; OPEN-015 not touched
+* address discipline: high-score/state-1 PCs were checked through `build/rastan-direct/address_map.json` (`arcade_pc 0x3A8AC -> runtime_genesis_pc 0x3AAAC`, `0x3A8D2 -> 0x3AAD2`, `0x3A912 -> 0x3AB12`, `0x3A91A -> 0x3AB1A` patched input site, `0x3A9DE -> 0x3ABDE`, candidate route sites `0x3AC76 -> 0x3AE76` and `0x3AE76 -> 0x3B076`)
+* evidence artifacts: original arcade and Build 0108 attempts under `states/traces/original_arcade_high_score_state_entry_20260627_144044*`, `states/traces/build_0108_high_score_state_entry_20260627_144044*`, and `states/traces/build_0108_high_score_state1_direct_20260627_144044/`
+* result: bounded captures reached only early title countdown (`%a5@(0)=0`, `%a5@(2)=1`, `%a5@(4)=0`, counter decrementing); no captured runtime hit of original `arcade_pc 0x3A8AC/0x3A8D2` or Build 0108 `runtime_genesis_pc 0x3AAAC/0x3AAD2`
+* classification: D - INCONCLUSIVE for this evidence pass; not evidence of STATE ENTRY BLOCKED, WRONG ROUTE, or STATE ENTRY OK; direct Build 0108 state-1 breakpoint produced no dump within practical run window and was stopped manually
+* documentation: wrote `docs/design/Cody_high_score_state_entry_evidence_build_0108.md` with exact artifact paths, JSON-derived mapping table, runtime limitation, and recommended next evidence step
+* OPEN / KNOWN_FINDINGS impact: OPEN-001 context only; OPEN-018/Class B context only; OPEN-015 not touched; no issue opened/closed; no `KNOWN_FINDINGS.md` update recommended
+* STOP status: NO for scope compliance; evidence classification remains inconclusive

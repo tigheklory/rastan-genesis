@@ -81,6 +81,10 @@
     "genesistan_hook_tilemap_plane_a",
     "genesistan_hook_tilemap_fg",
     "genesistan_hook_tilemap_bg_fill",
+    "genesistan_hook_inline_fg_write_3a550",
+    "genesistan_hook_inline_fg_write_3a8fe",
+    "genesistan_hook_inline_fg_write_3a908",
+    "genesistan_hook_inline_fg_write_3acea",
     "genesistan_hook_pc080sn_bg_scroll_fill",
     "genesistan_hook_pc080sn_fg_scroll_fill",
     "genesistan_hook_tilemap_bg_blockcopy",
@@ -192,6 +196,12 @@
       "note": "Suppress unsupported TC0040IOC control write at 0x380000."
     },
     {
+      "arcade_pc": "0x03A350",
+      "original_bytes": "33FC003200C08A52",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_inline_fg_write_3a550}4E71",
+      "note": "OPEN-018 Class A: route raw PC080SN FG immediate write at runtime 0x3A550 (HW_ADDRESS 0x00C08A52 code 0x0032, attr 0) through genesistan_hook_inline_fg_write_3a550 -> genesistan_hook_tilemap_fg_fill live LUT. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression."
+    },
+    {
       "arcade_pc": "0x03A47E",
       "original_bytes": "0c79004900c0883a6608303c009a610016ba",
       "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
@@ -222,6 +232,18 @@
       "note": "Bypass PC080SN readback cmp/bne path (read from 0xC09EA3 invalid on Genesis)."
     },
     {
+      "arcade_pc": "0x03A6FE",
+      "original_bytes": "33FC274400C08E7A",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_inline_fg_write_3a8fe}4E71",
+      "note": "OPEN-018 Class A: route raw PC080SN FG immediate write at runtime 0x3A8FE (HW_ADDRESS 0x00C08E7A code 0x2744, attr 0) through genesistan_hook_inline_fg_write_3a8fe -> genesistan_hook_tilemap_fg_fill live LUT; helper preserves live D0 for following glyph renderer. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression."
+    },
+    {
+      "arcade_pc": "0x03A708",
+      "original_bytes": "33FC274400C08E66",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_inline_fg_write_3a908}4E71",
+      "note": "OPEN-018 Class A: route raw PC080SN FG immediate write at runtime 0x3A908 (HW_ADDRESS 0x00C08E66 code 0x2744, attr 0) through genesistan_hook_inline_fg_write_3a908 -> genesistan_hook_tilemap_fg_fill live LUT; helper preserves live D0 for following glyph renderer. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression."
+    },
+    {
       "arcade_pc": "0x03A778",
       "original_bytes": "103900390001",
       "replacement_bytes": "1039{symbol:genesistan_shadow_input_390001}",
@@ -244,6 +266,12 @@
       "original_bytes": "103900390007",
       "replacement_bytes": "1039{symbol:genesistan_shadow_input_390007}",
       "note": "System input read -> direct shadow system byte."
+    },
+    {
+      "arcade_pc": "0x03AAEA",
+      "original_bytes": "33FC274900C09172",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_inline_fg_write_3acea}4E71",
+      "note": "OPEN-018 Class A: route raw story comma PC080SN FG immediate write at runtime 0x3ACEA (HW_ADDRESS 0x00C09172 code 0x2749, attr 0) through genesistan_hook_inline_fg_write_3acea -> genesistan_hook_tilemap_fg_fill live LUT. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression."
     },
     {
       "arcade_pc": "0x03AB96",
@@ -754,6 +782,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 98
+    "opcode_replace_count": 102
   }
 }

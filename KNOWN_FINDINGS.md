@@ -512,6 +512,8 @@ Last verified: 2026-06-19 (Build 0091 / OPEN-016 Part 2 ROM)
 
 **Use as prior.** Do NOT fix by NOP/suppression, VDP-port sanitizer, suppressing 0xC00008, MAME-tolerance mimicry, or dropping the write unless arcade intent is proven irrelevant — route the intent to staging. Scan for sibling raw writes/fills; fixing one site commonly exposes the next (e.g. the C0C000 scroll clear and the inline title producer `0x0003B392`). This is the same class as the Build 0106 scroll-RAM HV crash and the story-comma write.
 
+**Build 0107 validation (2026-06-27).** The routing model is VALIDATED on strict targets: routing four immediate-absolute raw FG writes through trampoline → `genesistan_hook_tilemap_fg_fill` (live LUT → FG staging → dirty → VBlank commit) fixed the story-page comma crash on BlastEm and real Genesis and made the comma render. Approved patch shape for an 8-byte `move.w #imm,(abs).L` site = byte-neutral 8-byte `jsr abs.l + nop`. Build 0107 SHA256 `4b4a588b1da2ccec6b31cac781bd53627993eaa6170ec013da56f349c99ef1e3`. Remaining raw-write shapes (register-absolute `0x3A92A`/`0x3D24C`; producer-loop `0x3B3CC`/`0x3B7F6`/`0x3B7F8`) are unrouted and tracked under OPEN-018.
+
 ## KF-033 — Low-code FG glyph/symbol LUT coverage gaps (routed but staged blank)
 
 - **Status:** ACTIVE

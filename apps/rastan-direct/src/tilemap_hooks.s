@@ -5,6 +5,10 @@
     .global genesistan_hook_cwindow_clear
     .global genesistan_hook_tilemap_bg_fill
     .global genesistan_hook_tilemap_fg_fill
+    .global genesistan_hook_inline_fg_write_3a550
+    .global genesistan_hook_inline_fg_write_3a8fe
+    .global genesistan_hook_inline_fg_write_3a908
+    .global genesistan_hook_inline_fg_write_3acea
     .global genesistan_hook_pc080sn_bg_scroll_fill
     .global genesistan_hook_pc080sn_fg_scroll_fill
     .global genesistan_hook_tilemap_bg_blockcopy
@@ -560,6 +564,42 @@ genesistan_hook_tilemap_fg_fill:
     bne.s   .Lfg_fill_loop
 
 .Lfg_fill_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_inline_fg_write_3a550:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    lea     0x00C08A50, %a0
+    move.l  #0x00000032, %d0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_inline_fg_write_3a8fe:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    lea     0x00C08E78, %a0
+    move.l  #0x00002744, %d0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_inline_fg_write_3a908:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    lea     0x00C08E64, %a0
+    move.l  #0x00002744, %d0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_inline_fg_write_3acea:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    lea     0x00C09170, %a0
+    move.l  #0x00002749, %d0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
