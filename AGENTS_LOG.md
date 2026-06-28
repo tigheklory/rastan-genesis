@@ -39235,3 +39235,36 @@ Open/Closed Issues Impact:
 * documentation: implementation/evidence note created at `docs/design/Cody_build0111_highscore_fg_producer_staging_route.md`
 * OPEN / KNOWN_FINDINGS impact: OPEN-018 advanced but not closed; OPEN-001 and OPEN-005 context only; OPEN-015 untouched; no `KNOWN_FINDINGS.md` update in this implementation task
 * STOP status: NO final STOP; Build 0110 was superseded by corrected Build 0111
+
+## [Cody - Evidence, Build 0111 High-Score NAME Column Source Audit]
+
+* scope: evidence/analysis only for the high-score NAME column source/destination path in Build 0111 vs original arcade; no source/spec/tool/Makefile/ROM/build/bookmark changes; no ROM diagnostics inserted; no implementation or fix design
+* evidence note: `docs/design/Cody_highscore_name_column_source_audit_build_0111.md`
+* new original-arcade runtime trace: `states/traces/original_arcade_highscore_name_source_audit_20260628_115007/` with `mame_arcade_highscore_name_source.cmd`, `native_debug_trace.log`, `mame_stdout.log`, and `mame_stderr.log`
+* JSON integrity: `specs/rastan_direct_remap.json` and `build/rastan-direct/address_map.json` parse cleanly; one well-formed `arcade_pc 0x03C3FE` opcode_replace exists; `required_symbols` includes `genesistan_hook_highscore_fg_producer`; address-map segments for `runtime_genesis_pc 0x03C5FE`, `0x03C606+`, and table `0x03C654` are internally consistent
+* work-RAM mapping finding: direct build maps arcade work-RAM base `0x0010C000` to Genesis WRAM `0x00FF0000` via generated opcode replacements at `arcade_pc 0x03AEEA/0x03AF04`; `apps/rastan-direct/out/symbol.txt` does not expose `genesistan_arcade_workram_words` for rastan-direct
+* arcade runtime result: original arcade producer `arcade_pc 0x03C3FE` is the NAME-column producer; it reads arcade-RAM `0x0010C157..0x0010C165` as `COB/THS/YAG/TKG/YTN` (`43 4F 42 / 54 48 53 / 59 41 47 / 54 4B 47 / 59 54 4E`) and writes the 15 NAME cells to FG `HW_ADDRESS 0x00C09376..0x00C09B7E` with attr zeros at the preceding attr words
+* destination decode: the 15-cell gate covers NAME cells, not SCORE/ROUND; FG rows `19,21,23,25,27`, columns `29..31`
+* Build 0111 actual: the helper reads from literal `0x0010C068 + src_off`, observed as `0x0010C1BF..0x0010C1CD` after accounting for post-read `src_next_a2`, yielding bytes `18 01 34 / 66 84 00 / 13 18 46 / 00 01 34 / 14 00 00`
+* classification: A - `0x03C5FE` hook source-base wrong; Build 0111 reads a layout-shifted literal instead of the mapped equivalent of the arcade NAME source (`Genesis-WRAM 0x00FF0157..0x00FF0165`)
+* conclusion: `0x0010C068` is not a proven mapped relocation; it is a code-growth compensation matching the helper-size drift, and is invalid for a stable arcade work-RAM source window
+* OPEN / KNOWN_FINDINGS impact: OPEN-018 and OPEN-001 touched/extended by evidence; OPEN-015 untouched; no issues opened or closed; no `KNOWN_FINDINGS.md` update in this evidence-only task
+* STOP status: NO
+
+### MAME Exit Summary (2026-06-28 12:09:28)
+- Final PC: 0x071D98
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0112 High-Score NAME Source-Base Fix]
+
+* scope: implementation + evidence for the high-score NAME producer source-base fix only; no high-score seeding, no score/round edits, no descriptor-table/LUT/routing redesign, no bookmark cycle, no OPEN-015 work
+* source change: `apps/rastan-direct/src/tilemap_hooks.s` now sets `ARCADE_HIGHSCORE_SOURCE_BASE = 0x00FF0000` in `genesistan_hook_highscore_fg_producer`; removed the invalid Build 0111 literal `0x0010C068` source base; no `0x0010C000` or `+0x68` compensation retained
+* build: Build 0112 produced `dist/rastan-direct/rastan_direct_video_test_build_0112.bin`, SHA256 `024241b2378dba68102637c368bc92d5edc41b2b30776363a96144146dfe215d`; rolling `apps/rastan-direct/dist/rastan_direct_video_test.bin` is byte-identical; canonical gate PASS
+* invariants: unchanged at `opcode_replace=103`, `total_genesis_bytes_covered=0x17CE4C`; generated disassembly confirms `0x03C5FE: jsr 0x707A0` and `0x707CA: addal #0x00FF0000,%a2`; symbol table confirms `ARCADE_HIGHSCORE_SOURCE_BASE = 0x00FF0000`
+* runtime evidence: focused traces `states/traces/build_0112_highscore_name_source_base_fix_20260628_121213/` and `states/traces/build_0112_highscore_name_source_base_fix_dump_20260628_121401/` show mapped WRAM source `0x00FF0157..0x00FF0165 = COB/THS/YAG/TKG/YTN`, 15 hook stage calls reading those bytes, and final staged NAME cells at rows 19/21/23/25/27 cols 29..31
+* negative checks: old bad-source read watchpoint `0x0010C1BF..0x0010C1CD` fired 0 times; old raw body breakpoints `0x03C62A`, `0x03C646`, and `0x03C64A` fired 0 times; release MAME summary reports `fg_cwindow_live count=0`
+* visual/smoke note: BlastEm debug smoke attempt did not produce a clean shell-returning result and is not claimed as evidence; MAME focused trace is the authoritative validation for this task. The trace disproves the tentative expectation of blank NAME cells: Build 0112 reads nonzero mapped WRAM initials and stages nonzero NAME cells.
+* documentation: `docs/design/Cody_build_0112_highscore_name_source_base_fix.md`
+* OPEN / KNOWN_FINDINGS impact: OPEN-018 advanced but not closed; OPEN-001 context only; OPEN-015 untouched; no `KNOWN_FINDINGS.md` update
+* STOP status: NO

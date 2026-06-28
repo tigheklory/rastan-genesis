@@ -50,7 +50,7 @@
     .equ ARCADE_PC080SN_CWINDOW_BASE_FG,     0x00C08000
     .equ ARCADE_PC080SN_CWINDOW_BYTES,       0x00004000
     .equ ARCADE_MAINCPU_ROM_BASE,            0x00000200
-    .equ ARCADE_HIGHSCORE_SOURCE_BASE,       0x0010C068
+    .equ ARCADE_HIGHSCORE_SOURCE_BASE,       0x00FF0000
 genesistan_hook_tilemap_plane_a:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5

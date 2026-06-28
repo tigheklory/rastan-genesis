@@ -219,7 +219,6 @@
 000f2210 T genesistan_pc080sn_tile_vram_lut
 000fa210 T genesistan_pc080sn_attr_lut
 000fa250 T genesistan_pc080sn_tile_rom
-0010c068 a ARCADE_HIGHSCORE_SOURCE_BASE
 0017a250 T genesistan_scene_preload_title
 0017af86 T genesistan_scene_preload_gameplay
 0017af86 T genesistan_scene_preload_title_end
@@ -250,6 +249,7 @@
 00c00004 a VDP_CTRL
 00c00004 a VDP_CTRL
 00c08000 a ARCADE_PC080SN_CWINDOW_BASE_FG
+00ff0000 a ARCADE_HIGHSCORE_SOURCE_BASE
 00ff10a0 a ARCADE_FIX_DEST_BG
 00ff10a0 a ARCADE_FIX_DEST_BG
 00ff10a0 a ARCADE_FIX_DEST_BG
