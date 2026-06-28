@@ -24,6 +24,7 @@
     .global genesistan_hook_number_renderer_3c2e2
     .global genesistan_hook_glyph_renderer_3bd48
     .global genesistan_hook_highscore_fg_producer
+    .global genesistan_hook_textwriter_dispatch
     .global rastan_direct_update_inputs
 
     .global genesistan_shadow_input_390001
@@ -2014,6 +2015,85 @@ genesistan_hook_pc080sn_fg_scroll_fill:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
+
+
+    .section .text.zzz_textwriter_dispatch,"ax"
+
+/* Shared PC080SN text writer replacement for runtime 0x0565A6.
+ * Replays the arcade source loop but routes each composed cell through
+ * BG/FG staging instead of writing raw PC080SN words into Genesis VDP space. */
+genesistan_hook_textwriter_dispatch:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+
+    movea.l %a0, %a3
+    movea.l %a1, %a2
+    move.w  %d1, %d3
+
+.Ltw_dispatch_loop:
+    clr.w   %d0
+    move.b  (%a3)+, %d0
+    cmpi.b  #0x00, %d0
+    beq.s   .Ltw_dispatch_done
+    cmpi.b  #0xFF, %d0
+    beq.s   .Ltw_dispatch_advance
+
+    jsr     0x000565CE
+
+    move.w  %d3, %d4
+    swap    %d4
+    move.w  %d0, %d4
+
+    move.l  %a1, %d2
+    andi.l  #0x00FFFFFF, %d2
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_BG, %d2
+    blo.s   .Ltw_dispatch_check_fg
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_BG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs.s   .Ltw_dispatch_check_fg
+
+    movea.l %a1, %a0
+    move.l  %d4, %d0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_bg_fill
+    adda.l  #4, %a1
+    bra.s   .Ltw_dispatch_loop
+
+.Ltw_dispatch_check_fg:
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d2
+    blo.s   .Ltw_dispatch_fail
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs.s   .Ltw_dispatch_fail
+
+    movea.l %a1, %a0
+    move.l  %d4, %d0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
+    adda.l  #4, %a1
+    bra.s   .Ltw_dispatch_loop
+
+.Ltw_dispatch_advance:
+    adda.l  #0x200, %a2
+    movea.l %a2, %a1
+    bra.s   .Ltw_dispatch_loop
+
+.Ltw_dispatch_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+.Ltw_dispatch_fail:
+    move.l  64(%sp), %d0
+    move.l  %d0, audit_guard_caller_pc
+    lea     audit_guard_register_snapshot, %a0
+    move.l  %a1, (%a0)+
+    move.l  %d2, (%a0)+
+    move.l  %d4, (%a0)+
+    move.w  0x00C00008, audit_guard_vcount
+    move.w  #0x565A, audit_guard_fired_flag
+
+.Ltw_dispatch_fail_loop:
+    move.b  audit_guard_heartbeat, %d0
+    addq.b  #1, %d0
+    move.b  %d0, audit_guard_heartbeat
+    bra.s   .Ltw_dispatch_fail_loop
 
 
     .section .bss

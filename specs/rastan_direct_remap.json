@@ -110,6 +110,7 @@
     "genesistan_hook_number_renderer_3c2e2",
     "genesistan_hook_glyph_renderer_3bd48",
     "genesistan_hook_highscore_fg_producer",
+    "genesistan_hook_textwriter_dispatch",
     "genesistan_pc090oj_hook_target_3b902",
     "genesistan_pc090oj_hook_target_3b926",
     "genesistan_pc090oj_hook_target_3b930",
@@ -653,6 +654,12 @@
       "note": "Replace PC080SN C-window fill loop with JSR to Genesis-side staged buffer clear hook. Hook fills staged_bg_buffer and staged_fg_buffer with LUT-translated blank tile and marks all rows dirty."
     },
     {
+      "arcade_pc": "0x0563A6",
+      "original_bytes": "2449424010180C00",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_textwriter_dispatch}4E75",
+      "note": "OPEN-022/KF-032: route shared PC080SN text writer at runtime 0x0565A6 through destination-range dispatcher. Reuses arcade substitution routine 0x0565CE, forwards live attr unchanged, routes BG/FG C-window cells to staging, and fail-loud traps unexpected destinations."
+    },
+    {
       "arcade_pc": "0x03B902",
       "original_bytes": "43F900D000884A41660C41FA007672056100001C4E757005134100025089538066F64E75",
       "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_target_3b902}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
@@ -789,6 +796,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 103
+    "opcode_replace_count": 104
   }
 }

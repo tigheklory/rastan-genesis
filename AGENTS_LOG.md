@@ -39294,3 +39294,97 @@ Open/Closed Issues Impact:
 * classification: B - NEW raw PC080SN BG write in current ledger taxonomy / KF-032 family
 * OPEN / KNOWN_FINDINGS impact: OPEN-022 now has concrete writer evidence and remains open; OPEN-018 touched as broad raw-write class and remains open; OPEN-001/OPEN-024 context; OPEN-023 context with no Window-first evidence; no issues opened or closed; no `KNOWN_FINDINGS.md` update
 * STOP status: NO
+
+## [Andy - Design, Route Item-Description BG Text Producer (C00828) Through BG Staging (rastan-direct)]
+
+* design note: docs/design/Andy_C00828_itemdesc_bg_producer_route_design.md
+* scope: DESIGN only; no source/spec/tool/ROM/build/bookmark/diagnostic/implementation; static from Cody evidence + CLOSED-016 template; baseline Build 0112 SHA 024241b2378dba68102637c368bc92d5edc41b2b30776363a96144146dfe215d; BG analog of CLOSED-016 FG producer route
+* root (OPEN-022, KF-032 family): item-description attract page (a5@0=2,a5@2=2,a5@4=6) BG text producer does RAW PC080SN BG writes 0xC00828..0xC03E2A (BG C-window), freezes BlastEm/real-Genesis; source is ROM text (no KF-036 work-RAM risk); defect = raw destination writes only
+* JSON exact: writer entry 0x0565A6=arc 0x0563A6; raw stores 0x0565B8 attr / 0x0565BE code; sub 0x0565CE; item-desc call site 0x0005623C=arc 0x0005603C; ROM source runtime 0x0005692A=arc 0x0005672A
+* CALLER CENSUS (writer 0x565A6 = SHARED, case B, >=6 callers): 0x5623C item-desc a0=0x5692A a1=0xC00828(BG) d1=0 PROVEN; 0x56266 a0=0x56B7E a1=0xC00028(BG) d1=0 CONFIRMED SIBLING; 0x563F8/0x56420/0x576FC indirect table-driven dest d1=0 UNKNOWN plane; 0x5A6CE indirect dest + TABLE-DRIVEN attr (a3@0, may be !=0) UNKNOWN -> patching writer ENTRY is UNSAFE (would reroute 4 indirect/unknown-plane callers)
+* RECOMMENDED = function-level at the item-description CALL SITE (NOT writer entry); route-stores-in-place rejected (2-byte stores 0x565B8/0x565BE + per-cell-composed staging); writer-entry rejected (shared/unsafe)
+* patch-site mechanics: call-site setup+call block 0x5622C..0x5623F (20 bytes: moveal #0x5692A,a0 + moveal #0xC00828,a1 + move.w #0,d1 + bsr.w 0x565A6) -> jsr genesistan_hook_itemdesc_bg_producer (6) + nop x7 (14); hook rts -> 0x56232 -> 7 nops -> fall through 0x56240; byte-neutral 20->20; bsr.w (4B) cannot reach genesis_only (>32KB) so the 20-byte block is overwritten and the hook HARDCODES source 0x5692A/dest 0xC00828/attr 0 (faithful constants; map-reference maintenance dependency flagged)
+* raw writers routed: 0x565B8 attr -> folded into bg_fill D0 high word (d1=0); 0x565BE code -> bg_fill D0 low word (post-sub); no other raw store (sub 0x565CE does no writes); shared writer 0x565A6 untouched (live for 5 other callers)
+* sub 0x565CE = PURE d0->d0 transform (0x21->0x2744 0x22->0x2745 0x27->0x2746 0x28->0x2747 0x29->0x2748 0x2C->0x2749 0x2D->0x274A 0x3F->0x274B; all -> rts; touches only d0; no raw writes) -> hook REUSES it via jsr (no reimplementation risk for substitution)
+* producer intent preserved in hook: ROM source walk (a3=0x5692A, byte=(a3)+); attr/code pairing composed per cell; 0xFF -> a2+=0x200, a1=a2 (row advance); 0x00 terminate; substitution reuse 0x565CE; full range 0xC00828..0xC03E2A all in BG C-window [0xC00000,0xC04000)
+* %a1->BG staging: genesistan_hook_tilemap_bg_fill (A0=BG HW addr, D0=attr<<16|code, D1=count; movem all; gate [0xC00000,0xC04000); cell=((A0&0xFFFFFF)-0xC00000)>>2, col=cell&0x3F, row=(cell>>6)&0x1F, staged=staged_bg_buffer+row*128+col*2; bg_row_dirty bset); hook calls bg_fill(A0=a1,D0=(0<<16)|code,D1=1) per cell, a1+=4; 0xFF sets a1=a2+n*0x200 (bg_fill derives row/col); attr 0 -> attr_lut[0]=0 -> bare slot; VBlank BG commit
+* register mechanics: hook keeps loop state in a3(source)/a1(dest)/a2(rowbase)/d3(attr) -- NOT bg_fill arg regs (A0/D0/D1); bg_fill + 0x565CE preserve them (movem / pure-d0); flags: rts, caller doesn't consume; same discipline as CLOSED-016
+* invariant impact: opcode_replace +1 (new patched_site 0x5622C/arc 0x5603C); total_genesis_bytes_covered + hook (~70-110B genesis_only); arcade byte-neutral except in-place 20-byte block; relocation genesis_only-internal; any other delta = STOP
+* validation: byte-neutral + opcode_replace +1 + genesis_only-only growth; BlastEm NO freeze (zero raw producer writes to BG C-window); PRODUCER-EQUIVALENCE GATE mismatch-count=0 (orig raw per-cell output vs hook staged cells, AXE/HAMMER/...); 0xFF/0x00 control over full 568 cells/27 advances; visual item text renders (sprite garbage EXPECTED = OPEN-024); no regression title/TAITO/story/parens/high-score/OPEN-018 + all 5 other 0x565A6 callers untouched; text content unchanged (same source read)
+* STRICT-TARGET CLOSURE note: 0x56266 (BG 0xC00028) CONFIRMED same-class sibling will freeze next; 4 indirect callers (0x563F8/0x56420/0x576FC/0x5A6CE) need runtime dest census; recommended follow-up = census all 6 callers, if all PC080SN C-window then a DISPATCHER at writer entry 0x565A6 (route by a1 range BG->bg_fill/FG->fg_fill) fixes all 6 (incl table-driven attr 0x5A6CE) -- but needs census first, do NOT adopt blind
+* STOP status: NO
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-022 (item-description BG raw write; designed via call-site patch; not closed pending implementation + sibling/census follow-up), KF-032 class, OPEN-001 (context), OPEN-024 (sprite path, explicitly out of scope), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE (recommend tracking 0x56266 confirmed BG sibling + 4 indirect callers census as OPEN-022 follow-up / dispatcher option)
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, 0x56266 + 4 indirect-dest callers (sibling sweep / dispatcher pending census), sprite/PC090OJ path (OPEN-024), zero/blank-table family
+
+## [Cody - Evidence, Build 0112 Text Writer 0x0565A6 Caller Census]
+
+* scope: evidence/analysis only for shared PC080SN text writer `runtime_genesis_pc 0x000565A6` / `arcade_pc 0x000563A6`; no source/spec/tool/Makefile/ROM/build/bookmark changes; no ROM diagnostics inserted; no dispatcher design or implementation
+* evidence note: `docs/design/Cody_text_writer_0565A6_caller_census_build0112.md`
+* baseline: Build 0112 ROM `dist/rastan-direct/rastan_direct_video_test_build_0112.bin`, SHA256 `024241b2378dba68102637c368bc92d5edc41b2b30776363a96144146dfe215d`
+* caller list completeness: generated-disassembly search found exactly six direct calls to the writer: `0x5623C`, `0x56266`, `0x563F8`, `0x56420`, `0x576FC`, `0x5A6CE`; no additional direct `bsr/jsr/jmp` call sites found
+* address discipline: exact `build/rastan-direct/address_map.json` mappings used for every listed runtime/arcade correlation; no arithmetic offset used as proof
+* runtime evidence: prior Build 0112 C00828 native watchpoint proves `0x5623C` reaches the writer with `%a1=0x00C00828`, `%a0=0x0005692A`, `%d1=0`; additional MAME observer attempts in this environment produced no usable rows and are not used as evidence; one user-input window attempt produced only `SCRIPT_LOADED`, so it is explicitly discarded
+* static destination census: all resolved destinations for all six callers are BG C-window (`0x00C00000..0x00C03FFF`); no FG C-window or non-C-window destinations found
+* per-caller result: `0x5623C` fixed `0xC00828` BG r8 c10 attr 0 source `0x5692A`; `0x56266` fixed `0xC00028` BG r0 c10 attr 0 source `0x56B7E`; `0x563F8` table `0x564CA` selects `0xC00C64` BG r12 c25 or `0xC00A64` BG r10 c25 attr 0; `0x56420` table `0x564FA` selects `0xC00C48` BG r12 c18 attr 0; `0x576FC` table pair selects `0xC0095C` BG r9 c23 attr 0 and source first byte `0x00`; `0x5A6CE` table `0x5A7AC` has 13 BG destinations with attrs `0x0003/0x0004/0x0005`
+* source check: emitted text/source pointers are ROM/runtime addresses covered by `address_map.json` (`arcade_copy`, plus one static table source into a patched-site runtime address); no writer text source is a work-RAM source. The `0x563F8/0x56420` selector byte read from literal `0x0010C118` is noted separately and is not a text source.
+* dispatcher feasibility: classification A - ALL CALLERS BG/FG C-WINDOW TEXT; specifically all resolved destinations are BG C-window, the write shape is uniform attr/code text production, and the `0x5A6CE` table-driven attr path requires attr preservation but no special destination case
+* OPEN / KNOWN_FINDINGS impact: OPEN-022 extended with shared-writer census evidence and remains open; OPEN-018/KF-032 context; OPEN-001 context; OPEN-015 not touched; CLOSED-015/016/017 not reopened; no `KNOWN_FINDINGS.md` update; no issues opened or closed
+* STOP status: NO
+
+## [Andy - Design, Shared Text-Writer 0x0565A6 Entry Dispatcher: Route by Destination Through Staging (rastan-direct)]
+
+* design note: docs/design/Andy_0565A6_textwriter_dispatcher_design.md
+* scope: DESIGN only; no source/spec/tool/ROM/build/bookmark/diagnostic/implementation; static from Cody census + CLOSED-016 template; baseline Build 0112 SHA 024241b2378dba68102637c368bc92d5edc41b2b30776363a96144146dfe215d
+* SUPERSEDES the call-site recommendation (Andy_C00828_itemdesc_bg_producer_route_design.md): census (Classification A) proved all 6 callers BG C-window + identical writer shape -> ONE writer-entry dispatcher fixes the whole class incl confirmed sibling 0x056266 + future callers
+* census (Cody): 6 direct callers 0x05623C/0x056266/0x0563F8/0x056420/0x0576FC/0x05A6CE; ALL BG C-window [0xC00000..0xC03FFF] in current ROM; identical shape (attr d1 -> sub 0x565CE -> code d0; 0xFF dest+=0x200; 0x00 term); 5 callers attr 0, 0x05A6CE table-driven NON-ZERO attr 0x0003/0x0004/0x0005; source always ROM text; caveat: only 0x05623C runtime-observed, rest static -> dispatcher routes by live a1 so robust to future/indirect callers
+* approach: replace writer entry 0x0565A6 first 8 bytes (2449 4240 1018 0c00...) with jsr genesistan_hook_textwriter_dispatch (6) + rts (2); callers' bsr/jsr 0x565A6 still land on dispatcher -> dispatcher rts -> 0x565AC rts -> caller; writer body 0x565AE..0x565CC dead (harmless); sub 0x565CE untouched + reused; opcode_replace +1 (arc 0x563A6)
+* GUARDED RANGE POLICY (per-cell, before staging call): BG [0xC00000,0xC04000)->bg_fill (all 6 known); FG [0xC08000,0xC0C000)->fg_fill (ROUTE not defer - fg_fill interface byte-identical contract, zero-risk robustness to future FG caller); OUTSIDE both (incl BG-scroll gap 0xC04000-0xC08000)->FAIL-LOUD TRAP/REPORT (record dest+caller PC to WRAM diag, halt) NOT silent drop NOT raw pass-through (raw still freezes real HW; drop hides future bugs); per-cell check before bg_fill so its internal NO-OP gate is never the silent-drop path
+* writer intent preserved: ROM source walk (a3=a0, byte=(a3)+); attr from d1 PRESERVED incl non-zero (d3=d1, D0=(d3<<16)|code; bg_fill attr_lut maps 0x0003->attr_lut[3]=0x6000, 0x0004->attr_lut[0]=0x0000, 0x0005->attr_lut[1]=0x2000; dispatcher FORWARDS d1 unchanged, does NOT hardcode 0); 0x565CE substitution REUSED via jsr (pure d0->d0, 8 punct keys, preserves a1/a2/a3/d3); 0xFF -> a2+=0x200,a1=a2; 0x00 terminate; attr/code pairing one composed cell per call
+* a1->staging: bg_fill (A0=BG HW addr, D0=(attr<<16)|code, D1=count; movem all; gate [0xC00000,0xC04000); cell=((A0&0xFFFFFF)-base)>>2, staged=staged_bg_buffer+row*128+col*2; bg_row_dirty); fg_fill identical FG; compose D0=(d1<<16)|code live attr; 0xFF: a1=a2+n*0x200 (bg_fill derives row/col); dirty/commit via bg_row_dirty/fg_row_dirty -> VBlank
+* attr compose detail: bg_fill extracts PC080SN attr from D0 high word, indexes attr_lut from attr bits {0,1,13,14,15}; dispatcher's job = forward d1 unchanged; attr-word->palette-line mapping is bg_fill/attr_lut existing model (if 0x0004->line0 wrong for item-rank colors that's pre-existing attr_lut fidelity, NOT dispatcher defect - flag in validation)
+* register/byte: callers re-establish a0/a1/d1 each call (census) so don't depend on writer-output regs; dispatcher loop state in a3(src)/a1(dest)/a2(rowbase)/d3(attr) NOT bg_fill arg regs (A0/D0/D1), preserved across bg_fill (movem) + 0x565CE (pure d0); flags: rts, callers don't consume; opcode_replace +1; total_genesis_bytes_covered + dispatcher (~140-200B genesis_only, larger due to 3-way dispatch+FG branch+trap); arcade byte-neutral (in-place 8-byte entry, body dead, 0x565CE preserved); relocation genesis_only-internal; any other delta = STOP
+* validation: byte-neutral entry + opcode_replace +1 + genesis_only-only growth; BlastEm NO freeze item-desc page (runtime 0x05623C); PRODUCER-EQUIVALENCE GATE mismatch-count=0 for ALL SIX callers (runtime 0x05623C, static/synthetic rest): 0x05623C BG attr0, 0x056266 BG attr0 C00028, 0x0563F8/0x056420 selector-varying dests each case, 0x0576FC immediate 0x00 -> no cells, 0x05A6CE non-zero attr 0x3/4/5 -> staged cells carry forwarded attr; 0xFF/0x00 full streams; visual item text renders (sprite garbage EXPECTED OPEN-024); guarded-range trap path (code-review OK if not exercised); NO regression title/TAITO/story/parens/high-score/OPEN-018 + ALL 6 callers
+* STOP status: NO
+* lints/maintenance: KNOWN_FINDINGS/OPEN/CLOSED were edited by user/linter (curation); taken into account, not reverted
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-022 (shared text-writer raw writes; dispatcher routes all 6 callers + future via live a1; not closed pending implementation + six-caller equivalence validation), KF-032 class (class-level fix for 0x0565A6 writer), OPEN-001 (context), OPEN-024 (sprite path, out of scope), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE (open an attr_lut fidelity item only if 0x05A6CE non-zero-attr cells validate wrong-colored - pre-existing, not this dispatcher)
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, attr_lut palette-line fidelity for non-zero attrs, sprite/PC090OJ path (OPEN-024), zero/blank-table family
+
+### MAME Exit Summary (2026-06-28 19:08:17)
+- Final PC: 0x071E54
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-28 19:18:09)
+- Final PC: 0x071E54
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-28 19:19:27)
+- Final PC: 0x071E54
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Shared Text-Writer 0x0565A6 Entry Dispatcher]
+
+* scope: implementation + verification for shared PC080SN text writer `runtime_genesis_pc 0x000565A6` / `arcade_pc 0x000563A6`; implements Andy binding design `docs/design/Andy_0565A6_textwriter_dispatcher_design.md`; no attr_lut/palette/color changes; no sprite/PC090OJ/high-score/score/round/window changes; no bookmark cycle
+* implementation: added `genesistan_hook_textwriter_dispatch` in `apps/rastan-direct/src/tilemap_hooks.s`; dispatcher replays source loop, reuses existing substitution routine `0x000565CE`, handles `0x00` terminate and `0xFF` row/page advance, composes `D0=(attr<<16)|code`, routes live `%a1` BG C-window to `genesistan_hook_tilemap_bg_fill`, FG C-window to `genesistan_hook_tilemap_fg_fill`, and fail-loud traps unexpected destinations via existing audit guard WRAM fields (`audit_guard_caller_pc`, `audit_guard_register_snapshot`, `audit_guard_fired_flag`, `audit_guard_vcount`, `audit_guard_heartbeat`)
+* remap/spec: added required symbol and one `opcode_replace` entry at `arcade_pc 0x0563A6`, original bytes `2449424010180C00`, replacement `4EB9{symbol:genesistan_hook_textwriter_dispatch}4E75`; all six callers still target runtime `0x565A6`; writer body after first 8 bytes remains byte-identical; substitution routine `0x565CE..0x56640` remains byte-identical to Build 0112
+* invariants: `opcode_replace_count` updated `103 -> 104`; `total_genesis_bytes_covered` updated `0x17CE4C -> 0x17CF08` (`+0xBC` dispatcher hook); canonical gate PASS
+* artifact note: initial release attempts produced intermediate Build 0113/0114 while correcting hook placement and verifying operand drift; final validated artifact is Build 0115
+* final build: `dist/rastan-direct/rastan_direct_video_test_build_0115.bin`, SHA256 `5af34e440a79f2d9d447a767592ea903d026edea3f174a97d446b03ed23026e3`; rolling ROM byte-identical to numbered artifact; release MAME trace `states/traces/rastan_direct_video_test_build_0115_mame_30s_20260628_191920/` completed 1798 frames, `fg_cwindow_live count=0`
+* validation: producer-equivalence synthetic decode over Build 0115 ROM covered 28 caller/selector/table configurations: `0x05623C`, `0x056266`, all `0x0563F8` selector cases, all `0x056420` selector cases, `0x0576FC`, and all `0x05A6CE` table entries; total mismatch count `0`; any out-of-range destination `False`; `0x0576FC` no-op confirmed; `0x05A6CE` attrs `0x0003/0x0004/0x0005` forwarded unchanged
+* attr_lut document-only: current `genesistan_pc080sn_attr_lut` mapping for forwarded attrs is `0x0003 -> index 3 -> 0x6000`, `0x0004 -> index 0 -> 0x0000`, `0x0005 -> index 1 -> 0x2000`; no attr_lut or palette fix attempted
+* BlastEm check: Build 0115 strict-target/debug run was launched for ~90s; output only reported the vsync warning and no prior C00828/illegal-write diagnostic before cleanup; lingering emulator processes were force-closed after normal termination did not close them; no visual proof was captured in this task
+* caveat: comparing Build 0112 to final Build 0115 shows the intended `0x565A6` entry patch plus existing opcode-replacement operand rebasing caused by genesis-only text growth/linker placement; no additional opcode_replace entry beyond the one new dispatcher entry was added, and manifest count is 104. This should be treated as linker/layout side-effect evidence, not an additional source-level logic edit.
+* OPEN / KNOWN_FINDINGS impact: OPEN-022 advanced; OPEN-018/KF-032 context; OPEN-001 context; OPEN-015 untouched; CLOSED high-score issues untouched; `KNOWN_FINDINGS.md` not updated; no issues opened or closed
+* STOP status: NO for implementation/build/equivalence; caution recorded for arcade-window byte-diff comparison due existing operand rebasing under current linker layout
