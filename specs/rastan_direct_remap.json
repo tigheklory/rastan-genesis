@@ -756,8 +756,8 @@
     {
       "arcade_pc": "0x03AB00",
       "original_bytes": "33FC03FF00200022",
-      "replacement_bytes": "4EB9{symbol:genesistan_palette_hook_03ab00}4E75",
-      "note": "Build 55 palette bypass intercept at 0x03AB00 (helper genesistan_palette_hook_03ab00). Replaces direct xBGR-555 literal write (#0x03FF to 0x200022) with staged Genesis CRAM update for bank 1 entry 1."
+      "replacement_bytes": "4EB9{symbol:genesistan_palette_hook_03ab00}4E71",
+      "note": "Build 0109 fall-through restore at 0x03AB00 (helper genesistan_palette_hook_03ab00). The helper reproduces the direct xBGR-555 literal write (#0x03FF to 0x200022) as a staged Genesis CRAM update for bank 1 entry 1; trailing 4E71 is approved byte-neutral NOP padding so execution falls through into the intact high-score tail at runtime 0x03AD08 (clear/init/render/timer-reload/master-advance). The original arcade move.w fell through; prior 4E75 wrongly terminated. NOT suppression."
     },
     {
       "arcade_pc": "0x045DB8",

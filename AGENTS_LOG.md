@@ -39071,3 +39071,89 @@ Open/Closed Issues Impact:
 * documentation: wrote `docs/design/Cody_high_score_state_entry_evidence_build_0108.md` with exact artifact paths, JSON-derived mapping table, runtime limitation, and recommended next evidence step
 * OPEN / KNOWN_FINDINGS impact: OPEN-001 context only; OPEN-018/Class B context only; OPEN-015 not touched; no issue opened/closed; no `KNOWN_FINDINGS.md` update recommended
 * STOP status: NO for scope compliance; evidence classification remains inconclusive
+
+## [Cody - Evidence, Build 0108 High-Score Attract-State v2]
+
+* scope: evidence/runtime analysis only for passive no-input high-score/attract state comparison between original arcade and Build 0108; no source/spec/tool/Makefile/ROM/build/bookmark changes; no implementation or fix design
+* prompt correction accepted: prior candidate family `runtime_genesis_pc 0x0003AAAC`, `0x0003AAD2`, `0x0003AE76` and their arcade equivalents were discarded for passive no-input high-score attribution; no no-op/suppression check was run against those disqualified sites
+* evidence note: `docs/design/Cody_high_score_attract_state_evidence_v2_build_0108.md`
+* evidence artifacts: original arcade traces/screenshots under `states/traces/original_arcade_high_score_attract_v2_20260627_153132/` and `states/screenshots/original_arcade_high_score_attract_v2_20260627_153132/`; Build 0108 traces under `states/traces/build_0108_high_score_attract_v2_20260627_153132/`
+* no-input constraint: no coin/start/buttons were scripted or sent in the captures
+* original arcade result: local MAME capture reached only early title/countdown state before the capture path stalled around frame 150; early title screenshots `0000.png` through `0004.png` were captured, but no visual high-score/table screenshot was produced
+* Build 0108 result: A5 base observed as `Genesis-WRAM-address 0x00FF0000`; watch addresses recorded as `0x00FF0000`, `0x00FF0002`, `0x00FF0004`, `0x00FF0012`, and `0x00FF0044`; short no-input state sequence matched the early title countdown signature in the observed window
+* high-score signature / transition writer: NOT established; no valid no-input high-score transition writer identified; no Build 0108 reach/block claim made
+* classification: D - INCONCLUSIVE; STOP evidence-limited because the required visual-anchored original arcade high-score/table frame was not reached in this local capture workflow
+* OPEN / KNOWN_FINDINGS impact: OPEN-001 context only; OPEN-018/Class B context only; OPEN-015 not touched; no issues opened or closed; no `KNOWN_FINDINGS.md` update recommended
+* STOP status: YES, evidence-limited
+
+## [Cody - Evidence, Build 0108 High-Score Timer-Expiry v3]
+
+* scope: evidence/runtime analysis only for no-input story-timer expiry into high-score page, original arcade vs Build 0108; no source/spec/tool/Makefile/ROM/build/bookmark changes; no diagnostics inserted; no implementation or fix design
+* evidence note: docs/design/Cody_highscore_timer_expiry_evidence_v3_build_0108.md
+* evidence artifacts: original arcade trace under states/traces/original_arcade_highscore_timer_expiry_v3_20260627_193902/ and Build 0108 trace under states/traces/build_0108_highscore_timer_expiry_v3_20260627_193902/
+* address discipline: all arcade-to-Genesis code correlations checked through build/rastan-direct/address_map.json; key mapping is arcade_pc 0x03AB00..0x03AB08 -> runtime_genesis_pc 0x03AD00..0x03AD08 as patched_site/original-tail boundary, not arithmetic-derived
+* original arcade result: no-input attract reaches story-expiry handler at arcade_pc 0x03AB00 with a5=0x0010C000, state (s0,s2,s4)=(0,1,2), cnt=0; it then falls through to 0x03AB08, calls clear helper 0x03AE64/0x03AE70/0x03AE80, runs high-score init 0x03AB0C, render 0x03AB12, timer reload 0x03AB22, and master advance 0x03AB48
+* Build 0108 result: reaches runtime_genesis_pc 0x03AD00 repeatedly with a5=0x00FF0000, state (s0,s2,s4)=(0,1,2), cnt=0; palette hook runtime_genesis_pc 0x0714F4 runs and sets palette_dirty, then patched RTS at 0x03AD06 returns before mapped high-score tail 0x03AD08+
+* suppression check: expected high-score clear/init/render/timer-reload/master-advance sites 0x03AD08/0x03AD0C/0x03AD12/0x03AD22/0x03AD48 did not fire in Build 0108; the palette-visible side effect is preserved but original fall-through page progression is suppressed
+* classification: B - ENTERED BUT INIT SUPPRESSED; this matches Tighe's observation that story timer expiry changes palette but does not clear story, render high score, or reload the timer
+* OPEN / KNOWN_FINDINGS impact: OPEN-001 and OPEN-018/Class B context only; OPEN-015 not touched; no issues opened or closed; no KNOWN_FINDINGS update in this evidence-only task
+* STOP status: NO
+
+## [Cody - Evidence, Build 0108 Palette-Hook Fall-Through Suppression Scan]
+
+* scope: evidence/static analysis only for palette-hook fall-through suppression; no source/spec/tool/Makefile/ROM/build/bookmark changes; no diagnostics inserted; no implementation or fix design
+* evidence note: docs/design/Cody_palette_hook_fallthrough_suppression_scan_build_0108.md
+* Q1 arcade intent: MAME `docs/reference/mame/rastan/src/mame/taito/rastan.cpp` maps HW_ADDRESS 0x00200000..0x00200FFF to palette RAM via `palette_device::write16` with `palette_device::xBGR_555`; arcade_pc 0x03AB00 writes xBGR-555 word 0x03FF to HW_ADDRESS 0x00200022 = palette entry 17 / bank 1 entry 1, then falls through into high-score setup
+* Q1 hook assessment: `genesistan_palette_hook_03ab00` reproduces the palette/color intent in port form by converting 0x03FF to Genesis CRAM, staging it at `staged_palette_words+34`, and setting `palette_dirty`; it does not reproduce the control-flow intent because patched-site RTS returns before the high-score tail
+* Q2 tail intact: address_map.json maps arcade_pc 0x03AB08/0x03AB0C/0x03AB12/0x03AB22/0x03AB48 to runtime_genesis_pc 0x03AD08/0x03AD0C/0x03AD12/0x03AD22/0x03AD48 as arcade_copy; Build 0108 ROM/disasm confirms clear/init/render/timer-reload/master-advance bytes are present; clear helper path 0x03AE64/70/80 -> 0x03B064/70/80 is present
+* Q3 sibling scan: bounded palette-hook candidates examined were arcade_pc 0x03AB00, 0x059AD4, 0x045DB8, and 0x03BA64 using specs/rastan_direct_remap.json plus build/rastan-direct/address_map.json
+* sibling classifications: 0x03AB00 = FALL-THROUGH-SUPPRESSING HOOK; 0x059AD4 = SAFE TERMINAL HOOK (whole routine replacement ending where original RTS ended); 0x045DB8 = SAFE non-terminal JSR-target swap (fall-through to 0x045FBE preserved); 0x03BA64 = SAFE TERMINAL HOOK (whole loop/routine replacement ending where original RTS ended)
+* result: bounded sibling FALL-THROUGH-SUPPRESSING count = 1, only 0x03AB00; recommended next step is Andy one-site design for the 0x03AB00 fall-through/control-flow restoration, not a multi-site palette-hook sweep
+* OPEN / KNOWN_FINDINGS impact: OPEN-001 and OPEN-018/Class B context only; OPEN-015 not touched; no issues opened or closed; no KNOWN_FINDINGS update in this evidence-only task
+* STOP status: NO
+
+## [Andy - Design, Restore High-Score Fall-Through at 0x03AB00 (Palette-Hook RTS Suppression) (rastan-direct)]
+
+* design note: docs/design/Andy_03ab00_palette_hook_fallthrough_restore_design.md
+* scope: DESIGN only; no source/spec/tool/ROM/build/bookmark/diagnostic/implementation; static from existing evidence; baseline Build 0108 SHA bd0c7faa187f6d9aded904638e8d7cb8c9e3df6304c5178a36ec02e6c8bbad09
+* root cause (Cody-pinned, statically re-verified): Build 0108 palette-hook replacement at runtime_genesis_pc 0x03AD00 = jsr 0x714F4 (hook) + rts 0x03AD06; the rts returns to caller and SKIPS the intact high-score tail at 0x03AD08+ -> palette changes but story not cleared, high-score not rendered, FF002C/%a5@(44) timer never reloads; ONE-SITE (siblings 0x59AD4/0x45DB8/0x3BA64 safe, NOT touched)
+* JSON mapping exact: 0x03AD00=arc 0x03AB00 patched_site; 0x03AD06=arc 0x03AB06 patched_site; 0x03AD08=arc 0x03AB08 ARCADE_COPY (intact tail); 0x0714F4=genesis_only genesistan_palette_hook_03ab00
+* patch site: original 8 bytes 33FC 03FF 0020 0022 (arcade move.w #0x03FF,0x00200022); current 8 bytes 4EB9 0007 14F4 4E75 (jsr+rts); DESIGNED 8 bytes 4EB9 0007 14F4 4E71 (jsr+NOP) -- only 4E75->4E71 changes; byte budget exactly 8 ending at 0x03AD08
+* tail at 0x03AD08 (intact arcade_copy): bsr 0x3B05A clear -> bsr 0x3B8BE init -> glyph 60/61/62 via 0x3BD48 -> move.w #0x00A0,%a5@(44) timer reload (0x03AD22) -> ... -> move.w #2,%a5@(0) master advance (0x03AD48) -> clr.w %a5@(2)
+* recommended shape = (i) jsr + nop fall-through (same approved nop-padding idiom as OPEN-018 comma); REJECT (ii) bra (degenerate: 0x03AD08 is next byte, bra.s disp 0); REJECT (iii) trampoline+jmp (unnecessary helper growth)
+* invariant impact: opcode_replace count UNCHANGED (within-segment byte edit, not new patched_site); total_genesis_bytes_covered UNCHANGED (8->8, hook unchanged, no helper growth); byte-neutral; STOP if any delta beyond 4E75->4E71
+* register/flag gate (CORRECTNESS GATE = YES): FLAGS irrelevant -- 0x03AD08 is bsr.w (unconditional, flag-independent, clobbers CCR); original move.w flags never consumed by tail; A5 PROVABLY untouched -- hook (palette_hooks.s:92-102) saves/restores only d0-d3/a0, uses d0/d1/a0; .Lxbgr555_to_cram uses only d0-d3; NO %a4/%a5/%a6 anywhere in palette_hooks.s; tail's heavy %a5@() accesses see intact caller a5; OTHER regs -- tail reloads a0/a1 via lea %a5@(256/258), d0 via moveq, relies on nothing the hook leaves; hook internal rts returns to 0x03AD06 (=jsr+6=the nop)
+* arcade-intent rationale: arcade 0x03AB00 two-part intent = (1) palette color write to CLCS HW 0x00200022 xBGR_555 + (2) fall through into high-score setup; Genesis has no 0x00200022 palette HW so literal bus write is wrong; hook reproduces (1) as INTENT (xBGR_555->CRAM, stage +34, palette_dirty; port-correct); Build 0108 rts dropped (2); rts->nop restores the fall-through -> full intent without literal opcode (reproduce intent not opcodes)
+* validation: new build + canonical gate; byte-neutral (only 0x03AD06 4E75->4E71, opcode_replace/total_genesis_bytes_covered unchanged); attract reaches high-score; palette still changes; story CLEARS; high-score RENDERS; FF002C reloads to 0x00A0; master advances 0x03AD48; attract continues past high-score (no stuck loop); NO regression to title/TAITO/story/parens/OPEN-018
+* STOP status: NO (design preserves BOTH palette-hook effect AND fall-through within the 8-byte budget)
+
+Open/Closed Issues Impact:
+- Open issues touched: high-score fall-through (design-complete pending implementation), OPEN-001 (context attract/high-score completeness), OPEN-007 (context palette helper activation; 0x03AB00 now active, fall-through is the fix), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE (implementation + validation required first)
+- Issues intentionally deferred: implementation, Class B parens/TAITO, OPEN-018 raw-write follow-ups, safe sibling palette hooks (confirmed safe, not in scope)
+
+### MAME Exit Summary (2026-06-27 20:20:55)
+- Final PC: 0x071D30
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0109 High-Score Fall-Through Restore]
+
+* scope: one-byte implementation + validation for the `arcade_pc 0x03AB00` / `runtime_genesis_pc 0x03AD00` palette-hook fall-through suppression; no palette hook source changes; no Class B / TAITO / parens / OPEN-018 / sibling palette hook changes; no bookmark
+* prompt baseline: Build 0108 `dist/rastan-direct/rastan_direct_video_test_build_0108.bin`, SHA256 `bd0c7faa187f6d9aded904638e8d7cb8c9e3df6304c5178a36ec02e6c8bbad09`; binding design `docs/design/Andy_03ab00_palette_hook_fallthrough_restore_design.md`; evidence docs `docs/design/Cody_palette_hook_fallthrough_suppression_scan_build_0108.md` and `docs/design/Cody_highscore_timer_expiry_evidence_v3_build_0108.md`
+* address discipline: `build/rastan-direct/address_map.json` maps `runtime_genesis_pc 0x03AD00..0x03AD08` to `arcade_pc 0x03AB00..0x03AB08` as the patched_site and `runtime_genesis_pc 0x03AD08+` to `arcade_pc 0x03AB08+` as arcade_copy; no arithmetic mapping used as proof
+* spec change: `specs/rastan_direct_remap.json` replacement for `arcade_pc 0x03AB00` changed from `4EB9{symbol:genesistan_palette_hook_03ab00}4E75` to `4EB9{symbol:genesistan_palette_hook_03ab00}4E71`; durable note added explaining this is approved fall-through restoration, not suppression
+* source exclusion confirmed: `apps/rastan-direct/src/palette_hooks.s` was not edited; `genesistan_palette_hook_03ab00` remains the same helper and still preserves `%d0-%d3/%a0`, leaves `%a5` untouched, stages palette entry 17, and sets `palette_dirty`
+* release build: Build 0109 produced `dist/rastan-direct/rastan_direct_video_test_build_0109.bin`, SHA256 `a9905cd73837099f6ed548dda5b4ff66a1bb6be0911730e1bf9204472e934bc9`; rolling `apps/rastan-direct/dist/rastan_direct_video_test.bin` byte-identical; canonical gate PASS
+* invariant check: `patch_counts.opcode_replace_and_rom_opcode_replace=102`, `expectations.opcode_replace_count=102`, `postpatch_expected_opcode_replace_sites=102`, `postpatch_expected_total_genesis_bytes_covered=0x17CDE4`; no opcode_replace site added and no coverage growth
+* disassembly check: Build 0109 has `0x03AD00: jsr 0x714F4`, `0x03AD06: nop`, `0x03AD08: bsrw 0x3B05A`; generated manifest records replacement bytes `4eb9000714f44e71`
+* byte-diff check versus Build 0108: executable payload differs only at `genesis_rom_offset/runtime_genesis_pc 0x03AD07` (`0x75 -> 0x71`, word at `0x03AD06` `4E75 -> 4E71`); full-ROM compare also shows the expected Genesis header checksum low byte update at `genesis_rom_offset 0x00018F` (`0x3B -> 0x37`)
+* runtime validation artifacts: `states/traces/build_0109_highscore_fallthrough_validation_20260627_202629/` with `mame_build0109_highscore_fallthrough.cmd`, `native_debug_trace.log`, and reduced `highscore_fallthrough_analysis.md`; read-only MAME debugger trace, no ROM diagnostics inserted
+* runtime result: story-expiry handler `0x03AD00`, palette hook `0x0714F4`, patched-site NOP `0x03AD06`, high-score clear `0x03AD08`, clear helper `0x03B064/0x03B070/0x03B080`, high-score init `0x03AD0C`, render IDs 60/61/62 at `0x03AD12/0x03AD18/0x03AD1E`, timer reload `0x03AD22`, master advance `0x03AD48`, and substate clears `0x03AD4E/0x03AD52` all fired in the no-input trace
+* stuck-loop signature removed: `STORY_EXPIRY_HANDLER_03AD00=1`, `PALETTE_HOOK_0714F4=1`, and `PATCHED_SITE_NOP_03AD06=1` in the focused Build 0109 trace, replacing Build 0108's repeated ~656-hit stuck loop; `FF002C/%a5@(44)` reload observed at `0x03AD22` and subsequent events show `cnt=00A0`; `0x03AD48` writes master state toward `2`, `0x03AD4E` sees `s0=0002` and clears `%a5@(2)`, `0x03AD52` sees `s0=0002 s2=0000` and clears `%a5@(4)`
+* release-trace continuity: release target's 30-second MAME trace completed with status 0 under `states/traces/rastan_direct_video_test_build_0109_mame_30s_20260627_202048/`; no crash-halt was reported by the release run
+* regression assessment: executable code/data change is limited to the one-byte fall-through restore at `0x03AD06` (plus generated checksum metadata); title/story/Class B/OPEN-018 assets and routing were not edited. The validation trace confirms title-to-story and story producer events still fire once before the high-score transition.
+* OPEN / KNOWN_FINDINGS impact: OPEN-001 context improved (high-score fall-through restored); OPEN-007 context (0x03AB00 palette helper now preserves full control-flow intent); OPEN-018/Class B context unchanged; OPEN-015 not touched; no issue opened or closed; no `KNOWN_FINDINGS.md` update in this implementation task
+* STOP status: NO
