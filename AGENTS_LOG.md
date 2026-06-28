@@ -39268,3 +39268,29 @@ Open/Closed Issues Impact:
 * documentation: `docs/design/Cody_build_0112_highscore_name_source_base_fix.md`
 * OPEN / KNOWN_FINDINGS impact: OPEN-018 advanced but not closed; OPEN-001 context only; OPEN-015 untouched; no `KNOWN_FINDINGS.md` update
 * STOP status: NO
+
+## [Cody - Documentation Pass, High-Score Arc + Work-RAM Mapped-Base Lesson]
+
+* scope: documentation/canonicalization only after Build 0112; edited ledger markdown only (`KNOWN_FINDINGS.md`, `OPEN_ISSUES.md`, `CLOSED_ISSUES.md`, `AGENTS_LOG.md`); no source/spec/tool/Makefile/ROM/build/bookmark/runtime changes
+* priors/docs read: RULES.md, ARCHITECTURE.md, AGENTS_LOG tail, KNOWN_FINDINGS.md, OPEN_ISSUES.md, CLOSED_ISSUES.md, and the Build 0108-0112 high-score evidence/design docs covering palette fall-through, high-score raw producer routing, NAME source audit, and Build 0112 source-base fix
+* KNOWN_FINDINGS: added KF-036 (arcade work-RAM helper reads must use mapped Genesis WRAM base; Build 0111 `0x0010C068` literal was wrong, Build 0112 `0x00FF0000` base is correct) and KF-037 (opcode-replacement hooks must preserve fall-through control flow; Build 0108 `0x03AD00` palette hook suppressed tail, Build 0109 `0x03AD06 rts->nop` restored it)
+* CLOSED_ISSUES: added CLOSED-015 for the high-score palette-hook fall-through suppression, CLOSED-016 for the high-score `0x03C5FE` FG producer raw-write route, and CLOSED-017 for the high-score NAME source-base bug fixed in Build 0112
+* OPEN_ISSUES: updated OPEN-018 to record Build 0111/0112 high-score producer/source-base closure as a sub-arc while keeping the broader raw-write class open; added OPEN-021 (SCORE/ROUND source provenance), OPEN-022 (`HW_ADDRESS 0x00C00828` strict-target BG raw write), OPEN-023 (Window layer path unimplemented/garbage), OPEN-024 (PC090OJ sprite subsystem incomplete/garbage), and OPEN-025 (future JSON-based arcade RAM seeding architecture note)
+* no issues were closed beyond the three explicit CLOSED ledger records; OPEN-001/OPEN-018 remain open; OPEN-015 untouched
+* STOP status: NO
+
+## [Cody - Evidence, Build 0112 C00828 BG Raw-Write]
+
+* scope: runtime evidence + static correlation only for the Build 0112 strict-target freeze at `HW_ADDRESS 0x00C00828`; no source/spec/tool/Makefile/ROM/build/bookmark changes; no ROM diagnostics inserted; no fix design or implementation
+* evidence note: `docs/design/Cody_build0112_blastem_C00828_bg_raw_write_evidence.md`
+* evidence artifacts: `states/traces/build_0112_c00828_bg_raw_write_evidence_20260628_164543/` with `c00828_watch_exact.cmd`, `native_debug_trace.log`, `mame_stdout.log`, `mame_stderr.log`, and `item_text_source_at_wp.bin`
+* watchpoint result: MAME Genesis-driver write-watchpoint on `HW_ADDRESS 0x00C00828` fired once at callback `runtime_genesis_pc 0x000565BC`; writer instruction is `runtime_genesis_pc 0x000565B8: move.w %d1,(%a1)+`, bytes `32 C1`, with `%a1=0x00C00828`, `%d1=0`, `%d0=0x0041`, source `%a0=0x0005692B`, state `(s0,s2,s4)=(2,2,6)`
+* address discipline: exact `address_map.json` mappings used; key mappings include `runtime_genesis_pc 0x056232 -> arcade_pc 0x056032`, `0x0565B8 -> 0x0563B8`, and source data `0x05692A -> arcade data 0x05672A`; no arithmetic mapping used as proof
+* call-chain/page finding: high-score path advanced earlier at `0x03AD48`; later item-description page init enters `0x5622C`, loads `A1=0x00C00828`, calls writer `0x565A6`; stack confirms return to `0x56240` then parent `0x56054`; page state at hit is `%a5@(0)=2`, `%a5@(2)=2`, `%a5@(4)=6`
+* raw-write scope: content/text producer, not clear/fill; source ROM stream `0x05692A..0x056B7D` emits 568 BG cells with 27 row/page advances, target range `HW_ADDRESS 0x00C00828..0x00C03E2A`, first text `AXE         INCREASES YOUR`, item-description rows through `JEWEL       BONUS POINTS.`
+* data-source check: no work-RAM source used; source is ROM data mapped through `address_map.json`, so KF-036 `0x00FF0000` work-RAM base lesson is not active for this writer
+* known/deferred comparison: does not match OPEN-018 explicit remaining candidates (`0x3B3CC/0x3B7F6/0x3B7F8`, `0x3A92A/0x3D24C`) or clear/fill candidates (`0x3AD44/0x3AD3C`); historically noted as `0x056032` pointer load in archaeology, but newly proven live in current Build 0112 path
+* strategic context: item-description init touches BG PC080SN text and then PC090OJ/sprite path (`A1=0x00D00170`, call `0x56314`); no Window-layer dependency observed before the first strict-target failure
+* classification: B - NEW raw PC080SN BG write in current ledger taxonomy / KF-032 family
+* OPEN / KNOWN_FINDINGS impact: OPEN-022 now has concrete writer evidence and remains open; OPEN-018 touched as broad raw-write class and remains open; OPEN-001/OPEN-024 context; OPEN-023 context with no Window-first evidence; no issues opened or closed; no `KNOWN_FINDINGS.md` update
+* STOP status: NO

@@ -559,6 +559,37 @@ Last verified: 2026-06-19 (Build 0091 / OPEN-016 Part 2 ROM)
 
 **Use as prior.** Tile usage/preload analysis must derive "what should render" from original arcade tilemap/runtime intent (and the actual runtime-staged cell codes), not solely from Genesis-side LUT results or staging values. A tool that remaps codes (e.g. punctuation mapping) can hide whole code classes from a coverage check.
 
+
+## KF-036 — Arcade work-RAM helper reads must use the mapped Genesis WRAM base
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED
+- **Applicability:** GENERAL (rastan-direct helpers/opcode replacements that read or write arcade work-RAM data)
+- **Rediscovery Hazard:** HIGH (easy to confuse shifted code addresses with data/RAM address mapping)
+- **Addresses:** arcade work-RAM `0x0010C000..0x00110000`; mapped Genesis WRAM base `0x00FF0000`; high-score NAME source arcade `0x0010C157..0x0010C165`; mapped source `0x00FF0157..0x00FF0165`; bad Build 0111 helper source `0x0010C1BF..0x0010C1CD`; generated work-RAM remap sites `arcade_pc 0x03AEEA/0x03AF04`; high-score hook `runtime_genesis_pc 0x000707A0`, source-base add at `0x000707CA`.
+- **Source Documents:** docs/design/Cody_highscore_name_column_source_audit_build_0111.md; docs/design/Cody_build_0112_highscore_name_source_base_fix.md
+- **Related Issues:** OPEN-001, OPEN-018, CLOSED-017
+- **Last verified:** 2026-06-28 (Build 0112)
+
+**Finding.** In `rastan-direct`, arcade work-RAM data is not read through literal `0x0010xxxx` addresses. The translated runtime maps the arcade work-RAM base `0x0010C000` to Genesis WRAM `0x00FF0000`; helpers that consume arcade work-RAM records must therefore use the mapped Genesis base plus the original arcade offset. Build 0111 violated this in `genesistan_hook_highscore_fg_producer` by reading from literal `0x0010C068 + src_off`, which matched prior Genesis build output but not original arcade intent. The correct Build 0112 source base is `0x00FF0000`; the NAME source bytes at `0x00FF0157..0x00FF0165` are `COB/THS/YAG/TKG/YTN`, matching the original arcade runtime source at `0x0010C157..0x0010C165`.
+
+**Use as prior.** JSON/address-map correlation is authority for code address movement; it is not a license to compensate stable data/RAM sources for helper/code growth. A previous Genesis build matching another previous Genesis build is not proof of arcade fidelity. Anchor data-source helpers to original arcade runtime data and the mapped Genesis equivalent. The established sprite-helper idiom is the safe pattern for arcade work-RAM pointers: subtract the arcade work-RAM base (for example `0x00100000`) and add the offset to the live Genesis WRAM/A5 base, rather than preserving a literal arcade-space pointer.
+
+## KF-037 — Opcode-replacement hooks must preserve fall-through control flow
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED
+- **Applicability:** GENERAL (opcode replacements for instructions inside fall-through routines)
+- **Rediscovery Hazard:** HIGH (hook effect can look correct while the suppressed tail silently blocks state progression)
+- **Addresses:** high-score entry palette site `arcade_pc 0x0003AB00` / `runtime_genesis_pc 0x0003AD00`; hook `genesistan_palette_hook_03ab00`; suppressing `rts` at `runtime_genesis_pc 0x0003AD06`; required fall-through tail starts at `runtime_genesis_pc 0x0003AD08`; safe terminal siblings `0x059AD4`, `0x045DB8`, `0x03BA64`.
+- **Source Documents:** docs/design/Cody_highscore_timer_expiry_evidence_v3_build_0108.md; docs/design/Andy_03ab00_palette_hook_fallthrough_restore_design.md; docs/design/Cody_palette_hook_fallthrough_suppression_scan_build_0108.md
+- **Related Issues:** CLOSED-015, OPEN-001
+- **Last verified:** 2026-06-27 (Build 0109)
+
+**Finding.** A replacement hook must preserve both the replaced instruction's side effect and the original routine's control-flow contract. Build 0108 reached the high-score entry palette site (`runtime_genesis_pc 0x0003AD00`) and executed the palette hook, but the replacement tail `jsr genesistan_palette_hook_03ab00; rts` returned early and suppressed the arcade fall-through into `0x0003AD08`, preventing the high-score setup tail from running. Build 0109 restored the fall-through by changing only `0x0003AD06: rts -> nop`, preserving the palette hook while allowing the high-score tail to execute.
+
+**Use as prior.** Before adding `rts` after an opcode-replacement hook, prove the original site was terminal. If the original instruction fell through into live logic, the replacement must fall through too. Sibling-scan before generalizing: the related palette-hook siblings inspected for this case were terminal/safe and did not need the same change.
+
 ## Deferred Candidates Appendix
 
 **This appendix is NOT canonical priors. Entries here are pre-canonical observations that did not meet promotion criteria at the time of the most recent curation pass. They may be promoted, refined, or rejected in future curation passes.**

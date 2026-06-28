@@ -231,3 +231,40 @@ Closure note format:
 - **Closed by:** Build 0106 two-context coordinate reconciliation (Cody) + Andy canonicalization
 - **Summary:** The Build 0095 audit attributed the red TAITO logo to BG block `0x5B0B2` geometry cells `0x22CB..0x22CE`. Those BG cells stage correctly, but they are **not** the exact visually-missing magenta cells. The actual missing cells are FG low-code glyphs (`0x0022/0x0027/0x002C/0x003F`) on the glyph-renderer/FG staging path. Record the BG `0x22CB..0x22CE` result as bounded evidence; it does **not** close the visual TAITO symptom (tracked under OPEN-001 / OPEN-019).
 - **Cross-references:** KF-034, KF-035, OPEN-001, OPEN-019; docs/design/Cody_build_0095_arcade_title_tile_usage_audit.md; docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md.
+
+---
+
+## CLOSED-015 — High-score entry fall-through suppression at 0x03AD00
+
+- **Status:** CLOSED
+- **Date closed:** 2026-06-27
+- **Closed by:** Build 0109 high-score palette-hook fall-through restore (`runtime_genesis_pc 0x0003AD06: rts -> nop`)
+- **Summary:** Build 0108 reached the high-score entry palette site but the opcode replacement ended in `rts`, suppressing the original fall-through into the high-score setup tail at `0x0003AD08`. Build 0109 preserved the palette hook effect and restored fall-through by changing only the hook tail at `0x0003AD06` to `nop`.
+- **Evidence:** docs/design/Cody_highscore_timer_expiry_evidence_v3_build_0108.md; docs/design/Andy_03ab00_palette_hook_fallthrough_restore_design.md; docs/design/Cody_palette_hook_fallthrough_suppression_scan_build_0108.md; post-fix high-score progression evidence in docs/design/Cody_build0109_highscore_03C5FE_raw_write_scope.md
+- **Residual / follow-up:** high-score rendering defects continued after entry was restored, but they were downstream raw-write/source-base issues, not this fall-through suppression.
+- **Cross-references:** KF-037, OPEN-001, OPEN-018.
+
+---
+
+## CLOSED-016 — High-score FG producer raw-write route at 0x03C5FE / C09374
+
+- **Status:** CLOSED
+- **Date closed:** 2026-06-28
+- **Closed by:** Build 0111 function-level route for `runtime_genesis_pc 0x0003C5FE` via `genesistan_hook_highscore_fg_producer`
+- **Summary:** The high-score FG producer emitted raw PC080SN FG writes (including strict-target failures around `HW_ADDRESS 0x00C09374`) from its body at `0x03C62A/0x03C646/0x03C64A`. Build 0111 replaced the producer entry with a staging hook, proved 15 logical cells were routed through FG staging, and proved the old raw body PCs no longer fired.
+- **Evidence:** docs/design/Cody_build0109_highscore_03C5FE_raw_write_scope.md; docs/design/Andy_03C5FE_highscore_fg_staging_route_design.md; docs/design/Cody_build0111_highscore_fg_producer_staging_route.md
+- **Residual / follow-up:** Build 0111 used the wrong source base and was corrected by CLOSED-017 / Build 0112. OPEN-018 remains open for other raw-write shapes; this closure covers the known high-score `0x03C5FE` producer-loop raw-write surface only.
+- **Cross-references:** KF-032, OPEN-018, OPEN-001, CLOSED-017.
+
+---
+
+## CLOSED-017 — High-score NAME source-base bug in staged producer hook
+
+- **Status:** CLOSED
+- **Date closed:** 2026-06-28
+- **Closed by:** Build 0112 source-base fix (`ARCADE_HIGHSCORE_SOURCE_BASE = 0x00FF0000`)
+- **Summary:** Build 0111 routed the high-score producer through staging but read NAME bytes from literal `0x0010C068 + src_off`, producing wrong source bytes. Original arcade runtime proved NAME source bytes live at arcade work-RAM `0x0010C157..0x0010C165`; the translated equivalent is mapped Genesis WRAM `0x00FF0157..0x00FF0165`. Build 0112 changed the helper source base to `0x00FF0000`, proved the mapped NAME bytes `COB/THS/YAG/TKG/YTN` were read, and proved the old bad literal source range was not read.
+- **Evidence:** docs/design/Cody_highscore_name_column_source_audit_build_0111.md; docs/design/Cody_build_0112_highscore_name_source_base_fix.md
+- **Residual / follow-up:** SCORE/ROUND columns still need independent source provenance and are tracked separately under OPEN-021.
+- **Cross-references:** KF-036, OPEN-021, OPEN-001.
+

@@ -285,18 +285,19 @@ Rules:
 
 ---
 
-## OPEN-018 — Route raw copied PC080SN story-comma write through staging
+## OPEN-018 — Route raw copied PC080SN writes through Genesis staging
 
-- **Status:** OPEN (immediate-absolute portion IMPLEMENTED & VALIDATED in Build 0107; register-absolute + producer-loop raw-write shapes remain)
+- **Status:** OPEN (immediate-absolute portion implemented/validated in Build 0107; high-score producer-loop instance implemented/validated in Builds 0111/0112; other raw-write shapes remain)
 - **Priority:** HIGH (strict-emulator / real-hardware crash class)
 - **Build 0107 status (2026-06-27):** The immediate-absolute Class A portion is implemented and validated. Build 0107 (`dist/rastan-direct/rastan_direct_video_test_build_0107.bin`, SHA256 `4b4a588b1da2ccec6b31cac781bd53627993eaa6170ec013da56f349c99ef1e3`) routes four immediate-absolute raw FG writes (`0x3ACEA`, `0x3A550`, `0x3A8FE`, `0x3A908`) via byte-neutral 8-byte `jsr abs.l + nop` trampolines → `genesistan_hook_tilemap_fg_fill` (live LUT → FG staging → dirty → VBlank commit). Invariants: `opcode_replace 98→102`, `total_genesis_bytes_covered 0x17CD68→0x17CDD4` (helper growth `0x6C`), attr gate passed for all four. The **story-page comma crash is fixed on BlastEm and real Genesis and the comma renders** (`0x3ACEA`); `0x3A908` staging + `%d0` preservation runtime-proven; `0x3A550`/`0x3A8FE` are structurally covered by the same mechanism but were not runtime-reached in the sampled validation windows (no overclaim of visual proof for those two). **Do not mark OPEN-018 globally closed** — the register-absolute (`0x3A92A`, `0x3D24C`) and producer-loop (`0x3B3CC`, `0x3B7F6`, `0x3B7F8`) raw-write shapes remain (did NOT block the validated story-page path; relevant to full raw-write closure / other screens). See `docs/design/Andy_build_0107_validation_and_class_b_remaining_status.md`. The TAITO/paren visual gaps are NOT under OPEN-018 — they are Class B (KF-033 / OPEN-019 / OPEN-020).
+- **Build 0111/0112 status (2026-06-28):** The high-score FG producer-loop instance at `runtime_genesis_pc 0x0003C5FE` is routed through `genesistan_hook_highscore_fg_producer` and Genesis FG staging. Build 0111 proved the old raw body PCs `0x03C62A/0x03C646/0x03C64A` no longer fired and 15 logical high-score cells staged, but used the wrong source base. Build 0112 corrected the source base to mapped Genesis WRAM `0x00FF0000`, proved NAME bytes `COB/THS/YAG/TKG/YTN` were read from `0x00FF0157..0x00FF0165`, and proved the old bad literal source range `0x0010C1BF..0x0010C1CD` was no longer read. This closes the known high-score `0x03C5FE` raw-write/source-base sub-arc, but **does not close OPEN-018 globally**; other raw PC080SN/PC090OJ write shapes may remain.
 - **Discovered by:** Cody (Build 0106 c09172 writer watchpoint) / canonicalized by Andy
 - **Observed in build/artifact:** Build 0106, `dist/rastan-direct/rastan_direct_video_test_build_0106.bin`, SHA256 `ad894a86029738d8ab0b933b1acc55c2c6de06b5cc2d0e6535f121af28326d4e`
 - **Summary:** `runtime_genesis_pc 0x0003ACEA` (= `arcade_pc 0x0003AAEA`, `arcade_copy`) executes `move.w #0x2749, 0x00C09172` — a raw copied PC080SN FG write (story comma/special glyph, FG row17/col28) that bypasses Genesis staging. Class A (KF-032). Tile `0x2749` is already mapped (slot `0x0039`); the defect is the raw write path into VDP-mirror space.
 - **Evidence:** docs/design/Cody_build_0106_c09172_writer_watchpoint.md; docs/design/Cody_build_0106_correction_taito_arcade_intent_paren_lut.md; address_map.json segment `0x03AB20..0x03AD00`.
 - **Suspected area:** translated-arcade-write routing; same class as the Build 0106 scroll-RAM raw fill (0x3AF3C).
-- **Next required task:** design a routing fix that delivers the arcade intent (stage tile 0x2749 at FG row17/col28) through the FG staging path; do NOT NOP/suppress. Scan for sibling raw PC080SN/PC090OJ writes (e.g. inline producer `0x0003B392`).
-- **Closure condition:** the story-comma cell is staged (not raw-written) and renders on strict targets without an HV/port fatal.
+- **Next required task:** continue the remaining raw-write inventory/routing work for non-closed raw PC080SN/PC090OJ shapes; do NOT NOP/suppress. Treat the story-comma immediate write and high-score `0x03C5FE` producer as closed sub-cases, not as global closure.
+- **Closure condition:** all confirmed raw copied PC080SN/PC090OJ write classes are routed through the appropriate Genesis staging path and no strict-target HV/VDP-mirror fatal remains for those classes.
 
 ---
 
@@ -327,6 +328,72 @@ Rules:
 - **Method (per KF-034/KF-035):** derive "what should render" from arcade tilemap/runtime staged cell codes (not Genesis LUT/staging results); cross-check VRAM/pattern table, rendered output, writer evidence; use two-context coordinate reconciliation with anchors.
 - **Evidence:** docs/design/Andy_build_0106_fixed_tile_findings_canonicalization.md (§3a, §4).
 - **Closure condition:** a complete inventory of low-code FG glyph/symbol coverage gaps (LUT-only vs preload+LUT) is produced and fed into the OPEN-019 fix.
+
+---
+
+
+## OPEN-021 — High-score SCORE/ROUND columns still need arcade-anchored source provenance
+
+- **Status:** OPEN
+- **Priority:** MEDIUM
+- **Discovered by:** Cody (Build 0112 high-score NAME source-base fix follow-up)
+- **Observed in build/artifact:** Build 0112, `dist/rastan-direct/rastan_direct_video_test_build_0112.bin`, SHA256 `024241b2378dba68102637c368bc92d5edc41b2b30776363a96144146dfe215d`
+- **Summary:** Build 0112 proves the high-score NAME column is seeded and correctly read from mapped Genesis WRAM (`0x00FF0157..0x00FF0165 = COB/THS/YAG/TKG/YTN`). That disproves the earlier whole-table-unseeded assumption. The SCORE/ROUND columns remain zero/blank and need their own arcade-anchored source/destination audit rather than piggybacking on the NAME fix.
+- **Evidence:** docs/design/Cody_highscore_name_column_source_audit_build_0111.md; docs/design/Cody_build_0112_highscore_name_source_base_fix.md
+- **Next required task:** identify the original arcade runtime SCORE/ROUND source addresses, map them to Genesis WRAM through the authoritative mapping, and compare Build 0112 reads/staging against original arcade runtime state.
+- **Closure condition:** SCORE/ROUND source provenance is established and either proven correct or fixed with runtime evidence.
+
+---
+
+## OPEN-022 — C00828 strict-target freeze on BG raw write around high-score exit
+
+- **Status:** OPEN
+- **Priority:** HIGH (strict-emulator / real-hardware crash class)
+- **Discovered by:** Tighe/Cody during post-Build 0112 high-score progression testing
+- **Observed in build/artifact:** Build 0112 follow-up context; exact producing build/evidence path to be recorded by the next diagnostic
+- **Summary:** After the high-score path progresses further, a strict-target freeze occurs on a raw write to `HW_ADDRESS 0x00C00828` (BG PC080SN page/window region). This is the BG-side sibling of the KF-032 raw copied PC080SN write class and appears after the high-score producer route/source-base fixes, not before them.
+- **Evidence:** AGENTS_LOG Build 0112 follow-up context; formal writer-PC evidence still needed.
+- **Next required task:** capture the writing `runtime_genesis_pc`, map it via `build/rastan-direct/address_map.json`, classify the write shape, and route the arcade intent through BG staging if confirmed.
+- **Closure condition:** the `0x00C00828` raw write is either routed correctly or disproven as the strict-target freeze source with debugger-side evidence.
+
+---
+
+## OPEN-023 — Window layer path remains unimplemented / garbage
+
+- **Status:** OPEN
+- **Priority:** MEDIUM
+- **Discovered by:** Long-running title/attract visual bring-up evidence
+- **Observed in build/artifact:** Current rastan-direct builds through Build 0112
+- **Summary:** The Genesis window-layer path is not yet implemented as a faithful translation target. Any window-layer visible output or garbage should not be treated as proof that the Plane A/Plane B title/high-score paths are correct.
+- **Evidence:** Current architecture notes and Build 0094+ visual/debug captures; no dedicated closure evidence yet.
+- **Next required task:** perform an arcade-intent and Genesis mapping audit for any screen that actually requires the Genesis Window layer, separate from FG/Plane-A text work.
+- **Closure condition:** required window-layer arcade intent is identified and translated, or the layer is proven unused for the active screen set.
+
+---
+
+## OPEN-024 — PC090OJ sprite subsystem remains incomplete / garbage
+
+- **Status:** OPEN
+- **Priority:** MEDIUM-HIGH
+- **Discovered by:** Long-running rendering bring-up evidence
+- **Observed in build/artifact:** Current rastan-direct builds through Build 0112
+- **Summary:** PC090OJ sprite output remains incomplete; sprite garbage/missing sprites should not be conflated with PC080SN BG/FG tilemap fixes. This is broader than the older high-bank palette mapping thread.
+- **Evidence:** KF-026 and current Build 0094+ visual/debug captures; no final sprite-path validation yet.
+- **Next required task:** audit PC090OJ runtime writes, sprite table staging, tile-cache/palette use, and VDP SAT commit against original arcade runtime state.
+- **Closure condition:** sprites render from the translated PC090OJ path with correct tile/palette/position behavior, or a narrower set of remaining sprite defects is split into dedicated issues.
+
+---
+
+## OPEN-025 — JSON-based arcade RAM seeding architecture for default tables
+
+- **Status:** OPEN (future architecture note)
+- **Priority:** LOW-MEDIUM
+- **Discovered by:** Build 0111/0112 high-score source-base work
+- **Observed in build/artifact:** Current rastan-direct builds through Build 0112
+- **Summary:** The high-score NAME audit showed that arcade work-RAM default/seed data can be semantically important and must be compared against original arcade runtime state. If future screens require default arcade RAM tables that are not created by translated runtime order, the project should prefer a declarative JSON/source-of-truth seeding mechanism over ad hoc helper literals.
+- **Evidence:** docs/design/Cody_highscore_name_column_source_audit_build_0111.md; docs/design/Cody_build_0112_highscore_name_source_base_fix.md
+- **Next required task:** only if a real missing-seed defect is proven, design a declarative seed mechanism that records original arcade source, target mapped WRAM address, timing, and validation evidence.
+- **Closure condition:** either no such RAM seed architecture is needed after audits, or a declarative mechanism exists and covers proven seed requirements.
 
 ---
 
