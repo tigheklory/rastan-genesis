@@ -1,24 +1,49 @@
 MAME debugger version 0.276 (unknown)
 Currently targeting genesis (Genesis (USA, NTSC))
->trace /home/tighe/projects/rastan-genesis/states/traces/build_0106_missing_fixed_tiles_attr_flip_inventory_20260626_111500/staging_watch_trace.log,,noloop
-Tracing CPU ':maincpu' to file /home/tighe/projects/rastan-genesis/states/traces/build_0106_missing_fixed_tiles_attr_flip_inventory_20260626_111500/staging_watch_trace.log
->wp FF5450,2,w,,{ tracelog "EVENT STAGED_WRITE label=insert_left_paren layer=FG row=8 col=27 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
-Watchpoint 1 set
->wp FF5452,2,w,,{ tracelog "EVENT STAGED_WRITE label=insert_S layer=FG row=8 col=28 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
-Watchpoint 2 set
->wp FF5454,2,w,,{ tracelog "EVENT STAGED_WRITE label=insert_right_paren layer=FG row=8 col=29 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
-Watchpoint 3 set
->wp FF58D2,2,w,,{ tracelog "EVENT STAGED_WRITE label=story_comma_special layer=FG row=17 col=28 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
-Watchpoint 4 set
->wp FF4AC8,2,w,,{ tracelog "EVENT STAGED_WRITE label=red_taito_tl layer=BG row=21 col=23 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
-Watchpoint 5 set
->wp FF4ACA,2,w,,{ tracelog "EVENT STAGED_WRITE label=red_taito_tr layer=BG row=21 col=24 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
-Watchpoint 6 set
->wp FF4B48,2,w,,{ tracelog "EVENT STAGED_WRITE label=red_taito_bl layer=BG row=22 col=23 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
-Watchpoint 7 set
->wp FF4B4A,2,w,,{ tracelog "EVENT STAGED_WRITE label=red_taito_br layer=BG row=22 col=24 staged=%08X cyc=%d pc=%06X size=%d data=%08X sr=%04X\n",wpaddr,totalcycles(),pc,wpsize,wpdata,sr ; g }
-Watchpoint 8 set
->bp 03ACFE,,{ quit }
+>trace /home/tighe/projects/rastan-genesis/states/traces/build_0111_highscore_fg_producer_staging_cells_20260628_110247/native_debug_trace.log,,noloop
+Tracing CPU ':maincpu' to file /home/tighe/projects/rastan-genesis/states/traces/build_0111_highscore_fg_producer_staging_cells_20260628_110247/native_debug_trace.log
+>tracelog "EVENT TRACE_ARMED build0111_highscore_staged_cells\n"
+>bp 03b900,,{ tracelog "EVENT CALL_3C5FE cyc=%d pc=%06X d0=%08X d7=%08X\n",totalcycles(),pc,d0,d7 ; g }
 Breakpoint 1 set
+>bp 0707f8,,{ tracelog "EVENT HOOK_STAGE_CALL cyc=%d pc=%06X idx=%04X dest=%08X src_byte=%02X code=%04X\n",totalcycles(),pc,d5,a1,d4,d0 ; g }
+Breakpoint 2 set
+>wp ff59d4,2,w,,{ tracelog "EVENT STAGED_CELL idx=0 cell=0 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint 1 set
+>wp ff59d6,2,w,,{ tracelog "EVENT STAGED_CELL idx=0 cell=1 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint 2 set
+>wp ff59d8,2,w,,{ tracelog "EVENT STAGED_CELL idx=0 cell=2 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint 3 set
+>wp ff5ad4,2,w,,{ tracelog "EVENT STAGED_CELL idx=1 cell=0 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint 4 set
+>wp ff5ad6,2,w,,{ tracelog "EVENT STAGED_CELL idx=1 cell=1 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint 5 set
+>wp ff5ad8,2,w,,{ tracelog "EVENT STAGED_CELL idx=1 cell=2 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint 6 set
+>wp ff5bd4,2,w,,{ tracelog "EVENT STAGED_CELL idx=2 cell=0 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint 7 set
+>wp ff5bd6,2,w,,{ tracelog "EVENT STAGED_CELL idx=2 cell=1 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint 8 set
+>wp ff5bd8,2,w,,{ tracelog "EVENT STAGED_CELL idx=2 cell=2 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint 9 set
+>wp ff5cd4,2,w,,{ tracelog "EVENT STAGED_CELL idx=3 cell=0 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint A set
+>wp ff5cd6,2,w,,{ tracelog "EVENT STAGED_CELL idx=3 cell=1 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint B set
+>wp ff5cd8,2,w,,{ tracelog "EVENT STAGED_CELL idx=3 cell=2 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint C set
+>wp ff5dd4,2,w,,{ tracelog "EVENT STAGED_CELL idx=4 cell=0 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint D set
+>wp ff5dd6,2,w,,{ tracelog "EVENT STAGED_CELL idx=4 cell=1 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint E set
+>wp ff5dd8,2,w,,{ tracelog "EVENT STAGED_CELL idx=4 cell=2 addr=%08X cyc=%d pc=%06X data=%08X post=%04X\n",wpaddr,totalcycles(),pc,wpdata,w@wpaddr ; g }
+Watchpoint F set
+>bp 03c62a,,{ tracelog "EVENT UNEXPECTED_RAW_ATTR pc=%06X\n",pc ; g }
+Breakpoint 3 set
+>bp 03c646,,{ tracelog "EVENT UNEXPECTED_RAW_CODE pc=%06X\n",pc ; g }
+Breakpoint 4 set
+>bp 03c64a,,{ tracelog "EVENT UNEXPECTED_RAW_SPACE pc=%06X\n",pc ; g }
+Breakpoint 5 set
+>bp 03ad52,,{ tracelog "EVENT HIGH_TAIL_DONE cyc=%d pc=%06X\n",totalcycles(),pc ; quit }
+Breakpoint 6 set
 >go
-Stopped at breakpoint 1
+Stopped at breakpoint 6

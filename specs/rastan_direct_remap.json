@@ -109,6 +109,7 @@
     "genesistan_hook_text_writer_3c950",
     "genesistan_hook_number_renderer_3c2e2",
     "genesistan_hook_glyph_renderer_3bd48",
+    "genesistan_hook_highscore_fg_producer",
     "genesistan_pc090oj_hook_target_3b902",
     "genesistan_pc090oj_hook_target_3b926",
     "genesistan_pc090oj_hook_target_3b930",
@@ -532,6 +533,12 @@
       "note": "Route number renderer at arcade_pc 0x03C2E2 through Genesis FG staging hook; intercept digit loop, leading-zero suppression, and ALL sentinel writes that otherwise target PC080SN FG tilemap hardware."
     },
     {
+      "arcade_pc": "0x03C3FE",
+      "original_bytes": "3E3C000034000240",
+      "replacement_bytes": "4EB9{symbol:genesistan_hook_highscore_fg_producer}4E75",
+      "note": "Route high-score FG producer at arcade_pc 0x03C3FE (runtime Genesis 0x03C5FE) through Genesis FG staging hook; preserve descriptor table at runtime 0x03C654 and prevent raw PC080SN FG C-window writes at runtime 0x03C62A/0x03C646/0x03C64A."
+    },
+    {
       "arcade_pc": "0x03C4D2",
       "original_bytes": "2449D4FC005020680002102C000B48800C4000206610780A337C018000025089534466F4601AC0FC0005D0C078054242610000125B887805343CFFF061000006224A4E75",
       "replacement_bytes": "4EB9{symbol:genesistan_hook_text_writer_3c4d2}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
@@ -782,6 +789,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 102
+    "opcode_replace_count": 103
   }
 }

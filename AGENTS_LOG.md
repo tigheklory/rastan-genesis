@@ -39157,3 +39157,81 @@ Open/Closed Issues Impact:
 * regression assessment: executable code/data change is limited to the one-byte fall-through restore at `0x03AD06` (plus generated checksum metadata); title/story/Class B/OPEN-018 assets and routing were not edited. The validation trace confirms title-to-story and story producer events still fire once before the high-score transition.
 * OPEN / KNOWN_FINDINGS impact: OPEN-001 context improved (high-score fall-through restored); OPEN-007 context (0x03AB00 palette helper now preserves full control-flow intent); OPEN-018/Class B context unchanged; OPEN-015 not touched; no issue opened or closed; no `KNOWN_FINDINGS.md` update in this implementation task
 * STOP status: NO
+
+## [Cody - Evidence, Build 0109 C09374 Raw PC080SN Write]
+
+* scope: runtime evidence + static correlation only for the Build 0109 user-reported BlastEm/Nomad strict-target failure at `HW_ADDRESS 0x00C09374`; no source/spec/tool/Makefile/ROM/build/bookmark/invariant changes; no diagnostics inserted into ROM; no fix design or implementation
+* evidence note: `docs/design/Cody_build0109_blastem_C09374_raw_write_evidence.md`
+* evidence artifacts: `states/traces/build_0109_c09374_raw_write_evidence_20260627_205242/` with `c09374_watch_exact.cmd`, `mame_stdout.log`, `mame_stderr.log`, and `native_debug_trace.log`
+* watchpoint result: MAME Genesis-driver write-watchpoint on `HW_ADDRESS 0x00C09374` fired once with `data=0x0000`; MAME action PC was `runtime_genesis_pc 0x0003C62E`, so the actual writer is `runtime_genesis_pc 0x0003C62A: move.w %d7,(%a1)+` (bytes `32 C7`), with `%a1=0x00C09374`, `%d7=0`, `%a5=0x00FF0000`, state `(s0,s2,s4)=(0,1,2)`, and `cnt=0`
+* address discipline: `build/rastan-direct/address_map.json` maps `runtime_genesis_pc 0x0003C62A` to `arcade_pc 0x0003C42A` as `arcade_copy`; related high-score/clear/init sites were also JSON-mapped, with no arithmetic offset used as proof
+* call-chain finding: the clear/fill chain (`0x03AD08 -> 0x03B05A -> 0x03B064 -> 0x03B070/0x03B080 -> 0x03AF44`) fired before the watchpoint; the C09374 hit occurred later after `0x03AD0C` high-score init, through `0x03B8BE -> 0x03B8F8 -> 0x03B900 bsr 0x03C5FE -> 0x03C62A`
+* classification: B - NEW raw PC080SN write exposed by Build 0109, with refinement that it is a high-score FG text/producer raw write, not the clear/fill helper itself; prompt clear/fill hypothesis is refuted by timing and stack evidence (`stack0=0x0003B904`)
+* known/deferred comparison: site does not match OPEN-018 immediate Class A sites (`0x3ACEA`, `0x3A550`, `0x3A8FE`, `0x3A908`), remaining register-absolute sites (`0x3A92A`, `0x3D24C`), or explicitly listed producer-loop raw sites (`0x3B3CC`, `0x3B7F6`, `0x3B7F8`); it is nevertheless the same broad KF-032 / OPEN-018 raw PC080SN-write class
+* OPEN / KNOWN_FINDINGS impact: OPEN-018 touched/extended by evidence but not edited or closed; OPEN-001 context only; OPEN-015 not touched; no `KNOWN_FINDINGS.md` update from this evidence-only task
+* STOP status: NO
+
+## [Cody - Evidence, Build 0109 High-Score 0x03C5FE Raw-Write Scope]
+
+* scope: runtime evidence + static correlation only for the high-score producer helper at `runtime_genesis_pc 0x0003C5FE`; no source/spec/tool/Makefile/ROM/build/bookmark/invariant changes; no diagnostics inserted into ROM; no fix design or implementation
+* evidence note: `docs/design/Cody_build0109_highscore_03C5FE_raw_write_scope.md`
+* evidence artifacts: `states/traces/build_0109_highscore_03c5fe_scope_20260627_210734/` with `highscore_03c5fe_scope.cmd`, `native_debug_trace.log`, `events.log`, `scope_analysis.json`, and `scope_analysis.md`
+* address discipline: all runtime Genesis to arcade correlations checked through `build/rastan-direct/address_map.json`; key mappings include `runtime_genesis_pc 0x03C5FE -> arcade_pc 0x03C3FE`, `0x03C62A -> 0x03C42A`, `0x03C646 -> 0x03C446`, and `0x03C64A -> 0x03C44A` as `arcade_copy`
+* loop structure: `0x03C5FE` uses local descriptor table `0x03C654`, loads count/dest/source, writes loop body `0x03C628..0x03C650`, decrements `%d0` at `0x03C64E`, and branches back to `0x03C628`; five no-input high-score calls were observed from `0x03B900`, each with `count_word=0x0003`
+* raw-write scope: 30 raw FG C-window word writes total in the captured high-score producer pass: 15 attr writes at `runtime_genesis_pc 0x03C62A` and 15 code writes at `runtime_genesis_pc 0x03C646`; static space-mode writer `runtime_genesis_pc 0x03C64A` did not execute in this no-input pass
+* write range: all writes are PC080SN FG C-window addresses, first `HW_ADDRESS 0x00C09374`, last `0x00C09B7E`; no BG C-window writes observed from this helper pass; row-fragment dest bases step `0x00C09374/9574/9774/9974/9B74`, each emitting three attr/code cell pairs
+* data source: descriptor source offsets resolve to arcade work-RAM `0x0010C157..0x0010C166`; emitted code byte sequence was `18 01 34 66 84 00 13 18 46 00 01 34 14 00 00`; attr zeros are intentional from helper-local `%d7=0`, while zero code cells are source-data-driven; negative/space-mode intentional blanking path did not fire
+* classification: C - MULTIPLE raw writers; `0x03C62A` is a producer-loop attr writer, but the full helper surface includes active paired code writer `0x03C646` and static space writer `0x03C64A`, so single-cell routing would be unsafe
+* routing feasibility assessment only: whole `0x03C5FE` producer loop/helper family resembles existing `genesistan_hook_text_writer_*` attr/code staging hooks and should be designed as a loop/helper-family routing problem, not a single C09374 cell patch; no fix was designed here
+* OPEN / KNOWN_FINDINGS impact: OPEN-018 touched/extended by evidence but not edited or closed; OPEN-001 context only; OPEN-015 not touched; no `KNOWN_FINDINGS.md` update from this evidence-only task
+* STOP status: NO
+
+## [Andy - Design, Route 0x03C5FE High-Score FG Producer Loop Through FG Staging (rastan-direct)]
+
+* design note: docs/design/Andy_03C5FE_highscore_fg_staging_route_design.md
+* scope: DESIGN only; no source/spec/tool/ROM/build/bookmark/diagnostic/implementation; static; baseline Build 0109 SHA a9905cd73837099f6ed548dda5b4ff66a1bb6be0911730e1bf9204472e934bc9
+* producer: runtime_genesis_pc 0x03C5FE = arc 0x03C3FE; ONE caller 0x03B900 bsr.w (reached 5x, d0=descriptor index); per cell = 2 raw PC080SN words (attr 0x03C62A move.w d7(=0),(a1)+ ; code 0x03C646 move.w d1,(a1)+ ; space 0x03C64A move.w #0x0020,(a1)+ not hit this pass); spans HW 0xC09374..0xC09B7E FG C-window; descriptor table 0x03C654 [count][dest][src]; source 0x0010C000+src; subs 0x3F->0x274B / 0x21->0x2744; space when d2<0
+* RECOMMENDED = FUNCTION-LEVEL replacement (approach 2); route-3-stores in-place (approach 1) REJECTED for TWO independent reasons: (a) byte budget -- attr/code stores are 2 bytes each (32c7/32c1), no call fits (bsr.w 4 / jsr 6); only 4-byte space store could hold bsr.w but genesis_only >32KB out of range and routing 1 of 3 still freezes; (b) compose-model mismatch -- Genesis FG staging is per-cell COMPOSED (one word = tile_vram_lut[code]|attr_lut[attr]), incompatible with routing separate raw attr/code words; must route at CELL granularity
+* design: patch producer ENTRY 0x03C5FE first 8 bytes (3E3C 0000 3400 0240) -> 4EB9 <hook.L> 4E75 (jsr genesistan_hook_highscore_fg_producer + rts); hook faithfully reimplements producer + stages each cell via existing genesistan_hook_tilemap_fg_fill; producer body 0x03C606..0x03C652 becomes dead (harmless), descriptor table 0x03C654 preserved/read by hook; caller 0x03B900 unaffected
+* considered+rejected scratch-redirect (patch 0x03C618 base + post-pass): needs ~0x1C00 scratch + post-pass helper + dest tracking + invocation -> more complex/fragile, no fidelity gain
+* %a1->staging translation: fg_fill ALREADY accepts FG HW addr; formula cell=((A0&0xFFFFFF)-0xC08000)>>2, col=cell&0x3F, row=(cell>>6)&0x1F, staged-WRAM = staged_fg_buffer(0xFF501A)+row*128+col*2 (>>2 truncates +2 so attr/code addr same cell); NO separate wrapper -- hook calls fg_fill(A0=a1, D0=(attr<<16)|code, D1=1) per cell then a1+=4; pairing composed into one cell; fg_fill sets fg_row_dirty -> VBlank commit
+* three raw writers all SUBSUMED (eliminated, not individually patched): attr 0x03C62A -> folded as fg_fill D0 high word (d7=0); code 0x03C646 -> fg_fill D0 low word (d1 post-sub); space 0x03C64A -> hook space branch code=0x0020 via fg_fill (handled though not hit)
+* intent preserved in hook: descriptor decode (d0&0x7F *6, table 0x3C654), source walk 0x10C000+src (EXACT same read - write-path-only, zero-table out of scope), !/? subs, space-mode d2<0, attr d7=0, loop count, rts
+* register/byte mechanics: fg_fill movem-saves/restores ALL d0-d7/a0-a6 (caller-safe, doesn't read a1); hook keeps loop count in non-arg reg (e.g. d3, NOT d0 which is set for fg_fill), a1/a2 survive fg_fill, a1+=4 per cell; original producer clobbers d0-d2/d7/a0-a2 so caller relies on none; flags: rts, caller doesn't consume; ONE patch (entry), no trampoline (2-byte-store problem sidestepped)
+* invariant impact: opcode_replace +1 (new patched_site 0x03C5FE/arc 0x03C3FE); total_genesis_bytes_covered + hook size (~70-100B genesis_only); entry byte-neutral 8->8; arcade space otherwise unchanged; any other delta = STOP
+* arcade-intent: emit high-score attr/code cells to FG plane via Genesis staging (fg_fill->staged_fg_buffer->fg_row_dirty->VBlank) instead of raw VDP-mirror writes (KF-032); same cells/subs/space/attr-0, content unchanged (same source read), only write path changes -> zero-table neither fixed nor worsened
+* validation: build+canonical; entry byte-neutral + opcode_replace +1 + genesis_only grows by hook only; attract reaches high-score; BlastEm NO freeze (zero raw writes to 0xC08000..0xC0BFFF from producer); 15 composed staged cells commit at VBlank, table renders same as 0109 MAME/Exodus via staging; space-mode/subs routed if exercised (else flag); NO regression title/TAITO/story/parens/OPEN-018/0x03C4E2/0x03BD48/0x03AD06; zero-table content UNCHANGED
+* STOP status: NO (routes all 3 raw writers while preserving full producer intent)
+
+Open/Closed Issues Impact:
+- Open issues touched: KF-032 class (high-score FG producer raw writes; design to route; not closed pending implementation), OPEN-018 (same raw-write class, distinct site), OPEN-001 (context high-score completeness), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE (recommend tracking high-score producer routing under KF-032/OPEN-018 umbrella or dedicated id if preferred)
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, zero/blank high-score table source-data issue (separate), any raw writers outside this producer
+
+### MAME Exit Summary (2026-06-28 10:46:06)
+- Final PC: 0x071D98
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-28 10:52:21)
+- Final PC: 0x071D98
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0111 High-Score FG Producer Staging Route]
+
+* scope: function-level implementation + evidence for routing the high-score FG producer at `arcade_pc 0x03C3FE` / `runtime_genesis_pc 0x03C5FE` through Genesis FG staging; no zero-table data changes; no sprite/window/HUD changes; no `0x03C4E2`, `0x03BD48`, `0x03AD06`, or other Class B/OPEN-018 sites intentionally touched
+* source/spec changes: added `genesistan_hook_highscore_fg_producer` in `apps/rastan-direct/src/tilemap_hooks.s`, added required symbol plus one opcode_replace in `specs/rastan_direct_remap.json`, and updated canonical invariants in `tools/translation/postpatch_startup_rom.py` / `tools/translation/verify_canonical_rom.py` to `opcode_replace=103`, `total_genesis_bytes_covered=0x17CE4C`
+* opcode replacement: `arcade_pc 0x03C3FE` original bytes `3E3C000034000240` replaced with `JSR genesistan_hook_highscore_fg_producer; RTS`; JSON address-map correlation places this patched site at `runtime_genesis_pc 0x03C5FE`; descriptor table at `runtime_genesis_pc 0x03C654` remains preserved/read by the hook
+* hook behavior: decodes the original 6-byte descriptor entries, reads source bytes from `0x0010C068 + src_off`, preserves `0x3F -> 0x274B` and `0x21 -> 0x2744` substitutions plus negative low-byte space mode, composes attr/code cells, and emits them via `genesistan_hook_tilemap_fg_fill` so rows enter `staged_fg_buffer` and set `fg_row_dirty`
+* correction during implementation: first produced Build 0110 with stale source base `0x0010C000`; validation caught a source-byte mismatch, so Build 0110 was superseded. Source base was corrected to `0x0010C068`, producing Build 0111.
+* release build: Build 0111 produced `dist/rastan-direct/rastan_direct_video_test_build_0111.bin`, SHA256 `3e8977513586231bf83636ba9ce9b65852f2fe8f94f8772ad9fa7fa493442e23`; rolling `apps/rastan-direct/dist/rastan_direct_video_test.bin` is byte-identical; canonical gate PASS
+* static verification: Build 0111 disassembly has `0x03C5FE: jsr 0x707A0; rts`; old raw body bytes at `0x03C62A`, `0x03C646`, and `0x03C64A` remain present but dead behind the entry replacement; table bytes at `0x03C654` are unchanged
+* runtime MAME validation: `states/traces/build_0111_highscore_fg_producer_staging_route_20260628_105240/` shows 5 producer calls, 15 hook stage calls, 0 unexpected old raw-PC events, and all 15 logical cells match the Build 0109 raw producer values
+* staged-cell validation: `states/traces/build_0111_highscore_fg_producer_staging_cells_20260628_105419/` confirms the 15 high-score pass cells are written into the expected `staged_fg_buffer` addresses via the staging path; no old raw producer writes fired
+* BlastEm smoke: debug-mode smoke against Build 0111 did not capture the prior strict-target illegal-write string; recorded as smoke only because GUI timeout/window behavior was not a definitive long-run certification
+* documentation: implementation/evidence note created at `docs/design/Cody_build0111_highscore_fg_producer_staging_route.md`
+* OPEN / KNOWN_FINDINGS impact: OPEN-018 advanced but not closed; OPEN-001 and OPEN-005 context only; OPEN-015 untouched; no `KNOWN_FINDINGS.md` update in this implementation task
+* STOP status: NO final STOP; Build 0110 was superseded by corrected Build 0111

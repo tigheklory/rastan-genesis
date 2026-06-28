@@ -23,6 +23,7 @@
     .global genesistan_hook_text_writer_3c950
     .global genesistan_hook_number_renderer_3c2e2
     .global genesistan_hook_glyph_renderer_3bd48
+    .global genesistan_hook_highscore_fg_producer
     .global rastan_direct_update_inputs
 
     .global genesistan_shadow_input_390001
@@ -49,6 +50,7 @@
     .equ ARCADE_PC080SN_CWINDOW_BASE_FG,     0x00C08000
     .equ ARCADE_PC080SN_CWINDOW_BYTES,       0x00004000
     .equ ARCADE_MAINCPU_ROM_BASE,            0x00000200
+    .equ ARCADE_HIGHSCORE_SOURCE_BASE,       0x0010C068
 genesistan_hook_tilemap_plane_a:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
@@ -600,6 +602,57 @@ genesistan_hook_inline_fg_write_3acea:
     move.l  #0x00002749, %d0
     moveq   #1, %d1
     bsr     genesistan_hook_tilemap_fg_fill
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_highscore_fg_producer:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+
+    move.w  %d0, %d2
+    andi.w  #0x007F, %d0
+    move.w  %d0, %d5
+    mulu.w  #6, %d0
+
+    lea     0x0003C654, %a0
+    adda.w  %d0, %a0
+    move.w  (%a0), %d3
+    beq.s   .Lhighscore_done
+
+    movea.w 2(%a0), %a1
+    adda.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %a1
+    movea.w 4(%a0), %a2
+    adda.l  #ARCADE_HIGHSCORE_SOURCE_BASE, %a2
+
+.Lhighscore_cell_loop:
+    clr.w   %d4
+    move.b  (%a2)+, %d4
+    move.w  %d4, %d0
+
+    cmpi.b  #0x3F, %d4
+    bne.s   .Lhighscore_check_bang
+    move.w  #0x274B, %d0
+    bra.s   .Lhighscore_apply_mode
+
+.Lhighscore_check_bang:
+    cmpi.b  #0x21, %d4
+    bne.s   .Lhighscore_apply_mode
+    move.w  #0x2744, %d0
+
+.Lhighscore_apply_mode:
+    tst.b   %d2
+    bpl.s   .Lhighscore_stage_cell
+    move.w  #0x0020, %d0
+
+.Lhighscore_stage_cell:
+    movea.l %a1, %a0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
+
+    adda.w  #4, %a1
+    subq.w  #1, %d3
+    bne.s   .Lhighscore_cell_loop
+
+.Lhighscore_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
