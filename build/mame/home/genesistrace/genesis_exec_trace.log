@@ -107,4 +107,46 @@ arm: initial_pc=000000
 [frame 001710] window_change z80_ctrl
 [frame 001740] window_change z80_ctrl
 [frame 001770] window_change z80_ctrl
+[frame 001800] window_change z80_ctrl
+[frame 001830] window_change z80_ctrl
+[frame 001860] window_change z80_ctrl
+[frame 001890] window_change z80_ctrl
+[frame 001920] window_change z80_ctrl
+[frame 001950] window_change wram_ff0000
+[frame 001950] window_change z80_ctrl
+[frame 001980] window_change z80_ctrl
+[frame 002010] window_change wram_ff0000
+[frame 002010] window_change z80_ctrl
+[frame 002040] window_change z80_ctrl
+[frame 002070] window_change z80_ctrl
+[frame 002100] window_change z80_ctrl
+[frame 002130] window_change z80_ctrl
+[frame 002160] window_change z80_ctrl
+[frame 002190] window_change z80_ctrl
+[frame 002220] window_change z80_ctrl
+[frame 002250] window_change wram_ff0000
+[frame 002250] window_change z80_ctrl
+[frame 002280] window_change z80_ctrl
+[frame 002310] window_change wram_ff0000
+[frame 002310] window_change z80_ctrl
+[frame 002340] window_change z80_ctrl
+[frame 002370] window_change z80_ctrl
+[frame 002400] window_change z80_ctrl
+[frame 002430] window_change wram_ff0000
+[frame 002430] window_change z80_ctrl
+[frame 002460] window_change z80_ctrl
+[frame 002490] window_change z80_ctrl
+[frame 002520] window_change wram_ff0000
+[frame 002520] window_change z80_ctrl
+[frame 002550] window_change z80_ctrl
+[frame 002580] window_change z80_ctrl
+[frame 002610] window_change z80_ctrl
+[frame 002615] symbol_change dip1 addr=ff0005 6->8
+[frame 002632] symbol_change dip1 addr=ff0005 8->2
+[frame 002633] symbol_change dip1 addr=ff0005 2->3
+[frame 002634] symbol_change dip1 addr=ff0005 3->4
+[frame 002635] first_symbol_change reg_3e0001 addr=ff685c 0->4
+[frame 002635] first_symbol_change reg_3c0000 addr=ff685a 0->C0
+[frame 002635] first_symbol_change reg_350008 addr=ff6856 0->F
+[frame 002635] first_symbol_change reg_380000 addr=ff6858 0->34D5
 ==== genesistrace stop ====

@@ -39388,3 +39388,28 @@ Open/Closed Issues Impact:
 * caveat: comparing Build 0112 to final Build 0115 shows the intended `0x565A6` entry patch plus existing opcode-replacement operand rebasing caused by genesis-only text growth/linker placement; no additional opcode_replace entry beyond the one new dispatcher entry was added, and manifest count is 104. This should be treated as linker/layout side-effect evidence, not an additional source-level logic edit.
 * OPEN / KNOWN_FINDINGS impact: OPEN-022 advanced; OPEN-018/KF-032 context; OPEN-001 context; OPEN-015 untouched; CLOSED high-score issues untouched; `KNOWN_FINDINGS.md` not updated; no issues opened or closed
 * STOP status: NO for implementation/build/equivalence; caution recorded for arcade-window byte-diff comparison due existing operand rebasing under current linker layout
+
+### MAME Exit Summary (2026-06-29 09:06:50)
+- Final PC: 0x00051A
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 09:08:44)
+- Final PC: 0x00051A
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Evidence, Build 0115 Item-Description ADDRESS ERROR + Scroll-Position]
+
+* scope: runtime evidence / analysis only for Build 0115 item-description page crash and scroll/staging behavior; no source/spec/tool/Makefile/ROM/build/invariant changes; no bookmark cycle; no diagnostics inserted; no fix design or implementation
+* evidence note: `docs/design/Cody_build0115_itemdesc_crash_scroll_evidence.md`
+* ROM: `dist/rastan-direct/rastan_direct_video_test_build_0115.bin`, SHA256 `5af34e440a79f2d9d447a767592ea903d026edea3f174a97d446b03ed23026e3`
+* trace artifacts: `states/traces/build_0115_itemdesc_crash_scroll_evidence_20260629_090111/`, `states/traces/build_0115_itemdesc_crash_longcheck_20260629_090635/`, and `states/traces/build_0115_itemdesc_crash_stackdump_20260629_090832/`
+* ADDRESS ERROR evidence: WRAM crash record shows exception type 3, `CRASH_STACKED_SR=0x2700`, `CRASH_STACKED_PC=runtime_genesis_pc 0x00055B1C`, `CRASH_FAULT_ADDRESS=0x0000000F`, frame/access word `0x34D5`, IR `0x34D4`; IR matches faulting copied-arcade instruction `runtime_genesis_pc 0x00055B1A: movew %a4@,%a2@+`, with `%a4=0x0000000F` causing an odd-address word source read
+* address-map discipline: `0x00055B1A` and stacked `0x00055B1C` map exactly through `build/rastan-direct/address_map.json` to `arcade_pc 0x0005591A/0x0005591C` in `arcade_copy` segment 164; no arithmetic mapping used as proof
+* crash classification: D - scroll/tilemap mechanism fault; the immediate fault is copied arcade table/scroll/tilemap code, not the shared text-writer dispatcher (`0x565A6 -> 0x714C8`) and not the item sprite helper (`0x56314 -> 0x71CE2`); rebase of the text writer is not implicated by the faulting PC
+* item state: crash-time WRAM state has `%a5@(0)=0x0002`, `%a5@(2)=0x0002`, `%a5@(4)=0x0004`, `%a5@(44)=0x0000`; earlier item text entry was observed at `0x5622C` with `%a5@(0)=2`, `%a5@(2)=2`, `%a5@(4)=6`
+* scroll evidence: staged item-page scroll writes remain zero; VBlank scroll commit is alive and repeatedly writes full-plane HSCROLL/VSRAM values with Genesis bias (`x` commit `0xFFF0`, `y` commit `0x0008`); no raw PC080SN X/Y scroll writes observed in the captured window; no line-scroll evidence captured
+* missing `F` in `FIRE SWORD`: dispatcher emits and stages the `F` at `HW_ADDRESS 0x00C01428` / `WRAM 0x00FF4A2E` (`cell=0x001C`), then later destination `0x00C03428` aliases to the same 32-row Genesis staging address and overwrites it with zero; therefore the `F` is overwritten later, not not-staged/clipped/LUT-lost/commit-lost
+* OPEN / KNOWN_FINDINGS impact: OPEN-001 touched for rendering/positioning evidence; OPEN-022 context and not closed; OPEN-024 context; OPEN-015 context because WRAM crash record was used instead of screen fields; no issues opened or closed; `KNOWN_FINDINGS.md` not updated
+* STOP status: NO; exact faulting instruction, mapped address, scroll evidence, and missing-`F` staging mechanism captured; higher-level stack is recorded as breadcrumbs rather than overclaimed as a fully decoded call graph
