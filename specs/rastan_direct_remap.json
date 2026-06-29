@@ -111,6 +111,7 @@
     "genesistan_hook_glyph_renderer_3bd48",
     "genesistan_hook_highscore_fg_producer",
     "genesistan_hook_textwriter_dispatch",
+    "genesistan_hook_pc080sn_descriptor_rebuild",
     "genesistan_pc090oj_hook_target_3b902",
     "genesistan_pc090oj_hook_target_3b926",
     "genesistan_pc090oj_hook_target_3b930",
@@ -780,6 +781,156 @@
       "note": "Build 55 revised Option D bypass intercept at 0x045DB8. Single-instruction JSR target swap replaces jsr 0x3A2D0 with genesistan_palette_hook_45dae while preserving native counter/state mutations around the call."
     },
     {
+      "arcade_pc": "0x0503EC",
+      "original_bytes": "23FC00C080000010D0A0",
+      "replacement_bytes": "23FC00C0800000FF10A0",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0505EC destination slot 0x0010D0A0 -> Genesis-WRAM 0x00FF10A0; preserve HW_ADDRESS literal #0x00C08000."
+    },
+    {
+      "arcade_pc": "0x0503F6",
+      "original_bytes": "23FC00C000000010D0F8",
+      "replacement_bytes": "23FC00C0000000FF10F8",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0505F6 destination slot 0x0010D0F8 -> Genesis-WRAM 0x00FF10F8; preserve HW_ADDRESS literal #0x00C00000."
+    },
+    {
+      "arcade_pc": "0x050400",
+      "original_bytes": "23FC00C080000010D0A4",
+      "replacement_bytes": "23FC00C0800000FF10A4",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050600 destination slot 0x0010D0A4 -> Genesis-WRAM 0x00FF10A4; preserve HW_ADDRESS literal #0x00C08000."
+    },
+    {
+      "arcade_pc": "0x05040C",
+      "original_bytes": "23FC00C000000010D0F8",
+      "replacement_bytes": "23FC00C0000000FF10F8",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x05060C destination slot 0x0010D0F8 -> Genesis-WRAM 0x00FF10F8; preserve HW_ADDRESS literal #0x00C00000."
+    },
+    {
+      "arcade_pc": "0x050416",
+      "original_bytes": "23FC00C080000010D0A0",
+      "replacement_bytes": "23FC00C0800000FF10A0",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050616 destination slot 0x0010D0A0 -> Genesis-WRAM 0x00FF10A0; preserve HW_ADDRESS literal #0x00C08000."
+    },
+    {
+      "arcade_pc": "0x050426",
+      "original_bytes": "23C00010D0A4",
+      "replacement_bytes": "23C000FF10A4",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050626 destination slot 0x0010D0A4 -> Genesis-WRAM 0x00FF10A4."
+    },
+    {
+      "arcade_pc": "0x05042C",
+      "original_bytes": "33FC00400010D0AA",
+      "replacement_bytes": "33FC004000FF10AA",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x05062C count slot 0x0010D0AA -> Genesis-WRAM 0x00FF10AA; preserve immediate #64."
+    },
+    {
+      "arcade_pc": "0x050444",
+      "original_bytes": "04B900003FFC0010D0A0",
+      "replacement_bytes": "04B900003FFC00FF10A0",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050644 slot 0x0010D0A0 -> Genesis-WRAM 0x00FF10A0; preserve immediate #16380."
+    },
+    {
+      "arcade_pc": "0x05044E",
+      "original_bytes": "04B900003FFC0010D0F8",
+      "replacement_bytes": "04B900003FFC00FF10F8",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x05064E slot 0x0010D0F8 -> Genesis-WRAM 0x00FF10F8; preserve immediate #16380."
+    },
+    {
+      "arcade_pc": "0x050468",
+      "original_bytes": "04B900003FFC0010D0F8",
+      "replacement_bytes": "04B900003FFC00FF10F8",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050668 slot 0x0010D0F8 -> Genesis-WRAM 0x00FF10F8; preserve immediate #16380."
+    },
+    {
+      "arcade_pc": "0x050472",
+      "original_bytes": "53790010D0AA",
+      "replacement_bytes": "537900FF10AA",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050672 count slot 0x0010D0AA -> Genesis-WRAM 0x00FF10AA."
+    },
+    {
+      "arcade_pc": "0x050478",
+      "original_bytes": "0C7900000010D0AA",
+      "replacement_bytes": "0C79000000FF10AA",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050678 count slot 0x0010D0AA -> Genesis-WRAM 0x00FF10AA; preserve compare immediate #0."
+    },
+    {
+      "arcade_pc": "0x0512D2",
+      "original_bytes": "3C390010D0DA",
+      "replacement_bytes": "3C3900FF10DA",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0514D2 source slot 0x0010D0DA -> Genesis-WRAM 0x00FF10DA."
+    },
+    {
+      "arcade_pc": "0x0512E8",
+      "original_bytes": "3C390010D0DA",
+      "replacement_bytes": "3C3900FF10DA",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0514E8 source slot 0x0010D0DA -> Genesis-WRAM 0x00FF10DA."
+    },
+    {
+      "arcade_pc": "0x0512FE",
+      "original_bytes": "3C390010D0D8",
+      "replacement_bytes": "3C3900FF10D8",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0514FE source slot 0x0010D0D8 -> Genesis-WRAM 0x00FF10D8."
+    },
+    {
+      "arcade_pc": "0x05131C",
+      "original_bytes": "3C390010D0D8",
+      "replacement_bytes": "3C3900FF10D8",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x05151C source slot 0x0010D0D8 -> Genesis-WRAM 0x00FF10D8."
+    },
+    {
+      "arcade_pc": "0x0526E4",
+      "original_bytes": "42790010D0EA",
+      "replacement_bytes": "427900FF10EA",
+      "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0528E4 clear slot 0x0010D0EA -> Genesis-WRAM 0x00FF10EA."
+    },
+    {
+      "arcade_pc": "0x0558C8",
+      "original_bytes": "207C0010D000",
+      "replacement_bytes": "207C00FF1000",
+      "note": "KF-036 item-page descriptor-table mutate base rebase: runtime 0x055AC8 #0x0010D000 -> Genesis-WRAM #0x00FF1000."
+    },
+    {
+      "arcade_pc": "0x0558F8",
+      "original_bytes": "33C00010D0A8",
+      "replacement_bytes": "33C000FF10A8",
+      "note": "KF-036 item-page descriptor-table output rebase: runtime 0x055AF8 0x0010D0A8 -> Genesis-WRAM 0x00FF10A8."
+    },
+    {
+      "arcade_pc": "0x055904",
+      "original_bytes": "207C0010D000",
+      "replacement_bytes": "4EF9{symbol:genesistan_hook_pc080sn_descriptor_rebuild}",
+      "note": "PC080SN descriptor source-pointer relocation hook: runtime 0x055B04 jumps to a JSON-segment-guarded rebuild helper; supersedes the Build 0116 literal read-base rebase at this same opcode_replace site."
+    },
+    {
+      "arcade_pc": "0x05590A",
+      "original_bytes": "227C0010D040",
+      "replacement_bytes": "227C00FF1040",
+      "note": "KF-036 item-page descriptor-table rebuilt-pointer base rebase: runtime 0x055B0A #0x0010D040 -> Genesis-WRAM #0x00FF1040."
+    },
+    {
+      "arcade_pc": "0x055910",
+      "original_bytes": "247C0010D080",
+      "replacement_bytes": "247C00FF1080",
+      "note": "KF-036 item-page descriptor-table copied-word base rebase: runtime 0x055B10 #0x0010D080 -> Genesis-WRAM #0x00FF1080."
+    },
+    {
+      "arcade_pc": "0x055940",
+      "original_bytes": "33C00010D0A8",
+      "replacement_bytes": "33C000FF10A8",
+      "note": "KF-036 item-page descriptor-table output rebase: runtime 0x055B40 0x0010D0A8 -> Genesis-WRAM 0x00FF10A8."
+    },
+    {
+      "arcade_pc": "0x055C14",
+      "original_bytes": "207C0010D0FC",
+      "replacement_bytes": "207C00FF10FC",
+      "note": "KF-036 item-page same-page descriptor work-RAM rebase: runtime 0x055E14 #0x0010D0FC -> Genesis-WRAM #0x00FF10FC."
+    },
+    {
+      "arcade_pc": "0x055C2E",
+      "original_bytes": "207C0010D0FC",
+      "replacement_bytes": "207C00FF10FC",
+      "note": "KF-036 item-page same-page descriptor work-RAM rebase: runtime 0x055E2E #0x0010D0FC -> Genesis-WRAM #0x00FF10FC."
+    },
+    {
       "arcade_pc": "0x03BA64",
       "original_bytes": "301B340002400F00EE483202024100F0E5490242000FEA5A8041804230C0538366DE4E75",
       "replacement_bytes": "4EB9{symbol:genesistan_palette_hook_3ba64}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
@@ -796,6 +947,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 104
+    "opcode_replace_count": 129
   }
 }

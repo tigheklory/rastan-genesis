@@ -25,6 +25,7 @@
     .global genesistan_hook_glyph_renderer_3bd48
     .global genesistan_hook_highscore_fg_producer
     .global genesistan_hook_textwriter_dispatch
+    .global genesistan_hook_pc080sn_descriptor_rebuild
     .global rastan_direct_update_inputs
 
     .global genesistan_shadow_input_390001
@@ -52,6 +53,14 @@
     .equ ARCADE_PC080SN_CWINDOW_BYTES,       0x00004000
     .equ ARCADE_MAINCPU_ROM_BASE,            0x00000200
     .equ ARCADE_HIGHSCORE_SOURCE_BASE,       0x00FF0000
+    .equ PC080SN_DESC_REBUILD_SRC_TABLE,      0x00FF1000
+    .equ PC080SN_DESC_REBUILD_PTR_TABLE,      0x00FF1040
+    .equ PC080SN_DESC_REBUILD_WORD_TABLE,     0x00FF1080
+    .equ PC080SN_DESC_REBUILD_OUT,            0x00FF10A8
+    .equ PC080SN_DESC_ARCADE_START,           0x00000F08
+    .equ PC080SN_DESC_ARCADE_END,             0x0003A00C
+    .equ PC080SN_DESC_GENESIS_START,          0x00001108
+    .equ PC080SN_DESC_SECOND_WORD_BASE,       0x00000200
 genesistan_hook_tilemap_plane_a:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
@@ -2094,6 +2103,50 @@ genesistan_hook_textwriter_dispatch:
     addq.b  #1, %d0
     move.b  %d0, audit_guard_heartbeat
     bra.s   .Ltw_dispatch_fail_loop
+
+
+    .section .text.zzz_pc080sn_descriptor_rebuild,"ax"
+
+/* Rebuilds the PC080SN descriptor pointer table at runtime 0x055B04.
+ * Source pointers in 0x00FF1000 remain arcade addresses because the table is
+ * runtime-built in mapped WRAM; relocate each dereference through the JSON
+ * arcade_copy segment before reading descriptor words from Genesis ROM.
+ */
+genesistan_hook_pc080sn_descriptor_rebuild:
+    movea.l #PC080SN_DESC_REBUILD_SRC_TABLE, %a0
+    movea.l #PC080SN_DESC_REBUILD_PTR_TABLE, %a1
+    movea.l #PC080SN_DESC_REBUILD_WORD_TABLE, %a2
+    moveq   #16, %d0
+
+.Lpc080sn_desc_loop:
+    movea.l (%a0), %a4
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a4
+    blo.s   .Lpc080sn_desc_bad_ptr
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a4
+    bhs.s   .Lpc080sn_desc_bad_ptr
+
+    suba.l  #PC080SN_DESC_ARCADE_START, %a4
+    adda.l  #PC080SN_DESC_GENESIS_START, %a4
+
+    move.w  (%a4), (%a2)+
+    clr.l   %d1
+    move.w  2(%a4), %d1
+    movea.l #PC080SN_DESC_SECOND_WORD_BASE, %a4
+    lea     0(%a4,%d1.l), %a4
+    move.l  %a4, (%a1)+
+
+    adda.l  #4, %a0
+    subq.w  #1, %d0
+    bne.s   .Lpc080sn_desc_loop
+
+    movea.l 4294(%a5), %a4
+    clr.w   %d0
+    move.b  (%a4), %d0
+    move.w  %d0, PC080SN_DESC_REBUILD_OUT
+    rts
+
+.Lpc080sn_desc_bad_ptr:
+    trap    #0
 
 
     .section .bss

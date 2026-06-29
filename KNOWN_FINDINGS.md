@@ -590,6 +590,25 @@ Last verified: 2026-06-19 (Build 0091 / OPEN-016 Part 2 ROM)
 
 **Use as prior.** Before adding `rts` after an opcode-replacement hook, prove the original site was terminal. If the original instruction fell through into live logic, the replacement must fall through too. Sibling-scan before generalizing: the related palette-hook siblings inspected for this case were terminal/safe and did not need the same change.
 
+## KF-038 — Long PC080SN BG C-window rows alias in the current 32-row Genesis BG staging model
+
+- **Status:** OPEN (architectural follow-up)
+- **Confidence:** CONFIRMED (Build 0115 item-description aliasing evidence) / STRONG (architectural interpretation)
+- **Applicability:** BUILD_SPECIFIC (Build 0115 item-description page evidence) / POTENTIALLY_GENERAL (PC080SN virtual/tall tilemap behavior pending gameplay/demo evidence)
+- **Rediscovery Hazard:** HIGH (symptom can look like text-writer, LUT, or VDP commit failure)
+- **Addresses:** shared text-writer dispatcher `runtime_genesis_pc 0x000714C8`; item-description writer call `runtime_genesis_pc 0x0005623C`; BG fill helper `genesistan_hook_tilemap_bg_fill`; `FIRE SWORD` source destination `HW_ADDRESS 0x00C01428`; aliasing later row destination `HW_ADDRESS 0x00C03428`; aliased staging cell `WRAM 0x00FF4A2E`; adjacent surviving `I` cell `WRAM 0x00FF4A30`; staged scroll words `WRAM 0x00FF4012/0x00FF4014/0x00FF4016/0x00FF4018`
+- **Source Documents:** docs/design/Cody_build0115_itemdesc_crash_scroll_evidence.md; states/traces/build_0115_itemdesc_crash_scroll_evidence_20260629_090111/native_events.log; states/traces/build_0115_itemdesc_crash_longcheck_20260629_090635/staged_bg_at_crash.bin
+- **Related Issues:** OPEN-001, OPEN-022, OPEN-023, OPEN-024, KF-010, KF-032, KF-036
+- **Last verified:** 2026-06-29 (Build 0115)
+
+**Finding.** Build 0115's shared text-writer dispatcher successfully routes item-description text into Genesis BG staging: the six-caller producer-equivalence validation reported mismatch count `0`, and runtime evidence shows the item page reaches BG staging. However, the item-description page uses a longer PC080SN BG C-window address span than the current 32-row Genesis BG staging model preserves without aliasing. Later PC080SN BG rows can map to the same Genesis staging cells as earlier rows and overwrite them. This is a staging-geometry alias, not a dispatcher emission failure, LUT failure, or VDP commit failure.
+
+**Concrete evidence.** The `F` in `FIRE SWORD` is emitted and staged correctly: the dispatcher records `DISPATCH_BG_ROUTE ... dest=00C01428 composed=00000046 code=0046 attr=0000`, followed by `BG_STAGING_STORE ... src_dest=00C01428 off=00000A14 eff=00FF4A2E cell=001C`. A later PC080SN BG row aliases into the same Genesis staging cell and clears it: `BG_STAGING_STORE ... src_dest=00C03428 off=00000A14 eff=00FF4A2E cell=0000`. Final/crash-time staging records `WRAM 0x00FF4A2E = 0x0000` while the adjacent `I` cell remains `WRAM 0x00FF4A30 = 0x001F`, producing `IRE SWORD`. The aliasing mechanism matches `genesistan_hook_tilemap_bg_fill`: after `(dest - ARCADE_PC080SN_CWINDOW_BASE_BG) >> 2`, the helper computes column with `andi.w #0x003F` and row with `lsr.w #6` then `andi.w #0x001F`, collapsing higher PC080SN rows into a 32-row staging space.
+
+**Scroll evidence.** The item-page staged scroll values stayed zero in the captured window (`staged_scroll_x_bg=0`, `staged_scroll_x_fg=0`, `staged_scroll_y_fg=0`; the relevant staged scroll words remained zero), and no raw PC080SN X/Y scroll writes were observed (`RAW_PC080SN_YSCROLL_WRITE=0`, `RAW_PC080SN_XSCROLL_WRITE=0`). The Genesis VBlank scroll commit path is active, but item-page scroll values were zero in this trace. The visible row corruption is therefore staging-geometry aliasing first, not a nonzero scroll-offset explanation.
+
+**Use as prior.** Do not rediscover `FIRE SWORD -> IRE SWORD` as a `genesistan_hook_textwriter_dispatch`, `0x565CE` substitution, `attr_lut`, VDP commit, or Build 0115 opcode-rebasing defect. The Build 0115 dispatcher remains validated and item text reaches BG staging. Do not globally change `bg_fill` row mapping without a design pass: making BG staging taller globally could break currently working 32-row-wrapping screens such as title/story/high-score. The item-description page appears to use PC080SN BG C-window addresses as a taller/longer text layout than current Genesis 32-row staging preserves; this may be item-description-specific, general PC080SN virtual tilemap behavior also used by gameplay level scrolling, or a missing scroll/window model where high rows should remain distinct until revealed by scroll. Gameplay/demo PC080SN evidence is required before selecting a representation.
+
 ## Deferred Candidates Appendix
 
 **This appendix is NOT canonical priors. Entries here are pre-canonical observations that did not meet promotion criteria at the time of the most recent curation pass. They may be promoted, refined, or rejected in future curation passes.**
