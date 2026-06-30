@@ -8,24 +8,24 @@ arm: initial_pc=000000
 [frame 000000] live_write vdp_ports_live pc=07008e addr=c00004 data=8004 mask=ffff count=1
 [frame 000001] exec_enter pc=000308 range=other
 [frame 000007] exec_enter pc=03b0c6 range=startup_common@000200
-[frame 000014] exec_enter pc=0716ea range=other
+[frame 000014] exec_enter pc=07179a range=other
 [frame 000030] pc=0706fc exec=other
 [frame 000040] first_symbol_change dip1 addr=ff0005 0->1
 [frame 000045] symbol_change dip1 addr=ff0005 1->0
-[frame 000060] pc=071eb4 exec=other
+[frame 000060] pc=071f64 exec=other
 [frame 000060] first_window_change wram_ff0000
 [frame 000060] first_window_change io_a10000
 [frame 000060] first_window_change vdp_ports
 [frame 000060] first_window_change z80_ctrl
-[frame 000090] pc=071eb2 exec=other
+[frame 000090] pc=071f62 exec=other
 [frame 000090] window_change z80_ctrl
-[frame 000120] pc=071eb4 exec=other
+[frame 000120] pc=071f64 exec=other
 [frame 000120] window_change wram_ff0000
 [frame 000120] window_change z80_ctrl
 [frame 000150] window_change z80_ctrl
 [frame 000180] window_change z80_ctrl
 [frame 000210] window_change z80_ctrl
-[frame 000240] pc=071eb4 exec=other
+[frame 000240] pc=071f64 exec=other
 [frame 000240] window_change z80_ctrl
 [frame 000260] symbol_change dip1 addr=ff0005 0->1
 [frame 000264] symbol_change dip1 addr=ff0005 1->2
@@ -33,22 +33,22 @@ arm: initial_pc=000000
 [frame 000270] window_change z80_ctrl
 [frame 000300] window_change z80_ctrl
 [frame 000330] window_change z80_ctrl
-[frame 000360] pc=071eb2 exec=other
+[frame 000360] pc=071f62 exec=other
 [frame 000360] window_change z80_ctrl
-[frame 000390] pc=071eb2 exec=other
+[frame 000390] pc=071f62 exec=other
 [frame 000390] window_change z80_ctrl
-[frame 000420] pc=071eb2 exec=other
+[frame 000420] pc=071f62 exec=other
 [frame 000420] window_change z80_ctrl
 [frame 000433] symbol_change dip1 addr=ff0005 2->0
 [frame 000450] window_change wram_ff0000
 [frame 000450] window_change z80_ctrl
-[frame 000480] pc=071eb4 exec=other
+[frame 000480] pc=071f64 exec=other
 [frame 000480] window_change z80_ctrl
-[frame 000510] pc=071eb4 exec=other
+[frame 000510] pc=071f64 exec=other
 [frame 000510] window_change z80_ctrl
-[frame 000540] pc=071eb4 exec=other
+[frame 000540] pc=071f64 exec=other
 [frame 000540] window_change z80_ctrl
-[frame 000570] pc=071eb4 exec=other
+[frame 000570] pc=071f64 exec=other
 [frame 000570] window_change z80_ctrl
 [frame 000600] pc=070162 exec=other
 [frame 000600] symbol_change dip1 addr=ff0005 0->1
@@ -145,4 +145,4093 @@ arm: initial_pc=000000
 [frame 002632] symbol_change dip1 addr=ff0005 8->2
 [frame 002633] symbol_change dip1 addr=ff0005 2->3
 [frame 002634] symbol_change dip1 addr=ff0005 3->4
+[frame 002640] window_change wram_ff0000
+[frame 002640] window_change vdp_ports
+[frame 002640] window_change z80_ctrl
+[frame 002670] pc=070168 exec=other
+[frame 002670] symbol_change dip1 addr=ff0005 4->5
+[frame 002670] window_change wram_ff0000
+[frame 002670] window_change vdp_ports
+[frame 002670] window_change z80_ctrl
+[frame 002671] symbol_change dip1 addr=ff0005 5->0
+[frame 002690] exec_enter pc=055d00 range=helper_55ca2_dispatch@000000
+[frame 002691] exec_enter pc=04149e range=other
+[frame 002700] pc=071efc exec=other
+[frame 002700] window_change wram_ff0000
+[frame 002700] window_change vdp_ports
+[frame 002700] window_change z80_ctrl
+[frame 002730] pc=071fb0 exec=other
+[frame 002730] window_change wram_ff0000
+[frame 002730] window_change z80_ctrl
+[frame 002760] pc=071f5e exec=other
+[frame 002760] window_change wram_ff0000
+[frame 002760] window_change z80_ctrl
+[frame 002790] pc=0517e6 exec=other
+[frame 002790] window_change wram_ff0000
+[frame 002790] window_change vdp_ports
+[frame 002790] window_change z80_ctrl
+[frame 002820] pc=071886 exec=other
+[frame 002820] window_change wram_ff0000
+[frame 002820] window_change z80_ctrl
+[frame 002850] pc=0445ea exec=other
+[frame 002850] window_change wram_ff0000
+[frame 002850] window_change z80_ctrl
+[frame 002880] pc=071ef6 exec=other
+[frame 002880] window_change wram_ff0000
+[frame 002880] window_change vdp_ports
+[frame 002880] window_change z80_ctrl
+[frame 002910] pc=04a0f0 exec=other
+[frame 002910] window_change wram_ff0000
+[frame 002910] window_change vdp_ports
+[frame 002910] window_change z80_ctrl
+[frame 002940] pc=051650 exec=other
+[frame 002940] window_change wram_ff0000
+[frame 002940] window_change z80_ctrl
+[frame 002970] pc=07194a exec=other
+[frame 002970] window_change wram_ff0000
+[frame 002970] window_change z80_ctrl
+[frame 003000] pc=042316 exec=other
+[frame 003000] window_change wram_ff0000
+[frame 003000] window_change z80_ctrl
+[frame 003030] pc=071868 exec=other
+[frame 003030] window_change wram_ff0000
+[frame 003030] window_change z80_ctrl
+[frame 003051] exec_enter pc=03ae0e range=helper_display_control@000000
+[frame 003052] exec_enter pc=071e70 range=other
+[frame 003053] exec_enter pc=03a2b2 range=frontend_core@000000
+[frame 003054] exec_enter pc=071858 range=other
+[frame 003060] pc=071892 exec=other
+[frame 003060] window_change wram_ff0000
+[frame 003060] window_change z80_ctrl
+[frame 003090] pc=040b9e exec=other
+[frame 003090] window_change wram_ff0000
+[frame 003090] window_change z80_ctrl
+[frame 003120] pc=071f62 exec=other
+[frame 003120] window_change wram_ff0000
+[frame 003120] window_change vdp_ports
+[frame 003120] window_change z80_ctrl
+[frame 003150] pc=071f76 exec=other
+[frame 003150] window_change wram_ff0000
+[frame 003150] window_change z80_ctrl
+[frame 003180] pc=071fb2 exec=other
+[frame 003180] window_change wram_ff0000
+[frame 003180] window_change z80_ctrl
+[frame 003210] pc=071fb2 exec=other
+[frame 003210] window_change wram_ff0000
+[frame 003210] window_change z80_ctrl
+[frame 003240] pc=071fbc exec=other
+[frame 003240] window_change wram_ff0000
+[frame 003240] window_change z80_ctrl
+[frame 003270] pc=071fc0 exec=other
+[frame 003270] window_change wram_ff0000
+[frame 003270] window_change z80_ctrl
+[frame 003300] pc=071f60 exec=other
+[frame 003300] window_change wram_ff0000
+[frame 003300] window_change z80_ctrl
+[frame 003330] pc=071f72 exec=other
+[frame 003330] window_change wram_ff0000
+[frame 003330] window_change z80_ctrl
+[frame 003360] pc=071f38 exec=other
+[frame 003360] window_change wram_ff0000
+[frame 003360] window_change z80_ctrl
+[frame 003390] pc=071f58 exec=other
+[frame 003390] window_change wram_ff0000
+[frame 003390] window_change z80_ctrl
+[frame 003420] pc=071f64 exec=other
+[frame 003420] window_change wram_ff0000
+[frame 003420] window_change z80_ctrl
+[frame 003450] pc=071efe exec=other
+[frame 003450] window_change wram_ff0000
+[frame 003450] window_change z80_ctrl
+[frame 003480] pc=071f38 exec=other
+[frame 003480] window_change wram_ff0000
+[frame 003480] window_change z80_ctrl
+[frame 003510] pc=071f08 exec=other
+[frame 003510] window_change wram_ff0000
+[frame 003510] window_change z80_ctrl
+[frame 003540] pc=071f06 exec=other
+[frame 003540] window_change wram_ff0000
+[frame 003540] window_change z80_ctrl
+[frame 003570] pc=044d36 exec=other
+[frame 003570] window_change wram_ff0000
+[frame 003570] window_change vdp_ports
+[frame 003570] window_change z80_ctrl
+[frame 003571] exec_enter pc=03aa02 range=frontend_core@000000
+[frame 003572] exec_enter pc=044d9e range=other
+[frame 003600] pc=071f5e exec=other
+[frame 003600] window_change wram_ff0000
+[frame 003600] window_change vdp_ports
+[frame 003600] window_change z80_ctrl
+[frame 003630] pc=071f64 exec=other
+[frame 003630] window_change wram_ff0000
+[frame 003630] window_change z80_ctrl
+[frame 003660] pc=071f64 exec=other
+[frame 003660] window_change wram_ff0000
+[frame 003660] window_change z80_ctrl
+[frame 003690] pc=072000 exec=other
+[frame 003690] window_change wram_ff0000
+[frame 003690] window_change z80_ctrl
+[frame 003720] pc=071f76 exec=other
+[frame 003720] window_change wram_ff0000
+[frame 003720] window_change z80_ctrl
+[frame 003750] pc=071f64 exec=other
+[frame 003750] window_change wram_ff0000
+[frame 003750] window_change z80_ctrl
+[frame 003780] pc=071f7a exec=other
+[frame 003780] window_change wram_ff0000
+[frame 003780] window_change z80_ctrl
+[frame 003810] pc=071f60 exec=other
+[frame 003810] window_change wram_ff0000
+[frame 003810] window_change z80_ctrl
+[frame 003840] pc=071f7a exec=other
+[frame 003840] window_change wram_ff0000
+[frame 003840] window_change z80_ctrl
+[frame 003870] pc=071f64 exec=other
+[frame 003870] window_change wram_ff0000
+[frame 003870] window_change z80_ctrl
+[frame 003900] pc=071f64 exec=other
+[frame 003900] window_change wram_ff0000
+[frame 003900] window_change z80_ctrl
+[frame 003930] pc=071f72 exec=other
+[frame 003930] window_change wram_ff0000
+[frame 003930] window_change z80_ctrl
+[frame 003960] pc=071f64 exec=other
+[frame 003960] window_change wram_ff0000
+[frame 003960] window_change z80_ctrl
+[frame 003990] pc=071f6a exec=other
+[frame 003990] window_change wram_ff0000
+[frame 003990] window_change z80_ctrl
+[frame 004020] pc=071efe exec=other
+[frame 004020] window_change wram_ff0000
+[frame 004020] window_change z80_ctrl
+[frame 004050] pc=072000 exec=other
+[frame 004050] window_change wram_ff0000
+[frame 004050] window_change z80_ctrl
+[frame 004080] pc=071f74 exec=other
+[frame 004080] window_change wram_ff0000
+[frame 004080] window_change z80_ctrl
+[frame 004110] pc=071f56 exec=other
+[frame 004110] window_change wram_ff0000
+[frame 004110] window_change z80_ctrl
+[frame 004140] pc=071f58 exec=other
+[frame 004140] window_change wram_ff0000
+[frame 004140] window_change z80_ctrl
+[frame 004170] pc=071f6a exec=other
+[frame 004170] window_change wram_ff0000
+[frame 004170] window_change z80_ctrl
+[frame 004200] pc=071f56 exec=other
+[frame 004200] window_change wram_ff0000
+[frame 004200] window_change z80_ctrl
+[frame 004230] pc=071f5a exec=other
+[frame 004230] window_change wram_ff0000
+[frame 004230] window_change z80_ctrl
+[frame 004260] pc=071f64 exec=other
+[frame 004260] window_change wram_ff0000
+[frame 004260] window_change z80_ctrl
+[frame 004290] pc=072000 exec=other
+[frame 004290] window_change wram_ff0000
+[frame 004290] window_change z80_ctrl
+[frame 004320] pc=071f60 exec=other
+[frame 004320] window_change wram_ff0000
+[frame 004320] window_change z80_ctrl
+[frame 004350] pc=071f64 exec=other
+[frame 004350] window_change wram_ff0000
+[frame 004350] window_change z80_ctrl
+[frame 004380] pc=071f7a exec=other
+[frame 004380] window_change wram_ff0000
+[frame 004380] window_change z80_ctrl
+[frame 004410] pc=071f6c exec=other
+[frame 004410] window_change wram_ff0000
+[frame 004410] window_change z80_ctrl
+[frame 004440] pc=071f72 exec=other
+[frame 004440] window_change wram_ff0000
+[frame 004440] window_change z80_ctrl
+[frame 004470] pc=071f6c exec=other
+[frame 004470] window_change wram_ff0000
+[frame 004470] window_change z80_ctrl
+[frame 004500] pc=071f76 exec=other
+[frame 004500] window_change wram_ff0000
+[frame 004500] window_change z80_ctrl
+[frame 004530] pc=071f62 exec=other
+[frame 004530] window_change wram_ff0000
+[frame 004530] window_change z80_ctrl
+[frame 004560] pc=071f64 exec=other
+[frame 004560] window_change wram_ff0000
+[frame 004560] window_change z80_ctrl
+[frame 004590] pc=071f64 exec=other
+[frame 004590] window_change wram_ff0000
+[frame 004590] window_change z80_ctrl
+[frame 004620] pc=071f5a exec=other
+[frame 004620] window_change wram_ff0000
+[frame 004620] window_change z80_ctrl
+[frame 004650] pc=071f72 exec=other
+[frame 004650] window_change wram_ff0000
+[frame 004650] window_change z80_ctrl
+[frame 004680] pc=071ef8 exec=other
+[frame 004680] window_change wram_ff0000
+[frame 004680] window_change z80_ctrl
+[frame 004710] pc=071f78 exec=other
+[frame 004710] window_change wram_ff0000
+[frame 004710] window_change z80_ctrl
+[frame 004740] pc=071f64 exec=other
+[frame 004740] window_change wram_ff0000
+[frame 004740] window_change z80_ctrl
+[frame 004770] pc=071f06 exec=other
+[frame 004770] window_change wram_ff0000
+[frame 004770] window_change z80_ctrl
+[frame 004800] pc=044bee exec=other
+[frame 004800] window_change wram_ff0000
+[frame 004800] window_change vdp_ports
+[frame 004800] window_change z80_ctrl
+[frame 004830] pc=071f6c exec=other
+[frame 004830] window_change wram_ff0000
+[frame 004830] window_change vdp_ports
+[frame 004830] window_change z80_ctrl
+[frame 004860] pc=071f72 exec=other
+[frame 004860] window_change wram_ff0000
+[frame 004860] window_change z80_ctrl
+[frame 004890] pc=071f7a exec=other
+[frame 004890] window_change wram_ff0000
+[frame 004890] window_change z80_ctrl
+[frame 004920] pc=071f6c exec=other
+[frame 004920] window_change wram_ff0000
+[frame 004920] window_change z80_ctrl
+[frame 004950] pc=071f64 exec=other
+[frame 004950] window_change wram_ff0000
+[frame 004950] window_change z80_ctrl
+[frame 004980] pc=071f72 exec=other
+[frame 004980] window_change wram_ff0000
+[frame 004980] window_change z80_ctrl
+[frame 005010] pc=071f7a exec=other
+[frame 005010] window_change wram_ff0000
+[frame 005010] window_change z80_ctrl
+[frame 005040] pc=071f7a exec=other
+[frame 005040] window_change wram_ff0000
+[frame 005040] window_change z80_ctrl
+[frame 005070] pc=071f60 exec=other
+[frame 005070] window_change wram_ff0000
+[frame 005070] window_change z80_ctrl
+[frame 005100] pc=071f78 exec=other
+[frame 005100] window_change wram_ff0000
+[frame 005100] window_change z80_ctrl
+[frame 005130] pc=071f72 exec=other
+[frame 005130] window_change wram_ff0000
+[frame 005130] window_change z80_ctrl
+[frame 005160] pc=071ffe exec=other
+[frame 005160] window_change wram_ff0000
+[frame 005160] window_change z80_ctrl
+[frame 005190] pc=071f7a exec=other
+[frame 005190] window_change wram_ff0000
+[frame 005190] window_change z80_ctrl
+[frame 005220] pc=071f64 exec=other
+[frame 005220] window_change wram_ff0000
+[frame 005220] window_change z80_ctrl
+[frame 005246] exec_enter pc=03a360 range=frontend_core@000000
+[frame 005247] exec_enter pc=071832 range=other
+[frame 005250] pc=071f26 exec=other
+[frame 005250] window_change wram_ff0000
+[frame 005250] window_change z80_ctrl
+[frame 005280] pc=05188e exec=other
+[frame 005280] window_change wram_ff0000
+[frame 005280] window_change vdp_ports
+[frame 005280] window_change z80_ctrl
+[frame 005310] pc=0448bc exec=other
+[frame 005310] window_change wram_ff0000
+[frame 005310] window_change z80_ctrl
+[frame 005340] pc=071f64 exec=other
+[frame 005340] window_change wram_ff0000
+[frame 005340] window_change vdp_ports
+[frame 005340] window_change z80_ctrl
+[frame 005370] pc=071f5c exec=other
+[frame 005370] window_change wram_ff0000
+[frame 005370] window_change vdp_ports
+[frame 005370] window_change z80_ctrl
+[frame 005399] exec_enter pc=03ad98 range=helper_d000_init@000000
+[frame 005400] exec_enter pc=07193c range=other
+[frame 005400] pc=07193c exec=other
+[frame 005400] window_change wram_ff0000
+[frame 005400] window_change vdp_ports
+[frame 005400] window_change z80_ctrl
+[frame 005430] pc=044c64 exec=other
+[frame 005430] window_change wram_ff0000
+[frame 005430] window_change z80_ctrl
+[frame 005442] exec_enter pc=03ae8e range=startup_common@000000
+[frame 005443] exec_enter pc=071824 range=other
+[frame 005460] pc=07188e exec=other
+[frame 005460] window_change wram_ff0000
+[frame 005460] window_change z80_ctrl
+[frame 005482] exec_enter pc=055fd8 range=helper_55ca2_dispatch@000200
+[frame 005483] exec_enter pc=042940 range=other
+[frame 005490] pc=071f74 exec=other
+[frame 005490] window_change wram_ff0000
+[frame 005490] window_change vdp_ports
+[frame 005490] window_change z80_ctrl
+[frame 005520] pc=0414cc exec=other
+[frame 005520] window_change wram_ff0000
+[frame 005520] window_change vdp_ports
+[frame 005520] window_change z80_ctrl
+[frame 005522] exec_enter pc=03a2b0 range=frontend_core@000000
+[frame 005523] exec_enter pc=0718dc range=other
+[frame 005550] pc=0718ec exec=other
+[frame 005550] window_change wram_ff0000
+[frame 005550] window_change z80_ctrl
+[frame 005580] pc=071898 exec=other
+[frame 005580] window_change wram_ff0000
+[frame 005580] window_change z80_ctrl
+[frame 005610] pc=04a0f0 exec=other
+[frame 005610] window_change wram_ff0000
+[frame 005610] window_change z80_ctrl
+[frame 005640] pc=05a264 exec=other
+[frame 005640] window_change wram_ff0000
+[frame 005640] window_change z80_ctrl
+[frame 005670] pc=044b4a exec=other
+[frame 005670] window_change wram_ff0000
+[frame 005670] window_change z80_ctrl
+[frame 005700] pc=071f64 exec=other
+[frame 005700] window_change wram_ff0000
+[frame 005700] window_change vdp_ports
+[frame 005700] window_change z80_ctrl
+[frame 005730] pc=071f74 exec=other
+[frame 005730] window_change wram_ff0000
+[frame 005730] window_change z80_ctrl
+[frame 005749] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 005750] exec_enter pc=07183c range=other
+[frame 005756] exec_enter pc=03f0fc range=helper_frontend_timers@000200
+[frame 005757] exec_enter pc=0718d2 range=other
+[frame 005760] pc=044c64 exec=other
+[frame 005760] window_change wram_ff0000
+[frame 005760] window_change vdp_ports
+[frame 005760] window_change z80_ctrl
+[frame 005771] exec_enter pc=03a258 range=frontend_core@000000
+[frame 005772] exec_enter pc=07193c range=other
+[frame 005790] pc=071f04 exec=other
+[frame 005790] window_change wram_ff0000
+[frame 005790] window_change vdp_ports
+[frame 005790] window_change z80_ctrl
+[frame 005820] pc=071efc exec=other
+[frame 005820] window_change wram_ff0000
+[frame 005820] window_change z80_ctrl
+[frame 005850] pc=040d66 exec=other
+[frame 005850] window_change wram_ff0000
+[frame 005850] window_change vdp_ports
+[frame 005850] window_change z80_ctrl
+[frame 005867] exec_enter pc=03a210 range=frontend_core@000000
+[frame 005868] exec_enter pc=071efe range=other
+[frame 005880] pc=07181e exec=other
+[frame 005880] window_change wram_ff0000
+[frame 005880] window_change z80_ctrl
+[frame 005910] pc=040d5a exec=other
+[frame 005910] window_change wram_ff0000
+[frame 005910] window_change z80_ctrl
+[frame 005940] pc=071f64 exec=other
+[frame 005940] window_change wram_ff0000
+[frame 005940] window_change vdp_ports
+[frame 005940] window_change z80_ctrl
+[frame 005970] pc=053db8 exec=other
+[frame 005970] window_change wram_ff0000
+[frame 005970] window_change vdp_ports
+[frame 005970] window_change z80_ctrl
+[frame 005971] exec_enter pc=03ade2 range=helper_display_control@000000
+[frame 005972] exec_enter pc=071866 range=other
+[frame 006000] pc=071f0a exec=other
+[frame 006000] window_change wram_ff0000
+[frame 006000] window_change vdp_ports
+[frame 006000] window_change z80_ctrl
+[frame 006030] pc=0718c6 exec=other
+[frame 006030] window_change wram_ff0000
+[frame 006030] window_change vdp_ports
+[frame 006030] window_change z80_ctrl
+[frame 006060] pc=071ffe exec=other
+[frame 006060] window_change wram_ff0000
+[frame 006060] window_change vdp_ports
+[frame 006060] window_change z80_ctrl
+[frame 006090] pc=042c12 exec=other
+[frame 006090] window_change wram_ff0000
+[frame 006090] window_change vdp_ports
+[frame 006090] window_change z80_ctrl
+[frame 006099] exec_enter pc=03ad8c range=helper_d000_init@000000
+[frame 006100] exec_enter pc=071860 range=other
+[frame 006106] exec_enter pc=03b046 range=startup_common@000000
+[frame 006107] exec_enter pc=071864 range=other
+[frame 006120] pc=071e62 exec=other
+[frame 006120] window_change wram_ff0000
+[frame 006120] window_change z80_ctrl
+[frame 006150] pc=0718d2 exec=other
+[frame 006150] window_change wram_ff0000
+[frame 006150] window_change z80_ctrl
+[frame 006180] pc=071870 exec=other
+[frame 006180] window_change wram_ff0000
+[frame 006180] window_change z80_ctrl
+[frame 006210] pc=054c5c exec=other
+[frame 006210] window_change wram_ff0000
+[frame 006210] window_change z80_ctrl
+[frame 006240] pc=07181a exec=other
+[frame 006240] window_change wram_ff0000
+[frame 006240] window_change z80_ctrl
+[frame 006256] exec_enter pc=03af02 range=startup_common@000000
+[frame 006257] exec_enter pc=07193c range=other
+[frame 006270] pc=053c32 exec=other
+[frame 006270] window_change wram_ff0000
+[frame 006270] window_change z80_ctrl
+[frame 006300] pc=054708 exec=other
+[frame 006300] window_change wram_ff0000
+[frame 006300] window_change z80_ctrl
+[frame 006305] exec_enter pc=03a27e range=frontend_core@000000
+[frame 006306] exec_enter pc=0430c2 range=other
+[frame 006330] pc=053c5e exec=other
+[frame 006330] window_change wram_ff0000
+[frame 006330] window_change z80_ctrl
+[frame 006339] exec_enter pc=03a26c range=frontend_core@000000
+[frame 006340] exec_enter pc=071892 range=other
+[frame 006360] pc=040d5a exec=other
+[frame 006360] window_change wram_ff0000
+[frame 006360] window_change z80_ctrl
+[frame 006371] exec_enter pc=03a20a range=frontend_core@000000
+[frame 006372] exec_enter pc=071fb6 range=other
+[frame 006377] exec_enter pc=03b03c range=startup_common@000000
+[frame 006378] exec_enter pc=071818 range=other
+[frame 006390] pc=042324 exec=other
+[frame 006390] window_change wram_ff0000
+[frame 006390] window_change z80_ctrl
+[frame 006420] pc=044c08 exec=other
+[frame 006420] window_change wram_ff0000
+[frame 006420] window_change z80_ctrl
+[frame 006445] exec_enter pc=03a262 range=frontend_core@000000
+[frame 006446] exec_enter pc=0718aa range=other
+[frame 006450] pc=04307a exec=other
+[frame 006450] window_change wram_ff0000
+[frame 006450] window_change z80_ctrl
+[frame 006480] pc=071812 exec=other
+[frame 006480] window_change wram_ff0000
+[frame 006480] window_change z80_ctrl
+[frame 006510] pc=071f08 exec=other
+[frame 006510] window_change wram_ff0000
+[frame 006510] window_change vdp_ports
+[frame 006510] window_change z80_ctrl
+[frame 006540] pc=0718b2 exec=other
+[frame 006540] window_change wram_ff0000
+[frame 006540] window_change vdp_ports
+[frame 006540] window_change z80_ctrl
+[frame 006543] exec_enter pc=03aa00 range=frontend_core@000000
+[frame 006544] exec_enter pc=042326 range=other
+[frame 006570] pc=044e82 exec=other
+[frame 006570] window_change wram_ff0000
+[frame 006570] window_change z80_ctrl
+[frame 006573] exec_enter pc=03a9b2 range=frontend_core@000000
+[frame 006574] exec_enter pc=0718b2 range=other
+[frame 006600] pc=071844 exec=other
+[frame 006600] window_change wram_ff0000
+[frame 006600] window_change z80_ctrl
+[frame 006601] exec_enter pc=03a328 range=frontend_core@000000
+[frame 006602] exec_enter pc=071efe range=other
+[frame 006606] exec_enter pc=03a248 range=frontend_core@000000
+[frame 006607] exec_enter pc=071958 range=other
+[frame 006630] pc=042970 exec=other
+[frame 006630] window_change wram_ff0000
+[frame 006630] window_change z80_ctrl
+[frame 006660] pc=07193a exec=other
+[frame 006660] window_change wram_ff0000
+[frame 006660] window_change z80_ctrl
+[frame 006678] exec_enter pc=03f170 range=helper_frontend_timers@000200
+[frame 006679] exec_enter pc=07181e range=other
+[frame 006683] exec_enter pc=03a4d4 range=frontend_core@000000
+[frame 006684] exec_enter pc=0519c6 range=other
+[frame 006690] pc=040d56 exec=other
+[frame 006690] window_change wram_ff0000
+[frame 006690] window_change z80_ctrl
+[frame 006706] exec_enter pc=03a99e range=frontend_core@000000
+[frame 006707] exec_enter pc=07182c range=other
+[frame 006720] pc=05157e exec=other
+[frame 006720] window_change wram_ff0000
+[frame 006720] window_change z80_ctrl
+[frame 006750] pc=071846 exec=other
+[frame 006750] window_change wram_ff0000
+[frame 006750] window_change z80_ctrl
+[frame 006771] exec_enter pc=03a37a range=frontend_core@000000
+[frame 006772] exec_enter pc=071828 range=other
+[frame 006780] pc=071812 exec=other
+[frame 006780] window_change wram_ff0000
+[frame 006780] window_change z80_ctrl
+[frame 006810] pc=0718bc exec=other
+[frame 006810] window_change wram_ff0000
+[frame 006810] window_change z80_ctrl
+[frame 006840] pc=071828 exec=other
+[frame 006840] window_change wram_ff0000
+[frame 006840] window_change z80_ctrl
+[frame 006870] pc=0718b2 exec=other
+[frame 006870] window_change wram_ff0000
+[frame 006870] window_change z80_ctrl
+[frame 006900] pc=0718d8 exec=other
+[frame 006900] window_change wram_ff0000
+[frame 006900] window_change z80_ctrl
+[frame 006928] exec_enter pc=03b032 range=startup_common@000000
+[frame 006929] exec_enter pc=071828 range=other
+[frame 006930] pc=072088 exec=other
+[frame 006930] window_change wram_ff0000
+[frame 006930] window_change vdp_ports
+[frame 006930] window_change z80_ctrl
+[frame 006960] pc=072082 exec=other
+[frame 006960] window_change wram_ff0000
+[frame 006960] window_change vdp_ports
+[frame 006960] window_change z80_ctrl
+[frame 006990] pc=071f6e exec=other
+[frame 006990] window_change wram_ff0000
+[frame 006990] window_change vdp_ports
+[frame 006990] window_change z80_ctrl
+[frame 007020] pc=07202a exec=other
+[frame 007020] window_change wram_ff0000
+[frame 007020] window_change vdp_ports
+[frame 007020] window_change z80_ctrl
+[frame 007050] pc=07181e exec=other
+[frame 007050] window_change wram_ff0000
+[frame 007050] window_change z80_ctrl
+[frame 007080] pc=071f64 exec=other
+[frame 007080] window_change wram_ff0000
+[frame 007080] window_change vdp_ports
+[frame 007080] window_change z80_ctrl
+[frame 007092] exec_enter pc=03aef8 range=startup_common@000000
+[frame 007093] exec_enter pc=0718f0 range=other
+[frame 007110] pc=044ee0 exec=other
+[frame 007110] window_change wram_ff0000
+[frame 007110] window_change vdp_ports
+[frame 007110] window_change z80_ctrl
+[frame 007128] exec_enter pc=03ae98 range=startup_common@000000
+[frame 007129] exec_enter pc=071844 range=other
+[frame 007135] exec_enter pc=03ad9e range=helper_d000_init@000000
+[frame 007136] exec_enter pc=07181e range=other
+[frame 007140] pc=04760a exec=other
+[frame 007140] window_change wram_ff0000
+[frame 007140] window_change z80_ctrl
+[frame 007154] exec_enter pc=055d08 range=helper_55ca2_dispatch@000000
+[frame 007155] exec_enter pc=071e62 range=other
+[frame 007170] pc=071888 exec=other
+[frame 007170] window_change wram_ff0000
+[frame 007170] window_change z80_ctrl
+[frame 007200] pc=042314 exec=other
+[frame 007200] window_change wram_ff0000
+[frame 007200] window_change z80_ctrl
+[frame 007230] pc=07208a exec=other
+[frame 007230] window_change wram_ff0000
+[frame 007230] window_change vdp_ports
+[frame 007230] window_change z80_ctrl
+[frame 007260] pc=0414da exec=other
+[frame 007260] window_change wram_ff0000
+[frame 007260] window_change vdp_ports
+[frame 007260] window_change z80_ctrl
+[frame 007290] pc=071954 exec=other
+[frame 007290] window_change wram_ff0000
+[frame 007290] window_change z80_ctrl
+[frame 007316] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 007317] exec_enter pc=0718d8 range=other
+[frame 007320] pc=044bb4 exec=other
+[frame 007320] window_change wram_ff0000
+[frame 007320] window_change z80_ctrl
+[frame 007330] exec_enter pc=03f170 range=helper_frontend_timers@000200
+[frame 007331] exec_enter pc=071866 range=other
+[frame 007350] pc=0718f0 exec=other
+[frame 007350] window_change wram_ff0000
+[frame 007350] window_change z80_ctrl
+[frame 007357] exec_enter pc=03ada0 range=helper_d000_init@000000
+[frame 007358] exec_enter pc=071828 range=other
+[frame 007366] exec_enter pc=03a334 range=frontend_core@000000
+[frame 007367] exec_enter pc=071f64 range=other
+[frame 007380] pc=0718b0 exec=other
+[frame 007380] window_change wram_ff0000
+[frame 007380] window_change z80_ctrl
+[frame 007410] pc=07018a exec=other
+[frame 007410] window_change wram_ff0000
+[frame 007410] window_change vdp_ports
+[frame 007410] window_change z80_ctrl
+[frame 007428] exec_enter pc=03ad82 range=helper_d000_init@000000
+[frame 007429] exec_enter pc=071828 range=other
+[frame 007440] pc=04303e exec=other
+[frame 007440] window_change wram_ff0000
+[frame 007440] window_change vdp_ports
+[frame 007440] window_change z80_ctrl
+[frame 007470] pc=042c36 exec=other
+[frame 007470] window_change wram_ff0000
+[frame 007470] window_change z80_ctrl
+[frame 007500] pc=05202e exec=other
+[frame 007500] window_change wram_ff0000
+[frame 007500] window_change z80_ctrl
+[frame 007530] pc=071850 exec=other
+[frame 007530] window_change wram_ff0000
+[frame 007530] window_change z80_ctrl
+[frame 007560] exec_enter pc=055cba range=helper_55ca2_dispatch@000000
+[frame 007560] pc=055cba exec=helper_55ca2_dispatch@000000
+[frame 007560] window_change wram_ff0000
+[frame 007560] window_change z80_ctrl
+[frame 007561] exec_enter pc=071ef4 range=other
+[frame 007590] pc=042c0c exec=other
+[frame 007590] window_change wram_ff0000
+[frame 007590] window_change z80_ctrl
+[frame 007620] pc=0718d4 exec=other
+[frame 007620] window_change wram_ff0000
+[frame 007620] window_change z80_ctrl
+[frame 007641] exec_enter pc=03af0e range=startup_common@000000
+[frame 007642] exec_enter pc=071900 range=other
+[frame 007650] pc=072088 exec=other
+[frame 007650] window_change wram_ff0000
+[frame 007650] window_change vdp_ports
+[frame 007650] window_change z80_ctrl
+[frame 007654] exec_enter pc=055cdc range=helper_55ca2_dispatch@000000
+[frame 007655] exec_enter pc=071810 range=other
+[frame 007680] pc=044b9e exec=other
+[frame 007680] window_change wram_ff0000
+[frame 007680] window_change vdp_ports
+[frame 007680] window_change z80_ctrl
+[frame 007690] exec_enter pc=03ae18 range=helper_display_control@000000
+[frame 007691] exec_enter pc=0718c6 range=other
+[frame 007710] pc=053c60 exec=other
+[frame 007710] window_change wram_ff0000
+[frame 007710] window_change z80_ctrl
+[frame 007734] exec_enter pc=03a20c range=frontend_core@000000
+[frame 007735] exec_enter pc=071f08 range=other
+[frame 007740] pc=071812 exec=other
+[frame 007740] window_change wram_ff0000
+[frame 007740] window_change z80_ctrl
+[frame 007770] pc=044bf0 exec=other
+[frame 007770] window_change wram_ff0000
+[frame 007770] window_change z80_ctrl
+[frame 007783] exec_enter pc=03a276 range=frontend_core@000000
+[frame 007784] exec_enter pc=044600 range=other
+[frame 007800] pc=071848 exec=other
+[frame 007800] window_change wram_ff0000
+[frame 007800] window_change z80_ctrl
+[frame 007830] pc=0430c2 exec=other
+[frame 007830] window_change wram_ff0000
+[frame 007830] window_change z80_ctrl
+[frame 007860] pc=072080 exec=other
+[frame 007860] window_change wram_ff0000
+[frame 007860] window_change vdp_ports
+[frame 007860] window_change z80_ctrl
+[frame 007890] pc=042310 exec=other
+[frame 007890] window_change wram_ff0000
+[frame 007890] window_change vdp_ports
+[frame 007890] window_change z80_ctrl
+[frame 007920] pc=071874 exec=other
+[frame 007920] window_change wram_ff0000
+[frame 007920] window_change z80_ctrl
+[frame 007950] pc=042308 exec=other
+[frame 007950] window_change wram_ff0000
+[frame 007950] window_change z80_ctrl
+[frame 007980] pc=071fc6 exec=other
+[frame 007980] window_change wram_ff0000
+[frame 007980] window_change z80_ctrl
+[frame 008010] pc=07186c exec=other
+[frame 008010] window_change wram_ff0000
+[frame 008010] window_change z80_ctrl
+[frame 008030] exec_enter pc=03ae04 range=helper_display_control@000000
+[frame 008031] exec_enter pc=07189c range=other
+[frame 008040] pc=044eaa exec=other
+[frame 008040] window_change wram_ff0000
+[frame 008040] window_change z80_ctrl
+[frame 008070] pc=071828 exec=other
+[frame 008070] window_change wram_ff0000
+[frame 008070] window_change z80_ctrl
+[frame 008078] exec_enter pc=03a21a range=frontend_core@000000
+[frame 008079] exec_enter pc=071f64 range=other
+[frame 008083] exec_enter pc=03a99e range=frontend_core@000000
+[frame 008084] exec_enter pc=07194c range=other
+[frame 008100] pc=071efe exec=other
+[frame 008100] window_change wram_ff0000
+[frame 008100] window_change vdp_ports
+[frame 008100] window_change z80_ctrl
+[frame 008118] exec_enter pc=03adf6 range=helper_display_control@000000
+[frame 008119] exec_enter pc=07194c range=other
+[frame 008130] pc=04298e exec=other
+[frame 008130] window_change wram_ff0000
+[frame 008130] window_change vdp_ports
+[frame 008130] window_change z80_ctrl
+[frame 008149] exec_enter pc=03a234 range=frontend_core@000000
+[frame 008150] exec_enter pc=071efe range=other
+[frame 008160] pc=053e8e exec=other
+[frame 008160] window_change wram_ff0000
+[frame 008160] window_change z80_ctrl
+[frame 008171] exec_enter pc=03a27e range=frontend_core@000000
+[frame 008172] exec_enter pc=0445ea range=other
+[frame 008190] pc=0718ec exec=other
+[frame 008190] window_change wram_ff0000
+[frame 008190] window_change z80_ctrl
+[frame 008220] pc=0430c6 exec=other
+[frame 008220] window_change wram_ff0000
+[frame 008220] window_change z80_ctrl
+[frame 008250] pc=05a756 exec=other
+[frame 008250] window_change wram_ff0000
+[frame 008250] window_change z80_ctrl
+[frame 008280] pc=0718e0 exec=other
+[frame 008280] window_change wram_ff0000
+[frame 008280] window_change z80_ctrl
+[frame 008286] exec_enter pc=03ae94 range=startup_common@000000
+[frame 008287] exec_enter pc=071828 range=other
+[frame 008308] exec_enter pc=03ade8 range=helper_display_control@000000
+[frame 008309] exec_enter pc=071816 range=other
+[frame 008310] pc=072086 exec=other
+[frame 008310] window_change wram_ff0000
+[frame 008310] window_change vdp_ports
+[frame 008310] window_change z80_ctrl
+[frame 008340] pc=071ef6 exec=other
+[frame 008340] window_change wram_ff0000
+[frame 008340] window_change vdp_ports
+[frame 008340] window_change z80_ctrl
+[frame 008369] exec_enter pc=03a27e range=frontend_core@000000
+[frame 008370] exec_enter pc=044bce range=other
+[frame 008370] pc=044bce exec=other
+[frame 008370] window_change wram_ff0000
+[frame 008370] window_change vdp_ports
+[frame 008370] window_change z80_ctrl
+[frame 008400] pc=0545fa exec=other
+[frame 008400] window_change wram_ff0000
+[frame 008400] window_change z80_ctrl
+[frame 008422] exec_enter pc=03a262 range=frontend_core@000000
+[frame 008423] exec_enter pc=0718b0 range=other
+[frame 008430] pc=071960 exec=other
+[frame 008430] window_change wram_ff0000
+[frame 008430] window_change z80_ctrl
+[frame 008443] exec_enter pc=03a9b6 range=frontend_core@000000
+[frame 008444] exec_enter pc=07188a range=other
+[frame 008460] pc=071efe exec=other
+[frame 008460] window_change wram_ff0000
+[frame 008460] window_change vdp_ports
+[frame 008460] window_change z80_ctrl
+[frame 008490] pc=053c54 exec=other
+[frame 008490] window_change wram_ff0000
+[frame 008490] window_change vdp_ports
+[frame 008490] window_change z80_ctrl
+[frame 008520] pc=0718b0 exec=other
+[frame 008520] window_change wram_ff0000
+[frame 008520] window_change z80_ctrl
+[frame 008550] pc=043038 exec=other
+[frame 008550] window_change wram_ff0000
+[frame 008550] window_change z80_ctrl
+[frame 008580] pc=07193c exec=other
+[frame 008580] window_change wram_ff0000
+[frame 008580] window_change z80_ctrl
+[frame 008610] pc=040d56 exec=other
+[frame 008610] window_change wram_ff0000
+[frame 008610] window_change z80_ctrl
+[frame 008640] pc=071ef8 exec=other
+[frame 008640] window_change wram_ff0000
+[frame 008640] window_change vdp_ports
+[frame 008640] window_change z80_ctrl
+[frame 008670] pc=0718f4 exec=other
+[frame 008670] window_change wram_ff0000
+[frame 008670] window_change vdp_ports
+[frame 008670] window_change z80_ctrl
+[frame 008700] pc=0430ca exec=other
+[frame 008700] window_change wram_ff0000
+[frame 008700] window_change z80_ctrl
+[frame 008716] exec_enter pc=03a2ca range=frontend_core@000000
+[frame 008717] exec_enter pc=071944 range=other
+[frame 008723] exec_enter pc=03af10 range=startup_common@000000
+[frame 008724] exec_enter pc=07185e range=other
+[frame 008730] pc=071958 exec=other
+[frame 008730] window_change wram_ff0000
+[frame 008730] window_change z80_ctrl
+[frame 008760] pc=042310 exec=other
+[frame 008760] window_change wram_ff0000
+[frame 008760] window_change z80_ctrl
+[frame 008778] exec_enter pc=03a23c range=frontend_core@000000
+[frame 008779] exec_enter pc=071f5a range=other
+[frame 008790] pc=071a3e exec=other
+[frame 008790] window_change wram_ff0000
+[frame 008790] window_change z80_ctrl
+[frame 008820] pc=071f04 exec=other
+[frame 008820] window_change wram_ff0000
+[frame 008820] window_change vdp_ports
+[frame 008820] window_change z80_ctrl
+[frame 008839] exec_enter pc=055cca range=helper_55ca2_dispatch@000000
+[frame 008840] exec_enter pc=071f64 range=other
+[frame 008850] pc=051b46 exec=other
+[frame 008850] window_change wram_ff0000
+[frame 008850] window_change vdp_ports
+[frame 008850] window_change z80_ctrl
+[frame 008865] exec_enter pc=03a224 range=frontend_core@000000
+[frame 008866] exec_enter pc=071f74 range=other
+[frame 008880] pc=071f58 exec=other
+[frame 008880] window_change wram_ff0000
+[frame 008880] window_change vdp_ports
+[frame 008880] window_change z80_ctrl
+[frame 008910] pc=044b4a exec=other
+[frame 008910] window_change wram_ff0000
+[frame 008910] window_change vdp_ports
+[frame 008910] window_change z80_ctrl
+[frame 008940] pc=042318 exec=other
+[frame 008940] window_change wram_ff0000
+[frame 008940] window_change z80_ctrl
+[frame 008970] exec_enter pc=03af10 range=startup_common@000000
+[frame 008970] pc=03af10 exec=startup_common@000000
+[frame 008970] window_change wram_ff0000
+[frame 008970] window_change z80_ctrl
+[frame 008971] exec_enter pc=0718f0 range=other
+[frame 008998] exec_enter pc=03a22e range=frontend_core@000000
+[frame 008999] exec_enter pc=071f6c range=other
+[frame 009000] pc=044ebc exec=other
+[frame 009000] window_change wram_ff0000
+[frame 009000] window_change z80_ctrl
+[frame 009030] exec_enter pc=03ae0c range=helper_display_control@000000
+[frame 009030] pc=03ae0c exec=helper_display_control@000000
+[frame 009030] window_change wram_ff0000
+[frame 009030] window_change z80_ctrl
+[frame 009031] exec_enter pc=071808 range=other
+[frame 009060] pc=072080 exec=other
+[frame 009060] window_change wram_ff0000
+[frame 009060] window_change vdp_ports
+[frame 009060] window_change z80_ctrl
+[frame 009090] pc=042316 exec=other
+[frame 009090] window_change wram_ff0000
+[frame 009090] window_change vdp_ports
+[frame 009090] window_change z80_ctrl
+[frame 009120] pc=072088 exec=other
+[frame 009120] window_change wram_ff0000
+[frame 009120] window_change vdp_ports
+[frame 009120] window_change z80_ctrl
+[frame 009150] pc=071856 exec=other
+[frame 009150] window_change wram_ff0000
+[frame 009150] window_change vdp_ports
+[frame 009150] window_change z80_ctrl
+[frame 009163] exec_enter pc=03b050 range=startup_common@000000
+[frame 009164] exec_enter pc=071886 range=other
+[frame 009180] pc=04298e exec=other
+[frame 009180] window_change wram_ff0000
+[frame 009180] window_change z80_ctrl
+[frame 009182] exec_enter pc=03a2ac range=frontend_core@000000
+[frame 009183] exec_enter pc=0718b0 range=other
+[frame 009207] exec_enter pc=03a250 range=frontend_core@000000
+[frame 009208] exec_enter pc=071870 range=other
+[frame 009210] pc=0448d4 exec=other
+[frame 009210] window_change wram_ff0000
+[frame 009210] window_change z80_ctrl
+[frame 009240] pc=044e7c exec=other
+[frame 009240] window_change wram_ff0000
+[frame 009240] window_change z80_ctrl
+[frame 009270] pc=042ab2 exec=other
+[frame 009270] window_change wram_ff0000
+[frame 009270] window_change z80_ctrl
+[frame 009298] exec_enter pc=03aa32 range=frontend_core@000000
+[frame 009299] exec_enter pc=0430a0 range=other
+[frame 009300] pc=040d76 exec=other
+[frame 009300] window_change wram_ff0000
+[frame 009300] window_change z80_ctrl
+[frame 009313] exec_enter pc=03b046 range=startup_common@000000
+[frame 009314] exec_enter pc=071862 range=other
+[frame 009330] pc=07184e exec=other
+[frame 009330] window_change wram_ff0000
+[frame 009330] window_change z80_ctrl
+[frame 009360] pc=07188c exec=other
+[frame 009360] window_change wram_ff0000
+[frame 009360] window_change z80_ctrl
+[frame 009373] exec_enter pc=03a22e range=frontend_core@000000
+[frame 009374] exec_enter pc=071efe range=other
+[frame 009390] pc=071820 exec=other
+[frame 009390] window_change wram_ff0000
+[frame 009390] window_change z80_ctrl
+[frame 009407] exec_enter pc=03ae9c range=startup_common@000000
+[frame 009408] exec_enter pc=071952 range=other
+[frame 009420] pc=07183c exec=other
+[frame 009420] window_change wram_ff0000
+[frame 009420] window_change z80_ctrl
+[frame 009450] pc=071810 exec=other
+[frame 009450] window_change wram_ff0000
+[frame 009450] window_change z80_ctrl
+[frame 009480] pc=071820 exec=other
+[frame 009480] window_change wram_ff0000
+[frame 009480] window_change z80_ctrl
+[frame 009510] pc=042aa2 exec=other
+[frame 009510] window_change wram_ff0000
+[frame 009510] window_change z80_ctrl
+[frame 009540] pc=071816 exec=other
+[frame 009540] window_change wram_ff0000
+[frame 009540] window_change z80_ctrl
+[frame 009570] window_change wram_ff0000
+[frame 009570] window_change z80_ctrl
+[frame 009580] exec_enter pc=055cd2 range=helper_55ca2_dispatch@000000
+[frame 009581] exec_enter pc=071efe range=other
+[frame 009598] exec_enter pc=03a248 range=frontend_core@000000
+[frame 009599] exec_enter pc=071906 range=other
+[frame 009600] pc=071f64 exec=other
+[frame 009600] window_change wram_ff0000
+[frame 009600] window_change vdp_ports
+[frame 009600] window_change z80_ctrl
+[frame 009630] pc=040d78 exec=other
+[frame 009630] window_change wram_ff0000
+[frame 009630] window_change vdp_ports
+[frame 009630] window_change z80_ctrl
+[frame 009660] pc=071850 exec=other
+[frame 009660] window_change wram_ff0000
+[frame 009660] window_change z80_ctrl
+[frame 009673] exec_enter pc=03ae8e range=startup_common@000000
+[frame 009674] exec_enter pc=0718aa range=other
+[frame 009690] pc=071f56 exec=other
+[frame 009690] window_change wram_ff0000
+[frame 009690] window_change vdp_ports
+[frame 009690] window_change z80_ctrl
+[frame 009703] exec_enter pc=03a218 range=frontend_core@000000
+[frame 009704] exec_enter pc=071f6a range=other
+[frame 009720] pc=04231e exec=other
+[frame 009720] window_change wram_ff0000
+[frame 009720] window_change vdp_ports
+[frame 009720] window_change z80_ctrl
+[frame 009729] exec_enter pc=03aea6 range=startup_common@000000
+[frame 009730] exec_enter pc=042166 range=other
+[frame 009750] pc=071886 exec=other
+[frame 009750] window_change wram_ff0000
+[frame 009750] window_change z80_ctrl
+[frame 009780] pc=044b04 exec=other
+[frame 009780] window_change wram_ff0000
+[frame 009780] window_change z80_ctrl
+[frame 009810] pc=071886 exec=other
+[frame 009810] window_change wram_ff0000
+[frame 009810] window_change z80_ctrl
+[frame 009818] exec_enter pc=03aa32 range=frontend_core@000000
+[frame 009819] exec_enter pc=0445fe range=other
+[frame 009840] pc=05a1e4 exec=other
+[frame 009840] window_change wram_ff0000
+[frame 009840] window_change z80_ctrl
+[frame 009842] exec_enter pc=055cce range=helper_55ca2_dispatch@000000
+[frame 009843] exec_enter pc=071f04 range=other
+[frame 009870] pc=053d3a exec=other
+[frame 009870] window_change wram_ff0000
+[frame 009870] window_change z80_ctrl
+[frame 009900] pc=0718b8 exec=other
+[frame 009900] window_change wram_ff0000
+[frame 009900] window_change z80_ctrl
+[frame 009909] exec_enter pc=03a27e range=frontend_core@000000
+[frame 009910] exec_enter pc=040d56 range=other
+[frame 009930] pc=071828 exec=other
+[frame 009930] window_change wram_ff0000
+[frame 009930] window_change z80_ctrl
+[frame 009960] pc=071f36 exec=other
+[frame 009960] window_change wram_ff0000
+[frame 009960] window_change vdp_ports
+[frame 009960] window_change z80_ctrl
+[frame 009990] pc=042318 exec=other
+[frame 009990] window_change wram_ff0000
+[frame 009990] window_change vdp_ports
+[frame 009990] window_change z80_ctrl
+[frame 010020] pc=071860 exec=other
+[frame 010020] window_change wram_ff0000
+[frame 010020] window_change z80_ctrl
+[frame 010021] exec_enter pc=03a32e range=frontend_core@000000
+[frame 010022] exec_enter pc=071f36 range=other
+[frame 010050] pc=071fea exec=other
+[frame 010050] window_change wram_ff0000
+[frame 010050] window_change z80_ctrl
+[frame 010080] pc=071f64 exec=other
+[frame 010080] window_change wram_ff0000
+[frame 010080] window_change vdp_ports
+[frame 010080] window_change z80_ctrl
+[frame 010110] pc=071ef8 exec=other
+[frame 010110] window_change wram_ff0000
+[frame 010110] window_change z80_ctrl
+[frame 010114] exec_enter pc=03a266 range=frontend_core@000000
+[frame 010115] exec_enter pc=071846 range=other
+[frame 010140] pc=071868 exec=other
+[frame 010140] window_change wram_ff0000
+[frame 010140] window_change vdp_ports
+[frame 010140] window_change z80_ctrl
+[frame 010170] pc=042310 exec=other
+[frame 010170] window_change wram_ff0000
+[frame 010170] window_change z80_ctrl
+[frame 010200] pc=072082 exec=other
+[frame 010200] window_change wram_ff0000
+[frame 010200] window_change vdp_ports
+[frame 010200] window_change z80_ctrl
+[frame 010230] pc=042316 exec=other
+[frame 010230] window_change wram_ff0000
+[frame 010230] window_change vdp_ports
+[frame 010230] window_change z80_ctrl
+[frame 010260] pc=053f04 exec=other
+[frame 010260] window_change wram_ff0000
+[frame 010260] window_change z80_ctrl
+[frame 010290] pc=07181e exec=other
+[frame 010290] window_change wram_ff0000
+[frame 010290] window_change z80_ctrl
+[frame 010320] pc=071efe exec=other
+[frame 010320] window_change wram_ff0000
+[frame 010320] window_change vdp_ports
+[frame 010320] window_change z80_ctrl
+[frame 010340] exec_enter pc=03a20c range=frontend_core@000000
+[frame 010341] exec_enter pc=071f84 range=other
+[frame 010350] pc=04225c exec=other
+[frame 010350] window_change wram_ff0000
+[frame 010350] window_change vdp_ports
+[frame 010350] window_change z80_ctrl
+[frame 010380] pc=071e66 exec=other
+[frame 010380] window_change wram_ff0000
+[frame 010380] window_change z80_ctrl
+[frame 010410] pc=071f64 exec=other
+[frame 010410] window_change wram_ff0000
+[frame 010410] window_change vdp_ports
+[frame 010410] window_change z80_ctrl
+[frame 010440] pc=041350 exec=other
+[frame 010440] window_change wram_ff0000
+[frame 010440] window_change vdp_ports
+[frame 010440] window_change z80_ctrl
+[frame 010441] exec_enter pc=03b03c range=startup_common@000000
+[frame 010442] exec_enter pc=07181a range=other
+[frame 010470] pc=071f06 exec=other
+[frame 010470] window_change wram_ff0000
+[frame 010470] window_change vdp_ports
+[frame 010470] window_change z80_ctrl
+[frame 010500] pc=071f64 exec=other
+[frame 010500] window_change wram_ff0000
+[frame 010500] window_change z80_ctrl
+[frame 010522] exec_enter pc=03ae16 range=helper_display_control@000000
+[frame 010523] exec_enter pc=0718f0 range=other
+[frame 010530] pc=071efe exec=other
+[frame 010530] window_change wram_ff0000
+[frame 010530] window_change z80_ctrl
+[frame 010560] pc=042318 exec=other
+[frame 010560] window_change wram_ff0000
+[frame 010560] window_change vdp_ports
+[frame 010560] window_change z80_ctrl
+[frame 010570] exec_enter pc=055ea6 range=helper_55ca2_dispatch@000200
+[frame 010571] exec_enter pc=042986 range=other
+[frame 010580] exec_enter pc=055cd6 range=helper_55ca2_dispatch@000000
+[frame 010581] exec_enter pc=071efc range=other
+[frame 010590] pc=0718cc exec=other
+[frame 010590] window_change wram_ff0000
+[frame 010590] window_change z80_ctrl
+[frame 010620] pc=071f64 exec=other
+[frame 010620] window_change wram_ff0000
+[frame 010620] window_change vdp_ports
+[frame 010620] window_change z80_ctrl
+[frame 010650] pc=040c1e exec=other
+[frame 010650] window_change wram_ff0000
+[frame 010650] window_change vdp_ports
+[frame 010650] window_change z80_ctrl
+[frame 010680] pc=071864 exec=other
+[frame 010680] window_change wram_ff0000
+[frame 010680] window_change z80_ctrl
+[frame 010710] pc=071f64 exec=other
+[frame 010710] window_change wram_ff0000
+[frame 010710] window_change vdp_ports
+[frame 010710] window_change z80_ctrl
+[frame 010714] exec_enter pc=03a99c range=frontend_core@000000
+[frame 010715] exec_enter pc=0718ec range=other
+[frame 010740] pc=071efc exec=other
+[frame 010740] window_change wram_ff0000
+[frame 010740] window_change vdp_ports
+[frame 010740] window_change z80_ctrl
+[frame 010758] exec_enter pc=03a276 range=frontend_core@000000
+[frame 010759] exec_enter pc=03d15e range=other
+[frame 010770] pc=044d94 exec=other
+[frame 010770] window_change wram_ff0000
+[frame 010770] window_change vdp_ports
+[frame 010770] window_change z80_ctrl
+[frame 010793] exec_enter pc=03a2cc range=frontend_core@000000
+[frame 010794] exec_enter pc=071850 range=other
+[frame 010800] pc=0718aa exec=other
+[frame 010800] window_change wram_ff0000
+[frame 010800] window_change z80_ctrl
+[frame 010813] exec_enter pc=03ad88 range=helper_d000_init@000000
+[frame 010814] exec_enter pc=07194e range=other
+[frame 010830] pc=0448d4 exec=other
+[frame 010830] window_change wram_ff0000
+[frame 010830] window_change z80_ctrl
+[frame 010840] exec_enter pc=03b034 range=startup_common@000000
+[frame 010841] exec_enter pc=0718c2 range=other
+[frame 010860] pc=0549ac exec=other
+[frame 010860] window_change wram_ff0000
+[frame 010860] window_change z80_ctrl
+[frame 010861] exec_enter pc=03a2ba range=frontend_core@000000
+[frame 010862] exec_enter pc=071954 range=other
+[frame 010884] exec_enter pc=03a32e range=frontend_core@000000
+[frame 010885] exec_enter pc=071f62 range=other
+[frame 010890] pc=0718ea exec=other
+[frame 010890] window_change wram_ff0000
+[frame 010890] window_change z80_ctrl
+[frame 010920] pc=071f64 exec=other
+[frame 010920] window_change wram_ff0000
+[frame 010920] window_change vdp_ports
+[frame 010920] window_change z80_ctrl
+[frame 010950] pc=03d162 exec=other
+[frame 010950] window_change wram_ff0000
+[frame 010950] window_change vdp_ports
+[frame 010950] window_change z80_ctrl
+[frame 010970] exec_enter pc=03a9da range=frontend_core@000000
+[frame 010971] exec_enter pc=0445fe range=other
+[frame 010980] pc=053ed6 exec=other
+[frame 010980] window_change wram_ff0000
+[frame 010980] window_change z80_ctrl
+[frame 010990] exec_enter pc=03a228 range=frontend_core@000000
+[frame 010991] exec_enter pc=071efa range=other
+[frame 011010] pc=0718da exec=other
+[frame 011010] window_change wram_ff0000
+[frame 011010] window_change z80_ctrl
+[frame 011011] exec_enter pc=055cc6 range=helper_55ca2_dispatch@000000
+[frame 011012] exec_enter pc=071efe range=other
+[frame 011040] pc=071f0a exec=other
+[frame 011040] window_change wram_ff0000
+[frame 011040] window_change vdp_ports
+[frame 011040] window_change z80_ctrl
+[frame 011070] pc=042310 exec=other
+[frame 011070] window_change wram_ff0000
+[frame 011070] window_change vdp_ports
+[frame 011070] window_change z80_ctrl
+[frame 011079] exec_enter pc=03b038 range=startup_common@000000
+[frame 011080] exec_enter pc=071958 range=other
+[frame 011100] pc=071954 exec=other
+[frame 011100] window_change wram_ff0000
+[frame 011100] window_change z80_ctrl
+[frame 011130] pc=054df4 exec=other
+[frame 011130] window_change wram_ff0000
+[frame 011130] window_change z80_ctrl
+[frame 011160] pc=071860 exec=other
+[frame 011160] window_change wram_ff0000
+[frame 011160] window_change z80_ctrl
+[frame 011190] pc=072088 exec=other
+[frame 011190] window_change wram_ff0000
+[frame 011190] window_change vdp_ports
+[frame 011190] window_change z80_ctrl
+[frame 011220] pc=0430c6 exec=other
+[frame 011220] window_change wram_ff0000
+[frame 011220] window_change vdp_ports
+[frame 011220] window_change z80_ctrl
+[frame 011250] pc=071a36 exec=other
+[frame 011250] window_change wram_ff0000
+[frame 011250] window_change z80_ctrl
+[frame 011266] exec_enter pc=03f100 range=helper_frontend_timers@000200
+[frame 011267] exec_enter pc=07180e range=other
+[frame 011280] pc=0449b8 exec=other
+[frame 011280] window_change wram_ff0000
+[frame 011280] window_change z80_ctrl
+[frame 011294] exec_enter pc=03aea6 range=startup_common@000000
+[frame 011295] exec_enter pc=071962 range=other
+[frame 011305] exec_enter pc=03ad7c range=helper_d000_init@000000
+[frame 011306] exec_enter pc=0718aa range=other
+[frame 011310] pc=054f8c exec=other
+[frame 011310] window_change wram_ff0000
+[frame 011310] window_change z80_ctrl
+[frame 011340] pc=071a44 exec=other
+[frame 011340] window_change wram_ff0000
+[frame 011340] window_change z80_ctrl
+[frame 011370] pc=042310 exec=other
+[frame 011370] window_change wram_ff0000
+[frame 011370] window_change z80_ctrl
+[frame 011400] pc=042202 exec=other
+[frame 011400] window_change wram_ff0000
+[frame 011400] window_change z80_ctrl
+[frame 011408] exec_enter pc=03a2d0 range=frontend_core@000000
+[frame 011409] exec_enter pc=0718f0 range=other
+[frame 011430] pc=071f64 exec=other
+[frame 011430] window_change wram_ff0000
+[frame 011430] window_change vdp_ports
+[frame 011430] window_change z80_ctrl
+[frame 011448] exec_enter pc=03f100 range=helper_frontend_timers@000200
+[frame 011449] exec_enter pc=0718a4 range=other
+[frame 011460] pc=03d1b0 exec=other
+[frame 011460] window_change wram_ff0000
+[frame 011460] window_change vdp_ports
+[frame 011460] window_change z80_ctrl
+[frame 011478] exec_enter pc=03a35a range=frontend_core@000000
+[frame 011479] exec_enter pc=071efc range=other
+[frame 011490] pc=0718c6 exec=other
+[frame 011490] window_change wram_ff0000
+[frame 011490] window_change z80_ctrl
+[frame 011520] pc=0718b2 exec=other
+[frame 011520] window_change wram_ff0000
+[frame 011520] window_change z80_ctrl
+[frame 011550] pc=04a0e6 exec=other
+[frame 011550] window_change wram_ff0000
+[frame 011550] window_change z80_ctrl
+[frame 011580] pc=0421ec exec=other
+[frame 011580] window_change wram_ff0000
+[frame 011580] window_change z80_ctrl
+[frame 011610] pc=0718e8 exec=other
+[frame 011610] window_change wram_ff0000
+[frame 011610] window_change z80_ctrl
+[frame 011640] pc=071ef2 exec=other
+[frame 011640] window_change wram_ff0000
+[frame 011640] window_change vdp_ports
+[frame 011640] window_change z80_ctrl
+[frame 011670] pc=042980 exec=other
+[frame 011670] window_change wram_ff0000
+[frame 011670] window_change vdp_ports
+[frame 011670] window_change z80_ctrl
+[frame 011700] pc=053c3a exec=other
+[frame 011700] window_change wram_ff0000
+[frame 011700] window_change z80_ctrl
+[frame 011730] pc=07208a exec=other
+[frame 011730] window_change wram_ff0000
+[frame 011730] window_change vdp_ports
+[frame 011730] window_change z80_ctrl
+[frame 011731] exec_enter pc=03a9bc range=frontend_core@000000
+[frame 011732] exec_enter pc=0445f2 range=other
+[frame 011760] pc=0718b0 exec=other
+[frame 011760] window_change wram_ff0000
+[frame 011760] window_change vdp_ports
+[frame 011760] window_change z80_ctrl
+[frame 011790] exec_enter pc=03a376 range=frontend_core@000000
+[frame 011790] pc=03a376 exec=frontend_core@000000
+[frame 011790] window_change wram_ff0000
+[frame 011790] window_change z80_ctrl
+[frame 011791] exec_enter pc=071816 range=other
+[frame 011818] exec_enter pc=055cf4 range=helper_55ca2_dispatch@000000
+[frame 011819] exec_enter pc=07180a range=other
+[frame 011820] pc=071950 exec=other
+[frame 011820] window_change wram_ff0000
+[frame 011820] window_change z80_ctrl
+[frame 011850] pc=071f02 exec=other
+[frame 011850] window_change wram_ff0000
+[frame 011850] window_change vdp_ports
+[frame 011850] window_change z80_ctrl
+[frame 011880] pc=04228c exec=other
+[frame 011880] window_change wram_ff0000
+[frame 011880] window_change vdp_ports
+[frame 011880] window_change z80_ctrl
+[frame 011887] exec_enter pc=03adf2 range=helper_display_control@000000
+[frame 011888] exec_enter pc=071828 range=other
+[frame 011910] pc=0718aa exec=other
+[frame 011910] window_change wram_ff0000
+[frame 011910] window_change z80_ctrl
+[frame 011940] pc=044d3a exec=other
+[frame 011940] window_change wram_ff0000
+[frame 011940] window_change z80_ctrl
+[frame 011970] pc=054a74 exec=other
+[frame 011970] window_change wram_ff0000
+[frame 011970] window_change z80_ctrl
+[frame 011993] exec_enter pc=03a26c range=frontend_core@000000
+[frame 011994] exec_enter pc=0718a2 range=other
+[frame 012000] pc=07207e exec=other
+[frame 012000] window_change wram_ff0000
+[frame 012000] window_change vdp_ports
+[frame 012000] window_change z80_ctrl
+[frame 012030] pc=044c04 exec=other
+[frame 012030] window_change wram_ff0000
+[frame 012030] window_change vdp_ports
+[frame 012030] window_change z80_ctrl
+[frame 012047] exec_enter pc=03a236 range=frontend_core@000000
+[frame 012048] exec_enter pc=071f16 range=other
+[frame 012060] pc=0700ea exec=other
+[frame 012060] window_change wram_ff0000
+[frame 012060] window_change vdp_ports
+[frame 012060] window_change z80_ctrl
+[frame 012090] pc=04149a exec=other
+[frame 012090] window_change wram_ff0000
+[frame 012090] window_change vdp_ports
+[frame 012090] window_change z80_ctrl
+[frame 012120] pc=071848 exec=other
+[frame 012120] window_change wram_ff0000
+[frame 012120] window_change z80_ctrl
+[frame 012150] pc=044ebc exec=other
+[frame 012150] window_change wram_ff0000
+[frame 012150] window_change z80_ctrl
+[frame 012157] exec_enter pc=03a27e range=frontend_core@000000
+[frame 012158] exec_enter pc=042978 range=other
+[frame 012180] pc=042318 exec=other
+[frame 012180] window_change wram_ff0000
+[frame 012180] window_change z80_ctrl
+[frame 012210] pc=07189a exec=other
+[frame 012210] window_change wram_ff0000
+[frame 012210] window_change z80_ctrl
+[frame 012240] pc=0700a8 exec=other
+[frame 012240] window_change wram_ff0000
+[frame 012240] window_change vdp_ports
+[frame 012240] window_change z80_ctrl
+[frame 012270] pc=0449c4 exec=other
+[frame 012270] window_change wram_ff0000
+[frame 012270] window_change vdp_ports
+[frame 012270] window_change z80_ctrl
+[frame 012300] pc=040b76 exec=other
+[frame 012300] window_change wram_ff0000
+[frame 012300] window_change z80_ctrl
+[frame 012330] pc=071872 exec=other
+[frame 012330] window_change wram_ff0000
+[frame 012330] window_change z80_ctrl
+[frame 012360] pc=0430b8 exec=other
+[frame 012360] window_change wram_ff0000
+[frame 012360] window_change z80_ctrl
+[frame 012390] pc=071f8c exec=other
+[frame 012390] window_change wram_ff0000
+[frame 012390] window_change vdp_ports
+[frame 012390] window_change z80_ctrl
+[frame 012420] pc=071954 exec=other
+[frame 012420] window_change wram_ff0000
+[frame 012420] window_change vdp_ports
+[frame 012420] window_change z80_ctrl
+[frame 012450] pc=072000 exec=other
+[frame 012450] window_change wram_ff0000
+[frame 012450] window_change vdp_ports
+[frame 012450] window_change z80_ctrl
+[frame 012478] exec_enter pc=03a24c range=frontend_core@000000
+[frame 012479] exec_enter pc=071962 range=other
+[frame 012480] pc=071f6c exec=other
+[frame 012480] window_change wram_ff0000
+[frame 012480] window_change vdp_ports
+[frame 012480] window_change z80_ctrl
+[frame 012510] pc=042316 exec=other
+[frame 012510] window_change wram_ff0000
+[frame 012510] window_change vdp_ports
+[frame 012510] window_change z80_ctrl
+[frame 012540] pc=05184a exec=other
+[frame 012540] window_change wram_ff0000
+[frame 012540] window_change z80_ctrl
+[frame 012570] pc=072000 exec=other
+[frame 012570] window_change wram_ff0000
+[frame 012570] window_change vdp_ports
+[frame 012570] window_change z80_ctrl
+[frame 012600] pc=043088 exec=other
+[frame 012600] window_change wram_ff0000
+[frame 012600] window_change vdp_ports
+[frame 012600] window_change z80_ctrl
+[frame 012602] exec_enter pc=03a254 range=frontend_core@000000
+[frame 012603] exec_enter pc=07185a range=other
+[frame 012630] pc=03d0bc exec=other
+[frame 012630] window_change wram_ff0000
+[frame 012630] window_change z80_ctrl
+[frame 012649] exec_enter pc=03a9b0 range=frontend_core@000000
+[frame 012650] exec_enter pc=071940 range=other
+[frame 012660] pc=054734 exec=other
+[frame 012660] window_change wram_ff0000
+[frame 012660] window_change z80_ctrl
+[frame 012690] pc=054904 exec=other
+[frame 012690] window_change wram_ff0000
+[frame 012690] window_change z80_ctrl
+[frame 012710] exec_enter pc=03a9b6 range=frontend_core@000000
+[frame 012711] exec_enter pc=071884 range=other
+[frame 012720] pc=0448b2 exec=other
+[frame 012720] window_change wram_ff0000
+[frame 012720] window_change z80_ctrl
+[frame 012750] pc=07196a exec=other
+[frame 012750] window_change wram_ff0000
+[frame 012750] window_change z80_ctrl
+[frame 012780] pc=0445fe exec=other
+[frame 012780] window_change wram_ff0000
+[frame 012780] window_change z80_ctrl
+[frame 012790] exec_enter pc=03a244 range=frontend_core@000000
+[frame 012791] exec_enter pc=07186c range=other
+[frame 012805] first_symbol_change in_390001 addr=ff6875 0->7
+[frame 012806] symbol_change in_390001 addr=ff6875 7->1
+[frame 012806] first_symbol_change c20000_0 addr=ff6870 0->1ED8
+[frame 012806] first_symbol_change c40000_1 addr=ff686e 0->7
+[frame 012807] symbol_change c20000_0 addr=ff6870 1ED8->1EE0
+[frame 012808] first_symbol_change startup_result_code addr=ff686a 0->1EE0
+[frame 012808] symbol_change in_390001 addr=ff6875 1->FF
+[frame 012808] first_symbol_change in_390007 addr=ff6874 0->FF
+[frame 012808] symbol_change c20000_0 addr=ff6870 1EE0->0
+[frame 012808] first_symbol_change c20000_1 addr=ff6872 0->34
+[frame 012808] symbol_change c40000_1 addr=ff686e 7->1
+[frame 012809] symbol_change startup_result_code addr=ff686a 1EE0->0
+[frame 012809] first_symbol_change in_390003 addr=ff6863 0->7
+[frame 012809] symbol_change in_390007 addr=ff6874 FF->0
+[frame 012809] symbol_change c20000_0 addr=ff6870 0->8134
+[frame 012809] symbol_change c20000_1 addr=ff6872 34->0
+[frame 012809] first_symbol_change c40000_0 addr=ff686c 0->34
+[frame 012809] symbol_change c40000_1 addr=ff686e 1->FFFF
+[frame 012810] pc=07187e exec=other
+[frame 012810] symbol_change startup_result_code addr=ff686a 0->8134
+[frame 012810] symbol_change in_390003 addr=ff6863 7->1
+[frame 012810] symbol_change in_390007 addr=ff6874 0->FF
+[frame 012810] first_symbol_change reg_3e0003 addr=ff685d 0->7
+[frame 012810] symbol_change c20000_0 addr=ff6870 8134->FFFF
+[frame 012810] symbol_change c20000_1 addr=ff6872 0->FFFF
+[frame 012810] symbol_change c40000_0 addr=ff686c 34->0
+[frame 012810] symbol_change c40000_1 addr=ff686e FFFF->FF
+[frame 012810] window_change wram_ff0000
+[frame 012810] window_change z80_ctrl
+[frame 012811] symbol_change startup_result_code addr=ff686a 8134->FFFF
+[frame 012811] symbol_change in_390001 addr=ff6875 FF->0
+[frame 012811] symbol_change in_390003 addr=ff6863 1->FF
+[frame 012811] first_symbol_change in_390005 addr=ff6862 0->FF
+[frame 012811] symbol_change in_390007 addr=ff6874 FF->0
+[frame 012811] symbol_change reg_3e0003 addr=ff685d 7->1
+[frame 012811] first_symbol_change reg_350008 addr=ff6856 0->7
+[frame 012811] first_symbol_change reg_380000 addr=ff6858 0->1EE0
+[frame 012811] symbol_change c20000_1 addr=ff6872 FFFF->0
+[frame 012811] symbol_change c40000_0 addr=ff686c 0->FFFF
+[frame 012811] symbol_change c40000_1 addr=ff686e FF->FFFF
+[frame 012812] symbol_change in_390001 addr=ff6875 0->FF
+[frame 012812] symbol_change in_390005 addr=ff6862 FF->0
+[frame 012812] first_symbol_change reg_3e0001 addr=ff685c 0->FF
+[frame 012812] symbol_change reg_3e0003 addr=ff685d 1->FF
+[frame 012812] first_symbol_change reg_3c0000 addr=ff685a 0->34
+[frame 012812] first_symbol_change reg_c50000 addr=ff6852 0->1EE0
+[frame 012812] symbol_change reg_350008 addr=ff6856 7->1
+[frame 012812] symbol_change reg_380000 addr=ff6858 1EE0->0
+[frame 012812] symbol_change c20000_0 addr=ff6870 FFFF->4
+[frame 012812] symbol_change c20000_1 addr=ff6872 0->133
+[frame 012812] symbol_change c40000_0 addr=ff686c FFFF->0
+[frame 012812] symbol_change c40000_1 addr=ff686e FFFF->0
+[frame 012813] symbol_change startup_result_code addr=ff686a FFFF->4
+[frame 012813] symbol_change in_390001 addr=ff6875 FF->38
+[frame 012813] symbol_change in_390005 addr=ff6862 0->FF
+[frame 012813] symbol_change in_390007 addr=ff6874 0->50
+[frame 012813] symbol_change reg_3e0001 addr=ff685c FF->0
+[frame 012813] symbol_change reg_3c0000 addr=ff685a 34->0
+[frame 012813] symbol_change reg_c50000 addr=ff6852 1EE0->0
+[frame 012813] first_symbol_change reg_d01bfe addr=ff6854 0->34
+[frame 012813] symbol_change reg_350008 addr=ff6856 1->FFFF
+[frame 012813] symbol_change reg_380000 addr=ff6858 0->8134
+[frame 012813] symbol_change c20000_0 addr=ff6870 4->230
+[frame 012813] symbol_change c20000_1 addr=ff6872 133->4
+[frame 012813] symbol_change c40000_0 addr=ff686c 0->133
+[frame 012813] symbol_change c40000_1 addr=ff686e 0->FF
+[frame 012814] symbol_change in_390001 addr=ff6875 38->EE
+[frame 012814] symbol_change in_390007 addr=ff6874 50->18
+[frame 012814] symbol_change c20000_1 addr=ff6872 4->7
+[frame 012815] symbol_change startup_result_code addr=ff686a 4->230
+[frame 012815] symbol_change in_390001 addr=ff6875 EE->0
+[frame 012815] symbol_change in_390003 addr=ff6863 FF->0
+[frame 012815] symbol_change in_390005 addr=ff6862 FF->0
+[frame 012815] symbol_change in_390007 addr=ff6874 18->0
+[frame 012815] symbol_change reg_3e0001 addr=ff685c 0->FF
+[frame 012815] symbol_change reg_3c0000 addr=ff685a 0->FFFF
+[frame 012815] symbol_change reg_c50000 addr=ff6852 0->8134
+[frame 012815] symbol_change reg_d01bfe addr=ff6854 34->0
+[frame 012815] symbol_change reg_350008 addr=ff6856 FFFF->FF
+[frame 012815] symbol_change reg_380000 addr=ff6858 8134->FFFF
+[frame 012815] symbol_change c20000_0 addr=ff6870 230->7
+[frame 012815] symbol_change c20000_1 addr=ff6872 7->1E7A
+[frame 012815] symbol_change c40000_0 addr=ff686c 133->7
+[frame 012815] symbol_change c40000_1 addr=ff686e FF->18EE
+[frame 012816] symbol_change startup_result_code addr=ff686a 230->7
+[frame 012816] symbol_change in_390001 addr=ff6875 0->70
+[frame 012816] symbol_change in_390003 addr=ff6863 0->FF
+[frame 012816] symbol_change reg_3e0001 addr=ff685c FF->0
+[frame 012816] symbol_change reg_3e0003 addr=ff685d FF->0
+[frame 012816] symbol_change reg_3c0000 addr=ff685a FFFF->0
+[frame 012816] symbol_change reg_c50000 addr=ff6852 8134->FFFF
+[frame 012816] symbol_change reg_d01bfe addr=ff6854 0->FFFF
+[frame 012816] symbol_change reg_350008 addr=ff6856 FF->FFFF
+[frame 012816] symbol_change c20000_0 addr=ff6870 7->F0
+[frame 012816] symbol_change c20000_1 addr=ff6872 1E7A->0
+[frame 012816] symbol_change c40000_0 addr=ff686c 7->1E7A
+[frame 012816] symbol_change c40000_1 addr=ff686e 18EE->0
+[frame 012817] exec_enter pc=03a258 range=frontend_core@000000
+[frame 012817] symbol_change startup_result_code addr=ff686a 7->1986
+[frame 012817] symbol_change in_390001 addr=ff6875 70->0
+[frame 012817] symbol_change in_390003 addr=ff6863 FF->38
+[frame 012817] symbol_change in_390005 addr=ff6862 0->50
+[frame 012817] symbol_change reg_3e0003 addr=ff685d 0->FF
+[frame 012817] symbol_change reg_3c0000 addr=ff685a 0->133
+[frame 012817] symbol_change reg_d01bfe addr=ff6854 FFFF->0
+[frame 012817] symbol_change reg_350008 addr=ff6856 FFFF->0
+[frame 012817] symbol_change reg_380000 addr=ff6858 FFFF->4
+[frame 012817] symbol_change c20000_0 addr=ff6870 F0->0
+[frame 012817] symbol_change c40000_0 addr=ff686c 1E7A->7
+[frame 012817] symbol_change c40000_1 addr=ff686e 0->1A38
+[frame 012818] exec_enter pc=071812 range=other
+[frame 012818] symbol_change startup_result_code addr=ff686a 1986->0
+[frame 012818] symbol_change in_390001 addr=ff6875 0->16
+[frame 012818] symbol_change in_390003 addr=ff6863 38->7
+[frame 012818] symbol_change in_390005 addr=ff6862 50->0
+[frame 012818] symbol_change in_390007 addr=ff6874 0->1
+[frame 012818] symbol_change reg_3e0001 addr=ff685c 0->50
+[frame 012818] symbol_change reg_3e0003 addr=ff685d FF->38
+[frame 012818] symbol_change reg_3c0000 addr=ff685a 133->4
+[frame 012818] symbol_change reg_c50000 addr=ff6852 FFFF->4
+[frame 012818] symbol_change reg_d01bfe addr=ff6854 0->133
+[frame 012818] symbol_change reg_350008 addr=ff6856 0->FF
+[frame 012818] symbol_change reg_380000 addr=ff6858 4->230
+[frame 012818] symbol_change c20000_0 addr=ff6870 0->116
+[frame 012818] symbol_change c20000_1 addr=ff6872 0->FFFF
+[frame 012818] symbol_change c40000_0 addr=ff686c 7->0
+[frame 012818] symbol_change c40000_1 addr=ff686e 1A38->0
+[frame 012819] symbol_change startup_result_code addr=ff686a 0->298
+[frame 012819] symbol_change in_390001 addr=ff6875 16->0
+[frame 012819] symbol_change in_390003 addr=ff6863 7->8
+[frame 012819] symbol_change in_390005 addr=ff6862 0->5
+[frame 012819] symbol_change in_390007 addr=ff6874 1->0
+[frame 012819] symbol_change reg_3e0001 addr=ff685c 50->0
+[frame 012819] symbol_change reg_3e0003 addr=ff685d 38->FF
+[frame 012819] symbol_change reg_3c0000 addr=ff685a 4->242
+[frame 012819] symbol_change reg_c50000 addr=ff6852 4->230
+[frame 012819] symbol_change reg_d01bfe addr=ff6854 133->4
+[frame 012819] symbol_change reg_350008 addr=ff6856 FF->5038
+[frame 012819] symbol_change reg_380000 addr=ff6858 230->FF
+[frame 012819] symbol_change c20000_0 addr=ff6870 116->0
+[frame 012819] symbol_change c20000_1 addr=ff6872 FFFF->0
+[frame 012819] symbol_change c40000_0 addr=ff686c 0->7
+[frame 012819] symbol_change c40000_1 addr=ff686e 0->E2
+[frame 012820] symbol_change startup_result_code addr=ff686a 298->0
+[frame 012820] symbol_change in_390001 addr=ff6875 0->16
+[frame 012820] symbol_change in_390003 addr=ff6863 8->FF
+[frame 012820] symbol_change in_390005 addr=ff6862 5->0
+[frame 012820] symbol_change in_390007 addr=ff6874 0->1
+[frame 012820] symbol_change reg_3e0001 addr=ff685c 0->3
+[frame 012820] symbol_change reg_3e0003 addr=ff685d FF->C8
+[frame 012820] symbol_change reg_3c0000 addr=ff685a 242->FF
+[frame 012820] symbol_change reg_c50000 addr=ff6852 230->FF
+[frame 012820] symbol_change reg_d01bfe addr=ff6854 4->242
+[frame 012820] symbol_change reg_350008 addr=ff6856 5038->FF
+[frame 012820] symbol_change reg_380000 addr=ff6858 FF->C56
+[frame 012820] symbol_change c20000_0 addr=ff6870 0->46
+[frame 012820] symbol_change c20000_1 addr=ff6872 0->FFFF
+[frame 012820] symbol_change c40000_0 addr=ff686c 7->0
+[frame 012820] symbol_change c40000_1 addr=ff686e E2->0
+[frame 012821] symbol_change in_390001 addr=ff6875 16->2C
+[frame 012821] symbol_change in_390003 addr=ff6863 FF->0
+[frame 012821] symbol_change in_390007 addr=ff6874 1->A3
+[frame 012821] symbol_change reg_3e0001 addr=ff685c 3->0
+[frame 012821] symbol_change reg_3e0003 addr=ff685d C8->70
+[frame 012821] symbol_change reg_3c0000 addr=ff685a FF->0
+[frame 012821] symbol_change reg_c50000 addr=ff6852 FF->7
+[frame 012821] symbol_change reg_d01bfe addr=ff6854 242->1E7A
+[frame 012821] symbol_change reg_350008 addr=ff6856 FF->0
+[frame 012821] symbol_change reg_380000 addr=ff6858 C56->F0
+[frame 012821] symbol_change c20000_0 addr=ff6870 46->0
+[frame 012821] symbol_change c20000_1 addr=ff6872 FFFF->4
+[frame 012821] symbol_change c40000_0 addr=ff686c 0->108
+[frame 012822] symbol_change startup_result_code addr=ff686a 0->9C
+[frame 012822] symbol_change in_390001 addr=ff6875 2C->4
+[frame 012822] symbol_change in_390003 addr=ff6863 0->97
+[frame 012822] symbol_change in_390007 addr=ff6874 A3->0
+[frame 012822] symbol_change reg_3e0003 addr=ff685d 70->0
+[frame 012822] symbol_change reg_3c0000 addr=ff685a 0->4
+[frame 012822] symbol_change reg_c50000 addr=ff6852 7->F0
+[frame 012822] symbol_change reg_d01bfe addr=ff6854 1E7A->0
+[frame 012822] symbol_change reg_350008 addr=ff6856 0->70
+[frame 012822] symbol_change reg_380000 addr=ff6858 F0->FFFF
+[frame 012822] symbol_change c20000_0 addr=ff6870 0->D0
+[frame 012822] symbol_change c20000_1 addr=ff6872 4->2D8
+[frame 012822] symbol_change c40000_0 addr=ff686c 108->4
+[frame 012822] symbol_change c40000_1 addr=ff686e 0->A4
+[frame 012823] symbol_change startup_result_code addr=ff686a 9C->D0
+[frame 012823] symbol_change in_390001 addr=ff6875 4->42
+[frame 012823] symbol_change in_390003 addr=ff6863 97->0
+[frame 012823] symbol_change in_390007 addr=ff6874 0->2
+[frame 012823] symbol_change reg_3e0003 addr=ff685d 0->97
+[frame 012823] symbol_change reg_3c0000 addr=ff685a 4->0
+[frame 012823] symbol_change reg_c50000 addr=ff6852 F0->FFFF
+[frame 012823] symbol_change reg_d01bfe addr=ff6854 0->4
+[frame 012823] symbol_change reg_350008 addr=ff6856 70->0
+[frame 012823] symbol_change reg_380000 addr=ff6858 FFFF->8B
+[frame 012823] symbol_change c20000_0 addr=ff6870 D0->5036
+[frame 012823] symbol_change c20000_1 addr=ff6872 2D8->FF
+[frame 012823] symbol_change c40000_0 addr=ff686c 4->2D8
+[frame 012823] symbol_change c40000_1 addr=ff686e A4->4
+[frame 012824] symbol_change startup_result_code addr=ff686a D0->A4
+[frame 012824] symbol_change in_390001 addr=ff6875 42->FF
+[frame 012824] symbol_change in_390003 addr=ff6863 0->6
+[frame 012824] symbol_change in_390005 addr=ff6862 0->1
+[frame 012824] symbol_change in_390007 addr=ff6874 2->0
+[frame 012824] symbol_change reg_3e0003 addr=ff685d 97->0
+[frame 012824] symbol_change reg_3c0000 addr=ff685a 0->8E
+[frame 012824] symbol_change reg_c50000 addr=ff6852 FFFF->A0
+[frame 012824] symbol_change reg_d01bfe addr=ff6854 4->FFFF
+[frame 012824] symbol_change reg_350008 addr=ff6856 0->116
+[frame 012824] symbol_change reg_380000 addr=ff6858 8B->0
+[frame 012824] symbol_change c20000_0 addr=ff6870 5036->4
+[frame 012824] symbol_change c20000_1 addr=ff6872 FF->5036
+[frame 012824] symbol_change c40000_0 addr=ff686c 2D8->FF
+[frame 012824] symbol_change c40000_1 addr=ff686e 4->22E
+[frame 012825] symbol_change startup_result_code addr=ff686a A4->4
+[frame 012825] symbol_change in_390001 addr=ff6875 FF->A8
+[frame 012825] symbol_change in_390003 addr=ff6863 6->4
+[frame 012825] symbol_change in_390005 addr=ff6862 1->0
+[frame 012825] symbol_change in_390007 addr=ff6874 0->12
+[frame 012825] symbol_change reg_3e0001 addr=ff685c 0->1
+[frame 012825] symbol_change reg_3e0003 addr=ff685d 0->4
+[frame 012825] symbol_change reg_3c0000 addr=ff685a 8E->0
+[frame 012825] symbol_change reg_c50000 addr=ff6852 A0->0
+[frame 012825] symbol_change reg_d01bfe addr=ff6854 FFFF->FE
+[frame 012825] symbol_change reg_350008 addr=ff6856 116->0
+[frame 012825] symbol_change reg_380000 addr=ff6858 0->110
+[frame 012825] symbol_change c20000_0 addr=ff6870 4->242
+[frame 012825] symbol_change c20000_1 addr=ff6872 5036->FF
+[frame 012825] symbol_change c40000_0 addr=ff686c FF->5038
+[frame 012825] symbol_change c40000_1 addr=ff686e 22E->FF
+[frame 012826] symbol_change startup_result_code addr=ff686a 4->130
+[frame 012826] symbol_change in_390001 addr=ff6875 A8->FF
+[frame 012826] symbol_change in_390003 addr=ff6863 4->2
+[frame 012826] symbol_change in_390005 addr=ff6862 0->1
+[frame 012826] symbol_change in_390007 addr=ff6874 12->0
+[frame 012826] symbol_change reg_3e0001 addr=ff685c 1->0
+[frame 012826] symbol_change reg_3e0003 addr=ff685d 4->0
+[frame 012826] symbol_change reg_3c0000 addr=ff685a 0->FC
+[frame 012826] symbol_change reg_c50000 addr=ff6852 0->116
+[frame 012826] symbol_change reg_d01bfe addr=ff6854 FE->FFFF
+[frame 012826] symbol_change reg_350008 addr=ff6856 0->116
+[frame 012826] symbol_change reg_380000 addr=ff6858 110->0
+[frame 012826] symbol_change c20000_0 addr=ff6870 242->4
+[frame 012826] symbol_change c20000_1 addr=ff6872 FF->5038
+[frame 012826] symbol_change c40000_0 addr=ff686c 5038->FF
+[frame 012826] symbol_change c40000_1 addr=ff686e FF->230
+[frame 012827] symbol_change startup_result_code addr=ff686a 130->4
+[frame 012827] symbol_change in_390001 addr=ff6875 FF->A8
+[frame 012827] symbol_change in_390003 addr=ff6863 2->4
+[frame 012827] symbol_change in_390005 addr=ff6862 1->0
+[frame 012827] symbol_change in_390007 addr=ff6874 0->12
+[frame 012827] symbol_change reg_3e0001 addr=ff685c 0->1
+[frame 012827] symbol_change reg_3e0003 addr=ff685d 0->1
+[frame 012827] symbol_change reg_3c0000 addr=ff685a FC->0
+[frame 012827] symbol_change reg_c50000 addr=ff6852 116->0
+[frame 012827] symbol_change reg_d01bfe addr=ff6854 FFFF->FB
+[frame 012827] symbol_change reg_350008 addr=ff6856 116->0
+[frame 012827] symbol_change reg_380000 addr=ff6858 0->10D
+[frame 012827] symbol_change c20000_0 addr=ff6870 4->242
+[frame 012827] symbol_change c20000_1 addr=ff6872 5038->FF
+[frame 012827] symbol_change c40000_0 addr=ff686c FF->5038
+[frame 012827] symbol_change c40000_1 addr=ff686e 230->FF
+[frame 012828] symbol_change in_390001 addr=ff6875 A8->EE
+[frame 012828] symbol_change in_390003 addr=ff6863 4->FF
+[frame 012828] symbol_change in_390007 addr=ff6874 12->22
+[frame 012828] symbol_change reg_3e0001 addr=ff685c 1->2
+[frame 012828] symbol_change reg_3e0003 addr=ff685d 1->42
+[frame 012828] symbol_change reg_3c0000 addr=ff685a 0->FF
+[frame 012828] symbol_change reg_c50000 addr=ff6852 0->D0
+[frame 012828] symbol_change reg_d01bfe addr=ff6854 FB->2D8
+[frame 012828] symbol_change reg_350008 addr=ff6856 0->4
+[frame 012828] symbol_change reg_380000 addr=ff6858 10D->5038
+[frame 012828] symbol_change c20000_0 addr=ff6870 242->2AD0
+[frame 012828] symbol_change c20000_1 addr=ff6872 FF->4
+[frame 012828] symbol_change c40000_0 addr=ff686c 5038->308A
+[frame 012828] symbol_change c40000_1 addr=ff686e FF->4
+[frame 012829] symbol_change startup_result_code addr=ff686a 4->2AC8
+[frame 012829] symbol_change in_390001 addr=ff6875 EE->3
+[frame 012829] symbol_change in_390003 addr=ff6863 FF->40
+[frame 012829] symbol_change in_390005 addr=ff6862 0->46
+[frame 012829] symbol_change in_390007 addr=ff6874 22->0
+[frame 012829] symbol_change reg_3e0001 addr=ff685c 2->0
+[frame 012829] symbol_change reg_3e0003 addr=ff685d 42->FF
+[frame 012829] symbol_change reg_3c0000 addr=ff685a FF->12A8
+[frame 012829] symbol_change reg_c50000 addr=ff6852 D0->5038
+[frame 012829] symbol_change reg_d01bfe addr=ff6854 2D8->FF
+[frame 012829] symbol_change reg_350008 addr=ff6856 4->242
+[frame 012829] symbol_change reg_380000 addr=ff6858 5038->FF
+[frame 012829] symbol_change c20000_0 addr=ff6870 2AD0->4
+[frame 012829] symbol_change c20000_1 addr=ff6872 4->211C
+[frame 012829] symbol_change c40000_0 addr=ff686c 308A->4
+[frame 012829] symbol_change c40000_1 addr=ff686e 4->22EE
+[frame 012830] symbol_change startup_result_code addr=ff686a 2AC8->4
+[frame 012830] symbol_change in_390001 addr=ff6875 3->74
+[frame 012830] symbol_change in_390003 addr=ff6863 40->5
+[frame 012830] symbol_change in_390005 addr=ff6862 46->0
+[frame 012830] symbol_change in_390007 addr=ff6874 0->A2
+[frame 012830] symbol_change reg_3e0001 addr=ff685c 0->45
+[frame 012830] symbol_change reg_3e0003 addr=ff685d FF->5A
+[frame 012830] symbol_change reg_3c0000 addr=ff685a 12A8->5
+[frame 012830] symbol_change reg_c50000 addr=ff6852 5038->FF
+[frame 012830] symbol_change reg_d01bfe addr=ff6854 FF->12A8
+[frame 012830] symbol_change reg_350008 addr=ff6856 242->FF
+[frame 012830] symbol_change reg_380000 addr=ff6858 FF->508
+[frame 012830] symbol_change c20000_0 addr=ff6870 4->A9B8
+[frame 012830] symbol_change c20000_1 addr=ff6872 211C->3
+[frame 012830] symbol_change c40000_0 addr=ff686c 4->2114
+[frame 012830] symbol_change c40000_1 addr=ff686e 22EE->3
+[frame 012831] exec_enter pc=03b044 range=startup_common@000000
+[frame 012831] symbol_change startup_result_code addr=ff686a 4->A2C0
+[frame 012831] symbol_change in_390001 addr=ff6875 74->7E
+[frame 012831] symbol_change in_390003 addr=ff6863 5->98
+[frame 012831] symbol_change in_390005 addr=ff6862 0->2
+[frame 012831] symbol_change reg_3e0001 addr=ff685c 45->0
+[frame 012831] symbol_change reg_3e0003 addr=ff685d 5A->FF
+[frame 012831] symbol_change reg_3c0000 addr=ff685a 5->508
+[frame 012831] symbol_change reg_c50000 addr=ff6852 FF->242
+[frame 012831] symbol_change reg_d01bfe addr=ff6854 12A8->FF
+[frame 012831] symbol_change reg_350008 addr=ff6856 FF->12A8
+[frame 012831] symbol_change reg_380000 addr=ff6858 508->FF
+[frame 012831] symbol_change c20000_0 addr=ff6870 A9B8->2004
+[frame 012831] symbol_change c40000_0 addr=ff686c 2114->3
+[frame 012831] symbol_change c40000_1 addr=ff686e 3->A24A
+[frame 012832] exec_enter pc=071a36 range=other
+[frame 012832] symbol_change startup_result_code addr=ff686a A2C0->2004
+[frame 012832] symbol_change in_390003 addr=ff6863 98->4
+[frame 012832] symbol_change in_390005 addr=ff6862 2->0
+[frame 012832] symbol_change reg_3e0001 addr=ff685c 0->2
+[frame 012832] symbol_change reg_3e0003 addr=ff685d FF->98
+[frame 012832] symbol_change reg_3c0000 addr=ff685a 508->FF
+[frame 012832] symbol_change reg_c50000 addr=ff6852 242->FF
+[frame 012832] symbol_change reg_d01bfe addr=ff6854 FF->508
+[frame 012832] symbol_change reg_350008 addr=ff6856 12A8->FF
+[frame 012832] symbol_change reg_380000 addr=ff6858 FF->0
+[frame 012832] symbol_change c40000_1 addr=ff686e A24A->A27E
+[frame 012833] symbol_change in_390003 addr=ff6863 4->98
+[frame 012833] symbol_change in_390005 addr=ff6862 0->2
+[frame 012833] symbol_change reg_3e0001 addr=ff685c 2->0
+[frame 012833] symbol_change reg_3e0003 addr=ff685d 98->FF
+[frame 012833] symbol_change reg_3c0000 addr=ff685a FF->508
+[frame 012833] symbol_change reg_c50000 addr=ff6852 FF->242
+[frame 012833] symbol_change reg_d01bfe addr=ff6854 508->FF
+[frame 012833] symbol_change reg_350008 addr=ff6856 FF->12A8
+[frame 012833] symbol_change reg_380000 addr=ff6858 0->FF
+[frame 012834] symbol_change in_390003 addr=ff6863 98->7E
+[frame 012834] symbol_change in_390005 addr=ff6862 2->A2
+[frame 012834] symbol_change reg_3e0001 addr=ff685c 0->2
+[frame 012834] symbol_change reg_3e0003 addr=ff685d FF->98
+[frame 012834] symbol_change reg_3c0000 addr=ff685a 508->FF
+[frame 012834] symbol_change reg_c50000 addr=ff6852 242->FF
+[frame 012834] symbol_change reg_d01bfe addr=ff6854 FF->508
+[frame 012834] symbol_change reg_350008 addr=ff6856 12A8->FF
+[frame 012834] symbol_change reg_380000 addr=ff6858 FF->0
+[frame 012835] symbol_change reg_3e0001 addr=ff685c 2->A2
+[frame 012835] symbol_change reg_3e0003 addr=ff685d 98->74
+[frame 012835] symbol_change reg_3c0000 addr=ff685a FF->3
+[frame 012835] symbol_change reg_c50000 addr=ff6852 FF->4
+[frame 012835] symbol_change reg_d01bfe addr=ff6854 508->2120
+[frame 012835] symbol_change reg_350008 addr=ff6856 FF->3
+[frame 012835] symbol_change reg_380000 addr=ff6858 0->A9B8
+[frame 012836] symbol_change reg_3e0003 addr=ff685d 74->7E
+[frame 012836] symbol_change reg_c50000 addr=ff6852 4->A9B8
+[frame 012836] symbol_change reg_d01bfe addr=ff6854 2120->3
+[frame 012836] symbol_change reg_350008 addr=ff6856 3->A274
+[frame 012836] symbol_change reg_380000 addr=ff6858 A9B8->2004
+[frame 012837] symbol_change reg_c50000 addr=ff6852 A9B8->2004
+[frame 012837] symbol_change reg_350008 addr=ff6856 A274->A27E
+[frame 012840] pc=071f5c exec=other
+[frame 012840] window_change wram_ff0000
+[frame 012840] window_change vdp_ports
+[frame 012840] window_change z80_ctrl
+[frame 012845] exec_enter pc=03a248 range=frontend_core@000000
+[frame 012846] exec_enter pc=071944 range=other
+[frame 012858] exec_enter pc=055d14 range=helper_55ca2_dispatch@000000
+[frame 012859] exec_enter pc=07189c range=other
+[frame 012864] symbol_change startup_result_code addr=ff686a 2004->0
+[frame 012864] symbol_change in_390003 addr=ff6863 7E->0
+[frame 012864] symbol_change in_390005 addr=ff6862 A2->0
+[frame 012864] symbol_change reg_3e0001 addr=ff685c A2->81
+[frame 012864] symbol_change reg_3e0003 addr=ff685d 7E->0
+[frame 012864] symbol_change reg_3c0000 addr=ff685a 3->B0
+[frame 012864] symbol_change reg_c50000 addr=ff6852 2004->0
+[frame 012864] symbol_change reg_d01bfe addr=ff6854 3->0
+[frame 012864] symbol_change reg_350008 addr=ff6856 A27E->0
+[frame 012864] symbol_change reg_380000 addr=ff6858 2004->0
+[frame 012870] window_change wram_ff0000
+[frame 012870] window_change vdp_ports
+[frame 012870] window_change z80_ctrl
+[frame 012900] window_change z80_ctrl
+[frame 012930] window_change z80_ctrl
+[frame 012960] window_change z80_ctrl
+[frame 012990] window_change z80_ctrl
+[frame 013020] window_change z80_ctrl
+[frame 013050] window_change z80_ctrl
+[frame 013080] window_change z80_ctrl
+[frame 013110] window_change z80_ctrl
+[frame 013140] window_change vdp_ports
+[frame 013140] window_change z80_ctrl
+[frame 013170] window_change z80_ctrl
+[frame 013200] window_change z80_ctrl
+[frame 013230] window_change vdp_ports
+[frame 013230] window_change z80_ctrl
+[frame 013260] window_change z80_ctrl
+[frame 013290] window_change z80_ctrl
+[frame 013320] window_change z80_ctrl
+[frame 013350] window_change vdp_ports
+[frame 013350] window_change z80_ctrl
+[frame 013380] window_change vdp_ports
+[frame 013380] window_change z80_ctrl
+[frame 013410] window_change vdp_ports
+[frame 013410] window_change z80_ctrl
+[frame 013440] window_change vdp_ports
+[frame 013440] window_change z80_ctrl
+[frame 013470] window_change vdp_ports
+[frame 013470] window_change z80_ctrl
+[frame 013500] window_change vdp_ports
+[frame 013500] window_change z80_ctrl
+[frame 013530] window_change vdp_ports
+[frame 013530] window_change z80_ctrl
+[frame 013560] window_change z80_ctrl
+[frame 013590] window_change vdp_ports
+[frame 013590] window_change z80_ctrl
+[frame 013620] window_change vdp_ports
+[frame 013620] window_change z80_ctrl
+[frame 013650] window_change vdp_ports
+[frame 013650] window_change z80_ctrl
+[frame 013680] window_change vdp_ports
+[frame 013680] window_change z80_ctrl
+[frame 013710] window_change z80_ctrl
+[frame 013740] window_change z80_ctrl
+[frame 013770] window_change vdp_ports
+[frame 013770] window_change z80_ctrl
+[frame 013800] window_change z80_ctrl
+[frame 013830] window_change vdp_ports
+[frame 013830] window_change z80_ctrl
+[frame 013860] window_change vdp_ports
+[frame 013860] window_change z80_ctrl
+[frame 013890] window_change vdp_ports
+[frame 013890] window_change z80_ctrl
+[frame 013920] window_change z80_ctrl
+[frame 013950] window_change z80_ctrl
+[frame 013980] window_change z80_ctrl
+[frame 014010] window_change z80_ctrl
+[frame 014040] window_change z80_ctrl
+[frame 014070] window_change vdp_ports
+[frame 014070] window_change z80_ctrl
+[frame 014100] window_change vdp_ports
+[frame 014100] window_change z80_ctrl
+[frame 014130] window_change z80_ctrl
+[frame 014160] window_change z80_ctrl
+[frame 014190] window_change vdp_ports
+[frame 014190] window_change z80_ctrl
+[frame 014220] window_change z80_ctrl
+[frame 014250] window_change z80_ctrl
+[frame 014280] window_change z80_ctrl
+[frame 014310] window_change vdp_ports
+[frame 014310] window_change z80_ctrl
+[frame 014340] window_change z80_ctrl
+[frame 014370] window_change z80_ctrl
+[frame 014400] window_change z80_ctrl
+[frame 014430] window_change z80_ctrl
+[frame 014460] window_change vdp_ports
+[frame 014460] window_change z80_ctrl
+[frame 014490] window_change z80_ctrl
+[frame 014520] window_change vdp_ports
+[frame 014520] window_change z80_ctrl
+[frame 014550] window_change z80_ctrl
+[frame 014580] window_change vdp_ports
+[frame 014580] window_change z80_ctrl
+[frame 014610] window_change z80_ctrl
+[frame 014640] window_change z80_ctrl
+[frame 014670] window_change vdp_ports
+[frame 014670] window_change z80_ctrl
+[frame 014700] window_change vdp_ports
+[frame 014700] window_change z80_ctrl
+[frame 014730] window_change vdp_ports
+[frame 014730] window_change z80_ctrl
+[frame 014760] window_change z80_ctrl
+[frame 014790] window_change vdp_ports
+[frame 014790] window_change z80_ctrl
+[frame 014820] window_change vdp_ports
+[frame 014820] window_change z80_ctrl
+[frame 014850] window_change vdp_ports
+[frame 014850] window_change z80_ctrl
+[frame 014880] window_change z80_ctrl
+[frame 014910] window_change z80_ctrl
+[frame 014940] window_change vdp_ports
+[frame 014940] window_change z80_ctrl
+[frame 014970] window_change vdp_ports
+[frame 014970] window_change z80_ctrl
+[frame 015000] window_change vdp_ports
+[frame 015000] window_change z80_ctrl
+[frame 015030] window_change vdp_ports
+[frame 015030] window_change z80_ctrl
+[frame 015060] window_change vdp_ports
+[frame 015060] window_change z80_ctrl
+[frame 015090] window_change vdp_ports
+[frame 015090] window_change z80_ctrl
+[frame 015120] window_change z80_ctrl
+[frame 015150] window_change z80_ctrl
+[frame 015180] window_change z80_ctrl
+[frame 015210] window_change vdp_ports
+[frame 015210] window_change z80_ctrl
+[frame 015240] window_change vdp_ports
+[frame 015240] window_change z80_ctrl
+[frame 015270] window_change vdp_ports
+[frame 015270] window_change z80_ctrl
+[frame 015300] window_change vdp_ports
+[frame 015300] window_change z80_ctrl
+[frame 015330] window_change vdp_ports
+[frame 015330] window_change z80_ctrl
+[frame 015360] window_change vdp_ports
+[frame 015360] window_change z80_ctrl
+[frame 015390] window_change vdp_ports
+[frame 015390] window_change z80_ctrl
+[frame 015420] window_change vdp_ports
+[frame 015420] window_change z80_ctrl
+[frame 015450] window_change vdp_ports
+[frame 015450] window_change z80_ctrl
+[frame 015480] window_change vdp_ports
+[frame 015480] window_change z80_ctrl
+[frame 015510] window_change vdp_ports
+[frame 015510] window_change z80_ctrl
+[frame 015540] window_change vdp_ports
+[frame 015540] window_change z80_ctrl
+[frame 015570] window_change vdp_ports
+[frame 015570] window_change z80_ctrl
+[frame 015600] window_change vdp_ports
+[frame 015600] window_change z80_ctrl
+[frame 015630] window_change vdp_ports
+[frame 015630] window_change z80_ctrl
+[frame 015660] window_change vdp_ports
+[frame 015660] window_change z80_ctrl
+[frame 015690] window_change vdp_ports
+[frame 015690] window_change z80_ctrl
+[frame 015720] window_change vdp_ports
+[frame 015720] window_change z80_ctrl
+[frame 015750] window_change vdp_ports
+[frame 015750] window_change z80_ctrl
+[frame 015780] window_change vdp_ports
+[frame 015780] window_change z80_ctrl
+[frame 015810] window_change vdp_ports
+[frame 015810] window_change z80_ctrl
+[frame 015840] window_change vdp_ports
+[frame 015840] window_change z80_ctrl
+[frame 015870] window_change vdp_ports
+[frame 015870] window_change z80_ctrl
+[frame 015900] window_change vdp_ports
+[frame 015900] window_change z80_ctrl
+[frame 015930] window_change z80_ctrl
+[frame 015960] window_change vdp_ports
+[frame 015960] window_change z80_ctrl
+[frame 015990] window_change vdp_ports
+[frame 015990] window_change z80_ctrl
+[frame 016020] window_change vdp_ports
+[frame 016020] window_change z80_ctrl
+[frame 016050] window_change vdp_ports
+[frame 016050] window_change z80_ctrl
+[frame 016080] window_change vdp_ports
+[frame 016080] window_change z80_ctrl
+[frame 016110] window_change z80_ctrl
+[frame 016140] window_change vdp_ports
+[frame 016140] window_change z80_ctrl
+[frame 016170] window_change vdp_ports
+[frame 016170] window_change z80_ctrl
+[frame 016200] window_change vdp_ports
+[frame 016200] window_change z80_ctrl
+[frame 016230] window_change vdp_ports
+[frame 016230] window_change z80_ctrl
+[frame 016260] window_change vdp_ports
+[frame 016260] window_change z80_ctrl
+[frame 016290] window_change vdp_ports
+[frame 016290] window_change z80_ctrl
+[frame 016320] window_change vdp_ports
+[frame 016320] window_change z80_ctrl
+[frame 016350] window_change vdp_ports
+[frame 016350] window_change z80_ctrl
+[frame 016380] window_change z80_ctrl
+[frame 016410] window_change vdp_ports
+[frame 016410] window_change z80_ctrl
+[frame 016440] window_change vdp_ports
+[frame 016440] window_change z80_ctrl
+[frame 016470] window_change vdp_ports
+[frame 016470] window_change z80_ctrl
+[frame 016500] window_change vdp_ports
+[frame 016500] window_change z80_ctrl
+[frame 016530] window_change vdp_ports
+[frame 016530] window_change z80_ctrl
+[frame 016560] window_change vdp_ports
+[frame 016560] window_change z80_ctrl
+[frame 016590] window_change vdp_ports
+[frame 016590] window_change z80_ctrl
+[frame 016620] window_change z80_ctrl
+[frame 016650] window_change z80_ctrl
+[frame 016680] window_change vdp_ports
+[frame 016680] window_change z80_ctrl
+[frame 016710] window_change vdp_ports
+[frame 016710] window_change z80_ctrl
+[frame 016740] window_change vdp_ports
+[frame 016740] window_change z80_ctrl
+[frame 016770] window_change vdp_ports
+[frame 016770] window_change z80_ctrl
+[frame 016800] window_change vdp_ports
+[frame 016800] window_change z80_ctrl
+[frame 016830] window_change vdp_ports
+[frame 016830] window_change z80_ctrl
+[frame 016860] window_change vdp_ports
+[frame 016860] window_change z80_ctrl
+[frame 016890] window_change vdp_ports
+[frame 016890] window_change z80_ctrl
+[frame 016920] window_change vdp_ports
+[frame 016920] window_change z80_ctrl
+[frame 016950] window_change vdp_ports
+[frame 016950] window_change z80_ctrl
+[frame 016980] window_change vdp_ports
+[frame 016980] window_change z80_ctrl
+[frame 017010] window_change z80_ctrl
+[frame 017040] window_change vdp_ports
+[frame 017040] window_change z80_ctrl
+[frame 017070] window_change vdp_ports
+[frame 017070] window_change z80_ctrl
+[frame 017100] window_change vdp_ports
+[frame 017100] window_change z80_ctrl
+[frame 017130] window_change vdp_ports
+[frame 017130] window_change z80_ctrl
+[frame 017160] window_change vdp_ports
+[frame 017160] window_change z80_ctrl
+[frame 017190] window_change z80_ctrl
+[frame 017220] window_change z80_ctrl
+[frame 017250] window_change vdp_ports
+[frame 017250] window_change z80_ctrl
+[frame 017280] window_change vdp_ports
+[frame 017280] window_change z80_ctrl
+[frame 017310] window_change z80_ctrl
+[frame 017340] window_change vdp_ports
+[frame 017340] window_change z80_ctrl
+[frame 017370] window_change z80_ctrl
+[frame 017400] window_change z80_ctrl
+[frame 017430] window_change vdp_ports
+[frame 017430] window_change z80_ctrl
+[frame 017460] window_change vdp_ports
+[frame 017460] window_change z80_ctrl
+[frame 017490] window_change z80_ctrl
+[frame 017520] window_change vdp_ports
+[frame 017520] window_change z80_ctrl
+[frame 017550] window_change z80_ctrl
+[frame 017580] window_change vdp_ports
+[frame 017580] window_change z80_ctrl
+[frame 017610] window_change z80_ctrl
+[frame 017640] window_change vdp_ports
+[frame 017640] window_change z80_ctrl
+[frame 017670] window_change vdp_ports
+[frame 017670] window_change z80_ctrl
+[frame 017700] window_change z80_ctrl
+[frame 017730] window_change z80_ctrl
+[frame 017760] window_change z80_ctrl
+[frame 017790] window_change z80_ctrl
+[frame 017820] window_change z80_ctrl
+[frame 017850] window_change z80_ctrl
+[frame 017880] window_change vdp_ports
+[frame 017880] window_change z80_ctrl
+[frame 017910] window_change vdp_ports
+[frame 017910] window_change z80_ctrl
+[frame 017940] window_change vdp_ports
+[frame 017940] window_change z80_ctrl
+[frame 017970] window_change z80_ctrl
+[frame 018000] window_change z80_ctrl
+[frame 018030] window_change vdp_ports
+[frame 018030] window_change z80_ctrl
+[frame 018060] window_change z80_ctrl
+[frame 018090] window_change vdp_ports
+[frame 018090] window_change z80_ctrl
+[frame 018120] window_change vdp_ports
+[frame 018120] window_change z80_ctrl
+[frame 018150] window_change vdp_ports
+[frame 018150] window_change z80_ctrl
+[frame 018180] window_change vdp_ports
+[frame 018180] window_change z80_ctrl
+[frame 018210] window_change vdp_ports
+[frame 018210] window_change z80_ctrl
+[frame 018240] window_change vdp_ports
+[frame 018240] window_change z80_ctrl
+[frame 018270] window_change z80_ctrl
+[frame 018300] window_change vdp_ports
+[frame 018300] window_change z80_ctrl
+[frame 018330] window_change vdp_ports
+[frame 018330] window_change z80_ctrl
+[frame 018360] window_change vdp_ports
+[frame 018360] window_change z80_ctrl
+[frame 018390] window_change vdp_ports
+[frame 018390] window_change z80_ctrl
+[frame 018420] window_change vdp_ports
+[frame 018420] window_change z80_ctrl
+[frame 018450] window_change vdp_ports
+[frame 018450] window_change z80_ctrl
+[frame 018480] window_change z80_ctrl
+[frame 018510] window_change vdp_ports
+[frame 018510] window_change z80_ctrl
+[frame 018540] window_change vdp_ports
+[frame 018540] window_change z80_ctrl
+[frame 018570] window_change z80_ctrl
+[frame 018600] window_change vdp_ports
+[frame 018600] window_change z80_ctrl
+[frame 018630] window_change vdp_ports
+[frame 018630] window_change z80_ctrl
+[frame 018660] window_change vdp_ports
+[frame 018660] window_change z80_ctrl
+[frame 018690] window_change z80_ctrl
+[frame 018720] window_change vdp_ports
+[frame 018720] window_change z80_ctrl
+[frame 018750] window_change vdp_ports
+[frame 018750] window_change z80_ctrl
+[frame 018780] window_change z80_ctrl
+[frame 018810] window_change vdp_ports
+[frame 018810] window_change z80_ctrl
+[frame 018840] window_change vdp_ports
+[frame 018840] window_change z80_ctrl
+[frame 018870] window_change vdp_ports
+[frame 018870] window_change z80_ctrl
+[frame 018900] window_change vdp_ports
+[frame 018900] window_change z80_ctrl
+[frame 018930] window_change vdp_ports
+[frame 018930] window_change z80_ctrl
+[frame 018960] window_change z80_ctrl
+[frame 018990] window_change z80_ctrl
+[frame 019020] window_change vdp_ports
+[frame 019020] window_change z80_ctrl
+[frame 019050] window_change vdp_ports
+[frame 019050] window_change z80_ctrl
+[frame 019080] window_change vdp_ports
+[frame 019080] window_change z80_ctrl
+[frame 019110] window_change vdp_ports
+[frame 019110] window_change z80_ctrl
+[frame 019140] window_change vdp_ports
+[frame 019140] window_change z80_ctrl
+[frame 019170] window_change vdp_ports
+[frame 019170] window_change z80_ctrl
+[frame 019200] window_change z80_ctrl
+[frame 019230] window_change z80_ctrl
+[frame 019260] window_change vdp_ports
+[frame 019260] window_change z80_ctrl
+[frame 019290] window_change vdp_ports
+[frame 019290] window_change z80_ctrl
+[frame 019320] window_change vdp_ports
+[frame 019320] window_change z80_ctrl
+[frame 019350] window_change vdp_ports
+[frame 019350] window_change z80_ctrl
+[frame 019380] window_change vdp_ports
+[frame 019380] window_change z80_ctrl
+[frame 019410] window_change z80_ctrl
+[frame 019440] window_change vdp_ports
+[frame 019440] window_change z80_ctrl
+[frame 019470] window_change vdp_ports
+[frame 019470] window_change z80_ctrl
+[frame 019500] window_change z80_ctrl
+[frame 019530] window_change vdp_ports
+[frame 019530] window_change z80_ctrl
+[frame 019560] window_change vdp_ports
+[frame 019560] window_change z80_ctrl
+[frame 019590] window_change vdp_ports
+[frame 019590] window_change z80_ctrl
+[frame 019620] window_change vdp_ports
+[frame 019620] window_change z80_ctrl
+[frame 019650] window_change z80_ctrl
+[frame 019680] window_change vdp_ports
+[frame 019680] window_change z80_ctrl
+[frame 019710] window_change vdp_ports
+[frame 019710] window_change z80_ctrl
+[frame 019740] window_change z80_ctrl
+[frame 019770] window_change z80_ctrl
+[frame 019800] window_change vdp_ports
+[frame 019800] window_change z80_ctrl
+[frame 019830] window_change vdp_ports
+[frame 019830] window_change z80_ctrl
+[frame 019860] window_change vdp_ports
+[frame 019860] window_change z80_ctrl
+[frame 019890] window_change vdp_ports
+[frame 019890] window_change z80_ctrl
+[frame 019920] window_change vdp_ports
+[frame 019920] window_change z80_ctrl
+[frame 019950] window_change vdp_ports
+[frame 019950] window_change z80_ctrl
+[frame 019980] window_change vdp_ports
+[frame 019980] window_change z80_ctrl
+[frame 020010] window_change vdp_ports
+[frame 020010] window_change z80_ctrl
+[frame 020040] window_change vdp_ports
+[frame 020040] window_change z80_ctrl
+[frame 020070] window_change vdp_ports
+[frame 020070] window_change z80_ctrl
+[frame 020100] window_change z80_ctrl
+[frame 020130] window_change z80_ctrl
+[frame 020160] window_change vdp_ports
+[frame 020160] window_change z80_ctrl
+[frame 020190] window_change vdp_ports
+[frame 020190] window_change z80_ctrl
+[frame 020220] window_change z80_ctrl
+[frame 020250] window_change z80_ctrl
+[frame 020280] window_change vdp_ports
+[frame 020280] window_change z80_ctrl
+[frame 020310] window_change vdp_ports
+[frame 020310] window_change z80_ctrl
+[frame 020340] window_change vdp_ports
+[frame 020340] window_change z80_ctrl
+[frame 020370] window_change z80_ctrl
+[frame 020400] window_change z80_ctrl
+[frame 020430] window_change z80_ctrl
+[frame 020460] window_change z80_ctrl
+[frame 020490] window_change vdp_ports
+[frame 020490] window_change z80_ctrl
+[frame 020520] window_change vdp_ports
+[frame 020520] window_change z80_ctrl
+[frame 020550] window_change vdp_ports
+[frame 020550] window_change z80_ctrl
+[frame 020580] window_change z80_ctrl
+[frame 020610] window_change z80_ctrl
+[frame 020640] window_change z80_ctrl
+[frame 020670] window_change z80_ctrl
+[frame 020700] window_change vdp_ports
+[frame 020700] window_change z80_ctrl
+[frame 020730] window_change vdp_ports
+[frame 020730] window_change z80_ctrl
+[frame 020760] window_change vdp_ports
+[frame 020760] window_change z80_ctrl
+[frame 020790] window_change vdp_ports
+[frame 020790] window_change z80_ctrl
+[frame 020820] window_change vdp_ports
+[frame 020820] window_change z80_ctrl
+[frame 020850] window_change vdp_ports
+[frame 020850] window_change z80_ctrl
+[frame 020880] window_change vdp_ports
+[frame 020880] window_change z80_ctrl
+[frame 020910] window_change vdp_ports
+[frame 020910] window_change z80_ctrl
+[frame 020940] window_change vdp_ports
+[frame 020940] window_change z80_ctrl
+[frame 020970] window_change vdp_ports
+[frame 020970] window_change z80_ctrl
+[frame 021000] window_change vdp_ports
+[frame 021000] window_change z80_ctrl
+[frame 021030] window_change vdp_ports
+[frame 021030] window_change z80_ctrl
+[frame 021060] window_change z80_ctrl
+[frame 021090] window_change z80_ctrl
+[frame 021120] window_change z80_ctrl
+[frame 021150] window_change z80_ctrl
+[frame 021180] window_change z80_ctrl
+[frame 021210] window_change vdp_ports
+[frame 021210] window_change z80_ctrl
+[frame 021240] window_change vdp_ports
+[frame 021240] window_change z80_ctrl
+[frame 021270] window_change vdp_ports
+[frame 021270] window_change z80_ctrl
+[frame 021300] window_change vdp_ports
+[frame 021300] window_change z80_ctrl
+[frame 021330] window_change vdp_ports
+[frame 021330] window_change z80_ctrl
+[frame 021360] window_change z80_ctrl
+[frame 021390] window_change vdp_ports
+[frame 021390] window_change z80_ctrl
+[frame 021420] window_change vdp_ports
+[frame 021420] window_change z80_ctrl
+[frame 021450] window_change z80_ctrl
+[frame 021480] window_change vdp_ports
+[frame 021480] window_change z80_ctrl
+[frame 021510] window_change vdp_ports
+[frame 021510] window_change z80_ctrl
+[frame 021540] window_change vdp_ports
+[frame 021540] window_change z80_ctrl
+[frame 021570] window_change vdp_ports
+[frame 021570] window_change z80_ctrl
+[frame 021600] window_change vdp_ports
+[frame 021600] window_change z80_ctrl
+[frame 021630] window_change vdp_ports
+[frame 021630] window_change z80_ctrl
+[frame 021660] window_change vdp_ports
+[frame 021660] window_change z80_ctrl
+[frame 021690] window_change vdp_ports
+[frame 021690] window_change z80_ctrl
+[frame 021720] window_change vdp_ports
+[frame 021720] window_change z80_ctrl
+[frame 021750] window_change vdp_ports
+[frame 021750] window_change z80_ctrl
+[frame 021780] window_change vdp_ports
+[frame 021780] window_change z80_ctrl
+[frame 021810] window_change z80_ctrl
+[frame 021840] window_change z80_ctrl
+[frame 021870] window_change z80_ctrl
+[frame 021900] window_change z80_ctrl
+[frame 021930] window_change vdp_ports
+[frame 021930] window_change z80_ctrl
+[frame 021960] window_change vdp_ports
+[frame 021960] window_change z80_ctrl
+[frame 021990] window_change vdp_ports
+[frame 021990] window_change z80_ctrl
+[frame 022020] window_change vdp_ports
+[frame 022020] window_change z80_ctrl
+[frame 022050] window_change z80_ctrl
+[frame 022080] window_change z80_ctrl
+[frame 022110] window_change vdp_ports
+[frame 022110] window_change z80_ctrl
+[frame 022140] window_change vdp_ports
+[frame 022140] window_change z80_ctrl
+[frame 022170] window_change z80_ctrl
+[frame 022200] window_change vdp_ports
+[frame 022200] window_change z80_ctrl
+[frame 022230] window_change vdp_ports
+[frame 022230] window_change z80_ctrl
+[frame 022260] window_change vdp_ports
+[frame 022260] window_change z80_ctrl
+[frame 022290] window_change z80_ctrl
+[frame 022320] window_change vdp_ports
+[frame 022320] window_change z80_ctrl
+[frame 022350] window_change vdp_ports
+[frame 022350] window_change z80_ctrl
+[frame 022380] window_change vdp_ports
+[frame 022380] window_change z80_ctrl
+[frame 022410] window_change vdp_ports
+[frame 022410] window_change z80_ctrl
+[frame 022440] window_change vdp_ports
+[frame 022440] window_change z80_ctrl
+[frame 022470] window_change vdp_ports
+[frame 022470] window_change z80_ctrl
+[frame 022500] window_change vdp_ports
+[frame 022500] window_change z80_ctrl
+[frame 022530] window_change vdp_ports
+[frame 022530] window_change z80_ctrl
+[frame 022560] window_change vdp_ports
+[frame 022560] window_change z80_ctrl
+[frame 022590] window_change vdp_ports
+[frame 022590] window_change z80_ctrl
+[frame 022620] window_change vdp_ports
+[frame 022620] window_change z80_ctrl
+[frame 022650] window_change vdp_ports
+[frame 022650] window_change z80_ctrl
+[frame 022680] window_change vdp_ports
+[frame 022680] window_change z80_ctrl
+[frame 022710] window_change vdp_ports
+[frame 022710] window_change z80_ctrl
+[frame 022740] window_change vdp_ports
+[frame 022740] window_change z80_ctrl
+[frame 022770] window_change z80_ctrl
+[frame 022800] window_change z80_ctrl
+[frame 022830] window_change z80_ctrl
+[frame 022860] window_change z80_ctrl
+[frame 022890] window_change z80_ctrl
+[frame 022920] window_change vdp_ports
+[frame 022920] window_change z80_ctrl
+[frame 022950] window_change vdp_ports
+[frame 022950] window_change z80_ctrl
+[frame 022980] window_change z80_ctrl
+[frame 023010] window_change z80_ctrl
+[frame 023040] window_change z80_ctrl
+[frame 023070] window_change z80_ctrl
+[frame 023100] window_change z80_ctrl
+[frame 023130] window_change vdp_ports
+[frame 023130] window_change z80_ctrl
+[frame 023160] window_change vdp_ports
+[frame 023160] window_change z80_ctrl
+[frame 023190] window_change vdp_ports
+[frame 023190] window_change z80_ctrl
+[frame 023220] window_change z80_ctrl
+[frame 023250] window_change z80_ctrl
+[frame 023280] window_change vdp_ports
+[frame 023280] window_change z80_ctrl
+[frame 023310] window_change vdp_ports
+[frame 023310] window_change z80_ctrl
+[frame 023340] window_change vdp_ports
+[frame 023340] window_change z80_ctrl
+[frame 023370] window_change vdp_ports
+[frame 023370] window_change z80_ctrl
+[frame 023400] window_change vdp_ports
+[frame 023400] window_change z80_ctrl
+[frame 023430] window_change vdp_ports
+[frame 023430] window_change z80_ctrl
+[frame 023460] window_change z80_ctrl
+[frame 023490] window_change vdp_ports
+[frame 023490] window_change z80_ctrl
+[frame 023520] window_change vdp_ports
+[frame 023520] window_change z80_ctrl
+[frame 023550] window_change z80_ctrl
+[frame 023580] window_change vdp_ports
+[frame 023580] window_change z80_ctrl
+[frame 023610] window_change vdp_ports
+[frame 023610] window_change z80_ctrl
+[frame 023640] window_change vdp_ports
+[frame 023640] window_change z80_ctrl
+[frame 023670] window_change vdp_ports
+[frame 023670] window_change z80_ctrl
+[frame 023700] window_change z80_ctrl
+[frame 023730] window_change z80_ctrl
+[frame 023760] window_change vdp_ports
+[frame 023760] window_change z80_ctrl
+[frame 023790] window_change vdp_ports
+[frame 023790] window_change z80_ctrl
+[frame 023820] window_change z80_ctrl
+[frame 023850] window_change z80_ctrl
+[frame 023880] window_change vdp_ports
+[frame 023880] window_change z80_ctrl
+[frame 023910] window_change vdp_ports
+[frame 023910] window_change z80_ctrl
+[frame 023940] window_change z80_ctrl
+[frame 023970] window_change z80_ctrl
+[frame 024000] window_change z80_ctrl
+[frame 024030] window_change vdp_ports
+[frame 024030] window_change z80_ctrl
+[frame 024060] window_change z80_ctrl
+[frame 024090] window_change z80_ctrl
+[frame 024120] window_change vdp_ports
+[frame 024120] window_change z80_ctrl
+[frame 024150] window_change vdp_ports
+[frame 024150] window_change z80_ctrl
+[frame 024180] window_change z80_ctrl
+[frame 024210] window_change z80_ctrl
+[frame 024240] window_change z80_ctrl
+[frame 024270] window_change z80_ctrl
+[frame 024300] window_change z80_ctrl
+[frame 024330] window_change z80_ctrl
+[frame 024360] window_change vdp_ports
+[frame 024360] window_change z80_ctrl
+[frame 024390] window_change vdp_ports
+[frame 024390] window_change z80_ctrl
+[frame 024420] window_change z80_ctrl
+[frame 024450] window_change z80_ctrl
+[frame 024480] window_change z80_ctrl
+[frame 024510] window_change z80_ctrl
+[frame 024540] window_change z80_ctrl
+[frame 024570] window_change z80_ctrl
+[frame 024600] window_change vdp_ports
+[frame 024600] window_change z80_ctrl
+[frame 024630] window_change vdp_ports
+[frame 024630] window_change z80_ctrl
+[frame 024660] window_change z80_ctrl
+[frame 024690] window_change z80_ctrl
+[frame 024720] window_change z80_ctrl
+[frame 024750] window_change vdp_ports
+[frame 024750] window_change z80_ctrl
+[frame 024780] window_change z80_ctrl
+[frame 024810] window_change vdp_ports
+[frame 024810] window_change z80_ctrl
+[frame 024840] window_change vdp_ports
+[frame 024840] window_change z80_ctrl
+[frame 024870] window_change z80_ctrl
+[frame 024900] window_change z80_ctrl
+[frame 024930] window_change z80_ctrl
+[frame 024960] window_change vdp_ports
+[frame 024960] window_change z80_ctrl
+[frame 024990] window_change vdp_ports
+[frame 024990] window_change z80_ctrl
+[frame 025020] window_change vdp_ports
+[frame 025020] window_change z80_ctrl
+[frame 025050] window_change z80_ctrl
+[frame 025080] window_change z80_ctrl
+[frame 025110] window_change vdp_ports
+[frame 025110] window_change z80_ctrl
+[frame 025140] window_change z80_ctrl
+[frame 025170] window_change z80_ctrl
+[frame 025200] window_change z80_ctrl
+[frame 025230] window_change vdp_ports
+[frame 025230] window_change z80_ctrl
+[frame 025260] window_change z80_ctrl
+[frame 025290] window_change vdp_ports
+[frame 025290] window_change z80_ctrl
+[frame 025320] window_change vdp_ports
+[frame 025320] window_change z80_ctrl
+[frame 025350] window_change vdp_ports
+[frame 025350] window_change z80_ctrl
+[frame 025380] window_change z80_ctrl
+[frame 025410] window_change z80_ctrl
+[frame 025440] window_change vdp_ports
+[frame 025440] window_change z80_ctrl
+[frame 025470] window_change z80_ctrl
+[frame 025500] window_change vdp_ports
+[frame 025500] window_change z80_ctrl
+[frame 025530] window_change vdp_ports
+[frame 025530] window_change z80_ctrl
+[frame 025560] window_change vdp_ports
+[frame 025560] window_change z80_ctrl
+[frame 025590] window_change vdp_ports
+[frame 025590] window_change z80_ctrl
+[frame 025620] window_change z80_ctrl
+[frame 025650] window_change vdp_ports
+[frame 025650] window_change z80_ctrl
+[frame 025680] window_change vdp_ports
+[frame 025680] window_change z80_ctrl
+[frame 025710] window_change z80_ctrl
+[frame 025740] window_change z80_ctrl
+[frame 025770] window_change z80_ctrl
+[frame 025800] window_change z80_ctrl
+[frame 025830] window_change vdp_ports
+[frame 025830] window_change z80_ctrl
+[frame 025860] window_change z80_ctrl
+[frame 025890] window_change vdp_ports
+[frame 025890] window_change z80_ctrl
+[frame 025920] window_change vdp_ports
+[frame 025920] window_change z80_ctrl
+[frame 025950] window_change vdp_ports
+[frame 025950] window_change z80_ctrl
+[frame 025980] window_change z80_ctrl
+[frame 026010] window_change z80_ctrl
+[frame 026040] window_change z80_ctrl
+[frame 026070] window_change vdp_ports
+[frame 026070] window_change z80_ctrl
+[frame 026100] window_change vdp_ports
+[frame 026100] window_change z80_ctrl
+[frame 026130] window_change vdp_ports
+[frame 026130] window_change z80_ctrl
+[frame 026160] window_change z80_ctrl
+[frame 026190] window_change z80_ctrl
+[frame 026220] window_change vdp_ports
+[frame 026220] window_change z80_ctrl
+[frame 026250] window_change vdp_ports
+[frame 026250] window_change z80_ctrl
+[frame 026280] window_change vdp_ports
+[frame 026280] window_change z80_ctrl
+[frame 026310] window_change vdp_ports
+[frame 026310] window_change z80_ctrl
+[frame 026340] window_change vdp_ports
+[frame 026340] window_change z80_ctrl
+[frame 026370] window_change vdp_ports
+[frame 026370] window_change z80_ctrl
+[frame 026400] window_change z80_ctrl
+[frame 026430] window_change z80_ctrl
+[frame 026460] window_change vdp_ports
+[frame 026460] window_change z80_ctrl
+[frame 026490] window_change vdp_ports
+[frame 026490] window_change z80_ctrl
+[frame 026520] window_change vdp_ports
+[frame 026520] window_change z80_ctrl
+[frame 026550] window_change z80_ctrl
+[frame 026580] window_change z80_ctrl
+[frame 026610] window_change z80_ctrl
+[frame 026640] window_change z80_ctrl
+[frame 026670] window_change vdp_ports
+[frame 026670] window_change z80_ctrl
+[frame 026700] window_change z80_ctrl
+[frame 026730] window_change vdp_ports
+[frame 026730] window_change z80_ctrl
+[frame 026760] window_change vdp_ports
+[frame 026760] window_change z80_ctrl
+[frame 026790] window_change z80_ctrl
+[frame 026820] window_change z80_ctrl
+[frame 026850] window_change z80_ctrl
+[frame 026880] window_change vdp_ports
+[frame 026880] window_change z80_ctrl
+[frame 026910] window_change vdp_ports
+[frame 026910] window_change z80_ctrl
+[frame 026940] window_change z80_ctrl
+[frame 026970] window_change z80_ctrl
+[frame 027000] window_change z80_ctrl
+[frame 027030] window_change vdp_ports
+[frame 027030] window_change z80_ctrl
+[frame 027060] window_change vdp_ports
+[frame 027060] window_change z80_ctrl
+[frame 027090] window_change vdp_ports
+[frame 027090] window_change z80_ctrl
+[frame 027120] window_change vdp_ports
+[frame 027120] window_change z80_ctrl
+[frame 027150] window_change vdp_ports
+[frame 027150] window_change z80_ctrl
+[frame 027180] window_change vdp_ports
+[frame 027180] window_change z80_ctrl
+[frame 027210] window_change vdp_ports
+[frame 027210] window_change z80_ctrl
+[frame 027240] window_change vdp_ports
+[frame 027240] window_change z80_ctrl
+[frame 027270] window_change z80_ctrl
+[frame 027300] window_change z80_ctrl
+[frame 027330] window_change z80_ctrl
+[frame 027360] window_change z80_ctrl
+[frame 027390] window_change z80_ctrl
+[frame 027420] window_change z80_ctrl
+[frame 027450] window_change z80_ctrl
+[frame 027480] window_change z80_ctrl
+[frame 027510] window_change vdp_ports
+[frame 027510] window_change z80_ctrl
+[frame 027540] window_change vdp_ports
+[frame 027540] window_change z80_ctrl
+[frame 027570] window_change vdp_ports
+[frame 027570] window_change z80_ctrl
+[frame 027600] window_change vdp_ports
+[frame 027600] window_change z80_ctrl
+[frame 027630] window_change vdp_ports
+[frame 027630] window_change z80_ctrl
+[frame 027660] window_change vdp_ports
+[frame 027660] window_change z80_ctrl
+[frame 027690] window_change vdp_ports
+[frame 027690] window_change z80_ctrl
+[frame 027720] window_change z80_ctrl
+[frame 027750] window_change z80_ctrl
+[frame 027780] window_change z80_ctrl
+[frame 027810] window_change z80_ctrl
+[frame 027840] window_change z80_ctrl
+[frame 027870] window_change z80_ctrl
+[frame 027900] window_change z80_ctrl
+[frame 027930] window_change vdp_ports
+[frame 027930] window_change z80_ctrl
+[frame 027960] window_change z80_ctrl
+[frame 027990] window_change vdp_ports
+[frame 027990] window_change z80_ctrl
+[frame 028020] window_change z80_ctrl
+[frame 028050] window_change vdp_ports
+[frame 028050] window_change z80_ctrl
+[frame 028080] window_change vdp_ports
+[frame 028080] window_change z80_ctrl
+[frame 028110] window_change vdp_ports
+[frame 028110] window_change z80_ctrl
+[frame 028140] window_change vdp_ports
+[frame 028140] window_change z80_ctrl
+[frame 028170] window_change vdp_ports
+[frame 028170] window_change z80_ctrl
+[frame 028200] window_change vdp_ports
+[frame 028200] window_change z80_ctrl
+[frame 028230] window_change vdp_ports
+[frame 028230] window_change z80_ctrl
+[frame 028260] window_change z80_ctrl
+[frame 028290] window_change vdp_ports
+[frame 028290] window_change z80_ctrl
+[frame 028320] window_change vdp_ports
+[frame 028320] window_change z80_ctrl
+[frame 028350] window_change vdp_ports
+[frame 028350] window_change z80_ctrl
+[frame 028380] window_change vdp_ports
+[frame 028380] window_change z80_ctrl
+[frame 028410] window_change vdp_ports
+[frame 028410] window_change z80_ctrl
+[frame 028440] window_change vdp_ports
+[frame 028440] window_change z80_ctrl
+[frame 028470] window_change vdp_ports
+[frame 028470] window_change z80_ctrl
+[frame 028500] window_change vdp_ports
+[frame 028500] window_change z80_ctrl
+[frame 028530] window_change vdp_ports
+[frame 028530] window_change z80_ctrl
+[frame 028560] window_change vdp_ports
+[frame 028560] window_change z80_ctrl
+[frame 028590] window_change vdp_ports
+[frame 028590] window_change z80_ctrl
+[frame 028620] window_change vdp_ports
+[frame 028620] window_change z80_ctrl
+[frame 028650] window_change vdp_ports
+[frame 028650] window_change z80_ctrl
+[frame 028680] window_change vdp_ports
+[frame 028680] window_change z80_ctrl
+[frame 028710] window_change vdp_ports
+[frame 028710] window_change z80_ctrl
+[frame 028740] window_change vdp_ports
+[frame 028740] window_change z80_ctrl
+[frame 028770] window_change vdp_ports
+[frame 028770] window_change z80_ctrl
+[frame 028800] window_change vdp_ports
+[frame 028800] window_change z80_ctrl
+[frame 028830] window_change vdp_ports
+[frame 028830] window_change z80_ctrl
+[frame 028860] window_change vdp_ports
+[frame 028860] window_change z80_ctrl
+[frame 028890] window_change vdp_ports
+[frame 028890] window_change z80_ctrl
+[frame 028920] window_change vdp_ports
+[frame 028920] window_change z80_ctrl
+[frame 028950] window_change vdp_ports
+[frame 028950] window_change z80_ctrl
+[frame 028980] window_change z80_ctrl
+[frame 029010] window_change z80_ctrl
+[frame 029040] window_change z80_ctrl
+[frame 029070] window_change z80_ctrl
+[frame 029100] window_change z80_ctrl
+[frame 029130] window_change vdp_ports
+[frame 029130] window_change z80_ctrl
+[frame 029160] window_change vdp_ports
+[frame 029160] window_change z80_ctrl
+[frame 029190] window_change vdp_ports
+[frame 029190] window_change z80_ctrl
+[frame 029220] window_change vdp_ports
+[frame 029220] window_change z80_ctrl
+[frame 029250] window_change vdp_ports
+[frame 029250] window_change z80_ctrl
+[frame 029280] window_change vdp_ports
+[frame 029280] window_change z80_ctrl
+[frame 029310] window_change vdp_ports
+[frame 029310] window_change z80_ctrl
+[frame 029340] window_change vdp_ports
+[frame 029340] window_change z80_ctrl
+[frame 029370] window_change vdp_ports
+[frame 029370] window_change z80_ctrl
+[frame 029400] window_change vdp_ports
+[frame 029400] window_change z80_ctrl
+[frame 029430] window_change vdp_ports
+[frame 029430] window_change z80_ctrl
+[frame 029460] window_change vdp_ports
+[frame 029460] window_change z80_ctrl
+[frame 029490] window_change vdp_ports
+[frame 029490] window_change z80_ctrl
+[frame 029520] window_change vdp_ports
+[frame 029520] window_change z80_ctrl
+[frame 029550] window_change vdp_ports
+[frame 029550] window_change z80_ctrl
+[frame 029580] window_change vdp_ports
+[frame 029580] window_change z80_ctrl
+[frame 029610] window_change vdp_ports
+[frame 029610] window_change z80_ctrl
+[frame 029640] window_change vdp_ports
+[frame 029640] window_change z80_ctrl
+[frame 029670] window_change vdp_ports
+[frame 029670] window_change z80_ctrl
+[frame 029700] window_change z80_ctrl
+[frame 029730] window_change vdp_ports
+[frame 029730] window_change z80_ctrl
+[frame 029760] window_change vdp_ports
+[frame 029760] window_change z80_ctrl
+[frame 029790] window_change vdp_ports
+[frame 029790] window_change z80_ctrl
+[frame 029820] window_change vdp_ports
+[frame 029820] window_change z80_ctrl
+[frame 029850] window_change vdp_ports
+[frame 029850] window_change z80_ctrl
+[frame 029880] window_change vdp_ports
+[frame 029880] window_change z80_ctrl
+[frame 029910] window_change vdp_ports
+[frame 029910] window_change z80_ctrl
+[frame 029940] window_change vdp_ports
+[frame 029940] window_change z80_ctrl
+[frame 029970] window_change vdp_ports
+[frame 029970] window_change z80_ctrl
+[frame 030000] window_change vdp_ports
+[frame 030000] window_change z80_ctrl
+[frame 030030] window_change vdp_ports
+[frame 030030] window_change z80_ctrl
+[frame 030060] window_change vdp_ports
+[frame 030060] window_change z80_ctrl
+[frame 030090] window_change vdp_ports
+[frame 030090] window_change z80_ctrl
+[frame 030120] window_change vdp_ports
+[frame 030120] window_change z80_ctrl
+[frame 030150] window_change vdp_ports
+[frame 030150] window_change z80_ctrl
+[frame 030180] window_change vdp_ports
+[frame 030180] window_change z80_ctrl
+[frame 030210] window_change vdp_ports
+[frame 030210] window_change z80_ctrl
+[frame 030240] window_change vdp_ports
+[frame 030240] window_change z80_ctrl
+[frame 030270] window_change vdp_ports
+[frame 030270] window_change z80_ctrl
+[frame 030300] window_change vdp_ports
+[frame 030300] window_change z80_ctrl
+[frame 030330] window_change z80_ctrl
+[frame 030360] window_change vdp_ports
+[frame 030360] window_change z80_ctrl
+[frame 030390] window_change vdp_ports
+[frame 030390] window_change z80_ctrl
+[frame 030420] window_change z80_ctrl
+[frame 030450] window_change vdp_ports
+[frame 030450] window_change z80_ctrl
+[frame 030480] window_change vdp_ports
+[frame 030480] window_change z80_ctrl
+[frame 030510] window_change vdp_ports
+[frame 030510] window_change z80_ctrl
+[frame 030540] window_change vdp_ports
+[frame 030540] window_change z80_ctrl
+[frame 030570] window_change vdp_ports
+[frame 030570] window_change z80_ctrl
+[frame 030600] window_change vdp_ports
+[frame 030600] window_change z80_ctrl
+[frame 030630] window_change vdp_ports
+[frame 030630] window_change z80_ctrl
+[frame 030660] window_change z80_ctrl
+[frame 030690] window_change z80_ctrl
+[frame 030720] window_change z80_ctrl
+[frame 030750] window_change z80_ctrl
+[frame 030780] window_change z80_ctrl
+[frame 030810] window_change vdp_ports
+[frame 030810] window_change z80_ctrl
+[frame 030840] window_change vdp_ports
+[frame 030840] window_change z80_ctrl
+[frame 030870] window_change vdp_ports
+[frame 030870] window_change z80_ctrl
+[frame 030900] window_change vdp_ports
+[frame 030900] window_change z80_ctrl
+[frame 030930] window_change vdp_ports
+[frame 030930] window_change z80_ctrl
+[frame 030960] window_change vdp_ports
+[frame 030960] window_change z80_ctrl
+[frame 030990] window_change vdp_ports
+[frame 030990] window_change z80_ctrl
+[frame 031020] window_change vdp_ports
+[frame 031020] window_change z80_ctrl
+[frame 031050] window_change vdp_ports
+[frame 031050] window_change z80_ctrl
+[frame 031080] window_change vdp_ports
+[frame 031080] window_change z80_ctrl
+[frame 031110] window_change vdp_ports
+[frame 031110] window_change z80_ctrl
+[frame 031140] window_change vdp_ports
+[frame 031140] window_change z80_ctrl
+[frame 031170] window_change vdp_ports
+[frame 031170] window_change z80_ctrl
+[frame 031200] window_change vdp_ports
+[frame 031200] window_change z80_ctrl
+[frame 031230] window_change vdp_ports
+[frame 031230] window_change z80_ctrl
+[frame 031260] window_change vdp_ports
+[frame 031260] window_change z80_ctrl
+[frame 031290] window_change vdp_ports
+[frame 031290] window_change z80_ctrl
+[frame 031320] window_change vdp_ports
+[frame 031320] window_change z80_ctrl
+[frame 031350] window_change vdp_ports
+[frame 031350] window_change z80_ctrl
+[frame 031380] window_change vdp_ports
+[frame 031380] window_change z80_ctrl
+[frame 031410] window_change vdp_ports
+[frame 031410] window_change z80_ctrl
+[frame 031440] window_change vdp_ports
+[frame 031440] window_change z80_ctrl
+[frame 031470] window_change vdp_ports
+[frame 031470] window_change z80_ctrl
+[frame 031500] window_change z80_ctrl
+[frame 031530] window_change z80_ctrl
+[frame 031560] window_change z80_ctrl
+[frame 031590] window_change z80_ctrl
+[frame 031620] window_change vdp_ports
+[frame 031620] window_change z80_ctrl
+[frame 031650] window_change vdp_ports
+[frame 031650] window_change z80_ctrl
+[frame 031680] window_change vdp_ports
+[frame 031680] window_change z80_ctrl
+[frame 031710] window_change vdp_ports
+[frame 031710] window_change z80_ctrl
+[frame 031740] window_change vdp_ports
+[frame 031740] window_change z80_ctrl
+[frame 031770] window_change vdp_ports
+[frame 031770] window_change z80_ctrl
+[frame 031800] window_change vdp_ports
+[frame 031800] window_change z80_ctrl
+[frame 031830] window_change vdp_ports
+[frame 031830] window_change z80_ctrl
+[frame 031860] window_change z80_ctrl
+[frame 031890] window_change z80_ctrl
+[frame 031920] window_change z80_ctrl
+[frame 031950] window_change vdp_ports
+[frame 031950] window_change z80_ctrl
+[frame 031980] window_change vdp_ports
+[frame 031980] window_change z80_ctrl
+[frame 032010] window_change vdp_ports
+[frame 032010] window_change z80_ctrl
+[frame 032040] window_change vdp_ports
+[frame 032040] window_change z80_ctrl
+[frame 032070] window_change vdp_ports
+[frame 032070] window_change z80_ctrl
+[frame 032100] window_change z80_ctrl
+[frame 032130] window_change vdp_ports
+[frame 032130] window_change z80_ctrl
+[frame 032160] window_change z80_ctrl
+[frame 032190] window_change vdp_ports
+[frame 032190] window_change z80_ctrl
+[frame 032220] window_change vdp_ports
+[frame 032220] window_change z80_ctrl
+[frame 032250] window_change vdp_ports
+[frame 032250] window_change z80_ctrl
+[frame 032280] window_change vdp_ports
+[frame 032280] window_change z80_ctrl
+[frame 032310] window_change vdp_ports
+[frame 032310] window_change z80_ctrl
+[frame 032340] window_change z80_ctrl
+[frame 032370] window_change vdp_ports
+[frame 032370] window_change z80_ctrl
+[frame 032400] window_change vdp_ports
+[frame 032400] window_change z80_ctrl
+[frame 032430] window_change vdp_ports
+[frame 032430] window_change z80_ctrl
+[frame 032460] window_change vdp_ports
+[frame 032460] window_change z80_ctrl
+[frame 032490] window_change vdp_ports
+[frame 032490] window_change z80_ctrl
+[frame 032520] window_change vdp_ports
+[frame 032520] window_change z80_ctrl
+[frame 032550] window_change vdp_ports
+[frame 032550] window_change z80_ctrl
+[frame 032580] window_change z80_ctrl
+[frame 032610] window_change z80_ctrl
+[frame 032640] window_change z80_ctrl
+[frame 032670] window_change vdp_ports
+[frame 032670] window_change z80_ctrl
+[frame 032700] window_change vdp_ports
+[frame 032700] window_change z80_ctrl
+[frame 032730] window_change vdp_ports
+[frame 032730] window_change z80_ctrl
+[frame 032760] window_change vdp_ports
+[frame 032760] window_change z80_ctrl
+[frame 032790] window_change vdp_ports
+[frame 032790] window_change z80_ctrl
+[frame 032820] window_change z80_ctrl
+[frame 032850] window_change z80_ctrl
+[frame 032880] window_change z80_ctrl
+[frame 032910] window_change z80_ctrl
+[frame 032940] window_change z80_ctrl
+[frame 032970] window_change vdp_ports
+[frame 032970] window_change z80_ctrl
+[frame 033000] window_change vdp_ports
+[frame 033000] window_change z80_ctrl
+[frame 033030] window_change vdp_ports
+[frame 033030] window_change z80_ctrl
+[frame 033060] window_change vdp_ports
+[frame 033060] window_change z80_ctrl
+[frame 033090] window_change z80_ctrl
+[frame 033120] window_change z80_ctrl
+[frame 033150] window_change vdp_ports
+[frame 033150] window_change z80_ctrl
+[frame 033180] window_change z80_ctrl
+[frame 033210] window_change z80_ctrl
+[frame 033240] window_change z80_ctrl
+[frame 033270] window_change vdp_ports
+[frame 033270] window_change z80_ctrl
+[frame 033300] window_change vdp_ports
+[frame 033300] window_change z80_ctrl
+[frame 033330] window_change vdp_ports
+[frame 033330] window_change z80_ctrl
+[frame 033360] window_change vdp_ports
+[frame 033360] window_change z80_ctrl
+[frame 033390] window_change vdp_ports
+[frame 033390] window_change z80_ctrl
+[frame 033420] window_change vdp_ports
+[frame 033420] window_change z80_ctrl
+[frame 033450] window_change vdp_ports
+[frame 033450] window_change z80_ctrl
+[frame 033480] window_change vdp_ports
+[frame 033480] window_change z80_ctrl
+[frame 033510] window_change vdp_ports
+[frame 033510] window_change z80_ctrl
+[frame 033540] window_change vdp_ports
+[frame 033540] window_change z80_ctrl
+[frame 033570] window_change vdp_ports
+[frame 033570] window_change z80_ctrl
+[frame 033600] window_change vdp_ports
+[frame 033600] window_change z80_ctrl
+[frame 033630] window_change vdp_ports
+[frame 033630] window_change z80_ctrl
+[frame 033660] window_change vdp_ports
+[frame 033660] window_change z80_ctrl
+[frame 033690] window_change vdp_ports
+[frame 033690] window_change z80_ctrl
+[frame 033720] window_change vdp_ports
+[frame 033720] window_change z80_ctrl
+[frame 033750] window_change vdp_ports
+[frame 033750] window_change z80_ctrl
+[frame 033780] window_change z80_ctrl
+[frame 033810] window_change z80_ctrl
+[frame 033840] window_change z80_ctrl
+[frame 033870] window_change z80_ctrl
+[frame 033900] window_change z80_ctrl
+[frame 033930] window_change vdp_ports
+[frame 033930] window_change z80_ctrl
+[frame 033960] window_change vdp_ports
+[frame 033960] window_change z80_ctrl
+[frame 033990] window_change vdp_ports
+[frame 033990] window_change z80_ctrl
+[frame 034020] window_change z80_ctrl
+[frame 034050] window_change z80_ctrl
+[frame 034080] window_change z80_ctrl
+[frame 034110] window_change vdp_ports
+[frame 034110] window_change z80_ctrl
+[frame 034140] window_change vdp_ports
+[frame 034140] window_change z80_ctrl
+[frame 034170] window_change vdp_ports
+[frame 034170] window_change z80_ctrl
+[frame 034200] window_change vdp_ports
+[frame 034200] window_change z80_ctrl
+[frame 034230] window_change vdp_ports
+[frame 034230] window_change z80_ctrl
+[frame 034260] window_change z80_ctrl
+[frame 034290] window_change z80_ctrl
+[frame 034320] window_change vdp_ports
+[frame 034320] window_change z80_ctrl
+[frame 034350] window_change vdp_ports
+[frame 034350] window_change z80_ctrl
+[frame 034380] window_change vdp_ports
+[frame 034380] window_change z80_ctrl
+[frame 034410] window_change vdp_ports
+[frame 034410] window_change z80_ctrl
+[frame 034440] window_change vdp_ports
+[frame 034440] window_change z80_ctrl
+[frame 034470] window_change vdp_ports
+[frame 034470] window_change z80_ctrl
+[frame 034500] window_change z80_ctrl
+[frame 034530] window_change z80_ctrl
+[frame 034560] window_change vdp_ports
+[frame 034560] window_change z80_ctrl
+[frame 034590] window_change vdp_ports
+[frame 034590] window_change z80_ctrl
+[frame 034620] window_change vdp_ports
+[frame 034620] window_change z80_ctrl
+[frame 034650] window_change vdp_ports
+[frame 034650] window_change z80_ctrl
+[frame 034680] window_change vdp_ports
+[frame 034680] window_change z80_ctrl
+[frame 034710] window_change vdp_ports
+[frame 034710] window_change z80_ctrl
+[frame 034740] window_change z80_ctrl
+[frame 034770] window_change z80_ctrl
+[frame 034800] window_change z80_ctrl
+[frame 034830] window_change z80_ctrl
+[frame 034860] window_change z80_ctrl
+[frame 034890] window_change vdp_ports
+[frame 034890] window_change z80_ctrl
+[frame 034920] window_change vdp_ports
+[frame 034920] window_change z80_ctrl
+[frame 034950] window_change vdp_ports
+[frame 034950] window_change z80_ctrl
+[frame 034980] window_change vdp_ports
+[frame 034980] window_change z80_ctrl
+[frame 035010] window_change vdp_ports
+[frame 035010] window_change z80_ctrl
+[frame 035040] window_change vdp_ports
+[frame 035040] window_change z80_ctrl
+[frame 035070] window_change vdp_ports
+[frame 035070] window_change z80_ctrl
+[frame 035100] window_change vdp_ports
+[frame 035100] window_change z80_ctrl
+[frame 035130] window_change vdp_ports
+[frame 035130] window_change z80_ctrl
+[frame 035160] window_change vdp_ports
+[frame 035160] window_change z80_ctrl
+[frame 035190] window_change vdp_ports
+[frame 035190] window_change z80_ctrl
+[frame 035220] window_change vdp_ports
+[frame 035220] window_change z80_ctrl
+[frame 035250] window_change vdp_ports
+[frame 035250] window_change z80_ctrl
+[frame 035280] window_change vdp_ports
+[frame 035280] window_change z80_ctrl
+[frame 035310] window_change vdp_ports
+[frame 035310] window_change z80_ctrl
+[frame 035340] window_change vdp_ports
+[frame 035340] window_change z80_ctrl
+[frame 035370] window_change vdp_ports
+[frame 035370] window_change z80_ctrl
+[frame 035400] window_change vdp_ports
+[frame 035400] window_change z80_ctrl
+[frame 035430] window_change vdp_ports
+[frame 035430] window_change z80_ctrl
+[frame 035460] window_change z80_ctrl
+[frame 035490] window_change z80_ctrl
+[frame 035520] window_change z80_ctrl
+[frame 035550] window_change z80_ctrl
+[frame 035580] window_change z80_ctrl
+[frame 035610] window_change vdp_ports
+[frame 035610] window_change z80_ctrl
+[frame 035640] window_change vdp_ports
+[frame 035640] window_change z80_ctrl
+[frame 035670] window_change vdp_ports
+[frame 035670] window_change z80_ctrl
+[frame 035700] window_change vdp_ports
+[frame 035700] window_change z80_ctrl
+[frame 035730] window_change vdp_ports
+[frame 035730] window_change z80_ctrl
+[frame 035760] window_change z80_ctrl
+[frame 035790] window_change vdp_ports
+[frame 035790] window_change z80_ctrl
+[frame 035820] window_change vdp_ports
+[frame 035820] window_change z80_ctrl
+[frame 035850] window_change vdp_ports
+[frame 035850] window_change z80_ctrl
+[frame 035880] window_change vdp_ports
+[frame 035880] window_change z80_ctrl
+[frame 035910] window_change vdp_ports
+[frame 035910] window_change z80_ctrl
+[frame 035940] window_change vdp_ports
+[frame 035940] window_change z80_ctrl
+[frame 035970] window_change vdp_ports
+[frame 035970] window_change z80_ctrl
+[frame 036000] window_change vdp_ports
+[frame 036000] window_change z80_ctrl
+[frame 036030] window_change vdp_ports
+[frame 036030] window_change z80_ctrl
+[frame 036060] window_change vdp_ports
+[frame 036060] window_change z80_ctrl
+[frame 036090] window_change vdp_ports
+[frame 036090] window_change z80_ctrl
+[frame 036120] window_change vdp_ports
+[frame 036120] window_change z80_ctrl
+[frame 036150] window_change vdp_ports
+[frame 036150] window_change z80_ctrl
+[frame 036180] window_change z80_ctrl
+[frame 036210] window_change vdp_ports
+[frame 036210] window_change z80_ctrl
+[frame 036240] window_change vdp_ports
+[frame 036240] window_change z80_ctrl
+[frame 036270] window_change vdp_ports
+[frame 036270] window_change z80_ctrl
+[frame 036300] window_change vdp_ports
+[frame 036300] window_change z80_ctrl
+[frame 036330] window_change vdp_ports
+[frame 036330] window_change z80_ctrl
+[frame 036360] window_change vdp_ports
+[frame 036360] window_change z80_ctrl
+[frame 036390] window_change vdp_ports
+[frame 036390] window_change z80_ctrl
+[frame 036420] window_change z80_ctrl
+[frame 036450] window_change z80_ctrl
+[frame 036480] window_change z80_ctrl
+[frame 036510] window_change vdp_ports
+[frame 036510] window_change z80_ctrl
+[frame 036540] window_change vdp_ports
+[frame 036540] window_change z80_ctrl
+[frame 036570] window_change vdp_ports
+[frame 036570] window_change z80_ctrl
+[frame 036600] window_change vdp_ports
+[frame 036600] window_change z80_ctrl
+[frame 036630] window_change vdp_ports
+[frame 036630] window_change z80_ctrl
+[frame 036660] window_change z80_ctrl
+[frame 036690] window_change z80_ctrl
+[frame 036720] window_change z80_ctrl
+[frame 036750] window_change vdp_ports
+[frame 036750] window_change z80_ctrl
+[frame 036780] window_change vdp_ports
+[frame 036780] window_change z80_ctrl
+[frame 036810] window_change vdp_ports
+[frame 036810] window_change z80_ctrl
+[frame 036840] window_change vdp_ports
+[frame 036840] window_change z80_ctrl
+[frame 036870] window_change vdp_ports
+[frame 036870] window_change z80_ctrl
+[frame 036900] window_change z80_ctrl
+[frame 036930] window_change z80_ctrl
+[frame 036960] window_change z80_ctrl
+[frame 036990] window_change vdp_ports
+[frame 036990] window_change z80_ctrl
+[frame 037020] window_change vdp_ports
+[frame 037020] window_change z80_ctrl
+[frame 037050] window_change vdp_ports
+[frame 037050] window_change z80_ctrl
+[frame 037080] window_change vdp_ports
+[frame 037080] window_change z80_ctrl
+[frame 037110] window_change z80_ctrl
+[frame 037140] window_change z80_ctrl
+[frame 037170] window_change z80_ctrl
+[frame 037200] window_change z80_ctrl
+[frame 037230] window_change vdp_ports
+[frame 037230] window_change z80_ctrl
+[frame 037260] window_change vdp_ports
+[frame 037260] window_change z80_ctrl
+[frame 037290] window_change vdp_ports
+[frame 037290] window_change z80_ctrl
+[frame 037320] window_change vdp_ports
+[frame 037320] window_change z80_ctrl
+[frame 037350] window_change vdp_ports
+[frame 037350] window_change z80_ctrl
+[frame 037380] window_change z80_ctrl
+[frame 037410] window_change z80_ctrl
+[frame 037440] window_change z80_ctrl
+[frame 037470] window_change vdp_ports
+[frame 037470] window_change z80_ctrl
+[frame 037500] window_change vdp_ports
+[frame 037500] window_change z80_ctrl
+[frame 037530] window_change vdp_ports
+[frame 037530] window_change z80_ctrl
+[frame 037560] window_change vdp_ports
+[frame 037560] window_change z80_ctrl
+[frame 037590] window_change vdp_ports
+[frame 037590] window_change z80_ctrl
+[frame 037620] window_change z80_ctrl
+[frame 037650] window_change z80_ctrl
+[frame 037680] window_change z80_ctrl
+[frame 037710] window_change vdp_ports
+[frame 037710] window_change z80_ctrl
+[frame 037740] window_change vdp_ports
+[frame 037740] window_change z80_ctrl
+[frame 037770] window_change z80_ctrl
+[frame 037800] window_change z80_ctrl
+[frame 037830] window_change vdp_ports
+[frame 037830] window_change z80_ctrl
+[frame 037860] window_change vdp_ports
+[frame 037860] window_change z80_ctrl
+[frame 037890] window_change z80_ctrl
+[frame 037920] window_change vdp_ports
+[frame 037920] window_change z80_ctrl
+[frame 037950] window_change vdp_ports
+[frame 037950] window_change z80_ctrl
+[frame 037980] window_change vdp_ports
+[frame 037980] window_change z80_ctrl
+[frame 038010] window_change z80_ctrl
+[frame 038040] window_change z80_ctrl
+[frame 038070] window_change vdp_ports
+[frame 038070] window_change z80_ctrl
+[frame 038100] window_change vdp_ports
+[frame 038100] window_change z80_ctrl
+[frame 038130] window_change vdp_ports
+[frame 038130] window_change z80_ctrl
+[frame 038160] window_change vdp_ports
+[frame 038160] window_change z80_ctrl
+[frame 038190] window_change vdp_ports
+[frame 038190] window_change z80_ctrl
+[frame 038220] window_change vdp_ports
+[frame 038220] window_change z80_ctrl
+[frame 038250] window_change vdp_ports
+[frame 038250] window_change z80_ctrl
+[frame 038280] window_change vdp_ports
+[frame 038280] window_change z80_ctrl
+[frame 038310] window_change vdp_ports
+[frame 038310] window_change z80_ctrl
+[frame 038340] window_change vdp_ports
+[frame 038340] window_change z80_ctrl
+[frame 038370] window_change vdp_ports
+[frame 038370] window_change z80_ctrl
+[frame 038400] window_change vdp_ports
+[frame 038400] window_change z80_ctrl
+[frame 038430] window_change vdp_ports
+[frame 038430] window_change z80_ctrl
+[frame 038460] window_change vdp_ports
+[frame 038460] window_change z80_ctrl
+[frame 038490] window_change vdp_ports
+[frame 038490] window_change z80_ctrl
+[frame 038520] window_change vdp_ports
+[frame 038520] window_change z80_ctrl
+[frame 038550] window_change vdp_ports
+[frame 038550] window_change z80_ctrl
+[frame 038580] window_change vdp_ports
+[frame 038580] window_change z80_ctrl
+[frame 038610] window_change vdp_ports
+[frame 038610] window_change z80_ctrl
+[frame 038640] window_change vdp_ports
+[frame 038640] window_change z80_ctrl
+[frame 038670] window_change vdp_ports
+[frame 038670] window_change z80_ctrl
+[frame 038700] window_change vdp_ports
+[frame 038700] window_change z80_ctrl
+[frame 038730] window_change vdp_ports
+[frame 038730] window_change z80_ctrl
+[frame 038760] window_change vdp_ports
+[frame 038760] window_change z80_ctrl
+[frame 038790] window_change vdp_ports
+[frame 038790] window_change z80_ctrl
+[frame 038820] window_change vdp_ports
+[frame 038820] window_change z80_ctrl
+[frame 038850] window_change vdp_ports
+[frame 038850] window_change z80_ctrl
+[frame 038880] window_change vdp_ports
+[frame 038880] window_change z80_ctrl
+[frame 038910] window_change vdp_ports
+[frame 038910] window_change z80_ctrl
+[frame 038940] window_change vdp_ports
+[frame 038940] window_change z80_ctrl
+[frame 038970] window_change vdp_ports
+[frame 038970] window_change z80_ctrl
+[frame 039000] window_change vdp_ports
+[frame 039000] window_change z80_ctrl
+[frame 039030] window_change vdp_ports
+[frame 039030] window_change z80_ctrl
+[frame 039060] window_change z80_ctrl
+[frame 039090] window_change z80_ctrl
+[frame 039120] window_change vdp_ports
+[frame 039120] window_change z80_ctrl
+[frame 039150] window_change vdp_ports
+[frame 039150] window_change z80_ctrl
+[frame 039180] window_change z80_ctrl
+[frame 039210] window_change z80_ctrl
+[frame 039240] window_change vdp_ports
+[frame 039240] window_change z80_ctrl
+[frame 039270] window_change vdp_ports
+[frame 039270] window_change z80_ctrl
+[frame 039300] window_change vdp_ports
+[frame 039300] window_change z80_ctrl
+[frame 039330] window_change vdp_ports
+[frame 039330] window_change z80_ctrl
+[frame 039360] window_change vdp_ports
+[frame 039360] window_change z80_ctrl
+[frame 039390] window_change vdp_ports
+[frame 039390] window_change z80_ctrl
+[frame 039420] window_change vdp_ports
+[frame 039420] window_change z80_ctrl
+[frame 039450] window_change vdp_ports
+[frame 039450] window_change z80_ctrl
+[frame 039480] window_change vdp_ports
+[frame 039480] window_change z80_ctrl
+[frame 039510] window_change vdp_ports
+[frame 039510] window_change z80_ctrl
+[frame 039540] window_change vdp_ports
+[frame 039540] window_change z80_ctrl
+[frame 039570] window_change vdp_ports
+[frame 039570] window_change z80_ctrl
+[frame 039600] window_change vdp_ports
+[frame 039600] window_change z80_ctrl
+[frame 039630] window_change vdp_ports
+[frame 039630] window_change z80_ctrl
+[frame 039660] window_change vdp_ports
+[frame 039660] window_change z80_ctrl
+[frame 039690] window_change z80_ctrl
+[frame 039720] window_change vdp_ports
+[frame 039720] window_change z80_ctrl
+[frame 039750] window_change vdp_ports
+[frame 039750] window_change z80_ctrl
+[frame 039780] window_change vdp_ports
+[frame 039780] window_change z80_ctrl
+[frame 039810] window_change vdp_ports
+[frame 039810] window_change z80_ctrl
+[frame 039840] window_change vdp_ports
+[frame 039840] window_change z80_ctrl
+[frame 039870] window_change vdp_ports
+[frame 039870] window_change z80_ctrl
+[frame 039900] window_change z80_ctrl
+[frame 039930] window_change z80_ctrl
+[frame 039960] window_change z80_ctrl
+[frame 039990] window_change vdp_ports
+[frame 039990] window_change z80_ctrl
+[frame 040020] window_change vdp_ports
+[frame 040020] window_change z80_ctrl
+[frame 040050] window_change vdp_ports
+[frame 040050] window_change z80_ctrl
+[frame 040080] window_change vdp_ports
+[frame 040080] window_change z80_ctrl
+[frame 040110] window_change vdp_ports
+[frame 040110] window_change z80_ctrl
+[frame 040140] window_change vdp_ports
+[frame 040140] window_change z80_ctrl
+[frame 040170] window_change vdp_ports
+[frame 040170] window_change z80_ctrl
+[frame 040200] window_change z80_ctrl
+[frame 040230] window_change vdp_ports
+[frame 040230] window_change z80_ctrl
+[frame 040260] window_change vdp_ports
+[frame 040260] window_change z80_ctrl
+[frame 040290] window_change vdp_ports
+[frame 040290] window_change z80_ctrl
+[frame 040320] window_change vdp_ports
+[frame 040320] window_change z80_ctrl
+[frame 040350] window_change vdp_ports
+[frame 040350] window_change z80_ctrl
+[frame 040380] window_change vdp_ports
+[frame 040380] window_change z80_ctrl
+[frame 040410] window_change vdp_ports
+[frame 040410] window_change z80_ctrl
+[frame 040440] window_change vdp_ports
+[frame 040440] window_change z80_ctrl
+[frame 040470] window_change vdp_ports
+[frame 040470] window_change z80_ctrl
+[frame 040500] window_change vdp_ports
+[frame 040500] window_change z80_ctrl
+[frame 040530] window_change vdp_ports
+[frame 040530] window_change z80_ctrl
+[frame 040560] window_change vdp_ports
+[frame 040560] window_change z80_ctrl
+[frame 040590] window_change vdp_ports
+[frame 040590] window_change z80_ctrl
+[frame 040620] window_change vdp_ports
+[frame 040620] window_change z80_ctrl
+[frame 040650] window_change vdp_ports
+[frame 040650] window_change z80_ctrl
+[frame 040680] window_change vdp_ports
+[frame 040680] window_change z80_ctrl
+[frame 040710] window_change vdp_ports
+[frame 040710] window_change z80_ctrl
+[frame 040740] window_change vdp_ports
+[frame 040740] window_change z80_ctrl
+[frame 040770] window_change vdp_ports
+[frame 040770] window_change z80_ctrl
+[frame 040800] window_change vdp_ports
+[frame 040800] window_change z80_ctrl
+[frame 040830] window_change vdp_ports
+[frame 040830] window_change z80_ctrl
+[frame 040860] window_change vdp_ports
+[frame 040860] window_change z80_ctrl
+[frame 040890] window_change vdp_ports
+[frame 040890] window_change z80_ctrl
+[frame 040920] window_change vdp_ports
+[frame 040920] window_change z80_ctrl
+[frame 040950] window_change vdp_ports
+[frame 040950] window_change z80_ctrl
+[frame 040980] window_change vdp_ports
+[frame 040980] window_change z80_ctrl
+[frame 041010] window_change vdp_ports
+[frame 041010] window_change z80_ctrl
+[frame 041040] window_change vdp_ports
+[frame 041040] window_change z80_ctrl
+[frame 041070] window_change vdp_ports
+[frame 041070] window_change z80_ctrl
+[frame 041100] window_change vdp_ports
+[frame 041100] window_change z80_ctrl
+[frame 041130] window_change vdp_ports
+[frame 041130] window_change z80_ctrl
+[frame 041160] window_change vdp_ports
+[frame 041160] window_change z80_ctrl
+[frame 041190] window_change vdp_ports
+[frame 041190] window_change z80_ctrl
+[frame 041220] window_change vdp_ports
+[frame 041220] window_change z80_ctrl
+[frame 041250] window_change vdp_ports
+[frame 041250] window_change z80_ctrl
+[frame 041280] window_change vdp_ports
+[frame 041280] window_change z80_ctrl
+[frame 041310] window_change vdp_ports
+[frame 041310] window_change z80_ctrl
+[frame 041340] window_change vdp_ports
+[frame 041340] window_change z80_ctrl
+[frame 041370] window_change vdp_ports
+[frame 041370] window_change z80_ctrl
+[frame 041400] window_change vdp_ports
+[frame 041400] window_change z80_ctrl
+[frame 041430] window_change vdp_ports
+[frame 041430] window_change z80_ctrl
+[frame 041460] window_change vdp_ports
+[frame 041460] window_change z80_ctrl
+[frame 041490] window_change vdp_ports
+[frame 041490] window_change z80_ctrl
+[frame 041520] window_change vdp_ports
+[frame 041520] window_change z80_ctrl
+[frame 041550] window_change vdp_ports
+[frame 041550] window_change z80_ctrl
+[frame 041580] window_change vdp_ports
+[frame 041580] window_change z80_ctrl
+[frame 041610] window_change vdp_ports
+[frame 041610] window_change z80_ctrl
+[frame 041640] window_change vdp_ports
+[frame 041640] window_change z80_ctrl
+[frame 041670] window_change vdp_ports
+[frame 041670] window_change z80_ctrl
+[frame 041700] window_change vdp_ports
+[frame 041700] window_change z80_ctrl
+[frame 041730] window_change vdp_ports
+[frame 041730] window_change z80_ctrl
+[frame 041760] window_change vdp_ports
+[frame 041760] window_change z80_ctrl
+[frame 041790] window_change vdp_ports
+[frame 041790] window_change z80_ctrl
+[frame 041820] window_change vdp_ports
+[frame 041820] window_change z80_ctrl
+[frame 041850] window_change z80_ctrl
+[frame 041880] window_change vdp_ports
+[frame 041880] window_change z80_ctrl
+[frame 041910] window_change vdp_ports
+[frame 041910] window_change z80_ctrl
+[frame 041940] window_change vdp_ports
+[frame 041940] window_change z80_ctrl
+[frame 041970] window_change vdp_ports
+[frame 041970] window_change z80_ctrl
+[frame 042000] window_change vdp_ports
+[frame 042000] window_change z80_ctrl
+[frame 042030] window_change vdp_ports
+[frame 042030] window_change z80_ctrl
+[frame 042060] window_change vdp_ports
+[frame 042060] window_change z80_ctrl
+[frame 042090] window_change vdp_ports
+[frame 042090] window_change z80_ctrl
+[frame 042120] window_change vdp_ports
+[frame 042120] window_change z80_ctrl
+[frame 042150] window_change vdp_ports
+[frame 042150] window_change z80_ctrl
+[frame 042180] window_change vdp_ports
+[frame 042180] window_change z80_ctrl
+[frame 042210] window_change vdp_ports
+[frame 042210] window_change z80_ctrl
+[frame 042240] window_change vdp_ports
+[frame 042240] window_change z80_ctrl
+[frame 042270] window_change vdp_ports
+[frame 042270] window_change z80_ctrl
+[frame 042300] window_change vdp_ports
+[frame 042300] window_change z80_ctrl
+[frame 042330] window_change z80_ctrl
+[frame 042360] window_change z80_ctrl
+[frame 042390] window_change vdp_ports
+[frame 042390] window_change z80_ctrl
+[frame 042420] window_change vdp_ports
+[frame 042420] window_change z80_ctrl
+[frame 042450] window_change vdp_ports
+[frame 042450] window_change z80_ctrl
+[frame 042480] window_change vdp_ports
+[frame 042480] window_change z80_ctrl
+[frame 042510] window_change z80_ctrl
+[frame 042540] window_change z80_ctrl
+[frame 042570] window_change z80_ctrl
+[frame 042600] window_change z80_ctrl
+[frame 042630] window_change vdp_ports
+[frame 042630] window_change z80_ctrl
+[frame 042660] window_change vdp_ports
+[frame 042660] window_change z80_ctrl
+[frame 042690] window_change vdp_ports
+[frame 042690] window_change z80_ctrl
+[frame 042720] window_change vdp_ports
+[frame 042720] window_change z80_ctrl
+[frame 042750] window_change vdp_ports
+[frame 042750] window_change z80_ctrl
+[frame 042780] window_change vdp_ports
+[frame 042780] window_change z80_ctrl
+[frame 042810] window_change vdp_ports
+[frame 042810] window_change z80_ctrl
+[frame 042840] window_change vdp_ports
+[frame 042840] window_change z80_ctrl
+[frame 042870] window_change vdp_ports
+[frame 042870] window_change z80_ctrl
+[frame 042900] window_change z80_ctrl
+[frame 042930] window_change z80_ctrl
+[frame 042960] window_change z80_ctrl
+[frame 042990] window_change z80_ctrl
+[frame 043020] window_change z80_ctrl
+[frame 043050] window_change vdp_ports
+[frame 043050] window_change z80_ctrl
+[frame 043080] window_change vdp_ports
+[frame 043080] window_change z80_ctrl
+[frame 043110] window_change vdp_ports
+[frame 043110] window_change z80_ctrl
+[frame 043140] window_change vdp_ports
+[frame 043140] window_change z80_ctrl
+[frame 043170] window_change vdp_ports
+[frame 043170] window_change z80_ctrl
+[frame 043200] window_change vdp_ports
+[frame 043200] window_change z80_ctrl
+[frame 043230] window_change z80_ctrl
+[frame 043260] window_change z80_ctrl
+[frame 043290] window_change z80_ctrl
+[frame 043320] window_change z80_ctrl
+[frame 043350] window_change vdp_ports
+[frame 043350] window_change z80_ctrl
+[frame 043380] window_change vdp_ports
+[frame 043380] window_change z80_ctrl
+[frame 043410] window_change vdp_ports
+[frame 043410] window_change z80_ctrl
+[frame 043440] window_change z80_ctrl
+[frame 043470] window_change z80_ctrl
+[frame 043500] window_change z80_ctrl
+[frame 043530] window_change z80_ctrl
+[frame 043560] window_change z80_ctrl
+[frame 043590] window_change vdp_ports
+[frame 043590] window_change z80_ctrl
+[frame 043620] window_change z80_ctrl
+[frame 043650] window_change z80_ctrl
+[frame 043680] window_change z80_ctrl
+[frame 043710] window_change z80_ctrl
+[frame 043740] window_change z80_ctrl
+[frame 043770] window_change z80_ctrl
+[frame 043800] window_change z80_ctrl
+[frame 043830] window_change vdp_ports
+[frame 043830] window_change z80_ctrl
+[frame 043860] window_change vdp_ports
+[frame 043860] window_change z80_ctrl
+[frame 043890] window_change vdp_ports
+[frame 043890] window_change z80_ctrl
+[frame 043920] window_change z80_ctrl
+[frame 043950] window_change z80_ctrl
+[frame 043980] window_change z80_ctrl
+[frame 044010] window_change z80_ctrl
+[frame 044040] window_change z80_ctrl
+[frame 044070] window_change vdp_ports
+[frame 044070] window_change z80_ctrl
+[frame 044100] window_change vdp_ports
+[frame 044100] window_change z80_ctrl
+[frame 044130] window_change z80_ctrl
+[frame 044160] window_change z80_ctrl
+[frame 044190] window_change z80_ctrl
+[frame 044220] window_change z80_ctrl
+[frame 044250] window_change z80_ctrl
+[frame 044280] window_change z80_ctrl
+[frame 044310] window_change vdp_ports
+[frame 044310] window_change z80_ctrl
+[frame 044340] window_change vdp_ports
+[frame 044340] window_change z80_ctrl
+[frame 044370] window_change vdp_ports
+[frame 044370] window_change z80_ctrl
+[frame 044400] window_change vdp_ports
+[frame 044400] window_change z80_ctrl
+[frame 044430] window_change z80_ctrl
+[frame 044460] window_change vdp_ports
+[frame 044460] window_change z80_ctrl
+[frame 044490] window_change z80_ctrl
+[frame 044520] window_change z80_ctrl
+[frame 044550] window_change vdp_ports
+[frame 044550] window_change z80_ctrl
+[frame 044580] window_change z80_ctrl
+[frame 044610] window_change vdp_ports
+[frame 044610] window_change z80_ctrl
+[frame 044640] window_change vdp_ports
+[frame 044640] window_change z80_ctrl
+[frame 044670] window_change z80_ctrl
+[frame 044700] window_change vdp_ports
+[frame 044700] window_change z80_ctrl
+[frame 044730] window_change vdp_ports
+[frame 044730] window_change z80_ctrl
+[frame 044760] window_change z80_ctrl
+[frame 044790] window_change vdp_ports
+[frame 044790] window_change z80_ctrl
+[frame 044820] window_change vdp_ports
+[frame 044820] window_change z80_ctrl
+[frame 044850] window_change vdp_ports
+[frame 044850] window_change z80_ctrl
+[frame 044880] window_change vdp_ports
+[frame 044880] window_change z80_ctrl
+[frame 044910] window_change vdp_ports
+[frame 044910] window_change z80_ctrl
+[frame 044940] window_change vdp_ports
+[frame 044940] window_change z80_ctrl
+[frame 044970] window_change z80_ctrl
+[frame 045000] window_change vdp_ports
+[frame 045000] window_change z80_ctrl
+[frame 045030] window_change vdp_ports
+[frame 045030] window_change z80_ctrl
+[frame 045060] window_change vdp_ports
+[frame 045060] window_change z80_ctrl
+[frame 045090] window_change vdp_ports
+[frame 045090] window_change z80_ctrl
+[frame 045120] window_change vdp_ports
+[frame 045120] window_change z80_ctrl
+[frame 045150] window_change vdp_ports
+[frame 045150] window_change z80_ctrl
+[frame 045180] window_change vdp_ports
+[frame 045180] window_change z80_ctrl
+[frame 045210] window_change vdp_ports
+[frame 045210] window_change z80_ctrl
+[frame 045240] window_change vdp_ports
+[frame 045240] window_change z80_ctrl
+[frame 045270] window_change vdp_ports
+[frame 045270] window_change z80_ctrl
+[frame 045300] window_change z80_ctrl
+[frame 045330] window_change z80_ctrl
+[frame 045360] window_change vdp_ports
+[frame 045360] window_change z80_ctrl
+[frame 045390] window_change z80_ctrl
+[frame 045420] window_change vdp_ports
+[frame 045420] window_change z80_ctrl
+[frame 045450] window_change vdp_ports
+[frame 045450] window_change z80_ctrl
+[frame 045480] window_change vdp_ports
+[frame 045480] window_change z80_ctrl
+[frame 045510] window_change vdp_ports
+[frame 045510] window_change z80_ctrl
+[frame 045540] window_change vdp_ports
+[frame 045540] window_change z80_ctrl
+[frame 045570] window_change vdp_ports
+[frame 045570] window_change z80_ctrl
+[frame 045600] window_change vdp_ports
+[frame 045600] window_change z80_ctrl
+[frame 045630] window_change vdp_ports
+[frame 045630] window_change z80_ctrl
+[frame 045660] window_change vdp_ports
+[frame 045660] window_change z80_ctrl
+[frame 045690] window_change vdp_ports
+[frame 045690] window_change z80_ctrl
+[frame 045720] window_change vdp_ports
+[frame 045720] window_change z80_ctrl
+[frame 045750] window_change vdp_ports
+[frame 045750] window_change z80_ctrl
+[frame 045780] window_change z80_ctrl
+[frame 045810] window_change vdp_ports
+[frame 045810] window_change z80_ctrl
+[frame 045840] window_change vdp_ports
+[frame 045840] window_change z80_ctrl
+[frame 045870] window_change vdp_ports
+[frame 045870] window_change z80_ctrl
+[frame 045900] window_change vdp_ports
+[frame 045900] window_change z80_ctrl
+[frame 045930] window_change vdp_ports
+[frame 045930] window_change z80_ctrl
+[frame 045960] window_change vdp_ports
+[frame 045960] window_change z80_ctrl
+[frame 045990] window_change vdp_ports
+[frame 045990] window_change z80_ctrl
+[frame 046020] window_change vdp_ports
+[frame 046020] window_change z80_ctrl
+[frame 046050] window_change vdp_ports
+[frame 046050] window_change z80_ctrl
+[frame 046080] window_change vdp_ports
+[frame 046080] window_change z80_ctrl
+[frame 046110] window_change vdp_ports
+[frame 046110] window_change z80_ctrl
+[frame 046140] window_change vdp_ports
+[frame 046140] window_change z80_ctrl
+[frame 046170] window_change vdp_ports
+[frame 046170] window_change z80_ctrl
+[frame 046200] window_change vdp_ports
+[frame 046200] window_change z80_ctrl
+[frame 046230] window_change vdp_ports
+[frame 046230] window_change z80_ctrl
+[frame 046260] window_change vdp_ports
+[frame 046260] window_change z80_ctrl
+[frame 046290] window_change vdp_ports
+[frame 046290] window_change z80_ctrl
+[frame 046320] window_change vdp_ports
+[frame 046320] window_change z80_ctrl
+[frame 046350] window_change vdp_ports
+[frame 046350] window_change z80_ctrl
+[frame 046380] window_change vdp_ports
+[frame 046380] window_change z80_ctrl
+[frame 046410] window_change vdp_ports
+[frame 046410] window_change z80_ctrl
+[frame 046440] window_change z80_ctrl
+[frame 046470] window_change vdp_ports
+[frame 046470] window_change z80_ctrl
+[frame 046500] window_change vdp_ports
+[frame 046500] window_change z80_ctrl
+[frame 046530] window_change vdp_ports
+[frame 046530] window_change z80_ctrl
+[frame 046560] window_change vdp_ports
+[frame 046560] window_change z80_ctrl
+[frame 046590] window_change vdp_ports
+[frame 046590] window_change z80_ctrl
+[frame 046620] window_change vdp_ports
+[frame 046620] window_change z80_ctrl
+[frame 046650] window_change vdp_ports
+[frame 046650] window_change z80_ctrl
+[frame 046680] window_change vdp_ports
+[frame 046680] window_change z80_ctrl
+[frame 046710] window_change vdp_ports
+[frame 046710] window_change z80_ctrl
+[frame 046740] window_change vdp_ports
+[frame 046740] window_change z80_ctrl
+[frame 046770] window_change vdp_ports
+[frame 046770] window_change z80_ctrl
+[frame 046800] window_change z80_ctrl
+[frame 046830] window_change vdp_ports
+[frame 046830] window_change z80_ctrl
+[frame 046860] window_change z80_ctrl
+[frame 046890] window_change vdp_ports
+[frame 046890] window_change z80_ctrl
+[frame 046920] window_change z80_ctrl
+[frame 046950] window_change vdp_ports
+[frame 046950] window_change z80_ctrl
+[frame 046980] window_change vdp_ports
+[frame 046980] window_change z80_ctrl
+[frame 047010] window_change vdp_ports
+[frame 047010] window_change z80_ctrl
+[frame 047040] window_change vdp_ports
+[frame 047040] window_change z80_ctrl
+[frame 047070] window_change vdp_ports
+[frame 047070] window_change z80_ctrl
+[frame 047100] window_change vdp_ports
+[frame 047100] window_change z80_ctrl
+[frame 047130] window_change vdp_ports
+[frame 047130] window_change z80_ctrl
+[frame 047160] window_change z80_ctrl
+[frame 047190] window_change vdp_ports
+[frame 047190] window_change z80_ctrl
+[frame 047220] window_change vdp_ports
+[frame 047220] window_change z80_ctrl
+[frame 047250] window_change vdp_ports
+[frame 047250] window_change z80_ctrl
+[frame 047280] window_change vdp_ports
+[frame 047280] window_change z80_ctrl
+[frame 047310] window_change vdp_ports
+[frame 047310] window_change z80_ctrl
+[frame 047340] window_change vdp_ports
+[frame 047340] window_change z80_ctrl
+[frame 047370] window_change vdp_ports
+[frame 047370] window_change z80_ctrl
+[frame 047400] window_change vdp_ports
+[frame 047400] window_change z80_ctrl
+[frame 047430] window_change vdp_ports
+[frame 047430] window_change z80_ctrl
+[frame 047460] window_change vdp_ports
+[frame 047460] window_change z80_ctrl
+[frame 047490] window_change vdp_ports
+[frame 047490] window_change z80_ctrl
+[frame 047520] window_change vdp_ports
+[frame 047520] window_change z80_ctrl
+[frame 047550] window_change z80_ctrl
+[frame 047580] window_change vdp_ports
+[frame 047580] window_change z80_ctrl
+[frame 047610] window_change z80_ctrl
+[frame 047640] window_change vdp_ports
+[frame 047640] window_change z80_ctrl
+[frame 047670] window_change vdp_ports
+[frame 047670] window_change z80_ctrl
+[frame 047700] window_change vdp_ports
+[frame 047700] window_change z80_ctrl
+[frame 047730] window_change vdp_ports
+[frame 047730] window_change z80_ctrl
+[frame 047760] window_change vdp_ports
+[frame 047760] window_change z80_ctrl
+[frame 047790] window_change vdp_ports
+[frame 047790] window_change z80_ctrl
+[frame 047820] window_change vdp_ports
+[frame 047820] window_change z80_ctrl
+[frame 047850] window_change vdp_ports
+[frame 047850] window_change z80_ctrl
+[frame 047880] window_change vdp_ports
+[frame 047880] window_change z80_ctrl
+[frame 047910] window_change vdp_ports
+[frame 047910] window_change z80_ctrl
+[frame 047940] window_change z80_ctrl
+[frame 047970] window_change z80_ctrl
+[frame 048000] window_change z80_ctrl
+[frame 048030] window_change z80_ctrl
+[frame 048060] window_change z80_ctrl
+[frame 048090] window_change z80_ctrl
+[frame 048120] window_change z80_ctrl
+[frame 048150] window_change vdp_ports
+[frame 048150] window_change z80_ctrl
+[frame 048180] window_change z80_ctrl
+[frame 048210] window_change vdp_ports
+[frame 048210] window_change z80_ctrl
+[frame 048240] window_change vdp_ports
+[frame 048240] window_change z80_ctrl
+[frame 048270] window_change z80_ctrl
+[frame 048300] window_change vdp_ports
+[frame 048300] window_change z80_ctrl
+[frame 048330] window_change vdp_ports
+[frame 048330] window_change z80_ctrl
+[frame 048360] window_change vdp_ports
+[frame 048360] window_change z80_ctrl
+[frame 048390] window_change vdp_ports
+[frame 048390] window_change z80_ctrl
+[frame 048420] window_change vdp_ports
+[frame 048420] window_change z80_ctrl
+[frame 048450] window_change vdp_ports
+[frame 048450] window_change z80_ctrl
+[frame 048480] window_change vdp_ports
+[frame 048480] window_change z80_ctrl
+[frame 048510] window_change vdp_ports
+[frame 048510] window_change z80_ctrl
+[frame 048540] window_change vdp_ports
+[frame 048540] window_change z80_ctrl
+[frame 048570] window_change vdp_ports
+[frame 048570] window_change z80_ctrl
+[frame 048600] window_change vdp_ports
+[frame 048600] window_change z80_ctrl
+[frame 048630] window_change vdp_ports
+[frame 048630] window_change z80_ctrl
+[frame 048660] window_change z80_ctrl
+[frame 048690] window_change z80_ctrl
+[frame 048720] window_change z80_ctrl
+[frame 048750] window_change z80_ctrl
+[frame 048780] window_change z80_ctrl
+[frame 048810] window_change z80_ctrl
+[frame 048840] window_change z80_ctrl
+[frame 048870] window_change vdp_ports
+[frame 048870] window_change z80_ctrl
+[frame 048900] window_change z80_ctrl
+[frame 048930] window_change z80_ctrl
+[frame 048960] window_change z80_ctrl
+[frame 048990] window_change z80_ctrl
+[frame 049020] window_change z80_ctrl
+[frame 049050] window_change z80_ctrl
+[frame 049080] window_change z80_ctrl
+[frame 049110] window_change vdp_ports
+[frame 049110] window_change z80_ctrl
+[frame 049140] window_change vdp_ports
+[frame 049140] window_change z80_ctrl
+[frame 049170] window_change vdp_ports
+[frame 049170] window_change z80_ctrl
+[frame 049200] window_change vdp_ports
+[frame 049200] window_change z80_ctrl
+[frame 049230] window_change vdp_ports
+[frame 049230] window_change z80_ctrl
+[frame 049260] window_change vdp_ports
+[frame 049260] window_change z80_ctrl
+[frame 049290] window_change vdp_ports
+[frame 049290] window_change z80_ctrl
+[frame 049320] window_change vdp_ports
+[frame 049320] window_change z80_ctrl
+[frame 049350] window_change vdp_ports
+[frame 049350] window_change z80_ctrl
+[frame 049380] window_change vdp_ports
+[frame 049380] window_change z80_ctrl
+[frame 049410] window_change vdp_ports
+[frame 049410] window_change z80_ctrl
+[frame 049440] window_change vdp_ports
+[frame 049440] window_change z80_ctrl
+[frame 049470] window_change vdp_ports
+[frame 049470] window_change z80_ctrl
+[frame 049500] window_change vdp_ports
+[frame 049500] window_change z80_ctrl
+[frame 049530] window_change vdp_ports
+[frame 049530] window_change z80_ctrl
+[frame 049560] window_change vdp_ports
+[frame 049560] window_change z80_ctrl
+[frame 049590] window_change vdp_ports
+[frame 049590] window_change z80_ctrl
+[frame 049620] window_change vdp_ports
+[frame 049620] window_change z80_ctrl
+[frame 049650] window_change z80_ctrl
+[frame 049680] window_change vdp_ports
+[frame 049680] window_change z80_ctrl
+[frame 049710] window_change vdp_ports
+[frame 049710] window_change z80_ctrl
+[frame 049740] window_change vdp_ports
+[frame 049740] window_change z80_ctrl
+[frame 049770] window_change vdp_ports
+[frame 049770] window_change z80_ctrl
+[frame 049800] window_change z80_ctrl
+[frame 049830] window_change vdp_ports
+[frame 049830] window_change z80_ctrl
+[frame 049860] window_change vdp_ports
+[frame 049860] window_change z80_ctrl
+[frame 049890] window_change z80_ctrl
+[frame 049920] window_change vdp_ports
+[frame 049920] window_change z80_ctrl
+[frame 049950] window_change vdp_ports
+[frame 049950] window_change z80_ctrl
+[frame 049980] window_change vdp_ports
+[frame 049980] window_change z80_ctrl
+[frame 050010] window_change vdp_ports
+[frame 050010] window_change z80_ctrl
+[frame 050040] window_change vdp_ports
+[frame 050040] window_change z80_ctrl
+[frame 050070] window_change vdp_ports
+[frame 050070] window_change z80_ctrl
+[frame 050100] window_change z80_ctrl
+[frame 050130] window_change vdp_ports
+[frame 050130] window_change z80_ctrl
+[frame 050160] window_change vdp_ports
+[frame 050160] window_change z80_ctrl
+[frame 050190] window_change vdp_ports
+[frame 050190] window_change z80_ctrl
+[frame 050220] window_change vdp_ports
+[frame 050220] window_change z80_ctrl
+[frame 050250] window_change vdp_ports
+[frame 050250] window_change z80_ctrl
+[frame 050280] window_change vdp_ports
+[frame 050280] window_change z80_ctrl
+[frame 050310] window_change vdp_ports
+[frame 050310] window_change z80_ctrl
+[frame 050340] window_change z80_ctrl
+[frame 050370] window_change vdp_ports
+[frame 050370] window_change z80_ctrl
+[frame 050400] window_change vdp_ports
+[frame 050400] window_change z80_ctrl
+[frame 050430] window_change vdp_ports
+[frame 050430] window_change z80_ctrl
+[frame 050460] window_change vdp_ports
+[frame 050460] window_change z80_ctrl
+[frame 050490] window_change vdp_ports
+[frame 050490] window_change z80_ctrl
+[frame 050520] window_change vdp_ports
+[frame 050520] window_change z80_ctrl
+[frame 050550] window_change vdp_ports
+[frame 050550] window_change z80_ctrl
+[frame 050580] window_change vdp_ports
+[frame 050580] window_change z80_ctrl
+[frame 050610] window_change vdp_ports
+[frame 050610] window_change z80_ctrl
+[frame 050640] window_change vdp_ports
+[frame 050640] window_change z80_ctrl
+[frame 050670] window_change vdp_ports
+[frame 050670] window_change z80_ctrl
+[frame 050700] window_change vdp_ports
+[frame 050700] window_change z80_ctrl
+[frame 050730] window_change vdp_ports
+[frame 050730] window_change z80_ctrl
+[frame 050760] window_change vdp_ports
+[frame 050760] window_change z80_ctrl
+[frame 050790] window_change vdp_ports
+[frame 050790] window_change z80_ctrl
+[frame 050820] window_change vdp_ports
+[frame 050820] window_change z80_ctrl
+[frame 050850] window_change vdp_ports
+[frame 050850] window_change z80_ctrl
+[frame 050880] window_change vdp_ports
+[frame 050880] window_change z80_ctrl
+[frame 050910] window_change vdp_ports
+[frame 050910] window_change z80_ctrl
+[frame 050940] window_change z80_ctrl
+[frame 050970] window_change vdp_ports
+[frame 050970] window_change z80_ctrl
+[frame 051000] window_change vdp_ports
+[frame 051000] window_change z80_ctrl
+[frame 051030] window_change vdp_ports
+[frame 051030] window_change z80_ctrl
+[frame 051060] window_change vdp_ports
+[frame 051060] window_change z80_ctrl
+[frame 051090] window_change vdp_ports
+[frame 051090] window_change z80_ctrl
+[frame 051120] window_change vdp_ports
+[frame 051120] window_change z80_ctrl
+[frame 051150] window_change vdp_ports
+[frame 051150] window_change z80_ctrl
+[frame 051180] window_change vdp_ports
+[frame 051180] window_change z80_ctrl
+[frame 051210] window_change vdp_ports
+[frame 051210] window_change z80_ctrl
+[frame 051240] window_change vdp_ports
+[frame 051240] window_change z80_ctrl
+[frame 051270] window_change vdp_ports
+[frame 051270] window_change z80_ctrl
+[frame 051300] window_change vdp_ports
+[frame 051300] window_change z80_ctrl
+[frame 051330] window_change vdp_ports
+[frame 051330] window_change z80_ctrl
+[frame 051360] window_change vdp_ports
+[frame 051360] window_change z80_ctrl
+[frame 051390] window_change vdp_ports
+[frame 051390] window_change z80_ctrl
+[frame 051420] window_change vdp_ports
+[frame 051420] window_change z80_ctrl
+[frame 051450] window_change vdp_ports
+[frame 051450] window_change z80_ctrl
+[frame 051480] window_change vdp_ports
+[frame 051480] window_change z80_ctrl
+[frame 051510] window_change vdp_ports
+[frame 051510] window_change z80_ctrl
+[frame 051540] window_change z80_ctrl
+[frame 051570] window_change vdp_ports
+[frame 051570] window_change z80_ctrl
+[frame 051600] window_change vdp_ports
+[frame 051600] window_change z80_ctrl
+[frame 051630] window_change vdp_ports
+[frame 051630] window_change z80_ctrl
+[frame 051660] window_change vdp_ports
+[frame 051660] window_change z80_ctrl
+[frame 051690] window_change vdp_ports
+[frame 051690] window_change z80_ctrl
+[frame 051720] window_change vdp_ports
+[frame 051720] window_change z80_ctrl
+[frame 051750] window_change vdp_ports
+[frame 051750] window_change z80_ctrl
+[frame 051780] window_change vdp_ports
+[frame 051780] window_change z80_ctrl
+[frame 051810] window_change vdp_ports
+[frame 051810] window_change z80_ctrl
+[frame 051840] window_change vdp_ports
+[frame 051840] window_change z80_ctrl
+[frame 051870] window_change vdp_ports
+[frame 051870] window_change z80_ctrl
+[frame 051900] window_change z80_ctrl
+[frame 051930] window_change z80_ctrl
+[frame 051960] window_change z80_ctrl
+[frame 051990] window_change vdp_ports
+[frame 051990] window_change z80_ctrl
+[frame 052020] window_change z80_ctrl
+[frame 052050] window_change vdp_ports
+[frame 052050] window_change z80_ctrl
+[frame 052080] window_change vdp_ports
+[frame 052080] window_change z80_ctrl
+[frame 052110] window_change vdp_ports
+[frame 052110] window_change z80_ctrl
+[frame 052140] window_change vdp_ports
+[frame 052140] window_change z80_ctrl
+[frame 052170] window_change vdp_ports
+[frame 052170] window_change z80_ctrl
+[frame 052200] window_change vdp_ports
+[frame 052200] window_change z80_ctrl
+[frame 052230] window_change vdp_ports
+[frame 052230] window_change z80_ctrl
+[frame 052260] window_change vdp_ports
+[frame 052260] window_change z80_ctrl
+[frame 052290] window_change z80_ctrl
+[frame 052320] window_change vdp_ports
+[frame 052320] window_change z80_ctrl
+[frame 052350] window_change vdp_ports
+[frame 052350] window_change z80_ctrl
+[frame 052380] window_change z80_ctrl
+[frame 052410] window_change vdp_ports
+[frame 052410] window_change z80_ctrl
+[frame 052440] window_change vdp_ports
+[frame 052440] window_change z80_ctrl
+[frame 052470] window_change vdp_ports
+[frame 052470] window_change z80_ctrl
+[frame 052500] window_change z80_ctrl
+[frame 052530] window_change vdp_ports
+[frame 052530] window_change z80_ctrl
+[frame 052560] window_change vdp_ports
+[frame 052560] window_change z80_ctrl
+[frame 052590] window_change vdp_ports
+[frame 052590] window_change z80_ctrl
+[frame 052620] window_change vdp_ports
+[frame 052620] window_change z80_ctrl
+[frame 052650] window_change vdp_ports
+[frame 052650] window_change z80_ctrl
+[frame 052680] window_change vdp_ports
+[frame 052680] window_change z80_ctrl
+[frame 052710] window_change vdp_ports
+[frame 052710] window_change z80_ctrl
+[frame 052740] window_change z80_ctrl
+[frame 052770] window_change z80_ctrl
+[frame 052800] window_change vdp_ports
+[frame 052800] window_change z80_ctrl
+[frame 052830] window_change vdp_ports
+[frame 052830] window_change z80_ctrl
+[frame 052860] window_change vdp_ports
+[frame 052860] window_change z80_ctrl
+[frame 052890] window_change vdp_ports
+[frame 052890] window_change z80_ctrl
+[frame 052920] window_change vdp_ports
+[frame 052920] window_change z80_ctrl
+[frame 052950] window_change vdp_ports
+[frame 052950] window_change z80_ctrl
+[frame 052980] window_change vdp_ports
+[frame 052980] window_change z80_ctrl
+[frame 053010] window_change vdp_ports
+[frame 053010] window_change z80_ctrl
+[frame 053040] window_change vdp_ports
+[frame 053040] window_change z80_ctrl
+[frame 053070] window_change vdp_ports
+[frame 053070] window_change z80_ctrl
+[frame 053100] window_change vdp_ports
+[frame 053100] window_change z80_ctrl
+[frame 053130] window_change vdp_ports
+[frame 053130] window_change z80_ctrl
+[frame 053160] window_change vdp_ports
+[frame 053160] window_change z80_ctrl
+[frame 053190] window_change vdp_ports
+[frame 053190] window_change z80_ctrl
+[frame 053220] window_change vdp_ports
+[frame 053220] window_change z80_ctrl
+[frame 053250] window_change vdp_ports
+[frame 053250] window_change z80_ctrl
+[frame 053280] window_change vdp_ports
+[frame 053280] window_change z80_ctrl
+[frame 053310] window_change vdp_ports
+[frame 053310] window_change z80_ctrl
+[frame 053340] window_change z80_ctrl
+[frame 053370] window_change z80_ctrl
+[frame 053400] window_change z80_ctrl
+[frame 053430] window_change vdp_ports
+[frame 053430] window_change z80_ctrl
+[frame 053460] window_change vdp_ports
+[frame 053460] window_change z80_ctrl
+[frame 053490] window_change vdp_ports
+[frame 053490] window_change z80_ctrl
+[frame 053520] window_change vdp_ports
+[frame 053520] window_change z80_ctrl
+[frame 053550] window_change vdp_ports
+[frame 053550] window_change z80_ctrl
+[frame 053580] window_change vdp_ports
+[frame 053580] window_change z80_ctrl
+[frame 053610] window_change vdp_ports
+[frame 053610] window_change z80_ctrl
+[frame 053640] window_change vdp_ports
+[frame 053640] window_change z80_ctrl
+[frame 053670] window_change vdp_ports
+[frame 053670] window_change z80_ctrl
+[frame 053700] window_change z80_ctrl
+[frame 053730] window_change vdp_ports
+[frame 053730] window_change z80_ctrl
+[frame 053760] window_change vdp_ports
+[frame 053760] window_change z80_ctrl
+[frame 053790] window_change vdp_ports
+[frame 053790] window_change z80_ctrl
+[frame 053820] window_change z80_ctrl
+[frame 053850] window_change vdp_ports
+[frame 053850] window_change z80_ctrl
+[frame 053880] window_change z80_ctrl
+[frame 053910] window_change vdp_ports
+[frame 053910] window_change z80_ctrl
 ==== genesistrace stop ====

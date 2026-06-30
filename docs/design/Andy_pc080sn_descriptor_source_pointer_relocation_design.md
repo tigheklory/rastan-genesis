@@ -9,7 +9,7 @@
 
 ## Phase 0 — Baseline
 
-**Classification:** EXTENDING (descriptor source-pointer relocation; OPEN-023; OPEN-016/KF-028 runtime-pointer-relocation class). **Contradiction:** NONE. **Root (Cody, re-verified):** Build 0116's KF-036 work-RAM rebase is correct — the table at Genesis-WRAM `0x00FF1000` now holds the 16 arcade source-pointer VALUES (`0x0001691C..0x0003725C`). But the rebuild dereferences them as **raw arcade addresses**; in the Genesis ROM the copied arcade content is shifted per its arcade-copy segment mapping, so the descriptor bytes read are wrong (`0x55B1A` reads ROM[0x1691C], not ROM[0x16B1C]).
+**Classification:** EXTENDING (descriptor source-pointer relocation; OPEN-016/KF-028 runtime-pointer-relocation class; OPEN-023 was a prior mislabel). **Contradiction:** NONE. **Root (Cody, re-verified):** Build 0116's KF-036 work-RAM rebase is correct — the table at Genesis-WRAM `0x00FF1000` now holds the 16 arcade source-pointer VALUES (`0x0001691C..0x0003725C`). But the rebuild dereferences them as **raw arcade addresses**; in the Genesis ROM the copied arcade content is shifted per its arcade-copy segment mapping, so the descriptor bytes read are wrong (`0x55B1A` reads ROM[0x1691C], not ROM[0x16B1C]).
 
 ---
 
@@ -125,7 +125,7 @@ Rejected alternatives: **relocate-at-population** (unfound populator + idempoten
 
 ## Open / Closed Issues Impact
 
-- Open issues touched: **OPEN-023** (item-page descriptor rebuild — source-pointer relocation designed via JSON-derived per-pointer mapping; not closed pending implementation + the 16-entry byte-match validation), OPEN-016 / KF-028 class (runtime-built pointer not relocated by the static postpatcher — this is a new instance), KF-036 (fixed, predecessor), OPEN-001 (context). KF-038 / OPEN-015 not touched.
+- Open issues touched: **OPEN-016 / KF-028** class (item-page descriptor rebuild source-pointer relocation; runtime-built pointer not relocated by the static postpatcher — this is a new instance; not closed pending implementation + the 16-entry byte-match validation), KF-036 (fixed, predecessor), OPEN-001 (context). OPEN-023 was a prior mislabel. KF-038 / OPEN-015 not touched.
 - New issues opened: NONE.
 - Issues closed: NONE.
 - Intentionally deferred: implementation; KF-038; any downstream crash exposed by progress; the populator (intentionally untouched).

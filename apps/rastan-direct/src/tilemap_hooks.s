@@ -26,6 +26,8 @@
     .global genesistan_hook_highscore_fg_producer
     .global genesistan_hook_textwriter_dispatch
     .global genesistan_hook_pc080sn_descriptor_rebuild
+    .global genesistan_hook_itempage_strip_populate
+    .global genesistan_hook_itempage_strip_blit
     .global rastan_direct_update_inputs
 
     .global genesistan_shadow_input_390001
@@ -57,6 +59,11 @@
     .equ PC080SN_DESC_REBUILD_PTR_TABLE,      0x00FF1040
     .equ PC080SN_DESC_REBUILD_WORD_TABLE,     0x00FF1080
     .equ PC080SN_DESC_REBUILD_OUT,            0x00FF10A8
+    .equ PC080SN_ITEMPAGE_STRIP_COL_SLOT,     0x00FF10F6
+    .equ PC080SN_ITEMPAGE_DEST_CURSOR_SLOT,   0x00FF10F8
+    .equ PC080SN_ITEMPAGE_WALKER_SLOT,        0x00FF10FC
+    .equ PC080SN_ITEMPAGE_STRIP_PTR_SLOT,     0x00FF1100
+    .equ PC080SN_ITEMPAGE_STRIP_WORD_SLOT,    0x00FF1104
     .equ PC080SN_DESC_ARCADE_START,           0x00000F08
     .equ PC080SN_DESC_ARCADE_END,             0x0003A00C
     .equ PC080SN_DESC_GENESIS_START,          0x00001108
@@ -2147,6 +2154,88 @@ genesistan_hook_pc080sn_descriptor_rebuild:
 
 .Lpc080sn_desc_bad_ptr:
     trap    #0
+
+
+    .section .text.zzz_itempage_strip_populate,"ax"
+
+/* Populates the item-page strip descriptor slots at runtime 0x055E2E.
+ * The walker slot remains an arcade/source ROM pointer; relocate at
+ * dereference through the JSON-proven arcade_copy segment, then relocate the
+ * descriptor's strip-data pointer before storing it for the consumer.
+ */
+genesistan_hook_itempage_strip_populate:
+    movea.l #PC080SN_ITEMPAGE_WALKER_SLOT, %a0
+    movea.l (%a0), %a4
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a4
+    blo.s   .Litempage_strip_bad_ptr
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a4
+    bhs.s   .Litempage_strip_bad_ptr
+
+    suba.l  #PC080SN_DESC_ARCADE_START, %a4
+    adda.l  #PC080SN_DESC_GENESIS_START, %a4
+
+    movea.l 2(%a4), %a2
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a2
+    blo.s   .Litempage_strip_bad_ptr
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a2
+    bhs.s   .Litempage_strip_bad_ptr
+
+    suba.l  #PC080SN_DESC_ARCADE_START, %a2
+    adda.l  #PC080SN_DESC_GENESIS_START, %a2
+
+    movea.l #PC080SN_ITEMPAGE_STRIP_WORD_SLOT, %a1
+    move.w  (%a4), (%a1)
+    movea.l #PC080SN_ITEMPAGE_STRIP_PTR_SLOT, %a1
+    move.l  %a2, (%a1)
+    rts
+
+.Litempage_strip_bad_ptr:
+    trap    #0
+
+
+    .section .text.zzz_itempage_strip_blit,"ax"
+
+/* Routes the item-page BG strip producer at runtime 0x055E5E through
+ * Genesis BG staging. The source-side slots remain the Build 0119 outputs:
+ * 0xFF1100 = relocated strip source, 0xFF1104 = PC080SN attr word.
+ */
+genesistan_hook_itempage_strip_blit:
+    move.l  %d1, -(%sp)
+
+    movea.l #PC080SN_ITEMPAGE_DEST_CURSOR_SLOT, %a3
+    movea.l (%a3), %a0
+    movea.l #PC080SN_ITEMPAGE_STRIP_PTR_SLOT, %a3
+    movea.l (%a3), %a2
+    movea.l #PC080SN_ITEMPAGE_STRIP_WORD_SLOT, %a1
+
+    move.w  (%a1), %d7
+    swap    %d7
+    clr.w   %d7
+
+    clr.w   %d2
+.Litempage_strip_blit_loop:
+    move.w  %d2, %d1
+    lsl.w   #5, %d1
+    move.w  PC080SN_ITEMPAGE_STRIP_COL_SLOT, %d0
+    lsl.w   #1, %d0
+    add.w   %d0, %d1
+
+    clr.l   %d0
+    move.w  0(%a2,%d1.w), %d0
+    or.l    %d7, %d0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_bg_fill
+
+    adda.l  #0x00000100, %a0
+    addq.w  #1, %d2
+    cmpi.w  #64, %d2
+    bne.s   .Litempage_strip_blit_loop
+
+    movea.l #PC080SN_ITEMPAGE_DEST_CURSOR_SLOT, %a3
+    move.l  %a0, (%a3)
+
+    move.l  (%sp)+, %d1
+    rts
 
 
     .section .bss

@@ -220,7 +220,7 @@ Not touched:
 
 ## OPEN / KNOWN_FINDINGS Impact
 
-- OPEN-023: progressed; descriptor source-pointer relocation implemented and runtime-validated.
+- OPEN-016/KF-028: progressed; descriptor source-pointer relocation implemented and runtime-validated. OPEN-023 was a prior mislabel and is not the owning issue for this descriptor source-pointer relocation.
 - OPEN-001 / OPEN-022 / OPEN-024: context only.
 - KF-036: predecessor remains valid; this task fixes the next runtime-built pointer relocation gap exposed by Build 0116.
 - KF-038: not touched.

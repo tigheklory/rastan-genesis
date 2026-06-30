@@ -39533,7 +39533,7 @@ Open/Closed Issues Impact:
 * lints/maintenance: KNOWN_FINDINGS/OPEN/CLOSED edited by user/linter (curation) - taken into account, not reverted
 
 Open/Closed Issues Impact:
-- Open issues touched: OPEN-023 (descriptor source-pointer relocation; JSON-derived per-pointer mapping, function-level hook design; not closed pending implementation + 16-entry byte-match validation), OPEN-016/KF-028 class (new runtime-built-pointer-not-relocated instance), KF-036 (fixed predecessor), OPEN-001 (context), KF-038/OPEN-015 (not touched)
+- Open issues touched: OPEN-016/KF-028 class (descriptor source-pointer relocation; JSON-derived per-pointer mapping, function-level hook design; new runtime-built-pointer-not-relocated instance; not closed pending implementation + 16-entry byte-match validation), KF-036 (fixed predecessor), OPEN-001 (context), KF-038/OPEN-015 (not touched). OPEN-023 was a prior mislabel
 - Closed issues touched: NONE
 - New issues opened: NONE
 - Issues closed: NONE
@@ -39561,5 +39561,233 @@ Open/Closed Issues Impact:
 * descriptor-byte validation: all 16 raw source pointers in `0x00FF1000` have arcade bytes matching the JSON-mapped Genesis ROM bytes; descriptor first/second words resolve to `0003/20FC` for entries 0-9 and `0003/2048` for entries 10-15
 * runtime validation: dump-only MAME debugger run `states/traces/build_0117_pc080sn_descriptor_source_relocation_validation_20260629_173638_dump_only/` hit hook completion and dumped `wram_ff1000_table_after_hook.bin`; after hook, raw source table remained arcade pointers, rebuilt table contained `0x000022FC` entries 0-9 and `0x00002248` entries 10-15, copied first-word table contained `0x0003` for all entries; previous Build 0116 raw-offset mismatch is gone
 * note: an earlier attempted full-instruction-trace debug run produced a large native trace and is not used as evidence; the compact dump-only run is the validation artifact
-* OPEN / KNOWN_FINDINGS impact: OPEN-023 progressed but not closed; OPEN-001/OPEN-022/OPEN-024 context only; KF-036 predecessor reinforced; KF-038 not touched; `KNOWN_FINDINGS.md` not edited by this task; no issue opened or closed
+* OPEN / KNOWN_FINDINGS impact: OPEN-016/KF-028 progressed but not closed; OPEN-023 was a prior mislabel; OPEN-001/OPEN-022/OPEN-024 context only; KF-036 predecessor reinforced; KF-038 not touched; `KNOWN_FINDINGS.md` not edited by this task; no issue opened or closed
 * STOP status: NO
+
+### MAME Exit Summary (2026-06-29 17:51:18)
+- Final PC: 0x00051A
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 17:53:36)
+- Final PC: 0x00051A
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Evidence, Build 0117 Post-Descriptor-Relocation Crash]
+
+* scope: runtime evidence / crash classification only for Build 0117 after PC080SN descriptor source-pointer relocation; no source/spec/tool/Makefile/ROM/build/invariant changes; no fix design; no bookmark cycle; no KF-038/sprite/HUD/Window work
+* evidence note: `docs/design/Cody_build0117_post_descriptor_relocation_crash_evidence.md`
+* evidence artifacts: primary run `states/traces/build_0117_post_descriptor_crash_evidence_20260629_175100/` (`wram_ff1000_after_hook.bin`, `stack_at_crash_common.bin`, `crash_record_ff6800.bin`, `wram_ff0000_state_at_crash.bin`); follow-up state dump `states/traces/build_0117_post_descriptor_crash_state_window_20260629_175319/`
+* descriptor hook held: same run hit hook completion before crash; `0x00FF1040` rebuilt entries are `0x000022FC` for entries 0-9 and `0x00002248` for entries 10-15; `0x00FF1080` first-word table is all `0x0003`
+* dead-body check: direct-target scan found zero external branch/caller entries into dead original rebuild body `runtime_genesis_pc 0x00055B0A..0x00055B46`; only internal dead-body loop target `0x55B36 -> 0x55B18` remains
+* authoritative crash record: exception type `0x03` ADDRESS ERROR; stacked SR `0x2704`; authoritative stacked PC `runtime_genesis_pc 0x00055E90`; fault address `0x22113111`; access/frame word `0x3015`; raw frame IR `0x3016`; crash-handler entry captured at `runtime_genesis_pc 0x000003D0`, halt at `0x000514`
+* faulting instruction: IR `0x3016` identifies `runtime_genesis_pc 0x00055E8E: movew %a6@,%d0` (word read from odd `%a6=0x22113111`); stacked PC `0x00055E90` is the next instruction `movew %d0,%a0@`; both map through `build/rastan-direct/address_map.json` copied-arcade segment to `arcade_pc 0x00055C8E/0x00055C90`
+* flow classification: still item-page state `Genesis-WRAM 0x00FF0000/0002/0004/002C = 0x0002/0x0002/0x0004/0x0000`; item/internal counters include `0x00FF1392=0x0000`, `0x00FF1394=0x00FF`, `0x00FF13AA=0x00FF`, `0x00FF13B0=0x0001`; execution did not leave item-description state and did not reach gameplay/demo
+* claim checks: refuted provisional `runtime_genesis_pc 0x00045DC0` claim (actual stacked PC `0x55E90`, fault instruction `0x55E8E`; CLOSED-002/0x045DAE not implicated by this evidence); refuted screenshot-style `~0x00006116` claim (formatted screen is OPEN-015-unreliable and does not match WRAM/debugger record)
+* label correction: corrected prior descriptor-source relocation ownership from OPEN-023 to OPEN-016/KF-028 runtime-pointer-relocation class in `docs/design/Cody_build0117_pc080sn_descriptor_source_pointer_relocation.md`, `docs/design/Andy_pc080sn_descriptor_source_pointer_relocation_design.md`, and relevant `AGENTS_LOG.md` lines; OPEN-023 remains Window/HUD context, not the descriptor relocation owner
+* OPEN / KNOWN_FINDINGS impact: OPEN-016/KF-028 progressed with next blocker captured; KF-036 predecessor remains valid; KF-038 not touched; OPEN-001/OPEN-022/OPEN-024 context; OPEN-015 caveat applied; `KNOWN_FINDINGS.md` not edited; no issue opened or closed
+* STOP status: NO
+
+## [Andy - Design, 0x0010D100 / 0x10D1xx Item-Page Descriptor Cluster Crash (rastan-direct)]
+
+* design note: docs/design/Andy_0010D100_itempage_descriptor_cluster_crash_design.md
+* scope: DESIGN only; no source/spec/tool/Makefile/ROM/build/implementation/runtime-probing; baseline Build 0117 SHA 17cb39c7da59406e4fba569862cdb04f44dc96258d162470c54c7edf9f9cd621; KF-036 class; separable from KF-038
+* root (Cody-confirmed): ADDRESS ERROR runtime 0x00055E8E (arc 0x00055C8E, copied arcade) move.w %a6@,%d0 fault 0x22113111 A6=0x22113111 word-read state 2/2/4; item-page descriptor cluster reads/writes RAW work-RAM literals 0x0010D100/0x0010D104 (next page beyond Build 0116's 0x10D000..0x10D0FC) -> populator writes dropped to ROM (read-only) + consumer reads ROM garbage 0x2211.. -> a2=garbage -> a6=a2+d7 odd -> fault
+* routines: 0x55E14 walker-advance (a0=#0x00FF10FC rebased; addql #6,(a0) = 6-byte-stride descriptor walker); 0x55E2E POPULATOR (a4=(0xFF10FC); (a2=#0x10D104 raw)+=(a4); (a1=#0x10D100 raw)+=(a4+2)); 0x55E5E CONSUMER (a2=(0x10D100 raw)=(a4+2); a6=a2+d7; movew(a6) FAULT)
+* %a6 chain: a3=#0x10D100(raw); a2=(a3)=ROM garbage 0x2211..; a6=a2+d7=0x22113111 odd -> word-read address error; a2 is a DESCRIPTOR POINTER FIELD dereferenced as strip base (not work-RAM ptr / not HW dest)
+* KF-036 map verified: 0x10D100->0x00FF1100, 0x10D104->0x00FF1104 (base 0x10C000->0xFF0000)
+* lifecycle: populator SOURCE (a4=(0xFF10FC), and 0xFF10FC) already mapped Build 0116; populator OUTPUTS go to RAW 0x10D100/0x10D104 (dropped to ROM); 4 code refs only (0x55E34/0x55E3A/0x55E62/0x55E68), rest of 0x10D1xx scan = ROM data bytes not operands; slots re-populated each group from the 0x10D0FC walker (advanced +6 by 0x55E14)
+* SELECTED DESIGN = Option 1 DIRECT IMMEDIATE REBASING bounded to 4 crash sites: 0x55E34 #0x10D100->#0xFF1100, 0x55E3A #0x10D104->#0xFF1104, 0x55E62 #0x10D104->#0xFF1104, 0x55E68 #0x10D100->#0xFF1100 (arc 0x55C34/3A/62/68); byte-neutral; NOT a hook (static-immediate work-RAM ADDRESS, not runtime-built ROM ptr - distinguishes from the 0x55B04 runtime-built table values that needed a hook); same KF-036 pattern as Build 0116, just next page
+* a2 correctness OPEN: a2=(a4+2) descriptor field, dereferenced (a6=a2+d7); parallels 0x55B04 which RELOCATES its 2nd word (+0x200) while 0x55E2E stores (a4+2) raw -> a2 MAY need ROM relocation for correct rendering, NOT statically provable (walker seed+format unknown); crash fixed by literal rebase REGARDLESS (a2 becomes real even field); resolved by validation gate (capture (0x00FF1100) post-fix: valid relocated ptr -> done; raw arcade ptr -> follow-up source-ptr relocation mirroring Build 0117 0x55B04 hook); do NOT invent values, do NOT bundle speculatively
+* WHACK-A-MOLE SCOPE (key finding): raw work-RAM literals are ROM-WIDE not bounded to item-page cluster -- ~dozens more unrebased 0x0010[C-E]xxx literal operands across many routines: 0x10C016/0x10C118/0x10C11D/E/0x10C508/0x10C648/0x10C70A/0x10C748/0x10CB4C/E/0x10CFDF/0x10D266/8/0x10D296/0x10D338/0x10D37A(xmany)/0x10DE00 etc.; systemic KF-036 postpatcher gap; one-at-a-time rebasing unsustainable
+* SYSTEMIC RECOMMENDATION (separate follow-up, NOT this impl): build-time postpatcher pass rebasing EVERY raw 0x0010[C-F]xxx literal address-operand to 0x00FF+low16 (KF-036 window) ROM-wide; byte-neutral per site; caveat: only true memory-addressing operands, not coincidental data/immediates; NOT a runtime broad-RAM mirror
+* invariant: opcode_replace +4 (0x55E34/3A/62/68 = arc 0x55C34/3A/62/68); total_genesis_bytes_covered UNCHANGED (byte-neutral)
+* validation: 0x55E8E crash gone; no raw read from 0x10D100/0x10D104; a2 from 0xFF1100, a6 EVEN before movew; correctness gate capture (0xFF1100) -> valid/relocated-needed; Build 0117 hook outputs 0xFF1040/0xFF1080 still valid; item-page progresses farther; new later crash = acceptable progress (report PC/state); no title/story/highscore regression; opcode_replace +4 documented
+* out of scope: KF-038/bg_fill remap/render-loop HW writes/sprites/HUD/Window/gameplay/skip/fake/broad runtime mirror; wider raw-literal sites (reported not implemented = systemic follow-up); a2 ROM-relocation unless gate proves it
+* STOP status: NO
+* lints/maintenance: KNOWN_FINDINGS/OPEN/CLOSED + prior Andy doc edited by user/linter (curation; OPEN-023 was a prior mislabel per the edited 0x55B04 doc) - taken into account, not reverted
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-023 (item-page descriptor cluster 0x10D1xx raw-literal crash; KF-036 immediate-rebase design; not closed pending implementation + a2 correctness gate), KF-036 class (new 0x10D1xx instance + newly-scoped ROM-wide systemic instance), OPEN-001 (context), KF-038/OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE in-file (RECOMMEND opening "systemic raw work-RAM literal rebase (KF-036) - ROM-wide postpatcher pass" per the wider-finding evidence, if Tighe agrees)
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, systemic ROM-wide literal rebase, a2 ROM-relocation (gated on validation), KF-038, downstream crash from progress
+
+### MAME Exit Summary (2026-06-29 20:25:31)
+- Final PC: 0x071EB4
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 20:26:58)
+- Final PC: 0x0003D4
+- Stack Pointer (SP): 0x00FEFFC8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 20:27:47)
+- Final PC: 0x00051A
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0118 0x10D100/0x10D104 Item-Page Work-RAM Literal Rebase]
+
+* scope: implementation + build + validation for Andy's selected bounded KF-036 design; four static `0x0010D100/0x0010D104` work-RAM literal operands only; no source assembly changes; no helper/hook; no systemic ROM-wide raw-literal pass; no KF-038/bg_fill/sprites/HUD/Window/gameplay work; no bookmark cycle
+* evidence / implementation note: `docs/design/Cody_build0118_0010D100_itempage_wram_literal_rebase.md`
+* implementation files: `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`; added opcode_replace entries at arcade PCs `0x055C34`, `0x055C3A`, `0x055C62`, `0x055C68` mapping runtime `0x055E34/3A/62/68` literals to Genesis-WRAM `0x00FF1100/0x00FF1104`
+* patch shape: opcode_replace count `129 -> 133`; `total_genesis_bytes_covered` unchanged at `0x17CF68`; byte-neutral replacements only; Build 0117 -> Build 0118 ROM diff limited to header checksum plus the four expected operand byte pairs (`0x10D1 -> 0xFF11`)
+* build: release PASS, Build 0118 produced at `dist/rastan-direct/rastan_direct_video_test_build_0118.bin`, SHA256 `aa88da2f35e45974caf61059b4af82ff1c06622e8e011386e1c73d8e1d92fc5f`; rolling ROM byte-identical; canonical gate PASS; generated release trace `states/traces/rastan_direct_video_test_build_0118_mame_30s_20260629_202524/`
+* static verification: disassembly and bytes confirm `0x55E34: moveal #0x00FF1100,%a1`, `0x55E3A: moveal #0x00FF1104,%a2`, `0x55E62: moveal #0x00FF1104,%a1`, `0x55E68: moveal #0x00FF1100,%a3`; manifest has four corresponding `address_rewrites`; code mapping uses `build/rastan-direct/address_map.json`
+* runtime validation: read-only MAME debugger evidence in `states/traces/build_0118_0010d100_itempage_wram_literal_rebase_20260629_202633/` and `states/traces/build_0118_0010d100_itempage_wram_literal_rebase_halt_20260629_202736/`; Build 0117 descriptor hook output still held; slot window before the old read shows `0x00FF1100=0x20480013` and `0x00FF1104=0x0013`, proving the consumer now reads populated WRAM slots rather than raw ROM at `0x0010D100/0x0010D104`
+* validation outcome: previous Build 0117 fault address `0x22113111` is eliminated, but the gated follow-up case is exposed: `0x00FF1100` contains odd pointer-field value `0x20480013`, producing ADDRESS ERROR at the same copied instruction `runtime_genesis_pc 0x00055E8E` (`IR=0x3016`, stacked PC `0x00055E90`, fault address `0x20480013`); this is a separate pointer-field correctness problem and was not bundled into this four-site literal-rebase task
+* OPEN / KNOWN_FINDINGS impact: KF-036 extended with a confirmed next-page raw work-RAM literal instance fixed in Build 0118; OPEN-016/KF-028 context only; OPEN-001/OPEN-022/OPEN-024 context; OPEN-015 caveat applied via debugger/WRAM crash record; `KNOWN_FINDINGS.md` not edited; no issue opened or closed
+* STOP status: NO
+
+## [Andy - Design, Build 0118 0x20480013 Item-Page Pointer-Field Correctness (rastan-direct)]
+
+* design note: docs/design/Andy_build0118_20480013_itempage_pointer_field_correctness_design.md
+* scope: DESIGN only; no source/spec/tool/ROM/build/implementation/runtime-probing (static ROM+JSON only); baseline Build 0118 SHA aa88da2f35e45974caf61059b4af82ff1c06622e8e011386e1c73d8e1d92fc5f; CLASS = KF-028/OPEN-016 runtime-pointer-relocation; predecessor/fixed = KF-036 Build 0118 slot rebase; NOT OPEN-023 (Window/HUD)
+* root (PROVEN): 0x00FF10FC holds RAW arcade descriptor ptr 0x0003951C (advances +6/group via 0x55E14); populator 0x55E2E dereferences it raw -> reads garbage from genesis_rom_offset 0x3951C instead of JSON-mapped 0x3971C; garbage long 0x20480013 (odd) stored to 0x00FF1100; consumer 0x55E5E a6=a2+d7 odd -> word-read ADDRESS ERROR at 0x55E8E
+* JSON resolution 0x0003951C: arcade_copy seg arc[0xf08..0x3a00c) gen_start 0x1108 -> genesis_rom_offset 0x3971C (consequence delta +0x200); raw ROM[0x3951C]=0013204800132048 (word 0x0013/long 0x20480013 ODD); ROM[0x3971C]=00020000d11c0002 (word 0x0002/long 0x0000d11c EVEN) == arcade maincpu[0x3951C] -> hypothesis CONFIRMED
+* descriptor format (6-byte stride, verified at 0x3971C): {word@0; long@2}; stream desc[0]=0x0000d11c desc[1]=0x0000d91c desc[2]=0x0000f11c (well-formed); word@0=0x0002 (header copied to 0x00FF1104); long@2 = strip-data base ptr (consumer a2)
+* 0x20480013 interpretation: bytes from WRONG raw Genesis ROM location (0x3951C vs mapped 0x3971C) because walker ptr is raw arcade dereferenced without relocation; not a real field / not stride error / not long-confusion
+* LAYER 1 (crash): relocate a4=(0x00FF10FC) 0x3951C->0x3971C before populator reads descriptor; after, 0x00FF1100=0x0000d11c (even) -> crash cleared
+* LAYER 2 (correctness, PROVEN needed): descriptor long@2 0x0000d11c is itself an arcade strip ptr; JSON 0xd11c->0xd31c; ROM[0xd31c]=04a604a7.. == arcade strip data, ROM[0xd11c]=00ad.. WRONG; both even (no crash, wrong strip data); descriptor stream all strip ptrs in [0xf08,0x3a00c) needing relocation; consumer a2=(0x00FF1100) must be relocated 0xd11c->0xd31c
+* ONE populator hook covers BOTH: both pointers flow through 0x55E2E (a4 read = Layer 1; (a4+2) produced+stored to 0x00FF1100 = Layer 2); relocate both via JSON seg [0xf08,0x3a00c) delta guarded; consumer 0x55E5E UNCHANGED (reads relocated 0x00FF1100); merge justified by proof
+* SELECTED DESIGN = Combined populator hook (Option 3): patch 0x55E2E entry (8 bytes) -> jsr genesistan_hook_itempage_strip_populate + rts; hook: a4=(0x00FF10FC); if a4 in [0xf08,0x3a00c) a4+=0x200 else fail-loud; word=(a4); ptr=(a4+2); if ptr in range ptr+=0x200 else fail-loud; (0x00FF1104)=word; (0x00FF1100)=ptr(relocated); rts; byte-neutral entry, body dead; relocate-at-dereference (walker keeps raw arcade ptrs, idempotent across +6, like Build 0117 0x55B04); NOT immediate-rebase (runtime-resident ptrs), NOT two hooks (both in one populator)
+* invariant: opcode_replace +1 (0x55E2E / arc 0x55C2E); total_genesis_bytes_covered + hook (~50-80B genesis_only); entry byte-neutral; relocation genesis_only-internal; any other delta = STOP
+* validation: 0x55E8E gone; populator reads 0x3971C (0x0002/0x0000d11c); 0x00FF1100=0x0000d31c (relocated), 0x00FF1104=0x0002; consumer a2=0xd31c, a6 even, reads 04a6.. strip at 0xd31c not 00ad.. at 0xd11c; walker still raw +6; out-of-segment ptr -> fail-loud; item-page progresses; new crash = acceptable progress; no title/story/highscore regression; Build 0117 0x55B04 outputs (0xFF1040/0xFF1080) intact; opcode_replace +1 documented
+* out of scope: KF-038/bg_fill/render-loop HW writes/sprites/HUD/Window/gameplay/systemic ROM-wide postpatcher/fake/mask/split/skip/broad mirror
+* STOP status: NO (root cause + both layers statically proven via JSON + byte comparison; no Cody evidence needed)
+* lints/maintenance: KNOWN_FINDINGS/OPEN/CLOSED + prior Andy docs edited by user/linter (curation) - taken into account, not reverted
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-016/KF-028 runtime-pointer-relocation class (new item-page walker+strip-ptr instance, one layer up from Build 0117 0x55B04; not closed pending implementation + validation), KF-036 (predecessor/fixed Build 0118 slot rebase), OPEN-001 (context), KF-038/OPEN-015 (not touched), NOT OPEN-023 (Window/HUD)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, systemic ROM-wide KF-036 postpatcher pass, KF-038, downstream crash from progress
+
+### MAME Exit Summary (2026-06-29 21:40:53)
+- Final PC: 0x071F0C
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 21:42:31)
+- Final PC: 0x044C18
+- Stack Pointer (SP): 0x00FEBB90
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 21:43:34)
+- Final PC: 0x055E94
+- Stack Pointer (SP): 0x00FEFFD6
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 21:43:56)
+- Final PC: 0x0715E2
+- Stack Pointer (SP): 0x00FEFFDE
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0119 Item-Page Strip Populator Pointer Relocation Hook]
+
+* scope: implementation + build + validation for Andy's Build 0118 `0x20480013` item-page pointer-field correctness design; KF-028/OPEN-016 runtime-pointer-relocation class; Build 0118 KF-036 slot-address rebase is predecessor/fixed layer; no KF-038/bg_fill/render-loop HW-write routing/sprites/HUD/Window/gameplay/systemic ROM-wide KF-036 pass/fake data/skip/bypass/broad mirror/bookmark cycle
+* evidence / implementation note: `docs/design/Cody_build0119_itempage_strip_populator_pointer_relocation.md`
+* implementation files: `apps/rastan-direct/src/tilemap_hooks.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`; added `genesistan_hook_itempage_strip_populate`; superseded existing `arcade_pc 0x055C2E` opcode_replace with 6-byte `jmp genesistan_hook_itempage_strip_populate` rather than adding an overlapping site
+* address-map discipline: both ROM pointer conversions use `build/rastan-direct/address_map.json` segment `arcade_copy` arc `[0x00000F08,0x0003A00C)` -> gen `[0x00001108,0x0003A20C)`; JSON-derived mappings confirmed `0x0003951C -> 0x0003971C` and `0x0000D11C -> 0x0000D31C`; `+0x200` is only the segment consequence, not proof method
+* precondition checks: `runtime_genesis_pc 0x00055E2E` was exact 6-byte `207C00FF10FC`; existing `0x055C2E` opcode_replace found; direct-target scan found zero external branch/caller targets into dead original populator body `runtime 0x55E34..0x55E48`
+* patch shape / invariants: opcode_replace delta `0` because existing `0x055C2E` site was superseded; first release invocation stopped at expected coverage gate (`0x17CF68 -> 0x17CFC0`, count `133` unchanged); invariants updated to observed mechanical coverage; second release PASS
+* build: Build 0119 produced at `dist/rastan-direct/rastan_direct_video_test_build_0119.bin`, SHA256 `e1d74a2514a2142a1ad56b54bedc49c6d39570ee5d5ca9da1bb7c9f9ce8d46c4`; rolling ROM byte-identical; canonical gate PASS; standard release trace `states/traces/rastan_direct_video_test_build_0119_mame_30s_20260629_214047/`
+* static verification: `runtime 0x55E2E` bytes `4EF9000715E4`; hook symbol `000715e4 T genesistan_hook_itempage_strip_populate`; consumer rebases still present at `0x55E62 #0x00FF1104` and `0x55E68 #0x00FF1100`; helper guards both raw pointers against JSON segment, maps descriptor and strip pointers, writes `0x00FF1104`/`0x00FF1100`, and fails loud via `trap #0` if a pointer leaves the segment
+* runtime validation: first-case evidence in `states/traces/build_0119_itempage_strip_populator_firstcase_20260629_214323/`; for raw walker `0x00FF10FC=0x0003951C`, hook writes `0x00FF1104=0x0002` and `0x00FF1100=0x0000D31C`; mapped descriptor dump at `0x3971C` begins `0002 0000 D11C`; mapped strip dump at `0xD31C` begins `04A6 04A7 04A8 04A9`; breakpoint at `runtime 0x55E90` proves the old `0x55E8E` read executed past the former Build 0118 ADDRESS ERROR boundary
+* descriptor hook regression check: `states/traces/build_0119_descriptor_hook_firsthit_20260629_214346/wram_ff1000_after_descriptor_hook_firsthit.bin` confirms Build 0117 descriptor-hook outputs still valid (`0x00FF1040 = 0x22FC/0x2248`, `0x00FF1080 = 0x0003` entries)
+* runtime result: targeted 120-second validation run completed with no crash-record dump; standard 30-second release trace completed with no unmapped memory addresses; no title/story/high-score runtime regression observed in these smoke runs; visual correctness not claimed
+* OPEN / KNOWN_FINDINGS impact: OPEN-016/KF-028 progressed; KF-036 predecessor remains fixed; OPEN-001 context; OPEN-015 discipline applied via debugger/dumps; OPEN-023 not implicated (Window/HUD); `KNOWN_FINDINGS.md` not edited; no issue opened or closed
+* STOP status: NO
+
+### MAME Exit Summary (2026-06-29 21:58:26)
+- Final PC: 0x0002D8
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 22:05:29)
+- Final PC: 0x055E80
+- Stack Pointer (SP): 0x00FEFFD6
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 22:08:56)
+- Final PC: 0x055E80
+- Stack Pointer (SP): 0x00FEFFD6
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 22:10:12)
+- Final PC: 0x055E7E
+- Stack Pointer (SP): 0x00FEFFD6
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-29 22:11:49)
+- Final PC: 0x044C18
+- Stack Pointer (SP): 0x00FEBB90
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Evidence, Build 0119 Post-Item-Scroll Runaway Fill / HV Counter Write]
+
+* scope: runtime evidence / debugger-watchpoint capture only for Build 0119; no source/spec/tool/Makefile/ROM/build/invariant changes; no diagnostic ROM; no bookmark cycle; no fix design or implementation
+* evidence note: `docs/design/Cody_post_itemscroll_runaway_fill_hv_counter_evidence.md`
+* evidence artifacts: `states/traces/build_0119_post_itemscroll_runaway_hv_evidence_20260629_215725/`; primary files include `hv_precise_bp_trace.log`, `wram_ff0000_at_hv_prewrite.bin`, `wram_ff10f0_at_hv_prewrite.bin`, `wram_ff6100_at_hv_prewrite.bin`, `wram_ff6800_at_hv_prewrite.bin`, `prior2_wram_ff10f0_after_strip_hook_3951c.bin`, `prior2_wram_ff10f0_after_old_read_d31c.bin`, and `runaway_pattern_eventonly_120s.out`
+* build baseline: Build 0119 ROM `dist/rastan-direct/rastan_direct_video_test_build_0119.bin`, SHA256 `e1d74a2514a2142a1ad56b54bedc49c6d39570ee5d5ca9da1bb7c9f9ce8d46c4`
+* prior fix held: for raw walker `Genesis-WRAM 0x00FF10FC=0x0003951C`, hook output remained `Genesis-WRAM 0x00FF1104=0x0002` and `0x00FF1100=0x0000D31C`; old `runtime_genesis_pc 0x00055E8E` ADDRESS ERROR boundary was crossed repeatedly with relocated strip pointer intact
+* HV evidence: precise breakpoint caught copied arcade item-page strip loop before write; actual writer instruction is `runtime_genesis_pc 0x00055E7C: movew %a1@,%a0@+` (MAME/post-write PCs may report `0x55E7E/0x55E80`), mapped via `build/rastan-direct/address_map.json` to `arcade_pc 0x00055C7C`, `kind=arcade_copy`; target `HW_ADDRESS 0x00C00008`, value `0x0002` from `Genesis-WRAM 0x00FF1104`
+* state at HV write: `%a5@(0)/(2)/(4)/(44) = 0x0002/0x0002/0x0004/0x0000`; `Genesis-WRAM 0x00FF10F8=0x00C00008`, `0x00FF1100=0x0000D31C`, `0x00FF1104=0x0002`; flow is still item-page strip copy path, not a proven transition out to gameplay/demo/attract cleanup
+* runaway-fill evidence limitation: user-observed Exodus pattern `2004 0003 A27E` was NOT reproduced in bounded MAME pattern-watch runs over representative `Genesis-WRAM 0x00FFF900`, `0x00FF6800`, and `0x00FF6100` windows; no pattern-hit dump files were produced; writer PC/direction/source for that fill remains unresolved by this report
+* crash record: `Genesis-WRAM 0x00FF6800..0x00FF6880` was unchanged between prior hook capture and HV pre-write capture in MAME; because the Exodus-style fill was not reproduced here, post-fill crash-record reliability remains unproven and should not be assumed if a later run shows overwrite
+* OPEN / KNOWN_FINDINGS impact: OPEN-016/KF-028 progressed with a new downstream item-page destination-pointer/HV-port boundary; OPEN-001 context; OPEN-015 caveat applied; `KNOWN_FINDINGS.md` not edited; no issue opened or closed
+* STOP status: NO (scope/architecture); evidence limitation recorded for non-reproduced runaway RAM-fill pattern
+
+## [Andy - Design, Build 0119 Item-Page Strip Destination Pointer / HV Write (rastan-direct)]
+
+* design note: docs/design/Andy_build0119_itempage_strip_destination_hv_write_design.md
+* scope: DESIGN only; no source/spec/tool/ROM/build/implementation/runtime-probing (static ROM+JSON); baseline Build 0119 SHA e1d74a2514a2142a1ad56b54bedc49c6d39570ee5d5ca9da1bb7c9f9ce8d46c4; CLASS = KF-032 raw PC080SN write bypassing staging (DESTINATION side, item-page BG strip producer); same family as C00828/high-score producer routes (CLOSED-016); predecessors fixed = KF-036 slot rebase + KF-028/OPEN-016 source/strip ptr relocation (Build 0118/0119)
+* root (PROVEN): item-page BG strip producer 0x55E5E/0x55E7A writes its 64-cell column RAW to PC080SN BG C-window dest 0x00C00008; on Genesis 0xC00008 & 0x1F = 8 = HV/VDP port -> BlastEm/Nomad-strict fatal at writer 0x55E7C (move.w (a1),(a0)+, A0=0x00C00008, value 0x0002)
+* dest provenance: 0x00FF10F8 (=a5@(4344)) is the BG dest CURSOR, COMPUTED at 0x55D76-0x55D84: d0 = a5@(4340)<<6 (row*64) + a5@(4342)<<2 (col*4) + 0x00C00000 (BG base) -> arcade-native, CORRECT PC080SN BG C-window address (0xC00008 = cell 2 = row0 col2); NOT a wrong seed, NOT an unrelocated ptr
+* semantic: 0x00C00008 in [0xC00000,0xC04000) = PC080SN BG C-window (Plane B); seed adds BG base 0xC00000 (matches 0x505EC BG base); cell=(off)>>2=2; NOT FG (0xC08000)/NOT scroll (0xC04000+)
+* write pattern: per d2 0..63: attr=(0x00FF1104)=0x0002 -> (a0) [cell attr], a0+=2; d7=d2*32+a5@(4342)*2; a6=a2+d7 (a2=0x0000D31C relocated strip src); code=(a6) strip word (PC080SN tile e.g. 0x04A6) -> (a0+2) [cell code]; a0+=254 (=+256 total = +0x40 cells = +1 BG row same col) -> vertical column col2 rows0-63, each cell {attr 0x0002, code strip}
+* relationship to helpers: genesistan_hook_tilemap_bg_fill EXISTS (A0=BG HW addr, D0=(attr<<16)|code, D1=count; gate [0xC00000,0xC04000); compose tile_vram_lut|attr_lut; staged_bg_buffer+row*128+col*2; bg_row_dirty) -> each strip cell maps to bg_fill(A0=a0, D0=(0x0002<<16)|strip, D1=1); same producer-route pattern as C00828/high-score
+* SELECTED DESIGN = function-level producer hook (option 1+3): patch 0x55E5E entry (8 bytes: moveal a5@(4344),a0 + first 4B of moveal #0x00FF1104,a1) -> jsr genesistan_hook_itempage_strip_blit + rts; hook: a0=(0x00FF10F8); a2=(0x00FF1100); attr=(0x00FF1104).w; col=(0x00FF10F6).w; for d2 0..63: d7=d2*32+col*2; code=(a2+d7).w; bg_fill(A0=a0,D0=(attr<<16)|code,D1=1); a0+=256; (0x00FF10F8)=a0; rts; byte-neutral entry, body 0x55E66-0x55EA0 dead; cursor stays BG C-window addr (bg_fill decodes cell); NO raw write to 0xC00008
+* REJECTED: option2 seed/populator hook (seed is correct, not the bug); option4 replace cursor with raw staging-buffer ptr (bypasses C-window decode + HW-addr->staged-cell architecture; bg_fill is the sanctioned route); masking/suppression; not chosen-because-prior-used-hook (chosen on lifecycle = raw per-cell BG producer)
+* invariant: opcode_replace +1 (0x55E5E / arc 0x55C5E); total_genesis_bytes_covered + hook (~60-90B genesis_only); entry byte-neutral; relocation genesis_only-internal; any other delta = STOP
+* register discipline: loop state (a0/a2/d2/attr/col) in bg_fill-preserved regs (movem all); set only A0/D0/D1 per call; CLOSED-016 discipline
+* validation: BlastEm NO HV/VDP fatal (zero raw writes to BG C-window 0xC00000..0xC03FFF from this producer); 64 cells route bg_fill -> staged_bg_buffer col2 rows0-63, bg_row_dirty set, VBlank commit Plane B; producer-equivalence (attr 0x0002 color bank2 via attr_lut, tile_vram_lut[strip] per row); cursor 0x00FF10F8 still advances; Build 0119 relocations (0x00FF1100=0x0000D31C) intact; item-page progresses; new crash = acceptable progress; no title/story/highscore regression; opcode_replace +1 documented
+* out of scope: KF-038 item-scroll/staging-size/placement (note-deferred: this routes writes, doesn't adjust scroll/size); bg_fill rewrite; render-loop; sprites/HUD/Window/gameplay; systemic ROM-wide KF-036 postpatcher; fake/skip/mirror/mask/suppress/scaffolding
+* STOP status: NO (proven statically; no Cody evidence needed)
+* lints/maintenance: KNOWN_FINDINGS/OPEN/CLOSED + prior Andy docs edited by user/linter (curation) - taken into account, not reverted
+
+Open/Closed Issues Impact:
+- Open issues touched: KF-032 class / OPEN-022 (item-page raw PC080SN writes; new destination-side BG strip-producer instance; not closed pending implementation + validation), KF-036 (predecessor/fixed slot rebase), KF-028/OPEN-016 (predecessor/fixed source+strip ptr relocation), OPEN-001 (context), KF-038 (noted-deferred), OPEN-015 (not touched), NOT OPEN-023 (Window/HUD)
+- Closed issues touched: NONE
+- New issues opened: NONE
+- Issues closed: NONE
+- Issues intentionally deferred: implementation, KF-038 item-scroll/staging-size+placement, systemic ROM-wide KF-036 postpatcher pass, downstream crash from progress
+
+### MAME Exit Summary (2026-06-30 10:36:58)
+- Final PC: 0x071F64
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-06-30 10:49:02)
+- Final PC: 0x00051A
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0120 Item-Page BG Strip Producer Route]
+
+* scope: implementation + build + static verification for Andy's Build 0119 item-page strip destination/HV-write design; KF-032/OPEN-022 producer-route family; no KF-038 scroll/staging-size fix, no bg_fill rewrite, no PC080SN render-loop rewrite, no sprites/HUD/Window/gameplay work, no systemic ROM-wide KF-036 pass, no diagnostic ROM, no bookmark cycle
+* evidence / implementation note: `docs/design/Cody_build0120_itempage_bg_strip_producer_route.md`
+* implementation files: `apps/rastan-direct/src/tilemap_hooks.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`; added `genesistan_hook_itempage_strip_blit` and opcode_replace at `arcade_pc 0x055C5E` / `runtime_genesis_pc 0x055E5E`
+* patch shape: exact 10-byte entry replacement at `runtime 0x55E5E`: `4EF90007163C4E714E71` (`jmp genesistan_hook_itempage_strip_blit; nop; nop`); hook symbol `0007163c T genesistan_hook_itempage_strip_blit`; old overlapped `arcade_pc 0x055C62` literal-rebase site removed so patched-site segments do not overlap; manifest contains `0x055C5E` and no `0x055C62`
+* hook behavior: reads `0x00FF10F8` destination cursor, `0x00FF1100` relocated strip source, `0x00FF1104` attr, and `0x00FF10F6` column; loops 64 rows and calls existing `genesistan_hook_tilemap_bg_fill` with `A0=dest`, `D0=(attr<<16)|code`, `D1=1`, then advances cursor by `0x100` and writes it back to `0x00FF10F8`; no raw PC080SN BG write added
+* invariant / build: opcode_replace count remains `133` (add `0x055C5E`, remove covered `0x055C62`); `total_genesis_bytes_covered` `0x17CFC0 -> 0x17D018`; canonical gate PASS; Build 0120 produced at `dist/rastan-direct/rastan_direct_video_test_build_0120.bin`, SHA256 `80404f3a5b158f003692a20e84fe23ab05351f0639ac6bcd7d7594b93a0146ad`; rolling ROM byte-identical; standard release trace `states/traces/rastan_direct_video_test_build_0120_mame_30s_20260630_103650/`
+* static verification: external references into dead body `runtime 0x55E68..0x55EA0` = 0; only internal dead-body references remain (`0x55E70 -> 0x55E7A`, `0x55E9E -> 0x55E7C`); static first routed cell for the proven col-2 case is `A0=0x00C00008`, code `word(0x0000D320)=0x04A8`, `D0=0x000204A8`, `D1=1`; static destination sequence is `0xC00008..0xC03F08`, all in BG C-window, with final cursor writeback `0xC04008` stored only
+* runtime validation attempted: trace directory `states/traces/build_0120_itempage_bg_strip_route_20260630_103840/`; direct MAME 120s, direct MAME 900s, and project-wrapper MAME 900s did not reach `genesistan_hook_itempage_strip_blit`, did not hit raw `0xC00008`, and did not hit crash-common; project-wrapper summary copied to `genesis_exec_summary_wrapper_900s.txt` and `genesis_exec_trace_wrapper_900s.log`; Build 0119 control run under the direct harness also did not reach the old producer, so this is a stimulus/path-reachability limitation rather than a 64-call proof
+* validation limitation: runtime items requiring item-page exercise remain unproven in this task: 64 `bg_fill` calls, staged BG writes, bg_row_dirty from this producer, cursor writeback at runtime, and BlastEm/Nomad strict no-HV proof for this producer. No memory seeding, fake data, or diagnostic ROM was used.
+* OPEN / KNOWN_FINDINGS impact: OPEN-022/KF-032 progressed with implementation; KF-028/OPEN-016 and KF-036 predecessor context preserved; OPEN-001/OPEN-015 context; KF-038 intentionally deferred; `KNOWN_FINDINGS.md` not edited; no issue opened or closed
+* STOP status: YES (validation-limited) - implementation/build/static verification complete, but the required runtime item-page 64-cell route proof was not captured because the producer path was not reached in available no-input MAME validation windows
