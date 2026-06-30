@@ -39791,3 +39791,34 @@ Open/Closed Issues Impact:
 * validation limitation: runtime items requiring item-page exercise remain unproven in this task: 64 `bg_fill` calls, staged BG writes, bg_row_dirty from this producer, cursor writeback at runtime, and BlastEm/Nomad strict no-HV proof for this producer. No memory seeding, fake data, or diagnostic ROM was used.
 * OPEN / KNOWN_FINDINGS impact: OPEN-022/KF-032 progressed with implementation; KF-028/OPEN-016 and KF-036 predecessor context preserved; OPEN-001/OPEN-015 context; KF-038 intentionally deferred; `KNOWN_FINDINGS.md` not edited; no issue opened or closed
 * STOP status: YES (validation-limited) - implementation/build/static verification complete, but the required runtime item-page 64-cell route proof was not captured because the producer path was not reached in available no-input MAME validation windows
+
+## [Cody - Evidence, Build 0120 D00298 / Runaway Fill Writer]
+
+* scope: runtime evidence / debugger-watchpoint capture only for Build 0120; no source/spec/tool/Makefile/ROM/build/invariant changes; no diagnostic ROM; no bookmark cycle; no fix design or implementation
+* evidence note: `docs/design/Cody_build0120_D00298_runaway_fill_writer_evidence.md`
+* evidence artifacts: `states/traces/build_0120_D00298_runaway_fill_writer_20260630_120438/`; primary files include `input_coin_start_manual_timing.lua`, `input_run7.log`, `build0120_d00298_runaway_target_pattern_after_hook.cmd`, trace-local `debug.log`, `native_trace.log`, `run7_crash_record_ff6800_before_armed.bin`, `run7_crash_record_ff6800_at_crash_common.bin`, `run7_wram_fff700_before_armed.bin`, and `run7_wram_fff700_at_crash_common.bin`
+* build baseline: Build 0120 ROM `dist/rastan-direct/rastan_direct_video_test_build_0120.bin`, SHA256 `80404f3a5b158f003692a20e84fe23ab05351f0639ac6bcd7d7594b93a0146ad`
+* input path: MAME Genesis-driver input harness only, with P1 A/coin pulse frames 740-761, P1 Start hold frames 960-1041, and post-start A/B/C pulses; no state forcing or memory seeding
+* address-map discipline: `runtime_genesis_pc 0x00055E5E` maps via `build/rastan-direct/address_map.json` to patched-site `arcade_pc 0x00055C5E`; old body `0x00055E7C/0x00055E8E` maps to `arcade_pc 0x00055C7C/0x00055C8E`; hook/helper PCs `0x0007163C/0x00071672/0x00071818/0x00071EEE` are `genesis_only`
+* Build 0120 hook reached: `genesistan_hook_itempage_strip_blit` hit with col-2 item-page state `%a5@(0)/(2)/(4)/(44)=0x0002/0x0002/0x0004/0x0000`, `0x00FF10F8=0x00C00008`, `0x00FF1100=0x0000D31C`, `0x00FF1104=0x0002`; routed `bg_fill` callpoints were observed in `native_trace.log`
+* old failures status: old raw `HW_ADDRESS 0x00C00008` writer did not fire on this path; old `runtime_genesis_pc 0x00055E8E` address-error boundary was not reproduced, confirming Build 0120 progressed past the prior raw C00008 failure for this input path
+* D00298 status: exact watchpoint on `HW_ADDRESS 0x00D00298` was armed but did not fire before crash-common; no D00298 dump files were produced; user-observed BlastEm/Nomad D00298 remains out-of-band for this report and no D00298 writer PC is identified
+* runaway pattern status: `Genesis-WRAM 0x00FF6800..` and `0x00FFF700..` were clean at the post-hook arm point, but contained repeating `2004 0003 A27E` by crash-common; target watchpoints on `0x00FF6800..0x00FF699F` and `0x00FFF700..0x00FFFEFF` did not capture the first writer, so first runaway writer PC remains unknown
+* crash record: unreliable in this run because the `0x00FF6800` crash record already contains the repeating pattern at crash-common; debugger-side live state at crash-common was `%a5@(0)/(2)/(4)/(44)=0x0002/0x0003/0x0000/0x0000`, but recorded exception/fault fields are not trusted
+* OPEN / KNOWN_FINDINGS impact: OPEN-022/KF-032 progressed with evidence that the Build 0120 route is reached and the old raw C00008 failure is absent; OPEN-001/OPEN-015 context; `KNOWN_FINDINGS.md` not edited; no issue opened or closed
+* STOP status: YES (evidence-limited) - D00298 did not reproduce and the exact first `2004 0003 A27E` writer was not captured, so no fix should be designed from this report alone
+
+## [Cody - Evidence, Build 0120 D00298 Post-2/2/5 Path Analysis]
+
+* scope: evidence-only static/manual-runtime reconciliation for Build 0120; no source/spec/tool/Makefile/ROM/build/invariant changes; no diagnostics inserted; no BlastEm automation; no bookmark cycle; no fix design or implementation
+* evidence note: `docs/design/Cody_build0120_D00298_post_2_2_5_path_analysis.md`
+* build baseline: Build 0120 ROM `dist/rastan-direct/rastan_direct_video_test_build_0120.bin`, SHA256 `80404f3a5b158f003692a20e84fe23ab05351f0639ac6bcd7d7594b93a0146ad`
+* manual evidence accepted: item-page strip hook returns cleanly; immediate post-strip state after `runtime_genesis_pc 0x0003A85C` is `Genesis-WRAM 0x00FF0000/0002/0004 = 0x0002/0x0002/0x0005`; `runtime_genesis_pc 0x00055EA2` returns cleanly through `FF0074==0`; fatal D00298 is observed when stepping over `runtime_genesis_pc 0x0003B292: bsr 0x3A1A8`
+* address-map discipline: listed runtime PCs mapped via `build/rastan-direct/address_map.json`; `0x3A274/0x55EA2/0x55FD6/0x3A27E/0x3B27E/0x3B28C/0x3B292/0x3A1A8/0x3A1AA/0x3A1AC` are `arcade_copy`; D00298 candidate path maps `runtime 0x5124E/0x5A702/0x5A71E/0x5A724` to `arcade_pc 0x5104E/0x5A502/0x5A51E/0x5A524`
+* condition source: `runtime_genesis_pc 0x0003B28C: cmpi.w #0x0100,%a5@(18)` sets carry used by `runtime_genesis_pc 0x0003A1A8: bcs 0x3A1AC`; `Genesis-WRAM 0x00FF0018=0x0001` is safe because it is `<0x0100`; values `>=0x0100` clear carry and fall through via `0x3A1AA -> 0x3A18C`
+* non-BCS path: `0x3A18C..0x3A1A6` is a watchdog/bootstrap re-entry path that delays, reloads SP from vector `0x00000000`, reloads PC from vector `0x00000004`, and jumps to reset vector `0x00000202`; it is not itself a direct D00298 writer
+* most likely D00298 writer: static copied-arcade sprite/PC090OJ routine `runtime_genesis_pc 0x0005A71E` loads `A0=HW_ADDRESS 0x00D00298`; first dangerous write is `runtime_genesis_pc 0x0005A724: move.w #0,(A0)+`; only direct caller found is `runtime_genesis_pc 0x0005124E: jsr 0x5A702`
+* classification: D00298 is most likely a raw PC090OJ/sprite-RAM hardware address loaded as an immediate into A0, not computed from manual pre-call `A6=0x00FF0298` or from `D0/D7`; execution at this point is likely downstream of the `0x3A1A8` non-BCS re-entry path, but the exact dynamic route from reset-vector re-entry to `0x5124E/0x5A702` remains unproven
+* next manual BlastEm target: stop at `runtime_genesis_pc 0x0005A71E`, before the first dangerous write at `0x0005A724`, and capture PC/SR/A0/A5/SP plus `%a5@(0)/(2)/(4)/(18)/(44)/(52)`
+* OPEN / KNOWN_FINDINGS impact: OPEN-022/KF-032 context; OPEN-001/OPEN-015 context; `KNOWN_FINDINGS.md` not edited; no issue opened or closed
+* STOP status: NO for this evidence task; no implementation authorized from this report alone
