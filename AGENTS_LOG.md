@@ -39822,3 +39822,27 @@ Open/Closed Issues Impact:
 * next manual BlastEm target: stop at `runtime_genesis_pc 0x0005A71E`, before the first dangerous write at `0x0005A724`, and capture PC/SR/A0/A5/SP plus `%a5@(0)/(2)/(4)/(18)/(44)/(52)`
 * OPEN / KNOWN_FINDINGS impact: OPEN-022/KF-032 context; OPEN-001/OPEN-015 context; `KNOWN_FINDINGS.md` not edited; no issue opened or closed
 * STOP status: NO for this evidence task; no implementation authorized from this report alone
+
+## [Cody - Evidence, Sprite (PC090OJ) + Window Layer Build-State Inventory]
+
+* scope: evidence/audit documentation only; no source/spec/tool/Makefile/ROM/build/invariant changes; no bookmark; no runtime probing; no fix design or implementation
+* evidence note: `docs/design/Cody_sprite_window_buildstate_inventory.md`
+* build baseline: Build 0120 ROM `dist/rastan-direct/rastan_direct_video_test_build_0120.bin`, SHA256 `80404f3a5b158f003692a20e84fe23ab05351f0639ac6bcd7d7594b93a0146ad`
+* address-map discipline: sprite raw-writer and patched-site correlations were checked through `build/rastan-direct/address_map.json`; no arithmetic offset was used as proof in the report
+* sprite inventory result: PC090OJ sprite support is partial, not absent. Build 0120 has `staged_sprite_sat`, `staged_sprite_descriptor_table`, dirty/active-count state, `rastan_pc090oj` assets, `pc090oj_slot_lut`, and VBlank SAT/tile commit through `vdp_commit_sprites`; multiple PC090OJ opcode replacements route into `pc090oj_hooks.s`.
+* remaining sprite gap: copied arcade PC090OJ writers still exist, including raw `HW_ADDRESS 0x00D00000` routines at mapped arcade/runtime pairs `0x0510C8->0x0512C8` and `0x052AA2->0x052CA2`, plus the D00298-family routine `0x05A502->0x05A702` / `0x05A51E->0x05A71E` / `0x05A524->0x05A724`; OPEN-024 remains open
+* Window inventory result: Genesis VDP Window registers are initialized at boot, but no `staged_window_buffer`, `window_dirty`, `vdp_commit_window`, or game producer route was found; current title/story/high-score/item text routes are PC080SN BG/FG staging to Plane B/Plane A, not Window; OPEN-023 remains open
+* issue impact: OPEN-024 and OPEN-023 remain open; OPEN-006, OPEN-021, OPEN-001, and OPEN-015 are context only; no issue opened, closed, renamed, or reopened; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Evidence, Build 0120 Sprite SAT + Window Garbage]
+
+* scope: evidence-only build-state audit for Build 0120; no source/spec/tool/Makefile/ROM/build/invariant changes; no bookmark; no diagnostics; no implementation or fix design
+* evidence note: `docs/design/Cody_build0120_sprite_sat_window_garbage_evidence.md`
+* build baseline: Build 0120 ROM `dist/rastan-direct/rastan_direct_video_test_build_0120.bin`, SHA256 `80404f3a5b158f003692a20e84fe23ab05351f0639ac6bcd7d7594b93a0146ad`
+* user evidence inspected: `states/screenshots/build_120/Exodus_build_120_story_screen_window_boundaries_off.png` and `states/screenshots/build_120/Exodus_build_120_title_screen_window_boundaries_on.png`; story king/figure is visible on Layer B, not Sprite; Sprite pane shows one small persistent boxed entry; Window pane shows resident purple/magenta patterned garbage
+* SAT result: `vdp_commit_sprites` (`runtime_genesis_pc/genesis_rom_offset 0x00071ECC`, `genesis_only`) rebuilds links among valid descriptors and DMAs full `staged_sprite_sat` to `VRAM address 0xF800`, but does not sweep all unused staged SAT entries or clear descriptor valid bits every VBlank; one-sprite state is unresolved, leaning stale `staged_sprite_sat` / stale valid descriptor or viewer-visible zero/termination artifact, not proof of healthy PC090OJ output
+* PC090OJ reachability: routed helpers remain partial; raw copied PC090OJ clusters remain (`0x0512C8/0x0512CE`, `0x052CA2/0x052CBE`, `0x05A702/0x05A71E/0x05A724`, `0x05A754/0x05A75A`, all mapped through `build/rastan-direct/address_map.json`); D00298 path remains dynamic unresolved between normal status flow and reset/bootstrap re-entry fallout
+* Window result: Build 0120 Window base is `VRAM address 0xF000`; with the configured 64x32 footprint the Window span `0xF000..0xFFFF` overlaps SAT `0xF800..0xFA7F` and H-scroll writes at `0xFC00..`; no Window nametable clear, no `staged_window_buffer`, no `vdp_commit_window`, and no post-boot Window X/Y writes were found; Window garbage is classified as overlap plus stale/uninitialized VRAM, only proven visible in VDP tools
+* issue impact: OPEN-024 and OPEN-023 remain open; OPEN-006/OPEN-021/OPEN-001/OPEN-015 context only; no new issue opened; no issue closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
