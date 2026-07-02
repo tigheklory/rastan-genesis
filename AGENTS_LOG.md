@@ -40167,3 +40167,27 @@ Open/Closed Issues Impact:
 * arcade comparison: audited title-score target entries improved from Build 0126 `0/27` exact mirror matches to Build 0128 `22/27` exact matches; remaining mismatches are entries `4`, `22`, `23`, `24`, and `25`, indicating residual score/high-score source-state semantics after the object-RAM faithful route is live
 * issue impact: OPEN-024 and OPEN-001 remain open; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
 * STOP status: NO
+
+### MAME Exit Summary (2026-07-02 15:58:02)
+- Final PC: 0x0701B4
+- Stack Pointer (SP): 0x00FEDC14
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-02 16:03:16)
+- Final PC: 0x0721C8
+- Stack Pointer (SP): 0x00FEDAB0
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Diagnostic, Build 0129 VBlank Status-Ring with Mandatory Revert]
+
+* scope: user-authorized temporary VBlank status-ring diagnostic for Build 0129 plus mandatory cleanup/revert proof; no production fix, no PC080SN/PC090OJ/Window/D00298 implementation, no issue closure, OPEN-015 not touched
+* report: `docs/design/Cody_build0129_vblank_status_ring_diagnostic.md`
+* baseline/revert proof: Build 0128 and Build 0130 are byte-identical: SHA256 `79ec8a30c44f24b0b551e4a1ae7116de075264927fb5ff550148f25808f5bc6f`, size `1,561,724`, `cmp -s` status `0`; rolling ROM also matches Build 0130
+* diagnostic build: Build 0129 ROM `dist/rastan-direct/rastan_direct_video_test_build_0129.bin`, SHA256 `156b59a88267ca88b39d4e4683342efe9dc707560daab95ce0fcd28d48e5e0f8`, size `1,561,956`; temporary invariant `total_genesis_bytes_covered=0x17D564`, opcode_replace count unchanged `133`
+* temporary instrumentation: VBlank ring in `vdp_comm.s` sampled VDP status bit 3, a diagnostic display shadow, and existing PC090OJ drawable/emitted/producer/scan counters at checkpoints around display-off, BG/FG/sprite commits, display-on, and handoff; HV counter was intentionally not read
+* evidence artifacts: `states/traces/build0129_vblank_status_ring_diagnostic_20260702_155842/`; includes no-input and coin/start MAME runs, ring dumps, snapshots, contact sheet, reduced JSON/MD analysis
+* runtime result: no-input remained sparse/partial; coin/start reproduced a visible story/king frame at frame 371, start/clear/stale-redraw state `2/2/6` around frames 473-477, and ROUND state `2/2/7` around frame 534; BG staging was zero during start/ROUND windows while FG retained small nonzero counts
+* VBlank finding: display-off through scroll checkpoints consistently saw VDP status bit 3 set and diagnostic display shadow off; display-on/handoff shadow was on, with bit 3 sometimes still set when still inside VBlank; no extra display-toggle churn or clear commit-outside-VBlank mechanism was proven
+* cleanup: all temporary diagnostic code/data/symbols/comments and invariant changes removed; `rg "TEMP DIAGNOSTIC ONLY|vblank_diag|17D564" apps/rastan-direct/src tools/translation` returned no hits; canonical invariants restored to `133 / 0x17D47C`
+* issue impact: OPEN-001 and OPEN-024 touched as evidence context only; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
