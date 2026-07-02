@@ -17,9 +17,28 @@
     .global genesistan_pc090oj_hook_zero_fill_56440
     .global genesistan_pc090oj_hook_status_sprite_5a098
     .global genesistan_pc090oj_hook_audit_guard
+    .global genesistan_pc090oj_ctrl_set_1
+    .global genesistan_pc090oj_ctrl_set_0
+    .global genesistan_pc090oj_sprite_ctrl_write_d0
+    .global genesistan_pc090oj_sprite_ctrl_clear
 
     .global vdp_commit_sprites
     .global genesistan_pc090oj_dma_self_test
+
+    .global pc090oj_object_ram
+    .global pc090oj_ctrl_shadow
+    .global pc090oj_sprite_ctrl_shadow
+    .global pc090oj_mirror_dirty
+    .global pc090oj_decoded_count
+    .global pc090oj_code_zero_skipped_count
+    .global pc090oj_blank_skipped_count
+    .global pc090oj_unmapped_skipped_count
+    .global pc090oj_offscreen_skipped_count
+    .global pc090oj_drawable_count
+    .global pc090oj_emitted_count
+    .global pc090oj_dropped_count
+    .global pc090oj_scan_colbank
+    .global pc090oj_scan_active
 
     .global staged_sprite_sat
     .global staged_sprite_descriptor_table
@@ -41,6 +60,7 @@
 
     .extern rastan_pc090oj
     .extern pc090oj_slot_lut
+    .extern pc090oj_blank_code_bitset
     .extern genesistan_hook_tilemap_bg_fill
     .extern genesistan_hook_tilemap_fg_fill
     .extern genesistan_hook_pc080sn_bg_scroll_fill
@@ -83,6 +103,22 @@
     lea     staged_sprite_sat, %a1
     adda.w  %d6, %a1
 
+    /* Legacy per-site hooks feed the mirror; mirror-scan emission must not. */
+    tst.w   pc090oj_scan_active
+    bne.s   .Lpc090oj_emit_skip_mirror_bridge
+    move.l  %a2, -(%sp)
+    move.w  %d0, %d6
+    lsl.w   #3, %d6
+    lea     pc090oj_object_ram, %a2
+    adda.w  %d6, %a2
+    move.w  %d1, (%a2)
+    move.w  %d2, 2(%a2)
+    move.w  %d3, 4(%a2)
+    move.w  %d4, 6(%a2)
+    move.l  (%sp)+, %a2
+    move.w  #1, pc090oj_mirror_dirty
+.Lpc090oj_emit_skip_mirror_bridge:
+
     move.w  8(%a0), %d6                /* old tile for changed-flag */
 
     /* persist semantic record */
@@ -105,10 +141,6 @@
 
     /* flags: valid + touched + extra; bit2 when tile changed */
     move.w  #0x8001, %d5
-    or.w    %d6, %d5                    /* caller provided extra flags in d6 lower bits */
-    cmp.w   8(%a0), %d6                 /* d6 currently old tile; refreshed below */
-    /* old tile was clobbered by previous OR, reload */
-    move.w  8(%a0), %d6
     cmp.w   %d3, %d6
     beq.s   .Lpc090oj_no_tile_change
     ori.w   #0x0004, %d5                /* tile-code-changed bit */
@@ -353,6 +385,24 @@ genesistan_pc090oj_hook_target_59f5e:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
+/* PC090OJ ctrl register (word offset 0x0DFF / HW 0x00D01BFE). */
+genesistan_pc090oj_ctrl_set_1:
+    move.w  #1, pc090oj_ctrl_shadow
+    rts
+
+genesistan_pc090oj_ctrl_set_0:
+    clr.w   pc090oj_ctrl_shadow
+    rts
+
+/* External sprite_ctrl at HW 0x00380000.  D0 holds the arcade value. */
+genesistan_pc090oj_sprite_ctrl_write_d0:
+    move.w  %d0, pc090oj_sprite_ctrl_shadow
+    rts
+
+genesistan_pc090oj_sprite_ctrl_clear:
+    clr.w   pc090oj_sprite_ctrl_shadow
+    rts
+
 genesistan_hook_3ad44_dispatch:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 
@@ -373,30 +423,32 @@ genesistan_hook_3ad44_dispatch:
     cmpi.l  #0x00D00800, %d2
     bhs     .Lhook_3ad44_audit
 
-    /* PC090OJ branch: idx = (A0 - 0xD00000) >> 3 */
+    /* PC090OJ branch: preserve the arcade long-fill into active object RAM. */
     move.l  %a0, %d2
     subi.l  #0x00D00000, %d2
     bmi     .Lhook_3ad44_finish
-    lsr.l   #3, %d2
-    cmpi.l  #255, %d2
-    bhi     .Lhook_3ad44_finish
+    cmpi.l  #0x00000800, %d2
+    bhs     .Lhook_3ad44_finish
 
-    lea     pc090oj_slot_lut, %a1
-    move.b  0(%a1,%d2.l), %d0
-    cmpi.b  #0xFF, %d0
-    beq     .Lhook_3ad44_finish
-
-    andi.w  #0x00FF, %d0
+    lea     pc090oj_object_ram, %a1
+    adda.l  %d2, %a1
     move.w  %d1, %d3
-.Lhook_3ad44_loop:
+.Lhook_3ad44_pc090oj_long_fill_loop:
     tst.w   %d3
-    beq.s   .Lhook_3ad44_finish
-    cmpi.w  #80, %d0
-    bhs.s   .Lhook_3ad44_finish
-    bsr     .Lpc090oj_clear_slot
-    addq.w  #1, %d0
+    beq     .Lhook_3ad44_finish
+    cmpi.l  #0x00000800, %d2
+    bhs     .Lhook_3ad44_finish
+    swap    %d0
+    move.w  %d0, (%a1)+
+    swap    %d0
+    addq.l  #2, %d2
+    cmpi.l  #0x00000800, %d2
+    bhs     .Lhook_3ad44_finish
+    move.w  %d0, (%a1)+
+    addq.l  #2, %d2
+    move.w  #1, pc090oj_mirror_dirty
     subq.w  #1, %d3
-    bra.s   .Lhook_3ad44_loop
+    bra.s   .Lhook_3ad44_pc090oj_long_fill_loop
 
 .Lhook_3ad44_tilemap:
     cmpi.l  #0x00C04000, %d2
@@ -831,11 +883,151 @@ genesistan_pc090oj_hook_audit_guard:
 
 vdp_commit_sprites:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+    bsr     .Lvcs_mirror_scan
     bsr     .Lvcs_link_chain_build
     bsr     .Lvcs_tile_dma
     bsr     .Lvcs_sat_dma
     bsr     .Lvcs_clear_dirty
     movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+.Lvcs_clear_generated_sprite_state:
+    lea     staged_sprite_sat, %a0
+    move.w  #((80 * 8 / 2) - 1), %d0
+.Lvcs_clear_generated_sat_loop:
+    clr.w   (%a0)+
+    dbra    %d0, .Lvcs_clear_generated_sat_loop
+
+    lea     staged_sprite_descriptor_table, %a0
+    move.w  #((80 * 12 / 2) - 1), %d0
+.Lvcs_clear_generated_desc_loop:
+    clr.w   (%a0)+
+    dbra    %d0, .Lvcs_clear_generated_desc_loop
+
+    clr.l   staged_sprite_dirty
+    clr.w   staged_sprite_active_count
+    rts
+
+.Lvcs_mirror_scan:
+    bsr     .Lvcs_clear_generated_sprite_state
+
+    clr.w   pc090oj_decoded_count
+    clr.w   pc090oj_code_zero_skipped_count
+    clr.w   pc090oj_blank_skipped_count
+    clr.w   pc090oj_unmapped_skipped_count
+    clr.w   pc090oj_offscreen_skipped_count
+    clr.w   pc090oj_drawable_count
+    clr.w   pc090oj_emitted_count
+    clr.w   pc090oj_dropped_count
+    move.w  #1, pc090oj_scan_active
+
+    move.w  pc090oj_sprite_ctrl_shadow, %d7
+    andi.w  #0x00E0, %d7
+    lsr.w   #1, %d7
+    move.w  %d7, pc090oj_scan_colbank
+
+    lea     pc090oj_object_ram, %a0
+    moveq   #0, %d6                  /* PC090OJ entry index */
+.Lvcs_mirror_scan_loop:
+    cmpi.w  #256, %d6
+    bhs     .Lvcs_mirror_scan_done
+
+    addq.w  #1, pc090oj_decoded_count
+
+    move.w  (%a0), %d1               /* word0: flip/color */
+    move.w  2(%a0), %d2              /* word1: Y */
+    move.w  4(%a0), %d3              /* word2: code */
+    move.w  6(%a0), %d4              /* word3: X */
+
+    andi.w  #0x1FFF, %d3
+    beq     .Lvcs_mirror_code_zero_skip
+    cmpi.w  #0x1000, %d3
+    bhs     .Lvcs_mirror_unmapped_skip
+
+    move.w  %d3, %d5
+    lsr.w   #3, %d5
+    lea     pc090oj_blank_code_bitset, %a1
+    move.b  0(%a1,%d5.w), %d5
+    move.w  %d3, %d0
+    andi.w  #0x0007, %d0
+    btst    %d0, %d5
+    bne     .Lvcs_mirror_blank_skip
+
+    andi.w  #0x01FF, %d2
+    cmpi.w  #0x0140, %d2
+    bls.s   .Lvcs_mirror_y_ok
+    subi.w  #0x0200, %d2
+.Lvcs_mirror_y_ok:
+    andi.w  #0x01FF, %d4
+    cmpi.w  #0x0140, %d4
+    bls.s   .Lvcs_mirror_x_ok
+    subi.w  #0x0200, %d4
+.Lvcs_mirror_x_ok:
+
+    move.w  pc090oj_ctrl_shadow, %d5
+    btst    #0, %d5
+    bne.s   .Lvcs_mirror_no_global_flip
+    move.w  #304, %d5
+    sub.w   %d4, %d5
+    move.w  %d5, %d4
+    move.w  #240, %d5
+    sub.w   %d2, %d5
+    move.w  %d5, %d2
+    eori.w  #0xC000, %d1
+.Lvcs_mirror_no_global_flip:
+
+    cmpi.w  #-16, %d4
+    blt     .Lvcs_mirror_offscreen_skip
+    cmpi.w  #320, %d4
+    bge     .Lvcs_mirror_offscreen_skip
+    cmpi.w  #-16, %d2
+    blt     .Lvcs_mirror_offscreen_skip
+    cmpi.w  #224, %d2
+    bge     .Lvcs_mirror_offscreen_skip
+
+    addq.w  #1, pc090oj_drawable_count
+
+    move.w  pc090oj_emitted_count, %d0
+    cmpi.w  #80, %d0
+    blo.s   .Lvcs_mirror_emit
+    addq.w  #1, pc090oj_dropped_count
+    bra.s   .Lvcs_mirror_scan_next
+
+.Lvcs_mirror_emit:
+    move.w  pc090oj_scan_colbank, %d7
+    move.w  %d6, %d5                 /* source_id = PC090OJ entry index */
+
+    move.l  %a0, -(%sp)
+    move.w  %d6, -(%sp)
+    bsr     .Lpc090oj_emit_slot
+    move.w  (%sp)+, %d6
+    movea.l (%sp)+, %a0
+
+    addq.w  #1, pc090oj_emitted_count
+    bra.s   .Lvcs_mirror_scan_next
+
+.Lvcs_mirror_code_zero_skip:
+    addq.w  #1, pc090oj_code_zero_skipped_count
+    bra.s   .Lvcs_mirror_scan_next
+
+.Lvcs_mirror_blank_skip:
+    addq.w  #1, pc090oj_blank_skipped_count
+    bra.s   .Lvcs_mirror_scan_next
+
+.Lvcs_mirror_unmapped_skip:
+    addq.w  #1, pc090oj_unmapped_skipped_count
+    bra.s   .Lvcs_mirror_scan_next
+
+.Lvcs_mirror_offscreen_skip:
+    addq.w  #1, pc090oj_offscreen_skipped_count
+
+.Lvcs_mirror_scan_next:
+    adda.w  #8, %a0
+    addq.w  #1, %d6
+    bra     .Lvcs_mirror_scan_loop
+
+.Lvcs_mirror_scan_done:
+    clr.w   pc090oj_scan_active
     rts
 
 .Lvcs_link_chain_build:
@@ -850,7 +1042,8 @@ vdp_commit_sprites:
     mulu.w  #12, %d0
     lea     staged_sprite_descriptor_table, %a0
     adda.l  %d0, %a0
-    btst    #0, (%a0)
+    move.w  (%a0), %d1
+    btst    #0, %d1
     beq.s   .Lvcs_link_next
 
     /* if previous valid exists, set its link to current slot */
@@ -1142,6 +1335,34 @@ staged_sprite_descriptor_table:
 staged_sprite_dirty:
     .long 0
 staged_sprite_active_count:
+    .word 0
+pc090oj_object_ram:
+    .space 0x800
+pc090oj_ctrl_shadow:
+    .word 0
+pc090oj_sprite_ctrl_shadow:
+    .word 0
+pc090oj_mirror_dirty:
+    .word 0
+pc090oj_decoded_count:
+    .word 0
+pc090oj_code_zero_skipped_count:
+    .word 0
+pc090oj_blank_skipped_count:
+    .word 0
+pc090oj_unmapped_skipped_count:
+    .word 0
+pc090oj_offscreen_skipped_count:
+    .word 0
+pc090oj_drawable_count:
+    .word 0
+pc090oj_emitted_count:
+    .word 0
+pc090oj_dropped_count:
+    .word 0
+pc090oj_scan_colbank:
+    .word 0
+pc090oj_scan_active:
     .word 0
 
     .align 2

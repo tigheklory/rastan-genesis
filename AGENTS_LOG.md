@@ -39846,3 +39846,225 @@ Open/Closed Issues Impact:
 * Window result: Build 0120 Window base is `VRAM address 0xF000`; with the configured 64x32 footprint the Window span `0xF000..0xFFFF` overlaps SAT `0xF800..0xFA7F` and H-scroll writes at `0xFC00..`; no Window nametable clear, no `staged_window_buffer`, no `vdp_commit_window`, and no post-boot Window X/Y writes were found; Window garbage is classified as overlap plus stale/uninitialized VRAM, only proven visible in VDP tools
 * issue impact: OPEN-024 and OPEN-023 remain open; OPEN-006/OPEN-021/OPEN-001/OPEN-015 context only; no new issue opened; no issue closed; `KNOWN_FINDINGS.md` not edited
 * STOP status: NO
+
+## [Cody - Evidence, Build 0120 Title Composite Stripe Runtime Evidence]
+
+* scope: runtime evidence / verification only for Build 0120 title composite stripe; no source/spec/tool/Makefile/ROM/build/invariant changes; no implementation, no fix design, no bookmark, no diagnostic ROM, no memory seeding, and no state forcing
+* evidence note: `docs/design/Cody_build0120_title_composite_stripe_runtime_evidence.md`
+* build baseline: Build 0120 ROM `dist/rastan-direct/rastan_direct_video_test_build_0120.bin`, SHA256 `80404f3a5b158f003692a20e84fe23ab05351f0639ac6bcd7d7594b93a0146ad`
+* evidence artifacts: inspected `states/screenshots/build_120/Exodus_build_120_title_screen_window_boundaries_on.png` and `states/screenshots/build_120/Exodus_build_120_story_screen_window_boundaries_off.png`; runtime attempts under `states/traces/build_0120_title_composite_stripe_evidence_20260630_204509/`, `...204613/`, `...204742/`, and sanity capture `states/traces/build_0120_title_composite_stripe_evidence_20260630_204857_sanity/`
+* visual result: title Plane B-only Exodus view shows coherent RASTAN/sword art; Plane A shows TAITO/copyright/credit text; Window viewer shows patterned garbage; Sprite viewer shows one small outlined sprite-boundary box. No local final-composite screenshot of the stripe was found under `states/screenshots/build_120/`, so the final composite stripe remains user-observed/out-of-band for this report.
+* static VDP result: Plane A base `0xE000`, Plane B base `0xC000`, Window base `0xF000`, SAT base `0xF800`, HScroll base `0xFC00`, MODE3 `0x00`; source search found Window X/Y writes only in boot setup; synchronized title-frame VDP register/VRAM dump was not captured
+* runtime result: title-state VDP/SAT/Window/VRAM snapshots were not captured; the successful MAME debugger sanity capture stopped at an early `vdp_commit_sprites` in state `0/0/0`, with `staged_sprite_dirty` changing `0x000FF81B -> 0x00000000` while staged SAT contents remained nonzero. This proves the capture method can stop at sprite commit and that SAT-like state can persist mechanically, but it is not title-state evidence.
+* classification: Plane B corruption is not supported by available visual evidence; Plane A overlay, Sprite/SAT, SAT link/termination, Window overlap, timing/partial commit, and emulator-specific behavior remain unresolved without a synchronized title-frame capture. H-scroll is weak/not supported statically because MODE3 is full-plane scroll and only two HScroll words are committed.
+* issue impact: OPEN-001 touched and remains open; OPEN-023/OPEN-024 context and remain open; OPEN-006/OPEN-015/OPEN-021 guardrail/context only; no issue opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: YES (evidence-limited, not architecture violation) - the composite stripe source cannot be safely pinned because synchronized title-frame VDP/SAT/Window/VRAM capture was not acquired
+
+## [Cody - Evidence, Build 0120 Title Pommel Composite-Artifact Attribution]
+
+* scope: runtime evidence / visual attribution only for Build 0120 title pommel/sword-hilt composite artifact; no source/spec/tool/Makefile/ROM/build/invariant changes; no implementation, no fix design, no diagnostic ROM, no bookmark, no memory seeding, and no state forcing
+* evidence note: `docs/design/Cody_build0120_title_pommel_composite_attribution.md`
+* build baseline: Build 0120 ROM `dist/rastan-direct/rastan_direct_video_test_build_0120.bin`, SHA256 `80404f3a5b158f003692a20e84fe23ab05351f0639ac6bcd7d7594b93a0146ad`
+* visual evidence inspected: `states/screenshots/build_120/Exodus_build_120_title_screen_window_boundaries_on.png` and `states/screenshots/build_120/Exodus_build_120_story_screen_window_boundaries_off.png`; no separate annotated red/green screenshot file was present locally, so the user annotation was treated as described evidence and the local Exodus panes were used for direct inspection
+* evidence artifacts created: `states/traces/build_0120_title_pommel_composite_attribution_20260630_visual/`, including cropped Plane A/B/Window/Sprite panes and `title_plane_b_pommel_clean_crop.png` / `title_plane_b_pommel_region_marked.png`
+* visual anchor: estimated final-composite artifact region is the top sword hilt/pommel area, approximately screen `x=150..185`, `y=20..70` / tile columns `18..23`, rows `2..8`; exact coordinates remain bounded because the annotated final-composite screenshot was not present locally
+* attribution: Plane B is exonerated as the direct source by the clean Layer B pommel crop; Plane A overlap is weak/not supported; H-scroll is weak/not supported by static MODE3/full-plane scroll evidence; Sprite/SAT remains possible but visually less supported for this specific region; Window visibility/VRAM-overlap artifact is the leading attribution because the Window pane shows matching striped/garbage patterns and prior Build 0120 evidence found no Window clear/staging/commit path and a Window footprint overlapping SAT/H-scroll storage
+* runtime capture: no new emulator runtime capture was performed; previous Build 0120 MAME title-state capture had already failed to obtain synchronized title VDP/SAT/Window/VRAM state, and no safe non-invasive Exodus automation path was available. D00298 was not reached and no dangerous stepping was performed.
+* issue impact: OPEN-001 touched and remains open; OPEN-023 leading context and remains open; OPEN-024 considered and remains open; OPEN-006/OPEN-015/OPEN-021 context only; no issue opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO - bounded attribution produced; fix design remains deferred pending synchronized title-frame VDP register/VRAM/SAT capture
+
+## [Andy - Analysis, Build 0120 Window Plane Coverage (rastan-direct)]
+
+* design note: docs/design/Andy_build0120_window_plane_coverage_design.md
+* scope: ANALYSIS/DESIGN only; no source/spec/tool/Makefile/ROM/build/implementation; baseline Build 0120 SHA 80404f3a5b158f003692a20e84fe23ab05351f0639ac6bcd7d7594b93a0146ad
+* HEADLINE: Window-coverage hypothesis REFUTED. reg17=0x00/reg18=0x00 = Window OFF (pos=0 = zero-size window). Window NOT composited -> garbage 0xF000 VRAM inert -> CANNOT cause pommel artifact. DO NOT apply the 0x00->0x80 patch.
+* DEFINITIVE proof (SGDK source tools/sgdk/src/vdp.c:783-814): VDP_setWindowOff() = setWindowHPos(false,0)+setWindowVPos(false,0) -> reg17=0x9100|0 (value 0x00), reg18=0x9200|0 (value 0x00). So SGDK canonical Window-OFF = reg17=0x00/reg18=0x00. pos=0 = zero-size = disabled regardless of RIGT/DOWN anchor bit.
+* OLD PRIOR (build327 Window Plane Disable Fix, SGDK apps/rastan, Window base 0xD000) INVERTED + NEVER VALIDATED: claimed 0x00=full-screen / 0x80=off (backwards); wrongly stated VDP_setWindowOff writes 0x80/0x80 (SGDK actually writes 0x00/0x00); log marks Plane-A-visible + no-regressions as "USER MUST VERIFY" (unconfirmed); different build line + Window base than rastan-direct. Does NOT apply to Build 0120.
+* Build 0120 Window write audit: reg3=0x3C->VRAM 0xF000 (vdp_boot_setup vdp_comm.s:77-79 + crash_handler.s:273 crash-only); reg17=0x00 (vdp_comm.s:117-119); reg18=0x00 (vdp_comm.s:121-123); all genesis_only helper (not arcade-mapped); NO post-boot reg17/18 writes; effective coverage = NONE (zero-size window OFF)
+* mechanical: Plane B clean (Cody, exonerated); Window OFF -> 0xF000 garbage NEVER composited (Window viewer dumps nametable VRAM not composite, so garbage-in-viewer != visible); Window cannot obscure pommel because not on screen; confidence HIGH (SGDK-proven register semantics + boot values + no post-boot writes); residual = no runtime composite+VDP-register dump (Cody's already-flagged missing evidence, but register values ARE definitionally window-off)
+* re-attribution: with Plane B clean + Plane A lower-text + Window OFF, leading candidate = sprite/SAT (OPEN-024 PC090OJ; sprites render above all planes; SAT unfinished; Cody sprite-pane box); horizontal-stripe class could be sprite/SAT
+* DESIGN = NO patch: 0x00->0x80 declined (inverted semantics; 0x80 also pos=0 = still zero-size OFF -> no-op; would NOT fix pommel); no files changed; reg3=0x3C KEEP (harmless while off; 0xF000/SAT-0xF800/H-scroll-0xFC00 overlap = latent layout concern for FUTURE visible Window/SAT-DMA, flag OPEN-023/024 not fix); Window VRAM clear NOT needed (off); next evidence = synchronized title-frame VDP register dump (confirm reg17/18=0x00 = off) + title-frame SAT/active-sprite list over pommel (OPEN-024) + Plane A composite cross-check
+* KNOWN_FINDINGS impact: recommend canonicalizing "Genesis VDP Window OFF = reg17=0x00/reg18=0x00 (SGDK VDP_setWindowOff; pos=0=zero-size regardless of anchor bit); build327 prior recorded this INVERTED + unvalidated" - HIGH rediscovery hazard (already misdirected Build 0120 attribution); assess-only, not edited
+* STOP status: NO (analysis complete; Window REFUTED; no patch designed)
+* lints/maintenance: KNOWN_FINDINGS/OPEN/CLOSED + prior Andy docs edited by user/linter (curation) - taken into account, not reverted
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-023 (Window path unimplemented/garbage - REAL but Window is OFF so garbage NOT player-visible / NOT the pommel; re-scoped latent-while-off + 0xF000/SAT/HScroll VRAM overlap latent concern; not closed), OPEN-024 (PC090OJ sprite/SAT - ELEVATED to leading pommel candidate; not resolved/not fixed), OPEN-001 (context; pommel re-attributed away from Window to sprite/SAT), OPEN-006 (context via 024), OPEN-015 (not relied on), OPEN-021 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE (recommend correcting inverted Window-semantics prior)
+- Issues closed: NONE
+- Issues intentionally deferred: implementation (no patch), OPEN-024 sprite/SAT re-attribution (needs SAT dump), 0xF000/SAT/H-scroll VRAM-layout concern (future visible-Window/SAT scope), any Window staging system (out of scope)
+
+## [Cody - Evidence, Build 0120 Title Pommel Sprite/SAT Evidence Capture]
+
+* scope: runtime evidence / sprite-SAT attribution only for Build 0120; no source/spec/tool/Makefile/ROM/build/invariant changes; no implementation, no fix design, no bookmark, no diagnostic ROM, no memory seeding, and no state forcing
+* evidence note: `docs/design/Cody_build0120_title_pommel_sprite_sat_evidence.md`
+* build baseline: Build 0120 ROM `dist/rastan-direct/rastan_direct_video_test_build_0120.bin`, SHA256 `80404f3a5b158f003692a20e84fe23ab05351f0639ac6bcd7d7594b93a0146ad`
+* evidence artifacts: successful capture under `states/traces/build_0120_title_pommel_sprite_sat_evidence_20260701_101003/`; failed/limited VDP introspection attempt under `states/traces/build_0120_title_pommel_sprite_sat_evidence_20260701_100652/`
+* title-state capture: no-input frame 90 at `pc=0x071F62`, `A5=0x00FF0000`, state `%a5@(0)/(2)/(4)=0/1/0`, credits `0`, timer `0x00A2`, `staged_sprite_dirty=0`, `staged_sprite_active_count=0`
+* SAT decode result: production WRAM `staged_sprite_sat` and `staged_sprite_descriptor_table` were decoded; 45 nonzero staged SAT slots, 8 descriptor-valid slots, slot-0 link chain `[0]`; no nonzero, descriptor-valid, or link-chain SAT entry intersects the pommel box `X=150..185`, `Y=20..70`
+* attribution result: staged PC090OJ sprite/SAT is NOT SUPPORTED as the Build 0120 pommel/sword-hilt composite artifact source by this capture; true `VRAM 0xF800` SAT was not directly dumped, so hardware-SAT divergence remains an explicit limitation rather than a proven mechanism
+* D00298 safety: no BlastEm run, no manual stepping, no dangerous D00298 path entered, no step-over at `0x3B292` or `0x5A724`
+* issue impact: OPEN-001 touched and remains open; OPEN-024 touched and remains open for broader sprite/SAT work but not supported for this pommel attribution; OPEN-023 context only; OPEN-006/OPEN-015/OPEN-021 context only; no issue opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Andy - Analysis, PC090OJ Object RAM -> Genesis SAT Architecture Audit (rastan-direct)]
+
+* design note: docs/design/Andy_pc090oj_object_ram_to_genesis_sat_architecture.md
+* scope: ANALYSIS/DESIGN only; no source/spec/tool/Makefile/ROM/build/implementation; MAME (in-repo docs/reference) as arcade-HW reference only (no copy/port/C/SGDK); code correlation via address_map.json (no arithmetic)
+* HEADLINE (answer to key question): current sprite layer is HOOK-SLOT/EVENT-ORIENTED, NOT object-RAM-mirror-oriented. NO faithful mirror of PC090OJ 0xD00000..0xD03FFF; NO VBlank scan of the 0x800 active range decoding 256 entries. Instead ~15 per-arcade-PC patched_site hooks translate specific sprite routines + arcade work-RAM sprite blocks (a5@0x11B2 etc.) into 80 Genesis SAT slots via build-baked pc090oj_slot_lut. Structural explanation for never-working sprites: coverage depends on hooking every producer; fixed entry->slot LUT can't represent dynamic 256-entry object RAM; unhooked producers -> missing/garbage
+* MAME model verified (docs/reference pc090oj.cpp/rastan.cpp): 0xD00000..0xD03FFF; RAM 0x4000, ACTIVE 0x800; 8B/entry x256, entry0=highest priority; word0 flipY.b15/flipX.b14/color.low4, word1 Y&0x1FF, word2 code&0x1FFF, word3 X&0x1FF; signed wrap x>0x140->x-=0x200 (same Y); offset 0xDFF -> m_ctrl bit0 flip, flipscreen when (m_ctrl&1)==0 -> x=320-x-16 y=256-y-16 toggle flips (CORRECTION to prompt: fires when bit0 CLEAR); sprite_colbank=(sprite_ctrl&0xe0)>>1 from 0x380000 spritectrl_w; draw order PC080SN L0(opaque)/L1 then PC090OJ -> sprites over both; no set_usebuffer -> write-through
+* current model (pc090oj_hooks.s/pc090oj_assets.s): hooks 3b902/3b926/3b930/41dae/41f5e/45dfa/59f5e + init_priority_3ad84/score_digit_3b802/slot_init_54052/sprite_update_54810/sprite_decay_5607c/copy_56114/zero_fill_56440/status_sprite_5a098 all patched_site (JSON-verified e.g. arc 0x3b902->runtime 0x3bb02, 0x54810->0x54a10, 0x3ad44->0x3af44); vdp_commit_sprites=link_chain_build+tile_dma+sat_dma+clear_dirty; BSS staged_sprite_sat 80*8/descriptor 80*12/dirty/active_count -- NO 0x4000/0x800 PC090OJ mirror; 3ad44 dispatch PC090OJ branch idx=(A0-0xD00000)>>3 -> pc090oj_slot_lut[idx] CLEAR (build-baked entry->slot map, clear path only, not runtime decode)
+* GAP: MATCH (addr concept, field decode where used, SAT link-chain output, 80 sizing). PARTIAL (sprite_ctrl colbank (&0xE0)>>1 CORRECT but sourced from work-RAM a5@(20) shadow not 0x380000 capture; priority 0x8000 high but slot-LUT-ordered not entry0-first; 0x800 indexing only in clear path). MISSING (object-RAM mirror; 256-entry VBlank scan; 0xDFF global flip + flipscreen transform; signed coordinate wrap x>0x140). UNKNOWN (a5@20==sprite_ctrl reliability; whether hooks cover ALL sprite producers). INVALID MODEL (overall hook-slot/descriptor/active_count/slot-LUT treated as arcade truth instead of derived from mirror)
+* DESIGN DIRECTION (pure asm translation layer, NOT emulator): (1) pc090oj_object_ram 0x800 mirror in WRAM; (2) route ALL 0xD00000..0xD007FF writes (via 3ad44 dispatch PC090OJ branch, change clear->mirror-write) to update mirror + capture 0x380000 sprite_ctrl + 0xDFF flip; (3) dirty flags perf-only; (4) VBlank scan 256 entries priority order; (5) decode per MAME (flip/color/Y/code/X + signed wrap + 0xDFF flipscreen + Y=8/X display-origin bias per Build 0096); (6) skip transparent/offscreen; (7) entry->Genesis SAT (code->VRAM-slot LUT + preload, reuse pc090oj_genesis.bin); (8) build link chain; (9) terminate unused; (10) colbank already correct; (11) add missing global flip; (12) sprites-over-everything
+* minimal future step (Cody, later): add mirror + repoint 3ad44 PC090OJ branch to write mirror; replace vdp_commit_sprites hook-fed staging with scan-decode-emit of mirror 256 entries -> staged_sprite_sat (first <=80 drawable priority order) -> existing link/DMA; validate on one title frame before removing legacy per-site hooks
+* files/labels (future): pc090oj_hooks.s (3ad44 dispatch PC090OJ branch, vdp_commit_sprites, deprecate per-site hooks), pc090oj_assets.s (tiles reuse; slot_lut->code->slot LUT), new BSS pc090oj_object_ram, tools/translation/preconvert_pc090oj_tiles.py reuse + code->slot LUT gen, 0x380000/0xDFF capture
+* GENESIS LIMITS: 256->80 = emit first <=80 DRAWABLE in entry-0-first priority order (simplest faithful-enough, no allocator); skip transparent(code0)/offscreen so they don't consume slots; terminate link after last (link=0 / park offscreen); prove dropped-not-relevant by counting VISIBLE entries in captured frame (title <<80), log if ever >80
+* POMMEL: Cody negative staged-SAT capture WEAKER (staged SAT built from partial hooks -> absence doesn't prove no PC090OJ sprite there, only that hooks emitted none; cannot exonerate PC090OJ); true VDP SAT 0xF800 capture matters MORE (what's actually composited); pommel could be mis-emitted garbage sprite OR non-sprite (not proven PC090OJ); next = capture true 0xF800 SAT + PC090OJ object-RAM at title frame + compose; strategic fix = object-RAM-mirror redesign (repairs whole sprite layer), pommel is one symptom NOT the driver
+* STOP conditions: none triggered (design feasible in pure asm; no C/SGDK/MAME-copy/emulator-lifecycle/scaffolding/arithmetic-mapping)
+* STOP status: NO
+* lints/maintenance: KNOWN_FINDINGS/OPEN/CLOSED + prior Andy docs edited by user/linter (curation) - taken into account, not reverted
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-024 (PC090OJ sprite subsystem - ROOT architectural cause identified = hook-slot vs object-RAM-mirror + design direction; substantially advanced, not closed), OPEN-001 (context; sprite layer major missing piece, pommel one symptom), OPEN-006 (context; colbank derivation verified-correct, carried forward), OPEN-023 (contrast only; Window refuted, sprite/SAT live candidate), OPEN-015/OPEN-021 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE (recommend re-scoping OPEN-024 around object-RAM-mirror architecture)
+- Issues closed: NONE
+- Issues intentionally deferred: implementation (mirror + VBlank scan-emit), 0xDFF global flip + signed-coordinate wrap, true-VDP-SAT/object-RAM capture (validation + pommel evidence), sprite code->VRAM-slot tile LUT
+
+### MAME Exit Summary (2026-07-01 13:20:00)
+- Final PC: 0x072132
+- Stack Pointer (SP): 0x00FEEC98
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-01 13:31:05)
+- Final PC: 0x0718E2
+- Stack Pointer (SP): 0x00FEED36
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-01 13:33:48)
+- Final PC: 0x071F5C
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0123 PC090OJ Object-RAM Mirror Phase 1]
+
+* scope: implementation + build + runtime/static evidence for PC090OJ active object-RAM mirror Phase 1 in `rastan-direct`; no C/SGDK/MAME-code port, no fake sprite data, no bookmarks, no Window work, no D00298 dynamic-path work, no claim that sprites/pommel are complete
+* report: `docs/design/Cody_pc090oj_object_ram_phase1_implementation.md`
+* build produced: Build 0123, `dist/rastan-direct/rastan_direct_video_test_build_0123.bin`, SHA256 `3a678621d2f71f4a0ce08d7a07d1a55e90e3b9a77cca62d601d4a9cbeb9b3a41`, size `1,560,968` bytes; rolling ROM byte-identical; `GATE_PASS`; opcode_replace count `133`, canonical coverage `0x17D19C`
+* implementation: added `pc090oj_object_ram` 0x800 active mirror at `0x00FF674A..0x00FF6F49`, PC090OJ control/sprite_ctrl shadows, mirror scan counters, and scan-active guard; boot clear now initializes mirror/control/counters
+* routing: `genesistan_hook_3ad44_dispatch` PC090OJ branch now preserves original long-fill word order into the active object mirror; `0x00D01BFE` writes route to `pc090oj_ctrl_shadow`; `0x00380000` writes route to `pc090oj_sprite_ctrl_shadow`; address mappings reported from `build/rastan-direct/address_map.json`
+* SAT generation: `vdp_commit_sprites` now scans 256 mirror entries, decodes PC090OJ fields, skips proven-blank code 0, applies signed wrap/global flip as specified, emits first <=80 drawable entries, then uses existing tile DMA/link/SAT DMA path; fixed existing link-builder byte/word `btst` bug so descriptor word flags generate a valid SAT link chain
+* final WRAM/BSS: `.bss` size `0x3038`, ends `0x00FF7038`; approximate remaining headroom `0x8FC8`; no overlap with staging buffers or mapped arcade work RAM; crash-handler `0xFF6800` overlay remains pre-existing crash-time caveat
+* final evidence: `states/traces/build_0123_pc090oj_object_ram_phase1_20260701_133359/`; post-commit counts decoded `256`, drawable `4`, emitted `4`, dropped `0`, ctrl `0x0001`, sprite_ctrl `0x0060`, colbank `0x0030`, scan_active `0`; generated SAT link chain `[0,1,2,3]`; unused entries unreachable from slot 0 in capture
+* limitations: true VDP SAT/VRAM not directly dumped; screenshot not captured in headless pass; visual improvement and pommel fix not claimed; legacy hooks remain as compatibility bridge and require future provenance cleanup
+* issue impact: OPEN-024 advanced and remains open; OPEN-001/OPEN-006 context; OPEN-023 context only; OPEN-015 D00298 safety context only; no issue opened or closed; `KNOWN_FINDINGS.md` not updated
+* STOP status: NO
+
+## [Cody - Evidence, Build 0123 PC090OJ Transparent-Pen / Black Overdraw Attribution]
+
+* scope: evidence/attribution only for Build 0123 PC090OJ sprite transparency and black-overdraw hypothesis; no source/spec/tool/Makefile/ROM/build/invariant changes, no implementation, no fix design, no bookmark, no D00298 work, no Window/Plane A/B changes
+* evidence note: `docs/design/Cody_build0123_pc090oj_transparent_pen_black_overdraw_evidence.md`
+* evidence artifacts: `states/traces/build_0123_pc090oj_transparent_pen_black_overdraw_20260701_143334/`
+* MAME reference verified: PC090OJ sprites are 16x16x4, use `code = word2 & 0x1fff`, draw after PC080SN layers, and use transparent pen `0` via `prio_transpen` / `transpen`; Rastan sprite priority mask is `0` (sprites over tile layers)
+* runtime/staging evidence: reused Build 0123 generated SAT chain `[0,1,2,3]` and captured a matching read-only post-commit WRAM/palette dump; emitted slots are source entries 4/14/16/17 with codes `0x0001`, `0x0110`, `0x0080`, `0x0080`, palette line 3
+* transparent-pen result: for all four emitted sprites, source PC090OJ pen 0 is preserved as Genesis index 0; source and converted 16x16 cells match exactly; no nonzero exact-black pixels in the emitted cells; near-black/dark nonzero pixels exist only as real opaque sprite pixels
+* attribution: transparent-pen conversion failure is REFUTED for the four emitted Build 0123 sprites; large black cover, if still present, points first to true VDP SAT/VRAM divergence/stale reachable SAT or another composited layer/state mismatch, not pen-0 loss in these emitted sprites
+* limitations: true VDP SAT/VRAM `0xF800..0xFA7F` and sprite-disabled visual comparison were not captured; no screenshot/layer-toggle evidence added
+* issue impact: OPEN-024 touched and remains open; OPEN-001/OPEN-006 context; OPEN-023 context only; OPEN-015 not touched; no issue opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Evidence/Design, PC090OJ Blank Sprite-Code Filtering]
+
+* scope: evidence/design only for Build 0123 PC090OJ blank/unmapped sprite-code filtering; no source/spec/tool/Makefile/ROM/build/invariant changes; no implementation, no rebuild, no bookmark, no runtime probing
+* report: `docs/design/Cody_pc090oj_blank_sprite_code_filtering_evidence_design.md`
+* evidence artifacts: `states/traces/pc090oj_blank_sprite_code_filtering_20260701_152409/` with inventory script, JSON, Markdown, and CSV outputs
+* architecture rule recorded: preserve the full PC090OJ object-RAM mirror as arcade state; filter/compact blank, unmapped, offscreen, and overflow entries only at Genesis SAT emission
+* inventory result: inspected 4096 converted PC090OJ cells (`0x0000..0x0FFF`); 22 blank codes, 4074 nonblank; source `build/regions/pc090oj.bin` and converted `build/pc090oj_genesis.bin` have 0 blank-flag mismatches and 0 full-pixel mismatches
+* Build 0123 emitted-entry check: emitted codes `0x0001`, `0x0110`, `0x0080`, `0x0080` are all valid nonblank cells; captured mirror classification was 252 current code-0 skips and 4 drawable emitted candidates, with no nonzero blank or invalid high-code entries in that frame
+* design finding: current code skips only code `0`; future SAT emission should use a generated blank-code table/bitset and should reject PC090OJ hardware codes `0x1000..0x1FFF` as unmapped unless a future asset proof justifies aliasing; current `andi.w #0x0FFF` tile-DMA behavior is a wrap hazard for high codes
+* stale-SAT note: generated WRAM SAT/descriptor state is cleared each commit and fully DMAed, so source-side stale generated entries should not persist; true VDP SAT divergence remains a future capture question if visuals disagree
+* issue impact: OPEN-024 advanced and remains open; OPEN-001/OPEN-006 context; OPEN-023 context only; OPEN-015 not touched; no issue opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Andy - Analysis, Independent Audit PC090OJ Blank-Code Filter + Unmapped-Code Guard (rastan-direct)]
+
+* design note: docs/design/Andy_pc090oj_blank_unmapped_filter_audit.md
+* scope: ANALYSIS/AUDIT only; no source/spec/tool/Makefile/ROM/build/bookmark/implementation; MAME in-repo reference only; independent verification (not trusting Cody); baseline Build 0123
+* VERDICT: GO with constraints. Filter + unmapped guard are CORRECT, NECESSARY, SAFE; independently re-derived load-bearing facts (all matched Cody)
+* INDEPENDENT VERIFICATION: source pc090oj.bin & converted pc090oj_genesis.bin BOTH 524288B = 4096 cells @128B = codes 0x000..0xFFF; matches MAME ROM_REGION 0x80000 (4096 cells); recomputed 22 all-zero blank codes (EXACT match to Cody incl 0x0/0x2/0x4/0x45/0xa8-ab/0xf3/0x100/0x178/0x1d8/0x4ff/0x5b0/0x5d6-d9/0x5db/0x9fd/0xaa3/0xac2), code0 blank, emitted 0x0001/0x0110/0x0080 nonblank; code decode #0x1FFF (line 933 matches MAME word2&0x1fff); tile DMA #0x0FFF (line 1064 wraps to 4096); SAT clear-before-scan VERIFIED (.Lvcs_clear_generated_sprite_state zeroes all 80 SAT + 80 desc + dirty + active_count before scan); signed coord wrap NOW PRESENT (cmpi #0x0140/subi #0x0200 X&Y); global flip handled; 0x380000 sprite_ctrl DIRECT capture (not a5@20 fallback)
+* A architectural rule: mirror=arcade truth, filter-at-emission-only CORRECT + consistent w/ARCHITECTURE + object-RAM-mirror strategy; mirror-mutation risk LOW (pc090oj_scan_active=1 guards writeback); required Cody wording = filters read mirror + decide emit/skip only, MUST NOT write/clear/reorder pc090oj_object_ram
+* B blank inventory: 4096 cells VERIFIED, 128B/cell VERIFIED, all-256-pen-0 test CORRECT, avoid-palette-black CORRECT (test pixel indices not color), 22-list HIGH confidence (reproduced); RECOMMEND build-time GENERATED 512-byte/4096-bit bitset from converted asset (NOT hardcoded 22-list; drift risk = KF-033/036 lesson)
+* C source-vs-converted: sufficient for blank filtering; blank(all-zero) is ORDER-INVARIANT so TL/BL/TR/BR reorder can't change which cells blank + code->cell index preserved -> quadrant-order risk NIL for blank; generate table from converted asset (DMA source) so table-index==DMA-index by construction
+* D unmapped guard: word2&0x1FFF CORRECT; converted range really only 0x000..0xFFF (asset+MAME ROM both 4096 cells); 0xFFF DMA wrap would render WRONG aliased graphic for high codes; real Rastan sprites can't use >=0x1000 (no ROM data) -> high code = garbage/stale -> SKIP safer than wrap; SKIP codes>=0x1000 + MANDATORY pc090oj_unmapped_count (nonzero = red flag); high codes stay in mirror unchanged; aliasing NOT established (MAME no reliable auto-modulo + Rastan emits 0 high codes); aliasing proof req = game emits real high-code sprites AND MAME renders aliased, else skip+count (expected 0)
+* E stale-SAT safety: WRAM clear VERIFIED in source (clears 80 SAT+80 desc before scan); full-80 SAT DMA claimed (Cody must confirm .Lvcs_sat_dma DMAs all 80); zero-emitted SAFE (cleared SAT -> slot0 Y=0 offscreen 128px above, link0 terminates); decreasing-count SAFE via clear+full-DMA; unused slots BOTH unlinked(unreachable) AND cleared(offscreen) - defense in depth, don't weaken; TRUE VDP SAT (0xF800..0xFA7F) capture MANDATORY not optional (black overdraw leading hypothesis = stale/true-VDP-SAT divergence KF-021 HIGH; only WRAM SAT captured; WRAM correctness != post-DMA VDP correctness)
+* CRITICAL: filter does NOT fix the black overdraw (Cody's own evidence: likely stale/true-VDP-SAT KF-021, NOT blank codes); Build 0123 frame has 0 blank-nonzero + 0 high codes so filter = purely preventive (no change to 4 emitted); prompt must NOT present filter as black-overdraw fix
+* constraints: (1) generated bitset not hardcoded; (2) emission-only no mirror mutation; (3) unmapped skip+count never wrap; (4) scan order code0-skip / >=0x1000-skip+count(before bitset lookup) / blank[code]-skip+count / else emit; (5) preserve clear-before-scan + confirm full-80 DMA + prove zero/decreasing cases; (6) MANDATORY true VDP SAT 0xF800 capture this build; (7) report invariant deltas
+* risks NOT solved: black overdraw itself (needs true VDP SAT, KF-021), producer coverage (unhooked PC090OJ paths leave mirror incomplete), 256->80 overflow (not exercised at title, counter flags)
+* STOP status: NO (audit complete, verdict issued)
+* lints/maintenance: KNOWN_FINDINGS/OPEN/CLOSED + prior Andy docs edited by user/linter (curation) - taken into account, not reverted
+
+Open/Closed Issues Impact:
+- Open issues touched: OPEN-024 (validates blank/unmapped filter + confirms phase-1 mirror/scan/clear/ctrl-capture/flip improvements; not closed - black overdraw + true-VDP-SAT remain), OPEN-001 (context), OPEN-006 (context; colbank direct-captured), OPEN-023 (contrast only), OPEN-015 (not touched)
+- Closed issues touched: NONE
+- New issues opened: NONE (recommend tracking black-overdraw-open pending true-VDP-SAT capture, distinct from the filter)
+- Issues closed: NONE
+- Issues intentionally deferred: black-overdraw root (true-VDP-SAT capture), producer-coverage completeness, 256->80 overflow policy, implementation
+
+### MAME Exit Summary (2026-07-01 16:01:22)
+- Final PC: 0x071F5A
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0124 PC090OJ Blank Bitset + Unmapped-Code Guard]
+
+* scope: implementation + build + evidence for PC090OJ blank-code bitset and unmapped-code guard at Genesis SAT emission/compaction; no PC080SN Plane A/B changes, no Window work, no D00298 fix, no C/SGDK, no MAME-code port, no visual/pommel fix claim
+* report: `docs/design/Cody_pc090oj_blank_bitset_unmapped_guard_implementation.md`
+* build produced: Build 0124, `dist/rastan-direct/rastan_direct_video_test_build_0124.bin`, SHA256 `f5935113ef4ab8ea231d4e31764b96a36c8bd2fe246846a2ca929facdfccd921`, size `1,561,600` bytes; rolling ROM byte-identical; `GATE_PASS`; opcode_replace count `133`, canonical coverage `0x17D400`
+* implementation: added generated 512-byte `build/pc090oj_blank_bitset.bin` from `build/pc090oj_genesis.bin`; exact 22 blank codes verified (`0x000`, `0x002`, `0x004`, `0x045`, `0x0A8`, `0x0A9`, `0x0AA`, `0x0AB`, `0x0F3`, `0x100`, `0x178`, `0x1D8`, `0x4FF`, `0x5B0`, `0x5D6`, `0x5D7`, `0x5D8`, `0x5D9`, `0x5DB`, `0x9FD`, `0xAA3`, `0xAC2`); bitset is generated, not hardcoded
+* scan behavior: PC090OJ mirror remains arcade object-table truth; filter is emission-only; decode `word2 & 0x1FFF`; code zero, blank-bitset, unmapped `>=0x1000`, and offscreen paths now have counters; high codes are skipped before bitset lookup/descriptor emission so lower-12-bit DMA wrapping is not the semantic high-code rule
+* build note: first release invocation stopped at invariant gate with observed mechanical coverage `0x17D400`; invariants were corrected and the second release produced Build 0124
+* evidence artifacts: `states/traces/pc090oj_blank_bitset_unmapped_guard_20260701_160224/`; analysis JSON/MD included; automatic release trace `states/traces/rastan_direct_video_test_build_0124_mame_30s_20260701_160115/` completed with no unique unmapped memory addresses
+* runtime evidence at frame 90: decoded `256`, code-zero skipped `252`, blank-code skipped `0`, unmapped-code skipped `0`, offscreen skipped `0`, drawable `4`, emitted attempts `4`, dropped `0`; post-commit descriptor table all zero; interpret emitted attempts separately from visible sprites
+* true VDP SAT: captured through MAME `sega315_5313(:gen_vdp):videoram` at VRAM `0xF800..0xFA7F`; true VDP SAT SHA matches `staged_sprite_sat` exactly; all 80 SAT slots zero; reachable chain `[0]`; no stale/extra reachable SAT entries in this captured frame
+* zero/decreasing-count proof: Option C static proof from clear-before-scan plus full 80-entry/640-byte SAT DMA; unused entries are cleared and unlinked, and slot 0 remains safe/terminated when no valid descriptor exists
+* limitations: no visual improvement claimed; no black-overdraw/pommel fix claimed; synchronized artifact-frame visual + true VDP evidence remains future work if the visual issue persists
+* issue impact: OPEN-024 advanced and remains open; OPEN-001/OPEN-006 context; OPEN-023 Window context only; OPEN-015/D00298 not touched; no issue opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Evidence, Build 0124 Final Composite Black Cover Attribution]
+
+* scope: evidence/attribution only for Build 0124 final-composite black cover/reveal in `states/screenshots/mame_genesis_build_124.mp4`; no source/spec/tool/Makefile/ROM/build/invariant changes, no implementation, no fix design, no bookmark
+* report: `docs/design/Cody_build0124_final_composite_black_cover_attribution.md`
+* evidence artifacts: `states/traces/build_0124_final_composite_black_cover_attribution_20260701_170732/`
+* video evidence: extracted source video frame 282 (covered story page, lower portion visible), frame 283 (full story page revealed), frame 289 (high-score transition/covered), frame 369 (high-score fuller), plus frames 278..286 contact sheet; host cursor/pointer overlay explicitly ignored as non-game evidence
+* runtime evidence: read-only MAME Genesis-driver Lua capture around nominal frames 282/283/289/369; story state class `s0=0000/s2=0001/s4=0002`; scroll staging `0/0/0/0`; dirty flags zero; staged BG/FG buffers unchanged across 282->283; only state diff is timer word `Genesis-WRAM 0xFF002C` `0x0090 -> 0x008F`
+* sprite/SAT attribution: `pc090oj_object_ram` nonzero (480 words) and counters stable (`decoded=0x0100`, `drawable=0x0004`, `emitted=0x0004`, `dropped=0`), but `staged_sprite_descriptor_table` and `staged_sprite_sat` are all zero at captured frames; `emitted_count=4` is not proof of visible SAT cover in this frame pair
+* Window/scroll attribution: Window remains exonerated by prior SGDK semantics (`reg17=0x00/reg18=0x00` = Window off; no post-boot writer); scroll/clipping not supported because staged scroll is zero and unchanged
+* VDP limitation: MAME Lua exposed only `:gen_vdp` `videoram`, whose reads returned zeros even for visible content; CRAM/VSRAM/register/live-VRAM values were not directly available through this workflow, so VRAM/CRAM/VSRAM binary dumps are not over-claimed; WRAM staging/counters and extracted video frames are authoritative for this pass
+* attribution: no persistent Window/sprite/SAT/scroll/staging/object-RAM cover layer was found; safest current classification is transient final-composite/capture-boundary phenomenon or exact-frame alignment issue, not a durable layer state; next evidence should use synchronized debugger/Exodus capture able to read actual VDP internal regs/CRAM/VSRAM/VRAM at video frame 282/283
+* issue impact: OPEN-001 remains open; OPEN-024 remains open but this black-cover transition is not supported by staged SAT evidence; OPEN-023 context only; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+### MAME Exit Summary (2026-07-01 21:04:04)
+- Final PC: 0x071F52
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-01 21:34:53)
+- Final PC: 0x071F5A
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - TEMP Diagnostic, Build 0125 Sprite/SAT Suppression + Build 0126 Revert]
+
+* scope: user-approved temporary diagnostic implementation + evidence + immediate revert verification; not a fix; no permanent source/spec/tool/Makefile/ROM/invariant changes remain from the suppression test; no bookmark; no issue closure
+* report: `docs/design/Cody_temp_sprite_sat_suppression_black_cover_test.md`
+* baseline: Build 0124 `dist/rastan-direct/rastan_direct_video_test_build_0124.bin`, SHA256 `f5935113ef4ab8ea231d4e31764b96a36c8bd2fe246846a2ca929facdfccd921`, size `1,561,600` bytes
+* temporary Build 0125: `dist/rastan-direct/rastan_direct_video_test_build_0125.bin`, SHA256 `34ec3a7e60a067f67b00e1b5763834571595c541aeba49672dc81f9fe228154e`, size `1,561,592` bytes; temporary patch in `vdp_commit_sprites` cleared generated SAT/descriptor state and still DMAed a full cleared SAT to VRAM `0xF800`; temporary invariant coverage was `0x17D3F8`; patch was explicitly marked `TEMP DIAGNOSTIC ONLY - sprite/SAT suppression test - remove after evidence`
+* evidence artifacts: `states/traces/temp_sprite_sat_suppression_black_cover_test_20260701_210430/`; runtime dumps and visual snapshots show Plane A/B staging nonzero and PC090OJ object RAM nonzero while staged SAT, staged descriptors, and true VDP SAT are zero
+* result: Build 0125 removed the Build 0124 frame-282 black cover while preserving visible Plane A/B story content; sprite/SAT output is strongly implicated for the black cover symptom, but this is not a permanent fix and does not identify the specific object/descriptor/link/tile/raw-writer path
+* immediate revert: temporary source patch and temporary invariant change were removed; searches for the temp marker and `0x17D3F8` returned no hits after revert
+* revert Build 0126: `dist/rastan-direct/rastan_direct_video_test_build_0126.bin`, SHA256 `f5935113ef4ab8ea231d4e31764b96a36c8bd2fe246846a2ca929facdfccd921`, size `1,561,600` bytes; `cmp` against Build 0124 returned byte-identical; opcode_replace count `133`, coverage `0x17D400`; rolling ROM matches Build 0126
+* issue impact: OPEN-001 and OPEN-024 touched; OPEN-023/OPEN-006 context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO

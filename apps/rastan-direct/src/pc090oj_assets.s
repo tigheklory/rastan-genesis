@@ -8,3 +8,8 @@ rastan_pc090oj:
     .align 2
 pc090oj_slot_lut:
     .incbin "../../build/pc090oj_slot_lut.bin"
+
+    .global pc090oj_blank_code_bitset
+    .align 2
+pc090oj_blank_code_bitset:
+    .incbin "../../build/pc090oj_blank_bitset.bin"

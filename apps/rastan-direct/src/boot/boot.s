@@ -22,6 +22,20 @@
     .extern staged_sprite_descriptor_table
     .extern staged_sprite_dirty
     .extern staged_sprite_active_count
+    .extern pc090oj_object_ram
+    .extern pc090oj_ctrl_shadow
+    .extern pc090oj_sprite_ctrl_shadow
+    .extern pc090oj_mirror_dirty
+    .extern pc090oj_decoded_count
+    .extern pc090oj_code_zero_skipped_count
+    .extern pc090oj_blank_skipped_count
+    .extern pc090oj_unmapped_skipped_count
+    .extern pc090oj_offscreen_skipped_count
+    .extern pc090oj_drawable_count
+    .extern pc090oj_emitted_count
+    .extern pc090oj_dropped_count
+    .extern pc090oj_scan_colbank
+    .extern pc090oj_scan_active
     .extern genesistan_pc090oj_dma_self_test
     .extern _crash_stub_bus_error
     .extern _crash_stub_address_error
@@ -215,6 +229,26 @@ _bootstrap_clear_staging:
 
     clr.l   staged_sprite_dirty
     clr.w   staged_sprite_active_count
+
+    lea     pc090oj_object_ram, %a0
+    move.w  #((0x800 / 2) - 1), %d7
+.Lboot_pc090oj_object_ram_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lboot_pc090oj_object_ram_clear
+
+    clr.w   pc090oj_ctrl_shadow
+    clr.w   pc090oj_sprite_ctrl_shadow
+    clr.w   pc090oj_mirror_dirty
+    clr.w   pc090oj_decoded_count
+    clr.w   pc090oj_code_zero_skipped_count
+    clr.w   pc090oj_blank_skipped_count
+    clr.w   pc090oj_unmapped_skipped_count
+    clr.w   pc090oj_offscreen_skipped_count
+    clr.w   pc090oj_drawable_count
+    clr.w   pc090oj_emitted_count
+    clr.w   pc090oj_dropped_count
+    clr.w   pc090oj_scan_colbank
+    clr.w   pc090oj_scan_active
 
     move.l  #VRAM_PLANE_A_BASE, %d0
     jsr     vdp_set_vram_write_addr

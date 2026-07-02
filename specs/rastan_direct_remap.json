@@ -153,7 +153,11 @@
     "genesistan_palette_hook_59ad4",
     "genesistan_palette_hook_03ab00",
     "genesistan_palette_hook_45dae",
-    "genesistan_palette_hook_3ba64"
+    "genesistan_palette_hook_3ba64",
+    "genesistan_pc090oj_ctrl_set_1",
+    "genesistan_pc090oj_ctrl_set_0",
+    "genesistan_pc090oj_sprite_ctrl_write_d0",
+    "genesistan_pc090oj_sprite_ctrl_clear"
   ],
   "copied_ranges": [
     {
@@ -197,8 +201,8 @@
     {
       "arcade_pc": "0x03A1D8",
       "original_bytes": "33C000380000",
-      "replacement_bytes": "4E714E714E71",
-      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_sprite_ctrl_write_d0}",
+      "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "arcade_pc": "0x03A350",
@@ -359,8 +363,8 @@
     {
       "arcade_pc": "0x03AE06",
       "original_bytes": "33FC000100D01BFE",
-      "replacement_bytes": "4E714E714E714E71",
-      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_ctrl_set_1}4E71",
+      "note": "Capture PC090OJ control write #1 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan."
     },
     {
       "arcade_pc": "0x03AE16",
@@ -371,14 +375,14 @@
     {
       "arcade_pc": "0x03AE1E",
       "original_bytes": "33FC000000D01BFE",
-      "replacement_bytes": "4E714E714E714E71",
-      "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_ctrl_set_0}4E71",
+      "note": "Capture PC090OJ control write #0 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan."
     },
     {
       "arcade_pc": "0x03AE34",
       "original_bytes": "33C000380000",
-      "replacement_bytes": "4E714E714E71",
-      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_sprite_ctrl_write_d0}",
+      "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "arcade_pc": "0x03AE86",
@@ -389,8 +393,8 @@
     {
       "arcade_pc": "0x03AE8E",
       "original_bytes": "33FC000000D01BFE",
-      "replacement_bytes": "4E714E714E714E71",
-      "note": "Suppress arcade PC090OJ sprite-DMA trigger; no Genesis equivalent."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_ctrl_set_0}4E71",
+      "note": "Capture PC090OJ control write #0 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan."
     },
     {
       "arcade_pc": "0x03AE96",
@@ -401,8 +405,8 @@
     {
       "arcade_pc": "0x03AE9C",
       "original_bytes": "427900380000",
-      "replacement_bytes": "4E714E714E71",
-      "note": "Suppress unsupported TC0040IOC control clear at 0x380000."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_sprite_ctrl_clear}",
+      "note": "Capture sprite_ctrl/coin-lockout register clear (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "arcade_pc": "0x03AEA2",
@@ -473,8 +477,8 @@
     {
       "arcade_pc": "0x03AF1E",
       "original_bytes": "33C000380000",
-      "replacement_bytes": "4E714E714E71",
-      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_sprite_ctrl_write_d0}",
+      "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "arcade_pc": "0x03AF4C",
@@ -599,32 +603,32 @@
     {
       "arcade_pc": "0x03EF28",
       "original_bytes": "33C000380000",
-      "replacement_bytes": "4E714E714E71",
-      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_sprite_ctrl_write_d0}",
+      "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "arcade_pc": "0x03EF48",
       "original_bytes": "33C000380000",
-      "replacement_bytes": "4E714E714E71",
-      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_sprite_ctrl_write_d0}",
+      "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "arcade_pc": "0x03EF8A",
       "original_bytes": "33C000380000",
-      "replacement_bytes": "4E714E714E71",
-      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_sprite_ctrl_write_d0}",
+      "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "arcade_pc": "0x03EFAA",
       "original_bytes": "33C000380000",
-      "replacement_bytes": "4E714E714E71",
-      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_sprite_ctrl_write_d0}",
+      "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "arcade_pc": "0x045306",
       "original_bytes": "33C000380000",
-      "replacement_bytes": "4E714E714E71",
-      "note": "Suppress unsupported TC0040IOC control write at 0x380000."
+      "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_sprite_ctrl_write_d0}",
+      "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "arcade_pc": "0x055968",
