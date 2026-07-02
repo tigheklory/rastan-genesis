@@ -36,6 +36,8 @@
     .extern pc090oj_dropped_count
     .extern pc090oj_scan_colbank
     .extern pc090oj_scan_active
+    .extern pc090oj_producer_oob_count
+    .extern pc090oj_producer_write_count
     .extern genesistan_pc090oj_dma_self_test
     .extern _crash_stub_bus_error
     .extern _crash_stub_address_error
@@ -249,6 +251,8 @@ _bootstrap_clear_staging:
     clr.w   pc090oj_dropped_count
     clr.w   pc090oj_scan_colbank
     clr.w   pc090oj_scan_active
+    clr.w   pc090oj_producer_oob_count
+    clr.w   pc090oj_producer_write_count
 
     move.l  #VRAM_PLANE_A_BASE, %d0
     jsr     vdp_set_vram_write_addr

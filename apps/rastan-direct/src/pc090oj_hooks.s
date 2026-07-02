@@ -39,6 +39,8 @@
     .global pc090oj_dropped_count
     .global pc090oj_scan_colbank
     .global pc090oj_scan_active
+    .global pc090oj_producer_oob_count
+    .global pc090oj_producer_write_count
 
     .global staged_sprite_sat
     .global staged_sprite_descriptor_table
@@ -70,6 +72,8 @@
     .equ VDP_CTRL,      0x00C00004
     .equ SPRITE_TILE_BASE, 1024
     .equ ARCADE_ROM_BASE, 0x00000200
+    .equ PC090OJ_HW_BASE, 0x00D00000
+    .equ PC090OJ_HW_ACTIVE_END, 0x00D00800
 
 /* ------------------------------------------------------------------------- */
 /* Internal helpers                                                          */
@@ -220,6 +224,48 @@
     bsr     .Lpc090oj_emit_slot
     rts
 
+/* A1=PC090OJ HW address, D0=word value.  Writes only the active 0x800-byte mirror. */
+.Lpc090oj_mirror_write_word_a1_d0:
+    move.l  %a2, -(%sp)
+    move.l  %a1, %d2
+    cmpi.l  #PC090OJ_HW_BASE, %d2
+    blo.s   .Lpc090oj_mirror_word_oob
+    cmpi.l  #PC090OJ_HW_ACTIVE_END, %d2
+    bhs.s   .Lpc090oj_mirror_word_oob
+    subi.l  #PC090OJ_HW_BASE, %d2
+    lea     pc090oj_object_ram, %a2
+    adda.l  %d2, %a2
+    move.w  %d0, (%a2)
+    addq.w  #1, pc090oj_producer_write_count
+    move.w  #1, pc090oj_mirror_dirty
+    move.l  (%sp)+, %a2
+    rts
+.Lpc090oj_mirror_word_oob:
+    addq.w  #1, pc090oj_producer_oob_count
+    move.l  (%sp)+, %a2
+    rts
+
+/* A1=PC090OJ HW address, D0=byte value.  Used for 0x3B802 byte stores. */
+.Lpc090oj_mirror_write_byte_a1_d0:
+    move.l  %a2, -(%sp)
+    move.l  %a1, %d2
+    cmpi.l  #PC090OJ_HW_BASE, %d2
+    blo.s   .Lpc090oj_mirror_byte_oob
+    cmpi.l  #PC090OJ_HW_ACTIVE_END, %d2
+    bhs.s   .Lpc090oj_mirror_byte_oob
+    subi.l  #PC090OJ_HW_BASE, %d2
+    lea     pc090oj_object_ram, %a2
+    adda.l  %d2, %a2
+    move.b  %d0, (%a2)
+    addq.w  #1, pc090oj_producer_write_count
+    move.w  #1, pc090oj_mirror_dirty
+    move.l  (%sp)+, %a2
+    rts
+.Lpc090oj_mirror_byte_oob:
+    addq.w  #1, pc090oj_producer_oob_count
+    move.l  (%sp)+, %a2
+    rts
+
 /* emit 22 slots from workram blocks at A5+0x11B2 (18) and A5+0x0170 (4) */
 .Lpc090oj_emit_slots_0_21_from_workram:
     move.w  10*2(%a5), %d7
@@ -314,30 +360,31 @@ genesistan_pc090oj_hook_target_3b926:
 
 genesistan_pc090oj_hook_target_3b930:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
-    moveq   #14, %d0
     move.w  %d1, %d6
-    cmpi.w  #4, %d6
-    bls.s   .Lhook_3b930_count_ok
-    moveq   #4, %d6
-.Lhook_3b930_count_ok:
-    move.w  10*2(%a5), %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
 .Lhook_3b930_loop:
     tst.w   %d6
     beq.s   .Lhook_3b930_done
-    moveq   #0, %d1
-    moveq   #0, %d2
-    move.b  (%a0)+, %d2
-    moveq   #0, %d4
-    move.b  (%a0)+, %d4
-    move.w  (%a0)+, %d3
-    moveq   #0, %d5
-    move.w  %d6, -(%sp)              /* save loop counter */
-    moveq   #0, %d6
-    bsr     .Lpc090oj_emit_slot
-    move.w  (%sp)+, %d6              /* restore loop counter */
-    addq.w  #1, %d0
+
+    moveq   #0, %d0                  /* word0 = 0 */
+    bsr     .Lpc090oj_mirror_write_word_a1_d0
+    addq.l  #2, %a1
+
+    moveq   #0, %d0                  /* word1 = zero-extended Y byte */
+    move.b  (%a0)+, %d0
+    bsr     .Lpc090oj_mirror_write_word_a1_d0
+    addq.l  #2, %a1
+
+    moveq   #0, %d0                  /* word2 = zero-extended code byte */
+    move.b  (%a0)+, %d0
+    bsr     .Lpc090oj_mirror_write_word_a1_d0
+    addq.l  #2, %a1
+
+    move.w  (%a0)+, %d7              /* word3 = transformed X word */
+    jsr     (0x0005B712).l
+    move.w  %d7, %d0
+    bsr     .Lpc090oj_mirror_write_word_a1_d0
+    addq.l  #2, %a1
+
     subq.w  #1, %d6
     bra.s   .Lhook_3b930_loop
 .Lhook_3b930_done:
@@ -524,7 +571,7 @@ genesistan_pc090oj_hook_score_digit_3b802:
     movea.l %d5, %a6                 /* leading-zero state */
 
     mulu.w  #10, %d0
-    movea.l #ARCADE_ROM_BASE+0x0003B87E, %a0
+    lea     .Lhook_3b802_record_table, %a0
     adda.w  %d0, %a0
 
     clr.w   %d0
@@ -573,42 +620,22 @@ genesistan_pc090oj_hook_score_digit_3b802:
     addi.w  #0x002A, %d1
 
 .Lhook_3b802_emit:
-    /* Map arcade destination pointer progression to helper-owned slots 22..29 */
-    move.l  %a4, %d3
-    subi.l  #0x00D00000, %d3
-    lsr.l   #3, %d3                   /* descriptor index */
-    subi.w  #17, %d3
-    bcs.s   .Lhook_3b802_next
-    cmpi.w  #7, %d3
-    bhi.s   .Lhook_3b802_next
+    /* Preserve arcade destination writes: byte to +2/+3, digit word to +4. */
+    movea.l %a4, %a1
+    adda.w  #2, %a1
+    move.w  %d4, %d0
+    bsr     .Lpc090oj_mirror_write_byte_a1_d0
 
-    move.w  %d3, %d0
-    addi.w  #22, %d0
+    movea.l %a4, %a1
+    adda.w  #3, %a1
+    moveq   #0, %d0
+    move.b  %d6, %d0
+    bsr     .Lpc090oj_mirror_write_byte_a1_d0
 
-    /* Preserve existing attr/x, update only word1 + tile as in original function */
-    move.w  %d0, %d5
-    mulu.w  #12, %d5
-    lea     staged_sprite_descriptor_table, %a0
-    adda.l  %d5, %a0
-    move.w  6(%a0), %d5               /* attr word0 */
-    move.w  4(%a0), %d4               /* x word3 */
-
-    move.w  %d1, %d3                  /* tile word2 */
-    move.w  %d5, %d1                  /* attr word0 */
-
-    moveq   #0, %d5
-    move.b  %d6, %d5
-    andi.w  #0x00FF, %d5
-    move.w  %d4, %d2                  /* vis flag from .Lhook_3b802_visflag */
-    lsl.w   #8, %d2
-    or.w    %d5, %d2                  /* word1 */
-
-    moveq   #0, %d5                   /* source_id */
-    moveq   #0, %d6                   /* extra flags */
-    move.w  10*2(%a5), %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-    bsr     .Lpc090oj_emit_slot
+    movea.l %a4, %a1
+    adda.w  #4, %a1
+    move.w  %d1, %d0
+    bsr     .Lpc090oj_mirror_write_word_a1_d0
 
 .Lhook_3b802_next:
     subq.l  #8, %a4
@@ -632,6 +659,14 @@ genesistan_pc090oj_hook_score_digit_3b802:
     movea.l %d5, %a6
     moveq   #0, %d4
     rts
+
+.Lhook_3b802_record_table:
+    .byte 0x06,0x10,0x00,0xD0,0x01,0x08,0x00,0x10,0xC1,0x1E
+    .byte 0x06,0x10,0x00,0xD0,0x01,0x50,0x00,0x10,0xC1,0x1E
+    .byte 0x06,0x10,0x00,0xD0,0x00,0xD8,0x00,0x10,0xC1,0x42
+    .byte 0x01,0xE8,0x00,0xD0,0x00,0xA8,0x00,0x10,0xC1,0x17
+    .byte 0x01,0xE4,0x00,0xD0,0x00,0x88,0x00,0x10,0xC1,0x03
+    .align 2
 
 genesistan_pc090oj_hook_slot_init_54052:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
@@ -1363,6 +1398,10 @@ pc090oj_dropped_count:
 pc090oj_scan_colbank:
     .word 0
 pc090oj_scan_active:
+    .word 0
+pc090oj_producer_oob_count:
+    .word 0
+pc090oj_producer_write_count:
     .word 0
 
     .align 2

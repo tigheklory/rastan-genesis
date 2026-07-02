@@ -1,5 +1,23 @@
 # AGENTS Log
 
+## [Andy - Design, PC090OJ 0x3B930 / 0x3B802 Object-RAM-Faithful Replacement (Build 0126, rastan-direct)]
+
+* baseline: Build 0126, SHA256 f5935113ef4ab8ea231d4e31764b96a36c8bd2fe246846a2ca929facdfccd921; DESIGN/AUDIT only, no implementation
+* address_map.json mapping (no arithmetic proof): 0x3B930→0x3BB30 (patched), 0x3B802→0x3BA02 (patched), 0x5B512→0x5B712 (arcade_copy), 0x3B902→0x3BB02, 0x3B926→0x3BB26
+* arcade 0x3B930 semantics: general PC090OJ table-copy; 4 words/object to caller A1 = [word0=0][word1=Y.b][word2=code.b][word3=0x5B512(X.w)]; callers 0x3B902 (5 objs→0xD00088) and 0x3B926 (9 objs→0xD00128); table 0x3B984/0x3B950 codes 0x3B/0x3A/0x3C/0x3D match expected title codes
+* Genesis 0x3B930 helper — FOUR-way divergence diagnosed: (1) ignores caller A1 (hardcoded moveq #14 slot); (2) clamps D1 to 4 (arcade 5/9); (3) word2/word3 SWAPPED (X-word→code field, code-byte→X field); (4) omits 0x5B512 transform. Field-swap is the exact wrong-sprite mechanism: X-word 0x0088→code&0x1FFF=0x0080; 0x0110 likewise; 0x0001 low byte
+* arcade 0x3B802 semantics: score-digit updater; record @0x3B87E+mode*10; dest ptr=record+2 (PC090OJ addr), score src=record+6 (workram 0x10xxxx); code=nibble+0x2A (matches title digit codes 0x2A–0x33)
+* Genesis 0x3B802 helper: partial helper-owned mapping; correctly KF-036-remaps score src but does not write mirror at (dest−0xD00000); live digits never reach arcade PC090OJ destinations → missing digits
+* object-RAM-faithful design: producer writes ONLY pc090oj_object_ram at mirror_off=(A1&0xFFFFFF)−0xD00000 (active 0x800), preserve D1 count, arcade-exact word order, call runtime 0x5B712 for word3, mark pc090oj_mirror_dirty; bounds guard (mirror_off∈[0,0x800), mirror_off+D1*8≤0x800 else skip+count); NO producer descriptor/SAT writes (VBlank scan only); blank/unmapped filter is scan-side only, unchanged; scaffolding risk NONE
+* score-digit recommendation: Option 3 — shared bounds-guarded PC090OJ write-mirror primitive used by both 0x3B930 and 0x3B802
+* wrong sprites (0x0080/0x0110/0x0001 @ entries 4/14/16-17): helper-owned artifacts of the current 0x3B930 (slot 14 + field-swap); faithful fix replaces them with arcade title entries at offsets 17.../37.../digit dests (codes 0x2A–0x49); Cody to confirm no other producer legitimately owns entry 14/16/17
+* story-page impact: flagged (does NOT claim to fix black cover) — if story shares these helpers its SAT output changes; regression-check required
+* verdict: GO with narrow Cody plan (edit pc090oj_hooks.s only: reimplement both helpers + shared primitive; preserve a0/a1/d1 + word layout + 0x5B712; remove slot-14/clamp-4/field-swap/producer-SAT; add OOB counter + dirty; runtime proof = object-RAM dump matching arcade + scan emits 27 title codes + wrong codes gone + SAT chain valid)
+* Open/Closed Issues Impact: OPEN-024 primary (root defect diagnosed, not closed); OPEN-001/OPEN-021/OPEN-006 context; none opened/closed; deferred: story black cover (KF-021 true-VDP-SAT), non-title score/HUD callers, implementation
+* design doc: docs/design/Andy_pc090oj_3b930_3b802_object_ram_faithful_design.md
+
+---
+
 ## [Andy - Analysis, Build 0028 FG Hook Failure (rastan-direct)]
 
 * FG hook execution verified: NO — layer selector A5@(0x10A8) = 0xFF10A8 permanently 0; arcade code updates it via absolute 0x10D0A8 (ROM on Genesis, silently ignored); dispatcher always takes BG path
@@ -40067,4 +40085,85 @@ Open/Closed Issues Impact:
 * immediate revert: temporary source patch and temporary invariant change were removed; searches for the temp marker and `0x17D3F8` returned no hits after revert
 * revert Build 0126: `dist/rastan-direct/rastan_direct_video_test_build_0126.bin`, SHA256 `f5935113ef4ab8ea231d4e31764b96a36c8bd2fe246846a2ca929facdfccd921`, size `1,561,600` bytes; `cmp` against Build 0124 returned byte-identical; opcode_replace count `133`, coverage `0x17D400`; rolling ROM matches Build 0126
 * issue impact: OPEN-001 and OPEN-024 touched; OPEN-023/OPEN-006 context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Evidence, Build 0126 Title-Screen Arcade vs Genesis Sprite-Delta Baseline]
+
+* scope: evidence/attribution only for original arcade `rastan` title screen vs canonical Genesis Build 0126 title screen; no source/spec/tool/Makefile/ROM/build/invariant changes, no implementation, no fix design, no bookmark
+* report: `docs/design/Cody_title_screen_arcade_vs_genesis_sprite_delta_baseline.md`
+* evidence artifacts: `states/traces/title_screen_arcade_vs_genesis_sprite_delta_baseline_20260701_230410/`
+* arcade baseline: MAME set `rastan` / `Rastan (World Rev 1)`, selected title frame 60; screenshot shows RASTAN logo/sword, `1UP 00`, `HIGH SCORE 273100`, `2UP 00`, and `CREDIT 0`
+* arcade PC090OJ result: 256 object entries scanned; 42 nonzero-code entries; 27 MAME-drawable visible sprites; all 27 visible sprites intersect the top-score strip; 0 visible sprites intersect the RASTAN logo/sword region after excluding the top-score strip; 0 visible sprites intersect the CREDIT region. Therefore the arcade top-score strip is PC090OJ sprite output, while RASTAN/sword and CREDIT are not PC090OJ output in this frame.
+* Genesis Build 0126 result: selected title-state frame 60 (`%a5@(0)/(2)/(4)=0/1/0`); mirror has 4 nonzero-code candidates and counters report decoded 256 / drawable 4 / emitted 4 / dropped 0, but final staged SAT and true VDP SAT are all zero and byte-identical; reachable SAT chain is `[0]` with no visible/reachable sprites.
+* delta classification: arcade-only title PC090OJ sprite set missing from Genesis final SAT; 27 arcade top-score sprites have no final Genesis SAT counterparts; no Genesis-only visible final SAT sprite found on this title frame. The title audit is a baseline/control and does not close the story-page black-cover attribution.
+* raw writer check: title-window watchpoints observed 0 raw writes to `HW_ADDRESS 0x00D00000..0x00D007FF` and 0 PC090OJ mirror writes during frames 50-70; VDP port writes were normal Genesis helper/commit traffic, not treated as Window output.
+* successor: trace why arcade title top-score PC090OJ entries do not reach Genesis descriptor/SAT; separately still perform the story-page SAT-producing-chain evidence pass on canonical Build 0126.
+* issue impact: OPEN-001 and OPEN-024 touched; OPEN-023/OPEN-006/OPEN-015 context only; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Evidence, Build 0126 Title Top-Score PC090OJ Producer-to-Mirror Trace]
+
+* scope: evidence/attribution only for original arcade title top-score PC090OJ producer path vs Genesis Build 0126 `pc090oj_object_ram`/SAT state; no source/spec/tool/Makefile/ROM/build/invariant changes, no implementation, no fix design, no bookmark
+* report: `docs/design/Cody_title_topscore_pc090oj_producer_to_mirror_trace.md`
+* evidence artifacts: `states/traces/title_topscore_pc090oj_producer_to_mirror_trace_20260702_001702/`; includes original arcade write trace, Build 0126 Genesis watch/debug attempts, copied baseline frame-60 arcade/Genesis dumps with provenance, and reduced JSON/MD summaries
+* arcade runtime evidence: original arcade `rastan` writes the 27 visible title top-score PC090OJ entries through `arcade_pc 0x03B8B0` setup plus `0x03B930` table-copy loop and `0x03B802` score-digit helper; producer PCs observed include `0x03B936/0x03B93C/0x03B942/0x03B94C` and score-digit update sites `0x03B83A/0x03B842/0x03B856/0x03B85E/0x03B87E`; earlier `0x03AD48` clear/offscreen initialization also observed
+* address discipline: every arcade-to-Genesis code correlation was resolved through `build/rastan-direct/address_map.json`; no arithmetic offset was used as proof
+* Genesis Build 0126 static/mapped result: title setup at mapped `runtime_genesis_pc 0x03BAB0` is copied, but the `0x03B930` writer body maps to patched wrapper `0x03BB30 -> genesistan_pc090oj_hook_target_3b930` at `0x071A12`; helper hardcodes slot `14` and clamps original `D1` to at most `4`, ignoring caller `A1` destination semantics, so arcade `D1=24/A1=0x00D00020` and later `D1=9` calls cannot populate the 27 original target entries
+* frame-60 comparison: original arcade has `27/27` visible target entries; Build 0126 mirror has `0/27` exact target-entry matches and only one wrong visible target candidate; final staged/true SAT target slots are `0/27` nonzero
+* limitation: fresh Genesis debugger breakpoint proof was not captured because MAME Qt debugger failed headless (`qt.qpa.xcb: could not connect to display :0`); classification rests on original arcade runtime write evidence, exact JSON mapping, Build 0126 disassembly/source behavior at mapped patched sites, and prior stable frame-60 mirror/SAT baseline
+* attribution: the audited title top-score absence is a producer-to-mirror semantic gap in patched PC090OJ helper replacement, not proof that a correct mirror is later lost by the final SAT scanner and not a raw `0xD00000` write problem for this title path
+* successor: story-screen black-cover successor remains separate and unresolved; this pass only attributes the title top-score PC090OJ absence
+* issue impact: OPEN-024 and OPEN-001 touched; OPEN-023/OPEN-006/OPEN-015 context only; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Evidence, Build 0126 Genesis SAT Link-Chain Termination Audit]
+
+* scope: evidence/attribution only for Genesis SAT link-chain construction/termination in canonical Build 0126; no source/spec/tool/Makefile/ROM/build/invariant changes, no implementation, no fix design, no bookmark
+* report: `docs/design/Cody_genesis_sat_link_chain_termination_audit.md`
+* evidence artifacts: `states/traces/genesis_sat_link_chain_termination_audit_20260702_111140/`
+* build verified: `dist/rastan-direct/rastan_direct_video_test_build_0126.bin`, SHA256 `f5935113ef4ab8ea231d4e31764b96a36c8bd2fe246846a2ca929facdfccd921`
+* static SAT result: `vdp_commit_sprites` clears generated SAT/descriptor state each frame, rebuilds descriptors from `pc090oj_object_ram`, links valid slots only, terminates the final valid slot with link byte `0`, and DMA transfers all 640 bytes from `staged_sprite_sat` to VDP SAT `VRAM 0xF800`
+* runtime method: initial Lua frame-done capture was rejected for final classification because it sampled inside `vdp_commit_sprites` during the clear loop; authoritative samples use native MAME debugger `go 70100` post-commit handoff dumps at handoff counts 60, 282, 283, 289, and 369
+* runtime result: every authoritative post-commit sample has decoded `256`, drawable `4`, emitted `4`, active `4`, valid slots `[0,1,2,3]`, reachable chain `0 -> 1 -> 2 -> 3 -> 0`, final link terminates to zero, no loop, no out-of-range link, no nonzero unreachable SAT slots, and no visible unreachable SAT slots
+* classification: stale/unterminated Genesis SAT link-chain traversal is NOT SUPPORTED as the black-cover mechanism in the sampled Build 0126 states; if sprites remain implicated, the issue is with legitimately reachable sprite entries/content/priority or a different layer/path, not VDP over-walking stale SAT entries
+* limitation: exact post-handoff true VDP SAT bytes were not independently dumped because MAME debugger VDP-space dump syntax did not produce `videoram` files; conclusion is scoped to staged SAT plus full-SAT-DMA static proof
+* issue impact: OPEN-001 and OPEN-024 touched; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Evidence, Build 0126 Title Wrong Sprites + Missing Score Semantic Trace]
+
+* scope: evidence/attribution only for Build 0126 title-screen sprite semantics; no source/spec/tool/Makefile/ROM/build/invariant changes, no implementation, no fix design, no bookmark, no sprite suppression
+* report: `docs/design/Cody_title_wrong_sprites_and_missing_score_semantic_trace.md`
+* evidence artifacts: `states/traces/title_wrong_sprites_and_missing_score_semantic_trace_20260702_115645/`
+* user Exodus correction incorporated: Sprite layer viewer shows about three small/dark/purple artifact sprites, not zero sprites; final VDP Image composite does not meaningfully show them; Plane A/B title content is coherent; sprite/window outline boxes are Exodus UI overlays
+* wrong Genesis sprite decode: authoritative post-commit Build 0126 SAT chain is `0 -> 1 -> 2 -> 3 -> 0`; reachable slots use PC090OJ codes `0x0001`, `0x0110`, and `0x0080`, with screen boxes near `(0,0)`, `(42,0)`, `(0,128)`, `(1,128)`; none match expected title score codes or positions; slots 2/3 nearly overlap, explaining why four SAT entries can look like about three Sprite-layer objects
+* missing title score evidence: original arcade title has 27 visible PC090OJ top-score entries; Build 0126 mirror has 0/27 exact target-entry matches and final SAT has 0/27 target slots; loss is already at `pc090oj_object_ram` mirror, not descriptor rejection or SAT link-chain termination
+* helper semantics: exact `address_map.json` correlations show title setup copied at `runtime_genesis_pc 0x03BAB0`, but `arcade_pc 0x03B930` maps to patched `runtime_genesis_pc 0x03BB30 -> genesistan_pc090oj_hook_target_3b930`; helper ignores caller `A1`, starts at helper-owned slot 14, and clamps `D1` to max 4; `0x03B802` score-digit helper maps only partially to helper-owned slots 22..29
+* runtime attempt: MAME debugger was run with Qt offscreen and breakpoints at `0x03BB30`, `0x071A12`, and `0x071A2A`, but emitted no breakpoint printf events; no fresh runtime-hit proof added; static/source/disassembly and prior runtime dump evidence kept separate
+* classification: title score failure is a producer-to-mirror/helper semantic gap in helper-owned PC090OJ replacements, while wrong small sprites are helper-owned/unrelated converted PC090OJ cells; story-page black-cover mechanism remains separate and unresolved
+* issue impact: OPEN-001 and OPEN-024 touched; OPEN-015 context only; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+### MAME Exit Summary (2026-07-02 14:56:22)
+- Final PC: 0x07201E
+- Stack Pointer (SP): 0x00FEDCD2
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-02 14:59:57)
+- Final PC: 0x0721C8
+- Stack Pointer (SP): 0x00FEDAB0
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0128 Object-RAM-Faithful PC090OJ 0x3B930 / 0x3B802 Producers]
+
+* scope: implementation + build + runtime evidence for OPEN-024 / OPEN-001 PC090OJ producer-to-mirror semantics; no sprite suppression, no fake title sprites, no producer-side descriptor/SAT writes, no Window/PC080SN/D00298/OPEN-015 work, no issue closure
+* report: `docs/design/Cody_pc090oj_3b930_3b802_object_ram_faithful_implementation.md`
+* implementation: `genesistan_pc090oj_hook_target_3b930` now replays the arcade table-copy producer into `pc090oj_object_ram` using caller-provided `A1` and `D1`; word3 uses mapped runtime call `0x05B712`; `genesistan_pc090oj_hook_score_digit_3b802` now writes byte/word digit fields into object RAM instead of helper-owned SAT/descriptor slots
+* support changes: added guarded PC090OJ mirror byte/word write primitives, producer write/OOB counters, boot-time counter clearing, and a local copy of the original `0x03B802` five-record table because the runtime `0x03BA7E` table location is intentionally NOP-filled by the opcode replacement span
+* address discipline: code mappings were resolved through `build/rastan-direct/address_map.json`: `arcade_pc 0x03B802 -> runtime_genesis_pc 0x03BA02`, `0x03B930 -> 0x03BB30`, `0x05B512 -> 0x05B712`
+* build notes: initial Build 0127 (`d2254318bf3eb58178149136cbd715d37c1a62be4590909f0a3fbd6c7105335c`) exposed the overwritten score-table issue and is superseded by corrected Build 0128; final Build 0128 ROM `dist/rastan-direct/rastan_direct_video_test_build_0128.bin`, SHA256 `79ec8a30c44f24b0b551e4a1ae7116de075264927fb5ff550148f25808f5bc6f`, rolling ROM byte-identical, `GATE_PASS`
+* invariant: opcode_replace count remains `133`; canonical `total_genesis_bytes_covered` updated mechanically from `0x17D400` to `0x17D47C`
+* runtime evidence: `states/traces/pc090oj_3b930_3b802_object_ram_faithful_build0128_20260702_150018/`; frame-60 title object RAM has `raw_nonzero=240`, `raw_nonzero_code=42`, `prod_oob=0`, `prod_write=0x00BA`, scanner `decoded=0x0100`, `drawable=0x0017`, `emitted=0x0017`, `dropped=0`
+* arcade comparison: audited title-score target entries improved from Build 0126 `0/27` exact mirror matches to Build 0128 `22/27` exact matches; remaining mismatches are entries `4`, `22`, `23`, `24`, and `25`, indicating residual score/high-score source-state semantics after the object-RAM faithful route is live
+* issue impact: OPEN-024 and OPEN-001 remain open; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
 * STOP status: NO
