@@ -168,6 +168,10 @@ _vblank_service:
     bsr     vdp_commit_fg_strips_if_dirty
     bsr     vdp_commit_sprites
 
+    moveq   #VDP_REG_MODE2, %d0
+    moveq   #VDP_MODE2_DISPLAY_ON, %d1
+    bsr     vdp_set_reg
+
     tst.b   palette_dirty
     beq.s   .Lvs_skip_palette
     bsr     vdp_commit_palette
@@ -175,10 +179,6 @@ _vblank_service:
 .Lvs_skip_palette:
 
     bsr     vdp_commit_scroll
-
-    moveq   #VDP_REG_MODE2, %d0
-    moveq   #VDP_MODE2_DISPLAY_ON, %d1
-    bsr     vdp_set_reg
 
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     jmp     (0x00003A208).l

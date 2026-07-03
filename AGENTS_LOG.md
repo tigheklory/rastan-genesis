@@ -1,5 +1,18 @@
 # AGENTS Log
 
+## [Andy - Design, PC090OJ Candidate Bitset + DISPLAY_OFF Split (Build 0135, rastan-direct)]
+
+* baseline: Build 0135, SHA256 8e00be424f9afefe79d199640096bf99de7b53c4ba49e83ad32b2b491990844e; DESIGN ONLY, no implementation/build
+* Q1 partition (statically proven): WRAM-only = clear_generated_sprite_state + mirror_scan (256 decode + emit_slot descriptor/SAT staging, scan_active=1 so no bridge) + link_chain_build (1081-1128) + clear_dirty. VDP-touching = tile_dma (VRAM DMA, residency-gated ~0 steady) + sat_dma (real 68k→VRAM DMA, 320w unconditional, 0xF800). SAT commit = real DMA statically provable (0x93/94 len, 0x95/96/97 src, ori.l #0x40000080 DMA-bit cmd, single move.l trigger, 1219-1258) NOT a CPU loop. Display-off-required = only the two VRAM DMAs; WRAM steps need neither display-off nor VBlank. No unknowns
+* Q4 DISPLAY_OFF split (recommended first): run mirror_scan+link (WRAM prep) BEFORE DISPLAY_OFF; tile_dma+sat_dma+clear (VRAM commit) stay inside display-off before DISPLAY_ON (keep Build 0135 order). Mechanically safe: nothing in _vblank_service mutates pc090oj_object_ram between prep and DMA (tiles/BG/FG use own staging; producers run in main loop not VBlank); staged_sprite_sat/descriptors are existing buffer → no double-buffer, no new staging. Prep needn't be in VBlank (pure WRAM); display stays ON during prep → any overrun shows prior frame not black → black band shrinks to DMA window. Grade-1 = split vdp_commit_sprites into 2 globals (vdp_prepare_sprites = scan+link; vdp_commit_sprites_vram = tile+sat+clear), no sub-routine logic change
+* Q2/Q3 candidate bitset (Build 0137, deferred): 256-bit (32B) pc090oj_candidate_bitset, derived helper only, mirror canonical. Boot clear 0. SET broadly on EVERY mirror write (mirror_write_word/byte record=(a1-0xD00000)>>3; 3ad44 long-fill record=d2>>3; emit_slot bridge scan_active==0 record=d0) → no false negatives. CLEAR cautiously ONLY on code-zero decode during scan (blank/unmapped/offscreen keep bit — nonzero code can become drawable w/o rewrite); never clear on partial write. Iterate set bits ASCENDING record order → identical emitted set/order/source_id/counts (candidates superset of drawables); 80-cap + dropped unchanged; decoded_count reinterpreted as candidate-iteration count (≤256); add candidate_count; false_positives = candidate_count - drawable_count. REQUIRE separate temporary full-scan-baseline diff proving byte-identical emitted SAT before shipping 0137
+* Q5 selected Sequence 1: Build 0136 = DISPLAY_OFF split only; Build 0137 = candidate bitset. Why: split is narrowest, mechanically-proven-safe, zero sprite-semantics change, directly shrinks band; candidate bitset is false-negative-sensitive and secondary once scan is off the display-off path → validate 2nd against full-scan baseline. Rejected Seq2 (candidate first leaves scan inside window), Seq3 (couples safe+risky, bad attribution), Seq4 (partition already static-proven). Confidence: HIGH split safe/correctness-neutral; HIGH materially shrinks band; MEDIUM fully removes (residual = 320w SAT DMA + dirty strips)
+* Q7 Cody prompt: Build 0136, files pc090oj_hooks.s + vdp_comm.s only; split into 2 globals + reorder _vblank_service (prepare before DISPLAY_OFF, commit_vram after BG/FG); evidence = emitted/drawable/dropped/counters/source_id/link identical to 0135, cache 0 steady, contact sheet no-input/story/coin/ROUND/endround band reduced + score sprites + no PC080SN regression; STOP on any count/order/source_id mismatch or band unchanged (re-diagnose SAT/strip not mask)
+* Open/Closed Issues Impact: OPEN-001 (band reduction) + OPEN-024 (sprite pipeline, mirror/cache intact) touched, neither closed; none opened/closed; recommend post-0136 KNOWN_FINDINGS: sprite display-off window need only cover the two VRAM DMAs, WRAM scan/link belongs before DISPLAY_OFF; deferred: candidate bitset 0137 + baseline, SAT-DMA reduction, dirty bitset, range-clear opt, emit_slot split
+* design doc: docs/design/Andy_pc090oj_candidate_bitset_and_displayoff_split_design.md
+
+---
+
 ## [Andy - Design, Build 0134 DISPLAY_ON Timing Fix (rastan-direct)]
 
 * baseline: Build 0134 (byte-identical to 0132), SHA256 989b17e8b065ae678764e5901c45cf156fd4c37bf2a128d8686f4f493b611832; DESIGN ONLY, no implementation/build/diagnostic; Build 0133 was temp diagnostic (reverted)
@@ -40340,4 +40353,47 @@ Open/Closed Issues Impact:
 * cleanup/revert: all temporary diagnostic code/data/symbols/comments and invariant changes removed; `rg "TEMP DIAGNOSTIC ONLY|vblank_diag|VDP_HV_COUNTER|0x17D58C" apps/rastan-direct/src tools/translation apps/rastan-direct/out/symbol.txt` returned no hits; canonical invariants restored to `133 / 0x17D4A4`
 * baseline/revert proof: Build 0134 and Build 0132 are byte-identical, SHA256 `989b17e8b065ae678764e5901c45cf156fd4c37bf2a128d8686f4f493b611832`, size `1,561,764`, `cmp -s` status `0`; rolling ROM also matches Build 0134
 * issue impact: OPEN-001 and OPEN-024 touched as evidence context only; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+### MAME Exit Summary (2026-07-02 22:28:37)
+- Final PC: 0x071FF2
+- Stack Pointer (SP): 0x00FEE46C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0135 DISPLAY_ON Timing Reorder]
+
+* scope: one narrow production reorder in `_vblank_service`; no diagnostics/instrumentation, no PC090OJ/PC080SN logic changes, no `scene_load.s`, no `tilemap_hooks.s`, no residency-cache changes, no invariant/tool edits, no issue closure
+* report: `docs/design/Cody_build0135_display_on_timing_reorder.md`
+* evidence artifacts: `states/traces/build0135_display_on_timing_reorder_20260702_222926/` plus release trace `states/traces/rastan_direct_video_test_build_0135_mame_30s_20260702_222831/`
+* implementation: moved the existing DISPLAY_ON block from after `vdp_commit_scroll` to immediately after `vdp_commit_sprites`; generated disassembly shows DISPLAY_ON at `runtime_genesis_pc 0x000700E2..0x000700E6`, before palette gate and scroll commit; old tail DISPLAY_ON removed, no duplicate
+* build: Build 0135 produced successfully, ROM `dist/rastan-direct/rastan_direct_video_test_build_0135.bin`, SHA256 `8e00be424f9afefe79d199640096bf99de7b53c4ba49e83ad32b2b491990844e`, size `1,561,764`; rolling ROM byte-identical; `GATE_PASS`
+* invariants: opcode_replace count unchanged `133`; total Genesis bytes covered unchanged `0x17D4A4`; no invariant updates required
+* runtime/visual evidence: Build 0134 and Build 0135 no-input + coin/start MAME captures completed without crash; state/staging/SAT counters matched at sampled anchors; Build 0135 narrowly exposed one extra scanline of existing band content in sampled title/story frames, but did not restore mostly/full final composite visibility
+* frame sanity: coin/start reached story prompt and ROUND-state samples (`2/2/7` at frame 534) at least as well as Build 0134; no new scroll seam, palette corruption, or sprite/SAT regression observed in MAME smoke evidence
+* issue impact: OPEN-001 touched and remains open; OPEN-024 context only; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Evidence Reduction, Build 0135 Remaining DISPLAY_OFF Budget and PC090OJ Scan Depth]
+
+* scope: evidence reduction / timing analysis only for Build 0135; no source/spec/tool/Makefile/ROM/invariant changes; no build; no diagnostic ROM; no bookmark; no runtime trace gathered; OPEN-015 not touched
+* report: `docs/design/Cody_build0135_remaining_display_off_budget_and_pc090oj_scan_depth_analysis.md`
+* evidence artifacts: `states/traces/build0135_remaining_display_off_budget_pc090oj_scan_depth_20260703_104442/`; includes `reduce_existing_evidence.py`, `remaining_display_off_budget_reduction.json`, and `remaining_display_off_budget_reduction.md`
+* Build 0133 timing reduction: raw checkpoint ring entries were grouped by the same diagnostic frame because `latest_by_checkpoint` rows can straddle VBlanks; most non-sprite stages reduced to about one or two VCounter lines, while `sprite_commit_total` was the only regular stage that usually crossed the VCounter discontinuity/wrap
+* Build 0135 sprite scan evidence: complete-scan samples decoded `256/256` PC090OJ entries every completed frame, emitted only `19..32` sprites, and dropped `0`; object RAM dumps had highest nonzero record index `239`, highest nonzero tile-code index `45`, and valid descriptor source IDs up to `45`
+* interpretation: `vdp_commit_sprites` is the dominant remaining DISPLAY_OFF-critical stage after the Build 0135 DISPLAY_ON reorder; after Build 0132 cache warm-up, repeated tile DMA is not the steady-state cost, so the likely avoidable budget is CPU-side mirror scan/descriptor/link work plus fixed SAT service
+* branch selected: A - split/move CPU-only PC090OJ scan/descriptor/link work out of the DISPLAY_OFF window while preserving full 256-entry semantics; do not reduce/cap scan depth yet because gameplay/object-index capacity is not proven
+* issue impact: OPEN-001 active and narrowed; OPEN-024 context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Diagnostic, PC090OJ Sprite Lifecycle / Deactivation Audit]
+
+* scope: evidence audit only for Build 0135 PC090OJ candidate-bitset feasibility; no implementation, no source/spec/tool/Makefile/ROM/build changes, no bookmark, no scan-depth cap, no diagnostics inserted into ROM, no issue closure
+* report: `docs/design/Cody_pc090oj_sprite_lifecycle_deactivation_audit.md`
+* evidence artifacts: `states/traces/pc090oj_sprite_lifecycle_deactivation_audit_20260703_113605/`; includes JSON-derived static inventory, original-arcade no-input PC090OJ object-RAM frame dumps, and reduced lifecycle classification
+* Phase 0: loaded RULES/ARCHITECTURE/KNOWN_FINDINGS/OPEN/CLOSED/AGENTS_LOG plus Build 0135 timing/scan-depth, Build 0132 residency-cache, and PC080SN ownership priors; classification EXTENDING; no contradictions detected; address mappings were derived from `build/rastan-direct/address_map.json`; no arithmetic offset used as proof
+* Q1 result: current Genesis PC090OJ mirror write paths are centralized around `.Lpc090oj_emit_slot`, `.Lpc090oj_clear_slot`, word/byte raw mirror helpers, and the `0x03AD44` PC090OJ block-fill branch; all known paths can derive the affected PC090OJ record index
+* arcade/runtime evidence: original arcade no-input MAME frame dumps show boot all-zero object RAM, then title steady state with 27 drawable records, 214 code-zero records, and 15 offscreen-Y records; CPU program-space write tap did not fire for per-write PC090OJ device writes, so writer-PC attribution in the report uses static disassembly/spec mapping rather than runtime write taps
+* lifecycle assessment: inactive PC090OJ records are often nonzero; activation can be partial over multiple writes; code-only candidate setting is unsafe; broad set-on-any-record-write is safe; clearing is safe only after whole-record inactive evaluation or proven clear paths
+* selected branch: Option A, conservative candidate bitset only; dirty bitset deferred because missed dirty updates could stale descriptors; hard scan cap remains rejected by Build 0135 evidence
+* issue impact: OPEN-001 and OPEN-024 touched as evidence context; OPEN-018 context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
 * STOP status: NO
