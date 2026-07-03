@@ -1,5 +1,38 @@
 # AGENTS Log
 
+## [Andy - Design, PC090OJ Persistent Sprite Tile-DMA Cache (Build 0130, rastan-direct)]
+
+* baseline: Build 0130 (byte-identical to 0128), SHA256 79ec8a30c44f24b0b551e4a1ae7116de075264927fb5ff550148f25808f5bc6f; DESIGN ONLY, no implementation/edit/build/diagnostic; primary prior Andy_build0130_graphics_timing_budget_analysis.md
+* recommended cache shape: per-SAT-slot resident-code cache — 80 words (160 bytes) `sprite_tile_resident_code`, one 12-bit code per SAT slot, sentinel 0x0000 = cold/no-residency (code 0 never emitted → free unambiguous sentinel; no separate valid bit). Rejected shared code→VRAM cache (SAT tile index is slot-owned (SPRITE_TILE_BASE+slot*4)*32, not code-owned → would need a VRAM allocator = broad rewrite)
+* narrowest safe fix: change ONLY the changed-bit comparison source. emit_slot READS sprite_tile_resident_code[slot], compares (d3&0x0FFF), sets 0x0004 on mismatch (no cache write here). .Lvcs_tile_dma WRITES cache = (offset8&0x0FFF) AFTER successful DMA. .Lvcs_clear_generated_sprite_state UNCHANGED and must NOT touch cache (persistence is the point). Descriptor offset 8 no longer the change source
+* correctness under emission-order packing: SAT slot = pc090oj_emitted_count (emission order, not entry index); per-slot VRAM (4 tiles) exclusively owned (tiles 1024-1343 / 0x8000-0xA800); any code mismatch re-DMAs + updates cache → VRAM/cache never diverge; packing shift only causes transient (correct) re-DMA
+* invalid/blank/offscreen (Q6): leave resident intact, do NOT invalidate — skipped entries never consume a slot; idle slot VRAM not overwritten → residency stays valid → cache hit on return. Same-code multi-slot (Q7): duplicate per-slot uploads accepted for first fix
+* storage/lifetime: .bss in pc090oj_hooks.s; init to 0x0000 (piggyback existing BSS zeroing if confirmed → no boot.s edit; else explicit 80-word clear from boot). Invalidate only when sprite VRAM tiles 1024-1343 externally written (boot / scene-load-if-overlap / VRAM re-upload)
+* Q4 scene-load gate: sprite VRAM = tiles 1024-1343 (from SPRITE_TILE_BASE=1024 + dest math, and VDP layout planes 0xC000/0xE000, SAT 0xF800). Did NOT enumerate genesistan_pc080sn_tile_vram_lut (Cody verify-first). PREFERRED: prove LUT max <1024 → no scene_load.s change (honors do-not-touch-scene_load). FALLBACK: overlap → add post-load_scene_tiles invalidation = STOP-to-confirm (expands scope)
+* expected impact: steady title 1472 sprite tile-DMA words/frame → ~0 after warm-up (≈100% churn removed); SAT DMA 320w/frame kept; shrinks display-off window → should pull DISPLAY_ON (cp 0x0B) earlier / more frames inside VBlank → SUPPORTS mitigating rolling-slit (not claimed full fix)
+* safety: mirror preserved (canonical); producer semantics preserved; SAT/staging not canonical; no fake sprites; no 30 FPS; no broad rewrite; emit_slot NOT split
+* Cody plan: files pc090oj_hooks.s (+ boot.s only if BSS not zero-guaranteed); Q4 LUT gate FIRST; evidence = build/SHA/size, files, gate/invariant, emitted=23, tile-DMA words before(1472)/after(~0), screenshots, score-sprite regression, SAT chain valid, no canonical bypass. STOP: cache can't init safely / sprite VRAM overwritable without detectable invalidation / SAT-staging-canonical required / mirror removal required / broad emit_slot rewrite required / 30 FPS required
+* Open/Closed Issues Impact: OPEN-024 (churn fix design) + OPEN-001 (timing context) touched, neither closed; none opened/closed; KNOWN_FINDINGS entry deferred to post-implementation; deferred: emit_slot producer/render split, HV/VCounter diag, shared code→VRAM cache, scene_load.s optimization
+* design doc: docs/design/Andy_pc090oj_persistent_sprite_tile_dma_cache_design.md
+
+---
+
+## [Andy - Analysis, Build 0130 Graphics Timing Budget and Sprite Tile-DMA Confirmation (rastan-direct)]
+
+* baseline: Build 0130 (byte-identical to Build 0128), SHA256 79ec8a30c44f24b0b551e4a1ae7116de075264927fb5ff550148f25808f5bc6f; static analysis + Build 0129 ring reclassification, NO implementation/patch/ROM/rebuild
+* address discipline: Genesis-only runtime/helper code; _vblank_service + VBlank helpers are Genesis-native (no arcade_pc map entry); no arithmetic-offset proof
+* Q1 late display-on: SUPPORTED. 15/17 sampled captures restore display AFTER VBlank bit3 clears (cp 0x0A bit3=1/shadow=0 → cp 0x0B bit3=0/shadow=1); only 2 inside VBlank (coin/start 371 = the one mostly-complete king frame; coin/start 560). Commit body 0x03-0x0A always bit3=1 (commit runs inside VBlank); the DISPLAY_ON write at 0x0B lands late → mid-frame reveal consistent with rolling horizontal slit. Content confound present; exact scanline lateness NOT measurable (no HV field). Missing field for future diag: HV/VCounter 0x00C00008 at cp 0x03/0x0A/0x0B
+* Q2 sprite tile-DMA churn: CONFIRMED. vdp_commit_sprites→.Lvcs_mirror_scan(921)→.Lvcs_clear_generated_sprite_state(947) wipes entire staged_sprite_descriptor_table incl offset-8 old-tile (936-940). .Lpc090oj_emit_slot reads 8(a0) as old tile (126) then writes new (132); sets changed-bit 0x0004 when new≠old (147-150); .Lvcs_tile_dma gates on btst #2 (1131). Old-tile always 0 after clear → every nonzero tile changed every frame. 64 words/changed sprite (1149-1150); title emitted=23 (0x17 from ring); worst-case = actual = 23×64 = 1472 tile-DMA words/frame + fixed 320-word SAT DMA/frame (1203-1204, unconditional). Tiles preconverted (pc090oj_assets.s incbin pc090oj_genesis.bin) → churn is redundant DMA not reconversion
+* Q3 budget ranking (steady-title, display-off-holding): 1) sprite tile-DMA churn ~1472w; 2) mirror scan 256-entry CPU decode; 3) SAT DMA 320w fixed; 4) FG strips (64×dirty rows, transition); 5) BG strips (transition); 6) tiles 48w if dirty; 7) palette 64w if dirty; 8) scroll ~6w. Display-off owners: _vblank_service (0x03→0x0B) and load_scene_tiles (own DISPLAY_OFF/ON + IRQ mask)
+* scene_load risk: load_scene_tiles invoked from tilemap producer hooks in main-loop context (tilemap_hooks.s:136 BG .Lscene_match, :308 FG .Lfg_scene_match), NOT _vblank_service (only VINT-vector wired, boot.s:108). Separate transition/mid-frame display-off mechanism, distinct from steady rolling-slit
+* Q4: A late display-enable=SUPPORTED; B tile-DMA churn=CONFIRMED; C load_scene_tiles mid-frame display-off=CONFIRMED (mechanism, transition-only); D .Lpc090oj_emit_slot mixed producer/render responsibility=CONFIRMED (bridges mirror when scan_active==0 AND writes descriptor/SAT; called by legacy producers + scan; producer-computed descriptor/SAT wiped+recomputed by next scan) — urgent NO (main-loop time, not display-off window). E implementation ready=NO (confirmation pass; fix design deferred)
+* recommended next (not implemented): HV/VCounter diagnostic to quantify lateness; persistent sprite-tile-DMA cache design (churn confirmed); emit_slot producer/render split under OPEN-024
+* Open/Closed Issues Impact: OPEN-001 + OPEN-024 touched (not closed); OPEN-021/OPEN-006 context; none opened/closed; deferred: churn+late-display fix design, HV magnitude diag, emit_slot split, story black-cover (KF-021)
+* did NOT recommend moving DISPLAY_ON earlier / removing display-off / removing mirror / producer-only SAT / persistent cache impl / 30 FPS — per task constraints
+* design doc: docs/design/Andy_build0130_graphics_timing_budget_analysis.md
+
+---
+
 ## [Andy - Design, PC090OJ 0x3B930 / 0x3B802 Object-RAM-Faithful Replacement (Build 0126, rastan-direct)]
 
 * baseline: Build 0126, SHA256 f5935113ef4ab8ea231d4e31764b96a36c8bd2fe246846a2ca929facdfccd921; DESIGN/AUDIT only, no implementation
