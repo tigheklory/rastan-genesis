@@ -22,6 +22,7 @@
     .extern staged_sprite_descriptor_table
     .extern staged_sprite_dirty
     .extern staged_sprite_active_count
+    .extern sprite_tile_resident_code
     .extern pc090oj_object_ram
     .extern pc090oj_ctrl_shadow
     .extern pc090oj_sprite_ctrl_shadow
@@ -231,6 +232,12 @@ _bootstrap_clear_staging:
 
     clr.l   staged_sprite_dirty
     clr.w   staged_sprite_active_count
+
+    lea     sprite_tile_resident_code, %a0
+    move.w  #(80 - 1), %d7
+.Lboot_sprite_tile_resident_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lboot_sprite_tile_resident_clear
 
     lea     pc090oj_object_ram, %a0
     move.w  #((0x800 / 2) - 1), %d7

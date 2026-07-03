@@ -46,6 +46,7 @@
     .global staged_sprite_descriptor_table
     .global staged_sprite_dirty
     .global staged_sprite_active_count
+    .global sprite_tile_resident_code
 
     .global audit_guard_caller_pc
     .global audit_guard_register_snapshot
@@ -123,8 +124,6 @@
     move.w  #1, pc090oj_mirror_dirty
 .Lpc090oj_emit_skip_mirror_bridge:
 
-    move.w  8(%a0), %d6                /* old tile for changed-flag */
-
     /* persist semantic record */
     move.w  %d2, 2(%a0)
     move.w  %d4, 4(%a0)
@@ -143,12 +142,25 @@
     or.w    %d4, %d5
     beq     .Lpc090oj_emit_invalid
 
-    /* flags: valid + touched + extra; bit2 when tile changed */
-    move.w  #0x8001, %d5
-    cmp.w   %d3, %d6
+    /*
+     * flags: valid + touched + extra; bit2 when this SAT slot's owned
+     * VRAM block does not already contain the masked PC090OJ tile code.
+     */
+    move.w  %d3, %d6
+    andi.w  #0x0FFF, %d6
+    move.w  %d0, %d5
+    add.w   %d5, %d5
+    move.l  %a2, -(%sp)
+    lea     sprite_tile_resident_code, %a2
+    move.w  0(%a2,%d5.w), %d5
+    move.l  (%sp)+, %a2
+    cmp.w   %d6, %d5
     beq.s   .Lpc090oj_no_tile_change
-    ori.w   #0x0004, %d5                /* tile-code-changed bit */
+    move.w  #0x8005, %d5                /* valid + tile-code-changed */
+    bra.s   .Lpc090oj_store_flags
 .Lpc090oj_no_tile_change:
+    move.w  #0x8001, %d5
+.Lpc090oj_store_flags:
     move.w  %d5, (%a0)
 
     /* SAT word0 (Y) */
@@ -927,6 +939,7 @@ vdp_commit_sprites:
     rts
 
 .Lvcs_clear_generated_sprite_state:
+    /* Per-frame SAT/descriptors reset; sprite_tile_resident_code persists. */
     lea     staged_sprite_sat, %a0
     move.w  #((80 * 8 / 2) - 1), %d0
 .Lvcs_clear_generated_sat_loop:
@@ -1133,6 +1146,7 @@ vdp_commit_sprites:
 
     move.w  8(%a0), %d2
     andi.w  #0x0FFF, %d2
+    move.w  %d2, %d6
 
     /* source = rastan_pc090oj + tile*128 */
     move.w  %d2, %d0
@@ -1186,6 +1200,11 @@ vdp_commit_sprites:
     ori.l   #0x40000080, %d1
     or.l    %d2, %d1
     move.l  %d1, (%a3)
+
+    move.w  %d7, %d0
+    add.w   %d0, %d0
+    lea     sprite_tile_resident_code, %a1
+    move.w  %d6, 0(%a1,%d0.w)
 
     /* clear tile-code-changed bit */
     andi.w  #0xFFFB, (%a0)
@@ -1371,6 +1390,9 @@ staged_sprite_dirty:
     .long 0
 staged_sprite_active_count:
     .word 0
+/* Per-SAT-slot VRAM tile residency cache; 0 means cold/no resident tile. */
+sprite_tile_resident_code:
+    .space (80 * 2)
 pc090oj_object_ram:
     .space 0x800
 pc090oj_ctrl_shadow:

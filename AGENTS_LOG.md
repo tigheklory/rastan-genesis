@@ -1,5 +1,31 @@
 # AGENTS Log
 
+## [Andy - Design, Build 0134 DISPLAY_ON Timing Fix (rastan-direct)]
+
+* baseline: Build 0134 (byte-identical to 0132), SHA256 989b17e8b065ae678764e5901c45cf156fd4c37bf2a128d8686f4f493b611832; DESIGN ONLY, no implementation/build/diagnostic; Build 0133 was temp diagnostic (reverted)
+* Q1 remaining lateness: last inside-VBlank checkpoint = 0x0A (after scroll, all anchors) → entire commit chain fits in VBlank; late checkpoint = 0x0B (DISPLAY_ON, 15/17 anchors after VBlank). Between 0x0A and 0x0B in production = only the DISPLAY_ON register write; diagnostic ring overhead there exaggerates measured lateness (caveat) but production band proves it's still late. Classification: DISPLAY_ON placed too late in the service + heavy commit uses most of VBlank; not another display-off owner (load_scene_tiles is main-loop transition-only), not a layer/priority issue (Exodus shows planes+sprites complete)
+* Q3 display-off requirement: MUST-be-display-off = tiles(VRAM 0x20)/BG(Plane B 0xC000)/FG(Plane A 0xE000)/sprite+SAT(0x8000/0xF800 DMA); display-on-safe-in-VBlank = palette(CRAM) + scroll(VSRAM + 2-word HScroll 0xFC00). VDP rule: display-enable bit gates raster output not VRAM write access; in VBlank VRAM/CRAM/VSRAM writable regardless of display bit
+* Q4 recommended: Option D reorder (= Option A placement). Move DISPLAY_ON block (vdp_comm.s:179-181) to immediately after bsr vdp_commit_sprites (169); palette + scroll then run with display enabled, still in VBlank. Pure reorder, MOVED not duplicated, no guard. Reclaims palette+scroll wall-clock from display-off window → DISPLAY_ON inside VBlank on more frames. Zero net code size (opcode_replace 133 + total_genesis_bytes_covered unchanged). Safe: all bulk VRAM DMA done before DISPLAY_ON; 68k bus-stalled through SAT DMA so DISPLAY_ON runs post-DMA; vdp_set_reg is complete 1-word reg write (no latch hazard). Risk: tiny HScroll VRAM write now after DISPLAY_ON (low, VBlank-timed) → fallback keep scroll before DISPLAY_ON / palette-only reclaim
+* options: A=concrete instance of D; B reduce VBlank work (defer, touches sprite pipeline = broader); C conditional display-off (reject, SAT DMA unconditional → must prove display-on-safe = broader); E other (no advantage)
+* Q5 Cody plan: one production Build 0135, single-file vdp_comm.s _vblank_service reorder, no temp diagnostic in production; evidence = contact sheet title/endround/coin-start band reduced, score sprites remain, emitted sane, cache writes still 0 steady, no PC080SN regression, layer-separated composite fuller; optional tiny VCounter proof only as SEPARATE reverted build if ambiguous; STOP if invariants change / scroll seam (fallback) / band unchanged (re-diagnose not mask)
+* Open/Closed Issues Impact: OPEN-001 (band fix attempt) + OPEN-024 (context, cache intact) touched, neither closed; none opened/closed; recommend post-0135 KNOWN_FINDINGS: display-off window need only span VRAM-DMA-critical commits, DISPLAY_ON may precede CRAM/VSRAM/HScroll in VBlank; deferred: Option B work-reduction if band persists, overhead-free scanline quantification, emit_slot split
+* design doc: docs/design/Andy_build0134_display_on_timing_fix_design.md
+
+---
+
+## [Andy - Static Review, Build 0132 PC090OJ Residency Cache Logic (rastan-direct)]
+
+* baseline: Build 0132, SHA256 989b17e8b065ae678764e5901c45cf156fd4c37bf2a128d8686f4f493b611832; independent STATIC review only, no implementation/build/runtime trace
+* Q1 changed-bit logic: CORRECT. Cody's suspicious emit-side disasm snippet is MISLEADING not a bug — it dropped the 2-byte `bra.s .Lpc090oj_store_flags` at 0x718B6. Proven by source pc090oj_hooks.s:157-164 (cmp/beq hit→0x8001; miss→0x8005→bra.s→store) AND by byte arithmetic (move.w #imm,%d5 at 0x718B2 is 4 bytes ending 0x718B5, so next instr is 0x718B6 not 0x718B8 → a 2-byte instr occupies the 0x718B6→0x718B8 gap). hit word0=0x8001 (valid+touched); miss word0=0x8005 (valid+touched+changed 0x0004); changed bit preserved on miss. Static-provable, no runtime needed
+* Q2 DMA-side cache update: CORRECT. .Lvcs_tile_dma (1130-1217): valid(btst#0)+changed(btst#2) gate (1142-1145); cache write (1204-1207) is AFTER DMA trigger move.l %d1,(%a3) (1202) and inside gate; slot index d0=d7*2 matches DMA dest slot d7; same (code&0x0FFF) used for compare (149-150) and update (1147-1149→1207); changed bit cleared (andi #0xFFFB, 1210) AFTER cache write; no static path updates cache without DMA or DMAs without update
+* Q3 boot/init: CORRECT. _bootstrap_clear_staging (boot.s:178→236-240) clears exactly 80 words (dbra from 79); cache 0xFF674A..0xFF67E9; active_count 0xFF6748 precedes, pc090oj_object_ram 0xFF67EA follows (0xFF674A+0xA0=0xFF67EA) — abuts with zero gap/overlap; object_ram cleared separately (242-246); frame-0 runtime confirms (80 writes pc 0x304)
+* runtime consistency (Cody evidence): 124 cache writes = 80 boot + 44 post-DMA (frames 33/43), then 0 (frames 44-1800) with active/drawable/emitted=0x20 → churn suppressed, cache correct. Residual moving band = still-open late-DISPLAY_ON (Build 0130 Q1), reduced by smaller commit window but not eliminated; Exodus Build 132 layer viewers show planes/sprites complete → defect is display-enable timing not layer content
+* Q4 selected Branch A (implementation correct → next = Cody HV/VCounter display-on diagnostic Build 0132). Provided copy-ready Cody prompt: re-add Build 0129-style VBlank ring + sample VCounter (HW 0x00C00008) at checkpoints 0x03/0x0A/0x0B to quantify DISPLAY_ON lateness in scanlines vs Build 0130 baseline; temporary + mandatory byte-identical revert; STOP if 0xC00008 read faults on BlastEm/Nomad (Exodus fallback)
+* Open/Closed Issues Impact: OPEN-024 (cache logic verified correct, churn fix stands) + OPEN-001 (residual band re-attributed to late-DISPLAY_ON) touched, neither closed; none opened/closed; recommend KNOWN_FINDINGS note that report disasm excerpts must include branch instrs / be cross-checked vs source+byte-addresses; deferred: HV lateness quantification (Branch A), emit_slot split, DISPLAY_ON timing fix
+* design doc: docs/design/Andy_build0132_residency_cache_static_review.md
+
+---
+
 ## [Andy - Design, PC080SN / PC090OJ VRAM Ownership After Cache Gate STOP (Build 0130, rastan-direct)]
 
 * baseline: Build 0130 (byte-identical to 0128), SHA256 79ec8a30c44f24b0b551e4a1ae7116de075264927fb5ff550148f25808f5bc6f; DESIGN/static-validation only, no implementation/build; offline inspection of LUT generator + manifests (Cody STOPPED at Gate 1 and returned this)
@@ -40270,4 +40296,48 @@ Open/Closed Issues Impact:
 * runtime smoke evidence: no-input MAME capture exited cleanly at frame 390; coin/start capture exited cleanly at frame 650 and reached `ROUND` sample frame 534 (`%a5@(0/2/4)=2/2/7`); no crash observed in either smoke window
 * interpretation: Phase 1 PC080SN ownership relocation is complete; the planned PC090OJ sprite tile range `1024..1343` is now exclusive with respect to generated PC080SN preload/LUT assignments; Phase 2 sprite residency cache remains unimplemented and unclaimed
 * issue impact: OPEN-024 advanced and remains open; OPEN-001 context; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+### MAME Exit Summary (2026-07-02 21:12:51)
+- Final PC: 0x071FF2
+- Stack Pointer (SP): 0x00FEE46C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0132 PC090OJ Per-SAT-Slot Sprite Tile-DMA Residency Cache]
+
+* scope: narrow production implementation + build + runtime evidence for OPEN-024 / OPEN-001 PC090OJ sprite tile-DMA residency; no PC080SN artifact changes, no `scene_load.s`, no `tilemap_hooks.s`, no `vdp_comm.s`, no bookmark, no diagnostic ROM code, no fake sprites, no issue closure
+* report: `docs/design/Cody_pc090oj_persistent_sprite_tile_dma_cache_build0132.md`
+* evidence artifacts: `states/traces/pc090oj_persistent_sprite_tile_dma_cache_build0132_20260702_210813/` plus release trace `states/traces/rastan_direct_video_test_build_0132_mame_30s_20260702_211245/`
+* Gate 1 recheck: PASS; generated PC080SN title/gameplay/endround/preload/LUT destinations do not overlap PC090OJ sprite VRAM slots `1024..1343`; endround/lut assignments remain in `0..1003` and `1344..1406`
+* implementation: added 80-word `sprite_tile_resident_code` at WRAM `0x00FF674A`, explicitly cold-cleared at boot; `.Lpc090oj_emit_slot` now compares masked emitted code against `sprite_tile_resident_code[slot]` before setting descriptor bit `0x0004`; `.Lvcs_tile_dma` writes the cache only after issuing the successful VDP DMA command, then clears bit `0x0004`; per-frame generated SAT/descriptor clear intentionally does not clear residency
+* build: Build 0132 produced successfully, ROM `dist/rastan-direct/rastan_direct_video_test_build_0132.bin`, SHA256 `989b17e8b065ae678764e5901c45cf156fd4c37bf2a128d8686f4f493b611832`; rolling ROM byte-identical; `GATE_PASS`; counter `131 -> 132`
+* invariant: opcode_replace count unchanged `133`; canonical total covered bytes updated mechanically from `0x17D47C` to `0x17D4A4` in `postpatch_startup_rom.py` and `verify_canonical_rom.py` after the first release invocation stopped at the coverage gate
+* static proof: disassembly shows boot cache clear at `0x000002F6..0x00000302`, emit-side residency compare at `0x00071896..0x000718BC`, VDP DMA command at `0x00072272`, cache update at `0x00072278/0x0007227E`, and changed-bit clear at `0x00072282`
+* runtime proof: MAME Lua write-tap on `sprite_tile_resident_code` over 1800 frames recorded 80 boot cold-clear writes at PC `0x000304`, then 44 runtime post-DMA cache updates at PC `0x072282` in frames 33 and 43 only; frames 44..1800 had zero additional cache updates while final sprite state was active/emitted/drawable `0x20`, resident_nonzero `39`
+* interpretation: the cache warms during early sprite presentation and suppresses repeated per-frame tile DMA for unchanged SAT slots; in the final sampled state, 32 sprites are still emitted but no repeat tile-DMA residency updates occur after frame 43
+* issue impact: OPEN-024 remains open pending broader visual/runtime follow-up; OPEN-001 context; OPEN-015 not touched; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+### MAME Exit Summary (2026-07-02 21:56:39)
+- Final PC: 0x07218E
+- Stack Pointer (SP): 0x00FEE5BA
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-02 22:00:30)
+- Final PC: 0x071FF2
+- Stack Pointer (SP): 0x00FEE46C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Diagnostic, Build 0133 HV/VCounter Display-On Timing with Mandatory Revert]
+
+* scope: user-authorized temporary HV/VCounter VBlank diagnostic for Build 0133 plus mandatory cleanup/revert proof; no timing fix, no PC090OJ/PC080SN/scene_load/tilemap/residency-cache logic change, no bookmark, no issue closure, OPEN-015 not touched
+* report: `docs/design/Cody_build0133_hv_vcounter_display_on_diagnostic.md`
+* evidence artifacts: `states/traces/build0133_hv_vcounter_display_on_diagnostic_20260702_215520/`; includes Build 0133 symbols/disasm/manifest, no-input + coin/start ring dumps, staging dumps, screenshots, contact sheets, and reduced JSON/MD analysis
+* diagnostic build: Build 0133 ROM `dist/rastan-direct/rastan_direct_video_test_build_0133.bin`, SHA256 `e069a96aa1317154d8829e13a275e19133bdc91281aab43880fe5e71fd57b30f`, size `1,561,996`; temporary invariant `total_genesis_bytes_covered=0x17D58C`, opcode_replace count unchanged `133`
+* instrumentation: temporary `vblank_diag_*` ring in `vdp_comm.s`, sampled VDP status at `HW 0x00C00004` and HV/VCounter at `HW 0x00C00008` across checkpoints `0x01..0x0C`; MAME completed both runs, so the HV read did not fault in this diagnostic environment
+* runtime result: after-scroll checkpoint `0x0A` was inside VBlank in all captured anchors; after-DISPLAY_ON checkpoint `0x0B` usually occurred after VBlank bit cleared (`8/8` no-input, `7/9` coin/start; the two coin/start inside-VBlank samples were duplicate same-diag-frame observations around frames 474/477)
+* VCounter evidence: after-DISPLAY_ON VCounter varied by visual anchor (`0x08`, `0x15`, `0x17`, `0x18`, `0x5D`, `0x6C`, `0x8F`, `0x92`, `0xCE`, `0xD9` observed), supporting late/variable DISPLAY_ON timing as the live graphics-output problem rather than a Build 0132 residency-cache defect
+* cleanup/revert: all temporary diagnostic code/data/symbols/comments and invariant changes removed; `rg "TEMP DIAGNOSTIC ONLY|vblank_diag|VDP_HV_COUNTER|0x17D58C" apps/rastan-direct/src tools/translation apps/rastan-direct/out/symbol.txt` returned no hits; canonical invariants restored to `133 / 0x17D4A4`
+* baseline/revert proof: Build 0134 and Build 0132 are byte-identical, SHA256 `989b17e8b065ae678764e5901c45cf156fd4c37bf2a128d8686f4f493b611832`, size `1,561,764`, `cmp -s` status `0`; rolling ROM also matches Build 0134
+* issue impact: OPEN-001 and OPEN-024 touched as evidence context only; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
 * STOP status: NO
