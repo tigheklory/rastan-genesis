@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy - Design, PC080SN / PC090OJ VRAM Ownership After Cache Gate STOP (Build 0130, rastan-direct)]
+
+* baseline: Build 0130 (byte-identical to 0128), SHA256 79ec8a30c44f24b0b551e4a1ae7116de075264927fb5ff550148f25808f5bc6f; DESIGN/static-validation only, no implementation/build; offline inspection of LUT generator + manifests (Cody STOPPED at Gate 1 and returned this)
+* overlap confirmed CONCURRENT (not transient): PC090OJ sprite slots 64..79 own VRAM tiles 1280..1343 (1024+64*4=1280); PC080SN End-Round scene loads patterns into 1280..1342 → mutual overwrite if ≥65 sprites emitted. Empirically emitted ≤32 (slots 0..31) but not a hard bound (scan emits up to 80) → invalidation-only NOT provably safe
+* allocator (precompute_pc080sn_tile_lut.py): slot_sequence = [0..1003] (BASE_A=0,SIZE_A=1004) ∪ [1280..1439] (BASE_B=1280,SIZE_B=160); cache B reached only after A full
+* manifest facts (parsed): title 845 pairs dst 0..844; gameplay 829 pairs dst 0..828; endround 1067 pairs dst 0..1003 ∪ 1280..1342 (the overlap); vram_preload=title 0..844. Only endround touches cache B / sprite range
+* RECOMMENDED Option A (= minimal Option C): TILE_CACHE_BASE_B 1280→1344, SIZE_B stays 160 → cache B = [1344..1503], adjacent-above sprite top 1343, below Plane B 1536. Endround cache-B tiles (63) relocate to 1344..1406 (max 1406). One constant; A/PC090OJ base/planes/SAT/HScroll/scene_load.s unchanged; pure VRAM placement (LUT + manifests regen consistently → identical render)
+* options rejected: B (no contiguous 320-tile gap below 1536 avoiding PC080SN); D invalidation-only (concurrent clash, not provable safe); E shared allocator / reduced sprite reservation (broad / caps sprites at 64)
+* capacity proof: below Plane B = 1536 slots; PC090OJ 320; PC080SN largest scene endround 1067. With sprite reserved, PC080SN gets [0..1023]∪[1344..1535]=1216 ≥ 1067. Layout budget A(1004)+B(160)=1164 ≥ 1067. Max dst post-move 1406 < 1503 < 1536. Slack 149 (B unused 1407..1503=97, free 1504..1535=32, A/sprite gap 1004..1023=20). No plane/SAT/HScroll collision. 1504..1535 safe slack, unused
+* Cody plan: Phase 1 PC080SN relocation only (set BASE_B=1344; regen lut/lut.inc/3 scene manifests/vram_preload/source_scene_map/count; build; opcode_replace + total_genesis_bytes_covered unchanged; evidence = no dst in 1024..1343, all dst <1536, title/gameplay/vram_preload byte-identical, screenshots no PC080SN regression). Phase 2 PC090OJ residency cache (Andy prior design) only after Phase 1 clean — no scene-load invalidation needed (disjoint proven), scene_load.s untouched
+* STOP conditions: regen still overlaps 1024..1343 / dst ≥1536 / plane-SAT-HScroll collision / PC080SN can't fit below 1536 / invalidation-only only option / relocating plane tables required / PC090OJ mirror semantics change / broad rewrite / 30 FPS
+* Open/Closed Issues Impact: OPEN-024 (unblocks residency cache) + OPEN-001 (timing context) touched, neither closed; none opened/closed; deferred: residency-cache impl (Phase 2), emit_slot split, HV/VCounter diag; recommend post-impl KNOWN_FINDINGS VRAM ownership map (0..1023+1344..1503 PC080SN, 1024..1343 sprites, 1536+ planes/SAT/HScroll)
+* design doc: docs/design/Andy_pc080sn_pc090oj_vram_ownership_design.md
+
+---
+
 ## [Andy - Design, PC090OJ Persistent Sprite Tile-DMA Cache (Build 0130, rastan-direct)]
 
 * baseline: Build 0130 (byte-identical to 0128), SHA256 79ec8a30c44f24b0b551e4a1ae7116de075264927fb5ff550148f25808f5bc6f; DESIGN ONLY, no implementation/edit/build/diagnostic; primary prior Andy_build0130_graphics_timing_budget_analysis.md
@@ -40223,4 +40239,35 @@ Open/Closed Issues Impact:
 * VBlank finding: display-off through scroll checkpoints consistently saw VDP status bit 3 set and diagnostic display shadow off; display-on/handoff shadow was on, with bit 3 sometimes still set when still inside VBlank; no extra display-toggle churn or clear commit-outside-VBlank mechanism was proven
 * cleanup: all temporary diagnostic code/data/symbols/comments and invariant changes removed; `rg "TEMP DIAGNOSTIC ONLY|vblank_diag|17D564" apps/rastan-direct/src tools/translation` returned no hits; canonical invariants restored to `133 / 0x17D47C`
 * issue impact: OPEN-001 and OPEN-024 touched as evidence context only; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - STOP, PC090OJ Persistent Sprite Tile-DMA Cache Gate 1]
+
+* scope: pre-implementation gate analysis for the proposed per-SAT-slot PC090OJ sprite tile-DMA residency cache; no source/spec/tool/Makefile/ROM/build/invariant changes; no runtime probing; no bookmark; no issue closure
+* report: `docs/design/Cody_pc090oj_persistent_sprite_tile_dma_cache_implementation.md`
+* evidence artifacts: `states/traces/pc090oj_persistent_sprite_tile_dma_cache_build0131_gate1_stop_20260702_201213/`
+* baseline: Build 0130 / rolling ROM SHA256 `79ec8a30c44f24b0b551e4a1ae7116de075264927fb5ff550148f25808f5bc6f`; build counter remained `130`; Build 0131 was not produced
+* Gate 1 result: FAIL / STOP before implementation. The requested sprite residency range `1024..1343` (`0x8000..0xA7FF`) is not exclusively PC090OJ-owned in current generated data
+* evidence: `build/pc080sn_scene_preload_endround.bin` has 63 destination slots in `1280..1342`; `build/pc080sn_tile_vram_lut.bin` maps PC080SN tiles `10717..10779` (`0x29DD..0x2A1B`) to Genesis tile slots `1280..1342`; `tools/translation/precompute_pc080sn_tile_lut.py` defines `TILE_CACHE_BASE_B = 1280`, `TILE_CACHE_SIZE_B = 160`
+* title/gameplay manifests were clear for the requested range, but end-round overlap is sufficient to block the residency-cache assumption
+* implementation status: `sprite_tile_resident_code` was not added; `.Lpc090oj_emit_slot`, `.Lvcs_tile_dma`, and `boot.s` were not changed; no invariant update was made
+* issue impact: OPEN-024 touched and remains open; OPEN-001 context; OPEN-015 not touched; `KNOWN_FINDINGS.md` not edited
+* STOP status: YES
+
+### MAME Exit Summary (2026-07-02 20:43:05)
+- Final PC: 0x0721C8
+- Stack Pointer (SP): 0x00FEDAB0
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0131 PC080SN VRAM Ownership Relocation]
+
+* scope: narrow generator/data relocation for PC080SN VRAM ownership split; no PC090OJ sprite tile-DMA residency cache implementation; no PC090OJ logic edits; no scene loader edits; no tilemap runtime edits; no issue closure
+* report: `docs/design/Cody_pc080sn_vram_ownership_relocation_implementation.md`
+* evidence artifacts: `states/traces/pc080sn_vram_ownership_relocation_build0131_20260702_202000/`; includes baseline/post generated PC080SN artifacts, SHA diff, static validation JSON/MD, runtime logs, binary WRAM dumps, snapshots, and `build0131_runtime_contact_sheet.png`
+* implementation: changed only `tools/translation/precompute_pc080sn_tile_lut.py` constant `TILE_CACHE_BASE_B` from `1280` to `1344`; `TILE_CACHE_SIZE_B` remains `160`, so cache-B moved from `1280..1439` to `1344..1503`
+* static validation: title/gameplay/vram-preload generated manifests remain byte-identical; end-round preload and tile LUT changed as expected; all generated PC080SN destinations are in `0..1003` or `1344..1503`; no generated PC080SN destination overlaps the PC090OJ sprite range `1024..1343`; no destination is `>=1536`
+* build: Build 0131 produced successfully, ROM `dist/rastan-direct/rastan_direct_video_test_build_0131.bin`, SHA256 `da5c4492602e643679df4a3fee176eb531ccd2ab64023edf097066dfc921bd7f`, size `1,561,724`; rolling ROM byte-identical; `GATE_PASS`; address-map total covered bytes `0x17D47C`; no invariant source edits required
+* runtime smoke evidence: no-input MAME capture exited cleanly at frame 390; coin/start capture exited cleanly at frame 650 and reached `ROUND` sample frame 534 (`%a5@(0/2/4)=2/2/7`); no crash observed in either smoke window
+* interpretation: Phase 1 PC080SN ownership relocation is complete; the planned PC090OJ sprite tile range `1024..1343` is now exclusive with respect to generated PC080SN preload/LUT assignments; Phase 2 sprite residency cache remains unimplemented and unclaimed
+* issue impact: OPEN-024 advanced and remains open; OPEN-001 context; OPEN-015 not touched; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
 * STOP status: NO
