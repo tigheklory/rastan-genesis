@@ -1,5 +1,57 @@
 # AGENTS Log
 
+## [Andy - Design, Deterministic One-Frame-Lag Presentation Pipeline (Build 0138, rastan-direct)]
+
+* baseline: Build 0138, SHA256 719a9af2e8a4afebed793af30687c19e31d6817ea0a8f50b71d9756988044615; ARCHITECTURE DESIGN only, no implementation. Owner: deterministic fixed one-frame-lag pipeline, no conditional readiness wait, no framebuffer, no 30fps
+* band root cause: entire _vblank_service runs in VBlank interrupt; DISPLAY_OFF→commit→DISPLAY_ON overruns VBlank into active scanout (top=old committed, middle=blanked overrun, bottom=new state). Dominant overrun = BG/FG strip commits (CPU move.w loops, up to 2048w each). Also producer mid-write to staged_bg/fg_buffer when VBlank preempts → partial frame
+* Q1 ownership: producer-written staging (BG/FG staged_bg/fg_buffer, tile, palette, scroll — main-loop hooks) races VBlank commit → needs double-buffer. Sprite SAT/descriptor prep-written in handler (sequential, single OK but double-buffered for framework). Mirror single canonical (stable at VBlank). Candidate mask + residency cache single (persistent derived helper)
+* Q2 contract: FRONT (commit, read-only) / BACK (producers write); swap present_bank once at VBlank entry BEFORE commit; producers fill BACK during visible N → swap+commit at VBlank → display N+1. No readiness test (unconditional advance)
+* Q4 WRAM: BSS 0xFF4000→~0xFF7106 (~12.5KB used); ~34KB free before stack; full double-buffer adds ~10KB (BG+4096, FG+4096, SAT+640, desc+960, tile+96, palette+128, scroll+8, flags) → ~24KB remaining. FITS large margin; no compact-queue fallback needed. Phase 1 sprite-only ~1.6KB
+* Q6 commit budget: steady fits VBlank; full-plane BG+FG redraw (2048+2048w CPU ≈80+ lines) massively overruns = the band. Largest blocker = BG/FG CPU strip commit → must become bounded VRAM DMA of dirty rows (per-frame cap)
+* Q7 VDP strategy: VRAM nearly full (patterns→0xBBC0, planes 0xC000/0xE000, SAT 0xF800) → NO room for alternate plane pages. Selected Option C-variant: residency tiles + bounded in-place name-table dirty-row DMA + full SAT/CRAM/VSRAM in VBlank; bulk via transition contract
+* Q8 overload: bounded prep + capped per-frame name-table DMA + fixed multi-frame spread + existing load_scene_tiles blank sequence for scene transitions; never DISPLAY_OFF into scanout; deterministic, no wait
+* Q5 scheduling: Form A (prep at VBlank tail, WRAM-only, fixed 2-frame lag, zero band, no arcade hook needed) as interim; Form B (prep in visible period after arcade producer boundary, fixed 1-frame) = required end state, needs locating arcade producer-boundary hook (later audit)
+* Q9 phases: P1 framework+sprite double-buffer (0139); P2 BG/FG double-buffer + DMA convert (0140, dominant band lever); P3 tile; P4 palette+scroll latch; P5 all VDP writes bounded in VBlank + remove DISPLAY_OFF. Final invariant: no VDP writes in scanout, complete-frame, fixed one-frame lag
+* Q10 first build: Option A / Build 0139 (frame-ownership vars + double-buffer sprite snapshot, commit-front-head/prep-back-tail). Narrowest reusable framework pilot, lowest risk. EXPLICIT limitation: does NOT close band (BG/FG unbuffered/CPU remain to P2; DISPLAY_OFF to P5); success = architectural not visual
+* Q11 Cody prompt: Build 0139, files pc090oj_hooks.s+vdp_comm.s+boot.s; add present_bank + 2 sprite-snapshot copies; swap once at VBlank; commit reads FRONT, prep writes BACK; semantic parity vs 0138 (SAT length/link/active-count/source_id/counters identical), residency 0 steady; user BlastEm handoff (no Cody BlastEm automation); STOP on any sprite mismatch / FRONT-written-by-producer / WRAM margin <8KB / zero-length DMA
+* Open/Closed Issues Impact: OPEN-001 (band architecture+phased plan) + OPEN-024 (sprite framework pilot, semantics preserved) touched, neither closed; none opened/closed; deferred: Form B one-frame (arcade producer-boundary hook audit), BG/FG P2, tile/palette/scroll P3-P4, DISPLAY_OFF removal P5, scene-transition spread, alternate plane pages (VRAM-infeasible)
+* design doc: docs/design/Andy_deterministic_one_frame_presentation_pipeline_design.md
+
+---
+
+## [Cody - Implementation, Build 0137 Active-Count SAT DMA]
+
+* scope: one narrow production change in `apps/rastan-direct/src/pc090oj_hooks.s` `.Lvcs_sat_dma` length calculation only; no DISPLAY_OFF split, no candidate-mask/scan/decode/dirty-bit/PC080SN/sprite-order/link-builder changes, no bookmark, no OPEN-015 work
+* report: `docs/design/Cody_build0137_active_count_sat_dma.md`
+* evidence artifacts: `states/traces/build0137_active_count_sat_dma_20260703_213808/`; includes Build 0137 no-input + coin/start MAME captures, native debugger SAT DMA length-register log, reduction JSON/MD, visual diff summary, and MAME contact sheets vs Build 0136
+* implementation: SAT DMA length now computes `dma_entries=max(min(staged_sprite_active_count,80),1)` and `dma_words=dma_entries*4`, writing VDP DMA length regs `0x93/0x94` variably while preserving SAT source `0x00FF6104`, destination VRAM `0xF800`, and DMA trigger path
+* build: Build 0137 produced successfully after one expected invariant-stop correction, ROM `dist/rastan-direct/rastan_direct_video_test_build_0137.bin`, SHA256 `52655015379fdd8524e2c3856b491004d9e7ee7abf15c275af78fa0011175428`, size `1,561,992`; rolling ROM byte-identical; `GATE_PASS`
+* invariants: opcode_replace count unchanged `133`; total Genesis bytes covered updated mechanically from `0x17D560` to `0x17D588` in `postpatch_startup_rom.py` and `verify_canonical_rom.py` after the first release invocation reported the observed coverage
+* runtime register proof: native debugger breakpoints at `0x72372/0x72380/0x723D8` captured `497` complete SAT DMA low/high/trigger triples; representative actual length writes were active 19 -> `0x934C/0x9400`, 23 -> `0x935C/0x9400`, 30 -> `0x9378/0x9400`, 32 -> `0x9380/0x9400`; observed last active link words were `0x0500` for slots 18/22/29/31
+* zero-active note: source-level min-one clamp and cleared slot-0 safety are statically proven, but zero active was not reached at the SAT DMA breakpoint in this run; frame-done `active=0` samples were treated as transition/mid-scan snapshots, not register-write evidence
+* visual evidence: MAME Build 0137 no-input anchors were pixel-identical to Build 0136; coin/start anchors were pixel-identical except one small prompt-frame sample (`59` luma-diff pixels); no MAME visual regression observed
+* evidence gap: BlastEm contact sheets were not produced because local BlastEm exposes no screenshot/frame-dump CLI and the WSL image lacks screenshot helpers (`import`/`scrot`/`gnome-screenshot`); recorded as limited STOP/evidence gap, not substituted with MAME evidence
+* issue impact: OPEN-001 and OPEN-024 touched as PC090OJ timing context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: LIMITED (BlastEm visual contact-sheet evidence missing); implementation/build/static proof/MAME runtime proof complete
+
+---
+
+## [Andy - Design, Build 0136 Active-Count SAT DMA (rastan-direct)]
+
+* baseline: Build 0136, SHA256 23dde0a0516378267f125cde34e0cd6328a21c559bc556d2b82f034d02916bd4; DESIGN ONLY, no implementation/build. Goal: make .Lvcs_sat_dma length = active_count*4 instead of fixed 320w. Preserve candidate mask, DISPLAY_OFF split deferred, source/dest/order unchanged
+* Q1 layout: SAT entry 8B/4 words (Y,size|link,attr,X); max 80; staged_sprite_sat 640B, dest 0xF800. active-count = staged_sprite_active_count set by link_chain_build (== emitted_count). VALID SLOTS PACKED CONTIGUOUS 0..active_count-1 (emit d0=emitted_count). Last active slot link=0 guaranteed (.Lvcs_link_done writes 0x0500). Tail active_count..79 UNREACHABLE (chain terminates at last active). active_count finalized before sat_dma (order: scan→link→tile→sat)
+* Q2 current DMA: fixed 320w (regs 0x9340/0x9401), source staged_sprite_sat, dest 0xF800, DMA-bit cmd ori.l #0x40000080, single trigger, unconditional, ignores active_count. Build 0136 still uploads all 80
+* Q3 variable: use staged_sprite_active_count (NOT candidate_count); dma_words = max(active_count,1)*4, clamp 80 (≤320). 68k: read active_count, bne/moveq#1, cmpi#80 clamp, lsl#2; write reg 0x13 low + 0x14 high variably. Source/dest/trigger unchanged; starts slot 0
+* Q4 shrink safety (32→23): SAFE. slot 22 link=0 (rewritten every frame by link_chain_build, uploaded within 0..22); VRAM slots 23..31 stale but unreachable (chain terminates at 22). No extra terminator entry needed (last active IS terminator). Option B +1 unnecessary
+* Q5 zero-active: clear_generated_sprite_state zeroes all 80 SAT → slot 0 Y=0 (invisible, 128px above top), link=0 (terminator). Upload exactly 1 entry (dma_words=4). Zero-length DMA HAZARD: VDP length 0 = 0x10000-word transfer → max(,1) clamp mandatory. Prior slot-0 sprite overwritten by fresh Y=0 blank; chain terminates at invisible slot 0 → all prior sprites gone
+* Q6 benefit: 19→76w(76%), 23→92w(71%), 30→120w(63%), 32→128w(60%), 80→320w(0%). Direct (SAT DMA in display-off window) but MODEST absolute (~0.5-1 scanline; SAT DMA ≈640 cyc ≈1.3 lines). Honest: bigger band lever remains deferred DISPLAY_OFF split; this stacks with it
+* Q8 recommendation: Option A (DMA exactly active_count, min 1 blank). B unnecessary (last active already terminates), C forgoes proven 60-76% cut, D unneeded (static-proven). Option B kept as fallback if any last-active-link≠0 observed
+* Q9 Cody prompt: Build 0137, pc090oj_hooks.s .Lvcs_sat_dma length section ONLY; verify contiguity precondition (active_count==emitted, last-active link=0) as STOP; runtime parity vs 0136 (counts/source_id/link/cache); DMA length byte checks (23→5C/00, 32→80/00, 80→40/01); mandatory 32→23 shrink + active→0→active tests; BlastEm (not only MAME) contact sheet title/story/coin/ROUND; STOP on stale/ghost sprite, SAT mismatch, last-active-link≠0, or zero-length DMA
+* Open/Closed Issues Impact: OPEN-001 (SAT-DMA share of band reduced) + OPEN-024 (SAT length only, semantics/mirror/cache intact) touched, neither closed; none opened/closed; recommend post-0137 KNOWN_FINDINGS: SAT DMA length may follow active_count*4 (contiguous packing + last-active link=0 terminator); deferred: DISPLAY_OFF split, candidate clear tuning, SAT double-buffer
+* design doc: docs/design/Andy_build0136_active_count_sat_dma_design.md
+
+---
+
 ## [Andy - Design, PC090OJ Candidate Bitset + DISPLAY_OFF Split (Build 0135, rastan-direct)]
 
 * baseline: Build 0135, SHA256 8e00be424f9afefe79d199640096bf99de7b53c4ba49e83ad32b2b491990844e; DESIGN ONLY, no implementation/build
@@ -40415,4 +40467,28 @@ Open/Closed Issues Impact:
 * coin/start evidence: comparable stable anchors preserved emitted sets with zero drops (`38..46` decoded candidates for prompt/ROUND-like states); transient transition frames showed frame-done timing/hash differences after scan-cost reduction but no visual regression in sampled PNGs, and key rendered transition diffs were `0` versus Build 0135
 * visual evidence: Build 0136 no-input/story MAME snapshots show more visible title/story content than Build 0135, interpreted as a timing side effect of reduced sprite-scan work rather than a substitute for deferred DISPLAY_OFF budget work
 * issue impact: OPEN-001 remains open; PC090OJ timing/sprite bring-up remains open; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+### MAME Exit Summary (2026-07-03 21:36:53)
+- Final PC: 0x072062
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-03 22:24:26)
+- Final PC: 0x072070
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0138 PC090OJ DISPLAY_OFF Split]
+
+* scope: one narrow production split of PC090OJ sprite service; moved WRAM-only mirror scan/link preparation before DISPLAY_OFF and left tile DMA/SAT DMA/dirty-clear inside DISPLAY_OFF; no candidate-mask changes, no active-count SAT DMA semantic changes, no tile DMA/cache/decode changes, no PC080SN changes, no bookmark, no BlastEm screenshot automation
+* report: `docs/design/Cody_build0138_pc090oj_displayoff_split.md`
+* evidence artifacts: `states/traces/build0138_pc090oj_displayoff_split_20260703_222523/`; includes no-input and coin/start MAME captures, native debugger SAT DMA printf log, reduction JSON/MD, and contact sheets; release trace also at `states/traces/rastan_direct_video_test_build_0138_mame_30s_20260703_222418/`
+* implementation: added `vdp_prepare_sprites` for `.Lvcs_mirror_scan` + `.Lvcs_link_chain_build`; added `vdp_commit_sprites_vram` for `.Lvcs_tile_dma` + `.Lvcs_sat_dma` + `.Lvcs_clear_dirty`; retained `vdp_commit_sprites` only as a required-symbol alias to the VRAM-only wrapper; `_vblank_service` calls prepare before DISPLAY_OFF and the VRAM wrapper inside DISPLAY_OFF
+* build: Build 0138 produced successfully after one expected invariant-stop correction, ROM `dist/rastan-direct/rastan_direct_video_test_build_0138.bin`, SHA256 `719a9af2e8a4afebed793af30687c19e31d6817ea0a8f50b71d9756988044615`, size `1,562,008`; rolling ROM byte-identical; `GATE_PASS`
+* invariants: opcode_replace count unchanged `133`; total Genesis bytes covered updated mechanically from `0x17D588` to `0x17D598` in `postpatch_startup_rom.py` and `verify_canonical_rom.py` after the first release invocation reported the new observed coverage
+* static evidence: generated disassembly shows `_vblank_service` order `input -> vdp_prepare_sprites -> DISPLAY_OFF -> tile/BG/FG commits -> vdp_commit_sprites_vram -> DISPLAY_ON`; `vdp_prepare_sprites` calls only WRAM scan/link helpers; VDP-touching `.Lvcs_tile_dma` and `.Lvcs_sat_dma` remain inside the VRAM wrapper
+* runtime evidence: MAME no-input and coin/start passes completed without crash; native debugger captured `497` complete SAT low/high/trigger triples, the same active-count set as Build 0137 (`[12, 19, 23, 27, 30, 32]`), and active-count-derived SAT DMA lengths matched expected words (`0x0030`, `0x004C`, `0x005C`, `0x006C`, `0x0078`, `0x0080`)
+* comparison note: Build 0138 vs Build 0137 frame-anchor dumps are not byte-identical in several coin/start transition samples because the intentional earlier scan changes the phase sampled by frame-done captures; DMA-side order/link/length evidence did not show an unexpected semantic regression, and no sprite-staging mutation path exists between prepare and DMA in `_vblank_service`
+* issue impact: OPEN-001 and OPEN-024 context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
 * STOP status: NO

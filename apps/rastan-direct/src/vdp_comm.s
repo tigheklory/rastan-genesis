@@ -7,7 +7,8 @@
     .global vdp_commit_tiles_if_dirty
     .global vdp_commit_bg_strips_if_dirty
     .global vdp_commit_fg_strips_if_dirty
-    .extern vdp_commit_sprites
+    .extern vdp_prepare_sprites
+    .extern vdp_commit_sprites_vram
     .global vdp_commit_palette
     .global vdp_commit_scroll
     .global _vblank_service
@@ -158,6 +159,7 @@ sprite_dma_addr_high_bits_fix:
 _vblank_service:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     rastan_direct_update_inputs
+    bsr     vdp_prepare_sprites
 
     moveq   #VDP_REG_MODE2, %d0
     moveq   #VDP_MODE2_DISPLAY_OFF, %d1
@@ -166,7 +168,7 @@ _vblank_service:
     bsr     vdp_commit_tiles_if_dirty
     bsr     vdp_commit_bg_strips_if_dirty
     bsr     vdp_commit_fg_strips_if_dirty
-    bsr     vdp_commit_sprites
+    bsr     vdp_commit_sprites_vram
 
     moveq   #VDP_REG_MODE2, %d0
     moveq   #VDP_MODE2_DISPLAY_ON, %d1

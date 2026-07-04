@@ -25,7 +25,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 133
 # Build 0106 PC080SN scroll-RAM C-lite dispatch/stubs: +0x40 bytes.
 # Build 0110 high-score FG producer staging route hook: +0x68 bytes.
 # Build 0113 shared PC080SN text-writer dispatcher: +0xBC bytes.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17D560
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17D598
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

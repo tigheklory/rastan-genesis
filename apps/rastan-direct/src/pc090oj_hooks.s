@@ -22,7 +22,9 @@
     .global genesistan_pc090oj_sprite_ctrl_write_d0
     .global genesistan_pc090oj_sprite_ctrl_clear
 
+    .global vdp_prepare_sprites
     .global vdp_commit_sprites
+    .global vdp_commit_sprites_vram
     .global genesistan_pc090oj_dma_self_test
 
     .global pc090oj_object_ram
@@ -971,13 +973,20 @@ genesistan_pc090oj_hook_audit_guard:
     bra     .Lag_halt_loop
 
 /* ------------------------------------------------------------------------- */
-/* VBlank sprite commit                                                      */
+/* VBlank sprite prepare / commit split                                      */
 /* ------------------------------------------------------------------------- */
 
-vdp_commit_sprites:
+vdp_prepare_sprites:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     .Lvcs_mirror_scan
     bsr     .Lvcs_link_chain_build
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Keep vdp_commit_sprites as a required-symbol alias, but make it VRAM-only. */
+vdp_commit_sprites:
+vdp_commit_sprites_vram:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     .Lvcs_tile_dma
     bsr     .Lvcs_sat_dma
     bsr     .Lvcs_clear_dirty
@@ -1294,9 +1303,27 @@ vdp_commit_sprites:
 .Lvcs_sat_dma:
     movea.l #VDP_CTRL, %a3
 
-    /* 640 bytes = 320 words */
-    move.w  #0x9340, (%a3)
-    move.w  #0x9401, (%a3)
+    /* SAT DMA length = max(min(active_count, 80), 1) * 4 words. */
+    move.w  staged_sprite_active_count, %d0
+    bne.s   .Lvcs_sat_dma_have_count
+    moveq   #1, %d0
+.Lvcs_sat_dma_have_count:
+    cmpi.w  #80, %d0
+    bls.s   .Lvcs_sat_dma_count_ok
+    move.w  #80, %d0
+.Lvcs_sat_dma_count_ok:
+    lsl.w   #2, %d0
+
+    move.w  %d0, %d1
+    andi.w  #0x00FF, %d1
+    ori.w   #0x9300, %d1
+    move.w  %d1, (%a3)
+
+    move.w  %d0, %d1
+    lsr.w   #8, %d1
+    andi.w  #0x00FF, %d1
+    ori.w   #0x9400, %d1
+    move.w  %d1, (%a3)
 
     move.l  #staged_sprite_sat, %d0
     lsr.l   #1, %d0
