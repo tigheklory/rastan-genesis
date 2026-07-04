@@ -24,9 +24,11 @@
     .extern staged_sprite_active_count
     .extern sprite_tile_resident_code
     .extern pc090oj_object_ram
+    .extern pc090oj_candidate_bitset
     .extern pc090oj_ctrl_shadow
     .extern pc090oj_sprite_ctrl_shadow
     .extern pc090oj_mirror_dirty
+    .extern pc090oj_candidate_count
     .extern pc090oj_decoded_count
     .extern pc090oj_code_zero_skipped_count
     .extern pc090oj_blank_skipped_count
@@ -245,9 +247,16 @@ _bootstrap_clear_staging:
     clr.w   (%a0)+
     dbra    %d7, .Lboot_pc090oj_object_ram_clear
 
+    lea     pc090oj_candidate_bitset, %a0
+    move.w  #((32 / 2) - 1), %d7
+.Lboot_pc090oj_candidate_bitset_clear:
+    clr.w   (%a0)+
+    dbra    %d7, .Lboot_pc090oj_candidate_bitset_clear
+
     clr.w   pc090oj_ctrl_shadow
     clr.w   pc090oj_sprite_ctrl_shadow
     clr.w   pc090oj_mirror_dirty
+    clr.w   pc090oj_candidate_count
     clr.w   pc090oj_decoded_count
     clr.w   pc090oj_code_zero_skipped_count
     clr.w   pc090oj_blank_skipped_count

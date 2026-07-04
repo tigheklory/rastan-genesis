@@ -26,9 +26,11 @@
     .global genesistan_pc090oj_dma_self_test
 
     .global pc090oj_object_ram
+    .global pc090oj_candidate_bitset
     .global pc090oj_ctrl_shadow
     .global pc090oj_sprite_ctrl_shadow
     .global pc090oj_mirror_dirty
+    .global pc090oj_candidate_count
     .global pc090oj_decoded_count
     .global pc090oj_code_zero_skipped_count
     .global pc090oj_blank_skipped_count
@@ -91,6 +93,45 @@
     move.l  %d3, staged_sprite_dirty
     rts
 
+/* d0=PC090OJ record index.  Candidate state is helper-derived; mirror remains truth. */
+.Lpc090oj_candidate_set_d0:
+    movem.l %d1-%d3/%a0, -(%sp)
+    move.w  %d0, %d1
+    andi.w  #0x00FF, %d1
+    move.w  %d1, %d2
+    lsr.w   #3, %d1
+    andi.w  #0x0007, %d2
+    lea     pc090oj_candidate_bitset, %a0
+    move.b  0(%a0,%d1.w), %d3
+    bset    %d2, %d3
+    move.b  %d3, 0(%a0,%d1.w)
+    movem.l (%sp)+, %d1-%d3/%a0
+    rts
+
+/* d2=byte offset inside the active 0x800-byte PC090OJ mirror. */
+.Lpc090oj_candidate_set_offset_d2:
+    move.l  %d0, -(%sp)
+    move.w  %d2, %d0
+    lsr.w   #3, %d0
+    bsr     .Lpc090oj_candidate_set_d0
+    move.l  (%sp)+, %d0
+    rts
+
+/* d6=PC090OJ record index.  Clear only after full-record code-zero decode. */
+.Lpc090oj_candidate_clear_d6:
+    movem.l %d0-%d3/%a0, -(%sp)
+    move.w  %d6, %d1
+    andi.w  #0x00FF, %d1
+    move.w  %d1, %d2
+    lsr.w   #3, %d1
+    andi.w  #0x0007, %d2
+    lea     pc090oj_candidate_bitset, %a0
+    move.b  0(%a0,%d1.w), %d3
+    bclr    %d2, %d3
+    move.b  %d3, 0(%a0,%d1.w)
+    movem.l (%sp)+, %d0-%d3/%a0
+    rts
+
 /* d0=slot,d1=word0,d2=y,d3=word2(tile),d4=x,d5=source_id,d6=ignored_input,d7=sprite_colbank
  * Clobbers: D1, D2, D3, D5, D6, A0, A1
  * Preserves: D0, D4, D7, A2..A6
@@ -121,6 +162,7 @@
     move.w  %d3, 4(%a2)
     move.w  %d4, 6(%a2)
     move.l  (%sp)+, %a2
+    bsr     .Lpc090oj_candidate_set_d0
     move.w  #1, pc090oj_mirror_dirty
 .Lpc090oj_emit_skip_mirror_bridge:
 
@@ -245,6 +287,7 @@
     cmpi.l  #PC090OJ_HW_ACTIVE_END, %d2
     bhs.s   .Lpc090oj_mirror_word_oob
     subi.l  #PC090OJ_HW_BASE, %d2
+    bsr     .Lpc090oj_candidate_set_offset_d2
     lea     pc090oj_object_ram, %a2
     adda.l  %d2, %a2
     move.w  %d0, (%a2)
@@ -266,6 +309,7 @@
     cmpi.l  #PC090OJ_HW_ACTIVE_END, %d2
     bhs.s   .Lpc090oj_mirror_byte_oob
     subi.l  #PC090OJ_HW_BASE, %d2
+    bsr     .Lpc090oj_candidate_set_offset_d2
     lea     pc090oj_object_ram, %a2
     adda.l  %d2, %a2
     move.b  %d0, (%a2)
@@ -500,10 +544,12 @@ genesistan_hook_3ad44_dispatch:
     swap    %d0
     move.w  %d0, (%a1)+
     swap    %d0
+    bsr     .Lpc090oj_candidate_set_offset_d2
     addq.l  #2, %d2
     cmpi.l  #0x00000800, %d2
     bhs     .Lhook_3ad44_finish
     move.w  %d0, (%a1)+
+    bsr     .Lpc090oj_candidate_set_offset_d2
     addq.l  #2, %d2
     move.w  #1, pc090oj_mirror_dirty
     subq.w  #1, %d3
@@ -960,6 +1006,7 @@ vdp_commit_sprites:
     bsr     .Lvcs_clear_generated_sprite_state
 
     clr.w   pc090oj_decoded_count
+    clr.w   pc090oj_candidate_count
     clr.w   pc090oj_code_zero_skipped_count
     clr.w   pc090oj_blank_skipped_count
     clr.w   pc090oj_unmapped_skipped_count
@@ -980,6 +1027,33 @@ vdp_commit_sprites:
     cmpi.w  #256, %d6
     bhs     .Lvcs_mirror_scan_done
 
+    /*
+     * Walk candidate bits in ascending record order.  Clear bytes skip an
+     * entire 8-record group; set bytes fall through to the original decode.
+     */
+    move.w  %d6, %d0
+    andi.w  #0x0007, %d0
+    bne.s   .Lvcs_mirror_candidate_test
+    move.w  %d6, %d5
+    lsr.w   #3, %d5
+    lea     pc090oj_candidate_bitset, %a1
+    tst.b   0(%a1,%d5.w)
+    bne.s   .Lvcs_mirror_candidate_test
+    adda.w  #64, %a0
+    addq.w  #8, %d6
+    bra     .Lvcs_mirror_scan_loop
+
+.Lvcs_mirror_candidate_test:
+    move.w  %d6, %d0
+    move.w  %d0, %d5
+    lsr.w   #3, %d5
+    lea     pc090oj_candidate_bitset, %a1
+    move.b  0(%a1,%d5.w), %d5
+    andi.w  #0x0007, %d0
+    btst    %d0, %d5
+    beq     .Lvcs_mirror_scan_next
+
+    addq.w  #1, pc090oj_candidate_count
     addq.w  #1, pc090oj_decoded_count
 
     move.w  (%a0), %d1               /* word0: flip/color */
@@ -1055,6 +1129,7 @@ vdp_commit_sprites:
     bra.s   .Lvcs_mirror_scan_next
 
 .Lvcs_mirror_code_zero_skip:
+    bsr     .Lpc090oj_candidate_clear_d6
     addq.w  #1, pc090oj_code_zero_skipped_count
     bra.s   .Lvcs_mirror_scan_next
 
@@ -1395,11 +1470,16 @@ sprite_tile_resident_code:
     .space (80 * 2)
 pc090oj_object_ram:
     .space 0x800
+/* 256-bit derived candidate mask; one bit per PC090OJ source record. */
+pc090oj_candidate_bitset:
+    .space 32
 pc090oj_ctrl_shadow:
     .word 0
 pc090oj_sprite_ctrl_shadow:
     .word 0
 pc090oj_mirror_dirty:
+    .word 0
+pc090oj_candidate_count:
     .word 0
 pc090oj_decoded_count:
     .word 0

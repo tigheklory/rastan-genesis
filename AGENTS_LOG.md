@@ -40397,3 +40397,22 @@ Open/Closed Issues Impact:
 * selected branch: Option A, conservative candidate bitset only; dirty bitset deferred because missed dirty updates could stale descriptors; hard scan cap remains rejected by Build 0135 evidence
 * issue impact: OPEN-001 and OPEN-024 touched as evidence context; OPEN-018 context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
 * STOP status: NO
+
+### MAME Exit Summary (2026-07-03 12:19:13)
+- Final PC: 0x072062
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0136 PC090OJ 256-Bit Candidate Mask]
+
+* scope: one narrow production implementation of the conservative PC090OJ candidate bitset; no DISPLAY_OFF split, no sprite commit relocation, no DMA timing move, no dirty-bit-only model, no scan-depth cap, no 80-SAT cap change, no PC080SN/tilemap/scene changes, no bookmark, no OPEN-015 work
+* report: `docs/design/Cody_build0136_pc090oj_candidate_bitset.md`
+* evidence artifacts: `states/traces/build0136_pc090oj_candidate_bitset_20260703_122044/`; includes no-input and coin/start MAME captures, candidate-bitset dumps, PC090OJ count/object/SAT/descriptor/residency dumps, contact sheets, and reduced JSON/MD analysis
+* implementation: added 32-byte `pc090oj_candidate_bitset` at WRAM `0x00FF6FEA` and `pc090oj_candidate_count` at `0x00FF7010`; set candidate bits on mirror-bridge/raw word/raw byte/0x3AD44 PC090OJ long-fill writes; clear candidate bits only after full-record code-zero decode during scan; scan still covers record IDs `0..255` in ascending order and only skips zero candidate bytes as 8-record groups
+* build: Build 0136 produced successfully after one expected invariant-stop correction, ROM `dist/rastan-direct/rastan_direct_video_test_build_0136.bin`, SHA256 `23dde0a0516378267f125cde34e0cd6328a21c559bc556d2b82f034d02916bd4`, size `1,561,952`; rolling ROM byte-identical; `GATE_PASS`
+* invariants: opcode_replace count unchanged `133`; total Genesis bytes covered updated mechanically from `0x17D4A4` to `0x17D560` in `postpatch_startup_rom.py` and `verify_canonical_rom.py` after the first release invocation reported the new observed coverage
+* runtime evidence: stable no-input/story anchors decoded `42` candidates instead of Build 0135's `256`, while preserving `23` drawable/emitted sprites, zero drops, and source/descriptor/SAT match at every sampled no-input anchor; candidate bitset count `42`, lowest record `0`, highest record `47`
+* coin/start evidence: comparable stable anchors preserved emitted sets with zero drops (`38..46` decoded candidates for prompt/ROUND-like states); transient transition frames showed frame-done timing/hash differences after scan-cost reduction but no visual regression in sampled PNGs, and key rendered transition diffs were `0` versus Build 0135
+* visual evidence: Build 0136 no-input/story MAME snapshots show more visible title/story content than Build 0135, interpreted as a timing side effect of reduced sprite-scan work rather than a substitute for deferred DISPLAY_OFF budget work
+* issue impact: OPEN-001 remains open; PC090OJ timing/sprite bring-up remains open; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
