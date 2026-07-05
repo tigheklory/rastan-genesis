@@ -1,175 +1,28 @@
 MAME debugger version 0.276 (unknown)
 Currently targeting genesis (Genesis (USA, NTSC))
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->go 70100
-Stopped at temporary breakpoint 70100 on CPU ':maincpu'
->dump states/traces/build_0123_pc090oj_transparent_pen_black_overdraw_20260701_143334/postcommit_pc090oj_object_ram_ff674a.txt,ff674a,800
-Data dumped successfully
->dump states/traces/build_0123_pc090oj_transparent_pen_black_overdraw_20260701_143334/postcommit_staged_sprite_sat_ff6104.txt,ff6104,280
-Data dumped successfully
->dump states/traces/build_0123_pc090oj_transparent_pen_black_overdraw_20260701_143334/postcommit_staged_sprite_descriptor_table_ff6384.txt,ff6384,3c0
-Data dumped successfully
->dump states/traces/build_0123_pc090oj_transparent_pen_black_overdraw_20260701_143334/postcommit_sprite_counts_ctrl_ff6f4a.txt,ff6f4a,12
-Data dumped successfully
->dump states/traces/build_0123_pc090oj_transparent_pen_black_overdraw_20260701_143334/postcommit_state_ff0000_0080.txt,ff0000,80
-Data dumped successfully
->dump states/traces/build_0123_pc090oj_transparent_pen_black_overdraw_20260701_143334/postcommit_staged_palette_ff601a.txt,ff601a,80
-Data dumped successfully
->quit
+>trace /home/tighe/projects/rastan-genesis/states/traces/fg_vertical_strip_same_frame_overlap_audit_20260704_142702/native_debug_trace.log,,noloop
+Tracing CPU ':maincpu' to file /home/tighe/projects/rastan-genesis/states/traces/fg_vertical_strip_same_frame_overlap_audit_20260704_142702/native_debug_trace.log
+>tracelog "EVENT TRACE_ARMED build0138_fg_overlap cyc=%d pc=%06X sr=%04X\n",totalcycles(),pc,sr
+>bp 055b90,,{ tracelog "EVENT SELECTED_ENTRY_055B90 cyc=%d pc=%06X sr=%04X a5=%08X d0=%08X d1=%08X d5=%08X d7=%08X dest_fg=%08X strip=%04X s0=%04X s2=%04X s4=%04X sp=%08X stack0=%08X\n",totalcycles(),pc,sr,a5,d0,d1,d5,d7,d@ff10a4,w@ff10ca,w@ff0000,w@ff0002,w@ff0004,sp,d@sp ; g }
+Breakpoint 1 set
+>bp 055b96,,{ tracelog "EVENT SELECTED_RETURN_055B96 cyc=%d pc=%06X sr=%04X a5=%08X d0=%08X d1=%08X d5=%08X d7=%08X dest_fg=%08X strip=%04X s0=%04X s2=%04X s4=%04X sp=%08X\n",totalcycles(),pc,sr,a5,d0,d1,d5,d7,d@ff10a4,w@ff10ca,w@ff0000,w@ff0002,w@ff0004,sp ; g }
+Breakpoint 2 set
+>bp 0703ea,,{ tracelog "EVENT SELECTED_HELPER_ENTRY_0703EA cyc=%d pc=%06X sr=%04X a0=%08X a5=%08X d0=%08X d1=%08X d5=%08X d7=%08X dest_fg=%08X strip=%04X fg_dirty=%08X\n",totalcycles(),pc,sr,a0,a5,d0,d1,d5,d7,d@ff10a4,w@ff10ca,d@ff4006 ; g }
+Breakpoint 3 set
+>bp 070572,,{ tracelog "EVENT SELECTED_HELPER_VALID_DONE_070572 cyc=%d pc=%06X sr=%04X d5=%08X d6=%08X d7=%08X dest_fg_before_store=%08X fg_dirty=%08X\n",totalcycles(),pc,sr,d5,d6,d7,d@ff10a4,d@ff4006 ; g }
+Breakpoint 4 set
+>bp 07057c,,{ tracelog "EVENT SELECTED_HELPER_INVALID_07057C cyc=%d pc=%06X sr=%04X d5=%08X d7=%08X dest_fg=%08X fg_dirty=%08X\n",totalcycles(),pc,sr,d5,d7,d@ff10a4,d@ff4006 ; g }
+Breakpoint 5 set
+>bp 070186,,{ tracelog "EVENT FG_COMMIT_ENTRY_070186 cyc=%d pc=%06X sr=%04X fg_dirty=%08X s0=%04X s2=%04X s4=%04X\n",totalcycles(),pc,sr,d@ff4006,w@ff0000,w@ff0002,w@ff0004 ; g }
+Breakpoint 6 set
+>bp 0701a6,,{ tracelog "EVENT FG_COMMIT_ROW_START_0701A6 cyc=%d pc=%06X sr=%04X row=%04X row_offset=%08X fg_dirty_mask=%08X vram_addr=%08X first_word=%04X\n",totalcycles(),pc,sr,d5,d4,d6,d0,w@a0 ; g }
+Breakpoint 7 set
+>bp 0701c2,,{ tracelog "EVENT FG_COMMIT_ROW_DIRTY_STORE_0701C2 cyc=%d pc=%06X sr=%04X row=%04X d6_after=%08X fg_dirty_before=%08X\n",totalcycles(),pc,sr,d5,d6,d@ff4006 ; g }
+Breakpoint 8 set
+>bp 0701d2,,{ tracelog "EVENT FG_COMMIT_RETURN_0701D2 cyc=%d pc=%06X sr=%04X fg_dirty=%08X\n",totalcycles(),pc,sr,d@ff4006 ; g }
+Breakpoint 9 set
+>bp 0700c2,,{ tracelog "EVENT VBLANK_SERVICE_ENTRY_0700C2 cyc=%d pc=%06X sr=%04X fg_dirty=%08X s0=%04X s2=%04X s4=%04X\n",totalcycles(),pc,sr,d@ff4006,w@ff0000,w@ff0002,w@ff0004 ; g }
+Breakpoint A set
+>bp 070106,,{ tracelog "EVENT VBLANK_HANDOFF_070106 cyc=%d pc=%06X sr=%04X fg_dirty=%08X s0=%04X s2=%04X s4=%04X\n",totalcycles(),pc,sr,d@ff4006,w@ff0000,w@ff0002,w@ff0004 ; g }
+Breakpoint B set
+>go

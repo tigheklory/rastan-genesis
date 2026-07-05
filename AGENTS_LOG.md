@@ -1,5 +1,24 @@
 # AGENTS Log
 
+## [Andy - Design, Producer-Local Narrow FG Strip Presentation Path (Build 0138, rastan-direct)]
+
+* baseline: Build 0138, SHA256 719a9af2e8a4afebed793af30687c19e31d6817ea0a8f50b71d9756988044615; DESIGN + static only, no implementation. Selected producer arcade_pc 0x055990 → runtime 0x055B90 (jsr 0x0703EA = genesistan_hook_tilemap_fg, tilemap_hooks.s:243). Evidence from frontend/attract only (NOT gameplay)
+* CRITICAL GEOMETRY CORRECTION: producer does NOT write 4 contiguous 16-word spans. Per descriptor dest += 0x400 and col d2 += 4 → 16 columns at STRIDE-4 (every-4th col: base_col+strip, +4, ..., +60) × 4 contiguous rows (base_row..+3 mod 32) = 64 cells. Overlap-audit row-0..3 first words 0x60D8/DC/E0/E4 (Δ4) confirm one vertical run in column 0. Narrow presentation must be STRIDED (autoinc 0x08), not contiguous
+* dirty-ownership dependency RESOLVED (Cody overlap audit Outcome A): valid strip = 1/64 wrapper calls (63 range-rejected = dispatcher plane-scan), all 16 descriptors valid, rows 0..3 dirty, no other FG producer shares rows before VBlank → broad-row suppression safe for this producer
+* selected design: Option 1 fixed-capacity descriptor list. Descriptor 2 bytes {base_row u8, col_offset_x2 u8 = 2*(base_col+strip)}; capacity 64 (= observed wrapper-call ceiling), 128B table + count word + pending_rows temp = 132B WRAM above ~0xFF7106 (~34KB free). Read FINAL staged_fg_buffer values (protects vs later same-frame updates); staged_fg_buffer ↔ Plane A identical linear layout (0x80/row, 2/cell, base 0xE000)
+* producer transaction (two-phase): validate dest → staging loop (write 64 cells identical; accumulate 4 row bits into LOCAL pending_rows NOT fg_row_dirty; flag any_invalid_desc) → decide: narrow_eligible = all-16-valid AND count<64 AND no row-crossing → append descriptor content-THEN-count + suppress fg_row_dirty; else broad fallback fg_row_dirty|=pending_rows. Prevents descriptor-for-incomplete-staging / count-before-content / neither-nor-both / overflow-drop
+* overflow fallback: count>=64 → broad (fg_row_dirty|=pending_rows), no append; check-after-staging, content-then-count. Unsupported-shape fallback: any invalid descriptor OR col_offset_x2+120>=256 (potential row-crossing / staged OOB) → broad. No legit op dropped
+* dirty ownership: never touch fg_row_dirty on narrow success (suppress this producer's rows only); fallback ORs (never assigns); never global-clear; never clear another producer's bit; shared-row redundancy (narrow + broad full-row, same final values) safe
+* narrow presenter vdp_commit_fg_narrow_strips (new, vdp_comm.s): autoinc 0x08; per descriptor 4 rows × 16 strided move.w from staged_fg_buffer to 0xE000+byte (byte=((base_row+r)&0x1F)*0x80+col_offset_x2+8k); restore autoinc 0x02; reset count. CPU strided (source stride-8 precludes simple DMA). 256→64 words/strip = 75% reduction
+* plane wrapping: none in supported shape (base_col=0 → cols 0..60 in-row); identical linear layout makes any spill byte-correct; row-crossing routed to broad fallback (avoids staged OOB at row 31). No split left for Cody
+* VBlank insertion: bsr vdp_commit_fg_narrow_strips immediately BEFORE vdp_commit_fg_strips_if_dirty (unchanged) in FG phase inside DISPLAY_OFF; count cleared in narrow routine; autoinc restored 0x02 before general commit; order correctness-neutral. Multiple ops: append order, read final staging, no dedup, count reset once/VBlank
+* files: tilemap_hooks.s (genesistan_hook_tilemap_fg two-phase + suppress dirty), vdp_comm.s (new narrow routine + bsr), FG .bss (3 symbols), boot.s (clear count). Wrapper 0x055B90 bytes UNCHANGED; only genesis_only bodies grow; opcode_replace stays 133; total_genesis_bytes_covered grows (pre-authorized). STOP if opcode_replace≠133 or any patched_site/wrapper byte changes
+* Outcome A (implementation-ready) contingent on honoring the strided-4 geometry correction; single-strip dirty dependency resolved, multi-strip correct by construction (each strip narrow-uploads its own changes; unchanged interleaved cols retain correct VRAM). Gameplay validation not required (unreachable)
+* Open/Closed Issues Impact: OPEN-001 / PC080SN optimization context touched, not closed; none opened/closed
+* design doc: docs/design/Andy_fg_vertical_strip_narrow_commit_design.md
+
+---
+
 ## [Andy - Design, Deterministic One-Frame-Lag Presentation Pipeline (Build 0138, rastan-direct)]
 
 * baseline: Build 0138, SHA256 719a9af2e8a4afebed793af30687c19e31d6817ea0a8f50b71d9756988044615; ARCHITECTURE DESIGN only, no implementation. Owner: deterministic fixed one-frame-lag pipeline, no conditional readiness wait, no framebuffer, no 30fps
@@ -40491,4 +40510,42 @@ Open/Closed Issues Impact:
 * runtime evidence: MAME no-input and coin/start passes completed without crash; native debugger captured `497` complete SAT low/high/trigger triples, the same active-count set as Build 0137 (`[12, 19, 23, 27, 30, 32]`), and active-count-derived SAT DMA lengths matched expected words (`0x0030`, `0x004C`, `0x005C`, `0x006C`, `0x0078`, `0x0080`)
 * comparison note: Build 0138 vs Build 0137 frame-anchor dumps are not byte-identical in several coin/start transition samples because the intentional earlier scan changes the phase sampled by frame-done captures; DMA-side order/link/length evidence did not show an unexpected semantic regression, and no sprite-staging mutation path exists between prepare and DMA in `_vblank_service`
 * issue impact: OPEN-001 and OPEN-024 context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Evidence Audit, PC080SN Operation Census]
+
+* scope: original arcade MAME PC080SN write census from user-controlled capture; evidence/report only; no production source/spec/tool/Makefile/ROM/build changes; no diagnostics inserted into a ROM; no BlastEm work
+* report: `docs/design/Cody_pc080sn_operation_census.md`
+* evidence artifacts: `states/traces/pc080sn_operation_census_20260704_132001/`; includes raw PC080SN writes, frame markers, capture Lua, MAME config/listxml/verifyroms evidence, segmented census JSON/MD, 60-frame bins, burst records, final inventory, and address-map xref
+* capture: original MAME `/usr/games/mame` 0.276, set `rastan` / `Rastan (World Rev 1)`, `:maincpu`; clean stop with `final_frame=24428`, `final_seq=775009`, `775009` raw PC080SN write events, MAME-reported `406` seconds at `99.52%`
+* coverage: user-controlled gameplay covers frontend/startup and part of Stage 1 only, not a complete stage; post-gameplay attract activity was captured and reported separately as supplementary, not mixed into manual-gameplay frequency totals
+* result: dominant partial-Stage-1 PC080SN families are `FG_VERTICAL_STRIP_STREAM` (`36.273%`), `BULK_SCENE_FILL_CLEAR_MIRROR` (`28.739%`), `BG_VERTICAL_STRIP_STREAM` (`23.660%`), and scroll latches (`10.852%` combined); manual unknown residual `0.043%`
+* recommendation: first future operation-buffering target is the gameplay vertical-strip stream producer family beginning with the `arcade_pc 0x055968/0x055990` path; second-best is the BG sibling around `arcade_pc 0x055C7A`, pending caller/entry audit
+* address discipline: Genesis mappings in the report/xref are derived from `build/rastan-direct/address_map.json`; no arithmetic offset used as proof
+* issue impact: OPEN-001/PC080SN optimization context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO, with coverage limitation recorded for incomplete Stage 1
+
+## [Cody - Evidence Audit, FG Vertical Strip Current-Path Contract and Cost]
+
+* scope: evidence-only static/runtime audit for Build 0138 FG vertical strip path; no source/spec/tool/Makefile/ROM/build/invariant changes; no BlastEm; no VBlank order, DISPLAY_ON/OFF, frame-pipeline, semantic queue, or one-frame-lag changes
+* report: `docs/design/Cody_fg_vertical_strip_current_path_audit.md`
+* evidence artifacts: `states/traces/fg_vertical_strip_current_path_audit_20260704_140335/`; includes Build 0138 MAME Genesis-driver trace script, raw event log, frame markers, metadata, and runtime reduction note
+* address discipline: required mappings for `arcade_pc 0x055968/0x055990/0x0559B8/0x055A06` were derived from `build/rastan-direct/address_map.json`; Genesis-only helper/commit PCs were labeled as `genesis_only`
+* static result: current `0x055B90 -> genesistan_hook_tilemap_fg` path composes up to `64` Plane-A staging cells per valid invocation, marks `4` current staging rows dirty, and the current row commit model uploads `4 * 64 = 256` Plane-A words; amplification is `4.0x` vs composed cells or `2.0x` vs original raw attr+code words
+* runtime result: fresh Build 0138 automated coin/start run reached state `2/3/0` but did not hit `runtime_genesis_pc 0x055B90`, so exact same-frame dirty-row attribution/overlap for gameplay remains unresolved; original arcade census still proves `1,274` strip-sized units in partial Stage 1 and keeps this family the leading target
+* outcome: B - target valid, one dependency unresolved; implementation not safely placeable until a narrow Build 0138 gameplay-state replay/save-state trace hits `0x055B90` and proves whether other FG producers share dirty rows before VBlank
+* issue impact: OPEN-001/PC080SN optimization context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO for evidence production; implementation blocked by the recorded Outcome B dependency
+
+## [Cody - Runtime Evidence, Build 0138 FG Vertical Strip Same-Frame Overlap]
+
+* scope: evidence-only runtime trace for the selected `arcade_pc 0x055990` / `runtime_genesis_pc 0x055B90` FG vertical-strip producer; no source/spec/tool/Makefile/ROM/build/invariant changes; no BlastEm; no VBlank-order, DISPLAY_ON/OFF, frame-pipeline, semantic-queue, BG, sprite, or palette changes
+* report: `docs/design/Cody_fg_vertical_strip_same_frame_overlap_audit.md`
+* evidence artifacts: `states/traces/fg_vertical_strip_same_frame_overlap_audit_20260704_142702/`; raw native trace preserved (`native_debug_trace.log`, ~365 MiB), plus reduced native events, producer table, VBlank commit table, ownership summary, per-frame overlap table, and PC classification table
+* capture: Build 0138 ROM SHA `719a9af2e8a4afebed793af30687c19e31d6817ea0a8f50b71d9756988044615`; user-controlled short MAME Genesis-driver capture stopped cleanly after `SHORT FG CAPTURE COMPLETE`; Lua frames `0..1351`, native VBlank frames `0..1134`
+* result: selected producer hit `64` invocations in native frame `1133`; `1` valid 64-cell strip path and `63` range-rejected invocations; selected FG store `runtime_genesis_pc 0x070532` executed `64` times; selected dirty update `0x07053E` executed `64` times; next VBlank committed Plane-A rows `0..3`
+* overlap classification: Outcome A for the observed frame; no other known FG/Plane-A staging-store PC executed before the next VBlank, and the high-count `0x070640` store was BG blockcopy (`staged_bg_buffer` / `bg_row_dirty`) and excluded from FG ownership
+* implementation implication recorded, not applied: future work may keep selected staging writes, suppress only this producer's broad row-dirty marking, and transfer the valid 64-cell strip narrowly without global row-policy or frame-pipeline changes
+* limitation: Lua old/new write tap under-reported selected stores; writer ownership and VBlank association were resolved from native debugger instruction-PC evidence plus generated-code topology
+* issue impact: OPEN-001 / PC080SN optimization context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
 * STOP status: NO
