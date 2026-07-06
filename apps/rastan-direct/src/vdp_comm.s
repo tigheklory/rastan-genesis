@@ -6,6 +6,7 @@
     .global sprite_dma_addr_high_bits_fix
     .global vdp_commit_tiles_if_dirty
     .global vdp_commit_bg_strips_if_dirty
+    .extern vdp_commit_fg_narrow_strips
     .global vdp_commit_fg_strips_if_dirty
     .extern vdp_prepare_sprites
     .extern vdp_commit_sprites_vram
@@ -25,6 +26,9 @@
     .global staged_scroll_y_fg
     .global staged_bg_buffer
     .global staged_fg_buffer
+    .global fg_narrow_desc_table
+    .global fg_narrow_desc_count
+    .global fg_narrow_pending_rows
     .global staged_palette_words
     .global staged_tile_words
 
@@ -51,6 +55,7 @@
     .equ VRAM_PLANE_A_BASE,     0x0000E000
     .equ VRAM_HSCROLL_BASE,     0x0000FC00
     .equ VRAM_TILE_BASE,        0x00000020
+    .equ FG_NARROW_DESC_CAP,    64
 
     .equ ARCADE_FIX_DEST_BG,    0x00FF10A0
     .equ ARCADE_FIX_DEST_FG,    0x00FF10A4
@@ -167,7 +172,7 @@ _vblank_service:
 
     bsr     vdp_commit_tiles_if_dirty
     bsr     vdp_commit_bg_strips_if_dirty
-    bsr     vdp_commit_fg_strips_if_dirty
+    bsr     vdp_commit_fg_narrow_strips
     bsr     vdp_commit_sprites_vram
 
     moveq   #VDP_REG_MODE2, %d0
@@ -318,6 +323,14 @@ bg_row_dirty:
     .long 0
 fg_row_dirty:
     .long 0
+
+    .align 2
+fg_narrow_desc_table:
+    .space (FG_NARROW_DESC_CAP * 2)
+fg_narrow_desc_count:
+    .word 0
+fg_narrow_pending_rows:
+    .word 0
 
     .align 2
 staged_dest_ptr_bg:

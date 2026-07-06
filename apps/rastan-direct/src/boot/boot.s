@@ -8,6 +8,8 @@
     .extern tiles_dirty
     .extern bg_row_dirty
     .extern fg_row_dirty
+    .extern fg_narrow_desc_count
+    .extern fg_narrow_pending_rows
     .extern staged_dest_ptr_bg
     .extern staged_dest_ptr_fg
     .extern staged_scroll_x_bg
@@ -195,6 +197,8 @@ _bootstrap_clear_staging:
     clr.b   tiles_dirty
     clr.l   bg_row_dirty
     clr.l   fg_row_dirty
+    clr.w   fg_narrow_desc_count
+    clr.w   fg_narrow_pending_rows
 
     lea     staged_palette_words, %a0
     move.w  #(64 - 1), %d7

@@ -11,7 +11,10 @@
 
 ## 1. Executive decision
 
-**Outcome A — implementation-ready**, with one mandatory **geometry correction**: the selected producer does **not** write four *contiguous* 16-word spans. It writes **16 columns at column-stride 4** (per descriptor `dest += 0x400`, `col d2 += 4`), offset by the strip index — an **every-4th-column × 4-contiguous-row interleave** (16 vertical 4-cell runs). The narrow presentation is therefore **4 strided runs (VDP autoincrement `0x08`, 16 words each) = 64 words**, replacing the current 4 full-row commits (256 words). Design = **Option 1 (fixed-capacity descriptor list)**, 2-byte descriptor `{base_row, col_offset_x2}`, capacity 64, read final values from `staged_fg_buffer`, suppress this producer's broad `fg_row_dirty`, two-phase append-or-broad-fallback, no frame-model change. **75% presentation-word reduction (256→64) for one valid strip.**
+**Outcome A — implementation-ready**, with one mandatory **geometry correction**: the selected producer does **not** write four *contiguous* 16-word spans. It writes **16 columns at column-stride 4** (per descriptor `dest += 0x400`, `col d2 = (d2+4)&0x3F`), offset by the strip index — an **every-4th-column × 4-contiguous-row interleave** (16 vertical 4-cell runs). The narrow presentation is therefore **4 strided runs (VDP autoincrement `0x08`, 16 words each) = 64 words**, replacing the current 4 full-row commits (256 words). Design = **Option 1 (fixed-capacity descriptor list)**, 2-byte descriptor `{base_row, col_offset_x2}`, capacity 64, read final values from `staged_fg_buffer`, suppress this producer's broad `fg_row_dirty`, two-phase append-or-broad-fallback, no frame-model change. **75% presentation-word reduction (256→64) for one valid strip.**
+
+> **CORRECTION (2026-07-05): narrow eligibility requires `col_offset_x2 + 120 < 128`.**
+> The producer masks each descriptor column with `andi.w #0x003F,%d2` (source line 400), so a producer column that reaches 64 **wraps back to the start of the same logical Plane-A row** (`& 0x3F`). The narrow presenter's linear byte progression `col_offset_x2 + 8*k` instead **spills into the following row**. These are equivalent **only when the whole run stays within the 64-cell row**, i.e. `col_offset_x2 + 120 < 128` (equivalently `base_col + strip ≤ 3`). This first implementation therefore uses the **strict within-row eligibility `col_offset_x2 + 120 < 128`**; every shape with `col_offset_x2 + 120 >= 128` (any wrap/spill) uses the **broad-row fallback** `fg_row_dirty |= pending_rows`. No masked per-word addressing, no wrapped-segment split, no larger descriptor. The earlier `>= 256` threshold and any claim that "linear spill into the next row is equivalent to the producer's masked-column behavior" are **removed as incorrect**.
 
 ---
 
@@ -47,7 +50,7 @@ Build 0138 does **not** reach playable Genesis gameplay. The overlap evidence is
 - **Row progression:** inner row loop 4× (`d4=3..0`), `d1 = (d1+1)&0x1F` → 4 **contiguous** rows base_row..base_row+3 (mod 32); each marked dirty.
 - **Column progression:** per descriptor `d2 = (d2+4)&0x3F`, `d5 += 0x400` → **columns base_col + 4·k (k=0..15)**, offset by strip → **stride-4 every-4th-column**.
 - **Width 16 invariant:** the descriptor loop is fixed `moveq #15` (16 iterations) → 16 columns. **Height 4 invariant:** row loop fixed `moveq #3` (4 rows). Both **invariant** for a fully-valid invocation. A per-descriptor invalid entry (`.Lfg_hook_invalid_desc`) skips its column (advances col by 4, writes nothing) → a **gap**; not the proven full shape (handled by §14 fallback).
-- **Can a valid op wrap a Plane-A row?** Only if `base_col + strip + 60 ≥ 64` (staging offset `2·col ≥ 128` spills into the next row's bytes). Observed base_col=0,strip=0 → cols 0..60, **no wrap**. Because staging and Plane-A share identical linear layout, the narrow commit mirrors any spill identically (§17); a defensive fallback triggers on potential overflow.
+- **Can a valid op wrap a Plane-A row?** The producer masks `d2 = (d2+4)&0x3F` per descriptor (line 400), so once `base_col + 4k` reaches 64 the producer column **wraps to the start of the same row**; the added strip can further push the final staging column past 63. Either way the producer's cells for such a run land at columns the **linear** presenter formula does not reproduce (the linear formula spills into the next row instead of wrapping). Observed base_col=0,strip=0 → cols 0..60, **no wrap**. Therefore a run is narrow-eligible **only when it cannot wrap or spill**: `col_offset_x2 + 120 < 128` (`base_col + strip ≤ 3`); all other shapes take the broad fallback (§14/§17). The narrow linear formula is exact **only** under this within-row condition.
 - **Multiple valid ops/frame:** structurally possible (arcade renders strips 0..3, and census shows multi-unit frames); **not observed** in Build 0138 (1 valid). **Max statically-possible valid ops before VBlank:** bounded by the per-frame wrapper-call count (64 observed); true absolute bound needs arcade-loop analysis → design caps at 64 with broad fallback.
 - **Order between valid ops:** irrelevant to final pixels — every commit reads *final* `staged_fg_buffer` values (§15/§18).
 - **Can valid regions overlap?** Different strips write disjoint columns of the same rows; the same strip re-run overwrites its own cells with final values. Overlap is value-consistent.
@@ -92,7 +95,7 @@ Exact sequence for one invocation (two-phase success/fallback):
 1. **Validate dest** (range + 4-align). Fail → `.Lfg_hook_dest_invalid` (unchanged) → return, no staging, no descriptor.
 2. Capture `base_row = d1_init`, `col_offset_x2 = 2*(d2_init + d7)` into locals (WRAM temp / preserved reg). Init `any_invalid_desc = 0`, `pending_rows = 0`.
 3. **Staging loop** (unchanged staging stores at `0x070532`): write all valid descriptors' cells to `staged_fg_buffer`. **Replace** the in-loop `fg_row_dirty` bset (`0x070536/0x07053E`) with `bset %d1` into the **local `pending_rows`** (no `fg_row_dirty` write yet). On a per-descriptor invalid entry (`.Lfg_hook_invalid_desc`), set `any_invalid_desc = 1`.
-4. **Decide:** `narrow_eligible = (any_invalid_desc == 0) AND (col_offset_x2 + 120 < 256 no-row-overflow guard, §17) AND (fg_narrow_desc_count < CAP)`.
+4. **Decide:** `narrow_eligible = (any_invalid_desc == 0) AND (col_offset_x2 + 120 < 128 strict within-row guard, §14/§17) AND (fg_narrow_desc_count < CAP)`.
 5. **If narrow_eligible:** write descriptor **contents** `{base_row, col_offset_x2}` to `table[count]`, **then** `count += 1` (content-before-count). Do **not** write `fg_row_dirty`.
 6. **Else (fallback):** `fg_row_dirty |= pending_rows` (broad). Do **not** append a descriptor.
 7. Update `%a5@(4260)` dest state (unchanged), `rts`.
@@ -110,7 +113,7 @@ This prevents: descriptor-for-incomplete-staging (staging precedes append); coun
 | +0 | 1 byte | `base_row` | starting Plane-A row of the 4-row runs | `d1` at loop entry (`(dest_idx)&0x1F`) | 0..31 |
 | +1 | 1 byte | `col_offset_x2` | within-row **byte** offset of column-0 run = `2*(base_col+strip)` | `2*(d2_init + d7)` | 0..132 |
 
-No tile payload, no operation-type, no width/height (invariant 16/4), no speculative fields. **Staging and VRAM coordinates derive from these two fields:** for run r∈0..3, k∈0..15 → `byte = ((base_row+r)&0x1F)*128 + col_offset_x2 + 8k`; **staging read** = `staged_fg_buffer + byte`; **VRAM write** = `0xE000 + byte` (identical linear layout). One stored `col_offset_x2` suffices because the 16 columns are a fixed +4 (=+8 bytes) progression and the strip offset is already folded in.
+No tile payload, no operation-type, no width/height (invariant 16/4), no speculative fields. **Staging and VRAM coordinates derive from these two fields:** for run r∈0..3, k∈0..15 → `byte = ((base_row+r)&0x1F)*128 + col_offset_x2 + 8k`; **staging read** = `staged_fg_buffer + byte`; **VRAM write** = `0xE000 + byte`. One stored `col_offset_x2` suffices because the 16 columns are a fixed +4 (=+8 bytes) progression and the strip offset is folded in. This linear formula reproduces the producer's masked columns **only** under the narrow-eligibility guarantee `col_offset_x2 + 120 < 128` (§14): then `col_offset_x2 + 8k < 128` for all k, so the producer's `(base_col+4k)&0x3F` never wraps and no cell leaves row `(base_row+r)&0x1F` (staging and Plane A share the same 128-byte/row linear layout **within a row**; the correction forbids relying on cross-row spill equivalence).
 
 ---
 
@@ -145,12 +148,12 @@ If `fg_narrow_desc_count >= 64` at decision time (§9.4): **do not append**; ins
 
 ## 14. Unsupported-shape fallback
 
-Any invocation that is not the proven full 16-valid-descriptor 16×4 shape falls back to the **current broad path** (`fg_row_dirty |= pending_rows`, no descriptor):
+Any invocation that is not the proven full, non-wrapping 16×4 shape falls back to the **current broad path** (`fg_row_dirty |= pending_rows`, no descriptor):
 - **any per-descriptor invalid** (`.Lfg_hook_invalid_desc` taken) → `any_invalid_desc=1` → broad (a gapped column set is not the proven shape).
-- **potential row-crossing** `col_offset_x2 + 120 ≥ 256` (i.e. `base_col+strip+60 ≥ 64`) → broad (defensive; keeps the strided-run linear-offset assumption strictly in-bounds).
+- **any wrap/spill** — `col_offset_x2 + 120 >= 128` (i.e. `base_col + strip >= 4`) → broad. This is the decisive correction: the producer masks its column with `& 0x3F` (line 400), so a run reaching column 64 **wraps to the start of the same row**, which the narrow presenter's linear `col_offset_x2 + 8k` progression does not reproduce (it would spill into the next row). Only `col_offset_x2 + 120 < 128` guarantees no wrap and no cross-row spill, so only that range is narrow-eligible.
 - Dest range/align failure is the pre-existing reject (not a fallback — no staging occurs).
 
-No legitimate arcade operation is silently dropped: every case either narrow-commits or broad-commits the same staged cells.
+No legitimate arcade operation is silently dropped: every case either narrow-commits (within-row) or broad-commits the same staged cells. Because the broad path uploads the full 64-cell rows exactly as Build 0138 does, wrapping operations are presented **identically to the current behavior** — no correctness regression, only no narrowing for those shapes.
 
 ---
 
@@ -193,9 +196,26 @@ restore regs (movem); rts
 
 ## 17. Plane wrapping
 
-A 16-word run occupies byte range `[row*0x80 + col_off_x2, +120]`. **If `col_off_x2 + 120 < 128`** (i.e. `base_col+strip ≤ 3`, always true for observed base_col=0) the run stays within one Plane-A row — **no wrap, no split.** Because `staged_fg_buffer` and Plane A are byte-identical linear layouts, even a run whose bytes exceed 128 would spill into the next row's bytes **identically** in source and destination, so the linear-offset commit remains byte-correct — **no split is ever required for correctness.** However, to keep the strided run strictly within allocated staging (avoid reading past `staged_fg_buffer+4096` when `base_row=31`), the **unsupported-shape fallback (§14) triggers on `col_offset_x2 + 120 ≥ 256`**, routing any potential cross-row case to the broad path. Wrapping behavior is therefore fully specified: no split in the supported shape; broad fallback otherwise. (No first/second-segment split, no per-cell wrap handling is left for Cody.)
+A 16-word run occupies byte range `[row*0x80 + col_offset_x2, +120]`. **A run is narrow-eligible only when it stays entirely within one Plane-A row: `col_offset_x2 + 120 < 128`** (equivalently `base_col + strip ≤ 3`; always true for the observed base_col=0, strip=0). Under this condition the producer's masked column `(base_col+4k)&0x3F` never reaches 64, so no `& 0x3F` wrap occurs, and the linear presenter formula `col_offset_x2 + 8k` equals the producer's staging offset for every cell — byte-correct within the row.
+
+**Wrapping is NOT handled by the narrow path and is NOT equivalent to a linear spill.** The producer's `andi.w #0x003F,%d2` (line 400) wraps an over-64 column back to the **start of the same logical row**; a linear byte progression that crosses 128 would instead write the **next row**. These place different cells, so the earlier "identical linear spill" claim is withdrawn. Any run with `col_offset_x2 + 120 >= 128` (`base_col + strip >= 4`) is therefore **routed to the broad-row fallback** (§14), which uploads the full 64-cell rows exactly as Build 0138 does — the wrapped columns are presented correctly by the existing full-row commit. There is **no first/second-segment split, no masked per-word addressing, and no larger descriptor** in this first implementation; the single within-row threshold fully specifies the behavior and leaves no wrap decision for Cody.
 
 ---
+
+### 17a. Column-wrap static proof [OBS `tilemap_hooks.s`]
+
+1. **Where the column is masked to `0x3F`:** `.Lfg_hook_desc_done`, **line 400** `andi.w #0x003F, %d2` (the `d2 += 4` at line 399 is immediately masked).
+2. **After every descriptor?** YES. Valid descriptors reach `.Lfg_hook_desc_done` via `bra.s .Lfg_hook_desc_done` (line 391); invalid descriptors reach it by fall-through from `.Lfg_hook_invalid_desc` (lines 393-397). Both run lines 398-402, so `d2` is masked `&0x3F` after each of the 16 descriptor iterations. The per-cell staging column used in the offset is `d2 + strip` (lines 374-379: offset `= row*128 + 2*d2 + 2*strip`), with `d2` the masked value and `strip` added linearly.
+3. **Exact sequence for starts 0,1,2,3,4** (start = `base_col + strip`, i.e. `col_offset_x2/2`; producer per-descriptor `d2_k = (base_col + 4k) & 0x3F`, staging column `= d2_k + strip`):
+   - start 0 (base_col 0, strip 0): `d2_k = 0,4,…,60` (all ≤63, no mask effect); columns `0,4,…,60`; max byte `2*60=120 < 128`.
+   - start 1 (base_col 1, strip 0): columns `1,5,…,61`; max byte `122 < 128`.
+   - start 2: columns `2,6,…,62`; max byte `124 < 128`.
+   - start 3: columns `3,7,…,63`; max byte `126 < 128`.
+   - start 4 (e.g. base_col 4, strip 0): `d2_15 = (4+60)&0x3F = 64&0x3F = 0` → producer writes **column 0 of the same row**; the linear formula gives `col_offset_x2 + 8*15 = 8 + 120 = 128` = **row+1, column 0** — a different cell.
+4. **Why starts 0–3 are non-wrapping:** `base_col + 4k ≤ start + 60 ≤ 63` for all k≤15, so `(base_col+4k)&0x3F = base_col+4k` (no mask change) and the final staging column `≤ 63` (max byte `≤ 126 < 128`) stays in the row.
+5. **Why start 4 wraps on the 16th descriptor:** at k=15, `base_col + 60 = 64`, and `64 & 0x3F = 0`, so the producer's 16th column resets to 0 within the same row instead of advancing to 64.
+6. **Why the linear VBlank formula is safe only for starts 0–3:** the linear formula never applies `& 0x3F`; it equals the producer's masked offset iff `base_col + 4k` never reaches 64 (k≤15 ⇒ `base_col ≤ 3`) **and** the run never spills the 128-byte row (`start ≤ 3`). The single condition `col_offset_x2 + 120 < 128` (`start ≤ 3`) enforces both.
+7. **Why broad fallback exactly preserves current presentation for wrapping cases:** for `start ≥ 4` the invocation still writes all its cells to `staged_fg_buffer` (staging is unchanged), and the fallback ORs the same 4 row bits into `fg_row_dirty`. The unchanged `vdp_commit_fg_strips_if_dirty` then uploads the full 64-cell rows from `staged_fg_buffer` — byte-for-byte the Build 0138 behavior. The wrapped cells are thus presented correctly by the existing full-row commit; the only difference vs a hypothetical narrow path is the absence of narrowing, not any pixel change.
 
 ## 18. Multiple-operation behavior
 
@@ -285,7 +305,7 @@ Per one valid strip:
 - Same producer state updates (`%a5@(4260)` progression) and same range-reject behavior (63/64).
 - Descriptor appended only for complete valid 16×4 invocations (content-then-count).
 - Zero `fg_row_dirty` writes by this producer on narrow success.
-- Broad fallback (`fg_row_dirty |= pending_rows`) on capacity overflow and on unsupported shape (any invalid descriptor / potential row-crossing).
+- Broad fallback (`fg_row_dirty |= pending_rows`) on capacity overflow, on any invalid descriptor, and on any wrap/spill shape (`col_offset_x2 + 120 >= 128`, i.e. `base_col + strip >= 4`); narrow path taken only when `col_offset_x2 + 120 < 128`.
 - All other FG dirty writers unchanged; `vdp_commit_fg_strips_if_dirty` unchanged.
 - Narrow commit = 4 strided (autoinc 0x08) 16-word runs per descriptor = 64 Plane-A words/strip, VRAM 0xE000+byte matching staging byte.
 - `fg_narrow_desc_count` consumed (reset 0) each VBlank; no cross-frame descriptor lifetime.
@@ -303,7 +323,7 @@ Revert if any of: `staged_fg_buffer` result mismatch vs 0138; rejected-path beha
 
 ## 26. Outcome
 
-**Outcome A — implementation-ready**, contingent on Cody honoring the §1 geometry correction (strided-4 columns → autoinc-0x08 presentation, NOT contiguous spans). All required elements are resolved: transaction ordering (§9), descriptor (§10), WRAM (§12), capacity (§11), overflow (§13), unsupported-shape (§14), dirty ownership (§15), VBlank insertion (§19), overlap (§15/§18), multiple-op (§18), VDP transfer shape (§16), register/VDP contract (§20), mapping effects (§22), acceptance/revert (§24/§25). The single-strip dirty-ownership dependency from the prior audit is resolved (overlap Outcome A); multi-strip correctness is established by construction (§18).
+**Outcome A — corrected implementation-ready design.** The `< 128` within-row eligibility rule resolves the column-wrap problem without any new dependency: narrow-eligible runs (`col_offset_x2 + 120 < 128`, `base_col + strip ≤ 3`) provably match the producer's masked columns (§17a), and every wrap/spill shape is presented by the unchanged broad path exactly as Build 0138 (§14/§17). All required elements remain resolved: geometry correction (§1), transaction ordering (§9), descriptor (§10, unchanged 2 bytes), WRAM (§12, unchanged), capacity (§11, unchanged 64), overflow (§13), unsupported/wrap fallback (§14/§17), dirty ownership (§15), VBlank insertion (§19), overlap/multiple-op (§15/§18), VDP transfer shape (§16, unchanged autoinc 0x08 CPU strided), register/VDP contract (§20), mapping effects (§22), acceptance/revert (§24/§25), column-wrap static proof (§17a). The single-strip dirty-ownership dependency is resolved (overlap Outcome A); multi-strip correctness holds by construction (§18). No additional static or runtime dependency (not Outcome B).
 
 ---
 
@@ -313,7 +333,7 @@ Revert if any of: `staged_fg_buffer` result mismatch vs 0138; rejected-path beha
 2. Add `.bss` symbols `fg_narrow_desc_table` (128 B), `fg_narrow_desc_count` (2 B), `fg_narrow_pending_rows` (2 B); `.global` as needed; `FG_NARROW_CAP=64`.
 3. Clear `fg_narrow_desc_count`/`fg_narrow_pending_rows` in the boot bootstrap-clear.
 4. In `genesistan_hook_tilemap_fg`: capture `base_row`/`col_offset_x2`; replace in-loop `fg_row_dirty` bset with local `pending_rows`; flag `any_invalid_desc`; keep staging stores identical.
-5. After the descriptor loop, implement the two-phase decision (§9.4–9.6): narrow append (content-then-count, suppress dirty) vs broad fallback (`fg_row_dirty |= pending_rows`); enforce `count<64` and the §14/§17 overflow/row-crossing guards.
+5. After the descriptor loop, implement the two-phase decision (§9.4–9.6): narrow append (content-then-count, suppress dirty) only when `any_invalid_desc==0 AND col_offset_x2 + 120 < 128 AND fg_narrow_desc_count < 64`; otherwise broad fallback (`fg_row_dirty |= pending_rows`). Do NOT split or mask-address wrapping runs.
 6. Add `vdp_commit_fg_narrow_strips` (§16): autoinc 0x08; per descriptor, 4 rows × 16 strided writes from `staged_fg_buffer` to `0xE000+byte`; restore autoinc 0x02; reset count.
 7. Insert `bsr vdp_commit_fg_narrow_strips` immediately before `bsr vdp_commit_fg_strips_if_dirty` in `_vblank_service`; leave the general FG commit and all other phases unchanged.
 8. Build; confirm `opcode_replace`=133, only `total_genesis_bytes_covered` grows (update the two canonical invariant tools if the gate stops), `0x055B90` bytes unchanged.

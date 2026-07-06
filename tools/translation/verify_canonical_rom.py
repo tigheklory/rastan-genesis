@@ -38,7 +38,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 133
 # Build 0106 PC080SN scroll-RAM C-lite dispatch/stubs: +0x40 bytes.
 # Build 0110 high-score FG producer staging route hook: +0x68 bytes.
 # Build 0113 shared PC080SN text-writer dispatcher: +0xBC bytes.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17D598
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17D680
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")

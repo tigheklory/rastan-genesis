@@ -1,6 +1,53 @@
 # AGENTS Log
 
-## [Andy - Design, Producer-Local Narrow FG Strip Presentation Path (Build 0138, rastan-direct)]
+## [Andy - Design, PC090OJ Precomputed Tile-DMA Worklist + Minimal DISPLAY_OFF Commit (Build 0140, rastan-direct)]
+
+* baseline Build 0140 SHA256 f6e63eb3e3a6d5e82caf9e151ef2eb1c23418633ee7118adad51f1c2081a135c; static design only, no implementation. Outcome A (implementation-ready)
+* cost attribution (from Cody two-env profiling): 11,088 cyc (68% DISPLAY_OFF) = .Lvcs_tile_dma (PC 0x072380) FIXED 80-slot loop, mulu.w #12/slot (~138cy×80), 0 DMA — rediscovers the residency decision already made pre-OFF in emit_slot. 4,128 cyc (25%) = .Lvcs_clear_dirty (0x0724D2) 80-descriptor touched-flag clear (~4000 REDUNDANT with next-frame clear_generated wipe) + ~116 glue. 18,112 pre-OFF gap = clear_generated_sprite_state 80-wipe + update_inputs + prepare wrapper — pre-OFF, does NOT affect strip height, out of scope
+* Table C label correction: "Activations 23/23/32" = active/drawable count (0 producer writes → not activations); "SAT shifts 22/22/31" = active_count-1 = link-chain edges, NOT slot-shift events. Do not propagate
+* design: append {slot:u16, code:u16} = 4B worklist entry in the pre-OFF scan emit path (scan_active==1) when code≠resident[slot] (compare already there). Inside DISPLAY_OFF iterate ONLY worklist (count-bounded, 0 in stable frames): derive source=rastan_pc090oj+code*128, dest=(1024+slot*4)*32, DMA 64 words, then resident[slot]=code AFTER DMA (68k bus-stall = post-completion). Then SAT DMA unchanged. Remove the 80-slot scan AND clear_dirty
+* worklist: cap 80 (=max slots, overflow structurally impossible), WRAM +322B (320 table + 2 count) above 0xFF7106; append order = emission; no duplicates (each slot emitted once); count reset at scan start. Fallback (impossible overflow) = bounded full-slot DMA, never the fixed 80-scan in normal frames
+* residency rules: compare pre-OFF, append only on mismatch, update resident ONLY after DMA (never at queue), self-corrects packed-slot shift / active_count shrink-grow; no scene invalidation needed (sprite VRAM 1024-1343 exclusively sprite-owned per prior VRAM-ownership design)
+* interrupt proof: prepare+commit both in same _vblank_service invocation, sequential, single 68k, producers preempted → no masking needed, no partial exposure, no extra latency, cleanup touches only slot-keyed residency not producer mirror
+* estimate: inside-OFF sprite 15,674 → ~590 stable (−96%); DISPLAY_OFF 16,350 (~33 lines) → ~1,270 (~2.6 lines). Strip height shrinks dramatically (not full removal — pre-OFF 77,276 still delays DISPLAY_OFF start, out of scope)
+* removed old-path: .Lvcs_tile_dma 80-scan REPLACE (worklist), .Lvcs_clear_dirty REMOVE (redundant), descriptor changed-bit-as-DMA-gate REPLACE (worklist is gate); retained: mirror scan/link/SAT DMA/mirror/candidate bitset/residency array
+* boundary: pc090oj_hooks.s (+ optional boot.s count clear) only; excludes PC080SN/committed-shadow/arcade-readback/field-redesign/allocator/palette/scroll and the pre-OFF clear_generated reduction. One numbered build (0141)
+* acceptance: SAT/link/active_count/SAT-DMA parity vs 0140; 0-length worklist + no 80-scan inside DISPLAY_OFF stable; changed slots DMA exactly, post-DMA residency correct; substantially shorter DISPLAY_OFF; map gaps/overlaps=0, no patched-site/wrapper change, opcode_replace recorded-not-fixed
+* Open/Closed Issues Impact: OPEN-001 (black-strip DISPLAY_OFF reduction); none opened/closed
+* design doc: docs/design/Andy_pc090oj_precomputed_tile_dma_worklist.md
+
+* amends docs/design/Andy_pc080sn_pc090oj_semantic_recording_phase1.md (in place, no 2nd doc). Design/static only, no source/spec/tool/Makefile/ROM/build/bookmark/runtime change. Outcome A
+* BG entry RESOLVED statically (§2a): 0x055968→runtime 0x055B68 (patched, jsr 0x070248 = genesistan_hook_tilemap_plane_a) is the descriptor-list BG producer, BYTE-STRUCTURALLY IDENTICAL to FG 0x055990 (16 desc×4 row, dest+=0x400, col d2=(d2+4)&0x3F, but still broad bg_row_dirty, no 0140 narrow path) → PROVEN same strip family, can share one helper. BUT census-dominant gameplay BG stream (0x055C80/94, ~0x300 bytes away; 0x055C68→itempage_strip_blit→bg_fill) is a DIFFERENT producer — its inner write PCs are not a semantic entry; which producer emits gameplay BG stream = RUNTIME attribution, not static
+* PC090OJ SAT-slot RESOLVED statically (§11a): emit slot = pc090oj_emitted_count (packing order) = count of lower-indexed drawables → NOT a stable arcade identity; any lower activation/deactivation shifts it; packing compacts every frame. Arcade record index stable only in mirror. Field-patch-in-place needs (a) field-level dirty + (b) maintained record→SAT-slot map (invalidated on drawable-set change) OR stable-slot allocation. 4 identities separated: field(record idx, mirror-stable) / SAT-slot(packing, unstable) / link(rebuilt from packed order) / residency(SAT-slot-keyed, self-correcting churn). Candidate bitset = record-level TOUCHED flag; loses which-field/structural-class/value/changed-vs-present. PC090OJ NOT fully semantic
+* Build 0140 disposition CORRECTED (§14): removed blanket retain-and-generalize. Per-item status {proven reusable primitive / candidate for generalization / likely replacement / likely removal / profiling decision required}. desc_table/count + vdp_commit_fg_narrow_strips = profiling-decision-required (Branch A generalize vs Branch B replace); dirty-suppression + tail-call = proven reusable primitives; pending_rows/transaction/boot/verif-values = candidates for generalization. Each names generalize AND replace/remove successor. Build 0140 stays code baseline ≠ architecture accepted
+* first boundary CORRECTED (§16): PROFILING GATE, first family NOT preselected. Branches A (PC080SN strip descriptor), B (exact PC080SN dirty-slot), C (PC090OJ field/structural), D (permanent CPU→DMA conversion). Build 0140 shape not default winner
+* profiling split into TWO ENVIRONMENTS (§13/§20): Env1 Genesis Build 0140 (MAME Genesis driver — frontend families, CPU/DMA, DISPLAY_OFF, black-strip, PC090OJ scan/link/DMA cost, runtime BG-entry attribution, PC090OJ churn/field-vs-structural); Env2 original arcade (MAME arcade driver — gameplay families, geometry, readback taps 0xC08000/0xC00000/0xD00000/0x200000 classified read-occurred/consumed/affected/unknown). Arcade addrs ≠ Genesis runtime addrs
+* Cody role corrected: static tasks (BG entry, mappings, SAT ownership) REMOVED (Andy resolved); Cody measures runtime only, must not redesign architecture
+* mapping acceptance corrected (§17): opcode_replace=133 NO LONGER a permanent fixed requirement; replaced with map-gaps=0, overlaps=0, changed-sites documented, wrapper-unchanged-where-unauthorized, unexpected=STOP, predictable-reviewed-migration-changes allowed; 133 = Build 0140 baseline only
+* palette kept as future candidate, OUTSIDE first migration boundary unless Env1 shows same bottleneck. Preserved: push-based recording, no content/committed-shadow diffing, PC080SN/PC090OJ separate, interrupt-safe publication, readback gate, no frame-pipeline change, no scaffolding
+* Open/Closed Issues Impact: OPEN-001 / PC080SN+PC090OJ optimization context; none opened/closed
+* design doc: docs/design/Andy_pc080sn_pc090oj_semantic_recording_phase1.md (amended)
+
+* baseline Build 0140 SHA256 f6e63eb3e3a6d5e82caf9e151ef2eb1c23418633ee7118adad51f1c2081a135c; static architecture + taxonomy + profiling-plan design only, no implementation. Outcome A
+* principle: record arcade INTENT at the producer (dirty bit / semantic descriptor), present only recorded work at VBlank; NEVER reconstruct intent by diffing tile/sprite content or committed VRAM. Per-family cheapest-correct mechanism, PC080SN and PC090OJ not forced to share
+* proven PC080SN families (census): FG_VERTICAL_STRIP_STREAM 36% (0x055990, Build 0140 narrow), BG_VERTICAL_STRIP_STREAM 24% (0x055C7A entry arcade_copy, needs audit), BULK_SCENE_FILL_CLEAR 29% (0x03AD44, broad-shaped), SCROLL_LATCH 11% (cheap). PC090OJ sprite-state family (already semantic: candidate bitset intent + code-keyed residency cache + active-count SAT DMA)
+* recording decision rules: (A) exact dirty bit = scattered fixed slots (single/scattered tiles, single sprite-field); (B) semantic descriptor = compact geometry (strip/run/rect/fill/scene/sprite-range/structural-SAT), represents family not one PC; (C) immediate VDP ONLY in proven display-off window (VBlank handler OR scene_load-style own-window) — main-loop alone NOT proof. Do not pre-decide winner per shape
+* interrupt safety (single 68000, VINT preempts main-loop producers): descriptor append = short VINT-masked critical section (payload then count-last) → VBlank snapshots count, processes, resets — eliminates orphan/erase race. Dirty bit = publish staging→detail→summary(last), VBlank scans summary→detail→staging and clears ONLY processed detail incrementally (never wholesale). Interrupted-before-publish op defers 1 frame = matches current model, no extra latency
+* readback GATE: do not remove any mirror/staging or go command-only until profiler proves arcade does NOT read back the region (C-window 0xC08000/0xC00000, sprite RAM 0xD00000, palette 0x200000). Mirror may remain as arcade-visible state but must NOT infer which op occurred. Committed-VRAM shadow diffing REJECTED as central mechanism
+* PC090OJ candidates: keep current mirror-scan rebuild vs field-level dirty (X/Y/tile/attr patch) vs structural (activation/deactivation/link) with LINK HEALING (predecessor-link patch on deactivation may avoid full rebuild). Key proof: arcade-record→SAT-slot stability (emit packs by emission order → slot not a stable identity → field-patch needs a stable map). Pattern upload handled separately (already residency-cached DMA)
+* Build 0140 disposition: ALL retain-and-generalize (nothing removed) — it is the SEED of the permanent PC080SN strip-descriptor mechanism. Successors: fg_narrow_desc_table→pc080sn_strip_desc_table (FG+BG), vdp_commit_fg_narrow_strips→vdp_commit_pc080sn_strips, producer two-phase + dirty-suppression + tail-call + boot init all generalize in place. No parallel pipeline (absorption in first migration build, not deletion)
+* first step: PROFILING GATE (measure LOGICAL operations not raw writes; two separate views frontend-attract vs arcade-gameplay; two rankings final-priority = freq×amplification×cost, and black-strip = strip-freq×DISPLAY_OFF-cost; classify sprite/SAT CPU/DMA/mixed; resolve BG-strip-entry + SAT-slot-stability prerequisites; NO committed-shadow, NO diff). Enables first migration boundary = generalize Build 0140 FG strip → family-level PC080SN strip descriptor (FG now, BG after entry audit)
+* ownership: PC090OJ stays single-owned in pc090oj_hooks.s; PC080SN strip RECORDING consolidates into tilemap_hooks.s as it generalizes, presentation in vdp_comm.s; scene_load/palette stay where behavior lives (no aesthetic restructure)
+* Open/Closed Issues Impact: OPEN-001 / PC080SN+PC090OJ optimization context; none opened/closed
+* design doc: docs/design/Andy_pc080sn_pc090oj_semantic_recording_phase1.md
+
+* corrects docs/design/Andy_fg_vertical_strip_narrow_commit_design.md. Design-only, no source/spec/tool/Makefile/ROM/build/bookmark/runtime change
+* BUG fixed: producer masks column per descriptor (tilemap_hooks.s:400 andi.w #0x003F,%d2 in .Lfg_hook_desc_done, after EVERY descriptor incl. invalid fall-through) → a column reaching 64 WRAPS to start of same logical row; the narrow presenter's linear col_offset_x2+8k instead SPILLS into the next row. NOT equivalent. Prior doc wrongly used >=256 fallback threshold and claimed linear spill == masked-column behavior
+* correction: narrow eligibility = col_offset_x2 + 120 < 128 (equiv base_col+strip <= 3); any col_offset_x2 + 120 >= 128 (base_col+strip >= 4, any wrap/spill) → broad fallback fg_row_dirty |= pending_rows. Removed >=256 everywhere; removed linear-spill-equivalence claims. No masked per-word addressing, no wrapped-segment split, no larger descriptor
+* static proof added (§17a): mask at line 400 after every descriptor; starts 0-3 non-wrapping (max byte 120/122/124/126 < 128); start 4 wraps on 16th descriptor ((base_col+60)&0x3F=0 → col 0 same row, vs linear 128 → next row); linear formula exact only for starts 0-3; broad fallback presents wrapping cases byte-identical to Build 0138 (full-row commit unchanged)
+* unchanged: 2-byte descriptor {base_row,col_offset_x2}, capacity 64, WRAM 132B, staged_fg_buffer authoritative, producer-local dirty suppression, broad fallback on overflow, 4 rows × 16 stride-4 cells, VDP autoinc 0x08 CPU writes + restore 0x02, narrow-before-general-FG, no one-frame-lag, no VBlank reorder, no DISPLAY_OFF/ON move
+* revised sections: §1 (CORRECTION note), §4, §9.4, §10, §14, §17 (full rewrite), §17a (new proof), §24, §26, §27
+* Outcome A (corrected implementation-ready); no new dependency (not Outcome B)
 
 * baseline: Build 0138, SHA256 719a9af2e8a4afebed793af30687c19e31d6817ea0a8f50b71d9756988044615; DESIGN + static only, no implementation. Selected producer arcade_pc 0x055990 → runtime 0x055B90 (jsr 0x0703EA = genesistan_hook_tilemap_fg, tilemap_hooks.s:243). Evidence from frontend/attract only (NOT gameplay)
 * CRITICAL GEOMETRY CORRECTION: producer does NOT write 4 contiguous 16-word spans. Per descriptor dest += 0x400 and col d2 += 4 → 16 columns at STRIDE-4 (every-4th col: base_col+strip, +4, ..., +60) × 4 contiguous rows (base_row..+3 mod 32) = 64 cells. Overlap-audit row-0..3 first words 0x60D8/DC/E0/E4 (Δ4) confirm one vertical run in column 0. Narrow presentation must be STRIDED (autoinc 0x08), not contiguous
@@ -40548,4 +40595,67 @@ Open/Closed Issues Impact:
 * implementation implication recorded, not applied: future work may keep selected staging writes, suppress only this producer's broad row-dirty marking, and transfer the valid 64-cell strip narrowly without global row-policy or frame-pipeline changes
 * limitation: Lua old/new write tap under-reported selected stores; writer ownership and VBlank association were resolved from native debugger instruction-PC evidence plus generated-code topology
 * issue impact: OPEN-001 / PC080SN optimization context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+### MAME Exit Summary (2026-07-05 14:39:33)
+- Final PC: 0x07215A
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-05 14:57:11)
+- Final PC: 0x07215A
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Implementation, Build 0140 FG Vertical Strip Narrow Commit]
+
+* scope: implemented Andy's corrected producer-local FG narrow commit for selected PC080SN FG vertical-strip producer only (`arcade_pc 0x055990` / `runtime_genesis_pc 0x055B90`); no spec changes, no BG/sprite/palette/general producer expansion, no frame pipeline, no bookmark, no BlastEm automation
+* report: `docs/implementation/Cody_fg_vertical_strip_narrow_commit_build_0140.md`
+* evidence artifacts: `states/traces/fg_vertical_strip_narrow_commit_build_0140_20260705_145903/`; rejected intermediate evidence retained at `states/traces/fg_vertical_strip_narrow_commit_build_0139_20260705_184220/`; release smoke trace at `states/traces/rastan_direct_video_test_build_0140_mame_30s_20260705_145705/`
+* implementation: selected producer now stages the same cells but accumulates local pending rows, appends 2-byte descriptors only when `col_offset_x2 + 120 < 128`, and falls back by ORing pending rows into `fg_row_dirty` on invalid/wrap/capacity; narrow presenter at `0x71708` processes descriptors with autoinc `0x08`, restores `0x02`, clears count, then tail-branches to unchanged broad FG commit at `0x70186`
+* build: Build 0140 produced successfully, ROM `dist/rastan-direct/rastan_direct_video_test_build_0140.bin`, SHA256 `f6e63eb3e3a6d5e82caf9e151ef2eb1c23418633ee7118adad51f1c2081a135c`; rolling ROM byte-identical; `GATE_PASS`
+* invariants: opcode_replace count unchanged `133`; total Genesis bytes covered `0x17D680`; selected wrapper bytes at `0x055B90` match Build 0138 exactly (`4eb9000703ea...`); address-map coverage gaps/overlaps empty
+* WRAM: added `fg_narrow_desc_table=0x00FF400A`, `fg_narrow_desc_count=0x00FF408A`, `fg_narrow_pending_rows=0x00FF408C`, total 132 bytes, aligned and non-overlapping
+* correction note: intermediate Build 0139 layout moved `genesistan_hook_tilemap_fg` and changed selected wrapper operand; that artifact was rejected/reworked and should not be tested
+* runtime evidence: Build 0140 MAME frontend coin/start capture completed to frame `3600`/state `2/3/0` with no new exception, but the automated reachable frontend path did not hit `0x055B90`; selected-runtime word reduction remains unmeasured until a future capture reaches the selected producer
+* issue impact: OPEN-001 / PC080SN optimization context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: intermediate STOP/rework for wrapper-byte invariant; final Build 0140 static/build STOP status NO, runtime selected-transfer evidence limited
+
+## [Cody - Runtime Validation, Build 0140 FG Narrow Commit]
+
+* scope: autonomous runtime evidence only for Build 0140 selected PC080SN FG narrow-commit path; no source/spec/tool/Makefile/ROM/build/output architecture changes, no Build 0141, no bookmark, no VBlank/DISPLAY/frame-pipeline changes, no fixes
+* report: `docs/validation/Cody_fg_vertical_strip_narrow_commit_build_0140_runtime.md`
+* evidence artifacts: `states/traces/fg_vertical_strip_narrow_commit_build_0140_autonomous_20260705_154323/`; primary clean run is Attempt 1, timeout-suffixed first run retained as audit history
+* ROM verified: `dist/rastan-direct/rastan_direct_video_test_build_0140.bin`, SHA256 `f6e63eb3e3a6d5e82caf9e151ef2eb1c23418633ee7118adad51f1c2081a135c`
+* method: MAME Genesis driver with Qt native debugger breakpoints plus autonomous Lua input; no user/manual input requested; Attempt 1 used prior manual-style A/Start/A/B/C timing and exited cleanly at frame `1700`
+* outcome: A - runtime validation complete; selected wrapper `0x055B90` hit `64` times, one valid narrow invocation, `63` range rejects, `0` invalid/wrap/overflow fallbacks, `64` selected staging stores, `2` descriptor-byte stores, count `0 -> 1 -> 0`, and `0` selected broad dirty writes
+* narrow presenter evidence: descriptor count `1` at `0x071708`, autoinc set to `0x08`, four Plane-A row runs (`0xE000/0xE080/0xE100/0xE180`), `16` words each, `64` total Plane-A words, source stride `8`, destination stride `8`, autoinc restored to `0x02`, broad FG commit entered afterward with `fg_dirty=0`
+* comparison: selected row first words match prior Build 0138 evidence (`60D8/60DC/60E0/60E4`); validation remains frontend/attract only, not gameplay or Stage 1
+* exception status: no exception entry observed; MAME process stopped cleanly after the primary run
+* issue impact: OPEN-001 / PC080SN optimization context; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO
+
+## [Cody - Runtime Evidence, Build 0140 PC080SN/PC090OJ Two-Environment Profiling Gate]
+
+* scope: runtime evidence and bounded trace analysis only for Build 0140 PC080SN/PC090OJ logical-operation profiling; no source/spec/tool/Makefile/ROM/build/invariant changes, no numbered build, no bookmark, no VBlank/DISPLAY/frame-pipeline changes, no implementation
+* report: `docs/validation/Cody_pc080sn_pc090oj_two_environment_profile_build_0140.md`
+* evidence artifacts: `states/traces/pc080sn_pc090oj_two_environment_profile_build_0140_20260706_124546/`; includes Build 0140 SHA verification, profile reduction JSON/MD, and copied supporting reductions from Build 0140 FG narrow validation, original arcade PC080SN census, PC090OJ candidate-bitset evidence, and PC090OJ DISPLAY_OFF split evidence
+* ROM verified: `dist/rastan-direct/rastan_direct_video_test_build_0140.bin`, SHA256 `f6e63eb3e3a6d5e82caf9e151ef2eb1c23418633ee7118adad51f1c2081a135c`
+* address discipline: arcade-to-Genesis correlations in the report use `build/rastan-direct/address_map.json`; Genesis-only helper/commit PCs are labeled `genesis_only`; no arithmetic mapping used as proof
+* Genesis evidence: Build 0140 selected FG narrow path measured from existing autonomous trace; `1263` paired DISPLAY_OFF intervals, selected interval `98494` cycles, selected FG narrow entry-to-broad-handoff `4352` cycles, `64` narrow VDP word writes, autoinc set/restored, count cleared, and broad FG had `0` rows after selected narrow
+* PC090OJ evidence: current Build 0140 disassembly/symbols place sprite scan/decode/link work before DISPLAY_OFF and sprite tile/SAT DMA inside DISPLAY_OFF; prior Build 0136/0138 PC090OJ runtime reductions are cited only as existing operation-family evidence, not relabeled as new Build 0140 runtime data
+* original arcade evidence: existing PC080SN census provides family frequencies and representative runtime writer PCs, including FG vertical strip, BG vertical strip, and bulk fill/clear families from partial Stage 1 plus supplemental attract evidence
+* outcome: B - Genesis evidence complete, but the stricter original-arcade readback-watchpoint portion was blocked because no deterministic original-arcade Stage 1 replay/save-state artifact was found for rerunning watchpoints on `0xC08000/0xC00000/0xD00000/0x200000` without manual input
+* issue impact: OPEN-001/PC080SN/PC090OJ context only; no issues opened or closed; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO; bounded dependency recorded as Outcome B
+
+## [Cody - Correction, Build 0140 Genesis DISPLAY_OFF/PC090OJ Decomposition]
+
+* scope: runtime evidence correction only for `docs/validation/Cody_pc080sn_pc090oj_two_environment_profile_build_0140.md`; no source/spec/tool/Makefile/ROM/build/invariant/bookmark/VBlank/DISPLAY/frame-pipeline changes
+* evidence artifacts: `states/traces/build0140_genesis_displayoff_pc090oj_decomp_20260706_131738/`; includes new MAME Genesis-driver debugger trace, Lua object-RAM watchpoint log, reduced JSON/MD, boundary sumcheck, and screenshots/contact sheet
+* outcome: A - new Build 0140 Genesis capture completed with contributor-level DISPLAY_OFF accounting and direct Build 0140 PC090OJ measurements
+* correction: prior claims that Genesis evidence was complete, Branch A had strongest combined support, one selected FG descriptor proved first-target ranking, or Build 0136/0138 counts were Build 0140 runtime measurements are withdrawn/qualified in the amended report
+* measured frames: native VBlank frames `100` (`0/1/0`), `250` (`0/1/2`), and `960` (`2/2/6`); DISPLAY_OFF intervals `16350`, `16350`, and `16548` cycles; unattributed overhead `0.21%` each
+* result: selected frames had zero useful PC080SN BG/FG/narrow CPU VDP data words; PC090OJ object producer burst observed at Lua frame `66` (`338` writes / `86` records), while selected stable frames measured persistent candidate scan/link/SAT presentation costs
+* issue impact: OPEN-001 / PC080SN/PC090OJ profiling context only; no issues opened or closed; `KNOWN_FINDINGS.md` not edited; original-arcade deterministic replay/readback dependency remains unresolved
 * STOP status: NO

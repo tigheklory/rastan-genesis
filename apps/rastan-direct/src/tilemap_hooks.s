@@ -28,7 +28,12 @@
     .global genesistan_hook_pc080sn_descriptor_rebuild
     .global genesistan_hook_itempage_strip_populate
     .global genesistan_hook_itempage_strip_blit
+    .global vdp_commit_fg_narrow_strips
     .global rastan_direct_update_inputs
+
+    .extern vdp_set_reg
+    .extern vdp_set_vram_write_addr
+    .extern vdp_commit_fg_strips_if_dirty
 
     .global genesistan_shadow_input_390001
     .global genesistan_shadow_input_390003
@@ -68,6 +73,10 @@
     .equ PC080SN_DESC_ARCADE_END,             0x0003A00C
     .equ PC080SN_DESC_GENESIS_START,          0x00001108
     .equ PC080SN_DESC_SECOND_WORD_BASE,       0x00000200
+    .equ FG_NARROW_CAP,                       64
+    .equ VDP_DATA,                            0x00C00000
+    .equ VDP_REG_AUTOINC,                     15
+    .equ VRAM_PLANE_A_BASE,                   0x0000E000
 genesistan_hook_tilemap_plane_a:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
@@ -316,6 +325,15 @@ genesistan_hook_tilemap_fg:
     lea     genesistan_pc080sn_attr_lut, %a3
     lea     staged_fg_buffer, %a6
 
+    suba.w  #12, %sp
+    clr.l   0(%sp)
+    move.w  %d1, 4(%sp)
+    move.w  %d2, %d0
+    add.w   %d7, %d0
+    add.w   %d0, %d0
+    move.w  %d0, 6(%sp)
+    clr.w   8(%sp)
+
     moveq   #15, %d6
 .Lfg_hook_desc_loop:
     move.l  (%a0)+, %d3
@@ -361,7 +379,7 @@ genesistan_hook_tilemap_fg:
     or.w    %d3, %d0
     add.w   %d0, %d0
     move.w  0(%a3,%d0.w), %d0
-    move.w  %d0, -(%sp)
+    move.w  %d0, 10(%sp)
 
     moveq   #3, %d4
 .Lfg_hook_row_loop:
@@ -369,7 +387,7 @@ genesistan_hook_tilemap_fg:
     andi.w  #0x3FFF, %d3
     add.w   %d3, %d3
     move.w  0(%a2,%d3.w), %d3
-    or.w    (%sp), %d3
+    or.w    10(%sp), %d3
 
     move.w  %d1, %d0
     lsl.w   #7, %d0
@@ -378,19 +396,19 @@ genesistan_hook_tilemap_fg:
     add.w   %d7, %d0
     add.w   %d7, %d0
     move.w  %d3, 0(%a6,%d0.w)
-    move.l  fg_row_dirty, %d0
-    bset    %d1, %d0
-    move.l  %d0, fg_row_dirty
+    moveq   #1, %d0
+    lsl.l   %d1, %d0
+    or.l    %d0, 0(%sp)
 
     adda.w  #8, %a4
     addq.w  #1, %d1
     andi.w  #0x001F, %d1
     dbra    %d4, .Lfg_hook_row_loop
 
-    addq.l  #2, %sp
     bra.s   .Lfg_hook_desc_done
 
 .Lfg_hook_invalid_desc:
+    move.w  #1, 8(%sp)
     addq.w  #4, %d1
     andi.w  #0x001F, %d1
 
@@ -402,7 +420,42 @@ genesistan_hook_tilemap_fg:
     andi.w  #0x001F, %d1
     dbra    %d6, .Lfg_hook_desc_loop
 
+    tst.w   8(%sp)
+    bne.s   .Lfg_hook_broad_fallback
+
+    move.w  6(%sp), %d0
+    addi.w  #120, %d0
+    cmpi.w  #128, %d0
+    bhs.s   .Lfg_hook_broad_fallback
+
+    move.w  fg_narrow_desc_count, %d0
+    cmpi.w  #FG_NARROW_CAP, %d0
+    bhs.s   .Lfg_hook_broad_fallback
+
+    move.w  %d0, %d3
+    add.w   %d3, %d3
+    lea     fg_narrow_desc_table, %a0
+    adda.w  %d3, %a0
+
+    move.w  4(%sp), %d3
+    move.b  %d3, (%a0)
+    move.w  6(%sp), %d3
+    move.b  %d3, 1(%a0)
+
+    addq.w  #1, %d0
+    move.w  %d0, fg_narrow_desc_count
+    bra.s   .Lfg_hook_decision_done
+
+.Lfg_hook_broad_fallback:
+    move.l  0(%sp), %d0
+    beq.s   .Lfg_hook_decision_done
+    move.l  fg_row_dirty, %d3
+    or.l    %d0, %d3
+    move.l  %d3, fg_row_dirty
+
+.Lfg_hook_decision_done:
     move.l  %d5, ARCADE_PC080SN_DEST_FG_OFFSET(%a5)
+    adda.w  #12, %sp
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -2236,6 +2289,57 @@ genesistan_hook_itempage_strip_blit:
 
     move.l  (%sp)+, %d1
     rts
+
+vdp_commit_fg_narrow_strips:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+
+    move.w  fg_narrow_desc_count, %d7
+    beq.s   .Lfg_narrow_done
+    subq.w  #1, %d7
+
+    moveq   #VDP_REG_AUTOINC, %d0
+    moveq   #0x08, %d1
+    bsr     vdp_set_reg
+
+    lea     fg_narrow_desc_table, %a5
+.Lfg_narrow_desc_loop:
+    moveq   #0, %d6
+    move.b  (%a5)+, %d6
+    moveq   #0, %d3
+    move.b  (%a5)+, %d3
+
+    moveq   #3, %d5
+.Lfg_narrow_row_loop:
+    move.w  %d6, %d4
+    andi.w  #0x001F, %d4
+    lsl.l   #7, %d4
+    add.l   %d3, %d4
+
+    move.l  #VRAM_PLANE_A_BASE, %d0
+    add.l   %d4, %d0
+    bsr     vdp_set_vram_write_addr
+
+    lea     staged_fg_buffer, %a0
+    adda.l  %d4, %a0
+    move.w  #(16 - 1), %d2
+.Lfg_narrow_word_loop:
+    move.w  (%a0), VDP_DATA
+    adda.w  #8, %a0
+    dbra    %d2, .Lfg_narrow_word_loop
+
+    addq.w  #1, %d6
+    dbra    %d5, .Lfg_narrow_row_loop
+
+    dbra    %d7, .Lfg_narrow_desc_loop
+
+    moveq   #VDP_REG_AUTOINC, %d0
+    moveq   #0x02, %d1
+    bsr     vdp_set_reg
+    clr.w   fg_narrow_desc_count
+
+.Lfg_narrow_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    bra.w   vdp_commit_fg_strips_if_dirty
 
 
     .section .bss
