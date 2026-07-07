@@ -51,6 +51,8 @@
     .global staged_sprite_dirty
     .global staged_sprite_active_count
     .global sprite_tile_resident_code
+    .global pc090oj_tile_dma_worklist
+    .global pc090oj_tile_dma_count
 
     .global audit_guard_caller_pc
     .global audit_guard_register_snapshot
@@ -134,6 +136,30 @@
     movem.l (%sp)+, %d0-%d3/%a0
     rts
 
+/* Append {d0=SAT slot, d6=required masked code} to the tile-DMA worklist.
+ * Render path only (pc090oj_scan_active != 0); legacy producer emits do not append.
+ * Preserves all caller registers (movem save/restore of scratch); leaves d0/d6 intact.
+ */
+.Lpc090oj_worklist_append_d0_d6:
+    tst.w   pc090oj_scan_active
+    beq.s   .Lworklist_append_done
+    movem.l %d1/%d2/%a0, -(%sp)
+    move.w  pc090oj_tile_dma_count, %d1
+    cmpi.w  #80, %d1
+    bhs.s   .Lworklist_append_restore   /* defensive: full (impossible under <=80 slots) */
+    move.w  %d1, %d2
+    lsl.w   #2, %d2                       /* entry = worklist + count*4 */
+    lea     pc090oj_tile_dma_worklist, %a0
+    adda.w  %d2, %a0
+    move.w  %d0, (%a0)                    /* SAT slot */
+    move.w  %d6, 2(%a0)                   /* required masked code */
+    addq.w  #1, %d1
+    move.w  %d1, pc090oj_tile_dma_count   /* publish count last */
+.Lworklist_append_restore:
+    movem.l (%sp)+, %d1/%d2/%a0
+.Lworklist_append_done:
+    rts
+
 /* d0=slot,d1=word0,d2=y,d3=word2(tile),d4=x,d5=source_id,d6=ignored_input,d7=sprite_colbank
  * Clobbers: D1, D2, D3, D5, D6, A0, A1
  * Preserves: D0, D4, D7, A2..A6
@@ -200,7 +226,8 @@
     move.l  (%sp)+, %a2
     cmp.w   %d6, %d5
     beq.s   .Lpc090oj_no_tile_change
-    move.w  #0x8005, %d5                /* valid + tile-code-changed */
+    bsr     .Lpc090oj_worklist_append_d0_d6   /* d0=slot, d6=required code */
+    move.w  #0x8005, %d5                /* valid + tile-code-changed (legacy flag, unused by commit) */
     bra.s   .Lpc090oj_store_flags
 .Lpc090oj_no_tile_change:
     move.w  #0x8001, %d5
@@ -978,6 +1005,7 @@ genesistan_pc090oj_hook_audit_guard:
 
 vdp_prepare_sprites:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+    clr.w   pc090oj_tile_dma_count      /* reset worklist before any emit can append */
     bsr     .Lvcs_mirror_scan
     bsr     .Lvcs_link_chain_build
     movem.l (%sp)+, %d0-%d7/%a0-%a6
@@ -989,7 +1017,6 @@ vdp_commit_sprites_vram:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     .Lvcs_tile_dma
     bsr     .Lvcs_sat_dma
-    bsr     .Lvcs_clear_dirty
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -1211,29 +1238,27 @@ vdp_commit_sprites_vram:
 .Lvcs_link_end:
     rts
 
+/*
+ * Precomputed tile-DMA worklist commit.  Bounded by pc090oj_tile_dma_count
+ * (published pre-DISPLAY_OFF), NOT by a fixed 80-slot scan.  Each entry
+ * {word slot, word code} was appended during the scan only where the required
+ * code differed from the resident code.  d7=count, d5=index, d4=slot, d6=code.
+ */
 .Lvcs_tile_dma:
-    moveq   #0, %d7                  /* slot */
+    move.w  pc090oj_tile_dma_count, %d7
+    beq     .Lvcs_tile_done          /* zero-entry fast path */
+    moveq   #0, %d5                  /* worklist index */
 .Lvcs_tile_loop:
-    cmpi.w  #80, %d7
-    bhs     .Lvcs_tile_done
+    move.w  %d5, %d0
+    lsl.w   #2, %d0
+    lea     pc090oj_tile_dma_worklist, %a0
+    adda.w  %d0, %a0
+    move.w  (%a0), %d4               /* SAT slot */
+    move.w  2(%a0), %d6             /* required masked code */
 
-    move.w  %d7, %d0
-    mulu.w  #12, %d0
-    lea     staged_sprite_descriptor_table, %a0
-    adda.l  %d0, %a0
-
-    move.w  (%a0), %d1
-    btst    #0, %d1                  /* valid */
-    beq     .Lvcs_tile_next
-    btst    #2, %d1                  /* tile-code-changed */
-    beq     .Lvcs_tile_next
-
-    move.w  8(%a0), %d2
-    andi.w  #0x0FFF, %d2
-    move.w  %d2, %d6
-
-    /* source = rastan_pc090oj + tile*128 */
-    move.w  %d2, %d0
+    /* source = rastan_pc090oj + code*128 */
+    move.w  %d6, %d0
+    andi.w  #0x0FFF, %d0
     mulu.w  #128, %d0
     lea     rastan_pc090oj, %a1
     adda.l  %d0, %a1
@@ -1267,7 +1292,7 @@ vdp_commit_sprites_vram:
     move.w  %d3, (%a3)
 
     /* dest VRAM addr = (SPRITE_TILE_BASE + slot*4) * 32 */
-    move.w  %d7, %d0
+    move.w  %d4, %d0
     lsl.w   #2, %d0
     addi.w  #SPRITE_TILE_BASE, %d0
     lsl.l   #5, %d0
@@ -1283,19 +1308,17 @@ vdp_commit_sprites_vram:
 
     ori.l   #0x40000080, %d1
     or.l    %d2, %d1
-    move.l  %d1, (%a3)
+    move.l  %d1, (%a3)               /* DMA trigger; 68k stalls to completion */
 
-    move.w  %d7, %d0
+    /* residency update ONLY after the DMA */
+    move.w  %d4, %d0
     add.w   %d0, %d0
     lea     sprite_tile_resident_code, %a1
     move.w  %d6, 0(%a1,%d0.w)
 
-    /* clear tile-code-changed bit */
-    andi.w  #0xFFFB, (%a0)
-
-.Lvcs_tile_next:
-    addq.w  #1, %d7
-    bra     .Lvcs_tile_loop
+    addq.w  #1, %d5
+    cmp.w   %d7, %d5
+    blo     .Lvcs_tile_loop
 
 .Lvcs_tile_done:
     rts
@@ -1359,17 +1382,9 @@ vdp_commit_sprites_vram:
     move.l  %d1, (%a3)
     rts
 
-.Lvcs_clear_dirty:
-    clr.l   staged_sprite_dirty
-    lea     staged_sprite_descriptor_table, %a0
-    move.w  #(80 - 1), %d0
-.Lvcs_clear_loop:
-    move.w  (%a0), %d1
-    andi.w  #0x7FFF, %d1             /* clear touched flag */
-    move.w  %d1, (%a0)
-    adda.w  #12, %a0
-    dbra    %d0, .Lvcs_clear_loop
-    rts
+/* .Lvcs_clear_dirty removed: the descriptor touched flag (bit 15) has no
+ * consumer, staged_sprite_dirty is write-only (SAT DMA is active-count-based),
+ * and both are re-cleared by .Lvcs_clear_generated_sprite_state next frame. */
 
 /* ------------------------------------------------------------------------- */
 /* VRAM DMA self-test                                                        */
@@ -1495,6 +1510,11 @@ staged_sprite_active_count:
 /* Per-SAT-slot VRAM tile residency cache; 0 means cold/no resident tile. */
 sprite_tile_resident_code:
     .space (80 * 2)
+/* Precomputed pending tile-DMA worklist: 80 x {word slot, word code}. */
+pc090oj_tile_dma_worklist:
+    .space (80 * 4)
+pc090oj_tile_dma_count:
+    .word 0
 pc090oj_object_ram:
     .space 0x800
 /* 256-bit derived candidate mask; one bit per PC090OJ source record. */

@@ -38,7 +38,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 133
 # Build 0106 PC080SN scroll-RAM C-lite dispatch/stubs: +0x40 bytes.
 # Build 0110 high-score FG producer staging route hook: +0x68 bytes.
 # Build 0113 shared PC080SN text-writer dispatcher: +0xBC bytes.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17D680
+# Build 0141 PC090OJ precomputed tile-DMA worklist commit (worklist append helper
+# + count-bounded commit replace the fixed 80-slot scan; .Lvcs_clear_dirty removed): +8 bytes.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17D688
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")

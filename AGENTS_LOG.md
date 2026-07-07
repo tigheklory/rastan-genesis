@@ -1,6 +1,27 @@
 # AGENTS Log
 
-## [Andy - Design, PC090OJ Precomputed Tile-DMA Worklist + Minimal DISPLAY_OFF Commit (Build 0140, rastan-direct)]
+## [Andy - Native Evidence (authorized), Build 0141 DISPLAY_OFF/Tile-DMA/SAT Verification (rastan-direct)]
+
+* evidence-only, no implementation/source/ROM/build/tool/branch/commit change. Build 0141 preserved. Branch rastan-direct-proposal, HEAD 5182e009 unchanged. Outcome A
+* MAME execution: reused established native-debugger harness `mame genesis -cart <0141> -window -nothrottle -sound none -skip_gameinfo -debug -debugger qt -debugscript build0141_debug.cmd -autoboot_script frames.lua`; exit=0, "Average speed 16.98% (12s)", intentional lua machine:exit at frame 800. ROM sha cebd389e… proven loaded; 702 VBLANK/DISPLAY_OFF/ON/SAT_DMA events; reached 0/1/0,0/1/2,2/2/6. (-debugger none does NOT fire native bps; qt is the working method). bpset tracelog with totalcycles gives cycle counter Lua lacked
+* re-derived Build 0141 PCs: DISPLAY_OFF 0x700CE, DISPLAY_ON 0x700E6, tile-DMA commit 0x723BE, tile DMA trigger 0x72452, residency write 0x72462, SAT DMA 0x7246C; count 0xFF69AE, worklist 0xFF686E, SAT 0xFF6188, active 0xFF67CC, resident 0xFF67CE
+* DISPLAY_OFF intervals (native totalcycles, 0x700CE->0x700E6): stable 0/1/0=1426, 0/1/2=1426, 2/2/6=1426 cyc (min=median) vs Build 0140 16350/16350/16548 -> ~91% reduction (-14924/-14924/-15122). ~2.9 scanlines = matches Tighe "much thinner, thin line remains". Occasional larger frames (up to ~56k, count=0) from unrelated PC080SN tilemap commits
+* nonzero frame: TILE_COMMIT count=27 -> exactly 27 TILE_DMA_TRIGGER (count==triggers); run-wide 124 triggers == 124 residency-after. Every trigger carries VRAM-write+DMA bits (0x40000080); every prior_resident != code (real change); residency-after[slot]==code (post-DMA update proven, read at 0x72462 after trigger 0x72452). Every DMA 64 words (fixed immediates 0x9340/0x9400, disasm). No skip, no extra DMA
+* SAT parity: dumped 640B staged_sprite_sat (0xFF6188, shared addr) at settled 2/2/6 active=32 from BOTH builds -> BYTE-IDENTICAL, SHA256 45faaa8a… both; cmp=0. Link chain identical (word1 0x0501/0502/0503/0504 = 0->1->2->3->4). active/SAT-words 23/23/32->92/92/128 match Build 0140. Proven by dump not source
+* removed paths: stable count=0 -> 0 tile-DMA triggers (80-slot scan replaced, doesn't execute); .Lvcs_clear_dirty removed (no PC, SAT DMA followed by rts); SAT DMA once/frame (702 events)
+* coverage audit: functional change = ONLY 0x17D680->0x17D688 in both tools (opcode_replace 133 unchanged); ALSO 2 documentation comment lines/file (existing per-build convention, no logic). Flagged for Tighe under strict "constant-only" reading; not edited this task
+* known visual (Tighe BlastEm): thinner strip + thin line, progression works, corner zeros/high-score/colors/positioning/stray sprite remain — none touched (SAT byte-identical); no fix attempted
+* evidence dir states/traces/build0141_native_displayoff_dma_sat_20260706_194758/ (ev_extract.log, native_debug_trace.log.gz 3.9MB, sat_0140/0141_226.bin identical, debugscripts, mame logs). deliverable docs/validation/Andy_pc090oj_tile_dma_worklist_build_0141_native_evidence.md
+
+* AUTHORIZED one-off Andy implement+validate of docs/design/Andy_pc090oj_precomputed_tile_dma_worklist.md. Branch rastan-direct-proposal unchanged; HEAD 5182e009 unchanged; NOT committed/pushed. git tree clean pre-edit
+* static preflight: all 7 premises PASS (compare pre-OFF; slot once/prepare; count<=80; old path 80-slot scan; changed-bit only consumer was tile_dma; clear_dirty/staged_sprite_dirty no consumer; residency safe post-DMA via bus-stall). No contradiction
+* change (pc090oj_hooks.s only): +pc090oj_tile_dma_worklist (80x{word slot,word code}=320B) + pc090oj_tile_dma_count (word); reset count at vdp_prepare_sprites top; append {slot,code} in emit_slot residency-mismatch branch (render path only, scan_active gated, payload-then-count-last, cmpi#80 guard); replaced fixed 80-slot .Lvcs_tile_dma with count-bounded worklist commit (derive src/dest, 64-word DMA, residency update AFTER DMA); removed .Lvcs_clear_dirty + its call. Preserved mirror/candidate/emit/link/SAT-DMA/ordering/VBlank-order/DISPLAY_OFF-ON/frame model/boot.s/PC080SN
+* Build 0141: SHA256 cebd389e8114b316881188623b41d4b71808b5738a39d2cd4a773163bc8aa04c, 1,562,248B (+8 vs 0140), GATE_PASS, boot guard PASS, rolling==numbered, 30s auto-trace clean. address_map gaps=0 overlaps=0 opcode_replace=133 (no patched-site/wrapper change) coverage 0x17D688. WRAM contiguous worklist 0xFF686E count 0xFF69AE
+* ONLY tool touch (flagged for Tighe): CANONICAL_TOTAL_GENESIS_BYTES_COVERED 0x17D680->0x17D688 in postpatch_startup_rom.py + verify_canonical_rom.py (value-only coverage bookkeeping bump, required by hard postpatch coverage gate; every prior Genesis-code build did this; no tool logic change). opcode_replace unchanged
+* runtime validation (MAME Genesis, Lua): STABLE frames 0/1/0, 0/1/2, 2/2/6 all count=0, active=23/23/32 (matches Build 0140 exactly -> SAT-DMA words 92/92/128); 80-slot scan + clear_dirty do NOT execute. NONZERO frame captured (frame 621, 2/2/6 transition, count=35, 35 {slot,code} entries logged, count<emit=39 -> only mismatches queued) then converges to count=0 (frames 660+) proving residency updated post-DMA. No crash to 2200 frames
+* OUTCOME B: cycle-accurate DISPLAY_OFF interval UNMEASURED headless (this MAME/Lua exposes no CPU cycle counter; vpos timeslice-granular=0; machine:time-in-tap reentrant). Correctness fully proven; limited user BlastEm testing SAFE (sprite output equivalent, no crash). Follow-up: native-debugger cycle probe at 0x0700CE/0x0700E6 vs Build 0140 16350/16350/16548
+* known visual variances (000000 corners, high score, colors, positioning, stray upper-left sprite): logic metrics show no sprite behavioral diff (active/emit/draw identical, SAT untouched); visual confirmation deferred to Tighe BlastEm. Screenshots not capturable headless (-video none)
+* deliverables: docs/implementation/Andy_pc090oj_tile_dma_worklist_build_0141.md, docs/validation/Andy_pc090oj_tile_dma_worklist_build_0141_runtime.md
 
 * baseline Build 0140 SHA256 f6e63eb3e3a6d5e82caf9e151ef2eb1c23418633ee7118adad51f1c2081a135c; static design only, no implementation. Outcome A (implementation-ready)
 * cost attribution (from Cody two-env profiling): 11,088 cyc (68% DISPLAY_OFF) = .Lvcs_tile_dma (PC 0x072380) FIXED 80-slot loop, mulu.w #12/slot (~138cy×80), 0 DMA — rediscovers the residency decision already made pre-OFF in emit_slot. 4,128 cyc (25%) = .Lvcs_clear_dirty (0x0724D2) 80-descriptor touched-flag clear (~4000 REDUNDANT with next-frame clear_generated wipe) + ~116 glue. 18,112 pre-OFF gap = clear_generated_sprite_state 80-wipe + update_inputs + prepare wrapper — pre-OFF, does NOT affect strip height, out of scope
@@ -40659,3 +40680,8 @@ Open/Closed Issues Impact:
 * result: selected frames had zero useful PC080SN BG/FG/narrow CPU VDP data words; PC090OJ object producer burst observed at Lua frame `66` (`338` writes / `86` records), while selected stable frames measured persistent candidate scan/link/SAT presentation costs
 * issue impact: OPEN-001 / PC080SN/PC090OJ profiling context only; no issues opened or closed; `KNOWN_FINDINGS.md` not edited; original-arcade deterministic replay/readback dependency remains unresolved
 * STOP status: NO
+
+### MAME Exit Summary (2026-07-06 16:16:08)
+- Final PC: 0x072194
+- Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
