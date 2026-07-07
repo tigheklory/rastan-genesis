@@ -54,6 +54,17 @@
     .global pc090oj_tile_dma_worklist
     .global pc090oj_tile_dma_count
 
+    /* Build 0142 retained-identity translation state */
+    .global pc090oj_workram_block_sprites
+    .global record_to_slot
+    .global represented_records
+    .global waiting_records
+    .global used_sat_slots
+    .global worklist_entry_for_slot
+    .global pc090oj_represented_count
+    .global pc090oj_sat_dirty
+    .global pc090oj_bootstrap_pending
+
     .global audit_guard_caller_pc
     .global audit_guard_register_snapshot
     .global audit_guard_fired_flag
@@ -85,17 +96,6 @@
 /* ------------------------------------------------------------------------- */
 /* Internal helpers                                                          */
 /* ------------------------------------------------------------------------- */
-
-/* d0=slot -> set dirty block bit (slot>>2) in staged_sprite_dirty */
-.Lpc090oj_mark_dirty_slot:
-    move.w  %d0, %d1
-    lsr.w   #2, %d1
-    moveq   #1, %d2
-    lsl.l   %d1, %d2
-    move.l  staged_sprite_dirty, %d3
-    or.l    %d2, %d3
-    move.l  %d3, staged_sprite_dirty
-    rts
 
 /* d0=PC090OJ record index.  Candidate state is helper-derived; mirror remains truth. */
 .Lpc090oj_candidate_set_d0:
@@ -136,163 +136,27 @@
     movem.l (%sp)+, %d0-%d3/%a0
     rts
 
-/* Append {d0=SAT slot, d6=required masked code} to the tile-DMA worklist.
- * Render path only (pc090oj_scan_active != 0); legacy producer emits do not append.
- * Preserves all caller registers (movem save/restore of scratch); leaves d0/d6 intact.
- */
-.Lpc090oj_worklist_append_d0_d6:
-    tst.w   pc090oj_scan_active
-    beq.s   .Lworklist_append_done
-    movem.l %d1/%d2/%a0, -(%sp)
-    move.w  pc090oj_tile_dma_count, %d1
-    cmpi.w  #80, %d1
-    bhs.s   .Lworklist_append_restore   /* defensive: full (impossible under <=80 slots) */
-    move.w  %d1, %d2
-    lsl.w   #2, %d2                       /* entry = worklist + count*4 */
-    lea     pc090oj_tile_dma_worklist, %a0
-    adda.w  %d2, %a0
-    move.w  %d0, (%a0)                    /* SAT slot */
-    move.w  %d6, 2(%a0)                   /* required masked code */
-    addq.w  #1, %d1
-    move.w  %d1, pc090oj_tile_dma_count   /* publish count last */
-.Lworklist_append_restore:
-    movem.l (%sp)+, %d1/%d2/%a0
-.Lworklist_append_done:
-    rts
-
-/* d0=slot,d1=word0,d2=y,d3=word2(tile),d4=x,d5=source_id,d6=ignored_input,d7=sprite_colbank
- * Clobbers: D1, D2, D3, D5, D6, A0, A1
- * Preserves: D0, D4, D7, A2..A6
+/* Legacy producer bridge (Build 0142): the unconverted per-site hooks publish
+ * their arcade sprite record into the mirror and set the per-record candidate.
+ * The staged SAT is no longer written here; it is rebuilt from the mirror by
+ * .Lpc090oj_sync_record_from_mirror during VBlank (dirty candidates) so a single
+ * retained renderer owns the SAT.  d0=record index; d1=word0,d2=Y,d3=code,d4=X.
+ * Preserves d0-d4/d7 and a1..a6 for the calling producer loops.
  */
 .Lpc090oj_emit_slot:
-    /* descriptor ptr = staged_sprite_descriptor_table + slot*12 */
-    move.w  %d0, %d6
-    mulu.w  #12, %d6
-    lea     staged_sprite_descriptor_table, %a0
-    adda.l  %d6, %a0
-
-    /* sat ptr = staged_sprite_sat + slot*8 */
+    movem.l %d5/%d6/%a0, -(%sp)
     move.w  %d0, %d6
     lsl.w   #3, %d6
-    lea     staged_sprite_sat, %a1
-    adda.w  %d6, %a1
-
-    /* Legacy per-site hooks feed the mirror; mirror-scan emission must not. */
-    tst.w   pc090oj_scan_active
-    bne.s   .Lpc090oj_emit_skip_mirror_bridge
-    move.l  %a2, -(%sp)
-    move.w  %d0, %d6
-    lsl.w   #3, %d6
-    lea     pc090oj_object_ram, %a2
-    adda.w  %d6, %a2
-    move.w  %d1, (%a2)
-    move.w  %d2, 2(%a2)
-    move.w  %d3, 4(%a2)
-    move.w  %d4, 6(%a2)
-    move.l  (%sp)+, %a2
-    bsr     .Lpc090oj_candidate_set_d0
-    move.w  #1, pc090oj_mirror_dirty
-.Lpc090oj_emit_skip_mirror_bridge:
-
-    /* persist semantic record */
+    lea     pc090oj_object_ram, %a0
+    adda.w  %d6, %a0
+    move.w  %d1, (%a0)
     move.w  %d2, 2(%a0)
-    move.w  %d4, 4(%a0)
-    move.w  %d1, 6(%a0)
-    move.w  %d3, 8(%a0)
-    move.w  %d5, 10(%a0)
-
-    /* invalid checks: y sentinel, all-zero tuple, tile zero */
-    cmpi.w  #0x0180, %d2
-    beq     .Lpc090oj_emit_invalid
-    tst.w   %d3
-    beq     .Lpc090oj_emit_invalid
-    move.w  %d1, %d5
-    or.w    %d2, %d5
-    or.w    %d3, %d5
-    or.w    %d4, %d5
-    beq     .Lpc090oj_emit_invalid
-
-    /*
-     * flags: valid + touched + extra; bit2 when this SAT slot's owned
-     * VRAM block does not already contain the masked PC090OJ tile code.
-     */
-    move.w  %d3, %d6
-    andi.w  #0x0FFF, %d6
-    move.w  %d0, %d5
-    add.w   %d5, %d5
-    move.l  %a2, -(%sp)
-    lea     sprite_tile_resident_code, %a2
-    move.w  0(%a2,%d5.w), %d5
-    move.l  (%sp)+, %a2
-    cmp.w   %d6, %d5
-    beq.s   .Lpc090oj_no_tile_change
-    bsr     .Lpc090oj_worklist_append_d0_d6   /* d0=slot, d6=required code */
-    move.w  #0x8005, %d5                /* valid + tile-code-changed (legacy flag, unused by commit) */
-    bra.s   .Lpc090oj_store_flags
-.Lpc090oj_no_tile_change:
-    move.w  #0x8001, %d5
-.Lpc090oj_store_flags:
-    move.w  %d5, (%a0)
-
-    /* SAT word0 (Y) */
-    move.w  %d2, %d5
-    andi.w  #0x01FF, %d5
-    addi.w  #0x0080, %d5
-    andi.w  #0x01FF, %d5
-    move.w  %d5, (%a1)
-
-    /* SAT word1 size/link deferred */
-    move.w  #0x0500, 2(%a1)
-
-    /* SAT word2 */
-    move.w  #0x8000, %d5                /* priority */
-
-    /* palette line */
-    move.w  %d1, %d6
-    andi.w  #0x000F, %d6
-    or.w    %d7, %d6
-    lsr.w   #4, %d6
-    andi.w  #0x0003, %d6
-    lsl.w   #8, %d6
-    lsl.w   #5, %d6
-    or.w    %d6, %d5
-
-    /* flips */
-    move.w  %d1, %d6
-    andi.w  #0x8000, %d6
-    lsr.w   #3, %d6
-    or.w    %d6, %d5
-    move.w  %d1, %d6
-    andi.w  #0x4000, %d6
-    lsr.w   #3, %d6
-    or.w    %d6, %d5
-
-    /* tile index from slot */
-    move.w  %d0, %d6
-    lsl.w   #2, %d6
-    addi.w  #SPRITE_TILE_BASE, %d6
-    andi.w  #0x07FF, %d6
-    or.w    %d6, %d5
-
-    move.w  %d5, 4(%a1)
-
-    /* SAT word3 (X) */
-    move.w  %d4, %d5
-    andi.w  #0x01FF, %d5
-    addi.w  #0x0080, %d5
-    andi.w  #0x01FF, %d5
-    move.w  %d5, 6(%a1)
-
-    bsr     .Lpc090oj_mark_dirty_slot
-    rts
-
-.Lpc090oj_emit_invalid:
-    move.w  #0x8000, (%a0)              /* touched, invalid */
-    move.w  #0, (%a1)
-    move.w  #0x0500, 2(%a1)
-    move.w  #0, 4(%a1)
-    move.w  #0, 6(%a1)
-    bsr     .Lpc090oj_mark_dirty_slot
+    move.w  %d3, 4(%a0)
+    move.w  %d4, 6(%a0)
+    bsr     .Lpc090oj_candidate_set_d0   /* d0 = record */
+    addq.w  #1, pc090oj_producer_write_count
+    move.w  #1, pc090oj_mirror_dirty
+    movem.l (%sp)+, %d5/%d6/%a0
     rts
 
 /* d0=slot clears slot */
@@ -351,50 +215,68 @@
     move.l  (%sp)+, %a2
     rts
 
-/* emit 22 slots from workram blocks at A5+0x11B2 (18) and A5+0x0170 (4) */
-.Lpc090oj_emit_slots_0_21_from_workram:
-    move.w  10*2(%a5), %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-
+/* Converted semantic family (Build 0142): the complete 22-object work-RAM block
+ * shared by arcade 0x041DAE / 0x041F5E / 0x045DFA.  Block A = 18 records at
+ * A5+0x11B2, block B = 4 records at A5+0x0170; tuple = {word0, Y, code, X}.
+ * Each record is written once into the mirror (exact arcade store), then
+ * synchronized directly from the mirror and its superseded candidate cleared.
+ * It does NOT set a candidate; later unconverted writes to the same record
+ * re-set the candidate and VBlank re-syncs it (§9-E.2/§9-E.3).
+ */
+pc090oj_workram_block_sprites:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x11B2(%a5), %a0
     moveq   #0, %d0
-    moveq   #17, %d1
-.Lpc090oj_block_a_loop:
-    move.w  (%a0), %d2
-    move.w  2(%a0), %d3
-    move.w  4(%a0), %d4
-    move.w  6(%a0), %d5
-    move.w  %d2, %d1
-    move.w  %d3, %d2
-    move.w  %d4, %d3
-    move.w  %d5, %d4
-    moveq   #0, %d5
-    moveq   #0, %d6
-    bsr     .Lpc090oj_emit_slot
+.Lwbs_block_a:
+    move.w  (%a0), %d1
+    move.w  2(%a0), %d2
+    move.w  4(%a0), %d3
+    move.w  6(%a0), %d4
+    bsr     .Lpc090oj_family_apply_record
     adda.w  #8, %a0
     addq.w  #1, %d0
     cmpi.w  #18, %d0
-    blo.s   .Lpc090oj_block_a_loop
+    blo.s   .Lwbs_block_a
 
     lea     0x0170(%a5), %a0
     moveq   #18, %d0
-.Lpc090oj_block_b_loop:
-    move.w  (%a0), %d2
-    move.w  2(%a0), %d3
-    move.w  4(%a0), %d4
-    move.w  6(%a0), %d5
-    move.w  %d2, %d1
-    move.w  %d3, %d2
-    move.w  %d4, %d3
-    move.w  %d5, %d4
-    moveq   #0, %d5
-    moveq   #0, %d6
-    bsr     .Lpc090oj_emit_slot
+.Lwbs_block_b:
+    move.w  (%a0), %d1
+    move.w  2(%a0), %d2
+    move.w  4(%a0), %d3
+    move.w  6(%a0), %d4
+    bsr     .Lpc090oj_family_apply_record
     adda.w  #8, %a0
     addq.w  #1, %d0
     cmpi.w  #22, %d0
-    blo.s   .Lpc090oj_block_b_loop
+    blo.s   .Lwbs_block_b
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* d0=record, d1=word0, d2=Y, d3=code, d4=X.  Write the mirror once, then sync
+ * from the mirror and clear the superseded candidate, inside a VINT-masked
+ * critical section so a VBlank commit never observes a half-applied structural
+ * change (§9-C interrupt safety).
+ */
+.Lpc090oj_family_apply_record:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.w  %sr, -(%sp)
+    ori.w   #0x0700, %sr
+    move.w  %d0, %d6                     /* record */
+    move.w  %d6, %d5
+    lsl.w   #3, %d5
+    lea     pc090oj_object_ram, %a0
+    adda.w  %d5, %a0
+    move.w  %d1, (%a0)
+    move.w  %d2, 2(%a0)
+    move.w  %d3, 4(%a0)
+    move.w  %d4, 6(%a0)
+    addq.w  #1, pc090oj_producer_write_count
+    move.w  #1, pc090oj_mirror_dirty
+    bsr     .Lpc090oj_sync_record_from_mirror   /* d6 = record */
+    bsr     .Lpc090oj_candidate_clear_d6        /* d6 = record */
+    move.w  (%sp)+, %sr
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 /* ------------------------------------------------------------------------- */
@@ -477,21 +359,15 @@ genesistan_pc090oj_hook_target_3b930:
     rts
 
 genesistan_pc090oj_hook_target_41dae:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    bsr     .Lpc090oj_emit_slots_0_21_from_workram
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    bsr     pc090oj_workram_block_sprites
     rts
 
 genesistan_pc090oj_hook_target_41f5e:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    bsr     .Lpc090oj_emit_slots_0_21_from_workram
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    bsr     pc090oj_workram_block_sprites
     rts
 
 genesistan_pc090oj_hook_target_45dfa:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    bsr     .Lpc090oj_emit_slots_0_21_from_workram
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    bsr     pc090oj_workram_block_sprites
     rts
 
 genesistan_pc090oj_hook_target_59f5e:
@@ -517,22 +393,45 @@ genesistan_pc090oj_hook_target_59f5e:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-/* PC090OJ ctrl register (word offset 0x0DFF / HW 0x00D01BFE). */
+/* PC090OJ ctrl register (word offset 0x0DFF / HW 0x00D01BFE).
+ * Bit 0 is the global-flip control (a change flips every sprite on/off screen),
+ * so an actual change reevaluates all 256 records by requesting a full
+ * candidate sweep processed at the next VBlank (§9-E.4).
+ */
 genesistan_pc090oj_ctrl_set_1:
+    cmpi.w  #1, pc090oj_ctrl_shadow
+    beq.s   .Lctrl_set_1_done
     move.w  #1, pc090oj_ctrl_shadow
+    bsr     .Lpc090oj_set_all_candidates
+.Lctrl_set_1_done:
     rts
 
 genesistan_pc090oj_ctrl_set_0:
+    tst.w   pc090oj_ctrl_shadow
+    beq.s   .Lctrl_set_0_done
     clr.w   pc090oj_ctrl_shadow
+    bsr     .Lpc090oj_set_all_candidates
+.Lctrl_set_0_done:
     rts
 
-/* External sprite_ctrl at HW 0x00380000.  D0 holds the arcade value. */
+/* External sprite_ctrl at HW 0x00380000.  D0 holds the arcade value; its colour
+ * bank feeds sprite palette selection.  On an actual change, reevaluate (a full
+ * sweep is a safe superset of the represented-only palette refresh).
+ */
 genesistan_pc090oj_sprite_ctrl_write_d0:
+    cmp.w   pc090oj_sprite_ctrl_shadow, %d0
+    beq.s   .Lsprite_ctrl_write_done
     move.w  %d0, pc090oj_sprite_ctrl_shadow
+    bsr     .Lpc090oj_set_all_candidates
+.Lsprite_ctrl_write_done:
     rts
 
 genesistan_pc090oj_sprite_ctrl_clear:
+    tst.w   pc090oj_sprite_ctrl_shadow
+    beq.s   .Lsprite_ctrl_clear_done
     clr.w   pc090oj_sprite_ctrl_shadow
+    bsr     .Lpc090oj_set_all_candidates
+.Lsprite_ctrl_clear_done:
     rts
 
 genesistan_hook_3ad44_dispatch:
@@ -1005,9 +904,19 @@ genesistan_pc090oj_hook_audit_guard:
 
 vdp_prepare_sprites:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
-    clr.w   pc090oj_tile_dma_count      /* reset worklist before any emit can append */
-    bsr     .Lvcs_mirror_scan
-    bsr     .Lvcs_link_chain_build
+    tst.w   pc090oj_scan_active
+    bne.s   .Lprep_inited
+    bsr     .Lpc090oj_renderer_init
+.Lprep_inited:
+    tst.w   pc090oj_bootstrap_pending
+    beq.s   .Lprep_no_bootstrap
+    clr.w   pc090oj_bootstrap_pending
+    bsr     .Lpc090oj_set_all_candidates
+.Lprep_no_bootstrap:
+    bsr     .Lpc090oj_process_candidates
+    /* Expose represented count for logging / Build 0141 parity checks. */
+    move.w  pc090oj_represented_count, %d0
+    move.w  %d0, staged_sprite_active_count
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -1016,92 +925,152 @@ vdp_commit_sprites:
 vdp_commit_sprites_vram:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     .Lvcs_tile_dma
+    tst.w   pc090oj_sat_dirty
+    beq.s   .Lvcs_commit_done
     bsr     .Lvcs_sat_dma
+    clr.w   pc090oj_sat_dirty
+.Lvcs_commit_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-.Lvcs_clear_generated_sprite_state:
-    /* Per-frame SAT/descriptors reset; sprite_tile_resident_code persists. */
-    lea     staged_sprite_sat, %a0
-    move.w  #((80 * 8 / 2) - 1), %d0
-.Lvcs_clear_generated_sat_loop:
-    clr.w   (%a0)+
-    dbra    %d0, .Lvcs_clear_generated_sat_loop
+/* ------------------------------------------------------------------------- */
+/* Build 0142 retained-identity translation engine                          */
+/* ------------------------------------------------------------------------- */
 
-    lea     staged_sprite_descriptor_table, %a0
-    move.w  #((80 * 12 / 2) - 1), %d0
-.Lvcs_clear_generated_desc_loop:
-    clr.w   (%a0)+
-    dbra    %d0, .Lvcs_clear_generated_desc_loop
-
-    clr.l   staged_sprite_dirty
-    clr.w   staged_sprite_active_count
+/* One-time initialisation: record_to_slot / worklist_entry_for_slot = 0xFF,
+ * every bitmap and counter cleared, staged SAT slot 0 hidden + terminating,
+ * and a single 256-record bootstrap requested so pre-init mirror state is
+ * captured exactly once without any recurring scan.  BSS zero at reset does
+ * not cover the 0xFF defaults, so this must run before the first sync.
+ */
+.Lpc090oj_renderer_init:
+    movem.l %d7/%a0, -(%sp)
+    lea     record_to_slot, %a0
+    move.w  #(256 - 1), %d7
+.Lri_rts_loop:
+    move.b  #0xFF, (%a0)+
+    dbra    %d7, .Lri_rts_loop
+    lea     represented_records, %a0
+    move.w  #(32 - 1), %d7
+.Lri_rep_loop:
+    clr.b   (%a0)+
+    dbra    %d7, .Lri_rep_loop
+    lea     waiting_records, %a0
+    move.w  #(32 - 1), %d7
+.Lri_wait_loop:
+    clr.b   (%a0)+
+    dbra    %d7, .Lri_wait_loop
+    lea     used_sat_slots, %a0
+    move.w  #(16 - 1), %d7
+.Lri_used_loop:
+    clr.b   (%a0)+
+    dbra    %d7, .Lri_used_loop
+    lea     worklist_entry_for_slot, %a0
+    move.w  #(80 - 1), %d7
+.Lri_wef_loop:
+    move.b  #0xFF, (%a0)+
+    dbra    %d7, .Lri_wef_loop
+    clr.w   pc090oj_represented_count
+    clr.w   pc090oj_tile_dma_count
+    move.w  #1, pc090oj_bootstrap_pending
+    bsr     .Lpc090oj_write_empty_slot0
+    move.w  #1, pc090oj_scan_active
+    movem.l (%sp)+, %d7/%a0
     rts
 
-.Lvcs_mirror_scan:
-    bsr     .Lvcs_clear_generated_sprite_state
+/* Set every candidate bit (bootstrap / global reevaluation). */
+.Lpc090oj_set_all_candidates:
+    movem.l %d7/%a0, -(%sp)
+    lea     pc090oj_candidate_bitset, %a0
+    move.w  #(32 - 1), %d7
+.Lsac_loop:
+    move.b  #0xFF, (%a0)+
+    dbra    %d7, .Lsac_loop
+    movem.l (%sp)+, %d7/%a0
+    rts
 
-    clr.w   pc090oj_decoded_count
-    clr.w   pc090oj_candidate_count
-    clr.w   pc090oj_code_zero_skipped_count
-    clr.w   pc090oj_blank_skipped_count
-    clr.w   pc090oj_unmapped_skipped_count
-    clr.w   pc090oj_offscreen_skipped_count
-    clr.w   pc090oj_drawable_count
-    clr.w   pc090oj_emitted_count
-    clr.w   pc090oj_dropped_count
-    move.w  #1, pc090oj_scan_active
+/* Reset the per-interval worklist reservation map to 0xFF (called post-commit). */
+.Lpc090oj_worklist_reset_map:
+    movem.l %d7/%a0, -(%sp)
+    lea     worklist_entry_for_slot, %a0
+    move.w  #(80 - 1), %d7
+.Lwrm_loop:
+    move.b  #0xFF, (%a0)+
+    dbra    %d7, .Lwrm_loop
+    movem.l (%sp)+, %d7/%a0
+    rts
 
-    move.w  pc090oj_sprite_ctrl_shadow, %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-    move.w  %d7, pc090oj_scan_colbank
+/* Staged SAT slot 0 hidden + self-terminating (empty chain, §9-D.3). */
+.Lpc090oj_write_empty_slot0:
+    lea     staged_sprite_sat, %a1
+    move.w  #0x01E0, (%a1)              /* Y fully offscreen */
+    move.w  #0x0500, 2(%a1)            /* link 0 -> terminator */
+    move.w  #0x0000, 4(%a1)
+    move.w  #0x0000, 6(%a1)
+    move.w  #1, pc090oj_sat_dirty
+    rts
 
-    lea     pc090oj_object_ram, %a0
-    moveq   #0, %d6                  /* PC090OJ entry index */
-.Lvcs_mirror_scan_loop:
+/* Walk the per-frame dirty candidates in ascending record order; sync each set
+ * record from the mirror and clear its candidate.  Zero candidate bytes skip an
+ * entire 8-record group so a stable no-work frame performs no decode or relink.
+ */
+.Lpc090oj_process_candidates:
+    moveq   #0, %d6
+.Lpc_loop:
     cmpi.w  #256, %d6
-    bhs     .Lvcs_mirror_scan_done
-
-    /*
-     * Walk candidate bits in ascending record order.  Clear bytes skip an
-     * entire 8-record group; set bytes fall through to the original decode.
-     */
+    bhs     .Lpc_done
     move.w  %d6, %d0
     andi.w  #0x0007, %d0
-    bne.s   .Lvcs_mirror_candidate_test
-    move.w  %d6, %d5
-    lsr.w   #3, %d5
-    lea     pc090oj_candidate_bitset, %a1
-    tst.b   0(%a1,%d5.w)
-    bne.s   .Lvcs_mirror_candidate_test
-    adda.w  #64, %a0
+    bne.s   .Lpc_test
+    move.w  %d6, %d1
+    lsr.w   #3, %d1
+    lea     pc090oj_candidate_bitset, %a0
+    tst.b   0(%a0,%d1.w)
+    bne.s   .Lpc_test
     addq.w  #8, %d6
-    bra     .Lvcs_mirror_scan_loop
-
-.Lvcs_mirror_candidate_test:
+    bra     .Lpc_loop
+.Lpc_test:
+    move.w  %d6, %d1
+    lsr.w   #3, %d1
+    lea     pc090oj_candidate_bitset, %a0
+    move.b  0(%a0,%d1.w), %d2
     move.w  %d6, %d0
-    move.w  %d0, %d5
-    lsr.w   #3, %d5
-    lea     pc090oj_candidate_bitset, %a1
-    move.b  0(%a1,%d5.w), %d5
     andi.w  #0x0007, %d0
-    btst    %d0, %d5
-    beq     .Lvcs_mirror_scan_next
+    btst    %d0, %d2
+    beq.s   .Lpc_next
+    bsr     .Lpc090oj_sync_record_from_mirror   /* d6 = record, preserved */
+    move.w  %d6, %d1
+    lsr.w   #3, %d1
+    lea     pc090oj_candidate_bitset, %a0
+    move.w  %d6, %d0
+    andi.w  #0x0007, %d0
+    bclr    %d0, 0(%a0,%d1.w)
+.Lpc_next:
+    addq.w  #1, %d6
+    bra     .Lpc_loop
+.Lpc_done:
+    rts
 
-    addq.w  #1, pc090oj_candidate_count
-    addq.w  #1, pc090oj_decoded_count
-
-    move.w  (%a0), %d1               /* word0: flip/color */
-    move.w  2(%a0), %d2              /* word1: Y */
-    move.w  4(%a0), %d3              /* word2: code */
-    move.w  6(%a0), %d4              /* word3: X */
+/* Decode PC090OJ mirror record d6 (0..255).
+ *   Out: d0 = 1 drawable / 0 not.
+ *   When drawable: d1=word0(post-flip), d2=Y(signed screen), d3=code(0..0x0FFF),
+ *                  d4=X(signed screen), d7=colbank.
+ *   Clobbers d5, a0, a1.  Preserves d6.
+ */
+.Lpc090oj_decode_record:
+    move.w  %d6, %d0
+    lsl.w   #3, %d0
+    lea     pc090oj_object_ram, %a0
+    adda.w  %d0, %a0
+    move.w  (%a0), %d1
+    move.w  2(%a0), %d2
+    move.w  4(%a0), %d3
+    move.w  6(%a0), %d4
 
     andi.w  #0x1FFF, %d3
-    beq     .Lvcs_mirror_code_zero_skip
+    beq     .Ldecode_notdraw
     cmpi.w  #0x1000, %d3
-    bhs     .Lvcs_mirror_unmapped_skip
-
+    bhs     .Ldecode_notdraw
     move.w  %d3, %d5
     lsr.w   #3, %d5
     lea     pc090oj_blank_code_bitset, %a1
@@ -1109,22 +1078,21 @@ vdp_commit_sprites_vram:
     move.w  %d3, %d0
     andi.w  #0x0007, %d0
     btst    %d0, %d5
-    bne     .Lvcs_mirror_blank_skip
+    bne     .Ldecode_notdraw
 
     andi.w  #0x01FF, %d2
     cmpi.w  #0x0140, %d2
-    bls.s   .Lvcs_mirror_y_ok
+    bls.s   .Ldecode_y_ok
     subi.w  #0x0200, %d2
-.Lvcs_mirror_y_ok:
+.Ldecode_y_ok:
     andi.w  #0x01FF, %d4
     cmpi.w  #0x0140, %d4
-    bls.s   .Lvcs_mirror_x_ok
+    bls.s   .Ldecode_x_ok
     subi.w  #0x0200, %d4
-.Lvcs_mirror_x_ok:
-
+.Ldecode_x_ok:
     move.w  pc090oj_ctrl_shadow, %d5
     btst    #0, %d5
-    bne.s   .Lvcs_mirror_no_global_flip
+    bne.s   .Ldecode_no_flip
     move.w  #304, %d5
     sub.w   %d4, %d5
     move.w  %d5, %d4
@@ -1132,209 +1100,738 @@ vdp_commit_sprites_vram:
     sub.w   %d2, %d5
     move.w  %d5, %d2
     eori.w  #0xC000, %d1
-.Lvcs_mirror_no_global_flip:
-
+.Ldecode_no_flip:
     cmpi.w  #-16, %d4
-    blt     .Lvcs_mirror_offscreen_skip
+    blt     .Ldecode_notdraw
     cmpi.w  #320, %d4
-    bge     .Lvcs_mirror_offscreen_skip
+    bge     .Ldecode_notdraw
     cmpi.w  #-16, %d2
-    blt     .Lvcs_mirror_offscreen_skip
+    blt     .Ldecode_notdraw
     cmpi.w  #224, %d2
-    bge     .Lvcs_mirror_offscreen_skip
-
-    addq.w  #1, pc090oj_drawable_count
-
-    move.w  pc090oj_emitted_count, %d0
-    cmpi.w  #80, %d0
-    blo.s   .Lvcs_mirror_emit
-    addq.w  #1, pc090oj_dropped_count
-    bra.s   .Lvcs_mirror_scan_next
-
-.Lvcs_mirror_emit:
-    move.w  pc090oj_scan_colbank, %d7
-    move.w  %d6, %d5                 /* source_id = PC090OJ entry index */
-
-    move.l  %a0, -(%sp)
-    move.w  %d6, -(%sp)
-    bsr     .Lpc090oj_emit_slot
-    move.w  (%sp)+, %d6
-    movea.l (%sp)+, %a0
-
-    addq.w  #1, pc090oj_emitted_count
-    bra.s   .Lvcs_mirror_scan_next
-
-.Lvcs_mirror_code_zero_skip:
-    bsr     .Lpc090oj_candidate_clear_d6
-    addq.w  #1, pc090oj_code_zero_skipped_count
-    bra.s   .Lvcs_mirror_scan_next
-
-.Lvcs_mirror_blank_skip:
-    addq.w  #1, pc090oj_blank_skipped_count
-    bra.s   .Lvcs_mirror_scan_next
-
-.Lvcs_mirror_unmapped_skip:
-    addq.w  #1, pc090oj_unmapped_skipped_count
-    bra.s   .Lvcs_mirror_scan_next
-
-.Lvcs_mirror_offscreen_skip:
-    addq.w  #1, pc090oj_offscreen_skipped_count
-
-.Lvcs_mirror_scan_next:
-    adda.w  #8, %a0
-    addq.w  #1, %d6
-    bra     .Lvcs_mirror_scan_loop
-
-.Lvcs_mirror_scan_done:
-    clr.w   pc090oj_scan_active
+    bge     .Ldecode_notdraw
+    andi.w  #0x0FFF, %d3
+    move.w  pc090oj_sprite_ctrl_shadow, %d7
+    andi.w  #0x00E0, %d7
+    lsr.w   #1, %d7
+    moveq   #1, %d0
+    rts
+.Ldecode_notdraw:
+    moveq   #0, %d0
     rts
 
-.Lvcs_link_chain_build:
-    clr.w   staged_sprite_active_count
-    moveq   #-1, %d6                 /* prev valid slot */
-    moveq   #0, %d7                  /* slot */
-.Lvcs_link_scan:
-    cmpi.w  #80, %d7
-    bhs.s   .Lvcs_link_done
+/* Generic bitmap scans (base-68000; a1=base, d5=total bits). */
+/* First SET bit >= d0.  Returns d0 = bit or d5.  Clobbers d1-d3. */
+.Lbmp_first_ge:
+    movem.l %d1-%d3, -(%sp)
+    cmp.w   %d5, %d0
+    bhs.s   .Lbfg_none
+    move.w  %d0, %d1
+    lsr.w   #3, %d1
+    move.w  %d0, %d2
+    andi.w  #0x0007, %d2
+.Lbfg_byte:
+    move.b  0(%a1,%d1.w), %d3
+.Lbfg_bit:
+    move.w  %d1, %d0
+    lsl.w   #3, %d0
+    add.w   %d2, %d0
+    cmp.w   %d5, %d0
+    bhs.s   .Lbfg_none
+    btst    %d2, %d3
+    bne.s   .Lbfg_found
+    addq.w  #1, %d2
+    cmpi.w  #8, %d2
+    blo.s   .Lbfg_bit
+    moveq   #0, %d2
+    addq.w  #1, %d1
+    bra.s   .Lbfg_byte
+.Lbfg_none:
+    move.w  %d5, %d0
+.Lbfg_found:
+    movem.l (%sp)+, %d1-%d3
+    rts
 
-    move.w  %d7, %d0
+/* Last SET bit <= d0.  Returns d0 = bit or 0xFFFF.  Clobbers d1-d3. */
+.Lbmp_last_le:
+    movem.l %d1-%d3, -(%sp)
+    cmpi.w  #0, %d0
+    blt.s   .Lbll_none
+    cmp.w   %d5, %d0
+    blo.s   .Lbll_start_ok
+    move.w  %d5, %d0
+    subq.w  #1, %d0
+.Lbll_start_ok:
+    move.w  %d0, %d1
+    lsr.w   #3, %d1
+    move.w  %d0, %d2
+    andi.w  #0x0007, %d2
+.Lbll_byte:
+    move.b  0(%a1,%d1.w), %d3
+.Lbll_bit:
+    move.w  %d1, %d0
+    lsl.w   #3, %d0
+    add.w   %d2, %d0
+    btst    %d2, %d3
+    bne.s   .Lbll_found
+    subq.w  #1, %d2
+    bpl.s   .Lbll_bit
+    moveq   #7, %d2
+    subq.w  #1, %d1
+    bpl.s   .Lbll_byte
+.Lbll_none:
+    move.w  #0xFFFF, %d0
+    movem.l (%sp)+, %d1-%d3
+    rts
+.Lbll_found:
+    movem.l (%sp)+, %d1-%d3
+    rts
+
+/* Represented head (lowest record) -> d0, or 256. */
+.Lrep_first_ge:
+    movem.l %d5/%a1, -(%sp)
+    lea     represented_records, %a1
+    move.w  #256, %d5
+    bsr     .Lbmp_first_ge
+    movem.l (%sp)+, %d5/%a1
+    rts
+
+/* Represented last set <= d0 -> d0, or 0xFFFF. */
+.Lrep_last_le:
+    movem.l %d5/%a1, -(%sp)
+    lea     represented_records, %a1
+    move.w  #256, %d5
+    bsr     .Lbmp_last_le
+    movem.l (%sp)+, %d5/%a1
+    rts
+
+/* Waiting first set >= d0 -> d0, or 256. */
+.Lwait_first_ge:
+    movem.l %d5/%a1, -(%sp)
+    lea     waiting_records, %a1
+    move.w  #256, %d5
+    bsr     .Lbmp_first_ge
+    movem.l (%sp)+, %d5/%a1
+    rts
+
+/* Lowest free non-zero used slot in [1,79] -> d0, or 0xFFFF.  Clobbers d1-d3,a1. */
+.Lused_lowest_free_nonzero:
+    movem.l %d1-%d3/%a1, -(%sp)
+    lea     used_sat_slots, %a1
+    moveq   #1, %d0
+.Lulf_loop:
+    cmpi.w  #80, %d0
+    bhs.s   .Lulf_none
+    move.w  %d0, %d1
+    lsr.w   #3, %d1
+    btst    %d0, 0(%a1,%d1.w)          /* memory dest -> bit index mod 8 */
+    beq.s   .Lulf_found
+    addq.w  #1, %d0
+    bra.s   .Lulf_loop
+.Lulf_none:
+    move.w  #0xFFFF, %d0
+.Lulf_found:
+    movem.l (%sp)+, %d1-%d3/%a1
+    rts
+
+/* Highest used slot (0..79) -> d0, or 0xFFFF.  Clobbers d1-d3,a1. */
+.Lused_highest:
+    movem.l %d1-%d3/%a1, -(%sp)
+    lea     used_sat_slots, %a1
+    move.w  #79, %d0
+.Luh_loop:
+    move.w  %d0, %d1
+    lsr.w   #3, %d1
+    btst    %d0, 0(%a1,%d1.w)          /* memory dest -> bit index mod 8 */
+    bne.s   .Luh_found
+    subq.w  #1, %d0
+    bpl.s   .Luh_loop
+    move.w  #0xFFFF, %d0
+.Luh_found:
+    movem.l (%sp)+, %d1-%d3/%a1
+    rts
+
+/* Reserve/overwrite/cancel this slot's single worklist entry.  d0=slot, d1=code.
+ * count only ever increments on the 0xFF->index first reservation, at most once
+ * per slot per interval, so pc090oj_tile_dma_count can never exceed 80.
+ * Returning to the resident code cancels the entry (code = 0xFFFF).
+ */
+.Lpc090oj_worklist_set:
+    movem.l %d2-%d4/%a0-%a1, -(%sp)
+    move.w  %d0, %d2                    /* slot */
+    move.w  %d2, %d3
+    add.w   %d3, %d3
+    lea     sprite_tile_resident_code, %a0
+    move.w  0(%a0,%d3.w), %d3          /* resident[slot] */
+    lea     worklist_entry_for_slot, %a1
+    moveq   #0, %d4
+    move.b  0(%a1,%d2.w), %d4          /* reserved idx (0xFF none) */
+
+    cmp.w   %d3, %d1
+    bne.s   .Lwls_differ
+    cmpi.b  #0xFF, %d4
+    beq.s   .Lwls_done
+    move.w  %d4, %d0
+    lsl.w   #2, %d0
+    lea     pc090oj_tile_dma_worklist, %a0
+    adda.w  %d0, %a0
+    move.w  #0xFFFF, 2(%a0)            /* cancel */
+    bra.s   .Lwls_done
+.Lwls_differ:
+    cmpi.b  #0xFF, %d4
+    bne.s   .Lwls_have_idx
+    move.w  pc090oj_tile_dma_count, %d4
+    cmpi.w  #80, %d4
+    bhs.s   .Lwls_done                 /* defensive: impossible under <=80 slots */
+    move.b  %d4, 0(%a1,%d2.w)
+    addq.w  #1, %d4
+    move.w  %d4, pc090oj_tile_dma_count
+    subq.w  #1, %d4
+    move.w  %d4, %d0
+    lsl.w   #2, %d0
+    lea     pc090oj_tile_dma_worklist, %a0
+    adda.w  %d0, %a0
+    move.w  %d2, (%a0)
+    move.w  %d1, 2(%a0)
+    bra.s   .Lwls_done
+.Lwls_have_idx:
+    move.w  %d4, %d0
+    lsl.w   #2, %d0
+    lea     pc090oj_tile_dma_worklist, %a0
+    adda.w  %d0, %a0
+    move.w  %d2, (%a0)
+    move.w  %d1, 2(%a0)
+.Lwls_done:
+    movem.l (%sp)+, %d2-%d4/%a0-%a1
+    rts
+
+/* Free a slot: clear used bit and cancel its pending worklist entry, keeping the
+ * reservation map so re-allocation reuses the same physical entry.  d0=slot.
+ */
+.Lpc090oj_free_slot:
+    movem.l %d1-%d2/%a0-%a1, -(%sp)
+    move.w  %d0, %d2
+    lea     used_sat_slots, %a1
+    move.w  %d2, %d1
+    lsr.w   #3, %d1
+    bclr    %d2, 0(%a1,%d1.w)
+    lea     worklist_entry_for_slot, %a1
+    moveq   #0, %d1
+    move.b  0(%a1,%d2.w), %d1
+    cmpi.b  #0xFF, %d1
+    beq.s   .Lfs_done
+    lsl.w   #2, %d1
+    lea     pc090oj_tile_dma_worklist, %a0
+    adda.w  %d1, %a0
+    move.w  #0xFFFF, 2(%a0)
+.Lfs_done:
+    movem.l (%sp)+, %d1-%d2/%a0-%a1
+    rts
+
+/* Regenerate destination slot from the mirror.  d6=record, scratch_slot=dest,
+ * scratch_link=link target slot.  Derives the slot-keyed tile index, queues the
+ * pattern DMA (or cancels on return-to-resident), and sets ownership + used +
+ * represented + sat_dirty.  Assumes the record decodes drawable.  Preserves d6.
+ */
+.Lpc090oj_place_record_in_slot:
+    bsr     .Lpc090oj_decode_record     /* d1=word0,d2=Y,d3=code,d4=X,d7=colbank */
+    move.w  .Lscratch_slot, %d0
+    lsl.w   #3, %d0
+    lea     staged_sprite_sat, %a1
+    adda.w  %d0, %a1
+    /* word0 Y (+0x80 bias) */
+    move.w  %d2, %d5
+    andi.w  #0x01FF, %d5
+    addi.w  #0x0080, %d5
+    andi.w  #0x01FF, %d5
+    move.w  %d5, (%a1)
+    /* word1 = size | link */
+    move.w  .Lscratch_link, %d5
+    andi.w  #0x007F, %d5
+    ori.w   #0x0500, %d5
+    move.w  %d5, 2(%a1)
+    /* word2 = priority | palette | flips | tile-index(dest slot) */
+    move.w  #0x8000, %d5
+    move.w  %d1, %d0
+    andi.w  #0x000F, %d0
+    or.w    %d7, %d0
+    lsr.w   #4, %d0
+    andi.w  #0x0003, %d0
+    lsl.w   #8, %d0
+    lsl.w   #5, %d0
+    or.w    %d0, %d5
+    move.w  %d1, %d0
+    andi.w  #0x8000, %d0
+    lsr.w   #3, %d0
+    or.w    %d0, %d5
+    move.w  %d1, %d0
+    andi.w  #0x4000, %d0
+    lsr.w   #3, %d0
+    or.w    %d0, %d5
+    move.w  .Lscratch_slot, %d0
+    lsl.w   #2, %d0
+    addi.w  #SPRITE_TILE_BASE, %d0
+    andi.w  #0x07FF, %d0
+    or.w    %d0, %d5
+    move.w  %d5, 4(%a1)
+    /* word3 X (+0x80 bias) */
+    move.w  %d4, %d5
+    andi.w  #0x01FF, %d5
+    addi.w  #0x0080, %d5
+    andi.w  #0x01FF, %d5
+    move.w  %d5, 6(%a1)
+
+    /* descriptor[slot] for legacy readers (5607c decay) */
+    move.w  .Lscratch_slot, %d0
     mulu.w  #12, %d0
-    lea     staged_sprite_descriptor_table, %a0
-    adda.l  %d0, %a0
-    move.w  (%a0), %d1
-    btst    #0, %d1
-    beq.s   .Lvcs_link_next
+    lea     staged_sprite_descriptor_table, %a1
+    adda.l  %d0, %a1
+    move.w  #0x8001, (%a1)
+    move.w  %d2, 2(%a1)
+    move.w  %d4, 4(%a1)
+    move.w  %d1, 6(%a1)
+    move.w  %d3, 8(%a1)
+    move.w  %d6, 10(%a1)
 
-    /* if previous valid exists, set its link to current slot */
-    cmpi.w  #-1, %d6
-    beq.s   .Lvcs_no_prev
+    /* worklist: queue/cancel pattern DMA for this slot */
+    move.w  .Lscratch_slot, %d0
+    move.w  %d3, %d1
+    andi.w  #0x0FFF, %d1
+    bsr     .Lpc090oj_worklist_set
 
-    move.w  %d6, %d0
+    /* record_to_slot[record] = slot */
+    move.w  .Lscratch_slot, %d0
+    lea     record_to_slot, %a1
+    move.b  %d0, 0(%a1,%d6.w)
+    /* represented[record] = 1 */
+    lea     represented_records, %a1
+    move.w  %d6, %d1
+    lsr.w   #3, %d1
+    bset    %d6, 0(%a1,%d1.w)
+    /* used_sat_slots[slot] = 1 */
+    move.w  .Lscratch_slot, %d0
+    lea     used_sat_slots, %a1
+    move.w  %d0, %d1
+    lsr.w   #3, %d1
+    bset    %d0, 0(%a1,%d1.w)
+    move.w  #1, pc090oj_sat_dirty
+    rts
+
+/* Set slot d0's SAT link field (word1 low 7 bits) to target slot d1. */
+.Lpc090oj_set_link:
+    movem.l %d0-%d1/%a1, -(%sp)
     lsl.w   #3, %d0
     lea     staged_sprite_sat, %a1
     adda.w  %d0, %a1
-    move.w  #0x0500, %d1
-    move.w  %d7, %d0
-    andi.w  #0x007F, %d0
-    or.w    %d0, %d1
+    andi.w  #0x007F, %d1
+    ori.w   #0x0500, %d1
     move.w  %d1, 2(%a1)
+    movem.l (%sp)+, %d0-%d1/%a1
+    rts
 
-.Lvcs_no_prev:
-    move.w  %d7, %d6
-    addq.w  #1, staged_sprite_active_count
+/* Synchronize one record from the completed mirror (§9-E.3).  d6 = record.
+ * Reads the mirror, updates LUT / bitmaps / SAT links+fields / worklist; never
+ * writes the mirror, never sets a candidate.  Preserves d6.
+ */
+.Lpc090oj_sync_record_from_mirror:
+    movem.l %d0-%d7/%a0-%a1, -(%sp)
+    tst.w   pc090oj_scan_active
+    bne.s   .Lsync_inited
+    bsr     .Lpc090oj_renderer_init
+.Lsync_inited:
+    move.w  %d6, .Lscratch_rec
+    bsr     .Lpc090oj_decode_record
+    move.w  %d0, .Lscratch_draw
+    move.w  .Lscratch_rec, %d6
+    move.w  %d6, %d1
+    lsr.w   #3, %d1
+    lea     represented_records, %a1
+    btst    %d6, 0(%a1,%d1.w)
+    bne     .Lsync_was_rep
+    /* currently NOT represented */
+    tst.w   .Lscratch_draw
+    beq     .Lsync_notrep_notdraw
+    bsr     .Lpc090oj_activate_record
+    bra     .Lsync_done
+.Lsync_notrep_notdraw:
+    move.w  .Lscratch_rec, %d0
+    lea     waiting_records, %a1
+    move.w  %d0, %d1
+    lsr.w   #3, %d1
+    bclr    %d0, 0(%a1,%d1.w)
+    bra     .Lsync_done
+.Lsync_was_rep:
+    tst.w   .Lscratch_draw
+    beq     .Lsync_deactivate
+    bsr     .Lpc090oj_field_update_record
+    bra     .Lsync_done
+.Lsync_deactivate:
+    bsr     .Lpc090oj_deactivate_record
+.Lsync_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a1
+    rts
 
-.Lvcs_link_next:
-    addq.w  #1, %d7
-    bra.s   .Lvcs_link_scan
-
-.Lvcs_link_done:
-    cmpi.w  #-1, %d6
-    beq.s   .Lvcs_link_end
-    move.w  %d6, %d0
+/* Field update: record already represented and still drawable.  Keep slot and
+ * link, re-patch fields + tile index, queue pattern DMA on code change. */
+.Lpc090oj_field_update_record:
+    move.w  .Lscratch_rec, %d6
+    lea     record_to_slot, %a1
+    moveq   #0, %d0
+    move.b  0(%a1,%d6.w), %d0
+    move.w  %d0, .Lscratch_slot
     lsl.w   #3, %d0
     lea     staged_sprite_sat, %a1
     adda.w  %d0, %a1
-    move.w  #0x0500, 2(%a1)
-.Lvcs_link_end:
+    move.w  2(%a1), %d0
+    andi.w  #0x007F, %d0
+    move.w  %d0, .Lscratch_link
+    bsr     .Lpc090oj_place_record_in_slot
+    rts
+
+/* Activate (insert) a newly drawable record at its ascending-index position. */
+.Lpc090oj_activate_record:
+    move.w  pc090oj_represented_count, %d0
+    cmpi.w  #80, %d0
+    blo     .Lact_room
+    move.w  #255, %d0
+    bsr     .Lrep_last_le               /* d0 = tail record */
+    move.w  %d0, %d1
+    move.w  .Lscratch_rec, %d0
+    cmp.w   %d1, %d0
+    bhs     .Lact_to_waiting            /* rec >= tail -> overflow to waiting */
+    bsr     .Lpc090oj_evict_tail
+.Lact_room:
+    moveq   #0, %d0
+    bsr     .Lrep_first_ge              /* d0 = head or 256 */
+    cmpi.w  #256, %d0
+    beq     .Lact_first
+    move.w  %d0, %d1
+    move.w  .Lscratch_rec, %d0
+    cmp.w   %d1, %d0
+    blo     .Lact_new_head
+    bra     .Lact_ordinary
+.Lact_first:
+    clr.w   .Lscratch_slot
+    clr.w   .Lscratch_link
+    move.w  .Lscratch_rec, %d6
+    bsr     .Lpc090oj_place_record_in_slot
+    addq.w  #1, pc090oj_represented_count
+    rts
+.Lact_new_head:
+    move.w  %d1, .Lscratch_b            /* old head record */
+    bsr     .Lused_lowest_free_nonzero  /* d0 = s_H */
+    move.w  %d0, .Lscratch_a
+    move.w  staged_sprite_sat+2, %d0    /* old head link (slot 0) */
+    andi.w  #0x007F, %d0
+    move.w  %d0, .Lscratch_link
+    move.w  .Lscratch_a, %d0
+    move.w  %d0, .Lscratch_slot
+    move.w  .Lscratch_b, %d6
+    bsr     .Lpc090oj_place_record_in_slot   /* old head -> s_H (keep link) */
+    clr.w   .Lscratch_slot
+    move.w  .Lscratch_a, %d0
+    move.w  %d0, .Lscratch_link
+    move.w  .Lscratch_rec, %d6
+    bsr     .Lpc090oj_place_record_in_slot   /* new head -> slot 0, link=s_H */
+    addq.w  #1, pc090oj_represented_count
+    rts
+.Lact_ordinary:
+    move.w  .Lscratch_rec, %d0
+    subq.w  #1, %d0
+    bsr     .Lrep_last_le               /* d0 = prev record */
+    move.w  %d0, .Lscratch_b
+    move.w  .Lscratch_rec, %d0
+    addq.w  #1, %d0
+    bsr     .Lrep_first_ge              /* d0 = next record or 256 */
+    cmpi.w  #256, %d0
+    beq.s   .Lact_ord_nonext
+    lea     record_to_slot, %a1
+    moveq   #0, %d1
+    move.b  0(%a1,%d0.w), %d1
+    move.w  %d1, .Lscratch_link
+    bra.s   .Lact_ord_slot
+.Lact_ord_nonext:
+    clr.w   .Lscratch_link
+.Lact_ord_slot:
+    bsr     .Lused_lowest_free_nonzero  /* d0 = s_R */
+    move.w  %d0, .Lscratch_slot
+    move.w  .Lscratch_rec, %d6
+    bsr     .Lpc090oj_place_record_in_slot
+    move.w  .Lscratch_b, %d0            /* prev record */
+    lea     record_to_slot, %a1
+    moveq   #0, %d1
+    move.b  0(%a1,%d0.w), %d1
+    move.w  %d1, %d0                    /* prevslot */
+    move.w  .Lscratch_slot, %d1        /* target = s_R */
+    bsr     .Lpc090oj_set_link
+    addq.w  #1, pc090oj_represented_count
+    rts
+.Lact_to_waiting:
+    move.w  .Lscratch_rec, %d0
+    lea     waiting_records, %a1
+    move.w  %d0, %d1
+    lsr.w   #3, %d1
+    bset    %d0, 0(%a1,%d1.w)
+    rts
+
+/* Evict the tail (lowest-priority) record into waiting; frees a slot, count--. */
+.Lpc090oj_evict_tail:
+    move.w  #255, %d0
+    bsr     .Lrep_last_le               /* d0 = tail */
+    move.w  %d0, .Lscratch_a
+    subq.w  #1, %d0
+    bsr     .Lrep_last_le               /* d0 = prev (exists; count>=2) */
+    lea     record_to_slot, %a1
+    moveq   #0, %d1
+    move.b  0(%a1,%d0.w), %d1          /* prevslot */
+    move.w  %d1, %d0
+    moveq   #0, %d1                     /* link 0 -> terminator */
+    bsr     .Lpc090oj_set_link
+    move.w  .Lscratch_a, %d6           /* tail record */
+    lea     record_to_slot, %a1
+    moveq   #0, %d0
+    move.b  0(%a1,%d6.w), %d0          /* tailslot */
+    bsr     .Lpc090oj_free_slot
+    lea     represented_records, %a1
+    move.w  %d6, %d1
+    lsr.w   #3, %d1
+    bclr    %d6, 0(%a1,%d1.w)
+    lea     record_to_slot, %a1
+    move.b  #0xFF, 0(%a1,%d6.w)
+    lea     waiting_records, %a1
+    move.w  %d6, %d1
+    lsr.w   #3, %d1
+    bset    %d6, 0(%a1,%d1.w)
+    subq.w  #1, pc090oj_represented_count
+    rts
+
+/* Deactivate a represented record that is no longer drawable. */
+.Lpc090oj_deactivate_record:
+    moveq   #0, %d0
+    bsr     .Lrep_first_ge              /* d0 = head */
+    move.w  .Lscratch_rec, %d1
+    cmp.w   %d1, %d0
+    beq     .Ldeact_head
+    /* ORDINARY delete */
+    move.w  %d1, %d0
+    subq.w  #1, %d0
+    bsr     .Lrep_last_le               /* d0 = prev */
+    move.w  %d0, .Lscratch_b
+    move.w  .Lscratch_rec, %d0
+    addq.w  #1, %d0
+    bsr     .Lrep_first_ge              /* d0 = next or 256 */
+    cmpi.w  #256, %d0
+    beq.s   .Ldeact_ord_term
+    lea     record_to_slot, %a1
+    moveq   #0, %d1
+    move.b  0(%a1,%d0.w), %d1
+    move.w  %d1, .Lscratch_a           /* nextslot */
+    bra.s   .Ldeact_ord_link
+.Ldeact_ord_term:
+    clr.w   .Lscratch_a
+.Ldeact_ord_link:
+    move.w  .Lscratch_b, %d0
+    lea     record_to_slot, %a1
+    moveq   #0, %d1
+    move.b  0(%a1,%d0.w), %d1
+    move.w  %d1, %d0                    /* prevslot */
+    move.w  .Lscratch_a, %d1           /* -> nextslot / 0 */
+    bsr     .Lpc090oj_set_link
+    move.w  .Lscratch_rec, %d6
+    lea     record_to_slot, %a1
+    moveq   #0, %d0
+    move.b  0(%a1,%d6.w), %d0
+    bsr     .Lpc090oj_free_slot
+    bra     .Ldeact_finish
+.Ldeact_head:
+    move.w  .Lscratch_rec, %d0
+    addq.w  #1, %d0
+    bsr     .Lrep_first_ge              /* d0 = next or 256 */
+    cmpi.w  #256, %d0
+    beq     .Ldeact_head_empty
+    move.w  %d0, .Lscratch_b           /* next record */
+    lea     record_to_slot, %a1
+    moveq   #0, %d1
+    move.b  0(%a1,%d0.w), %d1
+    move.w  %d1, .Lscratch_a           /* nslot */
+    lsl.w   #3, %d1
+    lea     staged_sprite_sat, %a1
+    adda.w  %d1, %a1
+    move.w  2(%a1), %d0
+    andi.w  #0x007F, %d0
+    move.w  %d0, .Lscratch_link        /* nlink */
+    clr.w   .Lscratch_slot             /* promote next into slot 0 */
+    move.w  .Lscratch_b, %d6
+    bsr     .Lpc090oj_place_record_in_slot
+    move.w  .Lscratch_a, %d0
+    bsr     .Lpc090oj_free_slot        /* free next's old slot */
+    bra     .Ldeact_finish
+.Ldeact_head_empty:
+    move.w  .Lscratch_rec, %d6
+    lea     record_to_slot, %a1
+    moveq   #0, %d0
+    move.b  0(%a1,%d6.w), %d0
+    bsr     .Lpc090oj_free_slot
+    lea     represented_records, %a1
+    move.w  %d6, %d1
+    lsr.w   #3, %d1
+    bclr    %d6, 0(%a1,%d1.w)
+    lea     record_to_slot, %a1
+    move.b  #0xFF, 0(%a1,%d6.w)
+    subq.w  #1, pc090oj_represented_count
+    bsr     .Lpc090oj_write_empty_slot0
+    bsr     .Lpc090oj_promote_from_waiting
+    rts
+.Ldeact_finish:
+    move.w  .Lscratch_rec, %d6
+    lea     represented_records, %a1
+    move.w  %d6, %d1
+    lsr.w   #3, %d1
+    bclr    %d6, 0(%a1,%d1.w)
+    lea     record_to_slot, %a1
+    move.b  #0xFF, 0(%a1,%d6.w)
+    subq.w  #1, pc090oj_represented_count
+    bsr     .Lpc090oj_promote_from_waiting
+    rts
+
+/* A freed slot promotes the highest-priority still-renderable waiting record. */
+.Lpc090oj_promote_from_waiting:
+    move.w  pc090oj_represented_count, %d0
+    cmpi.w  #80, %d0
+    bhs     .Lpromo_done
+    moveq   #0, %d0
+.Lpromo_scan:
+    bsr     .Lwait_first_ge             /* d0 = first waiting >= d0 or 256 */
+    cmpi.w  #256, %d0
+    bhs     .Lpromo_done
+    move.w  %d0, .Lscratch_a
+    move.w  %d0, %d6
+    bsr     .Lpc090oj_decode_record
+    tst.w   %d0
+    bne.s   .Lpromo_activate
+    /* no longer renderable -> drop from waiting, keep scanning */
+    move.w  .Lscratch_a, %d0
+    lea     waiting_records, %a1
+    move.w  %d0, %d1
+    lsr.w   #3, %d1
+    bclr    %d0, 0(%a1,%d1.w)
+    move.w  .Lscratch_a, %d0
+    addq.w  #1, %d0
+    bra.s   .Lpromo_scan
+.Lpromo_activate:
+    move.w  .Lscratch_a, %d0
+    lea     waiting_records, %a1
+    move.w  %d0, %d1
+    lsr.w   #3, %d1
+    bclr    %d0, 0(%a1,%d1.w)
+    move.w  .Lscratch_a, %d0
+    move.w  %d0, .Lscratch_rec
+    bsr     .Lpc090oj_activate_record
+.Lpromo_done:
     rts
 
 /*
- * Precomputed tile-DMA worklist commit.  Bounded by pc090oj_tile_dma_count
- * (published pre-DISPLAY_OFF), NOT by a fixed 80-slot scan.  Each entry
- * {word slot, word code} was appended during the scan only where the required
- * code differed from the resident code.  d7=count, d5=index, d4=slot, d6=code.
+ * Precomputed tile-DMA worklist commit.  Bounded by pc090oj_tile_dma_count,
+ * skips canceled entries (code 0xFFFF), updates slot residency only after the
+ * DMA, and resets the reservation map + count at the end of the interval.
  */
 .Lvcs_tile_dma:
     move.w  pc090oj_tile_dma_count, %d7
-    beq     .Lvcs_tile_done          /* zero-entry fast path */
-    moveq   #0, %d5                  /* worklist index */
+    beq     .Lvcs_tile_reset
+    moveq   #0, %d5
 .Lvcs_tile_loop:
     move.w  %d5, %d0
     lsl.w   #2, %d0
     lea     pc090oj_tile_dma_worklist, %a0
     adda.w  %d0, %a0
-    move.w  (%a0), %d4               /* SAT slot */
-    move.w  2(%a0), %d6             /* required masked code */
+    move.w  (%a0), %d4                  /* slot */
+    move.w  2(%a0), %d6                /* code (0xFFFF = canceled) */
+    cmpi.w  #0xFFFF, %d6
+    beq     .Lvcs_tile_next
 
-    /* source = rastan_pc090oj + code*128 */
     move.w  %d6, %d0
     andi.w  #0x0FFF, %d0
     mulu.w  #128, %d0
     lea     rastan_pc090oj, %a1
     adda.l  %d0, %a1
-
-    /* DMA source address /2 */
     move.l  %a1, %d0
     lsr.l   #1, %d0
-
     movea.l #VDP_CTRL, %a3
-
-    /* length 64 words */
     move.w  #0x9340, (%a3)
     move.w  #0x9400, (%a3)
-
     move.w  %d0, %d3
     andi.w  #0x00FF, %d3
     ori.w   #0x9500, %d3
     move.w  %d3, (%a3)
-
     move.l  %d0, %d3
     lsr.l   #8, %d3
     andi.w  #0x00FF, %d3
     ori.w   #0x9600, %d3
     move.w  %d3, (%a3)
-
     move.l  %d0, %d3
     lsr.l   #8, %d3
     lsr.l   #8, %d3
     andi.w  #0x007F, %d3
     ori.w   #0x9700, %d3
     move.w  %d3, (%a3)
-
-    /* dest VRAM addr = (SPRITE_TILE_BASE + slot*4) * 32 */
     move.w  %d4, %d0
     lsl.w   #2, %d0
     addi.w  #SPRITE_TILE_BASE, %d0
     lsl.l   #5, %d0
-
     move.l  %d0, %d1
     andi.l  #0x00003FFF, %d1
     swap    %d1
-
     move.l  %d0, %d2
-    lsr.l   #8, %d2                  /* Rule-23 inline */
-    lsr.l   #6, %d2                  /* Rule-23 inline */
+    lsr.l   #8, %d2
+    lsr.l   #6, %d2
     andi.l  #0x00000003, %d2
-
     ori.l   #0x40000080, %d1
     or.l    %d2, %d1
-    move.l  %d1, (%a3)               /* DMA trigger; 68k stalls to completion */
-
-    /* residency update ONLY after the DMA */
+    move.l  %d1, (%a3)
     move.w  %d4, %d0
     add.w   %d0, %d0
     lea     sprite_tile_resident_code, %a1
     move.w  %d6, 0(%a1,%d0.w)
-
+.Lvcs_tile_next:
     addq.w  #1, %d5
     cmp.w   %d7, %d5
     blo     .Lvcs_tile_loop
-
-.Lvcs_tile_done:
+.Lvcs_tile_reset:
+    /* Reset only the slots actually reserved this interval (d7 = count, still
+     * live), so a stable no-work frame (count 0) does zero reset work. */
+    tst.w   %d7
+    beq.s   .Lvcs_tile_reset_done
+    moveq   #0, %d5
+.Lvcs_tile_reset_loop:
+    move.w  %d5, %d0
+    lsl.w   #2, %d0
+    lea     pc090oj_tile_dma_worklist, %a0
+    adda.w  %d0, %a0
+    moveq   #0, %d0
+    move.w  (%a0), %d0                  /* reserved slot for this entry */
+    lea     worklist_entry_for_slot, %a1
+    move.b  #0xFF, 0(%a1,%d0.w)
+    addq.w  #1, %d5
+    cmp.w   %d7, %d5
+    blo.s   .Lvcs_tile_reset_loop
+.Lvcs_tile_reset_done:
+    clr.w   pc090oj_tile_dma_count
     rts
 
+/* SAT DMA: length = max(highest_used+1, 1) * 4 words, clamped to 80 slots. */
 .Lvcs_sat_dma:
     movea.l #VDP_CTRL, %a3
-
-    /* SAT DMA length = max(min(active_count, 80), 1) * 4 words. */
-    move.w  staged_sprite_active_count, %d0
-    bne.s   .Lvcs_sat_dma_have_count
+    bsr     .Lused_highest
+    cmpi.w  #0xFFFF, %d0
+    bne.s   .Lsat_have
     moveq   #1, %d0
-.Lvcs_sat_dma_have_count:
+    bra.s   .Lsat_clamp
+.Lsat_have:
+    addq.w  #1, %d0
+.Lsat_clamp:
     cmpi.w  #80, %d0
-    bls.s   .Lvcs_sat_dma_count_ok
+    bls.s   .Lsat_len
     move.w  #80, %d0
-.Lvcs_sat_dma_count_ok:
+.Lsat_len:
     lsl.w   #2, %d0
 
     move.w  %d0, %d1
@@ -1381,10 +1878,6 @@ vdp_commit_sprites_vram:
     or.l    %d2, %d1
     move.l  %d1, (%a3)
     rts
-
-/* .Lvcs_clear_dirty removed: the descriptor touched flag (bit 15) has no
- * consumer, staged_sprite_dirty is write-only (SAT DMA is active-count-based),
- * and both are re-cleared by .Lvcs_clear_generated_sprite_state next frame. */
 
 /* ------------------------------------------------------------------------- */
 /* VRAM DMA self-test                                                        */
@@ -1551,6 +2044,37 @@ pc090oj_scan_active:
 pc090oj_producer_oob_count:
     .word 0
 pc090oj_producer_write_count:
+    .word 0
+
+    /* Build 0142 retained-identity translation state. */
+    .align 2
+record_to_slot:
+    .space 256                  /* record -> SAT slot; 0xFF = unrepresented */
+represented_records:
+    .space 32                   /* 256-bit: record currently owns a SAT slot */
+waiting_records:
+    .space 32                   /* 256-bit: eligible but overflowed (>80) */
+used_sat_slots:
+    .space 16                   /* 80-bit slot occupancy (10 used, padded) */
+worklist_entry_for_slot:
+    .space 80                   /* reserved worklist index per slot; 0xFF none */
+pc090oj_represented_count:
+    .word 0
+pc090oj_sat_dirty:
+    .word 0
+pc090oj_bootstrap_pending:
+    .word 0
+.Lscratch_rec:
+    .word 0
+.Lscratch_slot:
+    .word 0
+.Lscratch_link:
+    .word 0
+.Lscratch_draw:
+    .word 0
+.Lscratch_a:
+    .word 0
+.Lscratch_b:
     .word 0
 
     .align 2

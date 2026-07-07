@@ -1,5 +1,23 @@
 # AGENTS Log
 
+## [Andy - Build 0142 IMPLEMENTATION: PC090OJ Retained Identity + Sparse SAT (rastan-direct)]
+
+* implemented governing design §§9-C/9-D/9-E in apps/rastan-direct/src/pc090oj_hooks.s (only production source). ROM dist/rastan-direct/rastan_direct_video_test_build_0142.bin SHA256 f4c4234910fd56c739f874ad2a176ec447949f4e492b6526d37064f7dd23f245, size 1,563,844 B (0141 +1596). GATE_PASS, boot guard PASS, 30s trace clean. Baseline Build 0141 cebd389e. Branch rastan-direct-proposal, no branch/reset ops. Outcome A
+* replaced per-frame mirror rediscovery + full SAT wipe/rebuild/relink with retained record-driven state: record_to_slot[256] (0xFF71F0), represented/waiting bitmaps (0xFF72F0/0xFF7310), used_sat_slots (0xFF7330), worklist_entry_for_slot[80] (0xFF7340), represented_count/sat_dirty/bootstrap_pending (0xFF7390..0xFF7394) + 6 scratch words. ~434B new WRAM, contiguous, no overlap
+* sync_record_from_mirror(record): reads mirror only, never writes mirror, never sets candidate; place_record_in_slot regenerates dest from mirror + re-derives slot-keyed tile-index (1024+slot*4)&0x7FF + queues/cancels worklist; base-68000 bit scans; slot-0 head invariant with new-head/head-delete/full-SAT eviction + waiting/promotion local splice
+* worklist_entry_for_slot reserves <=1 physical entry/slot/interval (0xFF none), cancel=code 0xFFFF, return-to-resident cancels, post-commit reset touches only reserved slots (O(count), zero on stable frame). count proven <=80
+* converted family pc090oj_workram_block_sprites (arcade 0x041DAE/041F5E/045DFA): exact mirror writes once -> sync -> clear superseded candidate, VINT-masked. Unconverted emit_slot reduced to mirror-bridge (write mirror + set candidate). Global ctrl/sprite_ctrl reeval-on-change (set-all-candidates). renderer_init gated on boot-cleared pc090oj_scan_active (self-heals on warm reset, no boot.s change); one-shot 256 bootstrap; hidden self-terminating SAT slot 0; SAT DMA gated by sat_dirty, length max(highest_used+1,1)*4
+* BUG FOUND+FIXED during native validation: .Lused_lowest_free_nonzero/.Lused_highest used btst on a DATA REGISTER (bit index mod 32) so slots >=8 read as free -> all placements collapsed to slot 8. Fixed to btst on the memory byte (mod 8). Post-fix ALL invariants pass
+* canonical bookkeeping value-only: CANONICAL_TOTAL_GENESIS_BYTES_COVERED 0x17D688 -> 0x17DCC4 (postpatch_startup_rom.py + verify_canonical_rom.py); CANONICAL_OPCODE_REPLACE_COUNT unchanged 133; no address_map/patched-site change
+* native evidence (states 0/1/0, 0/1/2, 2/0/0, 2/2/6): ALL structural invariants PASS (slot0=lowest rep; 1 slot/rep; 1 owner/used slot; chain visits each rep once ascending & terminates; rep/waiting disjoint; field updates retain slot; worklist <=80 max 27; cancelled=no DMA). Renderer EXACT: independently-decoded drawable==represented 22/22 at 2/2/6, all 22 SAT Y/X/tile match decode (0 mismatch). rep counts 23/23 match 0141 (2/2/6=22 = true drawable set; 0141 frame-720=32 is timing divergence, not a miss)
+* cycles (native totalcycles, DISPLAY_OFF 0x700ce->ON 0x700e6): stable=994 cyc all states (0141 1426, 0140 16350) = -93.9% vs 0140, -30% vs 0141. SAT DMA gated -> 6 events/run (0141 every frame). Stable frames: no scan/wipe/relink/SAT-DMA/pattern-DMA. Evidence docs/implementation/Andy_pc090oj_retained_identity_build_0142.md + states/traces/build0142_native_validation/
+* known limits (not regressions): visual confirmation pending Tighe BlastEm/Exodus; pre-existing sprite palette/position (OPEN-006/024) untouched; gameplay decay 0x5607C reads descriptor-by-slot (sparse owners differ) -> descriptors still maintained so no fault, recommended Build 0143 conversion
+
+Open/Closed Issues Impact:
+- OPEN-024 (PC090OJ sprite subsystem incomplete): ADVANCED not closed — retained-identity renderer proven to emit exactly the mirror drawable set with correct transformed values + ascending priority chain; stable DISPLAY_OFF 994 cyc. Closure still needs visual confirmation + palette/position fixes.
+- OPEN-006 (sprite palette bank mapping deferred): unchanged, palette formula preserved byte-for-byte; no regression, no closure.
+- No issue closed. No new issue opened (0x5607C descriptor-slot semantic recorded as Build 0143 recommendation).
+
 ## [Andy - Final Contract Addendum §9-E, Build 0142 PC090OJ Bounded Reuse / Mirror-Driven Sync / Bootstrap (rastan-direct)]
 
 * appends §9-E to docs/design/Andy_pc090oj_semantic_helper_families_build0142.md — §9-E GOVERNS these six final-sync cases (corrects §9-D.4 free-cancel and renames the sync primitive). §9-D architecture accepted/unchanged. Design only, no source/build/commit. Tree preserved, branch rastan-direct-proposal. Outcome A
@@ -40740,4 +40758,19 @@ Open/Closed Issues Impact:
 ### MAME Exit Summary (2026-07-06 16:16:08)
 - Final PC: 0x072194
 - Stack Pointer (SP): 0x00FEFF72
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-07 15:58:17)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-07 17:11:20)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-07 17:20:00)
+- Final PC: 0x03A1AE
+- Stack Pointer (SP): 0x00FEFFF8
 - Unique Unmapped Memory Addresses: none
