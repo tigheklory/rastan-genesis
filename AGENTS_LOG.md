@@ -1,5 +1,23 @@
 # AGENTS Log
 
+## [Andy - Temporary Implementation, Build 0146 PC090OJ 0x03B902 Faithful Translation]
+
+* temporary Cody-role substitution acknowledged. Baseline rastan-direct-proposal @ 0b3f8b4, Build 0145 SHA b5c903a942b669e869b5b2d4ed4448f96d402707e3dcda946afabe2eb4dd23f7. Outcome B (retained). Evidence docs/design/Andy_build_0146_pc090oj_3b902_fix.md + states/traces/build_0146_pc090oj_3b902_fix/.
+* proven arcade 0x03B902 (objdump + runtime): lea 0xD00088,%a1 (records 17..21); clear (d1==0) = lea 0x3B984,%a0; moveq #5,%d1; bsr 0x3B930 (copy 5-record table to records 17..21); fill (d1!=0) = move.b %d1,2(%a1) x5 = write byte d1 to Y-high byte (offset 2) of records 17..21 only. Title uses FILL path (d1=1). Never touches record 4.
+* previous Genesis helper: looped records 0..4 with full emit_slot (clear code 0; fill code 1, X 0), clobbering record 4 (GH). New helper: clear = lea 0xD00088,a1; lea 0x3BB84,a0 (arcade 0x3B984 +0x200); moveq #5,d1; bsr genesistan_pc090oj_hook_target_3b930. fill = mirror_write_byte d1 -> Y-high byte of records 17..21 (0xD0008A + 8*i). movem full-register preserve kept.
+* files changed (production): apps/rastan-direct/src/pc090oj_hooks.s (only genesistan_pc090oj_hook_target_3b902). Paired canonical bump 0x17DCFC->0x17DCF4 (opcode_replace unchanged 133).
+* build: dist/rastan-direct/rastan_direct_video_test_build_0146.bin SHA256 3edcf345d1c6e547b993f72b29ab9d80f7fa58823ad992de962391a5ce8a416b size 1,563,892. GATE_PASS. address_map gaps=0 overlaps=0. Builds 0142-0145 not overwritten. Counter 146, next 0147.
+* runtime: record 4 = zero code-1 writes now; final mirror record 4 = 0000 0000 003B 0088 (GH), represented slot 0; records 5-8 = HI/ S/CO/RE. New fill (pc 0x71A30) writes byte 0x01 to Y-high of records 17..21 ONLY (0xFF6A3A/42/4A/52/5A); no full descriptors; records 0-4 not touched by 3b902 (record 3 + record 4 watchpoints confirm). HIGH SCORE renders COMPLETE on title (was HI SCORE).
+* UP: did NOT return (2UP still shows "2"; UP missing = separate out-of-scope defect, not investigated). regression: none - item screen (2/2/6) represented=22, bank48->line2 x18, bank51->line3 x4, palette lines populated, item sprites visible (identical to Build 0145).
+* no unrelated changes: YES. architecture compliance: CONFIRMED (faithful in-place reimplementation in existing arcade-called RTS helper; reuses existing 0x3B930 copy + mirror_write_byte; no direct-CRAM/second-renderer/second-VBlank/loop/lifecycle/screen-state/word-special-case/instrumentation; renderer/allocator/palette intact). STOP status: none. Outcome B.
+
+Open/Closed Issues Impact:
+- OPEN-024 (PC090OJ subsystem incomplete): advanced - 0x03B902 translation corrected to faithfully match arcade (records 17..21; fill=Y-high byte, clear=table copy); record-4 clobber eliminated. Not closed.
+- OPEN-001 (title/attract graphics incomplete): advanced - HIGH SCORE now complete; missing UP in 2UP and other title defects unaffected. Not closed.
+- No issue closed; no duplicate opened.
+
+KNOWN_FINDINGS impact: propose (pending curation, not auto-added) - arcade 0x03B902 targets records 17..21 (0xD00088): clear copies the 5-record table at 0x3B984 via 0x3B930, fill writes only the Y-high byte; faithful Genesis translation reuses genesistan_pc090oj_hook_target_3b930 + a Y-high byte mirror write. Confidence CONFIRMED, Applicability BUILD_SPECIFIC (Build 0146), Hazard HIGH.
+
 ## [Andy - Analysis, Missing GH in HIGH SCORE Header]
 
 * evidence-only (no source/ROM/build). Baseline rastan-direct-proposal @ a2d0485, Build 0145 SHA b5c903a942b669e869b5b2d4ed4448f96d402707e3dcda946afabe2eb4dd23f7. Outcome A. Evidence docs/design/Andy_missing_gh_high_score_header.md + states/traces/missing_gh_high_score_header/.
@@ -40904,5 +40922,10 @@ Open/Closed Issues Impact:
 
 ### MAME Exit Summary (2026-07-08 14:46:48)
 - Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-08 16:07:43)
+- Final PC: 0x03A1AE
 - Stack Pointer (SP): 0x00FEFFF8
 - Unique Unmapped Memory Addresses: none

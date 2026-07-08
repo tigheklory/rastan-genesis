@@ -283,33 +283,36 @@ pc090oj_workram_block_sprites:
 /* 17 helpers                                                                */
 /* ------------------------------------------------------------------------- */
 
+/* Build 0146 faithful translation of arcade 0x03B902.
+ * Arcade body: lea 0xD00088,%a1 (records 17..21); tst.w %d1; bne fill.
+ *   clear path (d1==0): lea 0x3B984,%a0; moveq #5,%d1; bsr 0x3B930   -> copy the
+ *     5-record table at arcade 0x3B984 (Genesis 0x3BB84) into records 17..21.
+ *   fill path  (d1!=0): move.b %d1,2(%a1); addq.l #8,%a1  x5  -> write the byte
+ *     d1 to the Y-high byte (offset 2) of records 17..21 only.
+ * The prior Build 0142-era body wrote full descriptors to records 0..4, which
+ * clobbered record 4 (the HIGH SCORE "GH" glyph) that the arcade never touches.
+ * Registers are fully preserved (movem), matching the prior helper's contract.
+ */
 genesistan_pc090oj_hook_target_3b902:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     tst.w   %d1
     bne.s   .Lhook_3b902_fill
-    moveq   #0, %d0
-.Lhook_3b902_clear_loop:
-    bsr     .Lpc090oj_clear_slot
-    addq.w  #1, %d0
-    cmpi.w  #5, %d0
-    blo.s   .Lhook_3b902_clear_loop
+    /* clear path: table copy into records 17..21 via the faithful 0x3B930 helper */
+    lea     0x00D00088, %a1
+    lea     0x0003BB84, %a0                 /* arcade 0x3B984 table, +0x200 */
+    moveq   #5, %d1
+    bsr     genesistan_pc090oj_hook_target_3b930
     bra.s   .Lhook_3b902_done
 .Lhook_3b902_fill:
-    move.w  10*2(%a5), %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-    moveq   #0, %d0
+    /* fill path: write byte d1 to the Y-high byte (offset 2) of records 17..21 */
+    lea     0x00D0008A, %a1                 /* 0xD00088 + 2 (record 17 Y-high) */
+    moveq   #5, %d5
 .Lhook_3b902_fill_loop:
-    move.w  %d1, %d2
-    moveq   #0, %d1
-    moveq   #1, %d3
-    moveq   #0, %d4
-    moveq   #0, %d5
-    moveq   #0, %d6
-    bsr     .Lpc090oj_emit_slot
-    addq.w  #1, %d0
-    cmpi.w  #5, %d0
-    blo.s   .Lhook_3b902_fill_loop
+    move.w  %d1, %d0
+    bsr     .Lpc090oj_mirror_write_byte_a1_d0
+    adda.l  #8, %a1
+    subq.w  #1, %d5
+    bne.s   .Lhook_3b902_fill_loop
 .Lhook_3b902_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts

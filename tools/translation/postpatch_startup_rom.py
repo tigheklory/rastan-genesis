@@ -27,7 +27,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 133
 # Build 0113 shared PC080SN text-writer dispatcher: +0xBC bytes.
 # Build 0141 PC090OJ precomputed tile-DMA worklist commit (worklist append helper
 # + count-bounded commit replace the fixed 80-slot scan; .Lvcs_clear_dirty removed): +8 bytes.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17DCFC
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x17DCF4
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
