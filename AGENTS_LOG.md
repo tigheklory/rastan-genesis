@@ -1,5 +1,23 @@
 # AGENTS Log
 
+## [Andy - Temporary Implementation, Build 0145 Bank-51 Line-3 Delivery]
+
+* temporary Cody-role substitution acknowledged. Direct continuation from retained Build 0144 (@ c311d3c, SHA ba1ed586daa587cf0f6d2ffe851c0771b9d4ad42fb94677af42cdeed3d9d91ae, not overwritten). Outcome A (retained). Evidence docs/design/Andy_build_0145_bank51_line3_delivery.md + states/traces/build_0145_bank51_line3_delivery/.
+* files changed (production): apps/rastan-direct/src/palette_hooks.s ONLY - genesistan_palette_hook_59ad4 (arcade_pc 0x059AD4): added d0==0x33 special case BEFORE the existing <4 gate, remapping destination to Genesis line 3 (moveq #3,%d0) and falling into the existing conversion/staging body (source a0+d1*32 unchanged). Low banks 0..3 and other high-bank rejection preserved. Paired canonical bump 0x17DCF0->0x17DCFC (opcode_replace unchanged 133). pc090oj_hooks.s and 0x03BA64 NOT touched.
+* build produced: YES. ROM dist/rastan-direct/rastan_direct_video_test_build_0145.bin SHA256 b5c903a942b669e869b5b2d4ed4448f96d402707e3dcda946afabe2eb4dd23f7 size 1,563,900. GATE_PASS. address_map gaps=0 overlaps=0. Builds 0142/0144 unchanged. Counter 145, next 0146.
+* bank-51 source: arcade palette bank 51 HW 0x00200660 (via the hook's existing a0+d1*32 for the arcade d0=0x33 write).
+* runtime (item 2/2/6): records 28-45 -> line 2, records 64-67 -> line 3 (selectors unchanged from 0144). staged line 3 NOW NONZERO = 0000 0000 0eee 08ae 044a 0246 0008 0006 00ee 006e 0080 0060 0888 0666 0040 000e; staged line 3 == converted arcade bank 51 word-for-word 16/16. staged line 2 byte-identical to 0144 (bank 48).
+* visible: the four bank-51 item sprites (records 64-67) now render VISIBLE with correct bank-51 colours (green/red weapon by ARMATURE, red sword by IRE SWORD); were black in Build 0144. bank 48 header unchanged (title 1UP yellow, HI SCORE orange, white score, RASTAN logo/sword/text planes unchanged).
+* header regression: none (1UP yellow, HI SCORE orange, white text, planes unchanged). plane regression: none. smoke: frontend cycled title->item, no crash.
+* no unrelated changes: YES. architecture compliance: CONFIRMED (in-place special case in existing arcade-called RTS helper; single existing palette path 0x059AD4->conversion->staged_palette_words->palette_dirty->vdp_commit_palette->CRAM; no direct-CRAM/second-producer/second-commit/second-VBlank/loop/lifecycle/screen-state/restoration/instrumentation). STOP status: none (Outcome A).
+
+Open/Closed Issues Impact:
+- OPEN-006 (sprite palette bank mapping deferred): ADVANCED not closed. Frontend sprite palette now COMPLETE - bank 48 -> line 2 (Build 0144, header correct all 5 screens) + bank 51 -> line 3 (Build 0145, item sprites correct), both resident, planes on lines 0/1 unchanged. Remaining: general high-bank mapping for gameplay/other banks (out of frontend scope).
+- OPEN-024 / OPEN-001: context, unchanged, not closed.
+- No issue closed; no duplicate opened.
+
+KNOWN_FINDINGS impact: proposed new entry (pending curation, not auto-added) - frontend sprite palette reaches Genesis via two producers: bank 48 via 0x03BA64 (boot) -> line 2, bank 51 via 0x059AD4 (d0=0x33, item screen) -> line 3; routing each to lines 2/3 gives arcade-correct frontend sprite colours. Confidence CONFIRMED (selectors + staged dumps + 16/16 arcade match + visual), BUILD_SPECIFIC (Build 0145 frontend), Hazard HIGH. Consolidates pending KF-039/KF-040. Full text in the report.
+
 ## [Andy - Temporary Implementation, Build 0144 Frontend Sprite Palette Split]
 
 * temporary Cody-role substitution acknowledged (implementation/runtime-evidence). Baseline rastan-direct-proposal @ 790e714, Build 0142 SHA f4c4234910fd56c739f874ad2a176ec447949f4e492b6526d37064f7dd23f245 (accepted, unchanged). Outcome B (retained). Evidence docs/design/Andy_build_0144_frontend_sprite_palette_split.md + states/traces/build_0144_frontend_sprite_palette_split/.
@@ -40863,4 +40881,9 @@ Open/Closed Issues Impact:
 ### MAME Exit Summary (2026-07-08 14:03:38)
 - Final PC: 0x03B284
 - Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-08 14:46:48)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
 - Unique Unmapped Memory Addresses: none

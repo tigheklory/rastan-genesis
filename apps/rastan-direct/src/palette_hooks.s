@@ -41,8 +41,19 @@
 genesistan_palette_hook_59ad4:
     movem.l %d0-%d7/%a0-%a2, -(%sp)
 
+    /* Build 0145: the arcade's bank-51 sprite-palette update reaches this helper
+     * with d0 = 0x33; route it to Genesis staged line 3 (destination d0 = 3)
+     * through the existing conversion/staging body, keeping the arcade's own
+     * source (a0 + d1*32).  Every other high bank keeps the existing <4
+     * rejection; low banks 0..3 keep their existing line = d0 behavior. */
+    cmpi.w  #0x0033, %d0
+    bne.s   .L59_not_bank51
+    moveq   #3, %d0                 /* arcade bank 51 -> Genesis line 3 */
+    bra.s   .L59_dest_ready
+.L59_not_bank51:
     cmpi.w  #4, %d0
     bcc.s   .L59_done
+.L59_dest_ready:
 
     move.w  %d1, %d2
     mulu.w  #32, %d2
