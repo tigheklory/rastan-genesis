@@ -20,7 +20,9 @@
       "Bash(awk 'NR>=240 && NR<=300' /home/tighe/projects/rastan-genesis/apps/rastan-direct/src/crash_handler.s)",
       "Bash(xxd /home/tighe/projects/rastan-genesis/build/pc080sn_attr_lut.bin)",
       "Bash(awk '/^## KF-001/{exit}{print}' /home/tighe/projects/rastan-genesis/KNOWN_FINDINGS.md)",
-      "Bash(python3 -)"
+      "Bash(python3 -)",
+      "Bash(awk '{print $1}')",
+      "Bash(mame -verifyroms rastan)"
     ]
   }
 }
