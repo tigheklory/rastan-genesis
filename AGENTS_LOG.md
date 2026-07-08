@@ -1,5 +1,27 @@
 # AGENTS Log
 
+## [Andy - Verification, Frontend CRAM and Palette-Line Ownership]
+
+* temporary Cody-role substitution acknowledged (verification/runtime-evidence). Evidence-only: no ROM, no build number, no production/spec/tool change. GENESIS MAME on accepted Build 0142 (SHA f4c4234910fd56c739f874ad2a176ec447949f4e492b6526d37064f7dd23f245). Branch rastan-direct-proposal, head cc566e6. Outcome A. Evidence docs/design/Andy_frontend_cram_and_palette_line_ownership.md + states/traces/frontend_cram_palette_line_ownership/.
+* Phase 0 classification: NEW (CRAM line-2/3 ownership). Priors: KF-010 (BG->PlaneB/FG->PlaneA, used to map staged buffers), KF-011/KF-032/KF-021 (HIGH, respected), KF-026 context, DEF-004 context. No CONFIRMED/STRONG contradiction.
+* five frontend screens captured (all sctrl=0x0060, colbank 48): title 0/1/0, throne/story 0/1/2, high-score 2/0/0, item-desc 2/2/6, coined-up 1/1/0 (reached via P1 A = coin, input shim tilemap_hooks.s:2052).
+* CRAM-writer ownership lines 2/3: CONFIRMED no exception. Native watchpoint on staged CRAM line2 (0xFF60DE) + line3 (0xFF60FE) found only pc=0x0002A4 (_bootstrap_clear_staging, one-time boot zero) and pc=0x0718DA (genesistan_palette_hook_3ba64, staged_palette_words->palette_dirty->vdp_commit_palette). Line N = arcade bank N via 0x03BA64 boot load (colbank 0).
+* palette-selector-writer ownership lines 2/3: CONFIRMED no exception. Planes (staged_bg 0xFF409E / staged_fg 0xFF509E) select only lines 0/1 (full 2048-word scan, zero line-2/3 cells); SAT selects line 3 via PC090OJ place_record_in_slot; Window inert (VDP regs 17/18=0, no window commit in _vblank_service).
+* LINE 2: NO SELECTORS on any layer of any of the 5 screens (Plane A=0, Plane B=0, Window=0, SAT=0), CRAM line 2 all-zero (staged + VDP pen_color). Free/unowned; a nonzero bank in line 2 would reveal/recolor nothing. Central all-zero-could-still-be-selected risk DISPROVEN for line 2.
+* LINE 3: sprite-exclusive (no plane/Window consumer on any screen). Build 0142 (bank>>4)&3 hashes all frontend sprites to line 3; item screen has bank 48 (18 recs) + bank 51 (4 recs 64-67) co-resident. line-3 concurrency = CONFLICT under current formula (bank 51 in line 3 recolors the co-resident bank-48 header sprites); NO plane conflict; resolvable only by routing header bank off line 3 (design decision, not decided).
+* line-3 restoration: NOT PRESENT / NOT REQUIRED. CRAM line 3 byte-identical across all 5 screens (static = arcade bank 3), written once at boot by 0x03BA64 (arcade_pc 0x03BA64 / genesis_rom_offset 0x03BC64 / runtime 0x07186C), never rewritten in frontend; no restoration producer.
+* sprite-bank census: banks 48 (all screens) + 51 (item only, records 64-67). Confirmed banks 48/51 are the only high sprite banks in the frontend.
+* CRAM dumps: cram_<screen>.txt + <screen>.bin per screen; line2 all-zero (5/5), line3 static (5/5).
+* no source or ROM changes: YES. architecture compliance: CONFIRMED (debugger breakpoints/watchpoints/dumps + existing P1-A input only; no instrumentation, no loop/lifecycle/second-VBlank/boot-reentry). STOP status: none (Outcome A). No design decision made.
+
+Open/Closed Issues Impact:
+- OPEN-006 (sprite palette bank mapping deferred): new ownership facts recorded (line 2 unowned/free; line 3 sprite-exclusive, currently shared banks 48+51; CRAM line N = arcade bank N via 0x03BA64 boot load; line 3 static, no restoration). Not closed.
+- OPEN-024 / OPEN-001: context only, unchanged, not closed.
+- OPEN-023 (Window unimplemented): corroborated inert (regs 17/18=0, no window commit). Not closed.
+- No issue closed; no duplicate opened.
+
+KNOWN_FINDINGS impact: Option B - proposed new entry KF-040 (frontend CRAM line 2 unowned; line 3 sprite-exclusive and static; lines 2/3 written only by boot-clear + 0x03BA64; line N mirrors arcade bank N). Confidence CONFIRMED, Applicability BUILD_SPECIFIC (Build 0142 frontend), Rediscovery Hazard HIGH. Proposal pending curation; earlier KF-039 proposal also pending. Full text in docs/design/Andy_frontend_cram_and_palette_line_ownership.md.
+
 ## [Andy - Temporary Implementation, Build 0143 PC090OJ Dynamic Sprite Palette Window]
 
 * temporary Cody-role substitution acknowledged (implementation/runtime-evidence; exception ends Thursday evening). Branch rastan-direct-proposal, head 96b2acc. Baseline Build 0142 preserved.
