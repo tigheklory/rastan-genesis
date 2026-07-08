@@ -1,5 +1,24 @@
 # AGENTS Log
 
+## [Andy - Analysis, Missing GH in HIGH SCORE Header]
+
+* evidence-only (no source/ROM/build). Baseline rastan-direct-proposal @ a2d0485, Build 0145 SHA b5c903a942b669e869b5b2d4ed4448f96d402707e3dcda946afabe2eb4dd23f7. Outcome A. Evidence docs/design/Andy_missing_gh_high_score_header.md + states/traces/missing_gh_high_score_header/.
+* header = 2-char PC090OJ sprites: rec5 0x3A "HI", rec4 0x3B "GH", rec6 0x3C " S", rec7 0x3D "CO", rec8 0x3E "RE". Missing "GH" = record 4.
+* destructive emit call captured (bp 0x00071976, d0==4): ra=0x00071B14, d0=4 d1=0 d2=0 d3=1 (code 1) d4=0 (X 0); rec4_before=0000 0000 003B 0088 (GH present). Caller = genesistan_pc090oj_hook_target_3b902 fill loop (entry 0x00071AE0; loop 0x71B04-0x71B1A writes records 0..4 via emit_slot code 1).
+* producer: genesistan_pc090oj_hook_target_3b902 (arcade_pc 0x03B902, genesis_rom_offset 0x03BB02, patched_site opcode_replace). Fill AND clear loops iterate records 0..4 (cmpi #5). Arcade 0x03B902 original `lea 0x00D00088,%a1; move.b %d1,2(%a1); addq #8,%a1 x5` targets records 17..21 (HW 0xD00088), byte-2 only.
+* arcade record 4 (0xD00020) write seq (watchpoint): pc 0x3AD48 (clear code0/Y0x100/X0x100) -> pc 0x3B936-0x3B94C (code 0x3B, X 0x88 = GH, from 0x3B930 producer). FINAL=GH; NO code-1 write ever. Arcade 0x03B902 fill confirmed writing 0xD0008A (record 17, pc 0x3B91E) - never record 4.
+* genesis record 4 (0xFF69D0) write seq: boot clear -> GH (0000 0000 003B 0088) -> 3b902 fill overwrite (0000 0000 0001 0000) FINAL.
+* FIRST DIVERGENCE: Genesis 3b902 helper writes pc090oj_object_ram records 0..4 (mirror base 0xD00000); arcade 0x03B902 writes records 17..21 (0xD00088). Wrong record base/range (0 vs 17) -> clobbers record 4 (GH). Records 5-8 (HI/ S/CO/RE) outside 0..4 survive -> exactly "HI SCORE". GH lost because the 0..4 fill runs AFTER the correct GH write.
+* smallest boundary: genesistan_pc090oj_hook_target_3b902 fill/clear loop record range in pc090oj_hooks.s (target arcade records 17..21 / 0xD00088 instead of 0..4). Classification: copied-record / producer correction (wrong record range). NOT implemented.
+* no source/ROM/build. architecture compliance: CONFIRMED (debugger bp/wp + dumps + disasm + screenshots only; no instrumentation/tooling). Palette work, missing UP, and unrelated defects NOT investigated.
+
+Open/Closed Issues Impact:
+- OPEN-024 (PC090OJ subsystem incomplete): advanced - missing HIGH SCORE "GH" root-caused to genesistan_pc090oj_hook_target_3b902 writing records 0..4 instead of arcade 17..21 (0xD00088), clobbering record 4. Next action: correct helper record range. Not closed.
+- OPEN-001 (title/attract graphics incomplete): missing "GH" now has a proven PC090OJ producer-range cause (not plane/tile/palette). Not closed.
+- No issue closed; no duplicate opened.
+
+KNOWN_FINDINGS impact: propose (pending curation, not auto-added) - genesistan_pc090oj_hook_target_3b902 (arcade 0x03B902) writes PC090OJ mirror records 0..4 while the arcade routine targets records 17..21 (0xD00088), clobbering title HIGH-SCORE record 4 ("GH"). Confidence CONFIRMED (bp caller capture + arcade/genesis watchpoints + arcade original bytes), Applicability BUILD_SPECIFIC (Build 0145 title), Hazard HIGH.
+
 ## [Andy - Temporary Implementation, Build 0145 Bank-51 Line-3 Delivery]
 
 * temporary Cody-role substitution acknowledged. Direct continuation from retained Build 0144 (@ c311d3c, SHA ba1ed586daa587cf0f6d2ffe851c0771b9d4ad42fb94677af42cdeed3d9d91ae, not overwritten). Outcome A (retained). Evidence docs/design/Andy_build_0145_bank51_line3_delivery.md + states/traces/build_0145_bank51_line3_delivery/.
