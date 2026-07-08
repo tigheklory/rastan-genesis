@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Build 0143 Frontend Header Sprite Palette Audit — OUTCOME C, no implementation (rastan-direct)]
+
+* bounded palette audit on accepted Build 0142 (bbe4aa6, ROM SHA f4c4234910fd56c739f874ad2a176ec447949f4e492b6526d37064f7dd23f245). ARCADE MAME (rastan, ./roms) vs GENESIS MAME (Build 0142). No source/tool/ROM/build/commit-of-fix change. Evidence docs/implementation/Andy_frontend_header_palette_build0143.md + states/traces/build0143_palette/
+* arcade authority (docs/reference/mame/rastan/src/mame/taito/pc090oj.cpp:187 + rastan.cpp colpri_cb): sprite color = (word0 & 0x0f) | sprite_colbank; sprite_colbank = (sprite_ctrl & 0xe0) >> 1. Frontend runs global sprite_ctrl=0x60 -> colbank=48
+* header text records 28-45 all word0=0 -> arcade bank 48 (orange/yellow/white, arcade pal entries 768-783). Large item-icon records 64-67 word0=3 -> arcade bank 51. Genesis mirror word0 and sprite_ctrl_shadow(0x60) MATCH arcade (cause A and B ruled out)
+* first divergence = E (C+D): renderer palette formula (((word0&0x0f)|colbank)>>4)&3 hashes BOTH bank 48 and bank 51 -> Genesis line 3 (banks 48-63 all alias to line 3); AND it is inconsistent with the producer genesistan_palette_hook_3ba64 (0x03BA64->0x07186C, patched_site) which loads arcade banks 0-3 -> genesis lines 0-3 by bank index. So genesis line 3 CRAM = arcade bank 3 (purple) not bank 48. All header records share this uniformly
+* NOT boundable: header (bank 48) and co-resident item icons (bank 51) both resolve to genesis line 3; no single line-3 content or single producer/renderer edit fixes the header without altering the bank-51 icons. Separating them needs a consistent colbank-aware arcade-bank->genesis-line map (renderer formula + producer bank selection) across all screens = OPEN-006 broad sprite-palette-bank architecture. Per STOP conditions (different objects need unrelated fixes; broad redesign; preserve Build 0142 renderer): Outcome C, do NOT implement. No Build 0143 emitted, no fix commit
+* deferred non-palette (out of scope): missing UP of 1UP/2UP, missing HIGH SCORE label, score values 00000, text content (MANTLE/ARMATURE vs AXE/HAMMER), positions, missing/extra sprites, left purple bar, PC080SN, gameplay
+
+Open/Closed Issues Impact:
+- OPEN-006 (sprite/high-bank palette mapping deferred): proven frontend-header manifestation documented (bank 48 header + bank 51 icons alias to genesis line 3; producer loads banks 0-3 not 48/51). Not closed; concrete conflict recorded for the future bank-mapping build.
+- OPEN-024 (PC090OJ sprite subsystem incomplete): unchanged; header palette is a colour defect atop correct Build 0142 geometry. Not closed.
+- No issue closed. No new issue opened (facet of OPEN-006).
+
 ## [Andy - Build 0142 IMPLEMENTATION: PC090OJ Retained Identity + Sparse SAT (rastan-direct)]
 
 * implemented governing design §§9-C/9-D/9-E in apps/rastan-direct/src/pc090oj_hooks.s (only production source). ROM dist/rastan-direct/rastan_direct_video_test_build_0142.bin SHA256 f4c4234910fd56c739f874ad2a176ec447949f4e492b6526d37064f7dd23f245, size 1,563,844 B (0141 +1596). GATE_PASS, boot guard PASS, 30s trace clean. Baseline Build 0141 cebd389e. Branch rastan-direct-proposal, no branch/reset ops. Outcome A
