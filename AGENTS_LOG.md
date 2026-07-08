@@ -1,5 +1,29 @@
 # AGENTS Log
 
+## [Andy - Temporary Implementation, Build 0143 PC090OJ Dynamic Sprite Palette Window]
+
+* temporary Cody-role substitution acknowledged (implementation/runtime-evidence; exception ends Thursday evening). Branch rastan-direct-proposal, head 96b2acc. Baseline Build 0142 preserved.
+* files changed: NONE committed to production. Implemented Change 1 (pc090oj_hooks.s renderer: line=((word0&0x0f)|colbank)&3, removed >>4) + Change 2 (palette_hooks.s genesistan_palette_hook_3ba64: line=bank-((sprite_ctrl_shadow&0xE0)>>1), stage if 0..3; +.extern pc090oj_sprite_ctrl_shadow) + paired canonical bump 0x17DCC4->0x17DCD0. Built + validated as FAILING, then REVERTED. Committed docs only (this doc, AGENTS_LOG, OPEN_ISSUES).
+* build produced: YES (rejected). ROM dist/rastan-direct/rastan_direct_video_test_build_0143.bin SHA256 4518bd0bfd19ce4e014a9d13b17eedafae03aac8afe6d354e4baef2227136bec size 1,563,856. Retained as rejected-build evidence; counter left at 143; next ROM-producing task uses Build 0144.
+* root cause accepted from prior audit: YES (arcade color=(word0&0x0f)|sprite_colbank; colbank=(sprite_ctrl&0xE0)>>1; header bank 48, item bank 51; Build 0142 (bank>>4)&3 aliases both to line 3; producer loads banks 0-3).
+* exact fix implemented: YES then reverted (Outcome C). outcome: C.
+* static mapping proof: renderer >>4 removed (grep 0); producer disasm 0x718ac-0x718c2 reads sprite_ctrl_shadow(0xff71d2), sub colbank, cmpi #4 bhs skip, stage to staged_palette_words(0xff609e); palette_dirty path kept; no direct CRAM. opcode_replace 133 unchanged; address_map gaps=0 overlaps=0; GATE_PASS.
+* runtime palette-line proof: Change 1 SUCCEEDED — item screen SAT lines header records 28-45 (bank 48)->line 0, item records 64-67 (bank 51)->line 3, histogram {(48,0):18,(51,3):4}. Change 2 DID NOT deliver CRAM: staged line 0=arcade bank 0, line 3=arcade bank 3 (unchanged from 0142), NOT banks 48/51. Header colours still wrong.
+* STOP conflict (Outcome C): native producer trace to frame 1320 shows P3BA64 fires ONLY at sctrl=0x0000 (writes bank 0-47 + bank 48 at a0=0x200600 while colbank=0); never at sctrl=0x60. Window keyed on current shadow rejects bank 48 (line 48-0=48>=4). Producer not re-invoked after colbank->0x60 transition. Live per-colbank load flows through DIFFERENT producer P59AD4 (0x0717AE) with d0=0x33(51), gated <4 -> rejected, and outside authorized 3ba64 boundary. CRAM values do not result. Correcting needs a new re-load trigger (forbidden) or modifying 0x059AD4/0x045DAE (beyond authorized boundary). Reported + STOPPED, source reverted.
+* shared-CRAM regression result: N/A (producer never populated window; change reverted; no residual plane recolour left behind).
+* retained-renderer invariant result: N/A acceptance gate (reverted). Build 0142 renderer preserved byte-for-byte.
+* timing result: N/A (reverted); Build 0142 994-cyc stable DISPLAY_OFF unchanged.
+* no unrelated changes: YES. architecture compliance: CONFIRMED (pure helper-body arithmetic in arcade-called RTS helpers; no loop/lifecycle/VBlank/boot-reentry/scaffolding). STOP status: STOPPED (Outcome C).
+
+Open/Closed Issues Impact:
+- OPEN-006 (sprite palette bank mapping deferred): NOT closed. New proven limitation: sprite bank 48 loaded via 0x03BA64 while sprite_ctrl_shadow=0 (before colbank write), not re-loaded after colbank->48; live per-colbank load via 0x059AD4 (d0=effective bank, gated <4). A current-shadow-keyed single-producer window cannot align; a real fix must reconcile producer/colbank timing across producers.
+- OPEN-024 (PC090OJ subsystem incomplete): unchanged; renderer geometry/identity correct. Not closed.
+- OPEN-001 (title/attract graphics): context; header colour remains open.
+- OPEN-002 (sequential build naming): Build 0143 strictly sequential, no letter suffix; rejected 0143 consumed; next uses 0144. Not closed.
+- No issue closed. No new issue opened.
+
+KNOWN_FINDINGS impact: Option B — proposed new entry KF-039 (sprite palette bank loaded before the sprite-colbank control write, via a different producer than the per-colbank update; producer/colbank timing decoupled). Confidence CONFIRMED (native trace + CRAM dump), Applicability BUILD_SPECIFIC (Build 0143 frontend), Rediscovery Hazard HIGH. Full proposed text in docs/design/Andy_pc090oj_dynamic_sprite_palette_window_build_0143.md §20.
+
 ## [Andy - Build 0143 Frontend Header Sprite Palette Audit — OUTCOME C, no implementation (rastan-direct)]
 
 * bounded palette audit on accepted Build 0142 (bbe4aa6, ROM SHA f4c4234910fd56c739f874ad2a176ec447949f4e492b6526d37064f7dd23f245). ARCADE MAME (rastan, ./roms) vs GENESIS MAME (Build 0142). No source/tool/ROM/build/commit-of-fix change. Evidence docs/implementation/Andy_frontend_header_palette_build0143.md + states/traces/build0143_palette/
@@ -40786,5 +40810,10 @@ Open/Closed Issues Impact:
 
 ### MAME Exit Summary (2026-07-07 17:20:00)
 - Final PC: 0x03A1AE
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-07 22:23:10)
+- Final PC: 0x03A1AA
 - Stack Pointer (SP): 0x00FEFFF8
 - Unique Unmapped Memory Addresses: none
