@@ -166,8 +166,22 @@ genesistan_palette_hook_3ba64:
     sub.l   #0x00200000, %d4
     move.l  %d4, %d6
     lsr.l   #5, %d6                  /* arcade bank index */
-    cmpi.l  #4, %d6
-    bhs.s   .L3ba64_next             /* high banks are intentionally skipped */
+    /* Build 0144 frontend sprite-palette split: keep arcade banks 0/1 in
+     * Genesis lines 0/1 (plane palettes), route arcade bank 48 -> line 2 and
+     * arcade bank 51 -> line 3 (sprite banks), skip every other bank. */
+    cmpi.l  #2, %d6
+    blo.s   .L3ba64_line_ok         /* banks 0,1 -> lines 0,1 */
+    cmpi.l  #48, %d6
+    beq.s   .L3ba64_to_line2
+    cmpi.l  #51, %d6
+    beq.s   .L3ba64_to_line3
+    bra.s   .L3ba64_next            /* all other banks skipped */
+.L3ba64_to_line2:
+    moveq   #2, %d6                 /* arcade bank 48 -> Genesis line 2 */
+    bra.s   .L3ba64_line_ok
+.L3ba64_to_line3:
+    moveq   #3, %d6                 /* arcade bank 51 -> Genesis line 3 */
+.L3ba64_line_ok:
 
     move.l  %d4, %d7
     andi.l  #0x001F, %d7
@@ -188,7 +202,7 @@ genesistan_palette_hook_3ba64:
 .L3ba64_next:
     /* Keep original long-word loop semantics (not DBRA). */
     subq.l  #1, %d3
-    bne.s   .L3ba64_loop
+    bne     .L3ba64_loop
 
     tst.l   %d5
     beq.s   .L3ba64_done

@@ -1349,13 +1349,28 @@ vdp_commit_sprites_vram:
     andi.w  #0x007F, %d5
     ori.w   #0x0500, %d5
     move.w  %d5, 2(%a1)
-    /* word2 = priority | palette | flips | tile-index(dest slot) */
+    /* word2 = priority | palette | flips | tile-index(dest slot)
+     * Build 0144 frontend sprite-palette split: effective arcade sprite bank
+     * 0x30 (48) selects Genesis palette line 2, bank 0x33 (51) selects line 3;
+     * every other effective bank keeps the existing (bank >> 4) & 3 mapping.
+     * effective_arcade_bank = (word0 & 0x0F) | sprite_colbank (d7). */
     move.w  #0x8000, %d5
     move.w  %d1, %d0
     andi.w  #0x000F, %d0
-    or.w    %d7, %d0
+    or.w    %d7, %d0                 /* d0 = effective_arcade_bank */
+    cmpi.w  #0x0030, %d0
+    bne.s   .Lpc090oj_palsel_not48
+    moveq   #2, %d0                  /* bank 48 -> line 2 */
+    bra.s   .Lpc090oj_palsel_have
+.Lpc090oj_palsel_not48:
+    cmpi.w  #0x0033, %d0
+    bne.s   .Lpc090oj_palsel_general
+    moveq   #3, %d0                  /* bank 51 -> line 3 */
+    bra.s   .Lpc090oj_palsel_have
+.Lpc090oj_palsel_general:
     lsr.w   #4, %d0
-    andi.w  #0x0003, %d0
+    andi.w  #0x0003, %d0             /* all other banks: existing (bank>>4)&3 */
+.Lpc090oj_palsel_have:
     lsl.w   #8, %d0
     lsl.w   #5, %d0
     or.w    %d0, %d5

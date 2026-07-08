@@ -1,5 +1,25 @@
 # AGENTS Log
 
+## [Andy - Temporary Implementation, Build 0144 Frontend Sprite Palette Split]
+
+* temporary Cody-role substitution acknowledged (implementation/runtime-evidence). Baseline rastan-direct-proposal @ 790e714, Build 0142 SHA f4c4234910fd56c739f874ad2a176ec447949f4e492b6526d37064f7dd23f245 (accepted, unchanged). Outcome B (retained). Evidence docs/design/Andy_build_0144_frontend_sprite_palette_split.md + states/traces/build_0144_frontend_sprite_palette_split/.
+* files changed (production): pc090oj_hooks.s (SAT selector .Lpc090oj_place_record_in_slot: bank 0x30->line2, 0x33->line3, else (bank>>4)&3) + palette_hooks.s (genesistan_palette_hook_3ba64 determiner: banks 0,1->lines0,1; bank 48->line2; bank 51->line3; else skip). Paired canonical bump 0x17DCC4->0x17DCF0 (opcode_replace unchanged 133).
+* build produced: YES. ROM dist/rastan-direct/rastan_direct_video_test_build_0144.bin SHA256 ba1ed586daa587cf0f6d2ffe851c0771b9d4ad42fb94677af42cdeed3d9d91ae size 1,563,888. GATE_PASS. address_map gaps=0 overlaps=0. Build 0142 ROM not overwritten. Build counter 144, next 0145.
+* root cause accepted from prior verification: YES. Fix implemented: YES (retained). outcome: B.
+* runtime SAT proof: bank 48 -> line 2, bank 51 -> line 3 across all 5 screens (title 0/1/0, story 0/1/2, highscore 2/0/0, item 2/2/6, coinedup 1/1/0). Item: bank 48 line2 (18 recs 28-45) + bank 51 line3 (4 recs 64-67) both present. No bank-48 on line3, no bank-51 on line2. Represented set + record_to_slot byte-identical to 0142; SAT non-palette fields (Y/X/tile/link/size/priority/flip) 0 diffs (only palette bits 13-14 changed).
+* staged-palette proof: staged line 2 = bank 48 colors (0000 0000 0008 004e 008e 00ee 08ee 0eee 0a00 0e40 0e80 0ec0 0eea 0000 0000 0000), nonzero+stable all 5 screens. staged line 3 = ALL ZERO all 5 screens (bank 51 not delivered).
+* committed CRAM: vdp_commit_palette DMAs all 64 staged words -> committed CRAM = staged_palette_words verbatim. MAME :gen_vdp:gfx_palette pen_color reads zero even for the visibly-rendering line 0, so it is NOT live CRAM and was not used as committed evidence. Committed line2=bank48 (confirmed by rendered header), committed line3=zero (confirmed by black bank-51 sprites).
+* shared-CRAM / visual: bank 48 header sprites now render arcade-correct (title 1UP yellow, HI SCORE orange; was purple in 0142) on all 5 screens - PRIMARY GOAL FIXED. Planes visually unchanged (plane selection untouched). bank 51 item sprites (records 64-67) render black/invisible (line 3 zero; was purple bank3 in 0142).
+* root cause of line-3 zero: arcade bank 51 = palette RAM 0x200660 is NOT carried by 0x03BA64 (covers 0x200000..0x20061F = banks 0..48); bank 51 reaches staging via 0x059AD4 (d0=0x33), which this task did NOT modify (Outcome B guidance: do not investigate/modify later producer or add refresh path). Retained per Outcome B: selector split is useful + architecture-compliant.
+* no unrelated changes: YES. architecture compliance: CONFIRMED (in-place arithmetic in existing arcade-called RTS helpers; no loop/lifecycle/second-VBlank/boot-reentry/direct-CRAM/second-path/restoration/instrumentation; single arcade VBlank + existing staging/commit). STOP status: none (bounded change completed; classified B).
+
+Open/Closed Issues Impact:
+- OPEN-006 (sprite palette bank mapping deferred): ADVANCED not closed. Frontend selector split implemented+validated; bank 48->line2 renders correct header colours on all 5 screens; bank 51->line3 has correct selectors but zero palette data (delivered via 0x059AD4 not the 0x03BA64 determiner modified here). Remaining: route bank 51 into staged line 3 via 0x059AD4.
+- OPEN-024 / OPEN-001: context, unchanged, not closed.
+- No issue closed; no duplicate opened.
+
+KNOWN_FINDINGS impact: proposed new entry (pending curation, not auto-added) - frontend sprite palette split works for bank 48 (line 2 via SAT selector + 0x03BA64) but bank 51 is not carried by 0x03BA64 (banks 0..48) and reaches staging via 0x059AD4 (d0=0x33), so a single-determiner remap leaves line 3 zero. Confidence CONFIRMED, Applicability BUILD_SPECIFIC (Build 0144 frontend), Hazard HIGH. Extends pending KF-039/KF-040. Full text in the report.
+
 ## [Andy - Verification, Frontend CRAM and Palette-Line Ownership]
 
 * temporary Cody-role substitution acknowledged (verification/runtime-evidence). Evidence-only: no ROM, no build number, no production/spec/tool change. GENESIS MAME on accepted Build 0142 (SHA f4c4234910fd56c739f874ad2a176ec447949f4e492b6526d37064f7dd23f245). Branch rastan-direct-proposal, head cc566e6. Outcome A. Evidence docs/design/Andy_frontend_cram_and_palette_line_ownership.md + states/traces/frontend_cram_palette_line_ownership/.
@@ -40838,4 +40858,9 @@ Open/Closed Issues Impact:
 ### MAME Exit Summary (2026-07-07 22:23:10)
 - Final PC: 0x03A1AA
 - Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-08 14:03:38)
+- Final PC: 0x03B284
+- Stack Pointer (SP): 0x00FEFFFC
 - Unique Unmapped Memory Addresses: none
