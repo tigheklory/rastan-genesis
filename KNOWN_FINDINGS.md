@@ -622,6 +622,8 @@ Last verified: 2026-06-19 (Build 0091 / OPEN-016 Part 2 ROM)
 
 **Finding.** Absolute arcade work-RAM pointers (`0x0010Cxxx`) held in translated data/record tables map to Genesis WRAM as `genesis = a5 + (pointer - 0x0010C000)` with runtime arcade A5 `0x0010C000` and Genesis a5 `0x00FF0000` (i.e. arcade `0x0010C000` -> Genesis `0x00FF0000`). Confirmed by the ranking table landing byte-identical at `0x00FF0140..0x00FF0165` (scores `31 27 00 …`, names COB/THS/YAG/TKG/YTN at `0x00FF0157`). The title high-score initialization is present and correct; the earlier "HIGH SCORE 00" defect was a producer read using region base `0x00100000` instead of the A5 base `0x0010C000` (off by `0xC000`, reading empty `0x00FFC142`). PC090OJ record clear/producer ranges expressed as arcade HW addresses map by record index: arcade `0x59F5E` clears 8 records from `0x00D00048` = record 9 (records 9..16), **not** records 0..7.
 
+Reinforced Build 0151: `genesistan_hook_number_renderer_3c2e2` (arcade 0x3C2E2, BEST 5 SCORE/ROUND) had the same defect in a different guise -- it masked the descriptor's absolute source pointer with `& 0x0000FFFF` instead of subtracting `ARCADE_WORKRAM_A5_BASE`, reading 0x00FFCxxx zeros.
+
 **Use as prior.** When translating an arcade routine that dereferences a `0x0010Cxxx` work-RAM pointer, subtract the A5 base `0x0010C000` (not the region base `0x00100000`) before adding Genesis a5. When translating a PC090OJ producer/clearer that addresses records by HW address, derive the record index as `(HW - 0x00D00000) / 8` rather than assuming a 0-based range. Do not seed default score/high-score values: the arcade high-score init already populates the Genesis table correctly.
 
 ---

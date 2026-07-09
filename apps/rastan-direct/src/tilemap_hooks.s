@@ -60,6 +60,12 @@
     .equ ARCADE_PC080SN_CWINDOW_BYTES,       0x00004000
     .equ ARCADE_MAINCPU_ROM_BASE,            0x00000200
     .equ ARCADE_HIGHSCORE_SOURCE_BASE,       0x00FF0000
+    /* Arcade A5 work-RAM base (KF-039).  The number-renderer descriptors store
+     * absolute arcade work-RAM pointers (0x0010Cxxx); the mapped Genesis address
+     * is a5(0x00FF0000) + (pointer - ARCADE_WORKRAM_A5_BASE).  Build 0150 fix:
+     * the source was masked with 0x0000FFFF (keeping the 0xC000 A5-base bits),
+     * so it read 0x00FFCxxx (all zero) -> SCORE/ROUND rendered as 0. */
+    .equ ARCADE_WORKRAM_A5_BASE,             0x0010C000
     .equ PC080SN_DESC_REBUILD_SRC_TABLE,      0x00FF1000
     .equ PC080SN_DESC_REBUILD_PTR_TABLE,      0x00FF1040
     .equ PC080SN_DESC_REBUILD_WORD_TABLE,     0x00FF1080
@@ -1240,7 +1246,10 @@ genesistan_hook_number_renderer_3c2e2:
     move.l  %a1, %d4
 
     movea.l %a5, %a4
-    andi.l  #0x0000FFFF, %d2
+    /* Map the descriptor's absolute arcade work-RAM source pointer to Genesis
+     * WRAM: a4 = a5 + (source - ARCADE_WORKRAM_A5_BASE)  (KF-039).  Was
+     * andi.l #0x0000FFFF (kept the 0xC000 base bits) -> read 0x00FFCxxx zeros. */
+    subi.l  #ARCADE_WORKRAM_A5_BASE, %d2
     adda.l  %d2, %a4
 
     lea     genesistan_pc080sn_tile_vram_lut, %a3
@@ -1320,7 +1329,12 @@ genesistan_hook_number_renderer_3c2e2:
     subq.w  #1, %d3
     bne     .Lnr3c2e2_digit_loop
 
-    cmpi.w  #6, %d7
+    /* Leading-zero suppression runs only for the 6-digit score fields.  The
+     * original count was saved in %d7, but the digit-emit path
+     * (.Ltw_compose_d1_from_d0_d2) clobbers %d7, so re-read the count from the
+     * still-live descriptor pointer %a0 (Build 0151 fix: the clobbered %d7
+     * check was always false, so leading zeros were never blanked). */
+    cmpi.w  #6, (%a0)
     bne     .Lnr3c2e2_done
 
     moveq   #6, %d3

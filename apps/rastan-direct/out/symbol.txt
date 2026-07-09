@@ -257,6 +257,7 @@
 000ff114 T genesistan_pc080sn_attr_lut
 000ff154 T genesistan_pc080sn_tile_rom
 0010c000 a ARCADE_WORKRAM_A5_BASE
+0010c000 a ARCADE_WORKRAM_A5_BASE
 0017f154 T genesistan_scene_preload_title
 0017fe8a T genesistan_scene_preload_gameplay
 0017fe8a T genesistan_scene_preload_title_end

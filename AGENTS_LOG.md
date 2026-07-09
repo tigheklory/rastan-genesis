@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Temporary Implementation, Build 0151 BEST 5 SCORE/ROUND Values + Leading-Zero Suppression]
+
+* baseline rastan-direct-proposal @ 2850f92 (Build 0149 accepted). Accepted build 0151. Build 0150 (source-base fix only, SHA cd7ac8be...) retained as intermediate/unaccepted (showed 2 leading zeros). Deliverable docs/design/Andy_build_0151_highscore_score_round.md + states/traces/build_0150_highscore_score_round/.
+* diagnosis: BEST 5 (state 2/0/0) NAME rendered by genesistan_hook_highscore_fg_producer (0xFF0000+src_off, correct); row templates "1ST        00" by glyph renderer; SCORE/ROUND VALUES by genesistan_hook_number_renderer_3c2e2 (arcade 0x3C2E2, descriptor table 0x3C57C). Ranking table 0xFF0140..65 intact on the screen (scores 31 27 00..., rounds 03 03 03 02 02) -> NOT a clear (cause D). Number renderer read WRONG addr 0xFFC140 (zeros; PCs 0x70D6C/0x70DCC, 40 reads).
+* Cause A: descriptor sources are ABSOLUTE arcade pointers 0x0010C1xx; hook computed a4 = a5 + (source & 0x0000FFFF) = 0xFF0000 + 0xC1xx = 0xFFCxxx (kept the 0xC000 A5-base bits). Fix: subi.l #ARCADE_WORKRAM_A5_BASE(0x0010C000), d2 -> a4 = a5 + (source - 0x10C000) = 0xFF01xx (KF-039).
+* secondary (leading zeros): the hook's leading-zero suppression (blank leading '0' cells for 6-digit scores) is gated by cmpi.w #6,d7, but d7 (count) is clobbered by the digit emit (.Ltw_compose_d1_from_d0_d2), so it never ran (harmless while zero; showed 00273100 once fixed). Fix: cmpi.w #6,(a0) (re-read count from the live descriptor pointer). Pre-existing bug, independent of the source-base fix.
+* build: dist/rastan-direct/rastan_direct_video_test_build_0151.bin SHA256 eab3a3fbfa27327ff5a34ba729467e43f59b3c2940f8bc84c27310a7f1e9429b size 1,580,368. GATE_PASS, boot guard PASS, 30s trace clean. address_map gaps=[] overlaps=[] covered=0x181D50 opcode_replace=133. Coverage unchanged. Builds 0142-0150 not overwritten. counter 151.
+* validation: BEST 5 = arcade-exact (1ST 273100 3 COB / 2ND 257200 3 THS / 3RD 197800 3 YAG / 4TH 125400 2 TKG / 5TH 112000 2 YTN). Debugger substitution (1ST src 66 55 44, round 07) -> displayed 44556600 / ALL, NAME COB unchanged (source-driven, not hardcoded; not committed). Regressions: header HIGH SCORE 273100; coined title label complete (rec 4-8 intact); zeros culled 12/12, rep 15; item line3 bank51 byte-identical + sprites 64-67 rep; multi-boot 273100.
+* architecture compliance CONFIRMED (two in-place fixes in existing number-renderer producer, KF-039 named constant, no hardcoded values/text/tiles, no row/title special-casing, no SAT/tilemap patch, no seeding, no second renderer, no NAME/clipping/palette/title-score change). Real-hardware NOT CLAIMED. Deferred: post-item header damage, stray 2731, missing item sprites, item-scroll, C08C62, credit positioning, TAITO AMERICA/JAPAN, gameplay.
+
+Open/Closed Issues Impact:
+- OPEN-001 (title/attract graphics): materially advanced - BEST 5 SCORE/ROUND columns render correct arcade values. Not closed.
+- No issue closed; no duplicate opened; no data-seed issue created (init was correct).
+
 ## [Andy - Temporary Implementation, Build 0149 Title HIGH SCORE 273100 + Coin-Transition Label Clear]
 
 * baseline rastan-direct-proposal @ 32c6a5a (Build 0147 accepted). Accepted build: 0149. Build 0148 (score-remap fix only) retained as UNACCEPTED candidate (SHA 151aab01...). Deliverables docs/design/Andy_build_0149_title_highscore_coin_label.md (+ Build 0148 report marked superseded) + states/traces/build_0148_default_title_highscore/.
@@ -40988,5 +41002,15 @@ Open/Closed Issues Impact:
 
 ### MAME Exit Summary (2026-07-09 15:10:56)
 - Final PC: 0x03B28A
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-09 15:48:38)
+- Final PC: 0x03B28A
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-09 16:00:07)
+- Final PC: 0x03B280
 - Stack Pointer (SP): 0x00FEFFFC
 - Unique Unmapped Memory Addresses: none
