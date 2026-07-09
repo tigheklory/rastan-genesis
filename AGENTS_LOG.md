@@ -41014,3 +41014,18 @@ Open/Closed Issues Impact:
 - Final PC: 0x03B280
 - Stack Pointer (SP): 0x00FEFFFC
 - Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-09 17:22:21)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0152 Gameplay-Entry C-window Fault]
+
+* scope: implementation + evidence for OPEN-018 gameplay-entry raw PC080SN FG write; no bookmark, no BlastEm claim, no item-scroll/sprite/palette/VBlank/title/story/BEST5/high-score changes
+* baseline: branch `rastan-direct-proposal`, starting HEAD `eac4699`, Build 0151 SHA `eab3a3fbfa27327ff5a34ba729467e43f59b3c2940f8bc84c27310a7f1e9429b`, counter `151`
+* arcade intent: original arcade MAME proved `arcade_pc 0x03A72A` writes dynamic `D0=0x0031` from `A5+0x0117 | 0x0030` to `HW_ADDRESS 0x00C08C62` during state `2/2/6`; evidence in `states/traces/build_0152_gameplay_entry_cwindow_fault/`
+* implementation: added `genesistan_hook_inline_fg_write_3a92a` and one opcode_replace at `arcade_pc 0x03A72A` / `runtime_genesis_pc 0x03A92A`, routing live `D0` through `genesistan_hook_tilemap_fg_fill`; wrapper preserves registers and restores MOVE.W-equivalent CCR via `tst.w d0`
+* validation: Build 0152 produced with `GATE_PASS`; SHA `3d805331815588576a3fdeef732a7b094f3c15997b66c76830827adfc2f35214`; patched-site count `134`, covered bytes `0x181D68`; runtime dump proved wrapper `D0=0x31` and armed FG store at offset `0x0630` / base `0x00FF509E`
+* issue impact: OPEN-018 updated; `0x03A92A` sub-case routed; adjacent `0x03D24C` remains unpatched/open because same-route arcade proof was not established; `KNOWN_FINDINGS.md` not edited
+* STOP status: NO

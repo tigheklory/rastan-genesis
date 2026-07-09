@@ -29,7 +29,7 @@ FAIL_STATE_REVERT_DURING_ACTIVE = "GATE_FAIL_STATE_REVERT_DURING_ACTIVE_CYCLE"
 FAIL_STATE_REVERT_NO_CYCLE = "GATE_FAIL_STATE_REVERT_NO_CYCLE"
 FAIL_STATE_CORRUPTED = "GATE_FAIL_STATE_CORRUPTED"
 
-CANONICAL_OPCODE_REPLACE_COUNT = 133
+CANONICAL_OPCODE_REPLACE_COUNT = 134
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -40,7 +40,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 133
 # Build 0113 shared PC080SN text-writer dispatcher: +0xBC bytes.
 # Build 0141 PC090OJ precomputed tile-DMA worklist commit (worklist append helper
 # + count-bounded commit replace the fixed 80-slot scan; .Lvcs_clear_dirty removed): +8 bytes.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x181D50
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x181D68
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")

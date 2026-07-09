@@ -8,6 +8,7 @@
     .global genesistan_hook_inline_fg_write_3a550
     .global genesistan_hook_inline_fg_write_3a8fe
     .global genesistan_hook_inline_fg_write_3a908
+    .global genesistan_hook_inline_fg_write_3a92a
     .global genesistan_hook_inline_fg_write_3acea
     .global genesistan_hook_pc080sn_bg_scroll_fill
     .global genesistan_hook_pc080sn_fg_scroll_fill
@@ -670,6 +671,15 @@ genesistan_hook_inline_fg_write_3a908:
     moveq   #1, %d1
     bsr     genesistan_hook_tilemap_fg_fill
     movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_inline_fg_write_3a92a:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    lea     0x00C08C60, %a0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    tst.w   %d0
     rts
 
 genesistan_hook_inline_fg_write_3acea:

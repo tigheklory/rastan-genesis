@@ -8,7 +8,7 @@ arm: initial_pc=000000
 [frame 000000] live_write vdp_ports_live pc=07008e addr=c00004 data=8004 mask=ffff count=1
 [frame 000001] exec_enter pc=000322 range=other
 [frame 000007] exec_enter pc=03b0c0 range=startup_common@000200
-[frame 000014] exec_enter pc=0718d0 range=other
+[frame 000014] exec_enter pc=0718e8 range=other
 [frame 000030] pc=0707a2 exec=other
 [frame 000035] first_symbol_change in_390001 addr=ff6875 0->3A
 [frame 000035] first_symbol_change c20000_0 addr=ff6870 0->3B
@@ -138,7 +138,7 @@ arm: initial_pc=000000
 [frame 000256] exec_enter pc=03b286 range=title_init_block@000000
 [frame 000260] exec_enter pc=03a1aa range=frontend_core@000000
 [frame 000261] exec_enter pc=03b284 range=title_init_block@000000
-[frame 000263] exec_enter pc=071948 range=other
+[frame 000263] exec_enter pc=071960 range=other
 [frame 000270] pc=07078e exec=other
 [frame 000270] window_change wram_ff0000
 [frame 000270] window_change vdp_ports
