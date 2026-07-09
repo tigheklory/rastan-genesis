@@ -93,6 +93,18 @@
     .equ ARCADE_ROM_BASE, 0x00000200
     .equ PC090OJ_HW_BASE, 0x00D00000
     .equ PC090OJ_HW_ACTIVE_END, 0x00D00800
+    /* Arcade A5 work-RAM base.  Absolute arcade work-RAM pointers (0x0010Cxxx)
+     * map to Genesis WRAM as a5 + (pointer - ARCADE_WORKRAM_A5_BASE); the Genesis
+     * a5 (0x00FF0000) corresponds to this arcade base (arcade 0x0010C000 ->
+     * Genesis 0x00FF0000, e.g. the ranking table names at 0x00FF0157). */
+    .equ ARCADE_WORKRAM_A5_BASE, 0x0010C000
+    /* Arcade 0x59F5E clears 8 PC090OJ records starting at HW 0x00D00048
+     * (= PC090OJ_HW_BASE + record 9), i.e. records 9..16.  It never touches the
+     * HIGH SCORE label records 4..8.  (Build 0149 fix: the translation cleared
+     * records 0..7, wiping label records 4..7 on coin insertion -> only "RE"
+     * remained above 273100.) */
+    .equ HOOK_59F5E_CLEAR_FIRST_RECORD, 9   /* (0x00D00048 - PC090OJ_HW_BASE) / 8 */
+    .equ HOOK_59F5E_CLEAR_RECORD_COUNT, 8
 
     /* ------------------------------------------------------------------ *
      * Build 0147: PC090OJ viewport coordinate + opaque-clip constants.   *
@@ -410,11 +422,11 @@ genesistan_pc090oj_hook_target_45dfa:
 genesistan_pc090oj_hook_target_59f5e:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 
-    moveq   #0, %d0
+    moveq   #HOOK_59F5E_CLEAR_FIRST_RECORD, %d0
 .Lhook_59f5e_clear_slots:
     bsr     .Lpc090oj_clear_slot
     addq.w  #1, %d0
-    cmpi.w  #8, %d0
+    cmpi.w  #(HOOK_59F5E_CLEAR_FIRST_RECORD + HOOK_59F5E_CLEAR_RECORD_COUNT), %d0
     blo.s   .Lhook_59f5e_clear_slots
 
     /* preserve arcade workram tuple writes at A5+0x0170 */
@@ -608,9 +620,13 @@ genesistan_pc090oj_hook_score_digit_3b802:
     movea.l 2(%a0), %a4              /* arcade PC090OJ destination pointer */
     movea.l 6(%a0), %a2              /* arcade score-data source pointer */
 
-    /* 0x10xxxx table pointers are arcade workram; remap to A5-relative Genesis WRAM */
+    /* Score-source pointers in the record table are absolute arcade work-RAM
+     * addresses anchored at the arcade A5 base (0x0010C000).  The Genesis holds
+     * the same work-RAM anchored at its own A5 (0x00FF0000), so the mapped
+     * address is a5 + (source - ARCADE_WORKRAM_A5_BASE).  (Build 0148 fix: the
+     * base was 0x00100000, which read 0xC000 past the real values -> zeros.) */
     move.l  %a2, %d2
-    subi.l  #0x00100000, %d2
+    subi.l  #ARCADE_WORKRAM_A5_BASE, %d2
     movea.l %a5, %a2
     adda.l  %d2, %a2
 

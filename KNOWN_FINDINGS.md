@@ -609,6 +609,24 @@ Last verified: 2026-06-19 (Build 0091 / OPEN-016 Part 2 ROM)
 
 **Use as prior.** Do not rediscover `FIRE SWORD -> IRE SWORD` as a `genesistan_hook_textwriter_dispatch`, `0x565CE` substitution, `attr_lut`, VDP commit, or Build 0115 opcode-rebasing defect. The Build 0115 dispatcher remains validated and item text reaches BG staging. Do not globally change `bg_fill` row mapping without a design pass: making BG staging taller globally could break currently working 32-row-wrapping screens such as title/story/high-score. The item-description page appears to use PC080SN BG C-window addresses as a taller/longer text layout than current Genesis 32-row staging preserves; this may be item-description-specific, general PC080SN virtual tilemap behavior also used by gameplay level scrolling, or a missing scroll/window model where high rows should remain distinct until revealed by scroll. Gameplay/demo PC080SN evidence is required before selecting a representation.
 
+## KF-039 — Arcade work-RAM absolute pointers map to Genesis WRAM via the A5 base 0x0010C000
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (arcade + Genesis runtime dumps; arcade disassembly; visual)
+- **Applicability:** DURABLE mapping rule (rastan-direct); producer facts BUILD_SPECIFIC (Build 0149)
+- **Rediscovery Hazard:** HIGH (treat as canonical prior unless contradicted by explicit evidence)
+- **Addresses:** arcade A5 = `0x0010C000`; Genesis a5 = `0x00FF0000`; title high-score source arcade `0x0010C142` -> Genesis `0x00FF0142`; ranking table arcade `0x0010C140..0x0010C165` -> Genesis `0x00FF0140..0x00FF0165`; names at `0x00FF0157`; 0x3B802 hook `genesistan_pc090oj_hook_score_digit_3b802` (`0x00071D34`); clearer `genesistan_pc090oj_hook_target_59f5e` (`0x00071B84`); arcade `0x59F5E` clear base `0x00D00048` (record 9)
+- **Source Documents:** docs/design/Andy_build_0149_title_highscore_coin_label.md; docs/design/Andy_build_0148_default_title_highscore.md
+- **Related Issues:** OPEN-001, OPEN-024
+- **Last verified:** 2026-07-09 (Build 0149)
+
+**Finding.** Absolute arcade work-RAM pointers (`0x0010Cxxx`) held in translated data/record tables map to Genesis WRAM as `genesis = a5 + (pointer - 0x0010C000)` with runtime arcade A5 `0x0010C000` and Genesis a5 `0x00FF0000` (i.e. arcade `0x0010C000` -> Genesis `0x00FF0000`). Confirmed by the ranking table landing byte-identical at `0x00FF0140..0x00FF0165` (scores `31 27 00 …`, names COB/THS/YAG/TKG/YTN at `0x00FF0157`). The title high-score initialization is present and correct; the earlier "HIGH SCORE 00" defect was a producer read using region base `0x00100000` instead of the A5 base `0x0010C000` (off by `0xC000`, reading empty `0x00FFC142`). PC090OJ record clear/producer ranges expressed as arcade HW addresses map by record index: arcade `0x59F5E` clears 8 records from `0x00D00048` = record 9 (records 9..16), **not** records 0..7.
+
+**Use as prior.** When translating an arcade routine that dereferences a `0x0010Cxxx` work-RAM pointer, subtract the A5 base `0x0010C000` (not the region base `0x00100000`) before adding Genesis a5. When translating a PC090OJ producer/clearer that addresses records by HW address, derive the record index as `(HW - 0x00D00000) / 8` rather than assuming a 0-based range. Do not seed default score/high-score values: the arcade high-score init already populates the Genesis table correctly.
+
+---
+
+
 ## Deferred Candidates Appendix
 
 **This appendix is NOT canonical priors. Entries here are pre-canonical observations that did not meet promotion criteria at the time of the most recent curation pass. They may be promoted, refined, or rejected in future curation passes.**

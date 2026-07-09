@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Temporary Implementation, Build 0149 Title HIGH SCORE 273100 + Coin-Transition Label Clear]
+
+* baseline rastan-direct-proposal @ 32c6a5a (Build 0147 accepted). Accepted build: 0149. Build 0148 (score-remap fix only) retained as UNACCEPTED candidate (SHA 151aab01...). Deliverables docs/design/Andy_build_0149_title_highscore_coin_label.md (+ Build 0148 report marked superseded) + states/traces/build_0148_default_title_highscore/.
+* fix 1 (Cause B, title HIGH SCORE value): genesistan_pc090oj_hook_score_digit_3b802 remapped its work-RAM score source with region base 0x00100000 instead of arcade A5 base 0x0010C000 -> read empty 0x00FFC142 instead of 0x00FF0142 (off by 0xC000). High-score init already correct: Genesis 0x00FF0140..0x00FF0165 byte-identical to arcade ranking table (31 27 00..., value 273100; names at 0x00FF0157). Fix: subi.l #ARCADE_WORKRAM_A5_BASE(0x0010C000). NOT a missing seed. Debugger substitution 55 44 00 -> producer emits 445500 (source-driven, not hardcoded).
+* fix 2 (Cause A, coin-transition partial HIGH SCORE): arcade retains records 4-8 (3b/3a/3c/3d/3e) through coin; Genesis Build 0148 cleared records 4-7 on coin (state 0/1/0 -> 1/0/0), leaving only rec 8 (RE). Traced writer: emit_slot (0x71976) <- 0x719C0 <- genesistan_pc090oj_hook_target_59f5e (0x71B84) clearing records 0..7. Arcade 0x59F5E (disasm of build/regions/maincpu.bin) clears 8 records from 0x00D00048 = record 9 (records 9..16), never touching label records 4..8. Fix: clear range 0..7 -> 9..16 via HOOK_59F5E_CLEAR_FIRST_RECORD=9 / _RECORD_COUNT=8. Shared .Lpc090oj_clear_slot (Y=0x180) left unchanged (code-0 non-drawable regardless of Y).
+* build: dist/rastan-direct/rastan_direct_video_test_build_0149.bin SHA256 84317ce92364865d2b96d02f31f35fd96b73c4f074ca7fe8b0a3a6c28e0ec3eb size 1,580,368. GATE_PASS, boot guard PASS, 30s trace clean. address_map gaps=[] overlaps=[] covered=0x181D50 opcode_replace=133. Coverage unchanged. Builds 0142-0148 not overwritten. counter 149.
+* validation: no-credit title 1UP/00 + complete HIGH SCORE + 273100 + 2UP/00, no top zero rows (12/12 culled); coined transition (frames 150/185/230/320/430) records 4-8 all represented unchanged, complete HIGH SCORE 273100 on "PUSH ONLY 1 PLAYER BUTTON" prompt, no partial RE; substitution 445500; multi-boot 273100 consistent; Build 0145 item line3 bank51 byte-identical + sprites 64-67 rep; Build 0146 label complete; Build 0147 clipping intact + complete 2UP.
+* architecture compliance CONFIRMED (in-place helper-body fixes, named constants, no HIGH SCORE/title-state/record-number special-casing - clear range is arcade-derived; no SAT/mirror patch; no coin-keyed preserve/delete; no renderer/lifecycle; no clipping/offset/score-mapping change). Real-hardware NOT CLAIMED. Deferred: ranking SCORE/ROUND, item-scroll, missing item sprites, stray 2731, C08C62, TAITO AMERICA/JAPAN, gameplay.
+* KNOWN_FINDINGS: added KF-039 (durable: arcade work-RAM 0x0010Cxxx -> Genesis a5 + (ptr - 0x0010C000); PC090OJ record index = (HW - 0xD00000)/8).
+
+Open/Closed Issues Impact:
+- OPEN-001 (title/attract graphics): materially advanced - title + credited-title header correct (complete HIGH SCORE 273100 on no-credit and through coin). Not closed (ranking SCORE/ROUND + post-title items remain).
+- No issue closed; no duplicate opened; no missing-default-seed issue created (init was correct).
+
 ## [Andy - Temporary Implementation, Build 0147 PC090OJ Viewport Clip + Coordinate Translation]
 
 * baseline rastan-direct-proposal @ 64080ce (Build 0146 accepted, SHA 3edcf345...). Outcome: IMPLEMENTED. Deliverable docs/design/Andy_build_0147_pc090oj_viewport_clip.md + states/traces/build_0147_pc090oj_viewport_clip/.
@@ -40963,6 +40977,16 @@ Open/Closed Issues Impact:
 - Unique Unmapped Memory Addresses: none
 
 ### MAME Exit Summary (2026-07-09 10:27:54)
+- Final PC: 0x03B28A
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-09 11:13:03)
+- Final PC: 0x03B28A
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-09 15:10:56)
 - Final PC: 0x03B28A
 - Stack Pointer (SP): 0x00FEFFFC
 - Unique Unmapped Memory Addresses: none

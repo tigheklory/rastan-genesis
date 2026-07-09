@@ -9,7 +9,9 @@
 00000004 a VDP_REG_PLANE_B
 00000005 a VDP_REG_SAT
 00000007 a VDP_REG_BG_COLOR
+00000008 a HOOK_59F5E_CLEAR_RECORD_COUNT
 00000008 a VDP_DISPLAY_ORIGIN_Y_BIAS
+00000009 a HOOK_59F5E_CLEAR_FIRST_RECORD
 0000000a a VDP_REG_HINT
 0000000b a VDP_REG_MODE3
 0000000c a VDP_REG_MODE4
@@ -254,6 +256,7 @@
 000f7114 T genesistan_pc080sn_tile_vram_lut
 000ff114 T genesistan_pc080sn_attr_lut
 000ff154 T genesistan_pc080sn_tile_rom
+0010c000 a ARCADE_WORKRAM_A5_BASE
 0017f154 T genesistan_scene_preload_title
 0017fe8a T genesistan_scene_preload_gameplay
 0017fe8a T genesistan_scene_preload_title_end
