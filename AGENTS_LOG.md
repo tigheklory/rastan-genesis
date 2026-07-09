@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy - Analysis, Missing UP in 2UP Title Header]
+
+* evidence-only, no source/ROM/build. Baseline rastan-direct-proposal @ a60d5f5, Build 0146 SHA 3edcf345d1c6e547b993f72b29ab9d80f7fa58823ad992de962391a5ce8a416b. Outcome A. Deliverable docs/design/Andy_missing_up_2up_header.md + states/traces/missing_up_2up_header/.
+* arcade PC090OJ rule (src/mame/taito/pc090oj.cpp draw_sprites + rastan.cpp): screen_y=raw_y (m_y_offset=0, non-inverted path in effect - proven by 1UP at raw X 0x28 rendering screen-left and HIGH SCORE at raw Y0 rendering screen-top); visible area set_visarea(0,319,8,247) => screen rows 0-7 are a non-displayed top margin (transpen clips to cliprect); no per-sprite visibility bit; PC090OJ has NO per-line sprite limit (draws all 256).
+* pattern data (arcade OBJ ROM :pc090oj, 16x16x4): digit glyphs 0x2a/0x39 inked ONLY in top 8 rows (0-6); label glyphs 0x46/0x47/0x48/0x49/0x3a inked ONLY in bottom 8 rows (8-14). Both classes placed at raw Y=0; the 8px top margin hides the top-inked leading zeros while showing the bottom-inked labels.
+* leading-zero records 28-33/37-42 = w0 0, Y 0, code 0x2a; arcade==genesis mirror byte-identical (no leading-zero flag/special Y; the Y=0 dump was correct - flagged inconsistency resolved). Suppression is pure pattern-ink+clip geometry.
+* divergence: Genesis .Lpc090oj_decode_record does NOT reproduce the arcade visible-area top clip (Y>=8), so raw-Y=0 top-inked leading zeros (zero visible arcade pixels) get full Genesis SAT slots at screen Y0. Scanline 0 -> 20 sprites (H40 limit); rec 45 (UP) is 20th/last in link order -> VDP drops it.
+* disposable experiment: breakpoint at vdp_commit_sprites 0x72098 zeroing staged-SAT Y of the 6 left leading-zero slots (records 28-33 = slots 5-10) just before the DMA -> UP restored ("2UP" blue), left 000000 cleared, labels stay positioned, mirror untouched (snaps/gen146_bp_exp.png). Confirms line-budget consequence. (Mirror-candidate poke and WRAM read-tap had no effect; pre-DMA breakpoint is the correct injection point.)
+* smallest boundary (not implemented): decoder must apply arcade top origin (net -8 so arcade visible top Y8 -> Genesis line 0) AND gate SAT representation on the arcade cliprect - cull records whose inked rows map entirely above Genesis Y0 (needs per-code first-inked row, derivable at pattern residency). General coordinate+clip rule; no special-casing of code 0x2a / record numbers / UP / title / final slot; mirror preserved. Bare -8 offset alone insufficient (blank cells still consume scanline-0 budget). Same rule also removes the extra rendered score zeros -> missing UP and extra-zeros share ONE root cause.
+* Build produced NO, ROM produced NO, build number consumed NO. architecture compliance CONFIRMED (MAME source cite + dumps + pattern decode + one disposable debugger bp; no source/ROM/mirror change). STOP status: none. Outcome A.
+
+Open/Closed Issues Impact:
+- OPEN-001 (title/attract graphics): materially advanced - missing UP root-caused (arcade 8px top-margin clip not reproduced -> leading-zero sprites over-represented -> scanline-0 budget drops UP; same cause as extra score zeros). Next action: add visible-area top-clip / vertical-ink representation gate to decoder. Not closed.
+- OPEN-024 (PC090OJ subsystem): advanced - general missing decoder rule identified (visible-area top clip + vertical-ink visibility gate). Not closed.
+- No issue closed; no duplicate opened.
+
 ## [Andy - Temporary Implementation, Build 0146 PC090OJ 0x03B902 Faithful Translation]
 
 * temporary Cody-role substitution acknowledged. Baseline rastan-direct-proposal @ 0b3f8b4, Build 0145 SHA b5c903a942b669e869b5b2d4ed4448f96d402707e3dcda946afabe2eb4dd23f7. Outcome B (retained). Evidence docs/design/Andy_build_0146_pc090oj_3b902_fix.md + states/traces/build_0146_pc090oj_3b902_fix/.
