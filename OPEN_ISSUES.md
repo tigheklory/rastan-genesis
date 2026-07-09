@@ -14,6 +14,7 @@ Rules:
 
 ## OPEN-001 — Build 0094 title/attract graphics incomplete
 
+  - [2026-07-09 Build 0147] Missing `UP` in `2UP` FIXED and extra leading-zero score rows removed by one general rule: `.Lpc090oj_decode_record` now applies an arcade->Genesis viewport origin (`PC090OJ_TO_GENESIS_Y_OFFSET=-8`, matching the background's +8 origin bias) plus an opaque-geometry clip (per-code `pc090oj_opaque_bbox`), so a record gets SAT representation only when >=1 opaque pixel survives the viewport. Fully-clipped leading-zero digits stay in the mirror but consume no SAT/scanline budget; `2UP` restored. ROM build_0147 SHA bb2af8f9.... No special-casing. Evidence: docs/design/Andy_build_0147_pc090oj_viewport_clip.md.
   - [2026-07-08 Andy analysis] Missing `UP` in `2UP` root-caused: arcade 8-px top-margin clip (`set_visarea` Y=8..247, pc090oj.cpp) is not reproduced by the Genesis PC090OJ decode, so leading-zero digit records (code 0x2A, top-inked, raw Y=0) that the arcade hides are given full SAT slots at screen Y0, overflowing scanline 0 (20/line H40 limit) and dropping the last chain sprite (record 45 = `UP`). Same root cause explains the extra visible score zeros (`000000` vs arcade `00`). Fix boundary: add a visible-area top-clip / vertical-ink representation gate to `.Lpc090oj_decode_record` (general rule, mirror preserved). Evidence: docs/design/Andy_missing_up_2up_header.md.
 - **Status:** OPEN
 - **Priority:** HIGH

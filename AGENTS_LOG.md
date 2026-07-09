@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy - Temporary Implementation, Build 0147 PC090OJ Viewport Clip + Coordinate Translation]
+
+* baseline rastan-direct-proposal @ 64080ce (Build 0146 accepted, SHA 3edcf345...). Outcome: IMPLEMENTED. Deliverable docs/design/Andy_build_0147_pc090oj_viewport_clip.md + states/traces/build_0147_pc090oj_viewport_clip/.
+* general PC090OJ coordinate + opaque-geometry viewport clip added to .Lpc090oj_decode_record: a mirror record gets SAT representation only if >=1 opaque pixel of its post-flip pattern intersects the effective clip rect. Fully-clipped records stay in the mirror but get no represented bit / record_to_slot / SAT entry / link / tile worklist / scanline capacity. Reuses existing candidate->decode->activate/deactivate pipeline; no new renderer/lifecycle/commit path.
+* opaque metadata: new tools/translation/build_pc090oj_opaque_bbox.py scans build/regions/pc090oj.bin -> build/pc090oj_opaque_bbox.bin (4096 codes x 4 bytes: min_row,max_row,min_col,max_col, unflipped cell space); .incbin as pc090oj_opaque_bbox in pc090oj_assets.s; Makefile rule added. Stable asset-derived data available before SAT allocation; not coupled to slot ownership.
+* initial offsets (named .equ, configurable): PC090OJ_TO_GENESIS_Y_OFFSET=-8 (= -VDP_DISPLAY_ORIGIN_Y_BIAS in vdp_comm.s; background applies +8 so arcade raster Y=8 -> Genesis line 0; sprites were 8px below -> -8 aligns them AND puts the arcade top margin above the Genesis viewport where zeros clip out). PC090OJ_TO_GENESIS_X_OFFSET=0 (frontend X already aligned). Named clip/coord constants: PC090OJ_PATTERN_WIDTH/HEIGHT/MAX_ROW/MAX_COL, PC090OJ_FLIP_X_TERM/Y_TERM (304/240), GENESIS_VIEWPORT_LEFT/RIGHT/TOP/BOTTOM (0/320/0/224), PC090OJ_SAT_Y_BIAS/X_BIAS (0x80).
+* flip: vflip mirrors opaque row span (MAX_ROW-box), hflip mirrors opaque col span, using post-inversion word0 bits 15/14 so the test matches the rendered orientation.
+* build: dist/rastan-direct/rastan_direct_video_test_build_0147.bin SHA256 bb2af8f9da5a005a1fc25ab8a4faabce25479cd576048b4d4e3047ea6cd52ddd size 1,580,368 (+16,476 vs 0146). GATE_PASS, boot guard PASS, 30s trace clean. address_map gaps=[] overlaps=[] total_covered=0x181D50 opcode_replace=133. Paired canonical bump 0x17DCF4->0x181D50 (postpatch + verify). Builds 0142-0146 not overwritten. counter 147.
+* validation: mirror byte-identical to 0146 (full 0x800); hidden zeros 28-33/37-42 represented=0 slot=ff; represented 23->11, scanline-0 sprites 20->9; title shows 1UP/HIGH SCORE/complete 2UP + short 00 scores, no leading 000000. Dynamic-digit (unused rec, code 0x39 !=0x2a, Y=0 -> not represented), position (code 0x39 Y=0x20 -> represented slot 0b), vflip (code 0x39 Y=0 flip -> represented slot 0c). Regression: Build 0146 HIGH SCORE intact; Build 0145 item screen (2/2/6) staged line3 bank51 byte-identical, all 4 bank-51 sprites (64-67) represented+visible, item represented 22->10 (only zeros culled).
+* architecture compliance CONFIRMED (decode-time gate, mirror preserved, no special-casing of records/codes/zeros/title/UP/final slot/chain position, no second renderer). Real-hardware validation NOT CLAIMED.
+
+Open/Closed Issues Impact:
+- OPEN-001 (title/attract graphics): materially advanced - missing UP fixed via faithful viewport rule; extra leading-zero score rows removed by the same rule (one root cause). Not closed.
+- OPEN-024 (PC090OJ subsystem): advanced - general visible-area top-clip + opaque-geometry SAT-representation gate + named configurable sprite viewport offsets aligned to the background origin. Not closed.
+- No issue closed; no duplicate opened.
+
 ## [Andy - Analysis, Missing UP in 2UP Title Header]
 
 * evidence-only, no source/ROM/build. Baseline rastan-direct-proposal @ a60d5f5, Build 0146 SHA 3edcf345d1c6e547b993f72b29ab9d80f7fa58823ad992de962391a5ce8a416b. Outcome A. Deliverable docs/design/Andy_missing_up_2up_header.md + states/traces/missing_up_2up_header/.
@@ -40944,4 +40960,9 @@ Open/Closed Issues Impact:
 ### MAME Exit Summary (2026-07-08 16:07:43)
 - Final PC: 0x03A1AE
 - Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-09 10:27:54)
+- Final PC: 0x03B28A
+- Stack Pointer (SP): 0x00FEFFFC
 - Unique Unmapped Memory Addresses: none

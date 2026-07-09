@@ -81,6 +81,7 @@
     .extern rastan_pc090oj
     .extern pc090oj_slot_lut
     .extern pc090oj_blank_code_bitset
+    .extern pc090oj_opaque_bbox
     .extern genesistan_hook_tilemap_bg_fill
     .extern genesistan_hook_tilemap_fg_fill
     .extern genesistan_hook_pc080sn_bg_scroll_fill
@@ -92,6 +93,39 @@
     .equ ARCADE_ROM_BASE, 0x00000200
     .equ PC090OJ_HW_BASE, 0x00D00000
     .equ PC090OJ_HW_ACTIVE_END, 0x00D00800
+
+    /* ------------------------------------------------------------------ *
+     * Build 0147: PC090OJ viewport coordinate + opaque-clip constants.   *
+     * Named so sprite/background alignment is easy to read and to tune   *
+     * during later emulator, gameplay, and real-CRT testing.             *
+     * ------------------------------------------------------------------ */
+    /* 16x16 sprite cell geometry. */
+    .equ PC090OJ_PATTERN_WIDTH,   16
+    .equ PC090OJ_PATTERN_HEIGHT,  16
+    .equ PC090OJ_PATTERN_MAX_ROW, 15    /* PC090OJ_PATTERN_HEIGHT - 1 */
+    .equ PC090OJ_PATTERN_MAX_COL, 15    /* PC090OJ_PATTERN_WIDTH  - 1 */
+    /* Arcade PC090OJ non-flipped coordinate inversion (MAME taito/pc090oj.cpp:
+     * x = 320 - x - 16, y = 256 - y - 16 when the flip-screen ctrl bit is clear). */
+    .equ PC090OJ_FLIP_X_TERM, 304       /* 320 - PC090OJ_PATTERN_WIDTH  */
+    .equ PC090OJ_FLIP_Y_TERM, 240       /* 256 - PC090OJ_PATTERN_HEIGHT */
+    /* Arcade -> Genesis display-origin alignment.  The background plane applies
+     * VDP_DISPLAY_ORIGIN_Y_BIAS(=8) / _X_BIAS(=16) in vdp_comm.s so the arcade
+     * visible-area origin (raster Y=8, per rastan.cpp set_visarea 8..247) maps to
+     * Genesis display line 0.  Sprites use the SAME origin so sprite/background
+     * stay vertically aligned; this also places the arcade top margin above the
+     * Genesis viewport, where its records clip out naturally.  Configurable. */
+    .equ PC090OJ_TO_GENESIS_Y_OFFSET, -8   /* = -VDP_DISPLAY_ORIGIN_Y_BIAS */
+    .equ PC090OJ_TO_GENESIS_X_OFFSET,  0   /* frontend X already aligned; tune later */
+    /* Effective sprite clip rectangle = intersection of the arcade visible area
+     * (raster 8..247 -> Genesis 0..239 after the Y origin) and the Genesis output
+     * viewport (0..223, 0..319).  The Genesis bounds bind; ends are exclusive. */
+    .equ GENESIS_VIEWPORT_LEFT,   0
+    .equ GENESIS_VIEWPORT_RIGHT,  320
+    .equ GENESIS_VIEWPORT_TOP,    0
+    .equ GENESIS_VIEWPORT_BOTTOM, 224
+    /* Genesis SAT coordinate biases (SAT value = screen coord + bias). */
+    .equ PC090OJ_SAT_Y_BIAS, 0x80
+    .equ PC090OJ_SAT_X_BIAS, 0x80
 
 /* ------------------------------------------------------------------------- */
 /* Internal helpers                                                          */
@@ -1096,22 +1130,68 @@ vdp_commit_sprites_vram:
     move.w  pc090oj_ctrl_shadow, %d5
     btst    #0, %d5
     bne.s   .Ldecode_no_flip
-    move.w  #304, %d5
+    move.w  #PC090OJ_FLIP_X_TERM, %d5
     sub.w   %d4, %d5
     move.w  %d5, %d4
-    move.w  #240, %d5
+    move.w  #PC090OJ_FLIP_Y_TERM, %d5
     sub.w   %d2, %d5
     move.w  %d5, %d2
     eori.w  #0xC000, %d1
 .Ldecode_no_flip:
-    cmpi.w  #-16, %d4
-    blt     .Ldecode_notdraw
-    cmpi.w  #320, %d4
-    bge     .Ldecode_notdraw
-    cmpi.w  #-16, %d2
-    blt     .Ldecode_notdraw
-    cmpi.w  #224, %d2
-    bge     .Ldecode_notdraw
+    /* Arcade -> Genesis viewport origin: aligns sprites with the background
+     * (which applies the matching bias in vdp_comm.s) and places the arcade top
+     * margin above the Genesis viewport, where clipped records drop out. */
+    addi.w  #PC090OJ_TO_GENESIS_X_OFFSET, %d4
+    addi.w  #PC090OJ_TO_GENESIS_Y_OFFSET, %d2
+
+    /* Opaque-geometry viewport clip.  A record is drawable only when at least
+     * one opaque pixel of its post-flip pattern intersects the effective clip
+     * rectangle; fully-clipped records return not-drawable, so they receive no
+     * SAT slot, link entry, tile work, or scanline capacity.  d3 = code
+     * (0..0x0FFF); box bytes = [min_row, max_row, min_col, max_col] (unflipped). */
+    move.w  %d3, %d0
+    andi.w  #0x0FFF, %d0
+    lsl.w   #2, %d0
+    lea     pc090oj_opaque_bbox, %a1
+    adda.w  %d0, %a1
+    /* vertical opaque span (post vertical-flip) vs [TOP, BOTTOM) */
+    moveq   #0, %d0
+    move.b  0(%a1), %d0                    /* min_row */
+    moveq   #0, %d5
+    move.b  1(%a1), %d5                    /* max_row */
+    btst    #15, %d1                       /* vflip (post-flip word0 bit 15) */
+    beq.s   .Ldecode_vrows_ok
+    neg.w   %d0
+    addi.w  #PC090OJ_PATTERN_MAX_ROW, %d0  /* MAX_ROW - min_row */
+    neg.w   %d5
+    addi.w  #PC090OJ_PATTERN_MAX_ROW, %d5  /* MAX_ROW - max_row */
+    exg     %d0, %d5                       /* d0 = eff top row, d5 = eff bottom row */
+.Ldecode_vrows_ok:
+    add.w   %d2, %d0                       /* opaque top    (screen Y) */
+    add.w   %d2, %d5                       /* opaque bottom (screen Y) */
+    cmpi.w  #GENESIS_VIEWPORT_BOTTOM, %d0
+    bge     .Ldecode_notdraw               /* opaque top at/below viewport bottom */
+    cmpi.w  #GENESIS_VIEWPORT_TOP, %d5
+    blt     .Ldecode_notdraw               /* opaque bottom above viewport top */
+    /* horizontal opaque span (post horizontal-flip) vs [LEFT, RIGHT) */
+    moveq   #0, %d0
+    move.b  2(%a1), %d0                    /* min_col */
+    moveq   #0, %d5
+    move.b  3(%a1), %d5                    /* max_col */
+    btst    #14, %d1                       /* hflip (post-flip word0 bit 14) */
+    beq.s   .Ldecode_hcols_ok
+    neg.w   %d0
+    addi.w  #PC090OJ_PATTERN_MAX_COL, %d0  /* MAX_COL - min_col */
+    neg.w   %d5
+    addi.w  #PC090OJ_PATTERN_MAX_COL, %d5  /* MAX_COL - max_col */
+    exg     %d0, %d5                       /* d0 = eff left col, d5 = eff right col */
+.Ldecode_hcols_ok:
+    add.w   %d4, %d0                       /* opaque left  (screen X) */
+    add.w   %d4, %d5                       /* opaque right (screen X) */
+    cmpi.w  #GENESIS_VIEWPORT_RIGHT, %d0
+    bge     .Ldecode_notdraw               /* opaque left at/right of viewport right */
+    cmpi.w  #GENESIS_VIEWPORT_LEFT, %d5
+    blt     .Ldecode_notdraw               /* opaque right left of viewport left */
     andi.w  #0x0FFF, %d3
     move.w  pc090oj_sprite_ctrl_shadow, %d7
     andi.w  #0x00E0, %d7
@@ -1341,10 +1421,10 @@ vdp_commit_sprites_vram:
     lsl.w   #3, %d0
     lea     staged_sprite_sat, %a1
     adda.w  %d0, %a1
-    /* word0 Y (+0x80 bias) */
+    /* word0 Y (+ Genesis SAT Y bias) */
     move.w  %d2, %d5
     andi.w  #0x01FF, %d5
-    addi.w  #0x0080, %d5
+    addi.w  #PC090OJ_SAT_Y_BIAS, %d5
     andi.w  #0x01FF, %d5
     move.w  %d5, (%a1)
     /* word1 = size | link */
@@ -1391,10 +1471,10 @@ vdp_commit_sprites_vram:
     andi.w  #0x07FF, %d0
     or.w    %d0, %d5
     move.w  %d5, 4(%a1)
-    /* word3 X (+0x80 bias) */
+    /* word3 X (+ Genesis SAT X bias) */
     move.w  %d4, %d5
     andi.w  #0x01FF, %d5
-    addi.w  #0x0080, %d5
+    addi.w  #PC090OJ_SAT_X_BIAS, %d5
     andi.w  #0x01FF, %d5
     move.w  %d5, 6(%a1)
 

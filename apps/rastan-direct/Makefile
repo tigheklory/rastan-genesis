@@ -24,6 +24,7 @@ PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
 PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
 PC090OJ_SLOT_LUT := $(ROOT)/build/pc090oj_slot_lut.bin
 PC090OJ_BLANK_BITSET := $(ROOT)/build/pc090oj_blank_bitset.bin
+PC090OJ_OPAQUE_BBOX := $(ROOT)/build/pc090oj_opaque_bbox.bin
 
 AS := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-as
 LD := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-ld
@@ -93,10 +94,14 @@ $(PC090OJ_BLANK_BITSET): $(PC090OJ_PRECONV) $(ROOT)/tools/translation/build_pc09
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_blank_bitset.py" \
 		--input "$<" --output "$@"
 
+$(PC090OJ_OPAQUE_BBOX): $(PC090OJ_REGION) $(ROOT)/tools/translation/build_pc090oj_opaque_bbox.py
+	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_opaque_bbox.py" \
+		--input "$<" --output "$@"
+
 $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_PRECONV) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_PRECONV) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/diag_bookmark.o: $(SRC_DIR)/diag_bookmark.s FORCE_ASM_REBUILD | $(OUT_DIR)
