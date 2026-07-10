@@ -16,7 +16,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ACTIVE_BOOKMARK_BASELINE_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "active_bookmark_baseline.json"
 BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.txt"
 
-CANONICAL_OPCODE_REPLACE_COUNT = 134
+# Build 0156: +1 opcode_replace (0x03D04C C08C66 raw FG digit write -> staging).
+CANONICAL_OPCODE_REPLACE_COUNT = 135
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -32,7 +33,8 @@ CANONICAL_OPCODE_REPLACE_COUNT = 134
 # genesis_only hook section growth +0x180 bytes (0x181D68 -> 0x181EE8).
 # Build 0155 Stage 1 FG plane replay in genesistan_hook_tilemap_fg: +0x15C bytes
 # (0x181EE8 -> 0x182044). Paired constant in both gate scripts.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x182044
+# Build 0156 C08C66 raw FG digit-write route hook: +0x20 bytes (0x182044 -> 0x182064).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x182064
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

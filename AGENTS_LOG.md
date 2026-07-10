@@ -1,5 +1,17 @@
 # AGENTS Log
 
+## [Andy - Implementation, Build 0156: Route Raw C08C66 FG Digit Write Through Staging]
+
+* baseline @ bacecd1 (Build 0155, SHA f226278f...). Implemented. Deliverable docs/design/Andy_build_0156_c08c66_fg_digit_route.md. Clears the BlastEm strict-target freeze at write address C08C66 (user report: Build 0155 gameplay death sequence).
+* The raw FG single-digit writer at runtime 0x03D24C (arcade 0x03D04C) = `move.w %d1, 0x00C08C66` (d1 = digit tile 0x30..0x39 = 9 - d0 + 0x30) is the exact sibling of Build 0152's 0x03A72A/0xC08C62 route. opcode_replace at 0x03D04C: 33C100C08C66 -> 4EB9{genesistan_hook_inline_fg_write_3d04c} (6->6, byte-neutral). New hook mirrors genesistan_hook_inline_fg_write_3a92a: stages one FG cell at base 0x00C08C64 (code at +2), live code from d1, -> genesistan_hook_tilemap_fg_fill -> staged_fg -> fg_row_dirty -> existing FG VBlank commit; preserves d0-d7/a0-a6; tst.w d1 reproduces MOVE.W CCR. Digit tiles 0x30..0x39 already LUT-mapped (slots 8..17); no generator/LUT/manifest change.
+* canonical paired updates: opcode_replace_count 134->135 (spec expectations + postpatch + verify_canonical), coverage 0x182044->0x182064 (+0x20 hook). required_symbols += genesistan_hook_inline_fg_write_3d04c.
+* validation: 0x3D24C now jsr 0x708C8 (route confirmed static); Build 0152 0xC08C62 route intact (0x3A92A=jsr 0x70894); runtime 0 raw writes to 0xC08C66, deterministic (2 boots identical); Build 0155 FG intact (2/3/0 scene_id=1 staged_bg=2048 staged_fg=2048); frontend unaffected (no LUT/manifest change). GATE_PASS, boot guard PASS, trace clean, address_map gaps=[] overlaps=[] covered=0x182064 opcode_replace=135.
+* build: dist/rastan-direct/rastan_direct_video_test_build_0156.bin SHA256 03c6e8aa747700235437706adb206968b1f737453ad436959681e19d299fdf01 size 1,581,156 counter 156. Builds 0142-0155 not overwritten.
+* scope: only the blocking C08C66 boundary. NOT touched (stated next boundaries): gameplay PC090OJ sprites, scroll/control, collision/falling, continue/game-over cleanup. Exodus black recorded, not investigated. Architecture compliance CONFIRMED (existing fg_fill/dirty/commit reused; byte-neutral opcode_replace; no NOP/hardcode/2nd renderer/dead-writer patch). Build 0155 FG + Build 0154 BG + Build 0152 0xC08C62 untouched. Real-hardware/BlastEm/Exodus NOT CLAIMED (pending user test).
+
+Open/Closed Issues Impact:
+- OPEN-017/OPEN-018: advanced - the last known raw PC080SN FG single-digit writer in the gameplay path (0xC08C66) is now routed through staging, clearing the BlastEm strict-target freeze. Remaining gameplay boundaries (sprites/scroll/collision) unchanged. Not closed; no duplicate.
+
 ## [Andy - Implementation, Build 0155: Stage 1 FG Plane Restored at Live Boundary 0x0703EA (Outcome F)]
 
 * baseline @ 98240a4 (Build 0154, SHA 69bd306e...). Implemented. Deliverable docs/design/Andy_build_0155_stage1_fg_live_boundary.md + states/traces/build_0155_stage1_fg_plane/. Stage 1 FG plane NOW POPULATED (staged_fg 76 -> 2020/2048).
@@ -41159,6 +41171,11 @@ Open/Closed Issues Impact:
 - Unique Unmapped Memory Addresses: none
 
 ### MAME Exit Summary (2026-07-10 11:34:59)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-10 16:24:31)
 - Final PC: 0x03B280
 - Stack Pointer (SP): 0x00FEFFFC
 - Unique Unmapped Memory Addresses: none

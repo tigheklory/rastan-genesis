@@ -10,6 +10,7 @@
     .global genesistan_hook_inline_fg_write_3a908
     .global genesistan_hook_inline_fg_write_3a92a
     .global genesistan_hook_inline_fg_write_3acea
+    .global genesistan_hook_inline_fg_write_3d04c
     .global genesistan_hook_pc080sn_bg_scroll_fill
     .global genesistan_hook_pc080sn_fg_scroll_fill
     .global genesistan_hook_tilemap_bg_blockcopy
@@ -773,6 +774,23 @@ genesistan_hook_inline_fg_write_3acea:
     moveq   #1, %d1
     bsr     genesistan_hook_tilemap_fg_fill
     movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Build 0156: sibling of genesistan_hook_inline_fg_write_3a92a. The raw single-digit FG
+ * writer at runtime 0x03D24C (arcade 0x03D04C) issues `move.w %d1, 0xC08C66` (d1 = digit
+ * tile 0x30..0x39 = 9 - d0 + 0x30), a raw PC080SN FG C-window store that strict-target
+ * emulators fault on (BlastEm freeze at C08C66). Route the live code word through the
+ * existing FG staging path instead (cell base 0xC08C64, code word at +2). Preserves
+ * caller registers; reproduces the original move.w CCR effect via tst.w %d1. */
+genesistan_hook_inline_fg_write_3d04c:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    lea     0x00C08C64, %a0
+    move.l  %d1, %d0
+    andi.l  #0x0000FFFF, %d0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    tst.w   %d1
     rts
 
 genesistan_hook_highscore_fg_producer:
