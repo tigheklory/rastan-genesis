@@ -1,5 +1,20 @@
 # AGENTS Log
 
+## [Andy - Temporary Implementation, Build 0153 Gameplay Scene-Asset Embedded Pointer-Table Relocation]
+
+* baseline @ 7f3c5fb (Build 0152, SHA 3d805331...). Implemented (bounded embedded-pointer relocation). Deliverable docs/design/Andy_build_0153_gameplay_asset_pointer_relocation.md + states/traces/build_0153_gameplay_asset_pointer_relocation/.
+* enumerated the complete gameplay scene-asset embedded-pointer family consumed by R_c (arcade 0x059DE8) + adjacent sub-loaders (all in segment 0x059B1A..0x059F5E). 3 pointer tables (entry_size 4, ptr-field offset 0, map +0x200): [1] arcade 0x059EC8/Genesis 0x05A0C8, 6 per-STAGE PALETTE sources (0x5DB4E..0x5E04E), consumer 0x05A06C -> genesistan_palette_hook_59ad4; [2] arcade 0x059C9A/Genesis 0x059E9A, 6 per-STAGE BG/tile pattern sources (0x4EAF6..0x4FA80), consumer 0x059E64; [3] arcade 0x059F1E/Genesis 0x05A11E, 4 per-SUBSTAGE layout sources (0x59F2E..0x59F52), consumer 0x05A0E0 (a5@0x1D&0x0C). Bounds proven by first non-ptr entry (palette[6]/bg[6]=code, layout[4]=data 0x100020). Excluded false positives: 0x05A0BC (word count-table), 0x05A1E6+ (0x30FC/0x4E75 code).
+* fix = 3 declarative source-JSON absolute_long_pointer_tables entries in specs/rastan_direct_remap.json (existing schema, no schema/tool change), each with a complete Build0153/KF-028/OPEN-016/OPEN-017 note (table addrs, consumer, role, source window, +0x200 mapping, why operand-relocation missed them, bounds proof, evidence). No manual byte patch, no heuristic scan.
+* static: all 3 relocated exactly +0x200; ROM diff vs 0152 = only the 3 tables + checksum byte, size unchanged 1,580,392. GATE_PASS, boot guard PASS, 30s trace clean (fg_cwindow_live=0). address_map gaps=[] overlaps=[] covered=0x181D68 opcode_replace=134 (unchanged).
+* runtime (gameplay 2/3/0): palette hook A0 now 0x0005DD4E (relocated; was 0x5DB4E); staged palette nonzero 1->16; line2 = converted Stage 1 outside colours (0000 0642 0644...); committed via existing VBlank. Black+one-pink gone. NO manual forcing (load_scene_tiles(1) not called, scene id not forced, palette not hand-loaded).
+* frontend intact: no-credit title 0/1/0, HS 273100, BEST 5 (273100/257200/197800/125400/112000 rounds 3/3/3/2/2 names COB..), item 2/2/6. Build 0152 0xC08C62 routing intact.
+* first downstream boundary (separate): gameplay BG NOT rendered - scene_id stays 0, a0 stays title range 0x5A7DA, load_scene_tiles(1) doesnt fire, BG tile patterns not in VRAM, tilemap cells not populated. BG/tile SOURCES now correct; the tile-load/tilemap/scroll path is the next boundary (non-pointer).
+* build: dist/rastan-direct/rastan_direct_video_test_build_0153.bin SHA256 ee232cbdda4880a56c51f7be26ff6bb07f811dbad8d7987e600e61af33c5707a size 1,580,392. counter 153. Builds 0142-0152 not overwritten.
+* architecture compliance CONFIRMED (declarative JSON relocation via existing mechanism; no new loader/palette/renderer/commit path; no manual patch/heuristic scan/scene special-case/forced scene id/hand-loaded palette; operand relocation unchanged). Real-hardware/BlastEm/Exodus NOT CLAIMED. Deferred (unless same table family): stale sprites, PC090OJ lifecycle, item-scroll, sprite slots, 0x03D04C, BG tilemap/scroll render, controls, collision, audio, credit, copyright.
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - gameplay scene-asset embedded-pointer relocation gap closed for the complete proven family; Stage 1 outside palette resolves + reaches CRAM. Next boundary: gameplay BG tile-pattern load / tilemap population. Not closed; no duplicate.
+
 ## [Andy - Analysis, Gameplay-Init Control-Flow Divergence: Unrelocated Scene-Asset Pointer Table (Outcome D, no build)]
 
 * evidence-only, no source/ROM/build. Baseline @ 804a6df (Build 0152, SHA 3d805331...). Outcome D. Deliverable docs/design/Andy_gameplay_init_control_flow_divergence.md. SUPERSEDES the earlier Outcome-G "setup not executed" finding: the setup DOES execute.
@@ -41055,3 +41070,8 @@ Open/Closed Issues Impact:
 * validation: Build 0152 produced with `GATE_PASS`; SHA `3d805331815588576a3fdeef732a7b094f3c15997b66c76830827adfc2f35214`; patched-site count `134`, covered bytes `0x181D68`; runtime dump proved wrapper `D0=0x31` and armed FG store at offset `0x0630` / base `0x00FF509E`
 * issue impact: OPEN-018 updated; `0x03A92A` sub-case routed; adjacent `0x03D24C` remains unpatched/open because same-route arcade proof was not established; `KNOWN_FINDINGS.md` not edited
 * STOP status: NO
+
+### MAME Exit Summary (2026-07-09 22:12:59)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none

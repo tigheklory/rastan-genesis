@@ -981,6 +981,24 @@
       "entry_count": 71,
       "entry_size_bytes": 4,
       "note": "OPEN-016/KF-028: title glyph/string descriptor-pointer table consumed at Genesis 0x03BD7C by renderer 0x03BD48. Relocate embedded source ROM descriptor pointers by +0x200; table ends before first descriptor at Genesis 0x03BE98."
+    },
+    {
+      "table_address": "0x059EC8",
+      "entry_count": 6,
+      "entry_size_bytes": 4,
+      "note": "Build 0153 / KF-028 / OPEN-016 / OPEN-017: embedded per-STAGE PALETTE source-pointer table, arcade 0x059EC8 -> Genesis 0x05A0C8. Consumed by gameplay scene-loader R_c (arcade 0x059DE8 / Genesis 0x0059FE8) via sub-loader arcade 0x059E6C (Genesis 0x05A06C: `movea.l #0x05A0C8,a0; movea.l (a0,stage*4),a0`), then passed as A0 into genesistan_palette_hook_59ad4 (arcade 0x059AD4) with D0(bank)=2. Entries index by stage a5@(0x118): [0]=stage1 outside ... [5]=stage6. Original values 0x0005DB4E,0x0005DC4E,0x0005DD4E,0x0005DE4E,0x0005DF4E,0x0005E04E are ORIGINAL arcade ROM addresses (embedded data longwords, not instruction operands), so rom_absolute_call_relocation (operand-only) did not process them. Copied-ROM mapping = +0x200 (whole-maincpu copy, byte-neutral opcode_replace so no net shift): stage1 palette 0x0005DB4E->0x0005DD4E. Runtime-proven: before, hook read 0x0005DB4E = 0000 0000 ... (blank CRAM, one pink); after, 0x0005DD4E = 0000 0357 0457 0547 ... (Stage 1 outside palette). Bounds proven from the loader index (stage*4) and code structure: entry[6] at Genesis 0x05A0E0 is code (0x4240102D), so count=6, stride=4, pointer-field offset 0. All 6 entries lie in the copied-ROM source window; no zero/sentinel/RAM/hardware/index entries. Same family also serves later stages (2-6); they are relocated identically and become correct for free."
+    },
+    {
+      "table_address": "0x059C9A",
+      "entry_count": 6,
+      "entry_size_bytes": 4,
+      "note": "Build 0153 / KF-028 / OPEN-016 / OPEN-017: embedded per-STAGE PC080SN BG/tile pattern-source pointer table, arcade 0x059C9A -> Genesis 0x059E9A. Consumed by gameplay scene-loader sub-routine arcade 0x059E64 (Genesis 0x059E64: `movea.l #0x059E9A,a3`; also referenced at Genesis 0x059ECE/0x059F30), in the same R_c scene-loader segment (arcade 0x059B1A..0x059F5E). Original values 0x0004EAF6,0x0004EEF8,0x0004F15A,0x0004F51C,0x0004F85E,0x0004FA80 are ORIGINAL arcade ROM addresses embedded as data longwords (not instruction operands), so operand-only relocation did not touch them. Copied-ROM mapping = +0x200. Proven unrelocated: 0x0004EAF6 reads code bytes `6004 303c 0003 3b40 ...` (garbage as gfx); relocated 0x0004ECF6 reads real pattern data `0000 0fff 0f00 0875 ...`. Bounds: 6 stage entries, stride 4, pointer-field offset 0; entry[6] at Genesis 0x059EB2 is code (0x41F90010), so count=6. All 6 lie in the copied-ROM window; no sentinel/index/RAM entries. Asset role = BG/tile patterns (PC080SN) per stage; Stage 1 outside is entry[0]. Relocating it delivers correct pattern sources to whatever consumer executes; visible BG rendering may remain a separate downstream boundary."
+    },
+    {
+      "table_address": "0x059F1E",
+      "entry_count": 4,
+      "entry_size_bytes": 4,
+      "note": "Build 0153 / KF-028 / OPEN-016 / OPEN-017: embedded per-SUBSTAGE layout/scroll descriptor-source pointer table, arcade 0x059F1E -> Genesis 0x05A11E. Consumed by gameplay scene sub-routine arcade 0x059EE0 (Genesis 0x05A0E0: `move.b a5@(0x1D),d0; andi.b #0x0C,d0; movea.l #0x05A11E,a0; movea.l (a0,d0),a0`), indexing by the substage/area selector a5@(0x1D)&0x0C (0,4,8,12 -> entries 0..3). Original values 0x00059F2E,0x00059F3A,0x00059F46,0x00059F52 are ORIGINAL arcade ROM addresses embedded as data longwords (not operands). Copied-ROM mapping = +0x200: 0x00059F2E->0x0005A12E, whose relocated data reads `0010 0020 0040 0060 0080 9999` (layout/position data). Bounds: index & 0x0C -> exactly 4 entries, stride 4, pointer-field offset 0; entry[4] at Genesis 0x05A12E is the first pointed-to data block (0x00100020, out of the source window), so count=4. All 4 lie in the copied-ROM window; no sentinel/index/RAM entries. Asset role = substage layout/scroll descriptors; same structural family (adjacent scene-loader routine, same embedded-pointer pattern) as the palette and BG/tile tables above."
     }
   ],
   "expectations": {
