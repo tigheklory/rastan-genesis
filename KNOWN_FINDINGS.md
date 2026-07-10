@@ -647,6 +647,40 @@ Reinforced Build 0151: `genesistan_hook_number_renderer_3c2e2` (arcade 0x3C2E2, 
 
 ---
 
+## KF-041 — Gameplay tile preload/LUT model the wrong source; the runtime Stage 1 BG producer reads 0xD11C/0x03951C (codes 0x04A6+), of which the LUT maps ~0
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (offline reproduction over Build 0153 ROM + shipped LUT; generator source read; runtime taps)
+- **Applicability:** DURABLE pipeline/source-model rule (rastan-direct gameplay tile preload + LUT); code specifics BUILD_SPECIFIC (Build 0153)
+- **Rediscovery Hazard:** HIGH (the intuitive "select the gameplay scene / run load_scene_tiles(1)" fix does nothing here)
+- **Addresses:** runtime producer `genesistan_hook_itempage_strip_blit` `0x716CA` at arcade `0x055C5E`; source slot `0xFF1100` = `0xD31C` (arcade `0xD11C`+0x200); descriptor walker arcade `0x03951C` (6-byte entries); runtime Stage 1 codes `0x04A6`-family; generator `tools/translation/precompute_pc080sn_tile_lut.py` `GAMEPLAY_TABLE_START=0x5635E`; `genesistan_scene_a0_ranges` gameplay `0x00056A22..0x000570C2` (block-model, ROM@`0x56C22`=`00AD`-family); global `genesistan_pc080sn_tile_vram_lut`; `load_scene_tiles` (`scene_load.s`)
+- **Source Documents:** docs/design/Andy_gameplay_scene_selection_analysis.md; states/traces/build_0154_gameplay_scene_selection/repro_lut_mismatch.py
+- **Related Issues:** OPEN-017
+- **Related Findings:** KF-040
+- **Last verified:** 2026-07-10 (Build 0153)
+
+**Finding.** The Genesis gameplay tile-preload manifests, the global `pc080sn_tile_vram_lut`, and
+`genesistan_scene_a0_ranges` are all generated from a **block-write descriptor source model** (generator
+`GAMEPLAY_TABLE_START=0x5635E`, gameplay source range `0x56A22..0x570C2`, tile codes in the `0x00AD` family). The
+**runtime Stage 1 BG producer does not use that model**: it is the general BG column/strip producer at arcade
+`0x055C5E` (Genesis hook `0x716CA`), which reads source slot `0xFF1100` = `0xD31C` (arcade `0xD11C`+0x200,
+correctly relocated by Build 0153) via descriptor walker `0x03951C`, emitting codes in the `0x04A6` family. A
+controlled offline reproduction over the real Build 0153 ROM + shipped LUT (`cell = word@(base+row*32+col*2)`,
+bases `0xD31C/0xDB1C/0xF31C`, 16 cols × 64 rows) yields `distinct_codes=834`, `covered=1/834`, `lut_nonzero=18
+(0%)`. Because `genesistan_hook_tilemap_bg_fill` selects the Genesis tile index as `tile_vram_lut[code & 0x3FFF]`
+— from the **LUT, not from VRAM residency** — these codes stage as tile 0 (`0x4000` + priority), giving the
+uniform blank plane (see KF-040) **regardless of `load_scene_tiles`**.
+
+**Use as prior.** Do **not** attempt to fix the gameplay BG by only "selecting scene 1" / running
+`load_scene_tiles(1)`: pattern residency does not change the LUT, and the LUT maps ~0/834 of the runtime codes.
+The gameplay tile-analysis pipeline (`precompute_pc080sn_tile_lut.py`) must first be **re-modeled around the
+runtime producer's source family** (`0xD11C` + descriptor `0x03951C`, codes `0x04A6…`) so the regenerated
+manifest + global LUT cover those codes; then a producer-source scene selector can drive `load_scene_tiles(1)`
+naturally. When a scene manifest/LUT appears not to cover a producer's tiles, verify the generator's **source
+model matches the producer's runtime source pointer**, not a statically-plausible descriptor range.
+
+---
+
 
 ## Deferred Candidates Appendix
 
