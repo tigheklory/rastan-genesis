@@ -1,5 +1,18 @@
 # AGENTS Log
 
+## [Andy - Analysis, Stage 1 Plane Composition: BG Correct, FG Plane Missing (Outcome E, no build)]
+
+* evidence-only, no source/JSON/ROM/build. Baseline @ 5346934 (Build 0154, SHA 69bd306e...). Outcome E (FG plane population missing), bounded stop. Deliverable docs/design/Andy_stage1_plane_composition_analysis.md + states/traces/build_0155_stage1_plane_composition/.
+* Decoded the full 56-entry BG descriptor sequence (arcade 0x3951C, 6-byte {attr=0x0002, src32}, 5 blocks A=D11C B=D91C C=E11C D=E91C E=F11C, each 16col x 64row; initial screen = descriptors 0-3 = A,B,E,E; 56 entries = whole scrolling level column->block map).
+* BG PROVEN CORRECT (not the defect): arcade BG C-window fully 64x64; Genesis staged_bg 2048/2048, 277 distinct; staged row0 = LUT[arcade 0x04A6]+priority = arcade row 0 (cell-verified). Genesis plane 64x32 (PLANESIZE=0x01), producer stages arcade rows 0-31; arcade BG Y-scroll=0 so visible window = rows 0-27 -> Genesis top rows are the correct visible content.
+* FG PLANE MISSING (primary defect): arcade FG C-window fully 64x64 (mostly uniform tile 0x020 + sparse features 0x41C-0x41E/0x434...); only 17 distinct FG codes, 12 mapped by LUT, 5 UNMAPPED (0x020,0x434-0x437). Genesis staged_fg = 76/2048 (sparse 0x60DA garbage) -> Plane A carries stale/empty content over correct Plane B = malformed upper band / black rectangles.
+* FG producer = arcade 0x0559B2 (writers 0x0559B8/0x055A06), A2=0x20FC source, A1=0x10D080 attr, shares descriptor walker A4=0x3951C, 4-ROW strips (cmpi #4), column-indexed by a5@0x10CA, 0xFF sentinel branch + 0x10DE00 shadow. STRUCTURALLY DIFFERENT from the BG strip producer; its source-column semantics are NOT yet decoded = blocking unknown (stop condition: source-column semantics unresolved).
+* Scroll: arcade scrollA (0xC20000/2) animates 0x1FF decreasing 3/frame at 2/3/0, scrollB=0, Y=0; Genesis staged_scroll_x_bg static 0. Seam consistent with empty Plane A composited over scrolling Plane B; confirm after FG populated.
+* NO build: dominant fix = populate Stage 1 FG plane, needs the 0x0559B2 source decode first + FG tiles added to LUT/manifest + an FG producer hook to staged_fg_fill + BG X-scroll routing. Rushing a partial FG pipeline risks an unvalidated build. Bounded next-task plan in the doc. NO forcing/changes; Build 0154 (LUT/manifest/scene-select/BG/palette/frontend) intact. Gameplay sprites + Exodus-black recorded (not investigated).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - Stage 1 BG plane confirmed faithful; remaining gap root-caused to unpopulated PC080SN FG plane (arcade producer 0x0559B2 / source 0x20FC / 4-row strips / 5 unmapped FG codes) + static BG X-scroll. Bounded FG decode+implementation task defined. Not closed; no duplicate.
+
 ## [Andy - Implementation, Build 0154: Runtime Gameplay Tile Model + Producer-Source Scene Selection (Outcome F)]
 
 * baseline @ 4028017 (Build 0153, SHA ee232cbd...). Outcome F (complete bounded implementation). Deliverable docs/design/Andy_build_0154_runtime_gameplay_tile_model.md + states/traces/build_0154_runtime_gameplay_tile_model/. Stage 1 outside NOW RENDERS (rocky terrain, ROUND 1/READY).
