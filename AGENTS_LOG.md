@@ -1,5 +1,18 @@
 # AGENTS Log
 
+## [Andy - Analysis, Gameplay-Init Control-Flow Divergence: Unrelocated Scene-Asset Pointer Table (Outcome D, no build)]
+
+* evidence-only, no source/ROM/build. Baseline @ 804a6df (Build 0152, SHA 3d805331...). Outcome D. Deliverable docs/design/Andy_gameplay_init_control_flow_divergence.md. SUPERSEDES the earlier Outcome-G "setup not executed" finding: the setup DOES execute.
+* arcade gameplay palette caller chain (stack at 0x059AD4, state 2/3/0): 0x03B07E -> 0x041F0E -> 0x0510A2 -> 0x059E06 -> 0x059AD4 (palette, patched -> genesistan_palette_hook_59ad4 @ 0x59CD4). All arcade_copy (+0x200) except the patched hook.
+* Genesis exec counts (150-frame gameplay window): 0x4210E=140, 0x512A2=140, R_c 0x59FE8 runs (flag a5@0x13B0=0, NOT skipped), palette call 0x5A006=1/scene, hook 0x59CD4~1-3/scene. So the gameplay scene-asset loader R_c (arcade 0x59DE8 / Genesis 0x59FE8) executes and calls the palette + BG loaders. NOT a skipped branch.
+* first divergence = the DATA R_c dereferences: sub-loader 0x5a06c builds A0 from the pointer table at Genesis 0x5A0C8 (arcade 0x59EC8) = 0005DB4E 0005DC4E 0005DD4E (absolute ARCADE pointers, step 0x100), UNRELOCATED. Palette hook called with D0(bank)=2, A0(src)=0x0005DB4E, A5=0xFF0000. Genesis 0x5DB4E = zeros; correct data at 0x5DD4E (=+0x200) = 0000 0357 0457 0547... (real Stage 1 palette). So the hook stages a zero window -> CRAM ~1 nonzero (the "nearly all black + one pink" symptom). BG/tile sub-loaders (0x5a050 uses table 0x5A08C) same class -> blank planes.
+* root cause = KF-028/OPEN-016 class: postpatch rom_absolute_call_relocation rewrites absolute longwords only as INSTRUCTION OPERANDS (0x207C, 0x4EB9, ...); these gameplay sources are absolute longwords EMBEDDED IN A DATA TABLE (0x5A0C8), not operands, so they are not relocated. Frontend palette works because its sources come via operand immediates (which are relocated).
+* no build: fixing one pointer would be a partial/known-wrong visual build (R_c loads palette+BG+tiles from a FAMILY of embedded tables). Bounded next task: enumerate all gameplay scene-asset pointer tables R_c/sub-loaders index (from 0x5A0C8/0x5A08C and 0x5a01e/0x5a036/0x5a050/0x5a06c), relocate +0x200 via the existing OPEN-016 embedded-pointer relocation mechanism (extend postpatch data-table relocation), then re-check whether gameplay BG writes still need the PC080SN staging route (raw C-window class like 0xC08C62).
+* no scene/palette forcing added; load_scene_tiles(1) NOT called manually; no state forced; frontend untouched. Real-hardware/BlastEm/Exodus NOT CLAIMED. Deferred: stale sprites, item-scroll, 0x03D04C, gameplay sprite/collision/controls, audio.
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - blank Stage 1 outside root-caused to unrelocated embedded gameplay asset pointers (table 0x5A0C8 / arcade 0x59EC8, KF-028/OPEN-016 class) consumed by loader R_c (arcade 0x59DE8). Bounded relocation design task defined. Not closed; no duplicate.
+
 ## [Andy - Analysis, Stage 1 Outside Scene Assets / Gameplay-Entry Divergence (Outcome G, no build)]
 
 * evidence-only, no source/ROM/build. Baseline @ 454add2 (Build 0152), SHA 3d805331.... Outcome G (bounded stop). Deliverable docs/design/Andy_stage1_outside_scene_assets_analysis.md + states/traces/build_0153_stage1_outside_scene_assets/.
