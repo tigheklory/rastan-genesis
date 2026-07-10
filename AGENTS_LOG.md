@@ -1,5 +1,18 @@
 # AGENTS Log
 
+## [Andy - Analysis, Stage 1 Outside Scene Assets / Gameplay-Entry Divergence (Outcome G, no build)]
+
+* evidence-only, no source/ROM/build. Baseline @ 454add2 (Build 0152), SHA 3d805331.... Outcome G (bounded stop). Deliverable docs/design/Andy_stage1_outside_scene_assets_analysis.md + states/traces/build_0153_stage1_outside_scene_assets/.
+* reproduction: coin(P1 A 120-132)+start(P1 Start 175-187) -> state 2/2/4 (palette collapses 41->1 nonzero words) -> 2/3/0 (blank BG + stale 2731/2UP sprites, stuck). Arcade at the SAME state 2/3/0 renders Stage 1 outside gameplay (Rastan, mountains, ROUND 1); advances 2/3/0->2/4/0 at f~895.
+* proven: load_scene_tiles (0x72CE8) NEVER called with scene ID 1 at gameplay (genesistan_current_scene_id 0xFF7474 = 0, scene_a0_lo 0xFF7476 = 0x5A7DA title range). Verified taps: scene-detection reads of 0xFF7476 = 2 (frontend) / 0 (gameplay); staged_palette writes 0xFF609E = 128 (frontend) / 0 (gameplay). So during gameplay NEITHER the PC080SN BG scroll-fill hook NOR the palette producer hook executes -> gameplay tiles (scene 1) + Stage 1 outside palette never produced.
+* arcade owners (partial): gameplay palette written by arcade 0x059B0E (inside 0x059AD4, already patched -> genesistan_palette_hook_59ad4 @ 0x717C6); gameplay tile manifest exists (build/pc080sn_scene_preload_gameplay.bin, ~829 pairs, keyed to A0 0x56A22..0x570C2). Both never triggered because the arcade gameplay-init scene-setup path does not run on the Genesis.
+* first divergence: gameplay-init scene-setup non-execution (the arcade caller of 0x059AD4 and the BG-descriptor fill are not reached during Genesis gameplay). Downstream = blank BG + collapsed CRAM. NOT a wrong-scene-id (A/B), manifest (C), or palette-routing (D) fix in isolation; forcing load_scene_tiles(1) alone would not render Stage 1 outside. Fix not bounded -> no build.
+* next bounded capture: breakpoint arcade 0x059B0E (record caller chain + the routine invoking 0x059AD4 and the gameplay BG-descriptor fill), then breakpoint the mapped runtime PCs on Genesis Build 0152 across 2/2/4->2/3/0 to find whether they are reached / the exact PC where the Genesis gameplay-init stops matching the arcade. Confirms bounded-translation vs larger gameplay-render task; also confirms whether the remaining raw writer 0x03D04C (C08C66) participates.
+* frontend (title/coined/story/BEST 5/clipping/palette) not modified, intact. Real-hardware/BlastEm/Exodus NOT CLAIMED. Deferred: stale sprites, item-scroll, missing item sprites, 0x03D04C, gameplay sprite/collision/controls, audio, credit, copyright.
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - 0xC08C62 fault cleared by Build 0152; next boundary root-caused to non-execution of the gameplay PC080SN/palette scene-setup path. Not closed; no duplicate.
+
 ## [Andy - Temporary Implementation, Build 0151 BEST 5 SCORE/ROUND Values + Leading-Zero Suppression]
 
 * baseline rastan-direct-proposal @ 2850f92 (Build 0149 accepted). Accepted build 0151. Build 0150 (source-base fix only, SHA cd7ac8be...) retained as intermediate/unaccepted (showed 2 leading zeros). Deliverable docs/design/Andy_build_0151_highscore_score_round.md + states/traces/build_0150_highscore_score_round/.
