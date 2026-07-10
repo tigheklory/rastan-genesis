@@ -40,7 +40,10 @@ CANONICAL_OPCODE_REPLACE_COUNT = 134
 # Build 0113 shared PC080SN text-writer dispatcher: +0xBC bytes.
 # Build 0141 PC090OJ precomputed tile-DMA worklist commit (worklist append helper
 # + count-bounded commit replace the fixed 80-slot scan; .Lvcs_clear_dirty removed): +8 bytes.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x181D68
+# Build 0154 producer-source gameplay scene-selection preamble in
+# genesistan_hook_itempage_strip_blit: +0x180 bytes (0x181D68 -> 0x181EE8). Paired with the
+# same constant in tools/translation/postpatch_startup_rom.py.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x181EE8
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")

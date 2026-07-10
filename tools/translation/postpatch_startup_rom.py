@@ -27,7 +27,10 @@ CANONICAL_OPCODE_REPLACE_COUNT = 134
 # Build 0113 shared PC080SN text-writer dispatcher: +0xBC bytes.
 # Build 0141 PC090OJ precomputed tile-DMA worklist commit (worklist append helper
 # + count-bounded commit replace the fixed 80-slot scan; .Lvcs_clear_dirty removed): +8 bytes.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x181D68
+# Build 0154 producer-source gameplay scene selection in genesistan_hook_itempage_strip_blit
+# (range-gated load_scene_tiles(1) preamble keyed on the Stage 1 tile-column source family):
+# genesis_only hook section growth +0x180 bytes (0x181D68 -> 0x181EE8).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x181EE8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

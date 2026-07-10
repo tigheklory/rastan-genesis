@@ -658,6 +658,7 @@ Reinforced Build 0151: `genesistan_hook_number_renderer_3c2e2` (arcade 0x3C2E2, 
 - **Related Issues:** OPEN-017
 - **Related Findings:** KF-040
 - **Last verified:** 2026-07-10 (Build 0153)
+- **Resolution (Build 0154):** RESOLVED for Stage 1 outside. `tools/translation/precompute_pc080sn_tile_lut.py` now models the runtime producer (`collect_runtime_gameplay_sources` walks descriptor `0x3951C` → 5 blocks `0xD11C..0xF91C`, replacing the misclassified `0x5635E` model); the global LUT now maps all 854 runtime codes `0x04A6..0x07FB` (was 1/854), and `genesistan_hook_itempage_strip_blit` gained a producer-source scene-selection preamble that calls `load_scene_tiles(1)` when the strip source is in `[0xD31C,0xFB1C)`. Build 0154 renders Stage 1 (`scene_id=1`, staged BG 277 distinct values). The durable rule below still holds as prior for any future producer-vs-generator source-model audit.
 
 **Finding.** The Genesis gameplay tile-preload manifests, the global `pc080sn_tile_vram_lut`, and
 `genesistan_scene_a0_ranges` are all generated from a **block-write descriptor source model** (generator

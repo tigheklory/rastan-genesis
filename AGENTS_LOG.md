@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Implementation, Build 0154: Runtime Gameplay Tile Model + Producer-Source Scene Selection (Outcome F)]
+
+* baseline @ 4028017 (Build 0153, SHA ee232cbd...). Outcome F (complete bounded implementation). Deliverable docs/design/Andy_build_0154_runtime_gameplay_tile_model.md + states/traces/build_0154_runtime_gameplay_tile_model/. Stage 1 outside NOW RENDERS (rocky terrain, ROUND 1/READY).
+* Decoded the runtime producer descriptor (arcade 0x3951C, 6-byte {attr16=0x0002, src32}, 56 entries -> 5 tile-column blocks 0xD11C..0xF91C, each 16col x 64row, code=word@(src+row*32+col*2)&0x3FFF). 854 distinct codes 0x04A6..0x07FB, all with valid PC080SN patterns; fits 1164-slot VRAM budget.
+* Generator rework (tools/translation/precompute_pc080sn_tile_lut.py): added RUNTIME_GAMEPLAY_* + collect_runtime_gameplay_sources() (structural descriptor walk, no hardcoded codes); gameplay block source is now the runtime model, replacing the misclassified 0x5635E block table (KF-041); gameplay scene set = runtime tiles | HUD text (dropped unrelated strip_tiles from gameplay for budget). Global ROM-resident LUT + per-scene manifests architecture UNCHANGED (no scene-specific LUT / active-LUT ptr / RAM LUT). LUT coverage of runtime codes 1/854 -> 854/854; peak scene 1067/1164; deterministic (byte-identical across 2 runs).
+* Scene selector (apps/rastan-direct/src/tilemap_hooks.s): producer-source preamble in genesistan_hook_itempage_strip_blit -> when strip source in [0xD31C,0xFB1C) and scene_id!=1, calls load_scene_tiles(1) via the existing lifecycle. Keyed on producer-owned source pointer, NOT master state; no forced scene id, no state==2/3/0 test, no 2nd renderer/loader/commit. Regs: load_scene_tiles preserves d1-d7/a0-a4; preamble clobbers only d0/a3 (reloaded by hook body).
+* Canonical invariant paired-update 0x181D68 -> 0x181EE8 (+0x180 hook growth) in postpatch_startup_rom.py AND verify_canonical_rom.py (audit comments). No new opcode_replace (count 134); 0x055C5E spec note extended (Build 0154/OPEN-017/KF-041, full producer/selector/validation history).
+* runtime (Genesis MAME, 2/3/0): scene_id=1, scene_a0_lo=0x56A22, staged_bg 2048/2048 nonzero, 277 DISTINCT (was uniform 0x4000), cells real tile indices+priority (41F6...); Stage 1 outside renders; palette (Build 0153) intact; deterministic across 2 boots. Frontend INTACT: title(273100)/story+BEST 5(273100..112000 3/3/3/2/2 COB..)/item page all render. Build 0153 relocations + Build 0152 0xC08C62 untouched.
+* build: dist/rastan-direct/rastan_direct_video_test_build_0154.bin SHA256 69bd306e1998e892f5fbf451d17e5657d82f7565cacc7c462d2c5b02b3fabfd8 size 1,580,776 counter 154 (reproducible: rebuild -> identical SHA). GATE_PASS, boot guard PASS, 30s trace clean, address_map gaps=[] overlaps=[] covered=0x181EE8 opcode_replace=134. Builds 0142-0153 not overwritten.
+* first downstream boundary: BG renders but not yet pixel-perfect vs arcade (column ordering / FG-plane / scroll refinement); gameplay sprites/scroll/controls/collision/audio remain (separate scope). Architecture compliance CONFIRMED (existing global LUT/manifests/load_scene_tiles/bg_fill/dirty/VBlank reused; no forced scene, manual list, scene-specific/RAM LUT, or 2nd renderer). Real-hardware/BlastEm/Exodus NOT CLAIMED (pending user test).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - Stage 1 outside BG now renders naturally (producer-source scene select -> load_scene_tiles(1) -> global LUT -> staging -> commit); KF-041 preload/LUT source-model mismatch RESOLVED for Stage 1. Not closed (sprites/scroll/controls/audio + pixel-accuracy remain). No duplicate.
+
 ## [Andy - Analysis, Gameplay Scene Selection: Preload/LUT Source-Model Mismatch (Outcome G, no build)]
 
 * evidence-only, no source/JSON/ROM/build. Baseline @ 5cad73d (Build 0153, SHA ee232cbd...). Outcome G (Outcome-F core). Deliverable docs/design/Andy_gameplay_scene_selection_analysis.md + states/traces/build_0154_gameplay_scene_selection/.
@@ -41095,6 +41109,16 @@ Open/Closed Issues Impact:
 * STOP status: NO
 
 ### MAME Exit Summary (2026-07-09 22:12:59)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-10 11:31:07)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-10 11:34:59)
 - Final PC: 0x03B280
 - Stack Pointer (SP): 0x00FEFFFC
 - Unique Unmapped Memory Addresses: none

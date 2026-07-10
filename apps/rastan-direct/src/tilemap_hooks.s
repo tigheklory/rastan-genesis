@@ -76,6 +76,15 @@
     .equ PC080SN_ITEMPAGE_WALKER_SLOT,        0x00FF10FC
     .equ PC080SN_ITEMPAGE_STRIP_PTR_SLOT,     0x00FF1100
     .equ PC080SN_ITEMPAGE_STRIP_WORD_SLOT,    0x00FF1104
+    /* Build 0154 / OPEN-017 / KF-041: producer-source gameplay scene identity.
+     * The live Stage 1 outside BG producer reads its tile-column source from the
+     * five relocated blocks [0xD31C, 0xFB1C) (arcade 0xD11C..0xF91C + 0x200 copy
+     * delta), walked from arcade descriptor table 0x3951C. A strip source inside
+     * this range identifies the gameplay scene; SCENE_GAMEPLAY_ID matches the
+     * load_scene_tiles / genesistan_scene_a0_ranges gameplay index (1). */
+    .equ GAMEPLAY_STRIP_SRC_LO,               0x0000D31C
+    .equ GAMEPLAY_STRIP_SRC_HI,               0x0000FB1C
+    .equ SCENE_GAMEPLAY_ID,                   1
     .equ PC080SN_DESC_ARCADE_START,           0x00000F08
     .equ PC080SN_DESC_ARCADE_END,             0x0003A00C
     .equ PC080SN_DESC_GENESIS_START,          0x00001108
@@ -2278,6 +2287,26 @@ genesistan_hook_itempage_strip_populate:
  */
 genesistan_hook_itempage_strip_blit:
     move.l  %d1, -(%sp)
+
+    /* Build 0154: producer-source gameplay scene selection.
+     * If this strip's source pointer is the Stage 1 tile-column family
+     * [GAMEPLAY_STRIP_SRC_LO, GAMEPLAY_STRIP_SRC_HI) and the gameplay scene is not
+     * yet loaded, load it now through the existing load_scene_tiles lifecycle so its
+     * PC080SN patterns become resident and the global LUT resolves the runtime codes.
+     * Keyed on the producer-owned source pointer, not the master state. d0/a3 are
+     * reloaded immediately below; load_scene_tiles preserves d1-d7/a0-a4. */
+    movea.l #PC080SN_ITEMPAGE_STRIP_PTR_SLOT, %a3
+    move.l  (%a3), %d0
+    andi.l  #0x00FFFFFF, %d0
+    cmpi.l  #GAMEPLAY_STRIP_SRC_LO, %d0
+    blo.s   .Litempage_blit_scene_ready
+    cmpi.l  #GAMEPLAY_STRIP_SRC_HI, %d0
+    bhs.s   .Litempage_blit_scene_ready
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    beq.s   .Litempage_blit_scene_ready
+    moveq   #SCENE_GAMEPLAY_ID, %d0
+    bsr     load_scene_tiles
+.Litempage_blit_scene_ready:
 
     movea.l #PC080SN_ITEMPAGE_DEST_CURSOR_SLOT, %a3
     movea.l (%a3), %a0

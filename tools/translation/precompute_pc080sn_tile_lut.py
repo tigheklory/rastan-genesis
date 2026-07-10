@@ -65,8 +65,29 @@ TITLE_STATIC_BLOCKS = (
 )
 
 # Table-driven block-write descriptors (12-byte entries: src32, dst32, rows16, cols16).
+# Build 0154 / OPEN-017 / KF-041: this 0x5635E block model was previously (mis)classified as
+# the gameplay tile source, but runtime evidence proved the live Stage 1 outside BG producer
+# (general PC080SN strip producer arcade 0x055C5E / Genesis hook
+# genesistan_hook_itempage_strip_blit 0x716CA) never reads it. It is retained here ONLY for
+# reference and is no longer used for authoritative gameplay tile ownership (see
+# RUNTIME_GAMEPLAY_* below and collect_runtime_gameplay_sources).
 GAMEPLAY_TABLE_START = 0x5635E
 GAMEPLAY_TABLE_END = 0x563A6
+
+# Build 0154 runtime gameplay BG producer model (authoritative).
+# The live Stage 1 outside producer walks a 6-byte descriptor table {attr16=0x0002, src32}
+# at arcade 0x3951C (Genesis 0x3971C). Its distinct source pointers are five 0x800-byte
+# tile-column blocks in [0xD11C, 0xF91C) (step 0x800), each 16 columns x 64 rows read as
+# code = word@(src + row*32 + col*2), code index = word & 0x3FFF. This is the actual Stage 1
+# BG tile source; codes lie in 0x04A6..0x07FB and every one has a valid PC080SN pattern.
+RUNTIME_GAMEPLAY_DESC_TABLE = 0x3951C
+RUNTIME_GAMEPLAY_DESC_STRIDE = 6
+RUNTIME_GAMEPLAY_DESC_ATTR = 0x0002
+RUNTIME_GAMEPLAY_SRC_MIN = 0x0000D000
+RUNTIME_GAMEPLAY_SRC_MAX = 0x0000FA00
+RUNTIME_GAMEPLAY_BLOCK_ROWS = 64
+RUNTIME_GAMEPLAY_BLOCK_COLS = 16
+RUNTIME_GAMEPLAY_MAX_ENTRIES = 4096
 ENDROUND_TABLE_RANGES = (
     (0x5816A, 0x581A6, "endround_init"),
     (0x581A6, 0x581CA, "endround_anim_a"),
@@ -209,6 +230,48 @@ def collect_table_block_sources(
     return sources
 
 
+def collect_runtime_gameplay_sources(maincpu: bytes) -> list[BlockWriteSource]:
+    """Walk the runtime gameplay BG producer descriptor table (arcade 0x3951C).
+
+    Structural derivation of the Stage 1 outside tile source: read consecutive 6-byte
+    {attr16=0x0002, src32} descriptor entries until the pattern breaks, collect the
+    distinct source-block pointers, and model each as a 16-col x 64-row block. No tile
+    codes are hardcoded; they are read from the ROM blocks by extract_tiles_from_source.
+    """
+    sources: list[BlockWriteSource] = []
+    seen: set[int] = set()
+    addr = RUNTIME_GAMEPLAY_DESC_TABLE
+    entries = 0
+    while entries < RUNTIME_GAMEPLAY_MAX_ENTRIES:
+        if addr + RUNTIME_GAMEPLAY_DESC_STRIDE > len(maincpu):
+            break
+        attr = read_u16_be(maincpu, addr)
+        if attr != RUNTIME_GAMEPLAY_DESC_ATTR:
+            break
+        src = read_u32_be(maincpu, addr + 2) & 0xFFFFFF
+        if not (RUNTIME_GAMEPLAY_SRC_MIN <= src <= RUNTIME_GAMEPLAY_SRC_MAX):
+            break
+        if src not in seen:
+            seen.add(src)
+            sources.append(
+                BlockWriteSource(
+                    scene_id=SCENE_GAMEPLAY,
+                    source_addr=src,
+                    rows=RUNTIME_GAMEPLAY_BLOCK_ROWS,
+                    cols=RUNTIME_GAMEPLAY_BLOCK_COLS,
+                    origin="runtime_gameplay_strip",
+                )
+            )
+        addr += RUNTIME_GAMEPLAY_DESC_STRIDE
+        entries += 1
+    if not sources:
+        raise SystemExit(
+            f"runtime gameplay descriptor table at {RUNTIME_GAMEPLAY_DESC_TABLE:#x} "
+            "produced no source blocks"
+        )
+    return sorted(sources, key=lambda s: s.source_addr)
+
+
 def collect_block_write_sources(maincpu: bytes) -> list[BlockWriteSource]:
     sources: list[BlockWriteSource] = []
 
@@ -223,15 +286,10 @@ def collect_block_write_sources(maincpu: bytes) -> list[BlockWriteSource]:
             )
         )
 
-    sources.extend(
-        collect_table_block_sources(
-            maincpu,
-            GAMEPLAY_TABLE_START,
-            GAMEPLAY_TABLE_END,
-            SCENE_GAMEPLAY,
-            "gameplay_table",
-        )
-    )
+    # Build 0154: authoritative gameplay tile ownership is the runtime strip producer
+    # (arcade descriptor 0x3951C -> source blocks 0xD11C..0xF91C), not the former 0x5635E
+    # block model (retained above for reference only; proven unused by the live producer).
+    sources.extend(collect_runtime_gameplay_sources(maincpu))
 
     for start, end, origin in ENDROUND_TABLE_RANGES:
         sources.extend(
@@ -605,9 +663,14 @@ def main() -> int:
     text_tiles = extract_text_writer_tiles(maincpu)
 
     # Scene sets used for preload manifests and slot assignment.
+    # Build 0154: gameplay tiles come from the runtime strip producer model
+    # (block_scene_tiles[SCENE_GAMEPLAY]) plus HUD text. The general strip_tiles set (from
+    # discover_descriptor_tables' 4-byte descriptor discovery) belongs to the old descriptor
+    # model and is not read by the live 0x3951C gameplay producer, so it is no longer merged
+    # into gameplay (it remains in end-round, which does use that model).
     scene_tiles: dict[int, set[int]] = {
         SCENE_TITLE: set(block_scene_tiles[SCENE_TITLE]) | set(text_tiles),
-        SCENE_GAMEPLAY: set(block_scene_tiles[SCENE_GAMEPLAY]) | set(strip_tiles) | set(text_tiles),
+        SCENE_GAMEPLAY: set(block_scene_tiles[SCENE_GAMEPLAY]) | set(text_tiles),
         SCENE_ENDROUND: set(block_scene_tiles[SCENE_ENDROUND]) | set(strip_tiles) | set(text_tiles),
     }
 
