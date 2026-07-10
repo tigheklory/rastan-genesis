@@ -88,6 +88,17 @@ RUNTIME_GAMEPLAY_SRC_MAX = 0x0000FA00
 RUNTIME_GAMEPLAY_BLOCK_ROWS = 64
 RUNTIME_GAMEPLAY_BLOCK_COLS = 16
 RUNTIME_GAMEPLAY_MAX_ENTRIES = 4096
+
+# Build 0155 Stage 1 FG plane model (deterministic ROM chain, validated 2048/2048 cells).
+# code = ROM_word(block + colidx*2 + row*8); block = ROM_word(SRC+2);
+# SRC = FG_SRC_BASE + seg*FG_SRC_STRIDE + group*4 (Stage 1 stage index 0). Tile 0x020 is the
+# transparent default (blank pattern) and maps safely to tile 0.
+FG_SRC_BASE = 0x0001691C
+FG_SRC_STRIDE = 0x000022C0
+FG_SEG_COUNT = 16
+FG_GROUP_COUNT = 16
+FG_ROW_COUNT = 4
+FG_COLIDX_COUNT = 4
 ENDROUND_TABLE_RANGES = (
     (0x5816A, 0x581A6, "endround_init"),
     (0x581A6, 0x581CA, "endround_anim_a"),
@@ -270,6 +281,31 @@ def collect_runtime_gameplay_sources(maincpu: bytes) -> list[BlockWriteSource]:
             "produced no source blocks"
         )
     return sorted(sources, key=lambda s: s.source_addr)
+
+
+def collect_runtime_gameplay_fg_tiles(maincpu: bytes) -> set[int]:
+    """Structurally derive the Stage 1 FG plane tile codes (Build 0155).
+
+    Walks the deterministic FG source chain (no hardcoded codes): block = ROM_word(SRC+2) with
+    SRC = FG_SRC_BASE + seg*FG_SRC_STRIDE + group*4; code = ROM_word(block + colidx*2 + row*8).
+    """
+    codes: set[int] = set()
+    for seg in range(FG_SEG_COUNT):
+        for group in range(FG_GROUP_COUNT):
+            src = FG_SRC_BASE + seg * FG_SRC_STRIDE + group * 4
+            if src + 3 >= len(maincpu):
+                continue
+            block = read_u16_be(maincpu, src + 2)
+            for colidx in range(FG_COLIDX_COUNT):
+                for row in range(FG_ROW_COUNT):
+                    addr = block + colidx * 2 + row * 8
+                    if addr + 1 >= len(maincpu):
+                        continue
+                    codes.add(read_u16_be(maincpu, addr) & 0x3FFF)
+    codes.discard(0)
+    if not codes:
+        raise SystemExit("runtime gameplay FG model produced no tile codes")
+    return codes
 
 
 def collect_block_write_sources(maincpu: bytes) -> list[BlockWriteSource]:
@@ -662,6 +698,9 @@ def main() -> int:
 
     text_tiles = extract_text_writer_tiles(maincpu)
 
+    # Build 0155: Stage 1 FG plane tile codes.
+    fg_tiles = collect_runtime_gameplay_fg_tiles(maincpu)
+
     # Scene sets used for preload manifests and slot assignment.
     # Build 0154: gameplay tiles come from the runtime strip producer model
     # (block_scene_tiles[SCENE_GAMEPLAY]) plus HUD text. The general strip_tiles set (from
@@ -670,7 +709,7 @@ def main() -> int:
     # into gameplay (it remains in end-round, which does use that model).
     scene_tiles: dict[int, set[int]] = {
         SCENE_TITLE: set(block_scene_tiles[SCENE_TITLE]) | set(text_tiles),
-        SCENE_GAMEPLAY: set(block_scene_tiles[SCENE_GAMEPLAY]) | set(text_tiles),
+        SCENE_GAMEPLAY: set(block_scene_tiles[SCENE_GAMEPLAY]) | set(fg_tiles) | set(text_tiles),
         SCENE_ENDROUND: set(block_scene_tiles[SCENE_ENDROUND]) | set(strip_tiles) | set(text_tiles),
     }
 

@@ -30,7 +30,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 134
 # Build 0154 producer-source gameplay scene selection in genesistan_hook_itempage_strip_blit
 # (range-gated load_scene_tiles(1) preamble keyed on the Stage 1 tile-column source family):
 # genesis_only hook section growth +0x180 bytes (0x181D68 -> 0x181EE8).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x181EE8
+# Build 0155 Stage 1 FG plane replay in genesistan_hook_tilemap_fg: +0x15C bytes
+# (0x181EE8 -> 0x182044). Paired constant in both gate scripts.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x182044
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

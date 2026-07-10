@@ -1,5 +1,20 @@
 # AGENTS Log
 
+## [Andy - Implementation, Build 0155: Stage 1 FG Plane Restored at Live Boundary 0x0703EA (Outcome F)]
+
+* baseline @ 98240a4 (Build 0154, SHA 69bd306e...). Implemented. Deliverable docs/design/Andy_build_0155_stage1_fg_live_boundary.md + states/traces/build_0155_stage1_fg_plane/. Stage 1 FG plane NOW POPULATED (staged_fg 76 -> 2020/2048).
+* LIVE BOUNDARY found = genesistan_hook_tilemap_fg (0x0703EA), NOT the prior 0x070248 (dynamically bypassed, KF-040). Stage 1 setup loop 0x50634 runs 64x (per FG column) calling dispatcher 0x055B48; a5@0x10A8=0x80 routes to 0x0703EA. Its native slot a5@0x10A4 is out of the FG C-window (bails); the real FG col dest is a5@0x10A0=0xC08000+dcol*4.
+* FIX: preamble in genesistan_hook_tilemap_fg (gated genesistan_current_scene_id==1) computes each FG cell directly from ROM via the proven model: dcol=(a5@0x10A0&0x3FFC)>>2, SRC=0x16B1C+seg*0x22C0+group*4, block=ROM_word(SRC+2)+0x200, code=ROM_word(block+colidx*2+row*8), attr=0x0003; -> genesistan_hook_tilemap_fg_fill -> staged_fg_buffer -> fg_row_dirty -> existing FG VBlank commit. Stages the VISIBLE TOP 32 rows (seg 0..7; fg_fill 32-row buffer wraps seg 8..15 -- the initial 16-seg cut mis-staged, corrected to 8). fg_fill preserves d0-d7/a0-a6.
+* generator: collect_runtime_gameplay_fg_tiles (structural, 49 codes) merged into gameplay; global LUT 48/49 (0x020 transparent->slot 0 blank), manifest 914->962, peak 1067/1164, deterministic. canonical coverage paired-update 0x181EE8->0x182044 (+0x15C) in postpatch + verify_canonical.
+* validation (2/3/0): staged_fg 76->2020/2048, visible rows 0-27 match arcade FG cells 98% (1768/1792), transparent 0x020->slot0 blank works, Plane B UNCHANGED (staged_bg 2048/277), frontend INTACT (title 273100 / BEST 5), deterministic (2 boots identical). GATE_PASS, boot guard PASS, trace clean, address_map gaps=[] overlaps=[] covered=0x182044 opcode_replace=134.
+* build: dist/rastan-direct/rastan_direct_video_test_build_0155.bin SHA256 f226278f6306d68e5eec84ffcc882f87eff0ed94e828bee28b98a4f23d2d3866 size 1,581,124 counter 155 (reproducible: rebuild -> identical SHA). Builds 0142-0154 not overwritten.
+* first downstream boundary: sky renders BG (rocky) not arcade blue clouds (BG palette/content), horizontal seam + static BG X-scroll (scroll deferred), gameplay PC090OJ sprites absent (not investigated). Architecture compliance CONFIRMED (existing global LUT/manifests/fg_fill/dirty/commit reused; no manual list/hardcode/state-test/forced-scroll/2nd renderer). Build 0154 BG + Build 0152 0xC08C62 untouched; dead 0x055BB2 not patched. Real-hardware/BlastEm/Exodus NOT CLAIMED (pending user test).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - Stage 1 FG plane restored at the proven live boundary 0x0703EA (98% cell match, transparency correct, no frontend regression). Remaining: BG sky palette/content, seam, BG X-scroll, gameplay sprites. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Stage 1 FG Producer: ROM Model Proven, Hook Boundary Wrong (no build)]
 
 * evidence-only, no committed source/ROM/build (an implementation attempt was built, proven non-functional at runtime, and REVERTED). Baseline @ 4716a4c (Build 0154, SHA 69bd306e...). Deliverable docs/design/Andy_stage1_fg_producer_analysis.md + states/traces/build_0155_stage1_fg_plane/.

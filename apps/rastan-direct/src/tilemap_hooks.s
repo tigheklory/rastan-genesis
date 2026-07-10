@@ -59,6 +59,19 @@
     .equ ARCADE_PC080SN_CWINDOW_BASE_BG,     0x00C00000
     .equ ARCADE_PC080SN_CWINDOW_BASE_FG,     0x00C08000
     .equ ARCADE_PC080SN_CWINDOW_BYTES,       0x00004000
+    /* Build 0155 / OPEN-017: Stage 1 FG plane replay (proven deterministic ROM model).
+     * The live FG boundary is genesistan_hook_tilemap_fg (0x703EA), reached per-column from
+     * the Stage 1 setup loop (0x50634); its native slot a5@0x10A4 is out of range so it bails,
+     * while the real FG column dest is a5@0x10A0 = 0xC08000 + dcol*4 (mod plane). For each
+     * cell: SRC = FG_SRC_BASE_GEN + seg*FG_SRC_STRIDE + group*4 (Genesis copy +0x200 folded in);
+     * block = ROM_word(SRC+2) + FG_BLOCK_RELOC; code = ROM_word(block + colidx*2 + row*8);
+     * attr = 0x0003; planerow = seg*4+row; dcol = group*4+colidx = (a5@0x10A0 & 0x3FFC)>>2. */
+    .equ FG_SRC_BASE_GEN,                    0x00016B1C
+    .equ FG_SRC_STRIDE,                      0x000022C0
+    .equ FG_BLOCK_RELOC,                     0x00000200
+    .equ FG_PLANE_ATTR_HI,                   0x00030000
+    .equ FG_PRODUCER_SEG_COUNT,              8   /* visible top 32 rows (seg 0-7); fg_fill buffer is 32 rows, seg 8-15 would wrap/overwrite */
+    .equ FG_PRODUCER_ROW_COUNT,              4
     .equ ARCADE_MAINCPU_ROM_BASE,            0x00000200
     .equ ARCADE_HIGHSCORE_SOURCE_BASE,       0x00FF0000
     /* Arcade A5 work-RAM base (KF-039).  The number-renderer descriptors store
@@ -269,6 +282,68 @@ genesistan_hook_tilemap_fg:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
 
+    /* Build 0155 Stage 1 FG plane staging (live boundary). When the gameplay scene is loaded,
+     * this hook (called once per FG column from the setup loop) replays the proven FG model
+     * directly from ROM using the real FG column dest a5@0x10A0, routing each cell through
+     * genesistan_hook_tilemap_fg_fill (LUT + attr conversion + staging + dirty). Non-gameplay
+     * scenes fall through to the unchanged FG descriptor path. fg_fill preserves d0-d7/a0-a6. */
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne     .Lfg_not_gameplay
+
+    move.l  ARCADE_PC080SN_DEST_BG_OFFSET(%a5), %d0   /* a5@0x10A0 = FG column dest */
+    andi.l  #0x00003FFC, %d0                          /* dcol*4 (col offset within plane) */
+    movea.l #ARCADE_PC080SN_CWINDOW_BASE_FG, %a4
+    adda.l  %d0, %a4                                  /* a4 = base cell dest (plane row 0) */
+    move.w  %d0, %d1
+    lsr.w   #2, %d1                                   /* d1 = dcol */
+    moveq   #0, %d2
+    move.w  %d1, %d2
+    andi.w  #0x0003, %d2
+    add.w   %d2, %d2                                  /* d2 = colidx*2 */
+    moveq   #0, %d3
+    move.w  %d1, %d3
+    lsr.w   #2, %d3
+    lsl.w   #2, %d3                                   /* d3 = group*4 */
+    moveq   #0, %d4                                   /* d4 = seg */
+.Lfgc_seg_loop:
+    move.l  %d4, %d6
+    mulu.w  #FG_SRC_STRIDE, %d6                       /* seg*0x22C0 */
+    add.l   %d3, %d6                                  /* + group*4 */
+    addi.l  #FG_SRC_BASE_GEN, %d6                     /* + 0x16B1C (arcade 0x1691C + copy 0x200) */
+    movea.l %d6, %a2
+    moveq   #0, %d6
+    move.w  2(%a2), %d6                               /* block offset (arcade) */
+    addi.l  #FG_BLOCK_RELOC, %d6                      /* + 0x200 -> Genesis block */
+    add.w   %d2, %d6                                  /* + colidx*2 */
+    movea.l %d6, %a2                                  /* a2 = block base for this seg/col */
+    moveq   #0, %d5                                   /* d5 = row */
+.Lfgc_row_loop:
+    move.w  %d5, %d6
+    lsl.w   #3, %d6                                   /* row*8 */
+    move.w  0(%a2,%d6.w), %d0                         /* code word */
+    andi.w  #0x3FFF, %d0
+    move.l  #FG_PLANE_ATTR_HI, %d1
+    move.w  %d0, %d1                                  /* d1 = attr<<16 | code */
+    move.l  %d4, %d0
+    lsl.l   #2, %d0                                   /* seg*4 */
+    add.l   %d5, %d0                                  /* + row = plane row */
+    lsl.l   #8, %d0                                   /* plane row * 0x100 */
+    movea.l %a4, %a0
+    adda.l  %d0, %a0                                  /* a0 = cell dest */
+    move.l  %d1, %d0                                  /* D0 = composed arcade cell */
+    moveq   #1, %d1                                   /* D1 = count */
+    bsr     genesistan_hook_tilemap_fg_fill
+    addq.w  #1, %d5
+    cmpi.w  #FG_PRODUCER_ROW_COUNT, %d5
+    bne     .Lfgc_row_loop
+    addq.w  #1, %d4
+    cmpi.w  #FG_PRODUCER_SEG_COUNT, %d4
+    bne     .Lfgc_seg_loop
+
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+.Lfg_not_gameplay:
     move.w  ARCADE_PC080SN_STRIP_INDEX_FG_OFFSET(%a5), %d7
     move.l  ARCADE_PC080SN_DEST_FG_OFFSET(%a5), %d5
 

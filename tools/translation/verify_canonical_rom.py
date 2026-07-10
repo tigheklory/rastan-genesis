@@ -43,7 +43,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 134
 # Build 0154 producer-source gameplay scene-selection preamble in
 # genesistan_hook_itempage_strip_blit: +0x180 bytes (0x181D68 -> 0x181EE8). Paired with the
 # same constant in tools/translation/postpatch_startup_rom.py.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x181EE8
+# Build 0155 Stage 1 FG plane replay in genesistan_hook_tilemap_fg: +0x15C bytes
+# (0x181EE8 -> 0x182044). Paired constant in both gate scripts.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x182044
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")
