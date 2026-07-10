@@ -630,6 +630,23 @@ Reinforced Build 0151: `genesistan_hook_number_renderer_3c2e2` (arcade 0x3C2E2, 
 
 ---
 
+## KF-040 — Gameplay Stage 1 BG is painted at scene entry via the item-page strip-blit hook; the raw column writers are dynamically dead; the boundary is scene selection / pattern residency
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (arcade + Genesis Build 0153 runtime taps; disassembly; screenshot)
+- **Applicability:** DURABLE ownership/boundary rule (rastan-direct gameplay BG); producer facts BUILD_SPECIFIC (Build 0153)
+- **Rediscovery Hazard:** HIGH (contradicts the intuitive "raw C-window writer" reading of the static address_map)
+- **Addresses:** arcade raw BG writer loop `0x055C7A` (stores `0x055C80`/`0x055C94`) via producer `0x055C68`; arcade raw FG writer loop `0x0559B2` (stores `0x0559B8`/`0x055A06`); item-page BG strip-blit `genesistan_hook_itempage_strip_blit` runtime `0x716CA` installed at arcade `0x055C5E`/Genesis `0x055E5E`; descriptor walker arcade `0x03951C`; tile sources `0x00D11C`/`0x00D91C`/`0x00F11C` (arcade) -> `0x00D31C…` (+0x200); `staged_bg_buffer` `0x00FF409E`; `genesistan_current_scene_id` `0x00FF7474`; scene detector in `genesistan_hook_tilemap_plane_a`/`_fg` (`0x00070248`/`0x000703EA`, keyed on `a5@0x10A0`/`a5@0x10A4`)
+- **Source Documents:** docs/design/Andy_gameplay_pc080sn_output_analysis.md; states/traces/build_0154_gameplay_pc080sn_output/
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-10 (Build 0153)
+
+**Finding.** On the arcade, the Stage 1 outside BG/FG plane is painted **once at state `2/2/4`** (not during steady gameplay `2/3/0`, where there are zero PC080SN C-window writes) by raw column writers `0x055C7A` (BG) / `0x0559B2` (FG), each store firing 4096× = 64 cols × 64 rows, walking descriptor `0x03951C` with tile sources `0xD11C`-family (step `0x800`). On Genesis Build 0153 these raw writer instruction sites are statically `arcade_copy` but **dynamically dead**: no `0x055Bxx–0x055Fxx` PC ever writes the VDP, and producer `0x055E68` never stores its dest-cursor `0xFF10F8`. Instead the **already-hooked item-page BG strip-blit** (`0x716CA`, at `0x055E5E`) runs with a **relocated** source `0xD31C` (=`0xD11C`+0x200) and stages BG cells through `genesistan_hook_tilemap_bg_fill`: `staged_bg_buffer` is fully populated (2048/2048) and committed (`bg_row_dirty=0`). However the staged plane is a **uniform `0x4000`** (tile index 0 + priority), because `genesistan_current_scene_id` stays `0` (title), `load_scene_tiles(1)` never runs, the gameplay tile patterns are not resident, and the tile→VRAM LUT collapses the gameplay code words to tile 0. The Genesis scene detector lives only in the descriptor-hook path (`plane_a`/`fg`, keyed on `a5@0x10A0/0x10A4`), which is not exercised by the item-page/column gameplay path, and the descriptor slots never hold a gameplay-range (`0x56A22..0x570C2`) pointer during entry.
+
+**Use as prior.** Do **not** treat the gameplay BG blank as an "untranslated raw PC080SN writer" problem: the raw writers do not execute on Genesis and the BG cells already stage+commit. The Stage 1 BG boundary is **scene selection + tile-pattern residency + real-content staging** — i.e. why the item-page branch stages a uniform tile-0 plane, why the arcade column producer `0x055C68` is bypassed on Genesis, and how to trigger `load_scene_tiles(1)` naturally from a proven authoritative gameplay scene pointer (which is not yet identified). When auditing a "raw C-window writer" flagged only by static `arcade_copy` mapping, confirm at runtime that the site actually executes on Genesis before treating it as a live gap.
+
+---
+
 
 ## Deferred Candidates Appendix
 

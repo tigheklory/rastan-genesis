@@ -1,5 +1,17 @@
 # AGENTS Log
 
+## [Andy - Analysis, Gameplay PC080SN Output: Stage 1 BG/FG Producer Census (Outcome G, no build)]
+
+* evidence-only, no source/JSON/ROM/build. Baseline @ 9aa1a58 (Build 0153, SHA ee232cbd...). Outcome G. Deliverable docs/design/Andy_gameplay_pc080sn_output_analysis.md + states/traces/build_0154_gameplay_pc080sn_output/.
+* TASK HYPOTHESIS (Outcome A "untranslated raw gameplay PC080SN bulk-writers") DISPROVEN by Genesis runtime evidence. The arcade raw column writers (BG loop 0x055C7A via producer 0x055C68; FG loop 0x0559B2) paint the Stage 1 outside plane ONCE at state 2/2/4 (F~294-351), 4096 writes each = 64 cols x 64 rows, walking descriptor 0x03951C with tile sources 0xD11C/0xD91C/0xF11C (step 0x800). At steady gameplay 2/3/0 there are ZERO C-window writes (plane painted at entry, then HW scroll).
+* Genesis Build 0153: those raw-writer PCs (0x055Bxx-0x055Fxx) NEVER write the VDP (gen_decide.txt); producer 0x055E68 never writes its dest-cursor 0xFF10F8 -> dynamically DEAD. Instead the already-hooked item-page BG strip-blit (genesistan_hook_itempage_strip_blit, 0x716CA, at 0x055E5E) runs with a RELOCATED source 0xD31C (=0xD11C+0x200) and STAGES BG cells: staged_bg_buffer fully populated (2048/2048) and COMMITTED (bg_row_dirty=0, commit PCs 0x7020E/0x70236 fire at 2/3/0).
+* BUT staged_bg is a UNIFORM 0x4000 (tile-0 + priority) plane, not the Stage 1 layout; staged_fg ~zero (76/2048). scene_id=0, scene_a0_lo=0x5A7DA (title). load_scene_tiles(1) NEVER runs -> gameplay tile patterns not resident in VRAM -> tile LUT collapses gameplay code words to tile 0. Screen blank except stale 2731/2UP. Scene detector (plane_a/fg hooks, keyed on a5@0x10A0/0x10A4) is not exercised by this item-page/column path; descriptor slots never hold a gameplay-range (0x56A22..0x570C2) pointer during entry.
+* first exact divergence = CONTENT of the Stage 1 BG plane + missing pattern residency, NOT a raw writer. Fix requires a design step (prove gameplay scene-setup flow 0x055C5E/0x055C68 + descriptor 0x03951C + source 0xD31C-family; determine why the Genesis item-page branch stages a uniform tile-0 plane and why the column producer 0x055C68 is bypassed; wire natural scene selection + real-content staging). Authoritative gameplay scene pointer NOT yet proven; task forbids forcing scene ID 1 / manual load_scene_tiles(1) / scene-range edits without it. => Outcome G, no build.
+* NO forcing, NO changes: load_scene_tiles(1) not called, scene id not forced, no cells/patterns/scroll/palette hardcoded, no state advanced, no scene range changed, 0x03D04C untouched, no emulator-specific behavior. Build 0153 relocations + Build 0152 0xC08C62 routing intact & unmodified. Durable finding recorded KF-040.
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - gameplay BG boundary re-characterised with runtime proof (raw-writer gap does not exist on Genesis; BG cells already stage+commit but as a uniform tile-0 plane; real boundary = scene selection + tile-pattern residency + real-content staging). Bounded next design task defined. Not closed; no duplicate.
+
 ## [Andy - Temporary Implementation, Build 0153 Gameplay Scene-Asset Embedded Pointer-Table Relocation]
 
 * baseline @ 7f3c5fb (Build 0152, SHA 3d805331...). Implemented (bounded embedded-pointer relocation). Deliverable docs/design/Andy_build_0153_gameplay_asset_pointer_relocation.md + states/traces/build_0153_gameplay_asset_pointer_relocation/.
