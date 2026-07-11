@@ -4,6 +4,8 @@ Read AGENTS.md and AGENTS_LOG.md before every task. Treat AGENTS_LOG.md as the s
 
 The original Rastan arcade 68000 program remains the source of truth. Genesis-side code translates arcade hardware intent through bounded helper/staging/commit paths and returns to arcade flow.
 
+When instructed to read AGENTS_LOG.md, do not read the entire file. Start by reading the last 500 lines. If you need older context, use grep or search commands to find specific Build/Issue references before reading those sections.
+
 This is not a conventional port, emulator, source rewrite, or high-level recreation.
 
 Before proposing any patch, answer:
@@ -30,6 +32,7 @@ Use existing mapping artifacts for address comparisons:
 - apps/rastan-direct/out/symbol.txt
 - build/maincpu.disasm.txt
 - build/genesis_postpatch.disasm.txt
+
 
 For A5/work-RAM mapping:
 - arcade A5/work RAM base is 0x0010C000
