@@ -1,5 +1,20 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0159: Collision Producer Pipeline Owner (no build)]
+
+* analysis only, NO source/spec/tool/ROM/build. Baseline @ b6937d3, accepted Build 0158 ROM SHA 2bf5a06f... counter 158. Deliverable docs/design/Andy_build0159_collision_producer_pipeline_owner.md + states/traces/build_0159_collision_producer/. Classification D (producer intentionally dead; collision map must be generated elsewhere). Owner PROVEN.
+* OWNER: the arcade PC080SN tilemap-population routine IS the collision-map producer (double duty: VRAM tiles + collision cells at 0x10DE00). Build 0154 (genesistan_hook_tilemap_plane_a @ arcade 0x55968) and Build 0155 (genesistan_hook_tilemap_fg @ arcade 0x55990) opcode_replaced those routines with `jsr <staging hook> + NOPs` that emit only VDP tiles, DROPPING the collision-cell writes. So the producer subroutines 0x559B2(BG)/0x55A14(FG) are orphaned (Genesis 0x55BB2/0x55C14 have no callers) -> collision map never built.
+* ARCADE runtime proof (states/traces/build_0159_collision_producer/arc_buffer.txt, mame rastan -rompath roms): 8192 writes to buffer 0x10DE00..0x10FDFF over F6..306 from 2 PCs: 0x03AF02 x4096 = startup work-RAM ZEROING loop (movew (a0)+,(a1)+ propagate-fill of 0x10C000..0x10FFFF; init, not content); 0x0559F0 x4096 = BG tilemap producer store 0x559EC (+4 prefetch), reached via dispatch 0x55948 on a5@0x10A8==0 (BG) branch. So arcade builds the map from the BG tilemap pass.
+* GENESIS: dispatch 0x55B48 is intact + runs, but a5@0x10A8=0x80 (nonzero) -> FG branch 0x55B90=`jsr genesistan_hook_tilemap_fg`(0x703EA)+NOPs; BG branch 0x55B68=`jsr genesistan_hook_tilemap_plane_a`(0x70248)+NOPs is dynamically dead. Neither hook emits collision cells. The startup zeroing loop IS rebased (opcode_replace 0x03AEEA/0x03AEF0/0x03AF04 -> Genesis WRAM) so it zeros 0x00FF1E00 -> mapped buffer reads all-zero (not garbage); the reader's raw 0x10DExx is untouched ROM (spurious type-8).
+* KF-040/KF-041 instance: copied pipeline step (collision production) not executed because its host routine was replaced by a partial Genesis reimplementation (rendering half only).
+* Classification D: producer intentionally dead (deliberate hook replacement); reviving it is wrong (it would raw-write VRAM 0xC08000 the hooks avoid). Fix = generate the map elsewhere: extend the Genesis tilemap staging hook(s) to ALSO emit collision cells into 0x00FF1E00 + (vram-0xC08000)/2, THEN the coordinated 9-site reader/converter/compare rebase 0x0010DE00->0x00FF1E00 (reader-rebase alone unsafe until production exists). That is a tilemap-staging/collision-domain build, out of this analysis scope. NO build; NO implementation.
+* scope: only collision-producer ownership. NOT touched: tilemap hooks, mode=0x0008, stage controller, sprites, scroll, continue/game-over, D00298, Exodus, audio, rendering; did NOT rebase 0x10DE00 or patch the reader. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - the dead Stage-1 collision producer is OWNED by the Build 0154/0155 PC080SN tilemap-staging hooks (genesistan_hook_tilemap_plane_a @0x55968, genesistan_hook_tilemap_fg @0x55990): they replaced the double-duty arcade tilemap producers and implement only the VRAM/rendering half, dropping the collision-cell writes to 0x10DE00 (producer subroutines 0x559B2/0x55A14 orphaned). Fix = extend the staging path to emit collision cells, then the coordinated buffer rebase. Deferred (tilemap-staging/collision build). Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Build 0159: Collision Buffer WRAM Rebase -> STOP, NO BUILD]
 
 * analysis only, NO source/spec/tool/ROM/build. Baseline @ 48a3278, accepted Build 0158 ROM SHA 2bf5a06f... counter 158. Deliverable docs/design/Andy_build0159_collision_buffer_rebase.md + states/traces/build_0159_collision_rebase/. Classification C (site set complete but rebase UNSAFE) + D correction. STOP triggered.
