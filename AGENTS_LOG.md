@@ -1,5 +1,20 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0159: Collision Buffer WRAM Rebase -> STOP, NO BUILD]
+
+* analysis only, NO source/spec/tool/ROM/build. Baseline @ 48a3278, accepted Build 0158 ROM SHA 2bf5a06f... counter 158. Deliverable docs/design/Andy_build0159_collision_buffer_rebase.md + states/traces/build_0159_collision_rebase/. Classification C (site set complete but rebase UNSAFE) + D correction. STOP triggered.
+* Phase 1 site set VERIFIED and BOUNDED: exactly 9 raw 0x0010DE00 literal sites, all one 0x2000-byte collision buffer [0x10DE00,0x10FE00) (proven by the cmpal wrap-checks `a0<0x10DE00 -> +0x2000`). Roles: readers 0x53C64(moveal)/0x5A4CE(addil,btst#7); producers 0x55BE4/0x55C5A/0x55C7A (addil->moveal fp->movew d0,fp@); converters 0x52A82 (VRAM->buf) / 0x5A536 (buf->VRAM, base subtracted to recover index); compares 0x414E8/0x45F52. Arcade PCs = Genesis-0x200, bytes byte-exact in maincpu.disasm. Rebase would be byte-neutral (imm 0010DE00->00FF1E00). Target WRAM 0xFF1E00..0xFF3E00 free of helper symbols. So the STATIC rebase was fully ready (classification A on statics).
+* PRE-BUILD RUNTIME GATE FAILED (the decisive stop): (1) write-tap on 0x10DE00..0x10FDFF for a full boot->coin->start->gameplay run (F0..840) = ZERO write attempts (arcade writes this range constantly). (2) full-space write-tap filtered to producer stores 0x55BEC/0x55C62/0x55C82 = NEVER executed. => the collision-map PRODUCER ROUTINE IS DEAD on Genesis (KF-040 class), so WRAM 0x00FF1E00 is never populated.
+* CORRECTS prior analysis (D aspect): the buffer is NOT "producers write to ROM, dropped" -- the producers never run; the reader consumes STATIC ROM graphics data at 0x10DExx (leftover ROM content), which intermittently yields type-8 -> early mode=0x0008. Core root (reader reads un-rebased address -> garbage type-8) stands.
+* WHY STOP (not build): a coordinated rebase would point the reader at an EMPTY 0x00FF1E00 (all type-0 = no collision) while producers still never populate it -> removes floor/hazard collision ENTIRELY, strictly worse than current. Trips stop condition "runtime validation cannot prove WRAM production." A/B not satisfied. NO opcode_replace added; canonical count stays 136, coverage 0x182070; no build; Builds 0142-0158 untouched.
+* NEXT (deeper, deferred): make the Stage-1 collision-map producer pipeline (0x559E4/0x55A5A/0x55A7A) RUN on Genesis and populate the map (KF-040/KF-041 dead-pipeline class), OR hook the collision reader to a genuinely produced map. A literal rebase alone is insufficient.
+* scope: only the 0x0010DE00 collision-buffer rebase feasibility. NOT touched: mode=0x0008 handler, stage controller, player position, camera/scroll, sprites, tilemaps, continue/game-over, D00298, Exodus, audio. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced + root-cause REFINED. The collision buffer 0x0010DE00 is un-rebased AND its producer pipeline is DEAD on Genesis (stores 0x55BEC/0x55C62/0x55C82 never execute), so the map is never built in WRAM and the reader consumes static ROM garbage -> spurious type-8 -> early gameplay end. A literal-only rebase is UNSAFE (empty target removes collision) -> STOP, no build. Real fix = make the producer pipeline run/populate (KF-040/KF-041 class), deferred. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Build 0159: Floor/Collision Map Origin (no build)]
 
 * analysis only, no source/spec/tool/ROM/build. Baseline @ 0581f55, accepted Build 0158 ROM SHA 2bf5a06f... counter 158. Deliverable docs/design/Andy_build0159_floor_collision_map_origin.md + states/traces/build_0159_floor_collision/. Classification A (source cause proven+bounded; implementation deferred - multi-site rebase).
