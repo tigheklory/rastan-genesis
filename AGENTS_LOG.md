@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy - Implementation, Build 0158: Stage 1 Command-Source Rebase 0x05102E (0x10C016 -> 0xFF0016)]
+
+* baseline @ b900387 (Cody 0158 docs; accepted Build 0157 ROM SHA 725c36a2... intact), counter 157. Implemented. Deliverable docs/design/Andy_build_0158_command_source_rebase.md.
+* State-causality CLASSIFICATION A proven. Site: arcade 0x05102E / runtime 0x05122E `move.w 0x0010C016,%d0` then 0x051234 `move.w %d0,a5@0x137A` (dest 0x00FF137A). The absolute literal 0x0010C016 is a raw arcade WRAM address copied verbatim (not an operand shape the postpatch relocates); on Genesis it is ROM = 0x5553.
+* Runtime proof: arcade a5@0x137A<-0x00FF, WRAM[0x10C016]=0x00FF. Genesis 0157 a5@0x137A<-0x5553, ROM[0x10C016]=0x5553, but WRAM[0x00FF0016]=0x00FF (correct rebased value, written by 0x03A99A/arcade 0x03A79A at command time). So the correct command value exists at 0x00FF0016; the reader loaded the raw ROM literal.
+* FIX: byte-neutral opcode_replace at arcade 0x05102E: 30390010C016 -> 303900FF0016 (move.w 0x00FF0016,%d0; opcode 0x3039 preserved), KF-036/KF-039 single-site WRAM rebase 0x0010C000->0x00FF0000. No NOP, no destination patch, no forced value/seed/fallback, no ROM-wide rebase. opcode_replace_count 135->136 (paired spec + postpatch + verify_canonical); coverage unchanged 0x182070.
+* validation: disasm 0x5122E now `move.w 0xFF0016,%d0`; runtime a5@0x137A<-0x00FF (bad 0x5553 GONE), matches arcade through drop/landing window. VISIBLE: no player sprite yet (Rastan still dies ~instantly, deferred control-flow) => INTERNAL STATE FIX, not a visible gameplay fix.
+* regression: frontend title represented=15; Build 0157 sprites max_represented=11; Build 0155 FG staged_fg=2020; Build 0154 BG staged_bg=2048; Build 0156 C08C66 route 0x3D24C=jsr 0x708C8; Build 0152 C08C62 route 0x3A92A=jsr 0x70894 -- all INTACT. GATE_PASS, boot guard PASS, trace clean, address_map gaps=[] overlaps=[] covered=0x182070 opcode_replace=136, deterministic (2 boots identical).
+* build: dist/rastan-direct/rastan_direct_video_test_build_0158.bin SHA256 2bf5a06fd5d8ea759c4a9c1c82ce00c34257f338bcaee42d64de9093f17e23ab size 1,581,168 (byte-neutral = 0157) counter 158 (reproducible: rebuild -> identical SHA). Builds 0142-0157 not overwritten. Architecture compliance CONFIRMED (declarative opcode_replace, original-bytes validated, no NOP/destination-patch/forced-value/fallback/2nd-renderer). Real-hardware/BlastEm/Kega/Exodus NOT CLAIMED.
+* scope: only the 0x05102E command-source read. NOT touched: Y/landing/collision/floor/scroll/camera/sprites/continue/game-over/D00298/Exodus/audio/tilemaps.
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - Stage 1 command source rebased (a5@0x137A now 0x00FF matching arcade, was 0x5553). Internal state fix; visible gameplay still blocked by deferred player-death/fall. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Implementation, Build 0157: PC090OJ Mirror-Dirty -> Candidate Resweep (gameplay sprites reach SAT)]
 
 * baseline @ 5668c6e (Build 0156, SHA 03c6e8aa...). Implemented. Deliverable docs/design/Andy_build_0157_pc090oj_dirty_candidate_scan.md (+ Cody handoff docs/design/Cody_build0157_pc090oj_candidate_dirty_handoff.md). Fixes the dirty->candidate->SAT handoff so populated gameplay PC090OJ records reach the existing Genesis SAT.

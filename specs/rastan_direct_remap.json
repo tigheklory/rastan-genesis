@@ -267,6 +267,12 @@
       "note": "Build 0156/OPEN-018 Class A dynamic-FG: sibling of the 0x03A72A/0xC08C62 route. Runtime 0x03D24C (arcade 0x03D04C) issues `move.w %d1, 0x00C08C66` where d1 = digit tile 0x30..0x39 (= 9 - d0 + 0x30) -- a raw PC080SN FG C-window store that strict-target emulators fault on (user report: BlastEm strict-freeze at write address C08C66 during gameplay). Now routed through genesistan_hook_inline_fg_write_3d04c -> genesistan_hook_tilemap_fg_fill live LUT (digit tiles 0x30..0x39 already LUT-mapped). Wrapper stages one FG cell at base 0x00C08C64 (code word at +2), preserves d0-d7/a0-a6, and reproduces the original MOVE.W N/Z/V/C via tst.w d1. Byte-neutral opcode_replace (6->6); no NOP, no hardcoded cell. Validation: no runtime raw write to 0xC08C66; the digit reaches staged_fg via the existing FG dirty/VBlank commit."
     },
     {
+      "arcade_pc": "0x05102E",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0158/OPEN-017/KF-036/KF-039: single-site raw work-RAM literal rebase. `move.w 0x0010C016, %d0` reads the Stage 1 command source from the ABSOLUTE arcade work-RAM literal 0x0010C016 (not an instruction-operand shape the postpatch relocation rewrites). On Genesis that literal is a ROM address holding 0x5553, so runtime 0x05122E loads garbage and the next store (0x05122E+6 = runtime 0x051234, `move.w %d0, a5@0x137A`) writes 0x5553 to a5+0x137A instead of the arcade's 0x00FF. The command value IS correctly present in mapped work RAM: Genesis 0x00FF0016 holds 0x00FF (matching arcade WRAM 0x10C016=0x00FF), written by 0x03A99A (arcade 0x03A79A) at command time. Classification A (correct value at 0x00FF0016, copied reader reads raw 0x10C016). Fix rebases ONLY this reader's absolute operand 0x0010C016 -> 0x00FF0016 via arcade base 0x0010C000 -> Genesis 0x00FF0000 (KF-039). Byte-neutral opcode_replace (6->6, opcode 0x3039 preserved); no NOP, no destination patch, no forced value, no seed, no fallback, no ROM-wide rebase. Validation: runtime 0x051234 now writes 0x00FF to 0x00FF137A; the 0x5553 command is gone; command tracks arcade through drop/landing."
+    },
+    {
       "arcade_pc": "0x03A778",
       "original_bytes": "103900390001",
       "replacement_bytes": "1039{symbol:genesistan_shadow_input_390001}",
@@ -1009,6 +1015,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 135
+    "opcode_replace_count": 136
   }
 }
