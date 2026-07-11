@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0159: Post-Command Drop/Landing Divergence (no build)]
+
+* analysis only, no source/spec/tool/ROM/build. Baseline @ b077d7b, accepted Build 0158 ROM SHA 2bf5a06f... counter 158. Deliverable docs/design/Andy_build0159_post_command_drop_landing_analysis.md + states/traces/build_0159_drop_landing/. Classification B (with strong D aspect).
+* Same-timeline arcade-vs-Genesis(0158) trace, aligned by first 2/3/0 frame. COMMAND FIX INTACT: a5+0x137A=0x00FF held through the entire drop/landing window (no 0x5553).
+* DROP/LANDING IS FAITHFUL: both arcade and Genesis land at Y=0x0070, X=0x0020, ALIVE (life1=0x00FF life2=0x0001); the player does NOT die (contradicts "dies almost instantly" at the player-state level -- Build 0158's command fix corrected the player state). 2/3/0 lasts ~313 frames then exits to 2/4/0 (attract), not a death.
+* First remaining divergences (writer PCs NOT proven this pass): (1) vertical velocity model / vcorr a5+0x10DA: arcade accelerates (gravity), lands rel=33 vcorr=0x0003; Genesis linear +4, lands rel=45 vcorr=0x0004. (2) terminal mode a5+0x10E8: arcade->0x0000, Genesis->0x0008. (3) BG vertical scroll staged_scroll_y_bg 0x00FF409A: Genesis animates 0x01EC->0x0147, arcade scrY=0 (no vertical pan). The visible "scrolls into black" = the extra Genesis BG vertical scroll on the 32-row plane; "no sprite" = Build 0157 deferred sprite-display timing.
+* Classification B: first differing player-state fields found (vcorr, terminal mode), writer PCs unproven. D aspect: the drop/landing/player-death boundary is faithful; visible failure is camera/scroll + sprites (deferred), not a player drop/landing/death defect. NO build; NO implementation. Smallest next steps: prove writer of staged_scroll_y_bg (0x00FF409A) + whether arcade computes nonzero camera-Y; prove branch that sets terminal mode 0x0008 vs 0x0000; confirm Build 0157 sprite window-vs-paint timing.
+* scope: only post-command drop/landing state compared. NOT touched: rendering/scroll/sprite/continue/game-over/D00298/Exodus/audio/collision source. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - post-command drop/landing proven FAITHFUL (player lands Y=0x0070, stays alive); remaining divergences localized to vertical-velocity model, terminal mode 0x0008, and an extra BG vertical scroll (deferred). Writer PCs unproven. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Implementation, Build 0158: Stage 1 Command-Source Rebase 0x05102E (0x10C016 -> 0xFF0016)]
 
 * baseline @ b900387 (Cody 0158 docs; accepted Build 0157 ROM SHA 725c36a2... intact), counter 157. Implemented. Deliverable docs/design/Andy_build_0158_command_source_rebase.md.
