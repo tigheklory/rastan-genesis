@@ -41212,3 +41212,70 @@ Open/Closed Issues Impact:
 - Final PC: 0x03A1AE
 - Stack Pointer (SP): 0x00FEFFF8
 - Unique Unmapped Memory Addresses: none
+
+## [Cody — Analysis, Build 0158 Player Death/Fall Boundary]
+
+- **Date:** 2026-07-10
+- **Type:** Analysis-first boundary check / no-build STOP
+- **Baseline:** branch `rastan-direct-proposal`, HEAD `e4297f4`, accepted Build 0157 ROM `dist/rastan-direct/rastan_direct_video_test_build_0157.bin`, SHA `725c36a27a4ea55a4a99bcbca4bd5dde3bbaf00cffe6b5005b8997b90cdd2c4a`, counter `157`.
+- **Files changed:** `docs/design/Cody_player_death_fall_analysis.md`, `OPEN_ISSUES.md`, `AGENTS_LOG.md`.
+- **Build produced:** NO.
+- **ROM path:** N/A.
+- **Fix implemented:** NO.
+- **Source/spec/tool/ROM changes:** NO.
+- **Unrelated changes:** NO. Pre-existing dirty file `build/mame/home/genesistrace/genesis_exec_trace.log` was observed and left untouched.
+- **Phase 0:** Read `RULES.md`, `ARCHITECTURE.md`, `KNOWN_FINDINGS.md`, `OPEN_ISSUES.md`, `CLOSED_ISSUES.md`, and latest relevant `AGENTS_LOG.md`; classification EXTENDING; no contradiction with CONFIRMED/STRONG findings detected.
+- **SAT sanity result:** A. Build 0157 has plausible early gameplay staged SAT evidence, so SAT format is not the immediate stop gate for this task. Representative evidence: `states/traces/build_0157_gameplay_sprites/gen_active.txt` shows frame 533 `represented=10`, `staged_active=11`, `sat_dirty=0001` and frame 534 `represented=11`, `staged_active=11`, `sat_dirty=0001`; `gen_sat.txt` frame 534 includes sane staged SAT words such as `slot1: 0088 0506 C404 0128`. Later zero/near-empty SAT observations around frame 601 are treated as post death/fall timing, not as the first blocker.
+- **Death/fall boundary result:** STOP. Current artifacts do not identify the player object structure in both original arcade runtime and Genesis Build 0157, and do not identify the collision/floor routine PC or its lookup inputs/outputs. Therefore the first exact arcade-vs-Genesis player death/fall divergence is not proven.
+- **State-causality rule:** Not satisfied. The task cannot yet answer what player/floor/collision state should exist, which earlier arcade code should create it, or why it did not get created.
+- **Smallest next evidence:** A short arcade-vs-Genesis Stage 1 runtime trace through the first life-loss capturing player object fields, camera/scroll, collision/floor routine entry/exit, lookup inputs/outputs, and life/death/fall state writes. No implementation should proceed before that evidence.
+- **Design doc:** `docs/design/Cody_player_death_fall_analysis.md`.
+- **Open/Closed Issues Impact:** Updated `OPEN_ISSUES.md` under OPEN-017 with the Build 0158 no-build STOP and required next evidence. Open issues touched: OPEN-001, OPEN-017, OPEN-024; OPEN-018 context only. New issues opened: NONE. Issues closed: NONE. Intentionally deferred: collision fix, scroll fix, player-state patch, D00298, C08C66, continue/game-over, tilemaps, Exodus, real-hardware testing.
+- **KNOWN_FINDINGS impact:** Option A — no new finding to index. No durable mechanism was proven beyond the absence of required boundary evidence.
+- **Architecture compliance:** CONFIRMED. Arcade ownership preserved; no Genesis-owned lifecycle, survival, floor, collision, SAT bypass, or rendering shortcut introduced.
+- **STOP status:** YES — no build, no source changes, no fix.
+
+## [Cody — Analysis, Build 0158 Player/Floor Trace Acquisition]
+
+- **Date:** 2026-07-10
+- **Type:** Analysis / bounded runtime evidence capture only.
+- **Baseline:** branch `rastan-direct-proposal`, HEAD `e4297f4`, accepted Build 0157 ROM `dist/rastan-direct/rastan_direct_video_test_build_0157.bin`, SHA `725c36a27a4ea55a4a99bcbca4bd5dde3bbaf00cffe6b5005b8997b90cdd2c4a`, counter context `157`.
+- **Files changed:** `docs/design/Cody_build0158_player_floor_trace_targets.md`, `states/traces/build_0158_player_floor_trace_targets_20260710_230533/`, `AGENTS_LOG.md`.
+- **Build produced:** NO.
+- **ROM path:** N/A.
+- **Fix implemented:** NO.
+- **Source/spec/tool/Makefile/ROM/invariant changes:** NO.
+- **No unrelated changes:** YES. Pre-existing dirty files were observed and not reverted.
+- **Phase 0:** Read `RULES.md`, `ARCHITECTURE.md`, `AGENTS.md`, latest relevant `AGENTS_LOG.md`, `KNOWN_FINDINGS.md`, `OPEN_ISSUES.md`, `CLOSED_ISSUES.md`, and `docs/design/Cody_player_death_fall_analysis.md`; classification EXTENDING; no contradiction with CONFIRMED/STRONG findings detected.
+- **Address mapping:** Compared PCs mapped through `build/rastan-direct/address_map.json` exact `arcade_copy` segments; work-RAM fields labeled as arcade `0x0010C000+offset` vs Genesis-WRAM `0x00FF0000+offset`.
+- **Player object result:** Strongest confirmed player state is A5-relative player global cluster: arcade `0x0010D0BE/0x0010D0C0` and Genesis-WRAM `0x00FF10BE/0x00FF10C0`; `0x02C8` actor list remains strongest visible-body candidate; `0x0508` remains player-linked upstream/control candidate.
+- **Collision/floor candidates:** Static candidates documented: arcade `0x0517FA`, `0x053850`, `0x0538EA`, `0x053956`, `0x0539C2`, `0x053A2E`, `0x053A6E`, and `0x0512C8`, mapped to Genesis runtime `0x0519FA`, `0x053A50`, `0x053AEA`, `0x053B56`, `0x053BC2`, `0x053C2E`, `0x053C6E`, and `0x0514C8`.
+- **Trace artifacts:** `states/traces/build_0158_player_floor_trace_targets_20260710_230533/arcade_player_floor_trace.log` and `genesis_player_floor_trace.log`, plus bounded Lua capture scripts.
+- **Trace result:** Arcade reached active `2/3/0` at frame `307`; Genesis reached active `2/3/0` at frame `533`. First sampled player trajectory divergence occurred at active+10 (`arcade Y=0x0037`, `Genesis Y=0x003C`) and Genesis entry command word differed (`0x5553` vs arcade `0x00FF`). No death/life-loss state was captured. Map-read and active player-write taps did not capture runtime PC-at-write/read events in this bounded run.
+- **Readiness classification:** B — more analysis needed. Player state is found and static collision/floor candidates are identified, but the exact runtime collision/floor lookup and first death/fall/life-loss divergence are not proven.
+- **Implementation boundary:** NONE authorized. Next task should narrowly capture active-gameplay player writes and map/collision reads at the mapped candidate PCs before any patch.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-001, OPEN-024, OPEN-017 context. New issues opened: NONE. Issues closed: NONE. Intentionally deferred: continue/game-over, D00298, Exodus, audio, tilemaps, general rendering, sprite/SAT handoff.
+- **KNOWN_FINDINGS impact:** Option A — no new finding to index; no durable root cause proven.
+- **STOP status:** NO. Evidence limits recorded, no architecture violation.
+
+## [Cody — Analysis, Build 0158 Intro Drop / Landing Runtime Proof]
+
+- **Date:** 2026-07-10
+- **Type:** Analysis-only runtime proof; no source/spec/tool/Makefile/ROM/build/invariant changes; no fix.
+- **Baseline:** branch `rastan-direct-proposal`, HEAD `e4297f4`, accepted Build 0157 ROM `dist/rastan-direct/rastan_direct_video_test_build_0157.bin`, SHA `725c36a27a4ea55a4a99bcbca4bd5dde3bbaf00cffe6b5005b8997b90cdd2c4a`, counter context `157`.
+- **Files changed:** `docs/design/Cody_build0158_intro_drop_landing_runtime_proof.md`, `states/traces/build_0158_intro_drop_landing_runtime_proof_20260710_232927/`, `AGENTS_LOG.md`.
+- **Build produced:** NO.
+- **ROM path:** N/A.
+- **Fix implemented:** NO.
+- **No unrelated changes:** YES; pre-existing dirty files were observed and not reverted.
+- **Exact address mapping:** compared PCs mapped through `build/rastan-direct/address_map.json` exact `arcade_copy` segments; A5/work-RAM fields labeled as arcade `0x0010C000+offset` vs Genesis-WRAM `0x00FF0000+offset` per KF-039.
+- **Runtime evidence:** original arcade and Build 0157 Genesis MAME traces captured under `states/traces/build_0158_intro_drop_landing_runtime_proof_20260710_232927/`; both debugger-enabled runs completed with exit code `0` and produced native traces.
+- **Intro-drop result:** Build 0157 does land at Y `0x0070` and sets move/contact bitfield `a5+0x10D0=0x0002`, but it lands later than arcade (`active delta 43` vs `31`), uses different command word (`0x5553` vs arcade `0x00FF`), has different correction (`a5+0x10DA=0x0004` vs arcade stable `0x0003`), and starts camera movement later/differently.
+- **First exact divergence:** copied arcade routine `arcade_pc 0x051034` / `runtime_genesis_pc 0x051234` writes different command values to `a5+0x137A`; preceding instruction reads absolute `0x0010C016` in both images, yielding arcade `0x00FF` but Genesis `0x5553`.
+- **Collision/floor result:** collision/floor candidates are active in both runs before/at landing (`0x0538EA/0x053AEA`, `0x053956/0x053B56`, `0x053A2E/0x053C2E`, `0x0512C8/0x0514C8`, `0x0517FA/0x0519FA`); this is not a missing collision-path case.
+- **Recommended next boundary:** investigate/implement only after proving mapped state for raw work-RAM literal source `arcade_pc 0x05102E` / `runtime_genesis_pc 0x05122E` (`move.w 0x0010C016,%d0`) feeding the command copy. Do not patch Y/landing first.
+- **Design doc:** `docs/design/Cody_build0158_intro_drop_landing_runtime_proof.md`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-001, OPEN-017, OPEN-024; OPEN-018 context only. New issues opened: NONE. Issues closed: NONE. Intentionally deferred: continue/game-over, D00298, Exodus, audio, tilemaps, sprite rendering, general scroll cleanup.
+- **KNOWN_FINDINGS impact:** Option A — no new finding to index; evidence is consistent with existing KF-039/KF-036 work-RAM literal mapping lessons.
+- **Architecture compliance:** CONFIRMED.
+- **STOP status:** NO.
