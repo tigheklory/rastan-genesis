@@ -1,5 +1,20 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0159: Life-Loss / Death-Controller Owner (no build)]
+
+* analysis only, no source/spec/tool/ROM/build. Baseline @ c0db8a2, accepted Build 0158 ROM SHA 2bf5a06f... counter 158. Deliverable docs/design/Andy_build0159_life_loss_owner.md + states/traces/build_0159_life_loss/. Classification C (strong D aspect).
+* Same-route arcade-vs-Genesis lifecycle trace. THE CYCLE IS ARCADE-FAITHFUL: both run 2/3/0 -> 2/4/0 -> 2/0/0 -> 2/2/x setup -> 2/3/0 (repeat). Named life words a5+0x1394=0x00FF, a5+0x13AA=0x0001 NEVER decrement on either; credits static. So it is NOT a Genesis-specific life-counter defect.
+* Genesis-specific divergence = DURATION: arcade 2/3/0 lasts ~588 frames (2/4/0 at F=895), Genesis ~313 (2/4/0 at F=846) -- Genesis ends gameplay ~275 frames sooner.
+* First driving field = player mode a5+0x10E8 = 0x0008. Writer PROVEN: runtime 0x05400C (arcade 0x053E0C), an arcade_copy handler at 0x054000 (also sets contact bit 9). Once mode=0x0008, stage controller writes 0xFF0002<-4 (2/3/0->2/4/0) at 0x051B98 (arcade 0x051998).
+* CONDITION PROVEN (immediate): dispatch at 0x053FA6 `d0=*(a0); d0&=0x7F; if d0==8 -> bra 0x054000` (3 sites: 0x53E10/0x53EE2/0x53FB4). I.e. the gameplay-end mode=0x0008 fires when the FLOOR/COLLISION MAP value under the player *(a0)&0x7F==8. Both machines hit it; Genesis reads type-8 ~275 frames earlier. SOURCE of the floor-map value (why 8 earlier on Genesis) NOT proven -> floor/collision map + camera scroll (out of scope). Context: staged_scroll_y_bg=0x014B at the mode=8 write (extra Genesis vertical scroll a candidate index into the floor map; unproven; scroll deferred).
+* Classification C: writer PC + immediate floor-value-8 condition proven; source condition (floor-map/scroll) not proven and out of scope. D aspect: cycle + handler are arcade-faithful. NO build; NO implementation; do NOT patch arcade_copy 0x05400C (faithful). Next (out of scope): prove floor-map pointer a0 source + why type-8 fires early (collision + broad scroll, deferred).
+* scope: only life-loss/death-controller ownership. NOT touched: collision, scroll, continue/game-over, D00298, Exodus, audio, sprites, tilemaps, rendering source. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - "burns lives / reaches continue" root-caused to the floor/collision-map type-8 dispatch (writer 0x05400C, condition *(a0)&0x7F==8) firing ~275 frames early on Genesis; the cycle itself is arcade-faithful (life words static). Source = floor/collision map + camera scroll (deferred). Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Build 0159: Post-Command Drop/Landing Divergence (no build)]
 
 * analysis only, no source/spec/tool/ROM/build. Baseline @ b077d7b, accepted Build 0158 ROM SHA 2bf5a06f... counter 158. Deliverable docs/design/Andy_build0159_post_command_drop_landing_analysis.md + states/traces/build_0159_drop_landing/. Classification B (with strong D aspect).
