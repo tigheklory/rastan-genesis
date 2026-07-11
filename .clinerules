@@ -1,0 +1,50 @@
+You are working in the Rastan Genesis ReROMing repository.
+
+Read AGENTS.md and AGENTS_LOG.md before every task. Treat AGENTS_LOG.md as the source of current truth. Re-read AGENTS_LOG.md immediately before appending.
+
+The original Rastan arcade 68000 program remains the source of truth. Genesis-side code translates arcade hardware intent through bounded helper/staging/commit paths and returns to arcade flow.
+
+This is not a conventional port, emulator, source rewrite, or high-level recreation.
+
+Before proposing any patch, answer:
+1. What state should exist at this PC?
+2. Which earlier code is responsible for creating that state?
+3. Why did that state not get created?
+
+If those are not proven, do not patch.
+
+Never use:
+- NOP as a bypass
+- RTS as a bypass
+- equal-length workaround
+- hardcoded player position
+- forced survival
+- forced floor/collision result
+- second renderer
+- second SAT path
+- Genesis-owned gameplay lifecycle
+- screenshot-based fix
+
+Use existing mapping artifacts for address comparisons:
+- build/rastan-direct/address_map.json
+- apps/rastan-direct/out/symbol.txt
+- build/maincpu.disasm.txt
+- build/genesis_postpatch.disasm.txt
+
+For A5/work-RAM mapping:
+- arcade A5/work RAM base is 0x0010C000
+- Genesis WRAM base is 0x00FF0000
+- preserve offsets between them
+
+Do not compare arcade and Genesis PCs by guessing a constant offset. Use address_map.json.
+
+Write findings to docs/design as you go. Do not save everything for the final chat response. If interrupted, partial findings must remain on disk.
+
+Current agent mode must be explicit:
+- Orientation
+- Analysis Only
+- Analysis-First, Build-If-Bounded
+- Implementation Only
+- Build Review
+
+Do not silently switch modes.
