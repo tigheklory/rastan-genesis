@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0159: Floor/Collision Map Origin (no build)]
+
+* analysis only, no source/spec/tool/ROM/build. Baseline @ 0581f55, accepted Build 0158 ROM SHA 2bf5a06f... counter 158. Deliverable docs/design/Andy_build0159_floor_collision_map_origin.md + states/traces/build_0159_floor_collision/. Classification A (source cause proven+bounded; implementation deferred - multi-site rebase).
+* ROOT CAUSE of "burns lives / reaches continue": the collision/floor-map dispatch (0x53FA6, `*(a0)&0x7F==8 -> mode=0x0008`) reads a0 from lookup 0x53C2E, which ends `moveal #0x0010DE00,a0; addal index,a0`. 0x0010DE00 is a RAW ARCADE-WRAM LITERAL (WRAM base 0x10C000 + 0x1E00) that the postpatch does NOT rebase to Genesis 0x00FF1E00 (KF-039). Same bug class as Build 0158 command source, but MULTI-SITE and it is the collision buffer itself.
+* Genesis runtime PROVEN (states/traces/build_0159_floor_collision/gen_collision.txt): at mode=8 write F=698, A0=0x0010F20A (a ROM address; 0x10xxxx is outside the 0x60000 arcade-copy so it reads cartridge ROM), *(A0)=0x1888, &0x7F=8 -> fires. Player X=0x0020 Y=0x0070 CORRECT, cmd=0x00FF (0158 fix intact). Snapshot: ROM@0x10DE00 = 256 garbage words (3 type-8); WRAM@0x00FF1E00 = ALL ZERO (map never produced); WRAM@0x00FFDE00 = all zero.
+* index = f(camera a5@0x10AE/0x10B0, playerX a5@0x10BE +/-a5@0x112E +/-3, playerY a5@0x10C0 +a5@0x1130 +d6). camY(a5@0x10B0)=0x014B = the extra BG vertical scroll (0x00FF409A) -> shifts index but SECONDARY (base points at ROM at any camY).
+* ~9 un-rebased sites for literal 0x0010DE00: reader 0x53C64; producers 0x55BE4/0x55C5A/0x55C7A (addil ->moveal->move.w = write cells), 0x52A82/0x5A4CE (addil), 0x5A536 (subil); compares 0x414E8/0x45F52 (cmpal). Producer 0x55BE4 proven: `addil #0x10DE00,d7; moveal d7,fp; move.w d0,fp@` -> writes to 0x10DExx = Genesis ROM -> DROPPED, so WRAM map stays empty. Spec/postpatch have NO collision rebase (only 0158 single-site 0x05102E + item-page 0x055E2E).
+* User hypothesis ("dropped into wrong collision location") CONFIRMED in mechanism: player POSITION is correct; the collision MAP is at the wrong memory (ROM garbage vs empty WRAM). Type-8 is GARBAGE, not a legit later hazard tile.
+* Classification A: a0 computation + source cause proven and bounded. NOT a one-line patch - fix is a COORDINATED multi-site buffer rebase (0x0010DE00 -> 0x00FF1E00 at all verified sites); a reader-only rebase would read empty WRAM (type-0 = no collision). Deferred to a dedicated build. DO NOT patch faithful arcade_copy handler 0x5400C. NO build; NO implementation.
+* scope: only floor/collision-map ORIGIN. NOT touched: rendering, sprites, tilemaps, scroll source, JSON/spec generation, continue/game-over, D00298, Exodus, audio. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - root-caused the "burns lives / continue" cycle to the un-rebased collision-map base literal 0x0010DE00 (KF-039 class, ~9 sites): Genesis producers write the map to ROM (dropped, WRAM 0x00FF1E00 empty), reader reads ROM garbage -> spurious type-8 -> early mode=0x0008 -> early gameplay end. Fix = coordinated multi-site buffer rebase (deferred to a dedicated build). Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Build 0159: Life-Loss / Death-Controller Owner (no build)]
 
 * analysis only, no source/spec/tool/ROM/build. Baseline @ c0db8a2, accepted Build 0158 ROM SHA 2bf5a06f... counter 158. Deliverable docs/design/Andy_build0159_life_loss_owner.md + states/traces/build_0159_life_loss/. Classification C (strong D aspect).
