@@ -961,11 +961,24 @@ vdp_prepare_sprites:
     bne.s   .Lprep_inited
     bsr     .Lpc090oj_renderer_init
 .Lprep_inited:
-    tst.w   pc090oj_bootstrap_pending
-    beq.s   .Lprep_no_bootstrap
+    /* Build 0157 / OPEN-017: consume pc090oj_mirror_dirty. Producer paths
+     * (.Lpc090oj_emit_slot @0x071A8A, .Lpc090oj_family_apply_record @0x071BB8) write the
+     * mirror and set pc090oj_mirror_dirty, but the direct-family path clears its record
+     * candidate after sync, so at gameplay VBlank the candidate_bitset is empty (0/32)
+     * even though the mirror holds the changed sprite frame (~212 coded records) and
+     * mirror_dirty is set. Result: process_candidates re-derives nothing and
+     * represented/staged/SAT stay at the stale bootstrap set (6). When either a bootstrap
+     * is pending or the mirror is dirty, re-mark all candidates so process_candidates
+     * re-evaluates the full mirror frame through the existing decode/represent/SAT path,
+     * then clear both flags. No second renderer / SAT path; the mirror is a frame-like
+     * global snapshot so a dirty-frame sweep is faithful. */
+    move.w  pc090oj_bootstrap_pending, %d0
+    or.w    pc090oj_mirror_dirty, %d0
+    beq.s   .Lprep_no_resweep
     clr.w   pc090oj_bootstrap_pending
+    clr.w   pc090oj_mirror_dirty
     bsr     .Lpc090oj_set_all_candidates
-.Lprep_no_bootstrap:
+.Lprep_no_resweep:
     bsr     .Lpc090oj_process_candidates
     /* Expose represented count for logging / Build 0141 parity checks. */
     move.w  pc090oj_represented_count, %d0

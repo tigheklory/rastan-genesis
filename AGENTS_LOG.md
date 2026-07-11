@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Implementation, Build 0157: PC090OJ Mirror-Dirty -> Candidate Resweep (gameplay sprites reach SAT)]
+
+* baseline @ 5668c6e (Build 0156, SHA 03c6e8aa...). Implemented. Deliverable docs/design/Andy_build_0157_pc090oj_dirty_candidate_scan.md (+ Cody handoff docs/design/Cody_build0157_pc090oj_candidate_dirty_handoff.md). Fixes the dirty->candidate->SAT handoff so populated gameplay PC090OJ records reach the existing Genesis SAT.
+* Phase 0: EXTENDING existing PC090OJ candidate/decode/SAT engine; KF-039 + KF-040/041-class (records present but a pipeline step not run); no CONFIRMED/STRONG contradiction.
+* Runtime proof (Build 0156, gameplay 2/3/0, REAL structures not dead counters): pc090oj_object_ram = 212 coded records, pc090oj_mirror_dirty=0x0001 SET, but pc090oj_candidate_bitset = 0/32 (EMPTY) -> process_candidates re-derives nothing -> represented_count=6 / staged_sprite_active_count=6 (stale bootstrap set) / sat_dirty=0. family_apply_record (0x071BB8) clears its record candidate after direct-sync; vdp_prepare_sprites consumes only candidate_bitset and never re-evaluates on mirror_dirty.
+* FIX (pc090oj_hooks.s vdp_prepare_sprites): fold mirror_dirty into the existing bootstrap resweep -- when bootstrap_pending OR mirror_dirty set, clear both + bsr .Lpc090oj_set_all_candidates, then existing .Lpc090oj_process_candidates -> represent -> SAT. +0xC bytes; no new opcode_replace; NO second renderer/SAT path/manual sprites. Mirror is a frame-like global snapshot so a dirty-frame sweep is faithful (Cody's recommended conservative fallback).
+* AFTER (Build 0157, active window F=533-534): candidate_bitset 0/32 -> 31/32; represented 6 -> 11; staged_sprite_active 11; sat_dirty 0 -> 1; staged_sprite_sat (0xFF6188) = 11 REAL entries (Y=0x78/0x80/0x88 attr=0xC400-0xC42C X=0xA8-0x138). Sprites do NOT yet visibly appear because Rastan dies almost instantly (active sprite window F~533 precedes plane-paint window F~601; deferred control-flow/collision, NOT a sprite-output defect).
+* regression: frontend sprites INTACT (title represented=15); Build 0155 FG (staged_fg=2020) + Build 0154 BG (staged_bg=2048) intact; Build 0156 C08C66 route (0x3D24C=jsr 0x708C8) + Build 0152 C08C62 route (0x3A92A=jsr 0x70894) intact; deterministic (2 boots identical represented + SAT). GATE_PASS, boot guard PASS, trace clean, address_map gaps=[] overlaps=[] covered=0x182070 opcode_replace=135. canonical coverage paired-update 0x182064->0x182070.
+* build: dist/rastan-direct/rastan_direct_video_test_build_0157.bin SHA256 725c36a27a4ea55a4a99bcbca4bd5dde3bbaf00cffe6b5005b8997b90cdd2c4a size 1,581,168 counter 157. Builds 0142-0156 not overwritten. Architecture compliance CONFIRMED (existing candidate/decode/SAT path reused; no 2nd renderer/SAT/manual/lifecycle/state-test). Real-hardware/BlastEm/Kega/Exodus NOT CLAIMED (pending user test).
+* scope: only the dirty->candidate->SAT handoff. NOT touched: player death/fall, collision, scroll, continue/game-over, D00298, Exodus, audio (deferred per task).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - PC090OJ dirty->candidate->SAT handoff fixed; populated gameplay sprite records now reach the Genesis SAT (represented 6->11, SAT 11 real entries) via the existing path. Sprites remain visually absent pending the deferred player-death/fall control-flow boundary. Not closed; no duplicate.
+
 ## [Andy - Implementation, Build 0156: Route Raw C08C66 FG Digit Write Through Staging]
 
 * baseline @ bacecd1 (Build 0155, SHA f226278f...). Implemented. Deliverable docs/design/Andy_build_0156_c08c66_fg_digit_route.md. Clears the BlastEm strict-target freeze at write address C08C66 (user report: Build 0155 gameplay death sequence).
@@ -41178,4 +41192,23 @@ Open/Closed Issues Impact:
 ### MAME Exit Summary (2026-07-10 16:24:31)
 - Final PC: 0x03B280
 - Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Analysis, Build 0157 PC090OJ Candidate/Dirty Handoff]
+
+* scope: analysis documentation only for Build 0157 PC090OJ sprite candidate/dirty handoff; no source/spec/tool/Makefile/ROM/build/invariant changes, no runtime trace, no implementation
+* baseline: branch `rastan-direct-proposal`, HEAD `5668c6e`, accepted Build 0156 ROM `dist/rastan-direct/rastan_direct_video_test_build_0156.bin`, SHA `03c6e8aa747700235437706adb206968b1f737453ad436959681e19d299fdf01`
+* evidence inspected: `apps/rastan-direct/src/pc090oj_hooks.s`, `apps/rastan-direct/src/vdp_comm.s`, `apps/rastan-direct/out/symbol.txt`, `build/rastan-direct/address_map.json`, and `states/traces/build_0157_gameplay_sprites/`
+* exact addresses inspected: live writer PCs `0x071A8A` / `0x071BB8`, dirty writes `0x071AA6` / `0x071BD0`, `vdp_prepare_sprites` `0x072160`, `pc090oj_workram_block_sprites` `0x071B4A`, `pc090oj_candidate_bitset` `0x00FF71B0`, `pc090oj_mirror_dirty` `0x00FF71D4`, `pc090oj_scan_active` `0x00FF71EA`
+* finding: structural handoff gap documented - populated `pc090oj_object_ram` records and `pc090oj_mirror_dirty` writes exist, but `vdp_prepare_sprites` consumes only `pc090oj_candidate_bitset`; `pc090oj_mirror_dirty` is not consumed by the inspected prepare path
+* root cause confirmed: NO; this is a grounded handoff analysis / working hypothesis because the existing diagnostic counters are unreliable/dead as sole proof and final runtime causality still needs direct candidate/represented/SAT validation
+* implementation boundary recommended for Andy: inspect `vdp_prepare_sprites` / `.Lpc090oj_process_candidates`; if implementing, consume dirty through the existing candidate mechanism, with `.Lpc090oj_set_all_candidates` acceptable as a conservative but broad dirty-frame fallback
+* deliverable: `docs/design/Cody_build0157_pc090oj_candidate_dirty_handoff.md`
+* unrelated changes: pre-existing dirty generated trace `build/mame/home/genesistrace/genesis_exec_trace.log` observed and not touched
+* issue impact: OPEN-001 and OPEN-024 touched as context; OPEN-018 context only; no issues opened or closed; `KNOWN_FINDINGS.md` not edited (Option A)
+* STOP status: NO
+
+### MAME Exit Summary (2026-07-10 20:41:46)
+- Final PC: 0x03A1AE
+- Stack Pointer (SP): 0x00FEFFF8
 - Unique Unmapped Memory Addresses: none
