@@ -19,10 +19,29 @@ tools/sgdk/
 *.log
 
 # Build & Output
-build/
 dist/
 *.bin
 *.gen
+
+# Ignore build outputs by default, but allow canonical metadata/evidence files
+build/**
+
+!build/
+!build/rastan-direct/
+!build/rastan-direct/*.json
+!build/rastan-direct/build_counter.txt
+!build/rom_inventory.json
+!build/maincpu.disasm.txt
+!build/genesis_postpatch.disasm.txt
+
+build/**/*.bin
+build/**/*.gen
+build/**/*.elf
+build/**/*.o
+build/**/*.a
+build/**/*.map
+build/**/*.lst
+build/mame/
 
 # Ghidra 
 .ghidra_cache/
