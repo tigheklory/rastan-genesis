@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy - Build 0160: FG_SRC Fold Into Corrected BG Pass (BUILT, ROM produced)]
+
+* BUILT. Baseline @ 884e4e5, accepted Build 0159. Build 0160 ROM SHA e9243ff028cdcd8f3776a51ffa54ea8438f1489bca61fd607bff0c268983e697, size 1,581,200 (+32 vs 0159), counter 160, opcode_replace 137 (UNCHANGED). Deliverable docs/design/Andy_build0160_fg_src_fold_into_bg_pass.md + states/traces/build_0160_fold_verify/. Classification A.
+* CHANGE (tilemap_hooks.s only; NO spec/opcode_replace change): (1) extracted the former FG_SRC gameplay body into a new movem-wrapped subroutine genesistan_stage_fg_src_column (reads a5@0x10A0, stages FG cells via genesistan_hook_tilemap_fg_fill, preserves d0-d7/a0-a6); (2) genesistan_hook_tilemap_plane_a: added gated `cmpi.b #SCENE_GAMEPLAY_ID; bne; bsr genesistan_stage_fg_src_column` at entry (register-safe; a0 input preserved); (3) genesistan_hook_tilemap_fg gameplay body replaced by bsr to the subroutine (dedupe; .Lfg_not_gameplay frontend path untouched). Coverage 0x182070->0x182090 paired-updated in postpatch + verify.
+* STATIC: GATE_PASS; boot guard PASS; Build 0159 selector intact (0x505CE = movel #0x0005116B); new symbol genesistan_stage_fg_src_column @0x703F8; gaps/overlaps clean.
+* RUNTIME (deterministic, 2 identical runs): selector histogram a5@0x10A8=0x0000 x83 (100% BG, 0159 preserved). FG STAGING RESTORED: gameplay staged_fg 12 -> 2016 (~Build 0155's 2020); staged_bg 2048 intact; command a5@0x137A=0x00FF intact.
+* COLUMN MAPPING (good enough for acceptance): FG column coverage = 63/64 (cols 1..63); rows 0..31 (fg_row_dirty=0x42284229); cells vary per column (fg[0,1]=605E code94, [0,2]=605F code95, [0,3]=603C code60, [0,4+]=blank) -> broad, non-degenerate, no stale/all-one-column overwrite. NOT claimed visibly correct (pre-0159 FG was never visibly correct; pixel check deferred).
+* FRONTEND intact (title identical to 0158/0159: represented=15, staged_sprite=15, staged_bg=560, staged_fg=66). COLLISION unchanged (WRAM 0xFF1E00 empty; reader raw 0x10DE00; mode=0x0008/2-4-0 did not fire in 820f window - timing shifted by added setup work; mechanism unchanged; deferred).
+* REGRESSION: 0159 selector, 0158 cmd (0x5122E=movew 0xff0016), 0157 sprites (represented=15), 0156 C08C66 (jsr->genesistan_hook_inline_fg_write_3d04c), 0152 C08C62 (jsr->genesistan_hook_inline_fg_write_3a92a), 0154 BG (2048) all intact. Builds 0142-0159 not overwritten. Two deterministic runs.
+* scope: single bounded tilemap_hooks.s change + paired coverage constant. NOT touched: opcode_replace, selector (a5@0x10A8=0 preserved), collision emission, 0x10DE00, reader, sprites/PC090OJ/SAT, mode/stage-controller/player/camera/scroll/frontend/D00298/Exodus/audio. Architecture compliance CONFIRMED.
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced (BUILD-VERIFIED). Gameplay FG_SRC staging reattached to the corrected BG pass (genesistan_hook_tilemap_plane_a, gated SCENE_GAMEPLAY_ID, reusing a5@0x10A0): staged_fg 12->2016, 63-column coverage, selector a5@0x10A8=0 and BG staging (2048) preserved, frontend intact. Remaining: (a) visible-FG pixel confirmation; (b) collision producer/emit + 9-site rebase (still pending); (c) player/Rastan sprite absence. Not closed.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Build 0160: Gameplay FG_SRC Reattachment Point (no build)]
 
 * analysis only, NO source/spec/tool/ROM/build. Baseline @ 382dd65, accepted Build 0159 ROM SHA 14138b82... counter 159, opcode_replace 137. Deliverable docs/design/Andy_build0160_fg_src_reattachment_point.md + states/traces/build_0160_fg_reattach/. Classification C (hook inputs proven; interaction with BG staging not proven).

@@ -111,6 +111,20 @@ genesistan_hook_tilemap_plane_a:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
 
+    /* Build 0160 gameplay FG_SRC reattachment. After Build 0159 fixed the PC080SN
+     * pass selector (a5@0x10A8=0), the Stage 1 tilemap dispatch takes the BG branch
+     * (this hook) instead of the FG branch, so genesistan_hook_tilemap_fg no longer
+     * runs during gameplay and the FG_SRC staging was lost. Re-run the same
+     * Genesis-only FG_SRC per-column staging here, gated to the gameplay scene,
+     * reusing the same a5@0x10A0 dcol input. genesistan_stage_fg_src_column is
+     * movem-wrapped (preserves d0-d7/a0-a6), so BG staging state and the a0 input
+     * are untouched; it only reads a5@0x10A0 and writes staged_fg_buffer via
+     * genesistan_hook_tilemap_fg_fill. Does not touch a5@0x10A8 (selector). */
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne.s   .Lbg_skip_fg_stage
+    bsr     genesistan_stage_fg_src_column
+.Lbg_skip_fg_stage:
+
     move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d7
     move.l  ARCADE_PC080SN_DEST_BG_OFFSET(%a5), %d5
 
@@ -279,17 +293,16 @@ genesistan_hook_tilemap_plane_a:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-genesistan_hook_tilemap_fg:
+/* Genesis-only Stage 1 FG_SRC per-column staging. Extracted (Build 0160) from the
+ * former genesistan_hook_tilemap_fg gameplay path so it can be shared. Replays the
+ * proven Build 0155 FG model directly from ROM using the real FG column dest
+ * a5@0x10A0, routing each cell through genesistan_hook_tilemap_fg_fill (LUT + attr
+ * conversion + staging + dirty). movem-wrapped: preserves d0-d7/a0-a6 for the caller;
+ * reads a5@0x10A0 only, never writes a5@0x10A8, writes only staged_fg_buffer. Caller
+ * must gate on SCENE_GAMEPLAY_ID. */
+genesistan_stage_fg_src_column:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
-
-    /* Build 0155 Stage 1 FG plane staging (live boundary). When the gameplay scene is loaded,
-     * this hook (called once per FG column from the setup loop) replays the proven FG model
-     * directly from ROM using the real FG column dest a5@0x10A0, routing each cell through
-     * genesistan_hook_tilemap_fg_fill (LUT + attr conversion + staging + dirty). Non-gameplay
-     * scenes fall through to the unchanged FG descriptor path. fg_fill preserves d0-d7/a0-a6. */
-    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-    bne     .Lfg_not_gameplay
 
     move.l  ARCADE_PC080SN_DEST_BG_OFFSET(%a5), %d0   /* a5@0x10A0 = FG column dest */
     andi.l  #0x00003FFC, %d0                          /* dcol*4 (col offset within plane) */
@@ -341,6 +354,22 @@ genesistan_hook_tilemap_fg:
     cmpi.w  #FG_PRODUCER_SEG_COUNT, %d4
     bne     .Lfgc_seg_loop
 
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+genesistan_hook_tilemap_fg:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    lea     0x00FF0000, %a5
+
+    /* Build 0155 Stage 1 FG plane staging, now shared via genesistan_stage_fg_src_column
+     * (Build 0160). NOTE: after Build 0159's selector fix this hook's gameplay path is no
+     * longer reached during Stage 1 (dispatch takes the BG branch); the staging now runs
+     * from genesistan_hook_tilemap_plane_a. Kept for any residual FG-branch invocation and
+     * for the unchanged non-gameplay FG descriptor path below. */
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne     .Lfg_not_gameplay
+
+    bsr     genesistan_stage_fg_src_column
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
