@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0163 micro-target: Sprite Prepare/Activation Gate -> STOP (D), NO BUILD]
+
+* analysis only (LOW budget), NO source/spec/tool/ROM/build. Baseline @ 9b1c22c, working candidate Build 0162 (counter 162, opcode_replace 137, coverage 0x1820AC). Deliverable docs/design/Andy_build0163_sprite_prepare_activation_gate.md + states/traces/prepgate/. Classification D. STOP.
+* vdp_prepare_sprites is called UNCONDITIONALLY from _vblank_service (vdp_comm.s:167, the Genesis VINT handler that also does BG/FG/palette/scroll/sprite commits + chains to arcade VINT via jmp 0x3A208). No per-call gate on prepare.
+* MEASURED (Build 0162, F535-560): (1) prepare/_vblank_service runs only ~40% of gameplay frames (per-frame prepare_calls: 535=1,536-538=0,539=1,540-541=0,542=1,... ~10/26). So the VINT handler is NOT invoked every gameplay VBlank -> sprites (per-frame SAT commit) flicker while BG/palette (committed once, VRAM/CRAM retain) look stable. (2) represent engine FROZE at 6: represented_count writes only F536-538 (transition), then 0 from F539 while represented stays 6 -> when prepare runs it produces NO activate/deactivate for the 24 changing gameplay object records. mirror_dirty is set each frame (resweep not gated off), so the freeze is in the sync/decode/activate path.
+* Classification D (two subsystems, no single proven gate): (a) VINT/VBlank scheduling (_vblank_service runs ~40% of frames; fixing touches interrupt scheduling / arcade VINT chain, out of sprite-prepare scope), and (b) represent maintenance freeze (not a single dirty flag; needs process_candidates/sync analysis). NOT A/B/C. STOP no build.
+* NEXT (dedicated, non-LOW-budget): analyze WHY _vblank_service/VINT runs only ~40% of gameplay VBlanks, and WHY process_candidates/sync stops re-representing the changing gameplay records after F538.
+* scope: sprite prepare/activation gate only. NOT touched: collision, selector, FG_SRC, palette, PC080SN, player/camera/scroll, D00298, Exodus, audio; no forced sprites/tiles, no second renderer. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - micro sprite-prepare gate NOT found. Two root causes: (1) _vblank_service/vdp_prepare_sprites runs only ~40% of gameplay VBlanks (VINT scheduling), (2) the represent engine froze at 6 after the title->gameplay transition (rep_writes=0 from F539) and never re-represents the 24 changing gameplay object records. Neither is a single bounded gate. Classification D, STOP no build. Next: VINT/VBlank invocation path + process_candidates/sync represent maintenance. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Gameplay PC090OJ SAT-Link/Represent Management -> STOP (D: wrong boundary), NO BUILD]
 
 * analysis only, NO source/spec/tool/ROM/build. Baseline @ 03507f4, working candidate Build 0162 (counter 162, opcode_replace 137, coverage 0x1820AC). Deliverable docs/design/Andy_gameplay_sat_link_management.md + states/traces/satlink/. Classification D. STOP.
