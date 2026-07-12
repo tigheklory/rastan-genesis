@@ -1,5 +1,22 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0160: Gameplay FG_SRC Reattachment Point (no build)]
+
+* analysis only, NO source/spec/tool/ROM/build. Baseline @ 382dd65, accepted Build 0159 ROM SHA 14138b82... counter 159, opcode_replace 137. Deliverable docs/design/Andy_build0160_fg_src_reattachment_point.md + states/traces/build_0160_fg_reattach/. Classification C (hook inputs proven; interaction with BG staging not proven).
+* USER CORRECTION acknowledged: gameplay FG was NEVER visibly correct before Build 0159 either; this is a reattachment-point analysis, not a known-good restoration. Build 0159 selector fix accepted (not undone).
+* OLD attachment: genesistan_hook_tilemap_fg (0x703EA) gameplay path (tilemap_hooks.s:291-345), reached via the arcade FG branch 0x55990 which fired ONLY due to the a5@0x10A8=0x80 bug. Build 0159 fixed the selector (0x00) -> dispatch takes BG branch (genesistan_hook_tilemap_plane_a 0x70248) 100% (x83); FG hook never called -> gameplay staged_fg=12 (BG=2048).
+* KEY FINDING: the FG_SRC block's ONLY external input is a5@0x10A0 (ARCADE_PC080SN_DEST_BG_OFFSET, masked &0x3FFC -> dcol; tilemap_hooks.s:294). Everything else is constants (CWINDOW_BASE_FG, FG_SRC_BASE_GEN, FG_PLANE_ATTR_HI, seg/row counts), ROM, and fg_fill (preserves d0-d7/a0-a6). It READS a5@0x10A0, does NOT write it, does NOT touch a5@0x10A8. The BG hook ALSO reads a5@0x10A0 (line 115) -> the input is present in the BG-hook context. PROVEN self-contained.
+* PROPOSED reattachment: fold the FG_SRC block into genesistan_hook_tilemap_plane_a, gated by SCENE_GAMEPLAY_ID, reusing a5@0x10A0, fg_fill per cell (at BG-hook entry: one FG column per call, matching old per-dispatch granularity; BG hook called ~83x like old FG ~80x). Additive/register-safe; no new opcode_replace. Preserves a5@0x10A8=0x0000 (untouched) and BG staging (disjoint staged_fg vs staged_bg buffer, 2048 intact). Pure Genesis-side staging.
+* OPEN POINT (why C, not A): the BG hook advances a5@0x10A0 itself (runtime dcol samples 52,54,56,57,59,61,63,64 during setup), a DIFFERENT progression than the old FG-branch context. Whether that progression drives the FG_SRC model to the CORRECT FG columns is unproven -- and pre-0159 FG was itself not visibly correct, so there is no known-good reference. Visual/column-mapping validation is deferred to the implementation build. Not B (inputs ARE proven). Not D (FG_SRC should be reattached; it is the only gameplay FG producer).
+* FRONTEND separation: frontend uses .Lfg_not_gameplay + BG non-gameplay path, gated away from SCENE_GAMEPLAY_ID; Build 0159 confirmed frontend intact (title represented=15, staged_bg/fg=560/66). A gameplay-gated reattachment does not touch frontend.
+* NEXT (implementation build, if approved): fold FG_SRC into genesistan_hook_tilemap_plane_a (gated, a5@0x10A0, fg_fill), then VALIDATE staged_fg coverage (~2020?) + column mapping at runtime and visually, treating the mapping as to-verify (pre-0159 FG was wrong). Preserve selector + BG; no collision/0x10DE00/sprite touch.
+* scope: only the FG_SRC reattachment POINT. NOT touched: collision emission, 0x10DE00 rebase, reader, a5@0x10A8, sprites/PC090OJ/SAT, palettes, D00298, Exodus, audio, broad rendering; did NOT revert Build 0159 or restore 0x80. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - the gameplay FG_SRC staging bypassed by Build 0159's correct selector should reattach to genesistan_hook_tilemap_plane_a (the BG hook already carries the sole input a5@0x10A0; gameplay-gated register-safe fold preserves selector + BG staging). Remaining unknown before a bounded build: whether the BG hook's a5@0x10A0 progression maps FG_SRC to the correct columns (visual validation, deferred). Collision still separately pending. Classification C. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Build 0159: Pass-Selector Relocation (BUILT, ROM produced)]
 
 * BUILT. Baseline @ 2be3421, accepted Build 0158. Build 0159 ROM SHA 14138b825fa0dcbfea52d9a519574b615e11722ad41e73a0b56752d4f75b905a, size 1,581,168 (byte-neutral), counter 159, opcode_replace 137. Deliverable docs/design/Andy_build0159_pass_selector_relocation.md + states/traces/build_0159_passsel_verify/. Classification A.
