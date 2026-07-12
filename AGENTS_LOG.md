@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy - Analysis, Gameplay Sprite Path Ownership (title vs gameplay PC090OJ/SAT) -> STOP (C), NO BUILD]
+
+* analysis only, NO source/spec/tool/ROM/build. Baseline @ ed2bc6f, working candidate Build 0162 (counter 162, opcode_replace 137, coverage 0x1820AC). Deliverable docs/design/Andy_gameplay_sprite_path_ownership.md + states/traces/sprites/. Classification C. STOP.
+* USER HYPOTHESIS REFUTED: gameplay sprites do NOT use a raw arcade path. During gameplay (F>=500): ZERO writes to arcade PC090OJ 0x00D00000..0x00D01FFF; object_ram (0xFF69B0) written only by the Genesis PC090OJ hooks (0x071AC6/AC8/ACC/AD0/B28/B6C/BF4/BF6/BFA/BFE, 484 writes/frame). Gameplay objects reach the HOOKED staging path.
+* TITLE (F=100, known-good): represented=15, staged_active=15, SAT tiles 0x400-0x42C pal2 with CLEAN link chain 01->02->...->0C.
+* GAMEPLAY (F=560): object_ram HAS 24 drawable gameplay records (codes 0x2A/0x2B/0x2C/0x2D/0x31/0x39/0x46/0x48 and 0x3E8-0x3EF at gameplay positions) -- real Rastan/enemy/HUD objects. BUT represented=6 (F560)/10 (F533) = only ~25-40% represented; and the staged SAT LINK CHAIN is CORRUPT: 06 06 03 04 05 06 07 08 0D 0A 0B 0C 0D 0E 00 00 (duplicate links 06 x3, 0D x2; entry0 skips to 6). Between F533 (rep=10) and F560 (rep=6) the represented set + links CHANGE frame-to-frame -> the flickering-dot garbage.
+* FIRST BREAK: the PC090OJ represent -> staged-SAT stage. The incremental linked-list SAT engine (.Lpc090oj_sync_record_from_mirror / .Lpc090oj_set_link / head-insert at slot 0 / represented_count) represents only 6-10 of 24 drawable records and builds a corrupt link chain for the churning gameplay object set. Upstream object_ram is correct. Palette line 2 (used by these sprites) IS populated, so not a palette cause. VRAM tile check deferred (SAT corruption precedes it).
+* Classification C: object exists + reaches staging, but the represent/SAT-link defect is NOT trivially bounded (it is the incremental linked-list link-management + represent-count across a churning object set, a deep engine defect), so per Build-If-Trivially-Bounded -> STOP no build. NOT A (no bypass to route). NOT B (not a single bounded SAT field). NOT D (SAT corruption precedes/causes the garbage).
+* NEXT (dedicated deep analysis): trace .Lpc090oj_sync_record_from_mirror + .Lpc090oj_set_link + the slot-0 head-insert linked-list to find why 18/24 records aren't represented and why links duplicate/skip for the gameplay churn; then a bounded SAT-link/represent fix.
+* scope: sprite-path ownership only. NOT touched: collision, selector, FG_SRC, palette, PC080SN, player/camera/scroll, D00298, Exodus, audio; no forced sprites/tiles, no second renderer. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - gameplay sprite invisibility is NOT a raw-write bypass (refuted: no 0xD00000 writes; object_ram has 24 drawable gameplay records via hooks). Break = PC090OJ represent->SAT-link engine: only 6-10 of 24 drawable records represented, and the staged-SAT link chain is corrupt (duplicate/skipping links, changing frame-to-frame) -> flickering dots. Fix requires a dedicated analysis of the incremental linked-list SAT management, not a bounded change. Classification C, STOP no build. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Build 0162: Gameplay Palette Lines 0/1 Population - PASSING CANDIDATE]
 
 * BUILT + PASSES; candidate preserved. Baseline @ ed44176 (Build 0161 candidate). Build 0162 ROM SHA 7bcb31790b2c6db44425655d486c0b74bf3a286a23e77b912594e7e78a9674b9, size 1,581,228, counter 162, opcode_replace 137 (unchanged), coverage 0x1820A4->0x1820AC. Build 0161 preserved (1,581,220 B). Deliverable docs/design/Andy_gameplay_palette_lines_0_1_population.md + states/traces/lines01/. Classification B.
