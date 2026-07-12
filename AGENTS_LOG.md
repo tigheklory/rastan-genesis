@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Analysis, Gameplay PC090OJ SAT-Link/Represent Management -> STOP (D: wrong boundary), NO BUILD]
+
+* analysis only, NO source/spec/tool/ROM/build. Baseline @ 03507f4, working candidate Build 0162 (counter 162, opcode_replace 137, coverage 0x1820AC). Deliverable docs/design/Andy_gameplay_sat_link_management.md + states/traces/satlink/. Classification D. STOP.
+* CORRECTS the prior "corrupt SAT link chain" conclusion. Following links from slot 0: TITLE reachable = 15 clean (slots 0..14, 01->02->...->0E->00); GAMEPLAY reachable = 6 clean (slot0->6->7->8->13->14->00). The reachable chain is VALID (no cycle, clean terminator, reachable count = represented_count). The earlier "duplicate links" (s1:06, s5:06, s12:0D) are UNREACHABLE stale slots the VDP never renders.
+* REAL DEFECT (two-fold, upstream of link management): (1) the 6 reachable gameplay SAT entries are STALE TITLE-LOGO sprites (tiles 0x400/0x418/0x41C/0x420/0x434/0x438 at Y=0x78/0x88) -- a decayed subset of the title's 15 -- NOT the 24 gameplay object_ram records (codes 0x2A/0x3E8...). The represent engine never activates the gameplay records. (2) vdp_prepare_sprites (writes staged_sprite_active_count each call) runs only ~11 of ~60 gameplay frames (F540=NO, F550=NO, F559=YES) -- it is NOT invoked every gameplay VBlank, so the SAT is largely frozen at the title bootstrap set with sporadic partial updates (that is the flicker).
+* Classification D (wrong boundary): the SAT link chain is VALID, so SAT-link-write management is not the defect. The issues are (a) vdp_prepare_sprites prepare/VBlank scheduling gap (~18% of gameplay frames) and (b) the represent transition never activating gameplay records -- both upstream of the link writer, and pursuing them touches the rendering loop / prepare invocation (out of this task's SAT-link scope). NOT A/B (no bounded link bug). STOP no build.
+* NEXT (dedicated analysis): find WHY vdp_prepare_sprites is not called every gameplay VBlank, and why process_candidates/sync doesn't activate the 24 gameplay object records (deactivate title, activate gameplay). NOT the SAT-link writer.
+* scope: SAT-link/represent management only. NOT touched: collision, selector, FG_SRC, palette, PC080SN, player/camera/scroll, D00298, Exodus, audio; no forced sprites/tiles, no second renderer. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced + prior conclusion CORRECTED. Gameplay staged-SAT link chain is VALID (reachable slot0->6->7->8->13->14->term); the earlier "corrupt link chain" bytes are unreachable stale slots. Real defect: (a) vdp_prepare_sprites runs only ~11/60 gameplay frames (VBlank/prepare scheduling gap), (b) the represent engine never activates the 24 gameplay object_ram records -- reachable SAT holds stale TITLE sprites (tiles 0x400+). Classification D (SAT-link management is the wrong boundary), STOP no build. Next: analyze prepare/VBlank scheduling + the represent transition. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Gameplay Sprite Path Ownership (title vs gameplay PC090OJ/SAT) -> STOP (C), NO BUILD]
 
 * analysis only, NO source/spec/tool/ROM/build. Baseline @ ed2bc6f, working candidate Build 0162 (counter 162, opcode_replace 137, coverage 0x1820AC). Deliverable docs/design/Andy_gameplay_sprite_path_ownership.md + states/traces/sprites/. Classification C. STOP.
