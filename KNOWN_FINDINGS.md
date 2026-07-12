@@ -735,6 +735,8 @@ Deferral reason: Single-source design-doc classification semantics may evolve wi
 
 **Use as prior.** A Genesis CRAM line can be black even though its arcade bank is populated, if the arcade writes that bank to a WRAM source buffer (later memcpy'd to palette RAM) rather than directly to palette RAM -- and the palette hook only stages direct palette-RAM writes. Check whether a palette bank is produced via a source-buffer + memcpy path; if so, stage the source-buffer write directly (a5-relative dest is rebased WRAM, valid on Genesis). No hardcoded colors.
 
+**Build 0162 follow-up.** The same empty source buffer also caused a destructive clobber: `hook_45dae`'s bank-0 chunk (a1=0x200000) copies the source buffer 0x00FF1600 -> staged lines 0-3, and on Genesis (empty source) it ZEROED lines 0/1 that `hook_3ba64` had correctly staged from the arcade direct palette-RAM writes of banks 0/1. Fix (Build 0162): `hook_45dae` skips writing ZERO converted values (advancing the staged slot positionally), so the empty source no longer clobbers the real palette. All four gameplay CRAM lines then populate.
+
 ---
 
 ---

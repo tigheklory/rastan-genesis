@@ -131,7 +131,18 @@ genesistan_palette_hook_45dae:
 .L45_loop:
     move.w  (%a0)+, %d0
     bsr     .Lxbgr555_to_cram
-    move.w  %d1, (%a2)+
+    /* Build (lines 0/1): this bank-0 chunk copies the sprite-palette SOURCE buffer
+     * (a5@0x1600 = Genesis 0x00FF1600) -> staged lines 0..3. On Genesis that source
+     * buffer is never populated (all zero), so the original unconditional write here
+     * ZEROED lines 0/1 (and 2/3) that genesistan_palette_hook_3ba64 had correctly
+     * staged from the arcade direct palette-RAM writes. Only write NON-zero converted
+     * colors (advance the staged slot positionally regardless), so an empty source no
+     * longer clobbers the real palette; a populated source still writes normally. */
+    tst.w   %d1
+    beq.s   .L45_skip_write
+    move.w  %d1, (%a2)
+.L45_skip_write:
+    addq.l  #2, %a2
     dbra    %d4, .L45_loop
 
     move.b  #1, palette_dirty

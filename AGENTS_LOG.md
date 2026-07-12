@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Build 0162: Gameplay Palette Lines 0/1 Population - PASSING CANDIDATE]
+
+* BUILT + PASSES; candidate preserved. Baseline @ ed44176 (Build 0161 candidate). Build 0162 ROM SHA 7bcb31790b2c6db44425655d486c0b74bf3a286a23e77b912594e7e78a9674b9, size 1,581,228, counter 162, opcode_replace 137 (unchanged), coverage 0x1820A4->0x1820AC. Build 0161 preserved (1,581,220 B). Deliverable docs/design/Andy_gameplay_palette_lines_0_1_population.md + states/traces/lines01/. Classification B.
+* ROOT: arcade banks 0,1 (0000 7BDE 001E... / 0000 001E...) are written DIRECTLY to palette RAM 0x200000/0x200020 by 0x03BA84 (0x3BA64) at F=7; hook_3ba64 stages them -> Genesis lines 0,1 at F=14 (correct). BUT hook_45dae (PC 0x071986) at F=210 ZEROES lines 0,1 (and 2,3): its bank-0 chunk copies the sprite-palette SOURCE buffer a5@0x1600=0xFF1600 (empty on Genesis, KF-043) -> unconditional writes of black clobber the staged lines. Lines 2/3 re-populate after (hook_3ba64 bank48 / Build 0161 bank51) but lines 0/1 (written once at F=7) do not -> stayed black.
+* FIX (palette_hooks.s only, no opcode_replace): hook_45dae .L45_loop -> `tst.w d1; beq .L45_skip_write; move.w d1,(a2); .L45_skip_write: addq.l #2,a2` (skip ZERO converted values, advance staged slot positionally). Empty source no longer clobbers; a populated source still writes normally. Coverage paired-updated.
+* VALIDATION (deterministic, 2 identical runs; F540/560/580 stable): line 0 nz 0->15 (0000 0EEE 000E 0468 08AC 046A 0246 0EEE... = faithful arcade bank0: 7BDE->0EEE white, 001E->000E); line 1 nz 0->14 (0000 0000 08AE 068E...); line 2 nz=15 unchanged; line 3 nz=15 unchanged (Build 0161 preserved). selector a5@0x10A8=0x0000; staged_fg=2016; staged_bg=2048; cmd 0x00FF. FRONTEND identical to 0160/0161 (title represented=15, staged_bg/fg=560/66). Routes 0158/0159 intact. GATE_PASS; boot guard PASS. Collision unchanged (WRAM 0xFF1E00 empty; deferred).
+* Classification B (existing hook_45dae, bounded skip-zero fix; reinforces KF-043). All 4 gameplay CRAM lines now populated from arcade-owned data.
+* scope: palette lines 0/1 only. NOT touched: collision, 0x10DE00, reader, selector, FG_SRC, sprite/SAT geometry, PC090OJ; no forced colors; lines 2/3 preserved; candidates 0161+0162 preserved. Architecture compliance CONFIRMED (arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced (BUILD-VERIFIED). All four gameplay Genesis CRAM palette lines now populated from arcade-owned data: lines 0/1 (banks 0/1) via hook_3ba64 direct-write staging, no longer clobbered by hook_45dae's empty-source copy (skip-zero fix); line 2 (bank 48) and line 3 (bank 51, Build 0161) intact. selector/FG(2016)/BG(2048)/command/frontend all intact. Reinforces KF-043 (empty sprite-palette source buffer 0xFF1600). Remaining: visible-pixel confirmation (user), collision producer, player/Rastan sprite geometry. PASSING CANDIDATE Build 0162 (SHA 7bcb3179...); accepted stays 0160 pending Tighe visual acceptance; Build 0161 also preserved. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Build 0161: Sprite-Palette Source Population (bank 51 -> CRAM line 3) - PASSING CANDIDATE]
 
 * BUILT + PASSES; candidate preserved (NOT reverted, NOT deleted). Baseline @ acd6682, accepted Build 0160. Build 0161 ROM SHA 79c2c01610e153b813deef590de8a8cd631e02a80b2c59111ff2929b86f04a8f, size 1,581,220, counter 161, opcode_replace 137 (unchanged), coverage 0x182090->0x1820A4. Accepted build remains 0160 until Tighe visually accepts (artifact rule). Deliverable docs/design/Andy_build0161_sprite_palette_source_population.md + states/traces/build_0161_srcpop/. Classification B.
