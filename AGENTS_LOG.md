@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Build 0161: Sprite-Bank Palette Chunk Routing -> STOP (B), BUILD REVERTED (no-op)]
+
+* Baseline @ 56551e1, accepted Build 0160 (counter 160, opcode_replace 137, coverage 0x182090). A candidate Build 0161 was BUILT then REVERTED (no-op). Deliverable docs/design/Andy_build0161_sprite_bank_palette_chunk_routing.md + states/traces/build_0161_route/. Classification B. Accepted build stays 0160.
+* BOUNDARY (correct): the arcade sprite-bank palette load is a 64-word memcpy at arcade 0x045DEE (jsr 0x3a2d0, a1=0x200600 banks 48-51, source a0=a5@0x1600=Genesis 0xFF1600, d0=64) -- a sibling of the hooked bank-0 site 0x045DB8. On Genesis 0x045FEE = raw jsr 0x3a4d0 -> writes unmapped 0x200600 -> dropped. Implemented: extend genesistan_palette_hook_45dae with a1==0x200600 branch (bank 51 words 48-63 -> staged line 3 via xBGR->CRAM) + opcode_replace at 0x045DEE. Built GATE_PASS (opcode_replace 138, coverage 0x1820C8).
+* WHY REVERTED (no-op): runtime showed line 3 UNCHANGED (08AE 0000...). The hook sprite branch RAN (PC 0x0719C0, F=229) but wrote ALL ZEROS -- because the SOURCE 0xFF1600 is EMPTY on Genesis. Direct dump: Genesis 0xFF1600 banks 48-51 = 0000; arcade 0x10D600 = populated (bank48 0000 0010 015E..., bank51 0000 0842 739C 429E...). So the sprite-palette SOURCE (arcade 0x10D600) is not populated on Genesis 0xFF1600 -- a deeper raw-WRAM-literal / unhooked-producer prerequisite (same class as the collision buffer). Routing a zero source yields a zero line 3.
+* Per build rule (produce only if line 3 populated), REVERTED: git checkout of palette_hooks.s/spec/postpatch/verify/out/rom_inventory to HEAD; counter reset to 160; numbered 0161 ROM deleted. Post-revert: opcode_replace 137, coverage 0x182090, L45_sprite_chunk gone. Selector/FG(2016)/BG(2048)/command all intact throughout (the change was non-destructive).
+* Classification B (source content not proven valid -- zero on Genesis). NEXT: find/rebase the producer that fills arcade 0x10D600 so Genesis 0xFF1600 receives the sprite palette (KF-039 class), THEN re-apply the (correct) sprite-bank routing to populate line 3. NO forced colors.
+* scope: palette routing + source diagnosis. NOT touched (post-revert): collision, 0x10DE00, reader, selector, FG_SRC, sprite/SAT geometry, PC090OJ; no forced colors. Architecture compliance CONFIRMED (build reverted; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - the sprite-bank palette ROUTING boundary is correct (route the 0x045DEE memcpy jsr to hook_45dae; bank 51 -> line 3), built cleanly, but is a NO-OP blocked by a deeper prerequisite: the sprite-palette SOURCE at arcade 0x10D600 is NOT populated on Genesis 0xFF1600 (Genesis=0000, arcade=populated). Producer of 0x10D600 must be rebased/hooked to Genesis 0xFF1600 (KF-039 raw-WRAM-literal class) FIRST, then the routing populates line 3. Build REVERTED (no-op); accepted stays 0160. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Build 0161: Bank-51 Palette Producer Owner / Finish Attempt -> STOP (C), NO BUILD]
 
 * analysis only, NO source/spec/tool/ROM/build. Baseline @ 05dfe79, accepted Build 0160 (counter 160, opcode_replace 137, coverage 0x182090). Appended section 20 to docs/design/Andy_build0161_gameplay_palette_cram_ownership.md + states/traces/build_0161_palette/arc_b51.txt. Classification C.
