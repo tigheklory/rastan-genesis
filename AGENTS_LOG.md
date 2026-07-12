@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Build 0161: Sprite-Palette Source Population (bank 51 -> CRAM line 3) - PASSING CANDIDATE]
+
+* BUILT + PASSES; candidate preserved (NOT reverted, NOT deleted). Baseline @ acd6682, accepted Build 0160. Build 0161 ROM SHA 79c2c01610e153b813deef590de8a8cd631e02a80b2c59111ff2929b86f04a8f, size 1,581,220, counter 161, opcode_replace 137 (unchanged), coverage 0x182090->0x1820A4. Accepted build remains 0160 until Tighe visually accepts (artifact rule). Deliverable docs/design/Andy_build0161_sprite_palette_source_population.md + states/traces/build_0161_srcpop/. Classification B.
+* ROOT (KF-043): arcade routine 0x3BA64 writes bank 48 to palette RAM 0x200600 (direct -> Genesis line 2, BG visible) but bank 51 ONLY to the sprite-palette SOURCE buffer 0x10D660 (a5-relative = Genesis 0xFF1660), then memcpy 0x3A2D0 copies 0x10D600->0x200600 (unmapped on Genesis, dropped). hook_3ba64 (replacing 0x3BA64) only stages a0 in 0x200000..0x200FFF; it SKIPS the bank-51 source-buffer write (a0=0xFF1660). So Genesis CRAM line 3 (=bank 51, used by gameplay FG + sprites/Rastan) stayed black (08AE 0000...).
+* FIX (palette_hooks.s only; no opcode_replace): in genesistan_palette_hook_3ba64, after `move.l a0,d4; addq #2,a0`, branch if d4 in [0x00FF1660,0x00FF1680) -> moveq #3,d6; bra.w .L3ba64_line_ok (reuse existing xBGR->CRAM + line-3 staging; low-5-bits of d4 give the entry). Else fall through to unchanged 0x200000 path. Coverage paired-updated.
+* VALIDATION (deterministic, 2 identical runs; F540/560/580 stable): line 3 nz 1->15 = 08AE 0000 0EEE 08AE 044A 0246 0008 0006 00EE 006E 0080 0060 0888 0666 0040 000E (faithful bank-51 conversion; entry15 000E<-arcade 001E; near-black 0842->0000 correct). line 2 nz=15 unchanged; lines 0/1 nz=0 unchanged. selector a5@0x10A8=0x0000; staged_fg=2016; staged_bg=2048; cmd 0x00FF. FRONTEND identical to 0160 (title represented=15, staged_bg/fg=560/66, line3=0 at title). Routes 0158/0159/0156/0152 intact. GATE_PASS; boot guard PASS. Collision unchanged (WRAM 0xFF1E00 empty; deferred).
+* Classification B (route arcade source directly into staged line 3; no intermediate buffer, no forced colors, no second palette system). KF-043 added.
+* scope: palette source population only. NOT touched: collision, 0x10DE00, reader, selector, FG_SRC, sprite/SAT geometry, PC090OJ; no forced colors; lines 0-1 preserved; candidate preserved. Architecture compliance CONFIRMED (arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced (BUILD-VERIFIED). Gameplay sprite/FG palette Genesis CRAM line 3 (=arcade bank 51) now populated (15 converted colors) via staging the bank-51 source-buffer write directly in hook_3ba64. Root KF-043: bank 51 produced only into the source buffer, not palette RAM; hook skipped it. Line 2/BG, lines 0-1, selector, FG/BG staging, command, frontend all intact. Remaining: visible-pixel confirmation (user), collision producer, player/Rastan sprite geometry. PASSING CANDIDATE Build 0161 (SHA 79c2c016...); accepted stays 0160 pending Tighe visual acceptance. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Build 0161: Sprite-Bank Palette Chunk Routing -> STOP (B), BUILD REVERTED (no-op)]
 
 * Baseline @ 56551e1, accepted Build 0160 (counter 160, opcode_replace 137, coverage 0x182090). A candidate Build 0161 was BUILT then REVERTED (no-op). Deliverable docs/design/Andy_build0161_sprite_bank_palette_chunk_routing.md + states/traces/build_0161_route/. Classification B. Accepted build stays 0160.

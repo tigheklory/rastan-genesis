@@ -719,6 +719,24 @@ Deferral reason: Single-source design-doc classification semantics may evolve wi
 
 ---
 
+
+## KF-043 — Arcade sprite palette bank 51 is produced only into the source buffer (0x10D600), not palette RAM; hook_3ba64 skipped it, blacking Genesis CRAM line 3
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (arcade + Genesis runtime taps; build-verified fix Build 0161)
+- **Applicability:** DURABLE palette-ownership rule (rastan-direct)
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** arcade sprite-palette source buffer 0x0010D600..0x0010D67F (Genesis a5@0x1600 = 0x00FF1600); bank 48 @0x10D600->0xFF1600, bank 51 @0x10D660->0xFF1660. Arcade producer 0x3BA64 (Genesis hook `genesistan_palette_hook_3ba64` @0x71996). Genesis CRAM: bank48->line2, bank51->line3.
+- **Source Documents:** docs/design/Andy_build0161_sprite_palette_source_population.md; docs/design/Andy_build0161_sprite_bank_palette_chunk_routing.md; docs/design/Andy_build0161_gameplay_palette_cram_ownership.md
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-12 (Build 0161)
+
+**Finding.** Arcade routine 0x3BA64 (a palette converter/writer) is called with different a0 destinations: bank 48 is written to arcade palette RAM 0x200600 (a direct write), but **bank 51 is written ONLY to the sprite-palette SOURCE buffer 0x10D660** (a5-relative, Genesis 0xFF1660), then a generic memcpy (0x3A2D0) copies 0x10D600->0x200600 (arcade palette RAM). On Genesis, `hook_3ba64` (replacing 0x3BA64) only stages writes whose a0 is in the palette-RAM range 0x200000..0x200FFF; for the bank-51 source-buffer write (a0=0xFF1660) it skips, and the memcpy destination 0x200600 is unmapped. So arcade bank 48 reached Genesis CRAM line 2 (BG visible) but bank 51 never reached line 3 -> gameplay FG (FG_PLANE_ATTR_HI->line3) and sprites/Rastan were black. Build 0161 fix: in hook_3ba64, stage the bank-51 source-buffer writes (a0 in 0xFF1660..0xFF167F) directly to staged line 3 via the existing xBGR->CRAM path; line 3 populates with 15 converted colors, frontend/line-2/lines-0-1 unaffected.
+
+**Use as prior.** A Genesis CRAM line can be black even though its arcade bank is populated, if the arcade writes that bank to a WRAM source buffer (later memcpy'd to palette RAM) rather than directly to palette RAM -- and the palette hook only stages direct palette-RAM writes. Check whether a palette bank is produced via a source-buffer + memcpy path; if so, stage the source-buffer write directly (a5-relative dest is rebased WRAM, valid on Genesis). No hardcoded colors.
+
+---
+
 ---
 
 ### DEF-002 — Populated VDP internals can coexist with blank composed output

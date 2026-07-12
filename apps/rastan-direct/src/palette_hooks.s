@@ -168,6 +168,22 @@ genesistan_palette_hook_3ba64:
     move.l  %a0, %d4
     addq.l  #2, %a0
 
+    /* Build 0161: the arcade sprite palette bank 51 is written by this routine only
+     * to the sprite-palette SOURCE buffer (arcade 0x10D660 = Genesis a5@0x1600 =
+     * 0x00FF1660), then memcpy'd to arcade palette RAM 0x200660 (unmapped on
+     * Genesis -> dropped) -- so Genesis CRAM line 3 (=arcade bank 51, used by
+     * gameplay FG and sprites/Rastan) was never populated. Stage the bank-51
+     * source-buffer writes (a0 in 0x00FF1660..0x00FF167F) directly to staged line 3
+     * (d6=3) via the existing xBGR->CRAM/line-3 path. Bank 48 (line 2) is unaffected
+     * (it is written to palette RAM 0x200600 by a separate caller). */
+    cmpi.l  #0x00FF1660, %d4
+    blo.s   .L3ba64_chk_palram
+    cmpi.l  #0x00FF1680, %d4
+    bhs.s   .L3ba64_chk_palram
+    moveq   #3, %d6
+    bra.w   .L3ba64_line_ok
+
+.L3ba64_chk_palram:
     /* Only map arcade palette RAM 0x200000..0x200FFF into Genesis staging. */
     cmpi.l  #0x00200000, %d4
     blo.s   .L3ba64_next
