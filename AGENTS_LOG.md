@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0161: Gameplay FG/Sprite Palette CRAM Ownership -> STOP (B), NO BUILD]
+
+* analysis only, NO source/spec/tool/ROM/build. Baseline @ 73492c6, accepted Build 0160 ROM SHA e9243ff... counter 160, opcode_replace 137, coverage 0x182090. Deliverable docs/design/Andy_build0161_gameplay_palette_cram_ownership.md + states/traces/build_0161_palette/. Classification B (CRAM line black proven; producer owner not proven). STOP.
+* PALETTE CHAIN: producers (palette_hooks.s) map arcade banks -> Genesis CRAM lines (bank0->L0, bank1->L1, bank48->L2, bank51->L3), write staged_palette_words (0xFF609E), set palette_dirty (0xFF4000). vdp_commit_palette (vdp_comm.s) DMAs all 64 words -> CRAM every dirty VBlank; palette_dirty set 124x by F=560 -> COMMIT RUNS. Only vdp_commit_palette writes CRAM -> CRAM == staged_palette_words.
+* FIRST BREAK (proven): at gameplay F=560, staged/CRAM line0=BLACK, line1=BLACK, line2=populated(nz=15, bank48), line3=nz1 (08AE only, bank51). Gameplay BG cells reference LINE 2 (populated) -> BG appears. Gameplay FG cells reference LINE 3 (FG_PLANE_ATTR_HI=0x00030000 -> line3) which is BLACK -> FG invisible. Sprites/Rastan also use line 3 -> black -> Rastan absent. Arcade gameplay banks 0/1/48/51 ALL populated (arc_pal.txt: bank51=0842 739C 429E...15 colors); only Genesis line 2 survived.
+* LINE 3 NEVER POPULATED (gen_l3hist.txt): nz goes 0 -> 1 at F=195, constant at 1 thru F=600. NOT cleared-from-populated; simply never filled. Producer firing during gameplay = hook_59ad4 (PC 0x071928), writes ONLY line3[0]=08AE from ROM src a0=0x059B38 (gen_line3.txt); hook_3ba64 bank51->line3 branch did NOT fire. So arcade bank51 -> line3 population path is MISSING/non-running on Genesis gameplay (producer-ownership gap, not commit/scene-clear).
+* CONFIRMED ADJACENT BUG (not proven to be the cause): hook_59ad4 writes `move.w d1,(a1)+` (advance only on write) but arcade original 0x59ad4 writes POSITIONALLY -- `move.w d3,(a1)` (0x59b0a) + `addq #2,a1` UNCONDITIONALLY (0x59b14), so 0xFFFF-skips keep existing color and a1 still advances. Genesis (a1)+ COMPACTS scattered updates. Real defect, but line 3 is never populated (not scrambled), so fixing (a1)+ alone is NOT proven to fill line 3.
+* Classification B: CRAM line3 black proven + FG/sprite line-3 usage proven + commit proven correct (line2 OK), but the producer OWNER that should populate line3 from bank51 in gameplay is not conclusively proven. A fix now = speculative (fixing (a1)+ may be a no-op; forcing colors forbidden). STOP per "producer/commit/mapping owner cannot be proven." NO build; opcode_replace stays 137.
+* NEXT: prove which arcade routine populates bank 51 during gameplay (F179-307, 134 writes) and whether/where Genesis hooks it to staged line 3; then decide fix (hook the missing bank-51 path and/or correct hook_59ad4 (a1)+ to positional). Do NOT force colors.
+* scope: palette/CRAM ownership audit only. NOT touched: collision, 0x10DE00, reader, selector, FG_SRC mapping, sprite/SAT geometry, PC090OJ, mode/stage/player/camera/scroll, D00298, Exodus, audio; no hardcoded colors, no forced line. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - "gameplay palette near-black" root-located to Genesis CRAM LINE 3 never being populated (arcade bank51 -> line3 path missing/non-running in gameplay), blacking out gameplay FG (line3) and sprites/Rastan (line3). BG appears via the populated line2 (bank48). Palette commit + line-2 ownership correct. Confirmed adjacent hook_59ad4 (a1)+-vs-arcade-positional defect (not proven the cause). Classification B, STOP no build. Next: prove the bank-51 gameplay producer owner + Genesis hook, then fix. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Build 0160: FG_SRC Fold Into Corrected BG Pass (BUILT, ROM produced)]
 
 * BUILT. Baseline @ 884e4e5, accepted Build 0159. Build 0160 ROM SHA e9243ff028cdcd8f3776a51ffa54ea8438f1489bca61fd607bff0c268983e697, size 1,581,200 (+32 vs 0159), counter 160, opcode_replace 137 (UNCHANGED). Deliverable docs/design/Andy_build0160_fg_src_fold_into_bg_pass.md + states/traces/build_0160_fold_verify/. Classification A.
