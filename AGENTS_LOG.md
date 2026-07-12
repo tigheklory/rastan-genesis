@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0159: Collision Producer Selection -> ROOT CAUSE = un-relocated pointer literal (no build)]
+
+* analysis only, NO source/spec/tool/ROM/build. Baseline @ 13b0e59, accepted Build 0158 ROM SHA 2bf5a06f... counter 158, opcode_replace 136. Deliverable docs/design/Andy_build0159_collision_producer_selection.md + states/traces/build_0159_selector/. Classification C (selector understood; not a bounded collision build) + D reframe. STOP.
+* ROOT CAUSE FOUND. a5@0x10A8 (arcade 0x10D0A8 / Genesis 0xFF10A8, also PC080SN_DESC_REBUILD_OUT) is the PC080SN tilemap PASS SELECTOR: dispatch 0x55948 ==0 -> BG producer, !=0 -> FG producer. Value = *(a5@0x10C6) (pass-seq control byte). a5@0x10C6 set at arcade 0x503CE: d0 = #0x00050F6B (seq-table base) + d1, d1 = *(#0x00050EE0 + a5@0x13E).
+* THE BUG (postpatch RELOCATION INCONSISTENCY): at arcade 0x503BC `moveal #0x00050EE0,a1` (address-reg load) WAS relocated by postpatch -> Genesis 0x505BC = #0x000510E0 (correct). But at arcade 0x503CE `movel #0x00050F6B,d0` (DATA-reg load) was NOT relocated -> Genesis 0x505CE still #0x00050F6B (should be #0x0005116B). movel #imm,Dn operands aren't recognized as relocatable code pointers (same class as Build 0158 command source).
+* ROM proof: Genesis ROM[0x050F6B]=0x80 (raw pointer reads this) vs ROM[0x05116B]=0x00 (correct +0x200 reloc = arcade data); arcade ROM[0x050F6B]=0x00. So the seq pointer lands 0x200 too low -> reads 0x80 -> a5@0x10A8=0x80 (FG) instead of 0x00 (BG).
+* Runtime: arcade a5@0x10A8 ALWAYS 0x0000 (histogram 0000:20; srcptr 0x050F6B *ptr=0x00). Genesis: written 0x0080 by genesistan_hook_pc080sn_descriptor_rebuild+0x5E (0x071728) at F=470 (srcptr 0x050F6B *ptr=0x80), dominates the dispatch (x80 vs BG x3). The helper faithfully reproduces the arcade read; divergence is the pointer VALUE.
+* Answers: (1/2) writer = desc-rebuild via a5@0x10C6 (arcade 0x558F8/0x55940; Genesis hook 0x71728 + 0x55AFE). (3) 0x80 is a BUG (un-relocated literal), not intentional/arcade-equivalent. (4) correct producer = BG (a5@0x10A8==0). (5) inputs exist but fix = relocate the literal (->BG pass), then still need collision-emit + 9-site rebase; replay unproven. (6) STRONGLY implicated in the visible FG-tile issue (wrong pass FG vs BG; Build 0155 accommodated the bug). (7) selector boundary proven but it is a rendering-pass-selection change, not a bounded collision build.
+* Classification C + D reframe: the true boundary is a pointer-relocation bug in tilemap-pass selection, UPSTREAM of collision-cell emission. NEXT (dedicated build, separate): byte-neutral opcode_replace at arcade 0x503CE 203C00050F6B -> 203C0005116B, then re-observe a5@0x10A8=0x00 / BG pass / Build 0154-0155 rendering regression / visible FG; THEN collision emit + rebase. NO build; opcode_replace stays 136; Builds 0142-0158 untouched.
+* scope: only producer-selection root cause. Did NOT patch a5@0x10A8, reader, handler, stage controller, player, camera/scroll, sprites, rendering, continue/game-over, D00298, Exodus, audio; did NOT rebase 0x10DE00. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - NEW ROOT CAUSE. The Stage-1 tilemap pass selector a5@0x10A8 is 0x80 (FG) on Genesis vs 0x00 (BG) on arcade because the pass-seq table base literal #0x00050F6B at arcade 0x503CE is NOT postpatch-relocated +0x200 (its sibling #0x00050EE0 at 0x503BC WAS). Genesis reads ROM[0x050F6B]=0x80 instead of ROM[0x05116B]=0x00. Mis-selects the FG pass (Build 0155 accommodated it); upstream cause of the dead BG collision pass; likely also the visible FG-tile issue. Next: dedicated relocation build 0x050F6B->0x05116B (byte-neutral), rendering-regressed, then collision emit + rebase. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Build 0159: Tilemap Staging Collision Producer -> STOP (C), NO BUILD]
 
 * analysis only, NO source/spec/tool/ROM/build. Baseline @ 318e7bd, accepted Build 0158 ROM SHA 2bf5a06f... counter 158, opcode_replace 136. Deliverable docs/design/Andy_build0159_tilemap_staging_collision_producer.md + states/traces/build_0159_tsc_producer/. Classification C (source exists; safe reproduction needs more analysis). STOP.
