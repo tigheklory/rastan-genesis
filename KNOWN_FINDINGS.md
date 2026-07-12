@@ -701,6 +701,24 @@ Statement: Reverse-lookup classification in the cited design treats hardware-spa
 
 Deferral reason: Single-source design-doc classification semantics may evolve with `address_map.json` revisions; defer until corroborated by independent operational evidence or contradiction testing.
 
+
+## KF-042 — Data-register pointer-literal not relocated by postpatch shift; Stage-1 tilemap pass selector a5@0x10A8 became 0x80 (FG) instead of 0x00 (BG)
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (arcade + Genesis runtime taps; ROM byte proof; build-verified fix Build 0159)
+- **Applicability:** DURABLE relocation rule (rastan-direct); reinforces KF-039
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** arcade `0x503CE` `movel #0x00050F6B,d0` (pass-seq table base) NOT relocated; sibling `0x503BC` `moveal #0x00050EE0,a1` WAS (-> 0x000510E0). Genesis ROM[0x050F6B]=0x80 vs relocated ROM[0x05116B]=0x00 (arcade ROM[0x050F6B]=0x00). Selector `a5@0x10A8` = arcade 0x10D0A8 / Genesis 0xFF10A8 (also PC080SN_DESC_REBUILD_OUT). Fix: opcode_replace 0x503CE 203C00050F6B -> 203C0005116B (Build 0159).
+- **Source Documents:** docs/design/Andy_build0159_collision_producer_selection.md; docs/design/Andy_build0159_pass_selector_relocation.md
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-11 (Build 0159)
+
+**Finding.** The postpatch shift-relocation only adjusts abs.l control-transfer/LEA operands (opcodes 0x4EB9/0x4EF9/LEA abs.l via `maybe_shift_abs_long_expected_bytes`). An absolute code/data pointer loaded into a DATA register via `movel #imm,Dn` (opcode 0x203C) is NOT recognized and is left un-shifted, even when its address-register sibling (`moveal #imm,An`) IS relocated. At arcade 0x503CE the PC080SN pass-sequence table base `#0x00050F6B` was left raw, so on Genesis `a5@0x10C6` landed 0x200 too low and the desc-rebuild set the Stage-1 tilemap PASS SELECTOR `a5@0x10A8` to 0x0080 (FG branch) instead of 0x0000 (BG). The arcade always selects BG (a5@0x10A8==0). This mis-selection is the upstream cause of the dead BG collision producer and drove Build 0155's FG staging to be triggered by the bug. Build 0159 relocates the literal (byte-neutral); dispatch is now 100% BG, matching arcade.
+
+**Use as prior.** When an arcade routine loads a `[0,0x60000)` code/data pointer via `movel #imm,Dn` (or any data-register immediate), the postpatch will NOT relocate it; check for un-relocated `#imm` siblings of relocated `moveal #imm,An` loads and rebase them +0x200 (Genesis) via byte-neutral opcode_replace. Consequence to watch: fixing such a selector can bypass hooks (e.g. Build 0155 FG staging) that were built to accommodate the bug — re-anchor them to the corrected path.
+
+---
+
 ---
 
 ### DEF-002 — Populated VDP internals can coexist with blank composed output

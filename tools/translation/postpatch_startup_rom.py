@@ -18,7 +18,8 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 
 # Build 0156: +1 opcode_replace (0x03D04C C08C66 raw FG digit write -> staging).
 # Build 0158: +1 opcode_replace (0x05102E raw WRAM literal 0x10C016 -> 0xFF0016 rebase).
-CANONICAL_OPCODE_REPLACE_COUNT = 136
+# Build 0159: +1 opcode_replace (0x0503CE pass-seq table base literal 0x050F6B -> 0x05116B relocation).
+CANONICAL_OPCODE_REPLACE_COUNT = 137
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.

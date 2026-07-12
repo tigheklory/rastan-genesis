@@ -1,5 +1,22 @@
 # AGENTS Log
 
+## [Andy - Build 0159: Pass-Selector Relocation (BUILT, ROM produced)]
+
+* BUILT. Baseline @ 2be3421, accepted Build 0158. Build 0159 ROM SHA 14138b825fa0dcbfea52d9a519574b615e11722ad41e73a0b56752d4f75b905a, size 1,581,168 (byte-neutral), counter 159, opcode_replace 137. Deliverable docs/design/Andy_build0159_pass_selector_relocation.md + states/traces/build_0159_passsel_verify/. Classification A.
+* FIX: one byte-neutral opcode_replace at arcade 0x0503CE 203C00050F6B -> 203C0005116B (movel #0x00050F6B,d0 -> movel #0x0005116B,d0). Relocates the PC080SN pass-sequence table base literal +0x200 (it was a data-register immediate the postpatch shift does not touch; its sibling moveal #0x00050EE0,a1 at 0x503BC WAS relocated to 0x000510E0). Canonical count 136->137 in postpatch + verify + spec expectations; coverage 0x182070 unchanged.
+* STATIC: GATE_PASS; boot guard PASS; postpatch disasm 0x505CE = movel #0x0005116B,d0 (relocated, NOT re-shifted); sibling 0x505BC = moveal #0x000510E0,a1; gaps/overlaps clean.
+* RUNTIME (deterministic, 2 identical runs): desc-rebuild helper 0x071728 now reads srcptr=0x05116B *ptr=0x00 -> a5@0x10A8=0x0000 (was 0x050F6B/0x80/0x0080). Dispatch selector histogram: a5@0x10A8=0x0000 x83 ONLY (BG), no 0x80 (was 0x80 x80). 100% BG, arcade-equivalent (arcade a5@0x10A8 always 0x0000). genesistan_hook_tilemap_plane_a (BG) runs the Stage-1 pass; genesistan_hook_tilemap_fg no longer dominates.
+* RENDERING: BG staging intact (gameplay staged_bg=2048). FRONTEND fully intact (title represented=15, staged_sprite_active=15, staged_bg=560, staged_fg=66 -- IDENTICAL to Build 0158). GAMEPLAY FG REGRESSED staged_fg 2020->12 = EXPECTED pass-selection impact: Build 0155 FG staging was triggered by the FG branch (the now-fixed bug); it no longer runs. Does NOT break frontend paths. FOLLOW-UP: re-anchor Build 0155 FG_SRC staging to the corrected BG pass.
+* COLLISION (not fixed here, expected): WRAM 0xFF1E00 still empty; reader still raw 0x0010DE00 (ROM garbage); early mode=0x0008 still fires F=679. Collision emit + 9-site rebase remain deferred.
+* REGRESSION: cmd a5@0x137A=0x00FF (0158) intact; 0x5122E=movew 0xff0016,d0; 0x3D24C=jsr 0x708c8 (0156); 0x3A92A=jsr 0x70894 (0152); represented=15 (0157). Builds 0142-0158 not overwritten. Two deterministic MAME runs.
+* KF-042 added (build-verified): movel #imm,Dn data-register pointer literal not relocated by postpatch shift -> pass selector a5@0x10A8 wrong (0x80 FG vs 0x00 BG); reinforces KF-039.
+* scope: exactly one opcode_replace (pass-seq literal relocation). NOT touched: collision emission, 0x10DE00 rebase, reader, a5@0x10A8 direct, mode handler, stage controller, player, camera/scroll, sprites, tilemap hooks, continue/game-over, D00298, Exodus, audio. Architecture compliance CONFIRMED.
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced (BUILD-VERIFIED). Stage-1 tilemap pass selector a5@0x10A8 now 0x0000 (BG, arcade-equivalent) via relocating the pass-seq table base literal 0x00050F6B->0x0005116B at 0x503CE (Build 0159). Dispatch 100% BG; frontend/BG/command/sprites intact. NEW FOLLOW-UP: Build 0155 gameplay FG staging (triggered by the FG-branch bug) is now bypassed -> re-anchor FG_SRC staging to the BG pass. Collision still unfixed (empty WRAM, early type-8) -> next collision build applies. Not closed.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Build 0159: Collision Producer Selection -> ROOT CAUSE = un-relocated pointer literal (no build)]
 
 * analysis only, NO source/spec/tool/ROM/build. Baseline @ 13b0e59, accepted Build 0158 ROM SHA 2bf5a06f... counter 158, opcode_replace 136. Deliverable docs/design/Andy_build0159_collision_producer_selection.md + states/traces/build_0159_selector/. Classification C (selector understood; not a bounded collision build) + D reframe. STOP.

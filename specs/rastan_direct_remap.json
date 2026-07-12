@@ -171,6 +171,12 @@
   ],
   "opcode_replace": [
     {
+      "arcade_pc": "0x0503CE",
+      "original_bytes": "203C00050F6B",
+      "replacement_bytes": "203C0005116B",
+      "note": "Build 0159/OPEN-017: pass-sequence table base pointer relocation. `move.l #0x00050F6B, %d0` at arcade 0x0503CE loads the PC080SN pass-sequence table base into a DATA register; the postpatch shift-relocation only shifts abs.l control-transfer/LEA operands, so this data-register immediate was NOT relocated +0x200 (its sibling `movea.l #0x00050EE0, %a1` at 0x0503BC WAS, -> 0x000510E0). On Genesis the un-relocated pointer reads ROM[0x050F6B]=0x80 instead of the correct relocated ROM[0x05116B]=0x00 (arcade ROM[0x050F6B]=0x00), so a5@0x10C6 lands 0x200 too low and the desc-rebuild sets the tilemap PASS SELECTOR a5@0x10A8=0x0080 (FG) instead of 0x0000 (BG). Arcade always selects BG (a5@0x10A8==0) for the Stage 1 collision/tilemap pass. Fix relocates ONLY this data-register immediate 0x00050F6B -> 0x0005116B (byte-neutral, opcode 0x203C preserved; movel #imm,Dn is not in the shift-adjust set so the replacement is not re-shifted). No NOP, no destination patch, no forced value, no collision emission, no 0x10DE00 rebase. Same missed-data-register-literal class as Build 0158 (0x05102E)."
+    },
+    {
       "arcade_pc": "0x03A00C",
       "original_bytes": "427900350008",
       "replacement_bytes": "4E714E714E71",
@@ -1015,6 +1021,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 136
+    "opcode_replace_count": 137
   }
 }
