@@ -1,5 +1,20 @@
 # AGENTS Log
 
+## [Andy - Analysis, Build 0161: Bank-51 Palette Producer Owner / Finish Attempt -> STOP (C), NO BUILD]
+
+* analysis only, NO source/spec/tool/ROM/build. Baseline @ 05dfe79, accepted Build 0160 (counter 160, opcode_replace 137, coverage 0x182090). Appended section 20 to docs/design/Andy_build0161_gameplay_palette_cram_ownership.md + states/traces/build_0161_palette/arc_b51.txt. Classification C.
+* ARCADE bank-51 (0x200660) gameplay writers (arc_b51.txt): FULL LOAD = PC 0x03A2D4 x16 @F190 = generic memcpy 0x3A2D0 (movew (a0)+,(a1)+) copying WRAM a0=0x10D662 -> palette RAM a1=0x200660 (all 15 colors). Incremental = PC 0x059B0E x118 = the 0x59AD4 routine, pokes only b51[3]. So the FULL bank-51 owner is the GENERIC MEMCPY 0x3A2D0, NOT 0x59AD4.
+* GENESIS: 0x3A2D0 is INTACT/unhooked (0x3A4D0) -> writes to UNMAPPED 0x200660 -> dropped (source 0x10D662 also raw arcade-WRAM literal). The one hooked 0x3A2D0 caller is hook_45dae (arcade 0x045DB8, jsr 0x3a2d0, d0=64 words = 0x80-byte 4-bank chunk); its gate `cmpa.l #0x00200000,a1; bne` accepts ONLY the bank-0 chunk (a1==0x200000 -> banks 0-3 -> lines 0-3, frontend) and REJECTS the sprite-bank chunk (a1=0x200600, banks 48-51). hook_45dae also writes staged SEQUENTIALLY from the line-0 base -> no bank->line offset for non-bank-0 chunks.
+* DEFECT: arcade sprite-bank palette load (banks 48-51 -> Genesis lines 2,3) is dropped: generic memcpy path unhooked (writes unmapped 0x200660); hooked chunk-copy (hook_45dae) rejects all but bank-0 chunk and cannot address lines 2,3.
+* NOT trivially bounded (C): widening hook_45dae's gate alone would make the sprite chunk write staged lines 0-3 (sequential from line-0 base) -> CORRUPT BG/plane lines. Correct fix needs a bank->staged-line offset mapping (48->line2, 51->line3) + source-addressing correctness + frontend regression proof -- beyond a one-line change and beyond this VERY-LOW-budget session. NOT A (owner is not 0x59AD4; the (a1)+ defect is not the cause -- the full load never reaches Genesis). STOP no build; counter stays 160, opcode_replace 137.
+* NEXT (dedicated build): add/extend a palette hook so the arcade sprite-bank chunk (a1=0x200600, banks 48-51) converts to staged lines 2,3 at the correct offset, committed by vdp_commit_palette; validate line 3 gets 15 nonzero colors; no forced colors; no frontend regression. The hook_59ad4 (a1)+->positional fix is a separate lower-priority cleanup.
+* scope: bank-51 owner only. NOT touched: collision, 0x10DE00, reader, selector, FG_SRC, sprite/SAT geometry, PC090OJ; no source edit; no forced colors. Architecture compliance CONFIRMED (analysis only; arcade is reference).
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced - bank-51 palette owner FOUND. Full arcade bank-51 load = generic memcpy 0x3A2D0 (WRAM->0x200660), UNHOOKED on Genesis (unmapped 0x200660, dropped); the hooked chunk-copy hook_45dae rejects the sprite-bank chunk (gate a1==0x200000 only) and can't address lines 2,3 (sequential from line 0). Fix = add/extend a hook to convert the sprite-bank chunk (banks 48-51) into staged lines 2,3 with a bank->line offset mapping. Classification C (owner found; fix not trivially bounded this session), STOP no build. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Build 0161: Gameplay FG/Sprite Palette CRAM Ownership -> STOP (B), NO BUILD]
 
 * analysis only, NO source/spec/tool/ROM/build. Baseline @ 73492c6, accepted Build 0160 ROM SHA e9243ff... counter 160, opcode_replace 137, coverage 0x182090. Deliverable docs/design/Andy_build0161_gameplay_palette_cram_ownership.md + states/traces/build_0161_palette/. Classification B (CRAM line black proven; producer owner not proven). STOP.

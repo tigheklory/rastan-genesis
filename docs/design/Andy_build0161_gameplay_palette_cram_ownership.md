@@ -1,4 +1,6 @@
-# Andy — Build 0161: Gameplay FG/Sprite Palette CRAM Ownership — STOP (Classification B), NO BUILD
+# Andy — Build 0161: Gameplay FG/Sprite Palette CRAM Ownership — STOP (Classification C after finish attempt), NO BUILD
+<!-- §1-19: initial audit (STOP-B). §20: bank-51 owner finish attempt -> STOP-C (owner found: arcade sprite-bank chunk load dropped; Genesis fix needs bank->line offset mapping, not trivially bounded). -->
+
 
 ## 1. Phase 0 / baseline
 branch `rastan-direct-proposal`, HEAD `73492c6`, clean. Accepted Build 0160 ROM
@@ -119,3 +121,40 @@ CONFIRMED. Analysis only — no source/spec/tool/ROM edit, no build; runtime evi
 arcade `rastan`) + static source/disasm; arcade is the reference. Did not touch collision, `0x0010DE00`, reader,
 selector, FG_SRC mapping, sprite/SAT geometry, PC090OJ, mode/stage/player/camera/scroll, D00298, Exodus, audio;
 did not hardcode colors or force a palette line.
+
+---
+
+## 20. Bank-51 Producer Owner — Finish Attempt (append; STOP C, no build)
+Baseline unchanged (Build 0160, counter 160, opcode_replace 137). Arcade trace `arc_b51.txt`.
+
+**Arcade bank-51 (0x200660) writers during gameplay (F179–307):**
+- **PC=0x03A2D4 ×16 (F=190): the FULL LOAD** — generic memcpy `0x3A2D0` (`movew (a0)+,(a1)+`, d0 words) copies
+  WRAM `a0=0x10D662` → palette RAM `a1=0x200660`, writing all 16 entries = the 15 colors (`0842 739C 429E…`).
+- **PC=0x059B0E ×118: incremental** — the `0x59AD4` routine, updates only `b51[3]<-429E` (a0=0x059938 ROM).
+So the **full bank-51 palette owner is the generic memcpy `0x3A2D0`**, not `0x59AD4` (which only pokes one entry).
+
+**Genesis mapping:**
+- `0x3A2D0` is **intact/unhooked** on Genesis (`0x3A4D0`, identical `movew (a0)+,(a1)+`) → writes to **unmapped
+  `0x200660`** → dropped. (Source `0x10D662` is also a raw arcade-WRAM literal → ROM on Genesis.)
+- The one hooked `0x3A2D0` caller is `hook_45dae` (arcade `0x045DB8`, `jsr 0x3a2d0`, **d0=64 words** = a 0x80-byte
+  4-bank chunk). Its gate `cmpa.l #0x00200000,%a1; bne .L45_done` accepts **only the bank-0 chunk**
+  (`a1==0x200000` → banks 0–3 → staged lines 0–3, frontend). The **sprite-bank chunk** (`a1=0x200600`, banks
+  48–51) is **rejected** by the gate → banks 48–51 never reach staged. `hook_45dae` also writes staged
+  **sequentially from the line-0 base** (`a2=staged_palette_words`), so it has no bank→line offset for a
+  non-bank-0 chunk.
+
+**Exact defect:** the arcade sprite-bank palette load (banks 48–51 → Genesis lines 2,3) is dropped on Genesis:
+the generic memcpy path (`0x3A2D0`) is unhooked (writes unmapped `0x200660`), and the hooked chunk-copy
+(`hook_45dae`) rejects everything except the bank-0 chunk and cannot address lines 2,3 (sequential from line 0).
+
+**Why not a trivially-bounded fix (Classification C):** widening `hook_45dae`'s gate alone would make the
+sprite-bank chunk write staged **lines 0–3** (sequential from the line-0 base) → **corrupt** the BG/plane lines.
+A correct fix needs a **bank→staged-line offset mapping** (bank 48→line2, 51→line3) inside `hook_45dae` (or a
+new dedicated sprite-bank hook), plus source-addressing correctness and frontend regression proof — beyond a
+one-line change and beyond this VERY-LOW-budget session. Not A (owner is not `0x59AD4`; the `(a1)+` defect is
+not the cause — the full load never reaches Genesis at all). **STOP.**
+
+**Next (dedicated build):** add/extend a palette hook so the arcade sprite-bank chunk (`a1=0x200600`, banks
+48–51) converts to staged **lines 2,3** at the correct offset (bank_index→line, entry offset preserved),
+committed by the existing `vdp_commit_palette`. Validate line 3 gets 15 nonzero colors; no forced colors; no
+frontend regression. The `hook_59ad4` `(a1)+`→positional fix is a separate, lower-priority correctness cleanup.
