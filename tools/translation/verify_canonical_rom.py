@@ -49,7 +49,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 137
 # (0x181EE8 -> 0x182044). Paired constant in both gate scripts.
 # Build 0156 C08C66 raw FG digit-write route hook: +0x20 bytes (0x182044 -> 0x182064).
 # Build 0157 PC090OJ mirror_dirty->candidate resweep in vdp_prepare_sprites: +0xC (0x182064 -> 0x182070).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1820AC
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1820B8
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")

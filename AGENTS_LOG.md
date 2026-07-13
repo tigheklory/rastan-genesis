@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy - Build 0163: Force Gameplay Sprite Tile Refresh (controlled experiment) - VISUAL-TEST CANDIDATE]
+
+* BUILT (visual-test candidate, preserved). Baseline @ 9cea9e8, working candidate Build 0162. Build 0163 ROM SHA 6f6efa750a004e5f74d365eb0d43119e7e88456ae44abc477237af93725171c5, size 1,581,240, counter 163, opcode_replace 137 (unchanged), coverage 0x1820AC->0x1820B8. Candidates 0160-0163 all preserved. Accepted stays 0160 pending Tighe visual acceptance. Deliverable docs/design/Andy_build0163_force_gameplay_sprite_tile_refresh.md + states/traces/b163/. Variant A.
+* CHANGE (pc090oj_hooks.s only, no opcode_replace): .Lpc090oj_worklist_set gains a gameplay gate -- `cmpi.b #1,genesistan_current_scene_id; beq .Lwls_differ` before the resident==code cancel. During the gameplay scene it forces the differ/queue path, so every represented gameplay slot REQUEUES its tile DMA each interval (bypassing only the resident-code cache). Uses existing worklist/source/dest/DMA-commit; SAT/decode/palette/collision untouched. Coverage paired-updated.
+* EXPERIMENT CONFIRMED ACTIVE (deterministic): Build 0162 peak tile_dma_count=0 (0/21 gameplay frames) -- 0162 queues ZERO gameplay sprite tile DMA (residency cache blocks ALL refresh). Build 0163 peak=6 (12/21 frames) -- forced requeue re-DMAs the 6 represented gameplay slots each frame prepare runs.
+* REGRESSION CLEAN: title represented=15 + palette intact; gameplay selector a5@0x10A8=0x0000, staged_bg=2048, staged_fg=2016, cmd=0x00FF, palette lines L0=15/L1=14/L2=15/L3=15 (all populated, 0161/0162 preserved); reachable SAT chain unchanged (expected -- forces tile DMA not SAT). GATE_PASS; boot guard PASS. collision unchanged (WRAM 0xFF1E00 empty).
+* PROVEN durable fact: Build 0162 performs ZERO gameplay sprite tile DMA (tile_dma_count=0) -- the residency cache never refreshes gameplay sprite VRAM. So stale/wrong VRAM sprite tiles would never be corrected in 0162. Build 0163 forces the refresh. Whether it makes sprites visibly appear is a VDP-visible VRAM question headless MAME cannot read -> TIGHE MUST VISUALLY VERIFY. If 0163 improves sprites -> residency/stale-VRAM was the blocker; else -> next target is sprite graphics source/layout/format or final VDP composition.
+* scope: gameplay sprite tile-refresh experiment only. NOT touched: VINT/vector/SR/VDP-reg ownership, collision, palette ownership, PC080SN/FG_SRC, player/camera/scroll, D00298, Exodus, audio, 0x002A offscreen filter, SAT placement/decode. No forced sprites/SAT/tiles, no second renderer, no permanent visual hack. Architecture compliance CONFIRMED.
+
+Open/Closed Issues Impact:
+- OPEN-017 (ROM does not run on real hardware / gameplay): advanced (BUILD, visual-test candidate). PROVEN: Build 0162 queues ZERO gameplay sprite tile DMA (residency cache blocks all refresh; tile_dma_count=0). Build 0163 forces represented gameplay slots to requeue tile DMA each interval (peak 6, 12/21 frames), gameplay-gated, title/palette/selector/staging all intact. Whether the forced refresh makes gameplay sprites visibly appear must be confirmed by Tighe (headless VRAM readback invalid). Build 0163 SHA 6f6efa750a004e5f74d365eb0d43119e7e88456ae44abc477237af93725171c5 (counter 163) preserved; accepted stays 0160. Not closed; no duplicate.
+
+# AGENTS Log
+
 ## [Andy - Analysis, Build 0163 micro-target: Sprite Prepare/Activation Gate -> STOP (D), NO BUILD]
 
 * analysis only (LOW budget), NO source/spec/tool/ROM/build. Baseline @ 9b1c22c, working candidate Build 0162 (counter 162, opcode_replace 137, coverage 0x1820AC). Deliverable docs/design/Andy_build0163_sprite_prepare_activation_gate.md + states/traces/prepgate/. Classification D. STOP.

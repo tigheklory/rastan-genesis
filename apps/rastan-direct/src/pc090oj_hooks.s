@@ -80,6 +80,8 @@
 
     .extern rastan_pc090oj
     .extern pc090oj_slot_lut
+    .extern genesistan_current_scene_id
+    .equ    PC090OJ_SCENE_GAMEPLAY_ID, 1
     .extern pc090oj_blank_code_bitset
     .extern pc090oj_opaque_bbox
     .extern genesistan_hook_tilemap_bg_fill
@@ -1377,6 +1379,15 @@ vdp_commit_sprites_vram:
     lea     worklist_entry_for_slot, %a1
     moveq   #0, %d4
     move.b  0(%a1,%d2.w), %d4          /* reserved idx (0xFF none) */
+
+    /* Build 0163 controlled experiment: during the gameplay scene, force this slot
+     * to REQUEUE tile DMA every interval by taking the "differ" path even when
+     * resident[slot]==code -- bypassing only the resident-code cache decision. This
+     * tests whether gameplay sprite VRAM tiles are stale despite the cache reporting
+     * the correct code resident. Gameplay-gated (title/frontend untouched); uses the
+     * existing worklist reservation (<=1 entry per slot per interval, count<=80). */
+    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    beq.s   .Lwls_differ
 
     cmp.w   %d3, %d1
     bne.s   .Lwls_differ
