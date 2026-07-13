@@ -37,7 +37,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 137
 # (0x181EE8 -> 0x182044). Paired constant in both gate scripts.
 # Build 0156 C08C66 raw FG digit-write route hook: +0x20 bytes (0x182044 -> 0x182064).
 # Build 0157 PC090OJ mirror_dirty->candidate resweep in vdp_prepare_sprites: +0xC (0x182064 -> 0x182070).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1820B8
+# Build 0164 pc090oj_workram_block_sprites 41f5e-path split (parameterized dest-record
+# base for 0x041F5E -> records 120..137/92..95): +0x1C (0x1820B8 -> 0x1820D4).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1820D4
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
@@ -866,6 +868,118 @@ def rewrite_absolute_rom_targets_in_scan_windows(
             )
 
     return rewrite_log
+
+
+def build_move_immediate_long_opcode_set() -> dict[int, str]:
+    """MOVE.L #imm,Dn (0x2n3C) and MOVEA.L #imm,An (0x2n7C) opcode words.
+
+    These are the only two 68000 instruction classes that load a 32-bit immediate
+    long into a register (data or address).  Decoded by class, not byte search:
+      MOVE.L  #imm,Dn -> 0010 nnn 000 111100  = 0x203C | (n<<9)
+      MOVEA.L #imm,An -> 0010 nnn 001 111100  = 0x207C | (n<<9)
+    """
+    out: dict[int, str] = {}
+    for n in range(8):
+        out[0x203C | (n << 9)] = f"MOVE.L #imm,D{n}"
+        out[0x207C | (n << 9)] = f"MOVEA.L #imm,A{n}"
+    return out
+
+
+def rewrite_wram_immediate_literals_in_scan_windows(
+    rom_bytes: bytearray,
+    maincpu_bytes: bytes,
+    scan_windows: list[tuple[str, int, int]],
+    relocation_delta: int,
+    execute_from_relocated_base: bool,
+    wram_value_windows: list[tuple[int, int]],
+    wram_delta: int,
+    skip_band_start: int,
+    skip_band_end: int,
+) -> list[dict[str, object]]:
+    """Rebase raw arcade-WRAM immediate-long operands in relocated arcade code.
+
+    KF-044: arcade producers load work-RAM pointers as raw immediate longs
+    (MOVE.L/MOVEA.L #0x0010xxxx,Rn).  The relocation pass only shifts code-region
+    abs.l targets, so these WRAM immediates survive and address ROM on Genesis
+    (writes dropped).  This pass rebases immediate-long operands whose value falls
+    inside one of the authorized arcade-WRAM value windows by +wram_delta
+    (0x10C000 -> 0xFF0000).  The windows are deliberately narrow (only the proven
+    producer-destination blocks): rebasing every WRAM literal in bulk perturbs
+    game-state variables that gate level/player progression, so only the vetted
+    blocks are rebased.  Guards: only those value windows are rebased; code
+    addresses and small constants are left alone; immediate values in the wider
+    [skip_band_start, skip_band_end) band that are NOT in any window are logged as
+    skipped ambiguous candidates for audit.
+    """
+    if not execute_from_relocated_base or relocation_delta == 0:
+        return []
+
+    def _in_windows(value: int) -> bool:
+        return any(lo <= value < hi for lo, hi in wram_value_windows)
+
+    move_opcode_set = build_move_immediate_long_opcode_set()
+    rebase_log: list[dict[str, object]] = []
+    skipped: list[dict[str, object]] = []
+    rebased_count = 0
+    already_count = 0
+
+    for range_name, range_start, range_end in scan_windows:
+        runtime_start = range_start + relocation_delta
+        source_cursor = range_start
+        runtime_cursor = runtime_start
+        while runtime_cursor + 6 <= range_end + relocation_delta:
+            opcode = int.from_bytes(maincpu_bytes[source_cursor:source_cursor + 2], "big")
+            if opcode in move_opcode_set:
+                src_operand = int.from_bytes(maincpu_bytes[source_cursor + 2:source_cursor + 6], "big")
+                if _in_windows(src_operand):
+                    rebased = src_operand + wram_delta
+                    current = int.from_bytes(rom_bytes[runtime_cursor + 2:runtime_cursor + 6], "big")
+                    if current == rebased:
+                        already_count += 1
+                        rebase_log.append({
+                            "kind": "wram_immediate_already_rebased",
+                            "arcade_pc": f"0x{source_cursor:06X}",
+                            "rom_pc": f"0x{runtime_cursor:06X}",
+                            "opcode": f"0x{opcode:04X} {move_opcode_set[opcode]}",
+                            "old": f"0x{src_operand:08X}",
+                            "new": f"0x{rebased:08X}",
+                        })
+                    else:
+                        rom_bytes[runtime_cursor + 2:runtime_cursor + 6] = rebased.to_bytes(4, "big")
+                        rebased_count += 1
+                        rebase_log.append({
+                            "kind": "wram_immediate_rebased",
+                            "arcade_pc": f"0x{source_cursor:06X}",
+                            "rom_pc": f"0x{runtime_cursor:06X}",
+                            "opcode": f"0x{opcode:04X} {move_opcode_set[opcode]}",
+                            "old": f"0x{src_operand:08X}",
+                            "new": f"0x{rebased:08X}",
+                            "prev_rom_operand": f"0x{current:08X}",
+                        })
+                elif skip_band_start <= src_operand < skip_band_end:
+                    skipped.append({
+                        "kind": "wram_immediate_skipped_ambiguous",
+                        "arcade_pc": f"0x{source_cursor:06X}",
+                        "rom_pc": f"0x{runtime_cursor:06X}",
+                        "opcode": f"0x{opcode:04X} {move_opcode_set[opcode]}",
+                        "value": f"0x{src_operand:08X}",
+                        "reason": "in skip band but outside authorized WRAM window",
+                    })
+                source_cursor += 6
+                runtime_cursor += 6
+            else:
+                source_cursor += 2
+                runtime_cursor += 2
+
+    summary: list[dict[str, object]] = [{
+        "kind": "wram_immediate_relocation_summary",
+        "wram_value_windows": [f"[0x{lo:06X},0x{hi:06X})" for lo, hi in wram_value_windows],
+        "wram_delta": f"0x{wram_delta:06X}",
+        "rebased_sites": rebased_count,
+        "already_rebased_sites": already_count,
+        "skipped_ambiguous_sites": len(skipped),
+    }]
+    return summary + rebase_log + skipped
 
 
 def rewrite_long_in_range(
@@ -1725,6 +1839,63 @@ def main() -> int:
                 "tag": "rom_patch",
             },
         )
+
+    # WRAM-immediate rebase (KF-044): after all opcode_replace sites are applied,
+    # rebase raw arcade-WRAM immediate-long operands (MOVE.L/MOVEA.L #0x0010xxxx,Rn)
+    # in the relocated arcade code so Genesis producers store into mapped work RAM
+    # (0x00FF0000..) instead of ROM.  Disjoint from the code-target relocation pass
+    # (which only shifts operands in [source_start, source_end)).
+    wram_imm_cfg = spec.get("wram_immediate_relocation", {})
+    if bool(wram_imm_cfg.get("enabled", False)):
+        wram_delta = parse_hexish(wram_imm_cfg["wram_delta"])
+        wram_base_lo = parse_hexish(wram_imm_cfg["wram_source_start"])
+        wram_base_hi = parse_hexish(wram_imm_cfg["wram_source_end_exclusive"])
+        skip_lo = parse_hexish(wram_imm_cfg.get("skip_band_start", wram_imm_cfg["wram_source_start"]))
+        skip_hi = parse_hexish(wram_imm_cfg.get("skip_band_end_exclusive", wram_imm_cfg["wram_source_end_exclusive"]))
+        # Narrow, vetted value windows (proven producer-destination blocks only):
+        # a bulk rebase of every WRAM literal regresses gameplay progression, so
+        # only these ranges are rebased.  Each must lie inside the arcade WRAM
+        # region and map into Genesis WRAM (0x00FF0000..0x00FF4000).
+        raw_windows = wram_imm_cfg.get("value_windows", [])
+        if not raw_windows:
+            raise RuntimeError("wram_immediate_relocation requires a non-empty value_windows list.")
+        wram_value_windows: list[tuple[int, int]] = []
+        for win in raw_windows:
+            lo = parse_hexish(win["start"])
+            hi = parse_hexish(win["end_exclusive"])
+            if hi <= lo:
+                raise RuntimeError(f"wram_immediate_relocation window has invalid bounds: {win!r}")
+            if not (wram_base_lo <= lo and hi <= wram_base_hi):
+                raise RuntimeError(
+                    f"wram_immediate_relocation window [0x{lo:06X},0x{hi:06X}) "
+                    f"is outside arcade WRAM [0x{wram_base_lo:06X},0x{wram_base_hi:06X})."
+                )
+            if lo + wram_delta != (lo - wram_base_lo) + 0x00FF0000:
+                raise RuntimeError(
+                    f"wram_immediate_relocation delta check failed for window start "
+                    f"0x{lo:06X}: 0x{lo:06X}+0x{wram_delta:06X}=0x{lo + wram_delta:06X}"
+                )
+            wram_value_windows.append((lo, hi))
+        wram_scan_windows = build_rom_call_scan_windows(
+            str(wram_imm_cfg.get("scan_ranges", "whole_maincpu_copy_window")),
+            copied_range_entries,
+            range_lookup,
+            whole_copy_cfg,
+            whole_copy_enabled,
+            whole_copy_mode,
+        )
+        wram_imm_log = rewrite_wram_immediate_literals_in_scan_windows(
+            rom_bytes,
+            maincpu_bytes,
+            wram_scan_windows,
+            relocation_delta,
+            execute_from_relocated_base,
+            wram_value_windows,
+            wram_delta,
+            skip_lo,
+            skip_hi,
+        )
+        rewrite_log.extend(wram_imm_log)
 
     # Pass B: resolve deferred abs.l operands after Pass A finalizes layout.
     operand_relocation_log: list[dict[str, object]] = []

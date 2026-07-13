@@ -739,6 +739,26 @@ Deferral reason: Single-source design-doc classification semantics may evolve wi
 
 ---
 
+## KF-044 — Raw arcade-WRAM immediate destination literals (movea.l/move.l #imm) are not rebased; Genesis producers using them write ROM (dropped), so their WRAM blocks stay empty
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (arcade + Genesis Build 0163 runtime write-taps; static disasm of writer sites)
+- **Applicability:** DURABLE relocation rule (rastan-direct) — WRAM producer path
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** player PC090OJ source block arcade `0x0010D1B2..0x0010D241` (A5+0x11B2) = Genesis `0x00FF11B2..0x00FF1241`. Base-literal loader sites (`movea.l #0x0010D1B2,An`, opcodes 0x207C/0x227C): `0x51E00, 0x5288C, 0x52A6C, 0x54074, 0x5430C, 0x5457A, 0x545BA, 0x547C8`. Executing writer PCs (arcade→Genesis +0x200): `0x5471E→0x5491E, 0x544DE→0x546DE, 0x545D6→0x547D6, 0x54530→0x54730, 0x54724→0x54924`. Record-offset literals: `0x10D1D2/1F2/212/2A8/2C8/338/420`. Broader residue: **61** raw-WRAM immediates in [0x10C000,0x110000), incl. palette `0x10D600`×6, collision `0x10DE00`.
+- **Source Documents:** docs/design/Andy_player_source_block_population_fix_attempt.md
+- **Related Issues:** OPEN-017
+- **Related Findings:** KF-039 (arcade WRAM base 0x10C000→0xFF0000), KF-042 (pass-selector `movel #imm,Dn` not rebased), KF-043 (palette source buffer)
+- **Last verified:** 2026-07-13 (Build 0163 baseline)
+
+**Finding.** The postpatch relocation only shifts code-region absolute operands (0x4EB9/0x4EF9/LEA abs.l in [0,0x60000)). It does NOT rebase WRAM immediate operands (arcade [0x10C000,0x110000) → Genesis 0xFF0000..). The player source-block writers compute the destination base with raw immediates `movea.l #0x0010D1B2,An` (0x207C/0x227C), and read control fields via A5-relative (correct). On Genesis these writers execute (verified: writer PCs = arcade+0x200) but store to raw `0x10D1B2` = ROM (unmapped for writes) → dropped. Genesis `0x00FF11B2` stays all-zero, so the downstream `0x041F5E`/`pc090oj_workram_block_sprites` copy has nothing to move and the player/Rastan cluster never reaches sprite records. Same class as the pass-selector immediate (KF-042) but for `movea.l`, and the same root as the palette/collision raw-literal producers.
+
+**Use as prior.** When a Genesis WRAM block is unexpectedly empty, check whether its arcade producer loads the destination as a raw WRAM immediate (`movea.l/move.l #imm` in [0x10C000,0x110000)). If so the write silently hits ROM on Genesis. The bounded per-site remedy is an `opcode_replace` on that immediate (`0x0010xxxx→0x00FFxxxx`, byte-neutral) as Build 0158 did for one literal (`0x10C016→0xFF0016`) and KF-036 did for the item-page descriptor block (`0x558C8..0x55C68`). Do NOT fix a downstream destination-record remap while the source block is still empty.
+
+**Build 0164 update — a BLANKET systemic rebase is UNSAFE; the player source block is un-fixable by literal rebase.** A postpatch pass (`rewrite_wram_immediate_literals_in_scan_windows`, spec `wram_immediate_relocation`) was implemented to rebase all MOVE.L/MOVEA.L #imm operands in a WRAM value window by +0x00EE4000 (mechanically correct: 55 sites/28 literals, 0 anomalies, verified in-ROM). But **enabling it regresses gameplay progression**: rebasing even *only* the player source block `0x10D1B2` freezes the game before player spawn (writerExec 561→0; producer frozen at F480 vs progressing to F536 in Build 0163). Cause: the `0x10D1B2` block is read/initialised pre-spawn by non-player-cluster routines — reader `0x51E00` (`movea.l #0x0010D1B2,a1; move.w a1@,…`), writer/init `0x5288C`/`0x52A6C` (`move.w #5,a0@+`) — which on Genesis alias ROM (constant reads / dropped writes); the mis-ported transition logic only advances in that ROM-aliased state, so zero-initialised WRAM hangs it. There are also NO a5-relative gameplay writers to `0xFF11B2` (only startup-zeroing 0x03B102/0x03A4D4). **Conclusion: the player source cannot be populated by literal rebasing; safe WRAM rebases must stay per-site opcode_replace on vetted addresses.** The pass is kept in the tree but GATED OFF (`enabled:false`). Populating the player source requires first resolving the pre-spawn ROM-alias dependency on `0x10D1B2` (trace 0x51E00/0x5288C/0x52A6C + a5-base in the F480–F536 window). The paired 0x041F5E destination-record split (A5+0x11B2→records 120..137, A5+0x0170→92..95) shipped in Build 0164 and is correct but inert until the source populates.
+
+---
+
 ---
 
 ### DEF-002 — Populated VDP internals can coexist with blank composed output

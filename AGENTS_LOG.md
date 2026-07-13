@@ -41582,3 +41582,156 @@ Open/Closed Issues Impact:
 - **KNOWN_FINDINGS impact:** Option A — no new finding to index; evidence is consistent with existing KF-039/KF-036 work-RAM literal mapping lessons.
 - **Architecture compliance:** CONFIRMED.
 - **STOP status:** NO.
+
+## [Cody — Analysis, Build 0163 Visual Result + Exodus + Scroll Boundary]
+
+- **Date:** 2026-07-13
+- **Type:** Analysis / documentation only; no build; no source/spec/tool/Makefile/ROM/invariant behavior changes.
+- **Baseline:** Build 0163 visual-test candidate `dist/rastan-direct/rastan_direct_video_test_build_0163.bin`, SHA `6f6efa750a004e5f74d365eb0d43119e7e88456ae44abc477237af93725171c5`, counter `163`, opcode_replace `137`, coverage `0x1820B8`. Accepted build remains Build 0160 unless Tighe explicitly accepts a later build.
+- **Files changed:** `docs/design/Cody_build0163_visual_result_exodus_scroll_boundary.md`, `AGENTS_LOG.md`.
+- **Build produced:** NO.
+- **Fix implemented:** NO.
+- **Experiment source status:** temporary Build 0163 forced-refresh experiment source is still present in `apps/rastan-direct/src/pc090oj_hooks.s` (`genesistan_current_scene_id` gameplay gate to `.Lwls_differ` in `.Lpc090oj_worklist_set`). Not reverted or modified in this task.
+- **Forced-refresh interpretation:** Build 0163 mechanically proves the gameplay-gated requeue path activates, but Tighe's visual result shows no major gameplay improvement versus Build 0162. Forced refresh alone is unlikely to be the primary sprite blocker and should not be treated as accepted permanent architecture.
+- **Visual summary:** title and throne/story screen mostly intact; `ROUND 1` / `READY` not meaningfully improved; gameplay mountain remains visible; Player/Rastan absent or quickly removed/dies; flickering dots persist; returning-title TAITO/title-logo tiles can corrupt; gameplay BG/FG scroll direction appears inverted versus arcade.
+- **Exodus note:** Exodus appears stuck in the previously identified `runtime_genesis_pc 0x0003A346` loop and does not reach the same final gameplay/palette state as BlastEm, so Exodus is not currently a fair verifier for Build 0163 gameplay sprite improvement. No Exodus fix attempted.
+- **Scroll note:** Tighe observed arcade fall scrolling moves tiles upward, while Genesis tested behavior appears inverted with tiles moving downward. Possible causes recorded only; no scroll fix attempted.
+- **Recommended next boundaries:** A) `PC090OJ Arcade-vs-Genesis Player Sprite Identity / Lifecycle Trace` for player/Rastan visibility; B) `PC080SN Arcade-vs-Genesis Gameplay Scroll Direction Trace` for background/camera correctness.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-001, OPEN-017, OPEN-024. New issues opened: NONE. Issues closed: NONE. Intentionally deferred: Exodus `0x3A346` loop, scroll-direction trace, returning-title tile lifecycle, collision/player-death, VINT, PC080SN/FG_SRC, palette.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; observations wait for dedicated runtime traces before promotion.
+- **Architecture compliance:** CONFIRMED. Documentation-only; arcade execution ownership and staging -> VBlank -> VDP model unchanged.
+- **STOP status:** NO.
+
+## [Cody — Analysis, Build 0162 vs Build 0163 A/B Comparison]
+
+- **Date:** 2026-07-13
+- **Type:** Analysis / documentation only; no build; no source/spec/tool/Makefile/ROM/invariant behavior changes.
+- **Baseline:** Build 0162 `dist/rastan-direct/rastan_direct_video_test_build_0162.bin` SHA `7bcb31790b2c6db44425655d486c0b74bf3a286a23e77b912594e7e78a9674b9`, counter `162`, opcode_replace `137`, coverage `0x1820AC`; Build 0163 `dist/rastan-direct/rastan_direct_video_test_build_0163.bin` SHA `6f6efa750a004e5f74d365eb0d43119e7e88456ae44abc477237af93725171c5`, counter `163`, opcode_replace `137`, coverage `0x1820B8`.
+- **Files changed:** `docs/design/Cody_build0162_vs_0163_ab_comparison.md`, `states/traces/build0163_ab_comparison/build0163_forced_refresh_experiment.patch`, `AGENTS_LOG.md`.
+- **Build produced:** NO.
+- **Fix implemented:** NO.
+- **Accepted build changed:** NO; Build 0160 remains accepted unless Tighe explicitly accepts a later build.
+- **Experiment source status:** temporary Build 0163 forced-refresh experiment source remains present; not reverted or modified in this task. Patch preserved for later cleanup/design reference.
+- **Mechanical A/B result:** Build 0162 queues zero gameplay sprite tile DMA (`tile_dma_count=0`, `0/21` gameplay frames); Build 0163 forces represented gameplay slots to requeue tile DMA (peak `tile_dma_count=6`, `12/21` sampled gameplay frames). Mechanically successful at the intended boundary.
+- **Visual classification:** D — inconclusive / masked. Tighe did not observe a clear improvement, but Build 0163 is not rejected because player death/removal, unknown player sprite identity, possible non-player represented records, inverted scroll observation, unresolved collision, Exodus loop, returning-title tile wipe, and unavailable VDP-visible VRAM/SAT readback can mask the effect.
+- **Decision outcome:** Build 0163 remains a live comparison candidate: preserved, mechanically successful, visually inconclusive, not accepted, not rejected, and not permanent architecture without further proof.
+- **Recommended next boundary:** `PC090OJ Arcade-vs-Genesis Player Sprite Identity / Lifecycle Trace`; secondary boundary `PC080SN Arcade-vs-Genesis Gameplay Scroll Direction Trace`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-001, OPEN-017, OPEN-024. New issues opened: NONE. Issues closed: NONE. Intentionally deferred: Exodus `0x3A346` loop, scroll-direction trace, returning-title tile lifecycle, collision/player death, VINT, PC080SN/FG_SRC, palette, hardcoded sprites/SAT, second renderer.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; the A/B result is guidance, not a durable mechanism until masking confounders are resolved.
+- **Architecture compliance:** CONFIRMED. Documentation-only; arcade execution ownership and staging -> VBlank -> VDP model unchanged.
+- **STOP status:** NO.
+
+## [Cody — Analysis, PC090OJ Player Sprite Identity / Lifecycle]
+
+- **Date:** 2026-07-13
+- **Type:** Runtime evidence / analysis-first boundary trace; no source/spec/tool/Makefile/ROM/build/invariant changes; no implementation.
+- **Baseline:** primary Genesis target Build 0163 `dist/rastan-direct/rastan_direct_video_test_build_0163.bin`, SHA `6f6efa750a004e5f74d365eb0d43119e7e88456ae44abc477237af93725171c5`; accepted build remains Build 0160 unless Tighe explicitly accepts a later build.
+- **Files changed:** `docs/design/Cody_pc090oj_player_sprite_identity_lifecycle.md`, `states/traces/player_sprite_identity/player_sprite_identity_20260713_160520/`, `AGENTS_LOG.md`.
+- **Build produced:** NO. Build 0164 not produced.
+- **Fix implemented:** NO.
+- **Candidate preserved:** YES. Build 0163 remains preserved as a live visual-test candidate, not accepted and not rejected.
+- **Runtime evidence:** original arcade MAME and Genesis Build 0163 MAME runs both exited status `0`; trace artifacts include `arcade_pc090oj_records.csv`, `genesis_pc090oj_records.csv`, `genesis_pc090oj_maps.csv`, `genesis_staged_sat.csv`, and reduced `player_sprite_identity_summary.md/json`.
+- **Classification:** A — Player record missing from Genesis `pc090oj_object_ram`. Original arcade reaches active state at frame `307`; Build 0163 reaches active state at frame `534`. At arcade active+2, records `128..131` at `HW_ADDRESS 0x00D00400..0x00D00418` contain player/Rastan body codes `0x010B..0x010E`; by active+30 the fuller cluster is records `120/121/124/125/126/128/129/130/131` with codes `0x009E/0x009F/0x008E/0x008F/0x0090/0x010B/0x010C/0x010D/0x010E`. Build 0163 has no matching records or matching codes anywhere in the captured early-active window.
+- **Genesis result:** Build 0163 represents other low records (`22..25`, `34..36`, `43..45`) and rejects `0x002A` filler as `offscreen_y`, so the player failure is upstream of Genesis decode/represent/SAT for the arcade-equivalent player cluster.
+- **Codes `0x0512/0x0513`:** Not present in the captured early arcade fall and not present in Build 0163's captured early-active window; the early-fall player fingerprint is not the older stable-window `0x0512/0x0513` pair.
+- **Quick death/removal:** Genesis player state exists at active+0/+30/+60 before later suspicious `0x0200` flags; the PC090OJ player body records are already absent at active+2, so quick death is not the immediate PC090OJ object-RAM boundary.
+- **Implementation STOP:** YES. Classification A is proven, but the exact missing producer PC/path is not yet proven; no safe Build 0164 source change is authorized. Recommended next boundary is a PC090OJ player-cluster producer provenance trace watching arcade `HW_ADDRESS 0x00D003C0..0x00D0041F` and Genesis mirror `0x00FF6D70..0x00FF6DCF` plus raw `0x00D003C0..0x00D0041F`, with writer PCs mapped through `build/rastan-direct/address_map.json`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-001, OPEN-017, OPEN-024; OPEN-018 context only. New issues opened: NONE. Issues closed: NONE. Intentionally deferred: collision/player-death fix, scroll direction, Exodus loop, returning-title tile lifecycle, VINT, PC080SN/FG_SRC, palette, hardcoded sprites/SAT, second renderer, general PC090OJ rewrite.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; durable mechanism waits on producer provenance or implementation proof.
+- **Architecture compliance:** CONFIRMED.
+- **STOP status:** YES (implementation STOP only; evidence/report completed).
+
+## [Cody — Analysis, PC090OJ Player-Cluster Producer Provenance]
+
+- **Date:** 2026-07-13
+- **Type:** Runtime evidence + static provenance analysis only; no source/spec/tool/Makefile/ROM/build/invariant changes; no implementation.
+- **Baseline:** Build 0163 candidate `dist/rastan-direct/rastan_direct_video_test_build_0163.bin`, SHA `6f6efa750a004e5f74d365eb0d43119e7e88456ae44abc477237af93725171c5`; accepted build remains whatever Tighe has explicitly accepted. Workspace branch/HEAD during note: `rastan-direct-proposal` / `77eb1bd`.
+- **Files changed:** `docs/design/Cody_pc090oj_player_cluster_producer_provenance.md`, `states/traces/player_cluster_producer_provenance/player_cluster_provenance_20260713_173756/`, `AGENTS_LOG.md`.
+- **Build produced:** NO. Build 0164 not produced.
+- **ROM path:** N/A.
+- **Fix implemented:** NO.
+- **No unrelated changes:** YES. Pre-existing dirty/untracked files were observed and not reverted.
+- **Architecture compliance:** CONFIRMED. Evidence-only; arcade code remains the program; Genesis helper/opcode-replacement path observed only.
+- **Exact addresses inspected:** original arcade player-cluster HW range `0x00D003C0..0x00D0041F`; Genesis mirror range `0x00FF6D70..0x00FF6DCF`; raw Genesis hardware range `0x00D003C0..0x00D0041F`; source blocks `arcade 0x0010D1B2 / 0x0010C170` and `Genesis-WRAM 0x00FF11B2 / 0x00FF0170`; original arcade producer `arcade_pc 0x041F5E`; Genesis replacement `runtime_genesis_pc 0x04215E`; helper `runtime_genesis_pc 0x071CB4`; mirror write PCs `0x071BF4/0x071BF6/0x071BFA/0x071BFE` and `0x071AC6/0x071AC8/0x071ACC/0x071AD0`.
+- **Arcade result:** original arcade active gameplay reaches state `2/3/0` at frame `307`; active+2 and active+30 contain the player/Rastan PC090OJ cluster in records `120/121/124/125/126/128/129/130/131`, including codes `0x009E/0x009F/0x008E/0x008F/0x0090/0x010B/0x010C/0x010D/0x010E`. The source block `0x0010D1B2` is populated before the copy.
+- **Genesis result:** Build 0163 active gameplay reaches state `2/3/0` at frame `534`; no writes were observed to mirror records `120..131` or raw `0x00D003C0..0x00D0041F`. Broad mirror writes occur only to records `0..21` via `.Lpc090oj_family_apply_record` and records `30..43` via `.Lpc090oj_emit_slot`. `Genesis-WRAM 0x00FF11B2` is empty through active+30.
+- **Classification:** F — more analysis needed. Secondary proven C-class defect: `pc090oj_workram_block_sprites` uses fixed low record ranges (`0..17`, `18..21`) for the `0x041F5E` family instead of the original destination records (`120..137`, `92..95`). However, correcting destination records alone is not safe because the Genesis source block feeding that copy is empty/divergent.
+- **Implementation STOP:** YES. Build 0164 is not safely authorized from this evidence; state causality for `A5+0x11B2` must be proven first.
+- **Recommended next boundary:** narrow source-block population provenance trace for original arcade `0x0010D1B2..0x0010D241` versus Genesis-WRAM `0x00FF11B2..0x00FF1241`, mapping source writer PCs through `build/rastan-direct/address_map.json`, then separately audit per-caller destination bases for shared `pc090oj_workram_block_sprites` callers before any correction.
+- **Design doc:** `docs/design/Cody_pc090oj_player_cluster_producer_provenance.md`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-001, OPEN-017, OPEN-024. New issues opened: NONE. Issues closed: NONE. Intentionally deferred: collision/death, scroll, PC080SN/FG_SRC, palette, D00298, Exodus-only UI work, broad PC090OJ rewrite, hardcoded sprites/SAT.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; durable root cause waits on source-block population provenance.
+- **STOP status:** YES (implementation STOP only; evidence/report completed).
+
+---
+
+## Andy — Player Source-Block Population Fix Attempt (A5+0x11B2)
+
+- **Date:** 2026-07-13
+- **Type:** Runtime evidence + static provenance analysis only; no source/spec/tool/Makefile/ROM/build/invariant changes; no implementation.
+- **Baseline:** Build 0163 candidate `dist/rastan-direct/rastan_direct_video_test_build_0163.bin`, SHA `6f6efa750a004e5f74d365eb0d43119e7e88456ae44abc477237af93725171c5`. Branch/HEAD: `rastan-direct-proposal` / `77eb1bd`. Counter 163 (unchanged).
+- **Files changed:** `docs/design/Andy_player_source_block_population_fix_attempt.md` (new), `KNOWN_FINDINGS.md` (+KF-044), `OPEN_ISSUES.md`, `AGENTS_LOG.md`, `states/traces/player_src/`.
+- **Build produced:** NO. Build 0164 not produced.
+- **ROM path:** N/A.
+- **Fix implemented:** NO.
+- **No unrelated changes:** YES. Pre-existing dirty/untracked files observed and not reverted.
+- **Architecture compliance:** CONFIRMED. Evidence-only; arcade code remains the program; no NOPs/RTS, no hardcoded records/codes/SAT, no broad PC090OJ rewrite; palette/VINT/vector/SR/VDP-reg ownership untouched.
+- **Method:** (1) Arcade write-tap over `0x0010D1B2..0x0010D241` during active gameplay; (2) Genesis (Build 0163) write-taps over BOTH mapped `0x00FF11B2..0x00FF1241` and raw `0x0010D1B2..0x0010D241`; (3) mapped arcade writer PCs `0x0544xx..0x0547xx` to Genesis via relocation_delta +0x200; (4) static disasm of the writer sites' destination-base load.
+- **Arcade result:** writers in `0x0544xx..0x0547xx` populate the block; final block `4003 0049 009E 0010 4003 0059 009F 0010 ...` carries player codes `0x009E/0x009F`.
+- **Genesis result:** writes to MAPPED `0x00FF11B2` = NONE; writes to RAW `0x0010D1B2` = MANY, from PCs = arcade writers +0x200 (`0x5491E/0x546DE/0x547D6/0x54730/0x54924`). `0x00FF11B2` block all-zero. The writers EXECUTE but store to ROM.
+- **Root cause (KF-044):** writers load the destination base via un-rebased raw arcade-WRAM immediates `movea.l #0x0010D1B2,An` (opcodes 0x207C/0x227C, 8 sites); the postpatch does not rebase WRAM immediates, so Genesis stores hit ROM (dropped) and `0x00FF11B2` stays empty. Same class as KF-042 (movel #imm,Dn) / KF-039.
+- **Destination side (secondary, non-gating):** original `0x041F5E` = `lea %a5@(4530),%a0` (A5-relative, correct); Genesis replacement `genesistan_pc090oj_hook_target_41f5e` -> `pc090oj_workram_block_sprites` maps A5+0x11B2 -> records `0..17` (and A5+0x0170 -> `18..21`) instead of arcade `120..137` / `92..95`. Not safe to fix while source empty.
+- **Classification:** first-broken-state = SOURCE (A5+0x11B2 empty). Bounded-fix gate: FAILS. Source fix is a multi-site raw-WRAM-literal family (8 base + >=7 offset literals) inside a 61-literal systemic residue; pairing with the destination-record remap makes it two-part/multi-site with per-site safety proof. Not a bounded single candidate.
+- **Implementation STOP:** YES. Build 0164 not authorized from this evidence.
+- **Build 0163 forced-refresh source status:** N/A — no Build 0164 exists; Build 0163's forced gameplay tile-DMA requeue gate remains in `pc090oj_hooks.s` unchanged; working tree/counter unchanged.
+- **Recommended next boundary:** dedicated systemic build — extend postpatch to rebase raw-WRAM immediate operands in [0x10C000,0x110000) for 0x203C/0x207C/0x227C (and siblings) -> +0xEF4000, guarded against non-address literals (closes player + palette 0x10D600 + collision 0x10DE00 residue in one pass). Then the `0x041F5E` record remap (0..17 -> 120..137, 18..21 -> 92..95) becomes meaningful and can be validated.
+- **Design doc:** `docs/design/Andy_player_source_block_population_fix_attempt.md`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017. New issues opened: NONE (root cause folded into OPEN-017 via KF-044). Issues closed: NONE. Intentionally deferred: systemic WRAM-immediate rebase build; 0x041F5E destination record remap; collision/death, scroll, PC080SN/FG_SRC, Exodus-only UI, broad PC090OJ rewrite, hardcoded sprites/SAT.
+- **KNOWN_FINDINGS impact:** KF-044 added (raw-WRAM immediate destination literals not rebased -> WRAM producers write ROM/dropped).
+- **STOP status:** YES (implementation STOP; evidence/report completed).
+
+### MAME Exit Summary (2026-07-13 18:27:11)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-13 18:32:47)
+- Final PC: 0x03B290
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-13 18:34:46)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-13 18:35:42)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-13 18:38:11)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy — Build 0164: WRAM-Immediate Rebase Infrastructure + 0x041F5E Destination Split
+
+- **Date:** 2026-07-13
+- **Type:** Implementation. Postpatch tool pass + pc090oj hook refactor + spec/invariant update. Build produced.
+- **Baseline:** HEAD `77eb1bd`, counter 163. Shipped ROM `dist/rastan-direct/rastan_direct_video_test_build_0164.bin`, SHA `76e93b2f66563632216c03377a679e47a7655e17e78731b230e81a6f00435c6a`, 1,581,268 bytes, counter 164. GATE_PASS.
+- **Build produced:** YES (Build 0164).
+- **Files changed:** `tools/translation/postpatch_startup_rom.py` (+`build_move_immediate_long_opcode_set`, +`rewrite_wram_immediate_literals_in_scan_windows`, main-flow wiring, coverage invariant 0x1820B8->0x1820D4), `tools/translation/verify_canonical_rom.py` (paired coverage invariant), `specs/rastan_direct_remap.json` (+`wram_immediate_relocation` block, gated off), `apps/rastan-direct/src/pc090oj_hooks.s` (0x041F5E destination split), docs/design, KNOWN_FINDINGS, OPEN_ISSUES, AGENTS_LOG.
+- **Two changes:**
+  1. **pc090oj 0x041F5E destination-mapping split — SHIPPED, safe.** `pc090oj_workram_block_sprites` refactored to a parameterized core; new entry `pc090oj_workram_block_sprites_41f5e` maps block A (A5+0x11B2, 18 rec) -> records 120..137 and block B (A5+0x0170, 4 rec) -> records 92..95 (arcade-correct: lea 0xD003C0 / 0xD002E0). `hook_target_41f5e` calls the new variant; `hook_target_45dfa` keeps the original 0..17/18..21 (arcade 0x045DFA is a distinct routine, dests 140/46/96 via 0x3D054 -- not globally changed). Coverage +0x1C.
+  2. **Systemic WRAM-immediate rebase — IMPLEMENTED but GATED OFF.** Decodes MOVE.L #imm,Dn (0x2n3C)/MOVEA.L #imm,An (0x2n7C), rebases operands in a WRAM value window by +0x00EE4000. Mechanically verified: full-window run rebased 55 sites/28 literals (incl. 0x10D1B2 x8 -> 0xFF11B2, 0x10DE00 -> 0xFF1E00), 0 anomalies. Delta arithmetic asserted (0x10D1B2->0xFF11B2, 0x10D600->0xFF1600, 0x10DE00->0xFF1E00). 0x10D600 is LEA-abs class (out of MOVE/MOVEA scope; already handled by KF-043 palette hook).
+- **CRITICAL runtime finding — blanket rebase regresses gameplay.** Isolation (diag.lua, matched coin/start): 0163 control progresses (writerExec 561, frames[536..718]); full systemic rebase FREEZES at F480 (writerExec 0); narrow 2-block FREEZES; block-A-only (0x10D1B2) FREEZES; split-only rebase-OFF progresses (writerExec 626). So the pc090oj split is safe and the WRAM rebase is the sole regressor -- and even rebasing only the player source block hangs the game. Cause: `0x10D1B2` is read/init pre-spawn by non-player-cluster routines (reader 0x51E00, writer/init 0x5288C/0x52A6C) that on Genesis alias ROM; the mis-ported transition only advances in that ROM-aliased state. No a5-relative gameplay writers to 0xFF11B2 exist. => player source cannot be populated by literal rebase.
+- **Shipped ROM state:** rebase gated off; WRAM immediates match Build 0163 byte-for-byte (37 raw + 7 pre-existing KF-036 opcode_replace rebases). Progression intact (writerExec 626). Palette L0=15/L1=14/L2=15/L3=15 (0161/0162 preserved). Source 0xFF11B2 empty; records 120..137 empty (split correct but inert until source populates). No new fatal address; boot guard PASS.
+- **Build 0163 forced-refresh:** RETAINED unchanged in Build 0164 (pc090oj_hooks.s edited only for the 0x041F5E split).
+- **Preserved rejected artifacts:** `dist/rastan-direct/rejected/rastan_direct_video_test_build_0164_full_systemic_REGRESSION.bin`, `..._blockA_rebase_REGRESSION.bin`.
+- **Architecture compliance:** CONFIRMED. No NOPs/RTS (the pass writes only address operands; the split is real logic), no hardcoded records/codes/SAT, no broad PC090OJ rewrite, palette/VINT/vector/SR/VDP-reg ownership untouched, 0x045DFA/0x041DAE callers intact.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017. New issues opened: NONE. Issues closed: NONE. Deferred: pre-spawn 0x10D1B2 ROM-alias dependency (blocks player-source population); collision/scroll/Exodus/title-lifecycle.
+- **KNOWN_FINDINGS impact:** KF-044 updated (blanket WRAM rebase unsafe; player source un-fixable by literal rebase; per-site opcode_replace remains the safe pattern).
+- **STOP triggered:** NO (build produced). But the requested systemic rebase is gated off on runtime-regression evidence; player does not yet appear.

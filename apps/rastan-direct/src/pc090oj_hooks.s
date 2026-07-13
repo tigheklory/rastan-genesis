@@ -56,6 +56,7 @@
 
     /* Build 0142 retained-identity translation state */
     .global pc090oj_workram_block_sprites
+    .global pc090oj_workram_block_sprites_41f5e
     .global record_to_slot
     .global represented_records
     .global waiting_records
@@ -271,10 +272,32 @@
  * It does NOT set a candidate; later unconverted writes to the same record
  * re-set the candidate and VBlank re-syncs it (§9-E.2/§9-E.3).
  */
+/* 0x041F5E path (KF-044 companion): the original arcade routine copies
+ *   lea 0x11B2(a5),a0 ; moveq #18 ; lea 0xD003C0,a1   (0xD003C0/8 = record 120)
+ *   lea 0x0170(a5),a0 ; moveq #4  ; lea 0xD002E0,a1   (0xD002E0/8 = record 92)
+ * so block A -> records 120..137 and block B -> records 92..95.  The previous
+ * translation collapsed both blocks to records 0..17 / 18..21, so the player
+ * PC090OJ cluster (which the represent engine reads from the arcade-correct
+ * records) was never populated.  Restore the arcade destination records. */
+pc090oj_workram_block_sprites_41f5e:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.w  #120, %d5                    /* block A base record (0xD003C0/8) */
+    move.w  #92, %d7                     /* block B base record (0xD002E0/8) */
+    bra.s   .Lwbs_run
+
+/* Default path: arcade 0x045DFA hook and any legacy caller keep the prior
+ * mapping (block A -> 0..17, block B -> 18..21).  Arcade 0x045DFA is a distinct
+ * routine (sources A5+0x5C8/0x748/0x8C8, dest records 140/46/96 via 0x3D054),
+ * so its true destination is out of this fix's proven scope -- unchanged. */
 pc090oj_workram_block_sprites:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.w  #0, %d5
+    move.w  #18, %d7
+.Lwbs_run:
     lea     0x11B2(%a5), %a0
-    moveq   #0, %d0
+    move.w  %d5, %d0                     /* d0 = block A base record */
+    move.w  %d5, %d6
+    addi.w  #18, %d6                     /* d6 = block A end (exclusive) */
 .Lwbs_block_a:
     move.w  (%a0), %d1
     move.w  2(%a0), %d2
@@ -283,11 +306,13 @@ pc090oj_workram_block_sprites:
     bsr     .Lpc090oj_family_apply_record
     adda.w  #8, %a0
     addq.w  #1, %d0
-    cmpi.w  #18, %d0
+    cmp.w   %d6, %d0
     blo.s   .Lwbs_block_a
 
     lea     0x0170(%a5), %a0
-    moveq   #18, %d0
+    move.w  %d7, %d0                     /* d0 = block B base record */
+    move.w  %d7, %d6
+    addi.w  #4, %d6                      /* d6 = block B end (exclusive) */
 .Lwbs_block_b:
     move.w  (%a0), %d1
     move.w  2(%a0), %d2
@@ -296,7 +321,7 @@ pc090oj_workram_block_sprites:
     bsr     .Lpc090oj_family_apply_record
     adda.w  #8, %a0
     addq.w  #1, %d0
-    cmpi.w  #22, %d0
+    cmp.w   %d6, %d0
     blo.s   .Lwbs_block_b
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
@@ -414,7 +439,7 @@ genesistan_pc090oj_hook_target_41dae:
     rts
 
 genesistan_pc090oj_hook_target_41f5e:
-    bsr     pc090oj_workram_block_sprites
+    bsr     pc090oj_workram_block_sprites_41f5e
     rts
 
 genesistan_pc090oj_hook_target_45dfa:

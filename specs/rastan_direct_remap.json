@@ -48,6 +48,28 @@
       "0x2E7C"
     ]
   },
+  "wram_immediate_relocation": {
+    "enabled": false,
+    "description": "KF-044 infrastructure (present, GATED OFF): rebase raw arcade-WRAM immediate-long operands (MOVE.L/MOVEA.L #imm,Rn) by +0xEE4000. Proven mechanically correct (rebases the player source block 0x10D1B2/0x10C170 to 0xFF11B2/0xFF0170), but ENABLING it regresses gameplay: the pre-spawn transition reads/inits the 0x10D1B2 block via raw literals (e.g. readers 0x51E00, writers 0x5288C/0x52A6C) that on Genesis alias ROM, and the mis-ported progression logic only advances in that state. Kept disabled pending resolution of that dependency.",
+    "wram_source_start": "0x0010C000",
+    "wram_source_end_exclusive": "0x00110000",
+    "wram_delta": "0x00EE4000",
+    "skip_band_start": "0x00100000",
+    "skip_band_end_exclusive": "0x00120000",
+    "scan_ranges": "whole_maincpu_copy_window",
+    "value_windows": [
+      {
+        "start": "0x0010D1B2",
+        "end_exclusive": "0x0010D242",
+        "note": "A5+0x11B2 block A, 18 records -> 0xFF11B2"
+      },
+      {
+        "start": "0x0010C170",
+        "end_exclusive": "0x0010C190",
+        "note": "A5+0x0170 block B, 4 records -> 0xFF0170"
+      }
+    ]
+  },
   "declared_arcade_windows": [
     {
       "name": "maincpu_rom",
