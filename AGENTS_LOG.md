@@ -41764,3 +41764,30 @@ Open/Closed Issues Impact:
 - **Architecture compliance:** CONFIRMED.
 - **STOP status:** NO.
 - **Representation/SAT follow-up:** Additional snapshot in the same trace directory confirms records `120/121/124/125/126/128/129/130/131` are represented and have staged SAT entries during gameplay frame `560`; records `132..134` remain `slot=FF represented=0` with suspicious `0x0010/0x5551/...`-style contents.
+
+### MAME Exit Summary (2026-07-13 22:35:33)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0165 Visual Issue Ledger + Build 0166 Vertical Scroll Direction Fix]
+
+- **Date:** 2026-07-13
+- **Type:** Issue-ledger update + focused runtime/static trace + bounded implementation.
+- **Baseline:** Build 0165 `dist/rastan-direct/rastan_direct_video_test_build_0165.bin`, SHA `dd2e4d63ece2b7862b58da33b9c662114a27659844f5ef4154b2cf3a55986c4c`, counter `165`.
+- **Build produced:** YES — Build 0166.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0166.bin`.
+- **ROM SHA256 / size / counter:** `a74365146eef4fdf0e9b429d7e66d63186023e3541f36fc1fa9b2703eed62ff5`, `1,581,272` bytes, counter `166`.
+- **Files changed:** `apps/rastan-direct/src/vdp_comm.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, `docs/design/Cody_build0165_visual_issue_ledger_and_scroll_trace.md`, trace artifacts under `states/traces/build0165_scroll_direction_20260713_223304/` and `states/traces/build0166_scroll_direction_validation_20260713_223550/`, generated build artifacts/manifests/disasm/symbols, `AGENTS_LOG.md`.
+- **Issue ledger:** OPEN-017 updated with Build 0165 milestone plus unresolved visual/runtime issues: reversed vertical scroll, fire/death/lava behavior, apparent input/control issue, rolling black bar/VBlank budget, slowdown, ROUND 1/READY flicker/missing header sprites, continue/game-over wrong tiles, D00298 attract-demo issue, suspicious PC090OJ records `132..134`. OPEN-024 cross-noted sprite-specific follow-up. No issues closed.
+- **Build 0165 milestone recorded:** `0x00FF11B2` populated; records `120/121/124/125/126/128/129/130/131` receive player-cluster codes, represented, and staged SAT; Tighe visually confirmed Rastan appears; Build 0163 forced-refresh remains included. Accepted build unchanged pending Tighe acceptance.
+- **Vertical scroll classification:** bounded VDP-scroll conversion sign defect. Arcade and Genesis Build 0165 source/staged Y values are arcade-equivalent raw PC080SN values; Genesis committed `raw + 8` to VSRAM, but the documented Genesis convention is `-raw + 8`.
+- **Fix implemented:** YES. `vdp_commit_scroll` now applies `neg.w %d0` before the existing `VDP_DISPLAY_ORIGIN_Y_BIAS` for both FG and BG vertical VSRAM writes. No horizontal scroll, collision, input, sprite representation, D00298, scene-loader, LUT, or VBlank-budget changes.
+- **Build/invariant result:** first release attempt stopped on canonical coverage mismatch (`0x1820D4` expected vs `0x1820D8` observed, opcode_replace count `142` unchanged). Updated canonical coverage constants to `0x1820D8` for the two inserted `neg.w` instructions, reran release successfully. GATE_PASS / boot guard PASS.
+- **Static verification:** generated disassembly shows `0x70228 movew 0xff409c,%d0; 0x7022E negw %d0; 0x70230 addqw #8,%d0; ... 0x70238 movew 0xff409a,%d0; 0x7023E negw %d0`.
+- **Runtime validation:** Build 0165 trace `states/traces/build0165_scroll_direction_20260713_223304/` compares arcade and Genesis source/staged Y during Round 1 fall. Build 0166 trace `states/traces/build0166_scroll_direction_validation_20260713_223550/` confirms active gameplay still reached and inferred VSRAM values now use the negated convention (e.g. staged `0x01F4 -> VSRAM 0xFE14`). MAME traces exited `0`; no new fatal observed in the sampled scripted 1P path.
+- **Remaining issues:** Build 0166 scripted trace still reaches mode `0x0008` / fire-death boundary; collision/death/surface-state is not fixed. Input/down+attack, rolling black bar/VBlank budget, game slowdown, ROUND 1/READY flicker/header sprites, continue/game-over tile lifecycle, D00298 attract-demo, and records `132..134` are intentionally deferred.
+- **KNOWN_FINDINGS impact:** KF-015 updated to explicitly record vertical raw PC080SN Y conversion as `-raw + 8` and Build 0166 verification.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017, OPEN-024. New issues opened: NONE. Issues closed: NONE. Deferred issues as listed above.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper change is limited to VBlank scroll publication; no scaffolding, no bypass, no hardcoded state.
+- **STOP status:** NO.

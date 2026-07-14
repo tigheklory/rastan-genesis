@@ -42,7 +42,8 @@ CANONICAL_OPCODE_REPLACE_COUNT = 142
 # Build 0164 pc090oj_workram_block_sprites 41f5e-path split (parameterized dest-record
 # base for 0x041F5E -> records 120..137/92..95): +0x1C (0x1820B8 -> 0x1820D4).
 # Build 0165 targeted player-source immediate opcode_replace sites are byte-neutral; coverage unchanged.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1820D4
+# Build 0166 vertical scroll conversion adds two NEG.W instructions in the VBlank scroll commit: +0x4.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1820D8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

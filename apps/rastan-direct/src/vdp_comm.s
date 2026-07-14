@@ -304,9 +304,11 @@ vdp_commit_scroll:
 
     move.l  #0x40000010, VDP_CTRL
     move.w  staged_scroll_y_fg, %d0
+    neg.w   %d0
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
     move.w  %d0, VDP_DATA
     move.w  staged_scroll_y_bg, %d0
+    neg.w   %d0
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
     move.w  %d0, VDP_DATA
     rts

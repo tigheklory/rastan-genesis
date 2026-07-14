@@ -257,18 +257,18 @@ Agents read this file at the start of every task. Propose updates only for durab
 
 **Finding.** The PC080SN tile-LUT path pre-assigns VRAM slots for strip-table-reachable tile codes and uses direct LUT lookup at runtime (no per-hit lookup DMA work).
 
-## KF-015 — Scroll model: full-plane with +8 vertical bias, no per-line
+## KF-015 — Scroll model: full-plane with raw-Y negation plus +8 vertical bias, no per-line
 
 - **Status:** ACTIVE
 - **Confidence:** STRONG
 - **Applicability:** GLOBAL
 - **Rediscovery Hazard:** NORMAL
 - **Addresses:** WRAM/A5 offsets `0x10EC`, `0x10EE`, `0x10AE`, `0x10B0`
-- **Source Documents:** docs/design/pc080sn_tilemap_architecture.md (Scroll System)
-- **Related Issues:** (none)
-- **Last verified:** 2026-05-22 (Build 0077)
+- **Source Documents:** docs/design/pc080sn_tilemap_architecture.md (Scroll System); docs/design/build317_scroll_wram_staging_and_single_commit.md; docs/design/Cody_build0165_visual_issue_ledger_and_scroll_trace.md
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-13 (Build 0166 vertical-scroll sign fix)
 
-**Finding.** Documented scroll commit uses full-plane BG/FG scroll values with +8 vertical bias and does not use per-scanline scroll mode.
+**Finding.** Documented scroll commit uses full-plane BG/FG scroll values and does not use per-scanline scroll mode. For vertical scroll, raw PC080SN BG/FG Y source words (`a5+0x10EE` / `a5+0x10B0`) must be converted to Genesis VSRAM convention as `-raw + VDP_DISPLAY_ORIGIN_Y_BIAS` (bias currently `+8`), not committed raw with bias only. Build 0165 proved the raw source/staged Y values matched arcade directionally while Genesis VSRAM publication used the wrong sign; Build 0166 restored the negation in `vdp_commit_scroll`.
 
 ## KF-016 — Title-state VBlank sprite-RAM clear pattern
 
