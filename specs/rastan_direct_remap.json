@@ -775,6 +775,36 @@
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x54052 (helper genesistan_pc090oj_hook_slot_init_54052). Intercepts 2 ledger callers (0x0501F4, 0x051260). Helper preserves the original function's Taito C-chip text-RAM clears at 0x10D1B2/0x10D1D2/0x10D1F2 (replicated verbatim) and emits sprite-slot init to SAT slots 72..75. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
+      "arcade_pc": "0x054492",
+      "original_bytes": "227C0010D1D2",
+      "replacement_bytes": "227C00FF11D2",
+      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay source-population base for A5+0x11D2 (arcade 0x0010D1D2 -> Genesis-WRAM 0x00FF11D2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
+    },
+    {
+      "arcade_pc": "0x05457A",
+      "original_bytes": "227C0010D1B2",
+      "replacement_bytes": "227C00FF11B2",
+      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay fallback/clear population base for A5+0x11B2 (arcade 0x0010D1B2 -> Genesis-WRAM 0x00FF11B2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
+    },
+    {
+      "arcade_pc": "0x0545BA",
+      "original_bytes": "227C0010D1B2",
+      "replacement_bytes": "227C00FF11B2",
+      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay player-source population base for A5+0x11B2 (arcade 0x0010D1B2 -> Genesis-WRAM 0x00FF11B2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
+    },
+    {
+      "arcade_pc": "0x0546A8",
+      "original_bytes": "227C0010D1F2",
+      "replacement_bytes": "227C00FF11F2",
+      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay player-source population base for A5+0x11F2 (arcade 0x0010D1F2 -> Genesis-WRAM 0x00FF11F2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
+    },
+    {
+      "arcade_pc": "0x05475A",
+      "original_bytes": "227C0010D212",
+      "replacement_bytes": "227C00FF1212",
+      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay player-source population base for A5+0x1212 (arcade 0x0010D212 -> Genesis-WRAM 0x00FF1212). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
+    },
+    {
       "arcade_pc": "0x054810",
       "original_bytes": "227C00D00000207C0005DC5EC0FC001841F00000343C00043028000432C0102800034880D06D129C5240024001FF32C0301032E80000102800024880D06D129A024001FF3E00300732C0D0FC0006534266C64E75",
       "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_sprite_update_54810}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
@@ -1043,6 +1073,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 137
+    "opcode_replace_count": 142
   }
 }

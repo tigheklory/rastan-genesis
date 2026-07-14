@@ -136,7 +136,7 @@ Disassembly of section .data:
      188:	2000           	movel %d0,%d0
      18a:	004a           	.short 0x004a
      18c:	2020           	movel %a0@-,%d0
-     18e:	e360           	aslw %d1,%d0
+     18e:	280b           	movel %a3,%d4
      190:	2020           	movel %a0@-,%d0
      192:	2020           	movel %a0@-,%d0
      194:	2020           	movel %a0@-,%d0
@@ -106152,7 +106152,7 @@ Disassembly of section .data:
    54688:	3b40 1246      	movew %d0,%a5@(4678)
    5468c:	6100 021a      	bsrw 0x548a8
    54690:	4e75           	rts
-   54692:	227c 0010 d1d2 	moveal #1102290,%a1
+   54692:	227c 00ff 11d2 	moveal #16716242,%a1
    54698:	207c 0005 bf40 	moveal #376640,%a0
    5469e:	302d 1244      	movew %a5@(4676),%d0
    546a2:	0c6d 0009 10e8 	cmpiw #9,%a5@(4328)
@@ -106217,7 +106217,7 @@ Disassembly of section .data:
    5476e:	207c 0005 d866 	moveal #383078,%a0
    54774:	6022           	bras 0x54798
    54776:	343c 0004      	movew #4,%d2
-   5477a:	227c 0010 d1b2 	moveal #1102258,%a1
+   5477a:	227c 00ff 11b2 	moveal #16716210,%a1
    54780:	32fc 0003      	movew #3,%a1@+
    54784:	32fc 0000      	movew #0,%a1@+
    54788:	32fc 0000      	movew #0,%a1@+
@@ -106236,7 +106236,7 @@ Disassembly of section .data:
    547b2:	43f1 0000      	lea %a1@(0,%d0:w),%a1
    547b6:	3011           	movew %a1@,%d0
    547b8:	d0c0           	addaw %d0,%a0
-   547ba:	227c 0010 d1b2 	moveal #1102258,%a1
+   547ba:	227c 00ff 11b2 	moveal #16716210,%a1
    547c0:	343c 0004      	movew #4,%d2
    547c4:	3010           	movew %a0@,%d0
    547c6:	0c40 0000      	cmpiw #0,%d0
@@ -106307,7 +106307,7 @@ Disassembly of section .data:
    5489a:	047f           	.short 0x047f
    5489c:	0481 0483 047e 	subil #75695230,%d1
    548a2:	0480 0482 0484 	subil #75629700,%d0
-   548a8:	227c 0010 d1f2 	moveal #1102322,%a1
+   548a8:	227c 00ff 11f2 	moveal #16716274,%a1
    548ae:	207c 0005 c666 	moveal #378470,%a0
    548b4:	302d 1246      	movew %a5@(4678),%d0
    548b8:	0c6d 0009 10e8 	cmpiw #9,%a5@(4328)
@@ -106358,7 +106358,7 @@ Disassembly of section .data:
    5494c:	4e75           	rts
    5494e:	0c6d 0004 12fa 	cmpiw #4,%a5@(4858)
    54954:	207c 0010 d338 	moveal #1102648,%a0
-   5495a:	227c 0010 d212 	moveal #1102354,%a1
+   5495a:	227c 00ff 1212 	moveal #16716306,%a1
    54960:	343c 0003      	movew #3,%d2
    54964:	3228 0000      	movew %a0@(0),%d1
    54968:	0c41 00ff      	cmpiw #255,%d1

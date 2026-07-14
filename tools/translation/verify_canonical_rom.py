@@ -31,7 +31,9 @@ FAIL_STATE_CORRUPTED = "GATE_FAIL_STATE_CORRUPTED"
 
 # Build 0156: +1 opcode_replace (0x03D04C C08C66 raw FG digit write -> staging).
 # Build 0158: +1 opcode_replace (0x05102E raw WRAM literal 0x10C016 -> 0xFF0016 rebase).
-CANONICAL_OPCODE_REPLACE_COUNT = 137
+# Build 0165: +5 opcode_replace targeted player-source WRAM immediate rebases
+# (0x054492/0x05457A/0x0545BA/0x0546A8/0x05475A), byte-neutral.
+CANONICAL_OPCODE_REPLACE_COUNT = 142
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -51,6 +53,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 137
 # Build 0157 PC090OJ mirror_dirty->candidate resweep in vdp_prepare_sprites: +0xC (0x182064 -> 0x182070).
 # Build 0164 pc090oj_workram_block_sprites 41f5e-path split (parameterized dest-record
 # base for 0x041F5E -> records 120..137/92..95): +0x1C (0x1820B8 -> 0x1820D4).
+# Build 0165 targeted player-source immediate opcode_replace sites are byte-neutral; coverage unchanged.
 CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1820D4
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")

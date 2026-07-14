@@ -41735,3 +41735,32 @@ Open/Closed Issues Impact:
 - **Open/Closed Issues Impact:** Open issues touched: OPEN-017. New issues opened: NONE. Issues closed: NONE. Deferred: pre-spawn 0x10D1B2 ROM-alias dependency (blocks player-source population); collision/scroll/Exodus/title-lifecycle.
 - **KNOWN_FINDINGS impact:** KF-044 updated (blanket WRAM rebase unsafe; player source un-fixable by literal rebase; per-site opcode_replace remains the safe pattern).
 - **STOP triggered:** NO (build produced). But the requested systemic rebase is gated off on runtime-regression evidence; player does not yet appear.
+
+### MAME Exit Summary (2026-07-13 19:39:10)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0165 Targeted Player-Source Writer Rebase]
+
+- **Date:** 2026-07-13
+- **Type:** Implementation + verification; targeted opcode_replace only.
+- **Baseline:** Build 0164 `dist/rastan-direct/rastan_direct_video_test_build_0164.bin`, SHA `76e93b2f66563632216c03377a679e47a7655e17e78731b230e81a6f00435c6a`, counter `164`.
+- **Build produced:** YES — Build 0165.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0165.bin`.
+- **ROM SHA256 / size:** `dd2e4d63ece2b7862b58da33b9c662114a27659844f5ef4154b2cf3a55986c4c`, `1,581,268` bytes.
+- **Counter:** `165`.
+- **Files changed:** `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated build artifacts/manifests/disasm/symbols, `docs/design/Cody_build0165_targeted_player_source_writer_rebase.md`, `states/traces/build0165_targeted_player_source_writer_rebase_20260713_194138/`, `AGENTS_LOG.md`.
+- **Fix implemented:** YES. Added five byte-neutral targeted active-gameplay `MOVEA.L #imm,A1` rebases for player-source population: arcade `0x054492`, `0x05457A`, `0x0545BA`, `0x0546A8`, `0x05475A` -> Genesis-WRAM `0x00FF11D2`, `0x00FF11B2`, `0x00FF11B2`, `0x00FF11F2`, `0x00FF1212`.
+- **Systemic pass status:** `spec.wram_immediate_relocation.enabled` remains `false`.
+- **Forbidden pre-spawn sites:** left canonical/raw: runtime `0x052000 = 227C0010D1B2...`, `0x052A8C = 207C0010D1B2...`, `0x052C6C = 207C0010D1B2...`.
+- **Build 0164 split status:** retained. `pc090oj_workram_block_sprites_41f5e` still maps block A to records `120..137` and block B to `92..95`.
+- **Invariant delta:** opcode_replace `137 -> 142`; total coverage unchanged `0x1820D4` because all five replacements are byte-neutral. First release attempt stopped on expected-coverage mismatch (`0x1820F2` vs observed `0x1820D4`); corrected invariants and reran release successfully.
+- **Runtime validation:** MAME trace `states/traces/build0165_targeted_player_source_writer_rebase_20260713_194138/` exited status `0`. Build 0165 reaches state `2/3/0`; at frame `560`, `0x00FF11B2` has `51` nonzero words, records `120..137` have `15` nonempty records, represented/staged-active counts are `24/24`, palette lines remain populated (`15/14/15/15`). Control Build 0164 had zero source writes and empty records `120..137` at gameplay.
+- **Caveat:** final visual correctness is not proven. Records `132..134` still contain suspicious `0x0010/0x5551/...`-style words; treat as downstream/source-content evidence, not a reason to broaden this patch.
+- **No unrelated changes:** YES. No D00298, scroll, VDP DMA, LUT, scene-loader, collision/death, hardcoded sprite, or broad PC090OJ work.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017, OPEN-001, OPEN-024 context. New issues opened: NONE. Issues closed: NONE. Deferred: visual/player correctness, records `132..134`, pre-spawn ROM-alias dependency, D00298, collision/death, scroll, LUT/DMA/scene-loader work.
+- **KNOWN_FINDINGS impact:** Option C proposed for KF-044; no `KNOWN_FINDINGS.md` edit performed here.
+- **Architecture compliance:** CONFIRMED.
+- **STOP status:** NO.
+- **Representation/SAT follow-up:** Additional snapshot in the same trace directory confirms records `120/121/124/125/126/128/129/130/131` are represented and have staged SAT entries during gameplay frame `560`; records `132..134` remain `slot=FF represented=0` with suspicious `0x0010/0x5551/...`-style contents.

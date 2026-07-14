@@ -46,9 +46,9 @@
 00000140 a GENESIS_VIEWPORT_RIGHT
 00000200 a ARCADE_MAINCPU_ROM_BASE
 00000200 a ARCADE_ROM_BASE
-00000200 t _boot_guard_legacy_rte
 00000200 a FG_BLOCK_RELOC
 00000200 a PC080SN_DESC_SECOND_WORD_BASE
+00000200 t _boot_guard_legacy_rte
 00000202 T _start
 00000226 t _bootstrap
 0000024a t _bootstrap_clear_staging
@@ -61,8 +61,8 @@
 000003ee T _crash_stub_privilege
 000003f4 T _crash_stub_trace
 000003fa T _crash_stub_line_a
-00000400 T _crash_stub_line_f
 00000400 a SPRITE_TILE_BASE
+00000400 T _crash_stub_line_f
 00000406 T _crash_stub_trap_00
 0000040c T _crash_stub_trap_01
 00000412 T _crash_stub_trap_02
