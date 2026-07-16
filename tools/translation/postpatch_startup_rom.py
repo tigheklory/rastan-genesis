@@ -56,7 +56,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 151
 # Build 0181 configurable PC090OJ mirror sizing: record-based mirror writers
 # (emit_slot, family_apply_record) gain out-of-range record bounds checks so
 # PC090OJ_MIRROR_RECORDS<256 cannot overflow the mirror: +0x28 (0x1826D0 -> 0x1826F8).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1826F8
+# Build 0192 gameplay-gated suppression of spurious low-record player duplicate
+# (hook_target_41dae/45dfa scene-1 skip of default block copy): +0x14 (0x1826F8 -> 0x18270C).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x18270C
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

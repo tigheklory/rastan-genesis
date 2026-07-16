@@ -904,3 +904,39 @@ Deferral reason: Disagreement is still open and unconverged; defer canonical pro
 **Finding.** `PC090OJ_MIRROR_RECORDS` (KF-048) has a hard visual floor at **122**. Sweep of the head SAT sprite X (fixed 0x00FFA1B0): >=122 correct (screen X≈16, left); 116..120 head sprite empty; <=112 flipped to screen X≈288 (right) — `0x1A0 = (320 - x - 16) + 0x80`, the PC090OJ flip-screen transform. The low player records 0..14 are byte-identical across caps, so the corruption is not in their data: the represent/player composition is load-bearing on the **canonical player anchor records 120..121**. Dropping them (any cap <122) leaves the surviving low-duplicate records unable to compose Rastan, and the global flip-screen ends up applied. 128 and 256 render correctly, so this is a game/represent-architecture dependency, NOT a bug in the configurable-mirror mechanism (no code fix warranted).
 
 **Use as prior.** When tuning the PC090OJ mirror cap, do not go below **122**; use **128** for margin. The arcade's real Stage-1 player sprite is the record-120..137 cluster (0x041F5E/Build 0164), not the low records 0..11 — any cap that drops 120..121 breaks Rastan's position/orientation. Keep project default 256.
+
+---
+
+## KF-050 — Player Rastan renders arcade-equivalently at 256/128; Genesis double-draws Rastan (canonical 120..137 + spurious low duplicates 0..17)
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (arcade-vs-Genesis PC090OJ record/SAT trace + rendered screenshots, Builds 0181/0182/0183)
+- **Applicability:** DURABLE player-sprite composition fact (rastan-direct)
+- **Rediscovery Hazard:** MEDIUM
+- **Addresses:** arcade canonical Rastan records 120,121,124,125,126 (codes 009E/009F/008E/008F/0090); Genesis spurious low duplicates 0,1,4,5,6,8..11 via pc090oj_workram_block_sprites default path (hook_target_45dfa) copying A5+0x11B2 -> records 0..17. Player SAT: palette line 3, hflip=1, screenX 16..32.
+- **Source Documents:** docs/design/Andy_player_sprite_composition_256_128_vs_arcade.md; screenshots states/traces/build0181_sprite/snap_*/
+- **Related Findings:** KF-049 (mirror floor 122 / anchor 120..121), KF-044 (0x041F5E player-source mapping / Build 0164)
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-16 (Builds 0181/0182)
+
+**Finding.** At the default 256 and diagnostic-safe 128 caps, Rastan's player sprite is arcade-equivalent: LEFT position (screenX≈16, arcade X=0x10..0x20), sprite palette line 3, hflip=1 (facing right), coherent barbarian composition — confirmed both by PC090OJ record/SAT trace and by rendered screenshots (256 and 128 identical to each other; both match the arcade barbarian). The red/orange broken cluster on the right is exclusively the Build 0183/80 cap artifact (records 120..121 dropped). HOWEVER, Genesis draws Rastan roughly twice: from the arcade-canonical records 120..137 AND from spurious low-duplicate records 0..17 written by the pc090oj_workram_block_sprites default path (hook_target_45dfa) — while arcade 0x045DFA is a different routine that does not copy A5+0x11B2. The duplicate overlaps the canonical Rastan (same position, adjacent tiles) so there is no visible corruption, but it consumes ~2x the 80-slot SAT budget.
+
+**Use as prior.** The safe builds already render Rastan correctly; do not treat "Rastan is a red blob" as a 256/128 defect — that is the 80 artifact. The arcade player is the record-120..137 cluster only; the Genesis low-record player copy (0..17) is spurious (Build 0164 45dfa mismatch) and a candidate for a bounded cleanup to reclaim SAT slots (possibly relevant to missing-enemy SAT pressure). Not a mirror-mechanism bug.
+
+---
+
+## KF-051 — Spurious low-record Rastan duplicate owned by hook_target_41dae/45dfa (default block-copy helper); Build 0192 gameplay-gated suppression halves player SAT
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (arcade-vs-Genesis producer trace + before/after SAT/rate measurement + screenshots; build-verified Build 0192)
+- **Applicability:** DURABLE PC090OJ producer-routing rule (rastan-direct)
+- **Rediscovery Hazard:** MEDIUM
+- **Addresses:** genesistan_pc090oj_hook_target_41dae / _45dfa -> default pc090oj_workram_block_sprites (A5+0x11B2 -> records 0..17, A5+0x0170 -> 18..21). Canonical player from hook_target_41f5e -> pc090oj_workram_block_sprites_41f5e (records 120..137 / 92..95). genesistan_current_scene_id gameplay gate = 1.
+- **Source Documents:** docs/design/Andy_spurious_low_record_player_duplicate_sat_budget.md
+- **Related Findings:** KF-050 (double-draw), KF-049 (mirror floor 122), KF-044 (0x041F5E / Build 0164 lineage)
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-16 (Build 0192)
+
+**Finding.** hook_target_41dae and hook_target_45dfa replace arcade routines 0x041DAE/0x045DFA, which copy A5+0x508/0x5C8 -> records 57/96/140/46 (via 0x3D054) — NOT A5+0x11B2. But the Genesis hooks call the default pc090oj_workram_block_sprites, which copies the player block A5+0x11B2 -> records 0..17 (and A5+0x0170 -> 18..21) — an exact duplicate of what hook_target_41f5e already stages to canonical records 120..137/92..95 (Build 0164 address-split artifact). In Stage 1 gameplay arcade records 0..17 are empty, so the low copy is a proven Genesis-only spurious duplicate that draws Rastan ~3x and consumes ~2/3 of the 80-slot SAT budget on redundant player sprites. Build 0192 gates the default copy off in gameplay (scene 1) at both hooks: player SAT slots 18->6 (arcade-faithful), SAT chain 28->15, VINT rate 0.484->0.588 (+21%), records 0..17 writes ->0, with NO player/frontend regression (Rastan still coherent on the left; title/READY intact). Canonical player is independently maintained by hook_target_41f5e at the same frame rate, so suppression cannot make it stale.
+
+**Use as prior.** When a Genesis PC090OJ producer duplicates a sprite, check whether a hook (41dae/45dfa) is using the default block-copy helper instead of the arcade routine's real work. The arcade player is the record-120..137 cluster only; the low-record copy (0..17) is spurious. Suppress spurious producer routes scene-gated (only where proven), never globally, and never by faking SAT / forcing position. A faithful re-implementation of arcade 0x041DAE/0x045DFA (records 57/96/140/46) remains a separate future task.

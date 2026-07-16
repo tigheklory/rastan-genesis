@@ -42380,3 +42380,48 @@ Open/Closed Issues Impact:
 - **KNOWN_FINDINGS impact:** KF-049 added (mirror cap floor 122; canonical player anchor at records 120..121).
 - **Architecture compliance:** CONFIRMED. No forced player position, no faked SAT, no hardcoded records; diagnostics degrade gracefully; default preserves 256.
 - **STOP triggered:** NO build fix (evidence + diagnostic range builds delivered); config mechanism proven correct, no bug to fix.
+
+---
+
+## Andy — Player Sprite Composition 256/128 vs Arcade
+
+- **Date:** 2026-07-16
+- **Type:** Analysis (arcade-vs-Genesis record/SAT/tile/palette + rendered screenshots). No build. Repo remains default 256.
+- **Primary classification: A** — Build 0181/256 renders Rastan arcade-equivalently; remaining player corruption is the Build 0183/80 cap artifact only.
+- **Screenshots (MAME -video soft):** arcade snap_arc/rastan/0000.png (Rastan LEFT, coherent barbarian, sword raised); 256 snap_256/genesis/0001.png (LEFT, coherent barbarian) ; 128 snap_128/genesis/0001.png (identical to 256); 80 snap_80/genesis/0000.png (RIGHT, broken red cluster). Under states/traces/build0181_sprite/.
+- **Arcade canonical Rastan:** records 120,121,124,125,126 (009E/009F/008E/008F/0090, X=0x10..0x20). Low records 0..11 empty in arcade.
+- **256 player SAT:** pal line 3, hf=1, screenX 16..32 (left), tiles 0x400..0x464, coherent; from canonical 120..129 + spurious low duplicates 0..11.
+- **128 vs 256:** equivalent (same sprite family/position/palette/flip; only slot-index allocation differs; screenshots identical).
+- **256/128 vs arcade:** player position/palette/flip/composition all match arcade; background scroll offset differs (position, not sprite).
+- **Notable finding (KF-050):** Genesis double-draws Rastan — canonical 120..137 + spurious low duplicates 0..17 (pc090oj_workram_block_sprites default path / hook_target_45dfa copying A5+0x11B2->0..17; arcade 0x045DFA is a different routine). Overlaps -> no visible corruption but ~2x SAT budget. Candidate for future bounded cleanup (may relieve SAT pressure re: missing enemies). Not a mirror-mechanism bug.
+- **128 safety:** preserves 120..121 (yes); core canonical 120..126 intact; drops redundant >=128 copy; visually normal; still recommended.
+- **80 control:** records 120..121 dropped; anchor missing; head flips to screenX≈288; corrupted; remains unsafe (not patched).
+- **Config/safe-build bug:** NONE. No player palette/tile/SAT/flip bug in 256/128; configurable mirror sound.
+- **Code fix built:** NO (evidence task; safe builds render Rastan correctly).
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New: NONE. Closed: NONE. Deferred: double-draw cleanup, black bars, frozen progression, arcade-VINT cost.
+- **KNOWN_FINDINGS impact:** KF-050 added (256/128 player arcade-equivalent; Genesis double-draws Rastan).
+- **Architecture compliance:** CONFIRMED. No forced player, no faked SAT, no hardcoded tiles/position; default preserved at 256.
+- **STOP triggered:** N/A (evidence complete; no bug to fix in safe builds).
+
+### MAME Exit Summary (2026-07-16 17:41:23)
+- Final PC: 0x03B28A
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy — Spurious Low-Record Rastan Duplicate / SAT Budget Cleanup (Build 0192)
+
+- **Date:** 2026-07-16
+- **Type:** Analysis + bounded fix + before/after measurement. Build produced. Mirror default remains 256.
+- **Classification C** — low-record player duplicate caused by the wrong helper at hook_target_45dfa AND hook_target_41dae (both call default pc090oj_workram_block_sprites copying A5+0x11B2 -> records 0..17; arcade 0x045DFA/0x041DAE copy A5+0x508/0x5C8 -> 57/96/140/46, not A5+0x11B2). Build 0164 address-split lineage.
+- **Build produced:** YES — Build 0192 `42f0b662d0886bbc1a4e1ec5fa2759e9b5c2785911ea404c20dc98b8500eafc1`, size 1,582,860, counter 192, GATE_PASS. Accepted build unchanged (candidate).
+- **Fix:** hook_target_41dae/45dfa skip the default block copy when genesistan_current_scene_id==1 (gameplay); other scenes unchanged. Canonical 120..137/92..95 from hook_target_41f5e untouched. Coverage 0x1826F8 -> 0x18270C (+0x14), opcode_replace 151 unchanged, both gate scripts paired.
+- **Before/after (MAME gameplay):** represented 28->15; SAT chain slots 28->15; player(pal3) slots 18->6 (arcade-faithful for records 120..126); VINT rate 0.484->0.588 (+21%); vdp_prepare_sprites prep 11.67ms->10.44ms; records 0..17 gameplay writes 33817->0. Enemy represented unchanged (~9 non-player; enemies still frozen -- separate root; freed ~13 SAT slots now available).
+- **Visual validation (screenshots states/traces/build0181_dup/snap92/):** title RASTAN/TAITO OK; READY OK; Stage 1 Rastan LEFT, coherent barbarian, sword raised, identical to 0181 -- no player/BG/FG/palette/frontend regression.
+- **Evidence:** arcade records 0..17 empty (F1100), player only at 120,121,124,125,126; Genesis producer = pc090oj_workram_block_sprites/family_apply_record via 41dae/45dfa; canonical 120..137 written at same rate by 41f5e (player cannot go stale).
+- **256/128 equivalence:** fix is orthogonal to mirror size; both keep 120..137 + apply the same gameplay-gated suppression; remain equivalent. Mirror default 256, floor 122 unchanged.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New: NONE. Closed: NONE. Deferred: faithful 0x041DAE/0x045DFA re-implementation (records 57/96/140/46), black bars, frozen progression, arcade-VINT cost.
+- **KNOWN_FINDINGS impact:** KF-051 added (spurious low-record duplicate owner + gameplay-gated suppression).
+- **Architecture compliance:** CONFIRMED. No faked SAT, no forced position, no hardcoded tiles, no mirror-size change; scene-gated (only where proven spurious).
+- **STOP triggered:** NO — bounded fix built, validated, measured.

@@ -470,8 +470,21 @@ genesistan_pc090oj_hook_target_3b930:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
+/* Build 0192: hook_target_41dae / hook_target_45dfa replace arcade routines
+ * 0x041DAE / 0x045DFA, which do NOT copy A5+0x11B2 (they copy A5+0x508 / A5+0x5C8
+ * to records 57/96/140/46 via 0x3D054).  The current Genesis default helper
+ * instead copies the PLAYER block A5+0x11B2 -> records 0..17 (and A5+0x0170 ->
+ * 18..21), which are exact duplicates of what hook_target_41f5e already stages to
+ * the arcade-canonical records 120..137 / 92..95.  In Stage 1 gameplay the arcade
+ * records 0..17 are empty, so this low copy is a proven Genesis-only spurious
+ * duplicate that draws Rastan twice and wastes ~half the SAT budget.  Suppress it
+ * in gameplay only (scene 1); other scenes keep the existing behavior since the
+ * low copy has not been proven spurious there. */
 genesistan_pc090oj_hook_target_41dae:
+    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    beq.s   .Lhook_41dae_skip
     bsr     pc090oj_workram_block_sprites
+.Lhook_41dae_skip:
     rts
 
 genesistan_pc090oj_hook_target_41f5e:
@@ -479,7 +492,10 @@ genesistan_pc090oj_hook_target_41f5e:
     rts
 
 genesistan_pc090oj_hook_target_45dfa:
+    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    beq.s   .Lhook_45dfa_skip
     bsr     pc090oj_workram_block_sprites
+.Lhook_45dfa_skip:
     rts
 
 genesistan_pc090oj_hook_target_59f5e:
