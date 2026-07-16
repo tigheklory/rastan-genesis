@@ -4,9 +4,85 @@
     .global genesistan_palette_hook_03ab00
     .global genesistan_palette_hook_45dae
     .global genesistan_palette_hook_3ba64
+    .global palette_route_lookup
 
     .extern palette_dirty
     .extern staged_palette_words
+    .extern fg_bank3_line_cache
+    .extern fg_bank3_cache_valid
+    .extern fg_bank3_route_seen
+
+/* ------------------------------------------------------------------------- *
+ * Build 0175: arcade palette-bank -> Genesis CRAM-line route table.
+ *
+ * Prior builds (0173/0174) chose a Genesis FG line by hand (FG_PLANE_ATTR_HI
+ * guess) and had two palette hooks independently deciding which staged line a
+ * bank landed in.  This table is the single source of truth for
+ *   (scene_id, owner, arcade_bank) -> genesis_line (+ carrier flag)
+ * so the FG-attribute line, the palette-staging line, and the gameplay carrier
+ * re-assert all agree.  For Stage 1 gameplay the evidence
+ * (states/traces/build0174_fg_palette_source_20260715_195606) is:
+ *   line 0 = arcade bank 0  (HUD/frontend white)
+ *   line 1 = FG cells point here, but it holds a STALE pre-gameplay frontend
+ *            palette; nothing writes line 1 during gameplay -> free to carry
+ *            arcade FG bank 3, but must be re-asserted at the gameplay boundary
+ *   line 2 = arcade BG bank  (terrain/sky)
+ *   line 3 = arcade bank 51  (PC090OJ sprites)
+ * So arcade PC080SN FG bank 3 is routed to Genesis line 1 with the CARRIER flag
+ * (classification A).  The carrier re-assert (vdp_reassert_fg_bank3_line) keeps
+ * line 1 populated with the converted bank 3 during scene 1 only; frontend line
+ * 1 (arcade bank 1 / story) is untouched before gameplay.
+ * ------------------------------------------------------------------------- */
+    .equ PROUTE_OWNER_HUD,        0
+    .equ PROUTE_OWNER_PC080SN_BG, 1
+    .equ PROUTE_OWNER_PC080SN_FG, 2
+    .equ PROUTE_OWNER_PC090OJ,    3
+    .equ PROUTE_OWNER_FRONTEND,   4
+    .equ PROUTE_FLAG_CARRIER,     1        /* line needs gameplay carrier re-assert */
+    .equ PROUTE_SCENE_GAMEPLAY,   1
+    .equ PROUTE_FG_BANK,          3        /* arcade PC080SN Stage 1 FG color bank */
+    .equ PROUTE_FG_LINE,          1        /* Genesis CRAM line carrying FG bank 3 */
+
+    .section .rodata
+    .align 2
+/* rows: scene_id, owner, arcade_bank, genesis_line, flags; 0xFFFF terminator */
+palette_route_table:
+    .word 1, PROUTE_OWNER_PC080SN_FG, 3,  1, PROUTE_FLAG_CARRIER
+    .word 1, PROUTE_OWNER_PC080SN_BG, 48, 2, 0
+    .word 1, PROUTE_OWNER_PC090OJ,    51, 3, 0
+    .word 1, PROUTE_OWNER_HUD,        0,  0, 0
+    .word 0xFFFF, 0, 0, 0, 0
+
+    .section .text,"ax"
+
+/* palette_route_lookup: resolve (scene,owner,bank) -> line/flags via the table.
+ * in:  D0 = scene_id, D1 = owner, D2 = arcade_bank
+ * out: D0 = genesis_line (0..3) and D3 = flags if a row matches;
+ *      D0 = -1 (0xFFFFFFFF) if no row matches (D3 undefined).
+ * Clobbers: D0, D3, A0.
+ */
+palette_route_lookup:
+    lea     palette_route_table, %a0
+.Lproute_scan:
+    cmpi.w  #0xFFFF, (%a0)                  /* terminator? */
+    beq.s   .Lproute_miss
+    cmp.w   (%a0), %d0                     /* scene match? */
+    bne.s   .Lproute_next
+    cmp.w   2(%a0), %d1                     /* owner match? */
+    bne.s   .Lproute_next
+    cmp.w   4(%a0), %d2                     /* bank match? */
+    bne.s   .Lproute_next
+    move.w  8(%a0), %d3                     /* flags */
+    andi.l  #0x0000FFFF, %d3
+    move.w  6(%a0), %d0                     /* genesis_line */
+    andi.l  #0x0000FFFF, %d0
+    rts
+.Lproute_next:
+    lea     10(%a0), %a0
+    bra.s   .Lproute_scan
+.Lproute_miss:
+    moveq   #-1, %d0
+    rts
 
 /* Convert xBGR-555 in D0 to Genesis CRAM (0000_BBB0_GGG0_RRR0) in D1.
  * Clobbers: D1, D2, D3
@@ -40,17 +116,26 @@
  */
 genesistan_palette_hook_59ad4:
     movem.l %d0-%d7/%a0-%a2, -(%sp)
+    clr.b   fg_bank3_route_seen
 
     /* Build 0145: the arcade's bank-51 sprite-palette update reaches this helper
      * with d0 = 0x33; route it to Genesis staged line 3 (destination d0 = 3)
      * through the existing conversion/staging body, keeping the arcade's own
      * source (a0 + d1*32).  Every other high bank keeps the existing <4
-     * rejection; low banks 0..3 keep their existing line = d0 behavior. */
+     * rejection. Build 0174: Stage-1 PC080SN FG uses arcade color bank 3,
+     * while Genesis line 3 is reserved for sprite bank 51, so carry arcade
+     * bank 3 in otherwise-free gameplay line 1. */
     cmpi.w  #0x0033, %d0
     bne.s   .L59_not_bank51
     moveq   #3, %d0                 /* arcade bank 51 -> Genesis line 3 */
     bra.s   .L59_dest_ready
 .L59_not_bank51:
+    cmpi.w  #3, %d0
+    bne.s   .L59_not_bank3
+    moveq   #1, %d0                 /* arcade bank 3 -> Genesis line 1 */
+    move.b  #1, fg_bank3_route_seen /* remember bank-3 route for line-1 cache */
+    bra.s   .L59_dest_ready
+.L59_not_bank3:
     cmpi.w  #4, %d0
     bcc.s   .L59_done
 .L59_dest_ready:
@@ -94,6 +179,20 @@ genesistan_palette_hook_59ad4:
     beq.s   .L59_done
     move.b  #1, palette_dirty
 .L59_done:
+    /* Build 0175: if this call staged arcade FG bank 3 into staged line 1,
+     * snapshot line 1 into the carrier cache so the gameplay re-assert can
+     * restore it after any later frontend line-1 write. */
+    tst.b   fg_bank3_route_seen
+    beq.s   .L59_no_cache
+    lea     staged_palette_words, %a0
+    lea     (PROUTE_FG_LINE * 16 * 2)(%a0), %a0
+    lea     fg_bank3_line_cache, %a1
+    moveq   #(16 - 1), %d7
+.L59_cache_copy:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d7, .L59_cache_copy
+    move.b  #1, fg_bank3_cache_valid
+.L59_no_cache:
     movem.l (%sp)+, %d0-%d7/%a0-%a2
     rts
 
@@ -160,6 +259,7 @@ genesistan_palette_hook_45dae:
 genesistan_palette_hook_3ba64:
     movem.l %d4-%d7/%a1, -(%sp)
     clr.l   %d5
+    clr.b   fg_bank3_route_seen
 
 .L3ba64_loop:
     /* Reproduce original 0x03BA64 conversion in D0/D1/D2. */
@@ -206,14 +306,22 @@ genesistan_palette_hook_3ba64:
     lsr.l   #5, %d6                  /* arcade bank index */
     /* Build 0144 frontend sprite-palette split: keep arcade banks 0/1 in
      * Genesis lines 0/1 (plane palettes), route arcade bank 48 -> line 2 and
-     * arcade bank 51 -> line 3 (sprite banks), skip every other bank. */
+     * arcade bank 51 -> line 3 (sprite banks), skip every other bank.
+     * Build 0174: Stage-1 PC080SN FG uses arcade bank 3; line 3 is already
+     * owned by bank 51, so route bank 3 to the free gameplay carrier line 1. */
     cmpi.l  #2, %d6
     blo.s   .L3ba64_line_ok         /* banks 0,1 -> lines 0,1 */
+    cmpi.l  #3, %d6
+    beq.s   .L3ba64_to_line1
     cmpi.l  #48, %d6
     beq.s   .L3ba64_to_line2
     cmpi.l  #51, %d6
     beq.s   .L3ba64_to_line3
     bra.s   .L3ba64_next            /* all other banks skipped */
+.L3ba64_to_line1:
+    moveq   #1, %d6                 /* arcade bank 3 -> Genesis line 1 */
+    move.b  #1, fg_bank3_route_seen /* remember bank-3 route for line-1 cache */
+    bra.s   .L3ba64_line_ok
 .L3ba64_to_line2:
     moveq   #2, %d6                 /* arcade bank 48 -> Genesis line 2 */
     bra.s   .L3ba64_line_ok
@@ -247,5 +355,21 @@ genesistan_palette_hook_3ba64:
     move.b  #1, palette_dirty
 
 .L3ba64_done:
+    /* Build 0175: snapshot staged line 1 into the FG bank-3 carrier cache when
+     * this call routed arcade bank 3 there.  a0 (arcade return pointer) must be
+     * preserved; a1 is restored by movem below. */
+    tst.b   fg_bank3_route_seen
+    beq.s   .L3ba64_no_cache
+    move.l  %a0, -(%sp)
+    lea     staged_palette_words, %a0
+    lea     (PROUTE_FG_LINE * 16 * 2)(%a0), %a0
+    lea     fg_bank3_line_cache, %a1
+    moveq   #(16 - 1), %d7
+.L3ba64_cache_copy:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d7, .L3ba64_cache_copy
+    move.b  #1, fg_bank3_cache_valid
+    move.l  (%sp)+, %a0
+.L3ba64_no_cache:
     movem.l (%sp)+, %d4-%d7/%a1
     rts

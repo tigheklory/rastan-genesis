@@ -41791,3 +41791,592 @@ Open/Closed Issues Impact:
 - **Open/Closed Issues Impact:** Open issues touched: OPEN-017, OPEN-024. New issues opened: NONE. Issues closed: NONE. Deferred issues as listed above.
 - **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper change is limited to VBlank scroll publication; no scaffolding, no bypass, no hardcoded state.
 - **STOP status:** NO.
+
+## [Cody — Build 0167 Missing Issue Ledger + Death/Drowning Transition Fix]
+
+- **Date:** 2026-07-13
+- **Type:** Issue-ledger update + analysis-first runtime/static evidence. No implementation; no build.
+- **Baseline:** Build 0166 `dist/rastan-direct/rastan_direct_video_test_build_0166.bin`, SHA `a74365146eef4fdf0e9b429d7e66d63186023e3541f36fc1fa9b2703eed62ff5`, counter `166`.
+- **Build produced:** NO. Accepted build unchanged.
+- **Files changed:** `OPEN_ISSUES.md`, `docs/design/Cody_build0167_death_drowning_transition_fix.md`, trace artifacts under `states/traces/build0167_death_drowning_transition_20260713_232205/`, `AGENTS_LOG.md`.
+- **Issue ledger:** OPEN-017 updated with the missing Build 0166 real-hardware observation set: Tighe confirmed vertical scroll direction is fixed, but real Genesis locks at the first visible drowning-animation frame; Build 0155/0165 visual `lava/fire` wording is refined to a Build 0166 **water/drowning** transition, not a proven fire/lava surface. Deferred observations remain separate: BG/FG composition, missing/wrong ground tiles, foreground palette, READY/header flicker, VBlank/slowdown, input, continue/game-over, D00298, Exodus pre-gameplay loop, and records `132..134` unless directly causal.
+- **Runtime evidence:** MAME arcade and Genesis Build 0166 traces exited `0`. Arcade enters gameplay `2/3/0` at frame 307 and remains normal gameplay at frame 820 (`X=0x0020`, `Y=0x0070`, mode `0x0000`), then reaches death/respawn `2/4/0` at frame 895 with mode `0x0008`. Build 0166 enters gameplay `2/3/0` at frame 534, is mode `0x0003` at frames 620/700, but is already mode `0x0008` by frame 760 while still in state `2/3/0`.
+- **Static verification:** Build 0166 still contains `runtime_genesis_pc 0x053C64 = 207c0010de00` (`movea.l #0x0010DE00,a0`) and `runtime_genesis_pc 0x05400C = 3b7c000810e8` (`move.w #8,a5@(0x10E8)`). Address-map-derived mappings: `0x053C64 -> arcade_pc 0x053A64`, `0x053FA6 -> 0x053DA6`, `0x05400C -> 0x053E0C`, `0x051B98 -> 0x051998`.
+- **Classification:** Death/drowning transition = **A, wrong collision/surface value class**, with caveat that the current exact `*(A0)&0x7F` value was not freshly captured because this MAME Lua run could not attach execute taps and read/write taps did not catch the exact boundary. Hardware lock = **G**, more evidence needed; MAME did not reproduce the real Genesis lock.
+- **Hardware-lock context:** Genesis frame-720 snapshot before sampled mode-8 state: `pc090oj_tile_dma_count=0x0012`, `pc090oj_represented_count=0x0018`, `staged_sprite_active_count=0x0018`, records 120..131 populated. Records 132..134 remain suspicious but not proven causal here.
+- **Fix decision:** STOP, no Build 0167. No bounded implementation was proven. The safe boundary is the broader collision-map producer/rebase problem already identified in Build 0159 work, not a death-handler, animation, invulnerability, or safe-ground patch.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017 (edited), OPEN-024 context. New issues opened: NONE. Issues closed: NONE. Deferred: BG/FG composition, missing ground, FG palette, READY/header flicker, VBlank/slowdown, input/control, continue/game-over, D00298, Exodus loop, records `132..134`, and broader collision-map implementation.
+- **KNOWN_FINDINGS impact:** Option A -- no new finding indexed.
+- **Architecture compliance:** CONFIRMED. No source/spec/tool/Makefile/ROM/invariant changes; no build; no bypass; no forced safe state; no hardcoded invulnerability; no second renderer; no VDP rewrite.
+- **STOP status:** YES.
+
+### MAME Exit Summary (2026-07-14 01:00:58)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-14 01:06:38)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0168 Collision Map / Drowning Fix Candidate]
+
+- **Date:** 2026-07-14
+- **Type:** Analysis-first implementation + verification.
+- **Baseline:** Build 0166 `dist/rastan-direct/rastan_direct_video_test_build_0166.bin`, SHA `a74365146eef4fdf0e9b429d7e66d63186023e3541f36fc1fa9b2703eed62ff5`, counter `166`.
+- **Build produced:** YES. Build 0167 was produced first but superseded by validation; corrected candidate is Build 0168.
+- **Corrected ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0168.bin`.
+- **ROM SHA256 / size / counter:** `be2d575256ff72d942055c3477a31b0be4af1c863b9cf114f1c5f3bbd184d993`, `1,581,332` bytes, counter `168`.
+- **Files changed:** `apps/rastan-direct/src/tilemap_hooks.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `OPEN_ISSUES.md`, `docs/design/Cody_build0168_collision_map_drowning_fix_candidate.md`, trace artifacts under `states/traces/build0167_collision_map_fix_20260714_010228/`, generated release artifacts/manifests/disassembly/symbols, `AGENTS_LOG.md`.
+- **Classification:** C -- producer omitted by PC080SN hook, with coordinated collision-buffer reader/converter rebase. Build 0166 read raw ROM garbage from `0x0010DE00`; the mapped collision buffer `0x00FF1E00` was empty.
+- **Fix implemented:** YES. `genesistan_stage_fg_src_column` now recreates the original PC080SN collision-map side effect into mapped Genesis WRAM `0x00FF1E00`. Nine byte-neutral opcode replacements rebase collision-buffer immediates from raw `0x0010DE00` to mapped `0x00FF1E00` (`0x053A64`, `0x05A2CE`, `0x0559E4`, `0x055A5A`, `0x055A7A`, `0x052882`, `0x05A336`, `0x0412E8`, `0x045D52`). No death-handler bypass, no forced safe ground, no player-state patch.
+- **Invariant/build result:** opcode_replace count `142 -> 151`; total covered bytes `0x1820D8 -> 0x182114`; GATE_PASS / boot guard PASS. First attempt caught an incorrect `0x052682` site; corrected to `0x052882`. Build 0167 then proved the first collision insertion point inert (mapped buffer all zero), so the corrected live insertion moved into `genesistan_stage_fg_src_column` and produced Build 0168.
+- **Static verification:** generated disassembly shows runtime `0x053C64` now loads `#0x00FF1E00` into `%a0`; runtime `0x05400C` remains the faithful mode-8 writer and was not patched. The hook writes collision words to `0x00FF1E00 + offset` after live FG source staging.
+- **Runtime validation:** trace `states/traces/build0167_collision_map_fix_20260714_010228/`. Build 0166 control hit mode `0x0008` at frame `757` from raw `A0=0x0010F28A`, value `0x8888`, `value&0x7F=8`; mapped `0x00FF1E00` had `nonzero=0`. Build 0168 populated mapped `0x00FF1E00` (`nonzero=2016`, `type8=0`, `mapped_writes=6112`) and had zero mode-8 events through frame `901` in the same scripted window.
+- **Accepted build changed:** NO. Build 0168 is a corrected candidate pending Tighe real-hardware/visual verification.
+- **Deferred issues:** visible drowning/death and real Genesis lock verification, BG mostly mountains vs arcade sky, missing/wrong ground tiles, gameplay foreground palette, READY/header flicker, VBlank/rolling black bar, slowdown, input/down+attack, continue/game-over wrong tiles, D00298 attract-demo issue, Exodus pre-gameplay loop, and suspicious PC090OJ records `132..134`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017; OPEN-001 and OPEN-024 context. New issues opened: NONE. Issues closed: NONE.
+- **KNOWN_FINDINGS impact:** Option A -- no new finding indexed; this implements the already-known collision/PC080SN side-effect chain.
+- **Architecture compliance:** CONFIRMED.
+- **STOP status:** NO for Build 0168. Build 0167 is superseded and should not be treated as the fix artifact.
+
+## [Cody — Build 0169 Player Ground-Contact / Collision Alignment Candidate]
+
+- **Date:** 2026-07-14
+- **Type:** Analysis-first runtime evidence; no implementation; no build.
+- **Baseline:** Build 0168 `dist/rastan-direct/rastan_direct_video_test_build_0168.bin`, SHA `be2d575256ff72d942055c3477a31b0be4af1c863b9cf114f1c5f3bbd184d993`, counter `168`.
+- **Build produced:** NO. Accepted build unchanged.
+- **Files changed:** `OPEN_ISSUES.md`, `docs/design/Cody_build0169_ground_contact_collision_alignment.md`, trace artifacts under `states/traces/build0169_ground_contact_alignment_20260714_134458/`, `AGENTS_LOG.md`.
+- **Runtime evidence:** Original arcade, Build 0168, and diagnostic Build 0167 MAME traces all exited `0`. Arcade falls from first gameplay `Y=0x0030` to `Y=0x0070`, then grounds at frame `400` with flags `0x0004`, mode `0x0000`, camera Y `0x0149`; the collision cell at initial row/col `6/6` is `0x0000`. Build 0168 enters gameplay at `Y=0x0030` but reads mapped collision word `0x0003` at row/col `6/6`, sets grounded/contact flags by frame `539`, stays around `Y=0x0030`, camera Y `0x0000`, and later reads `0x1000` around row/col `6/5`. Diagnostic Build 0167 leaves the mapped collision map empty and falls through, so it is not a fix.
+- **Classification:** F -- Build 0168 collision fix overcorrected. The mapped collision buffer is populated and type-8 is gone, but the populated map is not arcade-equivalent for the opening landing boundary. Prior arcade-intent evidence says Stage-1 collision is BG-pass owned; Build 0168 emits collision cells from `genesistan_stage_fg_src_column` / FG_SRC.
+- **Fix decision:** STOP, no Build 0169. The safe next boundary is a dedicated arcade-equivalent BG-pass collision-map production design, not a player/Y/camera/death-handler patch and not forced safe ground.
+- **Issue ledger:** OPEN-017 updated with Build 0169 no-build conclusion, user visual observations, Build 0168 overcorrection, and deferred issue list. No issues opened or closed.
+- **KNOWN_FINDINGS impact:** Option A -- no new finding indexed; this refines OPEN-017 and reinforces existing PC080SN producer-ownership priors.
+- **Architecture compliance:** CONFIRMED. No source/spec/tool/Makefile/ROM/invariant changes; no build; no bypass; no forced safe state; no hardcoded collision/player state.
+- **STOP status:** YES (bounded-fix gate).
+
+### MAME Exit Summary (2026-07-14 16:22:04)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0169 BG-Pass Collision Producer Candidate]
+
+- **Date:** 2026-07-14
+- **Type:** Analysis-first implementation + verification.
+- **Baseline:** Build 0168 `dist/rastan-direct/rastan_direct_video_test_build_0168.bin`, SHA `be2d575256ff72d942055c3477a31b0be4af1c863b9cf114f1c5f3bbd184d993`, counter `168`.
+- **Build produced:** YES. Build 0169.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0169.bin`.
+- **ROM SHA256 / size / counter:** `b8c87809fe84650b8c31b7b835469609034fca29cf43a4f2aeb669925acc1634`, `1,581,480` bytes, counter `169`.
+- **Files changed:** `apps/rastan-direct/src/tilemap_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `OPEN_ISSUES.md`, `docs/design/Cody_build0169_bg_pass_collision_producer_candidate.md`, trace artifacts under `states/traces/build0169_bg_collision_candidate_20260714_162157/`, release trace `states/traces/rastan_direct_video_test_build_0169_mame_30s_20260714_162157/`, generated release artifacts/manifests/disassembly/symbols, `AGENTS_LOG.md`.
+- **Classification:** Build 0168 collision producer ownership overcorrection fixed in the scripted opening window. Stage 1 arcade collision is BG-pass owned (`arcade_pc 0x0559B2`), while Build 0168 had authored collision from the FG_SRC visual helper.
+- **Fix implemented:** YES. Removed collision-map writes from `genesistan_stage_fg_src_column`; added `genesistan_stage_bg_collision_column`, called from the existing gameplay BG-branch helper, to replay the original BG producer collision half from rebuilt descriptor/block data into mapped WRAM `0x00FF1E00`. Build 0168 reader/rebase endpoint is preserved. No player-state patch, no death-handler bypass, no forced safe ground, no D00298/Exodus/sprite/scroll work.
+- **Invariant/build result:** opcode_replace count unchanged at `151`; total covered bytes `0x182114 -> 0x1821A8`; GATE_PASS / boot guard PASS. First release invocation stopped on the expected canonical coverage mismatch; updated only the canonical coverage constants and reran release successfully.
+- **Static verification:** generated disassembly shows gameplay `0x70260 bsrw 0x70400` (FG visual staging) and `0x70264 bsrw 0x7049A` (BG collision side-channel). FG helper `0x70400..0x70498` no longer writes `0x00FF1E00`; BG helper `0x7049A..0x70560` validates `0x00C08000..0x00C0BFFF`, applies the `block+20+row*8+strip*2` / `block+34` collision rule, and writes to `0x00FF1E00`.
+- **Runtime validation:** trace `states/traces/build0169_bg_collision_candidate_20260714_162157/` exited `0`. Build 0169 first gameplay row/col `6/6` is `0x0000` (Build 0168 was `0x0003`), falls to `Y=0x0070`, reaches camera Y `0x0149`, and has no mode-8 event through frame `1120`. Candidate caveat: collision content is improved but not byte-identical to the prior arcade sample (`row/col 36/6` sampled `0x0020` vs arcade `0x0000`; nonzero count `1752` vs arcade `1756`).
+- **Accepted build changed:** NO. Build 0169 is a candidate pending Tighe hardware/visual verification.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017; OPEN-001 and OPEN-024 context. New issues opened: NONE. Issues closed: NONE. Deferred: BG/FG composition, missing/wrong ground rows, gameplay palette, READY/header sprites, VBlank/rolling bar/slowdown, input/down+attack, continue/game-over, D00298, Exodus loop, and records `132..134`.
+- **KNOWN_FINDINGS impact:** Option A -- no new finding indexed; implements the existing BG-pass collision producer ownership finding.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper writes mapped collision WRAM only and returns to arcade flow.
+- **STOP status:** NO.
+
+## [Cody — Analysis, Stage 1 Post-Landing Terrain / Ground-Contact / Input Boundary]
+
+- **Date:** 2026-07-14
+- **Type:** Analysis-first runtime evidence + documentation only. No source/spec/tool/Makefile/ROM/invariant changes; no build; no PC090OJ, D00298, Exodus, scroll, collision-fix, or input-fix implementation.
+- **Build produced:** NO. Build 0170 was not produced; accepted build unchanged.
+- **Artifact measured:** exact Build 0169 ROM `dist/rastan-direct/rastan_direct_video_test_build_0169.bin`, SHA256 `b8c87809fe84650b8c31b7b835469609034fca29cf43a4f2aeb669925acc1634`, size `1,581,480`, counter `169`. Tighe's post-landing screenshot is user-reported Build 0169 visual evidence; the image itself does not embed a ROM identity.
+- **Files changed:** `docs/design/Cody_stage1_postlanding_terrain_ground_contact_input_boundary.md`, `OPEN_ISSUES.md`, trace artifacts under `states/traces/build0169_postlanding_terrain_input_20260714_175544/`, `AGENTS_LOG.md`.
+- **Runtime evidence:** MAME arcade and Genesis Build 0169 comparison sampled post-landing terrain regions and input cases. At Build 0169 frame `820`, gameplay state is `2/3/0`, player `X=0x0020`, `Y=0x0070`, camera Y `0x0149`, staged BG `2048`, staged FG `2016`.
+- **Terrain classification:** expected arcade visible sky/ground/mountain/wall BG tile codes are resident in `build/pc080sn_tile_vram_lut.bin`, but Build 0169 staged BG visible cells reference lower wrong code ranges (`0x02xx/0x03xx` instead of expected `0x04xx..0x07xx`). Therefore sky/ground are loaded but not referenced; the first proven divergence is wrong BG source/window/row selection, not missing tile residency and not a simple FG/BG swap.
+- **Magenta/wall note:** the left-wall palette-line mismatch is not the first proven divergence. Sampled arcade attr `0x0002` maps through the attr LUT to Genesis palette-line bits `0x4000`, while the tile/source code differs.
+- **Ground-contact/collision context:** Build 0169 collision remains improved vs Build 0168 (`row/col 6/6 = 0x0000`, fall to `Y=0x0070`, camera Y `0x0149`, no mode-8 in the scripted window), but collision is not byte-identical to arcade in prior samples. The visible terrain divergence and remaining collision-content mismatch may share a BG source/window root, but this task did not prove the exact common source.
+- **Input/control boundary:** input helper writes distinct active-low shadows for zero/right/left/jump/attack/down+attack, but frame-900 player state/move matches zero input across cases. Classification: movement is automatic from the post-landing/player-state transition, not from user directional input. No input patch is supported.
+- **Recommended next boundary:** trace Stage-1 post-landing BG terrain producer source pointer/block/strip/row for cells staging `0x025A/0x026B/0x023C/...` and compare against the arcade source that produces `0x0602/0x05DD/0x050C/...` for the same scrolled visible cells.
+- **Open/Closed Issues Impact:** OPEN-017 updated; OPEN-001 context. New issues opened: NONE. Issues closed: NONE. Deferred: exact BG source/window fix, remaining collision byte-equivalence, real Genesis contact freeze, PC090OJ/READY/header, VBlank/rolling bar/slowdown, continue/game-over, D00298, Exodus, and records `132..134`.
+- **KNOWN_FINDINGS impact:** Option A -- no new finding indexed; this refines OPEN-017 and reinforces existing PC080SN producer/source ownership priors.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; this task changed documentation/evidence only.
+- **STOP status:** YES for implementation/build. The source pointer/window/row fix locus is narrowed but not proven safely enough to patch.
+
+## [Cody — Build 0170 Stage 1 BG Source/Window Trace Candidate]
+
+- **Date:** 2026-07-14
+- **Type:** Analysis-first runtime evidence + documentation. No source/spec/tool/Makefile/ROM/invariant changes; no build.
+- **Baseline measured:** Build 0169 `dist/rastan-direct/rastan_direct_video_test_build_0169.bin`, SHA `b8c87809fe84650b8c31b7b835469609034fca29cf43a4f2aeb669925acc1634`, size `1,581,480`, counter `169`.
+- **Build produced:** NO. Build 0170 was not produced; accepted build unchanged.
+- **Files changed:** `docs/design/Cody_build0170_stage1_bg_source_window_trace.md`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, trace artifacts under `states/traces/build0170_stage1_bg_source_window_trace_20260714_182717/`, `AGENTS_LOG.md`.
+- **Trace result:** Stage 1 item-strip BG producer uses the expected gameplay source family (`0x0000D31C`, later `0x0000DB1C` and `0x0000F31C`) and BG destination cursor (`0x00C00000` onward), but writes a 64-row PC080SN BG column through the current 32-row `genesistan_hook_tilemap_bg_fill` staging model. Correct visible rows are emitted first and later overwritten by `row+32` aliases.
+- **Concrete row-alias proof:** `YELLOW_2_16` source `0xD31C` row `7` col `0` raw tile `0x050C` maps to LUT slot `0x00D3` and stages as word `0x40D3`; source row `39` col `0` raw tile `0x06BB` maps to LUT slot `0x0281` and overwrites the same Genesis staging cell as word `0x4281`. `BLACK_2_0` source row `23` raw `0x0602` / slot `0x01C8` is overwritten by row `55` raw `0x0694` / slot `0x025A`.
+- **Classification:** KF-038 gameplay generalization / 64-row PC080SN BG row alias. Not tile residency, embedded pointer relocation, source-family selection, FG/BG swap, palette, input, collision-reader, PC090OJ, or broad VBlank.
+- **Fix/build decision:** STOP for implementation/build. Exact mechanism is proven, but the safe fix boundary is architectural: a 64-row/tall PC080SN BG representation or equivalent visible-window staging/commit design for long BG producers, not a narrow source-pointer/window patch.
+- **Issue ledger:** OPEN-017 updated with the Build 0170 no-build result and corrected Build 0167/0168/0169 movement wording. OPEN-001 context. No issues opened or closed.
+- **KNOWN_FINDINGS impact:** Option C. KF-038 updated from item-description-specific/potentially-general to gameplay-proven for Stage 1 long BG item strips.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/staging behavior was observed only. No scaffolding, no bypass, no state forcing, no ROM changes.
+- **STOP status:** YES for implementation/build.
+
+### MAME Exit Summary (2026-07-14 19:32:55)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0170 Tall BG Representation / Visible-Window Projection Candidate]
+
+- **Date:** 2026-07-14
+- **Type:** Implementation + build + bounded runtime validation.
+- **Baseline:** Build 0169 `dist/rastan-direct/rastan_direct_video_test_build_0169.bin`, SHA `b8c87809fe84650b8c31b7b835469609034fca29cf43a4f2aeb669925acc1634`, counter `169`.
+- **Build produced:** YES. Build 0170.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0170.bin`.
+- **ROM SHA256 / size / counter:** `562ef83673deaf47d28adbcad2ab5457ea974ed7eff778c2f471d5e8ca3a18d5`, `1,581,820` bytes, counter `170`.
+- **Files changed:** `apps/rastan-direct/src/vdp_comm.s`, `apps/rastan-direct/src/boot/boot.s`, `apps/rastan-direct/src/tilemap_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, `docs/design/Cody_build0170_tall_bg_representation_candidate.md`, trace artifacts under `states/traces/build0170_tall_bg_validation_20260714_193346/`, release trace `states/traces/rastan_direct_video_test_build_0170_mame_30s_20260714_193248/`, generated release artifacts/manifests/disassembly/symbols, `AGENTS_LOG.md`.
+- **Implementation:** Added gameplay-only `genesistan_hook_tilemap_bg_fill_tall` and `staged_bg_tall_buffer` (64x64 words). `genesistan_hook_itempage_strip_blit` now routes only the proven Stage 1 gameplay source family `[0x0000D31C,0x0000FB1C)` through the tall helper; non-gameplay strips continue to use the existing 32-row `genesistan_hook_tilemap_bg_fill`. Added VBlank `vdp_project_bg_tall_if_dirty`, gated by `genesistan_current_scene_id==1`, to select the 0..31 vs 32..63 half using the Build 0166 `-raw + 8` vertical-scroll convention and copy it into the existing `staged_bg_buffer` before the normal Plane-B commit.
+- **Invariant/build result:** first release invocation stopped on expected canonical coverage mismatch (`0x1821A8` expected, `0x1822FC` observed, opcode_replace `151` unchanged); updated only canonical coverage constants, reran release successfully. GATE_PASS / boot guard PASS. Numbered and rolling ROMs are byte-identical (`cmp=0`).
+- **Static verification:** `vdp_project_bg_tall_if_dirty = 0x7013C`, called from `_vblank_service` at `0x700DA`; `genesistan_hook_tilemap_bg_fill_tall = 0x708D6`; `genesistan_hook_itempage_strip_blit = 0x719BC`; `staged_bg_buffer = 0x00FF40A2`, `staged_bg_tall_buffer = 0x00FF50A2`, `staged_fg_buffer = 0x00FF70A2`, `genesistan_current_scene_id = 0x00FF9478`.
+- **Runtime validation:** trace `states/traces/build0170_tall_bg_validation_20260714_193346/` exited `0`. At frame `820`, state `2/3/0`, scene `1`, camera/scroll Y `0x0149`, projection base `0`: `YELLOW_2_16` retained `0x40D3`, `BLACK_2_0` retained `0x41C8`, and `MOUNTAIN_8_9` retained `0x4073` in projected staging; old alias rows remain preserved only in tall backing (`row39=0x4281`, `row55=0x425A`, `row32=0x422C`). Checks remain PASS through frame `930`. Broader sampled state at frame `820`: `bg_nz=2048`, `fg_nz=2048`, player `0x0020/0x0070`, `coll_here=0x0000`.
+- **Accepted build changed:** NO. Build 0170 is a candidate pending Tighe visual / hardware verification.
+- **Deferred issues:** real Genesis ground-contact freeze, automatic movement/input, remaining collision byte-equivalence, full visual terrain acceptance, PC090OJ/READY/header sprites, VBlank/rolling bar/slowdown, continue/game-over, D00298, Exodus loop, and records `132..134`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017; OPEN-001 context. New issues opened: NONE. Issues closed: NONE.
+- **KNOWN_FINDINGS impact:** Option C -- KF-038 refined with Build 0170 implementation/validation evidence.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/staging representation preserves arcade-produced state into the existing VBlank commit path.
+- **STOP status:** NO.
+
+## [Cody — Evidence, Build 0170 BlastEm Video Observations]
+
+- **Date:** 2026-07-14
+- **Type:** Runtime video screenshot extraction + visual observation documentation only.
+- **Source video:** `states/screenshots/Blastem_build_170.mp4`.
+- **Build produced:** NO. No source/spec/tool/Makefile/ROM/invariant changes.
+- **Files changed/created:** `docs/design/Cody_build0170_blastem_video_observations.md`, screenshot evidence under `states/screenshots/build_170_blastem_30fps/`, `AGENTS_LOG.md`.
+- **Evidence captured:** 2510 full 30fps frame screenshots, frame index TSV, labeled contact sheets, and 10 annotated representative PNGs.
+- **Visual result:** title/prompt/READY path visible; Stage 1 sky is materially improved/fixed versus prior row-alias symptom, but mountains/vertical terrain are wrong and expected ground/floor is missing. Player/scene movement continues after start; user reports zero input after start and ineffective player input, recorded as user-reported because the video has no input overlay.
+- **Recommended next focus:** Stage 1 BG visible-window / lower-terrain projection trace at the video-matched gameplay frames; keep input/control as a separate symptom unless a trace proves shared state cause. No PC090OJ, D00298, collision, or broad VBlank work from this video alone.
+- **Open/Closed Issues Impact:** OPEN-017 / OPEN-001 context only. New issues opened: NONE. Issues closed: NONE.
+- **KNOWN_FINDINGS impact:** Option A -- no new finding indexed from video observation alone.
+- **STOP status:** NO.
+
+### MAME Exit Summary (2026-07-14 20:00:38)
+- Final PC: 0x03B280
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0171 Tall BG Projection / Row-Base Candidate]
+
+- **Date:** 2026-07-14
+- **Type:** Implementation + build + bounded runtime validation.
+- **Baseline:** Build 0170 `dist/rastan-direct/rastan_direct_video_test_build_0170.bin`, SHA `562ef83673deaf47d28adbcad2ab5457ea974ed7eff778c2f471d5e8ca3a18d5`, counter `170`.
+- **Build produced:** YES. Build 0171.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0171.bin`.
+- **ROM SHA256 / size / counter:** `819a2131a7643135b46c6faaaf00153ac95c37fae2ed357659fed74075d45ab9`, `1,581,848` bytes, counter `171`.
+- **Files changed:** `apps/rastan-direct/src/vdp_comm.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, `docs/design/Cody_build0171_tall_bg_projection_rowbase_candidate.md`, trace/screenshot artifacts under `states/traces/build0171_tall_bg_projection_rowbase_20260714_200031/`, release trace `states/traces/rastan_direct_video_test_build_0171_mame_30s_20260714_200031/`, generated release artifacts/manifests/disassembly/symbols, `AGENTS_LOG.md`.
+- **Implementation:** Replaced Build 0170's 0/32 half-select tall-BG projection with a gameplay-only rolling 64-row projection: `projection_row_base = (((-staged_scroll_y_bg + 8) & 0x01FF) >> 3) & 0x3F`; each visible row copies from `(projection_row_base + visible_row) & 0x3F`. Gameplay BG VSRAM now commits only the residual pixel offset `& 0x0007`, so projection owns tile-row selection and VDP scroll owns sub-tile pixels. Non-gameplay remains guarded by `genesistan_current_scene_id!=1` and keeps the legacy path.
+- **Invariant/build result:** first release invocation stopped on expected canonical coverage mismatch (`0x1822FC` expected, `0x182318` observed, opcode_replace `151` unchanged); updated only canonical coverage constants and reran release successfully. GATE_PASS / boot guard PASS. Numbered and rolling ROMs are byte-identical by SHA.
+- **Static verification:** generated disassembly shows `vdp_project_bg_tall_if_dirty` at `0x7013C`, with `andi.w #0x003F` row-base math, 32-row loop, 64-word row copy, and `bg_row_dirty=0xffffffff`; `vdp_commit_scroll` at `0x70276` applies `andi.w #0x0007` only for scene 1 BG Y.
+- **Runtime validation:** trace `states/traces/build0171_tall_bg_projection_rowbase_20260714_200031/` exited `0`. Build 0170 comparison matched only `24/204` sampled rolling-row cells; Build 0171 matched `192/204`. The `12/204` Build 0171 mismatches all occur at frame `751`, where post-frame sampling sees next-frame scroll (`row_base 0x14`) while projection base is still `0x13`; recorded as a frame-boundary/timing caveat, not a steady projection failure. Screenshots at frames 571/751/1081/1600/2200 show sky/clouds preserved and mountain bands materially more coherent, but black horizontal gap / missing usable ground/floor remains.
+- **Accepted build changed:** NO. Build 0171 is a candidate pending Tighe visual / hardware verification.
+- **Deferred issues:** missing ground/floor and black band, automatic movement/input, collision byte-equivalence, real Genesis hardware freeze/contact behavior, PC090OJ/READY/header sprites, VBlank/rolling bar/slowdown, continue/game-over, D00298, Exodus loop, and records `132..134`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017; OPEN-001 context. New issues opened: NONE. Issues closed: NONE.
+- **KNOWN_FINDINGS impact:** Option C -- KF-038 refined with Build 0171 rolling projection evidence.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/staging representation preserves arcade-produced state into the existing VBlank commit path.
+- **STOP status:** NO.
+
+## [Cody — Build 0172 Stage 1 Ground/Floor FG Boundary Candidate]
+
+- **Date:** 2026-07-14
+- **Type:** Analysis-first runtime evidence + documentation. No source/spec/tool/Makefile/ROM/invariant changes; no build.
+- **Baseline measured:** Build 0171 `dist/rastan-direct/rastan_direct_video_test_build_0171.bin`, SHA `819a2131a7643135b46c6faaaf00153ac95c37fae2ed357659fed74075d45ab9`, size `1,581,848`, counter `171`.
+- **Build produced:** NO. Build 0172 was not produced; accepted build unchanged.
+- **Files changed:** `docs/design/Cody_build0172_stage1_ground_fg_plane_candidate.md`, `OPEN_ISSUES.md`, trace artifacts under `states/traces/build0172_stage1_ground_fg_boundary_20260714_215247/`, `AGENTS_LOG.md`.
+- **User visual observations recorded:** Build 0171 background is fixed/much closer, sky mostly correct, mountain/background layout much closer than Build 0169/0170, left wall appears, but floor/ground under Rastan and a large black horizontal playfield gap remain; Rastan appears crouched/down-held; directional/jump/attack input still appears ineffective.
+- **Runtime result:** Original arcade post-landing floor/playfield samples are primarily BG/PC080SN page 0 owned, with sparse FG overlays. Build 0171 steady samples at frames `820` and `1400` show 14/14 sampled BG floor/gap cells matching arcade BG intent through `genesistan_pc080sn_tile_vram_lut` and matching both `staged_bg_buffer` and `staged_bg_tall_buffer` projection. Sparse FG overlays are incomplete, but FG is not the main floor owner.
+- **Commit/readback note:** `bg_row_dirty`/`fg_row_dirty` are clear at steady samples. MAME `:gen_vdp` `videoram` readback returned all-zero values in this `-video none` harness, so VDP VRAM readback is recorded as inconclusive (OPEN-003-style instrumentation caution), not as commit failure.
+- **Classification:** STOP for implementation/build. A Build 0172 FG/tall-FG/source patch is not safely placeable: the sampled main floor band is already BG-staged/projected/mapped. Remaining black-gap visual symptom needs exact rendered-frame VDP/pixel correlation before a source change.
+- **Recommended next boundary:** visual/VDP correlation from the exact same rendered frame/window (preferably Exodus-side or a reliable VDP VRAM/CRAM read path): rendered black-gap pixels vs Plane B nametable/pattern bytes for slots `0x01BB/0x0224/0x0271/0x027B/0x025C/0x026B/0x0277`, CRAM line for attr `0x0002`, Window/Plane A/SAT coverage, and VDP registers.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017; OPEN-001 context; OPEN-003 context for MAME VDP readback caution. New issues opened: NONE. Issues closed: NONE. Deferred: exact black-gap VDP/pixel attribution, sparse FG overlay completeness, input/crouch/control-lock, collision byte-equivalence, real Genesis behavior, PC090OJ/READY/header, VBlank/rolling bar/slowdown, continue/game-over, D00298, Exodus loop, records `132..134`.
+- **KNOWN_FINDINGS impact:** Option A -- no new finding indexed. This trace narrows the candidate but establishes no new durable mechanism and does not contradict KF-038.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/staging state was observed only.
+- **STOP status:** YES for implementation/build.
+
+## [Cody — Build 0172 VINT / VDP Commit Black-Gap Boundary]
+
+- **Date:** 2026-07-14
+- **Type:** Analysis-first runtime evidence + static boundary review. No source/spec/tool/Makefile/ROM/invariant changes; no build.
+- **Artifact tested:** Build 0171 candidate `dist/rastan-direct/rastan_direct_video_test_build_0171.bin`, SHA `819a2131a7643135b46c6faaaf00153ac95c37fae2ed357659fed74075d45ab9`, size `1,581,848`, counter `171`.
+- **Build produced:** NO. Build 0172 was not produced; accepted build unchanged.
+- **Diagnostic ROM produced:** NO.
+- **Files changed:** `docs/design/Cody_build0172_vint_vdp_black_gap_boundary.md`, `OPEN_ISSUES.md`, trace artifacts under `states/traces/build0172_vint_vdp_black_gap_boundary_20260714_221622/`, `AGENTS_LOG.md`.
+- **User correction recorded:** YES. The black horizontal band is no longer treated as missing ground tile data; prior Build 0172 no-build evidence showed sampled BG floor/playfield cells already match arcade intent through LUT/staging in steady Build 0171 frames.
+- **Rendered-frame anchor:** Existing Build 0171 screenshot `states/traces/build0171_tall_bg_projection_rowbase_20260714_200031/build0171_frame_1081.png` has fully black rows `112..146` across all 320 pixels.
+- **Static boundary:** `_vblank_service` order is input + sprite prepare -> display off -> tile/BG projection/BG commit/FG/sprite commits -> display on -> optional palette -> scroll -> arcade VBlank tail jump. Display-on currently precedes palette/scroll commit.
+- **Runtime evidence:** Lua VDP-port monitor reached gameplay `2/3/0`, scene `0x01`, and across frames `571..1450` captured zero gameplay-window reg1/data writes; the only captured reg1 writes were earlier startup/frontend `0x8134/0x8174`, all preserving VINT enable. Lua execute taps failed (`install_execute_tap` unavailable); Qt native debugger failed headlessly; `-debugger none` did not emit `trace/tracelog` output.
+- **Classification:** I -- more evidence needed. The evidence narrows the symptom to a VINT/VDP observability/commit-cadence boundary, but does not prove missed VINT, overrun, display-off timing, Plane-B partial commit, DMA budget, scroll/projection phase, window/SAT masking, or pattern/palette rendering as a fix-safe cause.
+- **STOP / next proof blocker:** Need reliable PC-execution timing for `0x700C2`, `0x700D2`, `0x7013C`, `0x701BA`, `0x71A6E`, `0x70208`, `0x72442`, `0x700EE`, `0x70256`, `0x70276`, `0x70108`, `0x3A208`, `0x3A27E` across the black-band gameplay window, plus rendered-frame VDP correlation for rows `112..146` (Plane B nametable/pattern/CRAM, Plane A/window/SAT overlap, VDP registers).
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017; OPEN-001 and OPEN-003 context. New issues opened: NONE. Issues closed: NONE. Deferred: input/crouch/control-lock, collision byte-equivalence, real Genesis freeze/contact behavior, PC090OJ/READY/header sprites, continue/game-over, D00298, Exodus loop, records `132..134`.
+- **KNOWN_FINDINGS impact:** Option A -- no new finding indexed. No durable mechanism is proven yet.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; no Genesis-owned lifecycle, source change, diagnostic ROM, or second renderer was introduced.
+- **STOP status:** YES for implementation/build.
+
+## [Cody — Build 0172 Foreground Floor-Tile Staging Correction]
+
+- **Date:** 2026-07-15
+- **Type:** Implementation-first analysis / no-build STOP. No source/spec/tool/Makefile/ROM/invariant changes; no build.
+- **Baseline measured:** Build 0171 candidate `dist/rastan-direct/rastan_direct_video_test_build_0171.bin`, SHA `819a2131a7643135b46c6faaaf00153ac95c37fae2ed357659fed74075d45ab9`, size `1,581,848`, counter `171`.
+- **Files changed:** `docs/design/Cody_build0172_foreground_floor_tile_staging_correction.md`, `OPEN_ISSUES.md`, `AGENTS_LOG.md`.
+- **User correction recorded:** YES. Tighe's visual truth is controlling: Build 0171 sky/mountains are much improved, but visible floor/foreground/terrain remains wrong or missing; this is visible terrain, not collision ground; Tighe believes the missing visible floor/terrain is FG/foreground; the earlier `BG sampled cells matched` wording did not resolve the visual problem.
+- **Exact rendered-region anchor:** `states/traces/build0171_tall_bg_projection_rowbase_20260714_200031/build0171_frame_1081.png`, pixel rectangle `x=0..319`, `y=112..146` (tile rows `14..18`). The black band is not stationary: Build 0171 screenshots show full-black row runs at `0..33` (frame `751`), `112..146` (frame `1081`), and `24..58` (frame `1600`).
+- **Cell/staging result:** The sampled black-band row family is primarily arcade BG terrain with sparse arcade FG overlays. Examples: arcade BG `0x06AB/0x06B5/0x0696/0x06A5/0x0676`, arcade FG `0x0420/0x0426/0x0020/0x00BF/0x00C3`; Build 0171 projected/staged BG `0x4271/0x427B/0x425C/0x426B/0x423C`; Build 0171 FG sparse/blank `0x0000/0x6065/0x6000`. Build 0171 ROM LUT/pattern check maps the BG slots back to nonblank arcade terrain tiles, so the first proven divergence is not an unstaged FG-only floor.
+- **Classification:** G -- more evidence needed. Evidence points toward an F-class VINT/VDP/render-presentation boundary because nonblank staged/projected BG terrain exists underneath a moving full-width black band, but the exact subtype is not proven and no bounded source patch is safe.
+- **Build produced:** NO. Build 0172 not produced; accepted build unchanged.
+- **Recommended next boundary:** exact rendered-frame VDP correlation for rows `112..146` (Plane B nametable/pattern/CRAM, Plane A/window/SAT overlap, VDP registers) plus VBlank-chain timing around the affected frames. Sparse FG overlay completeness remains open, but does not explain the full-width moving black band by itself.
+- **Open/Closed Issues Impact:** OPEN-017 updated; OPEN-001 and OPEN-003 context; OPEN-023 context only. New issues opened: NONE. Issues closed: NONE. Deferred: sparse FG overlay completeness, exact VDP/render correlation, VINT/display-off timing, input/crouch/control-lock, collision byte-equivalence, real Genesis freeze/contact behavior, PC090OJ/READY/header, continue/game-over, D00298, Exodus loop, records `132..134`.
+- **KNOWN_FINDINGS impact:** Option A -- no new finding indexed. This corrects and narrows the Build 0172 visible-region analysis, but does not prove a durable new mechanism.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/staging state was observed only. No scaffolding, bypass, hardcoded terrain, second renderer, collision patch, or input patch.
+- **STOP status:** YES for implementation/build.
+
+### MAME Exit Summary (2026-07-15 18:18:10)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0172 PC080SN FG 64-Row Parity Candidate]
+
+- **Date:** 2026-07-15
+- **Type:** Implementation + build + bounded runtime/visual validation.
+- **Baseline:** Build 0171 `dist/rastan-direct/rastan_direct_video_test_build_0171.bin`, SHA `819a2131a7643135b46c6faaaf00153ac95c37fae2ed357659fed74075d45ab9`, size `1,581,848`, counter `171`.
+- **Build produced:** YES. Build 0172.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0172.bin`.
+- **ROM SHA256 / size / counter:** `c2ed780af704737ed813704a414a7609ed2e7f4629b243108c8934273da15ac9`, `1,582,224` bytes, counter `172`.
+- **Files changed:** `apps/rastan-direct/src/tilemap_hooks.s`, `apps/rastan-direct/src/vdp_comm.s`, `apps/rastan-direct/src/boot/boot.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, `docs/design/Cody_build0172_fg_64row_parity_candidate.md`, trace/screenshot artifacts under `states/traces/build0172_fg64_validation_20260715_181940/`, release trace `states/traces/rastan_direct_video_test_build_0172_mame_30s_20260715_181803/`, generated release artifacts/manifests/disassembly/symbols, `AGENTS_LOG.md`.
+- **User correction recorded:** YES. This task treats the remaining Build 0171 symptom as visible PC080SN FG/foreground row-depth and projection parity, not as collision ground and not as a hardcoded floor tile issue.
+- **Implementation:** Added gameplay-only `genesistan_hook_tilemap_fg_fill_tall` and `staged_fg_tall_buffer` (64x64 words). `genesistan_stage_fg_src_column` now routes the 16 four-row gameplay FG source segments through the tall helper instead of preserving only `FG_PRODUCER_SEG_COUNT=8` / 32 rows. Added VBlank `vdp_project_fg_tall_if_dirty`, gated by `genesistan_current_scene_id==1`, to project a rolling 32-row Plane-A visible window from the 64-row FG backing using `(((-staged_scroll_y_fg + 8) & 0x01FF) >> 3) & 0x3F`; gameplay FG VSRAM commit now applies only the residual pixel offset `& 0x0007`. Non-gameplay title/story/high-score FG paths remain on the existing 32-row path.
+- **Invariant/build result:** first release invocation stopped on expected canonical coverage mismatch (`0x182318` expected, `0x182490` observed, opcode_replace `151` unchanged); updated only canonical coverage constants and reran release successfully. GATE_PASS / boot guard PASS. Numbered and rolling ROMs are byte-identical (`cmp=0`).
+- **Static verification:** `vdp_project_fg_tall_if_dirty = 0x000701BE`; `genesistan_hook_tilemap_fg_fill_tall = 0x00070A52`; `fg_tall_dirty = 0x00FF400E`; `fg_tall_project_base = 0x00FF4010`; `staged_fg_buffer = 0x00FF70A6`; `staged_fg_tall_buffer = 0x00FF80A6`; WRAM budget remains within Genesis WRAM.
+- **Runtime validation:** trace `states/traces/build0172_fg64_validation_20260715_181940/` exited `0`. By gameplay frame `571`, state `2/3/0`, scene `1`, `fg_tall_nz=4032`, `fg_nz=2016`, and sampled projected FG words match the corresponding tall-buffer rows. Steady samples at frames `820/900/1081/1400` keep `fg_tall_nz=4032`, with FG projection bases `0x16/0x17`; examples include frame `1081` projected FG cells `0x6065/0x603F/0x6043` matching tall rows `38/40/41`.
+- **Visual validation:** screenshots/contact sheet under `states/traces/build0172_fg64_validation_20260715_181940/` show sky/clouds and Build 0171 BG projection preserved. Foreground/floor/terrain under and around Rastan changes substantially: the lower region is now filled by visible repeated green/foreground-looking tiles in many frames instead of the same Build 0171 missing-lower-foreground presentation. The result is **not arcade-correct** and remains a candidate only: repeated wrong foreground tiles and black/blank bands still occur.
+- **Accepted build changed:** NO. Build 0172 is a candidate pending Tighe visual / hardware verification, not an accepted visual fix.
+- **Deferred issues:** exact arcade-correct foreground tile selection/projection, remaining black/blank band timing, crouch/down-held state, automatic movement/input, collision byte-equivalence, real Genesis behavior, PC090OJ/READY/header sprites, continue/game-over, D00298, Exodus loop, and records `132..134`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017; OPEN-001 context. New issues opened: NONE. Issues closed: NONE.
+- **KNOWN_FINDINGS impact:** Option C -- KF-038 refined with Build 0172 gameplay FG 64-row parity evidence.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/staging representation preserves arcade-produced FG state into the existing VBlank commit path. No collision/input/player-state/hardcoded-tile/PC090OJ/D00298/READY/continue-game-over work.
+- **STOP status:** NO.
+
+### MAME Exit Summary (2026-07-15 19:15:39)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0173 PC080SN FG Palette / Attribute Correction Candidate]
+
+- **Date:** 2026-07-15
+- **Type:** Implementation-first bounded palette/attribute correction + build + runtime evidence.
+- **Baseline:** Build 0172 `dist/rastan-direct/rastan_direct_video_test_build_0172.bin`, SHA `c2ed780af704737ed813704a414a7609ed2e7f4629b243108c8934273da15ac9`, size `1,582,224`, counter `172`.
+- **Build produced:** YES. Build 0173.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0173.bin`.
+- **ROM SHA256 / size / counter:** `1f8711ac3132481f4e953b2965e09480e3cdb4b1d85d512d2a43b9ed1368d410`, `1,582,224` bytes, counter `173`.
+- **Files changed:** `apps/rastan-direct/src/tilemap_hooks.s`, `docs/design/Cody_build0173_fg_palette_attribute_candidate.md`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, trace artifacts under `states/traces/build0173_fg_palette_attr_probe_20260715_191427/`, `states/traces/build0173_fg_palette_attr_validation_20260715_191624/`, `states/traces/build0173_fg64_sample_validation_20260715_191644/`, release trace `states/traces/rastan_direct_video_test_build_0173_mame_30s_20260715_191533/`, generated release artifacts/manifests/disassembly/symbols, `AGENTS_LOG.md`.
+- **User visual observations recorded:** Build 0172 foreground/floor/terrain tiles are present and vertically correct, but green instead of arcade brown/rock; scroll-right foreground breakup, uncontrollable Rastan, cave/fall behavior, and slowdown remain separate/deferred.
+- **Classification:** H -- correct brown/earth-compatible palette exists in CRAM, but Build 0172 gameplay FG selected the green palette line.
+- **Implementation:** Gameplay FG only: changed `FG_PLANE_ATTR_HI` in `genesistan_stage_fg_src_column` from `0x00030000` to `0x00020000`. Preserved Build 0172 `staged_fg_tall_buffer`, tall FG helper, 16 segments / 64 rows, rolling projection, and residual FG Y-scroll. No tile-source, BG, PC090OJ, collision, input, VBlank-budget, or slowdown changes.
+- **Build verification:** `source tools/setup_env.sh && make -C apps/rastan-direct release` passed with `GATE_PASS`; numbered and rolling ROMs byte-identical (`cmp=0`). ELF disassembly confirms `genesistan_stage_fg_src_column` now emits `movel #0x00020000,%d1` at `0x70584` before the tall FG fill call.
+- **Runtime evidence:** Build 0172 probe shows all nonzero gameplay FG cells on line 3 (`fg attr lines=0,0,0,2016`, tall `0,0,0,4032`) with sample words `0x6065/0x603F/0x6043`; Build 0173 validation shows the same counts on line 2 (`0,0,2016,0`, tall `0,0,4032,0`) and sample words `0x4065/0x403F/0x4043`. Tile IDs preserved; palette-line bits changed.
+- **Accepted build changed:** NO. Build 0173 is a candidate pending Tighe visual/hardware verification.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017; OPEN-001 context. New issues opened: NONE. Issues closed: NONE. Deferred: visual acceptance of brown foreground, scroll-right breakup, remaining black/blank bands, controls/input/crouch, cave/fall/collision/layout, slowdown/VBlank budget, real Genesis behavior, PC090OJ/READY/header, continue/game-over, D00298, Exodus loop, records `132..134`.
+- **KNOWN_FINDINGS impact:** Option B -- added KF-045 for the durable Stage-1 gameplay FG palette-line rediscovery guard; KF-043 remains valid for bank-51/source-buffer ownership and sprites.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/staging attribute selection flows through the existing VBlank commit path.
+- **STOP status:** NO.
+
+### MAME Exit Summary (2026-07-15 20:00:00)
+- Final PC: 0x03B290
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0174 PC080SN FG Arcade Palette Source Candidate]
+
+- **Date:** 2026-07-15
+- **Type:** Analysis-first implementation candidate + runtime evidence.
+- **Baseline:** Build 0173 `dist/rastan-direct/rastan_direct_video_test_build_0173.bin`, SHA `1f8711ac3132481f4e953b2965e09480e3cdb4b1d85d512d2a43b9ed1368d410`, size `1,582,224`, counter `173`.
+- **Build produced:** YES. Build 0174.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0174.bin`.
+- **ROM SHA256 / size / counter:** `faca6b14b18add340828db00b1c080f602b227d5db05b2ee46b38d4d3c30d7aa`, `1,582,244` bytes, counter `174`.
+- **Files changed:** `apps/rastan-direct/src/palette_hooks.s`, `apps/rastan-direct/src/tilemap_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build0174_fg_arcade_palette_source_candidate.md`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, trace artifacts under `states/traces/build0174_fg_palette_source_20260715_195606/`, release trace `states/traces/rastan_direct_video_test_build_0174_mame_30s_20260715_195954/`, generated release artifacts/manifests/disassembly/symbols, `AGENTS_LOG.md`.
+- **User visual observations recorded:** Build 0173 did not fix FG palette; FG tiles are right but colors remain wrong (purple/blue/white/pink-ish instead of arcade brown/rock/ground); scroll-right FG update remains wrong; Rastan remains uncontrollable; first sky-palette-change point resets to level start instead of arcade sunset/time palette transition; slowdown remains deferred.
+- **Arcade palette-source proof:** MAME PC080SN source confirms `attr & 0x1ff` is the color/palette index. Original arcade Stage 1 visible FG samples use attr/color bank `0x0003`, with converted bank 3 `0000 0868 0846 0646 0624 0424 0402 0202 0202 028C 044C 0226 0004 0002 0222 0424`. Build 0173 line 2 exactly matches arcade bank 2, not this FG terrain bank.
+- **Implementation attempted:** Gameplay FG carrier moved to Genesis line 1 (`FG_PLANE_ATTR_HI = 0x00010000`); palette hooks route arcade bank 3 to line 1 while preserving bank 51 on line 3. Canonical coverage updated mechanically `0x182490 -> 0x1824A4`; opcode_replace count unchanged `151`.
+- **Validation result:** VALIDATION-FAILED. Build 0174 moves gameplay FG cells to line 1, but line 1 does not contain arcade bank 3 by gameplay time. Runtime provenance shows `genesistan_palette_hook_3ba64` writes the correct bank-3 values to line 1 around frame 15 from JSON-mapped source `runtime_genesis_rom_offset 0x0004ED56` / arcade `0x0004EB56`, then `genesistan_palette_hook_59ad4` overwrites line 1 around frames 53 and 130 before gameplay. Build 0174 is a failed palette-source delivery candidate, not an accepted visual fix.
+- **Recommended next boundary:** Preserve frontend line-1 behavior and restore/load arcade bank 3 from `runtime_genesis_rom_offset 0x0004ED56` / arcade `0x0004EB56` at a gameplay-appropriate FG palette boundary, through the existing palette conversion/staging path and `palette_dirty`. Do not globally suppress `0x59AD4` line-1 writes.
+- **Accepted build changed:** NO. Build 0174 is preserved as evidence/candidate only.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017; OPEN-001 context. New issues opened: NONE. Issues closed: NONE. Deferred: scroll-right FG update, controls/input, sky-palette reset, slowdown/VBlank budget, collision/layout, PC090OJ/READY/header, continue/game-over, D00298, Exodus loop, records `132..134`.
+- **KNOWN_FINDINGS impact:** Option C -- KF-045 refined to correct the Build 0173 line-2 interpretation and record the bank-3 carrier-lifetime mechanism.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/palette staging only. No input/control, slowdown, sky, horizontal-FG, collision, sprite, D00298, or crash-handler work.
+- **STOP status:** YES, limited. Further implementation/build should wait for a follow-up directive targeting the proven bank-3 gameplay restore boundary.
+
+### MAME Exit Summary (2026-07-15 21:18:35)
+- Final PC: 0x03B28E
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Cody — Build 0175: Arcade Palette-Bank → Genesis Palette-Line Route LUT + FG bank-3 carrier
+
+- **Date:** 2026-07-15
+- **Type:** Implementation. Palette route table + scene-gated carrier re-assert. Build produced.
+- **Baseline:** Build 0174 `faca6b14…` (visually rejected). Produced Build 0175 `dist/rastan-direct/rastan_direct_video_test_build_0175.bin`, SHA `555c4d6c013df77fe28ce1e44fc27f039b609a1e6ad014e858b3fb5590db947f`, 1,582,580 bytes, counter 175. GATE_PASS.
+- **Build produced:** YES (Build 0175). Accepted build unchanged (candidate; visual acceptance pending).
+- **User rejection recorded:** YES (0172 right direction, 0173/0174 wrong palette family, 0174 raw-steak FG, tiles still right).
+- **Primary question classification:** **A** — Genesis line 1 can carry arcade FG bank 3 during gameplay but must be re-asserted at the gameplay boundary after the frontend overwrites it.
+- **Route table implemented:** YES — `palette_route_table` + `palette_route_lookup` in palette_hooks.s; rows (scene,owner,arcade_bank)->(line,flags): {1,FG,3->1,CARRIER},{1,BG,48->2},{1,PC090OJ,51->3},{1,HUD,0->0}.
+- **Carrier lifetime:** hook_3ba64/hook_59ad4 snapshot converted bank 3 into `fg_bank3_line_cache` when they route it to staged line 1 (`fg_bank3_route_seen` gate); `vdp_reassert_fg_bank3_line` (scene-1 gated, route-driven, compare-then-restore) runs each VBlank before palette commit.
+- **Validation (runtime, states/traces/build0175_validate):** gameplay line 1 == arcade bank 3 byte-exact (`0000 0868 0846 0646 0624 0424 0402 0202 0202 028C 044C 0226 0004 0002 0222 0424`); FG cells 996/996 on line 1; BG 2048/2048 on line 2; L0=bank0 HUD, L3=bank51 sprites unchanged; title (F90) + story (F300) line 1 preserved (frontend untouched, scene-0 gating). cacheValid=1.
+- **CRAM ownership + arcade bank inventories:** in design note (title/story/READY/gameplay-first/gameplay-populated + banks 0/1/3/48/51).
+- **Sky palette-change reset:** classification **D (unrelated/deferred), explicitly NOT A** — palette route is CRAM-only, scene-gated, mutates no gameplay/scroll/level state and adds no phase entry, so it cannot cause the reset; needs a dedicated sky-scroll trigger trace. Documented, not fixed.
+- **FG horizontal update:** classification **B (FG horizontal source/window not updating), deferred** — `genesistan_stage_fg_src_column` replays a fixed FG_SRC window that does not advance with horizontal scroll. Documented, not fixed.
+- **Input/control:** Rastan uncontrollable — deferred, not patched. **Slowdown:** not new — deferred, not patched.
+- **Files changed:** palette_hooks.s, vdp_comm.s, postpatch_startup_rom.py + verify_canonical_rom.py (coverage 0x1824A4->0x1825F4 paired; opcode_replace 151 unchanged), docs/design/Cody_build0175_palette_route_lut_candidate.md, KNOWN_FINDINGS.md (KF-046), OPEN_ISSUES.md, AGENTS_LOG.md.
+- **Architecture compliance:** CONFIRMED. No forced/hardcoded colors, no hardcoded tile/sprite palettes, no global hook suppression, no second renderer; Build 0172 FG projection and Build 0171 BG projection preserved; FG tile source unchanged.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New: NONE. Closed: NONE. Deferred: sky-reset, FG-horizontal, input, slowdown.
+- **KNOWN_FINDINGS impact:** KF-046 added (palette route table + scene-gated carrier re-assert).
+- **STOP triggered:** NO (bounded build produced and data-validated).
+
+### MAME Exit Summary (2026-07-15 21:49:35)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-15 22:17:09)
+- Final PC: 0x03B28A
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0176/0177 PC090OJ Pre-SAT Output Budget]
+
+- **Date:** 2026-07-15
+- **Type:** Analysis-first bounded implementation + build + runtime validation.
+- **Baseline accepted build:** Build 0175 `dist/rastan-direct/rastan_direct_video_test_build_0175.bin`, SHA `555c4d6c013df77fe28ce1e44fc27f039b609a1e6ad014e858b3fb5590db947f`, size `1,582,580`, counter `175`.
+- **Interrupted diagnostic build preserved:** Build 0176 `dist/rastan-direct/rastan_direct_video_test_build_0176.bin`, SHA `e7ff34fa67f4d0dd9f15fa180d69e870a41dc0923a219cb65846068d6cf09d52`, size `1,582,700`, counter `176`; not accepted.
+- **Build produced:** YES. Build 0177.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0177.bin`.
+- **ROM SHA256 / size / counter:** `b0db30f17a7d0d3453bf3a6c2bca23bd16694e72b7c050a874d3afb3fe921370`, `1,582,740` bytes, counter `177`.
+- **Files changed:** `apps/rastan-direct/src/pc090oj_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build0176_0177_pc090oj_presat_output_budget.md`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, trace artifacts under `states/traces/build0177_presat_output_budget_20260715_222043/`, release trace `states/traces/rastan_direct_video_test_build_0177_mame_30s_20260715_221703/`, generated release artifacts/manifests/disassembly/symbols, `AGENTS_LOG.md`.
+- **Andy Build 0176 classification:** **C -- replace with a better per-record dirty/cache/output-worklist approach.** The Build 0176 mirror shadow is retained as useful infrastructure, but the ineffective `mirror_dirty -> all 256 candidates` behavior is replaced.
+- **Primary slowdown classification:** **A** -- per-record dirty tracking can replace full-mirror dirty resweep. Architectural interpretation: full PC090OJ mirror tracking is required, but full expensive output preparation is not.
+- **Implementation:** Full 256-record `pc090oj_object_ram` mirror retained. `vdp_prepare_sprites` now separates bootstrap full resweep from dirty-frame processing; dirty frames compare `pc090oj_object_ram` to `pc090oj_mirror_shadow` and mark only changed 8-byte tuples via `.Lpc090oj_mark_changed_candidates_since_shadow`; processed mirrors are snapshotted by `.Lpc090oj_update_mirror_shadow`. Candidate set/clear helpers maintain `pc090oj_candidate_count`. `.Lpc090oj_set_all_candidates` remains available for bootstrap/global reevaluation and now sets count 256.
+- **Build verification:** Release passed `GATE_PASS`; numbered and rolling ROMs are byte-identical (`cmp=0`). Canonical invariants corrected to opcode_replace `151`, total coverage `0x182694` after the expected mechanical growth from Build 0176/0177 PC090OJ changes.
+- **Runtime validation:** trace `states/traces/build0177_presat_output_budget_20260715_222043/` exited `0`. Build 0177 `DISPLAY_OFF=703/1500=0.469/frame` (Build 0175 `0.321`, Build 0176 `0.349`); prep entry->display-off `12.039 ms / 0.72 frames` (Build 0176 about `35.7 ms / 2.14 frames`). Section timing: prep `12.129 ms`, commit `2.711 ms`, post `0.226 ms`, arcade+main `22.226 ms`.
+- **Candidate-flow proof:** gameplay entry candidates average `14.00`; changed mirror tuples average `6.04`; after mirror marking candidates average `20.04`; after processing candidates average `0.00`; gameplay `.Lpc090oj_set_all_candidates` hits `0`. Sample F900/F1300: `mirror_coded=42`, `represented=24`, `active=24`, `tile_dma=18/17`, `changed_tuples=6`.
+- **80-sprite budget before/after:** before, final SAT/activation cap existed but dirty frames still expanded to 256 candidates before expensive processing; after, dirty frames derive a bounded changed-record candidate set before decode/representation/tile work, while final activation/SAT cap remains.
+- **Enemy classification:** **B/H.** Genesis mirror contains enemy-code records (`enemy_records=14` in samples), so they are not absent from PC090OJ mirror; none are represented or waiting (`enemy_represented=0`, `enemy_waiting=0`). Exact rejection/eligibility boundary remains deferred. No fake enemy rendering or forced visibility.
+- **Visual status:** headless timing/counter validation only. Black-bar/slowdown visual result and real hardware behavior require Tighe verification. Build 0175 palette route, Build 0172/0171 FG/BG projection, input/control, sky-reset, collision, D00298, continue/game-over, and Exodus loop were not intentionally touched.
+- **Accepted build changed:** NO. Build 0177 is a timing/performance candidate pending visual/hardware verification.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017, OPEN-024, OPEN-001 context. New issues opened: NONE. Issues closed: NONE. Deferred: real Genesis/hardware acceptance, black-bar visual confirmation, enemy output eligibility, input/control, sky-reset, D00298, continue/game-over, collision, Exodus loop.
+- **KNOWN_FINDINGS impact:** Option B -- added KF-047 for the durable PC090OJ pre-SAT budget mechanism.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/staging path only. No second renderer/SAT path, no hardcoded sprites/enemies, no dropped arcade mirror state.
+- **STOP status:** NO.
+
+### MAME Exit Summary (2026-07-16 07:51:13)
+- Final PC: 0x03B298
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 07:58:07)
+- Final PC: 0x03B298
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0178 Residual PC090OJ Sprite Helper Efficiency]
+
+- **Date:** 2026-07-16
+- **Type:** Analysis-first bounded implementation + build + runtime timing validation.
+- **Baseline:** Build 0177 `dist/rastan-direct/rastan_direct_video_test_build_0177.bin`, SHA `b0db30f17a7d0d3453bf3a6c2bca23bd16694e72b7c050a874d3afb3fe921370`, size `1,582,740`, counter `177`.
+- **Build produced:** YES. Build 0178.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0178.bin`.
+- **ROM SHA256 / size / counter:** `998cc3c92b710d79eeaea08e49ea288f4757d03662692797361142bf186cdd96`, `1,582,732` bytes, counter `178`.
+- **Primary pre-fix slowdown classification:** **A -- residual PC090OJ.** Runtime timing showed PC080SN BG/FG dirty-row work was not active in the sampled gameplay windows (`bg_row_dirty=0`, `fg_row_dirty=0`), while PC090OJ still performed repeated tile-DMA work.
+- **Source-causality finding:** `.Lpc090oj_worklist_set` still contained a stale Build 0163 gameplay-only forced tile-DMA requeue branch, bypassing the existing `sprite_tile_resident_code[slot] == requested_code` cancellation path. The correct state (`sprite_tile_resident_code[slot]`) is written after successful sprite tile DMA, but Build 0177 ignored it for gameplay scene worklist entries.
+- **Implementation:** Removed only the stale forced-requeue branch in `apps/rastan-direct/src/pc090oj_hooks.s`. No mirror/SAT architecture change, no second renderer, no sprite hardcoding, no PC080SN/FG/BG/palette/collision/input changes.
+- **Canonical/build verification:** Release passed `GATE_PASS`; opcode_replace count stayed `151`; canonical total coverage corrected from `0x182694` to `0x18268C` for the expected `-0x8` mechanical shrink. Numbered Build 0178 and rolling ROM were byte-identical immediately after the intended build.
+- **Runtime evidence:** trace root `states/traces/build0178_residual_efficiency_20260716_073844/`; Build 0177 vs Build 0178 comparison `states/traces/build0178_residual_efficiency_20260716_073844/build0177_vs_build0178_comparison.md`.
+- **Timing result:** over frames 500..1599, serviced DISPLAY_OFF count improved `485 -> 503`. Tile-DMA average dropped from `24 -> 6` in the initial window and `18 -> 6` in dense/later/late windows. Dense/later DISPLAY_OFF average dropped from `2.217 ms -> 1.175 ms`; initial window from `8.088 ms -> 5.392 ms`.
+- **Remaining status:** Build 0178 does not close PC090OJ/slowdown. `pc090oj_sat_dirty` still remains asserted on serviced frames, SAT DMA still runs, and the remaining ~6 tile-DMA entries need a slot/code-level trace before further pruning. Enemy-code records `0x03E8..0x03F5` still decode `offscreen_y` with `enemy_represented=0` / `enemy_waiting=0`.
+- **Post-fix remaining slowdown classification:** **D -- mixed.** PC090OJ residual work remains, but the next safe boundary requires narrower proof of SAT dirty persistence and remaining tile-DMA entries; dense PC080SN FG/BG was not supported by this headless trace.
+- **Procedural STOP:** YES. While writing the markdown report, an unquoted heredoc accidentally executed the fenced release command and produced an unintended duplicate Build 0179. Build 0179 `dist/rastan-direct/rastan_direct_video_test_build_0179.bin` has the same SHA/size as Build 0178 and `cmp` proved byte-identical; current rolling ROM is also byte-identical. This is recorded as a procedural issue, not a semantic Build 0179 feature/change.
+- **Files changed:** `apps/rastan-direct/src/pc090oj_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build0178_sprite_helper_residual_efficiency.md`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, generated Build 0178/0179 artifacts and trace outputs, `AGENTS_LOG.md`.
+- **Design doc:** `docs/design/Cody_build0178_sprite_helper_residual_efficiency.md`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017, OPEN-024; OPEN-001 context. New issues opened: NONE. Issues closed: NONE. Deferred: visual/hardware acceptance, remaining SAT dirty/SAT DMA proof, remaining tile-DMA entries, enemy eligibility, input/control, sky reset, D00298, continue/game-over, collision, Exodus loop.
+- **KNOWN_FINDINGS impact:** Option C -- KF-047 updated with Build 0178 resident-cache restoration and stale diagnostic forcing lesson.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/cache/staging path only. No unapproved bypass, no hardcoded sprite visibility, no broad renderer rewrite.
+- **STOP status:** YES (procedural duplicate build only; bounded Build 0178 result remains valid, visual/hardware acceptance pending Tighe).
+
+### MAME Exit Summary (2026-07-16 11:58:48)
+- Final PC: 0x03B28A
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0180 PC090OJ SAT Dirty / Enemy Offscreen Boundary]
+
+- **Date:** 2026-07-16
+- **Type:** Analysis-first bounded implementation + build + runtime evidence.
+- **Baseline:** Build 0178 `dist/rastan-direct/rastan_direct_video_test_build_0178.bin`, SHA `998cc3c92b710d79eeaea08e49ea288f4757d03662692797361142bf186cdd96`, size `1,582,732`. Build 0179 was the previously recorded accidental duplicate with identical SHA/size and no semantic change; counter was `179` before this task.
+- **Build produced:** YES. Build 0180.
+- **ROM path:** `dist/rastan-direct/rastan_direct_video_test_build_0180.bin`.
+- **ROM SHA256 / size / counter:** `d016cacd6b318c949875bccb992ecff7633def06fc8e57f62c89600967b054bf`, `1,582,800` bytes, counter `180`.
+- **Primary timing classification:** **A -- SAT dirty / SAT DMA** for the Build 0178 -> Build 0180 boundary.
+- **SAT dirty classification:** **D -- represented records were being re-synced and marking `pc090oj_sat_dirty` even when the staged SAT words were equivalent.** `.Lpc090oj_field_update_record` reaches `.Lpc090oj_place_record_in_slot`; before this task that path rewrote the staged SAT words and unconditionally set `pc090oj_sat_dirty`.
+- **Implementation:** `.Lpc090oj_place_record_in_slot` now compares each of the four staged SAT words (`Y`, `size|link`, `attr|tile`, `X`) against the existing `staged_sprite_sat` entry and sets `pc090oj_sat_dirty` only when at least one staged SAT word changes. Descriptor table updates, worklist queue/cancel, represented bits, and used-slot tracking remain preserved. No broad SAT-DMA skip was added.
+- **Canonical/build verification:** Initial release attempt failed the canonical coverage gate before numbered artifact production; paired canonical invariants were corrected to opcode_replace `151`, total coverage `0x1826D0`. The subsequent release passed `GATE_PASS`; numbered Build 0180 and rolling ROM were byte-identical immediately after the build. Release trace: `states/traces/rastan_direct_video_test_build_0180_mame_30s_20260716_115841/`.
+- **Runtime evidence:** trace root `states/traces/build0180_pc090oj_sat_dirty_enemy_20260716_115243/`; reduced comparison `states/traces/build0180_pc090oj_sat_dirty_enemy_20260716_115243/build0178_vs_build0180_reduced.md` / `.json`.
+- **SAT DMA result:** Build 0178 `pc090oj_sat_dirty` at DISPLAY_OFF was `503/503`; Build 0180 reduced this to `1/523`. Frame-sampled Build 0180 SAT dirty was `0` for `96/96` samples. Staged SAT frame hashes changed only at scene/entry boundaries, supporting the byte-equivalence gate.
+- **Remaining tile-DMA classification:** **A -- legitimate animation/frame changes.** Remaining Build 0180 tile-DMA is usually `4` entries, with worklist codes cycling among `0x09D9/0x09DA/0x09DB`; requested-vs-resident mismatch remains expected for animated sprite tiles. No tile-DMA suppression was implemented.
+- **Enemy offscreen classification:** **H -- more evidence needed.** Genesis enemy-code records `30..43` / codes `0x03E8..0x03F5` still reject as `offscreen_y` (`screen_y=224`, `represented=0`, `waiting=0`, `slot=255`). A matched-state arcade attempt reached state `2/3/0` with matching player/camera window but did not produce those exact `0x03E8..0x03F5` records, so no enemy culling or visibility fix was claimed.
+- **Visual/hardware status:** Not accepted. Build 0180 is a bounded SAT-DMA performance candidate pending Tighe visual/hardware verification. Input/control, sky-reset, collision, D00298, continue/game-over, and broader sprite eligibility remain deferred.
+- **Files changed:** `apps/rastan-direct/src/pc090oj_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build0180_pc090oj_sat_dirty_enemy_offscreen.md`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, generated Build 0180 artifacts and trace outputs, `AGENTS_LOG.md`.
+- **Design doc:** `docs/design/Cody_build0180_pc090oj_sat_dirty_enemy_offscreen.md`.
+- **Open/Closed Issues Impact:** Open issues touched: OPEN-017, OPEN-024; OPEN-001 context. New issues opened: NONE. Issues closed: NONE. Deferred: visual/hardware acceptance, enemy output eligibility, input/control, sky reset, D00298, continue/game-over, collision, Exodus loop.
+- **KNOWN_FINDINGS impact:** Option C -- KF-047 updated with Build 0180 SAT dirty byte-change gating and the distinction between legitimate animation tile-DMA and unnecessary SAT DMA.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis helper/cache/staging path only. No hardcoded sprites/enemies, no second renderer/SAT path, no broad VDP rewrite.
+- **STOP status:** NO for the bounded SAT dirty task. Enemy comparison remains a deferred evidence gap, not a Build 0180 STOP.
+
+### MAME Exit Summary (2026-07-16 12:34:46)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 12:35:28)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 12:35:33)
+- Final PC: 0x03A1AE
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 12:37:00)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 12:37:32)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy — Build 0181/0182/0183: Configurable PC090OJ Mirror Record Count
+
+- **Date:** 2026-07-16
+- **Type:** Build-system infrastructure + diagnostic builds + runtime evidence.
+- **Baseline:** Build 0180 (`d016cacd...`, counter 180). Repo state confirmed: Build 0179 is an accidental byte-duplicate of Build 0178 (`998cc3c9...`); tree carries uncommitted 0164..0180 work.
+- **Builds produced (GATE_PASS, deterministic):** 0181 default RECORDS=256 (`1ef9085e...`), 0182 diagnostic RECORDS=128 (`5f7264db...`), 0183 diagnostic RECORDS=80 (`defe5173...`); all size 1,582,840; counter 180 -> 183.
+- **Accepted build changed:** NO. 0181 is the default (256) successor to 0180; 0182/0183 are diagnostic-only (not accepted).
+- **Mechanism (durable):** `apps/rastan-direct/Makefile` `PC090OJ_MIRROR_RECORDS ?= 256` -> generated `out/pc090oj_config.inc` -> `.include` in pc090oj_hooks.s (`-I out`). Overridable via `make release PC090OJ_MIRROR_RECORDS=N`. All mirror `.bss` sizes, loop bounds, candidate seed, bitset clears, shadow copy/scan, not-found sentinel, and `PC090OJ_HW_ACTIVE_END` derive from it. No scattered constants remain.
+- **Safety:** record-based writers (emit_slot, family_apply_record) gained `cmpi #PC090OJ_MIRROR_RECORDS` bounds checks -> drop records >= N to `pc090oj_producer_oob_count` (no overflow when N<256). Only behavioral delta vs 0180; inert at 256. Coverage 0x1826D0 -> 0x1826F8 (+0x28), opcode_replace 151 unchanged, both gate scripts paired.
+- **Diagnostic results (MAME gameplay, matched coin/start):** 256 -> represented=28, oob=0, VINT rate 0.477; 128 -> 22, 7340, 0.569; 80 -> 26, 16162, 0.563. Default 256 == 0180 behavior. Capping improves rate ~19% with sprite visibility roughly preserved (active set fits within ~80 records). Dropped records are high-index duplicates/out-of-window (incl. player-block 120..137/92..95 from Build 0164).
+- **Not changed:** palette route (0175), Build 0180 SAT-dirty gating, 0171/0172 projections. No input/collision/sky-reset/enemy-visibility/D00298/Exodus/continue work.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New: NONE. Closed: NONE. Deferred: black bars, frozen actor progression (enemies/control), arcade-VINT/main-loop cost.
+- **KNOWN_FINDINGS impact:** KF-048 added (durable configurable mirror sizing).
+- **Architecture compliance:** CONFIRMED. No forced/hardcoded sprites, no second renderer; default preserves full 256-record behavior; diagnostics degrade gracefully (drop, not corrupt).
+- **STOP triggered:** NO (bounded infrastructure + three builds delivered and validated).
+
+### MAME Exit Summary (2026-07-16 13:43:46)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:45:13)
+- Final PC: 0x03A1AE
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:47:29)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:47:36)
+- Final PC: 0x03B286
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:47:43)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:47:50)
+- Final PC: 0x0005EE
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:49:17)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:49:24)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:49:31)
+- Final PC: 0x03A1AE
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:49:38)
+- Final PC: 0x03B286
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:49:45)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:49:52)
+- Final PC: 0x0005EE
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:49:59)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:51:11)
+- Final PC: 0x0005EE
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:51:20)
+- Final PC: 0x0005EE
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:51:28)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 13:53:43)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy — Build 0183 80-Record Mirror Visual Rejection / Player Sprite Boundary
+
+- **Date:** 2026-07-16
+- **Type:** Analysis + deterministic diagnostic range builds + runtime evidence. No code fix (config mechanism proven sound). Repo restored to default 256.
+- **Question answered — classification D (records 120..127 required, specifically 120..121). Minimum visually-safe record count = 122.**
+- **Threshold sweep** (head SAT slot 0 X @ fixed 0x00FFA1B0, gameplay, stable F800..F1700): 256/128/124/122 = NORMAL (X=0x0090, left); 120/118/116 = EMPTY head slot; 112/96/80 = FLIPPED (X=0x01A0 = (320-x-16)+0x80 = PC090OJ flip-screen -> right).
+- **Mechanism:** player cluster duplicated — low copy records 0,1,4,5,6,8..11 and arcade-canonical copy records 120..137 (0x041F5E/Build 0164 mapping), same codes 009E/009F/008E/008F/0090/0076..0079. Mirror records 0..14 byte-identical across 128 vs 80 builds; only SAT output differs. Corruption is the represent/flip-screen composition depending on canonical anchor records 120..121; dropping them breaks Rastan even though the low duplicate survives.
+- **Config-mechanism bug:** NONE. 128 and 256 render correctly; failure appears only when 120..121 dropped. Bitset/record_to_slot/sentinel sizing correct at every tested count. No code fix built.
+- **Builds produced (all GATE_PASS, deterministic, diagnostic-only, size 1,582,840):** 0181=256, 0182=128, 0183=80, 0184=96, 0185=112, 0186=120, 0187=124, 0188=116, 0189=118, 0190=122; 0191 = restored default 256 (== 0181). Repo config restored to default 256 (out/pc090oj_config.inc = 256, rolling dist = 0181 SHA). Counter 191.
+- **Recommendation:** none of 96/112/120 is safe; minimum safe = 122, use 128 for margin; keep project default 256.
+- **Not changed:** configurable-mirror mechanism (KF-048), Build 0180 SAT-dirty gating, Build 0178 tile-DMA, Build 0175 palette route, 0171/0172 projections. No input/collision/enemy/sky/D00298/continue/Exodus work.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New: NONE. Closed: NONE. Deferred: black bars, frozen actor progression, arcade-VINT cost.
+- **KNOWN_FINDINGS impact:** KF-049 added (mirror cap floor 122; canonical player anchor at records 120..121).
+- **Architecture compliance:** CONFIRMED. No forced player position, no faked SAT, no hardcoded records; diagnostics degrade gracefully; default preserves 256.
+- **STOP triggered:** NO build fix (evidence + diagnostic range builds delivered); config mechanism proven correct, no bug to fix.

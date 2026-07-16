@@ -20,6 +20,15 @@ HELPER_CANONICAL_SHA ?= 20825b3611f3c2bbcf2a401045fa74256f8b549d4d509834eb8d9288
 BOOKMARK_REVERT ?=
 BOOKMARK_STATE_FILE := $(ROOT)/build/rastan-direct/active_bookmark_baseline.json
 
+# PC090OJ helper mirror sizing (durable, Make-overridable).
+# Default is the full arcade model of 256 PC090OJ object records.  Override for
+# diagnostic/tuning builds, e.g. `make release PC090OJ_MIRROR_RECORDS=128` or
+# `make release PC090OJ_MIRROR_RECORDS=80`.  Valid range 1..256.  The value is
+# baked into a generated assembly include ($(OUT_DIR)/pc090oj_config.inc) so no
+# scattered assembly constants need hand-editing.
+PC090OJ_MIRROR_RECORDS ?= 256
+PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
+
 PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
 PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
 PC090OJ_SLOT_LUT := $(ROOT)/build/pc090oj_slot_lut.bin
@@ -40,7 +49,7 @@ NM := m68k-elf-nm
 OBJDUMP := m68k-elf-objdump
 endif
 
-ASFLAGS := --register-prefix-optional
+ASFLAGS := --register-prefix-optional -I $(OUT_DIR)
 LDFLAGS := -T link.ld -nostdlib
 
 OBJS := \
@@ -98,7 +107,13 @@ $(PC090OJ_OPAQUE_BBOX): $(PC090OJ_REGION) $(ROOT)/tools/translation/build_pc090o
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_opaque_bbox.py" \
 		--input "$<" --output "$@"
 
-$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s FORCE_ASM_REBUILD | $(OUT_DIR)
+# Generate the PC090OJ helper sizing include from the Make variable each build so
+# an override (PC090OJ_MIRROR_RECORDS=N) is always applied without hand-editing.
+$(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
+	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n' '$(PC090OJ_MIRROR_RECORDS)' '$(PC090OJ_MIRROR_RECORDS)' > $@
+	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) -> $@"
+
+$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_PRECONV) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) FORCE_ASM_REBUILD | $(OUT_DIR)

@@ -4,7 +4,9 @@
     .global genesistan_hook_tilemap_fg
     .global genesistan_hook_cwindow_clear
     .global genesistan_hook_tilemap_bg_fill
+    .global genesistan_hook_tilemap_bg_fill_tall
     .global genesistan_hook_tilemap_fg_fill
+    .global genesistan_hook_tilemap_fg_fill_tall
     .global genesistan_hook_inline_fg_write_3a550
     .global genesistan_hook_inline_fg_write_3a8fe
     .global genesistan_hook_inline_fg_write_3a908
@@ -60,18 +62,20 @@
     .equ ARCADE_PC080SN_CWINDOW_BASE_BG,     0x00C00000
     .equ ARCADE_PC080SN_CWINDOW_BASE_FG,     0x00C08000
     .equ ARCADE_PC080SN_CWINDOW_BYTES,       0x00004000
+    .equ ARCADE_COLLISION_MAP_BASE,          0x00FF1E00
     /* Build 0155 / OPEN-017: Stage 1 FG plane replay (proven deterministic ROM model).
      * The live FG boundary is genesistan_hook_tilemap_fg (0x703EA), reached per-column from
      * the Stage 1 setup loop (0x50634); its native slot a5@0x10A4 is out of range so it bails,
      * while the real FG column dest is a5@0x10A0 = 0xC08000 + dcol*4 (mod plane). For each
      * cell: SRC = FG_SRC_BASE_GEN + seg*FG_SRC_STRIDE + group*4 (Genesis copy +0x200 folded in);
      * block = ROM_word(SRC+2) + FG_BLOCK_RELOC; code = ROM_word(block + colidx*2 + row*8);
-     * attr = 0x0003; planerow = seg*4+row; dcol = group*4+colidx = (a5@0x10A0 & 0x3FFC)>>2. */
+     * arcade attr/color = 0x0003, carried in Genesis CRAM line 1 for Stage-1 FG;
+     * planerow = seg*4+row; dcol = group*4+colidx = (a5@0x10A0 & 0x3FFC)>>2. */
     .equ FG_SRC_BASE_GEN,                    0x00016B1C
     .equ FG_SRC_STRIDE,                      0x000022C0
     .equ FG_BLOCK_RELOC,                     0x00000200
-    .equ FG_PLANE_ATTR_HI,                   0x00030000
-    .equ FG_PRODUCER_SEG_COUNT,              8   /* visible top 32 rows (seg 0-7); fg_fill buffer is 32 rows, seg 8-15 would wrap/overwrite */
+    .equ FG_PLANE_ATTR_HI,                   0x00010000
+    .equ FG_PRODUCER_SEG_COUNT,              16  /* 64 rows; gameplay FG now preserves rows 0-63 in staged_fg_tall_buffer. */
     .equ FG_PRODUCER_ROW_COUNT,              4
     .equ ARCADE_MAINCPU_ROM_BASE,            0x00000200
     .equ ARCADE_HIGHSCORE_SOURCE_BASE,       0x00FF0000
@@ -116,13 +120,16 @@ genesistan_hook_tilemap_plane_a:
      * (this hook) instead of the FG branch, so genesistan_hook_tilemap_fg no longer
      * runs during gameplay and the FG_SRC staging was lost. Re-run the same
      * Genesis-only FG_SRC per-column staging here, gated to the gameplay scene,
-     * reusing the same a5@0x10A0 dcol input. genesistan_stage_fg_src_column is
-     * movem-wrapped (preserves d0-d7/a0-a6), so BG staging state and the a0 input
-     * are untouched; it only reads a5@0x10A0 and writes staged_fg_buffer via
-     * genesistan_hook_tilemap_fg_fill. Does not touch a5@0x10A8 (selector). */
+     * reusing the same a5@0x10A0 dcol input. genesistan_stage_fg_src_column and
+     * genesistan_stage_bg_collision_column are movem-wrapped (preserve
+     * d0-d7/a0-a6), so BG staging state and the a0 input are untouched. The FG
+     * helper stages visible Plane-A cells; the BG collision helper separately
+     * reproduces the original 0x559B2 collision-map side-channel from the BG
+     * descriptor walk. Neither helper touches a5@0x10A8 (selector). */
     cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     bne.s   .Lbg_skip_fg_stage
     bsr     genesistan_stage_fg_src_column
+    bsr     genesistan_stage_bg_collision_column
 .Lbg_skip_fg_stage:
 
     move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d7
@@ -296,10 +303,11 @@ genesistan_hook_tilemap_plane_a:
 /* Genesis-only Stage 1 FG_SRC per-column staging. Extracted (Build 0160) from the
  * former genesistan_hook_tilemap_fg gameplay path so it can be shared. Replays the
  * proven Build 0155 FG model directly from ROM using the real FG column dest
- * a5@0x10A0, routing each cell through genesistan_hook_tilemap_fg_fill (LUT + attr
- * conversion + staging + dirty). movem-wrapped: preserves d0-d7/a0-a6 for the caller;
- * reads a5@0x10A0 only, never writes a5@0x10A8, writes only staged_fg_buffer. Caller
- * must gate on SCENE_GAMEPLAY_ID. */
+ * a5@0x10A0, routing each cell through the gameplay-only tall FG backing helper
+ * (LUT + attr conversion + tall staging + projection dirty). Collision is intentionally NOT authored here:
+ * Stage 1 arcade collision is owned by the BG producer 0x559B2, not this FG_SRC
+ * visual replay. movem-wrapped: preserves d0-d7/a0-a6 for the caller; reads
+ * a5@0x10A0 only, never writes a5@0x10A8. Caller must gate on SCENE_GAMEPLAY_ID. */
 genesistan_stage_fg_src_column:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
@@ -325,6 +333,7 @@ genesistan_stage_fg_src_column:
     add.l   %d3, %d6                                  /* + group*4 */
     addi.l  #FG_SRC_BASE_GEN, %d6                     /* + 0x16B1C (arcade 0x1691C + copy 0x200) */
     movea.l %d6, %a2
+    movea.l %a2, %a3                                  /* descriptor base; collision words live here */
     moveq   #0, %d6
     move.w  2(%a2), %d6                               /* block offset (arcade) */
     addi.l  #FG_BLOCK_RELOC, %d6                      /* + 0x200 -> Genesis block */
@@ -346,7 +355,8 @@ genesistan_stage_fg_src_column:
     adda.l  %d0, %a0                                  /* a0 = cell dest */
     move.l  %d1, %d0                                  /* D0 = composed arcade cell */
     moveq   #1, %d1                                   /* D1 = count */
-    bsr     genesistan_hook_tilemap_fg_fill
+    bsr     genesistan_hook_tilemap_fg_fill_tall
+
     addq.w  #1, %d5
     cmpi.w  #FG_PRODUCER_ROW_COUNT, %d5
     bne     .Lfgc_row_loop
@@ -354,6 +364,93 @@ genesistan_stage_fg_src_column:
     cmpi.w  #FG_PRODUCER_SEG_COUNT, %d4
     bne     .Lfgc_seg_loop
 
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Stage 1 BG collision-map side-channel. The original arcade BG producer
+ * 0x559B2 writes collision from the rebuilt descriptor/table data before
+ * writing the visible tile:
+ *   if *(block+32) == 0x00FF: word = *(block+34)
+ *   else: word = *(block+20 + row*8 + strip*2)
+ *   dest = 0x10DE00 + ((a0 - 0xC08000) >> 1)
+ * This helper mirrors only that collision half into mapped Genesis WRAM
+ * 0x00FF1E00. It does not stage BG/FG tiles and does not advance a5@0x10A0;
+ * the surrounding translated producer keeps owning the arcade cursor update. */
+genesistan_stage_bg_collision_column:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    lea     0x00FF0000, %a5
+
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d7
+    move.l  ARCADE_PC080SN_DEST_BG_OFFSET(%a5), %d5
+    move.l  %d5, %d0
+    andi.l  #0x00FFFFFF, %d0
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d0
+    blo     .Lbgc_done
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d0
+    bhs     .Lbgc_done
+    move.l  %d0, %d5
+
+    lea     ARCADE_PC080SN_DESC_BG_LIST_OFFSET(%a5), %a0
+    movea.l #ARCADE_MAINCPU_ROM_BASE, %a1
+    movea.l #ARCADE_COLLISION_MAP_BASE, %a6
+    moveq   #15, %d6
+
+.Lbgc_desc_loop:
+    move.l  (%a0)+, %d3
+    btst    #0, %d3
+    bne     .Lbgc_desc_done
+    cmpi.l  #0x0005FFFC, %d3
+    bhi     .Lbgc_desc_done
+
+    movea.l %a1, %a2
+    adda.l  %d3, %a2
+    move.w  2(%a2), %d3
+    cmpi.w  #0x7FE0, %d3
+    bhi     .Lbgc_desc_done
+
+    movea.l %a1, %a2
+    moveq   #0, %d0
+    move.w  %d3, %d0
+    adda.l  %d0, %a2
+
+    moveq   #0, %d4
+.Lbgc_row_loop:
+    move.w  32(%a2), %d0
+    cmpi.w  #0x00FF, %d0
+    beq.s   .Lbgc_collision_alt
+
+    move.w  %d4, %d0
+    lsl.w   #3, %d0
+    move.w  %d7, %d1
+    add.w   %d1, %d1
+    add.w   %d1, %d0
+    move.w  20(%a2,%d0.w), %d2
+    bra.s   .Lbgc_collision_have
+
+.Lbgc_collision_alt:
+    move.w  34(%a2), %d2
+
+.Lbgc_collision_have:
+    move.l  %d5, %d0
+    moveq   #0, %d1
+    move.w  %d4, %d1
+    lsl.w   #8, %d1
+    add.l   %d1, %d0
+    andi.l  #0x00FFFFFF, %d0
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d0
+    lsr.l   #1, %d0
+    andi.w  #0x1FFF, %d0
+    move.w  %d2, 0(%a6,%d0.w)
+
+    addq.w  #1, %d4
+    cmpi.w  #4, %d4
+    bne     .Lbgc_row_loop
+
+.Lbgc_desc_done:
+    addi.l  #0x00000400, %d5
+    dbra    %d6, .Lbgc_desc_loop
+
+.Lbgc_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -670,6 +767,183 @@ genesistan_hook_tilemap_bg_fill:
     bne.s   .Lbg_fill_loop
 
 .Lbg_fill_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Build 0170 gameplay-only tall BG writer.  The item-page/Stage-1 strip
+ * producer emits 64 PC080SN BG rows; the legacy 32-row staging helper aliases
+ * rows 32..63 over rows 0..31.  This helper preserves all 64 rows in a virtual
+ * backing buffer.  VBlank projects the currently visible 32-row half into the
+ * existing staged_bg_buffer before the normal Plane-B commit. */
+genesistan_hook_tilemap_bg_fill_tall:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+
+    movea.l %a0, %a4
+    move.l  %a4, %d2
+    andi.l  #0x00FFFFFF, %d2
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_BG, %d2
+    blo     .Lbg_tall_fill_done
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_BG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs     .Lbg_tall_fill_done
+
+    move.w  %d1, %d6
+    tst.w   %d6
+    beq     .Lbg_tall_fill_done
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     genesistan_pc080sn_attr_lut, %a3
+    lea     staged_bg_tall_buffer, %a6
+
+    move.w  %d0, %d3
+    andi.w  #0x3FFF, %d3
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+
+    move.l  %d0, %d4
+    swap    %d4
+    move.w  %d4, %d5
+    andi.w  #0x0003, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #6, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #2, %d7
+    or.w    %d7, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #7, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #3, %d7
+    or.w    %d7, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #5, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #4, %d7
+    or.w    %d7, %d5
+
+    add.w   %d5, %d5
+    move.w  0(%a3,%d5.w), %d5
+    or.w    %d5, %d3
+
+.Lbg_tall_fill_loop:
+    move.l  %a4, %d2
+    andi.l  #0x00FFFFFF, %d2
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_BG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs     .Lbg_tall_fill_done
+
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_BG, %d2
+    lsr.l   #2, %d2
+
+    move.w  %d2, %d4
+    andi.w  #0x003F, %d4
+    move.w  %d2, %d5
+    lsr.w   #6, %d5
+    andi.w  #0x003F, %d5
+
+    move.w  %d5, %d0
+    lsl.w   #7, %d0
+    add.w   %d4, %d0
+    add.w   %d4, %d0
+    move.w  %d3, 0(%a6,%d0.w)
+    move.b  #1, bg_tall_dirty
+
+    adda.l  #4, %a4
+    subq.w  #1, %d6
+    bne.s   .Lbg_tall_fill_loop
+
+.Lbg_tall_fill_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Build 0172 gameplay-only tall FG writer.  The Stage-1 FG_SRC replay has
+ * 16 four-row segments (64 PC080SN FG rows). The legacy 32-row FG staging
+ * helper aliases rows 32..63 over rows 0..31, so gameplay writes preserve all
+ * rows here and VBlank projects the visible window into staged_fg_buffer. */
+genesistan_hook_tilemap_fg_fill_tall:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+
+    movea.l %a0, %a4
+    move.l  %a4, %d2
+    andi.l  #0x00FFFFFF, %d2
+    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d2
+    blo     .Lfg_tall_fill_done
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs     .Lfg_tall_fill_done
+
+    move.w  %d1, %d6
+    tst.w   %d6
+    beq     .Lfg_tall_fill_done
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     genesistan_pc080sn_attr_lut, %a3
+    lea     staged_fg_tall_buffer, %a6
+
+    move.w  %d0, %d3
+    andi.w  #0x3FFF, %d3
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+
+    move.l  %d0, %d4
+    swap    %d4
+    move.w  %d4, %d5
+    andi.w  #0x0003, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #6, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #2, %d7
+    or.w    %d7, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #7, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #3, %d7
+    or.w    %d7, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #5, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #4, %d7
+    or.w    %d7, %d5
+
+    add.w   %d5, %d5
+    move.w  0(%a3,%d5.w), %d5
+    or.w    %d5, %d3
+
+.Lfg_tall_fill_loop:
+    move.l  %a4, %d2
+    andi.l  #0x00FFFFFF, %d2
+    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
+    bhs     .Lfg_tall_fill_done
+
+    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d2
+    lsr.l   #2, %d2
+
+    move.w  %d2, %d4
+    andi.w  #0x003F, %d4
+    move.w  %d2, %d5
+    lsr.w   #6, %d5
+    andi.w  #0x003F, %d5
+
+    move.w  %d5, %d0
+    lsl.w   #7, %d0
+    add.w   %d4, %d0
+    add.w   %d4, %d0
+    move.w  %d3, 0(%a6,%d0.w)
+    move.b  #1, fg_tall_dirty
+
+    adda.l  #4, %a4
+    subq.w  #1, %d6
+    bne.s   .Lfg_tall_fill_loop
+
+.Lfg_tall_fill_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -2138,8 +2412,15 @@ genesistan_hook_cwindow_clear:
     move.w  %d3, (%a0)+
     dbra    %d0, .Lcw_clear_fg
 
+    lea     staged_fg_tall_buffer, %a0
+    move.w  #(4096 - 1), %d0
+.Lcw_clear_fg_tall:
+    move.w  %d3, (%a0)+
+    dbra    %d0, .Lcw_clear_fg_tall
+
     move.l  #0xFFFFFFFF, bg_row_dirty
     move.l  #0xFFFFFFFF, fg_row_dirty
+    move.b  #1, fg_tall_dirty
 
     movem.l (%sp)+, %d0-%d3/%a0-%a3
     rts
@@ -2408,7 +2689,7 @@ genesistan_hook_itempage_strip_populate:
  * 0xFF1100 = relocated strip source, 0xFF1104 = PC080SN attr word.
  */
 genesistan_hook_itempage_strip_blit:
-    move.l  %d1, -(%sp)
+    movem.l %d1/%d6, -(%sp)
 
     /* Build 0154: producer-source gameplay scene selection.
      * If this strip's source pointer is the Stage 1 tile-column family
@@ -2417,6 +2698,7 @@ genesistan_hook_itempage_strip_blit:
      * PC080SN patterns become resident and the global LUT resolves the runtime codes.
      * Keyed on the producer-owned source pointer, not the master state. d0/a3 are
      * reloaded immediately below; load_scene_tiles preserves d1-d7/a0-a4. */
+    moveq   #0, %d6
     movea.l #PC080SN_ITEMPAGE_STRIP_PTR_SLOT, %a3
     move.l  (%a3), %d0
     andi.l  #0x00FFFFFF, %d0
@@ -2424,6 +2706,7 @@ genesistan_hook_itempage_strip_blit:
     blo.s   .Litempage_blit_scene_ready
     cmpi.l  #GAMEPLAY_STRIP_SRC_HI, %d0
     bhs.s   .Litempage_blit_scene_ready
+    moveq   #1, %d6
     cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     beq.s   .Litempage_blit_scene_ready
     moveq   #SCENE_GAMEPLAY_ID, %d0
@@ -2452,7 +2735,13 @@ genesistan_hook_itempage_strip_blit:
     move.w  0(%a2,%d1.w), %d0
     or.l    %d7, %d0
     moveq   #1, %d1
+    tst.w   %d6
+    beq.s   .Litempage_strip_blit_32row
+    bsr     genesistan_hook_tilemap_bg_fill_tall
+    bra.s   .Litempage_strip_blit_after_fill
+.Litempage_strip_blit_32row:
     bsr     genesistan_hook_tilemap_bg_fill
+.Litempage_strip_blit_after_fill:
 
     adda.l  #0x00000100, %a0
     addq.w  #1, %d2
@@ -2462,7 +2751,7 @@ genesistan_hook_itempage_strip_blit:
     movea.l #PC080SN_ITEMPAGE_DEST_CURSOR_SLOT, %a3
     move.l  %a0, (%a3)
 
-    move.l  (%sp)+, %d1
+    movem.l (%sp)+, %d1/%d6
     rts
 
 vdp_commit_fg_narrow_strips:

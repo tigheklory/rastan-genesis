@@ -21,7 +21,8 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 # Build 0159: +1 opcode_replace (0x0503CE pass-seq table base literal 0x050F6B -> 0x05116B relocation).
 # Build 0165: +5 opcode_replace targeted player-source WRAM immediate rebases
 # (0x054492/0x05457A/0x0545BA/0x0546A8/0x05475A), byte-neutral.
-CANONICAL_OPCODE_REPLACE_COUNT = 142
+# Build 0168: +9 opcode_replace collision-buffer immediate rebases to mapped WRAM 0x00FF1E00.
+CANONICAL_OPCODE_REPLACE_COUNT = 151
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -43,7 +44,19 @@ CANONICAL_OPCODE_REPLACE_COUNT = 142
 # base for 0x041F5E -> records 120..137/92..95): +0x1C (0x1820B8 -> 0x1820D4).
 # Build 0165 targeted player-source immediate opcode_replace sites are byte-neutral; coverage unchanged.
 # Build 0166 vertical scroll conversion adds two NEG.W instructions in the VBlank scroll commit: +0x4.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1820D8
+# Build 0168 collision producer side-effect adds +0x3C; Build 0169 BG collision side-channel net adds +0x94.
+# Build 0175 palette route LUT + FG bank-3 carrier re-assert (route table,
+# palette_route_lookup, vdp_reassert_fg_bank3_line, hook cache population):
+# +0x150 (0x1824A4 -> 0x1825F4).
+# Build 0176 mirror-shadow memoization plus Build 0177 per-record dirty
+# Build 0178 removes the Build 0163 gameplay-only forced sprite tile-DMA requeue.
+# Mechanical coverage delta: 0x182694 -> 0x18268C.
+# Build 0180 gates PC090OJ SAT dirty on actual staged-SAT word changes.
+# Mechanical coverage delta: 0x18268C -> 0x1826D0.
+# Build 0181 configurable PC090OJ mirror sizing: record-based mirror writers
+# (emit_slot, family_apply_record) gain out-of-range record bounds checks so
+# PC090OJ_MIRROR_RECORDS<256 cannot overflow the mirror: +0x28 (0x1826D0 -> 0x1826F8).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1826F8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

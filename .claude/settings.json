@@ -22,7 +22,9 @@
       "Bash(awk '/^## KF-001/{exit}{print}' /home/tighe/projects/rastan-genesis/KNOWN_FINDINGS.md)",
       "Bash(python3 -)",
       "Bash(awk '{print $1}')",
-      "Bash(mame -verifyroms rastan)"
+      "Bash(mame -verifyroms rastan)",
+      "Bash(python3 -c \"import json;print\\('wram rebase enabled=',json.load\\(open\\('specs/rastan_direct_remap.json'\\)\\).get\\('wram_immediate_relocation',{}\\).get\\('enabled','ABSENT'\\)\\)\")",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

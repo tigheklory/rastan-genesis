@@ -5,19 +5,31 @@
     .global vdp_set_vram_write_addr
     .global sprite_dma_addr_high_bits_fix
     .global vdp_commit_tiles_if_dirty
+    .global vdp_project_bg_tall_if_dirty
+    .global vdp_project_fg_tall_if_dirty
     .global vdp_commit_bg_strips_if_dirty
     .extern vdp_commit_fg_narrow_strips
     .global vdp_commit_fg_strips_if_dirty
     .extern vdp_prepare_sprites
     .extern vdp_commit_sprites_vram
+    .extern genesistan_current_scene_id
+    .extern palette_route_lookup
     .global vdp_commit_palette
+    .global vdp_reassert_fg_bank3_line
     .global vdp_commit_scroll
     .global _vblank_service
+    .global fg_bank3_line_cache
+    .global fg_bank3_cache_valid
+    .global fg_bank3_route_seen
 
     .global palette_dirty
     .global tiles_dirty
     .global bg_row_dirty
+    .global bg_tall_dirty
+    .global bg_tall_project_base
     .global fg_row_dirty
+    .global fg_tall_dirty
+    .global fg_tall_project_base
     .global staged_dest_ptr_bg
     .global staged_dest_ptr_fg
     .global staged_scroll_x_bg
@@ -25,7 +37,9 @@
     .global staged_scroll_y_bg
     .global staged_scroll_y_fg
     .global staged_bg_buffer
+    .global staged_bg_tall_buffer
     .global staged_fg_buffer
+    .global staged_fg_tall_buffer
     .global fg_narrow_desc_table
     .global fg_narrow_desc_count
     .global fg_narrow_pending_rows
@@ -171,7 +185,9 @@ _vblank_service:
     bsr     vdp_set_reg
 
     bsr     vdp_commit_tiles_if_dirty
+    bsr     vdp_project_bg_tall_if_dirty
     bsr     vdp_commit_bg_strips_if_dirty
+    bsr     vdp_project_fg_tall_if_dirty
     bsr     vdp_commit_fg_narrow_strips
     bsr     vdp_commit_sprites_vram
 
@@ -179,6 +195,7 @@ _vblank_service:
     moveq   #VDP_MODE2_DISPLAY_ON, %d1
     bsr     vdp_set_reg
 
+    bsr     vdp_reassert_fg_bank3_line
     tst.b   palette_dirty
     beq.s   .Lvs_skip_palette
     bsr     vdp_commit_palette
@@ -205,6 +222,103 @@ vdp_commit_tiles_if_dirty:
 
     clr.b   tiles_dirty
 .Ltiles_done:
+    rts
+
+/* Gameplay PC080SN BG strips populate a 64-row virtual map.  The Genesis plane
+ * remains 64x32, so project the 32 visible tile rows into staged_bg_buffer and
+ * leave only the pixel-subrow residual for VSRAM. */
+vdp_project_bg_tall_if_dirty:
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .Lbg_tall_project_done
+
+    movem.l %d0-%d7/%a0-%a2, -(%sp)
+
+    move.w  staged_scroll_y_bg, %d0
+    neg.w   %d0
+    addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
+    andi.w  #0x01FF, %d0
+    lsr.w   #3, %d0
+    andi.w  #0x003F, %d0
+
+    move.w  bg_tall_project_base, %d1
+    cmp.w   %d1, %d0
+    bne.s   .Lbg_tall_project
+    tst.b   bg_tall_dirty
+    beq.s   .Lbg_tall_project_restore
+
+.Lbg_tall_project:
+    move.w  %d0, bg_tall_project_base
+    clr.b   bg_tall_dirty
+
+    lea     staged_bg_tall_buffer, %a0
+    lea     staged_bg_buffer, %a1
+    moveq   #0, %d5
+.Lbg_tall_project_row:
+    move.w  %d0, %d4
+    add.w   %d5, %d4
+    andi.w  #0x003F, %d4
+    lsl.w   #7, %d4
+    lea     0(%a0,%d4.w), %a2
+    move.w  #(64 - 1), %d7
+.Lbg_tall_project_copy:
+    move.w  (%a2)+, (%a1)+
+    dbra    %d7, .Lbg_tall_project_copy
+    addq.w  #1, %d5
+    cmpi.w  #32, %d5
+    blo.s   .Lbg_tall_project_row
+
+    move.l  #0xFFFFFFFF, bg_row_dirty
+
+.Lbg_tall_project_restore:
+    movem.l (%sp)+, %d0-%d7/%a0-%a2
+.Lbg_tall_project_done:
+    rts
+
+vdp_project_fg_tall_if_dirty:
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .Lfg_tall_project_done
+
+    movem.l %d0-%d7/%a0-%a2, -(%sp)
+
+    move.w  staged_scroll_y_fg, %d0
+    neg.w   %d0
+    addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
+    andi.w  #0x01FF, %d0
+    lsr.w   #3, %d0
+    andi.w  #0x003F, %d0
+
+    move.w  fg_tall_project_base, %d1
+    cmp.w   %d1, %d0
+    bne.s   .Lfg_tall_project
+    tst.b   fg_tall_dirty
+    beq.s   .Lfg_tall_project_restore
+
+.Lfg_tall_project:
+    move.w  %d0, fg_tall_project_base
+    clr.b   fg_tall_dirty
+
+    lea     staged_fg_tall_buffer, %a0
+    lea     staged_fg_buffer, %a1
+    moveq   #0, %d5
+.Lfg_tall_project_row:
+    move.w  %d0, %d4
+    add.w   %d5, %d4
+    andi.w  #0x003F, %d4
+    lsl.w   #7, %d4
+    lea     0(%a0,%d4.w), %a2
+    move.w  #(64 - 1), %d7
+.Lfg_tall_project_copy:
+    move.w  (%a2)+, (%a1)+
+    dbra    %d7, .Lfg_tall_project_copy
+    addq.w  #1, %d5
+    cmpi.w  #32, %d5
+    blo.s   .Lfg_tall_project_row
+
+    move.l  #0xFFFFFFFF, fg_row_dirty
+
+.Lfg_tall_project_restore:
+    movem.l (%sp)+, %d0-%d7/%a0-%a2
+.Lfg_tall_project_done:
     rts
 
 vdp_commit_bg_strips_if_dirty:
@@ -306,14 +420,83 @@ vdp_commit_scroll:
     move.w  staged_scroll_y_fg, %d0
     neg.w   %d0
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .Lscroll_fg_y_ready
+    andi.w  #0x0007, %d0
+.Lscroll_fg_y_ready:
     move.w  %d0, VDP_DATA
     move.w  staged_scroll_y_bg, %d0
     neg.w   %d0
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .Lscroll_bg_y_ready
+    andi.w  #0x0007, %d0
+.Lscroll_bg_y_ready:
     move.w  %d0, VDP_DATA
     rts
 
+/* Build 0175: FG bank-3 carrier re-assert (classification A).
+ * The route table (palette_hooks.s) assigns arcade PC080SN FG bank 3 to Genesis
+ * line 1 with the CARRIER flag for Stage 1 gameplay.  Evidence: nothing writes
+ * that line during gameplay, but a pre-gameplay frontend write leaves it holding
+ * a stale (non-bank-3) palette.  Each gameplay VBlank, look up the carrier line
+ * and restore the cached converted bank 3 into it if it has drifted, then mark
+ * palette dirty so the commit re-DMAs it.  Frontend line 1 (scene != 1) is never
+ * touched; the palette hooks own it before gameplay. */
+    .equ PR_SCENE_GAMEPLAY,   1
+    .equ PR_OWNER_PC080SN_FG, 2
+    .equ PR_FG_BANK,          3
+vdp_reassert_fg_bank3_line:
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .Lrfb_done
+    tst.b   fg_bank3_cache_valid
+    beq.s   .Lrfb_done
+    movem.l %d0-%d3/%a0-%a1, -(%sp)
+    moveq   #PR_SCENE_GAMEPLAY, %d0
+    moveq   #PR_OWNER_PC080SN_FG, %d1
+    moveq   #PR_FG_BANK, %d2
+    bsr     palette_route_lookup       /* d0 = line (or -1), d3 = flags */
+    tst.l   %d0
+    bmi.s   .Lrfb_restore_done         /* no matching route */
+    btst    #0, %d3                     /* PROUTE_FLAG_CARRIER */
+    beq.s   .Lrfb_restore_done
+    lsl.w   #5, %d0                     /* line * 32 bytes */
+    lea     staged_palette_words, %a1
+    adda.w  %d0, %a1
+    lea     fg_bank3_line_cache, %a0
+    moveq   #(16 - 1), %d2
+    moveq   #0, %d3
+.Lrfb_cmp:
+    move.w  (%a0)+, %d1
+    cmp.w   (%a1)+, %d1
+    beq.s   .Lrfb_cmp_next
+    moveq   #1, %d3
+.Lrfb_cmp_next:
+    dbra    %d2, .Lrfb_cmp
+    tst.b   %d3
+    beq.s   .Lrfb_restore_done          /* line already holds bank 3 */
+    lea     staged_palette_words, %a1
+    adda.w  %d0, %a1
+    lea     fg_bank3_line_cache, %a0
+    moveq   #(16 - 1), %d2
+.Lrfb_copy:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d2, .Lrfb_copy
+    move.b  #1, palette_dirty
+.Lrfb_restore_done:
+    movem.l (%sp)+, %d0-%d3/%a0-%a1
+.Lrfb_done:
+    rts
+
     .section .bss
+    .align 2
+
+fg_bank3_line_cache:
+    .space (16 * 2)
+fg_bank3_cache_valid:
+    .byte 0
+fg_bank3_route_seen:
+    .byte 0
     .align 2
 
 palette_dirty:
@@ -323,8 +506,18 @@ tiles_dirty:
     .align 2
 bg_row_dirty:
     .long 0
+bg_tall_dirty:
+    .byte 0
+    .align 2
+bg_tall_project_base:
+    .word 0
 fg_row_dirty:
     .long 0
+fg_tall_dirty:
+    .byte 0
+    .align 2
+fg_tall_project_base:
+    .word 0
 
     .align 2
 fg_narrow_desc_table:
@@ -352,8 +545,12 @@ staged_scroll_y_fg:
     .align 2
 staged_bg_buffer:
     .space (2048 * 2)
+staged_bg_tall_buffer:
+    .space (4096 * 2)
 staged_fg_buffer:
     .space (2048 * 2)
+staged_fg_tall_buffer:
+    .space (4096 * 2)
 staged_palette_words:
     .space (64 * 2)
 staged_tile_words:

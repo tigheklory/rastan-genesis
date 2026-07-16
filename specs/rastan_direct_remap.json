@@ -199,6 +199,60 @@
       "note": "Build 0159/OPEN-017: pass-sequence table base pointer relocation. `move.l #0x00050F6B, %d0` at arcade 0x0503CE loads the PC080SN pass-sequence table base into a DATA register; the postpatch shift-relocation only shifts abs.l control-transfer/LEA operands, so this data-register immediate was NOT relocated +0x200 (its sibling `movea.l #0x00050EE0, %a1` at 0x0503BC WAS, -> 0x000510E0). On Genesis the un-relocated pointer reads ROM[0x050F6B]=0x80 instead of the correct relocated ROM[0x05116B]=0x00 (arcade ROM[0x050F6B]=0x00), so a5@0x10C6 lands 0x200 too low and the desc-rebuild sets the tilemap PASS SELECTOR a5@0x10A8=0x0080 (FG) instead of 0x0000 (BG). Arcade always selects BG (a5@0x10A8==0) for the Stage 1 collision/tilemap pass. Fix relocates ONLY this data-register immediate 0x00050F6B -> 0x0005116B (byte-neutral, opcode 0x203C preserved; movel #imm,Dn is not in the shift-adjust set so the replacement is not re-shifted). No NOP, no destination patch, no forced value, no collision emission, no 0x10DE00 rebase. Same missed-data-register-literal class as Build 0158 (0x05102E)."
     },
     {
+      "arcade_pc": "0x053A64",
+      "original_bytes": "207C0010DE00",
+      "replacement_bytes": "207C00FF1E00",
+      "note": "Build 0168/OPEN-017: collision map reader rebase. Arcade collision lookups use work-RAM base 0x0010DE00; Genesis mapped work-RAM equivalent is 0x00FF1E00, now populated by the live FG_SRC staging collision side-effect. Byte-neutral MOVEA.L immediate rebase only; no death-handler bypass."
+    },
+    {
+      "arcade_pc": "0x05A2CE",
+      "original_bytes": "06800010DE00",
+      "replacement_bytes": "068000FF1E00",
+      "note": "Build 0168/OPEN-017: collision map VRAM-to-buffer converter rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral ADDI.L immediate rebase."
+    },
+    {
+      "arcade_pc": "0x0559E4",
+      "original_bytes": "06870010DE00",
+      "replacement_bytes": "068700FF1E00",
+      "note": "Build 0168/OPEN-017: preserved arcade collision producer address math for copied fallback path, rebased to mapped Genesis WRAM collision buffer 0x00FF1E00. Primary live production is recreated in genesistan_stage_fg_src_column."
+    },
+    {
+      "arcade_pc": "0x055A5A",
+      "original_bytes": "06870010DE00",
+      "replacement_bytes": "068700FF1E00",
+      "note": "Build 0168/OPEN-017: preserved arcade collision producer address math for copied FG fallback path, rebased to mapped Genesis WRAM collision buffer 0x00FF1E00."
+    },
+    {
+      "arcade_pc": "0x055A7A",
+      "original_bytes": "06870010DE00",
+      "replacement_bytes": "068700FF1E00",
+      "note": "Build 0168/OPEN-017: preserved arcade collision producer solid-above address math for copied FG fallback path, rebased to mapped Genesis WRAM collision buffer 0x00FF1E00."
+    },
+    {
+      "arcade_pc": "0x052882",
+      "original_bytes": "06800010DE00",
+      "replacement_bytes": "068000FF1E00",
+      "note": "Build 0168/OPEN-017: collision map VRAM-to-buffer converter rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral ADDI.L immediate rebase."
+    },
+    {
+      "arcade_pc": "0x05A336",
+      "original_bytes": "04800010DE00",
+      "replacement_bytes": "048000FF1E00",
+      "note": "Build 0168/OPEN-017: collision map buffer-to-VRAM converter rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral SUBI.L immediate rebase."
+    },
+    {
+      "arcade_pc": "0x0412E8",
+      "original_bytes": "B1FC0010DE00",
+      "replacement_bytes": "B1FC00FF1E00",
+      "note": "Build 0168/OPEN-017: collision map pointer compare rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral CMPA.L immediate rebase."
+    },
+    {
+      "arcade_pc": "0x045D52",
+      "original_bytes": "B1FC0010DE00",
+      "replacement_bytes": "B1FC00FF1E00",
+      "note": "Build 0168/OPEN-017: collision map pointer compare rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral CMPA.L immediate rebase."
+    },
+    {
       "arcade_pc": "0x03A00C",
       "original_bytes": "427900350008",
       "replacement_bytes": "4E714E714E71",
@@ -1073,6 +1127,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 142
+    "opcode_replace_count": 151
   }
 }

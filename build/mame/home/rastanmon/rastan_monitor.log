@@ -44201,3 +44201,265 @@
 [frame 000794] event 1392 00f1 -> 00f2
 [frame 000794] mode scene=death_game_over_continue_03 page0=0002 page2=0002 mode4=0006(runtime_transition_or_gameplay) credits=0000 stage=0000 sel118=0100 latch28=0000 latch2a=0000 t2c=0000 flag34=0000 sel46=0000 1392=00f2 1394=0001 13aa=0003(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0000
 ==== rastanmon stop ====
+==== rastanmon start rom=rastan game=Rastan (World Rev 1) ====
+[frame 000001] mode scene=frontend_title_or_attract page0=0000 page2=0000 mode4=0000(frontend_title) credits=0000 stage=0000 sel118=0000 latch28=0000 latch2a=0000 t2c=0000 flag34=0000 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 000001] scene frontend_title_or_attract
+[frame 000008] palchg count=48 blocks=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30
+[frame 000008] palblk 00 @200000 0000 7bde 001e 29d0 4298 29d4 194c 7bde 7bde 7bde 7bde 7bde 7bde 7bde 7bde 7bde
+[frame 000008] palblk 01 @200020 0000 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e
+[frame 000008] palblk 03 @200060 0000 4990 414e 390c 30ca 2888 2046 1804 1004 1a5a 2158 10ce 0848 0804 1886 20c8
+[frame 000008] palblk 04 @200080 0000 1044 1886 20c8 290a 1a5a 2158 10ce 0848 2940 3182 39c4 18c0 4a48 528a 6b56
+[frame 000008] palblk 05 @2000a0 0000 4990 414e 390c 30ca 2888 2046 1804 1004 1140 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 06 @2000c0 0000 30ca 1804 20c8 290a 2888 2158 10ce 0848 1140 1980 21c2 2a04 3246 2046 0100
+[frame 000008] palblk 07 @2000e0 0000 1044 1886 20c8 290a 1a5a 2158 10ce 0848 1140 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 08 @200100 0000 4210 0084 10c6 2108 214a 294a 318c 39ce 5294 2a10 21ce 198c 194a 1108 0100
+[frame 000008] palblk 09 @200120 0000 4210 0084 10c6 2108 214a 294a 318c 39ce 5294 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 0a @200140 0000 4210 0084 10c6 2108 214a 294a 318c 39ce 5294 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 0b @200160 0000 4210 0084 10c6 2108 214a 294a 318c 39ce 5294 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 0c @200180 0000 4210 0084 10c6 2108 214a 294a 318c 39ce 5294 2a10 21ce 198c 194a 1108 7bde
+[frame 000008] palblk 0d @2001a0 0000 4210 0084 10c6 2108 214a 294a 318c 39ce 5294 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 0e @2001c0 0000 4210 0084 10c6 2108 214a 294a 318c 39ce 5294 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 0f @2001e0 0000 4210 0084 10c6 2108 214a 294a 318c 39ce 5294 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 10 @200200 0000 4210 0084 10c8 210a 214c 294a 318c 39ce 5294 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 11 @200220 0000 4210 0086 10ca 210a 214c 294a 318e 39ce 5294 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 12 @200240 0000 4210 0088 10cc 210c 214e 294a 318e 39ce 5294 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 13 @200260 0000 4210 00c8 10ce 210c 214e 294c 3190 39ce 5294 1980 21c2 2a04 3246 3a88 0100
+[frame 000008] palblk 14 @200280 0000 01de 021e 029e 035e 43de 439e 7bde 6bde 5bde 53de 4bde 029e 02de 035e 03de
+[frame 000008] palblk 15 @2002a0 0000 029e 02de 035e 03de 43de 5bde 63de 01de 021e 029e 035e 6bde 5bde 539e 4bde
+[frame 000008] palblk 16 @2002c0 0000 6bde 5bde 53de 4bde 43de 5bde 63de 029e 02de 035e 03de 01de 021e 029e 035e
+[frame 000008] palblk 17 @2002e0 0000 1000 1842 2084 18c8 3108 314a 1884 2846 1844 2086 28c8 310a 394c 1002 49d0
+[frame 000008] palblk 18 @200300 0000 1002 1844 2086 28c8 310a 394c 18c8 310a 1a5a 2158 10ce 0848 0804 418e 398c
+[frame 000008] palblk 19 @200320 0000 5b1a 0000 3000 2908 314a 318c 31d4 3a56 6b5a 001e 0010 000a 02de 2bde 39ce
+[frame 000008] palblk 1a @200340 0000 1044 1886 20c8 290a 1a5a 2158 10ce 0848 2940 3182 39c4 18c0 4208 6310 4208
+[frame 000008] palblk 1b @200360 0000 1044 1886 20c8 290a 1a5a 2158 10ce 0848 2940 3182 39c4 18c0 4208 528c 528c
+[frame 000008] palblk 1c @200380 0000 1044 1886 20c8 290a 1a5a 2158 10ce 0848 2940 3182 39c4 18c0 4208 4208 6310
+[frame 000008] palblk 1d @2003a0 0000 1044 1886 20c8 290a 1a5a 2158 10ce 0848 2940 3182 39c4 18c0 4208 528c 528c
+[frame 000008] palblk 1e @2003c0 0000 431a 0000 3000 2908 314a 318c 31d4 3a56 6b5a 015e 025e 035e 53de 7bde 39ce
+[frame 000008] palblk 1f @2003e0 0000 4210 0084 10c6 2108 214a 294a 318c 39ce 5294 3140 3980 41c0 4a00 5a80 20c8
+[frame 000008] palblk 20 @200400 7bde 0000 7bde 001e 29d0 4298 29d4 194c 7bde 7bde 7bde 7bde 7bde 7bde 7bde 7bde
+[frame 000008] palblk 21 @200420 7bde 0000 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e
+[frame 000008] palblk 22 @200440 001e 0000 535a 0000 18c8 2108 214c 218e 3212 3a96 001e 7bde 035e 0254 018e 000e
+[frame 000008] palblk 23 @200460 0000 0000 1880 2140 21c0 0088 0086 00cc 2940 1882 18c0 1900 20c0 0844 2108 29d4
+[frame 000008] palblk 24 @200480 0000 0000 210c 1846 298e 1888 10ca 214e 024c 01c8 0140 1900 20c0 1880 0000 0000
+[frame 000008] palblk 25 @2004a0 0000 0000 024c 01c8 0140 0100 20c0 1080 1804 1004 3a5a 3212 214e 18c8 0802 1886
+[frame 000008] palblk 26 @2004c0 20c8 0000 3a00 3140 2900 28c0 20c0 18c0 1804 1004 3a5a 3212 214e 18c8 0802 1886
+[frame 000008] palblk 27 @2004e0 20c8 0000 210c 1846 298e 1888 10ca 214e 1804 1004 3a5a 3212 214e 18c8 0802 1886
+[frame 000008] palblk 28 @200500 20c8 0000 210a 1844 298c 1886 10c8 214c 024c 01c8 0140 1900 20c0 1880 0000 0000
+[frame 000008] palblk 29 @200520 0000 0000 18c8 1044 210c 1046 0888 210a 024c 01c8 0140 1900 10c0 1880 0000 0000
+[frame 000008] palblk 2a @200540 0000 0000 4b18 0000 18c6 2108 214c 298c 3a10 4294 4b16 0196 010c 0008 3a5a 0000
+[frame 000008] palblk 2b @200560 0000 0000 4b18 0000 18ca 2108 214e 298c 3a10 4294 4b16 0196 010c 0008 3a5a 0000
+[frame 000008] palblk 2c @200580 0000 0000 4b18 0000 210c 2108 2150 298c 3a10 4294 4b16 0196 010c 0008 3a5a 0000
+[frame 000008] palblk 2d @2005a0 0000 0000 4b18 0004 190c 210a 2150 298e 3a10 4294 4b16 0196 010c 0008 3a5a 0000
+[frame 000008] palblk 2e @2005c0 0000 0000 210c 1846 298e 1888 10ca 214e 024c 01c8 0140 0100 20c0 1080 29d4 0000
+[frame 000008] palblk 2f @2005e0 0000 0000 01de 021e 029e 035e 43de 439e 7bde 6bde 5bde 53de 4bde 029e 02de 035e
+[frame 000008] palblk 30 @200600 0000 0000 0010 015e 025e 03de 4bde 7bde 5800 7940 7a40 7b40 7bd4 0000 0000 0000
+[frame 000014] event page2 0000 -> 0001
+[frame 000014] mode scene=frontend_page_0000_0001 page0=0000 page2=0001 mode4=0000(frontend_title) credits=0000 stage=0000 sel118=0000 latch28=0000 latch2a=0000 t2c=00d0 flag34=0000 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 000014] palchg count=1 blocks=01 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30
+[frame 000014] palblk 01 @200020 0000 43de 031c 0258 01d4 0150 010e 00ca 6b9e 4a96 31d0 214c 00ca 10c8 001e 0010
+[frame 000014] scene frontend_page_0000_0001
+[frame 000223] event mode4 0000 -> 0001
+[frame 000223] mode scene=wait_for_play page0=0000 page2=0001 mode4=0001(wait_for_play) credits=0000 stage=0000 sel118=0000 latch28=0000 latch2a=0000 t2c=0000 flag34=0000 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 000223] scene wait_for_play
+[frame 000224] event mode4 0001 -> 0002
+[frame 000224] mode scene=runtime_other page0=0000 page2=0001 mode4=0002(runtime_transition_or_gameplay) credits=0000 stage=0000 sel118=0000 latch28=0000 latch2a=0000 t2c=00a0 flag34=0000 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 000224] palchg count=1 blocks=01 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30
+[frame 000224] palblk 01 @200020 0000 0000 4ade 3a5e 2996 010e 0088 5180 3880 52d8 31d0 009e 0114 7bde 031e 0214
+[frame 000224] scene runtime_other
+[frame 000257] event credits 0000 -> 0001
+[frame 000257] event page0 0000 -> 0001
+[frame 000257] event mode4 0002 -> 0000
+[frame 000257] mode scene=frontend_credit_ready page0=0001 page2=0001 mode4=0000(frontend_title) credits=0001 stage=0000 sel118=0000 latch28=0000 latch2a=0000 t2c=0000 flag34=0000 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 000257] scene frontend_credit_ready
+[frame 000291] event credits 0001 -> 0000
+[frame 000291] event page0 0001 -> 0002
+[frame 000291] event page2 0001 -> 0000
+[frame 000291] event flag34 0000 -> 0001
+[frame 000291] mode scene=frontend_page_0002_0000 page0=0002 page2=0000 mode4=0000(frontend_title) credits=0000 stage=0000 sel118=0100 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 000291] scene frontend_page_0002_0000
+[frame 000293] event mode4 0000 -> 0002
+[frame 000293] mode scene=runtime_other page0=0002 page2=0000 mode4=0002(runtime_transition_or_gameplay) credits=0000 stage=0000 sel118=0100 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 000293] scene runtime_other
+[frame 000294] event page2 0000 -> 0002
+[frame 000294] event mode4 0002 -> 0000
+[frame 000294] mode scene=frontend_page_0002_0002 page0=0002 page2=0002 mode4=0000(frontend_title) credits=0000 stage=0000 sel118=0100 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 000294] scene frontend_page_0002_0002
+[frame 000295] event mode4 0000 -> 0001
+[frame 000295] mode scene=wait_for_play page0=0002 page2=0002 mode4=0001(wait_for_play) credits=0000 stage=0000 sel118=0100 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 000295] palchg count=1 blocks=33 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,33
+[frame 000295] palblk 33 @200660 0000 0000 0000 429e 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
+[frame 000295] scene wait_for_play
+[frame 000296] event mode4 0001 -> 0006
+[frame 000296] event 1394 0000 -> 0001
+[frame 000296] event 13aa 0000 -> 0001
+[frame 000296] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0006(runtime_transition_or_gameplay) credits=0000 stage=0000 sel118=0100 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0001 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0000
+[frame 000296] scene death_game_over_continue_01
+[frame 000297] event 1394 0001 -> 00ff
+[frame 000297] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0006(runtime_transition_or_gameplay) credits=0000 stage=0000 sel118=0100 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0000
+[frame 000298] event mode4 0006 -> 0007
+[frame 000298] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0007(runtime_transition_or_gameplay) credits=0000 stage=0000 sel118=0100 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0000
+[frame 000298] palchg count=1 blocks=01 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,33
+[frame 000298] palblk 01 @200020 0000 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e 001e
+[frame 000300] heartbeat scene=death_game_over_continue_01 mode4=0007 credits=0000 stage=0000 13aa=0001 13ac=0000 13ae=0000 active_pal=49
+[frame 000306] palchg count=3 blocks=31,32,33 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33
+[frame 000306] palblk 31 @200620 0000 0000 0010 015e 025e 03de 4bde 7bde 5800 7940 7a40 7b40 7bd4 0000 0000 0000
+[frame 000306] palblk 32 @200640 0000 0000 000c 0914 31da 4a9c 60c8 6242 7382 63d2 2998 739c 1980 0a5a 23de 001e
+[frame 000306] palblk 33 @200660 0000 0842 739c 429e 2154 190c 0012 000c 03de 01de 0240 0180 4a52 318c 0100 001e
+[frame 000307] palchg count=4 blocks=34,35,36,37 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37
+[frame 000307] palblk 34 @200680 0000 119e 1116 0850 03de 0252 7bde 4210 0008 001e 018e 0842 0240 0140 025e 5ad6
+[frame 000307] palblk 35 @2006a0 0000 001e 7bd4 5b88 3bd8 6ac6 4b58 18c0 0000 3100 3a4e 3a06 3146 01ce 008c 4a4e
+[frame 000307] palblk 36 @2006c0 0000 4318 00c0 0246 01c0 030e 2948 318a 6356 6b9a 10d2 2996 210a 380e 01ce 39ce
+[frame 000307] palblk 37 @2006e0 0000 0000 0010 015e 025e 03de 4bde 7bde 5800 7940 7a40 7b40 7bd4 0000 0000 0000
+[frame 000308] palchg count=4 blocks=38,39,3a,3b active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b
+[frame 000308] palblk 38 @200700 0000 0000 0010 015e 025e 03de 4bde 7bde 5800 7940 7a40 7b40 7bd4 0000 0000 0000
+[frame 000308] palblk 39 @200720 0000 6bd4 5b40 3a00 31c0 011e 2980 010e 001e 0140 4ac0 7bde 3180 380e 4210 0000
+[frame 000308] palblk 3a @200740 0000 62c0 51c0 3940 3b1c 19ce 2a52 2806 0000 4b5a 094a 0010 7b9c 380e 01ce 39ce
+[frame 000308] palblk 3b @200760 0000 0000 0010 015e 025e 03de 4bde 7bde 5800 7940 7a40 7b40 7bd4 0000 0000 0000
+[frame 000309] palchg count=4 blocks=3c,3d,3e,3f active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f
+[frame 000309] palblk 3c @200780 0000 0000 2108 6318 4a52 39ce 294a 21dc 221c 114e 18c6 318c 00cc 2192 21d6 4a96
+[frame 000309] palblk 3d @2007a0 0000 1000 1842 2084 18c8 3108 314a 1884 2846 1844 2086 28c8 310a 394c 1002 49d0
+[frame 000309] palblk 3e @2007c0 0000 7bde 02dc 01d8 02ce 01c6 0140 0000 4a52 294a 18ce 1088 01d2 014e 001c 39ce
+[frame 000309] palblk 3f @2007e0 0000 0000 0010 015e 025e 03de 4bde 7bde 5800 7940 7a40 7b40 7bd4 0000 0000 0000
+[frame 000310] palchg count=4 blocks=40,41,42,43 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43
+[frame 000310] palblk 40 @200800 0000 0000 0010 015e 025e 03de 4bde 7bde 5800 7940 7a40 7b40 7bd4 0000 0000 0000
+[frame 000310] palblk 41 @200820 0000 0000 739c 429e 2154 190c 0012 000c 03de 01de 0300 0200 4a52 318c 0140 001e
+[frame 000310] palblk 42 @200840 0000 0000 739c 429e 2154 190c 0012 000c 03de 01de 0300 0200 4a52 318c 0140 001e
+[frame 000310] palblk 43 @200860 0000 0842 739c 429e 2154 190c 0012 000c 03de 01de 0240 0180 4a52 318c 0100 001e
+[frame 000311] palchg count=4 blocks=44,45,46,47 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 000311] palblk 44 @200880 0000 0000 739c 429e 2154 190c 0012 000c 03de 01de 0300 0200 4a52 318c 0140 001e
+[frame 000311] palblk 45 @2008a0 0000 001e 7bd4 5b88 3bd8 6ac6 4b58 18c0 0000 3100 3a4e 3a06 3146 01ce 008c 4a4e
+[frame 000311] palblk 46 @2008c0 0000 4318 00c0 0246 01c0 030e 2948 318a 6356 6b9a 10d2 2996 210a 380e 01ce 39ce
+[frame 000311] palblk 47 @2008e0 0000 0000 0010 015e 025e 03de 4bde 7bde 5800 7940 7a40 7b40 7bd4 0000 0000 0000
+[frame 000409] event mode4 0007 -> 0004
+[frame 000409] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0004(runtime_transition_or_gameplay) credits=0000 stage=0000 sel118=0100 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0001
+[frame 000422] event stage 0000 -> 0001
+[frame 000422] event page2 0002 -> 0003
+[frame 000422] event mode4 0004 -> 0000
+[frame 000422] mode scene=frontend_page_0002_0003 page0=0002 page2=0003 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0100 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0001
+[frame 000422] scene frontend_page_0002_0003
+[frame 000423] palchg count=1 blocks=02 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 000423] palblk 02 @200040 0000 3946 3948 390a 390c 394a 4192 39d2 31d6 3218 3a5c 529a 7800 5bde 7a00 6b00
+[frame 000600] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 000819] mode scene=frontend_page_0002_0003 page0=0002 page2=0003 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0103 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 000865] mode scene=frontend_page_0002_0003 page0=0002 page2=0003 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0110 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 000882] mode scene=frontend_page_0002_0003 page0=0002 page2=0003 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0103 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 000900] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 001024] mode scene=frontend_page_0002_0003 page0=0002 page2=0003 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0110 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 001200] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 001251] palchg count=1 blocks=33 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 001251] palblk 33 @200660 0000 0842 739c 7b40 2154 190c 0012 000c 03de 01de 0240 0180 4a52 318c 0100 001e
+[frame 001254] mode scene=frontend_page_0002_0003 page0=0002 page2=0003 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0103 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 001259] palchg count=1 blocks=33 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 001259] palblk 33 @200660 0000 0842 739c 429e 2154 190c 0012 000c 03de 01de 0240 0180 4a52 318c 0100 001e
+[frame 001500] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 001800] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 002100] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 002400] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 002700] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 003000] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 003039] palchg count=1 blocks=33 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 003039] palblk 33 @200660 0000 0842 739c 7b40 2154 190c 0012 000c 03de 01de 0240 0180 4a52 318c 0100 001e
+[frame 003047] palchg count=1 blocks=33 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 003047] palblk 33 @200660 0000 0842 739c 429e 2154 190c 0012 000c 03de 01de 0240 0180 4a52 318c 0100 001e
+[frame 003065] mode scene=frontend_page_0002_0003 page0=0002 page2=0003 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 003139] palchg count=1 blocks=33 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 003139] palblk 33 @200660 0000 0842 739c 7b40 2154 190c 0012 000c 03de 01de 0240 0180 4a52 318c 0100 001e
+[frame 003147] palchg count=1 blocks=33 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 003147] palblk 33 @200660 0000 0842 739c 429e 2154 190c 0012 000c 03de 01de 0240 0180 4a52 318c 0100 001e
+[frame 003184] palchg count=1 blocks=33 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 003184] palblk 33 @200660 0000 0842 739c 7b40 2154 190c 0012 000c 03de 01de 0240 0180 4a52 318c 0100 001e
+[frame 003192] palchg count=1 blocks=33 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 003192] palblk 33 @200660 0000 0842 739c 429e 2154 190c 0012 000c 03de 01de 0240 0180 4a52 318c 0100 001e
+[frame 003241] event page2 0003 -> 0004
+[frame 003241] mode scene=frontend_page_0002_0004 page0=0002 page2=0004 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 003241] scene frontend_page_0002_0004
+[frame 003242] event mode4 0000 -> 0001
+[frame 003242] mode scene=wait_for_play page0=0002 page2=0004 mode4=0001(wait_for_play) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 003242] scene wait_for_play
+[frame 003243] event page2 0004 -> 0000
+[frame 003243] event mode4 0001 -> 0000
+[frame 003243] mode scene=frontend_page_0002_0000 page0=0002 page2=0000 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 003243] scene frontend_page_0002_0000
+[frame 003244] event 1394 00ff -> 0000
+[frame 003244] event 13aa 0001 -> 0000
+[frame 003244] event 13b0 00ff -> 0000
+[frame 003244] mode scene=frontend_page_0002_0000 page0=0002 page2=0000 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 003245] event mode4 0000 -> 0002
+[frame 003245] mode scene=active_runtime_stage_01 page0=0002 page2=0000 mode4=0002(runtime_transition_or_gameplay) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 003245] scene active_runtime_stage_01
+[frame 003246] event page2 0000 -> 0002
+[frame 003246] event mode4 0002 -> 0000
+[frame 003246] mode scene=frontend_page_0002_0002 page0=0002 page2=0002 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 003246] scene frontend_page_0002_0002
+[frame 003247] event mode4 0000 -> 0001
+[frame 003247] mode scene=wait_for_play page0=0002 page2=0002 mode4=0001(wait_for_play) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 003247] scene wait_for_play
+[frame 003248] event mode4 0001 -> 0006
+[frame 003248] event 1394 0000 -> 00ff
+[frame 003248] event 13aa 0000 -> 0001
+[frame 003248] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0006(runtime_transition_or_gameplay) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0000
+[frame 003248] scene death_game_over_continue_01
+[frame 003250] event mode4 0006 -> 0007
+[frame 003250] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0007(runtime_transition_or_gameplay) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0000
+[frame 003250] palchg count=1 blocks=02 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 003250] palblk 02 @200040 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
+[frame 003300] heartbeat scene=death_game_over_continue_01 mode4=0007 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=71
+[frame 003361] event mode4 0007 -> 0004
+[frame 003361] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0004(runtime_transition_or_gameplay) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0001
+[frame 003362] event stage 0001 -> 0000
+[frame 003362] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0004(runtime_transition_or_gameplay) credits=0000 stage=0000 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0001
+[frame 003374] event stage 0000 -> 0001
+[frame 003374] event page2 0002 -> 0003
+[frame 003374] event mode4 0004 -> 0000
+[frame 003374] mode scene=frontend_page_0002_0003 page0=0002 page2=0003 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0001
+[frame 003374] scene frontend_page_0002_0003
+[frame 003375] palchg count=1 blocks=02 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 003375] palblk 02 @200040 0000 3946 3948 390a 390c 394a 4192 39d2 31d6 3218 3a5c 529a 7800 5bde 7a00 6b00
+[frame 003600] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 003900] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+[frame 003962] event page2 0003 -> 0004
+[frame 003962] mode scene=frontend_page_0002_0004 page0=0002 page2=0004 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 003962] scene frontend_page_0002_0004
+[frame 003963] event mode4 0000 -> 0001
+[frame 003963] mode scene=wait_for_play page0=0002 page2=0004 mode4=0001(wait_for_play) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 003963] scene wait_for_play
+[frame 003964] event page2 0004 -> 0000
+[frame 003964] event mode4 0001 -> 0000
+[frame 003964] mode scene=frontend_page_0002_0000 page0=0002 page2=0000 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=00ff
+[frame 003964] scene frontend_page_0002_0000
+[frame 003965] event 1394 00ff -> 0000
+[frame 003965] event 13aa 0001 -> 0000
+[frame 003965] event 13b0 00ff -> 0000
+[frame 003965] mode scene=frontend_page_0002_0000 page0=0002 page2=0000 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 003966] event mode4 0000 -> 0002
+[frame 003966] mode scene=active_runtime_stage_01 page0=0002 page2=0000 mode4=0002(runtime_transition_or_gameplay) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 003966] scene active_runtime_stage_01
+[frame 003967] event page2 0000 -> 0002
+[frame 003967] event mode4 0002 -> 0000
+[frame 003967] mode scene=frontend_page_0002_0002 page0=0002 page2=0002 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 003967] scene frontend_page_0002_0002
+[frame 003968] event mode4 0000 -> 0001
+[frame 003968] mode scene=wait_for_play page0=0002 page2=0002 mode4=0001(wait_for_play) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=0000 13aa=0000(other) 13ac=0000 13ae=0000 13b0=0000
+[frame 003968] scene wait_for_play
+[frame 003969] event mode4 0001 -> 0006
+[frame 003969] event 1394 0000 -> 00ff
+[frame 003969] event 13aa 0000 -> 0001
+[frame 003969] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0006(runtime_transition_or_gameplay) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0000
+[frame 003969] scene death_game_over_continue_01
+[frame 003971] event mode4 0006 -> 0007
+[frame 003971] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0007(runtime_transition_or_gameplay) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0000
+[frame 003971] palchg count=1 blocks=02 active=00,01,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 003971] palblk 02 @200040 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
+[frame 004082] event mode4 0007 -> 0004
+[frame 004082] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0004(runtime_transition_or_gameplay) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0001
+[frame 004083] event stage 0001 -> 0000
+[frame 004083] mode scene=death_game_over_continue_01 page0=0002 page2=0002 mode4=0004(runtime_transition_or_gameplay) credits=0000 stage=0000 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0001
+[frame 004095] event stage 0000 -> 0001
+[frame 004095] event page2 0002 -> 0003
+[frame 004095] event mode4 0004 -> 0000
+[frame 004095] mode scene=frontend_page_0002_0003 page0=0002 page2=0003 mode4=0000(frontend_title) credits=0000 stage=0001 sel118=0101 latch28=0000 latch2a=0000 t2c=0000 flag34=0001 sel46=0000 1392=0000 1394=00ff 13aa=0001(death_game_over_continue) 13ac=0000 13ae=0000 13b0=0001
+[frame 004095] scene frontend_page_0002_0003
+[frame 004096] palchg count=1 blocks=02 active=00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,10,11,12,13,14,15,16,17,18,19,1a,1b,1c,1d,1e,1f,20,21,22,23,24,25,26,27,28,29,2a,2b,2c,2d,2e,2f,30,31,32,33,34,35,36,37,38,39,3a,3b,3c,3d,3e,3f,40,41,42,43,44,45,46,47
+[frame 004096] palblk 02 @200040 0000 3946 3948 390a 390c 394a 4192 39d2 31d6 3218 3a5c 529a 7800 5bde 7a00 6b00
+[frame 004200] heartbeat scene=frontend_page_0002_0003 mode4=0000 credits=0000 stage=0001 13aa=0001 13ac=0000 13ae=0000 active_pal=72
+==== rastanmon stop ====
