@@ -371,14 +371,35 @@ pc090oj_workram_block_sprites:
     lsl.w   #3, %d5
     lea     pc090oj_object_ram, %a0
     adda.w  %d5, %a0
+    /* Build 0193 (Fable cycle pass): unchanged-tuple fast path + deferred sync.
+     * The old body unconditionally sync'd every record inline (decode + SAT
+     * rebuild under a 15-reg movem, 22 records per 0x041F5E frame = 6.5 ms in
+     * the arcade main-loop bucket) and set mirror_dirty, after which the VBlank
+     * shadow scan re-marked the same records and process_candidates sync'd them
+     * a SECOND time.  Value-identical writes produce identical decoded output
+     * (this is exactly the Build 0177 shadow-compare invariant), so: skip
+     * identical tuples entirely, and for changed tuples write the mirror and
+     * set the record's candidate like every other producer -- the proven
+     * Build 0157/0177 VBlank path (mark -> process -> sync) then converts the
+     * record exactly once before the same service's sprite commit.  VRAM-visible
+     * SAT/tile output per service is unchanged; only redundant work is removed. */
+    cmp.w   (%a0), %d1
+    bne.s   .Lpc090oj_far_changed
+    cmp.w   2(%a0), %d2
+    bne.s   .Lpc090oj_far_changed
+    cmp.w   4(%a0), %d3
+    bne.s   .Lpc090oj_far_changed
+    cmp.w   6(%a0), %d4
+    beq.s   .Lpc090oj_far_exit           /* identical tuple: nothing to do */
+.Lpc090oj_far_changed:
     move.w  %d1, (%a0)
     move.w  %d2, 2(%a0)
     move.w  %d3, 4(%a0)
     move.w  %d4, 6(%a0)
     addq.w  #1, pc090oj_producer_write_count
     move.w  #1, pc090oj_mirror_dirty
-    bsr     .Lpc090oj_sync_record_from_mirror   /* d6 = record */
-    bsr     .Lpc090oj_candidate_clear_d6        /* d6 = record */
+    bsr     .Lpc090oj_candidate_set_d0   /* d0 = record; VBlank syncs once */
+.Lpc090oj_far_exit:
     move.w  (%sp)+, %sr
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts

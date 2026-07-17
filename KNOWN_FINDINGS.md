@@ -958,3 +958,75 @@ Deferral reason: Disagreement is still open and unconverged; defer canonical pro
 **Finding.** Build 0192 VINT service = 26.55 ms = 1.59 frames (overruns the 16.667 ms 60 Hz budget by ~9.9 ms; effective rate 0.588, ~35 Hz). Per-section: arcade VINT + main loop 15.52 ms (58.5%), vdp_prepare_sprites 10.30 ms (38.8%), everything else < 0.3 ms each. The display-off window (off->on) is only 0.40 ms — the VRAM commits are now cheap (Build 0178 tile-DMA cache + Build 0180 SAT gating + Build 0192 half-sprite set). Rolling black bars are now a small (~6-scanline) mid-screen band because display-off is issued ~10.4 ms into the service (after prepare_sprites), landing ~line 124, and rolls because the 1.59-frame service period is non-integer. The dominant cost has SHIFTED from PC090OJ prep (which dominated earlier builds) to the arcade VINT + main loop — i.e., the injected tilemap/palette/PC090OJ hooks and game logic running during the arcade VINT tail.
 
 **Use as prior.** Further slowdown/black-bar reduction must target the arcade-VINT/main-loop cost (58.5%) and/or move display-off into VBlank (the commit window is only 0.4 ms, so display-off may be unnecessary) — NOT PC090OJ prep alone, and NOT more duplicate suppression (the sprite set is already near arcade-faithful after Build 0192). These are VBlank-ordering / hook-cost tasks, not duplicate cleanups.
+
+---
+
+## KF-053 — family_apply_record double-sync eliminated (Build 0193): defer to the VBlank candidate path + unchanged-tuple fast path; 41f5e hook 6.54->1.76 ms, VINT rate 0.588->0.769
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (measured sub-bucket + full-budget before/after; screenshots; build-verified Build 0193)
+- **Applicability:** DURABLE PC090OJ producer-path rule (rastan-direct)
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** .Lpc090oj_family_apply_record (pc090oj_hooks.s); hook_target_41f5e runtime jsr @0x4215E; VBlank mark/process path (.Lpc090oj_mark_changed_candidates_since_shadow / .Lpc090oj_process_candidates).
+- **Source Documents:** docs/design/Andy_fable_build0192_cycle_optimization_pass.md
+- **Related Findings:** KF-052 (bucket attribution), KF-051 (0192 suppression), Build 0177 shadow-compare
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-16 (Build 0193)
+
+**Finding.** The 0x041F5E player block copy synced all 22 records inline every service (decode+SAT under 15-reg movem+SR mask = 6.54 ms in the arcade main-loop bucket) even for value-identical tuples, then set mirror_dirty so the VBlank shadow scan re-marked and process_candidates synced the same records a SECOND time. Build 0193 makes family_apply_record behave like every other producer: skip value-identical tuples (Build 0177 invariant: identical bytes => identical decoded output), else write mirror + set candidate; the proven VBlank path syncs exactly once before the same service's commit — VRAM output per service unchanged. Measured: 41f5e hook 6.541->1.762 ms; total service 26.554->21.669 ms (1.59->1.30 frames); rate 0.588->0.769 (~46 Hz); Rastan/title/READY/BG/FG/palette all correct.
+
+**Use as prior.** PC090OJ producers must NOT sync inline + clear their candidate (that forces the VBlank path to redo the work); the correct producer contract is: bounds-check, skip identical tuples, write mirror, candidate_set, mirror_dirty. Remaining measured costs: prepare scan 4.16 ms + shadow copy 2.0 ms (candidates make the scan near-redundant — future candidate with debug guard), and the VBlank commit-first reorder (~0.3 ms commit window) is the highest-value remaining black-bar fix.
+
+---
+
+## KF-054 — VBlank commit-first reorder is unsafe without full double-buffering: SAT is produced in-service, all planes/palette/scroll by the arcade VINT
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (source data-lifetime trace + empirical static-motion measurement, Build 0193)
+- **Applicability:** DURABLE presentation-ordering constraint (rastan-direct)
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** _vblank_service (vdp_comm.s); staged_sprite_sat vs staged_bg/fg_buffer/staged_palette_words/staged_scroll_*; arcade VINT tail jmp 0x3A208.
+- **Source Documents:** docs/design/Andy_build0193_vblank_commit_first_reorder.md
+- **Related Findings:** KF-052/KF-053 (VINT budget), KF-015 (full-plane scroll model)
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-16 (Build 0193)
+
+**Finding.** In the current architecture the sprite SAT is produced INSIDE _vblank_service by vdp_prepare_sprites (which reads the PC090OJ mirror), while BG/FG plane, palette, and scroll staging are all produced by the ARCADE VINT that runs after the tail jmp 0x3A208 (between services). Coherence holds only because the current order runs prepare immediately before the commit: prepare reads the mirror left by arcadeVINT_{N-1} and the planes/scroll staging is also arcadeVINT_{N-1}, so all classes reflect one arcade game frame. A commit-first reorder (commit at VBlank entry, prepare afterward) commits SAT from prepare_{N-1} (= arcadeVINT_{N-2}) against planes/scroll from arcadeVINT_{N-1} -> sprites lag the background by one frame -> tearing/positional mismatch under motion. The coherent {SAT+tiles+BG+FG+palette+scroll} snapshot exists only momentarily and is overwritten by the next arcade VINT, so a coherent commit-first requires double-buffering the whole ~4.2K-word snapshot (copy = ~0.4 frame, or a broad hook-destination-swap change). NOT bounded. The black band's root is the service overrunning one frame (prepare ~10 ms pushes DISPLAY_OFF to ~line 124 mid-screen); the coherence-preserving fix is to reduce prepare below ~2 ms (KF-053 scan/copy elimination) so prepare+commit fits inside VBlank.
+
+**Use as prior.** Do NOT reorder _vblank_service to commit before prepare — it de-syncs sprites from planes/scroll. A naive reorder will appear safe ONLY because the game is currently frozen (measured: scroll and SAT head-X change 0x/900 gameplay samples); it tears once progression is fixed. To move the commit into real VBlank, either make prepare cheap enough that prepare+commit fits in VBlank (coherent, preferred) or design a full double-buffered presentation snapshot (separate larger task). No structured-metadata owner exists for _vblank_service ordering.
+
+---
+
+## KF-055 — Exodus READY lock at 0x3A342/0x3A346 is a TC0140SYT sound busy-wait on unredirected read 0x3E0003 (emulator-dependent open bus)
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED in MAME (loop exits, 0x3E0003=0x00); Exodus lock is Tighe's external observation (consistent with the mechanism)
+- **Applicability:** DURABLE strict-emulator / sound-handshake boundary (rastan-direct)
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** runtime loop 0x0003A33E..0x0003A346 (arcade 0x3A13E..0x3A146, sound-command dispatcher); TC0140SYT status read 0x0003F2A4 / arcade 0x3F0A4 (`moveb 0x3E0003,%d0`); send 0x3F284/arcade 0x3F084; 0x3E0000-0x3E0003 = arcade TC0140SYT (absent on Genesis).
+- **Source Documents:** docs/design/Andy_exodus_ready_loop_entry_trace.md
+- **Related Findings:** KF (sound suppression opcode_replace entries in spec)
+- **Related Issues:** OPEN-017, OPEN-003 (emulator divergence)
+- **Last verified:** 2026-07-16 (Build 0193, MAME)
+
+**Finding.** The arcade sound-command dispatcher (arcade 0x3A126) sends queued commands (A5+0x292..0x297) to the TC0140SYT and busy-waits at 0x3A33E-0x3A346 (`bsr 0x3F29C; btst #0,d0; bne`) for the sound CPU ready bit (0x3E0003 bit 0). The spec suppresses the TC0140SYT WRITE side (reset/bank) but leaves the status-READ busy-wait (arcade 0x3F0A4, 0x3E0003) unredirected. Genesis has no TC0140SYT; 0x3E0003 is out-of-physical-ROM cartridge space (ROM 1.58 MB; addr ~3.87 MB) whose value is emulator open bus. MAME/BlastEm read 0x00 (bit 0 = 0) -> loop exits -> gameplay; Exodus reads bit 0 = 1 -> loop spins forever -> READY lock. The earlier-observed 0x702F0/0x702F6 and 0x702BA/0x702C0 loops are normal bounded VBlank dbf commit loops (palette + FG strips), not the lock.
+
+**Use as prior.** Any arcade sound/coprocessor handshake that busy-waits on an absent Genesis chip register is emulator-open-bus-dependent and will lock strict emulators (Exodus) while lenient ones (MAME/BlastEm return 0) pass. The fix class is to redirect the READ (not just suppress the write) to return the ready value, or route the handshake through the Genesis Z80 sound path — never NOP the loop. Check the read value at the poll address before assuming a timing/interrupt cause.
+
+---
+
+## KF-056 — Build 0194 redirects the TC0140SYT status read (0x3E0003) so the sound busy-wait exits on all emulators (Exodus READY lock fixed)
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED in MAME (loop deterministically exits; gameplay/visuals intact); Exodus fix by construction (open-bus dependency removed)
+- **Applicability:** DURABLE strict-emulator sound-handshake fix (rastan-direct)
+- **Rediscovery Hazard:** MEDIUM
+- **Addresses:** opcode_replace arcade 0x03F0A4 / runtime 0x0003F2A4: `moveb 0x3E0003,%d0` -> `andi.l #0xFFFFFFFE,%d0`. Loop 0x3A33E-0x3A346; subroutine 0x3F29C.
+- **Source Documents:** docs/design/Andy_build0194_tc0140syt_status_read_redirect.md
+- **Related Findings:** KF-055 (root cause)
+- **Related Issues:** OPEN-017, OPEN-003
+- **Last verified:** 2026-07-16 (Build 0194, MAME)
+
+**Finding.** Per KF-055 the Exodus READY lock is the TC0140SYT sound busy-wait reading emulator-open-bus at 0x3E0003. Build 0194 replaces the single-caller status read at arcade 0x3F0A4 with `andi.l #0xFFFFFFFE,%d0`, forcing bit 0 (busy) clear so the arcade loop `btst #0,d0; bne` falls through naturally. Byte-exact 6->6, no NOP, no branch/loop/state change; the sole caller uses only bit 0 and overwrites d0 after. MAME: D0 bit 0 clear 3/3, loop exits, gameplay reached, rate 0.771 (no regression vs 0193), Rastan/title/READY/BG/FG/palette all correct. Removes the open-bus dependency, so Exodus (and any emulator) exits the loop deterministically.
+
+**Use as prior.** When suppressing an absent-hardware coprocessor handshake, redirect the busy-status READ (not just the writes) to the ready value; a single andi.l/moveq at the read is enough when the poll only tests one bit and the caller discards the rest. Never NOP the wait loop or force its branch. opcode_replace count is now 152.

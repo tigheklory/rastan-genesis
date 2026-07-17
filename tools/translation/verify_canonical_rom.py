@@ -34,7 +34,8 @@ FAIL_STATE_CORRUPTED = "GATE_FAIL_STATE_CORRUPTED"
 # Build 0165: +5 opcode_replace targeted player-source WRAM immediate rebases
 # (0x054492/0x05457A/0x0545BA/0x0546A8/0x05475A), byte-neutral.
 # Build 0168: +9 opcode_replace collision-buffer immediate rebases to mapped WRAM 0x00FF1E00.
-CANONICAL_OPCODE_REPLACE_COUNT = 151
+# Build 0194: +1 opcode_replace (0x03F0A4 TC0140SYT status-read redirect -> andi.l #-2,d0; Exodus READY lock).
+CANONICAL_OPCODE_REPLACE_COUNT = 152
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -70,7 +71,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 151
 # PC090OJ_MIRROR_RECORDS<256 cannot overflow the mirror: +0x28 (0x1826D0 -> 0x1826F8).
 # Build 0192 gameplay-gated suppression of spurious low-record player duplicate
 # (hook_target_41dae/45dfa scene-1 skip of default block copy): +0x14 (0x1826F8 -> 0x18270C).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x18270C
+# Build 0193 family_apply_record unchanged-tuple fast path + deferred single sync
+# (replaces double inline+VBlank sync; Fable cycle pass): +0x10 (0x18270C -> 0x18271C).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x18271C
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")

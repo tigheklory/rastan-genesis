@@ -1,4 +1,4 @@
-/* GENERATED from PC090OJ_MIRROR_RECORDS=256 by apps/rastan-direct/Makefile -- do not hand-edit. */
-.equ PC090OJ_MIRROR_RECORDS, 256
+/* GENERATED from PC090OJ_MIRROR_RECORDS=128 by apps/rastan-direct/Makefile -- do not hand-edit. */
+.equ PC090OJ_MIRROR_RECORDS, 128
 .equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)
 .equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)

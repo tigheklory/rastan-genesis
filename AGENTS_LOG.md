@@ -42446,3 +42446,110 @@ Open/Closed Issues Impact:
 - **KNOWN_FINDINGS impact:** KF-052 added (bottleneck shifted to arcade VINT+main-loop; display-off tiny).
 - **Architecture compliance:** CONFIRMED. No new suppression, no faked SAT, no forced sprites; metadata updated at source owner; mirror default 256.
 - **STOP triggered:** YES (no build; evidence + chart + census + metadata fix delivered).
+
+### MAME Exit Summary (2026-07-16 21:16:43)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-16 21:20:15)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Fable — Build 0192 Cycle Optimization Pass (Build 0193)
+
+- **Date:** 2026-07-16
+- **Type:** Measured cycle audit (pc090oj_hooks.s / pc090oj_assets.s / vdp_comm.s) + one bounded candidate. Classification A (safe PC090OJ-prep-path optimization, built), E (VBlank reorder) ranked next.
+- **Build produced:** Build 0193 `ee3d236e30db81ba490ce2b42d2e59b93bdfef702b3fe940f2b73dd85bff31de`, size 1,582,876, counter 193, GATE_PASS, deterministic (metadata regen byte-identical). Accepted build unchanged.
+- **Key measurement (0192):** prepare sub-buckets = scan 4.171 ms + process 4.094 ms + shadow copy 1.999 ms; arcade-bucket attribution = 41f5e hook 6.541 ms/service (42% of the 15.5 ms bucket; 22 unconditional inline record syncs).
+- **Defect:** family_apply_record double-sync — unconditional inline sync per record + mirror_dirty -> VBlank shadow-scan re-marks -> process syncs the same records again; identical tuples still fully processed.
+- **Fix (Build 0193):** family_apply_record = unchanged-tuple fast path (4-word compare, exit if identical) + deferred single sync (write mirror + candidate_set like every other producer; no inline sync, no candidate_clear). SR mask, full movem, OOB guard retained. VRAM-visible output per service unchanged (commits run after prepare in the same service).
+- **Before/after:** total service 26.554->21.669 ms (1.59->1.30 frames); rate 0.588->0.769 (~35->~46 Hz); arcade bucket 15.523->10.989 ms; 41f5e 6.541->1.762 ms; display-off window 0.401->0.312 ms; SAT writes/service 8->4. Visual: Rastan left/coherent, title/READY correct (states/traces/fable0192/snap93/). Represented 17/player 9 at F1200 = game-moment variance at the faster rate, not corruption.
+- **Rejected/deferred (ranked):** [next] VBlank commit-first reorder (kills black band; 0.31 ms commit window fits VBlank; consistent one-frame-late pair; needs own validation pass); [later] scan+copy elimination (6.2 ms; candidates make scan near-redundant but it is the safety net — needs debug-gated invariant); [rejected] movem trimming (contract risk), assets layout (no CPU cost), counter removal (negligible).
+- **Structured metadata:** 0x041F5E spec note gained Build 0193 clause; regenerated manifest+address_map; SHA unchanged.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New: NONE. Closed: NONE. Deferred: VBlank reorder, scan/copy elimination, remaining ~11 ms arcade original-code bucket.
+- **KNOWN_FINDINGS impact:** KF-053 added (producer contract: never inline-sync + clear candidate; defer + value-filter).
+- **Architecture compliance:** CONFIRMED. No state change, no faked sprites, no record removal, mirror default 256, Builds 0175/0178/0180/0192 intact; arcade original code untouched.
+- **STOP triggered:** NO — bounded candidate built, measured, validated.
+
+---
+
+## Andy/Opus — Build 0193 VBlank Commit-First Reorder (STOP, no build)
+
+- **Date:** 2026-07-16
+- **Type:** Analysis-only state-causality of a proposed presentation reorder. No build. Repo stays at Build 0193.
+- **Primary classification: B** (unsafe: current service must prepare sprites immediately before commit for coherence).
+- **Data lifetimes traced (source):** ONLY the sprite SAT is produced inside _vblank_service (vdp_prepare_sprites, before commit); BG/FG plane, palette, and scroll staging are all produced by the ARCADE VINT after the tail jmp 0x3A208. Scroll-fill hooks are no-ops (KF-015); scroll enters staging via the arcade's redirected write during the arcade VINT.
+- **Coherence proof:** current order commits SAT + planes all reflecting arcadeVINT_{N-1} (coherent, because prepare reads the fresh mirror right before commit). Commit-first commits SAT (prepare_{N-1} = arcadeVINT_{N-2}) against planes/scroll (arcadeVINT_{N-1}) -> sprites lag background by one frame -> tearing under motion (explicit STOP condition: mixes current scroll with previous pixels).
+- **Options:** (1) full-snapshot commit-first needs double-buffering ~4.2K words (~0.4 frame copy / broad hook change) -> STOP; (2) sprites-only -> incoherent; (3) planes-only -> incoherent; (4) no-display-off -> replaces 5-line black band with 5-line DMA-glitch band mid-screen + real-HW risk; (5) NO BUILD (chosen).
+- **Empirical:** over 900 gameplay frame-samples scroll changed 0x and SAT head-X changed 0x (game frozen: Rastan screen-X 0x80, scroll x=0/y=0x149). A reorder would LOOK safe now only because progression is frozen -- latent tearing once fixed; not a valid basis to ship.
+- **Black-band root + recommended coherent fix:** service overruns one frame (prepare ~10 ms -> DISPLAY_OFF at ~line 124 mid-screen, rolls). Fix coherently by reducing prepare < ~2 ms (KF-053 scan/copy elimination: mirror writers now set candidates directly, so the 256-record scan is near-redundant + the 0x800 shadow copy is removable with a debug-gated invariant) so prepare+commit fits inside VBlank; or accept a stable (non-rolling) band by getting total service < 16.667 ms; a double-buffered snapshot commit-first is a separate larger task.
+- **Structured metadata:** no owner exists for _vblank_service presentation ordering (spec tracks opcode/hook replacements, not instruction order) -- stated, not invented.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New: NONE. Closed: NONE. Deferred: prepare scan/copy elimination (coherent band fix), double-buffered snapshot commit (larger task).
+- **KNOWN_FINDINGS impact:** KF-054 added (commit-first reorder unsafe without double-buffering; coherence dependency documented).
+- **Architecture compliance:** CONFIRMED. No source change; Builds 0175/0178/0180/0192/0193 intact; mirror default 256.
+- **STOP triggered:** YES (no build; rigorous state-causality proof + coherent-path recommendation delivered).
+
+---
+
+## Andy/Opus — Exodus READY-Screen Loop Entry Trace (STOP, no build)
+
+- **Date:** 2026-07-16
+- **Type:** Static mapping + MAME reproduction of Tighe's Exodus-observed PCs. No build. Andy cannot run Exodus (used Tighe's PCs as external evidence).
+- **Primary classification: A** (normal arcade sound-ready wait; Exodus missing the exit event MAME/BlastEm accidentally provide; F-flavored: 0x3E0003 read value differs by emulator).
+- **Final lock:** runtime 0x3A33E-0x3A346 = TC0140SYT sound busy-wait. `bsr 0x3F29C` (write #4->0x3E0001; read 0x3E0003->d0); `btst #0,d0; bne` — waits while busy bit set. Enclosing routine 0x3A326 = sound-command dispatcher over slots A5+0x292..0x297, gated by A5@(0x34)/A5@(0x1394).
+- **Root:** 0x3E0000-0x3E0003 = arcade TC0140SYT, absent on Genesis. Spec suppresses TC0140SYT WRITES but NOT the status READ (0x3F0A4). 0x3E0003 is out-of-physical-ROM cartridge space (ROM 1.58 MB, addr ~3.87 MB) -> emulator open bus. MAME=0x00 (bit0=0) loop EXITS (verified: 0x3E0003 hist 0x00x297/0xFFx3; 0x3A346 loopback=3, exit=3; D0=0x00010000 bit0=0). Exodus returns bit0=1 -> spins.
+- **0x702xx loops:** normal bounded VBlank dbf commit loops (vdp_commit_palette 64-word CRAM copy; vdp_commit_fg_strips 64-word per dirty row) — classification G, not the lock.
+- **Exodus checklist for Tighe:** break 0x3A342 inspect D0 (expect low byte 0x00/bit0=0; Exodus stuck bit0=1); inspect byte 0x3E0003 (MAME 0x00; Exodus bit0=1 confirms); break 0x3F2A4 confirm the read; verify no Genesis write to 0x3E0003; check A5+0x292 slots non-zero (queued command).
+- **Proposed fix (NOT built, for Tighe's call):** redirect the status read 0x3F0A4 (0x3E0003) to return bit0=0, or route the handshake (0x3F084 send / 0x3F09C status) through the Z80 sound path (sound_comm.s/z80_write_command). Never NOP/force the loop. Consistent with the existing "suppress TC0140SYT writes; drive sound via Z80" strategy.
+- **Metadata:** spec suppresses TC0140SYT writes but has no owner for the read-side handshake -- documented as incomplete-for-this-class; no metadata change made (no build).
+- **Open/Closed Issues Impact:** Open touched: OPEN-017, OPEN-003. New: NONE. Closed: NONE. Deferred: TC0140SYT read-side redirect / Z80 handshake (awaiting Tighe's go).
+- **KNOWN_FINDINGS impact:** KF-055 added (Exodus sound busy-wait open-bus lock).
+- **Architecture compliance:** CONFIRMED. No source/metadata change; Build 0193 intact; mirror 256.
+- **STOP triggered:** YES (analysis complete; no build; fix proposed pending Tighe).
+
+### MAME Exit Summary (2026-07-16 23:56:57)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Opus — Build 0194: TC0140SYT Status-Read Redirect (Exodus READY Lock Fix)
+
+- **Date:** 2026-07-16
+- **Type:** Bounded opcode-replace fix + validation. Build produced. Mirror default 256.
+- **Build produced:** Build 0194 `09f21d404e86aa0cf0aca888b603dfe9d0f6fd6a7b8ef3b189f7fd786207d19e`, size 1,582,876, counter 194, GATE_PASS. Accepted build unchanged (candidate).
+- **Fix:** opcode_replace at arcade PC 0x03F0A4 / runtime 0x0003F2A4: original `1039003E0003` (moveb 0x3E0003,%d0 = TC0140SYT status read) -> `0280FFFFFFFE` (andi.l #0xFFFFFFFE,%d0). Forces sound busy bit 0 clear so the arcade loop 0x3A342/0x3A346 (`btst #0,d0; bne`) falls through. Single 6-byte instruction, NO NOP, no branch/loop change. Sole caller (0x3A33E) uses only bit 0 then overwrites d0 -> safe.
+- **Why not NOP/branch-force:** loop + branch untouched; the read is redirected to return ready, matching the arcade's own fall-through path. TC0140SYT port-select write at 0x3F09C left intact (dropped harmlessly).
+- **Structured metadata:** specs/rastan_direct_remap.json opcode_replace +1 (0x03F0A4, full note); expectations.opcode_replace_count 151->152; CANONICAL_OPCODE_REPLACE_COUNT 151->152 both gate scripts; regenerated manifest + address_map (carry Build 0194 note).
+- **MAME validation:** ROM 0x3F2A4 = 0280fffffffe; at 0x3A342 D0 bit0 clear 3/3 set 0/3; 0x3A346 bne not taken; 0x3A348 reached 3/3 -> loop deterministically EXITS. Gameplay reached (represented=17); VINT rate 0.771 (0193 0.769, no regression); Build 0193 family-apply + Build 0192 gates intact. Visuals (snap94): title/READY/Stage1 all correct, Rastan left/coherent, BG/FG/palette intact.
+- **Exodus:** Andy cannot run Exodus; fix removes the open-bus dependency (bit0 always clear) so the loop exits deterministically. Checklist for Tighe: break 0x3A342 -> D0 bit0=0; 0x3A346 bne not taken; reach 0x3A348; READY proceeds.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017, OPEN-003. New: NONE. Closed: NONE (Exodus READY lock fix candidate pending Tighe Exodus confirmation). Deferred: optional real Z80 sound handshake.
+- **KNOWN_FINDINGS impact:** KF-056 added (status-read redirect fix); KF-055 root cause referenced.
+- **Architecture compliance:** CONFIRMED. No NOP/branch-force, no state/palette/VBlank/graphics change; loop untouched; Builds 0192/0193/0175/0178/0180 intact; mirror 256. opcode_replace count 152.
+- **STOP triggered:** NO -- bounded fix built, validated, metadata updated.
+
+### MAME Exit Summary (2026-07-17 00:07:04)
+- Final PC: 0x03B286
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Opus — Build 0195: Build 0194 + PC090OJ Mirror 128 (Candidate)
+
+- **Date:** 2026-07-17
+- **Type:** Config candidate (mirror cap only, via `make release PC090OJ_MIRROR_RECORDS=128`). No code change vs Build 0194.
+- **Build produced:** Build 0195 `758b7c26d95de8ead72e1daddcf977108316432c117470aca7d9ce58b4b4723d`, size 1,582,876, counter 195, GATE_PASS. Accepted build unchanged (candidate).
+- **Repo state:** rolling dist = 0195 (128); Makefile default `?= 256` (unchanged); out/pc090oj_config.inc = 128; opcode_replace count 152; resize mechanism intact.
+- **Validation (MAME):** TC0140SYT fix present (0x3F2A4 = 0280fffffffe) and READY loop exits (0x3A342 D0 bit0 clear 3/3, 0x3A348 exit 3/3); title/READY render; Stage 1 reached; Rastan LEFT + coherent (5 player slots = arcade-faithful 120,121,124,125,126, no 80-corruption); BG/FG/palette correct; Build 0192 gates + Build 0193 family-apply intact; represented=12 / SAT chain=12 / player=5; VINT rate 0.963 (~58 Hz) vs 0194/256 ~0.771.
+- **Notable:** the 128 cap ~halves the per-VBlank 256-record scan/process, pushing the rate to ~0.96 (near 60 Hz) on top of the Build 0193 family-apply saving. 128 preserves anchor 120..121 + cluster 120..126 (KF-049 safe).
+- **Structured metadata:** mirror count owner = Makefile var -> generated pc090oj_config.inc (KF-048) + build_counter/rom_inventory; not an opcode_replace; no manifest change; no new registry. TC0140SYT redirect unchanged/present.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New: NONE. Closed: NONE. Deferred: rolling black bar (unchanged), full 60 Hz.
+- **KNOWN_FINDINGS impact:** none new (KF-048 configurable mirror + KF-049 128-safe + KF-052/053/054 scan-cost scaling cover this); rate progression recorded in the design note.
+- **Architecture compliance:** CONFIRMED. Config-only; no code/graphics/sound/VBlank/palette change; Builds 0192/0193/0194 intact; default stays 256; resize mechanism preserved.
+- **STOP triggered:** NO -- candidate built and validated; no regression.
