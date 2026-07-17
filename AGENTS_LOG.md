@@ -42425,3 +42425,24 @@ Open/Closed Issues Impact:
 - **KNOWN_FINDINGS impact:** KF-051 added (spurious low-record duplicate owner + gameplay-gated suppression).
 - **Architecture compliance:** CONFIRMED. No faked SAT, no forced position, no hardcoded tiles, no mirror-size change; scene-gated (only where proven spurious).
 - **STOP triggered:** NO — bounded fix built, validated, measured.
+
+### MAME Exit Summary (2026-07-16 18:27:27)
+- Final PC: 0x03B28A
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy — Build 0192 Remaining VINT Budget + All-Sprite Duplicate Census + Metadata Audit
+
+- **Date:** 2026-07-16
+- **Type:** Analysis (VINT timing + chart + duplicate census + structured-metadata audit). No new build; mirror default 256. Build 0192 SHA unchanged.
+- **Metadata audit:** owner = specs/rastan_direct_remap.json (opcode_replace entries 0x041DAE/0x041F5E/0x045DFA) -> generates rastan_direct_patch_manifest.json + address_map.json via postpatch_startup_rom.py. Build 0192 suppression was MISSING from structured metadata; appended a Build 0192 clause to the 0x041DAE/0x045DFA `note` fields; rebuilt -> note now in manifest + address_map; ROM SHA unchanged (42f0b662..., metadata-only). No new registry created.
+- **VINT budget (653 services, gameplay):** total 26.55 ms = 1.59 frames; overrun ~9.9 ms; rate 0.588 (~35 Hz). arcade VINT+main-loop 15.52 ms (58.5%), vdp_prepare_sprites 10.30 ms (38.8%), commit_sprites_vram 0.27 ms, all others <0.2 ms. display-off window 0.40 ms. Chart: docs/design/build0192_vint_budget_breakdown.png.
+- **Black-bar explanation:** still overruns budget; display-off lands mid-screen (~line 124, ~6-scanline band) because issued ~10.4 ms into service after prepare_sprites; rolls (non-integer 1.59-frame period). Bottleneck SHIFTED from PC090OJ prep to arcade VINT/main-loop (58.5%).
+- **Duplicate census (arcade F1100 vs Genesis 0192 F1200):** Genesis represents 15 records. Rastan (120,121,124,125,128,129) = class A canonical, clean (low dup fixed 0192). Terrain clusters (17,22,23,24,25 / 44,45) = class A, match arcade codes+positions. r133/r134 (09DB, offscreen) = class E (stale 41f5e block over-copy of records 132..137; not a visible duplicate; unsafe to touch -- would risk canonical player producer). Arcade repeated codes (03CD x6, 002A x14) = legitimate multi-instance, not duplicates. **New class-C duplicates: NONE.** No build.
+- **Build decision:** STOP/no build (no new class-C duplicate proven safe). Remaining budget issue = arcade-VINT/main-loop cost + display-off timing (VBlank-ordering/hook-cost work, out of this task's duplicate-suppression build scope).
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New: NONE. Closed: NONE. Deferred: arcade-VINT/main-loop cost reduction, display-off->VBlank reorder, r133/r134 stale over-copy, black bars, frozen progression.
+- **KNOWN_FINDINGS impact:** KF-052 added (bottleneck shifted to arcade VINT+main-loop; display-off tiny).
+- **Architecture compliance:** CONFIRMED. No new suppression, no faked SAT, no forced sprites; metadata updated at source owner; mirror default 256.
+- **STOP triggered:** YES (no build; evidence + chart + census + metadata fix delivered).

@@ -940,3 +940,21 @@ Deferral reason: Disagreement is still open and unconverged; defer canonical pro
 **Finding.** hook_target_41dae and hook_target_45dfa replace arcade routines 0x041DAE/0x045DFA, which copy A5+0x508/0x5C8 -> records 57/96/140/46 (via 0x3D054) — NOT A5+0x11B2. But the Genesis hooks call the default pc090oj_workram_block_sprites, which copies the player block A5+0x11B2 -> records 0..17 (and A5+0x0170 -> 18..21) — an exact duplicate of what hook_target_41f5e already stages to canonical records 120..137/92..95 (Build 0164 address-split artifact). In Stage 1 gameplay arcade records 0..17 are empty, so the low copy is a proven Genesis-only spurious duplicate that draws Rastan ~3x and consumes ~2/3 of the 80-slot SAT budget on redundant player sprites. Build 0192 gates the default copy off in gameplay (scene 1) at both hooks: player SAT slots 18->6 (arcade-faithful), SAT chain 28->15, VINT rate 0.484->0.588 (+21%), records 0..17 writes ->0, with NO player/frontend regression (Rastan still coherent on the left; title/READY intact). Canonical player is independently maintained by hook_target_41f5e at the same frame rate, so suppression cannot make it stale.
 
 **Use as prior.** When a Genesis PC090OJ producer duplicates a sprite, check whether a hook (41dae/45dfa) is using the default block-copy helper instead of the arcade routine's real work. The arcade player is the record-120..137 cluster only; the low-record copy (0..17) is spurious. Suppress spurious producer routes scene-gated (only where proven), never globally, and never by faking SAT / forcing position. A faithful re-implementation of arcade 0x041DAE/0x045DFA (records 57/96/140/46) remains a separate future task.
+
+---
+
+## KF-052 — Build 0192 VINT bottleneck has shifted from PC090OJ prep to the arcade VINT + main loop (58.5%); display-off window now tiny (0.40 ms)
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (fine-grained per-section VINT timing, Build 0192, 653 services)
+- **Applicability:** DURABLE timing/budget fact (rastan-direct)
+- **Rediscovery Hazard:** MEDIUM
+- **Addresses:** _vblank_service sections; arcade VINT chain 0x3A208; vdp_prepare_sprites; display-off/on VDP reg-1 writes (0x8134/0x8174).
+- **Source Documents:** docs/design/Andy_build0192_remaining_vint_budget_and_duplicate_census.md; chart docs/design/build0192_vint_budget_breakdown.png
+- **Related Findings:** KF-051 (spurious dup suppression), KF-050 (double-draw)
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-16 (Build 0192)
+
+**Finding.** Build 0192 VINT service = 26.55 ms = 1.59 frames (overruns the 16.667 ms 60 Hz budget by ~9.9 ms; effective rate 0.588, ~35 Hz). Per-section: arcade VINT + main loop 15.52 ms (58.5%), vdp_prepare_sprites 10.30 ms (38.8%), everything else < 0.3 ms each. The display-off window (off->on) is only 0.40 ms — the VRAM commits are now cheap (Build 0178 tile-DMA cache + Build 0180 SAT gating + Build 0192 half-sprite set). Rolling black bars are now a small (~6-scanline) mid-screen band because display-off is issued ~10.4 ms into the service (after prepare_sprites), landing ~line 124, and rolls because the 1.59-frame service period is non-integer. The dominant cost has SHIFTED from PC090OJ prep (which dominated earlier builds) to the arcade VINT + main loop — i.e., the injected tilemap/palette/PC090OJ hooks and game logic running during the arcade VINT tail.
+
+**Use as prior.** Further slowdown/black-bar reduction must target the arcade-VINT/main-loop cost (58.5%) and/or move display-off into VBlank (the commit window is only 0.4 ms, so display-off may be unnecessary) — NOT PC090OJ prep alone, and NOT more duplicate suppression (the sprite set is already near arcade-faithful after Build 0192). These are VBlank-ordering / hook-cost tasks, not duplicate cleanups.
