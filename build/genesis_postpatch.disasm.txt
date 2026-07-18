@@ -136,7 +136,9 @@ Disassembly of section .data:
      188:	2000           	movel %d0,%d0
      18a:	004a           	.short 0x004a
      18c:	2020           	movel %a0@-,%d0
-     18e:	207c 2020 2020 	moveal #538976288,%a0
+     18e:	c7a5           	andl %d3,%a5@-
+     190:	2020           	movel %a0@-,%d0
+     192:	2020           	movel %a0@-,%d0
      194:	2020           	movel %a0@-,%d0
      196:	2020           	movel %a0@-,%d0
      198:	2020           	movel %a0@-,%d0
@@ -258,26 +260,26 @@ Disassembly of section .data:
      350:	3e3c 03ff      	movew #1023,%d7
      354:	4258           	clrw %a0@+
      356:	51cf fffc      	dbf %d7,0x354
-     35a:	41f9 00ff b1d8 	lea 0xffb1d8,%a0
+     35a:	41f9 00ff b9d8 	lea 0xffb9d8,%a0
      360:	3e3c 000f      	movew #15,%d7
      364:	4258           	clrw %a0@+
      366:	51cf fffc      	dbf %d7,0x364
-     36a:	4279 00ff b1e8 	clrw 0xffb1e8
-     370:	4279 00ff b1ea 	clrw 0xffb1ea
-     376:	4279 00ff b1ec 	clrw 0xffb1ec
-     37c:	4279 00ff b1ee 	clrw 0xffb1ee
-     382:	4279 00ff b1f0 	clrw 0xffb1f0
-     388:	4279 00ff b1f2 	clrw 0xffb1f2
-     38e:	4279 00ff b1f4 	clrw 0xffb1f4
-     394:	4279 00ff b1f6 	clrw 0xffb1f6
-     39a:	4279 00ff b1f8 	clrw 0xffb1f8
-     3a0:	4279 00ff b1fa 	clrw 0xffb1fa
-     3a6:	4279 00ff b1fc 	clrw 0xffb1fc
-     3ac:	4279 00ff b1fe 	clrw 0xffb1fe
-     3b2:	4279 00ff b200 	clrw 0xffb200
-     3b8:	4279 00ff b202 	clrw 0xffb202
-     3be:	4279 00ff b204 	clrw 0xffb204
-     3c4:	4279 00ff b206 	clrw 0xffb206
+     36a:	4279 00ff b9f8 	clrw 0xffb9f8
+     370:	4279 00ff b9fa 	clrw 0xffb9fa
+     376:	4279 00ff b9fc 	clrw 0xffb9fc
+     37c:	4279 00ff b9fe 	clrw 0xffb9fe
+     382:	4279 00ff ba00 	clrw 0xffba00
+     388:	4279 00ff ba02 	clrw 0xffba02
+     38e:	4279 00ff ba04 	clrw 0xffba04
+     394:	4279 00ff ba06 	clrw 0xffba06
+     39a:	4279 00ff ba08 	clrw 0xffba08
+     3a0:	4279 00ff ba0a 	clrw 0xffba0a
+     3a6:	4279 00ff ba0c 	clrw 0xffba0c
+     3ac:	4279 00ff ba0e 	clrw 0xffba0e
+     3b2:	4279 00ff ba10 	clrw 0xffba10
+     3b8:	4279 00ff ba12 	clrw 0xffba12
+     3be:	4279 00ff ba14 	clrw 0xffba14
+     3c4:	4279 00ff ba16 	clrw 0xffba16
      3ca:	203c 0000 e000 	movel #57344,%d0
      3d0:	4eb9 0007 0090 	jsr 0x70090
      3d6:	3e3c 07ff      	movew #2047,%d7
@@ -101659,7 +101661,7 @@ Disassembly of section .data:
    507cc:	3b7c 00ff 1366 	movew #255,%a5@(4966)
    507d2:	3b7c 00ff 132e 	movew #255,%a5@(4910)
    507d8:	426d 1336      	clrw %a5@(4918)
-   507dc:	2b7c 0005 b5ec 	movel #374252,%a5@(4914)
+   507dc:	2b7c 0005 b7ec 	movel #374764,%a5@(4914)
    507e2:	1332 
    507e4:	3b7c 00ff 1338 	movew #255,%a5@(4920)
    507ea:	3b7c 00ff 1340 	movew #255,%a5@(4928)
@@ -102686,20 +102688,20 @@ Disassembly of section .data:
    51698:	6600 000a      	bnew 0x516a4
    5169c:	6100 0bd0      	bsrw 0x5226e
    516a0:	6000 004e      	braw 0x516f0
-   516a4:	3039 0010 d37a 	movew 0x10d37a,%d0
+   516a4:	3039 00ff 137a 	movew 0xff137a,%d0
    516aa:	0800 0001      	btst #1,%d0
    516ae:	6608           	bnes 0x516b8
    516b0:	6100 0972      	bsrw 0x52024
    516b4:	6000 003a      	braw 0x516f0
-   516b8:	2b7c 0005 b5ec 	movel #374252,%a5@(4914)
+   516b8:	2b7c 0005 b7ec 	movel #374764,%a5@(4914)
    516be:	1332 
    516c0:	426d 1336      	clrw %a5@(4918)
-   516c4:	3039 0010 d37a 	movew 0x10d37a,%d0
+   516c4:	3039 00ff 137a 	movew 0xff137a,%d0
    516ca:	0800 0002      	btst #2,%d0
    516ce:	6608           	bnes 0x516d8
    516d0:	6100 107e      	bsrw 0x52750
    516d4:	6000 001a      	braw 0x516f0
-   516d8:	3039 0010 d37a 	movew 0x10d37a,%d0
+   516d8:	3039 00ff 137a 	movew 0xff137a,%d0
    516de:	0800 0003      	btst #3,%d0
    516e2:	6608           	bnes 0x516ec
    516e4:	6100 1154      	bsrw 0x5283a
@@ -102753,7 +102755,7 @@ Disassembly of section .data:
    517ac:	6706           	beqs 0x517b4
    517ae:	3b7c 00ff 13bc 	movew #255,%a5@(5052)
    517b4:	4e75           	rts
-   517b6:	3039 0010 d37a 	movew 0x10d37a,%d0
+   517b6:	3039 00ff 137a 	movew 0xff137a,%d0
    517bc:	0800 0005      	btst #5,%d0
    517c0:	6600 0020      	bnew 0x517e2
    517c4:	0c6d 00ff 136c 	cmpiw #255,%a5@(4972)
@@ -102770,7 +102772,7 @@ Disassembly of section .data:
    517f2:	3b7c 00fe 136e 	movew #254,%a5@(4974)
    517f8:	3b7c 00ff 136c 	movew #255,%a5@(4972)
    517fe:	4e75           	rts
-   51800:	3039 0010 d37a 	movew 0x10d37a,%d0
+   51800:	3039 00ff 137a 	movew 0xff137a,%d0
    51806:	0800 0004      	btst #4,%d0
    5180a:	6600 0020      	bnew 0x5182c
    5180e:	0c6d 00ff 13c8 	cmpiw #255,%a5@(5064)
@@ -102849,7 +102851,7 @@ Disassembly of section .data:
    5191e:	6708           	beqs 0x51928
    51920:	526d 1266      	addqw #1,%a5@(4710)
    51924:	526d 1264      	addqw #1,%a5@(4708)
-   51928:	3039 0010 d37a 	movew 0x10d37a,%d0
+   51928:	3039 00ff 137a 	movew 0xff137a,%d0
    5192e:	0800 0002      	btst #2,%d0
    51932:	6610           	bnes 0x51944
    51934:	3b7c 0002 1114 	movew #2,%a5@(4372)
@@ -103216,7 +103218,7 @@ Disassembly of section .data:
    51e50:	6608           	bnes 0x51e5a
    51e52:	6100 041a      	bsrw 0x5226e
    51e56:	6000 0022      	braw 0x51e7a
-   51e5a:	3039 0010 d37a 	movew 0x10d37a,%d0
+   51e5a:	3039 00ff 137a 	movew 0xff137a,%d0
    51e60:	0800 0002      	btst #2,%d0
    51e64:	6608           	bnes 0x51e6e
    51e66:	3b7c 0002 1114 	movew #2,%a5@(4372)
@@ -103233,7 +103235,7 @@ Disassembly of section .data:
    51e94:	600a           	bras 0x51ea0
    51e96:	303c 0022      	movew #34,%d0
    51e9a:	4eb9 0003 a2ec 	jsr 0x3a2ec
-   51ea0:	3039 0010 d37a 	movew 0x10d37a,%d0
+   51ea0:	3039 00ff 137a 	movew 0xff137a,%d0
    51ea6:	0800 0002      	btst #2,%d0
    51eaa:	6748           	beqs 0x51ef4
    51eac:	0800 0003      	btst #3,%d0
@@ -103250,7 +103252,7 @@ Disassembly of section .data:
    51ed6:	6708           	beqs 0x51ee0
    51ed8:	0c6d 0003 10e8 	cmpiw #3,%a5@(4328)
    51ede:	660c           	bnes 0x51eec
-   51ee0:	3039 0010 d37a 	movew 0x10d37a,%d0
+   51ee0:	3039 00ff 137a 	movew 0xff137a,%d0
    51ee6:	0800 0001      	btst #1,%d0
    51eea:	672c           	beqs 0x51f18
    51eec:	3b7c 0004 1116 	movew #4,%a5@(4374)
@@ -103336,7 +103338,7 @@ Disassembly of section .data:
    52022:	4e75           	rts
    52024:	426d 10ea      	clrw %a5@(4330)
    52028:	3b7c 0005 10e8 	movew #5,%a5@(4328)
-   5202e:	3039 0010 d37a 	movew 0x10d37a,%d0
+   5202e:	3039 00ff 137a 	movew 0xff137a,%d0
    52034:	0800 0002      	btst #2,%d0
    52038:	6708           	beqs 0x52042
    5203a:	0800 0003      	btst #3,%d0
@@ -103380,12 +103382,12 @@ Disassembly of section .data:
    520cc:	3b7c 0018 1130 	movew #24,%a5@(4400)
    520d2:	0c6d 0011 136e 	cmpiw #17,%a5@(4974)
    520d8:	6730           	beqs 0x5210a
-   520da:	3039 0010 d37a 	movew 0x10d37a,%d0
+   520da:	3039 00ff 137a 	movew 0xff137a,%d0
    520e0:	0800 0000      	btst #0,%d0
    520e4:	6608           	bnes 0x520ee
    520e6:	6100 00e0      	bsrw 0x521c8
    520ea:	6000 0016      	braw 0x52102
-   520ee:	3039 0010 d37a 	movew 0x10d37a,%d0
+   520ee:	3039 00ff 137a 	movew 0xff137a,%d0
    520f4:	0800 0001      	btst #1,%d0
    520f8:	6608           	bnes 0x52102
    520fa:	6100 00ec      	bsrw 0x521e8
@@ -103397,11 +103399,11 @@ Disassembly of section .data:
    52110:	3b7c 001b 112e 	movew #27,%a5@(4398)
    52116:	3c3c 0001      	movew #1,%d6
    5211a:	6100 1c18      	bsrw 0x53d34
-   5211e:	3039 0010 d37a 	movew 0x10d37a,%d0
+   5211e:	3039 00ff 137a 	movew 0xff137a,%d0
    52124:	0800 0002      	btst #2,%d0
    52128:	6604           	bnes 0x5212e
    5212a:	6100 0014      	bsrw 0x52140
-   5212e:	3039 0010 d37a 	movew 0x10d37a,%d0
+   5212e:	3039 00ff 137a 	movew 0xff137a,%d0
    52134:	0800 0003      	btst #3,%d0
    52138:	6604           	bnes 0x5213e
    5213a:	6100 0048      	bsrw 0x52184
@@ -103501,43 +103503,43 @@ Disassembly of section .data:
    522bc:	6700 0142      	beqw 0x52400
    522c0:	0c6d 0009 10e8 	cmpiw #9,%a5@(4328)
    522c6:	6700 01be      	beqw 0x52486
-   522ca:	3039 0010 d37a 	movew 0x10d37a,%d0
+   522ca:	3039 00ff 137a 	movew 0xff137a,%d0
    522d0:	0800 0002      	btst #2,%d0
    522d4:	6632           	bnes 0x52308
    522d6:	0800 0000      	btst #0,%d0
    522da:	670a           	beqs 0x522e6
-   522dc:	2b7c 0005 b5a2 	movel #374178,%a5@(4914)
+   522dc:	2b7c 0005 b7a2 	movel #374690,%a5@(4914)
    522e2:	1332 
    522e4:	6008           	bras 0x522ee
-   522e6:	2b7c 0005 b570 	movel #374128,%a5@(4914)
+   522e6:	2b7c 0005 b770 	movel #374640,%a5@(4914)
    522ec:	1332 
    522ee:	3b7c 0002 110e 	movew #2,%a5@(4366)
    522f4:	3b7c 0002 1114 	movew #2,%a5@(4372)
    522fa:	3b7c 0002 10e8 	movew #2,%a5@(4328)
    52300:	6100 0364      	bsrw 0x52666
    52304:	6000 006c      	braw 0x52372
-   52308:	3039 0010 d37a 	movew 0x10d37a,%d0
+   52308:	3039 00ff 137a 	movew 0xff137a,%d0
    5230e:	0800 0003      	btst #3,%d0
    52312:	6630           	bnes 0x52344
    52314:	0800 0000      	btst #0,%d0
    52318:	670a           	beqs 0x52324
-   5231a:	2b7c 0005 b5a2 	movel #374178,%a5@(4914)
+   5231a:	2b7c 0005 b7a2 	movel #374690,%a5@(4914)
    52320:	1332 
    52322:	6008           	bras 0x5232c
-   52324:	2b7c 0005 b570 	movel #374128,%a5@(4914)
+   52324:	2b7c 0005 b770 	movel #374640,%a5@(4914)
    5232a:	1332 
    5232c:	3b7c 0003 110e 	movew #3,%a5@(4366)
    52332:	3b7c 0003 1114 	movew #3,%a5@(4372)
    52338:	3b7c 0002 10e8 	movew #2,%a5@(4328)
    5233e:	6100 02f2      	bsrw 0x52632
    52342:	602e           	bras 0x52372
-   52344:	3039 0010 d37a 	movew 0x10d37a,%d0
+   52344:	3039 00ff 137a 	movew 0xff137a,%d0
    5234a:	0800 0000      	btst #0,%d0
    5234e:	670a           	beqs 0x5235a
-   52350:	2b7c 0005 b548 	movel #374088,%a5@(4914)
+   52350:	2b7c 0005 b748 	movel #374600,%a5@(4914)
    52356:	1332 
    52358:	6008           	bras 0x52362
-   5235a:	2b7c 0005 b516 	movel #374038,%a5@(4914)
+   5235a:	2b7c 0005 b716 	movel #374550,%a5@(4914)
    52360:	1332 
    52362:	3b7c 0000 110e 	movew #0,%a5@(4366)
    52368:	3b7c 0002 10e8 	movew #2,%a5@(4328)
@@ -103545,30 +103547,30 @@ Disassembly of section .data:
    52372:	4e75           	rts
    52374:	302d 13be      	movew %a5@(5054),%d0
    52378:	3b40 13bc      	movew %d0,%a5@(5052)
-   5237c:	3039 0010 d37a 	movew 0x10d37a,%d0
+   5237c:	3039 00ff 137a 	movew 0xff137a,%d0
    52382:	0800 0002      	btst #2,%d0
    52386:	6630           	bnes 0x523b8
    52388:	0800 0000      	btst #0,%d0
    5238c:	670a           	beqs 0x52398
-   5238e:	2b7c 0005 b5a2 	movel #374178,%a5@(4914)
+   5238e:	2b7c 0005 b7a2 	movel #374690,%a5@(4914)
    52394:	1332 
    52396:	6008           	bras 0x523a0
-   52398:	2b7c 0005 b570 	movel #374128,%a5@(4914)
+   52398:	2b7c 0005 b770 	movel #374640,%a5@(4914)
    5239e:	1332 
    523a0:	3b7c 0002 110e 	movew #2,%a5@(4366)
    523a6:	3b7c 0002 1114 	movew #2,%a5@(4372)
    523ac:	3b7c 0002 10e8 	movew #2,%a5@(4328)
    523b2:	6100 02b2      	bsrw 0x52666
    523b6:	60ba           	bras 0x52372
-   523b8:	3039 0010 d37a 	movew 0x10d37a,%d0
+   523b8:	3039 00ff 137a 	movew 0xff137a,%d0
    523be:	0800 0003      	btst #3,%d0
    523c2:	6632           	bnes 0x523f6
    523c4:	0800 0000      	btst #0,%d0
    523c8:	670a           	beqs 0x523d4
-   523ca:	2b7c 0005 b5a2 	movel #374178,%a5@(4914)
+   523ca:	2b7c 0005 b7a2 	movel #374690,%a5@(4914)
    523d0:	1332 
    523d2:	6008           	bras 0x523dc
-   523d4:	2b7c 0005 b570 	movel #374128,%a5@(4914)
+   523d4:	2b7c 0005 b770 	movel #374640,%a5@(4914)
    523da:	1332 
    523dc:	3b7c 0003 110e 	movew #3,%a5@(4366)
    523e2:	3b7c 0003 1114 	movew #3,%a5@(4372)
@@ -103578,30 +103580,30 @@ Disassembly of section .data:
    523f6:	0c6d 0003 1114 	cmpiw #3,%a5@(4372)
    523fc:	67c6           	beqs 0x523c4
    523fe:	6088           	bras 0x52388
-   52400:	3039 0010 d37a 	movew 0x10d37a,%d0
+   52400:	3039 00ff 137a 	movew 0xff137a,%d0
    52406:	0800 0002      	btst #2,%d0
    5240a:	6632           	bnes 0x5243e
    5240c:	0800 0000      	btst #0,%d0
    52410:	670a           	beqs 0x5241c
-   52412:	2b7c 0005 b5a2 	movel #374178,%a5@(4914)
+   52412:	2b7c 0005 b7a2 	movel #374690,%a5@(4914)
    52418:	1332 
    5241a:	6008           	bras 0x52424
-   5241c:	2b7c 0005 b570 	movel #374128,%a5@(4914)
+   5241c:	2b7c 0005 b770 	movel #374640,%a5@(4914)
    52422:	1332 
    52424:	3b7c 0002 110e 	movew #2,%a5@(4366)
    5242a:	3b7c 0002 1114 	movew #2,%a5@(4372)
    52430:	3b7c 0002 10e8 	movew #2,%a5@(4328)
    52436:	6100 022e      	bsrw 0x52666
    5243a:	6000 ff36      	braw 0x52372
-   5243e:	3039 0010 d37a 	movew 0x10d37a,%d0
+   5243e:	3039 00ff 137a 	movew 0xff137a,%d0
    52444:	0800 0003      	btst #3,%d0
    52448:	6632           	bnes 0x5247c
    5244a:	0800 0000      	btst #0,%d0
    5244e:	670a           	beqs 0x5245a
-   52450:	2b7c 0005 b5a2 	movel #374178,%a5@(4914)
+   52450:	2b7c 0005 b7a2 	movel #374690,%a5@(4914)
    52456:	1332 
    52458:	6008           	bras 0x52462
-   5245a:	2b7c 0005 b570 	movel #374128,%a5@(4914)
+   5245a:	2b7c 0005 b770 	movel #374640,%a5@(4914)
    52460:	1332 
    52462:	3b7c 0003 110e 	movew #3,%a5@(4366)
    52468:	3b7c 0003 1114 	movew #3,%a5@(4372)
@@ -103611,30 +103613,30 @@ Disassembly of section .data:
    5247c:	0c6d 0003 1114 	cmpiw #3,%a5@(4372)
    52482:	67c6           	beqs 0x5244a
    52484:	6086           	bras 0x5240c
-   52486:	3039 0010 d37a 	movew 0x10d37a,%d0
+   52486:	3039 00ff 137a 	movew 0xff137a,%d0
    5248c:	0800 0002      	btst #2,%d0
    52490:	6632           	bnes 0x524c4
    52492:	0800 0000      	btst #0,%d0
    52496:	670a           	beqs 0x524a2
-   52498:	2b7c 0005 b548 	movel #374088,%a5@(4914)
+   52498:	2b7c 0005 b748 	movel #374600,%a5@(4914)
    5249e:	1332 
    524a0:	6008           	bras 0x524aa
-   524a2:	2b7c 0005 b516 	movel #374038,%a5@(4914)
+   524a2:	2b7c 0005 b716 	movel #374550,%a5@(4914)
    524a8:	1332 
    524aa:	3b7c 0000 110e 	movew #0,%a5@(4366)
    524b0:	3b7c 0002 1114 	movew #2,%a5@(4372)
    524b6:	3b7c 0002 10e8 	movew #2,%a5@(4328)
    524bc:	6100 0106      	bsrw 0x525c4
    524c0:	6000 feb0      	braw 0x52372
-   524c4:	3039 0010 d37a 	movew 0x10d37a,%d0
+   524c4:	3039 00ff 137a 	movew 0xff137a,%d0
    524ca:	0800 0003      	btst #3,%d0
    524ce:	6632           	bnes 0x52502
    524d0:	0800 0000      	btst #0,%d0
    524d4:	670a           	beqs 0x524e0
-   524d6:	2b7c 0005 b5a2 	movel #374178,%a5@(4914)
+   524d6:	2b7c 0005 b7a2 	movel #374690,%a5@(4914)
    524dc:	1332 
    524de:	6008           	bras 0x524e8
-   524e0:	2b7c 0005 b570 	movel #374128,%a5@(4914)
+   524e0:	2b7c 0005 b770 	movel #374640,%a5@(4914)
    524e6:	1332 
    524e8:	3b7c 0003 110e 	movew #3,%a5@(4366)
    524ee:	3b7c 0003 1114 	movew #3,%a5@(4372)
@@ -103642,20 +103644,20 @@ Disassembly of section .data:
    524fa:	6100 0136      	bsrw 0x52632
    524fe:	6000 fe72      	braw 0x52372
    52502:	60cc           	bras 0x524d0
-   52504:	3039 0010 d37a 	movew 0x10d37a,%d0
+   52504:	3039 00ff 137a 	movew 0xff137a,%d0
    5250a:	0800 0002      	btst #2,%d0
    5250e:	6622           	bnes 0x52532
-   52510:	2b7c 0005 b62e 	movel #374318,%a5@(4914)
+   52510:	2b7c 0005 b82e 	movel #374830,%a5@(4914)
    52516:	1332 
    52518:	3b7c 0002 110e 	movew #2,%a5@(4366)
    5251e:	3b7c 0002 1114 	movew #2,%a5@(4372)
    52524:	3b7c 0002 10e8 	movew #2,%a5@(4328)
    5252a:	6100 013a      	bsrw 0x52666
    5252e:	6000 fe42      	braw 0x52372
-   52532:	3039 0010 d37a 	movew 0x10d37a,%d0
+   52532:	3039 00ff 137a 	movew 0xff137a,%d0
    52538:	0800 0003      	btst #3,%d0
    5253c:	6622           	bnes 0x52560
-   5253e:	2b7c 0005 b62e 	movel #374318,%a5@(4914)
+   5253e:	2b7c 0005 b82e 	movel #374830,%a5@(4914)
    52544:	1332 
    52546:	3b7c 0003 110e 	movew #3,%a5@(4366)
    5254c:	3b7c 0003 1114 	movew #3,%a5@(4372)
@@ -103665,7 +103667,7 @@ Disassembly of section .data:
    52560:	0c6d 0003 1114 	cmpiw #3,%a5@(4372)
    52566:	67d6           	beqs 0x5253e
    52568:	60a6           	bras 0x52510
-   5256a:	3039 0010 d37a 	movew 0x10d37a,%d0
+   5256a:	3039 00ff 137a 	movew 0xff137a,%d0
    52570:	0800 0002      	btst #2,%d0
    52574:	6606           	bnes 0x5257c
    52576:	3b7c 0002 1114 	movew #2,%a5@(4372)
@@ -103690,12 +103692,12 @@ Disassembly of section .data:
    525bc:	6704           	beqs 0x525c2
    525be:	526d 10ea      	addqw #1,%a5@(4330)
    525c2:	4e75           	rts
-   525c4:	0cad 0005 b516 	cmpil #374038,%a5@(4914)
+   525c4:	0cad 0005 b716 	cmpil #374550,%a5@(4914)
    525ca:	1332 
    525cc:	6628           	bnes 0x525f6
    525ce:	0c6d 0016 1336 	cmpiw #22,%a5@(4918)
    525d4:	6620           	bnes 0x525f6
-   525d6:	3039 0010 d37a 	movew 0x10d37a,%d0
+   525d6:	3039 00ff 137a 	movew 0xff137a,%d0
    525dc:	0800 0002      	btst #2,%d0
    525e0:	6708           	beqs 0x525ea
    525e2:	0800 0003      	btst #3,%d0
@@ -103761,7 +103763,7 @@ Disassembly of section .data:
    52690:	6006           	bras 0x52698
    52692:	3b7c 0003 10e8 	movew #3,%a5@(4328)
    52698:	4e75           	rts
-   5269a:	3039 0010 d37a 	movew 0x10d37a,%d0
+   5269a:	3039 00ff 137a 	movew 0xff137a,%d0
    526a0:	0800 0002      	btst #2,%d0
    526a4:	6606           	bnes 0x526ac
    526a6:	3b7c 0002 1114 	movew #2,%a5@(4372)
@@ -103941,7 +103943,7 @@ Disassembly of section .data:
    5296c:	6100 0206      	bsrw 0x52b74
    52970:	3b7c 00ff 1352 	movew #255,%a5@(4946)
    52976:	6000 0052      	braw 0x529ca
-   5297a:	3039 0010 c016 	movew 0x10c016,%d0
+   5297a:	3039 00ff 0016 	movew 0xff0016,%d0
    52980:	0800 0005      	btst #5,%d0
    52984:	6608           	bnes 0x5298e
    52986:	6100 004c      	bsrw 0x529d4
@@ -103962,19 +103964,19 @@ Disassembly of section .data:
    529ca:	4e75           	rts
    529cc:	3b7c 0007 10e8 	movew #7,%a5@(4328)
    529d2:	6090           	bras 0x52964
-   529d4:	3039 0010 c016 	movew 0x10c016,%d0
+   529d4:	3039 00ff 0016 	movew 0xff0016,%d0
    529da:	0800 0001      	btst #1,%d0
    529de:	6604           	bnes 0x529e4
    529e0:	6100 0130      	bsrw 0x52b12
-   529e4:	3039 0010 c016 	movew 0x10c016,%d0
+   529e4:	3039 00ff 0016 	movew 0xff0016,%d0
    529ea:	0800 0000      	btst #0,%d0
    529ee:	6604           	bnes 0x529f4
    529f0:	6100 011a      	bsrw 0x52b0c
-   529f4:	3039 0010 c016 	movew 0x10c016,%d0
+   529f4:	3039 00ff 0016 	movew 0xff0016,%d0
    529fa:	0800 0002      	btst #2,%d0
    529fe:	6604           	bnes 0x52a04
    52a00:	6100 011c      	bsrw 0x52b1e
-   52a04:	3039 0010 c016 	movew 0x10c016,%d0
+   52a04:	3039 00ff 0016 	movew 0xff0016,%d0
    52a0a:	0800 0003      	btst #3,%d0
    52a0e:	6604           	bnes 0x52a14
    52a10:	6100 0106      	bsrw 0x52b18
@@ -104034,19 +104036,19 @@ Disassembly of section .data:
    52ac4:	5140           	subqw #8,%d0
    52ac6:	3080           	movew %d0,%a0@
    52ac8:	4e75           	rts
-   52aca:	3039 0010 c016 	movew 0x10c016,%d0
+   52aca:	3039 00ff 0016 	movew 0xff0016,%d0
    52ad0:	0800 0001      	btst #1,%d0
    52ad4:	6604           	bnes 0x52ada
    52ad6:	6100 0060      	bsrw 0x52b38
-   52ada:	3039 0010 c016 	movew 0x10c016,%d0
+   52ada:	3039 00ff 0016 	movew 0xff0016,%d0
    52ae0:	0800 0000      	btst #0,%d0
    52ae4:	6604           	bnes 0x52aea
    52ae6:	6100 003c      	bsrw 0x52b24
-   52aea:	3039 0010 c016 	movew 0x10c016,%d0
+   52aea:	3039 00ff 0016 	movew 0xff0016,%d0
    52af0:	0800 0002      	btst #2,%d0
    52af4:	6604           	bnes 0x52afa
    52af6:	6100 0068      	bsrw 0x52b60
-   52afa:	3039 0010 c016 	movew 0x10c016,%d0
+   52afa:	3039 00ff 0016 	movew 0xff0016,%d0
    52b00:	0800 0003      	btst #3,%d0
    52b04:	6604           	bnes 0x52b0a
    52b06:	6100 0044      	bsrw 0x52b4c
@@ -104127,7 +104129,7 @@ Disassembly of section .data:
    52c0c:	3b7c 0001 12f8 	movew #1,%a5@(4856)
    52c12:	3b7c 0008 1310 	movew #8,%a5@(4880)
    52c18:	4e75           	rts
-   52c1a:	3039 0010 d37a 	movew 0x10d37a,%d0
+   52c1a:	3039 00ff 137a 	movew 0xff137a,%d0
    52c20:	0800 0004      	btst #4,%d0
    52c24:	6600 0020      	bnew 0x52c46
    52c28:	0c6d 00ff 13c8 	cmpiw #255,%a5@(5064)
@@ -104245,7 +104247,7 @@ Disassembly of section .data:
    52dbe:	0cad 00d0 0b00 	cmpil #13634304,%a5@(4992)
    52dc4:	1380 
    52dc6:	6738           	beqs 0x52e00
-   52dc8:	3039 0010 c016 	movew 0x10c016,%d0
+   52dc8:	3039 00ff 0016 	movew 0xff0016,%d0
    52dce:	122d 137d      	moveb %a5@(4989),%d1
    52dd2:	b001           	cmpb %d1,%d0
    52dd4:	660e           	bnes 0x52de4
@@ -122661,8 +122663,8 @@ Disassembly of section .data:
    70138:	51cf fff8      	dbf %d7,0x70132
    7013c:	4239 00ff 4023 	clrb 0xff4023
    70142:	4e75           	rts
-   70144:	0c39 0001 00ff 	cmpib #1,0xffb3ec
-   7014a:	b3ec 
+   70144:	0c39 0001 00ff 	cmpib #1,0xffbc9c
+   7014a:	bc9c 
    7014c:	6672           	bnes 0x701c0
    7014e:	48e7 ffe0      	moveml %d0-%a2,%sp@-
    70152:	3039 00ff 40c4 	movew 0xff40c4,%d0
@@ -122696,8 +122698,8 @@ Disassembly of section .data:
    701b8:	00ff 4024 
    701bc:	4cdf 07ff      	moveml %sp@+,%d0-%a2
    701c0:	4e75           	rts
-   701c2:	0c39 0001 00ff 	cmpib #1,0xffb3ec
-   701c8:	b3ec 
+   701c2:	0c39 0001 00ff 	cmpib #1,0xffbc9c
+   701c8:	bc9c 
    701ca:	6672           	bnes 0x7023e
    701cc:	48e7 ffe0      	moveml %d0-%a2,%sp@-
    701d0:	3039 00ff 40c6 	movew 0xff40c6,%d0
@@ -122801,22 +122803,22 @@ Disassembly of section .data:
    70330:	3039 00ff 40c6 	movew 0xff40c6,%d0
    70336:	4440           	negw %d0
    70338:	5040           	addqw #8,%d0
-   7033a:	0c39 0001 00ff 	cmpib #1,0xffb3ec
-   70340:	b3ec 
+   7033a:	0c39 0001 00ff 	cmpib #1,0xffbc9c
+   70340:	bc9c 
    70342:	6604           	bnes 0x70348
    70344:	0240 0007      	andiw #7,%d0
    70348:	33c0 00c0 0000 	movew %d0,0xc00000
    7034e:	3039 00ff 40c4 	movew 0xff40c4,%d0
    70354:	4440           	negw %d0
    70356:	5040           	addqw #8,%d0
-   70358:	0c39 0001 00ff 	cmpib #1,0xffb3ec
-   7035e:	b3ec 
+   70358:	0c39 0001 00ff 	cmpib #1,0xffbc9c
+   7035e:	bc9c 
    70360:	6604           	bnes 0x70366
    70362:	0240 0007      	andiw #7,%d0
    70366:	33c0 00c0 0000 	movew %d0,0xc00000
    7036c:	4e75           	rts
-   7036e:	0c39 0001 00ff 	cmpib #1,0xffb3ec
-   70374:	b3ec 
+   7036e:	0c39 0001 00ff 	cmpib #1,0xffbc9c
+   70374:	bc9c 
    70376:	6666           	bnes 0x703de
    70378:	4a39 00ff 4020 	tstb 0xff4020
    7037e:	675e           	beqs 0x703de
@@ -122854,8 +122856,8 @@ Disassembly of section .data:
    703de:	4e75           	rts
    703e0:	48e7 fffe      	moveml %d0-%fp,%sp@-
    703e4:	4bf9 00ff 0000 	lea 0xff0000,%a5
-   703ea:	0c39 0001 00ff 	cmpib #1,0xffb3ec
-   703f0:	b3ec 
+   703ea:	0c39 0001 00ff 	cmpib #1,0xffbc9c
+   703f0:	bc9c 
    703f2:	6608           	bnes 0x703fc
    703f4:	6100 019e      	bsrw 0x70594
    703f8:	6100 0234      	bsrw 0x7062e
@@ -122881,9 +122883,9 @@ Disassembly of section .data:
    70444:	0242 003f      	andiw #63,%d2
    70448:	2008           	movel %a0,%d0
    7044a:	0280 00ff ffff 	andil #16777215,%d0
-   70450:	b0b9 00ff b3ee 	cmpl 0xffb3ee,%d0
+   70450:	b0b9 00ff bc9e 	cmpl 0xffbc9e,%d0
    70456:	650a           	bcss 0x70462
-   70458:	b0b9 00ff b3f2 	cmpl 0xffb3f2,%d0
+   70458:	b0b9 00ff bca2 	cmpl 0xffbca2,%d0
    7045e:	6202           	bhis 0x70462
    70460:	602e           	bras 0x70490
    70462:	43f9 0018 25fc 	lea 0x1825fc,%a1
@@ -123100,8 +123102,8 @@ Disassembly of section .data:
    706f4:	4e75           	rts
    706f6:	48e7 fffe      	moveml %d0-%fp,%sp@-
    706fa:	4bf9 00ff 0000 	lea 0xff0000,%a5
-   70700:	0c39 0001 00ff 	cmpib #1,0xffb3ec
-   70706:	b3ec 
+   70700:	0c39 0001 00ff 	cmpib #1,0xffbc9c
+   70706:	bc9c 
    70708:	6600 000c      	bnew 0x70716
    7070c:	6100 fe86      	bsrw 0x70594
    70710:	4cdf 7fff      	moveml %sp@+,%d0-%fp
@@ -123128,9 +123130,9 @@ Disassembly of section .data:
    7075e:	0242 003f      	andiw #63,%d2
    70762:	2008           	movel %a0,%d0
    70764:	0280 00ff ffff 	andil #16777215,%d0
-   7076a:	b0b9 00ff b3ee 	cmpl 0xffb3ee,%d0
+   7076a:	b0b9 00ff bc9e 	cmpl 0xffbc9e,%d0
    70770:	650a           	bcss 0x7077c
-   70772:	b0b9 00ff b3f2 	cmpl 0xffb3f2,%d0
+   70772:	b0b9 00ff bca2 	cmpl 0xffbca2,%d0
    70778:	6202           	bhis 0x7077c
    7077a:	602e           	bras 0x707aa
    7077c:	43f9 0018 25fc 	lea 0x1825fc,%a1
@@ -124661,18 +124663,18 @@ Disassembly of section .data:
    71acc:	4cdf 7fff      	moveml %sp@+,%d0-%fp
    71ad0:	4e75           	rts
    71ad2:	202f 0040      	movel %sp@(64),%d0
-   71ad6:	23c0 00ff b31c 	movel %d0,0xffb31c
-   71adc:	41f9 00ff b320 	lea 0xffb320,%a0
+   71ad6:	23c0 00ff bbcc 	movel %d0,0xffbbcc
+   71adc:	41f9 00ff bbd0 	lea 0xffbbd0,%a0
    71ae2:	20c9           	movel %a1,%a0@+
    71ae4:	20c2           	movel %d2,%a0@+
    71ae6:	20c4           	movel %d4,%a0@+
-   71ae8:	33f9 00c0 0008 	movew 0xc00008,0xffb35e
-   71aee:	00ff b35e 
-   71af2:	33fc 565a 00ff 	movew #22106,0xffb35c
-   71af8:	b35c 
-   71afa:	1039 00ff b360 	moveb 0xffb360,%d0
+   71ae8:	33f9 00c0 0008 	movew 0xc00008,0xffbc0e
+   71aee:	00ff bc0e 
+   71af2:	33fc 565a 00ff 	movew #22106,0xffbc0c
+   71af8:	bc0c 
+   71afa:	1039 00ff bc10 	moveb 0xffbc10,%d0
    71b00:	5200           	addqb #1,%d0
-   71b02:	13c0 00ff b360 	moveb %d0,0xffb360
+   71b02:	13c0 00ff bc10 	moveb %d0,0xffbc10
    71b08:	60f0           	bras 0x71afa
    71b0a:	207c 00ff 1000 	moveal #16715776,%a0
    71b10:	227c 00ff 1040 	moveal #16715840,%a1
@@ -124731,8 +124733,8 @@ Disassembly of section .data:
    71be0:	0c80 0000 fb1c 	cmpil #64284,%d0
    71be6:	6412           	bccs 0x71bfa
    71be8:	7c01           	moveq #1,%d6
-   71bea:	0c39 0001 00ff 	cmpib #1,0xffb3ec
-   71bf0:	b3ec 
+   71bea:	0c39 0001 00ff 	cmpib #1,0xffbc9c
+   71bf0:	bc9c 
    71bf2:	6706           	beqs 0x71bfa
    71bf4:	7001           	moveq #1,%d0
    71bf6:	6100 1860      	bsrw 0x73458
@@ -125011,11 +125013,11 @@ Disassembly of section .data:
    71f4e:	3401           	movew %d1,%d2
    71f50:	e649           	lsrw #3,%d1
    71f52:	0242 0007      	andiw #7,%d2
-   71f56:	41f9 00ff b1d8 	lea 0xffb1d8,%a0
+   71f56:	41f9 00ff b9d8 	lea 0xffb9d8,%a0
    71f5c:	1630 1000      	moveb %a0@(0,%d1:w),%d3
    71f60:	0503           	btst %d2,%d3
    71f62:	6606           	bnes 0x71f6a
-   71f64:	5279 00ff b1ee 	addqw #1,0xffb1ee
+   71f64:	5279 00ff b9fe 	addqw #1,0xffb9fe
    71f6a:	05c3           	bset %d2,%d3
    71f6c:	1183 1000      	moveb %d3,%a0@(0,%d1:w)
    71f70:	4cdf 010e      	moveml %sp@+,%d1-%d3/%a0
@@ -125032,19 +125034,19 @@ Disassembly of section .data:
    71f8e:	3401           	movew %d1,%d2
    71f90:	e649           	lsrw #3,%d1
    71f92:	0242 0007      	andiw #7,%d2
-   71f96:	41f9 00ff b1d8 	lea 0xffb1d8,%a0
+   71f96:	41f9 00ff b9d8 	lea 0xffb9d8,%a0
    71f9c:	1630 1000      	moveb %a0@(0,%d1:w),%d3
    71fa0:	0503           	btst %d2,%d3
    71fa2:	6710           	beqs 0x71fb4
-   71fa4:	4a79 00ff b1ee 	tstw 0xffb1ee
+   71fa4:	4a79 00ff b9fe 	tstw 0xffb9fe
    71faa:	6706           	beqs 0x71fb2
-   71fac:	5379 00ff b1ee 	subqw #1,0xffb1ee
+   71fac:	5379 00ff b9fe 	subqw #1,0xffb9fe
    71fb2:	0583           	bclr %d2,%d3
    71fb4:	1183 1000      	moveb %d3,%a0@(0,%d1:w)
    71fb8:	4cdf 010f      	moveml %sp@+,%d0-%d3/%a0
    71fbc:	4e75           	rts
    71fbe:	48e7 0680      	moveml %d5-%d6/%a0,%sp@-
-   71fc2:	0c40 0080      	cmpiw #128,%d0
+   71fc2:	0c40 0100      	cmpiw #256,%d0
    71fc6:	6432           	bccs 0x71ffa
    71fc8:	3c00           	movew %d0,%d6
    71fca:	e74e           	lslw #3,%d6
@@ -125055,12 +125057,12 @@ Disassembly of section .data:
    71fda:	3143 0004      	movew %d3,%a0@(4)
    71fde:	3144 0006      	movew %d4,%a0@(6)
    71fe2:	6100 ff60      	bsrw 0x71f44
-   71fe6:	5279 00ff b206 	addqw #1,0xffb206
-   71fec:	33fc 0001 00ff 	movew #1,0xffb1ec
-   71ff2:	b1ec 
+   71fe6:	5279 00ff ba16 	addqw #1,0xffba16
+   71fec:	33fc 0001 00ff 	movew #1,0xffb9fc
+   71ff2:	b9fc 
    71ff4:	4cdf 0160      	moveml %sp@+,%d5-%d6/%a0
    71ff8:	4e75           	rts
-   71ffa:	5279 00ff b204 	addqw #1,0xffb204
+   71ffa:	5279 00ff ba14 	addqw #1,0xffba14
    72000:	4cdf 0160      	moveml %sp@+,%d5-%d6/%a0
    72004:	4e75           	rts
    72006:	7200           	moveq #0,%d1
@@ -125076,38 +125078,38 @@ Disassembly of section .data:
    7201e:	2409           	movel %a1,%d2
    72020:	0c82 00d0 0000 	cmpil #13631488,%d2
    72026:	652e           	bcss 0x72056
-   72028:	0c82 00d0 0400 	cmpil #13632512,%d2
+   72028:	0c82 00d0 0800 	cmpil #13633536,%d2
    7202e:	6426           	bccs 0x72056
    72030:	0482 00d0 0000 	subil #13631488,%d2
    72036:	6100 ff3e      	bsrw 0x71f76
    7203a:	45f9 00ff a9d8 	lea 0xffa9d8,%a2
    72040:	d5c2           	addal %d2,%a2
    72042:	3480           	movew %d0,%a2@
-   72044:	5279 00ff b206 	addqw #1,0xffb206
-   7204a:	33fc 0001 00ff 	movew #1,0xffb1ec
-   72050:	b1ec 
+   72044:	5279 00ff ba16 	addqw #1,0xffba16
+   7204a:	33fc 0001 00ff 	movew #1,0xffb9fc
+   72050:	b9fc 
    72052:	245f           	moveal %sp@+,%a2
    72054:	4e75           	rts
-   72056:	5279 00ff b204 	addqw #1,0xffb204
+   72056:	5279 00ff ba14 	addqw #1,0xffba14
    7205c:	245f           	moveal %sp@+,%a2
    7205e:	4e75           	rts
    72060:	2f0a           	movel %a2,%sp@-
    72062:	2409           	movel %a1,%d2
    72064:	0c82 00d0 0000 	cmpil #13631488,%d2
    7206a:	652e           	bcss 0x7209a
-   7206c:	0c82 00d0 0400 	cmpil #13632512,%d2
+   7206c:	0c82 00d0 0800 	cmpil #13633536,%d2
    72072:	6426           	bccs 0x7209a
    72074:	0482 00d0 0000 	subil #13631488,%d2
    7207a:	6100 fefa      	bsrw 0x71f76
    7207e:	45f9 00ff a9d8 	lea 0xffa9d8,%a2
    72084:	d5c2           	addal %d2,%a2
    72086:	1480           	moveb %d0,%a2@
-   72088:	5279 00ff b206 	addqw #1,0xffb206
-   7208e:	33fc 0001 00ff 	movew #1,0xffb1ec
-   72094:	b1ec 
+   72088:	5279 00ff ba16 	addqw #1,0xffba16
+   7208e:	33fc 0001 00ff 	movew #1,0xffb9fc
+   72094:	b9fc 
    72096:	245f           	moveal %sp@+,%a2
    72098:	4e75           	rts
-   7209a:	5279 00ff b204 	addqw #1,0xffb204
+   7209a:	5279 00ff ba14 	addqw #1,0xffba14
    720a0:	245f           	moveal %sp@+,%a2
    720a2:	4e75           	rts
    720a4:	48e7 fffe      	moveml %d0-%fp,%sp@-
@@ -125148,7 +125150,7 @@ Disassembly of section .data:
    72114:	48e7 fffe      	moveml %d0-%fp,%sp@-
    72118:	40e7           	movew %sr,%sp@-
    7211a:	007c 0700      	oriw #1792,%sr
-   7211e:	0c40 0080      	cmpiw #128,%d0
+   7211e:	0c40 0100      	cmpiw #256,%d0
    72122:	6400 004e      	bccw 0x72172
    72126:	3c00           	movew %d0,%d6
    72128:	3a06           	movew %d6,%d5
@@ -125167,14 +125169,14 @@ Disassembly of section .data:
    7214c:	3142 0002      	movew %d2,%a0@(2)
    72150:	3143 0004      	movew %d3,%a0@(4)
    72154:	3144 0006      	movew %d4,%a0@(6)
-   72158:	5279 00ff b206 	addqw #1,0xffb206
-   7215e:	33fc 0001 00ff 	movew #1,0xffb1ec
-   72164:	b1ec 
+   72158:	5279 00ff ba16 	addqw #1,0xffba16
+   7215e:	33fc 0001 00ff 	movew #1,0xffb9fc
+   72164:	b9fc 
    72166:	6100 fddc      	bsrw 0x71f44
    7216a:	46df           	movew %sp@+,%sr
    7216c:	4cdf 7fff      	moveml %sp@+,%d0-%fp
    72170:	4e75           	rts
-   72172:	5279 00ff b204 	addqw #1,0xffb204
+   72172:	5279 00ff ba14 	addqw #1,0xffba14
    72178:	46df           	movew %sp@+,%sr
    7217a:	4cdf 7fff      	moveml %sp@+,%d0-%fp
    7217e:	4e75           	rts
@@ -125227,15 +125229,15 @@ Disassembly of section .data:
    7220a:	60cc           	bras 0x721d8
    7220c:	4cdf 7fff      	moveml %sp@+,%d0-%fp
    72210:	4e75           	rts
-   72212:	0c39 0001 00ff 	cmpib #1,0xffb3ec
-   72218:	b3ec 
+   72212:	0c39 0001 00ff 	cmpib #1,0xffbc9c
+   72218:	bc9c 
    7221a:	6704           	beqs 0x72220
    7221c:	6100 fe94      	bsrw 0x720b2
    72220:	4e75           	rts
    72222:	6100 fe80      	bsrw 0x720a4
    72226:	4e75           	rts
-   72228:	0c39 0001 00ff 	cmpib #1,0xffb3ec
-   7222e:	b3ec 
+   72228:	0c39 0001 00ff 	cmpib #1,0xffbc9c
+   7222e:	bc9c 
    72230:	6704           	beqs 0x72236
    72232:	6100 fe7e      	bsrw 0x720b2
    72236:	4e75           	rts
@@ -125254,26 +125256,26 @@ Disassembly of section .data:
    72260:	51c9 ffee      	dbf %d1,0x72250
    72264:	4cdf 7fff      	moveml %sp@+,%d0-%fp
    72268:	4e75           	rts
-   7226a:	0c79 0001 00ff 	cmpiw #1,0xffb1e8
-   72270:	b1e8 
+   7226a:	0c79 0001 00ff 	cmpiw #1,0xffb9f8
+   72270:	b9f8 
    72272:	670c           	beqs 0x72280
-   72274:	33fc 0001 00ff 	movew #1,0xffb1e8
-   7227a:	b1e8 
+   72274:	33fc 0001 00ff 	movew #1,0xffb9f8
+   7227a:	b9f8 
    7227c:	6100 0604      	bsrw 0x72882
    72280:	4e75           	rts
-   72282:	4a79 00ff b1e8 	tstw 0xffb1e8
+   72282:	4a79 00ff b9f8 	tstw 0xffb9f8
    72288:	670a           	beqs 0x72294
-   7228a:	4279 00ff b1e8 	clrw 0xffb1e8
+   7228a:	4279 00ff b9f8 	clrw 0xffb9f8
    72290:	6100 05f0      	bsrw 0x72882
    72294:	4e75           	rts
-   72296:	b079 00ff b1ea 	cmpw 0xffb1ea,%d0
+   72296:	b079 00ff b9fa 	cmpw 0xffb9fa,%d0
    7229c:	670a           	beqs 0x722a8
-   7229e:	33c0 00ff b1ea 	movew %d0,0xffb1ea
+   7229e:	33c0 00ff b9fa 	movew %d0,0xffb9fa
    722a4:	6100 05dc      	bsrw 0x72882
    722a8:	4e75           	rts
-   722aa:	4a79 00ff b1ea 	tstw 0xffb1ea
+   722aa:	4a79 00ff b9fa 	tstw 0xffb9fa
    722b0:	670a           	beqs 0x722bc
-   722b2:	4279 00ff b1ea 	clrw 0xffb1ea
+   722b2:	4279 00ff b9fa 	clrw 0xffb9fa
    722b8:	6100 05c8      	bsrw 0x72882
    722bc:	4e75           	rts
    722be:	48e7 fffe      	moveml %d0-%fp,%sp@-
@@ -125308,8 +125310,8 @@ Disassembly of section .data:
    7232e:	32c0           	movew %d0,%a1@+
    72330:	6100 fc44      	bsrw 0x71f76
    72334:	5482           	addql #2,%d2
-   72336:	33fc 0001 00ff 	movew #1,0xffb1ec
-   7233c:	b1ec 
+   72336:	33fc 0001 00ff 	movew #1,0xffb9fc
+   7233c:	b9fc 
    7233e:	5343           	subqw #1,%d3
    72340:	60c6           	bras 0x72308
    72342:	0c82 00c0 4000 	cmpil #12599296,%d2
@@ -125327,16 +125329,16 @@ Disassembly of section .data:
    72372:	6100 e822      	bsrw 0x70b96
    72376:	6000 0034      	braw 0x723ac
    7237a:	202f 003c      	movel %sp@(60),%d0
-   7237e:	23c0 00ff b31c 	movel %d0,0xffb31c
-   72384:	43f9 00ff b320 	lea 0xffb320,%a1
+   7237e:	23c0 00ff bbcc 	movel %d0,0xffbbcc
+   72384:	43f9 00ff bbd0 	lea 0xffbbd0,%a1
    7238a:	700e           	moveq #14,%d0
    7238c:	2237 0400      	movel %sp@(0,%d0:w:4),%d1
    72390:	22c1           	movel %d1,%a1@+
    72392:	51c8 fff8      	dbf %d0,0x7238c
-   72396:	33f9 00c0 0008 	movew 0xc00008,0xffb35e
-   7239c:	00ff b35e 
-   723a0:	33fc 3ad4 00ff 	movew #15060,0xffb35c
-   723a6:	b35c 
+   72396:	33f9 00c0 0008 	movew 0xc00008,0xffbc0e
+   7239c:	00ff bc0e 
+   723a0:	33fc 3ad4 00ff 	movew #15060,0xffbc0c
+   723a6:	bc0c 
    723a8:	6000 0358      	braw 0x72702
    723ac:	4cdf 7fff      	moveml %sp@+,%d0-%fp
    723b0:	4e75           	rts
@@ -125603,48 +125605,48 @@ Disassembly of section .data:
    726ce:	4e75           	rts
    726d0:	48e7 fffe      	moveml %d0-%fp,%sp@-
    726d4:	202f 003c      	movel %sp@(60),%d0
-   726d8:	23c0 00ff b31c 	movel %d0,0xffb31c
-   726de:	43f9 00ff b320 	lea 0xffb320,%a1
+   726d8:	23c0 00ff bbcc 	movel %d0,0xffbbcc
+   726de:	43f9 00ff bbd0 	lea 0xffbbd0,%a1
    726e4:	700e           	moveq #14,%d0
    726e6:	2237 0400      	movel %sp@(0,%d0:w:4),%d1
    726ea:	22c1           	movel %d1,%a1@+
    726ec:	51c8 fff8      	dbf %d0,0x726e6
-   726f0:	33f9 00c0 0008 	movew 0xc00008,0xffb35e
-   726f6:	00ff b35e 
-   726fa:	33fc 510e 00ff 	movew #20750,0xffb35c
-   72700:	b35c 
-   72702:	1039 00ff b360 	moveb 0xffb360,%d0
+   726f0:	33f9 00c0 0008 	movew 0xc00008,0xffbc0e
+   726f6:	00ff bc0e 
+   726fa:	33fc 510e 00ff 	movew #20750,0xffbc0c
+   72700:	bc0c 
+   72702:	1039 00ff bc10 	moveb 0xffbc10,%d0
    72708:	5200           	addqb #1,%d0
-   7270a:	13c0 00ff b360 	moveb %d0,0xffb360
+   7270a:	13c0 00ff bc10 	moveb %d0,0xffbc10
    72710:	6000 fff0      	braw 0x72702
    72714:	48e7 fffe      	moveml %d0-%fp,%sp@-
-   72718:	4a79 00ff b202 	tstw 0xffb202
+   72718:	4a79 00ff ba12 	tstw 0xffba12
    7271e:	6604           	bnes 0x72724
    72720:	6100 00e2      	bsrw 0x72804
-   72724:	4a79 00ff b30c 	tstw 0xffb30c
+   72724:	4a79 00ff bbbc 	tstw 0xffbbbc
    7272a:	6626           	bnes 0x72752
-   7272c:	4a79 00ff b1ec 	tstw 0xffb1ec
+   7272c:	4a79 00ff b9fc 	tstw 0xffb9fc
    72732:	6714           	beqs 0x72748
    72734:	6100 0046      	bsrw 0x7277c
-   72738:	4279 00ff b1ec 	clrw 0xffb1ec
-   7273e:	4a79 00ff b1ee 	tstw 0xffb1ee
+   72738:	4279 00ff b9fc 	clrw 0xffb9fc
+   7273e:	4a79 00ff b9fe 	tstw 0xffb9fe
    72744:	6724           	beqs 0x7276a
    72746:	601a           	bras 0x72762
-   72748:	4a79 00ff b1ee 	tstw 0xffb1ee
+   72748:	4a79 00ff b9fe 	tstw 0xffb9fe
    7274e:	671a           	beqs 0x7276a
    72750:	6010           	bras 0x72762
-   72752:	4279 00ff b30c 	clrw 0xffb30c
-   72758:	4279 00ff b1ec 	clrw 0xffb1ec
+   72752:	4279 00ff bbbc 	clrw 0xffbbbc
+   72758:	4279 00ff b9fc 	clrw 0xffb9fc
    7275e:	6100 0122      	bsrw 0x72882
    72762:	6100 0184      	bsrw 0x728e8
    72766:	6100 005c      	bsrw 0x727c4
-   7276a:	3039 00ff b308 	movew 0xffb308,%d0
+   7276a:	3039 00ff bbb8 	movew 0xffbbb8,%d0
    72770:	33c0 00ff a7f4 	movew %d0,0xffa7f4
    72776:	4cdf 7fff      	moveml %sp@+,%d0-%fp
    7277a:	4e75           	rts
    7277c:	48e7 7ec0      	moveml %d1-%d6/%a0-%a1,%sp@-
    72780:	41f9 00ff a9d8 	lea 0xffa9d8,%a0
-   72786:	43f9 00ff add8 	lea 0xffadd8,%a1
+   72786:	43f9 00ff b1d8 	lea 0xffb1d8,%a1
    7278c:	7000           	moveq #0,%d0
    7278e:	7c00           	moveq #0,%d6
    72790:	2210           	movel %a0@,%d1
@@ -125656,7 +125658,7 @@ Disassembly of section .data:
    727a0:	d0fc 0008      	addaw #8,%a0
    727a4:	d2fc 0008      	addaw #8,%a1
    727a8:	5246           	addqw #1,%d6
-   727aa:	0c46 0080      	cmpiw #128,%d6
+   727aa:	0c46 0100      	cmpiw #256,%d6
    727ae:	65e0           	bcss 0x72790
    727b0:	4cdf 037e      	moveml %sp@+,%d1-%d6/%a0-%a1
    727b4:	4e75           	rts
@@ -125668,61 +125670,61 @@ Disassembly of section .data:
    727c2:	60dc           	bras 0x727a0
    727c4:	48e7 40c0      	moveml %d1/%a0-%a1,%sp@-
    727c8:	41f9 00ff a9d8 	lea 0xffa9d8,%a0
-   727ce:	43f9 00ff add8 	lea 0xffadd8,%a1
-   727d4:	323c 00ff      	movew #255,%d1
+   727ce:	43f9 00ff b1d8 	lea 0xffb1d8,%a1
+   727d4:	323c 01ff      	movew #511,%d1
    727d8:	22d8           	movel %a0@+,%a1@+
    727da:	51c9 fffc      	dbf %d1,0x727d8
    727de:	4cdf 0302      	moveml %sp@+,%d1/%a0-%a1
    727e2:	4e75           	rts
    727e4:	48e7 fffe      	moveml %d0-%fp,%sp@-
    727e8:	6100 09ea      	bsrw 0x731d4
-   727ec:	4a79 00ff b30a 	tstw 0xffb30a
+   727ec:	4a79 00ff bbba 	tstw 0xffbbba
    727f2:	670a           	beqs 0x727fe
    727f4:	6100 0ac2      	bsrw 0x732b8
-   727f8:	4279 00ff b30a 	clrw 0xffb30a
+   727f8:	4279 00ff bbba 	clrw 0xffbbba
    727fe:	4cdf 7fff      	moveml %sp@+,%d0-%fp
    72802:	4e75           	rts
    72804:	48e7 0180      	moveml %d7-%a0,%sp@-
-   72808:	41f9 00ff b208 	lea 0xffb208,%a0
-   7280e:	3e3c 007f      	movew #127,%d7
+   72808:	41f9 00ff ba18 	lea 0xffba18,%a0
+   7280e:	3e3c 00ff      	movew #255,%d7
    72812:	10fc 00ff      	moveb #-1,%a0@+
    72816:	51cf fffa      	dbf %d7,0x72812
-   7281a:	41f9 00ff b288 	lea 0xffb288,%a0
-   72820:	3e3c 000f      	movew #15,%d7
+   7281a:	41f9 00ff bb18 	lea 0xffbb18,%a0
+   72820:	3e3c 001f      	movew #31,%d7
    72824:	4218           	clrb %a0@+
    72826:	51cf fffc      	dbf %d7,0x72824
-   7282a:	41f9 00ff b298 	lea 0xffb298,%a0
-   72830:	3e3c 000f      	movew #15,%d7
+   7282a:	41f9 00ff bb38 	lea 0xffbb38,%a0
+   72830:	3e3c 001f      	movew #31,%d7
    72834:	4218           	clrb %a0@+
    72836:	51cf fffc      	dbf %d7,0x72834
-   7283a:	41f9 00ff b2a8 	lea 0xffb2a8,%a0
+   7283a:	41f9 00ff bb58 	lea 0xffbb58,%a0
    72840:	3e3c 000f      	movew #15,%d7
    72844:	4218           	clrb %a0@+
    72846:	51cf fffc      	dbf %d7,0x72844
-   7284a:	41f9 00ff b2b8 	lea 0xffb2b8,%a0
+   7284a:	41f9 00ff bb68 	lea 0xffbb68,%a0
    72850:	3e3c 004f      	movew #79,%d7
    72854:	10fc 00ff      	moveb #-1,%a0@+
    72858:	51cf fffa      	dbf %d7,0x72854
-   7285c:	4279 00ff b308 	clrw 0xffb308
+   7285c:	4279 00ff bbb8 	clrw 0xffbbb8
    72862:	4279 00ff a9d6 	clrw 0xffa9d6
-   72868:	33fc 0001 00ff 	movew #1,0xffb30c
-   7286e:	b30c 
+   72868:	33fc 0001 00ff 	movew #1,0xffbbbc
+   7286e:	bbbc 
    72870:	6100 0050      	bsrw 0x728c2
-   72874:	33fc 0001 00ff 	movew #1,0xffb202
-   7287a:	b202 
+   72874:	33fc 0001 00ff 	movew #1,0xffba12
+   7287a:	ba12 
    7287c:	4cdf 0180      	moveml %sp@+,%d7-%a0
    72880:	4e75           	rts
    72882:	48e7 0180      	moveml %d7-%a0,%sp@-
-   72886:	41f9 00ff b1d8 	lea 0xffb1d8,%a0
-   7288c:	3e3c 000f      	movew #15,%d7
+   72886:	41f9 00ff b9d8 	lea 0xffb9d8,%a0
+   7288c:	3e3c 001f      	movew #31,%d7
    72890:	10fc 00ff      	moveb #-1,%a0@+
    72894:	51cf fffa      	dbf %d7,0x72890
-   72898:	33fc 0080 00ff 	movew #128,0xffb1ee
-   7289e:	b1ee 
+   72898:	33fc 0100 00ff 	movew #256,0xffb9fe
+   7289e:	b9fe 
    728a0:	4cdf 0180      	moveml %sp@+,%d7-%a0
    728a4:	4e75           	rts
    728a6:	48e7 0180      	moveml %d7-%a0,%sp@-
-   728aa:	41f9 00ff b2b8 	lea 0xffb2b8,%a0
+   728aa:	41f9 00ff bb68 	lea 0xffbb68,%a0
    728b0:	3e3c 004f      	movew #79,%d7
    728b4:	10fc 00ff      	moveb #-1,%a0@+
    728b8:	51cf fffa      	dbf %d7,0x728b4
@@ -125733,25 +125735,25 @@ Disassembly of section .data:
    728cc:	337c 0500 0002 	movew #1280,%a1@(2)
    728d2:	337c 0000 0004 	movew #0,%a1@(4)
    728d8:	337c 0000 0006 	movew #0,%a1@(6)
-   728de:	33fc 0001 00ff 	movew #1,0xffb30a
-   728e4:	b30a 
+   728de:	33fc 0001 00ff 	movew #1,0xffbbba
+   728e4:	bbba 
    728e6:	4e75           	rts
    728e8:	7c00           	moveq #0,%d6
-   728ea:	0c46 0080      	cmpiw #128,%d6
+   728ea:	0c46 0100      	cmpiw #256,%d6
    728ee:	6400 0046      	bccw 0x72936
    728f2:	3006           	movew %d6,%d0
    728f4:	0240 0007      	andiw #7,%d0
    728f8:	6616           	bnes 0x72910
    728fa:	3206           	movew %d6,%d1
    728fc:	e649           	lsrw #3,%d1
-   728fe:	41f9 00ff b1d8 	lea 0xffb1d8,%a0
+   728fe:	41f9 00ff b9d8 	lea 0xffb9d8,%a0
    72904:	4a30 1000      	tstb %a0@(0,%d1:w)
    72908:	6606           	bnes 0x72910
    7290a:	5046           	addqw #8,%d6
    7290c:	6000 ffdc      	braw 0x728ea
    72910:	3206           	movew %d6,%d1
    72912:	e649           	lsrw #3,%d1
-   72914:	41f9 00ff b1d8 	lea 0xffb1d8,%a0
+   72914:	41f9 00ff b9d8 	lea 0xffb9d8,%a0
    7291a:	1430 1000      	moveb %a0@(0,%d1:w),%d2
    7291e:	3006           	movew %d6,%d0
    72920:	0240 0007      	andiw #7,%d0
@@ -125790,7 +125792,7 @@ Disassembly of section .data:
    7298e:	0c44 0140      	cmpiw #320,%d4
    72992:	6304           	blss 0x72998
    72994:	0444 0200      	subiw #512,%d4
-   72998:	3a39 00ff b1e8 	movew 0xffb1e8,%d5
+   72998:	3a39 00ff b9f8 	movew 0xffb9f8,%d5
    7299e:	0805 0000      	btst #0,%d5
    729a2:	6614           	bnes 0x729b8
    729a4:	3a3c 0130      	movew #304,%d5
@@ -125842,7 +125844,7 @@ Disassembly of section .data:
    72a2e:	0c45 0000      	cmpiw #0,%d5
    72a32:	6d00 0016      	bltw 0x72a4a
    72a36:	0243 0fff      	andiw #4095,%d3
-   72a3a:	3e39 00ff b1ea 	movew 0xffb1ea,%d7
+   72a3a:	3e39 00ff b9fa 	movew 0xffb9fa,%d7
    72a40:	0247 00e0      	andiw #224,%d7
    72a44:	e24f           	lsrw #1,%d7
    72a46:	7001           	moveq #1,%d0
@@ -125901,25 +125903,25 @@ Disassembly of section .data:
    72ac6:	4cdf 000e      	moveml %sp@+,%d1-%d3
    72aca:	4e75           	rts
    72acc:	48e7 0440      	moveml %d5/%a1,%sp@-
-   72ad0:	43f9 00ff b288 	lea 0xffb288,%a1
-   72ad6:	3a3c 0080      	movew #128,%d5
+   72ad0:	43f9 00ff bb18 	lea 0xffbb18,%a1
+   72ad6:	3a3c 0100      	movew #256,%d5
    72ada:	6100 ff72      	bsrw 0x72a4e
    72ade:	4cdf 0220      	moveml %sp@+,%d5/%a1
    72ae2:	4e75           	rts
    72ae4:	48e7 0440      	moveml %d5/%a1,%sp@-
-   72ae8:	43f9 00ff b288 	lea 0xffb288,%a1
-   72aee:	3a3c 0080      	movew #128,%d5
+   72ae8:	43f9 00ff bb18 	lea 0xffbb18,%a1
+   72aee:	3a3c 0100      	movew #256,%d5
    72af2:	6100 ff94      	bsrw 0x72a88
    72af6:	4cdf 0220      	moveml %sp@+,%d5/%a1
    72afa:	4e75           	rts
    72afc:	48e7 0440      	moveml %d5/%a1,%sp@-
-   72b00:	43f9 00ff b298 	lea 0xffb298,%a1
-   72b06:	3a3c 0080      	movew #128,%d5
+   72b00:	43f9 00ff bb38 	lea 0xffbb38,%a1
+   72b06:	3a3c 0100      	movew #256,%d5
    72b0a:	6100 ff42      	bsrw 0x72a4e
    72b0e:	4cdf 0220      	moveml %sp@+,%d5/%a1
    72b12:	4e75           	rts
    72b14:	48e7 7040      	moveml %d1-%d3/%a1,%sp@-
-   72b18:	43f9 00ff b2a8 	lea 0xffb2a8,%a1
+   72b18:	43f9 00ff bb58 	lea 0xffbb58,%a1
    72b1e:	7001           	moveq #1,%d0
    72b20:	0c40 0050      	cmpiw #80,%d0
    72b24:	640e           	bccs 0x72b34
@@ -125933,7 +125935,7 @@ Disassembly of section .data:
    72b38:	4cdf 020e      	moveml %sp@+,%d1-%d3/%a1
    72b3c:	4e75           	rts
    72b3e:	48e7 7040      	moveml %d1-%d3/%a1,%sp@-
-   72b42:	43f9 00ff b2a8 	lea 0xffb2a8,%a1
+   72b42:	43f9 00ff bb58 	lea 0xffbb58,%a1
    72b48:	303c 004f      	movew #79,%d0
    72b4c:	3200           	movew %d0,%d1
    72b4e:	e649           	lsrw #3,%d1
@@ -125950,7 +125952,7 @@ Disassembly of section .data:
    72b6c:	d643           	addw %d3,%d3
    72b6e:	41f9 00ff a7f6 	lea 0xffa7f6,%a0
    72b74:	3630 3000      	movew %a0@(0,%d3:w),%d3
-   72b78:	43f9 00ff b2b8 	lea 0xffb2b8,%a1
+   72b78:	43f9 00ff bb68 	lea 0xffbb68,%a1
    72b7e:	7800           	moveq #0,%d4
    72b80:	1831 2000      	moveb %a1@(0,%d2:w),%d4
    72b84:	b243           	cmpw %d3,%d1
@@ -125989,11 +125991,11 @@ Disassembly of section .data:
    72bec:	4e75           	rts
    72bee:	48e7 60c0      	moveml %d1-%d2/%a0-%a1,%sp@-
    72bf2:	3400           	movew %d0,%d2
-   72bf4:	43f9 00ff b2a8 	lea 0xffb2a8,%a1
+   72bf4:	43f9 00ff bb58 	lea 0xffbb58,%a1
    72bfa:	3202           	movew %d2,%d1
    72bfc:	e649           	lsrw #3,%d1
    72bfe:	05b1 1000      	bclr %d2,%a1@(0,%d1:w)
-   72c02:	43f9 00ff b2b8 	lea 0xffb2b8,%a1
+   72c02:	43f9 00ff bb68 	lea 0xffbb68,%a1
    72c08:	7200           	moveq #0,%d1
    72c0a:	1231 2000      	moveb %a1@(0,%d2:w),%d1
    72c0e:	0c01 00ff      	cmpib #-1,%d1
@@ -126005,27 +126007,27 @@ Disassembly of section .data:
    72c24:	4cdf 0306      	moveml %sp@+,%d1-%d2/%a0-%a1
    72c28:	4e75           	rts
    72c2a:	6100 fd0c      	bsrw 0x72938
-   72c2e:	3039 00ff b310 	movew 0xffb310,%d0
+   72c2e:	3039 00ff bbc0 	movew 0xffbbc0,%d0
    72c34:	e748           	lslw #3,%d0
    72c36:	43f9 00ff a1b0 	lea 0xffa1b0,%a1
    72c3c:	d2c0           	addaw %d0,%a1
-   72c3e:	4279 00ff b31a 	clrw 0xffb31a
+   72c3e:	4279 00ff bbca 	clrw 0xffbbca
    72c44:	3a02           	movew %d2,%d5
    72c46:	0245 01ff      	andiw #511,%d5
    72c4a:	0645 0080      	addiw #128,%d5
    72c4e:	0245 01ff      	andiw #511,%d5
    72c52:	ba51           	cmpw %a1@,%d5
    72c54:	6708           	beqs 0x72c5e
-   72c56:	33fc 0001 00ff 	movew #1,0xffb31a
-   72c5c:	b31a 
+   72c56:	33fc 0001 00ff 	movew #1,0xffbbca
+   72c5c:	bbca 
    72c5e:	3285           	movew %d5,%a1@
-   72c60:	3a39 00ff b312 	movew 0xffb312,%d5
+   72c60:	3a39 00ff bbc2 	movew 0xffbbc2,%d5
    72c66:	0245 007f      	andiw #127,%d5
    72c6a:	0045 0500      	oriw #1280,%d5
    72c6e:	ba69 0002      	cmpw %a1@(2),%d5
    72c72:	6708           	beqs 0x72c7c
-   72c74:	33fc 0001 00ff 	movew #1,0xffb31a
-   72c7a:	b31a 
+   72c74:	33fc 0001 00ff 	movew #1,0xffbbca
+   72c7a:	bbca 
    72c7c:	3345 0002      	movew %d5,%a1@(2)
    72c80:	3a3c 8000      	movew #-32768,%d5
    72c84:	3001           	movew %d1,%d0
@@ -126052,15 +126054,15 @@ Disassembly of section .data:
    72cb8:	0240 4000      	andiw #16384,%d0
    72cbc:	e648           	lsrw #3,%d0
    72cbe:	8a40           	orw %d0,%d5
-   72cc0:	3039 00ff b310 	movew 0xffb310,%d0
+   72cc0:	3039 00ff bbc0 	movew 0xffbbc0,%d0
    72cc6:	e548           	lslw #2,%d0
    72cc8:	0640 0400      	addiw #1024,%d0
    72ccc:	0240 07ff      	andiw #2047,%d0
    72cd0:	8a40           	orw %d0,%d5
    72cd2:	ba69 0004      	cmpw %a1@(4),%d5
    72cd6:	6708           	beqs 0x72ce0
-   72cd8:	33fc 0001 00ff 	movew #1,0xffb31a
-   72cde:	b31a 
+   72cd8:	33fc 0001 00ff 	movew #1,0xffbbca
+   72cde:	bbca 
    72ce0:	3345 0004      	movew %d5,%a1@(4)
    72ce4:	3a04           	movew %d4,%d5
    72ce6:	0245 01ff      	andiw #511,%d5
@@ -126068,10 +126070,10 @@ Disassembly of section .data:
    72cee:	0245 01ff      	andiw #511,%d5
    72cf2:	ba69 0006      	cmpw %a1@(6),%d5
    72cf6:	6708           	beqs 0x72d00
-   72cf8:	33fc 0001 00ff 	movew #1,0xffb31a
-   72cfe:	b31a 
+   72cf8:	33fc 0001 00ff 	movew #1,0xffbbca
+   72cfe:	bbca 
    72d00:	3345 0006      	movew %d5,%a1@(6)
-   72d04:	3039 00ff b310 	movew 0xffb310,%d0
+   72d04:	3039 00ff bbc0 	movew 0xffbbc0,%d0
    72d0a:	c0fc 000c      	muluw #12,%d0
    72d0e:	43f9 00ff a430 	lea 0xffa430,%a1
    72d14:	d3c0           	addal %d0,%a1
@@ -126081,26 +126083,26 @@ Disassembly of section .data:
    72d22:	3341 0006      	movew %d1,%a1@(6)
    72d26:	3343 0008      	movew %d3,%a1@(8)
    72d2a:	3346 000a      	movew %d6,%a1@(10)
-   72d2e:	3039 00ff b310 	movew 0xffb310,%d0
+   72d2e:	3039 00ff bbc0 	movew 0xffbbc0,%d0
    72d34:	3203           	movew %d3,%d1
    72d36:	0241 0fff      	andiw #4095,%d1
    72d3a:	6100 fe28      	bsrw 0x72b64
-   72d3e:	3039 00ff b310 	movew 0xffb310,%d0
-   72d44:	43f9 00ff b208 	lea 0xffb208,%a1
+   72d3e:	3039 00ff bbc0 	movew 0xffbbc0,%d0
+   72d44:	43f9 00ff ba18 	lea 0xffba18,%a1
    72d4a:	1380 6000      	moveb %d0,%a1@(0,%d6:w)
-   72d4e:	43f9 00ff b288 	lea 0xffb288,%a1
+   72d4e:	43f9 00ff bb18 	lea 0xffbb18,%a1
    72d54:	3206           	movew %d6,%d1
    72d56:	e649           	lsrw #3,%d1
    72d58:	0df1 1000      	bset %d6,%a1@(0,%d1:w)
-   72d5c:	3039 00ff b310 	movew 0xffb310,%d0
-   72d62:	43f9 00ff b2a8 	lea 0xffb2a8,%a1
+   72d5c:	3039 00ff bbc0 	movew 0xffbbc0,%d0
+   72d62:	43f9 00ff bb58 	lea 0xffbb58,%a1
    72d68:	3200           	movew %d0,%d1
    72d6a:	e649           	lsrw #3,%d1
    72d6c:	01f1 1000      	bset %d0,%a1@(0,%d1:w)
-   72d70:	4a79 00ff b31a 	tstw 0xffb31a
+   72d70:	4a79 00ff bbca 	tstw 0xffbbca
    72d76:	6708           	beqs 0x72d80
-   72d78:	33fc 0001 00ff 	movew #1,0xffb30a
-   72d7e:	b30a 
+   72d78:	33fc 0001 00ff 	movew #1,0xffbbba
+   72d7e:	bbba 
    72d80:	4e75           	rts
    72d82:	48e7 c040      	moveml %d0-%d1/%a1,%sp@-
    72d86:	e748           	lslw #3,%d0
@@ -126112,259 +126114,259 @@ Disassembly of section .data:
    72d9c:	4cdf 0203      	moveml %sp@+,%d0-%d1/%a1
    72da0:	4e75           	rts
    72da2:	48e7 ffc0      	moveml %d0-%a1,%sp@-
-   72da6:	4a79 00ff b202 	tstw 0xffb202
+   72da6:	4a79 00ff ba12 	tstw 0xffba12
    72dac:	6604           	bnes 0x72db2
    72dae:	6100 fa54      	bsrw 0x72804
-   72db2:	33c6 00ff b30e 	movew %d6,0xffb30e
+   72db2:	33c6 00ff bbbe 	movew %d6,0xffbbbe
    72db8:	6100 fb7e      	bsrw 0x72938
-   72dbc:	33c0 00ff b314 	movew %d0,0xffb314
-   72dc2:	3c39 00ff b30e 	movew 0xffb30e,%d6
+   72dbc:	33c0 00ff bbc4 	movew %d0,0xffbbc4
+   72dc2:	3c39 00ff bbbe 	movew 0xffbbbe,%d6
    72dc8:	3206           	movew %d6,%d1
    72dca:	e649           	lsrw #3,%d1
-   72dcc:	43f9 00ff b288 	lea 0xffb288,%a1
+   72dcc:	43f9 00ff bb18 	lea 0xffbb18,%a1
    72dd2:	0d31 1000      	btst %d6,%a1@(0,%d1:w)
    72dd6:	6600 002c      	bnew 0x72e04
-   72dda:	4a79 00ff b314 	tstw 0xffb314
+   72dda:	4a79 00ff bbc4 	tstw 0xffbbc4
    72de0:	6700 000a      	beqw 0x72dec
    72de4:	6100 0070      	bsrw 0x72e56
    72de8:	6000 0030      	braw 0x72e1a
-   72dec:	3039 00ff b30e 	movew 0xffb30e,%d0
-   72df2:	43f9 00ff b298 	lea 0xffb298,%a1
+   72dec:	3039 00ff bbbe 	movew 0xffbbbe,%d0
+   72df2:	43f9 00ff bb38 	lea 0xffbb38,%a1
    72df8:	3200           	movew %d0,%d1
    72dfa:	e649           	lsrw #3,%d1
    72dfc:	01b1 1000      	bclr %d0,%a1@(0,%d1:w)
    72e00:	6000 0018      	braw 0x72e1a
-   72e04:	4a79 00ff b314 	tstw 0xffb314
+   72e04:	4a79 00ff bbc4 	tstw 0xffbbc4
    72e0a:	6700 000a      	beqw 0x72e16
    72e0e:	6100 0010      	bsrw 0x72e20
    72e12:	6000 0006      	braw 0x72e1a
    72e16:	6100 01fa      	bsrw 0x73012
    72e1a:	4cdf 03ff      	moveml %sp@+,%d0-%a1
    72e1e:	4e75           	rts
-   72e20:	3c39 00ff b30e 	movew 0xffb30e,%d6
-   72e26:	43f9 00ff b208 	lea 0xffb208,%a1
+   72e20:	3c39 00ff bbbe 	movew 0xffbbbe,%d6
+   72e26:	43f9 00ff ba18 	lea 0xffba18,%a1
    72e2c:	7000           	moveq #0,%d0
    72e2e:	1031 6000      	moveb %a1@(0,%d6:w),%d0
-   72e32:	33c0 00ff b310 	movew %d0,0xffb310
+   72e32:	33c0 00ff bbc0 	movew %d0,0xffbbc0
    72e38:	e748           	lslw #3,%d0
    72e3a:	43f9 00ff a1b0 	lea 0xffa1b0,%a1
    72e40:	d2c0           	addaw %d0,%a1
    72e42:	3029 0002      	movew %a1@(2),%d0
    72e46:	0240 007f      	andiw #127,%d0
-   72e4a:	33c0 00ff b312 	movew %d0,0xffb312
+   72e4a:	33c0 00ff bbc2 	movew %d0,0xffbbc2
    72e50:	6100 fdd8      	bsrw 0x72c2a
    72e54:	4e75           	rts
-   72e56:	3039 00ff b308 	movew 0xffb308,%d0
+   72e56:	3039 00ff bbb8 	movew 0xffbbb8,%d0
    72e5c:	0c40 0050      	cmpiw #80,%d0
    72e60:	6500 001c      	bcsw 0x72e7e
    72e64:	303c 00ff      	movew #255,%d0
    72e68:	6100 fc7a      	bsrw 0x72ae4
    72e6c:	3200           	movew %d0,%d1
-   72e6e:	3039 00ff b30e 	movew 0xffb30e,%d0
+   72e6e:	3039 00ff bbbe 	movew 0xffbbbe,%d0
    72e74:	b041           	cmpw %d1,%d0
    72e76:	6400 0116      	bccw 0x72f8e
    72e7a:	6100 0128      	bsrw 0x72fa4
    72e7e:	7000           	moveq #0,%d0
    72e80:	6100 fc4a      	bsrw 0x72acc
-   72e84:	0c40 0080      	cmpiw #128,%d0
+   72e84:	0c40 0100      	cmpiw #256,%d0
    72e88:	6700 0014      	beqw 0x72e9e
    72e8c:	3200           	movew %d0,%d1
-   72e8e:	3039 00ff b30e 	movew 0xffb30e,%d0
+   72e8e:	3039 00ff bbbe 	movew 0xffbbbe,%d0
    72e94:	b041           	cmpw %d1,%d0
    72e96:	6500 0024      	bcsw 0x72ebc
    72e9a:	6000 007a      	braw 0x72f16
-   72e9e:	4279 00ff b310 	clrw 0xffb310
-   72ea4:	4279 00ff b312 	clrw 0xffb312
-   72eaa:	3c39 00ff b30e 	movew 0xffb30e,%d6
+   72e9e:	4279 00ff bbc0 	clrw 0xffbbc0
+   72ea4:	4279 00ff bbc2 	clrw 0xffbbc2
+   72eaa:	3c39 00ff bbbe 	movew 0xffbbbe,%d6
    72eb0:	6100 fd78      	bsrw 0x72c2a
-   72eb4:	5279 00ff b308 	addqw #1,0xffb308
+   72eb4:	5279 00ff bbb8 	addqw #1,0xffbbb8
    72eba:	4e75           	rts
-   72ebc:	33c1 00ff b318 	movew %d1,0xffb318
+   72ebc:	33c1 00ff bbc8 	movew %d1,0xffbbc8
    72ec2:	6100 fc50      	bsrw 0x72b14
-   72ec6:	33c0 00ff b316 	movew %d0,0xffb316
+   72ec6:	33c0 00ff bbc6 	movew %d0,0xffbbc6
    72ecc:	3039 00ff a1b2 	movew 0xffa1b2,%d0
    72ed2:	0240 007f      	andiw #127,%d0
-   72ed6:	33c0 00ff b312 	movew %d0,0xffb312
-   72edc:	3039 00ff b316 	movew 0xffb316,%d0
-   72ee2:	33c0 00ff b310 	movew %d0,0xffb310
-   72ee8:	3c39 00ff b318 	movew 0xffb318,%d6
+   72ed6:	33c0 00ff bbc2 	movew %d0,0xffbbc2
+   72edc:	3039 00ff bbc6 	movew 0xffbbc6,%d0
+   72ee2:	33c0 00ff bbc0 	movew %d0,0xffbbc0
+   72ee8:	3c39 00ff bbc8 	movew 0xffbbc8,%d6
    72eee:	6100 fd3a      	bsrw 0x72c2a
-   72ef2:	4279 00ff b310 	clrw 0xffb310
-   72ef8:	3039 00ff b316 	movew 0xffb316,%d0
-   72efe:	33c0 00ff b312 	movew %d0,0xffb312
-   72f04:	3c39 00ff b30e 	movew 0xffb30e,%d6
+   72ef2:	4279 00ff bbc0 	clrw 0xffbbc0
+   72ef8:	3039 00ff bbc6 	movew 0xffbbc6,%d0
+   72efe:	33c0 00ff bbc2 	movew %d0,0xffbbc2
+   72f04:	3c39 00ff bbbe 	movew 0xffbbbe,%d6
    72f0a:	6100 fd1e      	bsrw 0x72c2a
-   72f0e:	5279 00ff b308 	addqw #1,0xffb308
+   72f0e:	5279 00ff bbb8 	addqw #1,0xffbbb8
    72f14:	4e75           	rts
-   72f16:	3039 00ff b30e 	movew 0xffb30e,%d0
+   72f16:	3039 00ff bbbe 	movew 0xffbbbe,%d0
    72f1c:	5340           	subqw #1,%d0
    72f1e:	6100 fbc4      	bsrw 0x72ae4
-   72f22:	33c0 00ff b318 	movew %d0,0xffb318
-   72f28:	3039 00ff b30e 	movew 0xffb30e,%d0
+   72f22:	33c0 00ff bbc8 	movew %d0,0xffbbc8
+   72f28:	3039 00ff bbbe 	movew 0xffbbbe,%d0
    72f2e:	5240           	addqw #1,%d0
    72f30:	6100 fb9a      	bsrw 0x72acc
-   72f34:	0c40 0080      	cmpiw #128,%d0
+   72f34:	0c40 0100      	cmpiw #256,%d0
    72f38:	6714           	beqs 0x72f4e
-   72f3a:	43f9 00ff b208 	lea 0xffb208,%a1
+   72f3a:	43f9 00ff ba18 	lea 0xffba18,%a1
    72f40:	7200           	moveq #0,%d1
    72f42:	1231 0000      	moveb %a1@(0,%d0:w),%d1
-   72f46:	33c1 00ff b312 	movew %d1,0xffb312
+   72f46:	33c1 00ff bbc2 	movew %d1,0xffbbc2
    72f4c:	6006           	bras 0x72f54
-   72f4e:	4279 00ff b312 	clrw 0xffb312
+   72f4e:	4279 00ff bbc2 	clrw 0xffbbc2
    72f54:	6100 fbbe      	bsrw 0x72b14
-   72f58:	33c0 00ff b310 	movew %d0,0xffb310
-   72f5e:	3c39 00ff b30e 	movew 0xffb30e,%d6
+   72f58:	33c0 00ff bbc0 	movew %d0,0xffbbc0
+   72f5e:	3c39 00ff bbbe 	movew 0xffbbbe,%d6
    72f64:	6100 fcc4      	bsrw 0x72c2a
-   72f68:	3039 00ff b318 	movew 0xffb318,%d0
-   72f6e:	43f9 00ff b208 	lea 0xffb208,%a1
+   72f68:	3039 00ff bbc8 	movew 0xffbbc8,%d0
+   72f6e:	43f9 00ff ba18 	lea 0xffba18,%a1
    72f74:	7200           	moveq #0,%d1
    72f76:	1231 0000      	moveb %a1@(0,%d0:w),%d1
    72f7a:	3001           	movew %d1,%d0
-   72f7c:	3239 00ff b310 	movew 0xffb310,%d1
+   72f7c:	3239 00ff bbc0 	movew 0xffbbc0,%d1
    72f82:	6100 fdfe      	bsrw 0x72d82
-   72f86:	5279 00ff b308 	addqw #1,0xffb308
+   72f86:	5279 00ff bbb8 	addqw #1,0xffbbb8
    72f8c:	4e75           	rts
-   72f8e:	3039 00ff b30e 	movew 0xffb30e,%d0
-   72f94:	43f9 00ff b298 	lea 0xffb298,%a1
+   72f8e:	3039 00ff bbbe 	movew 0xffbbbe,%d0
+   72f94:	43f9 00ff bb38 	lea 0xffbb38,%a1
    72f9a:	3200           	movew %d0,%d1
    72f9c:	e649           	lsrw #3,%d1
    72f9e:	01f1 1000      	bset %d0,%a1@(0,%d1:w)
    72fa2:	4e75           	rts
    72fa4:	303c 00ff      	movew #255,%d0
    72fa8:	6100 fb3a      	bsrw 0x72ae4
-   72fac:	33c0 00ff b316 	movew %d0,0xffb316
+   72fac:	33c0 00ff bbc6 	movew %d0,0xffbbc6
    72fb2:	5340           	subqw #1,%d0
    72fb4:	6100 fb2e      	bsrw 0x72ae4
-   72fb8:	43f9 00ff b208 	lea 0xffb208,%a1
+   72fb8:	43f9 00ff ba18 	lea 0xffba18,%a1
    72fbe:	7200           	moveq #0,%d1
    72fc0:	1231 0000      	moveb %a1@(0,%d0:w),%d1
    72fc4:	3001           	movew %d1,%d0
    72fc6:	7200           	moveq #0,%d1
    72fc8:	6100 fdb8      	bsrw 0x72d82
-   72fcc:	3c39 00ff b316 	movew 0xffb316,%d6
-   72fd2:	43f9 00ff b208 	lea 0xffb208,%a1
+   72fcc:	3c39 00ff bbc6 	movew 0xffbbc6,%d6
+   72fd2:	43f9 00ff ba18 	lea 0xffba18,%a1
    72fd8:	7000           	moveq #0,%d0
    72fda:	1031 6000      	moveb %a1@(0,%d6:w),%d0
    72fde:	6100 fc0e      	bsrw 0x72bee
-   72fe2:	43f9 00ff b288 	lea 0xffb288,%a1
+   72fe2:	43f9 00ff bb18 	lea 0xffbb18,%a1
    72fe8:	3206           	movew %d6,%d1
    72fea:	e649           	lsrw #3,%d1
    72fec:	0db1 1000      	bclr %d6,%a1@(0,%d1:w)
-   72ff0:	43f9 00ff b208 	lea 0xffb208,%a1
+   72ff0:	43f9 00ff ba18 	lea 0xffba18,%a1
    72ff6:	13bc 00ff 6000 	moveb #-1,%a1@(0,%d6:w)
-   72ffc:	43f9 00ff b298 	lea 0xffb298,%a1
+   72ffc:	43f9 00ff bb38 	lea 0xffbb38,%a1
    73002:	3206           	movew %d6,%d1
    73004:	e649           	lsrw #3,%d1
    73006:	0df1 1000      	bset %d6,%a1@(0,%d1:w)
-   7300a:	5379 00ff b308 	subqw #1,0xffb308
+   7300a:	5379 00ff bbb8 	subqw #1,0xffbbb8
    73010:	4e75           	rts
    73012:	7000           	moveq #0,%d0
    73014:	6100 fab6      	bsrw 0x72acc
-   73018:	3239 00ff b30e 	movew 0xffb30e,%d1
+   73018:	3239 00ff bbbe 	movew 0xffbbbe,%d1
    7301e:	b041           	cmpw %d1,%d0
    73020:	6700 0074      	beqw 0x73096
    73024:	3001           	movew %d1,%d0
    73026:	5340           	subqw #1,%d0
    73028:	6100 faba      	bsrw 0x72ae4
-   7302c:	33c0 00ff b318 	movew %d0,0xffb318
-   73032:	3039 00ff b30e 	movew 0xffb30e,%d0
+   7302c:	33c0 00ff bbc8 	movew %d0,0xffbbc8
+   73032:	3039 00ff bbbe 	movew 0xffbbbe,%d0
    73038:	5240           	addqw #1,%d0
    7303a:	6100 fa90      	bsrw 0x72acc
-   7303e:	0c40 0080      	cmpiw #128,%d0
+   7303e:	0c40 0100      	cmpiw #256,%d0
    73042:	6714           	beqs 0x73058
-   73044:	43f9 00ff b208 	lea 0xffb208,%a1
+   73044:	43f9 00ff ba18 	lea 0xffba18,%a1
    7304a:	7200           	moveq #0,%d1
    7304c:	1231 0000      	moveb %a1@(0,%d0:w),%d1
-   73050:	33c1 00ff b316 	movew %d1,0xffb316
+   73050:	33c1 00ff bbc6 	movew %d1,0xffbbc6
    73056:	6006           	bras 0x7305e
-   73058:	4279 00ff b316 	clrw 0xffb316
-   7305e:	3039 00ff b318 	movew 0xffb318,%d0
-   73064:	43f9 00ff b208 	lea 0xffb208,%a1
+   73058:	4279 00ff bbc6 	clrw 0xffbbc6
+   7305e:	3039 00ff bbc8 	movew 0xffbbc8,%d0
+   73064:	43f9 00ff ba18 	lea 0xffba18,%a1
    7306a:	7200           	moveq #0,%d1
    7306c:	1231 0000      	moveb %a1@(0,%d0:w),%d1
    73070:	3001           	movew %d1,%d0
-   73072:	3239 00ff b316 	movew 0xffb316,%d1
+   73072:	3239 00ff bbc6 	movew 0xffbbc6,%d1
    73078:	6100 fd08      	bsrw 0x72d82
-   7307c:	3c39 00ff b30e 	movew 0xffb30e,%d6
-   73082:	43f9 00ff b208 	lea 0xffb208,%a1
+   7307c:	3c39 00ff bbbe 	movew 0xffbbbe,%d6
+   73082:	43f9 00ff ba18 	lea 0xffba18,%a1
    73088:	7000           	moveq #0,%d0
    7308a:	1031 6000      	moveb %a1@(0,%d6:w),%d0
    7308e:	6100 fb5e      	bsrw 0x72bee
    73092:	6000 00a4      	braw 0x73138
-   73096:	3039 00ff b30e 	movew 0xffb30e,%d0
+   73096:	3039 00ff bbbe 	movew 0xffbbbe,%d0
    7309c:	5240           	addqw #1,%d0
    7309e:	6100 fa2c      	bsrw 0x72acc
-   730a2:	0c40 0080      	cmpiw #128,%d0
+   730a2:	0c40 0100      	cmpiw #256,%d0
    730a6:	6700 0050      	beqw 0x730f8
-   730aa:	33c0 00ff b318 	movew %d0,0xffb318
-   730b0:	43f9 00ff b208 	lea 0xffb208,%a1
+   730aa:	33c0 00ff bbc8 	movew %d0,0xffbbc8
+   730b0:	43f9 00ff ba18 	lea 0xffba18,%a1
    730b6:	7200           	moveq #0,%d1
    730b8:	1231 0000      	moveb %a1@(0,%d0:w),%d1
-   730bc:	33c1 00ff b316 	movew %d1,0xffb316
+   730bc:	33c1 00ff bbc6 	movew %d1,0xffbbc6
    730c2:	e749           	lslw #3,%d1
    730c4:	43f9 00ff a1b0 	lea 0xffa1b0,%a1
    730ca:	d2c1           	addaw %d1,%a1
    730cc:	3029 0002      	movew %a1@(2),%d0
    730d0:	0240 007f      	andiw #127,%d0
-   730d4:	33c0 00ff b312 	movew %d0,0xffb312
-   730da:	4279 00ff b310 	clrw 0xffb310
-   730e0:	3c39 00ff b318 	movew 0xffb318,%d6
+   730d4:	33c0 00ff bbc2 	movew %d0,0xffbbc2
+   730da:	4279 00ff bbc0 	clrw 0xffbbc0
+   730e0:	3c39 00ff bbc8 	movew 0xffbbc8,%d6
    730e6:	6100 fb42      	bsrw 0x72c2a
-   730ea:	3039 00ff b316 	movew 0xffb316,%d0
+   730ea:	3039 00ff bbc6 	movew 0xffbbc6,%d0
    730f0:	6100 fafc      	bsrw 0x72bee
    730f4:	6000 0042      	braw 0x73138
-   730f8:	3c39 00ff b30e 	movew 0xffb30e,%d6
-   730fe:	43f9 00ff b208 	lea 0xffb208,%a1
+   730f8:	3c39 00ff bbbe 	movew 0xffbbbe,%d6
+   730fe:	43f9 00ff ba18 	lea 0xffba18,%a1
    73104:	7000           	moveq #0,%d0
    73106:	1031 6000      	moveb %a1@(0,%d6:w),%d0
    7310a:	6100 fae2      	bsrw 0x72bee
-   7310e:	43f9 00ff b288 	lea 0xffb288,%a1
+   7310e:	43f9 00ff bb18 	lea 0xffbb18,%a1
    73114:	3206           	movew %d6,%d1
    73116:	e649           	lsrw #3,%d1
    73118:	0db1 1000      	bclr %d6,%a1@(0,%d1:w)
-   7311c:	43f9 00ff b208 	lea 0xffb208,%a1
+   7311c:	43f9 00ff ba18 	lea 0xffba18,%a1
    73122:	13bc 00ff 6000 	moveb #-1,%a1@(0,%d6:w)
-   73128:	5379 00ff b308 	subqw #1,0xffb308
+   73128:	5379 00ff bbb8 	subqw #1,0xffbbb8
    7312e:	6100 f792      	bsrw 0x728c2
    73132:	6100 0030      	bsrw 0x73164
    73136:	4e75           	rts
-   73138:	3c39 00ff b30e 	movew 0xffb30e,%d6
-   7313e:	43f9 00ff b288 	lea 0xffb288,%a1
+   73138:	3c39 00ff bbbe 	movew 0xffbbbe,%d6
+   7313e:	43f9 00ff bb18 	lea 0xffbb18,%a1
    73144:	3206           	movew %d6,%d1
    73146:	e649           	lsrw #3,%d1
    73148:	0db1 1000      	bclr %d6,%a1@(0,%d1:w)
-   7314c:	43f9 00ff b208 	lea 0xffb208,%a1
+   7314c:	43f9 00ff ba18 	lea 0xffba18,%a1
    73152:	13bc 00ff 6000 	moveb #-1,%a1@(0,%d6:w)
-   73158:	5379 00ff b308 	subqw #1,0xffb308
+   73158:	5379 00ff bbb8 	subqw #1,0xffbbb8
    7315e:	6100 0004      	bsrw 0x73164
    73162:	4e75           	rts
-   73164:	3039 00ff b308 	movew 0xffb308,%d0
+   73164:	3039 00ff bbb8 	movew 0xffbbb8,%d0
    7316a:	0c40 0050      	cmpiw #80,%d0
    7316e:	6400 0062      	bccw 0x731d2
    73172:	7000           	moveq #0,%d0
    73174:	6100 f986      	bsrw 0x72afc
-   73178:	0c40 0080      	cmpiw #128,%d0
+   73178:	0c40 0100      	cmpiw #256,%d0
    7317c:	6400 0054      	bccw 0x731d2
-   73180:	33c0 00ff b316 	movew %d0,0xffb316
+   73180:	33c0 00ff bbc6 	movew %d0,0xffbbc6
    73186:	3c00           	movew %d0,%d6
    73188:	6100 f7ae      	bsrw 0x72938
    7318c:	4a40           	tstw %d0
    7318e:	661e           	bnes 0x731ae
-   73190:	3039 00ff b316 	movew 0xffb316,%d0
-   73196:	43f9 00ff b298 	lea 0xffb298,%a1
+   73190:	3039 00ff bbc6 	movew 0xffbbc6,%d0
+   73196:	43f9 00ff bb38 	lea 0xffbb38,%a1
    7319c:	3200           	movew %d0,%d1
    7319e:	e649           	lsrw #3,%d1
    731a0:	01b1 1000      	bclr %d0,%a1@(0,%d1:w)
-   731a4:	3039 00ff b316 	movew 0xffb316,%d0
+   731a4:	3039 00ff bbc6 	movew 0xffbbc6,%d0
    731aa:	5240           	addqw #1,%d0
    731ac:	60c6           	bras 0x73174
-   731ae:	3039 00ff b316 	movew 0xffb316,%d0
-   731b4:	43f9 00ff b298 	lea 0xffb298,%a1
+   731ae:	3039 00ff bbc6 	movew 0xffbbc6,%d0
+   731b4:	43f9 00ff bb38 	lea 0xffbb38,%a1
    731ba:	3200           	movew %d0,%d1
    731bc:	e649           	lsrw #3,%d1
    731be:	01b1 1000      	bclr %d0,%a1@(0,%d1:w)
-   731c2:	3039 00ff b316 	movew 0xffb316,%d0
-   731c8:	33c0 00ff b30e 	movew %d0,0xffb30e
+   731c2:	3039 00ff bbc6 	movew 0xffbbc6,%d0
+   731c8:	33c0 00ff bbbe 	movew %d0,0xffbbbe
    731ce:	6100 fc86      	bsrw 0x72e56
    731d2:	4e75           	rts
    731d4:	3e39 00ff a9d6 	movew 0xffa9d6,%d7
@@ -126433,7 +126435,7 @@ Disassembly of section .data:
    73298:	d0c0           	addaw %d0,%a0
    7329a:	7000           	moveq #0,%d0
    7329c:	3010           	movew %a0@,%d0
-   7329e:	43f9 00ff b2b8 	lea 0xffb2b8,%a1
+   7329e:	43f9 00ff bb68 	lea 0xffbb68,%a1
    732a4:	13bc 00ff 0000 	moveb #-1,%a1@(0,%d0:w)
    732aa:	5245           	addqw #1,%d5
    732ac:	ba47           	cmpw %d7,%d5
@@ -126551,19 +126553,19 @@ Disassembly of section .data:
    7340c:	4fef 0080      	lea %sp@(128),%sp
    73410:	4cdf 7fff      	moveml %sp@+,%d0-%fp
    73414:	4e75           	rts
-   73416:	33c6 00ff b364 	movew %d6,0xffb364
-   7341c:	33c1 00ff b366 	movew %d1,0xffb366
-   73422:	33c2 00ff b368 	movew %d2,0xffb368
+   73416:	33c6 00ff bc14 	movew %d6,0xffbc14
+   7341c:	33c1 00ff bc16 	movew %d1,0xffbc16
+   73422:	33c2 00ff bc18 	movew %d2,0xffbc18
    73428:	204f           	moveal %sp,%a0
-   7342a:	43f9 00ff b36a 	lea 0xffb36a,%a1
+   7342a:	43f9 00ff bc1a 	lea 0xffbc1a,%a1
    73430:	303c 003f      	movew #63,%d0
    73434:	32d8           	movew %a0@+,%a1@+
    73436:	51c8 fffc      	dbf %d0,0x73434
-   7343a:	33fc 6f0e 00ff 	movew #28430,0xffb362
-   73440:	b362 
-   73442:	1039 00ff b3ea 	moveb 0xffb3ea,%d0
+   7343a:	33fc 6f0e 00ff 	movew #28430,0xffbc12
+   73440:	bc12 
+   73442:	1039 00ff bc9a 	moveb 0xffbc9a,%d0
    73448:	5200           	addqb #1,%d0
-   7344a:	13c0 00ff b3ea 	moveb %d0,0xffb3ea
+   7344a:	13c0 00ff bc9a 	moveb %d0,0xffbc9a
    73450:	6000 fff0      	braw 0x73442
    73454:	60fe           	bras 0x73454
    73456:	0000 48e7      	orib #-25,%d0
@@ -126602,7 +126604,7 @@ Disassembly of section .data:
    734b8:	33da 00c0 0000 	movew %a2@+,0xc00000
    734be:	51cf fff8      	dbf %d7,0x734b8
    734c2:	60d0           	bras 0x73494
-   734c4:	13c6 00ff b3ec 	moveb %d6,0xffb3ec
+   734c4:	13c6 00ff bc9c 	moveb %d6,0xffbc9c
    734ca:	47f9 0018 25fc 	lea 0x1825fc,%a3
    734d0:	7800           	moveq #0,%d4
    734d2:	3806           	movew %d6,%d4
@@ -126610,8 +126612,8 @@ Disassembly of section .data:
    734d6:	d6c4           	addaw %d4,%a3
    734d8:	201b           	movel %a3@+,%d0
    734da:	2213           	movel %a3@,%d1
-   734dc:	23c0 00ff b3ee 	movel %d0,0xffb3ee
-   734e2:	23c1 00ff b3f2 	movel %d1,0xffb3f2
+   734dc:	23c0 00ff bc9e 	movel %d0,0xffbc9e
+   734e2:	23c1 00ff bca2 	movel %d1,0xffbca2
    734e8:	7001           	moveq #1,%d0
    734ea:	7274           	moveq #116,%d1
    734ec:	6100 cb90      	bsrw 0x7007e

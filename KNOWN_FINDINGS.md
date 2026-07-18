@@ -1030,3 +1030,93 @@ Deferral reason: Disagreement is still open and unconverged; defer canonical pro
 **Finding.** Per KF-055 the Exodus READY lock is the TC0140SYT sound busy-wait reading emulator-open-bus at 0x3E0003. Build 0194 replaces the single-caller status read at arcade 0x3F0A4 with `andi.l #0xFFFFFFFE,%d0`, forcing bit 0 (busy) clear so the arcade loop `btst #0,d0; bne` falls through naturally. Byte-exact 6->6, no NOP, no branch/loop/state change; the sole caller uses only bit 0 and overwrites d0 after. MAME: D0 bit 0 clear 3/3, loop exits, gameplay reached, rate 0.771 (no regression vs 0193), Rastan/title/READY/BG/FG/palette all correct. Removes the open-bus dependency, so Exodus (and any emulator) exits the loop deterministically.
 
 **Use as prior.** When suppressing an absent-hardware coprocessor handshake, redirect the busy-status READ (not just the writes) to the ready value; a single andi.l/moveq at the read is enough when the poll only tests one bit and the caller discards the rest. Never NOP the wait loop or force its branch. opcode_replace count is now 152.
+
+---
+
+## KF-057 — Player control input chain: ten raw-literal latch reads (0x10C016) rebased in Build 0196; control still blocked by un-dispatched player routine (0x51090 jsr skipped)
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (live latch/shadow traces + ROM byte verification + zero-hit execution taps, Builds 0195/0196)
+- **Applicability:** DURABLE input-architecture + frozen-progression boundary (rastan-direct)
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** input latch A5+0x16 = 0xFF0016 (writer arcade 0x3A796, gate A5+0x34); shadows 0xFFA1A8..AB; ten rebased readers 0x5277A/0x527D4/0x527E4/0x527F4/0x52804/0x528CA/0x528DA/0x528EA/0x528FA/0x52BC8 (+ 0x5102E from Build 0158); player-control routine arcade 0x52732; sole caller 0x51090 jsr (skipped by 0x5108C braw 0x51096); gatekeeper 0x5132A / A5+0x10E8 state machine.
+- **Source Documents:** docs/design/Andy_fable_build0196_player_control_and_mirror192.md
+- **Related Findings:** KF-042 (0x10C016 raw literal, Build 0158), KF-044 (player source block / frozen spawn), KF-049 (mirror floor)
+- **Last verified:** 2026-07-17 (Builds 0196/0197)
+
+**Finding.** The Genesis input plumbing is fully correct through the latch: pad -> `rastan_direct_update_inputs` -> active-low shadows (P1 byte bit0..5 = U/D/L/R/B=attack/C=jump, exact arcade P1 layout) -> redirected port reads (0x3A4A2/0x3A778 -> shadow) -> arcade latch write A5+0x16 (0xFF0016), verified live (Right=0xF7, Left=0xFB, C=0xDF; gate A5+0x34=1). The player-control DISPATCH however read the latch via raw absolute `movew 0x10C016,%d0` at ELEVEN sites; Build 0158 rebased one (0x5102E) and Build 0196 rebased the remaining TEN (byte-neutral -> 0x00FF0016; opcode_replace count 162). ROM 0x10C016 reads 0xEFFF (low byte 0xFF = active-low nothing-pressed), so pre-0196 the control code saw "no input" forever. AFTER the rebase control is STILL blocked: the ten readers never execute because the sole caller of the player-control routine (arcade 0x51090 `jsr 0x52732`) sits after an unconditional `braw 0x51096` at 0x5108C; only the gatekeeper `jsr 0x5132A` (A5+0x10E8-driven player-state machine) can route into it, and it never does — while the master gameplay routine demonstrably runs (0x5102E command read fires continuously). This un-dispatched player routine is the frozen-progression root shared with missing enemies/scroll.
+
+**Use as prior.** Input-layer work is DONE: shadows, port redirects, latch, bit mapping, and all eleven latch readers are correct — do not re-audit them for control bugs. The next control boundary is exclusively WHY the 0x5132A/A5+0x10E8 state machine never activates the 0x51090 player-control call (spawn-state completion; see KF-044). Beware m68k prefetch: execution taps at a routine head adjacent to another routine's end fire on prefetch without execution — verify with taps deeper inside the routine.
+
+---
+
+## KF-058 — Build 0198 makes Rastan controllable: 29-site raw-literal family 0x10D37A (per-frame input copy A5+0x137A) rebased; mode=action-state semantics decoded
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (live control test: walking/jump/fall + camera scroll; arcade-matched mode transitions; build-verified 0198/0199)
+- **Applicability:** DURABLE input/action-state architecture (rastan-direct); THE frozen-progression root fix
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** per-frame input copy A5+0x137A (writer 0x51034 a5-relative from latch read 0x5102E); 29 rebased readers 0x514A4..0x52A1A (`30390010D37A`->`303900FF137A`); action state A5+0x10E8 (0=idle,1=walk,2=jump,3=fall,8=death); HP A5+0x13A (init 0x3000; 0x517E6 death check); substate A5+0x1364 (walk anim).
+- **Source Documents:** docs/design/Andy_fable_build0198_player_action_state_input_copy_rebase.md
+- **Related Findings:** KF-057 (latch layer), KF-042 (0x10C016), KF-044 (raw-literal class)
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-17 (Builds 0198/0199)
+
+**Finding.** The player action state machine (0x514A4..0x52A1A: gatekeeper heads 0x515B6/0x51600 + every walk/jump/attack handler) reads the per-frame input copy A5+0x137A exclusively through raw literal `movew 0x10D37A,%d0` — 29 sites, all previously reading Genesis ROM constant 0xEEEE (phantom frozen input). The copy itself was always correct (master routine 0x51034 writes it a5-relative from the Build-0158-rebased latch read every frame). Rebasing the 29 sites (byte-neutral) completes the 40-site input-read family (11 latch + 29 copy) and RESTORES CONTROL: Right -> mode=1 walking with camera scrollX advancing; C -> mode=2 jump; descent -> mode=3 with scrollY following; substate walk-cycle animates; arcade-matched semantics. This unfroze the entire progression (scroll was static for hundreds of builds). Mode is the ACTION state, not a spawn gate; A5+0x13A is HP (death -> mode=8 at 0x517E6); the 0x51090 `jsr 0x52732` is dead code in this flow on both machines.
+
+**Use as prior.** The input chain is now FULLY complete (pad->shadow->latch->copy->40 readers); do not re-audit it. Player-adjacent raw-literal families follow the pattern: find `3039/1039/xx39 0010 xxxx` absolute reads of a5-mirrored fields and rebase byte-neutrally (+0xEE4000); the action state machine's a5-relative accesses always worked. With progression live, next tasks (enemies, sky-reset, FG streaming, black bars) must be re-evaluated against a SCROLLING game — prior static-frame findings may shift.
+
+
+---
+
+## KF-059 — Build 0200 fixes jump/fall stuck-at-top via copied-ROM arc-table pointer relocation
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (arcade-vs-Genesis jump trace + ROM byte verification + Build 0200/0201 validation)
+- **Applicability:** DURABLE copied-ROM data-pointer relocation rule for player action physics (rastan-direct)
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** player action state `A5+0x10E8` mode 2/3; arc pointer `A5+0x1332`; arc index `A5+0x1336`; pending flag `A5+0x1272`; vertical accumulator `A5+0x1262`; patched arcade PCs `0x0505DC`, `0x0514B8`, `0x0520DC`, `0x0520E6`, `0x05211A`, `0x052124`, `0x052150`, `0x05215A`, `0x05218E`, `0x052198`, `0x0521CA`, `0x0521D4`, `0x052212`, `0x05221C`, `0x052250`, `0x05225A`, `0x052298`, `0x0522A2`, `0x0522D6`, `0x0522E0`, `0x052310`, `0x05233E`, `0x0523C4`.
+- **Source Documents:** docs/design/Cody_build0200_jump_fall_pending_move_flag.md; traces under states/traces/build0200_jump_fall_pending_move/
+- **Related Findings:** KF-057, KF-058, KF-039/KF-044 raw-literal class
+- **Related Issues:** OPEN-017
+- **Last verified:** 2026-07-17 (Builds 0200/0201)
+
+**Finding.** Build 0198 restored player control, but jump mode used embedded arcade ROM data-pointer literals such as `0x0005B548` for the jump/fall arc tables. In the Genesis copied-ROM layout, `address_map.json` places arcade data `0x0005B548` at runtime Genesis `0x0005B748`; leaving the raw literal unrelocated made the arc walker read runtime `0x0005B548` (mapped to arcade `0x0005B348`) whose bytes begin `00AD 00AD...` instead of the real arc table `FFFF 0004 0004 0003...`. The first jump step therefore loaded `A5+0x1262=0x00AD` instead of `0x0004`, causing `A5+0x1272=1`; the faithful branch at runtime `0x51564` then skipped the arc walker while the oversized pending movement drained, freezing `A5+0x1336` around 1 and producing the stuck/high jump. Build 0200 rebased the active arc-pointer literals and compare immediate byte-neutrally to the copied-ROM locations (`0x5B516->0x5B716`, `0x5B548->0x5B748`, `0x5B570->0x5B770`, `0x5B5A2->0x5B7A2`, `0x5B5EC->0x5B7EC`, `0x5B62E->0x5B82E`). Post-fix, Build 0200/0201 read pointer `0x0005B748`, first accumulator `0x0004`, `A5+0x1272` no longer sticks high, arc index reaches 18, and mode 3 transition is restored in the trace.
+
+**Use as prior.** Do not re-chase this symptom as held-C retriggering, input-edge handling, collision, or a bad `A5+0x1272` clear. The pending flag was behaving according to the arcade branch; Genesis fed it the wrong movement magnitude because copied-ROM **data pointer literals** were not relocated. For future movement/physics defects, audit embedded ROM data-pointer immediates in active action-state routes against `address_map.json`, not by `+0x200` assumption alone. Residual exact jump cadence/visual feel, if any, is a separate timing/control-flow observation, not proof that this pointer fix failed.
+
+---
+
+## KF-060 — Enemy PC090OJ records (46/57/96/140) never staged: arcade writers 0x41DAE/0x45DFA NOPped, replacement hook misroutes + Build 0192 gameplay-skip
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (writer provenance + Genesis mirror evidence: populated actor block 0x2C8 → blank record 140; player record 120 real)
+- **Applicability:** DURABLE PC090OJ enemy/actor sprite staging (rastan-direct); root of "no enemies appear"
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** arcade enemy writers 0x41DAE (blocks A5+0x508/0x5C8/0x2C8/0x748 → records 57/96/140/46) and 0x45DFA (A5+0x5C8/0x748/0x8C8), both via actor→sprite expansion 0x3D054 (writes records through a1@+, sub-engine 0x3C902 at 0x3C982/0x3C990 — redirectable). Genesis NOPs them (0x42060..0x4208E etc.) and installs hook_target_41dae/41f5e/45dfa. Mirror pc090oj_object_ram=0xFFA9D8.
+- **Source Documents:** docs/design/Andy_opus_build0202_enemy_record46_writer_provenance.md; docs/design/Cody_build0202_enemy_spawn_and_visual_issue_ledger.md
+- **Related Findings:** KF-051 (Build 0192 duplicate suppression — the same gate that skips these hooks), KF-047/048/049/050
+- **Related Issues:** OPEN-017, OPEN-024
+- **Last verified:** 2026-07-17 (Build 0200)
+
+**Finding.** The arcade enemy/actor sprite writers 0x41DAE and 0x45DFA expand actor-staging blocks into PC090OJ records 57/96/140/46 via engine 0x3D054. The Genesis port NOPped these routines and replaced them with hook_target_41dae/45dfa → pc090oj_workram_block_sprites, which (a) in Stage-1 gameplay SKIPS entirely (Build 0192 scene gate, cmpi.b #PC090OJ_SCENE_GAMEPLAY_ID), and (b) outside gameplay copies the WRONG source (player block A5+0x11B2) to the WRONG records (0..17/18..21). Only the player path (hook_target_41f5e → pc090oj_workram_block_sprites_41f5e, records 120..137/92..95) is faithfully reimplemented. Genesis mirror records 46/57/96/140 stay at blank placeholder [0000 0100 0000 0100]; record 120 (player) is real. Block A5+0x2C8 (→140) is populated (6 active) yet record 140 is blank — isolating the staging drop independent of actor population. Classification E. The port's own source (pc090oj_hooks.s:317-320, 494-503) documents this as a deferred gap.
+
+**Use as prior.** A faithful fix is architecturally viable — the expansion engine 0x3D054 writes via a1@+, so a Genesis hook can point a1 at pc090oj_object_ram+rec*8 and call the relocated arcade expansion (0x3D254) — but it is a multi-routine reimplementation (4 actor blocks + per-block active/count/blank-fill logic + verify 0x3D054 sub-engines 0x4770E/0x3F0BC/0x3FFDC/0x3FFF0/0x3C902 and their ROM sprite-layout tables relocate correctly + candidate marking + avoid re-introducing the Build 0192 duplicate Rastan). NOT a byte-neutral rebase. Before implementing, resolve the remaining unknown: whether arcade actor block A5+0x748 (record 46's source) is populated at the matched point while Genesis 0xFF0748 is empty (pure staging gap = E) OR the enemy-logic that fills it also diverges (upstream spawn = B/C). Do not hardcode records, force SAT, or raise the mirror cap to "see" enemies.
+
+---
+
+## KF-061 — Enemy staging framework is safe, but arcade expansion engine 0x3D254 cannot be called from the hook, and the actor blocks are unpopulated upstream (refines KF-060)
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (Build 0202 attempt + engine-disable bisect: engine-enabled locks the player in mode 3; engine-disabled restores Build 0200 control exactly)
+- **Applicability:** DURABLE — bounds the enemy-staging fix
+- **Rediscovery Hazard:** HIGH (prevents re-attempting the same unsafe engine call)
+- **Addresses:** arcade actor→sprite engine 0x3D054 (genesis 0x3D254) → 0x3CB02 family; actor blocks A5+0x508/0x5C8/0x2C8/0x748/0x8C8; mirror pc090oj_object_ram; hooks hook_target_41dae/45dfa.
+- **Source Documents:** docs/design/Andy_opus_build0202_enemy_actor_staging_implementation.md
+- **Related Findings:** KF-060 (writer provenance), KF-051 (Build 0192 duplicate suppression)
+- **Related Issues:** OPEN-017, OPEN-024
+- **Last verified:** 2026-07-17 (Build 0200 baseline)
+
+**Finding.** A faithful Genesis reimplementation of the arcade enemy writers 0x41DAE/0x45DFA was built (scratch buffer + block iteration + family_apply_record flush + candidate marking; GATE_PASS, source-only). Bisect proved: the staging FRAMEWORK is safe (blank-only variant restores Build 0200 control exactly, player records intact), but CALLING the relocated arcade expansion engine 0x3D254 from the hook CORRUPTS player/collision state — the player locks in mode 3 (fall) from gameplay start and never gains control. Cause: at the matched window the Genesis enemy actor blocks are unpopulated (records 46/57/96/140 blank-fill only, no valid code), so the engine indexes its ROM sprite-layout tables with invalid actor fields and touches shared state. Blank-only staging yields zero enemies (no improvement). A full clone of 0x3CB02's multi-case sprite engine is out of bounded scope.
+
+**Use as prior.** Do NOT call 0x3D254 from a Genesis hook against unpopulated/garbage actor blocks — it regresses control (proven). The enemy fix is blocked UPSTREAM: the arcade routine that populates A5+0x748 (and siblings) with valid enemy actor structs must be found and its Genesis divergence (spawn/progression/NOPped enemy-logic/raw-WRAM-literal) resolved FIRST. The staging framework from Build 0202 is reusable once valid actors exist. Decisive next evidence: arcade write-watch on A5+0x748 (0x10C748) vs Genesis 0xFF0748 at the matched frame (needs arcade romset). Do not ship blank-only staging (churn, no enemies), do not raise the mirror cap, do not force records.

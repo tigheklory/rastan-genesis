@@ -23,7 +23,11 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 # (0x054492/0x05457A/0x0545BA/0x0546A8/0x05475A), byte-neutral.
 # Build 0168: +9 opcode_replace collision-buffer immediate rebases to mapped WRAM 0x00FF1E00.
 # Build 0194: +1 opcode_replace (0x03F0A4 TC0140SYT status-read redirect -> andi.l #-2,d0; Exodus READY lock).
-CANONICAL_OPCODE_REPLACE_COUNT = 152
+# Build 0196: +10 opcode_replace (player-control input-latch raw literal 0x10C016 -> 0xFF0016
+# at 0x05277A/0x0527D4/0x0527E4/0x0527F4/0x052804/0x0528CA/0x0528DA/0x0528EA/0x0528FA/0x052BC8).
+# Build 0198: +29 opcode_replace (player action-state input-copy raw literal 0x10D37A -> 0xFF137A;
+# completes the input chain: latch 0x10C016 (0158/0196) + per-frame copy 0x10D37A (this build)).
+CANONICAL_OPCODE_REPLACE_COUNT = 214
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.

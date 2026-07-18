@@ -42553,3 +42553,173 @@ Open/Closed Issues Impact:
 - **KNOWN_FINDINGS impact:** none new (KF-048 configurable mirror + KF-049 128-safe + KF-052/053/054 scan-cost scaling cover this); rate progression recorded in the design note.
 - **Architecture compliance:** CONFIRMED. Config-only; no code/graphics/sound/VBlank/palette change; Builds 0192/0193/0194 intact; default stays 256; resize mechanism preserved.
 - **STOP triggered:** NO -- candidate built and validated; no regression.
+
+### MAME Exit Summary (2026-07-17 07:17:14)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-17 07:20:52)
+- Final PC: 0x03B298
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-17 07:21:56)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Fable — Build 0196 Player-Control Input Rebase (256) + Build 0197 Mirror-192 Comparison
+
+- **Date:** 2026-07-17
+- **Type:** Bounded input-layer fix (+10 opcode_replace) + two config builds + remaining-blocker trace.
+- **Build 0195/128 rejection recorded:** Tighe (BlastEm): Rastan cut off at waist / lower player sprites missing; near-full speed; reduced bar; no enemies; uncontrollable. 0195 preserved as rejected timing diagnostic. Mirror math clarified: 8-byte records; 192x8=1536B mirror; unrelated to the 80-sprite Genesis HW SAT limit.
+- **Builds produced (GATE_PASS, deterministic):** 0196 (256, main) `2d155d2de3cfd1eaeca905d60fd6eb68ffa10c3cf798320807e9e8f318f0b72b`; 0197 (192, comparison) `386fe4f51618727eb23d773182505a29665c4fd792ea893dae5d8729239a3c5c`; both 1,582,876; counters 196/197. Makefile default remains 256. Accepted build unchanged.
+- **Primary classification: C fixed at the read layer; E remains.** Input chain proven live: shadows (Right 0xF7/Left 0xFB/C 0xDF) -> redirected port reads -> latch A5+0x16=0xFF0016 receives the values; gate A5+0x34=1. THE BUG: ten player-control readers used raw `movew 0x10C016,%d0` (ROM = 0xEFFF = never-pressed): 0x5277A (jump btst#5), 0x527D4/E4/F4/0x52804, 0x528CA (down), 0x528DA (up), 0x528EA (left), 0x528FA (right), 0x52BC8. Build 0158 had rebased only the 11th (0x5102E). Fix: +10 byte-neutral opcode_replace 30390010C016->303900FF0016; count 152->162 (spec expectations + CANONICAL paired; manifest/address_map regenerated). All 11 sites verified rebased in both ROMs.
+- **Remaining blocker (traced, next boundary):** readers never execute — sole caller 0x51090 `jsr 0x52732` is skipped by unconditional 0x5108C `braw 0x51096`; gatekeeper `jsr 0x5132A` (A5+0x10E8 state machine -> 0x51514) never routes into it, while the master loop runs (0x5102E read fires 437x). Same frozen-progression root as missing enemies. Prefetch caveat confirmed (head-tap hits were prefetch; deeper taps zero).
+- **Validation:** both builds: title/READY render; gameplay reached; Rastan LEFT + COMPLETE (no waist cutoff; screenshots snap196/snap197); BG/FG/palette correct; TC0140SYT fix + 0193 + 0192 intact; represented/SAT/player = 17/17/9 identical; VINT rate 0196=0.771, 0197=0.831; no 80-style corruption. Control NOT yet restored (blocked by E). 192 = visually safe in MAME (records 120..137 + 54 margin); BlastEm lower-body check pending Tighe.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New: NONE. Closed: NONE. Deferred: player-state dispatch activation (0x5132A/A5+0x10E8 -> 0x51090), enemies, black bars, 60 Hz.
+- **KNOWN_FINDINGS impact:** KF-057 added (input chain complete + un-dispatched player routine boundary).
+- **Architecture compliance:** CONFIRMED. No forced X/Y/state, no collision/READY bypass, no mirror-logic change beyond config variants; loop semantics preserved (byte-neutral operand rebases only).
+- **STOP triggered:** Partial — input fix built and validated; control restoration STOPs at the player-state dispatch boundary (broader gameplay-state analysis, next task).
+
+### MAME Exit Summary (2026-07-17 08:53:59)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-17 12:28:25)
+- Final PC: 0x03B298
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-17 12:29:13)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Fable — Build 0198 Player Action-State Input-Copy Rebase — RASTAN CONTROLLABLE (+ Build 0199/192)
+
+- **Date:** 2026-07-17
+- **Type:** Bounded fix (+29 opcode_replace) + control validation + 192 comparison build.
+- **Builds (GATE_PASS, size 1,582,876):** 0198 (256, main) `65abbcb721dbb6d5b16df0379fd8f094dfc732510d1a584082ad64377105ef8b` counter 198; 0199 (192, comparison) `bc592c5f68653ee70cde750d33730a66ba8425b55aca0a6bdb720fe7a0648ffe` counter 199. Rolling dist = 0198/256; Makefile default 256. Accepted build unchanged (candidates).
+- **Root cause (completes 0196 chain):** per-frame input copy A5+0x137A (written a5-relative at 0x51034 from the 0x5102E latch read each frame — verified live) is read by the ENTIRE player action state machine via raw literal `movew 0x10D37A,%d0` — 29 sites all reading ROM 0xEEEE phantom input. Mode field A5+0x10E8 decoded as ACTION state (0 idle/1 walk/2 jump/3 fall/8 death); A5+0x13A = HP (0x3000 init; 0x517E6 death check); 0x51090 jsr = dead code both machines.
+- **Fix:** +29 byte-neutral opcode_replace `30390010D37A`->`303900FF137A` (sites 0x514A4..0x52A1A); count 162->191 paired; manifest/address_map regenerated; ROM-verified 29/29 (+ 11/11 latch).
+- **CONTROL VALIDATION (0198):** Right -> mode=1 WALKING + scrollX 0->0x1D6 (camera follows); Left -> mode=1; C -> mode=2 JUMP; descent -> mode=3 FALL + scrollY moves; substate walk-cycle animates; arcade-matched. Screenshots: Rastan walking mid-screen, world scrolled (snap98/). FIRST BUILD WITH PLAYER CONTROL + CAMERA PROGRESSION.
+- **0199/192:** control identical (mode=1, scrollX 0->0x117); Rastan complete (no waist cutoff, snap99/); represented=17; rate 0.674 vs 0198's 0.607 (scrolling scenario). 192 visually safe.
+- **Preservation:** TC0140SYT fix, 0192 gates, 0193 fast path, 0196 latch rebases — all verified present. No regression; title/READY/BG/FG/palette correct while scrolling.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017 (major progress: control + progression restored). New: NONE. Closed: NONE (visual acceptance pending Tighe). Deferred: enemies (re-evaluate against live scrolling game), black bars, 60 Hz, sky-reset, FG horizontal streaming re-check.
+- **KNOWN_FINDINGS impact:** KF-058 added (input chain complete; action-state semantics; frozen-progression root fixed).
+- **Architecture compliance:** CONFIRMED. Byte-neutral operand rebases only; no forced state/X/Y, no collision/READY bypass; all prior fixes intact; mirror default 256.
+- **STOP triggered:** NO — fix built, validated end-to-end, control restored.
+
+### MAME Exit Summary (2026-07-17 12:31:00)
+- Final PC: 0x03B298
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-17 12:31:05)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-17 14:24:56)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-17 14:25:17)
+- Final PC: 0x03B298
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Cody — Build 0200 Jump/Fall Pending-Move Fix (+ Build 0201/192)
+
+- **Date:** 2026-07-17
+- **Type:** Analysis-first bounded implementation + two numbered builds.
+- **Recovered baseline:** counter 199; rolling ROM byte-identical to Build 0198 (`65abbcb721dbb6d5b16df0379fd8f094dfc732510d1a584082ad64377105ef8b`); Build 0199 comparison present; Build 0200/0201 absent; Makefile default and generated config 256; opcode_replace count 191. Andy/Fable partial 0196/0198 work and jump0200 traces preserved.
+- **Root cause / classification:** F (copied-ROM data-pointer literal not relocated). Build 0198 jump setup wrote raw arcade arc-table literals such as `0x0005B548` into `A5+0x1332`; address_map places that arcade table at runtime Genesis `0x0005B748`. Runtime `0x0005B548` contained `00AD 00AD...`, so first jump step loaded `A5+0x1262=0x00AD` instead of arcade `0x0004`, then `A5+0x1272=1` made the faithful `0x51564` branch skip arc advancement, freezing `A5+0x1336` near 1 / stuck high jump.
+- **Fix:** +23 byte-neutral opcode_replace entries in `specs/rastan_direct_remap.json` rebasing active jump/fall arc data-pointer literals and one compare immediate (`0x5B516/548/570/5A2/5EC/62E -> +0x200` copied-ROM targets). Canonical opcode_replace count 191->214; total_genesis_bytes_covered unchanged at `0x18271C` (first release attempt exposed this invariant correction before counter advanced). No NOP/RTS/bypass; no forced state/Y; no collision/rendering/mirror logic changes.
+- **Builds:** Build 0200/256 `bdba9bab8c0377164a742bf39115f372d1d348aaa755b7bec2720937fc5b9663`, size 1,582,876, counter 200, GATE_PASS. Build 0201/192 `7c89e96ddbb5070c4b6bf45aaca80d639e2ea6127514fe5c06c3c4cc0cf238b5`, size 1,582,876, counter 201, GATE_PASS. Rolling ROM restored to Build 0200/256 and byte-identical; generated config restored to 256; counter remains 201.
+- **Validation:** ROM bytes verified in Build 0200/0201/rolling (`0x52350: 2B7C0005B7481332`, `0x525C4: 0CAD0005B7161332`, etc.). MAME input traces under `states/traces/build0200_jump_fall_pending_move/`: arcade first mode2 uses pointer `0x0005B548`, acc `4`; Build 0198 uses pointer `0x0005B548`, acc `173`, pending sticks; Build 0200/0201 use pointer `0x0005B748`, acc `4`, pending no longer sticks, arc index reaches 18, mode 3 transition restored. Release no-input traces completed for both builds. Residual visual/cadence check deferred to Tighe/BlastEm.
+- **Docs/ledgers:** docs/design/Cody_build0200_jump_fall_pending_move_flag.md created; OPEN_ISSUES.md OPEN-017 progress note added; KNOWN_FINDINGS.md KF-059 added.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017. New issues: NONE. Closed: NONE. Deferred: exact visual jump cadence/landing feel, enemies/spawn, black bars/VINT, broader gameplay visuals/hardware.
+- **KNOWN_FINDINGS impact:** KF-059 added.
+- **Architecture compliance:** CONFIRMED. Arcade code remains the program; Genesis patch is byte-neutral copied-ROM data-pointer relocation only.
+- **STOP triggered:** NO.
+
+---
+
+## Cody — Build 0202 Enemy Spawn / Sprite Visibility + Visual Issue Ledger
+
+- **Date:** 2026-07-17
+- **Type:** Runtime evidence + documentation only; bounded build gate not satisfied.
+- **Build produced:** NO. Build 0202/0203 not produced because the exact enemy/spawn writer route was not proven.
+- **Baseline:** Build 0200/256 `bdba9bab8c0377164a742bf39115f372d1d348aaa755b7bec2720937fc5b9663`; Build 0201/192 `7c89e96ddbb5070c4b6bf45aaca80d639e2ea6127514fe5c06c3c4cc0cf238b5`.
+- **Tighe visual confirmation recorded:** Build 0200/0201 resolve the movement/control/jump/fall sub-issue: left/right works, attack works, scrolling gameplay is live, jump/fall no longer sticks at the top. OPEN-017 remains open overall.
+- **Visual ledger recorded:** rolling black bar grows while scrolling; no enemies appear; a fireball/sphere-like object spins in the ground; horizontal FG/map streaming remains wrong; sky-palette change resets/returns Rastan to stage start; header/HUD sprites incomplete.
+- **Evidence:** `states/traces/build0202_enemy_spawn_visual_ledger/` (arcade + Build 0200 runs, 5200 frames each, exit 0) and `docs/design/Cody_build0202_enemy_spawn_and_visual_issue_ledger.md`.
+- **Primary enemy result:** classification I (more evidence needed). Original arcade and Build 0200 were matched by gameplay state/player/scroll, not absolute frame. Arcade at matched gameplay contains PC090OJ actor/enemy records such as record 46 (`code 0x0276/0x0275`) plus later composite groups in records 190..227. Build 0200's `pc090oj_object_ram` mirror lacks the corresponding records at the matched state. First proven divergence is before Genesis decoder/SAT/tile/palette visibility, but the spawn/writer provenance was not captured.
+- **Fireball/sphere result:** likely stale/spurious PC090OJ record. Genesis SAT slot 16 maps to record 132 cycling `0x09D9..0x09DB` at approx SAT position `(236,196)`; original arcade record 132 is zero at the matched gameplay point. Root not fixed.
+- **No patch:** no source/spec/tool/Makefile/ROM/invariant changes; no opcode replacement; no PC090OJ renderer rewrite; no forced enemies/SAT entries; no black-bar/FG/sky/HUD work.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017 and OPEN-024. New: NONE. Closed: NONE. Deferred: writer-provenance trace for record 46/composite ranges, record-132 root, black bars, FG streaming, sky reset, HUD/header.
+- **KNOWN_FINDINGS impact:** Option A — no new finding to index. Boundary narrowed but no durable root cause proven.
+- **Architecture compliance:** CONFIRMED.
+- **STOP triggered:** YES (bounded-build gate; exact implementation boundary not proven).
+
+---
+
+## Andy/Opus — Build 0202 Enemy Record 46 Writer Provenance (Analysis-Only, NO BUILD)
+
+- **Date:** 2026-07-17
+- **Type:** Writer-provenance trace + root-cause proof. No source/spec/build/Makefile/invariant changes. No build.
+- **Repo state (unchanged):** counter 201; rolling dist = Build 0200/256 `bdba9bab...`; comparison Build 0201/192 `7c89e96d...`; Makefile default 256; config 256; opcode_replace count 214. Build 0202/0203 NOT produced. Cody_build0202 ledger preserved (doc-only). Artifacts 0195..0201 intact.
+- **Primary classification:** E — arcade PC090OJ enemy write exists but the Genesis hook that replaced the arcade writer drops/misroutes it.
+- **Writer provenance PROVEN:** arcade record 46 (0xD00170, enemy code 0x0276) is produced by arcade routine 0x41DAE (block A5+0x748, 11 entries, 0x41E76-0x41EB4) and sibling 0x45DFA, via the actor→sprite expansion 0x3D054 (writes records through a1@+ — 0x3C902 sub-engine 0x3C982/0x3C990 — so redirectable). Same routines also produce records 57/96/140.
+- **Genesis defect:** those routines are NOPped (genesis 0x42060..0x4208E etc.) and replaced by hook_target_41dae/45dfa which SKIP in gameplay (Build 0192 scene gate) and otherwise copy the wrong source (player block A5+0x11B2) to wrong records (0..17/18..21). Only hook_target_41f5e (player, records 120..137/92..95) is faithful.
+- **Mirror evidence (Build 0200, F650/800):** records 46/57/96/140 = blank [0000 0100 0000 0100]; record 120 (player) real [4003 0049 009E 0010]; record 132 (fireball) = [0010 EECC 09DA EEEC] stale. Actor block A5+0x2C8 (→140) populated (6 active) yet record 140 blank — isolates the staging drop from actor population.
+- **Fireball record 132:** stale/spurious (Cody classification B); code 0x09DA, 0xEE-polluted; arcade r132=0 at matched point. Not fixed.
+- **Build decision:** NO BUILD. Faithful fix is architecturally viable but a multi-routine reimplementation (iterate 4 actor blocks, call relocated 0x3D254 expansion with a1=mirror, verify sub-engines/ROM sprite tables relocate, candidate marking, avoid Build 0192 duplicate) with regression risk — not a bounded byte-neutral rebase. Must be its own implementation build.
+- **Remaining unknown:** whether arcade actor block A5+0x748 is populated at the matched point while Genesis 0xFF0748 is empty (pure staging gap = E) or the enemy-logic filling it also diverges (upstream spawn = B/C). Decisive next trace: arcade writer of A5+0x748 (0x10C748) vs Genesis 0xFF0748 (needs arcade romset write-watch).
+- **Open/Closed Issues Impact:** Open touched: OPEN-017 (enemy root narrowed to staging-layer drop, provenance proven), OPEN-024. New: NONE. Closed: NONE. Deferred: the staging reimplementation build; record-46 upstream-population confirmation; fireball 132 producer; black bars/FG/sky/HUD.
+- **KNOWN_FINDINGS impact:** KF-060 added.
+- **Architecture compliance:** CONFIRMED — evidence only; no forced records/SAT, no lifecycle, no cap change.
+- **STOP triggered:** YES (bounded-build gate) — provenance proven, but the fix exceeds a bounded single patch and an upstream-population unknown remains.
+
+### MAME Exit Summary (2026-07-17 19:51:33)
+- Final PC: 0x03B298
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-17 19:55:24)
+- Final PC: 0x03B298
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-17 19:57:02)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Opus — Build 0202 Enemy Actor Staging Implementation (Attempted, STOP — NO BUILD)
+
+- **Date:** 2026-07-17
+- **Type:** Bounded implementation attempt (pc090oj_hooks.s) + empirical bisect. Reverted; no build shipped.
+- **Repo state (restored to Build 0200):** counter 201; rolling dist = Build 0200/256 `bdba9bab...`; comparison Build 0201/192 `7c89e96d...`; Makefile default 256; config 256; opcode_replace 214; coverage invariant 0x18271C. No Build 0202/0203. pc090oj_hooks.s + gate scripts reverted.
+- **Implemented then reverted:** faithful reimplementation of arcade enemy writers 0x41DAE/0x45DFA — fixed 256-record scratch buffer, exact block iteration (A5+0x508/0x5C8/0x2C8/0x748/0x8C8, counts/d2/special-cases/blank-fill), engine 0x3D254 expansion, flush to mirror via family_apply_record (OOB-guarded, candidate/dirty). Built GATE_PASS/256 (source-only; opcode_replace unchanged 214; coverage +0x2A4).
+- **Regression (MAME, engine-enabled):** player locked in mode 3 (fall) from gameplay start, no control, no scroll (Build 0200: mode 0→1→2, walks/scrolls/jumps). Game broken.
+- **Bisect (root):** disabling ONLY the jsr 0x3D254 engine call restores Build 0200 control exactly. Staging FRAMEWORK is safe (player records intact, repr 18); CALLING the expansion engine is UNSAFE — the Genesis actor blocks are unpopulated (records 46/57/96/140 blank-fill only), so the engine indexes ROM sprite tables with invalid actor data and corrupts fall/collision state.
+- **Decision:** STOP, no build. Engine-call unsafe (proven); full engine clone out of bounded scope; blank-only staging safe but yields zero enemies. Confirms the true first divergence is UPSTREAM: enemy-logic that populates the actor blocks does not run/produce on Genesis at the matched point.
+- **Exact blocker / next step:** find the arcade writer of A5+0x748 (0x10C748) and why Genesis 0xFF0748 stays empty (spawn/progression/NOPped enemy-logic/raw-WRAM-literal) — needs arcade romset write-watch. The Build 0202 staging framework is reusable once valid actors exist.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017 (enemy staging framework proven safe; real blocker relocated upstream), OPEN-024. New: NONE. Closed: NONE. Deferred: upstream actor-block population; expansion-engine safe invocation/clone; fireball 132.
+- **KNOWN_FINDINGS impact:** KF-061 added (refines KF-060).
+- **Architecture compliance:** CONFIRMED — attempt used the existing mirror/candidate architecture (no second renderer, no forced records/SAT, no cap change); fully reverted; no regression to Build 0200.
+- **STOP triggered:** YES (bounded-build gate) — engine-call proven unsafe, clone out of scope, and enemies are blocked by unresolved upstream actor population.

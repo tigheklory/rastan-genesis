@@ -1103,6 +1103,378 @@
       "original_bytes": "1039003E0003",
       "replacement_bytes": "0280FFFFFFFE",
       "note": "Build 0194: redirect the TC0140SYT master-status READ. Original arcade PC 0x03F0A4 / runtime Genesis PC 0x0003F2A4: `moveb 0x3E0003,%d0` reads the TC0140SYT sound busy/status register. Genesis has no TC0140SYT; 0x3E0003 is out-of-physical-ROM cartridge space whose read is emulator open-bus. The arcade sound-command dispatcher (arcade 0x03A126, runtime 0x3A326) busy-waits at runtime 0x3A33E-0x3A346 (`bsr 0x3F29C; btst #0,d0; bne`) for bit 0 (busy) to clear; the sole caller uses only bit 0 of d0 and overwrites d0 immediately after. Replace the read with `andi.l #0xFFFFFFFE,%d0` (byte-exact 6->6, NO nops, no branch change) so bit 0 always reads clear = sound ready, letting the existing loop fall through to 0x3A348. Proof: Tighe observed Exodus spinning at 0x3A342/0x3A346 (strict open-bus returns bit 0 set); MAME/BlastEm pass only because their open-bus returns bit 0 clear (MAME measured 0x3E0003=0x00). Complements the existing TC0140SYT WRITE suppression (reset/bank writes) which left the read-side handshake unowned. Do NOT NOP the loop or force the branch. Future follow-up: optional real Genesis Z80 sound handshake via sound_comm.s/z80_write_command."
+    },
+    {
+      "arcade_pc": "0x05277A",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0196 player-control input-latch rebase (button-2/jump dispatch (btst #5)): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
+    },
+    {
+      "arcade_pc": "0x0527D4",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0196 player-control input-latch rebase (input branch): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
+    },
+    {
+      "arcade_pc": "0x0527E4",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0196 player-control input-latch rebase (input branch): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
+    },
+    {
+      "arcade_pc": "0x0527F4",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0196 player-control input-latch rebase (input branch): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
+    },
+    {
+      "arcade_pc": "0x052804",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0196 player-control input-latch rebase (input branch): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
+    },
+    {
+      "arcade_pc": "0x0528CA",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0196 player-control input-latch rebase (down dispatch (btst #1)): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
+    },
+    {
+      "arcade_pc": "0x0528DA",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0196 player-control input-latch rebase (up dispatch (btst #0)): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
+    },
+    {
+      "arcade_pc": "0x0528EA",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0196 player-control input-latch rebase (left dispatch (btst #2)): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
+    },
+    {
+      "arcade_pc": "0x0528FA",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0196 player-control input-latch rebase (right dispatch (btst #3)): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
+    },
+    {
+      "arcade_pc": "0x052BC8",
+      "original_bytes": "30390010C016",
+      "replacement_bytes": "303900FF0016",
+      "note": "Build 0196 player-control input-latch rebase (input read): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
+    },
+    {
+      "arcade_pc": "0x0514A4",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x0514C4",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x0514D8",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x0515B6",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x051600",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x051728",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x051C5A",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x051CA0",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x051CE0",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x051E2E",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x051EDA",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x051EEE",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x051F1E",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x051F2E",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x0520CA",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x052108",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x052144",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x05217C",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x0521B8",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x052200",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x05223E",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x052286",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x0522C4",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x052304",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x052332",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x05236A",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x0523D6",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x05249A",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x052A1A",
+      "original_bytes": "30390010D37A",
+      "replacement_bytes": "303900FF137A",
+      "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
+    },
+    {
+      "arcade_pc": "0x0505DC",
+      "original_bytes": "2B7C0005B5EC1332",
+      "replacement_bytes": "2B7C0005B7EC1332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5EC now maps to runtime Genesis copied-ROM table 0x0005B7EC per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5EC=0x00AD at runtime instead of relocated 0x0005B7EC=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x0514B8",
+      "original_bytes": "2B7C0005B5EC1332",
+      "replacement_bytes": "2B7C0005B7EC1332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5EC now maps to runtime Genesis copied-ROM table 0x0005B7EC per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5EC=0x00AD at runtime instead of relocated 0x0005B7EC=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x0520DC",
+      "original_bytes": "2B7C0005B5A21332",
+      "replacement_bytes": "2B7C0005B7A21332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x0520E6",
+      "original_bytes": "2B7C0005B5701332",
+      "replacement_bytes": "2B7C0005B7701332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x05211A",
+      "original_bytes": "2B7C0005B5A21332",
+      "replacement_bytes": "2B7C0005B7A21332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x052124",
+      "original_bytes": "2B7C0005B5701332",
+      "replacement_bytes": "2B7C0005B7701332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x052150",
+      "original_bytes": "2B7C0005B5481332",
+      "replacement_bytes": "2B7C0005B7481332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B548 now maps to runtime Genesis copied-ROM table 0x0005B748 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B548=0x00AD at runtime instead of relocated 0x0005B748=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x05215A",
+      "original_bytes": "2B7C0005B5161332",
+      "replacement_bytes": "2B7C0005B7161332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x05218E",
+      "original_bytes": "2B7C0005B5A21332",
+      "replacement_bytes": "2B7C0005B7A21332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x052198",
+      "original_bytes": "2B7C0005B5701332",
+      "replacement_bytes": "2B7C0005B7701332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x0521CA",
+      "original_bytes": "2B7C0005B5A21332",
+      "replacement_bytes": "2B7C0005B7A21332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x0521D4",
+      "original_bytes": "2B7C0005B5701332",
+      "replacement_bytes": "2B7C0005B7701332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x052212",
+      "original_bytes": "2B7C0005B5A21332",
+      "replacement_bytes": "2B7C0005B7A21332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x05221C",
+      "original_bytes": "2B7C0005B5701332",
+      "replacement_bytes": "2B7C0005B7701332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x052250",
+      "original_bytes": "2B7C0005B5A21332",
+      "replacement_bytes": "2B7C0005B7A21332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x05225A",
+      "original_bytes": "2B7C0005B5701332",
+      "replacement_bytes": "2B7C0005B7701332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x052298",
+      "original_bytes": "2B7C0005B5481332",
+      "replacement_bytes": "2B7C0005B7481332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B548 now maps to runtime Genesis copied-ROM table 0x0005B748 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B548=0x00AD at runtime instead of relocated 0x0005B748=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x0522A2",
+      "original_bytes": "2B7C0005B5161332",
+      "replacement_bytes": "2B7C0005B7161332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x0522D6",
+      "original_bytes": "2B7C0005B5A21332",
+      "replacement_bytes": "2B7C0005B7A21332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x0522E0",
+      "original_bytes": "2B7C0005B5701332",
+      "replacement_bytes": "2B7C0005B7701332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x052310",
+      "original_bytes": "2B7C0005B62E1332",
+      "replacement_bytes": "2B7C0005B82E1332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B62E now maps to runtime Genesis copied-ROM table 0x0005B82E per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B62E=0x00AD at runtime instead of relocated 0x0005B82E=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x05233E",
+      "original_bytes": "2B7C0005B62E1332",
+      "replacement_bytes": "2B7C0005B82E1332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B62E now maps to runtime Genesis copied-ROM table 0x0005B82E per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B62E=0x00AD at runtime instead of relocated 0x0005B82E=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x0523C4",
+      "original_bytes": "0CAD0005B5161332",
+      "replacement_bytes": "0CAD0005B7161332",
+      "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     }
   ],
   "rom_opcode_replace": [],
@@ -1133,6 +1505,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 152
+    "opcode_replace_count": 214
   }
 }
