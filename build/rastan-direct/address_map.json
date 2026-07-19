@@ -9,13 +9,13 @@
     "symbols_path": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/symbol.txt",
     "maincpu_path": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin"
   },
-  "genesis_rom_size_bytes": 1583440,
+  "genesis_rom_size_bytes": 1583872,
   "relocation_delta": "0x000200",
   "arcade_source_start": "0x000000",
   "arcade_source_end_exclusive": "0x060000",
   "wrapper_region": {
     "genesis_start": "0x070000",
-    "genesis_end_exclusive": "0x182950"
+    "genesis_end_exclusive": "0x182B00"
   },
   "segments": [
     {
@@ -80,7 +80,7 @@
       "arcade_end_exclusive": "0x03A0B0",
       "origin": "opcode_replace",
       "original_bytes": "0839000600390005",
-      "replacement_bytes": "0839000600ffa1aa",
+      "replacement_bytes": "0839000600ffa1ce",
       "note": "Coin input bit 6 -> direct shadow byte symbol.",
       "shift_delta": 0
     },
@@ -103,7 +103,7 @@
       "arcade_end_exclusive": "0x03A0BA",
       "origin": "opcode_replace",
       "original_bytes": "0839000400390005",
-      "replacement_bytes": "0839000400ffa1aa",
+      "replacement_bytes": "0839000400ffa1ce",
       "note": "Coin input bit 4 -> direct shadow byte symbol.",
       "shift_delta": 0
     },
@@ -126,7 +126,7 @@
       "arcade_end_exclusive": "0x03A0C8",
       "origin": "opcode_replace",
       "original_bytes": "0839000500390005",
-      "replacement_bytes": "0839000500ffa1aa",
+      "replacement_bytes": "0839000500ffa1ce",
       "note": "Coin input bit 5 -> direct shadow byte symbol.",
       "shift_delta": 0
     },
@@ -149,7 +149,7 @@
       "arcade_end_exclusive": "0x03A1DE",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000724c8",
+      "replacement_bytes": "4eb90007260c",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -172,7 +172,7 @@
       "arcade_end_exclusive": "0x03A358",
       "origin": "opcode_replace",
       "original_bytes": "33fc003200c08a52",
-      "replacement_bytes": "4eb900070c6c4e71",
+      "replacement_bytes": "4eb900070ce44e71",
       "note": "OPEN-018 Class A: route raw PC080SN FG immediate write at runtime 0x3A550 (HW_ADDRESS 0x00C08A52 code 0x0032, attr 0) through genesistan_hook_inline_fg_write_3a550 -> genesistan_hook_tilemap_fg_fill live LUT. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression.",
       "shift_delta": 0
     },
@@ -208,7 +208,7 @@
       "arcade_end_exclusive": "0x03A496",
       "origin": "opcode_replace",
       "original_bytes": "103900390007",
-      "replacement_bytes": "103900ffa1ab",
+      "replacement_bytes": "103900ffa1cf",
       "note": "System input read -> direct shadow byte symbol.",
       "shift_delta": 0
     },
@@ -231,7 +231,7 @@
       "arcade_end_exclusive": "0x03A4A8",
       "origin": "opcode_replace",
       "original_bytes": "103900390001",
-      "replacement_bytes": "103900ffa1a8",
+      "replacement_bytes": "103900ffa1cc",
       "note": "TC0040IOC P1 read -> direct shadow byte symbol.",
       "shift_delta": 0
     },
@@ -244,7 +244,7 @@
       "arcade_end_exclusive": "0x03A4AE",
       "origin": "opcode_replace",
       "original_bytes": "123900390003",
-      "replacement_bytes": "123900ffa1a9",
+      "replacement_bytes": "123900ffa1cd",
       "note": "TC0040IOC P2 read -> direct shadow byte symbol.",
       "shift_delta": 0
     },
@@ -290,7 +290,7 @@
       "arcade_end_exclusive": "0x03A706",
       "origin": "opcode_replace",
       "original_bytes": "33fc274400c08e7a",
-      "replacement_bytes": "4eb900070c844e71",
+      "replacement_bytes": "4eb900070cfc4e71",
       "note": "OPEN-018 Class A: route raw PC080SN FG immediate write at runtime 0x3A8FE (HW_ADDRESS 0x00C08E7A code 0x2744, attr 0) through genesistan_hook_inline_fg_write_3a8fe -> genesistan_hook_tilemap_fg_fill live LUT; helper preserves live D0 for following glyph renderer. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression.",
       "shift_delta": 0
     },
@@ -313,7 +313,7 @@
       "arcade_end_exclusive": "0x03A710",
       "origin": "opcode_replace",
       "original_bytes": "33fc274400c08e66",
-      "replacement_bytes": "4eb900070ca04e71",
+      "replacement_bytes": "4eb900070d184e71",
       "note": "OPEN-018 Class A: route raw PC080SN FG immediate write at runtime 0x3A908 (HW_ADDRESS 0x00C08E66 code 0x2744, attr 0) through genesistan_hook_inline_fg_write_3a908 -> genesistan_hook_tilemap_fg_fill live LUT; helper preserves live D0 for following glyph renderer. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression.",
       "shift_delta": 0
     },
@@ -336,7 +336,7 @@
       "arcade_end_exclusive": "0x03A730",
       "origin": "opcode_replace",
       "original_bytes": "33c000c08c62",
-      "replacement_bytes": "4eb900070cbc",
+      "replacement_bytes": "4eb900070d34",
       "note": "OPEN-018 Class A dynamic-FG: route raw PC080SN FG register write at runtime 0x3A92A (HW_ADDRESS 0x00C08C62, code word in live D0 from A5+0x0117|0x0030) through genesistan_hook_inline_fg_write_3a92a -> genesistan_hook_tilemap_fg_fill live LUT. Wrapper stages one cell at base 0x00C08C60, preserves registers, and restores MOVE.W-equivalent N/Z/V/C via tst.w d0. Adjacent 0x03D04C/0x03D24C remains unpatched pending separate arcade-route proof.",
       "shift_delta": 0
     },
@@ -359,7 +359,7 @@
       "arcade_end_exclusive": "0x03A77E",
       "origin": "opcode_replace",
       "original_bytes": "103900390001",
-      "replacement_bytes": "103900ffa1a8",
+      "replacement_bytes": "103900ffa1cc",
       "note": "Secondary TC0040IOC P1 read -> direct shadow byte symbol.",
       "shift_delta": 0
     },
@@ -372,7 +372,7 @@
       "arcade_end_exclusive": "0x03A784",
       "origin": "opcode_replace",
       "original_bytes": "123900390003",
-      "replacement_bytes": "123900ffa1a9",
+      "replacement_bytes": "123900ffa1cd",
       "note": "Secondary TC0040IOC P2 read -> direct shadow byte symbol.",
       "shift_delta": 0
     },
@@ -395,7 +395,7 @@
       "arcade_end_exclusive": "0x03A7C0",
       "origin": "opcode_replace",
       "original_bytes": "0839000100390007",
-      "replacement_bytes": "0839000100ffa1ab",
+      "replacement_bytes": "0839000100ffa1cf",
       "note": "Tilt bit test -> direct shadow system byte.",
       "shift_delta": 0
     },
@@ -418,7 +418,7 @@
       "arcade_end_exclusive": "0x03A920",
       "origin": "opcode_replace",
       "original_bytes": "103900390007",
-      "replacement_bytes": "103900ffa1ab",
+      "replacement_bytes": "103900ffa1cf",
       "note": "System input read -> direct shadow system byte.",
       "shift_delta": 0
     },
@@ -441,7 +441,7 @@
       "arcade_end_exclusive": "0x03AAF2",
       "origin": "opcode_replace",
       "original_bytes": "33fc274900c09172",
-      "replacement_bytes": "4eb900070cd44e71",
+      "replacement_bytes": "4eb900070d4c4e71",
       "note": "OPEN-018 Class A: route raw story comma PC080SN FG immediate write at runtime 0x3ACEA (HW_ADDRESS 0x00C09172 code 0x2749, attr 0) through genesistan_hook_inline_fg_write_3acea -> genesistan_hook_tilemap_fg_fill live LUT. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression.",
       "shift_delta": 0
     },
@@ -464,7 +464,7 @@
       "arcade_end_exclusive": "0x03AB08",
       "origin": "opcode_replace",
       "original_bytes": "33fc03ff00200022",
-      "replacement_bytes": "4eb900071ed64e71",
+      "replacement_bytes": "4eb900071fa44e71",
       "note": "Build 0109 fall-through restore at 0x03AB00 (helper genesistan_palette_hook_03ab00). The helper reproduces the direct xBGR-555 literal write (#0x03FF to 0x200022) as a staged Genesis CRAM update for bank 1 entry 1; trailing 4E71 is approved byte-neutral NOP padding so execution falls through into the intact high-score tail at runtime 0x03AD08 (clear/init/render/timer-reload/master-advance). The original arcade move.w fell through; prior 4E75 wrongly terminated. NOT suppression.",
       "shift_delta": 0
     },
@@ -487,7 +487,7 @@
       "arcade_end_exclusive": "0x03AB9E",
       "origin": "opcode_replace",
       "original_bytes": "0839000200390007",
-      "replacement_bytes": "0839000200ffa1ab",
+      "replacement_bytes": "0839000200ffa1cf",
       "note": "Test button bit test -> direct shadow system byte.",
       "shift_delta": 0
     },
@@ -510,7 +510,7 @@
       "arcade_end_exclusive": "0x03ABC0",
       "origin": "opcode_replace",
       "original_bytes": "42b900c20000",
-      "replacement_bytes": "42b900ff40c4",
+      "replacement_bytes": "42b900ff40e6",
       "note": "Redirect PC080SN yscroll clear write to Genesis staged BG Y scroll mirror.",
       "shift_delta": 0
     },
@@ -523,7 +523,7 @@
       "arcade_end_exclusive": "0x03ABC6",
       "origin": "opcode_replace",
       "original_bytes": "42b900c40000",
-      "replacement_bytes": "42b900ff40c0",
+      "replacement_bytes": "42b900ff40e2",
       "note": "Redirect PC080SN xscroll clear write to Genesis staged BG X scroll mirror.",
       "shift_delta": 0
     },
@@ -546,7 +546,7 @@
       "arcade_end_exclusive": "0x03AC0C",
       "origin": "opcode_replace",
       "original_bytes": "0839000000390007",
-      "replacement_bytes": "0839000000ffa1ab",
+      "replacement_bytes": "0839000000ffa1cf",
       "note": "Service/system bit test -> direct shadow byte symbol.",
       "shift_delta": 0
     },
@@ -592,7 +592,7 @@
       "arcade_end_exclusive": "0x03AC9C",
       "origin": "opcode_replace",
       "original_bytes": "0839000500390007",
-      "replacement_bytes": "0839000500ffa1ab",
+      "replacement_bytes": "0839000500ffa1cf",
       "note": "System input bit 5 test -> direct shadow system byte.",
       "shift_delta": 0
     },
@@ -615,7 +615,7 @@
       "arcade_end_exclusive": "0x03ACBA",
       "origin": "opcode_replace",
       "original_bytes": "0839000600390005",
-      "replacement_bytes": "0839000600ffa1aa",
+      "replacement_bytes": "0839000600ffa1ce",
       "note": "Coin input bit 6 test -> direct shadow coin byte.",
       "shift_delta": 0
     },
@@ -638,7 +638,7 @@
       "arcade_end_exclusive": "0x03ACC4",
       "origin": "opcode_replace",
       "original_bytes": "0839000400390005",
-      "replacement_bytes": "0839000400ffa1aa",
+      "replacement_bytes": "0839000400ffa1ce",
       "note": "Coin input bit 4 test -> direct shadow coin byte.",
       "shift_delta": 0
     },
@@ -661,7 +661,7 @@
       "arcade_end_exclusive": "0x03AD06",
       "origin": "opcode_replace",
       "original_bytes": "0839000600390007",
-      "replacement_bytes": "0839000600ffa1ab",
+      "replacement_bytes": "0839000600ffa1cf",
       "note": "System input bit 6 test -> direct shadow system byte.",
       "shift_delta": 0
     },
@@ -684,7 +684,7 @@
       "arcade_end_exclusive": "0x03AD24",
       "origin": "opcode_replace",
       "original_bytes": "0839000600390005",
-      "replacement_bytes": "0839000600ffa1aa",
+      "replacement_bytes": "0839000600ffa1ce",
       "note": "Coin input bit 6 test -> direct shadow coin byte.",
       "shift_delta": 0
     },
@@ -707,7 +707,7 @@
       "arcade_end_exclusive": "0x03AD2E",
       "origin": "opcode_replace",
       "original_bytes": "0839000500390005",
-      "replacement_bytes": "0839000500ffa1aa",
+      "replacement_bytes": "0839000500ffa1ce",
       "note": "Coin input bit 5 test -> direct shadow coin byte.",
       "shift_delta": 0
     },
@@ -730,7 +730,7 @@
       "arcade_end_exclusive": "0x03AD4C",
       "origin": "opcode_replace",
       "original_bytes": "20c0534166fa4e75",
-      "replacement_bytes": "4eb9000724f04e75",
+      "replacement_bytes": "4eb9000726344e75",
       "note": "PC090OJ + tilemap polymorphic-utility dispatch at fn 0x3AD44 via v3.2 helper genesistan_hook_3ad44_dispatch. Intercepts 7 callers: 3 PC090OJ-targeting (0x03AD5C, 0x03AD6E, 0x03AD82; A0 \u2208 [0xD00000, 0xD00800)) routed to PC090OJ bulk-clear branch (LUT-mediated, slots 76..79 destination space); 4 tilemap-targeting (0x03AE70, 0x03AE80, 0x03AF38, 0x03AF48; A0 \u2208 [0xC00000, 0xC10000)) routed to tilemap-branch reusing genesistan_hook_tilemap_bg_fill semantics. A0 dispatch on entry; out-of-range A0 falls through to \u00a77.3 audit-guard halt-with-heartbeat. Replaces v3.1 PC090OJ-only helper genesistan_pc090oj_hook_init_clear_3ad44 (which broke pre-existing tilemap coverage). See Andy_pc090oj_implementation_spec.md \u00a72.2.A and \u00a78.6 entry #8.",
       "shift_delta": 0
     },
@@ -753,7 +753,7 @@
       "arcade_end_exclusive": "0x03ADBC",
       "origin": "opcode_replace",
       "original_bytes": "720e41f900d00778203c000000082e3c000001604eb90005b7126100000a7203203c000000c8208021470004508806400010534166f04e75",
-      "replacement_bytes": "4eb9000725e44e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000727284e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x3AD84 (helper genesistan_pc090oj_hook_init_priority_3ad84). Intercepts 2 ledger callers via 0x3AD72 fall-through (0x03ABB6, 0x03AF28). Helper initializes 4 priority-frame slots at SAT range 76..79 (the 0xD00778 origin per Andy_d00778_write_path_analysis.md). See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -789,7 +789,7 @@
       "arcade_end_exclusive": "0x03AE0E",
       "origin": "opcode_replace",
       "original_bytes": "33fc000100d01bfe",
-      "replacement_bytes": "4eb90007249c4e71",
+      "replacement_bytes": "4eb9000725e04e71",
       "note": "Capture PC090OJ control write #1 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan.",
       "shift_delta": 0
     },
@@ -825,7 +825,7 @@
       "arcade_end_exclusive": "0x03AE26",
       "origin": "opcode_replace",
       "original_bytes": "33fc000000d01bfe",
-      "replacement_bytes": "4eb9000724b44e71",
+      "replacement_bytes": "4eb9000725f84e71",
       "note": "Capture PC090OJ control write #0 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan.",
       "shift_delta": 0
     },
@@ -848,7 +848,7 @@
       "arcade_end_exclusive": "0x03AE3A",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000724c8",
+      "replacement_bytes": "4eb90007260c",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -884,7 +884,7 @@
       "arcade_end_exclusive": "0x03AE96",
       "origin": "opcode_replace",
       "original_bytes": "33fc000000d01bfe",
-      "replacement_bytes": "4eb9000724b44e71",
+      "replacement_bytes": "4eb9000725f84e71",
       "note": "Capture PC090OJ control write #0 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan.",
       "shift_delta": 0
     },
@@ -910,7 +910,7 @@
       "arcade_end_exclusive": "0x03AEA2",
       "origin": "opcode_replace",
       "original_bytes": "427900380000",
-      "replacement_bytes": "4eb9000724dc",
+      "replacement_bytes": "4eb900072620",
       "note": "Capture sprite_ctrl/coin-lockout register clear (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1136,7 +1136,7 @@
       "arcade_end_exclusive": "0x03AF24",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000724c8",
+      "replacement_bytes": "4eb90007260c",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1287,7 +1287,7 @@
       "arcade_end_exclusive": "0x03B09E",
       "origin": "opcode_replace",
       "original_bytes": "42b900c20000",
-      "replacement_bytes": "42b900ff40c4",
+      "replacement_bytes": "42b900ff40e6",
       "note": "Redirect title-path PC080SN yscroll clear write to Genesis staged BG Y scroll mirror.",
       "shift_delta": 0
     },
@@ -1300,7 +1300,7 @@
       "arcade_end_exclusive": "0x03B0A4",
       "origin": "opcode_replace",
       "original_bytes": "42b900c40000",
-      "replacement_bytes": "42b900ff40c0",
+      "replacement_bytes": "42b900ff40e2",
       "note": "Redirect title-path PC080SN xscroll clear write to Genesis staged BG X scroll mirror.",
       "shift_delta": 0
     },
@@ -1323,7 +1323,7 @@
       "arcade_end_exclusive": "0x03B8B0",
       "origin": "opcode_replace",
       "original_bytes": "4285c0fc000a41fa0074d0c0424010100c000001660252451c280001226800022468000608000000671a12120241000f61000032134600030641002a33410004538a60181212e8090241000f61000016134600030641002a334100045189534066c24e754a45660c4a416608137c000100024e757a01422900024e75061000d001080010c11e061000d001500010c11e061000d000d80010c14201e800d000a80010c11701e400d000880010c103",
-      "replacement_bytes": "4eb90007261a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007275e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x3B802 (helper genesistan_pc090oj_hook_score_digit_3b802). Intercepts 10 ledger score/HUD-digit callers (0x03A66A, 0x03A9C0, 0x03A9CE, 0x03A9DA, 0x03B7A2, 0x03B7B0, 0x03B7E0, 0x03B8C2, 0x03B8F6, 0x03B8FC). 174-byte span includes the function's PC-relative digit-attribute table at 0x3B87E..0x3B8AF (referenced only from inside the function). Helper emits HUD-digit sprites to SAT slots 22..29. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -1346,7 +1346,7 @@
       "arcade_end_exclusive": "0x03B926",
       "origin": "opcode_replace",
       "original_bytes": "43f900d000884a41660c41fa007672056100001c4e757005134100025089538066f64e75",
-      "replacement_bytes": "4eb90007226c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000723844e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at writer fn 0x3B902 (helper genesistan_pc090oj_hook_target_3b902). Intercepts 7 April-6 ledger callers (0x03A20E, 0x03A264, 0x03A640, 0x03A6C4, 0x03A820, 0x03B8E8, 0x03B8F0) plus 1 non-ledger caller (0x03A8E0). Helper emits SAT slots 0..4. See Andy_pc090oj_implementation_spec.md \u00a78.6 for full audit ledger.",
       "shift_delta": 0
     },
@@ -1359,7 +1359,7 @@
       "arcade_end_exclusive": "0x03B930",
       "origin": "opcode_replace",
       "original_bytes": "43f900d00128700960ea",
-      "replacement_bytes": "4eb9000722a64e754e71",
+      "replacement_bytes": "4eb9000723be4e754e71",
       "note": "PC090OJ Strategy A function-body replacement at writer fn 0x3B926 (helper genesistan_pc090oj_hook_target_3b926). Intercepts 2 April-6 ledger callers (0x03A9C6, 0x03A9D4). Original 0x3B926 falls through with bras into 0x3B902's loop body; helper subsumes that flow. Helper emits SAT slots 5..13. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -1372,7 +1372,7 @@
       "arcade_end_exclusive": "0x03B950",
       "origin": "opcode_replace",
       "original_bytes": "424232c24240101832c04240101832c03e184eb90005b71232c7538166e44e75",
-      "replacement_bytes": "4eb9000722be4e754e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000723d64e754e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A writer-helper body replacement at 0x3B930 (helper genesistan_pc090oj_hook_target_3b930). Reached from target 0x3B902 (already covered by entry #1 \u2014 body replacement makes that path inert) AND from non-target init function 0x3B8B0 at 3 BSR sites (0x3B8BC, 0x3B8D2, 0x3B8E2). Without this entry, init-time writes to 0xD00020/0xD000E0/0xD00128 would hit unmapped Genesis memory. Helper emits SAT slots 14..17. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -1395,7 +1395,7 @@
       "arcade_end_exclusive": "0x03BA88",
       "origin": "opcode_replace",
       "original_bytes": "301b340002400f00ee483202024100f0e5490242000fea5a8041804230c0538366de4e75",
-      "replacement_bytes": "4eb900071f344e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000720024e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Build 55b active arcade palette writer replacement at 0x03BA64 (runtime 0x03BC64). Helper reproduces original pointer/count side effects, translates active writer output to Genesis staged palette for banks 0..3, skips high banks, and sets palette_dirty on staged writes.",
       "shift_delta": 0
     },
@@ -1418,7 +1418,7 @@
       "arcade_end_exclusive": "0x03BB7C",
       "origin": "opcode_replace",
       "original_bytes": "32000240007fe54841fa002ad0c02050225834184a016b0c10186716488032c232c060f4323c00201018670632c232c160f64e75",
-      "replacement_bytes": "4eb90007147e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000714f64e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route title glyph/string renderer at arcade_pc 0x03BB48 (runtime Genesis 0x03BD48) through Genesis FG staging hook; preserve descriptor loop semantics while preventing direct PC080SN FG C-window writes.",
       "shift_delta": 0
     },
@@ -1441,7 +1441,7 @@
       "arcade_end_exclusive": "0x03C37C",
       "origin": "opcode_replace",
       "original_bytes": "3e3c0000c0fc000a41fa0090d0c0301022680002246800060c40ffff6700005208000000671212120241000f0041003032c732c1538a60101212e8090241000f0041003032c732c1534066d40c500006661c301022680002322900020c410030660c337c002000025889534066ea4e7512120241000f0c010007661a93fc0000000832c732fc004132c732fc004c32c732bc004c4e7570016086",
-      "replacement_bytes": "4eb9000712e64e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007135e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route number renderer at arcade_pc 0x03C2E2 through Genesis FG staging hook; intercept digit loop, leading-zero suppression, and ALL sentinel writes that otherwise target PC080SN FG tilemap hardware.",
       "shift_delta": 0
     },
@@ -1464,7 +1464,7 @@
       "arcade_end_exclusive": "0x03C406",
       "origin": "opcode_replace",
       "original_bytes": "3e3c000034000240",
-      "replacement_bytes": "4eb900070d104e75",
+      "replacement_bytes": "4eb900070d884e75",
       "note": "Route high-score FG producer at arcade_pc 0x03C3FE (runtime Genesis 0x03C5FE) through Genesis FG staging hook; preserve descriptor table at runtime 0x03C654 and prevent raw PC080SN FG C-window writes at runtime 0x03C62A/0x03C646/0x03C64A.",
       "shift_delta": 0
     },
@@ -1487,7 +1487,7 @@
       "arcade_end_exclusive": "0x03C516",
       "origin": "opcode_replace",
       "original_bytes": "2449d4fc005020680002102c000b48800c4000206610780a337c018000025089534466f4601ac0fc0005d0c078054242610000125b887805343cfff061000006224a4e75",
-      "replacement_bytes": "4eb900070e4e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900070ec64e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route text writer handler at arcade_pc 0x03C4D2 to Genesis FG staging hook and prevent direct C-window FG writes.",
       "shift_delta": 0
     },
@@ -1510,7 +1510,7 @@
       "arcade_end_exclusive": "0x03C586",
       "origin": "opcode_replace",
       "original_bytes": "20680002102c000b4880d0c042447604121048813001d06c0016d04433400006336c001a0002508906440010534366e4d2fc00304e75",
-      "replacement_bytes": "4eb9000714e44e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007155c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route text-writer handler (script opcode 0xA0) to Genesis FG staging hook; prevent direct C-window writes.",
       "shift_delta": 0
     },
@@ -1523,7 +1523,7 @@
       "arcade_end_exclusive": "0x03C606",
       "origin": "opcode_replace",
       "original_bytes": "20680002102c000b4880c0fc0003d0c00c2c00060001673276034242610000624247424661000196d2fc000890fc00037603343cfff06100004842473c3cfff06100017ad2fc00184e75424742466100016cd2fc0008760342426100002490fc000342473c3cfff061000152d2fc00087603343cfff061000008d2fc00104e75",
-      "replacement_bytes": "4eb9000715344e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000715ac4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route text-writer handler (script opcode 0xC0) to Genesis FG staging hook; prevent direct C-window writes.",
       "shift_delta": 0
     },
@@ -1546,7 +1546,7 @@
       "arcade_end_exclusive": "0x03C6AC",
       "origin": "opcode_replace",
       "original_bytes": "20680002102c000b4880e548d0c00c2d0002011867120c6d0062013e65200c6d0064013e6502601642464247610000de508942463e3cfff0610000d2508976024242610000327602343cfff0610000280c2d0002011867120c6d0062013e65100c6d0064013e65026006d2fc00204e75d2fc00304e75",
-      "replacement_bytes": "4eb9000716224e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007169a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route text-writer handler (script opcode 0xB0) to Genesis FG staging hook; prevent direct C-window writes.",
       "shift_delta": 0
     },
@@ -1569,7 +1569,7 @@
       "arcade_end_exclusive": "0x03C70A",
       "origin": "opcode_replace",
       "original_bytes": "20680002102c000b4880c0fc0009d0c0323cffd0383c0010760661000012323cffd0424476036100000650894e75",
-      "replacement_bytes": "4eb9000716fa4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000717724e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route text-writer handler (script opcode 0x30) to Genesis FG staging hook; prevent direct C-window writes.",
       "shift_delta": 0
     },
@@ -1592,7 +1592,7 @@
       "arcade_end_exclusive": "0x03C7A4",
       "origin": "opcode_replace",
       "original_bytes": "20680002102c000b4880c0fc0007d0c03c3cfff03e3cfff861cc50897601343cfff861000052760142426100004a7601343cfff0610000407604343cfff861000036d2fc00104e75",
-      "replacement_bytes": "4eb90007177e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000717f64e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route text-writer handler (script opcode 0x90) to Genesis FG staging hook; prevent direct C-window writes.",
       "shift_delta": 0
     },
@@ -1605,7 +1605,7 @@
       "arcade_end_exclusive": "0x03C7D2",
       "origin": "opcode_replace",
       "original_bytes": "20680002102c000b4880c0fc0006d0c0760242426100004a7602343cfff0610000407606343cfff8610000044e75",
-      "replacement_bytes": "4eb9000718364e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000718ae4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route text-writer handler (script opcode 0x20) to Genesis FG staging hook; prevent direct C-window writes.",
       "shift_delta": 0
     },
@@ -1628,7 +1628,7 @@
       "arcade_end_exclusive": "0x03C85E",
       "origin": "opcode_replace",
       "original_bytes": "20680002102c000b4880e548d0c04a2c00386600007a7605343cfff86100001059887605343cffe8610000044e75",
-      "replacement_bytes": "4eb9000718a44e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007191c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route text-writer handler (script opcode 0x10) to Genesis FG staging hook; prevent direct C-window writes.",
       "shift_delta": 0
     },
@@ -1651,7 +1651,7 @@
       "arcade_end_exclusive": "0x03CA38",
       "origin": "opcode_replace",
       "original_bytes": "4240424508060000660000cc4a0767466100009e4a456600008e42470c030040660252470c0300806604004040006100006832c012184881d26c001a6100ff6832c16100007e1e184887de6c001632c7538266bc4e75610000584a456600004842470c03004066025247004040006100002832c012184881d26c001a32c1610000421e18488744479e780010de6c001632c7538266c04e75082c000600276704102c00274e75337c01800002508960a010181600020300f00c0000ff66027a014e75424010184a4767024440d06c001e32c042404e754a2c00036600ff344a076700ff2e6000ff70",
-      "replacement_bytes": "4eb90007103c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000710b44e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route dispatcher fall-through default-path writer at arcade_pc 0x03C950 to Genesis FG staging hook; intercepts A1@+ stride-2 writes and 0x0180 fast-fill escape.",
       "shift_delta": 0
     },
@@ -1674,7 +1674,7 @@
       "arcade_end_exclusive": "0x03D052",
       "origin": "opcode_replace",
       "original_bytes": "33c100c08c66",
-      "replacement_bytes": "4eb900070cf0",
+      "replacement_bytes": "4eb900070d68",
       "note": "Build 0156/OPEN-018 Class A dynamic-FG: sibling of the 0x03A72A/0xC08C62 route. Runtime 0x03D24C (arcade 0x03D04C) issues `move.w %d1, 0x00C08C66` where d1 = digit tile 0x30..0x39 (= 9 - d0 + 0x30) -- a raw PC080SN FG C-window store that strict-target emulators fault on (user report: BlastEm strict-freeze at write address C08C66 during gameplay). Now routed through genesistan_hook_inline_fg_write_3d04c -> genesistan_hook_tilemap_fg_fill live LUT (digit tiles 0x30..0x39 already LUT-mapped). Wrapper stages one FG cell at base 0x00C08C64 (code word at +2), preserves d0-d7/a0-a6, and reproduces the original MOVE.W N/Z/V/C via tst.w d1. Byte-neutral opcode_replace (6->6); no NOP, no hardcoded cell. Validation: no runtime raw write to 0xC08C66; the digit reaches staged_fg via the existing FG dirty/VBlank commit.",
       "shift_delta": 0
     },
@@ -1697,7 +1697,7 @@
       "arcade_end_exclusive": "0x03EF2E",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000724c8",
+      "replacement_bytes": "4eb90007260c",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1720,7 +1720,7 @@
       "arcade_end_exclusive": "0x03EF4E",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000724c8",
+      "replacement_bytes": "4eb90007260c",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1743,7 +1743,7 @@
       "arcade_end_exclusive": "0x03EF90",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000724c8",
+      "replacement_bytes": "4eb90007260c",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1766,7 +1766,7 @@
       "arcade_end_exclusive": "0x03EFB0",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000724c8",
+      "replacement_bytes": "4eb90007260c",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1795,10 +1795,33 @@
     },
     {
       "genesis_start": "0x03F2AA",
-      "genesis_end_exclusive": "0x0414E8",
-      "size_bytes": 8766,
+      "genesis_end_exclusive": "0x0414CC",
+      "size_bytes": 8738,
       "kind": "arcade_copy",
       "arcade_start": "0x03F0AA",
+      "arcade_end_exclusive": "0x0412CC",
+      "source": "whole_maincpu_copy",
+      "identity_offset": 512
+    },
+    {
+      "genesis_start": "0x0414CC",
+      "genesis_end_exclusive": "0x0414D2",
+      "size_bytes": 6,
+      "kind": "patched_site",
+      "arcade_start": "0x0412CC",
+      "arcade_end_exclusive": "0x0412D2",
+      "origin": "opcode_replace",
+      "original_bytes": "b1fc0010fe00",
+      "replacement_bytes": "b1fc00ff3e00",
+      "note": "Build 0206/OPEN-017: collision map forward upper-bound compare rebase from raw arcade work RAM 0x0010FE00 to mapped Genesis WRAM collision-buffer end 0x00FF3E00. Completes the Build 0168 0x0010DE00 base/lower-bound rebase for the lizard actor activation scan; byte-neutral CMPA.L immediate rebase only, no forced actor activation.",
+      "shift_delta": 0
+    },
+    {
+      "genesis_start": "0x0414D2",
+      "genesis_end_exclusive": "0x0414E8",
+      "size_bytes": 22,
+      "kind": "arcade_copy",
+      "arcade_start": "0x0412D2",
       "arcade_end_exclusive": "0x0412E8",
       "source": "whole_maincpu_copy",
       "identity_offset": 512
@@ -1835,7 +1858,7 @@
       "arcade_end_exclusive": "0x041F0E",
       "origin": "opcode_replace",
       "original_bytes": "49ed050843f900d001c8426d02144a2c0000670000f4102c00011c2c00201e2c0002740d6100b280d9fc00000040526d02140c6d0002021466d449ed05c843f900d00300426d02144a2c0000670000ce102c00011c2c00201e2c000274046100b246d9fc00000040526d02140c6d0006021466d449ed02c8426d021443f900d004604a2c0000670000a84a2c0005670000a04a2c00036600d178102c00011c2c00201e2c0002740a0c6d00080214660274136100b1f2d9fc00000040526d02140c6d0009021466ba49ed074843f900d00170426d02144a2c000067724a2c0036666c102c00011c2c00201e2c000274016100b1b4d9fc00000040526d02140c6d000b021466d04e75303c0180740d334000025089534266f66000ff0e303c01807404334000025089534266f66000ff34303c0180740a0c6d0008021466027413334000025089534266f66000ff6a303c01807401334000025089534266f66094",
-      "replacement_bytes": "4eb9000722fe4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000724164e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x41DAE (helper genesistan_pc090oj_hook_target_41dae). 352-byte span covering main-loop + 4 sub-loop fallbacks. Helper emits Block-A 18-sprite frame to SAT slots 0..17 + sub-loops. See Andy_pc090oj_implementation_spec.md \u00a78.6. Build 0192: the Genesis default helper wrongly copies the player block A5+0x11B2 -> records 0..17 (and A5+0x0170 -> 18..21), an exact duplicate of the canonical player that hook_target_41f5e stages to records 120..137/92..95; arcade 0x041DAE/0x045DFA do NOT copy A5+0x11B2 and arcade records 0..17 are empty at Stage 1. The hook body now GAMEPLAY-GATES (genesistan_current_scene_id==1) a SKIP of this spurious low copy; non-gameplay scenes keep the emit. Result: player SAT slots 18->6, total SAT 28->15, VINT rate 0.484->0.588; Rastan unchanged. Byte-neutral jsr replacement here is unchanged; the skip lives in the hook body (pc090oj_hooks.s). Follow-up: faithful arcade 0x041DAE/0x045DFA (records 57/96/140/46) deferred.",
       "shift_delta": 0
     },
@@ -1858,7 +1881,7 @@
       "arcade_end_exclusive": "0x041F96",
       "origin": "opcode_replace",
       "original_bytes": "41ed11b2701243f900d003c06100000e41ed0170700443f900d002e04a50670e32d832d832d832d8534066f04e75337c01800002508960f0",
-      "replacement_bytes": "4eb9000723184e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000724304e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x41F5E (helper genesistan_pc090oj_hook_target_41f5e). Intercepts April-6 caller 0x03A854 and the target itself. Helper emits Block-B 4-sprite copy to SAT slots 18..21. See Andy_pc090oj_implementation_spec.md \u00a78.6. Build 0193 (Fable cycle pass): the helper's block-copy family (.Lpc090oj_family_apply_record) no longer syncs each record inline (decode+SAT under 15-reg movem, 22 records/frame = 6.5 ms in the arcade main-loop bucket) and no longer clears its candidate; it now takes an unchanged-tuple fast path (skip value-identical writes -- same invariant as the Build 0177 shadow compare) and for changed tuples sets the record candidate like every other producer, so the proven VBlank mark->process path syncs it exactly once before the same service's sprite commit. VRAM-visible SAT/tile output per service unchanged; 41f5e hook cost 6.54->1.76 ms, total VINT service 26.55->21.67 ms, rate 0.588->0.769 (~46 Hz).",
       "shift_delta": 0
     },
@@ -1881,7 +1904,7 @@
       "arcade_end_exclusive": "0x04530C",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000724c8",
+      "replacement_bytes": "4eb90007260c",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1927,7 +1950,7 @@
       "arcade_end_exclusive": "0x045DBE",
       "origin": "opcode_replace",
       "original_bytes": "4eb90003a4d0",
-      "replacement_bytes": "4eb900071efa",
+      "replacement_bytes": "4eb900071fc8",
       "note": "Build 55 revised Option D bypass intercept at 0x045DB8. Single-instruction JSR target swap replaces jsr 0x3A2D0 with genesistan_palette_hook_45dae while preserving native counter/state mutations around the call.",
       "shift_delta": 0
     },
@@ -1950,7 +1973,7 @@
       "arcade_end_exclusive": "0x045EFC",
       "origin": "opcode_replace",
       "original_bytes": "49ed05c843f900d00460426d02144a2c0000670000aa102c00011c2c00201e2c0002740a0c6d00030214650274144eb90003d254d9fc00000040526d02140c6d0006021466c849ed074843f900d00170426d02144a2c000067000082102c00011c2c00201e2c000274064eb90003d254d9fc00000040526d02140c6d0006021466d249ed08c843f900d00300426d02144a2c00006758102c00011c2c00201e2c000274044eb90003d254d9fc00000040526d02140c6d0005021466d44e75303c0180740a0c6d0003021465027414334000025089534266f66000ff5a303c01807406334000025089534266f66082303c01807404334000025089534266f660aa4e75",
-      "replacement_bytes": "4eb90007231e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000724364e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x45DFA (helper genesistan_pc090oj_hook_target_45dfa). Intercepts April-6 caller 0x03A818 and the target itself. Helper re-emits the 22-sprite frame to SAT slots 0..21 (alternate emitter for game phases that re-issue). See Andy_pc090oj_implementation_spec.md \u00a78.6. Build 0192: the Genesis default helper wrongly copies the player block A5+0x11B2 -> records 0..17 (and A5+0x0170 -> 18..21), an exact duplicate of the canonical player that hook_target_41f5e stages to records 120..137/92..95; arcade 0x041DAE/0x045DFA do NOT copy A5+0x11B2 and arcade records 0..17 are empty at Stage 1. The hook body now GAMEPLAY-GATES (genesistan_current_scene_id==1) a SKIP of this spurious low copy; non-gameplay scenes keep the emit. Result: player SAT slots 18->6, total SAT 28->15, VINT rate 0.484->0.588; Rastan unchanged. Byte-neutral jsr replacement here is unchanged; the skip lives in the hook body (pc090oj_hooks.s). Follow-up: faithful arcade 0x041DAE/0x045DFA (records 57/96/140/46) deferred.",
       "shift_delta": 0
     },
@@ -2248,7 +2271,7 @@
       "arcade_end_exclusive": "0x0510F2",
       "origin": "opcode_replace",
       "original_bytes": "33fc000200d00698",
-      "replacement_bytes": "4eb9000729024e75",
+      "replacement_bytes": "4eb900072a464e75",
       "note": "PC090OJ audit guard at arcade_pc 0x0510EA. FU1 trace (Cody_fu1_arcade_trace_510EA_510F4.md) showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #2,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP. Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4.",
       "shift_delta": 0
     },
@@ -2271,7 +2294,7 @@
       "arcade_end_exclusive": "0x0510FC",
       "origin": "opcode_replace",
       "original_bytes": "33fc000000d00698",
-      "replacement_bytes": "4eb9000729024e75",
+      "replacement_bytes": "4eb900072a464e75",
       "note": "PC090OJ audit guard at arcade_pc 0x0510F4. FU1 trace showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #0,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP (shared helper with entry #17). Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4.",
       "shift_delta": 0
     },
@@ -3858,7 +3881,7 @@
       "arcade_end_exclusive": "0x0540CC",
       "origin": "opcode_replace",
       "original_bytes": "227c0010d1d2343c000632fc000332fc000032fc000032fc0000534266ec343c0004227c0010d1b232fc000332fc000032fc000032fc0000534266ec227c0010d1f2343c000632fc000332fc000032fc000032fc0000534266ec227c00d00000343c000432fc000332fc000032fc000032fc0000534266ec4e75",
-      "replacement_bytes": "4eb9000727064e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007284a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x54052 (helper genesistan_pc090oj_hook_slot_init_54052). Intercepts 2 ledger callers (0x0501F4, 0x051260). Helper preserves the original function's Taito C-chip text-RAM clears at 0x10D1B2/0x10D1D2/0x10D1F2 (replicated verbatim) and emits sprite-slot init to SAT slots 72..75. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -3996,7 +4019,7 @@
       "arcade_end_exclusive": "0x054864",
       "origin": "opcode_replace",
       "original_bytes": "227c00d00000207c0005dc5ec0fc001841f00000343c00043028000432c0102800034880d06d129c5240024001ff32c0301032e80000102800024880d06d129a024001ff3e00300732c0d0fc0006534266c64e75",
-      "replacement_bytes": "4eb9000727964e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000728da4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x54810 (helper genesistan_pc090oj_hook_sprite_update_54810). Intercepts 2 ledger callers (0x0547EE, 0x054804). Helper emits 4-sprite-per-call update to SAT slots 44..55. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -4065,7 +4088,7 @@
       "arcade_end_exclusive": "0x05590A",
       "origin": "opcode_replace",
       "original_bytes": "207c0010d000",
-      "replacement_bytes": "4ef900071bf4",
+      "replacement_bytes": "4ef900071c6c",
       "note": "PC080SN descriptor source-pointer relocation hook: runtime 0x055B04 jumps to a JSON-segment-guarded rebuild helper; supersedes the Build 0116 literal read-base rebase at this same opcode_replace site.",
       "shift_delta": 0
     },
@@ -4137,7 +4160,7 @@
       "arcade_end_exclusive": "0x05598E",
       "origin": "opcode_replace",
       "original_bytes": "206d10a0323c0010227c0010d080267c0010d0402453610000322b4810a0588b5489534166ee",
-      "replacement_bytes": "4eb9000703e04e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000704584e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route PC080SN BG strip producer through rastan-direct hook symbol at 0x055968.",
       "shift_delta": 0
     },
@@ -4160,7 +4183,7 @@
       "arcade_end_exclusive": "0x0559B0",
       "origin": "opcode_replace",
       "original_bytes": "206d10a47210227c0010d080267c0010d04024536100006e588b5489534166f2",
-      "replacement_bytes": "4eb9000706f64e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007076e4e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Route PC080SN FG strip producer through rastan-direct hook symbol at 0x055990. Build 0155/OPEN-017: genesistan_hook_tilemap_fg (0x703EA) is the LIVE Stage 1 FG boundary. The arcade FG producer 0x055968->0x070248 (plane_a) is dynamically bypassed on Genesis (KF-040 class); instead the Stage 1 setup loop (0x50634) calls the dispatcher 0x055B48, which (a5@0x10A8=0x80 != 0) routes to THIS hook once per FG column. Its native slot a5@0x10A4 is out of the FG C-window so it bails, while the real FG column dest is a5@0x10A0 = 0xC08000 + dcol*4. A Build 0155 preamble (gated on genesistan_current_scene_id==1) replays the proven FG model directly from ROM: SRC=0x16B1C+seg*0x22C0+group*4 (arcade 0x1691C + copy 0x200), block=ROM_word(SRC+2)+0x200, code=ROM_word(block+colidx*2+row*8), attr=0x0003; dcol=(a5@0x10A0&0x3FFC)>>2, group=dcol>>2, colidx=dcol&3, planerow=seg*4+row. Stages the visible top 32 rows (seg 0..7; fg_fill's 32-row buffer wraps seg 8..15) via genesistan_hook_tilemap_fg_fill -> staged_fg_buffer -> fg_row_dirty -> existing FG VBlank commit. fg_fill preserves d0-d7/a0-a6; the preamble uses d0-d6/a0/a2/a4 which fg_fill restores; CCR not caller-observed here. FG tile family (49 codes, 48 non-blank + transparent 0x020->tile 0/blank slot 0) added to the global LUT + gameplay manifest by precompute_pc080sn_tile_lut.py:collect_runtime_gameplay_fg_tiles. Validation: Genesis MAME 2/3/0 staged_fg 76->2020/2048, visible rows 0-27 match arcade FG cells 98%, Plane B unchanged, frontend intact, deterministic. Non-gameplay scenes fall through to the unchanged FG descriptor path.",
       "shift_delta": 0
     },
@@ -4252,7 +4275,7 @@
       "arcade_end_exclusive": "0x055AD6",
       "origin": "opcode_replace",
       "original_bytes": "33ed10ee00c2000033ed10ec00c4000033ed10b000c2000233ed10ae00c400024e75",
-      "replacement_bytes": "33ed10ee00ff40c433ed10ec00ff40c033ed10b000ff40c633ed10ae00ff40c24e75",
+      "replacement_bytes": "33ed10ee00ff40e633ed10ec00ff40e233ed10b000ff40e833ed10ae00ff40e44e75",
       "note": "Rewrite PC080SN scroll register write function: redirect all four MOVE.W destinations from hardware (0xC20000/0xC40000/0xC20002/0xC40002) to Genesis staged scroll variables. Same opcodes, same A5-relative sources, same RTS. Fixes scroll for ALL callers including gameplay.",
       "shift_delta": 0
     },
@@ -4298,7 +4321,7 @@
       "arcade_end_exclusive": "0x055C34",
       "origin": "opcode_replace",
       "original_bytes": "207c0010d0fc",
-      "replacement_bytes": "4ef900071c56",
+      "replacement_bytes": "4ef900071cce",
       "note": "KF-028/OPEN-016 item-page strip populator pointer relocation hook: runtime 0x055E2E jumps to a JSON-segment-guarded helper that relocates the walker descriptor pointer and descriptor strip pointer before writing Genesis-WRAM 0x00FF1100/0x00FF1104; supersedes the Build 0116/0118 literal rebase at this same opcode_replace site.",
       "shift_delta": 0
     },
@@ -4347,7 +4370,7 @@
       "arcade_end_exclusive": "0x055C68",
       "origin": "opcode_replace",
       "original_bytes": "206d10f8227c0010d104",
-      "replacement_bytes": "4ef900071cae4e714e71",
+      "replacement_bytes": "4ef900071d264e714e71",
       "note": "KF-032/OPEN-022 item-page BG strip producer route: runtime 0x055E5E jumps to genesistan_hook_itempage_strip_blit, which routes the 64-cell PC080SN BG column through genesistan_hook_tilemap_bg_fill instead of raw-writing C-window/HV-port aliases. This clean 10-byte entry supersedes the covered 0x055C62 literal-rebase site to avoid overlapping patched_site segments. Build 0154/OPEN-017/KF-041: this same general strip producer is the live Stage 1 outside BG producer. genesistan_hook_itempage_strip_blit now carries a producer-source scene-selection preamble: when its strip source pointer (PC080SN_ITEMPAGE_STRIP_PTR_SLOT 0xFF1100) is inside the relocated Stage 1 tile-column family [0xD31C,0xFB1C) (arcade 0xD11C..0xF91C + 0x200, walked from arcade descriptor table 0x3951C) and genesistan_current_scene_id != 1, it calls load_scene_tiles(1) through the existing scene lifecycle so the gameplay PC080SN patterns become resident. Keyed on the producer-owned source pointer, not the master state; item-page/other sources outside the range keep their scene. The gameplay tile set + global LUT + gameplay manifest are regenerated by tools/translation/precompute_pc080sn_tile_lut.py (collect_runtime_gameplay_sources) from this descriptor model, replacing the misclassified 0x5635E block model; all 854 runtime codes 0x04A6..0x07FB now map to nonzero LUT slots (was 1/834). The scene selector adds no new opcode_replace site (this entry is unchanged); the preamble lives inside the existing hook. Register/CCR: load_scene_tiles preserves d1-d7/a0-a4; the preamble clobbers only d0/a3 which the hook reloads immediately. Validation: Build 0154 Genesis MAME state 2/3/0 scene_id=1, scene_a0_lo=0x56A22, staged_bg nonuniform (277 distinct vs uniform 0x4000), Stage 1 outside renders (ROUND 1/READY); title/story/BEST 5/item page intact; deterministic across clean runs.",
       "shift_delta": 0
     },
@@ -4383,7 +4406,7 @@
       "arcade_end_exclusive": "0x0560DA",
       "origin": "opcode_replace",
       "original_bytes": "302d1392024000030c400000664e426d10ae426d10b0322d10ee5341024101ff3b4110ee024100076604610000324eb900055cb4207c00d00170226d141cb3c8671a302800025340314000020c4000106606317c00000004508860e24e75",
-      "replacement_bytes": "4eb9000727f84e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007293c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x5607C (helper genesistan_pc090oj_hook_sprite_decay_5607c). Intercepts 1 ledger caller (0x055E92). Helper performs sprite-decay Y-decrement on SAT slots 56..63 (sprite-disappear when Y reaches 16). See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -4406,7 +4429,7 @@
       "arcade_end_exclusive": "0x056128",
       "origin": "opcode_replace",
       "original_bytes": "30100c40ffff670a32d832d832d832d860ee4e75",
-      "replacement_bytes": "4eb90007286c4e754e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000729b04e754e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56114 (helper genesistan_pc090oj_hook_copy_56114). Intercepts 2 ledger callers (0x05604C, 0x056076). Helper copies 4 word-pairs from source descriptor list (terminated by 0xFFFF) into SAT slots 64..67. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -4429,7 +4452,7 @@
       "arcade_end_exclusive": "0x0561D4",
       "origin": "opcode_replace",
       "original_bytes": "323c1000203c00000020207c00c08000227c00c0000020c022c0534166f8",
-      "replacement_bytes": "4eb9000719c64e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900071a3e4e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Replace PC080SN C-window fill loop with JSR to Genesis-side staged buffer clear hook. Hook fills staged_bg_buffer and staged_fg_buffer with LUT-translated blank tile and marks all rows dirty.",
       "shift_delta": 0
     },
@@ -4452,7 +4475,7 @@
       "arcade_end_exclusive": "0x0563AE",
       "origin": "opcode_replace",
       "original_bytes": "2449424010180c00",
-      "replacement_bytes": "4eb900071b3a4e75",
+      "replacement_bytes": "4eb900071bb24e75",
       "note": "OPEN-022/KF-032: route shared PC080SN text writer at runtime 0x0565A6 through destination-range dispatcher. Reuses arcade substitution routine 0x0565CE, forwards live attr unchanged, routes BG/FG C-window cells to staging, and fail-loud traps unexpected destinations.",
       "shift_delta": 0
     },
@@ -4475,7 +4498,7 @@
       "arcade_end_exclusive": "0x05645E",
       "origin": "opcode_replace",
       "original_bytes": "227c00d00000d3fc00000170303c0009323c0008610000346100fd464e75",
-      "replacement_bytes": "4eb9000728ac4e754e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000729f04e754e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. Helper zeroes SAT slots 68..71. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -4498,7 +4521,7 @@
       "arcade_end_exclusive": "0x059B1A",
       "origin": "opcode_replace",
       "original_bytes": "c2fc0020d0c1eb484246227c00200000d2c032180c41ffff671e3401360102410f00ee49024200f0e54a0243000fe14be74bd641d64232830c46000f67065246548960ce4e75",
-      "replacement_bytes": "4eb900071e264e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900071e9e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Build 55 palette translator function-body replacement at 0x59AD4 (helper genesistan_palette_hook_59ad4). Helper reproduces source-row and bank semantics, converts arcade raw colors to xBGR-555 then to Genesis CRAM, stages low banks 0..3, and sets palette_dirty.",
       "shift_delta": 0
     },
@@ -4521,7 +4544,7 @@
       "arcade_end_exclusive": "0x059F92",
       "origin": "opcode_replace",
       "original_bytes": "323c0008207c00d00048428020c020c0534166f8323c0004207c0010c17030fc008030fc000030fc000030fc0000534166ec4e75",
-      "replacement_bytes": "4eb90007246a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000725ae4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x59F5E (helper genesistan_pc090oj_hook_target_59f5e). Intercepts April-6 caller 0x03A8E4 plus 3 non-ledger callers (0x051266, 0x0519A0, 0x055E18). Helper clears SAT slots 0..7 (the 0xD00048+ region). See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -4544,7 +4567,7 @@
       "arcade_end_exclusive": "0x05A28A",
       "origin": "opcode_replace",
       "original_bytes": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a48ad2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
-      "replacement_bytes": "4eb9000728c64e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900072a0a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x5A098 (helper genesistan_pc090oj_hook_status_sprite_5a098). Intercepts 1 ledger caller (0x051054). 498-byte span includes the inline helper at 0x5A244..0x5A289 (called only from 0x5A210 inside the function). Helper emits 12-write-per-call status/UI sprite descriptors to SAT slots 30..43. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -4613,7 +4636,7 @@
       "arcade_end_exclusive": "0x05A4E8",
       "origin": "opcode_replace",
       "original_bytes": "3800244932c232d85340",
-      "replacement_bytes": "4ef900070d7a4e714e71",
+      "replacement_bytes": "4ef900070df24e714e71",
       "note": "Route PC080SN BG block-copy engine through rastan-direct staging helper. Used by title/attract art block setup at arcade 0x05A38E (JSON segment 171 maps runtime 0x05A58E -> 0x05A6DE): preserves width/height/source/dest/attr contract and stages cells into staged_bg_buffer with bg_row_dirty.",
       "shift_delta": 0
     },
@@ -4636,14 +4659,14 @@
     },
     {
       "genesis_start": "0x070000",
-      "genesis_end_exclusive": "0x182950",
-      "size_bytes": 1124688,
+      "genesis_end_exclusive": "0x182B00",
+      "size_bytes": 1125120,
       "kind": "genesis_only",
       "tag": "wrapper"
     }
   ],
   "segment_coverage": {
-    "total_genesis_bytes_covered": 1583440,
+    "total_genesis_bytes_covered": 1583872,
     "gaps": [],
     "overlaps": []
   },

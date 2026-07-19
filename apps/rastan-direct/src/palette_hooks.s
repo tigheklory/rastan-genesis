@@ -6,11 +6,15 @@
     .global genesistan_palette_hook_3ba64
     .global palette_route_lookup
 
+    .include "pc090oj_config.inc"
+
     .extern palette_dirty
     .extern staged_palette_words
     .extern fg_bank3_line_cache
     .extern fg_bank3_cache_valid
     .extern fg_bank3_route_seen
+    .extern pc090oj_bank36_line0_cache
+    .extern pc090oj_bank36_cache_valid
 
 /* ------------------------------------------------------------------------- *
  * Build 0175: arcade palette-bank -> Genesis CRAM-line route table.
@@ -51,6 +55,14 @@ palette_route_table:
     .word 1, PROUTE_OWNER_PC080SN_BG, 48, 2, 0
     .word 1, PROUTE_OWNER_PC090OJ,    51, 3, 0
     .word 1, PROUTE_OWNER_HUD,        0,  0, 0
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+    /* Build 0208: with gameplay HUD sprites suppressed, CRAM line 0 is free
+     * during gameplay; carry PC090OJ effective sprite bank 0x36 (lizard men,
+     * hurry-up family) there.  CARRIER: the converted bank-0x36 palette is
+     * cached by the palette hooks and re-asserted each gameplay VBlank
+     * (vdp_reassert_bank36_line0), never staged in non-gameplay scenes. */
+    .word 1, PROUTE_OWNER_PC090OJ,    0x36, 0, PROUTE_FLAG_CARRIER
+.endif
     .word 0xFFFF, 0, 0, 0, 0
 
     .section .text,"ax"
@@ -136,6 +148,14 @@ genesistan_palette_hook_59ad4:
     move.b  #1, fg_bank3_route_seen /* remember bank-3 route for line-1 cache */
     bra.s   .L59_dest_ready
 .L59_not_bank3:
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+    /* Build 0208: arcade sprite bank 0x36 (lizard men) -> cache only.  The
+     * bank is written once at stage load, possibly while the frontend still
+     * owns line 0, so it is never staged directly; the gameplay carrier
+     * (vdp_reassert_bank36_line0) applies the cache during scene 1. */
+    cmpi.w  #0x0036, %d0
+    beq     .L59_bank36_cache
+.endif
     cmpi.w  #4, %d0
     bcc.s   .L59_done
 .L59_dest_ready:
@@ -195,6 +215,41 @@ genesistan_palette_hook_59ad4:
 .L59_no_cache:
     movem.l (%sp)+, %d0-%d7/%a0-%a2
     rts
+
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+/* Build 0208: convert arcade bank 0x36 (source = a0 + d1*32, same entry format
+ * as the main body) into the gameplay line-0 carrier cache.  Never stages the
+ * live palette here; the scene-1 re-assert owns line 0 during gameplay. */
+.L59_bank36_cache:
+    move.w  %d1, %d2
+    mulu.w  #32, %d2
+    adda.w  %d2, %a0
+    lea     pc090oj_bank36_line0_cache, %a1
+    moveq   #15, %d6
+.L59_b36_loop:
+    move.w  (%a0)+, %d1
+    cmpi.w  #0xFFFF, %d1
+    beq.s   .L59_b36_next
+    move.w  %d1, %d2
+    move.w  %d1, %d3
+    andi.w  #0x0F00, %d1
+    lsr.w   #7, %d1
+    andi.w  #0x00F0, %d2
+    lsl.w   #2, %d2
+    andi.w  #0x000F, %d3
+    lsl.w   #8, %d3
+    lsl.w   #3, %d3
+    add.w   %d1, %d3
+    add.w   %d2, %d3
+    move.w  %d3, %d0
+    bsr     .Lxbgr555_to_cram
+    move.w  %d1, (%a1)
+.L59_b36_next:
+    addq.l  #2, %a1
+    dbra    %d6, .L59_b36_loop
+    move.b  #1, pc090oj_bank36_cache_valid
+    bra     .L59_done
+.endif
 
 /* 0x03AB00 replacement
  * original: movew #1023,0x200022 (bank 1, entry 1), already xBGR-555
@@ -288,11 +343,26 @@ genesistan_palette_hook_3ba64:
      * (d6=3) via the existing xBGR->CRAM/line-3 path. Bank 48 (line 2) is unaffected
      * (it is written to palette RAM 0x200600 by a separate caller). */
     cmpi.l  #0x00FF1660, %d4
-    blo.s   .L3ba64_chk_palram
+    blo.s   .L3ba64_chk_b36src
     cmpi.l  #0x00FF1680, %d4
-    bhs.s   .L3ba64_chk_palram
+    bhs.s   .L3ba64_chk_b36src
     moveq   #3, %d6
     bra.w   .L3ba64_line_ok
+
+.L3ba64_chk_b36src:
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+    /* Build 0208: sprite bank 0x36 (lizard men) follows the same source-buffer
+     * path as bank 51 (Build 0161): the arcade writes it to the sprite-palette
+     * SOURCE buffer at a5@0x1600 + (bank-0x30)*0x20 -- bank 0x36 = Genesis
+     * 0x00FF16C0..0x00FF16DF -- then memcpy's to palette RAM 0x2006C0 (dropped
+     * on Genesis).  Catch the source-buffer write and cache it for the
+     * gameplay line-0 carrier (never staged directly). */
+    cmpi.l  #0x00FF16C0, %d4
+    blo.s   .L3ba64_chk_palram
+    cmpi.l  #0x00FF16E0, %d4
+    bhs.s   .L3ba64_chk_palram
+    bra     .L3ba64_bank36_cache    /* entry = (addr & 0x1F) >> 1, same math */
+.endif
 
 .L3ba64_chk_palram:
     /* Only map arcade palette RAM 0x200000..0x200FFF into Genesis staging. */
@@ -317,6 +387,10 @@ genesistan_palette_hook_3ba64:
     beq.s   .L3ba64_to_line2
     cmpi.l  #51, %d6
     beq.s   .L3ba64_to_line3
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+    cmpi.l  #0x36, %d6              /* Build 0208: bank 0x36 -> carrier cache */
+    beq     .L3ba64_bank36_cache
+.endif
     bra.s   .L3ba64_next            /* all other banks skipped */
 .L3ba64_to_line1:
     moveq   #1, %d6                 /* arcade bank 3 -> Genesis line 1 */
@@ -373,3 +447,22 @@ genesistan_palette_hook_3ba64:
 .L3ba64_no_cache:
     movem.l (%sp)+, %d4-%d7/%a1
     rts
+
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+/* Build 0208: direct arcade palette-RAM write to bank 0x36 (lizard men) ->
+ * gameplay line-0 carrier cache.  d0 = converted xBGR-555 color, d4 = arcade
+ * destination address, d3 = live long loop counter (preserved across the
+ * conversion BSR exactly like the staged path). */
+.L3ba64_bank36_cache:
+    move.l  %d4, %d7
+    andi.l  #0x001F, %d7
+    lsr.l   #1, %d7                  /* entry within bank: 0..15 */
+    move.l  %d3, %d4                 /* preserve long loop counter across BSR */
+    bsr     .Lxbgr555_to_cram
+    move.l  %d4, %d3
+    lsl.w   #1, %d7                  /* byte offset in the cache */
+    lea     pc090oj_bank36_line0_cache, %a1
+    move.w  %d1, 0(%a1,%d7.w)
+    move.b  #1, pc090oj_bank36_cache_valid
+    bra     .L3ba64_next
+.endif

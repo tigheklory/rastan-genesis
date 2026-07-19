@@ -1,3 +1,5 @@
+    .include "pc090oj_config.inc"
+
     .section .text,"ax"
 
     .global vdp_boot_setup
@@ -21,6 +23,8 @@
     .global fg_bank3_line_cache
     .global fg_bank3_cache_valid
     .global fg_bank3_route_seen
+    .global pc090oj_bank36_line0_cache
+    .global pc090oj_bank36_cache_valid
 
     .global palette_dirty
     .global tiles_dirty
@@ -196,6 +200,9 @@ _vblank_service:
     bsr     vdp_set_reg
 
     bsr     vdp_reassert_fg_bank3_line
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+    bsr     vdp_reassert_bank36_line0
+.endif
     tst.b   palette_dirty
     beq.s   .Lvs_skip_palette
     bsr     vdp_commit_palette
@@ -488,6 +495,60 @@ vdp_reassert_fg_bank3_line:
 .Lrfb_done:
     rts
 
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+/* Build 0208: PC090OJ bank-0x36 (lizard men) line-0 carrier re-assert.
+ * With gameplay HUD sprites suppressed, the shared route table assigns
+ * (scene 1, PC090OJ, bank 0x36) -> line 0 with the CARRIER flag.  The arcade
+ * writes bank 0x36 once at stage load (possibly while the frontend still owns
+ * line 0), so the palette hooks only CACHE the converted bank; each gameplay
+ * VBlank this routine looks up the carrier line and restores the cache into it
+ * if it has drifted, then marks the palette dirty.  Non-gameplay scenes are
+ * never touched (frontend keeps its line-0 HUD white). */
+    .equ PR_OWNER_PC090OJ, 3
+    .equ PR_BANK36,        0x36
+vdp_reassert_bank36_line0:
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .Lrb36_done
+    tst.b   pc090oj_bank36_cache_valid
+    beq.s   .Lrb36_done
+    movem.l %d0-%d3/%a0-%a1, -(%sp)
+    moveq   #PR_SCENE_GAMEPLAY, %d0
+    moveq   #PR_OWNER_PC090OJ, %d1
+    moveq   #PR_BANK36, %d2
+    bsr     palette_route_lookup       /* d0 = line (or -1), d3 = flags */
+    tst.l   %d0
+    bmi.s   .Lrb36_restore_done        /* no matching route */
+    btst    #0, %d3                     /* PROUTE_FLAG_CARRIER */
+    beq.s   .Lrb36_restore_done
+    lsl.w   #5, %d0                     /* line * 32 bytes */
+    lea     staged_palette_words, %a1
+    adda.w  %d0, %a1
+    lea     pc090oj_bank36_line0_cache, %a0
+    moveq   #(16 - 1), %d2
+    moveq   #0, %d3
+.Lrb36_cmp:
+    move.w  (%a0)+, %d1
+    cmp.w   (%a1)+, %d1
+    beq.s   .Lrb36_cmp_next
+    moveq   #1, %d3
+.Lrb36_cmp_next:
+    dbra    %d2, .Lrb36_cmp
+    tst.b   %d3
+    beq.s   .Lrb36_restore_done         /* line already holds bank 0x36 */
+    lea     staged_palette_words, %a1
+    adda.w  %d0, %a1
+    lea     pc090oj_bank36_line0_cache, %a0
+    moveq   #(16 - 1), %d2
+.Lrb36_copy:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d2, .Lrb36_copy
+    move.b  #1, palette_dirty
+.Lrb36_restore_done:
+    movem.l (%sp)+, %d0-%d3/%a0-%a1
+.Lrb36_done:
+    rts
+.endif
+
     .section .bss
     .align 2
 
@@ -496,6 +557,12 @@ fg_bank3_line_cache:
 fg_bank3_cache_valid:
     .byte 0
 fg_bank3_route_seen:
+    .byte 0
+    .align 2
+/* Build 0208: converted arcade PC090OJ bank-0x36 palette (line-0 carrier). */
+pc090oj_bank36_line0_cache:
+    .space (16 * 2)
+pc090oj_bank36_cache_valid:
     .byte 0
     .align 2
 

@@ -42899,3 +42899,182 @@ Open/Closed Issues Impact:
 - KNOWN_FINDINGS impact: Option A -- no new finding/update; boundary refined but exact durable writer/root mechanism not yet proven.
 - Architecture compliance: CONFIRMED -- evidence only; no forced actors/records/state/timing, no source/build changes, arcade code remains the program.
 - STOP triggered: YES, limited -- exact writer PC/source-table provenance not captured, so no implementation is safe from this evidence alone.
+
+## [Cody — Evidence, Build 0205 Lizard b5 Activation Writer Provenance]
+
+- Files changed: `docs/design/Cody_lizard_b5_activation_writer_provenance.md`, `KNOWN_FINDINGS.md`, `OPEN_ISSUES.md`, trace reduced artifacts `states/traces/lizard_b5_activation_writer_provenance_20260718_221518/b5_event_summary.md/json`, `AGENTS_LOG.md`.
+- Build produced: NO. ROM path: N/A. Build 0206 produced: NO. Counter remains `205`; Build 0205 SHA `4238d2ffcd226c45f1251ccbe4e7e64fa9b642acb18c4957ab85e1fd888b4aee`; opcode_replace `214`; coverage `0x182950`.
+- Source/spec/tool/Makefile/gate/invariant/ROM changes: NONE.
+- Exact arcade writer: `arcade_pc 0x00041320` (`move.b %d1,5(%a4)`), watchpoint post-PC `0x00041324`, reached through `0x3A7B4 -> 0x41F0E -> 0x40B66 -> 0x40B80 -> ... -> 0x41320`. Debugger watchpoints prove nonzero b5 activations for entries `8,7,6,5,4` at arcade WRAM `0x10C4CD/0x10C48D/0x10C44D/0x10C40D/0x10C3CD`.
+- JSON-mapped Genesis counterpart: `runtime_genesis_pc 0x00041520`, watchpoint post-PC `0x00041524`, equivalent path `0x3A9B4 -> 0x4210E -> 0x40D66 -> 0x40D80 -> ... -> 0x41520`. Positive-control entry 8 reaches the mapped writer and writes `0x02` to Genesis-WRAM `0x00FF04CD`.
+- First exact divergence: Build 0205 never reaches `runtime_genesis_pc 0x00041520` for entries `4..7` in the captured window; only clears are observed for those b5 fields. The one-lizard limit is upstream actor activation/progression reachability, not the Build 0205 whole-block scratch staging helper and not a later overwrite of correctly activated entries.
+- Smallest safe boundary: pin/restore the upstream actor activation/progression gate/table/source path that should drive entries `4..7` into `runtime_genesis_pc 0x00041520`. Do NOT seed b5, force PC090OJ records/SAT, or patch `pc090oj_stage_block2c8` to bypass actor state.
+- Open/Closed Issues Impact: OPEN-017 and OPEN-024 touched; OPEN-017 updated. New issues: NONE. Closed: NONE. Deferred: exact upstream branch/table/source defect, palette bank 0x36, visual-Y/feet alignment, combat/damage, SAT/VRAM/tile residency, black bar/VBlank, FG/sky/HUD, record 132, bat behavior, D00298, continue/game-over.
+- KNOWN_FINDINGS impact: Option C — KF-065 refined with Build 0205 b5 writer-provenance boundary; KF-064 remains intact.
+- Architecture compliance: CONFIRMED — evidence only; arcade code remains the program; no forced actors/state/records/SAT and no build.
+- STOP triggered: NO — writer/provenance divergence proven; implementation deferred until the upstream activation gate/source is patch-safe.
+
+### MAME Exit Summary (2026-07-18 22:55:13)
+- Final PC: 0x03B294
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Lizard Actor Activation Progression Fix and Build 0206]
+
+- Files changed: `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_lizard_actor_activation_progression_fix.md`, `KNOWN_FINDINGS.md`, `OPEN_ISSUES.md`, generated build artifacts/manifests/disassembly, trace artifacts under `states/traces/lizard_actor_activation_progression_fix_20260718_224821/`, `AGENTS_LOG.md`.
+- Build produced: YES — Build 0206/256, `dist/rastan-direct/rastan_direct_video_test_build_0206.bin`, SHA `98dc3a1b58ab66403ceb90d3d397f621d0aa90bf616c48671c43080dc720a4ae`, size `1583440`, counter `206`; rolling ROM byte-identical; `GATE_PASS`.
+- Root cause confirmed: YES. First exact upstream divergence was the missed collision-map forward upper-bound rebase at `arcade_pc 0x000412CC` / `runtime_genesis_pc 0x000414CC`: base `0x53C64` and lower bound `0x414E8` used mapped Genesis-WRAM `0x00FF1E00`, but upper bound still compared against raw arcade `0x0010FE00`, causing Build 0205 entries `4..7` to wrap to `0x00FA7Cxx`, exhaust `SCAN_FAIL_FWD`, and never reach mapped b5 writer `0x41520`.
+- Fix implemented: byte-neutral opcode replacement `B1FC0010FE00 -> B1FC00FF3E00`, completing collision-buffer bounds `0x00FF1E00..0x00FF3E00`. No b5 seeding, forced actors, forced PC090OJ records/SAT, direct sprite injection, second renderer, or staging concealment.
+- Invariants: `opcode_replace` count `214 -> 215`; `total_genesis_bytes_covered` remains `0x182950` because the replacement is byte-neutral inside already-covered copied code. Spec expectation and both canonical invariant checkers updated to `215 / 0x182950`.
+- Build attempts: two pre-artifact invariant/spec stops occurred before final artifact production (spec expected `214`; then coverage was incorrectly expected as `0x182956` while observed remained `0x182950`). Final release passed after correcting the mechanical expectations.
+- Static verification: `build/rastan-direct/address_map.json` maps `arcade_pc 0x000412CC` to `runtime_genesis_pc 0x000414CC`; disassembly/ROM bytes show `0x414CC = B1FC00FF3E00`, `0x414E8 = B1FC00FF1E00`, `0x53C64 = 207C00FF1E00`; manifest expects `215 / 0x182950`.
+- Runtime validation: Build 0206 scan trace proves entries `8,7,6,5,4` all hit `runtime_genesis_pc 0x00041520` (`WRITER=1` each). Acceptance sampler reached max `valid_actors=4`, `actor_windows_nonzero=5`, `mirror_visible=36`, `represented=36`, `active_count=53`, `waiting=0`. Record-46 continuity probe kept record 46 nonzero/represented (`0x0275 -> 0x0277`, SAT slot 40).
+- User verification still required: multiple lizards visibly appearing in BlastEm/Exodus, player control, record-46 secondary sprite behavior, lizard palette/bank-0x36, feet/ground alignment, damage/contact behavior, black bar/VBlank, stale record 132, bats, and other deferred gameplay visuals.
+- Open/Closed Issues Impact: OPEN-017 and OPEN-024 touched; OPEN-017 updated. New issues: NONE. Closed: NONE. Deferred: visual lizard acceptance, palette bank 0x36, combat/damage, visual-Y/feet alignment, record 132, bats, black bar/VBlank, FG/sky/HUD, D00298, continue/game-over.
+- KNOWN_FINDINGS impact: Option C — KF-065 refined with the Build 0206 activation progression root cause/fix and validation boundary; KF-064 remains intact.
+- Architecture compliance: CONFIRMED — arcade code remains the program; the fix restores a translated address bound in copied arcade control flow and preserves the PC090OJ staging/representation pipeline.
+- STOP triggered: NO.
+
+## [Cody — STOP, Lizard-Man Visual and Combat Acceptance Fix]
+
+- Files changed: `docs/design/Cody_lizard_visual_combat_acceptance_fix.md`, trace artifacts under `states/traces/lizard_visual_combat_acceptance_fix_20260718_232843/`, `AGENTS_LOG.md`.
+- Build produced: NO. Build 0207 produced: NO. ROM path: N/A. Counter remains `206`; accepted/rolling Build 0206 SHA remains `98dc3a1b58ab66403ceb90d3d397f621d0aa90bf616c48671c43080dc720a4ae`, size `1583440`.
+- Source/spec/tool/Makefile/gate/invariant/ROM changes: NONE in this task. Pre-edit canonical state recovered as opcode_replace `215`, coverage `0x182950`.
+- Palette result: strong shared-route boundary found. Build 0206 lizard PC090OJ effective bank is `0x36`, but `.Lpc090oj_place_record_in_slot` only special-cases `0x30 -> line 2` and `0x33 -> line 3`; other banks fall through `(bank >> 4) & 3`, so `0x36` selects line 3 and bypasses `palette_route_lookup`. Existing route table currently has PC090OJ bank `0x33` only.
+- Vertical result: STOP blocker. Matched original arcade vs Build 0206 MAME lizard Y samples do not prove the Nomad-reported 8px-low issue; current `PC090OJ_TO_GENESIS_Y_OFFSET=-8` aligns sampled composite ranges. A global or lizard-specific Y patch would be unproven.
+- Combat result: STOP blocker. Arcade sampled HP changes during lizard-contact run while Build 0206 HP remains `0x3000`, but HP write taps only caught init/clear events and did not capture the authoritative natural lizard damage writer/control path. Direct HP decrement, forced hurt state, or fabricated overlap remains forbidden.
+- JSON mappings recorded: `arcade_pc 0x412CC -> runtime_genesis_pc 0x414CC`, `0x41320 -> 0x41520`, `0x504A2 -> 0x506A2`, `0x517E6 -> 0x519E6`, `0x519AC -> 0x51BAC`, `0x54EA0 -> 0x550A0`, `0x54FA4 -> 0x551A4`, `0x54FBC -> 0x551BC`.
+- Open/Closed Issues Impact: OPEN-017 and OPEN-024 touched; OPEN-001 context. New issues: NONE. Closed: NONE. Ledgers not edited because this stopped before an accepted implementation/new durable mechanism. Deferred: black bar/display instability, hurry-up bat spawning/timing/combat, record 132, FG/sky/HUD/D00298/continue/game-over.
+- KNOWN_FINDINGS impact: Option A — no new finding indexed; the palette candidate is narrowed but no Build 0207 fix/acceptance exists, and vertical/combat mechanisms are not proven.
+- Architecture compliance: CONFIRMED — evidence-only after STOP; no forced actors, direct SAT/health manipulation, second renderer, per-enemy constants, or bypass.
+- STOP triggered: YES — Build 0207 not produced because Objective B and Objective C have concrete safety blockers.
+
+## [Cody — STOP, Lizard-Man Acceptance Completion and Build 0207]
+
+- Files changed: `docs/design/Cody_lizard_acceptance_completion.md`, trace/reduced artifacts under `states/traces/lizard_acceptance_completion_20260719_002717/`, `AGENTS_LOG.md`.
+- Build produced: NO. Build 0207 produced: NO. ROM path: N/A. Counter remains `206`; Build 0206/256 remains `dist/rastan-direct/rastan_direct_video_test_build_0206.bin`, SHA `98dc3a1b58ab66403ceb90d3d397f621d0aa90bf616c48671c43080dc720a4ae`, size `1583440`.
+- Source/spec/tool/Makefile/gate/invariant/ROM changes: NONE. `debug.log` was restored from HEAD after debugger capture moved/deleted the tracked workspace transcript.
+- Palette completion result: NOT safe to implement. PC090OJ lizard effective bank `0x36` still falls through `.Lpc090oj_place_record_in_slot` to Genesis line 3 instead of using `palette_route_lookup`; observed Rastan bank `0x33` on line 3 uses nonzero pixel indices `1..15`, and observed lizard bank `0x36` uses indices `1..12`, so line 3 cannot carry both by unused-entry fill. No safe carrier/remap was proven for line 0/1/2 owners, record46, bats, HUD, BG, and FG.
+- Vertical completion result: NOT safe to implement. Tighe's Nomad observation of lizards ~8px low remains recorded, but this task did not reproduce/tie it to a pixel-level MAME arcade-vs-Genesis origin/height/bias/clipping boundary. Existing `PC090OJ_TO_GENESIS_Y_OFFSET=-8` is not safe to change from current evidence.
+- Combat completion result: narrowed but NOT safe to implement. Original arcade MAME reaches `arcade_pc 0x000519AC` (`subi.w #0x0100,%a5@(314)`) 112 times during natural lizard/contact run and HP changes from `0x3000`; Genesis Build 0206 reaches visible/valid lizards but never hits mapped `runtime_genesis_pc 0x00051BAC`, HP remains `0x3000`, and alternate HP subtract candidates `0x550A0/0x551A4/0x551BC` do not hit. First proven divergence is upstream of the damage routine, around the call gate `arcade_pc 0x5133A` / `runtime_genesis_pc 0x5153A` and `A5+0x10E8==8`, not at HP storage.
+- JSON mappings used: `0x412CC->0x414CC`, `0x41320->0x41520`, `0x504A2->0x506A2`, `0x5133A->0x5153A`, `0x517E6->0x519E6`, `0x517EE->0x519EE`, `0x5194A->0x51B4A`, `0x519AC->0x51BAC`, `0x54EA0->0x550A0`, `0x54EBE->0x550BE`, `0x54FA4->0x551A4`, `0x54FBC->0x551BC`, all via `build/rastan-direct/address_map.json` segment containment.
+- Recommended next narrow boundaries: palette bank-0x36 carrier/remap proof across all CRAM-line owners; combat backtrack at `runtime_genesis_pc 0x51532..0x5153A` and `0x51B4A` with `A5+0x10E8`, `A5+0x10D0`, `A5+0x12F4`, HP, player/lizard position, and collision flags; pixel-level arcade-vs-Genesis feet/ground measurement before changing Y origin math.
+- Open/Closed Issues Impact: OPEN-017 and OPEN-024 touched; OPEN-001 context. New issues: NONE. Closed: NONE. Ledgers not edited. Deferred: black bar/VBlank/display instability, record 132, bats, FG/sky/HUD/D00298/continue/game-over.
+- KNOWN_FINDINGS impact: Option A — no new finding indexed; KF-064/KF-065 remain active priors and no accepted Build 0207 mechanism exists.
+- Architecture compliance: CONFIRMED — no forced actors, records, SAT, HP/hurt state, overlap, per-enemy constants, second renderer, or bypass.
+- STOP triggered: YES — Build 0207 not produced because palette carrier/remap, visual-Y, and combat call-gate boundaries are not all safely proven.
+
+## [Cody — STOP, Andy/Opus Lizard Acceptance Recovery and Build 0207]
+
+- Files changed: `docs/design/Andy_opus_lizard_acceptance_recovery_build0207.md`, trace artifacts under `states/traces/lizard_acceptance_recovery_20260719_111945/`, `AGENTS_LOG.md`.
+- Build produced: NO. Build 0207 produced: NO. ROM path: N/A. Counter remains `206`; Build 0206/256 remains `dist/rastan-direct/rastan_direct_video_test_build_0206.bin`, SHA `98dc3a1b58ab66403ceb90d3d397f621d0aa90bf616c48671c43080dc720a4ae`, size `1583440`.
+- Source/spec/tool/Makefile/gate/invariant/ROM changes: NONE. `debug.log` was restored from HEAD after MAME debug capture dirtied the tracked workspace transcript.
+- Trace evidence: original arcade MAME `rastan` and Genesis Build 0206 MAME runs completed with status `0` using `states/traces/lizard_acceptance_recovery_20260719_111945/`. Arcade final sample reached HP `0x2400`; Genesis Build 0206 remained HP `0x3000` with visible/represented lizards.
+- JSON mappings used via `build/rastan-direct/address_map.json`: `arcade_pc 0x00051332 -> runtime_genesis_pc 0x00051532`, `0x0005133A -> 0x0005153A`, `0x000517E6 -> 0x000519E6`, `0x000517EE -> 0x000519EE`, `0x0005194A -> 0x00051B4A`, `0x000519AC -> 0x00051BAC`, `0x00052064 -> 0x00052264`, `0x000524E8 -> 0x000526E8`, `0x00052712 -> 0x00052912`, `0x00052730 -> 0x00052930`.
+- Combat result: traced past the previous `A5+0x10E8` gate. Arcade reaches downstream mode-8 writer `arcade_pc 0x000517EE` (`move.w #8,%a5@(4328)`) and HP subtract path `arcade_pc 0x000519AC`; Genesis Build 0206 never reaches mapped `runtime_genesis_pc 0x000519EE` or `0x00051BAC` in the captured run. The downstream mode writer is guarded by `cmpi.w #0,%a5@(314)` / `bhis`, so forcing it would force gameplay/hurt/death state and is not safe.
+- Palette result: no implementation. Bank `0x36` line-3 collision remains the known palette boundary; the prompt-authorized HUD-suppression/line-0 route remains a candidate but was deferred because combat still lacks a safe patch boundary.
+- Y alignment result: no implementation. The Nomad-reported lizard low-offset remains unresolved and unblocked by itself, but no pixel-level safe correction was proven.
+- Root cause confirmed: NO for a patchable Build 0207 combat fix. First exact divergence remains upstream of the natural mode-8/hurt/HP-subtract chain.
+- Fix implemented: NO. No forced actors, records, SAT entries, collision overlap, hurt state, HP loss, lizard-specific damage rule, second renderer, or bypass.
+- Recommended next narrow boundary: trace the state creator that makes original arcade enter mode `8` and Genesis Build 0206 not enter it, with `A5+0x013A`, `A5+0x10E8`, `A5+0x12F4`, HP, player/lizard positions, and the branch condition leading to `0x519EE`.
+- Open/Closed Issues Impact: OPEN-017 and OPEN-024 touched; OPEN-001 context. New issues: NONE. Closed: NONE. Deferred: palette bank `0x36`, gameplay HUD suppression, bat colors, lizard Y alignment, black bar/VBlank/display instability, stale record 132, FG/sky/HUD, D00298, continue/game-over.
+- KNOWN_FINDINGS impact: Option A -- no new finding indexed; KF-064/KF-065 remain active priors and no accepted Build 0207 mechanism exists.
+- Architecture compliance: CONFIRMED -- arcade code remains the program and the task stopped before any unsafe state-forcing implementation.
+- STOP triggered: YES -- Build 0207 not produced because the combat correction boundary is still not safely proven.
+
+## [Cody — Emergency Correction, Build 0207 Artifact Recovery]
+
+- Files changed: `docs/design/Cody_emergency_build0207_artifact_recovery.md`, `docs/design/Andy_opus_lizard_acceptance_recovery_build0207.md`, `CURRENT_STATE.md`, `OPEN_ISSUES.md`, `apps/rastan-direct/Makefile`, `build/rastan-direct/build_counter.txt`, `build/rastan-direct/consumed_build_numbers.txt`, recovery artifacts under `states/traces/build0207_artifact_recovery_20260719_114926/`, `AGENTS_LOG.md`.
+- Build produced: NO. ROM path: N/A. No Build 0207 or Build 0208 was produced in this recovery task.
+- Emergency correction: Tighe reports Build 0207 was produced/consumed and then deleted/lost. Prior log/doc statements that Build 0207 was not produced and that counter `206` was authoritative are superseded for build-number accounting.
+- Recovery result: NO recoverable `dist/rastan-direct/rastan_direct_video_test_build_0207.bin` found in workspace/app-local dist/trace/tmp searches. Current rolling ROM hashes byte-identical to Build 0206 (`98dc3a1b58ab66403ceb90d3d397f621d0aa90bf616c48671c43080dc720a4ae`). Exact Build 0207 SHA/size/bytes/source state are not recoverable from disk, so deterministic reconstruction was not attempted.
+- Corrected state: `build/rastan-direct/build_counter.txt` now contains `207`; `build/rastan-direct/consumed_build_numbers.txt` records `0207 CONSUMED_ARTIFACT_LOST`; next ROM-producing build must be Build 0208.
+- Guard added: `apps/rastan-direct/Makefile` release rule now rejects counters behind existing/ledger-consumed build numbers, refuses to overwrite an existing numbered artifact, copies and verifies the numbered artifact before advancing the counter, and keeps rolling ROM identity separate from numbered artifact preservation.
+- Validation: `make -C apps/rastan-direct -n release` parse/dry-run succeeded; guard dry-run logic computed `n=207`, `max_seen=0207`, `next=0208`. No ROM build was run.
+- Root cause confirmed: YES for the artifact/ledger failure class (counter rollback/reuse risk after consumed/lost Build 0207). NO gameplay/source fix was attempted.
+- Fix implemented: infrastructure guard only. No source gameplay/spec/ROM/build/invariant fix, no lizard/combat/palette/Y work.
+- Open/Closed Issues Impact: OPEN-002 updated; OPEN-017/OPEN-024 context only. New issues: NONE. Closed: NONE. Deferred: lizard visual/combat fixes, palette route, Y alignment, damage/contact, all gameplay implementation work.
+- KNOWN_FINDINGS impact: Option A -- no new finding indexed; this is process/artifact evidence, not a durable arcade/Genesis system-behavior finding.
+- Architecture compliance: CONFIRMED -- no ROM/runtime behavior changes; tooling/counter/docs only.
+- STOP triggered: YES (artifact not recoverable). Build 0207 is consumed/lost; Build 0208 is next.
+
+### MAME Exit Summary (2026-07-19 12:54:06)
+- Final PC: 0x03A1AE
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-19 12:58:15)
+- Final PC: 0x03B284
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-19 13:04:13)
+- Final PC: 0x03B284
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Opus — Gameplay HUD Suppression + Lizard Palette (task "Build 0208" -> delivered Build 0210)
+
+- **Date:** 2026-07-19
+- **Type:** Implementation. Iterations consumed 0208/0209 (REJECTED, preserved); corrected candidate = Build 0210/256 (rolling).
+- **Builds:** 0208 `df1e6d8f...` REJECTED (HUD not retired at gameplay entry; bank-0x36 palette never captured — wrong path); 0209 `44bb7db0...` REJECTED (palette_route_lookup d3-clobber -> all lizard slots tile-DMA'd code 0x0001, bodies invisible); **0210 `6dbe8ec35c04f52dcca503e6958c1da5bf622bd6a6fee9409d87e14c22b7806e` size 1,583,828 counter 210 GATE_PASS — full green arcade-matching lizard men.** Release guard enforced consumed numbers (refused counter reuse). All numbered ROMs preserved; 0207 remains consumed/lost.
+- **Objective 1 (HUD option):** RASTAN_GAMEPLAY_HUD_SPRITES ?= 1 (Makefile -> pc090oj_config.inc). =0 in 0210: records 0..45 draw=0 during scene 1 (sync gate) + scene-transition full candidate sweep (vdp_prepare_sprites) retires pre-gameplay HUD representations. Runtime: gameplay HUDrep = empty, hud_suppressed_count 12-14 (retirement-only, no churn), 6-10 SAT slots saved; frontend F400 keeps HUD sprites + line-0 white; arcade score/life state untouched.
+- **Objective 2 (lizard palette):** route row (1, PC090OJ, 0x36 -> line 0, CARRIER); palsel general path consults palette_route_lookup (d1/d2/d3 preserved — d3 = sprite code feeds tile-DMA); bank-0x36 captured from the sprite-palette SOURCE buffer 0xFF16C0..DF (bank-51/Build-0161 pattern; palette-RAM path never fires) into pc090oj_bank36_line0_cache; vdp_reassert_bank36_line0 (scene-1, compare-then-restore) stages CRAM line 0 = `0000 08CC 0020 0082 0060 00C6 0444 0664 0CCA 0CEC 0228 046A 0444 0606 0066 0666` (converted arcade bank 0x36). Rastan line 3 / BG line 2 / FG line 1 unchanged. SAT: lizard slots pal 3 -> 0, geometry identical to 0206.
+- **Validation (MAME/Genesis 0210):** lizards spawn (lizrep 24), full green bodies matching arcade; Rastan correct; record 46 unregressed; movement/jump/attack OK (post-attack lizrep 24->16 = kill-consistent); rep 18->35 healthy; no locks/corruption. Arcade side validated on MAME/arcade romset (bank 0x36 written once at stage load; bank 0 quiescent in gameplay).
+- **Hurry-up bats:** swarm did not trigger in MAME stall runs; bank unconfirmed; no bat-specific override; if swarm shares eff bank 0x36 the same carrier corrects it — deferred to Exodus USER MUST VERIFY.
+- **Numbers:** opcode_replace 215 (unchanged); coverage 0x182950 -> 0x182AD4 (paired).
+- **Open/Closed Issues Impact:** Open touched: OPEN-017 (lizard palette corrected; HUD carrier established), OPEN-024. New: NONE. Closed: NONE (visual acceptance pending Tighe). Deferred: lizard damage/Y-alignment, black bar, bat palette confirmation, window/white HUD, record 132.
+- **KNOWN_FINDINGS impact:** KF-066 added (option + carrier + d3-clobber hazard).
+- **Architecture compliance:** CONFIRMED — representation-layer suppression only; shared route/carrier/commit path; no forced records/SAT/palette bits; no arcade-state changes.
+- **STOP triggered:** NO.
+
+### MAME Exit Summary (2026-07-19 13:39:07)
+- Final PC: 0x03B284
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-19 13:42:55)
+- Final PC: 0x03B284
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-19 13:46:36)
+- Final PC: 0x03B284
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-19 13:48:47)
+- Final PC: 0x03B298
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Fable — Lizard Vertical Alignment + Mirror-192 (task 0211/0212 -> delivered 0213/256 + 0214/192)
+
+- **Date:** 2026-07-19
+- **Builds:** 0211 `bbd3428b...` REJECTED (post-engine d2 read: engine counts d2 to 0 -> wild dbra -8'd WRAM globally); 0212 `5b028a49...` REJECTED (d3 latch: engine clobbers d3 too); **0213/256 `4cb766d5866dd2950e8b177c961549e3819bc98c5ecbddd56c2f6d3050d6316b` = corrected alignment candidate**; **0214/192 `1c51a28e453a7f628a8691490ecb96f875b309ba8801fc5b6833b03b04ffac96` = mirror comparison** (identical source). All preserved; counter 214; rolling = 0214 per task. Coverage 0x182AD4 -> 0x182B00 paired; opcode 215 unchanged.
+- **Objective A PROVEN (rendered pixels):** arcade lizard foot=129 ON ground; 0210 foot=137 (+8 into ground); 0213 foot=129 arcade-identical. Chain: world-Y/camera identical; actor anchor a4@(0x1A) arcade 0x79 vs Genesis 0x81; ROOT = Genesis collision map ground band one 8px row lower (row 39 vs 38, full 8KB diff, matched frames). Engine/staging/decode faithful.
+- **Objective B:** uniform -8 at the block-0x2C8 composite-producer boundary (pc090oj_stage_block2c8; Y low 9 bits, high bits preserved; only the d2 engine-emitted records; count latched on STACK — the engine clobbers d0-d7). Actor state, blank windows, Rastan, record 46, all other families untouched. Map-root fix deferred (moves player).
+- **0213/256 validation:** control/attack/jump OK; lizards spawn (lizrep 24), line 0, colors correct; Rastan L3=9 correct; rep 18->33, wait 0, oob 0; record 46 OK; HUD suppressed; bank36 CRAM intact.
+- **0214/192:** STRUCTURAL: lizard span 140..238 exceeds 192 cap -> 47/99 records OOB-dropped per frame (oob ~47/frame; lizrep 2 vs 24). Player/palette/record46 fine. 192 = far fewer lizards; flicker comparison on Nomad must account for that.
+- **Deferred recorded:** death-splat palette, dropped-item palette/scroll, lizard damage, bat palette, black bar, record 132.
+- **KNOWN_FINDINGS impact:** KF-067 added. **Issues:** OPEN-017/OPEN-024 updated; none closed.
+- **Architecture compliance:** CONFIRMED — producer-boundary render compensation only; no actor/map/SAT forcing; all Build 0210 fixes intact.
+- **STOP triggered:** NO.
+
+## [Cody — Evidence, Build 0213 Exodus 30-FPS Video Analysis]
+
+- Files changed: `docs/design/Cody_build0213_exodus_video_30fps_analysis.md`, evidence artifacts under `states/traces/build0213_exodus_video_30fps_20260719_142555/`, `AGENTS_LOG.md`.
+- Build produced: NO. ROM path: N/A. No source/spec/tool/Makefile/invariant/ROM/build-counter/numbered-artifact changes.
+- Source video inspected: `states/screenshots/exodus_build_213.mp4` (Exodus Genesis Build 0213/256 video, not MAME/original arcade). Video metadata: 5118x1392, 30 FPS, stream duration 97.466633s, container duration 97.514646s, ffprobe `nb_frames=2924`.
+- Evidence captured: full 30 FPS ordered frame extraction to `states/traces/build0213_exodus_video_30fps_20260719_142555/frames/` (`frame_000001.jpg` through `frame_002925.jpg`; terminal ffmpeg tail-rounded frame preserved), `frame_index.csv`, contact sheets, keyframes, per-frame visual metrics, conservative debug-window transcription, required event indices, chronological event log, lizard/SAT visual comparison table, foreground progression table, and unprovoked-disappearance table.
+- Key visual observations: title/frontend renders; Stage 1 sky is visible; first black display-update band at frame 384 / 12.767s; first repeated foreground/floor pattern at frame 429 / 14.267s; first visible lizard at frame 439 / 14.600s; first hit-correlated lizard body loss at frame 795 / 26.467s; first gray/purple/blue dropped object/splat at frame 798 / 26.567s; later lizard disappearance candidate without visible Rastan hit at frame 1056 / 35.167s but actor death vs representation/display loss is not proven from video alone.
+- Debug-window limitation: larger VDP plane/image panes are visually useful; tiny CRAM/VRAM/VDP-port/register text is not reliably legible from the compressed desktop video and was marked unreadable rather than guessed.
+- Assessment: video supports ongoing PC080SN foreground/floor progression/repetition, PC090OJ lizard item/death-splat visual correctness issues, and intermittent black-bar/display-update failure. It does not prove exact producer/SAT/register root cause.
+- Open/Closed Issues Impact: OPEN-017 and OPEN-024 touched; OPEN-001 context. New issues: NONE. Closed: NONE. Ledgers not edited.
+- KNOWN_FINDINGS impact: Option A — no new finding indexed; evidence strengthens existing open issues but does not establish a durable new mechanism.
+- Architecture compliance: CONFIRMED — evidence-only from supplied video; no emulator replacement run, no source/build/ROM changes.
+- STOP triggered: NO.

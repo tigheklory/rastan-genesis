@@ -15,6 +15,7 @@ CANONICAL_GATE := $(ROOT)/tools/translation/verify_canonical_rom.py
 REGION_BUILDER := $(ROOT)/tools/build_rastan_regions.py
 NUMBERED_DIST_DIR := $(ROOT)/dist/rastan-direct
 NUMBERED_COUNTER := $(ROOT)/build/rastan-direct/build_counter.txt
+CONSUMED_BUILD_LEDGER := $(ROOT)/build/rastan-direct/consumed_build_numbers.txt
 NUMBERED_PREFIX := rastan_direct_video_test_build
 HELPER_CANONICAL_SHA ?= 20825b3611f3c2bbcf2a401045fa74256f8b549d4d509834eb8d928861d9fecb
 BOOKMARK_REVERT ?=
@@ -27,6 +28,13 @@ BOOKMARK_STATE_FILE := $(ROOT)/build/rastan-direct/active_bookmark_baseline.json
 # baked into a generated assembly include ($(OUT_DIR)/pc090oj_config.inc) so no
 # scattered assembly constants need hand-editing.
 PC090OJ_MIRROR_RECORDS ?= 256
+# Build 0208: gameplay HUD-sprite representation option (durable, Make-overridable).
+# 1 (default) preserves the existing HUD sprite representation.  0 suppresses
+# ONLY the Genesis representation of the gameplay HUD sprite records (0..45)
+# during active gameplay -- arcade HUD code, score/life/health state, and all
+# non-gameplay scenes are untouched -- and frees CRAM line 0 so the shared
+# palette route can carry PC090OJ sprite bank 0x36 (lizard men) there.
+RASTAN_GAMEPLAY_HUD_SPRITES ?= 1
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 
 PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
@@ -80,13 +88,13 @@ $(OUT_DIR) $(DIST_DIR):
 $(OUT_DIR)/boot.o: $(SRC_DIR)/boot/boot.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(PC090OJ_REGION): $(REGION_BUILDER)
@@ -110,8 +118,8 @@ $(PC090OJ_OPAQUE_BBOX): $(PC090OJ_REGION) $(ROOT)/tools/translation/build_pc090o
 # Generate the PC090OJ helper sizing include from the Make variable each build so
 # an override (PC090OJ_MIRROR_RECORDS=N) is always applied without hand-editing.
 $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
-	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n' '$(PC090OJ_MIRROR_RECORDS)' '$(PC090OJ_MIRROR_RECORDS)' > $@
-	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) -> $@"
+	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' > $@
+	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) -> $@"
 
 $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
@@ -166,9 +174,25 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DI
 	@mkdir -p "$(NUMBERED_DIST_DIR)" "$(dir $(NUMBERED_COUNTER))"
 	@counter_file="$(NUMBERED_COUNTER)"; \
 	if [ -f "$$counter_file" ]; then n=$$(cat "$$counter_file"); else n=0; fi; \
+	max_seen=$$( { \
+		find "$(NUMBERED_DIST_DIR)" -maxdepth 1 -type f -name "$(NUMBERED_PREFIX)_*.bin" -printf "%f\n" | \
+			sed -n 's/^$(NUMBERED_PREFIX)_\([0-9][0-9][0-9][0-9]\)\.bin$$/\1/p'; \
+		if [ -f "$(CONSUMED_BUILD_LEDGER)" ]; then \
+			awk 'substr($$0,1,4) ~ /^[0-9][0-9][0-9][0-9]$$/ { print substr($$0,1,4) }' "$(CONSUMED_BUILD_LEDGER)"; \
+		fi; \
+	} | sort -n | tail -n 1 ); \
+	if [ -n "$$max_seen" ] && [ "$$n" -lt "$$((10#$$max_seen))" ]; then \
+		echo "ERROR: numbered build counter $$n is behind consumed build $$max_seen"; \
+		exit 1; \
+	fi; \
 	next=$$((n + 1)); \
 	tag=$$(printf "%04d" "$$next"); \
 	numbered_name="$(NUMBERED_PREFIX)_$${tag}.bin"; \
+	numbered="$(NUMBERED_DIST_DIR)/$$numbered_name"; \
+	if [ -e "$$numbered" ]; then \
+		echo "ERROR: refusing to overwrite existing numbered build artifact: $$numbered"; \
+		exit 1; \
+	fi; \
 	"$(PYTHON)" "$(CANONICAL_GATE)" \
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
@@ -183,9 +207,9 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DI
 		--numbered-name "$$numbered_name" \
 		--bookmark-revert "$(BOOKMARK_REVERT)" \
 		--state-file "$(BOOKMARK_STATE_FILE)" || exit $$?; \
-	printf "%d\n" "$$next" > "$$counter_file"; \
-	numbered="$(NUMBERED_DIST_DIR)/$$numbered_name"; \
 	cp "$@" "$$numbered"; \
+	if [ ! -s "$$numbered" ]; then echo "ERROR: numbered build artifact missing/empty after copy: $$numbered"; exit 1; fi; \
+	printf "%d\n" "$$next" > "$$counter_file"; \
 	echo "numbered build artifact: $$numbered"; \
 	trace_ts=$$(date +%Y%m%d_%H%M%S); \
 	trace_dir="$(ROOT)/states/traces/$(NUMBERED_PREFIX)_$${tag}_mame_30s_$${trace_ts}"; \

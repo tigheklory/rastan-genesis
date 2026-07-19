@@ -241,6 +241,12 @@
       "note": "Build 0168/OPEN-017: collision map buffer-to-VRAM converter rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral SUBI.L immediate rebase."
     },
     {
+      "arcade_pc": "0x0412CC",
+      "original_bytes": "B1FC0010FE00",
+      "replacement_bytes": "B1FC00FF3E00",
+      "note": "Build 0206/OPEN-017: collision map forward upper-bound compare rebase from raw arcade work RAM 0x0010FE00 to mapped Genesis WRAM collision-buffer end 0x00FF3E00. Completes the Build 0168 0x0010DE00 base/lower-bound rebase for the lizard actor activation scan; byte-neutral CMPA.L immediate rebase only, no forced actor activation."
+    },
+    {
       "arcade_pc": "0x0412E8",
       "original_bytes": "B1FC0010DE00",
       "replacement_bytes": "B1FC00FF1E00",
@@ -1505,6 +1511,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 214
+    "opcode_replace_count": 215
   }
 }

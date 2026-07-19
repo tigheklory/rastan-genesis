@@ -93,6 +93,11 @@
     .extern pc090oj_slot_lut
     .extern genesistan_current_scene_id
     .equ    PC090OJ_SCENE_GAMEPLAY_ID, 1
+    .extern palette_route_lookup
+    /* Build 0208: PROUTE owner id for PC090OJ, matching the constant table in
+     * palette_hooks.s (PROUTE_OWNER_PC090OJ = 3). */
+    .equ    PROUTE_OWNER_PC090OJ_ID, 3
+    .global pc090oj_hud_suppressed_count
     .extern pc090oj_blank_code_bitset
     .extern pc090oj_opaque_bbox
     .extern genesistan_hook_tilemap_bg_fill
@@ -629,7 +634,36 @@ pc090oj_stage_block2c8:
     move.b  1(%a4), %d0
     move.b  32(%a4), %d6
     move.b  2(%a4), %d7
+    move.w  %d2, -(%sp)                     /* latch budget on the stack: the
+                                             * engine clobbers d0-d7 (counts d2
+                                             * to 0, uses d3 for byte fetches) */
     jsr     0x0003D254                      /* advances a1 by exactly d2 records */
+    /* Build 0211: block-0x2C8 composite vertical alignment.  Proven root: the
+     * Genesis-produced collision map (0x00FF1E00, mirror of arcade 0x0010DE00)
+     * carries the Stage-1 ground band one 8px row LOWER than arcade (arcade map
+     * row 38 vs Genesis row 39, full-map diff, matched frames).  Enemy actors
+     * ground on that map, so their anchor (a4@(0x1A)) reads 8 low (0x81 vs
+     * arcade 0x79) with identical world-Y/camera inputs, and the faithful
+     * engine output renders 8 below the visible (correctly drawn) ground.
+     * Compensate at the composite-producer boundary: uniform -8 on the Y word
+     * of the d2 records the engine just emitted (real components and padding
+     * alike -- padding stays far offscreen).  Internal component spacing is
+     * preserved exactly; actor collision/ground state, blank-fill windows,
+     * and every other PC090OJ family are untouched. */
+    move.w  (%sp)+, %d0                     /* d0 = latched budget (regs clobbered) */
+    subq.w  #1, %d0
+    movea.l %a1, %a0
+.Lblock2c8_yalign_loop:
+    suba.w  #8, %a0
+    move.w  2(%a0), %d1
+    move.w  %d1, %d4
+    andi.w  #0x01FF, %d1                    /* Y field only */
+    subq.w  #8, %d1
+    andi.w  #0x01FF, %d1
+    andi.w  #0xFE00, %d4                    /* preserve non-Y high bits */
+    or.w    %d4, %d1
+    move.w  %d1, 2(%a0)
+    dbra    %d0, .Lblock2c8_yalign_loop
     bra.s   .Lblock2c8_next_entry
 
 .Lblock2c8_inactive:
@@ -652,7 +686,7 @@ pc090oj_stage_block2c8:
     adda.w  #64, %a4
     addq.w  #1, %d5
     cmpi.w  #9, %d5
-    blo.s   .Lblock2c8_entry_loop
+    blo     .Lblock2c8_entry_loop
 
     lea     pc090oj_block2c8_scratch, %a2
     move.w  #PC090OJ_BLOCK2C8_BASE_RECORD, %d0
@@ -1212,6 +1246,21 @@ vdp_prepare_sprites:
     bne.s   .Lprep_inited
     bsr     .Lpc090oj_renderer_init
 .Lprep_inited:
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+    /* Build 0208: on a scene transition, request a full candidate sweep so
+     * records represented under the previous scene's rules are re-synced under
+     * the new scene's rules.  This retires HUD records (0..45) that became
+     * represented during title/READY when gameplay begins (the suppression
+     * gate in .Lpc090oj_sync_record_from_mirror forces their draw=0), and
+     * restores them when gameplay ends.  Uses only the existing sweep/sync
+     * machinery; no record state is forced. */
+    move.b  genesistan_current_scene_id, %d0
+    cmp.b   .Lhud_scene_shadow, %d0
+    beq.s   .Lprep_scene_same
+    move.b  %d0, .Lhud_scene_shadow
+    bsr     .Lpc090oj_set_all_candidates
+.Lprep_scene_same:
+.endif
     /* Build 0157 / OPEN-017: consume pc090oj_mirror_dirty. Producer paths
      * (.Lpc090oj_emit_slot @0x071A8A, .Lpc090oj_family_apply_record @0x071BB8) write the
      * mirror and set pc090oj_mirror_dirty, but the direct-family path clears its record
@@ -1800,6 +1849,28 @@ vdp_commit_sprites_vram:
     moveq   #3, %d0                  /* bank 51 -> line 3 */
     bra.s   .Lpc090oj_palsel_have
 .Lpc090oj_palsel_general:
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+    /* Build 0208: explicitly routed sprite banks resolve through the shared
+     * palette_route_table before the (bank >> 4) & 3 fall-through.  The only
+     * routed row today is (scene 1, PC090OJ, bank 0x36) -> line 0 (lizard men
+     * carried on the HUD-freed CRAM line 0).  A lookup miss (any other bank,
+     * or non-gameplay scene) keeps the existing fall-through unchanged.
+     * palette_route_lookup clobbers d0/d3/a0; a0 is dead here, but d1/d2 AND
+     * d3 (the decoded sprite code, consumed later by the tile-DMA queue) are
+     * live and preserved around the call. */
+    movem.l %d1-%d3, -(%sp)
+    move.w  %d0, %d2                 /* d2 = effective arcade bank */
+    moveq   #0, %d0
+    move.b  genesistan_current_scene_id, %d0   /* d0 = scene */
+    moveq   #PROUTE_OWNER_PC090OJ_ID, %d1      /* d1 = owner (PC090OJ) */
+    bsr     palette_route_lookup     /* d0 = line or -1 */
+    movem.l (%sp)+, %d1-%d3
+    tst.l   %d0
+    bpl.s   .Lpc090oj_palsel_have    /* routed bank -> table-selected line */
+    move.w  %d1, %d0                 /* rebuild effective bank for fall-through */
+    andi.w  #0x000F, %d0
+    or.w    %d7, %d0
+.endif
     lsr.w   #4, %d0
     andi.w  #0x0003, %d0             /* all other banks: existing (bank>>4)&3 */
 .Lpc090oj_palsel_have:
@@ -1900,6 +1971,25 @@ vdp_commit_sprites_vram:
     bsr     .Lpc090oj_decode_record
     move.w  %d0, .Lscratch_draw
     move.w  .Lscratch_rec, %d6
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+    /* Build 0208: gameplay HUD-sprite suppression.  The gameplay HUD/score/
+     * status sprites occupy PC090OJ records 0..45 (record 46 is the first
+     * enemy).  With the option disabled, force draw=0 for those records during
+     * active gameplay only: an already-represented HUD record retires through
+     * the normal .Lsync_deactivate path (clean SAT/link handling) and new HUD
+     * records never activate.  Arcade HUD code, mirror writes, and score/life/
+     * health state are untouched -- only Genesis representation is gated.
+     * Non-gameplay scenes (title/story/READY) keep full HUD representation. */
+    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne.s   .Lsync_hud_keep
+    cmpi.w  #46, %d6
+    bhs.s   .Lsync_hud_keep
+    tst.w   .Lscratch_draw
+    beq.s   .Lsync_hud_keep
+    clr.w   .Lscratch_draw
+    addq.w  #1, pc090oj_hud_suppressed_count
+.Lsync_hud_keep:
+.endif
     move.w  %d6, %d1
     lsr.w   #3, %d1
     lea     represented_records, %a1
@@ -2495,6 +2585,15 @@ pc090oj_unmapped_skipped_count:
     .word 0
 pc090oj_offscreen_skipped_count:
     .word 0
+/* Build 0208: count of gameplay HUD-record represent suppressions (evidence). */
+pc090oj_hud_suppressed_count:
+    .word 0
+/* Build 0208: last-seen scene id for the HUD-suppression transition sweep.
+ * Zero-initialized (= frontend scene 0); the 0 -> 1 gameplay transition and
+ * every later change trigger the sweep. */
+.Lhud_scene_shadow:
+    .byte 0
+    .align 2
 pc090oj_drawable_count:
     .word 0
 pc090oj_emitted_count:
