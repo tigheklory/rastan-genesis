@@ -1447,6 +1447,16 @@ genesistan_hook_text_writer_3c4d2:
 genesistan_hook_text_writer_3c950:
     movem.l %d4/%d6/%a2/%a3/%a5/%a6, -(%sp)
 
+    /* 0x3C950 is shared by PC080SN text and the PC090OJ actor->sprite default
+     * shape path.  The opcode replacement owns the PC080SN C-window case; any
+     * non-C-window destination must preserve the original a1@+ sprite writes. */
+    move.l  %a1, %d4
+    andi.l  #0x00FFFFFF, %d4
+    cmpi.l  #0x00C00000, %d4
+    blo     .L3c950_sprite_direct
+    cmpi.l  #0x00C10000, %d4
+    bhs     .L3c950_sprite_direct
+
     lea     genesistan_pc080sn_tile_vram_lut, %a3
     lea     genesistan_pc080sn_attr_lut, %a5
     lea     staged_fg_buffer, %a6
@@ -1633,6 +1643,101 @@ genesistan_hook_text_writer_3c950:
 .L3c950_blank_done:
     movem.l (%sp)+, %d0/%d1/%d4-%d7
     rts
+
+.L3c950_sprite_direct:
+    clr.w   %d0
+    clr.w   %d5
+
+    btst    #0, %d6
+    bne.s   .L3c950_sprite_dispatch_d6
+    tst.b   %d7
+    beq     .L3c950_sprite_alt_loop
+    bra     .L3c950_sprite_primary_loop
+
+.L3c950_sprite_dispatch_d6:
+    tst.b   3(%a4)
+    bne     .L3c950_sprite_primary_loop
+    tst.b   %d7
+    beq     .L3c950_sprite_primary_loop
+    bra     .L3c950_sprite_alt_loop
+
+.L3c950_sprite_primary_loop:
+    bsr     .L3c950_read_opcode
+    tst.w   %d5
+    bne     .L3c950_sprite_sentinel_primary
+
+    clr.w   %d7
+    cmpi.b  #0x40, %d3
+    bne.s   .L3c950_sprite_primary_check_80
+    addq.w  #1, %d7
+.L3c950_sprite_primary_check_80:
+    cmpi.b  #0x80, %d3
+    bne.s   .L3c950_sprite_primary_attr
+    ori.w   #0x4000, %d0
+.L3c950_sprite_primary_attr:
+    bsr     .L3c950_apply_attr_gate
+    move.w  %d0, (%a1)+
+
+    move.b  (%a0)+, %d1
+    ext.w   %d1
+    add.w   26(%a4), %d1
+    cmpi.b  #0x70, %d3
+    bne.s   .L3c950_sprite_primary_y_ready
+    add.w   24(%a4), %d1
+.L3c950_sprite_primary_y_ready:
+    move.w  %d1, (%a1)+
+
+    bsr     .L3c950_compute_next_attr
+    move.w  %d4, (%a1)+
+
+    move.b  (%a0)+, %d7
+    ext.w   %d7
+    add.w   22(%a4), %d7
+    move.w  %d7, (%a1)+
+
+.L3c950_sprite_primary_iter_done:
+    subq.l  #1, %d2
+    bne     .L3c950_sprite_primary_loop
+    bra     .L3c950_done
+
+.L3c950_sprite_alt_loop:
+    bsr     .L3c950_read_opcode
+    tst.w   %d5
+    bne     .L3c950_sprite_sentinel_primary
+
+    clr.w   %d7
+    cmpi.b  #0x40, %d3
+    bne.s   .L3c950_sprite_alt_attr
+    addq.w  #1, %d7
+.L3c950_sprite_alt_attr:
+    ori.w   #0x4000, %d0
+    bsr     .L3c950_apply_attr_gate
+    move.w  %d0, (%a1)+
+
+    move.b  (%a0)+, %d1
+    ext.w   %d1
+    add.w   26(%a4), %d1
+    move.w  %d1, (%a1)+
+
+    bsr     .L3c950_compute_next_attr
+    move.w  %d4, (%a1)+
+
+    move.b  (%a0)+, %d7
+    ext.w   %d7
+    neg.w   %d7
+    sub.w   0x0010, %d7
+    add.w   22(%a4), %d7
+    move.w  %d7, (%a1)+
+
+.L3c950_sprite_alt_iter_done:
+    subq.l  #1, %d2
+    bne     .L3c950_sprite_alt_loop
+    bra     .L3c950_done
+
+.L3c950_sprite_sentinel_primary:
+    move.w  #0x0180, 2(%a1)
+    adda.w  #8, %a1
+    bra     .L3c950_sprite_primary_iter_done
 
 .L3c950_done:
     movem.l (%sp)+, %d4/%d6/%a2/%a3/%a5/%a6

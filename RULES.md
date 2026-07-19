@@ -146,6 +146,26 @@ The specific helper bytes, symbol name, and build-pipeline integration are defin
 
 ---
 
+## Numbered ROM Artifact Preservation Rule
+
+Numbered ROM artifacts are evidence and must not be deleted, overwritten, or silently replaced.
+
+If a numbered build, diagnostic build, or candidate ROM is produced, preserve the ROM file, SHA256, size, build counter, config, source patch/diff, and status.
+
+Rejected or broken numbered builds must be preserved and clearly labeled: **REJECTED / NOT ACCEPTED / DIAGNOSTIC ONLY.**
+
+- Do not delete a rejected numbered ROM just because the source was reverted.
+- Do not reuse a numbered build slot after a numbered ROM was produced, even if that ROM was later rejected or accidentally deleted.
+- If an artifact was accidentally deleted, do not spend time rebuilding it unless Tighe explicitly asks. Instead, document: that it existed; its SHA/size if known; why it was rejected; that the artifact is missing/deleted; that the number is consumed and must not be reused.
+- Rolling ROM and accepted build status are separate from artifact preservation. A rejected diagnostic may exist on disk while the rolling ROM remains the prior accepted candidate.
+- **Agents must ask before deleting any numbered ROM artifact.**
+
+### Consumed / deleted numbers
+
+- **Build 0202** was produced during the failed enemy actor staging attempt (engine-enabled staging locked the player in mode 3 from gameplay start; partial SHA `ede84ca7...`), then deleted. Do not recreate it unless Tighe explicitly asks. Treat 0202 as **consumed by a deleted rejected diagnostic**. The next produced numbered ROM must not silently reuse 0202 (next candidates: Build 0203 main / Build 0204 comparison).
+
+---
+
 ## Summary
 
 Arcade code is the program.

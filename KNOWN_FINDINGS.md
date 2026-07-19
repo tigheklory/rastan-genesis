@@ -1120,3 +1120,77 @@ Deferral reason: Disagreement is still open and unconverged; defer canonical pro
 **Finding.** A faithful Genesis reimplementation of the arcade enemy writers 0x41DAE/0x45DFA was built (scratch buffer + block iteration + family_apply_record flush + candidate marking; GATE_PASS, source-only). Bisect proved: the staging FRAMEWORK is safe (blank-only variant restores Build 0200 control exactly, player records intact), but CALLING the relocated arcade expansion engine 0x3D254 from the hook CORRUPTS player/collision state — the player locks in mode 3 (fall) from gameplay start and never gains control. Cause: at the matched window the Genesis enemy actor blocks are unpopulated (records 46/57/96/140 blank-fill only, no valid code), so the engine indexes its ROM sprite-layout tables with invalid actor fields and touches shared state. Blank-only staging yields zero enemies (no improvement). A full clone of 0x3CB02's multi-case sprite engine is out of bounded scope.
 
 **Use as prior.** Do NOT call 0x3D254 from a Genesis hook against unpopulated/garbage actor blocks — it regresses control (proven). The enemy fix is blocked UPSTREAM: the arcade routine that populates A5+0x748 (and siblings) with valid enemy actor structs must be found and its Genesis divergence (spawn/progression/NOPped enemy-logic/raw-WRAM-literal) resolved FIRST. The staging framework from Build 0202 is reusable once valid actors exist. Decisive next evidence: arcade write-watch on A5+0x748 (0x10C748) vs Genesis 0xFF0748 at the matched frame (needs arcade romset). Do not ship blank-only staging (churn, no enemies), do not raise the mirror cap, do not force records.
+
+---
+
+## KF-062 — Genesis DOES populate enemy actor blocks (camera/scroll spawn works); enemy-visibility blocker is the NOPped staging + unsafe engine, plus sub-phase progression (revises KF-060/061 upstream framing)
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (live arcade-vs-Genesis WRAM sampling, both emulators)
+- **Applicability:** DURABLE — redirects the enemy investigation
+- **Rediscovery Hazard:** HIGH (prevents re-chasing a nonexistent "unrelocated spawn pointer")
+- **Addresses:** camera A5+0x10B8 (spawn gate cmpiw #160 at 0x4580C/0x45EFC/0x4B170/0x4B9C4/0x4C3BE); scroll velocity A5+0x10D8; stage A5+0x118; sub-phase A5+0x13E; stage-init table arcade 0x50850 / genesis 0x50A50 (relocated, verified); actor blocks A5+0x2C8/0x748.
+- **Source Documents:** docs/design/Andy_opus_build0203_enemy_actor_population_and_expansion_fix.md
+- **Related Findings:** KF-060 (staging NOPped/misrouted), KF-061 (engine-call unsafe), KF-059 (jump/fall)
+- **Related Issues:** OPEN-017, OPEN-024
+- **Last verified:** 2026-07-17 (Build 0200, arcade romset via -rompath roms)
+
+**Finding.** The arcade Rastan romset runs under MAME (`-rompath roms`; the `roms/allregions` set is bad and shadows it). Live comparison shows Genesis actor population is NOT globally broken: with the camera scrolling (A5+0x10B8 advancing past the spawn gate of 160, driven by scroll velocity A5+0x10D8), block A5+0x2C8 holds 6 entries and block A5+0x748 (rec 46) spawns (~F1800). The stage-init table pointer is correctly relocated (0x50850->0x50A50, data byte-identical), the spawn dispatcher/preprocessor (0x450D8/0x4580C) are intact, and spawn-control fields (stage 0x118, sub-phase 0x13E, wave 0x21C, trigger 0x2DE) match arcade. There is NO unrelocated pointer / raw literal / NOPped routine on the population path. Enemies still don't reach the screen because (1) the staging routines 0x41DAE/0x45DFA are NOPped and the expansion engine 0x3D254 is never called and is unsafe to call from a hook (KF-060/061), and (2) sub-phase progression diverges (Genesis A5+0x13E cycles 1->0 with resets vs arcade 1->2), the known level-reset symptom, limiting later waves.
+
+**Use as prior.** Do NOT search for an "unrelocated enemy spawn pointer" or a raw-literal in the population path — there isn't one; population works. The enemy-visibility blocker is the staging/expansion layer (KF-061: make 0x3D254 safe to call on a validated actor, then drive the Build 0202 framework) and the sub-phase/level-reset progression bug. Both are separate bounded investigations, not single-instruction rebases. Arcade is now runnable for direct comparison (`-rompath roms`).
+
+---
+
+## KF-063 — Expansion engine 0x3D254 is safe on validated actors; Build 0204 fixes record-46 empty output by restoring shared 0x3C950 PC090OJ writes
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (Build 0203 diagnostic proved valid-code-guarded record-46 staging preserves player control; Build 0204 proved nonzero record-46 output reaches PC090OJ representation)
+- **Applicability:** DURABLE — unblocks the enemy-staging approach; supersedes KF-061's "engine unsafe" as unconditional
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** engine `runtime_genesis_pc 0x0003D254` (`arcade_pc 0x0003D054`, JSON-mapped); shared patched site `runtime_genesis_pc 0x0003CB50` (`arcade_pc 0x0003C950`, JSON-mapped); block A5+0x748 record-46 path; `genesistan_hook_text_writer_3c950`; `genesistan_pc090oj_hook_target_41dae`.
+- **Source Documents:** docs/design/Andy_opus_build0203_single_actor_expansion_engine_safety.md; docs/design/Cody_build0204_pc090oj_record46_expansion_output_fix.md; docs/design/Cody_build0205_pc090oj_enemy_visual_correctness.md
+- **Related Findings:** KF-061 (engine unsafe in broad hook — now scoped to invalid actors), KF-060, KF-062
+- **Related Issues:** OPEN-017, OPEN-024
+- **Last verified:** 2026-07-17 (Build 0205 visual-correctness evidence pass against Build 0204)
+
+**Finding.** Calling the relocated arcade actor->sprite engine `0x3D254` from a Genesis hook is SAFE when restricted to VALIDATED actors (active flag AND non-zero code `a4@(1)` AND arcade `a4@(0x36)==0` gate). Build 0203 staged ONLY block A5+0x748 (record 46) with that guard: the player stayed fully controllable (mode 0->1->2, walk/scroll/jump), no mode-3 lock, player records intact. This proves KF-061's corruption was classification B (the Build 0202 broad hook called the engine on block-0x2C8 code-0 invalid actors -> wild jump-table dispatch), not an inherent engine hazard. The Build 0203 code-zero output was then root-caused to a shared opcode-replacement collision: the engine's default shape path reaches `runtime_genesis_pc 0x03CB50` (`arcade_pc 0x03C950`), but that site had been replaced by `genesistan_hook_text_writer_3c950`, which only routed PC080SN C-window text staging and did not preserve the original non-C-window `(%a1)+` PC090OJ record writes. Build 0204 made the helper destination-aware: C-window `%a1` continues through FG staging, while non-C-window `%a1` restores the original sprite-record emitter semantics. Focused Build 0204 validation shows record 46 first becomes nonzero/visible at frame 785 (`[0000 0069 0275 0070]`), becomes represented at frame 786, and remains represented in SAT slot 16 with final sampled tuple `[0000 0069 0277 009B]`.
+
+Build 0205 visual-correctness evidence (against the preserved Build 0204 ROM) adds an important acceptance boundary: reaching SAT is NOT sufficient to accept the enemy fix visually. Runtime MAME samples prove record 46/slot 16 owns the new output (`SAT=00E1 0502 C440 00F0/00EB`, tile `0x0440`, palette line `2`, resident code `0x0275 -> 0x0277`), and original arcade samples show the same PC090OJ code family for visible green enemy actors. However Genesis composite snapshots at the corresponding sampled frames did not show an arcade-equivalent enemy, and MAME Lua `:gen_vdp` `videoram` reads returned zero for the expected sprite tile address (`0x8800`) while also returning zero in prior probes; VDP-port Lua taps likewise did not fire. Therefore the downstream true-VRAM/tile-DMA residency boundary remains unresolved and requires debugger-side VDP command/VRAM evidence before any visual-correctness patch.
+
+**Use as prior.** The engine CAN be driven safely from a hook with a non-zero-code guard — do not re-fear it wholesale. If a future PC090OJ engine path reaches `arcade_pc 0x03C950`, preserve both roles of that shared routine: PC080SN C-window text must route to Genesis tile staging, while non-C-window destinations must preserve the original PC090OJ tuple writes into the caller's `%a1`. Do NOT stage code-0 actors, force SAT entries, hardcode enemies, or route raw D-window writes. Build 0204 fixes only the first validated record-46 output boundary; it does not prove visual correctness. Before patching palette or sprite decode for record 46, prove whether true VRAM at `0x8800..0x887F` matches `rastan_pc090oj + 0x0277*128` after `.Lvcs_tile_dma`. Sibling actor blocks/records 57/96/140, sub-phase/level-reset progression, stale record 132, and bat respawn remain separate OPEN-017 work.
+
+---
+
+## KF-064 — Corrected lizard-man ownership: first Stage-1 lizard men = block A5+0x2C8 → composite records ~140..229 (codes 0x004B-0x0069); record 46 (code 0x0277) is a DISTINCT non-lizard sprite
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (live arcade-vs-Genesis PC090OJ dumps + snapshots; block-0x2C8-activity ↔ composite-record-count correlation)
+- **Applicability:** DURABLE — corrects the record-46→lizard attribution that Build 0204/0205 assumed
+- **Rediscovery Hazard:** HIGH (prevents re-tracing record 46's VRAM as the lizard)
+- **Addresses:** lizard actors block A5+0x2C8 (codes 0x17/0x18/0x1C-0x1F/0x70) → engine-expanded composite PC090OJ records ~140..229 (output codes 0x004B-0x0069, word0=0x4046); record 46 = block A5+0x748 (code 0x0277), single non-lizard sprite.
+- **Source Documents:** docs/design/Cody_first_lizard_record_ownership_true_vram_trace.md
+- **Related Findings:** KF-063 (record 46 reaches SAT — still valid, but record 46 is NOT the lizard), KF-060/061/062
+- **Related Issues:** OPEN-017, OPEN-024
+- **Last verified:** 2026-07-18 (Build 0204, arcade via -rompath roms)
+
+**Finding.** The first normally-encountered Stage-1 lizard men are the composite PC090OJ record groups ~140..229 (4 groups of 8, sprite codes 0x004B-0x0069, word0=0x4046), produced by the engine expanding actor block A5+0x2C8 (arcade actors codes 0x17/0x18/0x1C-0x1F/0x70; composite record count 16->52 tracks block-0x2C8 activity; on-screen positions match the visible green lizards). Record 46 (block A5+0x748, code 0x0277) is a DISTINCT single 8x8 sprite that flickers on/off near Rastan and is off-screen when the lizards are visible -- NOT a lizard body. On Genesis Build 0204: block A5+0x2C8 holds VALID lizard actors (e4-e8, codes 0x17/0x18 matching arcade; plus one code-0 invalid entry e0), but composite records 140..229 are BLANK because the current staging helper (pc090oj_hooks.s:533) processes ONLY block A5+0x748 (record 46). So Build 0204 fixed a secondary non-lizard sprite; the visible lizard men remain unstaged. The lizard chain breaks at the object-source/staging layer for block A5+0x2C8 (proven via WRAM/mirror sampling; no VDP-VRAM Lua reads relied upon). Decision-matrix Outcome A.
+
+**Use as prior.** Do NOT patch or true-VRAM-trace record 46 for the lizard man. The lizard target is block A5+0x2C8 -> composite records ~140..229. Next bounded task: extend the proven KF-063 non-zero-code-guarded narrow staging to block A5+0x2C8 (skips code-0 e0, processes valid e4-e8; reproduce arcade 0x41DAE block-3 iteration: 9 entries, d2=10/19, a4@(5)/a4@(3) gates), then true-VRAM-trace the actual lizard records. Does NOT weaken KF-063 (engine-safe / 0x3C950-fix / record-46-reaches-SAT claims remain valid).
+
+---
+
+## KF-065 — Block A5+0x2C8 lizard writer semantics + Build 0205 whole-block-scratch staging route
+
+- **Status:** ACTIVE (implemented candidate; visual/runtime acceptance pending)
+- **Confidence:** CONFIRMED (arcade static reconstruction of 0x41E22 + live d2-stride measurement; engine d2-budget proven)
+- **Applicability:** DURABLE — the implementation contract for staging the first visible lizard men
+- **Rediscovery Hazard:** MEDIUM
+- **Addresses:** arcade writer arcade_pc 0x00041E22 (block 3 of 0x41DAE); block A5+0x2C8; engine 0x3D054/runtime 0x3D254; shared 0x3C950/runtime 0x3CB50; composite records 140..238.
+- **Source Documents:** docs/design/Andy_lizard_composite_pc090oj_staging_design.md; docs/design/Cody_lizard_composite_pc090oj_staging_implementation.md
+- **Related Findings:** KF-064 (ownership), KF-063 (engine safety + 0x3C950 fix), KF-060/061/062
+- **Related Issues:** OPEN-017, OPEN-024
+- **Last verified:** 2026-07-18 (Build 0205 candidate, static/mechanical route verification)
+
+**Finding.** Arcade block A5+0x2C8 (writer arcade_pc 0x00041E22) iterates 9 64-byte entries, destination PC090OJ record 140, calling engine 0x3D054 with d2=10 (19 for entry index 8). The engine writes EXACTLY d2 records per active actor (loop subql #1,%d2 at 0x3C9A0/0x3C9E2), so %a1 advances by exactly d2 per entry -> deterministic record placement, total span records 140..238 (99 records). Validity gates: a4@(0)!=0 AND a4@(5)!=0 AND a4@(3)==0 (a4@(3)!=0 -> arcade 0x3EFBE special, not engine); code a4@(1)==0 is invalid (Build 0202 corruptor). Measured layout: entry0 (0x3EFBE special) -> records 140-143 code 0x017C (NON-lizard); entries1-3 inactive -> blank 150-179; entries4-8 (valid, codes 0x17/0x18) -> the visible lizard bodies records 180-229 (output codes 0x006D/0x0069). Shared 0x3C950 writer is Build-0204 destination-aware (non-C-window a1 -> sprite-direct), so composite writes to a WRAM scratch are preserved. Build 0205 implements the selected staging route: whole-block scratch (`pc090oj_block2c8_scratch`, 100 records/800 bytes) seeded from mirror records 140..238, valid actors call runtime 0x3D254, inactive actors write only word1/Y=0x0180, special `a4@(3)!=0` and active code-zero actors preserve the seeded window, then records 140..238 flush through `.Lpc090oj_family_apply_record` (change-detecting, candidate/dirty, Build 0193 fast path). Capacity estimate remains ~50 lizard records + 17 existing = ~67 < 80 SAT (fits); per-scanline clustering and visual correctness are still pending validation.
+
+**Use as prior.** Build 0205 is the current candidate implementation for block 0x2C8 staging. Do NOT reuse the 8-byte record-46 scratch; do NOT engine-call code-zero/special actors; do NOT write the mirror directly; do NOT blanket-mark candidates; do NOT change the mirror cap; do NOT claim lizard visual acceptance until gameplay-window evidence proves records 140..238 reach SAT/tile residency and render correctly. Entry-0 0x3EFBE special output remains deferred.

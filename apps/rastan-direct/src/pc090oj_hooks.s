@@ -66,6 +66,7 @@
     /* Build 0142 retained-identity translation state */
     .global pc090oj_workram_block_sprites
     .global pc090oj_workram_block_sprites_41f5e
+    .global pc090oj_stage_block2c8
     .global record_to_slot
     .global represented_records
     .global waiting_records
@@ -120,6 +121,16 @@
      * remained above 273100.) */
     .equ HOOK_59F5E_CLEAR_FIRST_RECORD, 9   /* (0x00D00048 - PC090OJ_HW_BASE) / 8 */
     .equ HOOK_59F5E_CLEAR_RECORD_COUNT, 8
+    .equ PC090OJ_BLOCK2C8_BASE_RECORD, 140
+    .equ PC090OJ_BLOCK2C8_APPLIED_RECORDS, (8 * 10 + 19)
+    .equ PC090OJ_BLOCK2C8_SCRATCH_RECORDS, 100
+    .equ PC090OJ_BLOCK2C8_SCRATCH_BYTES, (PC090OJ_BLOCK2C8_SCRATCH_RECORDS * 8)
+    .if PC090OJ_BLOCK2C8_APPLIED_RECORDS > PC090OJ_BLOCK2C8_SCRATCH_RECORDS
+    .error "block A5+0x2C8 scratch too small"
+    .endif
+    .if (PC090OJ_BLOCK2C8_BASE_RECORD + PC090OJ_BLOCK2C8_APPLIED_RECORDS - 1) != 238
+    .error "block A5+0x2C8 record span must end at record 238"
+    .endif
 
     /* ------------------------------------------------------------------ *
      * Build 0147: PC090OJ viewport coordinate + opaque-clip constants.   *
@@ -503,9 +514,12 @@ genesistan_pc090oj_hook_target_3b930:
  * low copy has not been proven spurious there. */
 genesistan_pc090oj_hook_target_41dae:
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-    beq.s   .Lhook_41dae_skip
+    beq.s   .Lhook_41dae_gameplay_record46
     bsr     pc090oj_workram_block_sprites
-.Lhook_41dae_skip:
+    rts
+.Lhook_41dae_gameplay_record46:
+    bsr     pc090oj_stage_block2c8
+    bsr     .Lpc090oj_stage_record46_validated
     rts
 
 genesistan_pc090oj_hook_target_41f5e:
@@ -517,6 +531,143 @@ genesistan_pc090oj_hook_target_45dfa:
     beq.s   .Lhook_45dfa_skip
     bsr     pc090oj_workram_block_sprites
 .Lhook_45dfa_skip:
+    rts
+
+/* Build 0204 / OPEN-017: faithfully re-enable the first gameplay enemy block
+ * only.  Arcade 0x41E76..0x41EB4 walks A5+0x748 for 11 entries, destination
+ * record 46, and calls 0x3D054 with d2=1 after loading d0/d6/d7 from the actor.
+ * Keep the Build 0203 safety gate (active, nonzero code, a4+0x36 clear), call
+ * the relocated engine into an 8-byte scratch record, and flush only nonzero
+ * output tuples into the normal mirror/candidate path. */
+.Lpc090oj_stage_record46_validated:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+
+    lea     0x0748(%a5), %a4
+    move.w  #46, .Lrecord46_rec         /* current destination record */
+    move.w  #10, .Lrecord46_count       /* 11 actors */
+
+.Lrecord46_loop:
+    tst.b   0(%a4)
+    beq.s   .Lrecord46_next
+    tst.b   1(%a4)
+    beq.s   .Lrecord46_next
+    tst.b   0x36(%a4)
+    bne.s   .Lrecord46_next
+
+    lea     .Lrecord46_scratch, %a1
+    clr.l   (%a1)
+    clr.l   4(%a1)
+
+    move.b  1(%a4), %d0
+    move.b  32(%a4), %d6
+    move.b  2(%a4), %d7
+    moveq   #1, %d2
+    jsr     0x0003D254
+
+    lea     .Lrecord46_scratch, %a0
+    move.w  4(%a0), %d3                 /* code word */
+    beq.s   .Lrecord46_next             /* never flush code-0 scratch output */
+    move.w  (%a0), %d1
+    move.w  2(%a0), %d2
+    move.w  6(%a0), %d4
+    move.w  .Lrecord46_rec, %d0
+    bsr     .Lpc090oj_family_apply_record
+
+.Lrecord46_next:
+    adda.w  #64, %a4
+    addq.w  #1, .Lrecord46_rec
+    subq.w  #1, .Lrecord46_count
+    bpl     .Lrecord46_loop
+
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* OPEN-017 / Build 0205 candidate: restore the validated block A5+0x2C8
+ * composite lizard-man route from arcade 0x41E22.  The helper mirrors the
+ * arcade's fixed record windows (base 140; d2=10 for entries 0..7, d2=19 for
+ * entry 8) into a whole-block scratch seeded from the current mirror, then
+ * applies records 140..238 through the established family-apply path only.
+ *
+ * Inactive actors set only word1/Y to 0x0180, matching arcade blank-fill.
+ * Deferred special actors (a4@(3) != 0, arcade 0x3EFBE) and active code-zero
+ * invalid actors preserve their seeded windows; no speculative blanking and no
+ * engine call.
+ */
+pc090oj_stage_block2c8:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+
+    /* Seed scratch records 0..98 from mirror records 140..238 so any arcade
+     * path that writes only word1 preserves the remaining tuple words. */
+    lea     pc090oj_object_ram + (PC090OJ_BLOCK2C8_BASE_RECORD * 8), %a0
+    lea     pc090oj_block2c8_scratch, %a1
+    move.w  #((PC090OJ_BLOCK2C8_APPLIED_RECORDS * 8 / 4) - 1), %d0
+.Lblock2c8_seed_loop:
+    move.l  (%a0)+, (%a1)+
+    dbra    %d0, .Lblock2c8_seed_loop
+    clr.l   (%a1)+                         /* unused 100th record margin */
+    clr.l   (%a1)+
+
+    lea     pc090oj_block2c8_scratch, %a1  /* engine/blank destination */
+    lea     0x02C8(%a5), %a4               /* actor block */
+    moveq   #0, %d5                        /* entry index 0..8 */
+
+.Lblock2c8_entry_loop:
+    moveq   #10, %d2
+    cmpi.w  #8, %d5
+    bne.s   .Lblock2c8_have_d2
+    moveq   #19, %d2
+.Lblock2c8_have_d2:
+    tst.b   0(%a4)
+    beq.s   .Lblock2c8_inactive
+    tst.b   5(%a4)
+    beq.s   .Lblock2c8_inactive
+    tst.b   3(%a4)
+    bne.s   .Lblock2c8_preserve_window      /* deferred arcade 0x3EFBE path */
+    tst.b   1(%a4)
+    beq.s   .Lblock2c8_preserve_window      /* invalid code-zero path */
+
+    move.b  1(%a4), %d0
+    move.b  32(%a4), %d6
+    move.b  2(%a4), %d7
+    jsr     0x0003D254                      /* advances a1 by exactly d2 records */
+    bra.s   .Lblock2c8_next_entry
+
+.Lblock2c8_inactive:
+    move.w  %d2, %d0
+    subq.w  #1, %d0
+.Lblock2c8_inactive_loop:
+    move.w  #0x0180, 2(%a1)
+    adda.w  #8, %a1
+    dbra    %d0, .Lblock2c8_inactive_loop
+    bra.s   .Lblock2c8_next_entry
+
+.Lblock2c8_preserve_window:
+    move.w  %d2, %d0
+    subq.w  #1, %d0
+.Lblock2c8_advance_loop:
+    adda.w  #8, %a1
+    dbra    %d0, .Lblock2c8_advance_loop
+
+.Lblock2c8_next_entry:
+    adda.w  #64, %a4
+    addq.w  #1, %d5
+    cmpi.w  #9, %d5
+    blo.s   .Lblock2c8_entry_loop
+
+    lea     pc090oj_block2c8_scratch, %a2
+    move.w  #PC090OJ_BLOCK2C8_BASE_RECORD, %d0
+    move.w  #(PC090OJ_BLOCK2C8_APPLIED_RECORDS - 1), %d5
+.Lblock2c8_flush_loop:
+    move.w  (%a2), %d1
+    move.w  2(%a2), %d2
+    move.w  4(%a2), %d3
+    move.w  6(%a2), %d4
+    bsr     .Lpc090oj_family_apply_record
+    adda.w  #8, %a2
+    addq.w  #1, %d0
+    dbra    %d5, .Lblock2c8_flush_loop
+
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 genesistan_pc090oj_hook_target_59f5e:
@@ -2391,6 +2542,14 @@ pc090oj_bootstrap_pending:
     .word 0
 .Lscratch_sat_changed:
     .word 0
+.Lrecord46_rec:
+    .word 0
+.Lrecord46_count:
+    .word 0
+.Lrecord46_scratch:
+    .space 8
+pc090oj_block2c8_scratch:
+    .space PC090OJ_BLOCK2C8_SCRATCH_BYTES
 
     .align 2
 audit_guard_caller_pc:

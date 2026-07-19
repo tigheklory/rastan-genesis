@@ -77,7 +77,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 214
 # (hook_target_41dae/45dfa scene-1 skip of default block copy): +0x14 (0x1826F8 -> 0x18270C).
 # Build 0193 family_apply_record unchanged-tuple fast path + deferred single sync
 # (replaces double inline+VBlank sync; Fable cycle pass): +0x10 (0x18270C -> 0x18271C).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x18271C
+# Build 0205 lizard-man block A5+0x2C8 composite staging helper:
+# +0xC0 (0x182890 -> 0x182950).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x182950
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")
