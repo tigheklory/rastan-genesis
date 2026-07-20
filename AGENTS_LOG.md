@@ -43256,3 +43256,20 @@ Open/Closed Issues Impact:
 - **KNOWN_FINDINGS impact:** Option A — no new finding indexed; evidence narrows the boundary but does not prove a durable correction mechanism.
 - **Architecture compliance:** CONFIRMED — observer/runtime evidence only; arcade code remains the program; no Genesis-owned cave loader, sprite suppression, direct SAT clear, source hack, or build artifact.
 - **STOP triggered:** YES — no patch-safe implementation boundary was proven.
+
+---
+
+## Andy/Fable — Rastan Native Genesis Video Architecture Redesign (analysis+design only, NO BUILD)
+
+- **Date:** 2026-07-20
+- **Type:** Whole-system architecture analysis + implementation-ready design. No source/spec/Makefile/ROM/counter change.
+- **Deliverable:** docs/design/Andy_fable_native_genesis_video_architecture_redesign.md; evidence in states/traces/native_genesis_video_architecture_redesign_20260720_181035/ (material hashes, complete hw-surface inventory, static cost breakdown).
+- **Method:** Ghidra export suite (hw_refs 454 rows, xrefs, call graph, unresolved regions; register-indirect writers completed via linear disasm + runtime lineage), prior Rainbow Islands comparative analyses (re-verified), static WRAM/module measurement, accumulated runtime evidence (VBlank duty 0.60-0.67, rolling black bar, flicker at <80 sprites).
+- **Core measurements:** arcade video surface = ~30 leaf translators (27 PC090OJ + composer, 59 PC080SN + producer, 16 palette sites); ZERO sprite-RAM readback; only 2 tilemap readbacks (title glyph probes). Current compatibility layer: 32.4KB WRAM (49%), 8-stage sprite chain, 3 full-buffer scans/frame, display-off commit bracket (the black bar). Flicker roots: index-ordered eviction + 8-sprites/lizard + slot-keyed residency churn.
+- **Design:** replace the leaf routines with native emitters writing final-format shadows (double-buffered link-ordered SAT 2x640B, dirty-column plane ring, CRAM shadow, code-keyed per-scene residency manifests from the arcade's own ROM layout tables); composite merging 16x16->32x32 (lizard 8->2 sprites); delete mirror/shadow/candidates/represent/tall-buffers/projections; keep ALL gameplay state, collision map (fix KF-067 there), palette route table, arcade execution+VBlank ownership. RI-Genesis renderer shape adopted; its reimplementation liberties rejected.
+- **Projected:** ~23-28KB WRAM returned; VBlank ~1.3KB DMA + <1ms, display permanently ON (black bar structurally eliminated); flicker eliminated at both roots; 256/192 mirror dilemma dissolved; audio headroom funded.
+- **Migration:** N1 native sprite pipeline (architectural proof, deletes mirror stack) -> N2 native planes (+KF-067 joint fix, deletes 24.5KB buffers) -> N3 merging + scene manifests -> N4 palette/scroll consolidation. Each stage deletes what it replaces; numbered builds are the rollback path; MAME arcade=authority, current Genesis=baseline, BlastEm/Exodus/Nomad acceptance.
+- **Answer to mandate:** YES — arcade-faithful native re-emission at the measured leaf boundaries, retaining only genuinely-read RAM structures.
+- **Ledgers:** KF-068 added (Option B). OPEN-017/OPEN-024 updated. No issues closed.
+- **Architecture compliance:** CONFIRMED — design preserves RULES.md ownership rules (helpers called by arcade code; no Genesis loop/lifecycle).
+- **STOP triggered:** NO.
