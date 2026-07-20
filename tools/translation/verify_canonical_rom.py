@@ -40,7 +40,8 @@ FAIL_STATE_CORRUPTED = "GATE_FAIL_STATE_CORRUPTED"
 # at 0x05277A/0x0527D4/0x0527E4/0x0527F4/0x052804/0x0528CA/0x0528DA/0x0528EA/0x0528FA/0x052BC8).
 # Build 0198: +29 opcode_replace (player action-state input-copy raw literal 0x10D37A -> 0xFF137A;
 # completes the input chain: latch 0x10C016 (0158/0196) + per-frame copy 0x10D37A (this build)).
-CANONICAL_OPCODE_REPLACE_COUNT = 215
+# Build 0216: +1 byte-neutral opcode_replace (0x03A27A VBlank tail keeps IPM >= 6 until RTE).
+CANONICAL_OPCODE_REPLACE_COUNT = 216
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -80,7 +81,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 215
 # (replaces double inline+VBlank sync; Fable cycle pass): +0x10 (0x18270C -> 0x18271C).
 # Build 0205 lizard-man block A5+0x2C8 composite staging helper:
 # +0xC0 (0x182890 -> 0x182950).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x182B00
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x183408
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")

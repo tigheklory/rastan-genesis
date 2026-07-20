@@ -38,6 +38,8 @@
     .extern vdp_set_reg
     .extern vdp_set_vram_write_addr
     .extern vdp_commit_fg_strips_if_dirty
+    .extern genesistan_current_scene_id
+    .extern genesistan_current_pc080sn_tileset_id
 
     .global genesistan_shadow_input_390001
     .global genesistan_shadow_input_390003
@@ -63,17 +65,13 @@
     .equ ARCADE_PC080SN_CWINDOW_BASE_FG,     0x00C08000
     .equ ARCADE_PC080SN_CWINDOW_BYTES,       0x00004000
     .equ ARCADE_COLLISION_MAP_BASE,          0x00FF1E00
-    /* Build 0155 / OPEN-017: Stage 1 FG plane replay (proven deterministic ROM model).
+    /* Build 0215 / OPEN-017: Stage 1 FG plane replay (proven deterministic ROM model).
      * The live FG boundary is genesistan_hook_tilemap_fg (0x703EA), reached per-column from
      * the Stage 1 setup loop (0x50634); its native slot a5@0x10A4 is out of range so it bails,
      * while the real FG column dest is a5@0x10A0 = 0xC08000 + dcol*4 (mod plane). For each
-     * cell: SRC = FG_SRC_BASE_GEN + seg*FG_SRC_STRIDE + group*4 (Genesis copy +0x200 folded in);
-     * block = ROM_word(SRC+2) + FG_BLOCK_RELOC; code = ROM_word(block + colidx*2 + row*8);
-     * arcade attr/color = 0x0003, carried in Genesis CRAM line 1 for Stage-1 FG;
-     * planerow = seg*4+row; dcol = group*4+colidx = (a5@0x10A0 & 0x3FFC)>>2. */
-    .equ FG_SRC_BASE_GEN,                    0x00016B1C
-    .equ FG_SRC_STRIDE,                      0x000022C0
-    .equ FG_BLOCK_RELOC,                     0x00000200
+     * cell: PTR[seg] comes from the arcade-owned rebuilt pointer table at 0x00FF1040;
+     * code = ROM_word(PTR[seg] + colidx*2 + row*8), with colidx from a5@0x10CA.
+     * Arcade attr/color bank 0x0003 is carried in Genesis CRAM line 1. */
     .equ FG_PLANE_ATTR_HI,                   0x00010000
     .equ FG_PRODUCER_SEG_COUNT,              16  /* 64 rows; gameplay FG now preserves rows 0-63 in staged_fg_tall_buffer. */
     .equ FG_PRODUCER_ROW_COUNT,              4
@@ -94,15 +92,17 @@
     .equ PC080SN_ITEMPAGE_WALKER_SLOT,        0x00FF10FC
     .equ PC080SN_ITEMPAGE_STRIP_PTR_SLOT,     0x00FF1100
     .equ PC080SN_ITEMPAGE_STRIP_WORD_SLOT,    0x00FF1104
-    /* Build 0154 / OPEN-017 / KF-041: producer-source gameplay scene identity.
-     * The live Stage 1 outside BG producer reads its tile-column source from the
-     * five relocated blocks [0xD31C, 0xFB1C) (arcade 0xD11C..0xF91C + 0x200 copy
-     * delta), walked from arcade descriptor table 0x3951C. A strip source inside
-     * this range identifies the gameplay scene; SCENE_GAMEPLAY_ID matches the
-     * load_scene_tiles / genesistan_scene_a0_ranges gameplay index (1). */
+    /* Build 0217 / OPEN-017 / KF-041: producer-source gameplay scene identity.
+     * The live Stage 1 BG producer reads its tile-column source from relocated
+     * outdoor+cave blocks [0xD31C, 0x10B1C) (arcade 0xD11C..0x1011C source bases
+     * plus the mapped copy delta), walked from arcade descriptor table 0x3951C.
+     * A strip source inside this range identifies the gameplay scene; SCENE_GAMEPLAY_ID
+     * matches the load_scene_tiles / genesistan_scene_a0_ranges gameplay index (1). */
     .equ GAMEPLAY_STRIP_SRC_LO,               0x0000D31C
-    .equ GAMEPLAY_STRIP_SRC_HI,               0x0000FB1C
+    .equ GAMEPLAY_STRIP_SRC_CAVE_LO,          0x0000FB1C
+    .equ GAMEPLAY_STRIP_SRC_HI,               0x00010B1C
     .equ SCENE_GAMEPLAY_ID,                   1
+    .equ SCENE_GAMEPLAY_CAVE_TILESET_ID,      3
     .equ PC080SN_DESC_ARCADE_START,           0x00000F08
     .equ PC080SN_DESC_ARCADE_END,             0x0003A00C
     .equ PC080SN_DESC_GENESIS_START,          0x00001108
@@ -302,12 +302,13 @@ genesistan_hook_tilemap_plane_a:
 
 /* Genesis-only Stage 1 FG_SRC per-column staging. Extracted (Build 0160) from the
  * former genesistan_hook_tilemap_fg gameplay path so it can be shared. Replays the
- * proven Build 0155 FG model directly from ROM using the real FG column dest
- * a5@0x10A0, routing each cell through the gameplay-only tall FG backing helper
+ * proven Build 0155 FG model through the arcade-owned rebuilt pointer table
+ * (0x00FF1040) using the real FG column dest a5@0x10A0, routing each cell through the gameplay-only tall FG backing helper
  * (LUT + attr conversion + tall staging + projection dirty). Collision is intentionally NOT authored here:
  * Stage 1 arcade collision is owned by the BG producer 0x559B2, not this FG_SRC
  * visual replay. movem-wrapped: preserves d0-d7/a0-a6 for the caller; reads
- * a5@0x10A0 only, never writes a5@0x10A8. Caller must gate on SCENE_GAMEPLAY_ID. */
+ * a5@0x10A0/a5@0x10CA and 0x00FF1040, never writes a5@0x10A8. Caller must gate
+ * on SCENE_GAMEPLAY_ID. */
 genesistan_stage_fg_src_column:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
@@ -316,29 +317,24 @@ genesistan_stage_fg_src_column:
     andi.l  #0x00003FFC, %d0                          /* dcol*4 (col offset within plane) */
     movea.l #ARCADE_PC080SN_CWINDOW_BASE_FG, %a4
     adda.l  %d0, %a4                                  /* a4 = base cell dest (plane row 0) */
-    move.w  %d0, %d1
-    lsr.w   #2, %d1                                   /* d1 = dcol */
     moveq   #0, %d2
-    move.w  %d1, %d2
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d2
     andi.w  #0x0003, %d2
-    add.w   %d2, %d2                                  /* d2 = colidx*2 */
-    moveq   #0, %d3
-    move.w  %d1, %d3
-    lsr.w   #2, %d3
-    lsl.w   #2, %d3                                   /* d3 = group*4 */
+    add.w   %d2, %d2                                  /* d2 = arcade colidx*2 */
+    movea.l #PC080SN_DESC_REBUILD_PTR_TABLE, %a3      /* rebuilt block pointers, already Genesis-addressed */
     moveq   #0, %d4                                   /* d4 = seg */
 .Lfgc_seg_loop:
     move.l  %d4, %d6
-    mulu.w  #FG_SRC_STRIDE, %d6                       /* seg*0x22C0 */
-    add.l   %d3, %d6                                  /* + group*4 */
-    addi.l  #FG_SRC_BASE_GEN, %d6                     /* + 0x16B1C (arcade 0x1691C + copy 0x200) */
+    lsl.l   #2, %d6                                   /* seg*4 */
+    movea.l %a3, %a2
+    adda.l  %d6, %a2
+    move.l  (%a2), %d6                                /* rebuilt block pointer from 0x00FF1040 */
+    cmpi.l  #0x00000200, %d6
+    blo     .Lfgc_done
+    cmpi.l  #0x00060000, %d6
+    bhs     .Lfgc_done
     movea.l %d6, %a2
-    movea.l %a2, %a3                                  /* descriptor base; collision words live here */
-    moveq   #0, %d6
-    move.w  2(%a2), %d6                               /* block offset (arcade) */
-    addi.l  #FG_BLOCK_RELOC, %d6                      /* + 0x200 -> Genesis block */
-    add.w   %d2, %d6                                  /* + colidx*2 */
-    movea.l %d6, %a2                                  /* a2 = block base for this seg/col */
+    adda.w  %d2, %a2                                  /* a2 = block base for this seg/col */
     moveq   #0, %d5                                   /* d5 = row */
 .Lfgc_row_loop:
     move.w  %d5, %d6
@@ -364,6 +360,7 @@ genesistan_stage_fg_src_column:
     cmpi.w  #FG_PRODUCER_SEG_COUNT, %d4
     bne     .Lfgc_seg_loop
 
+.Lfgc_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -2796,14 +2793,14 @@ genesistan_hook_itempage_strip_populate:
 genesistan_hook_itempage_strip_blit:
     movem.l %d1/%d6, -(%sp)
 
-    /* Build 0154: producer-source gameplay scene selection.
-     * If this strip's source pointer is the Stage 1 tile-column family
-     * [GAMEPLAY_STRIP_SRC_LO, GAMEPLAY_STRIP_SRC_HI) and the gameplay scene is not
-     * yet loaded, load it now through the existing load_scene_tiles lifecycle so its
-     * PC080SN patterns become resident and the global LUT resolves the runtime codes.
-     * Keyed on the producer-owned source pointer, not the master state. d0/a3 are
-     * reloaded immediately below; load_scene_tiles preserves d1-d7/a0-a4. */
+    /* Build 0217: producer-source PC080SN tileset selection.
+     * The same arcade Stage 1 strip producer walks outdoor attr=0x0002 sources and
+     * then cave attr=0x0003 sources. They do not fit together in the Genesis PC080SN
+     * VRAM cache, so select the residency manifest from the producer-owned source
+     * pointer while keeping the logical scene as gameplay. d0/a3 are reloaded below;
+     * load_scene_tiles preserves d1-d7/a0-a4. */
     moveq   #0, %d6
+    moveq   #0, %d1
     movea.l #PC080SN_ITEMPAGE_STRIP_PTR_SLOT, %a3
     move.l  (%a3), %d0
     andi.l  #0x00FFFFFF, %d0
@@ -2812,9 +2809,14 @@ genesistan_hook_itempage_strip_blit:
     cmpi.l  #GAMEPLAY_STRIP_SRC_HI, %d0
     bhs.s   .Litempage_blit_scene_ready
     moveq   #1, %d6
-    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    moveq   #SCENE_GAMEPLAY_ID, %d1
+    cmpi.l  #GAMEPLAY_STRIP_SRC_CAVE_LO, %d0
+    blo.s   .Litempage_blit_tileset_selected
+    moveq   #SCENE_GAMEPLAY_CAVE_TILESET_ID, %d1
+.Litempage_blit_tileset_selected:
+    cmp.b   genesistan_current_pc080sn_tileset_id, %d1
     beq.s   .Litempage_blit_scene_ready
-    moveq   #SCENE_GAMEPLAY_ID, %d0
+    move.w  %d1, %d0
     bsr     load_scene_tiles
 .Litempage_blit_scene_ready:
 

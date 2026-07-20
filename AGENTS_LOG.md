@@ -43078,3 +43078,149 @@ Open/Closed Issues Impact:
 - KNOWN_FINDINGS impact: Option A — no new finding indexed; evidence strengthens existing open issues but does not establish a durable new mechanism.
 - Architecture compliance: CONFIRMED — evidence-only from supplied video; no emulator replacement run, no source/build/ROM changes.
 - STOP triggered: NO.
+
+## [Cody — Infrastructure, Full Arcade Rastan Ghidra Disassembly Reference]
+
+- Files changed: `docs/design/Cody_full_arcade_ghidra_disassembly.md`, `CURRENT_STATE.md`, new reference artifacts under `analysis/ghidra/rastan_arcade/`, `AGENTS_LOG.md`.
+- Build produced: NO. ROM path: N/A. No source/spec/tool behavior/Makefile/invariant/rolling-ROM/build-counter/numbered-artifact changes.
+- Primary source: original arcade MAME `rastan` / `Rastan (World Rev 1)` ROM set from `roms/rastan.zip`; source zip SHA256 `09a19edc7221694d3885c11f75e549fca3589161c6113275e857a44ee40051af`.
+- Verified maincpu image: `analysis/ghidra/rastan_arcade/input/rastan_world_rev1_maincpu_68000.bin`, size `0x60000` / `393216`, SHA256 `4f30b9e7aa946aa33d20e125a1726ff094f9615980107d0842efe1721cf32063`, reset vector `arcade_pc 0x0003A000`, initial SP `arcade_WRAM 0x0010DE00`; byte-identical to `build/regions/maincpu.bin`.
+- Ghidra: `/home/tighe/tools/ghidra_12.0.4_PUBLIC`, language `68000:BE:32:default:default`, project `analysis/ghidra/rastan_arcade/ghidra_project/rastan_arcade_world_rev1.gpr`, database `.rep/`, reproducible runner `analysis/ghidra/rastan_arcade/run_headless_export.sh`.
+- Scripts/artifacts: `RastanArcadeSeed.java` adds MAME-derived main CPU memory blocks/labels and seeded entrypoints; `RastanArcadeExport.java` exports `full_listing.tsv`, `function_inventory.tsv`, `call_graph_edges.tsv`, `call_graph.dot`, `xrefs.tsv`, `hw_refs.tsv`, `scalar_constants.tsv`, `jump_tables_and_indirects.tsv`, `decompiler_export.c`, `memory_map.md`, `unresolved_regions.tsv`, `coverage_report.md`, `subsystem_map.md`, `address_correlation_report.json`, and `export_summary.md`. Supplemental full-ROM `linear_disassembly.tsv` and `entrypoints_from_linear_disasm.tsv` were generated for whole-byte-range reference.
+- Coverage/result: Ghidra functions `181`; Ghidra instructions `4094`; conservative Ghidra-classified code bytes `0x3974` (`3.74%`); unresolved/data gaps `139`; full linear disassembly rows `121605`; hardware-reference rows `453` (`PC080SN_tilemap 124`, `arcade_WRAM 101`, `PC090OJ_sprite_RAM 52`, inputs 46, sound 34, palette 34, watchdog 16, sprite_ctrl 14, scroll/control 28 total). Ghidra coverage is conservative and unresolved regions are not evidence of absent code.
+- Address mapping discipline: `address_correlation_report.json` uses `build/rastan-direct/address_map.json` segment ranges only; no fixed `+0x200/-0x200` proof. Mapped `157/181` Ghidra function entries and `4600/4688` linear control-flow anchors.
+- Current ROM state verified after task: `build/rastan-direct/build_counter.txt` remains `214`; rolling ROM and Build 0214 remain SHA256 `1c51a28e453a7f628a8691490ecb96f875b309ba8801fc5b6833b03b04ffac96`.
+- Open/Closed Issues Impact: OPEN-001, OPEN-017, OPEN-024 touched as reference consumers; OPEN-015 context only. New issues: NONE. Closed: NONE. Issue ledgers not edited. Deferred: all runtime/gameplay/visual implementation work.
+- KNOWN_FINDINGS impact: Option A — no new finding indexed; this is INFRASTRUCTURE/static-reference generation, not a new durable runtime mechanism.
+- Architecture compliance: CONFIRMED — arcade code is the program; Genesis correlation is JSON-derived only; no runtime behavior changes.
+- STOP triggered: NO.
+
+### MAME Exit Summary (2026-07-19 15:48:39)
+- Final PC: 0x03B284
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0215 Stage 1 FG Progression Restoration]
+
+- **Date:** 2026-07-19
+- **Files changed:** `apps/rastan-direct/src/tilemap_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build0215_fg_progression_restoration.md`, `CURRENT_STATE.md`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, evidence files under `states/traces/build0215_fg_progression_restoration_20260719_153538/`, generated build outputs/manifests, `AGENTS_LOG.md`.
+- **Build produced:** YES. Build 0215/256, `dist/rastan-direct/rastan_direct_video_test_build_0215.bin`, SHA256 `10e5307fae240ae418b31b66df0cabe267785a3cd5e68d08f69a21e7b740e99d`, size `1,583,868`, counter `215`; rolling ROM byte-identical. Config `PC090OJ_MIRROR_RECORDS=256 RASTAN_GAMEPLAY_HUD_SPRITES=0`.
+- **Root cause confirmed:** YES for the Stage 1 FG horizontal/source-progression replay defect. Pre-0215 `genesistan_stage_fg_src_column` ignored the arcade-owned rebuilt PC080SN pointer table (`Genesis_WRAM 0x00FF1040`) and recomputed source from a folded destination-derived group; after the 64-column/page boundary this replayed earlier foreground/floor source groups.
+- **Implementation boundary:** changed only `genesistan_stage_fg_src_column` to use `0x00FF1040` rebuilt block pointers and `a5@0x10CA&3`, preserving the existing tall-FG staging/projection path. No BG, PC090OJ, collision, scroll, palette, black-band, lizard combat, or sprite-semantic fix was attempted.
+- **Build attempts:** first stopped before numbered artifact at link (missing `.Lfgc_done`, fixed); second stopped before numbered artifact at postpatch invariant gate (coverage observed `0x182AFC`, opcode_replace `215`, paired invariant corrected); final release passed with `GATE_PASS`. No existing numbered build was deleted, overwritten, or reused.
+- **Evidence:** `states/traces/build0215_fg_progression_restoration_20260719_153538/`. Build 0213/0215 right-held MAME traces show source table progression in `0x00FF1000/0x00FF1040`; hash comparison matches pre-boundary (`frame 429/1000 tall_hash 57C2A48D`) and diverges post-boundary (`frame 1800`: Build 0213 `FDB0232D`, Build 0215 `D8767E3A`). Snapshots show the former repeated lower-floor replay is no longer simply repeated; gray/wrong lower-block content remains unresolved.
+- **Open/Closed Issues Impact:** OPEN-017 updated; OPEN-001/OPEN-024 context. New issues: NONE. Closed: NONE. Deferred: gray/wrong lower-block content, black display band, lizard combat/damage, splat/item palettes/scroll, bat palette, record 132, collision-map row-base/player retune, broader terrain correctness.
+- **KNOWN_FINDINGS impact:** Option C — KF-038 updated with Build 0215 Stage 1 FG source-progression evidence.
+- **Architecture compliance:** CONFIRMED — arcade code remains the program; Genesis helper translation feeds staging and VBlank commit; no scaffolding/second lifecycle/forced gameplay state.
+- **STOP triggered:** NO for final outcome.
+
+## [Cody — Evidence, Build 0216 Hurry-Up Bat CPU Lock STOP]
+
+- **Date:** 2026-07-19
+- **Files changed:** `docs/design/Cody_build0216_hurryup_bat_cpu_lock.md`, evidence artifacts under `states/traces/build0216_hurryup_bat_cpu_lock_20260719_184124/`, `AGENTS_LOG.md`.
+- **Build produced:** NO. Build 0216 was not produced; counter remains `215`. Baseline inspected ROM: Build 0215/256 `dist/rastan-direct/rastan_direct_video_test_build_0215.bin`, SHA256 `10e5307fae240ae418b31b66df0cabe267785a3cd5e68d08f69a21e7b740e99d`, size `1,583,868`. No numbered build was deleted, overwritten, or reused.
+- **Root cause confirmed:** NO. Genesis Build 0215 stationary/no-cheat gameplay reaches late actor-swarm-correlated state and then the crash path, but the exact first corrupting writer/control-flow divergence was not recovered.
+- **Exact evidence boundary:** native MAME debugger stopped at `runtime_genesis_pc 0x0000040E` (illegal-instruction exception stub). Recurrent sampled stable lock/crash path is `runtime_genesis_pc 0x000005F4` (crash renderer/minimal path), not original gameplay code. Exception stack begins at `0x00FEC048` with nonsensical stacked PC material and repeated `0x0003A27E / 0x2004`-style VBlank-return frames, supporting corrupted stack/control-flow but not identifying the first corrupting instruction.
+- **Genesis timeline:** last clearly healthy gameplay sample frame 4800: `pc=0x0007231C`, state `2/3/0`, scene `0x0100`, HP `0x3000`, actor e8 `b1=0x9F b5=0x0F`. Last pre-lock sampled frame 6000: `pc=0x000721BA`, scene sample `0x00FF` suspect/corrupt-or-timing, actor e7 `b1=0x9E b5=0x0F`, represented records r48..r55 code `0x0269`. Stable sampled lock frame 6168: `pc=0x000005F4`, `SP=0x00FEC048`, `A5=0x01800000`.
+- **Ruled out / not proven:** no hit on `genesistan_pc090oj_hook_audit_guard`; audit flag stayed 0. Broad scene-BSS watch caught adjacent scene-range values (`0x00FFBFF0` remained `0x0100`, range fields `0x00056A22..0x000570C2`), not first scene-id corruption. Exact scene-id watch did not catch a non-`0x0100` gameplay write before illegal-stop. No raw PC090OJ hardware writer, VBlank starvation, or Stage-1-FG-regression cause was proven.
+- **Original arcade reference:** exact repository cheat found in `tools/mame/cheat/cheat.7z`: Rastan `Infinite Energy`, action `maincpu.pb@10C13A=30`. A bounded arcade reference attempt did not produce frame CSV (`arcade_hurryup_reference_trace.csv` 0 bytes; events only `TRACE_START`), so the original arcade hurry-up/bat call path remains unproven.
+- **Ghidra/reference:** `analysis/ghidra/rastan_arcade/exports/` consulted for static context; no exact named hurry-up/bat/swarm path found sufficient for patch design.
+- **Fix implemented:** NO. No source/spec/tool/Makefile/ROM/invariant/counter changes. No bat suppression, timer delay, collision skip, actor/SAT forcing, watchdog patch, capacity increase, palette patch, or unrelated cave/lizard/splat/item/terrain work.
+- **Open/Closed Issues Impact:** Open touched: OPEN-017, OPEN-024, OPEN-001 context, OPEN-015 context only. New issues: NONE. Closed: NONE. Deferred: cave cover/foreground defects, lizard cave death, lizard damage, bat palette, dropped item/splat palettes, terrain correctness, broader sprite semantics, crash-handler display reliability.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; evidence is useful but not a durable root mechanism.
+- **Architecture compliance:** CONFIRMED — evidence-only; arcade code remains the program; no Genesis-owned flow or bypass added.
+- **STOP triggered:** YES — exact root cause and patch-safe implementation boundary not proven, so Build 0216 was not produced.
+
+## [Cody — Evidence, Interactive Arcade Bat Path / Build 0216 Withheld]
+
+- **Date:** 2026-07-19
+- **Files changed:** `docs/design/Cody_build0216_arcade_bat_path_genesis_lock.md`, `states/traces/build0216_arcade_bat_path_genesis_lock_20260719_194524_interactive/arcade_bat_reduced_analysis.md`, `AGENTS_LOG.md`.
+- **Build produced:** NO. Build 0216 was not produced; no numbered build was deleted, overwritten, or reused. No source/spec/tool/Makefile/ROM/invariant changes were made.
+- **Baseline:** Build 0215/256 accepted ROM `dist/rastan-direct/rastan_direct_video_test_build_0215.bin`, SHA256 `10e5307fae240ae418b31b66df0cabe267785a3cd5e68d08f69a21e7b740e99d`.
+- **Original arcade run:** Tighe completed MAME original arcade Rastan / World Rev 1, human-played, no cheats. Life 1 was a lizard-damage comparison (death before bats). Lives 2 and 3 were authoritative natural hurry-up bat-swarm captures; both spawned bats naturally and advanced through bat-damage death without lock.
+- **Trace evidence:** `states/traces/build0216_arcade_bat_path_genesis_lock_20260719_194524_interactive/` preserved. `arcade_bat_frames.csv` 962,290 bytes; `arcade_bat_events.log` 1,299,581 bytes; 13 snapshots; MAME exit code `0`. Memory taps installed, but execute taps failed in this MAME Lua API (`install_execute_tap` unavailable), so exact arcade writer-PC/call-return provenance was not captured.
+- **Reduced arcade findings:** Life 1 gameplay frames `406-993`, max active actors `4`, max code `0x0269` count `0`, death transition frame `994`. Life 2 gameplay frames `1127-4368`, max active actors `12`, max code `0x0269` count `9`, first active swarm frame `3687`, first `0x0269` frame `3692`, death transition frame `4369`. Life 3 gameplay frames `4502-7821`, max active actors `13`, max code `0x0269` count `9`, first active swarm frame `7062`, first `0x0269` frame `7067`, death transition frame `7822`.
+- **Genesis comparison:** prior Build 0215 STOP evidence remains: native stop at `runtime_genesis_pc 0x0000040E`, recurrent sampled crash path `0x000005F4`, original faulting PC unrecovered because stack/control state is corrupt. Last coherent native sample around frame `5940` (`runtime_genesis_pc 0x00072B68`, scene `0x0100`); first sampled corrupt scene value around frame `5970` (`runtime_genesis_pc 0x00072DA6`, scene `0x39A2`) inside/around Genesis-only PC090OJ decode/representation helper path.
+- **Root cause confirmed:** NO. Arcade validity of natural bat swarm/death is proven, but exact Genesis first corrupting instruction/control-path divergence is not proven. Build 0216 withheld as patch-unsafe.
+- **Open/Closed Issues Impact:** OPEN-017 and OPEN-024 touched; OPEN-001 context; OPEN-015 context only. New issues: NONE. Closed: NONE. Ledgers not edited.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; evidence narrows the boundary but does not establish a durable mechanism.
+- **Architecture compliance:** CONFIRMED — evidence-only continuation; arcade code remains the program; no Genesis-owned bat behavior, timer change, collision/damage bypass, watchdog recovery, or second renderer introduced.
+- **STOP triggered:** YES for implementation/build; no patch-safe correction boundary proven.
+
+### MAME Exit Summary (2026-07-19 20:13:20)
+- Final PC: 0x03B284
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0216 PC090OJ Swarm Stack/Control Fix]
+
+- **Date:** 2026-07-19
+- **Files changed:** `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build0216_pc090oj_swarm_stack_fix.md`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, evidence artifacts under `states/traces/build0216_pc090oj_swarm_stack_fix_20260719_201422/`, generated build outputs/manifests, `AGENTS_LOG.md`.
+- **Build produced:** YES. Build 0216/256, `dist/rastan-direct/rastan_direct_video_test_build_0216.bin`, SHA256 `6e9ef28d9f44102e8a0312ff27e0efe6d04e5d7cb9d9393417355ae2a443d4a1`, size `1,583,868`, counter `216`; rolling ROM byte-identical. Config `PC090OJ_MIRROR_RECORDS=256 RASTAN_GAMEPLAY_HUD_SPRITES=0`.
+- **Artifact preservation:** Build 0215 remains present and SHA-identical (`10e5307fae240ae418b31b66df0cabe267785a3cd5e68d08f69a21e7b740e99d`). No numbered build was deleted, overwritten, or reused. First release attempt stopped before numbered artifact production because the new opcode_replace initially used runtime `0x03A27A` in the `arcade_pc` field; the gate rejected it (`expected 027cf0ff but found 3b7c0001`). The spec was corrected to JSON-authoritative `arcade_pc 0x03A07A` -> `runtime_genesis_pc 0x03A27A`, then release passed.
+- **Root cause confirmed:** YES for the Build 0215 natural hurry-up swarm stack/control lock. Static PC090OJ helper stack audit found no local push/pop leak. Native Build 0215 traces instead showed repeated IRQ6 reentry at `runtime_genesis_pc 0x0003A27E` after arcade VBlank tail `runtime_genesis_pc 0x0003A27A` lowered IPM with `andi #0xF0FF,SR`; the overlong Genesis `_vblank_service` + arcade VBlank chain let pending IRQ6 interrupt before the final RTE restored stacked SR, producing repeated frames, falling SP, and later impossible control flow.
+- **Fix implemented:** one byte-neutral opcode_replace at `arcade_pc 0x0003A07A` (`runtime_genesis_pc 0x0003A27A` per `address_map.json`): `027CF0FF` (`andi #0xF0FF,SR`) -> `007C0600` (`ori #0x0600,SR`), leaving the following `rte` intact. No bat suppression, no sprite skip, no SAT forcing, no watchdog recovery, no terrain/palette/collision/damage changes.
+- **Invariant delta:** opcode_replace count `215 -> 216`; total Genesis coverage remains `0x182AFC`; manifest expected opcode_replace sites `216`; `GATE_PASS`.
+- **Validation:** `states/traces/build0216_pc090oj_swarm_stack_fix_20260719_201422/`. Scripted MAME run exits by `MAX_FRAME_EXIT frame=8000`, beyond the former ~frame-6030 failure window. Reduced CSV rows `320`, sampled frame range `30..7980`, suspect exception/impossible sampled PCs `0`, `STABLE_SUSPECT_PC` absent. Frame 6030 is normal helper flow (`pc=0x07234A`, scene `0x0100`, HP `0x3000`); frame 7980 remains valid (`pc=0x07232E`, scene `0x0100`, HP `0x3000`). Event-log snapshots preserve bat-family records: `0x0269` frames `5700..6160`, `0x0268` frame `6180`, `0x026A` through `8000`.
+- **Native debugger limitation:** native debugger command/probe files were produced, but Qt debugger `printf` output was unavailable headlessly/offscreen, so no post-fix breakpoint-derived `vdp_prepare_sprites` entry/exit SP table is claimed. Static stack-delta table plus frame-8000 runtime validation are the accepted evidence for this task.
+- **Open/Closed Issues Impact:** OPEN-017 and OPEN-024 updated; OPEN-001 context. New issues: NONE. Closed: NONE. Deferred: real-hardware acceptance, bat palette/damage, remaining PC090OJ visual correctness, lizard combat, record 132, terrain/cave/item/death issues, OPEN-015.
+- **KNOWN_FINDINGS impact:** Option B — KF-068 added for the VBlank-tail IPM/reentrant-IRQ hazard and Build 0216 fix.
+- **Architecture compliance:** CONFIRMED — arcade code remains the program; Genesis service still tail-jumps to arcade VBlank; final arcade `rte` ownership preserved; no scaffolding/second lifecycle/forced game state.
+- **STOP triggered:** NO.
+
+### MAME Exit Summary (2026-07-19 20:44:53)
+- Final PC: 0x03B284
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0217 Stage 1 Cave Map/Tileset Selection STOP]
+
+- **Date:** 2026-07-19
+- **Files changed:** `apps/rastan-direct/Makefile`, `apps/rastan-direct/src/scene_load.s`, `apps/rastan-direct/src/tilemap_hooks.s`, `tools/translation/precompute_pc080sn_tile_lut.py`, `docs/design/Cody_build0217_cave_map_tileset_fix.md`, `CURRENT_STATE.md`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, evidence artifacts under `states/traces/build0217_cave_map_tileset_fix_20260719_204341/`, generated PC080SN data under `build/`, generated object files, generated release outputs, `AGENTS_LOG.md`.
+- **Build produced:** YES. Build 0217/256 was produced once, `dist/rastan-direct/rastan_direct_video_test_build_0217.bin`, SHA256 `c74adc58b3852c5c3a1a39699de26fd6e41ebbb42cbe379e32c08c9b08dcd369`, size `1,583,868`, counter `217`; rolling ROM byte-identical. Config `PC090OJ_MIRROR_RECORDS=256 RASTAN_GAMEPLAY_HUD_SPRITES=0`.
+- **Artifact status:** Build 0217 is **not accepted as the cave-fix artifact**. Post-build evidence proved the release used stale PC080SN generated data, so the artifact cannot validate the staged cave tileset/source-selection fix. Build 0217 was preserved exactly; no numbered ROM was deleted, overwritten, or reused. No Build 0218 was produced.
+- **Root cause confirmed:** YES for the source-model/residency boundary. The original arcade Stage 1 descriptor stream at `arcade_pc/ROM 0x0003951C` continues from attr `0x0002` outdoor block sources into attr `0x0003` cave/interior block sources. Build 0216 tooling stopped before attr `0x0003`, and the runtime strip source gate excluded relocated cave sources `0x0000FB1C` and `0x0001031C`, leaving cave tiles effectively unmapped (`0x00F91C`: 1/404 mapped; `0x01011C`: 0/414 mapped).
+- **Rejected broad fix:** A single outdoor+cave gameplay preload exceeded VRAM budget (`1422` tiles > `1164`). This rejected the naive global merge and supports a producer-source-selected PC080SN residency split instead of a Genesis-owned cave loader or alternate renderer.
+- **Implementation staged:** added a split PC080SN Gameplay-Cave residency scene in `precompute_pc080sn_tile_lut.py`; added Makefile dependencies/rules so PC080SN LUT/preload artifacts regenerate from source regions; extended `scene_load.s` with tileset id `3` while preserving logical gameplay scene id `1`; updated the item-page strip route to select the cave tileset when the producer source enters the cave descriptor range.
+- **Validation completed:** data-only regeneration after the corrected split model reports scene counts Title `845`, Gameplay `962`, End-Round `1067`, Gameplay-Cave `568`, largest scene `1067/1164`, disjoint range PASS; cave coverage after regen is `0x00F91C 404/404` and `0x01011C 414/414`; assembly-only check for `out/scene_load.o` and `out/tilemap_hooks.o` passes. No corrected numbered ROM or runtime visual validation was produced after this STOP.
+- **Open/Closed Issues Impact:** OPEN-017 updated; OPEN-001 and OPEN-024 context. New issues: NONE. Closed: NONE. Deferred: corrected numbered build, runtime cave visual validation, cave-cover ownership/source selection, enemy/lizard visual/combat issues, remaining terrain and palette issues, OPEN-015.
+- **KNOWN_FINDINGS impact:** Option C — KF-041 refined with Build 0217 cave-continuation source-model evidence and the artifact caveat.
+- **Architecture compliance:** CONFIRMED — arcade code remains the program; the staged implementation translates producer-selected PC080SN source residency into existing staging/VBlank flow; no Genesis-owned map progression, cave loader, camera rewrite, alternate renderer, or gameplay-state forcing was introduced.
+- **STOP triggered:** YES — Build 0217 consumed the build number before stale PC080SN generated data was discovered; corrected source and generated data are staged, but the next corrected numbered artifact requires a new explicit build directive and must preserve Build 0217.
+
+### MAME Exit Summary (2026-07-19 21:06:25)
+- Final PC: 0x03B284
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0218 Cave Residency Release]
+
+- **Date:** 2026-07-19
+- **Files changed:** `RULES.md`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Cody_build0217_cave_map_tileset_fix.md`, `CURRENT_STATE.md`, `OPEN_ISSUES.md`, `KNOWN_FINDINGS.md`, evidence artifacts under `states/traces/build0218_cave_map_tileset_release_20260719_210451/`, generated release outputs, `AGENTS_LOG.md`.
+- **Build produced:** YES. Build 0218/256, `dist/rastan-direct/rastan_direct_video_test_build_0218.bin`, SHA256 `30a84f86cc34e8dc9861f945138e7aafabe6f072b466fa6d161b8b0e8ed60a95`, size `1,586,184`, counter `218`; rolling ROM byte-identical. Config `PC090OJ_MIRROR_RECORDS=256 RASTAN_GAMEPLAY_HUD_SPRITES=0`.
+- **Artifact preservation:** Build 0217 remains present and SHA-identical (`c74adc58b3852c5c3a1a39699de26fd6e41ebbb42cbe379e32c08c9b08dcd369`, size `1,583,868`). No numbered build was deleted, overwritten, rebuilt, or reused. `RULES.md` now records that producing/rejecting a numbered artifact requires preservation and advancement, and is not by itself a STOP condition when the task authorizes sequential correction inside the same proven boundary.
+- **Build attempts:** first Build 0218 release invocation stopped before numbered artifact production at the postpatch invariant gate: opcode_replace count stayed `216`, but total Genesis bytes covered was `0x183408` instead of `0x182AFC`. Paired canonical invariants were corrected to `0x183408`. Second release invocation passed with `GATE_PASS`.
+- **Generated data / source model:** Build 0218 materializes the split PC080SN cave residency staged after Build 0217. Pre-build/generated evidence shows cave source coverage `0x00F91C 404/404` and `0x01011C 414/414`; outdoor gameplay fits at `962` tiles, cave gameplay fits at `568`, and max scene usage remains `1067/1164`. Copied generated artifacts and representative cave cell mappings are preserved in the evidence directory.
+- **Runtime validation:** automated MAME did not reach a matched Genesis cave source family. Original arcade with the same input envelope reached a cave entrance/drop visual by frame `900`, while Build 0218 remained on outdoor source `0x0000D31C` / tileset `1` through frame `12005`. Build 0218 did prove outdoor gameplay tileset selection (`tileset 1`) is active, but cave visual acceptance is **USER MUST VERIFY**.
+- **No Build 0219:** not produced. The runtime blocker is a separate gameplay/progression/input/combat delta preventing the automated Genesis run from reaching the cave; no concrete correctable implementation defect inside the split cave source/tileset boundary was exposed.
+- **Open/Closed Issues Impact:** OPEN-017 updated; OPEN-001 and OPEN-024 context. New issues: NONE. Closed: NONE. Deferred: matched/manual cave visual validation, cave-cover ownership/source selection, lizard cave fall/damage, bat palette, death splat/dropped-item palettes, collision/layout, VBlank/black-bar, hardware/emulator acceptance, OPEN-015.
+- **KNOWN_FINDINGS impact:** Option C — KF-041 updated with Build 0218 materialization evidence and the cave-visual acceptance caveat.
+- **Architecture compliance:** CONFIRMED — arcade code remains the program; split PC080SN source residency feeds the existing staging/VBlank path; no Genesis-owned cave progression/loader, direct renderer, coordinate hack, or gameplay-state forcing was added.
+- **STOP triggered:** NO. Build 0218 was preserved; no later sequential build was justified by the observed evidence.
+
+## [Cody — Evidence STOP, Build 0219 Cave Switch / Two Projectiles]
+
+- **Date:** 2026-07-20
+- **Files changed:** `docs/design/Cody_build0219_cave_switch_two_projectiles.md`, evidence artifacts under `states/traces/build0219_cave_switch_two_projectiles_20260720_171819/`, `AGENTS_LOG.md`.
+- **Build produced:** NO. Build 0219 was not produced; Build 0217 and Build 0218 were preserved. No source/spec/tool/Makefile/ROM/invariant changes were made.
+- **Baseline / user evidence:** Build 0218/256 is rejected by Tighe manual cave visual verification: cave still uses wrong repeating horizontal brick pattern; two unwanted gray projectile/fire-sword-like objects are visible at cave; Projectile A pre-existed before Build 0218; Projectile B was introduced by Build 0218. This task did not independently capture that matched cave state.
+- **Harness created:** `states/traces/build0219_cave_switch_two_projectiles_20260720_171819/build0218_manual_cave_capture.lua` logs Build 0218 scene/tileset/source-pointer state, staged BG/FG counts, PC090OJ mirror records, represented/waiting/candidate state, staged SAT entries, and periodic/event screenshots.
+- **Manual capture attempt result:** MAME Build 0218 capture ran to sampled frame `38220` and produced `build0218_manual_runtime.csv` (678 lines), `build0218_manual_pc090oj_records.csv` (33193 lines), `build0218_manual_sat.csv` (5665 lines), and periodic screenshots through `build0218_manual_frame_037800_periodic.png`. The attempt reached/held outdoor Stage 1 only; it did not capture cave.
+- **Gate failure:** runtime log contains `0` rows with cave source pointer range `0x0000FB1C..0x00010B1C` and `0` rows with PC080SN tileset `3`. Final sampled row stays state `2/3/0`, logical scene `1`, tileset `1`, strip pointer `0x0000D31C`. Therefore the prompt's required matched Build 0218 cave capture was not obtained.
+- **Projectile status:** not classified. The outdoor capture shows a gray projectile/sphere-like symptom, but no cave-matched two-projectile evidence was captured, so Projectile A/B owner, SAT slot, PC090OJ record, actor source, lifecycle, and Build 0218 regression cause remain unproven. No claim that both projectiles are Build 0218 regressions.
+- **Root cause confirmed:** NO. Cave-switch divergence and projectile lifecycle/ownership defects remain unproven at the required matched cave state.
+- **Fix implemented:** NO. Applying a cave or projectile fix without the matched cave runtime state would violate the State Causality Rule and the prompt's proof-first gate.
+- **Open/Closed Issues Impact:** OPEN-017 touched; OPEN-001 and OPEN-024 context. New issues: NONE. Closed: NONE. Deferred: matched cave capture, cave-switch fix, Projectile A lifecycle/ownership, Projectile B Build 0218 regression root, Build 0219 production, BlastEm/Exodus verification.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; useful harness/incomplete evidence only, no durable mechanism proven.
+- **Architecture compliance:** CONFIRMED for work performed — MAME observer script only; arcade code remains the program; no Genesis-owned cave loader, sprite suppression, direct SAT clear, source hack, or build artifact.
+- **STOP triggered:** YES — required matched Build 0218 cave capture was not obtained, so no safe implementation/build boundary exists yet.

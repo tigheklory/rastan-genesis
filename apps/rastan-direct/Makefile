@@ -37,6 +37,15 @@ PC090OJ_MIRROR_RECORDS ?= 256
 RASTAN_GAMEPLAY_HUD_SPRITES ?= 1
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 
+MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
+PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
+PC080SN_TILE_LUT := $(ROOT)/build/pc080sn_tile_vram_lut.bin
+PC080SN_ATTR_LUT := $(ROOT)/build/pc080sn_attr_lut.bin
+PC080SN_SCENE_PRELOAD_TITLE := $(ROOT)/build/pc080sn_scene_preload_title.bin
+PC080SN_SCENE_PRELOAD_GAMEPLAY := $(ROOT)/build/pc080sn_scene_preload_gameplay.bin
+PC080SN_SCENE_PRELOAD_GAMEPLAY_CAVE := $(ROOT)/build/pc080sn_scene_preload_gameplay_cave.bin
+PC080SN_SCENE_PRELOAD_ENDROUND := $(ROOT)/build/pc080sn_scene_preload_endround.bin
+PC080SN_SOURCE_SCENE_MAP := $(ROOT)/build/pc080sn_source_scene_map.bin
 PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
 PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
 PC090OJ_SLOT_LUT := $(ROOT)/build/pc090oj_slot_lut.bin
@@ -97,8 +106,28 @@ $(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s FORCE_ASM_REBUILD | $(OUT
 $(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(PC090OJ_REGION): $(REGION_BUILDER)
+$(MAINCPU_REGION) $(PC080SN_REGION) $(PC090OJ_REGION): $(REGION_BUILDER)
 	$(PYTHON) "$(REGION_BUILDER)" --variant "$(VARIANT)"
+
+$(PC080SN_TILE_LUT) $(PC080SN_SCENE_PRELOAD_TITLE) $(PC080SN_SCENE_PRELOAD_GAMEPLAY) $(PC080SN_SCENE_PRELOAD_GAMEPLAY_CAVE) $(PC080SN_SCENE_PRELOAD_ENDROUND) $(PC080SN_SOURCE_SCENE_MAP): $(MAINCPU_REGION) $(PC080SN_REGION) $(ROOT)/tools/translation/precompute_pc080sn_tile_lut.py
+	$(PYTHON) "$(ROOT)/tools/translation/precompute_pc080sn_tile_lut.py" \
+		--maincpu "$(MAINCPU_REGION)" \
+		--pc080sn "$(PC080SN_REGION)" \
+		--lut-output "$(PC080SN_TILE_LUT)" \
+		--preload-output "$(ROOT)/build/pc080sn_vram_preload.bin" \
+		--count-output "$(ROOT)/build/pc080sn_unique_tile_count.txt" \
+		--lut-include "$(ROOT)/build/pc080sn_tile_vram_lut_words.inc" \
+		--preload-include "$(ROOT)/build/pc080sn_vram_preload_words.inc" \
+		--scene-title-output "$(PC080SN_SCENE_PRELOAD_TITLE)" \
+		--scene-gameplay-output "$(PC080SN_SCENE_PRELOAD_GAMEPLAY)" \
+		--scene-gameplay-cave-output "$(PC080SN_SCENE_PRELOAD_GAMEPLAY_CAVE)" \
+		--scene-endround-output "$(PC080SN_SCENE_PRELOAD_ENDROUND)" \
+		--source-scene-map-output "$(PC080SN_SOURCE_SCENE_MAP)"
+
+$(PC080SN_ATTR_LUT): $(ROOT)/tools/translation/precompute_pc080sn_attr_lut.py
+	$(PYTHON) "$(ROOT)/tools/translation/precompute_pc080sn_attr_lut.py" \
+		--output "$(PC080SN_ATTR_LUT)" \
+		--include "$(ROOT)/build/pc080sn_attr_lut_words.inc"
 
 $(PC090OJ_PRECONV): $(PC090OJ_REGION) $(ROOT)/tools/translation/preconvert_pc090oj_tiles.py
 	$(PYTHON) "$(ROOT)/tools/translation/preconvert_pc090oj_tiles.py" \
@@ -132,12 +161,13 @@ $(OUT_DIR)/diag_bookmark.o: $(SRC_DIR)/diag_bookmark.s FORCE_ASM_REBUILD | $(OUT
 
 $(OUT_DIR)/scene_load.o: \
 	$(SRC_DIR)/scene_load.s \
-	$(ROOT)/build/pc080sn_tile_vram_lut.bin \
-	$(ROOT)/build/pc080sn_attr_lut.bin \
-	$(ROOT)/build/regions/pc080sn.bin \
-	$(ROOT)/build/pc080sn_scene_preload_title.bin \
-	$(ROOT)/build/pc080sn_scene_preload_gameplay.bin \
-	$(ROOT)/build/pc080sn_scene_preload_endround.bin \
+	$(PC080SN_TILE_LUT) \
+	$(PC080SN_ATTR_LUT) \
+	$(PC080SN_REGION) \
+	$(PC080SN_SCENE_PRELOAD_TITLE) \
+	$(PC080SN_SCENE_PRELOAD_GAMEPLAY) \
+	$(PC080SN_SCENE_PRELOAD_GAMEPLAY_CAVE) \
+	$(PC080SN_SCENE_PRELOAD_ENDROUND) \
 		FORCE_ASM_REBUILD \
 		| $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<

@@ -1,3 +1,34 @@
+# CURRENT_STATE (2026-07-19, post Build 0218 cave-residency candidate)
+
+- Build 0218/256 was produced and preserved: `dist/rastan-direct/rastan_direct_video_test_build_0218.bin`, SHA256 `30a84f86cc34e8dc9861f945138e7aafabe6f072b466fa6d161b8b0e8ed60a95`, size `1,586,184`, counter `218`, config `PC090OJ_MIRROR_RECORDS=256`, `RASTAN_GAMEPLAY_HUD_SPRITES=0`. Rolling ROM is byte-identical to the numbered artifact.
+- Build 0217 remains preserved and rejected/incomplete: `dist/rastan-direct/rastan_direct_video_test_build_0217.bin`, SHA256 `c74adc58b3852c5c3a1a39699de26fd6e41ebbb42cbe379e32c08c9b08dcd369`, size `1,583,868`. Do not delete, overwrite, rebuild, or reuse it.
+- Build 0218 materializes the corrected split PC080SN cave residency data: cave source LUT coverage is `0x00F91C 404/404` and `0x01011C 414/414`; outdoor gameplay fits at `962` tiles, cave gameplay at `568`, and max scene usage remains `1067/1164`.
+- Build 0218 first release invocation stopped before numbered artifact production at the canonical invariant gate (`0x182AFC -> 0x183408`, opcode_replace `216` unchanged); paired invariants were corrected to `0x183408`, then release passed with `GATE_PASS`.
+- Automated runtime validation did not reach the Genesis cave source family. Original arcade with the same input envelope reached a cave entrance/drop visual by frame `900`, while Build 0218 remained in outdoor Stage 1/lizard area through frame `12005` (`strip_ptr1100=0x0000D31C`, tileset `1`). Therefore Build 0218 cave visual acceptance is **USER MUST VERIFY**; no cave visual success is claimed from automation.
+- No Build 0219 was produced because the validation blocker is a separate gameplay/progression/input/combat delta, not a concrete proven defect in the split cave PC080SN source/tileset boundary.
+
+# CURRENT_STATE (2026-07-19, post Build 0217 STOP)
+
+- Build 0217/256 was produced and preserved: `dist/rastan-direct/rastan_direct_video_test_build_0217.bin`, SHA256 `c74adc58b3852c5c3a1a39699de26fd6e41ebbb42cbe379e32c08c9b08dcd369`, size `1,583,868`, counter `217`, config `PC090OJ_MIRROR_RECORDS=256`, `RASTAN_GAMEPLAY_HUD_SPRITES=0`. Rolling ROM was byte-identical at production time.
+- Build 0217 is **not accepted as the cave-fix artifact**. It was produced before the PC080SN generated-data dependency gap was discovered, so its cave-source LUT coverage still matched stale Build 0216-era data.
+- Proven cave root boundary: the runtime Stage 1 descriptor table at `arcade_pc/ROM 0x03951C` continues after outdoor attr `0x0002` into cave/interior attr `0x0003` sources `0x00F91C` and `0x01011C`; Build 0216-era generator/gate omitted those sources. Pre-fix cave LUT coverage was `1/404` and `0/414`.
+- Source is staged for the corrected split PC080SN residency model: outdoor gameplay set fits at `962` tiles, cave gameplay set fits at `568`, and naive combined outdoor+cave exceeds budget at `1422/1164`. Touched source assembles (`out/scene_load.o`, `out/tilemap_hooks.o`), but no corrected numbered ROM was produced after the STOP boundary.
+- Next ROM-producing task must preserve Build 0217 and use the next authorized build number. Required validation: matched arcade/Genesis cave state, cave visual screenshots, outdoor regression, Build 0216 IRQ/bat-swarm continuity, player/lizard/collision/VBlank checks.
+
+# CURRENT_STATE (2026-07-19, post Build 0215)
+
+- Rolling ROM: Build 0215/256 `dist/rastan-direct/rastan_direct_video_test_build_0215.bin`, SHA256 `10e5307fae240ae418b31b66df0cabe267785a3cd5e68d08f69a21e7b740e99d`, size `1,583,868`, counter `215`. Rolling ROM is byte-identical to the numbered artifact.
+- Build config: `PC090OJ_MIRROR_RECORDS=256`, `RASTAN_GAMEPLAY_HUD_SPRITES=0`. Builds 0207-0214 remain preserved/consumed as previously recorded; Build 0214/192 is comparison-only and not the gameplay baseline for 0215.
+- Build 0215 restores Stage 1 FG horizontal source progression: `genesistan_stage_fg_src_column` now consumes the arcade-owned rebuilt PC080SN pointer table at `Genesis_WRAM 0x00FF1040` and source-column index `a5@0x10CA`, rather than recomputing a static source from the folded destination column.
+- Evidence: `states/traces/build0215_fg_progression_restoration_20260719_153538/`. Scripted right-held MAME comparison shows Build 0213 and 0215 pre-boundary hashes match at frames 429/1000, then post-boundary hashes diverge at 1400/1800; screenshots show the old repeated lower-floor pattern is no longer simply replayed.
+- Still open/deferred: gray/wrong lower-block content, black display band, lizard combat/damage, splat/item palettes/scroll, bat palette, record 132, collision-map row-base/player retune, broader Stage 1 terrain visual correctness.
+
+# CURRENT_STATE (2026-07-19, post arcade Ghidra reference)
+
+- Arcade whole-game static reference created under `analysis/ghidra/rastan_arcade/` (docs/design/Cody_full_arcade_ghidra_disassembly.md). Original MAME `rastan` / World Rev 1 maincpu image SHA256 `4f30b9e7aa946aa33d20e125a1726ff094f9615980107d0842efe1721cf32063`, reset vector `arcade_pc 0x03A000`, SP `arcade_WRAM 0x10DE00`.
+- Ghidra project: `analysis/ghidra/rastan_arcade/ghidra_project/rastan_arcade_world_rev1.gpr`; exports: `analysis/ghidra/rastan_arcade/exports/`.
+- No ROM build/source/spec/runtime change from the Ghidra task. Counter remains 214; rolling ROM remains Build 0214 SHA `1c51a28e453a7f628a8691490ecb96f875b309ba8801fc5b6833b03b04ffac96`.
+
 # CURRENT_STATE (2026-07-19, post Build 0214)
 
 - Candidates: Build 0213/256 `4cb766d5...` (lizard alignment fixed; validated) and Build 0214/192 `1c51a28e...` (mirror comparison; drops 47/99 lizard records — expect missing lizards). Rolling ROM = 0214 (per task); counter 214.

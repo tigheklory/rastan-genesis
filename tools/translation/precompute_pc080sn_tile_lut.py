@@ -48,11 +48,13 @@ MAX_STRIP_RANGE = PC080SN_TILEMAP_WIDTH
 SCENE_TITLE = 0
 SCENE_GAMEPLAY = 1
 SCENE_ENDROUND = 2
-SCENE_IDS = (SCENE_TITLE, SCENE_GAMEPLAY, SCENE_ENDROUND)
+SCENE_GAMEPLAY_CAVE = 3
+SCENE_IDS = (SCENE_TITLE, SCENE_GAMEPLAY, SCENE_ENDROUND, SCENE_GAMEPLAY_CAVE)
 SCENE_NAMES = {
     SCENE_TITLE: "Title",
     SCENE_GAMEPLAY: "Gameplay",
     SCENE_ENDROUND: "End-Round",
+    SCENE_GAMEPLAY_CAVE: "Gameplay-Cave",
 }
 
 # Static one-shot block-write sources (0x5A38E/0x5A370/0x5A3AC/0x5A3DE/0x5A442 family).
@@ -74,17 +76,20 @@ TITLE_STATIC_BLOCKS = (
 GAMEPLAY_TABLE_START = 0x5635E
 GAMEPLAY_TABLE_END = 0x563A6
 
-# Build 0154 runtime gameplay BG producer model (authoritative).
-# The live Stage 1 outside producer walks a 6-byte descriptor table {attr16=0x0002, src32}
-# at arcade 0x3951C (Genesis 0x3971C). Its distinct source pointers are five 0x800-byte
-# tile-column blocks in [0xD11C, 0xF91C) (step 0x800), each 16 columns x 64 rows read as
-# code = word@(src + row*32 + col*2), code index = word & 0x3FFF. This is the actual Stage 1
-# BG tile source; codes lie in 0x04A6..0x07FB and every one has a valid PC080SN pattern.
+# Build 0217 runtime gameplay BG producer model (authoritative).
+# The live Stage 1 producer walks a 6-byte descriptor table {attr16, src32} at arcade
+# 0x3951C (Genesis relocated by address_map). Build 0154 covered only the outdoor
+# attr=0x0002 run. The cave/interior transition continues in the same producer-owned
+# table with attr=0x0003 and source blocks 0xF91C/0x1011C; those source blocks must be
+# resident for the same tall BG staging path.
 RUNTIME_GAMEPLAY_DESC_TABLE = 0x3951C
 RUNTIME_GAMEPLAY_DESC_STRIDE = 6
-RUNTIME_GAMEPLAY_DESC_ATTR = 0x0002
+RUNTIME_GAMEPLAY_DESC_ATTR_SCENES = {
+    0x0002: SCENE_GAMEPLAY,
+    0x0003: SCENE_GAMEPLAY_CAVE,
+}
 RUNTIME_GAMEPLAY_SRC_MIN = 0x0000D000
-RUNTIME_GAMEPLAY_SRC_MAX = 0x0000FA00
+RUNTIME_GAMEPLAY_SRC_MAX = 0x00010200
 RUNTIME_GAMEPLAY_BLOCK_ROWS = 64
 RUNTIME_GAMEPLAY_BLOCK_COLS = 16
 RUNTIME_GAMEPLAY_MAX_ENTRIES = 4096
@@ -244,29 +249,32 @@ def collect_table_block_sources(
 def collect_runtime_gameplay_sources(maincpu: bytes) -> list[BlockWriteSource]:
     """Walk the runtime gameplay BG producer descriptor table (arcade 0x3951C).
 
-    Structural derivation of the Stage 1 outside tile source: read consecutive 6-byte
-    {attr16=0x0002, src32} descriptor entries until the pattern breaks, collect the
-    distinct source-block pointers, and model each as a 16-col x 64-row block. No tile
-    codes are hardcoded; they are read from the ROM blocks by extract_tiles_from_source.
+    Structural derivation of the Stage 1 tile sources: read consecutive 6-byte
+    {attr16, src32} descriptor entries for the arcade producer-owned outdoor/cave
+    attr runs, collect the distinct source-block pointers per residency scene, and
+    model each as a 16-col x 64-row block. No tile codes are hardcoded; they are read
+    from the ROM blocks by extract_tiles_from_source.
     """
     sources: list[BlockWriteSource] = []
-    seen: set[int] = set()
+    seen: set[tuple[int, int]] = set()
     addr = RUNTIME_GAMEPLAY_DESC_TABLE
     entries = 0
     while entries < RUNTIME_GAMEPLAY_MAX_ENTRIES:
         if addr + RUNTIME_GAMEPLAY_DESC_STRIDE > len(maincpu):
             break
         attr = read_u16_be(maincpu, addr)
-        if attr != RUNTIME_GAMEPLAY_DESC_ATTR:
+        scene_id = RUNTIME_GAMEPLAY_DESC_ATTR_SCENES.get(attr)
+        if scene_id is None:
             break
         src = read_u32_be(maincpu, addr + 2) & 0xFFFFFF
         if not (RUNTIME_GAMEPLAY_SRC_MIN <= src <= RUNTIME_GAMEPLAY_SRC_MAX):
             break
-        if src not in seen:
-            seen.add(src)
+        seen_key = (scene_id, src)
+        if seen_key not in seen:
+            seen.add(seen_key)
             sources.append(
                 BlockWriteSource(
-                    scene_id=SCENE_GAMEPLAY,
+                    scene_id=scene_id,
                     source_addr=src,
                     rows=RUNTIME_GAMEPLAY_BLOCK_ROWS,
                     cols=RUNTIME_GAMEPLAY_BLOCK_COLS,
@@ -368,11 +376,7 @@ def collect_block_scene_tiles_and_source_map(
     maincpu: bytes,
     sources: list[BlockWriteSource],
 ) -> tuple[dict[int, set[int]], dict[int, int]]:
-    scene_tiles: dict[int, set[int]] = {
-        SCENE_TITLE: set(),
-        SCENE_GAMEPLAY: set(),
-        SCENE_ENDROUND: set(),
-    }
+    scene_tiles: dict[int, set[int]] = {scene_id: set() for scene_id in SCENE_IDS}
     source_scene_map: dict[int, int] = {}
 
     for source in sources:
@@ -662,6 +666,11 @@ def parse_args() -> argparse.Namespace:
         help="Output gameplay scene preload manifest path.",
     )
     parser.add_argument(
+        "--scene-gameplay-cave-output",
+        default="build/pc080sn_scene_preload_gameplay_cave.bin",
+        help="Output gameplay cave scene preload manifest path.",
+    )
+    parser.add_argument(
         "--scene-endround-output",
         default="build/pc080sn_scene_preload_endround.bin",
         help="Output end-round scene preload manifest path.",
@@ -703,7 +712,9 @@ def main() -> int:
 
     # Scene sets used for preload manifests and slot assignment.
     # Build 0154: gameplay tiles come from the runtime strip producer model
-    # (block_scene_tiles[SCENE_GAMEPLAY]) plus HUD text. The general strip_tiles set (from
+    # (block_scene_tiles[SCENE_GAMEPLAY]) plus HUD text. Build 0217 keeps the cave
+    # attr=0x0003 continuation as a separate producer-selected residency set because
+    # outdoor+cave together exceed the Genesis PC080SN cache budget. The general strip_tiles set (from
     # discover_descriptor_tables' 4-byte descriptor discovery) belongs to the old descriptor
     # model and is not read by the live 0x3951C gameplay producer, so it is no longer merged
     # into gameplay (it remains in end-round, which does use that model).
@@ -711,6 +722,7 @@ def main() -> int:
         SCENE_TITLE: set(block_scene_tiles[SCENE_TITLE]) | set(text_tiles),
         SCENE_GAMEPLAY: set(block_scene_tiles[SCENE_GAMEPLAY]) | set(fg_tiles) | set(text_tiles),
         SCENE_ENDROUND: set(block_scene_tiles[SCENE_ENDROUND]) | set(strip_tiles) | set(text_tiles),
+        SCENE_GAMEPLAY_CAVE: set(block_scene_tiles[SCENE_GAMEPLAY_CAVE]) | set(fg_tiles) | set(text_tiles),
     }
 
     assigned_slots, scene_tile_sets = assign_scene_aware_slots(scene_tiles, text_tiles)
@@ -811,6 +823,10 @@ def main() -> int:
     write_scene_manifest(Path(args.scene_title_output), scene_manifest_pairs[SCENE_TITLE])
     write_scene_manifest(Path(args.scene_gameplay_output), scene_manifest_pairs[SCENE_GAMEPLAY])
     write_scene_manifest(Path(args.scene_endround_output), scene_manifest_pairs[SCENE_ENDROUND])
+    write_scene_manifest(
+        Path(args.scene_gameplay_cave_output),
+        scene_manifest_pairs[SCENE_GAMEPLAY_CAVE],
+    )
 
     write_source_scene_map(Path(args.source_scene_map_output), source_scene_map, scene_ranges)
 
@@ -822,6 +838,7 @@ def main() -> int:
     print(f"  Title: {len(scene_tile_sets[SCENE_TITLE])}")
     print(f"  Gameplay: {len(scene_tile_sets[SCENE_GAMEPLAY])}")
     print(f"  End-Round: {len(scene_tile_sets[SCENE_ENDROUND])}")
+    print(f"  Gameplay-Cave: {len(scene_tile_sets[SCENE_GAMEPLAY_CAVE])}")
     print(f"Total unique tile indices: {len(assigned_slots)}")
     print(f"VRAM max usage (largest scene): {max_scene_usage} / {max_slots}")
     for scene_id in SCENE_IDS:

@@ -331,6 +331,12 @@
       "note": "Bypass PC080SN readback cmp/bne path (read from 0xC09EA3 invalid on Genesis)."
     },
     {
+      "arcade_pc": "0x03A07A",
+      "original_bytes": "027CF0FF",
+      "replacement_bytes": "007C0600",
+      "note": "Build 0216/OPEN-024: keep SR IPM >= 6 through the arcade VBlank final-RTE window. address_map.json maps arcade_pc 0x0003A07A to runtime_genesis_pc 0x0003A27A. Build 0215 native traces show repeated nested IRQ6 entry at runtime_genesis_pc 0x0003A27E after the arcade VBlank tail executes `andi #0xF0FF,SR`; during the hurry-up bat swarm the combined Genesis `_vblank_service` -> arcade VBlank chain overruns far enough for pending VINT to re-enter before the RTE can restore the stacked SR, producing repeated stack frames and later impossible control flow. This byte-neutral replacement changes only the pre-RTE mask operation to `ori #0x0600,SR`; the following RTE remains intact and restores the interrupted arcade SR normally. No bat suppression, no sprite/SAT forcing, no watchdog recovery, no gameplay-state seed."
+    },
+    {
       "arcade_pc": "0x03A6FE",
       "original_bytes": "33FC274400C08E7A",
       "replacement_bytes": "4EB9{symbol:genesistan_hook_inline_fg_write_3a8fe}4E71",
@@ -1511,6 +1517,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 215
+    "opcode_replace_count": 216
   }
 }

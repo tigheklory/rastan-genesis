@@ -159,6 +159,7 @@ Rejected or broken numbered builds must be preserved and clearly labeled: **REJE
 - If an artifact was accidentally deleted, do not spend time rebuilding it unless Tighe explicitly asks. Instead, document: that it existed; its SHA/size if known; why it was rejected; that the artifact is missing/deleted; that the number is consumed and must not be reused.
 - Rolling ROM and accepted build status are separate from artifact preservation. A rejected diagnostic may exist on disk while the rolling ROM remains the prior accepted candidate.
 - **Agents must ask before deleting any numbered ROM artifact.**
+- Producing or rejecting a numbered artifact requires preservation and advancement to the next number. It is not, by itself, a STOP condition. When a ROM-producing task authorizes implementation and the next correction remains within the same proven technical boundary, agents continue with sequential numbered builds without requesting another directive.
 
 ### Consumed / deleted numbers
 

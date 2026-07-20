@@ -9,11 +9,14 @@
     .global genesistan_scene_preload_title_end
     .global genesistan_scene_preload_gameplay
     .global genesistan_scene_preload_gameplay_end
+    .global genesistan_scene_preload_gameplay_cave
+    .global genesistan_scene_preload_gameplay_cave_end
     .global genesistan_scene_preload_endround
     .global genesistan_scene_preload_endround_end
     .global genesistan_scene_a0_ranges
 
     .global genesistan_current_scene_id
+    .global genesistan_current_pc080sn_tileset_id
     .global genesistan_scene_a0_lo
     .global genesistan_scene_a0_hi
 
@@ -37,8 +40,13 @@ load_scene_tiles:
     bra.s   .Lload_scene_manifest_ready
 .Lload_scene_check_endround:
     cmpi.w  #2, %d6
-    bne.s   .Lload_scene_force_title
+    bne.s   .Lload_scene_check_gameplay_cave
     lea     genesistan_scene_preload_endround, %a0
+    bra.s   .Lload_scene_manifest_ready
+.Lload_scene_check_gameplay_cave:
+    cmpi.w  #3, %d6
+    bne.s   .Lload_scene_force_title
+    lea     genesistan_scene_preload_gameplay_cave, %a0
     bra.s   .Lload_scene_manifest_ready
 .Lload_scene_force_title:
     moveq   #0, %d6
@@ -74,10 +82,16 @@ load_scene_tiles:
     bra.s   .Lload_scene_pair_loop
 
 .Lload_scene_pairs_done:
-    move.b  %d6, genesistan_current_scene_id
+    move.b  %d6, genesistan_current_pc080sn_tileset_id
+    move.w  %d6, %d5
+    cmpi.w  #3, %d5
+    bne.s   .Lload_scene_logical_ready
+    moveq   #1, %d5
+.Lload_scene_logical_ready:
+    move.b  %d5, genesistan_current_scene_id
     lea     genesistan_scene_a0_ranges, %a3
     moveq   #0, %d4
-    move.w  %d6, %d4
+    move.w  %d5, %d4
     lsl.w   #3, %d4
     adda.w  %d4, %a3
     move.l  (%a3)+, %d0
@@ -119,6 +133,11 @@ genesistan_scene_preload_gameplay:
 genesistan_scene_preload_gameplay_end:
 
     .align 2
+genesistan_scene_preload_gameplay_cave:
+    .incbin "../../build/pc080sn_scene_preload_gameplay_cave.bin"
+genesistan_scene_preload_gameplay_cave_end:
+
+    .align 2
 genesistan_scene_preload_endround:
     .incbin "../../build/pc080sn_scene_preload_endround.bin"
 genesistan_scene_preload_endround_end:
@@ -135,6 +154,8 @@ genesistan_scene_a0_ranges:
     .align 2
 
 genesistan_current_scene_id:
+    .byte 0
+genesistan_current_pc080sn_tileset_id:
     .byte 0
     .align 2
 genesistan_scene_a0_lo:
