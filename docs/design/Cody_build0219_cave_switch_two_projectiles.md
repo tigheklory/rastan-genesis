@@ -97,11 +97,81 @@ Representative final runtime row:
 38220,sample,0731FE,0002/0003/0000,01,01,01806A22,000570C2,C08100,0000,0000,0000D31C,0002,2048,4096,2016,4032,0020,0000,0004,0000,0018,0018,0007,7,0000
 ```
 
+## Manual Capture Retry
+
+A second, throttled/playable retry was run after the renewed directive using the same observer script copied into:
+
+`states/traces/build0219_cave_switch_two_projectiles_20260720_174052/`
+
+This retry intentionally omitted `-nothrottle` so the MAME window would be playable for human input.
+
+Captured files:
+
+- `build0218_manual_retry_runtime.csv` - 283 lines, last sampled frame `14160`.
+- `build0218_manual_retry_pc090oj_records.csv` - 12713 lines.
+- `build0218_manual_retry_sat.csv` - 1905 lines.
+- Periodic screenshots through `build0218_manual_retry_frame_013800_periodic.png`.
+
+The retry also did **not** satisfy the matched-cave gate:
+
+- Cave source pointer rows: `0`.
+- Tileset `3` rows: `0`.
+- Observed nonzero strip pointers:
+  - `0x0000D31C`: `206` rows.
+  - `0x0000DB1C`: `5` rows.
+  - `0x0000F31C`: `10` rows.
+- Required cave range `0x0000FB1C..0x00010B1C`: **never observed**.
+
+The final sampled row had returned to frontend state `1/1/0`, but the gameplay interval still never crossed into the cave source family.
+
+## Manual-Control Capture
+
+After the retry above, Tighe clarified that the game was not expected to reach the cave/bad-brick section automatically. A third throttled/playable MAME run was started and Tighe controlled Rastan manually, then exited MAME with ESC after reaching the midpoint of the user-identified cave/bad-brick section.
+
+Evidence directory:
+
+`states/traces/build0219_cave_switch_two_projectiles_20260720_174853_manual_play/`
+
+Captured files:
+
+- `build0218_manual_play_runtime.csv` - 103 lines, last sampled frame `2460`.
+- `build0218_manual_play_pc090oj_records.csv` - 2808 lines.
+- `build0218_manual_play_sat.csv` - 266 lines.
+- `reduced_manual_play_summary.txt` - reduced counts and representative late rows.
+- Periodic screenshots through `build0218_manual_play_frame_002400_periodic.png`.
+
+The late screenshot `build0218_manual_play_frame_002400_periodic.png` shows the user-identified bad-brick gameplay section with Stage 1 mountains still visible, repeated brick/terrain in the lower area, lizard actors, and sprite/projectile-like activity. This is no longer an attract/no-input failure to reach gameplay.
+
+Runtime fields still did **not** enter the Build 0218 cave-residency source family:
+
+- Observed PC080SN tilesets: `00` during frontend/bootstrap, `01` during gameplay.
+- Tileset `03` rows: `0`.
+- Observed nonzero strip pointers:
+  - `0x0000D31C`: `42` rows.
+  - `0x0000DB1C`: `6` rows.
+  - `0x0000E31C`: `20` rows.
+  - `0x0000F31C`: `10` rows.
+- Build 0218 cave threshold values `0x0000FB1C` / `0x0001031C`: `0` rows.
+
+Representative bad-brick runtime row:
+
+```text
+2400,sample,072326,0002/0003/0000,01,01,01806A22,000570C2,C0C024,0002,0002,0000D31C,0002,2048,4096,2048,4096,00A0,0000,0004,0008,0025,0025,000B,11,0000
+```
+
+This proves a narrower result than the original implementation gate: **during the user-controlled bad-brick section, Build 0218 still reports logical scene `1`, PC080SN tileset `1`, and outdoor-family strip pointers.** It does **not** prove that the cave manifest should be selected at `0x0000F31C`, because KF-041/Build 0218 evidence records `0x0000F31C` as the last outdoor-family block and the split cave materialization as `0x0000FB1C` / `0x0001031C`.
+
 ## Cave Switch Determination
 
-**Not determined.** The exact cave residency switch boundary remains unproven in this task because the required Build 0218 matched cave source family was not captured.
+**Partially determined / STOP-limited.** The user-controlled bad-brick section was captured, but the runtime did not reach the Build 0218 cave-residency threshold. The exact cave residency switch boundary remains unproven for an implementation because the trace did not capture any `tileset=03`, `0x0000FB1C`, or `0x0001031C` row.
 
-What remains unknown from this attempt:
+What is now proven:
+
+- The bad-brick gameplay section can occur while Build 0218 remains on tileset `1`.
+- The bad-brick gameplay section can occur while the live strip pointer is still in the outdoor-family sequence (`0xD31C/0xDB1C/0xE31C/0xF31C`).
+- The observer is now reaching real manual gameplay, not merely frontend/attract.
+
+What remains unknown from this task:
 
 - Whether Build 0218 requests tileset `3` at the user-observed cave state.
 - Whether the source pointer is transformed too early.
@@ -112,12 +182,12 @@ What remains unknown from this attempt:
 
 ## Projectile A / Projectile B Determination
 
-**Not determined.** The outdoor capture shows a gray projectile/sphere-like symptom, but the task requires cave-matched classification of two specific objects:
+**Not determined.** The captures show sprite/projectile-like activity in gameplay, but the task requires cave-matched classification of two specific objects:
 
 - Projectile A: pre-existing before Build 0218.
 - Projectile B: introduced by Build 0218.
 
-This attempt cannot classify either projectile because it did not capture the matched cave state with both unwanted projectiles visible, and it did not compare Build 0216/0217/0218 at that cave state.
+This task cannot classify either projectile because it did not compare Build 0216/0217/0218 at a matched cave/bad-brick frame with the two unwanted objects separately identified and tracked by SAT slot/PC090OJ record. The manual-play frame `2400` contains many represented SAT entries, so assigning Projectile A/B ownership from this sample alone would over-claim.
 
 No claim is made that both projectiles are Build 0218 regressions. No owner, SAT slot, PC090OJ record, actor source, lifecycle, or retirement cause is proven here.
 
@@ -125,11 +195,11 @@ No claim is made that both projectiles are Build 0218 regressions. No owner, SAT
 
 No implementation was performed. No Build 0219 was produced.
 
-Reason: the required first proof gate failed. Applying a cave-switch or projectile fix without matched cave runtime data would violate the State Causality Rule and the prompt's explicit instruction to begin from a matched Build 0218 cave capture.
+Reason: the manual-play trace proves the bad-brick section still uses tileset `1` / outdoor-family strip pointers, but it does not prove the arcade-intended switch point or a safe replacement boundary. Applying a cave-switch or projectile fix from this evidence would violate the State Causality Rule and the prompt's requirement to prove the concrete cave/projectile boundary before implementation.
 
 ## Recommended Next Step
 
-Repeat the same harness, or a debugger-watchpoint variant of it, with the MAME window confirmed focused and with manual play to the user-observed Build 0218 cave state. Hold the cave screen for several seconds once both unwanted projectiles are visible, then close MAME. Only after that capture should the implementation portion resume.
+Recommended next evidence step: compare the same manual bad-brick window against original arcade runtime and/or a debugger-side producer trace that logs the descriptor entry/attr/source values feeding `PC080SN_ITEMPAGE_STRIP_PTR_SLOT`. The decisive missing fact is whether original arcade treats the captured section as still-outdoor source `0xF11C`/relocated `0xF31C`, or whether Genesis is failing to advance into the attr `0x0003` cave descriptors.
 
 Suggested rerun command:
 
@@ -142,7 +212,7 @@ mame genesis \
   -autoboot_script "$PWD/states/traces/build0219_cave_switch_two_projectiles_20260720_171819/build0218_manual_cave_capture.lua"
 ```
 
-A successful capture should contain at least one of:
+A successful cave-residency capture should contain at least one of:
 
 - `strip_ptr1100` in `0x0000FB1C..0x00010B1C`.
 - `tileset=03`.
@@ -162,4 +232,4 @@ Option A - no new finding to index. This task produced a useful capture harness 
 
 ## STOP
 
-STOP triggered: **YES**. Required matched Build 0218 cave capture was not obtained; therefore no source change or Build 0219 is safe from this evidence.
+STOP triggered: **YES**. Required matched Build 0218 cave capture was not obtained in either capture attempt; therefore no source change or Build 0219 is safe from this evidence.

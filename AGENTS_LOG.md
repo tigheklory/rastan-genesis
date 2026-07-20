@@ -43224,3 +43224,35 @@ Open/Closed Issues Impact:
 - **KNOWN_FINDINGS impact:** Option A — no new finding indexed; useful harness/incomplete evidence only, no durable mechanism proven.
 - **Architecture compliance:** CONFIRMED for work performed — MAME observer script only; arcade code remains the program; no Genesis-owned cave loader, sprite suppression, direct SAT clear, source hack, or build artifact.
 - **STOP triggered:** YES — required matched Build 0218 cave capture was not obtained, so no safe implementation/build boundary exists yet.
+
+## [Cody — Evidence STOP Retry, Build 0219 Cave Switch / Two Projectiles]
+
+- **Date:** 2026-07-20
+- **Files changed:** `docs/design/Cody_build0219_cave_switch_two_projectiles.md`, evidence artifacts under `states/traces/build0219_cave_switch_two_projectiles_20260720_174052/`, `AGENTS_LOG.md`.
+- **Build produced:** NO. Build 0219 was not produced; Build 0217 and Build 0218 remain preserved. No source/spec/tool/Makefile/ROM/invariant changes were made.
+- **Retry reason:** renewed Build 0219 directive still required beginning with a matched Build 0218 cave capture. The previous attempt was outdoor-only, so I reran the observer harness in a fresh evidence directory.
+- **Retry capture:** throttled/playable MAME Build 0218 run (no `-nothrottle`) with `build0218_manual_cave_capture.lua`, prefix `build0218_manual_retry`. Captured `build0218_manual_retry_runtime.csv` (283 lines, last frame `14160`), `build0218_manual_retry_pc090oj_records.csv` (12713 lines), `build0218_manual_retry_sat.csv` (1905 lines), screenshots through `build0218_manual_retry_frame_013800_periodic.png`.
+- **Gate failure:** retry also captured `0` rows with cave source pointer range `0x0000FB1C..0x00010B1C` and `0` rows with PC080SN tileset `3`. Observed nonzero strip pointers were `0x0000D31C`, `0x0000DB1C`, and `0x0000F31C`; required cave family was never observed. Final sampled state had returned to frontend `1/1/0`, but gameplay interval never crossed into the cave source family.
+- **Root cause confirmed:** NO. Cave-switch divergence and Projectile A/B ownership/lifecycle remain unproven at matched cave state.
+- **Fix implemented:** NO. No Build 0219, no cave patch, no projectile patch. State-causality/proof gate still blocks implementation.
+- **Open/Closed Issues Impact:** OPEN-017 touched; OPEN-001 and OPEN-024 context. New issues: NONE. Closed: NONE. Deferred: successful matched cave capture, cave-switch fix, Projectile A lifecycle/ownership, Projectile B Build 0218 regression root, Build 0219 production, BlastEm/Exodus verification.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; second incomplete evidence capture only.
+- **Architecture compliance:** CONFIRMED — observer script/runtime capture only; no Genesis-owned cave loader, sprite suppression, direct SAT clear, source hack, or build artifact.
+- **STOP triggered:** YES — required matched Build 0218 cave capture still not obtained.
+
+## [Cody — Evidence STOP Manual Play, Build 0219 Cave Switch / Two Projectiles]
+
+- **Date:** 2026-07-20
+- **Files changed:** `docs/design/Cody_build0219_cave_switch_two_projectiles.md`, evidence artifacts under `states/traces/build0219_cave_switch_two_projectiles_20260720_174853_manual_play/`, `AGENTS_LOG.md`.
+- **Build produced:** NO. Build 0219 was not produced; Builds 0217 and 0218 remain preserved. No source/spec/tool/Makefile/ROM/invariant changes were made.
+- **Manual-play capture:** after Tighe clarified the game was not expected to reach the cave/bad-brick section automatically, I launched a throttled/playable Build 0218 MAME observer run. Tighe manually played to the midpoint of the user-identified cave/bad-brick section and exited MAME with ESC. Capture exited cleanly at average speed 100%.
+- **Evidence files:** `build0218_manual_play_runtime.csv` (103 lines, last sampled frame 2460), `build0218_manual_play_pc090oj_records.csv` (2808 lines), `build0218_manual_play_sat.csv` (266 lines), `reduced_manual_play_summary.txt`, screenshots through `build0218_manual_play_frame_002400_periodic.png`.
+- **Runtime result:** the captured bad-brick section is real manual gameplay, not attract/no-input. However runtime fields still show logical scene `1`, PC080SN tileset `1`, and outdoor-family strip pointers only: `0x0000D31C`, `0x0000DB1C`, `0x0000E31C`, `0x0000F31C`. Rows with Build 0218 cave threshold values `0x0000FB1C` / `0x0001031C`: `0`. Tileset `03` rows: `0`.
+- **Interpretation:** useful narrower evidence, but still not a safe implementation gate. It proves the user-observed bad-brick section can occur before the Build 0218 cave-residency threshold fires. It does not prove that `0x0000F31C` should select cave residency; KF-041/Build 0218 records `0x0000F31C` as the final outdoor-family block and cave materialization at `0x0000FB1C` / `0x0001031C`.
+- **Projectile status:** not classified. The manual-play frame includes sprite/projectile-like activity, but no Build 0216/0217/0218 matched-frame comparison or targeted SAT/PC090OJ ownership trace isolated Projectile A vs Projectile B.
+- **Root cause confirmed:** NO for a patch-safe cave/projectile fix. First divergence is narrowed to user-observed bad-brick section still using outdoor source/residency, but arcade-intended switch point/control path remains unproven.
+- **Fix implemented:** NO. Applying a cave threshold change or projectile retirement from this sample would violate the State Causality Rule.
+- **Open/Closed Issues Impact:** OPEN-017 touched; OPEN-001 and OPEN-024 context. New issues: NONE. Closed: NONE. Deferred: original-arcade comparison for the same bad-brick window, descriptor/attr/source producer trace, Projectile A/B ownership and regression comparison, Build 0219 production, BlastEm/Exodus verification.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; evidence narrows the boundary but does not prove a durable correction mechanism.
+- **Architecture compliance:** CONFIRMED — observer/runtime evidence only; arcade code remains the program; no Genesis-owned cave loader, sprite suppression, direct SAT clear, source hack, or build artifact.
+- **STOP triggered:** YES — no patch-safe implementation boundary was proven.
