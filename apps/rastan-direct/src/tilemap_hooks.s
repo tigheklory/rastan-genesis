@@ -846,7 +846,12 @@ genesistan_hook_tilemap_bg_fill_tall:
     add.w   %d4, %d0
     add.w   %d4, %d0
     move.w  %d3, 0(%a6,%d0.w)
-    move.b  #1, bg_tall_dirty
+    move.w  %d4, %d1                   /* N2: mark dirty COLUMN */
+    lsr.w   #3, %d1
+    lea     bg_col_dirty, %a1
+    move.w  %d4, %d5
+    andi.w  #7, %d5
+    bset    %d5, 0(%a1,%d1.w)
 
     adda.l  #4, %a4
     subq.w  #1, %d6
@@ -934,7 +939,12 @@ genesistan_hook_tilemap_fg_fill_tall:
     add.w   %d4, %d0
     add.w   %d4, %d0
     move.w  %d3, 0(%a6,%d0.w)
-    move.b  #1, fg_tall_dirty
+    move.w  %d4, %d1                   /* N2: mark dirty COLUMN */
+    lsr.w   #3, %d1
+    lea     fg_col_dirty, %a1
+    move.w  %d4, %d5
+    andi.w  #7, %d5
+    bset    %d5, 0(%a1,%d1.w)
 
     adda.l  #4, %a4
     subq.w  #1, %d6
@@ -2522,7 +2532,12 @@ genesistan_hook_cwindow_clear:
 
     move.l  #0xFFFFFFFF, bg_row_dirty
     move.l  #0xFFFFFFFF, fg_row_dirty
-    move.b  #1, fg_tall_dirty
+    move.w  #0xFFFF, bg_tall_project_base   /* N2: force full reprojection */
+    move.w  #0xFFFF, fg_tall_project_base
+    clr.l   bg_col_dirty
+    clr.l   bg_col_dirty+4
+    clr.l   fg_col_dirty
+    clr.l   fg_col_dirty+4
 
     movem.l (%sp)+, %d0-%d3/%a0-%a3
     rts
@@ -2882,7 +2897,7 @@ vdp_commit_fg_narrow_strips:
     moveq   #3, %d5
 .Lfg_narrow_row_loop:
     move.w  %d6, %d4
-    andi.w  #0x001F, %d4
+    andi.w  #0x001F, %d4               /* descriptor rows are already ring rows */
     lsl.l   #7, %d4
     add.l   %d3, %d4
 

@@ -43273,3 +43273,81 @@ Open/Closed Issues Impact:
 - **Ledgers:** KF-068 added (Option B). OPEN-017/OPEN-024 updated. No issues closed.
 - **Architecture compliance:** CONFIRMED — design preserves RULES.md ownership rules (helpers called by arcade code; no Genesis loop/lifecycle).
 - **STOP triggered:** NO.
+
+### MAME Exit Summary (2026-07-20 18:42:36)
+- Final PC: 0x0729E0
+- Stack Pointer (SP): 0x00FEFF7E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-20 18:44:43)
+- Final PC: 0x072A60
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-20 18:53:37)
+- Final PC: 0x072BA0
+- Stack Pointer (SP): 0x00FEFF78
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Fable — N1 Native PC090OJ Sprite Pipeline (Builds 0219 REJ / 0220 REJ / 0221 CANDIDATE)
+
+- **Date:** 2026-07-20
+- **Builds:** 0219 `b8da7641...` REJECTED (decode d5-clobber -> SAT overrun; preserved); 0220 `38d1bdcd...` REJECTED (colbank display-latch staleness -> all palettes wrong; preserved); **0221 `60d14fb0f9294631...` 1,583,868 counter 221 GATE_PASS = N1 candidate, rolling.** opcode 216 unchanged; coverage 0x183408 -> 0x182B04-region (-~2.4KB code).
+- **Implemented:** per KF-068 design + implementation-evidence adjustments: object table retained as ARCADE STATE (incremental slot-addressed producers proven), single ascending emit pass (mainline trigger at hook_41dae tail; VBlank frontend fallback), double-buffered shadow SAT (ascending-record link order = PC090OJ paint priority; first-80), code-keyed 2-way residency (128 cells, tiles 1024-1535), bounded upload queue, commit-time palette fix-up (display-latch rule), implicit retirement. Deleted: mirror shadow/candidates/represent/evict/record_to_slot/descriptor/scratch/sweeps/slot-residency/mirror-size dep. Sprite commit moved outside the display-off bracket.
+- **Validation (MAME):** title/story/gameplay OK; Rastan correct colors+position (walk/jump/attack); 4 complete green lizards, correct alignment; kill -> clean retirement (no stale); HUD suppression works; planes byte-untouched. Bat swarm/attract/flip not reproduced this session -> USER MUST VERIFY. Residual: ~1.2 pop-in misses/frame at heavy animation (N3), per-scanline physical limit (N3).
+- **Resources (0218->0221):** sprite WRAM 9,350->3,792B; scans 3->1 (mainline); copies 2->0; SAT DMA constant 640B display-on; pattern DMA code-keyed; eviction-flicker class eliminated; mirror-size question dissolved.
+- **Ledgers:** KF-069 added; docs/design/Andy_fable_n1_native_pc090oj_sprite_pipeline.md; CURRENT_STATE updated.
+- **Architecture compliance:** CONFIRMED (helpers called by arcade code; arcade owns execution/VBlank; no lifecycle).
+- **STOP:** NO.
+
+### MAME Exit Summary (2026-07-20 19:27:23)
+- Final PC: 0x072C80
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-20 19:29:11)
+- Final PC: 0x072B34
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Fable — N1 Sprite Residency Stabilization (0222 REJ / 0223 CANDIDATE)
+
+- **Date:** 2026-07-20
+- **User verdict recorded:** 0221 = architectural success (faster); disappearing tiles = the regression to fix; black bar = N2 scope.
+- **Root cause (0221):** miss=>skip (visible vanish, ~1.2/frame at 4-lizard load) + unprotected victim way-choice (upload could steal a displayed sprite's cell -> wrong art). Arcade inventory: 388 codes/60s (gameplay 372) vs ~50/frame concurrency -> replacement, not pinning.
+- **Implemented (0223):** 32x4-way code-keyed cache (same 128 cells), per-frame referenced-cell bitmap with protected victims, EMIT-ON-MISS + optimistic tags (uploads land before SAT DMA -> invisible misses; deterministic scene warm-up), queue 12, skip only on saturation (2 lifetime, then +0 measured).
+- **Builds:** 0222 `b38cd392...` REJECTED (CCR clobber: move.w after btst killed Z -> all sprites dropped; movem lesson); **0223 `4bd3e58e78883790...` 1,583,992 counter 223 GATE_PASS = candidate, rolling.** opcode 216 unchanged.
+- **Validated:** drops 1.2/frame -> 0; Rastan + five complete animated lizards stable, palettes/alignment correct; retirement clean; planes byte-identical to 0221; speed retained. Bats/attract -> USER MUST VERIFY.
+- **Ledgers:** KF-070; design doc; CURRENT_STATE updated. **Compliance:** CONFIRMED. **STOP:** NO.
+
+### MAME Exit Summary (2026-07-20 20:33:54)
+- Final PC: 0x072C44
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-20 20:40:12)
+- Final PC: 0x072C42
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-20 20:42:44)
+- Final PC: 0x072C3E
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Fable — N2 Native PC080SN Plane Pipeline (0224 REJ / 0225 REJ / 0226 CANDIDATE)
+
+- **Date:** 2026-07-20
+- **User acceptance recorded:** 0223 = successful N1 baseline; black bars (title + rolling + large partial frames on capture) = pre-existing plane-path defects = N2 target.
+- **Root proven:** old path = full 2x4KB reprojection + 8,192 PIO words under DISPLAY_OFF per vertical crossing; A/B capture: 0223 fall-frame mostly BLACK vs N2 complete scene.
+- **Implemented:** vertical ring (plane_row=tall_row&31, FULL VSRAM), entering-row streaming (128B DMA), producer col-dirty bitsets -> ring-projected 64B column DMAs, budgets 16 rows/24 cols per plane/frame, scene-entry streamed full refresh, display-off bracket DELETED (display never off), frontend on the same base-0 paths, legacy force-commit callers stubbed.
+- **Builds:** 0224 `0cd5b7e8...` REJECTED (narrow-strip +base remap misplaced FG bands -- descriptors are already ring rows); 0225 `058ff0e1...` REJECTED (budget-raise iteration, superseded); **0226 `67017c78746fed2f...` 1,584,264 counter 226 GATE_PASS = N2 candidate, rolling.** opcode 216 unchanged.
+- **Validated:** title/READY clean (no bar, display on); gameplay full frames during fall+scroll (vs 0223 near-black); terrain streams/progresses; N1 sprites unregressed everywhere; HUD suppression unchanged. RESIDUAL queued: single-row seam at fixed plane row during gameplay scroll + possible right-edge column staleness (bounded addressing defect, next sequential build).
+- **KF-067:** collision + lizard compensation untouched; joint retune deferred (documented).
+- **Ledgers:** KF-071; design doc; CURRENT_STATE updated. **Compliance:** CONFIRMED (arcade owns execution; helpers RTS; no second renderer). **STOP:** NO.

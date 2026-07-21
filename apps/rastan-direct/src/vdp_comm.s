@@ -19,6 +19,10 @@
     .global vdp_commit_palette
     .global vdp_reassert_fg_bank3_line
     .global vdp_commit_scroll
+    .global bg_col_dirty
+    .global fg_col_dirty
+    .global bg_tall_project_base
+    .global fg_tall_project_base
     .global _vblank_service
     .global fg_bank3_line_cache
     .global fg_bank3_cache_valid
@@ -184,20 +188,15 @@ _vblank_service:
     bsr     rastan_direct_update_inputs
     bsr     vdp_prepare_sprites
 
-    moveq   #VDP_REG_MODE2, %d0
-    moveq   #VDP_MODE2_DISPLAY_OFF, %d1
-    bsr     vdp_set_reg
-
+    /* N2: the display stays ON.  Plane updates are incremental (ring rows +
+     * dirty columns) committed by bounded DMA; the display-off bracket that
+     * produced the title and rolling black bars is deleted. */
     bsr     vdp_commit_tiles_if_dirty
-    bsr     vdp_project_bg_tall_if_dirty
-    bsr     vdp_commit_bg_strips_if_dirty
-    bsr     vdp_project_fg_tall_if_dirty
+    bsr     vdp_plane_service_bg
+    bsr     vdp_plane_service_fg
     bsr     vdp_commit_fg_narrow_strips
-    bsr     vdp_commit_sprites_vram
 
-    moveq   #VDP_REG_MODE2, %d0
-    moveq   #VDP_MODE2_DISPLAY_ON, %d1
-    bsr     vdp_set_reg
+    bsr     vdp_commit_sprites_vram     /* N1: DMA-only, display-on safe */
 
     bsr     vdp_reassert_fg_bank3_line
 .if RASTAN_GAMEPLAY_HUD_SPRITES == 0
@@ -231,175 +230,289 @@ vdp_commit_tiles_if_dirty:
 .Ltiles_done:
     rts
 
-/* Gameplay PC080SN BG strips populate a 64-row virtual map.  The Genesis plane
- * remains 64x32, so project the 32 visible tile rows into staged_bg_buffer and
- * leave only the pixel-subrow residual for VSRAM. */
-vdp_project_bg_tall_if_dirty:
+/* ========================================================================= */
+/* N2 native plane pipeline (Build 0224): vertical RING + incremental        */
+/* projection + bounded display-on DMA.                                      */
+/*                                                                           */
+/* The 64-row tall buffers are the readable PC080SN C-window shadow (arcade  */
+/* plane intent).  The Genesis 64x32 plane is a vertical ring of it:         */
+/* plane_row = tall_row & 31, and VSRAM carries the FULL scroll value        */
+/* (mod 256) instead of the old &7 residual + full-window reprojection.      */
+/* Vertical scroll streams only the rows entering the window (128 B DMA per  */
+/* row).  Horizontal streaming marks dirty COLUMNS (producer bitset); each   */
+/* is projected through the ring, gathered, and committed as one 64 B DMA.   */
+/* Scene entry forces a full 32-row projection streamed via row_dirty under  */
+/* the same budget.  Frontend scenes run with base 0 (identity), so the      */
+/* same paths serve them and the title glyph probes read the same shadow.    */
+/* Register contract inside .Lplane_service: d0=base d7=VRAM base a0=tall    */
+/* a1=staged a2=col_dirty a4=&project_base a6=&row_dirty are persistent.     */
+/* ========================================================================= */
+    .equ PLANE_ROWS_PER_FRAME, 16
+    .equ PLANE_COLS_PER_FRAME, 24
+
+/* Generic VRAM DMA.  in: d0=VRAM dest byte addr, d1=word count, d2=autoinc,
+ * a0=68k source.  Restores autoinc 2.  Clobbers d1-d3, a3. */
+.Lplane_dma:
+    movea.l #VDP_CTRL, %a3
+    move.w  %d2, %d3
+    ori.w   #0x8F00, %d3
+    move.w  %d3, (%a3)
+    move.w  %d1, %d3
+    andi.w  #0x00FF, %d3
+    ori.w   #0x9300, %d3
+    move.w  %d3, (%a3)
+    move.w  %d1, %d3
+    lsr.w   #8, %d3
+    andi.w  #0x00FF, %d3
+    ori.w   #0x9400, %d3
+    move.w  %d3, (%a3)
+    move.l  %a0, %d3
+    lsr.l   #1, %d3
+    move.w  %d3, %d1
+    andi.w  #0x00FF, %d1
+    ori.w   #0x9500, %d1
+    move.w  %d1, (%a3)
+    move.l  %d3, %d1
+    lsr.l   #8, %d1
+    andi.w  #0x00FF, %d1
+    ori.w   #0x9600, %d1
+    move.w  %d1, (%a3)
+    move.l  %d3, %d1
+    lsr.l   #8, %d1
+    lsr.l   #8, %d1
+    andi.w  #0x007F, %d1
+    ori.w   #0x9700, %d1
+    move.w  %d1, (%a3)
+    move.l  %d0, %d1
+    andi.l  #0x00003FFF, %d1
+    swap    %d1
+    move.l  %d0, %d3
+    lsr.l   #8, %d3
+    lsr.l   #6, %d3
+    andi.l  #0x00000003, %d3
+    ori.l   #0x40000080, %d1
+    or.l    %d3, %d1
+    move.l  %d1, (%a3)
+    move.w  #0x8F02, (%a3)
+    rts
+
+/* Legacy mainline callers (item-page blit) forced an immediate FG strip
+ * commit.  Under N2 the dirty bits they set are consumed by the next VBlank
+ * plane service, so the entry survives as a no-op. */
+vdp_commit_fg_strips_if_dirty:
+    rts
+
+vdp_plane_service_bg:
+    movem.l %d0-%d7/%a0-%a4/%a6, -(%sp)
+    moveq   #0, %d0
     cmpi.b  #1, genesistan_current_scene_id
-    bne.s   .Lbg_tall_project_done
-
-    movem.l %d0-%d7/%a0-%a2, -(%sp)
-
+    bne.s   .Lpsb_base_ok
     move.w  staged_scroll_y_bg, %d0
     neg.w   %d0
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
     andi.w  #0x01FF, %d0
     lsr.w   #3, %d0
     andi.w  #0x003F, %d0
-
-    move.w  bg_tall_project_base, %d1
-    cmp.w   %d1, %d0
-    bne.s   .Lbg_tall_project
-    tst.b   bg_tall_dirty
-    beq.s   .Lbg_tall_project_restore
-
-.Lbg_tall_project:
-    move.w  %d0, bg_tall_project_base
-    clr.b   bg_tall_dirty
-
+.Lpsb_base_ok:
     lea     staged_bg_tall_buffer, %a0
     lea     staged_bg_buffer, %a1
-    moveq   #0, %d5
-.Lbg_tall_project_row:
-    move.w  %d0, %d4
-    add.w   %d5, %d4
-    andi.w  #0x003F, %d4
-    lsl.w   #7, %d4
-    lea     0(%a0,%d4.w), %a2
-    move.w  #(64 - 1), %d7
-.Lbg_tall_project_copy:
-    move.w  (%a2)+, (%a1)+
-    dbra    %d7, .Lbg_tall_project_copy
-    addq.w  #1, %d5
-    cmpi.w  #32, %d5
-    blo.s   .Lbg_tall_project_row
-
-    move.l  #0xFFFFFFFF, bg_row_dirty
-
-.Lbg_tall_project_restore:
-    movem.l (%sp)+, %d0-%d7/%a0-%a2
-.Lbg_tall_project_done:
+    lea     bg_col_dirty, %a2
+    lea     bg_tall_project_base, %a4
+    lea     bg_row_dirty, %a6
+    move.l  #VRAM_PLANE_B_BASE, %d7
+    bsr     .Lplane_service
+    movem.l (%sp)+, %d0-%d7/%a0-%a4/%a6
     rts
 
-vdp_project_fg_tall_if_dirty:
+vdp_plane_service_fg:
+    movem.l %d0-%d7/%a0-%a4/%a6, -(%sp)
+    moveq   #0, %d0
     cmpi.b  #1, genesistan_current_scene_id
-    bne.s   .Lfg_tall_project_done
-
-    movem.l %d0-%d7/%a0-%a2, -(%sp)
-
+    bne.s   .Lpsf_base_ok
     move.w  staged_scroll_y_fg, %d0
     neg.w   %d0
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
     andi.w  #0x01FF, %d0
     lsr.w   #3, %d0
     andi.w  #0x003F, %d0
-
-    move.w  fg_tall_project_base, %d1
-    cmp.w   %d1, %d0
-    bne.s   .Lfg_tall_project
-    tst.b   fg_tall_dirty
-    beq.s   .Lfg_tall_project_restore
-
-.Lfg_tall_project:
-    move.w  %d0, fg_tall_project_base
-    clr.b   fg_tall_dirty
-
+.Lpsf_base_ok:
     lea     staged_fg_tall_buffer, %a0
     lea     staged_fg_buffer, %a1
-    moveq   #0, %d5
-.Lfg_tall_project_row:
-    move.w  %d0, %d4
-    add.w   %d5, %d4
-    andi.w  #0x003F, %d4
-    lsl.w   #7, %d4
-    lea     0(%a0,%d4.w), %a2
-    move.w  #(64 - 1), %d7
-.Lfg_tall_project_copy:
-    move.w  (%a2)+, (%a1)+
-    dbra    %d7, .Lfg_tall_project_copy
-    addq.w  #1, %d5
-    cmpi.w  #32, %d5
-    blo.s   .Lfg_tall_project_row
-
-    move.l  #0xFFFFFFFF, fg_row_dirty
-
-.Lfg_tall_project_restore:
-    movem.l (%sp)+, %d0-%d7/%a0-%a2
-.Lfg_tall_project_done:
+    lea     fg_col_dirty, %a2
+    lea     fg_tall_project_base, %a4
+    lea     fg_row_dirty, %a6
+    move.l  #VRAM_PLANE_A_BASE, %d7
+    bsr     .Lplane_service
+    movem.l (%sp)+, %d0-%d7/%a0-%a4/%a6
     rts
 
-vdp_commit_bg_strips_if_dirty:
-    move.l  bg_row_dirty, %d6
-    beq.s   .Lbg_done
-
-    moveq   #0, %d5
-.Lbg_row_scan:
-    btst    %d5, %d6
-    beq.s   .Lbg_next_row
-
-    moveq   #0, %d4
-    move.w  %d5, %d4
-    lsl.l   #7, %d4
-
-    move.l  #VRAM_PLANE_B_BASE, %d0
-    add.l   %d4, %d0
-    bsr     vdp_set_vram_write_addr
-
-    lea     staged_bg_buffer, %a0
-    adda.l  %d4, %a0
-    move.w  #(64 - 1), %d7
-.Lbg_row_copy:
-    move.w  (%a0)+, VDP_DATA
-    dbra    %d7, .Lbg_row_copy
-
-    move.l  %d6, %d0
-    bclr    %d5, %d0
-    move.l  %d0, %d6
-    move.l  %d6, bg_row_dirty
-    beq.s   .Lbg_done
-
-.Lbg_next_row:
-    addq.w  #1, %d5
-    cmpi.w  #32, %d5
-    blo.s   .Lbg_row_scan
-.Lbg_done:
+.Lplane_service:
+    move.w  (%a4), %d1                 /* old base (0xFFFF = force full) */
+    move.w  %d0, (%a4)
+    cmp.w   %d0, %d1
+    beq     .Lps_cols
+    cmpi.w  #0xFFFF, %d1
+    beq     .Lps_full
+    move.w  %d0, %d2
+    sub.w   %d1, %d2
+    cmpi.w  #32, %d2
+    ble.s   .Lps_norm1
+    subi.w  #64, %d2
+.Lps_norm1:
+    cmpi.w  #-32, %d2
+    bge.s   .Lps_norm2
+    addi.w  #64, %d2
+.Lps_norm2:
+    cmpi.w  #8, %d2
+    bgt     .Lps_full
+    cmpi.w  #-8, %d2
+    blt     .Lps_full
+    tst.w   %d2
+    beq     .Lps_cols
+    bgt.s   .Lps_down
+    move.w  %d0, %d3                   /* scroll up: entering = new..old-1 */
+    neg.w   %d2
+    move.w  %d2, %d4
+    bra.s   .Lps_stream
+.Lps_down:
+    move.w  %d1, %d3                   /* scroll down: entering = old+32.. */
+    addi.w  #32, %d3
+    move.w  %d2, %d4
+.Lps_stream:
+    andi.w  #0x003F, %d3
+.Lps_stream_loop:
+    bsr     .Lps_project_row
+    move.w  %d3, -(%sp)
+    andi.w  #0x001F, %d3
+    bsr     .Lps_dma_row
+    move.w  (%sp)+, %d3
+    addq.w  #1, %d3
+    andi.w  #0x003F, %d3
+    subq.w  #1, %d4
+    bne.s   .Lps_stream_loop
+    bra.s   .Lps_cols
+.Lps_full:
+    move.w  %d0, %d3
+    moveq   #32, %d4
+.Lps_full_loop:
+    bsr     .Lps_project_row
+    addq.w  #1, %d3
+    andi.w  #0x003F, %d3
+    subq.w  #1, %d4
+    bne.s   .Lps_full_loop
+    move.l  #0xFFFFFFFF, (%a6)
+.Lps_cols:
+    moveq   #PLANE_COLS_PER_FRAME, %d5
+    moveq   #0, %d3
+.Lps_col_scan:
+    move.w  %d3, %d2
+    lsr.w   #3, %d2
+    move.b  0(%a2,%d2.w), %d4
+    bne.s   .Lps_col_check
+    addq.w  #7, %d3
+    bra.s   .Lps_col_next
+.Lps_col_check:
+    move.w  %d3, %d1
+    andi.w  #7, %d1
+    btst    %d1, %d4
+    beq.s   .Lps_col_next
+    bclr    %d1, 0(%a2,%d2.w)
+    bsr     .Lps_col
+    subq.w  #1, %d5
+    beq.s   .Lps_rows
+.Lps_col_next:
+    addq.w  #1, %d3
+    cmpi.w  #64, %d3
+    blo.s   .Lps_col_scan
+.Lps_rows:
+    move.l  (%a6), %d6
+    beq     .Lps_done
+    moveq   #PLANE_ROWS_PER_FRAME, %d5
+    moveq   #0, %d3
+.Lps_row_scan:
+    btst    %d3, %d6
+    beq.s   .Lps_row_next
+    bclr    %d3, %d6
+    bsr     .Lps_dma_row
+    subq.w  #1, %d5
+    beq.s   .Lps_rows_out
+.Lps_row_next:
+    addq.w  #1, %d3
+    cmpi.w  #32, %d3
+    blo.s   .Lps_row_scan
+.Lps_rows_out:
+    move.l  %d6, (%a6)
+.Lps_done:
     rts
 
-vdp_commit_fg_strips_if_dirty:
-    move.l  fg_row_dirty, %d6
-    beq.s   .Lfg_done
+/* d3 = tall row: staged[row & 31][0..63] = tall[row & 63][0..63] */
+.Lps_project_row:
+    movem.l %d0-%d1/%a0-%a1, -(%sp)
+    move.w  %d3, %d0
+    andi.w  #0x003F, %d0
+    lsl.w   #7, %d0
+    adda.w  %d0, %a0
+    move.w  %d3, %d0
+    andi.w  #0x001F, %d0
+    lsl.w   #7, %d0
+    adda.w  %d0, %a1
+    moveq   #(16 - 1), %d1
+.Lps_pr_loop:
+    move.l  (%a0)+, (%a1)+
+    move.l  (%a0)+, (%a1)+
+    dbra    %d1, .Lps_pr_loop
+    movem.l (%sp)+, %d0-%d1/%a0-%a1
+    rts
 
-    moveq   #0, %d5
-.Lfg_row_scan:
-    btst    %d5, %d6
-    beq.s   .Lfg_next_row
+/* d3 = plane row (0..31): DMA staged row -> plane row.  Uses a1, d7. */
+.Lps_dma_row:
+    movem.l %d0-%d3/%a0/%a3, -(%sp)
+    move.w  %d3, %d1
+    lsl.w   #7, %d1
+    movea.l %a1, %a0
+    adda.w  %d1, %a0
+    moveq   #0, %d0
+    move.w  %d1, %d0
+    add.l   %d7, %d0
+    move.w  #64, %d1
+    moveq   #2, %d2
+    bsr     .Lplane_dma
+    movem.l (%sp)+, %d0-%d3/%a0/%a3
+    rts
 
+/* d3 = column: project 32 visible cells through the ring into staged while
+ * gathering them into the bounce buffer, then one 64 B column DMA. */
+.Lps_col:
+    movem.l %d0-%d5/%a0/%a3, -(%sp)
+    move.w  %d3, %d1
+    add.w   %d1, %d1                   /* column byte offset */
+    lea     plane_col_bounce, %a3
     moveq   #0, %d4
-    move.w  %d5, %d4
-    lsl.l   #7, %d4
-
-    move.l  #VRAM_PLANE_A_BASE, %d0
-    add.l   %d4, %d0
-    bsr     vdp_set_vram_write_addr
-
-    lea     staged_fg_buffer, %a0
-    adda.l  %d4, %a0
-    move.w  #(64 - 1), %d7
-.Lfg_row_copy:
-    move.w  (%a0)+, VDP_DATA
-    dbra    %d7, .Lfg_row_copy
-
-    move.l  %d6, %d0
-    bclr    %d5, %d0
-    move.l  %d0, %d6
-    move.l  %d6, fg_row_dirty
-    beq.s   .Lfg_done
-
-.Lfg_next_row:
-    addq.w  #1, %d5
-    cmpi.w  #32, %d5
-    blo.s   .Lfg_row_scan
-.Lfg_done:
+.Lps_col_gather:
+    move.w  %d0, %d2
+    add.w   %d4, %d2
+    andi.w  #0x003F, %d2
+    move.w  %d2, %d5
+    lsl.w   #7, %d5
+    add.w   %d1, %d5
+    move.w  0(%a0,%d5.w), %d5
+    move.w  %d5, (%a3)+
+    andi.w  #0x001F, %d2
+    lsl.w   #7, %d2
+    add.w   %d1, %d2
+    move.w  %d5, 0(%a1,%d2.w)          /* staged ring cell */
+    addq.w  #1, %d4
+    cmpi.w  #32, %d4
+    blo.s   .Lps_col_gather
+    lea     plane_col_bounce, %a0
+    moveq   #0, %d2
+    move.w  %d1, %d2
+    move.l  %d7, %d0
+    add.l   %d2, %d0
+    move.w  #32, %d1
+    move.w  #0x0080, %d2
+    bsr     .Lplane_dma
+    movem.l (%sp)+, %d0-%d5/%a0/%a3
     rts
 
 vdp_commit_palette:
@@ -427,18 +540,12 @@ vdp_commit_scroll:
     move.w  staged_scroll_y_fg, %d0
     neg.w   %d0
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
-    cmpi.b  #1, genesistan_current_scene_id
-    bne.s   .Lscroll_fg_y_ready
-    andi.w  #0x0007, %d0
-.Lscroll_fg_y_ready:
+    /* N2 ring: full vertical scroll value (plane wraps at 256). */
     move.w  %d0, VDP_DATA
     move.w  staged_scroll_y_bg, %d0
     neg.w   %d0
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
-    cmpi.b  #1, genesistan_current_scene_id
-    bne.s   .Lscroll_bg_y_ready
-    andi.w  #0x0007, %d0
-.Lscroll_bg_y_ready:
+    /* N2 ring: full vertical scroll value. */
     move.w  %d0, VDP_DATA
     rts
 
@@ -552,6 +659,14 @@ vdp_reassert_bank36_line0:
     .section .bss
     .align 2
 
+/* N2 plane pipeline state */
+bg_col_dirty:
+    .space 8
+fg_col_dirty:
+    .space 8
+plane_col_bounce:
+    .space 64
+    .align 2
 fg_bank3_line_cache:
     .space (16 * 2)
 fg_bank3_cache_valid:

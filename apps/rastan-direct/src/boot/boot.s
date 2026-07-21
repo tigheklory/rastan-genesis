@@ -252,17 +252,8 @@ _bootstrap_clear_staging:
     clr.w   (%a0)+
     dbra    %d7, .Lboot_sprite_sat_clear
 
-    lea     staged_sprite_descriptor_table, %a0
-    move.w  #((80 * 12 / 2) - 1), %d7
-.Lboot_sprite_desc_clear:
-    clr.w   (%a0)+
-    dbra    %d7, .Lboot_sprite_desc_clear
-
-    clr.l   staged_sprite_dirty
-    clr.w   staged_sprite_active_count
-
     lea     sprite_tile_resident_code, %a0
-    move.w  #(80 - 1), %d7
+    move.w  #(128 - 1), %d7
 .Lboot_sprite_tile_resident_clear:
     clr.w   (%a0)+
     dbra    %d7, .Lboot_sprite_tile_resident_clear
@@ -272,12 +263,6 @@ _bootstrap_clear_staging:
 .Lboot_pc090oj_object_ram_clear:
     clr.w   (%a0)+
     dbra    %d7, .Lboot_pc090oj_object_ram_clear
-
-    lea     pc090oj_candidate_bitset, %a0
-    move.w  #((32 / 2) - 1), %d7
-.Lboot_pc090oj_candidate_bitset_clear:
-    clr.w   (%a0)+
-    dbra    %d7, .Lboot_pc090oj_candidate_bitset_clear
 
     clr.w   pc090oj_ctrl_shadow
     clr.w   pc090oj_sprite_ctrl_shadow

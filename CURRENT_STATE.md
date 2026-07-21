@@ -1,3 +1,33 @@
+# CURRENT_STATE (2026-07-20, post Build 0226 — N2 native planes)
+
+- Rolling: Build 0226/256 `67017c78746fed2f...` (counter 226) — N1 native sprites + N2 native planes (ring rows, display-ON bounded DMA; display-off bracket DELETED). Awaiting user acceptance.
+- 0224/0225: consumed REJECTED N2 iterations (preserved; narrow-strip ring-row lesson in KF-071).
+- PROVEN: title/READY no bar; gameplay full frames (0223's near-black fall frame class eliminated); N1 sprites stable throughout.
+- RESIDUAL (queued next): single-row seam at fixed plane row during gameplay scroll + possible right-edge column staleness; staged-pair deletion (DMA from tall); KF-067 joint retune; N3 merging; audio.
+- opcode 216. USER MUST VERIFY: bars gone on hardware/capture, seam visibility, speed.
+
+---
+
+# CURRENT_STATE (2026-07-20, post Build 0223 — N1 residency stabilized)
+
+- Rolling: Build 0223/256 `4bd3e58e78883790...` (counter 223) — N1 native sprite pipeline + stabilized residency; awaiting user acceptance.
+- 0219/0220/0222: consumed REJECTED iterations (preserved; lessons in KF-069/070). 0221 = accepted architectural proof (superseded by 0223).
+- Residency: 32x4-way code-keyed, reference-protected, emit-on-miss (invisible misses, 0 steady-state drops). Sprite pipeline per KF-069.
+- Pending: N2 native planes (black bar, cave defects), N3 composite merging (per-scanline limit) + optional pinned manifests.
+- USER MUST VERIFY (Nomad/BlastEm/Exodus): no vanishing tiles, no wrong art, bats, attract, speed retained.
+
+---
+
+# CURRENT_STATE (2026-07-20, post Build 0221 — N1 native sprite pipeline)
+
+- Rolling: Build 0221/256 `60d14fb0f9294631...` (counter 221) — N1 NATIVE SPRITE PIPELINE candidate; NOT yet user-accepted.
+- 0219/0220: consumed, REJECTED N1 iterations (preserved; d5-clobber / colbank display-latch lessons in KF-069).
+- Sprite renderer: object table (arcade state) -> per-frame ascending emit pass -> double-buffered shadow SAT -> constant 640B display-on DMA; code-keyed residency; mirror/represent engine DELETED. HUD suppression + bank-0x36 palette + KF-067 alignment preserved.
+- Planes/PC080SN: unchanged (N2 pending; cave defects remain). N3 pending: composite merging + per-scene residency manifests.
+- opcode 216; coverage per gate scripts. USER MUST VERIFY list in the N1 doc (bats, attract, Nomad flicker A/B).
+
+---
+
 # CURRENT_STATE (2026-07-19, post Build 0218 cave-residency candidate)
 
 - Build 0218/256 was produced and preserved: `dist/rastan-direct/rastan_direct_video_test_build_0218.bin`, SHA256 `30a84f86cc34e8dc9861f945138e7aafabe6f072b466fa6d161b8b0e8ed60a95`, size `1,586,184`, counter `218`, config `PC090OJ_MIRROR_RECORDS=256`, `RASTAN_GAMEPLAY_HUD_SPRITES=0`. Rolling ROM is byte-identical to the numbered artifact.

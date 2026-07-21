@@ -1274,3 +1274,51 @@ Build 0206 traced and fixed that upstream reachability divergence at the collisi
 **Finding.** Ghidra's complete hardware-reference catalog proves the arcade program touches PC090OJ from 27 absolute sites (9 functions) + one shared indirect composer, PC080SN from 59 sites + one indirect column producer, palette from 16 sites -- and NEVER reads sprite RAM back; the only video-memory readbacks in the whole game are two title-screen glyph probes (0x3A552/0x3AC04). Gameplay code expresses graphics intent purely through A5-relative state and these leaf calls. Therefore the chip-shaped mirrors (2KB PC090OJ mirror + 2KB shadow + 24.5KB plane staging = 32.4KB = 49% of WRAM, plus 3 full-buffer scans and an 8-stage per-sprite transformation chain per frame) are architecturally unnecessary: native emitters at the same leaf boundaries can write final-format Genesis structures (double-buffered link-ordered shadow SAT 2x640B, dirty-column plane ring, CRAM shadow) directly. Flicker roots identified: ascending-record-index eviction + 8-sprites-per-lizard scanline pressure + slot-keyed residency churn -- all removed by priority-ordered emission, composite merging (16x16 cells -> 16x32/32x32 Genesis sprites; lizard 8->2), and code-keyed per-scene residency manifests generated from the SAME ROM layout tables the arcade composer uses (covering unseen bosses/stages by construction). Rainbow Islands Genesis (a reimplementation) independently validates the renderer shape: final-format WRAM shadows + short display-on VBlank commit (shadow SAT 0xFFFFF800, ISR 0x380). Projected: ~23-28KB WRAM returned, VBlank ~1.3KB DMA + <1ms (display-off bracket deleted -> rolling black bar structurally eliminated), mirror-size question dissolved, audio headroom funded.
 
 **Use as prior.** Implementation must replace at these exact boundaries (resolve Genesis PCs via the then-current address_map.json -- never fixed offsets), delete what each stage replaces (no dual renderers), preserve the collision side-channel (gameplay state, KF-067 fix point) and the two glyph probes (serve from the readable ring). Migration: N1 sprites (the architectural proof), N2 planes (+KF-067 joint fix), N3 merging+manifests, N4 palette/cleanup.
+
+---
+
+## KF-069 — N1 native sprite pipeline shipped (Build 0221): mirror/representation engine deleted; object table = arcade state; display-latch colbank rule; decode d5-clobber
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (Build 0221 runtime validation; static deletion gate)
+- **Applicability:** DURABLE — the sprite renderer architecture from Build 0221 onward
+- **Rediscovery Hazard:** HIGH
+- **Source Documents:** docs/design/Andy_fable_n1_native_pc090oj_sprite_pipeline.md
+- **Related:** KF-068 (design), KF-067 (-8 preserved), KF-066 (palsel preserved), KF-049/051/063 (superseded machinery)
+- **Last verified:** 2026-07-20 (Build 0221)
+
+**Finding.** N1 replaced the PC090OJ mirror/representation pipeline with: fixed 256-row object table (arcade's own persistent slot-addressed store -- incremental producers 0x3B802/0x54810/0x5607C/0x56114/0x56440/0x5A098 update rows in place, so the table is program state, not a mirror), one ascending per-frame emit pass (mainline at hook_41dae tail in gameplay; VBlank fallback in frontend) into a double-buffered final-format shadow SAT (link order = ascending record = PC090OJ paint priority; first-80-wins), code-keyed 64x2-way residency over 128 VRAM cells (tiles 1024-1535), bounded 8-entry upload queue, implicit retirement (validated: killed lizards vanish cleanly). Deleted: mirror shadow, candidates/waiting/used, represent/evict engine, record->slot, descriptor table, block2c8 scratch/seed/flush, shadow compare, sweeps, slot-keyed residency, mirror-size config. HAZARDS for posterity: (1) .Lpc090oj_decode_record CLOBBERS d5 (Build 0219 rejected: SAT overrun); (2) sprite_ctrl colbank is DISPLAY-LATCH state -- the arcade sets it AFTER its producers, so palette bits must be resolved at COMMIT (per-entry nibble array + VBlank fix-up; Build 0220 rejected for reading it at producer time). Residual: ~1.2 residency misses/frame at 4-lizard load (pop-in; N3 per-scene manifests), per-scanline 20-sprite limit (N3 merging).
+
+**Use as prior.** Do not reintroduce record-identity state downstream of the object table. Any commit-time attribute that arcade hardware latches at display (ctrl flip, colbank) must be applied in the VBlank fix-up, not at emit. The engine 0x3D254 still writes table rows (native composer = N3).
+
+---
+
+## KF-070 — N1 residency stabilized (Build 0223): reference-protected 4-way cache + emit-on-miss; 0221 dual fault; movem-CCR lesson
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (drops 1.2/frame -> 0/frame measured; visual: five complete lizards + Rastan stable)
+- **Applicability:** DURABLE sprite-residency architecture from Build 0223 onward
+- **Rediscovery Hazard:** HIGH
+- **Source Documents:** docs/design/Andy_fable_n1_sprite_residency_stabilization.md
+- **Related:** KF-069 (N1 pipeline), KF-068 (design)
+- **Last verified:** 2026-07-20 (Build 0223)
+
+**Finding.** Build 0221's disappearing tiles had two roots: miss=>skip-emission (any new animation code vanished for a frame) and unprotected victim choice (uploads could steal a cell a displayed sprite referenced -> wrong art). Fixed by: 32x4-way code-keyed cache over the same 128 cells; per-frame 128-bit referenced-cell bitmap (victims must be unreferenced -> wrong art structurally impossible); EMIT-ON-MISS with optimistic tags (upload lands in VBlank before the SAT DMA -> misses invisible; deterministic warm-up at scene entry); bounded 12-entry queue; skip only on set-saturation/queue-full (measured 2 lifetime). Arcade inventory: 388 distinct codes over 60s (gameplay 372) vs ~50 per-frame concurrency -> pinning cannot work, protected replacement does. Build 0222 REJECTED: `move.w (%sp)+,%dN` after btst destroyed the CCR -> everything dropped; restore across flag-carrying returns with MOVEM (never touches CCR).
+
+**Use as prior.** Never restore registers with move before a flags-consuming return. Residency identity = sprite code only. Any future cell-shape change (N3 merging) must preserve: reference protection, emit-on-miss ordering (patterns before SAT DMA), bounded queue.
+
+---
+
+## KF-071 — N2 native plane pipeline (Build 0226): ring rows + incremental projection + bounded display-on DMA; display-off bracket deleted; black-bar root proven
+
+- **Status:** ACTIVE (candidate; one residual seam defect queued)
+- **Confidence:** CONFIRMED (A/B: 0223 fall-frame mostly black vs 0224+ complete scene; title/READY clean in captures)
+- **Applicability:** DURABLE plane architecture from Build 0226 onward
+- **Rediscovery Hazard:** HIGH
+- **Source Documents:** docs/design/Andy_fable_n2_native_pc080sn_plane_pipeline.md
+- **Related:** KF-068 (design), KF-069/070 (N1), KF-067 (collision compensation retained), KF-041/038
+- **Last verified:** 2026-07-20 (Build 0226)
+
+**Finding.** The black bars' root: every vertical 8px crossing forced a full 2x4KB tall->staged reprojection + 8,192 PIO word writes inside a DISPLAY_OFF bracket; overruns disabled visible scanlines (title bar, rolling bar, near-black frames). N2 replaces it: the 64x32 plane is a vertical RING of the 64-row tall shadow (plane_row = tall_row & 31; VSRAM full value -- the &7 residual model deleted); vertical scroll streams only entering rows (128B DMA); producers mark dirty COLUMNS (bitset at the tall cell-write sites) which are ring-projected, gathered (64B bounce), and DMA'd; budgets 16 rows + 24 cols per plane/frame; scene entry streams a forced full projection via row_dirty. THE DISPLAY NEVER TURNS OFF. Tall buffers retained as the readable PC080SN C-window shadow (arcade intent, category-2 state); staged pair retained as the ring DMA source (glyph probes unchanged). HAZARD (0224's rejection): the FG narrow-strip descriptors and the direct FG/BG staged writers already address rows as arcade_row & 31 == RING rows -- do NOT add a viewport/base remap to them. Legacy mainline force-commit callers are stubs (dirty bits serve next VBlank). RESIDUAL queued: one fixed-plane-row garbage seam during gameplay scroll (a remaining producer addressing mismatch) + possible brief right-edge column staleness; both absent in frontend.
+
+**Use as prior.** All plane row addressing is ring (tall&31) everywhere; VSRAM carries full scroll; never reintroduce display-off for plane commits; extend budgets rather than brackets. Next: root-cause the seam row, then delete the staged pair by DMA-ing directly from tall (ring-ordered), then KF-067 joint collision/player retune at this unified boundary.
