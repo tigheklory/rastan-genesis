@@ -43351,3 +43351,23 @@ Open/Closed Issues Impact:
 - **Validated:** title/READY clean (no bar, display on); gameplay full frames during fall+scroll (vs 0223 near-black); terrain streams/progresses; N1 sprites unregressed everywhere; HUD suppression unchanged. RESIDUAL queued: single-row seam at fixed plane row during gameplay scroll + possible right-edge column staleness (bounded addressing defect, next sequential build).
 - **KF-067:** collision + lizard compensation untouched; joint retune deferred (documented).
 - **Ledgers:** KF-071; design doc; CURRENT_STATE updated. **Compliance:** CONFIRMED (arcade owns execution; helpers RTS; no second renderer). **STOP:** NO.
+
+### MAME Exit Summary (2026-07-20 21:26:24)
+- Final PC: 0x072B7C
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy/Fable — N2 Plane Correctness Follow-Up (Build 0227 CANDIDATE)
+
+- **Date:** 2026-07-20
+- **Recovered:** counter 226, rolling=0226 (67017c78…) byte-identical; 0219–0226 preserved; opcode 216; JSON re-hashed (address_map 96b4d0bd…, manifest aae69e76…, spec 318f3469…).
+- **User hardware evidence (0226):** N1/N2 wins hold (fast, no flicker, stable components, no bars from N1). Remaining plane defects: cyan/white horizontal band, half-screen FG displacement after horizontal movement, wrong terrain blocks upper/right, right-edge staleness.
+- **First divergence PROVEN (probe226):** scYfg=scYbg=0x149 constant, base=23 constant, tall buffers 64-row populated. Band present at screen row 9 (= ring wrap plane row 31→0) even with scXfg=0. Root: 0226 ring (VSRAM=full + staged[(base+i)&31]) was never matched by producers (arcade-row&31 / viewport). Band = wrap-seam PLACEMENT artifact (not wrong data, not DMA corruption); half-screen displacement = 32-row coordinate-space error (full VSRAM vs window-placed content).
+- **Fix:** reverted vdp_comm.s + tilemap_hooks.s to the proven 0223 coordinate pipeline VERBATIM; the ONLY retained N2 change = delete per-frame DISPLAY_OFF/ON bracket in _vblank_service (display stays on — removes title+rolling bars) + convert the two heavy full-row committers (BG/FG) PIO→bounded DMA (.Lplane_dma_row). Ring machinery fully removed (static gate: 0 residual ring symbols). No producer coordinate changed; no col-dirty; no full-VSRAM; boot-time display-off (vdp_boot_setup) unrelated/retained.
+- **Build 0227** `5ab997f6186bc6cd7f6342ed4149cd6d9baa764cf57ff7567dca8474ed5f6ec0` (1,584,068, counter 227, GATE_PASS, rolling byte-identical). opcode 216; coverage 0x182C88→0x182BC4 (source shrank, paired). No numbered build rejected (first candidate correct).
+- **Validated (MAME):** 0226 shows band+tear; 0227 title/throne/story/BEST5/READY clean (no bar), gameplay coherent pre-scroll + sustained horizontal + jump (no band, no displacement, no wrong blocks, right edge streams), N1 sprites unregressed. Perf (tap held): steady ~0 plane DMA, per-frame usually 640B (SAT), peak 4,736B/frame — inside ~7,600B VBlank budget.
+- **KF-067:** untouched (commit-path-only change). **KF-072** added; **KF-071** ring guidance superseded (0226 ring reverted).
+- **Deferred (recorded, not fixed):** gray orb/star, sword hitbox, lizard/Rastan damage, projectile ownership/palette, audio, N3.
+- **Compliance:** CONFIRMED (arcade owns execution; helpers RTS; no second renderer; no per-frame display-off; no ring). **STOP:** NO.

@@ -1,3 +1,14 @@
+# CURRENT_STATE (2026-07-20, post Build 0227 — N2 plane correctness)
+
+- Rolling: Build 0227/256 `5ab997f6186bc6cd...` (counter 227, 1,584,068) — N1 native sprites + N2 native planes with the 0226 ring rewrite REVERTED. Display stays ON every frame; plane commits use bounded DMA over the proven 0223 coordinate model. Awaiting user hardware acceptance.
+- FIXED vs 0226: cyan/white horizontal band (was the ring wrap seam), half-screen FG displacement (was a 32-row coordinate-space error from full-VSRAM vs window-placed producers), wrong terrain blocks. Root: display-off bracket was the ONLY black-bar cause; the 0226 ring was the ONLY band/displacement cause (KF-072).
+- PROVEN (MAME): title/throne/story/BEST5/READY clean (no bar); gameplay coherent at rest + horizontal + jump scroll; N1 sprites unregressed. Peak plane+sprite DMA 4,736 B/frame < ~7,600 B VBlank budget; steady ~640 B (SAT) or 0.
+- 0224/0225/0226: consumed N2 iterations, preserved. 0219-0227 all present.
+- DEFERRED (recorded, not fixed — Cody/Tighe): gray orb/star projectile, sword hitbox, lizard/Rastan damage, projectile ownership/palette, audio, N3 composite merging.
+- opcode 216; coverage 0x182BC4. USER MUST VERIFY on hardware/capture: no band, no FG displacement, no bars, coherent scroll, sprites stable, speed retained.
+
+---
+
 # CURRENT_STATE (2026-07-20, post Build 0226 — N2 native planes)
 
 - Rolling: Build 0226/256 `67017c78746fed2f...` (counter 226) — N1 native sprites + N2 native planes (ring rows, display-ON bounded DMA; display-off bracket DELETED). Awaiting user acceptance.
