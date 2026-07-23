@@ -200,7 +200,7 @@ _vblank_service:
     bsr     vdp_commit_sprites_vram     /* N1: DMA-only, display-on safe */
 
     bsr     vdp_reassert_fg_bank3_line
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
     bsr     vdp_reassert_bank36_line0
 .endif
     tst.b   palette_dirty
@@ -531,9 +531,9 @@ vdp_reassert_fg_bank3_line:
 .Lrfb_done:
     rts
 
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
 /* Build 0208: PC090OJ bank-0x36 (lizard men) line-0 carrier re-assert.
- * With gameplay HUD sprites suppressed, the shared route table assigns
+ * With gameplay HUD sprites suppressed or limited to 1UP-only mode, the shared route table assigns
  * (scene 1, PC090OJ, bank 0x36) -> line 0 with the CARRIER flag.  The arcade
  * writes bank 0x36 once at stage load (possibly while the frontend still owns
  * line 0), so the palette hooks only CACHE the converted bank; each gameplay

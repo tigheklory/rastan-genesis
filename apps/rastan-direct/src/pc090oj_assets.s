@@ -4,6 +4,14 @@
 rastan_pc090oj:
     .incbin "../../build/pc090oj_genesis.bin"
 
+    /* Build 0232: score/1UP HUD glyph slice (codes 0x02A..0x048) with every
+     * opaque pixel remapped to palette index 2.  Only the gameplay HUD mode-2
+     * score-family records select this data; normal sprite residency is separate. */
+    .global rastan_pc090oj_hud_white
+    .align 2
+rastan_pc090oj_hud_white:
+    .incbin "../../build/pc090oj_hud_white_genesis.bin"
+
     .global pc090oj_slot_lut
     .align 2
 pc090oj_slot_lut:

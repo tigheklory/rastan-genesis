@@ -2025,7 +2025,7 @@
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     }
   ],
-  "checksum": "0x0BCE",
+  "checksum": "0x1D86",
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan-direct/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {
@@ -2036,7 +2036,7 @@
   },
   "build_context": "canonical",
   "postpatch_expected_opcode_replace_sites": 216,
-  "postpatch_expected_total_genesis_bytes_covered": "0x182BC4",
+  "postpatch_expected_total_genesis_bytes_covered": "0x183CA4",
   "bookmarks_v2_count": 0,
   "bookmarks_v2_applied": [],
   "direct_execution": {

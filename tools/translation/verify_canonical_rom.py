@@ -81,7 +81,11 @@ CANONICAL_OPCODE_REPLACE_COUNT = 216
 # (replaces double inline+VBlank sync; Fable cycle pass): +0x10 (0x18270C -> 0x18271C).
 # Build 0205 lizard-man block A5+0x2C8 composite staging helper:
 # +0xC0 (0x182890 -> 0x182950).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x182BC4
+# Build 0230/0231 gameplay-HUD mode 2 narrows the HUD representation path and
+# extends the bank-0x36 carrier-cache guards; opcode_replace site count unchanged.
+# Build 0232 score/1UP white HUD sprite variant adds the score-glyph asset slice
+# plus SAT palette-line force metadata; opcode_replace site count unchanged.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x183CA4
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")

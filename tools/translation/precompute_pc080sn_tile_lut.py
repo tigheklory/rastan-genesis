@@ -7,7 +7,7 @@ Binary outputs (big-endian):
 - pc080sn_vram_preload.bin (legacy compatibility):
     repeated (u16 tile, u16 slot), terminated by u16 0xFFFF.
     This legacy preload is emitted from the Title/Attract scene manifest.
-- pc080sn_scene_preload_{title,gameplay,endround}.bin:
+- pc080sn_scene_preload_{title,gameplay,gameplay_cave,endround}.bin:
     repeated (u16 tile, u16 slot), terminated by u16 0xFFFF.
 - pc080sn_source_scene_map.bin:
     u32 magic ('S2MP' = 0x53324D50)

@@ -28,13 +28,19 @@ BOOKMARK_STATE_FILE := $(ROOT)/build/rastan-direct/active_bookmark_baseline.json
 # baked into a generated assembly include ($(OUT_DIR)/pc090oj_config.inc) so no
 # scattered assembly constants need hand-editing.
 PC090OJ_MIRROR_RECORDS ?= 256
-# Build 0208: gameplay HUD-sprite representation option (durable, Make-overridable).
-# 1 (default) preserves the existing HUD sprite representation.  0 suppresses
-# ONLY the Genesis representation of the gameplay HUD sprite records (0..45)
-# during active gameplay -- arcade HUD code, score/life/health state, and all
-# non-gameplay scenes are untouched -- and frees CRAM line 0 so the shared
-# palette route can carry PC090OJ sprite bank 0x36 (lizard men) there.
-RASTAN_GAMEPLAY_HUD_SPRITES ?= 1
+# Build 0208/0230: gameplay HUD-sprite representation option (durable,
+# Make-overridable).
+# 0 (accepted gameplay default) suppresses ONLY the Genesis representation of
+# the gameplay HUD sprite records (0..45) during active gameplay -- arcade HUD
+# code, score/life/health state, and all non-gameplay scenes are untouched --
+# and frees CRAM line 0 so the shared palette route can carry PC090OJ sprite
+# bank 0x36 (lizard men) there.
+# 1 is diagnostics/comparison mode: preserve the old full Genesis HUD sprite
+# representation.
+# 2 keeps only the player-one score group (1UP label + 1P score records 28..36)
+# while suppressing the rest of the gameplay HUD family; palette routing follows
+# mode 0 so the bank-0x36 carrier path remains active.
+RASTAN_GAMEPLAY_HUD_SPRITES ?= 0
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 
 MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
@@ -48,6 +54,7 @@ PC080SN_SCENE_PRELOAD_ENDROUND := $(ROOT)/build/pc080sn_scene_preload_endround.b
 PC080SN_SOURCE_SCENE_MAP := $(ROOT)/build/pc080sn_source_scene_map.bin
 PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
 PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
+PC090OJ_HUD_WHITE := $(ROOT)/build/pc090oj_hud_white_genesis.bin
 PC090OJ_SLOT_LUT := $(ROOT)/build/pc090oj_slot_lut.bin
 PC090OJ_BLANK_BITSET := $(ROOT)/build/pc090oj_blank_bitset.bin
 PC090OJ_OPAQUE_BBOX := $(ROOT)/build/pc090oj_opaque_bbox.bin
@@ -133,6 +140,10 @@ $(PC090OJ_PRECONV): $(PC090OJ_REGION) $(ROOT)/tools/translation/preconvert_pc090
 	$(PYTHON) "$(ROOT)/tools/translation/preconvert_pc090oj_tiles.py" \
 		--input "$<" --output "$@"
 
+$(PC090OJ_HUD_WHITE): $(PC090OJ_PRECONV) $(ROOT)/tools/translation/build_pc090oj_hud_white.py
+	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_hud_white.py" \
+		--input "$<" --output "$@"
+
 $(PC090OJ_SLOT_LUT): $(ROOT)/tools/translation/build_pc090oj_slot_lut.py
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_slot_lut.py" --output "$@"
 
@@ -153,7 +164,7 @@ $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_PRECONV) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_PRECONV) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/diag_bookmark.o: $(SRC_DIR)/diag_bookmark.s FORCE_ASM_REBUILD | $(OUT_DIR)

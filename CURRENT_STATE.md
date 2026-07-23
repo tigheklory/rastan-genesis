@@ -1,3 +1,14 @@
+# CURRENT_STATE (2026-07-20, Stage 1 cave investigation — Build 0228 NOT consumed)
+
+- Rolling UNCHANGED: Build 0227/256 `5ab997f6186bc6cd...` (counter 227). No patch this task.
+- PROVEN: the cave is DOWNSTREAM-BLOCKED. Genesis 0227 Rastan cannot pass the FIRST outdoor pit — scroll oscillates, player mode (0xFF10E8) hits MODE 7 at the pit and the camera snaps backward (repeat); occasional mode-8 death->respawn; cave tileset 3 / source >=0xFB1C never reached. Arcade with same input reaches the cave/rope (rope=green vine, cave=pit drop). The Build 0218 cave tileset split exists but is unexercised.
+- CONFIRMED (matched collision dumps): genesistan_stage_bg_collision_column diverges — ground-surface markers at collision row 39 (Genesis) vs 38 (arcade) = KF-067 at producer level; AND sparse 2-of-4 columns vs arcade contiguous. Solid floor matches. NOT proven to cause the pit stall -> NOT patched (speculative; KF-067 forbids blind row move). See KF-073.
+- STOP: no patch-safe boundary. NEXT STEP NEEDS TIGHE: interactive matched MAME capture (arcade + Genesis 0227) through the pit/cave/rope, logging player mode + collision + progression; automation cannot pass the pit.
+- DEFERRED (separate, unfixed): BG vertical-scroll shear; slight perf regression / 68k-Counter opt (later); gray fireball; gray death remnants (owner unproven); gem wrong palette; item-drop coverage; missing axe; missing large bat; small bat green-not-brown; sword hitbox; enemy->Rastan damage; wrong cave tiles; missing cave cover; pit resets; rope art/climb/lava.
+- opcode 216; coverage 0x182BC4; builds 0223-0227 preserved.
+
+---
+
 # CURRENT_STATE (2026-07-20, post Build 0227 — N2 plane correctness)
 
 - Rolling: Build 0227/256 `5ab997f6186bc6cd...` (counter 227, 1,584,068) — N1 native sprites + N2 native planes with the 0226 ring rewrite REVERTED. Display stays ON every frame; plane commits use bounded DMA over the proven 0223 coordinate model. Awaiting user hardware acceptance.

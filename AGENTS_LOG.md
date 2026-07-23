@@ -43371,3 +43371,277 @@ Open/Closed Issues Impact:
 - **KF-067:** untouched (commit-path-only change). **KF-072** added; **KF-071** ring guidance superseded (0226 ring reverted).
 - **Deferred (recorded, not fixed):** gray orb/star, sword hitbox, lizard/Rastan damage, projectile ownership/palette, audio, N3.
 - **Compliance:** CONFIRMED (arcade owns execution; helpers RTS; no second renderer; no per-frame display-off; no ring). **STOP:** NO.
+
+---
+
+## Andy/Fable — Stage 1 Cave Map/Collision Authority (INVESTIGATION; STOP — Build 0228 NOT consumed)
+
+- **Date:** 2026-07-20
+- **Recovered:** counter 227, rolling=0227 (5ab997f6…) byte-identical; 0223–0227 preserved; opcode 216; coverage 0x182BC4. JSON re-hashed (address_map 2556e6f2…, manifest f62a4124…, spec 318f3469…).
+- **Note:** 3 arcade-disassembly subagents killed mid-run by the account monthly-spend limit; partial leads folded into the design doc. Continued economically with local MAME (not spend-limited).
+- **Central proof:** the cave is DOWNSTREAM-BLOCKED. Genesis 0227 Rastan cannot pass the first outdoor pit — scroll oscillates 0x407E↔0x4339, player mode (0xFF10E8) hits MODE 7 at the pit + camera snaps backward (repeat); occasional mode-8 death→respawn; tileset stays 1, cave source ≥0xFB1C never reached. Arcade with same input reaches the cave/rope (rope=green vine, cave=pit drop; arc/0003.png). Build 0218 cave tileset split exists but is unexercised.
+- **Confirmed divergence (matched collision dumps, acoll/gcoll):** genesistan_stage_bg_collision_column writes ground-surface markers (0x3400/0x3A00) at collision row 39 (Genesis) vs 38 (arcade) = KF-067 confirmed at producer; AND sparse 2-of-4 columns vs arcade contiguous, + spurious 0x0020. Solid floor rows 40+ match. NOT proven to cause the mode-7 stall → not patched (would be speculative; KF-067 forbids blind row move).
+- **Ownership status:** cave-cover = no Genesis code handles it (UNPROVEN owner); rope = no rope-specific Genesis code (arcade-native, mode-6 candidate); reset = mode-7 pit stall + mode-8 death, arcade-native paths. Descriptor table 0x03951C (12-byte stride); progression counter still unidentified (0x10D0FC/0x10D386 are constant, not it).
+- **Build:** NONE produced. Counter stays 227. Nothing patched. **STOP: YES** (no patch-safe boundary; next step needs Tighe interactive matched capture at the pit/cave/rope).
+- **KF-073** added; KF-067 refined (producer-level). **Deferred (kept separate):** BG vertical-scroll shear; slight perf regression + 68k-Counter opt (later); gray fireball; gray death remnants (ownership unproven); gem wrong palette; item-drop coverage; missing axe; missing large bat; small bat green-not-brown; sword hitbox; enemy→Rastan damage; wrong cave tiles; missing cave cover; pit resets; rope art/climb/lava — all preserved in OPEN_ISSUES + design doc.
+- **Compliance:** CONFIRMED (nothing patched; no middleware restore, no forced state, no coordinate cave loader).
+
+---
+
+## Andy/Fable(Opus) — Rope-lava causality trace + corrections + Cody handoff (INVESTIGATION; Build 0228 NOT consumed)
+
+- **Date:** 2026-07-21
+- **State:** counter 227, rolling=0227 (5ab997f6…). No patch. No build. No trace overwritten.
+- **Method:** three user-driven interactive MAME captures (Genesis 0227 + arcade rastan, -video soft), read/write watchpoint causality logger. Preserved in states/traces/build0228_stage1_cave_map_collision_authority_20260720_221041/ (rope_lava_run.txt, arcade_rope_run.txt, rope_causality_run.txt + loggers).
+- **PROVEN:** the Stage-1 rope lava-death (user: enemies deal no damage, so it is collision-driven). During DEATH#1 (worldX=0x0116) native reader genesis PC 0x053D6E read collision cell 0xFF3258 (row40/col44)=0x049C; last writer=genesistan_stage_bg_collision_column (0x070798), block A2=0x00257C→arcade ROM 0x237C, sel(0xFF10A8)=0. Rope blocks 0x237C/0x1970 have block+32 ≠ 0x00FF, so the producer emits *(block+20+row*8+strip*2) (sequential 0x04xx/0x01xx) as collision; normal block 0x1000 has +32=0x00FF→collision=*(block+34). Arcade rope collision at the same cells = 0x0006/0x0008.
+- **CORRECTED (my earlier errors):** (1) 0x049C read was F2124; mode-8 at F2135/6 = ~11-12 frames later, NOT one frame — the lethal/initiating read is NOT yet proven. (2) reader PCs are Genesis runtime PCs mapped via address_map relocation_delta 0x200 (approx; verify vs segments/shift_deltas), NOT arcade addresses. (3) A2−0x200 = arcade ROM offset (A2=0x1200→0x1000, not 0x1200); earlier 0x1200 dump misread 0x00F1 as 0x00FF — retracted. (4) "tile-only block" and "garbage" RETRACTED (block format unproven); shared-root with wrong cave tiles NOT asserted.
+- **UNANSWERED (blockers):** which collision read causes/schedules mode-8 (11-12f gap); whether arcade uses a different block/descriptor for the rope (arcade A2 not captured) = descriptor vs producer divergence; original block format/semantics.
+- **Handoff:** full corrected chain + exact next instrumentation for Cody in docs/design/Andy_fable_build0228_stage1_cave_map_collision_authority.md (CORRECTIONS + CODY HANDOFF section). No KNOWN_FINDINGS promotion (KF-073 remains the durable finding; not upgraded pending proof).
+- **Compliance:** CONFIRMED (no patch, no forced state, no mirror/DISPLAY_OFF changes). **STOP: YES** (evidence boundary; Cody continues).
+
+---
+
+## Cody — Stage-1 Rope Death Proof Continuation (INVESTIGATION; STOP — Build 0228 NOT consumed)
+
+- **Date:** 2026-07-21
+- **State:** accepted/rolling Build 0227 `5ab997f6186bc6cd7f6342ed4149cd6d9baa764cf57ff7567dca8474ed5f6ec0`, counter 227. Build 0228 available but **not consumed**. No source/spec/ROM/Makefile changes; no build produced.
+- **Evidence added:** `states/traces/build0228_rope_death_cody_proof_20260721_135322/` with native debugger event trace, `first_mode8_window_events.log`, original arcade `arcade_rope_producer_events.log`, reduced producer log, and `cody_rope_death_proof_summary.md`.
+- **PC mapping discipline:** runtime PCs resolved through `build/rastan-direct/address_map.json` segments. `0x0550BE -> arcade_pc 0x054EBE`; `0x053D70 -> arcade_pc 0x053B70`; `0x053DD0 -> arcade_pc 0x053BD0`; `0x053FF0 -> arcade_pc 0x053DF0`; `0x07079C` and `0x0704A4` are Genesis-only wrapper region, unmapped to arcade. Data pointers are kept separate from PC mapping.
+- **Native chain proven:** collision cell `Genesis-WRAM 0x00FF30DA = 0x0107` is read at `runtime_genesis_pc 0x053D70/0x053DD0`, masked to collision code `0x07`, takes the native code-7 branch, sets `Genesis-WRAM 0x00FF10CE` bit 8 at post-PC `0x053FF0` and bit 2 at post-PC `0x053FD4`, then delayed native flag handling calls `0x0550AE` and writes player mode 8 at actual instruction `runtime_genesis_pc 0x0550BE` (`pc=0x0550C4` post-write). This supersedes the earlier unproven `0x049C` initiating-read hypothesis.
+- **Last-writer provenance:** `0x00FF30DA` last written by Genesis-only `genesistan_stage_bg_collision_column` (`pc=0x07079C` post-write), `sel=0`, source path `a2=0x00003A88`, data `0x0107`. Source file inspected: `apps/rastan-direct/src/tilemap_hooks.s` (`genesistan_hook_tilemap_plane_a`, `genesistan_stage_bg_collision_column`).
+- **Original arcade comparison:** original arcade rope-band producer writes captured at arcade PC `0x0559EC`, `sel10A8=0`, BG/pass-0 producer path. Representative rope-band values are small collision codes: rows 37-39 `0x0008` from blocks such as `a2=0x00002648`, and row 40 `0x0006` from blocks such as `a2=0x00001C14`.
+- **First divergence classified:** collision source/block selection mismatch at the producer surface. The earlier likely-FG/swapped-index hypothesis is corrected: fresh arcade evidence shows sampled rope-band writes are also BG/pass-0 (`sel10A8=0`). Genesis is using a different source-block path and writes structured value `0x0107`; this is not classified as garbage.
+- **Implementation gate:** **not patch-safe yet.** The lethal read-to-mode chain is proven, but the upstream state creator/descriptor path that should select the arcade rope blocks instead of Genesis helper source `0x3A88` is not proven. Rejected as unsafe: value clamps, rope-coordinate exceptions, forced mode/state, DISPLAY_OFF/PC090OJ/mirror changes, or hardcoded block substitution.
+- **Design doc updated:** `docs/design/Andy_fable_build0228_stage1_cave_map_collision_authority.md` with Cody continuation, corrected mappings, native chain, arcade-vs-Genesis comparison, divergence classification, and STOP result.
+- **Open/Closed impact:** OPEN-017 and OPEN-001 context touched; no new issues opened; none closed. OPEN-015 not touched.
+- **KNOWN_FINDINGS impact:** no new KF indexed. Existing KF-073/KF-067 remain context; this is boundary narrowing, not a completed durable architecture finding.
+- **Compliance:** CONFIRMED. **STOP:** YES. Build 0228 not produced; counter remains 227.
+
+---
+
+## [Cody — Hybrid, Build 0228 Rope Collision Address Mapping]
+
+- **Date:** 2026-07-21
+- **Task:** Build 0228 rope-collision source-address mapping gate; evidence/documentation only because the implementation boundary did not prove patch-safe.
+- **Files changed:** `docs/design/Cody_build0228_rope_collision_address_mapping.md`, `OPEN_ISSUES.md`, `AGENTS_LOG.md`.
+- **Build produced:** NO. Build 0228 not consumed. ROM path: N/A. SHA-256: N/A. Counter remains `227`.
+- **Baseline verified:** Build 0227 numbered and rolling ROM both SHA256 `5ab997f6186bc6cd7f6342ed4149cd6d9baa764cf57ff7567dca8474ed5f6ec0`; `dist/rastan-direct/rastan_direct_video_test_build_0228.bin` absent before the task.
+- **JSON mapping evidence:** `address_map.json` arcade-copy segment `arcade_rom/data 0x000FB0..0x03A00C -> genesis_rom_offset/runtime_data 0x0011B0..0x03A20C` maps documented arcade rope sources `0x00002648 -> 0x00002848` and `0x00001C14 -> 0x00001E14`; byte identity against Build 0227 ROM passed. Additional checks: `0x0000237C -> 0x0000257C`, `0x00001970 -> 0x00001B70`, and `0x00003888 -> 0x00003A88` all byte-identical.
+- **Incorrect vs corrected address calculation:** the observed Genesis helper source `runtime_data 0x00003A88` is not the correct mapped address for `arcade_rom/data 0x00002648` or `0x00001C14`; it is the correct JSON mapping of a different arcade source, `arcade_rom/data 0x00003888`. Correct mappings for the documented arcade rope samples are `0x00002848` and `0x00001E14`.
+- **First divergence:** source-block selection. Genesis `genesistan_stage_bg_collision_column` selected the block path that produced `A2=0x00003A88`, while original arcade rope-band samples selected `A2=0x00002648` / `0x00001C14` at `arcade_pc 0x0559EC`, `sel10A8=0`.
+- **Root cause confirmed:** NO. The mapping contradiction is proven, but the exact source-table/descriptor writer or control path that selects `0x00003888` instead of the documented rope sources is not proven.
+- **Fix implemented:** NO. A patch would require guessing the source-table/descriptor correction or hardcoding a source block, which violates the state-causality rule and the task STOP conditions.
+- **Verification performed:** static source/spec/disassembly inspection; JSON-derived mapping calculation; ROM byte identity checks; baseline SHA/counter verification; no runtime trace, no build.
+- **Open/Closed Issues Impact:** OPEN-017 updated with the STOP mapping evidence; OPEN-001 context only; no new issues opened; no issues closed; OPEN-015 not touched.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed. This narrows KF-073/KF-067 context but does not yet prove a durable mechanism or safe correction boundary.
+- **No unrelated changes:** YES. Pre-existing dirty files (`CURRENT_STATE.md`, `KNOWN_FINDINGS.md`, and the Andy design doc) were not reverted or normalized.
+- **Compliance:** CONFIRMED. Arcade data remains authoritative; Genesis helper boundary only; no scaffolding, no coordinate workaround, no synthesized collision values.
+- **STOP:** YES. Exact unresolved contradiction: authoritative arcade sources map cleanly to `0x00002848`/`0x00001E14`, but Build 0227 selected `0x00003A88`, which is a valid mapping of `arcade_rom/data 0x00003888`; the exact upstream source selection defect remains unproven.
+
+---
+
+## [Cody — Hybrid, Build 0228 Rope Collision Source Selection]
+
+- **Date:** 2026-07-21
+- **Task:** Continue Build 0228 rope collision source-selection investigation from the prior mapping STOP; conditional implementation authorized only if the first upstream source-selection divergence proved patch-safe.
+- **Files changed:** `docs/design/Cody_build0228_rope_collision_address_mapping.md`, `OPEN_ISSUES.md`, `AGENTS_LOG.md`.
+- **Build produced:** NO. Build 0228 not consumed. ROM path: N/A. SHA-256: N/A. Counter remains `227`.
+- **Baseline accepted:** Build 0227 numbered/rolling ROM SHA256 `5ab997f6186bc6cd7f6342ed4149cd6d9baa764cf57ff7567dca8474ed5f6ec0` from the prior mapping pass; no build artifact was deleted or overwritten.
+- **Genesis source-selection provenance:** `genesistan_stage_bg_collision_column` (`runtime_genesis_pc 0x000706EE`; collision write instruction `0x00070798`, watchpoint post-PC `0x0007079C`) wrote lethal `0x0107` to `Genesis-WRAM 0x00FF30DA`. Native event state: `a2=runtime_data/genesis_rom_offset 0x00003A88`, `d3=0x00023888`, `a0=0x00FF1028` post-increment after reading slot `0x00FF1024` (slot 9), `sel=0`, destination cursor `d5=0x00C0A4B4`, low strip index `d7=0x0001`. JSON maps `0x00003A88` back to `arcade_rom/data 0x00003888`.
+- **Arcade source-selection provenance:** original arcade rope-band producer events at `arcade_pc 0x000559EC`, `sel10A8=0`, use slot 9 (`a3=0x0010D064`, `a1=0x0010D092`) selecting `arcade_rom/data 0x00002648` for rows 37-39 and writing `0x0008`; slot 10 (`a3=0x0010D068`, `a1=0x0010D094`) selects `arcade_rom/data 0x00001C14` for row 40 and writes `0x0006`.
+- **First divergence:** source-block selection at the producer/helper surface. Genesis slot 9 selects the valid but wrong `arcade_rom/data 0x00003888` path; original arcade rope-region slot 9/10 samples select `0x00002648` / `0x00001C14`.
+- **Root cause confirmed:** NO. The upstream writer/control path that makes Genesis slot 9 contain/select `0x3888` during the lethal rope window is not proven. Candidate unproven boundaries include descriptor-source list selection, descriptor rebuild input/output, selector/strip timing, progression/destination cursor, stale table lifecycle, or another source-list control path.
+- **Fix implemented:** NO. A patch now would hardcode source blocks or guess the descriptor/table correction and would violate the state-causality rule.
+- **Smallest next capture:** one focused original-arcade-vs-Genesis rope source-selection trace that logs writes to arcade table slots `0x0010D064/0x0010D068/0x0010D092/0x0010D094` and Genesis equivalents/source slots `0x00FF1024/0x00FF1028/0x00FF1064/0x00FF1068/0x00FF1092/0x00FF1094`, with events at `arcade_pc 0x00055904/0x00055968/0x0005597C/0x000559EC` and Genesis `runtime_genesis_pc 0x00055B04/0x000706EE/0x00070798/0x0007079C`, recording selector, strip index, destination cursor, slot value, descriptor first/second word, source block pointer, row/column, frame, and monotonic event number.
+- **Open/Closed Issues Impact:** OPEN-017 updated; OPEN-001 context only; no new issues opened; no issues closed; OPEN-015 not touched.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed. This narrows KF-073/KF-067 but does not yet prove a durable upstream mechanism or safe correction boundary.
+- **No unrelated changes:** YES. Pre-existing dirty files were not reverted or normalized.
+- **Compliance:** CONFIRMED. Arcade code/data remains authoritative; Genesis helper boundary only; no scaffolding, no coordinate workaround, no synthesized collision value, no DISPLAY_OFF/PC090OJ work.
+- **STOP:** YES. Build 0228 remains available; counter remains `227`.
+
+---
+
+## [Cody — Hybrid, Build 0228 Rope Collision Slot-Writer Provenance]
+
+- **Date:** 2026-07-21
+- **Task:** Focused slot-writer provenance continuation for Build 0228 rope collision source-selection gate; conditional implementation authorized only if the first upstream writer/control divergence proved patch-safe.
+- **Files changed:** `docs/design/Cody_build0228_rope_collision_address_mapping.md`, `AGENTS_LOG.md`. New trace artifacts under `states/traces/build0228_rope_collision_slot_writer_provenance_20260721_173509/`. No production source/spec/ROM/Makefile/invariant edits.
+- **Accepted baseline:** Build 0227, SHA256 `5ab997f6186bc6cd7f6342ed4149cd6d9baa764cf57ff7567dca8474ed5f6ec0`, counter `227`. Build 0228 was not produced or consumed.
+- **Static table layout reconfirmed:** Genesis source descriptor list `Genesis-WRAM 0x00FF1000`, 4-byte entries; slot 9 source field `0x00FF1024`, slot 10 source field `0x00FF1028`; rebuilt pointer slots `0x00FF1064/0x00FF1068`; rebuilt word slots `0x00FF1092/0x00FF1094`. Arcade analogs are `0x0010D024/0x0010D028`, `0x0010D064/0x0010D068`, and `0x0010D092/0x0010D094`.
+- **Static writer/candidate path:** arcade `0x0558CE` / Genesis `runtime_genesis_pc 0x00055ACE` source-list advance (`addq.l #4,(%a0)`) and Genesis descriptor rebuild hook at `runtime_genesis_pc 0x00071CB4`; collision helper remains `runtime_genesis_pc 0x000706EE`, write instruction `0x00070798`.
+- **Corrected logger:** `states/traces/build0228_rope_collision_slot_writer_provenance_20260721_173509/genesis_slot_writer_logger.lua` fixed the prior logger's write-address handling and retained write-tap handles. It correctly logged absolute `Genesis-WRAM` table-clear writes including slot 9/10 addresses.
+- **Runtime capture result:** corrected log captured `1956` lines but did not reproduce the rope-death window: no `COLL_WRITE_BAND`, no `MODE_WRITE`, and no `DEATH_SEEN` events. MAME was force-stopped after a long non-rope capture because SIGTERM did not close it; the already-flushed partial log is preserved.
+- **Genesis slot-9 writer provenance:** NOT proven for the rope window. The corrected capture did not record the live event that makes slot 9 select `runtime_data/genesis_rom_offset 0x00003A88`.
+- **Arcade slot-9/slot-10 writer provenance:** unchanged from prior evidence: original arcade rope-band producer at `arcade_pc 0x000559EC`, `sel10A8=0`, slot 9 selecting `arcade_rom/data 0x00002648`, slot 10 selecting `arcade_rom/data 0x00001C14`. No new arcade capture was produced because Genesis rope-window provenance was not captured.
+- **First divergence:** still source-block selection at the producer/helper surface only. The upstream writer/input/control divergence remains unproven.
+- **Root cause confirmed:** NO. Exact correction boundary remains unproven.
+- **Fix implemented:** NO. **Build produced:** NO. ROM path/SHA: N/A. Counter remains `227`.
+- **Open/Closed Issues Impact:** OPEN-017 primary, OPEN-001 context; no new issues opened; no issues closed; OPEN-015 not touched.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed. This continuation preserves a STOP-limited capture gap rather than a durable mechanism.
+- **No unrelated changes:** YES. Pre-existing dirty files were not reverted or normalized. No numbered build was deleted.
+- **Compliance:** CONFIRMED. No scaffolding ROM, no hardcoded collision values, no coordinate workaround, no DISPLAY_OFF/PC090OJ/palette/gameplay-state change.
+- **STOP:** YES. Exact unresolved boundary: live normalized rope-window source-slot writer/control event for `Genesis-WRAM 0x00FF1024` / rebuilt slot 9 was not captured; Build 0228 remains gated.
+
+## [Cody — Hybrid, Build 0228 Rope Collision Native Manual Capture]
+
+- **Date:** 2026-07-21
+- **Task:** Continue Build 0228 rope collision slot/source provenance after Tighe's manual rope-death reproduction; implementation allowed only if the first source-selection divergence proved patch-safe.
+- **Files changed:** `docs/design/Cody_build0228_rope_collision_address_mapping.md`, `AGENTS_LOG.md`. New/reduced trace summary: `states/traces/build0228_rope_collision_slot_writer_native_manual_20260721_202348/rope_slot_native_summary.md`. No production source/spec/ROM/Makefile/invariant edits.
+- **Trace artifacts preserved:** `states/traces/build0228_rope_collision_slot_writer_native_manual_20260721_202348/` containing `rope_slot_native_debug.cmd`, `native_debug_trace.log` (560M), `native_events.log` (56,308 event lines), `rope_relevant_events.log`, and `rope_slot_native_summary.md`.
+- **Accepted baseline:** Build 0227, SHA256 `5ab997f6186bc6cd7f6342ed4149cd6d9baa764cf57ff7567dca8474ed5f6ec0`, counter `227`. Build 0228 was not produced or consumed.
+- **Manual capture result:** SUCCESS. Tighe's rope-death reproduction was captured; the prior missed result was a logger/capture-surface problem, not a failed reproduction.
+- **Lethal event:** `runtime_genesis_pc 0x0007079C` wrote `0x0107` to `Genesis-WRAM 0x00FF30DA` with `sel=0`, `strip=1`, `src9=0x0002A288`, `ptr9=0x00003A88`, `word9=0x0005`, `a1=0x00000200`, `a2=0x00003A88`, `d3=0x00023888`.
+- **Corrected descriptor/pointer chain:** `Genesis-WRAM 0x00FF1024 = 0x0002A288`; descriptor at `genesis_rom_offset 0x0002A488` is `0005 3888 ...`; rebuilt slot pointer is `0x00003A88`. This is not `0x3888 + 0x200 = 0x23888`; descriptor raw word, base/tag value, and normalized runtime data pointer are distinct.
+- **Last slot writers:** `runtime_genesis_pc 0x00055AD2 -> arcade_pc 0x000558D2` wrote slot-9 source halves to `0x00FF1024/0x00FF1026`; Genesis-only `0x00071CEA/0x00071CFC` wrote `word9=0x0005` and `ptr9=0x00003A88` to `0x00FF1092` and `0x00FF1064/0x00FF1066`.
+- **Label correction:** trace label `PRODUCER_559EC` was a runtime breakpoint label. The logged `runtime_genesis_pc 0x000559EE` maps through `address_map.json` to `arcade_pc 0x000557EE`; it is not the same as the earlier original-arcade `arcade_pc 0x000559EC` evidence point.
+- **Downstream chain reconfirmed:** later native reads of `Genesis-WRAM 0x00FF30DA = 0x0107` at `runtime_genesis_pc 0x00053D70/0x00053DD0` (`arcade_pc 0x00053B70/0x00053BD0`) mask to code `0x07`, followed by mode-8 writes at `runtime_genesis_pc 0x000550C4` (`arcade_pc 0x00054EC4`).
+- **First divergence:** source-list / descriptor-selection divergence upstream of `genesistan_stage_bg_collision_column`. Genesis slot 9 uses `src9=0x0002A288 -> descriptor raw block 0x3888 -> ptr9=0x00003A88`; existing original-arcade rope evidence uses slot 9/10 source blocks `0x00002648` / `0x00001C14` and collision values `0x0008` / `0x0006`.
+- **Root cause confirmed:** NO. The exact upstream control/state reason that `runtime_genesis_pc 0x00055AD2` leaves slot 9 as `0x0002A288` for the rope window remains unproven.
+- **Fix implemented:** NO. **Build produced:** NO. ROM path/SHA: N/A. Counter remains `227`.
+- **Open/Closed Issues Impact:** OPEN-017 primary, OPEN-001 context; no new issues opened; no issues closed; OPEN-015 not touched.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed. The evidence narrows the active thread but does not yet prove the durable upstream mechanism or safe correction boundary.
+- **No unrelated changes:** YES. Pre-existing dirty files were not reverted or normalized. No numbered build was deleted.
+- **Compliance:** CONFIRMED. No scaffold ROM, no hardcoded collision values, no coordinate workaround, no DISPLAY_OFF/PC090OJ/palette/gameplay-state change.
+- **STOP:** YES. Exact unresolved boundary: the source-list writer/control path around `runtime_genesis_pc 0x00055AD2` that causes `Genesis-WRAM 0x00FF1024` to contain `0x0002A288` during the rope death window instead of the original-arcade rope-region source selection.
+
+### MAME Exit Summary (2026-07-21 21:05:13)
+- Final PC: 0x072B66
+- Stack Pointer (SP): 0x00FEFF78
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0228 Post-Rope PC080SN Residency Scene]
+
+- **Date:** 2026-07-21
+- **Task:** Continue Andy's partial Build 0228 post-rope map tileset work and produce exactly Build 0228; no renewed rope-collision investigation and no logger/runtime trace work beyond the standard release smoke trace.
+- **Files changed:** `apps/rastan-direct/Makefile`, `apps/rastan-direct/src/scene_load.s`, `apps/rastan-direct/src/tilemap_hooks.s`, `tools/translation/precompute_pc080sn_tile_lut.py`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated build artifacts, `AGENTS_LOG.md`.
+- **Andy partial edits resolved:** preserved the widened production source ceilings (`RUNTIME_GAMEPLAY_SRC_MAX=0x00011200`, `GAMEPLAY_STRIP_SRC_HI=0x00011400`) but replaced the failed attr `0x000A -> SCENE_GAMEPLAY_CAVE` merge with a separate producer-selected residency scene.
+- **New scene:** `SCENE_GAMEPLAY_AFTER_ROPE = 4`, name `Gameplay-After-Rope`; descriptor attr mapping `0x000A -> SCENE_GAMEPLAY_AFTER_ROPE`. Runtime `load_scene_tiles(4)` loads `pc080sn_scene_preload_gameplay_after_rope.bin` while mapping logical scene ID back to gameplay (`1`) so existing gameplay gates remain intact.
+- **Runtime source selection:** relocated strip source ranges are `[0x0000D31C,0x0000FB1C)` outdoor/gameplay tileset `1`, `[0x0000FB1C,0x00010B1C)` cave/rope tileset `3`, and `[0x00010B1C,0x00011400)` after-rope tileset `4`; high bound is exclusive via `bhs`. Address-map verification maps arcade/data `0x01091C -> runtime_data 0x010B1C` and `0x01111C -> runtime_data 0x01131C`.
+- **Scene tile counts:** Title `845`, Gameplay `962`, End-Round `1067`, Gameplay-Cave `568`, Gameplay-After-Rope `955`; largest scene `1067 / 1164`, budget PASS for every scene. Source-scene map confirms arcade/data `0x01091C` and `0x01111C` select scene `4`.
+- **Canonical invariant update:** opcode_replace count remains `216`; total Genesis bytes covered updated from `0x182BC4` to `0x183980` in both canonical gates for the added after-rope preload manifest (`+0xDBC` production data).
+- **Build produced:** YES. Build `0228` at `dist/rastan-direct/rastan_direct_video_test_build_0228.bin`; SHA256 `8a6f87d4db25a3253be54baaf2d2ec3b57953ca2119b7a27b104577ddc1244f5`; size `1587584` bytes. Rolling artifact matches numbered artifact. Counter now `228`.
+- **Verification:** `make -C apps/rastan-direct release` PASS with `GATE_PASS`; boot guard PASS pre/post patch; standard release MAME 30s smoke trace saved to `states/traces/rastan_direct_video_test_build_0228_mame_30s_20260721_210504/`. Focused static post-rope map test PASS: after-rope sources select scene `4` and the stale cave-tileset routing path is removed.
+- **Open/Closed Issues Impact:** OPEN-017 continued (post-rope/cave map source residency); OPEN-001 context; no new issues opened; no issues closed; OPEN-015 not touched.
+- **KNOWN_FINDINGS impact:** Option A — no new durable finding indexed; this is the implementation of the already-proven post-rope residency split.
+- **No unrelated changes:** YES. Pre-existing dirty docs/ledgers from rope work were preserved; no numbered build was deleted.
+- **STOP:** NO.
+
+## [Cody — Analysis, Build 0228 Failure: PC080SN Producer/Rope/Palette]
+
+- **Date:** 2026-07-21
+- **Task:** Analyze rejected Build 0228 without building or fixing; preserve Build 0228 for comparison while keeping Build 0227 as accepted baseline.
+- **Files changed:** `docs/design/Cody_build0228_failure_analysis_pc080sn_rope_palette.md`, `AGENTS_LOG.md`. No production source/spec/Makefile/ROM/generated-artifact changes made by this analysis pass.
+- **Build produced:** NO. ROM path: N/A. Build 0228 remains consumed/rejected and preserved at `dist/rastan-direct/rastan_direct_video_test_build_0228.bin` SHA256 `8a6f87d4db25a3253be54baaf2d2ec3b57953ca2119b7a27b104577ddc1244f5`; Build 0227 remains accepted baseline SHA256 `5ab997f6186bc6cd7f6342ed4149cd6d9baa764cf57ff7567dca8474ed5f6ec0`.
+- **Descriptor structure resolved:** the Stage 1 descriptor table at arcade ROM/data `0x03951C` is consumed as 6-byte `{attr16, src32}` descriptors. The 12-byte appearance is two adjacent descriptors viewed as a pair/grouping pattern, not the live descriptor stride. Runs: entries `0..55 attr=0x0002`, `56..111 attr=0x0003`, `112..127 attr=0x000A`.
+- **Build 0228 focused runtime correction:** added trace `states/traces/build0228_runtime_scene4_rope_transition_20260722_090545/`. User correction accepted: rope is invisible but grabbable/attachable; climb animation works but up/down movement does not; reset-to-beginning can occur without death; jumping off right/top still gives lava death. Runtime evidence: scene `4` is **not** requested in this reproduction; only `load_scene_tiles(1)` completes, strips remain `curScene=01 curTileset=01` with attr `0x0002` outdoor sources. Mode path observed: reset mode `7` at `runtime_genesis_pc 0x05226C`, invisible-rope/attach mode `4` at `0x05205A`, jump/fall mode `2` at `0x052474`, lava-death mode `8` at `0x0550C4`; death still follows `Genesis-WRAM 0x00FF30DA = 0x0107 -> masked 0x07 -> mode 8`.
+- **Lizard palette regression cause:** exact cause confirmed. Build 0228 generated `apps/rastan-direct/out/pc090oj_config.inc` with `RASTAN_GAMEPLAY_HUD_SPRITES=1`, compiling out the KF-066 bank-`0x36` route/cache/reassert path. Lizard effective bank `0x36` falls back to CRAM line `3` instead of line `0`.
+- **Architecture verdict:** B — the existing scene loader needs a generated descriptor-driven correction. Scene manifests remain viable by budget, but Build 0228 proves visual source/range state, rope interaction state, and collision/death state are not advancing coherently.
+- **Fix implemented:** NO. Next narrow Build 0229 scope: restore accepted config `RASTAN_GAMEPLAY_HUD_SPRITES=0`, preserve/rework scene-4 data only behind a descriptor/progression/source-list coherent boundary, activate cave/rope visual scene when native rope/object state becomes reachable, and resolve the rope source-list divergence before accepting post-rope visuals.
+- **Open/Closed Issues Impact:** OPEN-017 primary; OPEN-001 context; no new issues opened; no issues closed; OPEN-015 intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed from this rejected-build analysis; KF-066/KF-072/KF-073 remain applicable.
+- **No unrelated changes:** YES. Numbered builds were not deleted or overwritten.
+- **Compliance:** CONFIRMED. No scaffolding, no hardcoded collision/state, no coordinate workaround, no source fix, no build.
+- **STOP:** NO for the analysis deliverable.
+
+### MAME Exit Summary (2026-07-22 11:01:58)
+- Final PC: 0x072B7C
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0229 HUD/Enemy Palette Regression Recovery]
+
+- **Date:** 2026-07-22
+- **Task:** Produce exactly Build 0229 as a narrow regression-recovery build restoring the accepted Build 0227 functional configuration and `RASTAN_GAMEPLAY_HUD_SPRITES=0`; no rope/map/collision/enemy-position/palette-algorithm work.
+- **Accepted baseline:** Build 0227, `dist/rastan-direct/rastan_direct_video_test_build_0227.bin`, SHA256 `5ab997f6186bc6cd7f6342ed4149cd6d9baa764cf57ff7567dca8474ed5f6ec0`, size `1,584,068`.
+- **Rejected build preserved:** Build 0228 remains at `dist/rastan-direct/rastan_direct_video_test_build_0228.bin`, SHA256 `8a6f87d4db25a3253be54baaf2d2ec3b57953ca2119b7a27b104577ddc1244f5`, size `1,587,584`; no numbered build was deleted or overwritten.
+- **Files changed:** `apps/rastan-direct/Makefile`, `tools/translation/precompute_pc080sn_tile_lut.py`, generated release artifacts, `AGENTS_LOG.md`. Existing Build 0228 analysis docs/traces were preserved.
+- **Rejected Build 0228 functional changes removed:** scene-4 after-rope production wiring is no longer active in source or the resulting ROM: no `SCENE_GAMEPLAY_AFTER_ROPE`, `GAMEPLAY_STRIP_SRC_AFTER_ROPE`, `Gameplay-After-Rope`, `0x00011400`, or coverage `0x183980` remains in active source/tool output after rebuild. The canonical coverage returned to `0x182BC4`.
+- **Config restored:** `apps/rastan-direct/out/pc090oj_config.inc` generated with `PC090OJ_MIRROR_RECORDS=256` and `RASTAN_GAMEPLAY_HUD_SPRITES=0`; `apps/rastan-direct/out/symbol.txt` records `RASTAN_GAMEPLAY_HUD_SPRITES = 0`.
+- **KF-066 carrier path compiled in:** symbols `vdp_reassert_bank36_line0`, `pc090oj_bank36_line0_cache`, and `pc090oj_bank36_cache_valid` are present, proving the bank-`0x36` line-0 carrier/cache/reassert path was compiled in. Build 0228's bank-`0x36` line-3 fallback configuration is not active in Build 0229.
+- **Scene tile counts:** Title `845`, Gameplay `962`, End-Round `1067`, Gameplay-Cave `568`; largest scene `1067 / 1164`, budget PASS. No after-rope scene is generated/loaded.
+- **Build produced:** YES. Build `0229`, `dist/rastan-direct/rastan_direct_video_test_build_0229.bin`, SHA256 `5ab997f6186bc6cd7f6342ed4149cd6d9baa764cf57ff7567dca8474ed5f6ec0`, size `1,584,068`; rolling ROM is byte-identical. Counter now `229`.
+- **Verification:** `source tools/setup_env.sh && make -C apps/rastan-direct release PC090OJ_MIRROR_RECORDS=256 RASTAN_GAMEPLAY_HUD_SPRITES=0` PASS with `GATE_PASS`; boot guard PASS pre/post patch; standard release MAME 30s smoke trace saved to `states/traces/rastan_direct_video_test_build_0229_mame_30s_20260722_110150/`; `fg_cwindow_live count=0`; no unmapped-memory summary addresses.
+- **Functional result:** Build 0229 is byte-identical to accepted Build 0227, intentionally restoring the last accepted functional source/configuration while consuming a new numbered artifact after rejected Build 0228. Palette remains USER MUST VERIFY visually.
+- **Open/Closed Issues Impact:** OPEN-017 primary; OPEN-001 context; no new issues opened; no issues closed; OPEN-015 not touched.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed. This is regression recovery to the already-established KF-066 configuration, not a new mechanism.
+- **No unrelated changes:** YES. No lizard positioning, PC080SN map loading, rope/collision/death, enemy damage, sprite mappings, palette algorithms/routing tables, or audio logic was intentionally changed.
+- **STOP:** NO.
+
+### MAME Exit Summary (2026-07-22 13:23:46)
+- Final PC: 0x0729AC
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-22 13:25:24)
+- Final PC: 0x072A4C
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0230/0231 Gameplay HUD Mode 2]
+
+- **Date:** 2026-07-22
+- **Task:** Add `RASTAN_GAMEPLAY_HUD_SPRITES=2` as a narrow gameplay HUD representation mode: keep only the player-one score group (`1UP` label + 1P score records `28..36`) while suppressing the rest of gameplay HUD sprite records `0..45`; do not touch PC080SN map loading, rope/collision/death, lizard positioning, enemy damage, non-HUD sprite mappings, palette algorithms beyond the existing KF-066 carrier guards, audio, or rejected Build 0228 scene-4 behavior.
+- **Files changed:** `apps/rastan-direct/Makefile`, `apps/rastan-direct/src/pc090oj_hooks.s`, `apps/rastan-direct/src/palette_hooks.s`, `apps/rastan-direct/src/vdp_comm.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated release artifacts, `AGENTS_LOG.md`.
+- **Mode semantics implemented:** `0` remains accepted full gameplay-HUD suppression; `1` remains full HUD diagnostics/comparison mode; `2` keeps only records `28..36` during active gameplay and suppresses other HUD-family records `0..45`. Non-gameplay scenes are untouched. Arcade HUD/score/life/health state continues to execute; only Genesis PC090OJ representation is filtered.
+- **Player-one score boundary:** records `28..33` are the score digits written by the `0x03B802` score-digit producer mode 0; records `34..36` are the static 1UP label cells from the same `0x03B8B0` setup block. This is a semantic producer/record-family filter, not a coordinate patch.
+- **KF-066 mode-2 palette behavior:** mode `2` follows mode `0`, not mode `1`, for PC090OJ bank `0x36` routing/cache/reassertion. Source guards in `palette_hooks.s` and `vdp_comm.s` now compile the route-table carrier row, cache-fill paths, `vdp_reassert_bank36_line0`, `pc090oj_bank36_line0_cache`, and `pc090oj_bank36_cache_valid` for `RASTAN_GAMEPLAY_HUD_SPRITES != 1`.
+- **Build 0230 note:** Build `0230` was produced and preserved at `dist/rastan-direct/rastan_direct_video_test_build_0230.bin`, SHA256 `9f58af1da289b307ebf4f78514496dc20bc9700fdaa65aceef25570554786e42`, size `1,583,916`; static post-build inspection found the mode-2 reassert routine present but `palette_hooks.s` still had mode-0-only bank-`0x36` cache guards. No numbered build was deleted or overwritten. Build 0230 is superseded by corrected Build 0231.
+- **Corrected build produced:** YES. Build `0231`, `dist/rastan-direct/rastan_direct_video_test_build_0231.bin`, SHA256 `7922ea6312a8f687a51a819afe2ce95b9fc19a6414e8b6e50540739dc530b119`, size `1,584,084`; rolling ROM `apps/rastan-direct/dist/rastan_direct_video_test.bin` is byte-identical. Counter now `231`.
+- **Config verification:** `apps/rastan-direct/out/pc090oj_config.inc` generated with `PC090OJ_MIRROR_RECORDS=256` and `RASTAN_GAMEPLAY_HUD_SPRITES=2`; `apps/rastan-direct/out/symbol.txt` records `RASTAN_GAMEPLAY_HUD_SPRITES = 2` and includes `vdp_reassert_bank36_line0`, `pc090oj_bank36_line0_cache`, and `pc090oj_bank36_cache_valid`.
+- **Rejected scene-4 remains inactive:** active source/tool output still uses `RUNTIME_GAMEPLAY_SRC_MAX=0x00010200` and `GAMEPLAY_STRIP_SRC_HI=0x00010B1C`; no active `SCENE_GAMEPLAY_AFTER_ROPE` / `GAMEPLAY_AFTER_ROPE` scene-4 production wiring was reintroduced.
+- **Canonical invariant update:** opcode_replace count remains `216`; total Genesis bytes covered updated to `0x182BD4` in both `postpatch_startup_rom.py` and `verify_canonical_rom.py` for the corrected mode-2 production code shape.
+- **Verification:** `source tools/setup_env.sh && make -C apps/rastan-direct release PC090OJ_MIRROR_RECORDS=256 RASTAN_GAMEPLAY_HUD_SPRITES=2` PASS with `GATE_PASS`; boot guard PASS pre/post patch; standard release MAME 30s smoke trace saved to `states/traces/rastan_direct_video_test_build_0231_mame_30s_20260722_132517/`; no unmapped-memory summary addresses.
+- **User-test status:** palette/HUD result remains USER MUST VERIFY visually. Test scope: start Stage 1, reach first lizard-men, confirm normal colors remain, and check that only `1UP` + player-one score remain from the gameplay HUD.
+- **Open/Closed Issues Impact:** OPEN-017 primary; OPEN-001 context; no new issues opened; no issues closed; OPEN-015 not touched.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; this is a narrow representation-mode extension of the already-established KF-066 carrier behavior.
+- **No unrelated changes:** YES. No numbered build was deleted or overwritten.
+- **STOP:** NO.
+
+### MAME Exit Summary (2026-07-22 14:20:48)
+- Final PC: 0x072A5A
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0232 White Gameplay Score/1UP]
+
+- **Date:** 2026-07-22
+- **Task:** Produce exactly Build 0232 from the Build 0231 gameplay-HUD mode-2 baseline, preserving variable-width 1P score behavior while rendering the retained gameplay score/optional `1UP` cells in white. No PC080SN map/rope/collision/death, lizard positioning, enemy damage, non-HUD sprite mapping, palette algorithm, audio, or rejected Build 0228 scene-4 work.
+- **Files changed:** `apps/rastan-direct/Makefile`, `apps/rastan-direct/src/pc090oj_assets.s`, `apps/rastan-direct/src/pc090oj_hooks.s`, `tools/translation/build_pc090oj_hud_white.py`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated release artifacts, `AGENTS_LOG.md`.
+- **Score producer/records:** arcade score producer `arcade_pc 0x03B802` maps via `address_map.json` to `runtime_genesis_pc 0x03BA02` (`genesistan_pc090oj_hook_score_digit_3b802`). Its mode-0 score descriptor table entry at arcade data `0x03B87E` maps to `runtime_genesis_pc/data 0x03BA7E` and routes six variable-width score digit records to PC090OJ destination `HW_ADDRESS 0x00D00108` from source `Genesis-WRAM 0x00FFC11E`. Static setup block arcade data `0x03B9B0` maps to `runtime_genesis_pc/data 0x03BBB0`; records `28..33` are P1 score digit slots, records `34..36` are the `1UP` label cells (`1`, `U`, `P`).
+- **Variable-width behavior preserved:** no fixed-width or leading-zero logic was added. Build 0232 keeps the existing arcade producer/visibility path and only changes the retained records' Genesis sprite tile residency variant/palette line at representation time.
+- **White glyph implementation:** generated `build/pc090oj_hud_white_genesis.bin` is a 3,968-byte slice for PC090OJ codes `0x02A..0x048`; every non-transparent nibble is remapped to palette index `2`. Gameplay mode-2 records `28..36` with digit codes `0x2A..0x33` or label codes `0x39/0x46/0x48` get a high-bit residency tag, upload from `rastan_pc090oj_hud_white`, and set a per-SAT-slot force-line byte to Genesis CRAM line `3`. Normal PC090OJ sprite residency and palette routing remain separate.
+- **Active white target:** Rastan's active sprite palette is CRAM line `3`; zero-based entry `2` is CRAM slot `50` and value `0x0EEE` (pure white). The HUD white glyph variant selects that entry by using pixel index `2` and forced SAT palette line `3`.
+- **KF-066 mode-2 behavior preserved:** `apps/rastan-direct/out/pc090oj_config.inc` generated with `RASTAN_GAMEPLAY_HUD_SPRITES=2`; no source guards remain that compile bank-`0x36` carrier/cache/reassert only for mode `0`. Symbols `vdp_reassert_bank36_line0`, `palette_route_lookup`, `pc090oj_bank36_line0_cache`, `rastan_pc090oj_hud_white`, and `pc090oj_sat_force_line` are present.
+- **Canonical invariant update:** opcode_replace count remains `216`; total Genesis bytes covered updated to `0x183BD0` in both paired gate scripts for the Build 0232 HUD white asset/helper shape.
+- **Build produced:** YES. Build `0232`, `dist/rastan-direct/rastan_direct_video_test_build_0232.bin`, SHA256 `e4dc57ec056f9a02f8db8ee6d6305797700b1b648c295a819b326a39ba935cf0`, size `1,588,176`; rolling ROM `apps/rastan-direct/dist/rastan_direct_video_test.bin` is byte-identical. Counter now `232`.
+- **Verification:** `source tools/setup_env.sh && make -C apps/rastan-direct release RASTAN_GAMEPLAY_HUD_SPRITES=2` PASS with `GATE_PASS`; boot guard PASS pre/post patch; standard release MAME 30s smoke trace saved to `states/traces/rastan_direct_video_test_build_0232_mame_30s_20260722_142040/`; `frames=1798`, `fg_cwindow_live count=0`, no unmapped-memory summary addresses.
+- **User-test status:** USER MUST VERIFY visually. Test scope: start Stage 1, reach first lizard-men, confirm lizard colors remain correct, and check that retained gameplay `1UP`/1P score is white and remains variable-width as the score grows past two digits.
+- **Open/Closed Issues Impact:** OPEN-017 primary; OPEN-001 context; no new issues opened; no issues closed; OPEN-015 not touched.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; this is a narrow HUD representation/color extension of the Build 0231 mode-2 / KF-066 carrier behavior.
+- **No unrelated changes:** YES. No numbered build was deleted or overwritten.
+- **STOP:** NO.
+
+### MAME Exit Summary (2026-07-22 14:59:17)
+- Final PC: 0x072B2A
+- Stack Pointer (SP): 0x00FEFF80
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0233 Gameplay HUD Mode 2 P1 Score Significance Fix]
+
+- **Date:** 2026-07-22
+- **Task:** Produce exactly Build 0233 to correct gameplay HUD Mode 2 P1 score digit significance/trailing-zero representation while preserving Build 0232 white HUD glyphs and KF-066 lizard bank-`0x36` line-0 carrier behavior.
+- **Baseline:** Build 0232, `dist/rastan-direct/rastan_direct_video_test_build_0232.bin`, SHA256 `e4dc57ec056f9a02f8db8ee6d6305797700b1b648c295a819b326a39ba935cf0`, size `1,588,176`, `RASTAN_GAMEPLAY_HUD_SPRITES=2`.
+- **Root cause confirmed:** YES. The authoritative packed-BCD P1 score bytes live at `Genesis-WRAM 0x00FF011E..0x00FF011C` (`arcade_workram 0x0010C11E..0x0010C11C`, A5-relative per KF-036). Build 0232 kept original setup records `28..36`, but gameplay sprite population reuses/clobbers much of that range by state `2/3/0`, so an `008100` score could represent as only the `81` portion. This was a PC090OJ representation-record ownership bug, not arcade score storage/arithmetic.
+- **Fix implemented:** YES. `apps/rastan-direct/src/pc090oj_hooks.s` now projects gameplay Mode 2 P1 HUD into helper-owned PC090OJ records `0..8` during scene 1: records `0..5` are six packed-BCD score digits in correct significance order with leading-zero suppression and a zero-score `00` floor; records `6..8` are `1UP` (`0x0039/0x0048/0x0046`). Gameplay Mode 2 now admits records `0..8` and suppresses records `9..45`; retained HUD records still use the normal object-table -> tile residency -> SAT -> VBlank commit path and the Build 0232 white glyph residency/forced line-3 path.
+- **White `0x0EEE` verified:** YES. `tools/translation/build_pc090oj_hud_white.py` maps opaque HUD glyph pixels to palette index `2`, and `states/traces/build0233_palette_line3_probe_20260722_150258/palette_line3_probe.log` confirms scene-1 CRAM line 3 index 2 is `0x0EEE`.
+- **Runtime validation:** Build 0233 injected-score trace `states/traces/build0233_score_mode2_validation_20260722_150015/score_mode2_probe.log` shows `score_ff011c=008100` at frame `406` and records `0..5` as hidden, hidden, `8`, `1`, `0`, `0`; records `6..8` as `1UP`; SAT entries for retained HUD records have `force=03`. Zero-score trace `states/traces/build0233_score_mode2_zero_validation_20260722_150100/score_mode2_probe.log` shows `000000` renders records `4..5` as visible `00` plus `1UP`.
+- **Build produced:** YES. Build `0233`, `dist/rastan-direct/rastan_direct_video_test_build_0233.bin`, SHA256 `43c385fe0f1e6e20cddcdde898c14363c6f9e68bfb03a9c76496188a7d18723d`, size `1,588,388`; rolling ROM `apps/rastan-direct/dist/rastan_direct_video_test.bin` is byte-identical. Counter now `233`.
+- **Verification:** `source tools/setup_env.sh && RASTAN_GAMEPLAY_HUD_SPRITES=2 make -C apps/rastan-direct release` PASS with `GATE_PASS`; boot guard PASS pre/post patch; opcode_replace count remains `216`; canonical coverage updated to `0x183CA4`; smoke trace `states/traces/rastan_direct_video_test_build_0233_mame_30s_20260722_145909/` reached `frames=1798`, `fg_cwindow_live count=0`, no unmapped-memory summary addresses.
+- **KF-066 preserved:** YES. `RASTAN_GAMEPLAY_HUD_SPRITES=2` compiled; symbols `vdp_reassert_bank36_line0`, `pc090oj_sat_force_line`, and `rastan_pc090oj_hud_white` are present; Mode 2 keeps the non-diagnostic bank-`0x36` carrier route (`RASTAN_GAMEPLAY_HUD_SPRITES != 1`). Rejected Build 0228 scene-4 remains inactive (`GAMEPLAY_STRIP_SRC_HI=0x00010B1C`, no `SCENE_GAMEPLAY_AFTER_ROPE`).
+- **Files changed:** `apps/rastan-direct/src/pc090oj_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated build artifacts, `docs/design/Cody_gameplay_score_mode2_build0230_0233.md`, `AGENTS_LOG.md`, numbered Build 0233 ROM.
+- **No numbered builds deleted/overwritten:** YES. Builds 0230, 0231, 0232, and 0233 remain present under `dist/rastan-direct/`.
+- **Open/Closed Issues Impact:** OPEN-017 primary; OPEN-001 context; no new issues opened; no issues closed; OPEN-015 not touched.
+- **KNOWN_FINDINGS impact:** Option A — no new finding indexed; this is a bounded Mode 2 HUD representation correction preserving KF-066.
+- **No unrelated changes:** YES. No PC080SN map/cave/rope/collision/death, lizard positioning, enemy damage, non-HUD sprite mapping, palette algorithm, audio, or Build 0228 scene-4 work was intentionally changed.
+- **User-test status:** USER MUST VERIFY visually: first lizard colors, white `1UP`/P1 score, and score values such as `8100` rendering as `8100` rather than `81`.
+- **STOP:** NO.

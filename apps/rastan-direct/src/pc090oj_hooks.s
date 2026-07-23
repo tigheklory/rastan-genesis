@@ -90,6 +90,7 @@
     .global pc090oj_dma_test_heartbeat
 
     .extern rastan_pc090oj
+    .extern rastan_pc090oj_hud_white
     .extern pc090oj_slot_lut
     .extern genesistan_current_scene_id
     .equ    PC090OJ_SCENE_GAMEPLAY_ID, 1
@@ -1141,7 +1142,7 @@ genesistan_pc090oj_hook_audit_guard:
     moveq   #3, %d0
     bra.s   .Lnp_done
 .Lnp_general:
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
     move.w  %d0, %d2                 /* d2 = effective bank */
     moveq   #0, %d0
     move.b  genesistan_current_scene_id, %d0
@@ -1157,40 +1158,171 @@ genesistan_pc090oj_hook_audit_guard:
     lsr.w   #4, %d0
     andi.w  #0x0003, %d0
 .Lnp_done:
-    movem.l (%sp)+, %d1-%d3
-    rts
+	    movem.l (%sp)+, %d1-%d3
+	    rts
 
-/* One ascending pass over the object table into the back shadow-SAT bank.  */
-pc090oj_native_emit_pass:
-    movem.l %d0-%d7/%a0-%a3, -(%sp)
-    lea     staged_sprite_sat, %a3
-    tst.w   pc090oj_sat_bank
-    beq.s   .Lnep_bank_ok
-    lea     staged_sprite_sat_b, %a3
-.Lnep_bank_ok:
-    lea     sprite_tile_resident_code, %a2
-    lea     pc090oj_cell_used, %a1     /* per-frame referenced-cell bitmap */
-    clr.l   (%a1)+
+	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+/* Build 0233 gameplay HUD projection.
+ * The arcade score producer writes the P1 score/1UP setup records at 28..36,
+ * but the translated gameplay sprite population can reuse part of that range.
+ * Project the same packed-BCD P1 score into helper-owned records 0..8 only in
+ * gameplay Mode 2, then let the normal object-table -> SAT path handle them.
+ */
+.Lpc090oj_mode2_project_p1_hud:
+	    movem.l %d0-%d7/%a0-%a2, -(%sp)
+	    lea     pc090oj_object_ram, %a0
+	    movea.l #0x00FF011E, %a2
+	    clr.w   %d5                         /* significant digit has appeared */
+
+	    moveq   #0, %d1                     /* 100000s: high nibble FF011E */
+	    move.b  (%a2), %d1
+	    lsr.b   #4, %d1
+	    andi.w  #0x000F, %d1
+	    moveq   #0x08, %d4
+	    bsr     .Lmode2_emit_digit
+
+	    moveq   #0, %d1                     /* 10000s: low nibble FF011E */
+	    move.b  (%a2), %d1
+	    andi.w  #0x000F, %d1
+	    moveq   #0x10, %d4
+	    bsr     .Lmode2_emit_digit
+	    subq.l  #1, %a2
+
+	    moveq   #0, %d1                     /* 1000s: high nibble FF011D */
+	    move.b  (%a2), %d1
+	    lsr.b   #4, %d1
+	    andi.w  #0x000F, %d1
+	    moveq   #0x18, %d4
+	    bsr     .Lmode2_emit_digit
+
+	    moveq   #0, %d1                     /* 100s: low nibble FF011D */
+	    move.b  (%a2), %d1
+	    andi.w  #0x000F, %d1
+	    moveq   #0x20, %d4
+	    bsr     .Lmode2_emit_digit
+	    subq.l  #1, %a2
+
+	    moveq   #0, %d1                     /* 10s: high nibble FF011C */
+	    move.b  (%a2), %d1
+	    lsr.b   #4, %d1
+	    andi.w  #0x000F, %d1
+	    moveq   #0x28, %d4
+	    bsr     .Lmode2_emit_digit
+
+	    moveq   #0, %d1                     /* 1s: low nibble FF011C */
+	    move.b  (%a2), %d1
+	    andi.w  #0x000F, %d1
+	    moveq   #0x30, %d4
+	    bsr     .Lmode2_emit_digit
+
+	    tst.w   %d5
+	    bne.s   .Lmode2_emit_label
+	    lea     pc090oj_object_ram + (4 * 8), %a1
+	    move.w  #0x0010, 2(%a1)             /* zero score displays as 00 */
+	    move.w  #0x0010, 10(%a1)
+
+	.Lmode2_emit_label:
+	    clr.w   (%a0)+                      /* record 6: '1' */
+	    move.w  #0x0010, (%a0)+
+	    move.w  #0x0039, (%a0)+
+	    move.w  #0x0040, (%a0)+
+	    clr.w   (%a0)+                      /* record 7: 'U' */
+	    clr.w   (%a0)+
+	    move.w  #0x0048, (%a0)+
+	    move.w  #0x0028, (%a0)+
+	    clr.w   (%a0)+                      /* record 8: 'P' */
+	    clr.w   (%a0)+
+	    move.w  #0x0046, (%a0)+
+	    move.w  #0x0038, (%a0)+
+
+	    movem.l (%sp)+, %d0-%d7/%a0-%a2
+	    rts
+
+.Lmode2_emit_digit:
+	    clr.w   (%a0)+
+	    move.w  #0x0010, %d6
+	    tst.w   %d5
+	    bne.s   .Lmode2_digit_visible
+	    tst.w   %d1
+	    bne.s   .Lmode2_digit_visible
+	    move.w  #0x0110, %d6               /* hidden leading zero */
+	    bra.s   .Lmode2_digit_store
+	.Lmode2_digit_visible:
+	    moveq   #1, %d5
+	.Lmode2_digit_store:
+	    move.w  %d6, (%a0)+
+	    addi.w  #0x002A, %d1
+	    move.w  %d1, (%a0)+
+	    move.w  %d4, (%a0)+
+	    rts
+	.endif
+
+	/* One ascending pass over the object table into the back shadow-SAT bank.  */
+	pc090oj_native_emit_pass:
+	    movem.l %d0-%d7/%a0-%a3, -(%sp)
+	    lea     staged_sprite_sat, %a3
+	    tst.w   pc090oj_sat_bank
+	    beq.s   .Lnep_bank_ok
+	    lea     staged_sprite_sat_b, %a3
+	.Lnep_bank_ok:
+	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+	    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+	    bne.s   .Lnep_no_mode2_p1_hud
+	    bsr     .Lpc090oj_mode2_project_p1_hud
+	.Lnep_no_mode2_p1_hud:
+	.endif
+	    lea     sprite_tile_resident_code, %a2
+	    lea     pc090oj_cell_used, %a1     /* per-frame referenced-cell bitmap */
+	    clr.l   (%a1)+
     clr.l   (%a1)+
     clr.l   (%a1)+
     clr.l   (%a1)+
     moveq   #0, %d5                    /* d5 = emitted count / cursor */
     moveq   #0, %d6                    /* d6 = record */
 .Lnep_loop:
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
     cmpi.w  #46, %d6                   /* records 0..45 = arcade HUD family */
     bhs.s   .Lnep_not_hud
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-    beq     .Lnep_next
+    bne.s   .Lnep_not_hud
+		.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+		    /* Build 0233: keep only helper-owned gameplay P1 score records 0..8.
+		     * Records 9..45 are reserved/overlapping arcade-HUD family rows. */
+	    cmpi.w  #9, %d6
+	    blo.s   .Lnep_not_hud
+	.endif
+	    bra     .Lnep_next
 .Lnep_not_hud:
 .endif
     move.w  %d5, -(%sp)                /* decode clobbers d5 (cursor) */
-    bsr     .Lpc090oj_decode_record    /* d6 -> d0 draw,d1 w0,d2 Y,d3 code,d4 X,d7 colbank */
-    move.w  (%sp)+, %d5
-    tst.w   %d0
-    beq     .Lnep_next
-    /* Build 0222 code-keyed residency: 32 sets x 4 ways over cells 0..127.
-     * Per-frame REFERENCE PROTECTION: a cell used by any entry of the frame
+	    bsr     .Lpc090oj_decode_record    /* d6 -> d0 draw,d1 w0,d2 Y,d3 code,d4 X,d7 colbank */
+	    move.w  (%sp)+, %d5
+	    tst.w   %d0
+	    beq     .Lnep_next
+	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+		    /* Build 0232: gameplay score/1UP records keep arcade variable-width
+		     * visibility, but use a separate white glyph residency variant. */
+		    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+		    bne.s   .Lnep_no_hud_white
+		    cmpi.w  #9, %d6
+		    bhs.s   .Lnep_no_hud_white
+	    cmpi.w  #0x002A, %d3
+	    blo.s   .Lnep_hud_white_label_check
+	    cmpi.w  #0x0034, %d3
+	    blo.s   .Lnep_hud_white
+	.Lnep_hud_white_label_check:
+	    cmpi.w  #0x0039, %d3
+	    beq.s   .Lnep_hud_white
+	    cmpi.w  #0x0046, %d3
+	    beq.s   .Lnep_hud_white
+	    cmpi.w  #0x0048, %d3
+	    bne.s   .Lnep_no_hud_white
+	.Lnep_hud_white:
+	    ori.w   #0x8000, %d3              /* residency tag only; VDP tile attrs unchanged */
+	.Lnep_no_hud_white:
+	.endif
+	    /* Build 0222 code-keyed residency: 32 sets x 4 ways over cells 0..127.
+	     * Per-frame REFERENCE PROTECTION: a cell used by any entry of the frame
      * being built can never be chosen as a victim, so no displayed sprite can
      * have its patterns stolen (the 0221 wrong-art/disappear mechanism).
      * EMIT-ON-MISS: an enqueued upload lands in VBlank BEFORE the SAT DMA, so
@@ -1287,12 +1419,20 @@ pc090oj_native_emit_pass:
      * sprite_ctrl (colbank) is display-latch state the arcade sets AFTER its
      * producers run, so the mainline pass records each entry's bank nibble in
      * a parallel array and the VBlank fix-up applies the latched colbank. */
-    move.w  %d1, %d0
-    andi.w  #0x000F, %d0
-    lea     pc090oj_sat_nibble, %a1
-    move.b  %d0, 0(%a1,%d5.w)
-    moveq   #0, %d0
-    ori.w   #0x8000, %d0
+	    move.w  %d1, %d0
+	    andi.w  #0x000F, %d0
+	    lea     pc090oj_sat_nibble, %a1
+	    move.b  %d0, 0(%a1,%d5.w)
+	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+	    lea     pc090oj_sat_force_line, %a1
+	    move.b  #0xFF, 0(%a1,%d5.w)
+	    btst    #15, %d3
+	    beq.s   .Lnep_no_force_line
+	    move.b  #3, 0(%a1,%d5.w)          /* HUD white variant uses CRAM line 3 */
+	.Lnep_no_force_line:
+	.endif
+	    moveq   #0, %d0
+	    ori.w   #0x8000, %d0
     btst    #15, %d1                   /* post-flip vflip */
     beq.s   .Lnep_novf
     ori.w   #0x1000, %d0
@@ -1350,18 +1490,28 @@ pc090oj_native_emit_pass:
     tst.w   pc090oj_sat_front
     beq.s   .Lnpf_base_ok
     lea     staged_sprite_sat_b, %a3
-.Lnpf_base_ok:
-    lea     pc090oj_sat_nibble, %a2
-    move.w  pc090oj_sprite_ctrl_shadow, %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-    moveq   #0, %d5
-.Lnpf_loop:
-    moveq   #0, %d1
-    move.b  0(%a2,%d5.w), %d1
-    bsr     .Lnative_palsel            /* d1 nibble + d7 colbank -> d0 line */
-    lsl.w   #8, %d0
-    lsl.w   #5, %d0
+	.Lnpf_base_ok:
+	    lea     pc090oj_sat_nibble, %a2
+	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+	    lea     pc090oj_sat_force_line, %a1
+	.endif
+	    move.w  pc090oj_sprite_ctrl_shadow, %d7
+	    andi.w  #0x00E0, %d7
+	    lsr.w   #1, %d7
+	    moveq   #0, %d5
+	.Lnpf_loop:
+	    moveq   #0, %d1
+	    move.b  0(%a2,%d5.w), %d1
+	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+	    moveq   #0, %d0
+	    move.b  0(%a1,%d5.w), %d0
+	    cmpi.b  #0xFF, %d0
+	    bne.s   .Lnpf_line_ready
+	.endif
+	    bsr     .Lnative_palsel            /* d1 nibble + d7 colbank -> d0 line */
+	.Lnpf_line_ready:
+	    lsl.w   #8, %d0
+	    lsl.w   #5, %d0
     move.w  4(%a3), %d1
     andi.w  #0x9FFF, %d1               /* clear palette bits */
     or.w    %d0, %d1
@@ -1529,12 +1679,24 @@ vdp_commit_sprites_vram:
     cmpi.w  #0xFFFF, %d6
     beq     .Lvcs_tile_next
 
-    move.w  %d6, %d0
-    andi.w  #0x0FFF, %d0
-    mulu.w  #128, %d0
-    lea     rastan_pc090oj, %a1
-    adda.l  %d0, %a1
-    move.l  %a1, %d0
+	    move.w  %d6, %d0
+	    andi.w  #0x0FFF, %d0
+	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+	    btst    #15, %d6
+	    beq.s   .Lvcs_tile_src_normal
+	    move.w  %d0, %d3
+	    subi.w  #0x002A, %d3
+	    mulu.w  #128, %d3
+	    lea     rastan_pc090oj_hud_white, %a1
+	    adda.l  %d3, %a1
+	    bra.s   .Lvcs_tile_src_ready
+	.Lvcs_tile_src_normal:
+	.endif
+	    mulu.w  #128, %d0
+	    lea     rastan_pc090oj, %a1
+	    adda.l  %d0, %a1
+	.Lvcs_tile_src_ready:
+	    move.l  %a1, %d0
     lsr.l   #1, %d0
     movea.l #VDP_CTRL, %a3
     move.w  #0x9340, (%a3)
@@ -1778,8 +1940,10 @@ pc090oj_sat_front:
 pc090oj_sat_frame_ready:
     .word 0
 pc090oj_sat_nibble:
-    .space 80
-    .align 2
+	    .space 80
+pc090oj_sat_force_line:
+	    .space 80
+	    .align 2
 /* Per-frame referenced-cell bitmap (128 bits). */
 pc090oj_cell_used:
     .space 16

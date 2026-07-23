@@ -55,12 +55,13 @@ palette_route_table:
     .word 1, PROUTE_OWNER_PC080SN_BG, 48, 2, 0
     .word 1, PROUTE_OWNER_PC090OJ,    51, 3, 0
     .word 1, PROUTE_OWNER_HUD,        0,  0, 0
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
-    /* Build 0208: with gameplay HUD sprites suppressed, CRAM line 0 is free
-     * during gameplay; carry PC090OJ effective sprite bank 0x36 (lizard men,
-     * hurry-up family) there.  CARRIER: the converted bank-0x36 palette is
-     * cached by the palette hooks and re-asserted each gameplay VBlank
-     * (vdp_reassert_bank36_line0), never staged in non-gameplay scenes. */
+.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
+    /* Build 0208/0230: with gameplay HUD sprites suppressed or limited to the
+     * 1UP-only representation, CRAM line 0 is free during gameplay; carry
+     * PC090OJ effective sprite bank 0x36 (lizard men, hurry-up family) there.
+     * CARRIER: the converted bank-0x36 palette is cached by the palette hooks
+     * and re-asserted each gameplay VBlank (vdp_reassert_bank36_line0), never
+     * staged in non-gameplay scenes. */
     .word 1, PROUTE_OWNER_PC090OJ,    0x36, 0, PROUTE_FLAG_CARRIER
 .endif
     .word 0xFFFF, 0, 0, 0, 0
@@ -148,7 +149,7 @@ genesistan_palette_hook_59ad4:
     move.b  #1, fg_bank3_route_seen /* remember bank-3 route for line-1 cache */
     bra.s   .L59_dest_ready
 .L59_not_bank3:
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
     /* Build 0208: arcade sprite bank 0x36 (lizard men) -> cache only.  The
      * bank is written once at stage load, possibly while the frontend still
      * owns line 0, so it is never staged directly; the gameplay carrier
@@ -216,7 +217,7 @@ genesistan_palette_hook_59ad4:
     movem.l (%sp)+, %d0-%d7/%a0-%a2
     rts
 
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
 /* Build 0208: convert arcade bank 0x36 (source = a0 + d1*32, same entry format
  * as the main body) into the gameplay line-0 carrier cache.  Never stages the
  * live palette here; the scene-1 re-assert owns line 0 during gameplay. */
@@ -350,7 +351,7 @@ genesistan_palette_hook_3ba64:
     bra.w   .L3ba64_line_ok
 
 .L3ba64_chk_b36src:
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
     /* Build 0208: sprite bank 0x36 (lizard men) follows the same source-buffer
      * path as bank 51 (Build 0161): the arcade writes it to the sprite-palette
      * SOURCE buffer at a5@0x1600 + (bank-0x30)*0x20 -- bank 0x36 = Genesis
@@ -387,7 +388,7 @@ genesistan_palette_hook_3ba64:
     beq.s   .L3ba64_to_line2
     cmpi.l  #51, %d6
     beq.s   .L3ba64_to_line3
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
     cmpi.l  #0x36, %d6              /* Build 0208: bank 0x36 -> carrier cache */
     beq     .L3ba64_bank36_cache
 .endif
@@ -448,7 +449,7 @@ genesistan_palette_hook_3ba64:
     movem.l (%sp)+, %d4-%d7/%a1
     rts
 
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 0
+.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
 /* Build 0208: direct arcade palette-RAM write to bank 0x36 (lizard men) ->
  * gameplay line-0 carrier cache.  d0 = converted xBGR-555 color, d4 = arcade
  * destination address, d3 = live long loop counter (preserved across the

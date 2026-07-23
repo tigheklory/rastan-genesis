@@ -9,13 +9,13 @@
     "symbols_path": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/symbol.txt",
     "maincpu_path": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin"
   },
-  "genesis_rom_size_bytes": 1584068,
+  "genesis_rom_size_bytes": 1588388,
   "relocation_delta": "0x000200",
   "arcade_source_start": "0x000000",
   "arcade_source_end_exclusive": "0x060000",
   "wrapper_region": {
     "genesis_start": "0x070000",
-    "genesis_end_exclusive": "0x182BC4"
+    "genesis_end_exclusive": "0x183CA4"
   },
   "segments": [
     {
@@ -4682,14 +4682,14 @@
     },
     {
       "genesis_start": "0x070000",
-      "genesis_end_exclusive": "0x182BC4",
-      "size_bytes": 1125316,
+      "genesis_end_exclusive": "0x183CA4",
+      "size_bytes": 1129636,
       "kind": "genesis_only",
       "tag": "wrapper"
     }
   ],
   "segment_coverage": {
-    "total_genesis_bytes_covered": 1584068,
+    "total_genesis_bytes_covered": 1588388,
     "gaps": [],
     "overlaps": []
   },
