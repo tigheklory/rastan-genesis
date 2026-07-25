@@ -480,11 +480,11 @@ genesistan_pc090oj_hook_target_45dfa:
 
 .Lrecord46_loop:
     tst.b   0(%a4)
-    beq.s   .Lrecord46_next
+    beq.s   .Lrecord46_blank            /* arcade 0x41E84: a4@(0)==0 -> blank (Y=0x180) */
     tst.b   1(%a4)
-    beq.s   .Lrecord46_next
+    beq.s   .Lrecord46_next             /* Genesis-only KF-063 code-0 engine guard (arcade emits; not a blank cond) */
     tst.b   0x36(%a4)
-    bne.s   .Lrecord46_next
+    bne.s   .Lrecord46_blank            /* arcade 0x41E84: a4@(54)!=0 -> blank (Y=0x180) */
 
     lea     .Lrecord46_scratch, %a1
     clr.l   (%a1)
@@ -504,6 +504,24 @@ genesistan_pc090oj_hook_target_45dfa:
     move.w  6(%a0), %d4
     move.w  .Lrecord46_rec, %d0
     bsr     .Lpc090oj_family_apply_record
+    bra.s   .Lrecord46_next
+
+/* Build 0234 hurry-up bat retirement: faithful translation of arcade 0x41EFC.
+ * When the block-0x748 actor is inactive (a4@(0)==0) or in its death/retire
+ * sub-state (a4@(0x36)/a4@(54)!=0), the arcade producer HIDES the record by
+ * writing Y=0x180; the prior Genesis path only skipped (advance without write),
+ * freezing the last emitted frame (the killed-bat 0x0276 corpse) on screen until
+ * the next swarm reused the slot.  This blanks the CURRENT record's Y to 0x180
+ * (decode clips Y>=0x140-relative out of the viewport -> no SAT emission), driven
+ * by the authoritative actor lifecycle, not by tile code / coordinate / timer. */
+.Lrecord46_blank:
+    move.w  .Lrecord46_rec, %d0
+    cmpi.w  #256, %d0
+    bhs.s   .Lrecord46_next
+    lsl.w   #3, %d0
+    lea     pc090oj_object_ram, %a0
+    adda.w  %d0, %a0
+    move.w  #0x0180, 2(%a0)
 
 .Lrecord46_next:
     adda.w  #64, %a4
@@ -1294,6 +1312,20 @@ genesistan_pc090oj_hook_audit_guard:
 	    bra     .Lnep_next
 .Lnep_not_hud:
 .endif
+    /* Build 0235: code-zero pretest.  .Lpc090oj_decode_record masks the row code
+     * with 0x1FFF and returns not-drawable when it is zero; reproduce only that
+     * exact-zero rejection inline so an empty row skips the bsr + 4 loads + rts.
+     * Uses d0/a0 (both scratch — the decoder recomputes them) and touches no
+     * scan state (d5 cursor, d6 record).  Output is identical: the decoder would
+     * have returned d0=0 and this path already falls to .Lnep_next.  Nonzero
+     * codes still call the decoder unchanged (bitset/opaque/>=0x1000 rejection
+     * remain the decoder's job). */
+    move.w  %d6, %d0
+    lsl.w   #3, %d0
+    lea     pc090oj_object_ram, %a0
+    move.w  4(%a0,%d0.w), %d0
+    andi.w  #0x1FFF, %d0
+    beq     .Lnep_next
     move.w  %d5, -(%sp)                /* decode clobbers d5 (cursor) */
 	    bsr     .Lpc090oj_decode_record    /* d6 -> d0 draw,d1 w0,d2 Y,d3 code,d4 X,d7 colbank */
 	    move.w  (%sp)+, %d5

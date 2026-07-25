@@ -43645,3 +43645,93 @@ Open/Closed Issues Impact:
 - **No unrelated changes:** YES. No PC080SN map/cave/rope/collision/death, lizard positioning, enemy damage, non-HUD sprite mapping, palette algorithm, audio, or Build 0228 scene-4 work was intentionally changed.
 - **User-test status:** USER MUST VERIFY visually: first lizard colors, white `1UP`/P1 score, and score values such as `8100` rendering as `8100` rather than `81`.
 - **STOP:** NO.
+
+---
+
+## Andy — Build 0234 Hurry-Up Bat Stale Death Sprite (INVESTIGATION; STOP, 0234 NOT produced)
+
+- **Date:** 2026-07-22 · Baseline Build 0233 (43c385fe…, counter 233). No build; counter stays 233; nothing patched.
+- **STOP reason:** could not reproduce the stale sprite at runtime (hurry-up swarm does not auto-trigger from idle; walking forward hits the Stage-1 pit → death), so the bat retirement path is not confirmed among three candidate divergences. Task forbids a speculative/diagnostic 0234.
+- **Arcade evidence:** bat family = PC090OJ codes 0x0268/0x0269/0x026A in object records 48-56 (Build 0216 swarm_validate_events.log), outside all mapped producers; retirement writes Y=0x180 (arcade 0x3C4EA…0x3C9F6/0x41F8C); arcade 0x5607C is a per-4th-frame plane-scroll + decay of records 46..a5@(0x141C) (Y-decrement, code-clear at Y==16, read directly).
+- **Candidate divergences:** (1) STRONGEST — genesistan_pc090oj_hook_sprite_decay_5607c mistranslates 0x5607C: hardcoded records 56-63, reads the defunct staged_sprite_descriptor_table (a 4-byte legacy stub in N1) so it retires nothing, omits the scroll; (2) block-0x2C8 a4@(3)!=0 → 0x3EFBE dispatch gap, but that is records 140-238 (lizards); (3) producer one-shot vs re-blank. None runtime-confirmed as the bat path.
+- **Next diagnostic:** interactive Genesis 0233 repro (drive to swarm, kill a bat) with a write-tap logger on pc090oj_object_ram records 46-63 + arcade retirement comparison; or find/poke the hurry-up timer to force the swarm.
+- **Preservation:** Build 0233 HUD 0..8, white line-3 HUD, KF-066 bank-0x36 carrier, PC090OJ pipeline all intact (no code changed). No numbered ROM touched. Doc: docs/design/Andy_build0234_hurryup_bat_stale_sprite_investigation.md.
+- **Compliance:** CONFIRMED. **STOP: YES.**
+
+---
+
+## Andy — Build 0234 Bat Retirement EVIDENCE CAPTURE (interactive; first divergence proven; STILL no build)
+
+- **Date:** 2026-07-22 · Baseline Build 0233 (43c385fe…, counter 233). No build; nothing patched.
+- **Reproduced NATURALLY** (Tighe drove) in MAME Genesis 0233 (swarm F4419) and MAME arcade (swarm F3249). Traces: states/traces/build0234_bat_stale_*/bat_capture.txt, arc_bat.txt.
+- **Affected records:** 48-56 (9-bat swarm), live codes 0x0268/0x0269/0x026A, death frame 0x0276. Retirement is via Y (code stays 0x0276 on both).
+- **FIRST DIVERGENCE PROVEN:** arcade retires the dead bat by setting record Y=0x0180 (hide) within ~3 frames (F3369 Y=0x55 -> F3372 Y=0x180, held 159 snapshots); Genesis NEVER writes Y=0x0180 to records 48-56 — the dead bat holds code 0x0276 at on-screen Y=0x63 for 930+ frames = the grey residue. Row is never cleared and never recreated (continuously re-written with 0x0276 + on-screen Y).
+- **Candidate 2 SELECTED** (missing translated Y=0x180 dead-actor blank path; arcade Y=0x180 at 0x3C4EA-0x3C9F6/0x41F8C/0x41EDE via 0x3EFBE). Candidates 1 (0x5607C decay), 3 (recreate), and later-layer REJECTED.
+- **Not yet pinned:** the exact Genesis producer for records 48-56 (bat writes go through the shared .Lpc090oj_emit_slot @0x0722EA; no mapped caller uses base 48). Needs an emit_slot return-address capture (or arcade->Genesis producer map) — the one remaining item before the fix.
+- **Sufficiency:** divergence proven; Build 0234 implementation task justified. Doc updated: docs/design/Andy_build0234_hurryup_bat_stale_sprite_investigation.md.
+- **Compliance:** CONFIRMED (read-only capture; no source/ROM change). **STOP: n/a (evidence step complete).**
+
+### MAME Exit Summary (2026-07-24 09:12:05)
+- Final PC: 0x072B48
+- Stack Pointer (SP): 0x00FEFF80
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy — Build 0234 Hurry-Up Bat Stale Death Sprite FIX (produced & verified)
+
+- **Date:** 2026-07-24 · Baseline Build 0233 (43c385fe…). **Build 0234 produced:** dist/rastan-direct/rastan_direct_video_test_build_0234.bin, SHA256 24dc953ed0301c911c3551dd529ce1fb9b9a301ed50b23de9048be940be453ee, size 1,588,420, counter 234, GATE_PASS, opcode 216, coverage 0x183CC4 (paired). Config RASTAN_GAMEPLAY_HUD_SPRITES=2 PC090OJ_MIRROR_RECORDS=256. Builds 0230-0233 preserved; rolling==0234.
+- **Producer identified (emit_slot caller capture):** .Lpc090oj_stage_record46_validated (block A5+0x748 -> records 46-56 via engine; records 48-56 = bats). Immediate caller ret@SP+12 = 0x072438.
+- **Arcade retirement:** 0x41E84 -> 0x41EFC writes Y=0x180 (movew #384,a1@(2)) for a4@(0)==0 or a4@(54)!=0. Genesis skipped (froze the 0x0276 corpse).
+- **Fix (pc090oj_hooks.s only):** added .Lrecord46_blank (writes Y=0x180 to current record, oob-guarded); routed a4@(0)==0 and a4@(0x36)!=0 to it. a4@(1)==0 (KF-063 guard) + engine-output-0 stay skip. emit_slot/emit-pass/SAT untouched.
+- **Verified natural (Tighe killed multiple bats):** death frame 0x0276 plays ~6-8f then Y->0x0180 (PC 0x072450) -> hidden and stays hidden; all dead bats end at 0276@0180; swarm still spawns/animates. Automated regression: no crash; HUD score/1UP + enemy rec46 intact; lizard producer untouched. Traces in states/traces/build0234_bat_stale_*/.
+- **Compliance:** CONFIRMED (lifecycle-driven producer-boundary fix; faithful to arcade; no tile/coord/timer/SAT hack). **STOP: NO.**
+- **KNOWN_FINDINGS/OPEN_ISSUES:** no new finding indexed (bounded faithful producer correction); bat residue resolved.
+
+---
+
+## Andy — Build 0234 Research: Global Coordinate/Collision/PC090OJ Intent + Graphics Reachability & Optimization (NO BUILD)
+
+- **Date:** 2026-07-24 · Research/architecture only; baseline Build 0234 (24dc953ed0301c91…, counter 234). NO source/tool/ROM/counter change. Two reports produced.
+- **docs/design/Andy_global_coordinate_collision_pc090oj_intent_research.md:** recovered arcade coordinate model (camera a5@0x129A/0x129C; producer Y=actor@3+camY; composer engine 0x3D054 dispatch on actor@56 with per-frame anchors; PC090OJ chip inset 304/240; scroll commit 0x055AB4; collision map 0x10DE00 read at 0x53C2E/0x53FA6). CENTRAL FINDING: title-centering added a +8 render-origin shift (BG Y_BIAS=+8 / sprite Y_OFFSET=-8) that aligns BG↔sprites, but the collision channel (KF-067 8px-low, OPEN-0159 un-rebased 0x10DE00) is a SEPARATE space — render vs collision diverged, so each object gets its own -8 render patch (.Lb2c8_yfix) while collision stays put. TWO shared roots: (A) fragmented render-vs-collision coordinate model → move-up/lizard/standing-sword cluster; (B) incomplete producer lifecycle → floating grey projectiles + record 132 + (fixed) bat residue. Grey palette is SECONDARY. Recommended: ONE coordinate transform shared by BG+sprite+collision; frame anchors from 0x3D054 tables; complete producer lifecycle blank/hide/init. Floating artifacts: read-only scan surfaced stale records 132-134 (code 0x09DA, garbage coords folding on-screen) — same stale-drawable class; gameplay-pair identity needs an interactive emit_slot caller capture. Ghidra annotation proposals listed; .rep NOT modified.
+- **docs/design/Andy_build0234_graphics_reachability_optimization_research.md:** reachability via 3 routes (static call graph; remap-spec 59 installed hooks + required_symbols; runtime counters). HOT: pc090oj_native_emit_pass (256-row scan ~1/frame, measured 16-48 SAT entries, ~20 producer writes/frame, dropped=2, oob=0) + .Lpc090oj_decode_record + pal_fixup + vdp_commit + gameplay producers. ORPHAN: pc090oj_slot_lut (256B, no consumer). HOOK-LIVE-BUT-DEAD-BODY: hook_target_45dfa (gameplay skips), hook_sprite_decay_5607c (walks defunct staged_sprite_descriptor_table 4-byte stub; retains 0x10AE/0x10B0 clear). COMPAT EXPORTS: staged_sprite_descriptor_table/candidate_bitset/record_to_slot/represented_records/waiting_records/used_sat_slots/worklist_entry_for_slot (one shared .space 4) + several unused counters. Top-5 opts: (1) pre-test empty rows before decode bsr (~1600 insn/frame, LOW risk); (2) inline per-record store in producer loops (~500-1300 insn/frame); (3) direct HUD digit writes; (4) memoize pal_fixup; (5) static-only slot_lut/stub cleanup (coordinate with required_symbols). DO-NOT-TOUCH: 256-row implicit-retirement contract (bat fix depends on it), decode opaque clip, crash/audit/self-test, commit-time palette latch.
+- **Compliance:** no build produced; counter remains 234; interrupted coordinate report recovered/reconstructed via Write (prior bash write was blocked by the safety classifier).
+
+---
+
+## Andy — Build 0234 Optimization MEASUREMENT ADDENDUM (Stage 1 gameplay, NO BUILD)
+
+- **Date:** 2026-07-24 · Research only; baseline Build 0234 (counter 234). NO source/tool/ROM/spec/counter change. Cycle-ranked the top opts using MEASURED Stage 1 gameplay (reached scene=1 at F=2643 via automated persistent-Start; trace states/traces/build0234_bat_stale_*/measure.txt). Updated §6 of Andy_build0234_graphics_reachability_optimization_research.md.
+- **KEY CORRECTION:** the prior §3 ranking was measured in ATTRACT (scene!=1), where the tall projectors DO NOT RUN (scene==1-gated) — so §3 omitted the largest gameplay cost. Genesis 68000 @7.67MHz ≈ 127,800 cyc/frame.
+- **Tall projectors (vdp_project_bg/fg_tall_if_dirty):** each full copy = 32 rows × 64 words = 2048 move.w+dbra ≈ ~45,000 cyc. 100% base-change triggered (vertical-scroll row crossing 8px; ZERO dirty-only copies). Freq ~0.08-0.18 copies/frame per projector during vertical motion, both ~0.08/frame, 0 when scroll static. Worst case both-copy ≈ ~90,000 cyc/frame (~70% of frame budget) = vertical-scroll frame-drop hazard. Direct-DMA feasible: DMA the 32-row window straight from the 64-row tall buffer — 1 transfer if base<=32 (contiguous), 2 if wrapping — removing the ~45k copy at no added DMA cost (strip DMA already moves those 2048 words).
+- **Sprite pipeline (gameplay):** ~219 decoder calls/frame (256 minus HUD-skip 9-45); ~82-90 nonzero-code rows ⇒ ~154 empty rows/frame still call decode. Empty-row inline pretest saves ~126 cyc × ~154 = ~19,000 cyc/frame CONSTANT. Record-writer inline ~2,000 cyc/frame.
+- **Reconciled 18-28 vs 50-130:** measured producer_write_count delta = 19-27 helper calls/frame = the actual writer-call count; the 50-130 estimate was a structural upper bound that never occurs (inactive block2c8/record46 entries take the blank path .Lb2c8_blank/.Lrecord46_blank writing Y=0x180 directly, NOT via family_apply).
+- **Corrected ranking:** (1) empty-row pretest ~19k cyc/frame CONSTANT, LOW risk — investigate/implement FIRST; (2) tall-buffer direct DMA ~16k avg but ~90k worst-case spike, HIGH risk (wrap+VSRAM validation) — design SECOND; (3) record-writer inline ~2k, last. Do-not-touch list unchanged.
+- **Compliance:** no build; counter 234; report §6 + this log entry only.
+
+### MAME Exit Summary (2026-07-24 16:56:21)
+- Final PC: 0x072E02
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy — Build 0235 PC090OJ Empty-Row Scan Optimization (code-zero pretest, PRODUCED & VERIFIED)
+
+- **Date:** 2026-07-24 · Baseline accepted Build 0234. **Build 0235 produced:** dist/rastan-direct/rastan_direct_video_test_build_0235.bin, SHA256 9aff0b11fb9a2151186ef0c03654fdd968d630a3cab45801be85de6f62571ad5, size 1,588,440 (+20B), counter 235, GATE_PASS, opcode 216, coverage 0x183CC4->0x183CD8. Builds 0228-0234 preserved.
+- **Change (only pc090oj_hooks.s + paired coverage invariants):** in pc090oj_native_emit_pass/.Lnep_loop, before `bsr .Lpc090oj_decode_record`, added a code-zero pretest: load row code (object_ram+d6*8+4), `andi #0x1FFF`, `beq .Lnep_next`. Uses only scratch d0/a0 (decoder recomputes them); reproduces exactly the decoder's first rejection (`andi #0x1FFF; beq notdraw` -> d0=0 -> scan `beq .Lnep_next`). Full 256-row ascending scan, indexing, retirement, decoder, HUD, opaque clip, palette, residency/DMA, tall-buffer, record-writers all UNCHANGED.
+- **Equivalence PROVEN:** injection test — identical deterministic object_ram (rows 46-255, code-0 + nonzero mix) injected into BOTH ROMs at pass entry via write-tap trigger; freshly-emitted SAT hashed and joined by injection index: 500/500 frames SAT+emit byte-identical (active decode, zero+nonzero rows, timing-independent). Cross-run natural play identical for 19 frames then drifts on the arcade game's own RNG/timer (two different binaries) — not an emit-logic difference (SAT/resid/worklist/counts identical while state matched). By construction the pretest only short-circuits the exact-zero case the decoder already rejects.
+- **Decode reduction MEASURED:** full-scan gameplay frames 197->36 decoder calls/frame = 161 eliminated (82%); ~18,400 cyc/frame saved (~14% of 127,800-cyc frame budget).
+- **Regression:** gameplay to F9000 no crash/lock; HUD score+white 1UP intact; swarm spawns/animates; no frozen corpse (maxCorpseVisibleFrames=0); bat retirement Y-driven (code stays 0x0276 nonzero -> never skipped) so Build 0234 fix untouched; build/boot-guard/canonical gates PASS.
+- **STOP: NO** — proven and produced. Report §7 updated; KNOWN_FINDINGS/OPEN_ISSUES: no new finding (bounded output-equivalent optimization).
+
+---
+
+## Andy — PC080SN Ring-Plane Research Phase 1: Boundary Inventory (NO BUILD)
+
+- **Date:** 2026-07-24 · Research only; context Build 0235. NO source/ROM/tool/spec/hook/counter change. Created docs/design/Andy_pc080sn_ring_plane_phase1_checkpoint.md (continuation checkpoint for the future ring-plane redesign: replace higher-level arcade map-publication with native circular Plane A/B, not another renderer behind the low-level PC080SN translators).
+- **Inventoried 33 tilemap/PC080SN opcode_replace + Genesis hooks** (spec + tilemap_hooks.s/vdp_comm.s). Low-level translators: 0x055968 BG (plane_a→0x070248), 0x055990 FG (live→0x0703EA), 0x055AB4 scroll-commit, 0x055904 descriptor rebuild, 0x05A4DE block-copy, 0x0561B6 C-window clear, 0x03AD44 dispatch, 6 inline_fg_write, item-page, 11 glyph/text/number frontend producers.
+- **Candidate semantic producer ROOTS (Phase 2 targets):** 0x05744E (primary map-publication — calls scroll-commit 0x055AB4 + block-copy 0x05A4DE + 0x05743C); 0x041F30 (per-frame scroll updater under vector 0x03A008); 0x050634 (Stage 1 scene-setup loop → tilemap dispatcher); 0x0574A4 (secondary block-copy/frontend). Callers of 0x05744E/0x050634 absent from edge list → jump-table/vector/pointer (resolve at runtime in Phase 2).
+- **Collision-map production (0x10DE00) flagged as a SEPARATE channel** entangled with BG producer cluster 0x0559xx (0x0559B2/0x0559F0) — must not be dropped by a ring redesign (KF-067/OPEN-0159).
+- **Phase 2 entry points recorded:** UP from 0x05744E/0x050634 + vector 0x03A008; DOWN into 0x05743C/0x055AB4/0x05A4DE; producer cluster 0x0559xx; Genesis bodies 0x070248/0x0703EA + vdp_comm tall-projection. 7 unresolved questions listed (publication root identity, collision coupling, tall-buffer arcade analogue, replacement layer, cadence).
+- **STOP:** checkpoint only; counter 235; no build.
