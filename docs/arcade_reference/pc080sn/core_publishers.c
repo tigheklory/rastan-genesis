@@ -2,6 +2,8 @@
  * Rastan arcade PC080SN — gameplay publication core (documentation reconstruction).
  * Reconstructed from the original 68000 opcodes; the opcodes remain authoritative.
  * Not original Taito source. a5 = 0x10C000. Neutral tilemap names (ownership: tilemap1_0xC08000).
+ * word0 = source/control word copied from 0x10D080 (runtime sampled 0x0003; bit meaning not yet decoded);
+ * word1 = descriptor-derived tile word.
  * See core_publishers_assembly.md for register/mask/increment facts this C obscures.
  */
 
@@ -11,7 +13,7 @@
  *   a5@0x10A8 (4264)  selector (observed values 0,1,2,4,5,6; ==0 picks strip_A)
  *   a5@0x10CA (4298)  column sub-index (advanced each publish; used in descriptor offset)
  *   a5@0x1330 (4912)  set to 1 by cell_dir_aware
- * Tables: 0x10D1C0 = descriptor-pointer table (16 longs); 0x10D200 = per-cell source words.
+ * Tables: 0x10D040 = descriptor-pointer table (16 longs); 0x10D080 = per-cell source words.
  * Collision WRAM base 0x10DE00; name-RAM base of this layer 0xC08000. */
 
 /*
@@ -31,8 +33,8 @@ static void pc080sn_publish_dispatch(void)
 static void pc080sn_publish_strip_A(void)
 {
     u16 *a0 = (u16 *) a5_l(0x10A0);         /* dest cursor into 0xC08xxx */
-    u16 *a1 = (u16 *) 0x10D200;             /* per-cell source words */
-    u32 *a3 = (u32 *) 0x10D1C0;             /* descriptor-pointer table */
+    u16 *a1 = (u16 *) 0x10D080;             /* per-cell source words */
+    u32 *a3 = (u32 *) 0x10D040;             /* descriptor-pointer table */
     for (int d1 = 16; d1 != 0; d1--) {
         u16 *a2 = (u16 *) *a3;              /* descriptor for this cell */
         pc080sn_cell_forward(&a0, a1, a2);  /* 0x0559B2 ; advances a0 */
@@ -48,8 +50,8 @@ static void pc080sn_publish_strip_A(void)
 static void pc080sn_publish_strip_B(void)
 {
     u16 *a0 = (u16 *) a5_l(0x10A4);         /* dest cursor into 0xC08xxx */
-    u16 *a1 = (u16 *) 0x10D200;
-    u32 *a3 = (u32 *) 0x10D1C0;
+    u16 *a1 = (u16 *) 0x10D080;
+    u32 *a3 = (u32 *) 0x10D040;
     for (int d1 = 16; d1 != 0; d1--) {
         u16 *a2 = (u16 *) *a3;
         pc080sn_cell_dir_aware(&a0, a1, a2);/* 0x055A14 ; advances a0 */
@@ -68,7 +70,7 @@ static void pc080sn_cell_forward(u16 **pa0, const u16 *a1, const u16 *a2)
 {
     u16 *a0 = *pa0;
     for (int d2 = 0; d2 < 4; d2++) {
-        *a0 = *a1;                                      /* word0 = source (attr) */
+        *a0 = *a1;                                      /* word0 = source/control word (from 0x10D080) */
         u16 cw;                                         /* collision word */
         if (a2[16] /*+32*/ == 255) cw = a2[17] /*+34*/;
         else cw = *(u16 *)((u8 *)a2 + 20 + (a5_w(0x10CA) << 1) + (d2 << 3));
@@ -82,22 +84,24 @@ static void pc080sn_cell_forward(u16 **pa0, const u16 *a1, const u16 *a2)
 
 /*
  * Arcade PC: 0x055A14  — one cell, direction-aware. Reverses the sub-index when a5@0x10A8 != 2.
- * Produces the same collision plus a second, wrapped collision marker.
+ * Produces ONE collision write per sub-cell (same index scheme as 0x0559B2).
  */
 static void pc080sn_cell_dir_aware(u16 **pa0, const u16 *a1, const u16 *a2)
 {
     a5_w(0x1330) = 1;                                   /* 0x055A14 side flag */
     u16 *a0 = *pa0;
     for (int d2 = 0; d2 < 4; d2++) {
-        *a0 = *a1;                                      /* word0 = source */
+        *a0 = *a1;                                      /* word0 = source/control word (from 0x10D080) */
         u16 sub = a5_w(0x10CA);
         if (a5_w(0x10A8) != 2) sub = (~sub) & 3;        /* notw ; andi #3  (direction reversal) */
         u16 cw;
         if (a2[16] == 255) cw = a2[17];
-        else cw = *(u16 *)((u8 *)a2 + 20 + (sub << 3) + (d2 << 1));   /* NB reversed field order vs 0x0559B2 */
-        *(u16 *)(0x10DE00 + (((u32)a0 - 0xC08000) >> 1)) = cw;        /* collision #1 */
-        /* collision #2: wrapped marker '1' one row (256 bytes) back, masked to 0x3FFF */
-        *(u16 *)(0x10DE00 + (((((u32)a0 - 0xC08000) - 256) & 0x3FFF) >> 1)) = 1;
+        else cw = *(u16 *)((u8 *)a2 + 20 + (sub << 3) + (d2 << 1));   /* NB field order sub<<3 + d2<<1 (vs 0x0559B2) */
+        *(u16 *)(0x10DE00 + (((u32)a0 - 0xC08000) >> 1)) = cw;        /* collision (0x055A62 store) */
+        /* NOTE: 0x055A64-0x055A80 compute d0=1 and a wrapped address
+         * (((a0-0xC08000)-256)&0x3FFF)>>1 + 0x10DE00 into %fp, but there is NO
+         * store to it (next opcode 0x055A82 is addql #2,a0; %d0/%fp are then
+         * clobbered). Verified from raw opcodes — it is dead computation. */
         a0 = (u16 *)((u8 *)a0 + 2);
         *a0 = *(u16 *)((u8 *)a2 + 0 + (sub << 3) + (d2 << 1));        /* word1 = tile */
         a0 = (u16 *)((u8 *)a0 + 254);
