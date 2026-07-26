@@ -43735,3 +43735,115 @@ Open/Closed Issues Impact:
 - **Collision-map production (0x10DE00) flagged as a SEPARATE channel** entangled with BG producer cluster 0x0559xx (0x0559B2/0x0559F0) — must not be dropped by a ring redesign (KF-067/OPEN-0159).
 - **Phase 2 entry points recorded:** UP from 0x05744E/0x050634 + vector 0x03A008; DOWN into 0x05743C/0x055AB4/0x05A4DE; producer cluster 0x0559xx; Genesis bodies 0x070248/0x0703EA + vdp_comm tall-projection. 7 unresolved questions listed (publication root identity, collision coupling, tall-buffer arcade analogue, replacement layer, cadence).
 - **STOP:** checkpoint only; counter 235; no build.
+
+---
+
+## Andy — PC080SN Ring-Plane Phase 2: Arcade Producer Contract (NO BUILD)
+
+- **Date:** 2026-07-24 · Research only (static Ghidra disassembly; no runtime traces this session). NO source/ROM/tool/spec/hook/counter change. Created docs/design/Andy_pc080sn_arcade_producer_ring_plane_contract.md.
+- **0x05743C RESOLVED:** 12-byte descriptor unpacker (a0=(a2),a1=(a2+4),d0=(a2+8),d1=(a2+10),rts) — arg-setup shim for block-copy 0x5A4DE. **0x05744E = frontend/init scripted art-stamp** (fixed descriptors 0x581AA.., set a5@0x10EC=352, commit scroll, block-copy 4 blocks) — NOT the gameplay map root. CORRECTS Phase 1's tentative label.
+- **Gameplay map-publication model recovered:** per-frame tick 0x041F30 (from VBlank IRQ 0x03A008) commits scroll (0x55AB4) then updates. Streaming triggers (horizontal 0x055822 / vertical 0x05572E->0x055788 / init 0x050434) all funnel to **0x055948** = publish ONE column/row: (a5@0x10A8==0? BG 0x055968 : FG 0x055990), each 16 cells via 0x0559B2 (BG cell: visual->0xC08xxx + collision->0x10DE00) / 0x055A14 (FG cell, dir-reversed sub-index); a5@0x10CA++ ; 0x558A2 rebuilds descriptors (0x55904) every 4, wraps at 16.
+- **KEY:** arcade already a 64-tile CIRCULAR publisher — scroll accumulators masked &511 (512px=64 tiles); direction reversal via notw sub-index (0x55A14); collision co-produced at 0x10DE00+(dest-0xC08000)/2, same tile index as visual (auto-aligned). Genesis should retarget only the CELL WRITE (0x0559B2/0x055A14 visual store) to a 64x64 VDP plane; keep collision in WRAM, keep descriptor rebuild + camera + triggers arcade-owned.
+- **Retire once retargeted:** staged_bg/fg_tall_buffer, vdp_project_bg/fg_tall_if_dirty + 32x64 projection copies (the ~45k-cyc/copy cost), tall bases/dirty; low-level fills; possibly staged_bg/fg_buffer + strip commits.
+- **Recommendation: CONDITIONAL GO** for Build 0236 design; STOP implementation until runtime confirms (a) a5 field semantics under movement, (b) exact dest 0xC08xxx->VDP mapping + BG/FG plane base split (0xC08000 vs 0xC20000/0xC40000), (c) vertical/reversal reuse 0x055948. Uncertainties + required matched-trace movement set listed §11-13. Counter 235; no build.
+
+---
+
+## Andy — PC080SN Ring-Plane Phase 2B: Runtime Contract Confirmation (matched arcade traces, NO BUILD)
+
+- **Date:** 2026-07-24 · Research only; matched arcade MAME (rastan World Rev1, roms/rastan.zip) write-tap traces. NO source/ROM/tool/spec/hook/counter change. Updated §14 of Andy_pc080sn_arcade_producer_ring_plane_contract.md.
+- **A5 addressing CORRECTED:** a5=0x10C000; `%a5@(4264=0x10A8)` = absolute **0x10D0A8** (fields in 0x10D0xx, NOT 0x10C0xx — matches descriptor 0x10D1C0 / collision 0x10DE00). Prior phase-2 field notes as raw offsets stand; absolute = 0x10C000+offset.
+- **CONFIRMED runtime:** name RAM 0xC08000-0xC0BFFE (0x4000 = dual 64x64 PC080SN); collision 0x10DE00-0x10DFFE, index=(name_dest-0xC08000)/2. a5@0x10AE = BG h-scroll (tracks right movement 0x0001->0x016C, &511 wrap). BG cursor base 0xC08100 / FG 0xC08000, recomputed per column-publish. Selector a5@0x10A8=0 throughout Stage-1-start horizontal (FG selector=2 not exercised). Cell writes contiguous word-writes (column-major), bursty on tile crossings.
+- **TIMING DEFINITIVE:** production 100% ACTIVE display (register_vblank flag: duringVBLANK=0, duringACTIVE=19718). Scene init/level-load publishes full 64x64 planes (8192-write bursts).
+- **VDP DECISION RESOLVED: QUEUED write** — append arcade's already-decided (plane,cell,tile) writes to a VBlank-owned commit; flush to 64x64 planes in VBlank. Immediate VDP writes INVALID (active-display production). No scheduler/renderer/map-engine. Current stage->VBlank-DMA already embodies this; ring redesign keeps it, replaces tall-buffer projection with a bounded cell/column queue.
+- **Collision:** same wrapped index as visual (proven 0x0559D4 + range); any misalignment is Genesis-side origin/rebase (KF-067/OPEN-0159), fix = use identical (dest-0xC08000)/2 index under one origin. Do not move collision into VDP cache.
+- **Recommendation: CONDITIONAL GO** for Build 0236 queue->VBlank plane-map design; capture 4 remaining uncertainties as impl step 1 (exact dest->row/col/plane decode + FG selector=2 base; vertical/reversal on rope; whether 0x5988C/0x59882/0x47004 also publish; publisher exec-count). Exec-taps + screen calls inside taps unreliable in this MAME (methodology note). Counter 235; no build.
+
+---
+
+## Andy — Build 0236 PC080SN Native Ring-Plane: IMPLEMENTATION SCOPED → STOP (NO BUILD)
+
+- **Date:** 2026-07-24 · Read live plane path (tilemap_hooks.s plane_a/fg + vdp_comm.s). NO source/ROM/tool/spec/hook/counter change. Updated §15 of Andy_pc080sn_arcade_producer_ring_plane_contract.md. **STOP: YES — no Build 0236; counter 235.**
+- **Horizontal mapping RESOLVED (from live 0235 code + arcade traces):** plane_a hook ALREADY writes staged_bg_buffer directly: cell=(a5@0x10A0 dest - 0xC00000)/4 (2 words/cell), row=cell&0x1F (32), col=(cell>>6)&0x3F (64), offset=row*128+col*2+strip*2, sets bg_row_dirty bit row. FG=genesistan_stage_fg_src_column (BASE_FG)->staged_fg_buffer. BG=Plane B(0xC000), FG=Plane A(0xE000). Collision via genesistan_stage_bg_collision_column into WRAM 0x10DE00 side-channel.
+- **Current arch confirmed:** planesize reg=0x01 = 64x32 (NOT 64x64); staged_*_buffer=32 rows; strip commit cmpi #32; the tall projection (vdp_project_bg/fg_tall_if_dirty) re-projects a 32-row window from the 64-row tall buffer on vertical crossings and consumes coarse vertical scroll, leaving VSRAM only the &7 residual (proven 0223 model).
+- **Why STOP:** native 64x64 is a COUPLED change (row&0x3F, 64-row buffers/dirty/DMA, planesize->0x11, delete tall projection, AND move FULL vertical scroll into VSRAM). The arcade-vscroll->VSRAM windowing on a 64-tall ring is UNPROVEN (Phase 2B captured no vertical streaming; FG selector=2 unobserved) — this is the exact mapping whose wrong version caused the cyan-seam/half-screen-displacement/rolling-black-bar in Builds 0224-0227, i.e. this task's fail criteria. Those are VISUAL defects headless automation cannot self-verify. Task STOP condition 'unproven BG/FG mapping' is met.
+- **Unblock path (recorded §15):** (1) matched vertical-streaming capture on the rope to derive VSRAM=f(arcade_v_scroll) + FG selector=2 base; (2) prototype behind PC080SN_RING64 flag default-OFF (0236 byte-identical to 0235 until proven); (3) validate horizontal then vertical WITH user visual verification; (4) flip flag + consume build number then.
+- **STOP: YES** — faithful call over shipping an unverifiable, likely-corrupt rewrite. No numbered artifact changed.
+
+### MAME Exit Summary (2026-07-24 23:52:29)
+- Final PC: 0x072E32
+- Stack Pointer (SP): 0x00FEFF78
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy — Build 0236 PC080SN BG Native 64×64 Ring Plane (PRODUCED, user-test)
+
+- **Date:** 2026-07-24 · Baseline 0235. **Build 0236 produced:** dist/rastan-direct/rastan_direct_video_test_build_0236.bin, SHA256 f471be01ec5db584cabe0f76f3421229d0a7e61a7dbdfb80d236f7083ccf439f, size 1,588,488, counter 236, GATE_PASS, VRAM overlap PASS. Builds 0228-0235 preserved.
+- **Scope:** BG (Plane B) converted to native 64×64 ring; FG (Plane A) stays on its working tall-projection path. Reason: two 64×64 planes collide with SAT(0xF800)+HSCROLL(0xFC00) and VRAM is full (sprite tiles fill 0x8000-0xBFFF); Plane B 64×64 fits the free 0xD000 gap (0xC000-0xDFFF) with NO SAT/HSCROLL/sprite relocation. Full FG needs VRAM freed (sprite-tile cut) — deferred.
+- **Code changed:** tilemap_hooks.s genesistan_hook_tilemap_plane_a: row mask &0x1F→&0x3F (full 64 rows), 64-bit dirty via bg_row_dirty + new bg_row_dirty_hi. vdp_comm.s: planesize 0x01→0x11 (64×64); staged_bg_buffer 2048→4096 words; vdp_commit_bg_strips_if_dirty scans 64 rows / DMAs only dirty; vdp_project_bg_tall_if_dirty SKIPS in gameplay (was clobbering plane_a with frontend-only tall data); BG VSRAM &0x0007→&0x01FF (full 512px window) in gameplay. Collision/FG/sprite/frontend untouched.
+- **KEY finding:** gameplay BG source is plane_a's direct staged_bg_buffer write; the BG tall buffer is fed only by the item-page (frontend), so the gameplay BG projection was clobbering plane_a on vertical crossings — removing it is a fix, not just an optimization.
+- **Headless verify:** boots(scene0)→Stage1(scene1), no crash to F7500+; BG tall projector 0 gameplay calls; BG plane populated (212 tiles rows0-31; rows32-63 empty until vertical stream, unreachable at flat Stage-1-start); HUD score+white 1UP = 0235 baseline; sprites/SAT/HSCROLL untouched → PC090OJ/palette/score preserved by construction; VBlank lighter (tall-projection copy removed, commit bounded to dirty rows).
+- **User-test items:** horizontal visual coherence (no cyan seam/displacement); vertical scroll (rows32-63 fill + VSRAM sign/offset — confirm on rope); reversal/diagonal; FG conversion next.
+- **STOP: NO** — all headless build criteria met; visual/vertical are user-test per task. Report §16.
+
+### MAME Exit Summary (2026-07-25 02:47:58)
+- Final PC: 0x072E02
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-07-25 03:00:52)
+- Final PC: 0x072E12
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## Andy — Build 0238 PC080SN Dual 64×32 Ring Cache (FG works, BG FAILED → STOP for BG; source reverted to 0235)
+
+- **Date:** 2026-07-25 · Baseline 0235. Design doc: docs/design/Andy_build0238_pc080sn_dual_64x32_ring_cache.md.
+- **Numbering:** an accidental `make -p` during Phase-1 verification built build_0237.bin (byte-identical to 0235) + bumped counter to 237; per owner decision the dup is PRESERVED and the candidate was produced as Build 0238 (no delete/decrement). Artifacts: 0235=9aff0b11, 0236=f471be01, 0237=9aff0b11(dup), 0238=54757864. Counter 238.
+- **Phase-1 baseline restore: PASS (exact).** git checkout bad1499 ("Build Pre Build 236"=0235 source) of tilemap_hooks.s/vdp_comm.s + coverage .py; unnumbered prepatch+patch verify SHA256 = 9aff0b11fb9a2151186ef0c03654fdd968d630a3cab45801be85de6f62571ad5 (== 0235). git diff bad1499 for source/spec/gate = empty.
+- **Model:** dual 64×32, plane col=world col&63, plane row=world row&31, VSRAM=(−staged_scroll_y_bg+8)&0xFF (256px ring; 0235 origin, widened from &7). planesize 0x01, SAT 0xF800, HSCROLL 0xFC00 all UNCHANGED.
+- **FG conversion PROVEN:** genesistan_stage_fg_src_column routed fg_fill_tall→fg_fill (non-tall) → writes staged_fg_buffer[row=(cell>>6)&0x1F][col&0x3F], sets fg_row_dirty; VBlank FG commit scene-gated to vdp_commit_fg_strips_if_dirty for gameplay. Verified: gameplay FG nz/distinct = 2016/45 IDENTICAL to 0235. FG tall projector → 0 gameplay calls.
+- **BG conversion FAILED:** disabling BG projection + plane_a-only left BG nz=212 vs 0235 nz=2048 (severe under-population/black holes). ROOT (matched 0235 trace): BG tall buffer is written 47,104×/run in gameplay and the projection windows it to fill staged fully (2048/522); plane_a is only a ~212 sparse writer. BG's real path = (gameplay tall-filler)→projection→staged, NOT plane_a. To finish: identify the gameplay BG-tall filler (NOT the item-page bg_fill_tall caller; likely pc080sn_bg_scroll_fill) and route it to non-tall genesistan_hook_tilemap_bg_fill (already folds row&31), mirroring the FG fix, then disable BG projection.
+- **Verify (0238):** boot→Stage1, no crash to F4800; both projectors 0 gameplay calls; FG=baseline; HUD score+1UP=baseline; planesize/SAT/HSCROLL unchanged; **BG=black holes → FAIL**.
+- **Outcome: STOP** for BG mapping (task cond: cannot prove producer→64×32 without guessing). Source REVERTED to exact 0235 (git-identical bad1499). No PC090OJ/SAT/HSCROLL/64×64/flag/display-off. All numbered artifacts preserved.
+- **Open/Closed Issues:** touches the gameplay PC080SN map-presentation issue (tall projection); none closed (BG unproven); FG-ring-conversion recorded as the proven half for the next attempt.
+
+---
+
+## Andy — PC080SN Genesis-Native Gameplay Streaming DESIGN (design-only, CONDITIONAL GO)
+
+- **Date:** 2026-07-25 · Design only; NO source/spec/tool/ROM/build/counter/artifact change. Doc: docs/design/Andy_pc080sn_genesis_native_gameplay_streaming.md. Oracle = accepted 0235.
+- **Layer semantics (measured, blank-aware):** Plane B (BG) DENSE — most-common word 0x422B only 38/2048, 522 distinct, ~all cells meaningful. Plane A (FG) SPARSE — **canonical transparent blank = 0x2000** (1020/2048 ≈ 50%); meaningful = word≠0x2000 (~1028). 0238's "FG nz=2016" was invalid (counted ~1020 blank 0x2000 cells).
+- **Dense BG is SCENE-INIT, not streaming:** BG tall buffer written ~49k× ONLY at scene entry (F2700-2900) then 0 during steady horizontal gameplay. Horizontal BG = plane_a entering-column streamer; projection re-windows only on vertical base change.
+- **Producers:** FG = genesistan_stage_fg_src_column→fg_fill (32-row, row=(cell>>6)&0x1F) — PROVEN identical to 0235. BG horizontal = plane_a (0x055968/0x0559B2). BG dense scene-init = genesistan_hook_tilemap_bg_fill_tall — **MISSING PROOF: its gameplay scene-init caller** (source-caller only item-page). Arcade recovered: publisher 0x055948, triggers 0x055822(H)/0x05572E→0x055788(V), cell 0x0559B2(BG+collision)/0x055A14(FG), descriptor 0x055904, scroll 0x055AB4.
+- **Resident-cache contract (NOT fold):** 32-row sliding window; relative_row=(auth_row-cache_top_row) mod 64; resident iff <32(+guard); physical_row=auth_row mod 32; physical_col=auth_col mod 64. cache_top_row from per-plane scroll; 1 top guard row (from +8 origin). VSRAM=(-scroll_y+8)&0xFF (256px), HSCROLL=scroll_x-16 (64-col). Independent per plane.
+- **Helpers (contracts in doc):** initialize_bg_cache (dense 32×64), initialize_playfield_cache (clear all to 0x2000 then meaningful), publish_bg/playfield_entering_column, publish_bg/playfield_entering_row (Plane A clears reused row/col to 0x2000 first), publish_changed_cell_or_span, commit_scroll. Staging: 64×32 shadows (existing size), 32-bit row + new 64-bit col dirty masks; row=64-word DMA autoinc2; column=measure PIO autoinc128 vs staged-packet DMA. Collision: 0x10DE00+(dest-0xC08000)/2 unchanged (finish OPEN-0159 rebase + KF-067 origin for Plane A alignment).
+- **Retire (gameplay only, AFTER producers retargeted):** staged_bg/fg_tall_buffer, vdp_project_bg/fg_tall_if_dirty, 32×64 projection copies, imitation full-map fills. Cycles: eliminates ~45k/plane projection; worst VBlank ~8-10k bounded vs ~90k.
+- **GO/STOP: CONDITIONAL GO** — implementation-ready except Proof #1 (scene-init dense-BG caller); one trace (0235 bg_tall writes F2700-2900 with reliable caller-PC capture → address_map.json) unblocks. No 64×64/SAT-HSCROLL-move/sprite-shrink/fold/flag/display-off.
+
+---
+
+## Andy — PC080SN Design RE-DERIVED FROM ARCADE (corrects Genesis-buffer-sourced errors; design-only)
+
+- **Date:** 2026-07-25 · Design/arcade-reference only; NO source/spec/tool/ROM/counter/artifact change. Counter 238. Authority order: arcade Ghidra -> MAME arcade name-RAM -> Genesis 0235 (parity witness only). Updated docs/design/Andy_pc080sn_genesis_native_gameplay_streaming.md (correction box) + Andy_pc080sn_arcade_producer_ring_plane_contract.md (§17).
+- **WHY:** prior streaming design derived blank/density/cadence from Genesis staged buffers (the translation layer) instead of the arcade. Owner correct: arcade is the model, Genesis the target.
+- **INVALIDATED (Genesis-derived):** "Plane A blank = 0x2000" (0x2000 is a Genesis-VDP-converted word, not arcade); "Plane B dense / Plane A sparse ~50%" occupancy figures.
+- **ARCADE-CONFIRMED (MAME rastan + Ghidra):** name-RAM cell = 2 words: word0(even)=**0x0003 constant attribute**, word1(odd)=**tile code** (even=0x0003 x4096; odd=real tiles). TWO active 64x64 layers: **0xC00000 = BG dense scenery** (tiles ~0x0665-0x06B8), **0xC08000 = FG playfield** (base tile **0x0020** ~59% + varied 0x00CD/0x00D8; collision-aligned via 0x10DE00+(dest-0xC08000)/2). 0xC04000 unused (all 0x0000). Two independent parallax scroll layers: a5@0x10EE/0x10B0->0xC20000/2, a5@0x10EC/0x10AE->0xC40000/2 (measured 0x149/0x149 vs 0x1B3/0x166). Producers unchanged from §1-4 contract (0x055948 publisher, 0x0559B2/0x055A14 cells, 0x055904 descriptor, 0x055AB4 scroll).
+- **CHANGED:** the Genesis blank-clear must use tile_vram_lut[arcade base tile] (e.g. 0x0020 for FG), not 0x2000. Each arcade layer is a full 64x64 ring (not a 32-row band); Genesis 64x32 plane needs the resident 32-row WINDOW of arcade rows (0238's blanket row&31 fold aliases and is wrong).
+- **REMAINING UNKNOWNS (STOP before impl):** (1) definitive a5@0x10A8 selector->layer(0xC00000/0xC08000) map + 0xC00000 base/blank tile; (2) arcade scene-init cadence + 64->32 resident-window origin per layer; (3) arcade word1->Genesis VDP word conversion validated against arcade values. Selector-tagged MAME write capture had a window/selector-read miss - re-run needed.
+- **GO/STOP: NOT YET — arcade evidence must resolve the 3 unknowns before implementation.** No 64x64/SAT-HSCROLL-move/sprite-shrink/fold/flag/display-off. Design-only.
+
+---
+
+## Andy — Canonical Arcade PC080SN Reference: Core Publishers (checkpoint, design/reference-only)
+
+- **Date:** 2026-07-25 · NO source/spec/tool/ROM/counter/artifact change. Counter 238. New canonical reference: **docs/arcade_reference/pc080sn/** (README, address_index.md, core_publishers.c, core_publishers_assembly.md, unresolved.md). Supersession notice added to Andy_pc080sn_arcade_producer_ring_plane_contract.md.
+- **PROVEN LAYER MAPPING (from 68000 opcodes + arcade MAME):** the gameplay publication core writes **pc080sn_tilemap1_0xC08000**. Both triggers set the dest cursor 0xC08000-based (horizontal 0x055808 -> a5@0x10A0; vertical 0x0556E0 -> a5@0x10A4). Dispatch 0x055948: a5@0x10A8==0 -> 0x055968 (strip_A, saves cursor, calls cell 0x0559B2) else 0x055990 (strip_B, calls cell 0x055A14); both walk 16 descriptors (tbl 0x10D1C0 + source 0x10D200); then 0x558A2. **BOTH cell producers write collision** to 0x10DE00+(dest-0xC08000)/2 (0x055A14 also stamps a 2nd wrapped '1' and reverses the sub-index via notw when a5@0x10A8!=2). Cell = word0(even)=source *(a1) (attr; runtime 0x0003) + word1(odd)=descriptor tile; a0 +=256/sub-cell, 4 sub-cells.
+- **pc080sn_tilemap0_0xC00000** is written by a SEPARATE state-gated path (0x055E54, guard a5@0x139A==2, sets cursor 0xC00400) — NOT the core publishers; deferred to the scene-init checkpoint.
+- **Corrected stale claims:** no BG/FG labels (neutral tilemap0/1 names); collision is NOT exclusive to 0x0559B2 (0x055A14 also produces it). Did not call 0x0003/0x0020 blank (0x0003 = word0/attribute, per opcodes+runtime).
+- **MAME captures used:** 0 new this checkpoint (led with Ghidra/opcodes; prior arcade name-RAM reads already on file).
+- **Unresolved (in unresolved.md):** selector 0x10A8 write sites + value semantics; tilemap0 producer; PC080SN word0/word1 hw bit meaning; 0x055A14 second-collision purpose; 0x558A2/0x055904 full logic.
+- **Checkpoint complete: YES.** Next checkpoint (not done): scene init, H/V triggers, camera/scroll, 64-row ring, runtime update patterns.

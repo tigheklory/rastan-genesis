@@ -1,7 +1,7 @@
 {
   "variant": "world_rev1",
   "mode": "rastan_direct",
-  "rom": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/dist/rastan_direct_video_test.bin",
+  "rom": "/tmp/claude-1000/-home-tighe-projects-rastan-genesis/569ff39d-2dc7-4bcc-a421-63fe96dde6bb/scratchpad/reverify2.bin",
   "source_maincpu": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin",
   "policy": "Build from original ROM bytes every time; never patch forward from derived binaries.",
   "objects": [
