@@ -4,9 +4,11 @@
  * Neutral names: tilemap0 @ 0xC00000, tilemap1 @ 0xC08000. Fields in state_fields.md.
  *
  * MODEL: at scene setup a 64-iteration loop (0x0503E4) fills BOTH tilemaps by calling the
- * gameplay publisher 0x055948 (tilemap1) and the tilemap0 publisher 0x55C4A once per column.
- * After init, only tilemap1 streams per-frame (gameplay_control.c); tilemap0 is not driven by
- * the gameplay triggers (its layer scroll stays static in MAME).
+ * gameplay publisher 0x055948 (tilemap1) and the tilemap0 publisher 0x55C4A once per row/column.
+ * BOTH layers are gameplay-active afterward: tilemap1 (full-rate FG playfield + collision) streams
+ * via the direction triggers (gameplay_control.c); tilemap0 (half-rate parallax BG) is streamed
+ * vertically during gameplay by the 0x055B60 path (0x055B8E -> 0x55C4A) and parallax-scrolls
+ * (X half-rate via 0x055B92 lsr.w #1). Neither layer is static or scene-init-only.
  */
 
 /*
@@ -22,7 +24,7 @@ static void pc080sn_scene_fill(void)
     } else {                                    /* 0x05040C (selector==1) */
         a5_l(0x10F8) = 0xC00000;
         a5_l(0x10A0) = 0xC08000;
-        a5_l(0x10A4) = 0xC04000;                /* NB uses the 0xC04000 quadrant */
+        a5_l(0x10A4) = 0xC0BF00;                /* 0x050420: tilemap1 row 63 (0xC08000+0x3F00); NOT 0xC04000 */
     }
     a5_w(0x10AA) = 64;                           /* 0x05042C loop counter */
     do {
@@ -31,16 +33,17 @@ static void pc080sn_scene_fill(void)
         if (a5_w(0x10A8) != 1) {                /* 0x05043C */
             a5_l(0x10A0) -= 0x3FFC;             /* advance to prev column (−16380) */
             a5_l(0x10F8) -= 0x3FFC;
-        } else {
-            a5_l(0x10A4) -= 256;
+        } else {                                /* sel==1: vertical stage */
+            a5_l(0x10A4) -= 0x100;               /* up ONE tilemap1 row (0x100 = 64 tiles); 0xC0BF00→0xC08000 over 64 iters */
             a5_l(0x10F8) -= 0x3FFC;
         }
-    } while (--a5_w(0x10AA) != 0);               /* 0x050472..0x050480 : 64 columns */
+    } while (--a5_w(0x10AA) != 0);               /* 0x050472..0x050480 : 64 rows/columns; fills tilemap1 0xC08000..0xC0BFFF exactly */
 }
 
 /*
  * Arcade PC: 0x55C4A  — publish one tilemap0 column (parallel to 0x055968). NO collision.
- * Also reached from 0x055B8E (activation during gameplay not proven; see tilemap0_producers.md).
+ * Also reached from 0x055B8E during gameplay: the 0x055B60 path streams tilemap0 rows on vertical
+ * 8px crossings (proven; see tilemap0_producers.md). tilemap0 is gameplay-active, not scene-init-only.
  */
 static void pc080sn_tilemap0_publish_col(void)
 {
@@ -81,7 +84,8 @@ static void pc080sn_tilemap0_cells(u16 **pa0, const u16 *a1, const u16 *a2)
 
 /*
  * Arcade PC: 0x0561B6  — C-window clear: fill BOTH tilemaps with tile 0x0020 (word1) / 0x0000 (word0).
- * 4096 longs each ( = one 0x4000 quadrant per map). Proves 0x0020 is the blank/base tile.
+ * 4096 longs each ( = one 0x4000 quadrant per map). This is the clear-fill pair (word0=0x0000,
+ * word1=0x0020 = clear_fill_tile_0x0020); it does NOT prove the tile's pixels are blank/transparent.
  */
 static void pc080sn_cwindow_clear(void)
 {

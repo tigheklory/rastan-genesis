@@ -20,7 +20,7 @@ Order in code: sel==1 (0x0556A6) → sel==2 (0x055738) → sel==0 (0x0557C4) →
 - `0x055948` increments `a5@0x10CA` by 1 after each strip publish (0x055954/0x05595E).
 - `0x0558A2`: `if a5@0x10CA==4 { 0x558C6 ; 0x055904 ; a5@0x10CC++ ; if a5@0x10CC==16 { 0x558E0 } }`.
 - `0x558C6`: `for 16: *(0x10D000 + i*4) += 4 ; then a5@0x10CA = 0` (advance the 16 base pointers a group at a time).
-- `0x558E0`: `a5@0x10CC = 0 ; a5@0x10C6 += 1 ; a5@0x10A8 = *(byte)(a5@0x10C6) ; a5@0x136C = a5@0x10A8 ; a5@0x13E++`.
+- `0x558E0`: `a5@0x10CC = 0 ; a5@0x10C6 += 1 ; a5@0x132C = a5@0x10A8 (save prev) ; a5@0x10A8 = *(byte)(a5@0x10C6) ; a5@0x13E++`. *(The saved-prev field is a5@0x132C, not 0x136C — decimal 4908 = 0x132C; read at 0x0557DC. Full map-stream model: map_stream_format.md.)*
 - **So: col `a5@0x10CA` 0→3, group `a5@0x10CC` 0→15 → 4×16 = 64 ring positions; the SELECTOR (direction) is refreshed from the map byte stream every 16 groups.**
 
 ## Selector source (proven)
@@ -36,7 +36,7 @@ loop: a4=*(a0) ; *(a2)+ = *(a4)       ; source word = word0 of base entry
 Publishers consume: `a3 = 0x10D040` (descriptor ptrs) and `a1 = 0x10D080` (source words). **These addresses (0x10D040/0x10D080/0x10D000) correct the earlier "0x10D1C0/0x10D200" slip.**
 
 ## Scroll commit `0x055AB4` (write-only)
-`0xC20000 = a5@0x10EE` (layer-A X); `0xC40000 = a5@0x10EC` (layer-B X); `0xC20002 = a5@0x10B0` (layer-A Y); `0xC40002 = a5@0x10AE` (layer-B Y). The direction dispatcher maintains `a5@0x10AE` (sel-0) and `a5@0x10B0` (sel-1/2) with `&511` wrap; X scrolls (`a5@0x10EC/0x10EE`) are set outside this subsystem.
+**Scroll registers (runtime-verified axes): `0xC40000/2 = X` (change on horizontal movement), `0xC20000/2 = Y`; offset 0 = tilemap0, offset 2 = tilemap1 (offset-0 moves at half rate = tilemap0 parallax).** So `0x055AB4`: `0xC20000 = a5@0x10EE` (tilemap0 Y); `0xC40000 = a5@0x10EC` (tilemap0 X); `0xC20002 = a5@0x10B0` (tilemap1 Y); `0xC40002 = a5@0x10AE` (tilemap1 X). The direction dispatcher maintains **tilemap1** X `a5@0x10AE` (sel-0 horizontal) and **tilemap1** Y `a5@0x10B0` (sel-1/2 vertical); **tilemap0** parallax scroll `a5@0x10EC` is maintained by the 0x055B60 routine (half-rate, `lsrw #1`).
 
 ## Camera ↔ ring relationship (proven)
 Per-frame camera step deltas `a5@0x10D8` (horizontal) / `a5@0x10DA` (vertical) accumulate into the boundary accums (`a5@0x10B2/0x10B4/0x10B6`); each 8-px (`btst #3`) crossing triggers one strip publish and advances the ring counters. The published strip's start cell is a pure function of the ring counters (`a5@0x10CC`,`a5@0x10CA`) per the offset formulas — no camera value enters the destination directly; the camera only gates *when* to publish and updates the hardware scroll registers (`&511` = 512 px = 64-tile wrap).

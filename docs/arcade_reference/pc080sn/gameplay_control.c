@@ -54,7 +54,7 @@ static void pc080sn_dir_sel2_vertical(void)
 static void pc080sn_dir_sel0_horizontal(void)
 {
     if (a5_w(0x10A8) != 0) { a5_w(0x10D0) |= (1<<6); return; }
-    if (a5_w(0x136C) == 0) { /* extra gate; 0x0557E4 reads a5@0x10CA (nop) */ }
+    if (a5_w(0x132C) == 0) { /* 0x0557DC: gate on PREVIOUS selector==0; 0x0557E4 reads a5@0x10CA (nop) */ }
     u16 acc = a5_w(0x10B2) + a5_w(0x10D8);  a5_w(0x10B2) = acc;
     if (acc & 0x08) {
         a5_w(0x10B2) = acc & ~0x08;
@@ -98,10 +98,10 @@ static void pc080sn_advance_source_ptrs(void)
 static void pc080sn_advance_map_group(void)
 {
     a5_w(0x10CC) = 0;
-    a5_l(0x10C6) += 1;                           /* advance map source pointer */
-    a5_w(0x10A8) = *(u8 *)a5_l(0x10C6);          /* NEXT SELECTOR/DIRECTION from map data */
-    a5_w(0x136C) = a5_w(0x10A8);                 /* mirror into the gate flag (0x0558EC) */
-    a5_w(0x13E) += 1;                            /* publish counter */
+    a5_l(0x10C6) += 1;                           /* 0x0558E4: advance map-stream pointer +1 byte */
+    a5_w(0x132C) = a5_w(0x10A8);                 /* 0x0558EC: save PREVIOUS selector (before overwrite) */
+    a5_w(0x10A8) = *(u8 *)a5_l(0x10C6);          /* 0x0558F8: NEXT SELECTOR from map stream */
+    a5_w(0x13E) += 1;                            /* 0x0558FE: segment index++ (see map_stream_format.md) */
 }
 
 /*
@@ -126,8 +126,8 @@ static void pc080sn_descriptor_rebuild(void)
  */
 static void pc080sn_commit_scroll(void)
 {
-    *(u16 *)0xC20000 = a5_w(0x10EE);   /* layer-A X */
-    *(u16 *)0xC40000 = a5_w(0x10EC);   /* layer-B X */
-    *(u16 *)0xC20002 = a5_w(0x10B0);   /* layer-A Y (vertical accum) */
-    *(u16 *)0xC40002 = a5_w(0x10AE);   /* layer-B Y (horizontal accum) */
+    *(u16 *)0xC20000 = a5_w(0x10EE);   /* tilemap0 Y-scroll */
+    *(u16 *)0xC40000 = a5_w(0x10EC);   /* tilemap0 X-scroll (half-rate parallax) */
+    *(u16 *)0xC20002 = a5_w(0x10B0);   /* tilemap1 Y-scroll (vertical accum) */
+    *(u16 *)0xC40002 = a5_w(0x10AE);   /* tilemap1 X-scroll (horizontal accum) */
 }
