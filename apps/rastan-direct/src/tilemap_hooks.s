@@ -40,6 +40,9 @@
     .extern vdp_commit_fg_strips_if_dirty
     .extern genesistan_current_scene_id
     .extern genesistan_current_pc080sn_tileset_id
+    .extern fg_native_owner
+    .extern fg_native_column_pending
+    .extern fg_native_column_byte
 
     .global genesistan_shadow_input_390001
     .global genesistan_shadow_input_390003
@@ -59,6 +62,9 @@
     .equ ARCADE_PC080SN_DESC_FG_LIST_OFFSET, 0x1000
     .equ ARCADE_PC080SN_DEST_BG_OFFSET,      0x10A0
     .equ ARCADE_PC080SN_DEST_FG_OFFSET,      0x10A4
+    .equ ARCADE_PC080SN_SELECTOR_OFFSET,     0x10A8
+    .equ ARCADE_PC080SN_SCROLL_Y_FG_OFFSET,  0x10B0
+    .equ ARCADE_PC080SN_SCENE_FILL_COUNT_OFFSET, 0x10AA
     .equ ARCADE_PC080SN_STRIP_INDEX_OFFSET,  0x10CA
     .equ ARCADE_PC080SN_STRIP_INDEX_FG_OFFSET, 0x10CA
     .equ ARCADE_PC080SN_CWINDOW_BASE_BG,     0x00C00000
@@ -300,28 +306,101 @@ genesistan_hook_tilemap_plane_a:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-/* Genesis-only Stage 1 FG_SRC per-column staging. Extracted (Build 0160) from the
- * former genesistan_hook_tilemap_fg gameplay path so it can be shared. Replays the
- * proven Build 0155 FG model through the arcade-owned rebuilt pointer table
- * (0x00FF1040) using the real FG column dest a5@0x10A0, routing each cell through the gameplay-only tall FG backing helper
- * (LUT + attr conversion + tall staging + projection dirty). Collision is intentionally NOT authored here:
- * Stage 1 arcade collision is owned by the BG producer 0x559B2, not this FG_SRC
- * visual replay. movem-wrapped: preserves d0-d7/a0-a6 for the caller; reads
- * a5@0x10A0/a5@0x10CA and 0x00FF1040, never writes a5@0x10A8. Caller must gate
- * on SCENE_GAMEPLAY_ID. */
+/* Native Plane A gameplay presentation ownership.  The owner is set only by the
+ * arcade-owned tilemap1 publisher boundaries below (0x055968/0x055990 after
+ * relocation), and only while the current scene is gameplay. */
+.Lfg_native_enter_gameplay:
+    tst.b   fg_native_owner
+    bne.s   .Lfg_native_enter_already
+    clr.l   fg_row_dirty
+    clr.b   fg_native_column_pending
+    clr.w   fg_native_column_byte
+    move.b  #1, fg_native_owner
+.Lfg_native_enter_already:
+    clr.b   fg_tall_dirty
+    clr.w   fg_tall_project_base
+    clr.w   fg_narrow_desc_count
+    clr.w   fg_narrow_pending_rows
+    rts
+
+.Lfg_native_convert_cell:
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     genesistan_pc080sn_attr_lut, %a3
+    move.w  %d0, %d3
+    andi.w  #0x3FFF, %d3
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+
+    move.l  %d0, %d4
+    swap    %d4
+    move.w  %d4, %d5
+    andi.w  #0x0003, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #6, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #2, %d7
+    or.w    %d7, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #7, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #3, %d7
+    or.w    %d7, %d5
+
+    move.w  %d4, %d7
+    lsr.w   #8, %d7
+    lsr.w   #5, %d7
+    andi.w  #0x0001, %d7
+    lsl.w   #4, %d7
+    or.w    %d7, %d5
+
+    add.w   %d5, %d5
+    move.w  0(%a3,%d5.w), %d5
+    or.w    %d5, %d3
+    rts
+
+.Lfg_native_compute_top_row:
+    move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d7
+    neg.w   %d7
+    addi.w  #8, %d7
+    andi.w  #0x01FF, %d7
+    lsr.w   #3, %d7
+    andi.w  #0x003F, %d7
+    rts
+
+.Lfg_native_mark_all_rows_dirty_if_fill:
+    tst.w   ARCADE_PC080SN_SCENE_FILL_COUNT_OFFSET(%a5)
+    beq.s   .Lfg_native_not_fill
+    move.l  #0xFFFFFFFF, fg_row_dirty
+.Lfg_native_not_fill:
+    rts
+
+/* Native Stage 1 selector-0 Plane A column publication.  This replaces the
+ * gameplay tall-buffer visual replay with final 64x32 Plane A staging.  It still
+ * consumes the arcade-owned rebuilt descriptor/source tables and writes only the
+ * resident 32 rows; collision is published by the companion collision helper. */
 genesistan_stage_fg_src_column:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+    suba.w  #12, %sp
     lea     0x00FF0000, %a5
+    bsr     .Lfg_native_enter_gameplay
 
-    move.l  ARCADE_PC080SN_DEST_BG_OFFSET(%a5), %d0   /* a5@0x10A0 = FG column dest */
-    andi.l  #0x00003FFC, %d0                          /* dcol*4 (col offset within plane) */
-    movea.l #ARCADE_PC080SN_CWINDOW_BASE_FG, %a4
-    adda.l  %d0, %a4                                  /* a4 = base cell dest (plane row 0) */
+    move.l  ARCADE_PC080SN_DEST_BG_OFFSET(%a5), %d0
+    andi.l  #0x00003FFC, %d0
+    lsr.l   #1, %d0
+    move.w  %d0, 2(%sp)                               /* Genesis byte column in Plane A */
     moveq   #0, %d2
     move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d2
     andi.w  #0x0003, %d2
-    add.w   %d2, %d2                                  /* d2 = arcade colidx*2 */
+    add.w   %d2, %d2                                  /* descriptor sub-index byte offset */
+    bsr     .Lfg_native_compute_top_row
+    move.w  %d7, 0(%sp)                               /* logical top row */
     movea.l #PC080SN_DESC_REBUILD_PTR_TABLE, %a3      /* rebuilt block pointers, already Genesis-addressed */
+    movea.l #PC080SN_DESC_REBUILD_WORD_TABLE, %a1
+    lea     staged_fg_buffer, %a6
     moveq   #0, %d4                                   /* d4 = seg */
 .Lfgc_seg_loop:
     move.l  %d4, %d6
@@ -335,24 +414,37 @@ genesistan_stage_fg_src_column:
     bhs     .Lfgc_done
     movea.l %d6, %a2
     adda.w  %d2, %a2                                  /* a2 = block base for this seg/col */
+    move.w  %d4, %d0
+    add.w   %d0, %d0
+    move.w  0(%a1,%d0.w), %d6                         /* source/control word */
     moveq   #0, %d5                                   /* d5 = row */
 .Lfgc_row_loop:
-    move.w  %d5, %d6
-    lsl.w   #3, %d6                                   /* row*8 */
-    move.w  0(%a2,%d6.w), %d0                         /* code word */
+    move.w  %d5, %d7
+    lsl.w   #3, %d7                                   /* row*8 */
+    move.w  0(%a2,%d7.w), %d0                         /* code word */
     andi.w  #0x3FFF, %d0
-    move.l  #FG_PLANE_ATTR_HI, %d1
-    move.w  %d0, %d1                                  /* d1 = attr<<16 | code */
-    move.l  %d4, %d0
-    lsl.l   #2, %d0                                   /* seg*4 */
-    add.l   %d5, %d0                                  /* + row = plane row */
-    lsl.l   #8, %d0                                   /* plane row * 0x100 */
-    movea.l %a4, %a0
-    adda.l  %d0, %a0                                  /* a0 = cell dest */
-    move.l  %d1, %d0                                  /* D0 = composed arcade cell */
-    moveq   #1, %d1                                   /* D1 = count */
-    bsr     genesistan_hook_tilemap_fg_fill_tall
+    moveq   #0, %d1
+    move.w  %d6, %d1
+    swap    %d1
+    move.w  %d0, %d1
+    move.l  %d1, %d0
+    bsr     .Lfg_native_convert_cell                  /* d3 = final Genesis name word */
 
+    move.w  %d4, %d7
+    lsl.w   #2, %d7
+    add.w   %d5, %d7                                  /* logical row */
+    move.w  %d7, %d0
+    sub.w   0(%sp), %d0
+    andi.w  #0x003F, %d0
+    cmpi.w  #32, %d0
+    bhs.s   .Lfgc_skip_nonresident
+
+    andi.w  #0x001F, %d7
+    lsl.w   #7, %d7
+    add.w   2(%sp), %d7
+    move.w  %d3, 0(%a6,%d7.w)
+
+.Lfgc_skip_nonresident:
     addq.w  #1, %d5
     cmpi.w  #FG_PRODUCER_ROW_COUNT, %d5
     bne     .Lfgc_row_loop
@@ -361,6 +453,142 @@ genesistan_stage_fg_src_column:
     bne     .Lfgc_seg_loop
 
 .Lfgc_done:
+    bsr     .Lfg_native_mark_all_rows_dirty_if_fill
+    tst.w   ARCADE_PC080SN_SCENE_FILL_COUNT_OFFSET(%a5)
+    bne.s   .Lfgc_no_column_job
+    move.w  2(%sp), fg_native_column_byte
+    move.b  #1, fg_native_column_pending
+.Lfgc_no_column_job:
+    adda.w  #12, %sp
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Native selector-1/2 Plane A row publication.  This follows arcade 0x055A14:
+ * one 64-cell row, selector-2 keeps the sub-index, selector-1 reverses it. */
+genesistan_stage_fg_src_row:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    suba.w  #12, %sp
+    lea     0x00FF0000, %a5
+    bsr     .Lfg_native_enter_gameplay
+
+    move.l  ARCADE_PC080SN_DEST_FG_OFFSET(%a5), %d0
+    andi.l  #0x00003F00, %d0
+    move.w  %d0, %d5
+    lsr.w   #8, %d5                                   /* logical row */
+    move.w  %d5, 0(%sp)
+    bsr     .Lfg_native_compute_top_row
+    move.w  %d5, %d0
+    sub.w   %d7, %d0
+    andi.w  #0x003F, %d0
+    cmpi.w  #32, %d0
+    blo.s   .Lfgr_row_resident
+    clr.w   6(%sp)
+    bra.s   .Lfgr_residency_ready
+.Lfgr_row_resident:
+    move.w  #1, 6(%sp)
+.Lfgr_residency_ready:
+    andi.w  #0x001F, %d5                              /* physical row */
+    move.w  %d5, 2(%sp)
+
+    moveq   #0, %d7
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d7
+    andi.w  #0x0003, %d7
+    cmpi.w  #2, ARCADE_PC080SN_SELECTOR_OFFSET(%a5)
+    beq.s   .Lfgr_sub_ready
+    not.w   %d7
+    andi.w  #0x0003, %d7
+.Lfgr_sub_ready:
+    lsl.w   #3, %d7                                   /* selector-adjusted sub offset */
+    move.w  %d7, 4(%sp)
+
+    movea.l #PC080SN_DESC_REBUILD_PTR_TABLE, %a3
+    movea.l #PC080SN_DESC_REBUILD_WORD_TABLE, %a1
+    movea.l #ARCADE_COLLISION_MAP_BASE, %a4
+    lea     staged_fg_buffer, %a6
+    moveq   #0, %d4                                   /* descriptor index */
+.Lfgr_desc_loop:
+    move.l  %d4, %d0
+    lsl.l   #2, %d0
+    movea.l %a3, %a2
+    adda.l  %d0, %a2
+    move.l  (%a2), %d0
+    cmpi.l  #0x00000200, %d0
+    blo     .Lfgr_done
+    cmpi.l  #0x00060000, %d0
+    bhs     .Lfgr_done
+    movea.l %d0, %a2
+    move.w  %d4, %d0
+    add.w   %d0, %d0
+    move.w  0(%a1,%d0.w), %d6                         /* source/control word */
+
+    moveq   #0, %d5                                   /* cell within descriptor */
+.Lfgr_cell_loop:
+    move.w  32(%a2), %d0
+    cmpi.w  #0x00FF, %d0
+    beq.s   .Lfgr_collision_alt
+    move.w  4(%sp), %d0
+    move.w  %d5, %d1
+    add.w   %d1, %d1
+    add.w   %d1, %d0
+    move.w  20(%a2,%d0.w), %d2
+    bra.s   .Lfgr_collision_have
+.Lfgr_collision_alt:
+    move.w  34(%a2), %d2
+.Lfgr_collision_have:
+    move.w  0(%sp), %d0                               /* collision keeps all 64 logical rows */
+    lsl.w   #7, %d0
+    move.w  %d4, %d1
+    lsl.w   #3, %d1
+    add.w   %d5, %d1
+    add.w   %d1, %d1
+    add.w   %d1, %d0
+    move.w  %d2, 0(%a4,%d0.w)
+
+    tst.w   6(%sp)
+    beq.s   .Lfgr_skip_visual
+    move.w  4(%sp), %d0
+    move.w  %d5, %d1
+    add.w   %d1, %d1
+    add.w   %d1, %d0
+    move.w  0(%a2,%d0.w), %d0
+    andi.w  #0x3FFF, %d0
+    moveq   #0, %d1
+    move.w  %d6, %d1
+    swap    %d1
+    move.w  %d0, %d1
+    move.l  %d1, %d0
+    bsr     .Lfg_native_convert_cell
+    move.w  2(%sp), %d0                               /* visual writes resident physical row */
+    lsl.w   #7, %d0
+    move.w  %d4, %d1
+    lsl.w   #3, %d1
+    add.w   %d5, %d1
+    add.w   %d1, %d1
+    add.w   %d1, %d0
+    move.w  %d3, 0(%a6,%d0.w)
+
+.Lfgr_skip_visual:
+    addq.w  #1, %d5
+    cmpi.w  #4, %d5
+    bne     .Lfgr_cell_loop
+    addq.w  #1, %d4
+    cmpi.w  #16, %d4
+    bne     .Lfgr_desc_loop
+
+.Lfgr_done:
+    bsr     .Lfg_native_mark_all_rows_dirty_if_fill
+    tst.w   6(%sp)
+    beq.s   .Lfgr_no_row_dirty
+    tst.w   ARCADE_PC080SN_SCENE_FILL_COUNT_OFFSET(%a5)
+    bne.s   .Lfgr_no_row_dirty
+    moveq   #1, %d0
+    move.w  2(%sp), %d1
+    lsl.l   %d1, %d0
+    move.l  fg_row_dirty, %d2
+    or.l    %d0, %d2
+    move.l  %d2, fg_row_dirty
+.Lfgr_no_row_dirty:
+    adda.w  #12, %sp
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -379,13 +607,8 @@ genesistan_stage_bg_collision_column:
 
     move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d7
     move.l  ARCADE_PC080SN_DEST_BG_OFFSET(%a5), %d5
-    move.l  %d5, %d0
-    andi.l  #0x00FFFFFF, %d0
-    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d0
-    blo     .Lbgc_done
-    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d0
-    bhs     .Lbgc_done
-    move.l  %d0, %d5
+    andi.l  #0x00003FFC, %d5
+    addi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d5
 
     lea     ARCADE_PC080SN_DESC_BG_LIST_OFFSET(%a5), %a0
     movea.l #ARCADE_MAINCPU_ROM_BASE, %a1
@@ -463,7 +686,7 @@ genesistan_hook_tilemap_fg:
     cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     bne     .Lfg_not_gameplay
 
-    bsr     genesistan_stage_fg_src_column
+    bsr     genesistan_stage_fg_src_row
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -2523,6 +2746,9 @@ genesistan_hook_cwindow_clear:
     move.l  #0xFFFFFFFF, bg_row_dirty
     move.l  #0xFFFFFFFF, fg_row_dirty
     move.b  #1, fg_tall_dirty
+    clr.b   fg_native_owner
+    clr.b   fg_native_column_pending
+    clr.w   fg_native_column_byte
 
     movem.l (%sp)+, %d0-%d3/%a0-%a3
     rts
@@ -2864,6 +3090,33 @@ genesistan_hook_itempage_strip_blit:
 vdp_commit_fg_narrow_strips:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 
+    tst.b   fg_native_column_pending
+    beq.s   .Lfg_narrow_legacy_start
+
+    moveq   #VDP_REG_AUTOINC, %d0
+    move.w  #0x0080, %d1
+    bsr     vdp_set_reg
+
+    moveq   #0, %d1
+    move.w  fg_native_column_byte, %d1
+    move.l  #VRAM_PLANE_A_BASE, %d0
+    add.l   %d1, %d0
+    bsr     vdp_set_vram_write_addr
+
+    lea     staged_fg_buffer, %a0
+    adda.w  fg_native_column_byte, %a0
+    move.w  #(32 - 1), %d7
+.Lfg_native_column_commit_loop:
+    move.w  (%a0), VDP_DATA
+    adda.w  #128, %a0
+    dbra    %d7, .Lfg_native_column_commit_loop
+
+    moveq   #VDP_REG_AUTOINC, %d0
+    moveq   #0x02, %d1
+    bsr     vdp_set_reg
+    clr.b   fg_native_column_pending
+
+.Lfg_narrow_legacy_start:
     move.w  fg_narrow_desc_count, %d7
     beq.s   .Lfg_narrow_done
     subq.w  #1, %d7

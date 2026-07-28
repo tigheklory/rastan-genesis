@@ -65,14 +65,36 @@ Genesis VBlank must not:
 
 ## Rendering Pipeline
 
-Arcade logic → WRAM buffers → VBlank commit → VDP
+```
+arcade semantic decision
+  → final Genesis-format staging or bounded VDP/SAT job
+  → arcade-owned VBlank commit
+  → Genesis VDP
+```
 
 ### Steps
 
-1. Arcade code writes to WRAM buffers (translated intent)
-2. Dirty flags indicate changes
-3. VBlank triggers commit
-4. Genesis writes to VDP
+1. The arcade program makes the semantic decision (what graphics operation is required).
+2. A native Genesis helper produces **final Genesis-format** staging or a bounded VDP/SAT
+   job directly from that arcade semantic state.
+3. Dirty flags / bounded job metadata indicate the pending commit.
+4. The arcade-owned VBlank commits the staged final-format data / DMA jobs to the VDP.
+
+### Permitted WRAM staging contents
+
+Staging may hold only **final Genesis-format** data and bounded job metadata:
+
+- final Genesis Plane A / Plane B name words;
+- final Genesis SAT entries;
+- final CRAM words;
+- Genesis scroll values;
+- bounded VDP/DMA job metadata.
+
+It must **not** hold PC080SN/PC090OJ-shaped virtual hardware state, name-RAM / object-RAM
+mirrors, generic chip-address writes, or projected chip state as the final architecture.
+(Such structures may exist only as isolated, labeled, removable transitional compatibility —
+see the Native PC080SN/PC090OJ Replacement section and
+`docs/design/PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md`.)
 
 ---
 
@@ -85,9 +107,10 @@ Arcade logic → WRAM buffers → VBlank commit → VDP
 ---
 
 ### WRAM Buffers
-- Staging area for graphics and state
-- Written by arcade code
-- Read during VBlank commit
+- Staging area for **final Genesis-format** graphics data + bounded job metadata
+  (Plane A/B name words, SAT entries, CRAM words, scroll values, VDP/DMA job metadata)
+- Written by native helpers from arcade semantic state; not a chip-shaped mirror
+- Read during the arcade-owned VBlank commit
 
 ---
 
@@ -144,6 +167,26 @@ They must not:
 
 ---
 
+## Native PC080SN / PC090OJ Replacement
+
+The graphics tail is made **native**, not emulated. The arcade program keeps the
+high-level semantic decisions (scene/map/camera/scroll/source/descriptor/ring, the decision
+to publish an entering row/column, logical cell identity, collision, and — for sprites —
+actor lifecycle/position/priority/palette/flip/order). The Genesis helper cuts **before**
+any PC080SN/PC090OJ-specific execution and generates **final Plane A/B name-table data or
+final SAT entries directly** from that arcade semantic state.
+
+The pipeline is `arcade semantic decision → native Genesis VDP/SAT realization`. It is
+**not** `arcade chip operation → software chip representation → helper projects it → VDP`.
+No software PC080SN/PC090OJ device, virtual chip RAM, C-window/name-RAM shadow, object-RAM
+mirror, generic chip-address translation, or full-map projection is the final architecture;
+any such structure is transitional compatibility only (isolated, labeled, removable).
+
+**Canonical policy:** `docs/design/PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md`
+(see also `RULES.md` §11).
+
+---
+
 ## Forbidden Patterns
 
 - Genesis-owned main loop
@@ -151,6 +194,9 @@ They must not:
 - Separate lifecycle systems
 - Test scaffolding
 - Control-flow wrappers around arcade logic
+- Software PC080SN/PC090OJ emulation, virtual chip RAM, C-window/name-RAM or object-RAM
+  shadows/mirrors, generic chip-address translation, or full-map projection as the final
+  design (see the Native PC080SN/PC090OJ Replacement section)
 
 ---
 

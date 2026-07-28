@@ -40,11 +40,24 @@ This project follows strict architectural constraints. These rules must never be
 Genesis-side code must follow this pattern:
 
 - Called by arcade code (JSR/JMP)
-- Performs a hardware translation or operation
-- Returns immediately via `RTS`
+- Performs one finite hardware translation or operation
+- Returns immediately via `RTS` to arcade-owned execution
 
-Forbidden:
-- loops
+**Bounded loops are allowed; unbounded control flow is not.**
+
+- Allowed: a bounded loop that completes **one finite semantic hardware operation**
+  and returns — e.g. iterating over a bounded row, column, plane seed, SAT set,
+  palette set, or DMA job, where the bound comes from the retained arcade semantic
+  operation (how many cells/entries the arcade decision requires).
+- Forbidden: unbounded loops, frame waits, polling/spin waits, schedulers, gameplay
+  loops, and any control-flow ownership.
+- The helper must always return control to arcade-owned execution; it never waits for
+  a frame, an event, or a condition, and never keeps running the program.
+
+(The diagnostic-bookmark self-loop of §10 is a separate, explicitly-scoped exception —
+it halts for observation and is not a working helper loop.)
+
+Also forbidden in helpers:
 - blocking
 - scheduling
 - control-flow ownership
@@ -143,6 +156,23 @@ Bookmarks comply with Rule 9. The helper IS final-build infrastructure: immutabl
 ### Out of scope for this rule
 
 The specific helper bytes, symbol name, and build-pipeline integration are defined in `docs/design/Andy_diagnostic_bookmark_helper_design.md`. Bookmark cycles may begin once Tighe approves that design and Cody ships the first build introducing the helper. The helper's resolved address is recorded in `out/symbol.txt` after the first build.
+
+---
+
+## 11. Native PC080SN / PC090OJ Replacement (no chip emulation)
+
+The final architecture must **not** emulate, mirror, shadow, or translate PC080SN or
+PC090OJ hardware behavior after the arcade program has specialized its output for those
+chips. Preserve the arcade **semantic** decision and cut *before* chip-specific execution;
+replace the complete chip tail with **direct Genesis VDP/SAT production**. No software
+PC080SN/PC090OJ device, virtual chip RAM, C-window/name-RAM shadow, object-RAM mirror,
+generic chip-address translation, or full-map projection as the final design. Any temporary
+compatibility path must be explicitly labeled, isolated, non-overwriting, and scheduled for
+removal.
+
+**Authoritative details, examples, boundary proof, and review checklist:**
+`docs/design/PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md` (mandatory reading before any
+PC080SN/PC090OJ work; agents must state the semantic cut and the chip tail being removed).
 
 ---
 

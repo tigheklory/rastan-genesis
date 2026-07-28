@@ -13,46 +13,49 @@ Current development preference:
 - keep rules declarative in `specs/`
 - favor build-time translation/remap over runtime patch tricks
 
-## Repo map
+## Repo map (current)
 
-- `apps/rastan/`: active SGDK launcher/baseline app
-- `tools/translation/`: patchers and translation tooling
-- `specs/`: source-of-truth rules for layout/remap/fixups
-- `build/`: disposable generated files and manifests
-- `dist/`: released ROM builds
-- `docs/project/`: execution plans and decision log
-- `docs/reverse-engineering/`: disassembly notes and behavior references
-- `docs/reference/`: external hardware docs and captures
-- `attic/`: historical experiments (not baseline)
+- `apps/rastan-direct/`: **current** project — assembly opcode-replacement port.
+  - `apps/rastan-direct/src/*.s`: current production source.
+  - `apps/rastan-direct/Makefile`: owns the build, canonical gate, sequential
+    numbering/counter, and the mandatory MAME trace.
+- `tools/translation/`: patchers and translation tooling (`postpatch_startup_rom.py`,
+  `verify_canonical_rom.py`, LUT/preload generators).
+- `specs/rastan_direct_remap.json`: source-of-truth remap/opcode_replace rules.
+- `build/rastan-direct/address_map.json`: generated arcade↔Genesis address correlation.
+- `build/`: disposable generated files and manifests; `dist/`: released numbered ROMs.
+- `docs/design/`: design/analysis reports and the canonical policies.
+- `docs/reverse-engineering/`, `docs/reference/`, `analysis/ghidra/`: RE notes + arcade
+  disassembly exports; `attic/`, `apps/rastan/`: **retired SGDK era** (history only).
 
-## Build and run
+## Build and run (current)
 
-Always load local toolchain first:
+Load the local toolchain first, then run the normal Makefile (default goal builds the ROM,
+runs the canonical gate, auto-numbers via the counter + consumed-ledger, and runs the ~30s
+MAME trace):
 
 ```bash
 source tools/setup_env.sh
+make -C apps/rastan-direct        # or `make` when already inside apps/rastan-direct/
 ```
 
-Primary build commands:
+(The default goal builds the ROM, runs the canonical gate, auto-numbers the artifact, and
+runs the MAME trace. Build variants and feature flags — e.g. `release`,
+`RASTAN_GAMEPLAY_HUD_SPRITES=0` — are **task-specific** and belong only in the prompt that
+needs them, not in the universal command.)
 
-```bash
-make -C apps/rastan release
-make -C apps/rastan release-nohook
-make -C apps/rastan debug
-```
+- rolling ROM: `apps/rastan-direct/dist/rastan_direct_video_test.bin`
+- numbered artifact (Makefile-owned name/number — never rename/reuse):
+  `dist/rastan-direct/rastan_direct_video_test_build_NNNN.bin`
+- Report the artifact exactly as generated (path, SHA-256, size, counter).
 
-Output ROMs:
+## Current architecture status
 
-- working ROM: `apps/rastan/out/rom.bin`
-- named builds: `dist/Rastan_<n>_<timestamp>.bin`
-
-## Current startup/title bring-up status
-
-- Stable launcher baseline exists in recent `56`-style hooked flow.
-- Normal mode live front-end attempts (`57`/`59`) still fail with control-flow
-  issues (e.g. falling into `0x03816B` data path).
-- Test mode is currently stable but still routed to preview/debug path, not the
-  full board-style diagnostics screen.
+- Accepted regression baseline: **Build 0235**. The active effort is the native
+  PC080SN→YM7101 migration; see the canonical policy and the native-YM7101 design docs.
+- Graphics work is governed by
+  `docs/design/PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md` (+ `RULES.md` §11):
+  cut at the arcade **semantic** boundary and produce final Genesis VDP/SAT output directly.
 
 ## Critical engineering constraints
 
@@ -66,16 +69,37 @@ Output ROMs:
 
 ## Long-term rendering architecture
 
-The confirmed rendering strategy for this port is
-**direct opcode replacement with shift-table reflow**.
+> **CANONICAL POLICY (read first):**
+> `docs/design/PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md` and `RULES.md` §11 govern all
+> PC080SN/PC090OJ work. The final architecture is `arcade semantic decision → native
+> Genesis VDP/SAT realization` — cut **above** chip-specific execution. No software
+> PC080SN/PC090OJ device, virtual chip RAM, C-window/name-RAM shadow, object-RAM mirror,
+> generic chip-address translation, or full-map/tall-buffer projection is the final design.
+> Any "shadow"/"projection" mentioned below is **transitional compatibility only** (isolated,
+> labeled, scheduled for removal) — never the accepted target. Before proposing/implementing
+> PC080SN/PC090OJ work, agents must state the semantic cut and the chip tail being removed.
+> (Note: some file paths in older subsections below, e.g. `apps/rastan/src/*`, are the
+> RETIRED SGDK/C era; the current project is `apps/rastan-direct/` — historical reference
+> only.)
+
+The **delivery mechanism** is **direct opcode replacement with shift-table reflow** (no
+trampolines, no runtime interception; the final ROM is Genesis-native code). This mechanism
+remains current and valid.
+
+The **rendering strategy** is **NOT** replacing each individual arcade hardware-register
+write one-for-one. It is: cut at the **highest safe arcade semantic producer boundary** and
+have the native helper produce **final Genesis Plane A/B name words or SAT entries directly**
+from the retained arcade semantic state — per
+`docs/design/PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md` (+ `RULES.md` §11). Per-write and
+per-cell mapping tables below are **reference for where hardware surfaces live**, not a
+mandate to replace at the individual-write level.
 
 ### What this means
 
-The Python patching pipeline reads the original arcade
-ROM files directly. For each arcade hardware register
-write that needs to become a Genesis VDP operation, the
-patcher replaces the original 68000 instruction bytes
-with a Genesis-native instruction sequence inline.
+The Python patching pipeline reads the original arcade ROM files directly and, at the chosen
+**semantic producer boundary**, replaces the original 68000 instruction bytes with a
+Genesis-native sequence inline (the complete PC080SN/PC090OJ chip tail below the boundary is
+retired, not translated write-by-write).
 
 When a replacement sequence is longer than the original
 instruction, the patcher inserts the extra bytes at that
@@ -114,7 +138,8 @@ They remain as runtime shadow variables:
 
 ### Spec entry format for replacements
 
-New entry type in specs/startup_title_remap.json:
+Entry type in `specs/rastan_direct_remap.json` (current; the old
+`specs/startup_title_remap.json` name is retired SGDK-era):
 
   {
     "type": "opcode_replace",
@@ -142,15 +167,15 @@ its shadow array is deleted from BSS. Deletion order:
 2. genesistan_shadow_d00000_words — after sprite rewrites
 3. Scroll/palette shadows — after those rewrites
 
-## Files to check before touching startup remap
+## Files to check before touching the remap (current)
 
-- `docs/project/startup_title_remap_plan.md`
-- `docs/project/decision_log.md`
-- `specs/startup_title_remap.json`
-- `tools/translation/postpatch_startup_rom.py`
-- `apps/rastan/src/startup_trampoline.s`
-- `apps/rastan/src/startup_bridge.c`
-- `apps/rastan/src/main.c`
+- `specs/rastan_direct_remap.json` — current opcode_replace / remap spec
+- `build/rastan-direct/address_map.json` — generated arcade↔Genesis address map
+- `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`
+- `apps/rastan-direct/src/*.s` — current production source
+- `apps/rastan-direct/Makefile` — build/gate/counter owner
+- `RULES.md`, `ARCHITECTURE.md`,
+  `docs/design/PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md`
 
 ## MAME and reverse-engineering references
 
@@ -172,73 +197,67 @@ its shadow array is deleted from BSS. Deletion order:
 
 ## Preferred workflow for substantial remap changes
 
-1. Update plan/decision docs.
-2. Update spec rules in `specs/`.
-3. Update patcher/tooling to consume spec.
-4. Build with `make -C apps/rastan debug`.
-5. Validate generated manifests under `build/rastan/`.
-6. Then produce a release build for emulator testing.
+1. Confirm the semantic cut + chip tail per `PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md`
+   (for graphics work) and update the relevant design doc.
+2. Update spec rules in `specs/rastan_direct_remap.json`.
+3. Update patcher/tooling (`tools/translation/`) and/or `apps/rastan-direct/src/*.s`.
+4. Build with `source tools/setup_env.sh && make -C apps/rastan-direct` (add task-specific variants/flags only when the prompt requires them).
+5. Validate generated manifests/address map under `build/rastan-direct/` and the canonical gate.
+6. Compare in MAME (Genesis candidate vs arcade vs Build 0235) using the auto-generated trace.
 
 
-## Team Structure
+## Retired / historical (SGDK/C era) — history only, NOT current guidance
 
-### Claude (Technical Lead)
-Platform: claude.ai chat (this session)
-Role: Architecture, disassembly analysis, hardware research,
-prompt design, build review, steering.
-Does not have direct file access. Receives uploads and
-reports from Tighe. Issues directives via Tighe.
+The following are **retired** and must not be treated as current operational guidance. They
+are kept only as provenance for reading old reports. The current project is the
+`apps/rastan-direct/` assembly era (see "Repo map (current)" and "Build and run (current)").
 
-### Andy (Claude VS Code Extension)
-Platform: VS Code Claude extension
-Role: Primary implementer. Has direct file system access
-to the workspace. Receives implementation prompts from
-Claude via Tighe. Reads AGENTS_LOG.md and AGENTS.md
-before every task. Re-reads AGENTS_LOG.md from disk
-immediately before any append.
+- `apps/rastan/` (SGDK launcher app), `apps/rastan/src/main.c`,
+  `apps/rastan/src/startup_bridge.c`, `apps/rastan/src/startup_trampoline.s` — SGDK/C era.
+- Old build commands `make -C apps/rastan release[-nohook]/debug`; output `apps/rastan/out/rom.bin`.
+- Old artifact naming `dist/Rastan_<n>_<timestamp>.bin` / `Rastan_NNN.bin` — retired;
+  the Makefile now owns numbering as `rastan_direct_video_test_build_NNNN.bin`.
+- Old spec name `specs/startup_title_remap.json` → current `specs/rastan_direct_remap.json`.
+- Old `docs/project/startup_title_remap_plan.md` / `decision_log.md` — historical.
+- Old "56/57/59-style" front-end bring-up notes — superseded (baseline is Build 0235+).
+- "C-Window / name-RAM shadow", "genesistan_shadow_d00000_words", and tall-buffer projection
+  framed as an intermediate step: these are **transitional compatibility only** and are being
+  retired per `docs/design/PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md` — never the final
+  architecture. (Work-RAM/input/sound-mailbox shadows are not chip emulation and remain.)
 
-### Cody (Codex / VS Code Copilot)
-Platform: VS Code Copilot chat
-Role: Secondary implementer. Used when Andy is unavailable
-or for parallel tasks. Same discipline as Andy — reads
-logs before starting, re-reads before appending.
-
-### Chad (ChatGPT)
-Platform: ChatGPT
-Role: High-level management and bridge to Tighe. Reviews
-directives from Claude before they go to implementers.
-Escalates conflicts or ambiguities to Tighe rather than
-resolving them independently.
-
-### Alan (Gemini VS Code Extension)
-Platform: Gemini VS Code extension
-Role: Specialist consultant. Called in for fresh analysis
-when the team is stuck. Does not implement. Appends
-analysis to AGENTS_LOG.md only. Confirmed the KEEP()
-linker solution in Build 96.
-
-### Gemini (Google Gemini)
-Platform: Gemini
-Role: Specialist consultant. Available for second opinions,
-cross-referencing hardware documentation, or analysis
-tasks where a different model perspective is useful.
+## Team Structure (current)
 
 ### Tighe (Human Supervisor)
-Role: Project owner and final authority. Coordinates
-between all agents. Commits and pushes to GitHub.
-Tests builds on BlastEm and MAME. Makes final decisions
-on architecture and scope.
+Project **owner and final authority**. Sets scope and architecture decisions, commits and
+pushes, and tests builds on hardware/emulator. No AI agent has authority above Tighe,
+`RULES.md`, or `docs/design/PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md`.
 
-## Authority Structure
+### Andy
+Architecture research, planning, review, and focused analysis. Produces designs, boundary
+proofs, prompts, and evidence; hands implementation to Cody. Does not own production
+implementation.
 
-Technical decisions: Claude
-Implementation: Andy (primary), Cody (secondary)
-Management review: Chad
-Specialist analysis: Alan, Gemini
-Final authority: Tighe
+### Cody
+Primary **production implementer / build agent**. Executes implementation prompts exactly,
+runs the Makefile, produces numbered builds, and reports artifacts as generated.
 
-If any agent's guidance conflicts with Claude's directives,
-escalate to Tighe. Do not resolve independently.
+## Authority Structure (current)
+
+- **Final authority:** Tighe (then `RULES.md` and the canonical policy — no AI agent overrides them).
+- **Planning / research / review:** Andy.
+- **Implementation / builds:** Cody.
+- Any conflict or ambiguity escalates to **Tighe**; agents do not resolve authority conflicts independently.
+
+## Retired team/authority structure (historical — NOT current)
+
+Superseded by the current structure above; kept only as provenance for old reports:
+
+- "Claude (Technical Lead)" owning technical decisions and issuing directives — retired.
+- "Andy = primary implementer" / "Cody = secondary implementer" — retired (Andy now
+  plans/reviews; Cody is the primary implementer/build agent).
+- "Chad (ChatGPT) — high-level management authority / reviews directives" — retired (no AI
+  management authority; final authority is Tighe).
+- "Alan / Gemini specialist consultants" — retired as a standing structure.
 
 ## FUTURE OPTIMISATIONS (post full VDP implementation)
 - C-Window shadow arrays (genesistan_shadow_c00000_words,

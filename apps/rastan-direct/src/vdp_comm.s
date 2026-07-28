@@ -34,6 +34,9 @@
     .global fg_row_dirty
     .global fg_tall_dirty
     .global fg_tall_project_base
+    .global fg_native_owner
+    .global fg_native_column_pending
+    .global fg_native_column_byte
     .global staged_dest_ptr_bg
     .global staged_dest_ptr_fg
     .global staged_scroll_x_bg
@@ -283,6 +286,13 @@ vdp_project_bg_tall_if_dirty:
 
 vdp_project_fg_tall_if_dirty:
     cmpi.b  #1, genesistan_current_scene_id
+    beq.s   .Lfg_tall_gameplay_scene
+    clr.b   fg_native_owner
+    clr.b   fg_native_column_pending
+    bra.s   .Lfg_tall_project_done
+
+.Lfg_tall_gameplay_scene:
+    tst.b   fg_native_owner
     bne.s   .Lfg_tall_project_done
 
     movem.l %d0-%d7/%a0-%a2, -(%sp)
@@ -465,7 +475,7 @@ vdp_commit_scroll:
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .Lscroll_fg_y_ready
-    andi.w  #0x0007, %d0
+    andi.w  #0x01FF, %d0
 .Lscroll_fg_y_ready:
     move.w  %d0, VDP_DATA
     move.w  staged_scroll_y_bg, %d0
@@ -620,6 +630,13 @@ fg_tall_dirty:
     .byte 0
     .align 2
 fg_tall_project_base:
+    .word 0
+fg_native_owner:
+    .byte 0
+fg_native_column_pending:
+    .byte 0
+    .align 2
+fg_native_column_byte:
     .word 0
 
     .align 2

@@ -73,7 +73,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 216
 # extends the bank-0x36 carrier-cache guards; opcode_replace site count unchanged.
 # Build 0232 score/1UP white HUD sprite variant adds the score-glyph asset slice
 # plus SAT palette-line force metadata; opcode_replace site count unchanged.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x183CD8
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x183E44
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

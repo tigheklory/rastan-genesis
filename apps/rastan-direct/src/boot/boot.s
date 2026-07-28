@@ -12,6 +12,9 @@
     .extern fg_row_dirty
     .extern fg_tall_dirty
     .extern fg_tall_project_base
+    .extern fg_native_owner
+    .extern fg_native_column_pending
+    .extern fg_native_column_byte
     .extern fg_narrow_desc_count
     .extern fg_narrow_pending_rows
     .extern staged_dest_ptr_bg
@@ -207,6 +210,9 @@ _bootstrap_clear_staging:
     clr.l   fg_row_dirty
     clr.b   fg_tall_dirty
     clr.w   fg_tall_project_base
+    clr.b   fg_native_owner
+    clr.b   fg_native_column_pending
+    clr.w   fg_native_column_byte
     clr.w   fg_narrow_desc_count
     clr.w   fg_narrow_pending_rows
 

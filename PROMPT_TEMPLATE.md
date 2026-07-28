@@ -32,6 +32,29 @@ If any proposed change would:
 
 ---
 
+## 🎮 MANDATORY FOR ALL PC080SN / PC090OJ WORK
+
+Any prompt or task touching PC080SN (tilemap/Plane A/B) or PC090OJ (sprites/SAT) **must**
+include this block verbatim and comply with it. Read
+`docs/design/PC080SN_PC090OJ_NATIVE_REPLACEMENT_POLICY.md` first (see also `RULES.md` §11).
+
+> **Native hardware replacement rule:**
+> Preserve the original arcade semantic decision and cut before PC080SN/PC090OJ-specific
+> execution. Replace the complete chip-specific tail with direct Genesis VDP/SAT
+> production. Do not create or retain software PC080SN/PC090OJ devices, virtual chip RAM,
+> C-window/name-RAM shadows, object-RAM mirrors, generic chip-address translation, or
+> projection as the final architecture. Any temporary compatibility path must be
+> explicitly identified and isolated.
+
+In the response the agent **must** state: (1) the **semantic cut** (what arcade decision is
+retained above it); (2) the **chip-specific tail removed** (which complete PC080SN/PC090OJ
+block is bypassed/retired); (3) any **transitional compatibility** retained, with its
+producers/consumers and removal boundary. A response that cannot state the cut and the
+removed chip tail is non-compliant. Answer the policy's §9 implementation-review checklist
+in the final report.
+
+---
+
 # 🔍 PHASE 0 — REQUIRED PRIORS CHECK
 
 Priors before posteriors. Before reading any task-specific evidence (current traces, current ROM state, current spec content, current investigation reports, current source files), the agent reads the project's curated memory and issue ledger. This phase establishes what is already known so the agent does not silently rediscover, contradict, or duplicate it.
