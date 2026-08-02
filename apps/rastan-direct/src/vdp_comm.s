@@ -236,8 +236,13 @@ vdp_commit_tiles_if_dirty:
  * remains 64x32, so project the 32 visible tile rows into staged_bg_buffer and
  * leave only the pixel-subrow residual for VSRAM. */
 vdp_project_bg_tall_if_dirty:
+    /* Build 0248: gameplay Plane B is now written directly into final
+     * staged_bg_buffer rows by the native producer/vertical-row helpers.
+     * The legacy tall-BG projector is retained as transitional code only and
+     * must not overwrite native scene-1 Plane B output. */
     cmpi.b  #1, genesistan_current_scene_id
-    bne.s   .Lbg_tall_project_done
+    beq.s   .Lbg_tall_project_done
+    rts
 
     movem.l %d0-%d7/%a0-%a2, -(%sp)
 
@@ -481,7 +486,9 @@ vdp_commit_scroll:
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .Lscroll_bg_y_ready
-    andi.w  #0x0007, %d0
+    /* Native gameplay Plane B now uses the same logical_row&31 resident window
+     * contract as Plane A, so it needs the same full 9-bit vertical scroll. */
+    andi.w  #0x01FF, %d0
 .Lscroll_bg_y_ready:
     move.w  %d0, VDP_DATA
     rts

@@ -88,7 +88,10 @@ CANONICAL_OPCODE_REPLACE_COUNT = 218
 # Build 0247 adds the native no-publication vertical Plane A row helper and
 # two byte-neutral route sites: +0x208 Genesis-only helper bytes
 # (0x183E4C -> 0x184054).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184054
+# Build 0248 adds the native gameplay Plane B direct row/cell publishers and
+# gates off the transitional tall-BG projector for gameplay; opcode_replace
+# site count remains unchanged (+0x38C, 0x184054 -> 0x1843E0).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1843E0
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

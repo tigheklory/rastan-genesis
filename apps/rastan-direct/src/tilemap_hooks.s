@@ -68,6 +68,12 @@
     .equ ARCADE_PC080SN_SELECTOR_OFFSET,     0x10A8
     .equ ARCADE_PC080SN_SCROLL_X_FG_OFFSET,  0x10AE
     .equ ARCADE_PC080SN_SCROLL_Y_FG_OFFSET,  0x10B0
+    .equ ARCADE_PC080SN_SCROLL_X_BG_OFFSET,  0x10EC
+    .equ ARCADE_PC080SN_SCROLL_Y_BG_OFFSET,  0x10EE
+    .equ ARCADE_PC080SN_BG_GROUP_OFFSET,     0x10F4
+    .equ ARCADE_PC080SN_BG_SUBCOL_OFFSET,    0x10F6
+    .equ ARCADE_PC080SN_BG_WALKER_OFFSET,    0x10FC
+    .equ ARCADE_PC080SN_BG_TABLE_INDEX_OFFSET, 0x1386
     .equ ARCADE_PC080SN_SCROLL_Y_ACCUM_OFFSET, 0x10BA
     .equ ARCADE_PC080SN_STRIP_INDEX_OFFSET,  0x10CA
     .equ ARCADE_PC080SN_STRIP_INDEX_FG_OFFSET, 0x10CA
@@ -120,6 +126,7 @@
     .equ PC080SN_DESC_ARCADE_END,             0x0003A00C
     .equ PC080SN_DESC_GENESIS_START,          0x00001108
     .equ PC080SN_DESC_SECOND_WORD_BASE,       0x00000200
+    .equ PLANE_B_DESC_TABLE_ARCADE_BASE,      0x0003951C
     .equ FG_NARROW_CAP,                       64
     .equ VDP_DATA,                            0x00C00000
     .equ VDP_REG_AUTOINC,                     15
@@ -165,6 +172,47 @@
 .Lplane_a_native_attr_no_v:
     addq.w  #2, %sp
     movem.l (%sp)+, %d1-%d3/%a0
+    rts
+
+/* Native gameplay Plane B uses the existing BG attr LUT path: the Rastan
+ * semantic descriptor word is converted directly to final Genesis nametable
+ * attribute bits without consulting PC080SN C-window/name-RAM state.
+ *
+ * in:  D0.W = PC080SN descriptor/attribute word
+ * out: D0.W = Genesis nametable attribute bits
+ */
+.Lplane_b_native_attr_from_word:
+    movem.l %d1-%d2/%a0, -(%sp)
+
+    move.w  %d0, %d1
+    andi.w  #0x0003, %d1
+
+    move.w  %d0, %d2
+    lsr.w   #8, %d2
+    lsr.w   #6, %d2
+    andi.w  #0x0001, %d2
+    lsl.w   #2, %d2
+    or.w    %d2, %d1
+
+    move.w  %d0, %d2
+    lsr.w   #8, %d2
+    lsr.w   #7, %d2
+    andi.w  #0x0001, %d2
+    lsl.w   #3, %d2
+    or.w    %d2, %d1
+
+    move.w  %d0, %d2
+    lsr.w   #8, %d2
+    lsr.w   #5, %d2
+    andi.w  #0x0001, %d2
+    lsl.w   #4, %d2
+    or.w    %d2, %d1
+
+    add.w   %d1, %d1
+    lea     genesistan_pc080sn_attr_lut, %a0
+    move.w  0(%a0,%d1.w), %d0
+
+    movem.l (%sp)+, %d1-%d2/%a0
     rts
 
 genesistan_hook_tilemap_plane_a_selector0_native:
@@ -433,7 +481,10 @@ genesistan_plane_a_pan_publish_entering_rows_up:
     move.w  %d4, %d0
     addi.w  #31, %d0
     andi.w  #0x003F, %d0
+    move.w  %d0, %d3
     bsr     .Lplane_a_publish_logical_row_native
+    move.w  %d3, %d0
+    bsr     .Lplane_b_publish_logical_row_native
     bra.s   .Lplane_a_pan_up_loop
 
 .Lplane_a_pan_up_done:
@@ -464,7 +515,10 @@ genesistan_plane_a_pan_publish_entering_rows_down:
     subq.w  #1, %d4
     andi.w  #0x003F, %d4
     move.w  %d4, %d0
+    move.w  %d0, %d3
     bsr     .Lplane_a_publish_logical_row_native
+    move.w  %d3, %d0
+    bsr     .Lplane_b_publish_logical_row_native
     bra.s   .Lplane_a_pan_down_loop
 
 .Lplane_a_pan_down_done:
@@ -594,6 +648,189 @@ genesistan_plane_a_pan_publish_entering_rows_down:
     .long 0x0001F41C, 0x000216DC, 0x0002399C, 0x00025C5C
     .long 0x00027F1C, 0x0002A1DC, 0x0002C49C, 0x0002E75C
     .long 0x00030A1C, 0x00032CDC, 0x00034F9C, 0x0003725C
+
+/* in: D0.W = logical row 0..63
+ * Publishes one full native gameplay Plane B row directly from the original
+ * Rastan semantic BG descriptor table rooted at arcade ROM/data 0x03951C.
+ * C00000 and a5@0x10F8 remain oracle-only and are not production inputs.
+ */
+.Lplane_b_publish_logical_row_native:
+    movem.l %d1-%d7/%a0-%a6, -(%sp)
+    suba.w  #18, %sp
+
+    andi.w  #0x003F, %d0
+    move.w  %d0, 0(%sp)                      /* logical row */
+    move.w  %d0, %d1
+    andi.w  #0x001F, %d1
+    move.w  %d1, 2(%sp)                      /* physical resident row */
+    move.w  %d0, %d1
+    lsl.w   #5, %d1
+    move.w  %d1, 4(%sp)                      /* row byte offset in descriptor block */
+
+    moveq   #0, %d0
+    move.w  ARCADE_PC080SN_BG_TABLE_INDEX_OFFSET(%a5), %d0
+    andi.l  #0x0000FFFF, %d0
+    move.l  %d0, %d1
+    lsl.l   #3, %d0
+    lsl.l   #2, %d1
+    add.l   %d1, %d0
+    addi.l  #PLANE_B_DESC_TABLE_ARCADE_BASE, %d0
+    move.l  %d0, 8(%sp)                      /* base = 0x3951C + tm0idx*0x0C */
+
+    move.l  ARCADE_PC080SN_BG_WALKER_OFFSET(%a5), %d0
+    sub.l   8(%sp), %d0
+    andi.l  #0x0000FFFF, %d0
+    moveq   #6, %d1
+    divu.w  %d1, %d0                         /* G_r = (10FC - base) / 6 */
+    andi.l  #0x0000FFFF, %d0
+    lsl.w   #4, %d0
+    add.w   ARCADE_PC080SN_BG_SUBCOL_OFFSET(%a5), %d0
+    move.w  %d0, 6(%sp)                      /* AR = G_r*16 + F6 */
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     staged_bg_buffer, %a6
+    moveq   #0, %d4                          /* ring destination column C */
+
+.Lplane_b_row_col_loop:
+    move.w  6(%sp), %d0
+    sub.w   %d4, %d0
+    andi.w  #0x003F, %d0
+    move.w  6(%sp), %d5
+    sub.w   %d0, %d5                         /* absC = AR - ((AR-C)&63) */
+    move.w  %d5, %d6
+    lsr.w   #4, %d6                          /* source_group */
+
+    move.w  %d6, %d0
+    add.w   %d0, %d0                         /* group * 2 */
+    lsl.w   #2, %d6                          /* group * 4 */
+    add.w   %d0, %d6                         /* group * 6 */
+
+    movea.l 8(%sp), %a0
+    adda.w  %d6, %a0
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
+    blo.s   .Lplane_b_row_blank_cell
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
+    bhs.s   .Lplane_b_row_blank_cell
+    suba.l  #PC080SN_DESC_ARCADE_START, %a0
+    adda.l  #PC080SN_DESC_GENESIS_START, %a0
+
+    move.w  (%a0), %d7                       /* semantic attribute word */
+    move.l  2(%a0), %d6                      /* semantic tile-block pointer */
+    btst    #0, %d6
+    bne.s   .Lplane_b_row_blank_cell
+    cmpi.l  #0x0005FDFC, %d6
+    bhi.s   .Lplane_b_row_blank_cell
+
+    addi.l  #PC080SN_DESC_SECOND_WORD_BASE, %d6
+    movea.l %d6, %a0
+
+    move.w  %d7, %d0
+    bsr     .Lplane_b_native_attr_from_word
+    move.w  %d0, 12(%sp)
+
+    move.w  %d4, %d0
+    andi.w  #0x000F, %d0                     /* source_subcol = C & 15 */
+    add.w   %d0, %d0
+    add.w   4(%sp), %d0
+    move.w  0(%a0,%d0.w), %d3
+    andi.w  #0x3FFF, %d3
+    bra.s   .Lplane_b_row_tile_ready
+
+.Lplane_b_row_blank_cell:
+    moveq   #0, %d3
+    clr.w   12(%sp)
+
+.Lplane_b_row_tile_ready:
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+    or.w    12(%sp), %d3
+
+    move.w  2(%sp), %d0
+    lsl.w   #7, %d0
+    move.w  %d4, %d1
+    add.w   %d1, %d1
+    add.w   %d1, %d0
+    move.w  %d3, 0(%a6,%d0.w)
+
+    addq.w  #1, %d4
+    cmpi.w  #64, %d4
+    blo.w   .Lplane_b_row_col_loop
+
+    move.w  2(%sp), %d0
+    move.l  bg_row_dirty, %d1
+    bset    %d0, %d1
+    move.l  %d1, bg_row_dirty
+
+    adda.w  #18, %sp
+    movem.l (%sp)+, %d1-%d7/%a0-%a6
+    rts
+
+/* in: D0.L = source attr/tile word, D2.W = logical row from producer loop.
+ * Gameplay strips publish only resident rows directly into the final Plane B
+ * staging buffer; frontend/non-gameplay routes keep the legacy 32-row helper.
+ */
+.Lplane_b_stage_gameplay_producer_cell_native:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    suba.w  #8, %sp
+
+    lea     0x00FF0000, %a5
+    move.l  %d0, %d7                         /* source attr/tile word */
+
+    move.w  %d2, %d0
+    andi.w  #0x003F, %d0
+    move.w  %d0, 0(%sp)                      /* logical row */
+
+    move.w  ARCADE_PC080SN_SCROLL_Y_BG_OFFSET(%a5), %d0
+    bsr     .Lplane_a_visible_top_from_scroll_d0
+    move.w  0(%sp), %d1
+    sub.w   %d0, %d1
+    andi.w  #0x003F, %d1                     /* resident_delta */
+    cmpi.w  #32, %d1
+    bhs.s   .Lplane_b_stage_cell_done
+
+    move.w  0(%sp), %d1
+    andi.w  #0x001F, %d1
+    move.w  %d1, 2(%sp)                      /* physical row */
+
+    move.w  ARCADE_PC080SN_BG_GROUP_OFFSET(%a5), %d1
+    andi.w  #0x0003, %d1
+    lsl.w   #4, %d1
+    move.w  ARCADE_PC080SN_BG_SUBCOL_OFFSET(%a5), %d2
+    andi.w  #0x000F, %d2
+    add.w   %d2, %d1
+    andi.w  #0x003F, %d1
+    move.w  %d1, 4(%sp)                      /* physical column */
+
+    move.l  %d7, %d0
+    swap    %d0
+    bsr     .Lplane_b_native_attr_from_word
+    move.w  %d0, 6(%sp)
+
+    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    move.w  %d7, %d3
+    andi.w  #0x3FFF, %d3
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+    or.w    6(%sp), %d3
+
+    lea     staged_bg_buffer, %a6
+    move.w  2(%sp), %d0
+    lsl.w   #7, %d0
+    move.w  4(%sp), %d1
+    add.w   %d1, %d1
+    add.w   %d1, %d0
+    move.w  %d3, 0(%a6,%d0.w)
+
+    move.w  2(%sp), %d0
+    move.l  bg_row_dirty, %d1
+    bset    %d0, %d1
+    move.l  %d1, bg_row_dirty
+
+.Lplane_b_stage_cell_done:
+    adda.w  #8, %sp
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
 genesistan_hook_tilemap_plane_a:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
@@ -3328,7 +3565,7 @@ genesistan_hook_itempage_strip_blit:
     moveq   #1, %d1
     tst.w   %d6
     beq.s   .Litempage_strip_blit_32row
-    bsr     genesistan_hook_tilemap_bg_fill_tall
+    bsr     .Lplane_b_stage_gameplay_producer_cell_native
     bra.s   .Litempage_strip_blit_after_fill
 .Litempage_strip_blit_32row:
     bsr     genesistan_hook_tilemap_bg_fill
