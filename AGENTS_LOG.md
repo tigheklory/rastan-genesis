@@ -1,5 +1,22 @@
 # AGENTS Log
 
+## [Cody — Implementation, Build 0247 Native Plane A No-Publish Vertical Routing]
+
+* production source/spec/tool constants changed; Build 0247 produced via normal `make -C apps/rastan-direct release`; ROM `dist/rastan-direct/rastan_direct_video_test_build_0247.bin`; SHA-256 `30212e73bfbe43396847140bd464f8d800985935a43af3518e7469643a1f2098`; size `1589332`; counter advanced `246 -> 247`; no numbered artifacts deleted or overwritten.
+* files changed: `apps/rastan-direct/src/tilemap_hooks.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated build outputs, `docs/design/Cody_build0247_native_plane_a_no_publish_vertical_routing.md`, `AGENTS_LOG.md`.
+* implemented two byte-neutral native Plane A no-publication routes at arcade PCs `0x055704` and `0x055790`; generated runtime PCs `0x055904` and `0x055990`; wrappers jump back to runtime continuations `0x05590C` and `0x055998`. Existing arcade `0x055904 -> runtime 0x055B04` descriptor rebuild and arcade `0x055990 -> runtime 0x055B90` selector-1/2 route remain distinct and intact.
+* native helper derives row cells from original Rastan semantic ROM structures using X-scroll-derived source columns, does not use `a5@0x13E` as arbitrary-row source, writes final `staged_fg_buffer` words, marks `fg_row_dirty`, and avoids C08000/name-RAM, tall buffer/projection, compatibility helpers, collision writes, persistent frame state, and Stage-1 hardcoded rows/cols/segment zero.
+* static verification: patch manifest has opcode replacement count `218`, total Genesis bytes covered `0x184054`, new replacements `4EF9000707B24E71` and `4EF9000707624E71`; final disassembly shows `0x55904 -> jmp 0x707B2`, `0x55990 -> jmp 0x70762`, helper returns `0x707F4 -> jmp 0x5590C` and `0x707AC -> jmp 0x55998`; release build reported `GATE_PASS`.
+* runtime validation: stock trace preserved at `states/traces/rastan_direct_video_test_build_0247_mame_30s_20260801_190014/`; focused trace attempts preserved at `states/traces/build0247_plane_a_no_publish_vertical_runtime/`. Automated MAME path reached gameplay `2/3/0` and sampled `10B0=0x0149`, but did not capture execution of the new no-publication sites; opening-pan row publication proof remains a user/next-agent validation target, not claimed proven.
+* OPEN-001 touched; no new issue opened; no issue closed; Plane B, PC090OJ, collision/rope/progression, audio/input, and broader gameplay intentionally deferred. KNOWN_FINDINGS impact Option A - no new finding to index. STOP not triggered for implementation; acceptance still requires visual/manual runtime confirmation.
+
+## [Cody - Analysis, Selector-0 PC080SN Tail Retirement Audit]
+
+* analysis/documentation only; NO production source/spec/tool/Makefile/ROM/counter changes; NO build; no numbered artifacts deleted or overwritten. Created `docs/design/Cody_plane_a_selector0_chip_tail_retirement_audit.md`.
+* audited selector-0 Plane A path `arcade_pc 0x055948 -> 0x055950 -> 0x055968 -> 0x0559B2` using `build/maincpu.disasm.txt`, arcade reference docs, Andy selector-0 logical-coordinate proof, and JSON-derived mappings from `build/rastan-direct/address_map.json`. Native cut is `arcade_pc 0x055950` / `runtime_genesis_pc 0x055B50`; return is `arcade_pc 0x055954` / `runtime_genesis_pc 0x055B54`.
+* result: `a5+0x10A0` is PC080SN destination-cursor bookkeeping and fully retireable for selector-0 Plane A publication, but not globally deletable because separate tilemap0/state-gated users remain out of scope. Complete selector-0 PC080SN tail `0x055968..0x05598E` plus repeated `0x0559B2..0x055A12` calls can be replaced later by a native helper that consumes `10CA/10CC`, `0x10D040`, and `0x10D080`, writes collision via logical row/column, returns to `0x055954`, and preserves caller-visible registers.
+* OPEN-001/OPEN-017/OPEN-024 touched as context only; no issues opened/closed; KNOWN_FINDINGS impact Option A; architecture compliance CONFIRMED; STOP NO.
+
 ## [Cody — Standalone Native YM7101 Contract Artifact]
 
 * documentation-only correction; NO production source/spec/Makefile/ROM/counter changes; NO build; no numbered artifacts deleted, overwritten, or reused. Extracted the accepted final contract from the cumulative audit into standalone canonical implementation document `docs/design/Cody_pc080sn_native_ym7101_global_fill_vertical_streaming_contract.md`.
@@ -44083,3 +44100,294 @@ Open/Closed Issues Impact:
 - **Transitional rule acknowledged:** existing compatibility paths must be identified, isolated, prevented from overwriting native output, and assigned a removal boundary. Future reports must state the retained semantic cut, the chip-specific tail removed, and any transitional compatibility still present.
 - **Build 0240 conceptual review:** Plane A helper consumes some retained arcade semantic/source state (`scene`, selector, scroll, source/descriptor selection, strip index, entering row/column publication intent) and writes final Genesis Plane A cells/jobs in parts. It also consumes PC080SN-shaped destination state (`0xC08000`/C-window address checks, `a5@0x10A0/0x10A4` destination cursors, rebuilt descriptor pointer/word tables) and retains transitional structures (`staged_fg_buffer`, `staged_fg_tall_buffer`, `fg_tall_dirty/project_base`, `fg_narrow_desc_table/count/pending_rows`, `fg_native_*` ownership/pending flags, and legacy projector/narrow-commit compatibility). Therefore Build 0240 is not final-policy-complete; only the semantic-state-to-final-cell conversion and bounded native column/job idea are candidates for a final architecture after moving the cut higher and retiring chip-shaped inputs/projection compatibility.
 - **Production source / spec / Makefile / ROM / build / counter changed:** NO. `AGENTS_LOG.md` append only. Build produced: NO. Counter changed: NO.
+
+---
+
+## [Andy — Plane A Semantic Cut Contract] (research only)
+
+- **Date:** 2026-07-28. No production source / spec / build / counter change (240).
+- **Deliverable:** `docs/design/Andy_plane_a_semantic_cut_contract.md`.
+- **Selected cut (all four Plane A ops):** the **cell-producer boundary** — `0x0559B2` (selector-0 column) and `0x055A14` (selector-1/2 row). Same two points serve scene-fill and gameplay; they differ only in dispatch caller + selector.
+- **Not the driver boundary (0x055968/0x055990):** the drivers own the a1/a3 descriptor walk and the `a5@0x10A0 = a0` save, and the scene-fill loop depends on a0 ending at `base+0x4000` so its `-=0x3FFC` nets **+4/column**. Proven from 0x0503DC/0x050444: producer advances a0 by +0x4000, fill loop subtracts 0x3FFC → +4 (matches 0xC08000→0xC08100 over 64). Cutting at the driver reproduces that whole bookkeeping = the exact Build 0240 stall surface (a5@0x10A0 stuck 0xC08004). Cell-producer cut keeps driver+save+fill arcade-owned; helper only advances a0 +0x100/cell and produces final Plane A + collision.
+- **Complete chip tail removed:** the two `movew …, a0@` C08000 name-RAM word writes/cell (word0 attr + word1 tile) × 4 cells × 16 segments in 0x0559B2 and 0x055A14 — the entire PC080SN tilemap1 name-RAM population. Collision (→0x10DE00), a0 advance, and source reads are REPRODUCED, not removed.
+- **Classification:** semantic-retain = descriptor tables 0x10D000/40/80, strip index 0x10CA, selector 0x10A8, scroll 0x10AE/0x10B0, collision src/dest; a5@0x10A0/0x10A4 = AMBIGUOUS→RETAIN (position + collision base + loop counter; value is arcade position, C08000 *dereference* is chip→REMOVE); C08000 *arithmetic* (position + collision addr) = RETAIN.
+- **Collision ownership:** RETAIN/REPRODUCE for all 64 logical cells regardless of visual residency.
+- **Build 0240:** reusable = arcade tables + rebuild 0x55904, LUT conversion, residency math, collision concept. Retire = the native column path that suppressed the arcade a0 advance and assumed +4 instead of +0x4000-then-−0x3FFC; `fg_native_owner` cursor-advance suppression.
+- **Unresolved blockers (implementation, not boundary):** exact a0 stride byte-match; word0 attribute semantics; selector-2 strip complement; Plane A residency logical→physical.
+- **Recommended first Cody task:** replace ONLY 0x0559B2 (selector-0 column cells); leave row/Plane B/dispatch/drivers/fill untouched; accept when a5@0x10A0 advances identically to Build 0235 with no stall and collision intact.
+- **STOP:** not triggered. No implementation prompt written in the document.
+
+---
+
+## [Andy — Corrected Plane A Semantic Cut Contract] (research only)
+
+- **Date:** 2026-07-28. No production source / spec / build / counter change (240). Revised `docs/design/Andy_plane_a_semantic_cut_contract.md` (rev 2).
+- **Build 0240 root corrected:** proven cause = `.Lfg_native_convert_cell` clobbers live caller registers (uses d3/d4/d5/d7/a2/a3, `rts` with NO save/restore) → the arcade publication/segment loop (holds counter/table ptrs in a1/a3/d1) never terminates → READY hang. `a5@0x10A0=0xC08004` / `a5@0x10AA=0x003F` were symptoms of the hung loop, NOT a bookkeeping fault. Withdrew the earlier attribution to fg_native_owner / cursor suppression / +4 arithmetic (no evidence they were faults). Lesson: helpers called inside arcade loops must save/restore every non-owned register.
+- **Cut re-evaluated / earlier conclusion withdrawn:** 0x0559B2/0x055A14 consume PC080SN-shaped state (C08000 dest cursor, word0/word1 layout, +0x100 stride, collision via chip address) → classified **transitional cell-write interception, NOT the final semantic cut** (policy §2 litmus).
+- **Boundary ladder:** 0x050434 = MIXED (semantic publish wrapped in C08000 seed + −0x3FFC back-step); 0x055948 dispatch = SEMANTIC (highest pure-semantic point; delegates position to the C08000-cursor driver); 0x055968/0x055990 = MIXED semantic/chip (semantic descriptor walk + chip C08000 cursor/stride); 0x0559B2/0x055A14 = FULLY PC080SN-specific.
+- **Final cut = NOT YET SELECTABLE → STOP.** The arcade does not expose logical (row,col) independently of the C08000 cursor a5@0x10A0/0x10A4 (the cursor IS the position source-of-truth; collision is indexed via (a0-0xC08000)>>1). Logical recovery from ring counters (0x10CA/0x10CC) + scroll (0x10AE/0x10B0) + selector is possible in principle (collision map 0x10DE00 is logically addressed as 0x10DE00+(row·64+col)·2), but not yet proven to match a0 across fill/gameplay/selectors/sel-2 reversal/ring wrap.
+- **Classification:** semantic tables 0x10D000/40/80 = RETAIN; a5@0x10A0/0x10A4 = **chip-format cursor, REMOVE target** (not a semantic field); collision destination must become logical (row,col) indexing, not chip-address.
+- **Cody implementation recommended:** NO. Next step = prove logical (row,col)+collision indexing from ring+scroll vs runtime a0. A transitional cell-producer experiment may be documented separately (register-safe), never as the target architecture.
+- **STOP:** triggered on final-cut selection.
+
+---
+
+## [Andy — Selector-0 Logical Coordinate Proof] (research only)
+
+- **Date:** 2026-07-28. No production / spec / build / counter change (240). Doc: `docs/design/Andy_plane_a_selector0_logical_coordinate_proof.md`. Evidence: `states/traces/plane_a_selector0_logical_coord_20260728_105839/`.
+- **Method:** original arcade MAME; tapped selector-0 collision write (PC 0x0559EC in producer 0x0559B2); per write compared semantic-derived (row,col) vs C08000/collision-address oracle.
+- **PROVEN (0 mismatches over 205 publications, scene-fill + gameplay):**
+  - logical_column = (a5@0x10CC*4 + a5@0x10CA) & 63 — SAME for scene-fill and gameplay, no scroll term.
+  - logical_row = segment*4 + cell (0..63); row sequence 0..63 per publication (rowseq_ok all).
+  - collision_address = 0x10DE00 + ((logical_row*64 + logical_column)*2) — matches arcade dest exactly; C08000-free.
+- **Ring timing resolved:** publication uses PRE-dispatch-increment 10CA + current 10CC (dispatch publishes then 10CA++ at 0x055954; 10CC++ in 0x558A2 at 10CA==4). 10CA also = producer strip.
+- **Wrap:** 63→0 proven in fill (pub64→65) AND gameplay (pubs 128,192), 10CC 15→0; ring-group transitions every 4 pubs. All colmatch=true. Gameplay covered all 64 columns (141 pubs).
+- **Asset/source:** tile=*(block+cell*8+strip*2), attr=*(a1), collision=*(block+20..) from tables 0x10D040/0x10D080 — none use a0/C08000; a0 is only DEST. Graphics-ROM patterns/tile identity/palette/flip/priority retained as assets (not touched).
+- **C08000 required by final formula:** NO.
+- **Selector-0 cut at 0x055948:** COORDINATE-viable = YES (logical col/row/collision proven without PC080SN geometry). Resolves the coordinate blocker from Andy_plane_a_semantic_cut_contract.md §5/§8. Remaining NON-coordinate blockers: a5@0x10A0 loop bookkeeping, Plane A residency mapping, register discipline (0240 lesson). selector-1/2 rows out of scope.
+- **STOP:** not triggered.
+
+### MAME Exit Summary (2026-07-28 14:23:53)
+- Final PC: 0x0005C2
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+---
+
+## [Cody — Implementation, Build 0241 Native Selector-0 Plane A Column Tail]
+
+- **Date:** 2026-07-28. **Classification:** EXTENDING native PC080SN Plane A migration. **Accepted baseline:** Build 0235 SHA `9aff0b11fb9a2151186ef0c03654fdd968d630a3cab45801be85de6f62571ad5`. **Rejected prior preserved:** Build 0240 evidence preserved under `states/traces/build0240_rejection_selector0_restore_20260728_141302/` before implementation.
+- **Files changed:** `apps/rastan-direct/src/tilemap_hooks.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated `apps/rastan-direct/out/*`, generated `build/rastan-direct/*`, `build/genesis_postpatch.disasm.txt`, `build/rom_inventory.json`, `docs/design/Cody_plane_a_selector0_native_tail_implementation.md`, and this log. Pre-existing unrelated root-file deletions were not touched or reverted.
+- **Implementation candidate:** added `genesistan_hook_tilemap_plane_a_selector0_native`, replacing `arcade_pc 0x055950` with a shift replacement call. Static mapping: `arcade_pc 0x055950 -> runtime_genesis_pc 0x055B50`, patched as `jsr 0x000704A4`; continuation is shifted `runtime_genesis_pc 0x055B56` for `arcade_pc 0x055954`. Helper computes selector-0 logical column/row from `a5+0x10CC` and `a5+0x10CA`, writes logical collision to `0x1E00(a5,offset)`, stages resident Plane A cells, and marks `fg_row_dirty`. It saves/restores `d0-d7/a0-a6` and does not directly write VDP.
+- **Forbidden dependencies checked:** helper does not reference `a5+0x10A0`, `0x00C08000`/`C08000`, `genesistan_stage_fg_src_column`, `genesistan_stage_bg_collision_column`, `fg_tall`, `projector`, or direct VDP data writes.
+- **Build produced:** YES, Build 0241. ROM `dist/rastan-direct/rastan_direct_video_test_build_0241.bin`, SHA `42fdc60d988c2bb2753ac0cf1b2033103c13a7e5402e0bb272ef3377aff74c47`, size `1588432`, counter `241`, release gates `GATE_PASS`. Numbered artifact preserved; no numbered artifact deleted or overwritten.
+- **Runtime validation:** FAILED. Evidence preserved under `states/traces/build0241_selector0_native_runtime_20260728_143245/`. Build 0235 control reached state `2/3/0` by frame 339; Build 0241 stayed at `0/0/0`, entered exception handler path by frame 34 (`pc` samples `0x000670/0x000A64/0x000B4C/0x0005C0`, `exflag=1`, `excode=3`), and never reached selector-0 publication. Counts for Build 0241: `selector0_publications=0`, `native_collision_writes=0`, `native_fg_stage_writes=0`, `legacy_sel0_collision_writes=0`.
+- **Result:** Build 0241 is a preserved rejected candidate, not an accepted successor. The selector-0 helper is statically implemented but not runtime-validated because the ROM fails earlier. **Root cause confirmed:** NO for the early exception. **Fix accepted:** NO. **STOP triggered:** YES for acceptance; no Build 0242 produced.
+- **Open/Closed Issues Impact:** OPEN-001 touched; no new issues opened; no issues closed; selector-1/2, Plane B, rope/post-rope, PC090OJ, collision/player-state intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A — no new finding to index because the candidate failed before exercising the new helper.
+
+### MAME Exit Summary (2026-07-28 16:29:40)
+- Final PC: 0x072E04
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Byte-Neutral Native Selector-0 Route]
+
+- **Date:** 2026-07-28. **Classification:** EXTENDING native PC080SN Plane A migration / OPEN-001. **Accepted baseline restored before implementation:** Build 0235 SHA `9aff0b11fb9a2151186ef0c03654fdd968d630a3cab45801be85de6f62571ad5`. **Rejected prior preserved:** Build 0241 SHA `42fdc60d988c2bb2753ac0cf1b2033103c13a7e5402e0bb272ef3377aff74c47`. Build 0241 source snapshot preserved under `states/traces/build0241_recovery_byte_neutral_selector0_20260728_162347/source_snapshot_0241/`.
+- **Files changed:** `apps/rastan-direct/src/tilemap_hooks.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated `apps/rastan-direct/out/*`, generated `build/rastan-direct/*`, generated `build/genesis_postpatch.disasm.txt`, `build/rom_inventory.json`, `docs/design/Cody_plane_a_selector0_native_tail_implementation.md`, and this log. Production recovery also restored Build-0235 versions of `apps/rastan-direct/src/boot/boot.s`, `apps/rastan-direct/src/vdp_comm.s`, and `apps/rastan-direct/Makefile` before applying the byte-neutral route. Pre-existing unrelated root-file deletions were not touched or reverted.
+- **Recovery/diff evidence:** Build-0235-to-Build-0242 production diff/stat and static checks preserved under `states/traces/build0241_recovery_byte_neutral_selector0_20260728_162347/`.
+- **Static route:** removed the Build 0241 `shift_replacement`; no `shift_replacements` remain in `specs/rastan_direct_remap.json`. The original copied-program `BSR.W` at `arcade_pc 0x055950` is retained (`runtime_genesis_pc 0x055B50`, bytes `61000016...`). `arcade_pc 0x055968` is patched byte-neutrally (`runtime_genesis_pc 0x055B68`, bytes `4EF9000704A44E71...`) to `genesistan_hook_tilemap_plane_a_selector0_native` at `runtime_genesis_pc 0x000704A4`. The existing selector-1/2 replacement at `arcade_pc 0x055990` remains unchanged.
+- **Validation tooling:** Build 0241 broad shifted-expected-byte handling was reverted. `maybe_shift_abs_long_expected_bytes` is back to narrow Build 0235 behavior: only single 6-byte absolute-long `JSR`/`JMP`/`LEA` operand adjustment; no whole-body scan and no `MOVEA.L #imm,An` expansion.
+- **Helper contract:** `genesistan_hook_tilemap_plane_a_selector0_native` saves/restores `d0-d7/a0-a6`, avoids `a5+0x10A0`, avoids `0x00C08000`/PC080SN destination state, uses semantic `a5+0x10CA/0x10CC`, processes 16 segments x 4 cells, writes all 64 logical collision rows, stages final resident Plane A words to `staged_fg_buffer`, marks `fg_row_dirty`, and does not write VDP directly.
+- **Build produced:** YES, Build 0242. ROM `dist/rastan-direct/rastan_direct_video_test_build_0242.bin`, SHA `823c3ab0021111265070063beb01083a0665decce894933ff1375915132932c2`, size `1588432`, counter `242`; rolling artifact SHA matches. Release gates `GATE_PASS`; opcode_replace count `216`; canonical coverage `0x183CD0`. Numbered artifacts preserved; no numbered artifact deleted or overwritten.
+- **Automatic smoke trace:** `states/traces/rastan_direct_video_test_build_0242_mame_30s_20260728_162933/`; 1798 frames; no unmapped `0xC50000` or live FG C-window summary hits.
+- **Focused runtime validation:** FAILED. Trace preserved under `states/traces/build0241_recovery_byte_neutral_selector0_20260728_162347/runtime_build0242/`. Summary: `frames=5000`, `final_state=0002/0002/0004`, `reached_230=false`, `current_10aa=003D`, `selector0_publications=0`, `native_collision_writes=0`, `native_fg_stage_writes=0`, `legacy_sel0_collision_writes=0`. Frame samples show sampled `runtime_genesis_pc 0x0005C0` from frame 480 onward. The helper did not receive runtime validation.
+- **Result:** Build 0242 is a preserved rejected candidate, not an accepted successor. **Root cause confirmed:** NO for the runtime failure. **Fix accepted:** NO. **STOP triggered:** YES; no Build 0243 produced.
+- **Open/Closed Issues Impact:** OPEN-001 touched; OPEN-002 context only; no new issues opened; no issues closed; selector-1/2, Plane B, PC090OJ, root cause of the Build 0242 exception-handler state, and broader gameplay rendering intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A - no new finding to index because the candidate failed before exercising the new helper and no durable runtime behavior fact was established.
+
+### MAME Exit Summary (2026-07-28 18:00:29)
+- Final PC: 0x072E10
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Fix, Build 0242 Selector-0 Route -> Build 0243]
+
+- **Date:** 2026-07-28. **Classification:** EXTENDING native PC080SN Plane A selector-0 route / OPEN-001. **Build 0242 preserved/rejected input:** `dist/rastan-direct/rastan_direct_video_test_build_0242.bin`, SHA `823c3ab0021111265070063beb01083a0665decce894933ff1375915132932c2`. Build 0242 source snapshot and production diff preserved under `states/traces/build0242_selector0_route_fix_20260728_173622/`.
+- **Root cause confirmed:** YES. Build 0242 route/static proof showed `runtime_genesis_pc 0x055B50` still BSRs to patched `0x055B68`, which jumps to `genesistan_hook_tilemap_plane_a_selector0_native` at `0x0704A4` and returns to `0x055B54`. Runtime contradiction resolved: regenerated Build 0242 trace showed selector-0 route/helper did execute (`DISPATCH/BSR/ROUTE/HELPER_ENTRY/RETURN=4`) before exception.
+- **First divergence:** selector-0 helper collision store encoded as large-displacement indexed write, reported at `runtime_genesis_pc 0x070598`, corrupted descriptor source slots `Genesis-WRAM 0xFF1020..0xFF1027`; source-slot watch showed 4 helper writes to slots 8/9 followed by descriptor rebuild exception (`EXCEPTION_COMMON=1`, frame PC `0x00010205`). This was an addressing-mode encoding defect, not a failed route or missing helper.
+- **Files changed:** `apps/rastan-direct/src/tilemap_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated `apps/rastan-direct/out/*`, generated `build/rastan-direct/*`, generated `build/genesis_postpatch.disasm.txt`, generated `build/rom_inventory.json`, `docs/design/Cody_build0242_selector0_route_fix.md`, and this log. Pre-existing unrelated root-file deletions were not touched or reverted.
+- **Fix implemented:** bounded native helper encoding correction only. The selector-0 collision store now uses `movea.l #ARCADE_COLLISION_MAP_BASE,%a6; move.w %d2,0(%a6,%d3.w); lea staged_fg_buffer,%a6`. The local cell-loop branch widened from `blo.s` to `blo.w` solely because the corrected store sequence exceeded short-branch range. No control-flow condition changed.
+- **Build produced:** YES, Build 0243. ROM `dist/rastan-direct/rastan_direct_video_test_build_0243.bin`, SHA `9c39607a4964fb0f69e9ea91fdcc2a839427a90dbc190fc1a5e2762f55a39155`, size `1588444`, counter `243`; rolling artifact SHA matches. `GATE_PASS`; opcode_replace patched-site count `216`; canonical coverage `0x183CDC`. Numbered Builds 0241/0242/0243 preserved; no numbered artifact deleted or overwritten.
+- **Build 0243 verification:** final ROM route intact (`0x055B50 -> bsrw 0x55B68`, `0x055B68 -> jmp 0x704A4`, helper RTS at `0x070602`). Built-in 30-second trace saved to `states/traces/rastan_direct_video_test_build_0243_mame_30s_20260728_180023/` (`frames=1798`, `fg_cwindow_live count=0`). Focused route trace: `DISPATCH/BSR/ROUTE/HELPER_ENTRY/HELPER_RTS/RETURN=64`, helper collision writes `4096` reported at `0x07059E`, actual `EXCEPTION_COMMON=0`. Focused source-slot watch: source-slot writes from helper `0`; legitimate ring-advance writes at `0x055AD2`; rebuild entries `17`; actual `EXCEPTION_COMMON=0`.
+- **Deliverable:** `docs/design/Cody_build0242_selector0_route_fix.md`.
+- **Open/Closed Issues Impact:** OPEN-001 touched; no new issues opened; no issues closed; Plane B, selector-1/2, broader gameplay visuals, rope/collision, and PC090OJ intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A — no new finding to index; this is a Build 0242 implementation encoding defect fixed and validated against existing native Plane A route work.
+- **STOP:** not triggered. No unrelated changes intentionally made.
+
+### MAME Exit Summary (2026-07-29 10:54:46)
+- Final PC: 0x072E20
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0244 Plane A Visibility Ownership Gate]
+
+- **Date:** 2026-07-29. **Classification:** EXTENDING native PC080SN Plane A selector-0 visibility / OPEN-001. **Input baseline:** Build 0243 SHA `9c39607a4964fb0f69e9ea91fdcc2a839427a90dbc190fc1a5e2762f55a39155`, counter `243`. Build 0243 source snapshot, production diff, and Builds 0241-0244 artifact hashes preserved under `states/traces/build0243_plane_a_visibility_fix_20260729_104631/`.
+- **Root cause / boundary:** Build 0243 native selector-0 writes final Plane A cells to `staged_fg_buffer` and marks `fg_row_dirty`, but VBlank still ran `vdp_project_fg_tall_if_dirty` before `vdp_commit_fg_narrow_strips`/row commit. The transitional tall-FG projector could copy stale `staged_fg_tall_buffer` over native `staged_fg_buffer` rows before the final Plane A VRAM commit.
+- **Fix implemented:** added bounded `fg_native_gameplay_owner` ownership flag. Setter: `genesistan_hook_tilemap_plane_a_selector0_native`. Clearers: `_bootstrap_clear_staging`, `genesistan_hook_cwindow_clear`, and non-gameplay `load_scene_tiles`. Consumer: `vdp_project_fg_tall_if_dirty` skips gameplay tall projection once native selector-0 ownership is active. No new renderer, no C-window/name-RAM shadow, no direct VDP writes from the helper; final path remains `staged_fg_buffer -> fg_row_dirty -> VBlank row DMA -> Plane A`.
+- **Files changed:** `apps/rastan-direct/src/vdp_comm.s`, `apps/rastan-direct/src/tilemap_hooks.s`, `apps/rastan-direct/src/boot/boot.s`, `apps/rastan-direct/src/scene_load.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated `apps/rastan-direct/out/*`, generated `build/rastan-direct/*`, generated `build/genesis_postpatch.disasm.txt`, generated `build/rom_inventory.json`, `docs/design/Cody_build0243_plane_a_visibility_fix.md`, and this log. Pre-existing unrelated root-file deletions were not touched or reverted.
+- **Static verification:** selector-0 route intact (`runtime_genesis_pc 0x055B50 -> bsrw 0x55B68`, `0x055B68 -> jmp 0x704AC`). Helper still avoids using `a5+0x10A0` / `0x00C08000` as final selector-0 output authority. Plane B untouched. Plane A VSRAM unchanged (`staged_scroll_y_fg` gameplay residual still `& 0x0007`). Selector-1/2 not converted and intentionally deferred.
+- **Canonical gate:** opcode_replace count remains `216`; exact total covered bytes updated from `0x183CDC` to `0x183CFC` for the 32-byte ownership-gate growth. Gate remains strict and reports no gaps/overlaps.
+- **Build produced:** YES, Build 0244. ROM `dist/rastan-direct/rastan_direct_video_test_build_0244.bin`, SHA `939c303b37b21352f693311cd1df19bbbd87810d2a4419c97ac356366fd99a62`, size `1588476`, counter `244`; rolling artifact SHA matches. `GATE_PASS`; no bookmarks active.
+- **Smoke trace:** `states/traces/rastan_direct_video_test_build_0244_mame_30s_20260729_105440/`, `frames=1798`, `fg_cwindow_live count=0`, VDP port writes present. This trace does not replace manual Stage 1 visual verification.
+- **Deliverable:** `docs/design/Cody_build0243_plane_a_visibility_fix.md`.
+- **Open/Closed Issues Impact:** OPEN-001 touched; no new issues opened; no issues closed; selector-1/2 Plane A, Plane B native replacement, PC090OJ, rope/post-rope, collision/player-state, and broader gameplay visual correctness intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A - no new finding to index; this is a bounded implementation correction inside the native Plane A migration path.
+- **STOP:** not triggered. User must verify Build 0244 frontend/title reachability and Stage 1 Plane A foreground visibility.
+
+## [Cody — Analysis, Build 0244 Complete Native Gameplay Plane A Gate]
+
+- Files changed: `docs/design/Cody_build0244_complete_native_gameplay_plane_a.md`, `AGENTS_LOG.md`.
+- Build produced: NO.
+- ROM path: N/A.
+- Counter changed: NO; counter remains `244`.
+- Build 0244 preserved: YES, snapshot at `states/traces/build0244_complete_native_gameplay_plane_a_20260729_120657/`.
+- Root cause confirmed: NO for full Plane A completion; partial source-level blocker identified. Selector-0 native output likely needs resident-window row placement; selector-1/2 still lacks matched native logical-coordinate proof and remains transitional.
+- Fix implemented: NO.
+- No unrelated changes: YES.
+- Exact addresses inspected: `arcade_pc 0x055948`, `0x055968`, `0x055990`, `0x0559B2`, `0x055A14`; mapped `runtime_genesis_pc 0x055B48`, `0x055B68`, `0x055B90`, `0x055BB2`, `0x055C14` through `build/rastan-direct/address_map.json`.
+- Design doc path: `docs/design/Cody_build0244_complete_native_gameplay_plane_a.md`.
+- Open/Closed Issues Impact: touched `OPEN-001`; no new issues opened; no issues closed; selector-1/2 native proof intentionally deferred.
+- KNOWN_FINDINGS impact: Option A, no new finding to index.
+- STOP status: YES. Prompt's build gate forbids producing a ROM after only selector-0; selector-1/2 vertical/reversal proof is still missing.
+
+### MAME Exit Summary (2026-07-29 13:23:56)
+- Final PC: 0x072F94
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0245 Native Selector-1/2 Plane A]
+
+- **Date:** 2026-07-29. **Classification:** EXTENDING native PC080SN Plane A migration / OPEN-001. **Input baseline:** Build 0244 SHA `939c303b37b21352f693311cd1df19bbbd87810d2a4419c97ac356366fd99a62`, counter `244`. Build 0244 source/artifact state preserved under `states/traces/build0244_native_selector12_implementation_20260729_131809/`.
+- **Phase 0:** completed. Relevant priors: KF-010/KF-011, KF-032, KF-036, KF-041, KF-068/KF-071/KF-072/KF-073; native replacement policy confirmed; no contradiction of CONFIRMED/STRONG findings.
+- **Proof basis:** original arcade disassembly at `arcade_pc 0x055948`, `0x055990`, `0x055A14`; exact JSON mapping to `runtime_genesis_pc 0x055B48`, `0x055B90`, `0x055C14`; generated manifest and ROM bytes for Build 0245. A focused original-arcade Lua runtime probe was attempted and preserved but did not naturally hit selector-1/2 before exit; this is recorded as a runtime-capture limitation, not negative evidence.
+- **Files changed:** `apps/rastan-direct/src/tilemap_hooks.s`, `apps/rastan-direct/src/vdp_comm.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated `apps/rastan-direct/out/*`, generated `build/rastan-direct/*`, generated `build/genesis_postpatch.disasm.txt`, generated `build/rom_inventory.json`, `docs/design/Cody_build0244_native_selector12_implementation.md`, and this log. Pre-existing unrelated root-file deletions were not touched or reverted.
+- **Implementation:** corrected selector-0 physical resident row from `logical_row & 0x1F` to `(logical_row - visible_top) & 0x1F`; added `genesistan_hook_tilemap_plane_a_selector12_native`; routed `arcade_pc 0x055990` byte-neutrally to the new helper; prevented gameplay tall-FG projection from overwriting native Plane A. Selector-1/2 helper retains semantic `a5+0x10A8/0x10CA/0x10CC`, descriptor rebuild pointer/word tables, source blocks, and `a5+0x1330` side effect, then writes final-format `staged_fg_buffer` rows and collision side-channel without final C-window ownership.
+- **Build produced:** YES, Build 0245. ROM `dist/rastan-direct/rastan_direct_video_test_build_0245.bin`, SHA `3a6c9bb9731a83ed9c68aa872d36ddb550c6f9175d946232cd9bd28e2d2c057d`, size `1588848`, counter `245`; `GATE_PASS`; opcode_replace patched-site count `216`; canonical coverage `0x183E70`; numbered artifacts preserved.
+- **Verification:** manifest routes `0x055968 -> runtime 0x055B68 -> 0x0704A4 selector0` and `0x055990 -> runtime 0x055B90 -> 0x07060A selector12`; ROM bytes confirm both routes. Standard 30-second Genesis trace saved to `states/traces/rastan_direct_video_test_build_0245_mame_30s_20260729_132349/`, `frames=1798`, `fg_cwindow_live count=0`. User visual verification still required for Stage 1 selector-1/2 movement/fall publications.
+- **Open/Closed Issues Impact:** OPEN-001 touched; no new issues opened; no issues closed; Plane B, PC090OJ, rope/post-rope, collision/player-state, palette/HUD, audio/input, and broader gameplay visual correctness intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A - no new finding to index; continuation of native Plane A migration under KF-072 resident-window model.
+- **STOP:** not triggered. No unrelated changes intentionally made.
+
+---
+
+## [Andy — Build 0245 Native Plane A Review] (analysis only)
+
+- **Date:** 2026-07-30. No production / spec / build / counter change (245). Doc: `docs/design/Andy_build0245_native_plane_a_review.md`. Evidence: `states/traces/build0245_plane_a_review_*/`.
+- **Selector-0 helper:** logical column/row/collision CORRECT (match Andy_plane_a_selector0_logical_coordinate_proof.md); tile source correct; register discipline fixed (movem save/restore — 0240 clobber resolved). Placement = resident-window (defect).
+- **Selector-1/2 helper:** tile/collision source indexing matches arcade 0x055A14 (stripT*8+row*2) incl. reversal (not.w when sel≠2); logical row/col strong-hypothesis by symmetry but UNPROVEN at runtime. Same resident-window placement defect.
+- **#1 PROVEN (coordinate/scroll):** 0245 stages Plane A as resident window physical=(logical−visible_top)&31 with residual VSRAM (&7). This requires whole-window repaint on vertical camera move; arcade publishes only entering edges → stale visual rows on falls/resets = the invisible-collision-landing, horizontal-propagation, and reset-ground-too-high symptoms. Correct model = arcade RING adapted to 32 rows: physical=logical&31 + FULL VSRAM (&0x1FF). Cody's 0245 change AWAY from logical&31 was the regression; fix reverts placement AND changes VSRAM &7→&0x1FF (paired).
+- **#2 PROVEN (palette):** attr_lut (32 entries) indexes palette line from word0 bits 0-1 only (of 9 color bits 0-8); collides banks and conflicts with bank-3→line-1 route/carrier → correct tile, wrong palette. Separable from tile (correct). Fix: derive palette line from full arcade color bank via palette-route table. Flips (bit14→H,bit15→V) correct; bit13→priority unverified.
+- **#3 INHERITED (Plane B):** still vdp_project_bg_tall_if_dirty + residual VSRAM → 0235 shearing. Future native boundary: 0x055B8E vertical streamer / 0x055C4A→0x055C5E→0x055C7A. Not now.
+- **Tile preload/residency:** NOT a defect (tiles correct per user + proof). First-rope defect unchanged (inherited, not migration-caused).
+- **Recommended next Cody task:** smallest — selector-0 placement (logical−visible_top)&31 → logical&31, paired with gameplay FG VSRAM &7 → &0x1FF in vdp_commit_scroll. Defer selector-1/2 proof, palette fix, Plane B.
+- **STOP:** not triggered.
+
+## [Andy — Build 0245 review addendum: Sonic/RI dual-ring] (analysis only, 2026-07-30)
+- The intended RI/Sonic-1 model is a dual X/Y ring — this CONFIRMS the review's ring conclusion, not changes it. X ring=64 already correct in 0245 (column (10CC·4+10CA)&63 + full HSCROLL). Y ring=32 is the broken axis. Refinement recorded in the review doc §14: the residency gate ((logical_row−visible_top)&63<32) STAYS (it reconciles 64 logical rows → 32 physical); the BUG is the placement (visible_top-relative remap) — change only placement to logical_row&31 and VSRAM to full &0x1FF. Edge-only, no shadow, no compatibility layer. Plane B should later become the same dual-ring publisher. No source/build/counter change (245).
+
+### MAME Exit Summary (2026-07-30 16:56:20)
+- Final PC: 0x072F70
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0246 Native Plane A Ring/Palette Candidate]
+
+- **Date:** 2026-07-30. **Classification:** EXTENDING native PC080SN Plane A migration / OPEN-001. **Input baseline:** Build 0245 SHA `3a6c9bb9731a83ed9c68aa872d36ddb550c6f9175d946232cd9bd28e2d2c057d`, counter `245`. Build 0245 source/artifact state preserved under `states/traces/build0245_native_plane_a_ring_palette_fix_20260730_165141/`.
+- **Phase 0:** completed. Relevant priors: KF-010/KF-011/KF-015/KF-032/KF-068/KF-071/KF-072/KF-073; native replacement policy confirmed; no contradiction of CONFIRMED/STRONG findings.
+- **Files changed:** `apps/rastan-direct/src/tilemap_hooks.s`, `apps/rastan-direct/src/vdp_comm.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated `apps/rastan-direct/out/*`, generated `build/rastan-direct/*`, generated `build/genesis_postpatch.disasm.txt`, generated `build/rom_inventory.json`, `docs/design/Cody_build0245_native_plane_a_ring_palette_fix.md`, and this log. Pre-existing unrelated root-file deletions were not touched or reverted.
+- **Implementation:** selector-0 and selector-1/2 native Plane A helpers keep the 64-to-32 resident gate but place rows at `logical_row&31`; gameplay Plane A VSRAM now commits full 9-bit `(-scroll_y + bias)&0x01FF`; Plane B remains unchanged on the old residual mask. Native Plane A attr conversion now extracts full arcade PC080SN bank `word0&0x01FF` and routes gameplay FG bank 3 through `palette_route_lookup` to Genesis line 1; proven H/V flip bits retained; bit13 priority not retained because unproven.
+- **Native replacement policy:** semantic cut retained (arcade selector/group/index + descriptor pointer/word tables + source blocks); selector-0/1/2 PC080SN gameplay Plane A chip tail replaced with native Genesis staging/VBlank output. Transitional tall-FG projection still exists but is gated from overwriting native gameplay Plane A. Plane B remains deferred.
+- **Build produced:** YES, Build 0246. ROM `dist/rastan-direct/rastan_direct_video_test_build_0246.bin`, SHA `52919fe447698baf309350217d83ad972d474b96b8f9f7fb361d365c1d97d83e`, size `1588812`, counter `246`; rolling artifact SHA matches. `GATE_PASS`; opcode_replace patched-site count `216`; canonical coverage `0x183E4C` after shared attr-helper consolidation.
+- **Scene budget:** active preload manifests fit the 1164-tile budget: title `845`, gameplay `962`, gameplay-cave `568`, end-round `1067`. Stale rejected after-rope preload artifact remains in `build/` but is not exposed by `scene_load.s`.
+- **Smoke verification:** standard 30-second Genesis trace saved to `states/traces/rastan_direct_video_test_build_0246_mame_30s_20260730_165612/`; `frames=1798`, VDP writes present, live FG C-window writes `0`, no quick-scan error/fail/exception markers. User Stage 1 visual verification still required.
+- **Open/Closed Issues Impact:** OPEN-001 touched; no new issues opened; no issues closed; Plane B, PC090OJ, HUD, rope/progression/collision, input/audio, and broader gameplay visuals intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A - no new finding to index; this implements Andy's accepted Build 0245 review correction under existing native Plane A findings.
+- **STOP:** not triggered. No unrelated changes intentionally made.
+
+---
+
+## [Andy — Build 0246 Initial Plane A Fill Audit] (analysis only)
+
+- **Date:** 2026-07-30. No production/spec/build/counter change (246). Doc: `docs/design/Andy_build0246_initial_plane_a_fill_audit.md`. Evidence: `states/traces/build0246_initial_fill_*/`.
+- **Confirmed:** 0246 applied the ring fix (placement logical_row&31, residency gate kept, VSRAM &0x01FF); palette correct.
+- **ROOT PROVEN:** the Stage-1 scene-fill (64 selector-0 publications, F182-197) runs with arcade Y-scroll a5@0x10B0=0 → visible_top=1, seeding the 32-row ring with logical rows [1..32]. The arcade then PANS the camera vertically (a5@0x10B0 0x1FF→0x149, F397-480) to gameplay (visible_top=23) and publishes NOTHING (fg_writes=0 the whole pan — its full 64-row C-window absorbs the pan). The Genesis 32-row ring is left holding the fill's rows; gameplay needs logical [23..54] but rows [33..54] were never published → physical rows 1-22 hold logical 1-22 (wrong). Horizontal selector-0 streaming later repairs column-by-column (matches user observation).
+- **First exact divergence:** the residency gate visible_top — 1 at fill (scroll 0) vs 23 at gameplay (scroll 0x149); only differing input. Category: coordinate/initialization (64→32 vertical fold with no publisher for vertical camera motion the arcade doesn't publish).
+- **Coverage:** all 32 physical rows + 64 cols seeded (NOT blank/incomplete) but MISALIGNED (22 of 32 rows wrong logical). Fill not overwritten; no clear; no legacy writer post-fill (owner=1 gates them).
+- **Smallest safe fix:** a native vertical publisher for the 32-row ring (Sonic DrawBlocks_TB dual-ring Y counterpart). Option 1 (minimal): one-time resident-ring reseed when visible_top settles at gameplay entry. Option 2 (general): entering-row publication on Genesis vertical crossings (also fixes falls). Uses existing native producers; no shadow/mirror/projection/compat. This is a needed native trigger, not an existing-helper math fix.
+- **Plane B implicated:** NO. **STOP:** not triggered.
+
+### [Andy — Build 0246 Initial Fill Audit RESUMED — Final Vertical-Publisher Boundary] (analysis only)
+
+- **Date:** 2026-07-31. No production/spec/build/counter change (246). ROM 0246 SHA 52919fe4…1d97d83e unchanged. Doc: `Andy_build0246_initial_plane_a_fill_audit.md` §8-§15. Evidence: `states/traces/build0245_plane_a_review_20260730_150627/` (pan.txt/scroll.txt/trans.txt) + arcade `linear_disassembly.tsv`.
+- **Arcade vertical camera-Y producer MAPPED:** map-stream vertical handler — down (sel-1) arm 0x0556A6, up (sel-2) arm 0x05572E. 8px crossing = `10B4/10B6 += 10DA; btst #3`. Direction = selector 10A8 (1/2), pending latch 10D0. Entering-row cursor 10A4 = 0xC08000 ± f(10CC·1024+10CA·256) (ring-derived, no scroll). Publish dispatch 0x0556FC/0x055788 → 0x055948 → 0x558A2/0x55904 rebuilds row descriptors. Y-scroll update 0x055718 (down) / 0x0557A4 (up). Publish GATED by 10BA threshold (down ≥256, up <8); off-threshold paths 0x55704/0x55790 scroll 10B0 WITHOUT publishing.
+- **Camera-init table @0x0508D0** (seed 0x0504FA, caller 0x05020A, BEFORE fill): 12B/scene seeds 10AE/10B0/10B8/10BA/10BE/10C0. Scene0={0x78,0x80,0x160,0,0xA0,0x100}. Gameplay 10B0=0x149≠0x80 seed → gameplay Y is NOT a pre-fill constant (kills the "seed fill at gameplay window" shortcut).
+- **TWO-CASE SPLIT proven:** (A) falls/up/reversal = selector-1/2 dispatch rebuilds row descriptors → existing native selector-1/2 helper can publish (boundary PROVEN, §11). (B) initial settling pan (pan.txt): selector=0, ring counters static, cursorWr=0 (NO dispatch), scripted camera move; descriptors stay column-oriented → NO row-source for entering rows.
+- **ONE unified trigger cannot cover both (proven):** case B's entering-row source exists only in the C08000 chip window (forbidden) or via reconstructing per-row source addressing (unproven §8#1). 
+- **Scoped STOP:** on selecting the initial-pan (case B) publisher — entering ROW source not derivable without PC080SN reconstruction / C08000. NOT a stop on case A.
+- **Recommended next Cody/Andy task:** prove selector-1/2 vertical logical coordinates + source mapping at runtime (vertical analog of the selector-0 column proof) — unblocks case A and is prerequisite for case B. Do NOT implement the vertical publisher before that mapping is proven.
+- **One-time reseed:** classified diagnostic/fallback only (also blocked — single-strip descriptors at settle). **Compat layer:** none. **Plane B:** unchanged.
+
+## [Cody — Analysis, Build 0246 Plane A Audit Corrections]
+
+- **Date:** 2026-07-31. **Classification:** focused analysis/documentation correction only / native PC080SN Plane A / OPEN-001. No production source, spec, ROM, build, or counter change; Build 0246 / counter 246 remains current.
+- **Files changed:** `docs/design/Cody_build0246_plane_a_audit_corrections.md`, `AGENTS_LOG.md`.
+- **Address discipline:** corrected Andy's unsupported `+0x200` implication. All cited arcade PCs were resolved through `build/rastan-direct/address_map.json`; no required arcade PC was unmapped. Key mappings: `0x0556A6->0x0558A6`, `0x05572E->0x05592E`, `0x055704->0x055904`, `0x055790->0x055990`, `0x055948->0x055B48`, `0x055968->0x055B68`, `0x055990->0x055B90`, `0x055904->0x055B04`.
+- **Retained proven finding:** Build 0246 initial fill seeds Plane A for `visible_top=1`; scripted pan reaches `visible_top=23` with no Plane A publications; rows `33..54` are absent from required ring slots; horizontal streaming later repairs column-by-column; palette route is correct; no clear/overwrite/Plane B/legacy-FG writer caused the defect.
+- **Corrected overclaims:** `one unified trigger cannot cover both` downgraded to UNPROVEN; what is proven is only that the current selector-1/2 descriptor path is inactive during scripted pan. Ordinary falls/up/reversal coverage downgraded to UNPROVEN/PARTIAL because no-publication paths `0x055704`/`0x055790` have not been aligned against every Genesis `visible_top` crossing. Selector-1/2 logical row/source mapping remains unresolved.
+- **Architecture impact:** `0xC08000` may be an oracle for proof but remains forbidden as production authority. Current selector-1/2 helper is reusable only for active selector-1/2 publications after descriptor/source tables are current; arbitrary-row scripted-pan rendering still needs semantic source proof.
+- **Recommended next boundary:** narrow selector-1/2/no-publication alignment trace plus arbitrary-row semantic-source proof. Do not implement a vertical publisher/reseed until that proof distinguishes shared semantic renderer vs separate native producers vs bounded semantic reseed.
+- **Open/Closed Issues Impact:** OPEN-001 touched; no new issues opened; no issues closed; Plane B, PC090OJ, rope/collision, and broader gameplay visuals intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A - no new finding to index; this correction tightens Build 0246 analysis boundaries under existing native Plane A findings.
+- **STOP:** YES for implementation due unresolved semantic arbitrary-row source and ordinary vertical crossing alignment. Documentation checkpoint complete.
+
+## [Cody — Analysis, Build 0246 Native Plane A Vertical Source Proof]
+
+- **Date:** 2026-07-31. **Classification:** focused analysis/documentation only / native PC080SN Plane A / OPEN-001. No production source, remap spec, ROM, build, or counter change; Build 0246 / counter 246 remains current.
+- **Files changed:** `docs/design/Cody_build0246_native_plane_a_vertical_source_proof.md`, `AGENTS_LOG.md`.
+- **Authorities used:** `build/rastan-direct/address_map.json` for all arcade-to-Genesis PC mappings; `specs/rastan_direct_remap.json` for intended remap treatment; `build/rastan-direct/rastan_direct_patch_manifest.json` and `apps/rastan-direct/out/symbol.txt` for generated Build 0246 route.
+- **Route verified:** `arcade_pc 0x055948 -> runtime_genesis_pc 0x055B48` remains copied dispatcher; `0x055968 -> 0x055B68 -> 0x000704E8` native selector-0 route; `0x055990 -> 0x055B90 -> 0x0007061A` native selector-1/2 route; `0x055904 -> 0x055B04 -> 0x00071F78` descriptor rebuild route.
+- **Source classification:** selector-0 remains proven for column publications. Selector-1/2 helper emits final Plane A staging/collision for current publication events but still depends on rebuilt `0x10D040/0x10D080` descriptor/source tables; arbitrary logical-row source from `0x10D000`/map descriptors is unresolved.
+- **Runtime proof result:** scripted initial pan still proven no-publication; ordinary down/up/reversal vertical crossings were not captured with the required per-crossing `visible_top`/dispatch/rebuild/helper/staging table. Existing traces are insufficient to prove rows are fully supplied during all vertical motion.
+- **Architecture classification:** D - no safe semantic boundary proven yet. Multiple architectures remain plausible (shared semantic row renderer, separate scripted-pan producer, or bounded resident-ring reseed plus ordinary producers). No compatibility layer proposed or extended; C08000/name-RAM projection remains oracle-only and forbidden as final authority.
+- **Open/Closed Issues Impact:** OPEN-001 touched; no new issues opened; no issues closed; Plane B, PC090OJ, rope/collision/progression, palettes/HUD, audio/input, and broad gameplay visuals intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A - no new finding to index; this tightens the Build 0246 native Plane A proof boundary under existing native replacement findings.
+- **STOP:** YES for implementation due unresolved arbitrary-row semantic source and missing ordinary vertical crossing alignment. Documentation checkpoint complete. No unrelated changes intentionally made.
+
+## [Cody — Analysis, Build 0246 Vertical Runtime Proof Completion Attempt]
+
+- **Date:** 2026-07-31. **Classification:** focused analysis/documentation continuation only / native PC080SN Plane A / OPEN-001. No production source, remap spec, ROM, build, or counter change; Build 0246 / counter 246 remains current.
+- **Files changed:** `docs/design/Cody_build0246_native_plane_a_vertical_source_proof.md`, `AGENTS_LOG.md`. Trace artifacts preserved under `states/traces/build0246_vertical_runtime_proof_20260731_140816*/`. No numbered artifacts deleted or overwritten.
+- **Replay attempts:** headless debugger/Lua trace plus real-time interactive MAME Genesis replay of Build 0246. No usable Build 0246 gameplay savestate was found; only unrelated Exodus debug savestate files were present.
+- **Runtime evidence captured:** real-time replay produced `372` frame rows, `22` `visible_top` crossings, all selector `0x0000`, all `fg_dirty=0x00000000`, state `2/3/0`; `visible_top` advanced `1 -> 23` during the scripted settling pan. Selector-1/2 source sample rows: `0`.
+- **Result:** scripted no-publication starvation reconfirmed. Selector-1 downward publication, selector-2 upward publication, reversal, ordinary selector-1/2 no-publication behavior, selector-1/2 source formulas, and arbitrary-row semantic source chain remain NOT runtime-proven.
+- **Architecture impact:** remains D - no safe semantic boundary proven yet. C08000/name-RAM projection remains oracle-only and forbidden as final authority; no compatibility layer proposed or extended.
+- **First exact unresolved fact:** no captured genuine Build 0246 runtime state has yet shown selector `1` or `2` publication entering `runtime_genesis_pc 0x0007061A` with matching descriptor rebuild, source sample, staged row write, dirty bit, and VBlank commit.
+- **Open/Closed Issues Impact:** OPEN-001 touched; no new issues opened; no issues closed; Plane B, PC090OJ, rope/collision/progression, palettes/HUD, audio/input, and broad gameplay visual correctness intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A - no new finding to index; this is a runtime-proof completion attempt under existing native Plane A findings.
+- **STOP:** YES for implementation. Documentation checkpoint complete. No unrelated changes intentionally made.
+
+## [Andy — Analysis, Build 0246 Plane A Arbitrary Row/Cell Source Proof]
+
+- **Date:** 2026-08-01. **Classification:** focused architecture/source proof only / native PC080SN Plane A / OPEN-001. No production source, remap spec, ROM, build, or counter change; Build 0246 / counter 246 remains current.
+- **Files changed:** `docs/design/Andy_build0246_plane_a_arbitrary_row_source_proof.md`, `AGENTS_LOG.md`. Evidence: `states/traces/build0246_arbitrary_row_source_20260801/` (`arb.lua`, `arb.txt`).
+- **Result — RESOLVES the prior architecture-D blocker (Cody's "first exact unresolved fact"):** the arbitrary semantic Plane A cell/row source **IS derivable** from retained Rastan map/source structures, proven via the Stage-1 initial fill (selector-0 publishes all 64 logical columns x 64 logical rows before the pan, exposing rows 33-54). No `0xC08000`, no live PC080SN cursor, no selector-1/2 event, no 64x64 chip image.
+- **Exact formula:** `E = strip_src_table[row>>2] + seg_index*0x40 + (col>>2)*4`; `attr=*(u16)(E)`; `dp=*(u16)(E+2)`; `tile=*(u16)(dp+((row&3)<<3)+((col&3)<<1))`; `coll = *(u16)(dp+32)==0x00FF ? *(u16)(dp+34) : *(u16)(dp+20+((row&3)<<3)+((col&3)<<1))`. `seg_index=a5@0x13E` is the only runtime scalar.
+- **Opcode chain decoded (address_map.json segment-membership, not +0x200 inference):** scene-init seed `0x0502E4` (`0x10D000[i]=strip_src_table[i]+seg_index*0x40`); per-group advance `0x0558C6` (`+=4`); rebuild `0x055904` (`0x10D080[i]=*(u16)(0x10D000[i])`, `0x10D040[i]=*(u16)(0x10D000[i]+2)`); cell producer `0x0559B2`. `strip_src_table[16]={0x1691C,0x18BDC,...,0x3725C}` verified.
+- **Runtime oracle (MAME rastan 0.276, `arb.txt`):** `FILLSTART seg_index=0 selector=0`; `ORACLE_SUMMARY cells=4096 mismatch=0` vs actual `0xC08000` tiles; `LIVE checks=4096 misD000=0 misDp=0 misTile=0`. Rows 33-54 traced and matched (visible floor band = logical rows ~31-55, segments 7-13). Empty (`0x0020` via `dp=0x1000`) and visible terrain (`0x00CC/0x00DC/0x00D8/...` via `dp=0x2048/0x2024/0x20FC`) both covered.
+- **Structure classification:** `0x10D000` = semantic source-position cursor (derivable from seg_index+group; NOT chip destination); `0x10D040`/`0x10D080` = transitional per-column caches of `*(u16)(E+2)`/`*(u16)(E)` (semantic content; bounded recompute or policy-§7 cache). None reconstruct PC080SN name-RAM. Only `a5@0x10A0/0x10A4` + word0/word1 + C-window strides are chip destination (removal targets, absent from the formula).
+- **Initial-pan publisher:** edge-row publication viable (no full-window reseed needed). `seg_index` stays 0 during the pan (no ring cycle completes), so rows 33-54 are derivable now. Helper `publish_plane_a_logical_row(logical_row)` defined (bounded, `movem` discipline, `physical=logical_row&31`, reuse proven selector-0 `convert(tile,attr)`, no collision duplication). Highest boundary: (1) the arcade pan-Y writer (exact instruction to be pinned) or (2) a Genesis `visible_top` 8px-crossing detector on arcade-owned `staged_scroll_y_fg`.
+- **Selector-1/2 relationship:** can share the same semantic row routine (its rebuilt `0x10D040/0x10D080` are the same ROM-derived source, cached) — refactor to call the shared routine, not replace. Runtime down/up/reversal alignment remains a later validation, not a source blocker.
+- **Architecture:** `Rastan semantic map (seg_index+ROM) -> bounded native row publication -> final Plane A words -> existing dirty-row/VBlank`. Compat layer: none. Plane B: unchanged. `0xC08000` oracle-only.
+- **Open/Closed Issues Impact:** OPEN-001 touched (arbitrary-row source blocker resolved); no new issues opened; none closed; Plane B, PC090OJ, rope/collision/progression, palettes/HUD, audio/input, broad gameplay visuals intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A - no new finding to index; this resolves the open arbitrary-row-source question under existing native Plane A findings.
+- **STOP:** NOT triggered (logical row/col trace to semantic stage data, 0 mismatches over 4096, rows 33-54 included). Smallest safe Cody task = pin the pan trigger boundary + prototype `publish_plane_a_logical_row` from ROM tables (do not implement the vertical publisher before the trigger site is pinned). Documentation checkpoint complete; no unrelated changes made.
+
+## [Andy — Analysis, Build 0246 Stage 1 Plane A Pan-Y Trigger Boundary]
+
+- **Date:** 2026-08-01. **Classification:** focused trigger-boundary proof only / native PC080SN Plane A / OPEN-001. No production source, remap spec, ROM, build, or counter change; Build 0246 / counter 246 remains current.
+- **Files changed:** `docs/design/Andy_build0246_plane_a_pan_y_trigger_boundary.md`, `AGENTS_LOG.md`. Evidence: `states/traces/build0246_pan_y_trigger_20260801/` (`pany.lua`/`pany.txt` Genesis write-tap; `segchk.lua`/`segchk.txt` arcade column-source oracle).
+- **Pan-Y producer PINNED:** genesis PC `0x0559A4` = arcade `0x0557A4` (`movew d1,a5@0x10B0`), the up-arm no-publish Y-scroll writer. Write-tap histogram: sole `a5@0x10B0` writer during the pan (62/62; other 3 are one-time inits). Reached via the SELECTOR-INDEPENDENT no-publish path `0x055790` (branch `0x055736 bges 0x55790` on `10BA>=8`, before the `sel==2` check) — explains `sel=0` during a selector-2-arm scroll. REVISES the prior audit's "scripted selector-0 camera move" guess. Dispatcher `0x055658`-`0x055694` reads `a5@0x10D0` bitmask and bsrs down arm `0x055696`(bit0)/up arm `0x05572E`(bit1). Steps `10B0 -= 10DA(=3)`/frame, `0x1FF -> 0x149`.
+- **Entering-row formula proven:** increasing visible_top -> `entering_row=(new_visible_top+31)&63` (vtop 1->2 => row33 ... 22->23 => row54, exactly the missing band; phys=row&31 => 1..22). Decreasing (down arm derived) -> `entering_row=new_visible_top&63`. Boundaries/invocation: pan <=1 (10DA=3); general bounded loop = ceil(|dScroll|/8).
+- **Column source is X-scroll, NOT a5@0x13E (arcade oracle `segchk.txt`):** during pan `X-scroll(0x10AE)=0` but `a5@0x13E=1`; C08000 entering rows = `E(seg=0)` not `E(seg=1)` (discriminated: r40c0 C08000=00CC=E(0) vs E(1)=00BD; r54c63 0123=E(0) vs E(1)=007B). Publisher keys columns on X-scroll base (=0 during pan), rows on visible_top. Dual-axis wrapped-map convention.
+- **Frame order proven:** within each frame `W10B0@0x0559A4` precedes `W40EA@0x055CC4` (staged_scroll_y_fg staging, patched_site). Hook upstream of `0x0559A4` -> row staged before scroll staging + VBlank commit. Tall-FG projection gated off (scene 1); owner=1 gates legacy; no independent Genesis watcher.
+- **Highest safe hook = no-publish path** genesis `0x055990`(up, arcade `0x055790`) / `0x055904`(down, arcade `0x055704`) [both arcade_copy; NO collision with existing sel12 `0x055B90` / rebuild `0x055B04` patched sites]. Fires only on scroll-without-publish frames => no double-publish; covers all pan crossings. Byte-neutral in-place: overwrite 6 of the 8-byte body with `jmp` (orig up `322d 10da 936d 10ba`, down `322d 10da d36d 10ba`), helper reimplements `10BA -/+= 10DA`, publishes, `jmp` back to scroll store `0x055998`/`0x05590C`. Old/new scroll both exposed (old=mem, new=(old-/+10DA)&511); no retained prev_vt needed.
+- **Helper contract:** `movem` save/restore all non-owned regs (0240 lesson); arg=entering_row(0..63); column base from `a5@0x10AE`; emit final Plane A words to `staged_fg_buffer[row&31]`, mark `fg_row_dirty`, no collision write, no C08000; worst case 64-cell row ~= one existing publication; return via jmp to arcade scroll store.
+- **Open/Closed Issues Impact:** OPEN-001 touched (pan-Y trigger boundary + contract pinned); no new issues opened; none closed; general selector-1/2 gameplay-fall unification, Plane B, PC090OJ, collision/rope, palettes/HUD, audio/input intentionally deferred.
+- **KNOWN_FINDINGS impact:** Option A - no new finding to index; refines the native Plane A vertical-publisher boundary under existing findings.
+- **STOP:** NOT triggered (single writer proven; old/new observable; no autonomous scheduler; publish completes before VBlank; no compat/projection route). Smallest safe Cody task = add the two byte-neutral no-publish JMP hooks + implement `publish_plane_a_pan_entering_rows` per contract (do not unify with selector-1/2 gameplay in this step). Documentation checkpoint complete; no unrelated changes made.
+
+### MAME Exit Summary (2026-08-01 19:00:21)
+- Final PC: 0x073178
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none

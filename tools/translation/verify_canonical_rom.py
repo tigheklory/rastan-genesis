@@ -41,7 +41,9 @@ FAIL_STATE_CORRUPTED = "GATE_FAIL_STATE_CORRUPTED"
 # Build 0198: +29 opcode_replace (player action-state input-copy raw literal 0x10D37A -> 0xFF137A;
 # completes the input chain: latch 0x10C016 (0158/0196) + per-frame copy 0x10D37A (this build)).
 # Build 0216: +1 byte-neutral opcode_replace (0x03A27A VBlank tail keeps IPM >= 6 until RTE).
-CANONICAL_OPCODE_REPLACE_COUNT = 216
+# Build 0247: +2 byte-neutral opcode_replace no-publication vertical Plane A routes
+# (0x055704/0x055790); copied-program coverage unchanged.
+CANONICAL_OPCODE_REPLACE_COUNT = 218
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -85,7 +87,20 @@ CANONICAL_OPCODE_REPLACE_COUNT = 216
 # extends the bank-0x36 carrier-cache guards; opcode_replace site count unchanged.
 # Build 0232 score/1UP white HUD sprite variant adds the score-glyph asset slice
 # plus SAT palette-line force metadata; opcode_replace site count unchanged.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x183E44
+# Build 0242 byte-neutral selector-0 route removes no copied-program bytes but
+# changes segment coalescing around the 0x055968 same-length replacement.
+# Build 0243 selector-0 native Plane A collision store uses an explicit collision
+# map base and widens the local cell-loop branch; opcode_replace site count unchanged.
+# Build 0244 isolates native Plane A ownership from the transitional tall-FG
+# projector with a bounded ownership flag; opcode_replace site count unchanged.
+# Build 0245 adds the native selector-1/2 Plane A helper and keeps the
+# selector-1/2 opcode_replace byte-neutral; opcode_replace site count unchanged.
+# Build 0246 replaces duplicated native Plane A attr-LUT paths with one shared
+# route-table conversion helper; opcode_replace site count unchanged.
+# Build 0247 adds the native no-publication vertical Plane A row helper and
+# two byte-neutral route sites: +0x208 Genesis-only helper bytes
+# (0x183E4C -> 0x184054).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184054
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")

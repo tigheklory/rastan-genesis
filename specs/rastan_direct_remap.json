@@ -101,6 +101,10 @@
   ],
   "required_symbols": [
     "genesistan_hook_tilemap_plane_a",
+    "genesistan_hook_tilemap_plane_a_selector0_native",
+    "genesistan_hook_tilemap_plane_a_selector12_native",
+    "genesistan_plane_a_pan_publish_entering_rows_up",
+    "genesistan_plane_a_pan_publish_entering_rows_down",
     "genesistan_hook_tilemap_fg",
     "genesistan_hook_tilemap_bg_fill",
     "genesistan_hook_inline_fg_write_3a550",
@@ -745,16 +749,28 @@
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
+      "arcade_pc": "0x055704",
+      "original_bytes": "322D10DAD36D10BA",
+      "replacement_bytes": "4EF9{symbol:genesistan_plane_a_pan_publish_entering_rows_down}4E71",
+      "note": "Build 0247 byte-neutral native Plane A no-publication vertical-scroll down route: replace the 8-byte 10BA += 10DA body at arcade_pc 0x055704 with JMP to genesistan_plane_a_pan_publish_entering_rows_down plus one NOP. The helper reproduces displaced 10BA bookkeeping, publishes crossed entering logical rows into final staged_fg_buffer words/fg_row_dirty without C08000/tall/projection/collision dependencies, then jumps back to runtime continuation 0x05590C for the original arcade 10B0 store."
+    },
+    {
+      "arcade_pc": "0x055790",
+      "original_bytes": "322D10DA936D10BA",
+      "replacement_bytes": "4EF9{symbol:genesistan_plane_a_pan_publish_entering_rows_up}4E71",
+      "note": "Build 0247 byte-neutral native Plane A no-publication vertical-scroll up route: replace the 8-byte 10BA -= 10DA body at arcade_pc 0x055790 with JMP to genesistan_plane_a_pan_publish_entering_rows_up plus one NOP. The helper reproduces displaced 10BA bookkeeping, publishes crossed entering logical rows into final staged_fg_buffer words/fg_row_dirty without C08000/tall/projection/collision dependencies, then jumps back to runtime continuation 0x055998 for the original arcade 10B0 store."
+    },
+    {
       "arcade_pc": "0x055968",
       "original_bytes": "206D10A0323C0010227C0010D080267C0010D0402453610000322B4810A0588B5489534166EE",
-      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_a}4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "Route PC080SN BG strip producer through rastan-direct hook symbol at 0x055968."
+      "replacement_bytes": "4ef9{symbol:genesistan_hook_tilemap_plane_a_selector0_native}4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "Build 0242 byte-neutral selector-0 Plane A native route: preserve the original BSR at arcade_pc 0x055950 and replace the 0x055968 strip-tail body with a same-length JMP to genesistan_hook_tilemap_plane_a_selector0_native, which RTSes to the BSR return at 0x055954. No copied-program bytes are inserted or removed."
     },
     {
       "arcade_pc": "0x055990",
       "original_bytes": "206D10A47210227C0010D080267C0010D04024536100006E588B5489534166F2",
-      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_fg}4e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "note": "Route PC080SN FG strip producer through rastan-direct hook symbol at 0x055990. Build 0155/OPEN-017: genesistan_hook_tilemap_fg (0x703EA) is the LIVE Stage 1 FG boundary. The arcade FG producer 0x055968->0x070248 (plane_a) is dynamically bypassed on Genesis (KF-040 class); instead the Stage 1 setup loop (0x50634) calls the dispatcher 0x055B48, which (a5@0x10A8=0x80 != 0) routes to THIS hook once per FG column. Its native slot a5@0x10A4 is out of the FG C-window so it bails, while the real FG column dest is a5@0x10A0 = 0xC08000 + dcol*4. A Build 0155 preamble (gated on genesistan_current_scene_id==1) replays the proven FG model directly from ROM: SRC=0x16B1C+seg*0x22C0+group*4 (arcade 0x1691C + copy 0x200), block=ROM_word(SRC+2)+0x200, code=ROM_word(block+colidx*2+row*8), attr=0x0003; dcol=(a5@0x10A0&0x3FFC)>>2, group=dcol>>2, colidx=dcol&3, planerow=seg*4+row. Stages the visible top 32 rows (seg 0..7; fg_fill's 32-row buffer wraps seg 8..15) via genesistan_hook_tilemap_fg_fill -> staged_fg_buffer -> fg_row_dirty -> existing FG VBlank commit. fg_fill preserves d0-d7/a0-a6; the preamble uses d0-d6/a0/a2/a4 which fg_fill restores; CCR not caller-observed here. FG tile family (49 codes, 48 non-blank + transparent 0x020->tile 0/blank slot 0) added to the global LUT + gameplay manifest by precompute_pc080sn_tile_lut.py:collect_runtime_gameplay_fg_tiles. Validation: Genesis MAME 2/3/0 staged_fg 76->2020/2048, visible rows 0-27 match arcade FG cells 98%, Plane B unchanged, frontend intact, deterministic. Non-gameplay scenes fall through to the unchanged FG descriptor path."
+      "replacement_bytes": "4eb9{symbol:genesistan_hook_tilemap_plane_a_selector12_native}4e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "note": "Build 0245 native selector-1/2 Plane A route: preserve the original BSR at arcade_pc 0x05595A and replace the 0x055990 selector-1/2 strip-tail body with a same-length JSR to genesistan_hook_tilemap_plane_a_selector12_native, which RTSes to the BSR return at 0x05595E. The helper retains the arcade semantic selector state (a5@0x10A8), strip index (a5@0x10CA), strip group (a5@0x10CC), descriptor pointer/word rebuild tables, and scroll-derived resident window, then replaces the complete PC080SN C-window/collision tail with direct Genesis final-format Plane A staging plus collision-map side-channel. No copied-program bytes are inserted or removed."
     },
     {
       "arcade_pc": "0x055AB4",
@@ -1517,6 +1533,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 216
+    "opcode_replace_count": 218
   }
 }

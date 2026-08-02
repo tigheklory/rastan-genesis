@@ -34,9 +34,7 @@
     .global fg_row_dirty
     .global fg_tall_dirty
     .global fg_tall_project_base
-    .global fg_native_owner
-    .global fg_native_column_pending
-    .global fg_native_column_byte
+    .global fg_native_gameplay_owner
     .global staged_dest_ptr_bg
     .global staged_dest_ptr_fg
     .global staged_scroll_x_bg
@@ -285,15 +283,12 @@ vdp_project_bg_tall_if_dirty:
     rts
 
 vdp_project_fg_tall_if_dirty:
+    /* Build 0245: gameplay Plane A is now owned by the native selector-0/1/2
+     * resident-row producers.  The legacy tall-FG projector is retained only as
+     * transitional code and must not overwrite native gameplay output. */
     cmpi.b  #1, genesistan_current_scene_id
-    beq.s   .Lfg_tall_gameplay_scene
-    clr.b   fg_native_owner
-    clr.b   fg_native_column_pending
-    bra.s   .Lfg_tall_project_done
-
-.Lfg_tall_gameplay_scene:
-    tst.b   fg_native_owner
-    bne.s   .Lfg_tall_project_done
+    beq.s   .Lfg_tall_project_done
+    rts
 
     movem.l %d0-%d7/%a0-%a2, -(%sp)
 
@@ -475,6 +470,9 @@ vdp_commit_scroll:
     addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .Lscroll_fg_y_ready
+    /* Native gameplay Plane A producers place resident logical rows at
+     * logical_row&31, so VSRAM must carry the full YM7101 9-bit vertical scroll
+     * rather than the old projector-era 8-pixel phase. */
     andi.w  #0x01FF, %d0
 .Lscroll_fg_y_ready:
     move.w  %d0, VDP_DATA
@@ -631,13 +629,8 @@ fg_tall_dirty:
     .align 2
 fg_tall_project_base:
     .word 0
-fg_native_owner:
+fg_native_gameplay_owner:
     .byte 0
-fg_native_column_pending:
-    .byte 0
-    .align 2
-fg_native_column_byte:
-    .word 0
 
     .align 2
 fg_narrow_desc_table:

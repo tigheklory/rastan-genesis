@@ -22,6 +22,7 @@
 
     .extern vdp_set_reg
     .extern vdp_set_vram_write_addr
+    .extern fg_native_gameplay_owner
 
     .equ VDP_DATA,              0x00C00000
     .equ VDP_REG_MODE2,         1
@@ -89,6 +90,10 @@ load_scene_tiles:
     moveq   #1, %d5
 .Lload_scene_logical_ready:
     move.b  %d5, genesistan_current_scene_id
+    cmpi.w  #1, %d5
+    beq.s   .Lload_scene_keep_fg_owner_state
+    clr.b   fg_native_gameplay_owner
+.Lload_scene_keep_fg_owner_state:
     lea     genesistan_scene_a0_ranges, %a3
     moveq   #0, %d4
     move.w  %d5, %d4
