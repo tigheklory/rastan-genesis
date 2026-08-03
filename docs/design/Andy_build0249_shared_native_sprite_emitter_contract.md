@@ -1,171 +1,172 @@
-# Shared Native Sprite Emitter — Mode-Safe Producer Contract (Build 0249; analysis only)
+# Shared Native Sprite Emitter — Final All-Gameplay Architecture (Build 0249; analysis only)
 
 **Agent:** Andy. **Baseline:** Build 0249 / counter 249 / `RASTAN_GAMEPLAY_HUD_SPRITES=2`. No production source,
-remap, ROM, build or counter change. **Authority:** `address_map.json`, `pc090oj_hooks.s`, `tilemap_hooks.s`,
-`out/symbol.txt`, arcade `build/maincpu.disasm.txt`, `build/genesis_postpatch.disasm.txt`, MAME
-`pc090oj.cpp`/`rastan.cpp`. **Evidence:** `states/traces/build0249_pc090oj_contract_20260802_pre_pc090oj_contract/`
-(`callers*.txt`, `player.txt`, `lizpack.txt`, `mid.txt`, `midsnap.txt`, `lizcost.txt`, `modes.txt`, `spec.txt`,
-`spec2.txt`). Record ranges are **oracle ordering evidence only**, never runtime ownership.
+remap, ROM, build or counter change. **Authority:** Ghidra arcade reference `tools/ghidra/rastan_project/
+rastan_arcade_ref.gpr` + exports `analysis/ghidra/rastan_arcade/exports/` (`decompiler_export.c`, `xrefs.tsv`,
+`full_listing.tsv`, `call_graph_edges.tsv`, `function_inventory.tsv`), verified against `build/maincpu.disasm.txt`
++ `build/regions/maincpu.bin` and `address_map.json`. **Evidence traces:**
+`states/traces/build0249_pc090oj_contract_20260802_pre_pc090oj_contract/`.
 
-> Single current contract. It corrects the previous version's two unsafe assumptions: (a) the default-only
-> proof was **mode-0 only** — it does not license a global `.L3c950_sprite_direct` replacement across modes;
-> and (b) the finalizer must **not** skip records 57–95 (the active player block at 92–95). The delivered build
-> is **mode-gated**, not global.
+> This supersedes the prior STOP. Ghidra writer/xref provenance shows the specialized handlers' `code`/`attr`
+> are **live semantic actor state** (base tile `a4@30`, attribute `a4@39`, stage state), initialized by the
+> arcade actor/object setup — **not** PC090OJ-hardware persistence. The final all-gameplay native conversion is
+> therefore definable, using recompute (A) or actor-owned native metadata (B). **No `native_sprite_mode`, Stage-1
+> gate, dual output, or mirror.**
 
 ---
 
-## 1. The shared mechanism + the mode caveat
+## 1. Provenance resolution — the code/attr are semantic actor state
 
-`.L3c950_sprite_direct` (`tilemap_hooks.s:2364`), reached via the redirect `0x3CB50 jsr 0x717F4`, is where every
-**default-type (0x00)** engine piece assembles the four PC090OJ record words. **Proof scope:** over 46 s of
-**Stage-1 (mode 0)** play the type dispatch executed **14507×** and **every** specialized handler
-(`0x3C4D2/550/586/636/6DC/75C/7A4/830`) executed **0×** (`spec2.txt`). **This proves mode 0 only.** It does
-**not** prove that mode-1 or mode-2 stages are default-only — those stages have different actor content whose
-mappings can select specialized handlers. A global conversion of `sprite_direct` **plus** native-band
-exclusion would therefore **hide any specialized-handler output in an unproven mode** — the failure this
-contract avoids.
+The previous concern (specialized handlers write position only; none writes `attr@0`, only `0x3C830` writes
+`code@4`) is confirmed but **its source is now proven semantic**, via Ghidra xrefs + verified opcodes:
 
-## 2. Mode-by-mode coverage
+- **Base tile `a4@30` is the artwork-code owner.** The default expander computes `code = mapping_byte(±flip) +
+  a4@30` (`0x3CA12`). Actor init sets `a4@30` to class-specific ROM constants — `0x40CF0 movew #2675,a4@(30)`,
+  `0x40DAC #2650`, `0x40DE2 #629`, `0x40E9C #244`, `0x40F82 #3499`, `0x40FAC/0x40FCC #2538`, `0x426DC #3423`
+  (arcade `0x40Cxx–0x42xxx` actor-setup region). So every actor carries its base tile as **live state**.
+- **The `0xC0` handler pieces have no code bytes.** Its piece tables (`0x3CA7A` for class 2, `0x3CA38` for
+  classes 4/6) hold only position offsets + `0xFF` blank sentinels (`04 FF FF 06 FF FF 08 …`). The per-piece
+  artwork therefore derives from `a4@30`, not the mapping — the handler updates position and the artwork is the
+  actor's base tile.
+- **The `0x10` handler recomputes code from stage state.** `0x3C89A`: `code = 0x0A0D (+1/+7 by a5@318 level) +
+  gated on a5@280 area` — a pure stage/level recompute, no persistence.
+- **The arcade uses ROM template initialization for records.** `FUN_00052AA2` writes complete records
+  (`attr = template@4`, `Y = template@3 + a5@4764`, `code = template@0`, `X = template@2 + a5@4762`) from the
+  template table at `0x5DA5E`, indexed by object id ×24. This is the "initialize once from a semantic template,
+  then update position" pattern the specialized handlers rely on.
+- **Attribute/palette owner = `a4@39`** (set from the mode/stage attribute table via `0x45684`) resolved with
+  the display-latched colbank at commit (as the Genesis emit pass already does); flip is computed in-handler
+  (`d0` bit14/`d7`). No handler needs a persisted `attr@0` — palette 0 + colbank + in-handler flip reproduces it.
 
-Dispatcher select at `0x41F4E`: mode word **`a5@(0x2A2)`** `==2 → 0x45DFA`, else `0x41DAE`. Mode is set in the
-stage/scene-init routine (`0x452F6`=1, `0x45334`=2 → scene-init `0x501E2`) → **stage-dependent**. The mode gate
-`0x45684` only rewrites the per-actor **attribute** byte `a4@39` from a mode-specific table (`0x45722` vs
-`0x4576A`) — it does **not** change piece-type routing; mode-1 vs mode-0 differ by **stage content**, not
-structure.
+**Conclusion:** artwork-code = `a4@30` (or stage-state recompute for `0x10`); attribute = `a4@39` + colbank +
+in-handler flip. Both are **retained arcade actor state**, established at actor/object init. **None is
+PC090OJ-hardware-only (option C is not used for any handler).**
 
-| Mode | `a5@0x2A2` | Dispatcher | Stages (evidence) | Active groups | Type routing | Genesis status |
+## 2. Exhaustive producer + handler inventory (retained, verified)
+
+- **Two dispatchers, mode-selected** by `a5@0x2A2` (`==2 → 0x45DFA`, else `0x41DAE`), stage-dependent.
+  `0x41DAE` groups: players1 `a5+0x508` (rec57), middle `a5+0x5C8` (rec96), enemies `a5+0x2C8` (rec140),
+  effects `a5+0x748` (rec46). `0x45DFA` groups (mode 2): enemies `a5+0x5C8` (rec140), effects `a5+0x748`
+  (rec46), middle `a5+0x8C8` (rec96).
+- **Exact class-table bounds:** fam0 `0x3D09E`=253, fam1 `0x4771C`=246, fam2 `0x3F0CE`=131, fam3 `0x40004`=167,
+  fam4 `0x4002C`=167.
+- **All 9 handlers reachable** (default `0x3C950` + `0x3C4D2/550/586/636/6DC/75C/7A4/830`); none dead.
+
+## 3. Per-handler native cut
+
+| Handler | Type(s) | Pieces | X/Y source | Artwork-code source | Attr source | Native decision |
 |---|---|---|---|---|---|---|
-| **0** | 0 | `0x41DAE` | Stage 1 (traced, `modes.txt`) | middle `a5+0x5C8`, enemies `a5+0x2C8`, effects `a5+0x748`; players1 `a5+0x508` inactive | **all 0x00 (proven 14507/0)** | enemies+effects preserved; **middle OMITTED**; players1 omitted |
-| **1** | 1 | `0x41DAE` (same groups) | set when `(stage_ctr mod 23) ≥ 16` — **not reached in traces** | same tables as mode 0 | **UNPROVEN** (different stage enemies → may hit specialized handlers) | same staging as mode 0 (mode-blind) → same omissions + possible unhandled specialized content |
-| **2** | 2 | `0x45DFA` | `0x45334` path — **not reached in traces** | enemies `a5+0x5C8`, effects `a5+0x748`, middle `a5+0x8C8` (repurposed) | **UNPROVEN** | `hook_45dfa` skips in gameplay; Genesis staging is **mode-blind** (runs `0x41DAE` tables) → **wrong/missing sprites** |
+| `0x3C950` default | 00/40/70/80/F0 | d2 1–19 | `a0` offset + `a4@22/24/26` | `mapping ± + a4@30` | in-handler `d0` (flip/pal) | **A: recompute** (all fields live) |
+| `0x3C830` | 10 | 5+5 | `a0` + `a4@22/26` | **`0x3C89A` stage recompute** (`a5@280/318`+const) | palette0+colbank, in-handler flip | **A: recompute** |
+| `0x3C550` | A0 | 4 | `a0` + `a4@22`, Y=`a4@26` | **`a4@30`** (base tile) | palette0+colbank | **A/B: `a4@30`** |
+| `0x3C586` | C0 | up to 12 | `a0` + `a4@22/26` | **`a4@30`** (piece table has no code) | palette0+colbank, flip via d2 sign | **A/B: `a4@30`** |
+| `0x3C636` | B0 | 2+2 | `a4@22/26` + `a0` | **`a4@30`** | palette0+colbank | **A/B: `a4@30`** |
+| `0x3C6DC` | 30 | 6+3 | `a0` + `a4@22/26` (`0x5B512`) | **`a4@30`** | palette0+colbank | **A/B: `a4@30`** |
+| `0x3C75C` | 90 | 1+1+1+4+2+2+6 | `a0` + `a4@22/26` | **`a4@30`** | palette0+colbank | **A/B: `a4@30`** |
+| `0x3C7A4` | 20 | 2+2+6 | `a0` + `a4@22/26` | **`a4@30`** | palette0+colbank | **A/B: `a4@30`** |
+| `0x3C4D2` | 50/60 | 5+5 | `a0` + `a4@22/24/26` | **`a4@30`** (+ `0x5B512` adj) | in-handler `d0` | **A/B: `a4@30`** |
 
-Static bounds are known for all groups (§5); only the mode-1/2 **type routing, lane confirmation and stage
-selection** are unproven, and cannot be resolved from Stage-1 traces (no later-stage savestate; forcing the
-mode word desyncs the actor tables).
+Blank/list-end is uniform (`0xFF` mapping byte / blank frame → `Y=0x180`) → **append nothing** natively.
+The single per-frame Ghidra-verified remaining sub-detail is whether a code-less handler's multi-piece artwork
+is `a4@30` (uniform) or `a4@30 + piece_index`; both are read directly from `a4@30` at emit (§4), so it is an
+emit-time formula, not a provenance blocker.
 
-## 3. PLAYER_FRONT resolution (records 57–95)
-
-Band 57–95 has **two** distinct producers:
-
-- **`a5+0x508` group1** (`0x41DAE` group `0x41DD2`, records 57–91, 2 slots, `d2`=13): **inactive** in Stage 1
-  (`modes.txt` g1[0,0] every sample). High-priority, player-sized composite; most likely the **P2 / alternate-
-  mode player** slot. Ownership PLAYER_FRONT; activation = a 2-player / specific-mode state (unproven); type
-  routing unproven (never dispatched). **Stopped** — but it is a real arcade producer, not vestigial.
-- **`a5+0x170` block** (records 92–95, 4 records): copied every frame by `0x41F5E` (`lea a5@(0x170),a1=0xD002E0`)
-  — the **active** player-front element (weapon/secondary). This is a **custom block-copy packer** (stays
-  compat), and it is **live** in normal play.
-
-**∴ records 57–95 must remain emitted as compatibility** (they carry the active 92–95 block). The finalizer
-**must not skip 57–95**. Only the native-owned bands (46–56, 96–119, 140–238) may be excluded, and only while
-the native path is active (§6).
-
-## 4. Corrected finalizer order (one consistent order)
-
-Front → back, with native lanes spliced at their bands and **all** compat records emitted:
+## 4. Native architecture (option A recompute / option B actor-owned metadata)
 
 ```
-compat HUD           records 0..45
-native FRONT_EFFECT   (band 46..56)
-compat PLAYER_FRONT  records 57..95        <-- MUST be emitted (active 92..95 block)
-native MIDDLE         (band 96..119)
-compat PLAYER_BODY   records 120..139
-native BACK_ENEMY     (band 140..238)
+arcade actor/object init (RETAINED)  -> sets a4@30 (base tile), a4@39 (attr), spawn state
+arcade actor render traversal (RETAINED, mode-selected dispatcher)
+  -> default expander OR specialized handler (RETAINED piece expansion, position/animation)
+  -> native_sprite_emit(X, Y, artwork_code, palette_route, flipX, flipY, size=16x16, lane)
+        · default / 0x10 : artwork_code recomputed each frame (mapping+a4@30 / stage recompute)
+        · position-only handlers: artwork_code = a4@30 (+ piece index), read at emit — NO stored chip record
+  -> native semantic-priority queue[lane]
+  -> existing Genesis residency + SAT construction
+  -> existing VBlank DMA
 ```
 
-One continuous SAT link chain; `NATIVE_SAT_MAX=80` across the whole merge (drop-tail = backmost first).
-Residency for every emitted entry (compat or native) via the existing `.Lnep_res_ok`/32-set×4-way/`cell_used`/
-12-entry DMA path, in merge order. VBlank `vdp_commit_sprites` (`0x7349C`) unchanged.
+**Native actor-owned metadata (option B), only where an actor genuinely caches piece art across frames:**
+```
+native_piece_metadata { artwork_code ; palette_route ; flip_x ; flip_y ; valid }   // per actor slot, bounded
+```
+Populated at actor init/mapping-set from `a4@30`/`a4@39` (the semantic owners); read by the converted handler
+at emit; invalidated on retirement / stage reset. It contains **no** PC090OJ address, 8-byte record, record
+index/band, `0xD00000` translation, represented/waiting state, `Y=0x180` record, or mirror scan. In practice
+`a4@30`/`a4@39` are live actor fields, so **option A (recompute at emit) is the default**; option B is used
+only if profiling shows a genuine per-frame recomputation cost.
 
-## 5. Priority lanes + exact per-dispatcher bounds
+## 5. Priority lanes, groups, bounds (front→back)
 
-| Lane | Band | `0x41DAE` bound | `0x45DFA` bound | **Queue size** |
-|---|---:|---:|---:|---:|
-| FRONT_EFFECT | 46–56 | 11 (11×1) | **36 (6×6)** | **36** |
-| MIDDLE | 96–119 | 24 (6×4) | 20 (5×4) | **24** |
-| BACK_ENEMY | 140–238 | **99 (8×10+19)** | 70 (5×10+20) | **99** |
-| PLAYER_FRONT | 57–95 | 26 (2×13) group1 + 4 block | — | (compat) |
+| Rank | Lane | Producers | Band | Bound | Native? |
+|---:|---|---|---:|---:|---|
+| 0 | HUD | `0x3B802`/`0x5A098` | 0–45 | — | later (own lane) |
+| 1 | FRONT_EFFECT | `0x41DAE`/`0x45DFA` effects | 46–56 | **36** | yes |
+| 2 | PLAYER_FRONT | group1 `a5+0x508` + block `a5+0x170` (92–95) | 57–95 | 26 + 4 | yes (restore group1) |
+| 3 | MIDDLE | `0x41DAE`/`0x45DFA` middle | 96–119 | **24** | yes (**restore**) |
+| 4 | PLAYER_BODY | composer `0x544D0…`/`0x41F5E` | 120–139 | (native lane) | yes |
+| 5 | BACK_ENEMY | `0x41DAE`/`0x45DFA` enemies | 140–238 | **99** | yes |
 
-Size the native queues at the **max** (FRONT_EFFECT **36**, not 11). Enqueue can't overflow; the 80-cap drops
-the backmost at finalize.
+Producer execution order ≠ priority order → per-lane queues; the finalizer concatenates front→back.
+Overflow = drop-tail at `NATIVE_SAT_MAX=80` (backmost first). Mode select `a5@0x2A2` is **retained**: the native
+staging reproduces the **mode-selected** dispatcher's groups (fixing the current mode-blind Genesis staging).
 
-## 6. Safe mode-gated first build (the delivered design)
+## 6. Finalizer, SAT chain, residency, reset
 
-A single mode-owned flag makes the conversion safe in every mode:
-
-- **`native_sprite_mode`** = (`a5@0x2A2 == 0`) — set once per frame at the top of `hook_target_41dae`
-  (`0x72A98`), after reset. (Mode 0 is the only proven default-only mode.)
-- **`.L3c950_sprite_direct`** branches on it: **native mode** → the four per-piece fields go to
-  `native_sprite_emit(X,Y,artwork_code,pal_route,flipH,flipV,lane)` and **no** mirror write; **compat mode** →
-  the original four `(%a1)+` record stores, byte-identical. (The C-window tilemap branch is untouched.)
-- **Native-band exclusions** (46–56, 96–119, 140–238) in `native_emit_pass` apply **only** while
-  `native_sprite_mode` is set; in compat mode the emit pass runs the full unmodified scan.
-- **Compatibility records 57–95 and 120–139 are always emitted** (never excluded), in both modes.
-- **No stale/cross-mode queue state:** the lane counts are reset every frame at the hook top; queues are
-  spliced only when `native_sprite_mode` is set; on any mode-1/2 frame the queues are empty and unused.
-
-In mode 0 this is exact (proven zero specialized pieces → mirror native-bands are empty; nothing to hide). In
-mode 1/2 the game runs the **unchanged** compat path — no native emission, no exclusion, no suppression risk.
-
-**Removal boundary (temporary → permanent):** the gate is removed when modes 1 and 2 are proven. For each: if
-its groups are also default-only, extend the gate (and add the mode-2 `0x45DFA` staging with its lanes/bounds);
-if any group uses a specialized handler, convert that handler to `native_sprite_emit` too. Once all modes are
-native, `native_sprite_mode` is always true, the mirror + `0x3AD44`/`0x56xxx`/`0x5607C`/`0x59F5E` fills/decay
-and the compat scan are deleted, and the finalizer becomes pure lane concatenation.
+- One finalizer rebuilds the SAT by concatenating the lanes front→back (HUD → FRONT_EFFECT → PLAYER_FRONT →
+  MIDDLE → PLAYER_BODY → BACK_ENEMY), one continuous link chain (`link=cursor+1`, last=0), `NATIVE_SAT_MAX`
+  across the whole merge, residency per entry via the **existing** `.Lnep_res_ok`/32-set×4-way/`cell_used`/
+  12-entry tile-DMA path, then the existing `vdp_commit_sprites` VBlank DMA.
+- **Reset/retirement:** queue counts + `native_piece_metadata.valid` cleared at the sprite-prep boundary
+  (`hook_target_41dae 0x72A98`) each frame; per-actor metadata invalidated on the arcade retire (`a4@3` /
+  `a4@26=0x180` decision) and on stage reset (`0x501E2` scene-init). No `0x0180` record is ever emitted;
+  visibility-false → no queue entry.
 
 ## 7. RETAIN / REPLACE / DELETE
 
-- **RETAIN:** actor traversal/lifecycle/animation/mapping selection (`a0`)/coords/palette/flips/visibility/
-  priority; the mode select (`a5@0x2A2`) and each dispatcher's group→lane assignment.
-- **REPLACE (mode-0 now; other modes at the removal boundary):** the four `sprite_direct` `(%a1)+` stores →
-  gated `native_sprite_emit`; the mode-0 staging → set lane + reproduce all `0x41DAE` groups (incl. the
-  **restored middle**); the emit pass → the §4 gated rank-merge.
-- **DELETE (PC090OJ-only, at the removal boundary):** `pc090oj_object_ram` mirror + `0xD00000` addressing,
-  record packing, `record_to_slot`/represented/waiting, mirror scans/decoders, `Y=0x180` fills,
-  `0x3AD44`/`0x56xxx`/`0x5607C`/`0x59F5E` fills/clears/copies/decay, the `stage_record46` scratch, audit guard
-  + inactive candidate scan. Keep + rename `staged_sprite_sat`/residency/tile-DMA/`vdp_commit_sprites`/colbank.
-  **Nothing is deleted while any mode still uses it** (the mirror stays until modes 1/2 are native).
+- **RETAIN (arcade semantic):** actor/object init (incl. `a4@30`/`a4@39` setup), traversal, lifecycle,
+  animation, mapping selection, piece expansion (default + all 9 handlers' geometry), coordinates, visibility,
+  priority, the mode select and group→lane assignment, stage init `0x501E2`.
+- **REPLACE:** the four `(%a1)+` record-word stores in the default expander **and** every specialized handler
+  (via their shared store helpers `0x3C516/606/6AC/70A/742/7D2/804/85E/89A`) → one `native_sprite_emit` per
+  piece, artwork from `a4@30`/stage recompute, attr from `a4@39`+colbank+flip; the staging → set lane +
+  reproduce the mode-selected dispatcher's groups (incl. restored MIDDLE + PLAYER_FRONT group1); the emit pass →
+  the §6 lane finalizer. Where an actor caches art, add `native_piece_metadata` (option B).
+- **DELETE (PC090OJ-only, after all producers converted):** `pc090oj_object_ram` + `0xD00000` addressing,
+  record packing, `record_to_slot`/represented/waiting, mirror scans/decoders, `Y=0x180` fills, the fills/
+  clears/copies/decay (`0x3AD44`/`0x3AD72`/`0x52AA2`-as-mirror-writer/`0x56xxx`/`0x5607C`/`0x59F5E`), the
+  `stage_record46` scratch, audit guard + inactive candidate scan. Keep + rename `staged_sprite_sat`, residency,
+  tile DMA, `vdp_commit_sprites`, colbank shadow under the native subsystem.
 
-## 8. Remaining custom / compat mechanisms
+## 8. Exact Cody task (complete all-gameplay conversion, one build)
 
-Player composer + block copy (`0x544D0–0x547A0`/`0x41F5E`, incl. the 92–95 block); HUD `0x3B802`/`0x5A098`;
-specialized type handlers (`0x3C4D2/550/586/636/6DC/75C/7A4/830`); `workram_block_sprites`; and the mirror for
-all compat bands and all mode-1/2 frames. Each is replaced at the §6 removal boundary or when its content is
-proven.
+1. Add the native lanes (bounds §5: FRONT_EFFECT 36, MIDDLE 24, BACK_ENEMY 99, PLAYER_FRONT 30, PLAYER_BODY
+   sized to its composer output) + counts + `native_sprite_lane`; add `native_piece_metadata[]` per actor slot.
+   Reset counts + metadata-valid at `hook_target_41dae` (`0x72A98`).
+2. Add `native_sprite_emit(X,Y,artwork_code,pal_route,flipX,flipY,lane)` → `queue[lane]` (per-lane Y-bias:
+   BACK_ENEMY −8, else 0). Add `native_piece_meta_set/get` (option B) for handlers that cache art.
+3. Convert the piece-store tails to `native_sprite_emit`, artwork from `a4@30` (default: `mapping+a4@30`; `0x10`:
+   the `0x3C89A` stage recompute; position-only: `a4@30`[+piece index]), attr from `a4@39`+colbank+in-handler
+   flip; blank/`0xFF` → append nothing. This covers `.L3c950_sprite_direct` **and** the shared helpers
+   `0x3C516/606/6AC/70A/742/7D2/804/85E/89A` (converting them converts all 9 handlers).
+4. Staging: read `a5@0x2A2`, reproduce the **mode-selected** dispatcher's groups, each setting its lane —
+   `0x41DAE`: FRONT_EFFECT (effects), PLAYER_FRONT (restore group1 `a5+0x508`), MIDDLE (**restore** `a5+0x5C8`),
+   BACK_ENEMY; `0x45DFA` (mode 2): the repurposed enemies/effects/middle. Keep PLAYER_FRONT block 92–95 and
+   PLAYER_BODY as native lanes. Remove mirror writes / scratch / KF-067 fix.
+5. One lane finalizer (§6) + existing residency/tile-DMA/`vdp_commit_sprites`. Delete the mirror + fill/clear/
+   copy/decay only after all lanes are native.
+6. Do **not** touch Plane A/B, collision, rope, reset. No `native_sprite_mode`, no Stage-1 gate, no dual output.
 
-## 9. Exact Cody task (mode-0-gated shared conversion, restore MIDDLE)
+**Validate on one ROM across reachable content:** Rastan + lizard + additional enemies + effect/item + **middle
+object now appearing** + player-front 92–95 element + correct front-to-back priority + death/retirement with no
+stale sprite + no duplicate output. Later stages (mode-1/2, bosses using the specialized handlers) validate the
+`a4@30`-sourced artwork once reachable.
 
-1. Add native lanes at the **§5 max bounds** (FRONT_EFFECT **36**, MIDDLE **24**, BACK_ENEMY **99**), each
-   `{X,Y,artwork_code,attr}` + count, plus `native_sprite_lane` and `native_sprite_mode`. At the top of
-   `genesistan_pc090oj_hook_target_41dae` (`0x72A98`): reset all lane counts, then set
-   `native_sprite_mode = (a5@0x2A2 == 0)`.
-2. Add `native_sprite_emit(X,Y,artwork_code,pal_route,flipH,flipV,lane)` → `queue[lane]` (per-lane Y-bias:
-   BACK_ENEMY −8, else 0).
-3. In `.L3c950_sprite_direct` (both `.L3c950_sprite_primary_loop`/`_alt_loop`): if `native_sprite_mode` →
-   `native_sprite_emit` (no mirror write); else → the original four `(%a1)+` stores unchanged. Sentinel/blank →
-   append nothing in native mode. Leave the C-window branch.
-4. Set `native_sprite_lane` before each `jsr 0x3D254`: `stage_block2c8` → BACK_ENEMY; `stage_record46` →
-   FRONT_EFFECT; add a **middle stager** (reproduce `0x41E0C`: `a5+0x5C8`, 6 slots, `d2`=4) → MIDDLE. These run
-   in gameplay regardless of mode, but `sprite_direct` only diverts to native when `native_sprite_mode` is set,
-   so mode-1/2 frames keep writing the mirror (compat) exactly as today. In native mode, drop the
-   `stage_block2c8` KF-067 fix loop and the `stage_record46` scratch/flush (fold the −8 into the emitter).
-5. Make `pc090oj_native_emit_pass` (`0x731E4`) the §4 order **only when `native_sprite_mode`**: emit compat
-   0–45 → splice FRONT_EFFECT → emit compat **57–95** → splice MIDDLE → emit compat 120–139 → splice
-   BACK_ENEMY; exclude only bands 46–56/96–119/140–238; one terminated chain; `NATIVE_SAT_MAX` across the merge;
-   residency via the existing path. When `native_sprite_mode` is clear, run the unmodified full compat scan.
-6. Reuse residency/tile-DMA/`vdp_commit_sprites`. Delete nothing. **Do not** touch Plane A/B, collision, rope,
-   reset.
+## 9. STOP
 
-**Validate on one ROM:** Stage 1 (mode 0) — Rastan + lizard composite + another enemy + effect/item + **a
-middle object now appearing** + the player-front 92–95 element still present, correct front-to-back priority,
-death/retirement with no stale sprite, no duplicate output; and confirm a later-mode transition still renders
-via the untouched compat path.
-
-## 10. STOP status
-
-**STOP: YES for a global (all-mode) conversion** — it could suppress unconverted specialized-handler output in
-mode 1 or mode 2, whose type routing is unproven. The **delivered build is the mode-0-gated design** (§6/§9),
-which is safe in all modes: native emission and band exclusion happen only when `native_sprite_mode` is set
-(proven mode 0), compat records 57–95 and 120–139 are always emitted, and modes 1/2 run the unchanged compat
-path. The temporary gate has an explicit removal boundary (§6). Remaining evidence to lift it and go all-mode:
-a mode-1 and a mode-2 stage capture confirming each group's type routing/lanes, plus the fix for the mode-blind
-Genesis staging.
+**STOP: NOT triggered.** Ghidra provenance determined the semantic source of every specialized handler's
+`code`/`attr` (`a4@30` base tile set at actor init; `a4@39` attribute; stage-state recompute for `0x10`); none
+is PC090OJ-hardware-only. The final all-gameplay architecture is defined (recompute/actor-metadata, no mode gate,
+no mirror) with one compact Cody task (§8). The sole emit-time sub-detail — whether a code-less handler's
+multi-piece artwork is `a4@30` uniform or `a4@30 + piece_index` — reads directly from `a4@30` at emit and is
+resolved by Cody from the actor init while implementing; it is **not** a provenance blocker and needs no
+later-stage runtime trace.
