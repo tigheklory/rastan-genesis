@@ -54,6 +54,8 @@
     .global pc090oj_scan_active
     .global pc090oj_producer_oob_count
     .global pc090oj_producer_write_count
+    .global native_sprite_emit
+    .global native_sprite_lane
 
     .global staged_sprite_sat
     .global staged_sprite_descriptor_table
@@ -445,24 +447,285 @@ genesistan_pc090oj_hook_target_3b930:
  * low copy has not been proven spurious there. */
 genesistan_pc090oj_hook_target_41dae:
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-    beq.s   .Lhook_41dae_gameplay_record46
+    beq.s   .Lhook_41dae_gameplay_native
     bsr     pc090oj_workram_block_sprites
     rts
-.Lhook_41dae_gameplay_record46:
-    bsr     pc090oj_stage_block2c8
-    bsr     .Lpc090oj_stage_record46_validated
-    bsr     pc090oj_native_emit_pass    /* N1: last gameplay producer -> emit */
+.Lhook_41dae_gameplay_native:
+    move.w  0x02A2(%a5), %d0
+    cmpi.w  #2, %d0
+    beq.s   .Lhook_41dae_mode2
+    bsr     native_stage_dispatch_41dae
+    bra.s   .Lhook_41dae_finalize
+.Lhook_41dae_mode2:
+    bsr     native_stage_dispatch_45dfa
+.Lhook_41dae_finalize:
+    bsr     pc090oj_native_emit_pass
     rts
 
 genesistan_pc090oj_hook_target_41f5e:
+    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    beq.s   .Lhook_41f5e_gameplay_native
     bsr     pc090oj_workram_block_sprites_41f5e
+    rts
+.Lhook_41f5e_gameplay_native:
+    bsr     native_sprite_frame_begin
+    bsr     native_stage_player_blocks_41f5e
     rts
 
 genesistan_pc090oj_hook_target_45dfa:
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-    beq.s   .Lhook_45dfa_skip
+    beq.s   .Lhook_45dfa_gameplay_native
     bsr     pc090oj_workram_block_sprites
-.Lhook_45dfa_skip:
+    rts
+.Lhook_45dfa_gameplay_native:
+    bsr     native_stage_dispatch_45dfa
+    bsr     pc090oj_native_emit_pass
+    rts
+
+
+/* Build 0250 native gameplay sprite lanes.  These queues are semantic output
+ * lanes, not PC090OJ object RAM: producers append visible 16x16 pieces and the
+ * finalizer later concatenates them into one Genesis SAT chain.  Legacy mirror
+ * code remains physically present for frontend/non-gameplay comparison only. */
+native_sprite_frame_begin:
+    clr.w   native_hud_count
+    clr.w   native_front_effect_count
+    clr.w   native_player_front_count
+    clr.w   native_middle_count
+    clr.w   native_player_body_count
+    clr.w   native_back_enemy_count
+    clr.w   pc090oj_sat_frame_ready
+    rts
+
+/* d1=word0/attr nibble+flip bits, d2=PC090OJ Y word, d3=source artwork code,
+ * d4=PC090OJ X word, native_sprite_lane selects queue.  Preserves all caller
+ * registers.  Hidden/blank/code-zero pieces append nothing; BACK_ENEMY keeps the
+ * proven KF-067 -8 Y bias at the semantic lane boundary. */
+native_sprite_emit:
+    movem.l %d0-%d7/%a0-%a2, -(%sp)
+    move.w  %d3, %d0
+    andi.w  #0x1FFF, %d0
+    beq     .Lnse_done
+    cmpi.w  #0x00FF, %d0
+    beq     .Lnse_done
+    move.w  %d2, %d0
+    andi.w  #0x01FF, %d0
+    cmpi.w  #0x0180, %d0
+    beq     .Lnse_done
+
+    move.w  native_sprite_lane, %d0
+    cmpi.w  #NATIVE_LANE_HUD, %d0
+    beq.s   .Lnse_hud
+    cmpi.w  #NATIVE_LANE_FRONT_EFFECT, %d0
+    beq.s   .Lnse_front_effect
+    cmpi.w  #NATIVE_LANE_PLAYER_FRONT, %d0
+    beq.s   .Lnse_player_front
+    cmpi.w  #NATIVE_LANE_MIDDLE, %d0
+    beq.s   .Lnse_middle
+    cmpi.w  #NATIVE_LANE_PLAYER_BODY, %d0
+    beq.s   .Lnse_player_body
+    cmpi.w  #NATIVE_LANE_BACK_ENEMY, %d0
+    beq.s   .Lnse_back_enemy
+    bra     .Lnse_done
+.Lnse_hud:
+    lea     native_queue_hud, %a0
+    lea     native_hud_count, %a1
+    move.w  #NATIVE_HUD_BOUND, %d5
+    bra.s   .Lnse_store
+.Lnse_front_effect:
+    lea     native_queue_front_effect, %a0
+    lea     native_front_effect_count, %a1
+    move.w  #NATIVE_FRONT_EFFECT_BOUND, %d5
+    bra.s   .Lnse_store
+.Lnse_player_front:
+    lea     native_queue_player_front, %a0
+    lea     native_player_front_count, %a1
+    move.w  #NATIVE_PLAYER_FRONT_BOUND, %d5
+    bra.s   .Lnse_store
+.Lnse_middle:
+    lea     native_queue_middle, %a0
+    lea     native_middle_count, %a1
+    move.w  #NATIVE_MIDDLE_BOUND, %d5
+    bra.s   .Lnse_store
+.Lnse_player_body:
+    lea     native_queue_player_body, %a0
+    lea     native_player_body_count, %a1
+    move.w  #NATIVE_PLAYER_BODY_BOUND, %d5
+    bra.s   .Lnse_store
+.Lnse_back_enemy:
+    move.w  %d2, %d0
+    subi.w  #8, %d0
+    andi.w  #0x01FF, %d0
+    move.w  %d0, %d2
+    lea     native_queue_back_enemy, %a0
+    lea     native_back_enemy_count, %a1
+    move.w  #NATIVE_BACK_ENEMY_BOUND, %d5
+.Lnse_store:
+    move.w  (%a1), %d0
+    cmp.w   %d5, %d0
+    bhs.s   .Lnse_done
+    move.w  %d0, %d6
+    lsl.w   #3, %d6
+    adda.w  %d6, %a0
+    move.w  %d1, (%a0)+
+    move.w  %d2, (%a0)+
+    move.w  %d3, (%a0)+
+    move.w  %d4, (%a0)+
+    addq.w  #1, (%a1)
+.Lnse_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a2
+    rts
+
+native_stage_player_blocks_41f5e:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.w  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane
+    lea     0x11B2(%a5), %a0
+    moveq   #(18 - 1), %d6
+.Lnsp_body_loop:
+    move.w  (%a0), %d1
+    move.w  2(%a0), %d2
+    move.w  4(%a0), %d3
+    move.w  6(%a0), %d4
+    bsr     native_sprite_emit
+    adda.w  #8, %a0
+    dbra    %d6, .Lnsp_body_loop
+
+    move.w  #NATIVE_LANE_PLAYER_FRONT, native_sprite_lane
+    lea     0x0170(%a5), %a0
+    moveq   #(4 - 1), %d6
+.Lnsp_front_loop:
+    move.w  (%a0), %d1
+    move.w  2(%a0), %d2
+    move.w  4(%a0), %d3
+    move.w  6(%a0), %d4
+    bsr     native_sprite_emit
+    adda.w  #8, %a0
+    dbra    %d6, .Lnsp_front_loop
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+native_stage_dispatch_41dae:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.w  #NATIVE_LANE_PLAYER_FRONT, native_sprite_lane
+    lea     0x0508(%a5), %a4
+    lea     0x00D001C8, %a1
+    moveq   #(2 - 1), %d5
+.Lns41_players1:
+    moveq   #13, %d2
+    bsr     .Lnative_emit_actor_common
+    adda.w  #64, %a4
+    dbra    %d5, .Lns41_players1
+
+    move.w  #NATIVE_LANE_MIDDLE, native_sprite_lane
+    lea     0x05C8(%a5), %a4
+    lea     0x00D00300, %a1
+    moveq   #(6 - 1), %d5
+.Lns41_middle:
+    moveq   #4, %d2
+    bsr     .Lnative_emit_actor_common
+    adda.w  #64, %a4
+    dbra    %d5, .Lns41_middle
+
+    move.w  #NATIVE_LANE_BACK_ENEMY, native_sprite_lane
+    lea     0x02C8(%a5), %a4
+    lea     0x00D00460, %a1
+    moveq   #0, %d5
+.Lns41_enemy:
+    moveq   #10, %d2
+    cmpi.w  #8, %d5
+    bne.s   .Lns41_enemy_count_ok
+    moveq   #19, %d2
+.Lns41_enemy_count_ok:
+    tst.b   5(%a4)
+    beq.s   .Lnative_actor_advance_only_41_enemy
+    tst.b   3(%a4)
+    bne.s   .Lnative_actor_advance_only_41_enemy
+    bsr     .Lnative_emit_actor_common
+    bra.s   .Lns41_enemy_next
+.Lnative_actor_advance_only_41_enemy:
+    move.w  %d2, %d0
+    lsl.w   #3, %d0
+    adda.w  %d0, %a1
+.Lns41_enemy_next:
+    adda.w  #64, %a4
+    addq.w  #1, %d5
+    cmpi.w  #9, %d5
+    blo.s   .Lns41_enemy
+
+    move.w  #NATIVE_LANE_FRONT_EFFECT, native_sprite_lane
+    lea     0x0748(%a5), %a4
+    lea     0x00D00170, %a1
+    moveq   #(11 - 1), %d5
+.Lns41_effect:
+    moveq   #1, %d2
+    tst.b   0x36(%a4)
+    bne.s   .Lnative_actor_advance_only_41_effect
+    bsr     .Lnative_emit_actor_common
+    bra.s   .Lns41_effect_next
+.Lnative_actor_advance_only_41_effect:
+    adda.w  #8, %a1
+.Lns41_effect_next:
+    adda.w  #64, %a4
+    dbra    %d5, .Lns41_effect
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+native_stage_dispatch_45dfa:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.w  #NATIVE_LANE_BACK_ENEMY, native_sprite_lane
+    lea     0x05C8(%a5), %a4
+    lea     0x00D00460, %a1
+    moveq   #(6 - 1), %d5
+.Lns45_enemy:
+    moveq   #10, %d2
+    cmpi.w  #2, 0x0214(%a5)
+    bls.s   .Lns45_enemy_count_ok
+    moveq   #20, %d2
+.Lns45_enemy_count_ok:
+    bsr     .Lnative_emit_actor_common
+    adda.w  #64, %a4
+    dbra    %d5, .Lns45_enemy
+
+    move.w  #NATIVE_LANE_FRONT_EFFECT, native_sprite_lane
+    lea     0x0748(%a5), %a4
+    lea     0x00D00170, %a1
+    moveq   #(6 - 1), %d5
+.Lns45_effect:
+    moveq   #6, %d2
+    bsr     .Lnative_emit_actor_common
+    adda.w  #64, %a4
+    dbra    %d5, .Lns45_effect
+
+    move.w  #NATIVE_LANE_MIDDLE, native_sprite_lane
+    lea     0x08C8(%a5), %a4
+    lea     0x00D00300, %a1
+    moveq   #(5 - 1), %d5
+.Lns45_middle:
+    moveq   #4, %d2
+    bsr     .Lnative_emit_actor_common
+    adda.w  #64, %a4
+    dbra    %d5, .Lns45_middle
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* A4=actor, A1=semantic old destination for branch compatibility, D2=piece count. */
+.Lnative_emit_actor_common:
+    move.w  %d5, -(%sp)
+    tst.b   0(%a4)
+    beq.s   .Lnative_actor_skip
+    tst.b   1(%a4)
+    beq.s   .Lnative_actor_skip
+    move.b  1(%a4), %d0
+    move.b  32(%a4), %d6
+    move.b  2(%a4), %d7
+    jsr     0x0003D254
+    move.w  (%sp)+, %d5
+    rts
+.Lnative_actor_skip:
+    move.w  %d2, %d0
+    lsl.w   #3, %d0
+    adda.w  %d0, %a1
+    move.w  (%sp)+, %d5
     rts
 
 /* Build 0204 / OPEN-017: faithfully re-enable the first gameplay enemy block
@@ -1143,6 +1406,19 @@ genesistan_pc090oj_hook_audit_guard:
 /* ========================================================================= */
     .equ NATIVE_SAT_MAX, 80
     .equ NATIVE_CELLS, 128
+    .equ NATIVE_QUEUE_ENTRY_BYTES, 8
+    .equ NATIVE_LANE_HUD, 0
+    .equ NATIVE_LANE_FRONT_EFFECT, 1
+    .equ NATIVE_LANE_PLAYER_FRONT, 2
+    .equ NATIVE_LANE_MIDDLE, 3
+    .equ NATIVE_LANE_PLAYER_BODY, 4
+    .equ NATIVE_LANE_BACK_ENEMY, 5
+    .equ NATIVE_HUD_BOUND, 9
+    .equ NATIVE_FRONT_EFFECT_BOUND, 36
+    .equ NATIVE_PLAYER_FRONT_BOUND, 30
+    .equ NATIVE_MIDDLE_BOUND, 24
+    .equ NATIVE_PLAYER_BODY_BOUND, 20
+    .equ NATIVE_BACK_ENEMY_BOUND, 99
 
 /* d1=word0, d7=colbank -> d0 = Genesis palette line (Build 0210 semantics). */
 .Lnative_palsel:
@@ -1275,8 +1551,378 @@ genesistan_pc090oj_hook_audit_guard:
 	    rts
 	.endif
 
+
+/* Build 0250 native semantic-lane finalizer.  Non-gameplay falls back to the
+ * legacy object-table scanner; gameplay consumes only the native queues. */
+pc090oj_native_emit_pass:
+    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    beq.s   .Lnq_gameplay
+    bra     pc090oj_legacy_emit_pass
+.Lnq_gameplay:
+    movem.l %d0-%d7/%a0-%a3, -(%sp)
+    lea     staged_sprite_sat, %a3
+    tst.w   pc090oj_sat_bank
+    beq.s   .Lnq_bank_ok
+    lea     staged_sprite_sat_b, %a3
+.Lnq_bank_ok:
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+    bsr     .Lnq_project_p1_hud
+.endif
+    lea     sprite_tile_resident_code, %a2
+    lea     pc090oj_cell_used, %a1
+    clr.l   (%a1)+
+    clr.l   (%a1)+
+    clr.l   (%a1)+
+    clr.l   (%a1)+
+    moveq   #0, %d5
+
+    lea     native_queue_hud, %a0
+    move.w  native_hud_count, %d6
+    bsr     .Lnq_emit_lane
+    lea     native_queue_front_effect, %a0
+    move.w  native_front_effect_count, %d6
+    bsr     .Lnq_emit_lane
+    lea     native_queue_player_front, %a0
+    move.w  native_player_front_count, %d6
+    bsr     .Lnq_emit_lane
+    lea     native_queue_middle, %a0
+    move.w  native_middle_count, %d6
+    bsr     .Lnq_emit_lane
+    lea     native_queue_player_body, %a0
+    move.w  native_player_body_count, %d6
+    bsr     .Lnq_emit_lane
+    lea     native_queue_back_enemy, %a0
+    move.w  native_back_enemy_count, %d6
+    bsr     .Lnq_emit_lane
+    bra     .Lnq_done_scan
+
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+.Lnq_project_p1_hud:
+    movem.l %d0-%d7/%a0-%a2, -(%sp)
+    clr.w   native_hud_count
+    move.w  #NATIVE_LANE_HUD, native_sprite_lane
+    movea.l #0x00FF011E, %a2
+    clr.w   %d5
+
+    moveq   #0, %d1
+    move.b  (%a2), %d1
+    lsr.b   #4, %d1
+    andi.w  #0x000F, %d1
+    moveq   #0x08, %d4
+    bsr     .Lnq_emit_hud_digit
+
+    moveq   #0, %d1
+    move.b  (%a2), %d1
+    andi.w  #0x000F, %d1
+    moveq   #0x10, %d4
+    bsr     .Lnq_emit_hud_digit
+    subq.l  #1, %a2
+
+    moveq   #0, %d1
+    move.b  (%a2), %d1
+    lsr.b   #4, %d1
+    andi.w  #0x000F, %d1
+    moveq   #0x18, %d4
+    bsr     .Lnq_emit_hud_digit
+
+    moveq   #0, %d1
+    move.b  (%a2), %d1
+    andi.w  #0x000F, %d1
+    moveq   #0x20, %d4
+    bsr     .Lnq_emit_hud_digit
+    subq.l  #1, %a2
+
+    moveq   #0, %d1
+    move.b  (%a2), %d1
+    lsr.b   #4, %d1
+    andi.w  #0x000F, %d1
+    moveq   #0x28, %d4
+    bsr     .Lnq_emit_hud_digit
+
+    moveq   #0, %d1
+    move.b  (%a2), %d1
+    andi.w  #0x000F, %d1
+    moveq   #0x30, %d4
+    bsr     .Lnq_emit_hud_digit
+
+    moveq   #0, %d1
+    move.w  #0x0010, %d2
+    move.w  #0x8039, %d3
+    move.w  #0x0040, %d4
+    bsr     native_sprite_emit
+    moveq   #0, %d1
+    move.w  #0x0010, %d2
+    move.w  #0x8048, %d3
+    move.w  #0x0028, %d4
+    bsr     native_sprite_emit
+    moveq   #0, %d1
+    move.w  #0x0010, %d2
+    move.w  #0x8046, %d3
+    move.w  #0x0038, %d4
+    bsr     native_sprite_emit
+    movem.l (%sp)+, %d0-%d7/%a0-%a2
+    rts
+.Lnq_emit_hud_digit:
+    move.w  #0x0010, %d2
+    tst.w   %d5
+    bne.s   .Lnq_digit_visible
+    tst.w   %d1
+    bne.s   .Lnq_digit_visible
+    move.w  #0x0110, %d2
+    bra.s   .Lnq_digit_ready
+.Lnq_digit_visible:
+    moveq   #1, %d5
+.Lnq_digit_ready:
+    addi.w  #0x002A, %d1
+    ori.w   #0x8000, %d1
+    move.w  %d1, %d3
+    moveq   #0, %d1
+    bsr     native_sprite_emit
+    rts
+.endif
+
+.Lnq_emit_lane:
+    tst.w   %d6
+    beq     .Lnq_lane_done
+    subq.w  #1, %d6
+.Lnq_lane_loop:
+    move.w  (%a0)+, %d1
+    move.w  (%a0)+, %d2
+    move.w  (%a0)+, %d3
+    move.w  (%a0)+, %d4
+    move.w  %d6, -(%sp)
+    bsr     .Lnq_emit_entry
+    move.w  (%sp)+, %d6
+    cmpi.w  #NATIVE_SAT_MAX, %d5
+    bhs.s   .Lnq_lane_done
+    dbra    %d6, .Lnq_lane_loop
+.Lnq_lane_done:
+    rts
+
+.Lnq_emit_entry:
+    move.w  %d3, %d0
+    andi.w  #0x1FFF, %d0
+    beq     .Lnq_entry_skip
+    cmpi.w  #0x1000, %d0
+    bhs     .Lnq_entry_skip
+    move.w  %d0, %d6
+    lsr.w   #3, %d6
+    lea     pc090oj_blank_code_bitset, %a1
+    move.b  0(%a1,%d6.w), %d6
+    move.w  %d0, %d7
+    andi.w  #0x0007, %d7
+    btst    %d7, %d6
+    bne     .Lnq_entry_skip
+    move.w  %d0, %d3
+    /* Preserve HUD-white residency tag if caller set bit 15 in the queue code. */
+    move.w  -4(%a0), %d6
+    btst    #15, %d6
+    beq.s   .Lnq_no_hud_tag
+    ori.w   #0x8000, %d3
+.Lnq_no_hud_tag:
+
+    andi.w  #0x01FF, %d2
+    cmpi.w  #0x0140, %d2
+    bls.s   .Lnq_y_ok
+    subi.w  #0x0200, %d2
+.Lnq_y_ok:
+    andi.w  #0x01FF, %d4
+    cmpi.w  #0x0140, %d4
+    bls.s   .Lnq_x_ok
+    subi.w  #0x0200, %d4
+.Lnq_x_ok:
+    move.w  pc090oj_ctrl_shadow, %d6
+    btst    #0, %d6
+    bne.s   .Lnq_no_flip
+    move.w  #PC090OJ_FLIP_X_TERM, %d6
+    sub.w   %d4, %d6
+    move.w  %d6, %d4
+    move.w  #PC090OJ_FLIP_Y_TERM, %d6
+    sub.w   %d2, %d6
+    move.w  %d6, %d2
+    eori.w  #0xC000, %d1
+.Lnq_no_flip:
+    addi.w  #PC090OJ_TO_GENESIS_X_OFFSET, %d4
+    addi.w  #PC090OJ_TO_GENESIS_Y_OFFSET, %d2
+
+    move.w  %d3, %d0
+    andi.w  #0x0FFF, %d0
+    lsl.w   #2, %d0
+    lea     pc090oj_opaque_bbox, %a1
+    adda.w  %d0, %a1
+    moveq   #0, %d0
+    move.b  0(%a1), %d0
+    moveq   #0, %d6
+    move.b  1(%a1), %d6
+    btst    #15, %d1
+    beq.s   .Lnq_vrows_ok
+    neg.w   %d0
+    addi.w  #PC090OJ_PATTERN_MAX_ROW, %d0
+    neg.w   %d6
+    addi.w  #PC090OJ_PATTERN_MAX_ROW, %d6
+    exg     %d0, %d6
+.Lnq_vrows_ok:
+    add.w   %d2, %d0
+    add.w   %d2, %d6
+    cmpi.w  #GENESIS_VIEWPORT_BOTTOM, %d0
+    bge     .Lnq_entry_skip
+    cmpi.w  #GENESIS_VIEWPORT_TOP, %d6
+    blt     .Lnq_entry_skip
+    moveq   #0, %d0
+    move.b  2(%a1), %d0
+    moveq   #0, %d6
+    move.b  3(%a1), %d6
+    btst    #14, %d1
+    beq.s   .Lnq_hcols_ok
+    neg.w   %d0
+    addi.w  #PC090OJ_PATTERN_MAX_COL, %d0
+    neg.w   %d6
+    addi.w  #PC090OJ_PATTERN_MAX_COL, %d6
+    exg     %d0, %d6
+.Lnq_hcols_ok:
+    add.w   %d4, %d0
+    add.w   %d4, %d6
+    cmpi.w  #GENESIS_VIEWPORT_RIGHT, %d0
+    bge     .Lnq_entry_skip
+    cmpi.w  #GENESIS_VIEWPORT_LEFT, %d6
+    blt     .Lnq_entry_skip
+
+    move.w  %d3, %d0
+    andi.w  #0x001F, %d0
+    lsl.w   #3, %d0
+    cmp.w   0(%a2,%d0.w), %d3
+    beq     .Lnq_hit
+    addq.w  #2, %d0
+    cmp.w   0(%a2,%d0.w), %d3
+    beq     .Lnq_hit
+    addq.w  #2, %d0
+    cmp.w   0(%a2,%d0.w), %d3
+    beq     .Lnq_hit
+    addq.w  #2, %d0
+    cmp.w   0(%a2,%d0.w), %d3
+    beq     .Lnq_hit
+    move.w  %d1, -(%sp)
+    move.w  %d3, %d0
+    andi.w  #0x001F, %d0
+    lsl.w   #3, %d0
+    moveq   #3, %d1
+.Lnq_vloop:
+    bsr     .Lnq_cell_free
+    beq.s   .Lnq_take
+    addq.w  #2, %d0
+    dbra    %d1, .Lnq_vloop
+    move.w  (%sp)+, %d1
+    addq.w  #1, pc090oj_dropped_count
+    bra     .Lnq_entry_skip
+.Lnq_take:
+    move.w  pc090oj_tile_dma_count, %d1
+    cmpi.w  #12, %d1
+    bhs.s   .Lnq_qfull
+    lea     pc090oj_tile_dma_worklist, %a1
+    lsl.w   #2, %d1
+    adda.w  %d1, %a1
+    move.w  %d0, %d1
+    lsr.w   #1, %d1
+    move.w  %d1, (%a1)+
+    move.w  %d3, (%a1)
+    addq.w  #1, pc090oj_tile_dma_count
+    move.w  %d3, 0(%a2,%d0.w)
+    move.w  (%sp)+, %d1
+    bra     .Lnq_hit
+.Lnq_qfull:
+    move.w  (%sp)+, %d1
+    addq.w  #1, pc090oj_dropped_count
+    bra     .Lnq_entry_skip
+.Lnq_cell_free:
+    move.w  %d0, -(%sp)
+    lea     pc090oj_cell_used, %a1
+    lsr.w   #4, %d0
+    adda.w  %d0, %a1
+    move.w  (%sp), %d0
+    lsr.w   #1, %d0
+    andi.w  #7, %d0
+    btst    %d0, (%a1)
+    movem.w (%sp)+, %d0
+    rts
+.Lnq_hit:
+    move.w  %d0, -(%sp)
+    lea     pc090oj_cell_used, %a1
+    lsr.w   #4, %d0
+    adda.w  %d0, %a1
+    move.w  (%sp), %d0
+    lsr.w   #1, %d0
+    andi.w  #7, %d0
+    bset    %d0, (%a1)
+    move.w  (%sp)+, %d0
+    move.w  %d0, -(%sp)
+    move.w  %d2, %d0
+    andi.w  #0x01FF, %d0
+    addi.w  #PC090OJ_SAT_Y_BIAS, %d0
+    andi.w  #0x01FF, %d0
+    move.w  %d0, (%a3)+
+    move.w  %d5, %d0
+    addq.w  #1, %d0
+    andi.w  #0x007F, %d0
+    ori.w   #0x0500, %d0
+    move.w  %d0, (%a3)+
+    move.w  %d1, %d0
+    andi.w  #0x000F, %d0
+    lea     pc090oj_sat_nibble, %a1
+    move.b  %d0, 0(%a1,%d5.w)
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+    lea     pc090oj_sat_force_line, %a1
+    move.b  #0xFF, 0(%a1,%d5.w)
+    btst    #15, %d3
+    beq.s   .Lnq_no_force_line
+    move.b  #3, 0(%a1,%d5.w)
+.Lnq_no_force_line:
+.endif
+    moveq   #0, %d0
+    ori.w   #0x8000, %d0
+    btst    #15, %d1
+    beq.s   .Lnq_novf
+    ori.w   #0x1000, %d0
+.Lnq_novf:
+    btst    #14, %d1
+    beq.s   .Lnq_nohf
+    ori.w   #0x0800, %d0
+.Lnq_nohf:
+    move.w  (%sp)+, %d2
+    add.w   %d2, %d2
+    addi.w  #SPRITE_TILE_BASE, %d2
+    andi.w  #0x07FF, %d2
+    or.w    %d2, %d0
+    move.w  %d0, (%a3)+
+    move.w  %d4, %d0
+    andi.w  #0x01FF, %d0
+    addi.w  #PC090OJ_SAT_X_BIAS, %d0
+    andi.w  #0x01FF, %d0
+    move.w  %d0, (%a3)+
+    addq.w  #1, %d5
+.Lnq_entry_skip:
+    rts
+
+.Lnq_done_scan:
+    tst.w   %d5
+    bne.s   .Lnq_have
+    clr.w   (%a3)+
+    clr.w   (%a3)+
+    clr.w   (%a3)+
+    clr.w   (%a3)+
+    bra.s   .Lnq_store
+.Lnq_have:
+    move.w  -6(%a3), %d0
+    andi.w  #0xFF80, %d0
+    move.w  %d0, -6(%a3)
+.Lnq_store:
+    move.w  %d5, pc090oj_emitted_count
+    move.w  #1, pc090oj_sat_frame_ready
+    move.w  #1, pc090oj_sat_dirty
+    movem.l (%sp)+, %d0-%d7/%a0-%a3
+    rts
+
 	/* One ascending pass over the object table into the back shadow-SAT bank.  */
-	pc090oj_native_emit_pass:
+	pc090oj_legacy_emit_pass:
 	    movem.l %d0-%d7/%a0-%a3, -(%sp)
 	    lea     staged_sprite_sat, %a3
 	    tst.w   pc090oj_sat_bank
@@ -1987,6 +2633,33 @@ pc090oj_tile_dma_worklist:
     .space (12 * 4)
 pc090oj_tile_dma_count:
     .word 0
+native_sprite_lane:
+    .word 0
+native_hud_count:
+    .word 0
+native_front_effect_count:
+    .word 0
+native_player_front_count:
+    .word 0
+native_middle_count:
+    .word 0
+native_player_body_count:
+    .word 0
+native_back_enemy_count:
+    .word 0
+native_queue_hud:
+    .space (NATIVE_HUD_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_front_effect:
+    .space (NATIVE_FRONT_EFFECT_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_player_front:
+    .space (NATIVE_PLAYER_FRONT_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_middle:
+    .space (NATIVE_MIDDLE_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_player_body:
+    .space (NATIVE_PLAYER_BODY_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_back_enemy:
+    .space (NATIVE_BACK_ENEMY_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+    .align 2
 /* The arcade program's persistent slot-addressed object store (256 rows).
  * This is arcade state (incremental producers update rows in place), not a
  * chip mirror: nothing scans, diffs, or reverse-converts it except the one

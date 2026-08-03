@@ -46,6 +46,8 @@
     .extern genesistan_current_pc080sn_tileset_id
     .extern fg_native_gameplay_owner
     .extern palette_route_lookup
+    .extern native_sprite_emit
+    .extern native_sprite_lane
 
     .global genesistan_shadow_input_390001
     .global genesistan_shadow_input_390003
@@ -82,6 +84,14 @@
     .equ ARCADE_PC080SN_CWINDOW_BASE_BG,     0x00C00000
     .equ ARCADE_PC080SN_CWINDOW_BASE_FG,     0x00C08000
     .equ ARCADE_PC080SN_CWINDOW_BYTES,       0x00004000
+    .equ PC090OJ_HW_BASE,                    0x00D00000
+    .equ PC090OJ_HW_END,                     0x00D00800
+    .equ NATIVE_LANE_HUD,                    0
+    .equ NATIVE_LANE_FRONT_EFFECT,           1
+    .equ NATIVE_LANE_PLAYER_FRONT,           2
+    .equ NATIVE_LANE_MIDDLE,                 3
+    .equ NATIVE_LANE_PLAYER_BODY,            4
+    .equ NATIVE_LANE_BACK_ENEMY,             5
     .equ ARCADE_COLLISION_MAP_BASE,          0x00FF1E00
     /* Build 0215 / OPEN-017: Stage 1 FG plane replay (proven deterministic ROM model).
      * The live FG boundary is genesistan_hook_tilemap_fg (0x703EA), reached per-column from
@@ -1968,6 +1978,11 @@ genesistan_hook_text_writer_3c4d2:
     addq.l  #2, %d4
     move.l  %d4, %d1
     andi.l  #0x00FFFFFF, %d1
+    cmpi.l  #PC090OJ_HW_BASE, %d1
+    blo.s   .Ltw_3c4d2_check_fg
+    cmpi.l  #PC090OJ_HW_END, %d1
+    blo     .Ltw_3c4d2_sprite_native
+.Ltw_3c4d2_check_fg:
     cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d1
     blo     .Ltw_finish
     cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d1
@@ -2009,7 +2024,7 @@ genesistan_hook_text_writer_3c4d2:
     andi.w  #0x001F, %d5
 .Ltw_fast_next:
     dbra    %d4, .Ltw_fast_loop
-    bra.s   .Ltw_finish
+    bra     .Ltw_finish
 
 .Ltw_slow_path:
     mulu.w  #5, %d0
@@ -2051,6 +2066,33 @@ genesistan_hook_text_writer_3c4d2:
     addq.w  #1, %d4
     cmpi.w  #5, %d4
     blt.s   .Ltw_slow_loop
+    bra.s   .Ltw_finish
+
+.Ltw_3c4d2_sprite_native:
+    mulu.w  #5, %d0
+    adda.w  %d0, %a0
+
+    moveq   #0, %d4
+.Ltw_3c4d2_sprite_loop:
+    move.b  (%a0)+, %d0
+    ext.w   %d0
+    add.w   26(%a4), %d0
+    add.w   24(%a4), %d0
+    move.w  22(%a4), %d2
+    bsr     .Ltw_emit_native_yx_base_code
+
+    cmpi.b  #0x50, %d3
+    bne.s   .Ltw_3c4d2_sprite_half1
+    cmpi.w  #4, %d4
+    beq.s   .Ltw_3c4d2_sprite_after_half1
+.Ltw_3c4d2_sprite_half1:
+    move.w  22(%a4), %d2
+    addi.w  #-16, %d2
+    bsr     .Ltw_emit_native_yx_base_code
+.Ltw_3c4d2_sprite_after_half1:
+    addq.w  #1, %d4
+    cmpi.w  #5, %d4
+    blt.s   .Ltw_3c4d2_sprite_loop
 
 .Ltw_finish:
     movea.l %a2, %a1
@@ -2153,12 +2195,45 @@ genesistan_hook_text_writer_3c4d2:
     rts
 
 .Ltw_write_pair_same:
+    move.l  %d7, -(%sp)
+    bsr     .Ltw_is_a1_pc090oj
+    tst.w   %d7
+    beq.s   .Ltw_write_pair_same_cwindow
+    bsr     .Ltw_emit_native_yx_base_code
+    move.l  (%sp)+, %d7
+    rts
+.Ltw_write_pair_same_cwindow:
     movea.l %a1, %a2
     adda.w  #2, %a2
     bsr     .Ltw_store_from_components_at_a2
     movea.l %a1, %a2
     adda.w  #6, %a2
     bsr     .Ltw_store_from_components_at_a2
+    move.l  (%sp)+, %d7
+    rts
+
+.Ltw_is_a1_pc090oj:
+    move.l  %a1, %d7
+    andi.l  #0x00FFFFFF, %d7
+    cmpi.l  #PC090OJ_HW_BASE, %d7
+    blo.s   .Ltw_is_a1_pc090oj_no
+    cmpi.l  #PC090OJ_HW_END, %d7
+    bhs.s   .Ltw_is_a1_pc090oj_no
+    moveq   #1, %d7
+    rts
+.Ltw_is_a1_pc090oj_no:
+    moveq   #0, %d7
+    rts
+
+.Ltw_emit_native_yx_base_code:
+    movem.l %d0-%d4, -(%sp)
+    move.w  %d2, %d4
+    move.w  %d0, %d2
+    move.w  30(%a4), %d3
+    moveq   #0, %d1
+    move.b  39(%a4), %d1
+    bsr     native_sprite_emit
+    movem.l (%sp)+, %d0-%d4
     rts
 
 genesistan_hook_text_writer_3c950:
@@ -2392,8 +2467,9 @@ genesistan_hook_text_writer_3c950:
     bne.s   .L3c950_sprite_primary_attr
     ori.w   #0x4000, %d0
 .L3c950_sprite_primary_attr:
+    move.l  %d2, -(%sp)
     bsr     .L3c950_apply_attr_gate
-    move.w  %d0, (%a1)+
+    move.w  %d0, -(%sp)
 
     move.b  (%a0)+, %d1
     ext.w   %d1
@@ -2402,15 +2478,19 @@ genesistan_hook_text_writer_3c950:
     bne.s   .L3c950_sprite_primary_y_ready
     add.w   24(%a4), %d1
 .L3c950_sprite_primary_y_ready:
-    move.w  %d1, (%a1)+
+    move.w  %d1, %d2
 
     bsr     .L3c950_compute_next_attr
-    move.w  %d4, (%a1)+
+    move.w  %d4, %d3
 
     move.b  (%a0)+, %d7
     ext.w   %d7
     add.w   22(%a4), %d7
-    move.w  %d7, (%a1)+
+    move.w  %d7, %d4
+    move.w  (%sp)+, %d1
+    bsr     native_sprite_emit
+    move.l  (%sp)+, %d2
+    adda.w  #8, %a1
 
 .L3c950_sprite_primary_iter_done:
     subq.l  #1, %d2
@@ -2428,23 +2508,28 @@ genesistan_hook_text_writer_3c950:
     addq.w  #1, %d7
 .L3c950_sprite_alt_attr:
     ori.w   #0x4000, %d0
+    move.l  %d2, -(%sp)
     bsr     .L3c950_apply_attr_gate
-    move.w  %d0, (%a1)+
+    move.w  %d0, -(%sp)
 
     move.b  (%a0)+, %d1
     ext.w   %d1
     add.w   26(%a4), %d1
-    move.w  %d1, (%a1)+
+    move.w  %d1, %d2
 
     bsr     .L3c950_compute_next_attr
-    move.w  %d4, (%a1)+
+    move.w  %d4, %d3
 
     move.b  (%a0)+, %d7
     ext.w   %d7
     neg.w   %d7
     sub.w   0x0010, %d7
     add.w   22(%a4), %d7
-    move.w  %d7, (%a1)+
+    move.w  %d7, %d4
+    move.w  (%sp)+, %d1
+    bsr     native_sprite_emit
+    move.l  (%sp)+, %d2
+    adda.w  #8, %a1
 
 .L3c950_sprite_alt_iter_done:
     subq.l  #1, %d2
@@ -2452,7 +2537,6 @@ genesistan_hook_text_writer_3c950:
     bra     .L3c950_done
 
 .L3c950_sprite_sentinel_primary:
-    move.w  #0x0180, 2(%a1)
     adda.w  #8, %a1
     bra     .L3c950_sprite_primary_iter_done
 
@@ -3101,6 +3185,11 @@ genesistan_hook_text_writer_3c830:
     lsl.w   #2, %d0
     adda.w  %d0, %a0
 
+    bsr     .Ltw_is_a1_pc090oj
+    tst.w   %d7
+    bne     .L3c830_sprite_native
+    move.b  56(%a4), %d7
+
     lea     genesistan_pc080sn_tile_vram_lut, %a3
     lea     genesistan_pc080sn_attr_lut, %a5
     lea     staged_fg_buffer, %a6
@@ -3206,6 +3295,92 @@ genesistan_hook_text_writer_3c830:
     movea.l %a1, %a2
     adda.w  #2, %a2
     bsr     .Ltw_store_from_components_at_a2
+    rts
+
+.L3c830_sprite_native:
+    move.b  56(%a4), %d7
+    tst.b   %d7
+    bne.s   .L3c830_sprite_alt_path
+
+    moveq   #5, %d3
+    move.w  #-8, %d4
+    bsr     .L3c830_sprite_inner_85e
+
+    suba.l  #4, %a0
+    moveq   #5, %d3
+    move.w  #-24, %d4
+    bsr     .L3c830_sprite_inner_85e
+    bra     .L3c830_done
+
+.L3c830_sprite_alt_path:
+    clr.w   %d0
+    clr.w   %d2
+    bsr     .Ltw_write_pair_same
+    adda.w  #8, %a1
+
+    move.w  22(%a4), %d2
+    addi.w  #-16, %d2
+    move.w  26(%a4), %d0
+    bsr     .Ltw_write_pair_same
+    adda.w  #8, %a1
+
+    moveq   #2, %d3
+    move.w  #-8, %d4
+    bsr     .L3c830_sprite_inner_85e
+
+    moveq   #2, %d3
+    move.w  #-16, %d4
+    bsr     .L3c830_sprite_inner_85e
+
+    suba.l  #2, %a0
+    moveq   #2, %d3
+    clr.w   %d4
+    bsr     .L3c830_sprite_inner_85e
+
+    adda.w  #16, %a1
+    bra     .L3c830_done
+
+.L3c830_sprite_inner_85e:
+    move.w  30(%a4), %d6
+    cmpi.w  #5, %d3
+    bne.s   .L3c830_sprite_not_first
+
+    move.w  26(%a4), %d0
+    cmpi.b  #3, 280(%a5)
+    bne.s   .L3c830_sprite_emit_piece
+    move.w  #0x0A0D, %d6
+    cmpi.w  #-8, %d4
+    bne.s   .L3c830_sprite_check_318
+    addq.w  #1, %d6
+.L3c830_sprite_check_318:
+    cmpi.w  #63, 318(%a5)
+    bcs.s   .L3c830_sprite_emit_piece
+    addq.w  #7, %d6
+    bra.s   .L3c830_sprite_emit_piece
+
+.L3c830_sprite_not_first:
+    move.b  (%a0)+, %d0
+    ext.w   %d0
+    tst.w   %d0
+    bne.s   .L3c830_sprite_y_from_actor
+    move.w  #0x0180, %d0
+    bra.s   .L3c830_sprite_emit_piece
+.L3c830_sprite_y_from_actor:
+    add.w   26(%a4), %d0
+
+.L3c830_sprite_emit_piece:
+    move.w  22(%a4), %d2
+    add.w   %d4, %d2
+    movem.l %d0-%d4, -(%sp)
+    move.w  %d2, %d4
+    move.w  %d0, %d2
+    move.w  %d6, %d3
+    moveq   #0, %d1
+    move.b  39(%a4), %d1
+    bsr     native_sprite_emit
+    movem.l (%sp)+, %d0-%d4
+    adda.w  #8, %a1
+    dbra    %d3, .L3c830_sprite_inner_85e
     rts
 
 genesistan_hook_cwindow_clear:

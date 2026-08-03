@@ -102,8 +102,10 @@ CANONICAL_OPCODE_REPLACE_COUNT = 218
 # (0x183E4C -> 0x184054).
 # Build 0248 adds the native gameplay Plane B direct row/cell publishers and
 # gates off the transitional tall-BG projector for gameplay; opcode_replace
-# site count remains unchanged (+0x38C, 0x184054 -> 0x1843E0).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1843E0
+# site count remains unchanged (+0x38C, 0x184054 -> 0x1843E0). Build 0250
+# expands the native gameplay PC090OJ sprite emitter while keeping the
+# opcode_replace site count stable.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184C8C
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")
