@@ -43,7 +43,12 @@ FAIL_STATE_CORRUPTED = "GATE_FAIL_STATE_CORRUPTED"
 # Build 0216: +1 byte-neutral opcode_replace (0x03A27A VBlank tail keeps IPM >= 6 until RTE).
 # Build 0247: +2 byte-neutral opcode_replace no-publication vertical Plane A routes
 # (0x055704/0x055790); copied-program coverage unchanged.
-CANONICAL_OPCODE_REPLACE_COUNT = 218
+# Build 0254: +2 byte-neutral opcode_replace entries redirect the one Ghidra-proven
+# FUN_0005a502 PC090OJ writer family (0x05A51E/0x05A554) from raw D00298/D002B0
+# hardware destinations to pc090oj_object_ram + the same record offsets.
+# Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
+# source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
+CANONICAL_OPCODE_REPLACE_COUNT = 221
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -107,7 +112,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 218
 # opcode_replace site count stable.
 # Build 0253 removes only the statically unreachable legacy tall BG/FG projector
 # bodies. Mechanical coverage delta: -0xFC (0x184C9C -> 0x184BA0).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184BA0
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184B84
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")

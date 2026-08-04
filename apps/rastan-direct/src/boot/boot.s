@@ -8,10 +8,8 @@
     .extern tiles_dirty
     .extern bg_row_dirty
     .extern bg_tall_dirty
-    .extern bg_tall_project_base
     .extern fg_row_dirty
     .extern fg_tall_dirty
-    .extern fg_tall_project_base
     .extern fg_native_gameplay_owner
     .extern fg_narrow_desc_count
     .extern fg_narrow_pending_rows
@@ -204,10 +202,8 @@ _bootstrap_clear_staging:
     clr.b   tiles_dirty
     clr.l   bg_row_dirty
     clr.b   bg_tall_dirty
-    clr.w   bg_tall_project_base
     clr.l   fg_row_dirty
     clr.b   fg_tall_dirty
-    clr.w   fg_tall_project_base
     clr.b   fg_native_gameplay_owner
     clr.w   fg_narrow_desc_count
     clr.w   fg_narrow_pending_rows

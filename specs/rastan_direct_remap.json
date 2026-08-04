@@ -162,6 +162,7 @@
     "vdp_commit_sprites",
     "genesistan_pc090oj_dma_self_test",
     "rastan_pc090oj",
+    "pc090oj_object_ram",
     "pc090oj_slot_lut",
     "staged_sprite_sat",
     "staged_sprite_descriptor_table",
@@ -369,6 +370,12 @@
       "original_bytes": "30390010C016",
       "replacement_bytes": "303900FF0016",
       "note": "Build 0158/OPEN-017/KF-036/KF-039: single-site raw work-RAM literal rebase. `move.w 0x0010C016, %d0` reads the Stage 1 command source from the ABSOLUTE arcade work-RAM literal 0x0010C016 (not an instruction-operand shape the postpatch relocation rewrites). On Genesis that literal is a ROM address holding 0x5553, so runtime 0x05122E loads garbage and the next store (0x05122E+6 = runtime 0x051234, `move.w %d0, a5@0x137A`) writes 0x5553 to a5+0x137A instead of the arcade's 0x00FF. The command value IS correctly present in mapped work RAM: Genesis 0x00FF0016 holds 0x00FF (matching arcade WRAM 0x10C016=0x00FF), written by 0x03A99A (arcade 0x03A79A) at command time. Classification A (correct value at 0x00FF0016, copied reader reads raw 0x10C016). Fix rebases ONLY this reader's absolute operand 0x0010C016 -> 0x00FF0016 via arcade base 0x0010C000 -> Genesis 0x00FF0000 (KF-039). Byte-neutral opcode_replace (6->6, opcode 0x3039 preserved); no NOP, no destination patch, no forced value, no seed, no fallback, no ROM-wide rebase. Validation: runtime 0x051234 now writes 0x00FF to 0x00FF137A; the 0x5553 command is gone; command tracks arcade through drop/landing."
+    },
+    {
+      "arcade_pc": "0x052B66",
+      "original_bytes": "10390010C118",
+      "replacement_bytes": "103900FF0118",
+      "note": "Build 0255 / OPEN-017 attract-demo selector-source rebase: retained FUN_00052b4a reads the stage byte from raw arcade WRAM literal 0x0010C118 when no explicit script selector is active. Rebase only that source operand to mapped Genesis WRAM A5+0x118 at 0x00FF0118. Byte-neutral MOVE.B absolute-long replacement (6->6); control flow, selector arithmetic, demo state, script data, normal input ownership, and per-frame output ordering are unchanged. Paired indivisibly with the 0x052C1C embedded script-pointer table relocation below."
     },
     {
       "arcade_pc": "0x03A778",
@@ -915,6 +922,18 @@
       "original_bytes": "302D013A0800000F6704426D013A343C0010363C00E8207C00D00048302D013AE048E64802400007004000083B4012A6066D001012A4428142844240322D12A4382D12A63C2D13060C44000C6F02780C55440806000066060901663A6004090167343A2D130A066D0010130A72070C4400076C0253410305670452406004526D130630FC000030C3064003CA30C030C20642001060060642001050480C6D000112FC660000A830FC000030C330FC03CC30C206420010302D013AE0480C4000306504303C003032000240FFF8E64802410007383C000698403B7C00FF13280C40000066063B7C000113280C400000671430FC000030C330FC03CD30C206420010534060E60C4100006722D24143F90005A48AD2C130FC000030C3301130C03B40132A30C253440642001060063B7C03D5132A0C440000671430FC000030C330FC03D530C206420010534460E60C6D000113286624207C00D00048D1FC00000014302D1308E248080000006708302D132A3080600430BC03D5610000320C6D000012F466140C6D001113D2660C303C00064EB90003A2EC60120C6D00FE13D2660A303C00294EB90003A3164E750C6D00011328660000200C6D00FF13CE67083B7C000113D260063B7C001113D23B7C000113CE601C0C6D000113CE67083B7C00FF13D260063B7C00FE13D23B7C00FF13CE4E75",
       "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_status_sprite_5a098}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x5A098 (helper genesistan_pc090oj_hook_status_sprite_5a098). Intercepts 1 ledger caller (0x051054). 498-byte span includes the inline helper at 0x5A244..0x5A289 (called only from 0x5A210 inside the function). Helper emits 12-write-per-call status/UI sprite descriptors to SAT slots 30..43. See Andy_pc090oj_implementation_spec.md \u00a78.6."
+    },
+    {
+      "arcade_pc": "0x05A51E",
+      "original_bytes": "207C00D00298",
+      "replacement_bytes": "207C{symbol:pc090oj_object_ram+0x298}",
+      "note": "Build 0254 / KF-032 targeted raw PC090OJ writer fix: Ghidra-resolved FUN_0005a502 constructs eight complete contiguous records 83..90. Redirect the first destination literal from HW_ADDRESS 0x00D00298 to the existing transitional pc090oj_object_ram + 0x298 while preserving every record word and (A0)+ store. The same routine's contiguous fourth-record reload at 0x05A554 is redirected by the paired entry below."
+    },
+    {
+      "arcade_pc": "0x05A554",
+      "original_bytes": "207C00D002B0",
+      "replacement_bytes": "207C{symbol:pc090oj_object_ram+0x2B0}",
+      "note": "Build 0254 paired continuation of the FUN_0005a502 writer family: after records 83..85, A0 already equals offset 0x2B0; this redundant reload begins record 86 and must move with the 0x05A51E literal so records 86..90 do not fall back to raw HW_ADDRESS 0x00D002B0. No record data, flow, native gameplay lane, or SAT finalizer logic changes."
     },
     {
       "arcade_pc": "0x0510EA",
@@ -1514,6 +1533,12 @@
       "note": "OPEN-016/KF-028: title glyph/string descriptor-pointer table consumed at Genesis 0x03BD7C by renderer 0x03BD48. Relocate embedded source ROM descriptor pointers by +0x200; table ends before first descriptor at Genesis 0x03BE98."
     },
     {
+      "table_address": "0x052C1C",
+      "entry_count": 9,
+      "entry_size_bytes": 4,
+      "note": "Build 0255 / KF-028 / OPEN-016 attract-demo scripted-input pointer table. Retained FUN_00052b4a loads this table through its already-relocated runtime base 0x052E1C and indexes entries 1/2 directly or entries 3..8 from stage+2. Relocate all nine embedded in-window arcade ROM longwords to their authoritative copied-ROM targets. Original targets are 0x05354E,0x052C40,0x052C44,0x05354E,0x052F4A,0x05324C,0x052C48,0x052C48,0x052C48; first script data begins immediately after the table at arcade 0x052C40. Paired indivisibly with the raw A5+0x118 source rebase at arcade 0x052B66; script bytes and player control flow are unchanged."
+    },
+    {
       "table_address": "0x059EC8",
       "entry_count": 6,
       "entry_size_bytes": 4,
@@ -1533,6 +1558,6 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 218
+    "opcode_replace_count": 221
   }
 }

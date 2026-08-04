@@ -1279,17 +1279,19 @@ Build 0206 traced and fixed that upstream reachability divergence at the collisi
 
 ## KF-069 — N1 native sprite pipeline shipped (Build 0221): mirror/representation engine deleted; object table = arcade state; display-latch colbank rule; decode d5-clobber
 
-- **Status:** ACTIVE
+- **Status:** SUPERSEDED (gameplay ownership superseded by KF-074 from Build 0250; frontend compatibility facts retained)
 - **Confidence:** CONFIRMED (Build 0221 runtime validation; static deletion gate)
-- **Applicability:** DURABLE — the sprite renderer architecture from Build 0221 onward
+- **Applicability:** ERA_SPECIFIC (Builds 0221–0249 gameplay) / DURABLE (frontend compatibility object-store facts retained through Build 0254)
 - **Rediscovery Hazard:** HIGH
 - **Source Documents:** docs/design/Andy_fable_n1_native_pc090oj_sprite_pipeline.md
 - **Related:** KF-068 (design), KF-067 (-8 preserved), KF-066 (palsel preserved), KF-049/051/063 (superseded machinery)
-- **Last verified:** 2026-07-20 (Build 0221)
+- **Last verified:** 2026-08-03 (Build 0250 architectural supersession)
 
 **Finding.** N1 replaced the PC090OJ mirror/representation pipeline with: fixed 256-row object table (arcade's own persistent slot-addressed store -- incremental producers 0x3B802/0x54810/0x5607C/0x56114/0x56440/0x5A098 update rows in place, so the table is program state, not a mirror), one ascending per-frame emit pass (mainline at hook_41dae tail in gameplay; VBlank fallback in frontend) into a double-buffered final-format shadow SAT (link order = ascending record = PC090OJ paint priority; first-80-wins), code-keyed 64x2-way residency over 128 VRAM cells (tiles 1024-1535), bounded 8-entry upload queue, implicit retirement (validated: killed lizards vanish cleanly). Deleted: mirror shadow, candidates/waiting/used, represent/evict engine, record->slot, descriptor table, block2c8 scratch/seed/flush, shadow compare, sweeps, slot-keyed residency, mirror-size config. HAZARDS for posterity: (1) .Lpc090oj_decode_record CLOBBERS d5 (Build 0219 rejected: SAT overrun); (2) sprite_ctrl colbank is DISPLAY-LATCH state -- the arcade sets it AFTER its producers, so palette bits must be resolved at COMMIT (per-entry nibble array + VBlank fix-up; Build 0220 rejected for reading it at producer time). Residual: ~1.2 residency misses/frame at 4-lizard load (pop-in; N3 per-scene manifests), per-scanline 20-sprite limit (N3 merging).
 
 **Use as prior.** Do not reintroduce record-identity state downstream of the object table. Any commit-time attribute that arcade hardware latches at display (ctrl flip, colbank) must be applied in the VBlank fix-up, not at emit. The engine 0x3D254 still writes table rows (native composer = N3).
+
+**Supersession notes.** Build 0250 replaced the Build 0221 object-table scan as the gameplay renderer with native semantic priority lanes and a final SAT merge (KF-074). The Build 0221 object table and legacy emit pass remain current only for frontend/non-gameplay compatibility and unconverted writer families; this supersession does not authorize deleting `pc090oj_object_ram` or the frontend fallback.
 
 ---
 
@@ -1331,14 +1333,16 @@ Build 0206 traced and fixed that upstream reachability divergence at the collisi
 - **Confidence:** CONFIRMED (matched Genesis 0226 vs 0227 capture + instrumentation)
 - **Applicability:** DURABLE plane architecture from Build 0227 onward
 - **Rediscovery Hazard:** HIGH
-- **Source Documents:** docs/design/Andy_fable_n2_plane_correctness_followup.md
+- **Source Documents:** docs/design/Andy_fable_n2_plane_correctness_followup.md; docs/design/Cody_build0252_runtime_legacy_hotpath_retirement.md; docs/design/Cody_build0253_dead_pc080sn_projector_retirement.md
 - **Supersedes the ring guidance in:** KF-071 (0226 ring is REVERTED)
 - **Related:** KF-067 (collision unchanged), KF-068/069/070 (N1 intact), KF-038/041
-- **Last verified:** 2026-07-20 (Build 0227)
+- **Last verified:** 2026-08-04 (Build 0253 user-accepted projector retirement, retained by Build 0254)
 
 **Finding.** The proven-correct gameplay plane coordinate model is 0223's: producers write `staged_bg_buffer` at arcade-row&31 (BG, `genesistan_hook_tilemap_plane_a`) and FG routes through `staged_*_tall_buffer` with `vdp_project_*_tall_if_dirty` copying the visible 32-row window [base,base+32) into `staged_*_buffer[0..31]`; VSRAM carries only the `&7` sub-tile residual (scene-1), so screen row 0 = tall[base]. Measured gameplay: scYfg=scYbg=0x149 CONSTANT, base=23 CONSTANT, both tall buffers 64-row populated. The 0226 ring rewrite (VSRAM=full (−scY+BIAS); staged[(base+i)&31]=tall[base+i]) was NEVER matched by the producers (still arcade-row&31 / viewport rows), so: the cyan band = the ring wrap seam at plane row 31→0 (screen row 9 for base=23), a PLACEMENT artifact (not wrong tiles, not DMA corruption — identical bytes render correctly under the 0223 model); the half-screen FG displacement = a 32-row-domain coordinate-space error (full VSRAM vs window-placed content). The ONLY correct N2 change over 0223 is: delete the per-frame DISPLAY_OFF/ON bracket in `_vblank_service` (display stays enabled — this alone removes both the title and rolling black bars) and commit the two heavy full-row committers via bounded 68k→VRAM DMA (`.Lplane_dma_row`, autoinc 2) instead of PIO. HAZARD: do NOT reintroduce a ring / full-VSRAM / col-dirty layer without ALSO converting every producer (BG direct writer, FG tall producer, frontend narrow-strip writer) to the same coordinate space — piecemeal is what broke 0226. Peak plane+sprite DMA measured 4,736 B/frame (full reproject on jump + 640 B SAT), inside the ~7,600 B/frame VBlank budget; steady-state ~640 B (SAT only) or zero.
 
-**Use as prior.** Plane commit path = display-on + bounded row DMA over the UNCHANGED 0223 coordinates. Never turn the display off for a plane commit. Removing the display-off bracket — not touching coordinates — is what eliminates the bars.
+**Build 0252–0253 projector-retirement extension.** Build 0252 changed gameplay VBlank control flow so scene `1` skips calls to both legacy tall projector labels while still executing `vdp_commit_bg_strips_if_dirty` and `vdp_commit_fg_narrow_strips`. Build 0253 proved the old BG/FG projector bodies were unreachable in both gameplay (call-site skip) and non-gameplay (exported functions returned before the old bodies), removed only those bodies, and retained exported no-op stubs. The tall buffers, dirty flags, and project-base globals remain allocated because source/boot xrefs still exist. This removal changed canonical coverage from `0x184C9C` to `0x184BA0` (`-0xFC`) while opcode replacement count remained `218`. Build 0253 passed user visual verification and Build 0254 retained the same plane behavior.
+
+**Use as prior.** Plane commit path = display-on + bounded row DMA over the UNCHANGED 0223 coordinates. Never turn the display off for a plane commit. Removing the display-off bracket — not touching coordinates — is what eliminates the bars. Do not restore the retired projector bodies, remove the active BG/FG strip commits, or delete tall-buffer/dirty/project-base storage without a fresh xref and producer/consumer proof. Frontend PC080SN compatibility/text/C-window staging is not converted by the 0252–0253 cleanup.
 
 ---
 
@@ -1355,3 +1359,44 @@ Build 0206 traced and fixed that upstream reachability divergence at the collisi
 **Finding.** Genesis Build 0227 Rastan cannot progress past the FIRST outdoor pit in Stage 1: hold-right stalls with scroll oscillating (never advances), player mode word (arcade 0x10D0E8 / Genesis 0xFF10E8) hits MODE 7 at the pit and the camera snaps backward; occasional mode-8 death->respawn. The cave (source >=0xFB1C / attr=0x0003 / tileset 3) is therefore NEVER reached, so all cave/rope/tileset/cover symptoms are DOWNSTREAM of this stall. Arcade Rastan with identical input walks past to the cave/rope (rope = green vertical vine; cave = pit drop). Matched flat-ground collision dumps prove the `genesistan_stage_bg_collision_column` producer diverges: (1) ground-surface markers 0x3400/0x3A00 land at collision-map ROW 39 in Genesis vs ROW 38 in arcade = the KF-067 8px-low shift, confirmed at the PRODUCER not just at rendering; (2) the markers are SPARSE (2-of-every-4 columns) in Genesis vs CONTIGUOUS in arcade, plus spurious 0x0020 in the rows above; the SOLID floor (rows 40+) matches in both. NOT YET PROVEN that these collision divergences cause the mode-7 pit stall (solid floor is intact and Rastan stands on flat ground normally), so patching is speculative and was NOT done. KF-067 still forbids blindly moving the row (compensated at the lizard boundary; needs joint player/enemy/terrain retune with matched proof). Genesis has NO death/collision/rope/cave-cover hooks — that logic is native arcade code (0x05385A collision, mode 6 skips floor collision = rope candidate, 0x053E0C death); it must be understood from the arcade disassembly + matched WRAM, not Genesis hooks.
 
 **Use as prior.** Fix the Stage-1 progression stall FIRST (the mode-7 pit) — everything cave/rope is blocked behind it. Get matched interactive runtime (Tighe plays) before patching the collision producer or progression feed. The unverified arcade leads: descriptor table 0x03951C (12-byte stride), progression counter still unidentified (0x10D0FC/0x10D386 read constant, are NOT it), mode map {1/2/3 walk, 4 jump, 6 rope-candidate, 7 pit-stall, 8 death}.
+
+---
+
+## KF-074 — Gameplay PC090OJ ownership is native semantic lanes plus final SAT merge; frontend remains compatibility-owned
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (Build 0249 Ghidra producer contract; Build 0250 implementation; Build 0251 lifecycle trace; Build 0252–0254 static continuity; Build 0254 user visual verification)
+- **Applicability:** DURABLE from Build 0251 for gameplay scene `1` / ERA_SPECIFIC as of Build 0254 for non-gameplay frontend compatibility
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** gameplay hooks `genesistan_pc090oj_hook_target_41dae`, `_41f5e`, `_45dfa`; native reset `native_sprite_frame_begin`; producer `native_sprite_emit`; queues `HUD`, `FRONT_EFFECT`, `PLAYER_FRONT`, `MIDDLE`, `PLAYER_BODY`, `BACK_ENEMY`; finalizer `pc090oj_native_emit_pass`; frontend fallback `pc090oj_legacy_emit_pass`; transitional store `pc090oj_object_ram = Genesis-WRAM 0x00FFAF9A` (Build 0254)
+- **Source Documents:** docs/design/Andy_build0249_shared_native_sprite_emitter_contract.md; AGENTS_LOG.md (`[Cody - Implementation, Build 0250 Native All-Gameplay Sprite Emitter]`); docs/design/Cody_build0251_rastan_player_body_visibility_fix.md; docs/design/Cody_build0252_runtime_legacy_hotpath_retirement.md; docs/design/Cody_build0254_attract_mode_legacy_reachability_audit.md
+- **Related Issues:** OPEN-024; OPEN-017 (context)
+- **Last verified:** 2026-08-04 (accepted Build 0254)
+
+**Finding.** Build 0249 established the gameplay semantic cut at arcade actor/object state, traversal, mapping/piece expansion, lifecycle, coordinates, visibility, and priority. Build 0250 routes converted gameplay producer paths through `native_sprite_emit` into six semantic priority lanes; `pc090oj_native_emit_pass` concatenates those lanes front-to-back into final Genesis SAT output. In gameplay scene `1`, converted paths do not use the PC090OJ object-table scanner/decoder as the final renderer. Non-gameplay frontend/title/throne/story/high-score/insert-coin paths remain separate: their hooks still write the transitional `pc090oj_object_ram`, and the common emit entry falls back to `pc090oj_legacy_emit_pass`. Build 0254 user verification confirmed frontend screens and normal gameplay Rastan/lizard/bat/axe output remained visible.
+
+**Build 0251 lifecycle ordering.** Build 0250 staged nonzero `PLAYER_BODY` entries in the `0x41F5E` path and then cleared `native_player_body_count` when the later `0x41DAE` dispatcher called `native_sprite_frame_begin`; the finalizer consequently saw zero player-body entries, so Rastan was absent from SAT despite his palette being present. Build 0251 moved the one gameplay frame reset to the start of `genesistan_pc090oj_hook_target_41f5e`, immediately before player staging, and removed resets from `0x41DAE`/`0x45DFA`. Post-fix trace observed `FRAME_BEGIN -> PLAYER_BODY count 0x000C -> dispatcher -> finalizer -> body-lane scan 0x000C -> emitted count 0x000E`; all 276 sampled nonzero player-body productions reached the finalizer scan.
+
+**Use as prior.** Treat gameplay and frontend ownership separately. Do not restore a gameplay object-table scan, add a second finalizer, or move `native_sprite_frame_begin`, `PLAYER_BODY` staging, or lane finalization without proving the complete producer order and queue lifetime. Do not delete `pc090oj_object_ram` or `pc090oj_legacy_emit_pass` while frontend/unconverted producers still depend on them. PC090OJ-named residency, tile-DMA, final SAT staging, and VBlank commit support are Genesis output infrastructure; the names alone do not prove active chip emulation.
+
+**Supersession notes.** This entry supersedes KF-069 for gameplay ownership from Build 0250 onward. KF-069 remains the accurate Build 0221–0249 renderer history and retains current relevance for the frontend compatibility object store.
+
+---
+
+## KF-075 — FUN_0005a502 raw PC090OJ writer is one paired D00298/D002B0 family; Build 0254 redirects both destinations
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (Ghidra arcade-reference disassembly/decompilation; generated address map and ROM disassembly; canonical gate; user BlastEm verification)
+- **Applicability:** DURABLE raw-writer-family provenance / BUILD_SPECIFIC accepted fix in Build 0254
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** `arcade_pc 0x0005A502..0x0005A5AA` (`FUN_0005a502`); `arcade_pc 0x0005A51E` / `runtime_genesis_pc 0x0005A71E` (`#HW_ADDRESS 0x00D00298`); first store `arcade_pc 0x0005A524` / `runtime_genesis_pc 0x0005A724`; paired reload `arcade_pc 0x0005A554` / `runtime_genesis_pc 0x0005A754` (`#HW_ADDRESS 0x00D002B0`); direct caller `arcade_pc 0x0005104E` / `runtime_genesis_pc 0x0005124E`; Build 0254 destinations `Genesis-WRAM 0x00FFB232` and `0x00FFB24A`
+- **Source Documents:** docs/design/Cody_build0254_attract_mode_legacy_reachability_audit.md; docs/design/Cody_build0254_d00298_raw_pc090oj_writer_fix.md; specs/rastan_direct_remap.json (`arcade_pc 0x05A51E`, `0x05A554`); build/rastan-direct/address_map.json
+- **Related Findings:** KF-032, KF-074
+- **Related Issues:** OPEN-024; OPEN-001, OPEN-015, OPEN-017 (context)
+- **Last verified:** 2026-08-04 (Build 0254 user BlastEm acceptance)
+
+**Finding.** Ghidra resolves `FUN_0005a502` as one complete-record constructor for eight contiguous 8-byte PC090OJ records 83–90. It selects Y `0x0070` or hidden marker `0x0180` from `arcade_WRAM 0x0010C200` bit 5 and writes codes `0x0037`, `0x0038`, `0x003F..0x0044` with fixed X positions. The same function loads two raw PC090OJ destinations: `HW_ADDRESS 0x00D00298` before record 83 and `HW_ADDRESS 0x00D002B0` before record 86; no third raw `0x00D0xxxx` literal exists in the function. Build 0254 redirects both byte-neutral `movea.l` immediates to the existing transitional `pc090oj_object_ram + 0x298/+0x2B0`, producing `Genesis-WRAM 0x00FFB232/0x00FFB24A`, while preserving all record words, `(a0)+` stores, branches, call/return flow, and update order. The user verified in BlastEm that attract gameplay now starts and the previous D00298/D002B0 fatal no longer occurs; frontend screens and normal gameplay visuals remained intact.
+
+**Use as prior.** Never patch only D00298: D002B0 is the same contiguous writer family's record-86 reload and must move with it. This is a compatibility destination repair for an unconverted raw writer, not final native SAT ownership and not permission to expand the compatibility table. MAME's bounded non-reproduction does not invalidate the strict-target BlastEm evidence.
+
+**Separate attract-demo observation.** After the crash fix, the user observed no scripted/demo character input. No evidence from Build 0254 links that behavior to the paired destination remap, and normal controller input is a different path. Treat missing attract-demo scripting as preexisting/separate until a dedicated provenance audit proves its owner; do not patch or attribute it to Build 0254 without that audit.

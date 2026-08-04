@@ -7,8 +7,6 @@
     .global vdp_set_vram_write_addr
     .global sprite_dma_addr_high_bits_fix
     .global vdp_commit_tiles_if_dirty
-    .global vdp_project_bg_tall_if_dirty
-    .global vdp_project_fg_tall_if_dirty
     .global vdp_commit_bg_strips_if_dirty
     .extern vdp_commit_fg_narrow_strips
     .global vdp_commit_fg_strips_if_dirty
@@ -30,10 +28,8 @@
     .global tiles_dirty
     .global bg_row_dirty
     .global bg_tall_dirty
-    .global bg_tall_project_base
     .global fg_row_dirty
     .global fg_tall_dirty
-    .global fg_tall_project_base
     .global fg_native_gameplay_owner
     .global staged_dest_ptr_bg
     .global staged_dest_ptr_fg
@@ -193,15 +189,12 @@ _vblank_service:
      * black bars; the 0226 ring rewrite that introduced the cyan band and the
      * half-screen FG displacement is fully reverted. */
     bsr     vdp_commit_tiles_if_dirty
-    cmpi.b  #1, genesistan_current_scene_id
-    beq.s   .Lvs_skip_gameplay_tall_projectors
-    bsr     vdp_project_bg_tall_if_dirty
+    /* Build 0256: dead PC080SN tall-projector consumer interface retired.
+     * The projector bodies were removed in Build 0253 (no-op RTS stubs); both
+     * the gameplay and non-gameplay VBlank branches then reduced to the same
+     * single BG-strip commit, so the Build 0252 scene gate is redundant.
+     * Surviving commit order is unchanged: tiles -> bg strips -> fg narrow. */
     bsr     vdp_commit_bg_strips_if_dirty
-    bsr     vdp_project_fg_tall_if_dirty
-    bra.s   .Lvs_after_tall_projectors
-.Lvs_skip_gameplay_tall_projectors:
-    bsr     vdp_commit_bg_strips_if_dirty
-.Lvs_after_tall_projectors:
     bsr     vdp_commit_fg_narrow_strips
 
     bsr     vdp_commit_sprites_vram     /* N1: DMA-only, display-on safe */
@@ -238,20 +231,10 @@ vdp_commit_tiles_if_dirty:
 .Ltiles_done:
     rts
 
-/* Gameplay PC080SN BG strips populate a 64-row virtual map.  The Genesis plane
- * remains 64x32, so project the 32 visible tile rows into staged_bg_buffer and
- * leave only the pixel-subrow residual for VSRAM. */
-vdp_project_bg_tall_if_dirty:
-    /* Build 0253: the legacy tall-BG projector body was unreachable after
-     * Build 0252.  Keep the exported no-op stub for the non-gameplay VBlank
-     * call site while native producers/strip commits own Plane B output. */
-    rts
-
-vdp_project_fg_tall_if_dirty:
-    /* Build 0253: the legacy tall-FG projector body was unreachable after
-     * Build 0252.  Keep the exported no-op stub for the non-gameplay VBlank
-     * call site while native producers/narrow commits own Plane A output. */
-    rts
+/* Build 0256: the dead PC080SN tall-projector stubs vdp_project_bg_tall_if_dirty
+ * / vdp_project_fg_tall_if_dirty (no-op RTS since Build 0253, zero readers of
+ * their tall-project-base globals) and their _vblank_service call sites were
+ * retired.  Native Plane A/B producers + strip commits own tilemap output. */
 
 /* VRAM row DMA.  in: d0 = VRAM byte dest, d1 = word count, a0 = 68k source.
  * Sets autoinc 2 and triggers a 68k->VRAM DMA.  Clobbers d1-d3, a1. */
@@ -542,15 +525,11 @@ bg_row_dirty:
 bg_tall_dirty:
     .byte 0
     .align 2
-bg_tall_project_base:
-    .word 0
 fg_row_dirty:
     .long 0
 fg_tall_dirty:
     .byte 0
     .align 2
-fg_tall_project_base:
-    .word 0
 fg_native_gameplay_owner:
     .byte 0
 
