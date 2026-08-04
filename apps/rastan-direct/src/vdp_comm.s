@@ -193,9 +193,15 @@ _vblank_service:
      * black bars; the 0226 ring rewrite that introduced the cyan band and the
      * half-screen FG displacement is fully reverted. */
     bsr     vdp_commit_tiles_if_dirty
+    cmpi.b  #1, genesistan_current_scene_id
+    beq.s   .Lvs_skip_gameplay_tall_projectors
     bsr     vdp_project_bg_tall_if_dirty
     bsr     vdp_commit_bg_strips_if_dirty
     bsr     vdp_project_fg_tall_if_dirty
+    bra.s   .Lvs_after_tall_projectors
+.Lvs_skip_gameplay_tall_projectors:
+    bsr     vdp_commit_bg_strips_if_dirty
+.Lvs_after_tall_projectors:
     bsr     vdp_commit_fg_narrow_strips
 
     bsr     vdp_commit_sprites_vram     /* N1: DMA-only, display-on safe */
@@ -236,106 +242,15 @@ vdp_commit_tiles_if_dirty:
  * remains 64x32, so project the 32 visible tile rows into staged_bg_buffer and
  * leave only the pixel-subrow residual for VSRAM. */
 vdp_project_bg_tall_if_dirty:
-    /* Build 0248: gameplay Plane B is now written directly into final
-     * staged_bg_buffer rows by the native producer/vertical-row helpers.
-     * The legacy tall-BG projector is retained as transitional code only and
-     * must not overwrite native scene-1 Plane B output. */
-    cmpi.b  #1, genesistan_current_scene_id
-    beq.s   .Lbg_tall_project_done
-    rts
-
-    movem.l %d0-%d7/%a0-%a2, -(%sp)
-
-    move.w  staged_scroll_y_bg, %d0
-    neg.w   %d0
-    addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
-    andi.w  #0x01FF, %d0
-    lsr.w   #3, %d0
-    andi.w  #0x003F, %d0
-
-    move.w  bg_tall_project_base, %d1
-    cmp.w   %d1, %d0
-    bne.s   .Lbg_tall_project
-    tst.b   bg_tall_dirty
-    beq.s   .Lbg_tall_project_restore
-
-.Lbg_tall_project:
-    move.w  %d0, bg_tall_project_base
-    clr.b   bg_tall_dirty
-
-    lea     staged_bg_tall_buffer, %a0
-    lea     staged_bg_buffer, %a1
-    moveq   #0, %d5
-.Lbg_tall_project_row:
-    move.w  %d0, %d4
-    add.w   %d5, %d4
-    andi.w  #0x003F, %d4
-    lsl.w   #7, %d4
-    lea     0(%a0,%d4.w), %a2
-    move.w  #(64 - 1), %d7
-.Lbg_tall_project_copy:
-    move.w  (%a2)+, (%a1)+
-    dbra    %d7, .Lbg_tall_project_copy
-    addq.w  #1, %d5
-    cmpi.w  #32, %d5
-    blo.s   .Lbg_tall_project_row
-
-    move.l  #0xFFFFFFFF, bg_row_dirty
-
-.Lbg_tall_project_restore:
-    movem.l (%sp)+, %d0-%d7/%a0-%a2
-.Lbg_tall_project_done:
+    /* Build 0253: the legacy tall-BG projector body was unreachable after
+     * Build 0252.  Keep the exported no-op stub for the non-gameplay VBlank
+     * call site while native producers/strip commits own Plane B output. */
     rts
 
 vdp_project_fg_tall_if_dirty:
-    /* Build 0245: gameplay Plane A is now owned by the native selector-0/1/2
-     * resident-row producers.  The legacy tall-FG projector is retained only as
-     * transitional code and must not overwrite native gameplay output. */
-    cmpi.b  #1, genesistan_current_scene_id
-    beq.s   .Lfg_tall_project_done
-    rts
-
-    movem.l %d0-%d7/%a0-%a2, -(%sp)
-
-    move.w  staged_scroll_y_fg, %d0
-    neg.w   %d0
-    addq.w  #VDP_DISPLAY_ORIGIN_Y_BIAS, %d0
-    andi.w  #0x01FF, %d0
-    lsr.w   #3, %d0
-    andi.w  #0x003F, %d0
-
-    move.w  fg_tall_project_base, %d1
-    cmp.w   %d1, %d0
-    bne.s   .Lfg_tall_project
-    tst.b   fg_tall_dirty
-    beq.s   .Lfg_tall_project_restore
-
-.Lfg_tall_project:
-    move.w  %d0, fg_tall_project_base
-    clr.b   fg_tall_dirty
-
-    lea     staged_fg_tall_buffer, %a0
-    lea     staged_fg_buffer, %a1
-    moveq   #0, %d5
-.Lfg_tall_project_row:
-    move.w  %d0, %d4
-    add.w   %d5, %d4
-    andi.w  #0x003F, %d4
-    lsl.w   #7, %d4
-    lea     0(%a0,%d4.w), %a2
-    move.w  #(64 - 1), %d7
-.Lfg_tall_project_copy:
-    move.w  (%a2)+, (%a1)+
-    dbra    %d7, .Lfg_tall_project_copy
-    addq.w  #1, %d5
-    cmpi.w  #32, %d5
-    blo.s   .Lfg_tall_project_row
-
-    move.l  #0xFFFFFFFF, fg_row_dirty
-
-.Lfg_tall_project_restore:
-    movem.l (%sp)+, %d0-%d7/%a0-%a2
-.Lfg_tall_project_done:
+    /* Build 0253: the legacy tall-FG projector body was unreachable after
+     * Build 0252.  Keep the exported no-op stub for the non-gameplay VBlank
+     * call site while native producers/narrow commits own Plane A output. */
     rts
 
 /* VRAM row DMA.  in: d0 = VRAM byte dest, d1 = word count, a0 = 68k source.

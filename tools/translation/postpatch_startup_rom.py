@@ -92,7 +92,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 218
 # gates off the transitional tall-BG projector for gameplay; opcode_replace
 # site count remains unchanged. Build 0250 expands the native gameplay PC090OJ
 # sprite emitter while keeping the opcode_replace site count stable.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184C8C
+# Build 0253 removes only the statically unreachable legacy tall BG/FG projector
+# bodies. Mechanical coverage delta: -0xFC (0x184C9C -> 0x184BA0).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184BA0
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
