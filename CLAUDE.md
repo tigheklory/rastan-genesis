@@ -70,3 +70,40 @@ Use analysis to **enable** implementation, not to avoid it. The desired working 
 
 Being "safe" by repeatedly declining the actual work, making tiny partial changes, or forcing
 another prompt is **not** efficient and is **not** helpful.
+
+---
+
+## Never Delete a Producer Before Replacing Every Live Semantic Consumer
+
+A legacy PC090OJ/PC080SN producer may be retired **only after every live semantic behavior it
+supplies has a proven native owner**.
+
+Seeing that one or two screens already have native equivalents does **not** prove that all callers
+are superseded. Existing native ownership in one state does not establish ownership in another.
+
+A global `rts`, NOP, dead-write suppression, skipped call, or discarded output is **not** native
+replacement — it is deletion of behavior.
+
+Before retiring a shared producer:
+
+- Enumerate **all** live callers and identify the semantic output each caller relies on.
+- If callers use different layout/state owners, trace those owners and unify them at the correct
+  semantic boundary.
+- Do **not** infer an output is unnecessary merely because the currently reachable test harness
+  does not display it. "Not observed in the current test window" is not evidence of deadness.
+- If a caller cannot be naturally reached, build an **external** validation method (MAME input
+  script, state-driving Lua, save state, deterministic setup, watchpoint/provenance trace) rather
+  than deleting its output untested. Never add production ROM scaffolding for this.
+
+The required order is always:
+
+    prove semantic ownership -> implement native replacement -> validate consumers -> remove legacy
+
+Never:
+
+    remove producer -> see what breaks -> patch individual screens afterward
+
+Build 0267 violated this: `0x3B802`/`0x5A098` were stubbed to `rts` after proving only the title and
+gameplay consumers, and the title-only harness missed that ROUND/READY, the throne/PUSH-BUTTON
+screen and the ranking screen still consumed `0x3B802`'s high-score output. That regression cost
+paid usage and real money to detect and undo. It must not recur.

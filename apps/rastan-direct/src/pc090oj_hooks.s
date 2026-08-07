@@ -25,6 +25,7 @@
     .global genesistan_pc090oj_hook_copy_56114
     .global genesistan_pc090oj_hook_zero_fill_56440
     .global genesistan_pc090oj_hook_status_sprite_5a098
+    .global native_frontend_hud_emit
     .global genesistan_pc090oj_hook_audit_guard
     .global genesistan_pc090oj_ctrl_set_1
     .global genesistan_pc090oj_ctrl_set_0
@@ -1089,126 +1090,14 @@ genesistan_pc090oj_hook_init_priority_3ad84:
     rts
 
 genesistan_pc090oj_hook_score_digit_3b802:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-
-    /* Build 0266: the native title HUD (.Lnq_title, scene 0 + arcade stage
-     * a5@0x118 == 0) owns the score/HUD display directly, and the title-active
-     * finalizer never scans pc090oj_object_ram.  0x3B802's PC090OJ record writes
-     * are therefore dead in that state -- retire them here.  Other frontend
-     * states (stage != 0, high-score/story) keep the legacy record path until
-     * their positioning owner is converted. */
-    tst.b   genesistan_current_scene_id
-    bne.s   .Lhook_3b802_run
-    tst.w   0x00FF0118
-    bne.s   .Lhook_3b802_run
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    /* Build 0270: RETIRED.  All 0x3B802 consumers are now produced natively by
+     * the native_frontend_hud_emit subsystem (Build 0272): player/high scores +
+     * credit-line digits for the title and every other frontend scene, and the
+     * gameplay project_p1_hud path.  That subsystem also retires the stale
+     * PC090OJ digit records (code-gated), so the frontend scanner no longer
+     * carries any record-number HUD skip.  Every live consumer has a native
+     * owner (consumer coverage matrix in the build report). */
     rts
-.Lhook_3b802_run:
-    /* Preserve arcade structure at 0x3B802: record = 10 bytes at 0x3B87E+mode*10 */
-    clr.l   %d5
-    movea.l %d5, %a6                 /* leading-zero state */
-
-    mulu.w  #10, %d0
-    lea     .Lhook_3b802_record_table, %a0
-    adda.w  %d0, %a0
-
-    clr.w   %d0
-    move.b  (%a0), %d0               /* digit count */
-    cmpi.w  #1, %d0
-    bne.s   .Lhook_3b802_count_ready
-    moveq   #1, %d5
-    movea.l %d5, %a6
-.Lhook_3b802_count_ready:
-    move.b  1(%a0), %d6              /* Y low-byte source */
-    movea.l 2(%a0), %a4              /* arcade PC090OJ destination pointer */
-    movea.l 6(%a0), %a2              /* arcade score-data source pointer */
-
-    /* Score-source pointers in the record table are absolute arcade work-RAM
-     * addresses anchored at the arcade A5 base (0x0010C000).  The Genesis holds
-     * the same work-RAM anchored at its own A5 (0x00FF0000), so the mapped
-     * address is a5 + (source - ARCADE_WORKRAM_A5_BASE).  (Build 0148 fix: the
-     * base was 0x00100000, which read 0xC000 past the real values -> zeros.) */
-    move.l  %a2, %d2
-    subi.l  #ARCADE_WORKRAM_A5_BASE, %d2
-    movea.l %a5, %a2
-    adda.l  %d2, %a2
-
-    moveq   #0, %d3
-    move.w  %d0, %d3
-    movea.l %d3, %a3                 /* loop counter */
-
-.Lhook_3b802_loop:
-    move.l  %a3, %d2
-    tst.w   %d2
-    beq     .Lhook_3b802_done
-
-    btst    #0, %d2
-    beq.s   .Lhook_3b802_even_nibble
-
-    moveq   #0, %d1
-    move.b  (%a2), %d1
-    andi.w  #0x000F, %d1
-    bsr     .Lhook_3b802_visflag
-    addi.w  #0x002A, %d1
-    subq.l  #1, %a2
-    bra.s   .Lhook_3b802_emit
-
-.Lhook_3b802_even_nibble:
-    moveq   #0, %d1
-    move.b  (%a2), %d1
-    lsr.b   #4, %d1
-    andi.w  #0x000F, %d1
-    bsr     .Lhook_3b802_visflag
-    addi.w  #0x002A, %d1
-
-.Lhook_3b802_emit:
-    /* Preserve arcade destination writes: byte to +2/+3, digit word to +4. */
-    movea.l %a4, %a1
-    adda.w  #2, %a1
-    move.w  %d4, %d0
-    bsr     .Lpc090oj_mirror_write_byte_a1_d0
-
-    movea.l %a4, %a1
-    adda.w  #3, %a1
-    moveq   #0, %d0
-    move.b  %d6, %d0
-    bsr     .Lpc090oj_mirror_write_byte_a1_d0
-
-    movea.l %a4, %a1
-    adda.w  #4, %a1
-    move.w  %d1, %d0
-    bsr     .Lpc090oj_mirror_write_word_a1_d0
-
-.Lhook_3b802_next:
-    subq.l  #8, %a4
-    subq.l  #1, %a3
-    bra     .Lhook_3b802_loop
-
-.Lhook_3b802_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
-    rts
-
-.Lhook_3b802_visflag:
-    move.l  %a6, %d5
-    bne.s   .Lhook_3b802_vis_nonzero
-    tst.w   %d1
-    bne.s   .Lhook_3b802_vis_nonzero
-    moveq   #1, %d4                   /* leading zero */
-    rts
-
-.Lhook_3b802_vis_nonzero:
-    moveq   #1, %d5
-    movea.l %d5, %a6
-    moveq   #0, %d4
-    rts
-
-.Lhook_3b802_record_table:
-    .byte 0x06,0x10,0x00,0xD0,0x01,0x08,0x00,0x10,0xC1,0x1E
-    .byte 0x06,0x10,0x00,0xD0,0x01,0x50,0x00,0x10,0xC1,0x1E
-    .byte 0x06,0x10,0x00,0xD0,0x00,0xD8,0x00,0x10,0xC1,0x42
-    .byte 0x01,0xE8,0x00,0xD0,0x00,0xA8,0x00,0x10,0xC1,0x17
-    .byte 0x01,0xE4,0x00,0xD0,0x00,0x88,0x00,0x10,0xC1,0x03
-    .align 2
 
 genesistan_pc090oj_hook_slot_init_54052:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
@@ -1404,6 +1293,10 @@ genesistan_pc090oj_hook_zero_fill_56440:
     rts
 
 genesistan_pc090oj_hook_status_sprite_5a098:
+    /* Build 0268: restored.  Build 0267 stubbed this to rts, but its consumer
+     * state was never reached/validated, so per RULES.md rule 13 it may not be
+     * retired yet.  Original status producer retained until its semantic state
+     * is reached and a native owner is proven. */
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 
     move.w  10*2(%a5), %d7
@@ -1662,7 +1555,7 @@ pc090oj_native_emit_pass:
     clr.l   (%a1)+
     moveq   #0, %d5
     bsr     .Lnq_title_emit_labels
-    bsr     .Lnq_title_emit_scores
+    bsr     native_frontend_hud_emit
     movem.l (%sp)+, %a4-%a6
     bra     .Lnq_done_scan
 
@@ -1681,6 +1574,34 @@ pc090oj_native_emit_pass:
     addq.l  #6, %a5
     bra.s   .Ltl_loop
 .Ltl_done:
+    rts
+
+/* -------------------------------------------------------------------------
+ * native_frontend_hud_emit -- the dedicated native frontend HUD subsystem.
+ *
+ * Single semantic owner of the frontend numeric HUD (player + high-score
+ * digits and the credit count).  Invoked at the frontend boundary -- from
+ * .Lnq_title for the title-active state and from the top of
+ * .Lnq_frontend_object_scan for every other frontend scene -- BEFORE the
+ * legacy object-RAM scanner runs.  It (1) emits the live BCD scores/credit
+ * directly into the native SAT via .Lnq_emit_entry, and (2) retires the
+ * arcade's stale PC090OJ representation of those same digits from object RAM
+ * so the scanner never re-renders them.
+ *
+ * Retirement is by SEMANTIC OWNERSHIP, not by record number.  The arcade HUD
+ * producer (arcade ~0x5007C, routed through the generic 0x3B930 record copier)
+ * re-seeds the score/credit records with digit glyphs (code 0x2A..0x33) every
+ * frame; because that write is generic-helper-routed (KF-026: not a statically
+ * neutralisable call site), the native owner instead clears the digit-glyph
+ * records it now produces itself.  The clear is CODE-GATED to the HUD digit
+ * range (0x2A..0x33): records physically reused by OTHER producers in OTHER
+ * states -- 0x5A098's status row (codes 0x3E8+), frontend labels (letter
+ * glyphs), the player block (actor art) -- carry codes outside that range and
+ * are left untouched, so they keep rendering from the scan.  No record NUMBER
+ * is a permanent HUD ownership domain. */
+native_frontend_hud_emit:
+    bsr     .Lnq_title_emit_scores       /* live scores + credit -> native SAT */
+    bsr     .Lnq_hud_clear_records       /* retire own PC090OJ digit records (code-gated) */
     rts
 
 /* Live score/high-score digit producers. */
@@ -1703,6 +1624,23 @@ pc090oj_native_emit_pass:
     move.w  #0x0010, %d0
     movea.w %d0, %a6                  /* Y = 0x0010 */
     bsr     .Lnq_title_emit_digit_group
+    /* Build 0270: native credit-line digits (retires the last 0x3B802 consumer).
+     * Shown only when a credit exists (0x00FF0117 > 0), matching the arcade: the
+     * credit records are parked off-screen in attract.  Two single digits at
+     * their arcade layout (0x00FF0117 -> X 0x128 / Y 0xE8; 0x00FF0103 -> X 0x00 /
+     * Y 0xE4), always shown when present (arcade count==1 = no zero suppression).
+     * "CREDIT" label glyphs still render from the frontend scan. */
+    tst.b   0x00FF0117
+    beq.s   .Lnq_no_credits
+    moveq   #0, %d1
+    move.w  #0x00E8, %d2
+    moveq   #0, %d3
+    move.b  0x00FF0117, %d3
+    andi.w  #0x000F, %d3
+    addi.w  #0x002A, %d3
+    move.w  #0x0128, %d4
+    bsr     .Lnq_emit_entry
+.Lnq_no_credits:
     rts
 
 /* a5 = BCD MSB byte (read toward lower addresses), a4 = MSD X, a6 = Y.  Six
@@ -1748,6 +1686,45 @@ pc090oj_native_emit_pass:
     cmpi.w  #6, %d0
     blo.s   .Ltdg_loop
     rts
+
+/* Retire the native-owned frontend HUD digit records from object RAM.  For
+ * each record this subsystem now produces natively, clear its code word IFF the
+ * code is a HUD digit glyph (0x2A..0x33).  Records reused by other producers in
+ * other states carry non-digit codes (0x5A098 status tiles 0x3E8+, label letter
+ * glyphs, player art) and are left intact.  Preserves the scanner's live SAT
+ * state (a1/a2/a3/d5) and record cursor. */
+.Lnq_hud_clear_records:
+    movem.l %d0-%d2/%a0-%a1, -(%sp)
+    lea     .Lnq_hud_owned_records, %a1
+.Lhcr_loop:
+    move.w  (%a1)+, %d0
+    cmpi.w  #0xFFFF, %d0
+    beq.s   .Lhcr_done
+    lsl.w   #3, %d0                       /* record * 8 */
+    lea     pc090oj_object_ram, %a0
+    adda.w  %d0, %a0
+    move.w  4(%a0), %d1                   /* code word */
+    move.w  %d1, %d2
+    andi.w  #0x1FFF, %d2
+    cmpi.w  #0x002A, %d2
+    blo.s   .Lhcr_loop                   /* below digit range -> keep */
+    cmpi.w  #0x0034, %d2
+    bhs.s   .Lhcr_loop                   /* at/above digit range -> keep (protects 0x5A098 etc.) */
+    clr.w   4(%a0)                        /* HUD digit glyph -> retire (native owns it) */
+    bra.s   .Lhcr_loop
+.Lhcr_done:
+    movem.l (%sp)+, %d0-%d2/%a0-%a1
+    rts
+
+/* Record numbers the native frontend HUD subsystem owns (score + credit digit
+ * positions).  Used only as the clear-candidate set; the actual retire decision
+ * is code-gated (above), so these numbers are NOT a permanent ownership band. */
+    .align 2
+.Lnq_hud_owned_records:
+    .word 17, 21
+    .word 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33
+    .word 37, 38, 39, 40, 41, 42
+    .word 0xFFFF
 
     .align 2
 /* Fixed title text as a semantic glyph sequence: {Y, X, glyph_code}, letters and
@@ -2169,6 +2146,20 @@ pc090oj_native_emit_pass:
     clr.l   (%a1)+
     clr.l   (%a1)+
     moveq   #0, %d5                    /* d5 = emitted count / cursor */
+    /* Build 0272: the dedicated native_frontend_hud_emit subsystem owns the
+     * frontend numeric HUD.  Invoked here at the frontend boundary BEFORE the
+     * object-RAM loop: it emits the live scores/credit into the native SAT and
+     * retires its own PC090OJ digit records (code-gated 0x2A..0x33) from object
+     * RAM.  The loop below therefore no longer needs any record-number skip --
+     * the retired records read code 0 and drop out through the generic
+     * code-zero pretest, while every other record (labels, player, D00298, and
+     * 0x5A098's status row -- codes outside the digit range) still renders. */
+    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    beq.s   .Lnep_after_native_scores
+    movem.l %a4-%a6, -(%sp)
+    bsr     native_frontend_hud_emit
+    movem.l (%sp)+, %a4-%a6
+.Lnep_after_native_scores:
     moveq   #0, %d6                    /* d6 = record */
 .Lnep_loop:
 .if RASTAN_GAMEPLAY_HUD_SPRITES != 1
@@ -2193,6 +2184,11 @@ pc090oj_native_emit_pass:
      * have returned d0=0 and this path already falls to .Lnep_next.  Nonzero
      * codes still call the decoder unchanged (bitset/opaque/>=0x1000 rejection
      * remain the decoder's job). */
+    /* Build 0272: NO record-number HUD skip here.  native_frontend_hud_emit has
+     * already retired its own digit records (code-gated), so the now-code-0
+     * score/credit rows drop out through the code-zero pretest below, exactly
+     * like any other empty row -- and records reused by 0x5A098 (status tiles)
+     * or labels keep their non-digit codes and render normally. */
     move.w  %d6, %d0
     lsl.w   #3, %d0
     lea     pc090oj_object_ram, %a0

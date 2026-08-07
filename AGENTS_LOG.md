@@ -1,5 +1,17 @@
 # AGENTS Log
 
+## [Andy — Implementation, Build 0272 Native Frontend HUD Pass + HUD PC090OJ Retirement by Semantic Ownership]
+
+* production source/tool-constant change; Build 0272 via `RASTAN_GAMEPLAY_HUD_SPRITES=2 make -C apps/rastan-direct release`; ROM `dist/rastan-direct/rastan_direct_video_test_build_0272.bin`; SHA-256 `76e2f822c4b89ec575ae3c11d8a2e7aa1af458a71f1f94af00a017f8dde332f6`; size `1592000`; counter `271 -> 272`; no numbered artifacts deleted/overwritten (0265–0271 preserved).
+* files changed: `apps/rastan-direct/src/pc090oj_hooks.s`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated build outputs, `docs/design/Andy_build0272_native_frontend_hud_pass_retirement.md`, `AGENTS_LOG.md`, `KNOWN_FINDINGS.md`.
+* added dedicated native HUD subsystem `native_frontend_hud_emit` (global `0x000732F4`) invoked from `pc090oj_native_emit_pass` at the frontend boundary (from `.Lnq_title` and the top of `.Lnq_frontend_object_scan`, before the object-RAM loop); it emits live BCD scores/high-score/credit into the native SAT and retires its own PC090OJ representation via `.Lnq_hud_clear_records`.
+* **removed the Build-0268/0271 forbidden record-number HUD skip** (records 17/21/22–33/37–42) from the scanner; the scanner now uses only its generic code-zero pretest. Retirement is by SEMANTIC OWNERSHIP, not record number: the clear is **code-gated to the HUD digit range 0x2A–0x33**, so 0x5A098 status tiles (0x3E8+), labels (letter glyphs), and player art keep their codes and render through the scan. 0x5A098's rows are now un-skipped (the blanket band previously could have dropped them).
+* scaffolding inventory: NONE. No NOP/RTS-stub scaffolding, no PC090OJ-format scratch, no captured SAT table, no `{attr,Y,code,X}` table, no record band as ownership. Removal plan: n/a (nothing temporary introduced). The candidate record list `.Lnq_hud_owned_records` is a clear-candidate set only; the retire decision is the code gate.
+* producer trace (Start-driven Genesis MAME write-taps on `0xFF6F92+rec*8+4`): score/credit digit records written by arcade ~`0x5007C` via the **generic** `genesistan_pc090oj_hook_target_3b930` table copier (KF-026 instance) — not neutralisable at a static call site without breaking the copier's records-17–21 user; hence owner-boundary retirement. Logged as KF-076.
+* build: GATE_PASS; boot guard PASS; canonical coverage `0x184A84 -> 0x184AC0`; opcode_replace patched_site count `221` unchanged (pure native-hook change, no new arcade opcode patch). 30s Genesis smoke `states/traces/rastan_direct_video_test_build_0272_mame_30s_20260807_150852` clean (0 unmapped/fatal/error/illegal).
+* validation: throne+credit SAT structural diff vs 0271 byte-identical in Y/X/tile-index (palette-bit-only delta = throne fade phase, provably outside the change). Reachable-state correctness argued by construction (title path clear is inert; scan path clear reproduces the removed skip's drop set via code-zero pretest). **Honest limit:** per-state fixed-frame re-captures (ranking/story/ROUND-READY/deep gameplay/0x5A098) not completed — the interactive headless MAME became unresponsive mid-session (environment failure; every direct + wrapper invocation, incl. the previously-working satdiff harness, produced no output). Deferred (explicit): non-title frontend HUD LABEL conversion (needs arcade per-state layout capture; converting unreachable states blind = the 0267 mistake).
+* OPEN-024 advanced; no issue opened/closed. KNOWN_FINDINGS impact: **Option B** — added KF-076. Architecture compliance: native owner produces HUD directly from live semantic state into SAT; no software PC090OJ representation introduced. STOP: NO.
+
 ## [Cody — Implementation, Build 0247 Native Plane A No-Publish Vertical Routing]
 
 * production source/spec/tool constants changed; Build 0247 produced via normal `make -C apps/rastan-direct release`; ROM `dist/rastan-direct/rastan_direct_video_test_build_0247.bin`; SHA-256 `30212e73bfbe43396847140bd464f8d800985935a43af3518e7469643a1f2098`; size `1589332`; counter advanced `246 -> 247`; no numbered artifacts deleted or overwritten.
@@ -45104,3 +45116,91 @@ Validated: title SAT byte-identical 0265 vs 0266; HUD-record writes during title
 complete family retirement -- the score-record positioning owner (X/attr) still writes during the title (dead),
 and 0x5A098 status + non-title frontend HUD states are in attract paths not reachable/validatable in the harness
 window, so a blind full conversion there is not shipped. Doc: (this entry).
+
+### MAME Exit Summary (2026-08-07 09:49:02)
+- Final PC: 0x073846
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+## Andy — Build 0267: retire 0x3B802 + 0x5A098 frontend HUD/status producer family
+
+GATE_PASS. Counter 266->267. ROM SHA 3f54d96a..., size 1591768, opcode 221, coverage 0x184B14->0x1849D8 (316
+bytes removed). Retired the score-digit (0x3B802, 10 callers) and status-sprite (0x5A098, 1 caller) hooks to
+inert rts stubs -> ZERO PC090OJ record writes from either producer for any caller; removed the Build 0266 title
+scene/stage gate (superseded); deleted 0x3B802 private .Lhook_3b802_visflag + .Lhook_3b802_record_table. Shared
+helpers (.Lpc090oj_mirror_write_*, .Lpc090oj_emit_slot) retained (used by unconverted producers). Score/HUD is
+owned natively: title/attract .Lnq_title live-BCD digits via .Lnq_emit_entry; gameplay .Lnq_project_p1_hud.
+Validated: title SAT byte-identical 0266 vs 0267; 30s smoke 1798 frames 0 errors; gameplay score native. Legacy
+shrunk 316 bytes + 11 record-writer callers eliminated. Remaining frontend PC090OJ families (out of scope):
+workram_block_sprites, score-record positioning producer, D00298/D002B0. HONEST LIMIT: harness reaches only the
+title; non-title frontend states (high-score table, story, ROUND/READY, status/life) need Tighe verification --
+if any rendered via 0x3B802/0x5A098 through the scan, the native HUD must be extended there. Report:
+docs/design/Andy_build0267_unified_native_sprite_hud_retirement.md.
+
+### MAME Exit Summary (2026-08-07 11:05:38)
+- Final PC: 0x073896
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-07 11:10:31)
+- Final PC: 0x073980
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+## Andy — Build 0269: fix Build 0267 regression; native ownership of frontend score display
+
+GATE_PASS. Counter 267->269 (0268 intermediate: native scores + 5a098 restored, 3b802 still inert; 0269 final:
+3b802 restored). ROM SHA 047724c2..., size 1592120, coverage 0x184B38. Governance: added CLAUDE.md "Never Delete
+a Producer Before Replacing Every Live Semantic Consumer" + RULES.md rules 13 (consumer coverage matrix) & 14.
+Root cause of 0267 regression: stubbed 0x3B802/0x5A098 to rts after proving only title+gameplay consumers; the
+title-only harness missed throne/ROUND/ranking high-score consumers -> "00". Fix: high/player score digits are
+fixed-position across states (rec22-27/28-33/37-42, live 0xFF0142/0xFF011E); .Lnq_title_emit_scores now runs in
+the frontend scan path for all scene!=1 states and the scan skips the score records (22-33,37-42); title uses
+.Lnq_title, gameplay project_p1_hud. Restored 0x3B802 (gate dropped) and 0x5A098 per rule 13 (their credit /
+status consumers are not yet native). Validated: high-score SAT per state == 0266 (5/5/4), total SAT 15/15/15
+(no double), 30s smoke 1798 frames 0 errors. Consumer coverage matrix in the report; every validated live score
+consumer has a native owner; credit-digit + 0x5A098 consumers RETAINED (not retired). Report:
+docs/design/Andy_build0269_complete_native_frontend_hud_replacement.md.
+
+### MAME Exit Summary (2026-08-07 13:38:03)
+- Final PC: 0x073924
+- Stack Pointer (SP): 0x00FEFF7E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-07 13:42:28)
+- Final PC: 0x073BDE
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## Andy — Build 0271: retire 0x3B802 fully (scores + credit native); 0x5A098 retained
+
+GATE_PASS. Counter 269->271 (0270 intermediate had a stray rec17 credit sprite; 0271 emits only the real credit
+count). ROM SHA 32b1fe3f..., size 1591940, coverage 0x184AA0. Reached the credit state via Genesis P1 Start
+(0xFF0117 0->1) and captured its layout. Native credit count (0xFF0117 digit, X0x128/Y0xE8, shown when >0) added
+to .Lnq_title_emit_scores; scan skips records 17/21/22-33/37-42; 0x3B802 retired to inert stub (all consumers
+native or dead: rec17/0xFF0103 not rendered even in 0269). 0x5A098 restored (its status state unreachable in
+harness; rule 13). Validated (Genesis MAME): total SAT per state == 0266 (15/15/15, no double); credit-state SAT
+byte-identical to 0269 (START-driven); 30s smoke 1798 frames 0 errors. Consumer coverage matrix in report. Not
+complete for the whole family: 0x5A098 retained; Phase-5 scanner-separation deferred. Report:
+docs/design/Andy_build0271_complete_frontend_native_hud_status_retirement.md.
+
+## Andy — Next holistic PC090OJ retirement plan (analysis only, no build)
+
+No source/spec/ROM/counter change (counter 271). Traced 0x5A098 (status/bonus row driven by a5@0x13A, sole
+caller arcade 0x51054 screen-setup sequence; Genesis hook runtime 0x000730D0; a watchpoint under 48s attract +
+P1-Start showed ZERO execution -> fires only in a deeper gameplay/round-transition state, low reachability
+confidence). Identified the frontend native invocation boundary = pc090oj_native_emit_pass (native scores
+currently called from inside .Lnq_frontend_object_scan = the architectural debt). Audited remaining families
+(0x5A098, workram_block_sprites player block, D00298/D002B0, score-record positioning producer, scanner).
+RECOMMENDED next unit: complete the frontend HUD family -- convert the remaining HUD labels to native, move the
+whole HUD (scores+credits+labels) into a dedicated native HUD pass in pc090oj_native_emit_pass, retire the
+score-record positioning producer's HUD role, removing records 4-45 from the scan. Reachable/validatable, high
+architectural leverage (creates the reusable native frontend pass), high confidence. 0x5A098 deferred until its
+gameplay state is reachable (rule 13/14 -- do not stub without proof). Full plan (13 sections incl. current-state
+table, dependency graph, candidate comparison, deletion list, implementation + validation plan):
+docs/design/Andy_next_pc090oj_holistic_retirement_plan.md.
+
+### MAME Exit Summary (2026-08-07 15:08:55)
+- Final PC: 0x07397E
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none

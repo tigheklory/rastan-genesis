@@ -99,7 +99,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 221
 # sprite emitter while keeping the opcode_replace site count stable.
 # Build 0253 removes only the statically unreachable legacy tall BG/FG projector
 # bodies. Mechanical coverage delta: -0xFC (0x184C9C -> 0x184BA0).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184B14
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184AC0
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

@@ -249,6 +249,25 @@ these define *how* to pursue it.
     specific producers, records, scans, mirrors, translators and compatibility branches after each
     relevant task.
 
+13. **PROVE ALL LIVE CONSUMERS BEFORE RETIRING A SHARED PRODUCER.** A shared arcade/legacy producer
+    may be disabled, deleted, replaced with RTS/NOP, or have its output discarded **only** after all
+    live callers/consumers are enumerated and, for **each**, one of the following is proven:
+    (1) its semantic output is reproduced by the new native implementation; or (2) the caller is
+    proven dead/unreachable from authoritative arcade behavior. "Not observed in the current test
+    window" is not proof of deadness. Existing native ownership in one state does not establish
+    ownership in another. A successful build, smoke test, unchanged title SAT, or lack of emulator
+    errors is **not** sufficient retirement proof. A shared-producer retirement's standalone report
+    **must** include a **consumer coverage matrix** with at least: `caller / semantic use / state(s)
+    / old output / complete native owner / runtime-or-static proof / retirement status`. Every live
+    row must show a native owner before the shared producer is globally retired. If validation
+    cannot naturally reach a state, use external test tooling (not production scaffolding) to reach
+    or establish it.
+
+14. **DO NOT USE INERT STUBS AS A SUBSTITUTE FOR NATIVE REPLACEMENT.** An `rts`, NOP, ignored write,
+    suppressed call, or empty hook counts as retirement **only** when complete semantic replacement
+    is independently proven for every live consumer (per rule 13). Otherwise it is deletion of
+    behavior and is forbidden.
+
 ---
 ## Mandatory Task Deliverables and Evidence Discipline
 
