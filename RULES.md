@@ -250,7 +250,251 @@ these define *how* to pursue it.
     relevant task.
 
 ---
+## Mandatory Task Deliverables and Evidence Discipline
 
+These requirements apply automatically to Andy, Cody, and any other implementation or
+research agent. They apply even when a task prompt accidentally fails to restate them.
+A prompt omission does not waive a RULES.md requirement.
+
+### 1. Standalone Markdown Report Is Mandatory
+
+Every ROM-producing implementation task must create a standalone permanent report:
+
+`docs/design/<Agent>_buildNNNN_<descriptive_task_name>.md`
+
+Examples:
+
+- `docs/design/Andy_build0265_title_glyph_and_score_formatting.md`
+- `docs/design/Cody_build0234_bat_retirement_fix.md`
+
+The report must be created during the same task that produces the build.
+
+`AGENTS_LOG.md` is a summary/index and is **not** a substitute for the standalone report.
+
+Do not use statements such as:
+
+- `Doc: (this entry)`
+- `See AGENTS_LOG`
+- `report omitted`
+- `documentation deferred`
+
+for a ROM-producing task.
+
+A substantive analysis/evidence task that establishes reusable architectural,
+provenance, runtime, or reverse-engineering findings must likewise create a standalone
+report under `docs/design/`, using a descriptive non-build filename when no ROM is
+produced.
+
+Pure documentation-maintenance tasks are exempt unless the task explicitly requests a
+separate report.
+
+### 2. Required Build-Report Contents
+
+Every build report must state, at minimum:
+
+- agent and task name;
+- baseline build;
+- produced build number;
+- ROM path;
+- SHA-256;
+- ROM size;
+- build-counter transition;
+- opcode-replacement count and canonical coverage when applicable;
+- files changed;
+- semantic subsystem changed;
+- semantic cut used for native replacement;
+- legacy PC080SN/PC090OJ code or dependency actually removed;
+- legacy code intentionally remaining;
+- static proof performed;
+- runtime validation performed;
+- exact test platform for each runtime test:
+  - original arcade MAME,
+  - Genesis-driver MAME,
+  - BlastEm,
+  - Exodus,
+  - real hardware,
+  - or another explicitly named platform;
+- regressions checked;
+- unresolved limitations;
+- exactly what Tighe must visually or interactively verify;
+- STOP status.
+
+Do not claim completion beyond the evidence in the report.
+
+### 3. Final Chat Response Does Not Replace the Report
+
+The agent's final response must summarize the completed work, but the final response is
+not the permanent project record.
+
+Write the standalone `.md` report first, then summarize it in the final response.
+
+If a build was produced and the required report does not exist, the task is incomplete.
+
+### 4. Update AGENTS_LOG After Facts Are Final
+
+For implementation/build tasks and reusable evidence tasks, append a concise
+`AGENTS_LOG.md` entry only after the result is known.
+
+The log entry must point to the standalone report and must not contain claims stronger
+than the report's evidence.
+
+Do not use `AGENTS_LOG.md` as a scratchpad or as the only documentation of a build.
+
+### 5. Current Source Is Authority Over Historical Reports
+
+Before modifying a subsystem, inspect the current source tree and current generated
+mapping/build artifacts.
+
+Historical reports, old prompts, old builds and prior agent conclusions are evidence,
+not proof of current implementation state.
+
+Do not implement from a stale report when the current source can answer the question.
+
+### 6. Address Mapping Must Be Proven
+
+For arcade-PC to Genesis-runtime-PC relationships,
+`build/rastan-direct/address_map.json` is authoritative.
+
+Do not assume a simple relocation such as `+0x200` unless membership in a copied region
+has first been proven from the current address map.
+
+Every task involving arcade/runtime addresses must clearly distinguish:
+
+- `arcade_pc`
+- `runtime_genesis_pc`
+- `HW_ADDRESS`
+- `Genesis-WRAM`
+
+as applicable.
+
+### 7. Reuse Proven Test Harnesses
+
+Before creating a new MAME input script, tracing wrapper, debugger harness, or equivalent
+test mechanism, inspect and reuse the project's existing proven harness when it already
+supports the required test.
+
+Do not spend paid usage rediscovering how to:
+
+- coin up;
+- press Start;
+- move the player;
+- attack/jump;
+- reach normal attract/gameplay states;
+- run existing arcade/Genesis traces.
+
+A new harness is justified only when the existing one cannot collect the required
+evidence.
+
+### 8. Identify the Test Platform Explicitly
+
+Never write simply `MAME test`, `runtime test`, or `trace passed` when platform identity
+matters.
+
+State whether the evidence came from:
+
+- original Rastan arcade MAME;
+- Rastan Genesis ROM under the MAME Genesis driver;
+- BlastEm;
+- Exodus;
+- real Genesis hardware;
+- or another named environment.
+
+Arcade behavior and Genesis behavior are different evidence sources and must never be
+silently conflated.
+
+### 9. Metrics Must Say Exactly What Was Measured
+
+Do not convert an observed count into a stronger rate or conclusion without proof.
+
+Examples:
+
+- `18 fewer writes during the measured interval` must not become `18 writes/frame`
+  unless a per-frame measurement proves it.
+- `no hits during this trace` must not become `unreachable`.
+- `not observed` must not become `does not exist`.
+- a clean emulator smoke test must not become visual correctness proof.
+
+Use precise evidence language.
+
+### 10. Build Number Discipline
+
+Use the Makefile-owned next sequential build number. Do not prescribe, reuse, skip, or
+manually invent a numbered build slot.
+
+Do not intentionally create an intermediate numbered ROM merely to discover a coverage
+constant, test whether assembly succeeds, or perform analysis that can be done before
+the numbered release.
+
+If a numbered ROM artifact is actually produced, its number is consumed and the artifact
+must be preserved under the Numbered ROM Artifact Preservation Rule.
+
+### 11. Implementation Tasks Must End With Implementation
+
+When a task requests implementation and a build, provenance work, tracing, Ghidra work,
+disassembly inspection and analysis are intermediate steps serving that implementation.
+
+Do not silently redefine an implementation task as:
+
+- research only;
+- analysis only;
+- a planning checkpoint;
+- a smaller unrelated cleanup;
+- a dead-code-only build;
+- a scene-specific bypass;
+
+unless a true STOP condition under these rules is proven.
+
+### 12. Report the Actual Scope, Not the Requested Scope
+
+The final report must describe what was actually changed.
+
+If the requested subsystem was not fully retired, do not title or describe the result as
+though it was.
+
+Use explicit terms such as:
+
+- `partial`
+- `not complete`
+- `compatibility remains`
+- `producer family still active`
+
+when those statements are true.
+
+A successful build and a successful task are not automatically the same thing.
+
+### 13. USER MUST VERIFY Must Be Concrete
+
+For every ROM-producing gameplay or rendering task, the report and final response must
+contain a concise `USER MUST VERIFY` section naming the exact observable behaviors Tighe
+should test.
+
+Do not merely say:
+
+`verify visually`
+
+or:
+
+`verify no regressions`
+
+State the specific screens, transitions, sprites, palettes, motion, HUD elements, input
+sequence, or gameplay behavior affected by the change.
+
+### 14. Do Not Create Documentation Afterthoughts
+
+Documentation is part of completing the task, not optional cleanup after implementation.
+
+Before declaring `Checkpoint complete: YES`, verify:
+
+- required standalone report exists;
+- report filename contains the actual build number when a build was produced;
+- report describes the final source state;
+- AGENTS_LOG points to it when required;
+- validation evidence is recorded;
+- USER MUST VERIFY is present when applicable.
+
+If any required item is missing, finish it before responding.
+
+---
 ## Summary
 
 Arcade code is the program.
