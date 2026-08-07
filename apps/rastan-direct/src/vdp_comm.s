@@ -27,9 +27,7 @@
     .global palette_dirty
     .global tiles_dirty
     .global bg_row_dirty
-    .global bg_tall_dirty
     .global fg_row_dirty
-    .global fg_tall_dirty
     .global fg_native_gameplay_owner
     .global staged_dest_ptr_bg
     .global staged_dest_ptr_fg
@@ -38,9 +36,7 @@
     .global staged_scroll_y_bg
     .global staged_scroll_y_fg
     .global staged_bg_buffer
-    .global staged_bg_tall_buffer
     .global staged_fg_buffer
-    .global staged_fg_tall_buffer
     .global fg_narrow_desc_table
     .global fg_narrow_desc_count
     .global fg_narrow_pending_rows
@@ -522,14 +518,8 @@ tiles_dirty:
     .align 2
 bg_row_dirty:
     .long 0
-bg_tall_dirty:
-    .byte 0
-    .align 2
 fg_row_dirty:
     .long 0
-fg_tall_dirty:
-    .byte 0
-    .align 2
 fg_native_gameplay_owner:
     .byte 0
 
@@ -559,12 +549,8 @@ staged_scroll_y_fg:
     .align 2
 staged_bg_buffer:
     .space (2048 * 2)
-staged_bg_tall_buffer:
-    .space (4096 * 2)
 staged_fg_buffer:
     .space (2048 * 2)
-staged_fg_tall_buffer:
-    .space (4096 * 2)
 staged_palette_words:
     .space (64 * 2)
 staged_tile_words:

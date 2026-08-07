@@ -8,9 +8,7 @@
     .global genesistan_hook_tilemap_fg
     .global genesistan_hook_cwindow_clear
     .global genesistan_hook_tilemap_bg_fill
-    .global genesistan_hook_tilemap_bg_fill_tall
     .global genesistan_hook_tilemap_fg_fill
-    .global genesistan_hook_tilemap_fg_fill_tall
     .global genesistan_hook_inline_fg_write_3a550
     .global genesistan_hook_inline_fg_write_3a8fe
     .global genesistan_hook_inline_fg_write_3a908
@@ -858,7 +856,10 @@ genesistan_hook_tilemap_plane_a:
      * descriptor walk. Neither helper touches a5@0x10A8 (selector). */
     cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     bne.s   .Lbg_skip_fg_stage
-    bsr     genesistan_stage_fg_src_column
+    /* Build 0257: dead FG_SRC tall staging (genesistan_stage_fg_src_column ->
+     * staged_fg_tall_buffer) removed; its consumer projector is gone since
+     * Build 0256 and live Plane A is produced by the selector0/12 native
+     * producers into staged_fg_buffer.  Collision side-channel is retained. */
     bsr     genesistan_stage_bg_collision_column
 .Lbg_skip_fg_stage:
 
@@ -1030,70 +1031,6 @@ genesistan_hook_tilemap_plane_a:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-/* Genesis-only Stage 1 FG_SRC per-column staging. Extracted (Build 0160) from the
- * former genesistan_hook_tilemap_fg gameplay path so it can be shared. Replays the
- * proven Build 0155 FG model through the arcade-owned rebuilt pointer table
- * (0x00FF1040) using the real FG column dest a5@0x10A0, routing each cell through the gameplay-only tall FG backing helper
- * (LUT + attr conversion + tall staging + projection dirty). Collision is intentionally NOT authored here:
- * Stage 1 arcade collision is owned by the BG producer 0x559B2, not this FG_SRC
- * visual replay. movem-wrapped: preserves d0-d7/a0-a6 for the caller; reads
- * a5@0x10A0/a5@0x10CA and 0x00FF1040, never writes a5@0x10A8. Caller must gate
- * on SCENE_GAMEPLAY_ID. */
-genesistan_stage_fg_src_column:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    lea     0x00FF0000, %a5
-
-    move.l  ARCADE_PC080SN_DEST_BG_OFFSET(%a5), %d0   /* a5@0x10A0 = FG column dest */
-    andi.l  #0x00003FFC, %d0                          /* dcol*4 (col offset within plane) */
-    movea.l #ARCADE_PC080SN_CWINDOW_BASE_FG, %a4
-    adda.l  %d0, %a4                                  /* a4 = base cell dest (plane row 0) */
-    moveq   #0, %d2
-    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d2
-    andi.w  #0x0003, %d2
-    add.w   %d2, %d2                                  /* d2 = arcade colidx*2 */
-    movea.l #PC080SN_DESC_REBUILD_PTR_TABLE, %a3      /* rebuilt block pointers, already Genesis-addressed */
-    moveq   #0, %d4                                   /* d4 = seg */
-.Lfgc_seg_loop:
-    move.l  %d4, %d6
-    lsl.l   #2, %d6                                   /* seg*4 */
-    movea.l %a3, %a2
-    adda.l  %d6, %a2
-    move.l  (%a2), %d6                                /* rebuilt block pointer from 0x00FF1040 */
-    cmpi.l  #0x00000200, %d6
-    blo     .Lfgc_done
-    cmpi.l  #0x00060000, %d6
-    bhs     .Lfgc_done
-    movea.l %d6, %a2
-    adda.w  %d2, %a2                                  /* a2 = block base for this seg/col */
-    moveq   #0, %d5                                   /* d5 = row */
-.Lfgc_row_loop:
-    move.w  %d5, %d6
-    lsl.w   #3, %d6                                   /* row*8 */
-    move.w  0(%a2,%d6.w), %d0                         /* code word */
-    andi.w  #0x3FFF, %d0
-    move.l  #FG_PLANE_ATTR_HI, %d1
-    move.w  %d0, %d1                                  /* d1 = attr<<16 | code */
-    move.l  %d4, %d0
-    lsl.l   #2, %d0                                   /* seg*4 */
-    add.l   %d5, %d0                                  /* + row = plane row */
-    lsl.l   #8, %d0                                   /* plane row * 0x100 */
-    movea.l %a4, %a0
-    adda.l  %d0, %a0                                  /* a0 = cell dest */
-    move.l  %d1, %d0                                  /* D0 = composed arcade cell */
-    moveq   #1, %d1                                   /* D1 = count */
-    bsr     genesistan_hook_tilemap_fg_fill_tall
-
-    addq.w  #1, %d5
-    cmpi.w  #FG_PRODUCER_ROW_COUNT, %d5
-    bne     .Lfgc_row_loop
-    addq.w  #1, %d4
-    cmpi.w  #FG_PRODUCER_SEG_COUNT, %d4
-    bne     .Lfgc_seg_loop
-
-.Lfgc_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
-    rts
-
 /* Stage 1 BG collision-map side-channel. The original arcade BG producer
  * 0x559B2 writes collision from the rebuilt descriptor/table data before
  * writing the visible tile:
@@ -1193,7 +1130,8 @@ genesistan_hook_tilemap_fg:
     cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     bne     .Lfg_not_gameplay
 
-    bsr     genesistan_stage_fg_src_column
+    /* Build 0257: dead FG_SRC tall staging removed (gameplay FG-branch path was
+     * already unreached in Stage 1 after Build 0159's selector fix). */
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -1494,183 +1432,6 @@ genesistan_hook_tilemap_bg_fill:
     bne.s   .Lbg_fill_loop
 
 .Lbg_fill_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
-    rts
-
-/* Build 0170 gameplay-only tall BG writer.  The item-page/Stage-1 strip
- * producer emits 64 PC080SN BG rows; the legacy 32-row staging helper aliases
- * rows 32..63 over rows 0..31.  This helper preserves all 64 rows in a virtual
- * backing buffer.  VBlank projects the currently visible 32-row half into the
- * existing staged_bg_buffer before the normal Plane-B commit. */
-genesistan_hook_tilemap_bg_fill_tall:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-
-    movea.l %a0, %a4
-    move.l  %a4, %d2
-    andi.l  #0x00FFFFFF, %d2
-    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_BG, %d2
-    blo     .Lbg_tall_fill_done
-    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_BG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
-    bhs     .Lbg_tall_fill_done
-
-    move.w  %d1, %d6
-    tst.w   %d6
-    beq     .Lbg_tall_fill_done
-
-    lea     genesistan_pc080sn_tile_vram_lut, %a2
-    lea     genesistan_pc080sn_attr_lut, %a3
-    lea     staged_bg_tall_buffer, %a6
-
-    move.w  %d0, %d3
-    andi.w  #0x3FFF, %d3
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
-
-    move.l  %d0, %d4
-    swap    %d4
-    move.w  %d4, %d5
-    andi.w  #0x0003, %d5
-
-    move.w  %d4, %d7
-    lsr.w   #8, %d7
-    lsr.w   #6, %d7
-    andi.w  #0x0001, %d7
-    lsl.w   #2, %d7
-    or.w    %d7, %d5
-
-    move.w  %d4, %d7
-    lsr.w   #8, %d7
-    lsr.w   #7, %d7
-    andi.w  #0x0001, %d7
-    lsl.w   #3, %d7
-    or.w    %d7, %d5
-
-    move.w  %d4, %d7
-    lsr.w   #8, %d7
-    lsr.w   #5, %d7
-    andi.w  #0x0001, %d7
-    lsl.w   #4, %d7
-    or.w    %d7, %d5
-
-    add.w   %d5, %d5
-    move.w  0(%a3,%d5.w), %d5
-    or.w    %d5, %d3
-
-.Lbg_tall_fill_loop:
-    move.l  %a4, %d2
-    andi.l  #0x00FFFFFF, %d2
-    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_BG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
-    bhs     .Lbg_tall_fill_done
-
-    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_BG, %d2
-    lsr.l   #2, %d2
-
-    move.w  %d2, %d4
-    andi.w  #0x003F, %d4
-    move.w  %d2, %d5
-    lsr.w   #6, %d5
-    andi.w  #0x003F, %d5
-
-    move.w  %d5, %d0
-    lsl.w   #7, %d0
-    add.w   %d4, %d0
-    add.w   %d4, %d0
-    move.w  %d3, 0(%a6,%d0.w)
-    move.b  #1, bg_tall_dirty
-
-    adda.l  #4, %a4
-    subq.w  #1, %d6
-    bne.s   .Lbg_tall_fill_loop
-
-.Lbg_tall_fill_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
-    rts
-
-/* Build 0172 gameplay-only tall FG writer.  The Stage-1 FG_SRC replay has
- * 16 four-row segments (64 PC080SN FG rows). The legacy 32-row FG staging
- * helper aliases rows 32..63 over rows 0..31, so gameplay writes preserve all
- * rows here and VBlank projects the visible window into staged_fg_buffer. */
-genesistan_hook_tilemap_fg_fill_tall:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-
-    movea.l %a0, %a4
-    move.l  %a4, %d2
-    andi.l  #0x00FFFFFF, %d2
-    cmpi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d2
-    blo     .Lfg_tall_fill_done
-    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
-    bhs     .Lfg_tall_fill_done
-
-    move.w  %d1, %d6
-    tst.w   %d6
-    beq     .Lfg_tall_fill_done
-
-    lea     genesistan_pc080sn_tile_vram_lut, %a2
-    lea     genesistan_pc080sn_attr_lut, %a3
-    lea     staged_fg_tall_buffer, %a6
-
-    move.w  %d0, %d3
-    andi.w  #0x3FFF, %d3
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
-
-    move.l  %d0, %d4
-    swap    %d4
-    move.w  %d4, %d5
-    andi.w  #0x0003, %d5
-
-    move.w  %d4, %d7
-    lsr.w   #8, %d7
-    lsr.w   #6, %d7
-    andi.w  #0x0001, %d7
-    lsl.w   #2, %d7
-    or.w    %d7, %d5
-
-    move.w  %d4, %d7
-    lsr.w   #8, %d7
-    lsr.w   #7, %d7
-    andi.w  #0x0001, %d7
-    lsl.w   #3, %d7
-    or.w    %d7, %d5
-
-    move.w  %d4, %d7
-    lsr.w   #8, %d7
-    lsr.w   #5, %d7
-    andi.w  #0x0001, %d7
-    lsl.w   #4, %d7
-    or.w    %d7, %d5
-
-    add.w   %d5, %d5
-    move.w  0(%a3,%d5.w), %d5
-    or.w    %d5, %d3
-
-.Lfg_tall_fill_loop:
-    move.l  %a4, %d2
-    andi.l  #0x00FFFFFF, %d2
-    cmpi.l  #(ARCADE_PC080SN_CWINDOW_BASE_FG + ARCADE_PC080SN_CWINDOW_BYTES), %d2
-    bhs     .Lfg_tall_fill_done
-
-    subi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d2
-    lsr.l   #2, %d2
-
-    move.w  %d2, %d4
-    andi.w  #0x003F, %d4
-    move.w  %d2, %d5
-    lsr.w   #6, %d5
-    andi.w  #0x003F, %d5
-
-    move.w  %d5, %d0
-    lsl.w   #7, %d0
-    add.w   %d4, %d0
-    add.w   %d4, %d0
-    move.w  %d3, 0(%a6,%d0.w)
-    move.b  #1, fg_tall_dirty
-
-    adda.l  #4, %a4
-    subq.w  #1, %d6
-    bne.s   .Lfg_tall_fill_loop
-
-.Lfg_tall_fill_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -3409,15 +3170,9 @@ genesistan_hook_cwindow_clear:
     move.w  %d3, (%a0)+
     dbra    %d0, .Lcw_clear_fg
 
-    lea     staged_fg_tall_buffer, %a0
-    move.w  #(4096 - 1), %d0
-.Lcw_clear_fg_tall:
-    move.w  %d3, (%a0)+
-    dbra    %d0, .Lcw_clear_fg_tall
-
+    /* Build 0257: dead staged_fg_tall_buffer clear + fg_tall_dirty set removed. */
     move.l  #0xFFFFFFFF, bg_row_dirty
     move.l  #0xFFFFFFFF, fg_row_dirty
-    move.b  #1, fg_tall_dirty
     clr.b   fg_native_gameplay_owner
 
     movem.l (%sp)+, %d0-%d3/%a0-%a3

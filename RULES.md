@@ -197,6 +197,60 @@ Rejected or broken numbered builds must be preserved and clearly labeled: **REJE
 
 ---
 
+## Holistic Replacement and Usage-Efficiency Rules
+
+These rules govern how PC090OJ/PC080SN native-replacement work is scoped and carried out. They
+strengthen (never weaken) the rules above; where the native-replacement policy of §11 applies,
+these define *how* to pursue it.
+
+1. **TRACE TO THE SEMANTIC OWNER.** A patched function is not automatically the correct
+   replacement boundary. If required state (position, attribute, value, visibility, palette,
+   layout) is owned elsewhere, follow callers, xrefs, writes and runtime provenance until the
+   complete semantic owner is identified.
+
+2. **SPLIT OWNERSHIP IS NOT A STOP CONDITION.** If several arcade routines collectively produce
+   one visual/game-semantic object, treat them as **one** replacement subsystem. Split ownership
+   expands the conversion boundary; it does not justify a STOP or a partial change.
+
+3. **RETIRE SUBSYSTEMS, NOT SCREENS.** Do not solve shared rendering code separately for title,
+   ROUND, story, high-score, gameplay, etc. when a shared semantic producer can be converted once.
+
+4. **NO PATCH ACCUMULATION.** Do not add scene/state gates merely to bypass legacy behavior for
+   one more case when the proper solution is to replace the underlying producer family.
+
+5. **EVERY NATIVE-CONVERSION BUILD MUST SHRINK LEGACY.** A native-replacement build must materially
+   remove or permanently bypass obsolete PC090OJ/PC080SN code or dependencies. Adding a new native
+   path while leaving the same legacy path intact is not completion.
+
+6. **FOLLOW THE NATIVE GENESIS MODEL.** Prefer `semantic state -> native mapping/piece expansion
+   -> Genesis staging -> VBlank commit`, using Rainbow Islands / Sonic 1 BuildSprites structural
+   lessons. Never recreate the arcade graphics chip in software under another name.
+
+7. **ANALYSIS SERVES IMPLEMENTATION.** Analysis should resolve the provenance needed to implement.
+   Do not turn implementation tasks into analysis-only checkpoints unless there is a genuine
+   hardware/semantic impossibility.
+
+8. **DO NOT ASK TIGHE TO RESCOPE A CLEAR GOAL INTO TINY TASKS.** When the requested subsystem is
+   clear, determine the necessary internal scope yourself and complete it.
+
+9. **MINIMIZE PAID USAGE.** Model/tool usage and repeated iterations cost Tighe real money. Avoid
+   redundant traces, rediscovery, unnecessary builds, verbose restatement, repeated STOP reports
+   and low-value intermediate work.
+
+10. **STOP MEANS TRUE BLOCKER.** STOP only when exhaustive evidence demonstrates that the requested
+    semantic behavior cannot be determined or implemented without violating a project invariant.
+    Difficulty, split ownership, a large call graph, cross-screen reuse, or needing additional
+    tracing are not STOP reasons.
+
+11. **DO NOT MISREPRESENT PARTIAL WORK.** A scene-specific bypass, dead-write suppression or
+    partial producer conversion must not be described as retirement of the whole subsystem.
+
+12. **KEEP THE CODEBASE MOVING TOWARD DELETION.** The expected trajectory is fewer PC090OJ/PC080SN-
+    specific producers, records, scans, mirrors, translators and compatibility branches after each
+    relevant task.
+
+---
+
 ## Summary
 
 Arcade code is the program.

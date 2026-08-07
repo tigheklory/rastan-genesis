@@ -7,9 +7,7 @@
     .extern palette_dirty
     .extern tiles_dirty
     .extern bg_row_dirty
-    .extern bg_tall_dirty
     .extern fg_row_dirty
-    .extern fg_tall_dirty
     .extern fg_native_gameplay_owner
     .extern fg_narrow_desc_count
     .extern fg_narrow_pending_rows
@@ -20,9 +18,7 @@
     .extern staged_scroll_y_bg
     .extern staged_scroll_y_fg
     .extern staged_bg_buffer
-    .extern staged_bg_tall_buffer
     .extern staged_fg_buffer
-    .extern staged_fg_tall_buffer
     .extern staged_palette_words
     .extern staged_tile_words
     .extern staged_sprite_sat
@@ -201,9 +197,7 @@ _bootstrap_clear_staging:
     clr.b   palette_dirty
     clr.b   tiles_dirty
     clr.l   bg_row_dirty
-    clr.b   bg_tall_dirty
     clr.l   fg_row_dirty
-    clr.b   fg_tall_dirty
     clr.b   fg_native_gameplay_owner
     clr.w   fg_narrow_desc_count
     clr.w   fg_narrow_pending_rows
@@ -226,23 +220,11 @@ _bootstrap_clear_staging:
     clr.w   (%a0)+
     dbra    %d7, .Lboot_bg_clear
 
-    lea     staged_bg_tall_buffer, %a0
-    move.w  #(4096 - 1), %d7
-.Lboot_bg_tall_clear:
-    clr.w   (%a0)+
-    dbra    %d7, .Lboot_bg_tall_clear
-
     lea     staged_fg_buffer, %a0
     move.w  #(2048 - 1), %d7
 .Lboot_fg_clear:
     clr.w   (%a0)+
     dbra    %d7, .Lboot_fg_clear
-
-    lea     staged_fg_tall_buffer, %a0
-    move.w  #(4096 - 1), %d7
-.Lboot_fg_tall_clear:
-    clr.w   (%a0)+
-    dbra    %d7, .Lboot_fg_tall_clear
 
     lea     staged_sprite_sat, %a0
     move.w  #((80 * 8 / 2) - 1), %d7

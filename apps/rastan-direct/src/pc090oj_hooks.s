@@ -68,7 +68,8 @@
     /* Build 0142 retained-identity translation state */
     .global pc090oj_workram_block_sprites
     .global pc090oj_workram_block_sprites_41f5e
-    .global pc090oj_stage_block2c8
+    /* pc090oj_stage_block2c8 / stage_record46 removed (Build 0261): dead uncalled
+     * gameplay record producers that called the relocated expander 0x3D254. */
     .global record_to_slot
     .global represented_records
     .global waiting_records
@@ -708,155 +709,211 @@ native_stage_dispatch_45dfa:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-/* A4=actor, A1=semantic old destination for branch compatibility, D2=piece count. */
+/* A4=actor, D2=piece budget for this actor.  native_sprite_lane (set by the
+ * caller) selects the destination semantic lane.
+ *
+ * Build 0260: DIRECT-NATIVE gameplay sprite production.  Build 0259's bridge --
+ * which ran the relocated arcade record-expander (0x3D254) into an eight-byte
+ * PC090OJ-format scratch tuple and decoded it back -- is removed.  This routine
+ * reproduces the arcade actor->piece expansion directly from the arcade
+ * semantic state and emits each 16x16 piece straight into the native semantic
+ * lane, with NO PC090OJ record, NO 0xD00000, NO Y=0x180 park record, NO scratch
+ * tuple, and NO pack-then-decode.
+ *
+ * Provenance (original-arcade MAME attract-demo trace,
+ * states/traces/direct_native_sprite_provenance_*): 100% of Stage-1 gameplay
+ * actors dispatch to the DEFAULT expander (0x3C950, descriptor type nibble
+ * 0x00); zero specialized-type actor-frames were observed.  The default
+ * expander's per-piece fields are all live actor/mapping state:
+ *   attr@0  = (per-piece type 0x80 ? flipX 0x4000 : 0) | (a4@39 if bit6 set)
+ *   Y       = sext(mapY) + a4@26  (+ a4@24 when per-piece type 0x70)
+ *   code    = a4@30 + (flip ? -mapCode : mapCode)   [read directly, no record]
+ *   X       = sext(mapX) + a4@22   (facing==0 -> mirror: a4@22 - mapX - 0x10)
+ * per-piece mapping stream = [control, Ybyte, codebyte, Xbyte]; control 0xFF is
+ * a 1-byte blank/park (emit nothing).  a4@2==0 selects the mirrored orientation
+ * (arcade 0x3C9A6).  a0 = family_descriptor = reloc_table_base +
+ * u16[reloc_table_base + class*2]. */
 .Lnative_emit_actor_common:
-    move.w  %d5, -(%sp)
-    tst.b   0(%a4)
-    beq.s   .Lnative_actor_skip
-    tst.b   1(%a4)
-    beq.s   .Lnative_actor_skip
-    move.b  1(%a4), %d0
-    move.b  32(%a4), %d6
-    move.b  2(%a4), %d7
-    jsr     0x0003D254
-    move.w  (%sp)+, %d5
-    rts
-.Lnative_actor_skip:
-    move.w  %d2, %d0
-    lsl.w   #3, %d0
-    adda.w  %d0, %a1
-    move.w  (%sp)+, %d5
-    rts
-
-/* Build 0204 / OPEN-017: faithfully re-enable the first gameplay enemy block
- * only.  Arcade 0x41E76..0x41EB4 walks A5+0x748 for 11 entries, destination
- * record 46, and calls 0x3D054 with d2=1 after loading d0/d6/d7 from the actor.
- * Keep the Build 0203 safety gate (active, nonzero code, a4+0x36 clear), call
- * the relocated engine into an 8-byte scratch record, and flush only nonzero
- * output tuples into the normal mirror/candidate path. */
-.Lpc090oj_stage_record46_validated:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+    tst.b   0(%a4)                     /* active */
+    beq     .Lnea_ret
+    tst.b   1(%a4)                     /* class nonzero */
+    beq     .Lnea_ret
+    andi.l  #0x0000FFFF, %d2
+    beq     .Lnea_ret
+    move.w  %d2, %d5                    /* d5 = piece budget (loop count) */
 
-    lea     0x0748(%a5), %a4
-    move.w  #46, .Lrecord46_rec         /* current destination record */
-    move.w  #10, .Lrecord46_count       /* 11 actors */
+    /* a0 = family descriptor (relocated arcade family tables, +0x200 copy) */
+    moveq   #0, %d1
+    move.b  0x38(%a4), %d1             /* family a4@0x38 */
+    cmpi.w  #4, %d1
+    bhi     .Lnea_ret
+    lsl.w   #2, %d1
+    lea     .Lnea_fam_bases, %a1
+    movea.l (%a1,%d1.w), %a1           /* a1 = reloc table base */
+    moveq   #0, %d0
+    move.b  1(%a4), %d0               /* class a4@1 */
+    add.w   %d0, %d0
+    move.w  (%a1,%d0.w), %d0          /* u16 self-relative descriptor offset */
+    lea     (%a1,%d0.w), %a0          /* a0 = descriptor / piece stream */
 
-.Lrecord46_loop:
-    tst.b   0(%a4)
-    beq.s   .Lrecord46_blank            /* arcade 0x41E84: a4@(0)==0 -> blank (Y=0x180) */
-    tst.b   1(%a4)
-    beq.s   .Lrecord46_next             /* Genesis-only KF-063 code-0 engine guard (arcade emits; not a blank cond) */
-    tst.b   0x36(%a4)
-    bne.s   .Lrecord46_blank            /* arcade 0x41E84: a4@(54)!=0 -> blank (Y=0x180) */
+    move.b  (%a0), %d3                 /* dispatcher type nibble */
+    andi.b  #0xF0, %d3
+    beq.s   .Lnea_default              /* 0x00 */
+    cmpi.b  #0x40, %d3
+    beq.s   .Lnea_default
+    cmpi.b  #0x70, %d3
+    beq.s   .Lnea_default
+    cmpi.b  #0x80, %d3
+    beq.s   .Lnea_default
+    cmpi.b  #0xD0, %d3
+    beq.s   .Lnea_default
+    cmpi.b  #0xE0, %d3
+    beq.s   .Lnea_default
+    cmpi.b  #0xF0, %d3
+    beq.s   .Lnea_default
+    bra     .Lnea_special              /* one of the 8 specialized dispatch types */
 
-    lea     .Lrecord46_scratch, %a1
-    clr.l   (%a1)
-    clr.l   4(%a1)
+.Lnea_default:
+    tst.b   2(%a4)                     /* facing a4@2 */
+    beq     .Lnea_dmirror
 
-    move.b  1(%a4), %d0
-    move.b  32(%a4), %d6
-    move.b  2(%a4), %d7
-    moveq   #1, %d2
-    jsr     0x0003D254
+.Lnea_dloop:                            /* --- normal orientation (arcade 0x3C960) --- */
+    moveq   #0, %d0
+    move.b  (%a0)+, %d0               /* control byte */
+    cmpi.b  #0xFF, %d0
+    beq.s   .Lnea_dnext               /* blank/park -> emit nothing */
+    move.b  %d0, %d3
+    andi.b  #0xF0, %d3                /* per-piece type nibble */
+    moveq   #0, %d7                    /* flip flag */
+    cmpi.b  #0x40, %d3
+    bne.s   .Lnea_d_nf
+    moveq   #1, %d7
+.Lnea_d_nf:
+    moveq   #0, %d1                    /* attr */
+    cmpi.b  #0x80, %d3
+    bne.s   .Lnea_d_na
+    ori.w   #0x4000, %d1
+.Lnea_d_na:
+    btst    #6, 0x27(%a4)             /* a4@39 visibility */
+    beq.s   .Lnea_d_av
+    move.b  0x27(%a4), %d1            /* attr low byte = a4@39 */
+.Lnea_d_av:
+    moveq   #0, %d2                    /* Y */
+    move.b  (%a0)+, %d2
+    ext.w   %d2
+    add.w   0x1a(%a4), %d2            /* + base Y a4@26 */
+    cmpi.b  #0x70, %d3
+    bne.s   .Lnea_d_ny
+    add.w   0x18(%a4), %d2           /* type 0x70: + a4@24 */
+.Lnea_d_ny:
+    moveq   #0, %d0                    /* code */
+    move.b  (%a0)+, %d0
+    tst.w   %d7
+    beq.s   .Lnea_d_nc
+    neg.w   %d0
+.Lnea_d_nc:
+    add.w   0x1e(%a4), %d0           /* + base tile a4@30 */
+    move.w  %d0, %d3
+    moveq   #0, %d4                    /* X */
+    move.b  (%a0)+, %d4
+    ext.w   %d4
+    add.w   0x16(%a4), %d4           /* + base X a4@22 */
+    bsr     native_sprite_emit
+.Lnea_dnext:
+    subq.w  #1, %d5
+    bne     .Lnea_dloop
+    bra     .Lnea_ret
 
-    lea     .Lrecord46_scratch, %a0
-    move.w  4(%a0), %d3                 /* code word */
-    beq.s   .Lrecord46_next             /* never flush code-0 scratch output */
-    move.w  (%a0), %d1
-    move.w  2(%a0), %d2
-    move.w  6(%a0), %d4
-    move.w  .Lrecord46_rec, %d0
-    bsr     .Lpc090oj_family_apply_record
-    bra.s   .Lrecord46_next
+.Lnea_dmirror:                          /* --- mirrored orientation (arcade 0x3C9A6) --- */
+    moveq   #0, %d0
+    move.b  (%a0)+, %d0
+    cmpi.b  #0xFF, %d0
+    beq.s   .Lnea_mnext
+    move.b  %d0, %d3
+    andi.b  #0xF0, %d3
+    moveq   #0, %d7
+    cmpi.b  #0x40, %d3
+    bne.s   .Lnea_m_nf
+    moveq   #1, %d7
+.Lnea_m_nf:
+    move.w  #0x4000, %d1              /* mirror path always sets flipX */
+    btst    #6, 0x27(%a4)
+    beq.s   .Lnea_m_av
+    move.b  0x27(%a4), %d1
+.Lnea_m_av:
+    moveq   #0, %d2
+    move.b  (%a0)+, %d2
+    ext.w   %d2
+    add.w   0x1a(%a4), %d2           /* Y = sext(byte) + a4@26 (no 0x70 adjust) */
+    moveq   #0, %d0
+    move.b  (%a0)+, %d0
+    tst.w   %d7
+    beq.s   .Lnea_m_nc
+    neg.w   %d0
+.Lnea_m_nc:
+    add.w   0x1e(%a4), %d0
+    move.w  %d0, %d3
+    moveq   #0, %d4
+    move.b  (%a0)+, %d4
+    ext.w   %d4
+    neg.w   %d4
+    subi.w  #0x10, %d4
+    add.w   0x16(%a4), %d4           /* X = a4@22 - sext(byte) - 0x10 */
+    bsr     native_sprite_emit
+.Lnea_mnext:
+    subq.w  #1, %d5
+    bne     .Lnea_dmirror
+    bra     .Lnea_ret
 
-/* Build 0234 hurry-up bat retirement: faithful translation of arcade 0x41EFC.
- * When the block-0x748 actor is inactive (a4@(0)==0) or in its death/retire
- * sub-state (a4@(0x36)/a4@(54)!=0), the arcade producer HIDES the record by
- * writing Y=0x180; the prior Genesis path only skipped (advance without write),
- * freezing the last emitted frame (the killed-bat 0x0276 corpse) on screen until
- * the next swarm reused the slot.  This blanks the CURRENT record's Y to 0x180
- * (decode clips Y>=0x140-relative out of the viewport -> no SAT emission), driven
- * by the authoritative actor lifecycle, not by tile code / coordinate / timer. */
-.Lrecord46_blank:
-    move.w  .Lrecord46_rec, %d0
-    cmpi.w  #256, %d0
-    bhs.s   .Lrecord46_next
-    lsl.w   #3, %d0
-    lea     pc090oj_object_ram, %a0
+/* Specialized dispatch types (0x10/0x20/0x30/0x50/0x60/0x90/0xA0/0xB0/0xC0).
+ * Original-arcade trace shows ZERO specialized-type actor-frames in Stage-1
+ * gameplay, so this path is not exercised by observed gameplay; it is kept
+ * native and record-free for completeness.  Every specialized handler begins by
+ * dereferencing the frame-indexed piece pointer (movea.l a0@(2)); each piece is
+ * a position delta with retained artwork, so code is sourced from the actor base
+ * tile a4@30 and attribute from a4@39 -- no PC090OJ record, no scratch. */
+.Lnea_special:
+    movea.l 2(%a0), %a0              /* piece data pointer (shared by all 8) */
+    moveq   #0, %d0
+    move.b  0x0b(%a4), %d0          /* animation frame a4@0x0B */
+    add.w   %d0, %d0
+    move.w  %d0, %d1
+    add.w   %d0, %d0
+    add.w   %d1, %d0               /* frame*3 */
     adda.w  %d0, %a0
-    move.w  #0x0180, 2(%a0)
-
-.Lrecord46_next:
-    adda.w  #64, %a4
-    addq.w  #1, .Lrecord46_rec
-    subq.w  #1, .Lrecord46_count
-    bpl     .Lrecord46_loop
-
+.Lnea_sloop:
+    moveq   #0, %d0
+    move.b  (%a0)+, %d0
+    cmpi.b  #0xFF, %d0
+    beq.s   .Lnea_snext
+    ext.w   %d0
+    move.w  0x1a(%a4), %d2         /* Y = base Y + delta */
+    add.w   %d0, %d2
+    move.w  0x1e(%a4), %d3         /* code = base tile a4@30 (retained) */
+    move.w  0x16(%a4), %d4         /* X = base X a4@22 */
+    moveq   #0, %d1
+    move.b  0x27(%a4), %d1         /* attr = a4@39 */
+    bsr     native_sprite_emit
+.Lnea_snext:
+    subq.w  #1, %d5
+    bne     .Lnea_sloop
+.Lnea_ret:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-/* N1: block A5+0x2C8 -> object-table rows 140..238 DIRECTLY (arcade 0x41E22
- * semantics: d2=10, 19 for entry 8; engine writes exactly d2 rows via (A1)+).
- * KF-067 -8 vertical correction applied to the rows each engine call emits.
- * Deferred-special (a4@(3)!=0) and code-zero entries preserve their rows. */
-pc090oj_stage_block2c8:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    lea     pc090oj_object_ram + (PC090OJ_BLOCK2C8_BASE_RECORD * 8), %a1
-    lea     0x02C8(%a5), %a4
-    moveq   #0, %d5
-.Lb2c8_entry:
-    moveq   #10, %d2
-    cmpi.w  #8, %d5
-    bne.s   .Lb2c8_d2ok
-    moveq   #19, %d2
-.Lb2c8_d2ok:
-    tst.b   0(%a4)
-    beq.s   .Lb2c8_blank
-    tst.b   5(%a4)
-    beq.s   .Lb2c8_blank
-    tst.b   3(%a4)
-    bne.s   .Lb2c8_skip
-    tst.b   1(%a4)
-    beq.s   .Lb2c8_skip
-    move.b  1(%a4), %d0
-    move.b  32(%a4), %d6
-    move.b  2(%a4), %d7
-    move.w  %d2, -(%sp)                 /* engine clobbers d0-d7 (KF-067) */
-    jsr     0x0003D254
-    move.w  (%sp)+, %d0
-    subq.w  #1, %d0
-    movea.l %a1, %a0
-.Lb2c8_yfix:
-    suba.w  #8, %a0
-    move.w  2(%a0), %d1
-    move.w  %d1, %d4
-    andi.w  #0x01FF, %d1
-    subq.w  #8, %d1
-    andi.w  #0x01FF, %d1
-    andi.w  #0xFE00, %d4
-    or.w    %d4, %d1
-    move.w  %d1, 2(%a0)
-    dbra    %d0, .Lb2c8_yfix
-    bra.s   .Lb2c8_next
-.Lb2c8_blank:
-    move.w  %d2, %d0
-    subq.w  #1, %d0
-.Lb2c8_blankloop:
-    move.w  #0x0180, 2(%a1)
-    adda.w  #8, %a1
-    dbra    %d0, .Lb2c8_blankloop
-    bra.s   .Lb2c8_next
-.Lb2c8_skip:
-    move.w  %d2, %d0
-    lsl.w   #3, %d0
-    adda.w  %d0, %a1
-.Lb2c8_next:
-    adda.w  #64, %a4
-    addq.w  #1, %d5
-    cmpi.w  #9, %d5
-    blo     .Lb2c8_entry
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
-    rts
+    .align 2
+/* Relocated arcade family descriptor-table bases (arcade base + 0x200 copy):
+ * fam0 0x3D09E, fam1 0x4771C, fam2 0x3F0CE, fam3 0x40004, fam4 0x4002C. */
+.Lnea_fam_bases:
+    .long 0x0003D29E
+    .long 0x0004791C
+    .long 0x0003F2CE
+    .long 0x00040204
+    .long 0x0004022C
+
+    .align 2
+
 
 
 genesistan_pc090oj_hook_target_59f5e:
@@ -1034,6 +1091,19 @@ genesistan_pc090oj_hook_init_priority_3ad84:
 genesistan_pc090oj_hook_score_digit_3b802:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 
+    /* Build 0266: the native title HUD (.Lnq_title, scene 0 + arcade stage
+     * a5@0x118 == 0) owns the score/HUD display directly, and the title-active
+     * finalizer never scans pc090oj_object_ram.  0x3B802's PC090OJ record writes
+     * are therefore dead in that state -- retire them here.  Other frontend
+     * states (stage != 0, high-score/story) keep the legacy record path until
+     * their positioning owner is converted. */
+    tst.b   genesistan_current_scene_id
+    bne.s   .Lhook_3b802_run
+    tst.w   0x00FF0118
+    bne.s   .Lhook_3b802_run
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+.Lhook_3b802_run:
     /* Preserve arcade structure at 0x3B802: record = 10 bytes at 0x3B87E+mode*10 */
     clr.l   %d5
     movea.l %d5, %a6                 /* leading-zero state */
@@ -1555,9 +1625,158 @@ genesistan_pc090oj_hook_audit_guard:
 /* Build 0250 native semantic-lane finalizer.  Non-gameplay falls back to the
  * legacy object-table scanner; gameplay consumes only the native queues. */
 pc090oj_native_emit_pass:
-    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-    beq.s   .Lnq_gameplay
-    bra     pc090oj_legacy_emit_pass
+    move.b  genesistan_current_scene_id, %d0
+    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, %d0
+    beq     .Lnq_gameplay
+    tst.b   %d0
+    bne     .Lnq_frontend_object_scan   /* scene != 0 and != 1: keep object-RAM path */
+    /* scene 0 (title tileset): the static native title HUD table is exact only in
+     * the title-active state (arcade stage a5@0x118 == 0).  Once the attract loop
+     * advances (stage != 0: PUSH-BUTTON text toggles off, sub-screens), defer to
+     * the object-RAM path so its dynamic/blink behavior is preserved. */
+    tst.w   0x00FF0118
+    bne     .Lnq_frontend_object_scan
+    bra     .Lnq_title
+/* Build 0264: title-screen sprites produced by LIVE direct-native producers.
+ * Fixed text is a semantic glyph sequence (.Lnq_title_labels: {Y,X,glyph}); the
+ * score and high-score digits are generated every frame from the live arcade
+ * BCD values (player 0x00FF011E, high score 0x00FF0142) -- no captured digit
+ * constants.  Every piece is emitted straight into staged_sprite_sat through
+ * the residency + SAT builder the gameplay lanes use: no pc090oj_object_ram,
+ * no 0xD00000, no Y=0x180 park, no object-RAM scan.  Scene 0 title-active never
+ * reaches .Lnq_frontend_object_scan; other frontend scenes keep the object-RAM
+ * path unchanged. */
+.Lnq_title:
+    movem.l %d0-%d7/%a0-%a3, -(%sp)
+    movem.l %a4-%a6, -(%sp)
+    lea     staged_sprite_sat, %a3
+    tst.w   pc090oj_sat_bank
+    beq.s   .Lnq_title_bank_ok
+    lea     staged_sprite_sat_b, %a3
+.Lnq_title_bank_ok:
+    lea     sprite_tile_resident_code, %a2
+    lea     pc090oj_cell_used, %a1
+    clr.l   (%a1)+
+    clr.l   (%a1)+
+    clr.l   (%a1)+
+    clr.l   (%a1)+
+    moveq   #0, %d5
+    bsr     .Lnq_title_emit_labels
+    bsr     .Lnq_title_emit_scores
+    movem.l (%sp)+, %a4-%a6
+    bra     .Lnq_done_scan
+
+/* Fixed-label glyph sequence emitter (semantic {Y,X,glyph}, 0xFFFF-terminated).
+ * Each glyph is passed in registers straight to the shared native SAT builder. */
+.Lnq_title_emit_labels:
+    lea     .Lnq_title_labels, %a5
+.Ltl_loop:
+    move.w  (%a5), %d2                /* Y */
+    cmpi.w  #0xFFFF, %d2
+    beq.s   .Ltl_done
+    move.w  2(%a5), %d4               /* X */
+    move.w  4(%a5), %d3               /* glyph code */
+    moveq   #0, %d1                   /* attr = 0 (palette line 0) */
+    bsr     .Lnq_emit_entry
+    addq.l  #6, %a5
+    bra.s   .Ltl_loop
+.Ltl_done:
+    rts
+
+/* Live score/high-score digit producers. */
+.Lnq_title_emit_scores:
+    lea     0x00FF011E, %a5           /* player score MSB byte */
+    move.w  #0x0008, %d0
+    movea.w %d0, %a4                  /* leftmost digit X (MSD) */
+    moveq   #0, %d0
+    movea.w %d0, %a6                  /* Y = 0x0000 */
+    bsr     .Lnq_title_emit_digit_group
+    lea     0x00FF011E, %a5           /* right-hand score column */
+    move.w  #0x00E8, %d0
+    movea.w %d0, %a4
+    moveq   #0, %d0
+    movea.w %d0, %a6
+    bsr     .Lnq_title_emit_digit_group
+    lea     0x00FF0142, %a5           /* high-score MSB byte */
+    move.w  #0x0080, %d0
+    movea.w %d0, %a4
+    move.w  #0x0010, %d0
+    movea.w %d0, %a6                  /* Y = 0x0010 */
+    bsr     .Lnq_title_emit_digit_group
+    rts
+
+/* a5 = BCD MSB byte (read toward lower addresses), a4 = MSD X, a6 = Y.  Six
+ * digits MSD-first, X stepping +8, glyph = 0x2A + nibble, passed in registers
+ * to .Lnq_emit_entry (no scratch).  Reproduces the arcade 0x3B802 leading-zero
+ * rule: leading zeros are suppressed (not emitted) until the first nonzero
+ * digit, so the value is right-justified at fixed positions.  d7 low byte =
+ * digit index, bit 8 = seen-nonzero flag. */
+.Lnq_title_emit_digit_group:
+    moveq   #0, %d7
+.Ltdg_loop:
+    move.w  %d7, %d0
+    andi.w  #0x00FF, %d0              /* index */
+    lsr.w   #1, %d0                   /* byte offset from MSB */
+    movea.l %a5, %a0
+    suba.w  %d0, %a0
+    moveq   #0, %d0
+    move.b  (%a0), %d0                /* live BCD byte */
+    btst    #0, %d7
+    bne.s   .Ltdg_low
+    lsr.w   #4, %d0                   /* high nibble on even index */
+.Ltdg_low:
+    andi.w  #0x000F, %d0             /* digit value */
+    btst    #8, %d7                  /* already seen a nonzero digit? */
+    bne.s   .Ltdg_show
+    tst.w   %d0
+    beq.s   .Ltdg_suppress           /* leading zero -> suppress (emit nothing) */
+.Ltdg_show:
+    bset    #8, %d7
+    addi.w  #0x002A, %d0             /* digit -> glyph code */
+    move.w  %d0, %d3
+    move.l  %a6, %d2                 /* Y */
+    move.l  %a4, %d4                 /* X */
+    moveq   #0, %d1                  /* attr */
+    move.w  %d7, -(%sp)
+    bsr     .Lnq_emit_entry
+    move.w  (%sp)+, %d7
+.Ltdg_suppress:
+    addq.l  #8, %a4                  /* fixed position advances even when suppressed */
+    addq.w  #1, %d7
+    move.w  %d7, %d0
+    andi.w  #0x00FF, %d0
+    cmpi.w  #6, %d0
+    blo.s   .Ltdg_loop
+    rts
+
+    .align 2
+/* Fixed title text as a semantic glyph sequence: {Y, X, glyph_code}, letters and
+ * symbols only (codes >= 0x34); all numeric digits are produced live above.
+ * 0xFFFF Y terminates. */
+.Lnq_title_labels:
+    .word 0x0000,0x0078,0x003A
+    .word 0x0000,0x0088,0x003B
+    .word 0x0000,0x0098,0x003C
+    .word 0x0000,0x00A8,0x003D
+    .word 0x0008,0x00B8,0x003E
+    .word 0x00F8,0x0008,0x0037
+    .word 0x00F8,0x0018,0x0038
+    .word 0x00F8,0x0030,0x0045
+    .word 0x00F8,0x0040,0x0045
+    .word 0x00F8,0x0050,0x0045
+    .word 0x00F8,0x0060,0x0045
+    .word 0x00F8,0x0070,0x0045
+    .word 0x00F8,0x0080,0x0045
+    .word 0x01E8,0x0100,0x0034
+    .word 0x01E8,0x0110,0x0035
+    .word 0x01E8,0x0120,0x0036
+    .word 0x0010,0x0040,0x0039
+    .word 0x0000,0x0028,0x0048
+    .word 0x0000,0x0038,0x0046
+    .word 0x0010,0x0120,0x0039
+    .word 0x0000,0x0108,0x0049
+    .word 0x0000,0x0118,0x0047
+    .word 0xFFFF,0x0000,0x0000
 .Lnq_gameplay:
     movem.l %d0-%d7/%a0-%a3, -(%sp)
     lea     staged_sprite_sat, %a3
@@ -1713,10 +1932,13 @@ pc090oj_native_emit_pass:
     andi.w  #0x0007, %d7
     btst    %d7, %d6
     bne     .Lnq_entry_skip
+    /* Preserve HUD-white residency tag from the caller's code bit 15.  Taken from
+     * d3 directly (not a memory operand), so .Lnq_emit_entry is callable both by
+     * the lane loader and directly with d1=attr/d2=Y/d3=code/d4=X in registers. */
+    btst    #15, %d3
+    sne     %d6
     move.w  %d0, %d3
-    /* Preserve HUD-white residency tag if caller set bit 15 in the queue code. */
-    move.w  -4(%a0), %d6
-    btst    #15, %d6
+    tst.b   %d6
     beq.s   .Lnq_no_hud_tag
     ori.w   #0x8000, %d3
 .Lnq_no_hud_tag:
@@ -1921,8 +2143,13 @@ pc090oj_native_emit_pass:
     movem.l (%sp)+, %d0-%d7/%a0-%a3
     rts
 
-	/* One ascending pass over the object table into the back shadow-SAT bank.  */
-	pc090oj_legacy_emit_pass:
+	/* Build 0258 unified finalizer bridge: the frontend / non-gameplay object-RAM
+	 * scan is now a local scene!=1 continuation of pc090oj_native_emit_pass, not a
+	 * separate exported finalizer.  The standalone pc090oj_legacy_emit_pass symbol
+	 * is retired.  The scan itself is byte-unchanged: same record range/order,
+	 * masks, tile residency, palette fixup and staged-SAT output.
+	 * One ascending pass over the object table into the back shadow-SAT bank.  */
+	.Lnq_frontend_object_scan:
 	    movem.l %d0-%d7/%a0-%a3, -(%sp)
 	    lea     staged_sprite_sat, %a3
 	    tst.w   pc090oj_sat_bank

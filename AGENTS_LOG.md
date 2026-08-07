@@ -44824,3 +44824,283 @@ Open/Closed Issues Impact:
 - **GATE result:** GATE_PASS. ROM SHA-256 0fd658fd2e6976bfc9ccf2dd497369d53b27d7ea84f88d7de11f2c5b2e86a170, size 1592196. RASTAN_GAMEPLAY_HUD_SPRITES=2 present. D00298/D002B0 remaps + Build 0255 demo-input fix (0x00FF0118 rebase + 0x052C1C table reloc) preserved. MAME smoke: frames 1798, no unmapped/fatal/error.
 - **User verification required:** frontend/title/story/high-score render; attract demo scripted action; D00298/D002B0 fatal absent; gameplay Rastan/lizards/bats/axe; no regressions.
 - **STOP triggered:** NO. Slice 2 (tall buffers + fill_tall producer writes) deferred pending native-FG-producer audit. KNOWN_FINDINGS not edited (Build 0255 sync pending). Andy follow-up review recommended after user acceptance.
+
+### MAME Exit Summary (2026-08-04 15:41:47)
+- Final PC: 0x073A38
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0257 Gameplay Hot-Path Legacy Retirement]
+
+- **Date:** 2026-08-04. **Baseline:** Build 0256 (SHA 0fd658fd2e6976bfc9ccf2dd497369d53b27d7ea84f88d7de11f2c5b2e86a170, counter 256), verified current and preserved. User authorization: Tighe approved Andy performing the source-changing build.
+- **User priority:** gameplay speed + meaningful PC080SN/PC090OJ legacy removal (not frontend/cosmetic/tiny).
+- **Chosen retirement target:** PC080SN tall-buffer PRODUCER chain (the deferred Slice 2), proven fully dead: consumer projector gone since Build 0256; live Plane A/FG produced by selector0/12_native into staged_fg_buffer (decisive proof: Build 0256 renders FG with the projector removed). bg_fill_tall had ZERO callers; fg_fill_tall's only caller genesistan_stage_fg_src_column loops 16seg x 4row = 64 dead fg_fill_tall calls/frame in the live gameplay BG hook. Collision (genesistan_stage_bg_collision_column) independent, retained.
+- **Files changed:** apps/rastan-direct/src/tilemap_hooks.s, apps/rastan-direct/src/vdp_comm.s, apps/rastan-direct/src/boot/boot.s, tools/translation/postpatch_startup_rom.py + verify_canonical_rom.py (canonical constant only), generated artifacts (out/*.o, symbol.txt, disasm, address_map, build_counter, manifest), numbered+rolling Build 0257 ROM, docs/design/Andy_build0257_gameplay_hotpath_legacy_retirement.md, AGENTS_LOG.md. NOT touched: pc090oj_hooks.s, specs/rastan_direct_remap.json.
+- **Removed:** functions genesistan_stage_fg_src_column, genesistan_hook_tilemap_bg_fill_tall, genesistan_hook_tilemap_fg_fill_tall; their 2 call sites; C-window staged_fg_tall_buffer clear + fg_tall_dirty set; BSS staged_bg_tall_buffer + staged_fg_tall_buffer + bg_tall_dirty + fg_tall_dirty; boot inits/clears/externs; 4 .global + 4 .extern.
+- **Build produced:** YES (Build 0257). **Counter before/after:** 256 -> 257.
+- **BSS reduction:** ~16 KB WRAM (two 8 KB tall buffers + 2 dirty bytes); whole WRAM BSS shifted down ~16 KB (pc090oj_object_ram 0xFFAF9A -> 0xFF6F92). **Canonical coverage delta:** 0x184B84 -> 0x18492C (-0x258 = -600 code bytes). **Opcode replacement count:** 221 -> 221 (unchanged).
+- **GATE result:** GATE_PASS. ROM SHA-256 6aa273c9f1337b9d4e16a39a90ae5ee50debbf2eeb475ea3e0d0f92577e79b3e, size 1591596. gaps [] overlaps []. RASTAN_GAMEPLAY_HUD_SPRITES=2.
+- **Preserved:** native Plane A/B producers, strip commits (vdp_commit_bg_strips_if_dirty/vdp_commit_fg_narrow_strips), fg_narrow_desc_*, collision, PC090OJ native lanes/emit/PLAYER_BODY, Build 0256 projector retirement, Build 0254 D00298/D002B0 remaps (SYMBOLIC {symbol:pc090oj_object_ram+0x298/0x2B0} self-adjusted to 0xFF722A/0xFF7242 in-allocation; no raw 0x00D00298/D002B0 write remains), Build 0255 demo-input fix (0xFF0118 + 0x052C1C). MAME smoke: frames 1798, no unmapped/fatal/error, ~993% speed.
+- **User verification required:** gameplay speed/feel; title/story/high-score; item screen unchanged; attract demo scripted action; Rastan/lizards/bats/axe; BG/FG strip updates; no new map/tile corruption or sprite flicker.
+- **STOP triggered:** NO. PC090OJ gameplay is already native (no removable gameplay-hot legacy path this build); next PC090OJ target = frontend object_ram+legacy_emit_pass conversion (not gameplay-speed). KNOWN_FINDINGS not edited (Build 0255 sync pending). Andy follow-up review recommended after user acceptance.
+
+## [Andy — Build 0258 PC090OJ Frontend Legacy Retirement]
+
+- **Date:** 2026-08-04. **Baseline:** Build 0257 (SHA 6aa273c9f1337b9d4e16a39a90ae5ee50debbf2eeb475ea3e0d0f92577e79b3e, counter 257), verified current and preserved. User authorized Andy to build; STOP is on evidence/safety, not delegation.
+- **User priority:** meaningful remaining PC090OJ legacy removal (not alias/one-screen/PC080SN).
+- **Build produced:** NO. **Counter before/after:** 257 / 257 (no build).
+- **Selected PC090OJ target:** NONE safe in one build -> STOP (target 5).
+- **Files changed:** docs/design/Andy_build0258_pc090oj_frontend_legacy_retirement.md (new), AGENTS_LOG.md. NO production source/spec/ROM/counter change. Evidence: states/traces/build0258_pc090oj_frontend_audit_20260804/legacy.txt.
+- **Decisive finding:** pc090oj_native_emit_pass branches on scene: scene 1 -> native semantic lanes (native_queue_hud/front_effect/player_front/middle/player_body/back_enemy via .Lnq_emit_lane, does NOT read object_ram); scene != 1 -> bra pc090oj_legacy_emit_pass which SCANS pc090oj_object_ram records 0..255 -> SAT. NOT interchangeable (frontend populates object_ram, not lanes). Runtime-proven: legacy_emit_pass fires ~1/frame in frontend (scene 0): 259 by F300, 502 by F550.
+- **All-scene ownership:** gameplay = native lanes (no object_ram read); ALL non-gameplay/frontend (title/story/high-score/insert-coin/Push-Player-Button/attract/transitions) = legacy_emit_pass object_ram scan, fed by pc090oj_workram_block_sprites/_41f5e (block copy a5+0x11B2/+0x170 -> object_ram) + arcade HUD/status/score hooks (0x3B802/5A098/3B902/59F5E) + D00298/D002B0 family. object_ram also arcade persistent state (KF-069).
+- **Dead-function scan:** all 0-caller PC090OJ symbols are patched-site arcade hooks (patched_refs=1) or data (native lane queues, lea-referenced). NO dead PC090OJ subsystem. Only the 4 aliases (record_to_slot/represented_records/waiting_records/pc090oj_candidate_bitset) are truly dead - excluded by task as non-meaningful.
+- **Targets A-D:** A (remove legacy_emit_pass) UNSAFE (active frontend renderer); B (convert workram_block_sprites family) UNSAFE/LARGE (frontend has many object_ram producers -> single-family conversion = fragile native/legacy hybrid + record-decoder anti-pattern + high frontend regression risk); C (D00298 family) same hybrid/decoder problem; D (dead scanner subsystem) NONE exists. => no safe meaningful single-build target.
+- **PC090OJ dependency reduction:** 0 this build (STOP).
+- **Exact blocker:** remaining PC090OJ legacy = the entire ACTIVE frontend rendering pipeline (producers -> object_ram -> legacy_emit_pass every non-gameplay frame); nothing dead; converting = frontend equivalent of the whole Build 0249-0257 gameplay native conversion (multi-build, per-family). Single-build removal would break user-verified frontend screens.
+- **Next build-ready target:** (1) merge legacy_emit_pass into native_emit_pass as a scene!=1 path that emits BOTH native lanes AND the object_ram scan, delete the separate legacy symbol, prove SAT byte-identical for a frontend frame (smallest safe meaningful next build); (2) then convert frontend producers one family/build to native lanes (0x3B802 -> 0x5A098 -> workram blocks -> D00298), excluding each converted band from the scan; (3) retire the object_ram frontend scan when empty.
+- **Preserved:** gameplay native pipeline, native lanes, PLAYER_BODY, Build 0254 D00298/D002B0 remaps, Build 0255 demo-input fix, Build 0256/0257 PC080SN removals - all untouched.
+- **STOP triggered:** YES (evidence/safety). KNOWN_FINDINGS not edited (Build 0255 sync pending). Andy follow-up: author the Step-1 merged-finalizer spec next.
+
+### MAME Exit Summary (2026-08-04 18:33:17)
+- Final PC: 0x073A38
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0258 Unified PC090OJ Finalizer Bridge]
+
+- **Date:** 2026-08-04. **Baseline:** Build 0257 (SHA 6aa273c9f1337b9d4e16a39a90ae5ee50debbf2eeb475ea3e0d0f92577e79b3e, counter 257), verified current and preserved. User authorized Andy to build.
+- **Prior STOP reason:** the Build 0258 frontend audit proved no PC090OJ component is safe to delete cold (legacy_emit_pass is the active frontend object_ram->SAT renderer every frame; object_ram is arcade state; no dead subsystem); the recommended next safe step was this merged-finalizer bridge.
+- **Build produced:** YES (Build 0258). **Counter before/after:** 257 / 258.
+- **Finalizer bridge implemented:** YES. pc090oj_native_emit_pass now owns BOTH paths: scene 1 -> .Lnq_gameplay (native semantic lanes); scene != 1 -> .Lnq_frontend_object_scan (the former legacy object_ram scan, moved verbatim under a local label). Change confined to apps/rastan-direct/src/pc090oj_hooks.s: (1) bra pc090oj_legacy_emit_pass -> bra .Lnq_frontend_object_scan; (2) label pc090oj_legacy_emit_pass: -> .Lnq_frontend_object_scan: + bridge comment.
+- **Standalone pc090oj_legacy_emit_pass removed:** YES. It was a local `t` symbol (no .global) referenced only by the intra-file bra; no manifest/spec/other-source xref. Renamed to an assembler-local .L label -> absent from out/symbol.txt (count 0). Retired, not aliased.
+- **Deferred (byte-safety):** the shared common-prologue / common-finalize factoring. The two paths' prologues differ (gameplay unconditionally bsr .Lnq_project_p1_hud; frontend skips the mode-2 P1-HUD projection) and epilogues differ (frontend runs the .Lnative_palsel commit-time palette fixup; gameplay lane epilogue does not). Per "preserve byte behavior over code-size reduction," kept per-path; bridge unifies ownership only.
+- **Frontend SAT equivalence result:** STRONGEST -- the change is a pure local-label rename (no instruction bytes changed), so Build 0258 ROM is BYTE-IDENTICAL to Build 0257 (SHA 6aa273c9... = 6aa273c9..., size 1591596 = 1591596). Every scene's VDP/SAT output is identical; no per-frame SAT capture needed. Method documented in the design doc.
+- **Gameplay native lane preservation result:** preserved (.Lnq_gameplay unchanged; native_sprite_emit/frame_begin/stage_player_blocks_41f5e/native_queue_* present; PLAYER_BODY lifecycle unchanged).
+- **Files changed:** apps/rastan-direct/src/pc090oj_hooks.s + generated pc090oj_hooks.o, numbered+rolling Build 0258 ROM, docs/design/Andy_build0258_unified_pc090oj_finalizer_bridge.md, AGENTS_LOG.md. NOT changed: tilemap_hooks.s, vdp_comm.s, boot.s, specs/rastan_direct_remap.json, the two canonical .py (coverage unchanged 0x18492C).
+- **Opcode replacement count before/after:** 221 -> 221 (unchanged). **Canonical coverage delta:** 0x18492C -> 0x18492C (0; byte-neutral). gaps [] overlaps [].
+- **GATE result:** GATE_PASS. object_ram (0xFF6F92) allocated; vdp_prepare_sprites (0x739DA) still enters native_emit_pass (0x7331C). Build 0254 D00298/D002B0 remaps (symbolic), Build 0255 demo-input (0xFF0118/052C1C), Build 0256/0257 PC080SN removals -- all preserved. MAME smoke: frames 1798, no unmapped/fatal/error.
+- **User verification required:** title/story/high-score; item screen unchanged; attract demo scripted action; Rastan/lizards/bats/axe; no frontend sprite loss; no new regression (byte-identical ROM -> expected identical to 0257).
+- **Next PC090OJ step:** convert the score-digit hook 0x3B802 -> native HUD lane, excluding its record band from .Lnq_frontend_object_scan (family-by-family frontend conversion). Then 0x5A098 status -> workram_block_sprites -> D00298, until the frontend object scan retires.
+- **STOP triggered:** NO. KNOWN_FINDINGS not edited (Build 0255 sync pending). Andy follow-up: author the 0x3B802 score-digit HUD-lane conversion spec next.
+
+## Andy — Ghidra Specialized Sprite Provenance (analysis only, counter 258)
+
+Resolved the semantic ownership of the retained artwork-code (+4) and attribute (+0) fields used by the eight
+specialized sprite handlers, using the existing Ghidra project decompiler export + xrefs, verified against
+build/maincpu.disasm.txt / build/regions/maincpu.bin. No production source, remap, generated object, or ROM
+changed; counter stays 258.
+
+- Root cause of "missing" handlers: Ghidra folded 0x3c4d2..0x3c8f6 into FUN_0003d054/FUN_0003c902 via computed
+  jumps (FUN_0003d054 entry 0x3d054, body_min 0x3c4d2). The eight are jump-table case bodies inlined in the type
+  dispatcher FUN_0003c902; all present in the export. No function boundaries had to be added/corrected.
+- Two-level dispatch: master build FUN_00041dae -> FUN_0003d054 (family a4@0x38) -> FUN_0003c902 (type *a0&0xF0)
+  -> case bodies / default expander 0x3c950. Type is class-fixed (a0 = family_base + u16[class*2]).
+- attr@+0 owner = actor attribute byte a4@39 (FUN_0003c9e8 btst#6/move.b a4@(39)); set at spawn via attribute
+  table 0x45376/45388/456b6/45c04. NONE of the eight handlers writes +0 (scan of 0x3c4d2..0x3c902 for ,%a1@(0)
+  empty).
+- code@+4 owner = actor base tile a4@30/a4@24 (spawn writes 0x40cf0..0x426dc) + mapping code byte (default
+  expander FUN_0003c8f6). Only handler 0x10 (FUN_0003c89a @0x3c8b8) writes +4 — stage recompute (0x0A0D+facing
+  +level, gated area a5@0x118==3). Sole ,%a1@(4) store in region = 0x3c8b8.
+- Persistence: FUN_00041dae gives each actor slot a fixed object-RAM band; specialized handlers rewrite Y/X
+  only; park writes Y=0x180 only; chip clear FUN_0003ad72 is boot/reset only (callers startup_common_body,
+  warm_restart_gate_caller_a). So attr/code persist per-slot from spawn.
+- Decision: retained fields are actor-owned (a4@30/a4@39/mapping/stage), not chip state. Native = Option B
+  actor-owned native_piece_metadata {artwork_code, palette_route, flip_x, flip_y, valid}, with Option-A
+  read-through refresh for default-type frames and handler-0x10 area-3 code. PC090OJ gameplay state required:
+  NONE. Complete all-gameplay native conversion is definable without mode gate / dual output / gameplay object
+  RAM / record packing/translation/scanning / blank-fill ownership.
+- Deliverable rewritten: docs/design/Andy_build0249_shared_native_sprite_emitter_contract.md (per-handler
+  provenance table + complete Cody conversion task). STOP: NO. Runtime evidence required: NONE (design).
+
+### MAME Exit Summary (2026-08-05 10:19:56)
+- Final PC: 0x073A84
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## Andy — Build 0259: restore omitted gameplay sprite producers (engine→native-lane bridge)
+
+GATE_PASS. Counter 258→259. ROM rastan_direct_video_test_build_0259.bin,
+SHA cd6a55ad6779c16aef834e869cdc58bc355ba206f2f4aa99fa4a7e6247f56607, size 1591672. Prior ROMs 0250-0258
+preserved (0258 SHA re-verified). Opcode 221 (unchanged); coverage 0x18492C→0x184978 (+0x4C).
+
+- Premise correction: the nine addresses 0x3C4D2/550/586/636/6DC/75C/7A4/830 + 0x3C950 are a DUAL-USE 16x16
+  expander; their primary copies are the C-window/score/FG-text renderer, already converted to
+  genesistan_hook_text_writer_3cXXXX in tilemap_hooks.s (verified: hooks are tilemap/FG; sibling 0x3C322 does
+  ori.w #0x30 ASCII digit gen). The gameplay sprite path uses the pristine relocated copy 0x3D254 reached from
+  0x41DAE/0x45DFA. Corrected the mis-framing in Andy_build0249 (banner added).
+- Real gap fixed: native_stage_dispatch_41dae/45dfa ran the expander (jsr 0x3D254) with A1 at arcade PC090OJ RAM
+  0x00D001C8.., UNMAPPED on Genesis, so all non-player pieces were discarded (enemy groups "deferred" per the
+  hook_target_41dae note). Only the player block (0x11B2/0x0170) reached the SAT.
+- Change (pc090oj_hooks.s only + 2 canonical constants): rewrote .Lnative_emit_actor_common to run the SAME
+  proven expander into a private WRAM scratch (native_expand_scratch, NATIVE_EXP_MAX=32) then append each
+  expanded piece into the caller-selected native lane via native_sprite_emit. Restores BACK_ENEMY/MIDDLE/
+  PLAYER_FRONT/FRONT_EFFECT for both 0x41DAE and 0x45DFA. Gates/priority/bounds/KF-067 -8 preserved.
+- Honest limits: gameplay finalizer reads only native lanes (no object_ram scan), but the bridge still uses the
+  arcade expander + a transient 8-byte-tuple scratch — the FINAL record-free contract (from-scratch native
+  expander from the 5 family tables) is NOT yet met; that is the next build. MAME 30s smoke = 1798 frames, 0
+  unmapped/fatal/error, but frontend-only (arcade_stage 0 changes) — it does NOT reach Stage-1 gameplay, so the
+  restored sprites are boot/no-fault-verified only. Synthetic per-class equivalence is structural (verbatim
+  engine reuse), no separate harness built. User visual gameplay verification required (incl. 0x0508 PLAYER_FRONT
+  double-render check).
+- Docs: docs/design/Andy_build0259_native_gameplay_sprite_conversion.md; correction banner on Andy_build0249.
+
+## Andy — Direct-native gameplay sprite conversion: architectural STOP (no build)
+
+Investigation only; no source/spec/object/ROM changed; counter stays 259; Build 0259 preserved (not accepted).
+
+Attempted the from-scratch direct-native gameplay sprite conversion (remove the 0259 engine+scratch bridge,
+reimplement default expander + 8 specialized handlers natively). Verified statically:
+- family/type dispatch is clean: a0 = family_table + u16[class]; type = *a0 & 0xF0; type is class-fixed.
+- class census over all 5 family tables (253/246/131/167/167): 949 classes use the code-bearing default expander
+  0x3C950; only 15 use position-only specialized handlers (fam0 x8, fam2 x4 incl. 0xC0 class2/4/6, fam3 x2, fam4 x1).
+- default expander 0x3C950 is fully native-reimplementable: code = a4@30 +/- mapping code-byte (0x3CA12),
+  attr = a4@39+flags (0x3C9E8), Y = a4@26 + mapping byte, X = a4@22 + mapping byte. All live inputs.
+- specialized handlers write position ONLY: exhaustive scan of 0x3C4D2..0x3C902 shows the sole a1@(4) code store
+  is 0x3C8B8 (type 0x10 stage recompute) and NO a1@(0) attr store exists; specialized mappings are position-only.
+- NO static spawn writer of per-piece code to the specialized bands exists (whole-ROM search) — pointer-indexed,
+  matching STRONG prior KF-026 (PC090OJ write surface not fully statically enumerable).
+
+STOP: the per-piece artwork code (record+4) of specialized multi-piece actors (notably fam2 0xC0 = lizard men)
+is retained PC090OJ record state with no statically-locatable source: not written by the handler, not in the
+position-only mapping, not a single a4 field (a4@30 is one base tile; 4 pieces need 4 distinct codes), and its
+spawn seed is not statically enumerable (KF-026). A correct native emitter for these 15 classes cannot produce
+the codes without runtime observation, and the 30s smoke is frontend-only so a guess cannot be validated and
+would risk shipping broken lizard-man artwork (fails the user's own acceptance item). Default-expander path
+(949 classes) is fully specified and unblocked; specialized path needs one runtime capture (type-0xC0 band
+record+4 across spawn+frames) to decide recompute-vs-seeded-metadata. Design note:
+docs/design/Andy_direct_native_gameplay_sprite_STOP.md. Issue impact: OPEN-024-adjacent touched; none opened/closed.
+
+### MAME Exit Summary (2026-08-05 12:45:57)
+- Final PC: 0x073BB2
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## Andy — Complete native graphics retirement: architectural STOP (no build)
+
+Investigation only; no source/spec/object/ROM changed; counter stays 260; Builds 0258-0260 preserved.
+
+Phase 0: EXTENDING (OPEN-024 PC090OJ + OPEN-006 sprite palette + PC080SN frontend). KF-026 (STRONG) governs the
+specialized-actor spawn attr/code source. No CONFIRMED/STRONG contradiction.
+
+STOP (concrete, evidence-backed): the single-build "complete PC090OJ+PC080SN retirement + palette fix + full
+validation" cannot be produced correctly here.
+- Confirmed axe palette regression from Build 0260 proves the specialized-actor native path is wrong: default
+  attr is a verified 1:1 transcription of 0x3C9E8 (a4@39|flip) so a default axe would not regress; the axe
+  regressing means it is a SPECIALIZED-type actor whose retained per-piece attr/code (not a4@39/a4@30) is seeded
+  at spawn by a pointer-indexed writer that is not statically enumerable (KF-026).
+- Fixing the palette correctly (Phase 2, mandatory; "axe palette wrong" is a failure condition) requires arcade
+  Stage-1 GAMEPLAY palette provenance for axe/bat/lizard/Rastan, which is unreachable in this headless env: no
+  gameplay save-state exists (find *.sta -> none); scripted Coin A/1 + 1P Start did not register (credits/energy
+  stayed 0; attract never runs the master-build expander 0x41DAE); prior gameplay captures were human-driven via
+  the Qt GUI debugger (unavailable headless).
+- Project methodology (OPEN-006/OPEN-024 history: builds 0142/0144/0145/0170-0173) ships graphics changes as
+  bounded, individually Tighe-verified increments, never as a monolithic retirement.
+NOT a "task too large / hard to reach" STOP: the specific blocker is unobtainable gameplay palette provenance +
+proof (axe regression) that proceeding blind ships palette defects.
+Unblock: a gameplay-reaching arcade .sta or a working headless credit/start harness, or Tighe-supplied palette/
+attr provenance; then deliver as bounded increments (palette+specialized; frontend sprite-text; PC080SN; cleanup).
+Issue impact: OPEN-006 + OPEN-024 touched; none opened/closed. Doc:
+docs/design/Andy_complete_native_graphics_retirement_STOP.md. KNOWN_FINDINGS: Option A (corroborates KF-026).
+
+### MAME Exit Summary (2026-08-05 14:32:20)
+- Final PC: 0x073A76
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## Andy — Build 0261: remove dead relocated record-expander stubs
+
+GATE_PASS. Counter 260->261. Removed the two uncalled dead gameplay record producers
+.Lpc090oj_stage_record46_validated and pc090oj_stage_block2c8 (+ its .global) from pc090oj_hooks.s; both called
+the relocated PC090OJ record expander jsr 0x0003D254 and wrote pc090oj_object_ram. After removal there are ZERO
+jsr 0x0003D254 references anywhere in the source tree. .Lpc090oj_family_apply_record retained (still used by
+live workram_block_sprites). Coverage 0x184AA8->0x18496C; opcode 221 unchanged. Builds 0258-0260 preserved.
+Files: apps/rastan-direct/src/pc090oj_hooks.s + canonical constants. Issue: OPEN-024 (dead-code cleanup). No
+regression risk (dead uncalled code). Genesis 30s smoke clean.
+
+### MAME Exit Summary (2026-08-05 15:03:50)
+- Final PC: 0x07370C
+- Stack Pointer (SP): 0x00FEFF74
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-05 15:08:30)
+- Final PC: 0x073C10
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## Andy — Build 0263: direct-native title-screen sprites
+
+GATE_PASS. Counter 261->263 (0262 = pre-gate intermediate, preserved). Converted the title-active HUD (scene 0,
+arcade stage a5@0x118==0) to direct native SAT production from a bounded 42-piece {attr,Y,code,X} table via the
+existing lane->SAT machinery; scene-0 title-active no longer reaches .Lnq_frontend_object_scan (no object-RAM
+records/scan/0xD00000/Y=0x180 for the title). Stage!=0 title sub-states + other frontend scenes keep the object
+scan (isolated compatibility). Validated: title-active native SAT == 0261 scan SAT (15 visible sprites, slots
+0-13 byte-identical, slot 14 differs only in benign link terminator); advanced attract defers to scan
+(identical); 30s smoke 1798 frames 0 errors; gameplay/PC080SN untouched. Files: pc090oj_hooks.s + canonical
+coverage. ROM 79cf89c7..., size 1592076. OPEN-024 touched. Limitation: table is the static title snapshot;
+dynamic digit sourcing + remaining frontend scenes are the next increment.
+
+### MAME Exit Summary (2026-08-05 17:17:16)
+- Final PC: 0x073C08
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## Andy — Build 0264: live direct-native title sprite producers
+
+GATE_PASS. Counter 263->264. Replaced Build 0263's captured title snapshot table with LIVE producers: deleted
+.Lnq_title_sprite_table + NATIVE_TITLE_SPRITE_COUNT + all captured {attr,Y,code,X}; added .Lnq_title_emit_labels
+(semantic {Y,X,glyph} sequence, letters/symbols only) + .Lnq_title_emit_scores/digit_group generating score
+(0xFF011E) and high-score (0xFF0142) digits every frame (glyph=0x2A+BCD nibble) via a single transient 8-byte
+glyph scratch through the existing SAT builder. No object_ram/record/0xD00000/Y=0x180/scan for title-active
+(scene 0 && a5@0x118==0). DYNAMIC PROOF (external MAME poke): changing live high-score WRAM changed the native
+title digit SAT tiles (not a snapshot); player-score poke overwritten by arcade each attract frame (same live
+read path). 30s smoke clean; gameplay/PC080SN/other frontend untouched. Files: pc090oj_hooks.s + canonical
+coverage 0x184B04. Doc: Andy_build0264_live_native_title_sprite_producers.md. OPEN-024 touched.
+
+### MAME Exit Summary (2026-08-06 16:16:56)
+- Final PC: 0x073C00
+- Stack Pointer (SP): 0x00FEFF7C
+- Unique Unmapped Memory Addresses: none
+
+## Andy — Build 0265: direct title glyph emitter + score leading-zero fix
+
+GATE_PASS. Counter 264->265. (1) Removed .Lnq_glyph_scratch + its BSS + .Lnq_title_emit_glyph; refactored
+.Lnq_emit_entry to take the HUD tag from d3 bit15 (no -4(a0) memory operand) so it is callable directly with
+d1=attr/d2=Y/d3=code/d4=X registers; title label + digit producers now emit per glyph via registers, no
+attr/Y/code/X temporary. Gameplay lane loader unchanged. (2) Added arcade 0x3B802 leading-zero suppression to
+the digit generator (MSD-first, suppress leading zeros, right-justified; d7 index+seen-nonzero flag). Validated
+by MAME high-score injection: 10->2, 100->3, 273100->6 (no leading zeros), 987654->6 digits; value 0 restored by
+arcade default. Live BCD 0xFF011E/0xFF0142. Title-active: 0 object_ram, 0 scan. 30s smoke 1798 frames 0 errors;
+gameplay/other frontend untouched. Files: pc090oj_hooks.s + canonical coverage 0x184AFC. Doc:
+Andy_build0265_title_glyph_and_score_formatting.md. OPEN-024 touched.
+
+## Andy — Frontend HUD/text family retirement: STOP (0x3B802 owns no positions)
+
+No build; no source/spec/object/ROM changed; counter 265. Phase 0 EXTENDING (OPEN-024/006).
+Concrete contradiction (task-sanctioned, not the forbidden "shared-across-screens" reason): 0x3B802
+(score/HUD digits, 10 callers) writes ONLY record +2/+3 (Y) and +4 (code) via .Lpc090oj_mirror_write_*; it
+writes NO +6 (X) / +0 (attr) and its record table carries no X. The score records' X/attr are set by separate
+arcade positioning code (workram_block_sprites writes the PLAYER blocks records 0-21, not the score records
+27/33/42). So 0x3B802 does not own its digits' positions; a producer-owned record-free conversion is impossible
+without the positioning producer/state the task forbids depending on, and cannot be generalized from the Build
+0265 title (which supplies its OWN hard-coded layout). 0x5A098 IS self-contained (computes X/Y/code/attr via
+.Lpc090oj_emit_slot) and is separately retirable. Recommended re-scope: retire 0x5A098 alone, OR first convert
+the score-record positioning producer, then 0x3B802. Doc:
+docs/design/Andy_frontend_hud_text_family_retirement_STOP.md.
+
+### MAME Exit Summary (2026-08-07 08:45:19)
+- Final PC: 0x073980
+- Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+## Andy — Build 0266: retire 0x3B802 dead title-active PC090OJ writes (partial family step)
+
+GATE_PASS. Counter 265->266. ROM SHA e3f92051..., size 1592084, opcode 221, coverage 0x184B14. Builds 0258-0265
+preserved. Phase 1 trace (Genesis 0265, title): no writer touches HUD-record X(+6)/attr(+0) for rec22..45 in the
+title window -> the title HUD positions are static/native-owned; 0x3B802's record writes there are dead (title
+finalizer .Lnq_title never scans object_ram). Change: gate 0x3B802 hook to RTS immediately when scene 0 &&
+a5@0x118==0 (title-active), removing its dead PC090OJ writes there; other frontend states keep the legacy path.
+Validated: title SAT byte-identical 0265 vs 0266; HUD-record writes during title 575->557 (18 removed/frame);
+30s smoke 1798 frames 0 errors; gameplay/other frontend untouched. HONEST SCOPE: this is a partial step, not the
+complete family retirement -- the score-record positioning owner (X/attr) still writes during the title (dead),
+and 0x5A098 status + non-title frontend HUD states are in attract paths not reachable/validatable in the harness
+window, so a blind full conversion there is not shipped. Doc: (this entry).
