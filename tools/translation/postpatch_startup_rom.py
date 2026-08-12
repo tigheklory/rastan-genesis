@@ -36,7 +36,7 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 # hardware destinations to pc090oj_object_ram + the same record offsets.
 # Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
 # source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
-CANONICAL_OPCODE_REPLACE_COUNT = 221
+CANONICAL_OPCODE_REPLACE_COUNT = 217
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -99,7 +99,13 @@ CANONICAL_OPCODE_REPLACE_COUNT = 221
 # sprite emitter while keeping the opcode_replace site count stable.
 # Build 0253 removes only the statically unreachable legacy tall BG/FG projector
 # bodies. Mechanical coverage delta: -0xFC (0x184C9C -> 0x184BA0).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184AC0
+# Build 0274 native PLAYER_BODY tuple-zero blank handling: +0x10 helper bytes.
+# Build 0275 restores the original FRONT/BODY register contracts at their
+# producer boundaries. The +0x14 reflow bytes cover existing copied source
+# semantics, so canonical source/helper coverage remains unchanged.
+# Build 0278 preserves the original BODY mode-7 clear-tail result D2=0. The
+# two emitted bytes do not change covered semantics.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1848E0
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
@@ -598,6 +604,44 @@ def _overlay_segment(intervals: list[dict[str, object]], overlay: dict[str, obje
     return result
 
 
+def _apply_deleted_shift_boundary(
+    intervals: list[dict[str, object]],
+    deleted: dict[str, object],
+) -> list[dict[str, object]]:
+    """Advance arcade identity mapping across a zero-byte shift replacement."""
+    point, end = _segment_bounds(deleted)
+    if point != end:
+        raise RuntimeError("Deleted shift boundary must have zero Genesis size.")
+    if str(deleted.get("origin")) != "shift_replacement" or int(deleted.get("shift_delta", 0)) >= 0:
+        raise RuntimeError("Deleted shift boundary is not a shrinking shift replacement.")
+
+    arcade_resume = parse_hexish(deleted["arcade_end_exclusive"])
+    result: list[dict[str, object]] = []
+    applied = False
+    for segment in intervals:
+        seg_start, seg_end = _segment_bounds(segment)
+        if applied or point < seg_start or point >= seg_end:
+            result.append(segment)
+            continue
+        if str(segment["kind"]) != "arcade_copy":
+            raise RuntimeError("Deleted shift boundary did not land in an arcade_copy segment.")
+
+        if seg_start < point:
+            result.append(_slice_segment(segment, seg_start, point))
+        right = _slice_segment(segment, point, seg_end)
+        right["arcade_start"] = _hex6(arcade_resume)
+        right["arcade_end_exclusive"] = _hex6(arcade_resume + (seg_end - point))
+        right["identity_offset"] = point - arcade_resume
+        result.append(right)
+        applied = True
+
+    if not applied:
+        raise RuntimeError(
+            f"Deleted shift boundary at 0x{point:06X} did not intersect an arcade_copy segment."
+        )
+    return result
+
+
 def _strip_internal_keys(segment: dict[str, object]) -> dict[str, object]:
     out = {k: v for k, v in segment.items() if not k.startswith("_")}
     return out
@@ -649,7 +693,11 @@ def _finalize_address_map_segments(
     intervals = sorted(base, key=lambda s: parse_hexish(s["genesis_start"]))
 
     for overlay in sorted(patched, key=lambda s: parse_hexish(s["genesis_start"])):
-        intervals = _overlay_segment(intervals, overlay)
+        ov_start, ov_end = _segment_bounds(overlay)
+        if ov_start == ov_end:
+            intervals = _apply_deleted_shift_boundary(intervals, overlay)
+        else:
+            intervals = _overlay_segment(intervals, overlay)
 
     wrapper = [s for s in genesis_only if str(s.get("tag")) == "wrapper"]
     non_wrapper_genesis = [s for s in genesis_only if str(s.get("tag")) != "wrapper"]
@@ -1127,36 +1175,58 @@ def is_lea_abs_long_opcode(opcode: int) -> bool:
     return (b0 & 0xC1) == 0x41 and b1 == 0xF9
 
 
-def maybe_shift_abs_long_expected_bytes(
+def shift_abs_long_expected_bytes(
     expected: bytes,
     shift_deltas: list[tuple[int, int]],
     source_start: int,
     source_end: int,
+    relocation_delta: int,
+    opcode_set: set[int],
+    operands_are_relocated: bool,
 ) -> bytes:
     """
-    Adjust single-instruction abs.l expected bytes to match shifted output.
+    Adjust every recognized abs.l operand in an opcode guard for reflow.
 
-    This keeps opcode_replace validation coupled to shift_table_patcher output
-    when the expected sequence is exactly one 6-byte abs.l control-transfer or
-    LEA abs.l instruction with a source-range target.
+    Shift-table reflow moves each semantic arcade target by the accumulated
+    insertion delta. Historical opcode guards may contain either original
+    arcade operands or operands relocated by an earlier byte-neutral patch,
+    while opcode-replacement output contains relocated Genesis operands. The
+    explicit mode avoids guessing between their overlapping numeric ranges;
+    callers validate guard candidates in both modes.
+    Scanning the complete byte sequence keeps long function-body guards
+    authoritative after inline growth elsewhere.
     """
-    if len(expected) != 6:
+    if not shift_deltas:
         return expected
 
-    opcode = int.from_bytes(expected[0:2], "big")
-    is_abs_long_ref = opcode in (0x4EB9, 0x4EF9) or is_lea_abs_long_opcode(opcode)
-    if not is_abs_long_ref:
-        return expected
-
-    old_target = int.from_bytes(expected[2:6], "big")
-    if not (source_start <= old_target < source_end):
-        return expected
-
-    shifted_target = old_target + accumulated_shift_before(old_target, shift_deltas)
-    if shifted_target == old_target:
-        return expected
-
-    return expected[0:2] + shifted_target.to_bytes(4, "big")
+    adjusted = bytearray(expected)
+    cursor = 0
+    relocated_start = source_start + relocation_delta
+    relocated_end = source_end + relocation_delta
+    while cursor + 6 <= len(adjusted):
+        opcode = int.from_bytes(adjusted[cursor:cursor + 2], "big")
+        if opcode not in opcode_set:
+            cursor += 2
+            continue
+        old_target = int.from_bytes(adjusted[cursor + 2:cursor + 6], "big")
+        if operands_are_relocated:
+            if not (relocated_start <= old_target < relocated_end):
+                cursor += 6
+                continue
+            arcade_target = old_target - relocation_delta
+        elif source_start <= old_target < source_end:
+            arcade_target = old_target
+        else:
+            cursor += 6
+            continue
+        shifted_target = (
+            arcade_target
+            + relocation_delta
+            + accumulated_shift_before(arcade_target, shift_deltas)
+        )
+        adjusted[cursor + 2:cursor + 6] = shifted_target.to_bytes(4, "big")
+        cursor += 6
+    return bytes(adjusted)
 
 
 def update_genesis_checksum(rom_bytes: bytearray) -> int:
@@ -1509,12 +1579,15 @@ def main() -> int:
         source_end = parse_hexish(whole_copy_cfg["source_end_exclusive"])
         dest_start = parse_hexish(whole_copy_cfg["dest_start"])
         relocation_delta = dest_start - source_start
-        source_size = source_end - source_start
+        physical_source_start = source_start + accumulated_shift_before(source_start, shift_deltas)
+        physical_source_end = source_end + accumulated_shift_before(source_end, shift_deltas)
+        source_size = physical_source_end - physical_source_start
         if source_size <= 0:
             raise RuntimeError("whole_maincpu_copy has invalid source window size.")
-        if source_end > len(maincpu_bytes):
+        if physical_source_end > len(maincpu_bytes):
             raise RuntimeError(
-                f"whole_maincpu_copy source_end_exclusive 0x{source_end:06X} exceeds maincpu input size 0x{len(maincpu_bytes):06X}."
+                f"whole_maincpu_copy shifted source_end_exclusive 0x{physical_source_end:06X} "
+                f"exceeds maincpu input size 0x{len(maincpu_bytes):06X}."
             )
         if not value_in_windows(dest_start, target_windows):
             raise RuntimeError(
@@ -1525,7 +1598,9 @@ def main() -> int:
                 f"whole_maincpu_copy destination end 0x{(dest_start + source_size):06X} is outside declared rewrite target windows."
             )
         ensure_size_at_least(rom_bytes, dest_start + source_size)
-        rom_bytes[dest_start:dest_start + source_size] = maincpu_bytes[source_start:source_end]
+        rom_bytes[dest_start:dest_start + source_size] = maincpu_bytes[
+            physical_source_start:physical_source_end
+        ]
         _append_segment(
             segments,
             segment_sequence,
@@ -1535,7 +1610,9 @@ def main() -> int:
                 "size_bytes": source_size,
                 "kind": "arcade_copy",
                 "arcade_start": _hex6(source_start),
-                "arcade_end_exclusive": _hex6(source_end),
+                # Shift overlays restore the exact original semantic ranges as
+                # they split this synthetic expanded base interval.
+                "arcade_end_exclusive": _hex6(source_start + source_size),
                 "source": "whole_maincpu_copy",
                 "identity_offset": dest_start - source_start,
             },
@@ -1543,10 +1620,77 @@ def main() -> int:
         whole_copy_summary = {
             "source_start": f"0x{source_start:06X}",
             "source_end_exclusive": f"0x{source_end:06X}",
+            "shifted_source_start": f"0x{physical_source_start:06X}",
+            "shifted_source_end_exclusive": f"0x{physical_source_end:06X}",
             "dest_start": f"0x{dest_start:06X}",
             "dest_end_exclusive": f"0x{dest_start + source_size:06X}",
             "size_bytes": source_size,
         }
+
+        # --- Shift-aware relocation of Genesis-only hook references into the copied maincpu ---
+        # Genesis-only code (hooks placed above the copied maincpu window) JMP/JSR back into
+        # the relocated maincpu at continuation PCs authored as arcade+relocation_delta (the
+        # pre-shift runtime address).  Shift-table reflow moves those continuations, so each
+        # such operand must be re-resolved through the SAME shift map used for the copy:
+        #     arcade   = operand - relocation_delta
+        #     resolved = arcade + relocation_delta + accumulated_shift_before(arcade, shift_deltas)
+        # Systemic fix for Build 0274's stale Plane-A (and textwriter / 0x3B930) continuations.
+        # Only JMP/JSR abs.l (0x4EF9/0x4EB9) are control-flow targets; the invariant on the
+        # reference count forces review if a new hook continuation into the copied maincpu
+        # appears without being audited for shift-awareness.
+        if shift_deltas:
+            _reloc_lo = relocation_delta + source_start
+            _reloc_hi = relocation_delta + source_end
+            _scan_start = dest_start + source_size
+            genesis_only_maincpu_refs = []
+            _gi = _scan_start
+            while _gi + 6 <= len(rom_bytes):
+                _op = (rom_bytes[_gi] << 8) | rom_bytes[_gi + 1]
+                if _op in (0x4EF9, 0x4EB9):
+                    _operand = int.from_bytes(rom_bytes[_gi + 2:_gi + 6], "big")
+                    if _reloc_lo <= _operand < _reloc_hi:
+                        _arcade = _operand - relocation_delta
+                        _resolved = (
+                            _arcade
+                            + relocation_delta
+                            + accumulated_shift_before(_arcade, shift_deltas)
+                        )
+                        if _resolved != _operand:
+                            rom_bytes[_gi + 2:_gi + 6] = _resolved.to_bytes(4, "big")
+                        genesis_only_maincpu_refs.append(
+                            {
+                                "rom_offset": _hex6(_gi),
+                                "kind": "jmp" if _op == 0x4EF9 else "jsr",
+                                "arcade_target": _hex6(_arcade),
+                                "pre_shift_runtime": _hex6(_operand),
+                                "resolved_runtime": _hex6(_resolved),
+                                "shifted": _resolved != _operand,
+                            }
+                        )
+                    _gi += 6
+                    continue
+                _gi += 2
+            _expected_refs = int(
+                spec.get("expectations", {}).get("genesis_only_maincpu_ref_count", -1)
+            )
+            if _expected_refs >= 0 and len(genesis_only_maincpu_refs) != _expected_refs:
+                raise RuntimeError(
+                    "Genesis-only -> copied-maincpu control-flow reference count changed: "
+                    f"expected {_expected_refs}, found {len(genesis_only_maincpu_refs)}. "
+                    "A new hook JMP/JSR continuation into the copied maincpu must be audited "
+                    "for shift-awareness before build. Refs: "
+                    f"{genesis_only_maincpu_refs}"
+                )
+            print(
+                "genesis-only->maincpu continuation relocations "
+                f"({len(genesis_only_maincpu_refs)}):"
+            )
+            for _r in genesis_only_maincpu_refs:
+                print(
+                    f"  {_r['kind']} @{_r['rom_offset']} arcade {_r['arcade_target']} "
+                    f"{_r['pre_shift_runtime']} -> {_r['resolved_runtime']}"
+                    + ("  [shifted]" if _r["shifted"] else "  [before-shift, unchanged]")
+                )
 
     # Keep SGDK/launcher vector table intact (all 256 vectors, 0x000000..0x0003FF).
     # 68000 vectors extend beyond 0x0001FF; clobbering 0x000200..0x0003FF causes
@@ -1597,12 +1741,13 @@ def main() -> int:
                 "start": f"0x{start:06X}",
                 "end_exclusive": f"0x{end:06X}",
                 "size_bytes": end - start,
-                "runtime_start": f"0x{(start + (relocation_delta if execute_from_relocated_base else 0)):06X}",
-                "runtime_end_exclusive": f"0x{(end + (relocation_delta if execute_from_relocated_base else 0)):06X}",
+                "runtime_start": f"0x{(start + (relocation_delta if execute_from_relocated_base else 0) + accumulated_shift_before(start, shift_deltas)):06X}",
+                "runtime_end_exclusive": f"0x{(end + (relocation_delta if execute_from_relocated_base else 0) + accumulated_shift_before(end, shift_deltas)):06X}",
             }
         )
 
     rom_call_reloc_cfg = spec.get("rom_absolute_call_relocation", {})
+    opcode_set: set[int] = set()
     if bool(rom_call_reloc_cfg.get("enabled", False)):
         source_start = parse_hexish(rom_call_reloc_cfg["source_start"])
         source_end = parse_hexish(rom_call_reloc_cfg["source_end_exclusive"])
@@ -1615,6 +1760,14 @@ def main() -> int:
             whole_copy_enabled,
             whole_copy_mode,
         )
+        scan_windows = [
+            (
+                name,
+                start + accumulated_shift_before(start, shift_deltas),
+                end + accumulated_shift_before(end, shift_deltas),
+            )
+            for name, start, end in scan_windows
+        ]
         opcode_set = parse_opcode_set(rom_call_reloc_cfg.get("opcodes_with_abs_long_operand", []))
         if source_end <= source_start:
             raise RuntimeError("rom_absolute_call_relocation has invalid source window.")
@@ -1624,8 +1777,8 @@ def main() -> int:
             scan_windows,
             relocation_delta,
             execute_from_relocated_base,
-            source_start,
-            source_end,
+            source_start + accumulated_shift_before(source_start, shift_deltas),
+            source_end + accumulated_shift_before(source_end, shift_deltas),
             opcode_set,
         )
 
@@ -1804,17 +1957,38 @@ def main() -> int:
         arcade_pc = parse_hexish(replacement["arcade_pc"])
         expected = bytes.fromhex(
             replacement["original_bytes"].replace(" ", ""))
-        expected_shifted = maybe_shift_abs_long_expected_bytes(
+        expected_shifted_source = shift_abs_long_expected_bytes(
             expected,
             shift_deltas,
             source_start,
             source_end,
+            relocation_delta,
+            opcode_set,
+            False,
+        )
+        expected_shifted_relocated = shift_abs_long_expected_bytes(
+            expected,
+            shift_deltas,
+            source_start,
+            source_end,
+            relocation_delta,
+            opcode_set,
+            True,
         )
         new_bytes = bytes.fromhex(
             resolve_replacement_hex(
                 str(replacement["replacement_bytes"]),
                 symbol_addresses,
             )
+        )
+        new_bytes_shifted = shift_abs_long_expected_bytes(
+            new_bytes,
+            shift_deltas,
+            source_start,
+            source_end,
+            relocation_delta,
+            opcode_set,
+            True,
         )
         if len(expected) != len(new_bytes):
             raise RuntimeError(
@@ -1823,19 +1997,26 @@ def main() -> int:
                 f"must be the same length.")
         rom_pc = arcade_pc + relocation_delta + accumulated_shift_before(arcade_pc, shift_deltas)
         actual = bytes(rom_bytes[rom_pc:rom_pc + len(expected)])
-        if actual != expected and actual != expected_shifted:
+        expected_candidates = {
+            expected,
+            expected_shifted_source,
+            expected_shifted_relocated,
+        }
+        if actual not in expected_candidates:
             raise RuntimeError(
                 f"opcode_replace at 0x{arcade_pc:06X}: "
                 f"expected {expected.hex()} "
                 f"but found {actual.hex()}")
-        rom_bytes[rom_pc:rom_pc + len(new_bytes)] = new_bytes
+        rom_bytes[rom_pc:rom_pc + len(new_bytes_shifted)] = new_bytes_shifted
         rewrite_log.append({
             "kind": "opcode_replace",
             "arcade_pc": f"0x{arcade_pc:06X}",
             "rom_pc": f"0x{rom_pc:06X}",
             "original_bytes": expected.hex(),
-            "original_bytes_shift_adjusted": expected_shifted.hex() if expected_shifted != expected else "",
-            "replacement_bytes": new_bytes.hex(),
+            "original_bytes_shift_adjusted": actual.hex() if actual != expected else "",
+            "replacement_bytes": new_bytes_shifted.hex(),
+            "replacement_bytes_template": new_bytes.hex(),
+            "replacement_bytes_shift_adjusted": new_bytes_shifted.hex() if new_bytes_shifted != new_bytes else "",
             "note": replacement.get("note", ""),
         })
         _append_segment(
@@ -1850,7 +2031,7 @@ def main() -> int:
                 "arcade_end_exclusive": _hex6(arcade_pc + len(expected)),
                 "origin": "opcode_replace",
                 "original_bytes": expected.hex(),
-                "replacement_bytes": new_bytes.hex(),
+                "replacement_bytes": new_bytes_shifted.hex(),
                 "note": str(replacement.get("note", "")),
                 "shift_delta": len(new_bytes) - len(expected),
             },

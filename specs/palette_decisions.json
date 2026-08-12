@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "registry_id": "rastan-genesis-palette-decisions",
+  "authority": "This file is the only palette-decision registry. Evidence documents may cite decision IDs but must not duplicate or override this registry.",
+  "status_values": [
+    "confirmed",
+    "provisional",
+    "unknown"
+  ],
+  "decisions": [
+    {
+      "id": "PAL-PC090OJ-GAMEPLAY-RASTAN-SWORD-001",
+      "status": "confirmed",
+      "context": {
+        "scene": "gameplay scene 1",
+        "stage": "Stage 1 verified; do not extrapolate this entry to unverified scenes or stages",
+        "subsystem": "PC090OJ semantic melee-sword and nibble-3 Rastan BODY components",
+        "actor_family": "Rastan player",
+        "actor_classes": null
+      },
+      "arcade_semantics": {
+        "source_attribute_nibble": "0x3",
+        "sprite_control": "0x0060",
+        "colbank_bits": "0x0060",
+        "effective_palette_bank": "0x33",
+        "palette_source": "original arcade gameplay bank 0x33 for nibble-3 Rastan/sword components"
+      },
+      "genesis_realization": {
+        "palette_line": 3,
+        "route_kind": "direct gameplay PC090OJ palette route",
+        "dynamic_behavior": "normal assignment is stable; a transient line-0 SAT result is a known defect and is not an alternate decision",
+        "shared_line_ownership": "line 3 carries the verified nibble-3 Rastan and melee-sword components in this context; other Rastan component nibbles are outside this decision"
+      },
+      "decision_basis": "Build 0279 static and corrected user-controlled runtime evidence preserves nibble 3 and colbank 0x60 while normal output resolves to line 3.",
+      "known_defects": [
+        "Some exact nibble-3 player BODY/SAT matches transiently resolve to line 0 while sprite_control and colbank_bits remain 0x0060. This is downstream routing/commit behavior, not a palette-decision change."
+      ],
+      "consumers_to_inspect": [
+        "apps/rastan-direct/src/pc090oj_hooks.s native player BODY producer and finalizer",
+        "apps/rastan-direct/src/palette_route.s route lookup/table",
+        "apps/rastan-direct/src/vdp_comm.s SAT and palette commit paths",
+        "Build-time palette conversion/generation consumers of effective bank 0x33"
+      ],
+      "evidence": [
+        "docs/design/Andy_build0280_sword_club_piece_rendering_fix.md",
+        "docs/design/Cody_user_controlled_sword_lizardman_capture_for_build0280.md",
+        "states/traces/build0279_user_controlled_sword_lizardman_corrected_20260812_092432/"
+      ]
+    },
+    {
+      "id": "PAL-PC090OJ-STAGE1-LIZARDMAN-001",
+      "status": "confirmed",
+      "context": {
+        "scene": "gameplay scene 1",
+        "stage": "Stage 1",
+        "subsystem": "PC090OJ native enemy pieces",
+        "actor_family": "0x00",
+        "actor_classes": [
+          "0x17",
+          "0x18"
+        ]
+      },
+      "arcade_semantics": {
+        "source_attribute_nibble": "0x6",
+        "sprite_control": "0x0060",
+        "colbank_bits": "0x0060",
+        "effective_palette_bank": "0x36",
+        "palette_source": "arcade bank 0x36, staged through the sprite-palette source buffer"
+      },
+      "genesis_realization": {
+        "palette_line": 0,
+        "route_kind": "carrier route with cache and scene-1 reassertion",
+        "dynamic_behavior": "bank 0x36 is captured and reasserted for Stage-1 Lizardmen",
+        "shared_line_ownership": "line 0 is available because gameplay HUD sprite representation is suppressed in this configuration"
+      },
+      "decision_basis": "KF-066 and Build 0210 runtime validation confirm bank 0x36 to line 0; the corrected Build 0279 bad-pose markers retain attr 0x46/source nibble 6 and line-0 SAT output.",
+      "known_defects": [
+        "The user-observed bad club pose remains a visual-composition issue; it does not authorize a Lizardman palette reassignment."
+      ],
+      "consumers_to_inspect": [
+        "apps/rastan-direct/src/pc090oj_hooks.s native family-0 Lizardman producer",
+        "apps/rastan-direct/src/palette_route.s bank 0x36 carrier route",
+        "apps/rastan-direct/src/vdp_comm.s bank 0x36 line-0 cache/reassert and CRAM commit",
+        "apps/rastan-direct/Makefile gameplay HUD sprite configuration"
+      ],
+      "evidence": [
+        "KNOWN_FINDINGS.md#kf-066",
+        "docs/design/Andy_opus_gameplay_hud_suppression_lizard_palette_build0208.md",
+        "docs/design/Cody_user_controlled_sword_lizardman_capture_for_build0280.md",
+        "states/traces/build0279_user_controlled_sword_lizardman_corrected_20260812_092432/"
+      ]
+    },
+    {
+      "id": "PAL-PC090OJ-GAMEPLAY-LARGE-BAT-001",
+      "status": "unknown",
+      "context": {
+        "scene": "gameplay",
+        "stage": "Stage 1 observed context only",
+        "subsystem": "PC090OJ native enemy pieces",
+        "actor_family": "large bat; exact family/class not established in this registry",
+        "actor_classes": null
+      },
+      "arcade_semantics": {
+        "source_attribute_nibble": null,
+        "sprite_control": null,
+        "colbank_bits": null,
+        "effective_palette_bank": null,
+        "palette_source": null
+      },
+      "genesis_realization": {
+        "palette_line": null,
+        "route_kind": null,
+        "dynamic_behavior": null,
+        "shared_line_ownership": null
+      },
+      "decision_basis": "No supported canonical palette assignment has been proven for the large-bat context.",
+      "known_defects": [
+        "Bat palette behavior has been reported as preexisting/deferred; large-bat identity and palette provenance must be proven before assignment."
+      ],
+      "consumers_to_inspect": [
+        "Native large-bat semantic producer once identified",
+        "apps/rastan-direct/src/palette_route.s",
+        "apps/rastan-direct/src/vdp_comm.s palette and SAT commit consumers"
+      ],
+      "evidence": [
+        "OPEN_ISSUES.md",
+        "docs/design/Andy_complete_native_graphics_retirement_STOP.md"
+      ]
+    },
+    {
+      "id": "PAL-PC090OJ-GAMEPLAY-SMALL-BAT-001",
+      "status": "unknown",
+      "context": {
+        "scene": "gameplay",
+        "stage": "Stage 1 surface/cave observations must remain distinct until provenance is proven",
+        "subsystem": "PC090OJ native enemy pieces",
+        "actor_family": "small bat; exact family/class not established in this registry",
+        "actor_classes": null
+      },
+      "arcade_semantics": {
+        "source_attribute_nibble": null,
+        "sprite_control": null,
+        "colbank_bits": null,
+        "effective_palette_bank": null,
+        "palette_source": null
+      },
+      "genesis_realization": {
+        "palette_line": null,
+        "route_kind": null,
+        "dynamic_behavior": null,
+        "shared_line_ownership": null
+      },
+      "decision_basis": "Small-bat rendering has been observed, but its exact arcade bank and intended Genesis line have not been proven.",
+      "known_defects": [
+        "A wrong bat color has been reported in prior gameplay evidence; do not infer a replacement bank or line from that symptom."
+      ],
+      "consumers_to_inspect": [
+        "Native small-bat semantic producer once identified",
+        "apps/rastan-direct/src/palette_route.s",
+        "apps/rastan-direct/src/vdp_comm.s palette and SAT commit consumers"
+      ],
+      "evidence": [
+        "docs/design/Cody_first_lizard_record_ownership_true_vram_trace.md",
+        "docs/design/Andy_complete_native_graphics_retirement_STOP.md"
+      ]
+    },
+    {
+      "id": "PAL-PC090OJ-GAMEPLAY-AXE-ITEM-001",
+      "status": "unknown",
+      "context": {
+        "scene": "gameplay",
+        "stage": "Stage 1 observed context only",
+        "subsystem": "PC090OJ native item pieces",
+        "actor_family": "Axe item; exact family/class not established in this registry",
+        "actor_classes": null
+      },
+      "arcade_semantics": {
+        "source_attribute_nibble": null,
+        "sprite_control": null,
+        "colbank_bits": null,
+        "effective_palette_bank": null,
+        "palette_source": null
+      },
+      "genesis_realization": {
+        "palette_line": null,
+        "route_kind": null,
+        "dynamic_behavior": null,
+        "shared_line_ownership": null
+      },
+      "decision_basis": "The Axe item is visible in accepted gameplay builds, but no canonical arcade-bank-to-Genesis-line decision is yet supported.",
+      "known_defects": [
+        "Visibility is not palette provenance; do not infer an assignment from the currently displayed colors."
+      ],
+      "consumers_to_inspect": [
+        "Native Axe item semantic producer once identified",
+        "apps/rastan-direct/src/palette_route.s",
+        "apps/rastan-direct/src/vdp_comm.s palette and SAT commit consumers"
+      ],
+      "evidence": [
+        "docs/design/Andy_complete_native_graphics_retirement_STOP.md",
+        "docs/design/Cody_build0254_attract_mode_legacy_reachability_audit.md"
+      ]
+    },
+    {
+      "id": "PAL-PC090OJ-GAMEPLAY-FOUR-ARMED-ENEMY-001",
+      "status": "unknown",
+      "context": {
+        "scene": "gameplay",
+        "stage": "not established",
+        "subsystem": "PC090OJ native enemy pieces",
+        "actor_family": "four-armed enemy; exact family/class not established in this registry",
+        "actor_classes": null
+      },
+      "arcade_semantics": {
+        "source_attribute_nibble": null,
+        "sprite_control": null,
+        "colbank_bits": null,
+        "effective_palette_bank": null,
+        "palette_source": null
+      },
+      "genesis_realization": {
+        "palette_line": null,
+        "route_kind": null,
+        "dynamic_behavior": null,
+        "shared_line_ownership": null
+      },
+      "decision_basis": "No contextual arcade palette provenance or Genesis realization has been proven for this enemy.",
+      "known_defects": [],
+      "consumers_to_inspect": [
+        "Native four-armed-enemy semantic producer once identified",
+        "apps/rastan-direct/src/palette_route.s",
+        "apps/rastan-direct/src/vdp_comm.s palette and SAT commit consumers"
+      ],
+      "evidence": [
+        "OPEN_ISSUES.md",
+        "docs/design/Andy_build0280_sword_club_piece_rendering_fix.md"
+      ]
+    }
+  ]
+}

@@ -45,7 +45,23 @@
       "0x287C",
       "0x2A7C",
       "0x2C7C",
-      "0x2E7C"
+      "0x2E7C",
+      "0x217C",
+      "0x237C",
+      "0x257C",
+      "0x277C",
+      "0x297C",
+      "0x2B7C",
+      "0x2D7C",
+      "0x2F7C",
+      "0x0CA8",
+      "0x0CA9",
+      "0x0CAA",
+      "0x0CAB",
+      "0x0CAC",
+      "0x0CAD",
+      "0x0CAE",
+      "0x0CAF"
     ]
   },
   "wram_immediate_relocation": {
@@ -186,7 +202,14 @@
     "genesistan_pc090oj_ctrl_set_1",
     "genesistan_pc090oj_ctrl_set_0",
     "genesistan_pc090oj_sprite_ctrl_write_d0",
-    "genesistan_pc090oj_sprite_ctrl_clear"
+    "genesistan_pc090oj_sprite_ctrl_clear",
+    "native_player_frame_begin",
+    "native_player_front_begin",
+    "native_player_body_begin",
+    "native_player_piece",
+    "native_player_body_anchor_piece",
+    "native_player_body_anchor_blank",
+    "native_player_body_anchor_clear"
   ],
   "copied_ranges": [
     {
@@ -194,6 +217,380 @@
       "kind": "original_code",
       "start": "0x000000",
       "end_exclusive": "0x060000"
+    }
+  ],
+  "shift_replacements": [
+    {
+      "arcade_pc": "0x05105A",
+      "original_bytes": "3B7C00FF12FC",
+      "replacement_bytes": "3B7C00FF12FC4EB9{symbol:native_player_frame_begin}",
+      "note": "Native player lifecycle: preserve the once-per-frame semantic write, then reset PLAYER_FRONT/BODY immediately before the 0x51060 FRONT producer."
+    },
+    {
+      "arcade_pc": "0x051E00",
+      "original_bytes": "227C0010D1B2548931510004588931510002317C00000006",
+      "replacement_bytes": "43ED129A3169000200043151000242680006",
+      "note": "Player auxiliary semantic records take their prior-frame anchor from a5 state instead of reading retired Block-A tuple 0."
+    },
+    {
+      "arcade_pc": "0x0540CC",
+      "original_bytes": "302D10E8",
+      "replacement_bytes": "48E71A00302D10E8",
+      "note": "Preserve D3/D4/D6 across BODY: native register realization uses them, while the original BODY producer does not modify them."
+    },
+    {
+      "arcade_pc": "0x0542E8",
+      "original_bytes": "227C0010D1D2343C001832FC0000534266F8227C0010D1F2343C001832FC0000534266F8227C0010D1B2343C001032FC0000534266F86004",
+      "replacement_bytes": "4EB9{symbol:native_player_body_anchor_clear}74004CDF00584E75",
+      "note": "BODY inactive-state path clears the retained semantic anchor, preserves the original clear-loop result D2=0, restores the original D3/D4/D6 contract, and returns without rebuilding Block A."
+    },
+    {
+      "arcade_pc": "0x054324",
+      "original_bytes": "4E75",
+      "replacement_bytes": "4CDF00584E75",
+      "note": "Restore the original BODY caller-visible D3/D4/D6 values at the common producer exit."
+    },
+    {
+      "arcade_pc": "0x054492",
+      "original_bytes": "227C0010D1D2",
+      "replacement_bytes": "4EB9{symbol:native_player_body_begin}",
+      "note": "BODY segment selects the final native PLAYER_BODY lane instead of a PC090OJ tuple destination."
+    },
+    {
+      "arcade_pc": "0x0544D0",
+      "original_bytes": "32FC0003",
+      "replacement_bytes": "60000060",
+      "note": "Blank BODY piece appends no native entry."
+    },
+    {
+      "arcade_pc": "0x0544F2",
+      "original_bytes": "32C0",
+      "replacement_bytes": "3200",
+      "note": "BODY piece word0 remains semantic register state, not a tuple write."
+    },
+    {
+      "arcade_pc": "0x054504",
+      "original_bytes": "32C0",
+      "replacement_bytes": "3C00",
+      "note": "BODY piece Y remains semantic register state."
+    },
+    {
+      "arcade_pc": "0x054508",
+      "original_bytes": "32E80000",
+      "replacement_bytes": "36280000",
+      "note": "BODY piece code remains semantic register state."
+    },
+    {
+      "arcade_pc": "0x05452C",
+      "original_bytes": "32C0",
+      "replacement_bytes": "38004EB9{symbol:native_player_piece}",
+      "note": "BODY piece X completes the semantic tuple and appends one final native lane entry."
+    },
+    {
+      "arcade_pc": "0x054576",
+      "original_bytes": "343C0004227C0010D1B232FC000332FC000032FC000032FC0000534266EC600000C0",
+      "replacement_bytes": "4EB9{symbol:native_player_body_anchor_clear}4E75",
+      "note": "BODY all-blank state clears the semantic anchor, emits no native entries, and retires the tuple clear loop."
+    },
+    {
+      "arcade_pc": "0x0545BA",
+      "original_bytes": "227C0010D1B2",
+      "replacement_bytes": "4EB9{symbol:native_player_body_begin}",
+      "note": "BODY inline segment selects the native PLAYER_BODY lane."
+    },
+    {
+      "arcade_pc": "0x0545CC",
+      "original_bytes": "32FC0003",
+      "replacement_bytes": "4EB9{symbol:native_player_body_anchor_blank}60000082",
+      "note": "Blank BODY inline piece appends no native entry; tuple 0 also clears the retained semantic anchor that the retired Block-A consumer would have read as zero."
+    },
+    {
+      "arcade_pc": "0x0545EE",
+      "original_bytes": "32C0",
+      "replacement_bytes": "3200",
+      "note": "BODY inline word0 register realization."
+    },
+    {
+      "arcade_pc": "0x054600",
+      "original_bytes": "32C0",
+      "replacement_bytes": "3C00",
+      "note": "BODY inline Y register realization."
+    },
+    {
+      "arcade_pc": "0x054628",
+      "original_bytes": "32C0",
+      "replacement_bytes": "3600",
+      "note": "BODY state-adjusted code register realization."
+    },
+    {
+      "arcade_pc": "0x05464A",
+      "original_bytes": "32C0",
+      "replacement_bytes": "38004EB9{symbol:native_player_body_anchor_piece}",
+      "note": "BODY tuple-0 segment X completes one final native lane entry and publishes its semantic anchor on the first piece."
+    },
+    {
+      "arcade_pc": "0x0546A8",
+      "original_bytes": "227C0010D1F2",
+      "replacement_bytes": "4EB9{symbol:native_player_body_begin}",
+      "note": "BODY secondary segment selects the native PLAYER_BODY lane."
+    },
+    {
+      "arcade_pc": "0x0546E6",
+      "original_bytes": "32FC0003",
+      "replacement_bytes": "60000060",
+      "note": "Blank BODY secondary piece appends no native entry."
+    },
+    {
+      "arcade_pc": "0x054708",
+      "original_bytes": "32C0",
+      "replacement_bytes": "3200",
+      "note": "BODY secondary word0 register realization."
+    },
+    {
+      "arcade_pc": "0x05471A",
+      "original_bytes": "32C0",
+      "replacement_bytes": "3C00",
+      "note": "BODY secondary Y register realization."
+    },
+    {
+      "arcade_pc": "0x05471E",
+      "original_bytes": "32E80000",
+      "replacement_bytes": "36280000",
+      "note": "BODY secondary code register realization."
+    },
+    {
+      "arcade_pc": "0x054742",
+      "original_bytes": "32C0",
+      "replacement_bytes": "38004EB9{symbol:native_player_piece}",
+      "note": "BODY secondary X completes and emits one final native lane entry."
+    },
+    {
+      "arcade_pc": "0x05475A",
+      "original_bytes": "227C0010D212",
+      "replacement_bytes": "4EB9{symbol:native_player_body_begin}",
+      "note": "The live three-piece player auxiliary segment selects PLAYER_BODY instead of the Block-A tail destination."
+    },
+    {
+      "arcade_pc": "0x05476C",
+      "original_bytes": "6722",
+      "replacement_bytes": "67000022",
+      "note": "Auxiliary BODY blank decision branches to the native no-emit continuation after the variable-length register/emitter replacements. The word displacement is part of the semantic replacement so reflow cannot retarget it into a shortened output span."
+    },
+    {
+      "arcade_pc": "0x05476E",
+      "original_bytes": "337C00100000",
+      "replacement_bytes": "",
+      "note": "Retire the early player-auxiliary word0 store; D1 is reused by the retained animation-code calculation and the native attribute is set at the final emit boundary."
+    },
+    {
+      "arcade_pc": "0x054774",
+      "original_bytes": "336800040002",
+      "replacement_bytes": "3C280004",
+      "note": "Player auxiliary Y remains semantic register state."
+    },
+    {
+      "arcade_pc": "0x054784",
+      "original_bytes": "33410004",
+      "replacement_bytes": "3601323C0010",
+      "note": "Capture the completed auxiliary animation code in D3, then set the final native attribute word in D1 immediately before emission."
+    },
+    {
+      "arcade_pc": "0x054788",
+      "original_bytes": "336800020006",
+      "replacement_bytes": "382800024EB9{symbol:native_player_piece}",
+      "note": "Player auxiliary X completes and emits one final PLAYER_BODY entry."
+    },
+    {
+      "arcade_pc": "0x054790",
+      "original_bytes": "4241337C00100000334100023341000433410006",
+      "replacement_bytes": "60000002",
+      "note": "Blank player auxiliary pieces append no native entry."
+    },
+    {
+      "arcade_pc": "0x0547C0",
+      "original_bytes": "0C6D000112986612207C0010D1B254883B50129C58883B50129A",
+      "replacement_bytes": "60000002",
+      "note": "Retire the complete Block-A tuple-0 anchor-copy prologue while preserving this function entry and continuing into its unrelated state logic; the native tuple-0 producer now publishes a5+0x129A/0x129C directly."
+    },
+    {
+      "arcade_pc": "0x059F92",
+      "original_bytes": "0C6D00FF1388",
+      "replacement_bytes": "48E75A000C6D00FF1388",
+      "note": "Preserve D1/D3/D4/D6 across FRONT: native register realization uses them, while the original FRONT producer modifies only A0."
+    },
+    {
+      "arcade_pc": "0x059F9A",
+      "original_bytes": "207C0010C170",
+      "replacement_bytes": "4EB9{symbol:native_player_front_begin}",
+      "note": "FRONT weapon piece selects the final native PLAYER_FRONT lane."
+    },
+    {
+      "arcade_pc": "0x059FA0",
+      "original_bytes": "30FC0003",
+      "replacement_bytes": "323C0003",
+      "note": "FRONT weapon word0 register realization."
+    },
+    {
+      "arcade_pc": "0x059FA4",
+      "original_bytes": "30FC00E8",
+      "replacement_bytes": "3C3C00E8",
+      "note": "FRONT weapon Y register realization."
+    },
+    {
+      "arcade_pc": "0x059FB0",
+      "original_bytes": "30FC0A6A",
+      "replacement_bytes": "363C0A6A",
+      "note": "FRONT weapon type-0 code register realization."
+    },
+    {
+      "arcade_pc": "0x059FBC",
+      "original_bytes": "30FC0A6B",
+      "replacement_bytes": "363C0A6B",
+      "note": "FRONT weapon type-1 code register realization."
+    },
+    {
+      "arcade_pc": "0x059FC8",
+      "original_bytes": "30FC0A6C",
+      "replacement_bytes": "363C0A6C",
+      "note": "FRONT weapon type-2 code register realization."
+    },
+    {
+      "arcade_pc": "0x059FD2",
+      "original_bytes": "6604",
+      "replacement_bytes": "66000006",
+      "note": "FRONT weapon type selection branches to the expanded final X/emitter realization rather than into its inserted JSR operand."
+    },
+    {
+      "arcade_pc": "0x059FD4",
+      "original_bytes": "30FC0A6D",
+      "replacement_bytes": "363C0A6D",
+      "note": "FRONT weapon type-3 code register realization."
+    },
+    {
+      "arcade_pc": "0x059FD8",
+      "original_bytes": "30FC00A0",
+      "replacement_bytes": "383C00A04EB9{symbol:native_player_piece}",
+      "note": "FRONT weapon X completes and emits one final native lane entry."
+    },
+    {
+      "arcade_pc": "0x059FDE",
+      "original_bytes": "207C0010C170",
+      "replacement_bytes": "60000012",
+      "note": "Inactive FRONT weapon emits no native entry."
+    },
+    {
+      "arcade_pc": "0x059FFC",
+      "original_bytes": "207C0010C178",
+      "replacement_bytes": "4EB9{symbol:native_player_front_begin}",
+      "note": "FRONT overlay slot 1 selects the final native lane."
+    },
+    {
+      "arcade_pc": "0x05A002",
+      "original_bytes": "30FC0080",
+      "replacement_bytes": "323C0080",
+      "note": "FRONT overlay slot 1 word0 register realization."
+    },
+    {
+      "arcade_pc": "0x05A006",
+      "original_bytes": "30FC00E8",
+      "replacement_bytes": "3C3C00E8",
+      "note": "FRONT overlay slot 1 Y register realization."
+    },
+    {
+      "arcade_pc": "0x05A00A",
+      "original_bytes": "30FC0A68",
+      "replacement_bytes": "363C0A68",
+      "note": "FRONT overlay slot 1 code register realization."
+    },
+    {
+      "arcade_pc": "0x05A00E",
+      "original_bytes": "30FC00B0",
+      "replacement_bytes": "383C00B04EB9{symbol:native_player_piece}",
+      "note": "FRONT overlay slot 1 X completes and emits one native entry."
+    },
+    {
+      "arcade_pc": "0x05A014",
+      "original_bytes": "207C0010C178",
+      "replacement_bytes": "60000012",
+      "note": "Inactive FRONT overlay slot 1 emits nothing."
+    },
+    {
+      "arcade_pc": "0x05A032",
+      "original_bytes": "207C0010C180",
+      "replacement_bytes": "4EB9{symbol:native_player_front_begin}",
+      "note": "FRONT overlay slot 2 selects the final native lane."
+    },
+    {
+      "arcade_pc": "0x05A038",
+      "original_bytes": "30FC0080",
+      "replacement_bytes": "323C0080",
+      "note": "FRONT overlay slot 2 word0 register realization."
+    },
+    {
+      "arcade_pc": "0x05A03C",
+      "original_bytes": "30FC00E8",
+      "replacement_bytes": "3C3C00E8",
+      "note": "FRONT overlay slot 2 Y register realization."
+    },
+    {
+      "arcade_pc": "0x05A040",
+      "original_bytes": "30FC0A66",
+      "replacement_bytes": "363C0A66",
+      "note": "FRONT overlay slot 2 code register realization."
+    },
+    {
+      "arcade_pc": "0x05A044",
+      "original_bytes": "30FC00C0",
+      "replacement_bytes": "383C00C04EB9{symbol:native_player_piece}",
+      "note": "FRONT overlay slot 2 X completes and emits one native entry."
+    },
+    {
+      "arcade_pc": "0x05A04A",
+      "original_bytes": "207C0010C180",
+      "replacement_bytes": "60000012",
+      "note": "Inactive FRONT overlay slot 2 emits nothing."
+    },
+    {
+      "arcade_pc": "0x05A068",
+      "original_bytes": "207C0010C188",
+      "replacement_bytes": "4EB9{symbol:native_player_front_begin}",
+      "note": "FRONT overlay slot 3 selects the final native lane."
+    },
+    {
+      "arcade_pc": "0x05A06E",
+      "original_bytes": "30FC0080",
+      "replacement_bytes": "323C0080",
+      "note": "FRONT overlay slot 3 word0 register realization."
+    },
+    {
+      "arcade_pc": "0x05A072",
+      "original_bytes": "30FC00E8",
+      "replacement_bytes": "3C3C00E8",
+      "note": "FRONT overlay slot 3 Y register realization."
+    },
+    {
+      "arcade_pc": "0x05A076",
+      "original_bytes": "30FC0A64",
+      "replacement_bytes": "363C0A64",
+      "note": "FRONT overlay slot 3 code register realization."
+    },
+    {
+      "arcade_pc": "0x05A07A",
+      "original_bytes": "30FC00D0",
+      "replacement_bytes": "383C00D04EB9{symbol:native_player_piece}",
+      "note": "FRONT overlay slot 3 X completes and emits one native entry."
+    },
+    {
+      "arcade_pc": "0x05A080",
+      "original_bytes": "207C0010C188",
+      "replacement_bytes": "60000012",
+      "note": "Inactive FRONT overlay slot 3 emits nothing."
+    },
+    {
+      "arcade_pc": "0x05A096",
+      "original_bytes": "4E75",
+      "replacement_bytes": "4CDF005A4E75",
+      "note": "Restore the original FRONT caller-visible D1/D3/D4/D6 values at its sole exit."
     }
   ],
   "opcode_replace": [
@@ -864,36 +1261,6 @@
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x54052 (helper genesistan_pc090oj_hook_slot_init_54052). Intercepts 2 ledger callers (0x0501F4, 0x051260). Helper preserves the original function's Taito C-chip text-RAM clears at 0x10D1B2/0x10D1D2/0x10D1F2 (replicated verbatim) and emits sprite-slot init to SAT slots 72..75. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
-      "arcade_pc": "0x054492",
-      "original_bytes": "227C0010D1D2",
-      "replacement_bytes": "227C00FF11D2",
-      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay source-population base for A5+0x11D2 (arcade 0x0010D1D2 -> Genesis-WRAM 0x00FF11D2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
-    },
-    {
-      "arcade_pc": "0x05457A",
-      "original_bytes": "227C0010D1B2",
-      "replacement_bytes": "227C00FF11B2",
-      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay fallback/clear population base for A5+0x11B2 (arcade 0x0010D1B2 -> Genesis-WRAM 0x00FF11B2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
-    },
-    {
-      "arcade_pc": "0x0545BA",
-      "original_bytes": "227C0010D1B2",
-      "replacement_bytes": "227C00FF11B2",
-      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay player-source population base for A5+0x11B2 (arcade 0x0010D1B2 -> Genesis-WRAM 0x00FF11B2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
-    },
-    {
-      "arcade_pc": "0x0546A8",
-      "original_bytes": "227C0010D1F2",
-      "replacement_bytes": "227C00FF11F2",
-      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay player-source population base for A5+0x11F2 (arcade 0x0010D1F2 -> Genesis-WRAM 0x00FF11F2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
-    },
-    {
-      "arcade_pc": "0x05475A",
-      "original_bytes": "227C0010D212",
-      "replacement_bytes": "227C00FF1212",
-      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay player-source population base for A5+0x1212 (arcade 0x0010D212 -> Genesis-WRAM 0x00FF1212). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
-    },
-    {
       "arcade_pc": "0x054810",
       "original_bytes": "227C00D00000207C0005DC5EC0FC001841F00000343C00043028000432C0102800034880D06D129C5240024001FF32C0301032E80000102800024880D06D129A024001FF3E00300732C0D0FC0006534266C64E75",
       "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_sprite_update_54810}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
@@ -1522,6 +1889,12 @@
       "original_bytes": "0CAD0005B5161332",
       "replacement_bytes": "0CAD0005B7161332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "arcade_pc": "0x03B8B0",
+      "original_bytes": "41FA009E",
+      "replacement_bytes": "4E754E71",
+      "note": "Build 0273: RETIRE the frontend HUD PC090OJ builder 0x3B8B0 at the arcade-code boundary. Its sole caller is 0x3B06A. The routine is pure PC090OJ construction: it copies the fixed ROM templates 0x3B950/0x3B9B0/0x3B9D4 into object-RAM records 4..45 via the generic 0x3B930 copier and overlays digits via inert 0x3B802. All of records 4..45 are now produced natively by native_frontend_hud_emit (labels 4..16/18..20/34..36/43..45 via .Lnq_title_labels; score/HS/credit digits live). Replacing the entry insn `lea %pc@(0x3B950),%a0` (41FA009E) with `rts;nop` (4E754E71) makes the builder build nothing; caller returns normally. Generic 0x3B930 is preserved untouched (now uncalled). Byte-neutral 4->4."
     }
   ],
   "rom_opcode_replace": [],
@@ -1558,6 +1931,7 @@
     }
   ],
   "expectations": {
-    "opcode_replace_count": 221
+    "opcode_replace_count": 217,
+    "genesis_only_maincpu_ref_count": 5
   }
 }

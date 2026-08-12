@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import re
+import struct
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -48,7 +49,7 @@ FAIL_STATE_CORRUPTED = "GATE_FAIL_STATE_CORRUPTED"
 # hardware destinations to pc090oj_object_ram + the same record offsets.
 # Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
 # source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
-CANONICAL_OPCODE_REPLACE_COUNT = 221
+CANONICAL_OPCODE_REPLACE_COUNT = 217
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -112,7 +113,22 @@ CANONICAL_OPCODE_REPLACE_COUNT = 221
 # opcode_replace site count stable.
 # Build 0253 removes only the statically unreachable legacy tall BG/FG projector
 # bodies. Mechanical coverage delta: -0xFC (0x184C9C -> 0x184BA0).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184AC0
+# Build 0274 native PLAYER_BODY tuple-zero blank handling: +0x10 helper bytes.
+# Build 0275 restores the original FRONT/BODY register contracts at their
+# producer boundaries. The +0x14 reflow bytes cover existing copied source
+# semantics, so canonical source/helper coverage remains unchanged.
+# Build 0278 preserves the original BODY mode-7 clear-tail result D2=0. This
+# grows emitted Genesis code by two bytes without changing covered semantics.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1848E0
+
+# Build 0277: arcade_pc 0x051DF8 is a BRA.S to the semantic entry at
+# arcade_pc 0x051E00.  The target is also the start of a shrinking shift
+# replacement, so its own delta must not be included when relocating the
+# branch target.  A zero displacement changes 68000 decoding to BRA.W and
+# consumes the following opcode as its extension word.
+PLAYER_AUX_ENTRY_BRANCH_ARCADE_PC = 0x051DF8
+PLAYER_AUX_ENTRY_TARGET_ARCADE_PC = 0x051E00
+PLAYER_AUX_ENTRY_BRANCH_BYTES = bytes.fromhex("6006")
 
 SYMBOL_LINE_RE = re.compile(r"^([0-9A-Fa-f]+)\s+\S+\s+(\S+)$")
 LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:;.*)?$")
@@ -521,6 +537,7 @@ def determine_state_context(
 
 
 def check_postpatcher_invariant(
+    rom: bytes,
     manifest_path: Path,
     state_context: str,
 ) -> None:
@@ -544,6 +561,55 @@ def check_postpatcher_invariant(
     segments = address_map.get("segments")
     if not isinstance(segments, list):
         fail(FAIL_2_3, f"address_map segments missing/invalid in {address_map_path}")
+
+    def map_arcade_entry(arcade_pc: int) -> int:
+        for seg in segments:
+            if not isinstance(seg, dict):
+                continue
+            arcade_start = parse_hexish(seg.get("arcade_start", -1))
+            arcade_end = parse_hexish(seg.get("arcade_end_exclusive", -1))
+            if not (arcade_start <= arcade_pc < arcade_end):
+                continue
+            genesis_start = parse_hexish(seg.get("genesis_start", -1))
+            if arcade_pc == arcade_start:
+                return genesis_start
+            if str(seg.get("kind", "")) == "arcade_copy":
+                return genesis_start + (arcade_pc - arcade_start)
+            fail(
+                FAIL_2_3,
+                "Canonical branch invariant address falls inside a non-copy patched segment.",
+                f"arcade_pc=0x{arcade_pc:06X}",
+                f"segment={seg}",
+            )
+        fail(
+            FAIL_2_3,
+            "Canonical branch invariant address is absent from address_map.json.",
+            f"arcade_pc=0x{arcade_pc:06X}",
+        )
+        return -1
+
+    branch_pc = map_arcade_entry(PLAYER_AUX_ENTRY_BRANCH_ARCADE_PC)
+    branch_target = map_arcade_entry(PLAYER_AUX_ENTRY_TARGET_ARCADE_PC)
+    observed_branch = rom[branch_pc : branch_pc + len(PLAYER_AUX_ENTRY_BRANCH_BYTES)]
+    if observed_branch != PLAYER_AUX_ENTRY_BRANCH_BYTES:
+        fail(
+            FAIL_2_3,
+            "Player auxiliary-entry branch relocation invariant failed.",
+            f"arcade_pc=0x{PLAYER_AUX_ENTRY_BRANCH_ARCADE_PC:06X}",
+            f"runtime_genesis_pc=0x{branch_pc:06X}",
+            f"expected={PLAYER_AUX_ENTRY_BRANCH_BYTES.hex()}",
+            f"observed={observed_branch.hex()}",
+        )
+    observed_disp = struct.unpack(">b", observed_branch[1:2])[0]
+    observed_target = branch_pc + 2 + observed_disp
+    if observed_target != branch_target:
+        fail(
+            FAIL_2_3,
+            "Player auxiliary-entry branch does not target the replacement entry.",
+            f"runtime_genesis_pc=0x{branch_pc:06X}",
+            f"observed_target=0x{observed_target:06X}",
+            f"expected_target=0x{branch_target:06X}",
+        )
 
     observed_count = 0
     for seg in segments:
@@ -900,6 +966,7 @@ def main() -> int:
     check_incbin_bytes(rom, symbols, incbins)  # §2.1
     check_helper(rom, symbols, args.helper_symbol, args.helper_canonical_sha)  # §2.2
     check_postpatcher_invariant(
+        rom,
         manifest_path,
         state_context=state_context,
     )  # §2.3

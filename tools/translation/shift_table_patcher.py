@@ -123,7 +123,7 @@ def fix_word_displacement_jump_tables(
             dst_entry_addr = new_table_addr + (i * 2)
             old_disp = struct.unpack_from(">h", maincpu_bytes, src_entry_addr)[0]
             old_target = table_addr + old_disp
-            new_target = new_offset(old_target, shifts)
+            new_target = new_target_offset(old_target, shifts)
             new_disp = new_target - new_table_addr
             if not -32768 <= new_disp <= 32767:
                 raise RuntimeError(
@@ -179,7 +179,7 @@ def fix_absolute_long_pointer_tables(
             old_target = struct.unpack_from(">I", maincpu_bytes, src_entry_addr)[0]
 
             if source_start <= old_target < source_end:
-                new_target = new_offset(old_target, shifts)
+                new_target = new_target_offset(old_target, shifts)
                 if new_target != old_target:
                     count += 1
             else:
@@ -241,6 +241,16 @@ def accumulated_shift_before(addr: int, shifts: list[tuple[int, int]]) -> int:
         else:
             break
     return accumulated
+
+
+def new_target_offset(addr: int, shifts: list[tuple[int, int]]) -> int:
+    """Return the relocated semantic entry address for a reference target.
+
+    A reference to the first byte of a replacement must land at the replacement
+    start, before that replacement's own size delta.  Instruction addresses
+    after the site still use new_offset(), which includes the delta.
+    """
+    return addr + accumulated_shift_before(addr, shifts)
 
 
 # ---------------------------------------------------------------------------
@@ -317,7 +327,7 @@ def fix_relative_branches(
             old_disp16 = struct.unpack_from(">h", result, new_addr + 2)[0]
             # Old target = old instruction PC + 2 + disp16
             old_target = orig_addr + 2 + old_disp16
-            new_target = new_offset(old_target, shifts)
+            new_target = new_target_offset(old_target, shifts)
             new_pc = new_addr
             new_disp16 = new_target - (new_pc + 2)
             if -32768 <= new_disp16 <= 32767:
@@ -332,7 +342,7 @@ def fix_relative_branches(
             # 8-bit displacement in second byte
             old_disp8 = struct.unpack(">b", bytes([disp_byte]))[0]
             old_target = orig_addr + 2 + old_disp8
-            new_target = new_offset(old_target, shifts)
+            new_target = new_target_offset(old_target, shifts)
             new_pc = new_addr
             new_disp8 = new_target - (new_pc + 2)
             if -128 <= new_disp8 <= 127:
@@ -358,6 +368,8 @@ def fix_relative_branches(
 #   4E F9  JMP   abs.l
 #   41 F9  LEA   abs.l, An
 #   20 7C  MOVEA.L #imm32, A0  (and A1..A7 variants)
+#   21 7C  MOVE.L #imm32, d16(A0)  (and A1..A7 variants)
+#   0C A8  CMPI.L #imm32, d16(A0)  (and A1..A7 variants)
 #
 # BSR.W (61 00) is handled by branch fixer above.
 ABS_LONG_REF_OPCODES = {
@@ -366,6 +378,8 @@ ABS_LONG_REF_OPCODES = {
     0x4879,  # PEA abs.l
     0x41F9, 0x43F9, 0x45F9, 0x47F9, 0x49F9, 0x4BF9, 0x4DF9, 0x4FF9,  # LEA abs.l,An
     0x207C, 0x227C, 0x247C, 0x267C, 0x287C, 0x2A7C, 0x2C7C, 0x2E7C,  # MOVEA.L #imm32,An
+    0x217C, 0x237C, 0x257C, 0x277C, 0x297C, 0x2B7C, 0x2D7C, 0x2F7C,  # MOVE.L #imm32,d16(An)
+    0x0CA8, 0x0CA9, 0x0CAA, 0x0CAB, 0x0CAC, 0x0CAD, 0x0CAE, 0x0CAF,  # CMPI.L #imm32,d16(An)
 }
 
 
@@ -397,7 +411,7 @@ def fix_absolute_longs(
         ref_addr = struct.unpack_from(">I", result, new_addr + 2)[0]
         # Only adjust if the target is within our source range (a code address)
         if source_start <= ref_addr < source_end:
-            new_ref = new_offset(ref_addr, shifts)
+            new_ref = new_target_offset(ref_addr, shifts)
             struct.pack_into(">I", result, new_addr + 2, new_ref)
             count += 1
 

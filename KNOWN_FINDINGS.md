@@ -1401,18 +1401,18 @@ Build 0206 traced and fixed that upstream reachability divergence at the collisi
 
 **Separate attract-demo observation.** After the crash fix, the user observed no scripted/demo character input. No evidence from Build 0254 links that behavior to the paired destination remap, and normal controller input is a different path. Treat missing attract-demo scripting as preexisting/separate until a dedicated provenance audit proves its owner; do not patch or attribute it to Build 0254 without that audit.
 
-## KF-076 — Frontend score/credit digit records are seeded by arcade ~0x5007C through the generic 3b930 table copier (KF-026 instance); retire at the native owner, not the call site
+## KF-076 — Frontend HUD PC090OJ records (4..45) are built by arcade 0x3B8B0 + 0x3B902 from fixed ROM templates via generic 0x3B930; retired at the arcade-code boundary in Build 0273
 
 - **Status:** ACTIVE
-- **Confidence:** CONFIRMED (Start-driven Genesis MAME write-taps + stack unwind on Build 0271; postpatch disasm of the copier)
+- **Confidence:** CONFIRMED (arcade disasm caller census + ROM template decode; runtime SAT byte-diff + object-record capture on Builds 0272/0273)
 - **Applicability:** DURABLE frontend-HUD producer provenance
 - **Rediscovery Hazard:** MEDIUM
-- **Addresses:** `pc090oj_object_ram = 0x00FF6F92` (record*8+4 = code word); generic record-write helper `runtime 0x072744` (`genesistan_palette_hook_3ba64 +0x1BE`: `lea 0xFF6F92; adda d2; move.w d0,(a2)`); block copier `runtime 0x072E50/0x072E60` (`genesistan_hook_3ad44_dispatch`); generic table copier `genesistan_pc090oj_hook_target_3b930` (arcade 0x3B930, also fills records 17–21 from 0x3B902); semantic caller for the score rows returns to arcade `~0x5007C` (the 0x50000 screen-setup/HUD family); native owner `native_frontend_hud_emit` (`runtime 0x000732F4`)
-- **Source Documents:** docs/design/Andy_build0272_native_frontend_hud_pass_retirement.md
-- **Related Findings:** KF-026 (helper-routed writes not statically attributable)
+- **Addresses:** `pc090oj_object_ram = 0x00FF6F92` (record*8: word0/Y/code/X). Main HUD builder **arcade 0x3B8B0** (sole caller **0x3B06A**): copies fixed ROM templates `0x3B950`(recs 4..27)/`0x3B9B0`(28..36)/`0x3B9D4`(37..45) via `bsr 0x3B930` + inert `0x3B802`. Credit builder **arcade 0x3B902** (recs 17..21 from table `0x3B984`): 8 callers `0x3A20E/0x3A264/0x3A640/0x3A6C4/0x3A820/0x3A8E0` + `0x3B8E8`(in 0x3B8B0) + `0x3B8F0`(in 0x3B8EE). Generic copier **0x3B930** (`genesistan_pc090oj_hook_target_3b930` runtime `0x072898`) — only callers are 0x3B8B0 and 0x3B902. Native owner `native_frontend_hud_emit` (`runtime 0x000732F4`); labels `.Lnq_title_labels`. relocation_delta = 0x200.
+- **Source Documents:** docs/design/Andy_build0273_arcade_hud_pc090oj_tail_retirement.md
+- **Related Findings:** KF-026
 - **Related Issues:** OPEN-024
-- **Last verified:** 2026-08-07 (Build 0272 trace)
+- **Last verified:** 2026-08-08 (Build 0273 SAT byte-diff + retirement capture)
 
-**Finding.** After 0x3B802 was retired to inert, the frontend player/high-score/credit records still carry a digit glyph (code 0x2A + BCD nibble) every frame. The write does not originate at a dedicated score routine: it is copied by the **generic** `3b930` table copier (which serves multiple destinations — records 17–21 from 0x3B902, and the score rows 22–42) on behalf of arcade code at ~0x5007C. Per KF-026 the write is not neutralisable at one static call site without breaking the copier's other users.
+**Finding.** The frontend HUD PC090OJ records (labels 4..16/18..20/34..36/43..45 and score/credit digit positions 17,21,22..45) are constructed by arcade **0x3B8B0** (and credit records 17..21 by **0x3B902**), copying **fixed ROM template tables** into object RAM via the generic **0x3B930** copier. The record VALUES are state-invariant (fixed ROM data). NOTE: an earlier Build-0272-era trace mis-attributed this to "~0x5007C" from a heuristic stack scan — that was a spurious stack word, NOT the producer; the authoritative producers are 0x3B8B0/0x3B902 (proven by arcade `bsr` caller census). `.Lnq_title_labels` holds exactly the object-RAM label records, and `.Lnq_emit_entry` applies the identical transform as the scan decoder `.Lpc090oj_decode_record`, so native output reproduces the former scan rendering byte-for-byte.
 
-**Use as prior.** Retire the frontend HUD digit representation at the **native owner boundary** (`native_frontend_hud_emit` clears its own digit records, **code-gated to 0x2A–0x33**), never by a record-number band and never by stubbing `3b930`. The code gate is essential: 0x5A098's status row reuses records 30–43 with codes 0x3E8+ and MUST render — a number-based skip of those records is forbidden and was removed in Build 0272.
+**Use as prior.** Retire this HUD family at the **arcade-code boundary**: opcode_replace `0x3B8B0`→`rts` and the `0x3B902` hook→`rts` (all consumers native). **Do NOT touch generic 0x3B930** (kept, becomes uncalled). This supersedes the Build-0272 write-then-clear workaround (deleted in 0273). 0x5A098's status row (recs 30..43, codes 0x3E8+) is a SEPARATE deep-gameplay family that still renders via the scan and must not be disturbed.

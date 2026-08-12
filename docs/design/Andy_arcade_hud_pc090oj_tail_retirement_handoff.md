@@ -1,3 +1,10 @@
+> **COMPLETED in Build 0273** (2026-08-08, after WSL restart restored MAME). The retirement was executed at the
+> arcade-code boundary (0x3B8B0 + 0x3B902 → rts; clear workaround deleted; 0x3B930 preserved) and validated
+> byte-for-byte on the reachable frontend states. See `Andy_build0273_arcade_hud_pc090oj_tail_retirement.md`.
+> One correction to §1 below: the producer is **0x3B8B0 / 0x3B902** (proven by arcade `bsr` caller census); the
+> "~0x5007C" address in the earlier trace was a spurious stack word. The §3 Y-convention hazard was **resolved** —
+> `.Lnq_title_labels` matches the object-RAM label records exactly (the raw-table byte decode was misaligned).
+
 # HANDOFF — Retire the Frontend HUD PC090OJ Tail at the Original Arcade-Code Boundary
 
 **Agent:** Andy · **Type:** analysis/handoff (NO ROM produced, NO build number consumed, NO source changed this

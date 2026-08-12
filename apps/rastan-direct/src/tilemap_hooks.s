@@ -139,8 +139,14 @@
     .equ VDP_DATA,                            0x00C00000
     .equ VDP_REG_AUTOINC,                     15
     .equ VRAM_PLANE_A_BASE,                   0x0000E000
-    .equ PLANE_A_PAN_UP_CONTINUATION,         0x00055998
-    .equ PLANE_A_PAN_DOWN_CONTINUATION,       0x0005590C
+    /* Continuations expressed by their durable ARCADE identity (+ the whole-maincpu
+     * relocation base).  The postpatch re-resolves these Genesis-only -> copied-maincpu
+     * JMP operands through the authoritative shift map, so shift-table reflow that moves
+     * arcade 0x05570C / 0x055798 cannot leave a stale hardcoded runtime target (the
+     * Build 0274 regression). */
+    .equ PLANE_A_ARCADE_RELOCATION_BASE,      0x00000200
+    .equ PLANE_A_PAN_UP_CONTINUATION,         (0x00055798 + PLANE_A_ARCADE_RELOCATION_BASE)
+    .equ PLANE_A_PAN_DOWN_CONTINUATION,       (0x0005570C + PLANE_A_ARCADE_RELOCATION_BASE)
 
 /* Convert a native gameplay Plane A descriptor word into Genesis nametable
  * attribute bits.  The arcade semantic bank is the full PC080SN color bank, not

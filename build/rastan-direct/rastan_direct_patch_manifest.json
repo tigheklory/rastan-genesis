@@ -12,15 +12,17 @@
       "end_exclusive": "0x060000",
       "size_bytes": 393216,
       "runtime_start": "0x000200",
-      "runtime_end_exclusive": "0x060200"
+      "runtime_end_exclusive": "0x0601D0"
     }
   ],
   "whole_maincpu_copy": {
     "source_start": "0x000000",
     "source_end_exclusive": "0x060000",
+    "shifted_source_start": "0x000000",
+    "shifted_source_end_exclusive": "0x05FFD0",
     "dest_start": "0x000200",
-    "dest_end_exclusive": "0x060200",
-    "size_bytes": 393216
+    "dest_end_exclusive": "0x0601D0",
+    "size_bytes": 393168
   },
   "execute_from_relocated_base": true,
   "keep_identity_overlays_for_bringup": false,
@@ -30,7 +32,7 @@
     "scan_ranges": "whole_maincpu_copy_window",
     "source_start": "0x000000",
     "source_end_exclusive": "0x060000",
-    "opcode_count": 19
+    "opcode_count": 35
   },
   "preserved_low_rom_bootstrap": {
     "start": "0x000000",
@@ -47,10 +49,10 @@
       "range": "whole_maincpu_copy_window",
       "kind": "absolute_rom_target_relocation",
       "source_start": "0x000000",
-      "source_end_exclusive": "0x060000",
+      "source_end_exclusive": "0x05FFD0",
       "relocation_delta": "0x000200",
-      "count": 610,
-      "unresolved_before_fix": 610
+      "count": 636,
+      "unresolved_before_fix": 636
     },
     {
       "kind": "absolute_long_pointer_table",
@@ -69,21 +71,21 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x059EC8",
-      "rom_table_address": "0x05A0C8",
+      "rom_table_address": "0x05A07E",
       "entry_count": 6,
       "fixes": 6
     },
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x059C9A",
-      "rom_table_address": "0x059E9A",
+      "rom_table_address": "0x059E50",
       "entry_count": 6,
       "fixes": 6
     },
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x059F1E",
-      "rom_table_address": "0x05A11E",
+      "rom_table_address": "0x05A0D4",
       "entry_count": 4,
       "fixes": 4
     },
@@ -94,6 +96,8 @@
       "original_bytes": "203c00050f6b",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "203c0005116b",
+      "replacement_bytes_template": "203c0005116b",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0159/OPEN-017: pass-sequence table base pointer relocation. `move.l #0x00050F6B, %d0` at arcade 0x0503CE loads the PC080SN pass-sequence table base into a DATA register; the postpatch shift-relocation only shifts abs.l control-transfer/LEA operands, so this data-register immediate was NOT relocated +0x200 (its sibling `movea.l #0x00050EE0, %a1` at 0x0503BC WAS, -> 0x000510E0). On Genesis the un-relocated pointer reads ROM[0x050F6B]=0x80 instead of the correct relocated ROM[0x05116B]=0x00 (arcade ROM[0x050F6B]=0x00), so a5@0x10C6 lands 0x200 too low and the desc-rebuild sets the tilemap PASS SELECTOR a5@0x10A8=0x0080 (FG) instead of 0x0000 (BG). Arcade always selects BG (a5@0x10A8==0) for the Stage 1 collision/tilemap pass. Fix relocates ONLY this data-register immediate 0x00050F6B -> 0x0005116B (byte-neutral, opcode 0x203C preserved; movel #imm,Dn is not in the shift-adjust set so the replacement is not re-shifted). No NOP, no destination patch, no forced value, no collision emission, no 0x10DE00 rebase. Same missed-data-register-literal class as Build 0158 (0x05102E)."
     },
     {
@@ -103,42 +107,52 @@
       "original_bytes": "207c0010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff1e00",
+      "replacement_bytes_template": "207c00ff1e00",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0168/OPEN-017: collision map reader rebase. Arcade collision lookups use work-RAM base 0x0010DE00; Genesis mapped work-RAM equivalent is 0x00FF1E00, now populated by the live FG_SRC staging collision side-effect. Byte-neutral MOVEA.L immediate rebase only; no death-handler bypass."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A2CE",
-      "rom_pc": "0x05A4CE",
+      "rom_pc": "0x05A49E",
       "original_bytes": "06800010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068000ff1e00",
+      "replacement_bytes_template": "068000ff1e00",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0168/OPEN-017: collision map VRAM-to-buffer converter rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral ADDI.L immediate rebase."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0559E4",
-      "rom_pc": "0x055BE4",
+      "rom_pc": "0x055B9A",
       "original_bytes": "06870010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068700ff1e00",
+      "replacement_bytes_template": "068700ff1e00",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0168/OPEN-017: preserved arcade collision producer address math for copied fallback path, rebased to mapped Genesis WRAM collision buffer 0x00FF1E00. Primary live production is recreated in genesistan_stage_fg_src_column."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055A5A",
-      "rom_pc": "0x055C5A",
+      "rom_pc": "0x055C10",
       "original_bytes": "06870010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068700ff1e00",
+      "replacement_bytes_template": "068700ff1e00",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0168/OPEN-017: preserved arcade collision producer address math for copied FG fallback path, rebased to mapped Genesis WRAM collision buffer 0x00FF1E00."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055A7A",
-      "rom_pc": "0x055C7A",
+      "rom_pc": "0x055C30",
       "original_bytes": "06870010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068700ff1e00",
+      "replacement_bytes_template": "068700ff1e00",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0168/OPEN-017: preserved arcade collision producer solid-above address math for copied FG fallback path, rebased to mapped Genesis WRAM collision buffer 0x00FF1E00."
     },
     {
@@ -148,15 +162,19 @@
       "original_bytes": "06800010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068000ff1e00",
+      "replacement_bytes_template": "068000ff1e00",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0168/OPEN-017: collision map VRAM-to-buffer converter rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral ADDI.L immediate rebase."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A336",
-      "rom_pc": "0x05A536",
+      "rom_pc": "0x05A506",
       "original_bytes": "04800010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "048000ff1e00",
+      "replacement_bytes_template": "048000ff1e00",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0168/OPEN-017: collision map buffer-to-VRAM converter rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral SUBI.L immediate rebase."
     },
     {
@@ -166,6 +184,8 @@
       "original_bytes": "b1fc0010fe00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "b1fc00ff3e00",
+      "replacement_bytes_template": "b1fc00ff3e00",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0206/OPEN-017: collision map forward upper-bound compare rebase from raw arcade work RAM 0x0010FE00 to mapped Genesis WRAM collision-buffer end 0x00FF3E00. Completes the Build 0168 0x0010DE00 base/lower-bound rebase for the lizard actor activation scan; byte-neutral CMPA.L immediate rebase only, no forced actor activation."
     },
     {
@@ -175,6 +195,8 @@
       "original_bytes": "b1fc0010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "b1fc00ff1e00",
+      "replacement_bytes_template": "b1fc00ff1e00",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0168/OPEN-017: collision map pointer compare rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral CMPA.L immediate rebase."
     },
     {
@@ -184,6 +206,8 @@
       "original_bytes": "b1fc0010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "b1fc00ff1e00",
+      "replacement_bytes_template": "b1fc00ff1e00",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0168/OPEN-017: collision map pointer compare rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral CMPA.L immediate rebase."
     },
     {
@@ -193,6 +217,8 @@
       "original_bytes": "427900350008",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
+      "replacement_bytes_template": "4e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0140SYT coin-counter clear in L5 handler; no Genesis equivalent."
     },
     {
@@ -202,6 +228,8 @@
       "original_bytes": "33c0003c0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
+      "replacement_bytes_template": "4e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0040IOC video-control write in L5 handler; no Genesis equivalent."
     },
     {
@@ -211,6 +239,8 @@
       "original_bytes": "0839000600390005",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000600ff61c6",
+      "replacement_bytes_template": "0839000600ff61c6",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Coin input bit 6 -> direct shadow byte symbol."
     },
     {
@@ -220,6 +250,8 @@
       "original_bytes": "0839000400390005",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000400ff61c6",
+      "replacement_bytes_template": "0839000400ff61c6",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Coin input bit 4 -> direct shadow byte symbol."
     },
     {
@@ -229,6 +261,8 @@
       "original_bytes": "0839000500390005",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000500ff61c6",
+      "replacement_bytes_template": "0839000500ff61c6",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Coin input bit 5 -> direct shadow byte symbol."
     },
     {
@@ -237,7 +271,9 @@
       "rom_pc": "0x03A3D8",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072dd4",
+      "replacement_bytes": "4eb900072cba",
+      "replacement_bytes_template": "4eb900072cba",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
@@ -247,6 +283,8 @@
       "original_bytes": "33fc003200c08a52",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000710de4e71",
+      "replacement_bytes_template": "4eb9000710de4e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "OPEN-018 Class A: route raw PC080SN FG immediate write at runtime 0x3A550 (HW_ADDRESS 0x00C08A52 code 0x0032, attr 0) through genesistan_hook_inline_fg_write_3a550 -> genesistan_hook_tilemap_fg_fill live LUT. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression."
     },
     {
@@ -256,6 +294,8 @@
       "original_bytes": "0c79004900c0883a6608303c009a610016ba",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "60104e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis)."
     },
     {
@@ -265,6 +305,8 @@
       "original_bytes": "103900390007",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103900ff61c7",
+      "replacement_bytes_template": "103900ff61c7",
+      "replacement_bytes_shift_adjusted": "",
       "note": "System input read -> direct shadow byte symbol."
     },
     {
@@ -274,6 +316,8 @@
       "original_bytes": "103900390001",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103900ff61c4",
+      "replacement_bytes_template": "103900ff61c4",
+      "replacement_bytes_shift_adjusted": "",
       "note": "TC0040IOC P1 read -> direct shadow byte symbol."
     },
     {
@@ -283,6 +327,8 @@
       "original_bytes": "123900390003",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "123900ff61c5",
+      "replacement_bytes_template": "123900ff61c5",
+      "replacement_bytes_shift_adjusted": "",
       "note": "TC0040IOC P2 read -> direct shadow byte symbol."
     },
     {
@@ -292,6 +338,8 @@
       "original_bytes": "0c39003000c09ea3660813fc002000c09ea3",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "60104e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Bypass PC080SN readback cmp/bne path (read from 0xC09EA3 invalid on Genesis)."
     },
     {
@@ -301,6 +349,8 @@
       "original_bytes": "027cf0ff",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "007c0600",
+      "replacement_bytes_template": "007c0600",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0216/OPEN-024: keep SR IPM >= 6 through the arcade VBlank final-RTE window. address_map.json maps arcade_pc 0x0003A07A to runtime_genesis_pc 0x0003A27A. Build 0215 native traces show repeated nested IRQ6 entry at runtime_genesis_pc 0x0003A27E after the arcade VBlank tail executes `andi #0xF0FF,SR`; during the hurry-up bat swarm the combined Genesis `_vblank_service` -> arcade VBlank chain overruns far enough for pending VINT to re-enter before the RTE can restore the stacked SR, producing repeated stack frames and later impossible control flow. This byte-neutral replacement changes only the pre-RTE mask operation to `ori #0x0600,SR`; the following RTE remains intact and restores the interrupted arcade SR normally. No bat suppression, no sprite/SAT forcing, no watchdog recovery, no gameplay-state seed."
     },
     {
@@ -310,6 +360,8 @@
       "original_bytes": "33fc274400c08e7a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000710f64e71",
+      "replacement_bytes_template": "4eb9000710f64e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "OPEN-018 Class A: route raw PC080SN FG immediate write at runtime 0x3A8FE (HW_ADDRESS 0x00C08E7A code 0x2744, attr 0) through genesistan_hook_inline_fg_write_3a8fe -> genesistan_hook_tilemap_fg_fill live LUT; helper preserves live D0 for following glyph renderer. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression."
     },
     {
@@ -319,6 +371,8 @@
       "original_bytes": "33fc274400c08e66",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000711124e71",
+      "replacement_bytes_template": "4eb9000711124e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "OPEN-018 Class A: route raw PC080SN FG immediate write at runtime 0x3A908 (HW_ADDRESS 0x00C08E66 code 0x2744, attr 0) through genesistan_hook_inline_fg_write_3a908 -> genesistan_hook_tilemap_fg_fill live LUT; helper preserves live D0 for following glyph renderer. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression."
     },
     {
@@ -328,6 +382,8 @@
       "original_bytes": "33c000c08c62",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb90007112e",
+      "replacement_bytes_template": "4eb90007112e",
+      "replacement_bytes_shift_adjusted": "",
       "note": "OPEN-018 Class A dynamic-FG: route raw PC080SN FG register write at runtime 0x3A92A (HW_ADDRESS 0x00C08C62, code word in live D0 from A5+0x0117|0x0030) through genesistan_hook_inline_fg_write_3a92a -> genesistan_hook_tilemap_fg_fill live LUT. Wrapper stages one cell at base 0x00C08C60, preserves registers, and restores MOVE.W-equivalent N/Z/V/C via tst.w d0. Adjacent 0x03D04C/0x03D24C remains unpatched pending separate arcade-route proof."
     },
     {
@@ -337,6 +393,8 @@
       "original_bytes": "33c100c08c66",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071162",
+      "replacement_bytes_template": "4eb900071162",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0156/OPEN-018 Class A dynamic-FG: sibling of the 0x03A72A/0xC08C62 route. Runtime 0x03D24C (arcade 0x03D04C) issues `move.w %d1, 0x00C08C66` where d1 = digit tile 0x30..0x39 (= 9 - d0 + 0x30) -- a raw PC080SN FG C-window store that strict-target emulators fault on (user report: BlastEm strict-freeze at write address C08C66 during gameplay). Now routed through genesistan_hook_inline_fg_write_3d04c -> genesistan_hook_tilemap_fg_fill live LUT (digit tiles 0x30..0x39 already LUT-mapped). Wrapper stages one FG cell at base 0x00C08C64 (code word at +2), preserves d0-d7/a0-a6, and reproduces the original MOVE.W N/Z/V/C via tst.w d1. Byte-neutral opcode_replace (6->6); no NOP, no hardcoded cell. Validation: no runtime raw write to 0xC08C66; the digit reaches staged_fg via the existing FG dirty/VBlank commit."
     },
     {
@@ -346,6 +404,8 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0158/OPEN-017/KF-036/KF-039: single-site raw work-RAM literal rebase. `move.w 0x0010C016, %d0` reads the Stage 1 command source from the ABSOLUTE arcade work-RAM literal 0x0010C016 (not an instruction-operand shape the postpatch relocation rewrites). On Genesis that literal is a ROM address holding 0x5553, so runtime 0x05122E loads garbage and the next store (0x05122E+6 = runtime 0x051234, `move.w %d0, a5@0x137A`) writes 0x5553 to a5+0x137A instead of the arcade's 0x00FF. The command value IS correctly present in mapped work RAM: Genesis 0x00FF0016 holds 0x00FF (matching arcade WRAM 0x10C016=0x00FF), written by 0x03A99A (arcade 0x03A79A) at command time. Classification A (correct value at 0x00FF0016, copied reader reads raw 0x10C016). Fix rebases ONLY this reader's absolute operand 0x0010C016 -> 0x00FF0016 via arcade base 0x0010C000 -> Genesis 0x00FF0000 (KF-039). Byte-neutral opcode_replace (6->6, opcode 0x3039 preserved); no NOP, no destination patch, no forced value, no seed, no fallback, no ROM-wide rebase. Validation: runtime 0x051234 now writes 0x00FF to 0x00FF137A; the 0x5553 command is gone; command tracks arcade through drop/landing."
     },
     {
@@ -355,6 +415,8 @@
       "original_bytes": "10390010c118",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103900ff0118",
+      "replacement_bytes_template": "103900ff0118",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0255 / OPEN-017 attract-demo selector-source rebase: retained FUN_00052b4a reads the stage byte from raw arcade WRAM literal 0x0010C118 when no explicit script selector is active. Rebase only that source operand to mapped Genesis WRAM A5+0x118 at 0x00FF0118. Byte-neutral MOVE.B absolute-long replacement (6->6); control flow, selector arithmetic, demo state, script data, normal input ownership, and per-frame output ordering are unchanged. Paired indivisibly with the 0x052C1C embedded script-pointer table relocation below."
     },
     {
@@ -364,6 +426,8 @@
       "original_bytes": "103900390001",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103900ff61c4",
+      "replacement_bytes_template": "103900ff61c4",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Secondary TC0040IOC P1 read -> direct shadow byte symbol."
     },
     {
@@ -373,6 +437,8 @@
       "original_bytes": "123900390003",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "123900ff61c5",
+      "replacement_bytes_template": "123900ff61c5",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Secondary TC0040IOC P2 read -> direct shadow byte symbol."
     },
     {
@@ -382,6 +448,8 @@
       "original_bytes": "0839000100390007",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000100ff61c7",
+      "replacement_bytes_template": "0839000100ff61c7",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Tilt bit test -> direct shadow system byte."
     },
     {
@@ -391,6 +459,8 @@
       "original_bytes": "103900390007",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103900ff61c7",
+      "replacement_bytes_template": "103900ff61c7",
+      "replacement_bytes_shift_adjusted": "",
       "note": "System input read -> direct shadow system byte."
     },
     {
@@ -400,6 +470,8 @@
       "original_bytes": "33fc274900c09172",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000711464e71",
+      "replacement_bytes_template": "4eb9000711464e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "OPEN-018 Class A: route raw story comma PC080SN FG immediate write at runtime 0x3ACEA (HW_ADDRESS 0x00C09172 code 0x2749, attr 0) through genesistan_hook_inline_fg_write_3acea -> genesistan_hook_tilemap_fg_fill live LUT. OPEN-018 padding: trailing 4E71 fills original 8-byte move.w #imm,abs.l after 6-byte jsr abs.l; byte-padding only, NOT suppression."
     },
     {
@@ -409,6 +481,8 @@
       "original_bytes": "0839000200390007",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000200ff61c7",
+      "replacement_bytes_template": "0839000200ff61c7",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Test button bit test -> direct shadow system byte."
     },
     {
@@ -418,6 +492,8 @@
       "original_bytes": "42b900c20000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "42b900ff40e0",
+      "replacement_bytes_template": "42b900ff40e0",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Redirect PC080SN yscroll clear write to Genesis staged BG Y scroll mirror."
     },
     {
@@ -427,6 +503,8 @@
       "original_bytes": "42b900c40000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "42b900ff40dc",
+      "replacement_bytes_template": "42b900ff40dc",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Redirect PC080SN xscroll clear write to Genesis staged BG X scroll mirror."
     },
     {
@@ -436,6 +514,8 @@
       "original_bytes": "0839000000390007",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000000ff61c7",
+      "replacement_bytes_template": "0839000000ff61c7",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Service/system bit test -> direct shadow byte symbol."
     },
     {
@@ -445,6 +525,8 @@
       "original_bytes": "0c39004300c09e87660a7003610016806100",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "60124e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "60124e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis)."
     },
     {
@@ -454,6 +536,8 @@
       "original_bytes": "0839000500390007",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000500ff61c7",
+      "replacement_bytes_template": "0839000500ff61c7",
+      "replacement_bytes_shift_adjusted": "",
       "note": "System input bit 5 test -> direct shadow system byte."
     },
     {
@@ -463,6 +547,8 @@
       "original_bytes": "0839000600390005",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000600ff61c6",
+      "replacement_bytes_template": "0839000600ff61c6",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Coin input bit 6 test -> direct shadow coin byte."
     },
     {
@@ -472,6 +558,8 @@
       "original_bytes": "0839000400390005",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000400ff61c6",
+      "replacement_bytes_template": "0839000400ff61c6",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Coin input bit 4 test -> direct shadow coin byte."
     },
     {
@@ -481,6 +569,8 @@
       "original_bytes": "0839000600390007",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000600ff61c7",
+      "replacement_bytes_template": "0839000600ff61c7",
+      "replacement_bytes_shift_adjusted": "",
       "note": "System input bit 6 test -> direct shadow system byte."
     },
     {
@@ -490,6 +580,8 @@
       "original_bytes": "0839000600390005",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000600ff61c6",
+      "replacement_bytes_template": "0839000600ff61c6",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Coin input bit 6 test -> direct shadow coin byte."
     },
     {
@@ -499,6 +591,8 @@
       "original_bytes": "0839000500390005",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0839000500ff61c6",
+      "replacement_bytes_template": "0839000500ff61c6",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Coin input bit 5 test -> direct shadow coin byte."
     },
     {
@@ -507,7 +601,9 @@
       "rom_pc": "0x03AF44",
       "original_bytes": "20c0534166fa4e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072df44e75",
+      "replacement_bytes": "4eb900072cda4e75",
+      "replacement_bytes_template": "4eb900072cda4e75",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ + tilemap polymorphic-utility dispatch at fn 0x3AD44 via v3.2 helper genesistan_hook_3ad44_dispatch. Intercepts 7 callers: 3 PC090OJ-targeting (0x03AD5C, 0x03AD6E, 0x03AD82; A0 \u2208 [0xD00000, 0xD00800)) routed to PC090OJ bulk-clear branch (LUT-mediated, slots 76..79 destination space); 4 tilemap-targeting (0x03AE70, 0x03AE80, 0x03AF38, 0x03AF48; A0 \u2208 [0xC00000, 0xC10000)) routed to tilemap-branch reusing genesistan_hook_tilemap_bg_fill semantics. A0 dispatch on entry; out-of-range A0 falls through to \u00a77.3 audit-guard halt-with-heartbeat. Replaces v3.1 PC090OJ-only helper genesistan_pc090oj_hook_init_clear_3ad44 (which broke pre-existing tilemap coverage). See Andy_pc090oj_implementation_spec.md \u00a72.2.A and \u00a78.6 entry #8."
     },
     {
@@ -517,6 +613,8 @@
       "original_bytes": "33fc000000c50000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
+      "replacement_bytes_template": "4e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
     },
     {
@@ -525,7 +623,9 @@
       "rom_pc": "0x03B006",
       "original_bytes": "33fc000100d01bfe",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072db04e71",
+      "replacement_bytes": "4eb900072c964e71",
+      "replacement_bytes_template": "4eb900072c964e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture PC090OJ control write #1 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan."
     },
     {
@@ -535,6 +635,8 @@
       "original_bytes": "33fc000100c50000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
+      "replacement_bytes_template": "4e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade-only absolute hardware write while preserving helper software mirror behavior."
     },
     {
@@ -543,7 +645,9 @@
       "rom_pc": "0x03B01E",
       "original_bytes": "33fc000000d01bfe",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072dc44e71",
+      "replacement_bytes": "4eb900072caa4e71",
+      "replacement_bytes_template": "4eb900072caa4e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture PC090OJ control write #0 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan."
     },
     {
@@ -552,7 +656,9 @@
       "rom_pc": "0x03B034",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072dd4",
+      "replacement_bytes": "4eb900072cba",
+      "replacement_bytes_template": "4eb900072cba",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
@@ -562,6 +668,8 @@
       "original_bytes": "33fc000000c50000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
+      "replacement_bytes_template": "4e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade PC080SN screen-flip write; no Genesis equivalent."
     },
     {
@@ -570,7 +678,9 @@
       "rom_pc": "0x03B08E",
       "original_bytes": "33fc000000d01bfe",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072dc44e71",
+      "replacement_bytes": "4eb900072caa4e71",
+      "replacement_bytes_template": "4eb900072caa4e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture PC090OJ control write #0 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan."
     },
     {
@@ -580,6 +690,8 @@
       "original_bytes": "427900350008",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
+      "replacement_bytes_template": "4e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0140SYT coin-counter clear in startup; no Genesis equivalent."
     },
     {
@@ -588,7 +700,9 @@
       "rom_pc": "0x03B09C",
       "original_bytes": "427900380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072de4",
+      "replacement_bytes": "4eb900072cca",
+      "replacement_bytes_template": "4eb900072cca",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register clear (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
@@ -598,6 +712,8 @@
       "original_bytes": "13fc0004003e0001",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
+      "replacement_bytes_template": "4e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0140SYT sound-CPU reset write; no Genesis equivalent."
     },
     {
@@ -607,6 +723,8 @@
       "original_bytes": "13fc0001003e0003",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
+      "replacement_bytes_template": "4e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0140SYT sound-CPU bank write; no Genesis equivalent."
     },
     {
@@ -616,6 +734,8 @@
       "original_bytes": "33c100200000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
+      "replacement_bytes_template": "4e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade RAM-probe write-back at 0x200000 (unmapped on Genesis)."
     },
     {
@@ -625,6 +745,8 @@
       "original_bytes": "13fc0004003e0001",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
+      "replacement_bytes_template": "4e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0140SYT sound-CPU reset write (second pass)."
     },
     {
@@ -634,6 +756,8 @@
       "original_bytes": "13fc0000003e0003",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
+      "replacement_bytes_template": "4e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0140SYT sound-CPU bank clear (second pass)."
     },
     {
@@ -643,6 +767,8 @@
       "original_bytes": "33c100200000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
+      "replacement_bytes_template": "4e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade RAM-probe write-back at 0x200000 (second pass)."
     },
     {
@@ -652,6 +778,8 @@
       "original_bytes": "41f90010c000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "41f900ff0000",
+      "replacement_bytes_template": "41f900ff0000",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Redirect arcade work-RAM base A0 from 0x10C000 (unmapped on Genesis) to Genesis WRAM 0xFF0000; matches A5 remap at 0x3AF04. Downstream zero-propagate loop at 0x3AEF6..0x3AF02 inherits."
     },
     {
@@ -661,6 +789,8 @@
       "original_bytes": "43f90010c002",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "43f900ff0002",
+      "replacement_bytes_template": "43f900ff0002",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Redirect arcade work-RAM propagate-destination A1 from 0x10C002 to Genesis WRAM 0xFF0002; matches A5 and A0 remaps. Loop ends at 0xFF3FFE, no BSS clobber."
     },
     {
@@ -670,6 +800,8 @@
       "original_bytes": "4bf90010c000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4bf900ff0000",
+      "replacement_bytes_template": "4bf900ff0000",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Redirect arcade A5 workram base from 0x10C000 (ROM on Genesis) to Genesis WRAM 0xFF0000."
     },
     {
@@ -679,6 +811,8 @@
       "original_bytes": "33c0003c0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
+      "replacement_bytes_template": "4e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0040IOC video-control write in startup (first)."
     },
     {
@@ -688,6 +822,8 @@
       "original_bytes": "33c0003c0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
+      "replacement_bytes_template": "4e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0040IOC video-control write in startup (second)."
     },
     {
@@ -696,7 +832,9 @@
       "rom_pc": "0x03B11E",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072dd4",
+      "replacement_bytes": "4eb900072cba",
+      "replacement_bytes_template": "4eb900072cba",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
@@ -706,6 +844,8 @@
       "original_bytes": "33c0003c0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
+      "replacement_bytes_template": "4e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0040IOC video-control write in startup (third)."
     },
     {
@@ -715,6 +855,8 @@
       "original_bytes": "6100fddc",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "6100fde4",
+      "replacement_bytes_template": "6100fde4",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route PC080SN BG per-line scroll-RAM clear from raw word-fill primitive 0x3AD3C to the staged/semantic dispatch at 0x3AD44; preserves A0/D0/D1 for genesistan_hook_pc080sn_bg_scroll_fill."
     },
     {
@@ -724,6 +866,8 @@
       "original_bytes": "6100fdcc",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "6100fdd4",
+      "replacement_bytes_template": "6100fdd4",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route PC080SN FG per-line scroll-RAM clear from raw word-fill primitive 0x3AD3C to the staged/semantic dispatch at 0x3AD44; preserves A0/D0/D1 for genesistan_hook_pc080sn_fg_scroll_fill."
     },
     {
@@ -733,6 +877,8 @@
       "original_bytes": "33c0003c0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
+      "replacement_bytes_template": "4e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Suppress arcade TC0040IOC video-control write in startup (fourth)."
     },
     {
@@ -742,6 +888,8 @@
       "original_bytes": "103900390009",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103c00fe4e71",
+      "replacement_bytes_template": "103c00fe4e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "DIP1 default constant (0xFE), preserving downstream NOT/store logic."
     },
     {
@@ -751,6 +899,8 @@
       "original_bytes": "10390039000b",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103c00ff4e71",
+      "replacement_bytes_template": "103c00ff4e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "DIP2 default constant (0xFF), preserving downstream NOT/store logic."
     },
     {
@@ -760,6 +910,8 @@
       "original_bytes": "42b900c20000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "42b900ff40e0",
+      "replacement_bytes_template": "42b900ff40e0",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Redirect title-path PC080SN yscroll clear write to Genesis staged BG Y scroll mirror."
     },
     {
@@ -769,6 +921,8 @@
       "original_bytes": "42b900c40000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "42b900ff40dc",
+      "replacement_bytes_template": "42b900ff40dc",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Redirect title-path PC080SN xscroll clear write to Genesis staged BG X scroll mirror."
     },
     {
@@ -778,6 +932,8 @@
       "original_bytes": "32000240007fe54841fa002ad0c02050225834184a016b0c10186716488032c232c060f4323c00201018670632c232c160f64e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000719a84e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb9000719a84e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route title glyph/string renderer at arcade_pc 0x03BB48 (runtime Genesis 0x03BD48) through Genesis FG staging hook; preserve descriptor loop semantics while preventing direct PC080SN FG C-window writes."
     },
     {
@@ -787,6 +943,8 @@
       "original_bytes": "3e3c0000c0fc000a41fa0090d0c0301022680002246800060c40ffff6700005208000000671212120241000f0041003032c732c1538a60101212e8090241000f0041003032c732c1534066d40c500006661c301022680002322900020c410030660c337c002000025889534066ea4e7512120241000f0c010007661a93fc0000000832c732fc004132c732fc004c32c732bc004c4e7570016086",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000718104e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb9000718104e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route number renderer at arcade_pc 0x03C2E2 through Genesis FG staging hook; intercept digit loop, leading-zero suppression, and ALL sentinel writes that otherwise target PC080SN FG tilemap hardware."
     },
     {
@@ -796,6 +954,8 @@
       "original_bytes": "3e3c000034000240",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000711824e75",
+      "replacement_bytes_template": "4eb9000711824e75",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route high-score FG producer at arcade_pc 0x03C3FE (runtime Genesis 0x03C5FE) through Genesis FG staging hook; preserve descriptor table at runtime 0x03C654 and prevent raw PC080SN FG C-window writes at runtime 0x03C62A/0x03C646/0x03C64A."
     },
     {
@@ -805,6 +965,8 @@
       "original_bytes": "2449d4fc005020680002102c000b48800c4000206610780a337c018000025089534466f4601ac0fc0005d0c078054242610000125b887805343cfff061000006224a4e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000712c04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb9000712c04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route text writer handler at arcade_pc 0x03C4D2 to Genesis FG staging hook and prevent direct C-window FG writes."
     },
     {
@@ -814,6 +976,8 @@
       "original_bytes": "20680002102c000b4880d0c042447604121048813001d06c0016d04433400006336c001a0002508906440010534366e4d2fc00304e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071a0e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900071a0e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route text-writer handler (script opcode 0xA0) to Genesis FG staging hook; prevent direct C-window writes."
     },
     {
@@ -823,6 +987,8 @@
       "original_bytes": "20680002102c000b4880c0fc0003d0c00c2c00060001673276034242610000624247424661000196d2fc000890fc00037603343cfff06100004842473c3cfff06100017ad2fc00184e75424742466100016cd2fc0008760342426100002490fc000342473c3cfff061000152d2fc00087603343cfff061000008d2fc00104e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071a5e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900071a5e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route text-writer handler (script opcode 0xC0) to Genesis FG staging hook; prevent direct C-window writes."
     },
     {
@@ -832,6 +998,8 @@
       "original_bytes": "20680002102c000b4880e548d0c00c2d0002011867120c6d0062013e65200c6d0064013e6502601642464247610000de508942463e3cfff0610000d2508976024242610000327602343cfff0610000280c2d0002011867120c6d0062013e65100c6d0064013e65026006d2fc00204e75d2fc00304e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071b4c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900071b4c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route text-writer handler (script opcode 0xB0) to Genesis FG staging hook; prevent direct C-window writes."
     },
     {
@@ -841,6 +1009,8 @@
       "original_bytes": "20680002102c000b4880c0fc0009d0c0323cffd0383c0010760661000012323cffd0424476036100000650894e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071c244e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900071c244e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route text-writer handler (script opcode 0x30) to Genesis FG staging hook; prevent direct C-window writes."
     },
     {
@@ -850,6 +1020,8 @@
       "original_bytes": "20680002102c000b4880c0fc0007d0c03c3cfff03e3cfff861cc50897601343cfff861000052760142426100004a7601343cfff0610000407604343cfff861000036d2fc00104e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071ca84e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900071ca84e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route text-writer handler (script opcode 0x90) to Genesis FG staging hook; prevent direct C-window writes."
     },
     {
@@ -859,6 +1031,8 @@
       "original_bytes": "20680002102c000b4880c0fc0006d0c0760242426100004a7602343cfff0610000407606343cfff8610000044e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071d604e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900071d604e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route text-writer handler (script opcode 0x20) to Genesis FG staging hook; prevent direct C-window writes."
     },
     {
@@ -868,6 +1042,8 @@
       "original_bytes": "20680002102c000b4880e548d0c04a2c00386600007a7605343cfff86100001059887605343cffe8610000044e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071dce4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900071dce4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route text-writer handler (script opcode 0x10) to Genesis FG staging hook; prevent direct C-window writes."
     },
     {
@@ -877,6 +1053,8 @@
       "original_bytes": "4240424508060000660000cc4a0767466100009e4a456600008e42470c030040660252470c0300806604004040006100006832c012184881d26c001a6100ff6832c16100007e1e184887de6c001632c7538266bc4e75610000584a456600004842470c03004066025247004040006100002832c012184881d26c001a32c1610000421e18488744479e780010de6c001632c7538266c04e75082c000600276704102c00274e75337c01800002508960a010181600020300f00c0000ff66027a014e75424010184a4767024440d06c001e32c042404e754a2c00036600ff344a076700ff2e6000ff70",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000715504e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb9000715504e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route dispatcher fall-through default-path writer at arcade_pc 0x03C950 to Genesis FG staging hook; intercepts A1@+ stride-2 writes and 0x0180 fast-fill escape."
     },
     {
@@ -885,7 +1063,9 @@
       "rom_pc": "0x03F128",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072dd4",
+      "replacement_bytes": "4eb900072cba",
+      "replacement_bytes_template": "4eb900072cba",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
@@ -894,7 +1074,9 @@
       "rom_pc": "0x03F148",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072dd4",
+      "replacement_bytes": "4eb900072cba",
+      "replacement_bytes_template": "4eb900072cba",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
@@ -903,7 +1085,9 @@
       "rom_pc": "0x03F18A",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072dd4",
+      "replacement_bytes": "4eb900072cba",
+      "replacement_bytes_template": "4eb900072cba",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
@@ -912,7 +1096,9 @@
       "rom_pc": "0x03F1AA",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072dd4",
+      "replacement_bytes": "4eb900072cba",
+      "replacement_bytes_template": "4eb900072cba",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
@@ -921,79 +1107,97 @@
       "rom_pc": "0x045506",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072dd4",
+      "replacement_bytes": "4eb900072cba",
+      "replacement_bytes_template": "4eb900072cba",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055704",
-      "rom_pc": "0x055904",
+      "rom_pc": "0x0558BA",
       "original_bytes": "322d10dad36d10ba",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000706fc4e71",
+      "replacement_bytes_template": "4ef9000706fc4e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0247 byte-neutral native Plane A no-publication vertical-scroll down route: replace the 8-byte 10BA += 10DA body at arcade_pc 0x055704 with JMP to genesistan_plane_a_pan_publish_entering_rows_down plus one NOP. The helper reproduces displaced 10BA bookkeeping, publishes crossed entering logical rows into final staged_fg_buffer words/fg_row_dirty without C08000/tall/projection/collision dependencies, then jumps back to runtime continuation 0x05590C for the original arcade 10B0 store."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055790",
-      "rom_pc": "0x055990",
+      "rom_pc": "0x055946",
       "original_bytes": "322d10da936d10ba",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000706a44e71",
+      "replacement_bytes_template": "4ef9000706a44e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0247 byte-neutral native Plane A no-publication vertical-scroll up route: replace the 8-byte 10BA -= 10DA body at arcade_pc 0x055790 with JMP to genesistan_plane_a_pan_publish_entering_rows_up plus one NOP. The helper reproduces displaced 10BA bookkeeping, publishes crossed entering logical rows into final staged_fg_buffer words/fg_row_dirty without C08000/tall/projection/collision dependencies, then jumps back to runtime continuation 0x055998 for the original arcade 10B0 store."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055968",
-      "rom_pc": "0x055B68",
+      "rom_pc": "0x055B1E",
       "original_bytes": "206d10a0323c0010227c0010d080267c0010d0402453610000322b4810a0588b5489534166ee",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef90007042a4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4ef90007042a4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0242 byte-neutral selector-0 Plane A native route: preserve the original BSR at arcade_pc 0x055950 and replace the 0x055968 strip-tail body with a same-length JMP to genesistan_hook_tilemap_plane_a_selector0_native, which RTSes to the BSR return at 0x055954. No copied-program bytes are inserted or removed."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055990",
-      "rom_pc": "0x055B90",
+      "rom_pc": "0x055B46",
       "original_bytes": "206d10a47210227c0010d080267c0010d04024536100006e588b5489534166f2",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb90007055c4e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb90007055c4e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0245 native selector-1/2 Plane A route: preserve the original BSR at arcade_pc 0x05595A and replace the 0x055990 selector-1/2 strip-tail body with a same-length JSR to genesistan_hook_tilemap_plane_a_selector12_native, which RTSes to the BSR return at 0x05595E. The helper retains the arcade semantic selector state (a5@0x10A8), strip index (a5@0x10CA), strip group (a5@0x10CC), descriptor pointer/word rebuild tables, and scroll-derived resident window, then replaces the complete PC080SN C-window/collision tail with direct Genesis final-format Plane A staging plus collision-map side-channel. No copied-program bytes are inserted or removed."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055AB4",
-      "rom_pc": "0x055CB4",
+      "rom_pc": "0x055C6A",
       "original_bytes": "33ed10ee00c2000033ed10ec00c4000033ed10b000c2000233ed10ae00c400024e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33ed10ee00ff40e033ed10ec00ff40dc33ed10b000ff40e233ed10ae00ff40de4e75",
+      "replacement_bytes_template": "33ed10ee00ff40e033ed10ec00ff40dc33ed10b000ff40e233ed10ae00ff40de4e75",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Rewrite PC080SN scroll register write function: redirect all four MOVE.W destinations from hardware (0xC20000/0xC40000/0xC20002/0xC40002) to Genesis staged scroll variables. Same opcodes, same A5-relative sources, same RTS. Fixes scroll for ALL callers including gameplay."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A4DE",
-      "rom_pc": "0x05A6DE",
+      "rom_pc": "0x05A6AE",
       "original_bytes": "3800244932c232d85340",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000711ec4e714e71",
+      "replacement_bytes_template": "4ef9000711ec4e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Route PC080SN BG block-copy engine through rastan-direct staging helper. Used by title/attract art block setup at arcade 0x05A38E (JSON segment 171 maps runtime 0x05A58E -> 0x05A6DE): preserves width/height/source/dest/attr contract and stages cells into staged_bg_buffer with bg_row_dirty."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0561B6",
-      "rom_pc": "0x0563B6",
+      "rom_pc": "0x05636C",
       "original_bytes": "323c1000203c00000020207c00c08000227c00c0000020c022c0534166f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071fd64e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900071fd64e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Replace PC080SN C-window fill loop with JSR to Genesis-side staged buffer clear hook. Hook fills staged_bg_buffer and staged_fg_buffer with LUT-translated blank tile and marks all rows dirty."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0563A6",
-      "rom_pc": "0x0565A6",
+      "rom_pc": "0x05655C",
       "original_bytes": "2449424010180c00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000721384e75",
+      "replacement_bytes_template": "4eb9000721384e75",
+      "replacement_bytes_shift_adjusted": "",
       "note": "OPEN-022/KF-032: route shared PC080SN text writer at runtime 0x0565A6 through destination-range dispatcher. Reuses arcade substitution routine 0x0565CE, forwards live attr unchanged, routes BG/FG C-window cells to staging, and fail-loud traps unexpected destinations."
     },
     {
@@ -1002,7 +1206,9 @@
       "rom_pc": "0x03BB02",
       "original_bytes": "43f900d000884a41660c41fa007672056100001c4e757005134100025089538066f64e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000728464e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007279a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb90007279a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at writer fn 0x3B902 (helper genesistan_pc090oj_hook_target_3b902). Intercepts 7 April-6 ledger callers (0x03A20E, 0x03A264, 0x03A640, 0x03A6C4, 0x03A820, 0x03B8E8, 0x03B8F0) plus 1 non-ledger caller (0x03A8E0). Helper emits SAT slots 0..4. See Andy_pc090oj_implementation_spec.md \u00a78.6 for full audit ledger."
     },
     {
@@ -1011,7 +1217,9 @@
       "rom_pc": "0x03BB26",
       "original_bytes": "43f900d00128700960ea",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000728804e754e71",
+      "replacement_bytes": "4eb90007279c4e754e71",
+      "replacement_bytes_template": "4eb90007279c4e754e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at writer fn 0x3B926 (helper genesistan_pc090oj_hook_target_3b926). Intercepts 2 April-6 ledger callers (0x03A9C6, 0x03A9D4). Original 0x3B926 falls through with bras into 0x3B902's loop body; helper subsumes that flow. Helper emits SAT slots 5..13. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
@@ -1019,8 +1227,10 @@
       "arcade_pc": "0x03B930",
       "rom_pc": "0x03BB30",
       "original_bytes": "424232c24240101832c04240101832c03e184eb90005b71232c7538166e44e75",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000728984e754e714e714e714e714e714e714e714e714e714e714e714e71",
+      "original_bytes_shift_adjusted": "424232c24240101832c04240101832c03e184eb90005b6e232c7538166e44e75",
+      "replacement_bytes": "4eb9000727b44e754e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb9000727b44e754e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A writer-helper body replacement at 0x3B930 (helper genesistan_pc090oj_hook_target_3b930). Reached from target 0x3B902 (already covered by entry #1 \u2014 body replacement makes that path inert) AND from non-target init function 0x3B8B0 at 3 BSR sites (0x3B8BC, 0x3B8D2, 0x3B8E2). Without this entry, init-time writes to 0xD00020/0xD000E0/0xD00128 would hit unmapped Genesis memory. Helper emits SAT slots 14..17. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
@@ -1029,7 +1239,9 @@
       "rom_pc": "0x041FAE",
       "original_bytes": "49ed050843f900d001c8426d02144a2c0000670000f4102c00011c2c00201e2c0002740d6100b280d9fc00000040526d02140c6d0002021466d449ed05c843f900d00300426d02144a2c0000670000ce102c00011c2c00201e2c000274046100b246d9fc00000040526d02140c6d0006021466d449ed02c8426d021443f900d004604a2c0000670000a84a2c0005670000a04a2c00036600d178102c00011c2c00201e2c0002740a0c6d00080214660274136100b1f2d9fc00000040526d02140c6d0009021466ba49ed074843f900d00170426d02144a2c000067724a2c0036666c102c00011c2c00201e2c000274016100b1b4d9fc00000040526d02140c6d000b021466d04e75303c0180740d334000025089534266f66000ff0e303c01807404334000025089534266f66000ff34303c0180740a0c6d0008021466027413334000025089534266f66000ff6a303c01807401334000025089534266f66094",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000728d84e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb9000727f44e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb9000727f44e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x41DAE (helper genesistan_pc090oj_hook_target_41dae). 352-byte span covering main-loop + 4 sub-loop fallbacks. Helper emits Block-A 18-sprite frame to SAT slots 0..17 + sub-loops. See Andy_pc090oj_implementation_spec.md \u00a78.6. Build 0192: the Genesis default helper wrongly copies the player block A5+0x11B2 -> records 0..17 (and A5+0x0170 -> 18..21), an exact duplicate of the canonical player that hook_target_41f5e stages to records 120..137/92..95; arcade 0x041DAE/0x045DFA do NOT copy A5+0x11B2 and arcade records 0..17 are empty at Stage 1. The hook body now GAMEPLAY-GATES (genesistan_current_scene_id==1) a SKIP of this spurious low copy; non-gameplay scenes keep the emit. Result: player SAT slots 18->6, total SAT 28->15, VINT rate 0.484->0.588; Rastan unchanged. Byte-neutral jsr replacement here is unchanged; the skip lives in the hook body (pc090oj_hooks.s). Follow-up: faithful arcade 0x041DAE/0x045DFA (records 57/96/140/46) deferred."
     },
     {
@@ -1038,7 +1250,9 @@
       "rom_pc": "0x04215E",
       "original_bytes": "41ed11b2701243f900d003c06100000e41ed0170700443f900d002e04a50670e32d832d832d832d8534066f04e75337c01800002508960f0",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000729024e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007281a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb90007281a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x41F5E (helper genesistan_pc090oj_hook_target_41f5e). Intercepts April-6 caller 0x03A854 and the target itself. Helper emits Block-B 4-sprite copy to SAT slots 18..21. See Andy_pc090oj_implementation_spec.md \u00a78.6. Build 0193 (Fable cycle pass): the helper's block-copy family (.Lpc090oj_family_apply_record) no longer syncs each record inline (decode+SAT under 15-reg movem, 22 records/frame = 6.5 ms in the arcade main-loop bucket) and no longer clears its candidate; it now takes an unchanged-tuple fast path (skip value-identical writes -- same invariant as the Build 0177 shadow compare) and for changed tuples sets the record candidate like every other producer, so the proven VBlank mark->process path syncs it exactly once before the same service's sprite commit. VRAM-visible SAT/tile output per service unchanged; 41f5e hook cost 6.54->1.76 ms, total VINT service 26.55->21.67 ms, rate 0.588->0.769 (~46 Hz)."
     },
     {
@@ -1047,16 +1261,20 @@
       "rom_pc": "0x045FFA",
       "original_bytes": "49ed05c843f900d00460426d02144a2c0000670000aa102c00011c2c00201e2c0002740a0c6d00030214650274144eb90003d254d9fc00000040526d02140c6d0006021466c849ed074843f900d00170426d02144a2c000067000082102c00011c2c00201e2c000274064eb90003d254d9fc00000040526d02140c6d0006021466d249ed08c843f900d00300426d02144a2c00006758102c00011c2c00201e2c000274044eb90003d254d9fc00000040526d02140c6d0005021466d44e75303c0180740a0c6d0003021465027414334000025089534266f66000ff5a303c01807406334000025089534266f66082303c01807404334000025089534266f660aa4e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb90007291c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb90007282c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb90007282c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x45DFA (helper genesistan_pc090oj_hook_target_45dfa). Intercepts April-6 caller 0x03A818 and the target itself. Helper re-emits the 22-sprite frame to SAT slots 0..21 (alternate emitter for game phases that re-issue). See Andy_pc090oj_implementation_spec.md \u00a78.6. Build 0192: the Genesis default helper wrongly copies the player block A5+0x11B2 -> records 0..17 (and A5+0x0170 -> 18..21), an exact duplicate of the canonical player that hook_target_41f5e stages to records 120..137/92..95; arcade 0x041DAE/0x045DFA do NOT copy A5+0x11B2 and arcade records 0..17 are empty at Stage 1. The hook body now GAMEPLAY-GATES (genesistan_current_scene_id==1) a SKIP of this spurious low copy; non-gameplay scenes keep the emit. Result: player SAT slots 18->6, total SAT 28->15, VINT rate 0.484->0.588; Rastan unchanged. Byte-neutral jsr replacement here is unchanged; the skip lives in the hook body (pc090oj_hooks.s). Follow-up: faithful arcade 0x041DAE/0x045DFA (records 57/96/140/46) deferred."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059F5E",
-      "rom_pc": "0x05A15E",
+      "rom_pc": "0x05A114",
       "original_bytes": "323c0008207c00d00048428020c020c0534166f8323c0004207c0010c17030fc008030fc000030fc000030fc0000534166ec4e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072d7e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900072c7e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900072c7e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x59F5E (helper genesistan_pc090oj_hook_target_59f5e). Intercepts April-6 caller 0x03A8E4 plus 3 non-ledger callers (0x051266, 0x0519A0, 0x055E18). Helper clears SAT slots 0..7 (the 0xD00048+ region). See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
@@ -1064,8 +1282,10 @@
       "arcade_pc": "0x03AD84",
       "rom_pc": "0x03AF84",
       "original_bytes": "720e41f900d00778203c000000082e3c000001604eb90005b7126100000a7203203c000000c8208021470004508806400010534166f04e75",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072ed84e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "original_bytes_shift_adjusted": "720e41f900d00778203c000000082e3c000001604eb90005b6e26100000a7203203c000000c8208021470004508806400010534166f04e75",
+      "replacement_bytes": "4eb900072dbe4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900072dbe4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x3AD84 (helper genesistan_pc090oj_hook_init_priority_3ad84). Intercepts 2 ledger callers via 0x3AD72 fall-through (0x03ABB6, 0x03AF28). Helper initializes 4 priority-frame slots at SAT range 76..79 (the 0xD00778 origin per Andy_d00778_write_path_analysis.md). See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
@@ -1074,7 +1294,9 @@
       "rom_pc": "0x03BA02",
       "original_bytes": "4285c0fc000a41fa0074d0c0424010100c000001660252451c280001226800022468000608000000671a12120241000f61000032134600030641002a33410004538a60181212e8090241000f61000016134600030641002a334100045189534066c24e754a45660c4a416608137c000100024e757a01422900024e75061000d001080010c11e061000d001500010c11e061000d000d80010c14201e800d000a80010c11701e400d000880010c103",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072f0e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900072df44e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900072df44e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x3B802 (helper genesistan_pc090oj_hook_score_digit_3b802). Intercepts 10 ledger score/HUD-digit callers (0x03A66A, 0x03A9C0, 0x03A9CE, 0x03A9DA, 0x03B7A2, 0x03B7B0, 0x03B7E0, 0x03B8C2, 0x03B8F6, 0x03B8FC). 174-byte span includes the function's PC-relative digit-attribute table at 0x3B87E..0x3B8AF (referenced only from inside the function). Helper emits HUD-digit sprites to SAT slots 22..29. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
@@ -1083,142 +1305,119 @@
       "rom_pc": "0x054252",
       "original_bytes": "227c0010d1d2343c000632fc000332fc000032fc000032fc0000534266ec343c0004227c0010d1b232fc000332fc000032fc000032fc0000534266ec227c0010d1f2343c000632fc000332fc000032fc000032fc0000534266ec227c00d00000343c000432fc000332fc000032fc000032fc0000534266ec4e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072f104e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900072df64e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900072df64e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x54052 (helper genesistan_pc090oj_hook_slot_init_54052). Intercepts 2 ledger callers (0x0501F4, 0x051260). Helper preserves the original function's Taito C-chip text-RAM clears at 0x10D1B2/0x10D1D2/0x10D1F2 (replicated verbatim) and emits sprite-slot init to SAT slots 72..75. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
       "kind": "opcode_replace",
-      "arcade_pc": "0x054492",
-      "rom_pc": "0x054692",
-      "original_bytes": "227c0010d1d2",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "227c00ff11d2",
-      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay source-population base for A5+0x11D2 (arcade 0x0010D1D2 -> Genesis-WRAM 0x00FF11D2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
-    },
-    {
-      "kind": "opcode_replace",
-      "arcade_pc": "0x05457A",
-      "rom_pc": "0x05477A",
-      "original_bytes": "227c0010d1b2",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "227c00ff11b2",
-      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay fallback/clear population base for A5+0x11B2 (arcade 0x0010D1B2 -> Genesis-WRAM 0x00FF11B2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
-    },
-    {
-      "kind": "opcode_replace",
-      "arcade_pc": "0x0545BA",
-      "rom_pc": "0x0547BA",
-      "original_bytes": "227c0010d1b2",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "227c00ff11b2",
-      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay player-source population base for A5+0x11B2 (arcade 0x0010D1B2 -> Genesis-WRAM 0x00FF11B2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
-    },
-    {
-      "kind": "opcode_replace",
-      "arcade_pc": "0x0546A8",
-      "rom_pc": "0x0548A8",
-      "original_bytes": "227c0010d1f2",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "227c00ff11f2",
-      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay player-source population base for A5+0x11F2 (arcade 0x0010D1F2 -> Genesis-WRAM 0x00FF11F2). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
-    },
-    {
-      "kind": "opcode_replace",
-      "arcade_pc": "0x05475A",
-      "rom_pc": "0x05495A",
-      "original_bytes": "227c0010d212",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "227c00ff1212",
-      "note": "Build 0165 / KF-044 targeted player-source writer rebase: active-gameplay player-source population base for A5+0x1212 (arcade 0x0010D212 -> Genesis-WRAM 0x00FF1212). Byte-neutral MOVEA.L immediate operand rebase only; leaves pre-spawn ROM-alias dependency sites 0x51E00/0x5288C/0x52A6C and systemic WRAM-immediate pass untouched."
-    },
-    {
-      "kind": "opcode_replace",
       "arcade_pc": "0x054810",
-      "rom_pc": "0x054A10",
+      "rom_pc": "0x0549C6",
       "original_bytes": "227c00d00000207c0005dc5ec0fc001841f00000343c00043028000432c0102800034880d06d129c5240024001ff32c0301032e80000102800024880d06d129a024001ff3e00300732c0d0fc0006534266c64e75",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900072fa04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "original_bytes_shift_adjusted": "227c00d00000207c0005dc2ec0fc001841f00000343c00043028000432c0102800034880d06d129c5240024001ff32c0301032e80000102800024880d06d129a024001ff3e00300732c0d0fc0006534266c64e75",
+      "replacement_bytes": "4eb900072e2c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900072e2c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x54810 (helper genesistan_pc090oj_hook_sprite_update_54810). Intercepts 2 ledger callers (0x0547EE, 0x054804). Helper emits 4-sprite-per-call update to SAT slots 44..55. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05607C",
-      "rom_pc": "0x05627C",
+      "rom_pc": "0x056232",
       "original_bytes": "302d1392024000030c400000664e426d10ae426d10b0322d10ee5341024101ff3b4110ee024100076604610000324eb900055cb4207c00d00170226d141cb3c8671a302800025340314000020c4000106606317c00000004508860e24e75",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000730024e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "original_bytes_shift_adjusted": "302d1392024000030c400000664e426d10ae426d10b0322d10ee5341024101ff3b4110ee024100076604610000324eb900055c6a207c00d00170226d141cb3c8671a302800025340314000020c4000106606317c00000004508860e24e75",
+      "replacement_bytes": "4eb900072e8e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900072e8e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x5607C (helper genesistan_pc090oj_hook_sprite_decay_5607c). Intercepts 1 ledger caller (0x055E92). Helper performs sprite-decay Y-decrement on SAT slots 56..63 (sprite-disappear when Y reaches 16). See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x056114",
-      "rom_pc": "0x056314",
+      "rom_pc": "0x0562CA",
       "original_bytes": "30100c40ffff670a32d832d832d832d860ee4e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000730764e754e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900072f024e754e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900072f024e754e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56114 (helper genesistan_pc090oj_hook_copy_56114). Intercepts 2 ledger callers (0x05604C, 0x056076). Helper copies 4 word-pairs from source descriptor list (terminated by 0xFFFF) into SAT slots 64..67. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x056440",
-      "rom_pc": "0x056640",
+      "rom_pc": "0x0565F6",
       "original_bytes": "227c00d00000d3fc00000170303c0009323c0008610000346100fd464e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000730b64e754e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900072f424e754e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900072f424e754e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. Helper zeroes SAT slots 68..71. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A098",
-      "rom_pc": "0x05A298",
+      "rom_pc": "0x05A268",
       "original_bytes": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a48ad2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000730d04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "original_bytes_shift_adjusted": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a45ad2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
+      "replacement_bytes": "4eb900072f5c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900072f5c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x5A098 (helper genesistan_pc090oj_hook_status_sprite_5a098). Intercepts 1 ledger caller (0x051054). 498-byte span includes the inline helper at 0x5A244..0x5A289 (called only from 0x5A210 inside the function). Helper emits 12-write-per-call status/UI sprite descriptors to SAT slots 30..43. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A51E",
-      "rom_pc": "0x05A71E",
+      "rom_pc": "0x05A6EE",
       "original_bytes": "207c00d00298",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff722a",
+      "replacement_bytes_template": "207c00ff722a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0254 / KF-032 targeted raw PC090OJ writer fix: Ghidra-resolved FUN_0005a502 constructs eight complete contiguous records 83..90. Redirect the first destination literal from HW_ADDRESS 0x00D00298 to the existing transitional pc090oj_object_ram + 0x298 while preserving every record word and (A0)+ store. The same routine's contiguous fourth-record reload at 0x05A554 is redirected by the paired entry below."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A554",
-      "rom_pc": "0x05A754",
+      "rom_pc": "0x05A724",
       "original_bytes": "207c00d002b0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff7242",
+      "replacement_bytes_template": "207c00ff7242",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0254 paired continuation of the FUN_0005a502 writer family: after records 83..85, A0 already equals offset 0x2B0; this redundant reload begins record 86 and must move with the 0x05A51E literal so records 86..90 do not fall back to raw HW_ADDRESS 0x00D002B0. No record data, flow, native gameplay lane, or SAT finalizer logic changes."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0510EA",
-      "rom_pc": "0x0512EA",
+      "rom_pc": "0x0512F0",
       "original_bytes": "33fc000200d00698",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb90007310c4e75",
+      "replacement_bytes": "4eb900072f984e75",
+      "replacement_bytes_template": "4eb900072f984e75",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ audit guard at arcade_pc 0x0510EA. FU1 trace (Cody_fu1_arcade_trace_510EA_510F4.md) showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #2,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP. Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0510F4",
-      "rom_pc": "0x0512F4",
+      "rom_pc": "0x0512FA",
       "original_bytes": "33fc000000d00698",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb90007310c4e75",
+      "replacement_bytes": "4eb900072f984e75",
+      "replacement_bytes_template": "4eb900072f984e75",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ audit guard at arcade_pc 0x0510F4. FU1 trace showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #0,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP (shared helper with entry #17). Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059AD4",
-      "rom_pc": "0x059CD4",
+      "rom_pc": "0x059C8A",
       "original_bytes": "c2fc0020d0c1eb484246227c00200000d2c032180c41ffff671e3401360102410f00ee49024200f0e54a0243000fe14be74bd641d64232830c46000f67065246548960ce4e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb90007242e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb90007242e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 55 palette translator function-body replacement at 0x59AD4 (helper genesistan_palette_hook_59ad4). Helper reproduces source-row and bank semantics, converts arcade raw colors to xBGR-555 then to Genesis CRAM, stages low banks 0..3, and sets palette_dirty."
     },
     {
@@ -1228,6 +1427,8 @@
       "original_bytes": "33fc03ff00200022",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000725344e71",
+      "replacement_bytes_template": "4eb9000725344e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0109 fall-through restore at 0x03AB00 (helper genesistan_palette_hook_03ab00). The helper reproduces the direct xBGR-555 literal write (#0x03FF to 0x200022) as a staged Genesis CRAM update for bank 1 entry 1; trailing 4E71 is approved byte-neutral NOP padding so execution falls through into the intact high-score tail at runtime 0x03AD08 (clear/init/render/timer-reload/master-advance). The original arcade move.w fell through; prior 4E75 wrongly terminated. NOT suppression."
     },
     {
@@ -1237,6 +1438,8 @@
       "original_bytes": "4eb90003a4d0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900072558",
+      "replacement_bytes_template": "4eb900072558",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 55 revised Option D bypass intercept at 0x045DB8. Single-instruction JSR target swap replaces jsr 0x3A2D0 with genesistan_palette_hook_45dae while preserving native counter/state mutations around the call."
     },
     {
@@ -1246,6 +1449,8 @@
       "original_bytes": "23fc00c080000010d0a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23fc00c0800000ff10a0",
+      "replacement_bytes_template": "23fc00c0800000ff10a0",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0505EC destination slot 0x0010D0A0 -> Genesis-WRAM 0x00FF10A0; preserve HW_ADDRESS literal #0x00C08000."
     },
     {
@@ -1255,6 +1460,8 @@
       "original_bytes": "23fc00c000000010d0f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23fc00c0000000ff10f8",
+      "replacement_bytes_template": "23fc00c0000000ff10f8",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0505F6 destination slot 0x0010D0F8 -> Genesis-WRAM 0x00FF10F8; preserve HW_ADDRESS literal #0x00C00000."
     },
     {
@@ -1264,6 +1471,8 @@
       "original_bytes": "23fc00c080000010d0a4",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23fc00c0800000ff10a4",
+      "replacement_bytes_template": "23fc00c0800000ff10a4",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050600 destination slot 0x0010D0A4 -> Genesis-WRAM 0x00FF10A4; preserve HW_ADDRESS literal #0x00C08000."
     },
     {
@@ -1273,6 +1482,8 @@
       "original_bytes": "23fc00c000000010d0f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23fc00c0000000ff10f8",
+      "replacement_bytes_template": "23fc00c0000000ff10f8",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x05060C destination slot 0x0010D0F8 -> Genesis-WRAM 0x00FF10F8; preserve HW_ADDRESS literal #0x00C00000."
     },
     {
@@ -1282,6 +1493,8 @@
       "original_bytes": "23fc00c080000010d0a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23fc00c0800000ff10a0",
+      "replacement_bytes_template": "23fc00c0800000ff10a0",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050616 destination slot 0x0010D0A0 -> Genesis-WRAM 0x00FF10A0; preserve HW_ADDRESS literal #0x00C08000."
     },
     {
@@ -1291,6 +1504,8 @@
       "original_bytes": "23c00010d0a4",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23c000ff10a4",
+      "replacement_bytes_template": "23c000ff10a4",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050626 destination slot 0x0010D0A4 -> Genesis-WRAM 0x00FF10A4."
     },
     {
@@ -1300,6 +1515,8 @@
       "original_bytes": "33fc00400010d0aa",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33fc004000ff10aa",
+      "replacement_bytes_template": "33fc004000ff10aa",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x05062C count slot 0x0010D0AA -> Genesis-WRAM 0x00FF10AA; preserve immediate #64."
     },
     {
@@ -1309,6 +1526,8 @@
       "original_bytes": "04b900003ffc0010d0a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "04b900003ffc00ff10a0",
+      "replacement_bytes_template": "04b900003ffc00ff10a0",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050644 slot 0x0010D0A0 -> Genesis-WRAM 0x00FF10A0; preserve immediate #16380."
     },
     {
@@ -1318,6 +1537,8 @@
       "original_bytes": "04b900003ffc0010d0f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "04b900003ffc00ff10f8",
+      "replacement_bytes_template": "04b900003ffc00ff10f8",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x05064E slot 0x0010D0F8 -> Genesis-WRAM 0x00FF10F8; preserve immediate #16380."
     },
     {
@@ -1327,6 +1548,8 @@
       "original_bytes": "04b900003ffc0010d0f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "04b900003ffc00ff10f8",
+      "replacement_bytes_template": "04b900003ffc00ff10f8",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050668 slot 0x0010D0F8 -> Genesis-WRAM 0x00FF10F8; preserve immediate #16380."
     },
     {
@@ -1336,6 +1559,8 @@
       "original_bytes": "53790010d0aa",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "537900ff10aa",
+      "replacement_bytes_template": "537900ff10aa",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050672 count slot 0x0010D0AA -> Genesis-WRAM 0x00FF10AA."
     },
     {
@@ -1345,42 +1570,52 @@
       "original_bytes": "0c7900000010d0aa",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0c79000000ff10aa",
+      "replacement_bytes_template": "0c79000000ff10aa",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x050678 count slot 0x0010D0AA -> Genesis-WRAM 0x00FF10AA; preserve compare immediate #0."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0512D2",
-      "rom_pc": "0x0514D2",
+      "rom_pc": "0x0514D8",
       "original_bytes": "3c390010d0da",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "3c3900ff10da",
+      "replacement_bytes_template": "3c3900ff10da",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0514D2 source slot 0x0010D0DA -> Genesis-WRAM 0x00FF10DA."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0512E8",
-      "rom_pc": "0x0514E8",
+      "rom_pc": "0x0514EE",
       "original_bytes": "3c390010d0da",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "3c3900ff10da",
+      "replacement_bytes_template": "3c3900ff10da",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0514E8 source slot 0x0010D0DA -> Genesis-WRAM 0x00FF10DA."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0512FE",
-      "rom_pc": "0x0514FE",
+      "rom_pc": "0x051504",
       "original_bytes": "3c390010d0d8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "3c3900ff10d8",
+      "replacement_bytes_template": "3c3900ff10d8",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0514FE source slot 0x0010D0D8 -> Genesis-WRAM 0x00FF10D8."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05131C",
-      "rom_pc": "0x05151C",
+      "rom_pc": "0x051522",
       "original_bytes": "3c390010d0d8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "3c3900ff10d8",
+      "replacement_bytes_template": "3c3900ff10d8",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x05151C source slot 0x0010D0D8 -> Genesis-WRAM 0x00FF10D8."
     },
     {
@@ -1390,105 +1625,129 @@
       "original_bytes": "42790010d0ea",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "427900ff10ea",
+      "replacement_bytes_template": "427900ff10ea",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor work-RAM rebase: runtime 0x0528E4 clear slot 0x0010D0EA -> Genesis-WRAM 0x00FF10EA."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0558C8",
-      "rom_pc": "0x055AC8",
+      "rom_pc": "0x055A7E",
       "original_bytes": "207c0010d000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff1000",
+      "replacement_bytes_template": "207c00ff1000",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor-table mutate base rebase: runtime 0x055AC8 #0x0010D000 -> Genesis-WRAM #0x00FF1000."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0558F8",
-      "rom_pc": "0x055AF8",
+      "rom_pc": "0x055AAE",
       "original_bytes": "33c00010d0a8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33c000ff10a8",
+      "replacement_bytes_template": "33c000ff10a8",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor-table output rebase: runtime 0x055AF8 0x0010D0A8 -> Genesis-WRAM 0x00FF10A8."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055904",
-      "rom_pc": "0x055B04",
+      "rom_pc": "0x055ABA",
       "original_bytes": "207c0010d000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000721f2",
+      "replacement_bytes_template": "4ef9000721f2",
+      "replacement_bytes_shift_adjusted": "",
       "note": "PC080SN descriptor source-pointer relocation hook: runtime 0x055B04 jumps to a JSON-segment-guarded rebuild helper; supersedes the Build 0116 literal read-base rebase at this same opcode_replace site."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05590A",
-      "rom_pc": "0x055B0A",
+      "rom_pc": "0x055AC0",
       "original_bytes": "227c0010d040",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "227c00ff1040",
+      "replacement_bytes_template": "227c00ff1040",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor-table rebuilt-pointer base rebase: runtime 0x055B0A #0x0010D040 -> Genesis-WRAM #0x00FF1040."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055910",
-      "rom_pc": "0x055B10",
+      "rom_pc": "0x055AC6",
       "original_bytes": "247c0010d080",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "247c00ff1080",
+      "replacement_bytes_template": "247c00ff1080",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor-table copied-word base rebase: runtime 0x055B10 #0x0010D080 -> Genesis-WRAM #0x00FF1080."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055940",
-      "rom_pc": "0x055B40",
+      "rom_pc": "0x055AF6",
       "original_bytes": "33c00010d0a8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33c000ff10a8",
+      "replacement_bytes_template": "33c000ff10a8",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor-table output rebase: runtime 0x055B40 0x0010D0A8 -> Genesis-WRAM 0x00FF10A8."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C14",
-      "rom_pc": "0x055E14",
+      "rom_pc": "0x055DCA",
       "original_bytes": "207c0010d0fc",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff10fc",
+      "replacement_bytes_template": "207c00ff10fc",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page same-page descriptor work-RAM rebase: runtime 0x055E14 #0x0010D0FC -> Genesis-WRAM #0x00FF10FC."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C2E",
-      "rom_pc": "0x055E2E",
+      "rom_pc": "0x055DE4",
       "original_bytes": "207c0010d0fc",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef900072254",
+      "replacement_bytes_template": "4ef900072254",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-028/OPEN-016 item-page strip populator pointer relocation hook: runtime 0x055E2E jumps to a JSON-segment-guarded helper that relocates the walker descriptor pointer and descriptor strip pointer before writing Genesis-WRAM 0x00FF1100/0x00FF1104; supersedes the Build 0116/0118 literal rebase at this same opcode_replace site."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C34",
-      "rom_pc": "0x055E34",
+      "rom_pc": "0x055DEA",
       "original_bytes": "227c0010d100",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "227c00ff1100",
+      "replacement_bytes_template": "227c00ff1100",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor cluster work-RAM rebase: runtime 0x055E34 populator output slot 0x0010D100 -> Genesis-WRAM 0x00FF1100."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C3A",
-      "rom_pc": "0x055E3A",
+      "rom_pc": "0x055DF0",
       "original_bytes": "247c0010d104",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "247c00ff1104",
+      "replacement_bytes_template": "247c00ff1104",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor cluster work-RAM rebase: runtime 0x055E3A populator output slot 0x0010D104 -> Genesis-WRAM 0x00FF1104."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C68",
-      "rom_pc": "0x055E68",
+      "rom_pc": "0x055E1E",
       "original_bytes": "267c0010d100",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "267c00ff1100",
+      "replacement_bytes_template": "267c00ff1100",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-036 item-page descriptor cluster work-RAM rebase: runtime 0x055E68 consumer pointer slot 0x0010D100 -> Genesis-WRAM 0x00FF1100."
     },
     {
@@ -1498,15 +1757,19 @@
       "original_bytes": "301b340002400f00ee483202024100f0e5490242000fea5a8041804230c0538366de4e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000725924e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb9000725924e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 55b active arcade palette writer replacement at 0x03BA64 (runtime 0x03BC64). Helper reproduces original pointer/count side effects, translates active writer output to Genesis staged palette for banks 0..3, skips high banks, and sets palette_dirty on staged writes."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C5E",
-      "rom_pc": "0x055E5E",
+      "rom_pc": "0x055E14",
       "original_bytes": "206d10f8227c0010d104",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000722ac4e714e71",
+      "replacement_bytes_template": "4ef9000722ac4e714e71",
+      "replacement_bytes_shift_adjusted": "",
       "note": "KF-032/OPEN-022 item-page BG strip producer route: runtime 0x055E5E jumps to genesistan_hook_itempage_strip_blit, which routes the 64-cell PC080SN BG column through genesistan_hook_tilemap_bg_fill instead of raw-writing C-window/HV-port aliases. This clean 10-byte entry supersedes the covered 0x055C62 literal-rebase site to avoid overlapping patched_site segments. Build 0154/OPEN-017/KF-041: this same general strip producer is the live Stage 1 outside BG producer. genesistan_hook_itempage_strip_blit now carries a producer-source scene-selection preamble: when its strip source pointer (PC080SN_ITEMPAGE_STRIP_PTR_SLOT 0xFF1100) is inside the relocated Stage 1 tile-column family [0xD31C,0xFB1C) (arcade 0xD11C..0xF91C + 0x200, walked from arcade descriptor table 0x3951C) and genesistan_current_scene_id != 1, it calls load_scene_tiles(1) through the existing scene lifecycle so the gameplay PC080SN patterns become resident. Keyed on the producer-owned source pointer, not the master state; item-page/other sources outside the range keep their scene. The gameplay tile set + global LUT + gameplay manifest are regenerated by tools/translation/precompute_pc080sn_tile_lut.py (collect_runtime_gameplay_sources) from this descriptor model, replacing the misclassified 0x5635E block model; all 854 runtime codes 0x04A6..0x07FB now map to nonzero LUT slots (was 1/834). The scene selector adds no new opcode_replace site (this entry is unchanged); the preamble lives inside the existing hook. Register/CCR: load_scene_tiles preserves d1-d7/a0-a4; the preamble clobbers only d0/a3 which the hook reloads immediately. Validation: Build 0154 Genesis MAME state 2/3/0 scene_id=1, scene_a0_lo=0x56A22, staged_bg nonuniform (277 distinct vs uniform 0x4000), Stage 1 outside renders (ROUND 1/READY); title/story/BEST 5/item page intact; deterministic across clean runs."
     },
     {
@@ -1516,6 +1779,8 @@
       "original_bytes": "1039003e0003",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0280fffffffe",
+      "replacement_bytes_template": "0280fffffffe",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0194: redirect the TC0140SYT master-status READ. Original arcade PC 0x03F0A4 / runtime Genesis PC 0x0003F2A4: `moveb 0x3E0003,%d0` reads the TC0140SYT sound busy/status register. Genesis has no TC0140SYT; 0x3E0003 is out-of-physical-ROM cartridge space whose read is emulator open-bus. The arcade sound-command dispatcher (arcade 0x03A126, runtime 0x3A326) busy-waits at runtime 0x3A33E-0x3A346 (`bsr 0x3F29C; btst #0,d0; bne`) for bit 0 (busy) to clear; the sole caller uses only bit 0 of d0 and overwrites d0 immediately after. Replace the read with `andi.l #0xFFFFFFFE,%d0` (byte-exact 6->6, NO nops, no branch change) so bit 0 always reads clear = sound ready, letting the existing loop fall through to 0x3A348. Proof: Tighe observed Exodus spinning at 0x3A342/0x3A346 (strict open-bus returns bit 0 set); MAME/BlastEm pass only because their open-bus returns bit 0 clear (MAME measured 0x3E0003=0x00). Complements the existing TC0140SYT WRITE suppression (reset/bank writes) which left the read-side handshake unowned. Do NOT NOP the loop or force the branch. Future follow-up: optional real Genesis Z80 sound handshake via sound_comm.s/z80_write_command."
     },
     {
@@ -1525,6 +1790,8 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0196 player-control input-latch rebase (button-2/jump dispatch (btst #5)): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
     },
     {
@@ -1534,6 +1801,8 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0196 player-control input-latch rebase (input branch): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
     },
     {
@@ -1543,6 +1812,8 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0196 player-control input-latch rebase (input branch): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
     },
     {
@@ -1552,6 +1823,8 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0196 player-control input-latch rebase (input branch): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
     },
     {
@@ -1561,6 +1834,8 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0196 player-control input-latch rebase (input branch): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
     },
     {
@@ -1570,6 +1845,8 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0196 player-control input-latch rebase (down dispatch (btst #1)): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
     },
     {
@@ -1579,6 +1856,8 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0196 player-control input-latch rebase (up dispatch (btst #0)): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
     },
     {
@@ -1588,6 +1867,8 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0196 player-control input-latch rebase (left dispatch (btst #2)): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
     },
     {
@@ -1597,6 +1878,8 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0196 player-control input-latch rebase (right dispatch (btst #3)): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
     },
     {
@@ -1606,87 +1889,107 @@
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
+      "replacement_bytes_template": "303900ff0016",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0196 player-control input-latch rebase (input read): `movew 0x10C016,%d0` reads the gameplay held-input latch (arcade A5+0x16, written a5-relative by arcade 0x3A796 from the Genesis input shadow via the redirected 0x390001 port read). Raw literal 0x10C016 is ROM on Genesis (constant 0xEFFF low byte 0xFF = active-low 'nothing pressed'), so player control never saw the joystick -> Rastan uncontrollable. Rebase to mapped WRAM 0x00FF0016 (byte-neutral, same KF-042/Build 0158 class; Build 0158 rebased the 11th sibling at 0x05102E). Proof: MAME hold-right puts 0xF7 in shadow AND latch 0xFF0016 while SAT/scroll stay frozen because these sites read ROM."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0514A4",
-      "rom_pc": "0x0516A4",
+      "rom_pc": "0x0516AA",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0514C4",
-      "rom_pc": "0x0516C4",
+      "rom_pc": "0x0516CA",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0514D8",
-      "rom_pc": "0x0516D8",
+      "rom_pc": "0x0516DE",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0515B6",
-      "rom_pc": "0x0517B6",
+      "rom_pc": "0x0517BC",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051600",
-      "rom_pc": "0x051800",
+      "rom_pc": "0x051806",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051728",
-      "rom_pc": "0x051928",
+      "rom_pc": "0x05192E",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051C5A",
-      "rom_pc": "0x051E5A",
+      "rom_pc": "0x051E60",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051CA0",
-      "rom_pc": "0x051EA0",
+      "rom_pc": "0x051EA6",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051CE0",
-      "rom_pc": "0x051EE0",
+      "rom_pc": "0x051EE6",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1696,6 +1999,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1705,6 +2010,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1714,6 +2021,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1723,6 +2032,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1732,6 +2043,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1741,6 +2054,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1750,6 +2065,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1759,6 +2076,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1768,6 +2087,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1777,6 +2098,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1786,6 +2109,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1795,6 +2120,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1804,6 +2131,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1813,6 +2142,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1822,6 +2153,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1831,6 +2164,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1840,6 +2175,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1849,6 +2186,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1858,6 +2197,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1867,6 +2208,8 @@
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
+      "replacement_bytes_template": "303900ff137a",
+      "replacement_bytes_shift_adjusted": "",
       "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
     },
     {
@@ -1874,17 +2217,21 @@
       "arcade_pc": "0x0505DC",
       "rom_pc": "0x0507DC",
       "original_bytes": "2b7c0005b5ec1332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7ec1332",
+      "original_bytes_shift_adjusted": "2b7c0005b7bc1332",
+      "replacement_bytes": "2b7c0005b7bc1332",
+      "replacement_bytes_template": "2b7c0005b7ec1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7bc1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5EC now maps to runtime Genesis copied-ROM table 0x0005B7EC per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5EC=0x00AD at runtime instead of relocated 0x0005B7EC=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0514B8",
-      "rom_pc": "0x0516B8",
+      "rom_pc": "0x0516BE",
       "original_bytes": "2b7c0005b5ec1332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7ec1332",
+      "original_bytes_shift_adjusted": "2b7c0005b7bc1332",
+      "replacement_bytes": "2b7c0005b7bc1332",
+      "replacement_bytes_template": "2b7c0005b7ec1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7bc1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5EC now maps to runtime Genesis copied-ROM table 0x0005B7EC per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5EC=0x00AD at runtime instead of relocated 0x0005B7EC=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1892,8 +2239,10 @@
       "arcade_pc": "0x0520DC",
       "rom_pc": "0x0522DC",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7a21332",
+      "original_bytes_shift_adjusted": "2b7c0005b7721332",
+      "replacement_bytes": "2b7c0005b7721332",
+      "replacement_bytes_template": "2b7c0005b7a21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7721332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1901,8 +2250,10 @@
       "arcade_pc": "0x0520E6",
       "rom_pc": "0x0522E6",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7701332",
+      "original_bytes_shift_adjusted": "2b7c0005b7401332",
+      "replacement_bytes": "2b7c0005b7401332",
+      "replacement_bytes_template": "2b7c0005b7701332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7401332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1910,8 +2261,10 @@
       "arcade_pc": "0x05211A",
       "rom_pc": "0x05231A",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7a21332",
+      "original_bytes_shift_adjusted": "2b7c0005b7721332",
+      "replacement_bytes": "2b7c0005b7721332",
+      "replacement_bytes_template": "2b7c0005b7a21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7721332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1919,8 +2272,10 @@
       "arcade_pc": "0x052124",
       "rom_pc": "0x052324",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7701332",
+      "original_bytes_shift_adjusted": "2b7c0005b7401332",
+      "replacement_bytes": "2b7c0005b7401332",
+      "replacement_bytes_template": "2b7c0005b7701332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7401332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1928,8 +2283,10 @@
       "arcade_pc": "0x052150",
       "rom_pc": "0x052350",
       "original_bytes": "2b7c0005b5481332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7481332",
+      "original_bytes_shift_adjusted": "2b7c0005b7181332",
+      "replacement_bytes": "2b7c0005b7181332",
+      "replacement_bytes_template": "2b7c0005b7481332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7181332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B548 now maps to runtime Genesis copied-ROM table 0x0005B748 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B548=0x00AD at runtime instead of relocated 0x0005B748=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1937,8 +2294,10 @@
       "arcade_pc": "0x05215A",
       "rom_pc": "0x05235A",
       "original_bytes": "2b7c0005b5161332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7161332",
+      "original_bytes_shift_adjusted": "2b7c0005b6e61332",
+      "replacement_bytes": "2b7c0005b6e61332",
+      "replacement_bytes_template": "2b7c0005b7161332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b6e61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1946,8 +2305,10 @@
       "arcade_pc": "0x05218E",
       "rom_pc": "0x05238E",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7a21332",
+      "original_bytes_shift_adjusted": "2b7c0005b7721332",
+      "replacement_bytes": "2b7c0005b7721332",
+      "replacement_bytes_template": "2b7c0005b7a21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7721332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1955,8 +2316,10 @@
       "arcade_pc": "0x052198",
       "rom_pc": "0x052398",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7701332",
+      "original_bytes_shift_adjusted": "2b7c0005b7401332",
+      "replacement_bytes": "2b7c0005b7401332",
+      "replacement_bytes_template": "2b7c0005b7701332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7401332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1964,8 +2327,10 @@
       "arcade_pc": "0x0521CA",
       "rom_pc": "0x0523CA",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7a21332",
+      "original_bytes_shift_adjusted": "2b7c0005b7721332",
+      "replacement_bytes": "2b7c0005b7721332",
+      "replacement_bytes_template": "2b7c0005b7a21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7721332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1973,8 +2338,10 @@
       "arcade_pc": "0x0521D4",
       "rom_pc": "0x0523D4",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7701332",
+      "original_bytes_shift_adjusted": "2b7c0005b7401332",
+      "replacement_bytes": "2b7c0005b7401332",
+      "replacement_bytes_template": "2b7c0005b7701332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7401332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1982,8 +2349,10 @@
       "arcade_pc": "0x052212",
       "rom_pc": "0x052412",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7a21332",
+      "original_bytes_shift_adjusted": "2b7c0005b7721332",
+      "replacement_bytes": "2b7c0005b7721332",
+      "replacement_bytes_template": "2b7c0005b7a21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7721332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -1991,8 +2360,10 @@
       "arcade_pc": "0x05221C",
       "rom_pc": "0x05241C",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7701332",
+      "original_bytes_shift_adjusted": "2b7c0005b7401332",
+      "replacement_bytes": "2b7c0005b7401332",
+      "replacement_bytes_template": "2b7c0005b7701332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7401332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2000,8 +2371,10 @@
       "arcade_pc": "0x052250",
       "rom_pc": "0x052450",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7a21332",
+      "original_bytes_shift_adjusted": "2b7c0005b7721332",
+      "replacement_bytes": "2b7c0005b7721332",
+      "replacement_bytes_template": "2b7c0005b7a21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7721332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2009,8 +2382,10 @@
       "arcade_pc": "0x05225A",
       "rom_pc": "0x05245A",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7701332",
+      "original_bytes_shift_adjusted": "2b7c0005b7401332",
+      "replacement_bytes": "2b7c0005b7401332",
+      "replacement_bytes_template": "2b7c0005b7701332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7401332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2018,8 +2393,10 @@
       "arcade_pc": "0x052298",
       "rom_pc": "0x052498",
       "original_bytes": "2b7c0005b5481332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7481332",
+      "original_bytes_shift_adjusted": "2b7c0005b7181332",
+      "replacement_bytes": "2b7c0005b7181332",
+      "replacement_bytes_template": "2b7c0005b7481332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7181332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B548 now maps to runtime Genesis copied-ROM table 0x0005B748 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B548=0x00AD at runtime instead of relocated 0x0005B748=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2027,8 +2404,10 @@
       "arcade_pc": "0x0522A2",
       "rom_pc": "0x0524A2",
       "original_bytes": "2b7c0005b5161332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7161332",
+      "original_bytes_shift_adjusted": "2b7c0005b6e61332",
+      "replacement_bytes": "2b7c0005b6e61332",
+      "replacement_bytes_template": "2b7c0005b7161332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b6e61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2036,8 +2415,10 @@
       "arcade_pc": "0x0522D6",
       "rom_pc": "0x0524D6",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7a21332",
+      "original_bytes_shift_adjusted": "2b7c0005b7721332",
+      "replacement_bytes": "2b7c0005b7721332",
+      "replacement_bytes_template": "2b7c0005b7a21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7721332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2045,8 +2426,10 @@
       "arcade_pc": "0x0522E0",
       "rom_pc": "0x0524E0",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b7701332",
+      "original_bytes_shift_adjusted": "2b7c0005b7401332",
+      "replacement_bytes": "2b7c0005b7401332",
+      "replacement_bytes_template": "2b7c0005b7701332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7401332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2054,8 +2437,10 @@
       "arcade_pc": "0x052310",
       "rom_pc": "0x052510",
       "original_bytes": "2b7c0005b62e1332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b82e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b7fe1332",
+      "replacement_bytes": "2b7c0005b7fe1332",
+      "replacement_bytes_template": "2b7c0005b82e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7fe1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B62E now maps to runtime Genesis copied-ROM table 0x0005B82E per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B62E=0x00AD at runtime instead of relocated 0x0005B82E=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2063,8 +2448,10 @@
       "arcade_pc": "0x05233E",
       "rom_pc": "0x05253E",
       "original_bytes": "2b7c0005b62e1332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "2b7c0005b82e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b7fe1332",
+      "replacement_bytes": "2b7c0005b7fe1332",
+      "replacement_bytes_template": "2b7c0005b82e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b7fe1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B62E now maps to runtime Genesis copied-ROM table 0x0005B82E per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B62E=0x00AD at runtime instead of relocated 0x0005B82E=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2072,23 +2459,36 @@
       "arcade_pc": "0x0523C4",
       "rom_pc": "0x0525C4",
       "original_bytes": "0cad0005b5161332",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "0cad0005b7161332",
+      "original_bytes_shift_adjusted": "0cad0005b6e61332",
+      "replacement_bytes": "0cad0005b6e61332",
+      "replacement_bytes_template": "0cad0005b7161332",
+      "replacement_bytes_shift_adjusted": "0cad0005b6e61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x03B8B0",
+      "rom_pc": "0x03BAB0",
+      "original_bytes": "41fa009e",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "4e754e71",
+      "replacement_bytes_template": "4e754e71",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0273: RETIRE the frontend HUD PC090OJ builder 0x3B8B0 at the arcade-code boundary. Its sole caller is 0x3B06A. The routine is pure PC090OJ construction: it copies the fixed ROM templates 0x3B950/0x3B9B0/0x3B9D4 into object-RAM records 4..45 via the generic 0x3B930 copier and overlays digits via inert 0x3B802. All of records 4..45 are now produced natively by native_frontend_hud_emit (labels 4..16/18..20/34..36/43..45 via .Lnq_title_labels; score/HS/credit digits live). Replacing the entry insn `lea %pc@(0x3B950),%a0` (41FA009E) with `rts;nop` (4E754E71) makes the builder build nothing; caller returns normally. Generic 0x3B930 is preserved untouched (now uncalled). Byte-neutral 4->4."
     }
   ],
-  "checksum": "0xDCAC",
+  "checksum": "0x802E",
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan-direct/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {
-    "opcode_replace_count": 221
+    "opcode_replace_count": 217
   },
   "patch_counts": {
-    "opcode_replace_and_rom_opcode_replace": 221
+    "opcode_replace_and_rom_opcode_replace": 217
   },
   "build_context": "canonical",
-  "postpatch_expected_opcode_replace_sites": 221,
-  "postpatch_expected_total_genesis_bytes_covered": "0x184AC0",
+  "postpatch_expected_opcode_replace_sites": 217,
+  "postpatch_expected_total_genesis_bytes_covered": "0x1848E0",
   "bookmarks_v2_count": 0,
   "bookmarks_v2_applied": [],
   "direct_execution": {

@@ -176,6 +176,168 @@ PC080SN/PC090OJ work; agents must state the semantic cut and the chip tail being
 
 ---
 
+## 12. Established Tooling Before New Tooling
+
+Before creating any analysis, tracing, input, save-state, or debugging harness, inspect the
+existing project tools under `tools/mame/`, `tools/ghidra/`, and `tools/translation/` and reuse
+the established capability when it applies.
+
+A disposable replacement for an already-existing project tool is prohibited. A new capability
+is permitted only after the exact gap is identified, existing tools are proven insufficient,
+and extending an existing durable tool is considered first.
+
+---
+
+## 13. Ghidra First for Static Arcade Provenance
+
+When a question concerns original arcade code ownership, caller structure, mapping data,
+semantic intent, static data flow, or a native-replacement boundary, inspect the existing
+arcade Ghidra project and exports first:
+
+- `tools/ghidra/rastan_project/rastan_arcade_ref.gpr`
+- `analysis/ghidra/rastan_arcade/exports/`
+
+Use the decompiler, xrefs, call graph, data references, computed-pointer analysis, register
+flow, and existing address maps/reports. Runtime tracing supplements static analysis for
+genuinely dynamic facts; it does not replace the static provenance pass.
+
+---
+
+## 14. Arcade Is Authoritative for Intent
+
+The original Rastan arcade ROM, code, and data are authoritative for game semantics, object
+meaning, state behavior, mapping/frame ownership, timing intent, sprite/tile decisions, and
+PC080SN/PC090OJ input semantics.
+
+Do not infer original arcade intent from Genesis compatibility state or translated runtime
+behavior when the original arcade code/data is available. The required order is:
+
+    original arcade code -> semantic understanding -> native Genesis implementation
+        -> Genesis validation
+
+---
+
+## 15. MAME Platform Must Be Explicit
+
+Every MAME tracing or validation claim must identify its platform exactly:
+
+- **ORIGINAL ARCADE**: original Rastan arcade program and authoritative dynamic ground truth.
+- **GENESIS NTSC**: USA/NTSC Sega Genesis target used to validate the translation.
+- **PAL MEGADRIVE**: PAL-specific testing only when intentionally requested.
+
+The normal Genesis target is USA/NTSC `genesis`. PAL `megadriv` output must not be used as
+acceptance evidence for the NTSC Genesis target.
+
+---
+
+## 16. Existing Evidence Workflows Must Be Exhausted Before BLOCKED
+
+A STOP, provenance-blocked, writer-unreachable, or intent-unresolved claim is invalid until
+the agent has checked all relevant existing resources:
+
+- the arcade Ghidra project and exports;
+- repository tracing/debugging tools;
+- established input/control harnesses and MAME field names;
+- established save-state and runtime workflows;
+- current address maps and applicable reports.
+
+The absence of a literal xref, a computed/register-passed store, one watchpoint that did not
+fire, or one inconvenient debugger technique is not sufficient evidence of a blocker.
+
+---
+
+## 17. No Disposable Trace Sprawl
+
+Do not create chains of one-off `/tmp` Lua scripts, debugger command files, launch wrappers,
+or instrumentation probes while investigating the same problem.
+
+If an exact capability is genuinely missing, create or extend one durable, repository-owned
+tool after documenting why the established tools cannot provide it.
+
+---
+
+## 18. Report Tool Reuse
+
+Every analysis or build report involving tracing, debugging, scripted input, save states, or
+Ghidra automation must include:
+
+    Existing project tools reused:
+    New tooling created:
+    Why new tooling was necessary:
+
+If no new tooling was required, state that explicitly.
+
+---
+
+## 19. Usage Waste Is a Project Failure
+
+Paid model and tool usage is a project resource. Repeatedly rediscovering established tools,
+controls, field names, launch syntax, save-state methods, address mappings, or existing static
+analysis is unacceptable.
+
+Efficiency is part of correctness: spend usage on new semantic evidence, implementation, and
+validation. Avoidable infrastructure rediscovery is a governance failure even when it
+eventually produces a technically correct result.
+
+---
+
+## 20. Shift-Table Reflow Is Canonical
+
+Production opcode replacement is not generally constrained to the original instruction or
+routine byte count. When a native replacement is longer, use the established variable-length
+`shift_replacements` path in `specs/rastan_direct_remap.json` and the current shift-table pipeline.
+Ordinary `opcode_replace` entries remain the explicitly byte-neutral path; their equal-length
+validation does not impose an equal-length architecture on the project.
+
+The following claims are invalid justifications by themselves:
+
+- "no room" or "will not fit";
+- "the replacement must be byte-neutral";
+- "a BSR/JSR is too large for the old instruction";
+- "the whole function must be replaced because the local replacement is longer."
+
+Do not distort a proven semantic boundary to fit an incidental byte window. Choose the highest
+safe semantic cut first, then let the canonical insertion/reflow mechanism accommodate its size.
+Before claiming a true size or reflow blocker, prove from the **current** tools that the exact site
+or required reference/relocation class cannot be reflowed safely.
+
+---
+
+## 21. Current Shift and Address Pipeline Must Be Used
+
+Every task that changes copied arcade code or reasons about relocated code must use the current
+production pipeline:
+
+- authoritative spec: `specs/rastan_direct_remap.json`;
+- transformer: `tools/translation/postpatch_startup_rom.py`;
+- variable-length reflow engine: `tools/translation/shift_table_patcher.py`;
+- generated address authority: `build/rastan-direct/address_map.json`;
+- guards/gate: `tools/translation/verify_rastan_direct_boot_guard.py` and
+  `tools/translation/verify_canonical_rom.py`;
+- workflow owner: `apps/rastan-direct/Makefile`.
+
+Generated address maps, manifests, relocation reports, inventories, disassemblies, and counters
+must not be hand-edited. Do not calculate `runtime_genesis_pc` from a historical or assumed
+`+0x200` delta when the current generated map is available: the base copy relocation does not
+include later insertion deltas. If a required reference class is not supported, document that
+specific gap and extend the canonical pipeline only when authorized; do not invent an alternate
+patch architecture.
+
+---
+
+## 22. Canonical Palette-Decision Registry
+
+`specs/palette_decisions.json` is the **only** authoritative palette-decision registry. Every
+palette task must consult and maintain it. Agents must preserve scene/stage context, identify all
+affected Palette Decision IDs, and inspect the decision's listed consumers before changing
+palette behavior. A palette-decision change and its JSON update belong in the same task.
+
+Do not create or maintain a duplicate palette mapping registry in Markdown, another JSON/spec,
+source comments, or generated output. Evidence reports may cite Palette Decision IDs and explain
+observations, but they must not redefine the canonical mapping independently.
+
+---
+
 ## Numbered ROM Artifact Preservation Rule
 
 Numbered ROM artifacts are evidence and must not be deleted, overwritten, or silently replaced.

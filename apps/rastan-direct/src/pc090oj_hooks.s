@@ -57,6 +57,13 @@
     .global pc090oj_producer_write_count
     .global native_sprite_emit
     .global native_sprite_lane
+    .global native_player_frame_begin
+    .global native_player_front_begin
+    .global native_player_body_begin
+    .global native_player_piece
+    .global native_player_body_anchor_piece
+    .global native_player_body_anchor_blank
+    .global native_player_body_anchor_clear
 
     .global staged_sprite_sat
     .global staged_sprite_descriptor_table
@@ -66,9 +73,9 @@
     .global pc090oj_tile_dma_worklist
     .global pc090oj_tile_dma_count
 
-    /* Build 0142 retained-identity translation state */
-    .global pc090oj_workram_block_sprites
-    .global pc090oj_workram_block_sprites_41f5e
+    /* Build 0142 retained-identity translation state.  The player-specific
+     * work-RAM tuple bridges were retired by the native main-loop player
+     * producers; the remaining tables support frontend compatibility. */
     /* pc090oj_stage_block2c8 / stage_record46 removed (Build 0261): dead uncalled
      * gameplay record producers that called the relocated expander 0x3D254. */
     .global record_to_slot
@@ -265,132 +272,24 @@
     move.l  (%sp)+, %a2
     rts
 
-/* Converted semantic family (Build 0142): the complete 22-object work-RAM block
- * shared by arcade 0x041DAE / 0x041F5E / 0x045DFA.  Block A = 18 records at
- * A5+0x11B2, block B = 4 records at A5+0x0170; tuple = {word0, Y, code, X}.
- * Each record is written once into the mirror (exact arcade store), then
- * synchronized directly from the mirror and its superseded candidate cleared.
- * It does NOT set a candidate; later unconverted writes to the same record
- * re-set the candidate and VBlank re-syncs it (§9-E.2/§9-E.3).
- */
-/* 0x041F5E path (KF-044 companion): the original arcade routine copies
- *   lea 0x11B2(a5),a0 ; moveq #18 ; lea 0xD003C0,a1   (0xD003C0/8 = record 120)
- *   lea 0x0170(a5),a0 ; moveq #4  ; lea 0xD002E0,a1   (0xD002E0/8 = record 92)
- * so block A -> records 120..137 and block B -> records 92..95.  The previous
- * translation collapsed both blocks to records 0..17 / 18..21, so the player
- * PC090OJ cluster (which the represent engine reads from the arcade-correct
- * records) was never populated.  Restore the arcade destination records. */
-pc090oj_workram_block_sprites_41f5e:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    move.w  #120, %d5                    /* block A base record (0xD003C0/8) */
-    move.w  #92, %d7                     /* block B base record (0xD002E0/8) */
-    bra.s   .Lwbs_run
-
-/* Default path: arcade 0x045DFA hook and any legacy caller keep the prior
- * mapping (block A -> 0..17, block B -> 18..21).  Arcade 0x045DFA is a distinct
- * routine (sources A5+0x5C8/0x748/0x8C8, dest records 140/46/96 via 0x3D054),
- * so its true destination is out of this fix's proven scope -- unchanged. */
-pc090oj_workram_block_sprites:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    move.w  #0, %d5
-    move.w  #18, %d7
-.Lwbs_run:
-    lea     0x11B2(%a5), %a0
-    move.w  %d5, %d0                     /* d0 = block A base record */
-    move.w  %d5, %d6
-    addi.w  #18, %d6                     /* d6 = block A end (exclusive) */
-.Lwbs_block_a:
-    move.w  (%a0), %d1
-    move.w  2(%a0), %d2
-    move.w  4(%a0), %d3
-    move.w  6(%a0), %d4
-    bsr     .Lpc090oj_family_apply_record
-    adda.w  #8, %a0
-    addq.w  #1, %d0
-    cmp.w   %d6, %d0
-    blo.s   .Lwbs_block_a
-
-    lea     0x0170(%a5), %a0
-    move.w  %d7, %d0                     /* d0 = block B base record */
-    move.w  %d7, %d6
-    addi.w  #4, %d6                      /* d6 = block B end (exclusive) */
-.Lwbs_block_b:
-    move.w  (%a0), %d1
-    move.w  2(%a0), %d2
-    move.w  4(%a0), %d3
-    move.w  6(%a0), %d4
-    bsr     .Lpc090oj_family_apply_record
-    adda.w  #8, %a0
-    addq.w  #1, %d0
-    cmp.w   %d6, %d0
-    blo.s   .Lwbs_block_b
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
-    rts
-
-/* d0=record, d1=word0, d2=Y, d3=code, d4=X.  Write the mirror once, then sync
- * from the mirror and clear the superseded candidate, inside a VINT-masked
- * critical section so a VBlank commit never observes a half-applied structural
- * change (§9-C interrupt safety).
- */
-/* d0=record, d1..d4 = tuple.  N1: plain object-table write (no candidates,
- * no compare, no interrupt masking -- matches arcade object-RAM semantics). */
-.Lpc090oj_family_apply_record:
-    movem.l %d5-%d6/%a0, -(%sp)
-    cmpi.w  #256, %d0
-    bhs.s   .Lpc090oj_far_oob
-    move.w  %d0, %d6
-    lsl.w   #3, %d6
-    lea     pc090oj_object_ram, %a0
-    adda.w  %d6, %a0
-    move.w  %d1, (%a0)
-    move.w  %d2, 2(%a0)
-    move.w  %d3, 4(%a0)
-    move.w  %d4, 6(%a0)
-    addq.w  #1, pc090oj_producer_write_count
-    movem.l (%sp)+, %d5-%d6/%a0
-    rts
-.Lpc090oj_far_oob:
-    addq.w  #1, pc090oj_producer_oob_count
-    movem.l (%sp)+, %d5-%d6/%a0
-    rts
-
-
 /* ------------------------------------------------------------------------- */
 /* 17 helpers                                                                */
 /* ------------------------------------------------------------------------- */
 
-/* Build 0146 faithful translation of arcade 0x03B902.
- * Arcade body: lea 0xD00088,%a1 (records 17..21); tst.w %d1; bne fill.
- *   clear path (d1==0): lea 0x3B984,%a0; moveq #5,%d1; bsr 0x3B930   -> copy the
- *     5-record table at arcade 0x3B984 (Genesis 0x3BB84) into records 17..21.
- *   fill path  (d1!=0): move.b %d1,2(%a1); addq.l #8,%a1  x5  -> write the byte
- *     d1 to the Y-high byte (offset 2) of records 17..21 only.
- * The prior Build 0142-era body wrote full descriptors to records 0..4, which
- * clobbered record 4 (the HIGH SCORE "GH" glyph) that the arcade never touches.
- * Registers are fully preserved (movem), matching the prior helper's contract.
- */
+/* arcade 0x03B902 -- credit-area builder for PC090OJ records 17..21 (credit
+ * digits 17/21 + credit-area labels 18..20).
+ *
+ * Build 0273: RETIRED.  Records 17..21 are now produced natively by
+ * native_frontend_hud_emit (credit digit -> native credit block; labels 18..20
+ * -> native .Lnq_title_labels set).  All eight callers are frontend HUD-setup
+ * paths (arcade 0x3A20E/0x3A264/0x3A640/0x3A6C4/0x3A820/0x3A8E0, plus the now
+ * retired 0x3B8B0/0x3B8EE); their records 17..21 are only ever rendered by the
+ * frontend object-RAM scan (scene != 1), exactly where native_frontend_hud_emit
+ * runs -- gameplay uses the separate .Lnq_gameplay HUD.  So this producer builds
+ * no PC090OJ record; every live consumer has a native owner (consumer coverage
+ * matrix in the build report).  A bare rts preserves all registers, matching the
+ * caller contract. */
 genesistan_pc090oj_hook_target_3b902:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    tst.w   %d1
-    bne.s   .Lhook_3b902_fill
-    /* clear path: table copy into records 17..21 via the faithful 0x3B930 helper */
-    lea     0x00D00088, %a1
-    lea     0x0003BB84, %a0                 /* arcade 0x3B984 table, +0x200 */
-    moveq   #5, %d1
-    bsr     genesistan_pc090oj_hook_target_3b930
-    bra.s   .Lhook_3b902_done
-.Lhook_3b902_fill:
-    /* fill path: write byte d1 to the Y-high byte (offset 2) of records 17..21 */
-    lea     0x00D0008A, %a1                 /* 0xD00088 + 2 (record 17 Y-high) */
-    moveq   #5, %d5
-.Lhook_3b902_fill_loop:
-    move.w  %d1, %d0
-    bsr     .Lpc090oj_mirror_write_byte_a1_d0
-    adda.l  #8, %a1
-    subq.w  #1, %d5
-    bne.s   .Lhook_3b902_fill_loop
-.Lhook_3b902_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 genesistan_pc090oj_hook_target_3b926:
@@ -437,20 +336,13 @@ genesistan_pc090oj_hook_target_3b930:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-/* Build 0192: hook_target_41dae / hook_target_45dfa replace arcade routines
- * 0x041DAE / 0x045DFA, which do NOT copy A5+0x11B2 (they copy A5+0x508 / A5+0x5C8
- * to records 57/96/140/46 via 0x3D054).  The current Genesis default helper
- * instead copies the PLAYER block A5+0x11B2 -> records 0..17 (and A5+0x0170 ->
- * 18..21), which are exact duplicates of what hook_target_41f5e already stages to
- * the arcade-canonical records 120..137 / 92..95.  In Stage 1 gameplay the arcade
- * records 0..17 are empty, so this low copy is a proven Genesis-only spurious
- * duplicate that draws Rastan twice and wastes ~half the SAT budget.  Suppress it
- * in gameplay only (scene 1); other scenes keep the existing behavior since the
- * low copy has not been proven spurious there. */
+/* The old Genesis fallback at these boundaries copied the gameplay player tuple
+ * blocks regardless of which arcade producer was replaced.  Main-loop native
+ * PLAYER_FRONT/BODY staging retires that player-only compatibility behavior;
+ * gameplay keeps the established semantic dispatch/finalize ownership. */
 genesistan_pc090oj_hook_target_41dae:
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     beq.s   .Lhook_41dae_gameplay_native
-    bsr     pc090oj_workram_block_sprites
     rts
 .Lhook_41dae_gameplay_native:
     move.w  0x02A2(%a5), %d0
@@ -467,17 +359,14 @@ genesistan_pc090oj_hook_target_41dae:
 genesistan_pc090oj_hook_target_41f5e:
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     beq.s   .Lhook_41f5e_gameplay_native
-    bsr     pc090oj_workram_block_sprites_41f5e
     rts
 .Lhook_41f5e_gameplay_native:
     bsr     native_sprite_frame_begin
-    bsr     native_stage_player_blocks_41f5e
     rts
 
 genesistan_pc090oj_hook_target_45dfa:
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     beq.s   .Lhook_45dfa_gameplay_native
-    bsr     pc090oj_workram_block_sprites
     rts
 .Lhook_45dfa_gameplay_native:
     bsr     native_stage_dispatch_45dfa
@@ -492,11 +381,57 @@ genesistan_pc090oj_hook_target_45dfa:
 native_sprite_frame_begin:
     clr.w   native_hud_count
     clr.w   native_front_effect_count
-    clr.w   native_player_front_count
     clr.w   native_middle_count
-    clr.w   native_player_body_count
     clr.w   native_back_enemy_count
     clr.w   pc090oj_sat_frame_ready
+    rts
+
+/* Main-loop player producers own these two completed semantic lanes.  Reset
+ * once before arcade 0x51060 (FRONT), then BODY appends later at 0x5151C. */
+native_player_frame_begin:
+    clr.w   native_player_front_count
+    clr.w   native_player_body_count
+    rts
+
+native_player_front_begin:
+    move.w  #NATIVE_LANE_PLAYER_FRONT, native_sprite_lane
+    rts
+
+native_player_body_begin:
+    move.w  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane
+    rts
+
+/* Retained arcade expanders provide d1=word0, d6=Y, d3=code and d4=X.
+ * Preserve their d2 loop counter while adapting to native_sprite_emit. */
+native_player_piece:
+    move.w  %d2, -(%sp)
+    move.w  %d6, %d2
+    bsr     native_sprite_emit
+    move.w  (%sp)+, %d2
+    rts
+
+/* The old Block-A tuple-0 consumer copied this anchor into player state after
+ * BODY generation.  Tuple 0 is the first iteration of the 0x545BA expander;
+ * publish the same semantic coordinates directly without retaining Block A. */
+native_player_body_anchor_piece:
+    cmpi.w  #4, %d2
+    bne.s   .Lnative_player_anchor_emit
+    move.w  %d4, 0x129A(%a5)
+    move.w  %d6, 0x129C(%a5)
+.Lnative_player_anchor_emit:
+    bra     native_player_piece
+
+native_player_body_anchor_blank:
+    cmpi.w  #4, %d2
+    bne.s   .Lnative_player_anchor_blank_done
+    clr.w   0x129A(%a5)
+    clr.w   0x129C(%a5)
+.Lnative_player_anchor_blank_done:
+    rts
+
+native_player_body_anchor_clear:
+    clr.w   0x129A(%a5)
+    clr.w   0x129C(%a5)
     rts
 
 /* d1=word0/attr nibble+flip bits, d2=PC090OJ Y word, d3=source artwork code,
@@ -576,34 +511,6 @@ native_sprite_emit:
     addq.w  #1, (%a1)
 .Lnse_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a2
-    rts
-
-native_stage_player_blocks_41f5e:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    move.w  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane
-    lea     0x11B2(%a5), %a0
-    moveq   #(18 - 1), %d6
-.Lnsp_body_loop:
-    move.w  (%a0), %d1
-    move.w  2(%a0), %d2
-    move.w  4(%a0), %d3
-    move.w  6(%a0), %d4
-    bsr     native_sprite_emit
-    adda.w  #8, %a0
-    dbra    %d6, .Lnsp_body_loop
-
-    move.w  #NATIVE_LANE_PLAYER_FRONT, native_sprite_lane
-    lea     0x0170(%a5), %a0
-    moveq   #(4 - 1), %d6
-.Lnsp_front_loop:
-    move.w  (%a0), %d1
-    move.w  2(%a0), %d2
-    move.w  4(%a0), %d3
-    move.w  6(%a0), %d4
-    bsr     native_sprite_emit
-    adda.w  #8, %a0
-    dbra    %d6, .Lnsp_front_loop
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 native_stage_dispatch_41dae:
@@ -927,15 +834,9 @@ genesistan_pc090oj_hook_target_59f5e:
     cmpi.w  #(HOOK_59F5E_CLEAR_FIRST_RECORD + HOOK_59F5E_CLEAR_RECORD_COUNT), %d0
     blo.s   .Lhook_59f5e_clear_slots
 
-    /* preserve arcade workram tuple writes at A5+0x0170 */
-    lea     0x0170(%a5), %a0
-    moveq   #3, %d1
-.Lhook_59f5e_workram_loop:
-    move.w  #0x0080, (%a0)+
-    move.w  #0x0000, (%a0)+
-    move.w  #0x0000, (%a0)+
-    move.w  #0x0000, (%a0)+
-    dbra    %d1, .Lhook_59f5e_workram_loop
+    /* PLAYER_FRONT is now main-loop native staging.  Keep this helper's
+     * unrelated compatibility-record clear, but do not rebuild its retired
+     * PC090OJ-shaped a5+0x0170 tuple block. */
 
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
@@ -1102,36 +1003,9 @@ genesistan_pc090oj_hook_score_digit_3b802:
 genesistan_pc090oj_hook_slot_init_54052:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 
-    /* Phase A text-RAM clear loops replicated verbatim */
-    movea.l #0x0010D1D2, %a1
-    move.w  #6, %d2
-.Lhook_54052_loop1:
-    move.w  #3, (%a1)+
-    move.w  #0, (%a1)+
-    move.w  #0, (%a1)+
-    move.w  #0, (%a1)+
-    subq.w  #1, %d2
-    bne.s   .Lhook_54052_loop1
-
-    move.w  #4, %d2
-    movea.l #0x0010D1B2, %a1
-.Lhook_54052_loop2:
-    move.w  #3, (%a1)+
-    move.w  #0, (%a1)+
-    move.w  #0, (%a1)+
-    move.w  #0, (%a1)+
-    subq.w  #1, %d2
-    bne.s   .Lhook_54052_loop2
-
-    movea.l #0x0010D1F2, %a1
-    move.w  #6, %d2
-.Lhook_54052_loop3:
-    move.w  #3, (%a1)+
-    move.w  #0, (%a1)+
-    move.w  #0, (%a1)+
-    move.w  #0, (%a1)+
-    subq.w  #1, %d2
-    bne.s   .Lhook_54052_loop3
+    /* PLAYER_BODY is now main-loop native staging.  The three former tuple
+     * initialization loops at 0x10D1B2/0x10D1D2/0x10D1F2 have no remaining
+     * consumer.  Preserve only this helper's unrelated records 72..75 init. */
 
     move.w  10*2(%a5), %d7
     andi.w  #0x00E0, %d7
@@ -1554,8 +1428,7 @@ pc090oj_native_emit_pass:
     clr.l   (%a1)+
     clr.l   (%a1)+
     moveq   #0, %d5
-    bsr     .Lnq_title_emit_labels
-    bsr     native_frontend_hud_emit
+    bsr     native_frontend_hud_emit     /* labels + scores + credit (unified) */
     movem.l (%sp)+, %a4-%a6
     bra     .Lnq_done_scan
 
@@ -1577,31 +1450,28 @@ pc090oj_native_emit_pass:
     rts
 
 /* -------------------------------------------------------------------------
- * native_frontend_hud_emit -- the dedicated native frontend HUD subsystem.
+ * native_frontend_hud_emit -- the complete native frontend HUD subsystem.
  *
- * Single semantic owner of the frontend numeric HUD (player + high-score
- * digits and the credit count).  Invoked at the frontend boundary -- from
- * .Lnq_title for the title-active state and from the top of
- * .Lnq_frontend_object_scan for every other frontend scene -- BEFORE the
- * legacy object-RAM scanner runs.  It (1) emits the live BCD scores/credit
- * directly into the native SAT via .Lnq_emit_entry, and (2) retires the
- * arcade's stale PC090OJ representation of those same digits from object RAM
- * so the scanner never re-renders them.
+ * Single semantic owner of the ENTIRE frontend HUD: player + high-score digits,
+ * the credit count, AND the fixed HUD text/labels (HIGH SCORE / 1P / 2UP row,
+ * etc.).  Invoked at the frontend boundary -- from .Lnq_title for the
+ * title-active state and from the top of .Lnq_frontend_object_scan for every
+ * other frontend scene.  Every element is generated directly from live
+ * semantic state (BCD 0x00FF011E/0x00FF0142, credit 0x00FF0117) or fixed
+ * layout (.Lnq_title_labels) straight into the native SAT via .Lnq_emit_entry.
  *
- * Retirement is by SEMANTIC OWNERSHIP, not by record number.  The arcade HUD
- * producer (arcade ~0x5007C, routed through the generic 0x3B930 record copier)
- * re-seeds the score/credit records with digit glyphs (code 0x2A..0x33) every
- * frame; because that write is generic-helper-routed (KF-026: not a statically
- * neutralisable call site), the native owner instead clears the digit-glyph
- * records it now produces itself.  The clear is CODE-GATED to the HUD digit
- * range (0x2A..0x33): records physically reused by OTHER producers in OTHER
- * states -- 0x5A098's status row (codes 0x3E8+), frontend labels (letter
- * glyphs), the player block (actor art) -- carry codes outside that range and
- * are left untouched, so they keep rendering from the scan.  No record NUMBER
- * is a permanent HUD ownership domain. */
+ * Build 0273: this replaces the arcade PC090OJ HUD producer at the arcade-code
+ * boundary.  The arcade builder 0x3B8B0 (records 4..45, via the generic 0x3B930
+ * copier) is retired to `rts` (opcode_replace), and the arcade credit builder
+ * 0x3B902 (records 17..21) is retired to `rts` in its hook -- so no arcade
+ * PC090OJ HUD record is produced at all, the object-RAM scanner renders none of
+ * this family, and the Build-0272 write-then-clear workaround is deleted.  The
+ * generic 0x3B930 copier is preserved untouched.  Because .Lnq_emit_entry
+ * applies the IDENTICAL coordinate transform as .Lpc090oj_decode_record, the
+ * native labels reproduce the former scan output exactly. */
 native_frontend_hud_emit:
     bsr     .Lnq_title_emit_scores       /* live scores + credit -> native SAT */
-    bsr     .Lnq_hud_clear_records       /* retire own PC090OJ digit records (code-gated) */
+    bsr     .Lnq_title_emit_labels       /* fixed HUD labels -> native SAT */
     rts
 
 /* Live score/high-score digit producers. */
@@ -1687,48 +1557,17 @@ native_frontend_hud_emit:
     blo.s   .Ltdg_loop
     rts
 
-/* Retire the native-owned frontend HUD digit records from object RAM.  For
- * each record this subsystem now produces natively, clear its code word IFF the
- * code is a HUD digit glyph (0x2A..0x33).  Records reused by other producers in
- * other states carry non-digit codes (0x5A098 status tiles 0x3E8+, label letter
- * glyphs, player art) and are left intact.  Preserves the scanner's live SAT
- * state (a1/a2/a3/d5) and record cursor. */
-.Lnq_hud_clear_records:
-    movem.l %d0-%d2/%a0-%a1, -(%sp)
-    lea     .Lnq_hud_owned_records, %a1
-.Lhcr_loop:
-    move.w  (%a1)+, %d0
-    cmpi.w  #0xFFFF, %d0
-    beq.s   .Lhcr_done
-    lsl.w   #3, %d0                       /* record * 8 */
-    lea     pc090oj_object_ram, %a0
-    adda.w  %d0, %a0
-    move.w  4(%a0), %d1                   /* code word */
-    move.w  %d1, %d2
-    andi.w  #0x1FFF, %d2
-    cmpi.w  #0x002A, %d2
-    blo.s   .Lhcr_loop                   /* below digit range -> keep */
-    cmpi.w  #0x0034, %d2
-    bhs.s   .Lhcr_loop                   /* at/above digit range -> keep (protects 0x5A098 etc.) */
-    clr.w   4(%a0)                        /* HUD digit glyph -> retire (native owns it) */
-    bra.s   .Lhcr_loop
-.Lhcr_done:
-    movem.l (%sp)+, %d0-%d2/%a0-%a1
-    rts
-
-/* Record numbers the native frontend HUD subsystem owns (score + credit digit
- * positions).  Used only as the clear-candidate set; the actual retire decision
- * is code-gated (above), so these numbers are NOT a permanent ownership band. */
-    .align 2
-.Lnq_hud_owned_records:
-    .word 17, 21
-    .word 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33
-    .word 37, 38, 39, 40, 41, 42
-    .word 0xFFFF
+/* Build 0273: the Build-0272 write-then-clear workaround (.Lnq_hud_clear_records
+ * + .Lnq_hud_owned_records) is DELETED.  The arcade HUD PC090OJ builders (0x3B8B0
+ * and the 0x3B902 hook) are retired at the arcade-code boundary, so no HUD record
+ * is produced and nothing needs clearing. */
 
     .align 2
-/* Fixed title text as a semantic glyph sequence: {Y, X, glyph_code}, letters and
- * symbols only (codes >= 0x34); all numeric digits are produced live above.
+/* Fixed frontend HUD text as a semantic glyph sequence: {Y, X, glyph_code},
+ * letters and symbols only (codes >= 0x34); all numeric digits are produced live
+ * above.  These values are the exact object-RAM label records the arcade builder
+ * formerly wrote; .Lnq_emit_entry applies the same transform as the retired scan
+ * path, so native output reproduces the former labels byte-for-byte.
  * 0xFFFF Y terminates. */
 .Lnq_title_labels:
     .word 0x0000,0x0078,0x003A

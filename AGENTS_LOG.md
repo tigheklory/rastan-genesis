@@ -1,5 +1,16 @@
 # AGENTS Log
 
+## [Andy — Implementation, Build 0273 Retire Frontend HUD PC090OJ Tail at the Arcade-Code Boundary]
+
+* production source/spec/tool change; Build 0273 via `RASTAN_GAMEPLAY_HUD_SPRITES=2 make -C apps/rastan-direct release`; ROM `dist/rastan-direct/rastan_direct_video_test_build_0273.bin`; SHA-256 `a9c8a609774e48c38c3e5c740a3e04f7b74675a896dc0a36d2529846ea5363b8`; size `1591836`; counter `272 -> 273`; no numbered artifacts deleted/overwritten (0265–0272 preserved).
+* files: `apps/rastan-direct/src/pc090oj_hooks.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated outputs, `docs/design/Andy_build0273_arcade_hud_pc090oj_tail_retirement.md`, `AGENTS_LOG.md`, `KNOWN_FINDINGS.md`.
+* retired the arcade HUD PC090OJ builder **0x3B8B0** (records 4..45; sole caller 0x3B06A) via opcode_replace `41FA009E`->`4E754E71` (rts;nop), and the credit builder hook **0x3B902** (records 17..21; 8 callers) to `rts`. `native_frontend_hud_emit` now owns the COMPLETE frontend HUD (scores+credit+labels via `.Lnq_title_labels`). **Deleted** the Build-0272 `.Lnq_hud_clear_records`/`.Lnq_hud_owned_records` write-then-clear workaround. Generic **0x3B930 preserved untouched** (now uncalled).
+* scaffolding inventory: NONE. No NOP/stub scaffolding beyond the two proven producer retirements (rts), no record band, no captured sprite table, no PC090OJ scratch. Removal plan: n/a.
+* key proof: `.Lnq_emit_entry` applies the IDENTICAL transform as `.Lpc090oj_decode_record`, and `.Lnq_title_labels` == the object-RAM label records (runtime-verified), so native output reproduces the former scan output byte-for-byte.
+* build: GATE_PASS; boot guard PASS; opcode_replace 221->222; canonical coverage 0x184AC0->0x184A1C (-164 bytes). 30s smoke `states/traces/rastan_direct_video_test_build_0273_mame_30s_20260808_134551` clean.
+* validation (Genesis-driver MAME): title (positions identical) + PUSH+credit (**full SAT Y/T/X byte-for-byte identical**) vs 0272; **0 HUD object records** produced in 0273 (0272 had 50); frontend game-state RAM (0xFF0100-02FF + 0xFF2200-23FF) byte-identical through frame 2600. Gameplay path untouched (.Lnq_gameplay); attract-demo diverges only post-transition (benign ~1-frame phase artifact; frontend game-state identical pre-transition). Limitation: story/ranking/ROUND-READY not attract-reachable — covered by the fixed-template invariant, not byte-captured.
+* OPEN-024 advanced (frontend HUD family fully native, arcade producer retired). KNOWN_FINDINGS: updated KF-076 to final arcade-boundary retirement. STOP: NO.
+
 ## [Andy — Implementation, Build 0272 Native Frontend HUD Pass + HUD PC090OJ Retirement by Semantic Ownership]
 
 * production source/tool-constant change; Build 0272 via `RASTAN_GAMEPLAY_HUD_SPRITES=2 make -C apps/rastan-direct release`; ROM `dist/rastan-direct/rastan_direct_video_test_build_0272.bin`; SHA-256 `76e2f822c4b89ec575ae3c11d8a2e7aa1af458a71f1f94af00a017f8dde332f6`; size `1592000`; counter `271 -> 272`; no numbered artifacts deleted/overwritten (0265–0271 preserved).
@@ -45203,4 +45214,43 @@ docs/design/Andy_next_pc090oj_holistic_retirement_plan.md.
 ### MAME Exit Summary (2026-08-07 15:08:55)
 - Final PC: 0x07397E
 - Stack Pointer (SP): 0x00FEFF82
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-08 13:45:54)
+- Final PC: 0x0737C0
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-09 15:43:42)
+- Final PC: 0x07336E
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0274 Native Player BODY + FRONT Retirement]
+
+Build produced: YES. Counter 273->274. ROM `dist/rastan-direct/rastan_direct_video_test_build_0274.bin`, SHA-256 `4ead3b77da5bba008e5a0f18459135d856121f673c6fc772ead7b104876231e1`, 1,590,924 bytes; GATE_PASS. Implemented the confirmed main-loop semantic cut: reset PLAYER_FRONT/BODY once at arcade_pc 0x05105A, retain FRONT 0x059F92 and BODY 0x0540CC arcade state/mapping decisions, and replace their PC090OJ tuple stores with final native lane entries. VBlank preserves the player lanes and remains sole finalizer/SAT/VDP authority. Retired live `a5+0x11B2`/`a5+0x0170` player tuple dependencies, `native_stage_player_blocks_41f5e`, player `pc090oj_workram_block_sprites*`, and the tuple-zero anchor consumer; direct tuple-zero output now maintains `a5+0x129A/0x129C`, including blank clears. `0x5288C` and `0x52A6C` are proven unreachable under dead `0x52732` (skipped at 0x5108C) and remain copied provenance, not live writers. Shift pipeline: 58 sites, net -0x46 copied bytes, +0x10 helper bytes, coverage 0x18468C; 7,209 branches and 609 abs-long references repaired. Existing tools reused; no new tooling. Genesis NTSC smoke: 1,798 frames, no unique unmapped addresses. User must verify interactive BODY/FRONT states. Files changed for this task: `apps/rastan-direct/src/pc090oj_hooks.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated build outputs, `docs/design/Cody_build0274_native_player_body_front_retirement.md`, `AGENTS_LOG.md`. OPEN-024 advanced/not closed; KF-074 extended; no unrelated changes by Cody.
+
+### MAME Exit Summary (2026-08-10 09:48:07)
+- Final PC: 0x07336E
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-10 10:00:33)
+- Final PC: 0x07336E
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-10 10:15:16)
+- Final PC: 0x07336E
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-10 10:22:58)
+- Final PC: 0x07336E
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-10 21:49:12)
+- Final PC: 0x073684
+- Stack Pointer (SP): 0x00FEFF6A
 - Unique Unmapped Memory Addresses: none
