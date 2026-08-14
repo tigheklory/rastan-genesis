@@ -136,7 +136,8 @@ Disassembly of section .data:
      188:	2000           	movel %d0,%d0
      18a:	004a           	.short 0x004a
      18c:	2020           	movel %a0@-,%d0
-     18e:	802e 2020      	orb %fp@(8224),%d0
+     18e:	4f25           	.short 0x4f25
+     190:	2020           	movel %a0@-,%d0
      192:	2020           	movel %a0@-,%d0
      194:	2020           	movel %a0@-,%d0
      196:	2020           	movel %a0@-,%d0
@@ -102817,7 +102818,7 @@ Disassembly of section .data:
    51848:	3b7c 00ff 13c8 	movew #255,%a5@(5064)
    5184e:	4e75           	rts
    51850:	0c6d 0004 12fa 	cmpiw #4,%a5@(4858)
-   51856:	227c 0010 d338 	moveal #1102648,%a1
+   51856:	227c 00ff 1338 	moveal #16716600,%a1
    5185c:	383c 0003      	movew #3,%d4
    51860:	3229 0000      	movew %a1@(0),%d1
    51864:	0c41 00ff      	cmpiw #255,%d1
@@ -103333,7 +103334,7 @@ Disassembly of section .data:
    51fb2:	4e75           	rts
    51fb4:	0c6d 0004 12fa 	cmpiw #4,%a5@(4858)
    51fba:	6666           	bnes 0x52022
-   51fbc:	207c 0010 d338 	moveal #1102648,%a0
+   51fbc:	207c 00ff 1338 	moveal #16716600,%a0
    51fc2:	343c 0003      	movew #3,%d2
    51fc6:	3228 0000      	movew %a0@(0),%d1
    51fca:	0c41 00ff      	cmpiw #255,%d1
@@ -106251,10 +106252,10 @@ Disassembly of section .data:
    547ca:	5240           	addqw #1,%d0
    547cc:	0240 01ff      	andiw #511,%d0
    547d0:	3c00           	movew %d0,%d6
-   547d2:	322d 1308      	movew %a5@(4872),%d1
-   547d6:	e249           	lsrw #1,%d1
-   547d8:	0241 0003      	andiw #3,%d1
-   547dc:	e349           	lslw #1,%d1
+   547d2:	3e2d 1308      	movew %a5@(4872),%d7
+   547d6:	e24f           	lsrw #1,%d7
+   547d8:	0247 0003      	andiw #3,%d7
+   547dc:	e34f           	lslw #1,%d7
    547de:	3010           	movew %a0@,%d0
    547e0:	0c40 046e      	cmpiw #1134,%d0
    547e4:	6748           	beqs 0x5482e
@@ -106281,19 +106282,19 @@ Disassembly of section .data:
    54828:	6600 ff64      	bnew 0x5478e
    5482c:	4e75           	rts
    5482e:	247c 0005 485e 	moveal #346206,%a2
-   54834:	d4c1           	addaw %d1,%a2
+   54834:	d4c7           	addaw %d7,%a2
    54836:	3012           	movew %a2@,%d0
    54838:	60be           	bras 0x547f8
    5483a:	247c 0005 4866 	moveal #346214,%a2
-   54840:	d4c1           	addaw %d1,%a2
+   54840:	d4c7           	addaw %d7,%a2
    54842:	3012           	movew %a2@,%d0
    54844:	60b2           	bras 0x547f8
    54846:	247c 0005 486e 	moveal #346222,%a2
-   5484c:	d4c1           	addaw %d1,%a2
+   5484c:	d4c7           	addaw %d7,%a2
    5484e:	3012           	movew %a2@,%d0
    54850:	60a6           	bras 0x547f8
    54852:	247c 0005 4876 	moveal #346230,%a2
-   54858:	d4c1           	addaw %d1,%a2
+   54858:	d4c7           	addaw %d7,%a2
    5485a:	3012           	movew %a2@,%d0
    5485c:	609a           	bras 0x547f8
    5485e:	046e 0470 0472 	subiw #1136,%fp@(1138)
@@ -106353,7 +106354,7 @@ Disassembly of section .data:
    54926:	668c           	bnes 0x548b4
    54928:	4e75           	rts
    5492a:	0c6d 0004 12fa 	cmpiw #4,%a5@(4858)
-   54930:	207c 0010 d338 	moveal #1102648,%a0
+   54930:	207c 00ff 1338 	moveal #16716600,%a0
    54936:	4eb9 0007 287a 	jsr 0x7287a
    5493c:	343c 0003      	movew #3,%d2
    54940:	3228 0000      	movew %a0@(0),%d1

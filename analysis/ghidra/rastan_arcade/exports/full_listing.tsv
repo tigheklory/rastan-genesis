@@ -464,6 +464,11 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03A10E	66F2	bne.b	0x0003a102	FUN_0003a0ec	CONDITIONAL_JUMP:0003a102
 0x03A110	4CDF4002	movem.l	(SP)+, {  D1 A6}	FUN_0003a0ec	READ:Stack[-0x8]
 0x03A114	4E75	rts		FUN_0003a0ec	
+0x03A116	4A6D0034	tst.w	(0x34,A5)	FUN_0003a116	
+0x03A11A	6708	beq.b	0x0003a124	FUN_0003a116	CONDITIONAL_JUMP:0003a124
+0x03A11C	1B400292	move.b	D0b, (0x292,A5)	FUN_0003a116	
+0x03A120	42AD0294	clr.l	(0x294,A5)	FUN_0003a116	
+0x03A124	4E75	rts		FUN_0003a116	
 0x03A126	4A6D0034	tst.w	(0x34,A5)	FUN_0003a126	
 0x03A12A	6608	bne.b	0x0003a134	FUN_0003a126	CONDITIONAL_JUMP:0003a134
 0x03A12C	0C6D00011394	cmpi.w	#0x1, (0x1394,A5)	FUN_0003a126	DATA:00001394
@@ -483,10 +488,259 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03A154	5341	subq.w	0x1, D1w	FUN_0003a126	
 0x03A156	66E2	bne.b	0x0003a13a	FUN_0003a126	CONDITIONAL_JUMP:0003a13a
 0x03A158	4E75	rts		FUN_0003a126	
+0x03A196	302D0004	move.w	(0x4,A5), D0w	frontend_state_dispatch_3a196	
+0x03A19A	D040	add.w	D0w, D0w	frontend_state_dispatch_3a196	
+0x03A19C	41FA000E	lea	(0xe,PC), A0	frontend_state_dispatch_3a196	DATA:0003a1ac
+0x03A1A0	D0C0	adda.w	D0w, A0	frontend_state_dispatch_3a196	
+0x03A1A2	3010	move.w	(A0), D0w	frontend_state_dispatch_3a196	DATA:0003a1ac
+0x03A1A4	41FA0006	lea	(0x6,PC), A0	frontend_state_dispatch_3a196	DATA:0003a1ac
+0x03A1A8	D0C0	adda.w	D0w, A0	frontend_state_dispatch_3a196	
+0x03A1AA	4ED0	jmp	(A0)	frontend_state_dispatch_3a196	
+0x03A1AC	00180054	ori.b	#0x54, (A0)+		
+0x03A1B0	012C0158	btst.b	D0, (0x158,A4)		
+0x03A1B4	01EE0274	bset.b	D0, (0x274,A6)		
+0x03A1B8	02A402C802CC	andi.l	#0x2c802cc, -(A4)		
+0x03A1BE	00146000	ori.b	#0x0, (A4)		
+0x03A1C2	0F58	bchg.b	D7, (A0)+		
+0x03A1C4	103C0025	move.b	#0x25, D0b	frontend_state0_init_3a1c4	
+0x03A1C8	61004EBA	bsr.w	0x0003f084	frontend_state0_init_3a1c4	UNCONDITIONAL_CALL:0003f084
+0x03A1CC	7060	moveq	0x60, D0	frontend_state0_init_3a1c4	
+0x03A1CE	026D000F0014	andi.w	#0xf, (0x14,A5)	frontend_state0_init_3a1c4	
+0x03A1D4	806D0014	or.w	(0x14,A5), D0w	frontend_state0_init_3a1c4	
+0x03A1D8	33C000380000	move.w	D0w, (0x00380000).l	frontend_state0_init_3a1c4	WRITE:00380000
+0x03A1DE	3B400014	move.w	D0w, (0x14,A5)	frontend_state0_init_3a1c4	
+0x03A1E2	426D0046	clr.w	(0x46,A5)	frontend_state0_init_3a1c4	
+0x03A1E6	426D0292	clr.w	(0x292,A5)	frontend_state0_init_3a1c4	
+0x03A1EA	426D0294	clr.w	(0x294,A5)	frontend_state0_init_3a1c4	
+0x03A1EE	426D0296	clr.w	(0x296,A5)	frontend_state0_init_3a1c4	
+0x03A1F2	1B7C00010104	move.b	#0x1, (0x104,A5)	frontend_state0_init_3a1c4	
+0x03A1F8	3B7C00010004	move.w	#0x1, (0x4,A5)	frontend_state0_init_3a1c4	
+0x03A1FE	4E75	rts		frontend_state0_init_3a1c4	
+0x03A200	536D0100	subq.w	0x1, (0x100,A5)	frontend_state1_update_3a200	
+0x03A204	6638	bne.b	0x0003a23e	frontend_state1_update_3a200	CONDITIONAL_JUMP:0003a23e
+0x03A206	3B7C00020004	move.w	#0x2, (0x4,A5)	frontend_state1_update_3a200	
+0x03A20C	7201	moveq	0x1, D1	frontend_state1_update_3a200	
+0x03A20E	610016F2	bsr.w	0x0003b902	frontend_state1_update_3a200	UNCONDITIONAL_CALL:0003b902
+0x03A212	4A6D0034	tst.w	(0x34,A5)	frontend_state1_update_3a200	
+0x03A216	6724	beq.b	0x0003a23c	frontend_state1_update_3a200	CONDITIONAL_JUMP:0003a23c
+0x03A218	303C000E	move.w	#0xe, D0w	frontend_state1_update_3a200	
+0x03A21C	4A6D0028	tst.w	(0x28,A5)	frontend_state1_update_3a200	
+0x03A220	670A	beq.b	0x0003a22c	frontend_state1_update_3a200	CONDITIONAL_JUMP:0003a22c
+0x03A222	4A6D002A	tst.w	(0x2a,A5)	frontend_state1_update_3a200	
+0x03A226	6704	beq.b	0x0003a22c	frontend_state1_update_3a200	CONDITIONAL_JUMP:0003a22c
+0x03A228	303C000F	move.w	#0xf, D0w	frontend_state1_update_3a200	
+0x03A22C	3B40004A	move.w	D0w, (0x4a,A5)	frontend_state1_update_3a200	
+0x03A230	6100014A	bsr.w	0x0003a37c	frontend_state1_update_3a200	UNCONDITIONAL_CALL:0003a37c
+0x03A234	103C001E	move.b	#0x1e, D0b	frontend_state1_update_3a200	
+0x03A238	61004E4A	bsr.w	0x0003f084	frontend_state1_update_3a200	UNCONDITIONAL_CALL:0003f084
+0x03A23C	4E75	rts		frontend_state1_update_3a200	
+0x03A23E	61000C1A	bsr.w	0x0003ae5a	frontend_state1_update_3a200	UNCONDITIONAL_CALL:0003ae5a
+0x03A242	61000B08	bsr.w	0x0003ad4c	frontend_state1_update_3a200	UNCONDITIONAL_CALL:0003ad4c
+0x03A246	61000B90	bsr.w	0x0003add8	frontend_state1_update_3a200	UNCONDITIONAL_CALL:0003add8
+0x03A24A	4A6D0028	tst.w	(0x28,A5)	frontend_state1_update_3a200	
+0x03A24E	660A	bne.b	0x0003a25a	frontend_state1_update_3a200	CONDITIONAL_JUMP:0003a25a
+0x03A250	426D0002	clr.w	(0x2,A5)	frontend_state1_update_3a200	
+0x03A254	426D0004	clr.w	(0x4,A5)	frontend_state1_update_3a200	
+0x03A258	4E75	rts		frontend_state1_update_3a200	
+0x03A25A	103C0000	move.b	#0x0, D0b	frontend_state1_update_3a200	
+0x03A25E	61004E24	bsr.w	0x0003f084	frontend_state1_update_3a200	UNCONDITIONAL_CALL:0003f084
+0x03A262	7201	moveq	0x1, D1	frontend_state1_update_3a200	
+0x03A264	6100169C	bsr.w	0x0003b902	frontend_state1_update_3a200	UNCONDITIONAL_CALL:0003b902
+0x03A268	4A6D002A	tst.w	(0x2a,A5)	frontend_state1_update_3a200	
+0x03A26C	6614	bne.b	0x0003a282	frontend_state1_update_3a200	CONDITIONAL_JUMP:0003a282
+0x03A26E	082D0001003B	btst.b	#0x1, (0x3b,A5)	frontend_state1_update_3a200	
+0x03A274	66DA	bne.b	0x0003a250	frontend_state1_update_3a200	CONDITIONAL_JUMP:0003a250
+0x03A276	6100001C	bsr.w	0x0003a294	frontend_state1_update_3a200	UNCONDITIONAL_CALL:0003a294
+0x03A27A	3B7C0001002A	move.w	#0x1, (0x2a,A5)	frontend_state1_update_3a200	
+0x03A280	60CE	bra.b	0x0003a250	frontend_state1_update_3a200	UNCONDITIONAL_JUMP:0003a250
+0x03A282	082D0000003B	btst.b	#0x0, (0x3b,A5)	frontend_state1_update_3a200	
+0x03A288	66C6	bne.b	0x0003a250	frontend_state1_update_3a200	CONDITIONAL_JUMP:0003a250
+0x03A28A	61000026	bsr.w	0x0003a2b2	frontend_state1_update_3a200	UNCONDITIONAL_CALL:0003a2b2
+0x03A28E	426D002A	clr.w	(0x2a,A5)	frontend_state1_update_3a200	
+0x03A292	60BC	bra.b	0x0003a250	frontend_state1_update_3a200	UNCONDITIONAL_JUMP:0003a250
+0x03A294	41ED0100	lea	(0x100,A5), A0	FUN_0003a294	
+0x03A298	43ED0080	lea	(0x80,A5), A1	FUN_0003a294	
+0x03A29C	7020	moveq	0x20, D0	FUN_0003a294	
+0x03A29E	61000030	bsr.w	0x0003a2d0	FUN_0003a294	UNCONDITIONAL_CALL:0003a2d0
+0x03A2A2	41ED00C0	lea	(0xc0,A5), A0	FUN_0003a294	
+0x03A2A6	43ED0100	lea	(0x100,A5), A1	FUN_0003a294	
+0x03A2AA	7020	moveq	0x20, D0	FUN_0003a294	
+0x03A2AC	61000022	bsr.w	0x0003a2d0	FUN_0003a294	UNCONDITIONAL_CALL:0003a2d0
+0x03A2B0	4E75	rts		FUN_0003a294	
+0x03A2B2	41ED0100	lea	(0x100,A5), A0	FUN_0003a2b2	
+0x03A2B6	43ED00C0	lea	(0xc0,A5), A1	FUN_0003a2b2	
+0x03A2BA	7020	moveq	0x20, D0	FUN_0003a2b2	
+0x03A2BC	61000012	bsr.w	0x0003a2d0	FUN_0003a2b2	UNCONDITIONAL_CALL:0003a2d0
+0x03A2C0	41ED0080	lea	(0x80,A5), A0	FUN_0003a2b2	
+0x03A2C4	43ED0100	lea	(0x100,A5), A1	FUN_0003a2b2	
+0x03A2C8	7020	moveq	0x20, D0	FUN_0003a2b2	
+0x03A2CA	61000004	bsr.w	0x0003a2d0	FUN_0003a2b2	UNCONDITIONAL_CALL:0003a2d0
+0x03A2CE	4E75	rts		FUN_0003a2b2	
 0x03A2D0	32D8	move.w	(A0)+, (A1)+	FUN_0003a2d0	
 0x03A2D2	5340	subq.w	0x1, D0w	FUN_0003a2d0	
 0x03A2D4	66FA	bne.b	0x0003a2d0	FUN_0003a2d0	CONDITIONAL_JUMP:0003a2d0
 0x03A2D6	4E75	rts		FUN_0003a2d0	
+0x03A2D8	61000B80	bsr.w	0x0003ae5a	frontend_state2_update_3a2d8	UNCONDITIONAL_CALL:0003ae5a
+0x03A2DC	61000A6E	bsr.w	0x0003ad4c	frontend_state2_update_3a2d8	UNCONDITIONAL_CALL:0003ad4c
+0x03A2E0	61000AF6	bsr.w	0x0003add8	frontend_state2_update_3a2d8	UNCONDITIONAL_CALL:0003add8
+0x03A2E4	4A6D0034	tst.w	(0x34,A5)	frontend_state2_update_3a2d8	
+0x03A2E8	660E	bne.b	0x0003a2f8	frontend_state2_update_3a2d8	CONDITIONAL_JUMP:0003a2f8
+0x03A2EA	426D0000	clr.w	(0x0,A5)	frontend_state2_update_3a2d8	
+0x03A2EE	426D0002	clr.w	(0x2,A5)	frontend_state2_update_3a2d8	
+0x03A2F2	426D0004	clr.w	(0x4,A5)	frontend_state2_update_3a2d8	
+0x03A2F6	4E75	rts		frontend_state2_update_3a2d8	
+0x03A2F8	426D0042	clr.w	(0x42,A5)	frontend_state2_update_3a2d8	
+0x03A2FC	3B7C00090004	move.w	#0x9, (0x4,A5)	frontend_state2_update_3a2d8	
+0x03A302	4E75	rts		frontend_state2_update_3a2d8	
+0x03A304	082D0006001D	btst.b	#0x6, (0x1d,A5)	frontend_state3_update_3a304	
+0x03A30A	6608	bne.b	0x0003a314	frontend_state3_update_3a304	CONDITIONAL_JUMP:0003a314
+0x03A30C	0C2D00060118	cmpi.b	#0x6, (0x118,A5)	frontend_state3_update_3a304	
+0x03A312	6508	bcs.b	0x0003a31c	frontend_state3_update_3a304	CONDITIONAL_JUMP:0003a31c
+0x03A314	3B7C00040004	move.w	#0x4, (0x4,A5)	frontend_state3_update_3a304	
+0x03A31A	4E75	rts		frontend_state3_update_3a304	
+0x03A31C	33FC03FF002005C2	move.w	#0x3ff, (0x002005c2).l	frontend_state3_update_3a304	WRITE:002005c2
+0x03A324	33FC001F002005E2	move.w	#0x1f, (0x002005e2).l	frontend_state3_update_3a304	WRITE:002005e2
+0x03A32C	4EB90005A3AC	jsr	0x0005a3ac.l	frontend_state3_update_3a304	UNCONDITIONAL_CALL:0005a3ac
+0x03A332	7016	moveq	0x16, D0	frontend_state3_update_3a304	
+0x03A334	61001812	bsr.w	0x0003bb48	frontend_state3_update_3a304	UNCONDITIONAL_CALL:0003bb48
+0x03A338	7017	moveq	0x17, D0	frontend_state3_update_3a304	
+0x03A33A	6100180C	bsr.w	0x0003bb48	frontend_state3_update_3a304	UNCONDITIONAL_CALL:0003bb48
+0x03A33E	7018	moveq	0x18, D0	frontend_state3_update_3a304	
+0x03A340	61001806	bsr.w	0x0003bb48	frontend_state3_update_3a304	UNCONDITIONAL_CALL:0003bb48
+0x03A344	7019	moveq	0x19, D0	frontend_state3_update_3a304	
+0x03A346	61001800	bsr.w	0x0003bb48	frontend_state3_update_3a304	UNCONDITIONAL_CALL:0003bb48
+0x03A34A	4A6D002A	tst.w	(0x2a,A5)	frontend_state3_update_3a304	
+0x03A34E	6708	beq.b	0x0003a358	frontend_state3_update_3a304	CONDITIONAL_JUMP:0003a358
+0x03A350	33FC003200C08A52	move.w	#0x32, (0x00c08a52).l	frontend_state3_update_3a304	WRITE:00c08a52
+0x03A358	4A6D0012	tst.w	(0x12,A5)	frontend_state3_update_3a304	
+0x03A35C	6606	bne.b	0x0003a364	frontend_state3_update_3a304	CONDITIONAL_JUMP:0003a364
+0x03A35E	701A	moveq	0x1a, D0	frontend_state3_update_3a304	
+0x03A360	610017E6	bsr.w	0x0003bb48	frontend_state3_update_3a304	UNCONDITIONAL_CALL:0003bb48
+0x03A364	426D0202	clr.w	(0x202,A5)	frontend_state3_update_3a304	
+0x03A368	4240	clr.w	D0w	frontend_state3_update_3a304	
+0x03A36A	61002CD8	bsr.w	0x0003d044	frontend_state3_update_3a304	UNCONDITIONAL_CALL:0003d044
+0x03A36E	3B7C00600204	move.w	#0x60, (0x204,A5)	frontend_state3_update_3a304	
+0x03A374	3B7C00080004	move.w	#0x8, (0x4,A5)	frontend_state3_update_3a304	
+0x03A37A	4E75	rts		frontend_state3_update_3a304	
+0x03A37C	1B6D011E004C	move.b	(0x11e,A5), (0x4c,A5)	FUN_0003a37c	
+0x03A382	1B6D011D004D	move.b	(0x11d,A5), (0x4d,A5)	FUN_0003a37c	
+0x03A388	1B6D011C004E	move.b	(0x11c,A5), (0x4e,A5)	FUN_0003a37c	
+0x03A38E	422D004F	clr.b	(0x4f,A5)	FUN_0003a37c	
+0x03A392	1B6D013F0050	move.b	(0x13f,A5), (0x50,A5)	FUN_0003a37c	
+0x03A398	4E75	rts		FUN_0003a37c	
+0x03A39A	4A6D0028	tst.w	(0x28,A5)	frontend_state4_update_3a39a	
+0x03A39E	67000080	beq.w	0x0003a420	frontend_state4_update_3a39a	CONDITIONAL_JUMP:0003a420
+0x03A3A2	4EB90005A442	jsr	0x0005a442.l	frontend_state4_update_3a39a	UNCONDITIONAL_CALL:0005a442
+0x03A3A8	4A6D002A	tst.w	(0x2a,A5)	frontend_state4_update_3a39a	
+0x03A3AC	6614	bne.b	0x0003a3c2	frontend_state4_update_3a39a	CONDITIONAL_JUMP:0003a3c2
+0x03A3AE	703A	moveq	0x3a, D0	frontend_state4_update_3a39a	
+0x03A3B0	61001796	bsr.w	0x0003bb48	frontend_state4_update_3a39a	UNCONDITIONAL_CALL:0003bb48
+0x03A3B4	7008	moveq	0x8, D0	frontend_state4_update_3a39a	
+0x03A3B6	61001790	bsr.w	0x0003bb48	frontend_state4_update_3a39a	UNCONDITIONAL_CALL:0003bb48
+0x03A3BA	006D0001003A	ori.w	#0x1, (0x3a,A5)	frontend_state4_update_3a39a	
+0x03A3C0	6012	bra.b	0x0003a3d4	frontend_state4_update_3a39a	UNCONDITIONAL_JUMP:0003a3d4
+0x03A3C2	703B	moveq	0x3b, D0	frontend_state4_update_3a39a	
+0x03A3C4	61001782	bsr.w	0x0003bb48	frontend_state4_update_3a39a	UNCONDITIONAL_CALL:0003bb48
+0x03A3C8	7008	moveq	0x8, D0	frontend_state4_update_3a39a	
+0x03A3CA	6100177C	bsr.w	0x0003bb48	frontend_state4_update_3a39a	UNCONDITIONAL_CALL:0003bb48
+0x03A3CE	006D0002003A	ori.w	#0x2, (0x3a,A5)	frontend_state4_update_3a39a	
+0x03A3D4	3B7C00A0002C	move.w	#0xa0, (0x2c,A5)	frontend_state4_update_3a39a	
+0x03A3DA	0C6D0003003A	cmpi.w	#0x3, (0x3a,A5)	frontend_state4_update_3a39a	
+0x03A3E0	6608	bne.b	0x0003a3ea	frontend_state4_update_3a39a	CONDITIONAL_JUMP:0003a3ea
+0x03A3E2	3B7C00050004	move.w	#0x5, (0x4,A5)	frontend_state4_update_3a39a	
+0x03A3E8	4E75	rts		frontend_state4_update_3a39a	
+0x03A3EA	4A6D002A	tst.w	(0x2a,A5)	frontend_state4_update_3a39a	
+0x03A3EE	6616	bne.b	0x0003a406	frontend_state4_update_3a39a	CONDITIONAL_JUMP:0003a406
+0x03A3F0	082D0001003B	btst.b	#0x1, (0x3b,A5)	frontend_state4_update_3a39a	
+0x03A3F6	6600FE58	bne.w	0x0003a250	frontend_state4_update_3a39a	CONDITIONAL_JUMP:0003a250
+0x03A3FA	6100FE98	bsr.w	0x0003a294	frontend_state4_update_3a39a	UNCONDITIONAL_CALL:0003a294
+0x03A3FE	3B7C0001002A	move.w	#0x1, (0x2a,A5)	frontend_state4_update_3a39a	
+0x03A404	6012	bra.b	0x0003a418	frontend_state4_update_3a39a	UNCONDITIONAL_JUMP:0003a418
+0x03A406	082D0000003B	btst.b	#0x0, (0x3b,A5)	frontend_state4_update_3a39a	
+0x03A40C	6600FE42	bne.w	0x0003a250	frontend_state4_update_3a39a	CONDITIONAL_JUMP:0003a250
+0x03A410	6100FEA0	bsr.w	0x0003a2b2	frontend_state4_update_3a39a	UNCONDITIONAL_CALL:0003a2b2
+0x03A414	426D002A	clr.w	(0x2a,A5)	frontend_state4_update_3a39a	
+0x03A418	3B7C00070004	move.w	#0x7, (0x4,A5)	frontend_state4_update_3a39a	
+0x03A41E	4E75	rts		frontend_state4_update_3a39a	
+0x03A420	4EB90005A442	jsr	0x0005a442.l	frontend_state5_update_3a420	UNCONDITIONAL_CALL:0005a442
+0x03A426	203C000000BA	move.l	#0xba, D0	frontend_state5_update_3a420	
+0x03A42C	6100171A	bsr.w	0x0003bb48	frontend_state5_update_3a420	UNCONDITIONAL_CALL:0003bb48
+0x03A430	7008	moveq	0x8, D0	frontend_state5_update_3a420	
+0x03A432	61001714	bsr.w	0x0003bb48	frontend_state5_update_3a420	UNCONDITIONAL_CALL:0003bb48
+0x03A436	426D002A	clr.w	(0x2a,A5)	frontend_state5_update_3a420	
+0x03A43A	6100099C	bsr.w	0x0003add8	frontend_state5_update_3a420	UNCONDITIONAL_CALL:0003add8
+0x03A43E	3B7C00A0002C	move.w	#0xa0, (0x2c,A5)	frontend_state5_update_3a420	
+0x03A444	426D003A	clr.w	(0x3a,A5)	frontend_state5_update_3a420	
+0x03A448	3B7C00060004	move.w	#0x6, (0x4,A5)	frontend_state5_update_3a420	
+0x03A44E	4E75	rts		frontend_state5_update_3a420	
+0x03A450	426D0000	clr.w	(0x0,A5)	frontend_state6_update_3a450	
+0x03A454	4A6D0012	tst.w	(0x12,A5)	frontend_state6_update_3a450	
+0x03A458	6706	beq.b	0x0003a460	frontend_state6_update_3a450	CONDITIONAL_JUMP:0003a460
+0x03A45A	3B7C00010000	move.w	#0x1, (0x0,A5)	frontend_state6_update_3a450	
+0x03A460	426D0034	clr.w	(0x34,A5)	frontend_state6_update_3a450	
+0x03A464	426D0028	clr.w	(0x28,A5)	frontend_state6_update_3a450	
+0x03A468	426D002A	clr.w	(0x2a,A5)	frontend_state6_update_3a450	
+0x03A46C	6100096A	bsr.w	0x0003add8	frontend_state6_update_3a450	UNCONDITIONAL_CALL:0003add8
+0x03A470	6000FDDE	bra.w	0x0003a250	frontend_state6_update_3a450	UNCONDITIONAL_JUMP:0003a250
+0x03A474	6000FDDA	bra.w	0x0003a250	frontend_state7_update_3a474	UNCONDITIONAL_JUMP:0003a250
+0x03A478	4A6D0012	tst.w	(0x12,A5)	frontend_state8_update_3a478	
+0x03A47C	6712	beq.b	0x0003a490	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a490
+0x03A47E	0C79004900C0883A	cmpi.w	#0x49, (0x00c0883a).l	frontend_state8_update_3a478	READ:00c0883a
+0x03A486	6608	bne.b	0x0003a490	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a490
+0x03A488	303C009A	move.w	#0x9a, D0w	frontend_state8_update_3a478	
+0x03A48C	610016BA	bsr.w	0x0003bb48	frontend_state8_update_3a478	UNCONDITIONAL_CALL:0003bb48
+0x03A490	103900390007	move.b	(0x00390007).l, D0b	frontend_state8_update_3a478	READ:00390007
+0x03A496	02000018	andi.b	#0x18, D0b	frontend_state8_update_3a478	
+0x03A49A	0C000018	cmpi.b	#0x18, D0b	frontend_state8_update_3a478	
+0x03A49E	66000064	bne.w	0x0003a504	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a504
+0x03A4A2	103900390001	move.b	(0x00390001).l, D0b	frontend_state8_update_3a478	READ:00390001
+0x03A4A8	123900390003	move.b	(0x00390003).l, D1b	frontend_state8_update_3a478	READ:00390003
+0x03A4AE	082D0000001F	btst.b	#0x0, (0x1f,A5)	frontend_state8_update_3a478	
+0x03A4B4	6702	beq.b	0x0003a4b8	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a4b8
+0x03A4B6	C141	exg	D0, D1	frontend_state8_update_3a478	
+0x03A4B8	4A6D0032	tst.w	(0x32,A5)	frontend_state8_update_3a478	
+0x03A4BC	6702	beq.b	0x0003a4c0	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a4c0
+0x03A4BE	C141	exg	D0, D1	frontend_state8_update_3a478	
+0x03A4C0	02400030	andi.w	#0x30, D0w	frontend_state8_update_3a478	
+0x03A4C4	0C400030	cmpi.w	#0x30, D0w	frontend_state8_update_3a478	
+0x03A4C8	6628	bne.b	0x0003a4f2	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a4f2
+0x03A4CA	046D00010204	subi.w	#0x1, (0x204,A5)	frontend_state8_update_3a478	
+0x03A4D0	6702	beq.b	0x0003a4d4	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a4d4
+0x03A4D2	4E75	rts		frontend_state8_update_3a478	
+0x03A4D4	3B7C00600204	move.w	#0x60, (0x204,A5)	frontend_state8_update_3a478	
+0x03A4DA	0C6D00090202	cmpi.w	#0x9, (0x202,A5)	frontend_state8_update_3a478	
+0x03A4E0	6410	bcc.b	0x0003a4f2	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a4f2
+0x03A4E2	066D00010202	addi.w	#0x1, (0x202,A5)	frontend_state8_update_3a478	
+0x03A4E8	302D0202	move.w	(0x202,A5), D0w	frontend_state8_update_3a478	
+0x03A4EC	61002B56	bsr.w	0x0003d044	frontend_state8_update_3a478	UNCONDITIONAL_CALL:0003d044
+0x03A4F0	4E75	rts		frontend_state8_update_3a478	
+0x03A4F2	4A6D0202	tst.w	(0x202,A5)	frontend_state8_update_3a478	
+0x03A4F6	670A	beq.b	0x0003a502	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a502
+0x03A4F8	61000960	bsr.w	0x0003ae5a	frontend_state8_update_3a478	UNCONDITIONAL_CALL:0003ae5a
+0x03A4FC	3B7C00040004	move.w	#0x4, (0x4,A5)	frontend_state8_update_3a478	
+0x03A502	4E75	rts		frontend_state8_update_3a478	
+0x03A504	4A6D0012	tst.w	(0x12,A5)	frontend_state8_update_3a478	
+0x03A508	67C0	beq.b	0x0003a4ca	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a4ca
+0x03A50A	303C0012	move.w	#0x12, D0w	frontend_state8_update_3a478	
+0x03A50E	4A6D0028	tst.w	(0x28,A5)	frontend_state8_update_3a478	
+0x03A512	670A	beq.b	0x0003a51e	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a51e
+0x03A514	4A6D002A	tst.w	(0x2a,A5)	frontend_state8_update_3a478	
+0x03A518	6704	beq.b	0x0003a51e	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a51e
+0x03A51A	303C0013	move.w	#0x13, D0w	frontend_state8_update_3a478	
+0x03A51E	3B40004A	move.w	D0w, (0x4a,A5)	frontend_state8_update_3a478	
+0x03A522	3B6D00360100	move.w	(0x36,A5), (0x100,A5)	frontend_state8_update_3a478	
+0x03A528	7001	moveq	0x1, D0	frontend_state8_update_3a478	
+0x03A52A	322D0012	move.w	(0x12,A5), D1w	frontend_state8_update_3a478	
+0x03A52E	44FC0000	move	#0x0	frontend_state8_update_3a478	
+0x03A532	8300	sbcd	D0b, D1b	frontend_state8_update_3a478	
+0x03A534	3B410012	move.w	D1w, (0x12,A5)	frontend_state8_update_3a478	
+0x03A538	0C8100000009	cmpi.l	#0x9, D1	frontend_state8_update_3a478	
+0x03A53E	6404	bcc.b	0x0003a544	frontend_state8_update_3a478	CONDITIONAL_JUMP:0003a544
+0x03A540	610008E6	bsr.w	0x0003ae28	frontend_state8_update_3a478	UNCONDITIONAL_CALL:0003ae28
+0x03A544	7003	moveq	0x3, D0	frontend_state8_update_3a478	
+0x03A546	61001D9A	bsr.w	0x0003c2e2	frontend_state8_update_3a478	UNCONDITIONAL_CALL:0003c2e2
+0x03A54A	61000006	bsr.w	0x0003a552	frontend_state8_update_3a478	UNCONDITIONAL_CALL:0003a552
+0x03A54E	6000FCFA	bra.w	0x0003a24a	frontend_state8_update_3a478	UNCONDITIONAL_JUMP:0003a24a
 0x03A552	0C39003000C09EA3	cmpi.b	#0x30, (0x00c09ea3).l	FUN_0003a552	READ:00c09ea3
 0x03A55A	6608	bne.b	0x0003a564	FUN_0003a552	CONDITIONAL_JUMP:0003a564
 0x03A55C	13FC002000C09EA3	move.b	#0x20, (0x00c09ea3).l	FUN_0003a552	WRITE:00c09ea3
@@ -641,6 +895,15 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03AD46	5341	subq.w	0x1, D1w	FUN_0003ad44	
 0x03AD48	66FA	bne.b	0x0003ad44	FUN_0003ad44	CONDITIONAL_JUMP:0003ad44
 0x03AD4A	4E75	rts		FUN_0003ad44	
+0x03AD4C	323C0008	move.w	#0x8, D1w	FUN_0003ad4c	
+0x03AD50	41F900D00000	lea	(0xd00000).l, A0	FUN_0003ad4c	DATA:00d00000
+0x03AD56	203C00000100	move.l	#0x100, D0	FUN_0003ad4c	
+0x03AD5C	61E6	bsr.b	0x0003ad44	FUN_0003ad4c	UNCONDITIONAL_CALL:0003ad44
+0x03AD5E	323C0182	move.w	#0x182, D1w	FUN_0003ad4c	
+0x03AD62	41F900D00170	lea	(0xd00170).l, A0	FUN_0003ad4c	DATA:00d00170
+0x03AD68	203C00000100	move.l	#0x100, D0	FUN_0003ad4c	
+0x03AD6E	61D4	bsr.b	0x0003ad44	FUN_0003ad4c	UNCONDITIONAL_CALL:0003ad44
+0x03AD70	4E75	rts		FUN_0003ad4c	
 0x03AD72	323C01E0	move.w	#0x1e0, D1w	FUN_0003ad72	
 0x03AD76	41F900D00000	lea	(0xd00000).l, A0	FUN_0003ad72	DATA:00d00000
 0x03AD7C	203C00000100	move.l	#0x100, D0	FUN_0003ad72	
@@ -694,6 +957,9 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03AE50	302D0014	move.w	(0x14,A5), D0w	FUN_0003ae50	
 0x03AE54	0240FFFC	andi.w	#-0x4, D0w	FUN_0003ae50	
 0x03AE58	60D6	bra.b	0x0003ae30	FUN_0003ae50	UNCONDITIONAL_JUMP:0003ae30
+0x03AE5A	61000008	bsr.w	0x0003ae64	FUN_0003ae5a	UNCONDITIONAL_CALL:0003ae64
+0x03AE5E	61000238	bsr.w	0x0003b098	FUN_0003ae5a	UNCONDITIONAL_CALL:0003b098
+0x03AE62	4E75	rts		FUN_0003ae5a	
 0x03AE64	41F900C00100	lea	(0xc00100).l, A0	FUN_0003ae64	DATA:00c00100
 0x03AE6A	323C076C	move.w	#0x76c, D1w	FUN_0003ae64	
 0x03AE6E	7020	moveq	0x20, D0	FUN_0003ae64	
@@ -1055,30 +1321,30 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03C376	4E75	rts		FUN_0003c2e2	
 0x03C378	7001	moveq	0x1, D0	FUN_0003c2e2	
 0x03C37A	6086	bra.b	0x0003c302	FUN_0003c2e2	UNCONDITIONAL_JUMP:0003c302
-0x03C4D2	2449	movea.l	A1, A2	FUN_0003d054	
-0x03C4D4	D4FC0050	adda.w	#0x50, A2	FUN_0003d054	
-0x03C4D8	20680002	movea.l	(0x2,A0), A0	FUN_0003d054	
-0x03C4DC	102C000B	move.b	(0xb,A4), D0b	FUN_0003d054	
-0x03C4E0	4880	ext.w	D0w	FUN_0003d054	
-0x03C4E2	0C400020	cmpi.w	#0x20, D0w	FUN_0003d054	
-0x03C4E6	6610	bne.b	0x0003c4f8	FUN_0003d054	CONDITIONAL_JUMP:0003c4f8
-0x03C4E8	780A	moveq	0xa, D4	FUN_0003d054	
-0x03C4EA	337C01800002	move.w	#0x180, (0x2,A1)	FUN_0003d054	
-0x03C4F0	5089	addq.l	0x8, A1	FUN_0003d054	
-0x03C4F2	5344	subq.w	0x1, D4w	FUN_0003d054	
-0x03C4F4	66F4	bne.b	0x0003c4ea	FUN_0003d054	CONDITIONAL_JUMP:0003c4ea
-0x03C4F6	601A	bra.b	0x0003c512	FUN_0003d054	UNCONDITIONAL_JUMP:0003c512
-0x03C4F8	C0FC0005	mulu.w	#0x5, D0	FUN_0003d054	
-0x03C4FC	D0C0	adda.w	D0w, A0	FUN_0003d054	
-0x03C4FE	7805	moveq	0x5, D4	FUN_0003d054	
-0x03C500	4242	clr.w	D2w	FUN_0003d054	
-0x03C502	61000012	bsr.w	0x0003c516	FUN_0003d054	UNCONDITIONAL_CALL:0003c516
-0x03C506	5B88	subq.l	0x5, A0	FUN_0003d054	
-0x03C508	7805	moveq	0x5, D4	FUN_0003d054	
-0x03C50A	343CFFF0	move.w	#-0x10, D2w	FUN_0003d054	
-0x03C50E	61000006	bsr.w	0x0003c516	FUN_0003d054	UNCONDITIONAL_CALL:0003c516
-0x03C512	224A	movea.l	A2, A1	FUN_0003d054	
-0x03C514	4E75	rts		FUN_0003d054	
+0x03C4D2	2449	movea.l	A1, A2	actor_four_record_expand_3c902	
+0x03C4D4	D4FC0050	adda.w	#0x50, A2	actor_four_record_expand_3c902	
+0x03C4D8	20680002	movea.l	(0x2,A0), A0	actor_four_record_expand_3c902	
+0x03C4DC	102C000B	move.b	(0xb,A4), D0b	actor_four_record_expand_3c902	
+0x03C4E0	4880	ext.w	D0w	actor_four_record_expand_3c902	
+0x03C4E2	0C400020	cmpi.w	#0x20, D0w	actor_four_record_expand_3c902	
+0x03C4E6	6610	bne.b	0x0003c4f8	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c4f8
+0x03C4E8	780A	moveq	0xa, D4	actor_four_record_expand_3c902	
+0x03C4EA	337C01800002	move.w	#0x180, (0x2,A1)	actor_four_record_expand_3c902	
+0x03C4F0	5089	addq.l	0x8, A1	actor_four_record_expand_3c902	
+0x03C4F2	5344	subq.w	0x1, D4w	actor_four_record_expand_3c902	
+0x03C4F4	66F4	bne.b	0x0003c4ea	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c4ea
+0x03C4F6	601A	bra.b	0x0003c512	actor_four_record_expand_3c902	UNCONDITIONAL_JUMP:0003c512
+0x03C4F8	C0FC0005	mulu.w	#0x5, D0	actor_four_record_expand_3c902	
+0x03C4FC	D0C0	adda.w	D0w, A0	actor_four_record_expand_3c902	
+0x03C4FE	7805	moveq	0x5, D4	actor_four_record_expand_3c902	
+0x03C500	4242	clr.w	D2w	actor_four_record_expand_3c902	
+0x03C502	61000012	bsr.w	0x0003c516	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c516
+0x03C506	5B88	subq.l	0x5, A0	actor_four_record_expand_3c902	
+0x03C508	7805	moveq	0x5, D4	actor_four_record_expand_3c902	
+0x03C50A	343CFFF0	move.w	#-0x10, D2w	actor_four_record_expand_3c902	
+0x03C50E	61000006	bsr.w	0x0003c516	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c516
+0x03C512	224A	movea.l	A2, A1	actor_four_record_expand_3c902	
+0x03C514	4E75	rts		actor_four_record_expand_3c902	
 0x03C516	1018	move.b	(A0)+, D0b	FUN_0003c516	
 0x03C518	4880	ext.w	D0w	FUN_0003c516	
 0x03C51A	0C030050	cmpi.b	#0x50, D3b	FUN_0003c516	
@@ -1098,65 +1364,65 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03C54A	5344	subq.w	0x1, D4w	FUN_0003c516	
 0x03C54C	66C8	bne.b	0x0003c516	FUN_0003c516	CONDITIONAL_JUMP:0003c516
 0x03C54E	4E75	rts		FUN_0003c516	
-0x03C550	20680002	movea.l	(0x2,A0), A0	FUN_0003d054	
-0x03C554	102C000B	move.b	(0xb,A4), D0b	FUN_0003d054	
-0x03C558	4880	ext.w	D0w	FUN_0003d054	
-0x03C55A	D0C0	adda.w	D0w, A0	FUN_0003d054	
-0x03C55C	4244	clr.w	D4w	FUN_0003d054	
-0x03C55E	7604	moveq	0x4, D3	FUN_0003d054	
-0x03C560	1210	move.b	(A0), D1b	FUN_0003d054	
-0x03C562	4881	ext.w	D1w	FUN_0003d054	
-0x03C564	3001	move.w	D1w, D0w	FUN_0003d054	
-0x03C566	D06C0016	add.w	(0x16,A4), D0w	FUN_0003d054	
-0x03C56A	D044	add.w	D4w, D0w	FUN_0003d054	
-0x03C56C	33400006	move.w	D0w, (0x6,A1)	FUN_0003d054	
-0x03C570	336C001A0002	move.w	(0x1a,A4), (0x2,A1)	FUN_0003d054	
-0x03C576	5089	addq.l	0x8, A1	FUN_0003d054	
-0x03C578	06440010	addi.w	#0x10, D4w	FUN_0003d054	
-0x03C57C	5343	subq.w	0x1, D3w	FUN_0003d054	
-0x03C57E	66E4	bne.b	0x0003c564	FUN_0003d054	CONDITIONAL_JUMP:0003c564
-0x03C580	D2FC0030	adda.w	#0x30, A1	FUN_0003d054	
-0x03C584	4E75	rts		FUN_0003d054	
-0x03C586	20680002	movea.l	(0x2,A0), A0	FUN_0003d054	
-0x03C58A	102C000B	move.b	(0xb,A4), D0b	FUN_0003d054	
-0x03C58E	4880	ext.w	D0w	FUN_0003d054	
-0x03C590	C0FC0003	mulu.w	#0x3, D0	FUN_0003d054	
-0x03C594	D0C0	adda.w	D0w, A0	FUN_0003d054	
-0x03C596	0C2C00060001	cmpi.b	#0x6, (0x1,A4)	FUN_0003d054	
-0x03C59C	6732	beq.b	0x0003c5d0	FUN_0003d054	CONDITIONAL_JUMP:0003c5d0
-0x03C59E	7603	moveq	0x3, D3	FUN_0003d054	
-0x03C5A0	4242	clr.w	D2w	FUN_0003d054	
-0x03C5A2	61000062	bsr.w	0x0003c606	FUN_0003d054	UNCONDITIONAL_CALL:0003c606
-0x03C5A6	4247	clr.w	D7w	FUN_0003d054	
-0x03C5A8	4246	clr.w	D6w	FUN_0003d054	
-0x03C5AA	61000196	bsr.w	0x0003c742	FUN_0003d054	UNCONDITIONAL_CALL:0003c742
-0x03C5AE	D2FC0008	adda.w	#0x8, A1	FUN_0003d054	
-0x03C5B2	90FC0003	suba.w	#0x3, A0	FUN_0003d054	
-0x03C5B6	7603	moveq	0x3, D3	FUN_0003d054	
-0x03C5B8	343CFFF0	move.w	#-0x10, D2w	FUN_0003d054	
-0x03C5BC	61000048	bsr.w	0x0003c606	FUN_0003d054	UNCONDITIONAL_CALL:0003c606
-0x03C5C0	4247	clr.w	D7w	FUN_0003d054	
-0x03C5C2	3C3CFFF0	move.w	#-0x10, D6w	FUN_0003d054	
-0x03C5C6	6100017A	bsr.w	0x0003c742	FUN_0003d054	UNCONDITIONAL_CALL:0003c742
-0x03C5CA	D2FC0018	adda.w	#0x18, A1	FUN_0003d054	
-0x03C5CE	4E75	rts		FUN_0003d054	
-0x03C5D0	4247	clr.w	D7w	FUN_0003d054	
-0x03C5D2	4246	clr.w	D6w	FUN_0003d054	
-0x03C5D4	6100016C	bsr.w	0x0003c742	FUN_0003d054	UNCONDITIONAL_CALL:0003c742
-0x03C5D8	D2FC0008	adda.w	#0x8, A1	FUN_0003d054	
-0x03C5DC	7603	moveq	0x3, D3	FUN_0003d054	
-0x03C5DE	4242	clr.w	D2w	FUN_0003d054	
-0x03C5E0	61000024	bsr.w	0x0003c606	FUN_0003d054	UNCONDITIONAL_CALL:0003c606
-0x03C5E4	90FC0003	suba.w	#0x3, A0	FUN_0003d054	
-0x03C5E8	4247	clr.w	D7w	FUN_0003d054	
-0x03C5EA	3C3CFFF0	move.w	#-0x10, D6w	FUN_0003d054	
-0x03C5EE	61000152	bsr.w	0x0003c742	FUN_0003d054	UNCONDITIONAL_CALL:0003c742
-0x03C5F2	D2FC0008	adda.w	#0x8, A1	FUN_0003d054	
-0x03C5F6	7603	moveq	0x3, D3	FUN_0003d054	
-0x03C5F8	343CFFF0	move.w	#-0x10, D2w	FUN_0003d054	
-0x03C5FC	61000008	bsr.w	0x0003c606	FUN_0003d054	UNCONDITIONAL_CALL:0003c606
-0x03C600	D2FC0010	adda.w	#0x10, A1	FUN_0003d054	
-0x03C604	4E75	rts		FUN_0003d054	
+0x03C550	20680002	movea.l	(0x2,A0), A0	actor_four_record_expand_3c902	
+0x03C554	102C000B	move.b	(0xb,A4), D0b	actor_four_record_expand_3c902	
+0x03C558	4880	ext.w	D0w	actor_four_record_expand_3c902	
+0x03C55A	D0C0	adda.w	D0w, A0	actor_four_record_expand_3c902	
+0x03C55C	4244	clr.w	D4w	actor_four_record_expand_3c902	
+0x03C55E	7604	moveq	0x4, D3	actor_four_record_expand_3c902	
+0x03C560	1210	move.b	(A0), D1b	actor_four_record_expand_3c902	
+0x03C562	4881	ext.w	D1w	actor_four_record_expand_3c902	
+0x03C564	3001	move.w	D1w, D0w	actor_four_record_expand_3c902	
+0x03C566	D06C0016	add.w	(0x16,A4), D0w	actor_four_record_expand_3c902	
+0x03C56A	D044	add.w	D4w, D0w	actor_four_record_expand_3c902	
+0x03C56C	33400006	move.w	D0w, (0x6,A1)	actor_four_record_expand_3c902	
+0x03C570	336C001A0002	move.w	(0x1a,A4), (0x2,A1)	actor_four_record_expand_3c902	
+0x03C576	5089	addq.l	0x8, A1	actor_four_record_expand_3c902	
+0x03C578	06440010	addi.w	#0x10, D4w	actor_four_record_expand_3c902	
+0x03C57C	5343	subq.w	0x1, D3w	actor_four_record_expand_3c902	
+0x03C57E	66E4	bne.b	0x0003c564	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c564
+0x03C580	D2FC0030	adda.w	#0x30, A1	actor_four_record_expand_3c902	
+0x03C584	4E75	rts		actor_four_record_expand_3c902	
+0x03C586	20680002	movea.l	(0x2,A0), A0	actor_four_record_expand_3c902	
+0x03C58A	102C000B	move.b	(0xb,A4), D0b	actor_four_record_expand_3c902	
+0x03C58E	4880	ext.w	D0w	actor_four_record_expand_3c902	
+0x03C590	C0FC0003	mulu.w	#0x3, D0	actor_four_record_expand_3c902	
+0x03C594	D0C0	adda.w	D0w, A0	actor_four_record_expand_3c902	
+0x03C596	0C2C00060001	cmpi.b	#0x6, (0x1,A4)	actor_four_record_expand_3c902	
+0x03C59C	6732	beq.b	0x0003c5d0	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c5d0
+0x03C59E	7603	moveq	0x3, D3	actor_four_record_expand_3c902	
+0x03C5A0	4242	clr.w	D2w	actor_four_record_expand_3c902	
+0x03C5A2	61000062	bsr.w	0x0003c606	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c606
+0x03C5A6	4247	clr.w	D7w	actor_four_record_expand_3c902	
+0x03C5A8	4246	clr.w	D6w	actor_four_record_expand_3c902	
+0x03C5AA	61000196	bsr.w	0x0003c742	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c742
+0x03C5AE	D2FC0008	adda.w	#0x8, A1	actor_four_record_expand_3c902	
+0x03C5B2	90FC0003	suba.w	#0x3, A0	actor_four_record_expand_3c902	
+0x03C5B6	7603	moveq	0x3, D3	actor_four_record_expand_3c902	
+0x03C5B8	343CFFF0	move.w	#-0x10, D2w	actor_four_record_expand_3c902	
+0x03C5BC	61000048	bsr.w	0x0003c606	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c606
+0x03C5C0	4247	clr.w	D7w	actor_four_record_expand_3c902	
+0x03C5C2	3C3CFFF0	move.w	#-0x10, D6w	actor_four_record_expand_3c902	
+0x03C5C6	6100017A	bsr.w	0x0003c742	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c742
+0x03C5CA	D2FC0018	adda.w	#0x18, A1	actor_four_record_expand_3c902	
+0x03C5CE	4E75	rts		actor_four_record_expand_3c902	
+0x03C5D0	4247	clr.w	D7w	actor_four_record_expand_3c902	
+0x03C5D2	4246	clr.w	D6w	actor_four_record_expand_3c902	
+0x03C5D4	6100016C	bsr.w	0x0003c742	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c742
+0x03C5D8	D2FC0008	adda.w	#0x8, A1	actor_four_record_expand_3c902	
+0x03C5DC	7603	moveq	0x3, D3	actor_four_record_expand_3c902	
+0x03C5DE	4242	clr.w	D2w	actor_four_record_expand_3c902	
+0x03C5E0	61000024	bsr.w	0x0003c606	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c606
+0x03C5E4	90FC0003	suba.w	#0x3, A0	actor_four_record_expand_3c902	
+0x03C5E8	4247	clr.w	D7w	actor_four_record_expand_3c902	
+0x03C5EA	3C3CFFF0	move.w	#-0x10, D6w	actor_four_record_expand_3c902	
+0x03C5EE	61000152	bsr.w	0x0003c742	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c742
+0x03C5F2	D2FC0008	adda.w	#0x8, A1	actor_four_record_expand_3c902	
+0x03C5F6	7603	moveq	0x3, D3	actor_four_record_expand_3c902	
+0x03C5F8	343CFFF0	move.w	#-0x10, D2w	actor_four_record_expand_3c902	
+0x03C5FC	61000008	bsr.w	0x0003c606	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c606
+0x03C600	D2FC0010	adda.w	#0x10, A1	actor_four_record_expand_3c902	
+0x03C604	4E75	rts		actor_four_record_expand_3c902	
 0x03C606	1018	move.b	(A0)+, D0b	FUN_0003c606	
 0x03C608	4880	ext.w	D0w	FUN_0003c606	
 0x03C60A	0C0000FF	cmpi.b	#-0x1, D0b	FUN_0003c606	
@@ -1173,43 +1439,43 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03C630	5343	subq.w	0x1, D3w	FUN_0003c606	
 0x03C632	66D2	bne.b	0x0003c606	FUN_0003c606	CONDITIONAL_JUMP:0003c606
 0x03C634	4E75	rts		FUN_0003c606	
-0x03C636	20680002	movea.l	(0x2,A0), A0	FUN_0003d054	
-0x03C63A	102C000B	move.b	(0xb,A4), D0b	FUN_0003d054	
-0x03C63E	4880	ext.w	D0w	FUN_0003d054	
-0x03C640	E548	lsl.w	#0x2, D0w	FUN_0003d054	
-0x03C642	D0C0	adda.w	D0w, A0	FUN_0003d054	
-0x03C644	0C2D00020118	cmpi.b	#0x2, (0x118,A5)	FUN_0003d054	
-0x03C64A	6712	beq.b	0x0003c65e	FUN_0003d054	CONDITIONAL_JUMP:0003c65e
-0x03C64C	0C6D0062013E	cmpi.w	#0x62, (0x13e,A5)	FUN_0003d054	
-0x03C652	6520	bcs.b	0x0003c674	FUN_0003d054	CONDITIONAL_JUMP:0003c674
-0x03C654	0C6D0064013E	cmpi.w	#0x64, (0x13e,A5)	FUN_0003d054	
-0x03C65A	6502	bcs.b	0x0003c65e	FUN_0003d054	CONDITIONAL_JUMP:0003c65e
-0x03C65C	6016	bra.b	0x0003c674	FUN_0003d054	UNCONDITIONAL_JUMP:0003c674
-0x03C65E	4246	clr.w	D6w	FUN_0003d054	
-0x03C660	4247	clr.w	D7w	FUN_0003d054	
-0x03C662	610000DE	bsr.w	0x0003c742	FUN_0003d054	UNCONDITIONAL_CALL:0003c742
-0x03C666	5089	addq.l	0x8, A1	FUN_0003d054	
-0x03C668	4246	clr.w	D6w	FUN_0003d054	
-0x03C66A	3E3CFFF0	move.w	#-0x10, D7w	FUN_0003d054	
-0x03C66E	610000D2	bsr.w	0x0003c742	FUN_0003d054	UNCONDITIONAL_CALL:0003c742
-0x03C672	5089	addq.l	0x8, A1	FUN_0003d054	
-0x03C674	7602	moveq	0x2, D3	FUN_0003d054	
-0x03C676	4242	clr.w	D2w	FUN_0003d054	
-0x03C678	61000032	bsr.w	0x0003c6ac	FUN_0003d054	UNCONDITIONAL_CALL:0003c6ac
-0x03C67C	7602	moveq	0x2, D3	FUN_0003d054	
-0x03C67E	343CFFF0	move.w	#-0x10, D2w	FUN_0003d054	
-0x03C682	61000028	bsr.w	0x0003c6ac	FUN_0003d054	UNCONDITIONAL_CALL:0003c6ac
-0x03C686	0C2D00020118	cmpi.b	#0x2, (0x118,A5)	FUN_0003d054	
-0x03C68C	6712	beq.b	0x0003c6a0	FUN_0003d054	CONDITIONAL_JUMP:0003c6a0
-0x03C68E	0C6D0062013E	cmpi.w	#0x62, (0x13e,A5)	FUN_0003d054	
-0x03C694	6510	bcs.b	0x0003c6a6	FUN_0003d054	CONDITIONAL_JUMP:0003c6a6
-0x03C696	0C6D0064013E	cmpi.w	#0x64, (0x13e,A5)	FUN_0003d054	
-0x03C69C	6502	bcs.b	0x0003c6a0	FUN_0003d054	CONDITIONAL_JUMP:0003c6a0
-0x03C69E	6006	bra.b	0x0003c6a6	FUN_0003d054	UNCONDITIONAL_JUMP:0003c6a6
-0x03C6A0	D2FC0020	adda.w	#0x20, A1	FUN_0003d054	
-0x03C6A4	4E75	rts		FUN_0003d054	
-0x03C6A6	D2FC0030	adda.w	#0x30, A1	FUN_0003d054	
-0x03C6AA	4E75	rts		FUN_0003d054	
+0x03C636	20680002	movea.l	(0x2,A0), A0	actor_four_record_expand_3c902	
+0x03C63A	102C000B	move.b	(0xb,A4), D0b	actor_four_record_expand_3c902	
+0x03C63E	4880	ext.w	D0w	actor_four_record_expand_3c902	
+0x03C640	E548	lsl.w	#0x2, D0w	actor_four_record_expand_3c902	
+0x03C642	D0C0	adda.w	D0w, A0	actor_four_record_expand_3c902	
+0x03C644	0C2D00020118	cmpi.b	#0x2, (0x118,A5)	actor_four_record_expand_3c902	
+0x03C64A	6712	beq.b	0x0003c65e	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c65e
+0x03C64C	0C6D0062013E	cmpi.w	#0x62, (0x13e,A5)	actor_four_record_expand_3c902	
+0x03C652	6520	bcs.b	0x0003c674	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c674
+0x03C654	0C6D0064013E	cmpi.w	#0x64, (0x13e,A5)	actor_four_record_expand_3c902	
+0x03C65A	6502	bcs.b	0x0003c65e	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c65e
+0x03C65C	6016	bra.b	0x0003c674	actor_four_record_expand_3c902	UNCONDITIONAL_JUMP:0003c674
+0x03C65E	4246	clr.w	D6w	actor_four_record_expand_3c902	
+0x03C660	4247	clr.w	D7w	actor_four_record_expand_3c902	
+0x03C662	610000DE	bsr.w	0x0003c742	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c742
+0x03C666	5089	addq.l	0x8, A1	actor_four_record_expand_3c902	
+0x03C668	4246	clr.w	D6w	actor_four_record_expand_3c902	
+0x03C66A	3E3CFFF0	move.w	#-0x10, D7w	actor_four_record_expand_3c902	
+0x03C66E	610000D2	bsr.w	0x0003c742	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c742
+0x03C672	5089	addq.l	0x8, A1	actor_four_record_expand_3c902	
+0x03C674	7602	moveq	0x2, D3	actor_four_record_expand_3c902	
+0x03C676	4242	clr.w	D2w	actor_four_record_expand_3c902	
+0x03C678	61000032	bsr.w	0x0003c6ac	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c6ac
+0x03C67C	7602	moveq	0x2, D3	actor_four_record_expand_3c902	
+0x03C67E	343CFFF0	move.w	#-0x10, D2w	actor_four_record_expand_3c902	
+0x03C682	61000028	bsr.w	0x0003c6ac	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c6ac
+0x03C686	0C2D00020118	cmpi.b	#0x2, (0x118,A5)	actor_four_record_expand_3c902	
+0x03C68C	6712	beq.b	0x0003c6a0	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c6a0
+0x03C68E	0C6D0062013E	cmpi.w	#0x62, (0x13e,A5)	actor_four_record_expand_3c902	
+0x03C694	6510	bcs.b	0x0003c6a6	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c6a6
+0x03C696	0C6D0064013E	cmpi.w	#0x64, (0x13e,A5)	actor_four_record_expand_3c902	
+0x03C69C	6502	bcs.b	0x0003c6a0	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c6a0
+0x03C69E	6006	bra.b	0x0003c6a6	actor_four_record_expand_3c902	UNCONDITIONAL_JUMP:0003c6a6
+0x03C6A0	D2FC0020	adda.w	#0x20, A1	actor_four_record_expand_3c902	
+0x03C6A4	4E75	rts		actor_four_record_expand_3c902	
+0x03C6A6	D2FC0030	adda.w	#0x30, A1	actor_four_record_expand_3c902	
+0x03C6AA	4E75	rts		actor_four_record_expand_3c902	
 0x03C6AC	1018	move.b	(A0)+, D0b	FUN_0003c6ac	
 0x03C6AE	4880	ext.w	D0w	FUN_0003c6ac	
 0x03C6B0	0C0000FF	cmpi.b	#-0x1, D0b	FUN_0003c6ac	
@@ -1226,21 +1492,21 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03C6D6	5343	subq.w	0x1, D3w	FUN_0003c6ac	
 0x03C6D8	66D2	bne.b	0x0003c6ac	FUN_0003c6ac	CONDITIONAL_JUMP:0003c6ac
 0x03C6DA	4E75	rts		FUN_0003c6ac	
-0x03C6DC	20680002	movea.l	(0x2,A0), A0	FUN_0003d054	
-0x03C6E0	102C000B	move.b	(0xb,A4), D0b	FUN_0003d054	
-0x03C6E4	4880	ext.w	D0w	FUN_0003d054	
-0x03C6E6	C0FC0009	mulu.w	#0x9, D0	FUN_0003d054	
-0x03C6EA	D0C0	adda.w	D0w, A0	FUN_0003d054	
-0x03C6EC	323CFFD0	move.w	#-0x30, D1w	FUN_0003d054	
-0x03C6F0	383C0010	move.w	#0x10, D4w	FUN_0003d054	
-0x03C6F4	7606	moveq	0x6, D3	FUN_0003d054	
-0x03C6F6	61000012	bsr.w	0x0003c70a	FUN_0003d054	UNCONDITIONAL_CALL:0003c70a
-0x03C6FA	323CFFD0	move.w	#-0x30, D1w	FUN_0003d054	
-0x03C6FE	4244	clr.w	D4w	FUN_0003d054	
-0x03C700	7603	moveq	0x3, D3	FUN_0003d054	
-0x03C702	61000006	bsr.w	0x0003c70a	FUN_0003d054	UNCONDITIONAL_CALL:0003c70a
-0x03C706	5089	addq.l	0x8, A1	FUN_0003d054	
-0x03C708	4E75	rts		FUN_0003d054	
+0x03C6DC	20680002	movea.l	(0x2,A0), A0	actor_four_record_expand_3c902	
+0x03C6E0	102C000B	move.b	(0xb,A4), D0b	actor_four_record_expand_3c902	
+0x03C6E4	4880	ext.w	D0w	actor_four_record_expand_3c902	
+0x03C6E6	C0FC0009	mulu.w	#0x9, D0	actor_four_record_expand_3c902	
+0x03C6EA	D0C0	adda.w	D0w, A0	actor_four_record_expand_3c902	
+0x03C6EC	323CFFD0	move.w	#-0x30, D1w	actor_four_record_expand_3c902	
+0x03C6F0	383C0010	move.w	#0x10, D4w	actor_four_record_expand_3c902	
+0x03C6F4	7606	moveq	0x6, D3	actor_four_record_expand_3c902	
+0x03C6F6	61000012	bsr.w	0x0003c70a	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c70a
+0x03C6FA	323CFFD0	move.w	#-0x30, D1w	actor_four_record_expand_3c902	
+0x03C6FE	4244	clr.w	D4w	actor_four_record_expand_3c902	
+0x03C700	7603	moveq	0x3, D3	actor_four_record_expand_3c902	
+0x03C702	61000006	bsr.w	0x0003c70a	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c70a
+0x03C706	5089	addq.l	0x8, A1	actor_four_record_expand_3c902	
+0x03C708	4E75	rts		actor_four_record_expand_3c902	
 0x03C70A	1418	move.b	(A0)+, D2b	FUN_0003c70a	
 0x03C70C	4882	ext.w	D2w	FUN_0003c70a	
 0x03C70E	4A42	tst.w	D2w	FUN_0003c70a	
@@ -1267,44 +1533,44 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03C752	024701FF	andi.w	#0x1ff, D7w	FUN_0003c742	
 0x03C756	33470006	move.w	D7w, (0x6,A1)	FUN_0003c742	
 0x03C75A	4E75	rts		FUN_0003c742	
-0x03C75C	20680002	movea.l	(0x2,A0), A0	FUN_0003d054	
-0x03C760	102C000B	move.b	(0xb,A4), D0b	FUN_0003d054	
-0x03C764	4880	ext.w	D0w	FUN_0003d054	
-0x03C766	C0FC0007	mulu.w	#0x7, D0	FUN_0003d054	
-0x03C76A	D0C0	adda.w	D0w, A0	FUN_0003d054	
-0x03C76C	3C3CFFF0	move.w	#-0x10, D6w	FUN_0003d054	
-0x03C770	3E3CFFF8	move.w	#-0x8, D7w	FUN_0003d054	
-0x03C774	61CC	bsr.b	0x0003c742	FUN_0003d054	UNCONDITIONAL_CALL:0003c742
-0x03C776	5089	addq.l	0x8, A1	FUN_0003d054	
-0x03C778	7601	moveq	0x1, D3	FUN_0003d054	
-0x03C77A	343CFFF8	move.w	#-0x8, D2w	FUN_0003d054	
-0x03C77E	61000052	bsr.w	0x0003c7d2	FUN_0003d054	UNCONDITIONAL_CALL:0003c7d2
-0x03C782	7601	moveq	0x1, D3	FUN_0003d054	
-0x03C784	4242	clr.w	D2w	FUN_0003d054	
-0x03C786	6100004A	bsr.w	0x0003c7d2	FUN_0003d054	UNCONDITIONAL_CALL:0003c7d2
-0x03C78A	7601	moveq	0x1, D3	FUN_0003d054	
-0x03C78C	343CFFF0	move.w	#-0x10, D2w	FUN_0003d054	
-0x03C790	61000040	bsr.w	0x0003c7d2	FUN_0003d054	UNCONDITIONAL_CALL:0003c7d2
-0x03C794	7604	moveq	0x4, D3	FUN_0003d054	
-0x03C796	343CFFF8	move.w	#-0x8, D2w	FUN_0003d054	
-0x03C79A	61000036	bsr.w	0x0003c7d2	FUN_0003d054	UNCONDITIONAL_CALL:0003c7d2
-0x03C79E	D2FC0010	adda.w	#0x10, A1	FUN_0003d054	
-0x03C7A2	4E75	rts		FUN_0003d054	
-0x03C7A4	20680002	movea.l	(0x2,A0), A0	FUN_0003d054	
-0x03C7A8	102C000B	move.b	(0xb,A4), D0b	FUN_0003d054	
-0x03C7AC	4880	ext.w	D0w	FUN_0003d054	
-0x03C7AE	C0FC0006	mulu.w	#0x6, D0	FUN_0003d054	
-0x03C7B2	D0C0	adda.w	D0w, A0	FUN_0003d054	
-0x03C7B4	7602	moveq	0x2, D3	FUN_0003d054	
-0x03C7B6	4242	clr.w	D2w	FUN_0003d054	
-0x03C7B8	6100004A	bsr.w	0x0003c804	FUN_0003d054	UNCONDITIONAL_CALL:0003c804
-0x03C7BC	7602	moveq	0x2, D3	FUN_0003d054	
-0x03C7BE	343CFFF0	move.w	#-0x10, D2w	FUN_0003d054	
-0x03C7C2	61000040	bsr.w	0x0003c804	FUN_0003d054	UNCONDITIONAL_CALL:0003c804
-0x03C7C6	7606	moveq	0x6, D3	FUN_0003d054	
-0x03C7C8	343CFFF8	move.w	#-0x8, D2w	FUN_0003d054	
-0x03C7CC	61000004	bsr.w	0x0003c7d2	FUN_0003d054	UNCONDITIONAL_CALL:0003c7d2
-0x03C7D0	4E75	rts		FUN_0003d054	
+0x03C75C	20680002	movea.l	(0x2,A0), A0	actor_four_record_expand_3c902	
+0x03C760	102C000B	move.b	(0xb,A4), D0b	actor_four_record_expand_3c902	
+0x03C764	4880	ext.w	D0w	actor_four_record_expand_3c902	
+0x03C766	C0FC0007	mulu.w	#0x7, D0	actor_four_record_expand_3c902	
+0x03C76A	D0C0	adda.w	D0w, A0	actor_four_record_expand_3c902	
+0x03C76C	3C3CFFF0	move.w	#-0x10, D6w	actor_four_record_expand_3c902	
+0x03C770	3E3CFFF8	move.w	#-0x8, D7w	actor_four_record_expand_3c902	
+0x03C774	61CC	bsr.b	0x0003c742	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c742
+0x03C776	5089	addq.l	0x8, A1	actor_four_record_expand_3c902	
+0x03C778	7601	moveq	0x1, D3	actor_four_record_expand_3c902	
+0x03C77A	343CFFF8	move.w	#-0x8, D2w	actor_four_record_expand_3c902	
+0x03C77E	61000052	bsr.w	0x0003c7d2	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c7d2
+0x03C782	7601	moveq	0x1, D3	actor_four_record_expand_3c902	
+0x03C784	4242	clr.w	D2w	actor_four_record_expand_3c902	
+0x03C786	6100004A	bsr.w	0x0003c7d2	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c7d2
+0x03C78A	7601	moveq	0x1, D3	actor_four_record_expand_3c902	
+0x03C78C	343CFFF0	move.w	#-0x10, D2w	actor_four_record_expand_3c902	
+0x03C790	61000040	bsr.w	0x0003c7d2	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c7d2
+0x03C794	7604	moveq	0x4, D3	actor_four_record_expand_3c902	
+0x03C796	343CFFF8	move.w	#-0x8, D2w	actor_four_record_expand_3c902	
+0x03C79A	61000036	bsr.w	0x0003c7d2	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c7d2
+0x03C79E	D2FC0010	adda.w	#0x10, A1	actor_four_record_expand_3c902	
+0x03C7A2	4E75	rts		actor_four_record_expand_3c902	
+0x03C7A4	20680002	movea.l	(0x2,A0), A0	actor_four_record_expand_3c902	
+0x03C7A8	102C000B	move.b	(0xb,A4), D0b	actor_four_record_expand_3c902	
+0x03C7AC	4880	ext.w	D0w	actor_four_record_expand_3c902	
+0x03C7AE	C0FC0006	mulu.w	#0x6, D0	actor_four_record_expand_3c902	
+0x03C7B2	D0C0	adda.w	D0w, A0	actor_four_record_expand_3c902	
+0x03C7B4	7602	moveq	0x2, D3	actor_four_record_expand_3c902	
+0x03C7B6	4242	clr.w	D2w	actor_four_record_expand_3c902	
+0x03C7B8	6100004A	bsr.w	0x0003c804	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c804
+0x03C7BC	7602	moveq	0x2, D3	actor_four_record_expand_3c902	
+0x03C7BE	343CFFF0	move.w	#-0x10, D2w	actor_four_record_expand_3c902	
+0x03C7C2	61000040	bsr.w	0x0003c804	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c804
+0x03C7C6	7606	moveq	0x6, D3	actor_four_record_expand_3c902	
+0x03C7C8	343CFFF8	move.w	#-0x8, D2w	actor_four_record_expand_3c902	
+0x03C7CC	61000004	bsr.w	0x0003c7d2	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c7d2
+0x03C7D0	4E75	rts		actor_four_record_expand_3c902	
 0x03C7D2	4240	clr.w	D0w	FUN_0003c7d2	
 0x03C7D4	1018	move.b	(A0)+, D0b	FUN_0003c7d2	
 0x03C7D6	4880	ext.w	D0w	FUN_0003c7d2	
@@ -1336,21 +1602,21 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03C82A	5343	subq.w	0x1, D3w	FUN_0003c804	
 0x03C82C	66D6	bne.b	0x0003c804	FUN_0003c804	CONDITIONAL_JUMP:0003c804
 0x03C82E	4E75	rts		FUN_0003c804	
-0x03C830	20680002	movea.l	(0x2,A0), A0	FUN_0003d054	
-0x03C834	102C000B	move.b	(0xb,A4), D0b	FUN_0003d054	
-0x03C838	4880	ext.w	D0w	FUN_0003d054	
-0x03C83A	E548	lsl.w	#0x2, D0w	FUN_0003d054	
-0x03C83C	D0C0	adda.w	D0w, A0	FUN_0003d054	
-0x03C83E	4A2C0038	tst.b	(0x38,A4)	FUN_0003d054	
-0x03C842	6600007A	bne.w	0x0003c8be	FUN_0003d054	CONDITIONAL_JUMP:0003c8be
-0x03C846	7605	moveq	0x5, D3	FUN_0003d054	
-0x03C848	343CFFF8	move.w	#-0x8, D2w	FUN_0003d054	
-0x03C84C	61000010	bsr.w	0x0003c85e	FUN_0003d054	UNCONDITIONAL_CALL:0003c85e
-0x03C850	5988	subq.l	0x4, A0	FUN_0003d054	
-0x03C852	7605	moveq	0x5, D3	FUN_0003d054	
-0x03C854	343CFFE8	move.w	#-0x18, D2w	FUN_0003d054	
-0x03C858	61000004	bsr.w	0x0003c85e	FUN_0003d054	UNCONDITIONAL_CALL:0003c85e
-0x03C85C	4E75	rts		FUN_0003d054	
+0x03C830	20680002	movea.l	(0x2,A0), A0	actor_four_record_expand_3c902	
+0x03C834	102C000B	move.b	(0xb,A4), D0b	actor_four_record_expand_3c902	
+0x03C838	4880	ext.w	D0w	actor_four_record_expand_3c902	
+0x03C83A	E548	lsl.w	#0x2, D0w	actor_four_record_expand_3c902	
+0x03C83C	D0C0	adda.w	D0w, A0	actor_four_record_expand_3c902	
+0x03C83E	4A2C0038	tst.b	(0x38,A4)	actor_four_record_expand_3c902	
+0x03C842	6600007A	bne.w	0x0003c8be	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c8be
+0x03C846	7605	moveq	0x5, D3	actor_four_record_expand_3c902	
+0x03C848	343CFFF8	move.w	#-0x8, D2w	actor_four_record_expand_3c902	
+0x03C84C	61000010	bsr.w	0x0003c85e	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c85e
+0x03C850	5988	subq.l	0x4, A0	actor_four_record_expand_3c902	
+0x03C852	7605	moveq	0x5, D3	actor_four_record_expand_3c902	
+0x03C854	343CFFE8	move.w	#-0x18, D2w	actor_four_record_expand_3c902	
+0x03C858	61000004	bsr.w	0x0003c85e	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c85e
+0x03C85C	4E75	rts		actor_four_record_expand_3c902	
 0x03C85E	4240	clr.w	D0w	FUN_0003c85e	
 0x03C860	0C430005	cmpi.w	#0x5, D3w	FUN_0003c85e	
 0x03C864	6606	bne.b	0x0003c86c	FUN_0003c85e	CONDITIONAL_JUMP:0003c86c
@@ -1383,81 +1649,81 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03C8B6	5E47	addq.w	0x7, D7w	FUN_0003c89a	
 0x03C8B8	33470004	move.w	D7w, (0x4,A1)	FUN_0003c89a	DATA:00000a15;DATA:00000a0e;DATA:00000a14
 0x03C8BC	4E75	rts		FUN_0003c89a	
-0x03C8BE	4246	clr.w	D6w	FUN_0003d054	
-0x03C8C0	4247	clr.w	D7w	FUN_0003d054	
-0x03C8C2	6100FE7E	bsr.w	0x0003c742	FUN_0003d054	UNCONDITIONAL_CALL:0003c742
-0x03C8C6	5089	addq.l	0x8, A1	FUN_0003d054	
-0x03C8C8	4246	clr.w	D6w	FUN_0003d054	
-0x03C8CA	3E3CFFF0	move.w	#-0x10, D7w	FUN_0003d054	
-0x03C8CE	6100FE72	bsr.w	0x0003c742	FUN_0003d054	UNCONDITIONAL_CALL:0003c742
-0x03C8D2	5089	addq.l	0x8, A1	FUN_0003d054	
-0x03C8D4	7602	moveq	0x2, D3	FUN_0003d054	
-0x03C8D6	343CFFF8	move.w	#-0x8, D2w	FUN_0003d054	
-0x03C8DA	6182	bsr.b	0x0003c85e	FUN_0003d054	UNCONDITIONAL_CALL:0003c85e
-0x03C8DC	7602	moveq	0x2, D3	FUN_0003d054	
-0x03C8DE	343CFFF0	move.w	#-0x10, D2w	FUN_0003d054	
-0x03C8E2	6100FF7A	bsr.w	0x0003c85e	FUN_0003d054	UNCONDITIONAL_CALL:0003c85e
-0x03C8E6	5588	subq.l	0x2, A0	FUN_0003d054	
-0x03C8E8	7602	moveq	0x2, D3	FUN_0003d054	
-0x03C8EA	4242	clr.w	D2w	FUN_0003d054	
-0x03C8EC	6100FF70	bsr.w	0x0003c85e	FUN_0003d054	UNCONDITIONAL_CALL:0003c85e
-0x03C8F0	D2FC0010	adda.w	#0x10, A1	FUN_0003d054	
-0x03C8F4	4E75	rts		FUN_0003d054	
+0x03C8BE	4246	clr.w	D6w	actor_four_record_expand_3c902	
+0x03C8C0	4247	clr.w	D7w	actor_four_record_expand_3c902	
+0x03C8C2	6100FE7E	bsr.w	0x0003c742	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c742
+0x03C8C6	5089	addq.l	0x8, A1	actor_four_record_expand_3c902	
+0x03C8C8	4246	clr.w	D6w	actor_four_record_expand_3c902	
+0x03C8CA	3E3CFFF0	move.w	#-0x10, D7w	actor_four_record_expand_3c902	
+0x03C8CE	6100FE72	bsr.w	0x0003c742	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c742
+0x03C8D2	5089	addq.l	0x8, A1	actor_four_record_expand_3c902	
+0x03C8D4	7602	moveq	0x2, D3	actor_four_record_expand_3c902	
+0x03C8D6	343CFFF8	move.w	#-0x8, D2w	actor_four_record_expand_3c902	
+0x03C8DA	6182	bsr.b	0x0003c85e	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c85e
+0x03C8DC	7602	moveq	0x2, D3	actor_four_record_expand_3c902	
+0x03C8DE	343CFFF0	move.w	#-0x10, D2w	actor_four_record_expand_3c902	
+0x03C8E2	6100FF7A	bsr.w	0x0003c85e	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c85e
+0x03C8E6	5588	subq.l	0x2, A0	actor_four_record_expand_3c902	
+0x03C8E8	7602	moveq	0x2, D3	actor_four_record_expand_3c902	
+0x03C8EA	4242	clr.w	D2w	actor_four_record_expand_3c902	
+0x03C8EC	6100FF70	bsr.w	0x0003c85e	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c85e
+0x03C8F0	D2FC0010	adda.w	#0x10, A1	actor_four_record_expand_3c902	
+0x03C8F4	4E75	rts		actor_four_record_expand_3c902	
 0x03C8F6	0C030070	cmpi.b	#0x70, D3b	FUN_0003c8f6	
 0x03C8FA	6604	bne.b	0x0003c900	FUN_0003c8f6	CONDITIONAL_JUMP:0003c900
 0x03C8FC	D26C0018	add.w	(0x18,A4), D1w	FUN_0003c8f6	
 0x03C900	4E75	rts		FUN_0003c8f6	
-0x03C902	1610	move.b	(A0), D3b	FUN_0003c902	
-0x03C904	020300F0	andi.b	#-0x10, D3b	FUN_0003c902	
-0x03C908	0C030010	cmpi.b	#0x10, D3b	FUN_0003c902	
-0x03C90C	6700FF22	beq.w	0x0003c830	FUN_0003c902	CONDITIONAL_JUMP:0003c830
-0x03C910	0C030020	cmpi.b	#0x20, D3b	FUN_0003c902	
-0x03C914	6700FE8E	beq.w	0x0003c7a4	FUN_0003c902	CONDITIONAL_JUMP:0003c7a4
-0x03C918	0C030030	cmpi.b	#0x30, D3b	FUN_0003c902	
-0x03C91C	6700FDBE	beq.w	0x0003c6dc	FUN_0003c902	CONDITIONAL_JUMP:0003c6dc
-0x03C920	0C030050	cmpi.b	#0x50, D3b	FUN_0003c902	
-0x03C924	6700FBAC	beq.w	0x0003c4d2	FUN_0003c902	CONDITIONAL_JUMP:0003c4d2
-0x03C928	0C030060	cmpi.b	#0x60, D3b	FUN_0003c902	
-0x03C92C	6700FBA4	beq.w	0x0003c4d2	FUN_0003c902	CONDITIONAL_JUMP:0003c4d2
-0x03C930	0C030090	cmpi.b	#-0x70, D3b	FUN_0003c902	
-0x03C934	6700FE26	beq.w	0x0003c75c	FUN_0003c902	CONDITIONAL_JUMP:0003c75c
-0x03C938	0C0300A0	cmpi.b	#-0x60, D3b	FUN_0003c902	
-0x03C93C	6700FC12	beq.w	0x0003c550	FUN_0003c902	CONDITIONAL_JUMP:0003c550
-0x03C940	0C0300B0	cmpi.b	#-0x50, D3b	FUN_0003c902	
-0x03C944	6700FCF0	beq.w	0x0003c636	FUN_0003c902	CONDITIONAL_JUMP:0003c636
-0x03C948	0C0300C0	cmpi.b	#-0x40, D3b	FUN_0003c902	
-0x03C94C	6700FC38	beq.w	0x0003c586	FUN_0003c902	CONDITIONAL_JUMP:0003c586
-0x03C950	4240	clr.w	D0w	FUN_0003c902	
-0x03C952	4245	clr.w	D5w	FUN_0003c902	
-0x03C954	08060000	btst.l	#0x0, D6	FUN_0003c902	
-0x03C958	660000CC	bne.w	0x0003ca26	FUN_0003c902	CONDITIONAL_JUMP:0003ca26
-0x03C95C	4A07	tst.b	D7b	FUN_0003c902	
-0x03C95E	6746	beq.b	0x0003c9a6	FUN_0003c902	CONDITIONAL_JUMP:0003c9a6
-0x03C960	6100009E	bsr.w	0x0003ca00	FUN_0003c902	UNCONDITIONAL_CALL:0003ca00
-0x03C964	4A45	tst.w	D5w	FUN_0003c902	
-0x03C966	6600008E	bne.w	0x0003c9f6	FUN_0003c902	CONDITIONAL_JUMP:0003c9f6
-0x03C96A	4247	clr.w	D7w	FUN_0003c902	
-0x03C96C	0C030040	cmpi.b	#0x40, D3b	FUN_0003c902	
-0x03C970	6602	bne.b	0x0003c974	FUN_0003c902	CONDITIONAL_JUMP:0003c974
-0x03C972	5247	addq.w	0x1, D7w	FUN_0003c902	
-0x03C974	0C030080	cmpi.b	#-0x80, D3b	FUN_0003c902	
-0x03C978	6604	bne.b	0x0003c97e	FUN_0003c902	CONDITIONAL_JUMP:0003c97e
-0x03C97A	00404000	ori.w	#0x4000, D0w	FUN_0003c902	
-0x03C97E	61000068	bsr.w	0x0003c9e8	FUN_0003c902	UNCONDITIONAL_CALL:0003c9e8
-0x03C982	32C0	move.w	D0w, (A1)+	FUN_0003c902	
-0x03C984	1218	move.b	(A0)+, D1b	FUN_0003c902	
-0x03C986	4881	ext.w	D1w	FUN_0003c902	
-0x03C988	D26C001A	add.w	(0x1a,A4), D1w	FUN_0003c902	
-0x03C98C	6100FF68	bsr.w	0x0003c8f6	FUN_0003c902	UNCONDITIONAL_CALL:0003c8f6
-0x03C990	32C1	move.w	D1w, (A1)+	FUN_0003c902	
-0x03C992	6100007E	bsr.w	0x0003ca12	FUN_0003c902	UNCONDITIONAL_CALL:0003ca12
-0x03C996	1E18	move.b	(A0)+, D7b	FUN_0003c902	
-0x03C998	4887	ext.w	D7w	FUN_0003c902	
-0x03C99A	DE6C0016	add.w	(0x16,A4), D7w	FUN_0003c902	
-0x03C99E	32C7	move.w	D7w, (A1)+	FUN_0003c902	
-0x03C9A0	5382	subq.l	0x1, D2	FUN_0003c902	
-0x03C9A2	66BC	bne.b	0x0003c960	FUN_0003c902	CONDITIONAL_JUMP:0003c960
-0x03C9A4	4E75	rts		FUN_0003c902	
+0x03C902	1610	move.b	(A0), D3b	actor_four_record_expand_3c902	
+0x03C904	020300F0	andi.b	#-0x10, D3b	actor_four_record_expand_3c902	
+0x03C908	0C030010	cmpi.b	#0x10, D3b	actor_four_record_expand_3c902	
+0x03C90C	6700FF22	beq.w	0x0003c830	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c830
+0x03C910	0C030020	cmpi.b	#0x20, D3b	actor_four_record_expand_3c902	
+0x03C914	6700FE8E	beq.w	0x0003c7a4	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c7a4
+0x03C918	0C030030	cmpi.b	#0x30, D3b	actor_four_record_expand_3c902	
+0x03C91C	6700FDBE	beq.w	0x0003c6dc	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c6dc
+0x03C920	0C030050	cmpi.b	#0x50, D3b	actor_four_record_expand_3c902	
+0x03C924	6700FBAC	beq.w	0x0003c4d2	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c4d2
+0x03C928	0C030060	cmpi.b	#0x60, D3b	actor_four_record_expand_3c902	
+0x03C92C	6700FBA4	beq.w	0x0003c4d2	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c4d2
+0x03C930	0C030090	cmpi.b	#-0x70, D3b	actor_four_record_expand_3c902	
+0x03C934	6700FE26	beq.w	0x0003c75c	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c75c
+0x03C938	0C0300A0	cmpi.b	#-0x60, D3b	actor_four_record_expand_3c902	
+0x03C93C	6700FC12	beq.w	0x0003c550	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c550
+0x03C940	0C0300B0	cmpi.b	#-0x50, D3b	actor_four_record_expand_3c902	
+0x03C944	6700FCF0	beq.w	0x0003c636	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c636
+0x03C948	0C0300C0	cmpi.b	#-0x40, D3b	actor_four_record_expand_3c902	
+0x03C94C	6700FC38	beq.w	0x0003c586	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c586
+0x03C950	4240	clr.w	D0w	actor_four_record_expand_3c902	
+0x03C952	4245	clr.w	D5w	actor_four_record_expand_3c902	
+0x03C954	08060000	btst.l	#0x0, D6	actor_four_record_expand_3c902	
+0x03C958	660000CC	bne.w	0x0003ca26	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003ca26
+0x03C95C	4A07	tst.b	D7b	actor_four_record_expand_3c902	
+0x03C95E	6746	beq.b	0x0003c9a6	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c9a6
+0x03C960	6100009E	bsr.w	0x0003ca00	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003ca00
+0x03C964	4A45	tst.w	D5w	actor_four_record_expand_3c902	
+0x03C966	6600008E	bne.w	0x0003c9f6	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c9f6
+0x03C96A	4247	clr.w	D7w	actor_four_record_expand_3c902	
+0x03C96C	0C030040	cmpi.b	#0x40, D3b	actor_four_record_expand_3c902	
+0x03C970	6602	bne.b	0x0003c974	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c974
+0x03C972	5247	addq.w	0x1, D7w	actor_four_record_expand_3c902	
+0x03C974	0C030080	cmpi.b	#-0x80, D3b	actor_four_record_expand_3c902	
+0x03C978	6604	bne.b	0x0003c97e	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c97e
+0x03C97A	00404000	ori.w	#0x4000, D0w	actor_four_record_expand_3c902	
+0x03C97E	61000068	bsr.w	0x0003c9e8	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c9e8
+0x03C982	32C0	move.w	D0w, (A1)+	actor_four_record_expand_3c902	
+0x03C984	1218	move.b	(A0)+, D1b	actor_four_record_expand_3c902	
+0x03C986	4881	ext.w	D1w	actor_four_record_expand_3c902	
+0x03C988	D26C001A	add.w	(0x1a,A4), D1w	actor_four_record_expand_3c902	
+0x03C98C	6100FF68	bsr.w	0x0003c8f6	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c8f6
+0x03C990	32C1	move.w	D1w, (A1)+	actor_four_record_expand_3c902	
+0x03C992	6100007E	bsr.w	0x0003ca12	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003ca12
+0x03C996	1E18	move.b	(A0)+, D7b	actor_four_record_expand_3c902	
+0x03C998	4887	ext.w	D7w	actor_four_record_expand_3c902	
+0x03C99A	DE6C0016	add.w	(0x16,A4), D7w	actor_four_record_expand_3c902	
+0x03C99E	32C7	move.w	D7w, (A1)+	actor_four_record_expand_3c902	
+0x03C9A0	5382	subq.l	0x1, D2	actor_four_record_expand_3c902	
+0x03C9A2	66BC	bne.b	0x0003c960	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c960
+0x03C9A4	4E75	rts		actor_four_record_expand_3c902	
 0x03C9A6	61000058	bsr.w	0x0003ca00	FUN_0003c9a6	UNCONDITIONAL_CALL:0003ca00
 0x03C9AA	4A45	tst.w	D5w	FUN_0003c9a6	
 0x03C9AC	66000048	bne.w	0x0003c9f6	FUN_0003c9a6	CONDITIONAL_JUMP:0003c9f6
@@ -1505,11 +1771,11 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03CA20	32C0	move.w	D0w, (A1)+	FUN_0003ca12	
 0x03CA22	4240	clr.w	D0w	FUN_0003ca12	
 0x03CA24	4E75	rts		FUN_0003ca12	
-0x03CA26	4A2C0003	tst.b	(0x3,A4)	FUN_0003c902	
-0x03CA2A	6600FF34	bne.w	0x0003c960	FUN_0003c902	CONDITIONAL_JUMP:0003c960
-0x03CA2E	4A07	tst.b	D7b	FUN_0003c902	
-0x03CA30	6700FF2E	beq.w	0x0003c960	FUN_0003c902	CONDITIONAL_JUMP:0003c960
-0x03CA34	6000FF70	bra.w	0x0003c9a6	FUN_0003c902	UNCONDITIONAL_CALL:0003c9a6
+0x03CA26	4A2C0003	tst.b	(0x3,A4)	actor_four_record_expand_3c902	
+0x03CA2A	6600FF34	bne.w	0x0003c960	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c960
+0x03CA2E	4A07	tst.b	D7b	actor_four_record_expand_3c902	
+0x03CA30	6700FF2E	beq.w	0x0003c960	actor_four_record_expand_3c902	CONDITIONAL_JUMP:0003c960
+0x03CA34	6000FF70	bra.w	0x0003c9a6	actor_four_record_expand_3c902	UNCONDITIONAL_CALL:0003c9a6
 0x03CF40	4A00	tst.b	D0b	FUN_0003cf40	
 0x03CF42	6604	bne.b	0x0003cf48	FUN_0003cf40	CONDITIONAL_JUMP:0003cf48
 0x03CF44	7038	moveq	0x38, D0	FUN_0003cf40	
@@ -1561,25 +1827,30 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03CFCE	4E75	rts		FUN_0003cfb0	
 0x03CFD0	4240	clr.w	D0w	FUN_0003cfb0	
 0x03CFD2	4E75	rts		FUN_0003cfb0	
-0x03D054	024000FF	andi.w	#0xff, D0w	FUN_0003d054	
-0x03D058	D040	add.w	D0w, D0w	FUN_0003d054	
-0x03D05A	122C0038	move.b	(0x38,A4), D1b	FUN_0003d054	
-0x03D05E	0C010001	cmpi.b	#0x1, D1b	FUN_0003d054	
-0x03D062	6606	bne.b	0x0003d06a	FUN_0003d054	CONDITIONAL_JUMP:0003d06a
-0x03D064	4EF90004770E	jmp	0x0004770e.l	FUN_0003d054	UNCONDITIONAL_CALL:0004770e
-0x03D06A	0C010002	cmpi.b	#0x2, D1b	FUN_0003d054	
-0x03D06E	6606	bne.b	0x0003d076	FUN_0003d054	CONDITIONAL_JUMP:0003d076
-0x03D070	4EF90003F0BC	jmp	0x0003f0bc.l	FUN_0003d054	UNCONDITIONAL_CALL:0003f0bc
-0x03D076	0C010003	cmpi.b	#0x3, D1b	FUN_0003d054	
-0x03D07A	6606	bne.b	0x0003d082	FUN_0003d054	CONDITIONAL_JUMP:0003d082
-0x03D07C	4EF90003FFDC	jmp	0x0003ffdc.l	FUN_0003d054	UNCONDITIONAL_CALL:0003ffdc
-0x03D082	0C010004	cmpi.b	#0x4, D1b	FUN_0003d054	
-0x03D086	6606	bne.b	0x0003d08e	FUN_0003d054	CONDITIONAL_JUMP:0003d08e
-0x03D088	4EF90003FFF0	jmp	0x0003fff0.l	FUN_0003d054	UNCONDITIONAL_CALL:0003fff0
-0x03D08E	303B000E	move.w	(0x3d09e,PC,D0w*0x1), D0w	FUN_0003d054	DATA:0003d09e
-0x03D092	41FA000A	lea	(0xa,PC), A0	FUN_0003d054	DATA:0003d09e
-0x03D096	D0C0	adda.w	D0w, A0	FUN_0003d054	
-0x03D098	4EF90003C902	jmp	0x0003c902.l	FUN_0003d054	UNCONDITIONAL_CALL:0003c902
+0x03D044	7209	moveq	0x9, D1	FUN_0003d044	
+0x03D046	9240	sub.w	D0w, D1w	FUN_0003d044	
+0x03D048	06410030	addi.w	#0x30, D1w	FUN_0003d044	
+0x03D04C	33C100C08C66	move.w	D1w, (0x00c08c66).l	FUN_0003d044	WRITE:00c08c66
+0x03D052	4E75	rts		FUN_0003d044	
+0x03D054	024000FF	andi.w	#0xff, D0w	actor_family0_render_3d054	
+0x03D058	D040	add.w	D0w, D0w	actor_family0_render_3d054	
+0x03D05A	122C0038	move.b	(0x38,A4), D1b	actor_family0_render_3d054	
+0x03D05E	0C010001	cmpi.b	#0x1, D1b	actor_family0_render_3d054	
+0x03D062	6606	bne.b	0x0003d06a	actor_family0_render_3d054	CONDITIONAL_JUMP:0003d06a
+0x03D064	4EF90004770E	jmp	0x0004770e.l	actor_family0_render_3d054	UNCONDITIONAL_CALL:0004770e
+0x03D06A	0C010002	cmpi.b	#0x2, D1b	actor_family0_render_3d054	
+0x03D06E	6606	bne.b	0x0003d076	actor_family0_render_3d054	CONDITIONAL_JUMP:0003d076
+0x03D070	4EF90003F0BC	jmp	0x0003f0bc.l	actor_family0_render_3d054	UNCONDITIONAL_CALL:0003f0bc
+0x03D076	0C010003	cmpi.b	#0x3, D1b	actor_family0_render_3d054	
+0x03D07A	6606	bne.b	0x0003d082	actor_family0_render_3d054	CONDITIONAL_JUMP:0003d082
+0x03D07C	4EF90003FFDC	jmp	0x0003ffdc.l	actor_family0_render_3d054	UNCONDITIONAL_CALL:0003ffdc
+0x03D082	0C010004	cmpi.b	#0x4, D1b	actor_family0_render_3d054	
+0x03D086	6606	bne.b	0x0003d08e	actor_family0_render_3d054	CONDITIONAL_JUMP:0003d08e
+0x03D088	4EF90003FFF0	jmp	0x0003fff0.l	actor_family0_render_3d054	UNCONDITIONAL_CALL:0003fff0
+0x03D08E	303B000E	move.w	(0x3d09e,PC,D0w*0x1), D0w	actor_family0_render_3d054	DATA:0003d09e
+0x03D092	41FA000A	lea	(0xa,PC), A0	actor_family0_render_3d054	DATA:0003d09e
+0x03D096	D0C0	adda.w	D0w, A0	actor_family0_render_3d054	
+0x03D098	4EF90003C902	jmp	0x0003c902.l	actor_family0_render_3d054	UNCONDITIONAL_CALL:0003c902
 0x03EEFA	4A6D02BC	tst.w	(0x2bc,A5)	FUN_0003eefa	
 0x03EEFE	6706	beq.b	0x0003ef06	FUN_0003eefa	CONDITIONAL_JUMP:0003ef06
 0x03EF00	536D02BC	subq.w	0x1, (0x2bc,A5)	FUN_0003eefa	
@@ -1708,6 +1979,78 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x03FFF8	41FA0032	lea	(0x32,PC), A0	FUN_0003fff0	DATA:0004002c
 0x03FFFC	D0C0	adda.w	D0w, A0	FUN_0003fff0	
 0x03FFFE	4EF90003C902	jmp	0x0003c902.l	FUN_0003fff0	UNCONDITIONAL_CALL:0003c902
+0x0406A4	302D10D8	move.w	(0x10d8,A5), D0w	FUN_000406a4	DATA:000010d8
+0x0406A8	0C420002	cmpi.w	#0x2, D2w	FUN_000406a4	
+0x0406AC	670A	beq.b	0x000406b8	FUN_000406a4	CONDITIONAL_JUMP:000406b8
+0x0406AE	4440	neg.w	D0w	FUN_000406a4	
+0x0406B0	0C420003	cmpi.w	#0x3, D2w	FUN_000406a4	
+0x0406B4	6702	beq.b	0x000406b8	FUN_000406a4	CONDITIONAL_JUMP:000406b8
+0x0406B6	4240	clr.w	D0w	FUN_000406a4	
+0x0406B8	322D10DA	move.w	(0x10da,A5), D1w	FUN_000406a4	DATA:000010da
+0x0406BC	0C420000	cmpi.w	#0x0, D2w	FUN_000406a4	
+0x0406C0	670A	beq.b	0x000406cc	FUN_000406a4	CONDITIONAL_JUMP:000406cc
+0x0406C2	4441	neg.w	D1w	FUN_000406a4	
+0x0406C4	0C420001	cmpi.w	#0x1, D2w	FUN_000406a4	
+0x0406C8	6702	beq.b	0x000406cc	FUN_000406a4	CONDITIONAL_JUMP:000406cc
+0x0406CA	4241	clr.w	D1w	FUN_000406a4	
+0x0406CC	49ED02C8	lea	(0x2c8,A5), A4	FUN_000406a4	
+0x0406D0	426D0214	clr.w	(0x214,A5)	FUN_000406a4	
+0x0406D4	4A2C0000	tst.b	(0x0,A4)	FUN_000406a4	
+0x0406D8	6720	beq.b	0x000406fa	FUN_000406a4	CONDITIONAL_JUMP:000406fa
+0x0406DA	4A2C0005	tst.b	(0x5,A4)	FUN_000406a4	
+0x0406DE	671A	beq.b	0x000406fa	FUN_000406a4	CONDITIONAL_JUMP:000406fa
+0x0406E0	D16C0016	add.w	D0w, (0x16,A4)	FUN_000406a4	
+0x0406E4	D36C001A	add.w	D1w, (0x1a,A4)	FUN_000406a4	
+0x0406E8	4A2C0003	tst.b	(0x3,A4)	FUN_000406a4	
+0x0406EC	670C	beq.b	0x000406fa	FUN_000406a4	CONDITIONAL_JUMP:000406fa
+0x0406EE	D16C0034	add.w	D0w, (0x34,A4)	FUN_000406a4	
+0x0406F2	D16C0742	add.w	D0w, (0x742,A4)	FUN_000406a4	DATA:00000a0a;DATA:00000a4a
+0x0406F6	D36C0744	add.w	D1w, (0x744,A4)	FUN_000406a4	DATA:00000a0c;DATA:00000a4c
+0x0406FA	D9FC00000040	adda.l	#0x40, A4	FUN_000406a4	
+0x040700	526D0214	addq.w	0x1, (0x214,A5)	FUN_000406a4	
+0x040704	0C6D00090214	cmpi.w	#0x9, (0x214,A5)	FUN_000406a4	
+0x04070A	66C8	bne.b	0x000406d4	FUN_000406a4	CONDITIONAL_JUMP:000406d4
+0x04070C	49ED0508	lea	(0x508,A5), A4	FUN_000406a4	
+0x040710	426D0214	clr.w	(0x214,A5)	FUN_000406a4	
+0x040714	4A2C0000	tst.b	(0x0,A4)	FUN_000406a4	
+0x040718	672A	beq.b	0x00040744	FUN_000406a4	CONDITIONAL_JUMP:00040744
+0x04071A	0C2C00030005	cmpi.b	#0x3, (0x5,A4)	FUN_000406a4	
+0x040720	6722	beq.b	0x00040744	FUN_000406a4	CONDITIONAL_JUMP:00040744
+0x040722	4A2C0024	tst.b	(0x24,A4)	FUN_000406a4	
+0x040726	661C	bne.b	0x00040744	FUN_000406a4	CONDITIONAL_JUMP:00040744
+0x040728	D16C0034	add.w	D0w, (0x34,A4)	FUN_000406a4	DATA:0000057c
+0x04072C	D16C0016	add.w	D0w, (0x16,A4)	FUN_000406a4	
+0x040730	D36C001A	add.w	D1w, (0x1a,A4)	FUN_000406a4	
+0x040734	082C00070027	btst.b	#0x7, (0x27,A4)	FUN_000406a4	
+0x04073A	6708	beq.b	0x00040744	FUN_000406a4	CONDITIONAL_JUMP:00040744
+0x04073C	D16C0032	add.w	D0w, (0x32,A4)	FUN_000406a4	
+0x040740	D36C0030	add.w	D1w, (0x30,A4)	FUN_000406a4	
+0x040744	D9FC00000040	adda.l	#0x40, A4	FUN_000406a4	
+0x04074A	526D0214	addq.w	0x1, (0x214,A5)	FUN_000406a4	
+0x04074E	0C6D00090214	cmpi.w	#0x9, (0x214,A5)	FUN_000406a4	
+0x040754	66BE	bne.b	0x00040714	FUN_000406a4	CONDITIONAL_JUMP:00040714
+0x040756	49ED0748	lea	(0x748,A5), A4	FUN_000406a4	
+0x04075A	426D0214	clr.w	(0x214,A5)	FUN_000406a4	
+0x04075E	4A2C0000	tst.b	(0x0,A4)	FUN_000406a4	DATA:00000748;DATA:00000788
+0x040762	6728	beq.b	0x0004078c	FUN_000406a4	CONDITIONAL_JUMP:0004078c
+0x040764	4A2C0005	tst.b	(0x5,A4)	FUN_000406a4	DATA:0000074d;DATA:0000078d
+0x040768	6722	beq.b	0x0004078c	FUN_000406a4	CONDITIONAL_JUMP:0004078c
+0x04076A	4A2C0024	tst.b	(0x24,A4)	FUN_000406a4	DATA:0000076c;DATA:000007ac
+0x04076E	661C	bne.b	0x0004078c	FUN_000406a4	CONDITIONAL_JUMP:0004078c
+0x040770	D16C0034	add.w	D0w, (0x34,A4)	FUN_000406a4	DATA:0000077c;DATA:000007bc
+0x040774	D16C0016	add.w	D0w, (0x16,A4)	FUN_000406a4	DATA:0000075e;DATA:0000079e
+0x040778	D36C001A	add.w	D1w, (0x1a,A4)	FUN_000406a4	DATA:00000762;DATA:000007a2
+0x04077C	082C00070027	btst.b	#0x7, (0x27,A4)	FUN_000406a4	DATA:0000076f;DATA:000007af
+0x040782	6708	beq.b	0x0004078c	FUN_000406a4	CONDITIONAL_JUMP:0004078c
+0x040784	D16C0032	add.w	D0w, (0x32,A4)	FUN_000406a4	DATA:0000077a;DATA:000007ba
+0x040788	D36C0030	add.w	D1w, (0x30,A4)	FUN_000406a4	DATA:00000778;DATA:000007b8
+0x04078C	D9FC00000040	adda.l	#0x40, A4	FUN_000406a4	
+0x040792	526D0214	addq.w	0x1, (0x214,A5)	FUN_000406a4	
+0x040796	0C6D000B0214	cmpi.w	#0xb, (0x214,A5)	FUN_000406a4	
+0x04079C	66C0	bne.b	0x0004075e	FUN_000406a4	CONDITIONAL_JUMP:0004075e
+0x04079E	4440	neg.w	D0w	FUN_000406a4	
+0x0407A0	D16D024E	add.w	D0w, (0x24e,A5)	FUN_000406a4	
+0x0407A4	4E75	rts		FUN_000406a4	
 0x04092E	204C	movea.l	A4, A0	FUN_0004092e	
 0x040930	224C	movea.l	A4, A1	FUN_0004092e	
 0x040932	5489	addq.l	0x2, A1	FUN_0004092e	
@@ -2115,6 +2458,7 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x042EF0	6704	beq.b	0x00042ef6	FUN_00042e38	CONDITIONAL_JUMP:00042ef6
 0x042EF2	610018FC	bsr.w	0x000447f0	FUN_00042e38	UNCONDITIONAL_CALL:000447f0
 0x042EF6	4E75	rts		FUN_00042e38	
+0x042F58	197C00030009	move.b	#0x3, (0x9,A4)		
 0x042F5E	102C0008	move.b	(0x8,A4), D0b		
 0x042F62	B001	cmp.b	D1b, D0b		
 0x042F64	651A	bcs.b	0x00042f80		CONDITIONAL_JUMP:00042f80
@@ -2129,10 +2473,10 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x042F82	102C0008	move.b	(0x8,A4), D0b		
 0x042F86	D0C0	adda.w	D0w, A0		
 0x042F88	D2C0	adda.w	D0w, A1		
-0x042F8A	1010	move.b	(A0), D0b		
+0x042F8A	1010	move.b	(A0), D0b		DATA:00043368;DATA:0004338a;DATA:00043316;DATA:00043270;DATA:000432ca
 0x042F8C	D002	add.b	D2b, D0b		
 0x042F8E	19400001	move.b	D0b, (0x1,A4)		
-0x042F92	19510022	move.b	(A1), (0x22,A4)		DATA:00043330
+0x042F92	19510022	move.b	(A1), (0x22,A4)		DATA:00043370;DATA:0004338f;DATA:00043330;DATA:0004327a;DATA:000432d4
 0x042F96	4A2C0022	tst.b	(0x22,A4)		
 0x042F9A	6712	beq.b	0x00042fae		CONDITIONAL_JUMP:00042fae
 0x042F9C	7070	moveq	0x70, D0		
@@ -2142,12 +2486,60 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x042FA8	7074	moveq	0x74, D0		
 0x042FAA	D12C0022	add.b	D0b, (0x22,A4)		
 0x042FAE	4E75	rts			
-0x0432FC	028041FA0016	andi.l	#0x41fa0016, D0		
+0x04323C	6646	bne.b	0x00043284		CONDITIONAL_JUMP:00043284
+0x04323E	102C0008	move.b	(0x8,A4), D0b		
+0x043242	0C000002	cmpi.b	#0x2, D0b		
+0x043246	6606	bne.b	0x0004324e		CONDITIONAL_JUMP:0004324e
+0x043248	3B7C00010280	move.w	#0x1, (0x280,A5)		
+0x04324E	0C000009	cmpi.b	#0x9, D0b		
+0x043252	6604	bne.b	0x00043258		CONDITIONAL_JUMP:00043258
+0x043254	426D0280	clr.w	(0x280,A5)		
+0x043258	41FA0016	lea	(0x16,PC), A0		DATA:00043270
+0x04325C	43FA001C	lea	(0x1c,PC), A1		DATA:0004327a
+0x043260	720A	moveq	0xa, D1		
+0x043262	143C005F	move.b	#0x5f, D2b		
+0x043266	197C00080009	move.b	#0x8, (0x9,A4)		
+0x04326C	6000FCF0	bra.w	0x00042f5e		UNCONDITIONAL_JUMP:00042f5e
+0x043284	0C000008	cmpi.b	#0x8, D0b		
+0x043288	66000054	bne.w	0x000432de		CONDITIONAL_JUMP:000432de
+0x04328C	720A	moveq	0xa, D1		
+0x04328E	143C004D	move.b	#0x4d, D2b		
+0x043292	41FA0022	lea	(0x22,PC), A0		DATA:000432b6
+0x043296	43FA0028	lea	(0x28,PC), A1		DATA:000432c0
+0x04329A	082C00020021	btst.b	#0x2, (0x21,A4)		
+0x0432A0	6700FCB6	beq.w	0x00042f58		CONDITIONAL_JUMP:00042f58
+0x0432A4	41FA0024	lea	(0x24,PC), A0		DATA:000432ca
+0x0432A8	43FA002A	lea	(0x2a,PC), A1		DATA:000432d4
+0x0432AC	197C00610037	move.b	#0x61, (0x37,A4)		
+0x0432B2	6000FCA4	bra.w	0x00042f58		UNCONDITIONAL_JUMP:00042f58
+0x0432DE	0C000009	cmpi.b	#0x9, D0b		
+0x0432E2	6666	bne.b	0x0004334a		CONDITIONAL_JUMP:0004334a
+0x0432E4	102C0008	move.b	(0x8,A4), D0b		
+0x0432E8	0C000003	cmpi.b	#0x3, D0b		
+0x0432EC	6606	bne.b	0x000432f4		CONDITIONAL_JUMP:000432f4
+0x0432EE	3B7C00010280	move.w	#0x1, (0x280,A5)		
+0x0432F4	0C000016	cmpi.b	#0x16, D0b		
+0x0432F8	6604	bne.b	0x000432fe		CONDITIONAL_JUMP:000432fe
+0x0432FA	426D0280	clr.w	(0x280,A5)		
+0x0432FE	41FA0016	lea	(0x16,PC), A0		DATA:00043316
 0x043302	43FA002C	lea	(0x2c,PC), A1		DATA:00043330
 0x043306	721A	moveq	0x1a, D1		
 0x043308	143C006E	move.b	#0x6e, D2b		
 0x04330C	197C00080009	move.b	#0x8, (0x9,A4)		
 0x043312	6000FC4A	bra.w	0x00042f5e		UNCONDITIONAL_JUMP:00042f5e
+0x04334A	0C00000A	cmpi.b	#0xa, D0b		
+0x04334E	6628	bne.b	0x00043378		CONDITIONAL_JUMP:00043378
+0x043350	41FA0016	lea	(0x16,PC), A0		DATA:00043368
+0x043354	43FA001A	lea	(0x1a,PC), A1		DATA:00043370
+0x043358	7208	moveq	0x8, D1		
+0x04335A	143C002D	move.b	#0x2d, D2b		
+0x04335E	197C00060009	move.b	#0x6, (0x9,A4)		
+0x043364	6000FBF8	bra.w	0x00042f5e		UNCONDITIONAL_JUMP:00042f5e
+0x043378	41FA0010	lea	(0x10,PC), A0		DATA:0004338a
+0x04337C	43FA0011	lea	(0x11,PC), A1		DATA:0004338f
+0x043380	7205	moveq	0x5, D1		
+0x043382	143C00B5	move.b	#-0x4b, D2b		
+0x043386	6000FBD0	bra.w	0x00042f58		UNCONDITIONAL_JUMP:00042f58
 0x0447F0	197C0001003D	move.b	#0x1, (0x3d,A4)	FUN_000447f0	
 0x0447F6	0C2C00070006	cmpi.b	#0x7, (0x6,A4)	FUN_000447f0	
 0x0447FC	6704	beq.b	0x00044802	FUN_000447f0	CONDITIONAL_JUMP:00044802
@@ -2172,35 +2564,35 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x045272	3943001E	move.w	D3w, (0x1e,A4)	FUN_00045248	
 0x045276	397C0180001A	move.w	#0x180, (0x1a,A4)	FUN_00045248	
 0x04527C	4E75	rts		FUN_00045248	
-0x045340	4E75	rts		FUN_00045342	
-0x045342	4A2D0548	tst.b	(0x548,A5)	FUN_00045342	
-0x045346	66F8	bne.b	0x00045340	FUN_00045342	CONDITIONAL_JUMP:00045340
-0x045348	49ED0508	lea	(0x508,A5), A4	FUN_00045342	
-0x04534C	47ED0548	lea	(0x548,A5), A3	FUN_00045342	
-0x045350	4A6D0C5A	tst.w	(0xc5a,A5)	FUN_00045342	DATA:00000c5a
-0x045354	660E	bne.b	0x00045364	FUN_00045342	CONDITIONAL_JUMP:00045364
-0x045356	197C00080006	move.b	#0x8, (0x6,A4)	FUN_00045342	
-0x04535C	177C00080006	move.b	#0x8, (0x6,A3)	FUN_00045342	
-0x045362	600C	bra.b	0x00045370	FUN_00045342	UNCONDITIONAL_JUMP:00045370
-0x045364	197C00090006	move.b	#0x9, (0x6,A4)	FUN_00045342	
-0x04536A	177C00090006	move.b	#0x9, (0x6,A3)	FUN_00045342	
-0x045370	197C0001003F	move.b	#0x1, (0x3f,A4)	FUN_00045342	
-0x045376	08EC00070027	bset.b	#0x7, (0x27,A4)	FUN_00045342	
-0x04537C	61000024	bsr.w	0x000453a2	FUN_00045342	UNCONDITIONAL_CALL:000453a2
-0x045380	6100003E	bsr.w	0x000453c0	FUN_00045342	UNCONDITIONAL_CALL:000453c0
-0x045384	49ED0548	lea	(0x548,A5), A4	FUN_00045342	
-0x045388	08EC00070027	bset.b	#0x7, (0x27,A4)	FUN_00045342	
-0x04538E	61000012	bsr.w	0x000453a2	FUN_00045342	UNCONDITIONAL_CALL:000453a2
-0x045392	6100002C	bsr.w	0x000453c0	FUN_00045342	UNCONDITIONAL_CALL:000453c0
-0x045396	103C0014	move.b	#0x14, D0b	FUN_00045342	
-0x04539A	4EB90003A0EC	jsr	0x0003a0ec.l	FUN_00045342	UNCONDITIONAL_CALL:0003a0ec
-0x0453A0	4E75	rts		FUN_00045342	
-0x0453A2	397C0001001C	move.w	#0x1, (0x1c,A4)	FUN_000453a2	
-0x0453A8	197C00010000	move.b	#0x1, (0x0,A4)	FUN_000453a2	
-0x0453AE	197C00030005	move.b	#0x3, (0x5,A4)	FUN_000453a2	
-0x0453B4	397C0180001A	move.w	#0x180, (0x1a,A4)	FUN_000453a2	
-0x0453BA	61000082	bsr.w	0x0004543e	FUN_000453a2	UNCONDITIONAL_CALL:0004543e
-0x0453BE	4E75	rts		FUN_000453a2	
+0x045340	4E75	rts		paired_actor_init_45342	
+0x045342	4A2D0548	tst.b	(0x548,A5)	paired_actor_init_45342	
+0x045346	66F8	bne.b	0x00045340	paired_actor_init_45342	CONDITIONAL_JUMP:00045340
+0x045348	49ED0508	lea	(0x508,A5), A4	paired_actor_init_45342	
+0x04534C	47ED0548	lea	(0x548,A5), A3	paired_actor_init_45342	
+0x045350	4A6D0C5A	tst.w	(0xc5a,A5)	paired_actor_init_45342	DATA:00000c5a
+0x045354	660E	bne.b	0x00045364	paired_actor_init_45342	CONDITIONAL_JUMP:00045364
+0x045356	197C00080006	move.b	#0x8, (0x6,A4)	paired_actor_init_45342	
+0x04535C	177C00080006	move.b	#0x8, (0x6,A3)	paired_actor_init_45342	
+0x045362	600C	bra.b	0x00045370	paired_actor_init_45342	UNCONDITIONAL_JUMP:00045370
+0x045364	197C00090006	move.b	#0x9, (0x6,A4)	paired_actor_init_45342	
+0x04536A	177C00090006	move.b	#0x9, (0x6,A3)	paired_actor_init_45342	
+0x045370	197C0001003F	move.b	#0x1, (0x3f,A4)	paired_actor_init_45342	
+0x045376	08EC00070027	bset.b	#0x7, (0x27,A4)	paired_actor_init_45342	
+0x04537C	61000024	bsr.w	0x000453a2	paired_actor_init_45342	UNCONDITIONAL_CALL:000453a2
+0x045380	6100003E	bsr.w	0x000453c0	paired_actor_init_45342	UNCONDITIONAL_CALL:000453c0
+0x045384	49ED0548	lea	(0x548,A5), A4	paired_actor_init_45342	
+0x045388	08EC00070027	bset.b	#0x7, (0x27,A4)	paired_actor_init_45342	
+0x04538E	61000012	bsr.w	0x000453a2	paired_actor_init_45342	UNCONDITIONAL_CALL:000453a2
+0x045392	6100002C	bsr.w	0x000453c0	paired_actor_init_45342	UNCONDITIONAL_CALL:000453c0
+0x045396	103C0014	move.b	#0x14, D0b	paired_actor_init_45342	
+0x04539A	4EB90003A0EC	jsr	0x0003a0ec.l	paired_actor_init_45342	UNCONDITIONAL_CALL:0003a0ec
+0x0453A0	4E75	rts		paired_actor_init_45342	
+0x0453A2	397C0001001C	move.w	#0x1, (0x1c,A4)	paired_actor_activate_453a2	
+0x0453A8	197C00010000	move.b	#0x1, (0x0,A4)	paired_actor_activate_453a2	
+0x0453AE	197C00030005	move.b	#0x3, (0x5,A4)	paired_actor_activate_453a2	
+0x0453B4	397C0180001A	move.w	#0x180, (0x1a,A4)	paired_actor_activate_453a2	
+0x0453BA	61000082	bsr.w	0x0004543e	paired_actor_activate_453a2	UNCONDITIONAL_CALL:0004543e
+0x0453BE	4E75	rts		paired_actor_activate_453a2	
 0x0453C0	0C2D00050118	cmpi.b	#0x5, (0x118,A5)	FUN_000453c0	
 0x0453C6	650C	bcs.b	0x000453d4	FUN_000453c0	CONDITIONAL_JUMP:000453d4
 0x0453C8	197C00040028	move.b	#0x4, (0x28,A4)	FUN_000453c0	
@@ -2227,22 +2619,22 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x045410	65E4	bcs.b	0x000453f6	FUN_000453d6	CONDITIONAL_JUMP:000453f6
 0x045412	532C0029	subq.b	0x1, (0x29,A4)	FUN_000453d6	
 0x045416	4E75	rts		FUN_000453d6	
-0x04543E	41FA0152	lea	(0x152,PC), A0	FUN_0004543e	DATA:00045592
-0x045442	4240	clr.w	D0w	FUN_0004543e	
-0x045444	102C0006	move.b	(0x6,A4), D0b	FUN_0004543e	
-0x045448	04400008	subi.w	#0x8, D0w	FUN_0004543e	
-0x04544C	601C	bra.b	0x0004546a	FUN_0004543e	UNCONDITIONAL_JUMP:0004546a
-0x04546A	E748	lsl.w	#0x3, D0w	FUN_0004543e	
-0x04546C	D0C0	adda.w	D0w, A0	FUN_0004543e	
-0x04546E	3950001E	move.w	(A0), (0x1e,A4)	FUN_0004543e	DATA:00045592
-0x045472	10280002	move.b	(0x2,A0), D0b	FUN_0004543e	DATA:00045594
-0x045476	1940003A	move.b	D0b, (0x3a,A4)	FUN_0004543e	
-0x04547A	10280003	move.b	(0x3,A0), D0b	FUN_0004543e	DATA:00045595
-0x04547E	19400001	move.b	D0b, (0x1,A4)	FUN_0004543e	
-0x045482	396800040028	move.w	(0x4,A0), (0x28,A4)	FUN_0004543e	DATA:00045596
-0x045488	39680006002C	move.w	(0x6,A0), (0x2c,A4)	FUN_0004543e	DATA:00045598
-0x04548E	6100FF46	bsr.w	0x000453d6	FUN_0004543e	UNCONDITIONAL_CALL:000453d6
-0x045492	4E75	rts		FUN_0004543e	
+0x04543E	41FA0152	lea	(0x152,PC), A0	actor_record_loader_4543e	DATA:00045592
+0x045442	4240	clr.w	D0w	actor_record_loader_4543e	
+0x045444	102C0006	move.b	(0x6,A4), D0b	actor_record_loader_4543e	
+0x045448	04400008	subi.w	#0x8, D0w	actor_record_loader_4543e	
+0x04544C	601C	bra.b	0x0004546a	actor_record_loader_4543e	UNCONDITIONAL_JUMP:0004546a
+0x04546A	E748	lsl.w	#0x3, D0w	actor_record_loader_4543e	
+0x04546C	D0C0	adda.w	D0w, A0	actor_record_loader_4543e	
+0x04546E	3950001E	move.w	(A0), (0x1e,A4)	actor_record_loader_4543e	DATA:00045592
+0x045472	10280002	move.b	(0x2,A0), D0b	actor_record_loader_4543e	DATA:00045594
+0x045476	1940003A	move.b	D0b, (0x3a,A4)	actor_record_loader_4543e	
+0x04547A	10280003	move.b	(0x3,A0), D0b	actor_record_loader_4543e	DATA:00045595
+0x04547E	19400001	move.b	D0b, (0x1,A4)	actor_record_loader_4543e	
+0x045482	396800040028	move.w	(0x4,A0), (0x28,A4)	actor_record_loader_4543e	DATA:00045596
+0x045488	39680006002C	move.w	(0x6,A0), (0x2c,A4)	actor_record_loader_4543e	DATA:00045598
+0x04548E	6100FF46	bsr.w	0x000453d6	actor_record_loader_4543e	UNCONDITIONAL_CALL:000453d6
+0x045492	4E75	rts		actor_record_loader_4543e	
 0x045AA0	397C01F0001A	move.w	#0x1f0, (0x1a,A4)	FUN_00045aa0	
 0x045AA6	197C000D0006	move.b	#0xd, (0x6,A4)	FUN_00045aa0	
 0x045AAC	6100F990	bsr.w	0x0004543e	FUN_00045aa0	UNCONDITIONAL_CALL:0004543e
@@ -2910,7 +3302,97 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x04D004	7201	moveq	0x1, D1		
 0x04D006	3B410272	move.w	D1w, (0x272,A5)		
 0x04D00A	4E75	rts			
+0x051090	4EB900052732	jsr	0x00052732.l	player_main_update_51090	UNCONDITIONAL_CALL:00052732
+0x051096	4EB900055650	jsr	0x00055650.l	player_main_update_51090	UNCONDITIONAL_CALL:00055650
+0x05109C	4EB900055AD6	jsr	0x00055ad6.l	player_main_update_51090	UNCONDITIONAL_CALL:00055ad6
+0x0510A2	4EB900059DE8	jsr	0x00059de8.l	player_main_update_51090	UNCONDITIONAL_CALL:00059de8
+0x0510A8	6100021E	bsr.w	0x000512c8	player_main_update_51090	UNCONDITIONAL_CALL:000512c8
+0x0510AC	4EB90005A29C	jsr	0x0005a29c.l	player_main_update_51090	UNCONDITIONAL_CALL:0005a29c
+0x0510B2	4EB9000596F4	jsr	0x000596f4.l	player_main_update_51090	UNCONDITIONAL_CALL:000596f4
+0x0510B8	6100009C	bsr.w	0x00051156	player_main_update_51090	UNCONDITIONAL_CALL:00051156
+0x0510BC	6100016C	bsr.w	0x0005122a	player_main_update_51090	UNCONDITIONAL_CALL:0005122a
+0x0510C0	526D1308	addq.w	0x1, (0x1308,A5)	player_main_update_51090	DATA:00001308
+0x0510C4	4E75	rts		player_main_update_51090	
 0x0510C6	4E75	rts		FUN_000510c6	
+0x05113A	0C6D0074013E	cmpi.w	#0x74, (0x13e,A5)	FUN_0005113a	
+0x051140	6512	bcs.b	0x00051154	FUN_0005113a	CONDITIONAL_JUMP:00051154
+0x051142	0C6D0083013E	cmpi.w	#0x83, (0x13e,A5)	FUN_0005113a	
+0x051148	620A	bhi.b	0x00051154	FUN_0005113a	CONDITIONAL_JUMP:00051154
+0x05114A	3B7C00011414	move.w	#0x1, (0x1414,A5)	FUN_0005113a	DATA:00001414
+0x051150	426D1416	clr.w	(0x1416,A5)	FUN_0005113a	DATA:00001416
+0x051154	4E75	rts		FUN_0005113a	
+0x051156	0C6D00011414	cmpi.w	#0x1, (0x1414,A5)	FUN_00051156	DATA:00001414
+0x05115C	662E	bne.b	0x0005118c	FUN_00051156	CONDITIONAL_JUMP:0005118c
+0x05115E	4EB900051190	jsr	0x00051190.l	FUN_00051156	UNCONDITIONAL_CALL:00051190
+0x051164	526D1416	addq.w	0x1, (0x1416,A5)	FUN_00051156	DATA:00001416
+0x051168	0C6D00701416	cmpi.w	#0x70, (0x1416,A5)	FUN_00051156	DATA:00001416
+0x05116E	6714	beq.b	0x00051184	FUN_00051156	CONDITIONAL_JUMP:00051184
+0x051170	0C6D03001416	cmpi.w	#0x300, (0x1416,A5)	FUN_00051156	DATA:00001416
+0x051176	6616	bne.b	0x0005118e	FUN_00051156	CONDITIONAL_JUMP:0005118e
+0x051178	426D1416	clr.w	(0x1416,A5)	FUN_00051156	DATA:00001416
+0x05117C	3B7C00FF1414	move.w	#0xff, (0x1414,A5)	FUN_00051156	DATA:00001414
+0x051182	600A	bra.b	0x0005118e	FUN_00051156	UNCONDITIONAL_JUMP:0005118e
+0x051184	3B7C000113B0	move.w	#0x1, (0x13b0,A5)	FUN_00051156	DATA:000013b0
+0x05118A	6002	bra.b	0x0005118e	FUN_00051156	UNCONDITIONAL_JUMP:0005118e
+0x05118C	61AC	bsr.b	0x0005113a	FUN_00051156	UNCONDITIONAL_CALL:0005113a
+0x05118E	4E75	rts		FUN_00051156	
+0x051190	0C6D00011416	cmpi.w	#0x1, (0x1416,A5)	FUN_00051190	DATA:00001416
+0x051196	660C	bne.b	0x000511a4	FUN_00051190	CONDITIONAL_JUMP:000511a4
+0x051198	303C0021	move.w	#0x21, D0w	FUN_00051190	
+0x05119C	4EB90003A0EC	jsr	0x0003a0ec.l	FUN_00051190	UNCONDITIONAL_CALL:0003a0ec
+0x0511A2	6034	bra.b	0x000511d8	FUN_00051190	UNCONDITIONAL_JUMP:000511d8
+0x0511A4	302D1416	move.w	(0x1416,A5), D0w	FUN_00051190	DATA:00001416
+0x0511A8	0C400050	cmpi.w	#0x50, D0w	FUN_00051190	
+0x0511AC	662A	bne.b	0x000511d8	FUN_00051190	CONDITIONAL_JUMP:000511d8
+0x0511AE	41F9000511DA	lea	(0x511da).l, A0	FUN_00051190	DATA:000511da
+0x0511B4	303C0004	move.w	#0x4, D0w	FUN_00051190	
+0x0511B8	323C0000	move.w	#0x0, D1w	FUN_00051190	
+0x0511BC	4EB900059AD4	jsr	0x00059ad4.l	FUN_00051190	UNCONDITIONAL_CALL:00059ad4
+0x0511C2	41F9000511DA	lea	(0x511da).l, A0	FUN_00051190	DATA:000511da
+0x0511C8	303C0003	move.w	#0x3, D0w	FUN_00051190	
+0x0511CC	323C0001	move.w	#0x1, D1w	FUN_00051190	
+0x0511D0	4EB900059AD4	jsr	0x00059ad4.l	FUN_00051190	UNCONDITIONAL_CALL:00059ad4
+0x0511D6	4E71	nop		FUN_00051190	
+0x0511D8	4E75	rts		FUN_00051190	
+0x05122A	0C6D00011360	cmpi.w	#0x1, (0x1360,A5)	FUN_0005122a	DATA:00001360
+0x051230	663A	bne.b	0x0005126c	FUN_0005122a	CONDITIONAL_JUMP:0005126c
+0x051232	0C6D000813AC	cmpi.w	#0x8, (0x13ac,A5)	FUN_0005122a	DATA:000013ac
+0x051238	6632	bne.b	0x0005126c	FUN_0005122a	CONDITIONAL_JUMP:0005126c
+0x05123A	0C6D008013BA	cmpi.w	#0x80, (0x13ba,A5)	FUN_0005122a	DATA:000013ba
+0x051240	670E	beq.b	0x00051250	FUN_0005122a	CONDITIONAL_JUMP:00051250
+0x051242	0C6D000012F4	cmpi.w	#0x0, (0x12f4,A5)	FUN_0005122a	DATA:000012f4
+0x051248	6622	bne.b	0x0005126c	FUN_0005122a	CONDITIONAL_JUMP:0005126c
+0x05124A	526D13BA	addq.w	0x1, (0x13ba,A5)	FUN_0005122a	DATA:000013ba
+0x05124E	601C	bra.b	0x0005126c	FUN_0005122a	UNCONDITIONAL_JUMP:0005126c
+0x051250	3B7C001010E8	move.w	#0x10, (0x10e8,A5)	FUN_0005122a	DATA:000010e8
+0x051256	303C0029	move.w	#0x29, D0w	FUN_0005122a	
+0x05125A	4EB90003A116	jsr	0x0003a116.l	FUN_0005122a	UNCONDITIONAL_CALL:0003a116
+0x051260	4EB900054052	jsr	0x00054052.l	FUN_0005122a	UNCONDITIONAL_CALL:00054052
+0x051266	4EB900059F5E	jsr	0x00059f5e.l	FUN_0005122a	UNCONDITIONAL_CALL:00059f5e
+0x05126C	4E75	rts		FUN_0005122a	
+0x0512C8	342D10D0	move.w	(0x10d0,A5), D2w	FUN_000512c8	DATA:000010d0
+0x0512CC	08020004	btst.l	#0x4, D2	FUN_000512c8	
+0x0512D0	670C	beq.b	0x000512de	FUN_000512c8	CONDITIONAL_JUMP:000512de
+0x0512D2	3C390010D0DA	move.w	(0x0010d0da).l, D6w	FUN_000512c8	READ:0010d0da
+0x0512D8	4EB900053934	jsr	0x00053934.l	FUN_000512c8	UNCONDITIONAL_CALL:00053934
+0x0512DE	342D10D0	move.w	(0x10d0,A5), D2w	FUN_000512c8	DATA:000010d0
+0x0512E2	08020005	btst.l	#0x5, D2	FUN_000512c8	
+0x0512E6	670C	beq.b	0x000512f4	FUN_000512c8	CONDITIONAL_JUMP:000512f4
+0x0512E8	3C390010D0DA	move.w	(0x0010d0da).l, D6w	FUN_000512c8	READ:0010d0da
+0x0512EE	4EB9000538C8	jsr	0x000538c8.l	FUN_000512c8	UNCONDITIONAL_CALL:000538c8
+0x0512F4	342D10D0	move.w	(0x10d0,A5), D2w	FUN_000512c8	DATA:000010d0
+0x0512F8	08020006	btst.l	#0x6, D2	FUN_000512c8	
+0x0512FC	670C	beq.b	0x0005130a	FUN_000512c8	CONDITIONAL_JUMP:0005130a
+0x0512FE	3C390010D0D8	move.w	(0x0010d0d8).l, D6w	FUN_000512c8	READ:0010d0d8
+0x051304	4EB9000539A0	jsr	0x000539a0.l	FUN_000512c8	UNCONDITIONAL_CALL:000539a0
+0x05130A	342D10D0	move.w	(0x10d0,A5), D2w	FUN_000512c8	DATA:000010d0
+0x05130E	08020007	btst.l	#0x7, D2	FUN_000512c8	
+0x051312	6714	beq.b	0x00051328	FUN_000512c8	CONDITIONAL_JUMP:00051328
+0x051314	0C6D002010BE	cmpi.w	#0x20, (0x10be,A5)	FUN_000512c8	DATA:000010be
+0x05131A	630C	bls.b	0x00051328	FUN_000512c8	CONDITIONAL_JUMP:00051328
+0x05131C	3C390010D0D8	move.w	(0x0010d0d8).l, D6w	FUN_000512c8	READ:0010d0d8
+0x051322	4EB900053A0C	jsr	0x00053a0c.l	FUN_000512c8	UNCONDITIONAL_CALL:00053a0c
+0x051328	4E75	rts		FUN_000512c8	
 0x051970	0003A116	ori.b	#0x16, D3b		
 0x051974	6032	bra.b	0x000519a8		UNCONDITIONAL_JUMP:000519a8
 0x0519A8	526D12F4	addq.w	0x1, (0x12f4,A5)		DATA:000012f4
@@ -2951,6 +3433,120 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x051BBA	3B4010C0	move.w	D0w, (0x10c0,A5)		DATA:000010c0
 0x051BBE	3B4110BE	move.w	D1w, (0x10be,A5)		DATA:000010be
 0x051BC2	4E75	rts			
+0x051CA0	30390010D37A	move.w	(0x0010d37a).l, D0w	player_attack_initialize_51ca0	READ:0010d37a
+0x051CA6	08000002	btst.l	#0x2, D0	player_attack_initialize_51ca0	
+0x051CAA	6748	beq.b	0x00051cf4	player_attack_initialize_51ca0	CONDITIONAL_JUMP:00051cf4
+0x051CAC	08000003	btst.l	#0x3, D0	player_attack_initialize_51ca0	
+0x051CB0	6750	beq.b	0x00051d02	player_attack_initialize_51ca0	CONDITIONAL_JUMP:00051d02
+0x051CB2	0C6D000410E8	cmpi.w	#0x4, (0x10e8,A5)	player_attack_initialize_51ca0	DATA:000010e8
+0x051CB8	6732	beq.b	0x00051cec	player_attack_initialize_51ca0	CONDITIONAL_JUMP:00051cec
+0x051CBA	0C6D000610E8	cmpi.w	#0x6, (0x10e8,A5)	player_attack_initialize_51ca0	DATA:000010e8
+0x051CC0	672A	beq.b	0x00051cec	player_attack_initialize_51ca0	CONDITIONAL_JUMP:00051cec
+0x051CC2	0C6D000910E8	cmpi.w	#0x9, (0x10e8,A5)	player_attack_initialize_51ca0	DATA:000010e8
+0x051CC8	6722	beq.b	0x00051cec	player_attack_initialize_51ca0	CONDITIONAL_JUMP:00051cec
+0x051CCA	08000000	btst.l	#0x0, D0	player_attack_initialize_51ca0	
+0x051CCE	6740	beq.b	0x00051d10	player_attack_initialize_51ca0	CONDITIONAL_JUMP:00051d10
+0x051CD0	0C6D000210E8	cmpi.w	#0x2, (0x10e8,A5)	player_attack_initialize_51ca0	DATA:000010e8
+0x051CD6	6708	beq.b	0x00051ce0	player_attack_initialize_51ca0	CONDITIONAL_JUMP:00051ce0
+0x051CD8	0C6D000310E8	cmpi.w	#0x3, (0x10e8,A5)	player_attack_initialize_51ca0	DATA:000010e8
+0x051CDE	660C	bne.b	0x00051cec	player_attack_initialize_51ca0	CONDITIONAL_JUMP:00051cec
+0x051CE0	30390010D37A	move.w	(0x0010d37a).l, D0w	player_attack_initialize_51ca0	READ:0010d37a
+0x051CE6	08000001	btst.l	#0x1, D0	player_attack_initialize_51ca0	
+0x051CEA	672C	beq.b	0x00051d18	player_attack_initialize_51ca0	CONDITIONAL_JUMP:00051d18
+0x051CEC	3B7C00041116	move.w	#0x4, (0x1116,A5)	player_attack_initialize_51ca0	DATA:00001116
+0x051CF2	602C	bra.b	0x00051d20	player_attack_initialize_51ca0	UNCONDITIONAL_JUMP:00051d20
+0x051CF4	3B7C00041116	move.w	#0x4, (0x1116,A5)	player_attack_initialize_51ca0	DATA:00001116
+0x051CFA	3B7C00021114	move.w	#0x2, (0x1114,A5)	player_attack_initialize_51ca0	DATA:00001114
+0x051D00	601E	bra.b	0x00051d20	player_attack_initialize_51ca0	UNCONDITIONAL_JUMP:00051d20
+0x051D02	3B7C00041116	move.w	#0x4, (0x1116,A5)	player_attack_initialize_51ca0	DATA:00001116
+0x051D08	3B7C00031114	move.w	#0x3, (0x1114,A5)	player_attack_initialize_51ca0	DATA:00001114
+0x051D0E	6010	bra.b	0x00051d20	player_attack_initialize_51ca0	UNCONDITIONAL_JUMP:00051d20
+0x051D10	3B7C00001116	move.w	#0x0, (0x1116,A5)	player_attack_initialize_51ca0	DATA:00001116
+0x051D16	6008	bra.b	0x00051d20	player_attack_initialize_51ca0	UNCONDITIONAL_JUMP:00051d20
+0x051D18	3B7C00011116	move.w	#0x1, (0x1116,A5)	player_attack_initialize_51ca0	DATA:00001116
+0x051D1E	4E71	nop		player_attack_initialize_51ca0	
+0x051D20	3B7C0001110C	move.w	#0x1, (0x110c,A5)	player_attack_initialize_51ca0	DATA:0000110c
+0x051D26	426D110A	clr.w	(0x110a,A5)	player_attack_initialize_51ca0	DATA:0000110a
+0x051D2A	3B7C00011108	move.w	#0x1, (0x1108,A5)	player_attack_initialize_51ca0	DATA:00001108
+0x051D30	4E75	rts		player_attack_initialize_51ca0	
+0x051D32	0C6D000910E8	cmpi.w	#0x9, (0x10e8,A5)	player_attack_advance_51d32	DATA:000010e8
+0x051D38	6722	beq.b	0x00051d5c	player_attack_advance_51d32	CONDITIONAL_JUMP:00051d5c
+0x051D3A	0C6D000410E8	cmpi.w	#0x4, (0x10e8,A5)	player_attack_advance_51d32	DATA:000010e8
+0x051D40	671A	beq.b	0x00051d5c	player_attack_advance_51d32	CONDITIONAL_JUMP:00051d5c
+0x051D42	0C6D000610E8	cmpi.w	#0x6, (0x10e8,A5)	player_attack_advance_51d32	DATA:000010e8
+0x051D48	6712	beq.b	0x00051d5c	player_attack_advance_51d32	CONDITIONAL_JUMP:00051d5c
+0x051D4A	0C6D000510E8	cmpi.w	#0x5, (0x10e8,A5)	player_attack_advance_51d32	DATA:000010e8
+0x051D50	6702	beq.b	0x00051d54	player_attack_advance_51d32	CONDITIONAL_JUMP:00051d54
+0x051D52	6012	bra.b	0x00051d66	player_attack_advance_51d32	UNCONDITIONAL_JUMP:00051d66
+0x051D54	3B7C00041116	move.w	#0x4, (0x1116,A5)	player_attack_advance_51d32	DATA:00001116
+0x051D5A	600A	bra.b	0x00051d66	player_attack_advance_51d32	UNCONDITIONAL_JUMP:00051d66
+0x051D5C	0C6D00041116	cmpi.w	#0x4, (0x1116,A5)	player_attack_advance_51d32	DATA:00001116
+0x051D62	66000034	bne.w	0x00051d98	player_attack_advance_51d32	CONDITIONAL_JUMP:00051d98
+0x051D66	302D110A	move.w	(0x110a,A5), D0w	player_attack_advance_51d32	DATA:0000110a
+0x051D6A	0C40000B	cmpi.w	#0xb, D0w	player_attack_advance_51d32	
+0x051D6E	660C	bne.b	0x00051d7c	player_attack_advance_51d32	CONDITIONAL_JUMP:00051d7c
+0x051D70	3B7C000112A0	move.w	#0x1, (0x12a0,A5)	player_attack_advance_51d32	DATA:000012a0
+0x051D76	61000036	bsr.w	0x00051dae	player_attack_advance_51d32	UNCONDITIONAL_CALL:00051dae
+0x051D7A	6006	bra.b	0x00051d82	player_attack_advance_51d32	UNCONDITIONAL_JUMP:00051d82
+0x051D7C	3B7C00FF12A0	move.w	#0xff, (0x12a0,A5)	player_attack_advance_51d32	DATA:000012a0
+0x051D82	5240	addq.w	0x1, D0w	player_attack_advance_51d32	
+0x051D84	3B40110A	move.w	D0w, (0x110a,A5)	player_attack_advance_51d32	DATA:0000110a
+0x051D88	322D1390	move.w	(0x1390,A5), D1w	player_attack_advance_51d32	DATA:00001390
+0x051D8C	B041	cmp.w	D1w, D0w	player_attack_advance_51d32	
+0x051D8E	661C	bne.b	0x00051dac	player_attack_advance_51d32	CONDITIONAL_JUMP:00051dac
+0x051D90	0C6D00011116	cmpi.w	#0x1, (0x1116,A5)	player_attack_advance_51d32	DATA:00001116
+0x051D96	6708	beq.b	0x00051da0	player_attack_advance_51d32	CONDITIONAL_JUMP:00051da0
+0x051D98	3B7C00FF1108	move.w	#0xff, (0x1108,A5)	player_attack_advance_51d32	DATA:00001108
+0x051D9E	600C	bra.b	0x00051dac	player_attack_advance_51d32	UNCONDITIONAL_JUMP:00051dac
+0x051DA0	0C6D000310E8	cmpi.w	#0x3, (0x10e8,A5)	player_attack_advance_51d32	DATA:000010e8
+0x051DA6	66F0	bne.b	0x00051d98	player_attack_advance_51d32	CONDITIONAL_JUMP:00051d98
+0x051DA8	536D110A	subq.w	0x1, (0x110a,A5)	player_attack_advance_51d32	DATA:0000110a
+0x051DAC	4E75	rts		player_attack_advance_51d32	
+0x051DAE	0C6D000412FA	cmpi.w	#0x4, (0x12fa,A5)	FUN_00051dae	DATA:000012fa
+0x051DB4	666C	bne.b	0x00051e22	FUN_00051dae	CONDITIONAL_JUMP:00051e22
+0x051DB6	207C0010D338	movea.l	#0x10d338, A0	FUN_00051dae	
+0x051DBC	343C0003	move.w	#0x3, D2w	FUN_00051dae	
+0x051DC0	32280000	move.w	(0x0,A0), D1w	FUN_00051dae	READ:0010d338;READ:0010d340
+0x051DC4	0C4100FF	cmpi.w	#0xff, D1w	FUN_00051dae	
+0x051DC8	6650	bne.b	0x00051e1a	FUN_00051dae	CONDITIONAL_JUMP:00051e1a
+0x051DCA	0C6D00011116	cmpi.w	#0x1, (0x1116,A5)	FUN_00051dae	DATA:00001116
+0x051DD0	6608	bne.b	0x00051dda	FUN_00051dae	CONDITIONAL_JUMP:00051dda
+0x051DD2	317C00010000	move.w	#0x1, (0x0,A0)	FUN_00051dae	WRITE:0010d338;WRITE:0010d340
+0x051DD8	6026	bra.b	0x00051e00	FUN_00051dae	UNCONDITIONAL_JUMP:00051e00
+0x051DDA	0C6D00001116	cmpi.w	#0x0, (0x1116,A5)	FUN_00051dae	DATA:00001116
+0x051DE0	6608	bne.b	0x00051dea	FUN_00051dae	CONDITIONAL_JUMP:00051dea
+0x051DE2	317C00000000	move.w	#0x0, (0x0,A0)	FUN_00051dae	WRITE:0010d338
+0x051DE8	6016	bra.b	0x00051e00	FUN_00051dae	UNCONDITIONAL_JUMP:00051e00
+0x051DEA	0C6D00021114	cmpi.w	#0x2, (0x1114,A5)	FUN_00051dae	DATA:00001114
+0x051DF0	6608	bne.b	0x00051dfa	FUN_00051dae	CONDITIONAL_JUMP:00051dfa
+0x051DF2	317C00020000	move.w	#0x2, (0x0,A0)	FUN_00051dae	WRITE:0010d338
+0x051DF8	6006	bra.b	0x00051e00	FUN_00051dae	UNCONDITIONAL_JUMP:00051e00
+0x051DFA	317C00030000	move.w	#0x3, (0x0,A0)	FUN_00051dae	WRITE:0010d338
+0x051E00	227C0010D1B2	movea.l	#0x10d1b2, A1	FUN_00051dae	
+0x051E06	5489	addq.l	0x2, A1	FUN_00051dae	
+0x051E08	31510004	move.w	(A1), (0x4,A0)	FUN_00051dae	READ:0010d1b4;WRITE:0010d33c
+0x051E0C	5889	addq.l	0x4, A1	FUN_00051dae	
+0x051E0E	31510002	move.w	(A1), (0x2,A0)	FUN_00051dae	READ:0010d1b8;WRITE:0010d33a
+0x051E12	317C00000006	move.w	#0x0, (0x6,A0)	FUN_00051dae	WRITE:0010d33e
+0x051E18	6008	bra.b	0x00051e22	FUN_00051dae	UNCONDITIONAL_JUMP:00051e22
+0x051E1A	5342	subq.w	0x1, D2w	FUN_00051dae	
+0x051E1C	6704	beq.b	0x00051e22	FUN_00051dae	CONDITIONAL_JUMP:00051e22
+0x051E1E	5088	addq.l	0x8, A0	FUN_00051dae	
+0x051E20	609E	bra.b	0x00051dc0	FUN_00051dae	UNCONDITIONAL_JUMP:00051dc0
+0x051E22	4E75	rts		FUN_00051dae	
+0x051E24	426D10EA	clr.w	(0x10ea,A5)	player_crouch_enter_51e24	DATA:000010ea
+0x051E28	3B7C000510E8	move.w	#0x5, (0x10e8,A5)	player_crouch_enter_51e24	DATA:000010e8
+0x051E2E	30390010D37A	move.w	(0x0010d37a).l, D0w	player_crouch_enter_51e24	READ:0010d37a
+0x051E34	08000002	btst.l	#0x2, D0	player_crouch_enter_51e24	
+0x051E38	6708	beq.b	0x00051e42	player_crouch_enter_51e24	CONDITIONAL_JUMP:00051e42
+0x051E3A	08000003	btst.l	#0x3, D0	player_crouch_enter_51e24	
+0x051E3E	670A	beq.b	0x00051e4a	player_crouch_enter_51e24	CONDITIONAL_JUMP:00051e4a
+0x051E40	6010	bra.b	0x00051e52	player_crouch_enter_51e24	UNCONDITIONAL_JUMP:00051e52
+0x051E42	3B7C00021114	move.w	#0x2, (0x1114,A5)	player_crouch_enter_51e24	DATA:00001114
+0x051E48	6008	bra.b	0x00051e52	player_crouch_enter_51e24	UNCONDITIONAL_JUMP:00051e52
+0x051E4A	3B7C00031114	move.w	#0x3, (0x1114,A5)	player_crouch_enter_51e24	DATA:00001114
+0x051E50	4E71	nop		player_crouch_enter_51e24	
+0x051E52	4E75	rts		player_crouch_enter_51e24	
 0x052048	0C400004	cmpi.w	#0x4, D0w		
 0x05204C	6708	beq.b	0x00052056		CONDITIONAL_JUMP:00052056
 0x05204E	3B7C00011120	move.w	#0x1, (0x1120,A5)		DATA:00001120
@@ -2980,46 +3576,44 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x052490	6006	bra.b	0x00052498	FUN_00052466	UNCONDITIONAL_JUMP:00052498
 0x052492	3B7C000310E8	move.w	#0x3, (0x10e8,A5)	FUN_00052466	DATA:000010e8
 0x052498	4E75	rts		FUN_00052466	
-0x0526C8	3B7C0002111A	move.w	#0x2, (0x111a,A5)		DATA:0000111a
-0x0526CE	066D00021266	addi.w	#0x2, (0x1266,A5)		DATA:00001266
-0x0526D4	4E71	nop			
-0x0526D6	0C6D001F10EA	cmpi.w	#0x1f, (0x10ea,A5)		DATA:000010ea
-0x0526DC	6706	beq.b	0x000526e4		CONDITIONAL_JUMP:000526e4
-0x0526DE	526D10EA	addq.w	0x1, (0x10ea,A5)		DATA:000010ea
-0x0526E2	6006	bra.b	0x000526ea		UNCONDITIONAL_JUMP:000526ea
-0x0526E4	42790010D0EA	clr.w	(0x0010d0ea).l		WRITE:0010d0ea
-0x0526EA	4E75	rts			
-0x052708	426D1118	clr.w	(0x1118,A5)		DATA:00001118
-0x05270C	3B7C000110E8	move.w	#0x1, (0x10e8,A5)		DATA:000010e8
-0x052712	3B7C0003110E	move.w	#0x3, (0x110e,A5)		DATA:0000110e
-0x052718	3B7C00031114	move.w	#0x3, (0x1114,A5)		DATA:00001114
-0x05271E	3B7C0001111A	move.w	#0x1, (0x111a,A5)		DATA:0000111a
-0x052724	4E75	rts			
-0x052764	0C6D00011352	cmpi.w	#0x1, (0x1352,A5)		DATA:00001352
-0x05276A	660E	bne.b	0x0005277a		CONDITIONAL_JUMP:0005277a
-0x05276C	61000206	bsr.w	0x00052974		UNCONDITIONAL_CALL:00052974
-0x052770	3B7C00FF1352	move.w	#0xff, (0x1352,A5)		DATA:00001352
-0x052776	60000052	bra.w	0x000527ca		UNCONDITIONAL_JUMP:000527ca
-0x05277A	30390010C016	move.w	(0x0010c016).l, D0w		READ:0010c016
-0x052780	08000005	btst.l	#0x5, D0		
-0x052784	6608	bne.b	0x0005278e		CONDITIONAL_JUMP:0005278e
-0x052786	6100004C	bsr.w	0x000527d4		UNCONDITIONAL_CALL:000527d4
-0x05278A	60000006	bra.w	0x00052792		UNCONDITIONAL_JUMP:00052792
-0x05278E	6100013A	bsr.w	0x000528ca		UNCONDITIONAL_CALL:000528ca
-0x052792	610000F8	bsr.w	0x0005288c		UNCONDITIONAL_CALL:0005288c
-0x052796	6100007E	bsr.w	0x00052816		UNCONDITIONAL_CALL:00052816
-0x05279A	3B7C00FF12F8	move.w	#0xff, (0x12f8,A5)		DATA:000012f8
-0x0527A0	0C6D001113CA	cmpi.w	#0x11, (0x13ca,A5)		DATA:000013ca
-0x0527A6	6604	bne.b	0x000527ac		CONDITIONAL_JUMP:000527ac
-0x0527A8	61000222	bsr.w	0x000529cc		UNCONDITIONAL_CALL:000529cc
-0x0527AC	0C6D0000013A	cmpi.w	#0x0, (0x13a,A5)		
-0x0527B2	620A	bhi.b	0x000527be		CONDITIONAL_JUMP:000527be
-0x0527B4	3B7C00040002	move.w	#0x4, (0x2,A5)		
-0x0527BA	426D0004	clr.w	(0x4,A5)		
-0x0527BE	046D0002013A	subi.w	#0x2, (0x13a,A5)		
-0x0527C8	12FC4E75	move.b	#0x75, (A1)+		
-0x0527CC	3B7C000710E8	move.w	#0x7, (0x10e8,A5)		DATA:000010e8
-0x0527D2	6090	bra.b	0x00052764		UNCONDITIONAL_JUMP:00052764
+0x052732	426D10D0	clr.w	(0x10d0,A5)	FUN_00052732	DATA:000010d0
+0x052736	0C6D00011296	cmpi.w	#0x1, (0x1296,A5)	FUN_00052732	DATA:00001296
+0x05273C	660A	bne.b	0x00052748	FUN_00052732	CONDITIONAL_JUMP:00052748
+0x05273E	610003B6	bsr.w	0x00052af6	FUN_00052732	UNCONDITIONAL_CALL:00052af6
+0x052742	4EB900052A64	jsr	0x00052a64.l	FUN_00052732	UNCONDITIONAL_CALL:00052a64
+0x052748	610002D0	bsr.w	0x00052a1a	FUN_00052732	UNCONDITIONAL_CALL:00052a1a
+0x05274C	0C6D000410A8	cmpi.w	#0x4, (0x10a8,A5)	FUN_00052732	DATA:000010a8
+0x052752	6778	beq.b	0x000527cc	FUN_00052732	CONDITIONAL_JUMP:000527cc
+0x052754	0C6D000510A8	cmpi.w	#0x5, (0x10a8,A5)	FUN_00052732	DATA:000010a8
+0x05275A	6770	beq.b	0x000527cc	FUN_00052732	CONDITIONAL_JUMP:000527cc
+0x05275C	0C6D000610A8	cmpi.w	#0x6, (0x10a8,A5)	FUN_00052732	DATA:000010a8
+0x052762	6768	beq.b	0x000527cc	FUN_00052732	CONDITIONAL_JUMP:000527cc
+0x052764	0C6D00011352	cmpi.w	#0x1, (0x1352,A5)	FUN_00052732	DATA:00001352
+0x05276A	660E	bne.b	0x0005277a	FUN_00052732	CONDITIONAL_JUMP:0005277a
+0x05276C	61000206	bsr.w	0x00052974	FUN_00052732	UNCONDITIONAL_CALL:00052974
+0x052770	3B7C00FF1352	move.w	#0xff, (0x1352,A5)	FUN_00052732	DATA:00001352
+0x052776	60000052	bra.w	0x000527ca	FUN_00052732	UNCONDITIONAL_JUMP:000527ca
+0x05277A	30390010C016	move.w	(0x0010c016).l, D0w	FUN_00052732	READ:0010c016
+0x052780	08000005	btst.l	#0x5, D0	FUN_00052732	
+0x052784	6608	bne.b	0x0005278e	FUN_00052732	CONDITIONAL_JUMP:0005278e
+0x052786	6100004C	bsr.w	0x000527d4	FUN_00052732	UNCONDITIONAL_CALL:000527d4
+0x05278A	60000006	bra.w	0x00052792	FUN_00052732	UNCONDITIONAL_JUMP:00052792
+0x05278E	6100013A	bsr.w	0x000528ca	FUN_00052732	UNCONDITIONAL_CALL:000528ca
+0x052792	610000F8	bsr.w	0x0005288c	FUN_00052732	UNCONDITIONAL_CALL:0005288c
+0x052796	6100007E	bsr.w	0x00052816	FUN_00052732	UNCONDITIONAL_CALL:00052816
+0x05279A	3B7C00FF12F8	move.w	#0xff, (0x12f8,A5)	FUN_00052732	DATA:000012f8
+0x0527A0	0C6D001113CA	cmpi.w	#0x11, (0x13ca,A5)	FUN_00052732	DATA:000013ca
+0x0527A6	6604	bne.b	0x000527ac	FUN_00052732	CONDITIONAL_JUMP:000527ac
+0x0527A8	61000222	bsr.w	0x000529cc	FUN_00052732	UNCONDITIONAL_CALL:000529cc
+0x0527AC	0C6D0000013A	cmpi.w	#0x0, (0x13a,A5)	FUN_00052732	
+0x0527B2	620A	bhi.b	0x000527be	FUN_00052732	CONDITIONAL_JUMP:000527be
+0x0527B4	3B7C00040002	move.w	#0x4, (0x2,A5)	FUN_00052732	
+0x0527BA	426D0004	clr.w	(0x4,A5)	FUN_00052732	
+0x0527BE	046D0002013A	subi.w	#0x2, (0x13a,A5)	FUN_00052732	
+0x0527C4	3B7C000112FC	move.w	#0x1, (0x12fc,A5)	FUN_00052732	DATA:000012fc
+0x0527CA	4E75	rts		FUN_00052732	
+0x0527CC	3B7C000710E8	move.w	#0x7, (0x10e8,A5)	FUN_00052732	DATA:000010e8
+0x0527D2	6090	bra.b	0x00052764	FUN_00052732	UNCONDITIONAL_JUMP:00052764
 0x0527D4	30390010C016	move.w	(0x0010c016).l, D0w	FUN_000527d4	READ:0010c016
 0x0527DA	08000001	btst.l	#0x1, D0	FUN_000527d4	
 0x0527DE	6604	bne.b	0x000527e4	FUN_000527d4	CONDITIONAL_JUMP:000527e4
@@ -3172,11 +3766,41 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x052A0C	3B7C000112F8	move.w	#0x1, (0x12f8,A5)	FUN_000529cc	DATA:000012f8
 0x052A12	3B7C00081310	move.w	#0x8, (0x1310,A5)	FUN_000529cc	DATA:00001310
 0x052A18	4E75	rts		FUN_000529cc	
-0x052A88	1298	move.b	(A0)+, (A1)		
-0x052A8A	E448	lsr.w	#0x2, D0w		
-0x052A8C	61000014	bsr.w	0x00052aa2		UNCONDITIONAL_CALL:00052aa2
-0x052A90	6000000E	bra.w	0x00052aa0		UNCONDITIONAL_JUMP:00052aa0
-0x052AA0	4E75	rts			
+0x052A1A	30390010D37A	move.w	(0x0010d37a).l, D0w	FUN_00052a1a	READ:0010d37a
+0x052A20	08000004	btst.l	#0x4, D0	FUN_00052a1a	
+0x052A24	66000020	bne.w	0x00052a46	FUN_00052a1a	CONDITIONAL_JUMP:00052a46
+0x052A28	0C6D00FF13C8	cmpi.w	#0xff, (0x13c8,A5)	FUN_00052a1a	DATA:000013c8
+0x052A2E	6708	beq.b	0x00052a38	FUN_00052a1a	CONDITIONAL_JUMP:00052a38
+0x052A30	3B7C000113CA	move.w	#0x1, (0x13ca,A5)	FUN_00052a1a	DATA:000013ca
+0x052A36	6006	bra.b	0x00052a3e	FUN_00052a1a	UNCONDITIONAL_JUMP:00052a3e
+0x052A38	3B7C001113CA	move.w	#0x11, (0x13ca,A5)	FUN_00052a1a	DATA:000013ca
+0x052A3E	3B7C000113C8	move.w	#0x1, (0x13c8,A5)	FUN_00052a1a	DATA:000013c8
+0x052A44	601C	bra.b	0x00052a62	FUN_00052a1a	UNCONDITIONAL_JUMP:00052a62
+0x052A46	0C6D000113C8	cmpi.w	#0x1, (0x13c8,A5)	FUN_00052a1a	DATA:000013c8
+0x052A4C	6708	beq.b	0x00052a56	FUN_00052a1a	CONDITIONAL_JUMP:00052a56
+0x052A4E	3B7C00FF13CA	move.w	#0xff, (0x13ca,A5)	FUN_00052a1a	DATA:000013ca
+0x052A54	6006	bra.b	0x00052a5c	FUN_00052a1a	UNCONDITIONAL_JUMP:00052a5c
+0x052A56	3B7C00FE13CA	move.w	#0xfe, (0x13ca,A5)	FUN_00052a1a	DATA:000013ca
+0x052A5C	3B7C00FF13C8	move.w	#0xff, (0x13c8,A5)	FUN_00052a1a	DATA:000013c8
+0x052A62	4E75	rts		FUN_00052a1a	
+0x052A64	0C6D00011298	cmpi.w	#0x1, (0x1298,A5)	FUN_00052a64	DATA:00001298
+0x052A6A	6612	bne.b	0x00052a7e	FUN_00052a64	CONDITIONAL_JUMP:00052a7e
+0x052A6C	207C0010D1B2	movea.l	#0x10d1b2, A0	FUN_00052a64	
+0x052A72	5488	addq.l	0x2, A0	FUN_00052a64	
+0x052A74	3B50129C	move.w	(A0), (0x129c,A5)	FUN_00052a64	READ:0010d1b4;DATA:0000129c
+0x052A78	5888	addq.l	0x4, A0	FUN_00052a64	
+0x052A7A	3B50129A	move.w	(A0), (0x129a,A5)	FUN_00052a64	READ:0010d1b8;DATA:0000129a
+0x052A7E	0C6D0001129E	cmpi.w	#0x1, (0x129e,A5)	FUN_00052a64	DATA:0000129e
+0x052A84	660E	bne.b	0x00052a94	FUN_00052a64	CONDITIONAL_JUMP:00052a94
+0x052A86	302D1298	move.w	(0x1298,A5), D0w	FUN_00052a64	DATA:00001298
+0x052A8A	E448	lsr.w	#0x2, D0w	FUN_00052a64	
+0x052A8C	61000014	bsr.w	0x00052aa2	FUN_00052a64	UNCONDITIONAL_CALL:00052aa2
+0x052A90	6000000E	bra.w	0x00052aa0	FUN_00052a64	UNCONDITIONAL_JUMP:00052aa0
+0x052A94	302D1298	move.w	(0x1298,A5), D0w	FUN_00052a64	DATA:00001298
+0x052A98	E448	lsr.w	#0x2, D0w	FUN_00052a64	
+0x052A9A	5840	addq.w	0x4, D0w	FUN_00052a64	
+0x052A9C	61000004	bsr.w	0x00052aa2	FUN_00052a64	UNCONDITIONAL_CALL:00052aa2
+0x052AA0	4E75	rts		FUN_00052a64	
 0x052AA2	227C00D00000	movea.l	#0xd00000, A1	FUN_00052aa2	
 0x052AA8	207C0005DA5E	movea.l	#0x5da5e, A0	FUN_00052aa2	
 0x052AAE	C0FC0018	mulu.w	#0x18, D0	FUN_00052aa2	
@@ -3203,9 +3827,21 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x052AF0	5342	subq.w	0x1, D2w	FUN_00052aa2	
 0x052AF2	66C6	bne.b	0x00052aba	FUN_00052aa2	CONDITIONAL_JUMP:00052aba
 0x052AF4	4E75	rts		FUN_00052aa2	
-0x052B08	1298	move.b	(A0)+, (A1)		
-0x052B0A	6000002A	bra.w	0x00052b36		UNCONDITIONAL_JUMP:00052b36
-0x052B36	4E75	rts			
+0x052AF6	0C6D0001129E	cmpi.w	#0x1, (0x129e,A5)	FUN_00052af6	DATA:0000129e
+0x052AFC	661C	bne.b	0x00052b1a	FUN_00052af6	CONDITIONAL_JUMP:00052b1a
+0x052AFE	0C6D000C1298	cmpi.w	#0xc, (0x1298,A5)	FUN_00052af6	DATA:00001298
+0x052B04	6708	beq.b	0x00052b0e	FUN_00052af6	CONDITIONAL_JUMP:00052b0e
+0x052B06	526D1298	addq.w	0x1, (0x1298,A5)	FUN_00052af6	DATA:00001298
+0x052B0A	6000002A	bra.w	0x00052b36	FUN_00052af6	UNCONDITIONAL_JUMP:00052b36
+0x052B0E	33FC00FF0010D296	move.w	#0xff, (0x0010d296).l	FUN_00052af6	WRITE:0010d296
+0x052B16	6000001E	bra.w	0x00052b36	FUN_00052af6	UNCONDITIONAL_JUMP:00052b36
+0x052B1A	0C6D00141298	cmpi.w	#0x14, (0x1298,A5)	FUN_00052af6	DATA:00001298
+0x052B20	6708	beq.b	0x00052b2a	FUN_00052af6	CONDITIONAL_JUMP:00052b2a
+0x052B22	526D1298	addq.w	0x1, (0x1298,A5)	FUN_00052af6	DATA:00001298
+0x052B26	6000000E	bra.w	0x00052b36	FUN_00052af6	UNCONDITIONAL_JUMP:00052b36
+0x052B2A	33FC00FF0010D296	move.w	#0xff, (0x0010d296).l	FUN_00052af6	WRITE:0010d296
+0x052B32	60000002	bra.w	0x00052b36	FUN_00052af6	UNCONDITIONAL_JUMP:00052b36
+0x052B36	4E75	rts		FUN_00052af6	
 0x053854	4A46	tst.w	D6w		
 0x053856	67000090	beq.w	0x000538e8		CONDITIONAL_JUMP:000538e8
 0x05385A	0C6D000610E8	cmpi.w	#0x6, (0x10e8,A5)		DATA:000010e8
@@ -3272,6 +3908,14 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x05394E	3B4110DA	move.w	D1w, (0x10da,A5)	FUN_00053942	DATA:000010da
 0x053952	4E75	rts		FUN_00053942	
 0x053954	4E75	rts			
+0x0539A0	0C6D013010BE	cmpi.w	#0x130, (0x10be,A5)	FUN_000539a0	DATA:000010be
+0x0539A6	6404	bcc.b	0x000539ac	FUN_000539a0	CONDITIONAL_JUMP:000539ac
+0x0539A8	DD6D10BE	add.w	D6w, (0x10be,A5)	FUN_000539a0	DATA:000010be
+0x0539AC	4E75	rts		FUN_000539a0	
+0x053A0C	0C6D002010BE	cmpi.w	#0x20, (0x10be,A5)	FUN_00053a0c	DATA:000010be
+0x053A12	6304	bls.b	0x00053a18	FUN_00053a0c	CONDITIONAL_JUMP:00053a18
+0x053A14	9D6D10BE	sub.w	D6w, (0x10be,A5)	FUN_00053a0c	DATA:000010be
+0x053A18	4E75	rts		FUN_00053a0c	
 0x053A2E	4280	clr.l	D0	FUN_00053a2e	
 0x053A30	302D10AE	move.w	(0x10ae,A5), D0w	FUN_00053a2e	DATA:000010ae
 0x053A34	0A4001FF	eori.w	#0x1ff, D0w	FUN_00053a2e	
@@ -3552,257 +4196,1046 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x053E18	08C00007	bset.l	#0x7, D0		
 0x053E1C	3B4010CE	move.w	D0w, (0x10ce,A5)		DATA:000010ce
 0x053E20	4E75	rts		FUN_00053e00	
-0x054F08	303C000F	move.w	#0xf, D0w		
-0x054F0C	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x054F12	426D138A	clr.w	(0x138a,A5)		DATA:0000138a
-0x054F16	3B7C00001388	move.w	#0x0, (0x1388,A5)		DATA:00001388
-0x054F1C	4E75	rts			
-0x054F1E	303C000F	move.w	#0xf, D0w		
-0x054F22	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x054F28	426D138A	clr.w	(0x138a,A5)		DATA:0000138a
-0x054F2C	3B7C00011388	move.w	#0x1, (0x1388,A5)		DATA:00001388
-0x054F32	4E75	rts			
-0x054F34	303C000F	move.w	#0xf, D0w		
-0x054F38	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x054F3E	426D138A	clr.w	(0x138a,A5)		DATA:0000138a
-0x054F42	3B7C00021388	move.w	#0x2, (0x1388,A5)		DATA:00001388
-0x054F48	4E75	rts			
-0x054F4A	303C000F	move.w	#0xf, D0w		
-0x054F4E	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x054F54	426D138A	clr.w	(0x138a,A5)		DATA:0000138a
-0x054F58	3B7C00031388	move.w	#0x3, (0x1388,A5)		DATA:00001388
-0x054F5E	4E75	rts			
-0x054F60	303C000F	move.w	#0xf, D0w		
-0x054F64	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x054F6A	3B7C000F1390	move.w	#0xf, (0x1390,A5)		DATA:00001390
-0x054F70	3B7C0001140E	move.w	#0x1, (0x140e,A5)		DATA:0000140e
-0x054F76	0C6D00011116	cmpi.w	#0x1, (0x1116,A5)		DATA:00001116
-0x054F7C	6702	beq.b	0x00054f80		CONDITIONAL_JUMP:00054f80
-0x054F7E	6010	bra.b	0x00054f90		UNCONDITIONAL_JUMP:00054f90
-0x054F80	0C6D000F110A	cmpi.w	#0xf, (0x110a,A5)		DATA:0000110a
-0x054F86	6506	bcs.b	0x00054f8e		CONDITIONAL_JUMP:00054f8e
-0x054F88	3B7C000E110A	move.w	#0xe, (0x110a,A5)		DATA:0000110a
-0x054F8E	6012	bra.b	0x00054fa2		UNCONDITIONAL_JUMP:00054fa2
-0x054F90	0C6D000F110A	cmpi.w	#0xf, (0x110a,A5)		DATA:0000110a
-0x054F96	650A	bcs.b	0x00054fa2		CONDITIONAL_JUMP:00054fa2
-0x054F98	426D110A	clr.w	(0x110a,A5)		DATA:0000110a
-0x054F9C	3B7C00FF1108	move.w	#0xff, (0x1108,A5)		DATA:00001108
-0x054FA2	4E75	rts			
-0x054FA4	046D0100013A	subi.w	#0x100, (0x13a,A5)		
-0x054FAA	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x054FB0	3B7C00011366	move.w	#0x1, (0x1366,A5)		DATA:00001366
-0x054FB6	426D1368	clr.w	(0x1368,A5)		DATA:00001368
-0x054FBA	4E75	rts			
-0x054FBC	046D0200013A	subi.w	#0x200, (0x13a,A5)		
-0x054FC2	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x054FC8	3B7C00011366	move.w	#0x1, (0x1366,A5)		DATA:00001366
-0x054FCE	426D1368	clr.w	(0x1368,A5)		DATA:00001368
-0x054FD2	4E75	rts			
-0x054FD4	303C000F	move.w	#0xf, D0w		
-0x054FD8	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x054FDE	066D0400013A	addi.w	#0x400, (0x13a,A5)		
-0x054FE4	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x054FEA	4E75	rts			
-0x054FEC	303C000F	move.w	#0xf, D0w		
-0x054FF0	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x054FF6	066D0800013A	addi.w	#0x800, (0x13a,A5)		
-0x054FFC	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x055002	4E75	rts			
-0x055004	303C000F	move.w	#0xf, D0w		
-0x055008	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x05500E	3B7C3000013A	move.w	#0x3000, (0x13a,A5)		DATA:00003000
-0x055014	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x05501A	4E75	rts			
-0x05501C	303C000F	move.w	#0xf, D0w		
-0x055020	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x055026	4E75	rts			
-0x055028	303C000F	move.w	#0xf, D0w		
-0x05502C	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x055032	3B7C00011410	move.w	#0x1, (0x1410,A5)		DATA:00001410
-0x055038	426D141A	clr.w	(0x141a,A5)		DATA:0000141a
-0x05503C	4E75	rts			
-0x05503E	303C000F	move.w	#0xf, D0w		
-0x055042	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x055048	3B7C0001140C	move.w	#0x1, (0x140c,A5)		DATA:0000140c
-0x05504E	426D1412	clr.w	(0x1412,A5)		DATA:00001412
-0x055052	4E75	rts			
-0x055054	303C000F	move.w	#0xf, D0w		
-0x055058	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x05505E	4E75	rts			
-0x055060	303C000F	move.w	#0xf, D0w		
-0x055064	4EB90003A0EC	jsr	0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec
-0x05506A	4E75	rts			
+0x054052	227C0010D1D2	movea.l	#0x10d1d2, A1	player_sprite_slot_init_54052	
+0x054058	343C0006	move.w	#0x6, D2w	player_sprite_slot_init_54052	
+0x05405C	32FC0003	move.w	#0x3, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1d2;WRITE:0010d1da
+0x054060	32FC0000	move.w	#0x0, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1d4;WRITE:0010d1dc
+0x054064	32FC0000	move.w	#0x0, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1d6;WRITE:0010d1de
+0x054068	32FC0000	move.w	#0x0, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1d8;WRITE:0010d1e0
+0x05406C	5342	subq.w	0x1, D2w	player_sprite_slot_init_54052	
+0x05406E	66EC	bne.b	0x0005405c	player_sprite_slot_init_54052	CONDITIONAL_JUMP:0005405c
+0x054070	343C0004	move.w	#0x4, D2w	player_sprite_slot_init_54052	
+0x054074	227C0010D1B2	movea.l	#0x10d1b2, A1	player_sprite_slot_init_54052	
+0x05407A	32FC0003	move.w	#0x3, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1b2;WRITE:0010d1ba
+0x05407E	32FC0000	move.w	#0x0, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1b4;WRITE:0010d1bc
+0x054082	32FC0000	move.w	#0x0, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1b6;WRITE:0010d1be
+0x054086	32FC0000	move.w	#0x0, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1b8;WRITE:0010d1c0
+0x05408A	5342	subq.w	0x1, D2w	player_sprite_slot_init_54052	
+0x05408C	66EC	bne.b	0x0005407a	player_sprite_slot_init_54052	CONDITIONAL_JUMP:0005407a
+0x05408E	227C0010D1F2	movea.l	#0x10d1f2, A1	player_sprite_slot_init_54052	
+0x054094	343C0006	move.w	#0x6, D2w	player_sprite_slot_init_54052	
+0x054098	32FC0003	move.w	#0x3, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1f2;WRITE:0010d1fa
+0x05409C	32FC0000	move.w	#0x0, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1f4;WRITE:0010d1fc
+0x0540A0	32FC0000	move.w	#0x0, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1f6;WRITE:0010d1fe
+0x0540A4	32FC0000	move.w	#0x0, (A1)+	player_sprite_slot_init_54052	WRITE:0010d1f8;WRITE:0010d200
+0x0540A8	5342	subq.w	0x1, D2w	player_sprite_slot_init_54052	
+0x0540AA	66EC	bne.b	0x00054098	player_sprite_slot_init_54052	CONDITIONAL_JUMP:00054098
+0x0540AC	227C00D00000	movea.l	#0xd00000, A1	FUN_000540ac	
+0x0540B2	343C0004	move.w	#0x4, D2w	FUN_000540ac	
+0x0540B6	32FC0003	move.w	#0x3, (A1)+	FUN_000540ac	WRITE:00d00000;WRITE:00d00008
+0x0540BA	32FC0000	move.w	#0x0, (A1)+	FUN_000540ac	WRITE:00d00002;WRITE:00d0000a
+0x0540BE	32FC0000	move.w	#0x0, (A1)+	FUN_000540ac	WRITE:00d00004;WRITE:00d0000c
+0x0540C2	32FC0000	move.w	#0x0, (A1)+	FUN_000540ac	WRITE:00d00006;WRITE:00d0000e
+0x0540C6	5342	subq.w	0x1, D2w	FUN_000540ac	
+0x0540C8	66EC	bne.b	0x000540b6	FUN_000540ac	CONDITIONAL_JUMP:000540b6
+0x0540CA	4E75	rts		FUN_000540ac	
+0x0540CC	302D10E8	move.w	(0x10e8,A5), D0w	player_body_constructor_540cc	DATA:000010e8
+0x0540D0	0C400007	cmpi.w	#0x7, D0w	player_body_constructor_540cc	
+0x0540D4	67000212	beq.w	0x000542e8	player_body_constructor_540cc	CONDITIONAL_JUMP:000542e8
+0x0540D8	0C400008	cmpi.w	#0x8, D0w	player_body_constructor_540cc	
+0x0540DC	6658	bne.b	0x00054136	player_body_constructor_540cc	CONDITIONAL_JUMP:00054136
+0x0540DE	0C6D0002138C	cmpi.w	#0x2, (0x138c,A5)	player_body_constructor_540cc	DATA:0000138c
+0x0540E4	6610	bne.b	0x000540f6	player_body_constructor_540cc	CONDITIONAL_JUMP:000540f6
+0x0540E6	267C0005BBC0	movea.l	#0x5bbc0, A3	player_body_constructor_540cc	
+0x0540EC	287C0005BC00	movea.l	#0x5bc00, A4	player_body_constructor_540cc	
+0x0540F2	6000022C	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x0540F6	0C6D0003138C	cmpi.w	#0x3, (0x138c,A5)	player_body_constructor_540cc	DATA:0000138c
+0x0540FC	6610	bne.b	0x0005410e	player_body_constructor_540cc	CONDITIONAL_JUMP:0005410e
+0x0540FE	267C0005BC40	movea.l	#0x5bc40, A3	player_body_constructor_540cc	
+0x054104	287C0005BC80	movea.l	#0x5bc80, A4	player_body_constructor_540cc	
+0x05410A	60000214	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x05410E	0C6D0001138C	cmpi.w	#0x1, (0x138c,A5)	player_body_constructor_540cc	DATA:0000138c
+0x054114	6610	bne.b	0x00054126	player_body_constructor_540cc	CONDITIONAL_JUMP:00054126
+0x054116	267C0005BCC0	movea.l	#0x5bcc0, A3	player_body_constructor_540cc	
+0x05411C	287C0005BD00	movea.l	#0x5bd00, A4	player_body_constructor_540cc	
+0x054122	600001FC	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x054126	267C0005BB40	movea.l	#0x5bb40, A3	player_body_constructor_540cc	
+0x05412C	287C0005BB80	movea.l	#0x5bb80, A4	player_body_constructor_540cc	
+0x054132	600001EC	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x054136	0C400001	cmpi.w	#0x1, D0w	player_body_constructor_540cc	
+0x05413A	664C	bne.b	0x00054188	player_body_constructor_540cc	CONDITIONAL_JUMP:00054188
+0x05413C	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)	player_body_constructor_540cc	DATA:000012f0
+0x054142	6700001E	beq.w	0x00054162	player_body_constructor_540cc	CONDITIONAL_JUMP:00054162
+0x054146	0C6D0002111A	cmpi.w	#0x2, (0x111a,A5)	player_body_constructor_540cc	DATA:0000111a
+0x05414C	6724	beq.b	0x00054172	player_body_constructor_540cc	CONDITIONAL_JUMP:00054172
+0x05414E	247C0005B6A0	movea.l	#0x5b6a0, A2	player_body_constructor_540cc	
+0x054154	267C0005B640	movea.l	#0x5b640, A3	player_body_constructor_540cc	
+0x05415A	287C0005B660	movea.l	#0x5b660, A4	player_body_constructor_540cc	
+0x054160	6022	bra.b	0x00054184	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054184
+0x054162	267C0005B6D0	movea.l	#0x5b6d0, A3	player_body_constructor_540cc	
+0x054168	287C0005B6F8	movea.l	#0x5b6f8, A4	player_body_constructor_540cc	
+0x05416E	600001B0	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x054172	247C0005B6A0	movea.l	#0x5b6a0, A2	player_body_constructor_540cc	
+0x054178	267C0005B640	movea.l	#0x5b640, A3	player_body_constructor_540cc	
+0x05417E	287C0005B680	movea.l	#0x5b680, A4	player_body_constructor_540cc	
+0x054184	6000019A	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x054188	0C400002	cmpi.w	#0x2, D0w	player_body_constructor_540cc	
+0x05418C	6630	bne.b	0x000541be	player_body_constructor_540cc	CONDITIONAL_JUMP:000541be
+0x05418E	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)	player_body_constructor_540cc	DATA:000012f0
+0x054194	67000018	beq.w	0x000541ae	player_body_constructor_540cc	CONDITIONAL_JUMP:000541ae
+0x054198	247C0005B6A0	movea.l	#0x5b6a0, A2	player_body_constructor_540cc	
+0x05419E	267C0005B720	movea.l	#0x5b720, A3	player_body_constructor_540cc	
+0x0541A4	287C0005B740	movea.l	#0x5b740, A4	player_body_constructor_540cc	
+0x0541AA	60000174	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x0541AE	267C0005B778	movea.l	#0x5b778, A3	player_body_constructor_540cc	
+0x0541B4	287C0005B7A0	movea.l	#0x5b7a0, A4	player_body_constructor_540cc	
+0x0541BA	60000164	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x0541BE	0C400003	cmpi.w	#0x3, D0w	player_body_constructor_540cc	
+0x0541C2	6630	bne.b	0x000541f4	player_body_constructor_540cc	CONDITIONAL_JUMP:000541f4
+0x0541C4	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)	player_body_constructor_540cc	DATA:000012f0
+0x0541CA	67000018	beq.w	0x000541e4	player_body_constructor_540cc	CONDITIONAL_JUMP:000541e4
+0x0541CE	247C0005B6A0	movea.l	#0x5b6a0, A2	player_body_constructor_540cc	
+0x0541D4	267C0005B7C8	movea.l	#0x5b7c8, A3	player_body_constructor_540cc	
+0x0541DA	287C0005B7E8	movea.l	#0x5b7e8, A4	player_body_constructor_540cc	
+0x0541E0	6000013E	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x0541E4	267C0005B818	movea.l	#0x5b818, A3	player_body_constructor_540cc	
+0x0541EA	287C0005B840	movea.l	#0x5b840, A4	player_body_constructor_540cc	
+0x0541F0	6000012E	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x0541F4	0C400004	cmpi.w	#0x4, D0w	player_body_constructor_540cc	
+0x0541F8	6630	bne.b	0x0005422a	player_body_constructor_540cc	CONDITIONAL_JUMP:0005422a
+0x0541FA	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)	player_body_constructor_540cc	DATA:000012f0
+0x054200	67000018	beq.w	0x0005421a	player_body_constructor_540cc	CONDITIONAL_JUMP:0005421a
+0x054204	247C0005B8A8	movea.l	#0x5b8a8, A2	player_body_constructor_540cc	
+0x05420A	267C0005B868	movea.l	#0x5b868, A3	player_body_constructor_540cc	
+0x054210	287C0005B888	movea.l	#0x5b888, A4	player_body_constructor_540cc	
+0x054216	60000108	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x05421A	267C0005B8D8	movea.l	#0x5b8d8, A3	player_body_constructor_540cc	
+0x054220	287C0005B900	movea.l	#0x5b900, A4	player_body_constructor_540cc	
+0x054226	600000F8	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x05422A	0C400005	cmpi.w	#0x5, D0w	player_body_constructor_540cc	
+0x05422E	6630	bne.b	0x00054260	player_body_constructor_540cc	CONDITIONAL_JUMP:00054260
+0x054230	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)	player_body_constructor_540cc	DATA:000012f0
+0x054236	67000018	beq.w	0x00054250	player_body_constructor_540cc	CONDITIONAL_JUMP:00054250
+0x05423A	247C0005B978	movea.l	#0x5b978, A2	player_body_constructor_540cc	
+0x054240	267C0005B928	movea.l	#0x5b928, A3	player_body_constructor_540cc	
+0x054246	287C0005B948	movea.l	#0x5b948, A4	player_body_constructor_540cc	
+0x05424C	600000D2	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x054250	267C0005B9A8	movea.l	#0x5b9a8, A3	player_body_constructor_540cc	
+0x054256	287C0005B9D0	movea.l	#0x5b9d0, A4	player_body_constructor_540cc	
+0x05425C	600000C2	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x054260	0C400006	cmpi.w	#0x6, D0w	player_body_constructor_540cc	
+0x054264	6630	bne.b	0x00054296	player_body_constructor_540cc	CONDITIONAL_JUMP:00054296
+0x054266	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)	player_body_constructor_540cc	DATA:000012f0
+0x05426C	67000018	beq.w	0x00054286	player_body_constructor_540cc	CONDITIONAL_JUMP:00054286
+0x054270	247C0005B8A8	movea.l	#0x5b8a8, A2	player_body_constructor_540cc	
+0x054276	267C0005B868	movea.l	#0x5b868, A3	player_body_constructor_540cc	
+0x05427C	287C0005B888	movea.l	#0x5b888, A4	player_body_constructor_540cc	
+0x054282	6000009C	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x054286	267C0005B8D8	movea.l	#0x5b8d8, A3	player_body_constructor_540cc	
+0x05428C	287C0005B900	movea.l	#0x5b900, A4	player_body_constructor_540cc	
+0x054292	6000008C	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x054296	0C400009	cmpi.w	#0x9, D0w	player_body_constructor_540cc	
+0x05429A	6616	bne.b	0x000542b2	player_body_constructor_540cc	CONDITIONAL_JUMP:000542b2
+0x05429C	247C0005BA38	movea.l	#0x5ba38, A2	player_body_constructor_540cc	
+0x0542A2	267C0005B9F8	movea.l	#0x5b9f8, A3	player_body_constructor_540cc	
+0x0542A8	287C0005BA00	movea.l	#0x5ba00, A4	player_body_constructor_540cc	
+0x0542AE	60000070	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x0542B2	0C400000	cmpi.w	#0x0, D0w	player_body_constructor_540cc	
+0x0542B6	6668	bne.b	0x00054320	player_body_constructor_540cc	CONDITIONAL_JUMP:00054320
+0x0542B8	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)	player_body_constructor_540cc	DATA:000012f0
+0x0542BE	67000018	beq.w	0x000542d8	player_body_constructor_540cc	CONDITIONAL_JUMP:000542d8
+0x0542C2	247C0005B6A0	movea.l	#0x5b6a0, A2	player_body_constructor_540cc	
+0x0542C8	267C0005BA70	movea.l	#0x5ba70, A3	player_body_constructor_540cc	
+0x0542CE	287C0005BA78	movea.l	#0x5ba78, A4	player_body_constructor_540cc	
+0x0542D4	6000004A	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x0542D8	267C0005BAB0	movea.l	#0x5bab0, A3	player_body_constructor_540cc	
+0x0542DE	287C0005BAC8	movea.l	#0x5bac8, A4	player_body_constructor_540cc	
+0x0542E4	6000003A	bra.w	0x00054320	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054320
+0x0542E8	227C0010D1D2	movea.l	#0x10d1d2, A1	player_body_constructor_540cc	
+0x0542EE	343C0018	move.w	#0x18, D2w	player_body_constructor_540cc	
+0x0542F2	32FC0000	move.w	#0x0, (A1)+	player_body_constructor_540cc	WRITE:0010d1d2;WRITE:0010d1d4
+0x0542F6	5342	subq.w	0x1, D2w	player_body_constructor_540cc	
+0x0542F8	66F8	bne.b	0x000542f2	player_body_constructor_540cc	CONDITIONAL_JUMP:000542f2
+0x0542FA	227C0010D1F2	movea.l	#0x10d1f2, A1	player_body_constructor_540cc	
+0x054300	343C0018	move.w	#0x18, D2w	player_body_constructor_540cc	
+0x054304	32FC0000	move.w	#0x0, (A1)+	player_body_constructor_540cc	WRITE:0010d1f2;WRITE:0010d1f4
+0x054308	5342	subq.w	0x1, D2w	player_body_constructor_540cc	
+0x05430A	66F8	bne.b	0x00054304	player_body_constructor_540cc	CONDITIONAL_JUMP:00054304
+0x05430C	227C0010D1B2	movea.l	#0x10d1b2, A1	player_body_constructor_540cc	
+0x054312	343C0010	move.w	#0x10, D2w	player_body_constructor_540cc	
+0x054316	32FC0000	move.w	#0x0, (A1)+	player_body_constructor_540cc	WRITE:0010d1b2;WRITE:0010d1b4
+0x05431A	5342	subq.w	0x1, D2w	player_body_constructor_540cc	
+0x05431C	66F8	bne.b	0x00054316	player_body_constructor_540cc	CONDITIONAL_JUMP:00054316
+0x05431E	6004	bra.b	0x00054324	player_body_constructor_540cc	UNCONDITIONAL_JUMP:00054324
+0x054320	61000004	bsr.w	0x00054326	player_body_constructor_540cc	UNCONDITIONAL_CALL:00054326
+0x054324	4E75	rts		player_body_constructor_540cc	
+0x054326	0C6D000810E8	cmpi.w	#0x8, (0x10e8,A5)	FUN_00054326	DATA:000010e8
+0x05432C	6748	beq.b	0x00054376	FUN_00054326	CONDITIONAL_JUMP:00054376
+0x05432E	0C6D000910E8	cmpi.w	#0x9, (0x10e8,A5)	FUN_00054326	DATA:000010e8
+0x054334	6708	beq.b	0x0005433e	FUN_00054326	CONDITIONAL_JUMP:0005433e
+0x054336	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)	FUN_00054326	DATA:000012f0
+0x05433C	6720	beq.b	0x0005435e	FUN_00054326	CONDITIONAL_JUMP:0005435e
+0x05433E	0C6D00011108	cmpi.w	#0x1, (0x1108,A5)	FUN_00054326	DATA:00001108
+0x054344	6748	beq.b	0x0005438e	FUN_00054326	CONDITIONAL_JUMP:0005438e
+0x054346	302D10EA	move.w	(0x10ea,A5), D0w	FUN_00054326	DATA:000010ea
+0x05434A	41F30000	lea	(0x0,A3,D0w*0x1), A0	FUN_00054326	
+0x05434E	4240	clr.w	D0w	FUN_00054326	
+0x054350	1010	move.b	(A0), D0b	FUN_00054326	
+0x054352	3B401244	move.w	D0w, (0x1244,A5)	FUN_00054326	DATA:00001244
+0x054356	6100013A	bsr.w	0x00054492	FUN_00054326	UNCONDITIONAL_CALL:00054492
+0x05435A	6000006E	bra.w	0x000543ca	FUN_00054326	UNCONDITIONAL_JUMP:000543ca
+0x05435E	302D12F2	move.w	(0x12f2,A5), D0w	FUN_00054326	DATA:000012f2
+0x054362	41F30000	lea	(0x0,A3,D0w*0x1), A0	FUN_00054326	
+0x054366	4240	clr.w	D0w	FUN_00054326	
+0x054368	1010	move.b	(A0), D0b	FUN_00054326	
+0x05436A	3B401244	move.w	D0w, (0x1244,A5)	FUN_00054326	DATA:00001244
+0x05436E	61000122	bsr.w	0x00054492	FUN_00054326	UNCONDITIONAL_CALL:00054492
+0x054372	60000056	bra.w	0x000543ca	FUN_00054326	UNCONDITIONAL_JUMP:000543ca
+0x054376	302D12F4	move.w	(0x12f4,A5), D0w	FUN_00054326	DATA:000012f4
+0x05437A	41F30000	lea	(0x0,A3,D0w*0x1), A0	FUN_00054326	
+0x05437E	4240	clr.w	D0w	FUN_00054326	
+0x054380	1010	move.b	(A0), D0b	FUN_00054326	
+0x054382	3B401244	move.w	D0w, (0x1244,A5)	FUN_00054326	DATA:00001244
+0x054386	6100010A	bsr.w	0x00054492	FUN_00054326	UNCONDITIONAL_CALL:00054492
+0x05438A	6000003E	bra.w	0x000543ca	FUN_00054326	UNCONDITIONAL_JUMP:000543ca
+0x05438E	0C6D00041116	cmpi.w	#0x4, (0x1116,A5)	FUN_00054326	DATA:00001116
+0x054394	671E	beq.b	0x000543b4	FUN_00054326	CONDITIONAL_JUMP:000543b4
+0x054396	0C6D000510E8	cmpi.w	#0x5, (0x10e8,A5)	FUN_00054326	DATA:000010e8
+0x05439C	67A8	beq.b	0x00054346	FUN_00054326	CONDITIONAL_JUMP:00054346
+0x05439E	0C6D00001116	cmpi.w	#0x0, (0x1116,A5)	FUN_00054326	DATA:00001116
+0x0543A4	6608	bne.b	0x000543ae	FUN_00054326	CONDITIONAL_JUMP:000543ae
+0x0543A6	247C0005BAE0	movea.l	#0x5bae0, A2	FUN_00054326	
+0x0543AC	6006	bra.b	0x000543b4	FUN_00054326	UNCONDITIONAL_JUMP:000543b4
+0x0543AE	247C0005BB10	movea.l	#0x5bb10, A2	FUN_00054326	
+0x0543B4	302D110A	move.w	(0x110a,A5), D0w	FUN_00054326	DATA:0000110a
+0x0543B8	E348	lsl.w	#0x1, D0w	FUN_00054326	
+0x0543BA	41F20000	lea	(0x0,A2,D0w*0x1), A0	FUN_00054326	
+0x0543BE	4240	clr.w	D0w	FUN_00054326	
+0x0543C0	1010	move.b	(A0), D0b	FUN_00054326	DATA:0005bae0;DATA:0005bb10
+0x0543C2	3B401244	move.w	D0w, (0x1244,A5)	FUN_00054326	DATA:00001244
+0x0543C6	610000CA	bsr.w	0x00054492	FUN_00054326	UNCONDITIONAL_CALL:00054492
+0x0543CA	0C6D000810E8	cmpi.w	#0x8, (0x10e8,A5)	FUN_00054326	DATA:000010e8
+0x0543D0	6700008C	beq.w	0x0005445e	FUN_00054326	CONDITIONAL_JUMP:0005445e
+0x0543D4	0C6D000910E8	cmpi.w	#0x9, (0x10e8,A5)	FUN_00054326	DATA:000010e8
+0x0543DA	670A	beq.b	0x000543e6	FUN_00054326	CONDITIONAL_JUMP:000543e6
+0x0543DC	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)	FUN_00054326	DATA:000012f0
+0x0543E2	67000060	beq.w	0x00054444	FUN_00054326	CONDITIONAL_JUMP:00054444
+0x0543E6	0C6D000510E8	cmpi.w	#0x5, (0x10e8,A5)	FUN_00054326	DATA:000010e8
+0x0543EC	6610	bne.b	0x000543fe	FUN_00054326	CONDITIONAL_JUMP:000543fe
+0x0543EE	0C6D00011116	cmpi.w	#0x1, (0x1116,A5)	FUN_00054326	DATA:00001116
+0x0543F4	6708	beq.b	0x000543fe	FUN_00054326	CONDITIONAL_JUMP:000543fe
+0x0543F6	0C6D00011108	cmpi.w	#0x1, (0x1108,A5)	FUN_00054326	DATA:00001108
+0x0543FC	677A	beq.b	0x00054478	FUN_00054326	CONDITIONAL_JUMP:00054478
+0x0543FE	0C6D000210E8	cmpi.w	#0x2, (0x10e8,A5)	FUN_00054326	DATA:000010e8
+0x054404	6714	beq.b	0x0005441a	FUN_00054326	CONDITIONAL_JUMP:0005441a
+0x054406	0C6D000310E8	cmpi.w	#0x3, (0x10e8,A5)	FUN_00054326	DATA:000010e8
+0x05440C	670C	beq.b	0x0005441a	FUN_00054326	CONDITIONAL_JUMP:0005441a
+0x05440E	0C6D000010E8	cmpi.w	#0x0, (0x10e8,A5)	FUN_00054326	DATA:000010e8
+0x054414	6704	beq.b	0x0005441a	FUN_00054326	CONDITIONAL_JUMP:0005441a
+0x054416	6702	beq.b	0x0005441a	FUN_00054326	CONDITIONAL_JUMP:0005441a
+0x054418	6010	bra.b	0x0005442a	FUN_00054326	UNCONDITIONAL_JUMP:0005442a
+0x05441A	0C6D00011108	cmpi.w	#0x1, (0x1108,A5)	FUN_00054326	DATA:00001108
+0x054420	6608	bne.b	0x0005442a	FUN_00054326	CONDITIONAL_JUMP:0005442a
+0x054422	0C6D00011116	cmpi.w	#0x1, (0x1116,A5)	FUN_00054326	DATA:00001116
+0x054428	674E	beq.b	0x00054478	FUN_00054326	CONDITIONAL_JUMP:00054478
+0x05442A	302D10EA	move.w	(0x10ea,A5), D0w	FUN_00054326	DATA:000010ea
+0x05442E	41F40000	lea	(0x0,A4,D0w*0x1), A0	FUN_00054326	
+0x054432	4240	clr.w	D0w	FUN_00054326	
+0x054434	10280000	move.b	(0x0,A0), D0b	FUN_00054326	
+0x054438	3B401246	move.w	D0w, (0x1246,A5)	FUN_00054326	DATA:00001246
+0x05443C	6100026A	bsr.w	0x000546a8	FUN_00054326	UNCONDITIONAL_CALL:000546a8
+0x054440	6000004E	bra.w	0x00054490	FUN_00054326	UNCONDITIONAL_JUMP:00054490
+0x054444	302D12F2	move.w	(0x12f2,A5), D0w	FUN_00054326	DATA:000012f2
+0x054448	41F40000	lea	(0x0,A4,D0w*0x1), A0	FUN_00054326	
+0x05444C	4240	clr.w	D0w	FUN_00054326	
+0x05444E	10280000	move.b	(0x0,A0), D0b	FUN_00054326	
+0x054452	3B401246	move.w	D0w, (0x1246,A5)	FUN_00054326	DATA:00001246
+0x054456	61000250	bsr.w	0x000546a8	FUN_00054326	UNCONDITIONAL_CALL:000546a8
+0x05445A	60000034	bra.w	0x00054490	FUN_00054326	UNCONDITIONAL_JUMP:00054490
+0x05445E	302D12F4	move.w	(0x12f4,A5), D0w	FUN_00054326	DATA:000012f4
+0x054462	41F40000	lea	(0x0,A4,D0w*0x1), A0	FUN_00054326	
+0x054466	4240	clr.w	D0w	FUN_00054326	
+0x054468	10280000	move.b	(0x0,A0), D0b	FUN_00054326	
+0x05446C	3B401246	move.w	D0w, (0x1246,A5)	FUN_00054326	DATA:00001246
+0x054470	61000236	bsr.w	0x000546a8	FUN_00054326	UNCONDITIONAL_CALL:000546a8
+0x054474	6000001A	bra.w	0x00054490	FUN_00054326	UNCONDITIONAL_JUMP:00054490
+0x054478	302D110A	move.w	(0x110a,A5), D0w	FUN_00054326	DATA:0000110a
+0x05447C	E348	lsl.w	#0x1, D0w	FUN_00054326	
+0x05447E	41F40000	lea	(0x0,A4,D0w*0x1), A0	FUN_00054326	
+0x054482	4240	clr.w	D0w	FUN_00054326	
+0x054484	10280000	move.b	(0x0,A0), D0b	FUN_00054326	
+0x054488	3B401246	move.w	D0w, (0x1246,A5)	FUN_00054326	DATA:00001246
+0x05448C	6100021A	bsr.w	0x000546a8	FUN_00054326	UNCONDITIONAL_CALL:000546a8
+0x054490	4E75	rts		FUN_00054326	
+0x054492	227C0010D1D2	movea.l	#0x10d1d2, A1	FUN_00054492	
+0x054498	207C0005BD40	movea.l	#0x5bd40, A0	FUN_00054492	
+0x05449E	302D1244	move.w	(0x1244,A5), D0w	FUN_00054492	DATA:00001244
+0x0544A2	0C6D000910E8	cmpi.w	#0x9, (0x10e8,A5)	FUN_00054492	DATA:000010e8
+0x0544A8	660A	bne.b	0x000544b4	FUN_00054492	CONDITIONAL_JUMP:000544b4
+0x0544AA	0C6D00031114	cmpi.w	#0x3, (0x1114,A5)	FUN_00054492	DATA:00001114
+0x0544B0	6602	bne.b	0x000544b4	FUN_00054492	CONDITIONAL_JUMP:000544b4
+0x0544B2	5340	subq.w	0x1, D0w	FUN_00054492	
+0x0544B4	E348	lsl.w	#0x1, D0w	FUN_00054492	
+0x0544B6	41F00000	lea	(0x0,A0,D0w*0x1), A0	FUN_00054492	
+0x0544BA	3010	move.w	(A0), D0w	FUN_00054492	DATA:0005bd40
+0x0544BC	207C0005BD40	movea.l	#0x5bd40, A0	FUN_00054492	
+0x0544C2	D0C0	adda.w	D0w, A0	FUN_00054492	
+0x0544C4	343C0004	move.w	#0x4, D2w	FUN_00054492	
+0x0544C8	3010	move.w	(A0), D0w	FUN_00054492	DATA:0005bd40
+0x0544CA	0C400000	cmpi.w	#0x0, D0w	FUN_00054492	
+0x0544CE	6612	bne.b	0x000544e2	FUN_00054492	CONDITIONAL_JUMP:000544e2
+0x0544D0	32FC0003	move.w	#0x3, (A1)+	FUN_00054492	WRITE:0010d1d2;WRITE:0010d1da
+0x0544D4	32FC0000	move.w	#0x0, (A1)+	FUN_00054492	WRITE:0010d1d4;WRITE:0010d1dc
+0x0544D8	32FC0000	move.w	#0x0, (A1)+	FUN_00054492	WRITE:0010d1d6;WRITE:0010d1de
+0x0544DC	32FC0000	move.w	#0x0, (A1)+	FUN_00054492	WRITE:0010d1d8;WRITE:0010d1e0
+0x0544E0	6050	bra.b	0x00054532	FUN_00054492	UNCONDITIONAL_JUMP:00054532
+0x0544E2	30280004	move.w	(0x4,A0), D0w	FUN_00054492	DATA:0005bd44
+0x0544E6	0C6D00021114	cmpi.w	#0x2, (0x1114,A5)	FUN_00054492	DATA:00001114
+0x0544EC	6704	beq.b	0x000544f2	FUN_00054492	CONDITIONAL_JUMP:000544f2
+0x0544EE	00404000	ori.w	#0x4000, D0w	FUN_00054492	
+0x0544F2	32C0	move.w	D0w, (A1)+	FUN_00054492	WRITE:0010d1da
+0x0544F4	10280003	move.b	(0x3,A0), D0b	FUN_00054492	DATA:0005bd43
+0x0544F8	4880	ext.w	D0w	FUN_00054492	
+0x0544FA	D06D10C0	add.w	(0x10c0,A5), D0w	FUN_00054492	DATA:000010c0
+0x0544FE	5240	addq.w	0x1, D0w	FUN_00054492	
+0x054500	024001FF	andi.w	#0x1ff, D0w	FUN_00054492	
+0x054504	32C0	move.w	D0w, (A1)+	FUN_00054492	WRITE:0010d1dc
+0x054506	3010	move.w	(A0), D0w	FUN_00054492	DATA:0005bd40
+0x054508	32E80000	move.w	(0x0,A0), (A1)+	FUN_00054492	DATA:0005bd40;WRITE:0010d1de
+0x05450C	10280002	move.b	(0x2,A0), D0b	FUN_00054492	DATA:0005bd42
+0x054510	4880	ext.w	D0w	FUN_00054492	
+0x054512	0C6D00021114	cmpi.w	#0x2, (0x1114,A5)	FUN_00054492	DATA:00001114
+0x054518	670A	beq.b	0x00054524	FUN_00054492	CONDITIONAL_JUMP:00054524
+0x05451A	0A40FFFF	eori.w	#-0x1, D0w	FUN_00054492	
+0x05451E	5240	addq.w	0x1, D0w	FUN_00054492	
+0x054520	04400010	subi.w	#0x10, D0w	FUN_00054492	
+0x054524	D06D10BE	add.w	(0x10be,A5), D0w	FUN_00054492	DATA:000010be
+0x054528	024001FF	andi.w	#0x1ff, D0w	FUN_00054492	
+0x05452C	32C0	move.w	D0w, (A1)+	FUN_00054492	WRITE:0010d1e0
+0x05452E	D0FC0006	adda.w	#0x6, A0	FUN_00054492	
+0x054532	5342	subq.w	0x1, D2w	FUN_00054492	
+0x054534	6692	bne.b	0x000544c8	FUN_00054492	CONDITIONAL_JUMP:000544c8
+0x054536	0C6D000112FA	cmpi.w	#0x1, (0x12fa,A5)	FUN_00054492	DATA:000012fa
+0x05453C	6608	bne.b	0x00054546	FUN_00054492	CONDITIONAL_JUMP:00054546
+0x05453E	207C0005CD8A	movea.l	#0x5cd8a, A0	FUN_00054492	
+0x054544	6052	bra.b	0x00054598	FUN_00054492	UNCONDITIONAL_JUMP:00054598
+0x054546	0C6D000412FA	cmpi.w	#0x4, (0x12fa,A5)	FUN_00054492	DATA:000012fa
+0x05454C	6608	bne.b	0x00054556	FUN_00054492	CONDITIONAL_JUMP:00054556
+0x05454E	207C0005D068	movea.l	#0x5d068, A0	FUN_00054492	
+0x054554	6042	bra.b	0x00054598	FUN_00054492	UNCONDITIONAL_JUMP:00054598
+0x054556	0C6D000212FA	cmpi.w	#0x2, (0x12fa,A5)	FUN_00054492	DATA:000012fa
+0x05455C	6608	bne.b	0x00054566	FUN_00054492	CONDITIONAL_JUMP:00054566
+0x05455E	207C0005D346	movea.l	#0x5d346, A0	FUN_00054492	
+0x054564	6032	bra.b	0x00054598	FUN_00054492	UNCONDITIONAL_JUMP:00054598
+0x054566	0C6D000312FA	cmpi.w	#0x3, (0x12fa,A5)	FUN_00054492	DATA:000012fa
+0x05456C	6608	bne.b	0x00054576	FUN_00054492	CONDITIONAL_JUMP:00054576
+0x05456E	207C0005D666	movea.l	#0x5d666, A0	FUN_00054492	
+0x054574	6022	bra.b	0x00054598	FUN_00054492	UNCONDITIONAL_JUMP:00054598
+0x054576	343C0004	move.w	#0x4, D2w	FUN_00054492	
+0x05457A	227C0010D1B2	movea.l	#0x10d1b2, A1	FUN_00054492	
+0x054580	32FC0003	move.w	#0x3, (A1)+	FUN_00054492	WRITE:0010d1b2;WRITE:0010d1ba
+0x054584	32FC0000	move.w	#0x0, (A1)+	FUN_00054492	WRITE:0010d1b4;WRITE:0010d1bc
+0x054588	32FC0000	move.w	#0x0, (A1)+	FUN_00054492	WRITE:0010d1b6;WRITE:0010d1be
+0x05458C	32FC0000	move.w	#0x0, (A1)+	FUN_00054492	WRITE:0010d1b8;WRITE:0010d1c0
+0x054590	5342	subq.w	0x1, D2w	FUN_00054492	
+0x054592	66EC	bne.b	0x00054580	FUN_00054492	CONDITIONAL_JUMP:00054580
+0x054594	600000C0	bra.w	0x00054656	FUN_00054492	UNCONDITIONAL_JUMP:00054656
+0x054598	2248	movea.l	A0, A1	FUN_00054492	
+0x05459A	302D1244	move.w	(0x1244,A5), D0w	FUN_00054492	DATA:00001244
+0x05459E	0C6D000910E8	cmpi.w	#0x9, (0x10e8,A5)	FUN_00054492	DATA:000010e8
+0x0545A4	660A	bne.b	0x000545b0	FUN_00054492	CONDITIONAL_JUMP:000545b0
+0x0545A6	0C6D00031114	cmpi.w	#0x3, (0x1114,A5)	FUN_00054492	DATA:00001114
+0x0545AC	6602	bne.b	0x000545b0	FUN_00054492	CONDITIONAL_JUMP:000545b0
+0x0545AE	5340	subq.w	0x1, D0w	FUN_00054492	
+0x0545B0	E348	lsl.w	#0x1, D0w	FUN_00054492	
+0x0545B2	43F10000	lea	(0x0,A1,D0w*0x1), A1	FUN_00054492	
+0x0545B6	3011	move.w	(A1), D0w	FUN_00054492	DATA:0005cd8a;DATA:0005d068;DATA:0005d346;DATA:0005d666
+0x0545B8	D0C0	adda.w	D0w, A0	FUN_00054492	
+0x0545BA	227C0010D1B2	movea.l	#0x10d1b2, A1	FUN_00054492	
+0x0545C0	343C0004	move.w	#0x4, D2w	FUN_00054492	
+0x0545C4	3010	move.w	(A0), D0w	FUN_00054492	DATA:0005cd8a;DATA:0005d068;DATA:0005d346;DATA:0005d666
+0x0545C6	0C400000	cmpi.w	#0x0, D0w	FUN_00054492	
+0x0545CA	6612	bne.b	0x000545de	FUN_00054492	CONDITIONAL_JUMP:000545de
+0x0545CC	32FC0003	move.w	#0x3, (A1)+	FUN_00054492	WRITE:0010d1b2;WRITE:0010d1ba
+0x0545D0	32FC0000	move.w	#0x0, (A1)+	FUN_00054492	WRITE:0010d1b4;WRITE:0010d1bc
+0x0545D4	32FC0000	move.w	#0x0, (A1)+	FUN_00054492	WRITE:0010d1b6;WRITE:0010d1be
+0x0545D8	32FC0000	move.w	#0x0, (A1)+	FUN_00054492	WRITE:0010d1b8;WRITE:0010d1c0
+0x0545DC	6072	bra.b	0x00054650	FUN_00054492	UNCONDITIONAL_JUMP:00054650
+0x0545DE	30280004	move.w	(0x4,A0), D0w	FUN_00054492	DATA:0005cd8e
+0x0545E2	0C6D00021114	cmpi.w	#0x2, (0x1114,A5)	FUN_00054492	DATA:00001114
+0x0545E8	6704	beq.b	0x000545ee	FUN_00054492	CONDITIONAL_JUMP:000545ee
+0x0545EA	00404000	ori.w	#0x4000, D0w	FUN_00054492	
+0x0545EE	32C0	move.w	D0w, (A1)+	FUN_00054492	WRITE:0010d1ba
+0x0545F0	10280003	move.b	(0x3,A0), D0b	FUN_00054492	DATA:0005cd8d
+0x0545F4	4880	ext.w	D0w	FUN_00054492	
+0x0545F6	D06D10C0	add.w	(0x10c0,A5), D0w	FUN_00054492	DATA:000010c0
+0x0545FA	5240	addq.w	0x1, D0w	FUN_00054492	
+0x0545FC	024001FF	andi.w	#0x1ff, D0w	FUN_00054492	
+0x054600	32C0	move.w	D0w, (A1)+	FUN_00054492	WRITE:0010d1bc
+0x054602	322D1308	move.w	(0x1308,A5), D1w	FUN_00054492	DATA:00001308
+0x054606	E249	lsr.w	#0x1, D1w	FUN_00054492	
+0x054608	02410003	andi.w	#0x3, D1w	FUN_00054492	
+0x05460C	E349	lsl.w	#0x1, D1w	FUN_00054492	
+0x05460E	3010	move.w	(A0), D0w	FUN_00054492	DATA:0005cd8a
+0x054610	0C40046E	cmpi.w	#0x46e, D0w	FUN_00054492	
+0x054614	6742	beq.b	0x00054658	FUN_00054492	CONDITIONAL_JUMP:00054658
+0x054616	0C40046F	cmpi.w	#0x46f, D0w	FUN_00054492	
+0x05461A	6748	beq.b	0x00054664	FUN_00054492	CONDITIONAL_JUMP:00054664
+0x05461C	0C40047B	cmpi.w	#0x47b, D0w	FUN_00054492	
+0x054620	674E	beq.b	0x00054670	FUN_00054492	CONDITIONAL_JUMP:00054670
+0x054622	0C40047C	cmpi.w	#0x47c, D0w	FUN_00054492	
+0x054626	6754	beq.b	0x0005467c	FUN_00054492	CONDITIONAL_JUMP:0005467c
+0x054628	32C0	move.w	D0w, (A1)+	FUN_00054492	WRITE:0010d1be
+0x05462A	10280002	move.b	(0x2,A0), D0b	FUN_00054492	DATA:0005cd8c
+0x05462E	4880	ext.w	D0w	FUN_00054492	
+0x054630	0C6D00021114	cmpi.w	#0x2, (0x1114,A5)	FUN_00054492	DATA:00001114
+0x054636	670A	beq.b	0x00054642	FUN_00054492	CONDITIONAL_JUMP:00054642
+0x054638	0A40FFFF	eori.w	#-0x1, D0w	FUN_00054492	
+0x05463C	5240	addq.w	0x1, D0w	FUN_00054492	
+0x05463E	04400010	subi.w	#0x10, D0w	FUN_00054492	
+0x054642	D06D10BE	add.w	(0x10be,A5), D0w	FUN_00054492	DATA:000010be
+0x054646	024001FF	andi.w	#0x1ff, D0w	FUN_00054492	
+0x05464A	32C0	move.w	D0w, (A1)+	FUN_00054492	WRITE:0010d1c0
+0x05464C	D0FC0006	adda.w	#0x6, A0	FUN_00054492	
+0x054650	5342	subq.w	0x1, D2w	FUN_00054492	
+0x054652	6600FF70	bne.w	0x000545c4	FUN_00054492	CONDITIONAL_JUMP:000545c4
+0x054656	4E75	rts		FUN_00054492	
+0x054658	247C00054688	movea.l	#0x54688, A2	FUN_00054492	
+0x05465E	D4C1	adda.w	D1w, A2	FUN_00054492	
+0x054660	3012	move.w	(A2), D0w	FUN_00054492	DATA:00054688
+0x054662	60C4	bra.b	0x00054628	FUN_00054492	UNCONDITIONAL_JUMP:00054628
+0x054664	247C00054690	movea.l	#0x54690, A2	FUN_00054492	
+0x05466A	D4C1	adda.w	D1w, A2	FUN_00054492	
+0x05466C	3012	move.w	(A2), D0w	FUN_00054492	DATA:00054690
+0x05466E	60B8	bra.b	0x00054628	FUN_00054492	UNCONDITIONAL_JUMP:00054628
+0x054670	247C00054698	movea.l	#0x54698, A2	FUN_00054492	
+0x054676	D4C1	adda.w	D1w, A2	FUN_00054492	
+0x054678	3012	move.w	(A2), D0w	FUN_00054492	DATA:00054698
+0x05467A	60AC	bra.b	0x00054628	FUN_00054492	UNCONDITIONAL_JUMP:00054628
+0x05467C	247C000546A0	movea.l	#0x546a0, A2	FUN_00054492	
+0x054682	D4C1	adda.w	D1w, A2	FUN_00054492	
+0x054684	3012	move.w	(A2), D0w	FUN_00054492	DATA:000546a0
+0x054686	60A0	bra.b	0x00054628	FUN_00054492	UNCONDITIONAL_JUMP:00054628
+0x0546A8	227C0010D1F2	movea.l	#0x10d1f2, A1	FUN_000546a8	
+0x0546AE	207C0005C466	movea.l	#0x5c466, A0	FUN_000546a8	
+0x0546B4	302D1246	move.w	(0x1246,A5), D0w	FUN_000546a8	DATA:00001246
+0x0546B8	0C6D000910E8	cmpi.w	#0x9, (0x10e8,A5)	FUN_000546a8	DATA:000010e8
+0x0546BE	660A	bne.b	0x000546ca	FUN_000546a8	CONDITIONAL_JUMP:000546ca
+0x0546C0	0C6D00031114	cmpi.w	#0x3, (0x1114,A5)	FUN_000546a8	DATA:00001114
+0x0546C6	6602	bne.b	0x000546ca	FUN_000546a8	CONDITIONAL_JUMP:000546ca
+0x0546C8	5340	subq.w	0x1, D0w	FUN_000546a8	
+0x0546CA	E348	lsl.w	#0x1, D0w	FUN_000546a8	
+0x0546CC	41F00000	lea	(0x0,A0,D0w*0x1), A0	FUN_000546a8	
+0x0546D0	3010	move.w	(A0), D0w	FUN_000546a8	DATA:0005c466
+0x0546D2	207C0005C466	movea.l	#0x5c466, A0	FUN_000546a8	
+0x0546D8	D0C0	adda.w	D0w, A0	FUN_000546a8	
+0x0546DA	343C0004	move.w	#0x4, D2w	FUN_000546a8	
+0x0546DE	3010	move.w	(A0), D0w	FUN_000546a8	DATA:0005c466
+0x0546E0	0C400000	cmpi.w	#0x0, D0w	FUN_000546a8	
+0x0546E4	6612	bne.b	0x000546f8	FUN_000546a8	CONDITIONAL_JUMP:000546f8
+0x0546E6	32FC0003	move.w	#0x3, (A1)+	FUN_000546a8	WRITE:0010d1f2;WRITE:0010d1fa
+0x0546EA	32FC0000	move.w	#0x0, (A1)+	FUN_000546a8	WRITE:0010d1f4;WRITE:0010d1fc
+0x0546EE	32FC0000	move.w	#0x0, (A1)+	FUN_000546a8	WRITE:0010d1f6;WRITE:0010d1fe
+0x0546F2	32FC0000	move.w	#0x0, (A1)+	FUN_000546a8	WRITE:0010d1f8;WRITE:0010d200
+0x0546F6	6050	bra.b	0x00054748	FUN_000546a8	UNCONDITIONAL_JUMP:00054748
+0x0546F8	30280004	move.w	(0x4,A0), D0w	FUN_000546a8	DATA:0005c46a
+0x0546FC	0C6D00021114	cmpi.w	#0x2, (0x1114,A5)	FUN_000546a8	DATA:00001114
+0x054702	6704	beq.b	0x00054708	FUN_000546a8	CONDITIONAL_JUMP:00054708
+0x054704	00404000	ori.w	#0x4000, D0w	FUN_000546a8	
+0x054708	32C0	move.w	D0w, (A1)+	FUN_000546a8	WRITE:0010d1fa
+0x05470A	10280003	move.b	(0x3,A0), D0b	FUN_000546a8	DATA:0005c469
+0x05470E	4880	ext.w	D0w	FUN_000546a8	
+0x054710	D06D10C0	add.w	(0x10c0,A5), D0w	FUN_000546a8	DATA:000010c0
+0x054714	5240	addq.w	0x1, D0w	FUN_000546a8	
+0x054716	024001FF	andi.w	#0x1ff, D0w	FUN_000546a8	
+0x05471A	32C0	move.w	D0w, (A1)+	FUN_000546a8	WRITE:0010d1fc
+0x05471C	3010	move.w	(A0), D0w	FUN_000546a8	DATA:0005c466
+0x05471E	32E80000	move.w	(0x0,A0), (A1)+	FUN_000546a8	DATA:0005c466;WRITE:0010d1fe
+0x054722	10280002	move.b	(0x2,A0), D0b	FUN_000546a8	DATA:0005c468
+0x054726	4880	ext.w	D0w	FUN_000546a8	
+0x054728	0C6D00021114	cmpi.w	#0x2, (0x1114,A5)	FUN_000546a8	DATA:00001114
+0x05472E	670A	beq.b	0x0005473a	FUN_000546a8	CONDITIONAL_JUMP:0005473a
+0x054730	0A40FFFF	eori.w	#-0x1, D0w	FUN_000546a8	
+0x054734	5240	addq.w	0x1, D0w	FUN_000546a8	
+0x054736	04400010	subi.w	#0x10, D0w	FUN_000546a8	
+0x05473A	D06D10BE	add.w	(0x10be,A5), D0w	FUN_000546a8	DATA:000010be
+0x05473E	024001FF	andi.w	#0x1ff, D0w	FUN_000546a8	
+0x054742	32C0	move.w	D0w, (A1)+	FUN_000546a8	WRITE:0010d200
+0x054744	D0FC0006	adda.w	#0x6, A0	FUN_000546a8	
+0x054748	5342	subq.w	0x1, D2w	FUN_000546a8	
+0x05474A	6692	bne.b	0x000546de	FUN_000546a8	CONDITIONAL_JUMP:000546de
+0x05474C	4E75	rts		FUN_000546a8	
+0x0547C0	0C6D00011298	cmpi.w	#0x1, (0x1298,A5)	player_aux_update_547c0	DATA:00001298
+0x0547C6	6612	bne.b	0x000547da	player_aux_update_547c0	CONDITIONAL_JUMP:000547da
+0x0547C8	207C0010D1B2	movea.l	#0x10d1b2, A0	player_aux_update_547c0	
+0x0547CE	5488	addq.l	0x2, A0	player_aux_update_547c0	
+0x0547D0	3B50129C	move.w	(A0), (0x129c,A5)	player_aux_update_547c0	READ:0010d1b4;DATA:0000129c
+0x0547D4	5888	addq.l	0x4, A0	player_aux_update_547c0	
+0x0547D6	3B50129A	move.w	(A0), (0x129a,A5)	player_aux_update_547c0	READ:0010d1b8;DATA:0000129a
+0x0547DA	0C6D0001129E	cmpi.w	#0x1, (0x129e,A5)	player_aux_update_547c0	DATA:0000129e
+0x0547E0	6614	bne.b	0x000547f6	player_aux_update_547c0	CONDITIONAL_JUMP:000547f6
+0x0547E2	302D1298	move.w	(0x1298,A5), D0w	player_aux_update_547c0	DATA:00001298
+0x0547E6	0C40000C	cmpi.w	#0xc, D0w	player_aux_update_547c0	
+0x0547EA	671E	beq.b	0x0005480a	player_aux_update_547c0	CONDITIONAL_JUMP:0005480a
+0x0547EC	E448	lsr.w	#0x2, D0w	player_aux_update_547c0	
+0x0547EE	61000020	bsr.w	0x00054810	player_aux_update_547c0	UNCONDITIONAL_CALL:00054810
+0x0547F2	60000014	bra.w	0x00054808	player_aux_update_547c0	UNCONDITIONAL_JUMP:00054808
+0x0547F6	302D1298	move.w	(0x1298,A5), D0w	player_aux_update_547c0	DATA:00001298
+0x0547FA	0C400014	cmpi.w	#0x14, D0w	player_aux_update_547c0	
+0x0547FE	670A	beq.b	0x0005480a	player_aux_update_547c0	CONDITIONAL_JUMP:0005480a
+0x054800	E448	lsr.w	#0x2, D0w	player_aux_update_547c0	
+0x054802	5840	addq.w	0x4, D0w	player_aux_update_547c0	
+0x054804	6100000A	bsr.w	0x00054810	player_aux_update_547c0	UNCONDITIONAL_CALL:00054810
+0x054808	4E75	rts		player_aux_update_547c0	
+0x05480A	6100F8A0	bsr.w	0x000540ac	player_aux_update_547c0	UNCONDITIONAL_CALL:000540ac
+0x05480E	60F8	bra.b	0x00054808	player_aux_update_547c0	UNCONDITIONAL_JUMP:00054808
+0x054810	227C00D00000	movea.l	#0xd00000, A1	player_aux_sprite_constructor_54810	
+0x054816	207C0005DA5E	movea.l	#0x5da5e, A0	player_aux_sprite_constructor_54810	
+0x05481C	C0FC0018	mulu.w	#0x18, D0	player_aux_sprite_constructor_54810	
+0x054820	41F00000	lea	(0x0,A0,D0w*0x1), A0	player_aux_sprite_constructor_54810	
+0x054824	343C0004	move.w	#0x4, D2w	player_aux_sprite_constructor_54810	
+0x054828	30280004	move.w	(0x4,A0), D0w	player_aux_sprite_constructor_54810	DATA:0005da62;DATA:0005da68
+0x05482C	32C0	move.w	D0w, (A1)+	player_aux_sprite_constructor_54810	WRITE:00d00000;WRITE:00d00008
+0x05482E	10280003	move.b	(0x3,A0), D0b	player_aux_sprite_constructor_54810	DATA:0005da61;DATA:0005da67
+0x054832	4880	ext.w	D0w	player_aux_sprite_constructor_54810	
+0x054834	D06D129C	add.w	(0x129c,A5), D0w	player_aux_sprite_constructor_54810	DATA:0000129c
+0x054838	5240	addq.w	0x1, D0w	player_aux_sprite_constructor_54810	
+0x05483A	024001FF	andi.w	#0x1ff, D0w	player_aux_sprite_constructor_54810	
+0x05483E	32C0	move.w	D0w, (A1)+	player_aux_sprite_constructor_54810	WRITE:00d00002;WRITE:00d0000a
+0x054840	3010	move.w	(A0), D0w	player_aux_sprite_constructor_54810	DATA:0005da5e;DATA:0005da64
+0x054842	32E80000	move.w	(0x0,A0), (A1)+	player_aux_sprite_constructor_54810	DATA:0005da5e;WRITE:00d00004;DATA:0005da64;WRITE:00d0000c
+0x054846	10280002	move.b	(0x2,A0), D0b	player_aux_sprite_constructor_54810	DATA:0005da60;DATA:0005da66
+0x05484A	4880	ext.w	D0w	player_aux_sprite_constructor_54810	
+0x05484C	D06D129A	add.w	(0x129a,A5), D0w	player_aux_sprite_constructor_54810	DATA:0000129a
+0x054850	024001FF	andi.w	#0x1ff, D0w	player_aux_sprite_constructor_54810	
+0x054854	3E00	move.w	D0w, D7w	player_aux_sprite_constructor_54810	
+0x054856	3007	move.w	D7w, D0w	player_aux_sprite_constructor_54810	
+0x054858	32C0	move.w	D0w, (A1)+	player_aux_sprite_constructor_54810	WRITE:00d00006;WRITE:00d0000e
+0x05485A	D0FC0006	adda.w	#0x6, A0	player_aux_sprite_constructor_54810	
+0x05485E	5342	subq.w	0x1, D2w	player_aux_sprite_constructor_54810	
+0x054860	66C6	bne.b	0x00054828	player_aux_sprite_constructor_54810	CONDITIONAL_JUMP:00054828
+0x054862	4E75	rts		player_aux_sprite_constructor_54810	
+0x0550A8	000551CC	ori.b	#-0x34, D5b		
+0x0550AC	0005520E	ori.b	#0xe, D5b		
+0x0550B0	00055250	ori.b	#0x50, D5b		
+0x0550B4	00055292	ori.b	#-0x6e, D5b		
+0x0550B8	000552D4	ori.b	#-0x2c, D5b		
+0x0550BC	00055316	ori.b	#0x16, D5b		
+0x0550C0	000551B0	ori.b	#-0x50, D5b		
+0x0550C4	00055346	ori.b	#0x46, D5b		
+0x0550C8	000551B0	ori.b	#-0x50, D5b		
+0x0550CC	00055376	ori.b	#0x76, D5b		
+0x0550D0	000551B0	ori.b	#-0x50, D5b		
+0x0550D4	000553A6	ori.b	#-0x5a, D5b		
+0x0550D8	000551B0	ori.b	#-0x50, D5b		
+0x0550DC	000551B0	ori.b	#-0x50, D5b		
+0x0550E0	000551B0	ori.b	#-0x50, D5b		
+0x0550E4	000551B0	ori.b	#-0x50, D5b		
+0x0550E8	000551B0	ori.b	#-0x50, D5b		
+0x0550EC	000551B0	ori.b	#-0x50, D5b		
+0x0550F0	000551B0	ori.b	#-0x50, D5b		
+0x0550F4	000551B0	ori.b	#-0x50, D5b		
+0x0550F8	000551B0	ori.b	#-0x50, D5b		
+0x0550FC	000551B0	ori.b	#-0x50, D5b		
+0x055100	000551B0	ori.b	#-0x50, D5b		
+0x055104	000553D6	ori.b	#-0x2a, D5b		
+0x055108	000551B0	ori.b	#-0x50, D5b		
+0x05510C	00054F08	ori.b	#0x8, D5b		
+0x055110	000551B0	ori.b	#-0x50, D5b		
+0x055114	00054F1E	ori.b	#0x1e, D5b		
+0x055118	000551B0	ori.b	#-0x50, D5b		
+0x05511C	00054F34	ori.b	#0x34, D5b		
+0x055120	000551B0	ori.b	#-0x50, D5b		
+0x055124	00054F4A	ori.b	#0x4a, D5b		
+0x055128	000551B0	ori.b	#-0x50, D5b		
+0x05512C	00054F60	ori.b	#0x60, D5b		
+0x055130	000551B0	ori.b	#-0x50, D5b		
+0x055134	00054FA4	ori.b	#-0x5c, D5b		
+0x055138	000551B0	ori.b	#-0x50, D5b		
+0x05513C	00054FBC	ori.b	#-0x44, D5b		
+0x055140	000551B0	ori.b	#-0x50, D5b		
+0x055144	00054FD4	ori.b	#-0x2c, D5b		
+0x055148	000551B0	ori.b	#-0x50, D5b		
+0x05514C	00054FEC	ori.b	#-0x14, D5b		
+0x055150	000551B0	ori.b	#-0x50, D5b		
+0x055154	00055004	ori.b	#0x4, D5b		
+0x055158	000551B0	ori.b	#-0x50, D5b		
+0x05515C	0005501C	ori.b	#0x1c, D5b		
+0x055160	000551B0	ori.b	#-0x50, D5b		
+0x055164	0005501C	ori.b	#0x1c, D5b		
+0x055168	000551B0	ori.b	#-0x50, D5b		
+0x05516C	0005501C	ori.b	#0x1c, D5b		
+0x055170	000551B0	ori.b	#-0x50, D5b		
+0x055174	00055028	ori.b	#0x28, D5b		
+0x055178	000551B0	ori.b	#-0x50, D5b		
+0x05517C	0005503E	ori.b	#0x3e, D5b		
+0x055180	000551B0	ori.b	#-0x50, D5b		
+0x055184	00055054	ori.b	#0x54, D5b		
+0x055188	000551B0	ori.b	#-0x50, D5b		
+0x05518C	00055060	ori.b	#0x60, D5b		
+0x055190	000551B0	ori.b	#-0x50, D5b		
+0x055194	000553EE	ori.b	#-0x12, D5b		
+0x055198	000551B0	ori.b	#-0x50, D5b		
+0x05519C	000551B0	ori.b	#-0x50, D5b		
+0x0551A0	000551B0	ori.b	#-0x50, D5b		
+0x0551A4	000551B0	ori.b	#-0x50, D5b		
+0x0551A8	000551B0	ori.b	#-0x50, D5b		
+0x0551AC	000551B0	ori.b	#-0x50, D5b		
 0x0551B0	4E75	rts			
-0x0551CC	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x0551D2	6638	bne.b	0x0005520c		CONDITIONAL_JUMP:0005520c
-0x0551D4	3B7C000113C4	move.w	#0x1, (0x13c4,A5)		DATA:000013c4
-0x0551DA	0C6D00011366	cmpi.w	#0x1, (0x1366,A5)		DATA:00001366
-0x0551E0	672A	beq.b	0x0005520c		CONDITIONAL_JUMP:0005520c
-0x0551E2	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)		DATA:000012f0
-0x0551E8	6722	beq.b	0x0005520c		CONDITIONAL_JUMP:0005520c
-0x0551EA	0C6D0001130E	cmpi.w	#0x1, (0x130e,A5)		DATA:0000130e
-0x0551F0	671A	beq.b	0x0005520c		CONDITIONAL_JUMP:0005520c
-0x0551F2	046D0200013A	subi.w	#0x200, (0x13a,A5)		
-0x0551F8	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x0551FE	3B7C00011366	move.w	#0x1, (0x1366,A5)		DATA:00001366
-0x055204	426D1368	clr.w	(0x1368,A5)		DATA:00001368
-0x055208	61000402	bsr.w	0x0005560c		UNCONDITIONAL_CALL:0005560c
-0x05520C	4E75	rts			
-0x05520E	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x055214	6638	bne.b	0x0005524e		CONDITIONAL_JUMP:0005524e
-0x055216	3B7C000113C4	move.w	#0x1, (0x13c4,A5)		DATA:000013c4
-0x05521C	0C6D00011366	cmpi.w	#0x1, (0x1366,A5)		DATA:00001366
-0x055222	672A	beq.b	0x0005524e		CONDITIONAL_JUMP:0005524e
-0x055224	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)		DATA:000012f0
-0x05522A	6722	beq.b	0x0005524e		CONDITIONAL_JUMP:0005524e
-0x05522C	0C6D0001130E	cmpi.w	#0x1, (0x130e,A5)		DATA:0000130e
-0x055232	671A	beq.b	0x0005524e		CONDITIONAL_JUMP:0005524e
-0x055234	046D0400013A	subi.w	#0x400, (0x13a,A5)		
-0x05523A	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x055240	3B7C00011366	move.w	#0x1, (0x1366,A5)		DATA:00001366
-0x055246	426D1368	clr.w	(0x1368,A5)		DATA:00001368
-0x05524A	610003C0	bsr.w	0x0005560c		UNCONDITIONAL_CALL:0005560c
-0x05524E	4E75	rts			
-0x055250	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x055256	6638	bne.b	0x00055290		CONDITIONAL_JUMP:00055290
-0x055258	3B7C000113C4	move.w	#0x1, (0x13c4,A5)		DATA:000013c4
-0x05525E	0C6D00011366	cmpi.w	#0x1, (0x1366,A5)		DATA:00001366
-0x055264	672A	beq.b	0x00055290		CONDITIONAL_JUMP:00055290
-0x055266	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)		DATA:000012f0
-0x05526C	6722	beq.b	0x00055290		CONDITIONAL_JUMP:00055290
-0x05526E	0C6D0001130E	cmpi.w	#0x1, (0x130e,A5)		DATA:0000130e
-0x055274	671A	beq.b	0x00055290		CONDITIONAL_JUMP:00055290
-0x055276	046D0600013A	subi.w	#0x600, (0x13a,A5)		
-0x05527C	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x055282	3B7C00011366	move.w	#0x1, (0x1366,A5)		DATA:00001366
-0x055288	426D1368	clr.w	(0x1368,A5)		DATA:00001368
-0x05528C	6100037E	bsr.w	0x0005560c		UNCONDITIONAL_CALL:0005560c
-0x055290	4E75	rts			
-0x055292	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x055298	6638	bne.b	0x000552d2		CONDITIONAL_JUMP:000552d2
-0x05529A	3B7C000113C4	move.w	#0x1, (0x13c4,A5)		DATA:000013c4
-0x0552A0	0C6D00011366	cmpi.w	#0x1, (0x1366,A5)		DATA:00001366
-0x0552A6	672A	beq.b	0x000552d2		CONDITIONAL_JUMP:000552d2
-0x0552A8	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)		DATA:000012f0
-0x0552AE	6722	beq.b	0x000552d2		CONDITIONAL_JUMP:000552d2
-0x0552B0	0C6D0001130E	cmpi.w	#0x1, (0x130e,A5)		DATA:0000130e
-0x0552B6	671A	beq.b	0x000552d2		CONDITIONAL_JUMP:000552d2
-0x0552B8	046D0800013A	subi.w	#0x800, (0x13a,A5)		
-0x0552BE	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x0552C4	3B7C00011366	move.w	#0x1, (0x1366,A5)		DATA:00001366
-0x0552CA	426D1368	clr.w	(0x1368,A5)		DATA:00001368
-0x0552CE	6100033C	bsr.w	0x0005560c		UNCONDITIONAL_CALL:0005560c
-0x0552D2	4E75	rts			
-0x0552D4	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x0552DA	6638	bne.b	0x00055314		CONDITIONAL_JUMP:00055314
-0x0552DC	3B7C000113C4	move.w	#0x1, (0x13c4,A5)		DATA:000013c4
-0x0552E2	0C6D00011366	cmpi.w	#0x1, (0x1366,A5)		DATA:00001366
-0x0552E8	672A	beq.b	0x00055314		CONDITIONAL_JUMP:00055314
-0x0552EA	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)		DATA:000012f0
-0x0552F0	6722	beq.b	0x00055314		CONDITIONAL_JUMP:00055314
-0x0552F2	0C6D0001130E	cmpi.w	#0x1, (0x130e,A5)		DATA:0000130e
-0x0552F8	671A	beq.b	0x00055314		CONDITIONAL_JUMP:00055314
-0x0552FA	046D0A00013A	subi.w	#0xa00, (0x13a,A5)		
-0x055300	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x055306	3B7C00011366	move.w	#0x1, (0x1366,A5)		DATA:00001366
-0x05530C	426D1368	clr.w	(0x1368,A5)		DATA:00001368
-0x055310	610002FA	bsr.w	0x0005560c		UNCONDITIONAL_CALL:0005560c
-0x055314	4E75	rts			
-0x055316	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x05531C	6626	bne.b	0x00055344		CONDITIONAL_JUMP:00055344
-0x05531E	3B7C000113C4	move.w	#0x1, (0x13c4,A5)		DATA:000013c4
-0x055324	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)		DATA:000012f0
-0x05532A	6718	beq.b	0x00055344		CONDITIONAL_JUMP:00055344
-0x05532C	0C6D0001130E	cmpi.w	#0x1, (0x130e,A5)		DATA:0000130e
-0x055332	6710	beq.b	0x00055344		CONDITIONAL_JUMP:00055344
-0x055334	046D0C00013A	subi.w	#0xc00, (0x13a,A5)		
-0x05533A	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x055340	61000276	bsr.w	0x000555b8		UNCONDITIONAL_CALL:000555b8
-0x055344	4E75	rts			
-0x055346	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x05534C	6626	bne.b	0x00055374		CONDITIONAL_JUMP:00055374
-0x05534E	3B7C000113C4	move.w	#0x1, (0x13c4,A5)		DATA:000013c4
-0x055354	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)		DATA:000012f0
-0x05535A	6718	beq.b	0x00055374		CONDITIONAL_JUMP:00055374
-0x05535C	0C6D0001130E	cmpi.w	#0x1, (0x130e,A5)		DATA:0000130e
-0x055362	6710	beq.b	0x00055374		CONDITIONAL_JUMP:00055374
-0x055364	046D1000013A	subi.w	#0x1000, (0x13a,A5)		
-0x05536A	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x055370	61000246	bsr.w	0x000555b8		UNCONDITIONAL_CALL:000555b8
-0x055374	4E75	rts			
-0x055376	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x05537C	6626	bne.b	0x000553a4		CONDITIONAL_JUMP:000553a4
-0x05537E	3B7C000113C4	move.w	#0x1, (0x13c4,A5)		DATA:000013c4
-0x055384	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)		DATA:000012f0
-0x05538A	6718	beq.b	0x000553a4		CONDITIONAL_JUMP:000553a4
-0x05538C	0C6D0001130E	cmpi.w	#0x1, (0x130e,A5)		DATA:0000130e
-0x055392	6710	beq.b	0x000553a4		CONDITIONAL_JUMP:000553a4
-0x055394	046D1400013A	subi.w	#0x1400, (0x13a,A5)		
-0x05539A	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x0553A0	61000216	bsr.w	0x000555b8		UNCONDITIONAL_CALL:000555b8
-0x0553A4	4E75	rts			
-0x0553A6	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x0553AC	6626	bne.b	0x000553d4		CONDITIONAL_JUMP:000553d4
-0x0553AE	3B7C000113C4	move.w	#0x1, (0x13c4,A5)		DATA:000013c4
-0x0553B4	0C6D000112F0	cmpi.w	#0x1, (0x12f0,A5)		DATA:000012f0
-0x0553BA	6718	beq.b	0x000553d4		CONDITIONAL_JUMP:000553d4
-0x0553BC	0C6D0001130E	cmpi.w	#0x1, (0x130e,A5)		DATA:0000130e
-0x0553C2	6710	beq.b	0x000553d4		CONDITIONAL_JUMP:000553d4
-0x0553C4	046D1800013A	subi.w	#0x1800, (0x13a,A5)		
-0x0553CA	3B7C000112FC	move.w	#0x1, (0x12fc,A5)		DATA:000012fc
-0x0553D0	610001E6	bsr.w	0x000555b8		UNCONDITIONAL_CALL:000555b8
-0x0553D4	4E75	rts			
-0x0553D6	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x0553DC	660E	bne.b	0x000553ec		CONDITIONAL_JUMP:000553ec
-0x0553DE	0C6D00000044	cmpi.w	#0x0, (0x44,A5)		
-0x0553E4	6606	bne.b	0x000553ec		CONDITIONAL_JUMP:000553ec
-0x0553E6	3B7C000810E8	move.w	#0x8, (0x10e8,A5)		DATA:000010e8
-0x0553EC	4E75	rts			
-0x0553EE	0C6D00000040	cmpi.w	#0x0, (0x40,A5)		
-0x0553F4	4E71	nop			
-0x0553F6	3B7C00011370	move.w	#0x1, (0x1370,A5)		DATA:00001370
-0x0553FC	3B7C001013B6	move.w	#0x10, (0x13b6,A5)		DATA:000013b6
-0x055402	4E75	rts			
-0x0555B8	303C000C	move.w	#0xc, D0w	FUN_000555b8	
-0x0555BC	4EB90003A0EC	jsr	0x0003a0ec.l	FUN_000555b8	UNCONDITIONAL_CALL:0003a0ec
-0x0555C2	0C6D00011108	cmpi.w	#0x1, (0x1108,A5)	FUN_000555b8	DATA:00001108
-0x0555C8	6732	beq.b	0x000555fc	FUN_000555b8	CONDITIONAL_JUMP:000555fc
-0x0555CA	3B7C000112F0	move.w	#0x1, (0x12f0,A5)	FUN_000555b8	DATA:000012f0
-0x0555D0	426D12F2	clr.w	(0x12f2,A5)	FUN_000555b8	DATA:000012f2
-0x0555D4	0C6D000410E8	cmpi.w	#0x4, (0x10e8,A5)	FUN_000555b8	DATA:000010e8
-0x0555DA	6608	bne.b	0x000555e4	FUN_000555b8	CONDITIONAL_JUMP:000555e4
-0x0555DC	3B7C00FF12F6	move.w	#0xff, (0x12f6,A5)	FUN_000555b8	DATA:000012f6
-0x0555E2	6016	bra.b	0x000555fa	FUN_000555b8	UNCONDITIONAL_JUMP:000555fa
-0x0555E4	B46D10BE	cmp.w	(0x10be,A5), D2w	FUN_000555b8	DATA:000010be
-0x0555E8	640A	bcc.b	0x000555f4	FUN_000555b8	CONDITIONAL_JUMP:000555f4
-0x0555EA	3B7C000312F6	move.w	#0x3, (0x12f6,A5)	FUN_000555b8	DATA:000012f6
-0x0555F0	60000008	bra.w	0x000555fa	FUN_000555b8	UNCONDITIONAL_JUMP:000555fa
-0x0555F4	3B7C000212F6	move.w	#0x2, (0x12f6,A5)	FUN_000555b8	DATA:000012f6
-0x0555FA	4E75	rts		FUN_000555b8	
-0x0555FC	3B7C00011366	move.w	#0x1, (0x1366,A5)	FUN_000555b8	DATA:00001366
-0x055602	426D1368	clr.w	(0x1368,A5)	FUN_000555b8	DATA:00001368
-0x055606	6100003A	bsr.w	0x00055642	FUN_000555b8	UNCONDITIONAL_CALL:00055642
-0x05560A	60EE	bra.b	0x000555fa	FUN_000555b8	UNCONDITIONAL_JUMP:000555fa
-0x05560C	303C000C	move.w	#0xc, D0w	FUN_0005560c	
-0x055610	4EB90003A0EC	jsr	0x0003a0ec.l	FUN_0005560c	UNCONDITIONAL_CALL:0003a0ec
-0x055616	0C6D00011108	cmpi.w	#0x1, (0x1108,A5)	FUN_0005560c	DATA:00001108
-0x05561C	6714	beq.b	0x00055632	FUN_0005560c	CONDITIONAL_JUMP:00055632
-0x05561E	3B7C000112F0	move.w	#0x1, (0x12f0,A5)	FUN_0005560c	DATA:000012f0
-0x055624	3B7C000C12F2	move.w	#0xc, (0x12f2,A5)	FUN_0005560c	DATA:000012f2
-0x05562A	3B7C00FF12F6	move.w	#0xff, (0x12f6,A5)	FUN_0005560c	DATA:000012f6
-0x055630	4E75	rts		FUN_0005560c	
-0x055632	3B7C00011366	move.w	#0x1, (0x1366,A5)	FUN_0005560c	DATA:00001366
-0x055638	426D1368	clr.w	(0x1368,A5)	FUN_0005560c	DATA:00001368
-0x05563C	61000004	bsr.w	0x00055642	FUN_0005560c	UNCONDITIONAL_CALL:00055642
-0x055640	60EE	bra.b	0x00055630	FUN_0005560c	UNCONDITIONAL_JUMP:00055630
-0x055642	3B7C0001130E	move.w	#0x1, (0x130e,A5)	FUN_00055642	DATA:0000130e
-0x055648	3B7C0010130C	move.w	#0x10, (0x130c,A5)	FUN_00055642	DATA:0000130c
-0x05564E	4E75	rts		FUN_00055642	
+0x055650	3B7C00FF13D0	move.w	#0xff, (0x13d0,A5)	FUN_00055650	DATA:000013d0
+0x055656	3B7C00FF1330	move.w	#0xff, (0x1330,A5)	FUN_00055650	DATA:00001330
+0x05565C	302D10D0	move.w	(0x10d0,A5), D0w	FUN_00055650	DATA:000010d0
+0x055660	08000000	btst.l	#0x0, D0	FUN_00055650	
+0x055664	6704	beq.b	0x0005566a	FUN_00055650	CONDITIONAL_JUMP:0005566a
+0x055666	6100002E	bsr.w	0x00055696	FUN_00055650	UNCONDITIONAL_CALL:00055696
+0x05566A	302D10D0	move.w	(0x10d0,A5), D0w	FUN_00055650	DATA:000010d0
+0x05566E	08000001	btst.l	#0x1, D0	FUN_00055650	
+0x055672	6704	beq.b	0x00055678	FUN_00055650	CONDITIONAL_JUMP:00055678
+0x055674	610000B8	bsr.w	0x0005572e	FUN_00055650	UNCONDITIONAL_CALL:0005572e
+0x055678	302D10D0	move.w	(0x10d0,A5), D0w	FUN_00055650	DATA:000010d0
+0x05567C	08000003	btst.l	#0x3, D0	FUN_00055650	
+0x055680	6704	beq.b	0x00055686	FUN_00055650	CONDITIONAL_JUMP:00055686
+0x055682	61000136	bsr.w	0x000557ba	FUN_00055650	UNCONDITIONAL_CALL:000557ba
+0x055686	302D10D0	move.w	(0x10d0,A5), D0w	FUN_00055650	DATA:000010d0
+0x05568A	08000002	btst.l	#0x2, D0	FUN_00055650	
+0x05568E	6704	beq.b	0x00055694	FUN_00055650	CONDITIONAL_JUMP:00055694
+0x055690	610001C2	bsr.w	0x00055854	FUN_00055650	UNCONDITIONAL_CALL:00055854
+0x055694	4E75	rts		FUN_00055650	
+0x055696	3B7C00011330	move.w	#0x1, (0x1330,A5)	FUN_00055696	DATA:00001330
+0x05569C	322D10BA	move.w	(0x10ba,A5), D1w	FUN_00055696	DATA:000010ba
+0x0556A0	0C410100	cmpi.w	#0x100, D1w	FUN_00055696	
+0x0556A4	6D5E	blt.b	0x00055704	FUN_00055696	CONDITIONAL_JUMP:00055704
+0x0556A6	0C6D000110A8	cmpi.w	#0x1, (0x10a8,A5)	FUN_00055696	DATA:000010a8
+0x0556AC	6710	beq.b	0x000556be	FUN_00055696	CONDITIONAL_JUMP:000556be
+0x0556AE	322D10D0	move.w	(0x10d0,A5), D1w	FUN_00055696	DATA:000010d0
+0x0556B2	08C10005	bset.l	#0x5, D1	FUN_00055696	
+0x0556B6	3B4110D0	move.w	D1w, (0x10d0,A5)	FUN_00055696	DATA:000010d0
+0x0556BA	60000070	bra.w	0x0005572c	FUN_00055696	UNCONDITIONAL_JUMP:0005572c
+0x0556BE	322D10B4	move.w	(0x10b4,A5), D1w	FUN_00055696	DATA:000010b4
+0x0556C2	D26D10DA	add.w	(0x10da,A5), D1w	FUN_00055696	DATA:000010da
+0x0556C6	3B4110B4	move.w	D1w, (0x10b4,A5)	FUN_00055696	DATA:000010b4
+0x0556CA	08010003	btst.l	#0x3, D1	FUN_00055696	
+0x0556CE	673C	beq.b	0x0005570c	FUN_00055696	CONDITIONAL_JUMP:0005570c
+0x0556D0	08810003	bclr.l	#0x3, D1	FUN_00055696	
+0x0556D4	3B4110B4	move.w	D1w, (0x10b4,A5)	FUN_00055696	DATA:000010b4
+0x0556D8	4280	clr.l	D0	FUN_00055696	
+0x0556DA	4281	clr.l	D1	FUN_00055696	
+0x0556DC	302D10CC	move.w	(0x10cc,A5), D0w	FUN_00055696	DATA:000010cc
+0x0556E0	E148	lsl.w	#0x8, D0w	FUN_00055696	
+0x0556E2	E548	lsl.w	#0x2, D0w	FUN_00055696	
+0x0556E4	322D10CA	move.w	(0x10ca,A5), D1w	FUN_00055696	DATA:000010ca
+0x0556E8	E149	lsl.w	#0x8, D1w	FUN_00055696	
+0x0556EA	D041	add.w	D1w, D0w	FUN_00055696	
+0x0556EC	323C3F00	move.w	#0x3f00, D1w	FUN_00055696	
+0x0556F0	9240	sub.w	D0w, D1w	FUN_00055696	
+0x0556F2	068100C08000	addi.l	#0xc08000, D1	FUN_00055696	
+0x0556F8	2B4110A4	move.l	D1, (0x10a4,A5)	FUN_00055696	DATA:000010a4
+0x0556FC	6100024A	bsr.w	0x00055948	FUN_00055696	UNCONDITIONAL_CALL:00055948
+0x055700	6000000A	bra.w	0x0005570c	FUN_00055696	UNCONDITIONAL_JUMP:0005570c
+0x055704	322D10DA	move.w	(0x10da,A5), D1w	FUN_00055696	DATA:000010da
+0x055708	D36D10BA	add.w	D1w, (0x10ba,A5)	FUN_00055696	DATA:000010ba
+0x05570C	322D10B0	move.w	(0x10b0,A5), D1w	FUN_00055696	DATA:000010b0
+0x055710	D26D10DA	add.w	(0x10da,A5), D1w	FUN_00055696	DATA:000010da
+0x055714	024101FF	andi.w	#0x1ff, D1w	FUN_00055696	
+0x055718	3B4110B0	move.w	D1w, (0x10b0,A5)	FUN_00055696	DATA:000010b0
+0x05571C	3B7C000013D0	move.w	#0x0, (0x13d0,A5)	FUN_00055696	DATA:000013d0
+0x055722	343C0000	move.w	#0x0, D2w	FUN_00055696	
+0x055726	4EB9000406A4	jsr	0x000406a4.l	FUN_00055696	UNCONDITIONAL_CALL:000406a4
+0x05572C	4E75	rts		FUN_00055696	
+0x05572E	322D10BA	move.w	(0x10ba,A5), D1w	FUN_0005572e	DATA:000010ba
+0x055732	0C410008	cmpi.w	#0x8, D1w	FUN_0005572e	
+0x055736	6C58	bge.b	0x00055790	FUN_0005572e	CONDITIONAL_JUMP:00055790
+0x055738	0C6D000210A8	cmpi.w	#0x2, (0x10a8,A5)	FUN_0005572e	DATA:000010a8
+0x05573E	6710	beq.b	0x00055750	FUN_0005572e	CONDITIONAL_JUMP:00055750
+0x055740	322D10D0	move.w	(0x10d0,A5), D1w	FUN_0005572e	DATA:000010d0
+0x055744	08C10004	bset.l	#0x4, D1	FUN_0005572e	
+0x055748	3B4110D0	move.w	D1w, (0x10d0,A5)	FUN_0005572e	DATA:000010d0
+0x05574C	6000006A	bra.w	0x000557b8	FUN_0005572e	UNCONDITIONAL_JUMP:000557b8
+0x055750	322D10B6	move.w	(0x10b6,A5), D1w	FUN_0005572e	DATA:000010b6
+0x055754	D26D10DA	add.w	(0x10da,A5), D1w	FUN_0005572e	DATA:000010da
+0x055758	3B4110B6	move.w	D1w, (0x10b6,A5)	FUN_0005572e	DATA:000010b6
+0x05575C	08010003	btst.l	#0x3, D1	FUN_0005572e	
+0x055760	6736	beq.b	0x00055798	FUN_0005572e	CONDITIONAL_JUMP:00055798
+0x055762	08810003	bclr.l	#0x3, D1	FUN_0005572e	
+0x055766	3B4110B6	move.w	D1w, (0x10b6,A5)	FUN_0005572e	DATA:000010b6
+0x05576A	4280	clr.l	D0	FUN_0005572e	
+0x05576C	4281	clr.l	D1	FUN_0005572e	
+0x05576E	302D10CC	move.w	(0x10cc,A5), D0w	FUN_0005572e	DATA:000010cc
+0x055772	E148	lsl.w	#0x8, D0w	FUN_0005572e	
+0x055774	E548	lsl.w	#0x2, D0w	FUN_0005572e	
+0x055776	322D10CA	move.w	(0x10ca,A5), D1w	FUN_0005572e	DATA:000010ca
+0x05577A	E149	lsl.w	#0x8, D1w	FUN_0005572e	
+0x05577C	D041	add.w	D1w, D0w	FUN_0005572e	
+0x05577E	068000C08000	addi.l	#0xc08000, D0	FUN_0005572e	
+0x055784	2B4010A4	move.l	D0, (0x10a4,A5)	FUN_0005572e	DATA:000010a4
+0x055788	610001BE	bsr.w	0x00055948	FUN_0005572e	UNCONDITIONAL_CALL:00055948
+0x05578C	6000000A	bra.w	0x00055798	FUN_0005572e	UNCONDITIONAL_JUMP:00055798
+0x055790	322D10DA	move.w	(0x10da,A5), D1w	FUN_0005572e	DATA:000010da
+0x055794	936D10BA	sub.w	D1w, (0x10ba,A5)	FUN_0005572e	DATA:000010ba
+0x055798	322D10B0	move.w	(0x10b0,A5), D1w	FUN_0005572e	DATA:000010b0
+0x05579C	926D10DA	sub.w	(0x10da,A5), D1w	FUN_0005572e	DATA:000010da
+0x0557A0	024101FF	andi.w	#0x1ff, D1w	FUN_0005572e	
+0x0557A4	3B4110B0	move.w	D1w, (0x10b0,A5)	FUN_0005572e	DATA:000010b0
+0x0557A8	3B7C000113D0	move.w	#0x1, (0x13d0,A5)	FUN_0005572e	DATA:000013d0
+0x0557AE	343C0001	move.w	#0x1, D2w	FUN_0005572e	
+0x0557B2	4EB9000406A4	jsr	0x000406a4.l	FUN_0005572e	UNCONDITIONAL_CALL:000406a4
+0x0557B8	4E75	rts		FUN_0005572e	
+0x0557BA	322D10B8	move.w	(0x10b8,A5), D1w	FUN_000557ba	DATA:000010b8
+0x0557BE	0C4100A0	cmpi.w	#0xa0, D1w	FUN_000557ba	
+0x0557C2	6D66	blt.b	0x0005582a	FUN_000557ba	CONDITIONAL_JUMP:0005582a
+0x0557C4	0C6D000010A8	cmpi.w	#0x0, (0x10a8,A5)	FUN_000557ba	DATA:000010a8
+0x0557CA	6710	beq.b	0x000557dc	FUN_000557ba	CONDITIONAL_JUMP:000557dc
+0x0557CC	322D10D0	move.w	(0x10d0,A5), D1w	FUN_000557ba	DATA:000010d0
+0x0557D0	08C10006	bset.l	#0x6, D1	FUN_000557ba	
+0x0557D4	3B4110D0	move.w	D1w, (0x10d0,A5)	FUN_000557ba	DATA:000010d0
+0x0557D8	60000078	bra.w	0x00055852	FUN_000557ba	UNCONDITIONAL_JUMP:00055852
+0x0557DC	0C6D0000132C	cmpi.w	#0x0, (0x132c,A5)	FUN_000557ba	DATA:0000132c
+0x0557E2	6708	beq.b	0x000557ec	FUN_000557ba	CONDITIONAL_JUMP:000557ec
+0x0557E4	0C6D000010CA	cmpi.w	#0x0, (0x10ca,A5)	FUN_000557ba	DATA:000010ca
+0x0557EA	4E71	nop		FUN_000557ba	
+0x0557EC	322D10B2	move.w	(0x10b2,A5), D1w	FUN_000557ba	DATA:000010b2
+0x0557F0	D26D10D8	add.w	(0x10d8,A5), D1w	FUN_000557ba	DATA:000010d8
+0x0557F4	3B4110B2	move.w	D1w, (0x10b2,A5)	FUN_000557ba	DATA:000010b2
+0x0557F8	08010003	btst.l	#0x3, D1	FUN_000557ba	
+0x0557FC	6734	beq.b	0x00055832	FUN_000557ba	CONDITIONAL_JUMP:00055832
+0x0557FE	08810003	bclr.l	#0x3, D1	FUN_000557ba	
+0x055802	3B4110B2	move.w	D1w, (0x10b2,A5)	FUN_000557ba	DATA:000010b2
+0x055806	4280	clr.l	D0	FUN_000557ba	
+0x055808	4281	clr.l	D1	FUN_000557ba	
+0x05580A	302D10CC	move.w	(0x10cc,A5), D0w	FUN_000557ba	DATA:000010cc
+0x05580E	E948	lsl.w	#0x4, D0w	FUN_000557ba	
+0x055810	322D10CA	move.w	(0x10ca,A5), D1w	FUN_000557ba	DATA:000010ca
+0x055814	E549	lsl.w	#0x2, D1w	FUN_000557ba	
+0x055816	D041	add.w	D1w, D0w	FUN_000557ba	
+0x055818	068000C08000	addi.l	#0xc08000, D0	FUN_000557ba	
+0x05581E	2B4010A0	move.l	D0, (0x10a0,A5)	FUN_000557ba	DATA:000010a0
+0x055822	61000124	bsr.w	0x00055948	FUN_000557ba	UNCONDITIONAL_CALL:00055948
+0x055826	6000000A	bra.w	0x00055832	FUN_000557ba	UNCONDITIONAL_JUMP:00055832
+0x05582A	322D10D8	move.w	(0x10d8,A5), D1w	FUN_000557ba	DATA:000010d8
+0x05582E	D36D10B8	add.w	D1w, (0x10b8,A5)	FUN_000557ba	DATA:000010b8
+0x055832	322D10AE	move.w	(0x10ae,A5), D1w	FUN_000557ba	DATA:000010ae
+0x055836	926D10D8	sub.w	(0x10d8,A5), D1w	FUN_000557ba	DATA:000010d8
+0x05583A	024101FF	andi.w	#0x1ff, D1w	FUN_000557ba	
+0x05583E	3B4110AE	move.w	D1w, (0x10ae,A5)	FUN_000557ba	DATA:000010ae
+0x055842	3B7C000313D0	move.w	#0x3, (0x13d0,A5)	FUN_000557ba	DATA:000013d0
+0x055848	343C0003	move.w	#0x3, D2w	FUN_000557ba	
+0x05584C	4EB9000406A4	jsr	0x000406a4.l	FUN_000557ba	UNCONDITIONAL_CALL:000406a4
+0x055852	4E75	rts		FUN_000557ba	
+0x055854	0C6D0001020C	cmpi.w	#0x1, (0x20c,A5)	FUN_00055854	
+0x05585A	670C	beq.b	0x00055868	FUN_00055854	CONDITIONAL_JUMP:00055868
+0x05585C	302D10B8	move.w	(0x10b8,A5), D0w	FUN_00055854	DATA:000010b8
+0x055860	0C400000	cmpi.w	#0x0, D0w	FUN_00055854	
+0x055864	6C000012	bge.w	0x00055878	FUN_00055854	CONDITIONAL_JUMP:00055878
+0x055868	322D10D0	move.w	(0x10d0,A5), D1w	FUN_00055854	DATA:000010d0
+0x05586C	08C10007	bset.l	#0x7, D1	FUN_00055854	
+0x055870	3B4110D0	move.w	D1w, (0x10d0,A5)	FUN_00055854	DATA:000010d0
+0x055874	6000002A	bra.w	0x000558a0	FUN_00055854	UNCONDITIONAL_JUMP:000558a0
+0x055878	322D10D8	move.w	(0x10d8,A5), D1w	FUN_00055854	DATA:000010d8
+0x05587C	936D10B8	sub.w	D1w, (0x10b8,A5)	FUN_00055854	DATA:000010b8
+0x055880	322D10AE	move.w	(0x10ae,A5), D1w	FUN_00055854	DATA:000010ae
+0x055884	D26D10D8	add.w	(0x10d8,A5), D1w	FUN_00055854	DATA:000010d8
+0x055888	024101FF	andi.w	#0x1ff, D1w	FUN_00055854	
+0x05588C	3B4110AE	move.w	D1w, (0x10ae,A5)	FUN_00055854	DATA:000010ae
+0x055890	3B7C000213D0	move.w	#0x2, (0x13d0,A5)	FUN_00055854	DATA:000013d0
+0x055896	343C0002	move.w	#0x2, D2w	FUN_00055854	
+0x05589A	4EB9000406A4	jsr	0x000406a4.l	FUN_00055854	UNCONDITIONAL_CALL:000406a4
+0x0558A0	4E75	rts		FUN_00055854	
+0x0558A2	0C6D000410CA	cmpi.w	#0x4, (0x10ca,A5)	FUN_000558a2	DATA:000010ca
+0x0558A8	661A	bne.b	0x000558c4	FUN_000558a2	CONDITIONAL_JUMP:000558c4
+0x0558AA	6100001A	bsr.w	0x000558c6	FUN_000558a2	UNCONDITIONAL_CALL:000558c6
+0x0558AE	61000054	bsr.w	0x00055904	FUN_000558a2	UNCONDITIONAL_CALL:00055904
+0x0558B2	526D10CC	addq.w	0x1, (0x10cc,A5)	FUN_000558a2	DATA:000010cc
+0x0558B6	0C6D001010CC	cmpi.w	#0x10, (0x10cc,A5)	FUN_000558a2	DATA:000010cc
+0x0558BC	66000006	bne.w	0x000558c4	FUN_000558a2	CONDITIONAL_JUMP:000558c4
+0x0558C0	6100001E	bsr.w	0x000558e0	FUN_000558a2	UNCONDITIONAL_CALL:000558e0
+0x0558C4	4E75	rts		FUN_000558a2	
+0x0558C6	7010	moveq	0x10, D0	FUN_000558c6	
+0x0558C8	207C0010D000	movea.l	#0x10d000, A0	FUN_000558c6	
+0x0558CE	5890	addq.l	0x4, (A0)	FUN_000558c6	READ_WRITE:0010d000;READ_WRITE:0010d004
+0x0558D0	D1FC00000004	adda.l	#0x4, A0	FUN_000558c6	
+0x0558D6	5340	subq.w	0x1, D0w	FUN_000558c6	
+0x0558D8	66F4	bne.b	0x000558ce	FUN_000558c6	CONDITIONAL_JUMP:000558ce
+0x0558DA	426D10CA	clr.w	(0x10ca,A5)	FUN_000558c6	DATA:000010ca
+0x0558DE	4E75	rts		FUN_000558c6	
+0x0558E0	426D10CC	clr.w	(0x10cc,A5)	FUN_000558e0	DATA:000010cc
+0x0558E4	52AD10C6	addq.l	0x1, (0x10c6,A5)	FUN_000558e0	DATA:000010c6
+0x0558E8	302D10A8	move.w	(0x10a8,A5), D0w	FUN_000558e0	DATA:000010a8
+0x0558EC	3B40132C	move.w	D0w, (0x132c,A5)	FUN_000558e0	DATA:0000132c
+0x0558F0	286D10C6	movea.l	(0x10c6,A5), A4	FUN_000558e0	DATA:000010c6
+0x0558F4	4240	clr.w	D0w	FUN_000558e0	
+0x0558F6	1014	move.b	(A4), D0b	FUN_000558e0	
+0x0558F8	33C00010D0A8	move.w	D0w, (0x0010d0a8).l	FUN_000558e0	WRITE:0010d0a8
+0x0558FE	526D013E	addq.w	0x1, (0x13e,A5)	FUN_000558e0	
+0x055902	4E75	rts		FUN_000558e0	
+0x055904	207C0010D000	movea.l	#0x10d000, A0	FUN_00055904	
+0x05590A	227C0010D040	movea.l	#0x10d040, A1	FUN_00055904	
+0x055910	247C0010D080	movea.l	#0x10d080, A2	FUN_00055904	
+0x055916	7010	moveq	0x10, D0	FUN_00055904	
+0x055918	2850	movea.l	(A0), A4	FUN_00055904	READ:0010d000;READ:0010d004
+0x05591A	34D4	move.w	(A4), (A2)+	FUN_00055904	WRITE:0010d080;WRITE:0010d082
+0x05591C	4281	clr.l	D1	FUN_00055904	
+0x05591E	322C0002	move.w	(0x2,A4), D1w	FUN_00055904	
+0x055922	287C00000000	movea.l	#0x0, A4	FUN_00055904	
+0x055928	49F41800	lea	(0x0,A4,D1*0x1), A4	FUN_00055904	
+0x05592C	22CC	move.l	A4, (A1)+	FUN_00055904	WRITE:0010d040;WRITE:0010d044
+0x05592E	D1FC00000004	adda.l	#0x4, A0	FUN_00055904	
+0x055934	5340	subq.w	0x1, D0w	FUN_00055904	
+0x055936	66E0	bne.b	0x00055918	FUN_00055904	CONDITIONAL_JUMP:00055918
+0x055938	286D10C6	movea.l	(0x10c6,A5), A4	FUN_00055904	DATA:000010c6
+0x05593C	4240	clr.w	D0w	FUN_00055904	
+0x05593E	1014	move.b	(A4), D0b	FUN_00055904	
+0x055940	33C00010D0A8	move.w	D0w, (0x0010d0a8).l	FUN_00055904	WRITE:0010d0a8
+0x055946	4E75	rts		FUN_00055904	
+0x055948	0C6D000010A8	cmpi.w	#0x0, (0x10a8,A5)	FUN_00055948	DATA:000010a8
+0x05594E	660A	bne.b	0x0005595a	FUN_00055948	CONDITIONAL_JUMP:0005595a
+0x055950	61000016	bsr.w	0x00055968	FUN_00055948	UNCONDITIONAL_CALL:00055968
+0x055954	526D10CA	addq.w	0x1, (0x10ca,A5)	FUN_00055948	DATA:000010ca
+0x055958	6008	bra.b	0x00055962	FUN_00055948	UNCONDITIONAL_JUMP:00055962
+0x05595A	61000034	bsr.w	0x00055990	FUN_00055948	UNCONDITIONAL_CALL:00055990
+0x05595E	526D10CA	addq.w	0x1, (0x10ca,A5)	FUN_00055948	DATA:000010ca
+0x055962	6100FF3E	bsr.w	0x000558a2	FUN_00055948	UNCONDITIONAL_CALL:000558a2
+0x055966	4E75	rts		FUN_00055948	
+0x055968	206D10A0	movea.l	(0x10a0,A5), A0	FUN_00055968	DATA:000010a0
+0x05596C	323C0010	move.w	#0x10, D1w	FUN_00055968	
+0x055970	227C0010D080	movea.l	#0x10d080, A1	FUN_00055968	
+0x055976	267C0010D040	movea.l	#0x10d040, A3	FUN_00055968	
+0x05597C	2453	movea.l	(A3), A2	FUN_00055968	READ:0010d040;READ:0010d044
+0x05597E	61000032	bsr.w	0x000559b2	FUN_00055968	UNCONDITIONAL_CALL:000559b2
+0x055982	2B4810A0	move.l	A0, (0x10a0,A5)	FUN_00055968	DATA:000010a0
+0x055986	588B	addq.l	0x4, A3	FUN_00055968	
+0x055988	5489	addq.l	0x2, A1	FUN_00055968	
+0x05598A	5341	subq.w	0x1, D1w	FUN_00055968	
+0x05598C	66EE	bne.b	0x0005597c	FUN_00055968	CONDITIONAL_JUMP:0005597c
+0x05598E	4E75	rts		FUN_00055968	
+0x055990	206D10A4	movea.l	(0x10a4,A5), A0	FUN_00055990	DATA:000010a4
+0x055994	7210	moveq	0x10, D1	FUN_00055990	
+0x055996	227C0010D080	movea.l	#0x10d080, A1	FUN_00055990	
+0x05599C	267C0010D040	movea.l	#0x10d040, A3	FUN_00055990	
+0x0559A2	2453	movea.l	(A3), A2	FUN_00055990	READ:0010d040;READ:0010d044
+0x0559A4	6100006E	bsr.w	0x00055a14	FUN_00055990	UNCONDITIONAL_CALL:00055a14
+0x0559A8	588B	addq.l	0x4, A3	FUN_00055990	
+0x0559AA	5489	addq.l	0x2, A1	FUN_00055990	
+0x0559AC	5341	subq.w	0x1, D1w	FUN_00055990	
+0x0559AE	66F2	bne.b	0x000559a2	FUN_00055990	CONDITIONAL_JUMP:000559a2
+0x0559B0	4E75	rts		FUN_00055990	
+0x0559B2	4242	clr.w	D2w	FUN_000559b2	
+0x0559B4	3091	move.w	(A1), (A0)	FUN_000559b2	
+0x0559B6	4DEA0020	lea	(0x20,A2), A6	FUN_000559b2	
+0x0559BA	3016	move.w	(A6), D0w	FUN_000559b2	
+0x0559BC	0C4000FF	cmpi.w	#0xff, D0w	FUN_000559b2	
+0x0559C0	6712	beq.b	0x000559d4	FUN_000559b2	CONDITIONAL_JUMP:000559d4
+0x0559C2	3E2D10CA	move.w	(0x10ca,A5), D7w	FUN_000559b2	DATA:000010ca
+0x0559C6	E34F	lsl.w	#0x1, D7w	FUN_000559b2	
+0x0559C8	3002	move.w	D2w, D0w	FUN_000559b2	
+0x0559CA	E748	lsl.w	#0x3, D0w	FUN_000559b2	
+0x0559CC	DE40	add.w	D0w, D7w	FUN_000559b2	
+0x0559CE	4DF27020	lea	(0x20,A2,D7w*0x1), A6	FUN_000559b2	
+0x0559D2	6004	bra.b	0x000559d8	FUN_000559b2	UNCONDITIONAL_JUMP:000559d8
+0x0559D4	4DEA0022	lea	(0x22,A2), A6	FUN_000559b2	
+0x0559D8	3016	move.w	(A6), D0w	FUN_000559b2	
+0x0559DA	2E08	move.l	A0, D7	FUN_000559b2	
+0x0559DC	048700C08000	subi.l	#0xc08000, D7	FUN_000559b2	
+0x0559E2	E28F	lsr.l	#0x1, D7	FUN_000559b2	
+0x0559E4	06870010DE00	addi.l	#0x10de00, D7	FUN_000559b2	
+0x0559EA	2C47	movea.l	D7, A6	FUN_000559b2	
+0x0559EC	3C80	move.w	D0w, (A6)	FUN_000559b2	DATA:0010de00
+0x0559EE	5488	addq.l	0x2, A0	FUN_000559b2	
+0x0559F0	3E02	move.w	D2w, D7w	FUN_000559b2	
+0x0559F2	E74F	lsl.w	#0x3, D7w	FUN_000559b2	
+0x0559F4	302D10CA	move.w	(0x10ca,A5), D0w	FUN_000559b2	DATA:000010ca
+0x0559F8	E348	lsl.w	#0x1, D0w	FUN_000559b2	
+0x0559FA	DE40	add.w	D0w, D7w	FUN_000559b2	
+0x0559FC	4DF27000	lea	(0x0,A2,D7w*0x1), A6	FUN_000559b2	
+0x055A00	3016	move.w	(A6), D0w	FUN_000559b2	
+0x055A02	3080	move.w	D0w, (A0)	FUN_000559b2	
+0x055A04	D1FC000000FE	adda.l	#0xfe, A0	FUN_000559b2	
+0x055A0A	5242	addq.w	0x1, D2w	FUN_000559b2	
+0x055A0C	0C420004	cmpi.w	#0x4, D2w	FUN_000559b2	
+0x055A10	66A2	bne.b	0x000559b4	FUN_000559b2	CONDITIONAL_JUMP:000559b4
+0x055A12	4E75	rts		FUN_000559b2	
+0x055A14	3B7C00011330	move.w	#0x1, (0x1330,A5)	FUN_00055a14	DATA:00001330
+0x055A1A	4242	clr.w	D2w	FUN_00055a14	
+0x055A1C	3091	move.w	(A1), (A0)	FUN_00055a14	
+0x055A1E	4DEA0020	lea	(0x20,A2), A6	FUN_00055a14	
+0x055A22	3016	move.w	(A6), D0w	FUN_00055a14	
+0x055A24	0C4000FF	cmpi.w	#0xff, D0w	FUN_00055a14	
+0x055A28	6720	beq.b	0x00055a4a	FUN_00055a14	CONDITIONAL_JUMP:00055a4a
+0x055A2A	3E2D10CA	move.w	(0x10ca,A5), D7w	FUN_00055a14	DATA:000010ca
+0x055A2E	0C6D000210A8	cmpi.w	#0x2, (0x10a8,A5)	FUN_00055a14	DATA:000010a8
+0x055A34	6706	beq.b	0x00055a3c	FUN_00055a14	CONDITIONAL_JUMP:00055a3c
+0x055A36	4647	not.w	D7w	FUN_00055a14	
+0x055A38	02470003	andi.w	#0x3, D7w	FUN_00055a14	
+0x055A3C	E74F	lsl.w	#0x3, D7w	FUN_00055a14	
+0x055A3E	3002	move.w	D2w, D0w	FUN_00055a14	
+0x055A40	E348	lsl.w	#0x1, D0w	FUN_00055a14	
+0x055A42	DE40	add.w	D0w, D7w	FUN_00055a14	
+0x055A44	4DF27020	lea	(0x20,A2,D7w*0x1), A6	FUN_00055a14	
+0x055A48	6004	bra.b	0x00055a4e	FUN_00055a14	UNCONDITIONAL_JUMP:00055a4e
+0x055A4A	4DEA0022	lea	(0x22,A2), A6	FUN_00055a14	
+0x055A4E	3016	move.w	(A6), D0w	FUN_00055a14	
+0x055A50	2E08	move.l	A0, D7	FUN_00055a14	
+0x055A52	048700C08000	subi.l	#0xc08000, D7	FUN_00055a14	
+0x055A58	E28F	lsr.l	#0x1, D7	FUN_00055a14	
+0x055A5A	06870010DE00	addi.l	#0x10de00, D7	FUN_00055a14	
+0x055A60	2C47	movea.l	D7, A6	FUN_00055a14	
+0x055A62	3C80	move.w	D0w, (A6)	FUN_00055a14	DATA:0010de00
+0x055A64	303C0001	move.w	#0x1, D0w	FUN_00055a14	
+0x055A68	2E08	move.l	A0, D7	FUN_00055a14	
+0x055A6A	048700C08000	subi.l	#0xc08000, D7	FUN_00055a14	
+0x055A70	04470100	subi.w	#0x100, D7w	FUN_00055a14	
+0x055A74	02473FFF	andi.w	#0x3fff, D7w	FUN_00055a14	
+0x055A78	E28F	lsr.l	#0x1, D7	FUN_00055a14	
+0x055A7A	06870010DE00	addi.l	#0x10de00, D7	FUN_00055a14	
+0x055A80	2C47	movea.l	D7, A6	FUN_00055a14	
+0x055A82	5488	addq.l	0x2, A0	FUN_00055a14	
+0x055A84	3E2D10CA	move.w	(0x10ca,A5), D7w	FUN_00055a14	DATA:000010ca
+0x055A88	0C6D000210A8	cmpi.w	#0x2, (0x10a8,A5)	FUN_00055a14	DATA:000010a8
+0x055A8E	6706	beq.b	0x00055a96	FUN_00055a14	CONDITIONAL_JUMP:00055a96
+0x055A90	4647	not.w	D7w	FUN_00055a14	
+0x055A92	02470003	andi.w	#0x3, D7w	FUN_00055a14	
+0x055A96	3002	move.w	D2w, D0w	FUN_00055a14	
+0x055A98	E348	lsl.w	#0x1, D0w	FUN_00055a14	
+0x055A9A	E74F	lsl.w	#0x3, D7w	FUN_00055a14	
+0x055A9C	DE40	add.w	D0w, D7w	FUN_00055a14	
+0x055A9E	4DF27000	lea	(0x0,A2,D7w*0x1), A6	FUN_00055a14	
+0x055AA2	3016	move.w	(A6), D0w	FUN_00055a14	
+0x055AA4	3080	move.w	D0w, (A0)	FUN_00055a14	
+0x055AA6	5488	addq.l	0x2, A0	FUN_00055a14	
+0x055AA8	5242	addq.w	0x1, D2w	FUN_00055a14	
+0x055AAA	0C420004	cmpi.w	#0x4, D2w	FUN_00055a14	
+0x055AAE	6600FF6C	bne.w	0x00055a1c	FUN_00055a14	CONDITIONAL_JUMP:00055a1c
+0x055AB2	4E75	rts		FUN_00055a14	
 0x055AB4	33ED10EE00C20000	move.w	(0x10ee,A5), (0x00c20000).l	FUN_00055ab4	WRITE:00c20000;DATA:000010ee
 0x055ABC	33ED10EC00C40000	move.w	(0x10ec,A5), (0x00c40000).l	FUN_00055ab4	WRITE:00c40000;DATA:000010ec
 0x055AC4	33ED10B000C20002	move.w	(0x10b0,A5), (0x00c20002).l	FUN_00055ab4	WRITE:00c20002;DATA:000010b0
 0x055ACC	33ED10AE00C40002	move.w	(0x10ae,A5), (0x00c40002).l	FUN_00055ab4	WRITE:00c40002;DATA:000010ae
 0x055AD4	4E75	rts		FUN_00055ab4	
+0x055AD6	302D10D0	move.w	(0x10d0,A5), D0w	FUN_00055ad6	DATA:000010d0
+0x055ADA	08000000	btst.l	#0x0, D0	FUN_00055ad6	
+0x055ADE	670A	beq.b	0x00055aea	FUN_00055ad6	CONDITIONAL_JUMP:00055aea
+0x055AE0	08000005	btst.l	#0x5, D0	FUN_00055ad6	
+0x055AE4	6604	bne.b	0x00055aea	FUN_00055ad6	CONDITIONAL_JUMP:00055aea
+0x055AE6	61000040	bsr.w	0x00055b28	FUN_00055ad6	UNCONDITIONAL_CALL:00055b28
+0x055AEA	302D10D0	move.w	(0x10d0,A5), D0w	FUN_00055ad6	DATA:000010d0
+0x055AEE	08000001	btst.l	#0x1, D0	FUN_00055ad6	
+0x055AF2	670A	beq.b	0x00055afe	FUN_00055ad6	CONDITIONAL_JUMP:00055afe
+0x055AF4	08000004	btst.l	#0x4, D0	FUN_00055ad6	
+0x055AF8	6604	bne.b	0x00055afe	FUN_00055ad6	CONDITIONAL_JUMP:00055afe
+0x055AFA	61000036	bsr.w	0x00055b32	FUN_00055ad6	UNCONDITIONAL_CALL:00055b32
+0x055AFE	302D10D0	move.w	(0x10d0,A5), D0w	FUN_00055ad6	DATA:000010d0
+0x055B02	08000003	btst.l	#0x3, D0	FUN_00055ad6	
+0x055B06	670A	beq.b	0x00055b12	FUN_00055ad6	CONDITIONAL_JUMP:00055b12
+0x055B08	08000006	btst.l	#0x6, D0	FUN_00055ad6	
+0x055B0C	6604	bne.b	0x00055b12	FUN_00055ad6	CONDITIONAL_JUMP:00055b12
+0x055B0E	6100002C	bsr.w	0x00055b3c	FUN_00055ad6	UNCONDITIONAL_CALL:00055b3c
+0x055B12	302D10D0	move.w	(0x10d0,A5), D0w	FUN_00055ad6	DATA:000010d0
+0x055B16	08000002	btst.l	#0x2, D0	FUN_00055ad6	
+0x055B1A	670A	beq.b	0x00055b26	FUN_00055ad6	CONDITIONAL_JUMP:00055b26
+0x055B1C	08000007	btst.l	#0x7, D0	FUN_00055ad6	
+0x055B20	6604	bne.b	0x00055b26	FUN_00055ad6	CONDITIONAL_JUMP:00055b26
+0x055B22	61000092	bsr.w	0x00055bb6	FUN_00055ad6	UNCONDITIONAL_CALL:00055bb6
+0x055B26	4E75	rts		FUN_00055ad6	
+0x055B28	322D10B0	move.w	(0x10b0,A5), D1w	FUN_00055b28	DATA:000010b0
+0x055B2C	3B4110EE	move.w	D1w, (0x10ee,A5)	FUN_00055b28	DATA:000010ee
+0x055B30	4E75	rts		FUN_00055b28	
+0x055B32	322D10B0	move.w	(0x10b0,A5), D1w	FUN_00055b32	DATA:000010b0
+0x055B36	3B4110EE	move.w	D1w, (0x10ee,A5)	FUN_00055b32	DATA:000010ee
+0x055B3A	4E75	rts		FUN_00055b32	
+0x055B3C	322D10B8	move.w	(0x10b8,A5), D1w	FUN_00055b3c	DATA:000010b8
+0x055B40	0C4100A0	cmpi.w	#0xa0, D1w	FUN_00055b3c	
+0x055B44	6D4C	blt.b	0x00055b92	FUN_00055b3c	CONDITIONAL_JUMP:00055b92
+0x055B46	0C6D000010A8	cmpi.w	#0x0, (0x10a8,A5)	FUN_00055b3c	DATA:000010a8
+0x055B4C	66000066	bne.w	0x00055bb4	FUN_00055b3c	CONDITIONAL_JUMP:00055bb4
+0x055B50	322D10F2	move.w	(0x10f2,A5), D1w	FUN_00055b3c	DATA:000010f2
+0x055B54	302D10D8	move.w	(0x10d8,A5), D0w	FUN_00055b3c	DATA:000010d8
+0x055B58	D06D10F0	add.w	(0x10f0,A5), D0w	FUN_00055b3c	DATA:000010f0
+0x055B5C	E248	lsr.w	#0x1, D0w	FUN_00055b3c	
+0x055B5E	D240	add.w	D0w, D1w	FUN_00055b3c	
+0x055B60	3B4110F2	move.w	D1w, (0x10f2,A5)	FUN_00055b3c	DATA:000010f2
+0x055B64	08010003	btst.l	#0x3, D1	FUN_00055b3c	
+0x055B68	6728	beq.b	0x00055b92	FUN_00055b3c	CONDITIONAL_JUMP:00055b92
+0x055B6A	08810003	bclr.l	#0x3, D1	FUN_00055b3c	
+0x055B6E	3B4110F2	move.w	D1w, (0x10f2,A5)	FUN_00055b3c	DATA:000010f2
+0x055B72	4280	clr.l	D0	FUN_00055b3c	
+0x055B74	4281	clr.l	D1	FUN_00055b3c	
+0x055B76	302D10F4	move.w	(0x10f4,A5), D0w	FUN_00055b3c	DATA:000010f4
+0x055B7A	ED48	lsl.w	#0x6, D0w	FUN_00055b3c	
+0x055B7C	322D10F6	move.w	(0x10f6,A5), D1w	FUN_00055b3c	DATA:000010f6
+0x055B80	E549	lsl.w	#0x2, D1w	FUN_00055b3c	
+0x055B82	D041	add.w	D1w, D0w	FUN_00055b3c	
+0x055B84	068000C00000	addi.l	#0xc00000, D0	FUN_00055b3c	
+0x055B8A	2B4010F8	move.l	D0, (0x10f8,A5)	FUN_00055b3c	DATA:000010f8
+0x055B8E	610000BA	bsr.w	0x00055c4a	FUN_00055b3c	UNCONDITIONAL_CALL:00055c4a
+0x055B92	322D10EC	move.w	(0x10ec,A5), D1w	FUN_00055b3c	DATA:000010ec
+0x055B96	302D10D8	move.w	(0x10d8,A5), D0w	FUN_00055b3c	DATA:000010d8
+0x055B9A	D06D10F0	add.w	(0x10f0,A5), D0w	FUN_00055b3c	DATA:000010f0
+0x055B9E	3400	move.w	D0w, D2w	FUN_00055b3c	
+0x055BA0	E248	lsr.w	#0x1, D0w	FUN_00055b3c	
+0x055BA2	02420001	andi.w	#0x1, D2w	FUN_00055b3c	
+0x055BA6	3B4210F0	move.w	D2w, (0x10f0,A5)	FUN_00055b3c	DATA:000010f0
+0x055BAA	9240	sub.w	D0w, D1w	FUN_00055b3c	
+0x055BAC	024101FF	andi.w	#0x1ff, D1w	FUN_00055b3c	
+0x055BB0	3B4110EC	move.w	D1w, (0x10ec,A5)	FUN_00055b3c	DATA:000010ec
+0x055BB4	4E75	rts		FUN_00055b3c	
+0x055BB6	302D10B8	move.w	(0x10b8,A5), D0w	FUN_00055bb6	DATA:000010b8
+0x055BBA	0C400000	cmpi.w	#0x0, D0w	FUN_00055bb6	
+0x055BBE	6D00002A	blt.w	0x00055bea	FUN_00055bb6	CONDITIONAL_JUMP:00055bea
+0x055BC2	322D10EC	move.w	(0x10ec,A5), D1w	FUN_00055bb6	DATA:000010ec
+0x055BC6	302D10D8	move.w	(0x10d8,A5), D0w	FUN_00055bb6	DATA:000010d8
+0x055BCA	906D10F0	sub.w	(0x10f0,A5), D0w	FUN_00055bb6	DATA:000010f0
+0x055BCE	3400	move.w	D0w, D2w	FUN_00055bb6	
+0x055BD0	E248	lsr.w	#0x1, D0w	FUN_00055bb6	
+0x055BD2	02420001	andi.w	#0x1, D2w	FUN_00055bb6	
+0x055BD6	0A42FFFF	eori.w	#-0x1, D2w	FUN_00055bb6	
+0x055BDA	5242	addq.w	0x1, D2w	FUN_00055bb6	
+0x055BDC	3B4210F0	move.w	D2w, (0x10f0,A5)	FUN_00055bb6	DATA:000010f0
+0x055BE0	D240	add.w	D0w, D1w	FUN_00055bb6	
+0x055BE2	024101FF	andi.w	#0x1ff, D1w	FUN_00055bb6	
+0x055BE6	3B4110EC	move.w	D1w, (0x10ec,A5)	FUN_00055bb6	DATA:000010ec
+0x055BEA	4E75	rts		FUN_00055bb6	
+0x055BEC	0C6D001010F6	cmpi.w	#0x10, (0x10f6,A5)	FUN_00055bec	DATA:000010f6
+0x055BF2	661E	bne.b	0x00055c12	FUN_00055bec	CONDITIONAL_JUMP:00055c12
+0x055BF4	6100001E	bsr.w	0x00055c14	FUN_00055bec	UNCONDITIONAL_CALL:00055c14
+0x055BF8	61000034	bsr.w	0x00055c2e	FUN_00055bec	UNCONDITIONAL_CALL:00055c2e
+0x055BFC	302D10F4	move.w	(0x10f4,A5), D0w	FUN_00055bec	DATA:000010f4
+0x055C00	5240	addq.w	0x1, D0w	FUN_00055bec	
+0x055C02	3B4010F4	move.w	D0w, (0x10f4,A5)	FUN_00055bec	DATA:000010f4
+0x055C06	0C400004	cmpi.w	#0x4, D0w	FUN_00055bec	
+0x055C0A	66000006	bne.w	0x00055c12	FUN_00055bec	CONDITIONAL_JUMP:00055c12
+0x055C0E	61000012	bsr.w	0x00055c22	FUN_00055bec	UNCONDITIONAL_CALL:00055c22
+0x055C12	4E75	rts		FUN_00055bec	
+0x055C14	207C0010D0FC	movea.l	#0x10d0fc, A0	FUN_00055c14	
+0x055C1A	5C90	addq.l	0x6, (A0)	FUN_00055c14	READ_WRITE:0010d0fc
+0x055C1C	426D10F6	clr.w	(0x10f6,A5)	FUN_00055c14	DATA:000010f6
+0x055C20	4E75	rts		FUN_00055c14	
+0x055C22	426D10F4	clr.w	(0x10f4,A5)	FUN_00055c22	DATA:000010f4
+0x055C26	3B7C000113B0	move.w	#0x1, (0x13b0,A5)	FUN_00055c22	DATA:000013b0
+0x055C2C	4E75	rts		FUN_00055c22	
+0x055C2E	207C0010D0FC	movea.l	#0x10d0fc, A0	FUN_00055c2e	
+0x055C34	227C0010D100	movea.l	#0x10d100, A1	FUN_00055c2e	
+0x055C3A	247C0010D104	movea.l	#0x10d104, A2	FUN_00055c2e	
+0x055C40	2850	movea.l	(A0), A4	FUN_00055c2e	READ:0010d0fc
+0x055C42	34D4	move.w	(A4), (A2)+	FUN_00055c2e	WRITE:0010d104
+0x055C44	22EC0002	move.l	(0x2,A4), (A1)+	FUN_00055c2e	WRITE:0010d100
+0x055C48	4E75	rts		FUN_00055c2e	
+0x055C4A	202D10FC	move.l	(0x10fc,A5), D0	FUN_00055c4a	DATA:000010fc
+0x055C4E	2B401126	move.l	D0, (0x1126,A5)	FUN_00055c4a	DATA:00001126
+0x055C52	6100000A	bsr.w	0x00055c5e	FUN_00055c4a	UNCONDITIONAL_CALL:00055c5e
+0x055C56	526D10F6	addq.w	0x1, (0x10f6,A5)	FUN_00055c4a	DATA:000010f6
+0x055C5A	6190	bsr.b	0x00055bec	FUN_00055c4a	UNCONDITIONAL_CALL:00055bec
+0x055C5C	4E75	rts		FUN_00055c4a	
+0x055C5E	206D10F8	movea.l	(0x10f8,A5), A0	FUN_00055c5e	DATA:000010f8
+0x055C62	227C0010D104	movea.l	#0x10d104, A1	FUN_00055c5e	
+0x055C68	267C0010D100	movea.l	#0x10d100, A3	FUN_00055c5e	
+0x055C6E	2453	movea.l	(A3), A2	FUN_00055c5e	READ:0010d100
+0x055C70	61000008	bsr.w	0x00055c7a	FUN_00055c5e	UNCONDITIONAL_CALL:00055c7a
+0x055C74	2B4810F8	move.l	A0, (0x10f8,A5)	FUN_00055c5e	DATA:000010f8
+0x055C78	4E75	rts		FUN_00055c5e	
+0x055C7A	4242	clr.w	D2w	FUN_00055c7a	
+0x055C7C	30D1	move.w	(A1), (A0)+	FUN_00055c7a	
+0x055C7E	3E02	move.w	D2w, D7w	FUN_00055c7a	
+0x055C80	EB4F	lsl.w	#0x5, D7w	FUN_00055c7a	
+0x055C82	302D10F6	move.w	(0x10f6,A5), D0w	FUN_00055c7a	DATA:000010f6
+0x055C86	E348	lsl.w	#0x1, D0w	FUN_00055c7a	
+0x055C88	DE40	add.w	D0w, D7w	FUN_00055c7a	
+0x055C8A	4DF27000	lea	(0x0,A2,D7w*0x1), A6	FUN_00055c7a	
+0x055C8E	3016	move.w	(A6), D0w	FUN_00055c7a	
+0x055C90	3080	move.w	D0w, (A0)	FUN_00055c7a	
+0x055C92	D1FC000000FE	adda.l	#0xfe, A0	FUN_00055c7a	
+0x055C98	5242	addq.w	0x1, D2w	FUN_00055c7a	
+0x055C9A	0C420040	cmpi.w	#0x40, D2w	FUN_00055c7a	
+0x055C9E	66DC	bne.b	0x00055c7c	FUN_00055c7a	CONDITIONAL_JUMP:00055c7c
+0x055CA0	4E75	rts		FUN_00055c7a	
 0x055CA2	0C6D0000004A	cmpi.w	#0x0, (0x4a,A5)	FUN_00055ca2	
 0x055CA8	6700012C	beq.w	0x00055dd6	FUN_00055ca2	CONDITIONAL_JUMP:00055dd6
 0x055CAC	0C6D00AA004A	cmpi.w	#0xaa, (0x4a,A5)	FUN_00055ca2	
@@ -3910,6 +5343,47 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x0574AC	343C0006	move.w	#0x6, D2w	FUN_000574a4	
 0x0574B0	4EB90005A4DE	jsr	0x0005a4de.l	FUN_000574a4	UNCONDITIONAL_CALL:0005a4de
 0x0574B6	4E75	rts		FUN_000574a4	
+0x0596F4	0C6D00011360	cmpi.w	#0x1, (0x1360,A5)	FUN_000596f4	DATA:00001360
+0x0596FA	6670	bne.b	0x0005976c	FUN_000596f4	CONDITIONAL_JUMP:0005976c
+0x0596FC	207C0005976E	movea.l	#0x5976e, A0	FUN_000596f4	
+0x059702	4240	clr.w	D0w	FUN_000596f4	
+0x059704	10390010C118	move.b	(0x0010c118).l, D0b	FUN_000596f4	READ:0010c118
+0x05970A	5340	subq.w	0x1, D0w	FUN_000596f4	
+0x05970C	C0FC0006	mulu.w	#0x6, D0	FUN_000596f4	
+0x059710	41F00000	lea	(0x0,A0,D0w*0x1), A0	FUN_000596f4	
+0x059714	3C280004	move.w	(0x4,A0), D6w	FUN_000596f4	DATA:00059772
+0x059718	2050	movea.l	(A0), A0	FUN_000596f4	DATA:0005976e
+0x05971A	38280000	move.w	(0x0,A0), D4w	FUN_000596f4	
+0x05971E	0C440000	cmpi.w	#0x0, D4w	FUN_000596f4	
+0x059722	6748	beq.b	0x0005976c	FUN_000596f4	CONDITIONAL_JUMP:0005976c
+0x059724	34280002	move.w	(0x2,A0), D2w	FUN_000596f4	
+0x059728	5888	addq.l	0x4, A0	FUN_000596f4	
+0x05972A	3A2D1362	move.w	(0x1362,A5), D5w	FUN_000596f4	DATA:00001362
+0x05972E	E44D	lsr.w	#0x2, D5w	FUN_000596f4	
+0x059730	E34D	lsl.w	#0x1, D5w	FUN_000596f4	
+0x059732	06450008	addi.w	#0x8, D5w	FUN_000596f4	
+0x059736	3604	move.w	D4w, D3w	FUN_000596f4	
+0x059738	22680000	movea.l	(0x0,A0), A1	FUN_000596f4	
+0x05973C	32C6	move.w	D6w, (A1)+	FUN_000596f4	
+0x05973E	45F05000	lea	(0x0,A0,D5w*0x1), A2	FUN_000596f4	
+0x059742	3012	move.w	(A2), D0w	FUN_000596f4	
+0x059744	3280	move.w	D0w, (A1)	FUN_000596f4	
+0x059746	22680004	movea.l	(0x4,A0), A1	FUN_000596f4	
+0x05974A	32C6	move.w	D6w, (A1)+	FUN_000596f4	
+0x05974C	3280	move.w	D0w, (A1)	FUN_000596f4	
+0x05974E	5342	subq.w	0x1, D2w	FUN_000596f4	
+0x059750	6708	beq.b	0x0005975a	FUN_000596f4	CONDITIONAL_JUMP:0005975a
+0x059752	5843	addq.w	0x4, D3w	FUN_000596f4	
+0x059754	E34B	lsl.w	#0x1, D3w	FUN_000596f4	
+0x059756	D0C3	adda.w	D3w, A0	FUN_000596f4	
+0x059758	60DC	bra.b	0x00059736	FUN_000596f4	UNCONDITIONAL_JUMP:00059736
+0x05975A	526D1362	addq.w	0x1, (0x1362,A5)	FUN_000596f4	DATA:00001362
+0x05975E	3A2D1362	move.w	(0x1362,A5), D5w	FUN_000596f4	DATA:00001362
+0x059762	E44D	lsr.w	#0x2, D5w	FUN_000596f4	
+0x059764	B845	cmp.w	D5w, D4w	FUN_000596f4	
+0x059766	6604	bne.b	0x0005976c	FUN_000596f4	CONDITIONAL_JUMP:0005976c
+0x059768	426D1362	clr.w	(0x1362,A5)	FUN_000596f4	DATA:00001362
+0x05976C	4E75	rts		FUN_000596f4	
 0x059882	610000DE	bsr.w	0x00059962	FUN_00059882	UNCONDITIONAL_CALL:00059962
 0x059886	6100012A	bsr.w	0x000599b2	FUN_00059882	UNCONDITIONAL_CALL:000599b2
 0x05988A	4E75	rts		FUN_00059882	
@@ -4063,6 +5537,155 @@ arcade_pc	bytes	mnemonic	operands	function	refs_from
 0x059B14	5489	addq.l	0x2, A1	FUN_00059ad4	
 0x059B16	60CE	bra.b	0x00059ae6	FUN_00059ad4	UNCONDITIONAL_JUMP:00059ae6
 0x059B18	4E75	rts		FUN_00059ad4	
+0x059DE8	0C6D000113B0	cmpi.w	#0x1, (0x13b0,A5)	FUN_00059de8	DATA:000013b0
+0x059DEE	6626	bne.b	0x00059e16	FUN_00059de8	CONDITIONAL_JUMP:00059e16
+0x059DF0	6100002C	bsr.w	0x00059e1e	FUN_00059de8	UNCONDITIONAL_CALL:00059e1e
+0x059DF4	61000040	bsr.w	0x00059e36	FUN_00059de8	UNCONDITIONAL_CALL:00059e36
+0x059DF8	4245	clr.w	D5w	FUN_00059de8	
+0x059DFA	61000070	bsr.w	0x00059e6c	FUN_00059de8	UNCONDITIONAL_CALL:00059e6c
+0x059DFE	61000050	bsr.w	0x00059e50	FUN_00059de8	UNCONDITIONAL_CALL:00059e50
+0x059E02	322D13AE	move.w	(0x13ae,A5), D1w	FUN_00059de8	DATA:000013ae
+0x059E06	4EB900059AD4	jsr	0x00059ad4.l	FUN_00059de8	UNCONDITIONAL_CALL:00059ad4
+0x059E0C	5245	addq.w	0x1, D5w	FUN_00059de8	
+0x059E0E	302D13D6	move.w	(0x13d6,A5), D0w	FUN_00059de8	DATA:000013d6
+0x059E12	BA40	cmp.w	D0w, D5w	FUN_00059de8	
+0x059E14	66E4	bne.b	0x00059dfa	FUN_00059de8	CONDITIONAL_JUMP:00059dfa
+0x059E16	3B7C00FF13B0	move.w	#0xff, (0x13b0,A5)	FUN_00059de8	DATA:000013b0
+0x059E1C	4E75	rts		FUN_00059de8	
+0x059E1E	227C0005E24E	movea.l	#0x5e24e, A1	FUN_00059e1e	
+0x059E24	322D013E	move.w	(0x13e,A5), D1w	FUN_00059e1e	
+0x059E28	43F11000	lea	(0x0,A1,D1w*0x1), A1	FUN_00059e1e	
+0x059E2C	4241	clr.w	D1w	FUN_00059e1e	
+0x059E2E	1211	move.b	(A1), D1b	FUN_00059e1e	DATA:0005e24e
+0x059E30	3B4113AE	move.w	D1w, (0x13ae,A5)	FUN_00059e1e	DATA:000013ae
+0x059E34	4E75	rts		FUN_00059e1e	
+0x059E36	4240	clr.w	D0w	FUN_00059e36	
+0x059E38	102D0118	move.b	(0x118,A5), D0b	FUN_00059e36	
+0x059E3C	5340	subq.w	0x1, D0w	FUN_00059e36	
+0x059E3E	E348	lsl.w	#0x1, D0w	FUN_00059e36	
+0x059E40	207C00059EBC	movea.l	#0x59ebc, A0	FUN_00059e36	
+0x059E46	30300000	move.w	(0x0,A0,D0w*0x1), D0w	FUN_00059e36	DATA:00059ebc
+0x059E4A	3B4013D6	move.w	D0w, (0x13d6,A5)	FUN_00059e36	DATA:000013d6
+0x059E4E	4E75	rts		FUN_00059e36	
+0x059E50	4240	clr.w	D0w	FUN_00059e50	
+0x059E52	102D0118	move.b	(0x118,A5), D0b	FUN_00059e50	
+0x059E56	5340	subq.w	0x1, D0w	FUN_00059e50	
+0x059E58	227C00059E8C	movea.l	#0x59e8c, A1	FUN_00059e50	
+0x059E5E	E748	lsl.w	#0x3, D0w	FUN_00059e50	
+0x059E60	3605	move.w	D5w, D3w	FUN_00059e50	
+0x059E62	E34B	lsl.w	#0x1, D3w	FUN_00059e50	
+0x059E64	D043	add.w	D3w, D0w	FUN_00059e50	
+0x059E66	30310000	move.w	(0x0,A1,D0w*0x1), D0w	FUN_00059e50	DATA:00059e8c
+0x059E6A	4E75	rts		FUN_00059e50	
+0x059E6C	4240	clr.w	D0w	FUN_00059e6c	
+0x059E6E	102D0118	move.b	(0x118,A5), D0b	FUN_00059e6c	
+0x059E72	5340	subq.w	0x1, D0w	FUN_00059e6c	
+0x059E74	207C00059EC8	movea.l	#0x59ec8, A0	FUN_00059e6c	
+0x059E7A	E548	lsl.w	#0x2, D0w	FUN_00059e6c	
+0x059E7C	20700000	movea.l	(0x0,A0,D0w*0x1), A0	FUN_00059e6c	DATA:00059ec8
+0x059E80	3605	move.w	D5w, D3w	FUN_00059e6c	
+0x059E82	E74B	lsl.w	#0x3, D3w	FUN_00059e6c	
+0x059E84	C6FC0020	mulu.w	#0x20, D3	FUN_00059e6c	
+0x059E88	D0C3	adda.w	D3w, A0	FUN_00059e6c	
+0x059E8A	4E75	rts		FUN_00059e6c	
+0x059F5E	323C0008	move.w	#0x8, D1w	FUN_00059f5e	
+0x059F62	207C00D00048	movea.l	#0xd00048, A0	FUN_00059f5e	
+0x059F68	4280	clr.l	D0	FUN_00059f5e	
+0x059F6A	20C0	move.l	D0, (A0)+	FUN_00059f5e	WRITE:00d00048;WRITE:00d00050
+0x059F6C	20C0	move.l	D0, (A0)+	FUN_00059f5e	WRITE:00d0004c;WRITE:00d00054
+0x059F6E	5341	subq.w	0x1, D1w	FUN_00059f5e	
+0x059F70	66F8	bne.b	0x00059f6a	FUN_00059f5e	CONDITIONAL_JUMP:00059f6a
+0x059F72	323C0004	move.w	#0x4, D1w	FUN_00059f5e	
+0x059F76	207C0010C170	movea.l	#0x10c170, A0	FUN_00059f5e	
+0x059F7C	30FC0080	move.w	#0x80, (A0)+	FUN_00059f5e	WRITE:0010c170;WRITE:0010c178
+0x059F80	30FC0000	move.w	#0x0, (A0)+	FUN_00059f5e	WRITE:0010c172;WRITE:0010c17a
+0x059F84	30FC0000	move.w	#0x0, (A0)+	FUN_00059f5e	WRITE:0010c174;WRITE:0010c17c
+0x059F88	30FC0000	move.w	#0x0, (A0)+	FUN_00059f5e	WRITE:0010c176;WRITE:0010c17e
+0x059F8C	5341	subq.w	0x1, D1w	FUN_00059f5e	
+0x059F8E	66EC	bne.b	0x00059f7c	FUN_00059f5e	CONDITIONAL_JUMP:00059f7c
+0x059F90	4E75	rts		FUN_00059f5e	
+0x05A29C	0C6D00011330	cmpi.w	#0x1, (0x1330,A5)	FUN_0005a29c	DATA:00001330
+0x05A2A2	66000048	bne.w	0x0005a2ec	FUN_0005a29c	CONDITIONAL_JUMP:0005a2ec
+0x05A2A6	0C6D000110A8	cmpi.w	#0x1, (0x10a8,A5)	FUN_0005a29c	DATA:000010a8
+0x05A2AC	6600003E	bne.w	0x0005a2ec	FUN_0005a29c	CONDITIONAL_JUMP:0005a2ec
+0x05A2B0	4280	clr.l	D0	FUN_0005a29c	
+0x05A2B2	343C00F8	move.w	#0xf8, D2w	FUN_0005a29c	
+0x05A2B6	302D10B0	move.w	(0x10b0,A5), D0w	FUN_0005a29c	DATA:000010b0
+0x05A2BA	0A4001FF	eori.w	#0x1ff, D0w	FUN_0005a29c	
+0x05A2BE	5240	addq.w	0x1, D0w	FUN_0005a29c	
+0x05A2C0	024001F8	andi.w	#0x1f8, D0w	FUN_0005a29c	
+0x05A2C4	D042	add.w	D2w, D0w	FUN_0005a29c	
+0x05A2C6	EB48	lsl.w	#0x5, D0w	FUN_0005a29c	
+0x05A2C8	02403F00	andi.w	#0x3f00, D0w	FUN_0005a29c	
+0x05A2CC	E248	lsr.w	#0x1, D0w	FUN_0005a29c	
+0x05A2CE	06800010DE00	addi.l	#0x10de00, D0	FUN_0005a29c	
+0x05A2D4	2040	movea.l	D0, A0	FUN_0005a29c	
+0x05A2D6	323C0010	move.w	#0x10, D1w	FUN_0005a29c	
+0x05A2DA	3010	move.w	(A0), D0w	FUN_0005a29c	DATA:0010de00
+0x05A2DC	08000007	btst.l	#0x7, D0	FUN_0005a29c	
+0x05A2E0	6704	beq.b	0x0005a2e6	FUN_0005a29c	CONDITIONAL_JUMP:0005a2e6
+0x05A2E2	6100000A	bsr.w	0x0005a2ee	FUN_0005a29c	UNCONDITIONAL_CALL:0005a2ee
+0x05A2E6	5088	addq.l	0x8, A0	FUN_0005a29c	
+0x05A2E8	5341	subq.w	0x1, D1w	FUN_0005a29c	
+0x05A2EA	66EE	bne.b	0x0005a2da	FUN_0005a29c	CONDITIONAL_JUMP:0005a2da
+0x05A2EC	4E75	rts		FUN_0005a29c	
+0x05A2EE	2248	movea.l	A0, A1	FUN_0005a2ee	
+0x05A2F0	2448	movea.l	A0, A2	FUN_0005a2ee	
+0x05A2F2	303C0001	move.w	#0x1, D0w	FUN_0005a2ee	
+0x05A2F6	32C0	move.w	D0w, (A1)+	FUN_0005a2ee	
+0x05A2F8	32C0	move.w	D0w, (A1)+	FUN_0005a2ee	
+0x05A2FA	32C0	move.w	D0w, (A1)+	FUN_0005a2ee	
+0x05A2FC	32C0	move.w	D0w, (A1)+	FUN_0005a2ee	
+0x05A2FE	95FC00000280	suba.l	#0x280, A2	FUN_0005a2ee	
+0x05A304	3012	move.w	(A2), D0w	FUN_0005a2ee	
+0x05A306	024000FF	andi.w	#0xff, D0w	FUN_0005a2ee	
+0x05A30A	00403400	ori.w	#0x3400, D0w	FUN_0005a2ee	
+0x05A30E	34C0	move.w	D0w, (A2)+	FUN_0005a2ee	
+0x05A310	3012	move.w	(A2), D0w	FUN_0005a2ee	
+0x05A312	024000FF	andi.w	#0xff, D0w	FUN_0005a2ee	
+0x05A316	00403400	ori.w	#0x3400, D0w	FUN_0005a2ee	
+0x05A31A	34C0	move.w	D0w, (A2)+	FUN_0005a2ee	
+0x05A31C	3012	move.w	(A2), D0w	FUN_0005a2ee	
+0x05A31E	024000FF	andi.w	#0xff, D0w	FUN_0005a2ee	
+0x05A322	00403400	ori.w	#0x3400, D0w	FUN_0005a2ee	
+0x05A326	34C0	move.w	D0w, (A2)+	FUN_0005a2ee	
+0x05A328	3012	move.w	(A2), D0w	FUN_0005a2ee	
+0x05A32A	024000FF	andi.w	#0xff, D0w	FUN_0005a2ee	
+0x05A32E	00403400	ori.w	#0x3400, D0w	FUN_0005a2ee	
+0x05A332	34C0	move.w	D0w, (A2)+	FUN_0005a2ee	
+0x05A334	2008	move.l	A0, D0	FUN_0005a2ee	
+0x05A336	04800010DE00	subi.l	#0x10de00, D0	FUN_0005a2ee	
+0x05A33C	E388	lsl.l	#0x1, D0	FUN_0005a2ee	
+0x05A33E	068000C08000	addi.l	#0xc08000, D0	FUN_0005a2ee	
+0x05A344	2240	movea.l	D0, A1	FUN_0005a2ee	
+0x05A346	203C000025C7	move.l	#0x25c7, D0	FUN_0005a2ee	DATA:000025c7
+0x05A34C	22C0	move.l	D0, (A1)+	FUN_0005a2ee	DATA:00c08000;DATA:000025c7
+0x05A34E	22C0	move.l	D0, (A1)+	FUN_0005a2ee	DATA:00c08004;DATA:000025c7
+0x05A350	22C0	move.l	D0, (A1)+	FUN_0005a2ee	DATA:00c08008;DATA:000025c7
+0x05A352	22C0	move.l	D0, (A1)+	FUN_0005a2ee	DATA:00c0800c;DATA:000025c7
+0x05A354	4E75	rts		FUN_0005a2ee	
+0x05A3AC	41F90005A73A	lea	(0x5a73a).l, A0	FUN_0005a3ac	DATA:0005a73a
+0x05A3B2	303C0001	move.w	#0x1, D0w	FUN_0005a3ac	
+0x05A3B6	323C0000	move.w	#0x0, D1w	FUN_0005a3ac	
+0x05A3BA	4EB900059AD4	jsr	0x00059ad4.l	FUN_0005a3ac	UNCONDITIONAL_CALL:00059ad4
+0x05A3C0	227C00C01240	movea.l	#0xc01240, A1	FUN_0005a3ac	
+0x05A3C6	41F90005AC72	lea	(0x5ac72).l, A0	FUN_0005a3ac	DATA:0005ac72
+0x05A3CC	303C000C	move.w	#0xc, D0w	FUN_0005a3ac	
+0x05A3D0	323C000A	move.w	#0xa, D1w	FUN_0005a3ac	
+0x05A3D4	343C0001	move.w	#0x1, D2w	FUN_0005a3ac	
+0x05A3D8	61000104	bsr.w	0x0005a4de	FUN_0005a3ac	UNCONDITIONAL_CALL:0005a4de
+0x05A3DC	4E75	rts		FUN_0005a3ac	
+0x05A442	41F90005A71A	lea	(0x5a71a).l, A0	FUN_0005a442	DATA:0005a71a
+0x05A448	303C0001	move.w	#0x1, D0w	FUN_0005a442	
+0x05A44C	323C0000	move.w	#0x0, D1w	FUN_0005a442	
+0x05A450	4EB900059AD4	jsr	0x00059ad4.l	FUN_0005a442	UNCONDITIONAL_CALL:00059ad4
+0x05A456	227C00C00C38	movea.l	#0xc00c38, A1	FUN_0005a442	
+0x05A45C	41F90005AD62	lea	(0x5ad62).l, A0	FUN_0005a442	DATA:0005ad62
+0x05A462	303C0010	move.w	#0x10, D0w	FUN_0005a442	
+0x05A466	323C0010	move.w	#0x10, D1w	FUN_0005a442	
+0x05A46A	343C0001	move.w	#0x1, D2w	FUN_0005a442	
+0x05A46E	6100006E	bsr.w	0x0005a4de	FUN_0005a442	UNCONDITIONAL_CALL:0005a4de
+0x05A472	4E75	rts		FUN_0005a442	
 0x05A4DE	3800	move.w	D0w, D4w	FUN_0005a4de	
 0x05A4E0	2449	movea.l	A1, A2	FUN_0005a4de	
 0x05A4E2	32C2	move.w	D2w, (A1)+	FUN_0005a4de	

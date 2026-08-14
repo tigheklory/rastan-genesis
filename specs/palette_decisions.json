@@ -3,14 +3,53 @@
   "registry_id": "rastan-genesis-palette-decisions",
   "authority": "This file is the only palette-decision registry. Evidence documents may cite decision IDs but must not duplicate or override this registry.",
   "status_values": [
-    "confirmed",
+    "proven",
+    "decided",
     "provisional",
     "unknown"
   ],
+  "status_definitions": {
+    "proven": "Arcade semantics and current Genesis realization are established by evidence.",
+    "decided": "An intentional Genesis mapping has been selected, including a deliberate hardware compromise where exact arcade ownership cannot be reproduced.",
+    "provisional": "A mapping exists but still requires validation or redesign.",
+    "unknown": "Insufficient evidence; no implementation decision is authorized."
+  },
+  "policy": {
+    "arcade_palette_semantics_authoritative": true,
+    "context_precedence": {
+      "stage_and_scene_specific_behavior_over_reused_graphics_assumptions": true,
+      "reused_artwork_implies_reused_palette_identity": false,
+      "reused_actor_family_or_class_implies_global_palette_mapping": false
+    },
+    "genesis_decisions": {
+      "document_intentional_hardware_compromises": true,
+      "unknown_status_authorizes_implementation_choice": false
+    },
+    "change_contract": {
+      "covered_changes": [
+        "CRAM line",
+        "palette_route",
+        "colbank interpretation",
+        "dynamic carrier",
+        "fallback behavior",
+        "shared CRAM ownership"
+      ],
+      "identify_affected_palette_decision_ids": true,
+      "inspect_documented_consumers": true,
+      "update_registry_in_same_task": true
+    },
+    "scope_control": {
+      "single_stage_or_enemy_fix_becomes_global_without_cross_stage_arcade_evidence": false
+    },
+    "consistency": {
+      "current_source_must_agree_with_registry": true,
+      "implementation_registry_discrepancy_blocks_further_palette_implementation_until_resolved": true
+    }
+  },
   "decisions": [
     {
       "id": "PAL-PC090OJ-GAMEPLAY-RASTAN-SWORD-001",
-      "status": "confirmed",
+      "status": "proven",
       "context": {
         "scene": "gameplay scene 1",
         "stage": "Stage 1 verified; do not extrapolate this entry to unverified scenes or stages",
@@ -49,7 +88,7 @@
     },
     {
       "id": "PAL-PC090OJ-STAGE1-LIZARDMAN-001",
-      "status": "confirmed",
+      "status": "decided",
       "context": {
         "scene": "gameplay scene 1",
         "stage": "Stage 1",
@@ -73,7 +112,7 @@
         "dynamic_behavior": "bank 0x36 is captured and reasserted for Stage-1 Lizardmen",
         "shared_line_ownership": "line 0 is available because gameplay HUD sprite representation is suppressed in this configuration"
       },
-      "decision_basis": "KF-066 and Build 0210 runtime validation confirm bank 0x36 to line 0; the corrected Build 0279 bad-pose markers retain attr 0x46/source nibble 6 and line-0 SAT output.",
+      "decision_basis": "KF-066 and Build 0210 runtime validation establish the arcade bank 0x36 semantics and current line-0 result. The line-0 carrier is an intentional Genesis shared-CRAM compromise enabled by gameplay HUD sprite suppression; the corrected Build 0279 bad-pose markers retain attr 0x46/source nibble 6 and line-0 SAT output.",
       "known_defects": [
         "The user-observed bad club pose remains a visual-composition issue; it does not authorize a Lizardman palette reassignment."
       ],

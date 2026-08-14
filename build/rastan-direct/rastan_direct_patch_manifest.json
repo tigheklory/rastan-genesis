@@ -2475,19 +2475,140 @@
       "replacement_bytes_template": "4e754e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "Build 0273: RETIRE the frontend HUD PC090OJ builder 0x3B8B0 at the arcade-code boundary. Its sole caller is 0x3B06A. The routine is pure PC090OJ construction: it copies the fixed ROM templates 0x3B950/0x3B9B0/0x3B9D4 into object-RAM records 4..45 via the generic 0x3B930 copier and overlays digits via inert 0x3B802. All of records 4..45 are now produced natively by native_frontend_hud_emit (labels 4..16/18..20/34..36/43..45 via .Lnq_title_labels; score/HS/credit digits live). Replacing the entry insn `lea %pc@(0x3B950),%a0` (41FA009E) with `rts;nop` (4E754E71) makes the builder build nothing; caller returns normally. Generic 0x3B930 is preserved untouched (now uncalled). Byte-neutral 4->4."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x051650",
+      "rom_pc": "0x051856",
+      "original_bytes": "227c0010d338",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "227c00ff1338",
+      "replacement_bytes_template": "227c00ff1338",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0280: PROVEN aux-object raw-WRAM-address correction (Cody static reconciliation + Andy video/capture confirmation). The player-attached auxiliary sub-object array lives at A5+0x1338 (a5=0xFF0000 on Genesis -> WRAM 0x00FF1338; the init at arcade 0x505E4/runtime 0x507E4 writes #255 there). Three retained semantic acquisitions use the ORIGINAL ARCADE ABSOLUTE literal 0x0010D338 (arcade a5=0x10C000). movea.l #imm,aN literals were NOT +0x200-relocated (WRAM, outside the code copy range) and the WRAM base was never remapped, so on Genesis 0x0010D338 reads CARTRIDGE ROM (~0xCCCC/0xEEEC). The aux three-piece segment (0x54754) then treats ROM word != 255 as an active record and emits malformed 0x09Dx glint sprites at garbage coords (~screen 204,196). Byte-neutral fix: literal 0x0010D338 -> 0x00FF1338 at all three sites (0x51650 update-activate, 0x51DB6 attack-activate/anchor, 0x54754 aux renderer). Same missed-literal class as Build 0159/0158. Preserves the one-time activation-anchor lifecycle; no Block-A tuple staging restored, no re-anchor-every-frame, no masking, no compatibility mirror. Does NOT touch palette or BODY sword composition (sword blade-angle geometry tracked separately)."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x051DB6",
+      "rom_pc": "0x051FBC",
+      "original_bytes": "207c0010d338",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "207c00ff1338",
+      "replacement_bytes_template": "207c00ff1338",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0280 aux raw-WRAM-address fix (site 2 of 3): attack activation + native-anchor copy. See 0x051650 entry."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x054754",
+      "rom_pc": "0x054930",
+      "original_bytes": "207c0010d338",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "207c00ff1338",
+      "replacement_bytes_template": "207c00ff1338",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0280 aux raw-WRAM-address fix (site 3 of 3): aux three-piece renderer source array. See 0x051650 entry."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x054602",
+      "rom_pc": "0x0547D2",
+      "original_bytes": "322d1308",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "3e2d1308",
+      "replacement_bytes_template": "3e2d1308",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0281: PROVEN direction-specific sword-mirror fix. The BODY inline-segment expander (arcade 0x54598, produces the extended sword-blade pieces e.g. 0x00A6/0x00A7) computes word0 = descriptor_attr | flipX(facing!=2) at 0x545EE; the native redirect realizes that word0 into D1 for native_player_piece. But the RETAINED arcade code at 0x54602 reuses D1 as the a5@0x1308-derived code-selection index ((a5@0x1308>>1)&3)<<1 (safe on the arcade because word0 was already stored to Block A), CLOBBERING the native word0 in D1 before the emit at 0x5464A. native_player_piece then receives the index instead of word0, so the facing!=2 flipX (and the descriptor nibble 3) is LOST. Facing==2 (VISIBLE_LEFT) needs no flip so it renders correctly (positive control); facing!=2 (VISIBLE_RIGHT) loses flipX -> mirrored position but unflipped blade art -> gap + wrong orientation. Shared by standing/crouch/thrust (all use the inline segment). Fix: move the code-index from D1 to the FREE D7 (byte-neutral register-field change) at the computation (0x54602/06/08/0C) and its four alternate-table uses (0x5465E/6A/76/82), so D1 preserves the correct word0 (nibble 3 + flipX). d7 is scratch (native_sprite_emit saves d0-d7; not a native input; not otherwise used in the inline loop). Restores correct blade flip AND descriptor palette nibble 3 as a direct consequence (no palette-routing change). No BODY table/offset change, no Hflip toggle added, no aux change."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x054606",
+      "rom_pc": "0x0547D6",
+      "original_bytes": "e249",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "e24f",
+      "replacement_bytes_template": "e24f",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0281 inline code-index D1->D7 (site 2/8): lsrw #1. See 0x054602."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x054608",
+      "rom_pc": "0x0547D8",
+      "original_bytes": "02410003",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "02470003",
+      "replacement_bytes_template": "02470003",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0281 inline code-index D1->D7 (site 3/8): andiw #3. See 0x054602."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x05460C",
+      "rom_pc": "0x0547DC",
+      "original_bytes": "e349",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "e34f",
+      "replacement_bytes_template": "e34f",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0281 inline code-index D1->D7 (site 4/8): lslw #1. See 0x054602."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x05465E",
+      "rom_pc": "0x054834",
+      "original_bytes": "d4c1",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "d4c7",
+      "replacement_bytes_template": "d4c7",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0281 inline code-index D1->D7 (site 5/8): addaw idx,a2 (code 0x46E table). See 0x054602."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x05466A",
+      "rom_pc": "0x054840",
+      "original_bytes": "d4c1",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "d4c7",
+      "replacement_bytes_template": "d4c7",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0281 inline code-index D1->D7 (site 6/8): addaw idx,a2 (0x46F). See 0x054602."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x054676",
+      "rom_pc": "0x05484C",
+      "original_bytes": "d4c1",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "d4c7",
+      "replacement_bytes_template": "d4c7",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0281 inline code-index D1->D7 (site 7/8): addaw idx,a2 (0x47B). See 0x054602."
+    },
+    {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x054682",
+      "rom_pc": "0x054858",
+      "original_bytes": "d4c1",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "d4c7",
+      "replacement_bytes_template": "d4c7",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0281 inline code-index D1->D7 (site 8/8): addaw idx,a2 (0x47C). See 0x054602."
     }
   ],
-  "checksum": "0x802E",
+  "checksum": "0x4F25",
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan-direct/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {
-    "opcode_replace_count": 217
+    "opcode_replace_count": 228
   },
   "patch_counts": {
-    "opcode_replace_and_rom_opcode_replace": 217
+    "opcode_replace_and_rom_opcode_replace": 228
   },
   "build_context": "canonical",
-  "postpatch_expected_opcode_replace_sites": 217,
+  "postpatch_expected_opcode_replace_sites": 228,
   "postpatch_expected_total_genesis_bytes_covered": "0x1848E0",
   "bookmarks_v2_count": 0,
   "bookmarks_v2_applied": [],

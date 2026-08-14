@@ -45254,3 +45254,46 @@ Build produced: YES. Counter 273->274. ROM `dist/rastan-direct/rastan_direct_vid
 - Final PC: 0x073684
 - Stack Pointer (SP): 0x00FEFF6A
 - Unique Unmapped Memory Addresses: none
+
+## [Cody — Analysis, Original Arcade Sword/Thrust/Lizardman Semantic Model]
+
+- Task classification: EXTENDING; original-arcade static analysis/decompilation/address
+  correlation only.
+- Baseline/counter: accepted Build 0279; counter remains 279.
+- Build produced: NO. MAME run: NO. User gameplay requested: NO. Gameplay/palette
+  implementation changed: NO.
+- Ghidra analysis: added bounded function/table seeds for the arcade attack initializer and
+  phase advance, BODY constructor, player auxiliary family, family-0 actor renderer, generic
+  actor expander, and relevant mapping data; regenerated the standard exports (257 functions,
+  5,717 instructions, `0x501C` code bytes). A tentative Stage-1 Lizardman attribution for
+  `arcade_pc 0x045342` was disproved by its raw record (`tile_base 0x0129`, class `0x30`) and
+  retained under neutral symbols.
+- Proven arcade model: broad action `5` is crouch; attack-active is `A5+0x1108`; variant `1`
+  plus broad action `2/3` is downward thrust; action `8` is death. Standing, crouching, and
+  downward-thrust primary/secondary BODY maps are fully decoded. The thrust tip is BODY
+  primary piece 0, code `0x0104` from phase 6 onward; `arcade_pc 0x054810` is a separate
+  player-attached effect family and does not supply melee sword art.
+- Lizardman model: family-0 classes `0x17/0x18` are complete eight-piece compositions from
+  `arcade ROM/data 0x03D5EB/0x03D60C`; code `0x004E` is only one common upper/body-and-club
+  constituent. Palette semantics remain Rastan/sword bank `0x33` and Stage-1 Lizardman bank
+  `0x36`; `specs/palette_decisions.json` mappings were not changed by this task.
+- Address discipline: all current correlations use
+  `build/rastan-direct/address_map.json`; blind `+0x200` assumptions: NO.
+- Existing Build 0279 evidence is insufficient to isolate the remaining Lizardman visual
+  mismatch. The single missing fact is one visibly bad frame correlated with actor class
+  `0x17/0x18` and the complete ordered eight-piece native/SAT output.
+- Design report: `docs/design/Cody_arcade_sword_thrust_lizardman_semantic_model.md`.
+- Open/Closed Issues Impact: OPEN-006 and OPEN-024 informed/advanced; no issue opened or
+  closed. KNOWN_FINDINGS impact: no ledger edit; KF-044/KF-066/KF-074 remain consistent.
+- No unrelated changes by Cody; pre-existing palette-governance edits in `AGENTS.md`,
+  `CLAUDE.md`, `RULES.md`, and `specs/palette_decisions.json` were preserved.
+
+### MAME Exit Summary (2026-08-13 22:51:11)
+- Final PC: 0x073684
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-14 16:16:47)
+- Final PC: 0x073684
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none

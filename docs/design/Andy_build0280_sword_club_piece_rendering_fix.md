@@ -3,19 +3,36 @@
 **Agent:** Andy · **Baseline:** Build 0279 (accepted) · **Counter:** 279 · **Status:** INVESTIGATION IN
 PROGRESS — **NO numbered build produced** (prove-first / no-churn gate NOT yet satisfied).
 
-### Gate status vs prompt requirements (all must be PROVEN before Build 0280)
+### CURRENT AUTHORITATIVE GATE STATUS (Cody static reconciliation — supersedes Session 7)
 | Required proof | Status |
 |---|---|
-| Standing swing root cause | NOT PROVEN (body pieces transform faithfully; residual cause = tile art or orphaned aux — undetermined) |
-| Crouching swing root cause | NOT PROVEN (same) |
-| Downward-thrust root cause | NOT PROVEN |
-| Missing-tip cause | HYPOTHESIS (orphaned 0x54810 aux) — aux≠sword not yet proven |
-| Sword palette-flash cause | NOT PROVEN |
-| Lizardman club relationship | NOT PROVEN (club piece not yet identified; player/enemy use different flip mechanisms ⇒ trending DIFFERENT) |
-| Exact bounded correction | NOT ESTABLISHED |
+| Standing/crouch/thrust sword displacement | **PROVEN** — the retained update, activation, and renderer still use raw `0x0010D338`; in Build 0279 that resolves to ROM bytes beginning `CCCC EEEC`, not Genesis WRAM. The renderer consumes those bytes as malformed aux-piece coordinates. |
+| Root of the garbage coords | **PROVEN** — the native anchor publisher is valid, but activation never reaches its one-time anchor copy because ROM word `0xCCCC` is treated as an already-active record. The semantic auxiliary array belongs at `A5+0x1338` / Genesis-WRAM `0x00FF1338`. |
+| Missing-tip identity | **PROVEN** — original arcade table `0x05BB10` selects code `0x0104` for primary piece 0 at phases 6–23. Code `0x008E` belongs only to phases 0–1. The existing capture did not exercise the thrust state, but no static identity contradiction remains. |
+| Sword palette-flash cause | **NOT PROVEN** — the runtime SAT/metadata handoff is coherent through fixup and DMA. The existing frame-done diagnostic can pair the displayed SAT bank with metadata already reused for the next build bank, so its nibble-3→line-0 rows do not prove a runtime metadata race. |
+| Lizardman club | **ACTOR-SCOPED NO DEFECT FOUND** — actor 5, class `0x17`, at marked frame 10168 has all eight expected pieces, exact coordinates, and matching converted art/SAT output. This does not invalidate the user's visible observation; it bounds that observation outside this actor's captured queue/art/transform. |
+| Exact bounded correction | **BOUNDED FOR AUX OBJECT ONLY** — redirect all three semantic acquisitions of raw `0x0010D338` to `A5+0x1338`, preserving one-time activation anchoring and the original update/render lifecycle. Do not restore Block-A tuple staging or re-anchor active records every frame. No palette correction is justified by current evidence. |
 
-Because the gate is not satisfied, producing Build 0280 now would be a forbidden hypothesis build. Resume from
-the CONTINUATION BOUNDARY.
+The auxiliary-object correction is statically bounded, but this reconciliation task authorizes no
+implementation or build. The residual sword palette cause remains the only optional irreducible dynamic fact;
+the existing capture does not justify a production palette correction.
+
+Authoritative reconciliation: `docs/design/Cody_pretrace_static_reconciliation.md`. Session 6/7 prose below
+is retained as investigation history; where it conflicts with this status block or Cody's semantic model, it is
+superseded.
+
+### SUPERSEDED earlier conclusions (do NOT treat as current truth)
+- **SUPERSEDED:** "action-state = a5@0x10E8 distinguishes attacks" — corrected: attack TYPE is a5@0x1116 (0/1/4) +
+  a5@0x1108 (crouch) + a5@0x1114 (facing); Cody's model gives standing=action0/var4, crouch=action5/var4,
+  thrust=action2·3/var1.
+- **SUPERSEDED:** "0x54810 aux = the sword / owns the tip" — DISPROVEN (Cody: 0x54810 blank on sampled attack;
+  the displaced sword is the 0x5475A three-piece segment, and the tip is BODY primary piece 0).
+- **SUPERSEDED:** "sprite_ctrl shadow drops to 0 → palette flash" — DISPROVEN (shadow/colbank constant 0x0060).
+- **SUPERSEDED:** "Lizardman club piece identity unresolved / possibly shares sword cause" — resolved: complete
+  0x17/0x18 pose known, composition correct, no defect, separate from sword.
+- **SUPERSEDED:** "aux reads stale block-A tuple-0 directly" (Session 6 wording) — refined: 0x547C0/0x51E00
+  block-A reads were already retired; the aux sub-object now takes its anchor from a5@0x129A/0x129C, which is the
+  invalid value. Same net effect (garbage), corrected source.
 
 This is the durable working report. Findings are labelled **PROVEN / HYPOTHESIS / DISPROVEN**. If a session
 limit interrupts, the "CONTINUATION BOUNDARY" section states exactly where to resume without re-deriving.
@@ -294,8 +311,189 @@ check; NO speculative patch until known.
 
 ---
 
+---
+
+## SESSION 6 — CAPTURE-BACKED ROOT CAUSES (Cody's corrected controlled capture)
+
+Capture: `states/traces/build0279_user_controlled_sword_lizardman_corrected_20260812_092432/`
+(final_sat.csv has per-slot `source_nibble`+`palette_line`; native_queues.csv has per-piece word0/code/x/y;
+lizard_actors.csv full actor state). No new capture run by Andy.
+
+### GEOMETRY — one-tile / displaced sword — ROOT CAUSE **PROVEN**
+- At the STANDING marker frame (5263) the Genesis PLAYER_BODY queue = 9 valid body pieces (torso 8E/8F/90,
+  head 9E/9F, legs 76–79) **plus 3 malformed pieces**: `code=09D9/09DA/09DB`, `word0=0x0010`,
+  `x=0xCCCC/0xEEEC`, `y=0xCCCC` (UNMASKED, > 0x1FF). Across the whole capture these 3 codes appear ~2.5k× each,
+  **always** with 0xCC-fill coords.
+- Source (proven by disasm): the **aux three-piece segment** `arcade_pc 0x5475A` (redirected to PLAYER_BODY;
+  postpatch `runtime_genesis_pc 0x5492A+`). It emits `word0=0x0010`, `code=0x09D9 + a5@0x1364` (Genesis WRAM
+  counter), and `X=a0@2 / Y=a0@4` where `a0 = 0x10D338` (Genesis WRAM sub-object array). Gate: skip when
+  `a0@0 == 255`.
+- **Why garbage on Genesis:** the attack sub-object at `0x10D338` takes its anchor X/Y from **block-A tuple 0
+  (0x10D1B2)** via `arcade_pc 0x51E00` / `0x51DAE` / `0x547C0`. Build 0274 **retired the block-A writes** (native
+  lanes replace them), so `0x10D1B2` is now stale/uninitialised (0xCC), and `a0@0 ≠ 255` so the segment is NOT
+  skipped → 3 garbage sprites at 0xCC coords every frame. This is exactly the **auxiliary-anchor review debt**
+  (0x129A/0x129C/0x547C0/0x51E00) flagged in earlier sessions.
+- **Note:** the native BODY primary/secondary constructors (0x54492/0x546A8) DO mask X/Y (`andi #0x1FF`) and are
+  correct in the postpatched ROM (table pointer relocated 0x5C466→`0x5C636`). The bug is ONLY the aux-anchor path.
+- **Bounded fix direction (PROVEN target, not yet implemented/validated):** source the aux sub-object anchor from
+  the **native anchor a5@0x129A/0x129C** (published by `native_player_body_anchor_piece`) instead of the retired
+  block-A tuple 0; OR keep block-A tuple 0 alive solely for this anchor; OR gate the aux segment on the native
+  anchor validity. Must preserve movement/landing and not resurrect block-A tuple staging broadly.
+
+### PALETTE 3→0→3 — PARTIALLY PROVEN
+- Capture (final_sat, frames 9167–9200): most nibble-3 slots resolve to line 3, but intermittently specific high
+  PLAYER_BODY slots resolve to **line 0 or line 2**. `source_nibble` there is read straight from
+  `pc090oj_sat_nibble[slot]`.
+- **The line-2 cases are the garbage aux pieces** (word0=0x0010 → nibble 0; nibble0|colbank0x30 = 0x30 → line 2).
+  So fixing the aux-anchor geometry bug ALSO removes the line-2 pollution.
+- **Line-0 on genuine nibble-3 pieces still unexplained:** with shadow=0x0060 (colbank d7=0x30) and stored
+  nibble 3, `.Lnative_palsel` must give 0x33→line 3. The intermittent line-0 (e.g., frame 9181 slots 11/12,
+  hf=0) contradicts the static path. `pc090oj_sat_force_line` can only be 0xFF/3 (never 0). Remaining candidates:
+  a fixup-coverage/emitted_count vs SAT double-buffer race for high slots. **Irreducible fact needed:**
+  `pc090oj_emitted_count` and `pc090oj_sat_nibble[slot]` vs the DISPLAYED bank at the exact line-0 frame — NOT in
+  the current capture (it logs post-fixup SAT + nibble, not emitted_count-vs-slot alignment per bank). Small,
+  bounded.
+
+### DOWNWARD-THRUST TIP 0x0104 — NOT CAPTURED (gap)
+- Code `0x0104` is **absent from every native lane in all 16,256 frames**. The DOWN_THRUST marker window
+  (frame 15617 ±) shows action=0, attack_type=4, **anim_phase stuck at 0x18** = STANDING config (per Cody's model
+  standing=action0/var4), NOT thrust (action2/3, var1). So the thrust animation (phases 6–23 with 0x0104) was
+  **never in the capture** — the instrumentation gap Cody noted. Statically, 0x0104 is not blank-marked and its
+  art is non-blank, so IF produced it would render; whether Build 0279's retained thrust path produces 0x0104 is
+  **unverified** (needs a correctly-labeled thrust capture, keyed on action∈{2,3} + variant 1).
+
+### LIZARDMAN — composition CORRECT in capture (no code-level defect found)
+- Bad-club frames (10007–10385): actors class **0x17 and 0x18**, family 0, base_tile 0x4B, attr 0x46. At frame
+  10168 the BACK_ENEMY queue contains the **complete** composition — 0x004B,0x004C,0x004D,0x004E AND
+  0x0063,0x0064,0x0065,0x0066,0x0069 (+0x5E–0x60) — every piece with **valid coords** (x 0xB4–0xCC, y 0x5A–0x7A)
+  and **word0=0x4046** (flipX + nibble 6 → bank 0x36 → carrier line 0, per PAL-PC090OJ-STAGE1-LIZARDMAN-001).
+- ⇒ ordering, count, coords, flip and palette of the club are all correct in the native queue; Cody proved the
+  transform faithful. **No club code/geometry defect is evident in the data.** The "rotated" perception, if real,
+  would require an arcade-vs-Genesis resident-ART content comparison (tile bitmaps), not a queue/transform fix.
+  **No club patch justified** (matches Cody). Lizardman palette unchanged.
+
+### DISPROVEN this session
+- "Blank-bitset drops the tip/sword": DISPROVEN (0x104 and all sword/club codes are not blank-marked).
+- "Colbank shadow drops to 0": DISPROVEN (shadow=0x0060; arcade always writes 0x60).
+- "Secondary constructor emits garbage / table pointer unrelocated": DISPROVEN (masked + relocated correctly).
+
+---
+
 ## Scope guards (must hold)
 - Do NOT touch large-bat / small-bat / Axe / four-armed-enemy palettes.
 - Do NOT restore PC090OJ player tuple staging.
 - Do NOT alter Lizardman palette.
 - Preserve Build 0279 movement/landing.
+
+---
+
+## SESSION 8 — VIDEO-BACKED BACKSWING GEOMETRY
+
+### USER VISUAL CONTRACT (Build_279_sword_flash.mp4, reviewed frame-by-frame)
+- Sword should ANGLE BACKWARD from the hilt during the backswing.
+- Build 0279 shows the blade at the WRONG angle (vertical), floating up-left of the raised hand.
+- Blade visibly DISCONNECTED from the hilt/hand.
+- A vertical-looking frame is NOT correct just because it is coherent.
+- Sword continuously changes black/white/gray during the attack (palette instability — REAL, out of scope here).
+
+### WHAT THE AUX 0x09Dx PIECES ACTUALLY ARE — PROVEN
+- Rendered from `build/pc090oj_genesis.bin`: codes 0x09D9=4-point star, 0x09DA=round ball, 0x09DB=4-point star
+  = **sword GLINT/sparkle effects**, NOT blade art.
+- In the capture their SAT screen position is fixed at ~**(204,196)** (from ROM `0xCCCC/0xEEEC` & 0x1FF), i.e.
+  mid/lower-screen, FAR from the player (player pieces at sx 16–32). So the garbage glints are a real defect but
+  are **not** the "vertical disconnected blade near the player."
+
+### BACKSWING COMPOSITION (capture, exact)
+- Peak backswing (frame 3240, primary sel 05): 09B/09D/09C + head A6/A7(nib6) + legs 76-79 + 3 garbage 09D9.
+  Rendered composite = arm+sword roughly connected; head abuts body at +24. Individual flips (body flipX / head
+  no-flip) MATCH correctly-rendered walking.
+- **Secondary attack pieces 0109/010A NEVER appear** in the whole capture, though the primary reaches sel 05.
+  Decoded secondary table 0x5BA78→0x5C466: index 0x00 (phases 0-3)=76-79 legs; index 0x11 (phases 4-23)=**0109@
+  (-16,+8),010A@(0,+8)** (attack legs). Build 0279 keeps emitting 76-79. Real defect, but affects the LEG stance,
+  not the blade/hilt connection.
+
+### PIXEL CONNECTION TEST
+- Expected arcade: blade angles back over the shoulder, connected to the hand.
+- Build 0279: blade vertical/disconnected (video) — reproduced partially in static composites but NOT cleanly to
+  the exact vertical pose; my composites of sel 01/05 show connected diagonal/horizontal swords, so the exact
+  vertical-disconnected frame is not fully reproduced from the static offset model I could reconstruct.
+
+### ROOT CAUSE (this session)
+- **Aux garbage contributes: YES** — floating glints at (204,196) + continuous appearance change. **PROVEN,
+  FIXED this build.**
+- **Legitimate BODY composition also wrong: SUSPECTED, NOT PROVEN to a bounded correction** — the exact
+  blade-angle/hilt-connection defect could not be isolated to a single bounded source (flip matches walking;
+  offsets match Cody's model; the vertical pose was not cleanly reproduced statically). The secondary 0109/010A
+  omission is proven but is legs, not blade.
+- **Flip-specific defect: NOT PROVEN** — body flipX matches correct walking; no speculative Hflip change made.
+
+### CROSS-POSE IMPACT
+- Standing / Crouch / Downward thrust: all three share the same aux sub-object array (0x10D338) → all fixed by
+  the raw-address correction. The blade-angle question is standing-specific and remains open for all three.
+
+### CORRECTION IMPLEMENTED (Build 0280)
+- **ONLY the proven aux raw-WRAM-address correction**: `movea.l #0x0010D338` → `movea.l #0x00FF1338` at arcade
+  0x051650 / 0x051DB6 / 0x054754 (byte-neutral opcode_replace, count 217→220). The aux sub-object now reads WRAM
+  0x00FF1338 (init to 255=inactive), so the garbage glints vanish and the glint activates at the native anchor
+  (sword tip) only when legitimately active. **No BODY sword-composition change** (blade cause not bounded), **no
+  palette change**, no speculative Hflip. One-time activation-anchor lifecycle preserved; no Block-A staging.
+- Build 0280: SHA-256 1c129ff84a4fc228df5702cca008dad23f90c5b47e1d204db5c8e7ce48a7f69b, size 1591520,
+  counter 279→280, GATE_PASS, 30s Genesis-NTSC smoke clean (1021% speed, no crash).
+
+### REMAINING OPEN (for a follow-up task)
+- The vertical/disconnected blade ANGLE (BODY composition) is not yet bounded. The one irreducible remaining
+  question: an ORIGINAL-ARCADE pixel reference of the standing backswing composite (or the exact head/primary
+  offset+facing handling for A6/A7 and the sel-progression) to determine whether the blade angle is a flip,
+  offset, or missing-piece (0109/010A) defect. The palette black/white/gray instability is separately real and
+  out of scope here.
+
+---
+
+## SESSION 9 — DIRECTIONAL SWORD MIRROR CLOSURE
+
+### BUILD 0280 USER TEST
+- LEFT standing: PASS · RIGHT standing: FAIL · LEFT crouch: PASS · RIGHT crouch: FAIL · Down thrust: FAIL
+- Aux garbage sprites: FIXED · Sword palette cycling: STILL PRESENT
+
+### VISIBLE FACING SEMANTICS (PROVEN from capture)
+| Visible direction | a5@0x1114 | body path | word0 |
+|---|---|---|---|
+| VISIBLE_LEFT | **2** | direct (no mirror, `cmpi #2` == → skip flipX) | 0x0003 (no flip) |
+| VISIBLE_RIGHT | **3** (and 0) | mirror: X = −Xoff−16, set flipX 0x4000 | 0x4003 |
+Walking-right uses the same mirror and is correct ⇒ the mirror path itself is sound.
+
+### A6/A7 ARE THE EXTENDED SWORD BLADE (not the head)
+Rendered from the art blob: **0x00A6 = horizontal sword blade**, 0x00A7 = tip/hilt. They come from the BODY
+**inline-segment expander** (arcade 0x54598; tables 0x5CD8A/0x5D068/0x5D346/0x5D666 by a5@0x12FA). In the
+capture they alone carry **mirrored X but NO flipX** (nibble 4 LEFT / 6 RIGHT) while every other piece flips.
+
+### FIRST EXACT RIGHT-FACING MISMATCH — ROOT CAUSE (PROVEN)
+Arcade inline loop: 0x545EE stores word0 = attr|flipX to Block A, THEN 0x54602 reuses **D1** as the
+`a5@0x1308` code-selection index `((a5@0x1308>>1)&3)<<1` (safe on arcade — word0 already stored). The native
+redirect put word0 into **D1** (0x545EE→`movew d0,d1`); the retained 0x54602 then **clobbers D1**, so
+`native_player_piece` (emit at 0x5464A) receives the index, not word0 → **flipX + descriptor nibble 3 lost**.
+- VISIBLE_LEFT (facing 2): needs no flip → geometry correct despite the clobber (POSITIVE CONTROL).
+- VISIBLE_RIGHT (facing 3): flipX lost → blade mirrored in position but unflipped art → **gap + wrong
+  orientation**. This is a register-lifetime defect in the inline redirect (same class as Build 0275).
+
+### STANDING / CROUCH / DOWN-THRUST — SHARED
+All three drive the SAME inline segment for the blade, so all lose flipX facing right. **Shared correction.**
+(The down-thrust *vertical* displacement and the secondary 0109/010A leg-stance omission are SEPARATE, still
+open — not addressed in this build.)
+
+### BOUNDED CORRECTION (Build 0281)
+Move the inline code-selection index from **D1 → free D7** at the computation (arcade 0x54602/06/08/0C) and its
+four alternate-table uses (0x5465E/6A/76/82) — 8 byte-neutral opcode_replace (register-field only). D1 now
+preserves the correct word0 (nibble 3 + flipX). D7 is scratch (native_sprite_emit saves d0-d7; not a native
+input; unused elsewhere in the inline loop). Restores blade flip AND descriptor nibble 3 as a direct
+consequence of preserving word0 — **not** a palette-routing change; PAL decisions untouched. No BODY
+table/offset change, no Hflip toggle, no aux change (0x00FF1338 preserved).
+- Verified in ROM: `movew a5@(0x1308),d7` + `addaw d7,a2`; d1 untouched from word0-realization to emit.
+- Build 0281: SHA-256 8f4997566386f30c0c3dd37f922762d7f6b0677f8bbd9c4a8995046dfb9ab790, size 1591520,
+  counter 280→281, opcode_replace 220→228, GATE_PASS, 30s Genesis-NTSC smoke clean.
+
+### STILL OPEN (follow-ups, not in this build)
+- Down-thrust VERTICAL displacement (separate Y cause).
+- Secondary 0109/010A attack-leg omission (retains 0076-0079).
+- Sword palette black/white/gray cycling (out of scope; a5@0x1308-nibble corruption on A6/A7 is now removed,
+  which may reduce — but not necessarily eliminate — the flashing).

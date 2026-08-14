@@ -7,6 +7,12 @@ arcade_pc	instruction	function	references_from	note
 0x03A06A	jmp (A0)	vector_1d_target_03a008		manual review for dynamic dispatch/table
 0x03A074	jsr 0x00055ca2.l		UNCONDITIONAL_CALL:00055ca2	manual review for dynamic dispatch/table
 0x03A084	jsr 0x000510c6.l	FUN_0003a080	UNCONDITIONAL_CALL:000510c6	manual review for dynamic dispatch/table
+0x03A19C	lea (0xe,PC),A0	frontend_state_dispatch_3a196	DATA:0003a1ac	manual review for dynamic dispatch/table
+0x03A1A4	lea (0x6,PC),A0	frontend_state_dispatch_3a196	DATA:0003a1ac	manual review for dynamic dispatch/table
+0x03A1AA	jmp (A0)	frontend_state_dispatch_3a196		manual review for dynamic dispatch/table
+0x03A32C	jsr 0x0005a3ac.l	frontend_state3_update_3a304	UNCONDITIONAL_CALL:0005a3ac	manual review for dynamic dispatch/table
+0x03A3A2	jsr 0x0005a442.l	frontend_state4_update_3a39a	UNCONDITIONAL_CALL:0005a442	manual review for dynamic dispatch/table
+0x03A420	jsr 0x0005a442.l	frontend_state5_update_3a420	UNCONDITIONAL_CALL:0005a442	manual review for dynamic dispatch/table
 0x03A818	jsr 0x00045dfa.l		UNCONDITIONAL_CALL:00045dfa	manual review for dynamic dispatch/table
 0x03AD98	jsr 0x0005b512.l	FUN_0003ad72	UNCONDITIONAL_CALL:0005b512	manual review for dynamic dispatch/table
 0x03AF9C	lea (0x72,PC),A0	startup_common_body	DATA:0003b010	manual review for dynamic dispatch/table
@@ -27,13 +33,13 @@ arcade_pc	instruction	function	references_from	note
 0x03C53E	jsr 0x0005b512.l	FUN_0003c516	UNCONDITIONAL_CALL:0005b512	manual review for dynamic dispatch/table
 0x03C72E	jsr 0x0005b512.l	FUN_0003c70a	UNCONDITIONAL_CALL:0005b512	manual review for dynamic dispatch/table
 0x03CF56	lea (0x7c,PC),A0	FUN_0003cf52	DATA:0003cfd4	manual review for dynamic dispatch/table
-0x03D064	jmp 0x0004770e.l	FUN_0003d054	UNCONDITIONAL_CALL:0004770e	manual review for dynamic dispatch/table
-0x03D070	jmp 0x0003f0bc.l	FUN_0003d054	UNCONDITIONAL_CALL:0003f0bc	manual review for dynamic dispatch/table
-0x03D07C	jmp 0x0003ffdc.l	FUN_0003d054	UNCONDITIONAL_CALL:0003ffdc	manual review for dynamic dispatch/table
-0x03D088	jmp 0x0003fff0.l	FUN_0003d054	UNCONDITIONAL_CALL:0003fff0	manual review for dynamic dispatch/table
-0x03D08E	move.w (0x3d09e,PC,D0w*0x1),D0w	FUN_0003d054	DATA:0003d09e	manual review for dynamic dispatch/table
-0x03D092	lea (0xa,PC),A0	FUN_0003d054	DATA:0003d09e	manual review for dynamic dispatch/table
-0x03D098	jmp 0x0003c902.l	FUN_0003d054	UNCONDITIONAL_CALL:0003c902	manual review for dynamic dispatch/table
+0x03D064	jmp 0x0004770e.l	actor_family0_render_3d054	UNCONDITIONAL_CALL:0004770e	manual review for dynamic dispatch/table
+0x03D070	jmp 0x0003f0bc.l	actor_family0_render_3d054	UNCONDITIONAL_CALL:0003f0bc	manual review for dynamic dispatch/table
+0x03D07C	jmp 0x0003ffdc.l	actor_family0_render_3d054	UNCONDITIONAL_CALL:0003ffdc	manual review for dynamic dispatch/table
+0x03D088	jmp 0x0003fff0.l	actor_family0_render_3d054	UNCONDITIONAL_CALL:0003fff0	manual review for dynamic dispatch/table
+0x03D08E	move.w (0x3d09e,PC,D0w*0x1),D0w	actor_family0_render_3d054	DATA:0003d09e	manual review for dynamic dispatch/table
+0x03D092	lea (0xa,PC),A0	actor_family0_render_3d054	DATA:0003d09e	manual review for dynamic dispatch/table
+0x03D098	jmp 0x0003c902.l	actor_family0_render_3d054	UNCONDITIONAL_CALL:0003c902	manual review for dynamic dispatch/table
 0x03F0BC	lea (0x10,PC),A0	FUN_0003f0bc	DATA:0003f0ce	manual review for dynamic dispatch/table
 0x03F0C4	lea (0x8,PC),A0	FUN_0003f0bc	DATA:0003f0ce	manual review for dynamic dispatch/table
 0x03FFDC	lea (0x26,PC),A0	FUN_0003ffdc	DATA:00040004	manual review for dynamic dispatch/table
@@ -51,10 +57,21 @@ arcade_pc	instruction	function	references_from	note
 0x042B1C	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
 0x042D20	lea (0x68,PC),A0	FUN_00042d20	DATA:00042d8a	manual review for dynamic dispatch/table
 0x042EE4	jsr 0x00053a2e.l	FUN_00042e38	UNCONDITIONAL_CALL:00053a2e	manual review for dynamic dispatch/table
+0x043258	lea (0x16,PC),A0		DATA:00043270	manual review for dynamic dispatch/table
+0x04325C	lea (0x1c,PC),A1		DATA:0004327a	manual review for dynamic dispatch/table
+0x043292	lea (0x22,PC),A0		DATA:000432b6	manual review for dynamic dispatch/table
+0x043296	lea (0x28,PC),A1		DATA:000432c0	manual review for dynamic dispatch/table
+0x0432A4	lea (0x24,PC),A0		DATA:000432ca	manual review for dynamic dispatch/table
+0x0432A8	lea (0x2a,PC),A1		DATA:000432d4	manual review for dynamic dispatch/table
+0x0432FE	lea (0x16,PC),A0		DATA:00043316	manual review for dynamic dispatch/table
 0x043302	lea (0x2c,PC),A1		DATA:00043330	manual review for dynamic dispatch/table
+0x043350	lea (0x16,PC),A0		DATA:00043368	manual review for dynamic dispatch/table
+0x043354	lea (0x1a,PC),A1		DATA:00043370	manual review for dynamic dispatch/table
+0x043378	lea (0x10,PC),A0		DATA:0004338a	manual review for dynamic dispatch/table
+0x04337C	lea (0x11,PC),A1		DATA:0004338f	manual review for dynamic dispatch/table
 0x0448D0	jsr 0x0003a0ec.l	FUN_000448b2	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x04539A	jsr 0x0003a0ec.l	FUN_00045342	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x04543E	lea (0x152,PC),A0	FUN_0004543e	DATA:00045592	manual review for dynamic dispatch/table
+0x04539A	jsr 0x0003a0ec.l	paired_actor_init_45342	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x04543E	lea (0x152,PC),A0	actor_record_loader_4543e	DATA:00045592	manual review for dynamic dispatch/table
 0x045BE0	jsr 0x0003a0ec.l	FUN_00045b18	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
 0x045D2E	jsr 0x00053a2e.l	FUN_00045d10	UNCONDITIONAL_CALL:00053a2e	manual review for dynamic dispatch/table
 0x045D96	jsr 0x0003ba20.l	FUN_00045d7c	UNCONDITIONAL_CALL:0003ba20	manual review for dynamic dispatch/table
@@ -92,22 +109,29 @@ arcade_pc	instruction	function	references_from	note
 0x04CA24	jsr 0x00046790.l		UNCONDITIONAL_CALL:00046790	manual review for dynamic dispatch/table
 0x04CA3E	jsr 0x00046790.l		UNCONDITIONAL_CALL:00046790	manual review for dynamic dispatch/table
 0x04CFE2	jsr 0x00046bc4.l		UNCONDITIONAL_CALL:00046bc4	manual review for dynamic dispatch/table
+0x051090	jsr 0x00052732.l	player_main_update_51090	UNCONDITIONAL_CALL:00052732	manual review for dynamic dispatch/table
+0x051096	jsr 0x00055650.l	player_main_update_51090	UNCONDITIONAL_CALL:00055650	manual review for dynamic dispatch/table
+0x05109C	jsr 0x00055ad6.l	player_main_update_51090	UNCONDITIONAL_CALL:00055ad6	manual review for dynamic dispatch/table
+0x0510A2	jsr 0x00059de8.l	player_main_update_51090	UNCONDITIONAL_CALL:00059de8	manual review for dynamic dispatch/table
+0x0510AC	jsr 0x0005a29c.l	player_main_update_51090	UNCONDITIONAL_CALL:0005a29c	manual review for dynamic dispatch/table
+0x0510B2	jsr 0x000596f4.l	player_main_update_51090	UNCONDITIONAL_CALL:000596f4	manual review for dynamic dispatch/table
+0x05115E	jsr 0x00051190.l	FUN_00051156	UNCONDITIONAL_CALL:00051190	manual review for dynamic dispatch/table
+0x05119C	jsr 0x0003a0ec.l	FUN_00051190	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x0511BC	jsr 0x00059ad4.l	FUN_00051190	UNCONDITIONAL_CALL:00059ad4	manual review for dynamic dispatch/table
+0x0511D0	jsr 0x00059ad4.l	FUN_00051190	UNCONDITIONAL_CALL:00059ad4	manual review for dynamic dispatch/table
+0x05125A	jsr 0x0003a116.l	FUN_0005122a	UNCONDITIONAL_CALL:0003a116	manual review for dynamic dispatch/table
+0x051260	jsr 0x00054052.l	FUN_0005122a	UNCONDITIONAL_CALL:00054052	manual review for dynamic dispatch/table
+0x051266	jsr 0x00059f5e.l	FUN_0005122a	UNCONDITIONAL_CALL:00059f5e	manual review for dynamic dispatch/table
+0x0512D8	jsr 0x00053934.l	FUN_000512c8	UNCONDITIONAL_CALL:00053934	manual review for dynamic dispatch/table
+0x0512EE	jsr 0x000538c8.l	FUN_000512c8	UNCONDITIONAL_CALL:000538c8	manual review for dynamic dispatch/table
+0x051304	jsr 0x000539a0.l	FUN_000512c8	UNCONDITIONAL_CALL:000539a0	manual review for dynamic dispatch/table
+0x051322	jsr 0x00053a0c.l	FUN_000512c8	UNCONDITIONAL_CALL:00053a0c	manual review for dynamic dispatch/table
+0x052742	jsr 0x00052a64.l	FUN_00052732	UNCONDITIONAL_CALL:00052a64	manual review for dynamic dispatch/table
 0x0529E2	jsr 0x0003a0ec.l	FUN_000529cc	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x054F0C	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x054F22	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x054F38	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x054F4E	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x054F64	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x054FD8	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x054FF0	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x055008	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x055020	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x05502C	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x055042	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x055058	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x055064	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x0555BC	jsr 0x0003a0ec.l	FUN_000555b8	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
-0x055610	jsr 0x0003a0ec.l	FUN_0005560c	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x055726	jsr 0x000406a4.l	FUN_00055696	UNCONDITIONAL_CALL:000406a4	manual review for dynamic dispatch/table
+0x0557B2	jsr 0x000406a4.l	FUN_0005572e	UNCONDITIONAL_CALL:000406a4	manual review for dynamic dispatch/table
+0x05584C	jsr 0x000406a4.l	FUN_000557ba	UNCONDITIONAL_CALL:000406a4	manual review for dynamic dispatch/table
+0x05589A	jsr 0x000406a4.l	FUN_00055854	UNCONDITIONAL_CALL:000406a4	manual review for dynamic dispatch/table
 0x057290	jsr 0x0003a0ec.l		UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
 0x057454	jsr 0x00055ab4.l	FUN_0005744e	UNCONDITIONAL_CALL:00055ab4	manual review for dynamic dispatch/table
 0x057466	jsr 0x0005a4de.l	FUN_0005744e	UNCONDITIONAL_CALL:0005a4de	manual review for dynamic dispatch/table
@@ -115,6 +139,9 @@ arcade_pc	instruction	function	references_from	note
 0x05748A	jsr 0x0005a4de.l	FUN_0005744e	UNCONDITIONAL_CALL:0005a4de	manual review for dynamic dispatch/table
 0x05749C	jsr 0x0005a4de.l	FUN_0005744e	UNCONDITIONAL_CALL:0005a4de	manual review for dynamic dispatch/table
 0x0574B0	jsr 0x0005a4de.l	FUN_000574a4	UNCONDITIONAL_CALL:0005a4de	manual review for dynamic dispatch/table
+0x059E06	jsr 0x00059ad4.l	FUN_00059de8	UNCONDITIONAL_CALL:00059ad4	manual review for dynamic dispatch/table
+0x05A3BA	jsr 0x00059ad4.l	FUN_0005a3ac	UNCONDITIONAL_CALL:00059ad4	manual review for dynamic dispatch/table
+0x05A450	jsr 0x00059ad4.l	FUN_0005a442	UNCONDITIONAL_CALL:00059ad4	manual review for dynamic dispatch/table
 0x05FFAC	lea (0x30,PC),A1	FUN_0005ffa2	DATA:0005ffde	manual review for dynamic dispatch/table
 0x05FFBC	lea (0x30,PC),A1	FUN_0005ffb2	DATA:0005ffee	manual review for dynamic dispatch/table
 0x05FFC2	lea (0xa,PC),A1	FUN_0005ffb2	DATA:0005ffce	manual review for dynamic dispatch/table

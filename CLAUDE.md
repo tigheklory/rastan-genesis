@@ -62,6 +62,9 @@ change to a palette decision must update that JSON in the same task. Never creat
 duplicate palette mapping registry in Markdown, another spec, source comments, or generated
 files; reports may cite IDs and evidence without duplicating registry authority.
 
+Registry statuses are exactly `proven`, `decided`, `provisional`, and `unknown`. Do not use
+`confirmed` or introduce another palette-status vocabulary.
+
 ---
 
 ## Shift-Table Reflow Is the Canonical Replacement Mechanism

@@ -336,6 +336,9 @@ Do not create or maintain a duplicate palette mapping registry in Markdown, anot
 source comments, or generated output. Evidence reports may cite Palette Decision IDs and explain
 observations, but they must not redefine the canonical mapping independently.
 
+Registry statuses are exactly `proven`, `decided`, `provisional`, and `unknown`. Do not use
+`confirmed` or introduce another palette-status vocabulary.
+
 ---
 
 ## Numbered ROM Artifact Preservation Rule

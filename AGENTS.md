@@ -450,6 +450,9 @@ as any palette-decision change. Do not maintain a duplicate palette mapping regi
 source comments, another spec, or generated output; other documents may cite decision IDs and
 evidence but must not become a competing mapping authority.
 
+Registry statuses are exactly `proven`, `decided`, `provisional`, and `unknown`. Do not use
+`confirmed` or introduce another palette-status vocabulary.
+
 The arcade palette RAM (2048 entries, 4096 bytes)
 is pre-converted to Genesis VDP format during the
 patching process and stored in ROM as a static

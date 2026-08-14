@@ -101,6 +101,50 @@ public class RastanArcadeSeed extends GhidraScript {
         fn(0x03b802L, "pc090oj_sprite_producer_3b802");
         fn(0x0565a6L, "shared_pc080sn_text_writer_565a6");
 
+        // Player/attack semantic model. These entries are reached through
+        // computed dispatch or code regions that default analysis does not
+        // discover from the reset vectors.
+        fn(0x03a196L, "frontend_state_dispatch_3a196");
+        fn(0x03a1c4L, "frontend_state0_init_3a1c4");
+        fn(0x03a200L, "frontend_state1_update_3a200");
+        fn(0x03a2d8L, "frontend_state2_update_3a2d8");
+        fn(0x03a304L, "frontend_state3_update_3a304");
+        fn(0x03a39aL, "frontend_state4_update_3a39a");
+        fn(0x03a420L, "frontend_state5_update_3a420");
+        fn(0x03a450L, "frontend_state6_update_3a450");
+        fn(0x03a474L, "frontend_state7_update_3a474");
+        fn(0x03a478L, "frontend_state8_update_3a478");
+        fn(0x051090L, "player_main_update_51090");
+        fn(0x051ca0L, "player_attack_initialize_51ca0");
+        fn(0x051d32L, "player_attack_advance_51d32");
+        fn(0x051e24L, "player_crouch_enter_51e24");
+        fn(0x03c902L, "actor_four_record_expand_3c902");
+        fn(0x03d054L, "actor_family0_render_3d054");
+        fn(0x045342L, "paired_actor_init_45342");
+        fn(0x0453a2L, "paired_actor_activate_453a2");
+        fn(0x04543eL, "actor_record_loader_4543e");
+        fn(0x054052L, "player_sprite_slot_init_54052");
+        fn(0x0540ccL, "player_body_constructor_540cc");
+        fn(0x0547c0L, "player_aux_update_547c0");
+        fn(0x054810L, "player_aux_sprite_constructor_54810");
+
+        label(0x03a1acL, "frontend_state_dispatch_offsets_3a1ac");
+        label(0x03a1ccL, "sprite_palette_control_writer_3a1cc");
+        label(0x03d09eL, "actor_family0_class_offsets_3d09e");
+        label(0x03d5ebL, "lizard_class17_descriptor_3d5eb");
+        label(0x03d60cL, "lizard_class18_descriptor_3d60c");
+        label(0x045592L, "actor_record_table_45592");
+        label(0x0550a8L, "player_state_handler_table_550a8");
+        label(0x05b6a0L, "player_action0_primary_phase_table_5b6a0");
+        label(0x05b978L, "player_crouch_primary_phase_table_5b978");
+        label(0x05ba78L, "player_action0_secondary_phase_table_5ba78");
+        label(0x05b948L, "player_crouch_secondary_phase_table_5b948");
+        label(0x05bae0L, "player_attack_selector0_table_5bae0");
+        label(0x05bb10L, "player_attack_selector_nonzero_table_5bb10");
+        label(0x05bd40L, "player_primary_piece_descriptors_5bd40");
+        label(0x05c466L, "player_secondary_piece_descriptors_5c466");
+        label(0x05da5eL, "player_aux_piece_table_5da5e");
+
         // Seed functions from vector table where vector values point into main ROM.
         Memory mem = currentProgram.getMemory();
         for (int i = 0; i < 0x100; i += 4) {
