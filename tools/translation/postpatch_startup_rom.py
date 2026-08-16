@@ -108,8 +108,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # Build 0281: +8 inline code-index D1->D7 
 # Build 0282 corrects three native collision source bases and retires the
 # eight-byte BACK_ENEMY representation compensation. Shift-table reflow changes
 # canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the 228 semantic
-# opcode-replacement sites are unchanged.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184680
+# opcode-replacement sites are unchanged. The direct-native 0x05A098 gameplay
+# status producer adds 0x1D0 wrapper bytes without adding a replacement site.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184850
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

@@ -45337,3 +45337,44 @@ Build produced: YES. Counter 273->274. ROM `dist/rastan-direct/rastan_direct_vid
 - Build 0281 and all prior numbered ROMs preserved. PC090OJ compatibility
   representation added: NO. No unrelated changes by Cody; pre-existing Ghidra and
   documentation worktree changes were preserved.
+
+### MAME Exit Summary (2026-08-16 11:11:57)
+- Final PC: 0x073530
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0283 Status Producer 0x05A098 Native Conversion]
+
+- Baseline: accepted Build 0282, SHA-256
+  `61b2b1268362f309c64939c1a6d226df5a4a26a95f95b560071701266d694316`;
+  counter 282.
+- Original-arcade proof corrected the prior classification: `arcade_pc 0x05A098`
+  is the gameplay player-energy/status producer called only from
+  `arcade_pc 0x051054`, not a frontend/shared producer. Its retained semantics
+  are indicator codes `0x03CA/0x03CB`, cap `0x03CC`, six full/partial/empty
+  energy cells, low-energy blink/lifecycle, and the original sound transitions.
+- The exact retired chip tail begins with `HW_ADDRESS 0x00D00048` at
+  `arcade_pc 0x05A0AE`. The replacement now emits at most eight semantic tuples
+  directly to the existing `native_queue_hud`; it no longer uses historical
+  virtual slots 30-43, `.Lpc090oj_emit_slot`, `pc090oj_object_ram`, scanner, or
+  decoder. Other PC090OJ compatibility families are unchanged.
+- Runtime validation: after first publication, all sampled frame-begin/finalizer
+  events retained `hud_count=8`; no stale/missing tuple was observed. Gameplay
+  frontend-scanner hits=0 and decoder hits=0. Controlled walking moved X 81->160;
+  jump/landing moved Y 112->76->112; standing and crouching attacks passed;
+  class `0x17/0x18` Lizardman logical Y remained 121 with visible bottom 129.
+- Build produced: YES, exactly Build 0283. ROM
+  `dist/rastan-direct/rastan_direct_video_test_build_0283.bin`, SHA-256
+  `d421e8c6f4067d5555d41175ce50401d08aefe2fb109e47e49fed29484ddcf90`,
+  1,591,376 bytes; counter 282->283; rolling artifact matches; `GATE_PASS` YES.
+  Mandatory MAME trace completed 1,798 frames with no unique unmapped-memory
+  address.
+- Production/spec/tool files changed: `apps/rastan-direct/src/pc090oj_hooks.s`,
+  `specs/rastan_direct_remap.json`, and mirrored canonical coverage constants in
+  `tools/translation/postpatch_startup_rom.py` and
+  `tools/translation/verify_canonical_rom.py`; generated build outputs updated by
+  the Makefile. Report:
+  `docs/design/Cody_status_sprite_5a098_native_conversion.md`.
+- Open/Closed Issues Impact: OPEN-024 advanced; no issue opened or closed.
+  KNOWN_FINDINGS and `specs/palette_decisions.json` unchanged. Build 0282 and all
+  numbered artifacts preserved; no unrelated production change by Cody.

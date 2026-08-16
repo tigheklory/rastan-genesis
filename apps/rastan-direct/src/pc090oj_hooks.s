@@ -379,7 +379,10 @@ genesistan_pc090oj_hook_target_45dfa:
  * finalizer later concatenates them into one Genesis SAT chain.  Legacy mirror
  * code remains physically present for frontend/non-gameplay comparison only. */
 native_sprite_frame_begin:
-    clr.w   native_hud_count
+    /* arcade 0x5A098 publishes the persistent gameplay energy/status lane
+     * before this frame boundary.  It owns refresh/retention of that lane;
+     * clearing it here would discard the native status output before the
+     * gameplay finalizer can consume it. */
     clr.w   native_front_effect_count
     clr.w   native_middle_count
     clr.w   native_back_enemy_count
@@ -1164,35 +1167,220 @@ genesistan_pc090oj_hook_zero_fill_56440:
     rts
 
 genesistan_pc090oj_hook_status_sprite_5a098:
-    /* Build 0268: restored.  Build 0267 stubbed this to rts, but its consumer
-     * state was never reached/validated, so per RULES.md rule 13 it may not be
-     * retired yet.  Original status producer retained until its semantic state
-     * is reached and a native owner is proven. */
+    /* Direct-native gameplay energy/status producer.  Preserve the original
+     * arcade semantic state machine and publish its eight ordered visible-piece
+     * positions directly into the native HUD lane.  The old PC090OJ destination
+     * (HW 0xD00048), eight-byte records, virtual records 30..43 and
+     * .Lpc090oj_emit_slot are not part of this path.  The queue is persistent:
+     * original 0x5100A can skip this producer, and the arcade records likewise
+     * retained their previous semantic output on those frames. */
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.w  #8, native_hud_count
 
-    move.w  10*2(%a5), %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
+    move.w  0x013A(%a5), %d0             /* current energy, high byte = units */
+    btst    #15, %d0
+    beq.s   .Lstatus_energy_valid
+    clr.w   0x013A(%a5)                   /* original invalid-energy recovery */
+.Lstatus_energy_valid:
+    move.w  #0x00E8, %d2                 /* semantic PC090OJ Y */
+    move.w  #0x0010, %d4                 /* first semantic X */
 
-    moveq   #30, %d0
-    move.w  #0x0010, %d4
-.Lhook_5a098_loop:
-    cmpi.w  #44, %d0
-    bhs.s   .Lhook_5a098_done
-    moveq   #0, %d1
-    move.w  #0x00E8, %d2
-    move.w  %d0, %d3
-    addi.w  #0x03CA, %d3
-    moveq   #0, %d5
-    moveq   #0, %d6
-    bsr     .Lpc090oj_emit_slot
+    /* Preserve the original animated leading status piece decision. */
+    move.w  0x013A(%a5), %d0
+    lsr.w   #8, %d0
+    lsr.w   #3, %d0
+    andi.w  #0x0007, %d0
+    ori.w   #0x0008, %d0
+    move.w  %d0, 0x12A6(%a5)
+    addi.w  #0x0010, 0x12A4(%a5)
+    move.w  0x12A4(%a5), %d1
+    move.w  0x12A6(%a5), %d5
+    move.w  0x1306(%a5), %d6
+    cmpi.w  #0x000C, %d5
+    ble.s   .Lstatus_selector_clamped
+    moveq   #0x0C, %d5
+.Lstatus_selector_clamped:
+    subq.w  #2, %d5
+    btst    #0, %d6
+    bne.s   .Lstatus_selector_odd
+    btst    %d5, %d1
+    bne.s   .Lstatus_indicator_done
+    bra.s   .Lstatus_indicator_update
+.Lstatus_selector_odd:
+    btst    %d5, %d1
+    beq.s   .Lstatus_indicator_done
+.Lstatus_indicator_update:
+    move.w  0x130A(%a5), %d7
+    addi.w  #0x0010, 0x130A(%a5)
+    moveq   #7, %d0
+    cmpi.w  #7, %d5
+    bge.s   .Lstatus_indicator_bit_ready
+    subq.w  #1, %d0
+.Lstatus_indicator_bit_ready:
+    move.w  #0x03CA, %d3
+    btst    %d0, %d7
+    beq.s   .Lstatus_indicator_code_ready
+    addq.w  #1, %d3
+.Lstatus_indicator_code_ready:
+    btst    %d0, %d7
+    bne.s   .Lstatus_indicator_counter_done
+    addq.w  #1, 0x1306(%a5)
+.Lstatus_indicator_counter_done:
+    moveq   #0, %d1                     /* original word0: no local flip/bank */
+    moveq   #0, %d0                     /* semantic output index 0 */
+    bsr     .Lstatus_store_piece
+.Lstatus_indicator_done:
     addi.w  #0x0010, %d4
-    addq.w  #1, %d0
-    bra.s   .Lhook_5a098_loop
 
-.Lhook_5a098_done:
+    /* 0x12FC==1 is the arcade refresh gate.  Otherwise retain the last native
+     * semantic bar, exactly as the original records remained untouched. */
+    cmpi.w  #1, 0x12FC(%a5)
+    bne     .Lstatus_low_energy_blink
+
+    moveq   #0, %d1
+    move.w  #0x03CC, %d3                 /* left cap */
+    moveq   #1, %d0
+    bsr     .Lstatus_store_piece
+    addi.w  #0x0010, %d4
+
+    move.w  0x013A(%a5), %d0
+    lsr.w   #8, %d0
+    cmpi.w  #0x0030, %d0
+    blo.s   .Lstatus_energy_clamped
+    move.w  #0x0030, %d0
+.Lstatus_energy_clamped:
+    move.w  %d0, %d1
+    andi.w  #0xFFF8, %d0
+    lsr.w   #3, %d0                     /* d0 = full cells (0..6) */
+    andi.w  #0x0007, %d1                /* d1 = partial-cell units */
+    move.w  %d0, %d5
+    moveq   #6, %d6                     /* six semantic energy cells */
+    moveq   #2, %d7                     /* first cell output index */
+    move.w  %d1, -(%sp)                 /* preserve partial units across emits */
+    move.w  #0x00FF, 0x1328(%a5)
+    tst.w   %d5
+    bne.s   .Lstatus_full_loop_test
+    move.w  #1, 0x1328(%a5)
+
+.Lstatus_full_loop_test:
+    tst.w   %d5
+    beq.s   .Lstatus_partial
+.Lstatus_full_loop:
+    move.w  #0x03CD, %d3
+    move.w  %d7, %d0
+    moveq   #0, %d1
+    bsr     .Lstatus_store_piece
+    addi.w  #0x0010, %d4
+    addq.w  #1, %d7
+    subq.w  #1, %d6
+    subq.w  #1, %d5
+    bne.s   .Lstatus_full_loop
+
+.Lstatus_partial:
+    move.w  (%sp)+, %d1
+    tst.w   %d1
+    beq.s   .Lstatus_no_partial
+    add.w   %d1, %d1
+    lea     .Lstatus_partial_codes, %a1
+    move.w  0(%a1,%d1.w), %d3
+    move.w  %d3, 0x132A(%a5)
+    move.w  %d7, %d0
+    moveq   #0, %d1
+    bsr     .Lstatus_store_piece
+    addi.w  #0x0010, %d4
+    addq.w  #1, %d7
+    subq.w  #1, %d6
+    bra.s   .Lstatus_empty_test
+.Lstatus_no_partial:
+    move.w  #0x03D5, 0x132A(%a5)
+
+.Lstatus_empty_test:
+    tst.w   %d6
+    beq.s   .Lstatus_low_energy_blink
+.Lstatus_empty_loop:
+    move.w  #0x03D5, %d3
+    move.w  %d7, %d0
+    moveq   #0, %d1
+    bsr     .Lstatus_store_piece
+    addi.w  #0x0010, %d4
+    addq.w  #1, %d7
+    subq.w  #1, %d6
+    bne.s   .Lstatus_empty_loop
+
+.Lstatus_low_energy_blink:
+    cmpi.w  #1, 0x1328(%a5)
+    bne.s   .Lstatus_update_lifecycle
+    move.w  0x1308(%a5), %d0
+    lsr.w   #1, %d0
+    btst    #0, %d0
+    beq.s   .Lstatus_blink_empty
+    move.w  0x132A(%a5), %d0
+    bra.s   .Lstatus_blink_store
+.Lstatus_blink_empty:
+    move.w  #0x03D5, %d0
+.Lstatus_blink_store:
+    lea     native_queue_hud, %a0
+    move.w  %d0, (2 * NATIVE_QUEUE_ENTRY_BYTES + 4)(%a0)
+
+.Lstatus_update_lifecycle:
+    /* Inline original helper 0x5A244: publish low/normal-energy transitions. */
+    cmpi.w  #1, 0x1328(%a5)
+    bne.s   .Lstatus_lifecycle_normal
+    cmpi.w  #0x00FF, 0x13CE(%a5)
+    beq.s   .Lstatus_lifecycle_low_steady
+    move.w  #1, 0x13D2(%a5)
+    bra.s   .Lstatus_lifecycle_low_commit
+.Lstatus_lifecycle_low_steady:
+    move.w  #0x0011, 0x13D2(%a5)
+.Lstatus_lifecycle_low_commit:
+    move.w  #1, 0x13CE(%a5)
+    bra.s   .Lstatus_sound
+.Lstatus_lifecycle_normal:
+    cmpi.w  #1, 0x13CE(%a5)
+    beq.s   .Lstatus_lifecycle_normal_steady
+    move.w  #0x00FF, 0x13D2(%a5)
+    bra.s   .Lstatus_lifecycle_normal_commit
+.Lstatus_lifecycle_normal_steady:
+    move.w  #0x00FE, 0x13D2(%a5)
+.Lstatus_lifecycle_normal_commit:
+    move.w  #0x00FF, 0x13CE(%a5)
+
+.Lstatus_sound:
+    cmpi.w  #0, 0x12F4(%a5)
+    bne.s   .Lstatus_sound_recovery
+    cmpi.w  #0x0011, 0x13D2(%a5)
+    bne.s   .Lstatus_sound_recovery
+    moveq   #6, %d0
+    jsr     (0x0003A2EC).l               /* address_map: arcade_pc 0x03A0EC */
+    bra.s   .Lstatus_done
+.Lstatus_sound_recovery:
+    cmpi.w  #0x00FE, 0x13D2(%a5)
+    bne.s   .Lstatus_done
+    move.w  #0x0029, %d0
+    jsr     (0x0003A316).l               /* address_map: arcade_pc 0x03A116 */
+
+.Lstatus_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
+
+/* d0=native semantic output index, d1=attr, d2=Y, d3=code, d4=X.  This is the
+ * final native queue shape consumed directly by .Lnq_emit_lane, not a PC090OJ
+ * record and not input to any compatibility scanner or decoder. */
+.Lstatus_store_piece:
+    movem.l %d0/%a0, -(%sp)
+    lsl.w   #3, %d0
+    lea     native_queue_hud, %a0
+    adda.w  %d0, %a0
+    move.w  %d1, (%a0)+
+    move.w  %d2, (%a0)+
+    move.w  %d3, (%a0)+
+    move.w  %d4, (%a0)+
+    movem.l (%sp)+, %d0/%a0
+    rts
+
+.Lstatus_partial_codes:
+    .word 0x03D5, 0x03D4, 0x03D3, 0x03D2
+    .word 0x03D1, 0x03D0, 0x03CF, 0x03CE
 
 genesistan_pc090oj_hook_audit_guard:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
