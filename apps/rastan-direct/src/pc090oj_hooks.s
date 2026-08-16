@@ -436,8 +436,9 @@ native_player_body_anchor_clear:
 
 /* d1=word0/attr nibble+flip bits, d2=PC090OJ Y word, d3=source artwork code,
  * d4=PC090OJ X word, native_sprite_lane selects queue.  Preserves all caller
- * registers.  Hidden/blank/code-zero pieces append nothing; BACK_ENEMY keeps the
- * proven KF-067 -8 Y bias at the semantic lane boundary. */
+ * registers.  Hidden/blank/code-zero pieces append nothing.  All lanes retain
+ * the producer's arcade-semantic Y; the shared visible-origin conversion is
+ * applied once when the final SAT entry is encoded. */
 native_sprite_emit:
     movem.l %d0-%d7/%a0-%a2, -(%sp)
     move.w  %d3, %d0
@@ -490,10 +491,6 @@ native_sprite_emit:
     move.w  #NATIVE_PLAYER_BODY_BOUND, %d5
     bra.s   .Lnse_store
 .Lnse_back_enemy:
-    move.w  %d2, %d0
-    subi.w  #8, %d0
-    andi.w  #0x01FF, %d0
-    move.w  %d0, %d2
     lea     native_queue_back_enemy, %a0
     lea     native_back_enemy_count, %a1
     move.w  #NATIVE_BACK_ENEMY_BOUND, %d5

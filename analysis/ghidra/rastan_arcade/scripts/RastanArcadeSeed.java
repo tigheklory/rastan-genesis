@@ -127,6 +127,28 @@ public class RastanArcadeSeed extends GhidraScript {
         fn(0x0540ccL, "player_body_constructor_540cc");
         fn(0x0547c0L, "player_aux_update_547c0");
         fn(0x054810L, "player_aux_sprite_constructor_54810");
+        fn(0x0446b0L, "actor_hurtbox_base_selector_446b0");
+        fn(0x0446bcL, "actor_hurtbox_selector_446bc");
+        fn(0x0449b4L, "player_actor_collision_scan_449b4");
+        fn(0x044c5aL, "player_attack_overlap_entry_44c5a");
+        fn(0x044cbaL, "signed_interval_overlap_44cba");
+        fn(0x054864L, "player_collision_boxes_update_54864");
+        fn(0x054982L, "player_attack_box_enable_update_54982");
+
+        // Actor/map grounding model. The 0x041xxx family is entered through
+        // actor dispatch rather than a direct reset-vector call, so default
+        // analysis previously left the decisive 8-pixel row scan unresolved.
+        fn(0x041064L, "actor_surface_marker_find_41064");
+        fn(0x04114aL, "actor_spawn_x_bound_select_4114a");
+        fn(0x041180L, "actor_spawn_ground_and_activate_41180");
+        fn(0x042e38L, "actor_velocity_and_map_collision_42e38");
+        fn(0x045d10L, "actor_map_collision_variant_45d10");
+        fn(0x04736aL, "actor_map_collision_variant_4736a");
+        fn(0x053a2eL, "collision_map_lookup_53a2e");
+        fn(0x053a6eL, "player_collision_probe_family_53a6e");
+        fn(0x053b34L, "player_ground_contact_probe_family_53b34");
+        fn(0x05a29cL, "collision_map_surface_postprocess_5a29c");
+        fn(0x05a2eeL, "collision_map_surface_mark_5a2ee");
 
         label(0x03a1acL, "frontend_state_dispatch_offsets_3a1ac");
         label(0x03a1ccL, "sprite_palette_control_writer_3a1cc");
@@ -144,6 +166,31 @@ public class RastanArcadeSeed extends GhidraScript {
         label(0x05bd40L, "player_primary_piece_descriptors_5bd40");
         label(0x05c466L, "player_secondary_piece_descriptors_5c466");
         label(0x05da5eL, "player_aux_piece_table_5da5e");
+        label(0x044778L, "actor_hurtbox_base_selector_table_44778");
+        label(0x044ce0L, "actor_hurtbox_extent_table_44ce0");
+        label(0x044fa8L, "actor_hurtbox_alt_extent_table_44fa8");
+        label(0x05c90eL, "player_body_collision_extent_table_5c90e");
+        label(0x05c9eaL, "stage1_player_attack_extent_table_5c9ea");
+        label(0x05cac6L, "stage2_player_attack_extent_table_5cac6");
+        label(0x05cba2L, "stage3_player_attack_extent_table_5cba2");
+        label(0x05cc7eL, "stage4_player_attack_extent_table_5cc7e");
+
+        // Player collision fields are A5-relative in arcade WRAM. The labels
+        // document the producer/consumer contract without imposing a C struct.
+        label(0x10d0e8L, "player_broad_action_A5_10e8");
+        label(0x10d108L, "player_attack_active_A5_1108");
+        label(0x10d10aL, "player_attack_phase_A5_110a");
+        label(0x10d114L, "player_facing_A5_1114");
+        label(0x10d116L, "player_attack_variant_A5_1116");
+        label(0x10d244L, "player_body_frame_selector_A5_1244");
+        label(0x10d248L, "player_body_collision_extents_A5_1248");
+        label(0x10d254L, "player_attack_collision_extents_A5_1254");
+        label(0x10d2a8L, "player_body_contact_records_A5_12a8");
+        label(0x10d2c8L, "player_attack_hit_records_A5_12c8");
+        label(0x10d2f8L, "player_attack_box_enabled_A5_12f8");
+        label(0x10d2faL, "player_stage_scene_A5_12fa");
+        label(0x10de00L, "collision_map_64x64_words_base");
+        label(0x10fe00L, "collision_map_64x64_words_end");
 
         // Seed functions from vector table where vector values point into main ROM.
         Memory mem = currentProgram.getMemory();

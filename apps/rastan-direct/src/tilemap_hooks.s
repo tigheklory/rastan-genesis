@@ -285,7 +285,7 @@ genesistan_hook_tilemap_plane_a_selector0_native:
 
     cmpi.w  #0x00FF, 32(%a0)
     beq.s   .Lplane_a_sel0_collision_alt
-    move.w  20(%a0,%d0.w), %d2
+    move.w  0x20(%a0,%d0.w), %d2
     bra.s   .Lplane_a_sel0_collision_ready
 .Lplane_a_sel0_collision_alt:
     move.w  34(%a0), %d2
@@ -405,7 +405,7 @@ genesistan_hook_tilemap_plane_a_selector12_native:
 
     cmpi.w  #0x00FF, 32(%a0)
     beq.s   .Lplane_a_sel12_collision_alt
-    move.w  20(%a0,%d0.w), %d2
+    move.w  0x20(%a0,%d0.w), %d2
     bra.s   .Lplane_a_sel12_collision_ready
 .Lplane_a_sel12_collision_alt:
     move.w  34(%a0), %d2
@@ -1041,7 +1041,7 @@ genesistan_hook_tilemap_plane_a:
  * 0x559B2 writes collision from the rebuilt descriptor/table data before
  * writing the visible tile:
  *   if *(block+32) == 0x00FF: word = *(block+34)
- *   else: word = *(block+20 + row*8 + strip*2)
+ *   else: word = *(block+0x20 + row*8 + strip*2)
  *   dest = 0x10DE00 + ((a0 - 0xC08000) >> 1)
  * This helper mirrors only that collision half into mapped Genesis WRAM
  * 0x00FF1E00. It does not stage BG/FG tiles and does not advance a5@0x10A0;
@@ -1094,7 +1094,7 @@ genesistan_stage_bg_collision_column:
     move.w  %d7, %d1
     add.w   %d1, %d1
     add.w   %d1, %d0
-    move.w  20(%a2,%d0.w), %d2
+    move.w  0x20(%a2,%d0.w), %d2
     bra.s   .Lbgc_collision_have
 
 .Lbgc_collision_alt:

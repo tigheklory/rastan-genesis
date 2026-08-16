@@ -105,7 +105,11 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # Build 0281: +8 inline code-index D1->D7 
 # semantics, so canonical source/helper coverage remains unchanged.
 # Build 0278 preserves the original BODY mode-7 clear-tail result D2=0. The
 # two emitted bytes do not change covered semantics.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1848E0
+# Build 0282 corrects three native collision source bases and retires the
+# eight-byte BACK_ENEMY representation compensation. Shift-table reflow changes
+# canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the 228 semantic
+# opcode-replacement sites are unchanged.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184680
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

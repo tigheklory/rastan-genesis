@@ -45297,3 +45297,43 @@ Build produced: YES. Counter 273->274. ROM `dist/rastan-direct/rastan_direct_vid
 - Final PC: 0x073684
 - Stack Pointer (SP): 0x00FEFF6A
 - Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-14 23:09:07)
+- Final PC: 0x073362
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation, Build 0282 Collision-Map Grounding / Enemy Position]
+
+- Baseline: accepted Build 0281, SHA-256
+  `8f4997566386f30c0c3dd37f922762d7f6b0677f8bbd9c4a8995046dfb9ab790`;
+  counter 281.
+- Automated original-arcade and Build 0281 last-writer traces prove the first
+  divergence at the native collision source field: GNU `20(base,index)` encoded
+  decimal `0x14`, while the original producer's indexed source instruction at
+  `arcade_pc 0x0559CE` uses displacement `0x20`.
+  At matched column 39 this moved `0x3A00` from semantic row 38 to row 39.
+- Corrected all three live normal-field readers to `0x20(...)`; retained collision
+  lookup/grounding, actor-Y, hurtbox, and sword extents are unchanged. Retired the
+  unproven global BACK_ENEMY `-8`; complete caller audit confirms producer-semantic Y
+  already feeds every BACK actor and shared SAT origin conversion remains once.
+- Candidate validation: row38=`0x3A00`, row39=`0x0000`, class `0x17/0x18` candidate
+  128 accepts row 38, actor logical Y 121, hurtbox Y 101..137, native visible bottom
+  129. Controlled standing and crouching sword checks both have X/Y overlap.
+  Controlled walking and jump/landing return stably to ground Y `0x70`; no state
+  seeding or user gameplay was used. No airborne BACK actor appeared automatically;
+  bats are FRONT_EFFECT, while the complete static BACK contract passes.
+- Build produced: YES, exactly Build 0282. ROM
+  `dist/rastan-direct/rastan_direct_video_test_build_0282.bin`, SHA-256
+  `61b2b1268362f309c64939c1a6d226df5a4a26a95f95b560071701266d694316`,
+  1,590,912 bytes; counter 281->282; rolling artifact matches; `GATE_PASS` YES.
+  Mandatory 30-second MAME smoke completed with no unique unmapped-memory address.
+- Production files changed: `apps/rastan-direct/src/tilemap_hooks.s`,
+  `apps/rastan-direct/src/pc090oj_hooks.s`; mirrored canonical coverage constants in
+  `tools/translation/postpatch_startup_rom.py` and
+  `tools/translation/verify_canonical_rom.py`. Durable trace tool:
+  `tools/mame/scripts/collision_grounding_trace.lua`.
+- Report: `docs/design/Cody_collision_map_grounding_implementation.md`.
+- Build 0281 and all prior numbered ROMs preserved. PC090OJ compatibility
+  representation added: NO. No unrelated changes by Cody; pre-existing Ghidra and
+  documentation worktree changes were preserved.

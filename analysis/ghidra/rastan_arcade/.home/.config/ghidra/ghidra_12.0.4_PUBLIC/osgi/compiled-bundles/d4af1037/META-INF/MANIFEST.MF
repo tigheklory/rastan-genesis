@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Created-By: 21.0.10 (Eclipse Adoptium)
 Tool: Bnd-7.0.0.202310060912
-Bnd-LastModified: 1784488481557
+Bnd-LastModified: 1786750245325
 Import-Package: ghidra.app.decompiler,ghidra.app.script,ghidra.program.m
  odel.address,ghidra.program.model.listing,ghidra.program.model.mem,ghid
  ra.program.model.scalar,ghidra.program.model.symbol,ghidra.util.task,ja
