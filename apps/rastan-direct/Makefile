@@ -42,6 +42,7 @@ PC090OJ_MIRROR_RECORDS ?= 256
 # mode 0 so the bank-0x36 carrier path remains active.
 RASTAN_GAMEPLAY_HUD_SPRITES ?= 0
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
+CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
 
 MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
 PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
@@ -104,8 +105,17 @@ $(OUT_DIR) $(DIST_DIR):
 $(OUT_DIR)/boot.o: $(SRC_DIR)/boot/boot.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s $(PC090OJ_CONFIG_INC) $(CRASH_BUILD_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
+
+# Generate the crash-screen build number from the SAME counter the numbering
+# stage uses (next = last-consumed + 1), so the on-screen BUILD matches the
+# numbered ROM. Minimal Phase-2 support required by the transplanted handler.
+$(CRASH_BUILD_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
+	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
+	tag=$$(printf "%04d" "$$((n + 1))"); \
+	printf '/* GENERATED build number by apps/rastan-direct/Makefile -- do not hand-edit. */\ncrash_build_number_str: .asciz "%s"\n' "$$tag" > $@; \
+	echo "crash build number -> $$tag ($@)"
 
 $(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<

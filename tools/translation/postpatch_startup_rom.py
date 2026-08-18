@@ -36,7 +36,7 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 # hardware destinations to pc090oj_object_ram + the same record offsets.
 # Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
 # source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
-CANONICAL_OPCODE_REPLACE_COUNT = 228  # Build 0281: +8 inline code-index D1->D7 (sword RIGHT-facing flipX preservation)
+CANONICAL_OPCODE_REPLACE_COUNT = 228  # + GAME OVER producer 0x5A502 retirement (byte-neutral clr.l d0 -> rts); items 0x56114/5607C/56440 hook bodies converted (no new opcode_replace).
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -107,10 +107,10 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # Build 0281: +8 inline code-index D1->D7 
 # two emitted bytes do not change covered semantics.
 # Build 0282 corrects three native collision source bases and retires the
 # eight-byte BACK_ENEMY representation compensation. Shift-table reflow changes
-# canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the 228 semantic
+# canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the semantic
 # opcode-replacement sites are unchanged. The direct-native 0x05A098 gameplay
 # status producer adds 0x1D0 wrapper bytes without adding a replacement site.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184850
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x185EB8  # Phase2: screenshot-first handler (bk_crash_handler.s) transplanted into the high .crash section; ROM end grows, low/arcade/genesis-only layout unchanged.
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
@@ -1488,8 +1488,9 @@ def main() -> int:
 
     # Apply variable-length opcode replacements before any other patching.
     # Pass A behavior for entries with relocate_after_shift=true:
-    # write replacement_template + zero operand placeholder, then defer operand
-    # materialization to Pass B after the final shift table is known.
+    # write replacement_template + zero operand placeholder + optional suffix,
+    # then defer operand materialization to Pass B after the final shift table
+    # is known.
     shift_deltas: list[tuple[int, int]] = []
     deferred_operand_entries: list[dict[str, object]] = []
     if spec.get("shift_replacements"):
@@ -1509,6 +1510,10 @@ def main() -> int:
                     str(_rep["replacement_template"]),
                     symbol_addresses,
                 )
+                _suffix_hex = resolve_replacement_hex(
+                    str(_rep.get("replacement_suffix", "")),
+                    symbol_addresses,
+                )
                 _operand_kind = str(_rep.get("operand_kind", ""))
                 _operand_width = int(_rep.get("operand_width", 0))
                 _operand_arcade_target = parse_hexish(_rep["operand_arcade_target"])
@@ -1522,7 +1527,9 @@ def main() -> int:
                         f"shift_replacement at 0x{_pc:06X}: "
                         f"unsupported deferred operand_width={_operand_width}"
                     )
-                _resolved_rep["replacement_bytes"] = _template_hex + ("00" * _operand_width)
+                _resolved_rep["replacement_bytes"] = (
+                    _template_hex + ("00" * _operand_width) + _suffix_hex
+                )
                 deferred_operand_entries.append(
                     {
                         "arcade_pc": _pc,
@@ -1530,7 +1537,8 @@ def main() -> int:
                         "operand_width": _operand_width,
                         "operand_kind": _operand_kind,
                         "replacement_template": _template_hex,
-                        "opcode_size": len(bytes.fromhex(_template_hex)),
+                        "replacement_suffix": _suffix_hex,
+                        "operand_offset": len(bytes.fromhex(_template_hex)),
                     }
                 )
             else:
@@ -2149,13 +2157,16 @@ def main() -> int:
         arcade_pc = int(deferred["arcade_pc"])
         operand_arcade_target = int(deferred["operand_arcade_target"])
         operand_width = int(deferred["operand_width"])
-        opcode_size = int(deferred["opcode_size"])
+        operand_offset = int(deferred["operand_offset"])
         replacement_template = bytes.fromhex(str(deferred["replacement_template"]))
+        replacement_suffix = bytes.fromhex(str(deferred["replacement_suffix"]))
         shift_before_target = accumulated_shift_before(operand_arcade_target, shift_deltas)
         final_operand = operand_arcade_target + relocation_delta + shift_before_target
         genesis_callsite = arcade_pc + relocation_delta + accumulated_shift_before(arcade_pc, shift_deltas)
 
-        template_actual = bytes(rom_bytes[genesis_callsite:genesis_callsite + opcode_size])
+        template_actual = bytes(
+            rom_bytes[genesis_callsite:genesis_callsite + operand_offset]
+        )
         if template_actual != replacement_template:
             raise RuntimeError(
                 f"relocate_after_shift at 0x{arcade_pc:06X}: "
@@ -2170,11 +2181,29 @@ def main() -> int:
                 f"final operand 0x{final_operand:X} exceeds width={operand_width}"
             )
 
-        operand_rom_pc = genesis_callsite + opcode_size
+        operand_rom_pc = genesis_callsite + operand_offset
+        suffix_rom_pc = operand_rom_pc + operand_width
+        suffix_actual = bytes(
+            rom_bytes[suffix_rom_pc:suffix_rom_pc + len(replacement_suffix)]
+        )
+        if suffix_actual != replacement_suffix:
+            raise RuntimeError(
+                f"relocate_after_shift at 0x{arcade_pc:06X}: "
+                f"suffix mismatch at ROM 0x{suffix_rom_pc:06X}; "
+                f"expected {replacement_suffix.hex()} got {suffix_actual.hex()}"
+            )
         rom_bytes[operand_rom_pc:operand_rom_pc + operand_width] = final_operand.to_bytes(operand_width, "big")
+        replacement_size = operand_offset + operand_width + len(replacement_suffix)
         rom_bytes_written = bytes(
-            rom_bytes[genesis_callsite:genesis_callsite + opcode_size + operand_width]
+            rom_bytes[genesis_callsite:genesis_callsite + replacement_size]
         ).hex().upper()
+        for segment in segments:
+            if (
+                segment.get("origin") == "shift_replacement"
+                and parse_hexish(segment.get("arcade_start", "0")) == arcade_pc
+            ):
+                segment["replacement_bytes"] = rom_bytes_written.lower()
+                break
         entry_log = {
             "kind": "relocate_after_shift_operand",
             "arcade_pc": f"0x{arcade_pc:06X}",

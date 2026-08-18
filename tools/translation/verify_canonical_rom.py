@@ -49,7 +49,7 @@ FAIL_STATE_CORRUPTED = "GATE_FAIL_STATE_CORRUPTED"
 # hardware destinations to pc090oj_object_ram + the same record offsets.
 # Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
 # source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
-CANONICAL_OPCODE_REPLACE_COUNT = 228  # Build 0281: +8 inline code-index D1->D7 (sword RIGHT-facing flipX preservation)
+CANONICAL_OPCODE_REPLACE_COUNT = 228  # + GAME OVER producer 0x5A502 retirement (byte-neutral clr.l d0 -> rts); items 0x56114/5607C/56440 hook bodies converted (no new opcode_replace).
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -121,10 +121,10 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # Build 0281: +8 inline code-index D1->D7 
 # grows emitted Genesis code by two bytes without changing covered semantics.
 # Build 0282 corrects three native collision source bases and retires the
 # eight-byte BACK_ENEMY representation compensation. Shift-table reflow changes
-# canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the 228 semantic
+# canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the semantic
 # opcode-replacement sites are unchanged. The direct-native 0x05A098 gameplay
 # status producer adds 0x1D0 wrapper bytes without adding a replacement site.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x184850
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x185EB8  # Phase2: screenshot-first handler (bk_crash_handler.s) transplanted into the high .crash section; ROM end grows, low/arcade/genesis-only layout unchanged.
 
 # Build 0277: arcade_pc 0x051DF8 is a BRA.S to the semantic entry at
 # arcade_pc 0x051E00.  The target is also the start of a shrinking shift

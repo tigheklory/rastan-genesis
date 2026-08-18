@@ -20,7 +20,7 @@
     .global genesistan_pc090oj_hook_init_priority_3ad84
     .global genesistan_pc090oj_hook_score_digit_3b802
     .global genesistan_pc090oj_hook_slot_init_54052
-    .global genesistan_pc090oj_hook_sprite_update_54810
+    .global genesistan_pc090oj_hook_player_aux_native_54810
     .global genesistan_pc090oj_hook_sprite_decay_5607c
     .global genesistan_pc090oj_hook_copy_56114
     .global genesistan_pc090oj_hook_zero_fill_56440
@@ -292,15 +292,13 @@
 genesistan_pc090oj_hook_target_3b902:
     rts
 
+/* RETIRED (setup/priority PC090OJ family).  This helper only PARKED/cleared
+ * object-RAM records 5..13.  The producers that formerly populated that HUD
+ * band (arcade builders 0x3B8B0 / 0x3B902, generic copier 0x3B930) are retired;
+ * verified no live producer writes records 5..13 with content, so the clear
+ * services nothing (records stay boot-blank).  Retired to a no-op (preserves
+ * all registers). */
 genesistan_pc090oj_hook_target_3b926:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    moveq   #5, %d0
-.Lhook_3b926_loop:
-    bsr     .Lpc090oj_clear_slot
-    addq.w  #1, %d0
-    cmpi.w  #14, %d0
-    blo.s   .Lhook_3b926_loop
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 genesistan_pc090oj_hook_target_3b930:
@@ -824,21 +822,12 @@ native_stage_dispatch_45dfa:
 
 
 
+/* RETIRED (setup/priority PC090OJ family).  This helper only PARKED/cleared
+ * object-RAM records 9..16 (its retired PLAYER_FRONT a5+0x170 tuple rebuild was
+ * already absent; PLAYER_FRONT is main-loop native staging).  Verified no live
+ * producer writes records 9..16 with content, so the clear services nothing
+ * (records stay boot-blank).  Retired to a no-op (preserves all registers). */
 genesistan_pc090oj_hook_target_59f5e:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-
-    moveq   #HOOK_59F5E_CLEAR_FIRST_RECORD, %d0
-.Lhook_59f5e_clear_slots:
-    bsr     .Lpc090oj_clear_slot
-    addq.w  #1, %d0
-    cmpi.w  #(HOOK_59F5E_CLEAR_FIRST_RECORD + HOOK_59F5E_CLEAR_RECORD_COUNT), %d0
-    blo.s   .Lhook_59f5e_clear_slots
-
-    /* PLAYER_FRONT is now main-loop native staging.  Keep this helper's
-     * unrelated compatibility-record clear, but do not rebuild its retired
-     * PC090OJ-shaped a5+0x0170 tuple block. */
-
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 /* PC090OJ ctrl register (word offset 0x0DFF / HW 0x00D01BFE).
@@ -966,28 +955,14 @@ genesistan_hook_3ad44_dispatch:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
+/* RETIRED (setup/priority PC090OJ family).  This helper only initialized
+ * object-RAM records 76..79 with code=0 (blank / not-drawable) at off-screen
+ * X=0x160: zero visible semantic output.  The former priority/flip "ladder"
+ * intent is already owned by the native lane ORDER (gameplay emits lanes in
+ * priority order); no ordering is lost.  Verified no producer writes records
+ * 76..79 with nonzero code, so they stay boot-blank without this emit.  Retired
+ * to a no-op (preserves all registers). */
 genesistan_pc090oj_hook_init_priority_3ad84:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-
-    move.w  10*2(%a5), %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-
-    moveq   #76, %d0
-    moveq   #0, %d1
-    move.w  #0x00C8, %d2
-    moveq   #0, %d3
-    move.w  #0x0160, %d4
-    moveq   #0, %d5
-    moveq   #0x0002, %d6            /* priority-ladder gate bit */
-.Lhook_3ad84_loop:
-    bsr     .Lpc090oj_emit_slot
-    addi.w  #0x0010, %d2
-    addq.w  #1, %d0
-    cmpi.w  #80, %d0
-    blo.s   .Lhook_3ad84_loop
-
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 genesistan_pc090oj_hook_score_digit_3b802:
@@ -1000,47 +975,25 @@ genesistan_pc090oj_hook_score_digit_3b802:
      * owner (consumer coverage matrix in the build report). */
     rts
 
+/* RETIRED (setup/priority PC090OJ family).  This helper only initialized
+ * object-RAM records 72..75 with code=0 (blank / not-drawable): zero visible
+ * semantic output, and PLAYER_BODY is main-loop native staging.  Verified no
+ * producer writes records 72..75 with nonzero code, so the records stay
+ * boot-blank without this emit.  Retired to a no-op (preserves all registers).
+ * See docs/design/Andy_5a502_ownership_setup_priority_native_conversion.md. */
 genesistan_pc090oj_hook_slot_init_54052:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-
-    /* PLAYER_BODY is now main-loop native staging.  The three former tuple
-     * initialization loops at 0x10D1B2/0x10D1D2/0x10D1F2 have no remaining
-     * consumer.  Preserve only this helper's unrelated records 72..75 init. */
-
-    move.w  10*2(%a5), %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-
-    moveq   #72, %d0
-.Lhook_54052_emit:
-    move.w  #0x0003, %d1
-    move.w  #0x0000, %d2
-    move.w  #0x0000, %d3
-    move.w  #0x0000, %d4
-    moveq   #0, %d5
-    moveq   #0, %d6
-    bsr     .Lpc090oj_emit_slot
-    addq.w  #1, %d0
-    cmpi.w  #76, %d0
-    blo.s   .Lhook_54052_emit
-
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-genesistan_pc090oj_hook_sprite_update_54810:
+/* arcade_pc 0x054810: final native realization of the player-attached
+ * damage/impact auxiliary selected by the retained 0x0547C0 state machine.
+ * a0 points at the selected four-piece source frame.  Historical PC090OJ
+ * records 44..47 and their hardware-slot identity are deliberately absent. */
+genesistan_pc090oj_hook_player_aux_native_54810:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 
-    move.w  10*2(%a5), %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-
-    movea.l #ARCADE_ROM_BASE+0x0005DA5E, %a0
-    mulu.w  #24, %d0
-    adda.w  %d0, %a0
-
-    moveq   #44, %d0
-    moveq   #4, %d6
-.Lhook_54810_loop:
+    move.w  #NATIVE_LANE_FRONT_EFFECT, native_sprite_lane
+    moveq   #4, %d7
+.Lplayer_aux_native_loop:
     move.w  4(%a0), %d1
 
     moveq   #0, %d2
@@ -1058,23 +1011,24 @@ genesistan_pc090oj_hook_sprite_update_54810:
     add.w   0x129A(%a5), %d4
     andi.w  #0x01FF, %d4
 
-    moveq   #0, %d5
-    move.w  %d6, -(%sp)              /* save loop counter */
-    moveq   #0, %d6
-    bsr     .Lpc090oj_emit_slot
-    move.w  (%sp)+, %d6              /* restore loop counter */
+    bsr     native_sprite_emit
 
     adda.w  #6, %a0
-    addq.w  #1, %d0
-    subq.w  #1, %d6
-    bne.s   .Lhook_54810_loop
+    subq.w  #1, %d7
+    bne.s   .Lplayer_aux_native_loop
 
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
+/* Frontend-direct conversion of the transient item decay.  The arcade routine
+ * (throttled to every 4th frame via a5@0x1392&3) uniformly decremented every
+ * item record's Y by 1 and blanked a record once its Y reached 16 -- i.e. the
+ * whole set scrolls up and each item vanishes at Y<=16.  Since the decrement is
+ * uniform, that per-record mutation is exactly one accumulated scroll offset,
+ * which .Lnq_transient_items_emit applies (Y' = Y - scroll; drop at Y'<=16).
+ * The two arcade side-effect clears (a5@0x10AE / a5@0x10B0) are preserved
+ * verbatim.  No object-RAM / staged-descriptor mutation. */
 genesistan_pc090oj_hook_sprite_decay_5607c:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-
     move.w  0x1392(%a5), %d0
     andi.w  #0x0003, %d0
     bne.s   .Lhook_5607c_done
@@ -1082,88 +1036,45 @@ genesistan_pc090oj_hook_sprite_decay_5607c:
     clr.w   0x10AE(%a5)
     clr.w   0x10B0(%a5)
 
-    moveq   #56, %d0
-.Lhook_5607c_loop:
-    cmpi.w  #64, %d0
-    bhs.s   .Lhook_5607c_done
+    /* Restore the item-page TEXT-plane vertical scroll that the Build0286
+     * conversion dropped.  Arcade 0x5607C decremented the 9-bit counter
+     * a5@0x10EE and called 0x55AB4; that routine (rewritten by the spec) writes
+     * a5@0x10EE -> staged_scroll_y_bg, i.e. the BG (Plane B) text-plane VSRAM
+     * scroll that vdp_commit_scroll commits every VBlank.  Without it the item
+     * description text stayed static while the sprites scrolled.  This advances
+     * at the same 1-unit-per-decay cadence as transient_items_scroll below, so
+     * text and sprites move together exactly as in the arcade. */
+    move.w  0x10EE(%a5), %d1
+    subq.w  #1, %d1
+    andi.w  #0x01FF, %d1
+    move.w  %d1, 0x10EE(%a5)
+    jsr     (0x00055CB4).l          /* arcade_pc 0x055AB4 (+0x200 blind; postpatch relocates shift-aware to staged_scroll writer) */
 
-    move.w  %d0, %d1
-    mulu.w  #12, %d1
-    lea     staged_sprite_descriptor_table, %a0
-    adda.l  %d1, %a0
-
-    btst    #0, (%a0)
-    beq.s   .Lhook_5607c_next
-
-    move.w  2(%a0), %d2
-    subq.w  #1, %d2
-    andi.w  #0x01FF, %d2
-    move.w  %d2, 2(%a0)
-
-    move.w  6(%a0), %d1
-    move.w  8(%a0), %d3
-    move.w  4(%a0), %d4
-    cmpi.w  #0x0010, %d2
-    bne.s   .Lhook_5607c_keep_tile
-    clr.w   %d3
-    move.w  %d3, 8(%a0)
-.Lhook_5607c_keep_tile:
-    moveq   #0, %d5
-    moveq   #0, %d6
-    move.w  10*2(%a5), %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-    bsr     .Lpc090oj_emit_slot
-
-.Lhook_5607c_next:
-    addq.w  #1, %d0
-    bra.s   .Lhook_5607c_loop
+    tst.w   transient_items_active
+    beq.s   .Lhook_5607c_done
+    addq.w  #1, transient_items_scroll
 
 .Lhook_5607c_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
+/* Frontend-direct conversion (was: copy the ROM tuple stream into PC090OJ
+ * object RAM).  The arcade caller passes a0 = the selected ROM tuple stream
+ * (0x56226 = 17 treasure/item tuples, or 0x562B0 = 3), already resolved to its
+ * runtime address by the shift-aware relocation of the caller's movea.l.  We
+ * latch that live pointer, mark the family active, and reset the scroll; the
+ * frontend emitter (.Lnq_transient_items_emit) walks the stream directly into
+ * the native SAT.  No object-RAM write, no slot ownership. */
 genesistan_pc090oj_hook_copy_56114:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-
-    move.w  10*2(%a5), %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-
-    moveq   #64, %d0
-.Lhook_56114_loop:
-    cmpi.w  #68, %d0
-    bhs.s   .Lhook_56114_done
-    move.w  (%a0), %d1
-    cmpi.w  #-1, %d1
-    beq.s   .Lhook_56114_done
-    move.w  2(%a0), %d2
-    move.w  4(%a0), %d3
-    move.w  6(%a0), %d4
-    moveq   #0, %d5
-    moveq   #0, %d6
-    bsr     .Lpc090oj_emit_slot
-    adda.w  #8, %a0
-    addq.w  #1, %d0
-    bra.s   .Lhook_56114_loop
-
-.Lhook_56114_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    move.l  %a0, transient_items_source_ptr
+    move.w  #1, transient_items_active
+    clr.w   transient_items_scroll
     rts
 
+/* Frontend-direct retirement (was: park the item object-RAM records).  The
+ * arcade clear is the semantic end-of-life for the transient item family, so we
+ * retire the native semantic state; the emitter then contributes no pieces. */
 genesistan_pc090oj_hook_zero_fill_56440:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-
-    moveq   #68, %d0
-.Lhook_56440_loop:
-    cmpi.w  #72, %d0
-    bhs.s   .Lhook_56440_done
-    bsr     .Lpc090oj_clear_slot
-    addq.w  #1, %d0
-    bra.s   .Lhook_56440_loop
-
-.Lhook_56440_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    clr.w   transient_items_active
     rts
 
 genesistan_pc090oj_hook_status_sprite_5a098:
@@ -1634,6 +1545,100 @@ pc090oj_native_emit_pass:
 .Ltl_done:
     rts
 
+/* Frontend-direct transient treasure/item emitter.  Replaces the former
+ * object-RAM tuple representation for arcade 0x56114/0x5607C/0x56440.  When the
+ * family is active, walk the latched ROM tuple stream ({word0/attr, Y, code, X},
+ * 0xFFFF-terminated on word0) and emit each piece straight to the native SAT via
+ * the shared .Lnq_emit_entry (identical coordinate/flip/viewport transform as the
+ * retired object-RAM scanner).  The uniform scroll-up is applied as Y' = Y -
+ * scroll, and an item is dropped once Y' <= 16 -- exactly the arcade decay's
+ * per-record blank-at-16.  Off-screen (not-yet-scrolled-in) pieces are clipped by
+ * .Lnq_emit_entry's viewport test and consume no SAT slot. */
+.Lnq_transient_items_emit:
+    tst.w   transient_items_active
+    beq     .Lti_done
+    move.l  transient_items_source_ptr, %a5
+    move.l  %a5, %d0                 /* CPU-legality fix: `tst.l %a5` (0x4A8D) is a 68020+
+                                       * instruction, illegal on the Genesis 68000 (item-page
+                                       * crash @ GEN PC 0x073212).  move.l An,Dn (0x200D) is the
+                                       * byte-neutral legal equivalent: same Z=(a5==0) for the
+                                       * beq below.  D0 is dead here (proven: sole caller reloads
+                                       * d0 after this call, and the loop's .Lnq_emit_entry
+                                       * already clobbers d0). */
+    beq     .Lti_done
+.Lti_loop:
+    move.w  (%a5), %d1               /* word0 = attr, or 0xFFFF terminator */
+    cmpi.w  #0xFFFF, %d1
+    beq.s   .Lti_done
+    move.w  2(%a5), %d2              /* Y */
+    sub.w   transient_items_scroll, %d2
+    cmpi.w  #16, %d2                 /* scrolled past 16 => blanked (retired) */
+    ble.s   .Lti_next
+    move.w  4(%a5), %d3              /* code */
+    move.w  6(%a5), %d4              /* X */
+    bsr     .Lnq_emit_entry
+.Lti_next:
+    addq.l  #8, %a5
+    bra.s   .Lti_loop
+.Lti_done:
+    rts
+
+/* Direct-native replacement of the retired arcade producer 0x5A502 (the
+ * no-human attract/demo eight-glyph GAME OVER row -- NOT the human terminal
+ * GAME OVER screen, which is a separate 0x03A420 (2,4,5/6) path).  Invoked from
+ * the GAMEPLAY native finalizer under the exact original semantic ownership of
+ * the 0x05104E caller (Cody_frontend_gameover_highscore_semantic_model.md): the
+ * game-flow state tuple must be active no-human attract gameplay, and the
+ * gameplay blink phase must be visible.  This corrects the Build0286 defect
+ * where the broad .Lnq_frontend_object_scan ownership let the row appear on the
+ * HIGH SCORE TABLE (which also has a5+0x34==0 and can observe bit5 clear).
+ * a5 = 0xFF0000; the check reads absolute WRAM (a5 is reused below as the label
+ * walker, so it is saved/restored).  Records nothing to object RAM; no Y=0x180
+ * park (hidden => emit nothing). */
+.Lnq_gameover_emit:
+    cmpi.w  #2, 0x00FF0000           /* a5+0x00: gameplay/session umbrella */
+    bne     .Lgo_ret
+    cmpi.w  #3, 0x00FF0002           /* a5+0x02: active/attract-demo gameplay */
+    bne     .Lgo_ret
+    move.w  0x00FF0004, %d0          /* a5+0x04: nested state 0 or 1 */
+    cmpi.w  #1, %d0
+    bhi     .Lgo_ret
+    tst.w   0x00FF0034               /* a5+0x34: 0 = no-human/attract session */
+    bne     .Lgo_ret
+    move.w  0x00FF0200, %d0          /* a5+0x200: gameplay frame/phase tick */
+    btst    #5, %d0
+    bne     .Lgo_ret                 /* bit5 set => hidden phase */
+    move.l  %a5, -(%sp)
+    lea     .Lnq_gameover_labels, %a5
+.Lgo_loop:
+    move.w  (%a5), %d4               /* X, or 0xFFFF terminator */
+    cmpi.w  #0xFFFF, %d4
+    beq.s   .Lgo_pop
+    move.w  2(%a5), %d3              /* glyph code */
+    move.w  #0x0070, %d2             /* Y = visible */
+    moveq   #0, %d1                  /* attr = palette line 0 */
+    bsr     .Lnq_emit_entry
+    addq.l  #4, %a5
+    bra.s   .Lgo_loop
+.Lgo_pop:
+    move.l  (%sp)+, %a5
+.Lgo_ret:
+    rts
+
+/* GAME OVER fixed glyph layout: {X, code}.  Codes 0x37,0x38,0x3F,0x40..0x44 =
+ * G,A,M,E,O,V,E,R; X 0x60..0x90 then a +0x20 gap then 0xB0..0xE0 -- the exact
+ * positions the arcade producer packed into records 83..90. */
+.Lnq_gameover_labels:
+    .word 0x0060, 0x0037            /* G */
+    .word 0x0070, 0x0038            /* A */
+    .word 0x0080, 0x003F            /* M */
+    .word 0x0090, 0x0040            /* E */
+    .word 0x00B0, 0x0041            /* O */
+    .word 0x00C0, 0x0042            /* V */
+    .word 0x00D0, 0x0043            /* E */
+    .word 0x00E0, 0x0044            /* R */
+    .word 0xFFFF
+
 /* -------------------------------------------------------------------------
  * native_frontend_hud_emit -- the complete native frontend HUD subsystem.
  *
@@ -1814,6 +1819,10 @@ native_frontend_hud_emit:
     lea     native_queue_back_enemy, %a0
     move.w  native_back_enemy_count, %d6
     bsr     .Lnq_emit_lane
+    /* Direct-native 0x5A502 attract/demo GAME OVER row -- owned here in the
+     * gameplay finalizer under its exact original 0x05104E state gate, appended
+     * after the native lanes (shares this pass's a3/a2/a1/d5 SAT context). */
+    bsr     .Lnq_gameover_emit
     bra     .Lnq_done_scan
 
 .if RASTAN_GAMEPLAY_HUD_SPRITES == 2
@@ -2182,6 +2191,7 @@ native_frontend_hud_emit:
     beq.s   .Lnep_after_native_scores
     movem.l %a4-%a6, -(%sp)
     bsr     native_frontend_hud_emit
+    bsr     .Lnq_transient_items_emit    /* frontend-direct treasure/item family */
     movem.l (%sp)+, %a4-%a6
 .Lnep_after_native_scores:
     moveq   #0, %d6                    /* d6 = record */
@@ -2880,6 +2890,18 @@ pc090oj_tile_dma_worklist:
     .space (12 * 4)
 pc090oj_tile_dma_count:
     .word 0
+/* Frontend-direct treasure/item transient family (arcade 0x56114 copy /
+ * 0x5607C decay / 0x56440 clear).  Small Genesis-only semantic state that
+ * replaces the former object-RAM tuple representation: active flag, the live
+ * runtime pointer to the selected ROM tuple stream (0x56226 / 0x562B0, set by
+ * the arcade caller's a0), and the accumulated uniform Y decrement (scroll)
+ * that the decay produces.  Walked directly by .Lnq_transient_items_emit. */
+transient_items_active:
+    .word 0
+transient_items_scroll:
+    .word 0
+transient_items_source_ptr:
+    .long 0
 native_sprite_lane:
     .word 0
 native_hud_count:

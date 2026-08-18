@@ -45378,3 +45378,121 @@ Build produced: YES. Counter 273->274. ROM `dist/rastan-direct/rastan_direct_vid
 - Open/Closed Issues Impact: OPEN-024 advanced; no issue opened or closed.
   KNOWN_FINDINGS and `specs/palette_decisions.json` unchanged. Build 0282 and all
   numbered artifacts preserved; no unrelated production change by Cody.
+
+### MAME Exit Summary (2026-08-16 12:21:57)
+- Final PC: 0x073516
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Implementation Checkpoint, Player Auxiliary / Raw Producer Native Conversion]
+
+- Baseline: accepted Build 0283, SHA-256
+  `d421e8c6f4067d5555d41175ce50401d08aefe2fb109e47e49fed29484ddcf90`,
+  1,591,376 bytes; counter 283.
+- Original-arcade proof identifies `arcade_pc 0x054810` as the final four-piece
+  constructor for the `A5+0x1296/0x1298/0x129E` player damage/reaction
+  auxiliary. `arcade_pc 0x052AA2` is an earlier duplicate raw PC090OJ
+  publication of the same selected state, not a second semantic object. The
+  retained semantic source is `arcade_rom/data 0x05DA5E`; the chip-specific
+  destination, records 0..3/44..47, and eight-byte packing are retired in the
+  corrected source in favor of `NATIVE_LANE_FRONT_EFFECT`.
+- One authorized Makefile candidate was produced: Build 0284,
+  `dist/rastan-direct/rastan_direct_video_test_build_0284.bin`, SHA-256
+  `99942d043d81a65970a238d3ec7cdf67760423ddef7797f2a6ac24d8171a65dd`,
+  1,591,348 bytes; counter 283->284; rolling match and mechanical `GATE_PASS`.
+  Its mandatory 1,798-frame MAME trace had no unique unmapped-memory address.
+- Build 0284 is preserved but REJECTED. Post-build mapping audit proved its
+  `runtime_genesis_pc 0x05492A` loaded `runtime_genesis/data 0x05DC5E`, while
+  JSON maps `arcade_rom/data 0x05DA5E` exactly to
+  `runtime_genesis/data 0x05DB52`. No second numbered candidate was produced.
+- Corrected source expresses that table through the existing
+  `relocate_after_shift` contract, generalized to support an optional suffix
+  around the deferred interior `abs.l` operand. Unnumbered postpatch emits
+  `207C0005DB52C0FC0018D0C04EB900072E1A4E75`, has SHA-256
+  `79b6e8c9c563f9cbe068459a90d9447eb7adb7a16e00348e3ac49f829bf7983b`,
+  and passes the full canonical gate. This is validation material, not a ROM
+  release.
+- Controlled corrected-image regressions pass Stage-1 walking (X 81->160),
+  jump/landing (Y 112->76->112), standing attack, crouching attack, and
+  Lizardman logical Y 121 / visible bottom 129. No state was seeded. The
+  bounded run did not naturally activate the auxiliary (`A5+0x1296 == 1` for
+  zero frames), so active-lifecycle visual verification remains pending a
+  valid numbered candidate.
+- Production/spec/tool changes:
+  `apps/rastan-direct/src/pc090oj_hooks.s`,
+  `specs/rastan_direct_remap.json`,
+  `tools/translation/postpatch_startup_rom.py`, and mirrored canonical
+  constants in `tools/translation/verify_canonical_rom.py`. Generated build
+  outputs were updated by the one Make invocation. Current status documents
+  updated: `CLOSED_ISSUES.md`, `KNOWN_FINDINGS.md`, `GRAPHICS_STATUS.md`, and
+  `OPEN_ISSUES.md`.
+- Report: `docs/design/Cody_player_auxiliary_native_conversion.md`. Corrected
+  evidence: `states/traces/build0284_player_aux_corrected_unnumbered_validation_20260816_122834/`.
+- Open/Closed Issues Impact: CLOSED-018 and CLOSED-019 record the prior Build
+  0282/0283 corrections; this auxiliary family is not closed because no valid
+  numbered candidate exists. OPEN-024 remains open. No later PC090OJ family,
+  PC080SN path, palette path, collision behavior, or numbered artifact was
+  changed or deleted.
+- Exact STOP boundary: authorize one new Makefile-owned candidate from the
+  corrected source. Current counter remains 284; Build 0283 remains accepted;
+  Build 0284 remains consumed/rejected.
+
+### MAME Exit Summary (2026-08-16 13:06:05)
+- Final PC: 0x07382C
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-16 21:01:14)
+- Final PC: 0x000590
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-16 21:52:12)
+- Final PC: 0x000590
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-17 09:27:34)
+- Final PC: 0x0005F8
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-17 09:27:56)
+- Final PC: 0x0005F8
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-17 10:52:22)
+- Final PC: 0x0005F8
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-17 12:17:36)
+- Final PC: 0x0005F8
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-17 13:00:43)
+- Final PC: 0x000590
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-17 14:28:43)
+- Final PC: 0x1851EC
+- Stack Pointer (SP): 0x00FFFF00
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-17 15:20:46)
+- Final PC: 0x185254
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-17 15:58:58)
+- Final PC: 0x0737D6
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-17 17:46:50)
+- Final PC: 0x0737E6
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none

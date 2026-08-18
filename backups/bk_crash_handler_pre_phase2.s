@@ -1,4 +1,4 @@
-    .section .crash,"ax"
+    .section .text.boot,"ax"
 
     /* ================================================================
      * Screenshot-first exception handler.
@@ -43,6 +43,7 @@
     .global _crash_stub_trap_15
     .global _crash_stub_other
     .global _crash_common
+    .global genesistan_crash_handler_end
 
     /* --- Supplemental WRAM crash record (secondary evidence) --------- */
     .equ CRASH_RECORD_BASE,       0x00FF6800
@@ -818,7 +819,7 @@ crash_put_char_ascii:
     move.w  %d2, VDP_DATA
     rts
 
-    .section .crash,"ax"
+    .section .text.boot,"ax"
     .align 2
 
 crash_title:            .asciz "RASTAN GENESIS CRASH"
@@ -1064,3 +1065,4 @@ crash_font_1bpp:
     .byte 0x08, 0x18, 0x38, 0x78, 0x38, 0x18, 0x08, 0x00
     .byte 0x10, 0x18, 0x1C, 0x1E, 0x1C, 0x18, 0x10, 0x00
 
+genesistan_crash_handler_end:

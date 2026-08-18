@@ -268,3 +268,77 @@ Closure note format:
 - **Residual / follow-up:** SCORE/ROUND columns still need independent source provenance and are tracked separately under OPEN-021.
 - **Cross-references:** KF-036, OPEN-021, OPEN-001.
 
+---
+
+## CLOSED-018 — Stage-1 collision source row, enemy grounding, and sword-overlap mismatch
+
+- **Status:** CLOSED
+- **Date closed:** 2026-08-14
+- **Closed by:** Build 0282 collision-source correction and removal of the
+  BACK_ENEMY render-only compensation
+- **Summary:** The native collision producer used GNU displacement `20`, which
+  means decimal 20 (`0x14`), where original `arcade_pc 0x0559CE` uses
+  hexadecimal `0x20`. The wrong source row moved the semantic ground marker
+  from row 38 to row 39, leaving Lizardman/enemy logical grounding and its
+  hurtbox eight pixels low. Build 0282 changes all three live normal-field
+  readers to `0x20(...)`, restores Lizardman logical Y 121 / visible bottom
+  129, retires the wrong-layer BACK_ENEMY `-8` visual compensation, and proves
+  standing/crouching sword overlap against the corrected hurtbox.
+- **Evidence:** `docs/design/Cody_collision_map_grounding_semantic_alignment.md`;
+  `docs/design/Cody_collision_map_grounding_implementation.md`; Build 0282 ROM
+  SHA-256 `61b2b1268362f309c64939c1a6d226df5a4a26a95f95b560071701266d694316`.
+- **Residual / follow-up:** PC080SN map/hazard rendering, enemy palettes,
+  farther-level enemy behavior, and water exceptions remain open and are not
+  collision-source-row regressions.
+- **Cross-references:** KF-067, KF-077, OPEN-001, OPEN-006, OPEN-017, OPEN-018.
+
+---
+
+## CLOSED-019 — Gameplay status producer 0x05A098 PC090OJ output tail
+
+- **Status:** CLOSED
+- **Date closed:** 2026-08-16
+- **Closed by:** Build 0283 direct-native status/energy producer
+- **Summary:** Original `arcade_pc 0x05A098` is the gameplay player-energy
+  status producer, not a frontend row. Build 0283 preserves its indicator,
+  cap, six energy cells, blink, lifecycle, and sound semantics while emitting
+  directly to the native HUD lane. Historical virtual records 30..43,
+  `.Lpc090oj_emit_slot`, and gameplay object-table scan/decode ownership are
+  removed from this family.
+- **Evidence:** `docs/design/Cody_status_sprite_5a098_native_conversion.md`;
+  Build 0283 ROM SHA-256
+  `d421e8c6f4067d5555d41175ce50401d08aefe2fb109e47e49fed29484ddcf90`.
+- **Residual / follow-up:** Other shared/frontend PC090OJ producer families
+  remain under OPEN-024; this closure is only the `0x05A098` family.
+- **Cross-references:** KF-074, KF-077, OPEN-024.
+
+- **[2026-08-17 Build 0289 — crash handler produced untrustworthy fault-time registers: CLOSED (mechanical)]**
+  The old exception handler destroyed original fault-time D0 (stub `moveq #vec,d0`) and D1-D5/A0/A1 (`_crash_common`
+  reused them before saving), so the displayed D0-D5/A0/A1 were handler values, not the fault-time registers. Closed
+  by the screenshot-first rebuild: stubs write only the vector to WRAM and `_crash_common` snapshots
+  `%d0-%d7/%a0-%a6` before any reuse. Closure evidence (mechanical/provable): controlled Genesis-NTSC MAME
+  illegal-instruction test captured exact sentinels D0=DEAD0000 … A6=A6A6A6A6, EXC=4, STACKED_PC=00FF9000,
+  STACKED_SR=2700 (states/traces/build0289_crash_handler_validation/controlled_illegal_register_capture.txt). Also
+  closed here: the fake FRAME counter and the stale hard-coded "BUILD 0038" footer (now an auto-generated build
+  number). Separate runtime crash (Build0287 item-page fault) remains OPEN and is unaffected. See
+  docs/design/Cody_crash_handler_screenshot_diagnostics.md.
+
+- **[2026-08-17 Build 0290 — crash-screen numeric renderer printed cursor addresses, not values: CLOSED (mechanical)]**
+  `crash_put_hex{32,16,8}_at` passed the diagnostic value in D2 but `crash_set_cursor` clobbers D2 for the Plane-A
+  address, so every hex field (GEN PC, VECTOR, SR, D0-D7, A0-A6, FRAME SP, USP, STATE) displayed its own row/col
+  cursor address. Closed by save/restore D2 around `crash_set_cursor` in the three wrappers. Also closed: build-number
+  clipping (col 39 on H40 -> col 30/36). Closure evidence: controlled illegal-instruction test, SCREEN==RECORD
+  field-by-field (states/traces/build0290_crash_screen_value_validation/crash_screen_matches_record.png +
+  wram_record.txt). The separate Build0286 `tst.l %a5` item-page crash (0x073212) remains OPEN and untouched. See
+  docs/design/Andy_crash_screen_values_and_build0288_regression.md.
+
+- **[2026-08-17 Build 0295 — scrolling item-page illegal instruction tst.l %a5 @ 0x073212: CLOSED]** The item-page
+  crash (ILLEGAL INSTR / VECTOR 04 / GEN PC 0x073212), present since the Build0286 transient-item conversion, was
+  `tst.l %a5` (0x4A8D) in `.Lnq_transient_items_emit` — 68020+ TST-on-address-register, illegal on the Genesis 68000.
+  Closed by the byte-neutral legal replacement `move.l %a5,%d0` (0x200D; same Z=(a5==0), D0 proven dead). Closure
+  evidence: 0x073212 now disassembles `movel %a5,%d0`; bounded attract run reaches the item page (transient items
+  active 1791 frames) with NO crash across 2400 frames, where 0294 crashed at ~frame 610. Only the illegal-instruction
+  defect is closed; broader transient-item visual correctness and the separate first-fortress/second-rope issue remain
+  open. ROM dist/rastan-direct/rastan_direct_video_test_build_0295.bin, SHA256
+  0cb1779e8b9c24e57a774a75cd2e6f08ef9a4232f02ebe37f7ca125c59bb891a, size 1,597,112, counter 295, GATE_PASS + smoke.
+  See docs/design/Andy_scrolling_item_page_illegal_73212_fix.md.

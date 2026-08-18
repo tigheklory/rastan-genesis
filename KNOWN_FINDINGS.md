@@ -1416,3 +1416,199 @@ Build 0206 traced and fixed that upstream reachability divergence at the collisi
 **Finding.** The frontend HUD PC090OJ records (labels 4..16/18..20/34..36/43..45 and score/credit digit positions 17,21,22..45) are constructed by arcade **0x3B8B0** (and credit records 17..21 by **0x3B902**), copying **fixed ROM template tables** into object RAM via the generic **0x3B930** copier. The record VALUES are state-invariant (fixed ROM data). NOTE: an earlier Build-0272-era trace mis-attributed this to "~0x5007C" from a heuristic stack scan — that was a spurious stack word, NOT the producer; the authoritative producers are 0x3B8B0/0x3B902 (proven by arcade `bsr` caller census). `.Lnq_title_labels` holds exactly the object-RAM label records, and `.Lnq_emit_entry` applies the identical transform as the scan decoder `.Lpc090oj_decode_record`, so native output reproduces the former scan rendering byte-for-byte.
 
 **Use as prior.** Retire this HUD family at the **arcade-code boundary**: opcode_replace `0x3B8B0`→`rts` and the `0x3B902` hook→`rts` (all consumers native). **Do NOT touch generic 0x3B930** (kept, becomes uncalled). This supersedes the Build-0272 write-then-clear workaround (deleted in 0273). 0x5A098's status row (recs 30..43, codes 0x3E8+) is a SEPARATE deep-gameplay family that still renders via the scan and must not be disturbed.
+
+---
+
+## KF-077 — Build 0282+ gameplay grounding and PC090OJ output are native; residual chip-shaped debt is frontend/shared producer debt
+
+- **Status:** ACTIVE
+- **Confidence:** CONFIRMED (Build 0282 collision last-writer proof; Build 0283
+  status conversion; current player-auxiliary static provenance and corrected
+  unnumbered address-map validation)
+- **Applicability:** DURABLE from Build 0282 for collision grounding and from
+  Build 0251/0283 for gameplay native sprite ownership
+- **Rediscovery Hazard:** HIGH
+- **Addresses:** collision source `arcade_pc 0x0559CE`; status producer
+  `arcade_pc 0x05A098`; auxiliary owner/constructor `arcade_pc
+  0x0547C0/0x054810`; duplicate raw constructor `arcade_pc 0x052AA2`;
+  auxiliary source `arcade_rom/data 0x05DA5E`
+- **Source Documents:**
+  `docs/design/Cody_collision_map_grounding_implementation.md`;
+  `docs/design/Cody_status_sprite_5a098_native_conversion.md`;
+  `docs/design/Cody_player_auxiliary_native_conversion.md`
+- **Related Issues:** OPEN-006, OPEN-017, OPEN-024
+- **Last verified:** 2026-08-16 (Build 0283 accepted baseline; Build 0284
+  preserved/rejected; corrected auxiliary source validated unnumbered)
+
+**Finding.** The Build 0282 grounding defect was a source-operand error: GNU
+`20(base,index)` encoded decimal `0x14`, while the original arcade producer
+uses displacement `0x20`. Correcting all live source readers restores the
+ground marker to row 38, Lizardman logical Y 121 / visible bottom 129, and
+standing/crouching sword overlap. The former BACK_ENEMY `-8` render-only
+compensation is not part of current ownership.
+
+Gameplay sprite output is direct-native semantic-lane output. The scene-1
+finalizer reads native queues, not `pc090oj_object_ram`; measured gameplay
+frontend-scanner executions and generic-decoder executions are both zero.
+Build 0283 directly owns the `0x05A098` status family. The player auxiliary
+family uses the retained damage/reaction state (`0x0547C0`) and source table
+(`0x05DA5E`); `0x052AA2` is a duplicate raw PC090OJ publication of that same
+state, not an additional semantic object.
+
+**Use as prior.** Do not restore a gameplay scanner/decoder or a render-only Y
+compensation. Build 0284 is not proof of this auxiliary conversion: it is
+consumed and rejected because its `0x054810` table operand disagreed with the
+JSON map. Corrected source has exact unnumbered mapping/gate proof but still
+needs an authorized numbered candidate. The accepted Build 0283 therefore has
+six bounded units including this auxiliary family; after its corrected release,
+five remain: `0x05A502`, transient copy/clear, transient decay, setup/priority
+plus maintenance, and final frontend compatibility infrastructure. Their
+compatibility storage must remain until their own semantic consumers are
+proven and replaced.
+
+## Mode-2 1UP-only HUD release (Build 0285) — config, not a renderer defect
+The apparent "missing 1UP score" in Builds 0283/0284 was configuration: those were built with
+`RASTAN_GAMEPLAY_HUD_SPRITES=0` (score suppressed). Build 0285 is the corrected player-aux conversion released
+with `RASTAN_GAMEPLAY_HUD_SPRITES=2` (P1/1UP-score-only gameplay HUD). Mode 2 does NOT restore the full arcade
+gameplay HUD; the direct-native status/energy producer 0x05A098 (Build 0283) remains in the architecture but
+Mode 2 intentionally does not display the status row. Build 0284 remains rejected because its damage/reaction
+auxiliary table operand was arithmetic-derived (0x05DA5E+0x200=0x05DC5E, unrelated data); the corrected source
+resolves it shift-aware via `operand_arcade_target: 0x05DA5E` → runtime 0x05DB52. The Mode-2 coverage invariant
+is 0x184A88 (Mode-0 baseline was 0x184834). See docs/design/Andy_corrected_aux_mode2_1up_release.md.
+
+## Frontend items + GAME OVER native conversion (Build 0286)
+Two frontend PC090OJ producer families were converted to the frontend-direct emission model
+(`.Lnq_emit_entry`) and their object-RAM output retired:
+- **Treasure/item family** (arcade 0x56114 copy / 0x5607C decay / 0x56440 clear). Small Genesis-only state
+  (`transient_items_active`, `transient_items_source_ptr`, `transient_items_scroll`) replaces the old object-RAM
+  tuples. **0x5607C DEPENDED on that representation** (it scrolled the item Y and blanked at Y≤16), so it was
+  converted in the same build: the uniform per-record Y decrement became a single scroll offset applied by
+  `.Lnq_transient_items_emit` (`Y' = Y − scroll`, drop at `Y' ≤ 16`); the arcade `a5@0x10AE`/`a5@0x10B0` clears are
+  preserved. The pre-existing legacy was inconsistent (copy → object_ram slots; decay → `staged_sprite_descriptor_table`),
+  which this removes.
+- **GAME OVER** (arcade 0x5A502, records 83–90). Producer retired byte-neutrally (`0x4280 clr.l d0` → `0x4E75 rts`);
+  `.Lnq_gameover_emit` reads the arcade's own live conditions each frame — gate `a5@0x34==0` and visibility
+  `a5@0x200` bit5 — which **corrects the broken absolute `0x10C200` cart-ROM read** locally (arcade a5=0x10C000, so
+  0x10C200 = a5+0x200 = Genesis 0xFF0200). `wram_immediate_relocation` stays disabled. The dead-tail 0x5A51E/0x5A554
+  destination redirects are retained so no raw `0x00D002xx` literal remains live (verified: 0 occurrences).
+Canonical: `opcode_replace_count 227→228`, coverage `0x184A88→0x184A98`. GATE_PASS. Interactive acceptance deferred
+to Tighe. See docs/design/Andy_frontend_items_gameover_native_conversion.md.
+
+## 0x05A502 ownership correction + setup/priority retirement (Build 0287)
+**Build0286 correction:** arcade 0x05A502 is the **no-human attract/demo GAME OVER row**, NOT the human terminal
+GAME OVER (that is a separate 0x03A420 (2,4,5/6) path). Build0286 placed the row on the HIGH SCORE TABLE because its
+gate (`a5+0x34==0` + `a5+0x200` bit5) is not screen-unique — the high-score screen also satisfies it. **Fix:** the
+native `.Lnq_gameover_emit` is moved out of the broad `.Lnq_frontend_object_scan` into the GAMEPLAY finalizer
+`.Lnq_gameplay`, gated on the exact original 0x051046 tuple: `a5+0x00==2 & a5+0x02==3 & a5+0x04∈{0,1} & a5+0x34==0 &
+(a5+0x200 & 0x20)==0`. 0x5A502 stays retired (no object-RAM restore). The Build0286 transient-item conversion
+(0x56114/0x5607C/0x56440) is independent and preserved.
+**Setup/priority PC090OJ family retired:** 0x054052 (records 72-75, code=0 blank) and 0x03AD84 (76-79, code=0 blank,
+priority order already owned by native lanes) — zero visible output; 0x03B926 (clear 5-13) and 0x059F5E (clear 9-16)
+— dead clears (no live producer populates those records). All four hooks retired to register-preserving no-ops.
+Verified: the only source emit_slot/clear_slot callers were these four hooks, so after retirement emit_slot,
+clear_slot, the generic copier 0x3B930 and the mirror adapter are caller-dead (final-infra candidates, retained
+because spec opcode_replace still references their symbols). 0x03AD44 D-range branch RETAINED (shared object-RAM
+reset-clear still serving remaining consumers); PC080SN C-range preserved. Post-high-score exception remains OPEN
+(unassigned). Canonical: opcode_replace 228 unchanged, coverage 0x184A98 -> 0x184A34 (retirement shrank genesis-only
+code). GATE_PASS. See docs/design/Andy_5a502_ownership_setup_priority_native_conversion.md.
+
+## Screenshot-first crash handler rebuild (Build 0289)
+The exception handler (`apps/rastan-direct/src/crash_handler.s`) was rebuilt so a single screenshot from Tighe's
+normal playtest is sufficient first-pass crash evidence. Fixed defects (all proven from the old source): (1) vector
+stubs did `moveq #vec,d0` destroying original D0; (2) `_crash_common` clobbered D1-D5/A0/A1 before saving. New entry:
+stubs write only the vector to WRAM (immediate->memory), then `_crash_common` does `movem.l %d0-%d7/%a0-%a6,CRASH_D0`
+FIRST, capturing all 15 original registers intact (validated: sentinels D0=DEAD0000..A6=A6A6A6A6 captured exactly via
+`-video none` MAME illegal-instruction test). Screen now shows: auto BUILD number (generated from the numbering
+counter, no hand-edit), exception name+vector, **GEN PC** (exact runtime Genesis PC, never mislabeled arcade) + SRC
+region classification (GENONLY/ARCADE/UNKNOWN from address_map.json boundaries; ARC PC never fabricated, shown
+`-------- MAP OFFLINE`), SR, FAULT/ACCESS (bus/addr), D0-D7, A0-A6, FRAME SP/USP, game-flow STATE (a5+0/2/4/34/200,
+or "A5 INVALID"), and a raw stack window. Full VDP clean-room: display OFF during rebuild, zero VSRAM + H-scroll,
+clear Plane A/B/Window/SAT, deterministic CRAM, self-contained font, display ON last — no game rendering path used.
+68000 frame offsets re-derived (normal: SR@0/PC@2; bus-addr: access@0/fault@2/IR@6/SR@8/PC@10). Removed fake FRAME
+counter + low-value dirty/dest fields + stale "BUILD 0038". WRAM record (0x00FF6800) retained as supplemental only.
+Validation: `states/traces/build0289_crash_handler_validation/` (register-capture text + crash_screen.png). The
+Build 0287 item-page crash is untouched/OPEN. See docs/design/Cody_crash_handler_screenshot_diagnostics.md.
+
+## Crash-screen numeric renderer D2-clobber + 0288 "gameplay regression" = Build0286 tst.l %a5 (Build 0290)
+**Crash-screen numeric bug (fixed):** the Build0289 handler printed each hex field's cursor address, not the value —
+`crash_put_hex{32,16,8}_at` called `crash_set_cursor` (which uses D2 for the Plane-A address) with D2 holding the
+value to print. Proven arithmetically from Tighe's screenshot (GEN PC 0x190=row3col8, D0 0x406=row8col3, VECTOR
+46=cursor low byte). Fixed by save/restore D2 around `crash_set_cursor` in all three `_at` wrappers. Only text fields
+(exception NAME, SRC token) were trustworthy in 0289; ALL numeric fields were display artifacts. Build-number was
+clipped at col 39 (H40) → moved to col 30/36 (full "BUILD 0290" now visible). Validated SCREEN==RECORD via controlled
+illegal (sentinels DEAD0000.. captured AND displayed identically); evidence
+states/traces/build0290_crash_screen_value_validation/.
+**0287->0288 "gameplay-start regression" DISPROVEN as a code change:** byte diff of preserved ROMs shows the
+arcade-copy (0x117E-0x600F4) and genesis-only (0x600F4-0x184A34) regions are BYTE-IDENTICAL between 0287 and 0289;
+only the vector table (crash stubs moved, semantically identical halt), header checksum, and boot/crash-handler code
+changed. The sole 68000-illegal instruction in executable code is `tst.l %a5` (0x4A8D) at runtime 0x073212 in
+`.Lnq_transient_items_emit` (Build0286 transient-item conversion) — `tst An` is 68020+, ILLEGAL on the Genesis 68000.
+PROVEN empirically: both 0287 and 0289 crash at 0x073212 in attract (frame 610); a throwaway ROM with only
+0x073212 4A8D->200D (move.l a5,d0) runs 1500 frames with NO crash. So the "gameplay freeze" IS the pre-existing
+Build0286 item-page crash, made obvious by the new clean handler. Per task, the transient-item family was NOT
+modified (0x073212 still 4A8D in Build 0290). Ready byte-neutral fix when authorized: pc090oj_hooks.s:1547
+`tst.l %a5` -> `move.l %a5,%d0`. See docs/design/Andy_crash_screen_values_and_build0288_regression.md.
+
+## Build0287 "functional recovery" — gameplay is byte-identical 0287↔0290 (no build; STOP)
+Investigating Tighe's report that 0288–0290 broke rope/BG while 0287 was good: exhaustive ROM comparison proves the
+gameplay/rendering/frontend code is BYTE-IDENTICAL across 0287, 0288, 0289, 0290 (gameplay hash of 0x125C→end =
+`ab632490…` for all four; only 0286 differs = `f4dadcb2…`). The crash-handler rewrite (0288–0290) changed ONLY the
+exception-vector entries, the header checksum, and the crash-handler code/font inside the fixed-size 0x125C boot
+region (boot stub 0x202–0x3A4 identical; arcade_copy starts at 0x125C in both). No gameplay/genesis code references
+the changed crash region. SSP/RESET/VINT(0x700C2) unchanged. Therefore a "recovery" build would be gameplay-identical
+to the "broken" 0290 — no recovery is possible because there is no gameplay-code difference to remove. The only
+recent gameplay-code change was 0286→0287 (setup/priority retirement + GAME OVER emit moved into .Lnq_gameplay). NEXT
+STEP (disambiguation): re-test the preserved 0287 ROM's rope/BG — if 0287 is ALSO broken, the regression is 0286→0287
+(not the crash handler) and that is the fix target; if 0287 is genuinely good, the cause is non-gameplay-code
+(handler clean-halt visibility, or platform/loaded-file). No source/spec changed. See
+docs/design/Andy_build0287_functional_recovery_with_current_crash_handler.md.
+
+## Build 0291 — Build0287 functional state + current crash handler (recovery candidate, produced)
+Produced the requested isolation candidate: Build0287 gameplay + Build0290 crash handler. Verified vs preserved
+`…_0287.bin`: gameplay region (0x125C→end) BYTE-IDENTICAL to 0287; genesis_only identical; only exception vectors
+(crash stubs moved), header checksum, and crash-handler code/font/build-number differ (allowed classes A–D). tst.l %a5
+item-page defect at 0x073212 preserved (unchanged). Crash SCREEN==WRAM record re-validated on 0291 (BUILD 0291 shown).
+ROM `dist/rastan-direct/rastan_direct_video_test_build_0291.bin` SHA
+`7b634b875a5a9837c3ee5227df70f93b631c13ef72bae08395b1539f33a18138`, size 1,591,860, counter 291, GATE_PASS + smoke.
+Isolation logic: if 0291 still shows broken rope/BG, it is proven NOT a gameplay-code difference vs 0287 (identical
+bytes) — pivot to crash-handler runtime visibility / platform, or re-test whether preserved 0287 itself is broken
+(regression at 0286→0287). See docs/design/Andy_build0287_plus_current_crash_handler_candidate.md.
+
+## Phase 1 — OLD crash handler relocated to high-ROM .crash section (Build 0293)
+Root cause of the 0288-0291 low-ROM expansion mechanism PROVEN: postpatch_startup_rom.py splices the arcade copy at
+`preserve_low_rom_end = max(0x400, genesistan_crash_handler_end)`, and the crash handler was in `.text.boot` (low
+0x0 region), so enlarging it pushed the arcade splice 0x117E->0x125C. Fix (Phase 1): moved the OLD Build0287 handler
+(semantically unchanged) to a new linker section `.crash` placed AFTER `.text.wrapper` (high ROM, 0x185000), and
+PINNED `genesistan_crash_handler_end = 0x0000117E` in link.ld so the arcade splice stays at the Build0292 value. The
+section is named `.crash` (not `.text.crash`) so `.text.wrapper`'s `*(.text.*)` glob can't capture it. Result vs
+Build0292: boot code, arcade_copy, gap, and ALL genesis_only byte-IDENTICAL; SSP/RESET/VINT unchanged; only vectors
+(crash stubs -> high), header checksum, old-handler-area->zeros, and the new high `.crash` section differ. Controlled
+illegal reaches the high stub and executes from high ROM (CRASH_PC_AT_HANDLER=0x185114); the old screen renders as
+before. ROM grew 1,591,860->1,596,890; canonical coverage 0x184A34->0x185DDA. Item-page tst.l %a5 @0x073212
+unchanged. Build0287 handler backup: backups/crash_handler_build0292_build0287_baseline.s. Phase 2 will restore the
+screenshot-first handler inside this proven high section. See
+docs/design/Andy_phase1_high_rom_old_crash_handler_relocation.md.
+
+## Phase 2 — screenshot-first handler transplanted into high .crash (Build 0294)
+bk_crash_handler.s (Build0290/0291 screenshot-first handler WITH the D2 numeric-renderer fix + auto build number)
+was transplanted into the active crash_handler.s and adapted ONLY for the Build0293 high-ROM architecture (section
+.text.boot -> .crash; removed its low end-symbol so link.ld's pinned genesistan_crash_handler_end=0x117E governs the
+arcade splice). Minimal crash_build.inc Makefile plumbing restored (crash-screen build string only). Result vs
+Build0293: boot code, low freed area, arcade_copy, gap, and ALL genesis_only byte-IDENTICAL; SSP/RESET/VINT
+unchanged; only vectors (bk stub layout), header checksum, and the .crash handler content differ. Controlled illegal
+reaches the high handler; movem-first capture correct (D0=DEAD0000..A6); SCREEN==WRAM record (D2 fix confirmed),
+BUILD 0294 shown, clean screen (no game-graphics bleed-through). ROM grew 1,596,890->1,597,112; coverage
+0x185DDA->0x185EB8. bk_crash_handler.s preserved unchanged (archival backups/bk_crash_handler_pre_phase2.s).
+Item-page tst.l %a5 @0x073212 unchanged. First-fortress/second-rope freeze NOT touched. Awaiting Tighe interactive
+gameplay confirmation. See docs/design/Andy_phase2_backup_crash_handler_high_rom_test.md.
+
+## Item-page illegal instruction FIXED — tst.l %a5 @ 0x073212 (Build 0295)
+The scrolling item-page crash (ILLEGAL INSTR / VECTOR 04 / GEN PC 0x073212) is the `tst.l %a5` (0x4A8D) in
+`.Lnq_transient_items_emit` — TST on an address register is 68020+, illegal on the Genesis 68000. Fixed byte-neutral:
+`tst.l %a5` -> `move.l %a5,%d0` (0x4A8D -> 0x200D), same Z=(a5==0) for the following `beq .Lti_done`. D0 proven dead
+(sole caller reloads d0 after the call; the loop's .Lnq_emit_entry already clobbers d0). Byte-neutral so 0x073212 and
+all following addresses unchanged. Diff vs Build0294: only the 2-byte fix, the crash build-number string (0294->0295),
+and the header checksum. Bounded attract validation: NO CRASH in 2400 frames with transient items active 1791 frames
+(vs the ~frame-610 crash in 0287-0294); item page runs the emit without faulting, attract continues. High-ROM crash
+architecture, arcade splice (0x117E), and all other code unchanged. See
+docs/design/Andy_scrolling_item_page_illegal_73212_fix.md.

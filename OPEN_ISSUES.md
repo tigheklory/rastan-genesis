@@ -10,6 +10,79 @@ Rules:
 - If a new issue is discovered during work, add it here before final response.
 - If an issue is resolved, move it to CLOSED_ISSUES.md with full closure metadata.
 
+## Current Build 0283+ Reconciliation (2026-08-16)
+
+- **OPEN-001 / OPEN-018 remain open:** native PC080SN level/map rendering is
+  incomplete. Cave and water-hazard tiles are still missing or incorrect, and
+  falling into water farther into Stage 1 can reach the exception handler.
+- **OPEN-006 remains open:** numerous enemy palettes remain incorrect. The
+  sword palette is also still reported to cycle incorrectly. Palette work must
+  follow `specs/palette_decisions.json` and is not part of the current sprite
+  producer conversion.
+- **OPEN-017 remains open:** the farther-Stage-1 flying demon cannot currently
+  be killed, and significant slowdown remains with many enemies visible.
+  Current gameplay executes neither the frontend PC090OJ scanner nor its
+  generic decoder, so that slowdown must not be attributed to those two paths
+  without new evidence.
+- **OPEN-024 remains open but is narrower:** gameplay SAT output is direct
+  native semantic-lane output. Remaining PC090OJ debt is frontend/shared
+  producer compatibility. The player auxiliary/raw family has corrected
+  source and unnumbered proof but still needs an authorized numbered candidate
+  because Build 0284 was consumed/rejected for an address-map mismatch. After
+  that release, the sequence is fixed/shared `0x05A502`, transient copy/clear,
+  transient decay, setup/priority plus maintenance, then final compatibility
+  infrastructure retirement.
+  - **[2026-08-16 Build 0286, IMPLEMENTED — frontend items + GAME OVER]** Two
+    of those units are now converted to frontend-direct native emission and
+    their object-RAM output retired: (a) the treasure/item family (0x56114 copy
+    / 0x5607C decay / 0x56440 clear) via small Genesis-only state
+    (`transient_items_active`/`_source_ptr`/`_scroll`) + `.Lnq_transient_items_emit`
+    (uniform scroll-up modelled as one offset, drop at Y<=16); the dependent
+    decay 0x5607C was converted in the same build. (b) GAME OVER 0x5A502 retired
+    byte-neutrally (clr.l d0 -> rts), replaced by live-state `.Lnq_gameover_emit`
+    (gate a5@0x34==0, visibility a5@0x200 bit5) — this corrects the broken
+    absolute 0x10C200 cart-ROM read locally without enabling
+    `wram_immediate_relocation`. ROM
+    `dist/rastan-direct/rastan_direct_video_test_build_0286.bin`, SHA256
+    `db3e6957a09bed87da6d9c5120e15a69d3607fa5480f04abd07a589816bca4dd`, size
+    `1,591,960`, counter `286`, `RASTAN_GAMEPLAY_HUD_SPRITES=2`,
+    opcode_replace `227 -> 228`, coverage `0x184A88 -> 0x184A98`, GATE_PASS +
+    30s Genesis-NTSC smoke clean. Remaining retirement units: setup/priority +
+    legacy park/fill maintenance, then final frontend compatibility
+    infrastructure. Interactive acceptance (treasure presentation, GAME OVER
+    presentation, no stale frontend sprites) deferred to Tighe. Not closed; no
+    duplicate. Evidence:
+    `docs/design/Andy_frontend_items_gameover_native_conversion.md`.
+  - **[2026-08-16 Build 0287, IMPLEMENTED — 0x5A502 ownership fix + setup/priority
+    retirement]** Build0286 CORRECTION: 0x05A502 is the no-human attract/demo
+    GAME OVER row (NOT the human terminal GAME OVER, a separate 0x03A420
+    (2,4,5/6) path). Build0286's broad `.Lnq_frontend_object_scan` gate
+    (`a5+0x34==0` + `a5+0x200` bit5) is not screen-unique, so the row appeared on
+    the HIGH SCORE table. Fixed by moving `.Lnq_gameover_emit` into the GAMEPLAY
+    finalizer `.Lnq_gameplay` under the exact 0x051046 tuple gate
+    (`a5+0==2 & a5+2==3 & a5+4 in {0,1} & a5+34==0 & (a5+200 & 0x20)==0`);
+    0x5A502 stays retired. Build0286 transient-item conversion preserved (proven
+    independent). Setup/priority PC090OJ family retired: 0x054052 (72-75 blank),
+    0x03AD84 (76-79 blank; priority order owned by native lanes), 0x03B926
+    (clear 5-13), 0x059F5E (clear 9-16) -- all inert (verified no producer writes
+    those records with content). emit_slot/clear_slot/0x3B930/mirror now
+    caller-dead (final-infra candidates; retained, spec still references symbols).
+    0x03AD44 D-range reset-clear RETAINED (still serves remaining object-RAM
+    consumers); PC080SN C-range preserved. ROM
+    `dist/rastan-direct/rastan_direct_video_test_build_0287.bin`, SHA256
+    `a03094b046f3aeb66f3c31797081612d5ac73e1b4cfb67653938f9dd9015f12d`, size
+    `1,591,860`, counter `287`, `RASTAN_GAMEPLAY_HUD_SPRITES=2`, opcode_replace
+    228 unchanged, coverage `0x184A98 -> 0x184A34`, GATE_PASS + 30s Genesis-NTSC
+    smoke clean. Post-high-score exception remains OPEN/unassigned (narrow crash
+    record required; do not attribute from the crash screen). Remaining before
+    final infra retirement: 0x03AD44 D-range fill + frontend scanner/decoder
+    object-RAM consumers + Mode-2 P1 HUD record. Interactive acceptance deferred
+    to Tighe. Not closed; no duplicate. Evidence:
+    `docs/design/Andy_5a502_ownership_setup_priority_native_conversion.md`.
+
+These observations do not reopen the Build 0282 collision grounding or sword
+overlap corrections, and they do not claim PC080SN replacement complete.
+
 ---
 
 ## OPEN-001 — Build 0094 title/attract graphics incomplete
@@ -544,3 +617,80 @@ Final response must include "Open/Closed Issues Impact" section with:
 - New issues opened: [IDs or NONE]
 - Issues closed: [IDs or NONE]
 - Issues intentionally deferred: [IDs or NONE]
+
+- **[2026-08-17 Build 0289, IMPLEMENTED — screenshot-first crash handler]** Rebuilt `crash_handler.s` for
+  screenshot-only playtest diagnosis. Original D0-D7/A0-A6 now captured before any handler reuse (stubs write only
+  the vector to WRAM; `_crash_common` does `movem.l` first) — the old stub `moveq #vec,d0` + common-body clobber of
+  D1-D5/A0/A1 are fixed (validated via controlled illegal-instruction MAME test: sentinels captured exactly). Screen
+  shows auto BUILD number, exception/vector, GEN PC + SRC classification (address_map.json regions; ARC PC never
+  fabricated), SR, FAULT/ACCESS, all D/A registers, FRAME SP/USP, game-flow STATE (a5+0/2/4/34/200 or A5 INVALID),
+  raw stack window. Full VDP clean-room (display off during rebuild; zeroed VSRAM/H-scroll; cleared Plane A/B/Window/
+  SAT; deterministic CRAM/font; display on last). Fake FRAME + low-value fields removed. ROM
+  `dist/rastan-direct/rastan_direct_video_test_build_0289.bin`, SHA256
+  `173882ff88827937c4d7b5fafc8b88926071d751d3ebbf83bdec10159184df43`, size `1,591,860`, counter `289`
+  (Build 0288 is an identical-handler intermediate, preserved), opcode_replace 228 / coverage 0x184A34 unchanged,
+  GATE_PASS + 30s smoke. Evidence: docs/design/Cody_crash_handler_screenshot_diagnostics.md,
+  states/traces/build0289_crash_handler_validation/.
+- **[2026-08-17 OPEN — Build 0287+ scrolling item-page crash]** After the HIGH SCORE screen, the scrolling ITEM
+  PAGE faults into the exception handler (introduced around the Build0286 native transient-item conversion; not
+  present in earlier forward builds). DEFERRED/OUT OF SCOPE for the handler rebuild. Next step: Tighe reproduces it
+  on Build 0289 and provides the crash screenshot (GEN PC + SRC + registers + STATE tuple) as the diagnostic entry
+  point. Not closed.
+
+- **[2026-08-17 Build 0290 — item-page crash ROOT CAUSE PROVEN, still OPEN/deferred]** The scrolling item-page crash
+  (and the apparent "0288 gameplay-start freeze", proven to be the SAME event) is a single 68000-illegal instruction:
+  `tst.l %a5` (0x4A8D) at runtime 0x073212 in `.Lnq_transient_items_emit` (Build0286 transient-item conversion). `tst`
+  on an address register is 68020+, ILLEGAL on the Genesis 68000. PROVEN: byte-identical gameplay code 0287<->0289;
+  both crash at 0x073212 in attract (frame 610); neutralizing only that opcode (4A8D->200D) runs 1500 frames with no
+  crash. Per this task's explicit scope, NOT fixed (transient-item family untouched; 0x073212 still 4A8D in Build
+  0290). Ready byte-neutral fix when authorized: pc090oj_hooks.s:1547 `tst.l %a5` -> `move.l %a5,%d0` (same Z-flag).
+  The corrected crash screen (Build 0290) will display GEN PC 0x00073212 / SRC GENONLY on the next reproduction. Not
+  closed.
+
+- **[2026-08-17 Build0287 functional-recovery investigation — DISAMBIGUATION NEEDED, no build]** Tighe reports
+  0288–0290 broke rope/BG vs good 0287. PROVEN: gameplay/rendering code is byte-identical across 0287/0288/0289/0290
+  (0x125C→end hash `ab632490…`; only 0286 differs). The crash-handler work changed only exception vectors, header
+  checksum, and crash code/font in the fixed 0x125C boot region; arcade_copy + genesis_only byte-identical; no
+  gameplay ref into the changed region; SSP/RESET/VINT unchanged. So a recovery build == 0290 gameplay (can't
+  recover). The only recent gameplay change was 0286→0287 (setup/priority retirement + GAME OVER emit into
+  .Lnq_gameplay). REQUIRED next input from Tighe: (1) re-test preserved `…_0287.bin` rope/BG — if broken, regression
+  is 0286→0287 (investigate those changes); (2) exact platform/emulator + repro for each build. tst.l %a5 item-page
+  crash (0x073212) unchanged/OPEN. Not closed. Evidence:
+  docs/design/Andy_build0287_functional_recovery_with_current_crash_handler.md.
+
+- **[2026-08-17 Build 0293 — Phase 1: OLD crash handler relocated to high ROM]** The crash handler was moved from the
+  low `.text.boot` section (which set the arcade splice via `genesistan_crash_handler_end`, so enlarging it shifted
+  the arcade base 0x117E->0x125C in 0288-0291) into a new high-ROM `.crash` section after `.text.wrapper`, with
+  `genesistan_crash_handler_end` pinned to 0x117E. Build0292 gameplay/arcade/genesis-only bytes are UNCHANGED
+  (verified byte-identical); only vectors, header checksum, freed low area (->zeros), and the new high section differ.
+  Controlled crash proven to reach the high handler. ROM `dist/rastan-direct/rastan_direct_video_test_build_0293.bin`,
+  SHA256 `4a095df5414ea48dc54544cebe5995b0955e85b23eceb6248fa2f546fbdfb61e`, size 1,596,890, counter 293, GATE_PASS +
+  smoke. Item-page tst.l %a5 (0x073212) unchanged/OPEN. This is Phase 1 (relocate old handler + gameplay-test); Phase
+  2 = restore the screenshot-first handler inside this high section. Awaiting Tighe interactive confirmation that
+  0293 gameplay matches Build0292. Not closed. Evidence:
+  docs/design/Andy_phase1_high_rom_old_crash_handler_relocation.md.
+
+- **[2026-08-17 Build 0294 — Phase 2: screenshot-first handler in high .crash]** Transplanted bk_crash_handler.s (the
+  screenshot-first handler with the D2 fix + auto build number) into the active handler, kept in the Build0293
+  high-ROM `.crash` section (genesistan_crash_handler_end pinned 0x117E). Normal regions (boot/arcade/gap/genesis-only)
+  byte-IDENTICAL to Build0293; SSP/RESET/VINT unchanged. Controlled crash reaches the high handler; SCREEN==WRAM
+  record; BUILD 0294 shown; clean screen. ROM `dist/rastan-direct/rastan_direct_video_test_build_0294.bin`, SHA256
+  `f6abd484e899573eb03032990f572478c48ef177d517c8bb6373ac32c9a452c1`, size 1,597,112, counter 294, GATE_PASS + smoke.
+  Item-page tst.l %a5 (0x073212) unchanged/OPEN. First-fortress/second-rope freeze (observed on 0293) NOT touched —
+  remains a separate later task. Awaiting Tighe confirmation that 0294 gameplay matches 0293. Not closed. Evidence:
+  docs/design/Andy_phase2_backup_crash_handler_high_rom_test.md.
+
+- **[2026-08-17 Build 0295 — item-page illegal instruction FIXED]** The `tst.l %a5` (0x4A8D, illegal on 68000) at
+  0x073212 in `.Lnq_transient_items_emit` is corrected byte-neutrally to `move.l %a5,%d0` (0x200D, same Z, D0 dead).
+  Bounded attract validation: item page reached (transient active 1791 frames), NO crash in 2400 frames (0294 crashed
+  ~frame 610). High-ROM crash architecture + arcade splice unchanged. ROM
+  rastan_direct_video_test_build_0295.bin (SHA 0cb1779e...), counter 295. The illegal-instruction defect is CLOSED
+  (see CLOSED_ISSUES). STILL OPEN/separate: broader transient-item visual correctness (pending Tighe's look) and the
+  first-fortress/second-rope freeze observed on Build0293/0294. Not advancing PC090OJ retirement.
+
+- **[2026-08-17 OPEN — water-fall ADDRESS ERROR, separate task]** During normal interactive gameplay (Build0295+),
+  making Rastan FALL INTO WATER reproducibly faults: ADDRESS ERROR / VECTOR 03 / GEN PC 0x00072F7A / SRC GENONLY /
+  SR 2F10 / FAULT 0x00FE6009 / ACCESS 3185. May also occur in attract/demo gameplay. NOT part of the item-page
+  text-scroll task; NOT to be masked by alignment. Gets its own static/decompilation-first task after the item-page
+  text work. GEN PC 0x00072F7A is a genesis-only helper; FAULT 0x00FE6009 is an odd address (address error) in the
+  0xFE mirror of WRAM. Not closed.

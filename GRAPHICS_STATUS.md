@@ -1,5 +1,47 @@
 # GRAPHICS_STATUS.md
 
+## Build 0283+ Current Status (2026-08-16)
+
+This section supersedes older percentage-based status summaries for current
+planning. Historical sections below remain provenance only.
+
+### Proven / User-Observed Working
+
+- Build 0282 corrected the native collision-map source displacement from
+  decimal `20` (`0x14`) to hexadecimal `0x20`, restoring the Stage-1 ground
+  marker to semantic row 38.
+- Lizardman logical grounding and visible placement are corrected; the old
+  BACK_ENEMY render-only `-8` compensation is retired.
+- Standing/crouching sword geometry and collision overlap are corrected.
+- Stage 1 progression is dramatically improved: the rope is climbable,
+  gameplay proceeds substantially farther, and enemies appear through the
+  currently reachable portion.
+- Gameplay sprite rendering uses direct native semantic queues and one native
+  SAT finalizer. Gameplay frontend-scanner and generic-decoder executions are
+  zero.
+- Build 0283 converted the gameplay status/energy producer at
+  `arcade_pc 0x05A098` to direct native HUD output.
+- The player auxiliary/raw family has corrected direct-native source and
+  unnumbered validation, but no accepted numbered release yet. Build 0284 is
+  preserved/rejected because its animation-table operand violated the JSON
+  address map; Build 0283 remains the accepted visual baseline.
+
+### Still Open
+
+- Native PC080SN level/map rendering is incomplete. Cave and water-hazard
+  tiles are not all rendered correctly or visibly.
+- Falling into water farther into Stage 1 can reach the exception handler.
+- Numerous enemy palettes remain wrong; the sword palette is still reported
+  to cycle incorrectly.
+- The farther-Stage-1 flying demon cannot currently be killed.
+- Significant slowdown remains when many enemies are on screen. This is not
+  attributed to the frontend PC090OJ scanner/decoder because gameplay executes
+  neither path.
+- Shared/frontend PC090OJ producer compatibility remains to be retired in
+  bounded semantic families.
+
+PC080SN replacement is not complete, and this status makes no such claim.
+
 ## Build 0094 Snapshot (Current, 2026-06-22)
 
 This section supersedes the pre-Build-0094 status notes below for current planning. Older percentage claims and C-helper/prototype language are retained only as historical context.
@@ -296,3 +338,41 @@ If you want, after Andy’s report comes back, I’ll:
 👉 fixes exactly one mapping issue
 
 You’re very close now.
+
+---
+
+## Build 0286 — frontend items + GAME OVER now direct-native
+- **Treasure/item sprites** (arcade 0x56114/0x5607C/0x56440): no longer routed through PC090OJ object RAM /
+  `staged_sprite_descriptor_table`. Emitted directly by `.Lnq_transient_items_emit` from the latched ROM tuple
+  stream, with the arcade scroll-up modelled as a single `transient_items_scroll` offset (drop at Y<=16).
+- **GAME OVER** (arcade 0x5A502, "G A M E  O V E R"): producer retired byte-neutrally; emitted directly by
+  `.Lnq_gameover_emit`, which reads the live game-over gate (`a5@0x34==0`) and blink/visibility bit
+  (`a5@0x200` bit5). Corrects the previously broken `0x10C200` cart-ROM read → the text is no longer permanently
+  parked; it now follows the real WRAM visibility state.
+- Both use the shared `.Lnq_emit_entry` transform, so on-screen geometry/flip/palette match the retired scanner.
+- Pending Tighe interactive acceptance: treasure presentation when the bonus sequence is reached, GAME OVER
+  presentation on death, and absence of stale frontend sprites.
+
+---
+
+## Build 0287 — GAME OVER ownership fixed + setup/priority PC090OJ retired
+- **GAME OVER overlay bug fixed:** the attract/demo "GAME OVER" row (arcade 0x5A502) no longer appears on the HIGH
+  SCORE table. Its native emitter moved from the broad frontend scan into the gameplay finalizer under the exact
+  original state gate (attract gameplay tuple `(2,3,0/1)`, `a5+0x34==0`, `a5+0x200` bit5 visible). It is a no-human
+  attract-mode row only; the human terminal GAME OVER is a separate 0x03A420 path (unchanged).
+- **Setup/priority sprites retired:** the blank record inits (72-79) and dead HUD-band clears (records 5-16) are
+  gone — they produced no visible sprites. No frontend visual change expected.
+- **Transient treasure/item conversion (Build 0286) preserved.**
+- Pending Tighe interactive acceptance: ordinary gameplay intact; no GAME OVER row on the high-score screen; no
+  transient-item regression; report any exception with the screen/state where it occurred.
+
+---
+
+## Build 0290 — crash-screen values fixed; "gameplay freeze" identified as the Build0286 item-page crash
+- The crash screen now shows REAL captured values (previously every hex field showed its own cursor address due to a
+  D2-clobber in the numeric renderer). Validated screen==record. Full BUILD number now visible.
+- The reported "0288 gameplay-start freeze" is NOT a new regression: the gameplay/attract code is byte-identical
+  0287↔0289. The actual crash is a single 68000-illegal instruction `tst.l %a5` at 0x073212 (Build0286 transient-item
+  emit), which crashes the item page. Neutralizing just that opcode lets the game run 1500 frames with no crash.
+- Per task scope, the Build0286 transient-item family was NOT modified; that crash stays OPEN. With the corrected
+  crash screen, its next reproduction will read GEN PC 0x00073212 / SRC GENONLY.
