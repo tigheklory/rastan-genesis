@@ -24,7 +24,8 @@
       "Bash(awk '{print $1}')",
       "Bash(mame -verifyroms rastan)",
       "Bash(python3 -c \"import json;print\\('wram rebase enabled=',json.load\\(open\\('specs/rastan_direct_remap.json'\\)\\).get\\('wram_immediate_relocation',{}\\).get\\('enabled','ABSENT'\\)\\)\")",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(grep -iE 'staged_sprite_sat$|staged_sprite_sat_b|genesistan_current_scene_id|_crash_stub_bus_error|_crash_common|pc090oj_sat_front|transient_items_active' apps/rastan-direct/out/symbol.txt)"
     ]
   }
 }

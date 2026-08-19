@@ -22,28 +22,11 @@
     .extern staged_palette_words
     .extern staged_tile_words
     .extern staged_sprite_sat
-    .extern staged_sprite_descriptor_table
-    .extern staged_sprite_dirty
-    .extern staged_sprite_active_count
     .extern sprite_tile_resident_code
-    .extern pc090oj_object_ram
-    .extern pc090oj_candidate_bitset
     .extern pc090oj_ctrl_shadow
     .extern pc090oj_sprite_ctrl_shadow
-    .extern pc090oj_mirror_dirty
-    .extern pc090oj_candidate_count
-    .extern pc090oj_decoded_count
-    .extern pc090oj_code_zero_skipped_count
-    .extern pc090oj_blank_skipped_count
-    .extern pc090oj_unmapped_skipped_count
-    .extern pc090oj_offscreen_skipped_count
-    .extern pc090oj_drawable_count
     .extern pc090oj_emitted_count
     .extern pc090oj_dropped_count
-    .extern pc090oj_scan_colbank
-    .extern pc090oj_scan_active
-    .extern pc090oj_producer_oob_count
-    .extern pc090oj_producer_write_count
     .extern genesistan_pc090oj_dma_self_test
     .extern _crash_stub_bus_error
     .extern _crash_stub_address_error
@@ -238,28 +221,12 @@ _bootstrap_clear_staging:
     clr.w   (%a0)+
     dbra    %d7, .Lboot_sprite_tile_resident_clear
 
-    lea     pc090oj_object_ram, %a0
-    move.w  #((0x800 / 2) - 1), %d7
-.Lboot_pc090oj_object_ram_clear:
-    clr.w   (%a0)+
-    dbra    %d7, .Lboot_pc090oj_object_ram_clear
-
+    /* PC090OJ final teardown: pc090oj_object_ram and the object-RAM scan
+     * diagnostics are removed; no boot-time clear of a virtual object store. */
     clr.w   pc090oj_ctrl_shadow
     clr.w   pc090oj_sprite_ctrl_shadow
-    clr.w   pc090oj_mirror_dirty
-    clr.w   pc090oj_candidate_count
-    clr.w   pc090oj_decoded_count
-    clr.w   pc090oj_code_zero_skipped_count
-    clr.w   pc090oj_blank_skipped_count
-    clr.w   pc090oj_unmapped_skipped_count
-    clr.w   pc090oj_offscreen_skipped_count
-    clr.w   pc090oj_drawable_count
     clr.w   pc090oj_emitted_count
     clr.w   pc090oj_dropped_count
-    clr.w   pc090oj_scan_colbank
-    clr.w   pc090oj_scan_active
-    clr.w   pc090oj_producer_oob_count
-    clr.w   pc090oj_producer_write_count
 
     move.l  #VRAM_PLANE_A_BASE, %d0
     jsr     vdp_set_vram_write_addr

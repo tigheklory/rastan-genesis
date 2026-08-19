@@ -37,24 +37,10 @@
     .global vdp_commit_sprites_vram
     .global genesistan_pc090oj_dma_self_test
 
-    .global pc090oj_object_ram
-    .global pc090oj_candidate_bitset
     .global pc090oj_ctrl_shadow
     .global pc090oj_sprite_ctrl_shadow
-    .global pc090oj_mirror_dirty
-    .global pc090oj_candidate_count
-    .global pc090oj_decoded_count
-    .global pc090oj_code_zero_skipped_count
-    .global pc090oj_blank_skipped_count
-    .global pc090oj_unmapped_skipped_count
-    .global pc090oj_offscreen_skipped_count
-    .global pc090oj_drawable_count
     .global pc090oj_emitted_count
     .global pc090oj_dropped_count
-    .global pc090oj_scan_colbank
-    .global pc090oj_scan_active
-    .global pc090oj_producer_oob_count
-    .global pc090oj_producer_write_count
     .global native_sprite_emit
     .global native_sprite_lane
     .global native_player_frame_begin
@@ -66,9 +52,6 @@
     .global native_player_body_anchor_clear
 
     .global staged_sprite_sat
-    .global staged_sprite_descriptor_table
-    .global staged_sprite_dirty
-    .global staged_sprite_active_count
     .global sprite_tile_resident_code
     .global pc090oj_tile_dma_worklist
     .global pc090oj_tile_dma_count
@@ -78,14 +61,8 @@
      * producers; the remaining tables support frontend compatibility. */
     /* pc090oj_stage_block2c8 / stage_record46 removed (Build 0261): dead uncalled
      * gameplay record producers that called the relocated expander 0x3D254. */
-    .global record_to_slot
-    .global represented_records
-    .global waiting_records
-    .global used_sat_slots
     .global worklist_entry_for_slot
-    .global pc090oj_represented_count
     .global pc090oj_sat_dirty
-    .global pc090oj_bootstrap_pending
 
     .global audit_guard_caller_pc
     .global audit_guard_register_snapshot
@@ -190,87 +167,13 @@
 
 /* d2=byte offset inside the active 0x800-byte PC090OJ mirror. */
 
-/* d6=PC090OJ record index.  Clear only after full-record code-zero decode. */
-
-/* Legacy producer bridge (Build 0142): the unconverted per-site hooks publish
- * their arcade sprite record into the mirror and set the per-record candidate.
- * The staged SAT is no longer written here; it is rebuilt from the mirror by
- * .Lpc090oj_sync_record_from_mirror during VBlank (dirty candidates) so a single
- * retained renderer owns the SAT.  d0=record index; d1=word0,d2=Y,d3=code,d4=X.
- * Preserves d0-d4/d7 and a1..a6 for the calling producer loops.
- */
-.Lpc090oj_emit_slot:
-    movem.l %d5/%d6/%a0, -(%sp)
-    cmpi.w  #256, %d0
-    bhs.s   .Lpc090oj_emit_slot_oob
-    move.w  %d0, %d6
-    lsl.w   #3, %d6
-    lea     pc090oj_object_ram, %a0
-    adda.w  %d6, %a0
-    move.w  %d1, (%a0)
-    move.w  %d2, 2(%a0)
-    move.w  %d3, 4(%a0)
-    move.w  %d4, 6(%a0)
-    addq.w  #1, pc090oj_producer_write_count
-    movem.l (%sp)+, %d5/%d6/%a0
-    rts
-.Lpc090oj_emit_slot_oob:
-    addq.w  #1, pc090oj_producer_oob_count
-    movem.l (%sp)+, %d5/%d6/%a0
-    rts
-
-
-/* d0=slot clears slot */
-.Lpc090oj_clear_slot:
-    moveq   #0, %d1
-    move.w  #0x0180, %d2
-    moveq   #0, %d3
-    moveq   #0, %d4
-    moveq   #0, %d5
-    moveq   #0, %d6
-    moveq   #0, %d7
-    bsr     .Lpc090oj_emit_slot
-    rts
-
-/* A1=PC090OJ HW address, D0=word value.  Writes only the active 0x800-byte mirror. */
-.Lpc090oj_mirror_write_word_a1_d0:
-    move.l  %a2, -(%sp)
-    move.l  %a1, %d2
-    cmpi.l  #PC090OJ_HW_BASE, %d2
-    blo.s   .Lpc090oj_mirror_word_oob
-    cmpi.l  #PC090OJ_HW_ACTIVE_END, %d2
-    bhs.s   .Lpc090oj_mirror_word_oob
-    subi.l  #PC090OJ_HW_BASE, %d2
-    lea     pc090oj_object_ram, %a2
-    adda.l  %d2, %a2
-    move.w  %d0, (%a2)
-    addq.w  #1, pc090oj_producer_write_count
-    move.l  (%sp)+, %a2
-    rts
-.Lpc090oj_mirror_word_oob:
-    addq.w  #1, pc090oj_producer_oob_count
-    move.l  (%sp)+, %a2
-    rts
-
-/* A1=PC090OJ HW address, D0=byte value.  Used for 0x3B802 byte stores. */
-.Lpc090oj_mirror_write_byte_a1_d0:
-    move.l  %a2, -(%sp)
-    move.l  %a1, %d2
-    cmpi.l  #PC090OJ_HW_BASE, %d2
-    blo.s   .Lpc090oj_mirror_byte_oob
-    cmpi.l  #PC090OJ_HW_ACTIVE_END, %d2
-    bhs.s   .Lpc090oj_mirror_byte_oob
-    subi.l  #PC090OJ_HW_BASE, %d2
-    lea     pc090oj_object_ram, %a2
-    adda.l  %d2, %a2
-    move.b  %d0, (%a2)
-    addq.w  #1, pc090oj_producer_write_count
-    move.l  (%sp)+, %a2
-    rts
-.Lpc090oj_mirror_byte_oob:
-    addq.w  #1, pc090oj_producer_oob_count
-    move.l  (%sp)+, %a2
-    rts
+/* PC090OJ final teardown: the virtual object-RAM record adapters
+ * (.Lpc090oj_emit_slot / .Lpc090oj_clear_slot / .Lpc090oj_mirror_write_word_a1_d0
+ * / .Lpc090oj_mirror_write_byte_a1_d0) are REMOVED.  Every former producer has a
+ * native Genesis owner (native_frontend_hud_emit, .Lnq_title, status/player-aux
+ * lanes, .Lnq_transient_items_emit, .Lnq_gameover_emit); nothing packs an 8-byte
+ * PC090OJ record any more.  Proven dead output in Build 0296 (census:
+ * docs/design/Andy_pc090oj_final_retirement_census.md). */
 
 /* ------------------------------------------------------------------------- */
 /* 17 helpers                                                                */
@@ -301,38 +204,11 @@ genesistan_pc090oj_hook_target_3b902:
 genesistan_pc090oj_hook_target_3b926:
     rts
 
-genesistan_pc090oj_hook_target_3b930:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
-    move.w  %d1, %d6
-.Lhook_3b930_loop:
-    tst.w   %d6
-    beq.s   .Lhook_3b930_done
-
-    moveq   #0, %d0                  /* word0 = 0 */
-    bsr     .Lpc090oj_mirror_write_word_a1_d0
-    addq.l  #2, %a1
-
-    moveq   #0, %d0                  /* word1 = zero-extended Y byte */
-    move.b  (%a0)+, %d0
-    bsr     .Lpc090oj_mirror_write_word_a1_d0
-    addq.l  #2, %a1
-
-    moveq   #0, %d0                  /* word2 = zero-extended code byte */
-    move.b  (%a0)+, %d0
-    bsr     .Lpc090oj_mirror_write_word_a1_d0
-    addq.l  #2, %a1
-
-    move.w  (%a0)+, %d7              /* word3 = transformed X word */
-    jsr     (0x0005B712).l
-    move.w  %d7, %d0
-    bsr     .Lpc090oj_mirror_write_word_a1_d0
-    addq.l  #2, %a1
-
-    subq.w  #1, %d6
-    bra.s   .Lhook_3b930_loop
-.Lhook_3b930_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
-    rts
+/* PC090OJ final teardown: the Genesis compatibility hook for the generic
+ * packed-byte -> object-RAM record copier (arcade 0x03B930) is REMOVED entirely
+ * (hook symbol + its remap ownership), not left as an RTS shell.  Arcade 0x3B930
+ * is unreachable -- its only callers are inert (0x3B902 body-replaced, 0x3B8B0
+ * rts;nop) -- so its original bytes are left as dead, unreachable arcade code. */
 
 /* The old Genesis fallback at these boundaries copied the gameplay player tuple
  * blocks regardless of which arcade producer was replaced.  Main-loop native
@@ -870,48 +746,20 @@ genesistan_pc090oj_sprite_ctrl_clear:
 genesistan_hook_3ad44_dispatch:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 
-    /* A0 dispatch:
-     *   tilemap: [0x00C00000,0x00C10000)
-     *   PC090OJ: [0x00D00000,0x00D00800)
-     *   else:    audit fall-through
-     */
+    /* A0 dispatch: PC080SN C-range ONLY -> [0x00C00000,0x00C10000).
+     * The PC090OJ D-range (0x00D00000..0x00D007FF) is fully retired: its only
+     * callers were the arcade object-RAM clear routines 0x03AD4C / 0x03AD72,
+     * which are now RTS (their whole body was obsolete PC090OJ record clearing
+     * with no native effect), so no D-range address ever reaches this
+     * dispatcher.  No PC090OJ recognition remains here.  This dispatcher now
+     * survives ONLY for its still-live PC080SN C-range callers (0x03AE70/80,
+     * 0x03AF38/48) and is scheduled for deletion once PC080SN C-range ownership
+     * is native (see the PC080SN Final-Retirement Handoff). */
     move.l  %a0, %d2
     cmpi.l  #0x00C00000, %d2
-    blo.s   .Lhook_3ad44_check_pc090oj
-    cmpi.l  #0x00C10000, %d2
-    blo.s   .Lhook_3ad44_tilemap
-
-.Lhook_3ad44_check_pc090oj:
-    cmpi.l  #0x00D00000, %d2
     blo     .Lhook_3ad44_audit
-    cmpi.l  #0x00D00800, %d2
+    cmpi.l  #0x00C10000, %d2
     bhs     .Lhook_3ad44_audit
-
-    /* PC090OJ branch: preserve the arcade long-fill into active object RAM. */
-    move.l  %a0, %d2
-    subi.l  #0x00D00000, %d2
-    bmi     .Lhook_3ad44_finish
-    cmpi.l  #0x00000800, %d2
-    bhs     .Lhook_3ad44_finish
-
-    lea     pc090oj_object_ram, %a1
-    adda.l  %d2, %a1
-    move.w  %d1, %d3
-.Lhook_3ad44_pc090oj_long_fill_loop:
-    tst.w   %d3
-    beq     .Lhook_3ad44_finish
-    cmpi.l  #0x00000800, %d2
-    bhs     .Lhook_3ad44_finish
-    swap    %d0
-    move.w  %d0, (%a1)+
-    swap    %d0
-    addq.l  #2, %d2
-    cmpi.l  #0x00000800, %d2
-    bhs     .Lhook_3ad44_finish
-    move.w  %d0, (%a1)+
-    addq.l  #2, %d2
-    subq.w  #1, %d3
-    bra.s   .Lhook_3ad44_pc090oj_long_fill_loop
 
 .Lhook_3ad44_tilemap:
     cmpi.l  #0x00C04000, %d2
@@ -1388,101 +1236,9 @@ genesistan_pc090oj_hook_audit_guard:
 	    movem.l (%sp)+, %d1-%d3
 	    rts
 
-	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
-/* Build 0233 gameplay HUD projection.
- * The arcade score producer writes the P1 score/1UP setup records at 28..36,
- * but the translated gameplay sprite population can reuse part of that range.
- * Project the same packed-BCD P1 score into helper-owned records 0..8 only in
- * gameplay Mode 2, then let the normal object-table -> SAT path handle them.
- */
-.Lpc090oj_mode2_project_p1_hud:
-	    movem.l %d0-%d7/%a0-%a2, -(%sp)
-	    lea     pc090oj_object_ram, %a0
-	    movea.l #0x00FF011E, %a2
-	    clr.w   %d5                         /* significant digit has appeared */
-
-	    moveq   #0, %d1                     /* 100000s: high nibble FF011E */
-	    move.b  (%a2), %d1
-	    lsr.b   #4, %d1
-	    andi.w  #0x000F, %d1
-	    moveq   #0x08, %d4
-	    bsr     .Lmode2_emit_digit
-
-	    moveq   #0, %d1                     /* 10000s: low nibble FF011E */
-	    move.b  (%a2), %d1
-	    andi.w  #0x000F, %d1
-	    moveq   #0x10, %d4
-	    bsr     .Lmode2_emit_digit
-	    subq.l  #1, %a2
-
-	    moveq   #0, %d1                     /* 1000s: high nibble FF011D */
-	    move.b  (%a2), %d1
-	    lsr.b   #4, %d1
-	    andi.w  #0x000F, %d1
-	    moveq   #0x18, %d4
-	    bsr     .Lmode2_emit_digit
-
-	    moveq   #0, %d1                     /* 100s: low nibble FF011D */
-	    move.b  (%a2), %d1
-	    andi.w  #0x000F, %d1
-	    moveq   #0x20, %d4
-	    bsr     .Lmode2_emit_digit
-	    subq.l  #1, %a2
-
-	    moveq   #0, %d1                     /* 10s: high nibble FF011C */
-	    move.b  (%a2), %d1
-	    lsr.b   #4, %d1
-	    andi.w  #0x000F, %d1
-	    moveq   #0x28, %d4
-	    bsr     .Lmode2_emit_digit
-
-	    moveq   #0, %d1                     /* 1s: low nibble FF011C */
-	    move.b  (%a2), %d1
-	    andi.w  #0x000F, %d1
-	    moveq   #0x30, %d4
-	    bsr     .Lmode2_emit_digit
-
-	    tst.w   %d5
-	    bne.s   .Lmode2_emit_label
-	    lea     pc090oj_object_ram + (4 * 8), %a1
-	    move.w  #0x0010, 2(%a1)             /* zero score displays as 00 */
-	    move.w  #0x0010, 10(%a1)
-
-	.Lmode2_emit_label:
-	    clr.w   (%a0)+                      /* record 6: '1' */
-	    move.w  #0x0010, (%a0)+
-	    move.w  #0x0039, (%a0)+
-	    move.w  #0x0040, (%a0)+
-	    clr.w   (%a0)+                      /* record 7: 'U' */
-	    clr.w   (%a0)+
-	    move.w  #0x0048, (%a0)+
-	    move.w  #0x0028, (%a0)+
-	    clr.w   (%a0)+                      /* record 8: 'P' */
-	    clr.w   (%a0)+
-	    move.w  #0x0046, (%a0)+
-	    move.w  #0x0038, (%a0)+
-
-	    movem.l (%sp)+, %d0-%d7/%a0-%a2
-	    rts
-
-.Lmode2_emit_digit:
-	    clr.w   (%a0)+
-	    move.w  #0x0010, %d6
-	    tst.w   %d5
-	    bne.s   .Lmode2_digit_visible
-	    tst.w   %d1
-	    bne.s   .Lmode2_digit_visible
-	    move.w  #0x0110, %d6               /* hidden leading zero */
-	    bra.s   .Lmode2_digit_store
-	.Lmode2_digit_visible:
-	    moveq   #1, %d5
-	.Lmode2_digit_store:
-	    move.w  %d6, (%a0)+
-	    addi.w  #0x002A, %d1
-	    move.w  %d1, (%a0)+
-	    move.w  %d4, (%a0)+
-	    rts
-	.endif
+/* PC090OJ final teardown: .Lpc090oj_mode2_project_p1_hud REMOVED.  It projected the
+ * P1 score into object-RAM records 0..8 for a gameplay object-scan path that is no
+ * longer reachable (gameplay uses .Lnq_gameplay / .Lnq_project_p1_hud natively). */
 
 
 /* Build 0250 native semantic-lane finalizer.  Non-gameplay falls back to the
@@ -1492,13 +1248,13 @@ pc090oj_native_emit_pass:
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, %d0
     beq     .Lnq_gameplay
     tst.b   %d0
-    bne     .Lnq_frontend_object_scan   /* scene != 0 and != 1: keep object-RAM path */
+    bne     .Lnq_frontend_native        /* scene != 0 and != 1 (scene 2): native frontend */
     /* scene 0 (title tileset): the static native title HUD table is exact only in
      * the title-active state (arcade stage a5@0x118 == 0).  Once the attract loop
-     * advances (stage != 0: PUSH-BUTTON text toggles off, sub-screens), defer to
-     * the object-RAM path so its dynamic/blink behavior is preserved. */
+     * advances (stage != 0: PUSH-BUTTON text toggles off, sub-screens), the frontend
+     * runs the same native producers (HUD + transient items) as scene 2. */
     tst.w   0x00FF0118
-    bne     .Lnq_frontend_object_scan
+    bne     .Lnq_frontend_native
     bra     .Lnq_title
 /* Build 0264: title-screen sprites produced by LIVE direct-native producers.
  * Fixed text is a semantic glyph sequence (.Lnq_title_labels: {Y,X,glyph}); the
@@ -2153,266 +1909,31 @@ native_frontend_hud_emit:
     movem.l (%sp)+, %d0-%d7/%a0-%a3
     rts
 
-	/* Build 0258 unified finalizer bridge: the frontend / non-gameplay object-RAM
-	 * scan is now a local scene!=1 continuation of pc090oj_native_emit_pass, not a
-	 * separate exported finalizer.  The standalone pc090oj_legacy_emit_pass symbol
-	 * is retired.  The scan itself is byte-unchanged: same record range/order,
-	 * masks, tile residency, palette fixup and staged-SAT output.
-	 * One ascending pass over the object table into the back shadow-SAT bank.  */
-	.Lnq_frontend_object_scan:
-	    movem.l %d0-%d7/%a0-%a3, -(%sp)
-	    lea     staged_sprite_sat, %a3
-	    tst.w   pc090oj_sat_bank
-	    beq.s   .Lnep_bank_ok
-	    lea     staged_sprite_sat_b, %a3
-	.Lnep_bank_ok:
-	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
-	    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-	    bne.s   .Lnep_no_mode2_p1_hud
-	    bsr     .Lpc090oj_mode2_project_p1_hud
-	.Lnep_no_mode2_p1_hud:
-	.endif
-	    lea     sprite_tile_resident_code, %a2
-	    lea     pc090oj_cell_used, %a1     /* per-frame referenced-cell bitmap */
-	    clr.l   (%a1)+
+/* Frontend / non-gameplay native finalizer (PC090OJ final teardown).  The former
+ * .Lnq_frontend_object_scan + its 256-record object-RAM loop, decoder, and
+ * residency tail are REMOVED; every frontend sprite is produced by native
+ * Genesis owners.  This mirrors .Lnq_title's setup plus the transient item/effect
+ * family, then hands off to the shared native finalizer .Lnq_done_scan.  Reached
+ * for scene 0 stage!=0 and scene 2 from pc090oj_native_emit_pass. */
+.Lnq_frontend_native:
+    movem.l %d0-%d7/%a0-%a3, -(%sp)
+    movem.l %a4-%a6, -(%sp)
+    lea     staged_sprite_sat, %a3
+    tst.w   pc090oj_sat_bank
+    beq.s   .Lnqfn_bank_ok
+    lea     staged_sprite_sat_b, %a3
+.Lnqfn_bank_ok:
+    lea     sprite_tile_resident_code, %a2
+    lea     pc090oj_cell_used, %a1     /* per-frame referenced-cell bitmap */
+    clr.l   (%a1)+
     clr.l   (%a1)+
     clr.l   (%a1)+
     clr.l   (%a1)+
     moveq   #0, %d5                    /* d5 = emitted count / cursor */
-    /* Build 0272: the dedicated native_frontend_hud_emit subsystem owns the
-     * frontend numeric HUD.  Invoked here at the frontend boundary BEFORE the
-     * object-RAM loop: it emits the live scores/credit into the native SAT and
-     * retires its own PC090OJ digit records (code-gated 0x2A..0x33) from object
-     * RAM.  The loop below therefore no longer needs any record-number skip --
-     * the retired records read code 0 and drop out through the generic
-     * code-zero pretest, while every other record (labels, player, D00298, and
-     * 0x5A098's status row -- codes outside the digit range) still renders. */
-    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-    beq.s   .Lnep_after_native_scores
-    movem.l %a4-%a6, -(%sp)
-    bsr     native_frontend_hud_emit
+    bsr     native_frontend_hud_emit     /* live scores/labels/credit */
     bsr     .Lnq_transient_items_emit    /* frontend-direct treasure/item family */
     movem.l (%sp)+, %a4-%a6
-.Lnep_after_native_scores:
-    moveq   #0, %d6                    /* d6 = record */
-.Lnep_loop:
-.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
-    cmpi.w  #46, %d6                   /* records 0..45 = arcade HUD family */
-    bhs.s   .Lnep_not_hud
-    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-    bne.s   .Lnep_not_hud
-		.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
-		    /* Build 0233: keep only helper-owned gameplay P1 score records 0..8.
-		     * Records 9..45 are reserved/overlapping arcade-HUD family rows. */
-	    cmpi.w  #9, %d6
-	    blo.s   .Lnep_not_hud
-	.endif
-	    bra     .Lnep_next
-.Lnep_not_hud:
-.endif
-    /* Build 0235: code-zero pretest.  .Lpc090oj_decode_record masks the row code
-     * with 0x1FFF and returns not-drawable when it is zero; reproduce only that
-     * exact-zero rejection inline so an empty row skips the bsr + 4 loads + rts.
-     * Uses d0/a0 (both scratch — the decoder recomputes them) and touches no
-     * scan state (d5 cursor, d6 record).  Output is identical: the decoder would
-     * have returned d0=0 and this path already falls to .Lnep_next.  Nonzero
-     * codes still call the decoder unchanged (bitset/opaque/>=0x1000 rejection
-     * remain the decoder's job). */
-    /* Build 0272: NO record-number HUD skip here.  native_frontend_hud_emit has
-     * already retired its own digit records (code-gated), so the now-code-0
-     * score/credit rows drop out through the code-zero pretest below, exactly
-     * like any other empty row -- and records reused by 0x5A098 (status tiles)
-     * or labels keep their non-digit codes and render normally. */
-    move.w  %d6, %d0
-    lsl.w   #3, %d0
-    lea     pc090oj_object_ram, %a0
-    move.w  4(%a0,%d0.w), %d0
-    andi.w  #0x1FFF, %d0
-    beq     .Lnep_next
-    move.w  %d5, -(%sp)                /* decode clobbers d5 (cursor) */
-	    bsr     .Lpc090oj_decode_record    /* d6 -> d0 draw,d1 w0,d2 Y,d3 code,d4 X,d7 colbank */
-	    move.w  (%sp)+, %d5
-	    tst.w   %d0
-	    beq     .Lnep_next
-	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
-		    /* Build 0232: gameplay score/1UP records keep arcade variable-width
-		     * visibility, but use a separate white glyph residency variant. */
-		    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
-		    bne.s   .Lnep_no_hud_white
-		    cmpi.w  #9, %d6
-		    bhs.s   .Lnep_no_hud_white
-	    cmpi.w  #0x002A, %d3
-	    blo.s   .Lnep_hud_white_label_check
-	    cmpi.w  #0x0034, %d3
-	    blo.s   .Lnep_hud_white
-	.Lnep_hud_white_label_check:
-	    cmpi.w  #0x0039, %d3
-	    beq.s   .Lnep_hud_white
-	    cmpi.w  #0x0046, %d3
-	    beq.s   .Lnep_hud_white
-	    cmpi.w  #0x0048, %d3
-	    bne.s   .Lnep_no_hud_white
-	.Lnep_hud_white:
-	    ori.w   #0x8000, %d3              /* residency tag only; VDP tile attrs unchanged */
-	.Lnep_no_hud_white:
-	.endif
-	    /* Build 0222 code-keyed residency: 32 sets x 4 ways over cells 0..127.
-	     * Per-frame REFERENCE PROTECTION: a cell used by any entry of the frame
-     * being built can never be chosen as a victim, so no displayed sprite can
-     * have its patterns stolen (the 0221 wrong-art/disappear mechanism).
-     * EMIT-ON-MISS: an enqueued upload lands in VBlank BEFORE the SAT DMA, so
-     * a missing code is emitted pointing at its newly assigned cell with an
-     * optimistic tag -- residency misses are invisible.  Only queue overflow
-     * or a fully-referenced set skips (bounded, counted). */
-    move.w  %d3, %d0
-    andi.w  #0x001F, %d0
-    lsl.w   #3, %d0                    /* d0 = set*8 = way0 tag byte offset */
-    cmp.w   0(%a2,%d0.w), %d3
-    beq     .Lnep_hit
-    addq.w  #2, %d0
-    cmp.w   0(%a2,%d0.w), %d3
-    beq     .Lnep_hit
-    addq.w  #2, %d0
-    cmp.w   0(%a2,%d0.w), %d3
-    beq     .Lnep_hit
-    addq.w  #2, %d0
-    cmp.w   0(%a2,%d0.w), %d3
-    beq     .Lnep_hit
-    /* miss: pick the first way in the set whose cell is unreferenced */
-    move.w  %d1, -(%sp)
-    move.w  %d3, %d0
-    andi.w  #0x001F, %d0
-    lsl.w   #3, %d0
-    moveq   #3, %d1
-.Lnep_vloop:
-    bsr     .Lnep_cell_free
-    beq.s   .Lnep_take
-    addq.w  #2, %d0
-    dbra    %d1, .Lnep_vloop
-    move.w  (%sp)+, %d1
-    addq.w  #1, pc090oj_dropped_count  /* all 4 ways referenced this frame */
-    bra     .Lnep_next
-.Lnep_take:
-    move.w  pc090oj_tile_dma_count, %d1
-    cmpi.w  #12, %d1
-    bhs.s   .Lnep_qfull
-    lea     pc090oj_tile_dma_worklist, %a1
-    lsl.w   #2, %d1
-    adda.w  %d1, %a1
-    move.w  %d0, %d1
-    lsr.w   #1, %d1                    /* cell */
-    move.w  %d1, (%a1)+
-    move.w  %d3, (%a1)                 /* code */
-    addq.w  #1, pc090oj_tile_dma_count
-    move.w  %d3, 0(%a2,%d0.w)          /* optimistic tag: same-frame re-hits */
-    move.w  (%sp)+, %d1
-    bra     .Lnep_hit                  /* emit pointing at the enqueued cell */
-.Lnep_qfull:
-    move.w  (%sp)+, %d1
-    addq.w  #1, pc090oj_dropped_count
-    bra     .Lnep_next
-/* d0 = tag byte offset; returns eq when the cell is NOT referenced this frame.
- * Clobbers a1/flags only. */
-.Lnep_cell_free:
-    move.w  %d0, -(%sp)
-    lea     pc090oj_cell_used, %a1
-    lsr.w   #4, %d0
-    adda.w  %d0, %a1
-    move.w  (%sp), %d0
-    lsr.w   #1, %d0
-    andi.w  #7, %d0
-    btst    %d0, (%a1)
-    movem.w (%sp)+, %d0                /* movem: restores d0 WITHOUT touching CCR */
-    rts
-.Lnep_hit:
-    /* mark the cell referenced (protects it for the rest of this frame) */
-    move.w  %d0, -(%sp)
-    lea     pc090oj_cell_used, %a1
-    lsr.w   #4, %d0
-    adda.w  %d0, %a1
-    move.w  (%sp), %d0
-    lsr.w   #1, %d0
-    andi.w  #7, %d0
-    bset    %d0, (%a1)
-    move.w  (%sp)+, %d0
-.Lnep_res_ok:
-    /* d0 = tag byte offset = cell*2 */
-    move.w  %d0, -(%sp)                /* save cell*2 */
-    /* word0: Y + bias */
-    move.w  %d2, %d0
-    andi.w  #0x01FF, %d0
-    addi.w  #PC090OJ_SAT_Y_BIAS, %d0
-    andi.w  #0x01FF, %d0
-    move.w  %d0, (%a3)+
-    /* word1: size 16x16 | link = cursor+1 (last patched after the pass) */
-    move.w  %d5, %d0
-    addq.w  #1, %d0
-    andi.w  #0x007F, %d0
-    ori.w   #0x0500, %d0
-    move.w  %d0, (%a3)+
-    /* word2: pri | flips | tile.  Palette bits are resolved at COMMIT time:
-     * sprite_ctrl (colbank) is display-latch state the arcade sets AFTER its
-     * producers run, so the mainline pass records each entry's bank nibble in
-     * a parallel array and the VBlank fix-up applies the latched colbank. */
-	    move.w  %d1, %d0
-	    andi.w  #0x000F, %d0
-	    lea     pc090oj_sat_nibble, %a1
-	    move.b  %d0, 0(%a1,%d5.w)
-	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
-	    lea     pc090oj_sat_force_line, %a1
-	    move.b  #0xFF, 0(%a1,%d5.w)
-	    btst    #15, %d3
-	    beq.s   .Lnep_no_force_line
-	    move.b  #3, 0(%a1,%d5.w)          /* HUD white variant uses CRAM line 3 */
-	.Lnep_no_force_line:
-	.endif
-	    moveq   #0, %d0
-	    ori.w   #0x8000, %d0
-    btst    #15, %d1                   /* post-flip vflip */
-    beq.s   .Lnep_novf
-    ori.w   #0x1000, %d0
-.Lnep_novf:
-    btst    #14, %d1                   /* post-flip hflip */
-    beq.s   .Lnep_nohf
-    ori.w   #0x0800, %d0
-.Lnep_nohf:
-    move.w  (%sp)+, %d2                /* cell*2 (Y no longer needed) */
-    add.w   %d2, %d2                   /* cell*4 */
-    addi.w  #SPRITE_TILE_BASE, %d2
-    andi.w  #0x07FF, %d2
-    or.w    %d2, %d0
-    move.w  %d0, (%a3)+
-    /* word3: X + bias */
-    move.w  %d4, %d0
-    andi.w  #0x01FF, %d0
-    addi.w  #PC090OJ_SAT_X_BIAS, %d0
-    andi.w  #0x01FF, %d0
-    move.w  %d0, (%a3)+
-    addq.w  #1, %d5
-    cmpi.w  #NATIVE_SAT_MAX, %d5
-    bhs.s   .Lnep_done_scan            /* first-80 in ascending arcade order */
-.Lnep_next:
-    addq.w  #1, %d6
-    cmpi.w  #256, %d6
-    blo     .Lnep_loop
-.Lnep_done_scan:
-    tst.w   %d5
-    bne.s   .Lnep_have
-    clr.w   (%a3)+                     /* zero sprites: hidden terminator */
-    clr.w   (%a3)+
-    clr.w   (%a3)+
-    clr.w   (%a3)+
-    bra.s   .Lnep_store
-.Lnep_have:
-    move.w  -6(%a3), %d0               /* last entry: link = 0 terminates */
-    andi.w  #0xFF80, %d0
-    move.w  %d0, -6(%a3)
-.Lnep_store:
-    move.w  %d5, pc090oj_emitted_count
-    move.w  #1, pc090oj_sat_frame_ready
-    move.w  #1, pc090oj_sat_dirty
-    movem.l (%sp)+, %d0-%d7/%a0-%a3
-    rts
+    bra     .Lnq_done_scan
 
 /* Commit-time palette resolution: apply the DISPLAY-LATCHED colbank to every
  * emitted entry (<=80 iterations).  d7 = colbank from the current sprite_ctrl
@@ -2484,116 +2005,8 @@ vdp_commit_sprites_vram:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-.Lpc090oj_decode_record:
-    move.w  %d6, %d0
-    lsl.w   #3, %d0
-    lea     pc090oj_object_ram, %a0
-    adda.w  %d0, %a0
-    move.w  (%a0), %d1
-    move.w  2(%a0), %d2
-    move.w  4(%a0), %d3
-    move.w  6(%a0), %d4
-
-    andi.w  #0x1FFF, %d3
-    beq     .Ldecode_notdraw
-    cmpi.w  #0x1000, %d3
-    bhs     .Ldecode_notdraw
-    move.w  %d3, %d5
-    lsr.w   #3, %d5
-    lea     pc090oj_blank_code_bitset, %a1
-    move.b  0(%a1,%d5.w), %d5
-    move.w  %d3, %d0
-    andi.w  #0x0007, %d0
-    btst    %d0, %d5
-    bne     .Ldecode_notdraw
-
-    andi.w  #0x01FF, %d2
-    cmpi.w  #0x0140, %d2
-    bls.s   .Ldecode_y_ok
-    subi.w  #0x0200, %d2
-.Ldecode_y_ok:
-    andi.w  #0x01FF, %d4
-    cmpi.w  #0x0140, %d4
-    bls.s   .Ldecode_x_ok
-    subi.w  #0x0200, %d4
-.Ldecode_x_ok:
-    move.w  pc090oj_ctrl_shadow, %d5
-    btst    #0, %d5
-    bne.s   .Ldecode_no_flip
-    move.w  #PC090OJ_FLIP_X_TERM, %d5
-    sub.w   %d4, %d5
-    move.w  %d5, %d4
-    move.w  #PC090OJ_FLIP_Y_TERM, %d5
-    sub.w   %d2, %d5
-    move.w  %d5, %d2
-    eori.w  #0xC000, %d1
-.Ldecode_no_flip:
-    /* Arcade -> Genesis viewport origin: aligns sprites with the background
-     * (which applies the matching bias in vdp_comm.s) and places the arcade top
-     * margin above the Genesis viewport, where clipped records drop out. */
-    addi.w  #PC090OJ_TO_GENESIS_X_OFFSET, %d4
-    addi.w  #PC090OJ_TO_GENESIS_Y_OFFSET, %d2
-
-    /* Opaque-geometry viewport clip.  A record is drawable only when at least
-     * one opaque pixel of its post-flip pattern intersects the effective clip
-     * rectangle; fully-clipped records return not-drawable, so they receive no
-     * SAT slot, link entry, tile work, or scanline capacity.  d3 = code
-     * (0..0x0FFF); box bytes = [min_row, max_row, min_col, max_col] (unflipped). */
-    move.w  %d3, %d0
-    andi.w  #0x0FFF, %d0
-    lsl.w   #2, %d0
-    lea     pc090oj_opaque_bbox, %a1
-    adda.w  %d0, %a1
-    /* vertical opaque span (post vertical-flip) vs [TOP, BOTTOM) */
-    moveq   #0, %d0
-    move.b  0(%a1), %d0                    /* min_row */
-    moveq   #0, %d5
-    move.b  1(%a1), %d5                    /* max_row */
-    btst    #15, %d1                       /* vflip (post-flip word0 bit 15) */
-    beq.s   .Ldecode_vrows_ok
-    neg.w   %d0
-    addi.w  #PC090OJ_PATTERN_MAX_ROW, %d0  /* MAX_ROW - min_row */
-    neg.w   %d5
-    addi.w  #PC090OJ_PATTERN_MAX_ROW, %d5  /* MAX_ROW - max_row */
-    exg     %d0, %d5                       /* d0 = eff top row, d5 = eff bottom row */
-.Ldecode_vrows_ok:
-    add.w   %d2, %d0                       /* opaque top    (screen Y) */
-    add.w   %d2, %d5                       /* opaque bottom (screen Y) */
-    cmpi.w  #GENESIS_VIEWPORT_BOTTOM, %d0
-    bge     .Ldecode_notdraw               /* opaque top at/below viewport bottom */
-    cmpi.w  #GENESIS_VIEWPORT_TOP, %d5
-    blt     .Ldecode_notdraw               /* opaque bottom above viewport top */
-    /* horizontal opaque span (post horizontal-flip) vs [LEFT, RIGHT) */
-    moveq   #0, %d0
-    move.b  2(%a1), %d0                    /* min_col */
-    moveq   #0, %d5
-    move.b  3(%a1), %d5                    /* max_col */
-    btst    #14, %d1                       /* hflip (post-flip word0 bit 14) */
-    beq.s   .Ldecode_hcols_ok
-    neg.w   %d0
-    addi.w  #PC090OJ_PATTERN_MAX_COL, %d0  /* MAX_COL - min_col */
-    neg.w   %d5
-    addi.w  #PC090OJ_PATTERN_MAX_COL, %d5  /* MAX_COL - max_col */
-    exg     %d0, %d5                       /* d0 = eff left col, d5 = eff right col */
-.Ldecode_hcols_ok:
-    add.w   %d4, %d0                       /* opaque left  (screen X) */
-    add.w   %d4, %d5                       /* opaque right (screen X) */
-    cmpi.w  #GENESIS_VIEWPORT_RIGHT, %d0
-    bge     .Ldecode_notdraw               /* opaque left at/right of viewport right */
-    cmpi.w  #GENESIS_VIEWPORT_LEFT, %d5
-    blt     .Ldecode_notdraw               /* opaque right left of viewport left */
-    andi.w  #0x0FFF, %d3
-    move.w  pc090oj_sprite_ctrl_shadow, %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
-    moveq   #1, %d0
-    rts
-.Ldecode_notdraw:
-    moveq   #0, %d0
-    rts
-
-/* Generic bitmap scans (base-68000; a1=base, d5=total bits). */
-/* First SET bit >= d0.  Returns d0 = bit or d5.  Clobbers d1-d3. */
+/* PC090OJ final teardown: .Lpc090oj_decode_record (virtual-record word decode,
+ * clip, flip, code, colbank) REMOVED with pc090oj_object_ram and the frontend scan. */
 
 /*
  * Precomputed tile-DMA worklist commit.  Bounded by pc090oj_tile_dma_count,
@@ -2929,61 +2342,21 @@ native_queue_player_body:
 native_queue_back_enemy:
     .space (NATIVE_BACK_ENEMY_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
     .align 2
-/* The arcade program's persistent slot-addressed object store (256 rows).
- * This is arcade state (incremental producers update rows in place), not a
- * chip mirror: nothing scans, diffs, or reverse-converts it except the one
- * per-frame native emit pass. Fixed 256 rows: no mirror-size configuration. */
-pc090oj_object_ram:
-    .space (256 * 8)
+/* Native sprite-control shadows: pc090oj_ctrl_shadow is the global-flip control
+ * read by the gameplay flip path; pc090oj_sprite_ctrl_shadow is the colbank
+ * latch read by .Lnative_pal_fixup.  Both are live native state (historical name
+ * only), NOT PC090OJ compatibility. */
 pc090oj_ctrl_shadow:
     .word 0
 pc090oj_sprite_ctrl_shadow:
     .word 0
-pc090oj_mirror_dirty:
-    .word 0
-pc090oj_candidate_count:
-    .word 0
-pc090oj_decoded_count:
-    .word 0
-pc090oj_code_zero_skipped_count:
-    .word 0
-pc090oj_blank_skipped_count:
-    .word 0
-pc090oj_unmapped_skipped_count:
-    .word 0
-pc090oj_offscreen_skipped_count:
-    .word 0
-pc090oj_hud_suppressed_count:
-    .word 0
-pc090oj_drawable_count:
-    .word 0
+/* Native SAT finalizer state (shared by title/gameplay/frontend). */
 pc090oj_emitted_count:
     .word 0
 pc090oj_dropped_count:
     .word 0
-pc090oj_scan_colbank:
-    .word 0
-pc090oj_scan_active:
-    .word 0
-pc090oj_producer_oob_count:
-    .word 0
-pc090oj_producer_write_count:
-    .word 0
-pc090oj_represented_count:
-    .word 0
 pc090oj_sat_dirty:
     .word 0
-pc090oj_bootstrap_pending:
-    .word 0
-.Lscratch_rec:
-    .word 0
-.Lrecord46_rec:
-    .word 0
-.Lrecord46_count:
-    .word 0
-    .align 2
-.Lrecord46_scratch:
-    .space 8
 /* Audit-guard + DMA self-test diagnostics (retained consumers). */
 audit_guard_caller_pc:
     .long 0
@@ -2997,17 +2370,8 @@ audit_guard_heartbeat:
     .word 0
     .align 2
 
-/* Legacy exported stubs (symbols retained; no runtime consumers). */
-staged_sprite_dirty:
-    .long 0
-staged_sprite_active_count:
-    .word 0
-staged_sprite_descriptor_table:
-pc090oj_candidate_bitset:
-record_to_slot:
-represented_records:
-waiting_records:
-used_sat_slots:
+/* Native tile-DMA scratch (historical name; live consumer at the tile-DMA
+ * commit path). */
 worklist_entry_for_slot:
     .space 4
     .align 2

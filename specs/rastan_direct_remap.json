@@ -160,7 +160,6 @@
   "genesistan_hook_itempage_strip_blit",
   "genesistan_pc090oj_hook_target_3b902",
   "genesistan_pc090oj_hook_target_3b926",
-  "genesistan_pc090oj_hook_target_3b930",
   "genesistan_pc090oj_hook_target_41dae",
   "genesistan_pc090oj_hook_target_41f5e",
   "genesistan_pc090oj_hook_target_45dfa",
@@ -178,12 +177,8 @@
   "vdp_commit_sprites",
   "genesistan_pc090oj_dma_self_test",
   "rastan_pc090oj",
-  "pc090oj_object_ram",
   "pc090oj_slot_lut",
   "staged_sprite_sat",
-  "staged_sprite_descriptor_table",
-  "staged_sprite_dirty",
-  "staged_sprite_active_count",
   "pc090oj_dma_test_fired_flag",
   "pc090oj_dma_test_mismatch_offset",
   "pc090oj_dma_test_expected_word",
@@ -1248,12 +1243,6 @@
    "note": "PC090OJ Strategy A function-body replacement at writer fn 0x3B926 (helper genesistan_pc090oj_hook_target_3b926). Intercepts 2 April-6 ledger callers (0x03A9C6, 0x03A9D4). Original 0x3B926 falls through with bras into 0x3B902's loop body; helper subsumes that flow. Helper emits SAT slots 5..13. See Andy_pc090oj_implementation_spec.md \u00a78.6."
   },
   {
-   "arcade_pc": "0x03B930",
-   "original_bytes": "424232C24240101832C04240101832C03E184EB90005B71232C7538166E44E75",
-   "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_target_3b930}4E754E714E714E714E714E714E714E714E714E714E714E714E71",
-   "note": "PC090OJ Strategy A writer-helper body replacement at 0x3B930 (helper genesistan_pc090oj_hook_target_3b930). Reached from target 0x3B902 (already covered by entry #1 \u2014 body replacement makes that path inert) AND from non-target init function 0x3B8B0 at 3 BSR sites (0x3B8BC, 0x3B8D2, 0x3B8E2). Without this entry, init-time writes to 0xD00020/0xD000E0/0xD00128 would hit unmapped Genesis memory. Helper emits SAT slots 14..17. See Andy_pc090oj_implementation_spec.md \u00a78.6."
-  },
-  {
    "arcade_pc": "0x041DAE",
    "original_bytes": "49ED050843F900D001C8426D02144A2C0000670000F4102C00011C2C00201E2C0002740D6100B280D9FC00000040526D02140C6D0002021466D449ED05C843F900D00300426D02144A2C0000670000CE102C00011C2C00201E2C000274046100B246D9FC00000040526D02140C6D0006021466D449ED02C8426D021443F900D004604A2C0000670000A84A2C0005670000A04A2C00036600D178102C00011C2C00201E2C0002740A0C6D00080214660274136100B1F2D9FC00000040526D02140C6D0009021466BA49ED074843F900D00170426D02144A2C000067724A2C0036666C102C00011C2C00201E2C000274016100B1B4D9FC00000040526D02140C6D000B021466D04E75303C0180740D334000025089534266F66000FF0E303C01807404334000025089534266F66000FF34303C0180740A0C6D0008021466027413334000025089534266F66000FF6A303C01807401334000025089534266F66094",
    "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_target_41dae}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
@@ -1318,18 +1307,6 @@
    "original_bytes": "302D013A0800000F6704426D013A343C0010363C00E8207C00D00048302D013AE048E64802400007004000083B4012A6066D001012A4428142844240322D12A4382D12A63C2D13060C44000C6F02780C55440806000066060901663A6004090167343A2D130A066D0010130A72070C4400076C0253410305670452406004526D130630FC000030C3064003CA30C030C20642001060060642001050480C6D000112FC660000A830FC000030C330FC03CC30C206420010302D013AE0480C4000306504303C003032000240FFF8E64802410007383C000698403B7C00FF13280C40000066063B7C000113280C400000671430FC000030C330FC03CD30C206420010534060E60C4100006722D24143F90005A48AD2C130FC000030C3301130C03B40132A30C253440642001060063B7C03D5132A0C440000671430FC000030C330FC03D530C206420010534460E60C6D000113286624207C00D00048D1FC00000014302D1308E248080000006708302D132A3080600430BC03D5610000320C6D000012F466140C6D001113D2660C303C00064EB90003A2EC60120C6D00FE13D2660A303C00294EB90003A3164E750C6D00011328660000200C6D00FF13CE67083B7C000113D260063B7C001113D23B7C000113CE601C0C6D000113CE67083B7C00FF13D260063B7C00FE13D23B7C00FF13CE4E75",
    "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_status_sprite_5a098}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
    "note": "Direct-native gameplay energy/status replacement at arcade_pc 0x05A098 (helper genesistan_pc090oj_hook_status_sprite_5a098), reached only from arcade_pc 0x051054. The helper preserves the energy animation, full/partial/empty six-cell bar, low-energy blink, lifecycle fields and sound transitions, but emits ordered semantic pieces directly into native_queue_hud. The original HW_ADDRESS 0x00D00048 record tail and the transitional virtual-record 30..43 packing path are retired for this producer; no frontend object-RAM scanner/decoder consumes its output."
-  },
-  {
-   "arcade_pc": "0x05A51E",
-   "original_bytes": "207C00D00298",
-   "replacement_bytes": "207C{symbol:pc090oj_object_ram+0x298}",
-   "note": "Build 0254 / KF-032 targeted raw PC090OJ writer fix: Ghidra-resolved FUN_0005a502 constructs eight complete contiguous records 83..90. Redirect the first destination literal from HW_ADDRESS 0x00D00298 to the existing transitional pc090oj_object_ram + 0x298 while preserving every record word and (A0)+ store. The same routine's contiguous fourth-record reload at 0x05A554 is redirected by the paired entry below."
-  },
-  {
-   "arcade_pc": "0x05A554",
-   "original_bytes": "207C00D002B0",
-   "replacement_bytes": "207C{symbol:pc090oj_object_ram+0x2B0}",
-   "note": "Build 0254 paired continuation of the FUN_0005a502 writer family: after records 83..85, A0 already equals offset 0x2B0; this redundant reload begins record 86 and must move with the 0x05A51E literal so records 86..90 do not fall back to raw HW_ADDRESS 0x00D002B0. No record data, flow, native gameplay lane, or SAT finalizer logic changes."
   },
   {
    "arcade_pc": "0x0510EA",
@@ -1996,6 +1973,18 @@
    "original_bytes": "4280",
    "replacement_bytes": "4E75",
    "note": "Frontend items+GAME OVER conversion: retire arcade GAME OVER producer FUN_0005a502 (records 83..90). Output now produced natively/live by .Lnq_gameover_emit (reads a5@0x34 game-over gate + a5@0x200 bit5 visibility directly, correcting the broken absolute 0x10C200 cart-ROM read). Byte-neutral clr.l d0 -> rts at entry; remaining body incl. 0x5A51E/0x5A554 object-RAM destinations becomes dead/unreachable. Paired 0x5A51E/0x5A554 redirects retained (dead) so no raw 0x00D002xx literal remains live."
+  },
+  {
+   "arcade_pc": "0x03AD4C",
+   "original_bytes": "323C0008",
+   "replacement_bytes": "4E754E71",
+   "note": "PC090OJ final teardown (Tighe explicitly authorized this RTS, narrowly scoped). Arcade 0x03AD4C is exclusively obsolete PC090OJ object-RAM clearing: its whole body is fill-setup (d1=count,a0=0xD00000/0xD00170,d0=0x100 park value) + two bsr 0x03AD44 fills + rts, with no other arcade state/control work. On Genesis the clear has no effect (native SAT is rebuilt per frame). Replace the entry move.w #8,d1 with rts;nop so the routine returns immediately; the D-range bsr sites 0x03AD5C/0x03AD6E become unreachable dead bytes. The 8 callers (0x3A242/0x3A2DC/0x3A5A4/0x3A8D6/0x3AA44/0x3AA9E) read no result and continue unchanged."
+  },
+  {
+   "arcade_pc": "0x03AD72",
+   "original_bytes": "323C01E0",
+   "replacement_bytes": "4E754E71",
+   "note": "PC090OJ final teardown (Tighe explicitly authorized this RTS, narrowly scoped). Arcade 0x03AD72 is exclusively obsolete PC090OJ object-RAM clearing: fill-setup (d1=480,a0=0xD00000,d0=0x100) + bsr 0x03AD44 fill, then falls into the already-rts-hooked 0x03AD84 (records 76..79, dead). Replace the entry move.w #480,d1 with rts;nop; the D-range bsr site 0x03AD82 and the fall-through into the dead 0x03AD84 init become unreachable. Callers 0x3ABB6/0x3AF28 read no result and continue unchanged (0x03AD84 is reached only via this fall-through)."
   }
  ],
  "rom_opcode_replace": [],
@@ -2032,7 +2021,7 @@
   }
  ],
  "expectations": {
-  "opcode_replace_count": 228,
-  "genesis_only_maincpu_ref_count": 8
+  "opcode_replace_count": 227,
+  "genesis_only_maincpu_ref_count": 7
  }
 }
