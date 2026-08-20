@@ -1,5 +1,102 @@
 # AGENTS Log
 
+## [Andy — Analysis/Verification, Plane-A Cave Part 1B Static Metatile Decode]
+
+* files changed: `docs/design/Andy_plane_a_cave_part1b_metatile_decode.md`; `AGENTS_LOG.md`. build produced: NO. ROM path: NONE. build counter: 297 unchanged. production source changed: NO.
+* static decompile completed: YES (Ghidra decoded disasm + arcade ROM `build/regions/maincpu.bin`). Chain: strip-source ptr a5@0x1000[i] (=0x10D000[i], seed 0x1691C+strip*0x22C0+seg*0x40, +4/group @0x0558CE) → deref → FUN_00055904 @0x055904 splits entry {word0→0x10D080, word1→0x10D040} → FUN_00055968 @0x055968 (loop #16), a2=word1=METATILE PTR → FUN_000559b2 @0x0559B2 emits tiles to plane + collision word to ring @arcade 0x10DE00.
+* strip-source format understood: YES — 4-byte {word0=anchor tile, word1=metatile ptr (low ROM)}. metatile format understood: YES — +0x00..0x1F = 16 tile-graphics words (KF-014 domain); +0x20 = collision header (0x00FF uniform); +0x22 = collision value (0=passable,1=floor,2=wall, consumer masks &0x7F).
+* 8×8 tile codes derivable: YES. attributes/collision derivable: YES. Representative cells: outdoor metatile 0x1024→tiles 0x70..0x7F (collision 0x0000); cave 0x2024→0xBD..0x10F (coll 0x0001 wall); cave 0x2090→0x411..0x41B (coll 0x0001); deeper 0x243C→0x7FC..0x806 (coll 0x0001). Cave-only metatiles (diff outdoor seg1 vs cave seg5): 0x2024/0x2048/0x2090/0x20FC/0x243C/0x2460/0x2484/0x29C8/0x2A48/0x2A88/0x2AC8/0x2B08/0x2B48/0x2B88.
+* cell-level cave oracle complete: YES for tile-set + collision; byte-exact per-cell (which metatile word per (strip,cell)) pending — the metatile+0x20 section is collision, +0x00 tiles; exact tile sub-index is the one refinement (§12.1). runtime validation: cave-reach YES (Part 1); single-cell byte-exact correlation recommended, not required for the format.
+* rope-region cell: NOT PROVEN (candidate metatiles 0x2B08/0x2B48/0x2B88; demo GAME-OVERs ~seg6 before rope). missing cave block deferred: YES. ready for Part 2: YES (metatile/tile-set + collision level). no unrelated changes: YES. STOP triggered: NO. KNOWN_FINDINGS: Option B proposed (Rastan Stage-1 Plane-A map+metatile+collision format) — Tighe review. OPEN-001/017/018 advanced, not closed.
+
+## [Andy — Analysis/Verification, Plane-A Cave Part 1 Arcade Level Oracle (CORRECTED)]
+
+* files changed: `docs/design/Andy_plane_a_cave_part1_arcade_level_oracle.md` (corrected); read-only tools `tools/mame/scripts/{cave_reach_sampler,cave_walk_sampler,cave_diag,seg_src_map}.lua`; `AGENTS_LOG.md`. build produced: NO. ROM path: NONE. build counter: 297 unchanged. production source changed: NO.
+* CORRECTION: an earlier draft wrongly concluded the attract demo does not reach the cave and STOPped. WRONG — Tighe's screenshot shows the attract IN the cave (GAME OVER). Two errors: defaulted to attract without confirming; detected "cave" via Build-0217 attr-0x0003/tm0-56..111 which does NOT signal the Stage-1 demo cave.
+* corrected findings (ORIGINAL ARCADE rastan, read-only samplers): A5=0x10C000 confirmed. Over 200s the tm0 idx a5@0x1386 stays 0 and the tm0 descriptor (a5@0x10FC=0x3951C) attr stays 0x0002 (outdoor) — so the Stage-1 cave is SEGMENT-driven via the strip-source tables (0x1691C+seg*0x40), NOT the Build-0217 attr-0x0003 path (that is a different/later cave). Demo walks segments 0..6; strip0 base = 0x1691C+seg*0x40 (seg1=0x1695C..seg6=0x16A9C, confirms model). FG vertical scroll fgy (a5@0x10B0) climbs 261→349→489 across segments 4..6 = vertical descent into the first cave (matches screenshot).
+* cave oracle: segment→strip-source selection model runtime-VALIDATED; cave reached (segments 4..6). Cave FG source = strip bases at segments 4..6 (strip0 0x016A1C/0x016A5C/0x016A9C). Cell-level tile codes NOT yet produced — needs the metatile→8×8 decode format (the one remaining piece).
+* arcade level model understood: YES (selection/segment/strip-source); cell-level decode pending. cave progression understood: YES (segment-driven, runtime-validated). cave oracle produced: PARTIAL (segment/source level; cell codes pending). arcade MAME validation: CAVE REACHED (corrected). missing cave block deferred: YES.
+* ready for Part 2: YES at segment→strip-source level; cell-level needs the metatile decode. no unrelated changes: YES. STOP triggered: NO. KNOWN_FINDINGS: Option C proposed (record Stage-1 cave is segment-driven; Build-0217 attr-0x0003 is a different cave) — Tighe review. OPEN-001/017/018 unchanged (not closed).
+
+## [Andy — Implementation/Verification, Build 0298 Native Genesis Gameplay FG — STOP, NO BUILD]
+
+* files changed: `docs/design/Andy_build0298_native_genesis_gameplay_fg.md` (STOP report); `AGENTS_LOG.md`. build produced: **NO**. ROM path: NONE. ROM SHA-256: n/a. ROM size: n/a. build counter: **297 (unchanged)**. production source changed: **NO**. remap changed: NO.
+* STOP reason: the native gameplay-FG Plane-A producer this task asks to implement **already exists and is the active gameplay path in accepted Build 0297**. arcade_pc 0x055968 → `genesistan_hook_tilemap_plane_a_selector0_native` (Build 0242); 0x055990 → `genesistan_hook_tilemap_plane_a_selector12_native` (Build 0245, handles selector 1/2/4/5/6 with parity `~idx&3` unless ==2); 0x055704/0x055790 → pan up/down native (Build 0247). staged_fg_buffer = 64×32 native; collision base `0x00FF1E00` = arcade `0x10DE00` (Part-2-proven). Tall/projection compatibility already removed in Build 0257.
+* semantic cut: already exactly as specified — retain FUN_00055650/directional/FUN_00055948/558a2/558c6/55904/558e0 (arcade owns state/cursor/scroll/selector); replace only FUN_00055968/55990/559b2/55a14 + C-window dest. native gameplay FG producer implemented: YES (already). Plane-A geometry: 64×32. publication unit: 64 cells (16×4). collision ring: 0x00FF1E00 written by existing hooks. initial resident draw: native (tall/projection removed 0257). runtime gameplay FG renderer count: 1. Stage-1 validation: FG renders (ROUND/READY per Build 0215) with remaining defects. frontend preserved: YES. PC080SN gameplay-FG zero debt: NO (unreached chip bytes remain for later retirement; FG defects remain).
+* not built because: every Build-0298 success criterion is already true in Build 0297 → a ROM would be a redundant reimplementation (no delta) OR a guessed defect fix. The principal remaining FG defect (collision/FG source-block divergence: Genesis 0x3888 vs arcade 0x2648/0x1C14) has an explicit prior STOP (Build 0228: "no patch-safe correction boundary exists") — fixing it now would require guessing (STOP: NO GUESSING). No NOP/RTS added; existing FG-native NOP-padded routes are pre-existing accepted history (Builds 0242-0247).
+* recommendation: re-scope the next task to a targeted, proof-driven FG DEFECT investigation (source-block selection divergence + lower-block terrain), not a redundant producer implementation. no unrelated changes: YES. STOP triggered: **YES** — asking Tighe for direction. OPEN-001/017/018 unchanged (not closed).
+
+## [Andy — Analysis/Verification/Design, Native FG Sonic-1 + Publication-Unit Addendum]
+
+* files changed: `docs/design/Andy_native_genesis_fg_sonic1_publication_unit_addendum.md` (new); corrected §5/§12/§16 of `docs/design/Andy_native_genesis_fg_plane_a_design.md`; `AGENTS_LOG.md`. build produced: NO. ROM path: NONE. production source changed: NO.
+* Sonic repo inspected: YES — `sonicretro/s1disasm` branch **AS**, file `_inc/Level Drawing (REV00).asm` (read-only WebFetch, no vendor files added). Sonic source file inspected: YES.
+* Sonic publication unit proven (from source): flag-gated `LoadTilesAsYouMove` (bits 0-3 top/bottom/left/right); `DrawBlocks_TB` = 16-block vertical column (horizontal scroll), `DrawBlocks_LR` = 22-block horizontal row (vertical scroll); block = 4 name-table cells; `Calc_VRAM_Pos` masks directly to 64×32 wrapped plane; init separate (`LoadTilesFromStart`/`DrawChunks`). Sonic vertical column = 16×4 = 64 cells; horizontal row = 22×4 = 88.
+* Rastan terminal-writer cardinality proven: YES (raw `full_listing.tsv`) — `FUN_00055968`/`FUN_00055990` loop **exactly 16** times (`d1=0x10; subq/bne`) over the 4-cell terminal writer `FUN_000559b2`/`FUN_00055a14`. Earlier Ghidra `while(D1w!=1)` was a mis-decompilation; corrected.
+* Rastan publication unit: **CASE B** — one publication event = one complete entering column (sel 0) / row (sel≠0) = **16×4 = 64 cells**; `a5@0x10CA` advances once per 64-cell publication. Collision base pinned: **arcade WRAM 0x0010DE00**, index `(dest-0xC08000)>>1`.
+* current native design required correction: YES (wording only — §12 "4-tile×plane-height/4" → "16×4=64"; §16 collision base 0x10DE00; §5 Sonic source-verified). Architecture/semantic cut UNCHANGED (replace FUN_00055968/55990/559b2/55a14 + C-window dest; arcade retains state machine).
+* semantic cut changed: NO. Rainbow structural model affected: NO. Stage-1 runtime (Part 2B) reconciled: one 0xA0 X-accum crossing = one 64-cell column + one 8px scroll step + one strip advance (16 terminal calls per frame publication invisible to the per-frame sampler).
+* ready for Build 0298 implementation prompt: YES. no unrelated changes: YES. STOP triggered: NO. KNOWN_FINDINGS: Option A. OPEN-017 collision base pinned (not closed); 4/5/6 geometry + FG strip-commit shape carried to Build 0298/0299.
+
+## [Andy — Analysis/Design, Native Genesis Gameplay FG Plane-A Design]
+
+* files changed: `docs/design/Andy_native_genesis_fg_plane_a_design.md`; `AGENTS_LOG.md`. build produced: NO. ROM path: NONE. production source changed: NO.
+* semantic cut: replace the PC080SN chip realization only — selector writers FUN_00055968/FUN_00055990 + terminal writers FUN_000559b2/FUN_00055a14 + the `a5@0x10A0/0x10A4 = 0xC08000+geometry` C-window dest computation — with ONE native Plane-A producer. Arcade RETAINS FUN_00055650, the 4 directional publishers (accumulators/boundary/scroll), FUN_00055948 (dispatch/strip++), FUN_000558a2/558c6/55904/558e0 (cursor/source/page progression), selector `a5@0x10A8`, scroll `a5@0x10AE/0x10B0`. Refines the Part-1/2 "cut at FUN_00055650" to keep accumulator/cursor logic arcade-owned (rationale in report §7).
+* Rainbow Islands reference inspected: YES (Cody_rainbow_islands_vdp_template_analysis.md + comparison docs) — adopted: VBlank commit-only, target-shaped WRAM staging, bounded strip publication, staged scroll; NOT copied: Rainbow's Genesis-owned VBlank, WRAM/flag layout, scheduler, C-Chip. Rastan VBlank stays arcade-owned.
+* Sonic 1 decomp reference inspected: NOT IN REPO (only tools/sgdk/sample/game/sonic C sample) — used established Sonic-1 level-drawing knowledge (LoadTilesAsYouMove/DrawBlocks_LR/TB/Calc_VRAM_Pos entering-edge + wrapped nametable) as STRUCTURAL reference, clearly labeled; NOT copied: block/chunk/camera/map structures. Reported honestly in report §2/§5.
+* native Plane-A geometry designed: YES — Plane A base VRAM 0xE000; staged_fg_buffer target-shaped shadow; entering edge → wrapped column/row via mask from semantic map position (strip/group + FG scroll), NOT C-window; tile/attr via KF-014 LUT; scroll via existing staged_scroll_fg + vdp_commit_scroll (KF-015 +8). No virtual name RAM / projection / changed-cell scan.
+* initial population designed: YES (resident-window draw from arcade source descriptors, replacing C-window blank/full FG fill). entering-edge producer designed: YES (4 directions, 4-tile strips, source-index math mirrors FUN_000559b2/55a14; arcade advances cursor). all selectors accounted for: YES (data-driven by a5@0x10A8; 4/5/6 Plane-A-geometry carries a Build-0299 validation obligation, no invented behavior). collision side effect designed: YES (descriptor word → 64-wide ring at FG-scroll position; &0x7F 0/1/2 empty/floor/wall; FG-exclusive; synchronized with visual write).
+* PC080SN retirement map complete: YES (gameplay-FG tail only; frontend/text FG + 0x03AD44 BG/C-range preserved). stage-specific hybrid renderer required: NO (one producer handles all selectors). staging/VBlank: staged_fg_buffer + scroll commit FINAL NATIVE; one audit obligation on FG strip-commit shape.
+* future sequence: Build 0298 (native producer + Stage-1 validation), 0299 (broaden directions/selectors), 0300 (retire PC080SN FG tail + zero-debt). ready for Build 0298 implementation prompt: YES. no unrelated changes: YES. STOP triggered: NO. KNOWN_FINDINGS: Option A. OPEN-001/017/018 design context (none closed).
+
+## [Andy — Analysis/Verification, Arcade FG Decompile Part 2B Runtime Confirmation]
+
+* files changed: `docs/design/Andy_pc080sn_arcade_fg_part2b_runtime_confirmation.md`; `tools/mame/scripts/fg_state_sampler.lua` (new read-only analysis tool); `AGENTS_LOG.md`. build produced: NO. ROM path: NONE. production source changed: NO.
+* original arcade MAME used: YES — machine `rastan` / `roms/rastan.zip`, headless attract (demo plays Stage 1), 150s (9001 frames) + 110s (6601 frames), sampling arcade_WRAM FG state block 0x0010D0xx (a5=0x10C000).
+* selector runtime semantics verified: PARTIAL — `a5@0x10A8` = 0 for ALL sampled frames (Stage-1 horizontal); values 1/2/4/5/6 NOT REACHED in attract.
+* selector 4/5/6 mode verified: NOT REACHED — the FUN_00052732 branch (a5@0x10E8=7) never fired; observed a5@0x10E8 varied 0-8 during selector-0 (other Stage-1 writers), so the =7 role is UNCONFIRMED (not contradicted).
+* accumulator thresholds verified: YES (X) — at every publication event direction bitmask a5@0x10D0=0x08 (bit3=right/FUN_000557ba) and X accum a5@0x10B8=0xA0 (160) exactly; FG X scroll a5@0x10AE decremented 8px per published column (KF-015). Y threshold 0x100 not reached (no vertical scroll; yacc constant 73).
+* strip/group/page timing verified: YES — strip a5@0x10CA 0→1→2→3→0 (~92 each); group a5@0x10CC 0..15 wrap at 0x10; source advance/rebuild (FUN_000558c6/55904) + page wrap (FUN_000558e0) timing matches static model.
+* static model contradicted: NO — every reachable prediction confirmed; only refinement is a5@0x10E8 field-usage (a Part-2 caveat, not a KF).
+* semantic cut remains FUN_00055650: YES. future PC080SN FG tail identified: YES — terminal C-window writers FUN_000559b2/FUN_00055a14 (+ routing); native producer must also write the terrain collision ring. Transitional Build-0297 PC080SN FG path untouched.
+* no unrelated changes: YES. STOP triggered: NO. OPEN-017 evidence added (not closed). KNOWN_FINDINGS: Option A (confirms existing findings; the FG-owns-collision finding was already proposed in Part 2). Ready for native FG design: YES.
+
+## [Andy — Analysis, Arcade FG Decompile Part 2]
+
+* Production source changed: NO. Remap changed: NO. Build tooling changed: NO. ROM produced: NO. Accepted baseline: Build 0297. File created: `docs/design/Andy_pc080sn_arcade_fg_complete_decompile_part2.md`; `AGENTS_LOG.md`.
+* FG stage init proven: YES — arcade 0x0503A0: stage id a5@0x13E + FG-map index a5@0x1386 → ROM descriptor 0x0003951C (→a5@0x10FC) + ROM page-ptr tables 0x00050EE0/0x00050F6B (→a5@0x10C6); per-page 0x10D000 rebuilt from 0x10C6 by FUN_000558e0/55904.
+* FG selector semantics proven: PARTIAL — value set is {0,1,2,4,5,6} (NOT just 0/1/2); FUN_00052732 sets a5@0x10E8=7 for {4,5,6} (distinct FG traversal mode); writer orientation proven (sel 0→col FUN_00055968, else→row FUN_00055990 parity ~idx&3 unless ==2). Per-stage value assignment + exact 0x10E8 geometry NOT fully traced (design-sufficient; runtime-confirmable).
+* 0x10A0/0x10A4 ownership proven: YES — BOTH are FG (0xC08000) dests in the gameplay chain (0x10A0 via FUN_000557ba/55968; 0x10A4 via FUN_00055696/0572e/55990). True BG dest = a5@0x10F8 (0xC00000, FUN_00055AD6 chain). Genesis symbol ARCADE_PC080SN_DEST_BG_OFFSET=0x10A0 is a MISNOMER for FG context (no rename in analysis task).
+* Runtime state-machine model verified: NO — static (Ghidra-first per CLAUDE.md), static-conclusive; NO arcade MAME run performed (not fabricated). Targeted ARCADE MAME confirmation of selector-per-scene + accumulator thresholds recommended.
+* Collision-map producer contract proven: YES — terminal writers FUN_000559b2/55a14 write the FG descriptor word to a 64-wide word ring at the FG-published position (index (A0-0x604000)>>1); geometry locked to FG scroll a5@0x10AE/0x10B0; all 4 emitted cells; 0xFF-run uses A2+0x22. FG-EXCLUSIVE (BG/item-page chain writes NO collision — verified).
+* Collision-map consumer contract proven: YES — collision_map_lookup_53a2e (index by actor pos + FG scroll) consumed by player_collision_probe_family_53a6e / player_ground_contact_probe_family_53b34 / actor_velocity_and_map_collision_42e38 / actor_spawn_ground_and_activate_41180 / actor_map_collision_variant_45d10/4736a. Value `&0x7F`: 1=floor, 2=wall, 0=empty.
+* BG collision-map relationship proven: YES — BG (Plane B) writes plane only, no terrain collision; terrain collision is FG-exclusive.
+* Semantic cut boundary revalidated: YES — FUN_00055650 (arcade retains state machine + source table + scroll + selector/mode as input; native producer writes staged_fg_buffer + collision ring). Design must handle all 6 selectors + 0x10E8 mode + reproduce the FG-exclusive collision ring.
+* Ready for native FG design: YES (design-sufficient; 2 runtime items in §15 are confirmations, not blockers). OPEN-017 advanced (terrain-collision producer contract proven), not closed. KNOWN_FINDINGS: Option A recommended (FG terminal writers are the sole terrain-collision producer; value&0x7F terrain semantics; ring locked to FG scroll; BG none) — proposed for Tighe review.
+* STOP triggered: NO.
+
+## [Andy — Analysis, Complete Arcade FG Decompile Part 1]
+
+* files changed: `docs/design/Andy_pc080sn_arcade_fg_complete_decompile_part1.md`; `AGENTS_LOG.md`. ROM produced: NO. production code changed: NO. (Ghidra-first decompile of arcade Plane-A/FG.)
+* number of FG semantic producer families found: **1 gameplay family** (`FUN_00055650` root → 4 directional publishers `FUN_00055696`/`0572e`/`057ba`/`05854` → publish dispatch `FUN_00055948` → selector writers `FUN_00055968`/`55990` + strip/group/source management `FUN_000558a2`/`558c6`/`55904`/`558e0`), plus 2 separate frontend families (6 inline fixed-cell FG writers 0x3A350/6FE/708/72A/AAEA/3D04C; FG text writers 0x3C3FE/3c4d2..3c950/3bd48/3c2e2). The `FUN_00055AD6`/0xC00000 twin is BG/Plane-B (out of FG scope).
+* number of final PC080SN FG write tails found: **2** terminal writers — `FUN_000559b2` (selector-0, 4-tile vertical column, stride 0x80) and `FUN_00055a14` (selector-1/2, 4-tile horizontal row, stride 2). BOTH also populate the collision map (`collision_map_64x64_words_base + ((dest-0x604000)>>1)`) — collision is mixed into the FG terminal writer.
+* key state: a5@0x10D0 direction bitmask; 0x10CA strip index (0-3, wrap 4); 0x10CC group/page (0-15, wrap 0x10); 0x10BA/0x10B8 Y/X strip accumulators; 0x10A8 selector; 0x10A0/0x10A4 FG dest ptrs (both 0xC08000-based); 0x10AE/0x10B0 FG X/Y scroll regs; 0x10D000 16-entry source-pointer table → 0x10D040/0x10D080 rebuilt by 55904; advance 558c6; page wrap 558e0.
+* semantic ownership complete: gameplay FG producer families YES; **source/cursor progression NO** — incremental scroll walk understood, but the stage-init ROM population of 0x10D000 and the selector 0/1/2 scene mapping are not yet proven.
+* proposed cut: recommended level-2 at `FUN_00055650` (arcade retains the state machine + source table as Category-D input; one native Plane-A producer reads it and writes staged_fg_buffer + collision; removable chip tails = C-window dest computation + 559b2/55a14). Current hooks cut lower (selector writers), which caused the incomplete FG.
+* unresolved items (Part 2): 0x10D000 ROM source-table init; selector 0/1/2 semantics; 0x10A0 "DEST_BG" naming vs observed FG dest; FUN_00055AD6/0xC00000 twin relationship; ARCADE-MAME confirmation of accumulator thresholds/page-wrap timing; frontend FG text/inline inventory.
+* STOP triggered: NO.
+
+## [Andy — Analysis, PC080SN Final Retirement Census Part 1]
+
+* production source modified: NO. ROM produced: NO. accepted baseline: Build 0297.
+* file created: `docs/design/Andy_pc080sn_final_retirement_census_part1.md`; `AGENTS_LOG.md` (this entry).
+* enumerated the remaining PC080SN compatibility architecture from current source/remap/symbols/disasm: 29 PC080SN-hook remap interception points routing to **36 Category-A compatibility hook components** (0x03AD44 C-range dispatcher + BG/FG name fills + bg_blockcopy + bg/fg scroll-fill stubs + descriptor_rebuild + cwindow_clear + plane_a family [plane_a/selector0/selector12/pan_up/pan_down/tilemap_fg] + 6 inline_fg_write + textwriter_dispatch/glyph/number/highscore + 9 text_writer variants + itempage strip populate/blit), plus the descriptor/shadow state (PC080SN_DESC_REBUILD_SRC_TABLE @0xFF1000).
+* reachable PC080SN compatibility dependency count: **36** components (across 29 interception points).
+* four 0x03AD44 callers classified: YES — 0x3AE70→0xC00100 (BG names), 0x3AE80→0xC08100 (FG names), 0x3AF38→0xC00000 (BG names full), 0x3AF48→0xC08000 (FG names full); all pure PC080SN name-table fills (blank tile 0x20) → genesistan_hook_tilemap_bg_fill/fg_fill; no non-PC080SN work at those boundaries.
+* native Genesis infrastructure distinguished from compatibility: YES — Category C (must survive): staged_bg_buffer/staged_fg_buffer, staged_scroll_x/y_bg/fg, vdp_commit_scroll + vdp_commit_bg/fg_strips_if_dirty + vdp_commit_fg_narrow_strips, PC080SN tile-LUT/attr-LUT/tile-ROM (KF-014), plane/palette dirty flags, native VDP port access (0xC00000 data / 0xC00004 ctrl). Category D arcade state: a5 PC080SN scroll/dest/selector/strip offsets.
+* C-range audit: 142 `0x00C0xxxx` operands split into native VDP ports (0xC00000/0xC00004/reg-DMA cmds), reachable C-window compatibility (BG/FG names+scroll families intercepted by the Cat-A hooks), harmless dispatch bound-compares, and arcade semantic-source producers.
+* Part-1 census complete: YES (enumeration + A/B/C/D/E classification + four-caller ownership). Deferred to Part 2: per-component upstream semantic-owner tracing, positive dead-code determination, descriptor/text/item-page final-vs-compat split, item-page text defect + demo-BG root cause.
+* STOP triggered: NO.
+
 ## [Andy — Build 0297 Final PC090OJ Removal]
 
 * files changed: `apps/rastan-direct/src/pc090oj_hooks.s`, `apps/rastan-direct/src/boot/boot.s` (prior teardown), `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, `docs/design/Andy_build0297_final_pc090oj_removal.md`, `OPEN_ISSUES.md`, `AGENTS_LOG.md`, generated outputs.
@@ -45540,3 +45637,120 @@ Build produced: YES. Counter 273->274. ROM `dist/rastan-direct/rastan_direct_vid
 - Final PC: 0x072FE4
 - Stack Pointer (SP): 0x00FEFF6E
 - Unique Unmapped Memory Addresses: none
+
+[Andy — Documentation Checkpoint, Plane-A Cave Part-2A Generator Coverage]
+
+files changed: docs/design/Andy_plane_a_cave_part2a_generator_coverage_checkpoint.md (new); AGENTS_LOG.md
+build produced: NO
+counter: 297 unchanged
+generator source model correct: FAMILY correct (FG_SRC_BASE=0x1691C, stride 0x22C0) but the independent level_segment*0x40 dimension is ABSENT from collect_runtime_gameplay_fg_tiles() (tools/translation/precompute_pc080sn_tile_lut.py:294,301-302; consts 101-106) — pinned at segment 0. (hypothesis, pending §7 full-generator audit)
+cave tiles represented: PARTIAL — segment-0-shared cave tiles present (0x00BD->0x3C, 0x0411->0xDC etc.); deeper-cave floor metatile 0x243C tiles ABSENT (0x07FC/07FD/07FE/07FF/0800/0801/0802/0803/0804/0806 all LUT=0). Rope metatiles 0x2B08/2B48/2B88 are blank(0x0020)-filled; rope ownership NOT proven.
+generated data correct: per-segment LUT=0 audit (0x1691C+strip*0x22C0+seg*0x40+group*4): seg0 49t/0 miss; seg1 125/18; seg2 237/124; seg3 333/291; seg4 210/121; seg5 89/21; seg6 240/133. 524 later-segment-only nonblank codes MISSING from LUT; generator seg0 walk reaches NONE of them.
+generated→ROM byte equality: NOT REACHED (session limit before Phase 5)
+assembly/link corruption: NOT REACHED
+postpatch overwrite: NOT REACHED
+first divergence: provisional B (right family, omits cave codes via missing level_segment dimension) — pending §7
+runtime Part 2B required: TBD after §7
+missing cave block deferred: YES
+STOP triggered: NO (checkpoint only; investigation paused at session limit, evidence preserved)
+
+### MAME Exit Summary (2026-08-19 21:15:10)
+- Final PC: 0x072FE4
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+[Andy — Hybrid Analysis/Implementation, Build 0298 Plane-A Cave Fix]
+
+files changed: tools/translation/precompute_pc080sn_tile_lut.py (add level_segment dimension to FG collector); regenerated build/pc080sn_tile_vram_lut*.{bin,inc} + scene preloads; docs/design/Andy_build0298_plane_a_cave_fix.md (new); AGENTS_LOG.md
+build produced: YES — Build 0298
+ROM: dist/rastan-direct/rastan_direct_video_test_build_0298.bin
+SHA-256: ecb2b157328a891d0c072a8773d01dc8cf28b0fa6cff72ac7799b4bdccc4316d
+size: 1597112 bytes
+counter: 297 -> 298
+gate: GATE_PASS (boot guard pre+post PASS; opcode_replace 227 unchanged — generated-data-only change)
+root cause: FG tile collector omitted arcade level_segment*0x40 dimension -> Stage-1 cave FG tiles LUT=0 -> native producer (tilemap_hooks.s:307-311) emits blank VRAM slot 0. Confirmed; no other generator path supplied them.
+fix: collect_runtime_gameplay_fg_tiles now uses 0x1691C + strip*0x22C0 + level_segment*0x40 + group*4; FG_LEVEL_SEGMENTS=(0,5).
+budget: full cave segs 4-6 = 1209 > 1164 (does NOT fit single residency); shipped (0,5) = gameplay 1002, max scene 1067/1164 FITS. Targets 0x07FC->0x80 / 0x0800->0x84 / 0x0806->0x89 nonzero + in gameplay preload.
+scope: PARTIAL cave fix (segment 5 + acceptance targets). Segments 4 & 6 deferred -> segment-driven residency partition + runtime segment-driven scene selection (attr=0x0003 selector never fires for the Stage-1 cave).
+MAME genesis (NTSC) 30s trace: clean, 1797 frames, no crash/unmapped, fg_cwindow=0 (native path). Cave not reached in 30s attract; Tighe visual-tests in BlastEm/Exodus.
+Plane B preserved: YES. Collision preserved: YES. Missing cave block: deferred YES.
+memory: updated feedback_cody_builds / feedback_delegate_to_cody (Cody build-pause expired 2026-03-27; Andy executes+builds directly).
+STOP triggered: NO
+
+### MAME Exit Summary (2026-08-19 22:06:22)
+- Final PC: 0x073024
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+[Andy — Hybrid Analysis/Implementation, Build 0299 Complete Stage-1 Cave Visual Fix]
+
+files changed: tools/translation/precompute_pc080sn_tile_lut.py (per-segment FG collection + 3 cave scenes, scene-aware assignment generalized); apps/rastan-direct/Makefile (+3 preload outputs); apps/rastan-direct/src/scene_load.s (dispatch ids 4/5/6 + incbins); apps/rastan-direct/src/tilemap_hooks.s (genesistan_select_stage1_cave_residency selector + bsr); tools/translation/{postpatch_startup_rom.py,verify_canonical_rom.py} (coverage invariant 0x185EB8->0x188EB8); docs/design/Andy_build0299_complete_stage1_cave_visual_fix.md (new); AGENTS_LOG.md
+build produced: YES — Build 0299
+ROM: dist/rastan-direct/rastan_direct_video_test_build_0299.bin
+SHA-256: e039e40eca9d46aec3581c17f1a2c39105ac52bfb2975c8230f50de4133acc07
+size: 1609400 bytes
+counter: 298 -> 299
+gate: GATE_PASS (boot guard pre+post PASS; opcode_replace 227; coverage 0x188EB8)
+STEP1: repeated-pattern = class E (correct LUT slot 0x7B, wrong pattern resident = outdoor 0x0434); dark = class A (LUT=0 -> blank tile 0); both root = segs 4/6 not in active residency. NO within-metatile indexing bug (word=cell*4+(strip&3); seg5 + 890+ correct cells prove it). No native cell-producer change.
+STEP2: outdoor-BG+fg(4,5,6)=1209>1164 (dedup reclaims 1) -> single cave residency infeasible; each segment fits (4->1123,5->1002,6->1153). Per-cave-segment residency (SCENE ids 4/5/6) selected by arcade segment a5@0x13E (word @0xFF013E; verified word-typed via movew/cmpiw), cached by current tileset id, at genesistan_hook_tilemap_plane_a scene preamble.
+verify: generator 7 scenes fit, VRAM max 1153/1164; segs 4/5/6 ALL cells 0 dark/0 wrong-pattern; targets 0x07FC->0x7B 0x0800->0x3D9 0x0806->0x3DE valid. Outdoor unchanged vs 0298 (no regression).
+MAME genesis 30s: clean, no crash/unmapped, fg_cwindow=0, no spurious reloads (cache OK). Cave not reached in attract; Tighe BlastEm/Exodus visual acceptance.
+known cost: ~3 brief reload flashes at cave-segment boundaries (full-scene reload); flash-free FG-delta = follow-up.
+Plane B: NO. Collision: NO. Missing cave block: deferred YES.
+STOP triggered: NO
+
+### MAME Exit Summary (2026-08-19 22:30:58)
+- Final PC: 0x188254
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-19 22:36:54)
+- Final PC: 0x188254
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-20 12:27:13)
+- Final PC: 0x073038
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build Completion, Build 0300 Stage-1 Segment 1/2 Residency]
+- Continued and preserved Andy's unfinished Build 0300 tree; no investigation restart or architecture redesign.
+- Production scope: generated independent Stage-1 FG residency sets for semantic segments 1 and 2, retained segments 4/5/6, and selected them from `a5+0x013E` with cached-ID reload suppression. Plane B, collision, rope, PC090OJ, palette, and sound were not changed.
+- Coverage proof: segment-1 preload `0x103A` (1,038 entries plus terminator) plus segment-2 preload `0x11FA` (1,150 entries plus terminator) totals `0x2234` raw; linker page alignment absorbs `0x0234`, exactly explaining net coverage `0x188EB8 -> 0x18AEB8`. Mirrored canonical invariants updated without weakening the gate.
+- Static checks: segment 1 and 2 each have 0 dark / 0 wrong-pattern mappings; maximum generated residency is 1,153/1,164. Segment 3 remains deferred at 1,246/1,164.
+- Build produced: YES, Build 0300 via `RASTAN_GAMEPLAY_HUD_SPRITES=2 make -C apps/rastan-direct release`.
+- ROM: `dist/rastan-direct/rastan_direct_video_test_build_0300.bin`, SHA-256 `6954ef6eee2b73716ead4960a67b4b3b9d4ac1a1effe478ec832f473f8c087b6`, size 1,617,592 bytes, counter 300.
+- Gate: `GATE_PASS`; opcode_replace 227; Genesis-only→maincpu references 7; coverage `0x18AEB8`.
+- MAME `genesis` smoke: 1,798 frames, 47,350 VDP live writes, no unique unmapped addresses. It did not reach gameplay; segment dispatch is final-linked-code proof and visible cave correctness requires user verification.
+- Deferred: segment 3, rope, missing cave-entrance block, and visible cave acceptance. No cave-fix claim made.
+- Design report: `docs/design/Cody_build0300_stage1_segment12_residency.md`.
+- STOP triggered: NO.
+
+## [Cody — Original Arcade Stage-1 Cave Route Capture]
+- Interactive original-arcade MAME `rastan` capture completed. Tighe's first two lives ended before cave completion; the third life (frames 5982-8406) entered the cave, climbed the rope, exited the cave, and is the authoritative route.
+- Proven route: segment 1 contains outdoor approach, cave entrance, and initial descent; segment 2 contains lower cave/interior; segment 3 contains the rope climb, upper exit, and first stable post-exit outdoor state. Segment boundaries do not align one-for-one with visible geography.
+- `tm0` and FG selector both remained `0x0000` throughout the successful route. Exact rope climb: frames 7506-8034, segment 3, player mode 4, strip/group 0/1, page `0x050F6E`.
+- Rope semantic owner: NOT DETERMINED BY THIS CAPTURE. Deferred cave-block future-search window documented at frames 6876-6970 without assigning an owner or cell.
+- Evidence: `states/traces/original_arcade_stage1_cave_route_20260820_144438/` (8,406 frames, 4,379 events, zero logger errors), including raw CSV/TSV, processed route regions, key transitions, command, and metadata.
+- Files added: `tools/mame/scripts/arcade_stage1_cave_route.lua`; `tools/mame/run_rastan_cave_route_wsl.sh`; `docs/design/Cody_arcade_stage1_cave_route_capture.md`; preserved trace artifacts under the evidence directory. File modified: `AGENTS_LOG.md`.
+- Genesis production code changed: NO. ROM produced: NO. Counter: 300 unchanged. Build 0301 consumed: NO.
+- STOP triggered: NO.
+
+### MAME Exit Summary (2026-08-20 15:21:26)
+- Final PC: 0x073038
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+[Andy — Build 0301 Runtime Proof, Stage-1 Cave sprite/Plane-A VRAM collision]
+
+files changed: tools/mame/scripts/genesistrace.lua (semantic-route capture instrument); docs/design/Andy_build0301_actual_stage1_cave_runtime_fix.md (new); AGENTS_LOG.md
+build produced: NO (counter 300 unchanged)
+authoritative correction: cave = segments 1->2->3 (arcade route capture), tm0=0/selector=0, region discriminated by page ptr a5@0x10C6 (050F6C/6D/6E) NOT segment. My cave=4/5/6 premise (Builds 0299/0300) was wrong.
+ROOT CAUSE (static, proven): SPRITE_TILE_BASE=1024 -> sprite tiles occupy VRAM slots 1024..1535; Plane-A TILE_CACHE_B=1344..1503 lies INSIDE that sprite region. Only 0..1023 is sprite-safe. Outdoor residency (962) uses cache A only (safe). Every cave residency (1002..1153) spills into cache B -> sprite tile DMA (sword/enemies) overwrites those live cave Plane-A slots -> "cave graphics change as sprites animate". CASE A: name word stable, pattern slot repurposed by sprite owner.
+fix (required): abandon per-segment residency (segment != scene); bounded source-driven streaming tile cache confined to sprite-safe cache A (0..1023), DMA-on-publish, refcounted eviction. No free VRAM to relocate cache B.
+capture instrument: genesistrace.lua now logs seg/tm0/selector/page_ptr/strip/group + tileset_id/scene_id; verified loads on Build 0300. Interactive run handed to Tighe (play through cave; logger auto-captures). VRAM write tap = the confirming CASE-A instrument.
+not built this turn: fix is a large streaming-cache rewrite of the hot FG producer; building blind after two rejected builds (wrong premise) risks a third. Recommend capture-confirm then implement.
+rope: arcade interval seg3 page 050F6E frames 7506-8034; expected restored by streaming fix.
+missing cave block: deferred.
+STOP: root cause proven; paused before blind large-architecture build pending interactive capture confirmation.

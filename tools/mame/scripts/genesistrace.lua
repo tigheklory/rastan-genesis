@@ -235,6 +235,21 @@ end
 local function add_project_symbol_watches(symbol_map)
 	arcade_workram_base = symbol_map["genesistan_arcade_workram_words"]
 
+	-- Build 0301 interactive cave-route probes.  The original-arcade cave route (segments 1->2->3,
+	-- tm0=0, selector=0) is discriminated by the map-stream PAGE pointer (a5@0x10C6: 050F6C/6D/6E),
+	-- not the segment.  Capture the full semantic route + the native residency id, so residency
+	-- RELOAD churn during the cave (the suspected cause of graphics changing while sprites animate)
+	-- is visible as tileset_id change events.  Arcade workram base a5 = 0x00FF0000 (as the native
+	-- producers use it); BSS symbols resolved from the running ROM's symbol map.
+	add_symbol_watch("seg_a5_13e",  0x00FF013E, 16)   -- segment index
+	add_symbol_watch("tm0_a5_1386", 0x00FF1386, 16)   -- tilemap0 index (expect 0 through cave)
+	add_symbol_watch("selector_a5_10a8", 0x00FF10A8, 16) -- FG selector (expect 0 through cave)
+	add_symbol_watch("page_ptr_a5_10c6", 0x00FF10C6, 16) -- map-stream page pointer (050F6C/6D/6E)
+	add_symbol_watch("strip_a5_10ca", 0x00FF10CA, 16)
+	add_symbol_watch("group_a5_10cc", 0x00FF10CC, 16)
+	add_symbol_watch("tileset_id", symbol_map["genesistan_current_pc080sn_tileset_id"] or 0x00FF707D, 8)
+	add_symbol_watch("scene_id",   symbol_map["genesistan_current_scene_id"] or 0x00FF707C, 8)
+
 	add_symbol_watch("startup_result_code", symbol_map["genesistan_startup_result_code"], 16)
 	add_symbol_watch("dip1", symbol_map["genesistan_shadow_dip1"], 8)
 	add_symbol_watch("dip2", symbol_map["genesistan_shadow_dip2"], 8)

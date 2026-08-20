@@ -110,7 +110,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 227  # PC090OJ final teardown: -1 (3b930 hook+r
 # canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the semantic
 # opcode-replacement sites are unchanged. The direct-native 0x05A098 gameplay
 # status producer adds 0x1D0 wrapper bytes without adding a replacement site.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x185EB8  # Phase2: screenshot-first handler (bk_crash_handler.s) transplanted into the high .crash section; ROM end grows, low/arcade/genesis-only layout unchanged.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x18AEB8  # Build 0300: Stage-1 segment-1/2 preloads add 0x2234 raw bytes; fixed crash-section alignment advances ROM coverage by 0x2000. (Prev 0x188EB8: Build 0299 cave residencies.)
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

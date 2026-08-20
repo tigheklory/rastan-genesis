@@ -49,12 +49,43 @@ SCENE_TITLE = 0
 SCENE_GAMEPLAY = 1
 SCENE_ENDROUND = 2
 SCENE_GAMEPLAY_CAVE = 3
+# Build 0299: per-Stage-1-cave-segment residencies. The Stage-1 first cave (a5@0x13E segments
+# 4/5/6, tm0 outdoor) needs the outdoor BG resident AND the segment's cave FG; outdoor-BG +
+# fg(4,5,6) = 1209 > 1164 slots, but outdoor-BG + fg(single segment) fits (4->1123, 5->1002,
+# 6->1153). So each cave segment is its own residency, runtime-selected by a5@0x13E. These are
+# NOT a0-source-range scenes (they share the gameplay block source); the runtime selects them by
+# segment and maps them onto the gameplay a0 range. Hence they are excluded from SCENE_IDS
+# (a0-range/source-map logic) but included in ALL_SCENE_IDS (slot assignment + preload).
+SCENE_STAGE1_CAVE_S4 = 4
+SCENE_STAGE1_CAVE_S5 = 5
+SCENE_STAGE1_CAVE_S6 = 6
+# Build 0300: extend per-segment residencies to the reachable outdoor segments 1 and 2 (proven
+# corrupt in the live attract demo, which reaches segment 3; CASE C). New scene ids 7/8 (ids 1/2/3
+# are already gameplay/endround/attr-cave). Segment 3 (BG+fg(3)=1246 > 1164) does not fit one
+# residency and stays on the outdoor gameplay residency (documented follow-up). Segment 0 is
+# pre-gameplay and stays on gameplay.
+SCENE_STAGE1_SEG1 = 7
+SCENE_STAGE1_SEG2 = 8
 SCENE_IDS = (SCENE_TITLE, SCENE_GAMEPLAY, SCENE_ENDROUND, SCENE_GAMEPLAY_CAVE)
+# Map: runtime scene id -> arcade level segment(s) it makes resident.
+STAGE1_SEGMENT_SCENES = {
+    SCENE_STAGE1_SEG1: (1,),
+    SCENE_STAGE1_SEG2: (2,),
+    SCENE_STAGE1_CAVE_S4: (4,),
+    SCENE_STAGE1_CAVE_S5: (5,),
+    SCENE_STAGE1_CAVE_S6: (6,),
+}
+ALL_SCENE_IDS = SCENE_IDS + tuple(sorted(STAGE1_SEGMENT_SCENES))
 SCENE_NAMES = {
     SCENE_TITLE: "Title",
     SCENE_GAMEPLAY: "Gameplay",
     SCENE_ENDROUND: "End-Round",
     SCENE_GAMEPLAY_CAVE: "Gameplay-Cave",
+    SCENE_STAGE1_CAVE_S4: "Stage1-Cave-Seg4",
+    SCENE_STAGE1_CAVE_S5: "Stage1-Cave-Seg5",
+    SCENE_STAGE1_CAVE_S6: "Stage1-Cave-Seg6",
+    SCENE_STAGE1_SEG1: "Stage1-Outdoor-Seg1",
+    SCENE_STAGE1_SEG2: "Stage1-Outdoor-Seg2",
 }
 
 # Static one-shot block-write sources (0x5A38E/0x5A370/0x5A3AC/0x5A3DE/0x5A442 family).
@@ -99,11 +130,28 @@ RUNTIME_GAMEPLAY_MAX_ENTRIES = 4096
 # SRC = FG_SRC_BASE + seg*FG_SRC_STRIDE + group*4 (Stage 1 stage index 0). Tile 0x020 is the
 # transparent default (blank pattern) and maps safely to tile 0.
 FG_SRC_BASE = 0x0001691C
-FG_SRC_STRIDE = 0x000022C0
-FG_SEG_COUNT = 16
-FG_GROUP_COUNT = 16
+FG_SRC_STRIDE = 0x000022C0          # per-strip-table stride (16 strip tables)
+FG_SEG_COUNT = 16                    # number of strip tables (loop var historically named "seg")
+FG_GROUP_COUNT = 16                  # groups per level segment (0x40 bytes / 4)
 FG_ROW_COUNT = 4
 FG_COLIDX_COUNT = 4
+# Build 0298: the arcade Plane-A FG source address has an independent LEVEL-SEGMENT dimension
+# (source = 0x1691C + strip*0x22C0 + level_segment*0x40 + group*4) proven in cave Part 1/1B. The
+# Build-0155 collector omitted it (pinned level_segment=0), so Stage-1 cave FG tiles (e.g. metatile
+# 0x243C -> 0x07FC..0x0806) were absent from the LUT and rendered as blank tile 0. Stage-1 uses the
+# gameplay residency throughout the segment-driven cave descent (tm0 stays outdoor; cave Part 1), so
+# the cave segments' FG tiles belong in SCENE_GAMEPLAY.
+#
+# Budget reality (1164 slots, gate in assign_scene_aware_slots): adding the FULL cave descent
+# (segments 4,5,6) pushes SCENE_GAMEPLAY to 1209 (>1164) and does NOT fit a single residency -- the
+# complete cave fix requires a segment-driven residency partition (route cave segments to a
+# cave-scene set, selected by the level segment; that set fits ~815, but needs a runtime
+# segment-driven scene selection change). Build 0298 ships the largest cave set that fits the
+# existing residency with no runtime/selection change: base segment 0 + descent segment 5, which
+# contains the acceptance floor tiles 0x07FC/0x0800/0x0806 (metatile 0x243C). SCENE_GAMEPLAY -> 1002.
+# Segments 4 and 6 cave tiles remain a documented follow-up (the partition task).
+FG_LEVEL_SEGMENT_STRIDE = 0x00000040
+FG_LEVEL_SEGMENTS = (0, 5)
 ENDROUND_TABLE_RANGES = (
     (0x5816A, 0x581A6, "endround_init"),
     (0x581A6, 0x581CA, "endround_anim_a"),
@@ -291,25 +339,37 @@ def collect_runtime_gameplay_sources(maincpu: bytes) -> list[BlockWriteSource]:
     return sorted(sources, key=lambda s: s.source_addr)
 
 
-def collect_runtime_gameplay_fg_tiles(maincpu: bytes) -> set[int]:
+def collect_runtime_gameplay_fg_tiles(
+    maincpu: bytes, level_segments: tuple[int, ...] | None = None
+) -> set[int]:
     """Structurally derive the Stage 1 FG plane tile codes (Build 0155).
 
     Walks the deterministic FG source chain (no hardcoded codes): block = ROM_word(SRC+2) with
-    SRC = FG_SRC_BASE + seg*FG_SRC_STRIDE + group*4; code = ROM_word(block + colidx*2 + row*8).
+    SRC = FG_SRC_BASE + strip*FG_SRC_STRIDE + level_segment*FG_LEVEL_SEGMENT_STRIDE + group*4;
+    code = ROM_word(block + colidx*2 + row*8). Build 0298 added the level_segment dimension;
+    Build 0299 collects per-segment sets (outdoor vs per-cave-segment residencies) by passing
+    an explicit level_segments tuple. Defaults to FG_LEVEL_SEGMENTS.
     """
+    segments = FG_LEVEL_SEGMENTS if level_segments is None else level_segments
     codes: set[int] = set()
-    for seg in range(FG_SEG_COUNT):
-        for group in range(FG_GROUP_COUNT):
-            src = FG_SRC_BASE + seg * FG_SRC_STRIDE + group * 4
-            if src + 3 >= len(maincpu):
-                continue
-            block = read_u16_be(maincpu, src + 2)
-            for colidx in range(FG_COLIDX_COUNT):
-                for row in range(FG_ROW_COUNT):
-                    addr = block + colidx * 2 + row * 8
-                    if addr + 1 >= len(maincpu):
-                        continue
-                    codes.add(read_u16_be(maincpu, addr) & 0x3FFF)
+    for level_segment in segments:
+        for strip in range(FG_SEG_COUNT):
+            for group in range(FG_GROUP_COUNT):
+                src = (
+                    FG_SRC_BASE
+                    + strip * FG_SRC_STRIDE
+                    + level_segment * FG_LEVEL_SEGMENT_STRIDE
+                    + group * 4
+                )
+                if src + 3 >= len(maincpu):
+                    continue
+                block = read_u16_be(maincpu, src + 2)
+                for colidx in range(FG_COLIDX_COUNT):
+                    for row in range(FG_ROW_COUNT):
+                        addr = block + colidx * 2 + row * 8
+                        if addr + 1 >= len(maincpu):
+                            continue
+                        codes.add(read_u16_be(maincpu, addr) & 0x3FFF)
     codes.discard(0)
     if not codes:
         raise SystemExit("runtime gameplay FG model produced no tile codes")
@@ -471,7 +531,8 @@ def assign_scene_aware_slots(
         for scene_id, tiles in scene_tiles.items()
     }
 
-    largest_scene = max(len(scene_tile_sets[scene]) for scene in SCENE_IDS)
+    all_scenes = tuple(scene_tile_sets.keys())
+    largest_scene = max(len(scene_tile_sets[scene]) for scene in all_scenes)
     if largest_scene > max_slots:
         raise SystemExit(
             f"scene VRAM budget exceeded: largest scene uses {largest_scene} tiles, "
@@ -479,11 +540,11 @@ def assign_scene_aware_slots(
         )
 
     memberships: dict[int, set[int]] = defaultdict(set)
-    for scene_id in SCENE_IDS:
+    for scene_id in all_scenes:
         for tile in scene_tile_sets[scene_id]:
             memberships[tile].add(scene_id)
 
-    used_slots_per_scene: dict[int, set[int]] = {scene_id: set() for scene_id in SCENE_IDS}
+    used_slots_per_scene: dict[int, set[int]] = {scene_id: set() for scene_id in all_scenes}
     assigned: dict[int, int] = {}
 
     def assign_tile(tile: int) -> None:
@@ -671,6 +732,31 @@ def parse_args() -> argparse.Namespace:
         help="Output gameplay cave scene preload manifest path.",
     )
     parser.add_argument(
+        "--scene-stage1-cave-s4-output",
+        default="build/pc080sn_scene_preload_stage1_cave_s4.bin",
+        help="Output Stage-1 first-cave segment-4 scene preload manifest path.",
+    )
+    parser.add_argument(
+        "--scene-stage1-cave-s5-output",
+        default="build/pc080sn_scene_preload_stage1_cave_s5.bin",
+        help="Output Stage-1 first-cave segment-5 scene preload manifest path.",
+    )
+    parser.add_argument(
+        "--scene-stage1-cave-s6-output",
+        default="build/pc080sn_scene_preload_stage1_cave_s6.bin",
+        help="Output Stage-1 first-cave segment-6 scene preload manifest path.",
+    )
+    parser.add_argument(
+        "--scene-stage1-seg1-output",
+        default="build/pc080sn_scene_preload_stage1_seg1.bin",
+        help="Output Stage-1 outdoor segment-1 scene preload manifest path.",
+    )
+    parser.add_argument(
+        "--scene-stage1-seg2-output",
+        default="build/pc080sn_scene_preload_stage1_seg2.bin",
+        help="Output Stage-1 outdoor segment-2 scene preload manifest path.",
+    )
+    parser.add_argument(
         "--scene-endround-output",
         default="build/pc080sn_scene_preload_endround.bin",
         help="Output end-round scene preload manifest path.",
@@ -707,23 +793,35 @@ def main() -> int:
 
     text_tiles = extract_text_writer_tiles(maincpu)
 
-    # Build 0155: Stage 1 FG plane tile codes.
-    fg_tiles = collect_runtime_gameplay_fg_tiles(maincpu)
+    # Build 0155: Stage 1 FG plane tile codes. Build 0299: split FG collection into the outdoor
+    # gameplay set (level segments 0+5; 5 retained so the Build-0298 segment-5 result is a safe
+    # fallback if the runtime cave selector does not fire) and per-cave-segment sets (4/5/6).
+    fg_tiles = collect_runtime_gameplay_fg_tiles(maincpu, FG_LEVEL_SEGMENTS)
+    fg_cave_by_scene = {
+        scene_id: collect_runtime_gameplay_fg_tiles(maincpu, segs)
+        for scene_id, segs in STAGE1_SEGMENT_SCENES.items()
+    }
 
     # Scene sets used for preload manifests and slot assignment.
     # Build 0154: gameplay tiles come from the runtime strip producer model
     # (block_scene_tiles[SCENE_GAMEPLAY]) plus HUD text. Build 0217 keeps the cave
     # attr=0x0003 continuation as a separate producer-selected residency set because
-    # outdoor+cave together exceed the Genesis PC080SN cache budget. The general strip_tiles set (from
-    # discover_descriptor_tables' 4-byte descriptor discovery) belongs to the old descriptor
-    # model and is not read by the live 0x3951C gameplay producer, so it is no longer merged
-    # into gameplay (it remains in end-round, which does use that model).
+    # outdoor+cave together exceed the Genesis PC080SN cache budget. Build 0299 adds the Stage-1
+    # first-cave per-segment residencies (segment-selected at runtime): each is the outdoor BG
+    # block (Plane B stays outdoor during the segment-driven cave, tm0=0) + that segment's cave FG
+    # + HUD text. The general strip_tiles set (from discover_descriptor_tables' 4-byte descriptor
+    # discovery) belongs to the old descriptor model and is not read by the live 0x3951C gameplay
+    # producer, so it is no longer merged into gameplay (it remains in end-round).
     scene_tiles: dict[int, set[int]] = {
         SCENE_TITLE: set(block_scene_tiles[SCENE_TITLE]) | set(text_tiles),
         SCENE_GAMEPLAY: set(block_scene_tiles[SCENE_GAMEPLAY]) | set(fg_tiles) | set(text_tiles),
         SCENE_ENDROUND: set(block_scene_tiles[SCENE_ENDROUND]) | set(strip_tiles) | set(text_tiles),
         SCENE_GAMEPLAY_CAVE: set(block_scene_tiles[SCENE_GAMEPLAY_CAVE]) | set(fg_tiles) | set(text_tiles),
     }
+    for scene_id, fg_seg in fg_cave_by_scene.items():
+        scene_tiles[scene_id] = (
+            set(block_scene_tiles[SCENE_GAMEPLAY]) | set(fg_seg) | set(text_tiles)
+        )
 
     assigned_slots, scene_tile_sets = assign_scene_aware_slots(scene_tiles, text_tiles)
     append_title_only_tiles(
@@ -760,7 +858,7 @@ def main() -> int:
         lut[low_code & 0x3FFF] = mapped_slot
 
     scene_manifest_pairs: dict[int, list[tuple[int, int]]] = {}
-    for scene_id in SCENE_IDS:
+    for scene_id in ALL_SCENE_IDS:
         manifest_tiles = sorted(scene_tile_sets[scene_id])
         if scene_id == SCENE_TITLE:
             scoped_raw = [
@@ -802,7 +900,7 @@ def main() -> int:
                 f"scene {scene_b} [{lo_b:#x}-{hi_b:#x}]"
             )
 
-    max_scene_usage = max(len(scene_tile_sets[scene]) for scene in SCENE_IDS)
+    max_scene_usage = max(len(scene_tile_sets[scene]) for scene in ALL_SCENE_IDS)
     max_slots = len(build_slot_sequence())
     if max_scene_usage > max_slots:
         raise SystemExit(
@@ -827,6 +925,26 @@ def main() -> int:
         Path(args.scene_gameplay_cave_output),
         scene_manifest_pairs[SCENE_GAMEPLAY_CAVE],
     )
+    write_scene_manifest(
+        Path(args.scene_stage1_cave_s4_output),
+        scene_manifest_pairs[SCENE_STAGE1_CAVE_S4],
+    )
+    write_scene_manifest(
+        Path(args.scene_stage1_cave_s5_output),
+        scene_manifest_pairs[SCENE_STAGE1_CAVE_S5],
+    )
+    write_scene_manifest(
+        Path(args.scene_stage1_cave_s6_output),
+        scene_manifest_pairs[SCENE_STAGE1_CAVE_S6],
+    )
+    write_scene_manifest(
+        Path(args.scene_stage1_seg1_output),
+        scene_manifest_pairs[SCENE_STAGE1_SEG1],
+    )
+    write_scene_manifest(
+        Path(args.scene_stage1_seg2_output),
+        scene_manifest_pairs[SCENE_STAGE1_SEG2],
+    )
 
     write_source_scene_map(Path(args.source_scene_map_output), source_scene_map, scene_ranges)
 
@@ -835,10 +953,8 @@ def main() -> int:
     count_path.write_text(f"{len(assigned_slots)}\n", encoding="utf-8")
 
     print("Tile counts per scene:")
-    print(f"  Title: {len(scene_tile_sets[SCENE_TITLE])}")
-    print(f"  Gameplay: {len(scene_tile_sets[SCENE_GAMEPLAY])}")
-    print(f"  End-Round: {len(scene_tile_sets[SCENE_ENDROUND])}")
-    print(f"  Gameplay-Cave: {len(scene_tile_sets[SCENE_GAMEPLAY_CAVE])}")
+    for scene_id in ALL_SCENE_IDS:
+        print(f"  {SCENE_NAMES[scene_id]}: {len(scene_tile_sets[scene_id])}")
     print(f"Total unique tile indices: {len(assigned_slots)}")
     print(f"VRAM max usage (largest scene): {max_scene_usage} / {max_slots}")
     for scene_id in SCENE_IDS:

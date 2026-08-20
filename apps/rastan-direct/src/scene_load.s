@@ -11,6 +11,16 @@
     .global genesistan_scene_preload_gameplay_end
     .global genesistan_scene_preload_gameplay_cave
     .global genesistan_scene_preload_gameplay_cave_end
+    .global genesistan_scene_preload_stage1_cave_s4
+    .global genesistan_scene_preload_stage1_cave_s4_end
+    .global genesistan_scene_preload_stage1_cave_s5
+    .global genesistan_scene_preload_stage1_cave_s5_end
+    .global genesistan_scene_preload_stage1_cave_s6
+    .global genesistan_scene_preload_stage1_cave_s6_end
+    .global genesistan_scene_preload_stage1_seg1
+    .global genesistan_scene_preload_stage1_seg1_end
+    .global genesistan_scene_preload_stage1_seg2
+    .global genesistan_scene_preload_stage1_seg2_end
     .global genesistan_scene_preload_endround
     .global genesistan_scene_preload_endround_end
     .global genesistan_scene_a0_ranges
@@ -46,8 +56,36 @@ load_scene_tiles:
     bra.s   .Lload_scene_manifest_ready
 .Lload_scene_check_gameplay_cave:
     cmpi.w  #3, %d6
-    bne.s   .Lload_scene_force_title
+    bne.s   .Lload_scene_check_stage1_cave_s4
     lea     genesistan_scene_preload_gameplay_cave, %a0
+    bra.s   .Lload_scene_manifest_ready
+.Lload_scene_check_stage1_cave_s4:
+    /* Build 0299: Stage-1 first-cave per-segment residencies (ids 4/5/6), runtime-selected by
+     * arcade segment a5@0x13E.  Each loads the outdoor BG + that segment's cave FG. */
+    cmpi.w  #4, %d6
+    bne.s   .Lload_scene_check_stage1_cave_s5
+    lea     genesistan_scene_preload_stage1_cave_s4, %a0
+    bra.s   .Lload_scene_manifest_ready
+.Lload_scene_check_stage1_cave_s5:
+    cmpi.w  #5, %d6
+    bne.s   .Lload_scene_check_stage1_cave_s6
+    lea     genesistan_scene_preload_stage1_cave_s5, %a0
+    bra.s   .Lload_scene_manifest_ready
+.Lload_scene_check_stage1_cave_s6:
+    cmpi.w  #6, %d6
+    bne.s   .Lload_scene_check_stage1_seg1
+    lea     genesistan_scene_preload_stage1_cave_s6, %a0
+    bra.s   .Lload_scene_manifest_ready
+.Lload_scene_check_stage1_seg1:
+    /* Build 0300: outdoor per-segment residencies (ids 7=seg1, 8=seg2). */
+    cmpi.w  #7, %d6
+    bne.s   .Lload_scene_check_stage1_seg2
+    lea     genesistan_scene_preload_stage1_seg1, %a0
+    bra.s   .Lload_scene_manifest_ready
+.Lload_scene_check_stage1_seg2:
+    cmpi.w  #8, %d6
+    bne.s   .Lload_scene_force_title
+    lea     genesistan_scene_preload_stage1_seg2, %a0
     bra.s   .Lload_scene_manifest_ready
 .Lload_scene_force_title:
     moveq   #0, %d6
@@ -85,8 +123,10 @@ load_scene_tiles:
 .Lload_scene_pairs_done:
     move.b  %d6, genesistan_current_pc080sn_tileset_id
     move.w  %d6, %d5
+    /* ids 3 (attr cave) and 4/5/6 (Stage-1 first-cave segments) are logically the gameplay
+     * scene: they share the gameplay a0 source range and fg_native ownership. */
     cmpi.w  #3, %d5
-    bne.s   .Lload_scene_logical_ready
+    blo.s   .Lload_scene_logical_ready
     moveq   #1, %d5
 .Lload_scene_logical_ready:
     move.b  %d5, genesistan_current_scene_id
@@ -141,6 +181,31 @@ genesistan_scene_preload_gameplay_end:
 genesistan_scene_preload_gameplay_cave:
     .incbin "../../build/pc080sn_scene_preload_gameplay_cave.bin"
 genesistan_scene_preload_gameplay_cave_end:
+
+    .align 2
+genesistan_scene_preload_stage1_cave_s4:
+    .incbin "../../build/pc080sn_scene_preload_stage1_cave_s4.bin"
+genesistan_scene_preload_stage1_cave_s4_end:
+
+    .align 2
+genesistan_scene_preload_stage1_cave_s5:
+    .incbin "../../build/pc080sn_scene_preload_stage1_cave_s5.bin"
+genesistan_scene_preload_stage1_cave_s5_end:
+
+    .align 2
+genesistan_scene_preload_stage1_cave_s6:
+    .incbin "../../build/pc080sn_scene_preload_stage1_cave_s6.bin"
+genesistan_scene_preload_stage1_cave_s6_end:
+
+    .align 2
+genesistan_scene_preload_stage1_seg1:
+    .incbin "../../build/pc080sn_scene_preload_stage1_seg1.bin"
+genesistan_scene_preload_stage1_seg1_end:
+
+    .align 2
+genesistan_scene_preload_stage1_seg2:
+    .incbin "../../build/pc080sn_scene_preload_stage1_seg2.bin"
+genesistan_scene_preload_stage1_seg2_end:
 
     .align 2
 genesistan_scene_preload_endround:

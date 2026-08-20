@@ -845,6 +845,55 @@ genesistan_plane_a_pan_publish_entering_rows_down:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
+/* Build 0299: Stage-1 first-cave per-segment residency selector.
+ *
+ * The Stage-1 first cave is segment-driven: the arcade tilemap0/BG descriptor stays outdoor
+ * (tm0=0, attr 0x0002) through the cave descent, so the runtime a0-source-range scene selector
+ * never leaves the gameplay residency (cave Part 1).  The cave FG tiles for the full descent
+ * (segments 4/5/6) do not fit one residency alongside the outdoor BG (1209 > 1164 slots), but each
+ * single cave segment does (4->1123, 5->1002, 6->1153).  So each cave segment has its own
+ * residency (SCENE ids 4/5/6), selected here by the arcade segment index a5@0x13E (word).
+ *
+ * in:  a5 = 0x00FF0000 (arcade workram base).  Cached by genesistan_current_pc080sn_tileset_id so a
+ *      reload (display-off) happens only when the segment actually changes -- never per frame.
+ *      Only acts inside the gameplay scene family (genesistan_current_scene_id == gameplay).
+ */
+genesistan_select_stage1_cave_residency:
+    cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    bne.s   .Lcave_sel_ret
+    movem.l %d0-%d1, -(%sp)
+    move.w  0x013E(%a5), %d0                 /* arcade segment index a5@0x13E (word) */
+    moveq   #SCENE_GAMEPLAY_ID, %d1          /* default: outdoor gameplay residency (id 1) */
+    /* Build 0300: segment -> residency id (pure compares, no inline data table -- an inline .byte
+     * table in .text desyncs the native->maincpu reference scanner).  seg0/seg3 stay on gameplay
+     * (seg3 FG overflows one residency, 1246>1164); seg1->7 seg2->8 seg4->4 seg5->5 seg6->6. */
+    cmpi.w  #1, %d0
+    beq.s   .Lcave_sel_seg1
+    cmpi.w  #2, %d0
+    beq.s   .Lcave_sel_seg2
+    cmpi.w  #4, %d0
+    blo.s   .Lcave_sel_have_id               /* seg 0/3 -> gameplay default */
+    cmpi.w  #6, %d0
+    bhi.s   .Lcave_sel_have_id               /* seg >6 (other stages) -> gameplay */
+    move.w  %d0, %d1                          /* seg 4/5/6 -> cave residency id 4/5/6 */
+    bra.s   .Lcave_sel_have_id
+.Lcave_sel_seg1:
+    moveq   #7, %d1
+    bra.s   .Lcave_sel_have_id
+.Lcave_sel_seg2:
+    moveq   #8, %d1
+.Lcave_sel_have_id:
+    moveq   #0, %d0
+    move.b  genesistan_current_pc080sn_tileset_id, %d0
+    cmp.w   %d0, %d1
+    beq.s   .Lcave_sel_done
+    move.w  %d1, %d0
+    bsr     load_scene_tiles
+.Lcave_sel_done:
+    movem.l (%sp)+, %d0-%d1
+.Lcave_sel_ret:
+    rts
+
 genesistan_hook_tilemap_plane_a:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     lea     0x00FF0000, %a5
@@ -935,6 +984,9 @@ genesistan_hook_tilemap_plane_a:
     bra.w   .Lscene_preamble_done
 
 .Lscene_preamble_done:
+    /* Build 0299: after the a0-range scene selection, refine to the Stage-1 first-cave
+     * per-segment residency by arcade segment a5@0x13E (cached; reloads only on segment change). */
+    bsr     genesistan_select_stage1_cave_residency
     lea     ARCADE_PC080SN_DESC_BG_LIST_OFFSET(%a5), %a0
     movea.l #ARCADE_MAINCPU_ROM_BASE, %a1
     lea     genesistan_pc080sn_tile_vram_lut, %a2
