@@ -8,6 +8,10 @@
     .global sprite_dma_addr_high_bits_fix
     .global vdp_commit_tiles_if_dirty
     .global vdp_commit_bg_strips_if_dirty
+    .extern fg_upload_count
+    .extern fg_upload_q
+    .extern fg_cache_mark_live
+    .extern genesistan_pc080sn_tile_rom
     .extern vdp_commit_fg_narrow_strips
     .global vdp_commit_fg_strips_if_dirty
     .extern vdp_prepare_sprites
@@ -185,6 +189,7 @@ _vblank_service:
      * black bars; the 0226 ring rewrite that introduced the cyan band and the
      * half-screen FG displacement is fully reverted. */
     bsr     vdp_commit_tiles_if_dirty
+    bsr     vdp_commit_streamed_tiles   /* Build 0301: patterns BEFORE BG/FG name-word commits */
     /* Build 0256: dead PC080SN tall-projector consumer interface retired.
      * The projector bodies were removed in Build 0253 (no-op RTS stubs); both
      * the gameplay and non-gameplay VBlank branches then reduced to the same
@@ -207,8 +212,34 @@ _vblank_service:
 
     bsr     vdp_commit_scroll
 
+    bsr     fg_cache_mark_live          /* Build 0301: snapshot displayed plane for eviction safety */
+
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     jmp     (0x00003A208).l
+
+/* Build 0301: drain the streaming tile-upload queue.  For each (slot,code), DMA the 16-word
+ * pattern from genesistan_pc080sn_tile_rom + code*32 to VRAM slot*32 (display-on-safe row DMA). */
+vdp_commit_streamed_tiles:
+    move.w  fg_upload_count, %d7
+    beq.s   .Lcst_done
+    lea     fg_upload_q, %a4
+.Lcst_loop:
+    move.w  (%a4)+, %d0                 /* slot */
+    move.w  (%a4)+, %d6                 /* code */
+    andi.l  #0x0000FFFF, %d0
+    lsl.l   #5, %d0                     /* VRAM byte dest = slot*32 */
+    moveq   #0, %d1
+    move.w  %d6, %d1
+    lsl.l   #5, %d1                     /* code*32 */
+    lea     genesistan_pc080sn_tile_rom, %a0
+    adda.l  %d1, %a0                    /* a0 = pattern source */
+    moveq   #16, %d1                    /* 16 words */
+    bsr     .Lplane_dma_row
+    subq.w  #1, %d7
+    bne.s   .Lcst_loop
+.Lcst_done:
+    clr.w   fg_upload_count
+    rts
 
 vdp_commit_tiles_if_dirty:
     tst.b   tiles_dirty

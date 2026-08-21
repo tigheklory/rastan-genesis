@@ -41,6 +41,8 @@
     .extern vdp_set_vram_write_addr
     .extern vdp_commit_fg_strips_if_dirty
     .extern genesistan_current_scene_id
+    .extern fg_cache_resolve
+    .extern fg_cache_reset
     .extern genesistan_current_pc080sn_tileset_id
     .extern fg_native_gameplay_owner
     .extern palette_route_lookup
@@ -306,8 +308,7 @@ genesistan_hook_tilemap_plane_a_selector0_native:
 
     move.w  0(%a0,%d0.w), %d3
     andi.w  #0x3FFF, %d3
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
+    bsr     fg_cache_resolve
     or.w    6(%sp), %d3
 
     move.w  %d1, %d0
@@ -423,8 +424,7 @@ genesistan_hook_tilemap_plane_a_selector12_native:
 
     move.w  0(%a0,%d0.w), %d3
     andi.w  #0x3FFF, %d3
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
+    bsr     fg_cache_resolve
     or.w    6(%sp), %d3
 
     move.w  0(%sp), %d0
@@ -632,8 +632,7 @@ genesistan_plane_a_pan_publish_entering_rows_down:
     clr.w   12(%sp)
 
 .Lplane_a_row_tile_ready:
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
+    bsr     fg_cache_resolve
     or.w    12(%sp), %d3
 
     move.w  2(%sp), %d0
@@ -755,8 +754,7 @@ genesistan_plane_a_pan_publish_entering_rows_down:
     clr.w   12(%sp)
 
 .Lplane_b_row_tile_ready:
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
+    bsr     fg_cache_resolve
     or.w    12(%sp), %d3
 
     move.w  2(%sp), %d0
@@ -823,8 +821,7 @@ genesistan_plane_a_pan_publish_entering_rows_down:
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     move.w  %d7, %d3
     andi.w  #0x3FFF, %d3
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
+    bsr     fg_cache_resolve
     or.w    6(%sp), %d3
 
     lea     staged_bg_buffer, %a6
@@ -859,6 +856,7 @@ genesistan_plane_a_pan_publish_entering_rows_down:
  *      Only acts inside the gameplay scene family (genesistan_current_scene_id == gameplay).
  */
 genesistan_select_stage1_cave_residency:
+    rts                             /* Build 0301: superseded by streaming cache; no residency swap */
     cmpi.b  #SCENE_GAMEPLAY_ID, genesistan_current_scene_id
     bne.s   .Lcave_sel_ret
     movem.l %d0-%d1, -(%sp)
@@ -1044,8 +1042,7 @@ genesistan_hook_tilemap_plane_a:
 .Lbg_hook_row_loop:
     move.w  (%a4), %d3
     andi.w  #0x3FFF, %d3
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
+    bsr     fg_cache_resolve
     or.w    (%sp), %d3
 
     move.w  %d1, %d0
@@ -1326,8 +1323,7 @@ genesistan_hook_tilemap_fg:
 .Lfg_hook_row_loop:
     move.w  (%a4), %d3
     andi.w  #0x3FFF, %d3
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
+    bsr     fg_cache_resolve
     or.w    10(%sp), %d3
 
     move.w  %d1, %d0
@@ -1427,8 +1423,7 @@ genesistan_hook_tilemap_bg_fill:
 
     move.w  %d0, %d3
     andi.w  #0x3FFF, %d3
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
+    bsr     fg_cache_resolve
 
     move.l  %d0, %d4
     swap    %d4
@@ -1514,8 +1509,7 @@ genesistan_hook_tilemap_fg_fill:
 
     move.w  %d0, %d3
     andi.w  #0x3FFF, %d3
-    add.w   %d3, %d3
-    move.w  0(%a2,%d3.w), %d3
+    bsr     fg_cache_resolve
 
     move.l  %d0, %d4
     swap    %d4

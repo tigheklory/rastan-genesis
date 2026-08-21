@@ -86,6 +86,7 @@ OBJS := \
 	$(OUT_DIR)/boot.o \
 	$(OUT_DIR)/vdp_comm.o \
 	$(OUT_DIR)/tilemap_hooks.o \
+	$(OUT_DIR)/fg_tile_cache.o \
 	$(OUT_DIR)/palette_hooks.o \
 	$(OUT_DIR)/pc090oj_hooks.o \
 	$(OUT_DIR)/pc090oj_assets.o \
@@ -292,3 +293,10 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DI
 
 clean:
 	rm -rf $(OUT_DIR) $(DIST_DIR)
+
+$(OUT_DIR)/fg_tile_cache.o: $(SRC_DIR)/fg_tile_cache.s FORCE_ASM_REBUILD | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+.PHONY: pc080sn-compile
+pc080sn-compile: $(MAINCPU_REGION) $(PC080SN_REGION)
+	$(PYTHON) "$(ROOT)/tools/translation/compile_pc080sn_genesis.py"

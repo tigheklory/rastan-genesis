@@ -1,6 +1,7 @@
     .section .text,"ax"
 
     .global load_scene_tiles
+    .extern fg_cache_reset
 
     .global genesistan_pc080sn_tile_vram_lut
     .global genesistan_pc080sn_attr_lut
@@ -143,6 +144,12 @@ load_scene_tiles:
     move.l  (%a3), %d1
     move.l  %d0, genesistan_scene_a0_lo
     move.l  %d1, genesistan_scene_a0_hi
+
+    /* Build 0301: reset the streaming tile cache on gameplay-scene entry (display still off). */
+    cmpi.w  #1, %d5
+    bne.s   .Lload_scene_no_cache_reset
+    bsr     fg_cache_reset
+.Lload_scene_no_cache_reset:
 
     moveq   #VDP_REG_MODE2, %d0
     moveq   #VDP_MODE2_DISPLAY_ON, %d1
