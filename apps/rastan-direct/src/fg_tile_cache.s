@@ -1,355 +1,436 @@
-/* Build 0301: streaming PC080SN tile residency cache (Rev-3 design).
+/* Build 0302: boundary-loaded Stage-1 PC080SN pattern residency experiment.
  *
- * Replaces the static code->slot LUT for gameplay Plane-A AND Plane-B production with a bounded,
- * source-driven streaming cache confined to sprite-safe Cache A (slots 0..1003; sprites live at
- * 1024+, Cache B 1344..1503 unused).  Key = arcade tile code & 0x3FFF (pattern is a pure function
- * of the code; palette/flip stay name-word attributes).  See
- * docs/design/Andy_streaming_fg_tile_residency_design.md (rev 3).
- *
- * Live-slot safety proof is the per-frame staged-buffer scan (fg_cache_mark_live), NOT resolve
- * frequency.  Eviction never touches a slot referenced by the displayed plane (fg_slot_live_frame
- * == frame) or this frame's production (fg_cache_touch == frame) or RESERVED/PINNED.
+ * The Build-0301 hash, allocator, eviction state, upload queue, and per-frame plane scans are
+ * retired from active gameplay.  A semantic record transition selects one precompiled package,
+ * rebuilds this direct LUT, and DMA-loads its patterns.  Ordinary publication is one indexed read;
+ * an absent code maps to blank slot 0 and increments a lane-specific counter.  It never loads.
  */
+
+    .include "../../build/pc080sn_boundary/boundary_constants.inc"
 
     .section .text,"ax"
 
     .global fg_cache_reset
     .global fg_cache_resolve
-    .global fg_cache_mark_live
-    .global fg_hash_tbl
-    .global fg_cache_rev
-    .global fg_cache_touch
-    .global fg_slot_live_frame
-    .global fg_cache_state
-    .global fg_upload_q
-    .global fg_upload_count
-    .global fg_frame_ctr
-    .global fg_cache_occupancy
-    .global fg_uploads_last
-    .global fg_upload_overflow
-    .global fg_evict_count
-    .global fg_evict_live_attempts
+    .global fg_boundary_resolve_a
+    .global fg_boundary_resolve_b
+    .global fg_boundary_advance_segment
+    .global fg_boundary_install_post_reseed
+    .global fg_boundary_install
+    .global fg_boundary_epoch_transitions
+    .global fg_boundary_variant_selections
+    .global fg_boundary_miss_a
+    .global fg_boundary_miss_b
+    .global fg_boundary_pattern_dma_transitions
+    .global fg_boundary_name_remap_a
+    .global fg_boundary_name_remap_b
+    .global fg_boundary_name_unmapped_a
+    .global fg_boundary_name_unmapped_b
+    .global fg_boundary_slots_retained
+    .global fg_boundary_slots_reassigned
+    .global fg_boundary_active_record
+    .global fg_boundary_active_variant
 
-    .extern staged_fg_buffer
-    .extern staged_bg_buffer
     .extern genesistan_current_scene_id
     .extern genesistan_pc080sn_tile_vram_lut
+    .extern genesistan_pc080sn_tile_rom
+    .extern staged_bg_buffer
+    .extern staged_fg_buffer
+    .extern bg_row_dirty
+    .extern fg_row_dirty
+    .extern vdp_set_reg
+    .extern vdp_dma_words_to_vram
 
-    .equ HASH_BUCKETS,   2048           /* power of two */
-    .equ HASH_MASK,      (HASH_BUCKETS-1)
-    .equ SLOT_MIN,       64             /* 0..63 reserved: blank(0), HUD digits, frontend/text */
-    .equ SLOT_MAX,       1003           /* Cache A top; sprites start at 1024 */
-    .equ UPLOAD_CAP,     384            /* steady-state tiles/frame; warmup raises it */
-    .equ ST_FREE,        0
-    .equ ST_RESIDENT,    1
-    .equ ST_RESERVED,    2
+    .equ VDP_REG_MODE2,         1
+    .equ VDP_MODE2_DISPLAY_OFF, 0x34
+    .equ VDP_MODE2_DISPLAY_ON,  0x74
+    .equ VRAM_PLANE_B_BASE,     0x0000C000
+    .equ VRAM_PLANE_A_BASE,     0x0000E000
+    .equ PLANE_NAME_WORDS,      2048
+    /* Package installation owns the active LUT until the final code->slot rebuild.
+     * Reuse that storage for both temporary maps instead of extending BSS through
+     * the retained arcade A5+0xC242 gameplay state. */
+    .equ FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, (FG_BOUNDARY_PATTERN_IDENTITIES * 2)
 
-/* ---- fg_cache_reset: called on gameplay entry (display off).  Clears all runtime state,
- * marks slots 0..SLOT_MIN-1 RESERVED, empties the hash.  Warmup handled by caller raising cap. */
+/* Scene-entry boundary.  load_scene_tiles invokes this while display is already off. */
 fg_cache_reset:
-    movem.l %d0-%d2/%a0, -(%sp)
-    /* hash -> 0xFFFF code sentinel (fill whole 8KB with 0xFF) */
-    lea     fg_hash_tbl, %a0
-    move.w  #(HASH_BUCKETS*2 - 1), %d0     /* words: 2 words/bucket */
-    move.w  #0xFFFF, %d1
-.Lrst_hash:
-    move.w  %d1, (%a0)+
-    dbra    %d0, .Lrst_hash
-    /* rev -> 0xFFFF, state -> FREE, touch/live -> 0 for all 1004 slots */
-    lea     fg_cache_rev, %a0
-    move.w  #(1004 - 1), %d0
-.Lrst_rev:
-    move.w  #0xFFFF, (%a0)+
-    dbra    %d0, .Lrst_rev
-    lea     fg_cache_state, %a0
-    move.w  #(1004 - 1), %d0
-.Lrst_state:
-    move.b  #ST_FREE, (%a0)+
-    dbra    %d0, .Lrst_state
-    lea     fg_cache_touch, %a0
-    lea     fg_slot_live_frame, %a1
-    move.w  #(1004 - 1), %d0
-.Lrst_tl:
-    move.w  #0, (%a0)+
-    dbra    %d0, .Lrst_tl
-    move.w  #(1004 - 1), %d0
-    lea     fg_slot_live_frame, %a0
-.Lrst_live:
-    move.w  #0, (%a0)+
-    dbra    %d0, .Lrst_live
-    /* reserve slots 0..SLOT_MIN-1 */
-    lea     fg_cache_state, %a0
-    move.w  #(SLOT_MIN - 1), %d0
-.Lrst_resv:
-    move.b  #ST_RESERVED, (%a0)+
-    dbra    %d0, .Lrst_resv
-    move.w  #1, fg_frame_ctr
-    clr.w   fg_upload_count
-    clr.w   fg_cache_occupancy
-    clr.w   fg_uploads_last
-    clr.w   fg_upload_overflow
-    clr.w   fg_evict_count
-    clr.w   fg_evict_live_attempts
-    movem.l (%sp)+, %d0-%d2/%a0
+    movem.l %d0-%d1, -(%sp)
+    tst.b   fg_boundary_reseed_pending
+    bne.s   .Lcache_reset_done
+    clr.l   fg_boundary_epoch_transitions
+    clr.l   fg_boundary_variant_selections
+    clr.l   fg_boundary_miss_a
+    clr.l   fg_boundary_miss_b
+    clr.l   fg_boundary_pattern_dma_transitions
+    clr.l   fg_boundary_name_remap_a
+    clr.l   fg_boundary_name_remap_b
+    clr.l   fg_boundary_name_unmapped_a
+    clr.l   fg_boundary_name_unmapped_b
+    clr.l   fg_boundary_slots_retained
+    clr.l   fg_boundary_slots_reassigned
+    move.w  #0xFFFF, fg_boundary_active_record
+    move.w  #0xFFFF, fg_boundary_active_variant
+    move.w  #0xFFFF, fg_boundary_active_package
+    bsr     fg_boundary_install
+.Lcache_reset_done:
+    movem.l (%sp)+, %d0-%d1
     rts
 
-/* ---- fg_cache_hash: in d0.w=code (&0x3FFF) -> d0.w=bucket index (0..HASH_MASK). */
-fg_cache_hash:
-    /* Knuth multiplicative: (code*2654435761)>>21 & mask, done in 32-bit. */
-    andi.l  #0x00003FFF, %d0
-    move.l  %d0, %d1
-    lsl.l   #4, %d1
-    add.l   %d1, %d0                 /* *17 cheap spread */
-    lsl.l   #7, %d0
-    add.l   %d1, %d0
-    lsr.l   #5, %d0
-    andi.w  #HASH_MASK, %d0
+/* Exact semantic progression replacement for arcade_pc 0x0558FE.  Preserve the original state
+ * write first, then install once; the original routine's following RTS remains in arcade flow. */
+fg_boundary_advance_segment:
+    addq.w  #1, 0x013E(%a5)
+    movem.l %d0-%d1, -(%sp)
+    moveq   #0, %d0
+    move.w  0x013E(%a5), %d0
+    cmpi.w  #32, %d0
+    bhs.s   .Ladvance_install_now
+    move.l  #FG_BOUNDARY_RESEED_MASK, %d1
+    btst    %d0, %d1
+    beq.s   .Ladvance_install_now
+    move.b  #1, fg_boundary_reseed_pending
+    movem.l (%sp)+, %d0-%d1
+    rts
+.Ladvance_install_now:
+    movem.l (%sp)+, %d0-%d1
+    bsr     fg_boundary_install
     rts
 
-/* ---- fg_cache_resolve: HOT.  in d3.w = arcade code; out d3.w = Genesis slot (0 = blank).
- * Clobbers d3 only; preserves all other registers (incl a2). */
+/* Event records 15->16 and 21->22 reseed the descriptor cursor and Plane-B Y through the
+ * outer controller after the raw segment increment.  The scene-fill return at arcade_pc 0x050482
+ * calls here only after that authoritative state and its 64 publications are complete. */
+fg_boundary_install_post_reseed:
+    tst.b   fg_boundary_reseed_pending
+    beq.s   .Lpost_reseed_done
+    clr.b   fg_boundary_reseed_pending
+    bsr     fg_boundary_install
+.Lpost_reseed_done:
+    rts
+
+/* Compatibility name for surviving Plane-A call sites. */
 fg_cache_resolve:
-    movem.l %d0-%d2/%a0-%a1, -(%sp)
+fg_boundary_resolve_a:
+    movem.l %d0/%a0, -(%sp)
     andi.w  #0x3FFF, %d3
-    beq     .Lrs_ret                /* code 0 = blank -> slot 0 */
-    /* Gate: only the gameplay scene streams.  Title/end-round/frontend use the SAME producers, so
-     * for them fall back to the static LUT (decision 3: frontend stays static). */
+    beq.s   .Lresolve_a_done
     cmpi.b  #1, genesistan_current_scene_id
-    bne   .Lrs_static
-    /* hash probe */
-    move.w  %d3, %d0
-    bsr     fg_cache_hash           /* d0 = bucket */
-    lea     fg_hash_tbl, %a0
-    move.w  %d3, %d2                /* d2 = code we want */
-    moveq   #0, %d1                /* probe count guard */
-.Lrs_probe:
-    move.w  %d0, %a1
-    add.w   %a1, %a1
-    add.w   %a1, %a1               /* bucket*4 */
-    lea     fg_hash_tbl, %a1
-    move.w  %d0, %d3
-    lsl.w   #2, %d3
-    adda.w  %d3, %a1               /* a1 = &bucket[d0] */
-    move.w  (%a1), %d3            /* bucket code */
-    cmpi.w  #0xFFFF, %d3
-    beq   .Lrs_miss             /* empty -> not resident */
-    cmp.w   %d2, %d3
-    beq   .Lrs_hit
-    addq.w  #1, %d0
-    andi.w  #HASH_MASK, %d0
-    addq.w  #1, %d1
-    cmpi.w  #HASH_BUCKETS, %d1
-    blo   .Lrs_probe
-    bra   .Lrs_miss             /* table full (shouldn't happen) */
-.Lrs_hit:
-    move.w  2(%a1), %d3           /* slot */
-    /* touch[slot] = frame */
+    bne.s   .Lresolve_a_static
+    cmpi.w  #FG_BOUNDARY_LUT_WORDS, %d3
+    bhs.s   .Lresolve_a_miss
     move.w  %d3, %d0
     add.w   %d0, %d0
-    lea     fg_cache_touch, %a0
-    move.w  fg_frame_ctr, 0(%a0,%d0.w)
-    bra     .Lrs_ret              /* d3 = slot */
-.Lrs_miss:
-    /* d2 = code, a1 = &bucket to insert (last probed empty slot) */
-    move.w  fg_upload_count, %d0
-    cmpi.w  #UPLOAD_CAP, %d0
-    bhs     .Lrs_overflow
-    /* allocate a slot */
-    bsr     fg_cache_alloc        /* d3 = slot (0 = none) */
-    tst.w   %d3
-    beq     .Lrs_overflow_noinstall
-    /* install hash entry at a1 (the empty bucket found) */
-    move.w  %d2, (%a1)
-    move.w  %d3, 2(%a1)
-    /* rev[slot]=code, state=RESIDENT, touch=frame */
-    move.w  %d3, %d0
-    add.w   %d0, %d0
-    lea     fg_cache_rev, %a0
-    move.w  %d2, 0(%a0,%d0.w)
-    move.w  fg_frame_ctr, %d1
-    lea     fg_cache_touch, %a0
-    move.w  %d1, 0(%a0,%d0.w)
-    lea     fg_cache_state, %a0
-    move.w  %d3, %d1
-    move.b  #ST_RESIDENT, 0(%a0,%d1.w)
-    /* queue (slot, code) */
-    move.w  fg_upload_count, %d0
-    lea     fg_upload_q, %a0
-    move.w  %d0, %d1
-    lsl.w   #2, %d1
-    adda.w  %d1, %a0
-    move.w  %d3, (%a0)+
-    move.w  %d2, (%a0)
-    addq.w  #1, fg_upload_count
-    addq.w  #1, fg_cache_occupancy
-    bra     .Lrs_ret              /* d3 = slot */
-.Lrs_overflow:
-.Lrs_overflow_noinstall:
-    addq.w  #1, fg_upload_overflow
-    moveq   #0, %d3               /* blank slot 0; no install; retry next frame */
-.Lrs_ret:
-    movem.l (%sp)+, %d0-%d2/%a0-%a1
-    rts
-.Lrs_static:
-    /* static LUT passthrough for non-gameplay scenes: d3 = LUT[code] */
+    lea     fg_boundary_active_lut, %a0
+    move.w  0(%a0,%d0.w), %d3
+    bne.s   .Lresolve_a_done
+.Lresolve_a_miss:
+    addq.l  #1, fg_boundary_miss_a
+    moveq   #0, %d3
+    bra.s   .Lresolve_a_done
+.Lresolve_a_static:
     move.w  %d3, %d0
     add.w   %d0, %d0
     lea     genesistan_pc080sn_tile_vram_lut, %a0
     move.w  0(%a0,%d0.w), %d3
-    movem.l (%sp)+, %d0-%d2/%a0-%a1
+.Lresolve_a_done:
+    movem.l (%sp)+, %d0/%a0
     rts
 
-/* ---- fg_cache_alloc: out d3.w = slot (0 = none evictable).  Live proof from mark_live + touch. */
-fg_cache_alloc:
-    movem.l %d0-%d2/%a0-%a2, -(%sp)
-    /* pass 1: first FREE non-reserved slot */
-    lea     fg_cache_state, %a0
-    move.w  #SLOT_MIN, %d0
-.Lal_free:
-    cmpi.w  #SLOT_MAX, %d0
-    bhi   .Lal_no_free
-    move.w  %d0, %d1
-    move.b  0(%a0,%d1.w), %d2
-    cmpi.b  #ST_FREE, %d2
-    beq   .Lal_take
-    addq.w  #1, %d0
-    bra   .Lal_free
-.Lal_take:
-    move.w  %d0, %d3
-    bra   .Lal_ret
-.Lal_no_free:
-    /* pass 2: oldest-touch NON-LIVE resident slot */
-    move.w  fg_frame_ctr, %d2      /* current frame */
-    moveq   #0, %d3               /* best slot */
-    move.w  #0xFFFF, %a2          /* best touch (unsigned max in a2 as scratch) */
-    move.w  #SLOT_MIN, %d0
-.Lal_scan:
-    cmpi.w  #SLOT_MAX, %d0
-    bhi   .Lal_done
-    move.w  %d0, %d1
-    lea     fg_cache_state, %a0
-    move.b  0(%a0,%d1.w), %d1
-    cmpi.b  #ST_RESIDENT, %d1
-    bne   .Lal_next
-    /* live? live_frame==frame OR touch==frame -> skip */
-    move.w  %d0, %d1
-    add.w   %d1, %d1
-    lea     fg_slot_live_frame, %a0
-    move.w  0(%a0,%d1.w), %a1
-    cmp.w   %d2, %a1
-    beq   .Lal_next             /* displayed-live */
-    lea     fg_cache_touch, %a0
-    move.w  0(%a0,%d1.w), %a1
-    cmp.w   %d2, %a1
-    beq   .Lal_next             /* in-production */
-    /* candidate; pick oldest touch (a1 = its touch) */
-    cmp.w   %a2, %a1
-    bhs   .Lal_next
-    move.w  %a1, %a2
-    move.w  %d0, %d3
-.Lal_next:
-    addq.w  #1, %d0
-    bra   .Lal_scan
-.Lal_done:
-    tst.w   %d3
-    beq   .Lal_none             /* nothing evictable -> live-eviction would be needed */
-    /* evict d3: delete its old hash entry (rev[d3] = old code) */
-    move.w  %d3, %d1
-    add.w   %d1, %d1
-    lea     fg_cache_rev, %a0
-    move.w  0(%a0,%d1.w), %d0     /* old code */
-    cmpi.w  #0xFFFF, %d0
-    beq   .Lal_evdone
-    bsr     fg_hash_delete        /* d0 = code to remove */
-    subq.w  #1, fg_cache_occupancy
-.Lal_evdone:
-    addq.w  #1, fg_evict_count
-    bra   .Lal_ret
-.Lal_none:
-    addq.w  #1, fg_evict_live_attempts
+fg_boundary_resolve_b:
+    movem.l %d0/%a0, -(%sp)
+    andi.w  #0x3FFF, %d3
+    beq.s   .Lresolve_b_done
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .Lresolve_b_static
+    cmpi.w  #FG_BOUNDARY_LUT_WORDS, %d3
+    bhs.s   .Lresolve_b_miss
+    move.w  %d3, %d0
+    add.w   %d0, %d0
+    lea     fg_boundary_active_lut, %a0
+    move.w  0(%a0,%d0.w), %d3
+    bne.s   .Lresolve_b_done
+.Lresolve_b_miss:
+    addq.l  #1, fg_boundary_miss_b
     moveq   #0, %d3
-.Lal_ret:
-    movem.l (%sp)+, %d0-%d2/%a0-%a2
+    bra.s   .Lresolve_b_done
+.Lresolve_b_static:
+    move.w  %d3, %d0
+    add.w   %d0, %d0
+    lea     genesistan_pc080sn_tile_vram_lut, %a0
+    move.w  0(%a0,%d0.w), %d3
+.Lresolve_b_done:
+    movem.l (%sp)+, %d0/%a0
     rts
 
-/* ---- fg_hash_delete: in d0.w = code to remove from the hash (linear-probe tombstone-free:
- * since we never leave holes mid-cluster, use backward-shift deletion is complex; instead mark
- * the removed bucket empty and rely on the low load factor + reinsert-on-miss). */
-fg_hash_delete:
-    movem.l %d0-%d2/%a0-%a1, -(%sp)
-    move.w  %d0, %d2              /* code */
-    bsr     fg_cache_hash        /* d0 = bucket */
+/* Install package selected from persistent record a5+0x13E and current proven Plane-B Y
+ * a5+0x10EE.  Ordinary records have 8 variants (Y>>6); vertical records 17/21 have one 64-row
+ * package.  No caller invokes this from VBlank or the normal frame loop. */
+fg_boundary_install:
+    movem.l %d0-%d7/%a0-%a4, -(%sp)
+    cmpi.b  #1, genesistan_current_scene_id
+    bne     .Linstall_done
+    moveq   #0, %d0
+    move.w  0x013E(%a5), %d0
+    cmpi.w  #FG_BOUNDARY_RECORDS, %d0
+    bhs     .Linstall_disable
+
+    lea     fg_boundary_packages, %a4
+    move.w  %d0, %d1
+    lsl.w   #2, %d1
+    lea     0(%a4,%d1.w), %a0
+    moveq   #0, %d2
+    move.w  (%a0)+, %d2                 /* first package */
+    move.w  (%a0), %d3                  /* variant count */
     moveq   #0, %d1
-.Lhd_probe:
-    lea     fg_hash_tbl, %a1
-    move.w  %d0, %a0
-    lsl.w   #2, %d0
-    adda.w  %d0, %a1
-    move.w  (%a1), %d0
-    cmpi.w  #0xFFFF, %d0
-    beq   .Lhd_done            /* not found */
-    cmp.w   %d2, %d0
-    beq   .Lhd_hit
-    move.w  %a0, %d0
-    addq.w  #1, %d0
-    andi.w  #HASH_MASK, %d0
-    addq.w  #1, %d1
-    cmpi.w  #HASH_BUCKETS, %d1
-    blo   .Lhd_probe
-    bra   .Lhd_done
-.Lhd_hit:
-    move.w  #0xFFFF, (%a1)       /* empty the bucket */
-.Lhd_done:
-    movem.l (%sp)+, %d0-%d2/%a0-%a1
+    cmpi.w  #1, %d3
+    beq.s   .Linstall_variant_ready
+    move.w  0x10EE(%a5), %d1            /* Plane-B Y, 0..511 */
+    andi.w  #0x01FF, %d1
+    lsr.w   #6, %d1                     /* 8 classes around the 64-row ring */
+.Linstall_variant_ready:
+    add.w   %d1, %d2                    /* package index */
+    move.w  %d0, fg_boundary_pending_record
+    move.w  %d1, fg_boundary_pending_variant
+    move.w  %d2, fg_boundary_pending_package
+
+    move.l  %d2, %d0
+    lsl.l   #4, %d0                     /* fixed 16-byte descriptor */
+    addi.l  #FG_BOUNDARY_DESC_OFFSET, %d0
+    lea     0(%a4,%d0.l), %a0
+    move.l  (%a0)+, %d4                 /* package-data offset */
+    move.w  (%a0)+, %d5                 /* map pairs */
+    move.w  (%a0)+, %d6                 /* upload pairs */
+    /* Remaining descriptor words are diagnostics: dropped A/B, row start/count. */
+
+    move.w  %sr, -(%sp)
+    ori.w   #0x0700, %sr
+    moveq   #VDP_REG_MODE2, %d0
+    moveq   #VDP_MODE2_DISPLAY_OFF, %d1
+    bsr     vdp_set_reg
+
+    /* Build identity->new-slot from compiler-emitted exact-pattern IDs. Package data is
+     * {code,slot} maps, {representative-code,slot} uploads, then {slot,identity} pairs. */
+    lea     fg_boundary_active_lut, %a0
+    move.w  #(FG_BOUNDARY_PATTERN_IDENTITIES - 1), %d7
+.Linstall_clear_identity_lut:
+    clr.w   (%a0)+
+    dbra    %d7, .Linstall_clear_identity_lut
+
+    lea     0(%a4,%d4.l), %a2
+    movea.l %a2, %a3
+    moveq   #0, %d0
+    move.w  %d5, %d0
+    add.w   %d6, %d0
+    lsl.l   #2, %d0
+    adda.l  %d0, %a3
+    move.w  %d6, %d7
+    beq.s   .Linstall_new_identities_done
+    subq.w  #1, %d7
+.Linstall_new_identity_loop:
+    move.w  (%a3)+, %d0                 /* new slot */
+    moveq   #0, %d1
+    move.w  (%a3)+, %d1                 /* canonical exact-pattern identity */
+    add.w   %d1, %d1
+    lea     fg_boundary_active_lut, %a0
+    move.w  %d0, 0(%a0,%d1.w)
+    dbra    %d7, .Linstall_new_identity_loop
+.Linstall_new_identities_done:
+
+    lea     fg_boundary_active_lut + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a0
+    move.w  #(FG_BOUNDARY_SLOT_COUNT - 1), %d7
+.Linstall_clear_slot_translation:
+    clr.w   (%a0)+
+    dbra    %d7, .Linstall_clear_slot_translation
+
+    /* Exact old slot -> canonical identity -> new slot translation. */
+    moveq   #0, %d7
+    move.w  fg_boundary_active_package, %d7
+    cmpi.w  #0xFFFF, %d7
+    beq.s   .Linstall_translation_done
+    lsl.l   #4, %d7
+    addi.l  #FG_BOUNDARY_DESC_OFFSET, %d7
+    lea     0(%a4,%d7.l), %a0
+    move.l  (%a0)+, %d0                 /* old package-data offset */
+    moveq   #0, %d1
+    move.w  (%a0)+, %d1                 /* old map count */
+    moveq   #0, %d7
+    move.w  (%a0)+, %d7                 /* old identity/upload count */
+    lea     0(%a4,%d0.l), %a3
+    add.w   %d7, %d1
+    lsl.l   #2, %d1
+    adda.l  %d1, %a3
+    tst.w   %d7
+    beq.s   .Linstall_translation_done
+    subq.w  #1, %d7
+.Linstall_old_identity_loop:
+    moveq   #0, %d0
+    move.w  (%a3)+, %d0                 /* old slot */
+    moveq   #0, %d1
+    move.w  (%a3)+, %d1                 /* canonical exact-pattern identity */
+    add.w   %d1, %d1
+    lea     fg_boundary_active_lut, %a0
+    move.w  0(%a0,%d1.w), %d2           /* exact new slot, or blank */
+    subi.w  #FG_BOUNDARY_SLOT_FIRST, %d0
+    bcs.s   .Linstall_old_identity_next
+    cmpi.w  #FG_BOUNDARY_SLOT_COUNT, %d0
+    bhs.s   .Linstall_old_identity_next
+    add.w   %d0, %d0
+    lea     fg_boundary_active_lut + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a0
+    move.w  %d2, 0(%a0,%d0.w)
+.Linstall_old_identity_next:
+    dbra    %d7, .Linstall_old_identity_loop
+.Linstall_translation_done:
+
+    lea     staged_fg_buffer, %a0
+    lea     fg_boundary_name_remap_a, %a1
+    lea     fg_boundary_name_unmapped_a, %a2
+    bsr     .Linstall_remap_plane
+    lea     staged_bg_buffer, %a0
+    lea     fg_boundary_name_remap_b, %a1
+    lea     fg_boundary_name_unmapped_b, %a2
+    bsr     .Linstall_remap_plane
+
+    lea     fg_boundary_active_lut, %a0
+    move.w  #(FG_BOUNDARY_LUT_WORDS - 1), %d7
+.Linstall_clear_lut:
+    clr.w   (%a0)+
+    dbra    %d7, .Linstall_clear_lut
+
+    lea     0(%a4,%d4.l), %a2
+    move.w  %d5, %d7
+    beq.s   .Linstall_maps_done
+    subq.w  #1, %d7
+.Linstall_map_loop:
+    move.w  (%a2)+, %d0                 /* arcade code */
+    move.w  (%a2)+, %d1                 /* Genesis slot */
+    cmpi.w  #FG_BOUNDARY_LUT_WORDS, %d0
+    bhs.s   .Linstall_map_next
+    add.w   %d0, %d0
+    lea     fg_boundary_active_lut, %a0
+    move.w  %d1, 0(%a0,%d0.w)
+.Linstall_map_next:
+    dbra    %d7, .Linstall_map_loop
+.Linstall_maps_done:
+
+    move.w  %d6, %d7
+    beq.s   .Linstall_uploads_done
+    subq.w  #1, %d7
+.Linstall_upload_loop:
+    moveq   #0, %d2
+    move.w  (%a2)+, %d2                 /* representative arcade code */
+    moveq   #0, %d0
+    move.w  (%a2)+, %d0                 /* destination slot */
+    move.w  %d0, %d1
+    subi.w  #FG_BOUNDARY_SLOT_FIRST, %d1
+    bcs.s   .Linstall_upload_required
+    cmpi.w  #FG_BOUNDARY_SLOT_COUNT, %d1
+    bhs.s   .Linstall_upload_required
+    add.w   %d1, %d1
+    lea     fg_boundary_active_lut + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a0
+    cmp.w   0(%a0,%d1.w), %d0
+    bne.s   .Linstall_upload_required
+    addq.l  #1, fg_boundary_slots_retained
+    bra.s   .Linstall_upload_next
+.Linstall_upload_required:
+    addq.l  #1, fg_boundary_slots_reassigned
+    lsl.l   #5, %d0                     /* VRAM byte destination */
+    lsl.l   #5, %d2                     /* ROM byte source offset */
+    lea     genesistan_pc080sn_tile_rom, %a0
+    adda.l  %d2, %a0
+    moveq   #16, %d1
+    bsr     vdp_dma_words_to_vram
+.Linstall_upload_next:
+    dbra    %d7, .Linstall_upload_loop
+.Linstall_uploads_done:
+    addq.l  #1, fg_boundary_pattern_dma_transitions
+
+    /* The new package owns both final staged tables atomically before display returns. */
+    lea     staged_bg_buffer, %a0
+    move.l  #VRAM_PLANE_B_BASE, %d0
+    move.w  #PLANE_NAME_WORDS, %d1
+    bsr     vdp_dma_words_to_vram
+    lea     staged_fg_buffer, %a0
+    move.l  #VRAM_PLANE_A_BASE, %d0
+    move.w  #PLANE_NAME_WORDS, %d1
+    bsr     vdp_dma_words_to_vram
+    clr.l   bg_row_dirty
+    clr.l   fg_row_dirty
+
+    move.w  fg_boundary_pending_record, fg_boundary_active_record
+    move.w  fg_boundary_pending_variant, fg_boundary_active_variant
+    move.w  fg_boundary_pending_package, fg_boundary_active_package
+    addq.l  #1, fg_boundary_epoch_transitions
+    addq.l  #1, fg_boundary_variant_selections
+    moveq   #VDP_REG_MODE2, %d0
+    moveq   #VDP_MODE2_DISPLAY_ON, %d1
+    bsr     vdp_set_reg
+    move.w  (%sp)+, %sr
+    bra.s   .Linstall_done
+
+.Linstall_disable:
+    move.w  #0xFFFF, fg_boundary_active_record
+    move.w  #0xFFFF, fg_boundary_active_variant
+    move.w  #0xFFFF, fg_boundary_active_package
+.Linstall_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a4
     rts
 
-/* ---- fg_cache_mark_live: called once per frame at VBlank end (after commits, before next
- * production).  Increments frame counter, then scans the full staged FG+BG buffers and marks every
- * referenced slot live for the new frame.  This is the eviction safety proof. */
-fg_cache_mark_live:
-    movem.l %d0-%d2/%a0-%a1, -(%sp)
-    addq.w  #1, fg_frame_ctr
-    move.w  fg_frame_ctr, %d2
-    lea     fg_slot_live_frame, %a1
-    /* Plane A */
-    lea     staged_fg_buffer, %a0
-    move.w  #(2048 - 1), %d0
-.Lml_fg:
-    move.w  (%a0)+, %d1
+/* in: A0=2048-word final staged plane, A1=processed counter, A2=blanked counter.
+ * Only the 11-bit Genesis pattern field changes; priority/palette/H/V bits are exact. */
+.Linstall_remap_plane:
+    movem.l %d0-%d4/%a0-%a3, -(%sp)
+    move.w  #(PLANE_NAME_WORDS - 1), %d4
+.Linstall_remap_plane_loop:
+    move.w  (%a0), %d0
+    move.w  %d0, %d1
     andi.w  #0x07FF, %d1
-    beq   .Lml_fg_next
+    beq.s   .Linstall_remap_plane_next
+    cmpi.w  #FG_BOUNDARY_SLOT_FIRST, %d1
+    blo.s   .Linstall_remap_plane_next   /* system/frontend slots retain their identity */
+    moveq   #0, %d2
+    cmpi.w  #(FG_BOUNDARY_SLOT_FIRST + FG_BOUNDARY_SLOT_COUNT), %d1
+    bhs.s   .Linstall_remap_plane_store
+    subi.w  #FG_BOUNDARY_SLOT_FIRST, %d1
     add.w   %d1, %d1
-    move.w  %d2, 0(%a1,%d1.w)
-.Lml_fg_next:
-    dbra    %d0, .Lml_fg
-    /* Plane B */
-    lea     staged_bg_buffer, %a0
-    move.w  #(2048 - 1), %d0
-.Lml_bg:
-    move.w  (%a0)+, %d1
-    andi.w  #0x07FF, %d1
-    beq   .Lml_bg_next
-    add.w   %d1, %d1
-    move.w  %d2, 0(%a1,%d1.w)
-.Lml_bg_next:
-    dbra    %d0, .Lml_bg
-    move.w  fg_upload_count, fg_uploads_last
-    movem.l (%sp)+, %d0-%d2/%a0-%a1
+    lea     fg_boundary_active_lut + FG_BOUNDARY_SLOT_TRANSLATION_SCRATCH, %a3
+    move.w  0(%a3,%d1.w), %d2
+.Linstall_remap_plane_store:
+    andi.w  #0xF800, %d0
+    or.w    %d2, %d0
+    move.w  %d0, (%a0)
+    addq.l  #1, (%a1)
+    tst.w   %d2
+    bne.s   .Linstall_remap_plane_next
+    addq.l  #1, (%a2)
+.Linstall_remap_plane_next:
+    addq.l  #2, %a0
+    dbra    %d4, .Linstall_remap_plane_loop
+    movem.l (%sp)+, %d0-%d4/%a0-%a3
     rts
+
+    .section .rodata,"a"
+    .align 2
+fg_boundary_packages:
+    .incbin "../../build/pc080sn_boundary/boundary_packages.bin"
 
     .section .bss
     .align 2
-fg_hash_tbl:          .space (HASH_BUCKETS * 4)   /* {code:u16, slot:u16} */
-fg_cache_rev:         .space (1004 * 2)
-fg_cache_touch:       .space (1004 * 2)
-fg_slot_live_frame:   .space (1004 * 2)
-fg_cache_state:       .space 1004
+fg_boundary_active_lut:                 .space (FG_BOUNDARY_LUT_WORDS * 2)
+fg_boundary_epoch_transitions:          .space 4
+fg_boundary_variant_selections:         .space 4
+fg_boundary_miss_a:                     .space 4
+fg_boundary_miss_b:                     .space 4
+fg_boundary_pattern_dma_transitions:    .space 4
+fg_boundary_name_remap_a:               .space 4
+fg_boundary_name_remap_b:               .space 4
+fg_boundary_name_unmapped_a:            .space 4
+fg_boundary_name_unmapped_b:            .space 4
+fg_boundary_slots_retained:             .space 4
+fg_boundary_slots_reassigned:           .space 4
+fg_boundary_active_record:              .space 2
+fg_boundary_active_variant:             .space 2
+fg_boundary_active_package:             .space 2
+fg_boundary_pending_record:             .space 2
+fg_boundary_pending_variant:            .space 2
+fg_boundary_pending_package:            .space 2
+fg_boundary_reseed_pending:             .space 1
     .align 2
-fg_upload_q:          .space (UPLOAD_CAP * 4)     /* {slot:u16, code:u16} */
-fg_upload_count:      .space 2
-fg_frame_ctr:         .space 2
-fg_cache_occupancy:   .space 2
-fg_uploads_last:      .space 2
-fg_upload_overflow:   .space 2
-fg_evict_count:       .space 2
-fg_evict_live_attempts: .space 2

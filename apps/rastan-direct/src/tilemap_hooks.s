@@ -5,6 +5,7 @@
     .global genesistan_hook_tilemap_plane_a_selector12_native
     .global genesistan_plane_a_pan_publish_entering_rows_up
     .global genesistan_plane_a_pan_publish_entering_rows_down
+    .global genesistan_pc080sn_directional_dispatch_native
     .global genesistan_hook_tilemap_fg
     .global genesistan_hook_cwindow_clear
     .global genesistan_hook_tilemap_bg_fill
@@ -42,7 +43,7 @@
     .extern vdp_commit_fg_strips_if_dirty
     .extern genesistan_current_scene_id
     .extern fg_cache_resolve
-    .extern fg_cache_reset
+    .extern fg_boundary_resolve_b
     .extern genesistan_current_pc080sn_tileset_id
     .extern fg_native_gameplay_owner
     .extern palette_route_lookup
@@ -754,7 +755,7 @@ genesistan_plane_a_pan_publish_entering_rows_down:
     clr.w   12(%sp)
 
 .Lplane_b_row_tile_ready:
-    bsr     fg_cache_resolve
+    bsr     fg_boundary_resolve_b
     or.w    12(%sp), %d3
 
     move.w  2(%sp), %d0
@@ -821,7 +822,7 @@ genesistan_plane_a_pan_publish_entering_rows_down:
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     move.w  %d7, %d3
     andi.w  #0x3FFF, %d3
-    bsr     fg_cache_resolve
+    bsr     fg_boundary_resolve_b
     or.w    6(%sp), %d3
 
     lea     staged_bg_buffer, %a6
@@ -841,6 +842,149 @@ genesistan_plane_a_pan_publish_entering_rows_down:
     adda.w  #8, %sp
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
+
+/* Native replacement for the gameplay call to arcade FUN_00055ad6.
+ *
+ * Semantic cut retained: a5+0x10D0 direction gates and the original camera/descriptor state.
+ * Chip tail retired: FUN_00055ad6 -> 55B28/55B32/55B3C/55BB6 -> 55C4A/55C7A and its raw
+ * C00000 destination arithmetic. The only publishing arm emits the selected semantic column into
+ * final Plane-B staging through the existing LUT-aware native cell producer.
+ */
+genesistan_pc080sn_directional_dispatch_native:
+    movem.l %d0-%d2, -(%sp)
+    move.w  0x10D0(%a5), %d0
+    btst    #0, %d0
+    beq.s   .Ldirectional_check_bit1
+    btst    #5, %d0
+    bne.s   .Ldirectional_check_bit1
+    move.w  0x10B0(%a5), 0x10EE(%a5)
+.Ldirectional_check_bit1:
+    move.w  0x10D0(%a5), %d0
+    btst    #1, %d0
+    beq.s   .Ldirectional_check_bit3
+    btst    #4, %d0
+    bne.s   .Ldirectional_check_bit3
+    move.w  0x10B0(%a5), 0x10EE(%a5)
+.Ldirectional_check_bit3:
+    move.w  0x10D0(%a5), %d0
+    btst    #3, %d0
+    beq.s   .Ldirectional_check_bit2
+    btst    #6, %d0
+    bne.s   .Ldirectional_check_bit2
+    bsr     .Ldirectional_forward_native
+.Ldirectional_check_bit2:
+    move.w  0x10D0(%a5), %d0
+    btst    #2, %d0
+    beq.s   .Ldirectional_done
+    btst    #7, %d0
+    bne.s   .Ldirectional_done
+    bsr     .Ldirectional_reverse_native
+.Ldirectional_done:
+    movem.l (%sp)+, %d0-%d2
+    rts
+
+.Ldirectional_forward_native:
+    cmpi.w  #0x00A0, 0x10B8(%a5)
+    blt.s   .Ldirectional_forward_scroll
+    tst.w   0x10A8(%a5)
+    bne.s   .Ldirectional_forward_done
+    move.w  0x10D8(%a5), %d0
+    add.w   0x10F0(%a5), %d0
+    lsr.w   #1, %d0
+    add.w   0x10F2(%a5), %d0
+    move.w  %d0, 0x10F2(%a5)
+    btst    #3, %d0
+    beq.s   .Ldirectional_forward_scroll
+    bclr    #3, %d0
+    move.w  %d0, 0x10F2(%a5)
+    bsr     .Ldirectional_publish_column_native
+.Ldirectional_forward_scroll:
+    move.w  0x10D8(%a5), %d0
+    add.w   0x10F0(%a5), %d0
+    move.w  %d0, %d2
+    lsr.w   #1, %d0
+    andi.w  #1, %d2
+    move.w  %d2, 0x10F0(%a5)
+    move.w  0x10EC(%a5), %d1
+    sub.w   %d0, %d1
+    andi.w  #0x01FF, %d1
+    move.w  %d1, 0x10EC(%a5)
+.Ldirectional_forward_done:
+    rts
+
+.Ldirectional_reverse_native:
+    tst.w   0x10B8(%a5)
+    blt.s   .Ldirectional_reverse_done
+    move.w  0x10D8(%a5), %d0
+    sub.w   0x10F0(%a5), %d0
+    move.w  %d0, %d2
+    lsr.w   #1, %d0
+    andi.w  #1, %d2
+    not.w   %d2
+    addq.w  #1, %d2
+    move.w  %d2, 0x10F0(%a5)
+    add.w   0x10EC(%a5), %d0
+    andi.w  #0x01FF, %d0
+    move.w  %d0, 0x10EC(%a5)
+.Ldirectional_reverse_done:
+    rts
+
+/* Direct semantic descriptor/source publication for the forward edge. No C-window cursor,
+ * descriptor output shadow, or raw hardware address is produced.
+ */
+.Ldirectional_publish_column_native:
+    movem.l %d0-%d7/%a0-%a4, -(%sp)
+    move.l  0x10FC(%a5), 0x1126(%a5)
+    movea.l 0x10FC(%a5), %a0
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
+    blo.w   .Ldirectional_bad_pointer
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
+    bhs.w   .Ldirectional_bad_pointer
+    suba.l  #PC080SN_DESC_ARCADE_START, %a0
+    adda.l  #PC080SN_DESC_GENESIS_START, %a0
+    move.w  (%a0), %d7
+    movea.l 2(%a0), %a2
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a2
+    blo.s   .Ldirectional_bad_pointer
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a2
+    bhs.s   .Ldirectional_bad_pointer
+    suba.l  #PC080SN_DESC_ARCADE_START, %a2
+    adda.l  #PC080SN_DESC_GENESIS_START, %a2
+
+    moveq   #0, %d2
+.Ldirectional_publish_row_loop:
+    move.w  %d2, %d0
+    lsl.w   #5, %d0
+    move.w  0x10F6(%a5), %d1
+    add.w   %d1, %d1
+    add.w   %d1, %d0
+    moveq   #0, %d1
+    move.w  0(%a2,%d0.w), %d1
+    move.w  %d7, %d0
+    swap    %d0
+    clr.w   %d0
+    or.l    %d1, %d0
+    bsr     .Lplane_b_stage_gameplay_producer_cell_native
+    addq.w  #1, %d2
+    cmpi.w  #64, %d2
+    blo.s   .Ldirectional_publish_row_loop
+
+    addq.w  #1, 0x10F6(%a5)
+    cmpi.w  #16, 0x10F6(%a5)
+    bne.s   .Ldirectional_publish_done
+    addq.l  #6, 0x10FC(%a5)
+    clr.w   0x10F6(%a5)
+    addq.w  #1, 0x10F4(%a5)
+    cmpi.w  #4, 0x10F4(%a5)
+    bne.s   .Ldirectional_publish_done
+    clr.w   0x10F4(%a5)
+    move.w  #1, 0x13B0(%a5)
+.Ldirectional_publish_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a4
+    rts
+
+.Ldirectional_bad_pointer:
+    trap    #0
 
 /* Build 0299: Stage-1 first-cave per-segment residency selector.
  *
@@ -982,9 +1126,6 @@ genesistan_hook_tilemap_plane_a:
     bra.w   .Lscene_preamble_done
 
 .Lscene_preamble_done:
-    /* Build 0299: after the a0-range scene selection, refine to the Stage-1 first-cave
-     * per-segment residency by arcade segment a5@0x13E (cached; reloads only on segment change). */
-    bsr     genesistan_select_stage1_cave_residency
     lea     ARCADE_PC080SN_DESC_BG_LIST_OFFSET(%a5), %a0
     movea.l #ARCADE_MAINCPU_ROM_BASE, %a1
     lea     genesistan_pc080sn_tile_vram_lut, %a2
@@ -1042,7 +1183,7 @@ genesistan_hook_tilemap_plane_a:
 .Lbg_hook_row_loop:
     move.w  (%a4), %d3
     andi.w  #0x3FFF, %d3
-    bsr     fg_cache_resolve
+    bsr     fg_boundary_resolve_b
     or.w    (%sp), %d3
 
     move.w  %d1, %d0
@@ -1423,7 +1564,7 @@ genesistan_hook_tilemap_bg_fill:
 
     move.w  %d0, %d3
     andi.w  #0x3FFF, %d3
-    bsr     fg_cache_resolve
+    bsr     fg_boundary_resolve_b
 
     move.l  %d0, %d4
     swap    %d4

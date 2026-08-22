@@ -58,6 +58,10 @@ PC080SN_SCENE_PRELOAD_STAGE1_SEG1 := $(ROOT)/build/pc080sn_scene_preload_stage1_
 PC080SN_SCENE_PRELOAD_STAGE1_SEG2 := $(ROOT)/build/pc080sn_scene_preload_stage1_seg2.bin
 PC080SN_SCENE_PRELOAD_ENDROUND := $(ROOT)/build/pc080sn_scene_preload_endround.bin
 PC080SN_SOURCE_SCENE_MAP := $(ROOT)/build/pc080sn_source_scene_map.bin
+PC080SN_BOUNDARY_DIR := $(ROOT)/build/pc080sn_boundary
+PC080SN_BOUNDARY_PACKAGES := $(PC080SN_BOUNDARY_DIR)/boundary_packages.bin
+PC080SN_BOUNDARY_CONSTANTS := $(PC080SN_BOUNDARY_DIR)/boundary_constants.inc
+PC080SN_BOUNDARY_REPORT := $(PC080SN_BOUNDARY_DIR)/boundary_report.json
 PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
 PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
 PC090OJ_HUD_WHITE := $(ROOT)/build/pc090oj_hud_white_genesis.bin
@@ -296,6 +300,14 @@ clean:
 
 $(OUT_DIR)/fg_tile_cache.o: $(SRC_DIR)/fg_tile_cache.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
+
+$(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT): \
+		$(MAINCPU_REGION) $(PC080SN_REGION) $(ROOT)/tools/translation/compile_pc080sn_genesis.py
+	$(PYTHON) "$(ROOT)/tools/translation/compile_pc080sn_genesis.py" \
+		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_REGION)" \
+		--out "$(PC080SN_BOUNDARY_DIR)" --boundary-experiment
+
+$(OUT_DIR)/fg_tile_cache.o: $(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS)
 
 .PHONY: pc080sn-compile
 pc080sn-compile: $(MAINCPU_REGION) $(PC080SN_REGION)
