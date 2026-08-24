@@ -1,0 +1,108 @@
+[
+  {
+    "id": "PA-R1P1-001",
+    "status": "superseded_build_0312_attribution_rejected_build_0313_restored",
+    "section": 2,
+    "record": 1,
+    "baseline_build": 311,
+    "rejected_build": 312,
+    "restoration_build": 313,
+    "scroll_mode": "selector-0 scripted vertical pan",
+    "hardware_observation": "Build 0312 publishes later cave/green-wall graphics on the first exterior screen while collision remains exterior-correct.",
+    "prior_attribution_preserved_as_history": "The Build 0312 report attributed the Build 0311 green-wall appearance to an omitted segment_index*0x40 term and inserted that term inside .Lplane_a_publish_logical_row_native.",
+    "superseding_evidence": "Real Genesis hardware rejected that helper-local insertion: it advances only Plane-A visual publication and produces early cave art. Build 0313 removes only those three instructions and restores the exact tracked Build 0311 production source.",
+    "pattern_identity": "CORRECT_FOR_AUDITED_CAVE_WALL_SAMPLE",
+    "map_geometry": "CORRECT_FOR_BUILD_0311_CAVE_WALL_SAMPLE; WRONG_IN_BUILD_0312_FIRST_EXTERIOR_SCREEN",
+    "palette": "WRONG_FOR_BUILD_0311_CAVE_WALL_SAMPLE",
+    "residency": "CORRECT_FOR_AUDITED_PACKAGE_2_SAMPLE",
+    "root_cause": "Build 0312 applied the segment term at an already-native publication helper whose input/source context cannot be treated as the original arcade formula's unadjusted descriptor base. This was a misplaced or double-applied visual-source adjustment at this semantic boundary.",
+    "correct_semantic_placement": "OPEN; no replacement map adjustment is authorized until the complete original and native effective-address calculations are captured at equivalent semantic events.",
+    "production_fix_build": 313,
+    "fix": "Remove the rejected helper-local A5+0x013E*0x40 addition; retain the Build 0311 seven-epoch and overlap-residency architecture.",
+    "evidence": [
+      "../../docs/design/Cody_build0312_round1_phase1_plane_a_completion.md",
+      "../../docs/design/Cody_build0313_build0312_map_regression_and_phase1_palette_audit.md",
+      "../../apps/rastan-direct/src/tilemap_hooks.s",
+      "../../states/traces/build0313_gameplay_entry_gate_20260824_133037/gameplay_entry_gate_summary.txt"
+    ]
+  },
+  {
+    "id": "PA-R1P1-PALETTE-OPEN",
+    "status": "root_cause_proven_implementation_open",
+    "scope": "Round 1 Phase 1 Plane A cave walls",
+    "first_precursor_timestamp_seconds": 27.75,
+    "first_unambiguous_wrong_timestamp_seconds": 29.25,
+    "approx_source_frame": 878,
+    "hardware_observation": "The Plane-A cave-wall tile geometry is the expected wall family, but it is rendered green/cream instead of with its arcade colors.",
+    "pattern_identity": "CORRECT",
+    "map_geometry": "CORRECT",
+    "palette": "WRONG",
+    "residency": "CORRECT",
+    "audited_tile": {
+      "record": 5,
+      "logical_code": "0x07FC",
+      "arcade_bank": "0x004",
+      "genesis_slot": 874,
+      "source_pattern_sha256": "6bca4e268a64ce807de5d1d19f31d35e993fdb0d1b3d009263d3b14f70de2d3e",
+      "source_to_generated_upload_exact": true
+    },
+    "root_cause": "The native name-word helper preserves arcade bank 0x004, but palette_route_table has only an explicit gameplay PC080SN_FG route for bank 0x003. The route miss falls back to bank&3, selecting Genesis CRAM line 0. Line 0 is intentionally owned and VBlank-reasserted by the PC090OJ bank-0x36 Lizardman carrier, so the cave pattern is drawn with lizard colors.",
+    "classification": ["A_WRONG_NAME_WORD_PALETTE_BITS", "C_SELECTED_LINE_HAS_ANOTHER_INTENTIONAL_OWNER"],
+    "production_fix_build": null,
+    "implementation_boundary": "A route-only reassignment is not safe because all four gameplay CRAM lines are already owned and multiple Plane-A banks coexist. A future palette/index consolidation or explicit ownership/multiplex design must inspect all consumers and update specs/palette_decisions.json in the same task.",
+    "registry": "specs/palette_decisions.json",
+    "evidence": [
+      "frames/dense/section02_record01_descent/frame_000025.jpg",
+      "comparison.html",
+      "../../states/traces/build0313_plane_a_pattern_palette_audit_20260824_140000/pattern_palette_hash_evidence.json",
+      "../../apps/rastan-direct/src/tilemap_hooks.s",
+      "../../apps/rastan-direct/src/palette_hooks.s",
+      "../../apps/rastan-direct/src/vdp_comm.s"
+    ]
+  },
+  {
+    "id": "PA-R1P1-WATERFALL-PALETTE-OPEN",
+    "status": "root_cause_proven_implementation_open",
+    "scope": "Round 1 Phase 1 Plane A waterfall",
+    "hardware_observation": "Waterfall color made correct physical patterns look like wrong tiles; color is not used as tile-identity evidence.",
+    "pattern_identity": "CORRECT_FOR_THREE_AUDITED_PATTERN_SAMPLES",
+    "map_geometry": "CORRECT_IN_STATIC_ORIGINAL_MAP_USES; HARDWARE_FRAME_NOT_STATE_SYNCHRONIZED",
+    "palette": "WRONG/UNSUPPORTED_BY_CURRENT_ROUTE_TABLE",
+    "residency": "CORRECT_IN_RUNTIME_PACKAGE_3",
+    "audited_banks": {
+      "0x01A": "route miss -> line 2",
+      "0x01B": "route miss -> line 3",
+      "0x01C": "route miss -> line 0",
+      "0x01D": "route miss -> line 1"
+    },
+    "root_cause": "No explicit gameplay PC080SN_FG route exists for waterfall banks 0x01A..0x01D. The bank&3 fallback borrows lines 2,3,0,1 from unrelated owners instead of realizing the original waterfall palette semantics.",
+    "production_fix_build": null,
+    "evidence": [
+      "../../states/traces/build0313_plane_a_pattern_palette_audit_20260824_140000/pattern_palette_hash_evidence.json",
+      "../../states/traces/build0313_phase1_epoch_gate_20260824_133040/epoch_3_record_10/epoch_gate_summary.txt"
+    ]
+  },
+  {
+    "id": "ENEMY-DENSITY-OPEN",
+    "status": "not_reproduced_in_three_comparable_mame_encounters",
+    "scope": "Round 1 Phase 1 secondary observation",
+    "hardware_observation": "The real-hardware video contains frames with multiple nearby same-family enemies and was used only to choose semantic cave encounters.",
+    "pattern_identity": "NOT_APPLICABLE",
+    "map_geometry": "NOT_APPLICABLE",
+    "palette": "NOT_AUDITED",
+    "residency": "NOT_APPLICABLE",
+    "tested_encounters": [
+      {"segment": 1, "location": "cave entrance / initial descent", "genesis_logical": 3, "genesis_native_composites": 3, "genesis_sat_cells": 44, "arcade_logical": 4},
+      {"segment": 2, "location": "lower cave", "genesis_logical": 4, "genesis_native_composites": 3, "genesis_sat_cells": 36, "arcade_logical": 4},
+      {"segment": 3, "location": "rope / upper cave", "genesis_logical": 4, "genesis_native_composites": 4, "genesis_sat_cells": 51, "arcade_logical": 4}
+    ],
+    "classification": "C",
+    "stacked_duplicate_logical_actors": false,
+    "root_cause": "OPEN GLOBALLY; no excess Genesis logical density or native top-level composite duplication was reproduced in the three audited semantic encounters. SAT cell totals are multi-cell composition counts and are not actor counts.",
+    "production_fix_build": null,
+    "evidence": [
+      "../../states/traces/build0313_enemy_density_compare_20260824_143000/build0313_enemy_density.csv",
+      "../../states/traces/build0313_enemy_density_compare_20260824_143000/arcade_enemy_density.csv"
+    ]
+  }
+]

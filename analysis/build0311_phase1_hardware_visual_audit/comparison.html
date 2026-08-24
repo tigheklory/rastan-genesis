@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>Build 0311 Section 2 Plane-A Comparison</title>
+<style>
+:root{--paper:#eee6d6;--ink:#211b16;--red:#a9341f;--line:#bba98d}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px Georgia,serif}
+header{padding:18px 24px;background:var(--ink);color:white;border-bottom:6px solid var(--red)}
+h1{margin:0 0 6px;font-size:25px}.grid{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:14px;padding:18px}
+figure,section{margin:0;padding:10px;background:white;border:1px solid var(--line);box-shadow:3px 3px #d7cbb7}
+img{display:block;width:100%;height:auto;image-rendering:pixelated;background:#000}figcaption{margin-top:8px}
+code{font:14px monospace;word-break:break-all}.wrong{color:var(--red);font-weight:bold}a{color:#ffe0a8}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<header><h1>Section 2 / record 1 · first cave/drop</h1>
+<div>Expected original map · Build 0311 hardware · corrected visual attribution. <a href="index.html">Open full storyboard</a></div></header>
+<main class="grid">
+<figure><img src="../round1_phase1_plane_a/andy_layout/record_01.png" alt="Arcade-derived record 1 map"><figcaption><b>Original arcade-derived record 1 map</b><br>Expected semantic source. This is a complete map rendering, not a synchronized actor frame.</figcaption></figure>
+<figure><img src="frames/dense/section02_record01_descent/frame_000025.jpg" alt="Build 0311 hardware at 29.25 seconds"><figcaption><b>Build 0311 real hardware at 00:29.250</b><br><span class="wrong">The cave-wall tile geometry is right, but Plane A renders it with the wrong green/cream palette.</span> Color is not tile-identity evidence.</figcaption></figure>
+<section><h2>Independent static defect</h2>
+<p><b>Expected descriptor entry</b></p><code>strip_src_table[row_segment] + segment_index*0x40 + source_group*4</code>
+<p><b>Build 0311 entry</b></p><code>strip_src_table[row_segment] + source_group*4</code>
+<p>The omitted term is the live semantic segment index at Genesis-WRAM <code>0xFF013E</code>. Build 0312 restores it before direct Plane-A staging. This arithmetic defect is proven from source, but the MP4 does not prove it caused the visible green cave walls. The palette/attribute mismatch remains separately open; exact numeric scroll coordinates and per-cell runtime codes remain unclaimed because the MP4 was not synchronized to a WRAM trace.</p>
+</section></main></body></html>

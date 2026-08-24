@@ -136,7 +136,7 @@ Disassembly of section .data:
      188:	2000           	movel %d0,%d0
      18a:	004a           	.short 0x004a
      18c:	2020           	movel %a0@-,%d0
-     18e:	2bb5 2020 2020 	movel %a5@(20,%d2:w),%a5@(20,%d2:w)
+     18e:	2bb7 2020 2020 	movel %sp@(20,%d2:w),%a5@(20,%d2:w)
      194:	2020           	movel %a0@-,%d0
      196:	2020           	movel %a0@-,%d0
      198:	2020           	movel %a0@-,%d0
@@ -514881,10 +514881,8 @@ Disassembly of section .data:
   1978d0:	0042 5549      	oriw #21833,%d2
   1978d4:	4c44           	.short 0x4c44
   1978d6:	2000           	movel %d0,%d0
-  1978d8:	3033 3131 0056 	movew %a3@(564543,%d3:w)@(0),%d0
-  1978de:	4543 
-  1978e0:	544f           	addqw #2,%sp
-  1978e2:	5200           	addqb #1,%d0
+  1978d8:	3033 3133 0056 	movew %a3@(564543,%d3:w)@(544f5200),%d0
+  1978de:	4543 544f 5200 
   1978e4:	4745           	.short 0x4745
   1978e6:	4e20           	.short 0x4e20
   1978e8:	5043           	addqw #8,%d3

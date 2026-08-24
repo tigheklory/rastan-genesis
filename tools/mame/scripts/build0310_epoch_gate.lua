@@ -5,6 +5,8 @@
 local machine = manager.machine
 local cpu = assert(machine.devices[":maincpu"], "missing :maincpu")
 local program = assert(cpu.spaces["program"], "missing maincpu program space")
+local vdp = machine.devices[":gen_vdp"]
+local vram = vdp and vdp.spaces["videoram"] or nil
 local state = cpu.state
 local trace_dir = assert(os.getenv("TRACE_DIR"), "TRACE_DIR is required")
 local symbols_path = assert(os.getenv("EPOCH_GATE_SYMBOLS"), "EPOCH_GATE_SYMBOLS is required")
@@ -16,6 +18,7 @@ local target_epoch = assert(tonumber(os.getenv("EPOCH_GATE_TARGET_EPOCH")),
 local target_package = tonumber(os.getenv("EPOCH_GATE_TARGET_PACKAGE")) or target_epoch
 local max_frames = tonumber(os.getenv("EPOCH_GATE_MAX_FRAMES") or "800")
 local required_survival_frames = tonumber(os.getenv("EPOCH_GATE_SURVIVAL_FRAMES") or "8")
+local dump_runtime_state = os.getenv("EPOCH_GATE_DUMP_RUNTIME_STATE") == "1"
 
 local function parse_symbols(path)
   local result = {}
@@ -42,7 +45,7 @@ for _, name in ipairs({
     "fg_boundary_conflict_lut",
     "fg_boundary_epoch_transitions", "fg_boundary_pattern_dma_transitions",
     "fg_boundary_active_record", "fg_boundary_active_package",
-    "genesistan_current_scene_id",
+    "genesistan_current_scene_id", "staged_fg_buffer", "staged_palette_words",
 }) do
   assert(symbols[name], "missing symbol: " .. name)
 end
@@ -123,6 +126,32 @@ local result_written = false
 local summary_path = trace_dir .. "/epoch_gate_summary.txt"
 local events = assert(io.open(trace_dir .. "/epoch_gate_events.tsv", "w"))
 events:write("frame\tevent\tpc\tsp\tscene\trecord\tepoch\tnote\n")
+
+local function dump_bytes(path, space, first, count)
+  local out = assert(io.open(path, "wb"))
+  local chunk = {}
+  for offset = 0, count - 1 do
+    chunk[#chunk + 1] = string.char(space:read_u8(first + offset) & 0xff)
+    if #chunk == 4096 then out:write(table.concat(chunk)); chunk = {} end
+  end
+  if #chunk ~= 0 then out:write(table.concat(chunk)) end
+  out:close()
+end
+
+local function dump_installed_state()
+  if not dump_runtime_state then return end
+  assert(vram, "runtime-state dump requested but Genesis VRAM is unavailable")
+  local vram_out = assert(io.open(trace_dir .. "/genesis_vram.bin", "wb"))
+  for address = 0, 0xfffe, 2 do
+    local word = vram:read_u16(address) & 0xffff
+    vram_out:write(string.char((word >> 8) & 0xff, word & 0xff))
+  end
+  vram_out:close()
+  dump_bytes(trace_dir .. "/staged_fg_buffer.bin", program,
+    symbols.staged_fg_buffer, 0x1000)
+  dump_bytes(trace_dir .. "/staged_palette_words.bin", program,
+    symbols.staged_palette_words, 0x80)
+end
 
 local function log_event(name, note)
   events:write(string.format("%d\t%s\t%06X\t%08X\t%02X\t%d\t%d\t%s\n",
@@ -263,6 +292,7 @@ emu.register_frame_done(function()
         "patterns=%d maps=%d uploads=%d", required_patterns, map_count, upload_count))
     end
     if frame - install_frame >= required_survival_frames then
+      dump_installed_state()
       if record_forced and full_a_lut and full_b_lut and sp_valid then
         write_summary("PASS", "target epoch installed through production boundary")
       else
