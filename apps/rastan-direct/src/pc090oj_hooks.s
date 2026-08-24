@@ -96,7 +96,7 @@
 
     .equ VDP_DATA,      0x00C00000
     .equ VDP_CTRL,      0x00C00004
-    .equ SPRITE_TILE_BASE, 1024
+    .equ SPRITE_TILE_BASE, 1339
     .equ ARCADE_ROM_BASE, 0x00000200
     .equ PC090OJ_HW_BASE, 0x00D00000
     /* Active mirrored HW window tracks the configured record count so that when
@@ -1182,11 +1182,14 @@ genesistan_pc090oj_hook_audit_guard:
 /* No mirror shadow, no candidates, no representation/eviction engine, no   */
 /* record->slot map, no VBlank record scans in gameplay (the pass runs at    */
 /* the end of the arcade's own sprite dispatcher; frontend scenes fall back  */
-/* to a VBlank pass).  Residency is code-keyed, 64 sets x 2 ways over 128    */
-/* VRAM cells (tiles 1024..1535), so SAT position changes never re-upload.  */
+/* to a VBlank pass). Residency is code-keyed and fully associative over the */
+/* 49 physical cells left by fixed Plane B + worst-record Plane A.           */
 /* ========================================================================= */
     .equ NATIVE_SAT_MAX, 80
-    .equ NATIVE_CELLS, 128
+    .equ NATIVE_CELLS, 49
+    .if (SPRITE_TILE_BASE + NATIVE_CELLS * 4) > 1536
+    .error "native sprite VRAM ownership exceeds physical pattern slots"
+    .endif
     .equ NATIVE_QUEUE_ENTRY_BYTES, 8
     .equ NATIVE_LANE_HUD, 0
     .equ NATIVE_LANE_FRONT_EFFECT, 1
@@ -1775,25 +1778,17 @@ native_frontend_hud_emit:
     cmpi.w  #GENESIS_VIEWPORT_LEFT, %d6
     blt     .Lnq_entry_skip
 
-    move.w  %d3, %d0
-    andi.w  #0x001F, %d0
-    lsl.w   #3, %d0
+    /* Full bounded lookup avoids artificial set conflicts in the 49-cell physical band. */
+    moveq   #0, %d0
+    move.w  #(NATIVE_CELLS - 1), %d6
+.Lnq_lookup_loop:
     cmp.w   0(%a2,%d0.w), %d3
     beq     .Lnq_hit
     addq.w  #2, %d0
-    cmp.w   0(%a2,%d0.w), %d3
-    beq     .Lnq_hit
-    addq.w  #2, %d0
-    cmp.w   0(%a2,%d0.w), %d3
-    beq     .Lnq_hit
-    addq.w  #2, %d0
-    cmp.w   0(%a2,%d0.w), %d3
-    beq     .Lnq_hit
+    dbra    %d6, .Lnq_lookup_loop
     move.w  %d1, -(%sp)
-    move.w  %d3, %d0
-    andi.w  #0x001F, %d0
-    lsl.w   #3, %d0
-    moveq   #3, %d1
+    moveq   #0, %d0
+    move.w  #(NATIVE_CELLS - 1), %d1
 .Lnq_vloop:
     bsr     .Lnq_cell_free
     beq.s   .Lnq_take
@@ -2292,12 +2287,12 @@ pc090oj_sat_nibble:
 pc090oj_sat_force_line:
 	    .space 80
 	    .align 2
-/* Per-frame referenced-cell bitmap (128 bits). */
+/* Per-frame referenced-cell bitmap (49 live bits; rounded storage). */
 pc090oj_cell_used:
     .space 16
-/* Code-keyed residency tags: 64 sets x 2 ways = 128 cells (tiles 1024..1535). */
+/* Code-keyed residency tags: 49 fully-associative cells (tiles 1339..1534). */
 sprite_tile_resident_code:
-    .space (128 * 2)
+    .space (NATIVE_CELLS * 2)
 /* Bounded VBlank pattern-upload queue: 12 x {word cell, word code}. */
 pc090oj_tile_dma_worklist:
     .space (12 * 4)
@@ -2373,7 +2368,7 @@ audit_guard_heartbeat:
 /* Native tile-DMA scratch (historical name; live consumer at the tile-DMA
  * commit path). */
 worklist_entry_for_slot:
-    .space 4
+    .space NATIVE_CELLS
     .align 2
 
     .section .bss.patcher

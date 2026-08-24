@@ -12,6 +12,9 @@ SYMBOLS := $(OUT_DIR)/symbol.txt
 PATCHER := $(ROOT)/tools/translation/postpatch_startup_rom.py
 BOOT_GUARD := $(ROOT)/tools/translation/verify_rastan_direct_boot_guard.py
 CANONICAL_GATE := $(ROOT)/tools/translation/verify_canonical_rom.py
+GAMEPLAY_ENTRY_GATE := $(ROOT)/tools/mame/run_build0309_gameplay_entry_gate.sh
+PHASE1_EPOCH_GATE := $(ROOT)/tools/mame/run_build0310_epoch_gate.sh
+TRANSITION_RETENTION_GATE := $(ROOT)/tools/translation/verify_build0311_transition_retention.py
 REGION_BUILDER := $(ROOT)/tools/build_rastan_regions.py
 NUMBERED_DIST_DIR := $(ROOT)/dist/rastan-direct
 NUMBERED_COUNTER := $(ROOT)/build/rastan-direct/build_counter.txt
@@ -62,6 +65,7 @@ PC080SN_BOUNDARY_DIR := $(ROOT)/build/pc080sn_boundary
 PC080SN_BOUNDARY_PACKAGES := $(PC080SN_BOUNDARY_DIR)/boundary_packages.bin
 PC080SN_BOUNDARY_CONSTANTS := $(PC080SN_BOUNDARY_DIR)/boundary_constants.inc
 PC080SN_BOUNDARY_REPORT := $(PC080SN_BOUNDARY_DIR)/boundary_report.json
+PC080SN_TRANSITION_RETENTION_STAMP := $(OUT_DIR)/build0311_transition_retention_gate.stamp
 PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
 PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
 PC090OJ_HUD_WHITE := $(ROOT)/build/pc090oj_hud_white_genesis.bin
@@ -228,7 +232,7 @@ $(SYMBOLS): $(ELF) | $(OUT_DIR)
 $(PREPATCH_BIN): $(ELF) | $(OUT_DIR)
 	$(OBJCOPY) -O binary $< $@
 
-$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
+$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) | $(DIST_DIR)
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
@@ -278,6 +282,14 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DI
 		--numbered-name "$$numbered_name" \
 		--bookmark-revert "$(BOOKMARK_REVERT)" \
 		--state-file "$(BOOKMARK_STATE_FILE)" || exit $$?; \
+	if ! "$(GAMEPLAY_ENTRY_GATE)" "$@" "$(SYMBOLS)" "$$tag"; then \
+		echo "ERROR: Start-to-gameplay package gate failed; numbered artifact not published"; \
+		exit 1; \
+	fi; \
+	if ! "$(PHASE1_EPOCH_GATE)" "$@" "$(SYMBOLS)" "$$tag"; then \
+		echo "ERROR: Phase-1 seven-epoch gate failed; numbered artifact not published"; \
+		exit 1; \
+	fi; \
 	cp "$@" "$$numbered"; \
 	if [ ! -s "$$numbered" ]; then echo "ERROR: numbered build artifact missing/empty after copy: $$numbered"; exit 1; fi; \
 	printf "%d\n" "$$next" > "$$counter_file"; \
@@ -299,7 +311,7 @@ clean:
 	rm -rf $(OUT_DIR) $(DIST_DIR)
 
 $(OUT_DIR)/fg_tile_cache.o: $(SRC_DIR)/fg_tile_cache.s FORCE_ASM_REBUILD | $(OUT_DIR)
-	$(AS) $(ASFLAGS) -o $@ $<
+	$(AS) $(ASFLAGS) -m68000 -o $@ $<
 
 $(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT): \
 		$(MAINCPU_REGION) $(PC080SN_REGION) $(ROOT)/tools/translation/compile_pc080sn_genesis.py
@@ -307,7 +319,18 @@ $(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_RE
 		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_REGION)" \
 		--out "$(PC080SN_BOUNDARY_DIR)" --boundary-experiment
 
-$(OUT_DIR)/fg_tile_cache.o: $(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS)
+$(PC080SN_TRANSITION_RETENTION_STAMP): $(PC080SN_BOUNDARY_PACKAGES) \
+		$(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT) \
+		$(PC080SN_REGION) $(TRANSITION_RETENTION_GATE) | $(OUT_DIR)
+	$(PYTHON) "$(TRANSITION_RETENTION_GATE)" \
+		--report "$(PC080SN_BOUNDARY_REPORT)" \
+		--packages "$(PC080SN_BOUNDARY_PACKAGES)" \
+		--constants "$(PC080SN_BOUNDARY_CONSTANTS)" \
+		--patterns "$(PC080SN_REGION)"
+	touch "$@"
+
+$(OUT_DIR)/fg_tile_cache.o: $(PC080SN_BOUNDARY_PACKAGES) \
+		$(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_TRANSITION_RETENTION_STAMP)
 
 .PHONY: pc080sn-compile
 pc080sn-compile: $(MAINCPU_REGION) $(PC080SN_REGION)

@@ -44,6 +44,7 @@
     .extern genesistan_current_scene_id
     .extern fg_cache_resolve
     .extern fg_boundary_resolve_b
+    .extern fg_boundary_transition_step
     .extern genesistan_current_pc080sn_tileset_id
     .extern fg_native_gameplay_owner
     .extern palette_route_lookup
@@ -249,6 +250,7 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     add.w   %d1, %d0
     andi.w  #0x003F, %d0
     move.w  %d0, 0(%sp)             /* logical column */
+    bsr     fg_boundary_transition_step
     add.w   %d1, %d1
     move.w  %d1, 4(%sp)             /* source subcolumn offset */
 

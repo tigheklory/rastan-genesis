@@ -1,0 +1,141 @@
+{
+  "inputs": {
+    "maincpu": "build/regions/maincpu.bin",
+    "maincpu_sha256": "4f30b9e7aa946aa33d20e125a1726ff094f9615980107d0842efe1721cf32063",
+    "pc080sn": "build/regions/pc080sn.bin",
+    "pc080sn_sha256": "a33372eb4f768136cbb5311125e65da7587d31bb1d91a72d32775d22eb44059b"
+  },
+  "scope": {
+    "segments": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "world_columns": [
+      0,
+      1023
+    ],
+    "legal_rows": [
+      0,
+      63
+    ],
+    "visible_rows_at_fixed_y_scroll": [
+      1,
+      30
+    ]
+  },
+  "counts": {
+    "legal_cells": 65536,
+    "visible_category_a_cells": 30720,
+    "offscreen_category_b_cells": 34816,
+    "unique_tile_codes": 1316,
+    "unique_exact_patterns": 1315,
+    "unique_flip_normalized_patterns": 1246,
+    "duplicate_logical_code_excess": 1,
+    "flip_pattern_savings": 69,
+    "pattern_groups_with_multiple_attrs": 199,
+    "attribute_variant_excess": 265,
+    "pattern_groups_with_multiple_palette_indices": 199,
+    "priority_aliases": 0,
+    "off_phase_unique_codes_not_in_phase1": 3128,
+    "off_phase_unique_patterns_not_in_phase1": 3128,
+    "source_table_only_codes": 0,
+    "unreachable_row_codes": 0,
+    "padding_or_zero_pointer_cells": 0
+  },
+  "simultaneous": {
+    "map_ring_columns": 64,
+    "max_exact_patterns_in_any_64_column_window": 603,
+    "max_window_start": 684,
+    "max_window_end": 747
+  },
+  "families": {
+    "outside_source_bank_0": {
+      "segments": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "world_columns": [
+        0,
+        255
+      ],
+      "cells": 16384,
+      "patterns": 582
+    },
+    "outside_source_bank_1": {
+      "segments": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "world_columns": [
+        256,
+        511
+      ],
+      "cells": 16384,
+      "patterns": 387
+    },
+    "outside_source_bank_2": {
+      "segments": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "world_columns": [
+        512,
+        767
+      ],
+      "cells": 16384,
+      "patterns": 757
+    },
+    "outside_source_bank_3": {
+      "segments": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "world_columns": [
+        768,
+        1023
+      ],
+      "cells": 16384,
+      "patterns": 752
+    }
+  },
+  "brick_bridge": {
+    "segments": [
+      9,
+      10
+    ],
+    "world_columns": [
+      608,
+      637
+    ],
+    "world_x_span": [
+      4864,
+      5103
+    ],
+    "patterns": 30,
+    "bridge_only_vs_earlier": 15,
+    "shared_with_earlier": 15,
+    "continues_into_castle": 1
+  }
+}

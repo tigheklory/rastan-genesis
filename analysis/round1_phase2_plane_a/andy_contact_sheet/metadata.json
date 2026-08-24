@@ -1,0 +1,6889 @@
+[
+ {
+  "pattern_number": 1,
+  "exact_hash": "4f3f518d",
+  "png": "tiles/pattern_0001.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 0,
+  "first_row": 0,
+  "first_arcade_code": "0x0812",
+  "arcade_code_aliases": [
+   "0x0812"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 2,
+  "exact_hash": "f53cc9d7",
+  "png": "tiles/pattern_0002.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 0,
+  "first_row": 1,
+  "first_arcade_code": "0x0814",
+  "arcade_code_aliases": [
+   "0x0814"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 3,
+  "exact_hash": "c14647ca",
+  "png": "tiles/pattern_0003.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 0,
+  "first_row": 44,
+  "first_arcade_code": "0x0833",
+  "arcade_code_aliases": [
+   "0x0833"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 4,
+  "exact_hash": "c26bd257",
+  "png": "tiles/pattern_0004.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 0,
+  "first_row": 45,
+  "first_arcade_code": "0x0837",
+  "arcade_code_aliases": [
+   "0x0837"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 5,
+  "exact_hash": "855f4e38",
+  "png": "tiles/pattern_0005.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 0,
+  "first_row": 46,
+  "first_arcade_code": "0x083B",
+  "arcade_code_aliases": [
+   "0x083B"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 6,
+  "exact_hash": "433602bc",
+  "png": "tiles/pattern_0006.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 0,
+  "first_row": 47,
+  "first_arcade_code": "0x083F",
+  "arcade_code_aliases": [
+   "0x083F"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 7,
+  "exact_hash": "7bb5e13d",
+  "png": "tiles/pattern_0007.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 1,
+  "first_row": 0,
+  "first_arcade_code": "0x0813",
+  "arcade_code_aliases": [
+   "0x0813"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 8,
+  "exact_hash": "948e0753",
+  "png": "tiles/pattern_0008.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 1,
+  "first_row": 1,
+  "first_arcade_code": "0x0815",
+  "arcade_code_aliases": [
+   "0x0815"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 9,
+  "exact_hash": "274daf87",
+  "png": "tiles/pattern_0009.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 1,
+  "first_row": 44,
+  "first_arcade_code": "0x0834",
+  "arcade_code_aliases": [
+   "0x0834"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 10,
+  "exact_hash": "f840daa1",
+  "png": "tiles/pattern_0010.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 1,
+  "first_row": 45,
+  "first_arcade_code": "0x0838",
+  "arcade_code_aliases": [
+   "0x0838"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 11,
+  "exact_hash": "af5e0a75",
+  "png": "tiles/pattern_0011.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 1,
+  "first_row": 46,
+  "first_arcade_code": "0x083C",
+  "arcade_code_aliases": [
+   "0x083C"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 12,
+  "exact_hash": "85d922ea",
+  "png": "tiles/pattern_0012.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 1,
+  "first_row": 47,
+  "first_arcade_code": "0x0840",
+  "arcade_code_aliases": [
+   "0x0840"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 13,
+  "exact_hash": "7ae1c005",
+  "png": "tiles/pattern_0013.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 2,
+  "first_row": 44,
+  "first_arcade_code": "0x0835",
+  "arcade_code_aliases": [
+   "0x0835"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 14,
+  "exact_hash": "645e2566",
+  "png": "tiles/pattern_0014.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 2,
+  "first_row": 45,
+  "first_arcade_code": "0x0839",
+  "arcade_code_aliases": [
+   "0x0839"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 15,
+  "exact_hash": "f6e89fba",
+  "png": "tiles/pattern_0015.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 2,
+  "first_row": 46,
+  "first_arcade_code": "0x083D",
+  "arcade_code_aliases": [
+   "0x083D"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 16,
+  "exact_hash": "f803c93b",
+  "png": "tiles/pattern_0016.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 2,
+  "first_row": 47,
+  "first_arcade_code": "0x0841",
+  "arcade_code_aliases": [
+   "0x0841"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 17,
+  "exact_hash": "bbd88f7d",
+  "png": "tiles/pattern_0017.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 3,
+  "first_row": 44,
+  "first_arcade_code": "0x0836",
+  "arcade_code_aliases": [
+   "0x0836"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 18,
+  "exact_hash": "11d4ae27",
+  "png": "tiles/pattern_0018.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 3,
+  "first_row": 45,
+  "first_arcade_code": "0x083A",
+  "arcade_code_aliases": [
+   "0x083A"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 19,
+  "exact_hash": "decc2640",
+  "png": "tiles/pattern_0019.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 3,
+  "first_row": 46,
+  "first_arcade_code": "0x083E",
+  "arcade_code_aliases": [
+   "0x083E"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 20,
+  "exact_hash": "e6257c13",
+  "png": "tiles/pattern_0020.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 3,
+  "first_row": 47,
+  "first_arcade_code": "0x0842",
+  "arcade_code_aliases": [
+   "0x0842"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 21,
+  "exact_hash": "fb017c94",
+  "png": "tiles/pattern_0021.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 6,
+  "first_row": 4,
+  "first_arcade_code": "0x08EF",
+  "arcade_code_aliases": [
+   "0x08EF"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 22,
+  "exact_hash": "e75f6339",
+  "png": "tiles/pattern_0022.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 6,
+  "first_row": 5,
+  "first_arcade_code": "0x08F0",
+  "arcade_code_aliases": [
+   "0x08F0"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 23,
+  "exact_hash": "c2500b8e",
+  "png": "tiles/pattern_0023.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 6,
+  "first_row": 6,
+  "first_arcade_code": "0x08F1",
+  "arcade_code_aliases": [
+   "0x08F1"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 24,
+  "exact_hash": "1870afe7",
+  "png": "tiles/pattern_0024.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 6,
+  "first_row": 7,
+  "first_arcade_code": "0x08F2",
+  "arcade_code_aliases": [
+   "0x08F2"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 25,
+  "exact_hash": "d082f7fd",
+  "png": "tiles/pattern_0025.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 8,
+  "first_row": 8,
+  "first_arcade_code": "0x0818",
+  "arcade_code_aliases": [
+   "0x0818"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 26,
+  "exact_hash": "6505a99f",
+  "png": "tiles/pattern_0026.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 8,
+  "first_row": 9,
+  "first_arcade_code": "0x081C",
+  "arcade_code_aliases": [
+   "0x081C"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 27,
+  "exact_hash": "2c3e2f41",
+  "png": "tiles/pattern_0027.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 8,
+  "first_row": 10,
+  "first_arcade_code": "0x0820",
+  "arcade_code_aliases": [
+   "0x0820"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 28,
+  "exact_hash": "5c475c5b",
+  "png": "tiles/pattern_0028.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 8,
+  "first_row": 11,
+  "first_arcade_code": "0x0824",
+  "arcade_code_aliases": [
+   "0x0824"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 29,
+  "exact_hash": "2e6d7e71",
+  "png": "tiles/pattern_0029.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 8,
+  "first_row": 20,
+  "first_arcade_code": "0x0816",
+  "arcade_code_aliases": [
+   "0x0816"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 30,
+  "exact_hash": "879e2349",
+  "png": "tiles/pattern_0030.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 8,
+  "first_row": 21,
+  "first_arcade_code": "0x0817",
+  "arcade_code_aliases": [
+   "0x0817"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 31,
+  "exact_hash": "03c6905a",
+  "png": "tiles/pattern_0031.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 8,
+  "first_row": 24,
+  "first_arcade_code": "0x0843",
+  "arcade_code_aliases": [
+   "0x0843"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 32,
+  "exact_hash": "ec91da6d",
+  "png": "tiles/pattern_0032.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 9,
+  "first_row": 8,
+  "first_arcade_code": "0x0819",
+  "arcade_code_aliases": [
+   "0x0819"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 33,
+  "exact_hash": "865721f7",
+  "png": "tiles/pattern_0033.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 9,
+  "first_row": 9,
+  "first_arcade_code": "0x0829",
+  "arcade_code_aliases": [
+   "0x0829"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 34,
+  "exact_hash": "a2d38b53",
+  "png": "tiles/pattern_0034.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 9,
+  "first_row": 10,
+  "first_arcade_code": "0x0821",
+  "arcade_code_aliases": [
+   "0x0821"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 35,
+  "exact_hash": "fe960621",
+  "png": "tiles/pattern_0035.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 9,
+  "first_row": 11,
+  "first_arcade_code": "0x0825",
+  "arcade_code_aliases": [
+   "0x0825"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 36,
+  "exact_hash": "27af4253",
+  "png": "tiles/pattern_0036.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 9,
+  "first_row": 25,
+  "first_arcade_code": "0x0844",
+  "arcade_code_aliases": [
+   "0x0844"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 37,
+  "exact_hash": "956f1c9e",
+  "png": "tiles/pattern_0037.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 9,
+  "first_row": 29,
+  "first_arcade_code": "0x081D",
+  "arcade_code_aliases": [
+   "0x081D"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 38,
+  "exact_hash": "52b29e43",
+  "png": "tiles/pattern_0038.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 10,
+  "first_row": 8,
+  "first_arcade_code": "0x081A",
+  "arcade_code_aliases": [
+   "0x081A"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 39,
+  "exact_hash": "5fc7c728",
+  "png": "tiles/pattern_0039.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 10,
+  "first_row": 9,
+  "first_arcade_code": "0x082A",
+  "arcade_code_aliases": [
+   "0x082A"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 40,
+  "exact_hash": "91c559ca",
+  "png": "tiles/pattern_0040.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 10,
+  "first_row": 10,
+  "first_arcade_code": "0x082C",
+  "arcade_code_aliases": [
+   "0x082C"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 41,
+  "exact_hash": "3358324e",
+  "png": "tiles/pattern_0041.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 10,
+  "first_row": 11,
+  "first_arcade_code": "0x0826",
+  "arcade_code_aliases": [
+   "0x0826"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 42,
+  "exact_hash": "559592c3",
+  "png": "tiles/pattern_0042.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 10,
+  "first_row": 26,
+  "first_arcade_code": "0x0845",
+  "arcade_code_aliases": [
+   "0x0845"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 43,
+  "exact_hash": "a0b8188d",
+  "png": "tiles/pattern_0043.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 10,
+  "first_row": 29,
+  "first_arcade_code": "0x081E",
+  "arcade_code_aliases": [
+   "0x081E"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 44,
+  "exact_hash": "99c3be05",
+  "png": "tiles/pattern_0044.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 10,
+  "first_row": 30,
+  "first_arcade_code": "0x0822",
+  "arcade_code_aliases": [
+   "0x0822"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 45,
+  "exact_hash": "d11718ca",
+  "png": "tiles/pattern_0045.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 11,
+  "first_row": 8,
+  "first_arcade_code": "0x0828",
+  "arcade_code_aliases": [
+   "0x0828"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 46,
+  "exact_hash": "114fe0d6",
+  "png": "tiles/pattern_0046.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 11,
+  "first_row": 9,
+  "first_arcade_code": "0x082B",
+  "arcade_code_aliases": [
+   "0x082B"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 47,
+  "exact_hash": "5922f7a8",
+  "png": "tiles/pattern_0047.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 11,
+  "first_row": 10,
+  "first_arcade_code": "0x082D",
+  "arcade_code_aliases": [
+   "0x082D"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 48,
+  "exact_hash": "08c4d11d",
+  "png": "tiles/pattern_0048.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 11,
+  "first_row": 11,
+  "first_arcade_code": "0x082E",
+  "arcade_code_aliases": [
+   "0x082E"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 49,
+  "exact_hash": "e78efca6",
+  "png": "tiles/pattern_0049.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 11,
+  "first_row": 27,
+  "first_arcade_code": "0x0846",
+  "arcade_code_aliases": [
+   "0x0846"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 50,
+  "exact_hash": "b37a0372",
+  "png": "tiles/pattern_0050.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 11,
+  "first_row": 28,
+  "first_arcade_code": "0x081B",
+  "arcade_code_aliases": [
+   "0x081B"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 51,
+  "exact_hash": "0a288c12",
+  "png": "tiles/pattern_0051.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 11,
+  "first_row": 29,
+  "first_arcade_code": "0x081F",
+  "arcade_code_aliases": [
+   "0x081F"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 52,
+  "exact_hash": "fb46dc17",
+  "png": "tiles/pattern_0052.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 11,
+  "first_row": 30,
+  "first_arcade_code": "0x0823",
+  "arcade_code_aliases": [
+   "0x0823"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 53,
+  "exact_hash": "0df84142",
+  "png": "tiles/pattern_0053.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 11,
+  "first_row": 31,
+  "first_arcade_code": "0x0827",
+  "arcade_code_aliases": [
+   "0x0827"
+  ],
+  "records_used": [
+   16,
+   17,
+   18,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 54,
+  "exact_hash": "de8a847b",
+  "png": "tiles/pattern_0054.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 12,
+  "first_row": 4,
+  "first_arcade_code": "0x0020",
+  "arcade_code_aliases": [
+   "0x0020",
+   "0x00AD"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": true,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 55,
+  "exact_hash": "fcda76da",
+  "png": "tiles/pattern_0055.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 25,
+  "first_arcade_code": "0x0903",
+  "arcade_code_aliases": [
+   "0x0903"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 56,
+  "exact_hash": "1f5e5077",
+  "png": "tiles/pattern_0056.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 26,
+  "first_arcade_code": "0x0906",
+  "arcade_code_aliases": [
+   "0x0906"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 57,
+  "exact_hash": "0de2fed7",
+  "png": "tiles/pattern_0057.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 27,
+  "first_arcade_code": "0x0908",
+  "arcade_code_aliases": [
+   "0x0908"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 58,
+  "exact_hash": "5a93b58d",
+  "png": "tiles/pattern_0058.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 28,
+  "first_arcade_code": "0x090A",
+  "arcade_code_aliases": [
+   "0x090A"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 59,
+  "exact_hash": "bed09429",
+  "png": "tiles/pattern_0059.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 29,
+  "first_arcade_code": "0x090B",
+  "arcade_code_aliases": [
+   "0x090B"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 60,
+  "exact_hash": "1433e5b6",
+  "png": "tiles/pattern_0060.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 30,
+  "first_arcade_code": "0x090C",
+  "arcade_code_aliases": [
+   "0x090C"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 61,
+  "exact_hash": "ffc0d12e",
+  "png": "tiles/pattern_0061.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 31,
+  "first_arcade_code": "0x090D",
+  "arcade_code_aliases": [
+   "0x090D"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 62,
+  "exact_hash": "d7c73fe8",
+  "png": "tiles/pattern_0062.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 48,
+  "first_arcade_code": "0x0865",
+  "arcade_code_aliases": [
+   "0x0865"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 63,
+  "exact_hash": "bfdb1233",
+  "png": "tiles/pattern_0063.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 49,
+  "first_arcade_code": "0x0868",
+  "arcade_code_aliases": [
+   "0x0868"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 64,
+  "exact_hash": "1296f5c1",
+  "png": "tiles/pattern_0064.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 50,
+  "first_arcade_code": "0x086B",
+  "arcade_code_aliases": [
+   "0x086B"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 65,
+  "exact_hash": "7257a3a5",
+  "png": "tiles/pattern_0065.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 51,
+  "first_arcade_code": "0x086E",
+  "arcade_code_aliases": [
+   "0x086E"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 66,
+  "exact_hash": "b6e4f8e2",
+  "png": "tiles/pattern_0066.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 52,
+  "first_arcade_code": "0x0881",
+  "arcade_code_aliases": [
+   "0x0881"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 67,
+  "exact_hash": "51aeb03f",
+  "png": "tiles/pattern_0067.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 53,
+  "first_arcade_code": "0x0884",
+  "arcade_code_aliases": [
+   "0x0884"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 68,
+  "exact_hash": "14f4c7c0",
+  "png": "tiles/pattern_0068.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 54,
+  "first_arcade_code": "0x0887",
+  "arcade_code_aliases": [
+   "0x0887"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 69,
+  "exact_hash": "3bdb0214",
+  "png": "tiles/pattern_0069.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 55,
+  "first_arcade_code": "0x0888",
+  "arcade_code_aliases": [
+   "0x0888"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 70,
+  "exact_hash": "1bd4216d",
+  "png": "tiles/pattern_0070.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 56,
+  "first_arcade_code": "0x0895",
+  "arcade_code_aliases": [
+   "0x0895"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 71,
+  "exact_hash": "98aed925",
+  "png": "tiles/pattern_0071.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 57,
+  "first_arcade_code": "0x0897",
+  "arcade_code_aliases": [
+   "0x0897"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 72,
+  "exact_hash": "2ad17b2a",
+  "png": "tiles/pattern_0072.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 58,
+  "first_arcade_code": "0x089A",
+  "arcade_code_aliases": [
+   "0x089A"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 73,
+  "exact_hash": "6519a397",
+  "png": "tiles/pattern_0073.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 13,
+  "first_row": 59,
+  "first_arcade_code": "0x089D",
+  "arcade_code_aliases": [
+   "0x089D"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 74,
+  "exact_hash": "a3cffc0e",
+  "png": "tiles/pattern_0074.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 24,
+  "first_arcade_code": "0x0901",
+  "arcade_code_aliases": [
+   "0x0901"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 75,
+  "exact_hash": "7e5b24a6",
+  "png": "tiles/pattern_0075.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 25,
+  "first_arcade_code": "0x0904",
+  "arcade_code_aliases": [
+   "0x0904"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 76,
+  "exact_hash": "baf33da5",
+  "png": "tiles/pattern_0076.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 26,
+  "first_arcade_code": "0x0907",
+  "arcade_code_aliases": [
+   "0x0907"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 77,
+  "exact_hash": "e7c14bc5",
+  "png": "tiles/pattern_0077.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 27,
+  "first_arcade_code": "0x0909",
+  "arcade_code_aliases": [
+   "0x0909"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 78,
+  "exact_hash": "e9bc1e74",
+  "png": "tiles/pattern_0078.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 46,
+  "first_arcade_code": "0x084C",
+  "arcade_code_aliases": [
+   "0x084C"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 79,
+  "exact_hash": "c0f2c1da",
+  "png": "tiles/pattern_0079.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 47,
+  "first_arcade_code": "0x084E",
+  "arcade_code_aliases": [
+   "0x084E"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 80,
+  "exact_hash": "cb761bb9",
+  "png": "tiles/pattern_0080.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 48,
+  "first_arcade_code": "0x0866",
+  "arcade_code_aliases": [
+   "0x0866"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 81,
+  "exact_hash": "e2fffcd7",
+  "png": "tiles/pattern_0081.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 49,
+  "first_arcade_code": "0x0869",
+  "arcade_code_aliases": [
+   "0x0869"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 82,
+  "exact_hash": "0366b1d7",
+  "png": "tiles/pattern_0082.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 50,
+  "first_arcade_code": "0x086C",
+  "arcade_code_aliases": [
+   "0x086C"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 83,
+  "exact_hash": "f8e0d70e",
+  "png": "tiles/pattern_0083.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 51,
+  "first_arcade_code": "0x086F",
+  "arcade_code_aliases": [
+   "0x086F"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 84,
+  "exact_hash": "ffdb2ae6",
+  "png": "tiles/pattern_0084.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 52,
+  "first_arcade_code": "0x0882",
+  "arcade_code_aliases": [
+   "0x0882"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 85,
+  "exact_hash": "29d0810b",
+  "png": "tiles/pattern_0085.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 53,
+  "first_arcade_code": "0x0885",
+  "arcade_code_aliases": [
+   "0x0885"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 86,
+  "exact_hash": "a1e37c3c",
+  "png": "tiles/pattern_0086.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 57,
+  "first_arcade_code": "0x0898",
+  "arcade_code_aliases": [
+   "0x0898"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 87,
+  "exact_hash": "137b8801",
+  "png": "tiles/pattern_0087.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 58,
+  "first_arcade_code": "0x089B",
+  "arcade_code_aliases": [
+   "0x089B"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 88,
+  "exact_hash": "23ea024e",
+  "png": "tiles/pattern_0088.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 14,
+  "first_row": 59,
+  "first_arcade_code": "0x089E",
+  "arcade_code_aliases": [
+   "0x089E"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 89,
+  "exact_hash": "060b927b",
+  "png": "tiles/pattern_0089.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 24,
+  "first_arcade_code": "0x0902",
+  "arcade_code_aliases": [
+   "0x0902"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 90,
+  "exact_hash": "4f35248f",
+  "png": "tiles/pattern_0090.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 25,
+  "first_arcade_code": "0x0905",
+  "arcade_code_aliases": [
+   "0x0905"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 91,
+  "exact_hash": "86119347",
+  "png": "tiles/pattern_0091.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 45,
+  "first_arcade_code": "0x084B",
+  "arcade_code_aliases": [
+   "0x084B"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 92,
+  "exact_hash": "0f22e391",
+  "png": "tiles/pattern_0092.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 46,
+  "first_arcade_code": "0x084D",
+  "arcade_code_aliases": [
+   "0x084D"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 93,
+  "exact_hash": "ca39f6a1",
+  "png": "tiles/pattern_0093.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 47,
+  "first_arcade_code": "0x084F",
+  "arcade_code_aliases": [
+   "0x084F"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 94,
+  "exact_hash": "a556d46d",
+  "png": "tiles/pattern_0094.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 48,
+  "first_arcade_code": "0x0867",
+  "arcade_code_aliases": [
+   "0x0867"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 95,
+  "exact_hash": "1afb8366",
+  "png": "tiles/pattern_0095.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 49,
+  "first_arcade_code": "0x086A",
+  "arcade_code_aliases": [
+   "0x086A"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 96,
+  "exact_hash": "40e0b610",
+  "png": "tiles/pattern_0096.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 50,
+  "first_arcade_code": "0x086D",
+  "arcade_code_aliases": [
+   "0x086D"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 97,
+  "exact_hash": "9c6c2a26",
+  "png": "tiles/pattern_0097.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 51,
+  "first_arcade_code": "0x0870",
+  "arcade_code_aliases": [
+   "0x0870"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 98,
+  "exact_hash": "1f89bafe",
+  "png": "tiles/pattern_0098.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 52,
+  "first_arcade_code": "0x0883",
+  "arcade_code_aliases": [
+   "0x0883"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 99,
+  "exact_hash": "6575e691",
+  "png": "tiles/pattern_0099.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 53,
+  "first_arcade_code": "0x0886",
+  "arcade_code_aliases": [
+   "0x0886"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 100,
+  "exact_hash": "86ecad20",
+  "png": "tiles/pattern_0100.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 55,
+  "first_arcade_code": "0x0889",
+  "arcade_code_aliases": [
+   "0x0889"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 101,
+  "exact_hash": "e7595856",
+  "png": "tiles/pattern_0101.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 56,
+  "first_arcade_code": "0x0896",
+  "arcade_code_aliases": [
+   "0x0896"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 102,
+  "exact_hash": "3e94cc56",
+  "png": "tiles/pattern_0102.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 57,
+  "first_arcade_code": "0x0899",
+  "arcade_code_aliases": [
+   "0x0899"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 103,
+  "exact_hash": "e36cd27c",
+  "png": "tiles/pattern_0103.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 58,
+  "first_arcade_code": "0x089C",
+  "arcade_code_aliases": [
+   "0x089C"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 104,
+  "exact_hash": "1cc2f028",
+  "png": "tiles/pattern_0104.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 15,
+  "first_row": 59,
+  "first_arcade_code": "0x089F",
+  "arcade_code_aliases": [
+   "0x089F"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 105,
+  "exact_hash": "a5859036",
+  "png": "tiles/pattern_0105.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 4,
+  "first_arcade_code": "0x091E",
+  "arcade_code_aliases": [
+   "0x091E"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 106,
+  "exact_hash": "3990df87",
+  "png": "tiles/pattern_0106.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 5,
+  "first_arcade_code": "0x0922",
+  "arcade_code_aliases": [
+   "0x0922"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 107,
+  "exact_hash": "6bce1603",
+  "png": "tiles/pattern_0107.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 6,
+  "first_arcade_code": "0x0926",
+  "arcade_code_aliases": [
+   "0x0926"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 108,
+  "exact_hash": "d17e9d63",
+  "png": "tiles/pattern_0108.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 7,
+  "first_arcade_code": "0x092A",
+  "arcade_code_aliases": [
+   "0x092A"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 109,
+  "exact_hash": "a052700e",
+  "png": "tiles/pattern_0109.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 8,
+  "first_arcade_code": "0x092D",
+  "arcade_code_aliases": [
+   "0x092D"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 110,
+  "exact_hash": "24a3bb86",
+  "png": "tiles/pattern_0110.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 18,
+  "first_arcade_code": "0x0932",
+  "arcade_code_aliases": [
+   "0x0932"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 111,
+  "exact_hash": "88a27f9f",
+  "png": "tiles/pattern_0111.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 19,
+  "first_arcade_code": "0x0936",
+  "arcade_code_aliases": [
+   "0x0936"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 112,
+  "exact_hash": "fa191642",
+  "png": "tiles/pattern_0112.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 24,
+  "first_arcade_code": "0x08F8",
+  "arcade_code_aliases": [
+   "0x08F8"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 113,
+  "exact_hash": "381f9fdf",
+  "png": "tiles/pattern_0113.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 25,
+  "first_arcade_code": "0x08FA",
+  "arcade_code_aliases": [
+   "0x08FA"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 114,
+  "exact_hash": "19a5b273",
+  "png": "tiles/pattern_0114.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 44,
+  "first_arcade_code": "0x0850",
+  "arcade_code_aliases": [
+   "0x0850"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 115,
+  "exact_hash": "ef1fde63",
+  "png": "tiles/pattern_0115.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 45,
+  "first_arcade_code": "0x0854",
+  "arcade_code_aliases": [
+   "0x0854"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 116,
+  "exact_hash": "cf6ebcc0",
+  "png": "tiles/pattern_0116.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 46,
+  "first_arcade_code": "0x0858",
+  "arcade_code_aliases": [
+   "0x0858"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 117,
+  "exact_hash": "6d167441",
+  "png": "tiles/pattern_0117.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 47,
+  "first_arcade_code": "0x085C",
+  "arcade_code_aliases": [
+   "0x085C"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 118,
+  "exact_hash": "3ed704cc",
+  "png": "tiles/pattern_0118.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 48,
+  "first_arcade_code": "0x0871",
+  "arcade_code_aliases": [
+   "0x0871"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 119,
+  "exact_hash": "4e04994e",
+  "png": "tiles/pattern_0119.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 49,
+  "first_arcade_code": "0x0873",
+  "arcade_code_aliases": [
+   "0x0873"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 120,
+  "exact_hash": "82318faa",
+  "png": "tiles/pattern_0120.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 55,
+  "first_arcade_code": "0x088A",
+  "arcade_code_aliases": [
+   "0x088A"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 121,
+  "exact_hash": "39e4e168",
+  "png": "tiles/pattern_0121.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 56,
+  "first_arcade_code": "0x08A0",
+  "arcade_code_aliases": [
+   "0x08A0"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 122,
+  "exact_hash": "af023a3f",
+  "png": "tiles/pattern_0122.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 57,
+  "first_arcade_code": "0x08A2",
+  "arcade_code_aliases": [
+   "0x08A2"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 123,
+  "exact_hash": "48d83bda",
+  "png": "tiles/pattern_0123.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 58,
+  "first_arcade_code": "0x08A4",
+  "arcade_code_aliases": [
+   "0x08A4"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 124,
+  "exact_hash": "0e06ddbd",
+  "png": "tiles/pattern_0124.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 16,
+  "first_row": 59,
+  "first_arcade_code": "0x08A6",
+  "arcade_code_aliases": [
+   "0x08A6"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 125,
+  "exact_hash": "a4e08fe0",
+  "png": "tiles/pattern_0125.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 4,
+  "first_arcade_code": "0x091F",
+  "arcade_code_aliases": [
+   "0x091F"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 126,
+  "exact_hash": "976176ab",
+  "png": "tiles/pattern_0126.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 5,
+  "first_arcade_code": "0x0923",
+  "arcade_code_aliases": [
+   "0x0923"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 127,
+  "exact_hash": "740b0092",
+  "png": "tiles/pattern_0127.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 6,
+  "first_arcade_code": "0x0927",
+  "arcade_code_aliases": [
+   "0x0927"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 128,
+  "exact_hash": "4d508160",
+  "png": "tiles/pattern_0128.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 7,
+  "first_arcade_code": "0x092B",
+  "arcade_code_aliases": [
+   "0x092B"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 129,
+  "exact_hash": "dfe3667e",
+  "png": "tiles/pattern_0129.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 18,
+  "first_arcade_code": "0x0933",
+  "arcade_code_aliases": [
+   "0x0933"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 130,
+  "exact_hash": "23f5461b",
+  "png": "tiles/pattern_0130.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 19,
+  "first_arcade_code": "0x0937",
+  "arcade_code_aliases": [
+   "0x0937"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 131,
+  "exact_hash": "49242dcf",
+  "png": "tiles/pattern_0131.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 24,
+  "first_arcade_code": "0x08F9",
+  "arcade_code_aliases": [
+   "0x08F9"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 132,
+  "exact_hash": "53e64f07",
+  "png": "tiles/pattern_0132.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 25,
+  "first_arcade_code": "0x08FB",
+  "arcade_code_aliases": [
+   "0x08FB"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 133,
+  "exact_hash": "bb119cdd",
+  "png": "tiles/pattern_0133.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 26,
+  "first_arcade_code": "0x08FD",
+  "arcade_code_aliases": [
+   "0x08FD"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 134,
+  "exact_hash": "04cf27d4",
+  "png": "tiles/pattern_0134.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 27,
+  "first_arcade_code": "0x08FF",
+  "arcade_code_aliases": [
+   "0x08FF"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 135,
+  "exact_hash": "b1d81e3d",
+  "png": "tiles/pattern_0135.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 44,
+  "first_arcade_code": "0x0851",
+  "arcade_code_aliases": [
+   "0x0851"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 136,
+  "exact_hash": "9b053b25",
+  "png": "tiles/pattern_0136.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 45,
+  "first_arcade_code": "0x0855",
+  "arcade_code_aliases": [
+   "0x0855"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 137,
+  "exact_hash": "940cda9d",
+  "png": "tiles/pattern_0137.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 46,
+  "first_arcade_code": "0x0859",
+  "arcade_code_aliases": [
+   "0x0859"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 138,
+  "exact_hash": "a77ec7e7",
+  "png": "tiles/pattern_0138.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 47,
+  "first_arcade_code": "0x085D",
+  "arcade_code_aliases": [
+   "0x085D"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 139,
+  "exact_hash": "f4c7e84a",
+  "png": "tiles/pattern_0139.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 55,
+  "first_arcade_code": "0x088B",
+  "arcade_code_aliases": [
+   "0x088B"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 140,
+  "exact_hash": "56775634",
+  "png": "tiles/pattern_0140.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 56,
+  "first_arcade_code": "0x08A1",
+  "arcade_code_aliases": [
+   "0x08A1"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 141,
+  "exact_hash": "47193a55",
+  "png": "tiles/pattern_0141.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 57,
+  "first_arcade_code": "0x08A3",
+  "arcade_code_aliases": [
+   "0x08A3"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 142,
+  "exact_hash": "43e6c97d",
+  "png": "tiles/pattern_0142.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 17,
+  "first_row": 58,
+  "first_arcade_code": "0x08A5",
+  "arcade_code_aliases": [
+   "0x08A5"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 143,
+  "exact_hash": "eb96478f",
+  "png": "tiles/pattern_0143.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 4,
+  "first_arcade_code": "0x0920",
+  "arcade_code_aliases": [
+   "0x0920"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 144,
+  "exact_hash": "901b3d59",
+  "png": "tiles/pattern_0144.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 5,
+  "first_arcade_code": "0x0924",
+  "arcade_code_aliases": [
+   "0x0924"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 145,
+  "exact_hash": "ea7f0a7c",
+  "png": "tiles/pattern_0145.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 6,
+  "first_arcade_code": "0x0928",
+  "arcade_code_aliases": [
+   "0x0928"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 146,
+  "exact_hash": "ccd5848e",
+  "png": "tiles/pattern_0146.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 7,
+  "first_arcade_code": "0x092C",
+  "arcade_code_aliases": [
+   "0x092C"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 147,
+  "exact_hash": "b4156a0b",
+  "png": "tiles/pattern_0147.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 8,
+  "first_arcade_code": "0x092E",
+  "arcade_code_aliases": [
+   "0x092E"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 148,
+  "exact_hash": "b6e216c4",
+  "png": "tiles/pattern_0148.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 18,
+  "first_arcade_code": "0x0934",
+  "arcade_code_aliases": [
+   "0x0934"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 149,
+  "exact_hash": "975def8b",
+  "png": "tiles/pattern_0149.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 19,
+  "first_arcade_code": "0x0938",
+  "arcade_code_aliases": [
+   "0x0938"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 150,
+  "exact_hash": "fde8b027",
+  "png": "tiles/pattern_0150.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 25,
+  "first_arcade_code": "0x08FC",
+  "arcade_code_aliases": [
+   "0x08FC"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 151,
+  "exact_hash": "384684ab",
+  "png": "tiles/pattern_0151.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 26,
+  "first_arcade_code": "0x08FE",
+  "arcade_code_aliases": [
+   "0x08FE"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 152,
+  "exact_hash": "32bfa436",
+  "png": "tiles/pattern_0152.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 27,
+  "first_arcade_code": "0x0900",
+  "arcade_code_aliases": [
+   "0x0900"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 153,
+  "exact_hash": "c127a55c",
+  "png": "tiles/pattern_0153.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 44,
+  "first_arcade_code": "0x0852",
+  "arcade_code_aliases": [
+   "0x0852"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 154,
+  "exact_hash": "46eeb7ff",
+  "png": "tiles/pattern_0154.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 45,
+  "first_arcade_code": "0x0856",
+  "arcade_code_aliases": [
+   "0x0856"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 155,
+  "exact_hash": "d1362ab8",
+  "png": "tiles/pattern_0155.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 46,
+  "first_arcade_code": "0x085A",
+  "arcade_code_aliases": [
+   "0x085A"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 156,
+  "exact_hash": "14997522",
+  "png": "tiles/pattern_0156.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 18,
+  "first_row": 47,
+  "first_arcade_code": "0x085E",
+  "arcade_code_aliases": [
+   "0x085E"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 157,
+  "exact_hash": "f630aca2",
+  "png": "tiles/pattern_0157.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 4,
+  "first_arcade_code": "0x0921",
+  "arcade_code_aliases": [
+   "0x0921"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 158,
+  "exact_hash": "c9383ffc",
+  "png": "tiles/pattern_0158.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 5,
+  "first_arcade_code": "0x0925",
+  "arcade_code_aliases": [
+   "0x0925"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 159,
+  "exact_hash": "341d2383",
+  "png": "tiles/pattern_0159.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 6,
+  "first_arcade_code": "0x0929",
+  "arcade_code_aliases": [
+   "0x0929"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 160,
+  "exact_hash": "ac1c3b44",
+  "png": "tiles/pattern_0160.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 8,
+  "first_arcade_code": "0x092F",
+  "arcade_code_aliases": [
+   "0x092F"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 161,
+  "exact_hash": "753227d1",
+  "png": "tiles/pattern_0161.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 9,
+  "first_arcade_code": "0x0930",
+  "arcade_code_aliases": [
+   "0x0930"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 162,
+  "exact_hash": "ac25f303",
+  "png": "tiles/pattern_0162.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 10,
+  "first_arcade_code": "0x0931",
+  "arcade_code_aliases": [
+   "0x0931"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 163,
+  "exact_hash": "a19b6ef3",
+  "png": "tiles/pattern_0163.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 18,
+  "first_arcade_code": "0x0935",
+  "arcade_code_aliases": [
+   "0x0935"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 164,
+  "exact_hash": "31619e4e",
+  "png": "tiles/pattern_0164.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 19,
+  "first_arcade_code": "0x0939",
+  "arcade_code_aliases": [
+   "0x0939"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 165,
+  "exact_hash": "1b4489ee",
+  "png": "tiles/pattern_0165.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 44,
+  "first_arcade_code": "0x0853",
+  "arcade_code_aliases": [
+   "0x0853"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 166,
+  "exact_hash": "25f8d02b",
+  "png": "tiles/pattern_0166.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 45,
+  "first_arcade_code": "0x0857",
+  "arcade_code_aliases": [
+   "0x0857"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 167,
+  "exact_hash": "a5271a4e",
+  "png": "tiles/pattern_0167.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 46,
+  "first_arcade_code": "0x085B",
+  "arcade_code_aliases": [
+   "0x085B"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 168,
+  "exact_hash": "e4ff8d92",
+  "png": "tiles/pattern_0168.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 47,
+  "first_arcade_code": "0x085F",
+  "arcade_code_aliases": [
+   "0x085F"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 169,
+  "exact_hash": "45b23997",
+  "png": "tiles/pattern_0169.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 48,
+  "first_arcade_code": "0x0872",
+  "arcade_code_aliases": [
+   "0x0872"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 170,
+  "exact_hash": "673767a9",
+  "png": "tiles/pattern_0170.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 19,
+  "first_row": 49,
+  "first_arcade_code": "0x0874",
+  "arcade_code_aliases": [
+   "0x0874"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 171,
+  "exact_hash": "e33aabce",
+  "png": "tiles/pattern_0171.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 45,
+  "first_arcade_code": "0x0860",
+  "arcade_code_aliases": [
+   "0x0860"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 172,
+  "exact_hash": "1d1f00a6",
+  "png": "tiles/pattern_0172.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 46,
+  "first_arcade_code": "0x0861",
+  "arcade_code_aliases": [
+   "0x0861"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 173,
+  "exact_hash": "8d1901bc",
+  "png": "tiles/pattern_0173.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 47,
+  "first_arcade_code": "0x0863",
+  "arcade_code_aliases": [
+   "0x0863"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 174,
+  "exact_hash": "a8a23eda",
+  "png": "tiles/pattern_0174.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 48,
+  "first_arcade_code": "0x0875",
+  "arcade_code_aliases": [
+   "0x0875"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 175,
+  "exact_hash": "d19f1b3d",
+  "png": "tiles/pattern_0175.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 49,
+  "first_arcade_code": "0x0878",
+  "arcade_code_aliases": [
+   "0x0878"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 176,
+  "exact_hash": "47b56cd1",
+  "png": "tiles/pattern_0176.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 50,
+  "first_arcade_code": "0x087B",
+  "arcade_code_aliases": [
+   "0x087B"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 177,
+  "exact_hash": "ce0823b2",
+  "png": "tiles/pattern_0177.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 51,
+  "first_arcade_code": "0x087E",
+  "arcade_code_aliases": [
+   "0x087E"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 178,
+  "exact_hash": "68662973",
+  "png": "tiles/pattern_0178.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 52,
+  "first_arcade_code": "0x088C",
+  "arcade_code_aliases": [
+   "0x088C"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 179,
+  "exact_hash": "5fb5e606",
+  "png": "tiles/pattern_0179.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 53,
+  "first_arcade_code": "0x088F",
+  "arcade_code_aliases": [
+   "0x088F"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 180,
+  "exact_hash": "11ad527d",
+  "png": "tiles/pattern_0180.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 55,
+  "first_arcade_code": "0x0893",
+  "arcade_code_aliases": [
+   "0x0893"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 181,
+  "exact_hash": "d718263b",
+  "png": "tiles/pattern_0181.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 56,
+  "first_arcade_code": "0x08A7",
+  "arcade_code_aliases": [
+   "0x08A7"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 182,
+  "exact_hash": "4c9d7d6e",
+  "png": "tiles/pattern_0182.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 57,
+  "first_arcade_code": "0x08A9",
+  "arcade_code_aliases": [
+   "0x08A9"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 183,
+  "exact_hash": "62d49a85",
+  "png": "tiles/pattern_0183.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 58,
+  "first_arcade_code": "0x08AC",
+  "arcade_code_aliases": [
+   "0x08AC"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 184,
+  "exact_hash": "a127d161",
+  "png": "tiles/pattern_0184.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 20,
+  "first_row": 59,
+  "first_arcade_code": "0x08AF",
+  "arcade_code_aliases": [
+   "0x08AF"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 185,
+  "exact_hash": "f07088a3",
+  "png": "tiles/pattern_0185.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 46,
+  "first_arcade_code": "0x0862",
+  "arcade_code_aliases": [
+   "0x0862"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 186,
+  "exact_hash": "1a62ac79",
+  "png": "tiles/pattern_0186.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 47,
+  "first_arcade_code": "0x0864",
+  "arcade_code_aliases": [
+   "0x0864"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 187,
+  "exact_hash": "3e436f37",
+  "png": "tiles/pattern_0187.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 48,
+  "first_arcade_code": "0x0876",
+  "arcade_code_aliases": [
+   "0x0876"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 188,
+  "exact_hash": "740eca5b",
+  "png": "tiles/pattern_0188.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 49,
+  "first_arcade_code": "0x0879",
+  "arcade_code_aliases": [
+   "0x0879"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 189,
+  "exact_hash": "d152b5fd",
+  "png": "tiles/pattern_0189.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 50,
+  "first_arcade_code": "0x087C",
+  "arcade_code_aliases": [
+   "0x087C"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 190,
+  "exact_hash": "a9ed7927",
+  "png": "tiles/pattern_0190.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 51,
+  "first_arcade_code": "0x087F",
+  "arcade_code_aliases": [
+   "0x087F"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 191,
+  "exact_hash": "1ffd7efe",
+  "png": "tiles/pattern_0191.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 52,
+  "first_arcade_code": "0x088D",
+  "arcade_code_aliases": [
+   "0x088D"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 192,
+  "exact_hash": "b61a314b",
+  "png": "tiles/pattern_0192.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 53,
+  "first_arcade_code": "0x0890",
+  "arcade_code_aliases": [
+   "0x0890"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 193,
+  "exact_hash": "f15ab0ac",
+  "png": "tiles/pattern_0193.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 57,
+  "first_arcade_code": "0x08AA",
+  "arcade_code_aliases": [
+   "0x08AA"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 194,
+  "exact_hash": "e6a20c17",
+  "png": "tiles/pattern_0194.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 58,
+  "first_arcade_code": "0x08AD",
+  "arcade_code_aliases": [
+   "0x08AD"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 195,
+  "exact_hash": "e4ad0abb",
+  "png": "tiles/pattern_0195.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 21,
+  "first_row": 59,
+  "first_arcade_code": "0x08B0",
+  "arcade_code_aliases": [
+   "0x08B0"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 196,
+  "exact_hash": "78993a41",
+  "png": "tiles/pattern_0196.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 48,
+  "first_arcade_code": "0x0877",
+  "arcade_code_aliases": [
+   "0x0877"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 197,
+  "exact_hash": "d0a68d0a",
+  "png": "tiles/pattern_0197.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 49,
+  "first_arcade_code": "0x087A",
+  "arcade_code_aliases": [
+   "0x087A"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 198,
+  "exact_hash": "f04669eb",
+  "png": "tiles/pattern_0198.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 50,
+  "first_arcade_code": "0x087D",
+  "arcade_code_aliases": [
+   "0x087D"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 199,
+  "exact_hash": "9e0abb14",
+  "png": "tiles/pattern_0199.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 51,
+  "first_arcade_code": "0x0880",
+  "arcade_code_aliases": [
+   "0x0880"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 200,
+  "exact_hash": "51a42bca",
+  "png": "tiles/pattern_0200.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 52,
+  "first_arcade_code": "0x088E",
+  "arcade_code_aliases": [
+   "0x088E"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 201,
+  "exact_hash": "1fa11c62",
+  "png": "tiles/pattern_0201.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 53,
+  "first_arcade_code": "0x0891",
+  "arcade_code_aliases": [
+   "0x0891"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 202,
+  "exact_hash": "071719fe",
+  "png": "tiles/pattern_0202.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 54,
+  "first_arcade_code": "0x0892",
+  "arcade_code_aliases": [
+   "0x0892"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 203,
+  "exact_hash": "0728d80a",
+  "png": "tiles/pattern_0203.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 55,
+  "first_arcade_code": "0x0894",
+  "arcade_code_aliases": [
+   "0x0894"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 204,
+  "exact_hash": "55319275",
+  "png": "tiles/pattern_0204.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 56,
+  "first_arcade_code": "0x08A8",
+  "arcade_code_aliases": [
+   "0x08A8"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 205,
+  "exact_hash": "28ecac92",
+  "png": "tiles/pattern_0205.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 57,
+  "first_arcade_code": "0x08AB",
+  "arcade_code_aliases": [
+   "0x08AB"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 206,
+  "exact_hash": "42219f0d",
+  "png": "tiles/pattern_0206.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 58,
+  "first_arcade_code": "0x08AE",
+  "arcade_code_aliases": [
+   "0x08AE"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 207,
+  "exact_hash": "e9519389",
+  "png": "tiles/pattern_0207.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 22,
+  "first_row": 59,
+  "first_arcade_code": "0x08B1",
+  "arcade_code_aliases": [
+   "0x08B1"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 208,
+  "exact_hash": "1c39bc63",
+  "png": "tiles/pattern_0208.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 48,
+  "first_row": 8,
+  "first_arcade_code": "0x082F",
+  "arcade_code_aliases": [
+   "0x082F"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 209,
+  "exact_hash": "30f988e9",
+  "png": "tiles/pattern_0209.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 48,
+  "first_row": 9,
+  "first_arcade_code": "0x0830",
+  "arcade_code_aliases": [
+   "0x0830"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 210,
+  "exact_hash": "fcf9fae3",
+  "png": "tiles/pattern_0210.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 48,
+  "first_row": 10,
+  "first_arcade_code": "0x0831",
+  "arcade_code_aliases": [
+   "0x0831"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 211,
+  "exact_hash": "bfd152d7",
+  "png": "tiles/pattern_0211.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 48,
+  "first_row": 11,
+  "first_arcade_code": "0x0832",
+  "arcade_code_aliases": [
+   "0x0832"
+  ],
+  "records_used": [
+   16
+  ],
+  "sections_used": [
+   1
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 212,
+  "exact_hash": "efe2b8fd",
+  "png": "tiles/pattern_0212.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 56,
+  "first_row": 0,
+  "first_arcade_code": "0x0847",
+  "arcade_code_aliases": [
+   "0x0847"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 213,
+  "exact_hash": "75da546e",
+  "png": "tiles/pattern_0213.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 57,
+  "first_row": 1,
+  "first_arcade_code": "0x0848",
+  "arcade_code_aliases": [
+   "0x0848"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 214,
+  "exact_hash": "60d49902",
+  "png": "tiles/pattern_0214.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 58,
+  "first_row": 0,
+  "first_arcade_code": "0x08F3",
+  "arcade_code_aliases": [
+   "0x08F3"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 215,
+  "exact_hash": "1ac9ba23",
+  "png": "tiles/pattern_0215.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 58,
+  "first_row": 1,
+  "first_arcade_code": "0x08F4",
+  "arcade_code_aliases": [
+   "0x08F4"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 216,
+  "exact_hash": "adea8ebc",
+  "png": "tiles/pattern_0216.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 58,
+  "first_row": 2,
+  "first_arcade_code": "0x08F5",
+  "arcade_code_aliases": [
+   "0x08F5"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 217,
+  "exact_hash": "46702b20",
+  "png": "tiles/pattern_0217.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 58,
+  "first_row": 10,
+  "first_arcade_code": "0x08F6",
+  "arcade_code_aliases": [
+   "0x08F6"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 218,
+  "exact_hash": "03722655",
+  "png": "tiles/pattern_0218.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 58,
+  "first_row": 11,
+  "first_arcade_code": "0x08F7",
+  "arcade_code_aliases": [
+   "0x08F7"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 219,
+  "exact_hash": "8aba476c",
+  "png": "tiles/pattern_0219.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 1,
+  "first_record": 16,
+  "first_column": 59,
+  "first_row": 3,
+  "first_arcade_code": "0x084A",
+  "arcade_code_aliases": [
+   "0x084A"
+  ],
+  "records_used": [
+   16,
+   17,
+   19,
+   20
+  ],
+  "sections_used": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 220,
+  "exact_hash": "9e5993fd",
+  "png": "tiles/pattern_0220.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 40,
+  "first_row": 20,
+  "first_arcade_code": "0x090E",
+  "arcade_code_aliases": [
+   "0x090E"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 221,
+  "exact_hash": "83d07975",
+  "png": "tiles/pattern_0221.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 40,
+  "first_row": 21,
+  "first_arcade_code": "0x0912",
+  "arcade_code_aliases": [
+   "0x0912"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 222,
+  "exact_hash": "a88576f5",
+  "png": "tiles/pattern_0222.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 40,
+  "first_row": 22,
+  "first_arcade_code": "0x0916",
+  "arcade_code_aliases": [
+   "0x0916"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 223,
+  "exact_hash": "902f4c7c",
+  "png": "tiles/pattern_0223.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 40,
+  "first_row": 23,
+  "first_arcade_code": "0x091A",
+  "arcade_code_aliases": [
+   "0x091A"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 224,
+  "exact_hash": "4660d3f5",
+  "png": "tiles/pattern_0224.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 41,
+  "first_row": 20,
+  "first_arcade_code": "0x090F",
+  "arcade_code_aliases": [
+   "0x090F"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 225,
+  "exact_hash": "2ed75606",
+  "png": "tiles/pattern_0225.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 41,
+  "first_row": 21,
+  "first_arcade_code": "0x0913",
+  "arcade_code_aliases": [
+   "0x0913"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 226,
+  "exact_hash": "2eaece11",
+  "png": "tiles/pattern_0226.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 41,
+  "first_row": 22,
+  "first_arcade_code": "0x0917",
+  "arcade_code_aliases": [
+   "0x0917"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 227,
+  "exact_hash": "9f1cba4a",
+  "png": "tiles/pattern_0227.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 41,
+  "first_row": 23,
+  "first_arcade_code": "0x091B",
+  "arcade_code_aliases": [
+   "0x091B"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 228,
+  "exact_hash": "df263e02",
+  "png": "tiles/pattern_0228.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 42,
+  "first_row": 20,
+  "first_arcade_code": "0x0910",
+  "arcade_code_aliases": [
+   "0x0910"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 229,
+  "exact_hash": "f6390818",
+  "png": "tiles/pattern_0229.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 42,
+  "first_row": 21,
+  "first_arcade_code": "0x0914",
+  "arcade_code_aliases": [
+   "0x0914"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 230,
+  "exact_hash": "47a389ce",
+  "png": "tiles/pattern_0230.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 42,
+  "first_row": 22,
+  "first_arcade_code": "0x0918",
+  "arcade_code_aliases": [
+   "0x0918"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 231,
+  "exact_hash": "2fcd1087",
+  "png": "tiles/pattern_0231.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 42,
+  "first_row": 23,
+  "first_arcade_code": "0x091C",
+  "arcade_code_aliases": [
+   "0x091C"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 232,
+  "exact_hash": "b7219514",
+  "png": "tiles/pattern_0232.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 43,
+  "first_row": 20,
+  "first_arcade_code": "0x0911",
+  "arcade_code_aliases": [
+   "0x0911"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 233,
+  "exact_hash": "d11a2c68",
+  "png": "tiles/pattern_0233.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 43,
+  "first_row": 21,
+  "first_arcade_code": "0x0915",
+  "arcade_code_aliases": [
+   "0x0915"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 234,
+  "exact_hash": "bb785aa0",
+  "png": "tiles/pattern_0234.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 43,
+  "first_row": 22,
+  "first_arcade_code": "0x0919",
+  "arcade_code_aliases": [
+   "0x0919"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 235,
+  "exact_hash": "871e3041",
+  "png": "tiles/pattern_0235.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 2,
+  "first_record": 17,
+  "first_column": 43,
+  "first_row": 23,
+  "first_arcade_code": "0x091D",
+  "arcade_code_aliases": [
+   "0x091D"
+  ],
+  "records_used": [
+   17
+  ],
+  "sections_used": [
+   2
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 236,
+  "exact_hash": "945b35f6",
+  "png": "tiles/pattern_0236.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 8,
+  "first_row": 28,
+  "first_arcade_code": "0x093A",
+  "arcade_code_aliases": [
+   "0x093A"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 237,
+  "exact_hash": "180d12ca",
+  "png": "tiles/pattern_0237.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 8,
+  "first_row": 29,
+  "first_arcade_code": "0x093E",
+  "arcade_code_aliases": [
+   "0x093E"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 238,
+  "exact_hash": "7df5dd60",
+  "png": "tiles/pattern_0238.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 8,
+  "first_row": 30,
+  "first_arcade_code": "0x0942",
+  "arcade_code_aliases": [
+   "0x0942"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 239,
+  "exact_hash": "f234e51e",
+  "png": "tiles/pattern_0239.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 8,
+  "first_row": 31,
+  "first_arcade_code": "0x0946",
+  "arcade_code_aliases": [
+   "0x0946"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 240,
+  "exact_hash": "3074b83f",
+  "png": "tiles/pattern_0240.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 9,
+  "first_row": 28,
+  "first_arcade_code": "0x093B",
+  "arcade_code_aliases": [
+   "0x093B"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 241,
+  "exact_hash": "7b29d306",
+  "png": "tiles/pattern_0241.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 9,
+  "first_row": 29,
+  "first_arcade_code": "0x093F",
+  "arcade_code_aliases": [
+   "0x093F"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 242,
+  "exact_hash": "6c1a247b",
+  "png": "tiles/pattern_0242.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 9,
+  "first_row": 30,
+  "first_arcade_code": "0x0943",
+  "arcade_code_aliases": [
+   "0x0943"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 243,
+  "exact_hash": "4ef3d7b7",
+  "png": "tiles/pattern_0243.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 9,
+  "first_row": 31,
+  "first_arcade_code": "0x0947",
+  "arcade_code_aliases": [
+   "0x0947"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 244,
+  "exact_hash": "94879ee7",
+  "png": "tiles/pattern_0244.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 10,
+  "first_row": 28,
+  "first_arcade_code": "0x093C",
+  "arcade_code_aliases": [
+   "0x093C"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 245,
+  "exact_hash": "a0efbd95",
+  "png": "tiles/pattern_0245.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 10,
+  "first_row": 29,
+  "first_arcade_code": "0x0940",
+  "arcade_code_aliases": [
+   "0x0940"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 246,
+  "exact_hash": "78a9e95b",
+  "png": "tiles/pattern_0246.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 10,
+  "first_row": 30,
+  "first_arcade_code": "0x0944",
+  "arcade_code_aliases": [
+   "0x0944"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 247,
+  "exact_hash": "399d04d9",
+  "png": "tiles/pattern_0247.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 10,
+  "first_row": 31,
+  "first_arcade_code": "0x0948",
+  "arcade_code_aliases": [
+   "0x0948"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 248,
+  "exact_hash": "99887feb",
+  "png": "tiles/pattern_0248.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 11,
+  "first_row": 28,
+  "first_arcade_code": "0x093D",
+  "arcade_code_aliases": [
+   "0x093D"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 249,
+  "exact_hash": "6a12c4de",
+  "png": "tiles/pattern_0249.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 11,
+  "first_row": 29,
+  "first_arcade_code": "0x0941",
+  "arcade_code_aliases": [
+   "0x0941"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 250,
+  "exact_hash": "e3600beb",
+  "png": "tiles/pattern_0250.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 11,
+  "first_row": 30,
+  "first_arcade_code": "0x0945",
+  "arcade_code_aliases": [
+   "0x0945"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 251,
+  "exact_hash": "7792d31b",
+  "png": "tiles/pattern_0251.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 3,
+  "first_record": 18,
+  "first_column": 11,
+  "first_row": 31,
+  "first_arcade_code": "0x0949",
+  "arcade_code_aliases": [
+   "0x0949"
+  ],
+  "records_used": [
+   18
+  ],
+  "sections_used": [
+   3
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 252,
+  "exact_hash": "9e006ecb",
+  "png": "tiles/pattern_0252.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 10,
+  "first_row": 26,
+  "first_arcade_code": "0x0849",
+  "arcade_code_aliases": [
+   "0x0849"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 253,
+  "exact_hash": "b6f8c7b0",
+  "png": "tiles/pattern_0253.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 16,
+  "first_row": 32,
+  "first_arcade_code": "0x094A",
+  "arcade_code_aliases": [
+   "0x094A"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 254,
+  "exact_hash": "9e23d72e",
+  "png": "tiles/pattern_0254.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 16,
+  "first_row": 33,
+  "first_arcade_code": "0x094E",
+  "arcade_code_aliases": [
+   "0x094E"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 255,
+  "exact_hash": "ee5ae11f",
+  "png": "tiles/pattern_0255.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 16,
+  "first_row": 34,
+  "first_arcade_code": "0x0950",
+  "arcade_code_aliases": [
+   "0x0950"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 256,
+  "exact_hash": "24d8fd6f",
+  "png": "tiles/pattern_0256.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 16,
+  "first_row": 35,
+  "first_arcade_code": "0x0952",
+  "arcade_code_aliases": [
+   "0x0952"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 257,
+  "exact_hash": "6a6aad1d",
+  "png": "tiles/pattern_0257.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 16,
+  "first_row": 54,
+  "first_arcade_code": "0x24BB",
+  "arcade_code_aliases": [
+   "0x24BB"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 258,
+  "exact_hash": "b967961b",
+  "png": "tiles/pattern_0258.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 16,
+  "first_row": 55,
+  "first_arcade_code": "0x24BF",
+  "arcade_code_aliases": [
+   "0x24BF"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 259,
+  "exact_hash": "d4e5be7a",
+  "png": "tiles/pattern_0259.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 16,
+  "first_row": 56,
+  "first_arcade_code": "0x24C3",
+  "arcade_code_aliases": [
+   "0x24C3"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 260,
+  "exact_hash": "1fe34821",
+  "png": "tiles/pattern_0260.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 16,
+  "first_row": 57,
+  "first_arcade_code": "0x24C5",
+  "arcade_code_aliases": [
+   "0x24C5"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 261,
+  "exact_hash": "b83d4f22",
+  "png": "tiles/pattern_0261.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 16,
+  "first_row": 58,
+  "first_arcade_code": "0x24C7",
+  "arcade_code_aliases": [
+   "0x24C7"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 262,
+  "exact_hash": "845f3b41",
+  "png": "tiles/pattern_0262.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 16,
+  "first_row": 59,
+  "first_arcade_code": "0x24C9",
+  "arcade_code_aliases": [
+   "0x24C9"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 263,
+  "exact_hash": "fae34053",
+  "png": "tiles/pattern_0263.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 17,
+  "first_row": 32,
+  "first_arcade_code": "0x094B",
+  "arcade_code_aliases": [
+   "0x094B"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 264,
+  "exact_hash": "2a6c38ed",
+  "png": "tiles/pattern_0264.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 17,
+  "first_row": 33,
+  "first_arcade_code": "0x08DB",
+  "arcade_code_aliases": [
+   "0x08DB"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 265,
+  "exact_hash": "83d70d71",
+  "png": "tiles/pattern_0265.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 17,
+  "first_row": 35,
+  "first_arcade_code": "0x0953",
+  "arcade_code_aliases": [
+   "0x0953"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 266,
+  "exact_hash": "809ce348",
+  "png": "tiles/pattern_0266.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 17,
+  "first_row": 54,
+  "first_arcade_code": "0x24BC",
+  "arcade_code_aliases": [
+   "0x24BC"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 267,
+  "exact_hash": "3ddf2ff2",
+  "png": "tiles/pattern_0267.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 17,
+  "first_row": 55,
+  "first_arcade_code": "0x24C0",
+  "arcade_code_aliases": [
+   "0x24C0"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 268,
+  "exact_hash": "78ae941d",
+  "png": "tiles/pattern_0268.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 17,
+  "first_row": 56,
+  "first_arcade_code": "0x153A",
+  "arcade_code_aliases": [
+   "0x153A"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 269,
+  "exact_hash": "e1747779",
+  "png": "tiles/pattern_0269.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 18,
+  "first_row": 32,
+  "first_arcade_code": "0x094C",
+  "arcade_code_aliases": [
+   "0x094C"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 270,
+  "exact_hash": "4e785216",
+  "png": "tiles/pattern_0270.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 18,
+  "first_row": 35,
+  "first_arcade_code": "0x0954",
+  "arcade_code_aliases": [
+   "0x0954"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 271,
+  "exact_hash": "38d08063",
+  "png": "tiles/pattern_0271.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 18,
+  "first_row": 54,
+  "first_arcade_code": "0x24BD",
+  "arcade_code_aliases": [
+   "0x24BD"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 272,
+  "exact_hash": "d9d0bc89",
+  "png": "tiles/pattern_0272.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 18,
+  "first_row": 55,
+  "first_arcade_code": "0x24C1",
+  "arcade_code_aliases": [
+   "0x24C1"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 273,
+  "exact_hash": "a4a115f0",
+  "png": "tiles/pattern_0273.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 19,
+  "first_row": 32,
+  "first_arcade_code": "0x094D",
+  "arcade_code_aliases": [
+   "0x094D"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 274,
+  "exact_hash": "7100ee23",
+  "png": "tiles/pattern_0274.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 19,
+  "first_row": 33,
+  "first_arcade_code": "0x094F",
+  "arcade_code_aliases": [
+   "0x094F"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 275,
+  "exact_hash": "00a907ec",
+  "png": "tiles/pattern_0275.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 19,
+  "first_row": 34,
+  "first_arcade_code": "0x0951",
+  "arcade_code_aliases": [
+   "0x0951"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 276,
+  "exact_hash": "c5a49f7a",
+  "png": "tiles/pattern_0276.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 19,
+  "first_row": 35,
+  "first_arcade_code": "0x0955",
+  "arcade_code_aliases": [
+   "0x0955"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 277,
+  "exact_hash": "9173ebd8",
+  "png": "tiles/pattern_0277.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 19,
+  "first_row": 54,
+  "first_arcade_code": "0x24BE",
+  "arcade_code_aliases": [
+   "0x24BE"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 278,
+  "exact_hash": "3c5af0e7",
+  "png": "tiles/pattern_0278.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 19,
+  "first_row": 55,
+  "first_arcade_code": "0x24C2",
+  "arcade_code_aliases": [
+   "0x24C2"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 279,
+  "exact_hash": "fa5cf491",
+  "png": "tiles/pattern_0279.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 19,
+  "first_row": 56,
+  "first_arcade_code": "0x24C4",
+  "arcade_code_aliases": [
+   "0x24C4"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 280,
+  "exact_hash": "872dc648",
+  "png": "tiles/pattern_0280.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 19,
+  "first_row": 57,
+  "first_arcade_code": "0x24C6",
+  "arcade_code_aliases": [
+   "0x24C6"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 281,
+  "exact_hash": "80898e1d",
+  "png": "tiles/pattern_0281.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 19,
+  "first_row": 58,
+  "first_arcade_code": "0x24C8",
+  "arcade_code_aliases": [
+   "0x24C8"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ },
+ {
+  "pattern_number": 282,
+  "exact_hash": "df72795f",
+  "png": "tiles/pattern_0282.png",
+  "first_round": 1,
+  "first_phase": 2,
+  "first_section": 5,
+  "first_record": 20,
+  "first_column": 19,
+  "first_row": 59,
+  "first_arcade_code": "0x24CA",
+  "arcade_code_aliases": [
+   "0x24CA"
+  ],
+  "records_used": [
+   20
+  ],
+  "sections_used": [
+   5
+  ],
+  "shared_with_phase1": false,
+  "shared_with_phase2": false
+ }
+]

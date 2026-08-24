@@ -121,6 +121,9 @@
   "genesistan_hook_tilemap_plane_a_selector12_native",
   "genesistan_plane_a_pan_publish_entering_rows_up",
   "genesistan_plane_a_pan_publish_entering_rows_down",
+  "fg_boundary_advance_segment",
+  "fg_boundary_install_post_reseed",
+  "genesistan_pc080sn_directional_dispatch_native",
   "genesistan_hook_tilemap_fg",
   "genesistan_hook_tilemap_bg_fill",
   "genesistan_hook_inline_fg_write_3a550",
@@ -215,6 +218,12 @@
   }
  ],
  "shift_replacements": [
+  {
+   "arcade_pc": "0x050482",
+   "original_bytes": "4E75",
+   "replacement_bytes": "4EB9{symbol:fg_boundary_install_post_reseed}4E75",
+   "note": "Build 0303 event/reseed timing: at the proven completion of the arcade 0x0503DC scene-fill, install a deferred boundary package only for records 16/22. Descriptor cursor, Plane-B Y, tm0, and all scene-fill state now exist before variant selection; ordinary records remain installed at their direct progression boundary. Proper 2-to-8-byte shift-table replacement preserves the original return."
+  },
   {
    "arcade_pc": "0x05105A",
    "original_bytes": "3B7C00FF12FC",
@@ -443,6 +452,12 @@
    "note": "Retain the original shift-relocated animation table and selected four-piece frame, then cut before PC090OJ destination/record packing and emit directly to the native FRONT_EFFECT lane. Historical virtual records 44..47 are retired."
   },
   {
+   "arcade_pc": "0x0558FE",
+   "original_bytes": "526D013E",
+   "replacement_bytes": "4EB9{symbol:fg_boundary_advance_segment}",
+   "note": "Build 0302 boundary-loaded graphics experiment: replace the completed PC080SN 64-publication ring-cycle segment advance with a native helper that preserves the original addq.w #1,a5@0x013E and installs exactly one precompiled Stage-1 graphics package. This is the proven semantic progression boundary; normal frame/strip/VBlank paths only perform direct LUT reads and never scan, hash, allocate, evict, or load patterns. Proper 4-to-6-byte shift-table replacement; the original following RTS remains in arcade flow."
+  },
+  {
    "arcade_pc": "0x059F92",
    "original_bytes": "0C6D00FF1388",
    "replacement_bytes": "48E75A000C6D00FF1388",
@@ -627,8 +642,8 @@
   {
    "arcade_pc": "0x0503CE",
    "original_bytes": "203C00050F6B",
-   "replacement_bytes": "203C0005116B",
-   "note": "Build 0159/OPEN-017: pass-sequence table base pointer relocation. `move.l #0x00050F6B, %d0` at arcade 0x0503CE loads the PC080SN pass-sequence table base into a DATA register; the postpatch shift-relocation only shifts abs.l control-transfer/LEA operands, so this data-register immediate was NOT relocated +0x200 (its sibling `movea.l #0x00050EE0, %a1` at 0x0503BC WAS, -> 0x000510E0). On Genesis the un-relocated pointer reads ROM[0x050F6B]=0x80 instead of the correct relocated ROM[0x05116B]=0x00 (arcade ROM[0x050F6B]=0x00), so a5@0x10C6 lands 0x200 too low and the desc-rebuild sets the tilemap PASS SELECTOR a5@0x10A8=0x0080 (FG) instead of 0x0000 (BG). Arcade always selects BG (a5@0x10A8==0) for the Stage 1 collision/tilemap pass. Fix relocates ONLY this data-register immediate 0x00050F6B -> 0x0005116B (byte-neutral, opcode 0x203C preserved; movel #imm,Dn is not in the shift-adjust set so the replacement is not re-shifted). No NOP, no destination patch, no forced value, no collision emission, no 0x10DE00 rebase. Same missed-data-register-literal class as Build 0158 (0x05102E)."
+   "replacement_bytes": "203C00051171",
+   "note": "Build 0305 early-game state divergence: retain the Build 0159 byte-neutral pass-sequence data-pointer relocation, but include the Build 0303 +6 shift inserted at arcade_pc 0x050482 before the table at arcade_rom/data 0x050F6B. The correct current runtime_data target is therefore 0x00051171, not the now-stale 0x0005116B. Build 0304/0305 ROM[0x5116B]=0x95 drove PC080SN_DESC_REBUILD_OUT / Genesis-WRAM 0xFF10A8 to selector 0x0095 and selected the row producer for the initial Stage-1 collision pass; ROM[0x51171]=0x00 restores the arcade selector-0 column producer. Diagnostic byte-neutral validation restored Build-0302 collision hashes and early record progression. This changes only the MOVE.L #imm,D0 data address; no collision consumer/class/value, destination, package allocation, directional dispatch, NOP, RTS bypass, or forced selector is introduced."
   },
   {
    "arcade_pc": "0x053A64",

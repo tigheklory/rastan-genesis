@@ -1,0 +1,12 @@
+{
+ "phase1_exact": 1315,
+ "phase2_exact": 282,
+ "phase3_exact": 314,
+ "p2_shared_p1": 1,
+ "p2_only": 281,
+ "p3_shared_p1": 0,
+ "p3_shared_p2": 55,
+ "p3_only": 259,
+ "p2_flipnorm": 263,
+ "p3_flipnorm": 266
+}

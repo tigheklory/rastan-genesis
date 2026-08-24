@@ -249,6 +249,12 @@ local function add_project_symbol_watches(symbol_map)
 	add_symbol_watch("group_a5_10cc", 0x00FF10CC, 16)
 	add_symbol_watch("tileset_id", symbol_map["genesistan_current_pc080sn_tileset_id"] or 0x00FF707D, 8)
 	add_symbol_watch("scene_id",   symbol_map["genesistan_current_scene_id"] or 0x00FF707C, 8)
+	-- Build 0301 streaming cache counters
+	add_symbol_watch("fg_occupancy",    0x00FFA344, 16)
+	add_symbol_watch("fg_uploads_last", 0x00FFA346, 16)
+	add_symbol_watch("fg_overflow",     0x00FFA348, 16)
+	add_symbol_watch("fg_evict",        0x00FFA34A, 16)
+	add_symbol_watch("fg_evict_live",   0x00FFA34C, 16)
 
 	add_symbol_watch("startup_result_code", symbol_map["genesistan_startup_result_code"], 16)
 	add_symbol_watch("dip1", symbol_map["genesistan_shadow_dip1"], 8)
@@ -564,6 +570,91 @@ local function sample_symbols()
 	end
 end
 
+-- Build 0301: live Plane-A VRAM pattern-ownership detector.
+-- Polls staged_fg_buffer (the native Plane-A name-word table) and the VDP VRAM pattern for the
+-- slots those live cells reference.  Fires event-driven logs when (D) a name word changes, or
+-- (C) the VRAM pattern under a slot that a live Plane-A cell references is overwritten.  The
+-- latter is the decisive "graphics change while sprites animate / while scrolling" evidence.
+-- Owner is correlated: residency reload (tileset_id just changed) vs sprite tile range vs other.
+plane_a_vram = nil
+local STAGED_FG_BASE = 0xFF50E4      -- staged_fg_buffer (2048 words = 64x32 Plane A)
+local STAGED_FG_CELLS = 2048
+local PLANE_A_SAMPLE_EVERY = 4
+local pa_prev_name = {}
+local pa_slot_fp = {}
+local pa_slot_ref_frame = {}
+local pa_last_tileset = -1
+local pa_last_tileset_change = -1000000
+local pa_event_count = 0
+local PA_EVENT_CAP = 6000
+
+local function pa_vram_fp(slot)
+	local b = slot * 32
+	return (plane_a_vram:read_u32(b) ~ plane_a_vram:read_u32(b + 12) ~ plane_a_vram:read_u32(b + 24)) & 0xFFFFFFFF
+end
+
+-- Decisive test (task's acceptance criterion): does an UNRELATED writer modify a VRAM pattern slot
+-- while a live Plane-A name word STILL references it?  We only consider cells whose name word is
+-- STABLE across samples (already-displayed, not being republished by normal scrolling), then check
+-- whether the VRAM pattern under the referenced slot changed.  That is exactly "already-visible
+-- cave graphics change while sprites animate / while scrolling".  Owner is correlated: a residency
+-- reload just happened (tileset_id changed) vs the slot is in the sprite tile range vs other.
+local pa_names_changed_last = 0
+local function sample_plane_a_ownership()
+	if not plane_a_vram then return end
+	local scene = prog:read_u8(0x00FF707C)
+	if scene ~= 1 then return end          -- gameplay family only (cave is scene 1)
+	local seg = prog:read_u16(0x00FF013E)
+	local page = prog:read_u16(0x00FF10C6)
+	local tileset = prog:read_u8(0x00FF707D)
+	if tileset ~= pa_last_tileset then pa_last_tileset = tileset; pa_last_tileset_change = frame_count end
+	local reload_recent = (frame_count - pa_last_tileset_change) <= (PLANE_A_SAMPLE_EVERY * 3)
+	local stable_ref = {}      -- slot -> a stable-name-word cell referencing it
+	local names_changed = 0
+	local i
+	for i = 0, STAGED_FG_CELLS - 1 do
+		local w = prog:read_u16(STAGED_FG_BASE + i * 2)
+		local pw = pa_prev_name[i]
+		if pw ~= nil and pw ~= w then names_changed = names_changed + 1 end
+		pa_prev_name[i] = w
+		local slot = w & 0x07FF
+		if slot ~= 0 and pw == w and stable_ref[slot] == nil then
+			stable_ref[slot] = i       -- live, stable, already-displayed cell
+		end
+	end
+	pa_names_changed_last = names_changed
+	-- Stability stat (periodic, not flooding): how many live cells are stable vs churning.
+	-- Distinguishes static-wrong-residency (many stable, 0 overwrites) from name-word churn / CASE D
+	-- (few stable). live = nonblank cells; stable_slots = distinct slots referenced by stable cells.
+	local live = 0
+	for i = 0, STAGED_FG_CELLS - 1 do
+		if (pa_prev_name[i] and (pa_prev_name[i] & 0x07FF) ~= 0) then live = live + 1 end
+	end
+	local stable_slots = 0
+	for _ in pairs(stable_ref) do stable_slots = stable_slots + 1 end
+	if (frame_count % 30) == 0 then
+		append_log(string.format(
+			"[frame %06d] PA_STAT live=%d names_changed=%d stable_slots=%d seg=%X page=%X tileset=%d",
+			frame_count, live, names_changed, stable_slots, seg, page, tileset))
+	end
+	for slot, cell in pairs(stable_ref) do
+		local fp = pa_vram_fp(slot)
+		local pfp = pa_slot_fp[slot]
+		if pfp ~= nil and pfp ~= fp and pa_event_count < PA_EVENT_CAP then
+			pa_event_count = pa_event_count + 1
+			local owner
+			if reload_recent then owner = "RESIDENCY_RELOAD"
+			elseif slot >= 1024 and slot <= 1535 then owner = "SPRITE_RANGE"
+			else owner = "OTHER" end
+			append_log(string.format(
+				"[frame %06d] LIVE_PLANE_A_PATTERN_OVERWRITE slot=%d cell=%d name=%04X oldfp=%08X newfp=%08X owner=%s reload_recent=%s names_changed=%d seg=%X page=%X tileset=%d",
+				frame_count, slot, cell, prog:read_u16(STAGED_FG_BASE + cell * 2), pfp, fp, owner,
+				tostring(reload_recent), names_changed, seg, page, tileset))
+		end
+		pa_slot_fp[slot] = fp
+	end
+end
+
 local function is_reset_helper_pc(pc)
 	return pc == RESET_HELPER_PC_0 or pc == RESET_HELPER_PC_1
 end
@@ -861,6 +952,10 @@ local function arm_trace()
 		append_log("arm: maincpu program space not found")
 		return
 	end
+	-- Build 0301: VDP VRAM access for the live Plane-A pattern-ownership detector.
+	local vdp = manager.machine.devices[":gen_vdp"]
+	plane_a_vram = vdp and vdp.spaces["videoram"] or nil
+	append_log("arm: plane_a_vram " .. (plane_a_vram and "ready" or "UNAVAILABLE"))
 
 	root, home = find_repo_root()
 	symbol_env = os.getenv("GENESISTAN_SYMBOLS")
@@ -981,6 +1076,10 @@ _G.genesistrace_frame_subscription = emu.add_machine_frame_notifier(function ()
 
 		if (frame_count % SYMBOL_SAMPLE_EVERY) == 0 then
 			sample_symbols()
+		end
+
+		if (frame_count % PLANE_A_SAMPLE_EVERY) == 0 then
+			sample_plane_a_ownership()
 		end
 
 		if (frame_count % SAMPLE_WINDOW_EVERY) == 0 then

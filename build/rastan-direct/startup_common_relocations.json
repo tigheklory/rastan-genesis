@@ -13,7 +13,7 @@
       "original_start": "0x000000",
       "original_end_exclusive": "0x060000",
       "genesis_rom_start": "0x000200",
-      "genesis_rom_end_exclusive": "0x0600F4",
+      "genesis_rom_end_exclusive": "0x0600FC",
       "placement": "relocated_whole_copy"
     }
   ],

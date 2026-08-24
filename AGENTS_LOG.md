@@ -45754,3 +45754,519 @@ not built this turn: fix is a large streaming-cache rewrite of the hot FG produc
 rope: arcade interval seg3 page 050F6E frames 7506-8034; expected restored by streaming fix.
 missing cave block: deferred.
 STOP: root cause proven; paused before blind large-architecture build pending interactive capture confirmation.
+
+### MAME Exit Summary (2026-08-20 19:59:02)
+- Final PC: 0x07361E
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-20 19:59:35)
+- Final PC: 0x040D86
+- Stack Pointer (SP): 0x00FEFFE2
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-20 20:01:33)
+- Final PC: 0x040D86
+- Stack Pointer (SP): 0x00FEFFE2
+- Unique Unmapped Memory Addresses: none
+
+[Andy — Build 0301 STEP 1: live Plane-A VRAM ownership instrument]
+
+files changed: tools/mame/scripts/genesistrace.lua (VDP VRAM ownership detector + semantic route watches); docs/design/Andy_build0301_live_plane_a_vram_owner_fix.md (new); AGENTS_LOG.md
+build produced: NO (counter 300 unchanged)
+withdrawn: prior "sprite DMA overwrites cache B" claim (sprite path is record-based 1024..1343, DMA capped 12/frame -> reaching 1344 not proven).
+instrument: :gen_vdp.spaces["videoram"] readable from Lua -> poll-and-diff detector. sample_plane_a_ownership() every 4 frames, gameplay scene only: for each STABLE (already-displayed) staged_fg_buffer cell, fingerprints its referenced VRAM slot; fires LIVE_PLANE_A_PATTERN_OVERWRITE when the pattern changes under the live name word (the task's acceptance criterion). Owner correlated: RESIDENCY_RELOAD / SPRITE_RANGE(1024-1535) / OTHER. Semantic route watches: seg/tm0/selector/page/strip/group + tileset/scene id.
+validation (Build 0300 headless): plane_a_vram ready, 0 lua errors, reaches gameplay, 0 overwrite events on correct outdoor (no false positives), 859% speed (interactive-smooth). Normal-scroll name-word churn excluded.
+STEP 2 handoff: Tighe plays Build 0300 once through the cave (interactive run cmd in report), logger auto-captures. STEP 3 (classify owner A/B/C/D -> smallest correct fix -> Build 0301) follows the capture.
+STOP: not a stop; STEP-1 instrument complete, awaiting the one interactive cave capture that only play input can produce.
+
+### MAME Exit Summary (2026-08-20 20:12:13)
+- Final PC: 0x073474
+- Stack Pointer (SP): 0x00FEFFAC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-20 20:17:47)
+- Final PC: 0x040D86
+- Stack Pointer (SP): 0x00FEFFE2
+- Unique Unmapped Memory Addresses: none
+
+[Andy — Build 0301 STEP 3: cave capture analysis — STATIC wrong-residency, dynamic theories refuted]
+
+capture: Tighe played Build 0300 through cave (seg 1->2->3, tm0=0, selector=0, matches arcade). Headless reproduced same route + measured working set.
+DECISIVE findings (detector addrs verified vs Build 0300 ELF 12:27):
+- tileset_id (0xFF707D) stayed 1 (outdoor residency) the ENTIRE cave. Per-segment cave residency (seg1->7/seg2->8) NEVER loaded.
+- 0 LIVE_PLANE_A_PATTERN_OVERWRITE across the cave, with 67-206 stable slots evaluated/sample -> NOT vacuous. Patterns under stable cells do NOT change.
+- name words mostly stable (names_changed avg 7-14 / ~1000-1536 live = normal scroll edge only) -> NOT name-word churn.
+=> classification: NONE of A/B/C/D (no dynamic overwrite, no name-word mutation). Corruption is STATIC: cave drawn with outdoor residency; correct cave patterns never resident. 0 overwrites because outdoor residency is cache-A (sprite-safe).
+working set measured: ~124-206 distinct visible tiles at once (<< 1004 cache-A) -> streaming into sprite-safe cache A is viable + proven required (full Stage-1 FG 1610 codes > 1004; per-segment residency invalid because segment 1 spans outdoor+cave and cache-B collides with sprites).
+"graphics change while sprites animate": most likely sprites moving over static-wrong cave (or earlier cache-B Build 0299).
+fix (proven required): bounded source-driven streaming tile cache in cache A (0..1023), DMA-on-publish, refcount evict. Large FG-producer change.
+build: NONE this turn (counter 300). Not building a large streaming rewrite blind after prior wrong guesses; presented evidence-backed plan for go-ahead.
+
+[Andy — Design-only: streaming Plane-A/B tile residency (pre-Build-0301)]
+
+files: docs/design/Andy_streaming_fg_tile_residency_design.md (new); AGENTS_LOG.md
+build produced: NO. Build 0301 NOT consumed (design-only; next produced ROM = 0301).
+design: replace static LUT read (slot=LUT[code]) at the FG+BG producer sites in tilemap_hooks.s (selector0 L308, selector12 L425, pan L627/L704, BG preamble) with bsr fg_cache_resolve (d3=code->d3=slot). Bounded streaming cache in sprite-safe Cache A (0..1003; Cache B unused). Key=code&0x3FFF (pattern is pure fn of code; palette/flip in name word -> no alias). Upload: fg_upload_q drained at VBlank via .Lplane_dma_row before fg strip commit (pattern lands before name word shows). Evict by frame-touch: never a slot touched in frame N or N-1 (never corrupts displayed/in-production plane) -> detector stays 0 overwrites. Both planes must stream (FG-only overflows: static BG 854 + text 60 leaves ~90 free < 200 working set; FG~200+BG~150+text~60=~410 << 940 usable). tileset_id becomes irrelevant to FG/BG; per-segment residency (0299/0300) removed.
+open decisions for Tighe: (1) both-plane streaming [recommended] vs FG-only+BG-trim; (2) 32KB direct fwd-map vs ~8KB hash (RAM-budget check); (3) title/endround keep static vs also stream.
+STOP: design complete, shown to Tighe for review before any coding/build.
+
+[Andy — Streaming residency design REV 2 (pre-Build-0301, design-only)]
+
+files: docs/design/Andy_streaming_fg_tile_residency_design.md (rev 2); AGENTS_LOG.md
+build: NO. Build 0301 still unconsumed.
+Tighe decisions locked: both-plane streaming; hash forward map default (~8KB, 2048 buckets) unless linker-map proves 32KB direct fits; title/endround stay static, cache resets on gameplay entry.
+rev2 closes: (1) cold-cache = blocking bulk prewarm with display OFF on gameplay entry (full FG+BG pass -> unbounded drain before display ON); (2) overflow bug = forward map installed ONLY when upload guaranteed this VBlank (enqueued within CAP); queue-full -> return blank slot 0, no install, retry next frame -> no stale display; (3) VBlank order = drain streamed tiles -> BG strips -> FG strips -> sprites/palette/scroll; (4) detector adds LIVE_PLANE_B_PATTERN_OVERWRITE + PB_STAT + FG_CACHE_STAT; (5) fg_cache_resolve ABI: in d3=code, out d3=slot, clobbers d3 only, preserves all else incl a2, movem save, may bsr; (6) pinned init: slot0 blank reserved, HUD digits reserved, ~60 text tiles pre-pinned (PINNED state, alloc skips them, resolve returns pinned slot); (7) success criteria = 0 A+B overwrites, no stale after prewarm, no steady overflow, no live eviction, occupancy~=working set, sprites can't collide.
+STOP: rev2 complete, shown to Tighe before coding.
+
+[Andy — Streaming residency design REV 3 (pre-Build-0301, design-only)]
+
+files: docs/design/Andy_streaming_fg_tile_residency_design.md (rev 3); AGENTS_LOG.md
+build: NO. Build 0301 still unconsumed. Locked decisions unchanged (both-plane / hash map / static title+endround, cache reset on gameplay entry).
+rev3 fixes the eviction safety flaw: touch(by-resolve) is NOT proof of visibility (producer publishes only changed/entering cells; capture showed mostly-stable names). Added fg_cache_mark_live(): once per frame at frame start (post-VBlank commit, pre-production) scan ALL 2048 cells of staged_fg_buffer + staged_bg_buffer, slot=name&0x7FF, set fg_slot_live_frame[slot]=N. Persistent staged buffers = complete plane, so this proves every displayed-plane slot independent of producer frequency. Liveness = PINNED/RESERVED OR fg_slot_live_frame==N (displayed) OR touch==N (in-production). Allocator evicts only NON-live oldest-touch (touch = LRU tiebreak only, not safety). Live-slot eviction refused + counted (fg_evict_live_attempts must be 0).
+success criteria updated: 0 A+B overwrites; fg_evict_live_attempts==0; every eviction is of a slot not referenced by either plane's staged snapshot; live-slot count from scan ~= visible occupancy ~= cache occupancy (400-500 << 940). Detector adds independent staged-buffer cross-check + FG_CACHE_STAT (occupancy/uploads/pending/overflow/evictions/live-attempts/live-count).
+STOP: rev3 complete, shown to Tighe before coding.
+
+### MAME Exit Summary (2026-08-20 23:10:10)
+- Final PC: 0x072752
+- Stack Pointer (SP): 0x00FEFFA2
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-20 23:11:14)
+- Final PC: 0x072750
+- Stack Pointer (SP): 0x00FEFFA2
+- Unique Unmapped Memory Addresses: none
+
+[Andy — Build 0301 Streaming PC080SN Tile Residency (Rev 3 implemented)]
+
+files: src/fg_tile_cache.s (new streaming cache); tilemap_hooks.s (9 gameplay FG/BG LUT sites -> bsr fg_cache_resolve; per-segment selector neutralized to rts); vdp_comm.s (vdp_commit_streamed_tiles + VBlank order + fg_cache_mark_live); scene_load.s (fg_cache_reset on gameplay entry, display off); Makefile (+fg_tile_cache.o); genesistrace.lua (cache counters); docs/design/Andy_build0301_streaming_pc080sn_tile_residency.md
+build: YES Build 0301. ROM dist/rastan-direct/rastan_direct_video_test_build_0301.bin SHA af7537dc8b7e1256900b89c7b6d8e66aa219fc179ee68728fa565240fe05348b size 1617592 counter 300->301 GATE_PASS.
+cache: hash forward map (2048 buckets, 8KB) + rev/touch/live/state + queue at 0xFFA3xx (~15KB, fits below stack). Slots 64..1003 stream; 0..63 reserved. Key=code&0x3FFF. Gameplay-gated (scene==1); title/endround fall back to static LUT. Both planes stream.
+VALIDATION (genesis 120s automated, gameplay reached, occupancy grew): LIVE_PLANE_A_PATTERN_OVERWRITE=0; fg_evict_live_attempts=0; fg_overflow=0; fg_evict=0; no crash/unmapped; max occupancy 794/940 (fits, no eviction needed). Safety criteria met.
+deviations/notes: prewarm via high cap (384), not display-off bulk producer pass -> possible 1-frame entry glitch. Plane-B overwrite detector not yet added (both planes stream through resolve; PA=0 overwrites). Per-segment scene DATA left in ROM (selector neutralized) - cleanup deferred. Cave VISUAL correctness = Tighe BlastEm/Exodus test.
+STOP: none. Build 0301 produced + validated safe; hand to Tighe for visual test.
+
+[Andy — Offline PC080SN->Genesis Graphics Compiler: architecture review (review-only)]
+
+files: docs/design/Andy_offline_graphics_compiler_architecture_review.md (new); AGENTS_LOG.md
+build: NO. Build 0302 NOT consumed. No production change.
+verdict: HYBRID (offline planner + thin runtime selector). Offline planning is right (Build 0301's runtime hash/cache/liveness re-derives at 60Hz what's statically knowable -> slow). Keep a thin runtime: observe arcade progression -> select precomputed epoch -> execute precomputed DMA/LUT/CRAM patch -> cheap per-cell LUT + VBlank commit.
+KEY: precompute_pc080sn_tile_lut.py is ALREADY half the compiler (strip-source/metatile decode, source->scene map, slot assignment). Evolve it, don't build a parallel parser. Reuse attr_lut + palette_decisions.json + build_rastan_regions + address_map + Ghidra exports + map_stream_format + genesistrace as validator.
+unit: residency EPOCH = interval of map-stream traversal with one VRAM/CRAM/LUT state; runtime key = (segment + intra-segment scroll/ring position), NOT segment/page (both too coarse per cave capture; page stayed 5, strip changed 191x). #1 risk = pinning the cheap epoch discriminator signal.
+Plane A+B co-compiled (share pattern VRAM 0..1023 sprite-safe). Palette integrated + co-optimized (Build 0301 wrong-palette is the proof); respect palette_decisions.json (compile proven/decided only). LUT = base(ROM)+per-epoch patch overlay -> O(1) lookup. Repack patterns for big DMA. Checkpoint/reset = generated complete restore packages (also fixes Build-0301 stale-cell black tiles). Dynamic fallback: default NO, tiny bounded only if event-routing edge proven un-enumerable.
+generated assets: patterns.bin, epochs table, lut_base+patches, dma_transitions, cram_epochs+transitions, checkpoint/reset packages, epoch docs (one source of truth).
+first milestone: offline-compile Stage-1 1->2->3 route to Genesis assets+palette, validate OUTPUT vs arcade reference, NO runtime wiring yet.
+STOP: review complete, awaiting implementation prompt.
+
+[Andy — Offline graphics compiler review: REQUIRED ADDENDUM (review-only)]
+
+files: docs/design/Andy_offline_graphics_compiler_architecture_review.md (updated in place); AGENTS_LOG.md
+build: NO. Build 0302 NOT consumed. No production change.
+addendum §1 PC090OJ sprite palettes: arcade field = object attr a4@39 (0x27) -> effective color bank (0/3/48/51/0x36). Existing native routing = palette_route_table + palette_route_lookup (scene,owner,bank)->genesis_line(0..3)+carrier (palette_hooks.s) with per-VBlank carrier re-assert. THIS is already the epoch bank->line table + tiny runtime selector -> compiler GENERATES it per epoch. Shared CRAM = 4 lines total across PlaneA+PlaneB+sprites+HUD; current Stage1: L0=HUD/0x36, L1=FG bank3, L2=BG bank48, L3=sprites bank51 -> ALL 4 used, sprites get ~1-2 lines. Player line pinned/persistent. Feasibility test corrected: lines(A)+lines(B)+lines(sprites)+lines(HUD)<=4 (tighter than tile VRAM). Compiler co-optimizes tile-slot + plane line + sprite line; respects palette_decisions.json (proven/decided only); flags >4-line epochs. New generated asset: palette_route_epochs.inc.
+addendum §2 a5@0x10C6 resolved: my "5" was a WATCH-WIDTH ERROR - I watched the 32-bit map-stream pointer (0x00050F6C) as a 16-bit word at 0xFF10C6 = high word 0x0005 (constant); the real 0F6C/6D/6E progression is the low word at 0xFF10C8 (unwatched). Page pointer DOES progress (+1/ring cycle, lockstep with segment) - ring-cycle-granular. Fine intra-ring position still needs strip/group. Discriminator NOT finalized: candidates = a5@0x10C6(full)/segment (coarse) + strip/group a5@0x10CA/CC (fine); milestone 1 must measure whether one ring fits.
+addendum §3 black-tile: DOWNGRADED to HYPOTHESIS (inferred from code+screenshots, not mechanically proven). Reset packages still good architecture.
+STOP: addendum complete, review ready for implementation prompt.
+
+[Andy — Offline graphics compiler Milestone 1 (tool implemented)]
+
+files: tools/translation/compile_pc080sn_genesis.py (new compiler, imports precompute_pc080sn_tile_lut.py decoders); apps/rastan-direct/Makefile (+pc080sn-compile target); build/pc080sn_genesis_compiled/* (generated); docs/generated/pc080sn_genesis/stage1_epochs.md (generated); docs/design/Andy_offline_graphics_compiler_milestone1.md; AGENTS_LOG.md
+build: NO ROM. Build 0302 NOT consumed. No production runtime change.
+compiler: arcade map-stream walk (0x5073A/0x50EE0/0x50F6B) -> per-segment Plane-A tiles -> 23 epochs -> tile-lifetime VRAM alloc (band 64..703, sprites 1024, Plane-B reserved) -> repacked patterns.bin(246912B) + base LUT(32768B)+patches + dma_transitions + palette route(registry) + docs+report.
+results: 139 segments, 23 epochs, PlaneA peak 579, combined 638/640, largest transition 537 patterns/17184B, palette route 2 proven/decided + 4 unresolved. self-validation PASS. reproducible PASS (byte-identical). trace inputs 0. trace-independence PASS.
+gaps (DECODER_SEMANTICS_UNPROVEN, honest): Stage-1 exact bound (walk over-covered 139 segs; a5@0x1242 /4 granularity unpinned); Plane-B per-segment streaming deferred (bounded reserve; whole-stage BG 854 won't fit constant); CRAM colour contents (palette-RAM source undecoded; lines only); sprite coexistence (no static spawn model); DMA-min (consecutive retention only).
+M2: thin runtime = read discriminator -> execute precomputed dma/lut/cram transition -> O(1) slot=active_LUT[code]; replaces fg_tile_cache.s. Not wired until scoping/PlaneB/CRAM gaps closed.
+STOP: M1 compiler delivered, arcade-data->assets proven, awaiting M2 direction.
+
+[Andy — Offline graphics compiler Milestone 1B]
+
+files: tools/translation/compile_pc080sn_genesis.py (Stage-1 boundary decoder rewritten); regenerated build/pc080sn_genesis_compiled/*; docs/design/Andy_offline_graphics_compiler_milestone1b.md; AGENTS_LOG.md
+build: NO ROM. Build 0302 NOT consumed. No production runtime change.
+GAP 1 CLOSED (real): seed table 0x50EE0 skips event bytes; ring walk hits first event at stream offset 16 (val 4) = stage boundary. Stage 1 = exactly segments 0-15 from arcade data. Result: 23->7 epochs, PlaneA peak 552, combined 611/640, patterns 64960B, largest transition 408/13056B, self-val PASS, reproducible PASS, trace deps 0.
+GAP 2 Plane-B NOT closed: missing = BG tilemap column->tile layout + scroll->visible-window decoder (tm0 0x3951C->0xD11C whole-stage 854 only). Bounded 320-slot reserve retained.
+GAP 3 palette colours NOT closed: routing from registry only; missing = arcade palette-RAM colour source table + bank arithmetic + 9bit->Genesis colour conversion (source referenced via registry palette_source + tools/ghidra/FindPaletteCallers). CRAM colours = DECODER_SEMANTICS_UNPROVEN.
+GAP 4 sprite coexistence NOT closed: missing = Stage-1 object/enemy spawn tables + availability<->map-position relationship (level-progression subsystem, map_stream §6 unresolved).
+READY FOR RUNTIME = NO. Honest: 1 gap closed with real decoder; 3 gaps precisely identified (not fabricated). No trace used as input.
+STOP: gap 1 closed + gaps 2/3/4 characterized; each remaining is a bounded arcade-RE decoder task.
+
+[Cody/Andy — Offline compiler decoder completion: proof work + exact remaining unknowns]
+build: NO ROM. Build 0302 NOT consumed. Compiler UNCHANGED (no fabricated decoders).
+gap2 palette PARTIAL: found arcade palette RAM 0x200000-0x200FFF (2048 words, xBGR-555); FUN_00000264 = clear/init; Genesis conversion 5->3bit xBGR (>>2) word 0000BBB0GGG0RRR0. REMAINING: ROM colour table + bank->offset + loader routine (needs decompile) -> then real cram_epochs colours.
+gap1 Plane-B NOT closed: BG tilemap layout + scroll->window mapping (tm0 0x3951C->0xD11C) unresolved.
+gap3 sprite coexistence NOT closed: object/enemy spawn tables + map-position association unresolved.
+READY FOR RUNTIME = NO. Did not fabricate decoders (source-of-truth + STOP-on-invent). Recommend fresh RE session per decoder, palette loader first (RAM/format/conversion pinned).
+
+[Cody — Arcade palette loader decoder: source LOCATED+CONFIRMED, assembly logic remaining]
+build: NO ROM. Build 0302 NOT consumed. Compiler: added proven arcade_xbgr555_to_genesis() + located ROM source constants (not yet wired to cram output).
+PROVEN chain: palette RAM 0x200000 (xBGR-555, 128 banks x16); loaders FUN_00045d7c(->0x200000)/FUN_00045dc4(->0x200600=bank48) copy staging a5@0x1600 via 0x3a2d0; assembler FUN_0003ba20 fills staging from ROM colour table 0x4FD02 (xBGR-555 CONFIRMED all<0x8000) + per-scene bank records 0x3BA88 (32B/scene, scene=a5@0x118). Genesis conversion 5>>2 -> 0000BBB0GGG0RRR0 (implemented+verified).
+REMAINING narrowest edge: FUN_0003ba20 build arithmetic (record byte -> colour block -> bank). Not guessed. cram colours not yet emitted (routing only).
+STOP: source located+confirmed+conversion proven per STOP condition; FUN_0003ba20 decode is the last edge.
+
+[Cody — FUN_0003ba20 palette assembler FULLY DECODED + real CRAM emitted]
+build: NO ROM. Build 0302 NOT consumed.
+FUN_0003ba20 decoded (0x3ba20-0x3ba86): scene record 0x3BA88+(scene-1)*32, 32 bytes; record byte i -> palette bank i; value B -> colour block 0x4FD02+B*32 (16 words, 0RGB nibbles); transform nibble*2 -> xBGR-555 (R=(S>>8&F)*2,G=(S>>4&F)*2,B=(S&F)*2); then Genesis >>2 -> 0000BBB0GGG0RRR0. 32 banks/call, 16 colours/bank.
+compiler: decode_pool_block()+decode_scene_arcade_palettes() added; cram_epochs.bin now REAL (512 words=32 banks), provenance in report.json. Deterministic PASS, 0 trace deps. bank3(FG)=block12@0x4FE82->0EEE.. verified.
+remaining sub-edge: registry effective banks 48/51/54 are >31 (not in 32-bank scene record); filled by loaders (FUN_00045dc4->0x200600) + sibling FUN_0003ba04 (pools 0x4EAF6/0x4FE62) via staging offset -> staging-bank->palette-RAM-bank mapping for banks>31 is last edge. FG bank3 covered.
+palette_decisions.json untouched. No colours guessed.
+STOP: core FUN_0003ba20 decode COMPLETE + real CRAM emitted; narrow sub-edge (banks>31 loader offset) remains.
+
+[Andy — >31 palette bank path: bank 48 (BG) CLOSED; sprite banks remaining]
+build: NO ROM. Build 0302 NOT consumed.
+FUN_0003b9f8 startup decoded: 768 words 0x4EAF6 -> banks 0-47 (nibble*2 xBGR555), +0x4FE62 -> bank 48 (BG). FUN_00045dc4/a5@3152: 1..8 chunk counter, staging+(n-1)*128 -> 0x200600+(n-1)*128, 64w/chunk -> banks 48+ (bank48=scene block11=0x4FE62, consistent).
+compiler: decode_arcade_palette_bank(mc,bank,scene) generic (bank<32 scene/0x4FD02; 32-47 base/0x4EAF6; 48 BG/0x4FE62; 49-127 UNRESOLVED sprite path). cram_epochs.bin now has FG bank3(0x4FE82) + BG bank48(0x4FE62) REAL. Deterministic PASS. 0 trace deps.
+REMAINING edge: PC090OJ sprite banks 49-127 (51/0x33, 54/0x36) via sprite-palette load path (attr a4@39 -> sprite palette staging), not tile-plane pools. Tile-plane (FG+BG) palette source COMPLETE; sprite palette source remains.
+STOP: bank 48 closed; sprite-palette path is the one remaining palette-source edge (overlaps deferred sprite subsystem).
+
+[Andy — Plane-B calibration pass: Q1 CLOSED, Q2 mechanism proven, per-epoch blocked by interlocking ambiguity]
+build: NO ROM. Build 0302 NOT consumed. Genesis runtime untouched. PC090OJ untouched.
+Q1 CLOSED: FG segment = 512px = 64 cols. Counter cascade FUN_00055948->558a2->558c6/558e0: 4 cols/group (a5@0x10ca==4), 16 groups/seg (a5@0x10cc==0x10), then a5@0x10c6++ reads next selector byte. UNIFORM 512px/seg. 1 selector byte = 1 segment. BG-X init 0x160 (FUN_0005744e).
+Q2 mechanism proven: BG Y a5@0x10b0 is a LIVE accumulator (delta a5@0x10da=4, mod 512=64 rows); axis chosen by direction byte (FUN_00055948 branch on a5@0x10a8). Outdoor holds Y~0 (top ~28-30 rows); segment-driven cave DESCENT (tm0 stays outdoor) sweeps Y down through lower rows of same 64-row blocks. Descent Y range NOT proven to exact value.
+Descriptor 0x3951C sections proven: attr 0x0002 outdoor = 56 entries/5 blocks (D11C/D91C/E11C/E91C/F11C); attr 0x0003 cave-interior = 56 entries/2 blocks (F91C/1011C). Union: outdoor 394 tiles(rows0-29)/854(full); cave 220/460.
+BLOCKER (not fabricated): exact per-epoch subset needs consumption-rate + stage-extent, which static structure CONTRADICTS: 16 horizontal (dir-0) segments to first event vs 56 outdoor descriptor entries, and known cave-descent vertical segments absent from that run. Interlocks with unproven descent Y range. Forcing a value = Build-0267-class wrong-residency risk. Placeholder RETAINED.
+Sanctioned closure: 1 bounded ORIGINAL ARCADE MAME observation of BG scroll 0xC40000/0xC20002 + FG a5@0x10c6/0x10ae through Stage 1 -> entries/segment, outdoor Y + descent Y min/max, true stage extent -> encode static rules -> regenerate 0-dep.
+0 trace deps preserved. No colours/geometry guessed. Doc: docs/design/Andy_pc080sn_plane_b_static_decoder.md (Calibration Pass section).
+STOP: Q1 closed + Q2 mechanism + section structure proven; per-epoch subset blocked on 1 bounded arcade-MAME calibration (offered).
+
+[Cody — Plane-B bounded original-arcade proof + static closure]
+
+build: NO ROM. Build 0302 NOT consumed; counter remains 301. Genesis production runtime and PC090OJ untouched.
+capture: original arcade MAME 0.276, 9,921 external frames / 278 semantic events at `states/traces/original_arcade_plane_b_progression_20260821_161624/`. Attract gameplay ran first (supplementary, segments 1..6); Tighe then coined up and manually played through the first cave section (authoritative, segments 1..3). Neither run reached record 15's event byte; event continuation below is static proof.
+STATIC CORRECTIONS: physical Stage 1 is 23 records (0..22), because arcade_pc 0x452A8 multiplies the round selector by 23. Event 4 at record 15 is intra-round: FUN52732 sets player mode 7, outer controller 0x3A7D2/0x3A7DA copies already-advanced segment 16 to a5+0x1242, then scene init reseeds record 16. tm0 table is arcade_ROM/data 0x507C5; tm0 selects a pair-aligned 6-byte descriptor index (`tm0*2`). Plane-B descriptors are row-major (`src + row*0x20 + col*2`), and Plane-B Y owner is a5+0x10EE (C20000), not a5+0x10B0 (Plane-A Y/C20002).
+DESCRIPTOR LAW: scene fill consumes 4 descriptors; selector-0 horizontal consumes 2 descriptors per 512px FG / 256px BG; selector-1/2 vertical consumes 0. Stage-1 cursor: 0->4, records1..15 4->34, event reinit record16 tm0=18 gives 36->40, record17 stays40, records18..20 40->46, record21 stays46, record22 tm0=26 gives52->56.
+Y LAW: selector-1/2 full records traverse all modulo-512 row origins and return to the initial modulo value. Selector-0 can still change Y through player/camera/terrain gates; the capture observed multiple Y values while selector-0 remained active. Therefore progression alone cannot derive exact selector-0 row envelopes.
+compiler: `tools/translation/compile_pc080sn_genesis.py` updated to decode 23 records, event tails, corrected tm0 table, pair-aligned descriptor progression, row-major layout, and correct Plane-B Y ownership. It explicitly reports `planeB_model_complete=false` and retains the transitional 320-slot placeholder.
+validation: two independent temporary generations byte-identical; self-validation PASS; 23 records / 8 diagnostic epochs / Plane-A peak 568 / transitional allocation 627 of 640 / largest diagnostic transition 537 patterns (17,184 bytes). Production trace dependencies remain 0. Canonical generated assets intentionally not regenerated.
+remaining boundary: exact per-epoch Plane-B sets require either a static selector-0 player/camera/terrain Y-envelope decoder or a bounded dynamic residency contract. Real A+B allocation, placeholder removal, and PC090OJ final compiler readiness remain NOT PROVEN.
+doc: `docs/design/Andy_pc080sn_plane_b_static_decoder.md` updated in place. STOP: Plane-B model incomplete; no unsupported values encoded.
+
+[Cody — Selector-0 2D camera envelope and static Plane-B residency boundary]
+
+build: NO ROM; Build 0302 not consumed; counter remains 301. No Genesis production runtime, compiler, generated asset, or PC090OJ change.
+static camera closure: `arcade_pc 0x504FA` decodes the six-word camera tuple from `arcade_ROM/data 0x50850 + record*12` into X/Y scroll, X/Y world accumulators, and player screen X/Y. Initial seed record 0 advances to live record 1 before observed camera motion. Normal records 1..21 initialize and preserve `(Y - vertical_accumulator) & 0x01FF = 0x0100`. Player movement at `0x51830..0x51864` caps vertical displacement at 4 before collision filtering. Follow lines are Y=64/112 (`0x53896..0x53942`); player-local gates are 8/256 with four-pixel overshoot; selector-0 camera gates are world-Y `<0x100` upward / `>=8` downward (`0x55696/0x5572E`), yielding the 256-value wrapped safe Y set `0x0104..0x01FF U 0x0000..0x0003`. Accepted Y is copied to Plane-B owner a5+0x10EE by `0x55AD6 -> 0x55B28/0x55B32`.
+semantic result: selector0 is horizontal primary progression but not fixed-Y. Code-derived safe Y sets expose 61/64 BG source rows; selector1 records17/21 traverse all64. Gate/defer bits are transient because `0x517E0` clears a5+0x10D0 each update; no persistent sub-record camera-zone boundary was found.
+capacity pressure (real conceptual slots64..1023 =960): records1/2/3/4/10/11/12/14/15 exceed capacity under the gate-derived safe camera-machine envelope. Peak A=484, B=854, shared=1, combined=1338 at record11, deficit378.
+classification: exact terrain-constrained reachability remains unresolved because collision-map/player/platform/climb/fall state determines which camera-machine positions are actually reachable. Therefore `BOUNDARY_ONLY_RESIDENCY_INSUFFICIENT` and dynamic-cache necessity are both NOT PROVEN. No rows were discarded, no cache invented, no real A+B epochs generated, and the 320-slot placeholder remains.
+doc: `docs/design/Andy_pc080sn_plane_b_static_decoder.md` updated in place with the camera proof, per-record 2D safety table, pressure table, and exact remaining boundary. Production trace dependencies: 0. STOP: Plane-B model remains incomplete pending static terrain/collision reachability closure.
+[Cody — Stage-1 terrain/collision reachability and Plane-B closure boundary]
+
+build: NO ROM; Build 0302 not consumed; counter remains 301. No Genesis production runtime or PC090OJ change.
+VRAM ownership: final native shared plane-pattern range is proven as tiles 64..1023 (960). Tiles 0..63 are reserved system/plane patterns; native PC090OJ starts at tile 1024 and owns 1024..1535; Plane B/A/SAT/HScroll begin at VRAM C000/E000/F800/FC00. The old 1003 ceiling is the last index of Build-0301's transitional 1004-entry cache array, not a VDP owner; no owner/alignment/sentinel claims 1004..1023.
+compiler: `tools/translation/compile_pc080sn_genesis.py` now names `SAFE_PLANE_SLOT_FIRST=64`, `SAFE_PLANE_SLOT_LAST=1023`, `SAFE_PLANE_SLOT_COUNT=960`. Generated behavior remains byte-neutral because unresolved `BG_RESERVE=320` is retained. No generated assets regenerated.
+collision proof: `arcade_pc 0x53A2E` maps `(screen probe - Plane-A scroll) mod 512` to a 64x64, 8px-cell ring at arcade_WRAM 0x10DE00. Player code distinguishes low-7-bit codes 1/2/3/4/6/7/8/7E; code8 writes player mode8. Initial collision surfaces for records0..22 were decoded from the same Plane-A metatile sources and inventoried in the existing report.
+exact blocker: the collision ring is mutable. `arcade_pc 0x5A29C..0x5A354` conditionally rewrites collision and graphics cells; actor/platform routines 0x41064/0x41180/0x42E38/0x45D10/0x4736A share the lookup. Exact legal reachability therefore depends on mutable collision state plus player mode/velocity/contact/input and actor/platform state. No smaller persistent terrain-region/camera-limit abstraction was found; exploring that state is the forbidden frame/gameplay emulator. Platform/climb/fall exact graph and record22 liveness remain unproven.
+result: safe camera-machine superset remains the only sound envelope. Nine records still exceed the diagnostic 960-slot pressure bound, but boundary-only insufficiency is NOT proven. Real Plane-B sets/epochs not generated; 320-slot placeholder retained; production trace dependencies0; two fresh `/tmp` generations were byte-identical (`23 segments -> 8 epochs`, `627/640`, self-validation PASS); PLANE-B MODEL COMPLETE=NO; READY FOR PC090OJ FINAL COMPILER SUBSYSTEM=NO.
+doc: `docs/design/Andy_pc080sn_plane_b_static_decoder.md` updated in place. STOP at exact static-abstraction boundary; no values invented and no per-frame residency introduced.
+
+[Cody — Final Stage-1 offline graphics compiler capacity decision]
+
+build: NO ROM; Build 0302 not consumed; counter remains 301. No Genesis production-runtime or canonical generated-asset change. Plane-B terrain reachability was not reopened; the accepted conservative record-11 safety model was retained.
+compiler: `tools/translation/compile_pc080sn_genesis.py` adds corrected scene effective-bank 48..79 decoding, static source/color recovery for banks 0x30/0x33/0x36, global slots64..1535 policy constants, PC090OJ input, and a fail-fast `--final-capacity-audit`. Audit inputs are arcade ROM data only; production trace dependencies remain 0.
+capacity: limiting record11 has PlaneA484 + PlaneB854 codes, 1337 byte-distinct Plane patterns. Capacity-decisive legal PC090OJ coexistence (Rastan/player + Stage-1 Lizard-man + timer-driven hurry-up bat) contributes 166 independently deduplicated 8x8 patterns; one Plane/Sprite pattern is shared. Optimistic lower bound =1502 patterns versus1472 available, exact lower-bound deficit30. Real 16x16 sprite cells require four consecutive slots, and unresolved optional families can only increase demand; therefore ordinary global offline co-allocation is conclusively infeasible.
+palette: scene1 bank0x33=index3/block12@arcade_ROM/data0x4FE82 and bank0x36=index6/block13@0x4FEA2 are decoded to xBGR555/Genesis colors. Registry routes remain Rastan/sword line3 proven and Lizard-man line0 decided. Large/small bat, Axe, and four-armed decisions remain unknown; no routes were invented.
+result: architectural outcome B. No final epochs, global Plane/Sprite LUTs, DMA transitions, or final CRAM epochs generated. Transitional 320-slot Plane-B placeholder and fixed compiler partition intentionally retained. Syntax PASS; two final-audit outputs byte-identical (report SHA256 69c5200d1663d3c8c7b876429481efd433ac860968e0ed0c958e3e613d99ff80); two normal temporary generations byte-identical; existing diagnostic self-validation PASS.
+doc: `docs/design/Cody_final_offline_graphics_compiler_stage1.md`. READY FOR BUILD0302=NO. ONE blocker: exact record11 optimistic lower-bound deficit30; stop for Tighe architectural decision, with no further Plane-B analysis requested.
+
+### MAME Exit Summary (2026-08-21 21:05:49)
+- Final PC: 0x073594
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+[Cody — Build 0302 Boundary-Loaded Graphics Experiment]
+
+date: 2026-08-21
+baseline: Build 0301
+build: YES — Build 0302; counter 301 -> 302
+ROM: `dist/rastan-direct/rastan_direct_video_test_build_0302.bin`
+SHA-256: `990644b2bb2fadefdc20cd03322294caf438754d9b2fd11abdd7666ec12768e6`
+size: 2,555,576 bytes; rolling artifact byte-identical; GATE_PASS YES
+semantic cut: retain original arcade Stage-1 record progression (`a5+0x013E`), current Plane-B Y (`a5+0x10EE`), and tile/attribute decisions; replace the PC080SN residency tail with precompiled Genesis VRAM/LUT packages.
+boundary: `arcade_pc 0x0558FE` / `runtime_genesis_pc 0x0559D8`, the completed 64-publication ring-cycle `addq.w #1,a5+0x013E`; proper 4->6 shift replacement calls `fg_boundary_advance_segment` at `runtime_genesis_pc 0x072440`, preserving the increment and original following RTS flow.
+runtime result: Build-0301 VBlank streamed-tile drain, mark-live scan, hash lookup, allocation/eviction/LRU, and per-frame residency maintenance are inactive. Plane A/B publication uses direct O(1) LUT reads; misses return blank, increment separate counters, and never load.
+packages: 23 Stage-1 records, 170 packages. Ordinary records use 8 Y variants with 36 core + 2 rows each side = 40 source rows. Records 17/21 use full 64-row packages and fit with zero drops. Slots64..1023 remain planes; slots1024..1535 remain native PC090OJ. PC090OJ gameplay path preserved.
+diagnostics: epoch `0xFFB1CC`, variant `0xFFB1D0`, miss-A `0xFFB1D4`, miss-B `0xFFB1D8`, pattern-DMA `0xFFB1DC`, active record/variant `0xFFB1E0/0xFFB1E2`.
+validation: canonical gate PASS; opcode_replace remains227; covered bytes `0x26FEB8`; mandatory MAME smoke PASS,1798 frames, average speed467.90%, no unique unmapped address/fatal/error/exception. Smoke remained frontend-only, so gameplay speed/visual/package behavior is USER MUST VERIFY.
+files changed: `apps/rastan-direct/Makefile`, `apps/rastan-direct/src/fg_tile_cache.s`, `apps/rastan-direct/src/tilemap_hooks.s`, `apps/rastan-direct/src/vdp_comm.s`, `specs/rastan_direct_remap.json`, `tools/translation/compile_pc080sn_genesis.py`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated Build0302 outputs, this log, and `docs/design/Cody_build_0302_boundary_loaded_graphics_experiment.md`.
+compatibility retained: frontend/non-gameplay static LUT compatibility and scene-load setup remain transitional; old cave-residency helper body remains inert; no global per-frame cache is active.
+known limits: selected variant is fixed until the next record boundary; 22 packages deliberately omit some Plane-B codes (max315) and expose blank misses; boundary package DMA pause requires user evaluation.
+additional builds: NONE. No numbered artifact deleted or overwritten.
+
+[Andy — Independent Build 0302 forensic review: stale-slot corruption CONFIRMED + C0ABE0 crash writer identified]
+build: NO ROM, NO production change. Build 0303 NOT consumed. Reviewed rastan_direct_video_test_build_0302.bin (sha 990644b2..12768e6, ctr 302).
+SPEED ARCH: ACCEPT (boundary-loaded, no per-frame residency = why 0302 is fast; do not restore 0301 residency).
+PRIMARY CORRUPTION = STALE NAME-TABLE SLOTS: CONFIRMED. tilemap_hooks publication writes RESOLVED slot|attr into staged buffer (move.w %d3,0(%a6,%d0.w)); fg_boundary_install rewrites LUT + DMAs new patterns into same slot numbers but NEVER republishes staged cells. Data proof: rec0var0->rec1var0 reuses 819/820 slots with DIFFERENT pattern identity; 815/816 shared codes get a different slot. Allocator packs each package densely from slot64 w/ no cross-package stability. => valid-but-wrong tiles at every boundary, recover as arcade republishes new columns. Affects BOTH planes. Root = compiler allocation (boundary path discarded M1B tile-lifetime retention).
+BLACK CELLS = intentional Plane-B drops (22 pkgs, max 315, code->slot0 blank). Expected, separate from wrong-tile bug. Plane A never drops. Drops->slot0 cannot make wrong tiles.
+EVENT-RESEED TIMING (rec16/22): CONTRIBUTING. install fires at 0x558FE increment before outer-controller scene reseed sets post-event Y/descriptor/tm0 -> wrong variant at event boundaries only.
+LUT plane-collision: REJECTED (shared PC080SN char ROM -> code identity plane-independent; single LUT correct). DMA source/indexing: REJECTED (code<<5 correct). Overflow bookkeeping: REJECTED.
+CRASH C0ABE0: raw untranslated PC080SN write. Cody replaced FORWARD horizontal publication (0x55904-0x55ab4) but LEFT the 4 directional scroll-edge producers FUN_00055b28/b32/b3c/bb6 (dispatched by FUN_00055ad6 on a5+0x10d0) -> FUN_00055c4a raw write. FUN_00055b3c computes 0xC00000+(a5+0x10f6*4 + a5+0x10f4*0x40); survives in ROM (genesis 0x55c60 'addil #12582912'=0xC00000; hex search missed it - disasm prints decimal). 0xC0ABE0=0xC00000+0xABE0 exact match. Fires on vertical/edge scroll = castle climb, not early horizontal. NOT dynamically reproduced (needs castle in Genesis MAME). Raw PC080SN escaped translation: YES.
+BUILD 0303 MIN: (1) compiler cross-package STABLE slot retention (M1B lifetimes over package seq) - kills reshuffle; (2) boundary-only staged old_slot->new_slot remap IF residual eviction (attr bits preserved, no per-frame); (3) fix rec16/22 install-after-reseed timing; (4) natively realize directional-edge producers 55b3c+siblings via staged buffer+LUT (NO NOP/RTS) -> fixes C0ABE0.
+NOT touch: boundary perf arch, PC090OJ, shared-LUT design, DMA/overflow, broad RE.
+Doc: docs/design/Andy_build_0302_independent_forensic_review.md
+STOP: root causes proven (stale-slot primary + C0ABE0 writer); held Build-0303 prompt is editable, no further analysis chain needed.
+
+### MAME Exit Summary (2026-08-21 22:16:53)
+- Final PC: 0x073940
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+[Cody — Build 0303 Boundary Coherence + Castle Native Edge Publication]
+
+date: 2026-08-21
+baseline: Build 0302 (`990644b2bb2fadefdc20cd03322294caf438754d9b2fd11abdd7666ec12768e6`)
+build: YES — Build 0303; counter 302 -> 303
+ROM: `dist/rastan-direct/rastan_direct_video_test_build_0303.bin`
+SHA-256: `8f92d69bbe9437e71b05b3cbb05867711440a14539e79c254fe9eb05ae56911c`
+size: 3,022,520 bytes; rolling artifact byte-identical; GATE_PASS YES
+semantic cut: retain Stage-1 record/Plane-B-Y/direction/camera/descriptor/tile-attribute decisions; replace package slot ownership and the gameplay `arcade_pc 0x05109C -> FUN_00055AD6/.../55C7A` PC080SN directional tail with boundary-only exact-identity allocation/remap and native Plane-B staged publication.
+stable packages: 170 packages / 2,708 exact 32-byte identities / 1,354 legal graph edges / slots64..1023. Representative r0v0->r1v0 old dense identity changes819 -> stable0, retained816, uploads100. All legal transition, `0x07FF` pattern-only, `0xF800` attribute, blank-miss, and full dual-plane coherence tests PASS. Plane-A drops0; Plane-B intentional drops remain in22 packages (max315).
+runtime coherence: display off + IPM7; exact old-slot->identity->new-slot remaps both 2,048-word staged planes; retained slots skip DMA; full Plane B C000 and Plane A E000 name tables DMA before active state/display-on. No per-frame residency/scan/allocation/load.
+event timing: ordinary installs remain at exact mapped `arcade_pc 0x0558FE/runtime_genesis_pc 0x0559DE`; records16/22 defer with mask0x00410000 and install once after scene fill at exact mapped `arcade_pc 0x050482/runtime_genesis_pc 0x050682 -> fg_boundary_install_post_reseed 0x072632`.
+directional family: exact gameplay caller `arcade_pc 0x05109C/runtime_genesis_pc 0x0512A8` now calls `genesistan_pc080sn_directional_dispatch_native 0x070A8A`. Native helper preserves 55B28/55B32 gates, 55B3C forward publication, 55BB6 reverse progression, and 55C4A descriptor/source progression; disassembly range0x070A8A..0x070C14 contains no C00000/C08000/C0ABE0 raw destination. No NOP/RTS bypass introduced; PC090OJ untouched.
+diagnostics: remap A/B `0xFFB1E0/0xFFB1E4`, unmapped A/B `0xFFB1E8/0xFFB1EC`, retained/reassigned `0xFFB1F0/0xFFB1F4`, reseed pending `0xFFB204`.
+validation: canonical gate PASS; opcode_replace227; covered bytes0x2E1EB8; mandatory MAME smoke1798 frames, average speed485.10%, no unique unmapped/fatal/error. Castle area not reached dynamically; visual/speed/castle outcome USER MUST VERIFY.
+files changed for task: `tools/translation/compile_pc080sn_genesis.py`, `apps/rastan-direct/src/fg_tile_cache.s`, `apps/rastan-direct/src/tilemap_hooks.s`, `specs/rastan_direct_remap.json`, `tools/translation/postpatch_startup_rom.py`, `tools/translation/verify_canonical_rom.py`, generated Build0303 outputs, `docs/design/Cody_build_0303_boundary_coherence_and_castle_crash.md`, and this log. Preexisting unrelated dirty-tree work was preserved.
+ledger impact: no new KNOWN_FINDINGS entry; no OPEN/CLOSED issue transition before user verification. Additional builds: NONE. No numbered artifact deleted or overwritten.
+
+### MAME Exit Summary (2026-08-22 09:05:11)
+- Final PC: 0x073940
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+[Cody — Build 0304 Directional Regression Isolation]
+
+date: 2026-08-22
+scope: early Stage-1 gameplay/collision regression only; unrelated/deferred observations not investigated.
+baseline comparison: Build0302 `runtime_genesis_pc 0x0512A2 -> jsr 0x055BB2`; Build0303 `runtime_genesis_pc 0x0512A8 -> jsr 0x070A8A`; Build0304 exact `address_map.json` result `arcade_pc 0x05109C/runtime_genesis_pc 0x0512A8 -> jsr runtime_genesis_pc 0x055BB8` (`arcade_pc 0x055AD6`).
+isolation change: removed only the Build0303 equal-size `arcade_pc 0x05109C` redirect from `specs/rastan_direct_remap.json`. Native dispatcher body remains compiled but is inactive from this gameplay call. No NOP/RTS and no collision code/ring/classification/table change.
+retained: exact 32-byte identities, 1,354-edge graph-aware stable allocation, staged A/B boundary remap, `0x07FF/0xF800` masks, full A/B recommit, post-reseed install at `runtime_genesis_pc 0x072632`, and no per-frame residency/hash/allocator/LRU/eviction/load.
+binary delta Build0303->0304: six bytes only — two header-checksum bytes, three JSR-target bytes, and one diagnostic build-number byte. The only gameplay-functional delta is the directional target.
+build: YES, Build0304; counter303->304; `dist/rastan-direct/rastan_direct_video_test_build_0304.bin`; SHA-256 `adeea49a86611ec6b58cfdc1bfe85b76ed3bf75e1761417b9cb8bf6e3284bce7`; size3,022,520; rolling identical; GATE_PASS YES; additional builds NONE.
+validation: deterministic package tests PASS; mandatory MAME smoke1798 frames,463.49%, no unique unmapped addresses; smoke did not enter gameplay. Early Stage-1 collision result is USER MUST VERIFY.
+doc: `docs/design/Cody_build_0304_directional_regression_isolation.md`. Ledger unchanged pending user A/B result. No numbered ROM deleted or overwritten.
+
+### MAME Exit Summary (2026-08-22 09:42:49)
+- Final PC: 0x073940
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+[Cody — Build 0305 Early-Game State Divergence]
+
+date: 2026-08-22
+scope: deterministic Build0302-vs-0304/0305 early Stage-1 false-collision differential only; no later gameplay or deferred issue work.
+first divergence: matched frame309 hashes are identical; frame310, before player creation or any package boundary, collision changes `8F62BDC5` (0302) -> `AD36E205` (0304/0305) and Plane A changes `6A561F2A` -> `2E32164A`, while Plane B remains `D2063DC5`. No collision query exists yet.
+writer proof: Build0302 selector `Genesis-WRAM 0xFF10A8=0` selects column writer `runtime_genesis_pc 0x0704F6`; Build0304/0305 selector `0x0095` selects row writer `runtime_genesis_pc 0x07063C` from otherwise matching initial descriptors/source.
+root cause: Build0303 inserted +6 bytes at `arcade_pc 0x050482`, shifting the pass-sequence table `arcade_rom/data 0x050F6B` to exact `runtime_data 0x051171`, but `arcade_pc 0x0503CE/runtime_genesis_pc 0x0505CE` retained stale immediate `0x05116B`; byte `0x95` reached descriptor rebuild and `FF10A8`. Directional dispatcher, collision consumer, and stable package allocator rejected as causes.
+production correction staged: `specs/rastan_direct_remap.json` changes only `203C0005116B -> 203C00051171`. A non-numbered `/tmp` probe restores frame310/379/800 Build0302 collision hashes, player Y `0x0070`, and record progression 2 by frame1200 / 3 by frame1800. No collision code, forced selector, NOP/RTS bypass, or per-frame residency.
+Build0305: YES; `dist/rastan-direct/rastan_direct_video_test_build_0305.bin`; SHA-256 `e36f8d370e27613e85e378164774e8db0ee3199ca1fa5b1d779fa0e24165e177`; size3022520; counter304->305; GATE_PASS YES; smoke1798 frames/494.58%/no unique unmapped address.
+Build0305 attempted fix: package scratch reused active LUT, removing the identity-map overlap with retained `A5+0xC242` WRAM. Valid safety correction, but deterministic behavior still matched bad0304, so non-causal. Collision-ring overlap NO; OOB loop NO.
+post-reseed/initial package: `runtime_genesis_pc 0x050682` occurs after divergence with pending0 and no install; not causal. CCR contract is not preserved by its `tst.b`, recorded separately. Initial semantic package is record0/variant0; no old->new transition before divergence.
+status: Build0305 does not contain the subsequently proven pointer correction and is NOT ready for user acceptance. Additional numbered builds NONE; no numbered artifact deleted/overwritten. Exact staged fix requires the next separately authorized build.
+doc: `docs/design/Cody_build_0305_early_game_state_divergence.md`.
+
+[Cody — Build 0306 Stage-1 Pass-Table Pointer Fix]
+
+date: 2026-08-22
+scope: materialize the already-proven early Stage-1 stale pass-sequence pointer only; no root-cause re-analysis, directional experiment, collision change, or deferred later-game work.
+production fix: `arcade_pc 0x0503CE` replacement `203C0005116B -> 203C00051171`; generated `runtime_genesis_pc 0x0505CE` bytes exactly `203C00051171` (`move.l #runtime_data 0x00051171,d0`).
+runtime provenance: initial descriptor rebuild source `runtime_data 0x051171` byte `0x00`; `Genesis-WRAM 0xFF10A8=0x0000`; first nonzero collision instruction `runtime_genesis_pc 0x0704F2 move.w d2,0(a6,d3.w)` with D2=1/A6=FF1E00/D3=0, selector-0 column producer. Stale `0x05116B` is no longer used by the remap.
+deterministic check: frame310 collision `8F62BDC5` and Plane-A `6A561F2A`; frame379 collision `2B745D65`; frame800 player Y `0x0070` and collision `961C0BC5`; frame1200 record2; frame1800 record/mode3/4. All required Build0302 expectations PASS.
+preserved: Build0305 active-LUT scratch safety fix; canonical 32-byte identities; graph-aware stable allocator; boundary name-table coherence; full A/B recommit; direct O(1) LUT publication; no per-frame residency. Collision code/ring/classification/terrain and selector logic untouched; selector not forced. Post-reseed CCR observation deferred unchanged.
+build: YES, Build0306; `dist/rastan-direct/rastan_direct_video_test_build_0306.bin`; SHA-256 `7d3ab8daae92712636a1593e8bbad77341c38834dc35ad89a8413618313c2c08`; size3022520; counter305->306; rolling byte-identical; GATE_PASS YES.
+validation: mandatory smoke `states/traces/rastan_direct_video_test_build_0306_mame_30s_20260822_121426`,1798 frames/473.87%/no unique unmapped address; deterministic evidence `states/traces/build0306_early_game_state_diff/`; additional builds NONE; unnumbered ROM NO; `/tmp` diagnostic ROM NO; previous numbered artifacts preserved.
+doc: `docs/design/Cody_build_0306_pass_table_pointer_fix.md`. READY FOR TIGHE EARLY-STAGE GAMEPLAY TEST: YES.
+
+### MAME Exit Summary (2026-08-22 12:14:33)
+- Final PC: 0x073940
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+[Andy — Build 0307 full-VRAM / 2D-epoch independent review: verdict B (revise held Cody prompt)]
+build: NO ROM, NO production change. Build 0307 NOT consumed. Baseline 0306 (7d3ab8da..c2c08).
+CORE SPLIT: droppedA=0 in ALL 170 packages; only Plane B drops (22 pkgs, max 315 @rec11var0). => Problem1(drops)=Plane-B capacity only; Problem2(rope vanish)=2D handoff/envelope, NOT capacity. Held prompt conflates them.
+Q1/Q13: 64..1023 = POLICY not hardware. VRAM: PlaneB NT=0xC000(slot1536), PlaneA=0xE000, hscroll=0xFC00. Pattern ceiling = slot1535. Name-word index mask 0x07FF (slots 0..2047 addressable); attr 0xF800. No 10-bit truncation (andi #0x3FFF masks arcade CODE pre-LUT, not slot). slots 1024..1535 usable by planes.
+Q2/Q11: sprite reservation 512 (1024..1535) = cache capacity (sprite_tile_resident_code .space 128*2 = 128 codes x4 = 512 patterns). Actual Stage-1 sprite PEAK unproven statically (spawn model deferred). Cannot assume all 512 needed OR all reclaimable.
+Q3: peak zero-drop PLANE req ~1275 (cap960+maxdrop315). Avail below 0xC000 after low64 = 1472. Zero-drop fits IFF sprite_peak<=197 (1472-1275). Current deficit 1275+512-1472=315 = exactly max drop -> today's drops ARE the sprite reservation squeezing Plane B.
+Q7: Y-variant model INVALID for 2D. ordinary records=8 Y-variants x 40-row band(36core+2margin) of 64; vertical rec17/21=full 64. fg_boundary_install ONLY at record-boundary(0x013E)+post-reseed; NO within-record Y re-select. => sustained vertical climb inside a record ESCAPES the frozen 40-row band -> Plane-B rows blank. Matches 'X and Y crossed ~same time' (Y class only re-selects at X boundary). PROVEN gap.
+Q5/Q6: rope collision=Plane A (docs); rope VISUAL owner NOT proven statically (Y-crossing symptom implies Plane B/composite). Needs bounded Genesis obs (last-good vs first-missing record/variant/Y/slot).
+Q8: graph=self + adjacent-record ALL variant combos (1354 edges) -> diagonal X+Y boundary transitions ARE modeled. Missing = within-record Y transition mechanism entirely (not an edge).
+Q9: held source-handoff union fixes X destination-absent only; does NOT fix Y-envelope escape (escaped rows in neither src nor dst band). Recommend HYBRID: keep stable-slot remap + add within-record Y handling (event-driven re-select OR selective wider/2D Y envelope like rec17/21), handoff-overlap only for proven destination-absent identities.
+Q12: keep canonical 32B identity + stable slots (correct). Q14: prefer reclaim holes leaving live sprite slots unchanged (plane_top<sprite_live_base). Q15: Exodus 'unused' = under-filled sprite band + light-package slack; reclaimable ONLY after sprite peak bounded (not from screenshots).
+VERDICT B revisions: (1) raise ceiling 1023->toward 1535 BOUNDED by proven sprite peak (not blanket 512); assert plane_top<sprite_live_base<=1536; (2) DO NOT implement source-handoff union first - prove rope owner/class, if Plane-B Y-envelope escape fix via event-driven within-record Y re-select OR selective wider Y envelope (never per-frame poll); (3) recompute hardest transition full-A + wideY-B + sprite peak vs 1472, selective widening if global doesn't fit; (4) keep no-per-frame/identity/stable-slot/0x07FF.
+UNPROVEN (must precede impl): exact rope visual owner; true Stage-1 sprite pattern peak. Both bounded single-obs.
+Doc: docs/design/Andy_build_0307_full_vram_2d_epoch_review.md
+STOP: verdict B delivered with exact revision strategy; two bounded observations must precede Cody impl.
+
+[Andy — Build 0307: FACT 2 closed (rope=Plane B), FACT 1 bounded (sprite peak needs driven gameplay), NO ROM]
+build: NO production change, NO ROM, Build 0307 NOT consumed. MAME verified working (/usr/games/mame, genesis, 393% speed).
+FACT 2 CLOSED (rope owner+failure): rope VISUAL = Plane B, produced by BG block stream src 0xD31C/0xF31C attr 0x0002 (0x3951C descriptor range). Evidence: build0228 scene4 rope transition trace STRIP_BLIT_ENTRY src=0000F31C attr=0002 dest=00C00080; COLL_READ_ROPE pc=053D70 addr=00FF2D8C src=0000D31C worldY=0193. Collision = SEPARATE channel (WRAM 0xFF2D8C). Failure = Y-envelope escape: tall Plane-B rope climbed vertically leaves frozen 40-row Y-variant band; fg_boundary_install has NO within-record Y re-select. Not a drop, not fixed by source-handoff union.
+FACT 1 NOT closed (sprite peak): 512 = cache capacity (128 codes x4), NOT proven need. Probe (build0307_vram_rope_trace.lua, 45s, Build 0306): attract only, never entered gameplay (scene 00/01, segment 0, planes empty); ~14-19 sprite cells in 1024-1535 at frontend. Gameplay peak requires DRIVEN inputs (Start->right->jump->rope, seg 2-3) - no existing Genesis script drives there.
+NO ROM (build-integrity): zero-drop needs plane expansion into 1024-1535 bounded by proven sprite-live set (FACT 1) or risks overwriting live sprites; 7-checkpoint collision gate needs driven gameplay validation. Neither available from attract. Unvalidated numbered ROM = Build-0267-class violation.
+IMPL PLAN ready: (A) compiler sprite-bounded non-contiguous zero-drop using real free set 64..1535 minus sprite-live-per-interval; FAIL build on required drop, no slot-0 blanking; assert droppedA/B==0, max_slot<1536, no plane/sprite conflict; cap 1023->raise; keep canonical identity+stable slots+0x07FF. (B) runtime selective static Y widening per climb-record (smallest complete envelope 40/48/56/64), rope record gets full climb envelope like rec17/21; optional event-driven re-select at existing arcade Y event; NO per-frame Y poll; keep 1354-edge graph. (C) gate 7 collision checkpoints.
+NEXT STEP: build driven-input Genesis gameplay harness (extend trace runner with Start->right->jump to seg 2-3) - closes FACT 1 + provides collision-gate replay - then execute A/B/C, number 0307.
+Doc: docs/design/Andy_build_0307_actual_vram_ownership_and_2d_y_fix.md
+STOP: FACT 2 closed + FACT 1 bounded + impl plan; validated numbered ROM blocked on 1 driven-gameplay harness (sprite peak + collision gate).
+
+### MAME Exit Summary (2026-08-22 19:54:53)
+- Final PC: 0x073940
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+[Andy — Build 0307 PRODUCED: selective Plane-B Y-envelope widening for the rope]
+ROM: dist/rastan-direct/rastan_direct_video_test_build_0307.bin
+SHA-256: c46ed6b8ba6bbe2ee055e70147f4b8476250f754eba71f9143afdde385b96ac9
+Size: 2887352 | Counter: 306->307 | Canonical gate: GATE_PASS | Boot guard: PASS | 0306 preserved.
+CHANGE (compiler-only, no runtime change): compile_pc080sn_genesis.py BOUNDARY_ROPE_RECORDS={2,3} added to full-64 single-variant Plane-B path (BOUNDARY_FULL_Y_RECORDS = vertical{17,21} | rope{2,3}). Runtime already forces variant 0 when variant_count==1, so no fg_tile_cache.s change. Rope visual owner = Plane B (proven build0228 trace: BG block src 0xD31C/0xF31C attr 0x0002, worldY 0x193; collision separate WRAM channel). Fix = kill within-record Y-envelope escape: records 2-3 now carry all 64 Plane-B rows so the rope stays resident through the whole climb regardless of climb Y.
+Coverage invariant CANONICAL_TOTAL_GENESIS_BYTES_COVERED 0x2E1EB8->0x2C0EB8 (both postpatch + verify_canonical) - boundary binary resized 170->156 packages. Legitimate asset-size maintenance.
+DROP IMPACT (reported, NOT fixed - zero-drop is 0308+): packages 170->156. Plane-A drops still 0. Plane-B drop packages 22->19; max drop unchanged 315 (rec11). Records 2-3 now full-64: rec2 B=854 capped 960 dropB=130; rec3 B=854 capped 960 dropB=227 (were 0-165 across variants before). Sprite reservation UNCHANGED (1024-1535); no sprite repartition; no plane/sprite conflict.
+Preserved: Build-0306 0x0503CE pointer fix, Build-0305 WRAM scratch fix, canonical identities, stable slots, boundary remap/recommit, 0x07FF/0xF800, O(1) lookup. No per-frame residency/Y-poll/allocator/LRU/eviction/miss-load. Collision code untouched.
+VALIDATION: GATE_PASS + boot guard + 30s attract smoke trace (943% speed, fg_cwindow_live=0, no crash). 7 collision checkpoints (frame310/379/800/1200/1800) + rope visual = require driven gameplay = Tighe test. Automated gameplay replay UNAVAILABLE (attract doesn't reach gameplay; no driven-input harness yet).
+NEXT (0308+): build driven-input Genesis harness -> real sprite peak -> sprite-bounded zero-drop reclamation (records 2-3 currently drop 130/227 under 960 pool; expanding into proven-free sprite holes can eliminate them).
+Doc: docs/design/Andy_build_0307_actual_vram_ownership_and_2d_y_fix.md
+
+[Andy — Build 0308 review: zero-drop residency + no-black epoch transitions (analysis only, NO ROM)]
+build: NO production change, NO ROM, Build 0308 NOT consumed. Baseline 0307 (c46ed6b8..b96ac9).
+BLACK FRAME CONFIRMED: fg_boundary_advance_segment (arcade 0x558FE record increment) calls fg_boundary_install SYNCHRONOUSLY mid-gameplay-frame (NOT VBlank; reseed records defer to post_reseed, also not VBlank). install: mask ints -> VDP MODE2 DISPLAY OFF (0x34, fg_tile_cache.s:207) -> clear 10240-word LUT (20480B) -> populate ~960 pairs -> remap both name tables (2x up to 4096 cells) -> DMA up to 960 patterns (worst rec2var0 960x32=30720B) -> DISPLAY ON (0x74:364). ~67KB VDP work display-off starting mid-frame -> spans >=1 displayed frame -> black. Mechanism = mid-frame DISPLAY OFF, not mixed ownership.
+PAYLOAD: LUT clear 20480B + worst pattern DMA 30720B + name remap ~16KB = ~67KB. NTSC VBlank budget ~3.5KB/frame -> Strategy A (one-VBlank) INFEASIBLE (~60KB deficit).
+COMPILER OVER-UNION CONFIRMED: ordered_plane_b_codes iterates every row x every descriptor x ALL 16 columns = whole-block union (up to 854 full-stage BG for widened records); seg_fg_tiles = whole-segment FG. Both over-union vs epoch's reachable column window. Column-aware model likely the difference between over-cap drops and zero-drop.
+COUPLING: no-black preload needs FREE VRAM = same reclaimed space zero-drop provides -> reclaim is prerequisite for no-black.
+RECOMMEND Strategy C: PREPARE (across current epoch frames, display ON) compiler-scheduled next-only pattern DMA into free slots + precompute next LUT (double-buffer) + name-table PATCH (changed cells only, not full 4096 recommit); COMMIT (boundary VBlank, display ON) LUT pointer-swap + apply patch + retire old-only slots. No DISPLAY OFF. Not per-frame (deterministic compiler schedule).
+SPRITE RESERVATION: PARTIALLY justified; 512=cache capacity not proven need; real Stage-1 peak STILL unmeasured (FACT 1, attract never enters gameplay). Recommend building driven-input harness (derive from traces/arcade FU1, not ask Tighe) to measure, then bound reclaim; conservative static family bound meanwhile, fail-closed.
+BUILD SEQUENCE (cheap): 0308 = column-aware zero-drop residency-complete allocator over real free set 64..1535 minus sprite-live-per-interval (non-contiguous), FAIL build on residency miss, residency-complete assertion both planes, keep 0307 baseline. 0309 = no-black prepare/commit using freed VRAM + name-table patch replacing full recommit + remove mid-frame DISPLAY OFF.
+COLUMN MODEL: per (record,column,row-range)->A/B identities from proven geometry (BG 16col x 64row row-major src+row*0x20+col*2; FG seg=512px=64col); union only reachable scroll-window columns. Used for RESIDENCY only, not placement (scrolling deferred).
+DEFERRED: vertical scrolling/map placement messy - next task after residency.
+Doc: docs/design/Andy_build_0308_zero_drop_no_black_epoch_review.md
+STOP: review complete; ready to prep Cody 0308 (column-aware zero-drop) then 0309 (no-black prepare/commit); sprite-peak harness is the one prerequisite I'll build.
+
+[Andy — Build 0308 plane-ownership CORRECTION: Level-1 Plane B is ONE 854 set, unchanging]
+build: NO ROM, NO production change, Build 0308 NOT consumed.
+RE-PROVED plane ownership via publication path (not table label): 0x3951C descriptor (PLANE_B_DESC_TABLE_ARCADE_BASE) -> fg_boundary_resolve_b -> staged_bg_buffer (tilemap_hooks 705/828/1133/1563/1839) -> vdp_commit_bg_strips -> VRAM_PLANE_B_BASE 0xC000 = Genesis PLANE B. FG strip 0x1691C -> resolve_a -> staged_fg_buffer -> 0xE000 = PLANE A. So 0x3951C IS Plane B; did NOT mislabel A as B.
+CORRECTION: prior amendment '854 outdoor B / 460 deep-cave B = two Level-1 B vocabularies' was WRONG. attr on 0x3951C = scene class (0x0002 outdoor, 0x0003 cave), NOT plane selector; both feed Plane B. attr=0x0003 (460) run STARTS at descriptor index 56 = Stage-1->Stage-2 boundary (Stage-1 records 0-22 reach cursor ~56). So the 460 set is STAGE-2 cave-interior Plane B, NEVER referenced in Level-1 gameplay. Including it as Level-1 was the error.
+CORRECTED: Level-1 Plane B = attr=0x0002 outdoor = 854 canonical patterns, ONE set, UNCHANGING all of Level 1 (outdoor + cave descent, tm0 stays outdoor) = sky/mountains/statues. Tighe CONFIRMED. Changing cave graphics = PLANE A (0x1691C strip, per-record, 1315 total/<=484 per record) incl cave terrain. Tighe CONFIRMED.
+Level-1 B residency epochs = 1 (load once). B DMA at ordinary records = 0; B DMA at cave entry = 0; B Y-variants = none; B drops = none. Genuine 854->(Stage-2 460) switch only at LEVEL boundary.
+Capacity: fixed B854 + per-record A<=484 = peak 1338 in 1472 -> ~134 for sprites (unmeasured). Old 960 partition can't hold 1338 -> needs expanded pool.
+Doc updated: docs/design/Andy_build_0308_zero_drop_no_black_epoch_review.md (Correction 2026-08-22b supersedes the two-B-vocab claim).
+STOP: ownership corrected; Level-1 global-B (854, load once, zero in-level B transitions) + per-record A; ready for Cody 0308.
+
+[Andy — Build 0308 FINAL amendment: arcade layer mapping + Level-1 phase scope + per-phase B proven]
+build: NO ROM, NO production change, Build 0308 NOT consumed.
+ARCADE LAYERS (accepted RE): slow/parallax layer X 0xC40000(a5@0x10EC half delta) src 0x3951C -> Genesis PLANE B (staged_bg->0xC000); fast layer X 0xC40002(a5@0x10AE full delta) src 0x1691C -> PLANE A (staged_fg->0xE000). Mapping proven independently (scroll semantics + pre-0302 native Plane-B twin); current port MATCHES. Locked.
+STAGE SCOPE: attr=0x0002(854)=Stage-1 desc 0-55; attr=0x0003(460)=STAGE-2 from desc 56, 0 overlap. 460 excluded from Level-1.
+PHASES->records: P1 outside rec0-15 desc0-34; P2 castle rec16-20 desc36-46; P3 boss rec21-22 desc46-55 (all attr=0x0002).
+PER-PHASE B (PROVEN, boss not assumed): P1=854, P2=663 (added 0), P3 boss=643 (added 0). Level-1 B = 854 ONE vocabulary ALL 3 phases; boss adds ZERO new B. In-level B residency epochs=1; B DMA/remap/drop/Yvar at every ordinary record + P1->2 + boss entry = 0. Genuine B switch only at Stage-1->Stage-2.
+PLANE A: 1315 total canonical, per-seg 49-483, per-record <=484. GLOBAL A does NOT fit (1315+854=2169>1472); per-phase A too big (P1~960). => A PER-RECORD. A transitions = only remaining genuine pattern transitions.
+CAPACITY: peak A(<=484)+B(854 fixed)=1338 in 1472 -> margin 134 for sprites+frontend. Old 512 reservation doesn't fit(1850). Needs expanded pool + sprite peak<=134 (unmeasured) + frontend reclaim.
+VRAM color-tint: GREEN=free, RED=TAITO accepted. TAITO/frontend = FRONTEND-live -> DEAD/reclaimable at gameplay entry -> reload on return (semantic lifetime, not per-frame). Exact slots need driven-harness capture (I'll build; also closes sprite peak).
+MODEL (supersedes column-aware-B): (1) load single 854 B once at level entry, fixed slots, zero B work all phases; (2) per-record A delta into non-contiguous 64..1535 minus sprite-live + reclaimed frontend; (3) zero drops + residency-complete assertion both planes, fail-closed; (4) no install where no A/B change -> ordinary-epoch black frames=0; only per-record A deltas need Strategy-C/VBlank commit; (5) static sprite bound now, harness later, don't block.
+Memory corrected: project_level1_phase_composition.md (P1/P2 same B observed; P3 boss unknown per Tighe) - but STATIC PROOF now shows P3 B also = subset of 854 (0 added).
+Doc: docs/design/Andy_build_0308_zero_drop_no_black_epoch_review.md (Final Amendment 2026-08-22c).
+STOP: arcade mapping locked, Level-1 B=854 one-vocab all-3-phases PROVEN, A per-record, ready for Cody 0308.
+
+### MAME Exit Summary (2026-08-23 00:57:18)
+- Final PC: 0x07390C
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+[Cody — Build 0308 fixed Level-1 Plane-B + zero-drop Plane-A residency checkpoint]
+date: 2026-08-23
+baseline: Build 0307, SHA-256 c46ed6b8ba6bbe2ee055e70147f4b8476250f754eba71f9143afdde385b96ac9.
+build: Build 0308, `dist/rastan-direct/rastan_direct_video_test_build_0308.bin`, SHA-256 32f7523f450fb929db1f689a96eb844dde0611c709ed5f1acc67a1ab86467a65, 1,679,032 bytes, counter 308; rolling ROM byte-identical; no numbered artifact deleted or overwritten.
+implementation: offline compiler now emits one fixed 854-pattern Level-1 Plane-B set in slots1..854 and 23 zero-drop per-record Plane-A packages in slots855..1338. Plane B loads once at gameplay entry and has zero ordinary-record variants/DMA/remap/drop. Native PC090OJ owns slots1339..1534 (49 cells), with bounded fully-associative residency lookup; slot1535 remains spare. Plane runtime allocator/search/LRU remains absent.
+compiler assertions: B=854, B epochs1, B variants0, A/B drops0, maximum physical slot1535, plane/sprite overlap0, LUT scratch overlap0. Plane-A counts: 49,124,236,333,209,89,239,154,132,78,368,483,225,217,250,349,219,70,54,54,85,116,219.
+canonical: opcode_replace227 unchanged; generated package shrink changes complete Genesis coverage 0x2C0EB8->0x199EB8, updated consistently in postpatch and verifier.
+validation: GATE_PASS; mandatory MAME Genesis smoke 1798 frames at 481.52%, no unique unmapped address/fatal/error/exception. Gameplay visual/collision/sprite behavior USER MUST VERIFY.
+no-black status: NOT COMPLETE in 0308. Ordinary Plane-A transitions still synchronously bracket install with display off/on. Adjacent A unions peak654>484; boundary-conflict DMA peaks7040 bytes and full Plane-A name DMA adds4096, so a speculative display-on/double-buffer change is unsafe. Next boundary is compiler-generated safe-preload + minimal name-patch + bounded VBlank atomic commit; no Build0309 consumed.
+preserved: Build0306 pointer correction, Build0305 WRAM correction, Build0303 exact-pattern retention, Build0297 native PC090OJ; collision/scroll/map placement/palette/input/audio unchanged.
+report: `docs/design/Cody_build0308_level1_residency_no_black_implementation.md`.
+
+[Andy — Build 0309 pre-fix: Build-0308 gameplay-entry ADDRESS ERROR root cause (analysis only, NO ROM)]
+build: NO ROM, NO production change, Build 0309 NOT consumed. Failing 0308 (32f7523f..67a65).
+FAULT: GEN PC 0x72770 = fg_boundary_install+0x9a; instruction movew %a2@+,%d1 (word read via package-data pointer). Vector 3 ADDRESS ERROR = 68000 WORD read at ODD address. Captured A2=0x74CC9 (ODD, = a4 0x74058 + 0xC71, mid-package-2 data, NOT any package data_offset), A3=0x1988B8 (WILDLY out of range = a4+0x124860, z80 region, far past 59564B package binary). 68000 stacks imprecise PC; same movew(An)+ pattern in fixed-B (a2) + per-record (a3) loops.
+EA: per-record path 0x727b8 a2=a4+d4(data_offset); a3=a2+(map+upload)*4 + further section advances. a3 massive overrun => a section COUNT/STRIDE is garbage. Crash 'ACCESS 0x391C3F'=a4+0x31DBE7 same class (bad section size -> odd out-of-range pointer).
+ROOT CAUSE: Build-0308 package-format/pointer-arithmetic DISAGREEMENT - fg_boundary_install section-stride/count walk does not match the compiler's new multi-section emitted layout (fixed-B off 52732, per-record map/upload, 484/854 counts, 1854 identities, 49 sprite cells, LUT scratch word 5632) -> a2/a3 leave their package (odd + overrun) -> word read faults. Build 0307 agreed (single aligned map/upload) so survived; 0308 layout change broke the agreement. NEW in 0308.
+SP OUT OF WRAM = FALSE POSITIVE: SP=0xFEFF48 mirrors to WRAM 0xFF48 (Genesis 0xE00000-0xFFFFFF mirror); handler strict 0xFF0000+ check ignores mirror. NOT causal; no stack corruption (A5=0xFF0000 intact).
+SUSPECTS: layout/arithmetic mismatch=YES primary; odd-align=YES(symptom, data_offsets themselves even); stale reloc=likely NO (a4 matches symbol, descriptors parse); LUT scratch/frontend-1..63/49-cell=not the faulting instr (Cody verify if they feed same count); stack corruption=NO.
+REMAINING LINK (bounded): exact mis-sized section field in fg_boundary_install per-record walk (fg_tile_cache.s ~0x727b8-0x72860) + active-pkg index 0xFFB1FC; diff runtime arithmetic vs compiler emit.
+FIX (0309): reconcile fg_tile_cache.s package section walk with compile_pc080sn_genesis.py emitted layout (match all section counts/widths/strides; range-check 0xFFB1FC); even-align every emitted section + compiler asserts (data_offset even, in-bounds); runtime even+bounds guard before movew(An)+ package reads. NO NOP/RTS, NO B rollback (impl defect not design). Files: fg_tile_cache.s + compile_pc080sn_genesis.py (regenerate binary).
+GATE: driven MAME genesis harness boot->credit->Start->READY->residency install->gameplay, assert no addr/bus error, valid SP (mirror-aware), scene==1, fixed-B + record-0 A installed. Attract smoke insufficient.
+Doc: docs/design/Andy_build0309_build0308_gameplay_entry_crash_analysis.md
+STOP: root cause = Build-0308 package section-arithmetic vs emit mismatch (odd+overrun package pointer); SP false-positive; Cody 0309 fix scoped.
+
+### MAME Exit Summary (2026-08-23 10:47:01)
+- Final PC: 0x0739C8
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+[Cody — Build 0309 Package-Walk Crash Fix]
+
+date: 2026-08-23
+scope: close and fix only the Build-0308 READY-to-gameplay package-walk crash; no no-black, scrolling, map, palette, collision, or unrelated sprite work.
+root cause: generated package data was coherent (59,564 bytes, SHA-256 `9a9ea76c85526e3bc77a80363597931008fd038cff3ce52121b83ffd52e6c460`) and compiler/runtime counts, widths, order, and four-byte pair strides matched. Build0308 source `lea FG_BOUNDARY_FIXED_B_OFFSET(a4),a2` used offset `0xCDFC` (> signed d16); default GNU `as` emitted 68020 full-EA bytes `45F401700000CDFC`. Physical 68000 decoded brief `D0.w + 0x70`; with D0=1 this produced odd A2/fault `A4+0x71=0x740C9`, then unconsumed `0000CDFC` executed as `ori.b #0xFC,d0`, explaining captured D0=`0xFD`. Supplied images show A2=`0x740C9`; task-text `0x740C3/+0x6B` is a transcription discrepancy, not retained as proven evidence.
+fix: `fg_tile_cache.s` now forms the fixed-B pointer with `movea.l` + 68000 `adda.l #0xCDFC`, validates the full 6,832-byte fixed-B span, and range/alignment-checks record entries, descriptors, new/old package spans, and map spans. Invalid pointers/indexes enter the crash handler deterministically with `D3=0x504B4701/02`; no skip, blank fallback, NOP, or RTS bypass. The compiler emits shared widths/offsets/byte lengths and asserts every section's alignment and bounds. The Makefile assembles this helper with `-m68000` and runs a project-owned Start-to-gameplay gate before numbered artifact publication.
+package contract: record table 23x4 at `0x0000`; descriptor table 23x16 at `0x005C`; package data `0x01CC..0xCDFC`; fixed-B map `0xCDFC..0xDB54` (854x4); fixed-B upload `0xDB54..0xE8AC` (854x4); no padding required. Active package `Genesis-WRAM 0xFFB1FC`: sentinel FFFF before first install, legal installed 0..22; observed package0 then package1, non-causal.
+validation: canonical `GATE_PASS`; expected-fail test against preserved Build0308 reached READY then crash region before install. Build0309 gate `states/traces/build0309_gameplay_entry_gate_20260823_104652/`: credit/start/READY/fixed-B/record0/gameplay/player-control PASS, 240 post-entry frames, address/bus/illegal/crash counts all 0, SP valid, fixed-B probe `04A6->0298`, record0 probe `0020->0357`. Frontend smoke `states/traces/rastan_direct_video_test_build_0309_mame_30s_20260823_104654/`: 1798 frames, no unique unmapped address.
+build: YES, Build0309; `dist/rastan-direct/rastan_direct_video_test_build_0309.bin`; SHA-256 `d7b7bd39ba6c79b276021d344a6a8935c08c8ff7b028c14e793eb9e2b66dbd02`; 1,679,032 bytes; counter308->309; rolling byte-identical. Build0308 preserved with original SHA. Automated hardware claim NONE; Nomad/emulator acceptance USER MUST VERIFY.
+architecture: fixed Level-1 B854/one residency/zero Y variants/zero drops/zero ordinary B DMA/remap retained; Plane-A drops0; native PC090OJ retained; Build0306 pointer and Build0305 WRAM corrections retained; collision and scrolling unchanged; no-black Strategy C deferred.
+files: `apps/rastan-direct/src/fg_tile_cache.s`, `tools/translation/compile_pc080sn_genesis.py`, `apps/rastan-direct/Makefile`, `tools/mame/scripts/build0309_gameplay_entry_gate.lua`, `tools/mame/run_build0309_gameplay_entry_gate.sh`, `docs/design/Cody_build0309_build0308_package_walk_crash_fix.md`, `AGENTS_LOG.md` plus Makefile-generated outputs.
+doc: `docs/design/Cody_build0309_build0308_package_walk_crash_fix.md`.
+
+[Andy — Build 0310 review: smart future-aware Plane-A retention (analysis only, NO ROM)]
+build: NO ROM, NO production change, Build 0310 NOT consumed. Baseline 0309 (d7b7bd39..dbd02).
+VERDICT B: full Phase-1 A union does NOT fit; future-aware (Belady) retention removes most waste. NOT Model A (won't fit), NOT current per-record (63% reload waste).
+NUMBERS (records 0-15, canonical 32B): Phase-1 A union=1315; interval-overlap PEAK=720 @rec10; A budget=1535-854B-196sprite=485. Full 1315>485 NO; peak 720>485 (and >681 even w/ all sprite reclaimed) so zero-reload impossible; BUT per-record demand <=483<=485 -> zero drops feasible.
+WASTE: current per-record = 3535 uploads / 1315 unique = 2220 redundant reuploads (63%). 698 identities have usage GAP (evicted+reloaded) while 300-400 slots sit EMPTY at light records (rec5=89A->396free, rec9=78A->407free). That empty VRAM is where future-use patterns should stay.
+BELADY retention: cap485 -> 1690 uploads (-52% vs 3535), 15 transitions but many tiny (rec6 239->6, rec8 132->19, rec5 89->26); genuine-new remain (rec3=300,rec11=209,rec15=319). cap681(reclaim sprite) -> 1354 (-62%). cap720 -> 1315 (zero reloads).
+BRIDGE: rec15 +319 new identities (just before castle rec16) = strongest brick-bridge candidate; fits (rec15 live 349<=485); ONE transient addition, not 15 epochs; evictable at castle entry. Exact bridge column set = bounded follow-up.
+SLOT STABILITY: retention keeps retained identity in stable slot (no churn); only new uploads + forced evictions touch slots -> eliminates per-record full-band repack (cuts remap+DMA every boundary).
+BLACK FRAME: retention deletes wasteful RELOAD transitions + shrinks remaining DMA (mostly <100); genuine-new (rec3/11/15) remain -> Strategy-C prepare/commit later for those few. Don't build preload around transitions retention deletes.
+SPRITE: 49-cell/196 = capacity not proven need (player 0x8A-9F, lizard 0x4B-6D, hurry-up bat; coexisting peak <<49 cells). Reclaim -> budget 681, uploads 1354. Static bound, harness-validate later; don't block 0310.
+PHASE2/3: retention carries over reused Phase-1 A into castle, evict only outdoor-only; no assume castle discards all. Bounded follow-up.
+BUILD 0310: compiler Belady lifetime-retention (first/last/next-use, stable slots, emit only new-upload+minimal-eviction delta, zero drops assert); generated per-boundary DELTA not full per-record packages (shrinks 52272B A data); runtime installs only delta (small DMA+LUT patch, retained slots untouched), no per-frame/LRU. Optional 0311: reclaim sprite->681 + VBlank prepare/commit for remaining genuine-new. Plane B/scroll/collision/palette/PC090OJ/Stage2 unchanged.
+Doc: docs/design/Andy_build0310_smart_plane_a_retention_review.md
+STOP: verdict B future-aware retention; -52% uploads @cap485, zero drops, stable slots; ready for Cody 0310.
+
+[Andy — Build 0310 physical bit-pattern audit: 1315 are REAL unique patterns, not compiler dup (analysis only)]
+build: NO ROM, NO production change, Build 0310 NOT consumed.
+Hashed decoded 32-byte 8x8 patterns (pc080sn tile ROM) independent of compiler IDs. Round-1 Phase-1 (rec 0-15) Plane A: 1316 arcade codes -> 1315 unique EXACT 32B patterns (ONLY 1 exact-dup code, 1 dup group) -> 1246 flip-normalized (H/V/HV saves 69, ~5%). Compiler canonical ID already = exact 32B pattern => NO meaningful exact-bit duplication. Tighe's duplication hypothesis REJECTED for exact bytes. Palette/priority NOT in pattern identity (name-word attrs) -> no physical dup. rec11: 483 exact->464 flipnorm(-19). rec15 bridge: 349 exact->349 flipnorm(-0, genuinely distinct, +319 real). Plane-B: 854 exact unique (844 flipnorm), duplicate-free, untouched.
+CAPACITY: A budget 485. exact 1315>>485, flipnorm 1246>>485 -> streaming/retention GENUINELY needed; VRAM pressure REAL not artificial. Empty-VRAM = retention policy waste, not pattern inflation.
+VERDICT: A (1315 really unique) + minor C (flip saves 69, not significant). Belady retention recommendation STANDS unchanged (peak-overlap 720, current 3535 uploads/2220 redundant, Belady 1690@485). Flip-normalization = small optional later opt (many-code->one-physical+flip-bits), NOT required for 0310.
+Artifacts: analysis/round1_phase1_plane_a/{round1_phase1_plane_a_pattern_hashes.csv, round1_phase1_plane_a_duplicate_groups.csv}. Atlas = deterministic byproduct, on request.
+Doc: docs/design/Andy_build0310_smart_plane_a_retention_review.md (Physical Bit-Pattern Audit section).
+STOP: 1315 confirmed real physical patterns (1 exact dup only); flip saves 69; capacity pressure genuine; Belady stands; ready for Cody 0310.
+
+[Cody — Independent Round-1 Phase-1 Plane-A physical pattern audit]
+date: 2026-08-23
+scope: clean-room original-arcade static audit only; Build0309 baseline; no production/spec/runtime change, ROM, or counter consumption.
+blind result: original PC080SN tilemap1 -> Genesis Plane A; Phase1 records0-15, columns0-1023, legal rows0-63; 65,536 legal cells, 1,316 logical codes, 1,315 exact 32-byte patterns, 1,246 flip-normalized, maximum 64-column ring603, bridge columns608-637 with30 patterns. Frozen artifacts and hashes are in `analysis/cody_round1_phase1_plane_a_independent/blind_freeze.sha256`.
+post-freeze compiler comparison: records0-15 match exactly; aggregate records0-22 contain1,855 exact patterns, with540 extras solely from wrong-phase records16-22 and0 Phase1 omissions. Collector does not over-scan rows/columns/table members within records0-15; exact-byte allocator does not duplicate physical patterns.
+capacity/verdict: hard owners leave Plane A slots855-1338 (484); full1315, flip-normalized1246, coarse-family max757, and full-ring max603 do not fit; visible 40/41-column max483 fits. Final verdict C+D: bounded original-strip/visible-window streaming is required, and whole-Round aggregate over-counts the Phase1 question.
+process disclosure: prohibited Andy numeric log entries were accidentally exposed by a log-tail command only after the blind CSVs/atlases/report sections1-12 and freeze manifest were durable; frozen conclusions were not changed or sourced from them.
+artifacts: `docs/design/Cody_round1_phase1_plane_a_independent_pattern_audit.md`; `analysis/cody_round1_phase1_plane_a_independent/` (CSV datasets, two atlases, map previews, summaries, freeze manifest, post-freeze comparison).
+build: NO; Build0310 consumed: NO; counter remains309.
+
+### MAME Exit Summary (2026-08-23 16:17:22)
+- Final PC: 0x0739E4
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+[Cody — Build 0310 Round-1 Phase-1 Coarse Plane-A Epochs]
+date: 2026-08-23
+baseline: Build0309, SHA-256 `d7b7bd39ba6c79b276021d344a6a8935c08c8ff7b028c14e793eb9e2b66dbd02`, preserved.
+proof: exhaustive contiguous partition search at Plane-A cap484 proves minimum7 epochs and no six-epoch solution. Two minima exist: `0-2/3/4-8/9-10/11/12-14/15` and selected semantic `0-2/3/4-9/10/11/12-14/15`. Selected exact unions are 282,333,444,368,483,433,349; all fit; A/B required drops0.
+implementation: compiler emits seven complete-residency Plane-A epoch packages and record-to-epoch table `0,0,0,1,2,2,2,2,2,2,3,4,5,5,5,6`. Same-epoch record changes bypass descriptor/LUT/remap/DMA/display-off residency work. Fixed Plane B854 slots1..854 and native PC090OJ base1339/49 cells are unchanged. Runtime allocator/search/LRU and Strategy C remain absent.
+transitions: six true boundaries; exact shared/new counts A-B33/300, B-C38/406, C-D171/197, D-E197/286, E-F160/273, F-G30/319. Nine false record residency boundaries eliminated; within-epoch pattern DMA and slot churn0. Bridge correction retained: segments9-10/world columns608-637 use30 patterns (15 earlier/15 new); section16 is fortress exterior/final pre-castle approach, not bridge.
+validation: compiler/static zero-drop gate PASS; canonical GATE_PASS with opcode_replace227 and coverage0x194EB8; gameplay gate `states/traces/build0310_gameplay_entry_gate_20260823_161702/` PASS through 240 controlled gameplay frames, address/bus/illegal/crash0; all-seven deterministic production-installer gate `states/traces/build0310_phase1_epoch_gate_20260823_161704/` PASS with complete A/B LUT checks, same-epoch reinstall counters unchanged, exceptions0; standard frontend smoke `states/traces/rastan_direct_video_test_build_0310_mame_30s_20260823_161715/` 1798 frames/no unique unmapped address. Build0309 `-m68000`, pointer/range guards, and gameplay gate retained.
+build: Build0310, `dist/rastan-direct/rastan_direct_video_test_build_0310.bin`, SHA-256 `998dc6efa7060572120a4b0055c0b71a5301e478718b6dfa17fa47398b7959e8`, 1,658,552 bytes, counter309->310; rolling artifact byte-identical; no numbered artifact removed or overwritten.
+scope: scrolling, collision, palette, Plane B, native PC090OJ, and sprite capacity unchanged. Six true transition flashes remain USER MUST VERIFY; bounded no-black prepare/commit deferred to Build0311.
+doc: `docs/design/Cody_build0310_round1_phase1_coarse_plane_a_epochs.md`.
+
+### MAME Exit Summary (2026-08-23 17:27:52)
+- Final PC: 0x073AA0
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+[Cody — Build 0311 Rope/Waterfall Transition Retention Fix]
+date: 2026-08-23
+baseline: Build0310, SHA-256 `998dc6efa7060572120a4b0055c0b71a5301e478718b6dfa17fa47398b7959e8`, preserved.
+root cause: Build0310 treated record2->3 and record3->4 epoch changes as immediate death of outgoing Plane-A identities. `.Linstall_remap_plane` rewrote still-visible outgoing name words after installing only the incoming stable LUT, before the two-dimensional arcade viewport had ceased referencing the rope/waterfall patterns.
+proof: original selector-0 semantics identify A->B at records2->3 (`scrollX=0x0168`, `scrollY=0x0105`) and B->C at records3->4 (`scrollX=0x0168`, `scrollY=0x015D`). Offline legal-window reconstruction gives transition peaks394 and479 within A capacity484 (margins90 and5). Exact retained objects are12 rope patterns/23 cells and224 waterfall patterns/288 cells; retained slots do not move.
+implementation: preserved all seven semantic epochs `282/333/444/368/483/433/349`; added compiler-owned overlap packages7/8 and a deterministic logical-column45 handoff to stable packages1/2. No runtime cache/LRU/allocator/hash/visibility scan. A bounded 50-word conflict LUT isolates codes031A..034B from the preexisting crash-record WRAM alias; Plane B854, sprites49, scrolling, collision, palette, Phase2/3 unchanged. Display-off brackets remain present.
+validation: Build0311 transition static gate PASS (rope12, waterfall224, peaks394/479, missing0, collisions0, retained-moved0, handoff-missing0); gameplay-entry gate PASS over564 frames; all-seven epoch/runtime-package gate PASS; canonical GATE_PASS; standard MAME genesis smoke1798 frames with address/bus/illegal/crash0 and no unique unmapped address. Actual rope/waterfall screen persistence USER MUST VERIFY.
+build: Build0311, `dist/rastan-direct/rastan_direct_video_test_build_0311.bin`, SHA-256 `a3a1e32beba2e36a5ef17d7dcf61e1da089520740bfeaf06f1f591a677cc362c`, 1,670,840 bytes, counter310->311; rolling ROM byte-identical; Build0310 and all numbered artifacts preserved.
+doc: `docs/design/Cody_build0311_rope_waterfall_transition_retention_fix.md`.

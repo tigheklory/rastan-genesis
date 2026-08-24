@@ -1,0 +1,144 @@
+{
+  "freeze_manifest": "blind_freeze.sha256",
+  "comparison_performed_after_freeze": true,
+  "current_compiler_records": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22
+  ],
+  "current_compiler_rows_per_record": [
+    0,
+    63
+  ],
+  "current_compiler_columns_per_record": [
+    0,
+    63
+  ],
+  "current_compiler_source_table_entries_per_record": 256,
+  "current_compiler_input_codes": 1856,
+  "current_compiler_input_exact_patterns": 1855,
+  "current_compiler_phase1_exact_patterns": 1315,
+  "independent_phase1_exact_patterns": 1315,
+  "extra_compiler_patterns": 540,
+  "missing_compiler_patterns": 0,
+  "extra_categories": {
+    "wrong_phase_records_16_22": 540,
+    "other": 0
+  },
+  "exact_match": false,
+  "phase1_subset_exact_match": true,
+  "per_record_code_counts": [
+    49,
+    125,
+    237,
+    333,
+    210,
+    89,
+    240,
+    155,
+    133,
+    79,
+    369,
+    484,
+    226,
+    218,
+    251,
+    350,
+    220,
+    70,
+    54,
+    54,
+    85,
+    116,
+    219
+  ],
+  "per_record_exact_pattern_counts": [
+    49,
+    124,
+    236,
+    333,
+    209,
+    89,
+    239,
+    154,
+    132,
+    78,
+    368,
+    483,
+    225,
+    217,
+    250,
+    349,
+    219,
+    70,
+    54,
+    54,
+    85,
+    116,
+    219
+  ],
+  "capacity": {
+    "pattern_slots_0_through_1535": 1536,
+    "blank_slot": 0,
+    "fixed_plane_b_slots": [
+      1,
+      854
+    ],
+    "fixed_plane_b_patterns": 854,
+    "plane_a_slots": [
+      855,
+      1338
+    ],
+    "plane_a_capacity": 484,
+    "sprite_tile_base": 1339,
+    "sprite_complete_16x16_cells": 49,
+    "sprite_pattern_slots": 196,
+    "spare_pattern_slot": 1535,
+    "phase1_exact_vocabulary": 1315,
+    "phase1_flip_normalized_vocabulary": 1246,
+    "max_64_column_ring": {
+      "width": 64,
+      "patterns": 603,
+      "start": 684,
+      "end": 747
+    },
+    "max_40_column_visible_view": {
+      "width": 40,
+      "patterns": 483,
+      "start": 712,
+      "end": 751
+    },
+    "max_41_column_subtile_scrolled_view": {
+      "width": 41,
+      "patterns": 483,
+      "start": 711,
+      "end": 751
+    }
+  },
+  "notes": [
+    "The collector walks all 16 source banks, 16 descriptor groups, four columns, and four rows for each selected record.",
+    "For records 0-15 that traversal equals the independently reconstructed 64x64 legal Phase-1 map.",
+    "The production boundary compiler selects all Round-1 records 0-22, so its aggregate input crosses from Phase 1 into castle/boss records 16-22.",
+    "The allocator deduplicates exact 32-byte pattern bytes; logical-code aliases do not consume duplicate physical slots."
+  ]
+}
