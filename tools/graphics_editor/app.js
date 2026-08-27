@@ -53,7 +53,19 @@ function renderList(){const L=$('#list');L.innerHTML='';
   const gb=el('div','groupbar');gb.appendChild(el('span','dim','Shared Palette Group: '+GROUP.size+' '));
   if(GROUP.size>=1){mkbtn(gb,'Derive Shared Palette',()=>solveGroup(false,'delta_e'));const lb=mkbtn(gb,'Derive Luminance/Hue Palette',()=>solveGroup(false,'luminance_hue'));lb.title='Prioritizes preserving perceptual brightness (OKLab L), then chooses hues between compatible source colors.';mkbtn(gb,'Compare Solvers',()=>compareSolvers());mkbtn(gb,'Clear',()=>{GROUP.clear();renderList();});}
   L.appendChild(gb);
-  O.usages.forEach(u=>{const r=el('div','row');const ck=el('input');ck.type='checkbox';ck.checked=GROUP.has(u.usage_id);ck.onclick=e=>{e.stopPropagation();if(ck.checked)GROUP.add(u.usage_id);else GROUP.delete(u.usage_id);renderList();};r.appendChild(ck);r.appendChild(el('span',null,' '+u.display_name+' '));r.appendChild(el('span','badge PROVEN',u.n_used+'c'));r.onclick=()=>{document.querySelectorAll('#list .row').forEach(x=>x.classList.remove('sel'));r.classList.add('sel');selectUsage(u);};if(U&&U.usage_id===u.usage_id)r.classList.add('sel');L.appendChild(r);});
+  // group usages by object_id -> ONE palette-domain row (preview frames are representations, not consumers)
+  const doms={};O.usages.forEach(u=>{(doms[u.object_id]=doms[u.object_id]||[]).push(u);});
+  Object.entries(doms).forEach(([oid,reps])=>{const u0=reps[0];const dname=u0.display_name.split(' (')[0];
+   const r=el('div','row');const ck=el('input');ck.type='checkbox';
+   const inGroup=reps.some(x=>GROUP.has(x.usage_id));ck.checked=inGroup;
+   ck.onclick=e=>{e.stopPropagation();reps.forEach(x=>{if(ck.checked)GROUP.add(x.usage_id);else GROUP.delete(x.usage_id);});renderList();};
+   r.appendChild(ck);r.appendChild(el('span',null,' '+dname+' '));r.appendChild(el('span','badge PROVEN',u0.n_used+'c'));
+   if(reps.length>1)r.appendChild(el('span','badge OTHER',reps.length+' frames'));
+   r.onclick=()=>{document.querySelectorAll('#list .row').forEach(x=>x.classList.remove('sel'));r.classList.add('sel');selectUsage(u0);};
+   if(U&&U.object_id===oid)r.classList.add('sel');L.appendChild(r);
+   // frame selector for multi-representation domains (preview only)
+   if(reps.length>1&&U&&U.object_id===oid){const fr=el('div','framesel');reps.forEach(x=>{const fb=el('button','mini'+(U.usage_id===x.usage_id?' on':''),x.display_name.replace(/.*\(/,'').replace(')',''));fb.onclick=ev=>{ev.stopPropagation();selectUsage(x);};fr.appendChild(fb);});L.appendChild(fr);}
+  });
   O.objects.filter(o=>statusOf(o)!=='PROVEN').forEach(o=>{const r=el('div','row');r.appendChild(el('span',null,(o.display_name||o.id)+' '));r.appendChild(el('span','badge '+statusOf(o),statusOf(o)));r.onclick=()=>{document.querySelectorAll('#list .row').forEach(x=>x.classList.remove('sel'));r.classList.add('sel');U=null;$('#srccolors').innerHTML='';$('#maptable').innerHTML='';$('#previews').innerHTML='<div class="dim">NO PROVEN GRAPHICS PREVIEW AVAILABLE for '+(o.display_name||o.id)+'</div>';};L.appendChild(r);});}
  if(TAB==='contexts')O.contexts.forEach(c=>{const r=el('div','row',c.display||c.id);r.onclick=()=>{ctxFit(c);};L.appendChild(r);});
  if(TAB==='palettes')O.palettes.forEach(p=>{const dup=Object.values(O.exact_duplicate_palette_groups).some(g=>g.includes(p.palette_id));const r=el('div','row');r.appendChild(el('span',null,p.palette_id.replace('palette:','')+' '));if(dup)r.appendChild(el('span','badge OTHER','lossless-share'));r.onclick=()=>showPaletteResource(p);L.appendChild(r);});}
@@ -227,8 +239,9 @@ async function solveGroup(fitActive,mode){if(!GROUP.size)return alert('check 1+ 
  const nm=sol.solver==='luminance_hue'?'LUMINANCE/HUE':'ΔE PERCEPTUAL';
  const maxdL=Math.max(...sol.entries.flatMap(e=>e.members.map(m=>m.dL)),0);
  const maxSpread=Math.max(...sol.entries.map(e=>e.hue_spread||0),0);
- P.appendChild(txt(`${nm} SHARED PALETTE (${GROUP.size} objects)\nsolver: ${sol.solver} · ${sol.method}\nfeasible: ${sol.feasible?'YES':'NO — no detail-preserving one-line solution'}\nentries used: ${sol.entries_used} / 15\ncross-object shared entries: ${sol.entries.filter(e=>e.members.length>1).length}\nworst ΔL (OKLab): ${maxdL.toFixed(4)}\nMRD violations: 0 (guaranteed)`));
- if(maxSpread>60)P.appendChild(el('div','vitem WARN','WIDE HUE COMPROMISE — '+maxSpread.toFixed(0)+'° max source hue spread in a shared cluster.'));
+ const nd=(sol.palette_domains||[]).length,nr=(sol.preview_representations||[]).length;
+ P.appendChild(txt(`${nm} SHARED PALETTE\nPalette domains selected: ${nd}${nr>nd?'  (preview representations: '+nr+')':''}\nsolver: ${sol.solver}\nfeasible in one line: ${sol.feasible?'YES':'NO'}\none-line capacity: ${sol.one_line_capacity||15}\nsafe entries required: ${sol.safe_entries_required||sol.entries_used}\ncross-object shared entries: ${sol.entries.filter(e=>e.members.length>1).length}\nworst ΔL (OKLab): ${maxdL.toFixed(4)}\nMRD violations: 0 (guaranteed)${sol.settings?'\nhue-limit '+sol.settings.hue_limit+'° · ΔE-limit '+sol.settings.de_limit+' · hue-tol ±'+sol.settings.hue_tol+'°':''}`));
+ if(!sol.feasible){P.appendChild(el('div','vitem ERROR',`NO ACCEPTABLE ONE-LINE SOLUTION — needs ${sol.safe_entries_required} hue-safe entries (capacity ${sol.one_line_capacity}). All shown clusters are hue-safe; no colors were destroyed to force a fit.`));}
  // per-object quality (Part 10 + imbalance warning)
  const worsts=Object.entries(sol.per_object).map(([u,m])=>{const nm=(O.usages.find(x=>x.usage_id===u)||{}).display_name||u;return {nm,w:m.worst_de,wm:m.wmean_de};});
  worsts.forEach(o=>P.appendChild(el('div','vitem '+(o.w<=3?'PASS':o.w<=8?'WARN':'ERROR'),`${o.nm}: worst ΔE ${o.w} · wmean ${o.wm}`)));

@@ -46810,3 +46810,25 @@ STOP: invalid work quarantined + palette effective-bank PROVEN; remaining branch
 * production ROM modified: NO ; Build 0314 consumed: NO
 * USER MUST VERIFY: run both solvers on Rastan+bats, Compare Solvers, inspect brown clusters
 * next boundary: first real R1/P1 palette policy using both solvers
+
+## [Andy — Hybrid, V0.3.3 Hue-Safe Luminance Solver — Resumed]
+* classification: INFRASTRUCTURE ; build produced: NO ; Build counter: 313 ; production changed: NO
+* resumed from session-limit checkpoint: YES (preserved server.py domain-collapse + hue helpers)
+* prior good domain-dedup work preserved: YES (3 Rastan frames + Valkyrie -> 2 domains)
+* root cause of failed hue gate: _best_cram_lh ranked lightness FIRST, hue tertiary -> blue with equal L beat in-family orange; single-color clusters bypassed the merge-time gate entirely
+* root cause of 360deg diagnostic: exact-natural merge of near-black colors (both quantize to same CRAM, lossless) whose source hues span wide -- functionally safe (same target); metric artifact only
+* root cause of >60 ΔE targets: same lightness-first-without-admissibility bug
+* fix: _best_cram_lh now ADMISSIBILITY-FIRST (ΔE<=20, target hue in source arc±10°, chroma within 0.10) THEN lightness-first; returns None if none admissible; single-color natural fallback
+* safe-infeasible behavior: stops merging, returns hue-safe clusters + feasible=false + safe_entries_required + one_line_capacity
+* palette domains: object_id-based (_collapse_domains, union MRD) ; preview representations: tracked separately
+* Rastan three-frame dedup: YES (one checkbox + frame selector; solver sees 1 domain)
+* max hue spread: 45° ; max shared ΔE: 20 ; low-chroma threshold: 0.02 ; Genesis hue tolerance: ±10°
+* target-selector no-valid-target path: YES (returns None -> cluster inadmissible)
+* Valkyrie+Rastan: 2 domains, safe_entries_required 18, feasible=false, maxΔE 18.9, hue-shift>60=0 (NO blue flesh), MRD=0
+* red/cyan same-L rejection: PASS ; hue-wrap 350/5/15=25: PASS ; 10/30/50/70 chain blocked: PASS
+* chromatic+neutral / all-neutral: PASS ; lightness-first differentiation: PASS ; all-512 search: YES ; no-valid-target: PASS
+* existing ΔE solver preserved: YES (unchanged, 15 entries)
+* version identity status: STILL PENDING (app shows v0.2)
+* production ROM modified: NO ; Build 0314 consumed: NO
+* USER MUST VERIFY: Rastan one checkbox, Valkyrie+Rastan L/H stays in-family (no blue flesh) or reports infeasible
+* next boundary: first real R1/P1 palette policy

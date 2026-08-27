@@ -72,3 +72,4 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .sw.nearestlegal{outline:3px solid #4cf;z-index:3}
 .sw.nearestforbid{outline:3px solid #f55;z-index:3}
 #list .row input[type=checkbox]{vertical-align:middle;margin-right:2px}
+.framesel{padding:2px 8px;background:#181820;display:flex;gap:3px;flex-wrap:wrap;border-bottom:1px solid #23232c}

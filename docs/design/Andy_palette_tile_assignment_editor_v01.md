@@ -202,3 +202,31 @@ Version identity: app still shows v0.2 — VERSION IDENTITY STILL PENDING (separ
 15. **Real-data tests** — hue-wrap (vector mean), chromatic+neutral (gray ignored), all-neutral (hue ignored),
     lightness-first-differs-from-ΔE (worst-ΔL 0.118 vs 0.173), 512-CRAM search, MRD-safe both solvers, 3-column comparison.
 Existing V0.3.1 (Rastan composites, uniform zoom, ΔE solver) preserved unchanged. Version identity STILL PENDING.
+
+# V0.3.3 Hue-Safe Luminance Solver (resumed + completed 2026-08-26)
+**Original failure:** Rastan flesh turned BLUE/PURPLE under the luminance/hue solver (worst ΔE ~63-80, 160° hue
+shifts). **Two root causes found:** (1) multiple captured Rastan frames were selectable as independent palette
+consumers; (2) `_best_cram_lh` ranked targets by lightness FIRST with hue only tertiary, so a blue with identical
+OKLab L beat an in-family orange — even for single-color clusters, which bypass the merge-time gate entirely.
+
+**Fixes:**
+- **Palette-domain dedup** (`_collapse_domains`): usages with the same `object_id` collapse to ONE domain — union of
+  used colors (max pixels) + union MRD. 3 Rastan frames + Valkyrie → **2 palette domains** (preview frames tracked
+  separately as representations). UI shows one "Rastan body" checkbox + a frame selector (preview only).
+- **Admissibility-first target** (`_best_cram_lh`): a legal CRAM is admissible only if (1) worst per-source ΔE00 ≤
+  `de_limit`(20), (2) target OKLCH hue lies inside the source chromatic hue arc ±`hue_tol`(10°), (3) target chroma
+  within `_CHROMA_TOL`(0.10) of median source chroma. **Only among admissible candidates** does lightness-first
+  lexicographic ranking (worst ΔL, mean ΔL, hue err, chroma err, worst ΔE, mean ΔE) apply. No admissible candidate →
+  returns None (NO VALID TARGET). A single source always falls back to its own natural quantization (hue-safe).
+- **Cluster admission gate** (`legal` in solve_group): merge rejected unless cluster chromatic hue-span ≤ `hue_limit`
+  (45°, min circular arc) AND a hue-safe legal target exists (`_best_cram_lh` non-None).
+- **Safe-infeasible**: when hue-safe clustering can't reach ≤15, the solver STOPS merging and returns the remaining
+  hue-safe clusters + `feasible:false`, `safe_entries_required`, `one_line_capacity` — never garbage clusters.
+- **Circular hue geometry**: `_min_hue_arc` (350/5/15 → 25°), `_hue_in_arc` (containment ±tol), chroma-weighted
+  `_hue_center`; neutral (`C < 0.02`) hues excluded; all-neutral → hue ignored.
+
+**Regressions (all PASS):** dedup 2 domains; Valkyrie+Rastan L/H feasible=false, maxΔE 18.9(≤20), **hue-shift>60°=0
+(no blue flesh)**, MRD=0; red(25°)/cyan(190°) same-L NOT merged; hue-wrap 25°; 10/30/50/70 chain blocked (60>45);
+chromatic+neutral & all-neutral handled; no-valid-target returns None; single-color always safe; ΔE solver unchanged
+(15 entries). Advanced L/H settings (hue_limit/de_limit/hue_tol/neutral_c) are server params with defaults 45/20/10/0.02,
+exposed in the proposal (editable slider panel is basic/deferred). Version identity STILL PENDING.

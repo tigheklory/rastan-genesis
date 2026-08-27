@@ -317,30 +317,63 @@ def solve_group(usages):
             "method": "greedy constrained clustering (exact->natural->nearest cross-usage); BEST SOLUTION FOUND (not proven global optimum)"}
 
 
-def _best_cram_lh(members):
-    """Luminance-FIRST legal-CRAM target: lexicographic (worst ΔL, mean ΔL, hue err, chroma err, worst ΔE, mean ΔE)."""
-    Ls = [_oklch(m[0])[0] for m in members]
-    desiredL = sum(Ls) / len(Ls)                    # equal-source mean lightness
-    Cs = sorted(_oklch(m[0])[1] for m in members)
-    desiredC = Cs[len(Cs) // 2]                       # median chroma (stable vs outliers)
-    hueC, spread = _hue_center([m[0] for m in members])
+_CHROMA_TOL = 0.10   # target chroma may differ from median source chroma by at most this (OKLCH)
+def _natural_cram(rgb):
+    r = min(range(8), key=lambda k: abs(LV3[k] - rgb[0]))
+    g = min(range(8), key=lambda k: abs(LV3[k] - rgb[1]))
+    b = min(range(8), key=lambda k: abs(LV3[k] - rgb[2]))
+    return "0x%04X" % ((b << 9) | (g << 5) | (r << 1)), [LV3[r], LV3[g], LV3[b]]
+
+
+def _best_cram_lh(members, de_limit=20.0, hue_tol=10.0):
+    """HUE-SAFE luminance-first target. ADMISSIBILITY FIRST (ΔE<=limit, target hue inside source arc±tol,
+    chroma sane), THEN lightness-first ranking. Returns None (NO VALID TARGET) if nothing is admissible.
+    A single source always falls back to its own natural quantization (hue-safe by construction)."""
+    rgbs = [m[0] for m in members]
+    Ls = [_oklch(r)[0] for r in rgbs]
+    Cs = sorted(_oklch(r)[1] for r in rgbs)
+    desiredC = Cs[len(Cs) // 2]
+    chrom = [_oklch(r)[2] for r in rgbs if _oklch(r)[1] >= _NEUTRAL_C]  # hues of chromatic members
+    hueC, spread = _hue_center(rgbs)
     best = None
     for rgb in _LEGAL:
         tL, tC, tH = _oklch(rgb)
-        dLs = [abs(_oklch(m[0])[0] - tL) for m in members]
         des = [_de00(m[0], rgb) for m in members]
+        if max(des) > de_limit:                                  # (1) catastrophic ΔE backstop
+            continue
+        if chrom and not _hue_in_arc(tH, chrom, hue_tol):        # (2) target hue must stay in source family
+            continue
+        if chrom and abs(tC - desiredC) > _CHROMA_TOL:           # (3) chroma sanity
+            continue
+        dLs = [abs(l - tL) for l in Ls]
         worstL = max(dLs); meanL = sum(dLs) / len(dLs)
         hueErr = _ang(hueC, tH) if hueC is not None else 0.0
-        chErr = abs(desiredC - tC)
-        key = (round(worstL, 4), round(meanL, 4), round(hueErr, 1), round(chErr, 3), round(max(des), 3), round(sum(des) / len(des), 3))
+        key = (round(worstL, 4), round(meanL, 4), round(hueErr, 1), round(abs(desiredC - tC), 3),
+               round(max(des), 3), round(sum(des) / len(des), 3))   # lightness-first among ADMISSIBLE
         if best is None or key < best[0]:
-            r = LV3.index(rgb[0]); g = LV3.index(rgb[1]); b = LV3.index(rgb[2])
-            best = (key, "0x%04X" % ((b << 9) | (g << 5) | (r << 1)), max(des), sum(des) / len(des), rgb, worstL, meanL, hueC, spread, tH)
+            best = (key, _natural_cram(rgb)[0], max(des), sum(des) / len(des), rgb, worstL, meanL, hueC, spread, tH)
+    if best is None:
+        if len(members) == 1:                                     # guaranteed-safe self quantization
+            cram, rgb = _natural_cram(rgbs[0])
+            tL, tC, tH = _oklch(rgb)
+            return ((0, 0, 0, 0, _de00(rgbs[0], rgb), _de00(rgbs[0], rgb)), cram, _de00(rgbs[0], rgb),
+                    _de00(rgbs[0], rgb), rgb, abs(Ls[0] - tL), abs(Ls[0] - tL), hueC, spread, tH)
+        return None                                               # NO VALID TARGET -> cluster inadmissible
     return best
 
 
-def _cluster(usages, rank, fit_entries=15):
-    """Generic constrained clustering: never 2 colors from one usage; merge by `rank(a,b)` ascending until <=fit."""
+def _min_hue_arc(hues):
+    """Smallest circular arc (deg) covering all hues (correct wrap: 350,5,15 -> 25 not 345)."""
+    if len(hues) < 2:
+        return 0.0
+    hs = sorted(hues)
+    gaps = [(hs[(i + 1) % len(hs)] - hs[i]) % 360 for i in range(len(hs))]
+    return 360 - max(gaps)
+
+
+def _cluster(usages, rank, fit_entries=15, legal=None):
+    """Constrained clustering: never 2 colors from one domain; merge by `rank` ascending until <=fit.
+    `legal(clusterA, clusterB)` may veto a perceptual merge (hue-safety for the luminance/hue solver)."""
     nodes = []
     for u in usages:
         for c in u["used_colors"]:
@@ -371,11 +404,13 @@ def _cluster(usages, rank, fit_entries=15):
             for jx in range(i + 1, len(clusters)):
                 if usin(clusters[i]) & usin(clusters[jx]):
                     continue
+                if legal and not legal(clusters[i], clusters[jx]):
+                    continue
                 cost = max(rank(x[2], y[2]) for x in a2(clusters, i) for y in a2(clusters, jx))
                 if best is None or cost < best[0]:
                     best = (cost, i, jx)
         if best is None:
-            break
+            break  # cannot merge further without violating MRD or hue-safety
         worst_merge = max(worst_merge, best[0]); _, i, jx = best; clusters[i] += clusters[jx]; del clusters[jx]
     return clusters, worst_merge
 
@@ -384,16 +419,77 @@ def a2(clusters, i):
     return clusters[i]
 
 
-def solve_group(usages, mode="delta_e", fit_entries=15):
-    """mode='delta_e' (perceptual) or 'luminance_hue' (lightness-first + between-hue)."""
-    rank = (lambda a, b: abs(_oklch(a)[0] - _oklch(b)[0])) if mode == "luminance_hue" else (lambda a, b: _de00(a, b))
-    clusters, worst_merge = _cluster(usages, rank, fit_entries)
+def _hue_in_arc(h, hues, tol):
+    if not hues:
+        return True
+    hs = sorted(hues)
+    gaps = [(hs[(i + 1) % len(hs)] - hs[i]) % 360 for i in range(len(hs))]
+    start = hs[(gaps.index(max(gaps)) + 1) % len(hs)]  # arc begins after the largest gap
+    span = 360 - max(gaps)
+    off = (h - start) % 360
+    return off <= span + tol or off >= 360 - tol
+
+
+def _collapse_domains(usages):
+    """Collapse multiple preview representations of one semantic object (same object_id) into ONE palette domain:
+    union used colors (max pixels) + union MRD. Preview frames must not multiply a domain's palette participation."""
+    by = {}
+    for u in usages:
+        d = by.setdefault(u["object_id"], {"usage_id": "domain:" + u["object_id"], "object_id": u["object_id"],
+                                           "display_name": u["display_name"].split(" (")[0], "cols": {}, "reps": [],
+                                           "sprite_bank": u["sprite_bank"], "pieces": u["pieces"], "bounds": u["bounds"]})
+        d["reps"].append(u["usage_id"])
+        for c in u["used_colors"]:
+            k = tuple(c["arcade_rgb8"])
+            if k not in d["cols"] or c["pixel_count"] > d["cols"][k]["pixel_count"]:
+                d["cols"][k] = c
+    out = []
+    for d in by.values():
+        uc = list(d["cols"].values())
+        # union MRD: every pair of the domain's distinct colors co-occurs somewhere in its representations
+        idxs = [c["src_index"] for c in uc]
+        mrd = [[a, b] for i, a in enumerate(idxs) for b in idxs[i + 1:]]
+        out.append({"usage_id": d["usage_id"], "object_id": d["object_id"], "display_name": d["display_name"],
+                    "used_colors": uc, "mrd_pairs": mrd, "n_used": len(uc), "sprite_bank": d["sprite_bank"],
+                    "pieces": d["pieces"], "bounds": d["bounds"], "representations": d["reps"]})
+    return out
+
+
+def solve_group(usages, mode="delta_e", fit_entries=15, hue_limit=45.0, de_limit=20.0, hue_tol=10.0):
+    """mode='delta_e' (perceptual) or 'luminance_hue' (lightness-first, HUE-SAFE). Collapses preview reps to domains."""
+    usages = _collapse_domains(usages)
+    if mode == "luminance_hue":
+        rank = lambda a, b: abs(_oklch(a)[0] - _oklch(b)[0])
+        def legal(ca, cb):
+            rgbs = [m[2] for m in (ca + cb)]
+            ch = [_oklch(r)[2] for r in rgbs if _oklch(r)[1] >= _NEUTRAL_C]
+            if len(ch) >= 2 and _min_hue_arc(ch) > hue_limit:    # cluster hue-span gate
+                return False
+            best = _best_cram_lh([(m[2], m[3]) for m in (ca + cb)], de_limit, hue_tol)
+            return best is not None                              # a hue-safe legal target must exist
+    else:
+        rank = lambda a, b: _de00(a, b)
+        legal = None
+    clusters, worst_merge = _cluster(usages, rank, fit_entries, legal)
     feasible = len(clusters) <= fit_entries
     entries = []
     for ci, cl in enumerate(clusters):
         members = [(m[2], m[3]) for m in cl]
         if mode == "luminance_hue":
-            _, cram, worst, wmean, rgb, worstL, meanL, hueC, spread, tH = _best_cram_lh(members)
+            res = _best_cram_lh(members, de_limit, hue_tol)
+            if res is None:                       # no hue-safe target: keep members as separate safe singletons
+                for m in cl:
+                    r2 = _best_cram_lh([(m[2], m[3])], de_limit, hue_tol)
+                    _, cram, worst, wmean, rgb, worstL, meanL, hueC, spread, tH = r2
+                    entries.append(dict(target_index=len(entries) + 1, cram=cram, rgb=rgb, worst_de=round(worst, 2),
+                                        wmean_de=round(wmean, 2), worst_dL=round(worstL, 4), mean_dL=round(meanL, 4),
+                                        target_hue=round(tH, 1), hue_spread=0.0, src_hue_center=None,
+                                        members=[{"usage_id": m[0], "src_index": m[1], "rgb": m[2], "pixels": m[3],
+                                                  "de": round(_de00(m[2], rgb), 2),
+                                                  "dL": round(abs(_oklch(m[2])[0] - _oklch(rgb)[0]), 4),
+                                                  "src_hue": round(_oklch(m[2])[2], 1)}]))
+                continue
+            _, cram, worst, wmean, rgb, worstL, meanL, hueC, spread, tH = res
             extra = {"worst_dL": round(worstL, 4), "mean_dL": round(meanL, 4),
                      "target_hue": round(tH, 1), "hue_spread": round(spread, 1),
                      "src_hue_center": (round(hueC, 1) if hueC is not None else None)}
@@ -416,9 +512,12 @@ def solve_group(usages, mode="delta_e", fit_entries=15):
             per[u["usage_id"]] = {"worst_de": round(max(d for d, _ in des), 2),
                                   "wmean_de": round(sum(d * p for d, p in des) / max(1, sum(p for _, p in des)), 2),
                                   "worst_dL": round(max(dls), 4)}
-    return {"solver": mode, "feasible": feasible, "entries_used": len(clusters), "entries": entries,
-            "per_object": per, "worst_perceptual_merge": round(worst_merge, 2),
-            "method": ("luminance-first (OKLab ΔL) clustering + between-hue legal CRAM" if mode == "luminance_hue"
+    feasible = len(entries) <= fit_entries        # recompute: safe splits may raise the entry count
+    return {"solver": mode, "feasible": feasible, "entries_used": len(entries), "safe_entries_required": len(entries),
+            "one_line_capacity": fit_entries, "entries": entries, "per_object": per,
+            "worst_perceptual_merge": round(worst_merge, 2),
+            "settings": {"hue_limit": hue_limit, "de_limit": de_limit, "hue_tol": hue_tol, "neutral_c": _NEUTRAL_C},
+            "method": ("luminance-first (OKLab ΔL) HUE-SAFE clustering + admissibility-gated legal CRAM" if mode == "luminance_hue"
                        else "perceptual ΔE00 clustering + best-legal CRAM") + "; BEST SOLUTION FOUND"}
 
 
@@ -608,7 +707,11 @@ class Hd(BaseHTTPRequestHandler):
             if len(us) < 1:
                 return self._s(400, b'{"error":"select 1+ usages"}')
             mode = body.get("mode", "delta_e")
-            return self._s(200, json.dumps(solve_group(us, mode)).encode())
+            sol = solve_group(us, mode, hue_limit=float(body.get("hue_limit", 45)),
+                              de_limit=float(body.get("de_limit", 20)), hue_tol=float(body.get("hue_tol", 10)))
+            sol["palette_domains"] = sorted(set(x["object_id"] for x in us))
+            sol["preview_representations"] = [x["usage_id"] for x in us]
+            return self._s(200, json.dumps(sol).encode())
         if u.path == "/api/policy":
             pid = (body.get("profile_id") or "").strip()
             if not pid or pid == "baseline_current":
