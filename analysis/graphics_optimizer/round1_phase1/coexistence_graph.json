@@ -1,0 +1,509 @@
+{
+  "rule": "unproven mutual exclusion is treated as coexistence; unknown palette requirements block exact color feasibility",
+  "nodes": [
+    "rastan_player_body",
+    "stage1_lizardman",
+    "collision_marker40_route",
+    "collision_marker41_route",
+    "family0_class70_actor",
+    "family2_round1_actor_cluster",
+    "collision_marker49_special_route",
+    "collision_marker4f_behavior20_route",
+    "record08_family2_class30",
+    "record09_family1_class57",
+    "record0a_family1_classb6",
+    "record0b_family1_classb9",
+    "record0c_family1_classbc",
+    "hurry_up_bat",
+    "normal_small_bat",
+    "large_bat",
+    "four_armed_enemy",
+    "axe_item",
+    "player_auxiliary",
+    "other_item_drop",
+    "projectile_weapon",
+    "transient_effect",
+    "gameplay_hud",
+    "plane_a_epoch_0",
+    "plane_a_epoch_1",
+    "plane_a_epoch_2",
+    "plane_a_epoch_3",
+    "plane_a_epoch_4",
+    "plane_a_epoch_5",
+    "plane_a_epoch_6"
+  ],
+  "complete_sprite_clique": true,
+  "semantic_states": [
+    "plane_a_epoch_0",
+    "plane_a_epoch_1",
+    "plane_a_epoch_2",
+    "plane_a_epoch_3",
+    "plane_a_epoch_4",
+    "plane_a_epoch_5",
+    "plane_a_epoch_6"
+  ],
+  "sprite_classes": [
+    {
+      "id": "rastan_player_body",
+      "proven_palette_banks": [
+        "0x33"
+      ],
+      "unknown_palette_candidates": [],
+      "color_requirement": "known",
+      "feasibility": "included"
+    },
+    {
+      "id": "stage1_lizardman",
+      "proven_palette_banks": [
+        "0x36"
+      ],
+      "unknown_palette_candidates": [],
+      "color_requirement": "known",
+      "feasibility": "included"
+    },
+    {
+      "id": "collision_marker40_route",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "collision_marker41_route",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "family0_class70_actor",
+      "proven_palette_banks": [
+        "0x30"
+      ],
+      "unknown_palette_candidates": [],
+      "color_requirement": "known",
+      "feasibility": "included"
+    },
+    {
+      "id": "family2_round1_actor_cluster",
+      "proven_palette_banks": [
+        "0x36"
+      ],
+      "unknown_palette_candidates": [],
+      "color_requirement": "known",
+      "feasibility": "included"
+    },
+    {
+      "id": "collision_marker49_special_route",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "collision_marker4f_behavior20_route",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "record08_family2_class30",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "record09_family1_class57",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "record0a_family1_classb6",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "record0b_family1_classb9",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "record0c_family1_classbc",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "hurry_up_bat",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "normal_small_bat",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "large_bat",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "four_armed_enemy",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "axe_item",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "player_auxiliary",
+      "proven_palette_banks": [
+        "0x33"
+      ],
+      "unknown_palette_candidates": [],
+      "color_requirement": "known",
+      "feasibility": "included"
+    },
+    {
+      "id": "other_item_drop",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "projectile_weapon",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "transient_effect",
+      "proven_palette_banks": [],
+      "unknown_palette_candidates": [
+        "0x30",
+        "0x31",
+        "0x32",
+        "0x33",
+        "0x34",
+        "0x35",
+        "0x36",
+        "0x37",
+        "0x38",
+        "0x39",
+        "0x3A",
+        "0x3B",
+        "0x3C",
+        "0x3D",
+        "0x3E",
+        "0x3F"
+      ],
+      "color_requirement": "unknown",
+      "feasibility": "conservative blocker"
+    },
+    {
+      "id": "gameplay_hud",
+      "proven_palette_banks": [
+        "0x30"
+      ],
+      "unknown_palette_candidates": [],
+      "color_requirement": "known",
+      "feasibility": "included"
+    }
+  ]
+}

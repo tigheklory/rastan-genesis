@@ -1,0 +1,289 @@
+{
+ "scope": "ROUND 1 / PHASE 1 only",
+ "authority": "original arcade Ghidra/ROM",
+ "key": "actor+0x3E (table 0x45502); effective sprite bank=(A4+0x27&0xF)|0x30; compositor arcade 0x3C9A6",
+ "sprites": [
+  {
+   "semantic_id": "FAMILY_00",
+   "anchor_name": "Lizardman",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 0,
+   "base_code": "0x004B",
+   "palette_nibble": "0x06",
+   "effective_sprite_bank": "0x36",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 13 -> pool 0x4FD02+13*0x20 = 0x4FEA2 (converter FUN_0003ba64; MAME xBGR_555 pal5bit; validated vs KF-1214 bank 0x36)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration"
+  },
+  {
+   "semantic_id": "FAMILY_01",
+   "anchor_name": "Chimera (Tighe)",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 1,
+   "base_code": "0x00D0",
+   "palette_nibble": "0x04",
+   "effective_sprite_bank": "0x34",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 18 -> pool 0x4FD02+18*0x20 = 0x4FF42 (converter FUN_0003ba64; MAME xBGR_555 pal5bit; validated vs KF-1214 bank 0x36)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration"
+  },
+  {
+   "semantic_id": "FAMILY_03",
+   "anchor_name": "Four-armed insect (Tighe)",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 3,
+   "base_code": "0x02E8",
+   "palette_nibble": "0x0A",
+   "effective_sprite_bank": "0x3A",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 22 -> pool 0x4FD02+22*0x20 = 0x4FFC2 (converter FUN_0003ba64; MAME xBGR_555 pal5bit; validated vs KF-1214 bank 0x36)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration"
+  },
+  {
+   "semantic_id": "FAMILY_04",
+   "anchor_name": "unnamed",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 4,
+   "base_code": "0x0420",
+   "palette_nibble": "0x07",
+   "effective_sprite_bank": "0x37",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "UNRESOLVED (sprite-bank source not tied to 0x059EC8 blocks / 0x4FD02 pool yet)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration"
+  },
+  {
+   "semantic_id": "FAMILY_05",
+   "anchor_name": "unnamed",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 5,
+   "base_code": "0x01CB",
+   "palette_nibble": "0x06",
+   "effective_sprite_bank": "0x36",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "UNRESOLVED (sprite-bank source not tied to 0x059EC8 blocks / 0x4FD02 pool yet)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration"
+  },
+  {
+   "semantic_id": "FAMILY_06",
+   "anchor_name": "unnamed",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 6,
+   "base_code": "0x03B3",
+   "palette_nibble": "0x08",
+   "effective_sprite_bank": "0x38",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "UNRESOLVED (sprite-bank source not tied to 0x059EC8 blocks / 0x4FD02 pool yet)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration"
+  },
+  {
+   "semantic_id": "FAMILY_07",
+   "anchor_name": "unnamed",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 7,
+   "base_code": "0x043A",
+   "palette_nibble": "0x0F",
+   "effective_sprite_bank": "0x3F",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "UNRESOLVED (sprite-bank source not tied to 0x059EC8 blocks / 0x4FD02 pool yet)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration"
+  },
+  {
+   "semantic_id": "FAMILY_08",
+   "anchor_name": "unnamed",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 8,
+   "base_code": "0x0241",
+   "palette_nibble": "0x02",
+   "effective_sprite_bank": "0x32",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 15 -> pool 0x4FD02+15*0x20 = 0x4FEE2 (converter FUN_0003ba64; MAME xBGR_555 pal5bit; validated vs KF-1214 bank 0x36)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration",
+   "semantic_anchor": "VALKYRIE (armored female warrior; visual ID from arcade render, USER VERIFY name)"
+  },
+  {
+   "semantic_id": "FAMILY_09",
+   "anchor_name": "unnamed",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 9,
+   "base_code": "0x06E2",
+   "palette_nibble": "0x01",
+   "effective_sprite_bank": "0x31",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "UNRESOLVED (sprite-bank source not tied to 0x059EC8 blocks / 0x4FD02 pool yet)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration"
+  },
+  {
+   "semantic_id": "FAMILY_10",
+   "anchor_name": "unnamed",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 10,
+   "base_code": "0x0889",
+   "palette_nibble": "0x0B",
+   "effective_sprite_bank": "0x3B",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "UNRESOLVED (sprite-bank source not tied to 0x059EC8 blocks / 0x4FD02 pool yet)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration"
+  },
+  {
+   "semantic_id": "FAMILY_11",
+   "anchor_name": "unnamed",
+   "category": "ENEMY_HOSTILE",
+   "actor_3e": 11,
+   "base_code": "0x0400",
+   "palette_nibble": "0x0E",
+   "effective_sprite_bank": "0x3E",
+   "effective_bank_proof": "(A4+0x27&0xF)|0x30",
+   "palette_16color_status": "UNRESOLVED (sprite-bank source not tied to 0x059EC8 blocks / 0x4FD02 pool yet)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "r1p1_presence": "requires spawn-table enumeration"
+  },
+  {
+   "semantic_id": "OBJ_cave_block",
+   "anchor_name": "Destroyable cave-entrance block (Tighe; NOT enemy)",
+   "category": "DESTRUCTIBLE_OBJECT",
+   "base_signature": "0x0179",
+   "owner_status": "UNRESOLVED (PC090OJ object vs PC080SN terrain not proven)"
+  },
+  {
+   "semantic_id": "ANCHOR_Valkyrie",
+   "anchor_name": "Valkyrie",
+   "category": "ENEMY_HOSTILE",
+   "owner_status": "RESOLVED (see resolved/render fields; name USER VERIFY)",
+   "resolved": "FAMILY_08 / +0x3E=8 / base 0x0241",
+   "effective_sprite_bank": "0x32",
+   "palette_16color_status": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 15 -> pool 0x4FD02+15*0x20 = 0x4FEE2 (converter FUN_0003ba64; MAME xBGR_555 pal5bit; validated vs KF-1214 bank 0x36)",
+   "render": "contact_sheets/enemy_valkyrie.png",
+   "note": "visual ID from arcade render; USER VERIFY name"
+  },
+  {
+   "semantic_id": "ANCHOR_Small_Bat",
+   "anchor_name": "Small Bat",
+   "category": "ENEMY_HOSTILE",
+   "owner_status": "RESOLVED (see resolved/render fields; name USER VERIFY)",
+   "resolved": "actor_748 / base 0x0268 (single-cell aux)",
+   "effective_sprite_bank": "0x3E",
+   "palette_16color_status": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 36 -> pool 0x4FD02+36*0x20 = 0x50182 (converter FUN_0003ba64; MAME xBGR_555 pal5bit; validated vs KF-1214 bank 0x36)",
+   "render": "contact_sheets/enemy_small_bat.png",
+   "note": "visual ID from arcade render; USER VERIFY name"
+  },
+  {
+   "semantic_id": "ANCHOR_Large_Bat",
+   "anchor_name": "Large Bat",
+   "category": "ENEMY_HOSTILE",
+   "owner_status": "RESOLVED (see resolved/render fields; name USER VERIFY)",
+   "resolved": "actor_5c8 / base 0x03F6 (multi-cell aux)",
+   "effective_sprite_bank": "0x3E",
+   "palette_16color_status": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 36 -> pool 0x4FD02+36*0x20 = 0x50182 (converter FUN_0003ba64; MAME xBGR_555 pal5bit; validated vs KF-1214 bank 0x36)",
+   "render": "contact_sheets/enemy_large_bat.png",
+   "note": "visual ID from arcade render; USER VERIFY name"
+  },
+  {
+   "semantic_id": "ANCHOR_Axe",
+   "anchor_name": "Axe",
+   "category": "UNRESOLVED",
+   "owner_status": "needs actor +0x3E dynamic + compositor proof"
+  },
+  {
+   "semantic_id": "ANCHOR_Flame_Sword",
+   "anchor_name": "Flame Sword",
+   "category": "UNRESOLVED",
+   "owner_status": "needs actor +0x3E dynamic + compositor proof"
+  },
+  {
+   "semantic_id": "ANCHOR_Flail",
+   "anchor_name": "Flail",
+   "category": "UNRESOLVED",
+   "owner_status": "needs actor +0x3E dynamic + compositor proof"
+  },
+  {
+   "semantic_id": "ANCHOR_Boulder",
+   "anchor_name": "Boulder",
+   "category": "UNRESOLVED",
+   "owner_status": "needs actor +0x3E dynamic + compositor proof"
+  },
+  {
+   "semantic_id": "FLYING_DEMON",
+   "anchor_name": "Flying Demon (Tighe)",
+   "category": "ENEMY_HOSTILE",
+   "r1p1_presence": "CONFIRMED x2",
+   "occurrences": [
+    {
+     "section": 9,
+     "record": 8,
+     "location": "right side"
+    },
+    {
+     "section": 14,
+     "record": 13,
+     "location": "~1/3 into section"
+    }
+   ],
+   "disassociated_from": "ROUND1_BOSS (+0x3E==2 / base 0x33E) \u2014 actual R1 boss is a SEPARATE Phase-3 actor, NOT in R1/P1 corpus",
+   "actor_identity": "PROVEN-BY-STRUCTURE (user-play arcade trace flying_demon_capture.json): SPECIAL two-slot actor_508 composite, base 0x0129; NOT a +0x3E family-table enemy",
+   "actor_3e": "0x00 \u2014 does NOT use the +0x3E family selector (special actor_508 path). Prior 'one of {4..11}' guess WITHDRAWN. Also +0x38=0x00, +0x752=0x00, +0x27(attr)=0x80.",
+   "component_structure": "RESOLVED = TWO co-located, state-locked actor_508 components (component_A @0x10C508 OBJ records 57-69 codes 0x0129-0x0155; component_B @0x10C548 OBJ records 70-82 codes 0x014A-0x0177), sharing one death animation (codes 0x0288-0x02A8). Single-actor-with-piece-subgroup and the prior a5+0x748/a5+0x8c8 aux hypothesis are both WITHDRAWN.",
+   "physical_body_vs_wing_assignment": "PROVEN BY RENDER (enemy contact-sheet task, offline from pc090oj.bin + real emitted records): component_A (records 57-69) draws the BODY/torso/legs/sword; component_B (records 70-82) draws the two WINGS (~96px membrane span). Neutral component_A/B identifiers retained. Evidence: contact_sheets/r1p1_enemies_diagnostic.png.",
+   "wing_only_death_arcade": "NOT OBSERVED (not proven impossible): 0 of 885 shared frames show one component in death state 0x0F while the other lives; state-locked throughout. No wing-targeted attack was isolated and no static damage-ownership code analyzed, so exact damage/death ownership is DEFERRED.",
+   "damage_lifecycle": "STRONGLY COUPLED / state-locked across the captured lifecycle: states 0x03 spawn -> 0x04-0x09 living -> 0x0F death, both components share identical observed state every frame; co-occurrence (09,09)x241 (05,05)x199 (06,06)x145 (08,08)x113 (04,04)x87 (07,07)x75 (0F,0F)x23 (03,03)x2.",
+   "build0313_component_split": "OPEN-027 / DEFERRED: on Build 0313 one visible component can be removed while the rest survives (diverges from state-locked arcade trace); ROOT CAUSE UNRESOLVED, NOT attributed to the renderer without proof.",
+   "effective_sprite_bank": "0x35",
+   "palette_16color_status": "PROVEN via round-1 index table 0x3BA88[k] -> pool index 16 -> pool 0x4FD02+16*0x20 = 0x4FF02 (converter FUN_0003ba64; MAME xBGR_555 pal5bit; validated vs KF-1214 bank 0x36)",
+   "build0313_palette": "INCORRECT (user obs; not fixed here)",
+   "compositor_status": "COMPLETE (real emitted PC090OJ records; PC090OJ priority lower-record-on-top; NO base+n)",
+   "round2_boss_wing_sharing": "HYPOTHESIS UNPROVEN (compare wing physical pattern hashes once wing patterns decoded; semantic identity stays separate regardless)"
+  }
+ ],
+ "note": "R1/P1 seven enemies CLOSED with CORRECTED palettes: effective bank from emitted word0 nibble; 16 colors via ROUND-1 INDEX TABLE 0x3BA88 -> pool 0x4FD02 (NOT direct-bank). PC090OJ draw order lower-record-on-top. Valkyrie/Small Bat/Large Bat names are arcade-render visual IDs (USER VERIFY).",
+ "flying_demon_correction": "ROUND1_BOSS_flying_demon WITHDRAWN; Flying Demon = ordinary R1/P1 ENEMY at Section9/Rec8 + Section14/Rec13; R1 boss is separate Phase-3 actor excluded from R1/P1 corpus.",
+ "captured_world_sprites": "See sprite_census_captured.json + contact_sheets/r1p1_all_sprites.png: 7 enemies + 5 enemy anim-forms + 3 hazards (cave block 0x0179 SPRITE, swinging rope 0x00F4, boulder 0x0D5F) + 3 projectiles + 3 effects. PLAYER/WEAPONS/AXE-ITEMS/HUD NOT in saved trace -> armed capture required (tools/graphics_optimizer/r1p1_full_sprite_capture.lua).",
+ "player_and_hud": {
+  "RASTAN": {
+   "category": "PLAYER",
+   "records": "120-131",
+   "bank": "0x33",
+   "cell_codes_captured": 30,
+   "render": "contact_sheets/player_rastan.png / player_poses.png",
+   "states": "idle/walk/jump/crouch/attack/thrust captured",
+   "note": "barbarian; normal steel sword + Flame Sword variant both captured"
+  },
+  "NORMAL_SWORD": {
+   "category": "WEAPON",
+   "note": "steel blade in Rastan attack composite (bank 0x33)",
+   "user_verify": true
+  },
+  "FLAME_SWORD_equipped": {
+   "category": "WEAPON",
+   "note": "flaming blade variant of Rastan attack (bank 0x33); equipped after pickup",
+   "user_verify": true
+  },
+  "SWORD_SPARKLE": {
+   "category": "EFFECT",
+   "records": "132-133",
+   "bank": "0x30"
+  },
+  "HUD": {
+   "category": "HUD",
+   "records": "0-45",
+   "banks": [
+    "0x30",
+    "0x33"
+   ],
+   "note": "score/text/1UP cells across screen top"
+  }
+ },
+ "not_yet_isolated": [
+  "Flail equipped variant",
+  "Axe pickup + item pickups as distinct ground-item actors",
+  "new enemy producers 0x0234/0x0236/0x0266/0x0DAB"
+ ]
+}

@@ -1,0 +1,170 @@
+{
+ "note": "original-arcade coexistence: which palette banks are simultaneously live in R1/P1 planes (evidence only; NO Genesis consolidation)",
+ "context": "context:gameplay.r01.p01",
+ "total_plane_banks_live_r1p1": 12,
+ "sprite_banks_live_r1p1": [
+  "0x32",
+  "0x34",
+  "0x35",
+  "0x36",
+  "0x3A",
+  "0x3E",
+  "0x33 (Rastan)",
+  "0x30 (effects/HUD)"
+ ],
+ "note2": "sprite coexistence detail in round1_phase1_corpus/coexistence.json; combine for full CRAM planning later",
+ "correction_2_epochs": {
+  "palette_content_epoch": "epoch_00 (16-color words never change during R1/P1; stage-load fill; Layer B single distinct state)",
+  "palette_usage_epoch": "per-segment active-bank set (below) - NOT the union; distinguishes LOADED vs ACTIVE/COEXISTING",
+  "note": "the earlier 'all 11 Layer-A banks coexist' was the UNION across R1/P1; the real simultaneous set is per segment/record"
+ },
+ "layer_a_active_banks_per_segment": {
+  "0": [
+   "0x003"
+  ],
+  "1": [
+   "0x003",
+   "0x004"
+  ],
+  "2": [
+   "0x003",
+   "0x004",
+   "0x005",
+   "0x006",
+   "0x007"
+  ],
+  "3": [
+   "0x003",
+   "0x01A",
+   "0x01B",
+   "0x01C",
+   "0x01D"
+  ],
+  "4": [
+   "0x003",
+   "0x005"
+  ],
+  "5": [
+   "0x003",
+   "0x004"
+  ],
+  "6": [
+   "0x003",
+   "0x005"
+  ],
+  "7": [
+   "0x003",
+   "0x004"
+  ],
+  "8": [
+   "0x003",
+   "0x004"
+  ],
+  "9": [
+   "0x003"
+  ],
+  "10": [
+   "0x003",
+   "0x005",
+   "0x01A",
+   "0x01B",
+   "0x01C",
+   "0x01D"
+  ],
+  "11": [
+   "0x003",
+   "0x005",
+   "0x01A",
+   "0x01B",
+   "0x01C",
+   "0x01D"
+  ],
+  "12": [
+   "0x003"
+  ],
+  "13": [
+   "0x003",
+   "0x004"
+  ],
+  "14": [
+   "0x003",
+   "0x004",
+   "0x005",
+   "0x006",
+   "0x007"
+  ],
+  "15": [
+   "0x003",
+   "0x017",
+   "0x018"
+  ]
+ },
+ "layer_b_active_banks_per_segment": {
+  "0": [
+   "0x002"
+  ],
+  "1": [
+   "0x002"
+  ],
+  "2": [
+   "0x002"
+  ],
+  "3": [
+   "0x002"
+  ],
+  "4": [
+   "0x002"
+  ],
+  "5": [
+   "0x002"
+  ],
+  "6": [
+   "0x002"
+  ],
+  "7": [
+   "0x002"
+  ],
+  "8": [
+   "0x002"
+  ],
+  "9": [
+   "0x002"
+  ],
+  "10": [
+   "0x002"
+  ],
+  "11": [
+   "0x002"
+  ],
+  "12": [
+   "0x002"
+  ],
+  "13": [
+   "0x002"
+  ],
+  "14": [
+   "0x002"
+  ],
+  "15": [
+   "0x002"
+  ]
+ },
+ "layer_a_max_simultaneous_banks": 6,
+ "layer_a_legal_banks_union": [
+  "0x003",
+  "0x004",
+  "0x005",
+  "0x006",
+  "0x007",
+  "0x017",
+  "0x018",
+  "0x01A",
+  "0x01B",
+  "0x01C",
+  "0x01D"
+ ],
+ "layer_b_legal_banks_union": [
+  "0x002"
+ ],
+ "_terminology": "*_legal_banks_union = every bank used SOMEWHERE in R1/P1 (NOT simultaneous). *_active_banks_per_segment = actually simultaneous per segment/record."
+}

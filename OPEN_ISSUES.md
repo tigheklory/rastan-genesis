@@ -695,3 +695,55 @@ Final response must include "Open/Closed Issues Impact" section with:
   text-scroll task; NOT to be masked by alignment. Gets its own static/decompilation-first task after the item-page
   text work. GEN PC 0x00072F7A is a genesis-only helper; FAULT 0x00FE6009 is an odd address (address error) in the
   0xFE mirror of WRAM. Not closed.
+
+## OPEN-026 — R1/P1 opening Lizardmen show duplicate/overlapping native sprite composites despite four-enemy score accounting
+
+- **Status:** OPEN / DEFERRED (documented during the active R1/P1 sprite-corpus audit; NOT investigated here)
+- **Priority:** MEDIUM
+- **Discovered by:** Tighe (Exodus sprite-boundary inspection + score-control test)
+- **Earliest reproduced build:** 0300 (score-display flag available); **also observed:** 0313 (current). Defect therefore PREDATES Builds 0301–0313 and is NOT attributable to recent corpus-analysis work or Build-0313-only changes.
+- **Architecture note:** production PC090OJ compatibility/emulation is retired. In the ORIGINAL ARCADE, PC090OJ emitted-object records are authoritative *reference* evidence; on CURRENT GENESIS, native sprite/SAT production realizes those semantics. This defect concerns ACTOR/SEMANTIC EXECUTION and/or NATIVE GENESIS SPRITE/SAT PRODUCTION — **not** a presumed surviving production PC090OJ emulator.
+
+- **Symptom:**
+  - At the very start of Round 1 / Phase 1, opening Lizardmen appear to have more than one complete animation pose occupying nearly the same enemy position (e.g. one forward/thrusting pose overlapping a different backswing/weapon pose); composites subsequently appear to separate.
+  - Exodus sprite-boundary inspection shows suspicious duplicate composite coverage; other Lizardmen also show overlapping/mismatched sprite pieces.
+  - At least one Lizardman can lose visible pieces (e.g. the head), consistent with sprite/SAT pressure.
+
+- **Arcade reference:** four opening Lizardmen; 300 points each; 1200 total.
+- **Genesis evidence:** Build 0300 shows the same duplicate-looking graphics; 300 points per completed kill; 1200 total for the first wave. Build 0313 shows the same visual duplicate-composite symptom.
+
+- **Interpretation (conservative):** Strong evidence of EXCESS sprite/composite production. The matching 4×300=1200 score accounting is strong evidence AGAINST an extra scoring gameplay enemy (a fifth independent actor), though it does not mathematically prove the live actor count is four. NOT yet proven to be an excess gameplay-actor count.
+
+- **Candidate causes (HYPOTHESES ONLY — not findings):**
+  - **H1 — Duplicate gameplay actor activation:** a spawn semantic processed more than once producing an extra actor. Score evidence makes this LESS favored, but it remains unproven either way.
+  - **H2 — Duplicate native sprite production:** one legitimate arcade actor emits its complete Genesis sprite composite more than once (could explain two coherent poses around one semantic enemy).
+  - **H3 — Stale SAT / prior-pose retention:** a prior animation pose remains in the staged/final SAT after the current pose is emitted (OLD POSE + NEW POSE for one legitimate actor).
+  - **H4 — Frame/VBlank ordering contribution:** exceeding the intended frame/VBlank budget may allow a semantic or render-side operation to survive/recur across a subsequent frame. UNPROVEN — do NOT state VBlank overrun automatically duplicates actors.
+  - **H5 — Sprite-limit consequence:** excess sprite pieces may cause missing portions (e.g. a Lizardman head) via Genesis per-line/SAT sprite limits. UNPROVEN vs another SAT defect.
+  - **Cross-reference:** KF-050 / KF-051 (proven Genesis-only spurious *player* Rastan low-record duplicate via the default block-copy helper) document a real duplicate-emission mechanism for a different actor; do not assume it is the same cause without proof. Related: OPEN-024 (PC090OJ subsystem incomplete/garbage, broader).
+
+- **Future proof required (its own focused task):** compare ORIGINAL ARCADE vs GENESIS for the initial Lizardman wave and prove: (1) live semantic actor count; (2) spawn-descriptor consumption count; (3) native render requests per actor/frame; (4) SAT entries emitted per actor/frame; (5) SAT retirement between animation poses; (6) frame/VBlank identity around the defect. Decisive classification: A. EXTRA ACTOR / B. DUPLICATE RENDER EMISSION / C. STALE SAT POSE / D. MULTIPLE / E. OTHER.
+
+- **Current scope:** DEFERRED. Do not trace/instrument Build 0300 or 0313, patch SAT retirement, alter VBlank, change actor activation or sprite limits, produce a test ROM, or consume Build 0314 for this issue now. Record and defer.
+
+## OPEN-027 — R1/P1 Flying Demon components can separate on Genesis despite state-locked arcade composite
+
+- **Status:** OPEN / DEFERRED (documented during the active R1/P1 sprite-corpus audit; NOT investigated here)
+- **Priority:** MEDIUM
+- **Discovered by:** Tighe (Build 0313 gameplay observation) + Andy (saved original-arcade user-play trace analysis)
+- **Observed in build:** 0313
+- **Architecture note:** gameplay lifecycle/damage semantics belong to arcade execution; native Genesis sprite/SAT production is graphics realization. This divergence is NOT attributed to the native renderer (or to gameplay, collision, SAT retirement, or damage translation) without proof.
+
+- **Original arcade evidence (flying_demon_trace/flying_demon_capture.json):**
+  - Flying Demon = special two-slot `actor_508` composite, base 0x0129 (does NOT use the +0x3E family system).
+  - component_A @0x0010C508 → OBJ records 57-69, codes 0x0129-0x0155.
+  - component_B @0x0010C548 → OBJ records 70-82, codes 0x014A-0x0177 (shared death anim 0x0288-0x02A8).
+  - Co-located and state-locked: 0 of 885 shared observed frames show one component in death state 0x0F while the other lives. (Which component is pixel-wise body vs wings is UNRESOLVED.)
+
+- **Genesis Build 0313 observation:** the user can remove/kill one visible component (a wing-like portion) while the remaining demon survives — a separation not seen in the state-locked arcade trace. Palette is also incorrect, but palette remains part of the sprite audit.
+
+- **Root cause:** UNRESOLVED. Candidate owners (hypotheses only): translated gameplay lifecycle ownership; component state synchronization; native sprite publication/retirement; damage-target ownership; another proven mechanism. Do NOT assign to renderer/gameplay/collision/SAT-retirement/damage-translation without proof.
+
+- **Note on evidence limits:** the saved trace shows a state-locked lifecycle but does NOT contain a positively-identified attack against a single component, and no static arcade damage-ownership code has been analyzed; universal wing-only-death impossibility is therefore NOT proven. A future focused task would need (A) a trace isolating a wing-targeted hit, or (B) static original-arcade proof of shared damage/death ownership, to classify the divergence.
+
+- **Current scope:** DEFERRED. No implementation, no trace, no ROM, no Build 0314 for this issue now. Record and defer.

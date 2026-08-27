@@ -46308,3 +46308,505 @@ enemy-density proof: three deterministic mode-1 encounters were compared against
 validation: canonical GATE_PASS; gameplay-entry gate `states/traces/build0313_gameplay_entry_gate_20260824_133037/` PASS; Phase-1 package gate `states/traces/build0313_phase1_epoch_gate_20260824_133040/` PASS; record5/package2 gate and pattern/palette evidence under `states/traces/build0313_plane_a_pattern_palette_audit_20260824_140000/`; enemy comparison under `states/traces/build0313_enemy_density_compare_20260824_143000/`; standard smoke `states/traces/rastan_direct_video_test_build_0313_mame_30s_20260824_133050/` completed with no unique unmapped address. Build0311 overlap contracts remain rope12/waterfall224, peaks394/479, drops0.
 build: Build0313, `dist/rastan-direct/rastan_direct_video_test_build_0313.bin`, SHA-256 `b018dae1085c5e7b6566e9ad427718218a92f2538d79ad0296cd037145c8dc2b`, 1,670,840 bytes, counter312->313; rolling ROM byte-identical; all numbered artifacts preserved. Real-hardware map/palette/enemy acceptance remains USER MUST VERIFY.
 durable artifacts: `docs/design/Cody_build0313_build0312_map_regression_and_phase1_palette_audit.md`; corrected `analysis/build0311_phase1_hardware_visual_audit/` storyboard, four-way audit metadata, and issue ledger; optional evidence-dump support in `tools/mame/scripts/build0310_epoch_gate.lua`.
+## [Cody — Infrastructure, General Round/Scene/Phase Graphics Analyzer + Optimizer]
+
+- **Scope:** Built a reusable offline original-arcade graphics analyzer and generated the Round 1 Phase 1 reference dataset/viewer; no production source, remap, palette implementation, ROM, or counter change.
+- **Files created/modified:** `tools/graphics_optimizer/analyze_graphics.py`, `tools/graphics_optimizer/scope_manifest.json`, `analysis/graphics_optimizer/round1_phase1/`, `docs/design/Cody_general_round_phase_graphics_palette_optimizer.md`, `AGENTS_LOG.md`.
+- **Sprite semantic coverage:** conservative discovered-route ledger 23 rows = 4 resolved + 19 explicitly unresolved; all decoded marker/record routes are represented, but complete legal class enumeration and semantic closure are both `NO`, so optimization and asset emission fail closed.
+- **Palette discipline:** only proven object-to-palette relationships contribute colored sprite data. Hurry-up Bat bank remains unknown in legal range `0x30..0x3F`; its contact-sheet frames are grayscale/neutral and contribute no colors to `colors.json`, coexistence pressure, or the two-sprite-line solver.
+- **Known exact pressure:** sprites 32/30 colors, Plane A fixed union 64/15 colors, Plane B 15/15 colors. Known sprite pattern lower bound 288/196; unresolved classes can only increase pressure.
+- **Validation:** manifest JSON parsed, analyzer compiled, generation completed, conservative partition exact `YES`, discovered routes represented `YES`, complete legal class enumeration `NO`, unknown-bank colored-data leak `ZERO`, candidate asset bytes emitted `NO`.
+- **Report:** `docs/design/Cody_general_round_phase_graphics_palette_optimizer.md`.
+- **Build produced:** NO.
+- **Counter:** 313 (unchanged).
+- **Open/Closed Issues Impact:** no issue opened or closed; unresolved sprite class/art/palette provenance remains an explicit pre-production blocker.
+
+[Andy — whole-game enemy lexicon semantic closure: actor +0x3E proven; Cody 52 -> 11 normal + 6 boss (analysis only)]
+build: NO ROM, build counter 313 unchanged, NO production change, palette_decisions.json untouched. Continued Cody's tree (not restarted).
+ACTOR +0x3E STATIC PROOF: FUN_0004544e (0x4544E) normal path indexes 12-row 8-byte family table 0x45502 (alt 0x45562 when A4+0x752!=0) by A4+0x3E -> sets actor 0x1e/0x28/0x2c/0x3a/0x1; size 0x45562-0x45502=96=12x8. A4+0x3E==2 -> BOSS path (index A4+0x752). FUN_00045684 (0x45684) sets effective bank A4+0x27 from table 0x45722 [A4+0x3E + (round-1)*12] (boss-mode 0x4576A gated a5+0x2A2) = PROVEN family->palette-bank map.
+FAMILY BASES (byte0-1): 0->0x4B(Lizardman) 1->0xD0 2->0x33E(BOSS) 3->0x2E8 4->0x420 5->0x1CB 6->0x3B3 7->0x43A 8->0x241 9->0x6E2 10->0x889 11->0x400. PALBANK(0x45722): 06,04,07,0A,07,06,08,0F,02,01,0B,0E.
+CORRECTION: Cody 52-hostile ledger = provisional graphics-signature clustering, superseded. Cross-ref to +0x3E table: 11 NORMAL enemy families (0x3E in {0,1,3..11}) collapse ~36 Cody rows; 6 BOSS (0x3E==2 via +0x752, 3 Cody rows were boss-0x33E/high-code pieces); 13 STATIC_SELECTOR -> UNRESOLVED ROUTE/SEED (NOT enemy); 4 non-enemy; 4 (four_armed_enemy/large_bat/normal_small_bat/0xA5A) UNRESOLVED pending +0x3E DYNAMIC (must alias one of the 11 - table has exactly 12 rows). Old 1resolved+51unresolved=52 -> 11+6=17.
+ENUMERATION: hostile_family_enumeration_complete=TRUE (12-row table is the closed legal domain; no 12th normal family possible). semantic_identity + naming NOT complete (bats/four-armed need dynamic; boss +0x752 subselectors + boss composite ownership + sprite-palette 16-color contents remain).
+SWEEP: arcade_enemy_sweep.lua ALREADY captures +0x3E (actor_mode3e); existing 26016-obs corpus predates it -> rerun needed for per-round presence + placing the 4 unmatched. Static regroup is AUTHORITATIVE; dynamic = confirmation. round2_castle empty = likely selector-timing gap (Round-2 hostiles use same +0x3E path), confirm on rerun.
+PALETTE: family->bank proven (0x45722) but bank 16-color CONTENTS still need sprite-palette-staging decode -> colored feasibility still blocked, no bank guessed/colored. Fail-closed intact.
+Artifacts: analysis/enemy_sprite_lexicon/{corrected_semantic_families.json, corrected_closure_check.json}. Cody raw corpus/families.json/HTML/contact_sheet preserved. optimizer round1_phase1 input (4 conservative classes) unaffected.
+Doc: docs/design/Andy_whole_game_arcade_enemy_sprite_lexicon_semantic_closure.md
+STOP: +0x3E authoritative taxonomy = 11 normal + 6 boss (not 52); dynamic rerun + sprite-palette-color decode + boss +0x752/composite validation remain.
+
+[Andy — enemy lexicon pass 2: spawn+boss mechanism proven, canonical artifacts regenerated (analysis only)]
+build: NO ROM, counter 313, NO production change, palette_decisions.json untouched.
+SPAWN: FUN_0004a086 (0x4A086) = actor spawner: A4+0x3E=spawn_desc[1] (family), A4+0x38=desc[2]&0xF, A4+0x752=desc[2]>>4, then loader 0x4544E + palette 0x45684. Category proof PATH established; per-round spawn-table enumeration NOT done.
+BOSS: base 0x33E; tables 0x454BA/D2/EA (by A4+0x38) x 3 entries (by A4+0x752) = 9 forms; round-indexed palette 0x45722. Per-round correlation PENDING dynamic. Composites = COMPOSITE UNRESOLVED (not re-rendered).
+PALETTE: family->nibble proven (0x45722 -> A4+0x27 low bits); load path FUN_00045d7c/dc4->FUN_0003ba20/FUN_0003a2d0 identified; nibble->bank->16color NOT closed -> UNKNOWN, no guessing.
+CANONICAL REGEN: index.html/contact_sheet.png/families.json now = SEMANTIC 11-normal+6-boss (grayscale base sprites, fail-closed); Cody provisional preserved as cody_provisional_*. optimizer_input relabeled to NORMAL_FAMILY_NN semantic IDs (aliases retained). families_semantic.json + closure_check_semantic.json canon.
+CLOSURE (granular): actor_selector_domain_closed=YES; static_seed_coverage=YES; dynamic_tuple_coverage=NO(rerun not executed); semantic_category=PARTIAL; hostile_family_mapping=NO(4 pending); boss_identity=PARTIAL; boss_composite=NO; palette_bank_mapping=YES; palette_color_contents=NO; whole_game_fail_closed=YES. OVERALL PARTIAL (STATIC_DOMAIN_PASS).
+STALE-HTML COMPLAINT FIXED: primary index.html now shows corrected model.
+PENDING (bounded, not fabricated): 18-selector +0x3E rerun; sprite 16-color decode; boss composite ownership; per-round boss +0x752 correlation; round2_castle root cause; per-round spawn-table category enumeration.
+Doc: docs/design/Andy_whole_game_arcade_enemy_sprite_lexicon_semantic_closure.md
+STOP: static semantic model + spawn/boss mechanism + canonical regen done; dynamic + palette-color + boss-composite remain.
+
+[Andy — enemy lexicon pass 3: quarantined invalid pass-2, PROVEN palette selector->effective-bank (analysis only)]
+build: NO ROM, counter 313, NO production change, palette_decisions.json untouched.
+QUARANTINE: moved invalid Andy pass-2 outputs (families_semantic.json, contact_sheet_semantic.png, index_semantic.html, closure_check_semantic.json, sprites_semantic/, relabeled optimizer_input) -> analysis/enemy_sprite_lexicon/INVALID_pass2_andy/. Reason: representatives fabricated from base_code+3 consecutive codes (NOT the compositor); canonicalized before proof; optimizer had duplicate canonical ID. Restored index.html/families.json/contact_sheet.png <- cody_provisional baseline (labeled). Wrote SEMANTIC_STATUS.md. RETIRED the base+n renderer.
+WITHDRAWN: '11 normal + 6 boss' as closed canonical count (needs per-selector category proof + dynamic rerun + boss correlation). SURVIVES as evidence: +0x3E family selector (spawner FUN_0004a086 desc[1]), 12-row table 0x45502, boss 0x3E==2, family->nibble 0x45722.
+PROVEN THIS PASS (flagged 0x06-vs-0x36 clue RESOLVED): PC090OJ record palette byte = (A4+0x27 & 0x0F) | 0x30 (decompiler 2414/2419/579/16). fam0 nibble 0x06 -> 0x36 = proven Lizardman effective bank. Effective sprite bank = 0x30|nibble; per-family: 0->36,1->34,3->3A,4->37,5->36,6->38,7->3F,8->32,9->31,10->3B,11->3E. palette_selector + effective_bank mapping = PROVEN; 16-COLOR CONTENTS of banks 0x31-0x3F still via staging FUN_00045dc4->FUN_0003a2d0, ROM source undecoded = UNKNOWN (no guess).
+REAL COMPOSITOR located: arcade 0x3C9A6 + family descriptor tables fam0=0x3D09E fam1=0x4771C fam2=0x3F0CE fam3=0x40004 fam4=0x4002C -> representatives must decode piece code+x/y/flip, NEVER base+n.
+CLOSURE: actor_selector_domain_closed=YES; spawn_descriptor_domain_closed=YES; static_seed_coverage=YES; palette_selector_mapping=YES; effective_bank_mapping=YES; dynamic_18_rerun=NO; round2_castle=NO; category=NO; hostile_family_mapping=NO; boss_identity=NO; boss_composite=NO; normal_composite=NO; palette_color_contents=NO; optimizer_valid=NO; whole_game_fail_closed=YES. OVERALL PARTIAL.
+OPEN (bounded, not fabricated): 18-selector +0x3E rerun; round2_castle; category-per-selector; 4 unmatched + hurry-up-bat; boss per-round correlation + clean composites; 16-color staging decode; real compositor render; regenerate canonical lexicon + valid optimizer.
+Doc: docs/design/Andy_whole_game_arcade_enemy_sprite_lexicon_semantic_closure.md
+STOP: invalid work quarantined + palette effective-bank PROVEN; remaining branches need MAME rerun + staging/compositor decode (bounded, not fabricated).
+
+## [Andy — Analysis, Round 1/Phase 1 Complete Graphics + Palette Corpus]
+* files changed: analysis/graphics_optimizer/round1_phase1_corpus/{sprites.json,layer_a_tiles.csv,layer_b_tiles.csv,palettes.json,pattern_identity.json,coexistence.json,closure.json}; docs/design/Andy_round1_phase1_complete_graphics_palette_corpus.md
+* build produced: NO | ROM path: N/A | production source changed: NO
+* Phase 0: priors read; EXTENDING (KF-010 plane map + KF-153 palette table 0x059EC8); no CONFIRMED/STRONG contradiction.
+* KF-153 USED: gameplay palette source = pointer table arcade 0x059EC8 (6 entries -> blocks 0x05DB4E..0x05E04E, 0RGB nibble-packed).
+* Layer A corpus: 1316 codes -> 1315 physical (records 0-15). Layer B: 854 codes/854 physical (single R1 vocab, no drops).
+* Sprite family map: +0x3E table 0x45502; anchors reconciled: Lizardman=fam0(0x4B), Chimera=fam1(0xD0, Tighe), Four-armed=fam3(0x2E8, Tighe), Flying Demon=R1 boss(0x3E==2,0x33E); cave-block 0x0179 = NON-enemy destructible (owner unresolved).
+* Effective sprite bank PROVEN: (A4+0x27&0xF)|0x30 (fam0 0x06->0x36). Plane palettes DECODED: FG bank3, BG bank48 (0RGB 16 colors).
+* R1P1 sprite corpus closed: NO | Layer A closed: patterns YES/per-tile-bank NO | Layer B closed: YES | palette contents closed: NO | physical pattern identity closed: YES
+* UNRESOLVED (bounded, not fabricated): sprite 16-color bank source; real compositor 0x3C9A6 decode; per-tile FG palette bank; category+8 anchors via spawn/dynamic; cave-block owner.
+* no unrelated changes: YES | guessed colors 0; screenshot-sampled colors 0; Genesis CRAM as authority 0.
+* verification: PARTIAL (corpus NOT closed).
+
+## [Andy — R1/P1 Flying Demon semantic correction (EXTENDING corpus task)]
+* files changed: analysis/graphics_optimizer/round1_phase1_corpus/sprites.json; docs/design/Andy_round1_phase1_complete_graphics_palette_corpus.md
+* build: NO ROM, counter 313, NO production change, palette_decisions.json untouched.
+* CORRECTION: WITHDRAWN ROUND1_BOSS_flying_demon (was +0x3E==2/base 0x33E). Flying Demon = ordinary R1/P1 ENEMY/HOSTILE at Section9/Rec8 (right) + Section14/Rec13 (~1/3). Actual R1 boss = separate Phase-3 actor, excluded from R1/P1 corpus.
+* actor +0x3E UNRESOLVED (ordinary enemy => {4,5,6,7,8,9,10,11}; no user base anchor; needs spawn-table enum or MAME capture at rec 8/13). NOT guessed.
+* Body/wing: Build-0313 separable wings (wings killable, body survives). Aux PC090OJ blocks a5+0x748/a5+0x8c8 = auxiliary-component mechanism -> arrangement B/C (parent body + aux wing). Exact ownership + wing-only-death legality UNRESOLVED pending actor trace. Analysis only, no fix.
+* Palette: Build-0313 INCORRECT (user obs, not fixed); correct effective bank = 0x30|nibble once family proven.
+* Compositor: real 0x3C9A6 + descriptor tables; body/wing pieces UNRESOLVED; NO base+n.
+* R2-boss wing sharing: HYPOTHESIS UNPROVEN (physical hash compare later; semantic stays separate).
+* Build-0313 differential: classification F (unresolved) pending capture. No production change.
+* verification: PARTIAL (semantic correction done; family/body-wing/palette/sharing pending bounded capture).
+
+## [Andy — Evidence Collection, User-Driven Flying Demon Trace]
+* build produced: NO
+* production changed: NO
+* trace target: ORIGINAL ARCADE MAME (rastan)
+* driver: TIGHE (manual play; coin 5 / start 1)
+* Section 9 / Record 8 captured: YES (frames 6318-11120, 674 obs rows, 15 markers)
+* Section 14 / Record 13 captured: YES (frames 14262-16726, 4424 obs rows, 48 markers)
+* raw trace path: analysis/graphics_optimizer/round1_phase1_corpus/flying_demon_trace/observations.csv (7.2MB, 34484 distinct actor states) + encounters.tsv + metadata.txt
+* manifest path: analysis/graphics_optimizer/round1_phase1_corpus/flying_demon_trace/manifest.json
+* trace lua: tools/enemy_sprite_lexicon/flying_demon_userplay_trace.lua (captures actor +0x3E/+0x38/+0x752/class/state/anim/attr0x27/base/pos + aux blocks 0x748/0x8c8 + PC090OJ emitted records)
+* trace integrity: PASS (18336 frames, close() flushed, both encounters covered, files non-empty)
+* semantic analysis: DEFERRED TO NEXT SESSION
+
+## [Andy — Flying Demon USER-PLAY TRACE ANALYSIS (RESOLVED)]
+* build produced: NO; production changed: NO; ROM: none; Build counter 313 (unchanged); palette_decisions.json untouched.
+* platform: ORIGINAL ARCADE MAME (rastan), user-driven trace; NO re-run (analyzed saved observations.csv, 34,485 rows).
+* scope kept: NO palette 16-color decode, NO Round-2 boss work, NO other enemies, NO Layer A/B, NO compositor pixel decode, analysis only.
+* files changed: analysis/graphics_optimizer/round1_phase1_corpus/flying_demon_trace/flying_demon_capture.json (NEW); analysis/graphics_optimizer/round1_phase1_corpus/sprites.json; docs/design/Andy_round1_phase1_complete_graphics_palette_corpus.md
+* IDENTITY (PROVEN-BY-STRUCTURE): Flying Demon = SPECIAL two-slot actor_508 composite, base 0x0129. NOT a +0x3E family enemy: +0x3E=0x00, +0x38=0x00, +0x752=0x00, +0x27(attr)=0x80 for all 1,876 rows. Prior "one of {4..11}" guess WITHDRAWN.
+* +0x3E==2/base 0x33E (former "Flying Demon boss") CONFIRMED = actual Phase-3 boss, present ONLY at record 17, never at records 8/13. Validates earlier withdrawal.
+* BODY/WING = arrangement B (two co-located, state-locked actors; NOT C, NOT a5+0x748/0x8c8 aux): component_A @0x10C508 (idx0) OBJ records 57-69 codes 0x0129-0x0155; component_B @0x10C548 (idx1) OBJ records 70-82 codes 0x014A-0x0177; shared death anim codes 0x0288-0x02A8. Co-located: 862/885 shared frames identical world_x.
+* PC090OJ record ownership: body/A = OBJ 57-69 (0x39-0x45); wing/B = OBJ 70-82 (0x46-0x52). Which half is pixel-wise body vs wings PENDING compositor decode.
+* DAMAGE/LIFECYCLE = COUPLED single lifecycle: both components identical state every frame (0x03 spawn -> 0x04-0x09 living -> 0x0F death), despawn same frame 16784. Co-occur (09,09)x241 (05,05)x199 (06,06)x145 (08,08)x113 (04,04)x87 (07,07)x75 (0F,0F)x23 (03,03)x2.
+* WING-ONLY DEATH = NOT arcade-legal: 0 of 885 shared frames show one component in death 0x0F while the other lives. => Build-0313 separable wings is a TRANSLATION DEFECT (analysis only, no fix).
+* Encounters proven same enemy: ENC1 record 8->9 boundary (frame 6746+); ENC2 record 13 (frames 14459-16784); identical 26-record two-slot structure + state machine both times.
+* Build-0313 differential: body YES(A), wing YES(B), arcade ownership = two state-locked actor_508 slots, wing-only death on 0313 YES but arcade-illegal (proven) -> defect; palette DEFECT (user). No production change.
+* deferred (not fabricated): body-vs-wing pixel assignment, 16-color palette contents, R2-boss wing-pattern sharing.
+* verification: RESOLVED for the 8 task questions from trace evidence; pixel/palette/compositor items remain out-of-scope UNRESOLVED.
+
+## [Andy — Documentation, R1/P1 Duplicate Lizardman Composite Observation]
+* build produced: NO
+* production changed: NO
+* earliest reproduced build: 0300
+* also observed: 0313
+* arcade opening Lizardmen: 4
+* arcade score test: 4 × 300 = 1200
+* Genesis Build 0300 score test: 4 × 300 = 1200
+* visual excess sprite/composite output: YES
+* extra gameplay actor proven: NO
+* native render/SAT defect proven: NO
+* issue status: OPEN-026 / DEFERRED (hypotheses H1 dup-actor / H2 dup-render / H3 stale-SAT / H4 VBlank-order / H5 sprite-limit; cross-ref KF-050/051 player-dup mechanism, OPEN-024)
+* files changed: OPEN_ISSUES.md (OPEN-026 created); docs/design/Andy_round1_phase1_complete_graphics_palette_corpus.md (short deferred note)
+* KNOWN_FINDINGS impact: Option A — no new finding (unresolved observation with competing hypotheses, not a stable proven architectural finding)
+* investigation performed: NO
+* returned to R1/P1 sprite audit: YES
+
+## [Andy — Flying Demon Corpus Cleanup / Overstatement Correction]
+* production changed: NO
+* ROM produced: NO ; Build counter 313 (unchanged); Build 0314 not consumed
+* Flying Demon semantic identity: RESOLVED
+* actor structure: special two-slot actor_508 (base 0x0129; +0x3E=0x00,+0x38=0x00,+0x752=0x00,+0x27=0x80)
+* component_A: 0x10C508 / OBJ records 57-69 / codes 0x0129-0x0155
+* component_B: 0x10C548 / OBJ records 70-82 / codes 0x014A-0x0177 (shared death 0x0288-0x02A8)
+* physical body-vs-wing assignment: UNRESOLVED (removed A=body/B=wings overstatement; neutral component_A/B naming)
+* state-locked lifecycle observed: YES (0/885 shared frames split)
+* universal wing-only-death impossibility proven: NO (softened NOT-LEGAL -> NOT OBSERVED; no wing-targeted hit isolated, no static damage-ownership code analyzed)
+* renderer-causation for Build-0313 split: REMOVED (not proven; root cause UNRESOLVED)
+* Build-0313 component split: OPEN-027 / DEFERRED
+* corpus anchor coverage corrected: 3/12 -> 4/12 (Lizardman, Chimera, Four-armed, Flying Demon)
+* files changed: flying_demon_trace/flying_demon_capture.json; round1_phase1_corpus/sprites.json; docs/design/Andy_round1_phase1_complete_graphics_palette_corpus.md; OPEN_ISSUES.md (OPEN-027)
+* KNOWN_FINDINGS impact: Option A — no new finding promoted (A=body/B=wings, universal wing-only-death impossibility, and renderer causation all deliberately NOT promoted; actor_508 structure left as corpus evidence, not yet a KF)
+* returned to R1/P1 sprite audit: YES
+
+## [Andy — Analysis, R1/P1 Enemy Graphics + Palette Contact Sheet]
+* build produced: NO
+* production changed: NO ; ROM: none ; Build counter 313 ; Build 0314 not consumed
+* task classification: EXTENDING (active R1/P1 corpus)
+* enemy semantic closure: 4/7 (Lizardman, Four-armed, Chimera, Flying Demon PROVEN; Valkyrie/Small Bat/Large Bat UNRESOLVED)
+* compositor closure: 4/7 (rendered from REAL emitted PC090OJ records; NO base+n; old family-table addrs fam1=0x4771C/fam3=0x40004 VERIFIED WRONG and rejected)
+* palette closure: effective bank 4/7 PROVEN from emitted word0 nibble (Lizard 0x36, Four-armed 0x3A, Chimera 0x34, Flying Demon 0x35); 16-COLOR CONTENTS 0/7 (sprite-palette-source 0x045DE4 undecoded; trace lacks palette RAM; plane block 0x5DB4E covers only banks 0-39)
+* contact sheet: analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png (+ .html) — 4/7 panels, NOT COMPLETE
+* diagnostic sheet: contact_sheets/r1p1_enemies_diagnostic.png
+* Lizardman: PROVEN / real compositor / bank 0x36 / 16-color UNRESOLVED
+* Four-armed: PROVEN / real compositor / bank 0x3A / 16-color UNRESOLVED
+* Valkyrie: UNRESOLVED (not named without proof)
+* Chimera: PROVEN / real compositor / bank 0x34 / 16-color UNRESOLVED
+* Flying Demon: PROVEN actor_508 two-component; BODY/WING now PROVEN BY RENDER (component_A=body, component_B=wings); bank 0x35 / 16-color UNRESOLVED
+* Small Bat: UNRESOLVED (registry PAL-PC090OJ-GAMEPLAY-SMALL-BAT-001 = unknown)
+* Large Bat: UNRESOLVED (registry PAL-PC090OJ-GAMEPLAY-LARGE-BAT-001 = unknown)
+* guessed composites: 0 ; screenshot palette samples: 0 ; genesis-derived arcade colors: 0
+* new tool: tools/graphics_optimizer/render_r1p1_enemy_contact.py (project-owned, reusable)
+* evidence paths: enemies.json, enemy_patterns.json, enemy_palettes.json, enemy_closure.json, contact_sheets/, docs/design/Andy_round1_phase1_enemy_contact_sheet.md
+* files updated: sprites.json + flying_demon_trace/flying_demon_capture.json (body/wing now PROVEN BY RENDER, component_A/B retained)
+* Open/Closed Issues Impact: none changed; OPEN-026/OPEN-027 remain deferred; palette_decisions.json consulted not modified
+* KNOWN_FINDINGS impact: Option A — no new finding promoted (compositor pipeline validated but 16-color palette + 3 enemy identities unresolved; not a closed architectural finding yet)
+* verification: 4 composites visually correspond to known arcade enemies; contact sheet NOT complete (4/7); blockers named
+* next boundary: close palette + Valkyrie/bats, then expand pipeline to all R1/P1 sprites
+
+## [Andy — Analysis, R1/P1 Seven-Enemy Arcade Contact Sheet Completion]
+* build produced: NO
+* production changed: NO
+* Build counter: 313 (Build 0314 not consumed)
+* semantic closure: 7/7
+* compositor closure: 7/7 (real emitted PC090OJ records; NO base+n)
+* effective palette-bank closure: 7/7
+* exact 16-color palette closure: 7/7 (arcade sprite-palette 0RGB source table base 0x4FDE2; converter FUN_0004703c; VALIDATED vs KF-1214 bank 0x36 green Lizardman)
+* Lizardman: PROVEN +0x3E=0/0x004B / bank 0x36 / 16-color PROVEN (0x4FEA2)
+* Four-armed insect: PROVEN +0x3E=3/0x02E8 / bank 0x3A / PROVEN (0x4FF22)
+* Valkyrie: PROVEN +0x3E=8/0x0241 (armored female warrior render; USER VERIFY name) / bank 0x32 / PROVEN (0x4FE22)
+* Chimera: PROVEN +0x3E=1/0x00D0 / bank 0x34 / PROVEN (0x4FE62)
+* Flying Demon: PROVEN actor_508/0x0129 (A=body,B=wings by render) / bank 0x35 / PROVEN (0x4FE82)
+* Small Bat: PROVEN actor_748/0x0268 (render; USER VERIFY name) / bank 0x3E / PROVEN (0x4FFA2)
+* Large Bat: PROVEN actor_5c8/0x03F6 (render; USER VERIFY name) / bank 0x3E / PROVEN (0x4FFA2)
+* guessed identities: 0 ; guessed composites: 0 ; screenshot-derived colors: 0 ; Genesis-derived arcade colors: 0
+* contact sheet: analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets/r1p1_enemies.png (+ .html)
+* diagnostic sheet: contact_sheets/r1p1_enemies_diagnostic.png
+* evidence paths: enemies.json, enemy_patterns.json, enemy_palettes.json, enemy_closure.json, sprites.json; specs/palette_decisions.json (updated); tools/graphics_optimizer/render_r1p1_enemy_contact.py
+* correction: old summary compositor-table addrs fam1=0x4771C/fam3=0x40004/fam4=0x4002C VERIFIED WRONG; not used
+* Open/Closed Issues Impact: none changed; OPEN-026/027 remain deferred; palette_decisions.json updated (Lizardman enriched; bats/four-armed -> provisional; Chimera/Valkyrie/Flying Demon added)
+* KNOWN_FINDINGS impact: Option C — proposed update: KF-1214 sprite-palette-source extended to the STATIC ROM table (base 0x4FDE2, bank b at +((b-0x30)*32), 0RGB-nibble, converter FUN_0004703c) covering all sprite banks 0x30-0x3F, validated at bank 0x36
+* verification: all 7 render as recognizable correctly-coloured arcade enemies; palette decode validated vs KF-1214
+* next boundary: expand pipeline to ALL R1/P1 sprites
+
+## [Andy — Verification, Arcade-Only R1/P1 Palette Indirection + Priority Completion]
+* target: ORIGINAL ARCADE ONLY
+* build produced: NO ; production changed: NO ; Build counter: 313 ; Build 0314 not consumed
+* rejected palette model: direct bank indexing from 0x4FDE2 (matched Lizardman only by coincidence: bank 0x36 -> round-1 pool index 13 -> 0x4FEA2)
+* real index table: 0x3BA88 (row = (round-1)*0x20); real pool base: 0x4FD02; loader FUN_0003ba20/FUN_0003ba56/FUN_0003ba64
+* Lizardman bank 0x36 -> pool 13 -> 0x4FEA2 (=KF-1214, green; validation intact)
+* Four-armed bank 0x3A -> pool 22 -> 0x4FFC2
+* Valkyrie bank 0x32 -> pool 15 -> 0x4FEE2
+* Chimera bank 0x34 -> pool 18 -> 0x4FF42
+* Flying Demon bank 0x35 -> pool 16 -> 0x4FF02
+* bats bank 0x3E -> pool 36 -> 0x50182
+* palette stability: PROVEN (static writer census; no gameplay override of banks 0x32-0x3E in R1/P1; loaded once at stage-load FUN_00045d7c->FUN_0003ba20, whole-buffer copy delivery)
+* MAME RGB expansion: xBGR_555 pal5bit(v)=(v<<3)|(v>>2), 5-bit channel = source nibble*2 (proven from FUN_0003ba64 bit math + rastan.cpp set_format)
+* PC090OJ priority: PROVEN from pc090oj.cpp (non-priority path start=(SIZE/2)-4 inc=-4, painter's algo, "first sprite highest priority") => lower record number on top/foreground
+* Flying Demon wings behind body: YES (body rec 57-69 front, wings rec 70-82 behind)
+* removed genesis_quantized_3bit from enemy_palettes.json (Genesis data out of arcade corpus)
+* Genesis evidence used: NO (ROM/MAME/Exodus/CRAM/VRAM/SAT/palette-staging/renderer all NO)
+* Axe preserved: YES ; Boulder preserved: YES ; swinging rope preserved: YES
+* files: tools/graphics_optimizer/render_r1p1_enemy_contact.py (finished); enemies.json, enemy_patterns.json, enemy_palettes.json, enemy_closure.json, sprites.json; specs/palette_decisions.json (corrected 7 entries); contact_sheets/r1p1_enemies.png,_diagnostic.png,.html; docs/design/Andy_round1_phase1_enemy_contact_sheet.md
+* KNOWN_FINDINGS impact: bad direct-bank generalization was NEVER written to KNOWN_FINDINGS.md (verified) -> nothing retracted; proposed durable finding = round-indexed sprite palette loader (0x3BA88 -> 0x4FD02, FUN_0003ba64) not self-promoted
+* user verification required: YES (seven palettes + Valkyrie/Small Bat/Large Bat names vs original arcade)
+
+## [Andy — Analysis, R1/P1 Complete Original-Arcade Sprite Corpus]
+* target: ORIGINAL ARCADE ONLY ; build produced: NO ; production changed: NO ; Build counter: 313
+* accepted enemy subset: 7/7 (reused; sprites.json compositor_status reconciled to COMPLETE)
+* stale enemy corpus status reconciled: YES (enemy compositor_status COMPLETE; ANCHOR_Valkyrie/Small/Large_Bat category ENEMY_HOSTILE)
+* static producer census: partial (5 captured actor blocks enumerated; player/HUD/item/weapon blocks identified as NOT in saved trace)
+* dynamic producer census: COMPLETE for captured 5 blocks (21 distinct producers)
+* total semantic sprite classes (captured): 21 -> ENEMY 7, ENEMY_FORM 5, HAZARD 3, PROJECTILE 3, EFFECT 3
+* player classes: NOT captured (A5+0x11B2 not in saved trace) -> armed capture
+* weapon classes: NOT captured -> armed capture ; item/power-up (Axe): NOT captured -> armed capture (prior: specialized actor, compositor 0x3C9E8)
+* enemy classes: 7 ; hazard/interactive: 3 (cave block 0x0179 = SPRITE; swinging rope 0x00F4 rec5; boulder 0x0D5F)
+* projectile classes: 3 (0x050B,0x019D,748/0x02E8) ; effect classes: 3 (0x0A5A,748/0x0275,0A73/3e08)
+* HUD/UI classes: NOT captured -> armed capture
+* unidentified producers (captured): 0 (all 21 classified; names on 13 flagged USER VERIFY)
+* pattern coverage (captured): 100% (all trace cell codes + SHA-1 in sprite_census_captured.json)
+* palette coverage (captured): 100% via round-1 index 0x3BA88 -> pool 0x4FD02 (banks 0x30/0x33/0x34/0x35/0x36/0x3A/0x3C/0x3E)
+* palette epochs: single stage-load epoch assumed for captured banks (accepted enemy census); extend census in armed-capture analysis
+* PC090OJ priority: applied universally (lower record on top)
+* Genesis evidence used: NO
+* Axe: NOT captured (armed capture; prior specialized-actor evidence recovered)
+* Flame Sword / Flail: NOT captured (armed capture; pickup vs equipped may differ)
+* Boulder: actor_5c8/base 0x0D5F bank 0x3C (grey rock render) ; swinging rope: actor_2c8/base 0x00F4 bank 0x30 rec5
+* cave block: SPRITE (PC090OJ) actor_2c8/base 0x0179 bank 0x3C (proven by real emitted records; NOT PC080SN terrain)
+* primary contact sheet: contact_sheets/r1p1_all_sprites.png ; per-producer census_*.png
+* HTML: (enemy HTML exists; all-sprites HTML deferred to post-capture full corpus)
+* files: tools/graphics_optimizer/render_r1p1_sprite_census.py, r1p1_full_sprite_capture.lua, run_r1p1_full_capture_wsl.sh; sprite_census_captured.json; sprites.json (reconciled); docs/design/Andy_round1_phase1_complete_sprite_corpus.md
+* USER MUST VERIFY: names flagged user_verify (bats, Valkyrie, rope, boulder, projectiles, effects) + play the armed capture for player/weapons/items/HUD
+* next boundary: analyze armed full capture -> close player/weapons/items/HUD -> total corpus
+* KNOWN_FINDINGS impact: Option A (no new finding; captured-corpus extension, armed capture pending)
+
+## [Andy — Analysis, R1/P1 Full Capture: Player/Weapons/HUD closed]
+* target: ORIGINAL ARCADE ONLY ; build produced: NO ; production changed: NO ; Build counter: 313
+* capture: full_capture/ (16778 frames, 131005 emitted, 2081 owner states) - Tighe played R1/P1
+* PLAYER Rastan CLOSED: records 120-131 bank 0x33 (30+ cells; idle/walk/jump/crouch/attack/thrust); per-piece palette
+* WEAPONS: normal steel sword + Flame Sword variant captured in Rastan attack composite (bank 0x33); names USER VERIFY
+* sword sparkle effect: records 132-133 bank 0x30
+* HUD CLOSED: records 0-45 banks 0x30/0x33 (score/text cells)
+* Flying Demon confirmed 57-82 bank 0x35; enemies 140-239
+* new enemy producers observed (unclassified): actor_2c8 0x0234/0x0236/0x0266/0x0DAB
+* still open: Flail variant, Axe/item pickups as ground actors, 4 new-enemy classification
+* Genesis evidence used: NO
+* files: contact_sheets/player_rastan.png, player_poses.png, r1p1_all_sprites_master.png; sprite_corpus_r1p1.json; sprites.json; render scripts
+* tool: reused render pipeline (per-piece palette added); r1p1_full_sprite_capture.lua capture analyzed
+* USER MUST VERIFY: weapon names; which items collected in the run
+* next boundary: close Flail/Axe/items + classify new enemies, then total corpus -> Genesis optimization
+
+## [Andy — Verification, R1/P1 Layer A/B Palette Attribution + Editor-Ready Evidence Schema]
+* target: ORIGINAL ARCADE ONLY ; build produced: NO ; production changed: NO ; Build counter: 313
+* session scope (Tighe choice): Layer A/B per-tile attribution + all plane bank 16-color values + editor schema
+* Layer A logical uses: 1581 ; physical patterns: 1315 (199 multi-bank)
+* Layer A palette banks: 11 (0x03,0x04,0x05,0x06,0x07,0x17,0x18,0x1A,0x1B,0x1C,0x1D) - per-tile PROVEN
+* Layer A palette-value closure: 11/11 banks x16 colors (arcade_xBGR555 + MAME RGB8 + lab + provenance)
+* Layer B logical uses: 854 ; physical patterns: 854 ; palette banks: 1 (0x002, all 854 PROVEN)
+* Layer B palette-value closure: bank 0x002 x16 colors (corrects stale layer_b_tiles.csv 'bank48')
+* palette epochs (planes): single epoch_00 (stage-load; Layer B single state records 0-15; Layer A multi-bank spatial)
+* flips + priority_bits: present per use
+* editor-ready schema: analysis/graphics_optimizer/arcade_graphics_oracle/ (contexts/context_transitions/patterns/palettes/usages/coexistence/manifest) - generalized type-based contexts, stable IDs, thin indexes to canonical files
+* new/updated files: plane_palette_banks.json, layer_a_palette_usage.csv, layer_b_palette_usage.csv, layer_a_tiles.csv+layer_b_tiles.csv (fixed), contact_sheets/r1p1_plane_palettes.png, oracle/*.json, design doc
+* Genesis evidence used: NO
+* NOT closed this session (deferred): weapons/items/item-page/HUD-life-meter, sprite-domain schema migration, static negative coverage
+* KNOWN_FINDINGS impact: A (no new finding; analyzer values reused + normalized)
+* USER MUST VERIFY: none for Layer A/B (fully arcade-derived)
+* next boundary: migrate sprite domain into oracle schema + weapons/items/item-page/HUD in later sessions
+
+## [Andy — Verification, R1/P1 Sprite/Item/HUD Closure — 2 plane corrections + partial sprite]
+* target: ORIGINAL ARCADE ONLY ; build produced: NO ; production changed: NO ; Build counter: 313
+* Layer-B selector: 0x002 (PC080SN attr & 0x1ff, direct - pc080sn.cpp)
+* Layer-B effective palette RAM bank: 0x002 (no offset); prior 'bank 48' = separate load (FUN_0003b9f8 @0x4FE62), RESOLVED not contradiction
+* Layer-B source: round-1 pool 15 @0x4FEE2 (FUN_0003ba20->FUN_00045d7c banks 0..31)
+* plane content/usage epoch correction: content epoch_00 (stable) SEPARATED from per-segment active-bank set (Layer A max 6 simultaneous, not union of 11)
+* remaining 2c8 producers: 0x0234/0x0236/0x0266 = NOT REACHABLE IN R1/P1 (section 0x11 boss); 0x0DAB = R1/P1 enemy sections 6-11, UNRESOLVED (owned-record isolation)
+* player: PROVEN (OBJ 120-131 bank 0x33) ; weapons: CAPTURED but cell-separation OPEN (needs arcade equipped-weapon state var)
+* Sword/Axe/Flame Sword/Flail: names captured (Tighe sequence), cell-separation + pickup actors OPEN
+* item-page entries: NOT DONE (needs frontend capture) ; HUD classes: records 0-45 located, decomposition OPEN ; life meter: OPEN
+* projectile/effect classes: category proven (prior); sprite palette closure: enemies+player PROVEN, weapons/items pending
+* oracle migration: objects.json created (20 stable-ID objects) ; contexts/coexistence corrected
+* Genesis evidence used: NO
+* USER MUST VERIFY: weapon panel names (axe vs flail); swinging-rope/boulder names
+* next boundary: weapon-state Ghidra trace -> weapon/item cell separation; frontend item-page capture; HUD/life-meter; static negative coverage
+
+## [Andy — 0x0DAB Correction + Layer-B Usage Completion + Sprite Continuation]
+* invalid 0x0DAB render: WITHDRAWN (quarantined producer_0DAB_INVALID_broad_composite_140-239.png)
+* reason: records 140-239 broad multi-actor composite
+* exact isolated actor slot: actor_2c8 slot 0 (addr 0x10C2C8), state 00, attr27 00, sections 0x06-0x0F
+* exact OBJ range: 140-149 (all BLANK at every captured frame -> 0x0DAB emits NO graphics)
+* semantic category: OTHER / non-rendering dormant slot state (NOT enemy); oracle object:unresolved.slot0_state_0dab
+* existing-object alias: none (no graphics emitted)
+* effective palette bank: N/A (no emitted records)
+* Layer-B per-segment active set: all 16 segments -> [0x002] (from plane_b_state_timeline)
+* union-as-coexistence field: RENAMED to layer_a_legal_banks_union / layer_b_legal_banks_union
+* sprite continuation: player compositor FUN_00041f5e located (A5+0x170/0x11B2 -> OBJ); weapon-state var is upstream in player anim state machine (dedicated trace not completed)
+* production changed: NO ; ROM produced: NO ; Build counter: 313 ; Genesis evidence used: NO
+
+## [Andy — R1/P1 Sprite Closure: equipped-weapon state variable PROVEN]
+* target: ORIGINAL ARCADE ONLY ; build produced: NO ; production changed: NO ; Build counter: 313 ; Genesis evidence: NO
+* weapon-state variable: A5+0x138C (PROVEN) - player_body_constructor_540cc @0x540CC branches cmpi #1/#2/#3; values 0-3 = 4 weapons
+* weapon sprite tables: 0=0x5BB40/0x5BB80, 1=0x5BCC0/0x5BD00, 3=0x5BC40/0x5BC80, 2=branch@0x540DE
+* weapon var writer (immediate): 0x519F6 (#0x2)
+* value->weapon-name mapping: PENDING (decode 4 sprite-table sets + render; owners.csv did NOT capture 0x138C)
+* Sword/Axe/Flame Sword/Flail: state var proven; cell separation now statically tractable (next step)
+* gameplay pickups / item-page / HUD / life-meter / static coverage: OPEN (unchanged this session)
+* oracle: weapon objects updated with A5+0x138C provenance + table addresses
+* USER MUST VERIFY: none (weapon var is code-proven; names map after table render)
+* next boundary: decode weapon sprite tables 0x5BB40/0x5BCC0/0x5BC40/(0x540DE) -> map values -> separate weapon cells
+
+## [Andy — Canonical Weapon Terminology + R1/P1 Equipped Weapon Static Closure (partial)]
+* target: ORIGINAL ARCADE ONLY ; build produced: NO ; production changed: NO ; Build counter: 313 ; Genesis evidence: NO
+* naming authority: original arcade item-information page + Tighe terminology correction
+* canonical equipped weapons: SWORD / AXE / HAMMER / FIRE SWORD
+* Flame Sword -> FIRE SWORD: CANONICALIZED (object:weapon.fire_sword, legacy_alias Flame Sword)
+* Flail -> HAMMER: CANONICALIZED (object:weapon.hammer, legacy_alias Flail)
+* weapon variable: A5+0x138C (reader player_body_constructor_540cc 0x540CC)
+* value 0: SWORD (PROVEN, default/init branch) -> 0x5BB40/0x5BB80 frames {25,26}
+* value 1: 0x5BCC0/0x5BD00 frames {40} - canonical name PENDING
+* value 2: 0x5BBC0/0x5BC00 frames {49,4A,46} - RESOLVED table; writer 0x519F6 (btst#9); name PENDING
+* value 3: 0x5BC40/0x5BC80 frames {47,48,3B} - name PENDING
+* all writers: only immediate writer 0x519F6 (val 2); values 1/3 via untraced pickup handlers; val 0 init
+* value-2 table: RESOLVED (0x5BBC0/0x5BC00)
+* table format: anim-frame-index (byte (0,A3,anim_ctr) -> A5+0x1244 -> FUN_00054492)
+* common Rastan cells / SWORD/AXE/HAMMER/FIRE SWORD cell separation: PENDING (needs frame->composite decode)
+* weapon palettes / physical patterns: PENDING (after name mapping)
+* oracle updated: objects.json canonicalized ; terminology_corrections.json ; player_weapon_states.json ; item_lexicon.json seeded
+* item_lexicon semantic names seeded: AXE HAMMER FIRE SWORD SHIELD MANTLE ARMATURE POISON GOLD SHEEP JEWEL RING ROD NECKLACE (names only)
+* exact capture epochs available: NO (owners.csv did not record A5+0x138C)
+* Genesis evidence used: NO
+* USER MUST VERIFY: value 1/2/3 -> AXE/HAMMER/FIRE SWORD name assignment (pending pickup-handler trace or frame render)
+* next boundary: map values 1/2/3 to names (pickup-handler item-identity or frame->composite render) -> separate cells -> palettes
+
+## [Andy — R1/P1 Equipped Weapon: composite format decoded, blade producer still open]
+* target: ORIGINAL ARCADE ONLY ; build produced: NO ; production changed: NO ; Build counter: 313 ; Genesis evidence: NO
+* FUN_00054492 composite format: DECODED (base 0x5BD40; piece [code,X,Y,attr]x4; flip 0x4000; Y+=A5+0x10C0)
+* common Rastan body cells: 0x4DB-0x4E6
+* val0=SWORD (proven); val1 extra 0x59E/0x59F; val3 extra 0x582/0x583; val2 no distinct cell -> all are ALT BODY POSES not blades
+* finding: A5+0x138C selects per-weapon BODY animation pose; equipped BLADE is a SEPARATE attachment producer (not in player body composite) - needs trace
+* value 1/2/3 -> AXE/HAMMER/FIRE SWORD: NOT resolved this session
+* weapon cell separation / palette / physical patterns: NOT closed (blade producer open)
+* EQUIPPED WEAPONS CLOSED: NO
+* files: player_weapon_states.json (composite format + finding), contact_sheets/r1p1_equipped_weapons.png, weapon_cells_isolated.png
+* USER MUST VERIFY: none (this is a decode gap, not a naming question)
+* next boundary: locate equipped-weapon blade attachment producer keyed on A5+0x138C
+
+## [Andy — Canonical Weapon Terminology (confirmed) + Bad-Image Quarantine + Weapon Writer Ledger]
+* target: ORIGINAL ARCADE ONLY ; build produced: NO ; production changed: NO ; Build counter: 313 ; Genesis evidence: NO
+* supplied item images valid graphics reference: NO (known wrong palettes + wrong tiles) -> QUARANTINED (bad_item_images_quarantine.json)
+* canonical weapons: SWORD/AXE/HAMMER/FIRE SWORD (already canonicalized last session; confirmed object:weapon.sword/axe/hammer/fire_sword)
+* Flame Sword -> FIRE SWORD: DONE (prior) ; Flail -> HAMMER: DONE (prior)
+* weapon variable: A5+0x138C
+* value 0: SWORD (init/default, proven)
+* value 1: NO literal writer found (computed/flag or dead) - name UNMAPPED
+* value 2: 0x519F6 #2 via btst #9,D0 - name UNMAPPED
+* value 3: NO literal writer found - name UNMAPPED
+* all writers: only 0x519F6 (=2); values 1/3 unlocated -> item->value->name proof BLOCKED
+* value-2 table: 0x5BBC0/0x5BC00 (resolved prior) ; composite format: 0x5BD40 decoded (prior)
+* common Rastan cells: 0x4DB-0x4E6 (prior) ; blade producer: SEPARATE (prior finding), not located
+* item_lexicon names seeded: prior (AXE/HAMMER/FIRE SWORD/SHIELD/MANTLE/ARMATURE/POISON/GOLD SHEEP/JEWEL/RING/ROD/NECKLACE)
+* EQUIPPED WEAPONS CLOSED: NO (value 1/2/3 name mapping blocked; blade producer separate/unlocated)
+* Genesis evidence used: NO
+* USER MUST VERIFY: none (this is a decode/trace gap, not a naming question)
+* next boundary: locate blade attachment producer + the computed/flag writers of A5+0x138C values 1/3
+
+## [Andy — Hybrid, Palette / Tile-Line Assignment Editor V0.1]
+* task classification: INFRASTRUCTURE ; build produced: NO ; Build counter: 313 ; production changed: NO
+* editor path: tools/graphics_editor/ (server.py, index.html, app.js, style.css, run.sh)
+* launch command: bash tools/graphics_editor/run.sh (default port 8770)
+* oracle read-only: YES (GET /api/oracle assembles; never written)
+* editable policy path: analysis/graphics_optimizer/editor_policy/ (profile_manifest + per-profile json + policy stubs)
+* contexts loaded: 22 ; objects: 20 ; palettes: 19 (12 plane + 7 sprite) ; pattern indexes: Layer A/B
+* palette-content hashes: YES ; exact duplicate palette groups: 7 (plane<->sprite shared pool entries)
+* Genesis quantization implemented: YES (3-bit CRAM levels + CRAM word)
+* Genesis palette lines implemented: YES (4x16, index0 transparent, assignment)
+* VRAM/tile assignment implemented: policy schema + pattern browser (full grid = V0.2)
+* profile system implemented: YES (immutable baseline + branch + save + reload + manifest)
+* policy persistence implemented: YES (POST /api/policy; reload identical verified)
+* must-remain-distinct graph implemented: YES (per-representation distinct-color constraint; no auto-merge)
+* internal-detail collapse rejected: YES (validator reports, never merges)
+* coexistence validation implemented: YES (per-segment active banks, max 6, not union 11)
+* UNKNOWN/PARTIAL supported: YES (status badges; no invented composites)
+* bad item images used as graphics source: NO (quarantine respected; never previewed)
+* real oracle functional test: PASS (20 points)
+* production ROM modified: NO ; Genesis evidence introduced into arcade oracle: NO
+* USER MUST VERIFY: launch and evaluate hands-on usability
+* next boundary: V0.2 delta-E / cross-object merge suggestions + full VRAM grid
+
+## [Andy — Hybrid, Interactive Palette Composer V0.2]
+* task classification: INFRASTRUCTURE ; build produced: NO ; Build counter: 313 ; production changed: NO
+* whole-source-palette-only workflow removed: YES (kept only as optional; primary = per-entry composition)
+* individually editable target entries: YES (4 lines x16, click entry -> R/G/B level picker -> legal CRAM)
+* legal Genesis color picker: YES (R/G/B 0-7 -> CRAM 0BBB0GGG0RRR0)
+* source usage colors: YES (real pixel decode; used colors only, with pixel counts)
+* used-vs-unused source entries: YES (only used colors shown per usage)
+* source->target index map: YES (usage_palette_mappings, usage-aware)
+* multiple source palettes per target line: YES (allowed, not an error)
+* cross-object shared target color: YES (verified Rastan brown + Bat brown -> L1:6)
+* representation MRD: YES (from co-occurring pixels per usage; Lizardman 66 pairs)
+* arcade source preview: YES (palette-accurate, bank colors; barbarian renders correctly)
+* Genesis target preview: YES (mapped src_index->CRAM palette render)
+* hardcoded preview fallbacks removed: YES (UNKNOWN objects say NO PROVEN GRAPHICS; no unrelated art)
+* deltaE00: YES (CIEDE2000) ; Lab: YES ; OKLab: YES ; OKLCH: YES
+* two-source compare: YES (A/B ΔE00, same-natural, MRD-conflict)
+* best legal Genesis compromise: YES (512-color minimax search + explicit Apply)
+* undo/redo: YES ; help/onboarding: YES (How-to + glossary) ; dirty tracking + discard warn: YES
+* profile persistence: YES (immutable baseline 400; branch/save/reload identical)
+* UI screenshots/direct inspection: rendered preview PNGs verified (browser DOM not screenshot-able here)
+* real cross-object sharing test: PASS ; real MRD rejection test: PASS (data + mapSrcToTarget block)
+* bad item images used: NO ; production ROM modified: NO ; Build 0314 consumed: NO
+* USER MUST VERIFY: launch + perform one full compose workflow hands-on
+* next boundary: bounded VRAM grid editor + policy->compiler export (separate task)
+
+## [Andy — Hybrid, Palette Composer V0.3 Visual Workbench + True Composite Renderer]
+* classification: INFRASTRUCTURE ; build produced: NO ; Build counter: 313 ; production changed: NO
+* old rectangular cell-sheet object renderer retired as normal preview: YES (now true composite from real pieces)
+* cell-sheet debug mode retained: YES (mode=cells, clearly labelled NOT COMPOSITE)
+* true composite schema: server pieces[] (code,rel_x,rel_y,fx,fy) from accepted trace emitted records
+* Lizardman/Four-Armed/Valkyrie/Chimera/Small Bat/Large Bat composites: TRUE (real bounds 48x48/48x67/32x56/64x48/16x16/32x32)
+* Flying Demon composite: TRUE body+wings, 25 pieces, 96x80 (renders as assembled winged demon - verified image)
+* Rastan: PROVEN CELL SHEET (composite_proven=false; not invented)
+* source/target geometry identical: YES (verified same dims)
+* preview zoom: YES (Fit/1x/2x/4x/8x/+/- ; source+target locked ; localStorage)
+* equal zoom = equal pixel scale across objects: YES (img width = real bounds x zoom)
+* source->target drag: YES (auto legal CRAM) ; click-to-map: YES
+* automatic legal Genesis copy: YES (bestCramFor ΔE00) ; whole object copy: Auto-fill Object (detail-preserving)
+* recommend line: YES ; line fit badges: YES ; color cross-reference (Find Similar, ΔE00 sorted cross-object): YES
+* auto-fill preserves internal detail: YES (natural-collision nudge; no two used colors share an entry)
+* MRD preservation: YES (drag/click/autofill all block intra-representation merge)
+* target->target drag / line copy-paste / full context-pack solver: PARTIAL (documented; basic)
+* real Demon render test: PASS ; real Bat render test: PASS ; equal zoom scale test: PASS
+* production ROM modified: NO ; Build 0314 consumed: NO
+* USER MUST VERIFY: hands-on composite previews, zoom, auto-fill, similar-colors, drag
+* next boundary: finish target-drag menu + line copy/paste + context-pack Apply-Safe/Review-Perceptual, then first real R1/P1 policy
+
+## [Andy — Implementation, V0.3 Uniform Preview Scaling Hotfix]
+* classification: INFRASTRUCTURE ; build produced: NO ; Build counter: 313 ; production changed: NO
+* root cause: JS set only style.width; CSS ".pv img{height:150px}" fixed height -> anisotropic zoom
+* obsolete fixed height removed: YES (.pv img no longer 150px)
+* native dimension source: img.naturalWidth/naturalHeight (actual PNG, incl +2 renderer pad)
+* explicit X scaling: YES ; explicit Y scaling: YES (same integer scalar)
+* source/target locked: YES (same native dims + same Z; verified src==tgt dims)
+* Fit preserves aspect: YES (single integer scalar min 1)
+* Four-Armed native 50x69 -> 1x50x69 2x100x138 4x200x276 8x400x552 (aspect 0.725 constant)
+* Flying Demon regression: PASS (98x82 uniform) ; Small Bat regression: PASS (18x18; 4x=72x72, each px 4x4)
+* equal pixel scale across objects: YES (display=native*Z for all)
+* version identity status: STILL PENDING (app shows v0.2; separate task)
+* production ROM modified: NO ; Build 0314 consumed: NO
+* USER MUST VERIFY: zoom Four-Armed/Demon/Bats and confirm proportions constant + equal pixel scale
+* next boundary: return to V0.3 hands-on palette-workbench evaluation
+
+## [Andy — Hybrid, V0.3.1 Multi-Sprite Shared Palette + Rastan True Composite]
+* classification: INFRASTRUCTURE ; build produced: NO ; Build counter: 313 ; production changed: NO
+* multi-object selection: YES (per-row checkboxes + group bar)
+* shared palette solver: YES (server /api/solve; greedy constrained clustering)
+* solver hard constraints: <=15 entries, legal CRAM, ZERO MRD violations (<=1 color per usage per cluster)
+* solver objective: exact->natural->nearest cross-usage; per-cluster CRAM minimizes worst then pixel-weighted-mean ΔE00
+* solver exact/heuristic status: BEST SOLUTION FOUND (labelled; not proven global optimum)
+* one-line infeasibility: YES (feasible:false + no-detail-preserving-one-line message; verified 8-object group)
+* group preview: per-object arcade-vs-proposed true-geometry previews
+* per-object ΔE reporting: worst+wmean per object + QUALITY IMBALANCE warning
+* active target line: YES (clickable LINE label, outlined; auto-activates object's mapped line)
+* closest ΔE auto-highlight: YES (on source-color click, nearest populated entry in ACTIVE line highlighted)
+* closest absolute vs legal: YES (forbidden nearest = red; nearest legal = cyan; Map to Closest Legal)
+* Rastan prior cell-sheet: REPLACED by TRUE composites (cell sheet only as mode=cells debug)
+* Rastan capture source: full_capture/full_observations.csv records 120-131 bank 0x33
+* Rastan true composite: 3 reps (frames 07722/15828/16199, 10 pieces each, real x/y/flip); verified renders as body
+* Rastan weapon pieces included: NO (body only, labelled)
+* Rastan source/target geometry: identical (58x74 verified)
+* Rastan+SmallBat+LargeBat test: PASS (feasible, 15 entries, MRD-safe, cross-object shares)
+* two-sprite test: PASS (2 bats: 6 shares @ ΔE 0.0)
+* group Undo: one transaction (pushUndo before apply)
+* uniform-scale regression: preserved (naturalWidth/Height, single scalar)
+* version identity status: STILL PENDING (app shows v0.2)
+* production ROM modified: NO ; Build 0314 consumed: NO
+* USER MUST VERIFY: hands-on Rastan composite, closest highlight, multi-select solve
+* next boundary: first real R1/P1 palette policy using groups
+
+## [Andy — Hybrid, V0.3.2 Luminance/Hue Shared Palette Solver]
+* classification: INFRASTRUCTURE ; build produced: NO ; Build counter: 313 ; production changed: NO
+* existing ΔE solver preserved: YES (unchanged; mode='delta_e')
+* new solver button: "Derive Luminance/Hue Palette" (+ "Compare Solvers")
+* perceptual lightness metric: OKLab L
+* hue color space: OKLCH (h); chroma treatment: median source C target
+* circular midpoint: chroma-weighted vector mean (350+10 -> 0, verified)
+* multi-color circular mean: YES (chroma-weighted)
+* low-chroma threshold: OKLCH C < 0.02 (hue ignored); all-neutral -> hue dimension dropped (verified)
+* lightness-first clustering: YES (merge ranked by OKLab ΔL, not ΔE)
+* legal CRAM target objective: lexicographic (worst ΔL, mean ΔL, hue err, chroma err, worst ΔE, mean ΔE)
+* all 512 colors searched: YES ; MRD preserved: YES (0 violations both solvers)
+* fidelity mode: exact/natural lossless first, minimal merges to fit (no aggressive compression)
+* Rastan+Bat comparison: ΔE entries 15 worstΔE 17.58 worstΔL 0.173 | L/H entries 15 worstΔE 94.53 worstΔL 0.118
+* two-brown / hue-wrap / neutral / all-neutral / lightness-vs-ΔE-differentiation tests: PASS
+* proposal comparison UI: YES (3-column Arcade|ΔE|L/H previews + metrics table)
+* active-line ΔL display: YES ; closest-lightness option: YES
+* Find Matches ΔL/hue sorting: basic (ΔE sort retained; ΔL shown) - fuller sort modes deferred
+* version identity status: STILL PENDING (app shows v0.2)
+* production ROM modified: NO ; Build 0314 consumed: NO
+* USER MUST VERIFY: run both solvers on Rastan+bats, Compare Solvers, inspect brown clusters
+* next boundary: first real R1/P1 palette policy using both solvers

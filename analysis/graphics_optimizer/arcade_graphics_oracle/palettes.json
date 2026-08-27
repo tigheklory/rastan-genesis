@@ -1,0 +1,21 @@
+{
+ "note": "stable palette/epoch IDs for R1/P1 planes; full 16-color values in round1_phase1_corpus/plane_palette_banks.json; sprite palettes in enemy_palettes.json",
+ "id_scheme": "palette:arcade.r01p01.plane.bank_0x0NN.epoch_00",
+ "canonical_values": "analysis/graphics_optimizer/round1_phase1_corpus/plane_palette_banks.json",
+ "layer_a_palette_ids": [
+  "palette:arcade.r01p01.plane.bank_0x003.epoch_00",
+  "palette:arcade.r01p01.plane.bank_0x004.epoch_00",
+  "palette:arcade.r01p01.plane.bank_0x005.epoch_00",
+  "palette:arcade.r01p01.plane.bank_0x006.epoch_00",
+  "palette:arcade.r01p01.plane.bank_0x007.epoch_00",
+  "palette:arcade.r01p01.plane.bank_0x017.epoch_00",
+  "palette:arcade.r01p01.plane.bank_0x018.epoch_00",
+  "palette:arcade.r01p01.plane.bank_0x01A.epoch_00",
+  "palette:arcade.r01p01.plane.bank_0x01B.epoch_00",
+  "palette:arcade.r01p01.plane.bank_0x01C.epoch_00",
+  "palette:arcade.r01p01.plane.bank_0x01D.epoch_00"
+ ],
+ "layer_b_palette_ids": [
+  "palette:arcade.r01p01.plane.bank_0x002.epoch_00"
+ ]
+}

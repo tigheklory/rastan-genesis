@@ -1,0 +1,27 @@
+{
+ "authority": "original arcade item-information page + Tighe terminology correction",
+ "corrections": [
+  {
+   "canonical_name": "FIRE SWORD",
+   "canonical_object_id": "object:weapon.fire_sword",
+   "legacy_name": "Flame Sword",
+   "legacy_object_id": "object:weapon.flame_sword",
+   "relationship": "same_item",
+   "evidence": "item page label 'FIRE SWORD' + Tighe",
+   "status": "LOCKED"
+  },
+  {
+   "canonical_name": "HAMMER",
+   "canonical_object_id": "object:weapon.hammer",
+   "legacy_name": "Flail",
+   "legacy_object_id": "object:weapon.flail",
+   "relationship": "same_item",
+   "evidence": "item page label 'HAMMER' + Tighe",
+   "status": "LOCKED"
+  },
+  {
+   "canonical_name": "Mace",
+   "note": "NOT a canonical Rastan weapon name; never use"
+  }
+ ]
+}

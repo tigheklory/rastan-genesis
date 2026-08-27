@@ -1,0 +1,10 @@
+entry_label=round4_boss
+selector=0xF4
+frames=4200
+observations=1908
+actor_2c8_unique_observations=0
+actor_508_unique_observations=0
+actor_5c8_unique_observations=520
+actor_748_unique_observations=1388
+actor_8c8_unique_observations=0
+final_state=0002/0003/0000

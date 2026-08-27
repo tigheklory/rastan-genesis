@@ -1,0 +1,324 @@
+[
+  {
+    "state_id": "plane_a_epoch_0",
+    "records": [
+      0,
+      1,
+      2
+    ],
+    "plane_a_banks": [
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "plane_b_banks": [
+      2
+    ],
+    "sprite_families": [
+      "rastan_player_body",
+      "stage1_lizardman",
+      "collision_marker40_route",
+      "collision_marker41_route",
+      "family0_class70_actor",
+      "family2_round1_actor_cluster",
+      "collision_marker49_special_route",
+      "collision_marker4f_behavior20_route",
+      "record08_family2_class30",
+      "record09_family1_class57",
+      "record0a_family1_classb6",
+      "record0b_family1_classb9",
+      "record0c_family1_classbc",
+      "hurry_up_bat",
+      "normal_small_bat",
+      "large_bat",
+      "four_armed_enemy",
+      "axe_item",
+      "player_auxiliary",
+      "other_item_drop",
+      "projectile_weapon",
+      "transient_effect",
+      "gameplay_hud"
+    ],
+    "conservative": true,
+    "plane_a_physical_patterns": 282,
+    "plane_a_capacity": 484,
+    "plane_a_capacity_fit": true
+  },
+  {
+    "state_id": "plane_a_epoch_1",
+    "records": [
+      3
+    ],
+    "plane_a_banks": [
+      3,
+      26,
+      27,
+      28,
+      29
+    ],
+    "plane_b_banks": [
+      2
+    ],
+    "sprite_families": [
+      "rastan_player_body",
+      "stage1_lizardman",
+      "collision_marker40_route",
+      "collision_marker41_route",
+      "family0_class70_actor",
+      "family2_round1_actor_cluster",
+      "collision_marker49_special_route",
+      "collision_marker4f_behavior20_route",
+      "record08_family2_class30",
+      "record09_family1_class57",
+      "record0a_family1_classb6",
+      "record0b_family1_classb9",
+      "record0c_family1_classbc",
+      "hurry_up_bat",
+      "normal_small_bat",
+      "large_bat",
+      "four_armed_enemy",
+      "axe_item",
+      "player_auxiliary",
+      "other_item_drop",
+      "projectile_weapon",
+      "transient_effect",
+      "gameplay_hud"
+    ],
+    "conservative": true,
+    "plane_a_physical_patterns": 333,
+    "plane_a_capacity": 484,
+    "plane_a_capacity_fit": true
+  },
+  {
+    "state_id": "plane_a_epoch_2",
+    "records": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "plane_a_banks": [
+      3,
+      4,
+      5
+    ],
+    "plane_b_banks": [
+      2
+    ],
+    "sprite_families": [
+      "rastan_player_body",
+      "stage1_lizardman",
+      "collision_marker40_route",
+      "collision_marker41_route",
+      "family0_class70_actor",
+      "family2_round1_actor_cluster",
+      "collision_marker49_special_route",
+      "collision_marker4f_behavior20_route",
+      "record08_family2_class30",
+      "record09_family1_class57",
+      "record0a_family1_classb6",
+      "record0b_family1_classb9",
+      "record0c_family1_classbc",
+      "hurry_up_bat",
+      "normal_small_bat",
+      "large_bat",
+      "four_armed_enemy",
+      "axe_item",
+      "player_auxiliary",
+      "other_item_drop",
+      "projectile_weapon",
+      "transient_effect",
+      "gameplay_hud"
+    ],
+    "conservative": true,
+    "plane_a_physical_patterns": 444,
+    "plane_a_capacity": 484,
+    "plane_a_capacity_fit": true
+  },
+  {
+    "state_id": "plane_a_epoch_3",
+    "records": [
+      10
+    ],
+    "plane_a_banks": [
+      3,
+      5,
+      26,
+      27,
+      28,
+      29
+    ],
+    "plane_b_banks": [
+      2
+    ],
+    "sprite_families": [
+      "rastan_player_body",
+      "stage1_lizardman",
+      "collision_marker40_route",
+      "collision_marker41_route",
+      "family0_class70_actor",
+      "family2_round1_actor_cluster",
+      "collision_marker49_special_route",
+      "collision_marker4f_behavior20_route",
+      "record08_family2_class30",
+      "record09_family1_class57",
+      "record0a_family1_classb6",
+      "record0b_family1_classb9",
+      "record0c_family1_classbc",
+      "hurry_up_bat",
+      "normal_small_bat",
+      "large_bat",
+      "four_armed_enemy",
+      "axe_item",
+      "player_auxiliary",
+      "other_item_drop",
+      "projectile_weapon",
+      "transient_effect",
+      "gameplay_hud"
+    ],
+    "conservative": true,
+    "plane_a_physical_patterns": 368,
+    "plane_a_capacity": 484,
+    "plane_a_capacity_fit": true
+  },
+  {
+    "state_id": "plane_a_epoch_4",
+    "records": [
+      11
+    ],
+    "plane_a_banks": [
+      3,
+      5,
+      26,
+      27,
+      28,
+      29
+    ],
+    "plane_b_banks": [
+      2
+    ],
+    "sprite_families": [
+      "rastan_player_body",
+      "stage1_lizardman",
+      "collision_marker40_route",
+      "collision_marker41_route",
+      "family0_class70_actor",
+      "family2_round1_actor_cluster",
+      "collision_marker49_special_route",
+      "collision_marker4f_behavior20_route",
+      "record08_family2_class30",
+      "record09_family1_class57",
+      "record0a_family1_classb6",
+      "record0b_family1_classb9",
+      "record0c_family1_classbc",
+      "hurry_up_bat",
+      "normal_small_bat",
+      "large_bat",
+      "four_armed_enemy",
+      "axe_item",
+      "player_auxiliary",
+      "other_item_drop",
+      "projectile_weapon",
+      "transient_effect",
+      "gameplay_hud"
+    ],
+    "conservative": true,
+    "plane_a_physical_patterns": 483,
+    "plane_a_capacity": 484,
+    "plane_a_capacity_fit": true
+  },
+  {
+    "state_id": "plane_a_epoch_5",
+    "records": [
+      12,
+      13,
+      14
+    ],
+    "plane_a_banks": [
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "plane_b_banks": [
+      2
+    ],
+    "sprite_families": [
+      "rastan_player_body",
+      "stage1_lizardman",
+      "collision_marker40_route",
+      "collision_marker41_route",
+      "family0_class70_actor",
+      "family2_round1_actor_cluster",
+      "collision_marker49_special_route",
+      "collision_marker4f_behavior20_route",
+      "record08_family2_class30",
+      "record09_family1_class57",
+      "record0a_family1_classb6",
+      "record0b_family1_classb9",
+      "record0c_family1_classbc",
+      "hurry_up_bat",
+      "normal_small_bat",
+      "large_bat",
+      "four_armed_enemy",
+      "axe_item",
+      "player_auxiliary",
+      "other_item_drop",
+      "projectile_weapon",
+      "transient_effect",
+      "gameplay_hud"
+    ],
+    "conservative": true,
+    "plane_a_physical_patterns": 433,
+    "plane_a_capacity": 484,
+    "plane_a_capacity_fit": true
+  },
+  {
+    "state_id": "plane_a_epoch_6",
+    "records": [
+      15
+    ],
+    "plane_a_banks": [
+      3,
+      23,
+      24
+    ],
+    "plane_b_banks": [
+      2
+    ],
+    "sprite_families": [
+      "rastan_player_body",
+      "stage1_lizardman",
+      "collision_marker40_route",
+      "collision_marker41_route",
+      "family0_class70_actor",
+      "family2_round1_actor_cluster",
+      "collision_marker49_special_route",
+      "collision_marker4f_behavior20_route",
+      "record08_family2_class30",
+      "record09_family1_class57",
+      "record0a_family1_classb6",
+      "record0b_family1_classb9",
+      "record0c_family1_classbc",
+      "hurry_up_bat",
+      "normal_small_bat",
+      "large_bat",
+      "four_armed_enemy",
+      "axe_item",
+      "player_auxiliary",
+      "other_item_drop",
+      "projectile_weapon",
+      "transient_effect",
+      "gameplay_hud"
+    ],
+    "conservative": true,
+    "plane_a_physical_patterns": 349,
+    "plane_a_capacity": 484,
+    "plane_a_capacity_fit": true
+  }
+]

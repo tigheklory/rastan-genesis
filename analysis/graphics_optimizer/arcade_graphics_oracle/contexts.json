@@ -1,0 +1,227 @@
+{
+ "schema": "generalized game-context model; type from enum; round/phase/segment optional and present only for GAMEPLAY_* types",
+ "context_types": [
+  "BOOT",
+  "FRONTEND",
+  "TITLE",
+  "STORY",
+  "ITEM_PAGE",
+  "ATTRACT",
+  "ATTRACT_GAMEPLAY",
+  "GAMEPLAY_ROUND",
+  "GAMEPLAY_PHASE",
+  "GAMEPLAY_SEGMENT",
+  "CONTINUE",
+  "GAME_OVER",
+  "HIGH_SCORE",
+  "ENDING",
+  "CREDITS",
+  "SERVICE_TEST",
+  "OTHER"
+ ],
+ "contexts": [
+  {
+   "id": "context:game",
+   "type": "OTHER",
+   "parent": null,
+   "display": "Rastan (arcade)"
+  },
+  {
+   "id": "context:gameplay",
+   "type": "OTHER",
+   "parent": "context:game",
+   "display": "Gameplay"
+  },
+  {
+   "id": "context:gameplay.r01",
+   "type": "GAMEPLAY_ROUND",
+   "parent": "context:gameplay",
+   "round": 1,
+   "display": "Round 1"
+  },
+  {
+   "id": "context:gameplay.r01.p01",
+   "type": "GAMEPLAY_PHASE",
+   "parent": "context:gameplay.r01",
+   "round": 1,
+   "phase": 1,
+   "display": "Round 1 / Phase 1",
+   "status": "ACTIVE DATASET",
+   "segments": [
+    "context:gameplay.r01.p01.segment_00",
+    "context:gameplay.r01.p01.segment_01",
+    "context:gameplay.r01.p01.segment_02",
+    "context:gameplay.r01.p01.segment_03",
+    "context:gameplay.r01.p01.segment_04",
+    "context:gameplay.r01.p01.segment_05",
+    "context:gameplay.r01.p01.segment_06",
+    "context:gameplay.r01.p01.segment_07",
+    "context:gameplay.r01.p01.segment_08",
+    "context:gameplay.r01.p01.segment_09",
+    "context:gameplay.r01.p01.segment_10",
+    "context:gameplay.r01.p01.segment_11",
+    "context:gameplay.r01.p01.segment_12",
+    "context:gameplay.r01.p01.segment_13",
+    "context:gameplay.r01.p01.segment_14",
+    "context:gameplay.r01.p01.segment_15"
+   ]
+  },
+  {
+   "id": "context:frontend",
+   "type": "FRONTEND",
+   "parent": "context:game",
+   "display": "Frontend"
+  },
+  {
+   "id": "context:frontend.item_page",
+   "type": "ITEM_PAGE",
+   "parent": "context:frontend",
+   "display": "Scrolling item information page",
+   "status": "STUB (schema only; graphics/palette decode deferred to a later session \u2014 not in R1/P1 capture)"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_00",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 0,
+   "display": "R1/P1 record 0"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_01",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 1,
+   "display": "R1/P1 record 1"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_02",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 2,
+   "display": "R1/P1 record 2"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_03",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 3,
+   "display": "R1/P1 record 3"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_04",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 4,
+   "display": "R1/P1 record 4"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_05",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 5,
+   "display": "R1/P1 record 5"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_06",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 6,
+   "display": "R1/P1 record 6"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_07",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 7,
+   "display": "R1/P1 record 7"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_08",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 8,
+   "display": "R1/P1 record 8"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_09",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 9,
+   "display": "R1/P1 record 9"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_10",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 10,
+   "display": "R1/P1 record 10"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_11",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 11,
+   "display": "R1/P1 record 11"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_12",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 12,
+   "display": "R1/P1 record 12"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_13",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 13,
+   "display": "R1/P1 record 13"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_14",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 14,
+   "display": "R1/P1 record 14"
+  },
+  {
+   "id": "context:gameplay.r01.p01.segment_15",
+   "type": "GAMEPLAY_SEGMENT",
+   "parent": "context:gameplay.r01.p01",
+   "round": 1,
+   "phase": 1,
+   "segment": 15,
+   "display": "R1/P1 record 15"
+  }
+ ]
+}

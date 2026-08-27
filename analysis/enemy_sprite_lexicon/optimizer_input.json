@@ -1,0 +1,372 @@
+{
+ "schema_version": 1,
+ "optimizer_classes_by_scope": {
+  "round1_phase1": [
+   {
+    "id": "NORMAL_FAMILY_00",
+    "name": "Stage-1 Lizardman",
+    "class_resolution": "resolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+     "0x004F",
+     "0x0050",
+     "0x0051",
+     "0x0052",
+     "0x0053",
+     "0x0054",
+     "0x0063",
+     "0x0064",
+     "0x0065",
+     "0x0066"
+    ],
+    "palette_relationship": {
+     "status": "proven",
+     "proven_banks": [
+      "0x36"
+     ],
+     "legal_candidates": [],
+     "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2806 at round1_phase1"
+    },
+    "pieces_per_composite": 10,
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2806 at round1_phase1",
+    "composites": [
+     {
+      "id": "whole_game_lexicon_representative",
+      "status": "original arcade sweep composite",
+      "components": [
+       {
+        "code": "0x0066",
+        "x": 0,
+        "y": 32,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0064",
+        "x": 0,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0052",
+        "x": 0,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0050",
+        "x": 0,
+        "y": 0,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0065",
+        "x": 16,
+        "y": 32,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0063",
+        "x": 16,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0051",
+        "x": 16,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x004F",
+        "x": 16,
+        "y": 0,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0054",
+        "x": 32,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0053",
+        "x": 32,
+        "y": 0,
+        "flip_h": 1,
+        "flip_v": 0
+       }
+      ]
+     }
+    ],
+    "signature_alias": "hostile_base004b_compositor0",
+    "actor_3e": 0,
+    "semantic_key": "actor+0x3E",
+    "palette_content_status": "proven"
+   },
+   {
+    "id": "NORMAL_FAMILY_01",
+    "name": "HOSTILE_BASE_0179_COMPOSITOR0_UNRESOLVED",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+     "0x0179",
+     "0x017A",
+     "0x017B",
+     "0x017C"
+    ],
+    "palette_relationship": {
+     "status": "unknown",
+     "proven_banks": [],
+     "legal_candidates": [
+      "0x00",
+      "0x01",
+      "0x02",
+      "0x03",
+      "0x04",
+      "0x05",
+      "0x06",
+      "0x07",
+      "0x08",
+      "0x09",
+      "0x0A",
+      "0x0B",
+      "0x0C",
+      "0x0D",
+      "0x0E",
+      "0x0F"
+     ],
+     "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 3430 at round1_phase1"
+    },
+    "pieces_per_composite": 4,
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 3430 at round1_phase1",
+    "composites": [
+     {
+      "id": "whole_game_lexicon_representative",
+      "status": "original arcade sweep composite",
+      "components": [
+       {
+        "code": "0x017C",
+        "x": 16,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0
+       },
+       {
+        "code": "0x017A",
+        "x": 16,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0
+       },
+       {
+        "code": "0x017B",
+        "x": 0,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0179",
+        "x": 0,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0
+       }
+      ]
+     }
+    ],
+    "signature_alias": "hostile_base0179_compositor0",
+    "palette_content_status": "UNKNOWN",
+    "semantic_key": "actor+0x3E"
+   },
+   {
+    "id": "UNRESOLVED_high_code_boss_piece",
+    "name": "HOSTILE_BASE_0A5A_COMPOSITOR2_UNRESOLVED",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+     "0x0AA2"
+    ],
+    "palette_relationship": {
+     "status": "unknown",
+     "proven_banks": [],
+     "legal_candidates": [
+      "0x00",
+      "0x01",
+      "0x02",
+      "0x03",
+      "0x04",
+      "0x05",
+      "0x06",
+      "0x07",
+      "0x08",
+      "0x09",
+      "0x0A",
+      "0x0B",
+      "0x0C",
+      "0x0D",
+      "0x0E",
+      "0x0F"
+     ],
+     "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2876 at round1_castle"
+    },
+    "pieces_per_composite": 1,
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2876 at round1_castle",
+    "composites": [
+     {
+      "id": "whole_game_lexicon_representative",
+      "status": "original arcade sweep composite",
+      "components": [
+       {
+        "code": "0x0AA2",
+        "x": 0,
+        "y": 0,
+        "flip_h": 1,
+        "flip_v": 0
+       }
+      ]
+     }
+    ],
+    "signature_alias": "hostile_base0a5a_compositor2",
+    "palette_content_status": "UNKNOWN",
+    "category": "UNRESOLVED"
+   },
+   {
+    "id": "UNRESOLVED_high_code_boss_piece",
+    "name": "HOSTILE_BASE_0A73_COMPOSITOR2_UNRESOLVED",
+    "class_resolution": "unresolved",
+    "graphics_resolution": "resolved",
+    "codes": [
+     "0x026B",
+     "0x026C",
+     "0x033E",
+     "0x033F",
+     "0x0340",
+     "0x0341",
+     "0x0356",
+     "0x0363",
+     "0x0364",
+     "0x0365"
+    ],
+    "palette_relationship": {
+     "status": "unknown",
+     "proven_banks": [],
+     "legal_candidates": [
+      "0x00",
+      "0x01",
+      "0x02",
+      "0x03",
+      "0x04",
+      "0x05",
+      "0x06",
+      "0x07",
+      "0x08",
+      "0x09",
+      "0x0A",
+      "0x0B",
+      "0x0C",
+      "0x0D",
+      "0x0E",
+      "0x0F"
+     ],
+     "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2846 at round1_castle"
+    },
+    "pieces_per_composite": 10,
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2846 at round1_castle",
+    "composites": [
+     {
+      "id": "whole_game_lexicon_representative",
+      "status": "original arcade sweep composite",
+      "components": [
+       {
+        "code": "0x026B",
+        "x": 32,
+        "y": 0,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x026C",
+        "x": 32,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0341",
+        "x": 32,
+        "y": 56,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x033F",
+        "x": 32,
+        "y": 40,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0365",
+        "x": 32,
+        "y": 24,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0340",
+        "x": 16,
+        "y": 56,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x033E",
+        "x": 16,
+        "y": 40,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0364",
+        "x": 16,
+        "y": 24,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0356",
+        "x": 21,
+        "y": 8,
+        "flip_h": 1,
+        "flip_v": 0
+       },
+       {
+        "code": "0x0363",
+        "x": 0,
+        "y": 24,
+        "flip_h": 1,
+        "flip_v": 0
+       }
+      ]
+     }
+    ],
+    "signature_alias": "hostile_base0a73_compositor2",
+    "actor_3e": 8,
+    "semantic_key": "actor+0x3E",
+    "palette_content_status": "UNKNOWN",
+    "category": "UNRESOLVED"
+   }
+  ]
+ },
+ "note": "relabeled to semantic actor+0x3E family IDs; signature_alias retains Cody traceability"
+}

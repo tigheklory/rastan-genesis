@@ -1,0 +1,2856 @@
+{
+ "scope": "R1/P1 Layer A (FG plane) + Layer B (BG plane) palette banks, exact arcade values",
+ "conversion": "0RGB nibble source -> xBGR555 (5-bit=nibble*2) -> MAME pal5bit RGB8; validated vs KF-1214",
+ "epochs": "single epoch per bank in R1/P1 (stage-load fill; Layer B single distinct state across records 0-15; Layer A multi-bank is spatial not temporal)",
+ "layer_a_banks": [
+  "0x003",
+  "0x004",
+  "0x005",
+  "0x006",
+  "0x007",
+  "0x017",
+  "0x018",
+  "0x01A",
+  "0x01B",
+  "0x01C",
+  "0x01D"
+ ],
+ "layer_b_banks": [
+  "0x002"
+ ],
+ "banks": {
+  "0x003": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x003.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x003",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 3 record@0x3BA8B block 12 @0x4FE82; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x0842",
+     "arcade_rgb8": [
+      16,
+      16,
+      16
+     ],
+     "lab": [
+      4.68042,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x739C",
+     "arcade_rgb8": [
+      231,
+      231,
+      231
+     ],
+     "lab": [
+      91.64459,
+      -2e-05,
+      1e-05
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x429E",
+     "arcade_rgb8": [
+      247,
+      165,
+      132
+     ],
+     "lab": [
+      75.04815,
+      26.66933,
+      29.47882
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x2154",
+     "arcade_rgb8": [
+      165,
+      82,
+      66
+     ],
+     "lab": [
+      44.84265,
+      32.74032,
+      25.12396
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x190C",
+     "arcade_rgb8": [
+      99,
+      66,
+      49
+     ],
+     "lab": [
+      31.28073,
+      12.06954,
+      16.10633
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x0012",
+     "arcade_rgb8": [
+      148,
+      0,
+      0
+     ],
+     "lab": [
+      30.15232,
+      53.38548,
+      43.79732
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x000C",
+     "arcade_rgb8": [
+      99,
+      0,
+      0
+     ],
+     "lab": [
+      18.59932,
+      40.02185,
+      28.61734
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x03DE",
+     "arcade_rgb8": [
+      247,
+      247,
+      0
+     ],
+     "lab": [
+      94.43963,
+      -21.03945,
+      92.22362
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x01DE",
+     "arcade_rgb8": [
+      247,
+      115,
+      0
+     ],
+     "lab": [
+      63.37724,
+      46.08653,
+      71.26019
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x0240",
+     "arcade_rgb8": [
+      0,
+      148,
+      0
+     ],
+     "lab": [
+      53.14418,
+      -57.44493,
+      55.44302
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x0180",
+     "arcade_rgb8": [
+      0,
+      99,
+      0
+     ],
+     "lab": [
+      35.83578,
+      -43.06512,
+      41.56434
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x4A52",
+     "arcade_rgb8": [
+      148,
+      148,
+      148
+     ],
+     "lab": [
+      61.31959,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x318C",
+     "arcade_rgb8": [
+      99,
+      99,
+      99
+     ],
+     "lab": [
+      41.96469,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x0100",
+     "arcade_rgb8": [
+      0,
+      66,
+      0
+     ],
+     "lab": [
+      23.32517,
+      -32.67131,
+      30.92771
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x001E",
+     "arcade_rgb8": [
+      247,
+      0,
+      0
+     ],
+     "lab": [
+      51.58863,
+      78.18136,
+      65.59965
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x003",
+   "effective_palette_ram_bank": "0x003"
+  },
+  "0x004": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x004.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x004",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 4 record@0x3BA8C block 18 @0x4FF42; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x119E",
+     "arcade_rgb8": [
+      247,
+      99,
+      33
+     ],
+     "lab": [
+      60.61694,
+      53.88574,
+      61.78786
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x1116",
+     "arcade_rgb8": [
+      181,
+      66,
+      33
+     ],
+     "lab": [
+      43.99256,
+      45.02573,
+      43.10955
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x0850",
+     "arcade_rgb8": [
+      132,
+      16,
+      16
+     ],
+     "lab": [
+      27.61445,
+      46.43159,
+      33.31
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x03DE",
+     "arcade_rgb8": [
+      247,
+      247,
+      0
+     ],
+     "lab": [
+      94.43963,
+      -21.03945,
+      92.22362
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x0252",
+     "arcade_rgb8": [
+      148,
+      148,
+      0
+     ],
+     "lab": [
+      59.41277,
+      -14.36661,
+      62.97412
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x7BDE",
+     "arcade_rgb8": [
+      247,
+      247,
+      247
+     ],
+     "lab": [
+      97.2321,
+      -2e-05,
+      1e-05
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x4210",
+     "arcade_rgb8": [
+      132,
+      132,
+      132
+     ],
+     "lab": [
+      55.14849,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x0008",
+     "arcade_rgb8": [
+      66,
+      0,
+      0
+     ],
+     "lab": [
+      10.24874,
+      30.36254,
+      16.16364
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x001E",
+     "arcade_rgb8": [
+      247,
+      0,
+      0
+     ],
+     "lab": [
+      51.58863,
+      78.18136,
+      65.59965
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x018E",
+     "arcade_rgb8": [
+      115,
+      99,
+      0
+     ],
+     "lab": [
+      42.10679,
+      -2.92639,
+      49.06001
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x0842",
+     "arcade_rgb8": [
+      16,
+      16,
+      16
+     ],
+     "lab": [
+      4.68042,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x0240",
+     "arcade_rgb8": [
+      0,
+      148,
+      0
+     ],
+     "lab": [
+      53.14418,
+      -57.44493,
+      55.44302
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x0140",
+     "arcade_rgb8": [
+      0,
+      82,
+      0
+     ],
+     "lab": [
+      29.49854,
+      -37.80015,
+      36.48285
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x025E",
+     "arcade_rgb8": [
+      247,
+      148,
+      0
+     ],
+     "lab": [
+      70.14742,
+      29.46286,
+      75.37717
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x5AD6",
+     "arcade_rgb8": [
+      181,
+      181,
+      181
+     ],
+     "lab": [
+      73.68011,
+      -1e-05,
+      1e-05
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x004",
+   "effective_palette_ram_bank": "0x004"
+  },
+  "0x005": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x005.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x005",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 5 record@0x3BA8D block 16 @0x4FF02; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x001E",
+     "arcade_rgb8": [
+      247,
+      0,
+      0
+     ],
+     "lab": [
+      51.58863,
+      78.18136,
+      65.59965
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x7BD4",
+     "arcade_rgb8": [
+      165,
+      247,
+      247
+     ],
+     "lab": [
+      92.23493,
+      -24.75156,
+      -7.92529
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x5B88",
+     "arcade_rgb8": [
+      66,
+      231,
+      181
+     ],
+     "lab": [
+      82.72251,
+      -53.47928,
+      12.35085
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x3BD8",
+     "arcade_rgb8": [
+      198,
+      247,
+      115
+     ],
+     "lab": [
+      91.57902,
+      -35.63496,
+      57.59017
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x6AC6",
+     "arcade_rgb8": [
+      49,
+      181,
+      214
+     ],
+     "lab": [
+      68.42556,
+      -23.76249,
+      -26.61553
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x4B58",
+     "arcade_rgb8": [
+      198,
+      214,
+      148
+     ],
+     "lab": [
+      83.03939,
+      -16.17953,
+      30.88005
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x18C0",
+     "arcade_rgb8": [
+      0,
+      49,
+      49
+     ],
+     "lab": [
+      17.54434,
+      -15.05943,
+      -4.42542
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x3100",
+     "arcade_rgb8": [
+      0,
+      66,
+      99
+     ],
+     "lab": [
+      26.14756,
+      -4.90909,
+      -24.55165
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x3A4E",
+     "arcade_rgb8": [
+      115,
+      148,
+      115
+     ],
+     "lab": [
+      58.09572,
+      -18.29249,
+      13.77208
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x3A06",
+     "arcade_rgb8": [
+      49,
+      132,
+      115
+     ],
+     "lab": [
+      49.96814,
+      -29.3261,
+      1.77697
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x3146",
+     "arcade_rgb8": [
+      49,
+      82,
+      99
+     ],
+     "lab": [
+      33.1095,
+      -6.84063,
+      -13.61379
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x01CE",
+     "arcade_rgb8": [
+      115,
+      115,
+      0
+     ],
+     "lab": [
+      46.85189,
+      -11.97368,
+      52.48504
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x008C",
+     "arcade_rgb8": [
+      99,
+      33,
+      0
+     ],
+     "lab": [
+      22.79671,
+      28.37069,
+      33.26139
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x4A4E",
+     "arcade_rgb8": [
+      115,
+      148,
+      148
+     ],
+     "lab": [
+      58.93901,
+      -11.41784,
+      -3.77136
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x005",
+   "effective_palette_ram_bank": "0x005"
+  },
+  "0x006": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x006.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x006",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 6 record@0x3BA8E block 13 @0x4FEA2; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x4318",
+     "arcade_rgb8": [
+      198,
+      198,
+      132
+     ],
+     "lab": [
+      78.49712,
+      -10.11857,
+      33.14666
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x00C0",
+     "arcade_rgb8": [
+      0,
+      49,
+      0
+     ],
+     "lab": [
+      16.48631,
+      -26.98959,
+      23.18847
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x0246",
+     "arcade_rgb8": [
+      49,
+      148,
+      0
+     ],
+     "lab": [
+      53.84786,
+      -51.243,
+      56.30062
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x01C0",
+     "arcade_rgb8": [
+      0,
+      115,
+      0
+     ],
+     "lab": [
+      41.62741,
+      -47.87681,
+      46.20834
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x030E",
+     "arcade_rgb8": [
+      115,
+      198,
+      0
+     ],
+     "lab": [
+      72.24958,
+      -50.6347,
+      71.79688
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x2948",
+     "arcade_rgb8": [
+      66,
+      82,
+      82
+     ],
+     "lab": [
+      33.56669,
+      -6.21777,
+      -2.07679
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x318A",
+     "arcade_rgb8": [
+      82,
+      99,
+      99
+     ],
+     "lab": [
+      40.60256,
+      -6.42466,
+      -2.15661
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x6356",
+     "arcade_rgb8": [
+      181,
+      214,
+      198
+     ],
+     "lab": [
+      82.90962,
+      -14.03366,
+      4.25412
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x6B9A",
+     "arcade_rgb8": [
+      214,
+      231,
+      214
+     ],
+     "lab": [
+      89.99956,
+      -8.73475,
+      6.3425
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x10D2",
+     "arcade_rgb8": [
+      148,
+      49,
+      33
+     ],
+     "lab": [
+      35.211,
+      40.69919,
+      32.34405
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x2996",
+     "arcade_rgb8": [
+      181,
+      99,
+      82
+     ],
+     "lab": [
+      51.10483,
+      31.29641,
+      24.27853
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x210A",
+     "arcade_rgb8": [
+      82,
+      66,
+      66
+     ],
+     "lab": [
+      29.62299,
+      6.88385,
+      2.59615
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x380E",
+     "arcade_rgb8": [
+      115,
+      0,
+      115
+     ],
+     "lab": [
+      26.40014,
+      54.57179,
+      -33.78986
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x01CE",
+     "arcade_rgb8": [
+      115,
+      115,
+      0
+     ],
+     "lab": [
+      46.85189,
+      -11.97368,
+      52.48504
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x39CE",
+     "arcade_rgb8": [
+      115,
+      115,
+      115
+     ],
+     "lab": [
+      48.44111,
+      -1e-05,
+      0.0
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x006",
+   "effective_palette_ram_bank": "0x006"
+  },
+  "0x007": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x007.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x007",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 7 record@0x3BA8F block 11 @0x4FE62; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x0010",
+     "arcade_rgb8": [
+      132,
+      0,
+      0
+     ],
+     "lab": [
+      26.46877,
+      49.12463,
+      39.2549
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x015E",
+     "arcade_rgb8": [
+      247,
+      82,
+      0
+     ],
+     "lab": [
+      57.86115,
+      60.58808,
+      68.28581
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x025E",
+     "arcade_rgb8": [
+      247,
+      148,
+      0
+     ],
+     "lab": [
+      70.14742,
+      29.46286,
+      75.37717
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x03DE",
+     "arcade_rgb8": [
+      247,
+      247,
+      0
+     ],
+     "lab": [
+      94.43963,
+      -21.03945,
+      92.22362
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x4BDE",
+     "arcade_rgb8": [
+      247,
+      247,
+      148
+     ],
+     "lab": [
+      95.34397,
+      -13.89258,
+      47.51763
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x7BDE",
+     "arcade_rgb8": [
+      247,
+      247,
+      247
+     ],
+     "lab": [
+      97.2321,
+      -2e-05,
+      1e-05
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x5800",
+     "arcade_rgb8": [
+      0,
+      0,
+      181
+     ],
+     "lab": [
+      21.33863,
+      61.22022,
+      -83.38716
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x7940",
+     "arcade_rgb8": [
+      0,
+      82,
+      247
+     ],
+     "lab": [
+      42.37993,
+      44.76176,
+      -86.62014
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x7A40",
+     "arcade_rgb8": [
+      0,
+      148,
+      247
+     ],
+     "lab": [
+      59.79056,
+      3.50264,
+      -58.34804
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x7B40",
+     "arcade_rgb8": [
+      0,
+      214,
+      247
+     ],
+     "lab": [
+      78.92766,
+      -31.90986,
+      -28.37885
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x7BD4",
+     "arcade_rgb8": [
+      165,
+      247,
+      247
+     ],
+     "lab": [
+      92.23493,
+      -24.75156,
+      -7.92529
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x007",
+   "effective_palette_ram_bank": "0x007"
+  },
+  "0x017": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x017.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x017",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 23 record@0x3BA9F block 11 @0x4FE62; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x0010",
+     "arcade_rgb8": [
+      132,
+      0,
+      0
+     ],
+     "lab": [
+      26.46877,
+      49.12463,
+      39.2549
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x015E",
+     "arcade_rgb8": [
+      247,
+      82,
+      0
+     ],
+     "lab": [
+      57.86115,
+      60.58808,
+      68.28581
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x025E",
+     "arcade_rgb8": [
+      247,
+      148,
+      0
+     ],
+     "lab": [
+      70.14742,
+      29.46286,
+      75.37717
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x03DE",
+     "arcade_rgb8": [
+      247,
+      247,
+      0
+     ],
+     "lab": [
+      94.43963,
+      -21.03945,
+      92.22362
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x4BDE",
+     "arcade_rgb8": [
+      247,
+      247,
+      148
+     ],
+     "lab": [
+      95.34397,
+      -13.89258,
+      47.51763
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x7BDE",
+     "arcade_rgb8": [
+      247,
+      247,
+      247
+     ],
+     "lab": [
+      97.2321,
+      -2e-05,
+      1e-05
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x5800",
+     "arcade_rgb8": [
+      0,
+      0,
+      181
+     ],
+     "lab": [
+      21.33863,
+      61.22022,
+      -83.38716
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x7940",
+     "arcade_rgb8": [
+      0,
+      82,
+      247
+     ],
+     "lab": [
+      42.37993,
+      44.76176,
+      -86.62014
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x7A40",
+     "arcade_rgb8": [
+      0,
+      148,
+      247
+     ],
+     "lab": [
+      59.79056,
+      3.50264,
+      -58.34804
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x7B40",
+     "arcade_rgb8": [
+      0,
+      214,
+      247
+     ],
+     "lab": [
+      78.92766,
+      -31.90986,
+      -28.37885
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x7BD4",
+     "arcade_rgb8": [
+      165,
+      247,
+      247
+     ],
+     "lab": [
+      92.23493,
+      -24.75156,
+      -7.92529
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x017",
+   "effective_palette_ram_bank": "0x017"
+  },
+  "0x018": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x018.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x018",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 24 record@0x3BAA0 block 11 @0x4FE62; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x0010",
+     "arcade_rgb8": [
+      132,
+      0,
+      0
+     ],
+     "lab": [
+      26.46877,
+      49.12463,
+      39.2549
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x015E",
+     "arcade_rgb8": [
+      247,
+      82,
+      0
+     ],
+     "lab": [
+      57.86115,
+      60.58808,
+      68.28581
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x025E",
+     "arcade_rgb8": [
+      247,
+      148,
+      0
+     ],
+     "lab": [
+      70.14742,
+      29.46286,
+      75.37717
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x03DE",
+     "arcade_rgb8": [
+      247,
+      247,
+      0
+     ],
+     "lab": [
+      94.43963,
+      -21.03945,
+      92.22362
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x4BDE",
+     "arcade_rgb8": [
+      247,
+      247,
+      148
+     ],
+     "lab": [
+      95.34397,
+      -13.89258,
+      47.51763
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x7BDE",
+     "arcade_rgb8": [
+      247,
+      247,
+      247
+     ],
+     "lab": [
+      97.2321,
+      -2e-05,
+      1e-05
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x5800",
+     "arcade_rgb8": [
+      0,
+      0,
+      181
+     ],
+     "lab": [
+      21.33863,
+      61.22022,
+      -83.38716
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x7940",
+     "arcade_rgb8": [
+      0,
+      82,
+      247
+     ],
+     "lab": [
+      42.37993,
+      44.76176,
+      -86.62014
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x7A40",
+     "arcade_rgb8": [
+      0,
+      148,
+      247
+     ],
+     "lab": [
+      59.79056,
+      3.50264,
+      -58.34804
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x7B40",
+     "arcade_rgb8": [
+      0,
+      214,
+      247
+     ],
+     "lab": [
+      78.92766,
+      -31.90986,
+      -28.37885
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x7BD4",
+     "arcade_rgb8": [
+      165,
+      247,
+      247
+     ],
+     "lab": [
+      92.23493,
+      -24.75156,
+      -7.92529
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x018",
+   "effective_palette_ram_bank": "0x018"
+  },
+  "0x01A": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x01A.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x01A",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 26 record@0x3BAA2 block 22 @0x4FFC2; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x62C0",
+     "arcade_rgb8": [
+      0,
+      181,
+      198
+     ],
+     "lab": [
+      67.36797,
+      -31.83245,
+      -19.47318
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x51C0",
+     "arcade_rgb8": [
+      0,
+      115,
+      165
+     ],
+     "lab": [
+      45.60175,
+      -8.44229,
+      -34.35376
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x3940",
+     "arcade_rgb8": [
+      0,
+      82,
+      115
+     ],
+     "lab": [
+      32.41729,
+      -8.39404,
+      -24.84151
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x3B1C",
+     "arcade_rgb8": [
+      231,
+      198,
+      115
+     ],
+     "lab": [
+      81.08094,
+      1.32622,
+      45.62226
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x19CE",
+     "arcade_rgb8": [
+      115,
+      115,
+      49
+     ],
+     "lab": [
+      47.14251,
+      -9.65257,
+      35.87124
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x2A52",
+     "arcade_rgb8": [
+      148,
+      148,
+      82
+     ],
+     "lab": [
+      59.96585,
+      -9.98471,
+      34.76612
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x2806",
+     "arcade_rgb8": [
+      49,
+      0,
+      82
+     ],
+     "lab": [
+      11.00835,
+      37.80923,
+      -37.47122
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x4B5A",
+     "arcade_rgb8": [
+      214,
+      214,
+      148
+     ],
+     "lab": [
+      84.2401,
+      -10.11766,
+      32.69
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x094A",
+     "arcade_rgb8": [
+      82,
+      82,
+      16
+     ],
+     "lab": [
+      33.70231,
+      -8.81768,
+      36.08927
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x0010",
+     "arcade_rgb8": [
+      132,
+      0,
+      0
+     ],
+     "lab": [
+      26.46877,
+      49.12463,
+      39.2549
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x7B9C",
+     "arcade_rgb8": [
+      231,
+      231,
+      247
+     ],
+     "lab": [
+      92.0675,
+      2.94157,
+      -7.73129
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x380E",
+     "arcade_rgb8": [
+      115,
+      0,
+      115
+     ],
+     "lab": [
+      26.40014,
+      54.57179,
+      -33.78986
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x01CE",
+     "arcade_rgb8": [
+      115,
+      115,
+      0
+     ],
+     "lab": [
+      46.85189,
+      -11.97368,
+      52.48504
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x39CE",
+     "arcade_rgb8": [
+      115,
+      115,
+      115
+     ],
+     "lab": [
+      48.44111,
+      -1e-05,
+      0.0
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x01A",
+   "effective_palette_ram_bank": "0x01A"
+  },
+  "0x01B": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x01B.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x01B",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 27 record@0x3BAA3 block 11 @0x4FE62; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x0010",
+     "arcade_rgb8": [
+      132,
+      0,
+      0
+     ],
+     "lab": [
+      26.46877,
+      49.12463,
+      39.2549
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x015E",
+     "arcade_rgb8": [
+      247,
+      82,
+      0
+     ],
+     "lab": [
+      57.86115,
+      60.58808,
+      68.28581
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x025E",
+     "arcade_rgb8": [
+      247,
+      148,
+      0
+     ],
+     "lab": [
+      70.14742,
+      29.46286,
+      75.37717
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x03DE",
+     "arcade_rgb8": [
+      247,
+      247,
+      0
+     ],
+     "lab": [
+      94.43963,
+      -21.03945,
+      92.22362
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x4BDE",
+     "arcade_rgb8": [
+      247,
+      247,
+      148
+     ],
+     "lab": [
+      95.34397,
+      -13.89258,
+      47.51763
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x7BDE",
+     "arcade_rgb8": [
+      247,
+      247,
+      247
+     ],
+     "lab": [
+      97.2321,
+      -2e-05,
+      1e-05
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x5800",
+     "arcade_rgb8": [
+      0,
+      0,
+      181
+     ],
+     "lab": [
+      21.33863,
+      61.22022,
+      -83.38716
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x7940",
+     "arcade_rgb8": [
+      0,
+      82,
+      247
+     ],
+     "lab": [
+      42.37993,
+      44.76176,
+      -86.62014
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x7A40",
+     "arcade_rgb8": [
+      0,
+      148,
+      247
+     ],
+     "lab": [
+      59.79056,
+      3.50264,
+      -58.34804
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x7B40",
+     "arcade_rgb8": [
+      0,
+      214,
+      247
+     ],
+     "lab": [
+      78.92766,
+      -31.90986,
+      -28.37885
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x7BD4",
+     "arcade_rgb8": [
+      165,
+      247,
+      247
+     ],
+     "lab": [
+      92.23493,
+      -24.75156,
+      -7.92529
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x01B",
+   "effective_palette_ram_bank": "0x01B"
+  },
+  "0x01C": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x01C.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x01C",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 28 record@0x3BAA4 block 35 @0x50162; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x2108",
+     "arcade_rgb8": [
+      66,
+      66,
+      66
+     ],
+     "lab": [
+      27.97486,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x6318",
+     "arcade_rgb8": [
+      198,
+      198,
+      198
+     ],
+     "lab": [
+      79.88122,
+      -1e-05,
+      1e-05
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x4A52",
+     "arcade_rgb8": [
+      148,
+      148,
+      148
+     ],
+     "lab": [
+      61.31959,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x39CE",
+     "arcade_rgb8": [
+      115,
+      115,
+      115
+     ],
+     "lab": [
+      48.44111,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x294A",
+     "arcade_rgb8": [
+      82,
+      82,
+      82
+     ],
+     "lab": [
+      34.87815,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x21DC",
+     "arcade_rgb8": [
+      231,
+      115,
+      66
+     ],
+     "lab": [
+      61.34984,
+      41.51726,
+      47.00321
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x221C",
+     "arcade_rgb8": [
+      231,
+      132,
+      66
+     ],
+     "lab": [
+      64.87468,
+      32.82347,
+      50.81916
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x114E",
+     "arcade_rgb8": [
+      115,
+      82,
+      33
+     ],
+     "lab": [
+      37.46293,
+      8.41899,
+      33.26805
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x18C6",
+     "arcade_rgb8": [
+      49,
+      49,
+      49
+     ],
+     "lab": [
+      20.32739,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x318C",
+     "arcade_rgb8": [
+      99,
+      99,
+      99
+     ],
+     "lab": [
+      41.96469,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x00CC",
+     "arcade_rgb8": [
+      99,
+      49,
+      0
+     ],
+     "lab": [
+      26.30318,
+      19.4135,
+      36.66366
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x2192",
+     "arcade_rgb8": [
+      148,
+      99,
+      66
+     ],
+     "lab": [
+      46.46441,
+      16.06384,
+      26.6827
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x21D6",
+     "arcade_rgb8": [
+      181,
+      115,
+      66
+     ],
+     "lab": [
+      54.53366,
+      21.26475,
+      37.44634
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x4A96",
+     "arcade_rgb8": [
+      181,
+      165,
+      148
+     ],
+     "lab": [
+      68.65915,
+      2.96753,
+      10.91887
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x01C",
+   "effective_palette_ram_bank": "0x01C"
+  },
+  "0x01D": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x01D.epoch_00",
+   "layer": "A",
+   "hardware_bank": "0x01D",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 29 record@0x3BAA5 block 1 @0x4FD22; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x4210",
+     "arcade_rgb8": [
+      132,
+      132,
+      132
+     ],
+     "lab": [
+      55.14849,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x0084",
+     "arcade_rgb8": [
+      33,
+      33,
+      0
+     ],
+     "lab": [
+      12.03124,
+      -5.34013,
+      17.73011
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x10C6",
+     "arcade_rgb8": [
+      49,
+      49,
+      33
+     ],
+     "lab": [
+      19.88071,
+      -3.24569,
+      10.25568
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x2108",
+     "arcade_rgb8": [
+      66,
+      66,
+      66
+     ],
+     "lab": [
+      27.97486,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x214A",
+     "arcade_rgb8": [
+      82,
+      82,
+      66
+     ],
+     "lab": [
+      34.4407,
+      -3.14603,
+      9.42314
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x294A",
+     "arcade_rgb8": [
+      82,
+      82,
+      82
+     ],
+     "lab": [
+      34.87815,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x318C",
+     "arcade_rgb8": [
+      99,
+      99,
+      99
+     ],
+     "lab": [
+      41.96469,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x39CE",
+     "arcade_rgb8": [
+      115,
+      115,
+      115
+     ],
+     "lab": [
+      48.44111,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x5294",
+     "arcade_rgb8": [
+      165,
+      165,
+      165
+     ],
+     "lab": [
+      67.74422,
+      -1e-05,
+      0.0
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x2A10",
+     "arcade_rgb8": [
+      132,
+      132,
+      82
+     ],
+     "lab": [
+      54.0457,
+      -8.08665,
+      27.01831
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x21CE",
+     "arcade_rgb8": [
+      115,
+      115,
+      66
+     ],
+     "lab": [
+      47.36558,
+      -7.91392,
+      27.07704
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x198C",
+     "arcade_rgb8": [
+      99,
+      99,
+      49
+     ],
+     "lab": [
+      40.89376,
+      -7.92109,
+      28.19899
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x194A",
+     "arcade_rgb8": [
+      82,
+      82,
+      49
+     ],
+     "lab": [
+      34.08744,
+      -5.79891,
+      19.39018
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x1108",
+     "arcade_rgb8": [
+      66,
+      66,
+      33
+     ],
+     "lab": [
+      27.19861,
+      -5.72773,
+      20.00729
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x03DE",
+     "arcade_rgb8": [
+      247,
+      247,
+      0
+     ],
+     "lab": [
+      94.43963,
+      -21.03945,
+      92.22362
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x01D",
+   "effective_palette_ram_bank": "0x01D"
+  },
+  "0x002": {
+   "palette_id": "palette:arcade.r01p01.plane.bank_0x002.epoch_00",
+   "layer": "B",
+   "hardware_bank": "0x002",
+   "epoch": "epoch_00",
+   "source": "scene 1 index 2 record@0x3BA8A block 15 @0x4FEE2; FUN_0003BA20 -> a5+0x1600, FUN_00045D7C -> arcade banks 0..31",
+   "loader": "FUN_0003BA20 (round-1 index 0x3BA88) -> pool 0x4FD02 -> FUN_00045D7C -> palette RAM banks 0..31",
+   "entries": [
+    {
+     "index": 0,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 1,
+     "arcade_xbgr555": "0x0000",
+     "arcade_rgb8": [
+      0,
+      0,
+      0
+     ],
+     "lab": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "arcade_xbgr555": "0x000C",
+     "arcade_rgb8": [
+      99,
+      0,
+      0
+     ],
+     "lab": [
+      18.59932,
+      40.02185,
+      28.61734
+     ]
+    },
+    {
+     "index": 3,
+     "arcade_xbgr555": "0x0914",
+     "arcade_rgb8": [
+      165,
+      66,
+      16
+     ],
+     "lab": [
+      41.11365,
+      38.59746,
+      46.87806
+     ]
+    },
+    {
+     "index": 4,
+     "arcade_xbgr555": "0x31DA",
+     "arcade_rgb8": [
+      214,
+      115,
+      99
+     ],
+     "lab": [
+      59.39975,
+      37.15608,
+      26.24736
+     ]
+    },
+    {
+     "index": 5,
+     "arcade_xbgr555": "0x4A9C",
+     "arcade_rgb8": [
+      231,
+      165,
+      148
+     ],
+     "lab": [
+      73.57187,
+      22.21564,
+      18.51963
+     ]
+    },
+    {
+     "index": 6,
+     "arcade_xbgr555": "0x60C8",
+     "arcade_rgb8": [
+      66,
+      49,
+      198
+     ],
+     "lab": [
+      32.76846,
+      50.89184,
+      -74.35924
+     ]
+    },
+    {
+     "index": 7,
+     "arcade_xbgr555": "0x6242",
+     "arcade_rgb8": [
+      16,
+      148,
+      198
+     ],
+     "lab": [
+      57.42875,
+      -14.26827,
+      -34.78007
+     ]
+    },
+    {
+     "index": 8,
+     "arcade_xbgr555": "0x7382",
+     "arcade_rgb8": [
+      16,
+      231,
+      231
+     ],
+     "lab": [
+      83.45591,
+      -44.23888,
+      -13.02054
+     ]
+    },
+    {
+     "index": 9,
+     "arcade_xbgr555": "0x63D2",
+     "arcade_rgb8": [
+      148,
+      247,
+      198
+     ],
+     "lab": [
+      90.2714,
+      -39.74375,
+      14.54544
+     ]
+    },
+    {
+     "index": 10,
+     "arcade_xbgr555": "0x2998",
+     "arcade_rgb8": [
+      198,
+      99,
+      82
+     ],
+     "lab": [
+      53.5376,
+      37.9401,
+      27.89513
+     ]
+    },
+    {
+     "index": 11,
+     "arcade_xbgr555": "0x739C",
+     "arcade_rgb8": [
+      231,
+      231,
+      231
+     ],
+     "lab": [
+      91.64459,
+      -2e-05,
+      1e-05
+     ]
+    },
+    {
+     "index": 12,
+     "arcade_xbgr555": "0x1980",
+     "arcade_rgb8": [
+      0,
+      99,
+      49
+     ],
+     "lab": [
+      36.26152,
+      -37.72176,
+      21.44332
+     ]
+    },
+    {
+     "index": 13,
+     "arcade_xbgr555": "0x0A5A",
+     "arcade_rgb8": [
+      214,
+      148,
+      16
+     ],
+     "lab": [
+      66.14909,
+      15.59732,
+      68.50991
+     ]
+    },
+    {
+     "index": 14,
+     "arcade_xbgr555": "0x23DE",
+     "arcade_rgb8": [
+      247,
+      247,
+      66
+     ],
+     "lab": [
+      94.60711,
+      -19.68917,
+      80.81068
+     ]
+    },
+    {
+     "index": 15,
+     "arcade_xbgr555": "0x001E",
+     "arcade_rgb8": [
+      247,
+      0,
+      0
+     ],
+     "lab": [
+      51.58863,
+      78.18136,
+      65.59965
+     ]
+    }
+   ],
+   "pc080sn_color_selector": "0x002",
+   "effective_palette_ram_bank": "0x002"
+  }
+ },
+ "correction_1_selector_vs_bank": "PC080SN tile color = attr & 0x1ff (pc080sn.cpp get_tile_info, tileinfo.set(0,code,color)); DIRECT palette group, no layer base offset. Layer-B selector 0x002 = effective palette-RAM bank 0x002. Prior 'bank 48 (0x30)' is a SEPARATE bank loaded by FUN_0003b9f8 @0x4FE62 (and the sprite colbank base 0x30) - real, but NOT selected by R1/P1 BG tiles. RESOLVED ambiguity, not a contradiction; both facts preserved."
+}

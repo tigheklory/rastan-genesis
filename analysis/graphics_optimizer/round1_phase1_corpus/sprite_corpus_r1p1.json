@@ -1,0 +1,53 @@
+{
+ "scope": "R1/P1 complete sprite corpus (captured + armed-capture)",
+ "player": {
+  "semantic_id": "RASTAN",
+  "records": "120-131",
+  "bank": "0x33",
+  "cell_codes_count": 30,
+  "render": "contact_sheets/player_rastan.png / player_poses.png",
+  "note": "barbarian; captured wielding Flame Sword"
+ },
+ "equipped_weapon_observed": {
+  "name": "Flame Sword",
+  "note": "flaming blade in Rastan attack composite (bank 0x33); Tighe had it equipped in the capture",
+  "user_verify": true
+ },
+ "sword_sparkle_effect": {
+  "records": "132-133",
+  "bank": "0x30"
+ },
+ "hud": {
+  "records": "0-45",
+  "banks": [
+   "0x30",
+   "0x33"
+  ],
+  "note": "score/text/1UP cells across screen top (not one composite)"
+ },
+ "flying_demon_records_confirmed": "57-69 (A/body) + 70-82 (B/wings), bank 0x35",
+ "new_enemy_producers_unclassified": [
+  "actor_2c8/0x0234",
+  "actor_2c8/0x0236",
+  "actor_2c8/0x0266",
+  "actor_2c8/0x0DAB"
+ ],
+ "captured_world_sprites": "see sprite_census_captured.json (21 producers)",
+ "not_yet_isolated": [
+  "normal sword (Rastan without Flame Sword)",
+  "Flail equipped",
+  "Axe pickup + item pickups as distinct item actors"
+ ],
+ "pipeline": "pc090oj.bin + real emitted records (per-piece palette nibble) + round-1 index 0x3BA88 -> pool 0x4FD02 + MAME pal5bit; lower-record-on-top",
+ "weapons_captured": {
+  "render": "contact_sheets/rastan_weapons_timeline.png",
+  "note": "All equipped weapons drawn inside Rastan attack composite (bank 0x33 body + weapon cells). Tighe pickup order: axe -> flame sword -> axe -> flail (plus starting normal sword).",
+  "observed_distinct_blades": [
+   "normal steel sword (f622,f10267,f11835,f13688)",
+   "red-handled weapon w/ head = axe OR flail (f2249,f8091,f8633)",
+   "Flame Sword flaming blade (f15977)"
+  ],
+  "status": "weapon graphics CAPTURED; exact per-panel NAME (axe vs flail) is USER VERIFY against pickup order",
+  "exact_weapon_cell_isolation": "DEFERRED (weapon cells interleaved with player anim codes 0x76-0x110; needs per-frame equip-state correlation)"
+ }
+}

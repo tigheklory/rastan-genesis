@@ -1,0 +1,912 @@
+{
+  "1": [],
+  "2": [],
+  "3": [
+    {
+      "a": "arcade_0000",
+      "b": "arcade_0842",
+      "delta_e_2000": 2.7343,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0010",
+      "b": "arcade_0850",
+      "delta_e_2000": 2.5776,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0240",
+      "b": "arcade_0246",
+      "delta_e_2000": 2.247,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_03DE",
+      "b": "arcade_23DE",
+      "delta_e_2000": 2.3749,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    }
+  ],
+  "5": [
+    {
+      "a": "arcade_0000",
+      "b": "arcade_0842",
+      "delta_e_2000": 2.7343,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0010",
+      "b": "arcade_0012",
+      "delta_e_2000": 3.2352,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0010",
+      "b": "arcade_0850",
+      "delta_e_2000": 2.5776,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0012",
+      "b": "arcade_0850",
+      "delta_e_2000": 4.3765,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_015E",
+      "b": "arcade_119E",
+      "delta_e_2000": 3.1258,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0240",
+      "b": "arcade_0246",
+      "delta_e_2000": 2.247,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_03DE",
+      "b": "arcade_23DE",
+      "delta_e_2000": 2.3749,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_119E",
+      "b": "arcade_21DC",
+      "delta_e_2000": 4.5803,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_19CE",
+      "b": "arcade_21CE",
+      "delta_e_2000": 3.6588,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_2996",
+      "b": "arcade_2998",
+      "delta_e_2000": 3.5714,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_4318",
+      "b": "arcade_4B5A",
+      "delta_e_2000": 3.9228,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_4B58",
+      "b": "arcade_4B5A",
+      "delta_e_2000": 4.3904,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_739C",
+      "b": "arcade_7BDE",
+      "delta_e_2000": 3.3594,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    }
+  ],
+  "8": [
+    {
+      "a": "arcade_0000",
+      "b": "arcade_0842",
+      "delta_e_2000": 2.7343,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_000C",
+      "b": "arcade_0010",
+      "delta_e_2000": 7.0546,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_000C",
+      "b": "arcade_0850",
+      "delta_e_2000": 6.8611,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0010",
+      "b": "arcade_0012",
+      "delta_e_2000": 3.2352,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0010",
+      "b": "arcade_0850",
+      "delta_e_2000": 2.5776,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0010",
+      "b": "arcade_10D2",
+      "delta_e_2000": 7.4771,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0012",
+      "b": "arcade_0850",
+      "delta_e_2000": 4.3765,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0012",
+      "b": "arcade_10D2",
+      "delta_e_2000": 6.1373,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_008C",
+      "b": "arcade_00CC",
+      "delta_e_2000": 7.1816,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_00C0",
+      "b": "arcade_0100",
+      "delta_e_2000": 5.8866,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_015E",
+      "b": "arcade_119E",
+      "delta_e_2000": 3.1258,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_015E",
+      "b": "arcade_21DC",
+      "delta_e_2000": 7.1057,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0180",
+      "b": "arcade_01C0",
+      "delta_e_2000": 5.299,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0180",
+      "b": "arcade_1980",
+      "delta_e_2000": 7.8986,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_01CE",
+      "b": "arcade_19CE",
+      "delta_e_2000": 5.598,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_01DE",
+      "b": "arcade_119E",
+      "delta_e_2000": 7.0592,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_01DE",
+      "b": "arcade_221C",
+      "delta_e_2000": 5.8402,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0240",
+      "b": "arcade_0246",
+      "delta_e_2000": 2.247,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_025E",
+      "b": "arcade_0A5A",
+      "delta_e_2000": 7.8412,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_03DE",
+      "b": "arcade_23DE",
+      "delta_e_2000": 2.3749,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0850",
+      "b": "arcade_10D2",
+      "delta_e_2000": 6.384,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_0914",
+      "b": "arcade_1116",
+      "delta_e_2000": 5.233,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_094A",
+      "b": "arcade_194A",
+      "delta_e_2000": 7.4633,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_094A",
+      "b": "arcade_198C",
+      "delta_e_2000": 6.9099,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_1108",
+      "b": "arcade_194A",
+      "delta_e_2000": 5.3822,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_1116",
+      "b": "arcade_2154",
+      "delta_e_2000": 7.3069,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_119E",
+      "b": "arcade_21DC",
+      "delta_e_2000": 4.5803,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_18C6",
+      "b": "arcade_2108",
+      "delta_e_2000": 5.5334,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_194A",
+      "b": "arcade_198C",
+      "delta_e_2000": 7.21,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_194A",
+      "b": "arcade_214A",
+      "delta_e_2000": 6.2511,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_198C",
+      "b": "arcade_19CE",
+      "delta_e_2000": 6.6315,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_198C",
+      "b": "arcade_21CE",
+      "delta_e_2000": 6.0708,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_19CE",
+      "b": "arcade_21CE",
+      "delta_e_2000": 3.6588,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_19CE",
+      "b": "arcade_2A10",
+      "delta_e_2000": 7.815,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_2108",
+      "b": "arcade_294A",
+      "delta_e_2000": 5.432,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_2154",
+      "b": "arcade_2996",
+      "delta_e_2000": 6.2145,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_21CE",
+      "b": "arcade_2A10",
+      "delta_e_2000": 6.6707,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_21DC",
+      "b": "arcade_221C",
+      "delta_e_2000": 6.5446,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_2948",
+      "b": "arcade_294A",
+      "delta_e_2000": 7.9349,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_2948",
+      "b": "arcade_318A",
+      "delta_e_2000": 5.9513,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_294A",
+      "b": "arcade_318C",
+      "delta_e_2000": 6.0985,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_2996",
+      "b": "arcade_2998",
+      "delta_e_2000": 3.5714,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_2998",
+      "b": "arcade_31DA",
+      "delta_e_2000": 5.4842,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_b"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_2A10",
+      "b": "arcade_2A52",
+      "delta_e_2000": 6.3439,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_3100",
+      "b": "arcade_3940",
+      "delta_e_2000": 5.5475,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_3146",
+      "b": "arcade_3940",
+      "delta_e_2000": 5.7936,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_318C",
+      "b": "arcade_39CE",
+      "delta_e_2000": 6.1526,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_39CE",
+      "b": "arcade_4210",
+      "delta_e_2000": 6.6408,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_4210",
+      "b": "arcade_4A52",
+      "delta_e_2000": 5.5669,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_429E",
+      "b": "arcade_4A9C",
+      "delta_e_2000": 5.6237,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_4318",
+      "b": "arcade_4B58",
+      "delta_e_2000": 5.4086,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_4318",
+      "b": "arcade_4B5A",
+      "delta_e_2000": 3.9228,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_4A52",
+      "b": "arcade_5294",
+      "delta_e_2000": 5.3169,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_4B58",
+      "b": "arcade_4B5A",
+      "delta_e_2000": 4.3904,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_5B88",
+      "b": "arcade_63D2",
+      "delta_e_2000": 7.037,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "plane_b"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_62C0",
+      "b": "arcade_6AC6",
+      "delta_e_2000": 6.1274,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_6356",
+      "b": "arcade_6B9A",
+      "delta_e_2000": 6.7807,
+      "exact_source_equal": false,
+      "genesis_equal": false,
+      "owners": [
+        "plane_a",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_739C",
+      "b": "arcade_7B9C",
+      "delta_e_2000": 7.42,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    },
+    {
+      "a": "arcade_739C",
+      "b": "arcade_7BDE",
+      "delta_e_2000": 3.3594,
+      "exact_source_equal": false,
+      "genesis_equal": true,
+      "owners": [
+        "plane_a",
+        "plane_b",
+        "sprite"
+      ],
+      "potential_entry_saving": 1
+    }
+  ]
+}

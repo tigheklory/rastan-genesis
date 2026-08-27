@@ -1,0 +1,10 @@
+entry_label=round3_phase1
+selector=0xFD
+frames=4200
+observations=1482
+actor_2c8_unique_observations=1089
+actor_508_unique_observations=0
+actor_5c8_unique_observations=0
+actor_748_unique_observations=393
+actor_8c8_unique_observations=0
+final_state=0002/0003/0000

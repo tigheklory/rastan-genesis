@@ -1,0 +1,57 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Rastan Palette Composer v0.2</title>
+<link rel="stylesheet" href="/style.css"></head>
+<body>
+<header>
+  <b>Rastan Palette Composer <span class="v">v0.2</span></b>
+  <button id="help">How to use</button>
+  <span class="sep">|</span>
+  <select id="profile"></select>
+  <input id="newprofile" placeholder="new profile name"/>
+  <button id="branch">Create editable profile</button>
+  <button id="save">Save</button>
+  <button id="reload">Reload</button>
+  <button id="undo">Undo</button><button id="redo">Redo</button>
+  <span id="dirty" class="dirty"></span>
+  <span id="status" class="status"></span>
+  <span class="ro">arcade oracle = READ-ONLY · Build 313</span>
+</header>
+<div id="pstatus" class="pstatus"></div>
+<div id="helpbox" class="hide">
+  <b>How to use</b>
+  <ol>
+    <li><b>Create editable profile</b> (baseline is read-only).</li>
+    <li>Pick an <b>Object</b> on the left → the center shows the <b>Source Colors it actually uses</b>.</li>
+    <li>Click a <b>Source Color</b>. Click a second source color to <b>Compare</b> (ΔE00), or…</li>
+    <li>Click a <b>Genesis Target</b> entry (top-right grid) → <b>Map source here</b>.</li>
+    <li>Adjust the <b>legal Genesis color</b> with the R/G/B level sliders.</li>
+    <li>Map colors from <b>other objects</b> to the <b>same</b> target entry to share (cross-object).</li>
+    <li>Compare Arcade vs Genesis in the <b>previews</b>. Resolve warnings. <b>Save</b>.</li>
+  </ol>
+  <div class="dim">PROVEN=full arcade evidence · PARTIAL/UNKNOWN=incomplete (shown honestly) · MRD "Must Stay Distinct"=two colors used inside one sprite may never merge · Exact match=identical palette content (lossless) · Natural Genesis=quantized target color · Target line/entry=one of 4 CRAM lines × 16 · Profile=a saved set of your choices.</div>
+</div>
+<div id="main">
+  <aside id="left">
+    <div class="tabs"><button data-t="objects" class="on">Objects</button><button data-t="contexts">Contexts</button><button data-t="palettes">Palettes</button></div>
+    <div id="list"></div>
+  </aside>
+  <section id="center">
+    <h3 id="srchdr">Arcade source colors <span class="dim">(select an object)</span></h3>
+    <div id="srccolors" class="apal"></div>
+    <h3>Source → Genesis mapping</h3>
+    <div id="maptable"></div>
+    <h3>Arcade source vs Genesis target <span class="dim">(decoded from ROM, nearest-neighbor)</span></h3>
+    <div id="previews"></div>
+  </section>
+  <aside id="right">
+    <h3>Genesis target palette <span class="dim">(4 lines × 16; click an entry)</span></h3>
+    <div id="genlines"></div>
+    <h3>Properties / Editor</h3>
+    <div id="props"></div>
+    <h3>Validation</h3>
+    <div id="valid"></div>
+  </aside>
+</div>
+<footer id="foot"></footer>
+<script src="/app.js?v=2"></script>
+</body></html>

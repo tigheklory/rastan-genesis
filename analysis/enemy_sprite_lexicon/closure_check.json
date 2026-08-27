@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "authority": "original arcade ROM/Ghidra semantics plus bounded original arcade MAME presence",
+  "round_phase_entry_points_audited": 18,
+  "round_phase_entry_points_total": 18,
+  "empty_dynamic_entry_points": [
+    "round2_castle"
+  ],
+  "static_legal_hostile_seed_count": 56,
+  "dynamic_signature_count": 82,
+  "dynamic_observation_count": 26016,
+  "dynamically_observed_hostile_tuple_count": 18,
+  "dynamically_observed_hostile_row_count": 24012,
+  "every_dynamic_tuple_mapped": true,
+  "every_static_seed_mapped": true,
+  "resolved_hostile_family_count": 1,
+  "explicitly_unresolved_hostile_family_count": 51,
+  "legal_hostile_domain_equals_resolved_plus_explicitly_unresolved": true,
+  "unknown_legal_families_dropped": 0,
+  "unknown_palette_colored_family_ids": [],
+  "unknown_palette_color_contribution": "ZERO",
+  "unknown_families_zero_cost": false,
+  "enemy_family_enumeration_complete": true,
+  "enemy_semantic_naming_complete": false,
+  "enemy_graphics_composition_complete": false,
+  "enemy_palette_relationships_complete": false,
+  "whole_game_hostile_domain_fail_closed": true,
+  "validation": "PASS"
+}

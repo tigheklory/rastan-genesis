@@ -1,0 +1,10 @@
+started=2026-08-25T17:29:28Z
+machine=rastan (ORIGINAL ARCADE)
+driver=USER (Tighe)
+A5=0x0010C000 OBJ(PC090OJ)=0x00D00000
+targets=Section9/Record8, Section14/Record13
+finished=2026-08-25T17:34:34Z
+frames=18336
+section9_record8_frames=6318-11120
+section14_record13_frames=14262-16726
+distinct_actor_states=34484

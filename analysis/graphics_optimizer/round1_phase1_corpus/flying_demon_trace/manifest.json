@@ -1,0 +1,35 @@
+{
+ "session": "2026-08-25",
+ "mame_machine": "rastan (ORIGINAL ARCADE)",
+ "rom_target": "roms/rastan.zip",
+ "driver": "USER (Tighe manual play)",
+ "trace_lua": "tools/enemy_sprite_lexicon/flying_demon_userplay_trace.lua",
+ "trace_files": {
+  "mame_stdout.log": 274,
+  "encounters.tsv": 2749,
+  "observations.csv": 7233513,
+  "metadata.txt": 309
+ },
+ "total_frames": 18336,
+ "distinct_actor_states": 34484,
+ "first_encounter_seen": true,
+ "first_encounter": {
+  "section": 9,
+  "record": 8,
+  "frame_range": "6318-11120",
+  "obs_rows": 674,
+  "markers": 15
+ },
+ "second_encounter_seen": true,
+ "second_encounter": {
+  "section": 14,
+  "record": 13,
+  "frame_range": "14262-16726",
+  "obs_rows": 4424,
+  "markers": 48
+ },
+ "files_non_empty": true,
+ "obvious_trace_errors": "none (trace ACTIVE, close() flushed, both encounters covered)",
+ "coverage_note": "Tighe continued through to complete Phase 1; 17 distinct records observed",
+ "analysis_status": "DEFERRED_TO_NEXT_SESSION"
+}

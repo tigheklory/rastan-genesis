@@ -1,0 +1,1277 @@
+[
+  {
+    "family_id": "rastan_player_body",
+    "family_name": "Rastan player BODY",
+    "frame_id": "standing_facing_left",
+    "component_cells": [
+      {
+        "code": 158,
+        "x": 0,
+        "y": 0,
+        "flip_h": 1,
+        "code_hex": "0x009E",
+        "pattern_hash": "153bc14e033159b963d09e3ce50d7bd523db037bfddcc3114686cabf73f2047f",
+        "flip_v": 0
+      },
+      {
+        "code": 159,
+        "x": 0,
+        "y": 16,
+        "flip_h": 1,
+        "code_hex": "0x009F",
+        "pattern_hash": "d827071398c6430efdab21b8d1db616b11702bfa1d9f55100ec85a485e8df82f",
+        "flip_v": 0
+      },
+      {
+        "code": 142,
+        "x": 8,
+        "y": 8,
+        "flip_h": 1,
+        "code_hex": "0x008E",
+        "pattern_hash": "7664fa9e786340a5fd647a752303b589959e8374a8cf1616b9822045f6fe8d7b",
+        "flip_v": 0
+      },
+      {
+        "code": 143,
+        "x": 16,
+        "y": 24,
+        "flip_h": 1,
+        "code_hex": "0x008F",
+        "pattern_hash": "9ca51c870b8bb6d0ef9dec1d45484502d6d47ee4faa8d5d337928214ecad9ef4",
+        "flip_v": 0
+      },
+      {
+        "code": 144,
+        "x": 0,
+        "y": 24,
+        "flip_h": 1,
+        "code_hex": "0x0090",
+        "pattern_hash": "f8bdf62b643cbb807cdecc48de9aa879b9b804d582aba8184185de803900385b",
+        "flip_v": 0
+      },
+      {
+        "code": 267,
+        "x": 16,
+        "y": 40,
+        "flip_h": 1,
+        "code_hex": "0x010B",
+        "pattern_hash": "d841e7152a50e05d4880d54af1b1f6507ada370a59ac7177e55b631808c1f1bb",
+        "flip_v": 0
+      },
+      {
+        "code": 268,
+        "x": 0,
+        "y": 40,
+        "flip_h": 1,
+        "code_hex": "0x010C",
+        "pattern_hash": "a318cbb9d75caa980d0972df21bdece42678d33c80a05fcd98d583cb68bcfe6d",
+        "flip_v": 0
+      },
+      {
+        "code": 269,
+        "x": 16,
+        "y": 56,
+        "flip_h": 1,
+        "code_hex": "0x010D",
+        "pattern_hash": "dae02afe1fba7783e03611dae6ec72c365dde39621fc7db83a627b816c46dfb4",
+        "flip_v": 0
+      },
+      {
+        "code": 270,
+        "x": 0,
+        "y": 56,
+        "flip_h": 1,
+        "code_hex": "0x010E",
+        "pattern_hash": "f49da42151fff339c96d2d4bcc37d70c854e065a07faba21cd5223a85a47ae4e",
+        "flip_v": 0
+      }
+    ],
+    "palette_banks": [
+      51
+    ],
+    "palette_candidate_banks": [],
+    "palette_status": "proven",
+    "render_mode": "proven_color",
+    "composite_status": "proven representative complete composite",
+    "evidence": "original arcade contract snapshot frame 430; records 120,121,124-126,128-131"
+  },
+  {
+    "family_id": "rastan_player_body",
+    "family_name": "Rastan player BODY",
+    "frame_id": "standing_facing_left_variant",
+    "component_cells": [
+      {
+        "code": 158,
+        "x": 0,
+        "y": 0,
+        "flip_h": 1,
+        "code_hex": "0x009E",
+        "pattern_hash": "153bc14e033159b963d09e3ce50d7bd523db037bfddcc3114686cabf73f2047f",
+        "flip_v": 0
+      },
+      {
+        "code": 159,
+        "x": 0,
+        "y": 16,
+        "flip_h": 1,
+        "code_hex": "0x009F",
+        "pattern_hash": "d827071398c6430efdab21b8d1db616b11702bfa1d9f55100ec85a485e8df82f",
+        "flip_v": 0
+      },
+      {
+        "code": 142,
+        "x": 8,
+        "y": 8,
+        "flip_h": 1,
+        "code_hex": "0x008E",
+        "pattern_hash": "7664fa9e786340a5fd647a752303b589959e8374a8cf1616b9822045f6fe8d7b",
+        "flip_v": 0
+      },
+      {
+        "code": 143,
+        "x": 16,
+        "y": 24,
+        "flip_h": 1,
+        "code_hex": "0x008F",
+        "pattern_hash": "9ca51c870b8bb6d0ef9dec1d45484502d6d47ee4faa8d5d337928214ecad9ef4",
+        "flip_v": 0
+      },
+      {
+        "code": 144,
+        "x": 0,
+        "y": 24,
+        "flip_h": 1,
+        "code_hex": "0x0090",
+        "pattern_hash": "f8bdf62b643cbb807cdecc48de9aa879b9b804d582aba8184185de803900385b",
+        "flip_v": 0
+      },
+      {
+        "code": 138,
+        "x": 16,
+        "y": 40,
+        "flip_h": 1,
+        "code_hex": "0x008A",
+        "pattern_hash": "6d49e61fe8188bb3e8de927489803ccb8b72b2f7fe104f5afc71966445c7ffcb",
+        "flip_v": 0
+      },
+      {
+        "code": 139,
+        "x": 0,
+        "y": 40,
+        "flip_h": 1,
+        "code_hex": "0x008B",
+        "pattern_hash": "273f89183cce077a12db47d7d5ae87e60309bdba03fafd9f024d6c041092cedc",
+        "flip_v": 0
+      },
+      {
+        "code": 140,
+        "x": 16,
+        "y": 56,
+        "flip_h": 1,
+        "code_hex": "0x008C",
+        "pattern_hash": "26b846fd23ce2a2348e2232306fda9f58cc140436c949da2ad258dcfc52cdc5e",
+        "flip_v": 0
+      },
+      {
+        "code": 141,
+        "x": 0,
+        "y": 56,
+        "flip_h": 1,
+        "code_hex": "0x008D",
+        "pattern_hash": "f2b79c675264a548d38f82c450528c8e33d0aa0794806f4d51a4a4c4f01ecee4",
+        "flip_v": 0
+      }
+    ],
+    "palette_banks": [
+      51
+    ],
+    "palette_candidate_banks": [],
+    "palette_status": "proven",
+    "render_mode": "proven_color",
+    "composite_status": "proven representative complete composite",
+    "evidence": "original arcade contract snapshot frame 700; records 120,121,124-126,128-131"
+  },
+  {
+    "family_id": "stage1_lizardman",
+    "family_name": "Stage-1 Lizardman",
+    "frame_id": "class_17_18_club_pose",
+    "component_cells": [
+      {
+        "code": 105,
+        "x": 16,
+        "y": 32,
+        "code_hex": "0x0069",
+        "pattern_hash": "8ab65b6b1c8c8aa458b9a24c06e741b81666988d02150dee73a5f8314e44d5cd",
+        "flip_h": 0,
+        "flip_v": 0
+      },
+      {
+        "code": 103,
+        "x": 16,
+        "y": 16,
+        "code_hex": "0x0067",
+        "pattern_hash": "697318e765661f91921e02d7eff8bb0fe060ef9cdb8fa3149784fffdbe8bca64",
+        "flip_h": 0,
+        "flip_v": 0
+      },
+      {
+        "code": 78,
+        "x": 16,
+        "y": 16,
+        "code_hex": "0x004E",
+        "pattern_hash": "1636bb22a25fee6faa73a1cee5f12c9fa4de1f8f28c605624f3407e6a239f398",
+        "flip_h": 0,
+        "flip_v": 0
+      },
+      {
+        "code": 76,
+        "x": 16,
+        "y": 0,
+        "code_hex": "0x004C",
+        "pattern_hash": "1a2ac357e0c8e529ca97a868230bbc7881014f0149cd1d4df108aaa2fbece867",
+        "flip_h": 0,
+        "flip_v": 0
+      },
+      {
+        "code": 104,
+        "x": 0,
+        "y": 32,
+        "code_hex": "0x0068",
+        "pattern_hash": "cbea1ea53acdae4431ccfcb968b792a31650b3a66de90994a2bfeb6aa27dccb7",
+        "flip_h": 0,
+        "flip_v": 0
+      },
+      {
+        "code": 99,
+        "x": 0,
+        "y": 16,
+        "code_hex": "0x0063",
+        "pattern_hash": "1557f285a54e343eef2db8aa46a3e3b6faffc0c3b4ae6bed1e6e2c7349805cb0",
+        "flip_h": 0,
+        "flip_v": 0
+      },
+      {
+        "code": 77,
+        "x": 0,
+        "y": 16,
+        "code_hex": "0x004D",
+        "pattern_hash": "be0a806f98359d359f8bdf0ea323f63fdec321d6283226825390f8ee11840de7",
+        "flip_h": 0,
+        "flip_v": 0
+      },
+      {
+        "code": 75,
+        "x": 0,
+        "y": 0,
+        "code_hex": "0x004B",
+        "pattern_hash": "e93cb7772181d334564667afa7b21e87c96a91ee47abd359bc266f034aae921f",
+        "flip_h": 0,
+        "flip_v": 0
+      }
+    ],
+    "palette_banks": [
+      54
+    ],
+    "palette_candidate_banks": [],
+    "palette_status": "proven",
+    "render_mode": "proven_color",
+    "composite_status": "proven representative complete composite",
+    "evidence": "original arcade contract snapshot frame 700; class 0x17/0x18 default descriptor expansion"
+  },
+  {
+    "family_id": "family0_class70_actor",
+    "family_name": "Unknown family-0 class 0x70 actor",
+    "frame_id": "unresolved_pose_art_vocabulary",
+    "component_cells": [
+      {
+        "code": 377,
+        "code_hex": "0x0179",
+        "x": 0,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "200c10602d440f1a6cb1fb8af99ded159e51223c009cb011d414d5e97f46c418"
+      }
+    ],
+    "palette_banks": [
+      48
+    ],
+    "palette_candidate_banks": [],
+    "palette_status": "proven",
+    "render_mode": "proven_color",
+    "composite_status": "unresolved pose geometry; displayed as an art vocabulary, not as independent logical sprites",
+    "evidence": "original arcade dispatch trace; semantic human identity not yet established"
+  },
+  {
+    "family_id": "family2_round1_actor_cluster",
+    "family_name": "Unknown family-2 Round-1 actor cluster",
+    "frame_id": "unresolved_pose_art_vocabulary",
+    "component_cells": [
+      {
+        "code": 2650,
+        "code_hex": "0x0A5A",
+        "x": 0,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "682e1a31bb32075794e28cdfd54ce3a3ba4ce4e40c9289377b33d3eeefd984ed"
+      },
+      {
+        "code": 2675,
+        "code_hex": "0x0A73",
+        "x": 16,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "79b883a742ef6a036e0019134376e88d89c2f9263a84e34a27e55999c7566bab"
+      }
+    ],
+    "palette_banks": [
+      54
+    ],
+    "palette_candidate_banks": [],
+    "palette_status": "proven",
+    "render_mode": "proven_color",
+    "composite_status": "unresolved pose geometry; displayed as an art vocabulary, not as independent logical sprites",
+    "evidence": "original arcade dispatch trace; human enemy/object identity remains unresolved"
+  },
+  {
+    "family_id": "hurry_up_bat",
+    "family_name": "Hurry-up Bat",
+    "frame_id": "single_cell_art_0268",
+    "component_cells": [
+      {
+        "code": 616,
+        "x": 0,
+        "y": 0,
+        "code_hex": "0x0268",
+        "pattern_hash": "0f2ba5ed94c45cacd9c4afd42c274c8bd46b9cc51d7a2c955582d3c9b787c70f",
+        "flip_h": 0,
+        "flip_v": 0
+      }
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "palette_status": "unknown",
+    "render_mode": "palette_neutral",
+    "composite_status": "proven one-cell art; palette-neutral",
+    "evidence": "group-4 records 48-56; palette deliberately unresolved"
+  },
+  {
+    "family_id": "hurry_up_bat",
+    "family_name": "Hurry-up Bat",
+    "frame_id": "single_cell_art_0269",
+    "component_cells": [
+      {
+        "code": 617,
+        "x": 0,
+        "y": 0,
+        "code_hex": "0x0269",
+        "pattern_hash": "4f6c0e1dec4e1a254f2392f7814a594a3ae03f18c74ed45594b1c589d70ff3ef",
+        "flip_h": 0,
+        "flip_v": 0
+      }
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "palette_status": "unknown",
+    "render_mode": "palette_neutral",
+    "composite_status": "proven one-cell art; palette-neutral",
+    "evidence": "group-4 records 48-56; palette deliberately unresolved"
+  },
+  {
+    "family_id": "hurry_up_bat",
+    "family_name": "Hurry-up Bat",
+    "frame_id": "single_cell_art_026A",
+    "component_cells": [
+      {
+        "code": 618,
+        "x": 0,
+        "y": 0,
+        "code_hex": "0x026A",
+        "pattern_hash": "4f6c0e1dec4e1a254f2392f7814a594a3ae03f18c74ed45594b1c589d70ff3ef",
+        "flip_h": 0,
+        "flip_v": 0
+      }
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "palette_status": "unknown",
+    "render_mode": "palette_neutral",
+    "composite_status": "proven one-cell art; palette-neutral",
+    "evidence": "group-4 records 48-56; palette deliberately unresolved"
+  },
+  {
+    "family_id": "hurry_up_bat",
+    "family_name": "Hurry-up Bat",
+    "frame_id": "single_cell_death_0276",
+    "component_cells": [
+      {
+        "code": 630,
+        "x": 0,
+        "y": 0,
+        "code_hex": "0x0276",
+        "pattern_hash": "6a1de2ccd8278e813aa772dd35b00e2ee29269df82419ebe27f39c614accd774",
+        "flip_h": 0,
+        "flip_v": 0
+      }
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "palette_status": "unknown",
+    "render_mode": "palette_neutral",
+    "composite_status": "proven one-cell art; palette-neutral",
+    "evidence": "group-4 records 48-56; palette deliberately unresolved"
+  },
+  {
+    "family_id": "player_auxiliary",
+    "family_name": "Sword / player auxiliary",
+    "frame_id": "unresolved_pose_art_vocabulary",
+    "component_cells": [
+      {
+        "code": 629,
+        "code_hex": "0x0275",
+        "x": 0,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "6a80ff51d0c83d4aef21915ce70e5d96531d1372a49edcadbde2242702545134"
+      },
+      {
+        "code": 630,
+        "code_hex": "0x0276",
+        "x": 16,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "6a1de2ccd8278e813aa772dd35b00e2ee29269df82419ebe27f39c614accd774"
+      },
+      {
+        "code": 631,
+        "code_hex": "0x0277",
+        "x": 32,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "fda482f786867302a0e9d71518d89b141b3e0f3dd6116dda65584a2dd273f705"
+      }
+    ],
+    "palette_banks": [
+      51
+    ],
+    "palette_candidate_banks": [],
+    "palette_status": "proven",
+    "render_mode": "proven_color",
+    "composite_status": "unresolved pose geometry; displayed as an art vocabulary, not as independent logical sprites",
+    "evidence": "player auxiliary producer; overlap with other group-4 meanings does not authorize their palette"
+  },
+  {
+    "family_id": "gameplay_hud",
+    "family_name": "Gameplay HUD/status sprites",
+    "frame_id": "unresolved_pose_art_vocabulary",
+    "component_cells": [
+      {
+        "code": 42,
+        "code_hex": "0x002A",
+        "x": 0,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "ed8e720737592cb73b99a596af32f3473e55a02b21f70ed9b079f106c2f699b8"
+      },
+      {
+        "code": 43,
+        "code_hex": "0x002B",
+        "x": 16,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "cbeb22df0567854127a804a306179b6e1bf9d3373b2d10729f1f5031a1c2526e"
+      },
+      {
+        "code": 44,
+        "code_hex": "0x002C",
+        "x": 32,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "9c60d9ae5595f795fa61d7d5558965f848228fe6f4151bfce3d74ae1752509ec"
+      },
+      {
+        "code": 45,
+        "code_hex": "0x002D",
+        "x": 48,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "6504d5d24ba2ed6df1b97acf0e15fc25869bb73e4ae187247c779a046f43caec"
+      },
+      {
+        "code": 46,
+        "code_hex": "0x002E",
+        "x": 64,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "5d712e12505f833e7cc5788dac7aa6bc4e4f7cd0186b766fb7c345940366f9c0"
+      },
+      {
+        "code": 47,
+        "code_hex": "0x002F",
+        "x": 80,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "f01767455ad28908c69161c78cd020bab13764eb8501406db7fc86bdbb0707d5"
+      },
+      {
+        "code": 48,
+        "code_hex": "0x0030",
+        "x": 96,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "09a58b8d862ea937d00f201aeff3776576c91ce6ed578dc6c85f96d03f858762"
+      },
+      {
+        "code": 49,
+        "code_hex": "0x0031",
+        "x": 112,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "90438fe7297ed132f6fbac3b142c8993cda144767d5c212ca81b9b8c49570ecc"
+      },
+      {
+        "code": 50,
+        "code_hex": "0x0032",
+        "x": 0,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "cb3bdb00c114b8323374dd90bdd91578916227d270d39eb9b1d146d251f10f04"
+      },
+      {
+        "code": 51,
+        "code_hex": "0x0033",
+        "x": 16,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "ddda596e5758958d7c5954e8ae42ae9da689af73feffcdfb46877f74d7fec058"
+      },
+      {
+        "code": 52,
+        "code_hex": "0x0034",
+        "x": 32,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "e77fb4b1ba438294f75e933c4196a6d10f575bc475af3ea430b92ec2690a21d0"
+      },
+      {
+        "code": 53,
+        "code_hex": "0x0035",
+        "x": 48,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "423c465a1a936e0da814d1d8d723c707f6512b3db4f3cc32faa1ad67b6456cff"
+      },
+      {
+        "code": 54,
+        "code_hex": "0x0036",
+        "x": 64,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "bc9429be449d9c5a68b854ba4b1a04599ac2bf236f18fa837ef124b7477d8345"
+      },
+      {
+        "code": 55,
+        "code_hex": "0x0037",
+        "x": 80,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "c48607ed36604e24ebcb9436f62af4d4e11df407fa0039ec0a06523aaeacc15f"
+      },
+      {
+        "code": 56,
+        "code_hex": "0x0038",
+        "x": 96,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "f051e7100d6d4011f0393baa71a106595987968531000ea8792daf1b2ef177f5"
+      },
+      {
+        "code": 57,
+        "code_hex": "0x0039",
+        "x": 112,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "9835c05980281c43535fd52719758b2188f6be4aa48daa7e95210cde6f53f3f3"
+      },
+      {
+        "code": 58,
+        "code_hex": "0x003A",
+        "x": 0,
+        "y": 32,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "467596364cea5fe2e75340bbba76108b3c3f9dfe5e2acb574e822c68ceb2ccc7"
+      },
+      {
+        "code": 59,
+        "code_hex": "0x003B",
+        "x": 16,
+        "y": 32,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "de6a0de345e7fa5cb481d17589032d13f41c7280794a8302abe362fa8502ee33"
+      },
+      {
+        "code": 60,
+        "code_hex": "0x003C",
+        "x": 32,
+        "y": 32,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "a154aba21d86fd03324120c479b0a0923f17248f6d47c0b83f9360c327388aa4"
+      },
+      {
+        "code": 61,
+        "code_hex": "0x003D",
+        "x": 48,
+        "y": 32,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "d5188129bb6ac91afe0ac60508e00f7705b3ce240f11fa7863212ee464e88bf4"
+      },
+      {
+        "code": 62,
+        "code_hex": "0x003E",
+        "x": 64,
+        "y": 32,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "6bb741e55e3c8ab75020292a4ae66096d3702bb6ff17249626f259ce6be44c6b"
+      },
+      {
+        "code": 63,
+        "code_hex": "0x003F",
+        "x": 80,
+        "y": 32,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "19d2b63869c09e6d857262e86c6e8f7356408c98c68e79ae93e15f5275edfaef"
+      },
+      {
+        "code": 64,
+        "code_hex": "0x0040",
+        "x": 96,
+        "y": 32,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "be973c6fb04691cc75cd262b99d58c04a5ea170b4165b3b40ba51e3506962a94"
+      },
+      {
+        "code": 65,
+        "code_hex": "0x0041",
+        "x": 112,
+        "y": 32,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "3f6861d68f529d775243d64919928e97cd6cbe419133b77d6e03e0be7640d956"
+      },
+      {
+        "code": 66,
+        "code_hex": "0x0042",
+        "x": 0,
+        "y": 48,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "a8aa8c1177d6e475db61b773ef72a5d5d987b7253fba4526526e59ebcad480cc"
+      },
+      {
+        "code": 67,
+        "code_hex": "0x0043",
+        "x": 16,
+        "y": 48,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "be973c6fb04691cc75cd262b99d58c04a5ea170b4165b3b40ba51e3506962a94"
+      },
+      {
+        "code": 68,
+        "code_hex": "0x0044",
+        "x": 32,
+        "y": 48,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "bd0785927ba6bbe3e5f22dc7b3be5d57ccb857774a1832b56ffed435dc19bf79"
+      },
+      {
+        "code": 69,
+        "code_hex": "0x0045",
+        "x": 48,
+        "y": 48,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "38723a2e5e8a17aa7950dc008209944e898f69a7bd10a23c839d341e935fd5ca"
+      },
+      {
+        "code": 70,
+        "code_hex": "0x0046",
+        "x": 64,
+        "y": 48,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "c5949abb2bc7f1f9c595ee010e7cf5ac93b7edd40f2f34782a5b74b80a127652"
+      },
+      {
+        "code": 71,
+        "code_hex": "0x0047",
+        "x": 80,
+        "y": 48,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "1b510d79c55d89a85e4d6f23b0f7277e3fabe4ab2a6e6fc2bdb62cef248cd398"
+      },
+      {
+        "code": 72,
+        "code_hex": "0x0048",
+        "x": 96,
+        "y": 48,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "1342fb8e5f4f55d528cbd90af3f08104b08d1e2cc6f6fb67f8fcccfd9dc4677a"
+      },
+      {
+        "code": 73,
+        "code_hex": "0x0049",
+        "x": 112,
+        "y": 48,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "ca46930fdd303554a70c53de28c9872ab3af35a14809280bb79cf342d166e148"
+      },
+      {
+        "code": 970,
+        "code_hex": "0x03CA",
+        "x": 0,
+        "y": 64,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "58f298df4ec9146721f6c883d8657a7fcbd6f2af0d7f9f79e983babe3d15800c"
+      },
+      {
+        "code": 971,
+        "code_hex": "0x03CB",
+        "x": 16,
+        "y": 64,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "4dc643f293668097bb17841f9ba6c67d6a283bc577c22101ad60073e81672e3d"
+      },
+      {
+        "code": 972,
+        "code_hex": "0x03CC",
+        "x": 32,
+        "y": 64,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "4736dd856388f5266eb663767575440ee047b8f8dc2767e9d8a6a15dee2ea8c1"
+      },
+      {
+        "code": 973,
+        "code_hex": "0x03CD",
+        "x": 48,
+        "y": 64,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "3d754ce4a6d89a49943f55f6ddce5b99cfc6c4b4696750b1d1b5afe7ff6e6e30"
+      },
+      {
+        "code": 974,
+        "code_hex": "0x03CE",
+        "x": 64,
+        "y": 64,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "b5b7fef2aaa77e2216e4033a7533e2c313f79c54bb4a6f121b927cb7c130cf12"
+      },
+      {
+        "code": 975,
+        "code_hex": "0x03CF",
+        "x": 80,
+        "y": 64,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "2b5cf24bcea6f5a70a72a3fb0bc26e571191966f0faf6382b91c622e562a099c"
+      },
+      {
+        "code": 976,
+        "code_hex": "0x03D0",
+        "x": 96,
+        "y": 64,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "9c853a2d2ed0ceadef849de8b8501117491e1d25e48a15a7ba375c2b7875e497"
+      },
+      {
+        "code": 977,
+        "code_hex": "0x03D1",
+        "x": 112,
+        "y": 64,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "d066d9b8021eafffa1f36fbd5ae883adceeb373323bb264e525f8a230b0034a1"
+      },
+      {
+        "code": 978,
+        "code_hex": "0x03D2",
+        "x": 0,
+        "y": 80,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "a802632812ad4da4ff76987706a944d61e774a7eddf9c1da68649df7f1bdfd47"
+      },
+      {
+        "code": 979,
+        "code_hex": "0x03D3",
+        "x": 16,
+        "y": 80,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "80a9c8fc71c40bc58a02803b1e58f6bbdf8cc7b336fc9760c061e5f4c0b77343"
+      },
+      {
+        "code": 980,
+        "code_hex": "0x03D4",
+        "x": 32,
+        "y": 80,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "61ba65f873e69490c7d4afde70c35de88eeee06df1b358ca15454f07c0e17421"
+      },
+      {
+        "code": 981,
+        "code_hex": "0x03D5",
+        "x": 48,
+        "y": 80,
+        "flip_h": 0,
+        "flip_v": 0,
+        "pattern_hash": "b043fa7588ff7826923e815434d575d4c08c26c8eca0bf70dd3e3c5f1e56328d"
+      }
+    ],
+    "palette_banks": [
+      48
+    ],
+    "palette_candidate_banks": [],
+    "palette_status": "proven",
+    "render_mode": "proven_color",
+    "composite_status": "unresolved pose geometry; displayed as an art vocabulary, not as independent logical sprites",
+    "evidence": "legal original arcade consumer even where the current Genesis gameplay HUD is suppressed"
+  },
+  {
+    "family_id": "hostile_base004b_compositor0",
+    "family_name": "Stage-1 Lizardman",
+    "frame_id": "whole_game_lexicon_representative",
+    "component_cells": [
+      {
+        "code": 102,
+        "x": 0,
+        "y": 32,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0066",
+        "pattern_hash": "dc15cc6f2825f18450f3e10e54ca29e18ddd611994fcfe4f8f8c877529275c41"
+      },
+      {
+        "code": 100,
+        "x": 0,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0064",
+        "pattern_hash": "87efcdf7aa1cfd43b3efa60ae06ccabd0cf63d067102e0b5907461fcd85fa773"
+      },
+      {
+        "code": 82,
+        "x": 0,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0052",
+        "pattern_hash": "d1f52320a28a57a553c848d980970525993b3473312165fc4c8eb72209d58fd9"
+      },
+      {
+        "code": 80,
+        "x": 0,
+        "y": 0,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0050",
+        "pattern_hash": "0fa87e24ac927cf7c3c3ce72603a433cc781e6656e37d4469c9ab9a342b8ba9c"
+      },
+      {
+        "code": 101,
+        "x": 16,
+        "y": 32,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0065",
+        "pattern_hash": "33c8d82b3f78ee235a154db07eb12a9af70a26984e425243f26cbc224167f4f7"
+      },
+      {
+        "code": 99,
+        "x": 16,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0063",
+        "pattern_hash": "1557f285a54e343eef2db8aa46a3e3b6faffc0c3b4ae6bed1e6e2c7349805cb0"
+      },
+      {
+        "code": 81,
+        "x": 16,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0051",
+        "pattern_hash": "05f509b746c80ace3bed26bdbb1923fdabcc5f8b2f5f1268aeeca5e1e2f9c251"
+      },
+      {
+        "code": 79,
+        "x": 16,
+        "y": 0,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x004F",
+        "pattern_hash": "3a36cd983168407aca57375faf1c5f05052897d687f04bad9f6e486af2b101ef"
+      },
+      {
+        "code": 84,
+        "x": 32,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0054",
+        "pattern_hash": "a2ebfc3c3a3e389f053ac97a4b5d36dcb6fdbf2047feb0577aba5b6b35b4fe31"
+      },
+      {
+        "code": 83,
+        "x": 32,
+        "y": 0,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0053",
+        "pattern_hash": "3b357686cec78373003e7b98a6d73b5265e608c54c187f5d869fbf42a0c4cada"
+      }
+    ],
+    "palette_banks": [
+      54
+    ],
+    "palette_candidate_banks": [],
+    "palette_status": "proven",
+    "render_mode": "proven_color",
+    "composite_status": "original arcade sweep composite",
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2806 at round1_phase1"
+  },
+  {
+    "family_id": "hostile_base0179_compositor0",
+    "family_name": "HOSTILE_BASE_0179_COMPOSITOR0_UNRESOLVED",
+    "frame_id": "whole_game_lexicon_representative",
+    "component_cells": [
+      {
+        "code": 380,
+        "x": 16,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0,
+        "code_hex": "0x017C",
+        "pattern_hash": "3578f3a9d7ec40e2539305afd45e3d46b73b2c1b351be77b7879c00408eba6ed"
+      },
+      {
+        "code": 378,
+        "x": 16,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "code_hex": "0x017A",
+        "pattern_hash": "56282e72022df2c9004f1cb9488788200d26030fa94cf26ed5ea5cc4c24180ee"
+      },
+      {
+        "code": 379,
+        "x": 0,
+        "y": 16,
+        "flip_h": 0,
+        "flip_v": 0,
+        "code_hex": "0x017B",
+        "pattern_hash": "8f1d612cf5fbfc57f89f0fdc1c18da1fdf9e9abf373bf5f7798df1ac55fcb486"
+      },
+      {
+        "code": 377,
+        "x": 0,
+        "y": 0,
+        "flip_h": 0,
+        "flip_v": 0,
+        "code_hex": "0x0179",
+        "pattern_hash": "200c10602d440f1a6cb1fb8af99ded159e51223c009cb011d414d5e97f46c418"
+      }
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "palette_status": "unknown",
+    "render_mode": "palette_neutral",
+    "composite_status": "original arcade sweep composite",
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 3430 at round1_phase1"
+  },
+  {
+    "family_id": "hostile_base0a5a_compositor2",
+    "family_name": "HOSTILE_BASE_0A5A_COMPOSITOR2_UNRESOLVED",
+    "frame_id": "whole_game_lexicon_representative",
+    "component_cells": [
+      {
+        "code": 2722,
+        "x": 0,
+        "y": 0,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0AA2",
+        "pattern_hash": "5323e973e339bc030e2ab8f3ec5b3ed475a82ff8b691853d6ac34a079c1518bf"
+      }
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "palette_status": "unknown",
+    "render_mode": "palette_neutral",
+    "composite_status": "original arcade sweep composite",
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2876 at round1_castle"
+  },
+  {
+    "family_id": "hostile_base0a73_compositor2",
+    "family_name": "HOSTILE_BASE_0A73_COMPOSITOR2_UNRESOLVED",
+    "frame_id": "whole_game_lexicon_representative",
+    "component_cells": [
+      {
+        "code": 619,
+        "x": 32,
+        "y": 0,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x026B",
+        "pattern_hash": "d7a8d0dd8459de4809ed775cb01d4b496537214992995a6810bcd85993976b32"
+      },
+      {
+        "code": 620,
+        "x": 32,
+        "y": 16,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x026C",
+        "pattern_hash": "4b5127e91b91fa96330d12442c46f01433fdbe1a3e854338ea2ff28aac6e02e0"
+      },
+      {
+        "code": 833,
+        "x": 32,
+        "y": 56,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0341",
+        "pattern_hash": "52c213708ca19955e7ead7496d291f7e38123d17cf224df5d581cf1af1d8c883"
+      },
+      {
+        "code": 831,
+        "x": 32,
+        "y": 40,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x033F",
+        "pattern_hash": "cd5fe4a958be4171369ce75f1517eb1efc81654bd0ff84228cf425254f6a6831"
+      },
+      {
+        "code": 869,
+        "x": 32,
+        "y": 24,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0365",
+        "pattern_hash": "be3e938fce1e13eac5acc2a19ab891076877350055cf3e45b3187411fcb08352"
+      },
+      {
+        "code": 832,
+        "x": 16,
+        "y": 56,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0340",
+        "pattern_hash": "39e2b62b9c3dbb60e2b5aad468dae524d414e3212c7a63852cc246a1497b2dff"
+      },
+      {
+        "code": 830,
+        "x": 16,
+        "y": 40,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x033E",
+        "pattern_hash": "449a73cc003c1351afbfafce5c0c83eb06bbd0cdbc8eb721df31d4c7d3409271"
+      },
+      {
+        "code": 868,
+        "x": 16,
+        "y": 24,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0364",
+        "pattern_hash": "7a6f1bf80180bdf288c52d732e4bde170ee8b699d77e7211b744a5ca7de966d8"
+      },
+      {
+        "code": 854,
+        "x": 21,
+        "y": 8,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0356",
+        "pattern_hash": "92e18364e3a0b857a6bafb96cdf4a184d77dec3af908d50be468dcd90847ed33"
+      },
+      {
+        "code": 867,
+        "x": 0,
+        "y": 24,
+        "flip_h": 1,
+        "flip_v": 0,
+        "code_hex": "0x0363",
+        "pattern_hash": "9d7e07df52eba19104f4149ea0dc9ed7fdf1db6dfb232fd3252dbe966d2a999e"
+      }
+    ],
+    "palette_banks": [],
+    "palette_candidate_banks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "palette_status": "unknown",
+    "render_mode": "palette_neutral",
+    "composite_status": "original arcade sweep composite",
+    "evidence": "arcade_pc 0x03D054 renderer/compositor dispatch; PC090OJ record ownership from arcade_pc 0x041DAE or boss arcade_pc 0x041F30; original arcade MAME actor/PC090OJ sweep; sample frame 2846 at round1_castle"
+  }
+]

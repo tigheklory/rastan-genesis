@@ -1,0 +1,8 @@
+{
+  "policy_id": "2sprite-1b-1a",
+  "sprite_lines": 2,
+  "plane_b_lines": 1,
+  "plane_a_lines": 1,
+  "entries_per_line": 16,
+  "transparent_entry": 0
+}

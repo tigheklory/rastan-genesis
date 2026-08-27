@@ -1,0 +1,83 @@
+{
+  "production_inputs": [
+    "build/regions/maincpu.bin",
+    "build/regions/pc080sn.bin",
+    "build/regions/pc090oj.bin"
+  ],
+  "mame_is_semantics_proof_not_generated_asset_input": true,
+  "palette_scene_loader": {
+    "scene_record_table": "arcade_rom/data 0x03BA88",
+    "record_stride": 32,
+    "palette_block_pool": "arcade_rom/data 0x04FD02",
+    "staging": "arcade_workram a5+0x1600",
+    "producer": "arcade_pc FUN_0003BA20",
+    "publish_low_banks": "arcade_pc FUN_00045D7C -> banks 0..31",
+    "publish_sprite_banks": "arcade_pc FUN_00045DC4 -> banks 48..79"
+  },
+  "pc090oj_color_semantics": {
+    "rastan_driver": "sprite_colbank=(sprite_ctrl&0xe0)>>1",
+    "pc090oj_device": "effective color=(object_attr&0x0f)|sprite_colbank",
+    "round1_sprite_ctrl": "0x0060",
+    "round1_legal_effective_banks": [
+      "0x30",
+      "0x31",
+      "0x32",
+      "0x33",
+      "0x34",
+      "0x35",
+      "0x36",
+      "0x37",
+      "0x38",
+      "0x39",
+      "0x3A",
+      "0x3B",
+      "0x3C",
+      "0x3D",
+      "0x3E",
+      "0x3F"
+    ],
+    "requested_49_to_127_resolution": "banks 49..63 are legal Round-1 choices and are decoded from the scene palette publisher; banks 64..127 cannot be selected under Round-1 sprite_ctrl 0x60",
+    "optimizer_rule": "Only a proven object-to-palette-bank relationship contributes colored sprite data. Legal candidate ranges remain metadata and blockers; they do not enter colors.json, coexistence color counts, or the two-sprite-line solver."
+  },
+  "representative_original_arcade_mame_proof": {
+    "path": "states/traces/gameplay_hud_suppression_lizard_palette_20260719_124512/arcpal.txt",
+    "frame": 300,
+    "bank_0x33": [
+      "0x0000",
+      "0x0842",
+      "0x739C",
+      "0x429E",
+      "0x2154",
+      "0x190C",
+      "0x0012",
+      "0x000C",
+      "0x03DE",
+      "0x01DE",
+      "0x0240",
+      "0x0180",
+      "0x4A52",
+      "0x318C",
+      "0x0100",
+      "0x001E"
+    ],
+    "bank_0x36": [
+      "0x0000",
+      "0x4318",
+      "0x00C0",
+      "0x0246",
+      "0x01C0",
+      "0x030E",
+      "0x2948",
+      "0x318A",
+      "0x6356",
+      "0x6B9A",
+      "0x10D2",
+      "0x2996",
+      "0x210A",
+      "0x380E",
+      "0x01CE",
+      "0x39CE"
+    ],
+    "note": "The trace directly labels and captures effective arcade banks 0x33 and 0x36."
+  }
+}

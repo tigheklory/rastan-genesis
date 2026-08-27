@@ -1,0 +1,27 @@
+{
+ "title": "Rastan arcade graphics oracle \u2014 normalized editor-ready evidence layer",
+ "generated_from": "ORIGINAL ARCADE ONLY (maincpu/pc080sn/pc090oj ROM + analyzer + capture)",
+ "authority_model": "these files are THIN NORMALIZED INDEXES with stable IDs; canonical byte/value data stays in the files below",
+ "canonical_files": {
+  "sprite_semantics": "round1_phase1_corpus/sprites.json + sprite_corpus_r1p1.json + sprite_census_captured.json",
+  "enemy_palettes": "round1_phase1_corpus/enemy_palettes.json",
+  "plane_palette_values": "round1_phase1_corpus/plane_palette_banks.json",
+  "plane_usages": "round1_phase1_corpus/layer_a_palette_usage.csv + layer_b_palette_usage.csv",
+  "analyzer_source": "analysis/graphics_optimizer/round1_phase1/ (plane_a_uses, plane_b_uses, palette_states)"
+ },
+ "id_schemes": {
+  "context": "context:<type-path>",
+  "pattern": "pattern:pc080sn|pc090oj:<sha[:16]>",
+  "palette": "palette:arcade.<ctx>.<domain>.bank_0xNNN.epoch_NN",
+  "usage": "usage:<plane>:<hash12>:b0xNNN:fF",
+  "object": "object:<category>.<name>"
+ },
+ "generalized_schema": "context model is type-based; round/phase/segment optional; supports frontend/attract/ending/credits without redesign",
+ "editable_layers_NOT_created_here": [
+  "object_labels.json",
+  "genesis_palette_policy.json",
+  "genesis_vram_policy.json",
+  "named profiles / baseline / active pointer"
+ ],
+ "session_scope": "Layer A/B per-tile attribution + all plane bank 16-color values + generalized schema. Sprite/item-page/HUD domains normalized in later sessions."
+}

@@ -1,0 +1,103 @@
+{
+ "naming_authority": "ORIGINAL ARCADE item-information page (Tighe screenshots) - NAMES ONLY, not colors/patterns",
+ "note": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE; gameplay-pickup/item-page graphics+palette+HUD NOT yet decoded (next task)",
+ "items": [
+  {
+   "canonical_name": "AXE",
+   "object_id": "object:item.axe",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [
+    {
+     "equipped": "object:weapon.axe (pending)"
+    }
+   ],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "HAMMER",
+   "object_id": "object:item.hammer",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [
+    {
+     "equipped": "object:weapon.hammer (pending)"
+    }
+   ],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "FIRE SWORD",
+   "object_id": "object:item.fire_sword",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [
+    {
+     "equipped": "object:weapon.fire_sword (A5+0x138C, name-value mapping pending)"
+    }
+   ],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "SHIELD",
+   "object_id": "object:item.shield",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "MANTLE",
+   "object_id": "object:item.mantle",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "ARMATURE",
+   "object_id": "object:item.armature",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "POISON",
+   "object_id": "object:item.poison",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "GOLD SHEEP",
+   "object_id": "object:item.gold_sheep",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "JEWEL",
+   "object_id": "object:item.jewel",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "RING",
+   "object_id": "object:item.ring",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "ROD",
+   "object_id": "object:item.rod",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [],
+   "graphics_decoded": false
+  },
+  {
+   "canonical_name": "NECKLACE",
+   "object_id": "object:item.necklace",
+   "status": "NAME_PROVEN_FROM_ORIGINAL_ARCADE_ITEM_PAGE",
+   "representations_proven": [],
+   "graphics_decoded": false
+  }
+ ],
+ "list_complete": false
+}

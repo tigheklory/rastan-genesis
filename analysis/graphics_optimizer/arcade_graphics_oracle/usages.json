@@ -1,0 +1,10 @@
+{
+ "note": "context<->pattern<->palette usage relationships (plane domain this session)",
+ "layer_a_usages": "analysis/graphics_optimizer/round1_phase1_corpus/layer_a_palette_usage.csv",
+ "layer_b_usages": "analysis/graphics_optimizer/round1_phase1_corpus/layer_b_palette_usage.csv",
+ "counts": {
+  "layer_a_logical_uses": 1581,
+  "layer_b_logical_uses": 854
+ },
+ "multi_bank_patterns_layer_a": 199
+}

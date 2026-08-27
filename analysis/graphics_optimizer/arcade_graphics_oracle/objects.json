@@ -1,0 +1,261 @@
+{
+ "note": "stable semantic sprite object IDs migrated into the oracle; palette/pattern details in canonical corpus files | 0x0DAB corrected: non-rendering dormant slot-0 state, not an enemy object.",
+ "id_scheme": "object:<category>.<name>",
+ "objects": [
+  {
+   "id": "object:enemy.lizardman",
+   "display_name": "LIZARDMAN",
+   "category": "ENEMY",
+   "effective_sprite_bank": "0x36",
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_2c8/508",
+   "status": "PROVEN",
+   "user_verify_name": false,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x36.epoch_00"
+  },
+  {
+   "id": "object:enemy.four_armed_insect",
+   "display_name": "FOUR-ARMED INSECT",
+   "category": "ENEMY",
+   "effective_sprite_bank": "0x3A",
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_2c8/508",
+   "status": "PROVEN",
+   "user_verify_name": false,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x3A.epoch_00"
+  },
+  {
+   "id": "object:enemy.valkyrie",
+   "display_name": "VALKYRIE",
+   "category": "ENEMY",
+   "effective_sprite_bank": "0x32",
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_2c8/508",
+   "status": "PROVEN",
+   "user_verify_name": true,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x32.epoch_00"
+  },
+  {
+   "id": "object:enemy.chimera",
+   "display_name": "CHIMERA",
+   "category": "ENEMY",
+   "effective_sprite_bank": "0x34",
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_2c8/508",
+   "status": "PROVEN",
+   "user_verify_name": false,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x34.epoch_00"
+  },
+  {
+   "id": "object:enemy.flying_demon",
+   "display_name": "FLYING DEMON",
+   "category": "ENEMY",
+   "effective_sprite_bank": "0x35",
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_2c8/508",
+   "status": "PROVEN",
+   "user_verify_name": false,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x35.epoch_00"
+  },
+  {
+   "id": "object:enemy.small_bat",
+   "display_name": "Small Bat",
+   "category": "ENEMY",
+   "effective_sprite_bank": "0x3E",
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_748",
+   "status": "PROVEN",
+   "user_verify_name": true,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x3E.epoch_00"
+  },
+  {
+   "id": "object:enemy.large_bat",
+   "display_name": "Large Bat",
+   "category": "ENEMY",
+   "effective_sprite_bank": "0x3E",
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_5c8",
+   "status": "PROVEN",
+   "user_verify_name": true,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x3E.epoch_00"
+  },
+  {
+   "id": "object:player.rastan",
+   "display_name": "Rastan",
+   "category": "PLAYER",
+   "effective_sprite_bank": "0x33",
+   "context": "context:gameplay.r01.p01",
+   "owner": "player_11b2 (OBJ 120-131)",
+   "status": "PROVEN",
+   "user_verify_name": false,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x33.epoch_00"
+  },
+  {
+   "id": "object:weapon.sword",
+   "display_name": "SWORD (equipped, default)",
+   "category": "WEAPON",
+   "effective_sprite_bank": "0x33",
+   "context": "context:gameplay.r01.p01",
+   "owner": "Rastan attack composite",
+   "status": "WEAPON-STATE VAR PROVEN (A5+0x138C); sprite-table decode + value->name mapping PENDING (bounded next step)",
+   "user_verify_name": true,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x33.epoch_00",
+   "weapon_state_var": "A5+0x138C (PROVEN; reader player_body_constructor_540cc 0x540CC; anim-frame-index tables)",
+   "weapon_sprite_tables": "0x138C=0 -> sprite tables 0x5BB40/0x5BB80 (default)"
+  },
+  {
+   "id": "object:weapon.axe",
+   "display_name": "AXE (equipped)",
+   "category": "WEAPON",
+   "effective_sprite_bank": "0x33",
+   "context": "context:gameplay.r01.p01",
+   "owner": "Rastan attack composite",
+   "status": "WEAPON-STATE VAR PROVEN (A5+0x138C); sprite-table decode + value->name mapping PENDING (bounded next step)",
+   "user_verify_name": true,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x33.epoch_00",
+   "weapon_state_var": "A5+0x138C (PROVEN; reader player_body_constructor_540cc 0x540CC; anim-frame-index tables)",
+   "weapon_sprite_tables": "0x138C=? -> one of {0x5BCC0/0x5BD00, 0x5BC40/0x5BC80, branch@0x540DE} (value->name pending table render)"
+  },
+  {
+   "id": "object:weapon.fire_sword",
+   "display_name": "FIRE SWORD (equipped)",
+   "category": "WEAPON",
+   "effective_sprite_bank": "0x33",
+   "context": "context:gameplay.r01.p01",
+   "owner": "Rastan attack composite",
+   "status": "WEAPON-STATE VAR PROVEN (A5+0x138C); sprite-table decode + value->name mapping PENDING (bounded next step)",
+   "user_verify_name": true,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x33.epoch_00",
+   "weapon_state_var": "A5+0x138C (PROVEN; reader player_body_constructor_540cc 0x540CC; anim-frame-index tables)",
+   "weapon_sprite_tables": "0x138C=? (same set; value->name pending)",
+   "legacy_aliases": [
+    "Flame Sword"
+   ]
+  },
+  {
+   "id": "object:weapon.hammer",
+   "display_name": "HAMMER (equipped)",
+   "category": "WEAPON",
+   "effective_sprite_bank": "0x33",
+   "context": "context:gameplay.r01.p01",
+   "owner": "Rastan attack composite",
+   "status": "WEAPON-STATE VAR PROVEN (A5+0x138C); sprite-table decode + value->name mapping PENDING (bounded next step)",
+   "user_verify_name": true,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x33.epoch_00",
+   "weapon_state_var": "A5+0x138C (PROVEN; reader player_body_constructor_540cc 0x540CC; anim-frame-index tables)",
+   "weapon_sprite_tables": "0x138C=? (same set; value->name pending)",
+   "legacy_aliases": [
+    "Flail"
+   ]
+  },
+  {
+   "id": "object:hazard.cave_block",
+   "display_name": "Destroyable cave-entrance block",
+   "category": "HAZARD_INTERACTIVE",
+   "effective_sprite_bank": "0x3C",
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_2c8/0x0179",
+   "status": "PROVEN (sprite)",
+   "user_verify_name": false,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x3C.epoch_00"
+  },
+  {
+   "id": "object:hazard.swinging_rope",
+   "display_name": "Animated swinging rope",
+   "category": "HAZARD_INTERACTIVE",
+   "effective_sprite_bank": "0x30",
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_2c8/0x00F4",
+   "status": "PROVEN category",
+   "user_verify_name": true,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x30.epoch_00"
+  },
+  {
+   "id": "object:hazard.boulder",
+   "display_name": "Boulder",
+   "category": "HAZARD_INTERACTIVE",
+   "effective_sprite_bank": "0x3C",
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_5c8/0x0D5F",
+   "status": "PROVEN category",
+   "user_verify_name": true,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x3C.epoch_00"
+  },
+  {
+   "id": "object:effect.sword_sparkle",
+   "display_name": "Sword sparkle",
+   "category": "EFFECT",
+   "effective_sprite_bank": "0x30",
+   "context": "context:gameplay.r01.p01",
+   "owner": "OBJ 132-133",
+   "status": "PROVEN category",
+   "user_verify_name": false,
+   "palette_id": "palette:arcade.r01p01.sprite.bank_0x30.epoch_00"
+  },
+  {
+   "id": "object:unresolved.slot0_state_0dab",
+   "display_name": "actor_2c8 slot-0 dormant state (base 0x0DAB)",
+   "category": "OTHER",
+   "effective_sprite_bank": null,
+   "context": "context:gameplay.r01.p01",
+   "owner": "actor_2c8 slot 0 (0x10C2C8), owned OBJ 140-149",
+   "status": "NON-RENDERING: actor_2c8 slot 0 (addr 0x10C2C8), state 00, owns OBJ records 140-149 which are BLANK at every captured frame -> emits NO graphics in R1/P1. Not a sprite object. Prior ENEMY label WITHDRAWN (came from an invalid records-140..239 broad composite, now quarantined).",
+   "user_verify_name": true,
+   "palette_id": null
+  },
+  {
+   "id": "object:oos.0234",
+   "display_name": "producer 0x0234",
+   "category": "OTHER",
+   "effective_sprite_bank": null,
+   "context": "context:beyond_r1p1 (section 0x11 / record 17 boss)",
+   "owner": "actor_2c8/0x0234",
+   "status": "NOT REACHABLE IN R1/P1 (Phase-3 boss area)",
+   "user_verify_name": false,
+   "palette_id": null
+  },
+  {
+   "id": "object:oos.0236",
+   "display_name": "producer 0x0236",
+   "category": "OTHER",
+   "effective_sprite_bank": null,
+   "context": "context:beyond_r1p1 (section 0x11 / record 17 boss)",
+   "owner": "actor_2c8/0x0236",
+   "status": "NOT REACHABLE IN R1/P1 (Phase-3 boss area)",
+   "user_verify_name": false,
+   "palette_id": null
+  },
+  {
+   "id": "object:oos.0266",
+   "display_name": "producer 0x0266",
+   "category": "OTHER",
+   "effective_sprite_bank": null,
+   "context": "context:beyond_r1p1 (section 0x11 / record 17 boss)",
+   "owner": "actor_2c8/0x0266",
+   "status": "NOT REACHABLE IN R1/P1 (Phase-3 boss area)",
+   "user_verify_name": false,
+   "palette_id": null
+  }
+ ],
+ "open_this_session": [
+  "weapon cell-separation (needs arcade equipped-weapon state variable)",
+  "gameplay item pickup actors",
+  "item-page lexicon (frontend capture)",
+  "HUD/life-meter decomposition",
+  "static negative sprite coverage"
+ ],
+ "weapon_state_finding": {
+  "variable": "A5+0x138C",
+  "values": "0,1,2,3 (four weapons)",
+  "reader": "player_body_constructor_540cc (0x540CC)",
+  "branches": {
+   "==2": "0x540DE",
+   "==3": "0x540F6 -> 0x5BC40/0x5BC80",
+   "==1": "0x5410E -> 0x5BCC0/0x5BD00",
+   "else(0)": "0x5BB40/0x5BB80"
+  },
+  "writer_immediate": "0x519F6 (#0x2)",
+  "note": "value->weapon-name mapping needs decoding the 4 sprite-table sets + render; NOT in owners.csv capture"
+ },
+ "naming_authority": "ORIGINAL ARCADE item-information page + Tighe terminology correction (Flame Sword->FIRE SWORD, Flail->HAMMER)"
+}

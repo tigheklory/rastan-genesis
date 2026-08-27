@@ -1,0 +1,431 @@
+{
+ "note": "PROVEN tile-plane palette only (FG bank3 scene1, BG bank48). SPRITE banks 49-127 UNRESOLVED - not included.",
+ "source": "arcade maincpu palette pool; xBGR-555; arcade chan 0-30 even; genesis_quant = (chan/2)>>1 (3bpp).",
+ "plane_a_fg_bank3_scene1": [
+  {
+   "idx": 0,
+   "arcade_rgb": [
+    0,
+    0,
+    0
+   ],
+   "genesis_3bit": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "idx": 1,
+   "arcade_rgb": [
+    2,
+    2,
+    2
+   ],
+   "genesis_3bit": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "idx": 2,
+   "arcade_rgb": [
+    28,
+    28,
+    28
+   ],
+   "genesis_3bit": [
+    7,
+    7,
+    7
+   ]
+  },
+  {
+   "idx": 3,
+   "arcade_rgb": [
+    30,
+    20,
+    16
+   ],
+   "genesis_3bit": [
+    7,
+    5,
+    4
+   ]
+  },
+  {
+   "idx": 4,
+   "arcade_rgb": [
+    20,
+    10,
+    8
+   ],
+   "genesis_3bit": [
+    5,
+    2,
+    2
+   ]
+  },
+  {
+   "idx": 5,
+   "arcade_rgb": [
+    12,
+    8,
+    6
+   ],
+   "genesis_3bit": [
+    3,
+    2,
+    1
+   ]
+  },
+  {
+   "idx": 6,
+   "arcade_rgb": [
+    18,
+    0,
+    0
+   ],
+   "genesis_3bit": [
+    4,
+    0,
+    0
+   ]
+  },
+  {
+   "idx": 7,
+   "arcade_rgb": [
+    12,
+    0,
+    0
+   ],
+   "genesis_3bit": [
+    3,
+    0,
+    0
+   ]
+  },
+  {
+   "idx": 8,
+   "arcade_rgb": [
+    30,
+    30,
+    0
+   ],
+   "genesis_3bit": [
+    7,
+    7,
+    0
+   ]
+  },
+  {
+   "idx": 9,
+   "arcade_rgb": [
+    30,
+    14,
+    0
+   ],
+   "genesis_3bit": [
+    7,
+    3,
+    0
+   ]
+  },
+  {
+   "idx": 10,
+   "arcade_rgb": [
+    0,
+    18,
+    0
+   ],
+   "genesis_3bit": [
+    0,
+    4,
+    0
+   ]
+  },
+  {
+   "idx": 11,
+   "arcade_rgb": [
+    0,
+    12,
+    0
+   ],
+   "genesis_3bit": [
+    0,
+    3,
+    0
+   ]
+  },
+  {
+   "idx": 12,
+   "arcade_rgb": [
+    18,
+    18,
+    18
+   ],
+   "genesis_3bit": [
+    4,
+    4,
+    4
+   ]
+  },
+  {
+   "idx": 13,
+   "arcade_rgb": [
+    12,
+    12,
+    12
+   ],
+   "genesis_3bit": [
+    3,
+    3,
+    3
+   ]
+  },
+  {
+   "idx": 14,
+   "arcade_rgb": [
+    0,
+    8,
+    0
+   ],
+   "genesis_3bit": [
+    0,
+    2,
+    0
+   ]
+  },
+  {
+   "idx": 15,
+   "arcade_rgb": [
+    30,
+    0,
+    0
+   ],
+   "genesis_3bit": [
+    7,
+    0,
+    0
+   ]
+  }
+ ],
+ "plane_b_bg_bank48": [
+  {
+   "idx": 0,
+   "arcade_rgb": [
+    0,
+    0,
+    0
+   ],
+   "genesis_3bit": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "idx": 1,
+   "arcade_rgb": [
+    0,
+    0,
+    0
+   ],
+   "genesis_3bit": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "idx": 2,
+   "arcade_rgb": [
+    16,
+    0,
+    0
+   ],
+   "genesis_3bit": [
+    4,
+    0,
+    0
+   ]
+  },
+  {
+   "idx": 3,
+   "arcade_rgb": [
+    30,
+    10,
+    0
+   ],
+   "genesis_3bit": [
+    7,
+    2,
+    0
+   ]
+  },
+  {
+   "idx": 4,
+   "arcade_rgb": [
+    30,
+    18,
+    0
+   ],
+   "genesis_3bit": [
+    7,
+    4,
+    0
+   ]
+  },
+  {
+   "idx": 5,
+   "arcade_rgb": [
+    30,
+    30,
+    0
+   ],
+   "genesis_3bit": [
+    7,
+    7,
+    0
+   ]
+  },
+  {
+   "idx": 6,
+   "arcade_rgb": [
+    30,
+    30,
+    18
+   ],
+   "genesis_3bit": [
+    7,
+    7,
+    4
+   ]
+  },
+  {
+   "idx": 7,
+   "arcade_rgb": [
+    30,
+    30,
+    30
+   ],
+   "genesis_3bit": [
+    7,
+    7,
+    7
+   ]
+  },
+  {
+   "idx": 8,
+   "arcade_rgb": [
+    0,
+    0,
+    22
+   ],
+   "genesis_3bit": [
+    0,
+    0,
+    5
+   ]
+  },
+  {
+   "idx": 9,
+   "arcade_rgb": [
+    0,
+    10,
+    30
+   ],
+   "genesis_3bit": [
+    0,
+    2,
+    7
+   ]
+  },
+  {
+   "idx": 10,
+   "arcade_rgb": [
+    0,
+    18,
+    30
+   ],
+   "genesis_3bit": [
+    0,
+    4,
+    7
+   ]
+  },
+  {
+   "idx": 11,
+   "arcade_rgb": [
+    0,
+    26,
+    30
+   ],
+   "genesis_3bit": [
+    0,
+    6,
+    7
+   ]
+  },
+  {
+   "idx": 12,
+   "arcade_rgb": [
+    20,
+    30,
+    30
+   ],
+   "genesis_3bit": [
+    5,
+    7,
+    7
+   ]
+  },
+  {
+   "idx": 13,
+   "arcade_rgb": [
+    0,
+    0,
+    0
+   ],
+   "genesis_3bit": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "idx": 14,
+   "arcade_rgb": [
+    0,
+    0,
+    0
+   ],
+   "genesis_3bit": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "idx": 15,
+   "arcade_rgb": [
+    0,
+    0,
+    0
+   ],
+   "genesis_3bit": [
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "fg_distinct_arcade": 16,
+ "fg_distinct_genesis": 15,
+ "bg_distinct_arcade": 12,
+ "bg_distinct_genesis": 12,
+ "fg_bg_exact_shared": 2,
+ "fg_fits_one_line": true,
+ "bg_fits_one_line": true
+}

@@ -1,0 +1,130 @@
+{
+ "authoritative_key": "actor+0x3E (FUN_0004544e table 0x45502; boss path 0x3E==2 via +0x752); palette FUN_00045684 table 0x45722",
+ "normal_family_bases": {
+  "0x004B": 0,
+  "0x00D0": 1,
+  "0x02E8": 3,
+  "0x0420": 4,
+  "0x01CB": 5,
+  "0x03B3": 6,
+  "0x043A": 7,
+  "0x0241": 8,
+  "0x06E2": 9,
+  "0x0889": 10,
+  "0x0400": 11
+ },
+ "boss_base": "0x033E",
+ "family_palette_bank_0x45722": {
+  "0": "0x06",
+  "1": "0x04",
+  "2": "0x07",
+  "3": "0x0A",
+  "4": "0x07",
+  "5": "0x06",
+  "6": "0x08",
+  "7": "0x0F",
+  "8": "0x02",
+  "9": "0x01",
+  "10": "0x0B",
+  "11": "0x0E"
+ },
+ "counts": {
+  "normal_families_matched": 11,
+  "boss_rows": 9,
+  "unresolved_routes": 13,
+  "non_enemy": 4,
+  "unmatched": 4
+ },
+ "collapse": {
+  "NORMAL_FAMILY_08": [
+   "aux_8c8_base0268_compositor0",
+   "aux_8c8_base0275_compositor0",
+   "hostile_base0275_compositor0",
+   "hurry_up_bat",
+   "static_normal_base0241_unresolved",
+   "static_seed_selector_08_1c_01",
+   "static_seed_selector_08_1c_03",
+   "aux_748_base0268_compositor0",
+   "aux_748_base0275_compositor0"
+  ],
+  "NORMAL_FAMILY_00": [
+   "hostile_base004b_compositor0"
+  ],
+  "NORMAL_FAMILY_01": [
+   "hostile_base00d0_compositor0",
+   "hostile_base0179_compositor0",
+   "static_seed_selector_08_1c_00",
+   "aux_748_base019d_compositor0"
+  ],
+  "NORMAL_FAMILY_05": [
+   "hostile_base01cb_compositor0",
+   "aux_748_base01cb_compositor0"
+  ],
+  "NORMAL_FAMILY_03": [
+   "hostile_base02e8_compositor0",
+   "aux_748_base02e8_compositor0"
+  ],
+  "NORMAL_FAMILY_06": [
+   "hostile_base03b3_compositor0",
+   "static_seed_selector_08_1c_02",
+   "aux_5c8_base0275_compositor0",
+   "aux_5c8_base03f6_compositor0"
+  ],
+  "NORMAL_FAMILY_11": [
+   "hostile_base0400_compositor1",
+   "static_seed_selector_08_1c_10"
+  ],
+  "NORMAL_FAMILY_04": [
+   "hostile_base0420_compositor0"
+  ],
+  "NORMAL_FAMILY_07": [
+   "static_normal_base043a_unresolved",
+   "static_seed_selector_08_1c_04",
+   "static_seed_selector_08_1c_06",
+   "static_seed_selector_08_1c_07",
+   "static_seed_selector_08_1c_20",
+   "aux_5c8_base050b_compositor0"
+  ],
+  "NORMAL_FAMILY_09": [
+   "static_normal_base06e2_unresolved",
+   "static_seed_selector_08_1c_11",
+   "static_seed_selector_08_1c_12",
+   "static_seed_selector_08_1c_13"
+  ],
+  "NORMAL_FAMILY_10": [
+   "static_normal_base0889_unresolved"
+  ]
+ },
+ "boss_family_rows": [
+  "round1_boss_composite",
+  "round2_boss_composite",
+  "round3_boss_composite",
+  "round4_boss_composite",
+  "round5_boss_composite",
+  "round6_boss_composite",
+  "hostile_base033e_multi_compositor",
+  "hostile_base0a73_compositor2",
+  "static_mode2_base033e_unresolved"
+ ],
+ "unresolved_route_rows": [
+  "collision_marker40_route",
+  "collision_marker41_route",
+  "collision_marker49_special_route",
+  "collision_marker4f_behavior20_route",
+  "static_seed_selector_08_1c_05",
+  "static_seed_selector_08_1c_08",
+  "static_seed_selector_08_1c_09",
+  "static_seed_selector_08_1c_14",
+  "static_seed_selector_08_1c_15",
+  "static_seed_selector_08_1c_16",
+  "static_seed_selector_08_1c_17",
+  "static_seed_selector_08_1c_18",
+  "static_seed_selector_08_1c_19"
+ ],
+ "unmatched_rows": [
+  "four_armed_enemy",
+  "hostile_base0a5a_compositor2",
+  "large_bat",
+  "normal_small_bat"
+ ]
+}

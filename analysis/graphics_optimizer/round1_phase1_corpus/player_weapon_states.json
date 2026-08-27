@@ -1,0 +1,112 @@
+{
+ "state_variable": "A5+0x138C",
+ "reader": "player_body_constructor_540cc (0x0540CC)",
+ "writers_enumerated": [
+  {
+   "pc": "0x0519F6",
+   "value": 2,
+   "trigger": "btst #9,D0 set -> weapon=2 (flag-bit; item identity not fully traced)"
+  }
+ ],
+ "writer_note": "only one immediate writer found; value 0 = default/init (else branch); values 1,3 set via pickup handlers not fully enumerated this session",
+ "table_format": "anim-frame-INDEX table: FUN_00054326 reads byte (0,A3,anim_ctr) -> A5+0x1244 -> FUN_00054492 selects sprite frame; A3/A4 paired tables 0x40 apart (pose/direction pair)",
+ "states": {
+  "0": {
+   "canonical_weapon": "SWORD",
+   "name_proof": "PROVEN (default/else branch; Rastan start weapon; init state)",
+   "tables": [
+    "0x5BB40",
+    "0x5BB80"
+   ],
+   "distinctive_frames": [
+    "0x25",
+    "0x26"
+   ],
+   "legacy_aliases": []
+  },
+  "1": {
+   "canonical_weapon": "UNMAPPED (AXE|HAMMER|FIRE SWORD)",
+   "name_proof": "table+frames PROVEN, canonical name PENDING (pickup-handler item-identity or frame render)",
+   "tables": [
+    "0x5BCC0",
+    "0x5BD00"
+   ],
+   "distinctive_frames": [
+    "0x40"
+   ]
+  },
+  "2": {
+   "canonical_weapon": "UNMAPPED",
+   "name_proof": "writer 0x519F6 (btst#9); canonical name PENDING",
+   "tables": [
+    "0x5BBC0",
+    "0x5BC00"
+   ],
+   "distinctive_frames": [
+    "0x49",
+    "0x4A",
+    "0x46"
+   ]
+  },
+  "3": {
+   "canonical_weapon": "UNMAPPED",
+   "name_proof": "table+frames PROVEN, canonical name PENDING",
+   "tables": [
+    "0x5BC40",
+    "0x5BC80"
+   ],
+   "distinctive_frames": [
+    "0x47",
+    "0x48",
+    "0x3B"
+   ]
+  }
+ },
+ "canonical_vocabulary": [
+  "SWORD",
+  "AXE",
+  "HAMMER",
+  "FIRE SWORD"
+ ],
+ "capture_epochs": "UNAVAILABLE: owners.csv did not record A5+0x138C; exact per-frame weapon epochs not reconstructable from this capture",
+ "composite_format": {
+  "decoder": "FUN_00054492 (0x54492)",
+  "composite_base": "0x5BD40",
+  "frame_index_at": "A5+0x1244",
+  "format": "frame N -> offset u16(0x5BD40+N*2) -> piece list; 4 pieces x 6 bytes [code(2),X(1),Y(1),attr(2)]; flip 0x4000; Y += A5+0x10C0; code masked 0x3FFF",
+  "status": "PROVEN"
+ },
+ "common_body_cells": [
+  "0x4DB",
+  "0x4DC",
+  "0x4DD",
+  "0x4DE",
+  "0x4E3",
+  "0x4E4",
+  "0x4E5",
+  "0x4E6"
+ ],
+ "decoded_frame_cells": {
+  "val0_sword": [
+   "0x4DB-0x4E6 (body poses)"
+  ],
+  "val1": [
+   "body + 0x59E/0x59F (alt body-pose cells)"
+  ],
+  "val2": [
+   "0x4E3-0x4E6 only (no distinct cell in extracted frames)"
+  ],
+  "val3": [
+   "body + 0x582/0x583 (alt body-pose cells)"
+  ]
+ },
+ "finding": "A5+0x138C tables select player BODY animation poses per weapon; the extracted extra cells are alternate body poses, NOT blade graphics. The equipped weapon BLADE is likely a SEPARATE attachment producer (not in the player body composite) - needs further trace. value->name (AXE/HAMMER/FIRE SWORD for 1/2/3) NOT resolved this session.",
+ "writer_ledger": {
+  "0": "init/default (A5 workram BSS zero at boot; no equip writer) -> SWORD",
+  "1": "NO literal store to A5+0x138C found -> value set via unlocated computed/flag path OR dead branch",
+  "2": "0x0519F6 move.w #2 gated by btst #9,D0 (weapon-flag decoder); item->bit9 not fully traced",
+  "3": "NO literal store found (as value 1)"
+ },
+ "writers_note": "Only ONE literal store to A5+0x138C exists in ROM (0x519F6=#2). Values 1/3 have no literal writer; either computed/flag-driven (unlocated) or unreachable. This blocks the item->value->name proof for 1/2/3.",
+ "bad_image_quarantine": "see bad_item_images_quarantine.json - user item images NOT used as graphics evidence"
+}

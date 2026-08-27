@@ -1,0 +1,26 @@
+{
+  "status": "dry-run-blocked",
+  "production_connected": false,
+  "exact_feasible": false,
+  "palette_policy": {
+    "sprite_lines": 2,
+    "plane_b_lines": 1,
+    "plane_a_lines": 1,
+    "entries_per_line": 16,
+    "transparent_entry": 0
+  },
+  "target_palettes": null,
+  "reindexer": "tools/translation/reindex_graphics_for_palette.py",
+  "capacity": {
+    "source": "Build 0313 generated residency contract; see docs/design/Cody_build0310_round1_phase1_coarse_plane_a_epochs.md and AGENTS_LOG.md",
+    "global_last_pattern": 1535,
+    "plane_b_fixed_patterns": 854,
+    "plane_a_epoch_patterns": 484,
+    "native_sprite_cells": 49,
+    "native_sprite_8x8_patterns": 196,
+    "system_reserved_patterns": 1,
+    "note": "Centralized analysis target, not a production allocation change. The optimizer reports against the accepted Build 0313 ownership contract."
+  },
+  "asset_bytes_emitted": false,
+  "reason": "Unresolved legal graphics-bearing sprite classes block exact feasibility. Unknown object palette banks are not assigned colors; near-color runs are advisory only."
+}
