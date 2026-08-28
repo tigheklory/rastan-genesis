@@ -230,3 +230,289 @@ OKLab L beat an in-family orange — even for single-color clusters, which bypas
 chromatic+neutral & all-neutral handled; no-valid-target returns None; single-color always safe; ΔE solver unchanged
 (15 entries). Advanced L/H settings (hue_limit/de_limit/hue_tol/neutral_c) are server params with defaults 45/20/10/0.02,
 exposed in the proposal (editable slider panel is basic/deferred). Version identity STILL PENDING.
+
+---
+
+# V0.4 Complete Layer-A Tile/Palette Editor + Protected Line 2
+
+**Classification:** INFRASTRUCTURE. Tooling only. Build counter 313. No production ROM/runtime change.
+Resumed after a weekly-usage-limit checkpoint; no partial V0.4 code existed in the working tree, so
+implementation continued from the proven Layer-A census.
+
+## 1. Build-0313 screenshot evidence (why Line 2 is protected)
+Tighe supplied 11 sequential Build-0313 debugger captures spanning R1/P1 into early Phase 2, including
+the live VDP 4×16 palette. Cross-comparison: **Line 0/1/3 visibly unchanged**; **Line 2 changes ~8 times**
+tracking the sky/time-of-day progression (blue/cyan → violet → sunset orange/red) while Layer-B tile art
+stays fixed. This matches Tighe's stated behavior and his explicit acceptance that **Layer B in Build 0313
+already looks correct**. Corroborated statically by KNOWN_FINDINGS (CRAM-line ownership: line 2 = arcade
+BG bank for Stage 1). The editor therefore treats **CRAM Line 2 = Layer B / arcade controlled / PROTECTED**.
+
+## 2. Line-2 ownership decision & protection (server-authoritative)
+`server.py` declares `RESERVED_LINES=[2]`, `EDITABLE_LINES=[0,1,3]`, and `LINE_OWNERS` (Line 2 owner
+`layer_b`, control `arcade`, editable false, optimizer_available false). Protection is enforced at three
+layers: (a) policy GET backfills `reserved_lines`/`line_owners` into any older profile in memory only
+(never rewrites the file); (b) policy POST **rejects (403)** any sprite/plane mapping whose `line` is
+reserved and **forces** `target_palette_lines[2]` back to empty on every save, so the editor can never
+serialize a replacement Layer-B palette; (c) the client marks Line 2 `L2 🔒`, blocks click/drag/drop/clear/
+picker on it, routes its clicks to a read-only inspector, and excludes it from Recommend Line, Auto-fill,
+ΔE solver, L/H solver, drag/drop, and every "Apply to Line" list (all now use `editableLines()`).
+Ownership/protection is persisted; **no Layer-B colors are serialized**.
+
+## 3. Editable budget (Lines 0/1/3)
+The target panel shows a capacity banner: *AVAILABLE FOR LAYER A + SPRITES: Lines 0,1,3 · capacity 45
+entries (3×15)*. Line 2 is never counted. The existing `Test` profile's sprite work (Line 0: 15 entries,
+10 mappings on lines 0/1) is preserved byte-for-byte; Layer A fits **around** it on 0/1/3.
+
+## 4. Complete Layer-A physical corpus & 5. logical-usage model
+Source of truth: `analysis/graphics_optimizer/round1_phase1/plane_a_uses.json` (frozen census).
+`build_layera()` groups the 1,581 logical usages by `physical_pattern` (sha256 of the 32 raw tile bytes,
+the authoritative identity — ~1:1 with tile_code; one pattern spans two codes) into **1,315 physical
+patterns**, stable IDs `A-0000..A-1314` (ordered by representative tile code). Each logical usage gets a
+stable `LA-0000..LA-1580` id carrying pattern, tile_code, palette bank, flip, priority, **segments
+(records 0–15)**, map_cell_count, coordinate samples, source address, and the real used-index set.
+Tiles decode with the same high-nibble-first 8×8 4bpp decoder as `tools/audit_round1_phase1_plane_a.py`.
+**11 source banks** (0x003,0x004,0x005,0x006,0x007,0x017,0x018,0x01A,0x01B,0x01C,0x01D).
+
+## 6. Tile browser & 12. segment filtering
+Top-level **Layer A** workspace (Sprites · Layer A · Contexts · Palettes). Center = paginated grid
+(200 patterns/page, lazy `<img>` thumbnails from `/api/render_tile`, integer zoom 4/8/16/32×,
+nearest-neighbor). Left = counts + search (id/code/hash/usage/bank) + filters: Segment 0–15, Bank (11),
+palette-use single/multi, mapping status unmapped/partial/mapped, variation status. Segment filter uses
+actual per-usage `records`, not the Round-1 union. Every one of the 1,315 patterns is reachable.
+
+## 7. Tile detail, 8. palette-variant handling, 10. source/target previews
+Clicking a pattern opens detail: pattern id, tile code(s), content hash, used indices/color count,
+segments, banks, status; **palette variants side-by-side** (same 8×8 geometry rendered through each
+proven source bank — identical pixels, different colors); and the full logical-usage list. Selecting a
+usage shows **Arcade source** (tile × its bank) vs **Genesis target** (same geometry × current mapping),
+plus per-color chips with natural-CRAM/ΔE/OKLab data.
+
+## 9. Tile MRD & 11. Layer-A mapping
+MRD is built from the **actual used pixel indices** of each logical tile usage (not the whole 16-color
+bank). `laMapColor`/`autoFillTile` refuse to collapse two distinct used colors onto one target entry
+(grayscale-before-detail-loss rule preserved). Mapping is **usage/context-aware**: stored in
+`plane_usage_palette_mappings` keyed by `LA-*`, so the same physical bitmap used with different banks maps
+independently. Actions: click-color-then-editable-entry manual map, **Auto-fill Tile**, **Copy Used
+Colors → Line 0/1/3**, Reset — one Undo transaction each. `Find Matches` cross-references the color across
+Layer A + sprites (ΔE/ΔL/coexistence); Layer-B is informational only and never a target.
+
+## 13. Group solver support
+Multi-usage checkboxes feed the existing ΔE and Luminance/Hue solvers via `/api/solve`; `layera_solver_usages`
+adapts `LA-*` ids into solver usage dicts (each logical usage = its own palette domain; MRD from real
+pixels). Proposals apply only to editable lines.
+
+## 14. Profile schema & 15. performance
+Schema `v0.4` adds `plane_usage_palette_mappings`, `context_palette_packages`, `reserved_lines`,
+`line_owners` — all backward-compatible (older profiles backfilled in memory; `Test` preserved, disk
+sha unchanged by GET). Performance: server-rendered lazy thumbnails + client pagination + indexed
+client-side filtering keep the 1,315/1,581 dataset responsive without thousands of eager DOM nodes.
+
+## Verification (all against the implemented API/editor)
+Counts 1315/1581/11/199 (PASS); physical coverage 1315/1315 and logical 1581/1581 (PASS);
+first/middle/last pattern decode+render A-0000/A-0657/A-1314 (PASS); all 11 banks render (PASS);
+multi-palette variant view A-0001 two banks same pixels (PASS); Line-2 GET-backfill + POST force-empty +
+map-to-line-2 403 (PASS); Test-profile Line 0 + 10 sprite mappings intact, disk unmodified (PASS);
+Layer-A ΔE and L/H group solve (PASS). Manual DOM interactions (drag, MRD alert, Undo) are Tighe's
+hands-on checks. Known honest gaps: animation status is STATIC/MULTI-PALETTE only (no new animation
+archaeology — UNKNOWN acceptable); L/H advanced sliders remain basic; no production integration.
+
+---
+
+# V0.4.1 Segment Maps + Pixel Picking + Precise CRAM Controls + Context Policies
+
+**Classification:** INFRASTRUCTURE. Tooling only. Build counter 313. No production/ROM change. Line 2 remains
+absolutely protected in every context. Phase 0: KNOWN_FINDINGS CRAM-line-ownership (line 2 = arcade BG bank)
+continues to corroborate Line-2 protection; no contradiction; classification INFRASTRUCTURE.
+
+## 1–3. Assembled Layer-A segment maps (arcade-sourced) + map-cell→usage identity + map/library linkage
+`layera_map(seg)` reconstructs each R1/P1 segment directly from the arcade `maincpu.bin` source tables
+(`_MAP_BASES`, stride 0x40, visible rows 1–30 × 64 cols) — the same authoritative decode as
+`tools/audit_round1_phase1_plane_a.py`, **never screenshots**. Each visible cell yields `tile_code` +
+`palette_bank` (`attr & 0x1FF`) + flip bits (`0x4000/0x8000`) and is resolved to its exact **logical usage**
+(`LA-*`) and physical pattern (`A-*`). Coverage is exact: 1920 cells/segment, 1920 resolved (100%). The
+client renders the segment on a `<canvas>` from the returned per-code pixel tiles × arcade bank colors,
+with a Segment-Map ↔ Tile-Library toggle sharing selection; clicking a cell opens that precise usage/variant
+(not merely the first usage of the bitmap), hover shows coordinate/pattern/usage/code/bank/flip, and the
+selected pattern's occurrence count in the segment is reported.
+
+## 4–6. Pixel picking (sprites + Layer A) from Genesis Target artwork
+Picking uses the render's actual index geometry, never an RGB match. Sprites: `composite_hitmap(pieces)`
+produces a per-pixel source-index buffer using the **same painter's order/flips** as `render_composite`;
+`/api/hitmap` serves it; a click maps display→native coords (zoom-corrected) → topmost source index →
+mapped target CRAM entry (transparent → "Transparent pixel — no palette entry"). Layer A: the tile detail
+uses `LADET.pixels` (8×8) and the segment map uses the cell's tile pixels, both zoom-corrected. The Genesis
+segment-map mode recolors live from the current context-effective policy.
+
+## 7. Precise ±1 CRAM channel controls
+`showTarget` renders per-channel rows `R [−] n/7 [+] [slider]` (steppers change exactly one legal level,
+clamped 0–7, disabled at bounds; slider `step=1` snaps to legal levels). Every edit produces only legal
+Genesis CRAM, is one Undo step, and immediately updates the swatch, CRAM word, RGB, and all previews.
+
+## 8–12. Contexts as real editing scopes with inheritance/overrides
+Selecting a context sets the active **editing scope** (`SCOPE`), shown in a persistent top banner across all
+tabs (`EDITING SCOPE: … [stable id]`) using the oracle's stable context IDs and parent links. Selecting an
+R1/P1 record context auto-opens its segment map. Palette **color** policy is context-scoped: `effEntry`
+resolves an entry by overlaying the profile base default with ancestor→scope context overrides (deepest
+wins); editing a color while a child context is active creates a **local override** on that context
+(`context_policies[id].tpl[line][index]`) — parent and siblings unchanged — with LOCAL/INHERITED indicators
+and per-entry **Reset Context Override**, plus a whole-context reset and "Create full local copy". Test
+migration is loss-free: base = global default = current `Test`; R1/P1 inherits it unchanged (verified
+byte-identical), so no color moves. Future contexts (Round 2, Phase 2, frontend) report COMPLETE/PARTIAL/
+UNKNOWN coverage honestly and never present R1/P1 evidence as authoritative there.
+
+## 13. Line-2 context protection
+Server rejects (403) any `context_policies` override targeting a reserved line, and all client edit paths
+route through `guardProtected`. Line 2 cannot be overridden at any context.
+
+## Verification (against the implemented API + simulated client inheritance)
+Segment map coverage 0–15 = 1920/1920 resolved (PASS); map-cell→usage/variant identity (PASS);
+multi-palette map instances resolve to distinct usages (PASS); sprite hit-maps for Rastan/Valkyrie/Small
+Bat/Flying Demon with correct per-pixel indices (PASS); Layer-A pixel picking via LADET.pixels (PASS);
+±1 steppers legal-CRAM-only + bounds (PASS); context inheritance N/O/P + parent→child + reset (PASS);
+save/reload parent+child overrides (PASS); Line-2 context override rejected 403 (PASS); Test profile
+byte-preserved (PASS); V0.4 corpus 1315/1581/199 + solvers unregressed (PASS). Honest scope: context
+scoping covers palette **color** values (matching the ±/pixel-pick edit surface and the Layer-B time-of-day
+model); source→target mapping topology remains global (a deferred extension). DOM gestures (drag, click
+feedback) are Tighe's hands-on checks.
+
+---
+
+# V0.4.1 Corrective Pass — Full Vertical Map / Arcade-Palette Truth / CRAM Control Layout
+
+Tighe's hands-on verification reproduced three failures; this pass fixes them. Tooling only, Build 313,
+no production/ROM change, Line 2 still protected.
+
+## 1–3. Failure 2 (dominant): the segment map was vertically cropped
+The prior server hard-coded rows 1..30 (`_MAP_ROW0=1,_MAP_NROWS=30`) and reported "1920/1920 = 100%".
+That was **only 100% of a 30-row screen-viewport window, not the map**. The authoritative PC080SN backing
+tilemap per segment is **64×64** (`ROWS_PER_SEGMENT=64`, matching `tools/audit_round1_phase1_plane_a.py`).
+For segment 0 the actual terrain lives in rows **40–63**, which the crop discarded — exactly the "narrow
+strip at top, rest blank" Tighe saw. The earlier "1920/1920 = 100% complete map" claim is **withdrawn**: it
+described the cropped window. `layera_map` now walks the full 64 rows and reports honest accounting per
+segment: `total_cells` (4096), `descriptor_cells`, `blank_cells` (fully-transparent tiles, counted not
+emitted), `nonblank_cells`, `resolved`, `unresolved`. Verified 0–15: every nonblank cell resolves to a
+logical usage (unresolved 0); cells span rows 0..63; the normal viewport (rows 1..30) is returned as
+`visible_viewport` for a highlight overlay only. The client canvas renders the full height in a scrollable
+pane at Fit/1×/2×/4× with click/hover identity through the entire vertical domain.
+
+## 4–7. Failure 1: the Arcade palette was NOT actually wrong
+Root-cause analysis (not a dismissal): the editor's `plane_bank_colors()` reads
+`plane_palette_banks.json`, and that file's **bank 0x003 is byte-exact** against the independent decoded
+audit `analysis/round1_phase1_palette_audit/colors.json` (audit 5-bit `[30,20,16]` == editor 8-bit
+`[247,165,132]`, idx8 `[30,30,0]`==`[247,247,0]`, etc.). The corpus's own `epochs` note states **"Layer A
+multi-bank is spatial not temporal"** — banks are invariant across R1/P1; the multi-bank aspect is which
+segment uses which bank, not time-of-day. Rendering the corrected full 64-row maps confirms authentic
+arcade artwork with correct colors: **segment 15 is the recognizable Round-1 orange-brick arch/bridge**
+(banks 0x017/0x018), **segment 0 is grey-stone-with-green terrain** (bank 0x003). The apparent "wrong
+colors" was the vertical crop presenting an unrepresentative upper strip. No palette state was fabricated;
+evidence shows none exist for Layer A. Banks proven invariant: all 11 (0x003–0x01D); banks with multiple
+R1/P1 content states: none. Selector→bank is `attr & 0x1ff` == effective palette-RAM bank
+(`correction_1_selector_vs_bank`), matching the implementation.
+
+## 8–9. Failure 3: R/G/B controls overflowed the right panel
+`.picker` was `display:flex` (row) holding three full `.chanrow` groups, pushing B off-screen. Fixed:
+`.picker{flex-direction:column;width:100%}`, `.chanrow{width:100%;min-width:0}`, slider
+`flex:1 1 auto;min-width:0`; right panel widened 320→360px. R/G/B now stack vertically (each a full row of
+label · − · n/7 · + · slider) with no horizontal scroll. The ±1 0–7 legal-CRAM math is unchanged.
+
+## 10. Regression
+V0.4 corpus 1315/1581/199 intact; sprite ΔE solver 15 entries; sprite hit-map + Layer-A pixel picking
+unchanged; context scope/inheritance/override, Line-2 protection (server 403 + client guard), and the
+`Test` profile all preserved. Screenshot-derived acceptance is Tighe's re-verification of the full-height,
+correctly-colored maps and the stacked channel controls.
+
+---
+
+# V0.4.1 Corrective Pass 2 — Original-Arcade Layer-A Palette RAM
+
+**This section supersedes the Corrective-Pass-1 claim that the Layer-A Arcade colors were correct.** That
+earlier conclusion validated `plane_palette_banks.json` only against `colors.json`, which shares the same
+decode lineage — not against original-arcade ground truth. Tighe's hands-on report ("colors completely
+wrong, gray/green terrain") was right.
+
+1. **Geometry stays accepted.** The 64×64 map reconstruction and PC080SN tile decode were not the fault.
+2. **Old Layer-A Arcade colors were WRONG.** `plane_palette_banks.json` bank `0x003` matched the
+   arcade-runtime bank (KF-788) only **1/16** — it rendered flesh/white/yellow/green/gray where the real
+   arcade is purple cave rock.
+3. **Old RGB lineage:** `plane_palette_banks.json` (and the sibling `colors.json`) decoded a ROM pool that
+   did not reproduce the displayed palette RAM.
+4. **Direct capture:** `tools/mame/scripts/arcade_layera_palette_dump.lua` runs ORIGINAL ARCADE `rastan`,
+   coins/starts via the established input injection, and dumps palette RAM.
+5–7. **Palette RAM `0x200000..0x2003FF`** (banks 0–31, 16 words each), word = **xBGR-555**
+   (R=bits0–4, G=5–9, B=10–14); `arcade_rgb8 = chan*255//31`, Genesis 3-bit = `chan>>2`.
+8. **KF-788 validation:** captured bank `0x003` → Genesis 3-bit == KF-788 runtime words **16/16** (machine
+   regression anchor). This is an independent existing-project anchor for the new source.
+9. **Corrected artifact:** `analysis/graphics_optimizer/round1_phase1_corpus/plane_a_palette_ram_arcade.json`
+   holds all 11 Layer-A banks (0x003–0x01D) as xBGR555 + arcade_rgb8, authority = arcade palette RAM.
+10. **Exact-content duplicates:** 10 distinct content groups; only `0x01B` == `0x01D`. Selector identity is
+    kept separate from content identity (the 11 selectors are not collapsed).
+11. **Stability (bounded, honestly scoped):** all 11 banks are byte-identical across sampled R1/P1 gameplay
+    frames **360/460/700/1000** (~11 s). This is **NOT** proof of full-Phase-1 per-record invariance. The
+    earlier "all 11 banks invariant throughout R1/P1" wording is **withdrawn**; current provenance reads
+    *"PROVEN R1/P1 early gameplay; later Phase-1 per-record stability pending."*
+12. **Broader proof status:** establishing universality across all 16 records would need a full-phase
+    user-driven arcade trace (the dump script can be armed for it); not required for the early-R1/P1
+    rendering to be correct, and deferred to the next boundary.
+13. **Editor source change:** `plane_bank_colors()` now prefers `plane_a_palette_ram_arcade.json` (fallback
+    to the old file only if missing). Both Layer-A RGB paths are corrected: the segment map / tile library /
+    `/api/render_tile` (via `build_layera` banks) and the Palettes-tab plane resources in `build_oracle`.
+    `plane_palette_banks.json` is retained for its other metadata/Layer-B, but is no longer the Layer-A RGB
+    authority.
+14. **Map inspector:** clicking a map cell shows segment, X/Y, tile code, physical pattern, logical usage,
+    raw attr word, selector (`attr & 0x1ff`), descriptor/entry addresses, flip, occurrences, and the
+    palette authority (arcade palette RAM, KF-788 validated).
+15. **Sprite preview CSS:** `#previews` is flex; its zoombar/header now take a full-width row
+    (`flex:0 0 100%`) with `clear:both`, so preview art starts at the left instead of beside the toolbar.
+16. **Regression:** corrected maps render authentic arcade terrain (seg 0 purple/rock, seg 6 purple cliff +
+    brown/red rock + green vine, seg 15 purple castle bridge); corpus 1315/1581/199, ΔE/L-H solvers,
+    pixel-picking, context, Line-2 protection, and the Test profile all intact.
+
+---
+
+# V0.4.2 Phase-Wide Layer-A Auto-Map
+
+**Workflow:** author a palette on an editable line (0/1/3), keep it as the ACTIVE line, click
+`Auto-map Phase → Active Line`. Every Layer-A logical usage in the active PHASE is mapped to the closest
+legal entries ALREADY on that line. Target colors are never changed; no palette is derived.
+
+**Why phase-scoped topology:** V0.4.1 kept Layer-A mapping topology global, which cannot hold different
+per-phase mappings. This task promotes Layer-A topology to context/phase scope (narrowly; sprite topology
+untouched). New model: `context_policies[ctx].plane_usage_palette_mappings`, with the global
+`plane_usage_palette_mappings` retained as backward-compatible base/fallback. **Resolution
+(`effPlaneMapping`):** global base → ancestor contexts → scope, deepest wins. A phase mapping written at
+`context:gameplay.r01.p01` is inherited by all its segment children; a deeper segment/usage override wins;
+siblings are isolated; other phases (e.g. `r01.p02`) see nothing from R1/P1. Verified by simulation
+(inherit/override/sibling-isolation/phase-isolation all pass) and server save/reload.
+
+**Fixed target line:** the mapper reads the phase-effective colors of the chosen line (base + inherited +
+phase-local overrides) and treats populated nontransparent entries (1..15) as fixed candidates. It never
+adds colors to empty slots, changes CRAM, reorders, quantizes, or runs a solver. If descendant segment
+contexts override colors on that line, the UI warns and matches against the phase-level effective palette.
+
+**Matching:** for each logical usage, sources = its actual used pixel indices' corrected-arcade RGB (from
+`plane_a_palette_ram_arcade.json`) with pixel counts; targets = the populated line entries. Cost =
+pixel-weighted **CIEDE2000**. A **min-cost injective assignment** (Hungarian, stdlib, O(n³) on a padded
+square matrix) guarantees no two distinct used colors in one usage share a target — **MRD violations = 0**.
+Objective = minimize pixel-weighted total ΔE00; the injective constraint is hard. This optimizes each usage
+against the fixed line only — not a global palette optimum.
+
+**Insufficient capacity:** a usage needing more distinct colors than the line has populated entries is
+**BLOCKED** (left unchanged, counted, never merged). Verified: a 2-color line blocks 1517/1581 usages with
+0 merges; a 15-color line maps 1576/1581 (5 are blank tiles) with 0 blocked.
+
+**Transaction/Undo:** the whole phase apply is one `pushUndo()` transaction writing into the phase context's
+plane mappings; one Undo restores the prior state, Redo re-applies (existing full-POL snapshot mechanism).
+
+**Summary + worst-match browser:** reports considered/mapped/new/replaced/unchanged/blocked, populated
+targets, mean/worst ΔE, and "target colors modified: NO". `Show worst matches` lists the 20 highest-ΔE
+usages; each row opens that exact usage in Tile Library.
+
+**Live update:** segment-map Genesis mode and Tile Library resolve through `effPlaneMapping`, so the map and
+previews reflect the phase mapping immediately; the usage view shows provenance
+(`INHERITED FROM Round 1 / Phase 1` vs LOCAL vs global base). Manual per-usage mapping after the bulk op
+writes at the active scope and predictably overrides the inherited phase mapping without re-running it.
+
+**Performance:** one server bulk-solve request (no per-usage HTTP). Measured ~1.2 s for all 1,581 R1/P1
+usages. **Line-2 protection:** the endpoint and the policy-save guard reject any reserved-line target (403),
+in addition to the client button being disabled for Line 2. Arcade evidence artifacts are read-only
+(hashes unchanged before/after). Existing ΔE and L/H sprite solvers are unchanged and pass regression.

@@ -19,6 +19,17 @@ os.makedirs(POLICY_DIR, exist_ok=True)
 LV3 = [0, 36, 73, 109, 146, 182, 219, 255]
 _SPR = None
 
+# ---- CRAM line ownership (Build-0313 capture evidence): Line 2 = accepted Layer-B time-of-day, PROTECTED ----
+RESERVED_LINES = [2]
+EDITABLE_LINES = [0, 1, 3]
+LINE_OWNERS = {
+    "0": {"owner": "editable", "control": "editor", "editable": True, "optimizer_available": True},
+    "1": {"owner": "editable", "control": "editor", "editable": True, "optimizer_available": True},
+    "2": {"owner": "layer_b", "control": "arcade", "editable": False, "optimizer_available": False,
+          "label": "LINE 2 — LAYER B — ARCADE CONTROLLED — PROTECTED",
+          "note": "Owned by the accepted Layer-B time-of-day palette path in Build 0313; excluded from editor optimization."},
+    "3": {"owner": "editable", "control": "editor", "editable": True, "optimizer_available": True}}
+
 
 def loadj(p, d=None):
     try:
@@ -584,6 +595,373 @@ def build_usages(banks):
     return usages
 
 
+# ---------- Layer A (PC080SN plane) complete corpus ----------
+_PC080 = None
+def pc080():
+    global _PC080
+    if _PC080 is None:
+        _PC080 = open(os.path.join(ROOT, "build/regions/pc080sn.bin"), "rb").read()
+    return _PC080
+
+
+def tile_indices8(code):
+    """Decode one 8x8 4bpp PC080SN tile (32 bytes @ code*32) -> 64 nibble indices, high-nibble-first.
+    Matches the authoritative decoder in tools/audit_round1_phase1_plane_a.py."""
+    s = code * 32
+    c = pc080()[s:s + 32]
+    px = []
+    for b in c:
+        px.append((b >> 4) & 0xF)
+        px.append(b & 0xF)
+    return px
+
+
+def plane_bank_colors():
+    """11 Layer-A source palette banks (arcade RGB8), keyed by hex id (0x003..0x01D).
+
+    AUTHORITY: original-arcade palette RAM 0x200000 captured at R1/P1 gameplay
+    (plane_a_palette_ram_arcade.json), validated byte-exact (16/16) against KF-788's arcade-runtime
+    bank-3 evidence. This SUPERSEDES plane_palette_banks.json, whose Layer-A RGB contents were proven
+    wrong (bank 0x003 matched the runtime only 1/16 — green/gray instead of the true purple cave rock)."""
+    p = loadj(os.path.join(CORP, "plane_a_palette_ram_arcade.json"), None)
+    if p and p.get("banks"):
+        return {bid: bb["arcade_rgb8"] for bid, bb in p["banks"].items()}
+    # fallback only if the arcade-RAM capture is unavailable
+    p = loadj(os.path.join(CORP, "plane_palette_banks.json"), {"banks": {}})
+    return {bid: [e["arcade_rgb8"] for e in bb["entries"]] for bid, bb in p.get("banks", {}).items()}
+
+
+_LAYERA = None
+def build_layera():
+    """Complete R1/P1 Layer-A corpus: every physical pattern + every logical usage from the frozen census.
+    physical_pattern (sha256 of the 32 raw tile bytes) is authoritative identity; ~1:1 with tile_code."""
+    global _LAYERA
+    if _LAYERA is not None:
+        return _LAYERA
+    pa = loadj(os.path.join(ANALYZER, "plane_a_uses.json"), [])
+    all_banks = plane_bank_colors()
+    used_bank_ids = sorted({u["palette_bank_hex"] for u in pa},
+                           key=lambda h: int(h, 16))                       # 11 banks actually used by Layer A
+    byhash = {}
+    for i, u in enumerate(pa):
+        byhash.setdefault(u["physical_pattern"], []).append((i, u))
+    order = sorted(byhash.items(), key=lambda kv: min(u["tile_code"] for _, u in kv[1]))
+    hash2pid = {}
+    patterns = []
+    for pidx, (h, us) in enumerate(order):
+        pid = "A-%04d" % pidx
+        hash2pid[h] = pid
+        rep = min(u["tile_code"] for _, u in us)
+        idx = tile_indices8(rep)
+        used_idx = sorted(set(v for v in idx if v))
+        pbanks = sorted({u["palette_bank_hex"] for _, u in us}, key=lambda x: int(x, 16))
+        segs = sorted({r for _, u in us for r in u.get("records", [])})
+        flips = sorted({u.get("flip", 0) for _, u in us})
+        codes = sorted({u["tile_code"] for _, u in us})
+        patterns.append({
+            "pattern_id": pid, "pattern_hash": h, "rep_tile_code": rep, "tile_codes": codes,
+            "usage_ids": ["LA-%04d" % i for i, _ in us], "n_uses": len(us),
+            "palette_banks": pbanks, "n_palettes": len(pbanks), "multi_palette": len(pbanks) > 1,
+            "segments": segs, "flips": flips, "used_indices": used_idx, "n_colors": len(used_idx),
+            "animation_status": ("MULTI-PALETTE" if len(pbanks) > 1 else "STATIC")})
+    usages = []
+    for i, u in enumerate(pa):
+        uid = "LA-%04d" % i
+        idx = tile_indices8(u["tile_code"])
+        used_idx = sorted(set(v for v in idx if v))
+        usages.append({
+            "usage_id": uid, "pattern_id": hash2pid[u["physical_pattern"]],
+            "pattern_hash": u["physical_pattern"], "tile_code": u["tile_code"],
+            "tile_code_hex": u["tile_code_hex"], "palette_bank": u["palette_bank_hex"],
+            "flip": u.get("flip", 0), "priority_bits": u.get("priority_bits"),
+            "segments": u.get("records", []), "map_cell_count": u.get("map_cell_count"),
+            "coordinate_samples": u.get("coordinate_samples", [])[:8],
+            "source_address": u.get("source_address"),
+            "used_indices": used_idx, "n_colors": len(used_idx)})
+    _LAYERA = {"patterns": patterns, "usages": usages, "hash2pid": hash2pid,
+               "banks": {b: all_banks[b] for b in used_bank_ids if b in all_banks},
+               "bank_ids": used_bank_ids,
+               "counts": {"physical_patterns": len(patterns), "logical_usages": len(usages),
+                          "palette_banks": len(used_bank_ids),
+                          "multi_palette_patterns": sum(1 for p in patterns if p["multi_palette"])}}
+    return _LAYERA
+
+
+def layera_pattern_detail(pid):
+    """Full detail for one physical pattern: pixels, every logical usage, and every palette variant."""
+    la = build_layera()
+    pat = next((p for p in la["patterns"] if p["pattern_id"] == pid), None)
+    if pat is None:
+        return None
+    idx = tile_indices8(pat["rep_tile_code"])
+    uses = [u for u in la["usages"] if u["pattern_id"] == pid]
+
+    def used_colors_for(bank_id):
+        pal = la["banks"].get(bank_id, [[0, 0, 0]] * 16)
+        cols = []
+        for si in pat["used_indices"]:
+            rgb = pal[si] if si < len(pal) else [0, 0, 0]
+            disp, cram, _ = gen_quant(rgb)
+            cols.append({"src_index": si, "arcade_rgb8": rgb, "hex": "#%02X%02X%02X" % tuple(rgb),
+                         "genesis_rgb8": disp, "genesis_cram": cram})
+        return cols
+
+    variants = [{"palette_bank": b, "colors": used_colors_for(b),
+                 "full_bank": [{"index": k, "arcade_rgb8": (la["banks"].get(b, [[0, 0, 0]] * 16)[k]),
+                                "used": k in pat["used_indices"]} for k in range(16)]}
+                for b in pat["palette_banks"]]
+    # per-usage: used colors (under that usage's bank) + pixel MRD pairs
+    detailed_uses = []
+    for u in uses:
+        cols = used_colors_for(u["palette_bank"])
+        ui = u["used_indices"]
+        mrd = [[a, b] for j, a in enumerate(ui) for b in ui[j + 1:]]
+        detailed_uses.append({**u, "used_colors": cols, "mrd_pairs": mrd})
+    return {"pattern": pat, "pixels": idx, "usages": detailed_uses, "palette_variants": variants}
+
+
+# ---- authoritative R1/P1 Layer-A segment map (reconstructed from arcade maincpu tables, NOT screenshots) ----
+_MAP_BASES = (0x1691C, 0x18BDC, 0x1AE9C, 0x1D15C, 0x1F41C, 0x216DC, 0x2399C, 0x25C5C,
+              0x27F1C, 0x2A1DC, 0x2C49C, 0x2E75C, 0x30A1C, 0x32CDC, 0x34F9C, 0x3725C)
+_MAP_STRIDE = 0x40
+_MAP_ROWS, _MAP_COLS = 64, 64          # COMPLETE PC080SN backing tilemap domain per segment (64x64)
+_MAP_VIS_ROW0, _MAP_VIS_NROWS = 1, 30  # normal fixed Phase-1 visible viewport (rows 1..30), highlight only
+_MAINCPU = None
+_MAPCACHE = {}
+def _maincpu():
+    global _MAINCPU
+    if _MAINCPU is None:
+        _MAINCPU = open(os.path.join(ROOT, "build/regions/maincpu.bin"), "rb").read()
+    return _MAINCPU
+
+
+def layera_map(seg):
+    """Reconstruct one R1/P1 Layer-A segment's COMPLETE assembled backing tilemap (64x64) from the arcade
+    maincpu tables. Every nonblank cell resolves to its exact logical usage (tile_code + palette_bank).
+    The complete vertical domain is exposed (not just the 30-row screen viewport) so terrain in the lower
+    rows is editable; the normal viewport is reported for optional highlight only."""
+    if seg in _MAPCACHE:
+        return _MAPCACHE[seg]
+    m = _maincpu()
+    be = lambda o: int.from_bytes(m[o:o + 2], "big")
+    la = build_layera()
+    bybank = {}
+    for u in la["usages"]:
+        bybank.setdefault((u["tile_code"], u["palette_bank"]), u)
+    cells = []
+    codes = set()
+    descriptor_cells = blank_cells = 0
+    for wr in range(_MAP_ROWS):
+        ti, dr = divmod(wr, 4)
+        tb = _MAP_BASES[ti] + seg * _MAP_STRIDE
+        for sc in range(_MAP_COLS):
+            dc, ds = divmod(sc, 4)
+            entry = tb + dc * 4
+            attr = be(entry); desc = be(entry + 2)
+            if desc == 0:
+                continue
+            descriptor_cells += 1
+            code = be(desc + dr * 8 + ds * 2) & 0x3FFF
+            if not any(tile_indices8(code)):     # fully-transparent (blank) tile — counted, not emitted
+                blank_cells += 1
+                continue
+            bank = "0x%03X" % (attr & 0x1FF)
+            u = bybank.get((code, bank))
+            cells.append({"c": sc, "r": wr, "code": code, "bank": bank,
+                          "hf": 1 if attr & 0x4000 else 0, "vf": 1 if attr & 0x8000 else 0,
+                          "attr": "0x%04X" % attr, "entry": "0x%06X" % entry,
+                          "descr": "0x%06X" % (desc + dr * 8 + ds * 2),
+                          "uid": (u["usage_id"] if u else None), "pid": (u["pattern_id"] if u else None)})
+            codes.add(code)
+    tiles = {str(c): tile_indices8(c) for c in codes}
+    out = {"seg": seg, "cols": _MAP_COLS, "rows": _MAP_ROWS, "row0": 0, "nrows": _MAP_ROWS,
+           "visible_viewport": {"row0": _MAP_VIS_ROW0, "nrows": _MAP_VIS_NROWS},
+           "total_cells": _MAP_ROWS * _MAP_COLS, "descriptor_cells": descriptor_cells,
+           "blank_cells": blank_cells, "nonblank_cells": len(cells),
+           "resolved": sum(1 for c in cells if c["uid"]),
+           "unresolved": sum(1 for c in cells if not c["uid"]),
+           "tiles": tiles, "cells": cells}
+    _MAPCACHE[seg] = out
+    return out
+
+
+def composite_hitmap(pieces):
+    """Source-index buffer for a sprite composite using the SAME painter's order/geometry as render_composite.
+    Returns (W, H, flat[list]) where each pixel is the topmost visible source index (0 = transparent)."""
+    if not pieces:
+        return 2, 2, [0, 0, 0, 0]
+    minx = min(p["x"] for p in pieces); miny = min(p["y"] for p in pieces)
+    W = max(p["x"] for p in pieces) + 16 - minx + 2
+    H = max(p["y"] for p in pieces) + 16 - miny + 2
+    buf = [0] * (W * H)
+    for p in sorted(pieces, key=lambda q: -q.get("rec", 0)):   # high rec first, low rec paints on top
+        idx = cell_indices(p["code"])
+        ox = p["x"] - minx + 1; oy = p["y"] - miny + 1
+        for y in range(16):
+            sy = 15 - y if p["fy"] else y
+            for x in range(16):
+                sx = 15 - x if p["fx"] else x
+                v = idx[sy * 16 + sx]
+                if v:
+                    buf[(oy + y) * W + (ox + x)] = v
+    return W, H, buf
+
+
+def _hungarian(cost):
+    """Min-cost perfect assignment on a square matrix (O(n^3)); returns row->col. stdlib only."""
+    n = len(cost)
+    if n == 0:
+        return []
+    INF = float("inf")
+    u = [0.0] * (n + 1); v = [0.0] * (n + 1); p = [0] * (n + 1); way = [0] * (n + 1)
+    for i in range(1, n + 1):
+        p[0] = i; j0 = 0
+        minv = [INF] * (n + 1); used = [False] * (n + 1)
+        while True:
+            used[j0] = True; i0 = p[j0]; delta = INF; j1 = -1
+            for j in range(1, n + 1):
+                if not used[j]:
+                    cur = cost[i0 - 1][j - 1] - u[i0] - v[j]
+                    if cur < minv[j]:
+                        minv[j] = cur; way[j] = j0
+                    if minv[j] < delta:
+                        delta = minv[j]; j1 = j
+            for j in range(n + 1):
+                if used[j]:
+                    u[p[j]] += delta; v[j] -= delta
+                else:
+                    minv[j] -= delta
+            j0 = j1
+            if p[j0] == 0:
+                break
+        while j0:
+            j1 = way[j0]; p[j0] = p[j1]; j0 = j1
+    assign = [0] * n
+    for j in range(1, n + 1):
+        if p[j] > 0:
+            assign[p[j] - 1] = j - 1
+    return assign
+
+
+def phase_layera_automap(line, target_colors):
+    """Map EVERY R1/P1 Layer-A logical usage onto the fixed populated entries of one Genesis line.
+    Per usage: injective (MRD=0) min-cost assignment of its used arcade colors -> populated target entries,
+    cost = pixel-weighted CIEDE2000. Target colors are NOT changed. Usages needing more distinct colors than
+    the line has populated entries are BLOCKED (never merged)."""
+    la = build_layera()
+    banks = la["banks"]
+    # populated nontransparent target entries (index 1..15) with their RGB
+    tgt = []
+    for i in range(1, 16):
+        c = target_colors[i] if i < len(target_colors) else None
+        if c:
+            rgb = list(_cram_rgb(c))
+            tgt.append((i, rgb))
+    proposals = []
+    summary = {"considered": 0, "mapped": 0, "blocked": 0, "populated_targets": len(tgt),
+               "worst_de": 0.0, "sum_de": 0.0, "de_count": 0}
+    worst_list = []
+    for u in la["usages"]:
+        summary["considered"] += 1
+        pal = banks.get(u["palette_bank"], [[0, 0, 0]] * 16)
+        idx = tile_indices8(u["tile_code"])
+        counts = {}
+        for v in idx:
+            if v:
+                counts[v] = counts.get(v, 0) + 1
+        srcs = [(si, pal[si] if si < len(pal) else [0, 0, 0], counts[si]) for si in sorted(counts)]
+        if not srcs:
+            continue
+        if len(srcs) > len(tgt):
+            summary["blocked"] += 1
+            proposals.append({"usage_id": u["usage_id"], "blocked": True,
+                              "reason": "needs %d colors, line has %d" % (len(srcs), len(tgt))})
+            continue
+        n = len(tgt)
+        cost = [[0.0] * n for _ in range(n)]
+        for r in range(n):
+            for cc in range(n):
+                if r < len(srcs):
+                    cost[r][cc] = srcs[r][2] * _de00(srcs[r][1], tgt[cc][1])  # pixel-weighted ΔE00
+                else:
+                    cost[r][cc] = 0.0                                          # dummy source rows
+        assign = _hungarian(cost)
+        index_map = {}
+        des = []
+        for r in range(len(srcs)):
+            ti, trgb = tgt[assign[r]]
+            index_map[srcs[r][0]] = ti
+            de = _de00(srcs[r][1], trgb)
+            des.append(de)
+        worst = max(des); mean = sum(des) / len(des)
+        summary["mapped"] += 1
+        summary["sum_de"] += mean; summary["de_count"] += 1
+        summary["worst_de"] = max(summary["worst_de"], worst)
+        proposals.append({"usage_id": u["usage_id"], "line": line, "index_map": index_map,
+                          "worst_de": round(worst, 2), "mean_de": round(mean, 2)})
+        worst_list.append((worst, u["usage_id"], u["pattern_id"], round(mean, 2)))
+    worst_list.sort(reverse=True)
+    summary["mean_de"] = round(summary["sum_de"] / max(1, summary["de_count"]), 2)
+    summary["worst_de"] = round(summary["worst_de"], 2)
+    return {"line": line, "proposals": proposals, "summary": summary,
+            "worst": [{"worst_de": round(w, 2), "usage_id": uid, "pattern_id": pid, "mean_de": m}
+                      for w, uid, pid, m in worst_list[:20]]}
+
+
+def _cram_rgb(cram):
+    w = int(cram, 16) if isinstance(cram, str) else int(cram)
+    R = (w >> 1) & 7; G = (w >> 5) & 7; B = (w >> 9) & 7
+    return LV3[R], LV3[G], LV3[B]
+
+
+def layera_solver_usages(ids):
+    """Build solve_group-shaped usage dicts for selected Layer-A logical usages (LA-NNNN).
+    Each logical usage is its own palette domain; used_colors + pixel MRD come from the real tile pixels."""
+    la = build_layera()
+    want = set(ids)
+    byid = {u["usage_id"]: u for u in la["usages"]}
+    out = []
+    for uid in ids:
+        u = byid.get(uid)
+        if not u:
+            continue
+        pal = la["banks"].get(u["palette_bank"], [[0, 0, 0]] * 16)
+        idx = tile_indices8(u["tile_code"])
+        counts = {}
+        for v in idx:
+            if v:
+                counts[v] = counts.get(v, 0) + 1
+        used_colors = []
+        for si in sorted(counts):
+            rgb = pal[si] if si < len(pal) else [0, 0, 0]
+            disp, cram, _ = gen_quant(rgb)
+            used_colors.append({"src_index": si, "arcade_rgb8": rgb, "hex": "#%02X%02X%02X" % tuple(rgb),
+                                "pixel_count": counts[si], "genesis_rgb8": disp, "genesis_cram": cram})
+        sidx = [c["src_index"] for c in used_colors]
+        mrd = [[a, b] for i, a in enumerate(sidx) for b in sidx[i + 1:]]
+        out.append({"usage_id": uid, "object_id": "plane:" + uid, "display_name": "%s %s (bank %s)" %
+                    (u["pattern_id"], u["tile_code_hex"], u["palette_bank"]), "sprite_bank": u["palette_bank"],
+                    "pieces": [{"code": u["tile_code"], "x": 0, "y": 0, "fx": False, "fy": False}],
+                    "bounds": [8, 8], "used_colors": used_colors, "mrd_pairs": mrd, "n_used": len(used_colors)})
+    return out
+
+
+def render_tile8(code, pal, zoom=8):
+    """Render one 8x8 tile at integer nearest-neighbor zoom through the supplied 16-color palette."""
+    idx = tile_indices8(code)
+    W = H = 8 * zoom
+    rows = []
+    for y in range(8):
+        row = []
+        for x in range(8):
+            v = idx[y * 8 + x]
+            c = [30, 30, 38] if v == 0 else (pal[v] if v < len(pal) else [255, 0, 255])
+            row.extend(c * zoom)
+        for _ in range(zoom):
+            rows.append(list(row))
+    return png(W, H, rows)
+
+
 def build_oracle():
     banks = sprite_bank_colors()
     plane = loadj(os.path.join(CORP, "plane_palette_banks.json"), {"banks": {}})
@@ -606,7 +984,14 @@ def build_oracle():
                          "content_id": ch, "source": source, "entries": entries})
     for b, cols in sorted(banks.items()):
         add_pal("palette:sprite.bank_0x%02X" % b, "0x%02X" % b, "sprite", cols)
+    # Layer-A (11 banks) RGB authority = corrected arcade palette RAM; other plane banks (e.g. Layer-B 0x002)
+    # keep plane_palette_banks.json metadata. Never re-expose the superseded Layer-A RGB here.
+    layera = plane_bank_colors()
+    for bid, cols in sorted(layera.items()):
+        add_pal("palette:plane.bank_%s" % bid, bid, "plane", cols, "ORIGINAL ARCADE palette RAM 0x200000 (plane_a_palette_ram_arcade.json)")
     for bid, bb in plane.get("banks", {}).items():
+        if bid in layera:
+            continue
         add_pal("palette:plane.bank_%s" % bid, bid, "plane", [e["arcade_rgb8"] for e in bb["entries"]], bb.get("source"))
     return {"meta": {"authority": "ORIGINAL ARCADE (read-only)", "editor": "v0.2 palette composer"},
             "contexts": contexts.get("contexts", []), "context_types": contexts.get("context_types", []),
@@ -673,11 +1058,45 @@ class Hd(BaseHTTPRequestHandler):
             return self._s(200, open(os.path.join(HERE, "style.css"), "rb").read(), "text/css")
         if u.path == "/api/oracle":
             return self._s(200, json.dumps(build_oracle()).encode())
+        if u.path == "/api/layera":
+            la = build_layera()
+            return self._s(200, json.dumps({
+                "counts": la["counts"], "bank_ids": la["bank_ids"], "banks": la["banks"],
+                "reserved_lines": RESERVED_LINES, "editable_lines": EDITABLE_LINES,
+                "line_owners": LINE_OWNERS, "patterns": la["patterns"]}).encode())
+        if u.path == "/api/layera_pattern":
+            d = layera_pattern_detail(q.get("pid", [""])[0])
+            return self._s(200 if d else 404, json.dumps(d or {"error": "pattern not found"}).encode())
+        if u.path == "/api/layera_map":
+            try:
+                seg = max(0, min(15, int(q.get("seg", ["0"])[0])))
+                return self._s(200, json.dumps(layera_map(seg)).encode())
+            except Exception as e:
+                return self._s(500, json.dumps({"error": str(e)}).encode())
+        if u.path == "/api/hitmap":
+            uid = q.get("usage", [None])[0]
+            usage = next((x for x in build_usages(sprite_bank_colors()) if x["usage_id"] == uid), None) if uid else None
+            if usage is None:
+                return self._s(404, b'{"error":"usage not found"}')
+            W, H, buf = composite_hitmap(usage["pieces"])
+            return self._s(200, json.dumps({"w": W, "h": H, "idx": buf}).encode())
+        if u.path == "/api/render_tile":
+            try:
+                code = int(q["code"][0])
+                if "pal" in q:
+                    pal = json.loads(q["pal"][0])
+                else:
+                    pal = build_layera()["banks"].get(q.get("bank", ["0x003"])[0], [[0, 0, 0]] * 16)
+                z = max(1, min(32, int(q.get("z", ["8"])[0])))
+                return self._s(200, render_tile8(code, pal, z), "image/png")
+            except Exception as e:
+                return self._s(500, json.dumps({"error": str(e)}).encode())
         if u.path == "/api/profiles":
             return self._s(200, json.dumps(loadj(os.path.join(POLICY_DIR, "profile_manifest.json"), {"profiles": []})).encode())
         if u.path == "/api/policy":
             pid = q.get("p", ["baseline_current"])[0]
-            return self._s(200, json.dumps(loadj(os.path.join(POLICY_DIR, pid + ".json"), default_profile(pid))).encode())
+            pol = loadj(os.path.join(POLICY_DIR, pid + ".json"), default_profile(pid))
+            return self._s(200, json.dumps(_backfill_policy(pol)).encode())
         if u.path == "/api/render":
             try:
                 banks = sprite_bank_colors()
@@ -701,9 +1120,21 @@ class Hd(BaseHTTPRequestHandler):
     def do_POST(self):
         u = urlparse(self.path)
         body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+        if u.path == "/api/phase_automap":
+            line = int(body.get("line", -1))
+            if line in RESERVED_LINES or line not in (0, 1, 2, 3):
+                return self._s(403, json.dumps({"error": "LINE %d is not an editable target (Line 2 is "
+                               "protected)" % line}).encode())
+            tcs = body.get("target_colors") or []
+            if not any(tcs[1:] if len(tcs) > 1 else []):
+                return self._s(400, json.dumps({"error": "selected line has no populated colors"}).encode())
+            return self._s(200, json.dumps(phase_layera_automap(line, tcs)).encode())
         if u.path == "/api/solve":
-            ids = set(body.get("usage_ids", []))
+            idlist = body.get("usage_ids", [])
+            ids = set(idlist)
+            plane_ids = [i for i in idlist if i.startswith("LA-")]
             us = [x for x in build_usages(sprite_bank_colors()) if x["usage_id"] in ids]
+            us += layera_solver_usages(plane_ids)         # Layer-A logical usages participate too
             if len(us) < 1:
                 return self._s(400, b'{"error":"select 1+ usages"}')
             mode = body.get("mode", "delta_e")
@@ -716,6 +1147,30 @@ class Hd(BaseHTTPRequestHandler):
             pid = (body.get("profile_id") or "").strip()
             if not pid or pid == "baseline_current":
                 return self._s(400, b'{"error":"immutable baseline cannot be overwritten"}')
+            # LINE-2 PROTECTION (server-authoritative): reject any mapping that targets a reserved line,
+            # and force the protected line back to empty so the editor can never serialize over Layer B.
+            for coll in ("usage_palette_mappings", "plane_usage_palette_mappings"):
+                for k, mp in (body.get(coll) or {}).items():
+                    if mp and mp.get("line") in RESERVED_LINES:
+                        return self._s(403, json.dumps({"error": "LINE 2 is protected (Layer B / arcade controlled); "
+                                        "mapping %s may not target a reserved line" % k}).encode())
+            tpl = body.get("target_palette_lines")
+            if isinstance(tpl, list):
+                for ln in RESERVED_LINES:
+                    if ln < len(tpl):
+                        tpl[ln] = [None] * 16      # Line 2 is never editable/serialized as a replacement palette
+            # context overrides may never touch a reserved line either
+            for cid, cp in (body.get("context_policies") or {}).items():
+                for ln in list((cp.get("tpl") or {}).keys()):
+                    if int(ln) in RESERVED_LINES:
+                        return self._s(403, json.dumps({"error": "LINE 2 is protected; context %s may not override a "
+                                        "reserved line" % cid}).encode())
+                for k, mp in (cp.get("plane_usage_palette_mappings") or {}).items():
+                    if mp and mp.get("line") in RESERVED_LINES:
+                        return self._s(403, json.dumps({"error": "LINE 2 is protected; context %s plane mapping %s may "
+                                        "not target a reserved line" % (cid, k)}).encode())
+            body["reserved_lines"] = list(RESERVED_LINES)
+            body["line_owners"] = LINE_OWNERS
             json.dump(body, open(os.path.join(POLICY_DIR, pid + ".json"), "w"), indent=1)
             man = loadj(os.path.join(POLICY_DIR, "profile_manifest.json"), {"profiles": []})
             m = {p["profile_id"]: p for p in man["profiles"]}
@@ -732,13 +1187,29 @@ class Hd(BaseHTTPRequestHandler):
 
 
 def default_profile(pid):
-    # V0.2 policy: 4 target lines (16 legal-CRAM entries each) + usage->{line, index_map}
+    # V0.4 policy: 4 target lines (16 legal-CRAM entries each); Line 2 reserved for Layer B (arcade controlled).
     return {"profile_id": pid, "display_name": pid if pid != "baseline_current" else "Baseline (immutable)",
             "parent": None if pid == "baseline_current" else "baseline_current",
-            "immutable": pid == "baseline_current", "schema": "v0.2",
+            "immutable": pid == "baseline_current", "schema": "v0.4",
             "target_palette_lines": [[None] * 16 for _ in range(4)],  # each entry = "0xNNN" CRAM or None
-            "usage_palette_mappings": {},  # usage_id -> {line, index_map:{src_index: target_index}}
+            "usage_palette_mappings": {},  # sprite usage_id -> {line, index_map:{src_index: target_index}}
+            "plane_usage_palette_mappings": {},  # Layer-A usage_id (LA-NNNN) -> {line, index_map}
+            "context_palette_packages": {},  # segment/context -> package metadata
+            "context_policies": {},  # stable context id -> {tpl:{line:{index:cram}}} context-scoped color overrides
+            "reserved_lines": list(RESERVED_LINES),  # editor-protected CRAM lines
+            "line_owners": LINE_OWNERS,             # ownership/protection (NOT a replacement Layer-B palette)
             "object_labels": {}}
+
+
+def _backfill_policy(pol):
+    """Backward-compatible load: inject V0.4 protection/plane fields into an older saved profile in memory only
+    (never rewrites the stored file). Preserves all existing sprite work (Line 0, usage_palette_mappings)."""
+    pol.setdefault("plane_usage_palette_mappings", {})
+    pol.setdefault("context_palette_packages", {})
+    pol.setdefault("context_policies", {})
+    pol["reserved_lines"] = list(RESERVED_LINES)   # protection is server-authoritative, always enforced
+    pol["line_owners"] = LINE_OWNERS
+    return pol
 
 
 def ensure_baseline():
