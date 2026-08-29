@@ -49,6 +49,8 @@ CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
 
 MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
 PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
+PC080SN_EDITOR_LAYERA := $(ROOT)/build/regions/pc080sn_editor_layera.bin
+EDITOR_LAYERA_SNAPSHOT := $(ROOT)/build/rastan-direct/build0314/Test.snapshot.json
 PC080SN_TILE_LUT := $(ROOT)/build/pc080sn_tile_vram_lut.bin
 PC080SN_ATTR_LUT := $(ROOT)/build/pc080sn_attr_lut.bin
 PC080SN_SCENE_PRELOAD_TITLE := $(ROOT)/build/pc080sn_scene_preload_title.bin
@@ -137,6 +139,12 @@ $(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s FORCE_ASM_REBUILD | $(OUT
 $(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
+$(PC080SN_EDITOR_LAYERA): $(PC080SN_REGION) $(EDITOR_LAYERA_SNAPSHOT) $(ROOT)/analysis/graphics_optimizer/round1_phase1/plane_a_uses.json $(ROOT)/tools/graphics_editor/gen_reindexed_region.py
+	$(PYTHON) "$(ROOT)/tools/graphics_editor/gen_reindexed_region.py" \
+		--profile "$(EDITOR_LAYERA_SNAPSHOT)" \
+		--pc080sn "$(PC080SN_REGION)" \
+		--out "$@"
+
 $(MAINCPU_REGION) $(PC080SN_REGION) $(PC090OJ_REGION): $(REGION_BUILDER)
 	$(PYTHON) "$(REGION_BUILDER)" --variant "$(VARIANT)"
 
@@ -204,6 +212,7 @@ $(OUT_DIR)/scene_load.o: \
 	$(PC080SN_TILE_LUT) \
 	$(PC080SN_ATTR_LUT) \
 	$(PC080SN_REGION) \
+	$(PC080SN_EDITOR_LAYERA) \
 	$(PC080SN_SCENE_PRELOAD_TITLE) \
 	$(PC080SN_SCENE_PRELOAD_GAMEPLAY) \
 	$(PC080SN_SCENE_PRELOAD_GAMEPLAY_CAVE) \
@@ -314,15 +323,15 @@ $(OUT_DIR)/fg_tile_cache.o: $(SRC_DIR)/fg_tile_cache.s FORCE_ASM_REBUILD | $(OUT
 	$(AS) $(ASFLAGS) -m68000 -o $@ $<
 
 $(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT): \
-		$(MAINCPU_REGION) $(PC080SN_REGION) $(ROOT)/tools/translation/compile_pc080sn_genesis.py
+		$(MAINCPU_REGION) $(PC080SN_REGION) $(PC080SN_EDITOR_LAYERA) $(ROOT)/tools/translation/compile_pc080sn_genesis.py
 	$(PYTHON) "$(ROOT)/tools/translation/compile_pc080sn_genesis.py" \
-		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_REGION)" \
+		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_EDITOR_LAYERA)" \
 		--out "$(PC080SN_BOUNDARY_DIR)" --boundary-experiment
 
 $(PC080SN_TRANSITION_RETENTION_STAMP): $(PC080SN_BOUNDARY_PACKAGES) \
 		$(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT) \
 		$(PC080SN_REGION) $(TRANSITION_RETENTION_GATE) | $(OUT_DIR)
-	$(PYTHON) "$(TRANSITION_RETENTION_GATE)" \
+	LAYERA_EDITOR_CANDIDATE=1 $(PYTHON) "$(TRANSITION_RETENTION_GATE)" \
 		--report "$(PC080SN_BOUNDARY_REPORT)" \
 		--packages "$(PC080SN_BOUNDARY_PACKAGES)" \
 		--constants "$(PC080SN_BOUNDARY_CONSTANTS)" \

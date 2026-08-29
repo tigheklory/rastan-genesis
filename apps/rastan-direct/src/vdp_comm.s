@@ -17,6 +17,7 @@
     .extern genesistan_current_scene_id
     .extern palette_route_lookup
     .global vdp_commit_palette
+    .extern editor_layera_palette
     .global vdp_reassert_fg_bank3_line
     .global vdp_commit_scroll
     .global _vblank_service
@@ -402,6 +403,7 @@ vdp_commit_scroll:
     .equ PR_OWNER_PC080SN_FG, 2
     .equ PR_FG_BANK,          3
 vdp_reassert_fg_bank3_line:
+    /* Build 0320: reverted to Build-0316 carrier behavior (0318 unconditional assert removed). */
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .Lrfb_done
     tst.b   fg_bank3_cache_valid

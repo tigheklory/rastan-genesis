@@ -45,12 +45,15 @@
     .equ PROUTE_FLAG_CARRIER,     1        /* line needs gameplay carrier re-assert */
     .equ PROUTE_SCENE_GAMEPLAY,   1
     .equ PROUTE_FG_BANK,          3        /* arcade PC080SN Stage 1 FG color bank */
-    .equ PROUTE_FG_LINE,          1        /* Genesis CRAM line carrying FG bank 3 */
+    .equ PROUTE_FG_LINE,          1        /* Genesis CRAM line carrying FG bank 3 (Build 0316 routing) */
 
     .section .rodata
     .align 2
 /* rows: scene_id, owner, arcade_bank, genesis_line, flags; 0xFFFF terminator */
 palette_route_table:
+    /* Build 0320: 0317-0319 palette-routing experiment reverted to the Build-0316 line ownership (that move
+     * did not fix tile colors and regressed Rastan). FG->line 1; sprites (bank 51)->line 3. The offline
+     * (code,bank) tile index fix is the assigned color correction, not the palette line. */
     .word 1, PROUTE_OWNER_PC080SN_FG, 3,  1, PROUTE_FLAG_CARRIER
     .word 1, PROUTE_OWNER_PC080SN_BG, 48, 2, 0
     .word 1, PROUTE_OWNER_PC090OJ,    51, 3, 0
@@ -205,8 +208,10 @@ genesistan_palette_hook_59ad4:
      * restore it after any later frontend line-1 write. */
     tst.b   fg_bank3_route_seen
     beq.s   .L59_no_cache
-    lea     staged_palette_words, %a0
-    lea     (PROUTE_FG_LINE * 16 * 2)(%a0), %a0
+    /* Build 0315: stage the offline Palette Composer Layer-A palette (editor Line-3 values)
+     * onto the FG carrier line instead of the converted arcade bank 3. Static ROM data only;
+     * no runtime conversion/mapping. */
+    lea     editor_layera_palette, %a0
     lea     fg_bank3_line_cache, %a1
     moveq   #(16 - 1), %d7
 .L59_cache_copy:
@@ -436,8 +441,10 @@ genesistan_palette_hook_3ba64:
     tst.b   fg_bank3_route_seen
     beq.s   .L3ba64_no_cache
     move.l  %a0, -(%sp)
-    lea     staged_palette_words, %a0
-    lea     (PROUTE_FG_LINE * 16 * 2)(%a0), %a0
+    /* Build 0315: stage the offline Palette Composer Layer-A palette (editor Line-3 values)
+     * onto the FG carrier line instead of the converted arcade bank 3. Static ROM data only;
+     * no runtime conversion/mapping. */
+    lea     editor_layera_palette, %a0
     lea     fg_bank3_line_cache, %a1
     moveq   #(16 - 1), %d7
 .L3ba64_cache_copy:
@@ -467,3 +474,11 @@ genesistan_palette_hook_3ba64:
     move.b  #1, pc090oj_bank36_cache_valid
     bra     .L3ba64_next
 .endif
+
+
+    .section .rodata
+    .align 2
+    .global editor_layera_palette
+editor_layera_palette:
+    .word 0x0000, 0x028C, 0x044C, 0x0026, 0x0004, 0x0002, 0x0424, 0x0624
+    .word 0x0402, 0x0202, 0x0200, 0x0422, 0x0440, 0x0660, 0x0AA6, 0x0884

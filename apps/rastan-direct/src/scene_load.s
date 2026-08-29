@@ -172,7 +172,10 @@ genesistan_pc080sn_attr_lut:
 
     .align 2
 genesistan_pc080sn_tile_rom:
-    .incbin "../../build/regions/pc080sn.bin"
+    /* Build 0315: offline Palette Composer Layer-A patterns (editor index-maps applied by
+     * tools/graphics_editor/compile_editor_layera.py). Layer-B tile codes are disjoint from
+     * Layer-A codes, so only editor-authored R1/P1 Layer-A patterns are reindexed here. */
+    .incbin "../../build/regions/pc080sn_editor_layera.bin"
 
     .align 2
 genesistan_scene_preload_title:

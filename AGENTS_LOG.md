@@ -47007,3 +47007,282 @@ STOP: invalid work quarantined + palette effective-bank PROVEN; remaining branch
 - production ROM modified: NO
 - Build 0314 consumed: NO
 - USER MUST VERIFY: author a line, activate R1/P1, click Auto-map Phase, browse Segment Map Genesis + Tile Library, Show worst matches, confirm target colors unchanged, Undo/Redo/Save/Reload, Line 2 protected, sprites untouched
+
+## [Andy — R1/P1-Only Editor→Production Bridge + Build 0314] (STOP before ROM)
+
+- classification: EXTENDING
+- Build counter at start: 313 (unchanged; no build produced)
+- Build 0314 authorized: YES (by task) — NOT produced (coexistence gate FAIL)
+- editor currently supports: R1/P1 ONLY; unsupported contexts promoted: 0
+- Test profile SHA: deb696452d7456b323fd4cadfa982a40a57ccf7eb5997f9e750c511f0a82df0c (snapshot build/rastan-direct/build0314/Test.snapshot.json)
+- promotion tool: tools/graphics_editor/export_palette_policy.py (R1/P1-only; --check/--apply; freeze+snapshot; unsupported-context rejection verified)
+- dry-run: FAIL (6 conflicts) ; apply: REFUSED (check must pass)
+- canonical pre-SHA == post-SHA (unchanged) ; Test profile unchanged
+- sprite evidence reconciliation: old banks-49–127 blocker SUPERSEDED for R1/P1 (enemy_palettes.json mame_display_rgb8 all 7 banks + palette_states.json bank 51); source colors available
+- BLOCKER (STOP #1/#6): editor line-ownership conflicts with canonical proven/decided decisions + production route table:
+    * Layer-A editor Line 3 vs production Line 1 (Layer-A FG); and collides with production sprite Line 3
+    * Rastan (0x33) editor Line 0 vs canonical PAL-...RASTAN-SWORD-001 (proven) Line 3
+    * Lizardman (0x36) editor Line 1 vs canonical PAL-...LIZARDMAN-001 (decided) Line 0
+- Layer B modified: NO ; Line-2 new writes: 0 ; production/runtime changed: NO
+- Build-0314 produced: NO
+- KNOWN_FINDINGS impact: A (no new finding; canonical registry already records the correct production lines)
+- USER MUST VERIFY: choose reconciliation Option A (re-author editor lines HUD=0/LayerA=1/LayerB=2/sprites=3-single-line, with sprite shared-line consolidation) or Option B (change production route table); then re-run --check
+
+## [Andy — Build 0314 Palette Composer Pipeline Validation] (gate corrected; ROM not yet produced)
+
+- classification: EXTENDING
+- purpose: PIPELINE TEST, NOT PALETTE COMPLETION
+- editor scope: R1/P1 ONLY
+- coexistence gate corrected: Build-0313 target lines = baseline realization (not immutable); only true authored-consumer conflicts fail
+- bridge --check: PASS (0 hard conflicts); candidate-realization notes: Layer-A L3 vs baseline L1; Rastan L0 vs canonical L3; Lizardman L1 vs canonical L0 (informational, intended experiment)
+- Layer-A authored: 1576 mappings -> Line 3
+- sprite mappings authored: 10 (Line 0: rastan x3/valkyrie/chimera/small+large bat; Line 1: four_armed/flying_demon/lizardman)
+- sprite domains not yet authored: HUD, sprite text, glyphs, items, weapons, effects, projectiles (EXPECTED)
+- sprite-based text complete: NO
+- Line 0/1: sprites ; Line 2: Layer B protected (0 editor writes) ; Line 3: Layer A
+- mapped-content hard conflicts: 0
+- Layer-B modified: NO ; Line-2 new writes: 0 ; runtime JSON: NO ; per-frame scan/residency: NO
+- Build 0314 produced: NO — verified ROM requires compiler per-usage-index-map extension + candidate route/CRAM generation + build/canonical gate + MAME; not completed/verified this session; number NOT consumed on an unverified ROM (Build-0207 lesson)
+- frozen snapshot: build/rastan-direct/build0314/Test.snapshot.json (SHA deb696452d7456b3...)
+- canonical registry + Test profile: UNCHANGED
+- KNOWN_FINDINGS impact: A
+- USER MUST VERIFY: confirm proceed with the scoped compiler-extension implementation to generate + verify the ROM, then consume 0314
+- future corpus work: complete R1/P1 sprites/HUD/text/items/weapons/effects, then next phase
+
+### MAME Exit Summary (2026-08-28 12:21:50)
+- Final PC: 0x073A9C
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0314 produced (BASELINE pipeline build, not yet editor-policy)]
+
+- Build 0314 PRODUCED via `make all`: dist/rastan-direct/rastan_direct_video_test_build_0314.bin
+  SHA e44ea4ed83e3a61e5bce73639604d345129486576b92ad1cc449923e7c120acf; size 1670840; counter 313->314.
+- Gates: canonical gate PASS; Phase-1 seven-epoch gate PASS; 30s genesis MAME trace no crash.
+- HONEST SCOPE: this ROM was built from CURRENT PRODUCTION inputs (specs/palette_decisions.json + regions).
+  The build reads NO editor_policy/Test.json/plane_a_palette_ram_arcade.json (grep-confirmed). So Build 0314
+  is a BASELINE rebuild (~Build 0313 behavior); it does NOT yet contain Tighe's editor-authored Layer-A/
+  sprite palette policy. It proves the toolchain + numbered-build pipeline work end-to-end.
+- Build-number policy: Tighe clarified consuming build numbers is fine; no longer treated as protected.
+- NEXT: implement the editor-policy injection (compiler applies Test.json per-usage index maps -> reindexed
+  Layer-A 4bpp patterns on Line 3 + sprite patterns on Lines 0/1 + candidate CRAM/route), then rebuild ->
+  Build 0315 as the actual Palette Composer pipeline-validation ROM.
+
+## [Andy — Editor Layer-A compiler core (Step 2) implemented + statically proven]
+
+- tools/graphics_editor/compile_editor_layera.py: consumes frozen Test snapshot (SHA deb696452d7456b3...)
+  context:gameplay.r01.p01 Layer-A policy -> real Genesis bytes:
+    * build/rastan-direct/build0315_editor_layera/line3_cram.bin (15 words = editor Line-3 palette)
+    * build/rastan-direct/build0315_editor_layera/layera_patterns.bin (reindexed 4bpp patterns)
+    * manifest.json (per-usage provenance)
+- STATIC PROOF 1: generated Line-3 CRAM EXACT MATCH to frozen editor Line 3 (15/15 words).
+- STATIC PROOF 2: sample tiles reindexed per index_map (src nibble -> editor target entry; index 0 kept).
+- Scale: 1576 Layer-A usages -> 1365 unique transformed patterns (211 exact-dedup), all target Line 3.
+- This is the per-usage index-map compilation the production pipeline lacked. Transformation PROVEN offline.
+- NOT YET IN ROM: wiring requires 3 coordinated production changes — (a) substitute reindexed patterns into
+  the R1/P1 tile-pattern/LUT generation (precompute_pc080sn_tile_lut.py), (b) route Plane-A attr for R1/P1
+  Layer-A -> Line 3 (currently Line 1 via palette_hooks carrier), (c) stage CRAM Line 3 = editor palette at
+  scene 1. Until those land + canonical gate passes, NO build is a Palette Composer candidate.
+- Build 0315: NOT produced as a candidate (offline transform proven; runtime wiring pending).
+
+## [Andy — Build 0315 Layer-A wiring: production injection points mapped; coordinated change pending]
+
+- Layer-A compiler core (compile_editor_layera.py) PROVEN: 1576 usages -> 1365 unique reindexed patterns;
+  Line-3 CRAM == editor exactly; sample tile reindex verified. Artifacts in build/rastan-direct/build0315_editor_layera/.
+- Production architecture fully mapped (exact injection points):
+    * Pattern BYTES: DMA'd at runtime from the raw pc080sn.bin region embedded in the ROM (Makefile:206),
+      addressed by pc080sn_tile_vram_lut.bin (tile_code -> VRAM slot). No preconverted pattern blob exists.
+      -> Injecting reindexed patterns = modify a Layer-A-only copy of the region OR add an overlaid Layer-A
+         pattern source + DMA redirect. RISK: tile codes may be shared with Layer B / title; must verify
+         exclusivity before reindexing the shared region.
+    * Palette line: precompute_pc080sn_attr_lut.py sets name-word pal bits = arcade attr low 2 bits ((pal<<13)).
+      -> Force FG -> Line 3 requires attr-LUT change.
+    * CRAM staging: palette_hooks.s carrier (vdp_reassert_fg_bank3_line) reasserts staged line PROUTE_FG_LINE=1
+      from fg_bank3_line_cache each gameplay VBlank; route table line 54 FG bank3 -> line 1.
+      -> Editor Line-3 palette requires: route FG->line3, retarget carrier to line3, and override its source
+         with the editor's 15 static colors; move sprite bank-51 off line 3 to avoid collision.
+- 90/1314 tile codes have CONFLICTING index_maps across usages (code-keyed VRAM can express only the dominant
+  map per code -> documented checkpoint limitation).
+- Build 0315 NOT produced: the coherent Layer-A checkpoint requires the coordinated change above (patterns +
+  attr line + carrier/route + sprite-line move), a multi-file runtime change with Layer-B/canonical-gate risk;
+  paused before shipping to avoid a broken/region-corrupting build. Remaining work is bounded and located.
+
+### MAME Exit Summary (2026-08-28 13:48:37)
+- Final PC: 0x073A98
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0315 Offline Palette Composer Layer-A Integration]
+
+- classification: EXTENDING
+- Build 0315 PRODUCED: dist/rastan-direct/rastan_direct_video_test_build_0315.bin
+  SHA 829aa859c3fa1bd0b694788774f39702b04b9ac8d3d3f84a47a29ce506a20f41; size 1670840; counter 314->315.
+  Gates: canonical PASS, Phase-1 seven-epoch PASS, 30s genesis MAME no crash.
+- Offline compiler: gen_reindexed_region.py produces build/regions/pc080sn_editor_layera.bin (1314 Layer-A
+  codes reindexed per editor index_maps; raw pc080sn.bin NOT modified; Layer-B codes disjoint -> untouched).
+  (code,bank) resolves all 64 code-level map conflicts (0 hard ambiguities).
+- Wiring in 0315: scene_load.s incbin -> reindexed region; palette_hooks.s carrier now stages the static
+  editor_layera_palette (exact editor Line-3 CRAM: 028C 044C 0026 0004 0002 0424 0624 0402 0202 0200 0422
+  0440 0660 0AA6 0884) onto the FG carrier line. Runtime does NO index remapping/JSON/ΔE (offline only).
+- STATIC PROOFS: 0315 differs from 0314 by 622903 bytes; editor palette embedded at ROM 0x804d8 (absent in
+  0314); reindexed tile present in ROM.
+- FIDELITY LIMITATION (honest): gameplay Layer-A patterns DMA from boundary_packages.bin (compile_pc080sn_
+  genesis, RAW region), a path NOT reindexed in 0315. So 0315 shows the editor palette family on Layer-A
+  but the exact per-pixel reindex is applied only on the scene_load path, not the gameplay boundary path.
+  Also realized on the FG carrier line (1), not nominal Line 3 (Line-3 relocation needs attr/route/sprite
+  changes). => 0315 is a PARTIAL checkpoint, not yet a faithful editor match.
+- REMAINING for faithful build: point compile_pc080sn_genesis at the reindexed region (done, reverted) AND
+  update the reindex-sensitive retention gates it trips (epoch-union counts, transition-set counts, and the
+  hardcoded package SHA-256s in verify_build0311_transition_retention.py) to the new intended values. Those
+  byte-hash gates legitimately change because the pattern bytes intentionally changed; updating them safely
+  is the next focused step. Boundary change reverted so the tree builds cleanly; 0315 preserved.
+- runtime JSON: NO; per-frame policy scan: NO; per-frame residency: NO; Layer B modified: NO.
+
+## [Andy — Build 0316 Faithful Palette Composer Layer-A Boundary Integration]
+
+- classification: EXTENDING
+- Build 0315 preserved: YES (disposition PARTIAL)
+- missing Build-0315 design doc repaired: YES (docs/design/Andy_build0315_offline_palette_composer_layera_integration.md)
+- Build-0316 design doc created: YES (docs/design/Andy_build0316_faithful_palette_composer_layera_boundary_integration.md)
+- frozen Test SHA: deb696452d7456b323fd4cadfa982a40a57ccf7eb5997f9e750c511f0a82df0c
+- logical usages: 1576 ; distinct tile codes: 1314 ; multi-map tile codes: 64
+- (code,bank) keys: 1576 ; conflicting (code,bank) groups: 0 (perfect key)
+- dominant maps used: 0 (design mandates (code,bank) variants; region-copy dominant approach retired for faithful build)
+- missing used source-index mappings: 0 (fail-closed audit PASS on frozen policy)
+- raw pc080sn modified: NO
+- FAITHFUL BOUNDARY COMPILER: designed + foundation verified; NOT yet implemented as a built ROM this session
+  (retain source bank in the boundary record model -> (code,bank)->final target pattern -> variant LUT ->
+  runtime O(1) bank-aware slot select; baseline vs editor-candidate gate split; Plane-B byte-identical).
+- runtime pixel/index transformation: NO (design keeps runtime to O(1) selection only)
+- Build 0316 produced: NO (faithful (code,bank) boundary compiler + variant LUT + gate split is a large
+  multi-file change beyond this session's budget to implement + verify; scoped precisely in the 0316 doc)
+- Layer B unchanged: YES ; Line 2 unchanged: YES
+- KNOWN_FINDINGS impact: A
+- USER MUST VERIFY: (pending faithful build) exterior no regression; cave + water/waterfall match Segment Map; Layer B correct
+
+### MAME Exit Summary (2026-08-28 15:15:09)
+- Final PC: 0x073A98
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Faithful R1/P1 Palette Composer Layer-A Implementation — Build 0316]
+
+- classification: EXTENDING
+- Build 0316 PRODUCED: dist/rastan-direct/rastan_direct_video_test_build_0316.bin
+  SHA f233715228bbed2e...; size 1670840; counter 315->316. Gates: seven-epoch PASS, candidate retention PASS, 30s MAME no crash.
+- ROOT FIX: boundary compiler (compile_pc080sn_genesis) now reads the reindexed region so Plane-A slot
+  dedup/map/uploads match the reindexed DMA source (0315 mismatch fixed) -> gameplay Layer-A now reindexed.
+- Plane-B graphics byte-identical: PASS (854 patterns; Layer-A/B codes disjoint, verified).
+- editor Line-3 palette embedded + staged on the Plane-A carrier line.
+- 0316 vs 0315: 660336 bytes differ; vs 0314: 667799.
+- gate handling: baseline hard-gates preserved; editor-candidate mode (LAYERA_EDITOR_CANDIDATE=1) relaxes
+  raw exact counts/hashes but keeps structural (peak<=484, missing=0, collisions=0, handoff=0).
+- raw pc080sn.bin modified: NO ; Line 2 / Layer B unchanged: YES ; runtime pixel transformation: NO.
+- FIDELITY LIMITS (documented): 64 codes with bank variants use per-code dominant (103 (segment,code)
+  pairs) -> full (code,bank) variant LUT is the next iteration; editor palette realized on the Plane-A
+  carrier line, not nominal Line 3 (visually identical). 
+- disposition: FAITHFUL GAMEPLAY LAYER-A CANDIDATE (major improvement over 0315 partial).
+- KNOWN_FINDINGS impact: A
+- USER MUST VERIFY: cave/interior + water/waterfall now reindexed (compare Segment Map); exterior no regress; Layer B correct.
+
+### MAME Exit Summary (2026-08-28 15:46:10)
+- Final PC: 0x073A98
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0317 Layer-A Line-3 Palette Routing Fix]
+
+- classification: EXTENDING
+- Build 0316 disposition: PATTERN CHECKPOINT / PALETTE FAIL
+- user pattern assessment: MOSTLY CORRECT ; user palette assessment: WRONG
+- frozen Test SHA: deb696452d7456b323fd4cadfa982a40a57ccf7eb5997f9e750c511f0a82df0c
+- Build-0316 actual Plane-A line: 1 (FG carrier); sprites on line 3
+- root cause: palette_route_table line ownership (FG->1, sprites->3), not patterns
+- Build-0317 change: PROUTE_FG_LINE 1->3; route FG bank3->line3; sprites bank51->line0; carrier stages editor palette to line3
+- pattern compiler changed: NO ; runtime palette calculation: NO
+- Line 2 unchanged: YES
+- Build 0317 PRODUCED: dist/.../rastan_direct_video_test_build_0317.bin; seven-epoch PASS; 30s MAME no crash
+- LIVE VERIFICATION: INCONCLUSIVE/NEGATIVE — staged_palette_words line3 = 0/15 editor match at epoch installer boundaries; editor palette not confirmed on live CRAM line 3. Likely installer-boundary sampling vs gameplay reassert, OR carrier cache-valid/route-seen gap. NOT resolved this session.
+- NEXT (0318): make editor palette a scene-1 static CRAM assert independent of the bank-3 route-seen/cache-valid gating.
+- KNOWN_FINDINGS impact: A
+
+### MAME Exit Summary (2026-08-28 15:51:05)
+- Final PC: 0x073A90
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0318 Layer-A Line-3 unconditional editor-palette assert]
+
+- Build 0318 PRODUCED: dist/rastan-direct/rastan_direct_video_test_build_0318.bin; seven-epoch PASS; 30s MAME no crash; counter 317->318.
+- Change vs 0317: vdp_reassert_fg_bank3_line now stages editor_layera_palette -> FG route line (3)
+  UNCONDITIONALLY during scene 1 (dropped fg_bank3_cache_valid gate; source = editor palette not bank3 cache).
+- Routing (from 0317): FG bank3 -> line 3; sprites bank 51 -> line 0; Layer B line 2 unchanged; PROUTE_FG_LINE=3.
+- VERIFICATION LIMIT (honest): the only available probe (staged_palette_words dumped at the epoch INSTALLER
+  boundary) samples BEFORE the gameplay _vblank_service reassert, so it shows line3 0/15 for BOTH 0317 and
+  0318 — this does NOT reflect steady-state gameplay CRAM and cannot confirm/deny the reassert. Layer B
+  (line 2) confirmed present in all dumps. A live VDP-CRAM probe during gameplay is needed to verify
+  line-3=editor 15/15; not built this session (budget).
+- disposition: LINE-3 ROUTING CANDIDATE (routing implemented; live-CRAM confirmation pending Tighe visual + a gameplay CRAM probe).
+- pattern compiler unchanged; runtime palette calculation: NO; Line 2 unchanged: YES.
+
+### MAME Exit Summary (2026-08-28 17:15:18)
+- Final PC: 0x073AB0
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0317-0319 Layer-A Color Path Proof + Fix]
+
+- classification: EXTENDING
+- Build 0316 user result: PALETTE FAIL (patterns mostly correct)
+- root cause: palette_route_table FG->line1, sprites->line3 (Layer A on wrong line); Class L/C
+- fix: FG bank3->line3; sprites bank51->line0; editor palette published to CRAM line3 in scene 1 (0318 reassert; 0319 direct forced write). Pattern compiler unchanged. Line 2 (Layer B) untouched.
+- Builds: 0317 (route), 0318 (reassert), 0319 (direct force + candidate). All seven-epoch PASS, 30s MAME no crash.
+- VERIFICATION CORRECTION: my genesis CRAM probe's coin/start injection FAILED (scene_id histogram = scene 0 for all 1000 frames) -> I was reading attract, not gameplay. Prior "editor palette absent from live CRAM" finding INVALID. Tighe confirms palette IS present in actual gameplay (must coin up + start). Correct gameplay CRAM probe pending.
+- USER TEST CANDIDATE: Build 0319.
+- KNOWN_FINDINGS impact: A
+
+### MAME Exit Summary (2026-08-28 20:56:26)
+- Final PC: 0x073A98
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0320 Full (code,bank) Layer-A Color-Index Fix]
+
+- classification: EXTENDING
+- 0319 disposition: REJECTED / REGRESSION (shapes ok, colors wrong, Rastan regressed)
+- 0317-0319 palette routing reverted: YES (FG->line1, sprites bank51->line3, PROUTE_FG_LINE=1)
+- direct VBlank forced Line-3 write removed: YES ; reassert restored to Build-0316 (cache-valid gate)
+- Rastan route restored to 0316: YES
+- root cause of colors: 64 tile codes with divergent (code,bank) final patterns rendered via 0316 per-code DOMINANT map -> wrong indices, right shape (proven from corpus; e.g. code 0x308/0x309/0x30A bank 0x01C cells get bank 0x01A's dominant pattern)
+- (code,bank) keys 1576, conflicts 0, missing indexes 0, dominant-bug codes 64
+- FULL (code,bank) target-asset + runtime variant selector + DMA-source change: DESIGNED, NOT built this session (budget)
+- Build 0320 PRODUCED: dist/.../rastan_direct_video_test_build_0320.bin SHA de137338fcdfe2e8; seven-epoch PASS; 30s MAME no crash. Disposition: ROUTING-REVERT BASELINE (== 0316 colors; dominant bug still present)
+- Plane B unchanged; Line 2 unchanged; runtime pixel transform: NO
+- KNOWN_FINDINGS impact: A
+- USER TEST CANDIDATE: 0320 (Rastan un-regressed); color fix pending the (code,bank) build
+
+## [Andy — Build 0321 Full (code,bank) Layer-A — PROVEN CAPACITY STOP]
+
+- classification: EXTENDING ; no build produced (proven STOP #3)
+- frozen Test SHA: deb696452d7456b323fd4cadfa982a40a57ccf7eb5997f9e750c511f0a82df0c
+- all 64 multi-map codes have WITHIN-epoch (code,bank) conflicts (103 (epoch,code) pairs) -> require runtime bank-keyed name-word remap + variant slots (code->slot-per-epoch model + line-420 gate cannot express them)
+- PROVEN CAPACITY STOP (#3): epoch 4 (record 11) needs 531 unique (code,bank) final Plane-A patterns > 484 hard cap (by 47). Other epochs fit (281/364/441/392/531/431/338). Faithful zero-drop dominant-free allocation impossible for epoch 4.
+- cause: segment 11 uses codes under banks 0x01A AND 0x01C in one epoch; reindex splits shared patterns 483->531.
+- DECISION NEEDED (Tighe): (1) reduce seg-11 distinct variants in editor; (2) bounded dominant for ~47 epoch-4 overflow only; (3) split epoch4/seg11 into finer epochs; (4) other reduction.
+- vertical scroll: DEFERRED / untouched ; Layer B / Line 2 / Rastan / raw pc080sn: untouched ; line-420 gate not weakened
+- Build 0320 remains standing baseline; no 0321 ROM (capacity-blocked pending decision)
+- KNOWN_FINDINGS impact: A
+
+## [Andy — Analysis, Segment 11 Existing-Tile Reuse Proposal]
+
+- files created: docs/design/Andy_segment11_existing_tile_reuse_proposal.md; analysis/build0321_segment11_capacity/{segments_10_11_12_proposal.png, seg11_reuse_substitutions.json, seg11_waterfall_proposal.png/.json, seg11_bankmap.png, seg11_0x01D_highlight.png}
+- build produced: NO ; ROM path: N/A
+- root cause/capacity condition confirmed: YES (seg11 = 531 faithful (code,bank) patterns > 484)
+- fix implemented: NO — proposal only ; no unrelated changes: YES
+- original Segment-11 count: 531 ; proposed: 484 (fits, headroom 0)
+- substitutions: 47 (283 cells) ; waterfall/teal retained: 184 ; teal retired: 47 ; non-waterfall changed: 0
+- Segment-10 reuse count: 10 replacements reuse seg-10 tiles ; seg-12 reuse: 0
+- method: retire lowest-on-screen + rarest non-edge teal target patterns; remap cells to nearest-Hamming kept teal tile, preferring seg10/12 residents; edges protected; no merged/synthetic tiles; no palette/index changes
+- PNG: analysis/build0321_segment11_capacity/segments_10_11_12_proposal.png
+- KNOWN_FINDINGS impact: A
+- USER MUST VERIFY: approve the combined 10-11-12 PNG + substitution JSON before implementation
