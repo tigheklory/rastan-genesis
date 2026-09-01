@@ -2,7 +2,9 @@
     .align 2
     .global rastan_pc090oj
 rastan_pc090oj:
-    .incbin "../../build/pc090oj_genesis.bin"
+    /* Build 0325: offline Palette-Composer-reindexed R1/P1 sprite art (Test index_maps applied per
+     * resolved (code,bank); all other codes byte-identical to the preconverted region). */
+    .incbin "../../build/regions/pc090oj_editor.bin"
 
     /* Build 0232: score/1UP HUD glyph slice (codes 0x02A..0x048) with every
      * opaque pixel remapped to palette index 2.  Only the gameplay HUD mode-2

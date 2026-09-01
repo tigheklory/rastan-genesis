@@ -564,7 +564,7 @@ native_stage_dispatch_45dfa:
     moveq   #0, %d0
     move.b  (%a0)+, %d0               /* control byte */
     cmpi.b  #0xFF, %d0
-    beq.s   .Lnea_dnext               /* blank/park -> emit nothing */
+    beq.w   .Lnea_ret                 /* Build 0328: 0xFF = end-of-representation terminator (arcade FUN_0003c606 rts). Stop; do NOT skip-and-continue into the next pose. Capacity stays a ceiling, not the emit count. */
     move.b  %d0, %d3
     andi.b  #0xF0, %d3                /* per-piece type nibble */
     moveq   #0, %d7                    /* flip flag */
@@ -611,7 +611,7 @@ native_stage_dispatch_45dfa:
     moveq   #0, %d0
     move.b  (%a0)+, %d0
     cmpi.b  #0xFF, %d0
-    beq.s   .Lnea_mnext
+    beq.w   .Lnea_ret                 /* Build 0328: 0xFF terminator (mirrored/facing-left path) */
     move.b  %d0, %d3
     andi.b  #0xF0, %d3
     moveq   #0, %d7
@@ -668,7 +668,7 @@ native_stage_dispatch_45dfa:
     moveq   #0, %d0
     move.b  (%a0)+, %d0
     cmpi.b  #0xFF, %d0
-    beq.s   .Lnea_snext
+    beq.w   .Lnea_ret                 /* Build 0328: 0xFF terminator (specialized-dispatch path) */
     ext.w   %d0
     move.w  0x1a(%a4), %d2         /* Y = base Y + delta */
     add.w   %d0, %d2
@@ -1211,14 +1211,14 @@ genesistan_pc090oj_hook_audit_guard:
     andi.w  #0x000F, %d0
     or.w    %d7, %d0
     cmpi.w  #0x0030, %d0
-    bne.s   .Lnp_not48
+    bne.s   .Lnp_general
     moveq   #2, %d0
     bra.s   .Lnp_done
-.Lnp_not48:
-    cmpi.w  #0x0033, %d0
-    bne.s   .Lnp_general
-    moveq   #3, %d0
-    bra.s   .Lnp_done
+    /* Build 0334: the pre-Test hardcoded `bank 0x33 -> Line 3` override was removed.  It bypassed
+     * the current authored route table (which maps PC090OJ bank 0x33 -> Line 0, where Rastan's
+     * offline sprite reindex is authored).  Bank 0x33 now falls through to palette_route_lookup like
+     * every other sprite bank; the route table is the sole authority.  Bank 0x30 -> Line 2 (death
+     * burst / effects) is intentionally preserved above. */
 .Lnp_general:
 .if RASTAN_GAMEPLAY_HUD_SPRITES != 1
     move.w  %d0, %d2                 /* d2 = effective bank */

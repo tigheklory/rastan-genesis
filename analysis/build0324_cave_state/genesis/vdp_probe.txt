@@ -1,0 +1,10 @@
+DEVICE :gen_vdp
+  space: videoram
+DEVICE :gen_vdp:palette_lut
+DEVICE :gen_vdp:snsnd
+DEVICE :gen_vdp:gfx_palette
+DEVICE :gen_vdp:gfx_palette_shadow
+DEVICE :gen_vdp:gfx_palette_hilight
+DEVICE :genesis_snd_z80
+  space: io
+  space: program

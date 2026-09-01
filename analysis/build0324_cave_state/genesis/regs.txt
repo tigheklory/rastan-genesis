@@ -1,0 +1,3 @@
+scroll_x_fg=393
+scroll_y_fg=261
+plane_a_base=0xE000

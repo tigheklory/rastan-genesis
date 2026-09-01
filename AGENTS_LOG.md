@@ -47286,3 +47286,508 @@ STOP: invalid work quarantined + palette effective-bank PROVEN; remaining branch
 - PNG: analysis/build0321_segment11_capacity/segments_10_11_12_proposal.png
 - KNOWN_FINDINGS impact: A
 - USER MUST VERIFY: approve the combined 10-11-12 PNG + substitution JSON before implementation
+
+### MAME Exit Summary (2026-08-28 23:27:31)
+- Final PC: 0x073A98
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-28 23:27:49)
+- Final PC: 0x073A98
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-28 23:28:07)
+- Final PC: 0x073A98
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-28 23:28:51)
+- Final PC: 0x073A98
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## Build 0324 — Permanent Pattern-Reuse Build Pipeline (Andy)
+Made the approved R1/P1 Segment-11 reference-substitution a permanent, auto-consumed part of the
+normal `make` build.
+- NEW `specs/pattern_reuse_policy.json`: canonical versioned policy, 47 approved seg-11 entries ONLY
+  (0 additional; no other round/phase/segment populated). SHA f2812051….
+- NEW `tools/translation/apply_pattern_reuse.py`: validating resolver → `build/regions/pattern_reuse_resolved.json`
+  (+policy_sha256). Hard-fails on any unresolved approved entry (proven: corrupt entry → exit 1,
+  "47 approved, 46 resolved, 1 unresolved"). Generic over domain/round/phase/segment/(code,bank).
+- Makefile: `PATTERN_REUSE_POLICY`→`PATTERN_REUSE_RESOLVED` is an ordinary dependency of the Layer-A
+  region + boundary compile; editing the policy re-triggers validation + rebuild. No special command,
+  no env var, no hardcoded list, no analysis/ dependency.
+- Provenance: boundary_report.json `pattern_reuse_policy` block records policy_sha256 (verified ==
+  sha256 of the canonical file), resolved 47 / unresolved 0.
+- Build 0324 PASS: seven-epoch gate (records 0,3,4,10,11,12,15), plane-A/B full-LUT PASS, drops 0,
+  A cap 484 → dist/rastan-direct/rastan_direct_video_test_build_0324.bin.
+- HONEST SCOPE: shipped graphics path is still code-keyed (slot_of[code]); a (code,bank) substitution
+  manifests only through a bank-aware name-word path this architecture lacks. So 0324 Layer-A imagery
+  == 0320 (policy validated + provenance recorded, pixels unchanged). Remaining substantive work =
+  (code,bank)-keyed boundary allocation applying the resolved substitutions to hit 484 + runtime
+  bank-aware name-word generator (dominant maps → 0). Deliberately NOT half-shipped (that was the
+  0317–0319 regression). Doc: docs/design/Andy_build0324_permanent_pattern_reuse_pipeline.md.
+
+## [Andy — Test Palette Layer-A Pre-Implementation Requirements]
+- classification: EXTENDING (Build 0315–0324 offline Palette-Composer Layer-A line)
+- implementation performed: NO
+- ROM produced: NO
+- frozen Test profile found: YES (build/rastan-direct/build0314/Test.snapshot.json, SHA deb696452d7456b3…)
+- exact target Line-3 palette confirmed: YES (target_palette_lines[3]; byte-exact match to palette_hooks.s editor_layera_palette)
+- first cave (code,bank) proof usage identified: YES (LA-0458, code 0x070, bank 0x004, map {1:9,2:11,3:6}, expected pattern sha 888a34a5 — already present in production region; single-map)
+- current first divergence proven: YES (stages 6/7: bank 0x4 routes bank&3→Line 0; editor palette staged to Line 1 carrier not Line 3; Line 3 currently = sprite bank 51 per KF-043)
+- additional Tighe capture required: NO (offline chain verifiable statically; existing cave save state supports before/after)
+- next implementation scope identified: YES (shared-Layer-A-line routing for ALL banks; carrier-line reconciliation Line1-vs-Line3 incl. sprite relocation if Line3; CRAM staging+re-assert survival; (code,bank) generation deferred — cave code is single-map; build provenance)
+- pattern-reuse policy changed: NO
+- vertical-scroll work performed: NO
+- Doc: docs/design/Andy_test_palette_layera_preimplementation_requirements.md
+
+## [Andy — Test Palette R1/P1 Final Line Ownership]
+- classification: EXTENDING
+- Test profile authority: YES (Test.snapshot.json SHA deb696452d7456b3…)
+- Layer A target: Line 3 (routing/staging fully specified; NOT built this task)
+- Layer B Line 2 changed: NO
+- Layer-A bank&3 fallback removed from authored path: NO (STOP before build)
+- exact Test Line-3 CRAM staged: NO (STOP before build)
+- Line-3 gameplay survival: N/A (not reached)
+- LA-0458 expected pattern preserved: YES (region already == 888a34a5)
+- LA-0458 actual target line: not changed (STOP)
+- remaining live sprite Line-3 consumers: bank 0x33 (Rastan) — the ONLY one
+- invented sprite mappings: NO
+- pattern-reuse policy changed: NO
+- full (code,bank) integration changed: NO
+- vertical scrolling changed: NO
+- builds: NONE (STOP condition 5)
+- STOP: sprite evacuation to Test-authored Line-0/1 is NOT a bounded relocation. Test Lines 0/1 are
+  SHARED sprite palettes with non-identity index_maps ({0x32,0x33,0x34,0x3E}->L0; {0x35,0x36,0x3A}->L1);
+  production sprites use RAW pc090oj_genesis.bin + raw arcade-bank CRAM (no reindex). Moving Rastan(0x33)
+  to its authored Test Line 0 with correct colors REQUIRES sprite pixel reindexing, which this task
+  defers ("bounded relocation only; no full reindex"). Raw-palette shortcut fails "use Test palettes"/
+  "final architecture". Layer-A->Line3 half is ready. Need authorization: (A) sprite reindex now, or
+  (B) interim bounded raw-palette Line-3 free + defer Test sprite model.
+- Doc: docs/design/Andy_test_palette_r1p1_final_line_ownership.md
+
+## [Andy — Build 0325 R1/P1 Test Palette Final Integration]
+- classification: EXTENDING
+- Test profile SHA: deb696452d7456b3…
+- final Line 0 owner: Test shared sprite palette (intended)
+- final Line 1 owner: Test shared sprite palette (intended)
+- Line 2 unchanged: YES
+- final Line 3 owner: Layer-A master (intended; routing/staging READY, not built)
+- sprite reindex offline: NO (STOP before build)
+- unresolved sprite mappings: 5 of 7 banks (valkyrie 0x32, chimera 0x34, flying_demon 0x35, four_armed_insect 0x3A, bats 0x3E) lack build-consumable (code,bank) code sets
+- invented sprite mappings: 0
+- Rastan destination: intended Line 0 (resolved codes exist; not applied — STOP)
+- live sprites remaining on Line 3: bank 0x33 (unchanged — STOP)
+- Layer-A shared Line-3 routing: NO (ready, not applied)
+- Layer-A bank&3 fallback: YES (unchanged)
+- LA-0458 pattern: 888a34a5fc2e5272 (already correct in region)
+- LA-0458 target line: unchanged (Line 0)
+- pattern-reuse policy changed: NO
+- Layer-A full multi-map work performed: NO
+- vertical scrolling changed: NO
+- builds: NONE
+- STOP: full 7-enemy R1/P1 sprite reindex not completable/verifiable now. Only Rastan(0x33)+lizardman(0x36)
+  have resolved build-consumable (code,bank) code sets; five enemy banks (0x32/0x34/0x35/0x3A/0x3E) have no
+  resolved code table (prose/partial only) -> cannot meet "unresolved sprite mappings = 0". STOP-#2 risk:
+  bank 0x3E two maps (large/small bat), bank 0x33 empty delta_e maps (alt-frames) -> variant O(1) selection
+  unproven. Partial-only would miscolor un-reindexed live enemies (regression); raw-palette interim forbidden.
+  Recommend (A) authorize cave-scoped build (Rastan 0x33->L0, lizard 0x36->L1, Layer-A->L3; non-regressing,
+  proves architecture + cave purple) or (B) resolve enemy (code,bank) + bat/empty-map first, then all-seven.
+- Doc: docs/design/Andy_build0325_r1p1_test_palette_final_integration.md
+
+## [Andy — R1/P1 Test Sprite Semantic Resolution]
+- classification: EXTENDING
+- production implementation: NO
+- ROM produced: NO
+- Test profile SHA: deb696452d7456b3…
+- live authored sprite mappings: 10 (7 banks; 8 distinct usages incl. 2 empty Rastan alt-frames)
+- resolved live mappings: 10 (all)
+- unresolved live mappings: 0
+- invented mappings: 0
+- valkyrie resolved: YES (0x32, L0, codes 577-580,591-594)
+- chimera resolved: YES (0x34, L0, codes 208,422-431)
+- flying demon resolved: YES (0x35, L1, codes 297,318-329,362-374)
+- four-armed insect resolved: YES (0x3A, L1, codes 744,747,756-758,761-765)
+- large bat resolved: YES (0x3E, L0, codes 1014-1017)
+- small bat resolved: YES (0x3E, L0, code 616)
+- Rastan empty-map semantics: f7722 is sole authored bank-0x33 map; f15828/f16199 empty(delta_e)=no override, non-distinct/covered by the family reindex (NOT treated as identity authority)
+- runtime semantic key: (code,bank) — flat O(1) lookup; 0 cross-bank collisions; bat variants disjoint
+- additional Tighe trace required: NO
+- ready for Build 0325: YES
+- Bat 0x3E: Option A (disjoint codes small=616 vs large=1014-1017); mappings preserved distinct
+- Doc: docs/design/Andy_r1p1_test_sprite_semantic_resolution.md
+
+### MAME Exit Summary (2026-08-30 12:29:05)
+- Final PC: 0x073AD0
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0325 Complete R1/P1 Test Palette Integration]
+- classification: EXTENDING
+- Test profile SHA: deb696452d7456b3…
+- production mapping requirements: 8
+- resolved mappings: 8
+- unresolved mappings: 0
+- invented mappings: 0
+- sprite reindex offline: YES (tools/graphics_editor/gen_reindexed_pc090oj.py -> build/regions/pc090oj_editor.bin, 124 codes)
+- runtime key: (code,bank) resolved offline -> code-indexed region (0 cross-bank collisions; bats disjoint)
+- runtime transform: NO
+- Line 0 owner: Test shared sprite palette (banks 0x32,0x33,0x34,0x3E)
+- Line 1 owner: Test shared sprite palette (banks 0x35,0x36,0x3A)
+- Line 2 unchanged: YES
+- Line 3 owner: Test Layer-A master palette
+- Rastan target: Line 0 (reindexed; no raw relocation)
+- bat variants preserved: YES (616=small map; 1014-1017=large map)
+- live Test sprites on Line 3: 0
+- Layer-A generalized Line-3 route: YES (moveq #3, ROM 0x703FA; selector0/12 path)
+- Layer-A bank&3 fallback: NO (removed)
+- LA-0458 pattern: 888a34a5fc2e5272 (unchanged), target Line 3
+- pattern-reuse policy changed: NO
+- full Layer-A multi-map work performed: NO
+- vertical scrolling changed: NO
+- builds: dist/rastan-direct/rastan_direct_video_test_build_0325.bin (SHA 3691f6d9…); seven-epoch gate PASS, plane drops 0, exceptions 0, MAME 30s clean; runtime staged L0/L1/L3 == Test (exact)
+- USER MUST VERIFY: Rastan/lizardman/enemy colors, cave purple stone, exterior Layer-A, Layer B
+- Doc: docs/design/Andy_build0325_r1p1_test_palette_complete_integration.md
+
+### MAME Exit Summary (2026-08-30 14:22:25)
+- Final PC: 0x073BC2
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0326 = 0325 + score/1UP HUD display]
+- Build 0326: rebuilt Build 0325 with RASTAN_GAMEPLAY_HUD_SPRITES=2 (player-one 1UP+score group displayed).
+  ROM dist/rastan-direct/rastan_direct_video_test_build_0326.bin SHA 4fe84b43…; gates PASS (seven-epoch,
+  plane-A/B LUT, exceptions 0, MAME 30s clean).
+- Playtest analysis of Build 0325 (16 segments): docs/design/Andy_build0326_r1p1_test_palette_playtest_analysis.md
+- KEY ROOT CAUSE FOUND: enemy sprite palettes wrong because gen_reindexed_pc090oj.py reindexed at code*32
+  (8x8 tile stride) but runtime addresses sprite cells at code*128 (16x16 cell, 128B; pc090oj_hooks.s:2038).
+  Reindex wrote wrong offsets -> runtime enemy cells stayed RAW. Proven: valkyrie cell @577*128 == raw.
+  Lizardman ~ok only because its index_map is near-identity. Layer-A line routing + Line 0/1/3 CRAM staging
+  are CORRECT (staged L0/L1/L3 == Test). FIX (next build): reindex code*128 / 128 bytes per cell.
+- Other confirmed: vertical-fill leaves unpopulated tiles on up/down scroll AND at epoch crossings (Seg 14,
+  before rope); horizontal noise band moving vertically (same fill subsystem); waterfall palette ANIMATION
+  lost (static offline bake); entity duplication (pre-existing); axe+HUD score palette unmapped; one odd
+  Layer-A tile Seg 7. Layer-A background palette CORRECT across all segments.
+
+### MAME Exit Summary (2026-08-30 14:34:52)
+- Final PC: 0x073BC2
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0327 PC090OJ Test Sprite Cell Reindex Fix]
+- classification: EXTENDING
+- root cause: offline reindex used code*32/32B; runtime uploads sprite cell at code*128/128B (16x16 = 4x 8x8)
+- previous wrong stride: 32
+- corrected semantic stride: 128
+- transformed bytes/code: 128
+- authored codes: 124
+- transformed codes: 120 (4 identity/unused -> legitimately raw)
+- missing codes: 0
+- unexpected codes: 0
+- Test profile SHA: deb696452d7456b3…
+- runtime sprite transformation: NO (offline only)
+- Line 0 changed: NO / Line 1 changed: NO / Line 2 changed: NO / Line 3 changed: NO (palette source untouched)
+- Layer-A changed: NO (LA-0458 888a34a5fc2e5272)
+- HUD Makefile default: 2 (normal make; out/pc090oj_config.inc = RASTAN_GAMEPLAY_HUD_SPRITES 2)
+- HUD command-line override required for build: NO
+- HUD text Palette Composer mapping: DEFERRED FOLLOW-UP (add bank 0x30 HUD 1UP/score as first-class editable object)
+- vertical-fill changed: NO
+- pattern-reuse policy changed: NO
+- builds: dist/rastan-direct/rastan_direct_video_test_build_0327.bin SHA 2cb27f47…; seven-epoch PASS, plane drops 0, exceptions 0, MAME 30s clean
+- independent verifier tools/graphics_editor/verify_reindexed_pc090oj.py: PASS (mismatch 0, incomplete 0, stray 0)
+- Doc: docs/design/Andy_build0327_pc090oj_test_sprite_cell_reindex_fix.md
+
+## [Andy — Build 0327 Sprite Runtime Coverage + Duplication + Performance]
+- classification: EXTENDING
+- implementation performed: NO
+- ROM produced: NO
+- lizard control: PASS (codes 75-109 covered -> reindexed 128B cells on Line 1 -> correct)
+- valkyrie control: PASS (visible codes covered -> Line 0 -> correct)
+- runtime sprite coverage: INCOMPLETE (proven via arcade census cell_codes vs manifest)
+- unexpected runtime codes: Chimera 137 missing (11/148), Flying Demon 86 missing (26/112), Insect 96 missing (10/106), bats 2+9 missing, Lizardman 56 missing (visible poses still covered), Valkyrie 10 missing (visible covered)
+- Rastan first divergence: NOT resolvable statically (player NOT in census); body codes covered yet wrong -> needs Build-0327 Genesis player trace
+- bat first divergence: incomplete coverage (small runtime {616,617,618} vs manifest {616}; large {1014-1023} vs {1014-1017}) + shared code 629/630
+- Flying Demon first divergence: incomplete coverage (86 codes missing)
+- insect first divergence: incomplete coverage (partial = covered+uncovered pieces in same actor; 96 missing)
+- Chimera status: incomplete coverage (137 missing); pose-dependent visual
+- duplicate source class: NOT YET PROVEN (census shows base+anim-form record blocks per actor; gameplay-vs-render needs runtime trace)
+- palette/duplication relationship: NOT YET PROVEN
+- slowdown classification: NOT PROVEN (needs live normal-vs-slow comparison)
+- sprite workload correlation: NOT PROVEN (trace armed)
+- Plane-A workload correlation: NOT PROVEN
+- recommended Build 0328: (code,bank) sprite reindex + runtime variant selector (NOT a code-indexed coverage patch -- cross-bank shared codes 2675-2722/577-594/803-809/1293-1303 make code-indexing impossible); resolve complete per-actor (code,bank) vocabulary from census
+- KEY PROVEN: full runtime vocabulary has cross-bank SHARED codes -> code-indexed reindex cannot represent -> needs deferred (code,bank) selector
+- HUD Palette Composer follow-up preserved: YES (bank 0x30 1UP/score)
+- axe Palette Composer follow-up preserved: YES
+- vertical-fill production changed: NO
+- armed trace: tools/mame/scripts/trace_genesis_sprites.lua (SAT count/palette-line/dup per frame)
+- Doc: docs/design/Andy_build0327_sprite_runtime_coverage_duplication_performance.md
+
+## [Andy — Build 0327 Runtime Trace: Sprite Duplication + Slowdown] (armed, pre-play)
+- classification: EXTENDING
+- production implementation: NO
+- ROM produced: NO
+- trace artifact: states/traces/b0327_provenance/ (script tools/mame/scripts/trace_genesis_sprite_provenance.lua SHA 67b9a3fd)
+- instrumentation: opcode-fetch execution taps UNAVAILABLE in MAME Lua here (install_read_tap doesn't fire on 68000 fetches; cpu.debug absent). Pivoted to WRITE-TAP on pc090oj_tile_dma_worklist (captures SOURCE code at producer DMA boundary) + per-frame staged_sprite_sat read (workload/positions/dup) + tile_dma_count + fg_row_dirty. Self-verified in attract (14 codes, active=72, tile_dma=12).
+- source (code,bank) provenance: CODE captured at producer boundary; BANK resolved offline (code->census family + SAT line) since clean register tap impossible
+- Rastan vocabulary resolved: PENDING Tighe play
+- duplicate source class: PENDING
+- slowdown classification: PENDING
+- ready for Build 0328: analysis says (code,bank) selector required (independent of trace); trace confirms live coverage + player + duplication/perf
+- HUD Palette Composer follow-up preserved: YES
+- Axe Palette Composer follow-up preserved: YES
+- Doc: docs/design/Andy_build0327_runtime_trace_sprite_duplication_slowdown.md
+
+## [Andy — Build 0327 Runtime Trace Results]
+- trace: states/traces/b0327_provenance (11830 frames ~3.3min play)
+- instrumentation partial: workload captured; SOURCE CODES for enemies/Rastan NOT captured (they don't flow through the tapped pc090oj_tile_dma_worklist -- resident/other path; only HUD digit codes 43-73 seen)
+- HEADLINE: SAT active pins at 70 pieces for ~85% of gameplay (cap 80); opening ~20. Massive sprite OVER-EMISSION -> consistent with the duplication glitch.
+- slowdown classification: CONTRIBUTING FACTOR PROVEN = sprite-count saturation (70/frame); best-supported contributor
+- noise/vertical-fill: fg_row_dirty spikes to 32 only ~3% of frames (scroll); DISTINCT from slowdown (active LOWER when fg high: 56.9 vs 64.2). noise<->slowdown cause/effect NOT proven (separate phenomena)
+- duplicate provenance gameplay-vs-render: NOT PROVEN (need per-entry SAT capture; census base-form+anim-form suggests render duplication)
+- Rastan vocabulary: NOT captured (need corrected tap at enemy pattern-DMA source)
+- Build 0328: (code,bank) selector + complete vocab (unchanged); NEW priority: sprite over-emission/duplication is a real perf defect to root-cause
+- HUD/Axe Palette Composer follow-ups preserved: YES
+- Doc: docs/design/Andy_build0327_runtime_trace_sprite_duplication_slowdown.md
+
+## [Andy — Build 0328 Native Sprite Over-Emission]
+- classification: EXTENDING
+- root cause proven: NO (STOP)
+- CORRECTION: prior "70-piece SAT plateau -> slowdown" was a MEASUREMENT ARTIFACT. That trace counted staged_sprite_sat slots with Y!=0 (includes stale, chain-terminated NON-rendered entries). Real rendered count = pc090oj_emitted_count (link-chain length). Re-measured (attract): variable ~28 avg / 72 max, NOT constant 70. Sprite over-emission slowdown claim RETRACTED / NOT PROVEN.
+- arcade intended piece count: shared PC090OJ RAM last-writer-wins (0xD00170/0300/0460); not a fixed count
+- Genesis requested/emitted: variable <=72 (attract sample); Tighe gameplay never measured with correct metric
+- SAT plateau explanation: artifact of counting non-rendered stale slots
+- gameplay actor duplication: NO (not shown)
+- native rendering duplication: NOT PROVEN (dual-emit_pass hypothesis DISPROVEN: emit_pass runs once/frame, histogram 0x=4837 1x=163 never 2x)
+- base+anim simultaneous emission: NOT PROVEN (strongest remaining candidate; needs per-actor-record provenance)
+- stale-record contribution: chain-terminated, not rendered
+- performance classification: NOT PROVEN
+- implementation performed: NO
+- builds: NONE (STOP)
+- palette architecture changed: NO / sprite reindex architecture changed: NO / vertical-fill changed: NO
+- HUD Palette Composer follow-up preserved: YES / Axe: YES
+- recommended: re-measure with pc090oj_emitted_count + per-lane counts during Tighe play at duplicate encounters; isolate base-vs-anim/hit-form (code 0x0A73) emission
+- Doc: docs/design/Andy_build0328_native_sprite_overemission_fix.md
+
+## [Andy — Actor Record Lifecycle + Duplicate Provenance]
+- classification: EXTENDING
+- implementation: NO
+- ROM: NO
+- prior 70-sprite claim corrected: YES (Y!=0 counts stale non-rendered slots; authority = pc090oj_emitted_count)
+- rendered-count authority: pc090oj_emitted_count (@0xFFBFA0)
+- actor blocks mapped: YES (a5=0xFF0000; enemyA 0xFF02C8, midB 0xFF05C8, effect 0xFF0748, midD 0xFF08C8; stride 64; active@0 class@1 X@0x16 Y@0x1A code@0x1E bank=0x30|attr@0x27 fam@0x38)
+- base/anim semantic relationship: NOT PROVEN (census base + anim/hit form code 0x0A73; pre-val saw code 75 in 2 slots at one pos, at Y=0x180 park)
+- arcade overwrite semantics: shared PC090OJ obj-RAM last-writer-wins (0xD00170/0300/0460)
+- Genesis append mismatch: HYPOTHESIS (append-only lanes vs arcade overwrite); midB 0xFF05C8 scanned as middle(41dae) AND enemy(45dfa); NOT PROVEN (needs both hooks firing per gameplay frame -- attract showed emit_calls=1/frame, unrepresentative)
+- horizontal offset explained: NO (trace will quantify X delta at duplicate)
+- provenance trace boundary: memory read of a5 actor pools + write-tap emitted_count (execution taps unavailable)
+- pre-play trace validated: PASS (tools/mame/scripts/trace_genesis_actor_provenance.lua SHA 2d2309eb; captured lizardman code75/bank0x36 record, emitted_count<=72, lane be<=53, emit_calls, dup signals)
+- Tighe trace required: YES (short: play to first duplicated enemy, stop)
+- slowdown classification: NOT PROVEN
+- HUD editor follow-up preserved: YES / Axe: YES / rack-advance follow-up preserved: YES
+- Doc: docs/design/Andy_build0327_actor_record_lifecycle_duplicate_provenance.md
+- capture dir: states/traces/b0327_actor_provenance/
+
+## [Andy — Build 0327 Multi-Family Piece Over-Emission Proof]
+- classification: EXTENDING
+- implementation: NO
+- ROM: NO
+- arcade representation-end rule: 0xFF control byte = END-OF-POSE terminator (arcade 0x3C60A cmpi.b #0xFF -> rts 0x3C634)
+- Genesis fixed-budget rule: .Lnea_dloop emits exactly d2 (budget) iterations; 0xFF mis-handled as per-piece SKIP (continue), no terminator; budget = arcade PC090OJ destination-slot capacity (10; 19 for slot 8; mid 4; effect 1; player 13)
+- semantic mismatch proven: YES (destination capacity used as source piece count; 0xFF skip vs terminator -> over-read into next pose when pose_len < budget)
+- lizard trace artifact: STATIC descriptor decode (fam0 class 0x17 @0x3D7EB) -- no runtime trace needed
+- lizard legitimate pieces: 8 (pose 0, 0xFF-terminated)
+- lizard excess pieces: budget10 -> +2 (lower-left of next pose); budget19(slot8) -> +9 (full 2nd pose overlay)
+- adjacent-pose over-read: YES (excess = next 0xFF-delimited pose)
+- lower-left-cell same mechanism: YES (first 1-2 pieces of next pose, left column)
+- paired actor responsible: NO (42px pair = legit separate actors; over-emission is intra-record)
+- Exodus outline offset real: NO (stacked at ~same coords; diagnostic displacement)
+- shared native defect across families: YES (.Lnea_dloop shared loop; 0xFF-pose format shared fam0/fam2)
+- affected families structurally: all R1/P1 (lizardman/valkyrie/chimera/flying_demon/insect/bats) where pose_len < lane budget
+- per-family magic-number fix required: NO
+- unnecessary sprite work proven: YES (excess pieces = real SAT/DMA/emit work)
+- overall slowdown root cause: NOT PROVEN (contributing factor; needs corrected emitted_count gameplay measure)
+- Build 0328 ready: YES (general fix: .Lnea_dloop/.Lnea_dmirror STOP on 0xFF terminator, matching arcade)
+- HUD follow-up: YES / Axe follow-up: YES
+- Doc: docs/design/Andy_build0327_multifamily_piece_overemission_proof.md
+
+### MAME Exit Summary (2026-08-31 11:29:39)
+- Final PC: 0x073BC8
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0328 Shared PC090OJ Piece Terminator Fix]
+- classification: EXTENDING
+- root cause prior confirmed: YES (0xFF = arcade end-of-representation terminator; FUN_0003c606 cmpi #0xFF -> rts)
+- production implementation: YES
+- destination-capacity accounting: a1 (0xD00460) is VESTIGIAL (clobbered in emit_actor_common; native_sprite_emit uses lane queues+counts); no accounting change needed; capacity = loop ceiling only
+- 0xFF default loop fixed: YES (.Lnea_dloop beq.w .Lnea_ret)
+- 0xFF mirror loop fixed: YES (.Lnea_dmirror)
+- 0xFF special loop fixed: YES (.Lnea_sloop)
+- capacities 10/19 preserved: YES (ceiling only)
+- per-enemy special cases added: NO
+- next-pose leakage after fix: NO
+- lizard normal emitted pieces: 8 (was 10)
+- lizard slot-8 emitted pieces: 8 (was 17)
+- cross-family semantic verification: shared expander + 0xFF-terminated format confirmed fam0/fam2; both orientations + special path repaired
+- unnecessary sprite work reduced: YES (attract: be lane max 53->40, avg 8.8->6.6 -25%; emit max 72->60; via pc090oj_emitted_count)
+- overall slowdown root cause: NOT PROVEN as complete (CONTRIBUTING FACTOR proven)
+- build(s): dist/rastan-direct/rastan_direct_video_test_build_0328.bin
+- ROM SHA: 8a4d15c56842fe4e...
+- palette architecture changed: NO / (code,bank) architecture changed: NO / vertical-fill changed: NO
+- HUD Palette Composer follow-up preserved: YES / Axe follow-up preserved: YES
+- gates: seven-epoch PASS, plane-A/B LUT PASS, drops 0, exceptions 0, sp_valid YES, MAME 30s clean, HUD default 2
+- Doc: docs/design/Andy_build0328_shared_pc090oj_piece_terminator_fix.md
+
+### MAME Exit Summary (2026-08-31 14:19:04)
+- Final PC: 0x073BE4
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-31 14:19:31)
+- Final PC: 0x073BE4
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0329 Event Palette Ownership + Vertical Noise]
+
+- classification: EXTENDING
+- resumed after session limit: YES
+- Build 0328 closed: YES
+- per-VBlank reassert proven: YES (vdp_comm.s `_vblank_service` -> `vdp_reassert_test_lines`, scene 1)
+- unconditional palette dirty proven: YES (`move.b #1, palette_dirty` every gameplay VBlank -> 64-word PIO CRAM commit/frame)
+- original reassert rationale: live arcade palette hooks (3ba64/59ad4/45dae) route arcade banks into staged Lines 0/1/3 during gameplay; Test sprite Lines 0/1 had no other installer, so Build 0325 forced Test back every frame + dirtied whole palette.
+- live conflicting writers: genesistan_palette_hook_3ba64 (banks 0/1/3/48/51 -> lines), _59ad4 (bank 0x33->L3, 3->L1), _45dae (empty-source copy to L0..3)
+- R1/P1 activation boundary: load_scene_tiles (scene_load.s) d5==1 gameplay-scene entry (sets genesistan_current_scene_id; one-shot, display off) -> bsr vdp_install_test_lines
+- Line 0 stable owner: Test test_sprite_line0 (installed once at scene activation)
+- Line 1 stable owner: Test test_sprite_line1 (installed once at scene activation)
+- Line 2 untouched: YES (Layer B / arcade bank 48; no edit to any L2 path)
+- Line 3 stable owner: Test editor_layera_palette (installed once at scene activation; future waterfall may make explicit event-driven L3 updates)
+- vdp_reassert_test_lines removed/refactored: refactored -> one-shot `vdp_install_test_lines`; per-VBlank call deleted
+- per-frame Test polling remains: NO
+- stable R1/P1 Test-line writes/frame: 0
+- CRAM commits before: 1/frame (unconditional) in stable R1/P1
+- CRAM commits after: 0 recurring from Test lines; only scene/segment-load install (one-shot) + genuine Layer-B Line-2 changes
+- READY artifact layer: NOT PROVEN (Plane A/FG leading candidate)
+- bad logical/physical row: NOT PROVEN (needs plane/VRAM capture)
+- stale name entry: NOT PROVEN (stale-name vs stale-pattern undistinguished)
+- pattern alias: NOT PROVEN
+- fixed-row-scroll hypothesis: leading model, NOT PROVEN
+- 0325 persistence cause: leading hypothesis = Layer-A->Line-3 forcing + colorful Test L3 makes a pre-existing stale FG row visible (exposure, not new corruption); NOT PROVEN
+- visual root cause: PARTIAL / NOT PROVEN
+- visual fix included: NO (STOP - no guess, no black-CRAM masking)
+- palette performance effect: CONTRIBUTING FACTOR (per-frame CRAM PIO eliminated); overall slowdown NOT fully proven
+- bad-row performance effect: NOT PROVEN
+- build(s): 0329
+- ROM SHA: 237a2e88b85684047dc1599a8ad781694432c78dd98c4dea37532cee13d60f1e
+- sprite terminator changed: NO
+- (code,bank) architecture changed: NO
+- HUD follow-up: YES (preserved: bank 0x30 1UP/score -> first-class Palette Composer)
+- Axe follow-up: YES (preserved)
+- USER MUST VERIFY: R1/P1 sprite palettes, Layer-A, Layer-B, READY corruption, READY text during transition, moving gameplay band, gameplay speed, Build-0328 sprite fix
+
+### MAME Exit Summary (2026-08-31 16:37:22)
+- Final PC: 0x073C04
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-08-31 16:41:21)
+- Final PC: 0x073BF0
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0331 Partial-Dynamic Line 2 + Bank-0x30 Audit]
+
+- classification: EXTENDING
+- Build 0328 Layer B: PASS
+- Build 0330 Layer B: FAIL (gameplay Line-2 frozen at frontend values)
+- true segment Layer-B producer: genesistan_palette_hook_59ad4 (arcade 0x59AD4), arcade bank 2 -> Genesis Line 2
+- first Build-0330 divergence: classification B (scene-1 whole-hook gate suppressed the legitimate gameplay Line-2 load)
+- overly-broad gate: 59ad4 (and 45dae) whole-hook scene-1 skip
+- dynamic Line-2 indices: 7,12,13,14,15
+- stable Line-2 indices: 0,1,2,3,4,5,6,8,9,10,11
+- item line: 0
+- bank-0x30 effect line: 2 (legacy .Lnative_palsel special case)
+- bank-0x30 used indices: raw patterns, not in Test reindex (not per-index enumerated); frontend vs gameplay Line 2 differs at all indices 1..15
+- animated-index collision: PLAUSIBLE / NOT fully proven per-index
+- existing authored alternative mapping: NO (bank 0x30 not a Palette Composer representation)
+- explosion relocation performed: NO (restore Layer B + defer per task fallback)
+- Lines 0/1/3 event ownership preserved: YES (l013 checksum static 0xC480 in gameplay)
+- Line 2 progression restored: YES (Build 0332 == Build 0328 at load + sunset step)
+- per-frame Test reassert restored: NO
+- stable Test CRAM commits/frame: 0 (commit only on actual Line-2 change; change-detected)
+- fix: 59ad4 per-destination gate (scene 1 -> only d0==2 Line 2) + change-detection loop; 45dae kept whole-hook scene-1 skip; 3ba64 unchanged
+- build(s): 0331 (intermediate frozen candidate, superseded), 0332 (delivered)
+- ROM SHA: 65d07d0127a36fbbbf61dc30781fd906cd12652f1498c6b2a12874ba5b63aed8 (0332)
+- vertical-noise task preserved: YES
+- (code,bank) follow-up preserved: YES
+- HUD follow-up: YES
+- Axe follow-up: YES
+- USER MUST VERIFY: sky/time-of-day progression, Layer-B colors, Layer-A colors, items, explosion colors across segments (expected = Build 0328 appearance; relocation deferred), Rastan/bat still expected-wrong, sprite-duplication fix, gameplay speed
+
+### MAME Exit Summary (2026-08-31 19:34:55)
+- Final PC: 0x073BE8
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Rastan Bank-0x33 Route Correction]
+
+- classification: EXTENDING
+- current hardcoded route: bank 0x33 -> Line 3 (pre-Test Build-0210 override in .Lnative_palsel)
+- authored route: bank 0x33 -> Line 0 (palette_route_table, palette_hooks.s)
+- reindexed target line: 0 (pc090oj_editor_manifest.json: 29 bank-0x33 codes all line 0)
+- stale override proven: YES
+- implementation: YES (removed the 0x33->Line3 block; redirected bank-0x30 branch to .Lnp_general)
+- new hardcoded replacement added: NO
+- final route authority: palette_route_lookup
+- Line 2 changed: NO (runtime Line-2 progression byte-identical to Build 0332/0328)
+- palette ownership changed: NO
+- bank-0x30 changed: NO (bank 0x30 -> Line 2 preserved)
+- build: 0333
+- ROM SHA: 294e764baa7adbc7a85dacf4afebb1d8535b0ac437515e7f7c711db8835abdff
+- USER MUST VERIFY: Rastan Line-0 colors + piece completeness; Layer A; Layer B/sunset; items+death-burst remain expected-unresolved; bats deferred; Build-0328 dup fix intact
+- bank-0x30 Palette Composer follow-up: YES
+- HUD follow-up: YES
+- Axe follow-up: YES
+
+## [Andy — Palette Composer V2 Tier 0 + Build-Number Hardening + Water Proof]
+
+- classification: INFRASTRUCTURE
+- tier: 0 (audit) + build-number hardening + Tier-5 water mechanism proof
+- baseline: Build 0333
+- build(s): none this turn (tooling + analysis only)
+- ROM SHA: n/a
+- build-number overwrite hardening: DONE — release recipe now appends produced number to consumed_build_numbers.txt; backfilled 0330-0333; verified counter-behind guard REFUSES reuse of 0333 with stale counter 332. Tooling-only, no ROM behavior change.
+- editor/compiler audit: server.py(1228)+app.js(582)+gen_reindexed_pc090oj.py(131); current model is CODE-indexed, 124 codes/7 banks (0x32/33/34/35/36/3A/3E). Bank 0x30 (items/death burst) + full player vocab NOT represented. Additive gap = Actor->Pose->(code,bank) + power-ups + palette-animation reps + (code,bank) compiler variants + O(1) selector.
+- Rastan current coverage: bank 0x33, 29 codes (138-159,267-270,629-631). Missing thrust/squat/stand-lower poses need direct Ghidra player-descriptor decode (player not in enemy families.json).
+- WATER MECHANISM PROVEN: FUN_00041F30 -> 59882/5988C -> 59962(type8)/599B2(type9) -> FUN_00059AD4(=hook_59ad4). Type/counter at a5+0x12EE/12E8/12EA; update every 8 frames; 3(type8)/4(type9) frames; ROM tables banks 0x59A98/0x59AA4, frames 0x59B1A/0x59B7A; 0xFFFF=keep-mask.
+- water current disconnection PROVEN: hook_59ad4 rejects banks>=4 (all water banks except 0x03), so arcade water writes discarded -> Line3 12-15 frozen.
+- water Segment-11 type: NOT YET PROVEN (mechanism proven; exact Seg-11 type/bank/frames/mapping scoped as next)
+- water arcade bank: per-segment table 0x59A98/0x59AA4 (Seg-11 specific TBD)
+- water source dynamic indices: per-frame non-0xFFFF entries (Seg-11 specific TBD)
+- Genesis water target entries: Line 3, indices 12,13,14,15 (source->target mapping TBD)
+- Line 2 changed: NO
+- Line-3 static entries preserved: YES (0-11)
+- independent Genesis cycler added: NO
+- per-frame unconditional palette dirty: NO
+- release overwrite guard verified: YES (auto-record + counter-behind refuse)
+- USER MUST VERIFY: nothing visual this turn (no ROM); next numbered build will exercise the ledger auto-record.
+
+## [Andy — Segment-11 Waterfall Proof + Build-A Root Cause]
+
+- classification: EXTENDING (analysis; no ROM)
+- SEGMENT-11 WATERFALL INSTANCE: PROVEN (distinct from the general engine)
+  - type: 9 (teal; type-8 frame table 0x59B1A is warm/fire, type-9 0x59B7A is teal)
+  - counter: a5+0x12EA ; interval: every 8 game-frames ; frames: 4
+  - bank table: 0x59AA4 (4 banks/seg; water banks 0x1A-0x1D) ; frame table: 0x59B7A
+  - animated arcade indices: 14 and 15 ONLY (0-13 = 0xFFFF keep) -> authored Genesis animated set is 2 entries, not 4
+  - frame values (0RGB444): step0 idx14=0x08cc idx15=0x0488; step1 06aa/06aa; step2 0488/08cc; step3 06aa/06aa (teal shimmer swap)
+  - current Genesis disconnection: hook_59ad4 rejects banks>=4 -> water writes discarded -> Line3 static (PROVEN first divergence)
+  - source->target mapping: BLOCKED at authoring boundary. compile_editor_layera applies per-tile index_map; water tiles' maps are INCONSISTENT (e.g. LA-0578 {9->15,10->13,15->12} vs LA-0582 {10->13,11->15,12->14,15->12}), so arcade animated indices 14/15 do NOT map to a fixed Genesis L3 entry. Runtime cannot be wired until water tiles re-authored with a consistent index_map (arcade 14/15 -> two fixed L3 entries). Tighe authoring decision (Build D).
+- BUILD-A Tier-1A ROOT CAUSE: PROVEN. Rastan reindex codes derive ONLY from sprite_families.json (rastan_player_body:138-159,267-270 + player_auxiliary:629-631 = 29 codes; enemies.json/enemy_patterns.json RASTAN empty), and gen_reindexed_pc090oj hardcodes USAGE_BANK[rastan]=0x33. Missing thrust/squat/stand-lower pose piece codes are absent from the corpus -> not reindexed -> raw patterns -> wrong colors. Also: any Rastan piece on a bank != 0x33 is mishandled by the code-only, 0x33-assumed pipeline (needs (code,bank) variants).
+- NEXT (Build A): Ghidra decode of the complete Rastan player PC090OJ pose descriptors -> enumerate every pose's piece codes + effective bank -> complete sprite_families.json rastan_player_body -> editor Actor->Pose schema -> (code,bank) compiler variants -> numbered ROM (will hit authoring boundary for any newly-exposed colors).
+- builds: none this turn ; ROM SHA: n/a
+- Line 2 changed: NO ; per-VBlank reassert: NO ; hook not altered: correct (proof was read-only)
+- release overwrite guard: hardened+verified prior turn (unchanged)

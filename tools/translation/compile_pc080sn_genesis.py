@@ -322,7 +322,7 @@ def be32(v): return bytes([(v >> 24) & 0xFF, (v >> 16) & 0xFF,
                            (v >> 8) & 0xFF, v & 0xFF])
 
 
-def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_index: int = 0):
+def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_index: int = 0, reuse=None):
     """Compile the Build-0310 zero-drop Round-1 Phase-1 gameplay ownership model.
 
     Plane B is the exact descriptor-0..55 vocabulary and is loaded once. Plane A owns seven
@@ -910,8 +910,29 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                              "upload_count": len(p["uploads"]),
                              "identity_count": len(p["identities"])} for p in packages],
         "sha256": hashlib.sha256(binary).hexdigest(),
+        "pattern_reuse_policy": ({
+            "policy_sha256": reuse.get("policy_sha256"),
+            "approved_count": reuse.get("approved_count"),
+            "resolved_count": reuse.get("resolved_count"),
+            "unresolved_count": reuse.get("unresolved_count"),
+        } if reuse else {"policy_sha256": None, "approved_count": 0,
+                         "resolved_count": 0, "unresolved_count": 0}),
     }
     (outdir / "boundary_report.json").write_text(json.dumps(report, indent=1) + "\n")
+
+    # Debug emit (TOOLING): per-package slot -> [arcade_code, reindexed 32-byte pattern hex] and the
+    # record->package table, so the actual DMA'd plane-A tiles can be rendered offline and compared to
+    # the Palette Composer reference. Also include the fixed-B slots. Not a release artifact.
+    dbg = {"record_to_package": record_to_package, "packages": []}
+    for p in packages:
+        slotmap = {}
+        for code, slot in p["map"]:
+            slotmap[str(slot)] = [code, tile_bytes(code).hex()]
+        for code, slot in b_map:
+            slotmap.setdefault(str(slot), [code, tile_bytes(code).hex()])
+        dbg["packages"].append(slotmap)
+    (outdir / "slot_patterns_debug.json").write_text(json.dumps(dbg))
+
     print(f"boundary compile: fixed B {len(b_blobs)} patterns, seven stable A epochs "
           f"{epoch_counts}, transition peaks {[r['peak_patterns'] for r in transition_gate_reports]}, "
           f"A cap {a_slot_count}, sprites {sprite_cells} cells, "
@@ -1097,6 +1118,8 @@ def main():
                     help="write only final_capacity_report.json and stop before canonical assets")
     ap.add_argument("--boundary-experiment", action="store_true",
                     help="emit Build-0302 boundary-loaded Stage-1 package assets")
+    ap.add_argument("--pattern-reuse", default=str(ROOT / "build/regions/pattern_reuse_resolved.json"),
+                    help="resolved canonical pattern-reuse artifact (provenance recorded into boundary_report.json)")
     a = ap.parse_args()
 
     mc = Path(a.maincpu).read_bytes()
@@ -1104,8 +1127,12 @@ def main():
     registry = json.loads(Path(a.registry).read_text())
     outdir = Path(a.out); outdir.mkdir(parents=True, exist_ok=True)
 
+    reuse = None
+    if a.pattern_reuse and Path(a.pattern_reuse).exists():
+        reuse = json.loads(Path(a.pattern_reuse).read_text())
+
     if a.boundary_experiment:
-        return build_boundary_experiment(mc, pat, outdir, a.stage_index)
+        return build_boundary_experiment(mc, pat, outdir, a.stage_index, reuse)
 
     if a.final_capacity_audit:
         sprite_patterns = Path(a.pc090oj_genesis).read_bytes()

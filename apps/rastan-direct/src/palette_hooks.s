@@ -8,6 +8,7 @@
 
     .include "pc090oj_config.inc"
 
+    .extern genesistan_current_scene_id
     .extern palette_dirty
     .extern staged_palette_words
     .extern fg_bank3_line_cache
@@ -45,28 +46,34 @@
     .equ PROUTE_FLAG_CARRIER,     1        /* line needs gameplay carrier re-assert */
     .equ PROUTE_SCENE_GAMEPLAY,   1
     .equ PROUTE_FG_BANK,          3        /* arcade PC080SN Stage 1 FG color bank */
-    .equ PROUTE_FG_LINE,          1        /* Genesis CRAM line carrying FG bank 3 (Build 0316 routing) */
+    .equ PROUTE_FG_LINE,          3        /* Build 0325: shared Layer-A master palette on Genesis CRAM Line 3 */
 
     .section .rodata
     .align 2
 /* rows: scene_id, owner, arcade_bank, genesis_line, flags; 0xFFFF terminator */
 palette_route_table:
-    /* Build 0320: 0317-0319 palette-routing experiment reverted to the Build-0316 line ownership (that move
-     * did not fix tile colors and regressed Rastan). FG->line 1; sprites (bank 51)->line 3. The offline
-     * (code,bank) tile index fix is the assigned color correction, not the palette line. */
-    .word 1, PROUTE_OWNER_PC080SN_FG, 3,  1, PROUTE_FLAG_CARRIER
+    /* Build 0325: FINAL frozen-Test R1/P1 line ownership.
+     *   Line 0 = Test shared sprite palette (source banks 0x32,0x33,0x34,0x3E)
+     *   Line 1 = Test shared sprite palette (source banks 0x35,0x36,0x3A)
+     *   Line 2 = Layer B (arcade BG bank 48) - PROTECTED
+     *   Line 3 = Test shared Layer-A master palette (PC080SN FG carrier)
+     * Sprite rows select the SAT palette line for the OFFLINE-reindexed sprite art (not raw arcade
+     * bank->CRAM). Build 0329: static Test Lines 0/1/3 are installed ONCE at the gameplay-scene
+     * activation event (load_scene_tiles -> vdp_install_test_lines); during scene 1 the arcade
+     * palette hooks below are gated off Lines 0/1/3 (Layer-B Line 2 still flows), so no per-VBlank
+     * reassert is needed. */
+    .word 1, PROUTE_OWNER_PC080SN_FG, 3,  3, PROUTE_FLAG_CARRIER
     .word 1, PROUTE_OWNER_PC080SN_BG, 48, 2, 0
-    .word 1, PROUTE_OWNER_PC090OJ,    51, 3, 0
+    /* R1/P1 Test sprite source-bank ownership -> Line 0 */
+    .word 1, PROUTE_OWNER_PC090OJ,    0x33, 0, 0
+    .word 1, PROUTE_OWNER_PC090OJ,    0x32, 0, 0
+    .word 1, PROUTE_OWNER_PC090OJ,    0x34, 0, 0
+    .word 1, PROUTE_OWNER_PC090OJ,    0x3E, 0, 0
+    /* R1/P1 Test sprite source-bank ownership -> Line 1 */
+    .word 1, PROUTE_OWNER_PC090OJ,    0x36, 1, 0
+    .word 1, PROUTE_OWNER_PC090OJ,    0x35, 1, 0
+    .word 1, PROUTE_OWNER_PC090OJ,    0x3A, 1, 0
     .word 1, PROUTE_OWNER_HUD,        0,  0, 0
-.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
-    /* Build 0208/0230: with gameplay HUD sprites suppressed or limited to the
-     * 1UP-only representation, CRAM line 0 is free during gameplay; carry
-     * PC090OJ effective sprite bank 0x36 (lizard men, hurry-up family) there.
-     * CARRIER: the converted bank-0x36 palette is cached by the palette hooks
-     * and re-asserted each gameplay VBlank (vdp_reassert_bank36_line0), never
-     * staged in non-gameplay scenes. */
-    .word 1, PROUTE_OWNER_PC090OJ,    0x36, 0, PROUTE_FLAG_CARRIER
-.endif
     .word 0xFFFF, 0, 0, 0, 0
 
     .section .text,"ax"
@@ -163,7 +170,16 @@ genesistan_palette_hook_59ad4:
     cmpi.w  #4, %d0
     bcc.s   .L59_done
 .L59_dest_ready:
-
+    /* Build 0331: R1/P1 (scene 1) -> only Layer-B Line 2 (arcade bank 2, the gameplay sky) may be
+     * staged by this arcade producer; Lines 0/1/3 are Test-owned (installed once at scene
+     * activation).  Frontend / other scenes stage all lines.  Line 2 is partial-dynamic: the loop
+     * rewrites only the entries the arcade actually changes and marks palette_dirty only on a real
+     * change, so a static sky costs no per-frame CRAM commit. */
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .L59_dest_ok
+    cmpi.w  #2, %d0
+    bne     .L59_done
+.L59_dest_ok:
     move.w  %d1, %d2
     mulu.w  #32, %d2
     adda.w  %d2, %a0
@@ -194,8 +210,12 @@ genesistan_palette_hook_59ad4:
 
     move.w  %d3, %d0
     bsr     .Lxbgr555_to_cram
-    move.w  %d1, (%a1)+
+    cmp.w   (%a1), %d1              /* Build 0331: write + dirty only when the value actually changes */
+    beq.s   .L59_adv
+    move.w  %d1, (%a1)
     moveq   #1, %d5
+.L59_adv:
+    addq.l  #2, %a1
 .L59_next:
     dbra    %d6, .L59_loop
 
@@ -285,19 +305,22 @@ genesistan_palette_hook_45dae:
     tst.w   %d0
     beq.s   .L45_done
 
+    /* Build 0329/0331: this bank-0 positional copy targets the Test-owned Lines 0..3.  The gameplay
+     * Layer-B (Line 2) sky is NOT loaded here (proven: allowing this hook's Line-2 writes in scene 1
+     * left the sky frozen; the real loader is genesistan_palette_hook_59ad4 bank 2 -> Line 2).  In
+     * R1/P1 (scene 1) Lines 0/1/3 are Test-owned, so skip the whole copy; frontend / other scenes
+     * are unaffected. */
+    cmpi.b  #1, genesistan_current_scene_id
+    beq.s   .L45_done
+
     lea     staged_palette_words, %a2
     move.w  %d0, %d4
     subq.w  #1, %d4
 .L45_loop:
     move.w  (%a0)+, %d0
     bsr     .Lxbgr555_to_cram
-    /* Build (lines 0/1): this bank-0 chunk copies the sprite-palette SOURCE buffer
-     * (a5@0x1600 = Genesis 0x00FF1600) -> staged lines 0..3. On Genesis that source
-     * buffer is never populated (all zero), so the original unconditional write here
-     * ZEROED lines 0/1 (and 2/3) that genesistan_palette_hook_3ba64 had correctly
-     * staged from the arcade direct palette-RAM writes. Only write NON-zero converted
-     * colors (advance the staged slot positionally regardless), so an empty source no
-     * longer clobbers the real palette; a populated source still writes normally. */
+    /* Only write NON-zero converted colors (advance the staged slot positionally regardless) so an
+     * empty source cannot clobber the real palette; a populated source writes normally. */
     tst.w   %d1
     beq.s   .L45_skip_write
     move.w  %d1, (%a2)
@@ -373,9 +396,9 @@ genesistan_palette_hook_3ba64:
 .L3ba64_chk_palram:
     /* Only map arcade palette RAM 0x200000..0x200FFF into Genesis staging. */
     cmpi.l  #0x00200000, %d4
-    blo.s   .L3ba64_next
+    blo.w   .L3ba64_next
     cmpi.l  #0x00201000, %d4
-    bhs.s   .L3ba64_next
+    bhs.w   .L3ba64_next
 
     sub.l   #0x00200000, %d4
     move.l  %d4, %d6
@@ -408,6 +431,15 @@ genesistan_palette_hook_3ba64:
 .L3ba64_to_line3:
     moveq   #3, %d6                 /* arcade bank 51 -> Genesis line 3 */
 .L3ba64_line_ok:
+    /* Build 0329: during R1/P1 (scene 1), Test owns Lines 0/1/3 (installed at scene activation).
+     * Only Layer-B Line 2 may still be written by this arcade producer; skip any 0/1/3 target so
+     * the static Test palette is not re-owned per stage/segment load.  Frontend / other scenes are
+     * unaffected (they keep full arcade palette staging). */
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .L3ba64_line_store
+    cmpi.w  #2, %d6
+    bne     .L3ba64_next
+.L3ba64_line_store:
 
     move.l  %d4, %d7
     andi.l  #0x001F, %d7
@@ -482,3 +514,15 @@ genesistan_palette_hook_3ba64:
 editor_layera_palette:
     .word 0x0000, 0x028C, 0x044C, 0x0026, 0x0004, 0x0002, 0x0424, 0x0624
     .word 0x0402, 0x0202, 0x0200, 0x0422, 0x0440, 0x0660, 0x0AA6, 0x0884
+
+/* Build 0325: frozen-Test shared R1/P1 sprite palettes. Static ROM data (frozen Test profile
+ * target_palette_lines[0] and [1]); staged onto Genesis Lines 0/1 each gameplay VBlank. The offline
+ * PC090OJ reindex (pc090oj_editor.bin) remaps sprite pixels into these exact target entries. */
+    .global test_sprite_line0
+test_sprite_line0:
+    .word 0x0000, 0x006C, 0x0226, 0x0224, 0x068A, 0x0466, 0x002C, 0x0000
+    .word 0x0EEE, 0x08AE, 0x044A, 0x0008, 0x00EE, 0x0080, 0x0060, 0x0040
+    .global test_sprite_line1
+test_sprite_line1:
+    .word 0x0000, 0x08CC, 0x0242, 0x0486, 0x0064, 0x04A6, 0x04A0, 0x0662
+    .word 0x0CCA, 0x0CCC, 0x0028, 0x024C, 0x0422, 0x0AA6, 0x0640, 0x0AC4

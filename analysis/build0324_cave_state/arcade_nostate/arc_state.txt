@@ -1,0 +1,4 @@
+A5=0x10C000
+seg_a5_13E=0
+scroll_fg_10B0=0
+scroll_bg_10EE=0

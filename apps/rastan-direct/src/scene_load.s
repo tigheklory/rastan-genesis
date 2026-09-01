@@ -34,6 +34,7 @@
     .extern vdp_set_reg
     .extern vdp_set_vram_write_addr
     .extern fg_native_gameplay_owner
+    .extern vdp_install_test_lines
 
     .equ VDP_DATA,              0x00C00000
     .equ VDP_REG_MODE2,         1
@@ -146,9 +147,14 @@ load_scene_tiles:
     move.l  %d1, genesistan_scene_a0_hi
 
     /* Build 0301: reset the streaming tile cache on gameplay-scene entry (display still off). */
+    /* Build 0329: install the frozen-Test R1/P1 palette Lines 0/1/3 ONCE here, at the gameplay-scene
+     * activation event.  This replaces the removed per-VBlank vdp_reassert_test_lines: Test ownership
+     * is established at the semantic boundary and the arcade palette hooks are gated off Lines 0/1/3
+     * during scene 1, so the Test lines stay static until the next scene-activation event. */
     cmpi.w  #1, %d5
     bne.s   .Lload_scene_no_cache_reset
     bsr     fg_cache_reset
+    bsr     vdp_install_test_lines
 .Lload_scene_no_cache_reset:
 
     moveq   #VDP_REG_MODE2, %d0

@@ -17,7 +17,10 @@
     .extern genesistan_current_scene_id
     .extern palette_route_lookup
     .global vdp_commit_palette
+    .global vdp_install_test_lines
     .extern editor_layera_palette
+    .extern test_sprite_line0
+    .extern test_sprite_line1
     .global vdp_reassert_fg_bank3_line
     .global vdp_commit_scroll
     .global _vblank_service
@@ -198,10 +201,12 @@ _vblank_service:
 
     bsr     vdp_commit_sprites_vram     /* N1: DMA-only, display-on safe */
 
-    bsr     vdp_reassert_fg_bank3_line
-.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
-    bsr     vdp_reassert_bank36_line0
-.endif
+    /* Build 0329: the Build-0325 per-VBlank vdp_reassert_test_lines was REMOVED.  R1/P1 Test
+     * Lines 0/1/3 are now installed once at the scene-activation event
+     * (load_scene_tiles -> vdp_install_test_lines), and the arcade palette hooks are gated off
+     * those lines during scene 1 (palette_hooks.s), so no per-frame reassert / unconditional
+     * palette_dirty is needed.  palette_dirty is now asserted only when staged CRAM actually
+     * changes (Test install event, or a legitimate Layer-B / future-animation producer). */
     tst.b   palette_dirty
     beq.s   .Lvs_skip_palette
     bsr     vdp_commit_palette
@@ -402,6 +407,38 @@ vdp_commit_scroll:
     .equ PR_SCENE_GAMEPLAY,   1
     .equ PR_OWNER_PC080SN_FG, 2
     .equ PR_FG_BANK,          3
+/* Build 0329: ONE-SHOT R1/P1 Test-palette installer (event-driven, not a VBlank reassert).
+ * Called from load_scene_tiles at the gameplay-scene activation event (genesistan_current_scene_id
+ * has just been set to 1), i.e. exactly when R1/P1 becomes active - NOT every frame.  Installs the
+ * frozen-Test static R1/P1 palettes onto Genesis Lines 0/1/3 and marks the palette dirty ONCE, so
+ * the next VBlank commit publishes them.  Line 2 (Layer B) is never touched.  After this install the
+ * arcade palette hooks are gated off Lines 0/1/3 during scene 1 (palette_hooks.s), so the Test lines
+ * stay static until the next scene-activation event (e.g. a Phase-2 load, which may install different
+ * ownership).  Offsets: staged_palette_words is 4 lines x 16 words; line N at +N*32 bytes. */
+vdp_install_test_lines:
+    movem.l %d2/%a0-%a1, -(%sp)
+    lea     staged_palette_words, %a1          /* Line 0 */
+    lea     test_sprite_line0, %a0
+    moveq   #(16 - 1), %d2
+.Liti_l0:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d2, .Liti_l0
+    lea     staged_palette_words + 32, %a1     /* Line 1 */
+    lea     test_sprite_line1, %a0
+    moveq   #(16 - 1), %d2
+.Liti_l1:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d2, .Liti_l1
+    lea     staged_palette_words + 96, %a1     /* Line 3 */
+    lea     editor_layera_palette, %a0
+    moveq   #(16 - 1), %d2
+.Liti_l3:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d2, .Liti_l3
+    move.b  #1, palette_dirty
+    movem.l (%sp)+, %d2/%a0-%a1
+    rts
+
 vdp_reassert_fg_bank3_line:
     /* Build 0320: reverted to Build-0316 carrier behavior (0318 unconditional assert removed). */
     cmpi.b  #1, genesistan_current_scene_id

@@ -165,19 +165,12 @@
     movem.l %d1-%d3/%a0, -(%sp)
     move.w  %d0, -(%sp)
 
-    move.w  %d0, %d2
-    andi.w  #0x01FF, %d2                /* full arcade PC080SN color bank */
-    moveq   #SCENE_GAMEPLAY_ID, %d0
-    moveq   #PLANE_A_NATIVE_OWNER_PC080SN_FG, %d1
-    bsr     palette_route_lookup         /* d0 = line or -1; d3 = flags */
-    tst.l   %d0
-    bpl.s   .Lplane_a_native_attr_line_ready
-    move.w  %d2, %d0                     /* conservative legacy fallback */
-    andi.w  #0x0003, %d0
-.Lplane_a_native_attr_line_ready:
-    andi.w  #0x0003, %d0
+    /* Build 0325: ONE generalized R1/P1 Layer-A rule. Every authored Layer-A source bank
+     * (0x003,0x004,0x005,0x006,0x007,0x017,0x018,0x01A-0x01D) resolves to the shared Test
+     * Layer-A master palette on Genesis Line 3. No per-bank routing, no bank&3 fallback. */
+    moveq   #3, %d0
     lsl.w   #8, %d0
-    lsl.w   #5, %d0                      /* Genesis palette line bits 14:13 */
+    lsl.w   #5, %d0                      /* Genesis palette line bits 14:13 (Line 3 = 0x6000) */
 
     move.w  (%sp), %d1
     btst    #14, %d1                     /* PC080SN H flip */

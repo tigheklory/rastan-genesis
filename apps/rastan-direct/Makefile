@@ -43,7 +43,7 @@ PC090OJ_MIRROR_RECORDS ?= 256
 # 2 keeps only the player-one score group (1UP label + 1P score records 28..36)
 # while suppressing the rest of the gameplay HUD family; palette routing follows
 # mode 0 so the bank-0x36 carrier path remains active.
-RASTAN_GAMEPLAY_HUD_SPRITES ?= 0
+RASTAN_GAMEPLAY_HUD_SPRITES ?= 2
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
 
@@ -51,6 +51,12 @@ MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
 PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
 PC080SN_EDITOR_LAYERA := $(ROOT)/build/regions/pc080sn_editor_layera.bin
 EDITOR_LAYERA_SNAPSHOT := $(ROOT)/build/rastan-direct/build0314/Test.snapshot.json
+# Canonical approved pattern reference-substitution policy (offline only). Consumed automatically by the
+# normal build: apply_pattern_reuse.py validates every approved entry against the real plane-A usage
+# inventory and fails the build on any unresolved entry. Editing the policy re-triggers validation.
+PATTERN_REUSE_POLICY := $(ROOT)/specs/pattern_reuse_policy.json
+PATTERN_REUSE_RESOLVED := $(ROOT)/build/regions/pattern_reuse_resolved.json
+PLANE_A_USES := $(ROOT)/analysis/graphics_optimizer/round1_phase1/plane_a_uses.json
 PC080SN_TILE_LUT := $(ROOT)/build/pc080sn_tile_vram_lut.bin
 PC080SN_ATTR_LUT := $(ROOT)/build/pc080sn_attr_lut.bin
 PC080SN_SCENE_PRELOAD_TITLE := $(ROOT)/build/pc080sn_scene_preload_title.bin
@@ -70,6 +76,12 @@ PC080SN_BOUNDARY_REPORT := $(PC080SN_BOUNDARY_DIR)/boundary_report.json
 PC080SN_TRANSITION_RETENTION_STAMP := $(OUT_DIR)/build0311_transition_retention_gate.stamp
 PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
 PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
+# Build 0325: offline Palette-Composer-reindexed R1/P1 sprite region (frozen Test index_maps per resolved
+# (code,bank)). Consumed by pc090oj_assets.s. Provenance in pc090oj_editor_manifest.json.
+PC090OJ_EDITOR := $(ROOT)/build/regions/pc090oj_editor.bin
+SPRITE_ENEMIES_CORPUS := $(ROOT)/analysis/graphics_optimizer/round1_phase1_corpus/enemies.json
+SPRITE_ENEMY_PATTERNS := $(ROOT)/analysis/graphics_optimizer/round1_phase1_corpus/enemy_patterns.json
+SPRITE_FAMILIES := $(ROOT)/analysis/graphics_optimizer/round1_phase1/sprite_families.json
 PC090OJ_HUD_WHITE := $(ROOT)/build/pc090oj_hud_white_genesis.bin
 PC090OJ_SLOT_LUT := $(ROOT)/build/pc090oj_slot_lut.bin
 PC090OJ_BLANK_BITSET := $(ROOT)/build/pc090oj_blank_bitset.bin
@@ -139,7 +151,16 @@ $(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s FORCE_ASM_REBUILD | $(OUT
 $(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(PC080SN_EDITOR_LAYERA): $(PC080SN_REGION) $(EDITOR_LAYERA_SNAPSHOT) $(ROOT)/analysis/graphics_optimizer/round1_phase1/plane_a_uses.json $(ROOT)/tools/graphics_editor/gen_reindexed_region.py
+# Validated pattern-reuse resolution: canonical policy -> resolved (code,bank) substitutions. Hard gate:
+# 0 unresolved approved entries or the build stops here. This artifact + its recorded policy_sha256 are the
+# provenance the faithful (code,bank) target-pattern compiler consumes.
+$(PATTERN_REUSE_RESOLVED): $(PATTERN_REUSE_POLICY) $(PLANE_A_USES) $(ROOT)/tools/translation/apply_pattern_reuse.py
+	$(PYTHON) "$(ROOT)/tools/translation/apply_pattern_reuse.py" \
+		--policy "$(PATTERN_REUSE_POLICY)" \
+		--uses "$(PLANE_A_USES)" \
+		--out "$@"
+
+$(PC080SN_EDITOR_LAYERA): $(PC080SN_REGION) $(EDITOR_LAYERA_SNAPSHOT) $(PATTERN_REUSE_RESOLVED) $(ROOT)/analysis/graphics_optimizer/round1_phase1/plane_a_uses.json $(ROOT)/tools/graphics_editor/gen_reindexed_region.py
 	$(PYTHON) "$(ROOT)/tools/graphics_editor/gen_reindexed_region.py" \
 		--profile "$(EDITOR_LAYERA_SNAPSHOT)" \
 		--pc080sn "$(PC080SN_REGION)" \
@@ -177,6 +198,12 @@ $(PC090OJ_PRECONV): $(PC090OJ_REGION) $(ROOT)/tools/translation/preconvert_pc090
 	$(PYTHON) "$(ROOT)/tools/translation/preconvert_pc090oj_tiles.py" \
 		--input "$<" --output "$@"
 
+$(PC090OJ_EDITOR): $(PC090OJ_PRECONV) $(EDITOR_LAYERA_SNAPSHOT) $(SPRITE_ENEMIES_CORPUS) $(SPRITE_ENEMY_PATTERNS) $(SPRITE_FAMILIES) $(ROOT)/tools/graphics_editor/gen_reindexed_pc090oj.py
+	$(PYTHON) "$(ROOT)/tools/graphics_editor/gen_reindexed_pc090oj.py" \
+		--profile "$(EDITOR_LAYERA_SNAPSHOT)" --pc090oj "$(PC090OJ_PRECONV)" \
+		--enemies "$(SPRITE_ENEMIES_CORPUS)" --enemy-patterns "$(SPRITE_ENEMY_PATTERNS)" \
+		--families "$(SPRITE_FAMILIES)" --out "$@"
+
 $(PC090OJ_HUD_WHITE): $(PC090OJ_PRECONV) $(ROOT)/tools/translation/build_pc090oj_hud_white.py
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_hud_white.py" \
 		--input "$<" --output "$@"
@@ -201,7 +228,7 @@ $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_PRECONV) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_EDITOR) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/diag_bookmark.o: $(SRC_DIR)/diag_bookmark.s FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -302,6 +329,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 	cp "$@" "$$numbered"; \
 	if [ ! -s "$$numbered" ]; then echo "ERROR: numbered build artifact missing/empty after copy: $$numbered"; exit 1; fi; \
 	printf "%d\n" "$$next" > "$$counter_file"; \
+	printf "%s PRODUCED %s auto-recorded-by-release\n" "$$tag" "$$(date +%Y-%m-%d)" >> "$(CONSUMED_BUILD_LEDGER)"; \
 	echo "numbered build artifact: $$numbered"; \
 	trace_ts=$$(date +%Y%m%d_%H%M%S); \
 	trace_dir="$(ROOT)/states/traces/$(NUMBERED_PREFIX)_$${tag}_mame_30s_$${trace_ts}"; \
@@ -323,9 +351,10 @@ $(OUT_DIR)/fg_tile_cache.o: $(SRC_DIR)/fg_tile_cache.s FORCE_ASM_REBUILD | $(OUT
 	$(AS) $(ASFLAGS) -m68000 -o $@ $<
 
 $(PC080SN_BOUNDARY_PACKAGES) $(PC080SN_BOUNDARY_CONSTANTS) $(PC080SN_BOUNDARY_REPORT): \
-		$(MAINCPU_REGION) $(PC080SN_REGION) $(PC080SN_EDITOR_LAYERA) $(ROOT)/tools/translation/compile_pc080sn_genesis.py
+		$(MAINCPU_REGION) $(PC080SN_REGION) $(PC080SN_EDITOR_LAYERA) $(PATTERN_REUSE_RESOLVED) $(ROOT)/tools/translation/compile_pc080sn_genesis.py
 	$(PYTHON) "$(ROOT)/tools/translation/compile_pc080sn_genesis.py" \
 		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_EDITOR_LAYERA)" \
+		--pattern-reuse "$(PATTERN_REUSE_RESOLVED)" \
 		--out "$(PC080SN_BOUNDARY_DIR)" --boundary-experiment
 
 $(PC080SN_TRANSITION_RETENTION_STAMP): $(PC080SN_BOUNDARY_PACKAGES) \
