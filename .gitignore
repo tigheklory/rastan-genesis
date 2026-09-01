@@ -70,3 +70,6 @@ audio/rastan_music_dump/tools/vgm2fur/
 
 # Local MAME source snapshots for reference only
 docs/reference/mame/
+
+# Local-only reference: Sonic 1 disassembly (NOT part of this project; do not commit)
+docs/reference/s1disasm/

@@ -9,13 +9,8 @@
     .include "pc090oj_config.inc"
 
     .extern genesistan_current_scene_id
-    .extern palette_dirty
     .extern staged_palette_words
-    .extern fg_bank3_line_cache
-    .extern fg_bank3_cache_valid
-    .extern fg_bank3_route_seen
-    .extern pc090oj_bank36_line0_cache
-    .extern pc090oj_bank36_cache_valid
+    /* Build 0336: palette_dirty and the fg-bank3 / bank-0x36 carrier caches were retired. */
 
 /* ------------------------------------------------------------------------- *
  * Build 0175: arcade palette-bank -> Genesis CRAM-line route table.
@@ -139,15 +134,11 @@ palette_route_lookup:
  */
 genesistan_palette_hook_59ad4:
     movem.l %d0-%d7/%a0-%a2, -(%sp)
-    clr.b   fg_bank3_route_seen
 
-    /* Build 0145: the arcade's bank-51 sprite-palette update reaches this helper
-     * with d0 = 0x33; route it to Genesis staged line 3 (destination d0 = 3)
-     * through the existing conversion/staging body, keeping the arcade's own
-     * source (a0 + d1*32).  Every other high bank keeps the existing <4
-     * rejection. Build 0174: Stage-1 PC080SN FG uses arcade color bank 3,
-     * while Genesis line 3 is reserved for sprite bank 51, so carry arcade
-     * bank 3 in otherwise-free gameplay line 1. */
+    /* Build 0145: the arcade's bank-51 sprite-palette update reaches this helper with d0 = 0x33;
+     * route it to Genesis staged line 3.  Build 0174: Stage-1 PC080SN FG bank 3 -> Genesis line 1.
+     * Build 0336: the fg-bank3 / bank-0x36 carrier-cache side path was removed with the dead
+     * reasserts; bank 0x36 now simply falls through to the normal reject. */
     cmpi.w  #0x0033, %d0
     bne.s   .L59_not_bank51
     moveq   #3, %d0                 /* arcade bank 51 -> Genesis line 3 */
@@ -156,17 +147,21 @@ genesistan_palette_hook_59ad4:
     cmpi.w  #3, %d0
     bne.s   .L59_not_bank3
     moveq   #1, %d0                 /* arcade bank 3 -> Genesis line 1 */
-    move.b  #1, fg_bank3_route_seen /* remember bank-3 route for line-1 cache */
     bra.s   .L59_dest_ready
 .L59_not_bank3:
-.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
-    /* Build 0208: arcade sprite bank 0x36 (lizard men) -> cache only.  The
-     * bank is written once at stage load, possibly while the frontend still
-     * owns line 0, so it is never staged directly; the gameplay carrier
-     * (vdp_reassert_bank36_line0) applies the cache during scene 1. */
-    cmpi.w  #0x0036, %d0
-    beq     .L59_bank36_cache
-.endif
+    /* Build 0334 EXPERIMENTAL: type-9 waterfall route.  In scene 1 the arcade water banks 0x1A-0x1D
+     * carry the type-9 frame data whose only non-0xFFFF entries are 14 and 15.  Publish those two
+     * animated colors POSITIONALLY to Line-3 entries 14/15 (dominant authored mapping = identity),
+     * preserving every other Line-3 entry and the 0xFFFF keep.  NOT the general (compacting) loop;
+     * NOT a permanent mapping; the arcade owns the timing (D1 = frame index). */
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .L59_not_water
+    cmpi.w  #0x001A, %d0
+    blo.s   .L59_not_water
+    cmpi.w  #0x001D, %d0
+    bhi.s   .L59_not_water
+    bra.w   .L59_water
+.L59_not_water:
     cmpi.w  #4, %d0
     bcc.s   .L59_done
 .L59_dest_ready:
@@ -219,43 +214,47 @@ genesistan_palette_hook_59ad4:
 .L59_next:
     dbra    %d6, .L59_loop
 
-    tst.b   %d5
-    beq.s   .L59_done
-    move.b  #1, palette_dirty
 .L59_done:
-    /* Build 0175: if this call staged arcade FG bank 3 into staged line 1,
-     * snapshot line 1 into the carrier cache so the gameplay re-assert can
-     * restore it after any later frontend line-1 write. */
-    tst.b   fg_bank3_route_seen
-    beq.s   .L59_no_cache
-    /* Build 0315: stage the offline Palette Composer Layer-A palette (editor Line-3 values)
-     * onto the FG carrier line instead of the converted arcade bank 3. Static ROM data only;
-     * no runtime conversion/mapping. */
-    lea     editor_layera_palette, %a0
-    lea     fg_bank3_line_cache, %a1
-    moveq   #(16 - 1), %d7
-.L59_cache_copy:
-    move.w  (%a0)+, (%a1)+
-    dbra    %d7, .L59_cache_copy
-    move.b  #1, fg_bank3_cache_valid
-.L59_no_cache:
+    /* Build 0336: publication is the unconditional VBlank CRAM DMA -- no palette_dirty here; the
+     * retired fg-bank3 carrier-cache snapshot was removed with the dead reasserts. */
     movem.l (%sp)+, %d0-%d7/%a0-%a2
     rts
 
-.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
-/* Build 0208: convert arcade bank 0x36 (source = a0 + d1*32, same entry format
- * as the main body) into the gameplay line-0 carrier cache.  Never stages the
- * live palette here; the scene-1 re-assert owns line 0 during gameplay. */
-.L59_bank36_cache:
+/* Build 0334 EXPERIMENTAL type-9 waterfall handler.  a0 = frame table base, d1 = frame row.
+ * Reads arcade animated entries 14 (offset 0x1C) and 15 (0x1E) from frame source a0 + row*0x20;
+ * converts arcade 0RGB444 -> Genesis CRAM; writes ONLY Line-3 entries 14/15 (offsets 0x1C/0x1E in
+ * the 32-byte line), change-detected.  Every other Line-3 entry and Line 2 are untouched.
+ * d0-d7/a0-a2 are restored by the .L59_done movem. */
+.L59_water:
     move.w  %d1, %d2
     mulu.w  #32, %d2
-    adda.w  %d2, %a0
-    lea     pc090oj_bank36_line0_cache, %a1
-    moveq   #15, %d6
-.L59_b36_loop:
-    move.w  (%a0)+, %d1
+    adda.w  %d2, %a0                     /* a0 = frame source (16 words) */
+    lea     staged_palette_words + (3 * 32), %a1  /* Line 3 base */
+    moveq   #0, %d5
+    move.w  28(%a0), %d1                 /* arcade entry 14 */
     cmpi.w  #0xFFFF, %d1
-    beq.s   .L59_b36_next
+    beq.s   .L59_water_e15
+    bsr     .L59_water_cvt
+    cmp.w   28(%a1), %d1                 /* Line 3 index 14 */
+    beq.s   .L59_water_e15
+    move.w  %d1, 28(%a1)
+    moveq   #1, %d5
+.L59_water_e15:
+    move.w  30(%a0), %d1                 /* arcade entry 15 */
+    cmpi.w  #0xFFFF, %d1
+    beq.s   .L59_water_fin
+    bsr     .L59_water_cvt
+    cmp.w   30(%a1), %d1                 /* Line 3 index 15 */
+    beq.s   .L59_water_fin
+    move.w  %d1, 30(%a1)
+    moveq   #1, %d5
+.L59_water_fin:
+    /* Build 0336: the staged Line-3 14/15 writes above are published by the unconditional VBlank
+     * CRAM DMA (no palette_dirty).  This restores the Build-0334 waterfall animation. */
+    bra.w   .L59_done
+
+/* arcade 0RGB444 in d1 -> Genesis CRAM in d1; clobbers d0/d2/d3 (same conversion as the main body). */
+.L59_water_cvt:
     move.w  %d1, %d2
     move.w  %d1, %d3
     andi.w  #0x0F00, %d1
@@ -268,14 +267,10 @@ genesistan_palette_hook_59ad4:
     add.w   %d1, %d3
     add.w   %d2, %d3
     move.w  %d3, %d0
-    bsr     .Lxbgr555_to_cram
-    move.w  %d1, (%a1)
-.L59_b36_next:
-    addq.l  #2, %a1
-    dbra    %d6, .L59_b36_loop
-    move.b  #1, pc090oj_bank36_cache_valid
-    bra     .L59_done
-.endif
+    bra     .Lxbgr555_to_cram           /* tail-call: converts d0 -> d1, then rts */
+
+/* Build 0336: the bank-0x36 line-0 carrier cache handler (.L59_bank36_cache) was removed with the
+ * dead bank36 reassert; bank 0x36 now falls through to the normal reject. */
 
 /* 0x03AB00 replacement
  * original: movew #1023,0x200022 (bank 1, entry 1), already xBGR-555
@@ -287,7 +282,7 @@ genesistan_palette_hook_03ab00:
     bsr     .Lxbgr555_to_cram
     lea     staged_palette_words, %a0
     move.w  %d1, 34(%a0)
-    move.b  #1, palette_dirty
+    /* Build 0336: no palette_dirty; the unconditional VBlank CRAM DMA publishes this staged word. */
 
     movem.l (%sp)+, %d0-%d3/%a0
     rts
@@ -328,7 +323,7 @@ genesistan_palette_hook_45dae:
     addq.l  #2, %a2
     dbra    %d4, .L45_loop
 
-    move.b  #1, palette_dirty
+    /* Build 0336: no palette_dirty; the unconditional VBlank CRAM DMA publishes the staged lines. */
 
 .L45_done:
     movem.l (%sp)+, %d0-%d4/%a0-%a2
@@ -343,7 +338,6 @@ genesistan_palette_hook_45dae:
 genesistan_palette_hook_3ba64:
     movem.l %d4-%d7/%a1, -(%sp)
     clr.l   %d5
-    clr.b   fg_bank3_route_seen
 
 .L3ba64_loop:
     /* Reproduce original 0x03BA64 conversion in D0/D1/D2. */
@@ -379,20 +373,8 @@ genesistan_palette_hook_3ba64:
     bra.w   .L3ba64_line_ok
 
 .L3ba64_chk_b36src:
-.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
-    /* Build 0208: sprite bank 0x36 (lizard men) follows the same source-buffer
-     * path as bank 51 (Build 0161): the arcade writes it to the sprite-palette
-     * SOURCE buffer at a5@0x1600 + (bank-0x30)*0x20 -- bank 0x36 = Genesis
-     * 0x00FF16C0..0x00FF16DF -- then memcpy's to palette RAM 0x2006C0 (dropped
-     * on Genesis).  Catch the source-buffer write and cache it for the
-     * gameplay line-0 carrier (never staged directly). */
-    cmpi.l  #0x00FF16C0, %d4
-    blo.s   .L3ba64_chk_palram
-    cmpi.l  #0x00FF16E0, %d4
-    bhs.s   .L3ba64_chk_palram
-    bra     .L3ba64_bank36_cache    /* entry = (addr & 0x1F) >> 1, same math */
-.endif
-
+    /* Build 0336: the bank-0x36 source-buffer carrier cache was removed with the dead reasserts;
+     * such writes now fall through to the palette-RAM check (and are skipped). */
 .L3ba64_chk_palram:
     /* Only map arcade palette RAM 0x200000..0x200FFF into Genesis staging. */
     cmpi.l  #0x00200000, %d4
@@ -416,14 +398,9 @@ genesistan_palette_hook_3ba64:
     beq.s   .L3ba64_to_line2
     cmpi.l  #51, %d6
     beq.s   .L3ba64_to_line3
-.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
-    cmpi.l  #0x36, %d6              /* Build 0208: bank 0x36 -> carrier cache */
-    beq     .L3ba64_bank36_cache
-.endif
-    bra.s   .L3ba64_next            /* all other banks skipped */
+    bra.s   .L3ba64_next            /* all other banks skipped (incl. bank 0x36) */
 .L3ba64_to_line1:
     moveq   #1, %d6                 /* arcade bank 3 -> Genesis line 1 */
-    move.b  #1, fg_bank3_route_seen /* remember bank-3 route for line-1 cache */
     bra.s   .L3ba64_line_ok
 .L3ba64_to_line2:
     moveq   #2, %d6                 /* arcade bank 48 -> Genesis line 2 */
@@ -462,50 +439,11 @@ genesistan_palette_hook_3ba64:
     subq.l  #1, %d3
     bne     .L3ba64_loop
 
-    tst.l   %d5
-    beq.s   .L3ba64_done
-    move.b  #1, palette_dirty
-
 .L3ba64_done:
-    /* Build 0175: snapshot staged line 1 into the FG bank-3 carrier cache when
-     * this call routed arcade bank 3 there.  a0 (arcade return pointer) must be
-     * preserved; a1 is restored by movem below. */
-    tst.b   fg_bank3_route_seen
-    beq.s   .L3ba64_no_cache
-    move.l  %a0, -(%sp)
-    /* Build 0315: stage the offline Palette Composer Layer-A palette (editor Line-3 values)
-     * onto the FG carrier line instead of the converted arcade bank 3. Static ROM data only;
-     * no runtime conversion/mapping. */
-    lea     editor_layera_palette, %a0
-    lea     fg_bank3_line_cache, %a1
-    moveq   #(16 - 1), %d7
-.L3ba64_cache_copy:
-    move.w  (%a0)+, (%a1)+
-    dbra    %d7, .L3ba64_cache_copy
-    move.b  #1, fg_bank3_cache_valid
-    move.l  (%sp)+, %a0
-.L3ba64_no_cache:
+    /* Build 0336: no palette_dirty and no fg-bank3 carrier-cache snapshot (both retired with the
+     * dead reasserts); the unconditional VBlank CRAM DMA publishes the staged palette. */
     movem.l (%sp)+, %d4-%d7/%a1
     rts
-
-.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
-/* Build 0208: direct arcade palette-RAM write to bank 0x36 (lizard men) ->
- * gameplay line-0 carrier cache.  d0 = converted xBGR-555 color, d4 = arcade
- * destination address, d3 = live long loop counter (preserved across the
- * conversion BSR exactly like the staged path). */
-.L3ba64_bank36_cache:
-    move.l  %d4, %d7
-    andi.l  #0x001F, %d7
-    lsr.l   #1, %d7                  /* entry within bank: 0..15 */
-    move.l  %d3, %d4                 /* preserve long loop counter across BSR */
-    bsr     .Lxbgr555_to_cram
-    move.l  %d4, %d3
-    lsl.w   #1, %d7                  /* byte offset in the cache */
-    lea     pc090oj_bank36_line0_cache, %a1
-    move.w  %d1, 0(%a1,%d7.w)
-    move.b  #1, pc090oj_bank36_cache_valid
-    bra     .L3ba64_next
-.endif
 
 
     .section .rodata

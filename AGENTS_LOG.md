@@ -47791,3 +47791,72 @@ normal `make` build.
 - builds: none this turn ; ROM SHA: n/a
 - Line 2 changed: NO ; per-VBlank reassert: NO ; hook not altered: correct (proof was read-only)
 - release overwrite guard: hardened+verified prior turn (unchanged)
+
+### MAME Exit Summary (2026-09-01 10:23:10)
+- Final PC: 0x073C78
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Experimental R1/P1 Waterfall Palette Animation]
+
+- classification: EXTENDING
+- experiment: YES
+- baseline: Build 0333
+- arcade animation source: type 9 (FUN_00041F30 -> FUN_000599B2 -> FUN_00059AD4 = hook_59ad4)
+- arcade source indices: 14,15 ; counter a5+0x12EA ; every 8 frames ; 4 frames ; table 0x59B7A
+- Genesis candidate target entries: L3:14, L3:15 (identity)
+- mapping rationale: dominant Test Layer-A authored correspondence (src14->L3:14 307/648; src15->L3:15 254/599)
+- independent Genesis timer: NO (arcade D1 frame index drives)
+- Line 2 changed: NO (sunset byte-identical to 0333, verified)
+- Line-3 other entries changed: NO (only offsets 0x1C/0x1E = indices 14/15)
+- every-VBlank palette dirty: NO (change-detected)
+- route scope: scene 1 + banks 0x1A-0x1D only; general >=4 reject unchanged; dedicated positional route (not the compacting loop)
+- build(s): 0334
+- ROM SHA(s): 61730a60b81d4b03b3d14b3893f031e1660b33dec3354a3637604d5b5751a261
+- release ledger recorded: YES (0334 PRODUCED 2026-09-01 auto-recorded-by-release)
+- USER MUST VERIFY: waterfall visibly animates; speed; colors; no unrelated Layer-A pulsing; Layer-B/sunset correct
+- architectural mapping proven: NO (experimental)
+- Palette Composer policy changed: NO
+- Build A Rastan follow-up preserved: YES
+
+### MAME Exit Summary (2026-09-01 11:06:10)
+- Final PC: 0x073C70
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0335 Diagnostic: water route palette_dirty disabled]
+- classification: EXTENDING (diagnostic experiment, Tighe-requested)
+- baseline: Build 0334
+- change: commented out `move.b #1, palette_dirty` in .L59_water_fin (palette_hooks.s). Water route still writes staged L3:14/15; no longer requests a CRAM commit.
+- purpose: determine whether the waterfall still animates without the water route marking dirty (=> another per-frame committer exists => explains slowness/noise) or freezes (=> water route was the sole commit trigger).
+- build: 0335 ; SHA: 7d05a3427edfc6b63164c00723f96e2ff25d25bd4d4bb1b11e6e78f697127168 ; ledger recorded: YES
+- gates: GATE_PASS, seven-epoch PASS, Plane A/B PASS, exceptions/addr/bus 0, MAME smoke clean
+- Line 2 / Lines 0/1 / Rastan route / terminator: unchanged
+- USER MUST VERIFY: on the water screen — does water still animate? is it still slow? is the noise still present?
+
+### MAME Exit Summary (2026-09-01 14:18:35)
+- Final PC: 0x073ADA
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0336 Sonic-Style CRAM DMA Palette Publication]
+- classification: INFRASTRUCTURE
+- baseline source: 0335 ; visual water target: 0334
+- previous publication: 64-word CPU PIO loop (dirty-gated, late in VBlank)
+- new publication: 64-word 68k->CRAM DMA (staged_palette_words -> CRAM 0, autoinc 2, trigger 0xC0000080)
+- publication frequency: once per Genesis VBlank, unconditional
+- VBlank position: early, right after rastan_direct_update_inputs, before plane/sprite DMAs
+- Z80 stop required: NO (evidence: existing production vdp_dma_words_to_vram plane DMAs use no Z80 stop and ship correctly; followed that convention)
+- palette_dirty retired: YES ; live palette_dirty refs remaining: 0 (gate, BSS, boot init, all hook/install/water writers removed; clean link)
+- reassert routines removed: vdp_reassert_fg_bank3_line, vdp_reassert_bank36_line0 (dead since 0325)
+- carrier/cache state removed: fg_bank3_line_cache, fg_bank3_cache_valid, fg_bank3_route_seen, pc090oj_bank36_line0_cache, pc090oj_bank36_cache_valid + hook cache-write side paths
+- retained change detection: the hooks' compare-before-store loops left intact (harmless; reduce redundant staged writes); only their palette_dirty request removed
+- semantic Test producer frequency: event-only (vdp_install_test_lines at scene activation)
+- Line 2 semantics changed: NO ; waterfall timer source: ARCADE ; independent Genesis timer: NO
+- waterfall target: L3:14/L3:15 ; water mapping changed: NO ; old palette PIO loop remains: NO
+- Layer-B regression: PASS (staged Line-2 byte-identical to 0333/0328: sky f387, sunset f1577; l013 static 0xC480)
+- BSS shift: staged_palette_words 0xFF60E4->0xFF60A0, scene_id 0xFFC0AC->0xFFC068 (non-production trace lua made env-overridable; no ROM impact)
+- standard gates: canonical PASS, seven-epoch PASS, Plane A/B PASS, drops 0, exceptions/addr/bus 0, MAME clean, HUD mode 2
+- build: 0336 ; ROM SHA: a83d48b8f43cff9a326ad5499823e693b9695409837e41170a003caaab9f065e ; release ledger recorded: YES
+- USER MUST VERIFY: waterfall animation + speed, water-screen noise gone, game speed, Layer-B/sunset, no unrelated Layer-A pulsing, Rastan/known defects unchanged, Build-0328 terminator intact
+- Build A Rastan follow-up preserved: YES

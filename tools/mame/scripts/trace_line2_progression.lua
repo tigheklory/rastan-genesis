@@ -8,11 +8,13 @@ local machine = manager.machine
 local cpu = assert(machine.devices[":maincpu"], "missing :maincpu")
 local program = assert(cpu.spaces["program"], "missing program space")
 local out = os.getenv("GEN_L2_OUT") or "."
-local STAGED = 0x00FF60E4
+-- Addresses are env-overridable because BSS symbols move between builds (check apps/rastan-direct/out/symbol.txt).
+-- Defaults are the Build-0336 addresses (after the palette-scaffolding BSS removal).
+local STAGED = tonumber(os.getenv("GEN_L2_STAGED") or "0xFF60A0")
 local L2  = STAGED + 0x40            -- Line 2 = words 32..47
-local SCENE = 0x00FFC0AC             -- genesistan_current_scene_id
-local TILESET = 0x00FFC0AD           -- genesistan_current_pc080sn_tileset_id (per-segment id)
-local PDIRTY = 0x00FF4044            -- palette_dirty
+local SCENE = tonumber(os.getenv("GEN_L2_SCENE") or "0xFFC068")     -- genesistan_current_scene_id
+local TILESET = tonumber(os.getenv("GEN_L2_TILESET") or "0xFFC069") -- genesistan_current_pc080sn_tileset_id
+local PDIRTY = tonumber(os.getenv("GEN_L2_PDIRTY") or "0xFF4044")   -- (palette_dirty retired in 0336; column defunct)
 local RUN_FRAMES = tonumber(os.getenv("GEN_L2_FRAMES") or "2600")
 
 local fields = {}

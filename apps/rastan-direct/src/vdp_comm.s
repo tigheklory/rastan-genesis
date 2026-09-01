@@ -15,22 +15,14 @@
     .extern vdp_prepare_sprites
     .extern vdp_commit_sprites_vram
     .extern genesistan_current_scene_id
-    .extern palette_route_lookup
     .global vdp_commit_palette
     .global vdp_install_test_lines
     .extern editor_layera_palette
     .extern test_sprite_line0
     .extern test_sprite_line1
-    .global vdp_reassert_fg_bank3_line
     .global vdp_commit_scroll
     .global _vblank_service
-    .global fg_bank3_line_cache
-    .global fg_bank3_cache_valid
-    .global fg_bank3_route_seen
-    .global pc090oj_bank36_line0_cache
-    .global pc090oj_bank36_cache_valid
 
-    .global palette_dirty
     .global tiles_dirty
     .global bg_row_dirty
     .global fg_row_dirty
@@ -181,37 +173,24 @@ sprite_dma_addr_high_bits_fix:
 _vblank_service:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     rastan_direct_update_inputs
+
+    /* Build 0336: publish the full 64-word staged palette to CRAM by ONE 68k->CRAM DMA, at the
+     * earliest safe point in VBlank (before the heavy plane/sprite DMA), UNCONDITIONALLY.  This is
+     * the Sonic-1 model (_inc/PaletteCycle.asm producers + writeCRAM DMA): semantic producers own
+     * WHAT is staged (scene install, Layer-B sunset, arcade waterfall step); VBlank only publishes
+     * the canonical staged buffer.  Replaces the old dirty-gated 64-word CPU PIO commit (the
+     * CRAM-write noise source).  No palette_dirty, no per-frame reassert. */
+    bsr     vdp_commit_palette
+
     bsr     vdp_prepare_sprites
 
-    /* N2 (Build 0227): display stays ON.  The 0223 coordinate model is retained
-     * verbatim (window->staged[0..31], VSRAM &7 residual — proven correct);
-     * the ONLY change vs 0223 is that the display-off bracket is deleted and the
-     * heavy plane commits use bounded VRAM DMA instead of PIO.  The display-off
-     * bracket — not the coordinates — was the sole cause of the title/rolling
-     * black bars; the 0226 ring rewrite that introduced the cyan band and the
-     * half-screen FG displacement is fully reverted. */
+    /* N2 (Build 0227): display stays ON; heavy plane commits use bounded VRAM DMA.
+     * Commit order: tiles -> bg strips -> fg narrow (Build 0256). */
     bsr     vdp_commit_tiles_if_dirty
-    /* Build 0256: dead PC080SN tall-projector consumer interface retired.
-     * The projector bodies were removed in Build 0253 (no-op RTS stubs); both
-     * the gameplay and non-gameplay VBlank branches then reduced to the same
-     * single BG-strip commit, so the Build 0252 scene gate is redundant.
-     * Surviving commit order is unchanged: tiles -> bg strips -> fg narrow. */
     bsr     vdp_commit_bg_strips_if_dirty
     bsr     vdp_commit_fg_narrow_strips
 
     bsr     vdp_commit_sprites_vram     /* N1: DMA-only, display-on safe */
-
-    /* Build 0329: the Build-0325 per-VBlank vdp_reassert_test_lines was REMOVED.  R1/P1 Test
-     * Lines 0/1/3 are now installed once at the scene-activation event
-     * (load_scene_tiles -> vdp_install_test_lines), and the arcade palette hooks are gated off
-     * those lines during scene 1 (palette_hooks.s), so no per-frame reassert / unconditional
-     * palette_dirty is needed.  palette_dirty is now asserted only when staged CRAM actually
-     * changes (Test install event, or a legitimate Layer-B / future-animation producer). */
-    tst.b   palette_dirty
-    beq.s   .Lvs_skip_palette
-    bsr     vdp_commit_palette
-    clr.b   palette_dirty
-.Lvs_skip_palette:
 
     bsr     vdp_commit_scroll
 
@@ -351,14 +330,34 @@ vdp_commit_fg_strips_if_dirty:
 .Lfg_done:
     rts
 
+/* Build 0336: publish the full 64-word staged palette to CRAM by ONE 68k->CRAM DMA (Sonic-1
+ * writeCRAM model), replacing the old 64-word CPU PIO loop.  Source = staged_palette_words (WRAM),
+ * length = 64 words, destination = CRAM word 0, autoinc 2.  The source-address encoding mirrors the
+ * proven vdp_dma_words_to_vram; only the trigger differs: CRAM-write (0xC0...) instead of VRAM
+ * (0x40...).  Called unconditionally, early, each VBlank -- no palette_dirty.  Clobbers d1-d3/a1. */
 vdp_commit_palette:
-    move.l  #0xC0000000, VDP_CTRL
-
-    lea     staged_palette_words, %a0
-    move.w  #(64 - 1), %d7
-.Lpal_copy:
-    move.w  (%a0)+, VDP_DATA
-    dbra    %d7, .Lpal_copy
+    movea.l #VDP_CTRL, %a1
+    move.w  #0x8F02, (%a1)              /* reg 0x0F: autoincrement 2 */
+    move.w  #0x9340, (%a1)              /* reg 0x13: DMA length low  = 64 words */
+    move.w  #0x9400, (%a1)              /* reg 0x14: DMA length high = 0 */
+    move.l  #staged_palette_words, %d3
+    lsr.l   #1, %d3                     /* DMA source = word address */
+    move.w  %d3, %d1
+    andi.w  #0x00FF, %d1
+    ori.w   #0x9500, %d1
+    move.w  %d1, (%a1)                  /* reg 0x15: source low */
+    move.l  %d3, %d1
+    lsr.l   #8, %d1
+    andi.w  #0x00FF, %d1
+    ori.w   #0x9600, %d1
+    move.w  %d1, (%a1)                  /* reg 0x16: source mid */
+    move.l  %d3, %d1
+    moveq   #16, %d2
+    lsr.l   %d2, %d1
+    andi.w  #0x007F, %d1
+    ori.w   #0x9700, %d1
+    move.w  %d1, (%a1)                  /* reg 0x17: source high + mode 00 (68k->VDP) */
+    move.l  #0xC0000080, (%a1)          /* CRAM write addr 0 + DMA trigger */
     rts
 
 vdp_commit_scroll:
@@ -396,25 +395,13 @@ vdp_commit_scroll:
     move.w  %d0, VDP_DATA
     rts
 
-/* Build 0175: FG bank-3 carrier re-assert (classification A).
- * The route table (palette_hooks.s) assigns arcade PC080SN FG bank 3 to Genesis
- * line 1 with the CARRIER flag for Stage 1 gameplay.  Evidence: nothing writes
- * that line during gameplay, but a pre-gameplay frontend write leaves it holding
- * a stale (non-bank-3) palette.  Each gameplay VBlank, look up the carrier line
- * and restore the cached converted bank 3 into it if it has drifted, then mark
- * palette dirty so the commit re-DMAs it.  Frontend line 1 (scene != 1) is never
- * touched; the palette hooks own it before gameplay. */
-    .equ PR_SCENE_GAMEPLAY,   1
-    .equ PR_OWNER_PC080SN_FG, 2
-    .equ PR_FG_BANK,          3
-/* Build 0329: ONE-SHOT R1/P1 Test-palette installer (event-driven, not a VBlank reassert).
- * Called from load_scene_tiles at the gameplay-scene activation event (genesistan_current_scene_id
- * has just been set to 1), i.e. exactly when R1/P1 becomes active - NOT every frame.  Installs the
- * frozen-Test static R1/P1 palettes onto Genesis Lines 0/1/3 and marks the palette dirty ONCE, so
- * the next VBlank commit publishes them.  Line 2 (Layer B) is never touched.  After this install the
- * arcade palette hooks are gated off Lines 0/1/3 during scene 1 (palette_hooks.s), so the Test lines
- * stay static until the next scene-activation event (e.g. a Phase-2 load, which may install different
- * ownership).  Offsets: staged_palette_words is 4 lines x 16 words; line N at +N*32 bytes. */
+/* Build 0329/0336: ONE-SHOT R1/P1 Test-palette installer (event-driven).  Called from
+ * load_scene_tiles at the gameplay-scene activation event (genesistan_current_scene_id just set to
+ * 1) - NOT every frame.  Installs the frozen-Test static R1/P1 palettes onto Genesis Lines 0/1/3.
+ * Line 2 (Layer B) is never touched.  The arcade palette hooks are gated off Lines 0/1/3 during
+ * scene 1 (palette_hooks.s), so the Test lines stay static until the next scene-activation event.
+ * The unconditional VBlank CRAM DMA (Build 0336) publishes the staged buffer; no palette_dirty.
+ * Offsets: staged_palette_words is 4 lines x 16 words; line N at +N*32 bytes. */
 vdp_install_test_lines:
     movem.l %d2/%a0-%a1, -(%sp)
     lea     staged_palette_words, %a1          /* Line 0 */
@@ -435,126 +422,21 @@ vdp_install_test_lines:
 .Liti_l3:
     move.w  (%a0)+, (%a1)+
     dbra    %d2, .Liti_l3
-    move.b  #1, palette_dirty
+    /* Build 0336: no palette_dirty; the unconditional VBlank CRAM DMA publishes the staged lines. */
     movem.l (%sp)+, %d2/%a0-%a1
     rts
 
-vdp_reassert_fg_bank3_line:
-    /* Build 0320: reverted to Build-0316 carrier behavior (0318 unconditional assert removed). */
-    cmpi.b  #1, genesistan_current_scene_id
-    bne.s   .Lrfb_done
-    tst.b   fg_bank3_cache_valid
-    beq.s   .Lrfb_done
-    movem.l %d0-%d3/%a0-%a1, -(%sp)
-    moveq   #PR_SCENE_GAMEPLAY, %d0
-    moveq   #PR_OWNER_PC080SN_FG, %d1
-    moveq   #PR_FG_BANK, %d2
-    bsr     palette_route_lookup       /* d0 = line (or -1), d3 = flags */
-    tst.l   %d0
-    bmi.s   .Lrfb_restore_done         /* no matching route */
-    btst    #0, %d3                     /* PROUTE_FLAG_CARRIER */
-    beq.s   .Lrfb_restore_done
-    lsl.w   #5, %d0                     /* line * 32 bytes */
-    lea     staged_palette_words, %a1
-    adda.w  %d0, %a1
-    lea     fg_bank3_line_cache, %a0
-    moveq   #(16 - 1), %d2
-    moveq   #0, %d3
-.Lrfb_cmp:
-    move.w  (%a0)+, %d1
-    cmp.w   (%a1)+, %d1
-    beq.s   .Lrfb_cmp_next
-    moveq   #1, %d3
-.Lrfb_cmp_next:
-    dbra    %d2, .Lrfb_cmp
-    tst.b   %d3
-    beq.s   .Lrfb_restore_done          /* line already holds bank 3 */
-    lea     staged_palette_words, %a1
-    adda.w  %d0, %a1
-    lea     fg_bank3_line_cache, %a0
-    moveq   #(16 - 1), %d2
-.Lrfb_copy:
-    move.w  (%a0)+, (%a1)+
-    dbra    %d2, .Lrfb_copy
-    move.b  #1, palette_dirty
-.Lrfb_restore_done:
-    movem.l (%sp)+, %d0-%d3/%a0-%a1
-.Lrfb_done:
-    rts
-
-.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
-/* Build 0208: PC090OJ bank-0x36 (lizard men) line-0 carrier re-assert.
- * With gameplay HUD sprites suppressed or limited to 1UP-only mode, the shared route table assigns
- * (scene 1, PC090OJ, bank 0x36) -> line 0 with the CARRIER flag.  The arcade
- * writes bank 0x36 once at stage load (possibly while the frontend still owns
- * line 0), so the palette hooks only CACHE the converted bank; each gameplay
- * VBlank this routine looks up the carrier line and restores the cache into it
- * if it has drifted, then marks the palette dirty.  Non-gameplay scenes are
- * never touched (frontend keeps its line-0 HUD white). */
-    .equ PR_OWNER_PC090OJ, 3
-    .equ PR_BANK36,        0x36
-vdp_reassert_bank36_line0:
-    cmpi.b  #1, genesistan_current_scene_id
-    bne.s   .Lrb36_done
-    tst.b   pc090oj_bank36_cache_valid
-    beq.s   .Lrb36_done
-    movem.l %d0-%d3/%a0-%a1, -(%sp)
-    moveq   #PR_SCENE_GAMEPLAY, %d0
-    moveq   #PR_OWNER_PC090OJ, %d1
-    moveq   #PR_BANK36, %d2
-    bsr     palette_route_lookup       /* d0 = line (or -1), d3 = flags */
-    tst.l   %d0
-    bmi.s   .Lrb36_restore_done        /* no matching route */
-    btst    #0, %d3                     /* PROUTE_FLAG_CARRIER */
-    beq.s   .Lrb36_restore_done
-    lsl.w   #5, %d0                     /* line * 32 bytes */
-    lea     staged_palette_words, %a1
-    adda.w  %d0, %a1
-    lea     pc090oj_bank36_line0_cache, %a0
-    moveq   #(16 - 1), %d2
-    moveq   #0, %d3
-.Lrb36_cmp:
-    move.w  (%a0)+, %d1
-    cmp.w   (%a1)+, %d1
-    beq.s   .Lrb36_cmp_next
-    moveq   #1, %d3
-.Lrb36_cmp_next:
-    dbra    %d2, .Lrb36_cmp
-    tst.b   %d3
-    beq.s   .Lrb36_restore_done         /* line already holds bank 0x36 */
-    lea     staged_palette_words, %a1
-    adda.w  %d0, %a1
-    lea     pc090oj_bank36_line0_cache, %a0
-    moveq   #(16 - 1), %d2
-.Lrb36_copy:
-    move.w  (%a0)+, (%a1)+
-    dbra    %d2, .Lrb36_copy
-    move.b  #1, palette_dirty
-.Lrb36_restore_done:
-    movem.l (%sp)+, %d0-%d3/%a0-%a1
-.Lrb36_done:
-    rts
-.endif
+/* Build 0336: the dead PC080SN/PC090OJ palette carrier re-asserts (vdp_reassert_fg_bank3_line,
+ * vdp_reassert_bank36_line0) were removed.  They had no callers since Build 0325 and existed only
+ * to repair CRAM after the old dirty-gated PIO commit; the unconditional VBlank CRAM DMA + the
+ * event-driven producers make them obsolete.  Their carrier caches were removed with them. */
 
     .section .bss
     .align 2
 
-fg_bank3_line_cache:
-    .space (16 * 2)
-fg_bank3_cache_valid:
-    .byte 0
-fg_bank3_route_seen:
-    .byte 0
-    .align 2
-/* Build 0208: converted arcade PC090OJ bank-0x36 palette (line-0 carrier). */
-pc090oj_bank36_line0_cache:
-    .space (16 * 2)
-pc090oj_bank36_cache_valid:
-    .byte 0
-    .align 2
-
-palette_dirty:
-    .byte 0
+/* Build 0336: removed palette scaffolding BSS -- fg_bank3_line_cache, fg_bank3_cache_valid,
+ * fg_bank3_route_seen, pc090oj_bank36_line0_cache, pc090oj_bank36_cache_valid (dead carrier caches)
+ * and palette_dirty (publication is now an unconditional VBlank CRAM DMA). */
 tiles_dirty:
     .byte 0
     .align 2

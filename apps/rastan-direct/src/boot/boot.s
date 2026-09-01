@@ -4,7 +4,6 @@
     .extern vdp_boot_setup
     .extern vdp_set_vram_write_addr
     .extern load_scene_tiles
-    .extern palette_dirty
     .extern tiles_dirty
     .extern bg_row_dirty
     .extern fg_row_dirty
@@ -177,7 +176,7 @@ _bootstrap_clear_staging:
     move.l  #0x00C00000, ARCADE_FIX_DEST_BG
     move.l  #0x00C08000, ARCADE_FIX_DEST_FG
 
-    clr.b   palette_dirty
+    /* Build 0336: palette_dirty retired (palette publication is an unconditional VBlank CRAM DMA). */
     clr.b   tiles_dirty
     clr.l   bg_row_dirty
     clr.l   fg_row_dirty
