@@ -83,6 +83,7 @@
     .extern genesistan_current_scene_id
     .equ    PC090OJ_SCENE_GAMEPLAY_ID, 1
     .extern palette_route_lookup
+    .extern diag_score_bcd                  /* Build 0338: diagnostic score-metric BCD (only referenced when RASTAN_DIAG_SCORE_METRIC=1) */
     /* Build 0208: PROUTE owner id for PC090OJ, matching the constant table in
      * palette_hooks.s (PROUTE_OWNER_PC090OJ = 3). */
     .equ    PROUTE_OWNER_PC090OJ_ID, 3
@@ -1419,6 +1420,13 @@ pc090oj_native_emit_pass:
  * applies the IDENTICAL coordinate transform as .Lpc090oj_decode_record, the
  * native labels reproduce the former scan output exactly. */
 native_frontend_hud_emit:
+.if RASTAN_DIAG_SCORE_METRIC
+    /* Build 0338: overwrite the P1 score with the diagnostic metric BCD right before the frontend HUD
+     * reads it, so the metric wins over the arcade score update.  Memory-to-memory, no registers. */
+    move.b  diag_score_bcd, 0x00FF011E
+    move.b  diag_score_bcd+1, 0x00FF011F
+    move.b  diag_score_bcd+2, 0x00FF0120
+.endif
     bsr     .Lnq_title_emit_scores       /* live scores + credit -> native SAT */
     bsr     .Lnq_title_emit_labels       /* fixed HUD labels -> native SAT */
     rts
@@ -1586,6 +1594,12 @@ native_frontend_hud_emit:
 
 .if RASTAN_GAMEPLAY_HUD_SPRITES == 2
 .Lnq_project_p1_hud:
+.if RASTAN_DIAG_SCORE_METRIC
+    /* Build 0338: gameplay HUD shows the diagnostic metric as the P1 score (memory-to-memory, no regs). */
+    move.b  diag_score_bcd, 0x00FF011E
+    move.b  diag_score_bcd+1, 0x00FF011F
+    move.b  diag_score_bcd+2, 0x00FF0120
+.endif
     movem.l %d0-%d7/%a0-%a2, -(%sp)
     clr.w   native_hud_count
     move.w  #NATIVE_LANE_HUD, native_sprite_lane

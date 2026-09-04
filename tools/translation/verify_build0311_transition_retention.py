@@ -35,14 +35,16 @@ def main() -> int:
     binary = args.packages.read_bytes()
     patterns = args.patterns.read_bytes()
 
-    assert const["FG_BOUNDARY_EPOCHS"] == 7
-    assert const["FG_BOUNDARY_PACKAGES"] == 9
+    # Build 0342: clean 676-slot repack -> 5 stable epochs (+2 transition packages = 7), both streamed
+    # transitions preserved; later simple epochs merged.
+    assert const["FG_BOUNDARY_EPOCHS"] == 5
+    assert const["FG_BOUNDARY_PACKAGES"] == 7
     assert const["FG_BOUNDARY_TRANSITION_HANDOFF_COLUMN"] == 45
     assert const["FG_BOUNDARY_CONFLICT_CODE_FIRST"] == 0x031A
     assert const["FG_BOUNDARY_CONFLICT_CODE_COUNT"] == 0x0032
     assert len(binary) == const["FG_BOUNDARY_BINARY_LEN"]
-    assert report["record_to_epoch"] == [0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 3, 4, 5, 5, 5, 6]
-    assert report["record_to_package"] == [0, 0, 0, 7, 8, 2, 2, 2, 2, 2, 3, 4, 5, 5, 5, 6]
+    assert report["record_to_epoch"] == [0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4]
+    assert report["record_to_package"] == [0, 0, 0, 5, 6, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4]
 
     layout = {item["package"]: item for item in report["binary_contract"]["package_layout"]}
 
@@ -81,14 +83,14 @@ def main() -> int:
 
     gates = {gate["name"]: gate for gate in report["transition_gates"]}
     expected = {
-        "rope_to_waterfall": (394, 90, 158),
-        "waterfall_to_next_rope": (479, 5, 146),
+        "rope_to_waterfall": (394, 282, 191),
+        "waterfall_to_next_rope": (478, 198, 178),
     }
     for name, (peak, margin, incoming_only) in expected.items():
         gate = gates[name]
         assert gate["gate"] == "PASS"
-        assert gate["capacity"] == 484
-        assert gate["peak_patterns"] <= 484                     # HARD capacity (candidate + baseline)
+        assert gate["capacity"] == 676
+        assert gate["peak_patterns"] <= 676                     # HARD capacity (candidate + baseline)
         assert gate["visible_missing_patterns"] == 0            # HARD: no missing target patterns
         assert gate["slot_collisions"] == 0                     # HARD
         assert gate["retained_patterns_moved"] == 0             # HARD
@@ -99,7 +101,7 @@ def main() -> int:
             assert gate["incoming_only_required_patterns"] == incoming_only
 
     print("BUILD0311_TRANSITION_GATE PASS: rope 12 retained; waterfall 224 retained; "
-          "peaks 394/479 <= 484; missing=0; collisions=0")
+          "peaks 394/478 <= 676; missing=0; collisions=0")
     return 0
 
 

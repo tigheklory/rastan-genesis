@@ -90,16 +90,21 @@ BOUNDARY_WORD_ALIGNMENT = 2
 # Build 0310 Round-1 Phase-1 Plane-A semantic residency. These are complete contiguous
 # record epochs derived from the original arcade map data; records within one epoch share one
 # immutable exact-pattern vocabulary and therefore require no residency transition.
+# Build 0342: clean 676-slot Layer-A capacity. The later simple epochs merge (7 -> 5) while BOTH proven
+# streamed transitions are preserved unchanged: rope->waterfall (record 2->3 = epoch0->epoch1) and
+# waterfall->next (record 3->4 = epoch1->epoch2) keep their arcade-proven scroll data and runtime handoff.
+# Only the four trailing simple epochs (old 2,3,4,5,6 over records 4..15) collapse into three (records
+# 4-10, 11-12, 13-15), removing two simple residency transitions. (The global minimum at 676 is 4 epochs
+# with rope internal, but eliminating the rope streamed transition would require extensive runtime/verifier
+# surgery for a marginal gain; this 5-epoch structure banks the DMA win at low risk.)
 BOUNDARY_PHASE1_EPOCH_RECORDS = (
-    tuple(range(0, 3)),
-    (3,),
-    tuple(range(4, 10)),
-    (10,),
-    (11,),
-    tuple(range(12, 15)),
-    (15,),
+    tuple(range(0, 3)),        # epoch 0: records 0-2
+    (3,),                      # epoch 1: record 3 (rope/waterfall streamed boundaries preserved)
+    tuple(range(4, 11)),       # epoch 2: records 4-10
+    tuple(range(11, 13)),      # epoch 3: records 11-12
+    tuple(range(13, 16)),      # epoch 4: records 13-15
 )
-BOUNDARY_PHASE1_EPOCH_CAPACITY = 484
+BOUNDARY_PHASE1_EPOCH_CAPACITY = 676
 
 # Build 0311: the first two epoch boundaries are horizontally streamed while the viewport still
 # straddles the outgoing record.  Original arcade trace proves X=0x0168 at both boundaries; the
@@ -352,22 +357,53 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     b_blobs = sorted({tile_bytes(code) for code in b_codes})
     if len(b_blobs) != 854:
         raise SystemExit(f"fixed Plane B vocabulary changed: {len(b_blobs)} != proven 854")
-    b_slot = {blob: 1 + index for index, blob in enumerate(b_blobs)}
     b_repr = {}
     for code in b_codes:
         b_repr.setdefault(tile_bytes(code), code)
+    # Build 0342 clean repack: the static Plane-B corpus is split across the three legal pattern ranges
+    # (Layer A takes the contiguous middle window). Order the corpus by ORIGINAL ARCADE SOURCE TILE CODE
+    # (b_repr), not byte-sort and not historical Genesis slot numbers, so the permanent layout is logical.
+    #   range 1: slots 1..662 (0x0020..0x52DF)
+    #   range 2: slots 1664..1791 (0xD000..0xDFDF, the old nametable gap)
+    #   range 3: slots 1920..1983 (0xF000..0xF7DF, the unused Window region)
+    PLANE_B_RANGES = ((1, 662), (1664, 1791), (1920, 1983))
+    b_slot_seq = [s for lo, hi in PLANE_B_RANGES for s in range(lo, hi + 1)]
+    if len(b_slot_seq) != len(b_blobs):
+        raise SystemExit(f"Plane-B ranges hold {len(b_slot_seq)} slots != {len(b_blobs)} patterns")
+    b_blobs_ordered = sorted(b_blobs, key=lambda blob: b_repr[blob])
+    b_slot = {blob: b_slot_seq[index] for index, blob in enumerate(b_blobs_ordered)}
     b_map = [(code, b_slot[tile_bytes(code)]) for code in b_codes]
-    b_uploads = [(b_repr[blob], b_slot[blob]) for blob in b_blobs]
+    b_uploads = [(b_repr[blob], b_slot[blob]) for blob in b_blobs_ordered]
     b_last = max(b_slot.values())
 
-    a_slot_first = b_last + 1
+    # Layer A is one contiguous window pinned between Plane-B range 1 and the sprite region.
+    a_slot_first = 663
     a_slot_count = BOUNDARY_PHASE1_EPOCH_CAPACITY
     a_slot_last = a_slot_first + a_slot_count - 1
-    if (a_slot_first, a_slot_last) != (855, 1338):
-        raise SystemExit(f"Plane-A ownership changed: {a_slot_first}..{a_slot_last} != 855..1338")
+    if (a_slot_first, a_slot_last) != (663, 1338):
+        raise SystemExit(f"Plane-A ownership changed: {a_slot_first}..{a_slot_last} != 663..1338")
     if a_slot_last >= SPRITE_TILE_BASE:
         raise SystemExit(f"zero-drop planes overlap sprites: A ends {a_slot_last}, "
                          f"sprites start {SPRITE_TILE_BASE}")
+    # Clean-repack non-overlap proof: A [663,1338], sprites [1339,1535], B ranges must be disjoint from
+    # both and from every nametable/SAT/HScroll region (all pattern tile indices < 2048).
+    _a_range = set(range(a_slot_first, a_slot_last + 1))
+    _sprite_range = set(range(SPRITE_TILE_BASE, GLOBAL_SLOT_LAST + 1))
+    _b_range = set(b_slot.values())
+    if _b_range & _a_range:
+        raise SystemExit(f"Plane-B/Plane-A slot overlap: {sorted(_b_range & _a_range)[:8]}")
+    if _b_range & _sprite_range:
+        raise SystemExit(f"Plane-B/sprite slot overlap: {sorted(_b_range & _sprite_range)[:8]}")
+    # nametable/SAT/HScroll VRAM ranges as tile-slot spans (32 bytes/slot): PlaneB nt 0xC000 (1536-1663),
+    # PlaneA nt 0xE000 (1792-1919), SAT 0xF800 (1984-...), HScroll 0xFC00. Pattern slots must avoid these.
+    _reserved_slots = set(range(0x1800 // 1, 0)) if False else set()
+    for lo, hi in ((1536, 1663), (1792, 1919), (1984, 2047)):
+        _reserved_slots |= set(range(lo, hi + 1))
+    if _b_range & _reserved_slots:
+        raise SystemExit(f"Plane-B pattern overlaps a nametable/SAT/HScroll slot: "
+                         f"{sorted(_b_range & _reserved_slots)[:8]}")
+    if max(_b_range | _a_range | _sprite_range) >= 2048:
+        raise SystemExit("tile index >= 2048")
 
     record_code_blob = []
     record_pattern_sets = []
@@ -402,10 +438,21 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     minimum_epoch_count, minimum_segmentations = minimum_partitions(0)
     requested_segmentation = tuple((epoch[0], epoch[-1])
                                    for epoch in BOUNDARY_PHASE1_EPOCH_RECORDS)
-    if minimum_epoch_count != 7 or requested_segmentation not in minimum_segmentations:
-        raise SystemExit(
-            f"seven-epoch contract invalid: minimum={minimum_epoch_count}, "
-            f"requested_present={requested_segmentation in minimum_segmentations}")
+    # Build 0342: the requested segmentation must be a VALID contiguous complete-residency partition at the
+    # 676 capacity (every epoch union <= cap, boundaries preserved for the two streamed transitions). It is
+    # intentionally NOT the global minimum (4): keeping records 0-2|3 separate preserves both proven streamed
+    # transitions. Validate contiguity/coverage + per-epoch fit; report the true minimum for the record.
+    _flat = [r for epoch in BOUNDARY_PHASE1_EPOCH_RECORDS for r in epoch]
+    if _flat != list(range(len(records))):
+        raise SystemExit(f"requested segmentation is not a contiguous cover of records 0..{len(records)-1}")
+    for epoch in BOUNDARY_PHASE1_EPOCH_RECORDS:
+        _u = set()
+        for r in epoch:
+            _u |= record_pattern_sets[r]
+        if len(_u) > a_slot_count:
+            raise SystemExit(f"epoch {epoch} union {len(_u)} exceeds Plane-A cap {a_slot_count}")
+    print(f"NOTE Build 0342 segmentation: requested {len(BOUNDARY_PHASE1_EPOCH_RECORDS)} epochs at cap "
+          f"{a_slot_count}; global minimum is {minimum_epoch_count} epochs.")
 
     record_to_epoch = [None] * len(records)
     epoch_code_blob = []
@@ -425,7 +472,7 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     if any(epoch is None for epoch in record_to_epoch):
         raise SystemExit("incomplete Phase-1 record-to-epoch table")
 
-    expected_epoch_counts = [282, 333, 444, 368, 483, 433, 349]
+    expected_epoch_counts = [282, 333, 639, 583, 639]   # Build 0342 5-epoch @ cap 676
     epoch_counts = [len(pattern_set) for pattern_set in epoch_pattern_sets]
     if epoch_counts != expected_epoch_counts:
         # Build 0316: offline Palette Composer Layer-A reindexing legitimately changes exact-pattern dedup,

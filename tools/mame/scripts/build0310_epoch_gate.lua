@@ -171,6 +171,17 @@ for _, vector in ipairs({0x000008, 0x00000c, 0x000010}) do
     end)
 end
 
+-- Build 0342 clean VRAM repack: valid pattern slots are Plane-B range 1 + Layer-A window [1..1338],
+-- Plane-B range 2 [1664..1791] (0xD000 gap), and Plane-B range 3 [1920..1983] (unused Window region).
+-- Slots 1339..1663 (sprites + Plane-B nametable) and 1792..1919 (Plane-A nametable) are NOT pattern slots.
+local function slot_is_pattern(slot)
+  return (slot >= 1 and slot <= 1338)
+      or (slot >= 1664 and slot <= 1791)
+      or (slot >= 1920 and slot <= 1983)
+end
+local A_LO = constants.FG_BOUNDARY_SLOT_FIRST
+local A_HI = constants.FG_BOUNDARY_SLOT_FIRST + constants.FG_BOUNDARY_SLOT_COUNT - 1
+
 local function verify_maps()
   for index = 0, map_count - 1 do
     local pair = package_data + index * 4
@@ -181,7 +192,8 @@ local function verify_maps()
         index, code, slot, actual)
       return false
     end
-    if slot ~= 0 and slot >= constants.FG_BOUNDARY_SLOT_FIRST + constants.FG_BOUNDARY_SLOT_COUNT then
+    -- A-package maps reference Layer-A slots and B-shared slots; both must be legal pattern slots.
+    if slot ~= 0 and not slot_is_pattern(slot) then
       a_lut_mismatch = string.format("index=%d code=%04X invalid_slot=%04X",
         index, code, slot)
       return false
@@ -194,7 +206,8 @@ local function verify_fixed_b()
   for index = 0, constants.FG_BOUNDARY_FIXED_B_MAP_COUNT - 1 do
     local pair = fixed_map + index * 4
     local code, slot = r16(pair), r16(pair + 2)
-    if slot < 1 or slot >= constants.FG_BOUNDARY_SLOT_FIRST then
+    -- Plane-B slots must be legal pattern slots and MUST NOT fall inside the Layer-A window.
+    if not slot_is_pattern(slot) or (slot >= A_LO and slot <= A_HI) then
       b_lut_mismatch = string.format("index=%d code=%04X invalid_slot=%04X",
         index, code, slot)
       return false

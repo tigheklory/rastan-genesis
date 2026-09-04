@@ -110,7 +110,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 227  # PC090OJ final teardown: -1 (3b930 hook+r
 # canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the semantic
 # opcode-replacement sites are unchanged. The direct-native 0x05A098 gameplay
 # status producer adds 0x1D0 wrapper bytes without adding a replacement site.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x197EB8  # Build 0311: Build 0310 coverage plus two 0x1800-byte Plane-A transition packages; 227 opcode sites unchanged.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x196EB8  # Build 0342: clean 676-slot VRAM repack shrinks the generated PC080SN boundary binary (49732->47268 B), reducing covered span by 0x1000; 227 opcode sites unchanged.
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

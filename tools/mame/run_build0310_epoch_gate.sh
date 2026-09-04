@@ -27,7 +27,11 @@ printf '%s\n' "$TRACE_DIR" > "$ROOT/build/rastan-direct/phase1_epoch_gate_latest
 # One representative semantic record for each generated Phase-1 residency epoch. Build 0311
 # enters epochs B/C through compiler-generated overlap packages 7/8; the stable epoch IDs remain
 # 1/2 and are verified by the transition-retention gate and the column-45 production handoff.
-cases=("0:0:0" "3:1:7" "4:2:8" "10:3:3" "11:4:4" "12:5:5" "15:6:6")
+# Build 0342: 5 stable epochs at 676-slot Layer-A capacity + the two preserved streamed transitions.
+# record:epoch:package  (record_to_package = [0,0,0,5,6,2,2,2,2,2,2,3,3,4,4,4])
+#   0 -> epoch0/pkg0 ; 3 -> epoch1/pkg5 (rope transition) ; 4 -> epoch2/pkg6 (waterfall transition) ;
+#   5 -> epoch2/pkg2 (stable) ; 11 -> epoch3/pkg3 ; 13 -> epoch4/pkg4
+cases=("0:0:0" "3:1:5" "4:2:6" "5:2:2" "11:3:3" "13:4:4")
 for entry in "${cases[@]}"; do
     IFS=: read -r record epoch package <<< "$entry"
     case_dir="$TRACE_DIR/epoch_${epoch}_record_${record}"

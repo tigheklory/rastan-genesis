@@ -44,8 +44,24 @@ PC090OJ_MIRROR_RECORDS ?= 256
 # while suppressing the rest of the gameplay HUD family; palette routing follows
 # mode 0 so the bank-0x36 carrier path remains active.
 RASTAN_GAMEPLAY_HUD_SPRITES ?= 2
+# Build 0337: diagnostic CPU-load raster bar. When 1, _vblank_service sets the VDP backdrop
+# (CRAM entry 0) to a bright color across the Genesis VBlank servicing window (sprite + plane +
+# scroll VDP commits/DMA) and clears it when servicing finishes. The colored band on screen shows
+# how much of the frame that servicing costs and whether it overruns vblank into active display.
+# 0 = off (the numbered release ROM); 1 = on (the "_d" diagnostic ROM). NEVER shipped in the
+# numbered artifact -- the dual-build produces both from one `make`.
+RASTAN_DIAG_CPU_BAR ?= 0
+# Build 0338: diagnostic numeric performance metric. When 1, _vblank_service writes a measured value
+# into the P1 score (BCD @ 0xFF011E) so the on-screen 1UP score reads a stable NUMBER instead of the
+# game score. Current metric = peak active-display scanlines the Genesis VBlank servicing overran
+# (0 = servicing fits entirely in vblank; N = worst-case overran N scanlines into the picture).
+# 0 = off (release / _d bar build); 1 = on (the "_s" metric ROM). NEVER shipped; corrupts the score.
+RASTAN_DIAG_SCORE_METRIC ?= 0
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
+# Build 0340 OPT-003: prebaked PC090OJ sprite palette-line LUT (derived from palette_route_table).
+PC090OJ_PALSEL_LUT_INC := $(OUT_DIR)/pc090oj_palsel_lut.inc
+PC090OJ_PALSEL_LUT_GEN := $(ROOT)/tools/translation/gen_pc090oj_palsel_lut.py
 
 MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
 PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
@@ -120,12 +136,25 @@ OBJS := \
 ELF := $(OUT_DIR)/rastan_direct_video_test.elf
 PREPATCH_BIN := $(OUT_DIR)/rastan_direct_video_test.prepatch.bin
 BIN := $(DIST_DIR)/rastan_direct_video_test.bin
+DIAG_ROM := $(DIST_DIR)/rastan_direct_video_test_diag.bin
+SCORE_ROM := $(DIST_DIR)/rastan_direct_video_test_score.bin
 
 .DELETE_ON_ERROR:
-.PHONY: all clean release FORCE_ASM_REBUILD
+.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant
 
-all: $(BIN)
-release: $(BIN)
+# Build 0337/0338: every build produces THREE ROMs sharing one build number:
+#   ..._NNNN.bin    release (both diag flags off) -- owns the counter/gates/ledger
+#   ..._NNNN_d.bin  diagnostic CPU-load raster bar (RASTAN_DIAG_CPU_BAR=1)
+#   ..._NNNN_s.bin  diagnostic numeric score metric (RASTAN_DIAG_SCORE_METRIC=1)
+# The _d and _s builds are postpatch-only copies that reuse the release's number and are never
+# numbered/ledgered themselves.
+all: dual-build
+release: dual-build
+
+dual-build:
+	$(MAKE) $(BIN)
+	$(MAKE) diag-variant RASTAN_DIAG_CPU_BAR=1
+	$(MAKE) score-variant RASTAN_DIAG_SCORE_METRIC=1
 
 $(OUT_DIR) $(DIST_DIR):
 	@mkdir -p $@
@@ -222,10 +251,17 @@ $(PC090OJ_OPAQUE_BBOX): $(PC090OJ_REGION) $(ROOT)/tools/translation/build_pc090o
 # Generate the PC090OJ helper sizing include from the Make variable each build so
 # an override (PC090OJ_MIRROR_RECORDS=N) is always applied without hand-editing.
 $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
-	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' > $@
-	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) -> $@"
+	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s RASTAN_DIAG_CPU_BAR=%s RASTAN_DIAG_SCORE_METRIC=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n.equ RASTAN_DIAG_CPU_BAR, %s\n.equ RASTAN_DIAG_SCORE_METRIC, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' > $@
+	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) -> $@"
 
-$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
+# Build 0340 OPT-003: generate the prebaked (scene,effective_bank)->palette-line LUT from the authored
+# palette_route_table + the 0x30->line2 special case + (eb>>4)&3 fallback, and PROVE equivalence
+# (--verify: 0 mismatches + hand-anchored spot checks) on every build.  Regenerates when either the
+# route source or the generator changes; a mismatch fails the build.
+$(PC090OJ_PALSEL_LUT_INC): $(SRC_DIR)/palette_hooks.s $(PC090OJ_PALSEL_LUT_GEN) | $(OUT_DIR)
+	$(PYTHON) $(PC090OJ_PALSEL_LUT_GEN) --route-src $(SRC_DIR)/palette_hooks.s --out $@ --verify
+
+$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_EDITOR) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -343,6 +379,58 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 	if [ -f "$(ROOT)/build/mame/home/genesistrace/mame_stdout.txt" ]; then cp "$(ROOT)/build/mame/home/genesistrace/mame_stdout.txt" "$$trace_dir/"; fi; \
 	if [ ! -f "$$trace_dir/genesis_exec_summary.txt" ]; then echo "ERROR: Missing genesis_exec_summary.txt in trace output: $$trace_dir"; exit 1; fi; \
 	echo "trace saved to: $$trace_dir"
+
+# Build 0337: diagnostic ROM = the same postpatch pipeline as $(BIN) but WITHOUT the numbered
+# release/counter/gates (those belong to the normal build).  Built with RASTAN_DIAG_CPU_BAR=1 via
+# the recursive `diag-variant` invocation, so config.inc regenerates and every object re-assembles
+# with the bar enabled.  Uses a separate manifest so the normal build's manifest is untouched.
+$(DIAG_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
+	cp "$(PREPATCH_BIN)" "$@"
+	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
+	$(PYTHON) "$(PATCHER)" \
+		--variant "$(VARIANT)" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
+		--rom "$@" \
+		--symbols "$(SYMBOLS)" \
+		--manifest "$(OUT_DIR)/diag_patch_manifest.json" \
+		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
+
+# Copy the diagnostic ROM to the SAME build number as the just-produced numbered release, with a
+# "_d" suffix.  Does not touch the counter or ledger (the normal build already advanced them).
+diag-variant: $(DIAG_ROM)
+	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
+	tag=$$(printf "%04d" "$$n"); \
+	dest="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_d.bin"; \
+	cp "$(DIAG_ROM)" "$$dest"; \
+	if [ ! -s "$$dest" ]; then echo "ERROR: diagnostic build artifact missing/empty: $$dest"; exit 1; fi; \
+	echo "diagnostic build artifact (CPU-load bar): $$dest"
+
+# Build 0338: score-metric ROM = same postpatch-only pipeline as $(DIAG_ROM) but built with
+# RASTAN_DIAG_SCORE_METRIC=1 (via the recursive `score-variant` invocation).  Separate manifest.
+$(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
+	cp "$(PREPATCH_BIN)" "$@"
+	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
+	$(PYTHON) "$(PATCHER)" \
+		--variant "$(VARIANT)" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
+		--rom "$@" \
+		--symbols "$(SYMBOLS)" \
+		--manifest "$(OUT_DIR)/score_patch_manifest.json" \
+		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
+
+# Copy the score-metric ROM to the SAME build number as the numbered release, with a "_s" suffix.
+# Does not touch the counter or ledger.
+score-variant: $(SCORE_ROM)
+	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
+	tag=$$(printf "%04d" "$$n"); \
+	dest="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_s.bin"; \
+	cp "$(SCORE_ROM)" "$$dest"; \
+	if [ ! -s "$$dest" ]; then echo "ERROR: score-metric build artifact missing/empty: $$dest"; exit 1; fi; \
+	echo "diagnostic build artifact (score metric): $$dest"
 
 clean:
 	rm -rf $(OUT_DIR) $(DIST_DIR)

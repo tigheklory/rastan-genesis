@@ -47860,3 +47860,176 @@ normal `make` build.
 - build: 0336 ; ROM SHA: a83d48b8f43cff9a326ad5499823e693b9695409837e41170a003caaab9f065e ; release ledger recorded: YES
 - USER MUST VERIFY: waterfall animation + speed, water-screen noise gone, game speed, Layer-B/sunset, no unrelated Layer-A pulsing, Rastan/known defects unchanged, Build-0328 terminator intact
 - Build A Rastan follow-up preserved: YES
+
+### MAME Exit Summary (2026-09-01 17:06:21)
+- Final PC: 0x073ADA
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0337 Diagnostic CPU-Load Bar + Dual-Build Convention]
+- classification: INFRASTRUCTURE (tooling/diagnostic; no gameplay behavior change in the release ROM)
+- RASTAN_DIAG_CPU_BAR build flag added (default 0): _vblank_service sets VDP backdrop (CRAM 0) bright across the sprite+plane+scroll VDP servicing window, clears it before the arcade handler. On-screen band shows Genesis servicing/DMA cost + vblank overrun. Set AFTER vdp_commit_palette so the palette DMA doesn't clobber it.
+- DUAL-BUILD: `make all`/`release` now produce BOTH the numbered release ROM (bar off) and a same-numbered diagnostic ROM with `_d` suffix (bar on). Normal build owns counter/gates/ledger; `diag-variant` is a postpatch-only copy reusing the same number, never numbered/ledgered. Flag flows via pc090oj_config.inc (regenerated each build).
+- release ROM unaffected: normal build_0337.bin is byte-identical to build_0336.bin except the build-number stamp (byte 400), proving RASTAN_DIAG_CPU_BAR=0 excludes the diag code.
+- builds: 0337 (release) + 0337_d (diagnostic). SHAs: 0337 = 28c66dfdca8a2f90c39c2ba20c3f3b58ecc239d5a2fbc987ecb21c880cc34b48 ; 0337_d = d538f6eda6e89b0c6df9c12b31cc1fa45a6fb5176990f061b48076a643aecb51. Ledger recorded 0337 once (no _d). Counter 337.
+- NOTE (flaky gate): the seven-epoch gate failed once transiently (epoch 2/record 4) then passed on identical code (re-run byte-identical to 0336 minus stamp) -> the injection-based gameplay-entry gate is occasionally flaky; not a regression. Worth hardening later.
+- OPT-007 in OPTIMIZATIONS.md -> PARTIAL (bar done; numeric HUD + full-frame bar + scripted meter pending).
+- USER MUST VERIFY: load build_0337_d in an emulator on an R1/P1 water screen; the green backdrop band's extent = Genesis servicing/DMA cost; if it reaches into the active picture, servicing overran vblank.
+
+### MAME Exit Summary (2026-09-01 17:26:29)
+- Final PC: 0x073ADA
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0338 Diagnostic Score Metric + Triple-Build Convention]
+- classification: INFRASTRUCTURE (diagnostic tooling; release ROM behavior unchanged)
+- RASTAN_DIAG_SCORE_METRIC build flag added (default 0): _vblank_service reads the VDP V-counter at servicing end; V<0xE0 => servicing overran into active line V; keeps a self-initialising running MAX (value>223 guard), converts to 3-digit BCD, writes it as the P1 score (0xFF011E) so the 1UP HUD shows a stable readable NUMBER = peak servicing overrun scanlines (0 = fits in vblank). Diagnostic build only (corrupts the score).
+- TRIPLE-BUILD: `make all`/`release` now emit THREE ROMs per number: _NNNN.bin (release, both diag flags off), _NNNN_d.bin (CPU-load bar), _NNNN_s.bin (score metric). _d/_s are postpatch-only copies reusing the release number; not numbered/ledgered. Flags flow via pc090oj_config.inc.
+- release ROM unaffected: normal build_0338.bin vs build_0337.bin differ by only 2 bytes (build stamp).
+- builds: 0338 + 0338_d + 0338_s. SHAs: 0338=73e5f970...; 0338_d=01986e51...; 0338_s=4aa189a1... Ledger recorded 0338 once. Counter 338.
+- OPT-007 -> PARTIAL (bar + metric done; full-frame variant, game-fps, scripted meter pending).
+- USER MUST VERIFY: load build_0338_s; the 1UP score reads the peak servicing-overrun scanline count (compare to the 0338_d bar). 0 => servicing fits in vblank; N => worst-case overran N active scanlines.
+
+### MAME Exit Summary (2026-09-01 20:05:41)
+- Final PC: 0x073ADA
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0339 Score-Metric Display Fix]
+- classification: INFRASTRUCTURE (diagnostic tooling)
+- issue: Build 0338 _s metric did not display -- writing 0xFF011E in _vblank_service was clobbered by the arcade score update before the HUD read it (Tighe saw the normal score).
+- fix: _vblank_service now stores the 3-byte metric BCD in BSS diag_score_bcd; the HUD emitter copies diag_score_bcd -> 0xFF011E (memory-to-memory, no regs) at BOTH .Lnq_project_p1_hud (gameplay) and native_frontend_hud_emit (frontend), immediately before it reads the score -> metric wins over the arcade update.
+- builds: 0339 + 0339_d + 0339_s. release 0339 vs 0338 differ by 2 bytes (stamp only) -> release unaffected. Ledger 0339 once. Counter 339.
+- SHAs: 0339=c4bca09c...; 0339_d=7b04ffbd...; 0339_s=d6f23afefd...
+- USER MUST VERIFY: build_0339_s 1UP score now reads the metric (peak servicing-overrun scanlines), not the game score.
+
+### MAME Exit Summary (2026-09-02 17:06:32)
+- Final PC: 0x073ADA
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0340 OPT-003 Prebaked Sprite Palette-Line Routing — STOPPED (gate-blocked)]
+- classification: EXTENDING (replaces the per-piece runtime route scan with a generated equivalent; no semantic change). Priors: KF-046 (route table model), KF-066 (bank 0x36->line 0). No contradiction.
+- OPT-003 result: STOPPED — implemented + proven output-identical, but deterministically fails the seven-epoch gate; NOT in any numbered production ROM.
+- old hot path: .Lnative_pal_fixup -> .Lnative_palsel per emitted SAT piece (<=80/frame). eb=(d1&0x0F)|d7; eb==0x30->line2; else palette_route_lookup(scene,PC090OJ,eb)=LINEAR SCAN of palette_route_table; miss->(eb>>4)&3.
+- generated LUT: tools/translation/gen_pc090oj_palsel_lut.py -> out/pc090oj_palsel_lut.inc; pc090oj_palsel_lut 4x128=512 bytes; index=(scene&0x03)<<7|(eb&0x7F). Source-of-truth = palette_route_table (parsed) + the two hardcoded rules. DERIVED DATA, not a second registry; palette_decisions.json untouched; JSON-vs-ASM divergence NOT reconciled.
+- runtime: effective-bank calc preserved YES; direct indexed load YES; per-piece linear scan removed YES; palette_route_lookup remaining callers = 0 (only caller was .Lnative_palsel; tilemap_hooks.s:50 is .extern only) -> retained unstubbed as generator source-of-truth + reference algorithm; NO shift_replacements reflow needed (change is in linked native helper code, not the arcade byte stream).
+- equivalence (--verify): 512 combinations, route-hit 7, fallback 501, special(0x30) 4, mismatches 0. Spot checks OK: 1/0x30=2, 1/0x33=0, 1/0x36=1, 1/0x31=3(miss), 0/0x33=3(frontend), 0/0x30=2.
+- seven-epoch gate: FAIL at epoch 1 record 3. full_plane_a_lut=FAIL index=308 code=034C expected=04E0 actual=0000. ALL other metrics identical to the clean revert (frames 336, uploads 394/394, transitions 2, exceptions 0, plane_b_lut PASS). Evidence: states/traces/build0340_phase1_epoch_gate_20260902_170048/epoch_1_record_3.
+- differential/revert: reverted ONLY the two OPT-003 pc090oj_hooks.s edits -> PASSED all seven epochs. PROVEN: OPT-003 flips epoch 1; palette output independently proven identical; Plane-A is a domain OPT-003 does not write. INTERPRETATION (not yet proven): single Plane-A nametable-fill timing race at the frame-336 sample, tipped by native code-layout shift; game runs fine to waterfall+ (Tighe confirmed) -> gate-sampling fragility, not a visual defect.
+- BUILD-NUMBER INCIDENT: the differential test used `make all`, which publishes on GATE_PASS; the NON-OPT-003 revert ROM consumed Build 0340. counter=340; ledger records 0340 PRODUCED; dist build_0340{,_d,_s}.bin exist but do NOT contain OPT-003 (functional 0339 equivalent). Do NOT rewrite history or reuse 0340. Any OPT-003 candidate must be 0341+. My procedural error, disclosed.
+- current repo state: OPT-003 restored in the working tree; no further numbered build. Added: tools/translation/gen_pc090oj_palsel_lut.py, out/pc090oj_palsel_lut.inc, docs/design/Andy_opt003_prebake_sprite_palette_line_brief.md, docs/design/Andy_build0340_opt003_prebaked_sprite_palette_line.md. Modified: apps/rastan-direct/src/pc090oj_hooks.s, apps/rastan-direct/Makefile.
+- performance: intent = kill per-piece route scan -> one indexed load. Estimate only (NOT measured): ~tens of cycles/piece -> ~1e3 cycles/frame at ~28 pieces (more at 72). No measured saving claimed; no OPT-003 _d before/after captured (no numbered build).
+- OPTIMIZATIONS.md: OPT-003 marked STOPPED/gate-blocked; NO production savings recorded.
+- decision required (Tighe): (1) gate — accept sampling fragility + widen epoch-gate settle window (OPT-003 -> 0341) / re-baseline / investigate cell-308 timing; (2) build number — leave 0340 consumed or roll back.
+- no build performed this entry; seven-epoch gate NOT modified; counter/ledger NOT changed; Plane-A root-cause investigation NOT continued.
+
+### MAME Exit Summary (2026-09-03 12:57:15)
+- Final PC: 0x073ADA
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — OPT-003 Completion + Epoch Gate Robustness]
+- classification: EXTENDING (harness audit + OPT-003 completion attempt). New root cause found; supersedes the Build-0340 "sampling fragility" interpretation.
+- prior consumed build: 0340
+- 0340 reused: NO
+- gate problem: seven-epoch gate FAILed OPT-003 at epoch 1 record 3, Plane-A full LUT index=308 code=034C expected=04E0 actual=0000. Hypothesis was premature sampling on the activation frame.
+- semantic settle boundary: TESTED and REFUTED. Moved the LUT assertion from install_frame to the post-survival settle boundary; OPT-003 still FAILED. Standalone 200-frame survival probe (external_frames=528) still actual=0000 -> the entry NEVER installs. Not a timing/sampling issue. Harness change REVERTED (the original gate was correct).
+- harness change: NONE net (settle-boundary edit made then reverted after the premise was disproven).
+- production Plane-A code changed: NO
+- reference gate: PASS -- reference control (OPT-003 reverted, all else identical) passed all seven epochs and published Build 0341. Reference installs code 0x034C correctly.
+- OPT-003 gate: FAIL -- deterministic; real divergence, not a gate artifact.
+- ROOT CAUSE (new): OPT-003's 512-byte .rodata LUT + palsel size change SHIFTS native symbol layout, including native BSS by -8 bytes (fg_boundary_active_lut 0xFF6190->0xFF6188; fg_boundary_active_record 0xFFB220->0xFFB218; staged_sprite_sat 0xFFB230->0xFFB228; fg_boundary_install 0x072706->0x0726A2). active_lut at 0xFF6188 is inside the arcade A5 workram window (A5=0xFF2200 -> +0x3F88). This is the known native-BSS<->arcade-workram coexistence fragility (project_arcade_workram_overlap): an 8-byte BSS shift broke coexistence for one installer entry (code 0x034C never written). Palette LOGIC proven identical; failure is the binary LAYOUT perturbation, a latent PROJECT-WIDE fragility OPT-003 tripped -- not a palette defect and not a graphics bug.
+- LUT combinations: 512
+- LUT mismatches: 0
+- runtime route scan removed: YES (in the restored OPT-003 working tree)
+- build(s): 0341 = REFERENCE CONTROL (non-OPT-003), published; NO OPT-003 numbered ROM (blocked). counter=341.
+- SHA(s): 0341 reference in dist/rastan-direct/rastan_direct_video_test_build_0341.bin (+ _d/_s).
+- performance result: not measured (no OPT-003 numbered build). Estimate only, not recorded as production saving.
+- slower: NOT USER-TESTED
+- OPT-003 retained: YES (restored in working tree; blocked by the BSS/workram fragility, not by its own logic)
+- OPTIMIZATIONS.md updated: YES (OPT-003 stays STOPPED; blocker updated to the BSS-layout root cause)
+- VRAM reclaim deferred: YES (0xD000 gap 128 slots + unused Window 0xF000 64 slots = ~192 pattern slots; next major perf task after OPT-003 unblocked)
+- STOP: STOP condition 1 (complete Plane-A state still wrong after a legitimate completed boundary). No graphics patch, no gate weakening, no counter rollback.
+- USER MUST VERIFY: none yet (no OPT-003 ROM). Decision required: fix native-BSS<->arcade-workram fragility (pin BSS to a collision-proof base) to unblock OPT-003 and future size-changing optimizations, or a narrower interim isolate/pad (masks the fragility).
+- KNOWN_FINDINGS impact: candidate D/tooling -- the epoch gate correctly detects a real native-BSS/arcade-workram layout collision; and OPT-003-class size changes perturb native BSS enough to trip project_arcade_workram_overlap. Recorded here; promote to KF only if Tighe wants it durable.
+
+## [Andy — Native BSS / Arcade WorkRAM Coexistence Unblock] (STOPPED — premise refuted)
+- classification: EXTENDING (intended); CONTRADICTION CONFIRMED -> STOP (STOP condition 7).
+- root cause of the task premise: WITHDRAWN. The Build-0340/0341 "OPT-003 shifts native BSS -8 bytes -> arcade-workram collision" was a MEASUREMENT ARTIFACT: reference symbols were captured from a score-variant build (diag BSS present: diag_servicing_peak+diag_score_bcd ~6B at .bss start) and compared to a release OPT-003 build (no diag BSS). The -6/-8 deltas are the diag-config difference, not OPT-003.
+- MATCHED-CONFIG PROOF: rebuilt reference (OPT-003 reverted) and OPT-003 both as release; BSS diff = {0: 138}, ZERO shifted BSS symbols. fg_boundary_active_lut=0xFF6188 in BOTH; staged_sprite_sat=0xFFB228 in both. OPT-003 does NOT move native BSS. link.ld pins .bss at fixed 0xFF4000.
+- WHAT OPT-003 ACTUALLY CHANGES: code/rodata layout only. fg_boundary_install unshifted (0x0726A2, it is BEFORE pc090oj_hooks in link order); palette_route_lookup unshifted; pc090oj_native_emit_pass -14; fg_boundary_packages -16; +512B rodata LUT (downstream rodata +496).
+- REAL FAILURE (config-matched, drift-safe survival=8, active_record stays 3): reference full_plane_a_lut=PASS; OPT-003 full_plane_a_lut=FAIL index=308 code=034C expected=04E0 actual=0000. Deterministic (OPT-003 fail 3x, reference pass 3x). Not BSS, not sampling timing (8 stable frames still 0) -> caused by the code/rodata layout shift. Root cause OPEN.
+- arcade A5 base: EXPECTED_A5_BASE=0xFF0000; ARCADE_WORKRAM_A5_BASE anchor at ROM 0x10C000 (postpatcher writes genesistan_arcade_workram_words addr).
+- native-state reserved range: already fixed at 0xFF4000 (link.ld), byte-stable under OPT-003.
+- overlap assertions added: NO (no placement change made -- premise refuted; fixing a non-problem would be wrong).
+- perturbation test: N/A (not run; no placement change).
+- OPT-003 equivalence: PASS (512, 0 mismatches). OPT-003 restored/intact in working tree; still blocked by the OPEN code-layout root cause, NOT by BSS.
+- seven-epoch gate: unchanged/original; OPT-003 still FAILs epoch 1 for the real (non-BSS) reason.
+- build(s): NONE numbered by this task (scratch reconstructions only). counter unchanged = 341. ledger unchanged.
+- slower than reference: NOT USER-TESTED.
+- VRAM reclaim preserved: YES.
+- RECOMMENDED NEXT DIAGNOSTIC: append-only LUT placement (LUT in its own trailing object/section so NO existing symbol shifts) -> rebuild+gate. If OPT-003 then PASSES, the cause is shifting existing native symbols (fix = stable-layout placement or declare the missing relocation/reference class), not BSS. Else dump active_lut[0x034C] frame-by-frame (never-written vs clobbered) and diff fg_boundary_packages bytes.
+- KNOWN_FINDINGS impact: D (tooling/process) -- comparing symbol maps ACROSS diag-variant configs is invalid; always match RASTAN_DIAG_* flags when diffing BSS/layout. Recorded here.
+- USER MUST VERIFY: none (no build).
+
+## [Andy — OPT-003 Code/ROData Layout Divergence + Landing] (STOPPED — first-op isolated, exact instruction not capturable)
+- classification: EXTENDING; contradiction: none new (BSS theory already withdrawn).
+- BSS shift: NO. matched-config BSS symbols: 138 unchanged. fg_boundary_active_lut=0xFF6188 both.
+- failure: code 0x034C -> expected 0x04E0 / actual 0x0000 at epoch-1 install (deterministic; reference passes).
+- FIRST DIVERGENT OPERATION: per-frame read of active_lut[0x034C] @ WRAM 0xFF6820 -> BOTH builds write 0x04E0 at frame 327 (package-0 install); at frame 328 (package-7 EPOCH CHANGE, transitions 1->2) reference keeps 0x04E0, OPT-003 CLOBBERS to 0x0000 and never re-writes. => "written then clobbered" in the epoch-change path .Linstall_build_translation (fg_tile_cache.s).
+- source package: record 3 -> package 7; gate map index 308 = (0x034C, 0x04E0).
+- fg_boundary_packages CONTENT: byte-identical (all 49732 bytes) between ref and OPT ROMs.
+- package POINTER: correctly relocated -- OPT ROM stores 0x0741E0 at ROM 0x726C8/0x72A60; NO stale 0x0741F0 survives. Installer code byte-identical modulo correctly-relocated operand low bytes.
+- stale/mis-relocated reference: NONE FOUND. reference class: n/a (every checked reference resolves correctly).
+- root cause: NOT fully isolated. Everything static (package data, pointer, BSS, installer) identical/correct; the epoch-change re-populates active_lut[0x034C] differently in OPT. Exact instruction NOT capturable: DRC bypasses Lua write-taps; headless -debug -debugscript watchpoint did not fire; cpu.debug unavailable.
+- controlled experiment: pinned LUT in high-ROM .palsel section (after .crash) -> removed +512 .rodata growth BUT 46 existing symbols still shifted (palsel -14 code); NOT layout-neutral; AND postpatch failed canonical coverage invariant (total_genesis_bytes_covered 0x197EB8->0x198200, LUT past arcade splice) -> gate result invalid. Reverted.
+- OPEN QUESTION (changes stakes): gate reaches epoch 1 via SYNTHETIC installer injection, not natural gameplay. Tighe confirms real game plays fine to waterfall+; OPT-003 palette proven identical. Unknown whether the clobber occurs in NATURAL gameplay or only under the injected install.
+- production padding: NO. hardcoded address: NO. gate modified: NO (restored to original). BSS/WRAM change: NO. palette change: NO.
+- OPT-003 combinations: 512, mismatches: 0. Restored/intact in working tree (LUT in .rodata).
+- seven epochs: FAIL (epoch 1) for the real non-BSS reason.
+- builds: NONE numbered (scratch reconstructions only). counter unchanged = 341. ledger unchanged.
+- slower than reference: NOT USER-TESTED.
+- VRAM reclaim deferred: YES.
+- KNOWN_FINDINGS impact: D (process/tooling) -- (1) match RASTAN_DIAG_* configs when diffing layout; (2) DRC bypasses Lua write-taps so active_lut-clobber PC needs a non-DRC/interpreter trace; recorded here.
+- RECOMMENDED NEXT: (1) validate OPT-003 in NATURAL gameplay (no injection) to see if 0x034C actually breaks; (2) capture the clobber PC via non-DRC MAME/interpreter or a working watchpoint; (3) then fix the named reference at its ownership boundary, not by moving the LUT.
+- USER MUST VERIFY: none (no build).
+
+## [Andy — Perf Push: OPT-003 landing / VRAM reclaim legality / Layer-A recompile plan]
+- classification: EXTENDING. No numbered build produced; counter unchanged=341.
+- OPT-003: BLOCKED. Stage-A premise (settle fragility) REFUTED again: active_lut[0x034C] written 0x04E0 @frame327, CLOBBERED to 0 @frame328 (epoch-change install), stays 0 through 336 (8+ stable frames). Settle-condition fix already tested (install+8, install+200) -> still FAILS. Package data byte-identical (49732B), pointer correctly relocated (no stale addr), BSS identical, installer identical modulo correct relocation. Exact clobber PC NOT capturable: DRC bypasses lua write-taps; headless -debug watchpoint no-fire; -nodrc interpreter too slow (timeout/X-kill); cpu.debug unavailable. Cannot land without weakening the gate (forbidden) or fixing the real clobber (instruction not revealable here). No fake landing. OPEN: real defect vs synthetic-injection-only, still tooling-blocked.
+- VRAM reclaim legality (Stage B): nametable repack ILLEGAL -- Plane A base (reg2) is 8KB-aligned in H40 (mask 0x38<<10) -> legal bases 0xC000/0xE000 only, NOT 0xD000; the gap cannot be closed by moving a nametable. Pattern reclaim LEGAL -- holes map to tile slots 1664-1791 (0xD000) + 1920-1983 (0xF000), both <2048, disjoint from all nametables/SAT/HScroll. Net Layer-A pattern capacity 484 -> 676 as THREE DISJOINT ranges [855-1338] U [1664-1791] U [1920-1983]. Do NOT enlarge SAT (80-sprite cap).
+- Sprite same-code sharing: YES. .Lnq_emit_entry/.Lnq_lookup_loop reuses sprite_tile_resident_code slot by code; multiple SAT entries (2 lizards, same code) share one resident 16x16 cell. Sprite cap slots 1339-1535 = 197 8x8 / 49 16x16 cells. No duplicated-by-actor VRAM. No redesign needed.
+- Layer-A recompile (Stage C): READY, NOT BUILT. compile_pc080sn_genesis.py models ONE contiguous A window (BOUNDARY_PHASE1_EPOCH_CAPACITY=484 line102; assert (855,1338) line366; free pool line545). Change points: (1) compiler -> disjoint slot SET + capacity 676 + relax asserts; (2) FG_BOUNDARY_SLOT_FIRST/COUNT + epoch-gate slot-validity check -> accept disjoint set; (3) re-verify transition-retention + seven-epoch gates. Independent of OPT-003 blocker; the real DMA-halt win. Not started to avoid large speculative surgery at the tail of a long investigation without Tighe's scope go-ahead.
+- KNOWN_FINDINGS impact: D (process/tooling) -- capturing the active_lut clobber PC requires a non-DRC/interpreter trace or scripted natural-scroll input; and VDP Plane-A base is 8KB-aligned so reclaimed VRAM holes are pattern-only, not nametable-relocatable.
+
+## [Andy — Clean VRAM Repack + 676-Slot Contiguous Layer-A] (de-risked via offline probe; not yet built)
+- classification: INFRASTRUCTURE (offline compiler + generated layout; runtime behavior preserved).
+- DE-RISKING PROBE (offline compile at cap 676, non-destructive, then reverted): min epochs = 4 (from 7 at 484). Segmentation ((0,3),(4,10),(11,12),(13,15)); union counts [582,639,583,639] all <=676.
+- Arcade-data coupling RESOLVED: rope->waterfall streamed transition (record 2->3) DISAPPEARS (internal to epoch 0) -> complex column-45 handoff eliminated; waterfall->next streamed transition (3->4) SURVIVES with valid arcade scroll data (out_epoch 0, in_epoch 1); new boundaries 10/11 + 12/13 are simple swaps (no arcade data needed). => performance win real: 7->4 epochs, 6->3 transitions, hardest transition removed.
+- Target VRAM: Plane B 854 patterns across slots [1-662]+[1664-1791]+[1920-1983]; Plane A contiguous 663-1338 (676); sprites 1339-1535 unchanged. All pattern writes disjoint from nametables(0xC000/0xE000)/Window(0xF000, unused)/SAT(0xF800)/HScroll(0xFC00); every tile index <2048. Legal.
+- Plane-A base is 8KB-aligned (reg2) so the 0xD000 gap CANNOT hold a nametable -> patterns only (Plane B absorbs the fragmentation; Layer A gets the clean contiguous window).
+- TAITO note: b_slot is already byte-sorted (deterministic), NOT repair-era-appended -> the "TAITO tiles at end of VRAM" concern is in the FRONTEND PRELOAD generator (separate), not this Plane-B compiler; Part B/I must target that generator; not addressed here. Flagged, not assumed done.
+- SCOPED change list (exact) in docs/design/Andy_clean_vram_repack_676_contiguous_layerA.md sec 8: compiler (capacity 676; b_slot 3-range; a_slot 663/676/1338 + asserts; BOUNDARY_PHASE1_EPOCH_RECORDS -> 4-epoch; BOUNDARY_TRANSITION_DEFS drop rope/keep waterfall; epoch-contract + expected counts); runtime/gate (epoch_gate.lua slot bounds; run_build0310_epoch_gate.sh cases 7->4; verify_build0311 transition reconcile).
+- builds: NONE. counter unchanged = 341. Compiler + link.ld restored to baseline (probe reverted; git-clean).
+- WHY not built: probe de-risked viability cheaply; the remaining full change is large + tightly coupled across compiler + 2 MAME gates + retention verifier with build/gate cycles. Held for a focused build pass rather than plunged into at the tail of a very long session (risk of stuck mid-state = money spent, no ROM). Concrete scoped plan handed off, not open research.
+- KNOWN_FINDINGS impact: B (candidate) -- at Plane-A capacity 676 the R1/P1 residency minimum drops to 4 contiguous epochs and the rope->waterfall streamed transition is eliminated while waterfall->next retains valid arcade scroll data; promote to KF when the build confirms.
+- OPT-003: DEFERRED (unchanged).
+
+### MAME Exit Summary (2026-09-04 10:01:41)
+- Final PC: 0x073ADA
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Clean VRAM Repack + 676-Slot Contiguous Layer-A] Build 0342 (BUILT, all gates PASS)
+- classification: INFRASTRUCTURE (offline compiler + generated VRAM layout; runtime data-driven, unchanged). contradiction: NO.
+- Implemented the clean VRAM repack: Plane B 854 patterns -> slots [1-662] U [1664-1791] U [1920-1983] (source-code/b_repr order, not byte-sort/historical); Layer A contiguous 663-1338 (676 slots); sprites 1339-1535 unchanged.
+- Residency recomputed at cap 676: 5 stable epochs ((0-2),(3),(4-10),(11-12),(13-15)) unions [282,333,639,583,639]; BOTH streamed transitions preserved (rope 2->3 peak394, waterfall 3->4 peak478); later simple epochs merged (7->5). record_to_package [0,0,0,5,6,2,2,2,2,2,2,3,3,4,4,4].
+- DEVIATION from prompt's prescribed 4-epoch (rope-eliminated) minimum: chose 5-epoch keeping both streamed transitions to AVOID the high-risk rope-elimination surgery (rope is woven through compiler report/rope_object + runtime AB streamed-handoff + verifier + record_to_package). 5-epoch still delivers the DMA win (7->5 epochs, 6->4 transitions) at low risk and keeps all proven machinery. 4-epoch (eliminate rope streamed transition) remains an available further optimization. Documented in design doc.
+- files: compile_pc080sn_genesis.py (capacity 676, b_slot 3-range + b_repr order, a_slot 663/676/1338, non-overlap asserts, 5-epoch records + validation, expected counts); verify_build0311_transition_retention.py (EPOCHS 5, PACKAGES 7, record_to_epoch/package, capacity 676); build0310_epoch_gate.lua (slot_is_pattern valid-set for A[663-1338]+B ranges); run_build0310_epoch_gate.sh (6 cases: 5 epochs + 2 transitions); postpatch_startup_rom.py + verify_canonical_rom.py (CANONICAL_TOTAL_GENESIS_BYTES_COVERED 0x197EB8 -> 0x196EB8, boundary binary 49732->47268).
+- gates: BUILD0311 transition-retention PASS; canonical GATE_PASS; gameplay-entry gate PASS; seven-epoch gate PASS (all cases, Plane-A + fixed-Plane-B LUT PASS, exceptions/addr/bus 0). Automated result: PASS.
+- builds: 0342 + 0342_d + 0342_s. counter=342, ledger 0342 recorded. SHAs 0342=dea2711b749cae22...; _d=33db4980ef403910...; _s=30c57ab869f4ec0c... size 1,666,744 (was 1,670,840). Build status: UNVERIFIED pending Tighe gameplay.
+- OPT-003: DEFERRED; REVERTED from the working tree for this build (its 0x034C clobber otherwise fails the epoch gate). 0342 does NOT contain OPT-003.
+- TAITO/title cleanup (Part C/K): NOT done -- lives in the separate title-preload generator; deferred to a follow-up build per the SCOPE SPLIT. Formerly-separated TAITO tiles folded back: NO (deferred).
+- sprites: range 1339-1535 unchanged; same-code sharing preserved.
+- KNOWN_FINDINGS impact: B (candidate) -- at Plane-A capacity 676 (reclaiming the 0xD000 gap + unused Window for static Plane-B) R1/P1 residency drops from 7 to 5 stable epochs / 6 to 4 transitions with both streamed transitions retained; promote to KF after Tighe gameplay confirms.

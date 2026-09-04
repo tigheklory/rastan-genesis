@@ -182,6 +182,17 @@ _vblank_service:
      * CRAM-write noise source).  No palette_dirty, no per-frame reassert. */
     bsr     vdp_commit_palette
 
+.if RASTAN_DIAG_CPU_BAR
+    /* Build 0337 diagnostic CPU-load bar ON: set the VDP backdrop (CRAM entry 0) bright.  Placed
+     * AFTER the palette DMA (which rewrites CRAM 0), so it isn't immediately overwritten.  The
+     * backdrop stays bright across the sprite + plane + scroll VDP commits/DMA below (and while
+     * those DMAs halt the CPU), then is cleared just before the arcade handler.  The resulting
+     * coloured band = the Genesis VBlank servicing cost; if it reaches into the active picture the
+     * servicing overran vblank. */
+    move.l  #0xC0000000, VDP_CTRL       /* CRAM write addr 0 */
+    move.w  #0x00E0, VDP_DATA           /* bright green = servicing busy */
+.endif
+
     bsr     vdp_prepare_sprites
 
     /* N2 (Build 0227): display stays ON; heavy plane commits use bounded VRAM DMA.
@@ -193,6 +204,58 @@ _vblank_service:
     bsr     vdp_commit_sprites_vram     /* N1: DMA-only, display-on safe */
 
     bsr     vdp_commit_scroll
+
+.if RASTAN_DIAG_CPU_BAR
+    /* Build 0337 diagnostic CPU-load bar OFF: restore backdrop to black.  The staged CRAM 0 (black)
+     * is re-published by next frame's palette DMA, so this only affects the diagnostic band. */
+    move.l  #0xC0000000, VDP_CTRL
+    move.w  #0x0000, VDP_DATA           /* black = servicing done */
+.endif
+
+.if RASTAN_DIAG_SCORE_METRIC
+    /* Build 0338 diagnostic numeric metric: read the VDP V-counter at the end of the Genesis VBlank
+     * servicing.  V >= 0xE0 -> still in vblank -> overran 0 active scanlines; V < 0xE0 -> servicing
+     * bled into active display line V -> overran V scanlines.  Keep the running MAX (self-init: a
+     * value > 223 is impossible/garbage -> reset), convert to 3-digit BCD, and write it as the P1
+     * score (0xFF011E) so the 1UP HUD shows a stable readable NUMBER.  Diagnostic build only. */
+    move.w  0x00C00008, %d0            /* VDP HV counter: high byte = V */
+    lsr.w   #8, %d0
+    andi.w  #0x00FF, %d0
+    cmpi.w  #0x00E0, %d0
+    blo.s   .Lsm_active                /* V < 0xE0 -> active line V -> overran */
+    moveq   #0, %d0                    /* V >= 0xE0 -> finished in vblank -> 0 */
+.Lsm_active:
+    move.w  diag_servicing_peak, %d1
+    cmpi.w  #223, %d1
+    bls.s   .Lsm_peak_valid
+    moveq   #0, %d1                    /* garbage/init guard */
+.Lsm_peak_valid:
+    cmp.w   %d1, %d0
+    bls.s   .Lsm_store_peak
+    move.w  %d0, %d1                   /* new worst-case max */
+.Lsm_store_peak:
+    move.w  %d1, diag_servicing_peak
+    andi.l  #0x0000FFFF, %d1           /* 0..223 -> 3-digit BCD */
+    divu.w  #100, %d1                  /* d1.lo=hundreds, d1.hi=rem */
+    move.w  %d1, %d2                   /* d2.lo = hundreds */
+    clr.w   %d1
+    swap    %d1                        /* d1 = rem (0..99) */
+    divu.w  #10, %d1                   /* d1.lo=tens, d1.hi=ones */
+    move.w  %d1, %d0                   /* d0.lo = tens */
+    swap    %d1                        /* d1.lo = ones */
+    andi.w  #0x000F, %d2
+    andi.w  #0x000F, %d0
+    andi.w  #0x000F, %d1
+    lsl.w   #4, %d0
+    or.w    %d1, %d0                   /* d0 = tens<<4 | ones */
+    /* Publish 3-byte BCD into diag_score_bcd.  The P1 HUD emitter (pc090oj_hooks) copies it into the
+     * live score (0xFF011E) at the exact moment it renders, so it wins over the arcade score update
+     * (writing 0xFF011E here directly gets clobbered by the arcade handler before the HUD reads it). */
+    lea     diag_score_bcd, %a0
+    move.b  #0, (%a0)+                 /* digits 5-6 = 00 */
+    move.b  %d2, (%a0)+                /* digits 3-4 = 0 hundreds */
+    move.b  %d0, (%a0)                 /* digits 1-2 = tens ones */
+.endif
 
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     jmp     (0x00003A208).l
@@ -437,6 +500,15 @@ vdp_install_test_lines:
 /* Build 0336: removed palette scaffolding BSS -- fg_bank3_line_cache, fg_bank3_cache_valid,
  * fg_bank3_route_seen, pc090oj_bank36_line0_cache, pc090oj_bank36_cache_valid (dead carrier caches)
  * and palette_dirty (publication is now an unconditional VBlank CRAM DMA). */
+.if RASTAN_DIAG_SCORE_METRIC
+    .align 2
+diag_servicing_peak:                    /* Build 0338 diagnostic: peak servicing overrun scanlines */
+    .word 0
+    .global diag_score_bcd
+diag_score_bcd:                         /* 3-byte BCD of the metric, copied into the P1 score by the HUD emit */
+    .byte 0, 0, 0
+    .align 2
+.endif
 tiles_dirty:
     .byte 0
     .align 2
