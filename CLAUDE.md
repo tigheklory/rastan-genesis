@@ -53,6 +53,32 @@ and never:
 
 ---
 
+## Every Build Gets a Number — Never Protect, Withhold, or Delete a Build Number
+
+**Standing imperative from Tighe (2026-09-08). This OVERRIDES any future prompt, gate, or agent
+judgment to the contrary.**
+
+Build numbers are disposable; Tighe's ability to evaluate a build is not. Therefore:
+
+- **Do not protect or conserve build numbers.** Never treat a number as scarce, and never move a
+  semantic cut, decline work, or reshape an implementation to "save" a number.
+- **If you make a build, it gets the next sequential number** — passing or failing, release or
+  experimental, correct or broken — and it is preserved on disk for Tighe to evaluate. A build that
+  fails a gate, verification, or expectation still gets its number and is kept, clearly labeled
+  with why it failed.
+- **You are NEVER permitted to delete a numbered build or its ROM artifact.** Not on gate failure,
+  not on rejection, not to clean up. Only Tighe may authorize deleting a numbered artifact.
+- **A blocking gate does not justify withholding a number.** If a gate (e.g. the Phase-1
+  seven-epoch gate) fails, number and preserve the failing ROM, label it with the gate result, and
+  surface that to Tighe as evidence. If the current Makefile/tooling would auto-delete or refuse to
+  number a failing build, that is a conflict to raise with Tighe — preserve and number the artifact
+  regardless.
+
+Tighe must be able to evaluate any and all builds. A build that is never numbered, or is
+auto-deleted on failure, is a build Tighe cannot see, and that outcome is not acceptable.
+
+---
+
 ## Canonical Palette-Decision Registry
 
 `specs/palette_decisions.json` is the project's **only** palette-decision registry. Before any

@@ -10,6 +10,7 @@
 
     .extern genesistan_current_scene_id
     .extern staged_palette_words
+    .extern palette_pending
     /* Build 0336: palette_dirty and the fg-bank3 / bank-0x36 carrier caches were retired. */
 
 /* ------------------------------------------------------------------------- *
@@ -134,6 +135,7 @@ palette_route_lookup:
  */
 genesistan_palette_hook_59ad4:
     movem.l %d0-%d7/%a0-%a2, -(%sp)
+    moveq   #0, %d5
 
     /* Build 0145: the arcade's bank-51 sprite-palette update reaches this helper with d0 = 0x33;
      * route it to Genesis staged line 3.  Build 0174: Stage-1 PC080SN FG bank 3 -> Genesis line 1.
@@ -215,8 +217,10 @@ genesistan_palette_hook_59ad4:
     dbra    %d6, .L59_loop
 
 .L59_done:
-    /* Build 0336: publication is the unconditional VBlank CRAM DMA -- no palette_dirty here; the
-     * retired fg-bank3 carrier-cache snapshot was removed with the dead reasserts. */
+    tst.b   %d5
+    beq.s   .L59_no_pub
+    move.b  #1, palette_pending
+.L59_no_pub:
     movem.l (%sp)+, %d0-%d7/%a0-%a2
     rts
 
@@ -282,7 +286,7 @@ genesistan_palette_hook_03ab00:
     bsr     .Lxbgr555_to_cram
     lea     staged_palette_words, %a0
     move.w  %d1, 34(%a0)
-    /* Build 0336: no palette_dirty; the unconditional VBlank CRAM DMA publishes this staged word. */
+    move.b  #1, palette_pending
 
     movem.l (%sp)+, %d0-%d3/%a0
     rts
@@ -323,7 +327,7 @@ genesistan_palette_hook_45dae:
     addq.l  #2, %a2
     dbra    %d4, .L45_loop
 
-    /* Build 0336: no palette_dirty; the unconditional VBlank CRAM DMA publishes the staged lines. */
+    move.b  #1, palette_pending
 
 .L45_done:
     movem.l (%sp)+, %d0-%d4/%a0-%a2
@@ -440,8 +444,10 @@ genesistan_palette_hook_3ba64:
     bne     .L3ba64_loop
 
 .L3ba64_done:
-    /* Build 0336: no palette_dirty and no fg-bank3 carrier-cache snapshot (both retired with the
-     * dead reasserts); the unconditional VBlank CRAM DMA publishes the staged palette. */
+    tst.b   %d5
+    beq.s   .L3ba64_no_pub
+    move.b  #1, palette_pending
+.L3ba64_no_pub:
     movem.l (%sp)+, %d4-%d7/%a1
     rts
 

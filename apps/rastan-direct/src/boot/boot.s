@@ -19,6 +19,7 @@
     .extern staged_bg_buffer
     .extern staged_fg_buffer
     .extern staged_palette_words
+    .extern palette_pending
     .extern staged_tile_words
     .extern staged_sprite_sat
     .extern sprite_tile_resident_code
@@ -189,6 +190,7 @@ _bootstrap_clear_staging:
 .Lboot_pal_clear:
     clr.w   (%a0)+
     dbra    %d7, .Lboot_pal_clear
+    move.b  #1, palette_pending
 
     lea     staged_tile_words, %a0
     move.w  #(48 - 1), %d7

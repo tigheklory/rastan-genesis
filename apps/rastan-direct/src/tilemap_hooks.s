@@ -236,6 +236,9 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     moveq   #0, %d0
     move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d0
     andi.w  #0x000F, %d0
+    /* Build 0353: horizontal producer publishes only the LEADING entering column, so the
+     * shared resolver's stream-lead reference IS the current strip_group (delta 0 = stream front). */
+    move.w  %d0, plane_a_src_ref_block
     lsl.w   #2, %d0
     moveq   #0, %d1
     move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d1
@@ -302,10 +305,18 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     move.w  %d2, 0(%a6,%d3.w)
     lea     staged_fg_buffer, %a6
 
-    move.w  0(%a0,%d0.w), %d3
-    andi.w  #0x3FFF, %d3
-    bsr     fg_cache_resolve
-    or.w    6(%sp), %d3
+    /* Build 0351: resolve the Plane-A name word through the ONE shared authoritative
+     * resolver, so the horizontal producer and the vertical row producer resolve the
+     * same logical cell identically.  (Was a direct read from the live rebuilt table,
+     * which diverged from the vertical producer's static walk.)  The collision
+     * side-channel above still uses the live descriptor and is intentionally unchanged. */
+    move.w  %d1, %d0                         /* logical row = d4*4 + d5 */
+    move.w  0(%sp), %d1                      /* logical column */
+    bsr     resolve_plane_a_cell             /* D0 = final Genesis name word */
+    move.w  %d0, %d3
+    move.w  %d4, %d1                         /* recompute logical row for the residency test */
+    lsl.w   #2, %d1
+    add.w   %d5, %d1
 
     move.w  %d1, %d0
     sub.w   2(%sp), %d0
@@ -320,9 +331,6 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     add.w   0(%sp), %d2
     add.w   0(%sp), %d2
     move.w  %d3, 0(%a6,%d2.w)
-    move.l  fg_row_dirty, %d2
-    bset    %d0, %d2
-    move.l  %d2, fg_row_dirty
 
 .Lplane_a_sel0_not_resident:
     addq.w  #1, %d5
@@ -333,6 +341,22 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     addq.w  #1, %d4
     cmpi.w  #16, %d4
     blo     .Lplane_a_sel0_segment_loop
+
+    /* Build 0350: Sonic-style column publication.  selector-0 produced exactly ONE
+     * entering logical column into staged_fg_buffer; flag that VRAM column dirty
+     * (not 32 rows) so the VBlank column writer publishes a compact 32-word column
+     * instead of up to 32 x 64-word row DMAs.  Coordinates/staging unchanged (KF-072
+     * safe): only the publication granularity for the horizontal edge changes. */
+    move.w  0(%sp), %d0                      /* entering logical column 0..63 */
+    lea     fg_col_dirty, %a0
+    cmpi.w  #32, %d0
+    blo.s   .Lplane_a_sel0_col_lo
+    subi.w  #32, %d0
+    addq.l  #4, %a0
+.Lplane_a_sel0_col_lo:
+    move.l  (%a0), %d1
+    bset    %d0, %d1
+    move.l  %d1, (%a0)
 
     adda.w  #16, %sp
     movem.l (%sp)+, %d0-%d7/%a0-%a6
@@ -379,6 +403,7 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     staged_fg_buffer, %a6
 
+    move.w  #16, plane_a_src_ref_block      /* Build 0353: vertical row producer = camera-relative (one plane lead) */
     moveq   #0, %d4                 /* descriptor segment */
 .Lplane_a_sel12_segment_loop:
     move.l  (%a3)+, %d6
@@ -418,10 +443,12 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.w  %d2, 0(%a6,%d3.w)
     lea     staged_fg_buffer, %a6
 
-    move.w  0(%a0,%d0.w), %d3
-    andi.w  #0x3FFF, %d3
-    bsr     fg_cache_resolve
-    or.w    6(%sp), %d3
+    /* Build 0351: shared authoritative resolver (name word only; the collision
+     * side-channel above is intentionally unchanged).  d1 already holds the logical
+     * column and is preserved across the call. */
+    move.w  0(%sp), %d0                     /* logical row (fixed for this selector-1/2 row) */
+    bsr     resolve_plane_a_cell            /* D0 = final Genesis name word */
+    move.w  %d0, %d3
 
     move.w  0(%sp), %d0
     sub.w   2(%sp), %d0
@@ -543,6 +570,113 @@ genesistan_plane_a_pan_publish_entering_rows_down:
     andi.w  #0x003F, %d0
     rts
 
+/* ============================================================================
+ * Build 0351: ONE authoritative Plane-A cell resolver, shared by every gameplay
+ * producer (horizontal column + vertical row + pan rows).
+ *
+ * Build 0349/0350 left the two axes resolving the world through DIFFERENT source
+ * paths: the horizontal selector-0 producer read the live rebuilt split tables
+ * (0xFF1040 metatile pointers / 0xFF1080 attr words), while the vertical pan
+ * producer did an independent static strip walk with a scroll-X-derived source
+ * column offset.  They disagreed cell-for-cell -> Tighe's "horizontal partially
+ * wrong / more wrong overall".  This resolver ends that split: it is the
+ * column-general authoritative arcade path (the strip_src_table -> {attr, metatile}
+ * -> metatile[(row&3)*8+(col&3)*2] format proven against the arcade C08000 oracle),
+ * with the active map-segment term (a5@0x013E*0x40).  Both a column producer
+ * (fixed col, varying row) and a row producer (fixed row, varying col) call it, so
+ * the SAME logical cell resolves to the SAME final name word regardless of axis.
+ *
+ * in:  D0.W = logical row 0..63, D1.W = logical column 0..63; A5 = 0x00FF0000
+ * out: D0.W = final Genesis Plane-A name word (0 = blank cell)
+ * clobbers: D0 only (preserves D1-D7 / A0-A6)
+ * ============================================================================ */
+resolve_plane_a_cell:
+    movem.l %d1-%d7/%a0-%a2, -(%sp)
+    suba.w  #8, %sp
+
+    move.w  %d0, %d4                         /* logical row */
+    move.w  %d1, %d5                         /* logical column */
+
+    move.w  %d4, %d2
+    andi.w  #0x0003, %d2
+    lsl.w   #3, %d2
+    move.w  %d2, 0(%sp)                      /* row_byte  = (row & 3) * 8 */
+    move.w  %d5, %d2
+    andi.w  #0x0003, %d2
+    add.w   %d2, %d2
+    move.w  %d2, 2(%sp)                      /* col_byte  = (col & 3) * 2 */
+
+    /* Build 0352: source the strip descriptor from the LIVE, continuously
+     * scroll-advanced pointer table a5@0x1000 (PC080SN_DESC_REBUILD_SRC_TABLE),
+     * NOT a static strip_src_table + global a5@0x013E*0x40 reconstruction.
+     *
+     * The arcade maintains a5@0x1000[row_group] = strip_src_table[row_group] +
+     * seg*0x40 at scene init and then advances it +4 (one 4-column metatile block)
+     * per scrolled block (map_advance_source_ptrs, arcade 0x0558C6), so it always
+     * points at the CURRENT entering column-block's strip entry across segment
+     * boundaries.  The old static form applied the LEADING-edge segment counter
+     * a5@0x013E uniformly to every plane column, so once that counter ticked into
+     * the cave segment the cave bled across still-visible segment-0 columns
+     * (Build 0351 "cave on Segment 0").
+     *
+     * Per-cell source = a5@0x1000[row_group] + (col_block - strip_group)*4, where
+     * strip_group (a5@0x10CC) is the plane column-block the live pointer is at.
+     * For the horizontal entering column col_block == strip_group -> delta 0, i.e.
+     * exactly selector-0's original current-block source (0351 horizontal preserved);
+     * for a vertical row the delta walks each column's own block, so every column
+     * gets its own correct segment with no global term. */
+    move.w  %d4, %d2
+    lsr.w   #2, %d2
+    andi.w  #0x000F, %d2
+    lsl.w   #2, %d2                          /* row_group * 4 */
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a1   /* a5@0x1000 (live strip-source pointers) */
+    movea.l 0(%a1,%d2.w), %a0                /* a0 = live strip pointer for this row_group */
+
+    move.w  %d5, %d2
+    andi.w  #0x003F, %d2
+    lsr.w   #2, %d2                          /* col_block = (col>>2) & 0xF */
+    sub.w   plane_a_src_ref_block, %d2       /* delta = col_block - producer stream-lead reference */
+    ext.l   %d2
+    asl.l   #2, %d2                          /* delta * 4 (one strip entry per block) */
+    adda.l  %d2, %a0                         /* live strip descriptor entry for this cell */
+
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
+    blo.w   .Lrpc_blank
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
+    bhs.w   .Lrpc_blank
+    suba.l  #PC080SN_DESC_ARCADE_START, %a0
+    adda.l  #PC080SN_DESC_GENESIS_START, %a0
+
+    move.w  (%a0), %d6                       /* word0 = semantic attribute word */
+    moveq   #0, %d2
+    move.w  2(%a0), %d2                      /* word1 = metatile descriptor pointer */
+    btst    #0, %d2
+    bne.w   .Lrpc_blank
+    cmpi.l  #0x0005FDFC, %d2
+    bhi.w   .Lrpc_blank
+
+    movea.l #PC080SN_DESC_SECOND_WORD_BASE, %a0
+    adda.l  %d2, %a0                         /* metatile base */
+
+    move.w  %d6, %d0
+    bsr     .Lplane_a_native_attr_from_word  /* D0 word -> D0 attr bits (preserves D1-D3/A0) */
+    move.w  %d0, 4(%sp)                      /* final Plane-A attribute bits */
+
+    move.w  0(%sp), %d0
+    add.w   2(%sp), %d0                      /* metatile offset = row_byte + col_byte */
+    move.w  0(%a0,%d0.w), %d3
+    andi.w  #0x3FFF, %d3
+    bsr     fg_cache_resolve                 /* D3 code -> D3 residency-resolved code */
+    or.w    4(%sp), %d3
+    move.w  %d3, %d0                         /* final Genesis name word */
+    bra.s   .Lrpc_done
+.Lrpc_blank:
+    moveq   #0, %d0
+.Lrpc_done:
+    adda.w  #8, %sp
+    movem.l (%sp)+, %d1-%d7/%a0-%a2
+    rts
+
 /* in: D0.W = logical row 0..63
  * Uses the original Rastan map-source formula proven against the arcade
  * C08000 oracle, but emits only final Genesis Plane A staging words.
@@ -576,67 +710,26 @@ genesistan_plane_a_pan_publish_entering_rows_down:
 
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     staged_fg_buffer, %a6
+    move.w  #16, plane_a_src_ref_block       /* Build 0353: vertical pan producer = camera-relative (one plane lead) */
     moveq   #0, %d4                          /* logical destination column */
 
+    /* Build 0351: resolve every cell of this entering row through the ONE shared
+     * authoritative resolver (identical to the horizontal producer).  The old
+     * private static walk + scroll-X source-column offset is removed: destination
+     * column == source column, exactly as selector-0, so a cell resolves to the
+     * same name word on either axis.  fg_row_dirty publication (64-word row DMA)
+     * is retained -- only the SOURCE contract changes. */
 .Lplane_a_row_col_loop:
-    move.w  %d4, %d0
-    add.w   8(%sp), %d0
-    andi.w  #0x003F, %d0                     /* source column */
-    move.w  %d0, %d5
-    andi.w  #0x0003, %d5
-    add.w   %d5, %d5
-    move.w  %d5, 10(%sp)                     /* source column byte offset */
-    lsr.w   #2, %d0
-    lsl.w   #2, %d0                          /* source group * 4 */
+    move.w  0(%sp), %d0                      /* logical row (fixed for this entering row) */
+    move.w  %d4, %d1                         /* logical column = destination column */
+    bsr     resolve_plane_a_cell             /* D0 = final Genesis name word */
 
-    move.w  4(%sp), %d1
-    lsl.w   #2, %d1
-    lea     .Lplane_a_strip_src_table, %a0
-    movea.l 0(%a0,%d1.w), %a0
-    adda.w  %d0, %a0                         /* descriptor entry E */
-
-    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
-    blo.s   .Lplane_a_row_blank_cell
-    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
-    bhs.s   .Lplane_a_row_blank_cell
-    suba.l  #PC080SN_DESC_ARCADE_START, %a0
-    adda.l  #PC080SN_DESC_GENESIS_START, %a0
-
-    move.w  (%a0), %d7                       /* semantic attribute word */
-    moveq   #0, %d6
-    move.w  2(%a0), %d6                      /* semantic metatile descriptor pointer */
-    btst    #0, %d6
-    bne.s   .Lplane_a_row_blank_cell
-    cmpi.l  #0x0005FDFC, %d6
-    bhi.s   .Lplane_a_row_blank_cell
-
-    movea.l #PC080SN_DESC_SECOND_WORD_BASE, %a0
-    adda.l  %d6, %a0
-
-    move.w  %d7, %d0
-    bsr     .Lplane_a_native_attr_from_word
-    move.w  %d0, 12(%sp)
-
-    move.w  6(%sp), %d0
-    add.w   10(%sp), %d0
-    move.w  0(%a0,%d0.w), %d3
-    andi.w  #0x3FFF, %d3
-    bra.s   .Lplane_a_row_tile_ready
-
-.Lplane_a_row_blank_cell:
-    moveq   #0, %d3
-    clr.w   12(%sp)
-
-.Lplane_a_row_tile_ready:
-    bsr     fg_cache_resolve
-    or.w    12(%sp), %d3
-
-    move.w  2(%sp), %d0
-    lsl.w   #7, %d0
+    move.w  2(%sp), %d3                      /* physical resident row */
+    lsl.w   #7, %d3
     move.w  %d4, %d1
     add.w   %d1, %d1
-    add.w   %d1, %d0
-    move.w  %d3, 0(%a6,%d0.w)
+    add.w   %d1, %d3
+    move.w  %d0, 0(%a6,%d3.w)                /* staged_fg_buffer[phys_row*64 + col] */
 
     addq.w  #1, %d4
     cmpi.w  #64, %d4
@@ -3700,8 +3793,76 @@ genesistan_hook_itempage_strip_blit:
     movem.l (%sp)+, %d1/%d6
     rts
 
+/* Build 0350: native Sonic-style Plane-A COLUMN publisher.
+ *
+ * Adapts Sonic 1's DrawBlocks_TB technique (docs/reference/s1disasm, "Level Drawing":
+ * strided vertical writes down a plane column via the VDP autoincrement) to Rastan's
+ * single-cell granularity: for each dirty logical column, set VDP autoincrement = one
+ * plane row (0x80 bytes), point at VRAM Plane-A column `col`, then PIO 32 name words
+ * straight down the column out of staged_fg_buffer.  This replaces selector-0's old
+ * whole-row publication (a 1-column change dirtied all 32 rows -> up to 32 x 64-word
+ * DMAs = 2048 words) with one bounded 32-word column write.
+ *
+ * Rastan semantics are unchanged: selector-0 already resolved the authoritative final
+ * Genesis name words into staged_fg_buffer[(row&31)*64 + col].  This routine only
+ * changes how that column reaches VRAM.  No coordinate/ring model change (KF-072): the
+ * VRAM destination E000 + row*0x80 + col*2 is byte-identical to the row-DMA path.
+ * Clobbers are saved/restored; returns via RTS. */
+vdp_commit_fg_columns_if_dirty:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.l  fg_col_dirty, %d6               /* dirty mask, columns 0..31  */
+    move.l  fg_col_dirty + 4, %d7           /* dirty mask, columns 32..63 */
+    move.l  %d6, %d0
+    or.l    %d7, %d0
+    beq     .Lfgcol_done
+
+    moveq   #VDP_REG_AUTOINC, %d0
+    move.w  #0x80, %d1                      /* autoincrement = one Plane-A row (0x80 bytes) */
+    bsr     vdp_set_reg
+
+    moveq   #0, %d5                         /* logical column 0..63 */
+.Lfgcol_scan:
+    cmpi.w  #32, %d5
+    bhs.s   .Lfgcol_hi
+    btst    %d5, %d6
+    beq.s   .Lfgcol_next
+    bra.s   .Lfgcol_publish
+.Lfgcol_hi:
+    move.w  %d5, %d3
+    subi.w  #32, %d3
+    btst    %d3, %d7
+    beq.s   .Lfgcol_next
+.Lfgcol_publish:
+    move.w  %d5, %d4
+    add.w   %d4, %d4                        /* col * 2 (byte offset within a plane row) */
+    move.l  #VRAM_PLANE_A_BASE, %d0
+    add.w   %d4, %d0                        /* VRAM byte address = 0xE000 + col*2 */
+    bsr     vdp_set_vram_write_addr         /* clobbers d1/d2, preserves d3-d7/a* */
+    lea     staged_fg_buffer, %a0
+    adda.w  %d4, %a0                        /* &staged_fg_buffer[row 0][col] */
+    move.w  #(32 - 1), %d2
+.Lfgcol_word:
+    move.w  (%a0), VDP_DATA                 /* write one cell; autoinc steps VRAM down a row */
+    adda.w  #128, %a0                       /* next plane row (64 words) in staged buffer */
+    dbra    %d2, .Lfgcol_word
+.Lfgcol_next:
+    addq.w  #1, %d5
+    cmpi.w  #64, %d5
+    blo.s   .Lfgcol_scan
+
+    moveq   #VDP_REG_AUTOINC, %d0
+    moveq   #0x02, %d1                      /* restore default autoincrement = 2 */
+    bsr     vdp_set_reg
+    clr.l   fg_col_dirty
+    clr.l   fg_col_dirty + 4
+.Lfgcol_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
 vdp_commit_fg_narrow_strips:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+
+    bsr     vdp_commit_fg_columns_if_dirty  /* Build 0350: publish horizontal entering columns */
 
     move.w  fg_narrow_desc_count, %d7
     beq.s   .Lfg_narrow_done
@@ -3754,6 +3915,24 @@ vdp_commit_fg_narrow_strips:
 
     .section .bss
     .align 2
+
+/* Build 0350: Sonic-style Plane-A column publication dirty mask (64 columns, 2 longs).
+ * selector-0 sets the bit for each entering logical column; vdp_commit_fg_columns_if_dirty
+ * publishes and clears them each VBlank.  Separate from fg_row_dirty (still used by the
+ * vertical selector-1/2 and pan row producers), so combined H+V motion in one frame yields
+ * one bounded column publication plus one bounded row publication from the same staged buffer. */
+fg_col_dirty:
+    .long 0, 0
+
+/* Build 0353: per-producer stream-lead reference for resolve_plane_a_cell (col-blocks).
+ * The raw strip pointer a5@0x1000 leads the camera-left edge by a constant one plane width
+ * (16 col-blocks); proven in Andy_plane_a_segment01_source_contract_proof.md.
+ *   - selector-0 (horizontal) publishes only the LEADING entering column -> ref = strip_group
+ *     (delta 0 = the stream front = the entering column).
+ *   - vertical producers publish RESIDENT columns -> ref = 16 (camera-relative; oracle-exact at
+ *     plane-aligned scroll), so they no longer read one segment ahead (the Segment-0 cave bleed). */
+plane_a_src_ref_block:
+    .word 0
 
 genesistan_shadow_input_390001:
     .byte 0

@@ -341,7 +341,29 @@ Registry statuses are exactly `proven`, `decided`, `provisional`, and `unknown`.
 
 ---
 
-## Numbered ROM Artifact Preservation Rule
+## Every Build Gets a Number — Never Protect, Withhold, or Delete a Build Number (Tighe Imperative, 2026-09-08)
+
+**This is a standing imperative from Tighe that OVERRIDES any future prompt, gate, or agent
+judgment to the contrary.**
+
+- **Do not protect build numbers.** There is no such thing as "saving" or "conserving" a build
+  number. Build numbers are cheap and disposable; Tighe's ability to evaluate a build is not.
+- **If you make a build, it gets a number.** Every ROM an agent produces — passing or failing,
+  release or experimental, correct or broken — must be assigned the next sequential number and
+  preserved on disk so Tighe can evaluate it. A build that fails a gate, verification, or
+  expectation still gets its number and is kept, clearly labeled with why it failed. Never discard,
+  overwrite, or refuse-to-number a build because it did not pass something.
+- **You are NEVER permitted to delete a build number or its ROM artifact.** Not on gate failure,
+  not on rejection, not to "clean up," not for any reason. Only Tighe may authorize deleting a
+  numbered artifact.
+- **Tighe must be able to evaluate any and all builds.** This is the reason for the rule: a build
+  that never gets a number, or that is auto-deleted on failure, is a build Tighe cannot see. That
+  outcome is not acceptable.
+- **A blocking gate is not a reason to withhold a number.** If a gate (e.g. the Phase-1
+  seven-epoch gate) fails, the failing ROM is still numbered, preserved, and labeled with the gate
+  result. Surface the gate failure to Tighe as evidence; do not let it silently delete or
+  un-number the build. If the existing tooling would auto-delete a failing build, treat that as a
+  conflict to raise with Tighe, and preserve/number the artifact regardless.
 
 Numbered ROM artifacts are evidence and must not be deleted, overwritten, or silently replaced.
 

@@ -191,3 +191,55 @@ vblank — NOT in this first build; keep display-on for now). Keep the descripto
 concrete; do not build the allocator monster. **Note:** this first build does NOT fix the CRAM dots by
 itself — the dots are resolved by step 6's publish-first ordering; do not add a gate
 to chase them here.
+
+---
+
+## IMPLEMENTATION RESULTS — Builds 0343→0345 (2026-09-04)
+
+Delivered against the GO-authorized prompt. The central publisher exists and is the single owner of
+normal-runtime Genesis DMA.
+
+### What shipped
+- **`src/dma.s`** — new module. `dma_publish_frame` is THE one VBlank publication phase, called from
+  `_vblank_service` after the producer guard (`vdp_prepare_sprites`, no DMA) and before the arcade
+  tick resumes. Order: palette (CRAM) → tiles (PIO) → BG strips → FG narrow/strips → sprites+SAT →
+  scroll (PIO). Publish-first: the completed frame N is published at VINT N+1 (one-frame latency).
+- **Display-off build flag** `RASTAN_VBLANK_DISPLAY_OFF`. `dma_publish_frame` brackets the commits
+  with reg1 display-OFF/ON under `.if`. The build emits four ROMs per number: release, `_d` (CPU-load
+  bar), `_s` (score metric), `_do` (display-off). Display-off is the Rainbow target policy; until the
+  phase provably fits the ~38-line NTSC vblank the `_do` ROM may visibly blank part of the picture and
+  serves as an overrun diagnostic.
+- **Single DMA owner (Build 0345).** The VRAM DMA primitive and the CRAM palette DMA were relocated
+  from `vdp_comm.s` into `dma.s`; the sprite-cell and SAT DMA in `pc090oj_hooks.s` were converted from
+  inline register programs to calls into the dma.s primitive (`dma_words_to_vram_noai`). After this,
+  every normal-runtime DMA-register write and DMA trigger lives in `dma.s`.
+
+### Single-owner proof (Part Q)
+`grep` across `src/` for DMA length/source register writes (`0x93xx`–`0x97xx`) and DMA triggers
+(`0x40000080`/`0xC0000080`): normal-runtime hits are **only in `dma.s`**. Documented non-runtime
+exceptions kept intentionally: `genesistan_pc090oj_dma_self_test` (boot-time VRAM DMA self-test,
+called once from `boot.s`) and `crash_handler.s`/`bk_crash_handler.s` (error paths).
+
+### Regression caught and fixed in-session
+First 0345 attempt failed the seven-epoch gate: Plane-A LUT slot index=308 (code `034C`) read `0000`
+instead of `0420`, identical scenario otherwise (external_frames=336, upload_count=394). Cause:
+routing the sprite/SAT DMA through the shared primitive added a redundant per-call autoinc write
+(`0x8F02`) that the original inline sprite DMA never issued; the extra VDP control writes lengthened
+the publication phase enough to perturb the timing-fragile epoch-**transition** slot `0x034C` (same
+slot family as the deferred OPT-003 clobber). Fix: a second primitive entry `dma_words_to_vram_noai`
+that skips the autoinc set — autoinc is already 2 at sprite-commit time because the plane DMAs set it
+— reproducing Build 0344's exact sprite write/cycle sequence. Rebuild passed all gates.
+
+### DoD status
+1. dma.s owns normal-runtime DMA — **met**. 2. numbered publish-first ROM — **met** (0343/0344/0345).
+3. one publication phase at VBlank top — **met**. 4. zero DMA after the phase — **met** (static proof).
+5. no runtime DMA outside dma.s — **met** (documented exceptions). 6. producers stage, don't DMA —
+**met**. 7. ROM + SHA to Tighe — **met**.
+
+### Deferred follow-up optimizations (NOT DoD blockers)
+- **Palette single-semantic-change flag (Rainbow model).** Palette is currently an unconditional CRAM
+  DMA every frame (Sonic-safe, always correct). The single-flag gate needs a full audit of every
+  `staged_palette_words` producer first, or it risks a stale palette; held for a focused pass.
+- **Contiguous dirty-plane-row coalescing** — merge a run of adjacent dirty BG/FG rows into one DMA
+  (the largest remaining publication-volume win).
+- **OPT-003** — DEFERRED, untouched, not in the tree.

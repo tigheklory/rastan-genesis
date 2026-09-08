@@ -57,6 +57,9 @@ RASTAN_DIAG_CPU_BAR ?= 0
 # (0 = servicing fits entirely in vblank; N = worst-case overran N scanlines into the picture).
 # 0 = off (release / _d bar build); 1 = on (the "_s" metric ROM). NEVER shipped; corrupts the score.
 RASTAN_DIAG_SCORE_METRIC ?= 0
+# Build 0344: display-off VBlank publication variant. 0 = display stays ON during dma_publish_frame
+# (current behaviour); 1 = blank the display for the publication phase (Rainbow model). Emits a "_do" ROM.
+RASTAN_VBLANK_DISPLAY_OFF ?= 0
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
 # Build 0340 OPT-003: prebaked PC090OJ sprite palette-line LUT (derived from palette_route_table).
@@ -123,6 +126,7 @@ LDFLAGS := -T link.ld -nostdlib
 OBJS := \
 	$(OUT_DIR)/boot.o \
 	$(OUT_DIR)/vdp_comm.o \
+	$(OUT_DIR)/dma.o \
 	$(OUT_DIR)/tilemap_hooks.o \
 	$(OUT_DIR)/fg_tile_cache.o \
 	$(OUT_DIR)/palette_hooks.o \
@@ -138,15 +142,17 @@ PREPATCH_BIN := $(OUT_DIR)/rastan_direct_video_test.prepatch.bin
 BIN := $(DIST_DIR)/rastan_direct_video_test.bin
 DIAG_ROM := $(DIST_DIR)/rastan_direct_video_test_diag.bin
 SCORE_ROM := $(DIST_DIR)/rastan_direct_video_test_score.bin
+DO_ROM := $(DIST_DIR)/rastan_direct_video_test_do.bin
 
 .DELETE_ON_ERROR:
-.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant
+.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant
 
-# Build 0337/0338: every build produces THREE ROMs sharing one build number:
-#   ..._NNNN.bin    release (both diag flags off) -- owns the counter/gates/ledger
-#   ..._NNNN_d.bin  diagnostic CPU-load raster bar (RASTAN_DIAG_CPU_BAR=1)
-#   ..._NNNN_s.bin  diagnostic numeric score metric (RASTAN_DIAG_SCORE_METRIC=1)
-# The _d and _s builds are postpatch-only copies that reuse the release's number and are never
+# Build 0337/0338/0344: every build produces FOUR ROMs sharing one build number:
+#   ..._NNNN.bin     release (all diag/variant flags off) -- owns the counter/gates/ledger
+#   ..._NNNN_d.bin   diagnostic CPU-load raster bar (RASTAN_DIAG_CPU_BAR=1)
+#   ..._NNNN_s.bin   diagnostic numeric score metric (RASTAN_DIAG_SCORE_METRIC=1)
+#   ..._NNNN_do.bin  display-off VBlank publication phase (RASTAN_VBLANK_DISPLAY_OFF=1)
+# The _d, _s and _do builds are postpatch-only copies that reuse the release's number and are never
 # numbered/ledgered themselves.
 all: dual-build
 release: dual-build
@@ -155,6 +161,7 @@ dual-build:
 	$(MAKE) $(BIN)
 	$(MAKE) diag-variant RASTAN_DIAG_CPU_BAR=1
 	$(MAKE) score-variant RASTAN_DIAG_SCORE_METRIC=1
+	$(MAKE) do-variant RASTAN_VBLANK_DISPLAY_OFF=1
 
 $(OUT_DIR) $(DIST_DIR):
 	@mkdir -p $@
@@ -163,6 +170,9 @@ $(OUT_DIR)/boot.o: $(SRC_DIR)/boot/boot.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/vdp_comm.o: $(SRC_DIR)/vdp_comm.s $(SRC_DIR)/crash_handler.s $(PC090OJ_CONFIG_INC) $(CRASH_BUILD_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+$(OUT_DIR)/dma.o: $(SRC_DIR)/dma.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 # Generate the crash-screen build number from the SAME counter the numbering
@@ -251,8 +261,8 @@ $(PC090OJ_OPAQUE_BBOX): $(PC090OJ_REGION) $(ROOT)/tools/translation/build_pc090o
 # Generate the PC090OJ helper sizing include from the Make variable each build so
 # an override (PC090OJ_MIRROR_RECORDS=N) is always applied without hand-editing.
 $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
-	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s RASTAN_DIAG_CPU_BAR=%s RASTAN_DIAG_SCORE_METRIC=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n.equ RASTAN_DIAG_CPU_BAR, %s\n.equ RASTAN_DIAG_SCORE_METRIC, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' > $@
-	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) -> $@"
+	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s RASTAN_DIAG_CPU_BAR=%s RASTAN_DIAG_SCORE_METRIC=%s RASTAN_VBLANK_DISPLAY_OFF=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n.equ RASTAN_DIAG_CPU_BAR, %s\n.equ RASTAN_DIAG_SCORE_METRIC, %s\n.equ RASTAN_VBLANK_DISPLAY_OFF, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' > $@
+	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) RASTAN_VBLANK_DISPLAY_OFF=$(RASTAN_VBLANK_DISPLAY_OFF) -> $@"
 
 # Build 0340 OPT-003: generate the prebaked (scene,effective_bank)->palette-line LUT from the authored
 # palette_route_table + the 0x30->line2 special case + (eb>>4)&3 fallback, and PROVE equivalence
@@ -340,7 +350,13 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 		echo "ERROR: refusing to overwrite existing numbered build artifact: $$numbered"; \
 		exit 1; \
 	fi; \
-	"$(PYTHON)" "$(CANONICAL_GATE)" \
+	: '=== Tighe imperative 2026-09-08: gates are LABELS, not blockers. The gates below are'; \
+	: 'run for their verdict, but NEVER delete, withhold, or un-number a built ROM. Every ROM'; \
+	: 'that reaches this point is numbered and preserved regardless of gate outcome, so Tighe'; \
+	: 'can evaluate any and all builds. Validation describes the build; it does not grant it'; \
+	: 'permission to exist. See RULES.md / CLAUDE.md.'; \
+	gate_status=""; \
+	if "$(PYTHON)" "$(CANONICAL_GATE)" \
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--spec "$(PATCH_SPEC)" \
@@ -353,31 +369,39 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 		--numbered-counter "$$counter_file" \
 		--numbered-name "$$numbered_name" \
 		--bookmark-revert "$(BOOKMARK_REVERT)" \
-		--state-file "$(BOOKMARK_STATE_FILE)" || exit $$?; \
-	if ! "$(GAMEPLAY_ENTRY_GATE)" "$@" "$(SYMBOLS)" "$$tag"; then \
-		echo "ERROR: Start-to-gameplay package gate failed; numbered artifact not published"; \
-		exit 1; \
+		--state-file "$(BOOKMARK_STATE_FILE)"; then \
+		gate_status="canonical=PASS"; \
+	else \
+		gate_status="canonical=FAIL"; \
+		echo "WARNING: canonical gate FAILED -- ROM still numbered+preserved for evaluation"; \
 	fi; \
-	if ! "$(PHASE1_EPOCH_GATE)" "$@" "$(SYMBOLS)" "$$tag"; then \
-		echo "ERROR: Phase-1 seven-epoch gate failed; numbered artifact not published"; \
-		exit 1; \
+	if "$(GAMEPLAY_ENTRY_GATE)" "$@" "$(SYMBOLS)" "$$tag"; then \
+		gate_status="$$gate_status entry=PASS"; \
+	else \
+		gate_status="$$gate_status entry=FAIL"; \
+		echo "WARNING: start-to-gameplay gate FAILED -- ROM still numbered+preserved for evaluation"; \
+	fi; \
+	if "$(PHASE1_EPOCH_GATE)" "$@" "$(SYMBOLS)" "$$tag"; then \
+		gate_status="$$gate_status epoch=PASS"; \
+	else \
+		gate_status="$$gate_status epoch=FAIL"; \
+		echo "WARNING: phase1 seven-epoch gate FAILED -- ROM still numbered+preserved for evaluation"; \
 	fi; \
 	cp "$@" "$$numbered"; \
 	if [ ! -s "$$numbered" ]; then echo "ERROR: numbered build artifact missing/empty after copy: $$numbered"; exit 1; fi; \
 	printf "%d\n" "$$next" > "$$counter_file"; \
-	printf "%s PRODUCED %s auto-recorded-by-release\n" "$$tag" "$$(date +%Y-%m-%d)" >> "$(CONSUMED_BUILD_LEDGER)"; \
-	echo "numbered build artifact: $$numbered"; \
+	printf "%s PRODUCED %s auto-recorded-by-release [%s]\n" "$$tag" "$$(date +%Y-%m-%d)" "$$gate_status" >> "$(CONSUMED_BUILD_LEDGER)"; \
+	echo "numbered build artifact: $$numbered [$$gate_status]"; \
 	trace_ts=$$(date +%Y%m%d_%H%M%S); \
 	trace_dir="$(ROOT)/states/traces/$(NUMBERED_PREFIX)_$${tag}_mame_30s_$${trace_ts}"; \
-	mkdir -p "$$trace_dir" || exit 1; \
+	mkdir -p "$$trace_dir" || true; \
 	trace_cmd='timeout 120s "$(ROOT)/tools/mame/run_genesis_trace_wsl.sh" "$@" -video none -sound none -nothrottle -seconds_to_run 30'; \
 	echo "trace command: $$trace_cmd"; \
-	if ! eval "$$trace_cmd"; then echo "ERROR: Genesis trace command failed"; exit 1; fi; \
-	cp "$(ROOT)/build/mame/home/genesistrace/genesis_exec_summary.txt" "$$trace_dir/" || exit 1; \
-	cp "$(ROOT)/build/mame/home/genesistrace/genesis_exec_trace.log" "$$trace_dir/" || exit 1; \
+	if ! eval "$$trace_cmd"; then echo "WARNING: Genesis trace command failed -- ROM $$numbered still preserved"; fi; \
+	cp "$(ROOT)/build/mame/home/genesistrace/genesis_exec_summary.txt" "$$trace_dir/" 2>/dev/null || true; \
+	cp "$(ROOT)/build/mame/home/genesistrace/genesis_exec_trace.log" "$$trace_dir/" 2>/dev/null || true; \
 	if [ -f "$(ROOT)/build/mame/home/genesistrace/trace_metadata.txt" ]; then cp "$(ROOT)/build/mame/home/genesistrace/trace_metadata.txt" "$$trace_dir/"; fi; \
 	if [ -f "$(ROOT)/build/mame/home/genesistrace/mame_stdout.txt" ]; then cp "$(ROOT)/build/mame/home/genesistrace/mame_stdout.txt" "$$trace_dir/"; fi; \
-	if [ ! -f "$$trace_dir/genesis_exec_summary.txt" ]; then echo "ERROR: Missing genesis_exec_summary.txt in trace output: $$trace_dir"; exit 1; fi; \
 	echo "trace saved to: $$trace_dir"
 
 # Build 0337: diagnostic ROM = the same postpatch pipeline as $(BIN) but WITHOUT the numbered
@@ -431,6 +455,32 @@ score-variant: $(SCORE_ROM)
 	cp "$(SCORE_ROM)" "$$dest"; \
 	if [ ! -s "$$dest" ]; then echo "ERROR: score-metric build artifact missing/empty: $$dest"; exit 1; fi; \
 	echo "diagnostic build artifact (score metric): $$dest"
+
+# Build 0344: display-off ROM = same postpatch-only pipeline as $(DIAG_ROM) but built with
+# RASTAN_VBLANK_DISPLAY_OFF=1 (via the recursive `do-variant` invocation).  Separate manifest.
+# This is the Rainbow-model publication-phase forced-blank variant; NOT a diagnostic overlay.
+$(DO_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
+	cp "$(PREPATCH_BIN)" "$@"
+	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
+	$(PYTHON) "$(PATCHER)" \
+		--variant "$(VARIANT)" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
+		--rom "$@" \
+		--symbols "$(SYMBOLS)" \
+		--manifest "$(OUT_DIR)/do_patch_manifest.json" \
+		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
+
+# Copy the display-off ROM to the SAME build number as the numbered release, with a "_do" suffix.
+# Does not touch the counter or ledger.
+do-variant: $(DO_ROM)
+	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
+	tag=$$(printf "%04d" "$$n"); \
+	dest="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_do.bin"; \
+	cp "$(DO_ROM)" "$$dest"; \
+	if [ ! -s "$$dest" ]; then echo "ERROR: display-off build artifact missing/empty: $$dest"; exit 1; fi; \
+	echo "display-off build artifact (RASTAN_VBLANK_DISPLAY_OFF=1): $$dest"
 
 clean:
 	rm -rf $(OUT_DIR) $(DIST_DIR)

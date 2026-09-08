@@ -1636,6 +1636,12 @@
    "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
   },
   {
+   "arcade_pc": "0x051AB6",
+   "original_bytes": "247C0010D280",
+   "replacement_bytes": "247C00FF1280",
+   "note": "Build 0346 seg-5 crash rebase: `movea.l #0x0010D280,%a2` loads the base of a per-slot {marker.w, source-pointer.l} table that the routine at 0x51AB6 walks (d3=3 entries), copying the pointed 9-word blocks into A5+0x1134. The routine is gated by the live A5-relative flag %a5@(0x1280) (caller test at 0x513A8 `cmpi #1`, writers 0x40F6E/0x41BEE/0x4C94E), and its sibling writes to 0x10D296 in the SAME routine were ALREADY rebased to A5-relative (0x052B0E/0x052B2A). This one absolute base literal was overlooked: raw 0x0010D280 is cartridge ROM on Genesis (ROM[0x10D280]=0x10000011), so `movea.l (a2),a0` loads that value, `addq #2,a0` -> 0x10000013 (odd), and `move.w (a0),(a1)+` at 0x51AF2 takes an ADDRESS ERROR (vector 3). Confirmed by GENESIS NTSC crash capture at scene_id=06/seg=0005: stacked_PC=0x00051D00 (=0x51AF2 next), A0=0x10000013, instr_reg=0x32D0. The display-off (_do) build's overrun-DMA timing sets %a5@(0x1280)=1 at seg-5 so this latent path is reached; the fix makes the reader address the live A5+0x1280 work-RAM the producers populate, correct for BOTH display policies. Byte-neutral MOVEA.L #imm rebase (6->6, opcode 0x247C preserved), arcade A5 base 0x10C000 -> Genesis 0xFF0000 (KF-039/KF-042 class); no control-flow, table structure, marker semantics, NOP, or RTS change."
+  },
+  {
    "arcade_pc": "0x051C5A",
    "original_bytes": "30390010D37A",
    "replacement_bytes": "303900FF137A",
@@ -2036,7 +2042,7 @@
   }
  ],
  "expectations": {
-  "opcode_replace_count": 227,
+  "opcode_replace_count": 228,
   "genesis_only_maincpu_ref_count": 7
  }
 }

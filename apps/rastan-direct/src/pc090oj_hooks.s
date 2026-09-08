@@ -36,6 +36,7 @@
     .global vdp_commit_sprites
     .global vdp_commit_sprites_vram
     .global genesistan_pc090oj_dma_self_test
+    .extern dma_words_to_vram_noai         /* Build 0345: single DMA-programming owner in dma.s */
 
     .global pc090oj_ctrl_shadow
     .global pc090oj_sprite_ctrl_shadow
@@ -2053,40 +2054,16 @@ vdp_commit_sprites_vram:
 	    lea     rastan_pc090oj, %a1
 	    adda.l  %d0, %a1
 	.Lvcs_tile_src_ready:
-	    move.l  %a1, %d0
-    lsr.l   #1, %d0
-    movea.l #VDP_CTRL, %a3
-    move.w  #0x9340, (%a3)
-    move.w  #0x9400, (%a3)
-    move.w  %d0, %d3
-    andi.w  #0x00FF, %d3
-    ori.w   #0x9500, %d3
-    move.w  %d3, (%a3)
-    move.l  %d0, %d3
-    lsr.l   #8, %d3
-    andi.w  #0x00FF, %d3
-    ori.w   #0x9600, %d3
-    move.w  %d3, (%a3)
-    move.l  %d0, %d3
-    lsr.l   #8, %d3
-    lsr.l   #8, %d3
-    andi.w  #0x007F, %d3
-    ori.w   #0x9700, %d3
-    move.w  %d3, (%a3)
+    /* Build 0345: issue the sprite-cell VRAM DMA through the dma.s-owned primitive instead of an
+     * inline register program.  in: a0 = 68k source (byte), d0 = VRAM byte dest, d1 = word count
+     * (64 words = one 128-byte sprite cell group).  Preserves d4-d7 (slot/index/code/count) and a2. */
+    movea.l %a1, %a0
     move.w  %d4, %d0
     lsl.w   #2, %d0
     addi.w  #SPRITE_TILE_BASE, %d0
     lsl.l   #5, %d0
-    move.l  %d0, %d1
-    andi.l  #0x00003FFF, %d1
-    swap    %d1
-    move.l  %d0, %d2
-    lsr.l   #8, %d2
-    lsr.l   #6, %d2
-    andi.l  #0x00000003, %d2
-    ori.l   #0x40000080, %d1
-    or.l    %d2, %d1
-    move.l  %d1, (%a3)
+    moveq   #64, %d1
+    bsr     dma_words_to_vram_noai
     move.w  %d4, %d0
     add.w   %d0, %d0
     lea     sprite_tile_resident_code, %a1
@@ -2117,59 +2094,17 @@ vdp_commit_sprites_vram:
     clr.w   pc090oj_tile_dma_count
     rts
 
-/* SAT DMA: length = max(highest_used+1, 1) * 4 words, clamped to 80 slots. */
+/* SAT DMA: whole 80-slot table every frame (640 B = 320 words) to VRAM 0xF800.
+ * Build 0345: issued through the dma.s-owned primitive (a0=source, d0=dest byte, d1=word count). */
 .Lvcs_sat_dma:
-    movea.l #VDP_CTRL, %a3
-    move.w  #80, %d0                   /* constant full-table DMA (640 B) */
-    lsl.w   #2, %d0
-
-    move.w  %d0, %d1
-    andi.w  #0x00FF, %d1
-    ori.w   #0x9300, %d1
-    move.w  %d1, (%a3)
-
-    move.w  %d0, %d1
-    lsr.w   #8, %d1
-    andi.w  #0x00FF, %d1
-    ori.w   #0x9400, %d1
-    move.w  %d1, (%a3)
-
-    move.l  #staged_sprite_sat, %d0
+    lea     staged_sprite_sat, %a0
     tst.w   pc090oj_sat_front
     beq.s   .Lsat_src_ok
-    move.l  #staged_sprite_sat_b, %d0
+    lea     staged_sprite_sat_b, %a0
 .Lsat_src_ok:
-    lsr.l   #1, %d0
-
-    move.w  %d0, %d1
-    andi.w  #0x00FF, %d1
-    ori.w   #0x9500, %d1
-    move.w  %d1, (%a3)
-
-    move.l  %d0, %d1
-    lsr.l   #8, %d1
-    andi.w  #0x00FF, %d1
-    ori.w   #0x9600, %d1
-    move.w  %d1, (%a3)
-
-    move.l  %d0, %d1
-    lsr.l   #8, %d1
-    lsr.l   #8, %d1
-    andi.w  #0x007F, %d1
-    ori.w   #0x9700, %d1
-    move.w  %d1, (%a3)
-
-    move.l  #0x0000F800, %d0
-    move.l  %d0, %d1
-    andi.l  #0x00003FFF, %d1
-    swap    %d1
-    move.l  %d0, %d2
-    lsr.l   #8, %d2
-    lsr.l   #6, %d2
-    andi.l  #0x00000003, %d2
-    ori.l   #0x40000080, %d1
-    or.l    %d2, %d1
-    move.l  %d1, (%a3)
+    move.l  #0x0000F800, %d0          /* VRAM SAT base */
+    move.w  #(80 * 4), %d1            /* whole table: 320 words = 640 bytes */
+    bsr     dma_words_to_vram_noai
     rts
 
 /* ------------------------------------------------------------------------- */

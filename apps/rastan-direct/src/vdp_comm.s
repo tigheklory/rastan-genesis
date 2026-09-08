@@ -5,7 +5,7 @@
     .global vdp_boot_setup
     .global vdp_set_reg
     .global vdp_set_vram_write_addr
-    .global vdp_dma_words_to_vram
+    .extern vdp_dma_words_to_vram          /* Build 0345: DMA primitive now lives in dma.s */
     .global sprite_dma_addr_high_bits_fix
     .global vdp_commit_tiles_if_dirty
     .global vdp_commit_bg_strips_if_dirty
@@ -15,15 +15,17 @@
     .extern vdp_prepare_sprites
     .extern vdp_commit_sprites_vram
     .extern genesistan_current_scene_id
-    .global vdp_commit_palette
+    .extern vdp_commit_palette             /* Build 0345: CRAM palette DMA now lives in dma.s */
     .global vdp_install_test_lines
     .extern editor_layera_palette
     .extern test_sprite_line0
     .extern test_sprite_line1
     .global vdp_commit_scroll
+    .extern dma_publish_frame
     .global _vblank_service
 
     .global tiles_dirty
+    .global palette_pending
     .global bg_row_dirty
     .global fg_row_dirty
     .global fg_native_gameplay_owner
@@ -174,42 +176,29 @@ _vblank_service:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     bsr     rastan_direct_update_inputs
 
-    /* Build 0336: publish the full 64-word staged palette to CRAM by ONE 68k->CRAM DMA, at the
-     * earliest safe point in VBlank (before the heavy plane/sprite DMA), UNCONDITIONALLY.  This is
-     * the Sonic-1 model (_inc/PaletteCycle.asm producers + writeCRAM DMA): semantic producers own
-     * WHAT is staged (scene install, Layer-B sunset, arcade waterfall step); VBlank only publishes
-     * the canonical staged buffer.  Replaces the old dirty-gated 64-word CPU PIO commit (the
-     * CRAM-write noise source).  No palette_dirty, no per-frame reassert. */
-    bsr     vdp_commit_palette
-
-.if RASTAN_DIAG_CPU_BAR
-    /* Build 0337 diagnostic CPU-load bar ON: set the VDP backdrop (CRAM entry 0) bright.  Placed
-     * AFTER the palette DMA (which rewrites CRAM 0), so it isn't immediately overwritten.  The
-     * backdrop stays bright across the sprite + plane + scroll VDP commits/DMA below (and while
-     * those DMAs halt the CPU), then is cleared just before the arcade handler.  The resulting
-     * coloured band = the Genesis VBlank servicing cost; if it reaches into the active picture the
-     * servicing overran vblank. */
-    move.l  #0xC0000000, VDP_CTRL       /* CRAM write addr 0 */
-    move.w  #0x00E0, VDP_DATA           /* bright green = servicing busy */
-.endif
-
+    /* Build 0343: producer GUARD (no DMA).  Ensure the SAT is staged before the publication phase
+     * (cheap no-op in gameplay when the arcade sprite dispatcher already emitted).  This is the only
+     * production that runs inside the VBlank service; it does not touch the VDP. */
     bsr     vdp_prepare_sprites
 
-    /* N2 (Build 0227): display stays ON; heavy plane commits use bounded VRAM DMA.
-     * Commit order: tiles -> bg strips -> fg narrow (Build 0256). */
-    bsr     vdp_commit_tiles_if_dirty
-    bsr     vdp_commit_bg_strips_if_dirty
-    bsr     vdp_commit_fg_narrow_strips
+.if RASTAN_DIAG_CPU_BAR
+    /* Build 0337 diagnostic CPU-load bar ON: set the VDP backdrop (CRAM entry 0) bright, bracketing the
+     * single publication phase below.  The coloured band = the VBlank publication cost; if it reaches
+     * into the active picture the publication overran vblank. */
+    move.l  #0xC0000000, VDP_CTRL       /* CRAM write addr 0 */
+    move.w  #0x00E0, VDP_DATA           /* bright green = publishing */
+.endif
 
-    bsr     vdp_commit_sprites_vram     /* N1: DMA-only, display-on safe */
-
-    bsr     vdp_commit_scroll
+    /* Build 0343: THE single Genesis VBlank publication phase (dma.s).  All normal-runtime DMA/VDP
+     * publication for the completed frame happens here, in one contiguous phase at the top of the
+     * VBlank service.  After this returns, NO further runtime DMA occurs before the arcade tick
+     * resumes to stage the next frame. */
+    bsr     dma_publish_frame
 
 .if RASTAN_DIAG_CPU_BAR
-    /* Build 0337 diagnostic CPU-load bar OFF: restore backdrop to black.  The staged CRAM 0 (black)
-     * is re-published by next frame's palette DMA, so this only affects the diagnostic band. */
+    /* Build 0337 diagnostic CPU-load bar OFF: restore backdrop to black. */
     move.l  #0xC0000000, VDP_CTRL
-    move.w  #0x0000, VDP_DATA           /* black = servicing done */
+    move.w  #0x0000, VDP_DATA           /* black = publication done */
 .endif
 
 .if RASTAN_DIAG_SCORE_METRIC
@@ -282,48 +271,10 @@ vdp_commit_tiles_if_dirty:
  * their tall-project-base globals) and their _vblank_service call sites were
  * retired.  Native Plane A/B producers + strip commits own tilemap output. */
 
-/* VRAM row DMA.  in: d0 = VRAM byte dest, d1 = word count, a0 = 68k source.
- * Sets autoinc 2 and triggers a 68k->VRAM DMA.  Clobbers d1-d3, a1. */
-vdp_dma_words_to_vram:
-.Lplane_dma_row:
-    movea.l #VDP_CTRL, %a1
-    move.w  #0x8F02, (%a1)
-    move.w  %d1, %d2
-    andi.w  #0x00FF, %d2
-    ori.w   #0x9300, %d2
-    move.w  %d2, (%a1)
-    move.w  %d1, %d2
-    lsr.w   #8, %d2
-    ori.w   #0x9400, %d2
-    move.w  %d2, (%a1)
-    move.l  %a0, %d3
-    lsr.l   #1, %d3
-    move.w  %d3, %d1
-    andi.w  #0x00FF, %d1
-    ori.w   #0x9500, %d1
-    move.w  %d1, (%a1)
-    move.l  %d3, %d1
-    lsr.l   #8, %d1
-    andi.w  #0x00FF, %d1
-    ori.w   #0x9600, %d1
-    move.w  %d1, (%a1)
-    move.l  %d3, %d1
-    moveq   #16, %d2
-    lsr.l   %d2, %d1
-    andi.w  #0x007F, %d1
-    ori.w   #0x9700, %d1
-    move.w  %d1, (%a1)
-    move.l  %d0, %d1
-    andi.l  #0x00003FFF, %d1
-    swap    %d1
-    move.l  %d0, %d3
-    lsr.l   #8, %d3
-    lsr.l   #6, %d3
-    andi.l  #0x00000003, %d3
-    ori.l   #0x40000080, %d1
-    or.l    %d3, %d1
-    move.l  %d1, (%a1)
-    rts
+/* Build 0345: the VRAM row DMA primitive (vdp_dma_words_to_vram/.Lplane_dma_row) was relocated
+ * to dma.s so DMA-register programming has a single owner.  The strip commits below now call the
+ * dma.s-owned `vdp_dma_words_to_vram` (same in: d0 VRAM byte dest, d1 word count, a0 source;
+ * clobbers d1-d3, a1). */
 
 vdp_commit_bg_strips_if_dirty:
     move.l  bg_row_dirty, %d6
@@ -344,7 +295,7 @@ vdp_commit_bg_strips_if_dirty:
     lea     staged_bg_buffer, %a0
     adda.l  %d4, %a0
     move.w  #64, %d1
-    bsr     .Lplane_dma_row
+    bsr     vdp_dma_words_to_vram
 
     move.l  %d6, %d0
     bclr    %d5, %d0
@@ -378,7 +329,7 @@ vdp_commit_fg_strips_if_dirty:
     lea     staged_fg_buffer, %a0
     adda.l  %d4, %a0
     move.w  #64, %d1
-    bsr     .Lplane_dma_row
+    bsr     vdp_dma_words_to_vram
 
     move.l  %d6, %d0
     bclr    %d5, %d0
@@ -393,35 +344,8 @@ vdp_commit_fg_strips_if_dirty:
 .Lfg_done:
     rts
 
-/* Build 0336: publish the full 64-word staged palette to CRAM by ONE 68k->CRAM DMA (Sonic-1
- * writeCRAM model), replacing the old 64-word CPU PIO loop.  Source = staged_palette_words (WRAM),
- * length = 64 words, destination = CRAM word 0, autoinc 2.  The source-address encoding mirrors the
- * proven vdp_dma_words_to_vram; only the trigger differs: CRAM-write (0xC0...) instead of VRAM
- * (0x40...).  Called unconditionally, early, each VBlank -- no palette_dirty.  Clobbers d1-d3/a1. */
-vdp_commit_palette:
-    movea.l #VDP_CTRL, %a1
-    move.w  #0x8F02, (%a1)              /* reg 0x0F: autoincrement 2 */
-    move.w  #0x9340, (%a1)              /* reg 0x13: DMA length low  = 64 words */
-    move.w  #0x9400, (%a1)              /* reg 0x14: DMA length high = 0 */
-    move.l  #staged_palette_words, %d3
-    lsr.l   #1, %d3                     /* DMA source = word address */
-    move.w  %d3, %d1
-    andi.w  #0x00FF, %d1
-    ori.w   #0x9500, %d1
-    move.w  %d1, (%a1)                  /* reg 0x15: source low */
-    move.l  %d3, %d1
-    lsr.l   #8, %d1
-    andi.w  #0x00FF, %d1
-    ori.w   #0x9600, %d1
-    move.w  %d1, (%a1)                  /* reg 0x16: source mid */
-    move.l  %d3, %d1
-    moveq   #16, %d2
-    lsr.l   %d2, %d1
-    andi.w  #0x007F, %d1
-    ori.w   #0x9700, %d1
-    move.w  %d1, (%a1)                  /* reg 0x17: source high + mode 00 (68k->VDP) */
-    move.l  #0xC0000080, (%a1)          /* CRAM write addr 0 + DMA trigger */
-    rts
+/* Build 0345: vdp_commit_palette (the CRAM palette DMA) was relocated to dma.s so DMA-register
+ * programming has a single owner.  It is invoked only from dma_publish_frame. */
 
 vdp_commit_scroll:
     move.l  #VRAM_HSCROLL_BASE, %d0
@@ -485,7 +409,7 @@ vdp_install_test_lines:
 .Liti_l3:
     move.w  (%a0)+, (%a1)+
     dbra    %d2, .Liti_l3
-    /* Build 0336: no palette_dirty; the unconditional VBlank CRAM DMA publishes the staged lines. */
+    move.b  #1, palette_pending
     movem.l (%sp)+, %d2/%a0-%a1
     rts
 
@@ -510,6 +434,8 @@ diag_score_bcd:                         /* 3-byte BCD of the metric, copied into
     .align 2
 .endif
 tiles_dirty:
+    .byte 0
+palette_pending:
     .byte 0
     .align 2
 bg_row_dirty:

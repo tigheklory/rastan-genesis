@@ -1,0 +1,59 @@
+# Rastan Genesis Round 1 Phase 1 semantic-trace symbol set.
+# name  address
+#
+# These are Genesis WRAM (BSS + arcade work-RAM) STATE addresses only -- NO code addresses.
+# BSS/WRAM symbols are placed by link.ld and are independent of .text size, so they are stable
+# across the Build 0348 tree and its variants (verified: active_record=0xFFB218, active_lut=0xFF6188
+# identical in every build this session). The trace reads only these; it does not tap code, so the
+# native code-symbol drift between build variants is irrelevant to this capture.
+#
+# Arcade work-RAM entries assume A5 = 0x00FF0000 (the gameplay work-RAM base; proven this session).
+
+# --- identity / scene ---
+genesistan_current_scene_id      0xFFC068
+genesistan_current_tileset_id    0xFFC069
+scene_a0_lo                      0xFFC06A
+scene_a0_hi                      0xFFC06E
+
+# --- map segment / residency record ---
+arcade_record                    0xFF013E   # arcade-owned segment/record (A5+0x013E)
+active_record                    0xFFB218   # Genesis Layer-A active record (map segment)
+active_variant                   0xFFB21A
+active_package                   0xFFB21C   # Genesis graphics residency package
+pending_record                   0xFFB21E
+pending_package                  0xFFB222
+reseed_pending                   0xFFB226
+epoch_transitions                0xFFB1EC
+pattern_dma_transitions          0xFFB1FC
+slots_retained                   0xFFB210
+slots_reassigned                 0xFFB214
+name_remap_a                     0xFFB200
+name_remap_b                     0xFFB204
+miss_a                           0xFFB1F4
+miss_b                           0xFFB1F8
+active_lut                       0xFF6188   # code->slot LUT base (0x034C sampled as an OPT-003 canary)
+
+# --- arcade PC080SN selector / strip state (A5-relative) ---
+selector                         0xFF10A8   # arcade PC080SN selector (A5+0x10A8)
+strip_index                      0xFF10CA   # A5+0x10CA
+strip_group                      0xFF10CC   # A5+0x10CC
+
+# --- Genesis scroll / camera (final staged scroll = Plane A/B camera in scroll terms) ---
+staged_scroll_x_fg               0xFF409A   # Plane A (foreground) scroll X
+staged_scroll_y_fg               0xFF409E   # Plane A scroll Y  (vertical -- the bug axis)
+staged_scroll_x_bg               0xFF4098   # Plane B scroll X
+staged_scroll_y_bg               0xFF409C   # Plane B scroll Y
+
+# --- Genesis-native plane publication state ---
+tiles_dirty                      0xFF4000
+bg_row_dirty                     0xFF4002   # Plane B 32-bit row-dirty mask
+fg_row_dirty                     0xFF4006   # Plane A 32-bit row-dirty mask (vertical/row publication)
+fg_native_gameplay_owner         0xFF400A
+fg_narrow_desc_count             0xFF408C   # narrow-column (horizontal seam) publication count
+fg_narrow_pending_rows           0xFF408E
+staged_dest_ptr_bg               0xFF4090
+staged_dest_ptr_fg               0xFF4094
+
+# --- staged plane name buffers (Plane A/B nametable mirrors, 2048 words each) ---
+staged_bg_buffer                 0xFF40A0
+staged_fg_buffer                 0xFF50A0
