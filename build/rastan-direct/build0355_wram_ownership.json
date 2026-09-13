@@ -1,0 +1,25 @@
+{
+  "crash_layout_valid": true,
+  "fixed_owner": {
+    "byte_count": 100,
+    "first": "0x00FF6180",
+    "last_inclusive": "0x00FF61E3",
+    "name": "crash record"
+  },
+  "indexed_owner": {
+    "base": "0x00FF6200",
+    "last_inclusive": "0x00FFB1FF",
+    "name": "fg_boundary_active_lut",
+    "word_count": 10240
+  },
+  "limitations": [
+    "Checks the complete dense LUT and linker-owned crash-record ranges represented by linked symbols.",
+    "Does not discover arbitrary computed pointers, undocumented fixed owners, or stale ROM code-pointer tables.",
+    "Does not validate runtime sequencing; it is a pre-publication static ownership invariant."
+  ],
+  "manual_diversion_required": false,
+  "physical_overlap": false,
+  "result": "PASS",
+  "schema_version": 2,
+  "symbols": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/symbol.txt"
+}

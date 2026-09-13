@@ -1,0 +1,40 @@
+{
+  "authoritative_palette_tool_profile": "/home/tighe/projects/rastan-genesis/build/rastan-direct/build0314/Test.snapshot.json",
+  "mapping_equivalence": {
+    "anchor_failures": 0,
+    "cases": 512,
+    "mismatches": 0
+  },
+  "palette_tool_profile_sha256": "deb696452d7456b323fd4cadfa982a40a57ccf7eb5997f9e750c511f0a82df0c",
+  "result": "PASS",
+  "route_compatibility_source": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/src/palette_hooks.s",
+  "route_rows_sha1": "9af68bd8f8472c33",
+  "sat_word2_equivalence": {
+    "cases": 16777216,
+    "fields": [
+      "palette_line",
+      "priority",
+      "vflip",
+      "hflip",
+      "pattern_index",
+      "hud_force"
+    ],
+    "mismatches": 0
+  },
+  "schema": "pc090oj_direct_palette_equivalence/v1",
+  "table": {
+    "banks_per_scene": 128,
+    "bytes": 512,
+    "editor_authored_mappings": {
+      "0x32": 0,
+      "0x33": 0,
+      "0x34": 0,
+      "0x35": 1,
+      "0x36": 1,
+      "0x3A": 1,
+      "0x3E": 0
+    },
+    "lookup_complexity": "O(1)",
+    "scenes": 4
+  }
+}

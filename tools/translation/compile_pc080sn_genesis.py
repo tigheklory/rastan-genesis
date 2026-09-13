@@ -56,8 +56,6 @@ BG_RESERVE = 320              # Transitional only: exact Plane-B reachability is
 SLOT_MIN = SAFE_PLANE_SLOT_FIRST
 SLOT_MAX = SAFE_PLANE_SLOT_LAST - BG_RESERVE                 # Plane-A (FG) band top: 64..703
 PLANE_SLOTS = SLOT_MAX - SLOT_MIN + 1                        # 640 FG slots
-BOUNDARY_CONFLICT_CODE_FIRST = 0x031A
-BOUNDARY_CONFLICT_CODE_COUNT = 0x0032
 TILE_BYTES = 32
 
 # Build 0302 boundary-loaded experiment.  Ordinary records use one of eight row bands selected
@@ -819,8 +817,6 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         f".equ FG_BOUNDARY_PAIR_BYTES, {BOUNDARY_PAIR_BYTES}\n"
         f".equ FG_BOUNDARY_WORD_ALIGNMENT, {BOUNDARY_WORD_ALIGNMENT}\n"
         f".equ FG_BOUNDARY_LUT_WORDS, {BOUNDARY_LUT_WORDS}\n"
-        f".equ FG_BOUNDARY_CONFLICT_CODE_FIRST, 0x{BOUNDARY_CONFLICT_CODE_FIRST:04X}\n"
-        f".equ FG_BOUNDARY_CONFLICT_CODE_COUNT, 0x{BOUNDARY_CONFLICT_CODE_COUNT:04X}\n"
         f".equ FG_BOUNDARY_SLOT_FIRST, {a_slot_first}\n"
         f".equ FG_BOUNDARY_SLOT_COUNT, {a_slot_count}\n"
         f".equ FG_BOUNDARY_PATTERN_IDENTITIES, {len(pattern_id)}\n"

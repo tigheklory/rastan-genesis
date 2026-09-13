@@ -62,9 +62,11 @@ RASTAN_DIAG_SCORE_METRIC ?= 0
 RASTAN_VBLANK_DISPLAY_OFF ?= 0
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
-# Build 0340 OPT-003: prebaked PC090OJ sprite palette-line LUT (derived from palette_route_table).
+# Direct PC090OJ palette-line LUT: current Tool-authored R1/P1 mappings plus
+# compatibility-complete fallback rows, selected by scene outside the hot path.
 PC090OJ_PALSEL_LUT_INC := $(OUT_DIR)/pc090oj_palsel_lut.inc
 PC090OJ_PALSEL_LUT_GEN := $(ROOT)/tools/translation/gen_pc090oj_palsel_lut.py
+PC090OJ_PALSEL_EQUIV := $(ROOT)/build/rastan-direct/pc090oj_direct_palette_equivalence.json
 
 MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
 PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
@@ -265,11 +267,12 @@ $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) RASTAN_VBLANK_DISPLAY_OFF=$(RASTAN_VBLANK_DISPLAY_OFF) -> $@"
 
 # Build 0340 OPT-003: generate the prebaked (scene,effective_bank)->palette-line LUT from the authored
-# palette_route_table + the 0x30->line2 special case + (eb>>4)&3 fallback, and PROVE equivalence
-# (--verify: 0 mismatches + hand-anchored spot checks) on every build.  Regenerates when either the
-# route source or the generator changes; a mismatch fails the build.
-$(PC090OJ_PALSEL_LUT_INC): $(SRC_DIR)/palette_hooks.s $(PC090OJ_PALSEL_LUT_GEN) | $(OUT_DIR)
-	$(PYTHON) $(PC090OJ_PALSEL_LUT_GEN) --route-src $(SRC_DIR)/palette_hooks.s --out $@ --verify
+# The current Palette Editing Tool snapshot authors R1/P1 mappings. The live route
+# table is retained only as the pre-migration oracle for unauthored inputs. Every
+# build proves direct-map and exhaustive SAT word-2 equivalence.
+$(PC090OJ_PALSEL_LUT_INC): $(SRC_DIR)/palette_hooks.s $(EDITOR_LAYERA_SNAPSHOT) $(PC090OJ_PALSEL_LUT_GEN) | $(OUT_DIR)
+	$(PYTHON) $(PC090OJ_PALSEL_LUT_GEN) --route-src $(SRC_DIR)/palette_hooks.s \
+		--profile $(EDITOR_LAYERA_SNAPSHOT) --out $@ --report $(PC090OJ_PALSEL_EQUIV) --verify
 
 $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<

@@ -40,8 +40,6 @@ def main() -> int:
     assert const["FG_BOUNDARY_EPOCHS"] == 5
     assert const["FG_BOUNDARY_PACKAGES"] == 7
     assert const["FG_BOUNDARY_TRANSITION_HANDOFF_COLUMN"] == 45
-    assert const["FG_BOUNDARY_CONFLICT_CODE_FIRST"] == 0x031A
-    assert const["FG_BOUNDARY_CONFLICT_CODE_COUNT"] == 0x0032
     assert len(binary) == const["FG_BOUNDARY_BINARY_LEN"]
     assert report["record_to_epoch"] == [0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4]
     assert report["record_to_package"] == [0, 0, 0, 5, 6, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4]

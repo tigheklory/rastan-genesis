@@ -35,6 +35,7 @@
     .extern vdp_set_vram_write_addr
     .extern fg_native_gameplay_owner
     .extern vdp_install_test_lines
+    .extern pc090oj_select_palette_map
 
     .equ VDP_DATA,              0x00C00000
     .equ VDP_REG_MODE2,         1
@@ -132,6 +133,7 @@ load_scene_tiles:
     moveq   #1, %d5
 .Lload_scene_logical_ready:
     move.b  %d5, genesistan_current_scene_id
+    bsr     pc090oj_select_palette_map
     cmpi.w  #1, %d5
     beq.s   .Lload_scene_keep_fg_owner_state
     clr.b   fg_native_gameplay_owner

@@ -31,7 +31,6 @@
     .global fg_boundary_slots_reassigned
     .global fg_boundary_active_record
     .global fg_boundary_active_variant
-    .global fg_boundary_conflict_lut
 
     .extern genesistan_current_scene_id
     .extern genesistan_pc080sn_tile_vram_lut
@@ -191,19 +190,8 @@ fg_boundary_resolve_b:
     movem.l (%sp)+, %d0/%d2/%a0
     rts
 
-/* D0 = arcade code. Return A0 + D0.w as its writable active-LUT word address.
- * D2 is scratch. The alternate segment is a fixed WRAM-layout exclusion, not a cache/search. */
+/* D0 = arcade code. Return A0 + D0.w as its writable active-LUT word address. */
 .Lactive_lut_address:
-    move.w  %d0, %d2
-    subi.w  #FG_BOUNDARY_CONFLICT_CODE_FIRST, %d2
-    bcs.s   .Lactive_lut_address_dense
-    cmpi.w  #FG_BOUNDARY_CONFLICT_CODE_COUNT, %d2
-    bhs.s   .Lactive_lut_address_dense
-    add.w   %d2, %d2
-    move.w  %d2, %d0
-    lea     fg_boundary_conflict_lut, %a0
-    rts
-.Lactive_lut_address_dense:
     add.w   %d0, %d0
     lea     fg_boundary_active_lut, %a0
     rts
@@ -290,12 +278,6 @@ fg_boundary_install:
 .Linstall_initial_clear_lut:
     clr.w   (%a0)+
     dbra    %d7, .Linstall_initial_clear_lut
-    lea     fg_boundary_conflict_lut, %a0
-    move.w  #(FG_BOUNDARY_CONFLICT_CODE_COUNT - 1), %d7
-.Linstall_initial_clear_conflict_lut:
-    clr.w   (%a0)+
-    dbra    %d7, .Linstall_initial_clear_conflict_lut
-
     /* FG_BOUNDARY_FIXED_B_OFFSET is > signed d16 in Build 0308.  Use an explicit 68000
      * long add; a large displacement LEA lets GNU as emit a 68020 full extension word. */
     movea.l %a4, %a0
@@ -629,7 +611,6 @@ fg_boundary_packages:
     .section .bss
     .align 2
 fg_boundary_active_lut:                 .space (FG_BOUNDARY_LUT_WORDS * 2)
-fg_boundary_conflict_lut:               .space (FG_BOUNDARY_CONFLICT_CODE_COUNT * 2)
 fg_boundary_epoch_transitions:          .space 4
 fg_boundary_variant_selections:         .space 4
 fg_boundary_miss_a:                     .space 4

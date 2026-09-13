@@ -44,39 +44,41 @@
     .global _crash_stub_other
     .global _crash_common
 
-    /* --- Supplemental WRAM crash record (secondary evidence) --------- */
-    .equ CRASH_RECORD_BASE,       0x00FF6800
-    .equ CRASH_ACTIVE_FLAG,       0x00FF6800   /* byte */
-    .equ CRASH_EXCEPTION_TYPE,    0x00FF6802   /* word: vector number */
-    .equ CRASH_STACKED_SR,        0x00FF6804   /* word */
-    .equ CRASH_STACKED_PC,        0x00FF6806   /* long: GEN PC (runtime Genesis PC) */
-    .equ CRASH_FRAME_SP,          0x00FF680C   /* long: exception-frame SSP at entry */
-    .equ CRASH_USP,               0x00FF6810   /* long */
-    /* movem.l %d0-%d7/%a0-%a6 target: 15 contiguous longs, D0..D7 then A0..A6 */
-    .equ CRASH_D0,                0x00FF6814
-    .equ CRASH_D1,                0x00FF6818
-    .equ CRASH_D2,                0x00FF681C
-    .equ CRASH_D3,                0x00FF6820
-    .equ CRASH_D4,                0x00FF6824
-    .equ CRASH_D5,                0x00FF6828
-    .equ CRASH_D6,                0x00FF682C
-    .equ CRASH_D7,                0x00FF6830
-    .equ CRASH_A0,                0x00FF6834
-    .equ CRASH_A1,                0x00FF6838
-    .equ CRASH_A2,                0x00FF683C
-    .equ CRASH_A3,                0x00FF6840
-    .equ CRASH_A4,                0x00FF6844
-    .equ CRASH_A5,                0x00FF6848
-    .equ CRASH_A6,                0x00FF684C
-    .equ CRASH_FAULT_ADDR,        0x00FF6850   /* long: bus/addr fault address */
-    .equ CRASH_ACCESS_WORD,       0x00FF6854   /* word: bus/addr access/status word */
-    .equ CRASH_INSTR_REG,         0x00FF6856   /* word: bus/addr instruction register */
-    .equ CRASH_GS_00,             0x00FF6858   /* word: a5+0x00 */
-    .equ CRASH_GS_02,             0x00FF685A   /* word: a5+0x02 */
-    .equ CRASH_GS_04,             0x00FF685C   /* word: a5+0x04 */
-    .equ CRASH_GS_34,             0x00FF685E   /* word: a5+0x34 */
-    .equ CRASH_GS_200,            0x00FF6860   /* word: a5+0x200 */
-    .equ CRASH_A5_VALID,          0x00FF6862   /* word: 1 if A5 == 0x00FF0000 */
+    /* Supplemental WRAM crash record (secondary evidence).  The record is
+     * linker-owned below; fixed absolute ownership previously overlapped the
+     * native Plane-A boundary LUT. */
+    .global CRASH_RECORD_BASE
+    .global CRASH_ACTIVE_FLAG
+    .global CRASH_EXCEPTION_TYPE
+    .global CRASH_STACKED_SR
+    .global CRASH_STACKED_PC
+    .global CRASH_FRAME_SP
+    .global CRASH_USP
+    .global CRASH_D0
+    .global CRASH_D1
+    .global CRASH_D2
+    .global CRASH_D3
+    .global CRASH_D4
+    .global CRASH_D5
+    .global CRASH_D6
+    .global CRASH_D7
+    .global CRASH_A0
+    .global CRASH_A1
+    .global CRASH_A2
+    .global CRASH_A3
+    .global CRASH_A4
+    .global CRASH_A5
+    .global CRASH_A6
+    .global CRASH_FAULT_ADDR
+    .global CRASH_ACCESS_WORD
+    .global CRASH_INSTR_REG
+    .global CRASH_GS_00
+    .global CRASH_GS_02
+    .global CRASH_GS_04
+    .global CRASH_GS_34
+    .global CRASH_GS_200
+    .global CRASH_A5_VALID
+    .global CRASH_RECORD_END
 
     .equ EXPECTED_A5_BASE,        0x00FF0000
 
@@ -1064,3 +1066,37 @@ crash_font_1bpp:
     .byte 0x08, 0x18, 0x38, 0x78, 0x38, 0x18, 0x08, 0x00
     .byte 0x10, 0x18, 0x1C, 0x1E, 0x1C, 0x18, 0x10, 0x00
 
+    .section .bss.crash_record,"aw",@nobits
+    .align 2
+CRASH_RECORD_BASE:
+CRASH_ACTIVE_FLAG:    .space 2
+CRASH_EXCEPTION_TYPE: .space 2
+CRASH_STACKED_SR:      .space 2
+CRASH_STACKED_PC:      .space 6
+CRASH_FRAME_SP:        .space 4
+CRASH_USP:             .space 4
+CRASH_D0:              .space 4
+CRASH_D1:              .space 4
+CRASH_D2:              .space 4
+CRASH_D3:              .space 4
+CRASH_D4:              .space 4
+CRASH_D5:              .space 4
+CRASH_D6:              .space 4
+CRASH_D7:              .space 4
+CRASH_A0:              .space 4
+CRASH_A1:              .space 4
+CRASH_A2:              .space 4
+CRASH_A3:              .space 4
+CRASH_A4:              .space 4
+CRASH_A5:              .space 4
+CRASH_A6:              .space 4
+CRASH_FAULT_ADDR:      .space 4
+CRASH_ACCESS_WORD:     .space 2
+CRASH_INSTR_REG:       .space 2
+CRASH_GS_00:           .space 2
+CRASH_GS_02:           .space 2
+CRASH_GS_04:           .space 2
+CRASH_GS_34:           .space 2
+CRASH_GS_200:          .space 2
+CRASH_A5_VALID:        .space 2
+CRASH_RECORD_END:

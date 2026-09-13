@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "scope": "OPT-003 historical layout failure and current Build 0354 ownership invariant",
+  "conclusions": {
+    "exact_opt003_clobbering_writer": "UNRESOLVED",
+    "previous_bss_shift_theory": "CONFIRMED FALSE",
+    "stale_native_rom_address_as_data": "NOT PROVEN",
+    "synthetic_gate_diagnosis": "UNSOUND",
+    "current_wram_ownership_defect": "PROVEN"
+  },
+  "matched_configuration_evidence": {
+    "bss_symbols_compared": 138,
+    "shifted_bss_symbols": 0,
+    "historical_fg_boundary_active_lut_reference": "0x00FF6188",
+    "historical_fg_boundary_active_lut_opt003": "0x00FF6188",
+    "pc090oj_native_emit_pass_shift": -14,
+    "fg_boundary_packages_shift": -16,
+    "generated_lut_bytes_added": 512,
+    "package_bytes_compared": 49732,
+    "package_bytes_identical": true,
+    "package_pointer_relocated_correctly": true
+  },
+  "historical_gate_event": {
+    "arcade_code": "0x034C",
+    "historical_dense_lut_word_address": "0x00FF6820",
+    "fixed_owner_at_same_address": "CRASH_D3",
+    "claimed_transition": "0x0420 -> 0x0000",
+    "exact_writer_captured": false,
+    "corrected_safe_call_result": "0x0420 remained stable for eight executing frames; package-5 and fixed-Plane-B maps passed",
+    "interpretation": "The original gate used synthetic state/PC manipulation and sampled a word with two declared owners. It cannot establish a physical relocation failure or a natural-gameplay OPT-003 defect."
+  },
+  "current_build0354_source_ownership": {
+    "linked_dense_lut_base": "0x00FF619C",
+    "dense_lut_words": 10240,
+    "fixed_crash_record_first": "0x00FF6800",
+    "fixed_crash_record_last_inclusive": "0x00FF6863",
+    "physical_overlap_codes": "0x0332..0x0363",
+    "configured_diversion_codes": "0x031A..0x034B",
+    "missing_diversion_codes": "0x034C..0x0363",
+    "stale_diversion_codes": "0x031A..0x0331",
+    "invariant_result": "FAIL"
+  },
+  "root_cause_classification": {
+    "historical_opt003_runtime_divergence": "UNRESOLVED; no exact causative writer or stale relocated operand was proven",
+    "historical_diagnostic_failure": "The synthetic gate sampled an ownership-ambiguous WRAM address and did not model a natural transition",
+    "structural_defect": "Fixed absolute crash-record ownership and linker-placed indexed native data are not checked against each other; the manual diversion interval became stale as linked layout changed"
+  },
+  "correct_structural_fix_boundary": [
+    "Place indexed native data so its complete legal range cannot overlap fixed absolute WRAM owners, or derive every exclusion from linked ranges rather than copied code constants.",
+    "Run the ownership invariant before ROM publication.",
+    "Do not solve a ROM-layout question with padding or by placing generated rodata at a convenient address."
+  ],
+  "sources": [
+    "docs/design/Andy_native_bss_arcade_workram_coexistence_unblock.md",
+    "docs/design/Andy_opt003_code_rodata_layout_divergence_and_landing.md",
+    "docs/design/Cody_audit_andy_semantic_epoch_gate_stop.md",
+    "apps/rastan-direct/src/fg_tile_cache.s",
+    "apps/rastan-direct/src/crash_handler.s",
+    "apps/rastan-direct/out/symbol.txt"
+  ]
+}

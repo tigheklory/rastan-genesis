@@ -8,6 +8,7 @@
  * bounds, and the not-found record sentinel derive from these so no scattered
  * assembly constant needs hand-editing. */
     .include "pc090oj_config.inc"
+    .include "pc090oj_palsel_lut.inc"
 
     .global genesistan_pc090oj_hook_target_3b902
     .global genesistan_pc090oj_hook_target_3b926
@@ -51,6 +52,8 @@
     .global native_player_body_anchor_piece
     .global native_player_body_anchor_blank
     .global native_player_body_anchor_clear
+    .global pc090oj_select_palette_map
+    .global current_sprite_palette_map
 
     .global staged_sprite_sat
     .global sprite_tile_resident_code
@@ -83,11 +86,7 @@
     .extern pc090oj_slot_lut
     .extern genesistan_current_scene_id
     .equ    PC090OJ_SCENE_GAMEPLAY_ID, 1
-    .extern palette_route_lookup
     .extern diag_score_bcd                  /* Build 0338: diagnostic score-metric BCD (only referenced when RASTAN_DIAG_SCORE_METRIC=1) */
-    /* Build 0208: PROUTE owner id for PC090OJ, matching the constant table in
-     * palette_hooks.s (PROUTE_OWNER_PC090OJ = 3). */
-    .equ    PROUTE_OWNER_PC090OJ_ID, 3
     .global pc090oj_hud_suppressed_count
     .extern pc090oj_blank_code_bitset
     .extern pc090oj_opaque_bbox
@@ -1206,40 +1205,16 @@ genesistan_pc090oj_hook_audit_guard:
     .equ NATIVE_PLAYER_BODY_BOUND, 20
     .equ NATIVE_BACK_ENEMY_BOUND, 99
 
-/* d1=word0, d7=colbank -> d0 = Genesis palette line (Build 0210 semantics). */
-.Lnative_palsel:
-    movem.l %d1-%d3, -(%sp)
-    move.w  %d1, %d0
-    andi.w  #0x000F, %d0
-    or.w    %d7, %d0
-    cmpi.w  #0x0030, %d0
-    bne.s   .Lnp_general
-    moveq   #2, %d0
-    bra.s   .Lnp_done
-    /* Build 0334: the pre-Test hardcoded `bank 0x33 -> Line 3` override was removed.  It bypassed
-     * the current authored route table (which maps PC090OJ bank 0x33 -> Line 0, where Rastan's
-     * offline sprite reindex is authored).  Bank 0x33 now falls through to palette_route_lookup like
-     * every other sprite bank; the route table is the sole authority.  Bank 0x30 -> Line 2 (death
-     * burst / effects) is intentionally preserved above. */
-.Lnp_general:
-.if RASTAN_GAMEPLAY_HUD_SPRITES != 1
-    move.w  %d0, %d2                 /* d2 = effective bank */
+/* Scene selection is rare; the emitted-piece hot path indexes this row directly. */
+pc090oj_select_palette_map:
     moveq   #0, %d0
     move.b  genesistan_current_scene_id, %d0
-    moveq   #PROUTE_OWNER_PC090OJ_ID, %d1
-    bsr     palette_route_lookup     /* d0 = line or -1; clobbers d0/d3/a0 */
-    tst.l   %d0
-    bpl.s   .Lnp_done
-    movem.l (%sp), %d1-%d3           /* reload live regs, no pop */
-    move.w  %d1, %d0
-    andi.w  #0x000F, %d0
-    or.w    %d7, %d0
-.endif
-    lsr.w   #4, %d0
-    andi.w  #0x0003, %d0
-.Lnp_done:
-	    movem.l (%sp)+, %d1-%d3
-	    rts
+    andi.w  #PALSEL_LUT_SCENE_MASK, %d0
+    lsl.w   #PALSEL_LUT_BANK_SHIFT, %d0
+    lea     pc090oj_palsel_lut, %a0
+    adda.w  %d0, %a0
+    move.l  %a0, current_sprite_palette_map
+    rts
 
 /* PC090OJ final teardown: .Lpc090oj_mode2_project_p1_hud REMOVED.  It projected the
  * P1 score into object-RAM records 0..8 for a gameplay object-scan path that is no
@@ -1863,18 +1838,6 @@ native_frontend_hud_emit:
     andi.w  #0x007F, %d0
     ori.w   #0x0500, %d0
     move.w  %d0, (%a3)+
-    move.w  %d1, %d0
-    andi.w  #0x000F, %d0
-    lea     pc090oj_sat_nibble, %a1
-    move.b  %d0, 0(%a1,%d5.w)
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
-    lea     pc090oj_sat_force_line, %a1
-    move.b  #0xFF, 0(%a1,%d5.w)
-    btst    #15, %d3
-    beq.s   .Lnq_no_force_line
-    move.b  #3, 0(%a1,%d5.w)
-.Lnq_no_force_line:
-.endif
     moveq   #0, %d0
     ori.w   #0x8000, %d0
     btst    #15, %d1
@@ -1885,6 +1848,30 @@ native_frontend_hud_emit:
     beq.s   .Lnq_nohf
     ori.w   #0x0800, %d0
 .Lnq_nohf:
+    /* Compose final palette bits now. d2 is free until the resident-cell pop.
+     * HUD-white is an existing semantic code tag, so it needs no SAT-slot
+     * metadata transport and no second pass. */
+    moveq   #3, %d2
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+    btst    #15, %d3
+    bne.s   .Lnq_palette_ready
+.endif
+    move.w  %d1, %d2
+    andi.w  #0x000F, %d2
+    move.w  %d0, -(%sp)
+    move.w  pc090oj_sprite_ctrl_shadow, %d0
+    andi.w  #0x00E0, %d0
+    lsr.w   #1, %d0
+    or.w    %d0, %d2
+    movea.l current_sprite_palette_map, %a1
+    moveq   #0, %d0
+    move.b  0(%a1,%d2.w), %d0
+    move.w  %d0, %d2
+    move.w  (%sp)+, %d0
+.Lnq_palette_ready:
+    lsl.w   #8, %d2
+    lsl.w   #5, %d2
+    or.w    %d2, %d0
     move.w  (%sp)+, %d2
     add.w   %d2, %d2
     addi.w  #SPRITE_TILE_BASE, %d2
@@ -1945,51 +1932,6 @@ native_frontend_hud_emit:
     movem.l (%sp)+, %a4-%a6
     bra     .Lnq_done_scan
 
-/* Commit-time palette resolution: apply the DISPLAY-LATCHED colbank to every
- * emitted entry (<=80 iterations).  d7 = colbank from the current sprite_ctrl
- * shadow; per entry d1 = stored bank nibble -> .Lnative_palsel line. */
-.Lnative_pal_fixup:
-    movem.l %d0-%d7/%a0-%a3, -(%sp)
-    move.w  pc090oj_emitted_count, %d6
-    beq.s   .Lnpf_done
-    lea     staged_sprite_sat, %a3
-    tst.w   pc090oj_sat_front
-    beq.s   .Lnpf_base_ok
-    lea     staged_sprite_sat_b, %a3
-	.Lnpf_base_ok:
-	    lea     pc090oj_sat_nibble, %a2
-	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
-	    lea     pc090oj_sat_force_line, %a1
-	.endif
-	    move.w  pc090oj_sprite_ctrl_shadow, %d7
-	    andi.w  #0x00E0, %d7
-	    lsr.w   #1, %d7
-	    moveq   #0, %d5
-	.Lnpf_loop:
-	    moveq   #0, %d1
-	    move.b  0(%a2,%d5.w), %d1
-	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
-	    moveq   #0, %d0
-	    move.b  0(%a1,%d5.w), %d0
-	    cmpi.b  #0xFF, %d0
-	    bne.s   .Lnpf_line_ready
-	.endif
-	    bsr     .Lnative_palsel            /* d1 nibble + d7 colbank -> d0 line */
-	.Lnpf_line_ready:
-	    lsl.w   #8, %d0
-	    lsl.w   #5, %d0
-    move.w  4(%a3), %d1
-    andi.w  #0x9FFF, %d1               /* clear palette bits */
-    or.w    %d0, %d1
-    move.w  %d1, 4(%a3)
-    adda.w  #8, %a3
-    addq.w  #1, %d5
-    cmp.w   %d6, %d5
-    blo.s   .Lnpf_loop
-.Lnpf_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a3
-    rts
-
 /* VBlank entry (called by _vblank_service): frontend fallback pass only.    */
 vdp_prepare_sprites:
     tst.w   pc090oj_sat_frame_ready
@@ -2008,7 +1950,6 @@ vdp_commit_sprites_vram:
     move.w  pc090oj_sat_bank, pc090oj_sat_front
     eori.w  #1, pc090oj_sat_bank
     clr.w   pc090oj_sat_frame_ready
-    bsr     .Lnative_pal_fixup
     bsr     .Lvcs_sat_dma
     clr.w   pc090oj_sat_dirty
 .Lvcs_commit_done:
@@ -2231,11 +2172,8 @@ pc090oj_sat_front:
     .word 0
 pc090oj_sat_frame_ready:
     .word 0
-pc090oj_sat_nibble:
-	    .space 80
-pc090oj_sat_force_line:
-	    .space 80
-	    .align 2
+current_sprite_palette_map:
+    .space 4
 /* Per-frame referenced-cell bitmap (49 live bits; rounded storage). */
 pc090oj_cell_used:
     .space 16
@@ -2286,10 +2224,9 @@ native_queue_player_body:
 native_queue_back_enemy:
     .space (NATIVE_BACK_ENEMY_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
     .align 2
-/* Native sprite-control shadows: pc090oj_ctrl_shadow is the global-flip control
- * read by the gameplay flip path; pc090oj_sprite_ctrl_shadow is the colbank
- * latch read by .Lnative_pal_fixup.  Both are live native state (historical name
- * only), NOT PC090OJ compatibility. */
+/* Native sprite-control shadows: pc090oj_ctrl_shadow is the global-flip control;
+ * pc090oj_sprite_ctrl_shadow supplies the dynamic colbank to emit-time lookup.
+ * Both are live native state (historical name only), NOT compatibility RAM. */
 pc090oj_ctrl_shadow:
     .word 0
 pc090oj_sprite_ctrl_shadow:

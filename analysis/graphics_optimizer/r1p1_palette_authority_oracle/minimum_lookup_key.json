@@ -1,0 +1,138 @@
+{
+  "candidate_keys": {
+    "arcade_code": {
+      "collisions": [
+        {
+          "arcade_code": "0x004F",
+          "semantic_classes": [
+            "stage1_lizardman",
+            "hostile_base004b_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0050",
+          "semantic_classes": [
+            "stage1_lizardman",
+            "hostile_base004b_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0051",
+          "semantic_classes": [
+            "stage1_lizardman",
+            "hostile_base004b_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0052",
+          "semantic_classes": [
+            "stage1_lizardman",
+            "hostile_base004b_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0053",
+          "semantic_classes": [
+            "stage1_lizardman",
+            "hostile_base004b_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0054",
+          "semantic_classes": [
+            "stage1_lizardman",
+            "hostile_base004b_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0063",
+          "semantic_classes": [
+            "stage1_lizardman",
+            "hostile_base004b_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0064",
+          "semantic_classes": [
+            "stage1_lizardman",
+            "hostile_base004b_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0065",
+          "semantic_classes": [
+            "stage1_lizardman",
+            "hostile_base004b_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0066",
+          "semantic_classes": [
+            "stage1_lizardman",
+            "hostile_base004b_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0179",
+          "semantic_classes": [
+            "family0_class70_actor",
+            "hostile_base0179_compositor0"
+          ]
+        },
+        {
+          "arcade_code": "0x0276",
+          "semantic_classes": [
+            "hurry_up_bat",
+            "player_auxiliary"
+          ]
+        }
+      ],
+      "reason": "A code can identify pieces from different semantic producers.",
+      "sufficient": false
+    },
+    "code_effective_bank": {
+      "reason": "Effective-bank identity is unresolved for legal classes and code 0x0276 spans two semantic producers.",
+      "sufficient": "UNPROVEN"
+    },
+    "code_source_bank": {
+      "reason": "Source-bank identity is unresolved for legal classes and does not encode context-dependent reindex choice.",
+      "sufficient": "UNPROVEN"
+    },
+    "semantic_piece_context": {
+      "reason": "The active context/epoch selects a generated bank; the compact semantic piece ID indexes a pre-resolved record without hot-path semantic reasoning.",
+      "sufficient": "RECOMMENDED_REPRESENTATION"
+    },
+    "semantic_piece_control_state": {
+      "reason": "Control state contributes to effective-bank derivation but is not a substitute for producer identity or context.",
+      "sufficient": "UNPROVEN"
+    },
+    "semantic_piece_effective_bank": {
+      "reason": "Representable for resolved rows, but not exhaustive until every legal class and bank is closed.",
+      "sufficient": "FOR_RESOLVED_ROWS_ONLY"
+    },
+    "semantic_piece_id": {
+      "reason": "A generated semantic piece ID distinguishes the known code collision, but 23 legal semantic cases remain unresolved.",
+      "sufficient": "FOR_RESOLVED_ROWS_ONLY"
+    }
+  },
+  "completeness": "INCOMPLETE",
+  "recommended_key": {
+    "bank_selector": "active graphics context/epoch",
+    "dynamic_emit_fields": [
+      "pattern slot",
+      "H flip",
+      "V flip",
+      "priority when not semantically static"
+    ],
+    "row_index": "compact generated semantic piece ID",
+    "static_record_fields": [
+      "pixel reindex profile ID",
+      "Genesis palette bits",
+      "priority when semantically static",
+      "Palette Decision ID"
+    ]
+  },
+  "remaining_unresolved_semantic_cases": 23,
+  "schema_version": 1,
+  "scope": "Round 1 Phase 1"
+}

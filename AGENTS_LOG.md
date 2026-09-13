@@ -48312,3 +48312,55 @@ normal `make` build.
 - Final PC: 0x073C04
 - Stack Pointer (SP): 0x00FEFF66
 - Unique Unmapped Memory Addresses: none
+
+## [Cody - Independent Build 0354 VBlank Accounting Audit]
+
+- **Classification:** INFRASTRUCTURE / INDEPENDENT VALIDATION; audit only, no optimization.
+- **Evidence:** reduced the two preserved read-only beam captures (1,123 publications over 1,800 external frames; second capture includes 237 stationary gameplay publications). The vertical representative selection now requires substantive Plane A work when available and selected frame 1227 with 6,423 Plane A dots.
+- **Result:** the prior approximately 258-line claim is falsified because `VC_MARK` retains only the non-monotonic 8-bit NTSC V-counter byte; authoritative physical `beam_y`/`beam_x` accounting measures a 134.033-line worst observed complete publication. Sprite publication dominates, with per-emitted-entry palette fixup and repeated linear `palette_route_lookup` scans as the dominant measured sub-cost; pattern DMA is bounded to 12 and commonly zero, and fixed 640-byte SAT DMA is about one line.
+- **Scope boundary:** no cave/drop claim, no optimization recommendation, `D00462` unchanged. No contradiction to a CONFIRMED/STRONG finding. OPEN-001/017/018/024 context only; no issue opened or closed. KNOWN_FINDINGS Option A.
+- **Files changed:** `docs/design/Cody_build0354_vblank_accounting_independent_audit.md`, `AGENTS_LOG.md`; regenerated ignored reducer outputs remain under the two existing `states/traces/build0354_vblank_accounting_independent_*` directories.
+- **Build/production:** production source NO; spec NO; ROM/build NO; counter unchanged at 354; Build 0355 not consumed.
+
+## [Cody - Offline Banked-LUT Architecture Review]
+
+- **Classification:** ARCHITECTURE / FACT-BASED REVIEW; documentation only.
+- **Conclusion:** Context-selected generated banks are recommended for proven immutable mappings, but as independently interned subsystem banks rather than one synchronized Round/Phase bank. R1/P1 Plane B is already phase-static at 854 patterns; R1/P1 Plane A requires compiler-generated coexistence epochs because its 1,315 exact / 1,246 flip-normalized union exceeds the 676-pattern capacity; sprite pattern epochs remain unresolved because the known union already exceeds its 196-pattern capacity and 22 legal graphics-bearing families remain unresolved.
+- **Immediate boundary:** `.Lnative_pal_fixup` is removable only after the canonical palette registry/live route disagreement is reconciled, the legal palette domain is fail-closed, and the deterministic OPT-003 code/rodata-layout regression is resolved. No Build 0355 implementation is recommended yet.
+- **Report:** `docs/design/Cody_offline_banked_lut_architecture_review.md`.
+- **Changes:** report and this log entry only. Production source/spec/ROM/build/counter unchanged; counter remains 354; Build 0355 not consumed; all numbered builds preserved.
+
+## [Cody - R1/P1 Palette Authority / Oracle / Relocation Proof]
+
+- **Classification:** EXTENDING / PROOF-FIRST / INFRASTRUCTURE; no production source/spec, ROM, build, or counter change. Counter remains 354; Build 0355 unconsumed.
+- **Palette authority:** reconciled all nine current R1/P1 registry decisions against the live frozen-Test route. Rastan/sword (`0x33`: canonical line 3, live line 0) and Stage-1 Lizardman (`0x36`: canonical line 0, live line 1) are CONTRADICTED; six enemy rows are TEST-ONLY; Axe is UNRESOLVED. No registry mapping was changed.
+- **Legal oracle:** static semantic coverage yields 27 legal cases: 4 resolved and 23 explicit `UNRESOLVED`, including 9 statically legal cases not observed in inspected traces. Code-only lookup is disproven by collisions including `0x0276` (player auxiliary / hurry-up bat). SAT word-2 parity passes the resolved subset: 1,184 combinations, 0 mismatches; overall result INCOMPLETE.
+- **OPT-003:** matched BSS-shift theory is CONFIRMED FALSE; exact historical clobber writer/address-as-data defect remains UNRESOLVED. The old synthetic gate sampled multi-owned Genesis-WRAM `0x00FF6820` (`fg_boundary_active_lut[0x034C]` historically and fixed `CRASH_D3`).
+- **New invariant:** `tools/translation/verify_native_wram_ownership.py` proves current Build 0354 source FAILS linked ownership: LUT at `0x00FF619C` physically overlaps fixed crash-record `0x00FF6800..0x00FF6863` for codes `0x0332..0x0363`; configured diversion `0x031A..0x034B` is stale. This guard is analysis-only and does not claim arbitrary address-as-data coverage.
+- **Artifacts:** `tools/graphics_optimizer/build_r1p1_palette_oracle.py`, `tools/translation/verify_native_wram_ownership.py`, `analysis/graphics_optimizer/r1p1_palette_authority_oracle/`, and `docs/design/Cody_r1p1_palette_authority_and_oracle.md`.
+- **Issue impact:** OPEN-006 refined, not closed; OPEN-026/027 context only; no issue opened/closed; KNOWN_FINDINGS unchanged. Eventual Build 0355 contract is **NOT SAFE** pending authority/domain/profile closure and a passing ownership guard.
+
+### MAME Exit Summary (2026-09-12 15:55:42)
+- Final PC: 0x073BDC
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-12 16:08:06)
+- Final PC: 0x073C42
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - WRAM Ownership + Direct Palette Emit, Builds 0355-0356]
+
+- **Classification:** EXTENDING / ARCHITECTURE LANDING / PERFORMANCE; starting counter 354, ending counter 356.
+- **Stage 1:** linker-owned the exact 100-byte crash record at Genesis-WRAM `0x00FF6180..0x00FF61E3`, restored the complete dense `fg_boundary_active_lut` at `0x00FF6200..0x00FFB1FF`, and retired the stale manual conflict diversion. `build0355_wram_ownership.json` and `build0356_wram_ownership.json` both report `PASS`, no physical overlap, and no required diversion.
+- **Build 0355:** `dist/rastan-direct/rastan_direct_video_test_build_0355.bin`, SHA-256 `df73ed51f3ef0abfc0a69667bf75231eedde5aa044115acf4de73d57ffce846e`, 1,666,744 bytes. Ownership-only comparison; `GATE_PASS`; Genesis NTSC MAME gameplay-entry smoke completed 564 external frames with no fatal or unique unmapped-memory address.
+- **Stage 2:** generated a four-scene x 128-bank (512-byte) palette-line LUT from the byte-identical current Palette Tool profile/snapshot, selected its active row outside the hot path, and composed final SAT palette bits during native emission. Removed the sprite hot-path `palette_route_lookup`, `.Lnative_pal_fixup`, `pc090oj_sat_nibble`, and `pc090oj_sat_force_line` transport/pass. Shared non-sprite `palette_route_lookup` remains intentionally available to other consumers.
+- **Equivalence:** `pc090oj_direct_palette_equivalence.json` reports 512 direct-map cases and 16,777,216 exhaustive SAT word-2 cases with zero mismatches; result `PASS`.
+- **Performance:** corrected physical-beam measurement shows exact-workload sprite reductions of 95.95% (28 sprites/0 pattern DMA), 97.71% (46/0), and 84.20% (51/10). The measured later palette section is absent in Build 0356. The non-identical worst-observed comparison falls from 134.033 to 63.115 physical scanlines despite Build 0356 carrying 12 versus 2 pattern DMAs.
+- **Build 0356:** `dist/rastan-direct/rastan_direct_video_test_build_0356.bin`, SHA-256 `94afa3811b675e43a8e77b12e84b815cca4096617ffc3dd0be0951427fb8b760`, 1,666,744 bytes. `GATE_PASS`; Genesis NTSC MAME gameplay-entry smoke completed 564 external frames with no fatal or unique unmapped-memory address.
+- **Reports:** `docs/design/Cody_wram_ownership_repair.md`; `docs/design/Cody_direct_palette_emit_performance.md`.
+- **Machine evidence:** `build/rastan-direct/build0355_wram_ownership.json`; `build/rastan-direct/build0356_wram_ownership.json`; `build/rastan-direct/pc090oj_direct_palette_equivalence.json`; `states/traces/build0355_vblank_physical_beam_20260912/`; `states/traces/build0356_vblank_physical_beam_20260912/`.
+- **Files changed by this task:** `apps/rastan-direct/Makefile`, `apps/rastan-direct/src/crash_handler.s`, `apps/rastan-direct/src/fg_tile_cache.s`, `apps/rastan-direct/src/pc090oj_hooks.s`, `apps/rastan-direct/src/scene_load.s`, `tools/translation/compile_pc080sn_genesis.py`, `tools/translation/gen_pc090oj_palsel_lut.py`, `tools/translation/verify_build0311_transition_retention.py`, `tools/translation/verify_native_wram_ownership.py`, `tools/mame/scripts/build0354_vblank_independent_audit.lua`, the two reports, this log, and Makefile-generated build/output artifacts.
+- **Preservation/scope:** Builds 0353-0356 and all other numbered ROMs preserved; no number reused or deleted. Plane A/B semantics, sprite residency, `D00462`, arcade frame authority, CRAM animation semantics, gameplay, collision, input, and audio unchanged. Current visible colors remain **USER MUST VERIFY**; the old registry was not used to re-author mappings.
+- **Issue impact:** no issue opened or closed; existing palette-authority reconciliation and full Tool expansion remain deferred. No new KNOWN_FINDINGS entry was required.
