@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Build a per-code PC090OJ opaque-pixel bounding-box table.
 
-For every PC090OJ sprite code (0..4095) this emits the tight bounding box of the
-cell's opaque (non-zero) pixels, in unflipped 16x16 cell space:
+For every PC090OJ sprite code (0..4095) this emits exact tight bounding boxes
+for all four legal flip states.  Each 16-byte entry is component-major; the
+orientation index is bit 0 = horizontal flip and bit 1 = vertical flip:
 
-    byte 0: min opaque row  (0..15)
-    byte 1: max opaque row  (0..15)
-    byte 2: min opaque col  (0..15)
-    byte 3: max opaque col  (0..15)
+    bytes  0.. 3: min opaque row for N, H, V, HV
+    bytes  4.. 7: max opaque row for N, H, V, HV
+    bytes  8..11: min opaque col for N, H, V, HV
+    bytes 12..15: max opaque col for N, H, V, HV
 
 The runtime PC090OJ decode (`.Lpc090oj_decode_record`) uses this to keep a mirror
 record out of the Genesis SAT only when NO opaque pixel of its current pattern
@@ -30,7 +31,8 @@ ROW_BYTES = 8
 ROWS_PER_CELL = 16
 COLS_PER_CELL = 16
 CODE_COUNT = 4096
-ENTRY_BYTES = 4
+ENTRY_BYTES = 16
+ORIENTATION_COUNT = 4
 
 
 def cell_bbox(cell: bytes) -> tuple[int, int, int, int]:
@@ -64,6 +66,18 @@ def cell_bbox(cell: bytes) -> tuple[int, int, int, int]:
     return (min_row, max_row, min_col, max_col)
 
 
+def orient_bbox(
+    bbox: tuple[int, int, int, int], horizontal: bool, vertical: bool
+) -> tuple[int, int, int, int]:
+    """Apply the runtime's exact 16x16 flip transform to an opaque bbox."""
+    min_row, max_row, min_col, max_col = bbox
+    if vertical:
+        min_row, max_row = 15 - max_row, 15 - min_row
+    if horizontal:
+        min_col, max_col = 15 - max_col, 15 - min_col
+    return min_row, max_row, min_col, max_col
+
+
 def build_table(data: bytes) -> bytes:
     expected = CODE_COUNT * CELL_BYTES
     if len(data) != expected:
@@ -71,12 +85,15 @@ def build_table(data: bytes) -> bytes:
     out = bytearray(CODE_COUNT * ENTRY_BYTES)
     for code in range(CODE_COUNT):
         cell = data[code * CELL_BYTES:(code + 1) * CELL_BYTES]
-        min_row, max_row, min_col, max_col = cell_bbox(cell)
+        bbox = cell_bbox(cell)
+        variants = [
+            orient_bbox(bbox, horizontal=bool(index & 1), vertical=bool(index & 2))
+            for index in range(ORIENTATION_COUNT)
+        ]
         base = code * ENTRY_BYTES
-        out[base + 0] = min_row
-        out[base + 1] = max_row
-        out[base + 2] = min_col
-        out[base + 3] = max_col
+        for component in range(4):
+            for orientation in range(ORIENTATION_COUNT):
+                out[base + component * ORIENTATION_COUNT + orientation] = variants[orientation][component]
     return bytes(out)
 
 
@@ -92,10 +109,11 @@ def main() -> int:
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_bytes(table)
 
+    source = src.read_bytes()
     nonblank = sum(
         1
         for code in range(CODE_COUNT)
-        if table[code * ENTRY_BYTES:code * ENTRY_BYTES + ENTRY_BYTES] != b"\x00\x00\x00\x00"
+        if any(source[code * CELL_BYTES:(code + 1) * CELL_BYTES])
     )
     print(f"wrote {dst} ({len(table)} bytes); non-blank cells={nonblank}")
     return 0

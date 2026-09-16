@@ -124,7 +124,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # 227 + 1 (Build 0346: arcade 0x51AB6 abso
 # canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the semantic
 # opcode-replacement sites are unchanged. The direct-native 0x05A098 gameplay
 # status producer adds 0x1D0 wrapper bytes without adding a replacement site.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x196EB8  # Build 0342: clean 676-slot VRAM repack shrinks the generated PC080SN boundary binary (49732->47268 B), reducing covered span by 0x1000; 227 opcode sites unchanged.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1A2EB8  # Build 0359: four exact bbox orientations expand the generated PC090OJ bbox asset by 0xC000; opcode sites unchanged.
 
 # Build 0277: arcade_pc 0x051DF8 is a BRA.S to the semantic entry at
 # arcade_pc 0x051E00.  The target is also the start of a shrinking shift

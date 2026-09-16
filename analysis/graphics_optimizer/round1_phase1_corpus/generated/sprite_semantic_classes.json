@@ -1,0 +1,39 @@
+{
+ "provenance": "original-arcade Ghidra exports + user-play trace corpus; address_map.json for runtime PCs; Andy 2026-09-15",
+ "legal_classes_total": 23,
+ "resolved_to_residency_owner": true,
+ "residency_owners": [
+  "PLAYER(+weapon)",
+  "GAMEPLAY_HUD",
+  "COMMON_EFFECT",
+  "HURRYUP_SMALL_BAT",
+  "LIZARDMAN",
+  "INSECT",
+  "CHIMERA",
+  "VALKYRIE",
+  "LARGE_BAT",
+  "FLYING_DEMON",
+  "PROJECTILES",
+  "HAZARDS"
+ ],
+ "merge_rule": "base ENEMY + its ENEMY_FORM/EFFECT companion = ONE owner (anim form is a state, not an independent family)",
+ "merged_examples": {
+  "LIZARDMAN": [
+   "2c8_004b_00",
+   "2c8_0a73_00"
+  ],
+  "CHIMERA": [
+   "2c8_00d0_01",
+   "2c8_0a73_01"
+  ],
+  "FLYING_DEMON": [
+   "508_0129_00",
+   "508_0275_00"
+  ],
+  "VALKYRIE": [
+   "2c8_0241_08",
+   "2c8_0a73_08"
+  ]
+ },
+ "note": "attribution covers enemy families (census cell_codes); player/HUD/weapons lumped as CORE_OTHER (365 of 842 observed codes not in census curated lists) -> exact per-owner packing bounded, not exact"
+}

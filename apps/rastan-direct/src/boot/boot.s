@@ -23,6 +23,7 @@
     .extern staged_tile_words
     .extern staged_sprite_sat
     .extern sprite_tile_resident_code
+    .extern pc090oj_reverse_index_init
     .extern pc090oj_ctrl_shadow
     .extern pc090oj_sprite_ctrl_shadow
     .extern pc090oj_emitted_count
@@ -221,6 +222,7 @@ _bootstrap_clear_staging:
 .Lboot_sprite_tile_resident_clear:
     clr.w   (%a0)+
     dbra    %d7, .Lboot_sprite_tile_resident_clear
+    jsr     pc090oj_reverse_index_init
 
     /* PC090OJ final teardown: pc090oj_object_ram and the object-RAM scan
      * diagnostics are removed; no boot-time clear of a virtual object store. */

@@ -57,6 +57,12 @@
 
     .global staged_sprite_sat
     .global sprite_tile_resident_code
+    .global sprite_tile_reverse_directory
+    .global sprite_tile_reverse_pages
+    .global sprite_tile_reverse_page_refcount
+    .global sprite_tile_reverse_free_pages
+    .global sprite_tile_reverse_free_count
+    .global pc090oj_reverse_index_init
     .global pc090oj_tile_dma_worklist
     .global pc090oj_tile_dma_count
 
@@ -1188,6 +1194,16 @@ genesistan_pc090oj_hook_audit_guard:
 /* ========================================================================= */
     .equ NATIVE_SAT_MAX, 80
     .equ NATIVE_CELLS, 49
+    /* Exact two-level reverse index for the Build-0356 residency identity.
+     * The forward key is low 12-bit graphics code plus the HUD-white tag in
+     * bit 15.  Normalize that tag to bit 12 for a dense 13-bit key, then use
+     * its high nine bits as a 512-entry directory and low nibble within one
+     * of at most 49 live 16-byte pages.  Directory/page entries use 0xFF as
+     * NOT_RESIDENT; resident leaves store the forward-table byte offset
+     * (0,2,...,96), ready for the unchanged SAT hit path. */
+    .equ NATIVE_REVERSE_DIRECTORY_BYTES, 512
+    .equ NATIVE_REVERSE_PAGE_BYTES, 16
+    .equ NATIVE_REVERSE_PAGE_COUNT, NATIVE_CELLS
     .if (SPRITE_TILE_BASE + NATIVE_CELLS * 4) > 1536
     .error "native sprite VRAM ownership exceeds physical pattern slots"
     .endif
@@ -1214,6 +1230,37 @@ pc090oj_select_palette_map:
     lea     pc090oj_palsel_lut, %a0
     adda.w  %d0, %a0
     move.l  %a0, current_sprite_palette_map
+    rts
+
+/* Initialize the exact graphics-key -> resident-slot reverse index.  Called
+ * once after bootstrap clears the forward table.  Each of the 49 possible
+ * live high-key groups owns a page only while at least one resident key uses
+ * it, so 49 pages are sufficient for the 49 forward slots. */
+pc090oj_reverse_index_init:
+    movem.l %d0-%d1/%d7/%a0, -(%sp)
+    moveq   #-1, %d0
+    lea     sprite_tile_reverse_directory, %a0
+    move.w  #((NATIVE_REVERSE_DIRECTORY_BYTES + NATIVE_REVERSE_PAGE_BYTES * NATIVE_REVERSE_PAGE_COUNT) / 4 - 1), %d7
+.Lreverse_init_invalid:
+    move.l  %d0, (%a0)+
+    dbra    %d7, .Lreverse_init_invalid
+
+    lea     sprite_tile_reverse_page_refcount, %a0
+    moveq   #0, %d0
+    moveq   #(NATIVE_REVERSE_PAGE_COUNT - 1), %d7
+.Lreverse_init_refcounts:
+    move.b  %d0, (%a0)+
+    dbra    %d7, .Lreverse_init_refcounts
+
+    lea     sprite_tile_reverse_free_pages, %a0
+    moveq   #0, %d0
+    moveq   #(NATIVE_REVERSE_PAGE_COUNT - 1), %d7
+.Lreverse_init_free_pages:
+    move.b  %d0, (%a0)+
+    addq.b  #1, %d0
+    dbra    %d7, .Lreverse_init_free_pages
+    move.w  #NATIVE_REVERSE_PAGE_COUNT, sprite_tile_reverse_free_count
+    movem.l (%sp)+, %d0-%d1/%d7/%a0
     rts
 
 /* PC090OJ final teardown: .Lpc090oj_mode2_project_p1_hud REMOVED.  It projected the
@@ -1353,7 +1400,7 @@ pc090oj_native_emit_pass:
     move.w  2(%a5), %d3              /* glyph code */
     move.w  #0x0070, %d2             /* Y = visible */
     moveq   #0, %d1                  /* attr = palette line 0 */
-    bsr     .Lnq_emit_entry
+    bsr     .Lnq_emit_entry_cached
     addq.l  #4, %a5
     bra.s   .Lgo_loop
 .Lgo_pop:
@@ -1528,6 +1575,14 @@ native_frontend_hud_emit:
     .word 0xFFFF,0x0000,0x0000
 .Lnq_gameplay:
     movem.l %d0-%d7/%a0-%a3, -(%sp)
+    move.l  %a4, -(%sp)
+    /* pc090oj_ctrl_shadow can only be changed by the arcade control producer.
+     * This finalizer is one uninterrupted 68000 call, so cache its value once
+     * for every gameplay lane entry in this pass. */
+    moveq   #0, %d0
+    move.w  pc090oj_ctrl_shadow, %d0
+    swap    %d0
+    movea.l %d0, %a4
     lea     staged_sprite_sat, %a3
     tst.w   pc090oj_sat_bank
     beq.s   .Lnq_bank_ok
@@ -1566,6 +1621,7 @@ native_frontend_hud_emit:
      * gameplay finalizer under its exact original 0x05104E state gate, appended
      * after the native lanes (shares this pass's a3/a2/a1/d5 SAT context). */
     bsr     .Lnq_gameover_emit
+    move.l  (%sp)+, %a4
     bra     .Lnq_done_scan
 
 .if RASTAN_GAMEPLAY_HUD_SPRITES == 2
@@ -1669,7 +1725,7 @@ native_frontend_hud_emit:
     move.w  (%a0)+, %d3
     move.w  (%a0)+, %d4
     move.w  %d6, -(%sp)
-    bsr     .Lnq_emit_entry
+    bsr     .Lnq_emit_entry_cached
     move.w  (%sp)+, %d6
     cmpi.w  #NATIVE_SAT_MAX, %d5
     bhs.s   .Lnq_lane_done
@@ -1677,7 +1733,13 @@ native_frontend_hud_emit:
 .Lnq_lane_done:
     rts
 
+.Lnq_emit_entry_cached:
+    move.l  %a4, %d7                  /* cached ctrl word is in the upper half */
+    bra.s   .Lnq_entry_ctrl_ready
 .Lnq_emit_entry:
+    move.w  pc090oj_ctrl_shadow, %d7  /* direct frontend callers keep exact semantics */
+    swap    %d7
+.Lnq_entry_ctrl_ready:
     move.w  %d3, %d0
     andi.w  #0x1FFF, %d0
     beq     .Lnq_entry_skip
@@ -1712,7 +1774,8 @@ native_frontend_hud_emit:
     bls.s   .Lnq_x_ok
     subi.w  #0x0200, %d4
 .Lnq_x_ok:
-    move.w  pc090oj_ctrl_shadow, %d6
+    swap    %d7
+    move.w  %d7, %d6
     btst    #0, %d6
     bne.s   .Lnq_no_flip
     move.w  #PC090OJ_FLIP_X_TERM, %d6
@@ -1727,22 +1790,17 @@ native_frontend_hud_emit:
     addi.w  #PC090OJ_TO_GENESIS_Y_OFFSET, %d2
 
     move.w  %d3, %d0
-    andi.w  #0x0FFF, %d0
-    lsl.w   #2, %d0
+    andi.l  #0x00000FFF, %d0
+    lsl.l   #4, %d0
     lea     pc090oj_opaque_bbox, %a1
-    adda.w  %d0, %a1
+    adda.l  %d0, %a1
+    move.w  %d1, %d7
+    rol.w   #2, %d7                   /* attr V/H bits 15/14 -> index bits 1/0 */
+    andi.w  #0x0003, %d7
     moveq   #0, %d0
-    move.b  0(%a1), %d0
+    move.b  0(%a1,%d7.w), %d0
     moveq   #0, %d6
-    move.b  1(%a1), %d6
-    btst    #15, %d1
-    beq.s   .Lnq_vrows_ok
-    neg.w   %d0
-    addi.w  #PC090OJ_PATTERN_MAX_ROW, %d0
-    neg.w   %d6
-    addi.w  #PC090OJ_PATTERN_MAX_ROW, %d6
-    exg     %d0, %d6
-.Lnq_vrows_ok:
+    move.b  4(%a1,%d7.w), %d6
     add.w   %d2, %d0
     add.w   %d2, %d6
     cmpi.w  #GENESIS_VIEWPORT_BOTTOM, %d0
@@ -1750,17 +1808,9 @@ native_frontend_hud_emit:
     cmpi.w  #GENESIS_VIEWPORT_TOP, %d6
     blt     .Lnq_entry_skip
     moveq   #0, %d0
-    move.b  2(%a1), %d0
+    move.b  8(%a1,%d7.w), %d0
     moveq   #0, %d6
-    move.b  3(%a1), %d6
-    btst    #14, %d1
-    beq.s   .Lnq_hcols_ok
-    neg.w   %d0
-    addi.w  #PC090OJ_PATTERN_MAX_COL, %d0
-    neg.w   %d6
-    addi.w  #PC090OJ_PATTERN_MAX_COL, %d6
-    exg     %d0, %d6
-.Lnq_hcols_ok:
+    move.b  12(%a1,%d7.w), %d6
     add.w   %d4, %d0
     add.w   %d4, %d6
     cmpi.w  #GENESIS_VIEWPORT_RIGHT, %d0
@@ -1768,14 +1818,30 @@ native_frontend_hud_emit:
     cmpi.w  #GENESIS_VIEWPORT_LEFT, %d6
     blt     .Lnq_entry_skip
 
-    /* Full bounded lookup avoids artificial set conflicts in the 49-cell physical band. */
+    /* Exact O(1) reverse lookup.  Normalize the HUD-white bit-15 residency
+     * tag to bit 12, then perform one directory and one leaf access. */
+    move.w  %d3, %d0
+    andi.w  #0x0FFF, %d0
+    btst    #15, %d3
+    beq.s   .Lnq_reverse_key_ready
+    ori.w   #0x1000, %d0
+.Lnq_reverse_key_ready:
+    move.w  %d0, %d6
+    lsr.w   #4, %d6
+    lea     sprite_tile_reverse_directory, %a1
+    moveq   #0, %d7
+    move.b  0(%a1,%d6.w), %d7
+    cmpi.b  #0xFF, %d7
+    beq.s   .Lnq_reverse_miss
+    lsl.w   #4, %d7
+    andi.w  #0x000F, %d0
+    add.w   %d0, %d7
+    lea     sprite_tile_reverse_pages, %a1
     moveq   #0, %d0
-    move.w  #(NATIVE_CELLS - 1), %d6
-.Lnq_lookup_loop:
-    cmp.w   0(%a2,%d0.w), %d3
-    beq     .Lnq_hit
-    addq.w  #2, %d0
-    dbra    %d6, .Lnq_lookup_loop
+    move.b  0(%a1,%d7.w), %d0
+    cmpi.b  #0xFF, %d0
+    bne     .Lnq_hit
+.Lnq_reverse_miss:
     move.w  %d1, -(%sp)
     moveq   #0, %d0
     move.w  #(NATIVE_CELLS - 1), %d1
@@ -1799,13 +1865,89 @@ native_frontend_hud_emit:
     move.w  %d1, (%a1)+
     move.w  %d3, (%a1)
     addq.w  #1, pc090oj_tile_dma_count
-    move.w  %d3, 0(%a2,%d0.w)
+    bsr     .Lnq_reverse_replace
     move.w  (%sp)+, %d1
     bra     .Lnq_hit
 .Lnq_qfull:
     move.w  (%sp)+, %d1
     addq.w  #1, pc090oj_dropped_count
     bra     .Lnq_entry_skip
+
+/* d0 = forward-table byte offset, d3 = new Build-0356 residency key,
+ * a2 = sprite_tile_resident_code.  Preserve the caller's live registers.
+ * Remove the old exact reverse mapping first, write the authoritative forward
+ * slot, then install the new reverse mapping. */
+.Lnq_reverse_replace:
+    movem.l %d0-%d2/%d6-%d7/%a0-%a1, -(%sp)
+    move.w  0(%a2,%d0.w), %d6
+    beq.s   .Lnq_reverse_install_forward
+
+    move.w  %d6, %d1
+    andi.w  #0x0FFF, %d1
+    btst    #15, %d6
+    beq.s   .Lnq_reverse_old_key_ready
+    ori.w   #0x1000, %d1
+.Lnq_reverse_old_key_ready:
+    move.w  %d1, %d7
+    lsr.w   #4, %d7
+    lea     sprite_tile_reverse_directory, %a0
+    moveq   #0, %d2
+    move.b  0(%a0,%d7.w), %d2
+    cmpi.b  #0xFF, %d2
+    beq.s   .Lnq_reverse_install_forward
+    andi.w  #0x000F, %d1
+    move.w  %d2, %d6
+    lsl.w   #4, %d6
+    add.w   %d1, %d6
+    lea     sprite_tile_reverse_pages, %a1
+    move.b  #0xFF, 0(%a1,%d6.w)
+    lea     sprite_tile_reverse_page_refcount, %a1
+    subq.b  #1, 0(%a1,%d2.w)
+    bne.s   .Lnq_reverse_install_forward
+
+    /* Last key in this group: release the page back to the bounded pool. */
+    move.b  #0xFF, 0(%a0,%d7.w)
+    move.w  sprite_tile_reverse_free_count, %d6
+    lea     sprite_tile_reverse_free_pages, %a1
+    move.b  %d2, 0(%a1,%d6.w)
+    addq.w  #1, %d6
+    move.w  %d6, sprite_tile_reverse_free_count
+
+.Lnq_reverse_install_forward:
+    move.w  %d3, 0(%a2,%d0.w)
+    move.w  %d3, %d1
+    andi.w  #0x0FFF, %d1
+    btst    #15, %d3
+    beq.s   .Lnq_reverse_new_key_ready
+    ori.w   #0x1000, %d1
+.Lnq_reverse_new_key_ready:
+    move.w  %d1, %d7
+    lsr.w   #4, %d7
+    lea     sprite_tile_reverse_directory, %a0
+    moveq   #0, %d2
+    move.b  0(%a0,%d7.w), %d2
+    cmpi.b  #0xFF, %d2
+    bne.s   .Lnq_reverse_have_page
+
+    move.w  sprite_tile_reverse_free_count, %d6
+    subq.w  #1, %d6
+    move.w  %d6, sprite_tile_reverse_free_count
+    lea     sprite_tile_reverse_free_pages, %a1
+    moveq   #0, %d2
+    move.b  0(%a1,%d6.w), %d2
+    move.b  %d2, 0(%a0,%d7.w)
+.Lnq_reverse_have_page:
+    andi.w  #0x000F, %d1
+    move.w  %d2, %d6
+    lsl.w   #4, %d6
+    add.w   %d1, %d6
+    lea     sprite_tile_reverse_pages, %a1
+    move.b  %d0, 0(%a1,%d6.w)
+    lea     sprite_tile_reverse_page_refcount, %a1
+    addq.b  #1, 0(%a1,%d2.w)
+    movem.l (%sp)+, %d0-%d2/%d6-%d7/%a0-%a1
+    rts
+
 .Lnq_cell_free:
     move.w  %d0, -(%sp)
     lea     pc090oj_cell_used, %a1
@@ -2256,6 +2398,20 @@ audit_guard_heartbeat:
 worklist_entry_for_slot:
     .space NATIVE_CELLS
     .align 2
+
+/* Exact two-level reverse residency index.  The directory and leaf pages are
+ * contiguous so bootstrap initialization can invalidate them in one loop. */
+sprite_tile_reverse_directory:
+    .space NATIVE_REVERSE_DIRECTORY_BYTES
+sprite_tile_reverse_pages:
+    .space (NATIVE_REVERSE_PAGE_BYTES * NATIVE_REVERSE_PAGE_COUNT)
+sprite_tile_reverse_page_refcount:
+    .space NATIVE_REVERSE_PAGE_COUNT
+sprite_tile_reverse_free_pages:
+    .space NATIVE_REVERSE_PAGE_COUNT
+    .align 2
+sprite_tile_reverse_free_count:
+    .word 0
 
     .section .bss.patcher
     .balign 2

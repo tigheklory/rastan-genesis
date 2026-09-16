@@ -1,0 +1,26 @@
+{
+ "provenance": "original-arcade Ghidra exports + user-play trace corpus; address_map.json for runtime PCs; Andy 2026-09-15",
+ "physical_envelope_cells": 58,
+ "patterns": "1302..1533",
+ "vram": "0xA2C0..0xBFBF",
+ "fragment": "1534..1535",
+ "verdict": "FAIL",
+ "min_cells_full_fidelity": 63,
+ "min_cells_after_SAT80_cull": 61,
+ "reason": "within a single frame N distinct on-screen codes = N distinct tiles simultaneously displayed; time-based aliasing/overlays cannot reduce a single frame. Peak simultaneous displayed distinct tiles = 61 (demon frame, <80 pieces so no SAT relief) .. 63 (dense frames, partly reduced by 80-SAT cap on both platforms).",
+ "per_owner_fixed_region_model": {
+  "peak_cells": 126,
+  "verdict": "INFEASIBLE",
+  "reason": "sum of co-present owner unions at demon frame (DEMON25+INSECT22+CHIMERA19+VALKYRIE8+CORE+..) >> feasible VRAM; clean Sonic obGfx per-family model does not fit R1/P1 density"
+ },
+ "shared_pool_model": {
+  "peak_cells": "61-63",
+  "note": "minimal, but per-frame placement is combinatorial -> cannot be fully offline-enumerated without a bounded runtime residency step or per-context maps"
+ },
+ "additional_planeA_patterns_needed": {
+  "61_cells": 12,
+  "62_cells": 16,
+  "63_cells": 20
+ },
+ "planeA_reduction": "OUT OF SCOPE this task"
+}

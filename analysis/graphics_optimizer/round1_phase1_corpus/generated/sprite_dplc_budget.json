@@ -1,0 +1,15 @@
+{
+ "source": "full_capture/full_observations.csv round01; new-codes-vs-prev-frame proxy",
+ "note": "trace frames are scroll-sampled, not strictly 60Hz; this is an UPPER-BOUND proxy for DPLC upload per update",
+ "dplc_cells_per_update": {
+  "median": 2.0,
+  "P95": 15,
+  "max": 49
+ },
+ "dplc_patterns_per_update": {
+  "median": 8.0,
+  "P95": 60,
+  "max": 196
+ },
+ "dplc_bytes_per_update_max": 6272
+}

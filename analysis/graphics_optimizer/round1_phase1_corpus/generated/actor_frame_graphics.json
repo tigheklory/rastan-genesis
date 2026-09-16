@@ -1,0 +1,39 @@
+{
+ "provenance": "original-arcade Ghidra exports + user-play trace corpus; address_map.json for runtime PCs; Andy 2026-09-15",
+ "player": {
+  "status": "PATH PROVEN (Cody), TABLES PARTIAL",
+  "chain": "0x0540CC->0x054326->0x054492",
+  "frame_ids": "A5@0x1244/0x1246",
+  "body_table": "~0x05BD40",
+  "weapon_tables": [
+   "0x05CD8A",
+   "0x05D068",
+   "0x05D346",
+   "0x05D666"
+  ]
+ },
+ "flying_demon_body": "palette/reindex COMPLETE (Composer); one representative pose present; full animation frames + body/wings selector UNRESOLVED",
+ "flying_demon_wings": "same as body: appearance authoritative, animation-frame enumeration UNRESOLVED",
+ "lizardman": "UNRESOLVED",
+ "large_bat": "UNRESOLVED",
+ "insect": "UNRESOLVED",
+ "chimera": "UNRESOLVED",
+ "valkyrie": "UNRESOLVED",
+ "small_bat": "UNRESOLVED",
+ "python_can_generate_frame_maps": "PARTIAL \u2014 YES for every represented Composer pose (piece maps present) and the decode mechanism is known; NO for full animation domains (only 1-4 poses/family); remaining = full frame-set enumeration + runtime frame-selector binding, not graphics/palette re-derivation",
+ "remaining": "per-actor animation-state -> mapping-frame -> piece decode for all enemies + demon; player weapon-table entries",
+ "CORRECTION_2026-09-15": "Palette Composer is graphics/palette authority; prior 'python cannot generate frame maps' was too broad.",
+ "palette_composer_authority": {
+  "supplies": "palette/reindex + exact per-pose piece maps (sprite_frames.json: code,x,y,flip,pattern_hash) + arcade dispatch chain",
+  "arcade_dispatch": "actor_family0_render_3d054 (0x3D054); descriptor tables 0x03D09E/0x04771C/0x03F0CE/0x040004/0x04002C; piece quartets [control,signed_y,code_offset,signed_x] term 0x00; eff bank ((sprite_ctrl&0xE0)>>1)|(actor_attr&0x0F)",
+  "coverage": {
+   "rastan_player_body": "2 poses/26c (B)",
+   "gameplay_hud": "1/43c (A)",
+   "stage1_lizardman": "1/35c (C)",
+   "hurry_up_bat": "4/3c (A/B)",
+   "player_auxiliary": "1/3c (B)",
+   "flying_demon(live v0.4)": "palette+reindex COMPLETE, one 25-piece pose, animation domain NO (C)",
+   "others": "route/producer buckets, unresolved (C/D)"
+  }
+ }
+}

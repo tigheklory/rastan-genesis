@@ -1,0 +1,86 @@
+{
+ "provenance": "original-arcade Ghidra exports + user-play trace corpus; address_map.json for runtime PCs; Andy 2026-09-15",
+ "phase_reset": {
+  "status": "PROVEN behaviorally + structurally; single wipe PC NOT isolated (distributed)",
+  "actor_blocks": [
+   "A5@0x2C8 main",
+   "A5@0x748 secondary",
+   "A5@0x5C8 paired-area",
+   "A5@0x508/0x548 demon pair"
+  ],
+  "state": {
+   "stage": "A5@0x118 (<6)",
+   "progression": "A5@0x13E (0..0x87)"
+  },
+  "progression_event": "FUN_000558e0 arcade_pc 0x0558E0 -> runtime 0x0559C0 (increments 0x13E at 0x0558FE); NOT the wipe",
+  "residency_implication": "phase = safe hard reset; discard entire phase sprite context, no enemy carry-over"
+ },
+ "flying_demon": {
+  "status": "RESOLVED (Andy): two one-shot encounters",
+  "dispatcher": "switch on d0 at arcade_pc 0x04580C, gated camera A5@0x10B8>=160",
+  "encounter_A": {
+   "spawn_pc": "0x0458C8 jsr 0x45342",
+   "oneshot_flag": "A5@0x264 set=1",
+   "variant_sel": "A5@0xC5A cleared",
+   "gate": "bsrw 0x45D10 returns nonzero"
+  },
+  "encounter_B": {
+   "spawn_pc": "0x045970 jsr 0x45342",
+   "oneshot_flag": "A5@0x25A",
+   "guard": "tstw A5@0x25A / bnes -> NO RESPAWN",
+   "variant_sel": "A5@0xC5A cleared"
+  },
+  "init": "paired_actor_init_45342 (0x45342) guards A5@0x548==0, activates both halves via 0x453A2, loads records via 0x4543E",
+  "slots": {
+   "body": "A5@0x508 recs57-69",
+   "wings": "A5@0x548 recs70-82"
+  },
+  "max_instances": 1,
+  "release_safe": "both paired slots inactive (actor+0==0) after active; one-shot flags prevent respawn; exact death-writer UNRESOLVED",
+  "may_cross_segment": true,
+  "may_cross_phase": false,
+  "residency": "preload at dispatcher branch entry -> hold while either slot active -> reclaim when both inactive"
+ },
+ "hurry_up_bat": {
+  "status": "PARTIAL",
+  "family": "Small Bat (748 block, codes 0x268-0x26A, bank 0x3E), KF-068",
+  "timer_pc": "UNRESOLVED",
+  "threshold": "UNRESOLVED",
+  "max_instances": "UNRESOLVED (swarm)",
+  "eligibility": "whole phase (idle timer)",
+  "recommendation": "keep permanently phase-resident (1-3 cells) -> removes from every coexistence question"
+ },
+ "recurring_families": {
+  "LIZARDMAN": {
+   "eligibility_segments": "1-15 (~whole phase)",
+   "respawn": true,
+   "release": "PHASE-RESIDENT"
+  },
+  "INSECT": {
+   "eligibility_segments": "4-15",
+   "respawn": true,
+   "release": "PHASE-RESIDENT from seg4"
+  },
+  "CHIMERA": {
+   "eligibility_segments": "5-15",
+   "respawn": true,
+   "release": "PHASE-RESIDENT from seg5"
+  },
+  "VALKYRIE": {
+   "eligibility_segments": "7-9",
+   "respawn": true,
+   "release": "segs7-9 window"
+  },
+  "LARGE_BAT": {
+   "eligibility_segments": "2,5-8,13,14",
+   "respawn": true,
+   "release": "regions"
+  },
+  "SMALL_BAT_normal": {
+   "eligibility_segments": "2,5-8,13,14",
+   "respawn": true,
+   "release": "phase-resident (shares hurry-up region)"
+  }
+ },
+ "scheduler": "actor_spawn_ground_and_activate_41180 (0x41180->0x041380) marker/camera/progression driven; map collision markers (0x40/0x41/...) route spawns"
+}
