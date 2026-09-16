@@ -1,0 +1,315 @@
+{
+ "schema_version": 2,
+ "title": "Rastan arcade actor / sprite-graphics semantic manifest (CONSOLIDATED)",
+ "authority": "original arcade 68000 as decompiled in Ghidra; CONSOLIDATES the pre-existing analysis/enemy_sprite_lexicon/ (corrected_semantic_families.json, static_actor_records.json, round_phase_presence.csv) with the Ghidra render spine. Supersedes the thin schema_version:1 manifest.",
+ "provenance_and_status": "Per analysis/enemy_sprite_lexicon/SEMANTIC_STATUS.md: corrected_semantic_families = Andy static +0x3E EVIDENCE (families/bases/palette proven; per-selector CATEGORY not individually proven); round/phase presence from the arcade sweep evidence; families.json/cody_provisional = over-inflated (NOT used as truth); INVALID_pass2 excluded. Graphics-code enumeration remains PENDING.",
+ "authoritative_keys": {
+  "family_identity": "actor+0x3E, selected by FUN_0004544e (selector logic ~0x45404-0x45418, table ~0x4542E/0x45502)",
+  "boss_path": "actor+0x3E==2 gated via +0x752; boss base 0x033E",
+  "family_palette_bank": "FUN_00045684 table 0x45722 (per +0x3E family)",
+  "render_family_composite": "actor_family0_render_3d054 (0x3D054) -> family tables 0=0x3D09E,1=0x4771C,2=0x3F0CE,3=0x40004,4=0x4002C -> actor_four_record_expand_3c902 (0x3C902), quartet [control,signed_y,code_offset,signed_x] term 0x00",
+  "spawn_seed_tables": "static_actor_records.json: 48 seed records, ROM offsets 0x0454BA+ (mode2_variant_a etc.); fields base_code,+0x3A,actor_class,+0x28,+0x2C",
+  "player_composer": "player_body_constructor_540cc (0x540CC)->0x54326(frame 0x1244/0x1246)->0x54492(body ~0x5BD40; weapons 0x5CD8A/0x5D068/0x5D346/0x5D666)"
+ },
+ "normal_families_by_actor_3e": {
+  "0": {
+   "actor_3e_id": 0,
+   "base_code": "0x004B",
+   "palette_bank": "0x06",
+   "producers": [
+    "hostile_base004b_compositor0"
+   ],
+   "rounds_phases_present": [
+    "round1_phase1",
+    "round2_phase1",
+    "round4_phase1",
+    "round5_phase1",
+    "round6_phase1"
+   ],
+   "graphics_codes": "PENDING"
+  },
+  "1": {
+   "actor_3e_id": 1,
+   "base_code": "0x00D0",
+   "palette_bank": "0x04",
+   "producers": [
+    "hostile_base00d0_compositor0",
+    "hostile_base0179_compositor0",
+    "static_seed_selector_08_1c_00",
+    "aux_748_base019d_compositor0"
+   ],
+   "rounds_phases_present": [
+    "round1_phase1",
+    "round3_phase1",
+    "round4_phase1",
+    "round5_phase1",
+    "round6_castle",
+    "round6_phase1",
+    "static_only_or_unobserved"
+   ],
+   "graphics_codes": "PENDING"
+  },
+  "3": {
+   "actor_3e_id": 3,
+   "base_code": "0x02E8",
+   "palette_bank": "0x0A",
+   "producers": [
+    "hostile_base02e8_compositor0",
+    "aux_748_base02e8_compositor0"
+   ],
+   "rounds_phases_present": [
+    "round3_phase1",
+    "round4_phase1",
+    "round6_phase1"
+   ],
+   "graphics_codes": "PENDING"
+  },
+  "4": {
+   "actor_3e_id": 4,
+   "base_code": "0x0420",
+   "palette_bank": "0x07",
+   "producers": [
+    "hostile_base0420_compositor0"
+   ],
+   "rounds_phases_present": [
+    "round3_phase1",
+    "round5_phase1",
+    "round6_phase1"
+   ],
+   "graphics_codes": "PENDING"
+  },
+  "5": {
+   "actor_3e_id": 5,
+   "base_code": "0x01CB",
+   "palette_bank": "0x06",
+   "producers": [
+    "hostile_base01cb_compositor0",
+    "aux_748_base01cb_compositor0"
+   ],
+   "rounds_phases_present": [
+    "round5_castle",
+    "round6_castle"
+   ],
+   "graphics_codes": "PENDING"
+  },
+  "6": {
+   "actor_3e_id": 6,
+   "base_code": "0x03B3",
+   "palette_bank": "0x08",
+   "producers": [
+    "hostile_base03b3_compositor0",
+    "static_seed_selector_08_1c_02",
+    "aux_5c8_base0275_compositor0",
+    "aux_5c8_base03f6_compositor0"
+   ],
+   "rounds_phases_present": [
+    "round1_phase1",
+    "round4_phase1",
+    "round5_phase1",
+    "round6_phase1",
+    "static_only_or_unobserved"
+   ],
+   "graphics_codes": "PENDING"
+  },
+  "7": {
+   "actor_3e_id": 7,
+   "base_code": "0x043A",
+   "palette_bank": "0x0F",
+   "producers": [
+    "static_normal_base043a_unresolved",
+    "static_seed_selector_08_1c_04",
+    "static_seed_selector_08_1c_06",
+    "static_seed_selector_08_1c_07",
+    "static_seed_selector_08_1c_20",
+    "aux_5c8_base050b_compositor0"
+   ],
+   "rounds_phases_present": [
+    "round1_phase1",
+    "static_only_or_unobserved"
+   ],
+   "graphics_codes": "PENDING"
+  },
+  "8": {
+   "actor_3e_id": 8,
+   "base_code": "0x0241",
+   "palette_bank": "0x02",
+   "producers": [
+    "aux_8c8_base0268_compositor0",
+    "aux_8c8_base0275_compositor0",
+    "hostile_base0275_compositor0",
+    "hurry_up_bat",
+    "static_normal_base0241_unresolved",
+    "static_seed_selector_08_1c_01",
+    "static_seed_selector_08_1c_03",
+    "aux_748_base0268_compositor0",
+    "aux_748_base0275_compositor0"
+   ],
+   "rounds_phases_present": [
+    "round1_phase1",
+    "round3_castle",
+    "static_only_or_unobserved"
+   ],
+   "graphics_codes": "PENDING"
+  },
+  "9": {
+   "actor_3e_id": 9,
+   "base_code": "0x06E2",
+   "palette_bank": "0x01",
+   "producers": [
+    "static_normal_base06e2_unresolved",
+    "static_seed_selector_08_1c_11",
+    "static_seed_selector_08_1c_12",
+    "static_seed_selector_08_1c_13"
+   ],
+   "rounds_phases_present": [
+    "static_only_or_unobserved"
+   ],
+   "graphics_codes": "PENDING"
+  },
+  "10": {
+   "actor_3e_id": 10,
+   "base_code": "0x0889",
+   "palette_bank": "0x0B",
+   "producers": [
+    "static_normal_base0889_unresolved"
+   ],
+   "rounds_phases_present": [
+    "static_only_or_unobserved"
+   ],
+   "graphics_codes": "PENDING"
+  },
+  "11": {
+   "actor_3e_id": 11,
+   "base_code": "0x0400",
+   "palette_bank": "0x0E",
+   "producers": [
+    "hostile_base0400_compositor1",
+    "static_seed_selector_08_1c_10"
+   ],
+   "rounds_phases_present": [
+    "round2_phase1",
+    "round5_phase1",
+    "static_only_or_unobserved"
+   ],
+   "graphics_codes": "PENDING"
+  }
+ },
+ "bosses": {
+  "base": "0x033E",
+  "boss_path": "+0x3E==2 via +0x752",
+  "per_round": [
+   {
+    "id": "round1_boss_composite",
+    "rounds": [
+     "round1_boss"
+    ],
+    "base": "0x033E",
+    "graphics_codes": "PENDING",
+    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+   },
+   {
+    "id": "round2_boss_composite",
+    "rounds": [
+     "round2_boss"
+    ],
+    "base": "0x033E",
+    "graphics_codes": "PENDING",
+    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+   },
+   {
+    "id": "round3_boss_composite",
+    "rounds": [
+     "round3_boss"
+    ],
+    "base": "0x033E",
+    "graphics_codes": "PENDING",
+    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+   },
+   {
+    "id": "round4_boss_composite",
+    "rounds": [
+     "round4_boss"
+    ],
+    "base": "0x033E",
+    "graphics_codes": "PENDING",
+    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+   },
+   {
+    "id": "round5_boss_composite",
+    "rounds": [
+     "round5_boss"
+    ],
+    "base": "0x033E",
+    "graphics_codes": "PENDING",
+    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+   },
+   {
+    "id": "round6_boss_composite",
+    "rounds": [
+     "round6_boss"
+    ],
+    "base": "0x033E",
+    "graphics_codes": "PENDING",
+    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+   }
+  ]
+ },
+ "unresolved_routes": [
+  "collision_marker40_route",
+  "collision_marker41_route",
+  "collision_marker49_special_route",
+  "collision_marker4f_behavior20_route",
+  "static_seed_selector_08_1c_05",
+  "static_seed_selector_08_1c_08",
+  "static_seed_selector_08_1c_09",
+  "static_seed_selector_08_1c_14",
+  "static_seed_selector_08_1c_15",
+  "static_seed_selector_08_1c_16",
+  "static_seed_selector_08_1c_17",
+  "static_seed_selector_08_1c_18",
+  "static_seed_selector_08_1c_19"
+ ],
+ "unmatched_producer_rows": [
+  "four_armed_enemy",
+  "hostile_base0a5a_compositor2",
+  "large_bat",
+  "normal_small_bat"
+ ],
+ "counts": {
+  "normal_families_matched": 11,
+  "boss_rows": 9,
+  "unresolved_routes": 13,
+  "non_enemy": 4,
+  "unmatched": 4
+ },
+ "graphics_codes_policy": "PENDING per family until exhaustive enumeration follow-ups run",
+ "spawn_seed_records": {
+  "total": 48,
+  "tables": {
+   "mode2_variant_a": {
+    "count": 3,
+    "first_offset": "0x0454BA"
+   },
+   "mode2_variant_b": {
+    "count": 3,
+    "first_offset": "0x0454D2"
+   },
+   "mode2_variant_c": {
+    "count": 3,
+    "first_offset": "0x0454EA"
+   },
+   "normal_variant_a": {
+    "count": 12,
+    "first_offset": "0x045502"
+   },
+   "normal_variant_b": {
+    "count": 6,
+    "first_offset": "0x045562"
+   },
+   "selector_08_1c": {
+    "count": 21,
+    "first_offset": "0x045592"
+   }
+  }
+ }
+}
