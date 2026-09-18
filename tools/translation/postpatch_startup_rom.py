@@ -343,6 +343,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--symbols", required=True)
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--spec", default=str(DEFAULT_SPEC_PATH))
+    parser.add_argument(
+        "--genesis-coverage-delta",
+        type=lambda value: int(value, 0),
+        default=0,
+        help="Explicit variant-only delta from canonical Genesis helper coverage.",
+    )
     return parser.parse_args()
 
 
@@ -2451,7 +2457,7 @@ def main() -> int:
         # Opcode-replace invariants are strict canonical values in all build
         # contexts. bookmarks_v2 writes are a separate post-relocation stage.
         expected_count = CANONICAL_OPCODE_REPLACE_COUNT
-        expected_coverage = CANONICAL_TOTAL_GENESIS_BYTES_COVERED
+        expected_coverage = CANONICAL_TOTAL_GENESIS_BYTES_COVERED + args.genesis_coverage_delta
 
         observed_coverage = int(segment_coverage["total_genesis_bytes_covered"])
         observed_count = len(opcode_replace_sites)
@@ -2582,6 +2588,7 @@ def main() -> int:
             ),
         },
         "build_context": build_context_label,
+        "genesis_coverage_delta": f"0x{args.genesis_coverage_delta:X}",
     }
     if expected_opcode_replace_sites_for_context is not None:
         manifest["postpatch_expected_opcode_replace_sites"] = expected_opcode_replace_sites_for_context

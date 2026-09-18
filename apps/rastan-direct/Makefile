@@ -60,6 +60,11 @@ RASTAN_DIAG_SCORE_METRIC ?= 0
 # Build 0344: display-off VBlank publication variant. 0 = display stays ON during dma_publish_frame
 # (current behaviour); 1 = blank the display for the publication phase (Rainbow model). Emits a "_do" ROM.
 RASTAN_VBLANK_DISPLAY_OFF ?= 0
+# Build 0360: opt-in controller cheat variant.  When 1, P1 six-button MODE
+# invokes the authoritative arcade/MAME "Finish Current Sub-Round Now!"
+# semantic on a rising edge.  The normal and diagnostic ROMs compile it out.
+RASTAN_MODE_RACK_ADVANCE ?= 0
+CRASH_BUILD_USE_CURRENT ?= 0
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
 # Direct PC090OJ palette-line LUT: current Tool-authored R1/P1 mappings plus
@@ -145,16 +150,18 @@ BIN := $(DIST_DIR)/rastan_direct_video_test.bin
 DIAG_ROM := $(DIST_DIR)/rastan_direct_video_test_diag.bin
 SCORE_ROM := $(DIST_DIR)/rastan_direct_video_test_score.bin
 DO_ROM := $(DIST_DIR)/rastan_direct_video_test_do.bin
+CHEAT_ROM := $(DIST_DIR)/rastan_direct_video_test_cheat.bin
 
 .DELETE_ON_ERROR:
-.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant
+.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant cheat-variant
 
-# Build 0337/0338/0344: every build produces FOUR ROMs sharing one build number:
+# Build 0360: every build produces FIVE ROMs sharing one build number:
 #   ..._NNNN.bin     release (all diag/variant flags off) -- owns the counter/gates/ledger
 #   ..._NNNN_d.bin   diagnostic CPU-load raster bar (RASTAN_DIAG_CPU_BAR=1)
 #   ..._NNNN_s.bin   diagnostic numeric score metric (RASTAN_DIAG_SCORE_METRIC=1)
 #   ..._NNNN_do.bin  display-off VBlank publication phase (RASTAN_VBLANK_DISPLAY_OFF=1)
-# The _d, _s and _do builds are postpatch-only copies that reuse the release's number and are never
+#   ..._NNNN_c.bin   P1 six-button MODE rack-advance cheat (RASTAN_MODE_RACK_ADVANCE=1)
+# The suffixed builds are postpatch-only copies that reuse the release's number and are never
 # numbered/ledgered themselves.
 all: dual-build
 release: dual-build
@@ -164,6 +171,7 @@ dual-build:
 	$(MAKE) diag-variant RASTAN_DIAG_CPU_BAR=1
 	$(MAKE) score-variant RASTAN_DIAG_SCORE_METRIC=1
 	$(MAKE) do-variant RASTAN_VBLANK_DISPLAY_OFF=1
+	$(MAKE) cheat-variant RASTAN_MODE_RACK_ADVANCE=1 CRASH_BUILD_USE_CURRENT=1
 
 $(OUT_DIR) $(DIST_DIR):
 	@mkdir -p $@
@@ -182,11 +190,12 @@ $(OUT_DIR)/dma.o: $(SRC_DIR)/dma.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(O
 # numbered ROM. Minimal Phase-2 support required by the transplanted handler.
 $(CRASH_BUILD_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
-	tag=$$(printf "%04d" "$$((n + 1))"); \
+	if [ "$(CRASH_BUILD_USE_CURRENT)" = "1" ]; then build_n=$$n; else build_n=$$((n + 1)); fi; \
+	tag=$$(printf "%04d" "$$build_n"); \
 	printf '/* GENERATED build number by apps/rastan-direct/Makefile -- do not hand-edit. */\ncrash_build_number_str: .asciz "%s"\n' "$$tag" > $@; \
 	echo "crash build number -> $$tag ($@)"
 
-$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -263,8 +272,8 @@ $(PC090OJ_OPAQUE_BBOX): $(PC090OJ_REGION) $(ROOT)/tools/translation/build_pc090o
 # Generate the PC090OJ helper sizing include from the Make variable each build so
 # an override (PC090OJ_MIRROR_RECORDS=N) is always applied without hand-editing.
 $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
-	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s RASTAN_DIAG_CPU_BAR=%s RASTAN_DIAG_SCORE_METRIC=%s RASTAN_VBLANK_DISPLAY_OFF=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n.equ RASTAN_DIAG_CPU_BAR, %s\n.equ RASTAN_DIAG_SCORE_METRIC, %s\n.equ RASTAN_VBLANK_DISPLAY_OFF, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' > $@
-	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) RASTAN_VBLANK_DISPLAY_OFF=$(RASTAN_VBLANK_DISPLAY_OFF) -> $@"
+	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s RASTAN_DIAG_CPU_BAR=%s RASTAN_DIAG_SCORE_METRIC=%s RASTAN_VBLANK_DISPLAY_OFF=%s RASTAN_MODE_RACK_ADVANCE=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n.equ RASTAN_DIAG_CPU_BAR, %s\n.equ RASTAN_DIAG_SCORE_METRIC, %s\n.equ RASTAN_VBLANK_DISPLAY_OFF, %s\n.equ RASTAN_MODE_RACK_ADVANCE, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(RASTAN_MODE_RACK_ADVANCE)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(RASTAN_MODE_RACK_ADVANCE)' > $@
+	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) RASTAN_VBLANK_DISPLAY_OFF=$(RASTAN_VBLANK_DISPLAY_OFF) RASTAN_MODE_RACK_ADVANCE=$(RASTAN_MODE_RACK_ADVANCE) -> $@"
 
 # Build 0340 OPT-003: generate the prebaked (scene,effective_bank)->palette-line LUT from the authored
 # The current Palette Editing Tool snapshot authors R1/P1 mappings. The live route
@@ -484,6 +493,31 @@ do-variant: $(DO_ROM)
 	cp "$(DO_ROM)" "$$dest"; \
 	if [ ! -s "$$dest" ]; then echo "ERROR: display-off build artifact missing/empty: $$dest"; exit 1; fi; \
 	echo "display-off build artifact (RASTAN_VBLANK_DISPLAY_OFF=1): $$dest"
+
+# Build 0360: MODE rack-advance ROM.  This uses the normal postpatch pipeline,
+# but the compile-time feature and its two state bytes exist only in the _c ROM.
+$(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
+	cp "$(PREPATCH_BIN)" "$@"
+	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
+	$(PYTHON) "$(PATCHER)" \
+		--variant "$(VARIANT)" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
+		--rom "$@" \
+		--symbols "$(SYMBOLS)" \
+		--manifest "$(OUT_DIR)/cheat_patch_manifest.json" \
+		--spec "$(PATCH_SPEC)" \
+		--genesis-coverage-delta 0x1000
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
+
+cheat-variant: $(CHEAT_ROM)
+	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
+	tag=$$(printf "%04d" "$$n"); \
+	dest="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_c.bin"; \
+	if [ -e "$$dest" ]; then echo "ERROR: refusing to overwrite existing cheat build: $$dest"; exit 1; fi; \
+	cp "$(CHEAT_ROM)" "$$dest"; \
+	if [ ! -s "$$dest" ]; then echo "ERROR: cheat build artifact missing/empty: $$dest"; exit 1; fi; \
+	echo "cheat build artifact (RASTAN_MODE_RACK_ADVANCE=1): $$dest"
 
 clean:
 	rm -rf $(OUT_DIR) $(DIST_DIR)

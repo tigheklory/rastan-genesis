@@ -1,3 +1,5 @@
+    .include "pc090oj_config.inc"
+
     .section .text,"ax"
 
     .global genesistan_hook_tilemap_plane_a
@@ -3471,6 +3473,13 @@ rastan_direct_update_inputs:
     nop
     move.b  IO_PAD1_DATA, %d0
 
+.if RASTAN_MODE_RACK_ADVANCE
+    /* The ordinary low/high reads above are phase 1 of the Mega Drive
+     * six-button handshake.  Complete phases 2/3 immediately, before the
+     * controller timeout, and consume MODE only in the opt-in cheat ROM. */
+    bsr.w   .Lmode_rack_advance_poll
+.endif
+
     move.b  %d0, %d2
     ori.b   #0xC0, %d2
     btst    #4, %d1
@@ -3537,6 +3546,180 @@ rastan_direct_update_inputs:
     move.b  %d5, genesistan_shadow_input_390007
 
     rts
+
+.if RASTAN_MODE_RACK_ADVANCE
+/* Read P1 MODE and reproduce MAME's authoritative "Finish Current Sub-Round
+ * Now!" state mutation on a released->pressed edge.  The original translated
+ * arcade state machine remains responsible for the resulting transition and
+ * cleanup; this helper does not own progression or frame control. */
+.Lmode_rack_advance_poll:
+    movem.l %d0-%d2/%a0, -(%sp)
+
+    /* Phase 2: the values are not needed, but both TH edges are required. */
+    move.b  #0x00, IO_PAD1_DATA
+    nop
+    move.b  IO_PAD1_DATA, %d0
+    move.b  #0x40, IO_PAD1_DATA
+    nop
+    move.b  IO_PAD1_DATA, %d0
+
+    /* Phase 3: a six-button pad returns 0000 in the low nibble with TH low,
+     * then active-low M/X/Y/Z in bits 3..0 with TH high. */
+    move.b  #0x00, IO_PAD1_DATA
+    nop
+    move.b  IO_PAD1_DATA, %d0
+    move.b  #0x40, IO_PAD1_DATA
+    nop
+    move.b  IO_PAD1_DATA, %d1
+
+    moveq   #0, %d2
+    andi.b  #0x0F, %d0
+    bne.s   .Lmode_sample_ready       /* three-button pad: MODE released */
+    btst    #3, %d1                   /* six-button MODE is active low */
+    bne.s   .Lmode_sample_ready
+    moveq   #1, %d2
+
+.Lmode_sample_ready:
+    tst.b   mode_rack_initialized
+    bne.s   .Lmode_check_edge
+    move.b  #1, mode_rack_initialized
+    move.b  %d2, mode_rack_prev_pressed
+    bra.w   .Lmode_poll_done          /* held at startup never triggers */
+
+.Lmode_check_edge:
+    tst.b   mode_rack_prev_pressed
+    bne.s   .Lmode_store_sample
+    tst.b   %d2
+    beq.s   .Lmode_store_sample
+    bsr.w   .Lmode_finish_subround
+
+.Lmode_store_sample:
+    move.b  %d2, mode_rack_prev_pressed
+.Lmode_poll_done:
+    movem.l (%sp)+, %d0-%d2/%a0
+    rts
+
+/* Exact state mutation from tools/mame/cheat/output.xml.  Arcade 0x10C000 is
+ * relocated to Genesis WRAM 0x00FF0000, so the MAME addresses map to the same
+ * A5-relative offsets.  Legal progression values are 0x00..0x89. */
+.Lmode_finish_subround:
+    lea     0x00FF0000, %a0
+    cmpi.w  #2, (%a0)                 /* active gameplay/session only */
+    bne.w   .Lrack_done
+
+    moveq   #0, %d0
+    move.b  0x1243(%a0), %d0
+    cmpi.b  #0x89, %d0
+    bhi.w   .Lrack_done
+
+    moveq   #2, %d1                   /* ordinary sub-round transition */
+    cmpi.b  #0x89, %d0
+    beq.w   .Lrack_at_boundary
+    cmpi.b  #0x83, %d0
+    bhs.w   .Lrack_to_89
+    cmpi.b  #0x73, %d0
+    bhs.w   .Lrack_to_83
+    cmpi.b  #0x72, %d0
+    beq.w   .Lrack_to_73_boundary
+    cmpi.b  #0x6C, %d0
+    bhs.w   .Lrack_to_72
+    cmpi.b  #0x5C, %d0
+    bhs.w   .Lrack_to_6c
+    cmpi.b  #0x5B, %d0
+    beq.w   .Lrack_to_5c_boundary
+    cmpi.b  #0x55, %d0
+    bhs.w   .Lrack_to_5b
+    cmpi.b  #0x45, %d0
+    bhs.w   .Lrack_to_55
+    cmpi.b  #0x44, %d0
+    beq.w   .Lrack_to_45_boundary
+    cmpi.b  #0x3F, %d0
+    bhs.w   .Lrack_to_44
+    cmpi.b  #0x2E, %d0
+    bhs.w   .Lrack_to_3f
+    cmpi.b  #0x2D, %d0
+    beq.w   .Lrack_to_2e_boundary
+    cmpi.b  #0x27, %d0
+    bhs.w   .Lrack_to_2d
+    cmpi.b  #0x17, %d0
+    bhs.w   .Lrack_to_27
+    cmpi.b  #0x16, %d0
+    beq.w   .Lrack_to_17_boundary
+    cmpi.b  #0x10, %d0
+    bhs.w   .Lrack_to_16
+    moveq   #0x10, %d0
+    bra.w   .Lrack_apply
+
+.Lrack_to_16:
+    moveq   #0x16, %d0
+    bra.w   .Lrack_apply
+.Lrack_to_17_boundary:
+    moveq   #0x17, %d0
+    bra.w   .Lrack_boundary
+.Lrack_to_27:
+    moveq   #0x27, %d0
+    bra.w   .Lrack_apply
+.Lrack_to_2d:
+    moveq   #0x2D, %d0
+    bra.w   .Lrack_apply
+.Lrack_to_2e_boundary:
+    moveq   #0x2E, %d0
+    bra.w   .Lrack_boundary
+.Lrack_to_3f:
+    moveq   #0x3F, %d0
+    bra.w   .Lrack_apply
+.Lrack_to_44:
+    moveq   #0x44, %d0
+    bra.w   .Lrack_apply
+.Lrack_to_45_boundary:
+    moveq   #0x45, %d0
+    bra.w   .Lrack_boundary
+.Lrack_to_55:
+    moveq   #0x55, %d0
+    bra.w   .Lrack_apply
+.Lrack_to_5b:
+    moveq   #0x5B, %d0
+    bra.w   .Lrack_apply
+.Lrack_to_5c_boundary:
+    moveq   #0x5C, %d0
+    bra.w   .Lrack_boundary
+.Lrack_to_6c:
+    moveq   #0x6C, %d0
+    bra.w   .Lrack_apply
+.Lrack_to_72:
+    moveq   #0x72, %d0
+    bra.w   .Lrack_apply
+.Lrack_to_73_boundary:
+    moveq   #0x73, %d0
+    bra.w   .Lrack_boundary
+.Lrack_to_83:
+    move.w  #0x0083, %d0
+    bra.w   .Lrack_apply
+.Lrack_to_89:
+    move.w  #0x0089, %d0
+    bra.w   .Lrack_apply
+.Lrack_at_boundary:
+    move.w  #0x0089, %d0
+.Lrack_boundary:
+    moveq   #1, %d1                   /* round-boundary transition */
+
+.Lrack_apply:
+    move.b  %d0, 0x1243(%a0)
+    cmpi.b  #1, %d1
+    beq.s   .Lrack_apply_boundary
+    move.b  #1, 0x0047(%a0)
+    move.b  #2, 0x0005(%a0)
+    move.b  #1, 0x0104(%a0)
+    move.b  #2, 0x0003(%a0)
+    bra.s   .Lrack_done
+
+.Lrack_apply_boundary:
+    clr.w   0x0708(%a0)
+    clr.w   0x0688(%a0)
+    move.b  #1, 0x0104(%a0)
+.Lrack_done:
+    rts
+.endif
 
 /* PC080SN per-line scroll-RAM fill/clear translation homes.
  * IN: A0 = arcade target, D0 = fill word, D1 = word count.
@@ -3944,6 +4127,12 @@ genesistan_shadow_input_390007:
     .byte 0
 prev_coin_p1_a_pressed:
     .byte 0
+.if RASTAN_MODE_RACK_ADVANCE
+mode_rack_initialized:
+    .byte 0
+mode_rack_prev_pressed:
+    .byte 0
+.endif
 genesistan_shadow_dip1:
     .byte 0
 genesistan_shadow_dip2:

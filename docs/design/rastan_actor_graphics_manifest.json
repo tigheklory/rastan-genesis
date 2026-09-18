@@ -1,8 +1,8 @@
 {
  "schema_version": 2,
  "title": "Rastan arcade actor / sprite-graphics semantic manifest (CONSOLIDATED)",
- "authority": "original arcade 68000 as decompiled in Ghidra; CONSOLIDATES the pre-existing analysis/enemy_sprite_lexicon/ (corrected_semantic_families.json, static_actor_records.json, round_phase_presence.csv) with the Ghidra render spine. Supersedes the thin schema_version:1 manifest.",
- "provenance_and_status": "Per analysis/enemy_sprite_lexicon/SEMANTIC_STATUS.md: corrected_semantic_families = Andy static +0x3E EVIDENCE (families/bases/palette proven; per-selector CATEGORY not individually proven); round/phase presence from the arcade sweep evidence; families.json/cody_provisional = over-inflated (NOT used as truth); INVALID_pass2 excluded. Graphics-code enumeration remains PENDING.",
+ "authority": "original arcade 68000 as decompiled in Ghidra (maincpu.bin) is authoritative. actors[] is the single per-actor semantic record. Legacy lexicon/sweep material (analysis/enemy_sprite_lexicon/*) is retained ONLY under legacy_evidence for provenance and is never consumed as truth.",
+ "provenance_and_status": "actors[] is the SOLE authoritative per-actor semantic record (identity/round/phase/frame/palette, each with its own provenance). ROM spawn-schedule 0x4A104 + Ghidra static decompilation are authoritative for family/base/rounds; per-round palette decoded from ROM (0x3BA88->0x4FD02, validated). Sweep-derived round/phase 'presence' (old round_phase_presence.csv, *_castle labels) is NOT current authority and has been removed/reclassified under legacy_evidence. families.json / representative_pieces / contact sheets = corroboration/rendering only; graphics-code enumeration remains PENDING.",
  "authoritative_keys": {
   "family_identity": "actor+0x3E, selected by FUN_0004544e (selector logic ~0x45404-0x45418, table ~0x4542E/0x45502)",
   "boss_path": "actor+0x3E==2 gated via +0x752; boss base 0x033E",
@@ -19,14 +19,16 @@
    "producers": [
     "hostile_base004b_compositor0"
    ],
-   "rounds_phases_present": [
-    "round1_phase1",
-    "round2_phase1",
-    "round4_phase1",
-    "round5_phase1",
-    "round6_phase1"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round1",
+    "round2",
+    "round3",
+    "round4",
+    "round5",
+    "round6"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   },
   "1": {
    "actor_3e_id": 1,
@@ -38,16 +40,16 @@
     "static_seed_selector_08_1c_00",
     "aux_748_base019d_compositor0"
    ],
-   "rounds_phases_present": [
-    "round1_phase1",
-    "round3_phase1",
-    "round4_phase1",
-    "round5_phase1",
-    "round6_castle",
-    "round6_phase1",
-    "static_only_or_unobserved"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round1",
+    "round2",
+    "round3",
+    "round4",
+    "round5",
+    "round6"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   },
   "3": {
    "actor_3e_id": 3,
@@ -57,12 +59,16 @@
     "hostile_base02e8_compositor0",
     "aux_748_base02e8_compositor0"
    ],
-   "rounds_phases_present": [
-    "round3_phase1",
-    "round4_phase1",
-    "round6_phase1"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round1",
+    "round2",
+    "round3",
+    "round4",
+    "round5",
+    "round6"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   },
   "4": {
    "actor_3e_id": 4,
@@ -71,12 +77,14 @@
    "producers": [
     "hostile_base0420_compositor0"
    ],
-   "rounds_phases_present": [
-    "round3_phase1",
-    "round5_phase1",
-    "round6_phase1"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round2",
+    "round3",
+    "round5",
+    "round6"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   },
   "5": {
    "actor_3e_id": 5,
@@ -86,11 +94,11 @@
     "hostile_base01cb_compositor0",
     "aux_748_base01cb_compositor0"
    ],
-   "rounds_phases_present": [
-    "round5_castle",
-    "round6_castle"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round6"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   },
   "6": {
    "actor_3e_id": 6,
@@ -102,14 +110,14 @@
     "aux_5c8_base0275_compositor0",
     "aux_5c8_base03f6_compositor0"
    ],
-   "rounds_phases_present": [
-    "round1_phase1",
-    "round4_phase1",
-    "round5_phase1",
-    "round6_phase1",
-    "static_only_or_unobserved"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round3",
+    "round4",
+    "round5",
+    "round6"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   },
   "7": {
    "actor_3e_id": 7,
@@ -123,11 +131,11 @@
     "static_seed_selector_08_1c_20",
     "aux_5c8_base050b_compositor0"
    ],
-   "rounds_phases_present": [
-    "round1_phase1",
-    "static_only_or_unobserved"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round5"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   },
   "8": {
    "actor_3e_id": 8,
@@ -144,12 +152,14 @@
     "aux_748_base0268_compositor0",
     "aux_748_base0275_compositor0"
    ],
-   "rounds_phases_present": [
-    "round1_phase1",
-    "round3_castle",
-    "static_only_or_unobserved"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round1",
+    "round2",
+    "round3",
+    "round4"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   },
   "9": {
    "actor_3e_id": 9,
@@ -161,10 +171,11 @@
     "static_seed_selector_08_1c_12",
     "static_seed_selector_08_1c_13"
    ],
-   "rounds_phases_present": [
-    "static_only_or_unobserved"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round4"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   },
   "10": {
    "actor_3e_id": 10,
@@ -173,10 +184,13 @@
    "producers": [
     "static_normal_base0889_unresolved"
    ],
-   "rounds_phases_present": [
-    "static_only_or_unobserved"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round4",
+    "round5",
+    "round6"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   },
   "11": {
    "actor_3e_id": 11,
@@ -186,12 +200,15 @@
     "hostile_base0400_compositor1",
     "static_seed_selector_08_1c_10"
    ],
-   "rounds_phases_present": [
-    "round2_phase1",
-    "round5_phase1",
-    "static_only_or_unobserved"
+   "graphics_codes": "PENDING",
+   "rounds_present_ROM_authoritative": [
+    "round2",
+    "round3",
+    "round4",
+    "round5",
+    "round6"
    ],
-   "graphics_codes": "PENDING"
+   "note_presence": "ROM spawn-schedule 0x4A104 authoritative; supersedes sweep round_phase_presence.csv"
   }
  },
  "bosses": {
@@ -205,7 +222,31 @@
     ],
     "base": "0x033E",
     "graphics_codes": "PENDING",
-    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+    "confidence": "route+round+palette+composite-frame PROVEN; exact seed/component split PARTIAL",
+    "palette": {
+     "source": "family2 boss table 0x456EC[variant*18+(round-1)*3+comp]; variant0/comp0",
+     "nibble": 4,
+     "pool_index": 18,
+     "rom_palette_addr": "0x4FF42",
+     "swatch": [
+      "#000000",
+      "#f76321",
+      "#b54221",
+      "#841010",
+      "#f7f700",
+      "#949400",
+      "#f7f7f7",
+      "#848484"
+     ]
+    },
+    "render": {
+     "method": "rom_geo_boss",
+     "geo_id": "round1_boss_composite",
+     "palette_round": 1,
+     "palette_nibble": 4
+    },
+    "creation": "2-slot paired actor A5+0x508/0x548 via paired_actor_init 0x45342; variant from A5+0xC5A (+0x06=8/9); base resolved 0x4543e; family2/base0x033E",
+    "anim_override": "default +0x28/+0x2C"
    },
    {
     "id": "round2_boss_composite",
@@ -214,7 +255,31 @@
     ],
     "base": "0x033E",
     "graphics_codes": "PENDING",
-    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+    "confidence": "route+round+palette+composite-frame PROVEN; exact seed/component split PARTIAL",
+    "palette": {
+     "source": "family2 boss table 0x456EC[variant*18+(round-1)*3+comp]; variant0/comp0",
+     "nibble": 4,
+     "pool_index": 18,
+     "rom_palette_addr": "0x4FF42",
+     "swatch": [
+      "#000000",
+      "#f76321",
+      "#b54221",
+      "#841010",
+      "#f7f700",
+      "#949400",
+      "#f7f7f7",
+      "#848484"
+     ]
+    },
+    "render": {
+     "method": "rom_geo_boss",
+     "geo_id": "round2_boss_composite",
+     "palette_round": 2,
+     "palette_nibble": 4
+    },
+    "creation": "2-slot paired actor A5+0x508/0x548 via paired_actor_init 0x45342; variant from A5+0xC5A (+0x06=8/9); base resolved 0x4543e; family2/base0x033E",
+    "anim_override": "default +0x28/+0x2C"
    },
    {
     "id": "round3_boss_composite",
@@ -223,7 +288,31 @@
     ],
     "base": "0x033E",
     "graphics_codes": "PENDING",
-    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+    "confidence": "route+round+palette+composite-frame PROVEN; exact seed/component split PARTIAL",
+    "palette": {
+     "source": "family2 boss table 0x456EC[variant*18+(round-1)*3+comp]; variant0/comp0",
+     "nibble": 0,
+     "pool_index": 11,
+     "rom_palette_addr": "0x4FE62",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#840000",
+      "#f75200",
+      "#f79400",
+      "#f7f700",
+      "#f7f794",
+      "#f7f7f7"
+     ]
+    },
+    "render": {
+     "method": "rom_geo_boss",
+     "geo_id": "round3_boss_composite",
+     "palette_round": 3,
+     "palette_nibble": 0
+    },
+    "creation": "2-slot paired actor A5+0x508/0x548 via paired_actor_init 0x45342; variant from A5+0xC5A (+0x06=8/9); base resolved 0x4543e; family2/base0x033E",
+    "anim_override": "default +0x28/+0x2C"
    },
    {
     "id": "round4_boss_composite",
@@ -232,7 +321,31 @@
     ],
     "base": "0x033E",
     "graphics_codes": "PENDING",
-    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+    "confidence": "route+round+palette+composite-frame PROVEN; exact seed/component split PARTIAL",
+    "palette": {
+     "source": "family2 boss table 0x456EC[variant*18+(round-1)*3+comp]; variant0/comp0",
+     "nibble": 0,
+     "pool_index": 11,
+     "rom_palette_addr": "0x4FE62",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#840000",
+      "#f75200",
+      "#f79400",
+      "#f7f700",
+      "#f7f794",
+      "#f7f7f7"
+     ]
+    },
+    "render": {
+     "method": "rom_geo_boss",
+     "geo_id": "round4_boss_composite",
+     "palette_round": 4,
+     "palette_nibble": 0
+    },
+    "creation": "2-slot paired actor A5+0x508/0x548 via paired_actor_init 0x45342; variant from A5+0xC5A (+0x06=8/9); base resolved 0x4543e; family2/base0x033E",
+    "anim_override": "default +0x28/+0x2C"
    },
    {
     "id": "round5_boss_composite",
@@ -241,7 +354,31 @@
     ],
     "base": "0x033E",
     "graphics_codes": "PENDING",
-    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+    "confidence": "route+round+palette+composite-frame PROVEN; exact seed/component split PARTIAL",
+    "palette": {
+     "source": "family2 boss table 0x456EC[variant*18+(round-1)*3+comp]; variant0/comp0",
+     "nibble": 0,
+     "pool_index": 11,
+     "rom_palette_addr": "0x4FE62",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#840000",
+      "#f75200",
+      "#f79400",
+      "#f7f700",
+      "#f7f794",
+      "#f7f7f7"
+     ]
+    },
+    "render": {
+     "method": "rom_geo_boss",
+     "geo_id": "round5_boss_composite",
+     "palette_round": 5,
+     "palette_nibble": 0
+    },
+    "creation": "2-slot paired actor A5+0x508/0x548 via paired_actor_init 0x45342; variant from A5+0xC5A (+0x06=8/9); base resolved 0x4543e; family2/base0x033E",
+    "anim_override": "round>=5: +0x28:=4,+0x2C:=7 (0x453c0)"
    },
    {
     "id": "round6_boss_composite",
@@ -250,9 +387,34 @@
     ],
     "base": "0x033E",
     "graphics_codes": "PENDING",
-    "confidence": "present-in-round PROVEN; semantic name UNRESOLVED"
+    "confidence": "route+round+palette+composite-frame PROVEN; exact seed/component split PARTIAL",
+    "palette": {
+     "source": "family2 boss table 0x456EC[variant*18+(round-1)*3+comp]; variant0/comp0",
+     "nibble": 0,
+     "pool_index": 11,
+     "rom_palette_addr": "0x4FE62",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#840000",
+      "#f75200",
+      "#f79400",
+      "#f7f700",
+      "#f7f794",
+      "#f7f7f7"
+     ]
+    },
+    "render": {
+     "method": "rom_geo_boss",
+     "geo_id": "round6_boss_composite",
+     "palette_round": 6,
+     "palette_nibble": 0
+    },
+    "creation": "2-slot paired actor A5+0x508/0x548 via paired_actor_init 0x45342; variant from A5+0xC5A (+0x06=8/9); base resolved 0x4543e; family2/base0x033E",
+    "anim_override": "round>=5: +0x28:=4,+0x2C:=7 (0x453c0)"
    }
-  ]
+  ],
+  "route_registry_reconciliation": "bosses.per_round = per-round boss PRESENCE, PROVEN 6/6 (base 0x033E at each round tail via +0x3E==2/+0x752). scripted_routes[] = INDIVIDUALLY-DECODED scripted route PCs: 4/6 boss routes decoded (R3 0x4ABEC@0x41, R4 0x4B1EA@0x58, R5 0x4BA48@0x71, R6 0x4C440@0x86) + R1 Flying-Demon (a scripted enemy, NOT the R1 boss). R1/R2 boss ROUTE PCs are NOT yet individually decoded (they live in the R1/R2 0x13E dispatch families near boundaries 0x16/0x2D); their evidence is the base-0x033E round-tail PRESENCE in bosses.per_round, not a decoded route PC. So 'boss present-in-round' is 6/6 while 'boss route PC decoded' is 4/6 \u2014 distinct metrics; no route PCs invented. [CORRECTION 2026-09-17: base 0x033E is the family-2 route mechanism, NOT the boss sprite identity. Boss body base loads via 0x4543e/table 0x45592 (+0x06=8/9 -> 0x0129/0x02AF); exact per-round boss body UNRESOLVED. Lexicon boss composites were misidentified/duplicated and removed from rendering.]"
  },
  "unresolved_routes": [
   "collision_marker40_route",
@@ -311,5 +473,2519 @@
     "first_offset": "0x045592"
    }
   }
+ },
+ "authoritative_roster": {
+  "status": "PROVEN (see Andy_round_phase_progression_decompilation.md)",
+  "table": "0x4A104..0x4AB54, 66 blocks x 5 records x 8B (extent proven via max block index 65)",
+  "index": "block=(A5@0x13E - A5@0x118)>>1; record=A4@0x26/FUN_00049F30; byte1=+0x3E family",
+  "A5_0x13E": "GLOBAL progression 0x00..0x89 (loaded per-section from ROM 0x5073A[A5@0x1242]; inc at 0x558FE; NOT reset per round)",
+  "A5_0x118": "round 1..6",
+  "round_boundaries_0x502AC": [
+   "0x16",
+   "0x2D",
+   "0x44",
+   "0x5B",
+   "0x72",
+   "0x89"
+  ],
+  "structure": "6 rounds x {field, boss}; boss=family2/base0x033E at round tail; outdoor/castle = scene state, NOT a spawn boundary; NO 18-way split, NO Round 7",
+  "concurrency": "5 records/block = up to 5 concurrent refillable enemy slots (FUN_00049F30)",
+  "per_round": {
+   "1": {
+    "r13E": "0x00-0x16",
+    "blocks": "0-10",
+    "field_3e": [
+     0,
+     1,
+     3,
+     8
+    ],
+    "boss": "0x033E"
+   },
+   "2": {
+    "r13E": "0x16-0x2D",
+    "blocks": "10-21",
+    "field_3e": [
+     0,
+     1,
+     3,
+     4,
+     8,
+     11
+    ],
+    "boss": "0x033E"
+   },
+   "3": {
+    "r13E": "0x2D-0x44",
+    "blocks": "21-32",
+    "field_3e": [
+     0,
+     1,
+     3,
+     4,
+     6,
+     8,
+     11
+    ],
+    "boss": "0x033E"
+   },
+   "4": {
+    "r13E": "0x44-0x5B",
+    "blocks": "32-43",
+    "field_3e": [
+     0,
+     1,
+     3,
+     6,
+     8,
+     9,
+     10,
+     11
+    ],
+    "boss": "0x033E"
+   },
+   "5": {
+    "r13E": "0x5B-0x72",
+    "blocks": "43-54",
+    "field_3e": [
+     0,
+     1,
+     3,
+     4,
+     6,
+     7,
+     10,
+     11
+    ],
+    "boss": "0x033E"
+   },
+   "6": {
+    "r13E": "0x72-0x89",
+    "blocks": "54-65",
+    "field_3e": [
+     0,
+     1,
+     3,
+     4,
+     5,
+     6,
+     10,
+     11
+    ],
+    "boss": "0x033E"
+   }
+  }
+ },
+ "actor_spawn_topology": {
+  "source": "Andy_complete_arcade_actor_spawn_topology.md (structural enumeration from maincpu.bin + Ghidra exports)",
+  "actor_storage": "one 0x40-byte-record array A5@0x2C8..0x748 (~19 slots) + aux ~0xF10 (unverified)",
+  "creation_routes": {
+   "marker_scheduler_0x41180": "DECODED (field enemies at map markers)",
+   "field_schedule_0x4A086_via_0x4A0D8_0x49F30": "DECODED (spawn table 0x4A104 per round)",
+   "paired_scripted_init_0x45342": "PARTIAL \u2014 17 call sites, only 5 demon sites decoded; 12 sites in 0x4A000-0x4C700 UNDECODED",
+   "scripted_spawner_0x4BBCA": "UNDECODED",
+   "boss_frame_owner_0x41F30": "PARTIAL",
+   "alt_activation_0x4CD50": "UNDECODED"
+  },
+  "undecoded_region": "0x4A000-0x4C700 scripted/boss/special subsystem \u2014 only 4 named functions; holds the 12 paired-init sites = the missing bosses/scripted/phase actors/items",
+  "census_status": "NOT COMPLETE \u2014 scripted-encounter subsystem now decoded (structure); exhaustiveness NOT YET PROVEN (per-scene handler enumeration, per-route seed->base, item system, compositor VM remain)",
+  "unresolved_paths": [
+   "12x 0x45342 sites in 0x4A000-0x4C700",
+   "0x4BBCA",
+   "0x4CD50",
+   "0x41F30 component chain",
+   "item/drop/power-up system (not located)",
+   "0x3C902 compositor VM (not reimplemented)"
+  ],
+  "proven_so_far": {
+   "field_enemy_families": 11,
+   "palette_pipeline": "per-round from ROM (validated)"
+  },
+  "scripted_encounter_subsystem_0x4A000_0x4C700": {
+   "status": "DECODED (Andy_4A000_4C700_scripted_actor_decompilation.md)",
+   "nature": "scene-id dispatched scripted-encounter subsystem = round bosses + scripted special enemies (Flying Demon)",
+   "dispatch": "cmpiw #scene_id,d0 chain (0x4AB90+); scene ids 0x38/0x3A/0x3B/0x3C/0x3D/0x40/0x41/0x58/0x71/0x86 = A5@0x13E progression across R2-6",
+   "gating": "per-scene handler + A5@0x10CC sub-gate + one-shot flag block A5@0x0208..0x026A + variant A5@0xC5A (0/1) + some 0x45D10 map check",
+   "primitives": "paired 0x45342 (12 in-region sites) + direct 0x4BBCA->0x4543E+0x45CFC (1); NO new primitive",
+   "total_scripted_triggers_gamewide": "~18 (12 in-region + 5 Flying-Demon 0x45xxx sites + 1 direct)",
+   "actor_identity": "paired -> mode2_variant base 0x033E (bosses) or demon 0x0129; exact per-route seed->base PARTIAL",
+   "in_region_sites": [
+    "0x4ABEC",
+    "0x4ACE6",
+    "0x4ADC2",
+    "0x4B1EA",
+    "0x4B20A",
+    "0x4B31A",
+    "0x4BA48",
+    "0x4BB8E",
+    "0x4BCA8",
+    "0x4C440",
+    "0x4C4EA",
+    "0x4C610",
+    "0x4BBCA(direct)"
+   ]
+  },
+  "item_drop_powerup_system": "NOT in 0x4A000-0x4C700; UNRESOLVED (candidate: death-drop paths off actor update fns)"
+ },
+ "scene_phase_state_machine": {
+  "source": "Andy_scene_phase_state_machine.md",
+  "A5_0x1394": "phase-transition-active flag: 1=running, 0xFF=idle; gates transition seq (0x55DFE) and round-advance (0x3A866 needs 0xFF). set=1 at 0x3A614/0x50492",
+  "A5_0x138A": "transition sub-state sequencer 8..13..255 (screen-wipe + actor-clear + scene load 0x56128/0x561A0/0x5632A + timed waits + 0x13E save/restore)",
+  "A5_0x13B8": "saved 0x13E checkpoint at scene boundary (0x55F5C save, 0x55F26/0x56014 restore)",
+  "A5_0x1242": "master section index 0..~138; drives 0x13E via ROM 0x5073A[0x1242]; map-stream ptr A5@0x10C6 -> 0x10D0A8",
+  "scripted_dispatch_driver": "PROVEN A5@0x13E at 0x4AB5C (movew 0x13E,d0); R3 chain 0x2F-0x41 extracted; sibling dispatchers per round; 0x4AF1A uses A5@0x288 (boss sub-phase, NOT 0x13E)",
+  "phase_map_status": "Generic 0x7E->wipe mechanism PROVEN. Per-round Phase-1->2 boundary pinned: 0/6 (blocked on metatile-collision format). Director {4,5,6} path proven DEAD. Section-kind stream (0/1/2) decoded with per-round markers (scroll-mode, not proven wipe). Boss<->round-boundary proven 6/6.",
+  "next": "static: decode the per-column collision-layout record format + locate the 0x10D000 map-pointer-table population, then enumerate 0x7E door-tile 0x13E per round; a watchpoint on 0x10E8/0x53f0c or on the 0x10DE00 door cell would corroborate but is not the static authority.",
+  "background_bank_scene_map": {
+   "source": "Andy_outdoor_castle_section_map.md (static, maincpu.bin)",
+   "data_path": "A5@0x13E -> byte 0x507C5[0x13E] = scene index (A5@0x1386) -> 12-byte descriptor at 0x3951C (two [00 TT 00 hh ll 1c] sub-records)",
+   "TT_byte": "background-tileset bank; streamed as base tile word into background column at 0x55c7a; genuine background-appearance discriminator (scene 0x00/0x54 share layout ptr 0xD11C but differ TT 02 vs 08)",
+   "layout_ptr": "long 0x00hhll1c = per-scene background column-layout data pointer (consumed 0x55c5e/0x55c7a)",
+   "round_boundary_flag": "A5@0x1360 := 1 exactly when 0x13E in 0x502AC {0x16,0x2D,0x44,0x5B,0x72,0x89}; else 255; gate for scene-complete phase 0x10E8:=16 (0x5122a)",
+   "per_round_bank_sequence": {
+    "R1": {
+     "range": "0x00-0x16",
+     "banks": "TT02 throughout",
+     "mid_round_change": "none"
+    },
+    "R2": {
+     "range": "0x17-0x2D",
+     "banks": "TT03 throughout",
+     "mid_round_change": "none"
+    },
+    "R3": {
+     "range": "0x2E-0x44",
+     "banks": "TT0A(0x2E-0x35) -> TT09(0x36-0x3D) -> 09/0A interleaved tail(0x3E-0x44)",
+     "mid_round_change": "@0x36"
+    },
+    "R4": {
+     "range": "0x45-0x5B",
+     "banks": "TT08 throughout",
+     "mid_round_change": "none"
+    },
+    "R5": {
+     "range": "0x5C-0x72",
+     "banks": "TT01(0x5C-0x6B) -> TT0B(0x6C-0x71) -> TT0E boss-arena(0x72)",
+     "mid_round_change": "@0x6C, @0x72"
+    },
+    "R6": {
+     "range": "0x73-0x89",
+     "banks": "TT03/04(0x73-0x82) -> TT0D(0x83-0x88) -> TT0F boss-arena(0x89)",
+     "mid_round_change": "@0x83, @0x89"
+    }
+   },
+   "boss_arena_banks": "TT0E (R5 @0x72) and TT0F (R6 @0x89) are single-position banks on the round boundary = dedicated boss-arena backgrounds; R1/R2/R4/R3 bosses reuse their round/tail bank",
+   "interleave_note": "R3 09/0A and R6 03/04 rapid alternations are the two interleaved column patterns of the descriptor (compositing detail), NOT per-column scene cuts",
+   "outdoor_castle_status": "PROVEN: mid-round background changes exist only in R3(@0x36), R5(@0x6C,@0x72), R6(@0x83,@0x89); R1/R2/R4 stream a single bank (no static mid-round split). NOT decided: which bank = outdoor vs castle (needs one visual capture at those 0x13E); and any R1/R2/R4 interior (would be map-layout or the 0x10E8==7 screen-wipe trigger at 0x3a7d2, whose per-round 0x13E firing was not pinned statically).",
+   "tables": {
+    "0x502AC": "round boundaries in 0x13E",
+    "0x507C5": "0x13E->scene index",
+    "0x5073A": "0x1242->0x13E",
+    "0x3951C": "12-byte scene descriptors (TT bank + layout ptr)",
+    "0x50EE0": "0x13E->map-stream byte offset into 0x50F6B"
+   }
+  },
+  "phase_transition_mechanism": {
+   "source": "Andy_scene_phase_state_machine.md (control-flow decompilation, maincpu.bin)",
+   "summary": "Phase-1->Phase-2 (mid-round screen wipe) is DATA-DRIVEN by a special map-collision tile the player contacts, NOT a per-round scene table and NOT the TT background bank.",
+   "collision_probe": "player_ground_contact_probe_family_53b34 + horizontal probe 0x53e22-0x54050 read the collision grid at RAM 0x10DE00 via tile lookup 0x53a2e (addr = 0x10DE00 + f(scrollX 0x10AE, scrollY 0x10B0, probe offsets)); tile TYPE = cell & 0x7F.",
+   "tile_types": {
+    "1": "solid floor (0x53dc8)",
+    "2": "special (bset5)",
+    "3": "slope/stairs (sets 0x13d4)",
+    "4": "solid variant (0x53dd6)",
+    "6": "0x53df2",
+    "7": "0x53de4+0x53dc8",
+    "8": "DOWN/FALL transition -> 0x10E8:=8 (0x53e0c)",
+    "0x7E(126)": "PHASE-TRANSITION DOOR -> bset#7 of 0x10CE (0x53e14) and 0x10E8:=7 (0x53f0c, 0x54038)"
+   },
+   "trigger_primary": "collision tile type 0x7E under the player -> 0x10E8:=7 (the screen-wipe request)",
+   "trigger_secondary": "per-frame director FUN_00052732 @0x527cc sets 0x10E8:=7 when section-kind A5+0x10A8 in {4,5,6}; A5+0x10A8's writer is a COMPUTED/indirect store with NO static xref (flagged, not assumed) - likely the auto-scroll boundary/vertical-section path",
+   "consumer": "game-state machine @0x3a7d2: on 0x10E8==7 it saves A5+0x1242:=A5+0x13E (checkpoint), sets A5+0x0104:=1, A5+0x0002:=2, A5+0x0004:=2 -> enters transition; @0x3a83a on 0x10E8==16 sets 0x1394:=1, 0x13aa:=9",
+   "wipe_sequence": "A5+0x1394 transition-active (1/0xFF); A5+0x13aa/0x138a sub-state sequencer; A5+0x13B8 0x13E checkpoint; actor array clear (0x2C8 loop @0x3a804); scene reload (0x469e8/0x45dfa/0x3b902); 0x13E restore",
+   "round_complete_distinct": "0x10E8:=16 @0x51250 (FUN_0005122a) when A5+0x1360==1 (0x13E is a 0x502AC boundary {16,2D,44,5B,72,89}) AND 0x13ac==8 AND 0x13ba==128 = boss-cleared/round-end, separate from the mid-round door wipe",
+   "round_init_phase": "0x5053a sets 0x10E8:=3 at round start (initial scroll phase)",
+   "per_round_door_status": "BLOCKED (precisely): enumerating 0x7E requires the metatile->collision-property mapping + the per-round metatile-column source feeding collision-grid field @(20). This is a full map-engine decode. A runtime watchpoint on the 0x10DE00 door cell or on 0x53f0c would CORROBORATE positions but is not the static authority the task requires. No per-round door 0x13E is asserted.",
+   "why_not_TT": "a TT background-bank change (R3/R5/R6) is a visual theme change at a scene reload and CORROBORATES a transition there, but is not the phase decoder; R1/R2/R4 cross a gameplay phase within one TT bank, which is exactly why background appearance must not define the phase.",
+   "A5_base_unlock": {
+    "A5": "0x10C000 (arcade work-RAM base) \u2014 VERIFIED: 0x10C118(round-intro idx)=A5+0x118(round counter); 0x10C016=A5+0x16(player X); decisively 0x10D0A8(absolute)-0x10C000=0x10A8 => the map-stream byte written at 0x558f8 IS A5+0x10A8. (Genesis port relocates A5 to 0xFF2200; the ARCADE base is 0x10C000.)",
+    "consequence_0x10D000": "0x10D000 = A5+0x1000, populated by 0x502cc: 16 map-column stream pointers = base_k + 0x13E*64 (base_0=0x1691C, stride 0x22C0). Advanced +4/column during scroll (0x558c8); rebuilt into 0x10D040(=A5+0x1040) by 0x55904. These 16 streams are VISUAL name-table columns.",
+    "consequence_section_kind": "A5+0x10A8 (section-kind) = the current map-stream byte from ROM 0x50F6B (indexed by 0x13E via table 0x50EE0). DECODED: values are ONLY {0,1,2}."
+   },
+   "section_kind_stream_0x50F6B": {
+    "meaning": "per-0x13E scroll-mode / section marker (drives scroll-column load direction at 0x556a6/0x55738/0x557c4); 0=normal horizontal, 1/2=edge/alternate scroll modes",
+    "nonzero_markers_by_round": {
+     "R1": "0x11=1, 0x15=1",
+     "R2": "0x2B=1, 0x2C=1",
+     "R3": "0x41=1, 0x42=1, 0x43=1",
+     "R4": "0x5A=1",
+     "R5": "0x6E=2, 0x70=2",
+     "R6": "0x85=2"
+    },
+    "note": "these are the only static per-round section markers; they cluster near round tails and (R5/R6) near the TT-bank changes, but are scroll-mode flags, NOT proven screen-wipe phase boundaries"
+   },
+   "director_456_path_is_DEAD": "FUN_00052732 @0x527cc sets 0x10E8:=7 when A5+0x10A8 in {4,5,6}; but A5+0x10A8 = the map-stream byte which is only ever {0,1,2} (see section_kind_stream). Therefore this path is NOT taken in normal play. The 0x7E collision tile is the SOLE live screen-wipe trigger.",
+   "door_tile_0x7E_source": "No code writes 0x7E/126 into the collision grid 0x10DE00 (=A5+0x1E00). Therefore 0x7E is a METATILE-PROPERTY value in the map data. The grid is built by the column builders 0x559b2/0x55a14 which write collision from a per-column record field @(20 + col*2) (a2 = record). The record's collision-field vs visual-field layout and the per-round metatile-column source that feeds @(20) were NOT cleanly isolated statically (the streams' word@+2 is a visual name-table word, not a record pointer; naive scans yield noise)."
+  }
+ },
+ "actors": [
+  {
+   "technical_id": "field_3e_0",
+   "semantic_name": "Lizardman",
+   "name_status": "PROVEN",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x004B",
+   "actor_family_3e": 0,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R1 early/mid/late; R2 early/mid/late; R3 early/mid; R4 early/mid/late; R5 early/mid; R6 early \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Green scaled humanoid with a bone club",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "contact_sheets/enemy_lizardman.png",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x36 (table 0x45722 nibble 0x6) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 75,
+    "anim": 23,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 6
+    },
+    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+   },
+   "confidence": "high",
+   "unresolved_reason": "",
+   "palette_instances": {
+    "R1": {
+     "nibble": 6,
+     "pool_index": 13,
+     "rom_palette_addr": "0x4FEA2",
+     "swatch": [
+      "#000000",
+      "#c6c684",
+      "#003100",
+      "#319400",
+      "#007300",
+      "#73c600"
+     ]
+    },
+    "R2": {
+     "nibble": 6,
+     "pool_index": 13,
+     "rom_palette_addr": "0x4FEA2",
+     "swatch": [
+      "#000000",
+      "#c6c684",
+      "#003100",
+      "#319400",
+      "#007300",
+      "#73c600"
+     ]
+    },
+    "R3": {
+     "nibble": 6,
+     "pool_index": 13,
+     "rom_palette_addr": "0x4FEA2",
+     "swatch": [
+      "#000000",
+      "#c6c684",
+      "#003100",
+      "#319400",
+      "#007300",
+      "#73c600"
+     ]
+    },
+    "R4": {
+     "nibble": 6,
+     "pool_index": 14,
+     "rom_palette_addr": "0x4FEC2",
+     "swatch": [
+      "#000000",
+      "#f7f794",
+      "#310000",
+      "#944200",
+      "#732100",
+      "#c67300"
+     ]
+    },
+    "R5": {
+     "nibble": 6,
+     "pool_index": 14,
+     "rom_palette_addr": "0x4FEC2",
+     "swatch": [
+      "#000000",
+      "#f7f794",
+      "#310000",
+      "#944200",
+      "#732100",
+      "#c67300"
+     ]
+    },
+    "R6": {
+     "nibble": 6,
+     "pool_index": 14,
+     "rom_palette_addr": "0x4FEC2",
+     "swatch": [
+      "#000000",
+      "#f7f794",
+      "#310000",
+      "#944200",
+      "#732100",
+      "#c67300"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "field_3e_1",
+   "semantic_name": "Chimera",
+   "name_status": "PROVEN",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x00D0",
+   "actor_family_3e": 1,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R1 early/mid/late; R2 mid/late; R3 early/mid/late; R4 early/mid/late; R5 early/mid/late; R6 early/mid/late \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Winged orange dragon-beast",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "contact_sheets/enemy_chimera.png",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x34 (table 0x45722 nibble 0x4) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 208,
+    "anim": 35,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 4
+    },
+    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+   },
+   "confidence": "high",
+   "unresolved_reason": "",
+   "palette_instances": {
+    "R1": {
+     "nibble": 4,
+     "pool_index": 18,
+     "rom_palette_addr": "0x4FF42",
+     "swatch": [
+      "#000000",
+      "#f76321",
+      "#b54221",
+      "#841010",
+      "#f7f700",
+      "#949400"
+     ]
+    },
+    "R2": {
+     "nibble": 4,
+     "pool_index": 18,
+     "rom_palette_addr": "0x4FF42",
+     "swatch": [
+      "#000000",
+      "#f76321",
+      "#b54221",
+      "#841010",
+      "#f7f700",
+      "#949400"
+     ]
+    },
+    "R3": {
+     "nibble": 4,
+     "pool_index": 18,
+     "rom_palette_addr": "0x4FF42",
+     "swatch": [
+      "#000000",
+      "#f76321",
+      "#b54221",
+      "#841010",
+      "#f7f700",
+      "#949400"
+     ]
+    },
+    "R4": {
+     "nibble": 4,
+     "pool_index": 19,
+     "rom_palette_addr": "0x4FF62",
+     "swatch": [
+      "#000000",
+      "#00b5f7",
+      "#0073a5",
+      "#005284",
+      "#f7f700",
+      "#949400"
+     ]
+    },
+    "R5": {
+     "nibble": 4,
+     "pool_index": 19,
+     "rom_palette_addr": "0x4FF62",
+     "swatch": [
+      "#000000",
+      "#00b5f7",
+      "#0073a5",
+      "#005284",
+      "#f7f700",
+      "#949400"
+     ]
+    },
+    "R6": {
+     "nibble": 4,
+     "pool_index": 19,
+     "rom_palette_addr": "0x4FF62",
+     "swatch": [
+      "#000000",
+      "#00b5f7",
+      "#0073a5",
+      "#005284",
+      "#f7f700",
+      "#949400"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "field_3e_3",
+   "semantic_name": "Four-Armed Swordsman",
+   "name_status": "PROVEN",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x02E8",
+   "actor_family_3e": 3,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R1 early/mid/late; R2 early/mid/late; R3 early/mid/late; R4 early/mid/late; R5 early/mid/late; R6 early/mid/late \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Blue four-armed blade fighter",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "contact_sheets/enemy_four_armed.png",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x3A (table 0x45722 nibble 0xA) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 744,
+    "anim": 95,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 10
+    },
+    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+   },
+   "confidence": "high",
+   "unresolved_reason": "",
+   "palette_instances": {
+    "R1": {
+     "nibble": 10,
+     "pool_index": 22,
+     "rom_palette_addr": "0x4FFC2",
+     "swatch": [
+      "#000000",
+      "#00b5c6",
+      "#0073a5",
+      "#005273",
+      "#e7c673",
+      "#737331"
+     ]
+    },
+    "R2": {
+     "nibble": 10,
+     "pool_index": 22,
+     "rom_palette_addr": "0x4FFC2",
+     "swatch": [
+      "#000000",
+      "#00b5c6",
+      "#0073a5",
+      "#005273",
+      "#e7c673",
+      "#737331"
+     ]
+    },
+    "R3": {
+     "nibble": 10,
+     "pool_index": 22,
+     "rom_palette_addr": "0x4FFC2",
+     "swatch": [
+      "#000000",
+      "#00b5c6",
+      "#0073a5",
+      "#005273",
+      "#e7c673",
+      "#737331"
+     ]
+    },
+    "R4": {
+     "nibble": 10,
+     "pool_index": 23,
+     "rom_palette_addr": "0x4FFE2",
+     "swatch": [
+      "#000000",
+      "#f70000",
+      "#940000",
+      "#520000",
+      "#e7c673",
+      "#0063a5"
+     ]
+    },
+    "R5": {
+     "nibble": 10,
+     "pool_index": 23,
+     "rom_palette_addr": "0x4FFE2",
+     "swatch": [
+      "#000000",
+      "#f70000",
+      "#940000",
+      "#520000",
+      "#e7c673",
+      "#0063a5"
+     ]
+    },
+    "R6": {
+     "nibble": 10,
+     "pool_index": 23,
+     "rom_palette_addr": "0x4FFE2",
+     "swatch": [
+      "#000000",
+      "#f70000",
+      "#940000",
+      "#520000",
+      "#e7c673",
+      "#0063a5"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "field_3e_8",
+   "semantic_name": "Valkyrie",
+   "name_status": "PROVEN",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x0241",
+   "actor_family_3e": 8,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R1 mid; R2 mid; R3 mid/late; R4 early/mid \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Blonde winged warrior with a green sword",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "contact_sheets/enemy_valkyrie.png",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x32 (table 0x45722 nibble 0x2) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 577,
+    "anim": 77,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 2
+    },
+    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+   },
+   "confidence": "high",
+   "unresolved_reason": "",
+   "palette_instances": {
+    "R1": {
+     "nibble": 2,
+     "pool_index": 15,
+     "rom_palette_addr": "0x4FEE2",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#630000",
+      "#a54210",
+      "#d67363",
+      "#e7a594"
+     ]
+    },
+    "R2": {
+     "nibble": 2,
+     "pool_index": 15,
+     "rom_palette_addr": "0x4FEE2",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#630000",
+      "#a54210",
+      "#d67363",
+      "#e7a594"
+     ]
+    },
+    "R3": {
+     "nibble": 2,
+     "pool_index": 15,
+     "rom_palette_addr": "0x4FEE2",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#630000",
+      "#a54210",
+      "#d67363",
+      "#e7a594"
+     ]
+    },
+    "R4": {
+     "nibble": 2,
+     "pool_index": 15,
+     "rom_palette_addr": "0x4FEE2",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#630000",
+      "#a54210",
+      "#d67363",
+      "#e7a594"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "field_3e_4",
+   "semantic_name": "Horned Warrior",
+   "name_status": "PROPOSED",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x0420",
+   "actor_family_3e": 4,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    2,
+    3,
+    5,
+    6
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R2 early/mid; R3 early/mid; R5 early; R6 early/mid \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Tall horned humanoid brawler",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "families.json:hostile_base0420_compositor0",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x37 (table 0x45722 nibble 0x7) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 1056,
+    "anim": 201,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 7
+    },
+    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+   },
+   "confidence": "medium",
+   "unresolved_reason": "",
+   "palette_instances": {
+    "R2": {
+     "nibble": 7,
+     "pool_index": 24,
+     "rom_palette_addr": "0x50002",
+     "swatch": [
+      "#000000",
+      "#5284a5",
+      "#84b5c6",
+      "#426373",
+      "#315263",
+      "#734200"
+     ]
+    },
+    "R3": {
+     "nibble": 7,
+     "pool_index": 24,
+     "rom_palette_addr": "0x50002",
+     "swatch": [
+      "#000000",
+      "#5284a5",
+      "#84b5c6",
+      "#426373",
+      "#315263",
+      "#734200"
+     ]
+    },
+    "R5": {
+     "nibble": 7,
+     "pool_index": 25,
+     "rom_palette_addr": "0x50022",
+     "swatch": [
+      "#000000",
+      "#e7a500",
+      "#f7f7a5",
+      "#846300",
+      "#635200",
+      "#636363"
+     ]
+    },
+    "R6": {
+     "nibble": 7,
+     "pool_index": 25,
+     "rom_palette_addr": "0x50022",
+     "swatch": [
+      "#000000",
+      "#e7a500",
+      "#f7f7a5",
+      "#846300",
+      "#635200",
+      "#636363"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "field_3e_5",
+   "semantic_name": "Small Crawler",
+   "name_status": "PROPOSED",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x01CB",
+   "actor_family_3e": 5,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    6
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R2 late; R3 late; R4 late; R5 late; R6 late \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Small low creature (overlaid frames)",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "families.json:hostile_base01cb_compositor0",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x36 (table 0x45722 nibble 0x6) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 459,
+    "anim": 208,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 6
+    },
+    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+   },
+   "confidence": "medium",
+   "unresolved_reason": "",
+   "palette_instances": {
+    "R2": {
+     "nibble": 6,
+     "pool_index": 13,
+     "rom_palette_addr": "0x4FEA2",
+     "swatch": [
+      "#000000",
+      "#c6c684",
+      "#003100",
+      "#319400",
+      "#007300",
+      "#73c600"
+     ]
+    },
+    "R3": {
+     "nibble": 6,
+     "pool_index": 13,
+     "rom_palette_addr": "0x4FEA2",
+     "swatch": [
+      "#000000",
+      "#c6c684",
+      "#003100",
+      "#319400",
+      "#007300",
+      "#73c600"
+     ]
+    },
+    "R4": {
+     "nibble": 6,
+     "pool_index": 14,
+     "rom_palette_addr": "0x4FEC2",
+     "swatch": [
+      "#000000",
+      "#f7f794",
+      "#310000",
+      "#944200",
+      "#732100",
+      "#c67300"
+     ]
+    },
+    "R5": {
+     "nibble": 6,
+     "pool_index": 14,
+     "rom_palette_addr": "0x4FEC2",
+     "swatch": [
+      "#000000",
+      "#f7f794",
+      "#310000",
+      "#944200",
+      "#732100",
+      "#c67300"
+     ]
+    },
+    "R6": {
+     "nibble": 6,
+     "pool_index": 14,
+     "rom_palette_addr": "0x4FEC2",
+     "swatch": [
+      "#000000",
+      "#f7f794",
+      "#310000",
+      "#944200",
+      "#732100",
+      "#c67300"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "field_3e_6",
+   "semantic_name": "Skeleton Warrior",
+   "name_status": "PROPOSED",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x03B3",
+   "actor_family_3e": 6,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    3,
+    4,
+    5,
+    6
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R3 early/mid; R4 early/mid/late; R5 early/mid/late; R6 early/mid/late \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Skeletal fighter with shield + weapon",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "families.json:hostile_base03b3_compositor0",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x38 (table 0x45722 nibble 0x8) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 947,
+    "anim": 221,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 8
+    },
+    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+   },
+   "confidence": "medium",
+   "unresolved_reason": "",
+   "palette_instances": {
+    "R3": {
+     "nibble": 8,
+     "pool_index": 26,
+     "rom_palette_addr": "0x50042",
+     "swatch": [
+      "#000000",
+      "#637300",
+      "#c6c684",
+      "#004273",
+      "#312142",
+      "#f7f7f7"
+     ]
+    },
+    "R4": {
+     "nibble": 8,
+     "pool_index": 26,
+     "rom_palette_addr": "0x50042",
+     "swatch": [
+      "#000000",
+      "#637300",
+      "#c6c684",
+      "#004273",
+      "#312142",
+      "#f7f7f7"
+     ]
+    },
+    "R5": {
+     "nibble": 8,
+     "pool_index": 26,
+     "rom_palette_addr": "0x50042",
+     "swatch": [
+      "#000000",
+      "#637300",
+      "#c6c684",
+      "#004273",
+      "#312142",
+      "#f7f7f7"
+     ]
+    },
+    "R6": {
+     "nibble": 8,
+     "pool_index": 26,
+     "rom_palette_addr": "0x50042",
+     "swatch": [
+      "#000000",
+      "#637300",
+      "#c6c684",
+      "#004273",
+      "#312142",
+      "#f7f7f7"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "field_3e_7",
+   "semantic_name": "Actor 0x043A",
+   "name_status": "PENDING",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x043A",
+   "actor_family_3e": 7,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    5
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R5 early/mid \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Uncaptured; composite needs 0x3C902 VM",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "none",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x3F (table 0x45722 nibble 0xF) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 1082,
+    "anim": 95,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 15
+    },
+    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+   },
+   "confidence": "none",
+   "unresolved_reason": "no captured composite; needs 0x3C902 compositor VM",
+   "palette_instances": {
+    "R5": {
+     "nibble": 15,
+     "pool_index": 3,
+     "rom_palette_addr": "0x4FD62",
+     "swatch": [
+      "#000000",
+      "#a59400",
+      "#c63142",
+      "#a50000",
+      "#523100",
+      "#000000"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "field_3e_9",
+   "semantic_name": "Actor 0x06E2",
+   "name_status": "PENDING",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x06E2",
+   "actor_family_3e": 9,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    4
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R4 early/late \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Uncaptured; composite needs 0x3C902 VM",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "none",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x31 (table 0x45722 nibble 0x1) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 1762,
+    "anim": 110,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 1
+    },
+    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+   },
+   "confidence": "none",
+   "unresolved_reason": "no captured composite; needs 0x3C902 compositor VM",
+   "palette_instances": {
+    "R4": {
+     "nibble": 1,
+     "pool_index": 27,
+     "rom_palette_addr": "0x50062",
+     "swatch": [
+      "#000000",
+      "#f78473",
+      "#c66310",
+      "#f7b573",
+      "#730052",
+      "#312152"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "field_3e_10",
+   "semantic_name": "Actor 0x0889",
+   "name_status": "PENDING",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x0889",
+   "actor_family_3e": 10,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    4,
+    5,
+    6
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R4 mid; R5 mid; R6 early/mid \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Uncaptured; composite needs 0x3C902 VM",
+   "frame_status": "PENDING",
+   "frame_source": "none",
+   "frame_provenance": "UNRESOLVED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x3B (table 0x45722 nibble 0xB) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": null,
+    "geo_id": null,
+    "png": null,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 11
+    }
+   },
+   "confidence": "none",
+   "unresolved_reason": "no captured composite; needs 0x3C902 compositor VM",
+   "palette_instances": {
+    "R4": {
+     "nibble": 11,
+     "pool_index": 29,
+     "rom_palette_addr": "0x500A2",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#313121",
+      "#b56321",
+      "#524200",
+      "#f7b573"
+     ]
+    },
+    "R5": {
+     "nibble": 11,
+     "pool_index": 29,
+     "rom_palette_addr": "0x500A2",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#313121",
+      "#b56321",
+      "#524200",
+      "#f7b573"
+     ]
+    },
+    "R6": {
+     "nibble": 11,
+     "pool_index": 29,
+     "rom_palette_addr": "0x500A2",
+     "swatch": [
+      "#000000",
+      "#000000",
+      "#313121",
+      "#b56321",
+      "#524200",
+      "#f7b573"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "field_3e_11",
+   "semantic_name": "Serpent",
+   "name_status": "PROPOSED",
+   "category": "ENEMY_FIELD",
+   "base_graphics": "0x0400",
+   "actor_family_3e": 11,
+   "spawn_route": "0x4A104 field schedule (per-round)",
+   "round_presence": [
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "phase_presence": "per-0x13E position (ROM 0x4A104): R2 early/mid; R3 early/mid; R4 mid; R5 early/mid/late; R6 early/mid \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "description": "Coiled snake, raised head",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "families.json:hostile_base0400_compositor1",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM per-round: bank 0x3E (table 0x45722 nibble 0xE) -> 0x3BA88[round]->0x4FD02 (validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 1024,
+    "anim": 181,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 14
+    },
+    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+   },
+   "confidence": "medium",
+   "unresolved_reason": "",
+   "palette_instances": {
+    "R2": {
+     "nibble": 14,
+     "pool_index": 36,
+     "rom_palette_addr": "0x50182",
+     "swatch": [
+      "#000000",
+      "#f7f7f7",
+      "#e7b500",
+      "#c67300",
+      "#73b500",
+      "#317300"
+     ]
+    },
+    "R3": {
+     "nibble": 14,
+     "pool_index": 36,
+     "rom_palette_addr": "0x50182",
+     "swatch": [
+      "#000000",
+      "#f7f7f7",
+      "#e7b500",
+      "#c67300",
+      "#73b500",
+      "#317300"
+     ]
+    },
+    "R4": {
+     "nibble": 14,
+     "pool_index": 36,
+     "rom_palette_addr": "0x50182",
+     "swatch": [
+      "#000000",
+      "#f7f7f7",
+      "#e7b500",
+      "#c67300",
+      "#73b500",
+      "#317300"
+     ]
+    },
+    "R5": {
+     "nibble": 14,
+     "pool_index": 36,
+     "rom_palette_addr": "0x50182",
+     "swatch": [
+      "#000000",
+      "#f7f7f7",
+      "#e7b500",
+      "#c67300",
+      "#73b500",
+      "#317300"
+     ]
+    },
+    "R6": {
+     "nibble": 14,
+     "pool_index": 36,
+     "rom_palette_addr": "0x50182",
+     "swatch": [
+      "#000000",
+      "#f7f7f7",
+      "#e7b500",
+      "#c67300",
+      "#73b500",
+      "#317300"
+     ]
+    }
+   },
+   "palette_model": "line=+0x27 nibble 0x45722[fam] (round-invariant); DATA per-round via FUN_0003BA20 pool 0x3BA88[(round-1)*32+nibble]->0x4FD02"
+  },
+  {
+   "technical_id": "boss_round1",
+   "semantic_name": "Round 1 Boss",
+   "name_status": "PENDING",
+   "category": "BOSS",
+   "base_graphics": "0x033E",
+   "actor_family_3e": 2,
+   "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
+   "round_presence": [
+    1
+   ],
+   "phase_presence": "BOSS (round-tail)",
+   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
+   "frame_status": "UNRESOLVED",
+   "frame_source": "none",
+   "frame_provenance": "UNRESOLVED",
+   "palette_status": "PENDING",
+   "palette_source": "boss palette path not traced",
+   "palette_provenance": "UNRESOLVED",
+   "confidence": "route-proven only",
+   "unresolved_reason": "per-round boss body NOT reconstructed. base 0x033E was the family-2 ROUTE, not the sprite. Correct rendering needs the compositor 0x3C902 + per-round dispatch (0x4AB5C) decode. Prior lexicon \"boss composites\" were misidentified enemies (round1/4/6 byte-identical) and have been removed.",
+   "palette": {
+    "nibble": 4,
+    "pool_index": 18,
+    "rom_palette_addr": "0x4FF42",
+    "swatch": [
+     "#000000",
+     "#f76321",
+     "#b54221",
+     "#841010",
+     "#f7f700",
+     "#949400",
+     "#f7f7f7",
+     "#848484"
+    ],
+    "source": "0x456EC[var0/comp0]",
+    "status": "PROVISIONAL (line math only; body unresolved)"
+   },
+   "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
+   "anim_override": "",
+   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+  },
+  {
+   "technical_id": "boss_round2",
+   "semantic_name": "Round 2 Boss",
+   "name_status": "PENDING",
+   "category": "BOSS",
+   "base_graphics": "0x033E",
+   "actor_family_3e": 2,
+   "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
+   "round_presence": [
+    2
+   ],
+   "phase_presence": "BOSS (round-tail)",
+   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
+   "frame_status": "UNRESOLVED",
+   "frame_source": "none",
+   "frame_provenance": "UNRESOLVED",
+   "palette_status": "PENDING",
+   "palette_source": "boss palette path not traced",
+   "palette_provenance": "UNRESOLVED",
+   "confidence": "route-proven only",
+   "unresolved_reason": "per-round boss body NOT reconstructed. base 0x033E was the family-2 ROUTE, not the sprite. Correct rendering needs the compositor 0x3C902 + per-round dispatch (0x4AB5C) decode. Prior lexicon \"boss composites\" were misidentified enemies (round1/4/6 byte-identical) and have been removed.",
+   "palette": {
+    "nibble": 4,
+    "pool_index": 18,
+    "rom_palette_addr": "0x4FF42",
+    "swatch": [
+     "#000000",
+     "#f76321",
+     "#b54221",
+     "#841010",
+     "#f7f700",
+     "#949400",
+     "#f7f7f7",
+     "#848484"
+    ],
+    "source": "0x456EC[var0/comp0]",
+    "status": "PROVISIONAL (line math only; body unresolved)"
+   },
+   "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
+   "anim_override": "",
+   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+  },
+  {
+   "technical_id": "boss_round3",
+   "semantic_name": "Round 3 Boss",
+   "name_status": "PENDING",
+   "category": "BOSS",
+   "base_graphics": "0x033E",
+   "actor_family_3e": 2,
+   "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
+   "round_presence": [
+    3
+   ],
+   "phase_presence": "BOSS (round-tail)",
+   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
+   "frame_status": "UNRESOLVED",
+   "frame_source": "none",
+   "frame_provenance": "UNRESOLVED",
+   "palette_status": "PENDING",
+   "palette_source": "boss palette path not traced",
+   "palette_provenance": "UNRESOLVED",
+   "confidence": "route-proven only",
+   "unresolved_reason": "per-round boss body NOT reconstructed. base 0x033E was the family-2 ROUTE, not the sprite. Correct rendering needs the compositor 0x3C902 + per-round dispatch (0x4AB5C) decode. Prior lexicon \"boss composites\" were misidentified enemies (round1/4/6 byte-identical) and have been removed.",
+   "palette": {
+    "nibble": 0,
+    "pool_index": 11,
+    "rom_palette_addr": "0x4FE62",
+    "swatch": [
+     "#000000",
+     "#000000",
+     "#840000",
+     "#f75200",
+     "#f79400",
+     "#f7f700",
+     "#f7f794",
+     "#f7f7f7"
+    ],
+    "source": "0x456EC[var0/comp0]",
+    "status": "PROVISIONAL (line math only; body unresolved)"
+   },
+   "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
+   "anim_override": "",
+   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+  },
+  {
+   "technical_id": "boss_round4",
+   "semantic_name": "Round 4 Boss",
+   "name_status": "PENDING",
+   "category": "BOSS",
+   "base_graphics": "0x033E",
+   "actor_family_3e": 2,
+   "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
+   "round_presence": [
+    4
+   ],
+   "phase_presence": "BOSS (round-tail)",
+   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
+   "frame_status": "UNRESOLVED",
+   "frame_source": "none",
+   "frame_provenance": "UNRESOLVED",
+   "palette_status": "PENDING",
+   "palette_source": "boss palette path not traced",
+   "palette_provenance": "UNRESOLVED",
+   "confidence": "route-proven only",
+   "unresolved_reason": "per-round boss body NOT reconstructed. base 0x033E was the family-2 ROUTE, not the sprite. Correct rendering needs the compositor 0x3C902 + per-round dispatch (0x4AB5C) decode. Prior lexicon \"boss composites\" were misidentified enemies (round1/4/6 byte-identical) and have been removed.",
+   "palette": {
+    "nibble": 0,
+    "pool_index": 11,
+    "rom_palette_addr": "0x4FE62",
+    "swatch": [
+     "#000000",
+     "#000000",
+     "#840000",
+     "#f75200",
+     "#f79400",
+     "#f7f700",
+     "#f7f794",
+     "#f7f7f7"
+    ],
+    "source": "0x456EC[var0/comp0]",
+    "status": "PROVISIONAL (line math only; body unresolved)"
+   },
+   "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
+   "anim_override": "",
+   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+  },
+  {
+   "technical_id": "boss_round5",
+   "semantic_name": "Round 5 Boss",
+   "name_status": "PENDING",
+   "category": "BOSS",
+   "base_graphics": "0x033E",
+   "actor_family_3e": 2,
+   "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
+   "round_presence": [
+    5
+   ],
+   "phase_presence": "BOSS (round-tail)",
+   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
+   "frame_status": "UNRESOLVED",
+   "frame_source": "none",
+   "frame_provenance": "UNRESOLVED",
+   "palette_status": "PENDING",
+   "palette_source": "boss palette path not traced",
+   "palette_provenance": "UNRESOLVED",
+   "confidence": "route-proven only",
+   "unresolved_reason": "per-round boss body NOT reconstructed. base 0x033E was the family-2 ROUTE, not the sprite. Correct rendering needs the compositor 0x3C902 + per-round dispatch (0x4AB5C) decode. Prior lexicon \"boss composites\" were misidentified enemies (round1/4/6 byte-identical) and have been removed.",
+   "palette": {
+    "nibble": 0,
+    "pool_index": 11,
+    "rom_palette_addr": "0x4FE62",
+    "swatch": [
+     "#000000",
+     "#000000",
+     "#840000",
+     "#f75200",
+     "#f79400",
+     "#f7f700",
+     "#f7f794",
+     "#f7f7f7"
+    ],
+    "source": "0x456EC[var0/comp0]",
+    "status": "PROVISIONAL (line math only; body unresolved)"
+   },
+   "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
+   "anim_override": "round>=5: +0x28:=4,+0x2C:=7 (0x453c0)",
+   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+  },
+  {
+   "technical_id": "boss_round6",
+   "semantic_name": "Round 6 Boss",
+   "name_status": "PENDING",
+   "category": "BOSS",
+   "base_graphics": "0x033E",
+   "actor_family_3e": 2,
+   "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
+   "round_presence": [
+    6
+   ],
+   "phase_presence": "BOSS (round-tail)",
+   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
+   "frame_status": "UNRESOLVED",
+   "frame_source": "none",
+   "frame_provenance": "UNRESOLVED",
+   "palette_status": "PENDING",
+   "palette_source": "boss palette path not traced",
+   "palette_provenance": "UNRESOLVED",
+   "confidence": "route-proven only",
+   "unresolved_reason": "per-round boss body NOT reconstructed. base 0x033E was the family-2 ROUTE, not the sprite. Correct rendering needs the compositor 0x3C902 + per-round dispatch (0x4AB5C) decode. Prior lexicon \"boss composites\" were misidentified enemies (round1/4/6 byte-identical) and have been removed.",
+   "palette": {
+    "nibble": 0,
+    "pool_index": 11,
+    "rom_palette_addr": "0x4FE62",
+    "swatch": [
+     "#000000",
+     "#000000",
+     "#840000",
+     "#f75200",
+     "#f79400",
+     "#f7f700",
+     "#f7f794",
+     "#f7f7f7"
+    ],
+    "source": "0x456EC[var0/comp0]",
+    "status": "PROVISIONAL (line math only; body unresolved)"
+   },
+   "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
+   "anim_override": "round>=5: +0x28:=4,+0x2C:=7 (0x453c0)",
+   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+  },
+  {
+   "technical_id": "special_0x0129",
+   "semantic_name": "Flying Demon",
+   "name_status": "PROVEN",
+   "category": "ENEMY_SCRIPTED",
+   "base_graphics": "0x0129",
+   "spawn_route": "selector_08_1c / map-driven (0x0559B2->0x41180)",
+   "round_presence": [
+    1
+   ],
+   "phase_presence": "PENDING",
+   "description": "Winged demon warrior with sword, teal armour",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "contact_sheets/enemy_flying_demon_combined.png",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM proven bank 0x35 (enemy_palettes, validated)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "vm",
+    "base": 297,
+    "anim": 48,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 5
+    },
+    "note": "VM 0x3C902 comp0"
+   },
+   "confidence": "high",
+   "unresolved_reason": ""
+  },
+  {
+   "technical_id": "special_0x03F6",
+   "semantic_name": "Large Bat",
+   "name_status": "PROPOSED",
+   "category": "ENEMY_SCRIPTED",
+   "base_graphics": "0x03F6",
+   "spawn_route": "selector_08_1c / map-driven (0x0559B2->0x41180)",
+   "round_presence": [],
+   "phase_presence": "PENDING",
+   "description": "Large winged bat",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "contact_sheets/enemy_large_bat.png",
+   "frame_provenance": "COMPOSER_PROVEN",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM proven bank 0x3E (enemy_palettes)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "composer_png",
+    "geo_id": null,
+    "png": "enemy_large_bat.png",
+    "palette": {
+     "kind": "composer_key",
+     "key": "LARGE_BAT"
+    }
+   },
+   "confidence": "medium",
+   "unresolved_reason": ""
+  },
+  {
+   "technical_id": "special_0x0268",
+   "semantic_name": "Small Bat / Hurry-up",
+   "name_status": "PROPOSED",
+   "category": "ENEMY_SCRIPTED",
+   "base_graphics": "0x0268",
+   "spawn_route": "selector_08_1c / map-driven (0x0559B2->0x41180)",
+   "round_presence": [],
+   "phase_presence": "PENDING",
+   "description": "Small aggressive bat",
+   "frame_status": "COMPOSER_PROVEN",
+   "frame_source": "contact_sheets/enemy_small_bat.png",
+   "frame_provenance": "COMPOSER_PROVEN",
+   "palette_status": "PROVEN",
+   "palette_source": "ROM proven bank 0x3E (enemy_palettes)",
+   "palette_provenance": "STATIC_DECOMPILED",
+   "render": {
+    "method": "composer_png",
+    "geo_id": null,
+    "png": "enemy_small_bat.png",
+    "palette": {
+     "kind": "composer_key",
+     "key": "SMALL_BAT"
+    }
+   },
+   "confidence": "medium",
+   "unresolved_reason": ""
+  },
+  {
+   "technical_id": "special_0x050B",
+   "semantic_name": "Actor 0x050B",
+   "name_status": "PENDING",
+   "category": "UNRESOLVED",
+   "base_graphics": "0x050B",
+   "spawn_route": "selector_08_1c / map-driven (0x0559B2->0x41180)",
+   "round_presence": [],
+   "phase_presence": "PENDING",
+   "description": "Provisional geometry only; identity not proven",
+   "frame_status": "PROVISIONAL",
+   "frame_source": "families.json:aux_5c8_base050b_compositor0",
+   "frame_provenance": "LEGACY_PROVISIONAL",
+   "palette_status": "PENDING",
+   "palette_source": "palette path not traced",
+   "palette_provenance": "UNRESOLVED",
+   "render": {
+    "method": "geo_grayscale",
+    "geo_id": "aux_5c8_base050b_compositor0",
+    "png": null,
+    "palette": {
+     "kind": "none"
+    }
+   },
+   "confidence": "none",
+   "unresolved_reason": "identity + palette path not statically proven"
+  },
+  {
+   "technical_id": "special_0x019D",
+   "semantic_name": "Actor 0x019D",
+   "name_status": "PENDING",
+   "category": "UNRESOLVED",
+   "base_graphics": "0x019D",
+   "spawn_route": "selector_08_1c / map-driven (0x0559B2->0x41180)",
+   "round_presence": [],
+   "phase_presence": "PENDING",
+   "description": "Provisional geometry only; identity not proven",
+   "frame_status": "PROVISIONAL",
+   "frame_source": "families.json:aux_748_base019d_compositor0",
+   "frame_provenance": "LEGACY_PROVISIONAL",
+   "palette_status": "PENDING",
+   "palette_source": "palette path not traced",
+   "palette_provenance": "UNRESOLVED",
+   "render": {
+    "method": "geo_grayscale",
+    "geo_id": "aux_748_base019d_compositor0",
+    "png": null,
+    "palette": {
+     "kind": "none"
+    }
+   },
+   "confidence": "none",
+   "unresolved_reason": "identity + palette path not statically proven"
+  },
+  {
+   "technical_id": "special_0x0D5F",
+   "semantic_name": "Actor 0x0D5F",
+   "name_status": "PENDING",
+   "category": "UNRESOLVED",
+   "base_graphics": "0x0D5F",
+   "spawn_route": "selector_08_1c / map-driven (0x0559B2->0x41180)",
+   "round_presence": [],
+   "phase_presence": "PENDING",
+   "description": "Provisional capture only; identity not proven",
+   "frame_status": "PROVISIONAL",
+   "frame_source": "contact_sheets/cand_5c8_0D5F.png",
+   "frame_provenance": "LEGACY_PROVISIONAL",
+   "palette_status": "PENDING",
+   "palette_source": "palette path not traced",
+   "palette_provenance": "UNRESOLVED",
+   "render": {
+    "method": "composer_png",
+    "geo_id": null,
+    "png": "cand_5c8_0D5F.png",
+    "palette": {
+     "kind": "none"
+    }
+   },
+   "confidence": "none",
+   "unresolved_reason": "identity + palette path not statically proven"
+  }
+ ],
+ "actor_registry_note": "THIS 'actors' list is the ONLY semantic source of truth for the bestiary generator. Provenance classes: STATIC_DECOMPILED / COMPOSER_PROVEN / LEGACY_PROVISIONAL / RUNTIME_CORROBORATION / UNRESOLVED. Authoritative inputs = maincpu.bin, pc090oj.bin, Ghidra static decomp, ROM tables, Composer results classified proven. Secondary = families.json/representative_pieces/contact sheets/sweeps (LEGACY_PROVISIONAL).",
+ "scripted_routes": [
+  {
+   "route_pc": "0x0458C8",
+   "round": 1,
+   "role": "Flying Demon enc-A",
+   "oneshot": "A5+0x264",
+   "variant": "\u2014",
+   "identity": "PROVEN (0x0129)",
+   "phase": "PHASE 1/2 UNDECIDED (mid-round scripted enemy; door 0x13E unknown) - NOT boss"
+  },
+  {
+   "route_pc": "0x045970",
+   "round": 1,
+   "role": "Flying Demon enc-B",
+   "oneshot": "A5+0x25A",
+   "variant": "\u2014",
+   "identity": "PROVEN (0x0129)",
+   "phase": "PHASE 1/2 UNDECIDED (mid-round scripted enemy; door 0x13E unknown) - NOT boss"
+  },
+  {
+   "route_pc": "0x4ABEC",
+   "round": 3,
+   "role": "scripted paired (0x13E 0x41)",
+   "oneshot": "A5+0x20A",
+   "variant": "0",
+   "identity": "PARTIAL (0x033E variant)",
+   "phase": "BOSS (round-tail scripted encounter at 0x13E=0x41, boundary 0x44)"
+  },
+  {
+   "route_pc": "0x4ACE6",
+   "round": 3,
+   "role": "scripted paired (0x13E 0x3B)",
+   "oneshot": "A5+0x268",
+   "variant": "1",
+   "identity": "PARTIAL",
+   "phase": "PHASE 1/2 UNDECIDED (mid-round; door 0x13E unknown)"
+  },
+  {
+   "route_pc": "0x4ADC2",
+   "round": 3,
+   "role": "scripted paired",
+   "oneshot": "A5+0x260",
+   "variant": "0",
+   "identity": "PARTIAL",
+   "phase": "PHASE 1/2 UNDECIDED (mid-round; door 0x13E unknown)"
+  },
+  {
+   "route_pc": "0x4B1EA",
+   "round": 4,
+   "role": "scripted paired (0x13E 0x58)",
+   "oneshot": "A5+0x26A",
+   "variant": "0",
+   "identity": "PARTIAL",
+   "phase": "BOSS (round-tail scripted encounter at 0x13E=0x58, boundary 0x5B)"
+  },
+  {
+   "route_pc": "0x4B20A",
+   "round": 4,
+   "role": "scripted paired",
+   "oneshot": "A5+0x208",
+   "variant": "1",
+   "identity": "PARTIAL",
+   "phase": "PHASE 1/2 UNDECIDED (mid-round; door 0x13E unknown)"
+  },
+  {
+   "route_pc": "0x4BA48",
+   "round": 5,
+   "role": "scripted paired (0x13E 0x71)",
+   "oneshot": "A5+0x208",
+   "variant": "0",
+   "identity": "PARTIAL",
+   "phase": "BOSS (round-tail scripted encounter at 0x13E=0x71, boundary 0x72)"
+  },
+  {
+   "route_pc": "0x4BB8E",
+   "round": 5,
+   "role": "scripted paired",
+   "oneshot": "A5+0x262",
+   "variant": "1",
+   "identity": "PARTIAL",
+   "phase": "PHASE 1/2 UNDECIDED (mid-round; door 0x13E unknown)"
+  },
+  {
+   "route_pc": "0x4C440",
+   "round": 6,
+   "role": "scripted paired (0x13E 0x86)",
+   "oneshot": "A5+0x208",
+   "variant": "1",
+   "identity": "PARTIAL",
+   "phase": "BOSS (round-tail scripted encounter at 0x13E=0x86, boundary 0x89)"
+  }
+ ],
+ "dashboard": [
+  [
+   "Rounds identified",
+   "6 / 6",
+   "ok"
+  ],
+  [
+   "Boss present-in-round",
+   "6/6 PROVEN (base 0x033E tail); route PCs decoded 4/6 (R3\u2013R6)",
+   "ok"
+  ],
+  [
+   "Phase-1\u21922 transition",
+   "mechanism PROVEN (0x7E\u21920x10E8:=7); boundary pinned 0/6 (metatile-collision format blocked)",
+   "part"
+  ],
+  [
+   "Boss \u2194 round boundary",
+   "PROVEN 6/6 (0x502AC + 0x1360 flag)",
+   "ok"
+  ],
+  [
+   "Field schedule",
+   "PROVEN",
+   "ok"
+  ],
+  [
+   "Scripted encounter subsystem",
+   "STRUCTURE DECODED \u00b7 IDENTITIES PARTIAL",
+   "part"
+  ],
+  [
+   "Boss identities",
+   "PARTIAL",
+   "part"
+  ],
+  [
+   "Boss clean legal frames",
+   "PENDING",
+   "pend"
+  ],
+  [
+   "Map-marker hazards/obstacles",
+   "PARTIAL",
+   "part"
+  ],
+  [
+   "Items / power-ups / pickups",
+   "SYSTEM NOT YET DECODED",
+   "pend"
+  ],
+  [
+   "PC090OJ compositor VM",
+   "PARTIAL / NOT REIMPLEMENTED",
+   "pend"
+  ],
+  [
+   "Overall bestiary completeness",
+   "INCOMPLETE",
+   "pend"
+  ]
+ ],
+ "remaining": [
+  [
+   "1. Enumerate 0x7E door-tile 0x13E per round (decode collision-layout format + 0x10D000 table)",
+   "PARTIAL"
+  ],
+  [
+   "2. Resolve exact scripted actor identities",
+   "PARTIAL"
+  ],
+  [
+   "3. Resolve six boss seed/component identities",
+   "PARTIAL"
+  ],
+  [
+   "4. Finish/reimplement 0x3C902 compositor VM",
+   "NOT STARTED"
+  ],
+  [
+   "5. Decode map-marker hazards/obstacles",
+   "PARTIAL"
+  ],
+  [
+   "6. Locate/decompile item/drop/power-up system",
+   "NOT STARTED"
+  ],
+  [
+   "7. Trace special/boss/hazard/item palette sources",
+   "PARTIAL"
+  ],
+  [
+   "8. Render legal representative frames",
+   "PARTIAL"
+  ],
+  [
+   "9. Final phase-specific actor placement",
+   "NOT STARTED"
+  ]
+ ],
+ "legacy_evidence": {
+  "_note": "Superseded / corroboration-only. The generator NEVER consumes this as semantic truth. Authoritative per-actor identity/round/phase/palette lives ONLY in actors[]. These are historical lexicon/sweep analyses kept for provenance.",
+  "map_marker_spawns_0x45592": {
+   "table": "0x45592 (21 records)",
+   "path": "map-marker 0x0559B2 -> 0x41180 (NOT the +0x3E family schedule)",
+   "note": "lexicon miscategorized these (demon absent, bats as aux/effect/projectile); per-round trigger decode PENDING",
+   "members_by_code": {
+    "0x0129 class0x30": {
+     "legacy_lexicon_name": "FLYING_DEMON",
+     "authority": "see actors[] for proven identity/status (most are IDENTITY PENDING)"
+    },
+    "0x03F6 class182": {
+     "legacy_lexicon_name": "LARGE_BAT",
+     "authority": "see actors[] for proven identity/status (most are IDENTITY PENDING)"
+    },
+    "0x0268 class185": {
+     "legacy_lexicon_name": "SMALL_BAT",
+     "authority": "see actors[] for proven identity/status (most are IDENTITY PENDING)"
+    },
+    "0x050B": {
+     "legacy_lexicon_name": "SPEAR",
+     "authority": "see actors[] for proven identity/status (most are IDENTITY PENDING)"
+    },
+    "0x0D5F": {
+     "legacy_lexicon_name": "BOULDER",
+     "authority": "see actors[] for proven identity/status (most are IDENTITY PENDING)"
+    },
+    "0x019D": {
+     "legacy_lexicon_name": "FIREBALL",
+     "authority": "see actors[] for proven identity/status (most are IDENTITY PENDING)"
+    }
+   },
+   "_status": "LEGACY: lexicon guessed names (SPEAR/FIREBALL/BOULDER etc.) are NOT authoritative; superseded by actors[]"
+  }
+ },
+ "actor_census_from_rom": {
+  "_authority": "Computed from maincpu.bin: field schedule 0x4A104 (record byte1=+0x3E family, byte2 high nibble=+0x752 variant) -> base via 0x45502(var0)/0x45562(var!=0)/boss 0x454ba; plus every immediate write to actor+0x1E (code-spawned). Names PROVEN only as base_code; semantic names are PROPOSED(lexicon)/PENDING, never invented.",
+  "distinct_base_count": 38,
+  "variant_base_tables": {
+   "var0": "0x45502",
+   "var_nonzero": "0x45562",
+   "per_family": {
+    "fam0x00": {
+     "var0_base": "0x004B",
+     "var_nonzero_base": "0x004B"
+    },
+    "fam0x01": {
+     "var0_base": "0x00D0",
+     "var_nonzero_base": "0x00D0"
+    },
+    "fam0x02": {
+     "var0_base": "0x033E",
+     "var_nonzero_base": "0x033E"
+    },
+    "fam0x03": {
+     "var0_base": "0x02E8",
+     "var_nonzero_base": "0x02E8"
+    },
+    "fam0x04": {
+     "var0_base": "0x0420",
+     "var_nonzero_base": "0x0420"
+    },
+    "fam0x05": {
+     "var0_base": "0x01CB",
+     "var_nonzero_base": "0x01CB"
+    },
+    "fam0x06": {
+     "var0_base": "0x03B3",
+     "var_nonzero_base": "0x0129"
+    },
+    "fam0x07": {
+     "var0_base": "0x043A",
+     "var_nonzero_base": "0x02AF"
+    },
+    "fam0x08": {
+     "var0_base": "0x0241",
+     "var_nonzero_base": "0x03F6"
+    },
+    "fam0x09": {
+     "var0_base": "0x06E2",
+     "var_nonzero_base": "0x0268"
+    },
+    "fam0x0A": {
+     "var0_base": "0x0889",
+     "var_nonzero_base": "0x050B"
+    },
+    "fam0x0B": {
+     "var0_base": "0x0400",
+     "var_nonzero_base": "0x0D5F"
+    }
+   }
+  },
+  "position_note": "round_presence thirds are 0x13E position within the round (early/mid/late). Exact Phase-1/2 door boundary remains blocked (metatile-collision); \"late\" ~ phase 2/3 but is position-based, not door-proven.",
+  "actors": [
+   {
+    "base": "0x0001",
+    "name": "Actor 0x0001",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x3AE10"
+    ]
+   },
+   {
+    "base": "0x004B",
+    "name": "Lizardman",
+    "name_status": "PROPOSED",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x00/var0, fam0x00/var1)"
+    ],
+    "round_presence": {
+     "R1": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R2": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R3": [
+      "early",
+      "mid"
+     ],
+     "R4": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R5": [
+      "early",
+      "mid"
+     ],
+     "R6": [
+      "early"
+     ]
+    }
+   },
+   {
+    "base": "0x00D0",
+    "name": "Chimera",
+    "name_status": "PROPOSED",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x01/var0, fam0x01/var1)"
+    ],
+    "round_presence": {
+     "R1": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R2": [
+      "mid",
+      "late"
+     ],
+     "R3": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R4": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R5": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R6": [
+      "early",
+      "mid",
+      "late"
+     ]
+    }
+   },
+   {
+    "base": "0x00F4",
+    "name": "Actor 0x00F4",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x40E9C, 0x43658, 0x43B06, 0x43E1C, 0x440EA\u2026"
+    ]
+   },
+   {
+    "base": "0x0129",
+    "name": "Flying Demon",
+    "name_status": "PROPOSED",
+    "creation": [
+     "variant!=0 of fam0x06 (table 0x45562; set by scripted/code)"
+    ]
+   },
+   {
+    "base": "0x0179",
+    "name": "Actor 0x0179",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x438B6"
+    ]
+   },
+   {
+    "base": "0x019D",
+    "name": "Actor 0x019D",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x42AE8, 0x435F0"
+    ]
+   },
+   {
+    "base": "0x01CB",
+    "name": "Actor 0x01CB",
+    "name_status": "PENDING",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x05/var0, fam0x05/var1)",
+     "code-spawned (secondary/projectile/sub-object) @ 0x434CA"
+    ],
+    "round_presence": {
+     "R2": [
+      "late"
+     ],
+     "R3": [
+      "late"
+     ],
+     "R4": [
+      "late"
+     ],
+     "R5": [
+      "late"
+     ],
+     "R6": [
+      "late"
+     ]
+    }
+   },
+   {
+    "base": "0x01FC",
+    "name": "Actor 0x01FC",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x43BEA"
+    ]
+   },
+   {
+    "base": "0x0224",
+    "name": "Actor 0x0224",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x436BA, 0x43798, 0x4387A, 0x43C1C, 0x43D7C\u2026"
+    ]
+   },
+   {
+    "base": "0x0235",
+    "name": "Actor 0x0235",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x43984"
+    ]
+   },
+   {
+    "base": "0x0236",
+    "name": "Actor 0x0236",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x43C34"
+    ]
+   },
+   {
+    "base": "0x0241",
+    "name": "Valkyrie",
+    "name_status": "PROPOSED",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x08/var0)"
+    ],
+    "round_presence": {
+     "R1": [
+      "mid"
+     ],
+     "R2": [
+      "mid"
+     ],
+     "R3": [
+      "mid",
+      "late"
+     ],
+     "R4": [
+      "early",
+      "mid"
+     ]
+    }
+   },
+   {
+    "base": "0x0266",
+    "name": "Actor 0x0266",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x4367C, 0x43694, 0x43C6E, 0x43C86, 0x43CDA\u2026"
+    ]
+   },
+   {
+    "base": "0x0268",
+    "name": "Small Bat",
+    "name_status": "PROPOSED",
+    "creation": [
+     "variant!=0 of fam0x09 (table 0x45562; set by scripted/code)"
+    ]
+   },
+   {
+    "base": "0x0275",
+    "name": "Actor 0x0275",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x40DE2, 0x42B2E, 0x433C2"
+    ]
+   },
+   {
+    "base": "0x02AF",
+    "name": "Actor 0x02AF",
+    "name_status": "PENDING",
+    "creation": [
+     "variant!=0 of fam0x07 (table 0x45562; set by scripted/code)"
+    ]
+   },
+   {
+    "base": "0x02E8",
+    "name": "Four-Armed Insect",
+    "name_status": "PROPOSED",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x03/var0, fam0x03/var1)",
+     "code-spawned (secondary/projectile/sub-object) @ 0x435BC"
+    ],
+    "round_presence": {
+     "R1": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R2": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R3": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R4": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R5": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R6": [
+      "early",
+      "mid",
+      "late"
+     ]
+    }
+   },
+   {
+    "base": "0x033E",
+    "name": "Boss (base 0x033E)",
+    "name_status": "PARTIAL",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x02/var0, fam0x02/var1, fam0x02/var2)"
+    ],
+    "round_presence": {
+     "R1": [
+      "late"
+     ],
+     "R2": [
+      "late"
+     ],
+     "R3": [
+      "late"
+     ],
+     "R4": [
+      "late"
+     ],
+     "R5": [
+      "late"
+     ],
+     "R6": [
+      "mid",
+      "late"
+     ]
+    }
+   },
+   {
+    "base": "0x03B3",
+    "name": "Actor 0x03B3",
+    "name_status": "PENDING",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x06/var0)"
+    ],
+    "round_presence": {
+     "R3": [
+      "early",
+      "mid"
+     ],
+     "R4": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R5": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R6": [
+      "early",
+      "mid",
+      "late"
+     ]
+    }
+   },
+   {
+    "base": "0x03F6",
+    "name": "Large Bat",
+    "name_status": "PROPOSED",
+    "creation": [
+     "variant!=0 of fam0x08 (table 0x45562; set by scripted/code)"
+    ]
+   },
+   {
+    "base": "0x0400",
+    "name": "Actor 0x0400",
+    "name_status": "PENDING",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x0B/var0)"
+    ],
+    "round_presence": {
+     "R2": [
+      "early",
+      "mid"
+     ],
+     "R3": [
+      "early",
+      "mid"
+     ],
+     "R4": [
+      "mid"
+     ],
+     "R5": [
+      "early",
+      "mid",
+      "late"
+     ],
+     "R6": [
+      "early",
+      "mid"
+     ]
+    }
+   },
+   {
+    "base": "0x0420",
+    "name": "Actor 0x0420",
+    "name_status": "PENDING",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x04/var0, fam0x04/var1)"
+    ],
+    "round_presence": {
+     "R2": [
+      "early",
+      "mid"
+     ],
+     "R3": [
+      "early",
+      "mid"
+     ],
+     "R5": [
+      "early"
+     ],
+     "R6": [
+      "early",
+      "mid"
+     ]
+    }
+   },
+   {
+    "base": "0x043A",
+    "name": "Actor 0x043A",
+    "name_status": "PENDING",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x07/var0)"
+    ],
+    "round_presence": {
+     "R5": [
+      "early",
+      "mid"
+     ]
+    }
+   },
+   {
+    "base": "0x050B",
+    "name": "Actor 0x050B",
+    "name_status": "PENDING",
+    "creation": [
+     "variant!=0 of fam0x0A (table 0x45562; set by scripted/code)"
+    ]
+   },
+   {
+    "base": "0x0546",
+    "name": "Actor 0x0546",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x43DFA, 0x43FD0"
+    ]
+   },
+   {
+    "base": "0x05E9",
+    "name": "Actor 0x05E9",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x43FC4"
+    ]
+   },
+   {
+    "base": "0x06E2",
+    "name": "Actor 0x06E2",
+    "name_status": "PENDING",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x09/var0)"
+    ],
+    "round_presence": {
+     "R4": [
+      "early",
+      "late"
+     ]
+    }
+   },
+   {
+    "base": "0x0889",
+    "name": "Actor 0x0889",
+    "name_status": "PENDING",
+    "creation": [
+     "field_schedule_0x4A104 (fam0x0A/var0)"
+    ],
+    "round_presence": {
+     "R4": [
+      "mid"
+     ],
+     "R5": [
+      "mid"
+     ],
+     "R6": [
+      "early",
+      "mid"
+     ]
+    }
+   },
+   {
+    "base": "0x09DC",
+    "name": "Actor 0x09DC",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x42B90, 0x434F8"
+    ]
+   },
+   {
+    "base": "0x09EA",
+    "name": "Actor 0x09EA",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x40FAC, 0x40FCC, 0x42722, 0x438DC, 0x43C9E\u2026"
+    ]
+   },
+   {
+    "base": "0x09F6",
+    "name": "Actor 0x09F6",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x439AE"
+    ]
+   },
+   {
+    "base": "0x0D56",
+    "name": "Actor 0x0D56",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x4CD74"
+    ]
+   },
+   {
+    "base": "0x0D5C",
+    "name": "Actor 0x0D5C",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x4355C"
+    ]
+   },
+   {
+    "base": "0x0D5F",
+    "name": "Actor 0x0D5F",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x426DC",
+     "variant!=0 of fam0x0B (table 0x45562; set by scripted/code)"
+    ]
+   },
+   {
+    "base": "0x0DAB",
+    "name": "Actor 0x0DAB",
+    "name_status": "PENDING",
+    "creation": [
+     "code-spawned (secondary/projectile/sub-object) @ 0x40F82"
+    ]
+   },
+   {
+    "base": "0x061D",
+    "name": "Centaur (PROPOSED \u2014 quadruped body tiles)",
+    "name_status": "PROPOSED",
+    "creation": [
+     "record-loader table 0x45592 rec6/7 via 0x4543e (+0x06 record-type path); NOT in family/variant tables or immediate +0x1E writes"
+    ],
+    "visual_note": "raw pc090oj tiles at base 0x061D show four-legged/quadruped bodies with upper torsos = centaur-shaped; matches user report of an un-catalogued centaur enemy. Identity PROPOSED, not ROM-string-proven."
+   },
+   {
+    "base": "0x0988",
+    "name": "Actor 0x0988 (PROPOSED \u2014 serpent/dragon)",
+    "name_status": "PROPOSED",
+    "creation": [
+     "record-loader table 0x45592 rec8/9 via 0x4543e (+0x06 record-type path)"
+    ],
+    "visual_note": "raw pc090oj tiles at base 0x0988 show curved serpentine/dragon segments + a head. Large multi-part creature. Identity PROPOSED."
+   }
+  ],
+  "record_loader_table_0x45592": "0x4543e resolves actor+0x1E = 0x45592[(+0x06)-8]; rec0..5 = variant!=0 fam6-11 (0x0129,0x02AF,0x03F6,0x0268,0x050B,0x0D5F); rec6/7=0x061D; rec8/9=0x0988. The +0x06 record-type path is a THIRD base source beyond 0x45502/0x45562."
  }
 }
