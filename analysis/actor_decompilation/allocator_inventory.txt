@@ -1,0 +1,42 @@
+ACTOR ALLOCATION / INITIALIZATION INVENTORY (static, maincpu.bin; counter 360; no MAME)
+
+=== ACTOR STORAGE BLOCKS (0x40-byte records; from 0x41DAE render/expand pass + creators) ===
+Block   A5off  slots  dest PC090OJ rec (0x41DAE)  d2/slot  creators / role
+0x2C8   712    9      140.. (10/slot, 19 last)    10/19    FIELD SCHEDULE / ground enemies (lizards); 0x49F30 scans; 0x4A086 installs (0x4C8 down to 0x2C8)
+0x508   1288   2      57..  (13/slot)             13       Flying Demon 2-component (0x45342 fixed slots 0x508/0x548)
+0x5C8   1480   ~6     96..  (4/slot)              4        boss components (0x423B2 fills 5 slots)
+0x748   1864   ~11    46..  (1/slot)              1        single-sprite actors; 0x4CD50 batch-creates here; 0x457B6 scripted
+0x8C8   2248   -      (boss-mode 0x45DFA)         -        boss/special (0x45DFA render iterates 0x5C8/0x748/0x8C8)
+Full region A5+0x2C8..~0x0F06 zeroed wholesale at scene reset (0x3A67A: fill 1567 words; 0x3A804: 1023 words) via 0x3A2D0.
+
+=== +0x00 ACTIVATION WRITERS (moveb #1,rec+0) ===
+0x4103E  child-hunter allocator (A4)             -> block via 0x41064 scan; +0x03=1 hunter
+0x423C4  boss 5-component creator (A4)           -> block 0x5C8; state 0x11, rectype 0x11
+0x45248  (A4)  scripted activate region          -> (near 0x45342)
+0x453A8  paired_actor_activate_453A2 (A4)         -> block 0x508 fixed slots (flying demon)
+0x45CFC  generic scripted activator (A4)          -> a4@0=1,@5=3,@1C=1
+0x4A0BA  field-schedule installer 0x4A086 (A4)    -> block 0x2C8
+0x4CD50  batch creator (A2)                        -> block 0x748; base 0x0D56, state 0x0B
+
+=== ALLOCATOR / CREATOR FUNCTIONS ===
+0x49F30  occupancy scanner: block 0x2C8, 9 slots; for active a4@0!=0 && a4@3==0 records slot a4@26 into bitmap A5@(0xC52+idx); A5@(0x214) iter, A5@(0x29A) count, returns first-free slot idx in A5@(0xC56) (0xFF=none).
+0x4A086  field-schedule installer: 8-byte entry -> [b0=+0x04 class][b1=+0x3E fam][b2 lo nibble=+0x38 comp / hi=+0x752 var][b3=+0x36][w4=+0x1C timer (bit0 stripped->+0x2A)][w6=+0x34]; then +0x00=1, +0x1A=0x180, 0x4544E (base), 0x45684 (pal). NOT set: +0x05(=0 scanner), +0x03(=0 follower), +0x0D, +0x16 (rely on prior clear).
+0x4103E  child hunter: +0x00=1,+0x03=1(hunter),+0x04=1,+0x1C=1,+0x20=1,+0x1A=0x180 offscreen. (marker char +0x0D set by 0x41d08/config before this.)
+0x45342  paired flying-demon: FIXED slots A5+0x508/0x548; rectype +0x06=8or9 (from A5+0xC5A); 0x453A2 activates each (+0x1C=1,+0x00=1,+0x05=3,+0x1A=0x180,0x4543E).
+0x45330->0x4449E  boss trigger: record-type select via 0x444E0[round]; clears A5@0x13AC.
+0x423B2  boss 5-component: block 0x5C8 slots0..4; +0x21=component idx, +0x00=1,+0x38=1,+0x05=0x11,+0x06=0x11,0x4543E. 0x423F4 same into A5+0x648.
+0x45B18  per-round multi-record boss-body: fixed A5 slots 0x6xx/0x9xx; rectype from round A5@0x118; 0x4543E+0x45CFC+0x45BE8(pos from A5@0x71E/0x722).
+0x4CD50  batch swarm creator: block 0x748, up to 11 slots, base 0x0D56, state 0x0B, rectype 0x16, comp1, pos from a0/a1 streams.
+
+=== GRAPHICS-IDENTITY TEMPLATES (shared 8-byte layout {w:+0x1E, b:+0x3A, b:+0x01, w:+0x28, w:+0x2C}) ===
+0x4544E family: fam!=2 -> 0x45502[fam*8](var0)/0x45562[fam*8](var!=0); fam==2 -> 0x454BA(comp0)/0x454D2(comp3)/0x454EA(else)[var*8].
+0x4543E rectype: 0x45592[(+0x06 - 8)*8].
+0x45684 palette: fam2->0x456EC; else 0x45722/0x4576A per fam per round -> +0x27 = pal|0x40.
+
+=== RETIREMENT / REUSE ===
+Individual: 0x427B2 clrb +0x00 when off-screen (+0x24 set, X out of range). Only +0x00 cleared; other fields STALE -> next allocator must fully re-init.
+Scene/round: 0x3A67A / 0x3A804 zero entire actor region via 0x3A2D0 fill.
+Schedule refill: 0x49F30 tracks slot ownership via +0x26; freeing a slot lets the schedule re-install a new latent actor -> small schedule -> long enemy stream.
+
+=== PARENT/CHILD ===
++0x21 = component/sibling index (0x423B2 sets 0..4 for 5-part boss; 0x42380 update reads it). +0x0E = found-marker cell pointer (0x41180). Latent-hunter chain: parent scanner -> 0x4103E child hunter (inherits family via slot, new +0x0D target char).

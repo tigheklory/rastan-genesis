@@ -5,7 +5,7 @@
  "provenance_and_status": "actors[] is the SOLE authoritative per-actor semantic record (identity/round/phase/frame/palette, each with its own provenance). ROM spawn-schedule 0x4A104 + Ghidra static decompilation are authoritative for family/base/rounds; per-round palette decoded from ROM (0x3BA88->0x4FD02, validated). Sweep-derived round/phase 'presence' (old round_phase_presence.csv, *_castle labels) is NOT current authority and has been removed/reclassified under legacy_evidence. families.json / representative_pieces / contact sheets = corroboration/rendering only; graphics-code enumeration remains PENDING.",
  "authoritative_keys": {
   "family_identity": "actor+0x3E, selected by FUN_0004544e (selector logic ~0x45404-0x45418, table ~0x4542E/0x45502)",
-  "boss_path": "actor+0x3E==2 gated via +0x752; boss base 0x033E",
+  "boss_path": "Boss BODY spawned at 0x45330->0x4449E; body record type = table 0x444E0[round-1]; base via 0x4543E/table 0x45592. base 0x033E (family-2 loader 0x4544E) is a route mechanism, NOT the visible boss.",
   "family_palette_bank": "FUN_00045684 table 0x45722 (per +0x3E family)",
   "render_family_composite": "actor_family0_render_3d054 (0x3D054) -> family tables 0=0x3D09E,1=0x4771C,2=0x3F0CE,3=0x40004,4=0x4002C -> actor_four_record_expand_3c902 (0x3C902), quartet [control,signed_y,code_offset,signed_x] term 0x00",
   "spawn_seed_tables": "static_actor_records.json: 48 seed records, ROM offsets 0x0454BA+ (mode2_variant_a etc.); fields base_code,+0x3A,actor_class,+0x28,+0x2C",
@@ -213,7 +213,7 @@
  },
  "bosses": {
   "base": "0x033E",
-  "boss_path": "+0x3E==2 via +0x752",
+  "boss_path": "per-round body via table 0x444E0 -> 0x45592 (NOT 0x033E). (0x752,A4) is a parallel per-slot variant byte (spawn byte2 high nibble), NOT an actor-record field. [corrected per Cody]",
   "per_round": [
    {
     "id": "round1_boss_composite",
@@ -414,7 +414,7 @@
     "anim_override": "round>=5: +0x28:=4,+0x2C:=7 (0x453c0)"
    }
   ],
-  "route_registry_reconciliation": "bosses.per_round = per-round boss PRESENCE, PROVEN 6/6 (base 0x033E at each round tail via +0x3E==2/+0x752). scripted_routes[] = INDIVIDUALLY-DECODED scripted route PCs: 4/6 boss routes decoded (R3 0x4ABEC@0x41, R4 0x4B1EA@0x58, R5 0x4BA48@0x71, R6 0x4C440@0x86) + R1 Flying-Demon (a scripted enemy, NOT the R1 boss). R1/R2 boss ROUTE PCs are NOT yet individually decoded (they live in the R1/R2 0x13E dispatch families near boundaries 0x16/0x2D); their evidence is the base-0x033E round-tail PRESENCE in bosses.per_round, not a decoded route PC. So 'boss present-in-round' is 6/6 while 'boss route PC decoded' is 4/6 \u2014 distinct metrics; no route PCs invented. [CORRECTION 2026-09-17: base 0x033E is the family-2 route mechanism, NOT the boss sprite identity. Boss body base loads via 0x4543e/table 0x45592 (+0x06=8/9 -> 0x0129/0x02AF); exact per-round boss body UNRESOLVED. Lexicon boss composites were misidentified/duplicated and removed from rendering.]"
+  "route_registry_reconciliation": "CORRECTED (Cody+Andy 2026-09-18): base 0x033E is only the family-2 loader route. Real per-round boss BODY: table 0x444E0[round-1] = {14,19,20,21,16,23} -> 0x45592 -> bases 0x061D/0x0753/0x082C/0x07BF/0x0988/0x0B35. (0x752,A4) is a parallel per-slot variant byte, not an ActorRecord member."
  },
  "unresolved_routes": [
   "collision_marker40_route",
@@ -745,7 +745,7 @@
     5,
     6
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R1 early/mid/late; R2 early/mid/late; R3 early/mid; R4 early/mid/late; R5 early/mid; R6 early \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R1,R2,R3,R4,R5,R6. Castle roster is ground-marker system (separate), not this schedule.",
    "description": "Green scaled humanoid with a bone club",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "contact_sheets/enemy_lizardman.png",
@@ -864,8 +864,8 @@
     5,
     6
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R1 early/mid/late; R2 mid/late; R3 early/mid/late; R4 early/mid/late; R5 early/mid/late; R6 early/mid/late \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
-   "description": "Winged orange dragon-beast",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R1,R2,R3,R4,R5,R6. Castle roster is ground-marker system (separate), not this schedule.",
+   "description": "Field enemy family 1, base 0x00D0 (lexicon label \"Chimera\", PROPOSED). Compositor 0; render + per-round palette Cody-verified (live frame 0x52, line 0x4 pool 18).",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "contact_sheets/enemy_chimera.png",
    "frame_provenance": "STATIC_DECOMPILED",
@@ -875,13 +875,13 @@
    "render": {
     "method": "vm",
     "base": 208,
-    "anim": 35,
+    "anim": 82,
     "compositor_table": 0,
     "palette": {
      "kind": "rom_field",
      "nibble": 4
     },
-    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+    "note": "original-MAME legal current frame +0x01=0x52; rendered by corrected 0x3C902 general-path VM (comp0)"
    },
    "confidence": "high",
    "unresolved_reason": "",
@@ -983,7 +983,7 @@
     5,
     6
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R1 early/mid/late; R2 early/mid/late; R3 early/mid/late; R4 early/mid/late; R5 early/mid/late; R6 early/mid/late \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R1,R2,R3,R4,R5,R6. Castle roster is ground-marker system (separate), not this schedule.",
    "description": "Blue four-armed blade fighter",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "contact_sheets/enemy_four_armed.png",
@@ -994,13 +994,13 @@
    "render": {
     "method": "vm",
     "base": 744,
-    "anim": 95,
+    "anim": 98,
     "compositor_table": 0,
     "palette": {
      "kind": "rom_field",
      "nibble": 10
     },
-    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+    "note": "original-MAME legal current frame +0x01=0x62; rendered by corrected 0x3C902 general-path VM (comp0)"
    },
    "confidence": "high",
    "unresolved_reason": "",
@@ -1100,7 +1100,7 @@
     3,
     4
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R1 mid; R2 mid; R3 mid/late; R4 early/mid \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R1,R2,R3,R4. Castle roster is ground-marker system (separate), not this schedule.",
    "description": "Blonde winged warrior with a green sword",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "contact_sheets/enemy_valkyrie.png",
@@ -1111,13 +1111,13 @@
    "render": {
     "method": "vm",
     "base": 577,
-    "anim": 77,
-    "compositor_table": 0,
+    "anim": 79,
+    "compositor_table": 1,
     "palette": {
      "kind": "rom_field",
      "nibble": 2
     },
-    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+    "note": "original-MAME legal current frame +0x01=0x4F and spawn byte2 low nibble/+0x38=1; corrected 0x4771C compositor table"
    },
    "confidence": "high",
    "unresolved_reason": "",
@@ -1191,7 +1191,7 @@
     5,
     6
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R2 early/mid; R3 early/mid; R5 early; R6 early/mid \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R2,R3,R5,R6. Castle roster is ground-marker system (separate), not this schedule.",
    "description": "Tall horned humanoid brawler",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "families.json:hostile_base0420_compositor0",
@@ -1270,8 +1270,8 @@
   },
   {
    "technical_id": "field_3e_5",
-   "semantic_name": "Small Crawler",
-   "name_status": "PROPOSED",
+   "semantic_name": "Actor family 5 / base 0x01CB",
+   "name_status": "PENDING",
    "category": "ENEMY_FIELD",
    "base_graphics": "0x01CB",
    "actor_family_3e": 5,
@@ -1279,8 +1279,8 @@
    "round_presence": [
     6
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R2 late; R3 late; R4 late; R5 late; R6 late \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
-   "description": "Small low creature (overlaid frames)",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R3,R4,R5,R6. Castle roster is ground-marker system (separate), not this schedule.",
+   "description": "Code-proven field family 5; wizard-like arcade composite is visual corroboration only, so no semantic name is assigned",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "families.json:hostile_base01cb_compositor0",
    "frame_provenance": "STATIC_DECOMPILED",
@@ -1383,7 +1383,7 @@
     5,
     6
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R3 early/mid; R4 early/mid/late; R5 early/mid/late; R6 early/mid/late \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R3,R4,R5,R6. Castle roster is ground-marker system (separate), not this schedule.",
    "description": "Skeletal fighter with shield + weapon",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "families.json:hostile_base03b3_compositor0",
@@ -1471,7 +1471,7 @@
    "round_presence": [
     5
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R5 early/mid \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R5. Castle roster is ground-marker system (separate), not this schedule.",
    "description": "Uncaptured; composite needs 0x3C902 VM",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "none",
@@ -1483,12 +1483,12 @@
     "method": "vm",
     "base": 1082,
     "anim": 95,
-    "compositor_table": 0,
+    "compositor_table": 1,
     "palette": {
      "kind": "rom_field",
      "nibble": 15
     },
-    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+    "note": "spawn byte2 low nibble/+0x38=1; corrected 0x4771C compositor table; loader frame remains provisional"
    },
    "confidence": "none",
    "unresolved_reason": "no captured composite; needs 0x3C902 compositor VM",
@@ -1520,7 +1520,7 @@
    "round_presence": [
     4
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R4 early/late \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R4. Castle roster is ground-marker system (separate), not this schedule.",
    "description": "Uncaptured; composite needs 0x3C902 VM",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "none",
@@ -1532,12 +1532,12 @@
     "method": "vm",
     "base": 1762,
     "anim": 110,
-    "compositor_table": 0,
+    "compositor_table": 1,
     "palette": {
      "kind": "rom_field",
      "nibble": 1
     },
-    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+    "note": "spawn byte2 low nibble/+0x38=1; corrected 0x4771C compositor table; loader frame remains provisional"
    },
    "confidence": "none",
    "unresolved_reason": "no captured composite; needs 0x3C902 compositor VM",
@@ -1571,7 +1571,7 @@
     5,
     6
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R4 mid; R5 mid; R6 early/mid \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R4,R5,R6. Castle roster is ground-marker system (separate), not this schedule.",
    "description": "Uncaptured; composite needs 0x3C902 VM",
    "frame_status": "PENDING",
    "frame_source": "none",
@@ -1648,7 +1648,7 @@
     5,
     6
    ],
-   "phase_presence": "per-0x13E position (ROM 0x4A104): R2 early/mid; R3 early/mid; R4 mid; R5 early/mid/late; R6 early/mid \u2014 late\u2248phase2/3 (position-based; exact door boundary blocked)",
+   "phase_presence": "FIELD-SCHEDULE (Outdoor) rounds R2,R3,R4,R5,R6. Castle roster is ground-marker system (separate), not this schedule.",
    "description": "Coiled snake, raised head",
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "families.json:hostile_base0400_compositor1",
@@ -1659,13 +1659,13 @@
    "render": {
     "method": "vm",
     "base": 1024,
-    "anim": 181,
-    "compositor_table": 0,
+    "anim": 182,
+    "compositor_table": 1,
     "palette": {
      "kind": "rom_field",
      "nibble": 14
     },
-    "note": "rendered by offline emulation of compositor VM 0x3C902 (comp0) with per-round ROM palette"
+    "note": "original-MAME legal current frame +0x01=0xB6 and spawn byte2 low nibble/+0x38=1; corrected 0x4771C compositor table"
    },
    "confidence": "medium",
    "unresolved_reason": "",
@@ -1740,21 +1740,21 @@
   },
   {
    "technical_id": "boss_round1",
-   "semantic_name": "Round 1 Boss",
+   "semantic_name": "Round 1 Boss (body 0x061D)",
    "name_status": "PENDING",
    "category": "BOSS",
-   "base_graphics": "0x033E",
+   "base_graphics": "0x061D",
    "actor_family_3e": 2,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     1
    ],
    "phase_presence": "BOSS (round-tail)",
-   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
-   "frame_status": "UNRESOLVED",
+   "description": "Round-1 boss BODY, base 0x061D (record type 14), compositor 1; components type-15 via 0x457D0. Render/palette Cody-verified (prog 0x47908, line 0xF pool 11).",
+   "frame_status": "COMPOSER_PROVEN",
    "frame_source": "none",
-   "frame_provenance": "UNRESOLVED",
-   "palette_status": "PENDING",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
    "palette_source": "boss palette path not traced",
    "palette_provenance": "UNRESOLVED",
    "confidence": "route-proven only",
@@ -1778,25 +1778,42 @@
    },
    "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
    "anim_override": "",
-   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+   "boss_body_base": "0x061D",
+   "boss_body_record_type": 14,
+   "boss_compositor": 1,
+   "boss_body_slot": "A5+0x708",
+   "boss_components": "type15/0x061D via 0x457D0",
+   "boss_trigger": "0x45330->0x4449E (table 0x444E0[round-1])",
+   "render": {
+    "method": "vm",
+    "base": 1565,
+    "anim": 0,
+    "compositor_table": 1,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 15
+    },
+    "verified": true,
+    "note": "Cody MAME-verified body frame+palette"
+   }
   },
   {
    "technical_id": "boss_round2",
-   "semantic_name": "Round 2 Boss",
+   "semantic_name": "Round 2 Boss (body 0x0753)",
    "name_status": "PENDING",
    "category": "BOSS",
-   "base_graphics": "0x033E",
+   "base_graphics": "0x0753",
    "actor_family_3e": 2,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     2
    ],
    "phase_presence": "BOSS (round-tail)",
-   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
-   "frame_status": "UNRESOLVED",
+   "description": "Round-2 boss BODY, base 0x0753 (record type 19), compositor 1. Body statically proven; frame/palette/components PENDING Cody-style capture.",
+   "frame_status": "PROVISIONAL",
    "frame_source": "none",
-   "frame_provenance": "UNRESOLVED",
-   "palette_status": "PENDING",
+   "frame_provenance": "RUNTIME_CORROBORATION",
+   "palette_status": "PROVISIONAL",
    "palette_source": "boss palette path not traced",
    "palette_provenance": "UNRESOLVED",
    "confidence": "route-proven only",
@@ -1820,25 +1837,42 @@
    },
    "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
    "anim_override": "",
-   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+   "boss_body_base": "0x0753",
+   "boss_body_record_type": 19,
+   "boss_compositor": 1,
+   "boss_body_slot": "A5+0x708",
+   "boss_components": "none in body state",
+   "boss_trigger": "0x45330->0x4449E (table 0x444E0[round-1])",
+   "render": {
+    "method": "vm",
+    "base": 1875,
+    "anim": 214,
+    "compositor_table": 1,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 15
+    },
+    "verified": false,
+    "note": "body frame = ROM init anim (table 0x45592 byte3); NOT MAME-captured; palette line 0xF inferred from R1/R5, pool ROM-proven per round"
+   }
   },
   {
    "technical_id": "boss_round3",
-   "semantic_name": "Round 3 Boss",
+   "semantic_name": "Round 3 Boss (body 0x082C)",
    "name_status": "PENDING",
    "category": "BOSS",
-   "base_graphics": "0x033E",
+   "base_graphics": "0x082C",
    "actor_family_3e": 2,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     3
    ],
    "phase_presence": "BOSS (round-tail)",
-   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
-   "frame_status": "UNRESOLVED",
+   "description": "Round-3 boss BODY, base 0x082C (record type 20), compositor 1. Body statically proven; frame/palette/components PENDING Cody-style capture.",
+   "frame_status": "PROVISIONAL",
    "frame_source": "none",
-   "frame_provenance": "UNRESOLVED",
-   "palette_status": "PENDING",
+   "frame_provenance": "RUNTIME_CORROBORATION",
+   "palette_status": "PROVISIONAL",
    "palette_source": "boss palette path not traced",
    "palette_provenance": "UNRESOLVED",
    "confidence": "route-proven only",
@@ -1862,25 +1896,42 @@
    },
    "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
    "anim_override": "",
-   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+   "boss_body_base": "0x082C",
+   "boss_body_record_type": 20,
+   "boss_compositor": 1,
+   "boss_body_slot": "A5+0x708",
+   "boss_components": "none in body state",
+   "boss_trigger": "0x45330->0x4449E (table 0x444E0[round-1])",
+   "render": {
+    "method": "vm",
+    "base": 2092,
+    "anim": 36,
+    "compositor_table": 1,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 15
+    },
+    "verified": false,
+    "note": "body frame = ROM init anim (table 0x45592 byte3); NOT MAME-captured; palette line 0xF inferred from R1/R5, pool ROM-proven per round"
+   }
   },
   {
    "technical_id": "boss_round4",
-   "semantic_name": "Round 4 Boss",
+   "semantic_name": "Round 4 Boss (body 0x07BF)",
    "name_status": "PENDING",
    "category": "BOSS",
-   "base_graphics": "0x033E",
+   "base_graphics": "0x07BF",
    "actor_family_3e": 2,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     4
    ],
    "phase_presence": "BOSS (round-tail)",
-   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
-   "frame_status": "UNRESOLVED",
+   "description": "Round-4 boss BODY, base 0x07BF (record type 21), compositor 1. Body statically proven; frame/palette/components PENDING Cody-style capture.",
+   "frame_status": "PROVISIONAL",
    "frame_source": "none",
-   "frame_provenance": "UNRESOLVED",
-   "palette_status": "PENDING",
+   "frame_provenance": "RUNTIME_CORROBORATION",
+   "palette_status": "PROVISIONAL",
    "palette_source": "boss palette path not traced",
    "palette_provenance": "UNRESOLVED",
    "confidence": "route-proven only",
@@ -1904,25 +1955,42 @@
    },
    "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
    "anim_override": "",
-   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+   "boss_body_base": "0x07BF",
+   "boss_body_record_type": 21,
+   "boss_compositor": 1,
+   "boss_body_slot": "A5+0x708",
+   "boss_components": "none in body state",
+   "boss_trigger": "0x45330->0x4449E (table 0x444E0[round-1])",
+   "render": {
+    "method": "vm",
+    "base": 1983,
+    "anim": 224,
+    "compositor_table": 1,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 15
+    },
+    "verified": false,
+    "note": "body frame = ROM init anim (table 0x45592 byte3); NOT MAME-captured; palette line 0xF inferred from R1/R5, pool ROM-proven per round"
+   }
   },
   {
    "technical_id": "boss_round5",
-   "semantic_name": "Round 5 Boss",
+   "semantic_name": "Round 5 Boss (body 0x0988)",
    "name_status": "PENDING",
    "category": "BOSS",
-   "base_graphics": "0x033E",
+   "base_graphics": "0x0988",
    "actor_family_3e": 2,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     5
    ],
    "phase_presence": "BOSS (round-tail)",
-   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
-   "frame_status": "UNRESOLVED",
+   "description": "Round-5 boss BODY, base 0x0988 (record type 16), compositor 1; 5 type-17 children via 0x423B2. Render/palette Cody-verified (prog 0x490DE, line 0xF pool 3).",
+   "frame_status": "COMPOSER_PROVEN",
    "frame_source": "none",
-   "frame_provenance": "UNRESOLVED",
-   "palette_status": "PENDING",
+   "frame_provenance": "STATIC_DECOMPILED",
+   "palette_status": "PROVEN",
    "palette_source": "boss palette path not traced",
    "palette_provenance": "UNRESOLVED",
    "confidence": "route-proven only",
@@ -1946,25 +2014,42 @@
    },
    "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
    "anim_override": "round>=5: +0x28:=4,+0x2C:=7 (0x453c0)",
-   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+   "boss_body_base": "0x0988",
+   "boss_body_record_type": 16,
+   "boss_compositor": 1,
+   "boss_body_slot": "A5+0x708",
+   "boss_components": "5x type17/0x0988 via 0x423B2",
+   "boss_trigger": "0x45330->0x4449E (table 0x444E0[round-1])",
+   "render": {
+    "method": "vm",
+    "base": 2440,
+    "anim": 130,
+    "compositor_table": 1,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 15
+    },
+    "verified": true,
+    "note": "Cody MAME-verified body frame+palette"
+   }
   },
   {
    "technical_id": "boss_round6",
-   "semantic_name": "Round 6 Boss",
+   "semantic_name": "Round 6 Boss (body 0x0B35)",
    "name_status": "PENDING",
    "category": "BOSS",
-   "base_graphics": "0x033E",
+   "base_graphics": "0x0B35",
    "actor_family_3e": 2,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     6
    ],
    "phase_presence": "BOSS (round-tail)",
-   "description": "Scripted paired boss; distinct identity/body/palette not yet decoded",
-   "frame_status": "UNRESOLVED",
+   "description": "Round-6 boss BODY, base 0x0B35 (record type 23), compositor 2. Body statically proven; frame/palette/components PENDING Cody-style capture.",
+   "frame_status": "PROVISIONAL",
    "frame_source": "none",
-   "frame_provenance": "UNRESOLVED",
-   "palette_status": "PENDING",
+   "frame_provenance": "RUNTIME_CORROBORATION",
+   "palette_status": "PROVISIONAL",
    "palette_source": "boss palette path not traced",
    "palette_provenance": "UNRESOLVED",
    "confidence": "route-proven only",
@@ -1988,7 +2073,24 @@
    },
    "creation": "2-slot paired actor A5+0x508/0x548 via 0x45342; variant A5+0xC5A(+0x06=8/9); base via 0x4543e",
    "anim_override": "round>=5: +0x28:=4,+0x2C:=7 (0x453c0)",
-   "boss_body_base": "UNRESOLVED: family-2 loader 0x4544e returns 0x033E, but the boss paired-init 0x45342 sets +0x06=8/9 and calls 0x4543e -> table 0x45592 -> 0x0129/0x02AF. Which base actually renders is NOT yet resolved."
+   "boss_body_base": "0x0B35",
+   "boss_body_record_type": 23,
+   "boss_compositor": 2,
+   "boss_body_slot": "A5+0x648",
+   "boss_components": "types24-26/0x0AED,0x0CCB,0x0BEB via 0x423F4",
+   "boss_trigger": "0x45330->0x4449E (table 0x444E0[round-1])",
+   "render": {
+    "method": "vm",
+    "base": 2869,
+    "anim": 102,
+    "compositor_table": 2,
+    "palette": {
+     "kind": "rom_field",
+     "nibble": 15
+    },
+    "verified": false,
+    "note": "body frame = ROM init anim (table 0x45592 byte3); NOT MAME-captured; palette line 0xF inferred from R1/R5, pool ROM-proven per round"
+   }
   },
   {
    "technical_id": "special_0x0129",
@@ -2186,7 +2288,7 @@
    "role": "scripted paired (0x13E 0x41)",
    "oneshot": "A5+0x20A",
    "variant": "0",
-   "identity": "PARTIAL (0x033E variant)",
+   "identity": "PARTIAL (boss BODY per round via table 0x444E0/0x45592)",
    "phase": "BOSS (round-tail scripted encounter at 0x13E=0x41, boundary 0x44)"
   },
   {
@@ -2260,8 +2362,8 @@
    "ok"
   ],
   [
-   "Boss present-in-round",
-   "6/6 PROVEN (base 0x033E tail); route PCs decoded 4/6 (R3\u2013R6)",
+   "Boss BODY per round",
+   "6/6 PROVEN bodies (0x061D/0753/082C/07BF/0988/0B35; table 0x444E0\u21920x45592)",
    "ok"
   ],
   [
@@ -2389,8 +2491,8 @@
   }
  },
  "actor_census_from_rom": {
-  "_authority": "Computed from maincpu.bin: field schedule 0x4A104 (record byte1=+0x3E family, byte2 high nibble=+0x752 variant) -> base via 0x45502(var0)/0x45562(var!=0)/boss 0x454ba; plus every immediate write to actor+0x1E (code-spawned). Names PROVEN only as base_code; semantic names are PROPOSED(lexicon)/PENDING, never invented.",
-  "distinct_base_count": 38,
+  "_authority": "Computed from maincpu.bin: field schedule 0x4A104 (record byte1=+0x3E family, byte2 high nibble=(0x752,A4) parallel per-slot variant byte [Cody: NOT an actor-record field]) -> base via 0x45502(var0)/0x45562(var!=0)/boss 0x454ba; plus every immediate write to actor+0x1E (code-spawned). Names PROVEN only as base_code; semantic names are PROPOSED(lexicon)/PENDING, never invented.",
+  "distinct_base_count": 45,
   "variant_base_tables": {
    "var0": "0x45502",
    "var_nonzero": "0x45562",
@@ -2719,7 +2821,7 @@
    },
    {
     "base": "0x033E",
-    "name": "Boss (base 0x033E)",
+    "name": "family-2 loader ROUTE (not a boss body)",
     "name_status": "PARTIAL",
     "creation": [
      "field_schedule_0x4A104 (fam0x02/var0, fam0x02/var1, fam0x02/var2)"
@@ -2744,7 +2846,8 @@
       "mid",
       "late"
      ]
-    }
+    },
+    "semantic_role": "0x033E is the family-2 base-loader mechanism only; the visible per-round boss bodies are 0x061D/0x0753/0x082C/0x07BF/0x0988/0x0B35 (see per_round_boss_body_map)"
    },
    {
     "base": "0x03B3",
@@ -2969,23 +3072,671 @@
    },
    {
     "base": "0x061D",
-    "name": "Centaur (PROPOSED \u2014 quadruped body tiles)",
-    "name_status": "PROPOSED",
+    "name": "Round-1 boss record family 0x061D",
+    "name_status": "PENDING",
     "creation": [
-     "record-loader table 0x45592 rec6/7 via 0x4543e (+0x06 record-type path); NOT in family/variant tables or immediate +0x1E writes"
+     "record-loader table 0x45592 types 14/15 via 0x4543e; Round-1 branch of boss update 0x46BE0; type-15 component creation at 0x457D0"
     ],
-    "visual_note": "raw pc090oj tiles at base 0x061D show four-legged/quadruped bodies with upper torsos = centaur-shaped; matches user report of an un-catalogued centaur enemy. Identity PROPOSED, not ROM-string-proven."
+    "visual_note": "Original-MAME Round-1 boss capture emits the legal 17-piece type-14 composite through compositor 1. The former Round-1 boss body 0x061D label was unsupported and is rejected."
    },
    {
     "base": "0x0988",
-    "name": "Actor 0x0988 (PROPOSED \u2014 serpent/dragon)",
-    "name_status": "PROPOSED",
+    "name": "Round-5 boss record family 0x0988",
+    "name_status": "PENDING",
     "creation": [
-     "record-loader table 0x45592 rec8/9 via 0x4543e (+0x06 record-type path)"
+     "record-loader table 0x45592 types 16/17 via 0x4543e; Round-5 branch of boss update 0x46BE0; type-16 owner creates five type-17 children at 0x423B2"
     ],
-    "visual_note": "raw pc090oj tiles at base 0x0988 show curved serpentine/dragon segments + a head. Large multi-part creature. Identity PROPOSED."
+    "visual_note": "Selector-assisted original-MAME Round-5 capture emits the legal type-16 composite through compositor 1. Visual round-5 boss body 0x0988 resemblance is not used as the semantic identity."
+   },
+   {
+    "base": "0x0753",
+    "name": "Actor 0x0753",
+    "name_status": "PENDING",
+    "creation": [
+     "boss record-loader table 0x45592 via 0x4543E; body/component of a round boss (table 0x444E0)"
+    ],
+    "semantic_role": "Round-2 boss body (record type 19)"
+   },
+   {
+    "base": "0x082C",
+    "name": "Actor 0x082C",
+    "name_status": "PENDING",
+    "creation": [
+     "boss record-loader table 0x45592 via 0x4543E; body/component of a round boss (table 0x444E0)"
+    ],
+    "semantic_role": "Round-3 boss body (record type 20)"
+   },
+   {
+    "base": "0x07BF",
+    "name": "Actor 0x07BF",
+    "name_status": "PENDING",
+    "creation": [
+     "boss record-loader table 0x45592 via 0x4543E; body/component of a round boss (table 0x444E0)"
+    ],
+    "semantic_role": "Round-4 boss body (record type 21)"
+   },
+   {
+    "base": "0x0B35",
+    "name": "Actor 0x0B35",
+    "name_status": "PENDING",
+    "creation": [
+     "boss record-loader table 0x45592 via 0x4543E; body/component of a round boss (table 0x444E0)"
+    ],
+    "semantic_role": "Round-6 boss body (record type 23)"
+   },
+   {
+    "base": "0x0AED",
+    "name": "Actor 0x0AED",
+    "name_status": "PENDING",
+    "creation": [
+     "boss record-loader table 0x45592 via 0x4543E; body/component of a round boss (table 0x444E0)"
+    ],
+    "semantic_role": "Round-6 boss component (record type 24)"
+   },
+   {
+    "base": "0x0CCB",
+    "name": "Actor 0x0CCB",
+    "name_status": "PENDING",
+    "creation": [
+     "boss record-loader table 0x45592 via 0x4543E; body/component of a round boss (table 0x444E0)"
+    ],
+    "semantic_role": "Round-6 boss component (record type 25)"
+   },
+   {
+    "base": "0x0BEB",
+    "name": "Actor 0x0BEB",
+    "name_status": "PENDING",
+    "creation": [
+     "boss record-loader table 0x45592 via 0x4543E; body/component of a round boss (table 0x444E0)"
+    ],
+    "semantic_role": "Round-6 boss component (record type 26)"
    }
   ],
   "record_loader_table_0x45592": "0x4543e resolves actor+0x1E = 0x45592[(+0x06)-8]; rec0..5 = variant!=0 fam6-11 (0x0129,0x02AF,0x03F6,0x0268,0x050B,0x0D5F); rec6/7=0x061D; rec8/9=0x0988. The +0x06 record-type path is a THIRD base source beyond 0x45502/0x45562."
+ },
+ "per_round_boss_body_map": {
+  "_source": "Andy_per_round_boss_actor_map.md; trigger 0x45330->0x4449E; table 0x444E0=[0E,13,14,15,10,17]; base via 0x45592[(type-8)]",
+  "_note": "R1/R5 render+palette are Cody-verified (see Cody_actor_render_verified.json). R2/R3/R4/R6 bodies statically proven; frames/palettes/components PENDING a Cody-style capture.",
+  "rounds": {
+   "1": {
+    "body_record_type": 14,
+    "body_base": "0x061D",
+    "compositor": 1,
+    "slot": "A5+0x708",
+    "trigger": "0x45330->0x4449E",
+    "body_update_dispatch": "0x46BE0 (R1->0x4CE6C, R5->0x4E13C); R2/R3/R4/R6 per-round update UNRESOLVED",
+    "components": "type15/0x061D via 0x457D0"
+   },
+   "2": {
+    "body_record_type": 19,
+    "body_base": "0x0753",
+    "compositor": 1,
+    "slot": "A5+0x708",
+    "trigger": "0x45330->0x4449E",
+    "body_update_dispatch": "0x46BE0 (R1->0x4CE6C, R5->0x4E13C); R2/R3/R4/R6 per-round update UNRESOLVED",
+    "components": "none in body state"
+   },
+   "3": {
+    "body_record_type": 20,
+    "body_base": "0x082C",
+    "compositor": 1,
+    "slot": "A5+0x708",
+    "trigger": "0x45330->0x4449E",
+    "body_update_dispatch": "0x46BE0 (R1->0x4CE6C, R5->0x4E13C); R2/R3/R4/R6 per-round update UNRESOLVED",
+    "components": "none in body state"
+   },
+   "4": {
+    "body_record_type": 21,
+    "body_base": "0x07BF",
+    "compositor": 1,
+    "slot": "A5+0x708",
+    "trigger": "0x45330->0x4449E",
+    "body_update_dispatch": "0x46BE0 (R1->0x4CE6C, R5->0x4E13C); R2/R3/R4/R6 per-round update UNRESOLVED",
+    "components": "none in body state"
+   },
+   "5": {
+    "body_record_type": 16,
+    "body_base": "0x0988",
+    "compositor": 1,
+    "slot": "A5+0x708",
+    "trigger": "0x45330->0x4449E",
+    "body_update_dispatch": "0x46BE0 (R1->0x4CE6C, R5->0x4E13C); R2/R3/R4/R6 per-round update UNRESOLVED",
+    "components": "5x type17/0x0988 via 0x423B2"
+   },
+   "6": {
+    "body_record_type": 23,
+    "body_base": "0x0B35",
+    "compositor": 2,
+    "slot": "A5+0x648",
+    "trigger": "0x45330->0x4449E",
+    "body_update_dispatch": "0x46BE0 (R1->0x4CE6C, R5->0x4E13C); R2/R3/R4/R6 per-round update UNRESOLVED",
+    "components": "types24-26/0x0AED,0x0CCB,0x0BEB via 0x423F4"
+   }
+  }
+ },
+ "phase_partition": {
+  "_source": "Sub-round (phase) boundaries from A5+0x1243 progression variable, decoded by MAME \"Finish Current Sub-Round Now!\" cheat (tools/mame/cheat/output.json) \u2014 reflects the code sub-round advance. Each round = 3 sub-rounds: OUTDOOR / CASTLE(Phase2) / BOSS (per \"Select Starting Round/Sub-Round\" naming).",
+  "_provenance": "R1 INDEPENDENTLY CODE-PROVEN: 0x7E collision whole-block door at map col 0x0F -> A5+0x10E8:=7 wipe -> castle sub-round 0x10 (matches cheat). R2-R6 castle doors are per-cell map tiles (not individually mapped) but the sub-round boundaries are the game transition points (cheat authority + A5+0x1243 variable, code-linked via 0x3a63a copying 0x13E->0x1242). Round/boss boundaries {16,2d,44,5b,72,89} independently proven (0x502AC).",
+  "castle_start_by_round": {
+   "1": "0x10",
+   "2": "0x27",
+   "3": "0x3F",
+   "4": "0x55",
+   "5": "0x6C",
+   "6": "0x83"
+  },
+  "field_partition_method": "0x4A104 schedule, block=(0x13E-round)>>1, families reachable in each sub-round 0x13E range",
+  "rounds": {
+   "1": {
+    "proven": true,
+    "outdoor_13E": "0x00-0x0F",
+    "castle_13E": "0x10-0x15",
+    "boss_13E": "0x16",
+    "castle_start_13E": "0x10",
+    "phase1_field": [
+     "0x004B",
+     "0x00D0",
+     "0x0241",
+     "0x02E8"
+    ],
+    "phase2_field_RETRACTED": [
+     "0x004B",
+     "0x00D0",
+     "0x02E8",
+     "0x033E"
+    ],
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "castle_confirmed_MAME": [
+     "0x0A73 Armored Man A (comp2)",
+     "0x0A5A Armored Man B (comp2)",
+     "0x03F6 Large Bat",
+     "0x050B (bat-like, pending)",
+     "0x0D5F (pending)"
+    ],
+    "subround2_13E_static": "0x11-0x16",
+    "subround2_family2_spawners": [
+     "0x033E f2 v0 c0",
+     "0x033E f2 v0 c3",
+     "0x033E f2 v0 c4"
+    ],
+    "subround2_direct_hostile_bases": [],
+    "subround2_roster_status": "STATIC schedule-proven family/spawner set below. Char-spawned identities PENDING per-scene map-marker decode. Source authority now CODE (schedule 0x4A104), not MAME."
+   },
+   "2": {
+    "proven": true,
+    "outdoor_13E": "0x17-0x26",
+    "castle_13E": "0x27-0x2C",
+    "boss_13E": "0x2D",
+    "castle_start_13E": "0x27",
+    "phase1_field": [
+     "0x004B",
+     "0x00D0",
+     "0x0241",
+     "0x02E8",
+     "0x033E",
+     "0x0400",
+     "0x0420"
+    ],
+    "phase2_field_RETRACTED": [
+     "0x004B",
+     "0x00D0",
+     "0x01CB",
+     "0x02E8",
+     "0x033E"
+    ],
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "subround2_13E_static": "0x28-0x2D",
+    "subround2_family2_spawners": [
+     "0x033E f2 v0 c0",
+     "0x033E f2 v0 c3",
+     "0x033E f2 v0 c4",
+     "0x033E f2 v1 c0"
+    ],
+    "subround2_direct_hostile_bases": [
+     "0x01CB (f5 v0 c0)"
+    ],
+    "subround2_roster_status": "STATIC schedule-proven family/spawner set below. Char-spawned identities PENDING per-scene map-marker decode. Source authority now CODE (schedule 0x4A104), not MAME."
+   },
+   "3": {
+    "proven": true,
+    "outdoor_13E": "0x2E-0x3E",
+    "castle_13E": "0x3F-0x43",
+    "boss_13E": "0x44",
+    "castle_start_13E": "0x3F",
+    "phase1_field": [
+     "0x004B",
+     "0x00D0",
+     "0x01CB",
+     "0x0241",
+     "0x02E8",
+     "0x033E",
+     "0x03B3",
+     "0x0400",
+     "0x0420"
+    ],
+    "phase2_field_RETRACTED": [
+     "0x01CB",
+     "0x033E"
+    ],
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "subround2_13E_static": "0x3F-0x44",
+    "subround2_family2_spawners": [
+     "0x033E f2 v0 c3",
+     "0x033E f2 v0 c4",
+     "0x033E f2 v1 c0",
+     "0x033E f2 v1 c4"
+    ],
+    "subround2_direct_hostile_bases": [
+     "0x01CB (f5 v0 c0)"
+    ],
+    "subround2_roster_status": "STATIC schedule-proven family/spawner set below. Char-spawned identities PENDING per-scene map-marker decode. Source authority now CODE (schedule 0x4A104), not MAME."
+   },
+   "4": {
+    "proven": true,
+    "outdoor_13E": "0x45-0x54",
+    "castle_13E": "0x55-0x5A",
+    "boss_13E": "0x5B",
+    "castle_start_13E": "0x55",
+    "phase1_field": [
+     "0x004B",
+     "0x00D0",
+     "0x01CB",
+     "0x0241",
+     "0x02E8",
+     "0x033E",
+     "0x03B3",
+     "0x0400",
+     "0x06E2",
+     "0x0889"
+    ],
+    "phase2_field_RETRACTED": [
+     "0x004B",
+     "0x00D0",
+     "0x01CB",
+     "0x02E8",
+     "0x033E",
+     "0x03B3",
+     "0x06E2"
+    ],
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "subround2_13E_static": "0x56-0x5B",
+    "subround2_family2_spawners": [
+     "0x033E f2 v0 c3",
+     "0x033E f2 v1 c0",
+     "0x033E f2 v1 c3",
+     "0x033E f2 v1 c4",
+     "0x033E f2 v2 c0"
+    ],
+    "subround2_direct_hostile_bases": [
+     "0x01CB (f5 v1 c0)"
+    ],
+    "subround2_roster_status": "STATIC schedule-proven family/spawner set below. Char-spawned identities PENDING per-scene map-marker decode. Source authority now CODE (schedule 0x4A104), not MAME."
+   },
+   "5": {
+    "proven": true,
+    "outdoor_13E": "0x5C-0x6B",
+    "castle_13E": "0x6C-0x71",
+    "boss_13E": "0x72",
+    "castle_start_13E": "0x6C",
+    "phase1_field": [
+     "0x004B",
+     "0x00D0",
+     "0x01CB",
+     "0x02E8",
+     "0x033E",
+     "0x03B3",
+     "0x0400",
+     "0x0420",
+     "0x043A",
+     "0x0889"
+    ],
+    "phase2_field_RETRACTED": [
+     "0x00D0",
+     "0x01CB",
+     "0x02E8",
+     "0x033E",
+     "0x03B3",
+     "0x0400"
+    ],
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "subround2_13E_static": "0x6D-0x72",
+    "subround2_family2_spawners": [
+     "0x033E f2 v1 c3",
+     "0x033E f2 v1 c4",
+     "0x033E f2 v2 c0",
+     "0x033E f2 v2 c3",
+     "0x033E f2 v2 c4"
+    ],
+    "subround2_direct_hostile_bases": [
+     "0x01CB (f5 v1 c0)",
+     "0x03B3 (f6 v0 c0)"
+    ],
+    "subround2_roster_status": "STATIC schedule-proven family/spawner set below. Char-spawned identities PENDING per-scene map-marker decode. Source authority now CODE (schedule 0x4A104), not MAME."
+   },
+   "6": {
+    "proven": true,
+    "outdoor_13E": "0x73-0x82",
+    "castle_13E": "0x83-0x88",
+    "boss_13E": "0x89",
+    "castle_start_13E": "0x83",
+    "phase1_field": [
+     "0x004B",
+     "0x00D0",
+     "0x01CB",
+     "0x02E8",
+     "0x033E",
+     "0x03B3",
+     "0x0400",
+     "0x0420",
+     "0x0889"
+    ],
+    "phase2_field_RETRACTED": [
+     "0x00D0",
+     "0x01CB",
+     "0x02E8",
+     "0x033E",
+     "0x03B3"
+    ],
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "subround2_13E_static": "0x7E-0x89",
+    "subround2_family2_spawners": [
+     "0x033E f2 v1 c4",
+     "0x033E f2 v2 c0",
+     "0x033E f2 v2 c3",
+     "0x033E f2 v2 c4"
+    ],
+    "subround2_direct_hostile_bases": [
+     "0x00D0 (f1 v1 c0)",
+     "0x01CB (f5 v1 c0)",
+     "0x02E8 (f3 v1 c0)",
+     "0x03B3 (f6 v0 c0)",
+     "0x0400 (f11 v0 c1)",
+     "0x0889 (f10 v0 c1)"
+    ],
+    "subround2_roster_status": "STATIC schedule-proven family/spawner set below. Char-spawned identities PENDING per-scene map-marker decode. Source authority now CODE (schedule 0x4A104), not MAME."
+   }
+  },
+  "_CORRECTION": "2026-09-18: Castle (Phase-2) roster is NOT a 0x4A104 field-schedule partition (RETRACTED). The 0x4A104 field schedule supplies OUTDOOR ambient enemies + boss-family placeholders only. Castle enemies come from the GROUND-MARKER spawn system.",
+  "subround2_static_from_schedule": {
+   "_source": "Field schedule 0x4A104 family-2 (0x033E) region at each round end (tools/analysis/decode_field_schedule.py). Round boundaries 0x502AC {16,2d,44,5b,72,89} code-proven. Corroborates the earlier MAME-cheat castle_start values within +/-1-2, now code-grounded.",
+   "windows_13e": {
+    "1": "0x11-0x16",
+    "2": "0x28-0x2D",
+    "3": "0x3F-0x44",
+    "4": "0x56-0x5B",
+    "5": "0x6D-0x72",
+    "6": "0x7E-0x89"
+   },
+   "boss_boundary_13e": {
+    "1": "0x16",
+    "2": "0x2D",
+    "3": "0x44",
+    "4": "0x5B",
+    "5": "0x72",
+    "6": "0x89"
+   }
+  },
+  "_castle_start_note": "MAME-cheat-sourced values; superseded for authority by subround2_static_from_schedule (code-grounded). Retained for cross-reference."
+ },
+ "castle_spawn_system": {
+  "source": "Andy_phase2_actor_roster.md (this pass)",
+  "mechanism": "ground spawner 0x41180 scans the live collision grid (0x10DE00, via 0x53a2e) for a marker = HIGH byte of the collision word (low byte = floor/door/hazard). Marker found -> 0x40a06 lookup (table 0x40a86) sets actor+0x05 type -> 0x40baa dispatch -> enemy init.",
+  "marker_to_type_table_0x40a86": {
+   "0x31": [
+    5
+   ],
+   "0x33": [
+    4
+   ],
+   "0x34": [
+    1,
+    2
+   ],
+   "0x35": [
+    6
+   ],
+   "0x38": [
+    10
+   ],
+   "0x39": [
+    3
+   ],
+   "0x3B": [
+    11
+   ],
+   "0x3C": [
+    12
+   ],
+   "0x32": [
+    8
+   ],
+   "0x36": [
+    9
+   ],
+   "0x3E": [
+    1,
+    13
+   ],
+   "0x3F": [
+    2,
+    13
+   ],
+   "0x40": [
+    1,
+    14
+   ],
+   "0x41": [
+    2,
+    14
+   ],
+   "0x37": [
+    7
+   ]
+  },
+  "confirmed_enemy_bases": {
+   "type15": "0x0A73 (armored man, 0x40CCC/0x40CF0; family 0x0C)",
+   "specific_types": [
+    "0x0275 (0x40DE2)",
+    "0x00F4 (0x40E9C)",
+    "0x0DAB (0x40F82)",
+    "0x09EA (0x40FAC/FCC)"
+   ],
+   "type15_armored": "0x0A73 / 0x0A5A (armored men, compositor 2) \u2014 MAME-confirmed R1"
+  },
+  "common_types_1_14": "route to 0x47140 (walking) / 0x473B8 (flying) -> 0x3CEB0 sets base from actor+0x3E family (via family tables 0x45502). Per-type family assignment NOT yet fully decoded.",
+  "status": "MECHANISM PROVEN; per-round Castle enemy IDENTITIES PENDING (need type->base for common types + precise per-castle marker geometry, or MAME corroboration).",
+  "markers_are_not_all_enemies": "0x3A and 0x3D appear in blocks but are NOT in table 0x40a86 -> likely hazard/decoration markers, not enemies.",
+  "MAME_corroboration_R1": {
+   "method": "ORIGINAL ARCADE MAME (0.276) live actor-array dump (A5+0x2C8 stride 0x40); coin+start, sampled distinct active actors +0x1E/+0x3E/+0x06/+0x38/+0x01/+0x27 across R1 gameplay.",
+   "observed_bases": {
+    "0x004B": "Lizardman \u2014 field/outdoor (fam0,comp0)",
+    "0x00D0": "Chimera \u2014 field (fam1,comp0)",
+    "0x02E8": "Four-Armed \u2014 field (fam3,comp0)",
+    "0x0A73": "ARMORED MAN A \u2014 comp2, ground-marker/code-spawned (NOT field schedule)",
+    "0x0A5A": "ARMORED MAN B (variant) \u2014 comp2, fam0x0C",
+    "0x03F6": "Large Bat \u2014 type0x0A",
+    "0x050B": "Actor 0x050B \u2014 type0x0C (bat-like, IDENTITY PENDING)",
+    "0x0D5F": "Actor 0x0D5F \u2014 type0x0D (IDENTITY PENDING)",
+    "0x033E": "boss family",
+    "0x0275": "projectile/effect",
+    "0x019D": "projectile",
+    "0x0179": "effect",
+    "0x00F4": "effect (multi-anim)",
+    "0x0DAB": "effect"
+   },
+   "key_finding": "The Castle-scene enemies (armored men 0x0A73/0x0A5A, bats) come from the ground-marker/code-spawn system with compositor 2 \u2014 NEVER from the 0x4A104 field schedule. Confirms the field-schedule Castle partition was wrong.",
+   "limitation": "Clean per-scene (outdoor vs castle) separation and R2-R6 castle rosters require a full playthrough trace with player input (memory-forcing 0x13E / start-select 0x5FF9F did not cleanly load the castle scene). R2-R6 Castle rosters PENDING that capture."
+  }
+ },
+ "enemy_creation_systems": {
+  "_doc": "docs/design/Andy_actor_system_architecture.md (code-based model; sub-round terminology)",
+  "systems": {
+   "FIELD_SCHEDULE": "0x4A104 (installer 0x4A086, consumer 0x4A0D8/0x40A1E). Primary spawn source across ALL sub-rounds. block=(0x13E-round)>>1; 40-byte block = 5 refillable 8-byte slots; 0x49f30 finds free slot (tracks +0x26, counts +0x03==0). Slot=[class(+0x04), family(+0x3E), lo-nibble comp(+0x38)/hi-nibble variant(+0x752), +0x36, timer(+0x1C), +0x34]; class seeds +0x05=class+1.",
+   "FAMILY2_ROUTE": "family +0x3E==2 -> 0x45494 selects boss-family table by +0x38 comp (0->0x454ba,3->0x454d2,else->0x454ea) indexed by +0x752 variant; all in-range = base 0x033E anim 0x93. This is the sub-round-2 spawner mechanism; variant advances per round-group. 0x033E semantic role (visible enemy vs child-spawner) UNRESOLVED.",
+   "GROUND_MARKER": "0x41180 marker state machine. +0x03==0: floor-follower scans 0x10DE00 HIGH-byte markers 0x31-0x3c -> 0x40a86 transitions +0x05 -> config 0x41d26 (0x41d08) sets +0x0D. +0x03!=0: char-targeted, scans for own +0x0D char (0x45-0x7b) -> 0x40baa dispatch, A5+0x13E-gated -> enemy init.",
+   "SCRIPTED_RECORDTYPE": "0x45342/0x4543E; +0x06 record type -> base 0x45592; bats, special enemies, boss bodies (0x444E0[round]).",
+   "CHILD_DIRECT": "boss children (0x423B2/0x423F4) + projectiles/effects set +0x1E directly."
+  },
+  "base_resolution": {
+   "family": "0x4544E -> 0x45502(var0)/0x45562(var!=0) by +0x3E",
+   "record_type": "0x4543E -> 0x45592 by (+0x06 - 8)",
+   "direct": "movew #base,+0x1E in init code"
+  },
+  "CORRECTION": "Castle roster is NOT a 0x4A104 field-schedule partition (retracted). Castle enemies = GROUND_MARKER (scene map markers) + SCRIPTED_RECORDTYPE. Verified vs live MAME (armored men 0x0A73/0x0A5A comp2, bats).",
+  "remaining_gap": "Locate each scene (Outdoor/Castle/Cave) map/marker data source to statically enumerate per-scene markers -> enemies. Outdoor map = 16-plane stream 0x1691C by global 0x13E; castle/cave scenes reload from 0x3951C tile ptrs / section loaders 0x56128/0x561A0.",
+  "_correction_2026-09-19": "FIELD_SCHEDULE is NOT outdoor-only and GROUND_MARKER is NOT castle-only. These are mechanisms; reachability per sub-round is a function of A5+0x13E gating and the map marker set. The field schedule 0x4A104 spans ALL sub-rounds; in each sub-round-2 window it is dominated by family-2 (0x033E) spawners."
+ },
+ "subround2_static_rosters": {
+  "_authority": "STATIC schedule decode + 0x41180/0x40baa dispatch. NOT MAME/screenshots. IDENTITY PENDING items are technical bases only.",
+  "_doc": "docs/design/Andy_phase2_actor_roster.md",
+  "_evidence": [
+   "analysis/actor_subround2/field_schedule_decode.txt",
+   "analysis/actor_subround2/subround2_schedule_rosters.json"
+  ],
+  "family_bases": {
+   "0": "0x004B",
+   "1": "0x00D0",
+   "2": "0x033E(route)",
+   "3": "0x02E8",
+   "4": "0x0420",
+   "5": "0x01CB",
+   "6": "0x03B3",
+   "7": "0x043A",
+   "8": "0x0241",
+   "9": "0x06E2",
+   "10": "0x0889",
+   "11": "0x0400"
+  },
+  "rounds": {
+   "round1": {
+    "subround2_13e": "0x11-0x16",
+    "boss_boundary_13e": "0x16",
+    "schedule_family2_spawners": [
+     "0x033E f2 v0 c0",
+     "0x033E f2 v0 c3",
+     "0x033E f2 v0 c4"
+    ],
+    "schedule_nonfamily2_bases": []
+   },
+   "round2": {
+    "subround2_13e": "0x28-0x2D",
+    "boss_boundary_13e": "0x2D",
+    "schedule_family2_spawners": [
+     "0x033E f2 v0 c0",
+     "0x033E f2 v0 c3",
+     "0x033E f2 v0 c4",
+     "0x033E f2 v1 c0"
+    ],
+    "schedule_nonfamily2_bases": [
+     "0x01CB (f5 v0 c0)"
+    ]
+   },
+   "round3": {
+    "subround2_13e": "0x3F-0x44",
+    "boss_boundary_13e": "0x44",
+    "schedule_family2_spawners": [
+     "0x033E f2 v0 c3",
+     "0x033E f2 v0 c4",
+     "0x033E f2 v1 c0",
+     "0x033E f2 v1 c4"
+    ],
+    "schedule_nonfamily2_bases": [
+     "0x01CB (f5 v0 c0)"
+    ]
+   },
+   "round4": {
+    "subround2_13e": "0x56-0x5B",
+    "boss_boundary_13e": "0x5B",
+    "schedule_family2_spawners": [
+     "0x033E f2 v0 c3",
+     "0x033E f2 v1 c0",
+     "0x033E f2 v1 c3",
+     "0x033E f2 v1 c4",
+     "0x033E f2 v2 c0"
+    ],
+    "schedule_nonfamily2_bases": [
+     "0x01CB (f5 v1 c0)"
+    ]
+   },
+   "round5": {
+    "subround2_13e": "0x6D-0x72",
+    "boss_boundary_13e": "0x72",
+    "schedule_family2_spawners": [
+     "0x033E f2 v1 c3",
+     "0x033E f2 v1 c4",
+     "0x033E f2 v2 c0",
+     "0x033E f2 v2 c3",
+     "0x033E f2 v2 c4"
+    ],
+    "schedule_nonfamily2_bases": [
+     "0x01CB (f5 v1 c0)",
+     "0x03B3 (f6 v0 c0)"
+    ]
+   },
+   "round6": {
+    "subround2_13e": "0x7E-0x89",
+    "boss_boundary_13e": "0x89",
+    "schedule_family2_spawners": [
+     "0x033E f2 v1 c4",
+     "0x033E f2 v2 c0",
+     "0x033E f2 v2 c3",
+     "0x033E f2 v2 c4"
+    ],
+    "schedule_nonfamily2_bases": [
+     "0x00D0 (f1 v1 c0)",
+     "0x01CB (f5 v1 c0)",
+     "0x02E8 (f3 v1 c0)",
+     "0x03B3 (f6 v0 c0)",
+     "0x0400 (f11 v0 c1)",
+     "0x0889 (f10 v0 c1)"
+    ]
+   }
+  },
+  "char_spawned_identities_status": "PENDING per-scene map-column marker decode (0x507C5->0x3951C->column-layout->collision high-byte). Proven direct-handler base in R1 sub-round-2: armored man 0x0A73/0x0A5A comp2."
+ },
+ "actor_state_machine": {
+  "_authority": "STATIC decompilation of maincpu.bin (0x40BAA jump table + handler bodies). No MAME/Genesis. counter 360.",
+  "_doc": "docs/design/Andy_actor_state_machine_decompilation.md",
+  "_evidence": [
+   "analysis/actor_subround2/40baa_state_dispatch.txt",
+   "tools/analysis/decode_40baa_jumptable.py"
+  ],
+  "dispatch": "0x40BAA: state=actor+0x05; jmp table at 0x40bc2 (35 entries, self-relative 16-bit offsets)",
+  "state_handlers": {
+   "0x00": "0x41180 latent scanner/hunter (all actors start here)",
+   "0x01,0x02,0x0D,0x0E": "0x473b8 common FLYING-enemy update",
+   "0x03-0x0C,0x12": "0x47140 common WALKING-enemy update",
+   "0x0F": "0x40CCC ARMORED MAN: base 0x0A73(sword)->0x0A5A(ball&chain), comp2, family 0x0C; sub 0x0275",
+   "0x10": "0x40C08",
+   "0x11": "0x4684e",
+   "0x13,0x14": "0x4375c",
+   "0x15": "0x43840",
+   "0x16": "0x43ae6",
+   "0x17": "0x43f88",
+   "0x18,0x1C": "0x44082",
+   "0x19": "0x4396a",
+   "0x1A": "0x43b32",
+   "0x1B": "0x43ecc",
+   "0x1D,0x21": "0x4415a",
+   "0x1E": "0x40E88(marker recheck+0x13e gate)",
+   "0x1F": "0x40EDA",
+   "0x20": "0x40EDE",
+   "0x22": "0x43636"
+  },
+  "char_hunter_enemy_bases_direct": {
+   "0x40CCC state0x0F": "0x0A73/0x0A5A armored man (+0x0275 sub)",
+   "0x40E9C": "0x00F4",
+   "0x40F82": "0x0DAB",
+   "0x40FAC/0x40FCC": "0x09EA"
+  },
+  "update_routine_base_pool": "0x43xxx-0x44xxx enemy updates assign bases incl 0x0224/0x0266 (common bodies), 0x09EA (common projectile/thrown), 0x0179,0x0235,0x01FC,0x0236,0x0546,0x05E9,0x00F4",
+  "transformation_model": "Family-2 (base 0x033E, Y=0x180 offscreen) actors are SELF-TRANSFORMING scanners: state0->0x41180 scans collision-grid markers; on target-marker hit the enemy-state handler REWRITES the SAME record +0x1E/+0x3E/+0x38/+0x01 in place. 0x033E is never rendered as itself. Only 0x4103E allocates a second (latent child hunter) actor.",
+  "floor_vs_letter_markers": "floor markers 0x31-0x3c (nav/waypoint, via 0x40a86->states 3-14); letter markers 0x45-0x7b (enemy placement, via 0x41180 big dispatch->states 0x0F,0x13-0x22), 0x13E-gated"
  }
 }

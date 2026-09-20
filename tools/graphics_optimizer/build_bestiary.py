@@ -20,6 +20,7 @@ republish the same artifact — in the same pass.
 import json, base64, io
 from pathlib import Path
 from PIL import Image
+from compositor_vm import ActorRenderState, SpecialCompositorProgram, visible_pieces
 ROOT = Path(__file__).resolve().parents[2]
 CS = ROOT/'analysis/graphics_optimizer/round1_phase1_corpus/contact_sheets'   # LEGACY/COMPOSER inputs
 LEX = json.load(open(ROOT/'analysis/enemy_sprite_lexicon/families.json'))       # LEGACY geometry input
@@ -72,32 +73,24 @@ def render_png(fn, scale=3):
     if bb: im=im.crop(bb)
     return datauri(im.resize((im.width*scale,im.height*scale),Image.NEAREST))
 
-## ---- offline emulation of compositor VM 0x3C902 (general path, comp tables) ----
-_VMTAB={0:0x3d09e,1:0x4771c,2:0x3f0ce,3:0x40004,4:0x4002c}
-def _s8(v): return v-256 if v>=128 else v
-def vm_pieces(base, anim, table=0):
-    tab=_VMTAB[table]; a0=tab+int.from_bytes(mc[tab+anim*2:tab+anim*2+2],'big'); out=[]; n=20
-    while n>0:
-        ctrl=mc[a0]; a0+=1
-        if ctrl==0xFF: break
-        if ctrl&0xF0 not in (0x00,0x40,0x80,0x70): return None   # special op — not handled
-        pf=1 if ctrl&0xF0==0x40 else 0
-        b1=mc[a0]; b2=mc[a0+1]; b3=mc[a0+2]; a0+=3
-        tile=(base-b2 if pf else base+b2)&0x3FFF
-        out.append((tile, _s8(b3), _s8(b1), pf))   # (tile, x=coordB, y=coordA, hflip)  [validated on Lizardman]
-        n-=1
-    return out
 def render_vm(base, anim, pal, table=0, scale=4):
-    pcs=vm_pieces(base, anim, table)
-    if not pcs: return None
+    try:
+        sat=visible_pieces(ActorRenderState(base, anim, table))
+    except SpecialCompositorProgram:
+        return None
+    if not sat: return None
+    def s9(value):
+        value &= 0x1ff
+        return value - 0x200 if value & 0x100 else value
+    pcs=[(p.tile & 0x1fff, s9(p.x), s9(p.y), p.hflip, p.vflip) for p in sat]
     xs=[p[1] for p in pcs]; ys=[p[2] for p in pcs]; ox,oy=min(xs),min(ys)
     W=max(xs)-ox+16; H=max(ys)-oy+16
     img=Image.new('RGBA',(W,H),(0,0,0,0))
-    for tile,x,y,pf in pcs:
+    for tile,x,y,fh,fv in pcs:
         t=dec(tile)
         for yy in range(16):
             for xx in range(16):
-                idx=t[yy][15-xx if pf else xx]
+                idx=t[15-yy if fv else yy][15-xx if fh else xx]
                 if idx: img.putpixel((x-ox+xx,y-oy+yy),pal[idx]+(255,))
     bb=img.getbbox()
     if bb: img=img.crop(bb)
@@ -145,7 +138,7 @@ def badges(a):
                 'PROVISIONAL':'part','PENDING':'pend','UNRESOLVED':'pend'}.get(v,'pend')
     frtxt={'COMPOSER_PROVEN':'FRAME PROVEN','PROVISIONAL':'FRAME PROVISIONAL','PENDING':'FRAME PENDING'}.get(fr,'FRAME '+fr)
     php=a.get('phase_presence','')
-    phb=('<span class="b part">PHASE position-based</span>' if 'position' in php else '<span class="b pend">PHASE PENDING</span>')
+    phb=('<span class="b ok">OUTDOOR PROVEN</span>' if php.startswith('FIELD-SCHEDULE') else ('<span class="b part">PHASE position-based</span>' if 'position' in php else '<span class="b pend">PHASE PENDING</span>'))
     return (f'<span class="b {bmap(idn)}">IDENTITY {idn}</span>'
             f'<span class="b ok">ROUND PROVEN</span>{phb}'
             f'<span class="b {bmap(fr)}">{frtxt}</span>'
@@ -164,21 +157,31 @@ def card(a, rnd, extra_class=''):
       <dt>Frame src</dt><dd class="mono">{a['frame_source']}</dd></dl>{sw}</div></article>'''
 
 def boss_card(a):
-    rn=a.get('render',{}); pl=a.get('palette',{})
-    if rn.get('method')=='rom_geo_boss' and rn.get('geo_id') in GEOM and GEOM[rn['geo_id']].get('representative_pieces'):
-        pal,pidx=rom_field_palette(rn['palette_round'], rn['palette_nibble'])
-        img=render_geo(rn['geo_id'], pal)
-        sw=(f'<div class="palbank ok">boss bank · nibble 0x{rn["palette_nibble"]:X} · pool {pidx} · ROM per-round</div>'
+    rn=a.get('render',{}); rnd=a['round_presence'][0]; ver=rn.get('verified')
+    nib=rn.get('palette',{}).get('nibble',0xF)
+    pal,pidx=rom_field_palette(rnd, nib)
+    img=render_vm(rn['base'], rn['anim'], pal, rn.get('compositor_table',1)) if rn.get('method')=='vm' else None
+    if img:
+        tag='body frame + palette · MAME-verified (Cody)' if ver else 'body frame = ROM init-anim · UNVERIFIED'
+        frame=f'<div class="frame"><div class="provtag">{tag}</div><img src="{img}"></div>'
+        sw=(f'<div class="palbank {"ok" if ver else "part"}">boss line 0x{nib:X} · pool {pidx} · ROM per-round{" (Cody-verified)" if ver else " · line inferred"}</div>'
             '<div class="sw">'+''.join(f'<i style="background:rgb({r},{g},{b})"></i>' for r,g,b in pal)+'</div>')
-        frame=f'<div class="frame"><div class="provtag">composite · per-round palette</div><img src="{img}"></div>'
-        bar='<span class="b ok">ROUTE PROVEN</span><span class="b ok">ROUND PROVEN</span><span class="b ok">FRAME COMPOSITE</span><span class="b ok">PALETTE PER-ROUND</span><span class="b part">SEED/COMPONENTS PARTIAL</span>'
     else:
-        frame=f'<div class="frame pend"><b>CLEAN BOSS FRAME PENDING</b><br><span>{a.get("unresolved_reason","")}</span></div>'
-        sw=''; bar='<span class="b ok">ROUTE PROVEN</span><span class="b ok">ROUND PROVEN</span><span class="b part">SEED PARTIAL</span><span class="b pend">BODY PENDING</span><span class="b pend">PALETTE PENDING</span>'
+        frame=f'<div class="frame pend"><b>BODY FRAME PENDING</b><br><span>{a.get("unresolved_reason","")}</span></div>'; sw=''
+    fb='ok' if ver else 'part'
+    bar=(f'<span class="b ok">BODY PROVEN</span><span class="b ok">ROUND PROVEN</span>'
+         f'<span class="b ok">TYPE 0x{a.get("boss_body_record_type",0):02X}</span>'
+         f'<span class="b {fb}">{"FRAME PROVEN" if ver else "FRAME UNVERIFIED"}</span>'
+         f'<span class="b {fb}">{"PALETTE PROVEN" if ver else "PALETTE line-inferred"}</span>')
     return f'''<article class="card boss">{frame}
       <div class="body"><div class="bar">{bar}</div>
-      <h4>{a['semantic_name']}</h4><p class="desc">{a['description']}. <b>base 0x033E is the shared family-2 route, NOT the identity.</b> {a.get("creation","")} {a.get("anim_override","")}</p>
-      <dl><dt>Base</dt><dd class="mono">{a['base_graphics']}</dd><dt>Path</dt><dd>{a['spawn_route']}</dd></dl>{sw}</div></article>'''
+      <h4>{a['semantic_name']}</h4><p class="desc">{a['description']}</p>
+      <dl><dt>Body base</dt><dd class="mono">{a['base_graphics']}</dd>
+      <dt>Record type</dt><dd class="mono">{a.get("boss_body_record_type")} (0x45592→0x4543E)</dd>
+      <dt>Compositor</dt><dd class="mono">{a.get("boss_compositor")}</dd>
+      <dt>Slot</dt><dd class="mono">{a.get("boss_body_slot")}</dd>
+      <dt>Trigger</dt><dd class="mono">{a.get("boss_trigger")}</dd>
+      <dt>Components</dt><dd>{a.get("boss_components")}</dd></dl>{sw}</div></article>'''
 
 # ---- assemble from manifest ----
 actors=M['actors']; scripted=M.get('scripted_routes',[])
@@ -200,6 +203,27 @@ def bankrow(r):
     return (f'<div class="phaserow"><div class="pbox"><b>Background banks (TT) — 0x13E {b["range"]}</b>'
             f'<span class="mono bankseq">{b["banks"]}</span>'
             f'<span class="{cls}">{lbl}</span></div></div>')
+PP=M.get('phase_partition',{}).get('rounds',{})
+BASENAME={a['base_graphics']:a['semantic_name'] for a in actors}
+def phase_section(r):
+    d=PP.get(str(r))
+    if not d: return ''
+    def lst(fs): return ", ".join(f'<span class="mono">{bs}</span> {BASENAME.get(bs,"")}'.strip() for bs in fs) or '<span class="muted">none</span>'
+    # SUB-ROUND 2: static schedule-proven content (code, not MAME). family-2 = 0x033E spawner mechanism.
+    sp=d.get('subround2_family2_spawners',[]); dh=d.get('subround2_direct_hostile_bases',[])
+    s2win=d.get('subround2_13E_static', d.get('castle_13E','?'))
+    sp_html=", ".join(f'<span class="mono">{x}</span>' for x in sp) or '<span class="muted">none</span>'
+    dh_html=", ".join(f'<span class="mono">{x}</span>' for x in dh) or '<span class="muted">none</span>'
+    conf=d.get('castle_confirmed_MAME')
+    corro=('<div class="muted" style="margin-top:4px"><i>Corroboration (MAME, not authority):</i> '
+           +", ".join(f'<span class="mono">{c}</span>' for c in conf)+'</div>') if conf else ''
+    cas=(f'<span class="ok"><b>Schedule (0x4A104) content — STATIC:</b> family-2 spawners {sp_html}'
+         f' &nbsp;<i>(base 0x033E route mechanism, anim 0x93)</i>; direct hostile bases {dh_html}.</span>'
+         f'<div class="pend" style="margin-top:4px">Char-spawned identities (0x41180 <span class="mono">+0x03≠0</span>, target char <span class="mono">+0x0D</span> ∈ 0x45–0x7b) PENDING per-scene map-marker decode. SUB-ROUND-2 ROSTER PARTIAL.</div>{corro}')
+    return (f'<div class="phaserow">'
+            f'<div class="pbox"><b>SUB-ROUND 1 · 0x13E {d["outdoor_13E"]}</b><span class="ok">0x4A104 field schedule: {lst(d["phase1_field"])}</span></div>'
+            f'<div class="pbox"><b>SUB-ROUND 2 · 0x13E {s2win}</b>{cas}</div>'
+            f'</div>')
 for r in range(1,7):
     cards="".join(card(a,r) for a in sorted(field_in_round(r), key=lambda a:a['actor_family_3e']))
     scr=[s for s in scripted if s['round']==r]
@@ -211,7 +235,9 @@ for r in range(1,7):
         sctab='<p class="muted">No individually-proven Round-'+str(r)+' scripted route yet (dispatch family identified).</p>'
     boss=boss_card(bosses[r]) if r in bosses else ''
     rounds_html+=f'''<section class="round"><div class="rhead"><h2>Round {r}</h2><span class="rmeta mono">A5+0x13E {per[str(r)]["r13E"]}</span></div>
-      <h3 class="grp">Field roster — PROVEN for round <span>(0x4A104 schedule; spans the whole round — Phase-1/2 split blocked on door-tile 0x13E)</span></h3><div class="grid">{cards}</div>
+      <h3 class="grp">Field roster — PROVEN for round <span>(0x4A104 schedule)</span></h3><div class="grid">{cards}</div>
+      <h3 class="grp">SUB-ROUND 1 / SUB-ROUND 2 — boundaries code-derived (round ends 0x502AC; sub-round-2 = schedule family-2 region; R1 0x7E door 0x0F→0x10 proven)</h3>
+      {phase_section(r)}
       {bankrow(r)}
       <h3 class="grp">Scripted encounters <span>(scene-driven, A5+0x13E dispatch)</span></h3>{sctab}
       <h3 class="grp">Boss</h3><div class="grid">{boss}</div></section>'''
@@ -230,14 +256,14 @@ def census_rows():
     return "".join(out)
 def newfound_section():
     items=[]
-    specs=[('0x061D',0x061D,3,0,'CENTAUR — PROPOSED','Quadruped/horse-body tiles with upper torsos. Loaded via record-loader table 0x45592 rec6/7 (0x4543e, +0x06 path) — missed by earlier passes. Identity PROPOSED from tile shape + user report; not ROM-string-proven.'),
-             ('0x0988',0x0988,3,0,'Serpent/Dragon — PROPOSED','Curved serpentine segments + head. Table 0x45592 rec8/9. PROPOSED.')]
-    for base,code,rnd,nib,title,note in specs:
+    specs=[('0x061D',0x061D,0x00,1,15,'Round-1 boss record family','Record types 14/15. Static owner/update path 0x46BE0 and original-MAME Round-1 boss SAT capture. Round-1 boss BODY per table 0x444E0.'),
+             ('0x0988',0x0988,0x82,5,15,'Round-5 boss record family','Record types 16/17. Type 16 creates five type-17 child records at 0x423B2; semantic boss name remains unassigned.')]
+    for base,code,anim,rnd,nib,title,note in specs:
         pal,_=rom_field_palette(rnd,nib)
-        img=render_raw(code,8,7,pal)
-        items.append(f'<article class="card"><div class="frame"><div class="provtag">raw tiles · not composited</div><img src="{img}"></div><div class="body"><div class="bar"><span class="b part">IDENTITY PROPOSED</span><span class="b part">RAW TILES</span><span class="b pend">LAYOUT PENDING</span></div><h4>{title} <span class="mono">{base}</span></h4><p class="desc">{note}</p></div></article>')
-    return ('<section class="round"><h2>Newly found actors — raw ROM tile evidence</h2>'
-            '<div class="statusbox part"><b>Two bases earlier passes missed</b> (loaded via the <span class="mono">+0x06</span> record-type path through <span class="mono">0x4543e</span>/table <span class="mono">0x45592</span>, distinct from the family/variant tables). Shown as <b>raw pc090oj tiles</b> — the compositor <span class="mono">0x3C902</span> layout is not yet decoded, so tile arrangement is not final; this is honest sprite-content evidence, not a finished frame.</div>'
+        img=render_vm(code,anim,pal,1)
+        items.append(f'<article class="card"><div class="frame"><div class="provtag">legal arcade frame · compositor 1</div><img src="{img}"></div><div class="body"><div class="bar"><span class="b ok">SAT-MATCHED</span><span class="b ok">OWNER PATH PROVEN</span><span class="b pend">SEMANTIC NAME PENDING</span></div><h4>{title} <span class="mono">{base}</span></h4><p class="desc">{note}</p></div></article>')
+    return ('<section class="round"><h2>Verified boss actor families — legal compositor frames</h2>'
+            '<div class="statusbox ok"><b>Two bases earlier passes misclassified</b> (loaded via the <span class="mono">+0x06</span> record-type path through <span class="mono">0x4543e</span>/table <span class="mono">0x45592</span>). These frames use live original-arcade animation indices and compositor 1; piece order, tiles, flips, and relative coordinates match original SAT exactly.</div>'
             f'<div class="grid">{"".join(items)}</div></section>')
 
 census_html=newfound_section()+f"""<section class="round"><h2>Complete Actor Census — from ROM decompilation</h2>
