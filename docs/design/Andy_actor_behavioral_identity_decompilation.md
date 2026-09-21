@@ -174,3 +174,29 @@ init), `0x41F9C` (jump arc); a score/drop hook was not reached in the H5 tails.
 - **H6:** full marker→state→base materialization route table from `0x41180` (every branch).
 - **H7:** damage/death + projectile/child emission (base 0x09EA emit sites), score/drop calls.
 - `0x3CEB0` full body (motion/collision detail) and `0x40C08` state 0x10.
+
+---
+## C SOURCE BACKFILL (recovery pass) — auditable decompilation preserved
+The decompilation in this doc (and the A/B/C docs) is now preserved as real, syntactically-valid C
+under `analysis/decompilation/c/` (semantic tree + `raw/` per-PC reconstructions), indexed by
+`analysis/decompilation/c/function_coverage.csv` and enforced by
+`tools/analysis/check_actor_decompilation_coverage.py` (PASS: 26 COMPLETE / 8 PARTIAL / 13 STUB;
+H5 10/10). `gcc -std=c11 -fsyntax-only` passes on the whole tree. The historical Ghidra export is
+preserved unchanged at `analysis/decompilation/raw_snapshots/decompiler_export_pre_actor_backfill.c`.
+
+**Honest status downgrades made during backfill** (previous Markdown said or implied "complete";
+the preserved C shows these are PARTIAL, so they are downgraded here):
+- H5 said "10/10 completely decoded" → **7/10 COMPLETE** in C (0x4375C, 0x43840, 0x43AE6, 0x43F88,
+  0x44082, 0x43ECC, 0x43636). **PARTIAL**: `0x4396A` (state 0x19 jump-arc tail summarized),
+  `0x43B32` (state 0x1A `0x13E`-band re-target matrix summarized), `0x4415A` (state 0x1D/0x21 char
+  matrix summarized). Their full bodies remain in the disasm/export; the C captures the decided shape.
+- H2/H3: `0x47140` COMPLETE; **`0x473B8` PARTIAL** (per-state anim tail summarized); the shared core
+  **`0x3CEB0` is STUB_ONLY** (field semantics +0x07/08/09/0E/12 proven, full body not traced).
+- CHECKPOINT A/B: `0x41180` was PARTIAL in C; **now COMPLETE** — CHECKPOINT H6 lifted the full
+  materialization dispatch (28 routes), per-branch position arithmetic, and `+0x0E` cell-address
+  semantics (see `docs/design/Andy_h6_marker_materialization_decompilation.md`). `0x40C08` PARTIAL.
+- STUBs (extern, body not traced): `0x4092E, 0x41CFA, 0x4734A, 0x41F9C, 0x43F4E, 0x447F0,
+  0x4382E, 0x468D0, 0x453D6`. (H6 upgraded `0x4103A` STUB→PARTIAL and `0x41BEE` STUB→COMPLETE;
+  `0x42380` gained a PARTIAL raw lift.)
+
+Standing rule from now on: raw+semantic C + coverage CSV + syntax-check FIRST, then the Markdown.

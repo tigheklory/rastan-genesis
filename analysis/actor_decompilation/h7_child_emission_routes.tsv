@@ -1,0 +1,5 @@
+parent_pc	trigger	creator	child_slot	child_state	child_flags	sfx	child_engine	semantic_class
+0x43ECC (state 0x1B)	state timer/spawn	0x43F4E	A5+0x3C8 pool (5)	state 0x0F	+0x39=1,+0x3D=1	sfx 0x10	0x40CCC	component/burst sub-actor (IDENTITY PENDING)
+0x43F52 (H6 linked spawns)	progress/round gate	0x43F52	A5+0x308/0x348/0x388/0x3C8/0x408	state 0x0F	+0x39=1	sfx per parent	0x40CCC	multi-part object segment
+0x42E38 contact	solid cell hit	0x447F0	in-place	state 0x0F	+0x3D=1	sfx 0x10	0x40CCC	impact/settle of projectile
+0x41B32 ('I' materialize, H6)	hunter matched 'I'	template copy A5+0x588 + 0x4092E	in-place	rec_type=1	+0x06=1	-	0x42xxx	thrown/projectile (rec_type 1)

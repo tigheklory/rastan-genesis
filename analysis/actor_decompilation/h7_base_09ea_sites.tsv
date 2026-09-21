@@ -1,0 +1,10 @@
+pc	context	classification
+0x40FAC	state 0x20 torch retarget (H6)	marker-chain transform base; retarget char 'a'
+0x40FCC	state 0x20 torch retarget (H6)	marker-chain transform base; retarget char 'q', comp=2
+0x42722	rec_type looping actor reload (after 3 cycles)	reload/transform base, not a fresh emission
+0x438DC	H5 state 0x15 (0x43840) transform	marker-chain next base
+0x43C9E	H5 state 0x1A (0x43B32) transform	marker-chain next base
+0x43D44	H5 state 0x1A transform	marker-chain next base
+0x43DD8	H5 state 0x1A transform	marker-chain next base
+0x43E80	H5 state 0x1A transform	marker-chain next base
+0x43FF6	H5 state 0x17 (0x43F88) transform	marker-chain next base

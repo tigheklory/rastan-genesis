@@ -114,6 +114,9 @@ def render_actor(a, rnd):
     if ps.get('kind')=='rom_field' and rnd:
         pal,pidx=rom_field_palette(rnd, ps['nibble'])
         sw=f'<div class="palbank ok">bank 0x{0x30|ps["nibble"]:02X} · pool {pidx} · ROM (per round)</div>'
+    elif ps.get('kind')=='materialized_fam2':
+        pal,pidx=rom_field_palette(ps['round'], ps['nibble'])
+        sw=f'<div class="palbank part">line 0x{ps["nibble"]:X} · fam-2 (0x456EC) · round-{ps["round"]} representative · ROUND PENDING</div>'
     elif ps.get('kind')=='composer_key':
         pal,bk=composer_palette(ps['key']); sw=f'<div class="palbank ok">bank {bk} · Composer-proven</div>'
     if pal:
@@ -129,32 +132,52 @@ def render_actor(a, rnd):
         return render_geo(a['render']['geo_id'], pal or GRAY), sw
     if method=='geo_grayscale':
         return render_geo(a['render']['geo_id'], GRAY), sw   # provisional, no proven palette
+    if method=='raw':
+        return render_raw(a['render']['base'], cols=8, rows=5), sw   # RAW TILE EVIDENCE (not composited)
     return None, sw
 
+def _bmap(v):
+    return {'PROVEN':'ok','COMPOSER_PROVEN':'ok','STATIC_DECOMPILED':'ok','VM_LEGAL':'ok','PROPOSED':'part','PARTIAL':'part',
+            'PROVISIONAL':'part','RAW_TILE_ONLY':'pend','PENDING':'pend','UNRESOLVED':'pend'}.get(v,'pend')
+
 def badges(a):
-    idn=a['name_status']; fr=a['frame_status']; pal=a['palette_status']
-    def bmap(v):
-        return {'PROVEN':'ok','COMPOSER_PROVEN':'ok','STATIC_DECOMPILED':'ok','PROPOSED':'part','PARTIAL':'part',
-                'PROVISIONAL':'part','PENDING':'pend','UNRESOLVED':'pend'}.get(v,'pend')
-    frtxt={'COMPOSER_PROVEN':'FRAME PROVEN','PROVISIONAL':'FRAME PROVISIONAL','PENDING':'FRAME PENDING'}.get(fr,'FRAME '+fr)
-    php=a.get('phase_presence','')
-    phb=('<span class="b ok">OUTDOOR PROVEN</span>' if php.startswith('FIELD-SCHEDULE') else ('<span class="b part">PHASE position-based</span>' if 'position' in php else '<span class="b pend">PHASE PENDING</span>'))
-    return (f'<span class="b {bmap(idn)}">IDENTITY {idn}</span>'
-            f'<span class="b ok">ROUND PROVEN</span>{phb}'
-            f'<span class="b {bmap(fr)}">{frtxt}</span>'
-            f'<span class="b {bmap(pal)}">PALETTE {pal}</span>')
+    """OBJECT (technical) and NAME (human) are shown SEPARATELY so a lexicon label
+    never reads as a proven arcade identity."""
+    ns=a['name_status']; fr=a['frame_status']; pal=a['palette_status']; cat=a['category']
+    # technical object: proven for every real base we have; controller = architecture
+    if cat=='CONTROLLER':
+        objb='<span class="b sp">CONTROLLER (not a sprite)</span>'
+    else:
+        objb='<span class="b ok">OBJECT PROVEN</span>'
+    nameb=f'<span class="b {_bmap(ns)}">NAME {ns}</span>'
+    # round
+    rp=a.get('round_presence') or []
+    if cat=='CONTROLLER': roundb=''
+    elif rp: roundb='<span class="b ok">ROUND PROVEN</span>'
+    else: roundb='<span class="b pend">ROUND PENDING</span>'
+    frtxt={'COMPOSER_PROVEN':'FRAME PROVEN','PROVISIONAL':'FRAME PROVISIONAL','VM_LEGAL':'FRAME LEGAL (VM)',
+           'RAW_TILE_ONLY':'RAW TILE ONLY','PENDING':'FRAME PENDING'}.get(fr,'FRAME '+fr)
+    palb=f'<span class="b {_bmap(pal)}">PALETTE {pal}</span>' if cat!='CONTROLLER' else ''
+    return objb+nameb+roundb+f'<span class="b {_bmap(fr)}">{frtxt}</span>'+palb
 
 def card(a, rnd, extra_class=''):
     img,sw=render_actor(a, rnd)
+    israw=(a.get('render') or {}).get('method')=='raw'
     if img:
-        prov='' if a['frame_provenance']=='COMPOSER_PROVEN' else f'<div class="provtag">{a["frame_provenance"].replace("_"," ").lower()}</div>'
-        frame=f'<div class="frame">{prov}<img src="{img}"></div>'
+        if israw:
+            prov='<div class="provtag rawtag">RAW TILE EVIDENCE · not composited</div>'
+        else:
+            prov='' if a['frame_provenance']=='COMPOSER_PROVEN' else f'<div class="provtag">{a["frame_provenance"].replace("_"," ").lower()}</div>'
+        frame=f'<div class="frame {"raw" if israw else ""}">{prov}<img src="{img}"></div>'
     else:
         frame=f'<div class="frame pend"><b>FRAME PENDING</b><br><span>{a.get("unresolved_reason","")}</span></div>'
+    route=a.get('materialization_route')
+    routerow=(f'<dt>Route</dt><dd class="mono">marker {route.get("marker","—")} → state {route.get("state","—")} → {route.get("handler","—")}</dd>'
+              if route else '')
     return f'''<article class="card {extra_class}">{frame}<div class="body">
       <div class="bar">{badges(a)}</div><h4>{a['semantic_name']}</h4><p class="desc">{a['description']}</p>
       <dl><dt>Base</dt><dd class="mono">{a['base_graphics']}</dd><dt>Spawn</dt><dd>{a['spawn_route']}</dd>
-      <dt>Frame src</dt><dd class="mono">{a['frame_source']}</dd></dl>{sw}</div></article>'''
+      {routerow}<dt>Frame src</dt><dd class="mono">{a['frame_source']}</dd></dl>{sw}</div></article>'''
 
 def boss_card(a):
     rn=a.get('render',{}); rnd=a['round_presence'][0]; ver=rn.get('verified')
@@ -171,8 +194,8 @@ def boss_card(a):
     fb='ok' if ver else 'part'
     bar=(f'<span class="b ok">BODY PROVEN</span><span class="b ok">ROUND PROVEN</span>'
          f'<span class="b ok">TYPE 0x{a.get("boss_body_record_type",0):02X}</span>'
-         f'<span class="b {fb}">{"FRAME PROVEN" if ver else "FRAME UNVERIFIED"}</span>'
-         f'<span class="b {fb}">{"PALETTE PROVEN" if ver else "PALETTE line-inferred"}</span>')
+         f'<span class="b {fb}">{"FRAME VERIFIED" if ver else "FRAME STATIC"}</span>'
+         f'<span class="b {fb}">{"PALETTE VERIFIED" if ver else "PALETTE line-inferred"}</span>')
     return f'''<article class="card boss">{frame}
       <div class="body"><div class="bar">{bar}</div>
       <h4>{a['semantic_name']}</h4><p class="desc">{a['description']}</p>
@@ -183,12 +206,35 @@ def boss_card(a):
       <dt>Trigger</dt><dd class="mono">{a.get("boss_trigger")}</dd>
       <dt>Components</dt><dd>{a.get("boss_components")}</dd></dl>{sw}</div></article>'''
 
-# ---- assemble from manifest ----
+# ---- assemble from manifest (actors[] is the SOLE semantic actor source of truth) ----
 actors=M['actors']; scripted=M.get('scripted_routes',[])
-by_cat=lambda c:[a for a in actors if a['category']==c]
 field=[a for a in actors if a['category']=='ENEMY_FIELD']
+materialized=[a for a in actors if a['category']=='ENEMY_MATERIALIZED']
+controllers=[a for a in actors if a['category']=='CONTROLLER']
+scripted_actors=[a for a in actors if a['category']=='ENEMY_SCRIPTED']
+unresolved=[a for a in actors if a['category']=='UNRESOLVED']
 bosses={a['round_presence'][0]:a for a in actors if a['category']=='BOSS'}
 def field_in_round(r): return [a for a in field if r in a.get('round_presence',[])]
+
+def gallery(title, sub, lst, rnd=None, intro=''):
+    if not lst: return ''
+    cards="".join(card(a,rnd) for a in lst)
+    introhtml=f'<div class="statusbox part">{intro}</div>' if intro else ''
+    return f'<section class="round"><h2>{title} <span>{sub}</span></h2>{introhtml}<div class="grid">{cards}</div></section>'
+
+# master galleries (before the per-round sections) — driven ENTIRELY by actors[]
+gal_field=gallery("Field / Sub-Round-1 Actor Gallery", f"({len(field)} field-schedule enemies · 0x4A104)",
+                  sorted(field,key=lambda a:a['base_graphics']))
+gal_mat=gallery("Materialized / Marker-Driven Actor Gallery",
+                f"({len(materialized)} H5/H6 materialized + {len(controllers)} controller)",
+                sorted(materialized,key=lambda a:a['base_graphics'])+controllers,
+                intro="Actors the marker/hunter system (0x41180 → 0x41362 → 0x40BAA state handlers) materializes in the later / sub-round-2 part of a round. <b>H10 assembled legal arcade frames</b> for all 12 via the proven render dispatch (0x3D054 → 0x3C902); colours use the family-2 palette line (0x45684 → 0x456EC) at a <b>round-representative</b> instance (exact round PENDING). Human identity + exact round remain PENDING. 0x033E is the hidden controller (not a sprite Rastan fights).")
+gal_scripted=gallery("Scripted / Special Actor Gallery", f"({len(scripted_actors)} scripted-encounter actors)",
+                     scripted_actors)
+boss_gallery_cards="".join(boss_card(bosses[r]) for r in range(1,7) if r in bosses)
+gal_boss=(f'<section class="round"><h2>Bosses — Six Distinct Body Actors <span>(0x45330→0x4449E→0x444E0→0x45592)</span></h2>'
+          f'<div class="statusbox ok">Real per-round boss <b>bodies</b> (bases 0x061D/0x0753/0x082C/0x07BF/0x0988/0x0B35). The old 0x033E "boss composite" model is deprecated and quarantined in the manifest. R1 &amp; R5 frames/palettes are MAME-verified; R2/R3/R4/R6 show the static ROM init-anim frame (line-inferred palette).</div>'
+          f'<div class="grid">{boss_gallery_cards}</div></section>')
 
 rounds_html=""
 per=M['authoritative_roster']['per_round']
@@ -234,12 +280,18 @@ for r in range(1,7):
     else:
         sctab='<p class="muted">No individually-proven Round-'+str(r)+' scripted route yet (dispatch family identified).</p>'
     boss=boss_card(bosses[r]) if r in bosses else ''
+    _p2=M.get("scene_phase_state_machine",{}).get("phase2_starts_PROVEN_H11",{}).get(f"R{r}","(pending)")
+    matnote=(f'<div class="statusbox part"><b>Phase-2 (castle) start — PROVEN (H11):</b> <span class="mono">{_p2}</span> '
+             f'(section kind from 0x50EE0/0x50F6B). The marker-driven actors that appear in this castle section are not yet '
+             f'individually round-pinned — see the <b>Materialized / Marker-Driven Actor Gallery</b> above for the {len(materialized)} '
+             f'materialized bases (H5/H6). Per-scene marker→actor enumeration is the open H11 blocker (A5+0x10D000 collision-record populator).</div>')
     rounds_html+=f'''<section class="round"><div class="rhead"><h2>Round {r}</h2><span class="rmeta mono">A5+0x13E {per[str(r)]["r13E"]}</span></div>
-      <h3 class="grp">Field roster — PROVEN for round <span>(0x4A104 schedule)</span></h3><div class="grid">{cards}</div>
-      <h3 class="grp">SUB-ROUND 1 / SUB-ROUND 2 — boundaries code-derived (round ends 0x502AC; sub-round-2 = schedule family-2 region; R1 0x7E door 0x0F→0x10 proven)</h3>
+      <h3 class="grp">Sub-Round 1 — Field roster <span>(0x4A104 schedule, PROVEN for round)</span></h3><div class="grid">{cards}</div>
+      <h3 class="grp">Sub-Round 2 — Materialized &amp; Scripted <span>(boundary code-derived: round ends 0x502AC; R1 0x7E door 0x0F→0x10 proven)</span></h3>
+      {matnote}
       {phase_section(r)}
       {bankrow(r)}
-      <h3 class="grp">Scripted encounters <span>(scene-driven, A5+0x13E dispatch)</span></h3>{sctab}
+      <h4 class="grp">Scripted encounters <span>(scene-driven, A5+0x13E dispatch)</span></h4>{sctab}
       <h3 class="grp">Boss</h3><div class="grid">{boss}</div></section>'''
 
 special_html="".join(card(a,None) for a in actors if a['category']=='ENEMY_SCRIPTED' or (a['category']=='UNRESOLVED'))
@@ -266,11 +318,80 @@ def newfound_section():
             '<div class="statusbox ok"><b>Two bases earlier passes misclassified</b> (loaded via the <span class="mono">+0x06</span> record-type path through <span class="mono">0x4543e</span>/table <span class="mono">0x45592</span>). These frames use live original-arcade animation indices and compositor 1; piece order, tiles, flips, and relative coordinates match original SAT exactly.</div>'
             f'<div class="grid">{"".join(items)}</div></section>')
 
-census_html=newfound_section()+f"""<section class="round"><h2>Complete Actor Census — from ROM decompilation</h2>
+census_html=f"""<section class="round"><h2>Complete Actor Census — from ROM decompilation</h2>
 <div class="statusbox ok"><b>{CEN.get('distinct_base_count','?')} distinct base-graphics actors</b> resolved statically from <span class="mono">maincpu.bin</span>. Field schedule <span class="mono">0x4A104</span> record byte1=<span class="mono">+0x3E</span> family, byte2 hi-nibble=<span class="mono">+0x752</span> variant → base via tables <span class="mono">0x45502</span> (var 0) / <span class="mono">0x45562</span> (var≠0) / boss <span class="mono">0x454ba</span>; plus every immediate write to <span class="mono">actor+0x1E</span> (code-spawned projectiles / sub-objects). <b>Semantic names are PROPOSED (lexicon) or PENDING — never invented.</b> Round columns show 0x13E position thirds (early/mid/<b>late≈phase 2/3</b>; exact door boundary still blocked).</div>
 <div class="tblwrap"><table class="census"><tr><th>base</th><th>actor / name status</th><th>round · position (phase)</th><th>creation route (ROM)</th></tr>{census_rows()}</table></div></section>"""
 dash_html="".join(f'<div class="dcell {c}"><span class="dk">{k}</span><span class="dv">{v}</span></div>' for k,v,c in M['dashboard'])
 remain_html="".join(f'<li><span class="rs {("done" if s=="DONE" else "part" if s=="PARTIAL" else "ns")}">{s}</span> {t}</li>' for t,s in M['remaining'])
+
+# ---- "What we now know" architecture summary (manifest-driven, synced through H9) ----
+AS=M.get('architecture_status',{})
+def _checklist(rows):
+    mk={'done':'✓','part':'△','pend':'—'}
+    return "".join(f'<li class="ck {c}"><span class="ckm">{mk.get(c,"—")}</span> {t}</li>' for t,c in rows)
+arch_html=''
+if AS:
+    arch_html=(f'<section class="round"><h2>What we now know <span>(synced through {AS.get("_synced_through","H9")})</span></h2>'
+      f'<div class="know"><div class="kcol"><h3 class="grp">Actor architecture</h3><ul class="checks">{_checklist(AS.get("actor_architecture",[]))}</ul></div>'
+      f'<div class="kcol"><h3 class="grp">Visual reconstruction</h3><ul class="checks">{_checklist(AS.get("visual_reconstruction",[]))}</ul></div>'
+      f'<div class="kcol"><h3 class="grp">Still open</h3><ul class="checks">'+"".join(f'<li class="ck pend"><span class="ckm">○</span> {t}</li>' for t in AS.get("still_open",[]))+'</ul></div></div></section>')
+
+# ---- Items / power-ups / pickups (manifest-driven, H9-accurate) ----
+IT=M.get('items_system',{})
+def items_section():
+    if not IT:
+        return ''
+    scls={'OPEN':'pend','0 STATICALLY PROVEN':'pend'}
+    def cls(s): return 'pend' if ('OPEN' in s or s.startswith('0 ')) else ('ok' if 'PROVEN' in s and 'partial' not in s.lower() else 'part')
+    cards="".join(
+      f'<div class="itemcat {cls(c["status"])}"><div class="itk">{c["kind"]}</div>'
+      f'<div class="its">{c["status"]}</div><p>{c["detail"]}</p></div>' for c in IT.get('categories',[]))
+    return (f'<section class="round"><h2>Items / Power-ups / Pickups</h2>'
+      f'<div class="statusbox part"><b>{IT.get("status","PARTIAL")}.</b> The item system is now partially decompiled: the enemy kill path is proven, but the enemy-death→item link is not. No item cards are shown because <b>no droppable item actor is statically proven</b> — this section makes the missing work visible rather than fabricating it.</div>'
+      f'<div class="itemgrid">{cards}</div></section>')
+
+def consistency_check():
+    """Fail generation if the manifest/report would contradict itself (integrity guard)."""
+    errs=[]
+    if 'bosses' in M:
+        errs.append("top-level 'bosses' (0x033E model) is still an active manifest key")
+    for a in actors:
+        b=a['base_graphics'].upper()
+        if a['category']=='BOSS' and b in ('0X033E','033E'):
+            errs.append(f"BOSS actor still uses 0x033E as body ({a.get('technical_id')})")
+        if a['category']=='BOSS' and 'NOT reconstructed' in (a.get('unresolved_reason') or ''):
+            errs.append(f"BOSS {a['base_graphics']} unresolved_reason still denies reconstruction")
+    prm=M.get('per_round_boss_body_map',{}).get('rounds',{})
+    for r,ba in bosses.items():
+        mb=prm.get(str(r),{}).get('body_base')
+        if mb and mb.upper()!=ba['base_graphics'].upper():
+            errs.append(f"R{r} boss base disagreement: actors[]={ba['base_graphics']} vs map={mb}")
+    for k,v,c in M['dashboard']:
+        if 'NOT REIMPLEMENTED' in str(v).upper():
+            errs.append(f"dashboard compositor row still says NOT REIMPLEMENTED ({k})")
+    for a in materialized+controllers:
+        if a['frame_status'] in ('COMPOSER_PROVEN','PROVEN'):
+            errs.append(f"materialized/controller {a['base_graphics']} over-claims FRAME {a['frame_status']}")
+    # name/identity: new badges separate OBJECT (proven) from NAME (status); ensure no field actor
+    # claims a PROVEN human name while its own description flags it lexicon/PROPOSED.
+    for a in field:
+        if a['name_status']=='PROVEN' and ('PROPOSED' in a.get('description','') or 'lexicon' in a.get('description','').lower()):
+            errs.append(f"field {a['base_graphics']} name_status=PROVEN but description says lexicon/PROPOSED")
+    if errs:
+        raise SystemExit("BESTIARY CONSISTENCY FAIL:\n  - "+"\n  - ".join(errs))
+    print("consistency_check: PASS")
+consistency_check()
+
+def unresolved_gallery():
+    cards="".join(card(a,None) for a in unresolved)
+    return (f'<section class="round"><h2>Unresolved Actor Gallery <span>({len(unresolved)} visible objects lacking a confident identity)</span></h2>'
+            f'<div class="statusbox pend"><b>Visible technical objects whose semantic role/identity is not yet proven.</b> RAW TILE thumbnails are labelled as such — never presented as a legal composited sprite. The full 45-row technical list is in the appendix census.</div>'
+            f'<div class="grid">{cards}</div></section>')
+def projectiles_section():
+    return ('<section class="round"><h2>Projectiles / Effects</h2>'
+      '<div class="statusbox part"><b>PARTIAL.</b> The genuine thrown/projectile actor is the marker <span class="mono">\'I\'</span> route → <b>record type 1</b>, graphics copied from the <span class="mono">A5+0x588</span> template (identity PENDING). Base <span class="mono">0x09EA</span> is <b>not</b> a single projectile — it is a shared marker-chain <b>transform</b> base (see the Materialized gallery). Impact/explosion is state <span class="mono">0x0F</span> via <span class="mono">0x447F0</span> (sfx 0x10). No standalone projectile sprite is legal-frame proven yet.</div></section>')
+
+APPENDIX_HEADER='<section class="round"><h2>Technical / Decompilation Appendix</h2><p class="muted">Full technical census + phase-mechanism evidence. The visual game cast is above; this section is the raw decompilation reference.</p></section>'
 
 STYLE=(ROOT/'tools/graphics_optimizer/bestiary_style.css').read_text()
 doc=f'''<title>Rastan Bestiary</title>{STYLE}
@@ -278,11 +399,18 @@ doc=f'''<title>Rastan Bestiary</title>{STYLE}
 <h1>Rastan Actor Bestiary &amp; Status</h1>
 <p class="sub">A living view of the static arcade decompilation, generated <b>entirely from the authoritative manifest</b> (rastan_actor_graphics_manifest.json). Rounds &amp; field rosters are ROM-proven; palettes are decoded per-round from the arcade ROM. Every card shows independent IDENTITY / FRAME / PALETTE confidence. Provisional images (from the legacy lexicon/Composer captures) are labelled as such; nothing unproven is presented as authoritative.</p>
 <h2 class="dash-h">Arcade Actor Decompilation Status</h2><div class="dash">{dash_html}</div></div></header>
-<div class="wrap">{census_html}
+<div class="wrap">{arch_html}
+{gal_field}
+{gal_mat}
+{gal_scripted}
+{gal_boss}
 {rounds_html}
-<section class="round"><h2>Special / Map-Driven Spawns</h2><p class="muted">Scene-/marker-triggered actors (not the field schedule). Identity/frame/palette shown per manifest provenance; unproven actors are labelled <span class="mono">Actor 0xXXXX</span> with PENDING status, never a guessed name or colour.</p><div class="grid">{special_html}</div></section>
+{projectiles_section()}
 <section class="round"><h2>Hazards / Obstacles</h2><div class="statusbox part"><b>PARTIAL — map-marker routes not fully decoded.</b> From map collision markers (0x559B2 → 0x41180); only marker 0x48 (class 0x70) is graphics-proven. No hazard cards until static identity is proven (old JSON names are not authoritative).</div></section>
-<section class="round"><h2>Items / Power-ups / Pickups</h2><div class="statusbox pend"><b>SYSTEM NOT YET DECOMPILED.</b> The item/drop/pickup subsystem (death-drops, map pickups, pickup-collision, weapon changes via A5+0x138C) has not been located in the arcade code. Deliberately empty — not populated from memory or screenshots.</div></section>
+{items_section()}
+{unresolved_gallery()}
+{APPENDIX_HEADER}
+{census_html}
 <section class="round"><h2>Phase-1 → Phase-2 transition — MECHANISM PROVEN (control flow)</h2>
 <div class="statusbox ok"><b>The mid-round phase transition is data-driven by a map-collision tile, not a scene table and not the background bank.</b> The player↔map probe (<span class="mono">player_ground_contact_probe_family_53b34</span> + horizontal probe <span class="mono">0x53e22–0x54050</span>) reads the collision grid at <span class="mono">0x10DE00</span> (= <span class="mono">A5+0x1E00</span>) via <span class="mono">0x53a2e</span>; tile type = <span class="mono">cell &amp; 0x7F</span>. <b>Tile type <span class="mono">0x7E</span> (126) = the door → <span class="mono">A5+0x10E8 := 7</span></b> (<span class="mono">0x53f0c</span>, <span class="mono">0x54038</span>); type 8 → <span class="mono">0x10E8:=8</span>. Consumed at <span class="mono">0x3a7d2</span> (saves <span class="mono">0x1242:=0x13E</span>, state 2, <span class="mono">0x0104:=1</span>) → screen-wipe (<span class="mono">0x1394</span>/<span class="mono">0x13aa</span>/<span class="mono">0x138a</span>) + actor-clear (<span class="mono">0x3a804</span>) + scene reload + <span class="mono">0x13E</span> restore. Round-complete is distinct: <span class="mono">0x10E8:=16</span> (<span class="mono">0x51250</span>) at a 0x502AC boundary.</div>
 <div class="statusbox ok"><b>A5 = 0x10C000 (arcade base) — verified this pass.</b> Hence <span class="mono">0x10D000 = A5+0x1000</span> (16 map-column stream ptrs, <span class="mono">0x502cc</span>) and <span class="mono">0x10D0A8 = A5+0x10A8</span> = the section-kind, which is set from the <b>map-stream byte at ROM 0x50F6B</b> (indexed by 0x13E via 0x50EE0). That stream holds only <b>{0,1,2}</b>, so the director's <span class="mono">A5+0x10A8∈{{4,5,6}}</span> path (0x527cc) is <b>DEAD CODE</b> — the <span class="mono">0x7E</span> tile is the sole live wipe trigger.</div>

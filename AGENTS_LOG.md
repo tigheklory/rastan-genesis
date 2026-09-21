@@ -1,5 +1,105 @@
 # AGENTS Log
 
+## [Andy — CHECKPOINT H11: Phase-2 marker map + six castle-start points (round pinning OPEN)]
+
+* Standalone report (RULES.md): docs/design/Andy_h11_phase2_marker_map_decompilation.md. NO new ROM/MAME/Genesis. counter 360. Cody files untouched. Artifact Dopg3mwMHdUMsZJSQgXDVR v5.
+* PROVEN scene chain: 0x13E -> scene_index=byte[0x50EE0+0x13E] -> section_kind=byte[0x50F6B+scene_index] (0=outdoor/phase1, !=0=castle/phase2) [0x503BC]; per-round background map table 0x562CA -> decompressor 0x563A6; collision/MARKER grid writer 0x559B2 (grid word = column_record[20+subcol*2+row*8]; marker=high byte). NEW rastan_scene_map.c + raw/000503bc.c/000559b2.c/000563a6.c (0x559B2 PARTIAL->COMPLETE).
+* SIX PHASE-2 (CASTLE) STARTS PROVEN: R1 0x11, R2 0x2B, R3 0x41, R4 0x5A (kind1); R5 0x6E, R6 0x85 (kind2). Tool tools/analysis/decode_rastan_scene_markers.py -> h11_scene_markers.tsv (deterministic checks PASS).
+* OPEN (honest, not fabricated): per-scene MARKER enumeration needs the ROM populator of A5+0x10D000 (each column's collision-record pointer) -> that is the exact next dependency. H10 materialized actors therefore stay ROUND PENDING; no rosters invented. h11_phase2_actor_rosters.tsv records starts + OPEN status.
+* Manifest: scene_phase_state_machine.phase2_starts_PROVEN_H11 added; dashboard phase row updated. Bestiary per-round Sub-Round-2 now shows the proven phase-2 start. Coverage 73 rows (57 COMPLETE/11 PARTIAL/5 STUB); audit 54. Guards PASS; gcc PASS (75 files); consistency PASS.
+
+# AGENTS Log
+
+## [Andy — CHECKPOINT H10: materialized actor render + palette decompilation]
+
+* Standalone report (RULES.md): docs/design/Andy_h10_materialized_actor_render_palette_decompilation.md. NO new ROM/MAME/Genesis. counter 360. Cody files untouched. Artifact Dopg3mwMHdUMsZJSQgXDVR v4.
+* PROVEN render dispatch: 0x3D054 selector (+0x38) picks program table {0:0x3D09E,1:0x4771C,2:0x3F0CE,3:0x40004,4:0x4002C}; ALL selector thunks (0x3F0BC/0x4770E/0x3FFDC/0x3FFF0) funnel to the SHARED 0x3C902 general interpreter -> compositor VM already renders every selector. NEW raw/0003d054.c + raw/0003f0bc.c + rastan_actor_render.c (COMPLETE).
+* PROVEN palette resolver 0x45684: fam!=2 -> tbl 0x45722[(round-1)*12+family]; fam==2 -> tbl 0x456EC[variant*18+(round-1)*3+comp_adj]; +0x27|=(nibble|0x40); colors = rom_field_palette(round,nibble) (0x3BA88->0x4FD02). NEW raw/00045684.c + rastan_actor_palette.c (COMPLETE). In-place base transforms retain +0x27 (palette line kept; only base changes).
+* RESULT: all 12 materialized H5/H6 actors now have LEGAL VM-assembled frames (general programs, 4-13 pieces, 0 special-mode failures) with family-2 palettes (round-1 representative; exact round PENDING). Bestiary materialized gallery: RAW TILE -> 12 colored legal sprites. Compositor dashboard row upgraded to IMPLEMENTED.
+* Evidence: analysis/actor_decompilation/h10_materialized_frame_programs.tsv. Coverage 70 rows (54 COMPLETE/11 PARTIAL/5 STUB); audit 52. Guards PASS; gcc PASS (71 files); manifest consistency PASS. Exact remaining blocker = per-round pinning of materialized cast (palette instance) — same 0x7E-door blocker; palette math itself proven.
+
+# AGENTS Log
+
+## [Andy — Bestiary integrity repair: single source of truth + materialized cast (NO new RE)]
+
+* Standalone report (RULES.md): docs/design/Andy_bestiary_integrity_repair.md.
+* Data-integrity + structure repair. NO new RE, NO ROM, NO MAME, NO Genesis. counter 360. Cody files untouched. Republished artifact Dopg3mwMHdUMsZJSQgXDVR v3.
+* SOURCE-OF-TRUTH: quarantined the stale `bosses` structure (6 `per_round[]` records still declaring boss base=0x033E) into legacy_evidence.DEPRECATED_boss_0x033E_model; removed top-level `bosses`. Cleared all 6 BOSS actors' stale unresolved_reason ("per-round boss body NOT reconstructed / 0x033E"). actors[] is now the SOLE semantic registry; bosses come only from actors[] category BOSS (real bodies 0x061D/0753/082C/07BF/0988/0B35).
+* MATERIALIZED CAST: added 12 ENEMY_MATERIALIZED + 1 CONTROLLER (0x033E hidden scanner) actor entries from H5/H6 evidence (bases 0x00F4/0x0DAB/0x09EA/0x0179/0x0224/0x0266/0x0235/0x09F6/0x01FC/0x0236/0x0546/0x05E9/0x0D5F), each with marker→state→handler route, RAW TILE EVIDENCE thumbnail, identity/round/frame PENDING. New "Materialized / Marker-Driven Actor Gallery" surfaces them (were buried in census).
+* CONTRADICTIONS FIXED: compositor dashboard "NOT REIMPLEMENTED" -> "IMPLEMENTED for general modes; special program modes unvalidated" (matches compositor_vm.py). Split badges OBJECT (technical, proven) vs NAME (human, status) — killed the "IDENTITY PROVEN" + lexicon-PROPOSED contradiction; downgraded 5 lexicon names PROVEN->PROPOSED. Boss frames now FRAME VERIFIED (R1/R5) vs FRAME STATIC (R2/R3/R4/R6).
+* STRUCTURE: reordered generator to galleries-first (Field / Materialized / Scripted / Bosses) → per-round Sub-Round-1/Sub-Round-2/Boss → Projectiles → Hazards → Items → Unresolved gallery → Technical appendix (census moved to bottom). Added consistency_check() that FAILS generation on: active 0x033E boss, boss-base disagreement (actors[] vs per_round_boss_body_map), NOT-REIMPLEMENTED dashboard, boss "NOT reconstructed" text, materialized over-claiming FRAME PROVEN, name/description contradictions. Guard PASS.
+* Files: manifest, build_bestiary.py, bestiary_style.css, html regenerated (451KB). actors=36 (11 field/6 boss/3 scripted/3 unresolved/1 controller/12 materialized). Enemy-drop roster still OPEN (not fabricated).
+
+
+## [Andy — Living bestiary synchronization through H9 (report/manifest sync; NO new RE)]
+
+* Sync pass only. NO new decompilation, NO ROM, NO MAME, NO Genesis. counter 360. Cody files untouched.
+* Updated docs/design/rastan_actor_graphics_manifest.json + regenerated docs/design/rastan_actor_bestiary.html (build_bestiary.py + bestiary_style.css). Manifest was already largely correct (0x033E = route/controller not boss; bosses use real bodies 0x061D/0753/082C/07BF/0988/0B35 types 14/19/20/21/16/23; "NO Round 7").
+* FIXES: dashboard resynced to 20 rows incl H6 materialization / H8 anim core / H9 enemy collision+one-hit death (all PROVEN), Items=PARTIAL, enemy-death→item link=OPEN, droppable items=0. Corrected 0x09EA "common projectile" -> marker-chain TRANSFORM base (H7/H9). State 0x0F entry made POLYMORPHIC (mode/component/armored-man) not global armored-man. Replaced stale Items HTML "SYSTEM NOT YET DECOMPILED" with H9-accurate 3-category status (enemy-death OPEN / marker PROVEN / scripted 0x450D8->0x45248 PROVEN / 0 droppable proven). Added "What we now know" architecture checklist + Still-Open list.
+* VERIFIED rendered HTML: 6/6 rounds, 6/6 boss BODY cards (real bases; R1/R5 MAME-verified, R2/R3/R4/R6 FRAME UNVERIFIED init-anim), 0 broken imgs, 0 stale strings (no fake boss composites, no "common projectile", no "SYSTEM NOT YET DECOMPILED", no Round 7/18-18/sweep-authoritative). actors[]=23 (11 field/6 boss/3 scripted/3 unresolved); census 45 bases (37 PENDING/7 PROPOSED/1 PARTIAL).
+
+
+## [Andy — CHECKPOINT H9: enemy-hurtbox scan FOUND + one-hit fatal path; per-kill drop still OPEN]
+
+* Standalone report (RULES.md): docs/design/Andy_h9_enemy_hit_drop_system_decompilation.md. NO MAME/ROM/Genesis. counter 360. Manifest/bestiary NOT touched (no dropped-item actor proven). Cody files untouched.
+* FOUND the enemy-hurtbox scan H8 missed: NEW rastan_actor_collision.c + raw. 0x449B4 ENEMY COLLISION MANAGER (per-frame after actor update; multi-pass over A5+0x2C8 x29 + A5+0x1338 weapon list) PARTIAL. 0x44CBA per-axis AABB COMPLETE. Hurtbox format PROVEN: 0x446BC index -> table 0x44CE0 (var 0x44FA8), 4 signed bytes {x_left,x_right,y_top,y_bottom}; player box sources A5+0x28C(weapon)/0x2B0/0x1248/0x1254/0x22C. 0x446BC PARTIAL (0x446B0 base + 0x44796 family table not fully enumerated).
+* DAMAGE MODEL PROVEN: ordinary enemies are ONE-HIT (no HP accumulator). 0x447CE reaction: +0x3D hit-flash + (rec_type!=7) 0x448B2 -> state 0x0F death anim + sfx 0x10. family-12 -> 0x448D8 score(+0x2C)+recycle. rec_type 10/11/18 freeze. Re-hit gated by +0x3D. FATAL PATH end-to-end: overlap -> state 0x0F death anim -> 0x44804 -> score 0x3B726(+0x2C) -> retire 0x4092E.
+* A5+0x1134 clarified: only 2 consumers (0x51ABE build, 0x51B04 world/landing) = Rastan BODY box, not weapon-vs-enemy.
+* DROP STILL OPEN (honest): NO per-kill item-drop CREATOR on the fatal path. Only item-producing code = scripted/positional spawner 0x450D8->0x45248 (bases 0x0F4/0x224/0x548, camera A5+0x2DE + sub-seq A5+0x21C gated) [cat C] and H6 markers [cat B]. Item table NOT fabricated. Remaining dependency = enemy-death->flag->scripted/marker item link.
+* Evidence: analysis/actor_decompilation/h9_weapon_enemy_collision.tsv, h9_enemy_damage_model.tsv, h9_enemy_drop_eligibility.tsv, h9_drop_item_table.tsv (OPEN), h9_item_creation_routes.tsv, h9_pickup_effects.tsv.
+* GUARDS: coverage PASS (68 rows: 52 COMPLETE/11 PARTIAL/5 STUB_ONLY; H5 10/10), fidelity PASS, gcc -std=c11 -fsyntax-only PASS (67 files). historical_claim_audit.csv 50 rows. H10 NOT started; exact next dependency = enemy-death->item link (0x447CE/state-0x0F completion -> flag -> 0x450D8/marker).
+
+
+## [Andy — CHECKPOINT H8: animation/motion core + state-0x0F; enemy-drop system OPEN]
+
+* Standalone report (RULES.md): docs/design/Andy_h8_enemy_damage_item_drop_decompilation.md. NO MAME/ROM/Genesis. counter 360. Manifest/bestiary NOT touched (no new dropped-item actor proven). Cody files untouched.
+* CLOSED: animation/motion core. NEW rastan_anim_motion_core.c + raw. 0x3CEB0 COMPLETE (frame timing +0x07/08/09/12, sequence +0x0E[0]/+0x0D/+0x0F, motion +0x16+=+0x14/+0x1A+=+0x18). 0x3CF40 COMPLETE (frame wrap 0->56,57->1). 0x3CF52 COMPLETE (frame->velocity from byte-exact 56-entry ring 0x3CFD4 + axis-lock flags +0x13 + band test 0x3CFB0). This CLOSED 0x42E38 (PARTIAL->COMPLETE). Anim-context +0x0D..+0x11 = {frame,seq-rem,step,reload-even,reload-odd} (polymorphic view of hunter cell-address bytes).
+* RESOLVED: state 0x0F polymorphism. 0x40CCC branches +0x03 mode!=0 -> 0x40E0E; +0x39 component flag (set by 0x447F0/0x43F52) -> 0x40DD8 impact/burst; both 0 -> armored-man anim (base 0x0A73). Not renamed globally.
+* HONEST OPEN (H8 primary objective NOT completed): enemy-hit -> conditional item-drop system was NOT isolated. LOCATED: weapon-hitbox builder 0x51AB6 (table @A5+0x1280) + world/landing tester 0x51B04. NOT FOUND: enemy-hurtbox scan (weapon vs enemy), enemy HP model, drop-eligibility branch, item table, drop creator. NO drop table fabricated. Accepted H7 correction (Rastan-death != drop system). Pickup sources kept separate: (B) map/marker-placed PROVEN (H6), (C) scripted 0x4580C/0x45CFC PARTIAL, (A) enemy drops OPEN.
+* Evidence: analysis/actor_decompilation/h8_player_weapon_hit_path.tsv, h8_damage_model.tsv, h8_enemy_drop_routes.tsv (OPEN), h8_item_table.tsv (OPEN), h8_pickup_creation_routes.tsv, h8_state0f_polymorphism.tsv.
+* GUARDS: coverage PASS (63 rows: 49 COMPLETE/9 PARTIAL/5 STUB_ONLY; H5 10/10), fidelity PASS, gcc -std=c11 -fsyntax-only PASS (62 files). historical_claim_audit.csv 47 rows (enemy-drop logged NOT_STARTED/OPEN, not papered over). H9 NOT started; exact next dependency = enemy-hurtbox scan root (gate to the drop system).
+
+
+## [Andy — CHECKPOINT H7: actor lifecycle / retire / contact-damage / score / drop]
+
+* Standalone report (RULES.md): docs/design/Andy_h7_actor_lifecycle_damage_drop_decompilation.md. NO MAME/ROM/Genesis. counter 360. Manifest/bestiary/build_bestiary.py NOT touched (H7 exposed no new fixed graphics base). Cody files untouched.
+* NEW analysis/decompilation/c/rastan_actor_lifecycle.c + raw. 0x4092E COMPLETE = actor RETIRE/CLEAR primitive (zero 0x40 record + paired companion block at +0x702/+0x4E2; slot reusable). 0x4103A upgraded PARTIAL->COMPLETE (only dep was 0x4092E). 0x447F0/0x448B2 COMPLETE = impact/child activate -> state 0x0F (0x40CCC) + sfx 0x10 (rec_type 7 keeps state). 0x43F4E/0x43F52 COMPLETE = component-pool driver. 0x41F9C COMPLETE = jump/anim phase-advance leaf (arc owner is caller 0x41FAC). 0x3B726 COMPLETE = score award (3-byte BCD @A5+0x11C, value = dying actor +0x2C, extra life at 999999). 0x42E38 PARTIAL = move+contact stepper (solid collision cell bit0 -> 0x447F0 impact; anim core 0x3CEB0 still STUB).
+* KEY FINDING (item/drop): NO death-triggered drop/item creator is reached. Rastan does NOT drop items on kill; pickups/power-ups are PLACED via the marker-materialization system (H6) + field schedule (A/B/C). Death path = score(+0x2C) + explosion components (state 0x0F) + retire only. This resolves the "item system not located" note.
+* CORRECTION: base 0x09EA is NOT one projectile — it is a marker-chain TRANSFORM base written at 9 sites (H5/H6 transform states + one rec_type reload), not a single emission. The real thrown/projectile is the 'I' route (0x41B32, rec_type=1, template A5+0x588).
+* Evidence: analysis/actor_decompilation/h7_active_actor_paths.tsv, h7_child_emission_routes.tsv, h7_score_drop_routes.tsv, h7_base_09ea_sites.tsv.
+* GUARDS: coverage PASS (61 rows: 45 COMPLETE/10 PARTIAL/6 STUB_ONLY; H5 10/10), fidelity PASS, gcc -std=c11 -fsyntax-only PASS (58 files). historical_claim_audit.csv 44 rows. H8 NOT started; exact next dependency = player-weapon-vs-enemy collision (0x53xxx hit engine) + anim core 0x3CEB0.
+
+
+## [Andy — CHECKPOINT H6: marker → state → actor materialization decompilation]
+
+* Standalone report (RULES.md): docs/design/Andy_h6_marker_materialization_decompilation.md. NO MAME/ROM/Genesis. counter 360. Manifest/bestiary/build_bestiary.py NOT touched. Cody files untouched.
+* Closed the state-0 scanner/hunter materialization subsystem (0x4117E..0x41D07) as real C. NEW analysis/decompilation/c/rastan_actor_materialization.c + raw: 0x41180 (COMPLETE: timer→0x41064 row-scan→collision column-scan→0x41362 materialize→0x40BAA), 0x41336 floor-X placement, 0x41362 char-hunter dispatch (28 marker routes), 0x40E88 state-0x1E transform, 0x40EDE state-0x20 torch, 0x45418 +0x29 attr loader, 0x41BEE light-source register. 0x4103A PARTIAL (consume+re-arm proven; 0x4092E callee deferred to H7).
+* PROVEN: +0x0E holds the 32-bit collision-cell ADDRESS in hunter context (movel at 0x41362); most char-hunter branches set state+anim+attr, NOT the visible base +0x1E — base is assigned later by the state handler / retarget chain (0x40E88 base 0x0F4→'O'; 0x40EDE bases 0xDAB'I'/0x9EA'a'/0x9EA'q'). 'I' is a rec_type-1 projectile (template copy from A5+0x588). Position = collision-cell world coords fixed by fine scroll then per-marker offsets.
+* Evidence: analysis/actor_decompilation/h6_marker_materialization_routes.{json,tsv} (28 routes), h6_progression_gates.tsv (30 gates on A5+0x13E), h6_round_gates.tsv (5 gates on A5+0x118).
+* GUARDS: coverage PASS (58 rows: 38 COMPLETE/10 PARTIAL/10 STUB_ONLY; H5 10/10), fidelity PASS, gcc -std=c11 -fsyntax-only PASS (51 files). historical_claim_audit.csv now 40 rows (0x41180 PARTIAL→COMPLETE, 0x41BEE STUB→COMPLETE, 0x4103A STUB→PARTIAL). H7 NOT started; next dependency = 0x4092E.
+
+
+## [Andy — Second C recovery pass: fidelity audit + historical backfill (no new research)]
+
+* Standalone report (RULES.md): docs/design/Andy_actor_decompilation_c_recovery.md (covers both C-recovery passes).
+* NO new research. NO MAME/ROM/Genesis. counter 360. Manifest/bestiary NOT touched. Cody files untouched.
+* FIDELITY FIXES (analysis/decompilation/c): ActorRecord now byte-exact with _Static_assert(sizeof==0x40)+offsetof asserts; +0x0E made polymorphic field_0e[4] with hunter(cell-addr) vs materialized(anim-index) accessors (fixed the false marker_cell global name); +0x28/+0x29 overlap fixed. raw/00040baa.c now uses TRUE signed-16 self-relative jump table (was convenience uint32 PC table). 0x40E74/0x41064 use arcade ADDRESSES + collision_word_at (no host-pointer hiding).
+* HISTORICAL BACKFILL (rastan_actor_subsystems.c + raw): COMPLETE = scene-wipe 0x3A7D2, collision-addr 0x53A2E, boss trigger 0x4449E (rectype 0x444E0), config loader 0x41D08, marker-transition 0x40A60 (+table 0x40A86 data). PARTIAL = scripted dispatcher 0x4AB5C (handlers not all traced; doc was non-exhaustive), boss sync 0x42380, 0x559B2/0x55A14 (historically PARTIAL). REFERENCED_ONLY = 0x53FA6/0x55DFE/0x450D8/0x4580C/0x4AF1A/master 0x3A256/sound queue.
+* HISTORICAL CLAIM AUDIT: analysis/decompilation/c/historical_claim_audit.csv (37 rows) maps every Andy executable-arcade claim to C status. DOWNGRADES recorded: Andy_pc080sn_arcade_fg_complete_decompile part1/part2 "complete" -> PARTIAL (0x559B2/0x55A14 not re-lifted); 0x3CEB0 "shared core" -> STUB; plus pass-1 downgrades preserved (0x41180/0x473B8/0x4396A/0x43B32/0x4415A/0x40C08).
+* GUARDS: check_actor_decompilation_coverage.py extended to consume the audit (fails if a COMPLETE/DECODED old claim has no C and no DOWNGRADED note) -> PASS (58 cov rows: 31 COMPLETE/12 PARTIAL/13 STUB; H5 10/10; audit 37). NEW check_decompilation_fidelity.py (layout contract, no-ellipsis-in-COMPLETE-body, raw jump-table width, PARTIAL markers, audit consistency) -> PASS. gcc -std=c11 -fsyntax-only PASS on 6 semantic + 39 raw files. NO H6/H7.
+
+
+## [Andy — Actor decompilation C-source recovery/backfill (no new research)]
+
+* NO new arcade analysis (preservation pass). NO MAME, NO ROM, NO Genesis, counter 360. Manifest/bestiary/build_bestiary.py NOT modified. Cody files untouched.
+* Root fix for a process failure: too much RE was preserved only as Markdown/JSON/Python. Now the actor decompilation (checkpoints A/B/C/H) is preserved as SYNTACTICALLY-REAL C.
+* Preserved historical Ghidra export unchanged; versioned copy analysis/decompilation/raw_snapshots/decompiler_export_pre_actor_backfill.c (byte-identical, sha 9bf10e2f...).
+* Created analysis/decompilation/c/: rastan_arcade_types.h (ActorRecord 0x40 / ActorTemplate 8), rastan_actor_tables.c (exact 0x45592/0x45502/0x45562/0x454BA/D2/EA data), _dispatch.c (0x40BAA+table/0x40E74/0x41064), _creation.c (0x49F30/0x4A086/0x4103E/0x45248/0x453A2/0x45342/0x45CFC/0x423B2/0x4CD50/0x427B2), _helpers.c (0x4543E/0x4544E/0x45684), _behavior.c (0x40CCC/0x47140/0x473B8/0x4684E + all 10 H5 handlers). raw/ has 32 per-PC close reconstructions + raw_common.h.
+* Coverage index analysis/decompilation/c/function_coverage.csv (47 rows: 26 COMPLETE / 8 PARTIAL / 13 STUB_ONLY). Guard tools/analysis/check_actor_decompilation_coverage.py: PASS (H5 10/10). gcc -std=c11 -fsyntax-only: PASS on all 38 files.
+* HONEST DOWNGRADES from earlier Markdown "complete": H5 10/10 -> 7 COMPLETE + 3 PARTIAL (0x4396A jump arc, 0x43B32 master band matrix, 0x4415A char matrix); 0x473B8 PARTIAL; 0x3CEB0 STUB (shared core body not traced, only field semantics); 0x41180 PARTIAL (dispatch proven, position math still in export); 0x40C08 PARTIAL. STUBs: 0x4092E/0x41CFA/0x4103A/0x4734A/0x41F9C/0x43F4E/0x447F0/0x4382E/0x468D0/0x42380/0x453D6.
+* 0x0179 is greppable in C: raw/00043840.c (state 0x15 direct base write @0x438B6) and passed as d3 base to 0x45248 (raw/00045248.c note). Standing rule recorded: raw+semantic C + coverage CSV + syntax-check BEFORE Markdown, henceforth. Did NOT start H6/H7.
+
+
 ## [Andy — CHECKPOINT H5: dedicated state handlers 0x13-0x22 decompiled]
 
 * NO MAME, NO ROM, NO Genesis, counter 360. Static maincpu.bin. Manifest/bestiary NOT modified (per task). Report: docs/design/Andy_actor_behavioral_identity_decompilation.md (H5 section); evidence analysis/actor_decompilation/h5_state_handlers.json. Worktree preserved (Cody files untouched).

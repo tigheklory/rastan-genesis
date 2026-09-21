@@ -1,0 +1,4 @@
+route	creator	status	notes
+A enemy-kill drop	UNRESOLVED	OPEN	fatal path reaches score+explosion+retire, no item creator
+B fixed/marker	0x41180/0x41362	PROVEN (H6)	letter markers
+C scripted/positional	0x450D8->0x45248	PROVEN	per-round scripts + camera-gated placement

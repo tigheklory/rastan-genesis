@@ -1,0 +1,2 @@
+enemy_or_state	drop_condition	creator	item	status
+UNRESOLVED	UNRESOLVED	UNRESOLVED	UNRESOLVED	OPEN - conditional enemy item-drop branch not isolated this pass (H9 target)

@@ -135,3 +135,14 @@ place when its target map marker is found.** Proven end to end:
 - **F** — section/progression state machine (`0x13E/0x1242/0x1243/0x1386/0x138A/0x1394/0x10E8/0x1360`).
 - **G** — section→actor reachability.
 - **H** — family update routines (`0x43636..0x4415a`, `0x47140/0x473b8`) → behavioral class per family.
+
+---
+## C SOURCE BACKFILL
+The A/B dispatch + lifecycle decompilation is preserved as auditable C under
+`analysis/decompilation/c/` (`rastan_actor_dispatch.c` = 0x40BAA/0x40E74/0x41064; `raw/00040baa.c`
+etc.). NOTE: `0x41180` is now **COMPLETE** — CHECKPOINT H6 hand-lifted the full state-0/
+materialization dispatch (28 routes at `0x41362`), the per-branch position arithmetic, and the
+`+0x0E` collision-cell-address semantics into `rastan_actor_materialization.c` + `raw/00041180.c`
+(see `docs/design/Andy_h6_marker_materialization_decompilation.md`). The Ghidra export snapshot is
+retained only as the historical cross-check.
+See `analysis/decompilation/c/README.md` and `function_coverage.csv`.

@@ -1,0 +1,7 @@
+round	phase2_start_13E	section_kind	marker_roster_status	blocker
+1	0x11	1	OPEN — per-scene markers not enumerated	A5+0x10D000 collision-record populator (column marker source)
+2	0x2b	1	OPEN — per-scene markers not enumerated	A5+0x10D000 collision-record populator (column marker source)
+3	0x41	1	OPEN — per-scene markers not enumerated	A5+0x10D000 collision-record populator (column marker source)
+4	0x5a	1	OPEN — per-scene markers not enumerated	A5+0x10D000 collision-record populator (column marker source)
+5	0x6e	2	OPEN — per-scene markers not enumerated	A5+0x10D000 collision-record populator (column marker source)
+6	0x85	2	OPEN — per-scene markers not enumerated	A5+0x10D000 collision-record populator (column marker source)

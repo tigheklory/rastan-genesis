@@ -1,0 +1,5 @@
+source	base	creator	notes
+scripted spawn examples	0x0F4	0x45248	via 0x450D8 sub-sequences (camera-gated), e.g. 0x4514E/0x451DC
+scripted spawn examples	0x224	0x45248	0x451B6
+scripted spawn examples	0x548	0x45248	0x451xx
+per-kill drop table	UNRESOLVED	-	OPEN - not fabricated; no per-kill item table found

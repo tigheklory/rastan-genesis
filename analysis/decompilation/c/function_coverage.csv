@@ -1,0 +1,74 @@
+arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confidence,notes
+00040baa,raw/00040baa.c,rastan_actor_dispatch.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,state dispatcher + jump table 0x40BC2
+00040e74,raw/00040e74.c,rastan_actor_dispatch.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,marker recheck
+00041064,raw/00041064.c,rastan_actor_dispatch.c,COMPLETE,GHIDRA_RAW,YES,STATIC,hunter marker find
+0004543e,raw/0004543e.c,rastan_actor_helpers.c,COMPLETE,GHIDRA_RAW,YES,STATIC,record-type template loader
+0004544e,raw/0004544e.c,rastan_actor_helpers.c,COMPLETE,GHIDRA_RAW,YES,STATIC,family template loader
+00045684,raw/00045684.c,rastan_actor_palette.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H10: palette-attr resolver; fam!=2 tbl 0x45722, fam==2 tbl 0x456EC (round/variant/comp); +0x27|=(nib|0x40)"
+00049f30,raw/00049f30.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,schedule occupancy scan
+0004a086,raw/0004a086.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,PARTIAL,STATIC,field-schedule installer
+0004103e,raw/0004103e.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,child hunter create
+00045248,raw/00045248.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,parameterized hunter create (18 callers)
+000453a2,raw/000453a2.c,rastan_actor_creation.c,COMPLETE,GHIDRA_RAW,YES,STATIC,paired actor activate
+00045342,raw/00045342.c,rastan_actor_creation.c,COMPLETE,GHIDRA_RAW,YES,STATIC,paired Flying Demon init
+00045cfc,raw/00045cfc.c,rastan_actor_creation.c,COMPLETE,GHIDRA_RAW,YES,STATIC,scripted activate
+000423b2,raw/000423b2.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,boss 5-component create (0x423F4 mirror)
+00004cd50,raw/00004cd50.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,batch/group creator
+000427b2,raw/000427b2.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,off-screen retire
+00040ccc,raw/00040ccc.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x0F armored man
+00047140,raw/00047140.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,ground engine (states 3-0C
+0004684e,raw/0004684e.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x11 boss component
+0004375c,raw/0004375c.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 states 0x13/0x14
+00043840,raw/00043840.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x15 (owns base 0x0179 @0x438B6)
+00043ae6,raw/00043ae6.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x16
+00043f88,raw/00043f88.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x17
+00044082,raw/00044082.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 states 0x18/0x1C
+00043ecc,raw/00043ecc.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x1B burst spawner
+00043636,raw/00043636.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x22
+0004396a,raw/0004396a.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x19 jumper (arc tail summarized)
+00043b32,raw/00043b32.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x1A master chain (band matrix summarized)
+0004415a,raw/0004415a.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 states 0x1D/0x21 (char matrix summarized)
+000473b8,raw/000473b8.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,airborne engine (anim tail summarized)
+00041180,raw/00041180.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,H6: full state-0 scan + 28-route char materialization dispatch; +0x0E=cell addr
+00040c08,raw/00040c08.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x10 anim setup
+000423f4,,rastan_actor_creation.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,boss components mirror (into A5+0x648)
+00045330,,,PARTIAL,GHIDRA_RAW,NO,STATIC,boss trigger -> 0x4449E (rectype via 0x444E0[round])
+0003ceb0,raw/0003ceb0.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H8: anim-frame advance + motion integration core (frame timing, seq, velocity ring, band reload)"
+0004092e,raw/0004092e.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H7: actor RETIRE/CLEAR (zero 0x40 record + paired companion block +0x702/+0x4E2)
+00041cfa,,,STUB_ONLY,GHIDRA_RAW,YES,STATIC,config-table 0x41D26 load by state
+0004103a,raw/0004103a.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H7: consume(0x4092E clear)+re-arm hunter, end-to-end proven (0x4092E now decompiled)"
+00041bee,raw/00041bee.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H6: light/fire source register (A5+0x1282 slot, 0xD00460 gfx)"
+000453d6,,,STUB_ONLY,GHIDRA_RAW,YES,STATIC,difficulty tune of +0x28/+0x29
+0004734a,,,STUB_ONLY,NONE,NO,STATIC,airborne vertical/hover pre-step
+00041f9c,raw/00041f9c.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H7: jump/anim phase-advance leaf (nibble carry); arc owner is caller 0x41FAC
+00043f4e,raw/00043f4e.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H7: component-pool driver (0x43F52); active member -> 0x447F0, state-0 -> 0x4092E"
+000447f0,raw/000447f0.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H7: child/impact activate -> state 0x0F + sfx 0x10 (0x448B2); rec_type 7 keeps state
+0004382e,,,STUB_ONLY,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x13 anim reload
+000468d0,,,STUB_ONLY,RECONSTRUCTED_FROM_68000,NO,STATIC,component facing vs camera
+00042380,raw/00042380.c,rastan_actor_subsystems.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,boss body update: syncs 5 components by +0x21
+0003a7d2,raw/0003a7d2.c,rastan_actor_subsystems.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,scene-wipe / clear
+00040a60,raw/00040a60.c,rastan_actor_subsystems.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,floor-marker transition table 0x40A86
+00041d08,raw/00041d08.c,rastan_actor_subsystems.c,COMPLETE,GHIDRA_RAW,YES,STATIC,spawner config loader (table 0x41D26)
+0004449e,raw/0004449e.c,rastan_actor_subsystems.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,boss trigger; rectype via 0x444E0[round]
+0004ab5c,raw/0004ab5c.c,rastan_actor_subsystems.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,scripted-encounter dispatcher (tail summarized)
+00053a2e,raw/00053a2e.c,rastan_actor_subsystems.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,collision-grid cell address calc
+00040e88,raw/00040e88.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,H6: state 0x1E marker-chain transform; retarget base 0x0F4 -> 'O' (0x40E9C)
+00040ede,raw/00040ede.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,H6: state 0x20 torch; 0x40F52 light+retarget 0x40F82/0x40FAC/0x40FCC; anim tbl 0x40FE0
+00045418,raw/00045418.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H6: +0x29 attr loader, table 0x4542E[state-0x13]"
+00041336,raw/00041180.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,H6: floor-marker X placement (neighbour-cell facing)
+00041362,raw/00041180.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,H6: char-hunter materialization dispatch (28 marker routes)
+0003b726,raw/0003b726.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H7: score award (3-byte BCD @A5+0x11C), value=dying actor +0x2C; extra life at 999999"
+000448b2,raw/000447f0.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H7: component init -> state 0x0F, +0x08=0xff, sfx 0x10"
+00042e38,raw/00042e38.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H8: move+contact stepper; anim core now lifted; solid cell -> 0x447F0 impact. COMPLETE
+0003cf40,raw/0003cf40.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H8: frame-index wrap (0->56, 57->1)"
+0003cf52,raw/0003cf52.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H8: frame->velocity applier + axis-lock flags +0x13; table 0x3CFD4 (56 dir pairs) + 0x3CFB0 band test
+000449b4,raw/000449b4.c,rastan_actor_collision.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,"H9: ENEMY COLLISION MANAGER (player boxes vs enemy hurtboxes, A5+0x2C8 x29). pass ladder partial"
+00044cba,raw/00044cba.c,rastan_actor_collision.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H9: per-axis AABB overlap; hurtbox rect table 0x44CE0 {xl,xr,yt,yb} signed bytes (var 0x44FA8)"
+000446bc,raw/000446bc.c,rastan_actor_collision.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H9: hurtbox-index selector by rec_type/family/state; 0x446B0 base + 0x44796 table not fully enumerated
+000447ce,raw/000447ce.c,rastan_actor_collision.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H9: enemy hit reaction (one-hit -> +0x3D flash + state 0x0F death anim); rec_type 10/11/18 freeze
+000448d8,raw/000447ce.c,rastan_actor_collision.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H9: family-12 kill -> score(+0x2C 0x3B726) + recycle 0x40A1E
+0003d054,raw/0003d054.c,rastan_actor_render.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H10: render selector dispatch; +0x38 picks program table, all selectors -> shared 0x3C902"
+0003f0bc,raw/0003f0bc.c,rastan_actor_render.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H10: selector-2 thunk (also 0x4770E/0x3FFDC/0x3FFF0) -> table 0x3F0CE -> 0x3C902
+000503bc,raw/000503bc.c,rastan_scene_map.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H11: 0x13E -> scene idx (0x50EE0) -> section kind (0x50F6B); 0=outdoor !=0=castle/phase2
+000559b2,raw/000559b2.c,rastan_scene_map.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H11: collision-grid column writer; grid marker = column_record[20+subcol*2+row*8]
+000563a6,raw/000563a6.c,rastan_scene_map.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H11: background tilemap decompressor (per-round 0x562CA ptr0; metatile stream, 0xFF=col, 0=end)"

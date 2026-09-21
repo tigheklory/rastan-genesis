@@ -1,0 +1,7 @@
+aspect	status	evidence
+HP model	PROVEN	ONE-HIT: no HP accumulator; recorded overlap directly starts death
+hit reaction	PROVEN	0x447CE: +0x3D hit-flash, rec_type!=7 -> 0x448B2 state 0x0F death anim + sfx 0x10
+family-12	PROVEN	0x448D8: score(+0x2C)+recycle(0x40A1E) immediately
+rec_type 10/11/18	PROVEN	0x447B6 freeze (no death anim)
+fatal tail	PROVEN	state 0x0F death anim -> 0x44804 complete -> score 0x3B726(+0x2C) -> retire 0x4092E
+invulnerability	PROVEN	+0x3D flag gates re-hit (collision skips +0x3D!=0); decremented by 0x40B52
