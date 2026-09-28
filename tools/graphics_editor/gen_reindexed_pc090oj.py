@@ -6,48 +6,47 @@ Produces build/regions/pc090oj_editor.bin: the preconverted Genesis PC090OJ patt
 Test profile's authored per-usage index_map, so each sprite renders correctly against its authored shared
 Genesis line. Index 0 stays transparent. All other codes are byte-identical.
 
-Build 0381 — COMPLETE (code,bank) VARIANT PIPELINE
---------------------------------------------------
-The COMPLETE R1/P1 semantic corpus is consumed (analysis/actor_decompilation/r1p1_enemy_semantic_corpus.tsv
-for enemies + h24_player_weapon_cells.tsv for the four equipped weapons + the complete H24 player-body cell
-set for Rastan + the cave_block usage). Across the complete corpus a small set of PC090OJ codes are shared by
-DIFFERENT enemies under DIFFERENT effective palette banks whose authored index_maps produce DIFFERENT
-transformed bytes. A flat code->one-cell model cannot represent those. This generator therefore:
+COMPLETE (code,bank) VARIANT PIPELINE
+-------------------------------------
+The COMPLETE R1/P1 semantic corpus is consumed: enemies (r1p1_enemy_semantic_corpus.tsv), the four equipped
+weapons (h24_player_weapon_cells.tsv, frame-69 decode artefact excluded), the complete H24 player-body cell
+set (Rastan), the destroyable cave block (usage:cave_block:bank0x3C), and the burst/impact effect
+(usage:burst:bank0x30, cells derived from the compositor VM = the same decompilation source the Palette
+Composer uses). Across the complete corpus some PC090OJ codes are shared by DIFFERENT semantic objects under
+DIFFERENT effective palette banks whose authored index_maps produce DIFFERENT transformed bytes; a flat
+code->one-cell model cannot represent those.
 
-  * bakes ONE base cell per code at code*128 (base bank chosen below), and
-  * APPENDS a distinct 128-byte variant cell for every divergent (code, effective_bank) whose transform
-    differs from the base, and
-  * emits a compact, O(1) runtime-consumable variant index (pc090oj_sprite_variants.inc) describing the
-    contiguous divergent code block and the effective_bank -> variant-slot table, plus a machine-readable
-    JSON index.
+This generator therefore bakes ONE base cell per code at code*128 (base bank chosen by BASE_PRIORITY), and
+APPENDS a distinct 128-byte variant cell for every divergent (code, effective_bank), grouped by code. It
+emits a compact, O(1) runtime-consumable index (pc090oj_sprite_variants.inc):
+  * pc090oj_variant_group_base[code] (u16, 0xFFFF = not divergent) -> the appended-region cell base for the
+    code's variant group;
+  * pc090oj_variant_bank_slot[effective_bank] (byte, 0xFF = base / no variant) -> the ordinal of that bank
+    within any group; and the runtime selects vi = group_base[code] + bank_slot[bank].
+This generalizes the earlier single-contiguous-block selector to ANY number of divergent code blocks (e.g.
+0xA73..0xAA2 chimera/lizardman/four_armed AND 0x28E..0x2A8 flying_demon/burst) with no new mechanism.
 
-Divergent (code,bank) entries are NEVER collapsed and NEVER dominant-overwritten. Identical transforms are
-deduplicated (base only). The base region for every non-divergent code is byte-identical to the code-indexed
-Build-0380 output, so accepted-Rastan and every other sprite are preserved exactly.
-
-The frame-69 weapon-table decode artefact (a slot-69 overrun that aliases player-body/enemy codes; HAMMER's
-frame 69 is three copies of the blank code 0x0003) is excluded from the weapon corpus mechanically.
+Divergent (code,bank) entries are NEVER collapsed and NEVER dominant-overwritten. Base cells for every
+non-divergent code (all Rastan, all weapons, most enemies) are byte-identical to the code-indexed model.
 """
-import argparse, csv, hashlib, json, os
+import argparse, csv, hashlib, json, os, sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 CELL = 128
-TILE_MAX = 0x1000                 # 4096 PC090OJ codes
-WEAPON_ARTIFACT_FRAME = 69        # spurious weapon-table decode overrun; excluded (see module docstring)
+TILE_MAX = 0x1000
+WEAPON_ARTIFACT_FRAME = 69
 
-# effective palette bank per usage base name (the arcade sprite colbank the runtime resolves at emit time)
 USAGE_BANK = {"rastan": 0x33, "lizardman": 0x36, "valkyrie": 0x32, "chimera": 0x34,
               "flying_demon": 0x35, "small_bat": 0x3E, "large_bat": 0x3E, "four_armed_insect": 0x3A,
-              "cave_block": 0x3C,
+              "cave_block": 0x3C, "burst": 0x30,
               "weapon.sword": 0x33, "weapon.axe": 0x33, "weapon.hammer": 0x33, "weapon.fire_sword": 0x33}
 
-# authored profile usage-mapping key per usage base name
 USAGE_UID = {"rastan": "object:player.rastan",
              "lizardman": "usage:lizardman:bank0x36", "valkyrie": "usage:valkyrie:bank0x32",
              "chimera": "usage:chimera:bank0x34", "flying_demon": "usage:flying_demon:bank0x35",
              "four_armed_insect": "usage:four_armed_insect:bank0x3A",
              "small_bat": "usage:small_bat:bank0x3E", "large_bat": "usage:large_bat:bank0x3E",
-             "cave_block": "usage:cave_block:bank0x3C",
+             "cave_block": "usage:cave_block:bank0x3C", "burst": "usage:burst:bank0x30",
              "weapon.sword": "object:weapon.sword", "weapon.axe": "object:weapon.axe",
              "weapon.hammer": "object:weapon.hammer", "weapon.fire_sword": "object:weapon.fire_sword"}
 
@@ -56,10 +55,15 @@ ENEMY_OBJECTS = ("lizardman", "valkyrie", "chimera", "flying_demon",
 WEAPON_NAME_TO_BASE = {"SWORD": "weapon.sword", "AXE": "weapon.axe",
                        "HAMMER": "weapon.hammer", "FIRE SWORD": "weapon.fire_sword"}
 
-# For the divergent enemy anim block, the base cell (baked in place at code*128) is lizardman (bank 0x36 =
-# Round-1 enemy, the common case that then needs no runtime variant path); the other two banks are variants.
-DIVERGENT_BASE_BANK = 0x36
-DIVERGENT_VARIANT_BANKS = (0x34, 0x3A)   # chimera, four_armed_insect
+# Base-bank priority for a divergent code (the bank baked in place at code*128). Enemies/rastan/cave rank
+# above the burst effect (0x30), so a primary object always owns the base cell and the burst is a variant;
+# lizardman(0x36) owns the shared 0xA73 anim block and flying_demon(0x35) owns the shared 0x28E burst block.
+BASE_PRIORITY = [0x36, 0x35, 0x32, 0x3E, 0x34, 0x3A, 0x33, 0x3C, 0x30]
+
+# Burst effect (H16): base actor 0x0275, three proven compositor programs; cells derived from the compositor
+# VM (same decompilation source the Palette Composer consumes), NOT a hand-added raw code list.
+BURST_BASE = 0x0275
+BURST_ANIMS = (0x9E, 0x9F, 0xA0)
 
 
 def _imap(profile, uid):
@@ -68,7 +72,6 @@ def _imap(profile, uid):
 
 
 def transform(raw, code, imap):
-    """Return the 128-byte reindexed cell for `code` under `imap` (index 0 stays transparent)."""
     s = code * CELL
     out = bytearray(raw[s:s + CELL])
     for i, b in enumerate(out):
@@ -81,8 +84,6 @@ def transform(raw, code, imap):
 
 
 def _h24_player_cells():
-    """Complete H24 player-body cell-code set (torso 0x5BD40 + legs 0x5C466). Codes outside the tile range
-    are excluded (decode artefacts / non-player). Same evidence the Palette Composer consumes."""
     codes = set()
     for fn in ("h24_player_frame_cells.tsv", "h24_player_leg_cells.tsv"):
         p = os.path.join(ROOT, "analysis/actor_decompilation", fn)
@@ -101,8 +102,6 @@ def _h24_player_cells():
 
 
 def _weapon_cells():
-    """{usagebase: set(codes)} for the four equipped weapons from the H24 weapon-cell corpus, EXCLUDING the
-    spurious frame-69 decode artefact and invalid codes."""
     out = {b: set() for b in WEAPON_NAME_TO_BASE.values()}
     p = os.path.join(ROOT, "analysis/actor_decompilation/h24_player_weapon_cells.tsv")
     for r in csv.DictReader(open(p), delimiter="\t"):
@@ -111,46 +110,53 @@ def _weapon_cells():
         if int(r["frame_index"]) == WEAPON_ARTIFACT_FRAME:
             continue
         code = int(r["cell_code"], 16) & 0xFFF
-        if code >= TILE_MAX:
-            continue
-        base = WEAPON_NAME_TO_BASE.get(r["name"].strip())
-        if base:
-            out[base].add(code)
+        if code < TILE_MAX:
+            base = WEAPON_NAME_TO_BASE.get(r["name"].strip())
+            if base:
+                out[base].add(code)
     return out
 
 
 def _enemy_cells(corpus_tsv):
-    """{usagebase: set(codes)} for the complete R1/P1 enemy corpus (valid cells only)."""
     out = {o: set() for o in ENEMY_OBJECTS}
     for r in csv.DictReader(open(corpus_tsv), delimiter="\t"):
         if (r.get("valid") or "").strip() != "Y":
             continue
         obj = r["object"].strip()
-        if obj not in out:
-            continue
-        code = int(r["cell_code"], 16) & 0xFFF
-        if code < TILE_MAX:
-            out[obj].add(code)
+        if obj in out:
+            code = int(r["cell_code"], 16) & 0xFFF
+            if code < TILE_MAX:
+                out[obj].add(code)
     return out
 
 
-def resolve(profile, corpus_tsv):
-    """Resolve the complete (code,bank) requirement set into a base map per code plus divergent variants.
+def _burst_cells():
+    """Burst PC090OJ cell codes across the three proven forms, via the compositor VM (decompilation source)."""
+    p = os.path.join(ROOT, "tools/graphics_optimizer")
+    if p not in sys.path:
+        sys.path.insert(0, p)
+    from compositor_vm import ActorRenderState, visible_pieces
+    codes = set()
+    for anim in BURST_ANIMS:
+        for pc in visible_pieces(ActorRenderState(BURST_BASE, anim, 0)):
+            c = pc.tile & 0x1FFF
+            if c < TILE_MAX:
+                codes.add(c)
+    if not codes:
+        raise SystemExit("burst compositor VM produced no cells")
+    return codes
 
-    Returns dict with:
-      base[code]      = (usagebase, uid, bank, line, imap)      -- baked at code*128
-      variants        = [ {vi, code, usagebase, uid, bank, line, imap} ]  -- appended cells (vi = 0..n-1)
-      bank_slot[bank] = variant-slot base for the divergent block (byte, 0xFF = base/no variant)
-      block_lo/block_hi = the single contiguous divergent code block
-    """
+
+def resolve(profile, corpus_tsv):
+    """Resolve the complete (code,bank) requirement set. Returns (cb_map, code_banks)."""
     code_sets = {"rastan": _h24_player_cells()}
     code_sets.update(_weapon_cells())
     code_sets.update(_enemy_cells(corpus_tsv))
-    code_sets["cave_block"] = set(range(0x0179, 0x017D))
+    code_sets["cave_block"] = set(range(0x0179, 0x017D))     # proven 2x2 composite (== compositor VM)
+    code_sets["burst"] = _burst_cells()
 
-    # per-(code,bank) authored map, and per-code set of banks
-    cb_map = {}          # (code,bank) -> (usagebase, uid, line, imap)
-    code_banks = {}      # code -> set(bank)
+    cb_map = {}
+    code_banks = {}
     for usagebase, cset in code_sets.items():
         uid = USAGE_UID[usagebase]
         imap, line = _imap(profile, uid)
@@ -164,63 +170,62 @@ def resolve(profile, corpus_tsv):
                                  f"{cb_map[key][1]} vs {uid} (different maps, identical runtime identity)")
             cb_map[key] = (usagebase, uid, line, imap)
             code_banks.setdefault(code, set()).add(bank)
-
-    raw = None  # transforms computed by caller; here we only need identity of divergent bytes -> caller passes raw
     return cb_map, code_banks
 
 
 def build_layout(profile, raw, corpus_tsv):
-    """Compute the base map and appended variant list from the resolved requirement set + raw pixels."""
+    """Compute the base map + appended variant list + the O(1) runtime index tables.
+
+    Returns: base[code]=(usagebase,uid,bank,line,imap); variants=[{vi,code,uid,bank,line,imap}];
+             var_ordinal{bank->ordinal}; group_base{code->cell-base}; n_variant_cells; cb_map; code_banks.
+    Generalizes to ANY number of divergent code blocks."""
     cb_map, code_banks = resolve(profile, corpus_tsv)
-
     divergent = sorted(c for c, banks in code_banks.items() if len(banks) > 1)
-    # Verify divergent codes are exactly one contiguous block under the expected banks (else fail loudly:
-    # the compact runtime index assumes a single contiguous block).
-    if divergent:
-        lo, hi = divergent[0], divergent[-1]
-        if divergent != list(range(lo, hi + 1)):
-            raise SystemExit(f"divergent codes are not contiguous: {[hex(c) for c in divergent]}")
-        expect = {DIVERGENT_BASE_BANK, *DIVERGENT_VARIANT_BANKS}
-        for c in divergent:
-            if not code_banks[c].issubset(expect) or DIVERGENT_BASE_BANK not in code_banks[c]:
-                raise SystemExit(f"divergent code {hex(c)} banks {sorted(code_banks[c])} outside expected "
-                                 f"{sorted(expect)} (base {hex(DIVERGENT_BASE_BANK)} required)")
-    else:
-        lo, hi = 0, -1
 
-    # base map: one owner per code; for divergent block, base = DIVERGENT_BASE_BANK owner.
+    def base_bank_of(banks):
+        for b in BASE_PRIORITY:
+            if b in banks:
+                return b
+        return min(banks)
+
+    # Consistent global ordinal per variant bank (position within its group's sorted variant set).
+    var_ordinal = {}
+    for c in divergent:
+        vbanks = sorted(code_banks[c] - {base_bank_of(code_banks[c])})
+        for i, b in enumerate(vbanks):
+            if b in var_ordinal and var_ordinal[b] != i:
+                raise SystemExit(f"variant bank {hex(b)} ordinal conflict ({var_ordinal[b]} vs {i}); the "
+                                 f"compact group index requires each variant bank at a consistent ordinal")
+            var_ordinal[b] = i
+
     base = {}
     for code, banks in code_banks.items():
-        bank = DIVERGENT_BASE_BANK if len(banks) > 1 else next(iter(banks))
+        bank = base_bank_of(banks) if len(banks) > 1 else next(iter(banks))
         usagebase, uid, line, imap = cb_map[(code, bank)]
         base[code] = (usagebase, uid, bank, line, imap)
 
-    # variants: for each divergent code, one appended cell per non-base bank whose transform differs from base.
     variants = []
-    bank_slot = {}   # bank -> slot base (index into variant region)
-    slot = 0
-    for vb in DIVERGENT_VARIANT_BANKS:
-        bank_slot[vb] = slot
-        for code in range(lo, hi + 1):
-            if vb not in code_banks.get(code, set()):
-                raise SystemExit(f"divergent code {hex(code)} missing expected bank {hex(vb)}")
-            usagebase, uid, line, imap = cb_map[(code, vb)]
-            base_bytes = transform(raw, code, base[code][4])
-            var_bytes = transform(raw, code, imap)
-            if var_bytes == base_bytes:
-                # identical transform: dedup -> point at base (no appended cell); still record for the index.
-                variants.append({"vi": None, "code": code, "usagebase": usagebase, "uid": uid,
-                                 "bank": vb, "line": line, "imap": imap, "dedup": True})
-                continue
-            variants.append({"vi": slot + (code - lo), "code": code, "usagebase": usagebase, "uid": uid,
-                             "bank": vb, "line": line, "imap": imap, "dedup": False})
-        slot += (hi - lo + 1)
-    return base, variants, bank_slot, (lo, hi), cb_map, code_banks
+    group_base = {}
+    cursor = 0
+    for c in divergent:
+        banks = code_banks[c]
+        vbanks = sorted(banks - {base_bank_of(banks)})
+        group_base[c] = cursor
+        base_bytes = transform(raw, c, base[c][4])
+        for b in vbanks:
+            usagebase, uid, line, imap = cb_map[(c, b)]
+            if transform(raw, c, imap) == base_bytes:
+                raise SystemExit(f"divergent variant {hex(c)} bank {hex(b)} transforms identical to base; the "
+                                 f"compact per-bank ordinal scheme assumes every listed variant differs")
+            variants.append({"vi": cursor + var_ordinal[b], "code": c, "usagebase": usagebase, "uid": uid,
+                             "bank": b, "line": line, "imap": imap})
+        cursor += (max(var_ordinal[b] for b in vbanks) + 1)
+    return base, variants, var_ordinal, group_base, cursor, cb_map, code_banks
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--profile", default=os.path.join(ROOT, "build/rastan-direct/build0381/Test.snapshot.json"))
+    ap.add_argument("--profile", default=os.path.join(ROOT, "build/rastan-direct/build0384/Test.snapshot.json"))
     ap.add_argument("--corpus", default=os.path.join(ROOT, "analysis/actor_decompilation/r1p1_enemy_semantic_corpus.tsv"))
     ap.add_argument("--pc090oj", default=os.path.join(ROOT, "build/pc090oj_genesis.bin"))
     ap.add_argument("--out", default=os.path.join(ROOT, "build/regions/pc090oj_editor.bin"))
@@ -235,13 +240,12 @@ def main():
     raw = bytearray(open(a.pc090oj, "rb").read())
     ncodes = len(raw) // CELL
 
-    base, variants, bank_slot, (lo, hi), cb_map, code_banks = build_layout(profile, raw, a.corpus)
+    base, variants, var_ordinal, group_base, n_variant_cells, cb_map, code_banks = build_layout(profile, raw, a.corpus)
 
-    # ---- bake base region in place ----
     out = bytearray(raw)
     manifest = {"profile_sha256": profile_sha, "source": os.path.relpath(a.pc090oj, ROOT),
                 "cell_model": {"offset": "code*128", "size_bytes": CELL, "subtiles": 4},
-                "base_reindexed_codes": 0, "variant_cells": 0, "entries": []}
+                "base_reindexed_codes": 0, "variant_cells": 0, "divergent_blocks": [], "entries": []}
     for code, (usagebase, uid, bank, line, imap) in sorted(base.items()):
         s = code * CELL
         if s + CELL > len(out):
@@ -249,70 +253,73 @@ def main():
         out[s:s + CELL] = transform(raw, code, imap)
     manifest["base_reindexed_codes"] = len(base)
 
-    # ---- append variant cells (only non-dedup, in vi order) ----
-    real_variants = sorted((v for v in variants if not v["dedup"]), key=lambda v: v["vi"])
-    n_variant_cells = (len(real_variants) and (max(v["vi"] for v in real_variants) + 1)) or 0
     variant_region = bytearray(n_variant_cells * CELL)
-    for v in real_variants:
+    for v in sorted(variants, key=lambda v: v["vi"]):
         cell = transform(raw, v["code"], v["imap"])
         variant_region[v["vi"] * CELL:(v["vi"] + 1) * CELL] = cell
-        manifest["entries"].append({
-            "kind": "variant", "vi": v["vi"], "region_cell": ncodes + v["vi"],
-            "code": v["code"], "bank": "0x%02X" % v["bank"], "usage": v["uid"], "line": v["line"],
-            "cell_sha256": hashlib.sha256(cell).hexdigest()})
+        manifest["entries"].append({"kind": "variant", "vi": v["vi"], "region_cell": ncodes + v["vi"],
+                                    "code": v["code"], "bank": "0x%02X" % v["bank"], "usage": v["uid"],
+                                    "line": v["line"], "cell_sha256": hashlib.sha256(cell).hexdigest()})
     out += variant_region
     manifest["variant_cells"] = n_variant_cells
-    manifest["divergent_block"] = {"lo": "0x%03X" % lo, "hi": "0x%03X" % hi,
-                                   "base_bank": "0x%02X" % DIVERGENT_BASE_BANK,
-                                   "variant_banks": ["0x%02X" % b for b in DIVERGENT_VARIANT_BANKS]}
     manifest["region_cells_total"] = ncodes + n_variant_cells
+    # summarize divergent blocks (contiguous runs) for the report
+    div = sorted(group_base)
+    if div:
+        runs = [[div[0], div[0]]]
+        for c in div[1:]:
+            if c == runs[-1][1] + 1:
+                runs[-1][1] = c
+            else:
+                runs.append([c, c])
+        for lo, hi in runs:
+            manifest["divergent_blocks"].append({"lo": "0x%03X" % lo, "hi": "0x%03X" % hi,
+                                                 "base_bank": "0x%02X" % base[lo][2],
+                                                 "banks": ["0x%02X" % b for b in sorted(code_banks[lo])]})
 
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
     open(a.out, "wb").write(bytes(out))
     json.dump(manifest, open(a.manifest, "w"), indent=1)
 
-    # ---- runtime-consumable O(1) variant index (.inc) ----
-    #   residency variant key = SPRITE_VARIANT_KEY_MARK | vi  (bit13 marker; bit15 hud stays clear)
-    #   normalized reverse key = SPRITE_VARIANT_KEY_NORM + vi (a free 512-directory range, no resize)
-    #   variant DMA source cell = SPRITE_VARIANT_REGION_CELL + vi
-    #   pc090oj_variant_bank_slot[effective_bank & 0x7f] = slot base (0xFF = base cell / no variant)
-    bs = [0xFF] * 128
-    for bnk, sl in bank_slot.items():
-        bs[bnk & 0x7F] = sl
-    lines = []
-    lines.append("/* GENERATED by tools/graphics_editor/gen_reindexed_pc090oj.py -- do not hand-edit. */")
-    lines.append("/* Build 0381 complete (code,bank) sprite variant index. profile_sha256=%s */" % profile_sha)
-    lines.append(".equ SPRITE_VARIANT_LO, 0x%04X" % lo)
-    lines.append(".equ SPRITE_VARIANT_HI, 0x%04X" % hi)
-    lines.append(".equ SPRITE_VARIANT_SPAN, 0x%04X" % (hi - lo if hi >= lo else 0))
-    lines.append(".equ SPRITE_VARIANT_REGION_CELL, %d" % ncodes)
-    lines.append(".equ SPRITE_VARIANT_REGION_OFF, %d   /* ncodes*128 bytes */" % (ncodes * CELL))
-    lines.append(".equ SPRITE_VARIANT_KEY_MARK, 0x2000")
-    lines.append(".equ SPRITE_VARIANT_KEY_NORM, 0x1080")
-    lines.append(".equ SPRITE_VARIANT_CELLS, %d" % n_variant_cells)
-    lines.append("    .section .rodata")
-    lines.append("    .align 2")
-    lines.append("    .global pc090oj_variant_bank_slot")
-    lines.append("pc090oj_variant_bank_slot:")
+    # ---- runtime O(1) variant index (.inc) ----
+    grp = [0xFFFF] * TILE_MAX
+    for c, gb in group_base.items():
+        grp[c] = gb
+    bslot = [0xFF] * 128
+    for b, o in var_ordinal.items():
+        bslot[b & 0x7F] = o
+    lines = ["/* GENERATED by tools/graphics_editor/gen_reindexed_pc090oj.py -- do not hand-edit. */",
+             "/* Complete (code,bank) sprite variant index. profile_sha256=%s */" % profile_sha,
+             ".equ SPRITE_VARIANT_REGION_CELL, %d" % ncodes,
+             ".equ SPRITE_VARIANT_REGION_OFF, %d   /* ncodes*128 bytes */" % (ncodes * CELL),
+             ".equ SPRITE_VARIANT_KEY_MARK, 0x2000",
+             ".equ SPRITE_VARIANT_KEY_NORM, 0x1080",
+             ".equ SPRITE_VARIANT_CELLS, %d" % n_variant_cells,
+             "    .section .rodata", "    .align 2",
+             "    .global pc090oj_variant_group_base",
+             "pc090oj_variant_group_base:   /* u16 per code: 0xFFFF = not divergent, else variant-region group base */"]
+    for i in range(0, TILE_MAX, 16):
+        lines.append("    .word " + ", ".join("0x%04X" % g for g in grp[i:i + 16]))
+    lines += ["    .align 2", "    .global pc090oj_variant_bank_slot",
+              "pc090oj_variant_bank_slot:    /* byte per effective_bank: 0xFF = base, else ordinal within group */"]
     for i in range(0, 128, 16):
-        lines.append("    .byte " + ", ".join("0x%02X" % b for b in bs[i:i + 16]))
+        lines.append("    .byte " + ", ".join("0x%02X" % b for b in bslot[i:i + 16]))
     lines.append("    .section .text,\"ax\"")
     os.makedirs(os.path.dirname(a.variants_inc), exist_ok=True)
     open(a.variants_inc, "w").write("\n".join(lines) + "\n")
 
-    # machine-readable index (dedup entries recorded too)
-    idx = {"profile_sha256": profile_sha, "block": {"lo": lo, "hi": hi},
-           "base_bank": DIVERGENT_BASE_BANK, "variant_banks": list(DIVERGENT_VARIANT_BANKS),
-           "region_cell_base": ncodes, "bank_slot": {("0x%02X" % b): s for b, s in bank_slot.items()},
-           "variants": [{"code": v["code"], "bank": "0x%02X" % v["bank"], "vi": v["vi"],
-                         "region_cell": (ncodes + v["vi"]) if v["vi"] is not None else None,
-                         "dedup": v["dedup"]} for v in variants]}
+    idx = {"profile_sha256": profile_sha, "region_cell_base": ncodes,
+           "bank_ordinal": {("0x%02X" % b): o for b, o in var_ordinal.items()},
+           "group_base": {("0x%03X" % c): gb for c, gb in group_base.items()},
+           "variants": [{"code": "0x%03X" % v["code"], "bank": "0x%02X" % v["bank"], "vi": v["vi"],
+                         "region_cell": ncodes + v["vi"]} for v in sorted(variants, key=lambda v: v["vi"])]}
     json.dump(idx, open(a.variants_index, "w"), indent=1)
 
     asset_sha = hashlib.sha256(bytes(out)).hexdigest()
-    print("pc090oj_editor.bin: base %d codes, %d variant cells (block 0x%03X..0x%03X); "
-          "region %d cells; profile_sha=%s asset_sha=%s"
-          % (len(base), n_variant_cells, lo, hi, ncodes + n_variant_cells, profile_sha[:16], asset_sha[:16]))
+    print("pc090oj_editor.bin: base %d codes, %d variant cells, %d divergent codes in %d block(s); region %d "
+          "cells; profile_sha=%s asset_sha=%s"
+          % (len(base), n_variant_cells, len(group_base), len(manifest["divergent_blocks"]),
+             ncodes + n_variant_cells, profile_sha[:16], asset_sha[:16]))
 
 
 if __name__ == "__main__":

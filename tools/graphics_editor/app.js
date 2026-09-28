@@ -128,9 +128,9 @@ function renderList(){const L=$('#list');L.innerHTML='';
 
 // Frame browser: category selector + Prev/Next + dropdown over one object's frames. All frames share
 // ONE palette mapping (MK); selecting a frame only changes the previewed artwork, never the mapping.
-const FBLBL={fullbody:'Valid Full-Body Pairings',torso:'Torso Frames',legs:'Leg Frames',diagnostic:'Palette Coverage (diagnostic)',weapon:'Weapon Frames',complete:'Complete Corpus (all cells)',composite:'Composite',frames:'Frames'};
+const FBLBL={fullbody:'Valid Full-Body Pairings',torso:'Torso Frames',legs:'Leg Frames',diagnostic:'Palette Coverage (diagnostic)',weapon:'Weapon Frames',complete:'Complete Corpus (all cells)',composite:'Composite',frames:'Frames',hazard:'Hazard Composite',effect:'Effect Forms'};
 function renderFrameBrowser(reps){
- const order=['fullbody','torso','legs','weapon','composite','complete','frames','diagnostic'];const cats=[];
+ const order=['fullbody','torso','legs','weapon','hazard','effect','composite','complete','frames','diagnostic'];const cats=[];
  order.forEach(c=>{const its=reps.filter(x=>x.frame_category===c).sort((a,b)=>(a.frame_order||0)-(b.frame_order||0));if(its.length)cats.push([c,its]);});
  if(!cats.length)cats.push(['frames',reps]);
  let cur=FCAT;if(!cats.some(([c])=>c===cur))cur=(U&&U.frame_category)||cats[0][0];FCAT=cur;

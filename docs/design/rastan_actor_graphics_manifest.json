@@ -4901,7 +4901,8 @@
     "analysis/actor_decompilation/h24_player_weapon_frames.tsv",
     "analysis/decompilation/h24_player_weapon_render_contract.json"
    ],
-   "palette": "each weapon is a distinct palette object (object:weapon.<name>) in the sprite palette space; NOT object:player.rastan; authored separately in the Palette Composer"
+   "palette": "each weapon is a distinct palette object (object:weapon.<name>) in the sprite palette space; NOT object:player.rastan; authored separately in the Palette Composer",
+   "frame69_artifact": "Build 0381/0383: weapon-table slot 69 is a decode artefact (player-slot overrun; HAMMER frame 69 = three copies of blank code 0x0003; sword/axe/fire cells alias player-body + enemy codes). It is EXCLUDED from the weapon corpus by gen_reindexed_pc090oj.py, the Palette Composer, and the Bestiary. Genuine weapon frames = 42; frames/unique_cells fields above include the artefact for history."
   },
   "palette": "single shared source: line 3, colbank 0x60 (see specs/palette_decisions.json Rastan-player decision; NOT duplicated here). Mapping the player palette once covers every torso/leg frame.",
   "reachability": "POSITIVE PROVENANCE 75/75 torso slots (a2 + a3 + attack); NO torso frame is UNUSED",

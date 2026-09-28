@@ -2639,6 +2639,17 @@
       "note": "PC090OJ final teardown (Tighe explicitly authorized this RTS, narrowly scoped). Arcade 0x03AD72 is exclusively obsolete PC090OJ object-RAM clearing: fill-setup (d1=480,a0=0xD00000,d0=0x100) + bsr 0x03AD44 fill, then falls into the already-rts-hooked 0x03AD84 (records 76..79, dead). Replace the entry move.w #480,d1 with rts;nop; the D-range bsr site 0x03AD82 and the fall-through into the dead 0x03AD84 init become unreachable. Callers 0x3ABB6/0x3AF28 read no result and continue unchanged (0x03AD84 is reached only via this fall-through)."
     },
     {
+      "kind": "opcode_replace",
+      "arcade_pc": "0x044898",
+      "rom_pc": "0x044A98",
+      "original_bytes": "49f90010c508",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "49f900ff0508",
+      "replacement_bytes_template": "49f900ff0508",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0386: Flying Demon whole-demon death fix (KF-044 raw-WRAM-literal class, byte-neutral). rec_type-8/9 death-complete 0x44804 routes to 0x44896, where the arcade puts the PAIRED body record A5+0x508 into state 0x0F death (hit-flash +0x3D=1, component_init 0x448B2) after the hittable member A5+0x548 (+0x3F==0, hurtbox index 2 @0x446E4) finishes dying. The lea used the un-rebased arcade WRAM address 0x0010C508, so on Genesis (WRAM 0x10C000->0xFF0000) the body-death write hit ROM/unmapped 0x10C508 and the wingless body survived. Rebase 0x0010C508 -> 0x00FF0508 so the body record (0xFF0508) dies with the wings. Restores the original arcade semantic operation; no Genesis-only lifecycle logic."
+    },
+    {
       "kind": "relocate_after_shift_operand",
       "arcade_pc": "0x054810",
       "arcade_target": "0x05DA5E",
@@ -2648,19 +2659,19 @@
       "rom_bytes_written": "207C0005DABEC0FC0018D0C04EB9000739A84E75"
     }
   ],
-  "checksum": "0x0EA3",
+  "checksum": "0xC8FD",
   "relocation_map": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {
-    "opcode_replace_count": 230
+    "opcode_replace_count": 231
   },
   "patch_counts": {
-    "opcode_replace_and_rom_opcode_replace": 230
+    "opcode_replace_and_rom_opcode_replace": 231
   },
   "build_context": "canonical",
-  "genesis_coverage_delta": "0x0",
-  "postpatch_expected_opcode_replace_sites": 230,
-  "postpatch_expected_total_genesis_bytes_covered": "0x1A7EB8",
+  "genesis_coverage_delta": "0x1000",
+  "postpatch_expected_opcode_replace_sites": 231,
+  "postpatch_expected_total_genesis_bytes_covered": "0x1AAEB8",
   "bookmarks_v2_count": 0,
   "bookmarks_v2_applied": [],
   "direct_execution": {

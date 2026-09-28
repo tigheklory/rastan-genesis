@@ -632,6 +632,71 @@ try:
 except Exception as _e:
     player_html=f'<section class="round"><h2>Rastan / Player</h2><div class="statusbox pend">player render error: {_e}</div></section>'
 
+def build_weapons_section():
+    """PLAYER EQUIPMENT — equipped weapon overlays. STATIC-DECOMPILATION driven: identity/selector/table/
+    producer come from the manifest player_render_architecture.weapon_overlay.proven_identities; the
+    representative arcade artwork is composited from the authoritative generated weapon-cell TSV (rendered
+    from arcade pc090oj.bin, sprite palette line 3). NOT gameplay-trace derived. The frame-69 decode
+    artefact (player-slot overrun; HAMMER frame 69 = blank 0x0003x3) is excluded, matching the Build-0383
+    generator and the Palette Composer (one source of truth)."""
+    import csv as _csv
+    WO=M.get('player_render_architecture',{}).get('weapon_overlay',{})
+    ids=WO.get('proven_identities',{})
+    if not ids: return ''
+    pal,_=rom_field_palette(1,3)                 # player/weapon sprite palette = bank 0x33, line 3
+    ncells=len(pc)//128
+    WT=ROOT/'analysis/actor_decompilation/h24_player_weapon_cells.tsv'
+    frames={}
+    if WT.exists():
+        for r in _csv.DictReader(open(WT),delimiter='\t'):
+            if r.get('valid_code')!='Y' or int(r['frame_index'])==69: continue
+            uid=r['weapon_id']; fi=int(r['frame_index']); code=int(r['cell_code'],16)&0x1fff
+            if code>=ncells: continue
+            frames.setdefault(uid,{}).setdefault(fi,[]).append((code,int(r['x_off']),int(r['y_off']),r.get('flip')=='H'))
+    def render_frame(cells):
+        xs=[x for _,x,_,_ in cells]; ys=[y for _,_,y,_ in cells]; ox,oy=min(xs),min(ys)
+        W=max(xs)-ox+16; H=max(ys)-oy+16; img=Image.new('RGBA',(W,H),(0,0,0,0))
+        for c,x,y,fh in cells:
+            px=dec(c)
+            for yy in range(16):
+                for xx in range(16):
+                    idx=px[yy][15-xx if fh else xx]
+                    if idx: img.putpixel((x-ox+xx,y-oy+yy),pal[idx]+(255,))
+        bb=img.getbbox()
+        if bb: img=img.crop(bb)
+        return datauri(img.resize((img.width*4,img.height*4),Image.NEAREST))
+    ORDER=['object:weapon.sword','object:weapon.axe','object:weapon.hammer','object:weapon.fire_sword']
+    cards=''
+    for uid in ORDER:
+        idn=ids.get(uid)
+        if not idn: continue
+        wf=frames.get(uid,{}); gf=sorted(wf)
+        ncnt=len(gf); ucells=len({c for fi in wf for (c,_,_,_) in wf[fi]})
+        rep=max(gf,key=lambda f:len(wf[f])) if gf else None
+        uri=render_frame(wf[rep]) if rep is not None else None
+        img=('<img src="'+uri+'">') if uri else 'blank'
+        cards+=(f'<div class="pcard"><div class="pframe">{img}</div><div class="pmeta">'
+                f'<b>{idn["name"]}</b> <span class="badge ok">OBJECT PROVEN</span> <span class="badge ok">NAME PROVEN</span> '
+                f'<span class="badge ok">FRAMES PROVEN</span> <span class="badge ok">STATIC DECOMPILED</span><br>'
+                f'<span class="mono small">selector A5+0x12FA={idn["selector_a12fa"]} · table {idn["table"]} · producer 0x54598 · slot A5+0x1244</span><br>'
+                f'<span class="mono small">{ncnt} proven frames · {ucells} unique source cells · grant {idn.get("grant","")}</span><br>'
+                f'<span class="small">{idn.get("identity_proof","")}</span><br>'
+                f'<span class="palbank ok">source bank 0x33 · sprite palette line 3 (arcade) · Test object:weapon.{uid.split(".")[-1]} → line 0 (authored)</span></div></div>')
+    intro=('<b>Equipped weapon overlays</b> — proven from STATIC ARCADE evidence (original arcade code, ROM '
+           'tables 0x5CD8A/0x5D346/0x5D666/0x5D068, weapon-grant handlers, decoded PC090OJ piece records, raw '
+           'arcade PC090OJ graphics), NOT from Genesis gameplay traces. Each weapon is a separate PC090OJ '
+           'layer appended by the player body-composer tail <span class="mono">0x54598</span>, indexed by the '
+           'upper-body slot <span class="mono">A5+0x1244</span>, selected by <span class="mono">A5+0x12FA</span>. '
+           'Representative frame composited from arcade <span class="mono">pc090oj.bin</span> (palette line 3). '
+           'These are PLAYER EQUIPMENT — not enemy actors, not unresolved. The browser "frame 69" is a decode '
+           'artefact (player-slot overrun; HAMMER frame 69 = blank 0x0003×3) and is excluded.')
+    return (f'<section class="round" id="dash-weapons"><h2>Player Equipment — Equipped Weapon Overlays <span>(A5+0x12FA → 0x54598)</span></h2>'
+            f'<div class="statusbox ok">{intro}</div><div class="pgallery">{cards}</div></section>')
+try:
+    weapons_html=build_weapons_section()
+except Exception as _e:
+    weapons_html=f'<section class="round"><h2>Player Equipment — Equipped Weapon Overlays</h2><div class="statusbox pend">weapon render error: {_e}</div></section>'
+
 # ---- "What we now know" architecture summary (manifest-driven, synced through H9) ----
 AS=M.get('architecture_status',{})
 def _checklist(rows):
@@ -710,6 +775,7 @@ doc=f'''<title>Rastan Bestiary</title>{STYLE}
 <div class="wrap">{coverage_html}
 {content_census_html}
 {player_html}
+{weapons_html}
 {arch_html}
 {gal_field}
 {gal_mat}

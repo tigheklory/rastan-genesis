@@ -2059,21 +2059,23 @@ native_frontend_hud_emit:
     cmpi.w  #GENESIS_VIEWPORT_LEFT, %d6
     blt     .Lnq_entry_skip
 
-    /* Build 0381: complete (code,bank) variant residency remap.  For the single
-     * contiguous divergent enemy block [SPRITE_VARIANT_LO,HI] the base cell (bank
-     * 0x36 = Round-1 lizardman) is baked at code*128; chimera(0x34)/four_armed(0x3A)
-     * select an appended variant cell.  Bounded O(1): one range test + one
-     * bank-indexed table byte, then fold the variant into the residency key/worklist
-     * code as SPRITE_VARIANT_KEY_MARK|vi.  No runtime recolor; variant bytes are
-     * pre-transformed offline.  Base bank and all non-divergent codes are untouched. */
-    move.w  %d3, %d6
-    andi.w  #0x0FFF, %d6
-    subi.w  #SPRITE_VARIANT_LO, %d6
-    cmpi.w  #SPRITE_VARIANT_SPAN, %d6
-    bhi.s   .Lnq_no_variant
-    /* effective bank = (attr & 0x0F) | ((sprite_ctrl_shadow & 0x00E0) >> 1) -- the
-     * exact quantity the palette-line lookup uses at .Lnq_hit, so the pixel variant
-     * matches its CRAM line. */
+    /* Complete (code,bank) variant residency remap (generalized to ANY number of divergent code
+     * blocks).  pc090oj_variant_group_base[code] (u16) is 0xFFFF for a non-divergent code, else the
+     * variant-region cell base for the code's group; pc090oj_variant_bank_slot[effective_bank] is 0xFF
+     * for a base bank, else the bank's ordinal within the group.  vi = group_base + ordinal.  The base
+     * cell (baked at code*128) is the primary owner (e.g. lizardman 0x36 for 0xA73..0xAA2, flying_demon
+     * 0x35 for 0x28E..0x2A8); variant banks (chimera 0x34 / four_armed 0x3A / burst 0x30) select an
+     * appended cell.  Bounded O(1): one u16 table read + one byte read.  No runtime recolor; variant
+     * bytes are pre-transformed offline.  Base bank and every non-divergent code are untouched. */
+    move.w  %d3, %d0
+    andi.w  #0x0FFF, %d0
+    add.w   %d0, %d0
+    lea     pc090oj_variant_group_base, %a1
+    move.w  0(%a1,%d0.w), %d6           /* d6 = group base (0xFFFF = not divergent) */
+    cmpi.w  #0xFFFF, %d6
+    beq.s   .Lnq_no_variant
+    /* effective bank = (attr & 0x0F) | ((sprite_ctrl_shadow & 0x00E0) >> 1) -- the exact quantity the
+     * palette-line lookup uses at .Lnq_hit, so the pixel variant matches its CRAM line. */
     move.w  pc090oj_sprite_ctrl_shadow, %d7
     andi.w  #0x00E0, %d7
     lsr.w   #1, %d7
@@ -2083,10 +2085,10 @@ native_frontend_hud_emit:
     andi.w  #0x007F, %d7
     lea     pc090oj_variant_bank_slot, %a1
     moveq   #0, %d0
-    move.b  0(%a1,%d7.w), %d0
+    move.b  0(%a1,%d7.w), %d0           /* d0 = bank ordinal (0xFF = base bank, no variant) */
     cmpi.b  #0xFF, %d0
     beq.s   .Lnq_no_variant
-    add.w   %d0, %d6                     /* d6 = (code - LO) + slot = variant cell index vi */
+    add.w   %d0, %d6                     /* vi = group_base + ordinal */
     ori.w   #SPRITE_VARIANT_KEY_MARK, %d6
     move.w  %d6, %d3                     /* residency key + worklist code = 0x2000 | vi */
 .Lnq_no_variant:

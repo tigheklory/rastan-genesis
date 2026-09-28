@@ -9,13 +9,13 @@
     "symbols_path": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/symbol.txt",
     "maincpu_path": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin"
   },
-  "genesis_rom_size_bytes": 1736376,
+  "genesis_rom_size_bytes": 1748664,
   "relocation_delta": "0x000200",
   "arcade_source_start": "0x000000",
   "arcade_source_end_exclusive": "0x060000",
   "wrapper_region": {
     "genesis_start": "0x070000",
-    "genesis_end_exclusive": "0x1A7EB8"
+    "genesis_end_exclusive": "0x1AAEB8"
   },
   "segments": [
     {
@@ -1946,10 +1946,33 @@
     },
     {
       "genesis_start": "0x042196",
-      "genesis_end_exclusive": "0x045506",
-      "size_bytes": 13168,
+      "genesis_end_exclusive": "0x044A98",
+      "size_bytes": 10498,
       "kind": "arcade_copy",
       "arcade_start": "0x041F96",
+      "arcade_end_exclusive": "0x044898",
+      "source": "whole_maincpu_copy",
+      "identity_offset": 512
+    },
+    {
+      "genesis_start": "0x044A98",
+      "genesis_end_exclusive": "0x044A9E",
+      "size_bytes": 6,
+      "kind": "patched_site",
+      "arcade_start": "0x044898",
+      "arcade_end_exclusive": "0x04489E",
+      "origin": "opcode_replace",
+      "original_bytes": "49f90010c508",
+      "replacement_bytes": "49f900ff0508",
+      "note": "Build 0386: Flying Demon whole-demon death fix (KF-044 raw-WRAM-literal class, byte-neutral). rec_type-8/9 death-complete 0x44804 routes to 0x44896, where the arcade puts the PAIRED body record A5+0x508 into state 0x0F death (hit-flash +0x3D=1, component_init 0x448B2) after the hittable member A5+0x548 (+0x3F==0, hurtbox index 2 @0x446E4) finishes dying. The lea used the un-rebased arcade WRAM address 0x0010C508, so on Genesis (WRAM 0x10C000->0xFF0000) the body-death write hit ROM/unmapped 0x10C508 and the wingless body survived. Rebase 0x0010C508 -> 0x00FF0508 so the body record (0xFF0508) dies with the wings. Restores the original arcade semantic operation; no Genesis-only lifecycle logic.",
+      "shift_delta": 0
+    },
+    {
+      "genesis_start": "0x044A9E",
+      "genesis_end_exclusive": "0x045506",
+      "size_bytes": 2664,
+      "kind": "arcade_copy",
+      "arcade_start": "0x04489E",
       "arcade_end_exclusive": "0x045306",
       "source": "whole_maincpu_copy",
       "identity_offset": 512
@@ -6410,14 +6433,14 @@
     },
     {
       "genesis_start": "0x070000",
-      "genesis_end_exclusive": "0x1A7EB8",
-      "size_bytes": 1277624,
+      "genesis_end_exclusive": "0x1AAEB8",
+      "size_bytes": 1289912,
       "kind": "genesis_only",
       "tag": "wrapper"
     }
   ],
   "segment_coverage": {
-    "total_genesis_bytes_covered": 1736376,
+    "total_genesis_bytes_covered": 1748664,
     "gaps": [],
     "overlaps": []
   },

@@ -78,6 +78,54 @@ def sprite_bank_colors():
     return banks
 
 
+# ---- arcade per-round palette decode (maincpu.bin), matching the Bestiary rom_field_palette ----
+_MAINCPU = None
+def _maincpu():
+    global _MAINCPU
+    if _MAINCPU is None:
+        _MAINCPU = open(os.path.join(ROOT, "build/regions/maincpu.bin"), "rb").read()
+    return _MAINCPU
+
+
+def _pal5(n):
+    v = n * 2
+    return (v << 3) | (v >> 2)
+
+
+def _arcade_round_palette(rnd, nibble):
+    """The arcade per-round line palette (0x3BA88 round table -> 0x4FD02 pool). Same math as the Bestiary."""
+    mc = _maincpu()
+    pidx = mc[0x3BA88 + (rnd - 1) * 32 + nibble]
+    b = 0x4FD02 + pidx * 32
+    return [[_pal5((int.from_bytes(mc[b + i * 2:b + i * 2 + 2], "big") >> 8) & 0xF),
+             _pal5((int.from_bytes(mc[b + i * 2:b + i * 2 + 2], "big") >> 4) & 0xF),
+             _pal5(int.from_bytes(mc[b + i * 2:b + i * 2 + 2], "big") & 0xF)] for i in range(16)]
+
+
+def _manifest_vm_pieces(base, anim, table):
+    """Compositor-VM (decompilation) pieces for a manifest render spec -> anchor-relative {code,x,y,fx,fy}.
+    Uses the SAME 0x3D054 route the Bestiary renders with, so the Composer and Bestiary share one source of
+    truth (not a gameplay trace). Empty on a special/unsupported program."""
+    import sys
+    p = os.path.join(ROOT, "tools/graphics_optimizer")
+    if p not in sys.path:
+        sys.path.insert(0, p)
+    try:
+        from compositor_vm import ActorRenderState, visible_pieces
+        sat = visible_pieces(ActorRenderState(base, anim, table))
+    except Exception:
+        return []
+    if not sat:
+        return []
+    def s9(v):
+        v &= 0x1FF
+        return v - 0x200 if v & 0x100 else v
+    raw = [{"code": q.tile & 0x1FFF, "x": s9(q.x), "y": s9(q.y),
+            "fx": bool(q.hflip), "fy": bool(q.vflip)} for q in sat]
+    ox = min(q["x"] for q in raw); oy = min(q["y"] for q in raw)
+    return [{"code": q["code"], "x": q["x"] - ox, "y": q["y"] - oy, "fx": q["fx"], "fy": q["fy"]} for q in raw]
+
+
 _CSVROWS = None
 def _trace_rows():
     """Real emitted PC090OJ records from the accepted capture (code + x/y + flip) — TRUE composition."""
@@ -199,18 +247,24 @@ def enemy_complete_usages():
 
 def h24_weapon_frames():
     """The 4 equipped weapons as first-class Palette Composer objects (SWORD/AXE/HAMMER/FIRE SWORD).
-    Each is a separate PC090OJ overlay (0x5CD8A/0x5D346/0x5D666/0x5D068), 43 frames, its own shared
-    map_key object:weapon.<name>. Source: generated h24_player_weapon_cells.tsv. Rendered in the sprite
+    Each is a separate PC090OJ overlay (0x5CD8A/0x5D346/0x5D666/0x5D068), 42 genuine frames (the frame-69
+    decode artefact is excluded), its own shared map_key object:weapon.<name>. Source: generated
+    h24_player_weapon_cells.tsv. Rendered in the sprite
     palette space (bank 0x33) from the arcade pc090oj.bin; Tighe authors each weapon's target mapping.
     Returns (out, counts) where out items = (key, label, pieces, category, order, map_key)."""
     import csv
     p = os.path.join(ROOT, "analysis/actor_decompilation", "h24_player_weapon_cells.tsv")
     if not os.path.exists(p):
         return [], {}
-    # group cells by (weapon_id, frame) preserving x/y
+    # group cells by (weapon_id, frame) preserving x/y. Frame 69 is a weapon-table decode artefact
+    # (player-slot overrun; HAMMER frame 69 = 0x0003x3; aliases body/enemy codes) — excluded to match the
+    # Build-0383 generator and the Bestiary weapon section (single source of truth).
+    WEAPON_ARTIFACT_FRAME = 69
     frames = {}
     for r in csv.DictReader(open(p), delimiter="\t"):
         if r.get("valid_code") != "Y":
+            continue
+        if int(r["frame_index"]) == WEAPON_ARTIFACT_FRAME:
             continue
         wid = r["weapon_id"]; fi = int(r["frame_index"])
         frames.setdefault((wid, fi), []).append(
@@ -739,6 +793,34 @@ def build_usages(banks):
                                  "frame_label": label, "object_id": obj_id, "counts": _enemy_counts,
                                  "cellsheet": True}
             defs.append((key, label, ebank, pieces, False))
+
+    # Decompilation-proven non-enemy objects, rendered via the SAME compositor VM the Bestiary uses (manifest
+    # render specs), so identity is static/decompiled — never trace-derived. Local banks copy so injecting the
+    # arcade source palettes never mutates the caller's dict.
+    banks = dict(banks)
+    # (a) Destroyable cave-entrance block (H17, hazard). Reuses the EXISTING authored Test mapping
+    #     usage:cave_block:bank0x3C (control 0xC -> line 0xC -> bank 0x3C; arcade R1 pool-35 palette).
+    banks.setdefault(0x3C, _arcade_round_palette(1, 12))
+    cave_pieces = _manifest_vm_pieces(0x0179, 0x70, 0)
+    if cave_pieces:
+        _player_meta["cave_block"] = {"category": "hazard", "order": 950,
+                                      "map_key": "usage:cave_block:bank0x3C",
+                                      "frame_label": "Cave Entrance Block",
+                                      "object_id": "object:hazard.cave_block"}
+        defs.append(("cave_block", "Cave Entrance Block", 0x3C, cave_pieces, True))
+    # (b) Burst / impact effect (H16, base 0x0275): three proven forms 0x9E/0x9F/0xA0 that SHARE one palette
+    #     identity (compositor control nibble 0 -> arcade R1 line 0 -> bank 0x30). No Test.json mapping exists
+    #     -> naturally shown UNAUTHORED; this task never authors/saves it.
+    banks[0x30] = _arcade_round_palette(1, 0)
+    for aid, lbl in ((0x9E, "0x9E (8 pieces)"), (0x9F, "0x9F (9 pieces)"), (0xA0, "0xA0 (10 pieces)")):
+        bp = _manifest_vm_pieces(0x0275, aid, 0)
+        if bp:
+            k = "burst_%02x" % aid
+            _player_meta[k] = {"category": "effect", "order": 960 + aid,
+                               "map_key": "usage:burst:bank0x30",
+                               "frame_label": "Burst / Impact %s" % lbl,
+                               "object_id": "object:effect.burst"}
+            defs.append((k, "Burst / Impact Effect frame %s" % lbl, 0x30, bp, True))
 
     usages = []
     for key, name, bank, pieces, proven in defs:

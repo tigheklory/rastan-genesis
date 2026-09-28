@@ -19,7 +19,7 @@ from gen_reindexed_pc090oj import build_layout, transform, CELL
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--profile", default=os.path.join(ROOT, "build/rastan-direct/build0381/Test.snapshot.json"))
+    ap.add_argument("--profile", default=os.path.join(ROOT, "build/rastan-direct/build0384/Test.snapshot.json"))
     ap.add_argument("--corpus", default=os.path.join(ROOT, "analysis/actor_decompilation/r1p1_enemy_semantic_corpus.tsv"))
     ap.add_argument("--raw", default=os.path.join(ROOT, "build/pc090oj_genesis.bin"))
     ap.add_argument("--editor", default=os.path.join(ROOT, "build/regions/pc090oj_editor.bin"))
@@ -30,7 +30,7 @@ def main():
     ed = open(a.editor, "rb").read()
     ncodes = len(raw) // CELL
 
-    base, variants, bank_slot, (lo, hi), cb_map, code_banks = build_layout(profile, raw, a.corpus)
+    base, variants, var_ordinal, group_base, n_variant_cells, cb_map, code_banks = build_layout(profile, raw, a.corpus)
 
     mismatch, incomplete, nonident_raw = [], [], []
     identity_raw_ok = []
@@ -51,7 +51,7 @@ def main():
             (nonident_raw if changing else identity_raw_ok).append(("base", code))
 
     # ---- variant cells ----
-    real_variants = [v for v in variants if not v["dedup"]]
+    real_variants = list(variants)
     var_sha = {}
     for v in real_variants:
         vi = v["vi"]
@@ -103,7 +103,7 @@ def main():
     print("unique codes:                        %d" % len(code_banks))
     print("base cells reindexed:                %d" % len(base))
     print("variant cells generated:             %d" % len(real_variants))
-    print("deduplicated identical variants:     %d" % sum(1 for v in variants if v["dedup"]))
+    print("deduplicated identical variants:     %d" % 0)
     print("cross-bank divergent codes:          %d (all-distinct %d, bad %d)"
           % (len(divergent_codes), divergent_distinct, len(divergent_bad)))
     print("mismatched:                          %d  %s" % (len(mismatch), mismatch[:6]))

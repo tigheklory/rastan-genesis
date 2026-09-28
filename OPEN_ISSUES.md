@@ -49,6 +49,24 @@ Rules:
   Current gameplay executes neither the frontend PC090OJ scanner nor its
   generic decoder, so that slowdown must not be attributed to those two paths
   without new evidence.
+  - **[2026-09-28 Build 0386 STOP — Flying Demon wing-kill does not kill the
+    wingless body (static RE partial)]** Tighe established the arcade contract:
+    killing the demon's wings kills the whole demon; Genesis leaves a wingless
+    body flying. Static decompilation PROVEN: the Flying Demon is a fixed PAIR of
+    records blk_508[0]=A5+0x508 + blk_508[1]=A5+0x548 (paired init 0x45342, both
+    rec_type 8/9, different graphics templates via 0x4543E/rt_45592; body
+    0x0129-family + 0x0275-side wings). The A5+0x508 pool is driven by
+    0x420E6/0x42102 (separate from the A5+0x2C8 hurtbox scan 0x449B4); retire
+    0x4092E zeros a record + paired companion block. NOT YET PROVEN: the exact
+    wing-hit -> whole-demon-death propagation for the rec_type-8/9 pair (the
+    traced companion/generation-byte mechanism at 0x43562/0x4219A is for
+    rec_type-7 aux components, not the 8/9 pair), the first Genesis divergence,
+    and a safe repair. No build produced (counter 385->385); STOP rather than
+    guess a lifecycle fix. Demon PALETTE routing separately proven mechanically
+    correct (body+wings both bank 0x35/Line 1, fully mapped; burst bank 0x30/Line
+    0; Build-0385 (code,bank) variants distinct) — no palette fix; Tighe's maps
+    unchanged. Evidence:
+    `docs/design/Andy_build0386_flying_demon_decompilation_ownership_palette.md`.
 - **OPEN-024 remains open but is narrower:** gameplay SAT output is direct
   native semantic-lane output. Remaining PC090OJ debt is frontend/shared
   producer compatibility. The player auxiliary/raw family has corrected

@@ -264,15 +264,15 @@
     "solver": "delta_e_fixed_layera_ground_entries_1_5",
     "genesis_status": "CURRENT IMPLEMENTATION COLOR WRONG / DEFERRED \u2014 the Layer-A Line-3 muddy-ground reindex (Cody build0366) was not visually accepted; it must be corrected to reproduce the arcade black/brown, not presented as the object's true appearance."
    },
-   "line": 3,
+   "line": 0,
    "index_map": {
-    "1": 5,
-    "7": 2,
-    "8": 1,
-    "9": 3,
-    "12": 3,
-    "13": 3,
-    "14": 1
+    "1": 7,
+    "7": 1,
+    "8": 9,
+    "9": 4,
+    "12": 2,
+    "13": 5,
+    "14": 10
    },
    "solver": "delta_e_fixed_layera_ground_entries_1_5"
   },
@@ -348,6 +348,14 @@
     "9": 1,
     "12": 0,
     "13": 5
+   }
+  },
+  "usage:burst:bank0x30": {
+   "line": 0,
+   "index_map": {
+    "2": 11,
+    "3": 1,
+    "9": 6
    }
   }
  },

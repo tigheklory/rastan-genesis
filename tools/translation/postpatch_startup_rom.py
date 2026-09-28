@@ -36,7 +36,7 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 # hardware destinations to pc090oj_object_ram + the same record offsets.
 # Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
 # source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
-CANONICAL_OPCODE_REPLACE_COUNT = 230  # Build 0377: rebase the Phase-3 stage selector at 0x59704.
+CANONICAL_OPCODE_REPLACE_COUNT = 231  # Build 0386: +1 byte-neutral opcode_replace rebases the Flying Demon death-propagation WRAM literal at 0x044898 (0x0010C508 -> 0x00FF0508, KF-044 class). Prev 230 (Build 0377).
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -110,7 +110,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 230  # Build 0377: rebase the Phase-3 stage sel
 # canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the semantic
 # opcode-replacement sites are unchanged. The direct-native 0x05A098 gameplay
 # status producer adds 0x1D0 wrapper bytes without adding a replacement site.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1A7EB8  # Build 0381: complete (code,bank) sprite pipeline appends 96 variant cells to pc090oj_editor.bin (+0x3000). Prev 0x1A4EB8 (Build 0378).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1A9EB8  # Build 0384: +8192 group_base table (multi-block variant index) + burst/cave variant cells; region holds 123 variant cells (4219). Prev 0x1A7EB8 (Build 0383).
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

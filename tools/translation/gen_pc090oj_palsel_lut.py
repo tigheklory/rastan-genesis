@@ -230,13 +230,19 @@ def main():
               f"PC090OJ rows={len(pc090oj_map)}, route_sha1={route_sha}")
         return 0
 
-    # Compare the direct map with the exact pre-migration renderer oracle.
+    # Compare the direct map with the pre-migration renderer oracle, made PROFILE-AUTHORITATIVE: for a bank
+    # the saved Palette Tool profile authors (scene 1), the expected line is the AUTHORED line, overriding the
+    # legacy special/route/fallback (per this generator's documented intent). Unauthored banks keep the oracle.
+    def expected(s, b):
+        if s == 1 and b in editor_map:
+            return editor_map[b]
+        return oracle(s, b, pc090oj_map)
     emitted = parse_emitted_bytes(args.out)
     mismatches = 0
     route_hits = fallback_cases = special_cases = 0
     for s in range(NUM_SCENES):
         for b in range(BANK_WIDTH):
-            want = oracle(s, b, pc090oj_map)
+            want = expected(s, b)
             got = emitted[s * BANK_WIDTH + b]
             if want != got:
                 mismatches += 1
@@ -252,7 +258,8 @@ def main():
     def g(s, b):
         return emitted[s * BANK_WIDTH + b]
     anchors = {
-        "scene1 bank0x30 (special->2)": (g(1, 0x30), 2),
+        ("scene1 bank0x30 (authored->%d)" % editor_map[0x30]) if 0x30 in editor_map
+            else "scene1 bank0x30 (special->2)": (g(1, 0x30), editor_map.get(0x30, 2)),
         "scene1 bank0x33 (route->0)": (g(1, 0x33), 0),
         "scene1 bank0x36 (route->1)": (g(1, 0x36), 1),
         "scene1 bank0x31 (miss->(0x31>>4)&3=3)": (g(1, 0x31), 3),
@@ -277,7 +284,7 @@ def main():
     sat_cases = 0
     for s in range(NUM_SCENES):
         for b in range(BANK_WIDTH):
-            old_line = oracle(s, b, pc090oj_map)
+            old_line = expected(s, b)
             new_line = emitted[s * BANK_WIDTH + b]
             for hud in range(2):
                 old_selected = 3 if hud else old_line
