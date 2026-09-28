@@ -73,8 +73,11 @@ const ActorTemplate family_varN_45562[12] = {
     /* f11 */ { 0x0D5F, 0x9F, 0xC5, 0x0003, 0x0004 },
 };
 
-/* Family-2 boss tables: 0x4544E selects by comp (0->454ba, 3->454d2, else
- * 454ea), index = A4+0x752 variant. ALL in-range entries base==0x033E. */
+/* Family-2 loader tables (the 0x033E hunter route, +0x3E==2): 0x4544E selects by comp
+ * (0->454ba, 3->454d2, else 454ea), index = A4+0x752 variant. ALL in-range entries base==0x033E.
+ * NOTE: these are NOT the boss BODY records. Boss bodies use the record-type path (+0x3E=0,
+ * table 0x444E0->0x45592, bases 0x061D/0753/082C/07BF/0988/0B35) and get their palette from the
+ * embedded compositor control nibble (0x3C9E8), not from these family-2 tables. */
 const ActorTemplate boss_comp0_454ba[4] = {
     { 0x033E, 0x02, 0x93, 0x0302, 0x0004 },
     { 0x033E, 0x02, 0x93, 0x0402, 0x0006 },

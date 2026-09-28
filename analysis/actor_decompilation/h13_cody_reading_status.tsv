@@ -1,0 +1,6 @@
+scope	count	method	note
+total_cody_md_files	405	find . -name Cody*.md	26.6 MB (~7M tokens); full ingestion is infeasible within one session budget per CLAUDE.md efficiency mandate
+read_in_full_this_h13	5	Read/grep-extract	Build0115, Build0228, Build0169, collision_map_grounding_implementation, Build0246 (all H13-critical; listed in reconciliation TSV)
+substance_scanned_batch1	~135	batch substance-extraction (prior turn)	confirmed overwhelmingly Genesis-runtime build history, not arcade collision semantics
+whole_corpus_grep	405	grep 0x55904/0x559B2/0x1691C/0x10D040/collision.record	13 files touch arcade collision terms; the 5 core ones above were read; the other 8 are rope/plane-A Genesis-runtime reports
+NOT_read_in_full	~400	-	the remaining ~400 Cody md were NOT read line-by-line. NO compliance with "read EVERY Cody md" is claimed. Per H13 escape clause this is reported honestly, not asserted complete.

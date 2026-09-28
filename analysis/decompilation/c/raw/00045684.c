@@ -14,7 +14,15 @@
  *
  * The final 16 colors come from the per-round ROM palette (0x3BA88[round-1][nibble] -> pool ->
  * 0x4FD02), i.e. the same rom_field_palette(round, nibble) the field actors use. The palette line is
- * therefore ROUND-SPECIFIC (per-round table row) and, for family-2, also variant/comp specific. */
+ * therefore ROUND-SPECIFIC (per-round table row) and, for family-2, also variant/comp specific.
+ *
+ * H15 palette-lifetime: this resolver runs ONLY at creation (single caller 0x4A0CE in 0x4A086). The
+ * variant it reads (a4@(0x752)) is the PARALLEL byte written by 0x4A086 (= schedule e[2]>>4). The
+ * marker-chain transforms (0x40E9C/0x40F82/0x43B32-rebase/...) go through 0x4103A, which zeroes the
+ * whole record (resetting +0x27) but NOT +0x752, and they do NOT re-run 0x45684. So across a
+ * transform the durable palette-relevant state is the VARIANT (+0x752), not the resolved line
+ * (+0x27); a transformed actor's render palette then derives from its compositor control byte
+ * (0x3C9E8 with +0x27 bit6 clear), not this creation-time line. */
 #include "raw_common.h"
 
 /* 0x45722: non-family-2 nibble table, (round-1)*12 + family. */

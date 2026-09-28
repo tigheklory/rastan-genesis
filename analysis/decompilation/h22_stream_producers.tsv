@@ -1,0 +1,6 @@
+producer_pc	kind	source	dest	stride	count	output	status
+0x55C7A	FG tile column	layout src (descriptor)	PC080SN name table A5+0x10F8	+0xFE/row	64 rows	visual tile word	PROVEN
+0x559B2	BG collision+tile	collision record	0x10DE00 grid + name table	+2 then +254	4 cells/strip	collision word + tile	PROVEN(H13)
+0x55A14	FG collision+tile	collision record (parity strip)	0x10DE00 grid	+2 then +0x100 below	4 cells	collision word (reflected)	PROVEN(H13)
+0x563A6	BG metatile decompress	0x562CA[round] ptr0 stream	name table	-	0xFF=col/0=end	decompressed tilemap	PROVEN(H11)
+0x55904	record/tile ptr build	descriptor word0/word1	A5+0x10D040/0x10D080	-	16 cols	record+tile ptrs	PROVEN(H13)

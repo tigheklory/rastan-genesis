@@ -1,0 +1,8 @@
+condition	key_fields	selector_pc	index_source	table	output	status
+state==8 (death)	A5+0x10E8=8	0x54376	A5+0x12F4	a3 pose (per-state)	A5+0x1244	PROVEN
+weapon anim	A5+0x12F0==1	0x5435E	A5+0x12F2	a3 pose	A5+0x1244	PROVEN
+default	state!=5/8/9, A5+0x1108!=1	0x54346	A5+0x10EA	a3 pose	A5+0x1244	PROVEN
+attack sub0	A5+0x1108==1, A5+0x1116==0	0x543B4	A5+0x110A*2	0x5BAE0	A5+0x1244	PROVEN
+attack sub!=0	A5+0x1108==1, A5+0x1116!=0	0x543B4	A5+0x110A*2	0x5BB10	A5+0x1244	PROVEN
+state5 attack	A5+0x10E8==5	0x54346	A5+0x10EA	a3 pose	A5+0x1244	PROVEN
+compose	-	0x54492	A5+0x1244	0x5BD40 offset	4 SAT pieces	PROVEN

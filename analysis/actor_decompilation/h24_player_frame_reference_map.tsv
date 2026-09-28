@@ -1,0 +1,76 @@
+torso_slot	referencing_tables	status
+0	attack hi;attack up-thrust;normal(0x5b640);normal(0x5b6d0);normal(0x5b720);normal(0x5b778);normal(0x5b7c8);normal(0x5b818);normal(0x5ba70);weapon-variant(0x5b6a0)	REFERENCED
+1	weapon-variant(0x5b6a0)	REFERENCED
+2	weapon-variant(0x5b6a0)	REFERENCED
+3	weapon-variant(0x5b6a0)	REFERENCED
+4	weapon-variant(0x5b6a0)	REFERENCED
+5	weapon-variant(0x5b6a0)	REFERENCED
+6	normal(0x5b928);normal(0x5b9a8);weapon-variant(0x5b978)	REFERENCED
+7	weapon-variant(0x5b978)	REFERENCED
+8	weapon-variant(0x5b978)	REFERENCED
+9	weapon-variant(0x5b978)	REFERENCED
+10	weapon-variant(0x5b978)	REFERENCED
+11	weapon-variant(0x5b978)	REFERENCED
+12	attack up-thrust	REFERENCED
+13	attack up-thrust	REFERENCED
+14	attack up-thrust	REFERENCED
+15	normal(0x5b868);normal(0x5b8d8)	REFERENCED
+16	normal(0x5b868);normal(0x5b8d8)	REFERENCED
+17	normal(0x5b868);normal(0x5b8d8)	REFERENCED
+18	normal(0x5b868);normal(0x5b8d8)	REFERENCED
+19	weapon-variant(0x5b8a8)	REFERENCED
+20	weapon-variant(0x5b8a8)	REFERENCED
+21	weapon-variant(0x5b8a8)	REFERENCED
+22	weapon-variant(0x5b8a8)	REFERENCED
+23	weapon-variant(0x5b8a8)	REFERENCED
+24	weapon-variant(0x5b8a8)	REFERENCED
+25	attack hi	REFERENCED
+26	attack hi	REFERENCED
+27	attack hi	REFERENCED
+28	normal(0x5b6d0);normal(0x5b778);normal(0x5b818);normal(0x5bab0)	REFERENCED
+29	normal(0x5b6d0);normal(0x5b778);normal(0x5b818);normal(0x5bab0)	REFERENCED
+30	normal(0x5b6d0);normal(0x5b778);normal(0x5b818);normal(0x5bab0)	REFERENCED
+31	normal(0x5b9a8)	REFERENCED
+32	normal(0x5b9a8)	REFERENCED
+33	normal(0x5b9a8)	REFERENCED
+34	normal(0x5b8d8)	REFERENCED
+35	normal(0x5b8d8)	REFERENCED
+36	normal(0x5b8d8)	REFERENCED
+37	normal(0x5bb40);normal(0x5bbc0);normal(0x5bc40);normal(0x5bcc0)	REFERENCED
+38	normal(0x5bb40);normal(0x5bbc0);normal(0x5bc40);normal(0x5bcc0)	REFERENCED
+39	normal(0x5bb40)	REFERENCED
+40	normal(0x5bb40)	REFERENCED
+41	normal(0x5bb40)	REFERENCED
+42	normal(0x5bb40)	REFERENCED
+43	weapon-swing companion (0x5BA38 seq)	REFERENCED
+44	normal(0x5b9f8);weapon-variant(0x5ba38)	REFERENCED
+45	weapon-swing companion (0x5BA38 seq)	REFERENCED
+46	weapon-variant(0x5ba38)	REFERENCED
+47	weapon-swing companion (0x5BA38 seq)	REFERENCED
+48	weapon-variant(0x5ba38)	REFERENCED
+49	weapon-swing companion (0x5BA38 seq)	REFERENCED
+50	weapon-variant(0x5ba38)	REFERENCED
+51	weapon-swing companion (0x5BA38 seq)	REFERENCED
+52	weapon-variant(0x5ba38)	REFERENCED
+53	weapon-swing companion (0x5BA38 seq)	REFERENCED
+54	weapon-variant(0x5ba38)	REFERENCED
+55	normal(0x5bbc0)	REFERENCED
+56	normal(0x5bbc0)	REFERENCED
+57	normal(0x5bbc0)	REFERENCED
+58	normal(0x5bbc0)	REFERENCED
+59	normal(0x5bc40)	REFERENCED
+60	normal(0x5bc40)	REFERENCED
+61	normal(0x5bc40)	REFERENCED
+62	normal(0x5bc40)	REFERENCED
+63	normal(0x5bc40)	REFERENCED
+64	normal(0x5bcc0)	REFERENCED
+65	normal(0x5bcc0)	REFERENCED
+66	normal(0x5bcc0)	REFERENCED
+67	normal(0x5bcc0)	REFERENCED
+68	normal(0x5bcc0)	REFERENCED
+69	normal(0x5bcc0)	REFERENCED
+70	normal(0x5bbc0)	REFERENCED
+71	normal(0x5bc40)	REFERENCED
+72	normal(0x5bc40)	REFERENCED
+73	normal(0x5bbc0)	REFERENCED
+74	normal(0x5bbc0)	REFERENCED

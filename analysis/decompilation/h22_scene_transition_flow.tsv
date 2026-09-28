@@ -1,0 +1,10 @@
+stage	pc	gate_state	action	owner_state	status
+freeze gate	0x55DFE	A5+0x1394==1	enter transition (else skip)	A5+0x1394 freeze/transition owner	PROVEN
+sub-phase 1	0x55E08	A5+0x13AA==1	save checkpoint + init new scene	A5+0x13AA transition sub-state	PROVEN
+checkpoint save	0x55E10	-	A5+0x13B8 = A5+0x013E (saved progression)	A5+0x13B8	PROVEN
+scene init call	0x55E18	-	jsr 0x59F5E (new-scene setup)	-	PARTIAL
+stream/wipe	0x55E1E	-	bsr 0x56176 (screen wipe/load)	-	PARTIAL
+door trigger	0x53F0C/0x54038	collision tile 0x7E	A5+0x10E8 := 7 (door -> transition)	A5+0x10E8	PROVEN(mechanism)
+consume/reload	0x3A7D2	-	A5+0x1242 := A5+0x013E; state 2; actor clear 0x3A804; scene reload	A5+0x1242	PROVEN
+map source switch	0x502CC	new A5+0x013E	rebuild A5+0x10D000 column ptrs for new scene	A5+0x10D000	PROVEN
+collision source switch	0x55904	new descriptor	rebuild A5+0x10D040 record ptrs	A5+0x10D040	PROVEN

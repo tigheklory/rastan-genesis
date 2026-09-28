@@ -151,6 +151,156 @@ def _capture_player_pieces(frame):
     return out
 
 
+def _h24_player_tsv(name):
+    """Read a generated H24 player-frame cell TSV (authoritative static source, not a hand list)."""
+    import csv
+    p = os.path.join(ROOT, "analysis/actor_decompilation", name)
+    if not os.path.exists(p):
+        return []
+    rows = []
+    for r in csv.DictReader(open(p), delimiter="\t"):
+        cells = [c for c in (r.get("cells") or "").split(";") if c]
+        if not cells:
+            continue
+        xs = (r.get("x_offsets") or "").split(";"); ys = (r.get("y_offsets") or "").split(";")
+        pieces = [{"code": int(c, 16), "x": int(xs[i]), "y": int(ys[i]), "fx": False, "fy": False}
+                  for i, c in enumerate(cells)]
+        rows.append({"slot": int(r["slot"]), "pieces": pieces})
+    return rows
+
+
+def enemy_complete_usages():
+    """Complete R1/P1 enemy corpus from the authoritative census (r1p1_enemy_semantic_corpus.tsv):
+    every proven cell code per enemy under its effective bank. Returns one complete-coverage usage per
+    enemy (all cells -> the full source palette) so mapping the enemy ONCE covers its entire animation
+    vocabulary, not just a representative frame. Returns (out, counts). Each enemy keeps ONE object_id
+    /map_key so it stays a single semantic palette object."""
+    import csv
+    p = os.path.join(ROOT, "analysis/actor_decompilation", "r1p1_enemy_semantic_corpus.tsv")
+    if not os.path.exists(p):
+        return [], {}
+    by = {}   # object -> (bank, set(codes))
+    for r in csv.DictReader(open(p), delimiter="\t"):
+        obj = r["object"]; bank = int(r["effective_bank"], 16); code = int(r["cell_code"], 16)
+        d = by.setdefault(obj, [bank, set()]); d[1].add(code)
+    NAMES = {"lizardman": "Lizardman", "valkyrie": "Valkyrie", "four_armed_insect": "Four-Armed Insect",
+             "chimera": "Chimera", "flying_demon": "Flying Demon", "small_bat": "Small Bat",
+             "large_bat": "Large Bat"}
+    out = []; counts = {}
+    for obj, (bank, codes) in by.items():
+        cs = sorted(codes); counts[obj] = len(cs)
+        pieces = [{"code": c, "x": (i % 12) * 16, "y": (i // 12) * 16, "fx": False, "fy": False}
+                  for i, c in enumerate(cs)]
+        disp = NAMES.get(obj, obj)
+        out.append(("enemyfull_%s" % obj, "%s - complete corpus (%d cells)" % (disp, len(cs)),
+                    pieces, bank, "object:enemy.%s" % obj))
+    return out, counts
+
+
+def h24_weapon_frames():
+    """The 4 equipped weapons as first-class Palette Composer objects (SWORD/AXE/HAMMER/FIRE SWORD).
+    Each is a separate PC090OJ overlay (0x5CD8A/0x5D346/0x5D666/0x5D068), 43 frames, its own shared
+    map_key object:weapon.<name>. Source: generated h24_player_weapon_cells.tsv. Rendered in the sprite
+    palette space (bank 0x33) from the arcade pc090oj.bin; Tighe authors each weapon's target mapping.
+    Returns (out, counts) where out items = (key, label, pieces, category, order, map_key)."""
+    import csv
+    p = os.path.join(ROOT, "analysis/actor_decompilation", "h24_player_weapon_cells.tsv")
+    if not os.path.exists(p):
+        return [], {}
+    # group cells by (weapon_id, frame) preserving x/y
+    frames = {}
+    for r in csv.DictReader(open(p), delimiter="\t"):
+        if r.get("valid_code") != "Y":
+            continue
+        wid = r["weapon_id"]; fi = int(r["frame_index"])
+        frames.setdefault((wid, fi), []).append(
+            {"code": int(r["cell_code"], 16), "x": int(r["x_off"]), "y": int(r["y_off"]),
+             "fx": r.get("flip") == "H", "fy": False})
+    names = {"object:weapon.sword": "Sword", "object:weapon.axe": "Axe",
+             "object:weapon.hammer": "Hammer", "object:weapon.fire_sword": "Fire Sword"}
+    out = []; counts = {}
+    for wid, disp in names.items():
+        wf = sorted((fi for (w, fi) in frames if w == wid))
+        counts[wid] = len(wf)
+        for n, fi in enumerate(wf):
+            key = "%s_f%02d" % (wid.split(":")[1].replace(".", "_"), fi)
+            out.append((key, "%s frame %d" % (disp, fi), frames[(wid, fi)], "weapon", n, wid))
+    return out, counts
+
+
+def _h24_reference_map():
+    """torso slot -> provenance label (normal / weapon-variant / attack / weapon-swing companion)."""
+    import csv
+    p = os.path.join(ROOT, "analysis/actor_decompilation", "h24_player_frame_reference_map.tsv")
+    out = {}
+    if os.path.exists(p):
+        for r in csv.DictReader(open(p), delimiter="\t"):
+            out[int(r["torso_slot"])] = (r.get("referencing_tables") or "").replace(";", ", ")
+    return out
+
+
+def _h24_fullbody_pairings():
+    """Authoritative valid full-body pairings (torso_slot, leg_slot) — generated artifact, NOT a hand
+    list. See tools/analysis/gen_player_fullbody_pairings.py."""
+    import csv
+    p = os.path.join(ROOT, "analysis/actor_decompilation", "h24_player_fullbody_pairings.tsv")
+    out = []
+    if os.path.exists(p):
+        for r in csv.DictReader(open(p), delimiter="\t"):
+            out.append((int(r["torso_slot"]), int(r["leg_slot"])))
+    return out
+
+
+def h24_player_frames():
+    """The complete H24 static player inventory as ONE shared-palette object with a browsable frame set.
+    Rastan is two independent tracks: torso 0x5BD40 (75 slots) + legs 0x5C466 (52 slots), both on
+    palette line 3 -> sprite bank 0x33. Returns browsable reps (each with category + frame label +
+    shared map_key) plus one internal complete-coverage aggregate diagnostic. Source: generated
+    h24_player_frame_cells.tsv / h24_player_leg_cells.tsv / h24_player_fullbody_pairings.tsv /
+    h24_player_frame_reference_map.tsv. Every rep of the Rastan object shares map_key
+    'object:player.rastan', so mapping the player palette ONCE covers every torso/leg frame."""
+    torso = _h24_player_tsv("h24_player_frame_cells.tsv")
+    legs = _h24_player_tsv("h24_player_leg_cells.tsv")
+    tmap = {r["slot"]: r["pieces"] for r in torso}
+    lmap = {r["slot"]: r["pieces"] for r in legs}
+    refmap = _h24_reference_map()
+    MAPKEY = "object:player.rastan"
+    out = []  # (key, label, pieces, category, order, map_key)
+    # 1) valid full-body pairings (torso over legs at shared origin) — the animation-proven combinations.
+    #    A few pair with the blank leg slot / an effect half; those render the non-blank half (still a
+    #    valid frame in the vocabulary), so all pairings are browsable.
+    for pi, (u, l) in enumerate(_h24_fullbody_pairings()):
+        pcs = tmap.get(u, []) + lmap.get(l, [])
+        if pcs:
+            out.append(("rastan_fb_%02d" % pi, "Full Body %02d (torso %d + legs %d)" % (pi, u, l),
+                        pcs, "fullbody", pi, MAPKEY))
+    # 2) every torso frame (0x5BD40), annotated with its positive provenance
+    for s in range(75):
+        if s in tmap:
+            prov = refmap.get(s, "referenced")
+            out.append(("rastan_torso_%02d" % s, "Torso %d/75 (%s)" % (s, prov),
+                        tmap[s], "torso", s, MAPKEY))
+    # 3) every leg frame (0x5C466); blank slots (e.g. 34) carry no cells and are noted, not rendered
+    for s in range(52):
+        if s in lmap:
+            out.append(("rastan_leg_%02d" % s, "Legs %d/52" % s, lmap[s], "legs", s, MAPKEY))
+    # 4) internal complete-coverage aggregate (diagnostic): every distinct cell across all frames, so a
+    #    single palette mapping over the Rastan object provably covers the whole player vocabulary.
+    seen = {}; agg = []
+    for src in (tmap, lmap):
+        for pieces in src.values():
+            for p in pieces:
+                if p["code"] not in seen:
+                    seen[p["code"]] = 1
+                    agg.append({"code": p["code"], "x": (len(agg) % 8) * 16, "y": (len(agg) // 8) * 16,
+                                "fx": False, "fy": False})
+    out.append(("rastan_body_complete", "Rastan palette coverage (all %d torso + %d leg cells)" %
+                (len(tmap), len(lmap)), agg, "diagnostic", 999, MAPKEY))
+    counts = {"fullbody": len(_h24_fullbody_pairings()), "torso": len(tmap), "legs": 52,
+              "legs_nonblank": len(lmap)}
+    return out, counts
+
+
 # ---------- shared-palette solver ----------
 def _de00(a, b):
     def lab(rgb):
@@ -557,13 +707,38 @@ def build_usages(banks):
         frame = max(shared, key=lambda f: len(shared[f]["0"]) + len(shared[f]["1"]))
         fd_pieces = _rel_pieces(shared[frame]["0"] + shared[frame]["1"])
     defs.append(("flying_demon", "Flying Demon (body+wings)", 0x35, fd_pieces, True))
-    # Rastan BODY true composites from the accepted full capture (records 120-131, bank 0x33, real x/y/flip)
-    for key, frame, label in [("rastan_f7722", 7722, "Rastan body (frame 07722)"),
-                              ("rastan_f15828", 15828, "Rastan body (frame 15828)"),
-                              ("rastan_f16199", 16199, "Rastan body (frame 16199)")]:
-        ps = _capture_player_pieces(frame)
-        if ps:
-            defs.append((key, label, 0x33, _rel_pieces(ps), True))
+    # Rastan BODY: complete H24 static player inventory (two-half torso 0x5BD40 + legs 0x5C466, all on
+    # palette line 3 -> bank 0x33). Consumes generated authoritative H24 data, NOT a hand-written frame
+    # list, so mapping the player palette ONCE covers every torso/leg frame that uses it.
+    h24_frames, _h24_counts = h24_player_frames()
+    _player_meta = {}
+    for key, label, pieces, category, order, map_key in h24_frames:
+        if pieces:   # H24 pieces are already anchor-relative {code,x,y,fx,fy}
+            _player_meta[key] = {"category": category, "order": order, "map_key": map_key,
+                                 "frame_label": label.split(" (")[0]}
+            defs.append((key, label, 0x33, pieces, True))
+    # Equipped weapons (SWORD/AXE/HAMMER/FIRE SWORD) as first-class authorable overlay objects.
+    weap_frames, _weap_counts = h24_weapon_frames()
+    for key, label, pieces, category, order, map_key in weap_frames:
+        if pieces:
+            _player_meta[key] = {"category": category, "order": order, "map_key": map_key,
+                                 "frame_label": label, "object_id": map_key, "counts": _weap_counts}
+            defs.append((key, label, 0x33, pieces, True))
+    # Complete enemy corpora: one complete-coverage usage per enemy (full census cell set / effective
+    # bank) so authoring the enemy once covers its ENTIRE animation vocabulary, not just a representative
+    # frame. Shares the enemy's object_id, so it collapses into the same palette domain as the
+    # representative composite. Marked a cell-sheet (not a shaped composite).
+    enemy_full, _enemy_counts = enemy_complete_usages()
+    for key, label, pieces, ebank, obj_id in enemy_full:
+        if pieces:
+            ename = obj_id.split(".")[-1]
+            # share the SAME map_key as the existing representative usage (usage:<name>:bank0x<bank>)
+            # so the enemy's already-authored Test.json mapping applies to the complete corpus too.
+            _player_meta[key] = {"category": "complete", "order": 900,
+                                 "map_key": "usage:%s:bank0x%02X" % (ename, ebank),
+                                 "frame_label": label, "object_id": obj_id, "counts": _enemy_counts,
+                                 "cellsheet": True}
+            defs.append((key, label, ebank, pieces, False))
 
     usages = []
     for key, name, bank, pieces, proven in defs:
@@ -585,8 +760,24 @@ def build_usages(banks):
         mrd_pairs = [[a, b] for i, a in enumerate(idxs) for b in idxs[i + 1:]]
         xs = [p["x"] for p in pieces]; ys = [p["y"] for p in pieces]
         bounds = [max(xs) - min(xs) + 16, max(ys) - min(ys) + 16]
+        meta = _player_meta.get(key)
+        # All frames of one object share ONE palette-mapping key (map_key) so a single mapping covers
+        # every frame; enemies key by their own usage_id.
+        map_key = meta["map_key"] if meta else ("usage:%s:bank0x%02X" % (key, bank))
+        if meta and meta.get("object_id"):
+            obj_id = meta["object_id"]                       # weapon objects
+        elif key.startswith("rastan"):
+            obj_id = "object:player.rastan"
+        else:
+            obj_id = "object:enemy.%s" % key
         usages.append({"usage_id": "usage:%s:bank0x%02X" % (key, bank),
-                       "object_id": ("object:player.rastan" if key.startswith("rastan") else "object:enemy.%s" % key),
+                       "object_id": obj_id,
+                       "map_key": map_key,
+                       "frame_category": (meta["category"] if meta else None),
+                       "frame_label": (meta["frame_label"] if meta else name),
+                       "frame_order": (meta["order"] if meta else 0),
+                       "player_counts": (_h24_counts if key.startswith("rastan") else None),
+                       "weapon_counts": (meta.get("counts") if meta and meta.get("object_id") else None),
                        "display_name": name, "sprite_bank": "0x%02X" % bank,
                        "pieces": pieces, "n_pieces": len(pieces), "bounds": bounds,
                        "composite_proven": proven,

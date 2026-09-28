@@ -85,7 +85,12 @@ BOUNDARY_RECORD_ENTRY_BYTES = 4
 BOUNDARY_PAIR_BYTES = 4
 BOUNDARY_WORD_ALIGNMENT = 2
 
-# Build 0310 Round-1 Phase-1 Plane-A semantic residency. These are complete contiguous
+# Arcade collision_map_surface_mark_5a2ee publishes this four-cell Layer-A overlay after its
+# collision writes. The native visual tail can run in any active Round-1 record, so its exact
+# pattern is part of every legal Plane-A package rather than a runtime cache/fallback decision.
+PLANE_A_SURFACE_MARK_CODES = (0x25C7,)
+
+# Build 0310 Round-1 Plane-A semantic residency. These are complete contiguous
 # record epochs derived from the original arcade map data; records within one epoch share one
 # immutable exact-pattern vocabulary and therefore require no residency transition.
 # Build 0342: clean 676-slot Layer-A capacity. The later simple epochs merge (7 -> 5) while BOTH proven
@@ -95,12 +100,13 @@ BOUNDARY_WORD_ALIGNMENT = 2
 # 4-10, 11-12, 13-15), removing two simple residency transitions. (The global minimum at 676 is 4 epochs
 # with rope internal, but eliminating the rope streamed transition would require extensive runtime/verifier
 # surgery for a marginal gain; this 5-epoch structure banks the DMA win at low risk.)
-BOUNDARY_PHASE1_EPOCH_RECORDS = (
+BOUNDARY_ROUND1_EPOCH_RECORDS = (
     tuple(range(0, 3)),        # epoch 0: records 0-2
     (3,),                      # epoch 1: record 3 (rope/waterfall streamed boundaries preserved)
     tuple(range(4, 11)),       # epoch 2: records 4-10
     tuple(range(11, 13)),      # epoch 3: records 11-12
     tuple(range(13, 16)),      # epoch 4: records 13-15
+    tuple(range(16, 21)),      # epoch 5: Round-1 Phase 2 records 16-20
 )
 BOUNDARY_PHASE1_EPOCH_CAPACITY = 676
 
@@ -326,16 +332,16 @@ def be32(v): return bytes([(v >> 24) & 0xFF, (v >> 16) & 0xFF,
 
 
 def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_index: int = 0, reuse=None):
-    """Compile the Build-0310 zero-drop Round-1 Phase-1 gameplay ownership model.
+    """Compile the zero-drop Round-1 gameplay ownership model through Phase 2.
 
-    Plane B is the exact descriptor-0..55 vocabulary and is loaded once. Plane A owns seven
-    complete-residency semantic epochs for records 0..15. All allocation is deterministic and
+    Plane B is the exact descriptor-0..55 vocabulary and is loaded once. Plane A owns six
+    complete-residency semantic epochs for records 0..20. All allocation is deterministic and
     offline; a missing legal pattern is a compiler failure, never a runtime blank/fallback decision.
     """
     all_records = decode_plane_b_progression(mc, stage_index)
-    records = all_records[:16]
-    if [record["segment"] for record in records] != list(range(16)):
-        raise SystemExit("Round-1 Phase-1 record contract changed: expected records 0..15")
+    records = all_records[:21]
+    if [record["segment"] for record in records] != list(range(21)):
+        raise SystemExit("Round-1 Phase-2 record contract changed: expected records 0..20")
 
     def u16(addr): return int.from_bytes(mc[addr:addr + 2], "big")
     def u24(addr): return int.from_bytes(mc[addr:addr + 4], "big") & 0xFFFFFF
@@ -406,7 +412,8 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     record_code_blob = []
     record_pattern_sets = []
     for record in records:
-        codes = sorted(seg_fg_tiles(mc, record["segment"]) - {0})
+        codes = sorted((seg_fg_tiles(mc, record["segment"]) - {0})
+                       | set(PLANE_A_SURFACE_MARK_CODES))
         code_blob = {code: tile_bytes(code) for code in codes}
         record_code_blob.append(code_blob)
         record_pattern_sets.append(set(code_blob.values()))
@@ -435,27 +442,27 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
 
     minimum_epoch_count, minimum_segmentations = minimum_partitions(0)
     requested_segmentation = tuple((epoch[0], epoch[-1])
-                                   for epoch in BOUNDARY_PHASE1_EPOCH_RECORDS)
+                                   for epoch in BOUNDARY_ROUND1_EPOCH_RECORDS)
     # Build 0342: the requested segmentation must be a VALID contiguous complete-residency partition at the
     # 676 capacity (every epoch union <= cap, boundaries preserved for the two streamed transitions). It is
     # intentionally NOT the global minimum (4): keeping records 0-2|3 separate preserves both proven streamed
     # transitions. Validate contiguity/coverage + per-epoch fit; report the true minimum for the record.
-    _flat = [r for epoch in BOUNDARY_PHASE1_EPOCH_RECORDS for r in epoch]
+    _flat = [r for epoch in BOUNDARY_ROUND1_EPOCH_RECORDS for r in epoch]
     if _flat != list(range(len(records))):
         raise SystemExit(f"requested segmentation is not a contiguous cover of records 0..{len(records)-1}")
-    for epoch in BOUNDARY_PHASE1_EPOCH_RECORDS:
+    for epoch in BOUNDARY_ROUND1_EPOCH_RECORDS:
         _u = set()
         for r in epoch:
             _u |= record_pattern_sets[r]
         if len(_u) > a_slot_count:
             raise SystemExit(f"epoch {epoch} union {len(_u)} exceeds Plane-A cap {a_slot_count}")
-    print(f"NOTE Build 0342 segmentation: requested {len(BOUNDARY_PHASE1_EPOCH_RECORDS)} epochs at cap "
+    print(f"NOTE Round-1 segmentation: requested {len(BOUNDARY_ROUND1_EPOCH_RECORDS)} epochs at cap "
           f"{a_slot_count}; global minimum is {minimum_epoch_count} epochs.")
 
     record_to_epoch = [None] * len(records)
     epoch_code_blob = []
     epoch_pattern_sets = []
-    for epoch_index, epoch_records in enumerate(BOUNDARY_PHASE1_EPOCH_RECORDS):
+    for epoch_index, epoch_records in enumerate(BOUNDARY_ROUND1_EPOCH_RECORDS):
         code_blob = {}
         for record_index in epoch_records:
             for code, blob in record_code_blob[record_index].items():
@@ -468,17 +475,17 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         epoch_code_blob.append(code_blob)
         epoch_pattern_sets.append(set(code_blob.values()))
     if any(epoch is None for epoch in record_to_epoch):
-        raise SystemExit("incomplete Phase-1 record-to-epoch table")
+        raise SystemExit("incomplete Round-1 record-to-epoch table")
 
-    expected_epoch_counts = [282, 333, 639, 583, 639]   # Build 0342 5-epoch @ cap 676
+    expected_epoch_counts = [283, 334, 640, 584, 640, 283]
     epoch_counts = [len(pattern_set) for pattern_set in epoch_pattern_sets]
     if epoch_counts != expected_epoch_counts:
         # Build 0316: offline Palette Composer Layer-A reindexing legitimately changes exact-pattern dedup,
         # so per-epoch union counts move (they only shrink here -> better VRAM fit). This is an intended
         # policy change, not a regression; the hard capacity gate below still applies.
-        print(f"NOTE Phase-1 epoch unions changed (editor-policy reindex): {epoch_counts} vs baseline {expected_epoch_counts}")
+        print(f"NOTE Round-1 epoch unions changed (editor-policy reindex): {epoch_counts} vs baseline {expected_epoch_counts}")
     if any(count > a_slot_count for count in epoch_counts):
-        raise SystemExit(f"Phase-1 epoch exceeds Plane-A cap {a_slot_count}: {epoch_counts}")
+        raise SystemExit(f"Round-1 epoch exceeds Plane-A cap {a_slot_count}: {epoch_counts}")
 
     # Reconstruct the original 64x64 record maps directly from the same source tables consumed by
     # the native selector-0 producer. This is an offline lifetime model, not a runtime map scan.
@@ -542,11 +549,12 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                 "outgoing_codes": outgoing_codes,
                 "incoming_codes": incoming_codes,
             })
+        required_codes.update(PLANE_A_SURFACE_MARK_CODES)
         combined_code_blob = dict(record_code_blob[definition["out_record"]])
         combined_code_blob.update(record_code_blob[definition["in_record"]])
         code_blob = {code: combined_code_blob[code] for code in sorted(required_codes)}
         pattern_set = set(code_blob.values())
-        expected = 394 if definition["name"] == "rope_to_waterfall" else 479
+        expected = 395 if definition["name"] == "rope_to_waterfall" else 479
         if len(pattern_set) != expected:
             # Build 0316: editor-policy reindex legitimately shifts exact-pattern dedup counts.
             print(f"NOTE {definition['name']} transition set changed (editor-policy reindex): "
@@ -559,7 +567,7 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
             "incoming_required_codes": incoming_required_codes,
         })
 
-    # Package IDs retain the seven stable epoch IDs. Two overlap IDs are appended to the binary,
+    # Package IDs retain the stable epoch IDs. Two overlap IDs are appended to the binary,
     # while allocation follows semantic time A -> overlap AB -> B -> overlap BC -> C -> ... so
     # every retained exact identity keeps its physical slot.
     stable_package_count = len(epoch_code_blob)
@@ -569,7 +577,7 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         {"kind": "stable", "epoch": index, "records": list(records_),
          "name": f"epoch_{index}", "code_blob": code_blob}
         for index, (records_, code_blob) in enumerate(
-            zip(BOUNDARY_PHASE1_EPOCH_RECORDS, epoch_code_blob))]
+            zip(BOUNDARY_ROUND1_EPOCH_RECORDS, epoch_code_blob))]
     package_specs.extend({
         "kind": "transition", "epoch": spec["out_epoch"],
         "records": [spec["out_record"], spec["in_record"]],
@@ -835,18 +843,18 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         f".equ FG_BOUNDARY_RESEED_MASK, 0x{reseed_mask:08X}\n")
 
     report = {
-        "model": "Build 0311 fixed Level-1 Plane B plus seven stable Plane-A epochs and two bounded transition-overlap packages",
+        "model": "fixed Level-1 Plane B plus six stable Plane-A epochs and two bounded transition-overlap packages",
         "trace_inputs": 0,
         "records": len(record_table), "packages": len(packages),
         "stable_epochs": stable_package_count,
-        "phase1_records": [record["segment"] for record in records],
+        "round1_records_through_phase2": [record["segment"] for record in records],
         "record_to_epoch": record_to_epoch,
         "record_to_package": record_to_package,
         "minimum_contiguous_epoch_count_at_cap": minimum_epoch_count,
         "minimum_contiguous_segmentations": [
             [[first, last] for first, last in segmentation]
             for segmentation in minimum_segmentations],
-        "selected_epoch_records": [list(epoch) for epoch in BOUNDARY_PHASE1_EPOCH_RECORDS],
+        "selected_epoch_records": [list(epoch) for epoch in BOUNDARY_ROUND1_EPOCH_RECORDS],
         "plane_a_epoch_counts": epoch_counts,
         "plane_a_transition_metrics": [
             {
@@ -880,9 +888,9 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         "ordinary_plane_b_name_dma": 0,
         "within_epoch_pattern_dma": 0,
         "within_epoch_slot_churn": 0,
-        "record_residency_boundaries_before": 15,
-        "epoch_residency_boundaries_after": 6,
-        "false_record_residency_transitions_eliminated": 9,
+        "record_residency_boundaries_before": 20,
+        "epoch_residency_boundaries_after": 7,
+        "false_record_residency_transitions_eliminated": 13,
         "runtime_allocator": False,
         "runtime_search": False,
         "runtime_lru": False,
@@ -976,7 +984,7 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         dbg["packages"].append(slotmap)
     (outdir / "slot_patterns_debug.json").write_text(json.dumps(dbg))
 
-    print(f"boundary compile: fixed B {len(b_blobs)} patterns, seven stable A epochs "
+    print(f"boundary compile: fixed B {len(b_blobs)} patterns, six stable A epochs "
           f"{epoch_counts}, transition peaks {[r['peak_patterns'] for r in transition_gate_reports]}, "
           f"A cap {a_slot_count}, sprites {sprite_cells} cells, "
           f"{len(binary)} bytes, plane drops 0")

@@ -1,0 +1,51 @@
+{
+ "checkpoint": "R1P1-weapon-closure",
+ "a5_base": "0x10C000",
+ "summary": "Equipped weapons are a separate PC090OJ overlay layer appended after the 4 player-body pieces by the body composer tail 0x54598, indexed by the SAME frame slot A5+0x1244, table chosen by weapon selector A5+0x12FA.",
+ "selector": "A5+0x12FA",
+ "composer": "0x54598 (tail of body composer 0x54492); SAT staging 0x10D1B2",
+ "weapons": {
+  "object:weapon.sword": {
+   "name": "SWORD",
+   "selector_value": 1,
+   "table": "0x5CD8A",
+   "frames": 43,
+   "unique_cells": 13,
+   "grant": "respawn 0x504B6 / default",
+   "identity_proof": "default/base weapon (respawn writes A5+0x12FA=1); straight-blade cells"
+  },
+  "object:weapon.axe": {
+   "name": "AXE",
+   "selector_value": 2,
+   "table": "0x5D346",
+   "frames": 43,
+   "unique_cells": 15,
+   "grant": "player_weapon_grant_state2_54edc (writes 2)",
+   "identity_proof": "shaft+head blade cells; by elimination vs hammer"
+  },
+  "object:weapon.hammer": {
+   "name": "HAMMER",
+   "selector_value": 3,
+   "table": "0x5D666",
+   "frames": 43,
+   "unique_cells": 18,
+   "grant": "player_weapon_grant_state3_54ec6 (writes 3)",
+   "identity_proof": "ball-and-chain: rendered cells 0x491-0x49d show round balls on chains (decisive)"
+  },
+  "object:weapon.fire_sword": {
+   "name": "FIRE SWORD",
+   "selector_value": 4,
+   "table": "0x5D068",
+   "frames": 43,
+   "unique_cells": 13,
+   "grant": "player_fire_sword_grant_54ef2 (writes 4)",
+   "identity_proof": "named grant handler player_fire_sword_grant_54ef2; flaming-blade cells"
+  }
+ },
+ "record_format": "6-byte pieces [tile:u16][xoff:s8][yoff:s8][control:u16], offset-bounded per frame; palette = control low nibble; hand/grip = sword-hilt (largest-y) cell",
+ "palette": "weapon overlay uses the PC090OJ sprite palette space (compositor control-byte line); NOT the player-body object:player.rastan mapping \u2014 each weapon is a distinct palette object Tighe authors",
+ "authoritative_evidence": [
+  "analysis/actor_decompilation/h24_player_weapon_cells.tsv",
+  "analysis/actor_decompilation/h24_player_weapon_frames.tsv"
+ ]
+}

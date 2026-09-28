@@ -1,0 +1,5 @@
+producer_pc	target_table	source_pool	eligibility	event_type_source	trigger	status
+0x449B4 pass1 (0x449E0)	A5+0x12A8 (damage)	A5+0x02C8 actors	+0x00 active,+0x05 state,+0x03 mode==0	actor +0x29	enemy contact	PROVEN
+0x449B4 pass2 (0x44A88)	A5+0x12C8 (item/status)	A5+0x02C8 actors idx<9	rec_type +0x06 in {3,8,15,22}	0x4495A -> type 0	contact overlap (0x44C5A/0x44CBA)	PROVEN
+0x449B4 pass3 (0x44BCE)	A5+0x12C8 (item/status)	A5+0x02C8 actors	family +0x3E==12 && rec_type +0x06==12	0x4495A -> type 1/2/3 (+0x25)	contact overlap (0x44C60)	PROVEN
+(unknown)	A5+0x12C8 (item/status)	?	?	types 4..13 (energy/life/combo)	?	NOT REACHED

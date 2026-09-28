@@ -1,0 +1,4 @@
+actor_class	rec_type	emits_event_type	effect	graphics	status
+weapon pickup (rec_type-12)	12	1/2/3 (TIMED_WEAPON)	FIRE/state2/state3	-	ABSENT (rec_type-12 never created; path unreachable)
+energy/life pickup	?	4..13	COMBO/LIFE/ENERGY	-	ABSENT (types 4..13 never produced; handlers vestigial)
+contact special (rec_type 3/8/15/22)	3/8/15/22	0	HIT_AUX (aux A5+0x1296)	-	PROVEN (produces type-0 only; not a weapon/energy item)

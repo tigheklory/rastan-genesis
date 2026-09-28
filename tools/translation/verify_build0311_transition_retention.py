@@ -35,14 +35,16 @@ def main() -> int:
     binary = args.packages.read_bytes()
     patterns = args.patterns.read_bytes()
 
-    # Build 0342: clean 676-slot repack -> 5 stable epochs (+2 transition packages = 7), both streamed
-    # transitions preserved; later simple epochs merged.
-    assert const["FG_BOUNDARY_EPOCHS"] == 5
-    assert const["FG_BOUNDARY_PACKAGES"] == 7
+    # Build 0374: the existing five Phase-1 epochs plus one complete Phase-2 epoch; the two
+    # original streamed Phase-1 transition packages remain unchanged.
+    assert const["FG_BOUNDARY_EPOCHS"] == 6
+    assert const["FG_BOUNDARY_PACKAGES"] == 8
     assert const["FG_BOUNDARY_TRANSITION_HANDOFF_COLUMN"] == 45
     assert len(binary) == const["FG_BOUNDARY_BINARY_LEN"]
-    assert report["record_to_epoch"] == [0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4]
-    assert report["record_to_package"] == [0, 0, 0, 5, 6, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4]
+    assert report["record_to_epoch"] == [0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4,
+                                          5, 5, 5, 5, 5]
+    assert report["record_to_package"] == [0, 0, 0, 6, 7, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4,
+                                            5, 5, 5, 5, 5]
 
     layout = {item["package"]: item for item in report["binary_contract"]["package_layout"]}
 

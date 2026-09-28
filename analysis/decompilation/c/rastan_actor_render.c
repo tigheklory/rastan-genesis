@@ -24,6 +24,23 @@ static const unsigned COMPOSITOR_TABLE[5] = {
     0x03D09Eu, 0x04771Cu, 0x03F0CEu, 0x040004u, 0x04002Cu
 };
 
+/* 0x3C9E8: select the final SAT word-0 low byte.
+ * +0x27 is an optional override, not the unconditional palette source. When
+ * bit 6 is clear, the compositor program control byte (including its low
+ * palette nibble) survives unchanged. When bit 6 is set, +0x27 replaces it.
+ * The caller preserves D0's high byte and writes the result to PC090OJ SAT.
+ *
+ * H15 DISPLAY-PALETTE consequence: marker-chain-transformed family-2 actors have +0x27 = 0
+ * (0x4092E cleared it during 0x4103A re-arm; 0x45684 is creation-only and is NOT re-run). So their
+ * DISPLAYED palette line is the compositor program's control-byte low nibble here, NOT the
+ * creation-time 0x45684 line. Proven display values (7 H14 Phase-2 instances) are in
+ * analysis/actor_decompilation/h15_materialized_render_palettes.tsv.
+ */
+uint16_t apply_actor_attribute_override(const ActorRecord *a, uint16_t program_control){
+    if ((a->pal_attr & 0x40u) == 0u) return program_control;
+    return (uint16_t)((program_control & 0xFF00u) | a->pal_attr);
+}
+
 /* 0x3D054: pick program table by +0x38, index by +0x01, run the shared interpreter. */
 void render_actor_sprite(ActorRecord *a){
     unsigned sel = a->comp;                 /* +0x38 compositor selector (0..4) */

@@ -134,6 +134,12 @@ public class RastanArcadeSeed extends GhidraScript {
         fn(0x044cbaL, "signed_interval_overlap_44cba");
         fn(0x054864L, "player_collision_boxes_update_54864");
         fn(0x054982L, "player_attack_box_enable_update_54982");
+        fn(0x05049aL, "player_round_start_equipment_init_5049a");
+        fn(0x054a2cL, "player_item_event_dispatch_54a2c");
+        fn(0x054dd2L, "player_powerup_timer_update_54dd2");
+        fn(0x054ec6L, "player_weapon_grant_state3_54ec6");
+        fn(0x054edcL, "player_weapon_grant_state2_54edc");
+        fn(0x054ef2L, "player_fire_sword_grant_54ef2");
 
         // Actor/map grounding model. The 0x041xxx family is entered through
         // actor dispatch rather than a direct reset-vector call, so default
@@ -170,10 +176,10 @@ public class RastanArcadeSeed extends GhidraScript {
         label(0x044ce0L, "actor_hurtbox_extent_table_44ce0");
         label(0x044fa8L, "actor_hurtbox_alt_extent_table_44fa8");
         label(0x05c90eL, "player_body_collision_extent_table_5c90e");
-        label(0x05c9eaL, "stage1_player_attack_extent_table_5c9ea");
-        label(0x05cac6L, "stage2_player_attack_extent_table_5cac6");
-        label(0x05cba2L, "stage3_player_attack_extent_table_5cba2");
-        label(0x05cc7eL, "stage4_player_attack_extent_table_5cc7e");
+        label(0x05c9eaL, "weapon_state1_attack_extent_table_5c9ea");
+        label(0x05cac6L, "weapon_state2_attack_extent_table_5cac6");
+        label(0x05cba2L, "weapon_state3_attack_extent_table_5cba2");
+        label(0x05cc7eL, "weapon_state4_fire_sword_attack_extent_table_5cc7e");
 
         // Player collision fields are A5-relative in arcade WRAM. The labels
         // document the producer/consumer contract without imposing a C struct.
@@ -185,10 +191,11 @@ public class RastanArcadeSeed extends GhidraScript {
         label(0x10d244L, "player_body_frame_selector_A5_1244");
         label(0x10d248L, "player_body_collision_extents_A5_1248");
         label(0x10d254L, "player_attack_collision_extents_A5_1254");
-        label(0x10d2a8L, "player_body_contact_records_A5_12a8");
-        label(0x10d2c8L, "player_attack_hit_records_A5_12c8");
+        label(0x10d2a8L, "player_status_event_records_A5_12a8");
+        label(0x10d2c8L, "player_item_event_records_A5_12c8");
         label(0x10d2f8L, "player_attack_box_enabled_A5_12f8");
-        label(0x10d2faL, "player_stage_scene_A5_12fa");
+        label(0x10d2faL, "player_melee_weapon_state_A5_12fa");
+        label(0x10d326L, "player_melee_weapon_timer_A5_1326");
         label(0x10de00L, "collision_map_64x64_words_base");
         label(0x10fe00L, "collision_map_64x64_words_end");
 

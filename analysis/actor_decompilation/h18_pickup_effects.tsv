@@ -1,0 +1,5 @@
+pickup	overlap_producer	event_type	effect_handler	effect_class	human_name_status
+rec_type-12 +0x25==0	0x449B4 pass3/0x4495A	1	0x54EF2	TIMED_WEAPON (FIRE SWORD, selector 4)	PROPOSED: Fire Sword pickup
+rec_type-12 +0x25==3	0x449B4 pass3/0x4495A	2	0x54EDC	TIMED_WEAPON (selector 2)	PENDING
+rec_type-12 +0x25 other	0x449B4 pass3/0x4495A	3	0x54EC6	TIMED_WEAPON (selector 3)	PENDING
+(energy/life pickups)	unknown	4..13	0x54F08..0x55004	COMBO/LIFE/ENERGY	PENDING (producer unknown)

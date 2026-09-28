@@ -158,14 +158,21 @@ def fix_absolute_long_pointer_tables(
         table_addr = int(table["table_address"], 0)
         entry_count = int(table["entry_count"])
         entry_size = int(table.get("entry_size_bytes", 4))
+        entry_stride = int(table.get("entry_stride_bytes", entry_size))
+        pointer_offset = int(table.get("pointer_offset_bytes", 0))
 
         if entry_size != 4:
             raise RuntimeError(
                 f"absolute long pointer table at 0x{table_addr:06X}: "
                 f"unsupported entry_size_bytes={entry_size}"
             )
+        if entry_stride < entry_size or pointer_offset < 0 or pointer_offset + entry_size > entry_stride:
+            raise RuntimeError(
+                f"absolute long pointer table at 0x{table_addr:06X}: invalid "
+                f"entry_stride_bytes={entry_stride}, pointer_offset_bytes={pointer_offset}"
+            )
 
-        table_end = table_addr + (entry_count * entry_size)
+        table_end = table_addr + ((entry_count - 1) * entry_stride) + pointer_offset + entry_size
         if table_addr < source_start or table_end > source_end:
             raise RuntimeError(
                 f"absolute long pointer table at 0x{table_addr:06X}: outside source range "
@@ -174,8 +181,8 @@ def fix_absolute_long_pointer_tables(
 
         new_table_addr = new_offset(table_addr, shifts)
         for i in range(entry_count):
-            src_entry_addr = table_addr + (i * 4)
-            dst_entry_addr = new_table_addr + (i * 4)
+            src_entry_addr = table_addr + (i * entry_stride) + pointer_offset
+            dst_entry_addr = new_table_addr + (i * entry_stride) + pointer_offset
             old_target = struct.unpack_from(">I", maincpu_bytes, src_entry_addr)[0]
 
             if source_start <= old_target < source_end:
@@ -418,6 +425,59 @@ def fix_absolute_longs(
     return count
 
 
+def fix_declared_relative_branches(
+    result: bytearray,
+    maincpu_bytes: bytes,
+    declarations: list[dict],
+    shifts: list[tuple[int, int]],
+    source_start: int,
+    source_end: int,
+) -> int:
+    """Relocate branches whose instruction boundary is absent from objdump.
+
+    Rastan interleaves callable code and inline data.  A declaration supplies
+    only the missing source/target boundary; the emitted displacement is still
+    derived from the common shift table and validated against original bytes.
+    """
+    count = 0
+    for item in declarations:
+        source = int(item["arcade_pc"], 0)
+        target = int(item["target_arcade_pc"], 0)
+        width = int(item.get("instruction_size_bytes", 2))
+        expected = bytes.fromhex(str(item["original_bytes"]).replace(" ", ""))
+        if width != 2 or len(expected) != 2 or (expected[0] & 0xF0) != 0x60:
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: only 2-byte 68000 branches are supported"
+            )
+        if not (source_start <= source < source_end and source_start <= target < source_end):
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: source/target outside source range"
+            )
+        if maincpu_bytes[source:source + 2] != expected:
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: original bytes mismatch"
+            )
+        old_disp = struct.unpack(">b", expected[1:2])[0]
+        if source + 2 + old_disp != target:
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: encoded target does not match 0x{target:06X}"
+            )
+        new_source = new_offset(source, shifts)
+        new_target = new_target_offset(target, shifts)
+        new_disp = new_target - (new_source + 2)
+        if not -128 <= new_disp <= 127:
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: 8-bit displacement overflow {new_disp}"
+            )
+        if result[new_source] != expected[0]:
+            raise RuntimeError(
+                f"declared relative branch at 0x{source:06X}: shifted opcode mismatch"
+            )
+        result[new_source + 1] = new_disp & 0xFF
+        count += 1
+    return count
+
+
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
@@ -430,6 +490,7 @@ def apply_shift_table(
     source_end: int,
     jump_table_word_displacements: list[dict] | None = None,
     absolute_long_pointer_tables: list[dict] | None = None,
+    declared_relative_branches: list[dict] | None = None,
 ) -> bytearray:
     """
     Apply shift_replacements to maincpu_bytes, fixing all internal references.
@@ -478,6 +539,14 @@ def apply_shift_table(
 
     # --- PHASE 4: fix relative branches ---
     branch_fixes = fix_relative_branches(result, insns, shifts, source_start, source_end)
+    declared_branch_fixes = fix_declared_relative_branches(
+        result,
+        maincpu_bytes,
+        declared_relative_branches or [],
+        shifts,
+        source_start,
+        source_end,
+    )
 
     # --- PHASE 5: fix absolute long references ---
     abs_fixes = fix_absolute_longs(result, insns, shifts, source_start, source_end)
@@ -485,7 +554,8 @@ def apply_shift_table(
     print(f"shift_table_patcher: {len(shift_replacements)} replacement(s), "
           f"{jtable_fixes} jump-table fix(es), "
           f"{long_ptr_fixes} long-pointer-table fix(es), "
-          f"{branch_fixes} branch fix(es), {abs_fixes} abs-long fix(es)")
+          f"{branch_fixes} branch fix(es), "
+          f"{declared_branch_fixes} declared branch fix(es), {abs_fixes} abs-long fix(es)")
 
     return result
 
@@ -531,6 +601,7 @@ def main() -> int:
     shift_replacements = spec.get("shift_replacements", [])
     jump_tables = spec.get("jump_table_word_displacements", [])
     long_pointer_tables = spec.get("absolute_long_pointer_tables", [])
+    declared_relative_branches = spec.get("declared_relative_branches", [])
     result = apply_shift_table(
         maincpu_bytes,
         shift_replacements,
@@ -539,6 +610,7 @@ def main() -> int:
         source_end,
         jump_tables,
         long_pointer_tables,
+        declared_relative_branches,
     )
     Path(args.output).write_bytes(result)
     print(f"Written {len(result)} bytes to {args.output}")

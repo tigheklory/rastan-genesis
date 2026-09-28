@@ -12,7 +12,7 @@ extern void actor_record_loader_4543e(ActorRecord *a4);
 extern void paired_actor_activate_453a2(ActorRecord *a4);
 extern uint16_t collision_word_at(uint32_t arcade_addr);
 extern ActorRecord *blk_5c8_at(int i);   /* boss component block accessor */
-extern void arcade_43458(ActorRecord *body, int idx_plus_13);
+extern void boss_place_component_43458(const ActorRecord *body, ActorRecord *child, unsigned index);
 
 /* ---- actor helpers the CHECKPOINT A/B claims rely on ---- */
 
@@ -125,18 +125,18 @@ void boss_trigger_4449e(void)
 
 /*
  * ORIGINAL ARCADE PC: 0x00042380  boss body -> component sync loop
- * Provenance: RECONSTRUCTED_FROM_68000. Status: PARTIAL.
+ * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE.
  * Iterates the 5 boss components (block A5+0x5C8) and syncs facing (+0x02) from the
- * body, calling 0x43458 with (component_index + 13). The per-component motion detail
- * in 0x43458 is not fully traced.
+ * body, calling internal entry 0x43458 with (component_index + 13).
  */
 void boss_body_sync_42380(ActorRecord *body)
 {
     for (int i = 0; i < 5; i++) {
         ActorRecord *c = blk_5c8_at(i);
         if (c->active == 0) continue;
-        c->facing = body->facing;        /* +0x02 */
-        arcade_43458(c, i + 13);         /* PARTIAL callee */
+        c->facing = body->facing;        /* 0x4238E copies the +0x02 word */
+        c->mode = body->mode;
+        boss_place_component_43458(body, c, (unsigned)i + 13);
     }
 }
 

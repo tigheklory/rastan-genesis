@@ -1,0 +1,8 @@
+input_bit	field	routine	action_proposed	status
+raw word	0x10D37A	read 0x514A4+	joystick latch	PROVEN(field)
+edge word	A5+0x10CE	read 0x5145C+	debounced/edge input	PROVEN(field)
+bit1	0x10D37A	0x51E24	direction/move (proposed)	PARTIAL
+bit2	0x10D37A/A5+0x10CE	0x52550	horizontal move (proposed)	PARTIAL
+bit3	0x10D37A	0x5263A / else 0x52726	vertical/jump (proposed)	PARTIAL
+bit6	A5+0x10CE	0x5145C gate	attack/jump gate (state!=9)	PARTIAL
+bits4-7	0x10D37A	various	buttons (jump/attack)	PENDING

@@ -124,6 +124,8 @@
   "fg_boundary_advance_segment",
   "fg_boundary_install_post_reseed",
   "genesistan_pc080sn_directional_dispatch_native",
+  "genesistan_collision_surface_mark_visual_native",
+  "genesistan_phase3_fg_anim_native",
   "genesistan_hook_tilemap_fg",
   "genesistan_hook_tilemap_bg_fill",
   "genesistan_hook_inline_fg_write_3a550",
@@ -164,6 +166,7 @@
   "genesistan_pc090oj_hook_target_3b902",
   "genesistan_pc090oj_hook_target_3b926",
   "genesistan_pc090oj_hook_target_41dae",
+  "genesistan_native_contact_coords_51ab6",
   "genesistan_pc090oj_hook_target_41f5e",
   "genesistan_pc090oj_hook_target_45dfa",
   "genesistan_pc090oj_hook_target_59f5e",
@@ -217,6 +220,15 @@
    "end_exclusive": "0x060000"
   }
  ],
+ "declared_relative_branches": [
+  {
+   "arcade_pc": "0x0596FA",
+   "target_arcade_pc": "0x05976C",
+   "instruction_size_bytes": 2,
+   "original_bytes": "6670",
+   "note": "Build 0377 declares the Phase-3 animation gate's BNE.S boundary because the canonical linear objdump loses the 0x596F4 function boundary in preceding inline data and therefore omits this instruction. Relocate its original target, the shared RTS at 0x5976C, across the 0x59736 native-tail contraction. This is branch reflow metadata, not an opcode replacement or control-flow change."
+  }
+ ],
  "shift_replacements": [
   {
    "arcade_pc": "0x050482",
@@ -231,10 +243,40 @@
    "note": "Native player lifecycle: preserve the once-per-frame semantic write, then reset PLAYER_FRONT/BODY immediately before the 0x51060 FRONT producer."
   },
   {
+   "arcade_pc": "0x05A334",
+   "original_bytes": "200804800010DE00E388068000C080002240203C000025C722C022C022C022C04E75",
+   "replacement_bytes": "4EB9{symbol:genesistan_collision_surface_mark_visual_native}4E75",
+   "note": "Build 0376 collision-surface visual publication cut. The retained 0x5A2EE routine has already completed its gameplay collision writes when it reaches 0x5A334; the retired tail converts A0 from arcade collision-map space to raw PC080SN Layer-A space and writes four 0x25C7 cells. Replace the complete 34-byte chip tail with a native four-cell Plane-A staging publication using the same A0-derived cell identity. No collision write, scan gate, stage condition, address clamp, NOP, or RTS bypass is introduced."
+  },
+  {
+   "arcade_pc": "0x051102",
+   "original_bytes": "10390010C11EE14812390010C11D",
+   "replacement_bytes": "102D011EE148122D011D",
+   "note": "Build 0372 shared timed-upgrade duration-tier fix. The original routine combines live arcade WRAM score bytes 0x0010C11E/0x0010C11D, classifies them through the 0x51130 threshold table, and writes the shared duration index to A5+0x1418. Genesis retained both absolute reads, so they consumed cartridge-ROM bytes 0x0F/0x0F and forced tier 4 (0x1518 ticks) instead of the live-score tier 0 (0x0BB8 ticks). Preserve the original combine, table walk, timer routine, and selector restore while reading the same retained score fields as A5+0x011E/A5+0x011D. One 14-to-10-byte shift replacement; no weapon, direction, stage, selector, or timer special case."
+  },
+  {
+   "arcade_pc": "0x051AB6",
+   "original_bytes": "247C0010D280548A43ED1134363C00033012548A0C4000016718588A303C000932FC01FF32FC01FF534066F4534366E04E752052588A303C0009548832D0588832D05488534066F2534366C44E75",
+   "replacement_bytes": "4EB9{symbol:genesistan_native_contact_coords_51ab6}4E75",
+   "note": "Build 0361 retires the complete arcade PC090OJ contact-coordinate extraction tail. The original 0x51AB6 routine dereferenced registered object-RAM bands (0xD00460 + actor_index*0x50) and copied each record's Y/X words into the gameplay-owned A5+0x1134 list; after direct-native PC090OJ retirement, Segment 5's first live band therefore reads the unmapped 0xD00462. The native helper decodes the retained actor-index token and the same actor family/class mapping program directly into the 27-pair gameplay list. This is a whole-function 78-to-8-byte shift replacement: no D-window read, object-RAM mirror, shadow, NOP padding, segment special case, or renderer suppression. The downstream 0x51B04 world/contact consumer is unchanged."
+  },
+  {
    "arcade_pc": "0x051E00",
    "original_bytes": "227C0010D1B2548931510004588931510002317C00000006",
    "replacement_bytes": "43ED129A3169000200043151000242680006",
    "note": "Player auxiliary semantic records take their prior-frame anchor from a5 state instead of reading retired Block-A tuple 0."
+  },
+  {
+   "arcade_pc": "0x051A8C",
+   "original_bytes": "33FC00FF0010D296",
+   "replacement_bytes": "3B7C00FF1296",
+   "note": "Build 0369 live-primary subtype-1 player-impact retirement preserves the terminal phase and clears the authoritative A5-relative active field instead of writing the stale arcade-WRAM absolute address in Genesis cartridge ROM."
+  },
+  {
+   "arcade_pc": "0x051AA8",
+   "original_bytes": "33FC00FF0010D296",
+   "replacement_bytes": "3B7C00FF1296",
+   "note": "Build 0369 live-primary subtype-4 player-impact retirement preserves the terminal phase and clears the authoritative A5-relative active field instead of writing the stale arcade-WRAM absolute address in Genesis cartridge ROM."
   },
   {
    "arcade_pc": "0x052742",
@@ -441,6 +483,12 @@
    "note": "Retire the complete Block-A tuple-0 anchor-copy prologue while preserving this function entry and continuing into its unrelated state logic; the native tuple-0 producer now publishes a5+0x129A/0x129C directly."
   },
   {
+   "arcade_pc": "0x05480A",
+   "original_bytes": "6100F8A0",
+   "replacement_bytes": "",
+   "note": "Build 0370 player-auxiliary retirement fix. This BSR called original 0x0540AC solely to clear four PC090OJ records at 0x00D00000. The encompassing 0x054052 native replacement retired that chip-tail subroutine, but shift reflow retargeted the surviving interior call into live BODY constructor code, producing a second selector pass with caller-incidental A2. Remove the obsolete hardware-clear call at its semantic consumer: native PLAYER_BODY is rebuilt from a reset lane every frame, so no PC090OJ record clear or replacement state mutation remains. This is not an RTS/NOP bypass and changes no gameplay, weapon, direction, segment, or selector rule."
+  },
+  {
    "arcade_pc": "0x054810",
    "original_bytes": "227C00D00000207C0005DA5EC0FC001841F00000343C00043028000432C0102800034880D06D129C5240024001FF32C0301032E80000102800024880D06D129A024001FF3E00300732C0D0FC0006534266C64E75",
    "relocate_after_shift": true,
@@ -456,6 +504,12 @@
    "original_bytes": "526D013E",
    "replacement_bytes": "4EB9{symbol:fg_boundary_advance_segment}",
    "note": "Build 0302 boundary-loaded graphics experiment: replace the completed PC080SN 64-publication ring-cycle segment advance with a native helper that preserves the original addq.w #1,a5@0x013E and installs exactly one precompiled Stage-1 graphics package. This is the proven semantic progression boundary; normal frame/strip/VBlank paths only perform direct LUT reads and never scan, hash, allocate, evict, or load patterns. Proper 4-to-6-byte shift-table replacement; the original following RTS remains in arcade flow."
+  },
+  {
+   "arcade_pc": "0x059736",
+   "original_bytes": "36042268000032C645F05000301232802268000432C63280534267085843E34BD0C360DC526D13623A2D1362E44DB8456604426D1362",
+   "replacement_bytes": "4EB9{symbol:genesistan_phase3_fg_anim_native}",
+   "note": "Build 0377 Phase-3 foreground-animation semantic cut. The retained 0x596F4 producer has already selected a legal stage record, decoded its relocated stream header, chosen the timed phase code, and retained both raw Layer-A destination cells. Replace only the 0x59736..0x5976C PC080SN write loop/timer tail with native Plane-A staging through genesistan_hook_tilemap_fg_fill, preserving both per-group destinations, shared attribute, phase code, group stride, and A5+0x1362 cadence. The original shared RTS at 0x5976C remains the target of both the existing early exits and the native fall-through. This retires the two raw C-window stores per group; it does not clamp a selector, bypass animation, suppress rendering, or add a MODE/stage special case."
   },
   {
    "arcade_pc": "0x059F92",
@@ -640,6 +694,12 @@
  ],
  "opcode_replace": [
   {
+   "arcade_pc": "0x05109C",
+   "original_bytes": "4EB900055AD6",
+   "replacement_bytes": "4EB9{symbol:genesistan_pc080sn_directional_dispatch_native}",
+   "note": "Build 0376 restores the established Build-0303 semantic redirect for the sibling directional PC080SN producer family. Build 0305 proved the early-game regression came from a stale shifted pass-table pointer, not this helper. Retain the original direction/camera/descriptor decisions and publish through native Plane-B staging, retiring the reachable 0x55AD6 -> 0x55B3C/0x55BB6 -> 0x55C4A raw C-window address constructors."
+  },
+  {
    "arcade_pc": "0x0503CE",
    "original_bytes": "203C00050F6B",
    "replacement_bytes": "203C00051171",
@@ -680,12 +740,6 @@
    "original_bytes": "06800010DE00",
    "replacement_bytes": "068000FF1E00",
    "note": "Build 0168/OPEN-017: collision map VRAM-to-buffer converter rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral ADDI.L immediate rebase."
-  },
-  {
-   "arcade_pc": "0x05A336",
-   "original_bytes": "04800010DE00",
-   "replacement_bytes": "048000FF1E00",
-   "note": "Build 0168/OPEN-017: collision map buffer-to-VRAM converter rebase from raw arcade work RAM 0x0010DE00 to mapped Genesis WRAM 0x00FF1E00. Byte-neutral SUBI.L immediate rebase."
   },
   {
    "arcade_pc": "0x0412CC",
@@ -814,10 +868,28 @@
    "note": "Build 0158/OPEN-017/KF-036/KF-039: single-site raw work-RAM literal rebase. `move.w 0x0010C016, %d0` reads the Stage 1 command source from the ABSOLUTE arcade work-RAM literal 0x0010C016 (not an instruction-operand shape the postpatch relocation rewrites). On Genesis that literal is a ROM address holding 0x5553, so runtime 0x05122E loads garbage and the next store (0x05122E+6 = runtime 0x051234, `move.w %d0, a5@0x137A`) writes 0x5553 to a5+0x137A instead of the arcade's 0x00FF. The command value IS correctly present in mapped work RAM: Genesis 0x00FF0016 holds 0x00FF (matching arcade WRAM 0x10C016=0x00FF), written by 0x03A99A (arcade 0x03A79A) at command time. Classification A (correct value at 0x00FF0016, copied reader reads raw 0x10C016). Fix rebases ONLY this reader's absolute operand 0x0010C016 -> 0x00FF0016 via arcade base 0x0010C000 -> Genesis 0x00FF0000 (KF-039). Byte-neutral opcode_replace (6->6, opcode 0x3039 preserved); no NOP, no destination patch, no forced value, no seed, no fallback, no ROM-wide rebase. Validation: runtime 0x051234 now writes 0x00FF to 0x00FF137A; the 0x5553 command is gone; command tracks arcade through drop/landing."
   },
   {
+   "arcade_pc": "0x054BF8",
+   "original_bytes": "41F90010C242",
+   "replacement_bytes": "41F900FF0242",
+   "note": "Build 0366 cave-block solid-object consumer rebase. Original 0x449B4/0x44548 writes the live 12-byte special-contact record to A5+0x0242 (arcade 0x0010C242; Genesis WRAM 0x00FF0242), including state, actor X/Y and the table-82 rectangle {-20,+20,-16,+16}. The retained player response at 0x054BF8 still used LEA 0x0010C242,A0, which addresses ROM on Genesis, so the correctly produced record was never consumed even though the independent sword/destruction scan remained functional. Preserve the original LEA and all 0x54BFE..0x54DA8 response logic; rebase only its absolute work-RAM operand. This is an intentional 6->6 address-contract correction, not a bypass, fixed hitbox, object special case, or replacement gameplay path."
+  },
+  {
+   "arcade_pc": "0x054B1E",
+   "original_bytes": "41F90010D2C8",
+   "replacement_bytes": "41F900FF12C8",
+   "note": "Build 0368 FIRE SWORD start-state regression fix. The retained original item dispatcher scans four live 8-byte event records at arcade WRAM 0x0010D2C8 and calls the subtype-1 weapon grant at 0x054EF2 only for a real {active=1, subtype=1} record. Genesis Build 0367 left this absolute LEA pointed at ROM; final-ROM bytes at 0x0010D2D8 decode as a false {active=1, subtype=1} record, so the arcade grant path set A5+0x12FA=4 immediately after the correct start initializer set 1. Rebase only the semantic record-table operand to mapped Genesis WRAM A5+0x12C8 at 0x00FF12C8. The original acquisition, A5+0x1326 timer, expiration-to-1, graphics selection, and contact selection remain intact. Intentional address-contract correction (6->6), not a forced normal-sword state, pickup bypass, cave-block special case, or replacement gameplay path."
+  },
+  {
    "arcade_pc": "0x052B66",
    "original_bytes": "10390010C118",
    "replacement_bytes": "103900FF0118",
    "note": "Build 0255 / OPEN-017 attract-demo selector-source rebase: retained FUN_00052b4a reads the stage byte from raw arcade WRAM literal 0x0010C118 when no explicit script selector is active. Rebase only that source operand to mapped Genesis WRAM A5+0x118 at 0x00FF0118. Byte-neutral MOVE.B absolute-long replacement (6->6); control flow, selector arithmetic, demo state, script data, normal input ownership, and per-frame output ordering are unchanged. Paired indivisibly with the 0x052C1C embedded script-pointer table relocation below."
+  },
+  {
+   "arcade_pc": "0x059704",
+   "original_bytes": "10390010C118",
+   "replacement_bytes": "103900FF0118",
+   "note": "Build 0377 / OPEN-017 Phase-3 animation selector-source rebase. Original 0x596F4 reads the one-based stage byte at arcade WRAM 0x0010C118, subtracts one, and indexes six 6-byte {stream pointer, attribute} records at 0x5976E. Genesis retained the absolute arcade address as cartridge ROM and observed selector 8, selecting the out-of-range bytes 1AC41AD01AC4 and constructing A0=0x1AC41AD0. Rebase only this byte read to the retained field A5+0x0118 at 0x00FF0118. Paired indivisibly with the strided 0x5976E embedded-pointer relocation and native 0x59736 chip-tail cut; no selector constant, clamp, MODE condition, or stage special case."
   },
   {
    "arcade_pc": "0x03A778",
@@ -1636,12 +1708,6 @@
    "note": "Build 0198 player action-state input-copy rebase: `movew 0x10D37A,%d0` reads the per-frame input variable A5+0x137A, written a5-relative each frame by the master routine at 0x51034 (`movew %d0,%a5@(4986)` from the 0x5102E latch read). Raw literal 0x10D37A is ROM on Genesis (constant 0xEEEE = phantom frozen input), so the ENTIRE player action state machine (walk/jump/attack dispatch incl. gatekeeper heads 0x515B6/0x51600 and mode-1 walk writers 0x5265E/0x5270C) never saw real input -> Rastan uncontrollable / action state frozen at mode 0. 29-site family; byte-neutral rebase to mapped WRAM 0x00FF137A (KF-042/KF-057 class, completing the input chain after the Build 0158/0196 latch-read rebases). Proof: arcade sets mode=1 (walking) precisely while Right is held via these readers; Genesis latch+copy update correctly but readers polled ROM."
   },
   {
-   "arcade_pc": "0x051AB6",
-   "original_bytes": "247C0010D280",
-   "replacement_bytes": "247C00FF1280",
-   "note": "Build 0346 seg-5 crash rebase: `movea.l #0x0010D280,%a2` loads the base of a per-slot {marker.w, source-pointer.l} table that the routine at 0x51AB6 walks (d3=3 entries), copying the pointed 9-word blocks into A5+0x1134. The routine is gated by the live A5-relative flag %a5@(0x1280) (caller test at 0x513A8 `cmpi #1`, writers 0x40F6E/0x41BEE/0x4C94E), and its sibling writes to 0x10D296 in the SAME routine were ALREADY rebased to A5-relative (0x052B0E/0x052B2A). This one absolute base literal was overlooked: raw 0x0010D280 is cartridge ROM on Genesis (ROM[0x10D280]=0x10000011), so `movea.l (a2),a0` loads that value, `addq #2,a0` -> 0x10000013 (odd), and `move.w (a0),(a1)+` at 0x51AF2 takes an ADDRESS ERROR (vector 3). Confirmed by GENESIS NTSC crash capture at scene_id=06/seg=0005: stacked_PC=0x00051D00 (=0x51AF2 next), A0=0x10000013, instr_reg=0x32D0. The display-off (_do) build's overrun-DMA timing sets %a5@(0x1280)=1 at seg-5 so this latent path is reached; the fix makes the reader address the live A5+0x1280 work-RAM the producers populate, correct for BOTH display policies. Byte-neutral MOVEA.L #imm rebase (6->6, opcode 0x247C preserved), arcade A5 base 0x10C000 -> Genesis 0xFF0000 (KF-039/KF-042 class); no control-flow, table structure, marker semantics, NOP, or RTS change."
-  },
-  {
    "arcade_pc": "0x051C5A",
    "original_bytes": "30390010D37A",
    "replacement_bytes": "303900FF137A",
@@ -2023,6 +2089,14 @@
    "note": "Build 0255 / KF-028 / OPEN-016 attract-demo scripted-input pointer table. Retained FUN_00052b4a loads this table through its already-relocated runtime base 0x052E1C and indexes entries 1/2 directly or entries 3..8 from stage+2. Relocate all nine embedded in-window arcade ROM longwords to their authoritative copied-ROM targets. Original targets are 0x05354E,0x052C40,0x052C44,0x05354E,0x052F4A,0x05324C,0x052C48,0x052C48,0x052C48; first script data begins immediately after the table at arcade 0x052C40. Paired indivisibly with the raw A5+0x118 source rebase at arcade 0x052B66; script bytes and player control flow are unchanged."
   },
   {
+   "table_address": "0x05976E",
+   "entry_count": 6,
+   "entry_size_bytes": 4,
+   "entry_stride_bytes": 6,
+   "pointer_offset_bytes": 0,
+   "note": "Build 0377 / KF-028 / OPEN-016 companion relocation for the Phase-3 animation selector table. Six legal one-based stage records each contain a four-byte copied-ROM stream pointer followed by a two-byte fixed PC080SN attribute. Relocate only the pointer field at offset 0 with record stride 6; preserve attributes 001E,0012,0019,0007,0000,0000 verbatim. Original targets 0x59792,0x597F6,0x5983A,0x59792,0x5987E,0x59880 must follow the authoritative copy delta and all accumulated shifts, including the native tail cut immediately before this table."
+  },
+  {
    "table_address": "0x059EC8",
    "entry_count": 6,
    "entry_size_bytes": 4,
@@ -2042,7 +2116,7 @@
   }
  ],
  "expectations": {
-  "opcode_replace_count": 228,
+  "opcode_replace_count": 230,
   "genesis_only_maincpu_ref_count": 7
  }
 }

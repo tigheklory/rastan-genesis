@@ -1,0 +1,399 @@
+[
+ {
+  "label": "idle",
+  "torso": 0,
+  "legs": 0,
+  "waist_y": 0,
+  "hand_grip": [
+   8,
+   -10
+  ],
+  "sword_cells": [
+   [
+    158,
+    0,
+    -40
+   ],
+   [
+    159,
+    0,
+    -24
+   ]
+  ],
+  "body_cell_count": 7,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "walk A",
+  "torso": 28,
+  "legs": 18,
+  "waist_y": 0,
+  "hand_grip": [
+   8,
+   -9
+  ],
+  "sword_cells": [
+   [
+    159,
+    0,
+    -23
+   ],
+   [
+    158,
+    0,
+    -39
+   ]
+  ],
+  "body_cell_count": 6,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "walk B",
+  "torso": 29,
+  "legs": 19,
+  "waist_y": 0,
+  "hand_grip": [
+   8,
+   -8
+  ],
+  "sword_cells": [
+   [
+    159,
+    0,
+    -22
+   ],
+   [
+    158,
+    0,
+    -38
+   ]
+  ],
+  "body_cell_count": 7,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "walk C",
+  "torso": 30,
+  "legs": 20,
+  "waist_y": 0,
+  "hand_grip": [
+   8,
+   -8
+  ],
+  "sword_cells": [
+   [
+    159,
+    0,
+    -22
+   ],
+   [
+    158,
+    0,
+    -38
+   ]
+  ],
+  "body_cell_count": 7,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "climb / rope A",
+  "torso": 15,
+  "legs": 13,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 7,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "climb / rope B",
+  "torso": 16,
+  "legs": 14,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 8,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "climb / rope C",
+  "torso": 17,
+  "legs": 15,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 7,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "climb / rope D",
+  "torso": 18,
+  "legs": 16,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 7,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "up-thrust",
+  "torso": 12,
+  "legs": 8,
+  "waist_y": 0,
+  "hand_grip": [
+   14,
+   -4
+  ],
+  "sword_cells": [
+   [
+    158,
+    6,
+    -34
+   ],
+   [
+    159,
+    6,
+    -18
+   ]
+  ],
+  "body_cell_count": 5,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "up-thrust B",
+  "torso": 13,
+  "legs": 8,
+  "waist_y": 0,
+  "hand_grip": [
+   8,
+   -20
+  ],
+  "sword_cells": [
+   [
+    158,
+    0,
+    -50
+   ],
+   [
+    159,
+    0,
+    -34
+   ]
+  ],
+  "body_cell_count": 6,
+  "bbox": [
+   -16,
+   -50,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "crouch guard",
+  "torso": 6,
+  "legs": 6,
+  "waist_y": 0,
+  "hand_grip": [
+   8,
+   4
+  ],
+  "sword_cells": [
+   [
+    158,
+    0,
+    -26
+   ],
+   [
+    159,
+    0,
+    -10
+   ]
+  ],
+  "body_cell_count": 4,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "jump",
+  "torso": 37,
+  "legs": 27,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 8,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "overhead sword",
+  "torso": 38,
+  "legs": 28,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 8,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "weapon swing",
+  "torso": 44,
+  "legs": 34,
+  "waist_y": 0,
+  "hand_grip": [
+   8,
+   -6
+  ],
+  "sword_cells": [
+   [
+    158,
+    0,
+    -36
+   ],
+   [
+    159,
+    0,
+    -20
+   ]
+  ],
+  "body_cell_count": 3,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "death: dissolve A",
+  "torso": 40,
+  "legs": 30,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 8,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "death: dissolve B",
+  "torso": 41,
+  "legs": 31,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 8,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "death: dissolve C",
+  "torso": 42,
+  "legs": 32,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 8,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "death: burn A",
+  "torso": 70,
+  "legs": 42,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 6,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   32
+  ]
+ },
+ {
+  "label": "death: burn B",
+  "torso": 72,
+  "legs": 44,
+  "waist_y": 0,
+  "hand_grip": null,
+  "sword_cells": [],
+  "body_cell_count": 6,
+  "bbox": [
+   -16,
+   -40,
+   32,
+   48
+  ]
+ }
+]

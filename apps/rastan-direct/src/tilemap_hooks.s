@@ -8,6 +8,8 @@
     .global genesistan_plane_a_pan_publish_entering_rows_up
     .global genesistan_plane_a_pan_publish_entering_rows_down
     .global genesistan_pc080sn_directional_dispatch_native
+    .global genesistan_collision_surface_mark_visual_native
+    .global genesistan_phase3_fg_anim_native
     .global genesistan_hook_tilemap_fg
     .global genesistan_hook_cwindow_clear
     .global genesistan_hook_tilemap_bg_fill
@@ -282,20 +284,20 @@ genesistan_hook_tilemap_plane_a_selector0_native:
 
     moveq   #0, %d5                 /* cell inside this segment */
 .Lplane_a_sel0_cell_loop:
-    move.w  %d5, %d0
-    lsl.w   #3, %d0
-    add.w   4(%sp), %d0
-
-    cmpi.w  #0x00FF, 32(%a0)
-    beq.s   .Lplane_a_sel0_collision_alt
-    move.w  0x20(%a0,%d0.w), %d2
-    bra.s   .Lplane_a_sel0_collision_ready
-.Lplane_a_sel0_collision_alt:
-    move.w  34(%a0), %d2
-.Lplane_a_sel0_collision_ready:
+    /* Build 0378: collision and visual publication must select the same retained
+     * descriptor.  The rebuilt table in A3 names the current stream front and is
+     * not authoritative for resident/wrapped cells; resolve this logical cell
+     * through the same live/ring-unwrapped mapping used by Plane-A staging. */
     move.w  %d4, %d1
     lsl.w   #2, %d1
     add.w   %d5, %d1
+    move.w  %d1, %d0                         /* logical row */
+    move.w  0(%sp), %d1                      /* logical column */
+    bsr     resolve_plane_a_collision_cell   /* D0 = retained collision word */
+    move.w  %d0, %d2
+    move.w  %d4, %d1
+    lsl.w   #2, %d1
+    add.w   %d5, %d1                         /* logical row */
     move.w  %d1, %d3
     lsl.w   #6, %d3
     add.w   0(%sp), %d3
@@ -423,20 +425,12 @@ genesistan_hook_tilemap_plane_a_selector12_native:
 
     moveq   #0, %d5                 /* cell inside this segment */
 .Lplane_a_sel12_cell_loop:
-    move.w  %d5, %d0
-    add.w   %d0, %d0
-    add.w   4(%sp), %d0
-
-    cmpi.w  #0x00FF, 32(%a0)
-    beq.s   .Lplane_a_sel12_collision_alt
-    move.w  0x20(%a0,%d0.w), %d2
-    bra.s   .Lplane_a_sel12_collision_ready
-.Lplane_a_sel12_collision_alt:
-    move.w  34(%a0), %d2
-.Lplane_a_sel12_collision_ready:
     move.w  %d4, %d1
     lsl.w   #2, %d1
     add.w   %d5, %d1                /* logical column */
+    move.w  0(%sp), %d0             /* logical row */
+    bsr     resolve_plane_a_collision_cell
+    move.w  %d0, %d2
     move.w  0(%sp), %d3
     lsl.w   #6, %d3
     add.w   %d1, %d3
@@ -637,7 +631,36 @@ resolve_plane_a_cell:
     move.w  %d5, %d2
     andi.w  #0x003F, %d2
     lsr.w   #2, %d2                          /* col_block = (col>>2) & 0xF */
-    sub.w   plane_a_src_ref_block, %d2       /* delta = col_block - producer stream-lead reference */
+    cmpi.w  #16, plane_a_src_ref_block
+    bne.s   .Lrpc_source_leading_edge
+
+    /* Resident-row publication must unwrap the 64-column ring around the
+     * arcade-owned streaming front, not around physical block zero.  The live
+     * a5@0x1000 pointer names the current front block (a5@0x10CC), while
+     * a5@0x10CA names the current cell inside that block.  A resident physical
+     * column after that front belongs to the preceding ring revolution.
+     *
+     * Example at the Round-1 rope: front=4 (group 1, cell 0), physical column
+     * 52 is global block 45, so the live block-49 pointer needs delta -4.  The
+     * former fixed (col_block-16) calculation produced -3 and selected the
+     * adjacent metatile instead. */
+    moveq   #0, %d7
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
+    andi.w  #0x000F, %d7
+    sub.w   %d7, %d2                         /* delta from current front block */
+    lsl.w   #2, %d7
+    moveq   #0, %d6
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d6
+    andi.w  #0x0003, %d6
+    add.w   %d6, %d7                         /* current front physical column */
+    cmp.w   %d7, %d5
+    bls.s   .Lrpc_source_delta_ready
+    subi.w  #16, %d2                         /* column is behind front across ring wrap */
+    bra.s   .Lrpc_source_delta_ready
+
+.Lrpc_source_leading_edge:
+    sub.w   plane_a_src_ref_block, %d2       /* horizontal front: col_block - strip_group */
+.Lrpc_source_delta_ready:
     ext.l   %d2
     asl.l   #2, %d2                          /* delta * 4 (one strip entry per block) */
     adda.l  %d2, %a0                         /* live strip descriptor entry for this cell */
@@ -676,6 +699,88 @@ resolve_plane_a_cell:
     moveq   #0, %d0
 .Lrpc_done:
     adda.w  #8, %sp
+    movem.l (%sp)+, %d1-%d7/%a0-%a2
+    rts
+
+/* Resolve one gameplay collision word from the exact retained descriptor mapping
+ * used by resolve_plane_a_cell.
+ *
+ * in:  D0.W = logical row 0..63, D1.W = logical column 0..63; A5 = 0x00FF0000
+ * out: D0.W = original collision word (0 for an invalid/blank descriptor)
+ * clobbers: D0 only (preserves D1-D7 / A0-A2)
+ */
+resolve_plane_a_collision_cell:
+    movem.l %d1-%d7/%a0-%a2, -(%sp)
+    move.w  %d0, %d4
+    move.w  %d1, %d5
+
+    move.w  %d4, %d2
+    lsr.w   #2, %d2
+    andi.w  #0x000F, %d2
+    lsl.w   #2, %d2
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a1
+    movea.l 0(%a1,%d2.w), %a0
+
+    move.w  %d5, %d2
+    andi.w  #0x003F, %d2
+    lsr.w   #2, %d2
+    cmpi.w  #16, plane_a_src_ref_block
+    bne.s   .Lrpcc_source_leading_edge
+
+    moveq   #0, %d7
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
+    andi.w  #0x000F, %d7
+    sub.w   %d7, %d2
+    lsl.w   #2, %d7
+    moveq   #0, %d6
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d6
+    andi.w  #0x0003, %d6
+    add.w   %d6, %d7
+    cmp.w   %d7, %d5
+    bls.s   .Lrpcc_source_delta_ready
+    subi.w  #16, %d2
+    bra.s   .Lrpcc_source_delta_ready
+
+.Lrpcc_source_leading_edge:
+    sub.w   plane_a_src_ref_block, %d2
+.Lrpcc_source_delta_ready:
+    ext.l   %d2
+    asl.l   #2, %d2
+    adda.l  %d2, %a0
+
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
+    blo.s   .Lrpcc_blank
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
+    bhs.s   .Lrpcc_blank
+    suba.l  #PC080SN_DESC_ARCADE_START, %a0
+    adda.l  #PC080SN_DESC_GENESIS_START, %a0
+
+    moveq   #0, %d3
+    move.w  2(%a0), %d3
+    btst    #0, %d3
+    bne.s   .Lrpcc_blank
+    cmpi.l  #0x0005FDFC, %d3
+    bhi.s   .Lrpcc_blank
+    movea.l #PC080SN_DESC_SECOND_WORD_BASE, %a0
+    adda.l  %d3, %a0
+
+    cmpi.w  #0x00FF, 0x20(%a0)
+    beq.s   .Lrpcc_uniform
+    move.w  %d4, %d2
+    andi.w  #0x0003, %d2
+    lsl.w   #3, %d2
+    move.w  %d5, %d3
+    andi.w  #0x0003, %d3
+    add.w   %d3, %d3
+    add.w   %d3, %d2
+    move.w  0x20(%a0,%d2.w), %d0
+    bra.s   .Lrpcc_done
+.Lrpcc_uniform:
+    move.w  0x22(%a0), %d0
+    bra.s   .Lrpcc_done
+.Lrpcc_blank:
+    moveq   #0, %d0
+.Lrpcc_done:
     movem.l (%sp)+, %d1-%d7/%a0-%a2
     rts
 
@@ -931,6 +1036,27 @@ resolve_plane_a_cell:
 .Lplane_b_stage_cell_done:
     adda.w  #8, %sp
     movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Native realization of the visual tail of arcade collision_map_surface_mark_5a2ee.
+ *
+ * Semantic cut retained: A0 is the collision-map cell after the routine has completed all
+ * gameplay-owned collision writes. The retired chip tail converted that cell back to a raw
+ * PC080SN Layer-A address and wrote four identical 0x25C7 cells there. Recreate the same four
+ * actor-independent visual cells through final Genesis Plane-A staging; never expose the raw
+ * 0xC08000 destination to the copied program.
+ */
+genesistan_collision_surface_mark_visual_native:
+    movem.l %d1/%a0, -(%sp)
+    move.l  %a0, %d0
+    subi.l  #ARCADE_COLLISION_MAP_BASE, %d0
+    lsl.l   #1, %d0
+    addi.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %d0
+    movea.l %d0, %a0
+    move.l  #0x000025C7, %d0
+    moveq   #4, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
+    movem.l (%sp)+, %d1/%a0
     rts
 
 /* Native replacement for the gameplay call to arcade FUN_00055ad6.
@@ -1802,6 +1928,58 @@ genesistan_hook_tilemap_fg_fill:
     bne.s   .Lfg_fill_loop
 
 .Lfg_fill_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Native realization of the retained 0x596F4 Phase-3 foreground animation.
+ *
+ * The arcade producer has already selected and decoded one legal stream:
+ *   A0 = first group after the {phase_count, group_count} header
+ *   D4 = phase count, D2 = group count, D5 = selected code-word offset
+ *   D6 = the shared PC080SN attribute word
+ * Each group contains two semantic Layer-A destinations followed by one tile
+ * code per phase.  Retain that mapping/timing contract, but publish each pair
+ * through final Genesis Plane-A staging rather than writing raw C-window words.
+ */
+genesistan_phase3_fg_anim_native:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    movea.l %a0, %a4
+
+.Lphase3_fg_group_loop:
+    lea     0(%a4,%d5.w), %a2
+    move.w  (%a2), %d7
+
+    move.w  %d6, %d0
+    swap    %d0
+    move.w  %d7, %d0
+    movea.l (%a4), %a0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
+
+    move.w  %d6, %d0
+    swap    %d0
+    move.w  %d7, %d0
+    movea.l 4(%a4), %a0
+    moveq   #1, %d1
+    bsr     genesistan_hook_tilemap_fg_fill
+
+    subq.w  #1, %d2
+    beq.s   .Lphase3_fg_advance
+    move.w  %d4, %d3
+    addq.w  #4, %d3
+    lsl.w   #1, %d3
+    adda.w  %d3, %a4
+    bra.s   .Lphase3_fg_group_loop
+
+.Lphase3_fg_advance:
+    addq.w  #1, 0x1362(%a5)
+    move.w  0x1362(%a5), %d5
+    lsr.w   #2, %d5
+    cmp.w   %d5, %d4
+    bne.s   .Lphase3_fg_done
+    clr.w   0x1362(%a5)
+
+.Lphase3_fg_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
@@ -4107,13 +4285,14 @@ vdp_commit_fg_narrow_strips:
 fg_col_dirty:
     .long 0, 0
 
-/* Build 0353: per-producer stream-lead reference for resolve_plane_a_cell (col-blocks).
+/* Build 0353/0373: per-producer source mode/reference for resolve_plane_a_cell.
  * The raw strip pointer a5@0x1000 leads the camera-left edge by a constant one plane width
  * (16 col-blocks); proven in Andy_plane_a_segment01_source_contract_proof.md.
  *   - selector-0 (horizontal) publishes only the LEADING entering column -> ref = strip_group
  *     (delta 0 = the stream front = the entering column).
- *   - vertical producers publish RESIDENT columns -> ref = 16 (camera-relative; oracle-exact at
- *     plane-aligned scroll), so they no longer read one segment ahead (the Segment-0 cave bleed). */
+ *   - vertical producers publish RESIDENT columns -> value 16 selects ring-unwrapped source
+ *     resolution around {strip_group,strip_index}.  Columns physically after the current front
+ *     belong to the preceding 64-column revolution. */
 plane_a_src_ref_block:
     .word 0
 

@@ -1,0 +1,4 @@
+actor_class	pool	rec_type_06	family_3e	selector_field	emits_event_type	effect	graphics_status	status
+weapon pickup	A5+0x02C8	12	12	+0x25 (0->FIRE, 3->state2, else state3)	1/2/3	TIMED_WEAPON	base/anim/palette NOT yet traced	PARTIAL (actor role proven; creator+graphics pending)
+contact special	A5+0x02C8	3/8/15/22	-	-	0	HIT_AUX	-	PARTIAL (emits type-0, not a pickup item)
+energy/life pickup	?	?	?	?	4..13	ENERGY/LIFE/COMBO	-	PENDING (producer not found)

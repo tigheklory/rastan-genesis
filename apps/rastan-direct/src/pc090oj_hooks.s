@@ -9,11 +9,15 @@
  * assembly constant needs hand-editing. */
     .include "pc090oj_config.inc"
     .include "pc090oj_palsel_lut.inc"
+    /* Build 0381: generated complete (code,bank) sprite-variant index (constants +
+     * pc090oj_variant_bank_slot table). Produced by gen_reindexed_pc090oj.py. */
+    .include "pc090oj_sprite_variants.inc"
 
     .global genesistan_pc090oj_hook_target_3b902
     .global genesistan_pc090oj_hook_target_3b926
     .global genesistan_pc090oj_hook_target_3b930
     .global genesistan_pc090oj_hook_target_41dae
+    .global genesistan_native_contact_coords_51ab6
     .global genesistan_pc090oj_hook_target_41f5e
     .global genesistan_pc090oj_hook_target_45dfa
     .global genesistan_pc090oj_hook_target_59f5e
@@ -427,9 +431,75 @@ native_stage_dispatch_41dae:
     moveq   #19, %d2
 .Lns41_enemy_count_ok:
     tst.b   5(%a4)
-    beq.s   .Lnative_actor_advance_only_41_enemy
+    beq     .Lnative_actor_advance_only_41_enemy
+    /* Arcade 0x41E40 sends mode flag +3 != 0 through the semantic
+     * visibility classifier at 0x3EFBE; it does not reject those actors.
+     * Reproduce that decision from retained actor state before direct SAT
+     * expansion.  In particular, state 0x20 uses the common wrapped-X
+     * predicate, which admits the Segment-5 swinging-rope actor. */
     tst.b   3(%a4)
-    bne.s   .Lnative_actor_advance_only_41_enemy
+    beq     .Lns41_enemy_emit
+    moveq   #0, %d0
+    move.b  5(%a4), %d0
+    cmpi.b  #0x17, %d0
+    beq     .Lns41_enemy_visible_common
+    cmpi.b  #0x1A, %d0
+    beq     .Lns41_enemy_visible_1a
+    cmpi.b  #0x20, %d0
+    beq     .Lns41_enemy_visible_common
+    cmpi.b  #0x13, %d0
+    beq     .Lns41_enemy_visible_13
+    cmpi.b  #0x22, %d0
+    beq     .Lns41_enemy_visible_22
+    cmpi.b  #0x15, %d0
+    beq     .Lns41_enemy_visible_15
+    bra     .Lns41_enemy_emit
+
+.Lns41_enemy_visible_common:           /* arcade 0x3EFC8 */
+    btst    #7, 0x34(%a4)
+    bne     .Lns41_enemy_emit
+    move.w  0x16(%a4), %d0
+    andi.w  #0x01FF, %d0
+    cmpi.w  #0x0180, %d0
+    blo     .Lns41_enemy_emit
+    bra     .Lnative_actor_advance_only_41_enemy
+
+.Lns41_enemy_visible_1a:               /* arcade 0x3EFEC */
+    cmpi.w  #0x0087, 0x013E(%a5)
+    blo     .Lns41_enemy_visible_1a_low
+    cmpi.w  #0xFE08, 0x34(%a4)
+    blo     .Lnative_actor_advance_only_41_enemy
+    bra     .Lns41_enemy_emit
+.Lns41_enemy_visible_1a_low:
+    tst.b   0x32(%a4)
+    beq     .Lns41_enemy_visible_common
+    btst    #7, 0x0742(%a4)
+    bne     .Lnative_actor_advance_only_41_enemy
+    bra     .Lns41_enemy_emit
+
+.Lns41_enemy_visible_13:               /* arcade 0x3F01E */
+    btst    #0, 1(%a4)
+    bne     .Lns41_enemy_emit
+    btst    #7, 0x34(%a4)
+    bne     .Lns41_enemy_emit
+    bra     .Lnative_actor_advance_only_41_enemy
+
+.Lns41_enemy_visible_22:               /* arcade 0x3F03C */
+    cmpi.b  #0x79, 0x0D(%a4)
+    bne     .Lns41_enemy_emit
+    cmpi.w  #0x0050, 0x34(%a4)
+    blo     .Lns41_enemy_emit
+    cmpi.w  #0xFE60, 0x34(%a4)
+    bhs     .Lns41_enemy_emit
+    bra     .Lnative_actor_advance_only_41_enemy
+
+.Lns41_enemy_visible_15:               /* arcade 0x3F064 */
+    cmpi.w  #0x0071, 0x013E(%a5)
+    bne     .Lns41_enemy_emit
+    btst    #7, 0x16(%a4)
+    bne     .Lnative_actor_advance_only_41_enemy
+
+.Lns41_enemy_emit:
     bsr     .Lnative_emit_actor_common
     bra.s   .Lns41_enemy_next
 .Lnative_actor_advance_only_41_enemy:
@@ -440,7 +510,7 @@ native_stage_dispatch_41dae:
     adda.w  #64, %a4
     addq.w  #1, %d5
     cmpi.w  #9, %d5
-    blo.s   .Lns41_enemy
+    blo     .Lns41_enemy
 
     move.w  #NATIVE_LANE_FRONT_EFFECT, native_sprite_lane
     lea     0x0748(%a5), %a4
@@ -517,16 +587,16 @@ native_stage_dispatch_45dfa:
  *   attr@0  = (per-piece type 0x80 ? flipX 0x4000 : 0) | (a4@39 if bit6 set)
  *   Y       = sext(mapY) + a4@26  (+ a4@24 when per-piece type 0x70)
  *   code    = a4@30 + (flip ? -mapCode : mapCode)   [read directly, no record]
- *   X       = sext(mapX) + a4@22   (facing==0 -> mirror: a4@22 - mapX - 0x10)
+ *   X       = sext(mapX) + a4@22   (mirror branch: a4@22 - mapX - 0x10)
  * per-piece mapping stream = [control, Ybyte, codebyte, Xbyte]; control 0xFF is
- * a 1-byte blank/park (emit nothing).  a4@2==0 selects the mirrored orientation
- * (arcade 0x3C9A6).  a0 = family_descriptor = reloc_table_base +
+ * a 1-byte blank/park (emit nothing).  The original 0x3C954/0x3CA26 selector
+ * uses raw actor fields a4@0x20 bit 0, a4@0x03, and a4@0x02; the exact general
+ * predicate is retained below without assigning unproven semantic names to
+ * a4@0x20 or a4@0x03.  a0 = family_descriptor = reloc_table_base +
  * u16[reloc_table_base + class*2]. */
 .Lnative_emit_actor_common:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     tst.b   0(%a4)                     /* active */
-    beq     .Lnea_ret
-    tst.b   1(%a4)                     /* class nonzero */
     beq     .Lnea_ret
     andi.l  #0x0000FFFF, %d2
     beq     .Lnea_ret
@@ -541,7 +611,7 @@ native_stage_dispatch_45dfa:
     lea     .Lnea_fam_bases, %a1
     movea.l (%a1,%d1.w), %a1           /* a1 = reloc table base */
     moveq   #0, %d0
-    move.b  1(%a4), %d0               /* class a4@1 */
+    move.b  1(%a4), %d0               /* animation/program index a4@1 (zero is valid) */
     add.w   %d0, %d0
     move.w  (%a1,%d0.w), %d0          /* u16 self-relative descriptor offset */
     lea     (%a1,%d0.w), %a0          /* a0 = descriptor / piece stream */
@@ -564,8 +634,13 @@ native_stage_dispatch_45dfa:
     bra     .Lnea_special              /* one of the 8 specialized dispatch types */
 
 .Lnea_default:
-    tst.b   2(%a4)                     /* facing a4@2 */
+    /* One shared predicate owns visual and gameplay-contact branch selection.
+     * Both destinations implement the complete transform: per-piece flip
+     * attributes AND actor-relative X repositioning. */
+    bsr     .Lnative_mapping_branch_is_normal
+    tst.b   %d0
     beq     .Lnea_dmirror
+    bra     .Lnea_dloop
 
 .Lnea_dloop:                            /* --- normal orientation (arcade 0x3C960) --- */
     moveq   #0, %d0
@@ -691,6 +766,30 @@ native_stage_dispatch_45dfa:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
+/* Exact original-arcade default-compositor branch predicate
+ * (0x3C954..0x3C95E and 0x3CA26..0x3CA34).
+ *
+ * In:  A4 = retained actor.
+ * Out: D0.b = 1 normal (0x3C960), 0 mirror (0x3C9A6).
+ * This is shared by native visual expansion and Build-0361 gameplay-contact
+ * reconstruction so both consumers derive identical geometry. */
+.Lnative_mapping_branch_is_normal:
+    moveq   #1, %d0
+    btst    #0, 0x20(%a4)              /* raw actor+0x20 bit 0 */
+    beq.s   .Lnm_branch_control_clear
+    tst.b   3(%a4)                     /* raw actor+0x03 state byte */
+    bne.s   .Lnm_branch_done
+    tst.b   2(%a4)                     /* actor+0x02 orientation byte */
+    beq.s   .Lnm_branch_done
+    moveq   #0, %d0
+    rts
+.Lnm_branch_control_clear:
+    tst.b   2(%a4)                     /* actor+0x02 orientation byte */
+    bne.s   .Lnm_branch_done
+    moveq   #0, %d0
+.Lnm_branch_done:
+    rts
+
     .align 2
 /* Relocated arcade family descriptor-table bases (arcade base + 0x200 copy):
  * fam0 0x3D09E, fam1 0x4771C, fam2 0x3F0CE, fam3 0x40004, fam4 0x4002C. */
@@ -702,6 +801,142 @@ native_stage_dispatch_45dfa:
     .long 0x0004022C
 
     .align 2
+
+/* arcade 0x051AB6 semantic replacement.
+ *
+ * The arcade routine copied Y/X words from nine PC090OJ records selected by
+ * each active A5+0x1282 registration into the gameplay-owned coordinate list
+ * at A5+0x1134.  The renderer now cuts above PC090OJ and emits Genesis SAT
+ * entries directly, so dereferencing the retained token 0xD00460+slot*0x50
+ * is no longer legal.  Decode that token back to its owning A5+0x2C8 actor
+ * and reproduce the same mapping-program Y/X values directly.  No object-RAM
+ * record, mirror, or coordinate staging buffer is introduced.
+ *
+ * Stage-1 provenance establishes that every live actor program takes the
+ * default 0x3C950 expander.  The specialized path below mirrors the existing
+ * direct-native renderer's retained coordinate interpretation for completeness.
+ */
+genesistan_native_contact_coords_51ab6:
+    movem.l %d0-%d7/%a0-%a4, -(%sp)
+    lea     0x1282(%a5), %a2          /* three {active.w, token.l} entries */
+    lea     0x1134(%a5), %a3          /* 27 Y/X coordinate pairs */
+    moveq   #2, %d7
+.Lnc51_entry:
+    cmpi.w  #1, (%a2)
+    bne     .Lnc51_fill_entry
+
+    /* token = 0xD00460 + actor_index*0x50; actor stride is 0x40. */
+    move.l  2(%a2), %d0
+    subi.l  #0x00D00460, %d0
+    divu.w  #0x0050, %d0
+    andi.l  #0x0000FFFF, %d0
+    lsl.w   #6, %d0
+    lea     0x02C8(%a5), %a4
+    adda.w  %d0, %a4
+    tst.b   0(%a4)
+    beq     .Lnc51_fill_entry
+
+    /* Resolve the same family/animation mapping program as native sprite output. */
+    moveq   #0, %d1
+    move.b  0x38(%a4), %d1
+    cmpi.w  #4, %d1
+    bhi     .Lnc51_fill_entry
+    lsl.w   #2, %d1
+    lea     .Lnea_fam_bases, %a1
+    movea.l (%a1,%d1.w), %a1
+    moveq   #0, %d0
+    move.b  1(%a4), %d0
+    add.w   %d0, %d0
+    move.w  (%a1,%d0.w), %d0
+    lea     (%a1,%d0.w), %a0
+    moveq   #8, %d6                 /* first nine arcade object records */
+
+    move.b  (%a0), %d5
+    andi.b  #0xF0, %d5
+    beq.s   .Lnc51_default
+    cmpi.b  #0x40, %d5
+    beq.s   .Lnc51_default
+    cmpi.b  #0x70, %d5
+    beq.s   .Lnc51_default
+    cmpi.b  #0x80, %d5
+    beq.s   .Lnc51_default
+    cmpi.b  #0xD0, %d5
+    beq.s   .Lnc51_default
+    cmpi.b  #0xE0, %d5
+    beq.s   .Lnc51_default
+    cmpi.b  #0xF0, %d5
+    beq.s   .Lnc51_default
+    bra     .Lnc51_special
+
+.Lnc51_default:
+    /* Select once per actor through the exact helper used by visual expansion.
+     * D4.b = 1 normal X, 0 mirrored/repositioned X. */
+    bsr     .Lnative_mapping_branch_is_normal
+    move.b  %d0, %d4
+.Lnc51_default_loop:
+    moveq   #0, %d0
+    move.b  (%a0)+, %d0             /* control/type; FF terminates */
+    cmpi.b  #0xFF, %d0
+    beq     .Lnc51_fill_remaining
+    move.b  %d0, %d5
+    andi.b  #0xF0, %d5
+    moveq   #0, %d2
+    move.b  (%a0)+, %d2             /* mapping Y */
+    ext.w   %d2
+    add.w   0x1A(%a4), %d2
+    cmpi.b  #0x70, %d5
+    bne.s   .Lnc51_default_y_ok
+    tst.b   %d4                       /* arcade applies +0x18 only on normal branch */
+    beq.s   .Lnc51_default_y_ok
+    add.w   0x18(%a4), %d2
+.Lnc51_default_y_ok:
+    addq.l  #1, %a0                 /* tile-code byte is not a contact input */
+    moveq   #0, %d3
+    move.b  (%a0)+, %d3             /* mapping X */
+    ext.w   %d3
+    tst.b   %d4
+    bne.s   .Lnc51_default_right
+    neg.w   %d3
+    subi.w  #0x0010, %d3
+.Lnc51_default_right:
+    add.w   0x16(%a4), %d3
+    move.w  %d2, (%a3)+
+    move.w  %d3, (%a3)+
+    dbra    %d6, .Lnc51_default_loop
+    bra.s   .Lnc51_next_entry
+
+.Lnc51_special:
+    movea.l 2(%a0), %a0
+    moveq   #0, %d0
+    move.b  0x0B(%a4), %d0
+    move.w  %d0, %d1
+    add.w   %d0, %d0
+    add.w   %d1, %d0               /* frame * 3 */
+    adda.w  %d0, %a0
+.Lnc51_special_loop:
+    moveq   #0, %d2
+    move.b  (%a0)+, %d2
+    cmpi.b  #0xFF, %d2
+    beq.s   .Lnc51_fill_remaining
+    ext.w   %d2
+    add.w   0x1A(%a4), %d2
+    move.w  0x16(%a4), %d3
+    move.w  %d2, (%a3)+
+    move.w  %d3, (%a3)+
+    dbra    %d6, .Lnc51_special_loop
+    bra.s   .Lnc51_next_entry
+
+.Lnc51_fill_entry:
+    moveq   #8, %d6
+.Lnc51_fill_remaining:
+    move.w  #0x01FF, (%a3)+
+    move.w  #0x01FF, (%a3)+
+    dbra    %d6, .Lnc51_fill_remaining
+.Lnc51_next_entry:
+    addq.l  #6, %a2
+    dbra    %d7, .Lnc51_entry
+    movem.l (%sp)+, %d0-%d7/%a0-%a4
+    rts
 
 
 
@@ -932,6 +1167,12 @@ genesistan_pc090oj_hook_zero_fill_56440:
     clr.w   transient_items_active
     rts
 
+    /* native_queue_hud entry 2, code word: 2 * 8-byte entry + 4.  Keep the
+     * displacement as an absolute assembler symbol: spelling the arithmetic
+     * expression directly before "(%a0)" selects indexed/full-extension
+     * syntax in GNU as instead of the required 68000 d16(A0) mode. */
+    .equ NATIVE_HUD_LOW_ENERGY_CODE_OFFSET, 0x0014
+
 genesistan_pc090oj_hook_status_sprite_5a098:
     /* Direct-native gameplay energy/status producer.  Preserve the original
      * arcade semantic state machine and publish its eight ordered visible-piece
@@ -1086,7 +1327,7 @@ genesistan_pc090oj_hook_status_sprite_5a098:
     move.w  #0x03D5, %d0
 .Lstatus_blink_store:
     lea     native_queue_hud, %a0
-    move.w  %d0, (2 * NATIVE_QUEUE_ENTRY_BYTES + 4)(%a0)
+    move.w  %d0, NATIVE_HUD_LOW_ENERGY_CODE_OFFSET(%a0)
 
 .Lstatus_update_lifecycle:
     /* Inline original helper 0x5A244: publish low/normal-energy transitions. */
@@ -1818,13 +2059,52 @@ native_frontend_hud_emit:
     cmpi.w  #GENESIS_VIEWPORT_LEFT, %d6
     blt     .Lnq_entry_skip
 
-    /* Exact O(1) reverse lookup.  Normalize the HUD-white bit-15 residency
-     * tag to bit 12, then perform one directory and one leaf access. */
+    /* Build 0381: complete (code,bank) variant residency remap.  For the single
+     * contiguous divergent enemy block [SPRITE_VARIANT_LO,HI] the base cell (bank
+     * 0x36 = Round-1 lizardman) is baked at code*128; chimera(0x34)/four_armed(0x3A)
+     * select an appended variant cell.  Bounded O(1): one range test + one
+     * bank-indexed table byte, then fold the variant into the residency key/worklist
+     * code as SPRITE_VARIANT_KEY_MARK|vi.  No runtime recolor; variant bytes are
+     * pre-transformed offline.  Base bank and all non-divergent codes are untouched. */
+    move.w  %d3, %d6
+    andi.w  #0x0FFF, %d6
+    subi.w  #SPRITE_VARIANT_LO, %d6
+    cmpi.w  #SPRITE_VARIANT_SPAN, %d6
+    bhi.s   .Lnq_no_variant
+    /* effective bank = (attr & 0x0F) | ((sprite_ctrl_shadow & 0x00E0) >> 1) -- the
+     * exact quantity the palette-line lookup uses at .Lnq_hit, so the pixel variant
+     * matches its CRAM line. */
+    move.w  pc090oj_sprite_ctrl_shadow, %d7
+    andi.w  #0x00E0, %d7
+    lsr.w   #1, %d7
+    move.w  %d1, %d0
+    andi.w  #0x000F, %d0
+    or.w    %d0, %d7
+    andi.w  #0x007F, %d7
+    lea     pc090oj_variant_bank_slot, %a1
+    moveq   #0, %d0
+    move.b  0(%a1,%d7.w), %d0
+    cmpi.b  #0xFF, %d0
+    beq.s   .Lnq_no_variant
+    add.w   %d0, %d6                     /* d6 = (code - LO) + slot = variant cell index vi */
+    ori.w   #SPRITE_VARIANT_KEY_MARK, %d6
+    move.w  %d6, %d3                     /* residency key + worklist code = 0x2000 | vi */
+.Lnq_no_variant:
+
+    /* Exact O(1) reverse lookup.  Normalize the HUD-white bit-15 residency tag to
+     * bit 12 (or a variant key into the free SPRITE_VARIANT_KEY_NORM range), then
+     * perform one directory and one leaf access. */
     move.w  %d3, %d0
+    btst    #13, %d3
+    bne.s   .Lnq_reverse_key_variant
     andi.w  #0x0FFF, %d0
     btst    #15, %d3
     beq.s   .Lnq_reverse_key_ready
     ori.w   #0x1000, %d0
+    bra.s   .Lnq_reverse_key_ready
+.Lnq_reverse_key_variant:
+    andi.w  #0x0FFF, %d0
+    addi.w  #SPRITE_VARIANT_KEY_NORM, %d0
 .Lnq_reverse_key_ready:
     move.w  %d0, %d6
     lsr.w   #4, %d6
@@ -1883,10 +2163,16 @@ native_frontend_hud_emit:
     beq.s   .Lnq_reverse_install_forward
 
     move.w  %d6, %d1
+    btst    #13, %d6
+    bne.s   .Lnq_reverse_old_key_variant
     andi.w  #0x0FFF, %d1
     btst    #15, %d6
     beq.s   .Lnq_reverse_old_key_ready
     ori.w   #0x1000, %d1
+    bra.s   .Lnq_reverse_old_key_ready
+.Lnq_reverse_old_key_variant:
+    andi.w  #0x0FFF, %d1
+    addi.w  #SPRITE_VARIANT_KEY_NORM, %d1
 .Lnq_reverse_old_key_ready:
     move.w  %d1, %d7
     lsr.w   #4, %d7
@@ -1916,10 +2202,16 @@ native_frontend_hud_emit:
 .Lnq_reverse_install_forward:
     move.w  %d3, 0(%a2,%d0.w)
     move.w  %d3, %d1
+    btst    #13, %d3
+    bne.s   .Lnq_reverse_new_key_variant
     andi.w  #0x0FFF, %d1
     btst    #15, %d3
     beq.s   .Lnq_reverse_new_key_ready
     ori.w   #0x1000, %d1
+    bra.s   .Lnq_reverse_new_key_ready
+.Lnq_reverse_new_key_variant:
+    andi.w  #0x0FFF, %d1
+    addi.w  #SPRITE_VARIANT_KEY_NORM, %d1
 .Lnq_reverse_new_key_ready:
     move.w  %d1, %d7
     lsr.w   #4, %d7
@@ -2121,6 +2413,16 @@ vdp_commit_sprites_vram:
     beq     .Lvcs_tile_next
 
 	    move.w  %d6, %d0
+	    /* Build 0381: variant key (bit 13) -> appended (code,bank) variant cell. */
+	    btst    #13, %d6
+	    beq.s   .Lvcs_tile_src_notvar
+	    andi.w  #0x0FFF, %d0                 /* vi (0..SPRITE_VARIANT_CELLS-1) */
+	    mulu.w  #128, %d0
+	    lea     rastan_pc090oj, %a1
+	    adda.l  #SPRITE_VARIANT_REGION_OFF, %a1
+	    adda.l  %d0, %a1
+	    bra.s   .Lvcs_tile_src_ready
+	.Lvcs_tile_src_notvar:
 	    andi.w  #0x0FFF, %d0
 	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
 	    btst    #15, %d6

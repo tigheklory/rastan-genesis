@@ -1,5 +1,116 @@
 # AGENTS Log
 
+## [Andy — Build 0381 Test Complete Sprite Variants]
+
+* classification: EXTENDING. Standalone report: docs/design/Andy_build0381_test_complete_sprite_variants.md. files changed (this task only): tools/graphics_editor/gen_reindexed_pc090oj.py (rewrite), tools/graphics_editor/verify_reindexed_pc090oj.py (rewrite), apps/rastan-direct/src/pc090oj_hooks.s (variant selector), apps/rastan-direct/Makefile (snapshot pointer + corpus deps + variants .inc), tools/translation/postpatch_startup_rom.py + tools/translation/verify_canonical_rom.py (coverage invariant 0x1A4EB8->0x1A7EB8), docs/design/rastan_actor_graphics_manifest.json (player_composer key), build/rastan-direct/build0381/Test.snapshot.json (created). NO gameplay-logic source touched (only pc090oj_hooks.s in src/). Andy performed NO gameplay verification — authority TIGHE.
+* baseline: Build 0380. Build 0380 Rastan body: USER ACCEPTED (object:player.rastan + CRAM byte-identical, verifier rastan 344 codes / 0 mismatched).
+* profile source: analysis/graphics_optimizer/editor_policy/Test.json. profile SHA: 31dedf43a15994ca65cfd26f6f130f58e44dfe2c8be46dd8304fe24c50819fa1 (rev 25). frozen snapshot: build/rastan-direct/build0381/Test.snapshot.json (same SHA). editable profile mutated during build: NO.
+* counter: 380 -> 383. H25 begun: NO.
+* Test authoring diff vs Build 0380 (build0379 snapshot 2c6630a0…): CRAM changes NONE; mapping changes NONE (all existing maps byte-identical); local overrides NONE. Sword authored YES (line0), Axe YES (line0), Hammer YES (line0), Fire Sword YES (line0). Only change = the four weapons added.
+* Fire Sword: vertical flame component resolved NO — no mechanically-provable separate flame cells in the corpus using the authored Fire Sword palette; documented unresolved auxiliary effect, build NOT blocked. source slot 69 classification = case B (weapon-table decode artefact / player-slot overrun): frame-69 = 54->69 gap, HAMMER frame69 = 0x0003x3 (blank), sword/axe/fire cells alias player-body (0xB2/0xB8/0xBE/0x10C) + enemy codes. corpus changed as result: YES — gen_reindexed_pc090oj.py excludes frame_index==69; this removed all 4 unresolvable same-(code,bank 0x33) rastan/weapon collisions.
+* Semantic variants: complete enemy corpus consumed YES (Lizardman 91/Valkyrie 18/Four-Armed 106/Chimera 148/Flying Demon 112/Small Bat 3/Large Bat 14). cross-bank collision count 48 (single contiguous block 0xA73-0xAA2, banks 0x34/0x36/0x3A). divergent variants generated 96 (base bank 0x36 lizardman; chimera 0x34 + four_armed 0x3A appended cells 4096..4191). code-only collisions remaining 0. runtime lookup: O(1) range-test + pc090oj_variant_bank_slot[effective_bank] byte at the native emit boundary, reusing the palette-selection effective bank; residency key SPRITE_VARIANT_KEY_MARK|vi normalized to free 0x1080+vi directory range (no directory resize). runtime pixel transform NO. PC090OJ compatibility/emulation NO. Confirmed in ROM by disasm (lea pc090oj_variant_bank_slot @0x8127c; btst #13; addi.w #4224).
+* Coverage (verifier PASS, missing/mismatch/incomplete/unexpectedly-raw all 0): Rastan 344, Sword 10, Axe 12, Hammer 17, Fire Sword 10, Lizardman 91, Valkyrie 18, Four-Armed 106, Chimera 148, Flying Demon 112, Small Bat 3, Large Bat 14. cross-bank divergent 48 all-distinct.
+* Build family (Build 0383 = canonical=PASS candidate; all 1736376 bytes): 0383.bin 7dc486a426397c819a8a1816fc38ea6d6d84e7707e009ec81a2a2cdf637ca3a7; _c 639085bba3ff531e0b73e80cdf54245d560895573b42a2d3186f298bde920fea; _d 08ee6dd7910a700f28eb417c57050270c5a2e2f0c39f2037564665a9bc1a5bfc; _do d17845182862b63e150661308065471367deebdeeb28703895eddb91d27cd1bf; _s 9bcaf2dabb96f1c048e630af32a2506eb2a6fa60cec7570598f07e67d4fee10c. complete five-variant family: YES (verify-variant-set PASS). Build produced: YES.
+* Build-number preservation (standing imperative): three numbered builds produced, NONE deleted/withheld/reused. 0381 canonical=FAIL (working-tree fg_tile_cache/boundary staleness + coverage invariant; base SHA dd711298564533f553d6d730f0a77f20f463e55cf91f9595b2220af5e5d3f674). 0382 canonical=FAIL (coverage invariant only, clean; base SHA 46da094febe644f7d21de58f48143097ac3b50741d1c74f7f6c55bca30f9ae28). 0383 canonical=PASS entry=PASS epoch=FAIL. epoch=FAIL is the pre-existing seven-epoch gate state (FAIL on 0378-0382 too); ROM numbered+preserved per CLAUDE.md.
+* gates: canonical GATE_PASS (0383); boot guard PASS pre+post; entry=PASS; verify-variant-set PASS; independent reindex verifier PASS; opcode_replace 230 unchanged (no NOP/RTS). no unrelated gameplay change: YES (this task).
+* Open/Closed Issues: OPEN-006 advanced (complete enemy coverage + weapons + (code,bank) variants), not closed pending Tighe visual verification; Fire Sword vertical flame recorded as unresolved auxiliary follow-up. KNOWN_FINDINGS impact: Option A. Gameplay verification by Andy: NO. Gameplay verification authority: TIGHE. USER MUST VERIFY.
+
+## [Andy — R1/P1 Complete Sprite Representation Closure]
+
+* resumed: YES (session-limit continuation; prior weapon-RE + Composer-weapon work recovered, not restarted). Standalone report: docs/design/Andy_r1p1_complete_sprite_representation_closure.md. NO ROM BUILD; counter 380 -> 380; Build 0381 NOT consumed; NO H25. Palette registry consulted, NOT duplicated. Andy performed NO gameplay/visual verification — authority: TIGHE.
+* baseline: Build 0380. Rastan body palette USER-ACCEPTED (Build 0380) — object:player.rastan UNCHANGED (75 torso / 52 leg / 60 pairings / 344 complete cells). Test.json (profile "Test", rev 23) preserved; enemy complete-corpus usages share the EXISTING usage:<name>:bank0x<bank> map_keys so no Test.json entry is altered.
+* WEAPON IDENTITIES (PROVEN, arcade evidence — grant-handler names + rendered cell shape, NOT table order): SWORD=sel1/0x5CD8A (respawn 0x504B6), AXE=sel2/0x5D346 (player_weapon_grant_state2_54edc), HAMMER=sel3/0x5D666 (player_weapon_grant_state3_54ec6; ball-and-chain cells decisive), FIRE SWORD=sel4/0x5D068 (player_fire_sword_grant_54ef2). Overlay layer = body-composer tail 0x54598, frame slot A5+0x1244, selector A5+0x12FA. Artifacts: h24_player_weapon_cells.tsv (366), h24_player_weapon_frames.tsv (172), h24_player_weapon_render_contract.json. Terminology: HAMMER (not Flail), FIRE SWORD (not Flame Sword).
+* COMPLETE ENEMY CORPUS (r1p1_enemy_semantic_corpus.tsv, 666 cells, from sprite_census_captured.json; counts match historical Build-0327 totals = complete): Chimera 148/bank0x34, Flying Demon 112/bank0x35 (TWO components 0x0129+0x0275), Four-Armed Insect 106/bank0x3A, Lizardman 91/bank0x36, Valkyrie 18/bank0x32, Large Bat 14 + Small Bat 3 /bank0x3E (DISTINCT). Missing-vs-Build-0327-generated: 56/10/96/137/86/2/10.
+* (code,bank) ARCHITECTURE: 48 codes collide (0x0A73 anim block under banks 0x34/0x36/0x3A for chimera/four_armed/lizardman) with DIFFERING authored index_maps + differing target lines -> a flat code-indexed asset CANNOT satisfy all consumers (unlike Rastan). Required fix = offline (code,bank) byte-variant + (code,bank)->offset index + runtime O(1) variant select off the effective bank the palsel LUT already resolves. This is BUILD-REQUIRING -> SCOPED to the next build task, NOT implemented here (feeding the complete corpus to the current code-indexed generator would trip its collision guard and break the build). Data foundation proven + ready.
+* PIPELINE STATUS: gen_reindexed_pc090oj.py / verify_reindexed_pc090oj.py UNCHANGED this task (Rastan complete from Build 0380; enemy (code,bank) work build-scoped). Coverage matrix r1p1_sprite_coverage_matrix.tsv regenerated.
+* COMPOSER STATUS: 4 weapons added as authorable objects (object:weapon.{sword,axe,hammer,fire_sword}, 43 frames each) — NOT YET AUTHORED (Tighe authors). 7 enemies each expose a COMPLETE-corpus browsable usage in addition to the representative composite (server.py h24_weapon_frames + enemy_complete_usages wired into build_usages; app.js weapon/complete/composite frame-browser categories). node --check + python validation OK.
+* CAPACITY: Line 0 and Line 1 BOTH 15/15 full under current partial authoring. Complete enemy corpora expose more distinct source colors than the 2x15 shared budget -> capacity conflict SURFACED, NOT auto-merged (Tighe's authoring decision before next build).
+* gameplay authority: TIGHE. USER MUST VERIFY = open the Composer, inspect/author the 4 weapons + complete enemy corpora, resolve Line-0/1 capacity, save; only then request Build 0381 (which implements the (code,bank) offline+runtime pipeline). Open/Closed Issues: OPEN-006 advanced, none closed. KNOWN_FINDINGS: Option A (no new finding). Architecture compliance CONFIRMED (offline tooling/analysis only; no Genesis loop / runtime recoloring / PC090OJ mirror / scaffolding).
+
+## [Andy — CHECKPOINT H24: Player state/movement spine + complete Rastan frame extraction]
+
+* Standalone report (RULES.md): docs/design/Andy_h24_player_state_frame_extraction.md. NO Genesis impl / NO ROM build / NO MAME. Runtime counter 378 untouched. Palette registry consulted, NOT duplicated (cites Rastan-player line-3 decision).
+* CF-01 CLOSED: all 75 slots of body table 0x5BD40 decoded (h24_player_frame_cells.tsv); 73 distinct composites (2 aliased). Body frame = 4 pieces (6B [tile][xoff][yoff][control]), 3 visible cells + blank typical. Narrower frontier CF-10 PLAYER_SLOT_REACHABILITY opened.
+* FRAME CHAIN COMPLETE: 0x54326 selector (state A5+0x10E8 + anim idx A5+0x10EA/0x110A/0x12F2/0x12F4 + pose tables 0x5BAE0/0x5BB10 -> slot A5+0x1244) + 0x54492 composer (0x5BD40[slot] offset -> pieces; screenX/Y A5+0x10BE/0x10C0, facing A5+0x1114, palette=ctrl&0xF; weapon overlay A5+0x12FA -> 0x5CD8A/0x5D068/0x5D346/0x5D666). Durable C raw/00054326.c+00054492.c, rastan_player_animation.c+rastan_player_render.c. gcc c11 clean.
+* PLAYER STATE MACHINE: A5+0x10E8 in {0,1,2,3,4,5,6,7,8,9,16}; cmp/branch dispatch (movement 0x515xx-0x520xx, render 0x540CC). PROVEN: 7=door(H22 tile0x7E), 8=death(energy0 0x517EE), 16=round-complete, 4=climb(H23). Input latch 0x10D37A + edge A5+0x10CE.
+* PLAYER PALETTE: single shared source line 3 colbank 0x60 (255/263 pieces control 0x0003); 8 tail pieces line0/8 enumerated. ALL reachable body frames map to one source -> user maps once.
+* BESTIARY V18: new Rastan/Player section renders all 73 distinct composites from arcade pc090oj.bin (palette line3) via decoded 0x5BD40; RASTAN BODY COVERAGE metric (75/75 enumerated+decoded, 73 distinct, 73/73 rendered+palette-covered). Synced H24.
+* COVERAGE (union primary): full 18.5%->21.1%, touched 26.5%->29.1%; 62->64 COMPLETE. Guards game-wide/fidelity/actor PASS.
+* Machine-readable: h24_player_frame_cells/frame_selection/animation_sequences/state_machine/input_state_transitions/movement_contract .tsv + h24_player_render_contract.json.
+* NEXT (H25, NOT executed): CORE COLLISION / PLAYER COLLISION CONSUMERS (movement exposes API: 0x53A2E grid lookup, player consumers 0x515xx, 0x51880). Player movement state handlers remain player frontier.
+* H24 CORRECTION (Tighe caught waist-up renders): Rastan is a TWO-HALF sprite. 0x54492 renders ONLY the upper torso (0x5BD40, slot A5+0x1244, cells y=-32/-16). The LEGS are a parallel composer 0x546A8 (table 0x5C466, 52 slots, slot A5+0x1246, cells y=0/+16, SAT 0x10D1F2), also driven by 0x540CC. Full body = torso over legs (y=-32..+32, 64px), paired per anim index by 18 a3/a4 pose-table pairs in 0x540CC (e.g. state-2 upper 0x5BB40 / lower 0x5BB80). Fixed: registered 0x546A8 COMPLETE, decoded h24_player_leg_cells.tsv (52 slots/51 distinct), render contract two_half_sprite, Bestiary V19 now renders 63 FULL-BODY poses. Union coverage 21.1%->21.6%.
+
+## [Andy — CHECKPOINT H23: Vertical scroll / wrap contract]
+
+* Standalone report (RULES.md): docs/design/Andy_h23_vertical_scroll_wrap_contract.md. NO Genesis impl / NO ROM build / NO MAME. Runtime counter 378 untouched (external Cody Build 0378). Palette registry unchanged.
+* VERTICAL SCROLL CONTRACT PROVEN: FG Y scroll = A5+0x10AE ->0xC40002 (wrap mod 512); FG X = A5+0x10EC ->0xC40000 (half-rate). Per-frame: player motion -> pending A5+0x1266(up)/0x1268(down) -> step dispenser 0x51880 caps 4px -> A5+0x10DC -> clamp controller 0x539C2 keeps player screen-Y A5+0x10BE in band [32,304] center 80 (hard-coded) -> dispatch 0x557BA/0x55854 accumulate A5+0x10B2 (8px), stream row 0x406A4 (dir A5+0x13D0 2up/3down), A5+0x10AE +=/-= step mod512 -> commit 0x55AB4. Dir-accumulator A5+0x10B8 upper limit 160 (gated A5+0x10A8).
+* COORD SPACES: actor_screen_y=(world_y+A5+0x10AE)&0x1FF (0x461CE); collision row=((((~A5+0x10AE+1)&0x1FF)+world_y)>>1)+8)&0xFC (0x53A2E); visual+collision share SAME Y-scroll field. Ring=64 tile rows (512px mod). Scene init 0x504FA table 0x50850[A5+0x013E*12] word0->Yscroll (R1P2 prog2/3 = 0x160), word4->screenY (0x78); transition 0x561A0 zeroes scroll then re-inits.
+* THIRD-CHAIN CONTRACT for Cody: from init Y=0x160 an upward climb moves committed Y toward ~0x010D and KEEPS MOVING; stuck ~0x0026 = up path (pending_up->delta->A5+0x10AE+=step) not driven. Arcade static is authority; Genesis runtime corroboration only.
+* DURABLE C: COMPLETE 0x557BA/0x55854 (Y scroll+stream), 0x55AB4 (commit), 0x55B3C (X scroll) [raw/000557ba.c, raw/00055ab4.c, rastan_world_scroll.c]; PARTIAL 0x504FA/0x539C2/0x51880 (Ghidra-unlisted drivers) [raw/000539c2.c]. gcc c11 clean. Guards game-wide/fidelity/actor PASS.
+* COVERAGE (union primary): full 17.3%->18.5%, touched 25.4%->26.5%; 58->62 COMPLETE. PC080SN subsystem ~41%->~80% (7/10 fn). WORLD VERTICAL SCROLL = COMPLETE in decompilation_roadmap.json.
+* Machine-readable: h23_vertical_scroll_writers/states/wrap_contract/boundaries/coordinate_spaces .tsv + h23_rerom_vertical_scroll_contract.json (compact Cody contract). Bestiary V17 synced H23.
+* NEXT (H24, NOT executed): PLAYER CONTROL/MOVEMENT + CF-01 frame extraction; entries 0x54326/0x54492/0x51880; table 0x5BD40. Remaining world frontier (separate): 0x406A4 row-stream helpers + transition internals 0x56176/0x59F5E/0x5632A.
+
+## [Andy — CHECKPOINT H22: World / Map / PC080SN pipeline + roadmap presentation correction]
+
+* Standalone report (RULES.md): docs/design/Andy_h22_world_map_pc080sn_pipeline.md. NO Genesis impl / NO ROM build / NO MAME. Runtime build counter 377 untouched. Palette registry unchanged (no new decision).
+* ROADMAP PRESENTATION CORRECTED (Bestiary V16): dashboard reordered by ENGINE DEPENDENCY tiers (CORE EXECUTION / GAME-WORLD CONTROL / CORE GAMEPLAY / PRESENTATION / SUPPORT), not old H20 order; OVERALL graphical bar now uses PRIMARY unique-executable-byte (union) metric; per-subsystem bars use fn-span, each labelled (no metric mixing inside a bar); span-sum + H20 historical kept as secondary text. Centaur MOVED out of hazard census -> field-enemy coverage w/ explicit note (still one of 0x01CB/0x043A/0x06E2/0x0889). Player-frame status honest: 75 slots enumerated / cell-decoded 0 / remaining 75 (CF-01 deferred to H23).
+* WORLD PIPELINE PROVEN end-to-end: A5+0x1242 master section ->0x5073A-> A5+0x013E progression -> round-bound table 0x502AC {0x16,0x2D,0x44,0x5B,0x72,0x89} -> A5+0x1360; A5+0x013E ->0x507C5-> A5+0x1386 scene idx -> A5+0x10FC=0x3951C+scene*12 (12B descriptor = 2x{u16 count,u32 layout ptr}); layout srcs 0x34F9C/0x3725C. Selector 0x50248 durable C (raw/00050248.c + rastan_world_progression.c; Ghidra-unlisted so not in census denominator).
+* PC080SN FG COLUMN STREAMER COMPLETE: 0x55C4A/0x55C5E/0x55C7A (raw/00055c4a.c + rastan_world_stream.c) — 64 tile words/column, tile=layout[row*32+col*2], name-table dest stride +0xFE, scroll col A5+0x10F6++. 3 Ghidra functions -> PC080SN subsystem 0/3 -> 3/6 (41%). Semantic cut documented (world decision -> tile/collision word -> chip-specific write).
+* MAP POINTER PRODUCER identified (not just consumers): A5+0x10D000 col ptrs <-0x502CC (H12); A5+0x10D040 record ptrs + A5+0x10D080 tiles <-0x55904 (H13). Collision-record format consolidated to ONE machine-readable spec (h22_collision_record_format.tsv): cw=rec[0x14+strip*2+cell*8] | rec[0x22] when rec[0x20]==0xFF; marker=cw>>8; tile/door=cw&0x7F via 0x53A2E.
+* SCENE TRANSITION ownership (PARTIAL): freeze owner A5+0x1394 (gate 0x55DFE), sub-state A5+0x13AA, checkpoint A5+0x13B8=A5+0x013E (0x55E10), new-scene 0x59F5E, wipe 0x56176. 0x7E DOOR: source CLARIFIED = collision-word low 7 bits (cell&0x7F==0x7E); per-round positions left as frontier CF-08 (per §17, not derailed).
+* Machine-readable: h22_world_pipeline / h22_scene_descriptors / h22_map_pointer_tables / h22_collision_record_format / h22_stream_producers / h22_scene_transition_flow .tsv; code_frontier.csv re-ranked by dependency tier; decompilation_roadmap.json created.
+* COVERAGE (primary union): full 17.1%->17.3%, touched 25.1%->25.4%; 55->58 COMPLETE (+3 PC080SN). gcc c11 clean. Guards: game-wide PASS, fidelity PASS, actor PASS.
+* H23 PREP (do NOT execute): PLAYER CONTROL/MOVEMENT + CF-01 player-frame extraction together; entries 0x54326 selector / 0x54492 composer / 0x50xxx; table 0x5BD40 (75 slots).
+
+## [Andy — CHECKPOINT H21: Execution spine + game-content census + dependency roadmap]
+
+* Standalone report (RULES.md): docs/design/Andy_h21_execution_spine_and_content_census.md. NO Genesis impl / NO ROM build / NO MAME. Runtime build counter 377 untouched (external Cody value; never written by me). Palette registry unchanged (no new decision); cave block cites PAL-PC090OJ-STAGE1-CAVE-BLOCK-001.
+* EXECUTION SPINE PROVEN + durable C: reset 0x3A000->0x3AE86 HW init->idle 0x3A080 (jsr 0x510C6; bra self); game is INTERRUPT-DRIVEN. L5/VBlank ISR 0x3A008 decompiled COMPLETE (raw/0003a008.c byte-faithful + semantic rastan_execution_spine.c): acks 0x350008, gates actor update 0x41F30 on A5+0x02∈[2,4)/A5+0x00/A5+0x1394, runs 5 pre-frame subsystems, dispatches 8-state table @0x3A06C (decoded s0..s7). Registered 0x3A008+0x3A080 COMPLETE in function_coverage.csv. gcc -std=c11 clean.
+* COVERAGE METRIC CORRECTED: primary = UNIQUE EXECUTABLE BYTE (union 33,274 B) = 17.1% full / 25.1% touched; span-sum secondary 14.2%/21.7%; H20 13.9%/21.4% retained as historical_h20. 55 COMPLETE functions. gamewide_coverage_summary.json carries primary_metric field. GUARD PASS.
+* CONTENT CENSUS (enumerate, not fully-decompile): h21_gameplay_object_census.tsv (38 actors, multidimensional), h21_hazard_census.tsv (7 hazards w/ PROVEN-route candidate mechanisms + honest PENDING/PARTIAL), h21_player_frame_inventory.tsv (75 player composite slots decoded from table 0x5BD40, offsets 0x0096..0x070C monotonic; per-frame cells = frontier CF-01, exposed PENDING not fabricated). content_frontier.csv (7) + code_frontier.csv (12, byte-ranked).
+* CENTAUR: NOT absent from code — one of 4 PROVEN field bases with PENDING human name (0x01CB/0x043A/0x06E2/0x0889); naming needs per-base sprite decode (CF-02/05). No name invented.
+* BESTIARY V15: two dashboards live (Arcade 68000 Decompilation Roadmap + Game Content/Bestiary Coverage); manifest _synced_through=H21; consistency_check PASS. https://claude.ai/artifact/Dopg3mwMHdUMsZJSQgXDVR
+* Guards: game-wide coverage PASS, fidelity PASS, actor coverage PASS (96 COMPLETE/9 PARTIAL/5 stub).
+
+## [Andy — CHECKPOINT H12: A5+0x10D000 populator decompiled; Phase-2 rosters PARTIAL]
+
+* Standalone report (RULES.md): docs/design/Andy_h12_collision_record_population_phase2_rosters.md. NO ROM/MAME/Genesis. counter 360. Cody files untouched.
+* CODY RECONCILIATION: read the H12-relevant subset of ~350 Cody md (0x10D000 descriptor table, boss positions/palette, marker 0x3A, rope-ledge SUSPENDED) — NOT all 350 (efficiency mandate). Verified each vs arcade code. Evidence: analysis/actor_decompilation/h12_cody_report_reconciliation.tsv. SUPERSEDED my own earlier 'staged 0x4EAF6' boss-palette theory (Cody proved copy direction A5+0x1600->CLCS -> boss line F = 0x3BA88[round][15]->0x4FD02). Marker 0x3A = scheduled-hostile zero-X positioning (NOT platform).
+* CLOSED H11 BLOCKER: A5+0x10D000 populator 0x502CC DECOMPILED — descriptor(col,scene)=0x1691C+col*0x22C0+(0x13E)*0x40, 16 cols. ROM source 0x1691C = PC080SN column data; confirmed contains H6-range markers (0x3A/3B/3E/40/42/4F/50/51). NEW raw/000502cc.c + rastan_scene_map.c semantic.
+* PARTIAL (honest, per session rule): clean six-round roster NOT finalized — exact per-cell collision-word offset (0x55904 build vs 0x1691C format) is the remaining step; whole-descriptor scan over-counts. NO rosters fabricated; H10 materialized actors stay ROUND PENDING (not pinned without evidence). Evidence: h12_column_descriptor_writers.tsv, h12_collision_record_sources.tsv, h12_phase2_actor_rosters.tsv (PARTIAL).
+* Coverage 97 rows (82 COMPLETE); audit 62. Guards PASS; gcc PASS (100 files). Exact next PC = 0x55904 record build vs 0x1691C column format.
+
+# AGENTS Log
+
+## [Cody — Build 0361 static Round-1 Segment-5 D00462 root fix]
+
+* User observation only: BlastEm freezes on a read from `0xD00462` entering R1/P1 Segment 5. Cody cannot run BlastEm; NO runtime PC/register claim and NO MAME run. Standalone report: `docs/design/Cody_build0361_round1_segment5_crash.md`.
+* STATIC ROOT PROVEN: marker `O/P/Q` -> state `0x20` -> arcade `0x41BEE` registers `0xD00460 + actor_index*0x50`; arcade `0x51AB6` loads that token, adds 2, and its first Y-word read is exactly `D00462` for actor index 0. Valid on arcade PC090OJ object RAM, invalid after Genesis direct-native PC090OJ retirement. Build 0346 rebased only the A5 registration-table base and left this chip-tail readback alive.
+* FIX: whole-function shift replacement at arcade `0x51AB6..0x51B02` (78 -> 8 bytes, delta -70) calls `genesistan_native_contact_coords_51ab6`. Helper decodes retained token -> A5+0x2C8 actor and same compositor mapping program -> existing gameplay A5+0x1134 Y/X list. Unchanged `0x51B04` consumer. NO D-window adapter/mirror/shadow, NOP, bypass, fallback, segment special-case, renderer/palette change.
+* DECOMPILED: new raw `00051ab6.c`, raw `00051b04.c` (incl. `0x51B74`), semantic `rastan_player_world_contact.c`; corrected `00041bee.c` D00460 classification. Coverage/fidelity/C syntax PASS (88 rows/74 COMPLETE).
+* BUILD: `dist/rastan-direct/rastan_direct_video_test_build_0361.bin`, 1,719,992 bytes, SHA-256 `b8cc28d75d07e50fc194171a91a446adc649626f8296415b839a8f617bd4fa62`, counter 361. Canonical `GATE_PASS`; address map: `0x51AB6->0x51CC2`, `0x51B04->0x51CCA`, `0x51B74->0x51D3A`; patch bytes `4EB90007337E4E75`. Entry/epoch gates and trace deliberately skipped (NO MAME), therefore ledger labels `entry=FAIL epoch=FAIL`. User BlastEm validation REQUIRED.
+
+## [Andy — Boss palette-load + multi-record boss decompilation; palette overclaim corrected]
+
+* Standalone report (RULES.md): docs/design/Andy_boss_palette_and_composite_decompilation.md. NO ROM/MAME/Genesis. counter 360. Cody files untouched. Artifact v7.
+* DECOMPILED palette loaders: 0x3BA20/0x3BA56 (scene palette 0x3BA88->0x4FD02->A5+0x1600, ROM->CRAM interleave (n0<<11)|(n1<<6)|(n2<<1)); 0x3B9FE (master sprite palette 0x4EAF6->0x200000 staging); 0x45D7C staging fade. NEW raw/0003ba20.c + rastan_boss_composite.c.
+* DECOMPILED boss component creators: 0x423B2 (R5: 5x rec_type 0x11, base 0x0988 anim 0x89, comp1, state 0x11 @A5+0x5C8); 0x423F4 (R6: 4x types 0x17-0x1A -> bases 0x0B35/0AED/0CCB/0BEB via 0x4543E @A5+0x648). NEW raw/000423b2.c. R5/R6 are MULTI-RECORD bosses.
+* CORRECTED the palette overclaim (user-caught): boss line F is proven (0x3C9E8) but line-F COLOURS are NOT the field pool 0x3BA88->0x4FD02 (R3 pool 2 = teal, arcade boss = purple -> DISPROVEN). Manifest: 6 bosses palette_status PROVEN->PARTIAL, field-pool swatches removed, real source = staged 0x4EAF6/0x200000; boss cards now 'line F proven, colours PENDING' and render palette-neutral (GRAY). Multi-record structure added to boss actors.
+* OPEN (exact next PCs): staged sprite-palette line-F layout (0x4EAF6->0x200000->A5+0x1600 boss line index) for the real colours; 0x43458 per-component relative positioner for composites. Composites 0/6 complete (structure+bases proven; colours+positions PENDING). Evidence: boss_palette_loads.tsv, boss_structural_components.tsv. Coverage 75 (59 COMPLETE); audit 57. Guards PASS; gcc PASS (78); consistency PASS.
+
+# AGENTS Log
+
+## [Andy — Boss palette source correction (0x3C9E8); NO new boss discovery]
+
+* Standalone report (RULES.md): docs/design/Andy_boss_palette_source_correction.md. NO ROM/MAME/Genesis. counter 360. Cody files untouched. Artifact v6.
+* Decompiled 0x3C9E8 (was empty-void in export): btst #6,+0x27; bit6 clear -> keep D0 (compositor control nibble); bit6 set -> D0.low=+0x27. Caller 0x3C97E/0x3C9BE writes D0 -> SAT word0. NEW raw/0003c9e8.c (COMPLETE); semantic apply_actor_attribute_override verified.
+* CORRECTED boss palette source: 0x45684/0x456EC is the FIELD-SCHEDULE path (sole caller 0x4A086@0x4A0CE) — NOT boss. Boss BODY records (record-type path 0x45330->0x4449E->0x453A8->0x4543E) keep +0x27=0 (+0x3E=0), so palette = EMBEDDED compositor control nibble F. Verified R1-6 line F pools 11/3/2/11/3/11 (0x3BA88[..][0xF]) byte-exact in live ROM; R6 line0 AND lineF both pool 11 (components share colours).
+* Manifest: 6 boss actors family_3e 2->0; palette_status PROVEN; palette_source=compositor control (0x3C9E8); palette_instances[] added (round/anim/program/line F/pool/colors/swatch). C tree: helpers.c + tables.c 'boss palette/tables' mislabels corrected to family-2 field/loader. Bestiary boss cards show 'compositor control (0x3C9E8)' + PALETTE PROVEN; 0 boss cards cite 0x456EC.
+* Coverage 74 rows (58 COMPLETE); audit 55. Guards PASS; gcc PASS (76); consistency PASS. Did NOT start the all-animation-phase audit (0x4D110/0x4D650/0x4DB50/0x4E29C) per instruction.
+
+# AGENTS Log
+
 ## [Andy — CHECKPOINT H11: Phase-2 marker map + six castle-start points (round pinning OPEN)]
 
 * Standalone report (RULES.md): docs/design/Andy_h11_phase2_marker_map_decompilation.md. NO new ROM/MAME/Genesis. counter 360. Cody files untouched. Artifact Dopg3mwMHdUMsZJSQgXDVR v5.
@@ -48949,3 +49060,743 @@ normal `make` build.
 - **Key finding:** the armored men + bats come from the ground-marker/code-spawn system with compositor 2 — NEVER the 0x4A104 field schedule. Definitively confirms the field-schedule Castle roster was wrong.
 - **Manifest:** castle_spawn_system.MAME_corroboration_R1 added (observed bases + identities); phase_partition R1 castle_confirmed_MAME list; bestiary (v20) R1 Castle now shows the MAME-confirmed armored men + bat.
 - **Limitation / next:** clean outdoor-vs-castle separation and R2-R6 castle rosters need a full playthrough trace with player input (start-select 0x5FF9F and memory-forcing 0x13E did NOT cleanly load the castle scene; without input the screen doesn't scroll past 0x13E~0x06). R2-R6 Castle rosters PENDING that capture. No ROM/Genesis/build; counter 360.
+
+## [Cody - Boss palette next-target reconnaissance]
+
+- **Static correction:** boss creation `0x45330 -> 0x4449E -> 0x453A8 -> 0x4543E` never calls palette resolver `0x45684`; Ghidra call/data flow shows its only direct caller is field installer `0x4A086` at `0x4A0CE`. Boss `+0x3E` stays zero, so table `0x456EC` and parallel variant `A4+0x752` do not select boss BODY palettes.
+- **Actual render rule:** `0x3C9E8` preserves the compositor control byte when actor `+0x27` bit 6 is clear, and replaces D0's low byte with `+0x27` only when bit 6 is set. All six normal BODY records retain cleared `+0x27=0`; their legal initial programs use line F. R5's five components also use line F. R6 types 17/18/19 use line F and type 1A uses line 0; both lines map to pool 11 in Round 6.
+- **Exact Andy target:** fix live-Ghidra `FUN_0003c9e8` (`0x3C9E8..0x3C9F4`) from empty `void` output to the D0 input/return attribute-override leaf, then propagate its return to SAT writes at `0x3C982/0x3C9C2`.
+- **Artifacts:** `docs/design/Cody_boss_palette_next_target_recon.md`; COMPLETE raw/semantic C for `0x3C9E8`; coverage and fidelity guards pass. No Bestiary/manifest/Claude artifact/Genesis/ROM/rack work; counter remains 360.
+
+## [Cody - Boss positions and palette staging decompilation]
+
+- **Boss composites closed:** complete `0x43450/0x43458` reconstruction proves table `0x43484` is 27 signed `{dx,dy}` pairs; R5 uses indices 13..17 for five simultaneous BODY-relative segments. R6's types `0x18/0x19` share the type-`0x17` anchor and type `0x1A` uses five phase/facing placements through `0x4E69C/0x4E976`.
+- **Palette direction corrected:** `0x3A2D0` copies A0 to A1, so `0x45D7C/0x45DC4` publish the 32-line table at `A5+0x1600` to physical CLCS lines 0..31 and 48..79. Normal logical F plus sprite control `0x60` selects physical `0x3F`, hence working line 15.
+- **Six normal sources proven:** R1..R6 pool indices are `11,3,2,11,3,11`, sourced at `0x4FE62,0x4FD62,0x4FD42,0x4FE62,0x4FD62,0x4FE62`. The static R3 source is pool 2 and contradicts the supplied purple/magenta expectation; no hidden staging mapper remains in this path.
+- **Artifacts and validation:** standalone report `docs/design/Cody_boss_positions_and_palette_staging_decompilation.md`, raw/semantic C, and machine-readable position/palette TSVs. Coverage guard PASS (85 rows: 71 COMPLETE, 9 PARTIAL, 5 STUB_ONLY); historical audit 59 rows; fidelity guard PASS; full C-tree syntax PASS. No MAME, Genesis, ROM build, Bestiary, manifest, or Claude-artifact work; counter remains 360.
+
+### MAME Exit Summary (2026-09-22 10:32:32)
+- Final PC: 0x073D54
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0362 Round-1 Segment-5 swinging-rope visibility]
+
+- **REJECTED / NOT ACCEPTED:** Tighe's Build-0362 BlastEm screenshots show that the rope remained
+  completely absent.  The animation-zero correction below was valid but insufficient.  The actual
+  earlier loss was `native_stage_dispatch_41dae` rejecting every actor with `+0x03 != 0`; the rope
+  retains `+0x03 == 1`, while original arcade routes it through the general `0x3EFBE` visibility
+  classifier.  Build 0363 is the corrected successor.
+- **Identity proven:** ORIGINAL ARCADE marker `'H'` -> state `0x1E` -> Segment-5 (`A5+0x13E=5`) transform base `0x00F4`/retarget `'O'` -> state `0x20`. Existing user-driven arcade capture records actor `A5+0x2C8`, animation 0, selector/variant/attribute 0, base `0x00F4`, followed by nine PC090OJ chain pieces. This is distinct from the earlier stationary PC080SN Plane-B climbable rope.
+- **Root cause/fix:** the general native compositor incorrectly rejected actor `+0x01 == 0`, although `+0x01` is a legal animation/program index and selector-0 animation 0 resolves to the nine-piece program at arcade `0x3D298`. Removed that invalid gate in both native visual expansion and Build-0361 direct contact-coordinate reconstruction. No scene gate, fixed coordinates, actor-state change, D shadow, object RAM, NOP, or bypass.
+- **Build:** `dist/rastan-direct/rastan_direct_video_test_build_0362.bin`, SHA-256 `caedc8b93397e1760c86e71e5ae76f3aeac5feb98aa42c0d7a9374c91fdee0d0`, 1,719,992 bytes, counter 361->362. Canonical gate PASS; GENESIS NTSC gameplay-entry PASS with zero address/bus/illegal/crash entries. Standard 30-second trace recorded 1,798 frames but did not reach Segment 5. Seven-epoch gate remains failed. The obsolete cheat-only `+0x1000` coverage adjustment was removed after canonical/helper growth put both configurations in the same coverage page; `_c` now builds as `rastan_direct_video_test_build_0362_c.bin` (SHA-256 `b7d959f958beeee2258b9984cb1d4b735ee6df7e5c3b65618ce064540949c7f9`, 1,719,992 bytes). Default/release builds now verify the complete canonical/`_d`/`_s`/`_do`/`_c` set before succeeding.
+- **Acceptance result:** FAIL in BlastEm; Segment-5 rope visibility was not restored. Detach behavior was not changed.
+- **Report:** `docs/design/Cody_build0362_round1_segment5_swinging_rope.md`.
+
+## [Cody - Build 0363 Round-1 Segment-5 swinging-rope visibility classifier]
+
+- **Corrected root:** original `0x41E40` sends retained actors with `+0x03 != 0` to the state-based classifier `0x3EFBE..0x3F080`; Genesis had replaced that whole decision with a blanket skip.  Rope initialization sets `+0x03=1` and state `0x20`, so Build 0362 never reached its corrected animation-zero compositor.
+- **Fix:** `native_stage_dispatch_41dae` now ports all original classifier cases (`0x17`, `0x1A`, `0x20`, `0x13`, `0x22`, `0x15`, and default render) from retained actor/progression state.  No rope/scene identity check, fixed coordinate, manual line, PC090OJ RAM/mirror/shadow, D-window access, fallback, NOP, or RTS bypass.  Semantic cut remains arcade actor visibility/animation -> direct native queue/SAT; the `0x41DAE -> 0x3D054 -> 0x3C902` PC090OJ record tail remains retired.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0363.bin`, SHA-256 `414418f307febd88945dec9a9a2b60836bd68cad74ed9362f94a80ffddd1949a`, 1,719,992 bytes, counter 362->363. Canonical gate PASS; GENESIS NTSC gameplay-entry PASS (240 post-entry frames, zero address/bus/illegal/crash-handler events); standard 30-second trace does not reach Segment 5; seven-epoch gate FAIL and artifact preserved.
+- **Required variants verified:** `_d` `6d74d0fa...`, `_s` `367eb183...`, `_do` `57cb754e...`, `_c` `8956e846...`; all 1,719,992 bytes. Default Makefile complete-set check PASS.
+- **Acceptance boundary:** Build 0363 Segment-5 curved rope visibility/motion, contact alignment, `D00462` non-regression, nearby sprite regression, and Segment-6 traversal are USER MUST VERIFY in BlastEm. Palette registry unchanged; no affected decision IDs.
+- **Report:** `docs/design/Cody_build0363_round1_segment5_swinging_rope_visibility_classifier.md`.
+
+### MAME Exit Summary (2026-09-22 11:27:12)
+- Final PC: 0x073E2E
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0364 general compositor mirror semantics]
+
+- **Fix:** `.Lnative_emit_actor_common` now reproduces original arcade `0x3C954..0x3C95E` /
+  `0x3CA26..0x3CA34` branch selection from raw `actor+0x20 bit0`, `actor+0x03`, and
+  orientation byte `actor+0x02`. Both complete transforms remain: per-piece H flip and
+  actor-relative `X=actorX+x` versus `X=actorX-x-16`. No actor/base/rope/segment/direction special
+  case; no contact, collision, palette, tilemap, or visibility changes.
+- **Rope proof:** ORIGINAL ARCADE frames 2639/2632/2728 records 140..148 prove the nine-piece
+  `+X / straight / -X` layouts and `word0 0000/0000/4080`. With rope raw `+0x20 bit0=1` and
+  `+0x03!=0`, arcade remains on its normal branch for either `+0x02`; the mapping stream itself
+  supplies negative offsets and control `0x80`. Build 0363's `+0x02`-only branch could double-mirror.
+  Standalone report contains all 27 piece comparisons and final SAT coordinates.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0364.bin`, SHA-256
+  `60faefe8aca11173ea70fed0a42e95c09373bd171ff20bd0e335d9c674ab9411`, 1,719,992 bytes,
+  counter 363->364. Canonical PASS; GENESIS NTSC gameplay-entry PASS (240 frames, zero address/bus/
+  illegal/crash events); seven-epoch gate remains FAIL; 30-second trace completed but does not reach
+  Segment 5.
+- **Variants:** `_d` `702226d4...`, `_s` `3666fc82...`, `_do` `71e21848...`, `_c`
+  `418b8f9e...`; complete-set gate PASS; all 1,719,992 bytes.
+- **Acceptance:** mirror defect remains pending Tighe's BlastEm Segment-5 validation. Cave-platform
+  palette and collision are deferred to the next numbered build as two independent contracts.
+- **Report:** `docs/design/Cody_build0364_general_compositor_mirror_semantics.md`.
+
+### MAME Exit Summary (2026-09-22 13:42:31)
+- Final PC: 0x073E4E
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0365 rope-grab contact-geometry regression]
+
+- **User A/B:** 0363 rope visible/grab/release PASS but mirror FAIL; 0364 mirror PASS but grab FAIL.
+  First divergence is failure class B at A5+0x1134: 0364 visual used the corrected three-field
+  compositor predicate, while `genesistan_native_contact_coords_51ab6` still selected X mirroring
+  from `actor+0x02` alone.
+- **Exact right-side replay:** actor X/Y `013B/FFED`, `+0x20 bit0=1`, `+0x03!=0`, `+0x02=0`, anim
+  `44`, unique mapping program arcade `3DBA8`. 0364 visible X = `013B,013A,0139,0138,0137,0136,
+  0135,0134,0132`; stale contact X = `012B,012C,012D,012E,012F,0130,0131,0132,0134`. The report
+  prints all nine queue/SAT/contact pairs for 0363, 0364, and corrected 0365.
+- **Fix:** one `.Lnative_mapping_branch_is_normal` helper now owns original `0x3C954/0x3CA26`
+  selection for both visual and contact paths. Contact uses the same normal/mirror X formulas and
+  branch-specific type-70 Y rule. No rope/base/segment/hitbox/SAT-collision special case; 0364 visual
+  transforms unchanged. Registration, token decode, pair count, `0x51B04/0x51B74`, and attachment
+  code unchanged.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0365.bin`, SHA-256
+  `b26da903cb851ec24764d18fe020de912712f34a79ae60bc7c6ca914f7208eb6`, 1,719,992 bytes,
+  counter 364->365. Canonical PASS; GENESIS NTSC gameplay-entry PASS (240 frames, zero address/bus/
+  illegal/crash events); 30-second trace 1,798 frames/no unmapped exception; epoch gate remains FAIL.
+- **Variants:** `_d` `e41af2e0...`, `_s` `10046d2e...`, `_do` `35da5923...`, `_c`
+  `7418cf40...`; complete-set gate PASS; all 1,719,992 bytes.
+- **Acceptance:** user BlastEm validation required for both-direction rendering, grab, ride,
+  jump/release, and D00462 non-regression. Cave platform remains stopped.
+- **Report:** `docs/design/Cody_build0365_rope_grab_contact_geometry_regression.md`.
+
+### MAME Exit Summary (2026-09-22 14:30:19)
+- Final PC: 0x073E60
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0366 cave-block solid collision + Layer-A ground palette]
+
+- **First divergence/fix:** ORIGINAL ARCADE `0x449B4/0x44548/0x444F8` already writes the cave
+  block's live special-solid record to A5+0x0242 with table-82 rectangle
+  `{-20,+20,-16,+16}`. Retained player consumer `0x54BF8` still used absolute arcade address
+  `0x0010C242` (ROM on Genesis), so body solidity failed while independent sword destruction kept
+  working. Rebased only that LEA to Genesis WRAM `0x00FF0242`; final address-map runtime site is
+  `0x054C92`. Original response and lifetime remain in charge; destruction state `0x0F` does not
+  qualify, preventing a ghost platform.
+- **Palette:** new decision `PAL-PC090OJ-STAGE1-CAVE-BLOCK-001`. Bank `0x3C` now directly selects
+  resident shared Layer-A Line 3. Palette Composer reindexes only cave cells `0x0179..0x017C` from
+  their incompatible seven indices to established muddy-ground entries 1..5. No CRAM rewrite,
+  duplicate palette, line steal, unrelated sprite reindex, or rope change. Palette LUT/SAT
+  equivalence: zero mismatches across 512/16,777,216 cases.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0366.bin`, SHA-256
+  `d975695da68e9fa2092b90052a94f1fb440c928015530b7e7ba2613500f662e2`, 1,719,992 bytes,
+  counter 365->366. Canonical PASS; GENESIS NTSC gameplay-entry PASS (240 frames, zero address/bus/
+  illegal/crash-handler events); standard trace 1,798 frames; known seven-epoch gate remains FAIL.
+- **Variants:** `_d` `f6165fc4...`, `_s` `ace8e1f3...`, `_do` `c8c13307...`, `_c`
+  `3f3c68f1...`; complete-set gate PASS; all 1,719,992 bytes.
+- **Acceptance:** BlastEm user validation required for cave top/side/bottom solidity, scrolling
+  alignment, destruction and collision removal, muddy-ground color match, rope regression, and
+  D00462 stability.
+- **Report:** `docs/design/Cody_build0366_cave_block_collision_palette.md`.
+
+### MAME Exit Summary (2026-09-22 15:54:00)
+- Final PC: 0x073E60
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-22 17:38:16)
+- Final PC: 0x073E5C
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0367 water-death address error]
+
+- **Root cause:** native status helper source intended `MOVE.W D0,20(A0)`, but an arithmetic
+  expression immediately before `(%a0)` assembled as indexed/full-extension bytes. On the target
+  68000, Build 0366 formed `A0 + D0.W + 0x70 = 0x00FFBC3F` from `A0=0x00FFB800` and
+  `D0=0x03CF`; the odd word-write destination caused the reported address error. The stacked
+  `0x00073884` follows the malformed opcode beginning at `0x00073880`.
+- **Fix:** an absolute assembler symbol now forces native HUD entry 2's code-word store to the
+  intended `d16(A0)` form. Final bytes at `0x00073880` are `31 40 00 14`. No water special case,
+  pointer bypass, NOP/RTS, shadow, or gameplay-state change; same-syntax audit found no candidate.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0367.bin`, SHA-256
+  `10e17efe76571205c89755e8f2472530cf3b4ab8f11b2b2075d8de7b85efaf61`, 1,719,992 bytes,
+  counter 366->367. Canonical PASS; GENESIS NTSC gameplay-entry PASS (240 frames, zero address/
+  bus/illegal/crash events); standard trace 1,798 frames; known seven-epoch gate remains FAIL.
+- **Variants:** `_d` `55938129...`, `_s` `91f86145...`, `_do` `4a7c5a4a...`, `_c`
+  `93c6be96...`; complete-set gate PASS; all 1,719,992 bytes.
+- **Acceptance:** automated traces do not reach water death. BlastEm water-death, respawn,
+  low-energy HUD, rope, cave-block collision/destruction, and D00462 regression validation is
+  required. Known-wrong cave-block color is deferred and is not a 0367 acceptance criterion.
+- **Report:** `docs/design/Cody_build0367_water_death_address_error.md`.
+
+### MAME Exit Summary (2026-09-22 21:54:16)
+- Final PC: 0x073E5C
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0368 FIRE SWORD start-state regression]
+
+- **Arcade contract:** `A5+0x12FA` is the shared melee selector (`1` normal SWORD, `4` FIRE
+  SWORD); `A5+0x1326` is its elapsed timer. Stage initialization `0x5049A` writes `1`/`0`.
+  A real active subtype-1 record in the four-record A5+0x12C8 item table calls grant `0x54EF2`,
+  which sends sound `0x0E`, clears the timer, and writes state `4`. Updater `0x54DD2` increments
+  the timer and restores state `1` at its raw-A5+0x1418-selected threshold.
+- **First divergence/root cause:** Build 0367 retained `LEA 0x0010D2C8,A0` at arcade
+  `0x54B1E`. That is ROM on Genesis; its third apparent record at `0x10D2D8` is coincidentally
+  `{active=1, subtype=1}`. Live trace showed the correct init `0->1` at frame 407 followed by false
+  grant `1->4` at frame 409. Repeated grants reset the timer, explaining why FIRE never expired.
+  The 0366/0367 player, weapon, timer, and mapping/contact comparison ranges are byte-identical;
+  the HUD shrink exposed a latent address-contract bug rather than mutating the weapon path.
+- **Fix:** declarative opcode replacement at arcade `0x54B1E`,
+  `41F90010D2C8 -> 41F900FF12C8`. Current address-map authority places it at Genesis
+  `0x54BB8`; zero shift delta. Original grant, expiry, graphics, and contact semantics remain in
+  charge. No forced state, disabled pickup, cave special case, NOP/RTS, or shadow.
+- **Geometry/cave:** state-1 mapping/contact tables `0x5CD8A/0x5C9EA` differ from FIRE state-4
+  `0x5D068/0x5CC7E`, plausibly explaining the user's hit-feel report. Cave destruction and
+  solidity sites `0x449B4/0x44548/0x444F8/0x54BF8/A5+0x0242` are unchanged and must be retested
+  with normal SWORD before considering geometry work.
+- **Runtime proof:** fresh Build 0368 Genesis NTSC trace: selector initializes to `1`, timer
+  advances, selector never becomes `4` through frame 800 (final timer `0x0140`). Canonical and
+  gameplay-entry gates PASS with zero address/bus/illegal/crash events; known seven-epoch warning
+  remains. Decompilation coverage/fidelity and syntax checks PASS.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0368.bin`, SHA-256
+  `c031aa60867801db3733e06486feb2c87e5842a46c7bc9f441b80cc2a527beb4`, 1,719,992 bytes,
+  counter 367->368. Variants: `_d` `6f998531...`, `_s` `ddbe6cdd...`, `_do` `a1d4df52...`,
+  `_c` `b627cc0e...`; complete-set gate PASS.
+- **Acceptance:** BlastEm user validation required for normal start, legitimate FIRE pickup and
+  expiry, normal-sword cave-block hit feel, cave solidity/destruction, water-death non-regression,
+  and rope behavior.
+- **Report:** `docs/design/Cody_build0368_flame_sword_state_regression.md`.
+
+### MAME Exit Summary (2026-09-23 09:20:54)
+- Final PC: 0x073E5C
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0369 A5+0x1296 auxiliary retirement]
+
+- **Scope/root cause:** the accepted 0366/0367/0368 audit showed that real type-0 events exposed
+  two stale live-primary terminal stores at arcade `0x51A8C/0x51AA8`. They still wrote
+  `#0x00FF` to absolute arcade `0x0010D296` (Genesis ROM), leaving authoritative
+  `A5+0x1296` active at phase `0x14`; duplicate updater sites `0x52B0E/0x52B2A` were already
+  correct.
+- **Fix:** two declarative 8-to-6 shift replacements,
+  `33FC00FF0010D296 -> 3B7C00FF1296`. Final runtime sites are `0x051C98/0x051CB2`.
+  No helper, NOP/RTS, shadow, collision/support, hitbox, sword, water, or rope change.
+- **Runtime proof:** identical Build 0368/0369 route reaches a real type-0 event at frame 2979,
+  activates subtype 4 at 2980, and reaches phase `0x14` at 3004. Build 0368 remains active
+  through frame 3420; Build 0369 retires `A5+0x1296` to `0x00FF` at frame 3005 and later
+  event-driven lifecycles also retire. Weapon remains normal (`1`).
+- **Preserved contracts:** event-table LEA is `0x00FF12C8` at runtime `0x054BB4`; special-solid
+  LEA is `0x00FF0242` at `0x054C8E`; HUD store remains `move.w d0,20(a0)` at `0x073880`;
+  rope source is unchanged.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0369.bin`, SHA-256
+  `491c9f35e3149b42c763f8529d1e78a52bad0a1bf82d9a3bdf87b9035c0686b0`, 1,719,992 bytes,
+  counter 368->369. Canonical and complete-set gates PASS; GENESIS NTSC gameplay-entry PASS
+  with 240 post-entry frames and zero address/bus/illegal/crash events; known seven-epoch gate
+  remains FAIL.
+- **Variants:** `_d` `790e561a...`, `_s` `038745b1...`, `_do` `5d132b6d...`, `_c`
+  `3c212a99...`; all 1,719,992 bytes.
+- **Acceptance:** enemy ghost obstruction, cave floating, cave hit difficulty, water death,
+  weapon, and rope regressions require Tighe's BlastEm test. The first three are not declared
+  fixed by the lifecycle proof alone.
+- **Report:** `docs/design/Cody_build0369_auxiliary_retirement_fix.md`.
+
+### MAME Exit Summary (2026-09-23 16:29:10)
+- Final PC: 0x073E5C
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-23 16:40:09)
+- Final PC: 0x073E5C
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-23 17:10:00)
+- Final PC: 0x073E5C
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0372 timed weapon upgrade expiration]
+
+- **Baseline/root cause:** Build 0371's shared expiry tail at original `0x54E58..0x54E80`
+  was intact, but duration-tier producer `0x51102` read absolute arcade WRAM
+  `0x0010C11E/0x0010C11D`.  Those operands address Genesis ROM bytes `0x0F/0x0F`, forcing
+  tier 4 / limit `0x1518` instead of the original startup-score tier 0 / limit `0x0BB8`.
+- **Fix:** one declarative 14-to-10-byte shift replacement changes the two reads to retained
+  `A5+0x011E/A5+0x011D`; threshold walk, shared timer, expiry comparison, timer clear, and
+  selector restore remain original.  No weapon/stage special case, clamp, NOP/RTS, shadow,
+  or unrelated gameplay change.
+- **Shared coverage:** the one `0x54DD2` melee expiry tail covers selector states 2, 3, and
+  FIRE SWORD state 4.  States 2/3 are the AXE/HAMMER pair; their individual ordering is not
+  renamed without proof.
+- **Runtime proof:** existing trace infrastructure shows ORIGINAL ARCADE and GENESIS NTSC
+  Build 0372 both select tier 0 / `0x0BB8`, advance `0x0BB5 -> 0x0BB8`, then restore
+  selector `4 -> 1` and timer `-> 0`; Build 0371 selected tier 4 / `0x1518` under the same
+  probe.  No exception.  Natural pickup/duration acceptance remains a BlastEm user test.
+- **Preservation:** original `0x5480A..0x5480E` remains absent from the final address map, so
+  the accepted Build 0371 fireball fix is preserved.  Fireball rendering, cave, rope, water,
+  READY cleanup, pickup dispatch, and other gameplay were not edited.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0372.bin`, SHA-256
+  `e2f4afd7a04761949e0850a6905cbae838170e2665770a461b2b3be3ccb3a602`, 1,719,992 bytes,
+  counter 371->372.  Canonical and complete-set gates PASS; GENESIS NTSC gameplay-entry PASS
+  with 240 post-entry frames and zero address/bus/illegal/crash events; known seven-epoch gate
+  remains FAIL.  Opcode replacements 229; Genesis coverage delta `0x0`.
+- **Variants:** `_d` `e5c0c578...`, `_s` `9adb3b390...`, `_do` `254c5154...`, `_c`
+  `7921aa40...`; all 1,719,992 bytes.
+- **Tooling:** no new framework; extended existing
+  `tools/mame/scripts/build0370_flame_left_diagnostic.lua` only to expose tier/timer/limit and
+  accelerate the existing timer to the original comparison endpoint.
+- **Report:** `docs/design/Cody_build0372_weapon_upgrade_timeout.md`.
+- **USER MUST VERIFY:** natural FIRE SWORD acquisition/use/expiry, another state-2/3 timed
+  upgrade expiry, and left/right FIRE SWORD fireballs in BlastEm.
+
+### MAME Exit Summary (2026-09-23 21:47:05)
+- Final PC: 0x073E8C
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0373 missing Round-1 rope-area block]
+
+- **Exact arcade cell:** Round 1 Phase-1 rope view, progression `A5+0x013E=3`, trailing segment-2
+  rows 36..39 / columns 52..55 (metatile row 9, block 13), source entry `0x02A290`, attr
+  `0x0003`, descriptor `0x3008`, codes `0x01CF..0x01DD` (with `0x00AD` at row36/col55).
+- **First divergence:** with live row-group-9 pointer `0x02A2A0`, stream front group/strip `1/0`
+  (physical col 4), the 0372 vertical resolver used fixed `col_block-16` and selected adjacent
+  entry `0x02A294` / descriptor `0x206C`; correct ring-unwrapped delta is -4 blocks.
+- **Fix:** `resolve_plane_a_cell` now unwraps resident columns around retained
+  `{A5+0x10CC,A5+0x10CA}` state. Horizontal leading-edge behavior is unchanged. No stage/cell/tile
+  special case, map-data edit, new graphics, palette, sprite, shadow, projection, NOP/RTS, or
+  collision edit.
+- **Collision:** classification C. Target descriptor collision is `0x3100` at row38 cols53..54;
+  the retained horizontal producer already publishes it and the faulty vertical visual rebuild
+  never overwrites collision. Build-0366 special-solid behavior is untouched.
+- **Architecture:** semantic cut remains arcade logical-cell publication state -> final Genesis
+  Plane-A name word; PC080SN name-RAM/address tail remains retired; no transitional compatibility
+  added.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0373.bin`, SHA-256
+  `4bece179504e3ce7a83bc7d2ca392ba4a4aba4cadb1386e2f4f72431b573c2cc`, 1,719,992 bytes,
+  counter 372->373. Canonical/gameplay-entry/complete-set gates PASS; known seven-epoch gate FAIL.
+- **Variants:** `_d` `f13d2946...`, `_s` `1c88da73...`, `_do` `cc92840d...`, `_c`
+  `1d2a7c93...`; all 1,719,992 bytes.
+- **Tooling:** existing arcade Layer-A oracle, route evidence, compiler, build/address-map/gate and
+  GENESIS NTSC trace infrastructure reused; no new tooling.
+- **Report:** `docs/design/Cody_build0373_missing_round1_rope_block.md`.
+- **USER MUST VERIFY:** highlighted block appearance/palette, surrounding terrain, standability,
+  collision behavior, and rope-section behavior in BlastEm.
+
+## [Cody - Human USER_MARK rope-ledge arcade versus Genesis comparison]
+
+- **Scope:** compared only Tighe's manually placed `USER_MARK` in ORIGINAL ARCADE MAME against
+  GENESIS NTSC MAME Build 0373; no automated route, new trace, build, patch, or broad map work.
+- **Result:** the markers are not the same logical cell. Arcade resolves to player cell row 36,
+  column 48 and collision probe row 36, column 50; Genesis resolves to player cell row 40,
+  column 48 and collision probe row 40, column 50.
+- **First divergence:** foreground scroll Y is arcade `0x0149` versus Genesis `0x0129`, producing
+  world-ring Y `0x127` versus `0x147` (Genesis four logical rows lower). Genesis player/world X is
+  also two pixels lower, but remains in the same logical column.
+- **Stop:** downstream source, descriptor, metatile, collision, staging, and VRAM values belong to
+  different cells and therefore were not classified as a terrain-pipeline divergence.
+- **Report:** `docs/design/Cody_human_user_mark_rope_ledge_arcade_vs_genesis_comparison.md`.
+
+## [Cody - Rope ledge corrected same-world-block comparison]
+
+- **Correction:** retracted the prior conclusion that the ORIGINAL ARCADE and GENESIS NTSC
+  Build-0373 `USER_MARK`s identify different intended locations. Genesis player row 40 versus
+  arcade row 36 is the expected 32-pixel/four-row fall caused by the missing ledge. The known
+  eight-pixel Genesis presentation shift was normalized only as a screen-display adjustment.
+- **Exact target:** logical rows 36..39, columns 48..51; live row source `0x02A2A8`, retained
+  source entry `0x02A28C`, Genesis runtime entry `0x02A48C`, descriptor `0x0003`, metatile
+  pointer `0x3408`.
+- **Trace-field correction:** the ORIGINAL ARCADE trace's `metatile_cell` field incorrectly added
+  the Genesis `+0x200` copy bias. Ghidra arcade `0x055904`/`0x0559B2` proves word 1 is a raw arcade
+  ROM pointer. Correct arcade descriptor data is at `0x3408`; Genesis correctly dereferences its
+  copied data at `0x3608`.
+- **Comparison:** all 16 visual source words and all 16 descriptor collision words are identical
+  between original arcade ROM and Build 0373. The bounded Genesis human trace overlaps six target
+  cells; all six have matching live collision and nonzero Plane-A staging. The other ten target
+  cells and a valid final-VRAM publication oracle were not captured.
+- **First divergence:** **not proven**. Last complete matching boundary is the copied 16-word
+  visual/collision descriptor; last live match is the six-cell collision/staging overlap. MAME's
+  exposed Genesis VRAM reads are not accepted because the same interface reports zero for visible
+  control terrain.
+- **Production/build:** no production changes; no build. No new tooling was created.
+- **Report:** `docs/design/Cody_rope_ledge_same_world_block_comparison.md`.
+
+## [Cody - Build 0374 marker 0x3A rope-ledge hypothesis falsified]
+
+- **Scope:** decoded only collision high-byte marker `0x3A` for the human-marked rope-side block;
+  reused canonical Ghidra exports, original ROM, existing field-schedule decoder, current address
+  map, Build-0373 ROM, and the completed ORIGINAL ARCADE/GENESIS NTSC human traces. No new tracing
+  tooling, route, production patch, or ROM build.
+- **Semantic result:** `0x3A` is a generic scheduled-hostile activation/position marker. In the
+  floor-follower route it is the zero-X-offset case at arcade `0x041336`; in an existing-target
+  route it selects state `0x1D` at `0x041A48`. Neither route allocates a ledge actor, changes the
+  scheduled family/base, writes Plane A, or registers special-solid collision.
+- **Progression-3 actors:** the schedule contains only family 0/base `0x004B` (Lizardman) and
+  family 3/base `0x02E8` hostile records. Marker `0x3A` does not choose between them. The bounded
+  human TSV did not record actor slots, so no record address or live X/Y was invented.
+- **Special-solid proof:** the sole call to `0x041BEE` is at `0x041BE6` on the `0x041BCA` route
+  for marker class `0x4F..0x51`. Marker `0x3A` routes below `0x45` to `0x041A48` and cannot reach
+  that registration.
+- **Genesis comparison:** Build 0373 retains live `0x3A00`; the marker finder, scheduler,
+  `0x3A` position helper, classifier, transition helper, and behavior dispatcher remain copied
+  arcade code. Existing lower/upper collision-buffer relocations preserve the scan in Genesis
+  WRAM. No marker-specific Genesis divergence is present.
+- **Disposition:** hypothesis falsified; it explains neither missing terrain graphics nor missing
+  player support. No Build 0374 artifact produced, SHA not applicable, no BlastEm test required.
+- **Report:** `docs/design/Cody_build0374_marker_3a_rope_ledge.md`.
+
+## [Cody - Build 0374 rope-side ledge floor failure stopped at missing transition evidence]
+
+- **Scope:** followed only the original player floor-probe family and compared it with the two
+  authoritative human `USER_MARK` windows. Marker `0x3A`, old map candidates, neighboring blocks,
+  visual publication, and unrelated systems were not reopened.
+- **Capture limitation:** ORIGINAL ARCADE frames `1725..1937` are already stationary at player
+  Y `0x0070`, ring Y `0x127`; GENESIS NTSC Build 0373 frames `1828..2068` are already stationary
+  at player Y `0x0070`, ring Y `0x147`. Neither the arcade landing nor the Genesis pass-through at
+  the same world height exists in the retained windows.
+- **Static boundary:** arcade `0x053B34` prepares the first floor probe as
+  `D1=A5+0x10BE`, `D2=A5+0x10C0 + A5+0x1130 + D6`, calls `0x053A2E`, reads `(A0)` at
+  `0x053B6E`, and classifies `word & 0x007F`. Build 0373 retains this consumer and maps the lookup
+  to runtime `0x053B4A`, with only collision-base relocation `0x0010DE00 -> 0x00FF1E00`.
+- **Important trace constraint:** the TSV `collision_probe_*` columns used raw player X/Y and did
+  not include foot extent, pending `D6`, or left/right probe adjustment; they are not the actual
+  floor read.
+- **Disposition:** exact PC/point/address/value and first dynamic divergence are not proven, so no
+  root-cause claim, patch, or ROM was produced. Missing graphics remain not proven to share the
+  same cause. No new tooling was created.
+- **Report:** `docs/design/Cody_build0374_rope_ledge_floor_failure.md`.
+
+### MAME Exit Summary (2026-09-25 14:06:20)
+- Final PC: 0x073E90
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0374 R1 Phase-2 Layer-A residency extension — PARTIAL / NOT ACCEPTED]
+
+- **First divergence:** Build 0373 generated only records 0–15. At Phase-2 record 17,
+  `fg_boundary_install` disabled residency (`active_record/package=0xFFFF`); producer LUT misses
+  rose to 3,648 even though records 16–20 contain 282 exact source patterns.
+- **Change:** generated stable package 5 for records 16–20 (282 patterns, zero drops), shifted the
+  two retained Phase-1 overlap packages to 6/7, updated their verifier, and accounted for the
+  `_c` image's mechanical `+0x1000` aligned coverage page.
+- **Validation outcome:** package 5 installs in Genesis NTSC MAME, but it installs after the
+  scene-fill producers have already emitted blank indices. Stable staging remains unchanged from
+  0373 (368 nonblank tile-index cells; checksum `0x0303B910/0x0000`), and screenshots show only
+  partial foreground. Build 0374 is preserved but **not accepted**.
+- **Subsequent user BlastEm result:** Round 1/Sub-round 1 is dramatically improved and almost
+  entirely correct, with only a few isolated misplaced cells; this is not a regression. Sub-round
+  2 is essentially absent on initial entry, then Layer A begins appearing during upward scrolling.
+  This corroborates late package-5 residency and supersedes any implication that 0374 produced no
+  visible improvement.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0374.bin`, SHA-256
+  `ac67ae67aad01ba15d7df0ec1115f305e84ce565c7f7f5cbc6b0f776e462ff2c`, 1,719,992 bytes;
+  counter 373->374. Canonical/gameplay-entry/transition-retention/variant-set gates PASS. The known
+  legacy seven-epoch harness still fails on removed symbol `fg_boundary_conflict_lut`.
+- **Remaining dependency:** residency must be active before the record-16 scene fill, or the
+  semantic fill must be replayed after installation. No second build was produced because this
+  task allowed at most one test build; Build 0374 was not overwritten.
+- **Report:** `docs/design/Cody_build0374_r1_phase2_layer_a_unpopulated.md`.
+
+## [Cody - Build 0375 R1 Phase-2 residency preinstall attempt — REJECTED / NOT ACCEPTED]
+
+- **Attempt:** generate the reseed-defer mask only for records whose package choice actually has
+  multiple variants. All current records have one variant, so `FG_BOUNDARY_RESEED_MASK` became
+  zero and ordinary `fg_boundary_advance_segment` transitions would install immediately.
+- **Corrected ordering proof:** the established `_c` MODE route does not pass through
+  `fg_boundary_advance_segment` for entry to record 16. The translated outer controller writes
+  `A5+0x013E` directly at original `0x05025A` / runtime `0x05045A`, then calls the scene fill at
+  original `0x0503DC` / runtime `0x0505DC`. Package 0 therefore remains active during the fill;
+  the post-fill hook at runtime `0x050682` has no pending install.
+- **Runtime result (GENESIS NTSC MAME, six-button `_c` route):** Build 0375 is unchanged from 0374:
+  64 misses at record-16 entry, 3,648 misses after fill, 368 stable nonblank staged tile-index
+  cells, checksum `0x0303B910/0x0000`; package 5 becomes active only at record 17. Required proof
+  “package 5 active before first Phase-2 producer” is **NO**.
+- **Preserved:** 21 records; package 5 with 283 mappings and 282 patterns/uploads; transition
+  packages 6/7; transition-retention verifier PASS; complete canonical/`_d`/`_s`/`_do`/`_c`
+  artifact set. Canonical/gameplay-entry gates pass; known legacy seven-epoch harness still asks
+  for removed `fg_boundary_conflict_lut`.
+- **Build:** canonical `dist/rastan-direct/rastan_direct_video_test_build_0375.bin`, SHA-256
+  `77cbf62dbf110f021e3a22026864a4b69ea4e4e0efad64663e4ef63806f7a36b`, 1,719,992 bytes;
+  counter `374 -> 375`. Artifact is preserved but rejected/not accepted.
+- **STOP:** no Build 0376 was produced. The general direct scene-entry boundary remains the next
+  candidate; no second patch was made in this one-build task.
+- **Report:** `docs/design/Cody_build0375_r1_phase2_residency_preinstall.md`.
+
+### MAME Exit Summary (2026-09-25 15:00:48)
+- Final PC: 0x073E8C
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-25 16:32:39)
+- Final PC: 0x073EB8
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0376 second-rope C0ABE0 raw-PC080SN crash correction]
+
+- **Build-0374 fault proof:** final PC `0x05A3F8` maps to original `0x05A34E`, the second of
+  four raw writes in `collision_map_surface_mark_5a2ee`. With captured `A0=0xFF33F0`, the copied
+  tail computes `0xC08000 + 2*(0xFF33F0-0xFF1E00) = 0xC0ABE0`; this is an arcade PC080SN
+  Layer-A pointer, not a Genesis VDP command or staging address.
+- **Historical relation:** RELATED, not the identical producer. Build 0303 had redirected the
+  separate `0x05109C -> 0x55AD6/.../0x55C4A` directional family; Build 0304 removed it for
+  isolation, Build 0305 proved the regression was the shifted pass-table pointer, and the native
+  redirect was never restored. Build 0376 restores it and retires that bounded raw family from its
+  gameplay caller.
+- **Semantic fix:** at original `0x05A334`, after every gameplay collision mutation, replace the
+  complete 34-byte PC080SN address/store tail with `genesistan_collision_surface_mark_visual_native`.
+  It derives the same logical cell from A0 and stages four `0x25C7` Plane-A words through the
+  existing LUT/dirty-row producer. Code `0x25C7` resolves to stable slot 735 in all six stable and
+  both transition packages. No clamp, ignored write, fake C-window, NOP, inert RTS, rope/stage
+  special case, or collision change.
+- **Static result:** final canonical `0x05A3DE` calls native helper `0x070AFA`; original
+  `0x05109C/final 0x0512A8` calls native dispatcher `0x070B22`. The old rebased surface tail,
+  four-`move.l` sequence, and old copied directional call each occur zero times in the canonical
+  ROM. Collision writes before the semantic cut remain present.
+- **Validation:** canonical and Genesis NTSC MAME gameplay-entry gates PASS; entry reports zero
+  address/bus/illegal/crash-handler events; transition-retention and complete five-variant gates
+  PASS. Mandatory 1,798-frame MAME trace has no unique unmapped address. The known superseded
+  seven-epoch harness remains labeled FAIL. Exact second-rope BlastEm 1.0 reproduction is
+  **USER MUST VERIFY**.
+- **Build:** 0376, counter `375 -> 376`; canonical
+  `dist/rastan-direct/rastan_direct_video_test_build_0376.bin`, SHA-256
+  `79541c3a67f022b5bf4f91914e75d67fa47d4f4581e5e3574ed4310749a887cd`, 1,719,992 bytes;
+  all `_d/_s/_do/_c` artifacts preserved. Build 0375 was already consumed and was not reused.
+- **Deferred unchanged:** Phase-2 residency ordering, isolated cells, bridge/castle transition,
+  Sub-round-2 palette, spear anchoring, and parked rope-exit blocks.
+- **Report:** `docs/design/Cody_build0376_c0abe0_second_rope_crash.md`; exact originally requested
+  0375 path contains a numbering-correction link only.
+
+## H17 finalization — Cave block in Living Bestiary + Palette-Editor metadata (Andy)
+* Added authoritative actors[] entry `hazard_r1_cave_block_0x0179` (Destroyable cave-entrance block, HAZARD_INTERACTIVE, PC090OJ, R1 Phase-1, base 0x0179, cells 0x0179..0x017C, target H/0x48, live 0x1E, destruction 0x0F, sel 0, anim 0x70, program 0x3E1C0). Kept DISTINCT from the R6 materialized base-0x0179 (state 0x15) — recorded graphics_base_shared_note.
+* Bestiary: new "Interactive Hazards / Obstacles" gallery; card renders the ACTUAL arcade PC090OJ cells (build/regions/pc090oj.bin) with pool-35 palette → verified BLACK+BROWN (used indices {1,7,8,9,12,13,14}), 2x2 composite, 0 gray px. Added `arcade_object` render kind (used-index swatch). _synced_through=H17.
+* Published to living artifact https://claude.ai/artifact/Dopg3mwMHdUMsZJSQgXDVR (Version 9); verified online: "synced through H17", cave-block card, PC090OJ, 0x0179/0x017C, 0x3C, 0x50162, BLACK+BROWN, correct browns image.
+* Palette Editor (analysis/graphics_optimizer/editor_policy/Test.json usage:cave_block:bank0x3C): reconciled in place (no duplicate) — added arcade_source (line 0xC/bank 0x3C/pool 35/0x50162/used indices/PROVEN) + genesis_realization (the rejected Line-3 muddy reindex, marked DEFERRED/wrong). specs/palette_decisions.json PAL-...-CAVE-BLOCK-001 already carries the H17 arcade truth + known_defect.
+* NO ROM build, NO Genesis runtime change by this task. NOTE: build_counter.txt reads 376 (HEAD=360); external release builds 0374/0375/0376 were produced today 16:33 by the release process (dist/*_0376_*.bin), NOT by this documentation task.
+
+### MAME Exit Summary (2026-09-25 20:29:15)
+- Final PC: 0x073F08
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody - Build 0377 Phase-3 MODE jump crash correction]
+
+- **Root cause:** original `0x059704` / Build-0376 final `0x059794` retained byte read
+  `0x0010C118` instead of mapped Stage field `A5+0x0118` (`0x00FF0118`). ROM selector 8 made
+  `(8-1)*6=0x42`; bytes `1AC41AD01AC4` at final `0x059840` produced independent
+  `A0=0x1AC41AD0` and `D6=0x1AC4`, then `move.w (A0),D4` faulted at `0xC41AD0`.
+- **Companion defect:** all six `{stream_pointer.l, attribute.w}` records at original
+  `0x05976E` retained original-ROM pointers. The pointer-table tool now supports declarative
+  record stride/pointer offset; all six targets relocate through the current shift map. Live
+  selector 1 now chooses final stream `0x0597F2`, header `{4 phases,6 groups}`, attr `0x001E`.
+- **Native cut:** original `0x059736..0x05976C` raw PC080SN two-cell loop is replaced by
+  `genesistan_phase3_fg_anim_native`, preserving destinations, code/attribute, group stride,
+  and `A5+0x1362` timing while publishing final Plane-A staging. A declared branch boundary
+  correctly reflows the objdump-hidden `0x0596FA -> 0x05976C` early exit.
+- **MODE/natural:** production address-contract defect; `_c` does not initialize or alter the
+  stage byte. Focused trace retained `A5+0x0118=1` through MODE×2.
+- **Validation:** canonical and gameplay-entry gates PASS. Numbered `_c` reaches Phase-3/boss
+  state (`progression 0x17`, phase `0x16`) after MODE×2 with no crash record; third MODE advances
+  phase to `0x17` for Round-2 debug access. Known superseded seven-epoch gate remains labeled
+  FAIL. Exact BlastEm boss-room visuals/control remain user validation.
+- **Build:** 0377, counter `376 -> 377`; canonical SHA-256
+  `4b43a28e6667759e412e9fb5e1d95f18024e8b3df4cfc94497031f4270203080`, 1,719,992 bytes;
+  `_c` SHA-256 `68727544ef3e9cd450a7ea873b38c3db16056028a05d25b156fca4961dcb5799`,
+  1,724,088 bytes. Complete canonical/`_d`/`_s`/`_do`/`_c` set verified.
+- **Preserved:** Build-0376 `0x05A334` surface fix and `0x05109C` directional redirect; rejected
+  Build-0375 residency changes remain absent; third-rope issue untouched.
+- **Report:** `docs/design/Cody_build0377_phase3_mode_jump_crash.md`.
+
+## RULES VIOLATION REPORT (Andy, self-reported at Tighe's instruction, 2026-09-25)
+* VIOLATION: `docs/design/Andy_h17_cave_block_arcade_palette.md` (§C/§D) reproduced the cave-block
+  palette mapping as an index→word→RGB table (the 16 pool-35 words + decoded RGB). This violates the
+  **Canonical Palette-Decision Registry** rule in CLAUDE.md and RULES.md line 335: `specs/palette_decisions.json`
+  is the project's ONLY palette-decision registry; reports may CITE Palette Decision IDs and evidence
+  but must NOT duplicate the mapping in Markdown / another spec / source comments / generated files.
+* ROOT CAUSE: I followed the ChatGPT-authored task prompt's "REQUIRED OUTPUT" (standalone report +
+  palette content) and did NOT flag that restating the mapping in a report conflicts with the registry
+  rule. Per memory `feedback_chatgpt_prompts_rules`, a task prompt that leads to a RULES violation
+  should be STOPPED and confirmed with Tighe — I did not do that. I also spent effort re-deriving/
+  restating instead of citing the canonical decision.
+* FIX APPLIED: §C/§D now cite decision `PAL-PC090OJ-STAGE1-CAVE-BLOCK-001` + the machine-readable
+  evidence TSV instead of restating the mapping. No color values remain restated in the report.
+* AUDIT: Andy_h14/h15/h16 reports were checked — they only cite pool/nibble/address and point to their
+  TSVs (allowed), they do not reproduce a mapping table.
+* OPEN FLAG FOR TIGHE: the H17 task prompt also required `analysis/actor_decompilation/h17_cave_block_palette.tsv`
+  containing the raw palette words — a generated file that holds the same values. It is machine-readable
+  evidence referencing the Decision ID, not a competing authority, but per the registry rule's wording
+  ("...or generated files") this is a prompt-vs-RULES tension. Flagging rather than silently keeping or
+  deleting it; awaiting Tighe's call on whether the TSV should also drop the raw values and cite the ID.
+
+## [Cody — Build 0378 third-chain collision diagnosis; no build]
+
+- Baseline Build 0377 natural-control route reproduced the stable climbing position at progression
+  `0x0011`, player `0x0121/0x003E`, scroll `0x015F/0x0026`. Upward head probe
+  `0x0121/0x0025` reads `0x00FF3DF4=0x0001`; original/runtime decision PCs
+  `0x053A90/0x053BAC` and `0x05387E/0x05399A` correctly clamp the one-pixel upward move.
+- Exact source proof: arcade descriptor `0x037694`, word1/record `0x3A08`, sentinel `0x00FF`,
+  uniform source `0x003A2A=0x0001`; Genesis rebased source `0x003C2A=0x0001`. Scene 1,
+  boundary record `0x11`, variant 0, package 5, and ring-unwrapped prior resident block agree.
+  The target has no row/column/record displacement and no visual/collision source split.
+- `A5+0x0242=0`; special solid excluded. The retained climbing state reaches state 4 normally.
+  Original arcade data also makes the reproduced ceiling solid, so clearing or special-casing the
+  cell would be wrong.
+- Control-only exit test released Up and applied left+jump: state `4 -> 2` at frame 4225, X moved
+  `0x0121 -> 0x0100` by frame 4255, then ordinary grounded state 1 by frame 4323. The route ran
+  through frame 5200 without a crash. The prior pin was the automated climb-exit input, not a
+  Genesis collision divergence.
+- **NO BUILD / NO PRODUCTION PATCH**, counter remains 377. If Tighe's BlastEm location still fails
+  under lateral release, a marked input/state trace at that distinct failure is the remaining
+  dependency. MODE later-round cycling remains FAIL/DEFERRED.
+- Report: `docs/design/Cody_build0378_r1_phase2_third_chain_map_collision.md`.
+
+### Build 0378 acceptance correction
+
+- Tighe's BlastEm test proves the left+jump result is only detach: player Y changes from
+  `0x003E` to `0x0070` and returns to the lower/previous section. Correct status is **chain attach
+  PASS, chain detach PASS, forward natural traversal FAIL**. The prior automated traversal PASS
+  wording is retracted. The valid `0xFF3DF4=0x0001` arcade-source match remains unchanged and that
+  cell is explicitly excluded from any fix. Investigation resumes at the intended arcade landing
+  and bounded exit corridor. This paragraph predates the subsequently produced Build 0378; the
+  final Build-0378 facts are recorded below.
+
+## [Cody — Build 0378 collision publisher and third-chain vertical-scroll resolution]
+
+- Build 0378 is produced and permanently consumed, counter `377 -> 378`. The general native
+  collision publishers now derive logical cells from the same live/ring-unwrapped descriptor
+  mapping as Plane-A staging. The post-build 72-cell corridor has zero collision mismatches and
+  restores the eight Build-0377 differences. Forward traversal nevertheless remains **FAIL — USER
+  BLASTEM**, so 0378 is not an accepted traversal fix.
+- Canonical `dist/rastan-direct/rastan_direct_video_test_build_0378.bin`, SHA-256
+  `2ae724691737fda44f98368ba58d76975016be8a7a73447b979683d064b83e63`, 1,724,088 bytes;
+  canonical/`_d`/`_s`/`_do`/`_c` set preserved. Opcode replacements 230; coverage `0x1A4EB8`.
+- The claimed foreground-Y divergence was a trace-pairing error. ORIGINAL ARCADE frame 4494 and
+  GENESIS NTSC Build-0378 frame 2147 exactly match at progression `0x11`, player `0x122/0x3E`,
+  state 4, FG X/Y `0x160/0x10D`, strip/group `0/0`. Genesis selector is 0; the bounded arcade
+  trace did not retain that field. The cited Genesis `0x0026`
+  occurrence is a later post-wrap strip/group `1/1` revisit, not the same logical map epoch.
+- Foreground Y is `A5+0x10B0` (`0x0010D0B0` arcade, `0x00FF10B0` Genesis). The retained request,
+  step, clamp, writer, and native publication chain is intact; its four absolute feedback reads
+  are already rebased to `0x00FF10DA/D8`. No production patch and no Build 0379 were made.
+- Exact remaining dependency: compare post-attachment gameplay decisions from the matched `0/0`,
+  `fgy=0x010D` epoch through the arcade upper-route transition while retaining ring identity.
+- Reports: `docs/design/Cody_build0378_r1_phase2_third_chain_map_collision.md` and
+  `docs/design/Cody_third_chain_vertical_scroll_divergence_resolution.md`.
+
+### MAME Exit Summary (2026-09-26 09:55:14)
+- Final PC: 0x073FB0
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Third-chain record/selector identity gate; manual trace prepared]
+
+- The Build-0378 automated failing state is not the exact record-17/selector-1 state assumed by
+  the static reconstruction. `A5+0x013E=0x0011` selects descriptor/content record 17, but live
+  `A5+0x10C6=0x00051183` rebases to original `0x50F83`, stream offset `0x18`, which the original
+  `0x50EE0` LUT assigns to record 22. Original `byte[0x50F83]=0` and live
+  `A5+0x10A8=0`, so the active orientation is selector-0/horizontal.
+- Original scene-init record 17 is independently confirmed as selector 1:
+  `byte[0x50EE0+0x11]=0x12`, `0x50F6B+0x12=0x50F7D`, and `byte[0x50F7D]=1`.
+  The automated cheat/MODE route is therefore a mixed descriptor-record/stream-record state and
+  cannot authorize a selector-1 transpose patch.
+- Per the record-identity gate, no selector transform audit was continued and no production patch
+  or Build 0379 was made. Counter remains 378.
+- Prepared the bounded no-input/no-memory-write human trace
+  `tools/mame/scripts/build0379_third_chain_user_genesis0378c.lua`. First `M` press creates
+  `USER_MARK` and captures 720 frames of retained record/selector/ring/player/motion/contact/probe
+  state plus bounded source-table snapshots. Output directory:
+  `states/traces/build0379_third_chain_user_genesis0378c/`.
+- Report: `docs/design/Cody_record17_selector1_identity_and_manual_trace.md`.
+
+## [Andy — H24 CORRECTION 2: player torso frames are NOT unused (a2 weapon-variant register)]
+
+* Tighe caught two mislabels: torso 12/13/14 (up-thrust) and 43-54 (weapon swings) were shown UNUSED. Root cause: the "used" scan looked ONLY at the a3 pose tables in 0x540CC and missed (a) the attack tables 0x5BAE0/0x5BB10 and (b) the ENTIRE a2 weapon-variant register also set per-state in 0x540CC.
+* PROVEN: 0x5BAE0 (attack, word-stride) references torso slots 12/13/14 = UP-THRUST. a2 table 0x5BA38 references 44/46/48/50/52/54 = WEAPON SWINGS (odd companions 43/45/47/49/51/53); a2 0x5B6A0->0-5, 0x5B978->6-11, 0x5B8A8->19-24. With a2+a3+attack: ALL 75 torso slots referenced (h24_player_frame_reference_map.tsv).
+* Also fixed sword-tile 0x0003 contamination: player frame records are variable-length; the fixed 4-piece hardware loop over-reads short (crouch) frames into padding. Renderer now bounds piece count by each frame's record length (next-offset).
+* Bestiary V21: removed all UNUSED labels; every torso frame annotated with its selection table (weapon-variant/normal/attack up-thrust/weapon-swing companion); three galleries (full-body poses, all torso, all legs). Updated rastan_player_animation.c three-register note; h24_player_frame_cells.tsv/h24_player_leg_cells.tsv regenerated with bounded pieces + paired_use.
+
+## [Andy — H24 INTEGRITY CLOSURE: reconcile artifacts with the two-half corrections]
+
+* No new RE; documentation/consistency closure of H24. Runtime counter 378 untouched. No ROM build.
+* REPORT docs/design/Andy_h24_player_state_frame_extraction.md rewritten to FINAL architecture: TWO independent body tracks — upper torso A5+0x1244->0x54492->0x5BD40 (75 slots) selected via a2 weapon-variant / a3 normal / attack tables (0x5BAE0/0x5BB10); lower legs A5+0x1246->0x546A8->0x5C466 (52 slots/51 distinct, slot34 blank) via a4; weapon = separate overlay (A5+0x12FA -> 0x5CD8A/0x5D068/0x5D346/0x5D666). Variable piece count bounded by next offset (tile-0x0003 fix). 75/75 torso positively referenced, NO UNUSED. Superseded old claims (single composer, 4-piece-always, 73-composites=complete, reachability-unknown).
+* MANIFEST rastan_actor_graphics_manifest.json: added player_render_architecture (constructor 0x540CC, selector 0x54326, upper/lower composers+tables+routes, weapon overlay, single palette source, 75/75 positive provenance, 60 valid pairings) + authoritative_generated_evidence pointers (h24_player_frame_cells / _leg_cells / _reference_map / _render_contract).
+* PALETTE COMPOSER (tools/graphics_editor/server.py — SEPARATE from Bestiary): replaced hardcoded 3-frame Rastan list (07722/15828/16199 runtime capture) with h24_player_frames() consuming generated h24_player_frame_cells.tsv + h24_player_leg_cells.tsv. Now: 3 representative poses + 1 COMPLETE aggregate covering all 75 torso + 51 leg frames' distinct cells (345 cells, all 15 line-3 colours) under bank 0x33 -> mapping the player palette ONCE covers every frame. Torso 75/75, legs 51/52 (slot34 blank).
+* BESTIARY (Dopg3mwMHdUMsZJSQgXDVR V23): gallery language fixed — "Valid full-body pairings" (60), "All torso frames · every slot positively referenced", removed stale "UNUSED = not in any pose table". 75/75 referenced, no contamination.
+* 0x546A8 COMPLETE in coverage tracker; durable C (rastan_player_animation.c three-register note + raw/00054492.c two-half + weapon overlay). Coverage union 21.6% full / 29.6% touched, 65 COMPLETE. Guards game-wide/fidelity/actor PASS; gcc c11 clean.
+
+## [Andy — H24 Palette Composer Frame Browser Integrity]
+
+* INFRASTRUCTURE (Palette Composer v0.4 tooling/UI + authoritative-data consumption). Design doc: docs/design/Andy_h24_palette_composer_frame_browser_integrity.md. Phase 0: KF-043/KF-044 relevant priors (player line-3 / two composers), no contradiction; Option A (no new finding). OPEN-006 supported, not closed.
+* Build produced: NO. Runtime counter: 378 -> 378. ROM path: N/A. H25 begun: NO. No runtime architecture change (offline tool only).
+* Source-of-truth: created tools/analysis/gen_player_fullbody_pairings.py -> analysis/actor_decompilation/h24_player_fullbody_pairings.tsv (60 valid pairings). build_bestiary.py + graphics_editor/server.py now BOTH consume it; neither hard-codes the list. Composer consumes h24_player_frame_cells.tsv / h24_player_leg_cells.tsv / h24_player_frame_reference_map.tsv.
+* Composer server.py: h24_player_frames() rewritten -> ONE Rastan object with browsable reps: 60 fullbody + 75 torso + 51 leg (52 slots, slot34 blank) + 1 diagnostic aggregate; all share map_key object:player.rastan. app.js: MK() shared-mapping key at every mapping site (read/write/preview/MRD/solver/reverse), new renderFrameBrowser (category selector + Prev/Next + dropdown, previews follow selection), ambiguous "N frames" badge -> "60 pairs · 75 torso · 52 legs". style.css: browser styles.
+* Full-body selectable 60/60; torso 75/75; legs 51/52 (slot34 blank noted). One shared Rastan palette mapping verified (evidence montage: same skin->green/red->cyan mapping applies to Full Body 00 AND 30; torso/leg frames render their halves). Arcade + Genesis previews follow the selected frame.
+* Regression: 6 named enemies still build (n_used>0) + render; map_key==usage_id for enemies. node --check app.js + py_compile server.py PASS. Game-wide coverage + fidelity guards PASS. Bestiary regenerates 60 pairings from the shared artifact.
+* Manifest player_render_architecture already documents both tracks (0x54492/0x5BD40 upper + 0x546A8/0x5C466 lower) + separate weapon overlay; no stale single-composer authority. No unrelated changes.
+
+## [Andy — Build 0379 Test 2 Palette Candidate — STOP (profile name mismatch, no build)]
+
+* Classification: EXTENDING. STOP at step 1 (profile location). NO build produced; counter 378 -> 378 (unchanged); build number 379 NOT consumed. Editable profile NOT mutated. No ROM, no asset regen.
+* Phase 0: KNOWN_FINDINGS/OPEN/CLOSED read (known-stale per Tighe); no contradiction; Option A (no new finding). Current state established from AGENTS_LOG + Sept design docs + live editor_policy.
+* FINDING: no profile named "Test 2" exists (searched editor_policy/ + whole repo). Only editable profile = "Test" (analysis/graphics_optimizer/editor_policy/Test.json, profile_id="Test", display_name="Test", parent baseline_current, rev 23, modified 2026-09-27T12:30:37Z, SHA-256 2c6630a0d1219ddcc43c585994bcf7d500dfa413818a8a72b281db10ceb14de9). It DOES contain the H24 corrected-UI shared key object:player.rastan (context gameplay.r01.p01), 8 local overrides, target lines 0/1/3 populated (line 2 empty/protected) — i.e. it is the profile Tighe edited, just named "Test" not "Test 2". Vestigial legacy rastan_f7722/15828/16199 keys also present (pre-frame-browser).
+* BUILD PIPELINE NOTE: Makefile consumes EDITOR_LAYERA_SNAPSHOT = build/rastan-direct/build0314/Test.snapshot.json (historical) for PC080SN/PC090OJ reindex + palsel LUT via gen_reindexed_region.py/gen_reindexed_pc090oj.py --profile. A new frozen snapshot (build0379/Test2.snapshot.json) + Makefile EDITOR_LAYERA_SNAPSHOT repoint would be required — pending profile confirmation.
+* STOP reason: prompt STOP condition #1/#2 — "Test 2" cannot be located unambiguously / persistent profile name differs. Awaiting Tighe confirmation whether "Test" is the intended authoring source (naming slip) before freezing a snapshot and producing the Build 0379 family. gameplay verification owner: TIGHE (Andy performed none).
+
+### MAME Exit Summary (2026-09-27 13:04:06)
+- Final PC: 0x073FB0
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0379 Test 2 Palette Candidate]
+
+* classification: EXTENDING · baseline build: 0378 · candidate profile: Test (prompt said "Test 2"; no such profile — Tighe confirmed build from "Test") · profile context: gameplay.r01.p01
+* persisted profile source: analysis/graphics_optimizer/editor_policy/Test.json (rev 23, 2026-09-27T12:30:37Z) · editable profile mutated during build: NO
+* frozen snapshot: build/rastan-direct/build0379/Test.snapshot.json · frozen snapshot SHA: 2c6630a0d1219ddcc43c585994bcf7d500dfa413818a8a72b281db10ceb14de9
+* local overrides (8): L0:2=0x0224 L0:3=0x022C L0:4=0x0888 L0:6=0x0026 L0:8=0x0EEE L1:5=0x04C4 L1:7=0x0442 L1:12=0x0200
+* target CRAM entries changed: base L0:0 None->0x0888 (effective via context overrides above) · index maps changed: object:player.rastan (NEW, line0 full map), large_bat (src11,14), small_bat (src11,12,13,14) · destination routes changed: Rastan authored line 0 · affected objects: Rastan + line-0/1 shared sprites (large_bat, small_bat, others) · shared target entries affected: L0/L1 (sprite lines)
+* Rastan shared map key: object:player.rastan · Rastan destination line: 0 · torso coverage: shared mapping applies to all RASTAN sprite codes (H24 75 torso) · leg source-slot coverage: 52 (H24) · full-body pairing coverage: 60 (H24)
+* Line 0 owner: shared Test sprite palette (Rastan) · Line 1: shared Test sprite palette · Line 2: Layer B arcade-controlled (protected) · Line 3: Test Layer-A · Layer B modified: NO
+* PIPELINE FIX: gen_reindexed_pc090oj.py now reads authoritative object:player.rastan (was legacy rastan_f7722); verified build manifest consumes object:player.rastan, rastan_f7722 absent. Makefile EDITOR_LAYERA_SNAPSHOT repointed build0314->build0379 snapshot.
+* offline sprite regeneration: YES (pc090oj_editor.bin, profile_sha matches frozen snapshot) · offline Layer-A regeneration: pipeline-run (no LA map changes in diff) · runtime recoloring: NO · runtime pixel transform: NO · PC090OJ compatibility restored: NO
+* Build family (all 1724088 bytes):
+  base: dist/rastan-direct/rastan_direct_video_test_build_0379.bin SHA 9293c03ab9909b21a8b4a58df7c7670736845baeaf15fe997ea70cd0444175b5
+  _c:   ..._0379_c.bin  SHA 6de8b820d4c7c530d4fb6c72f35b720e51fbdd00e24eebdd8903d1ab3efdf4cf
+  _d:   ..._0379_d.bin  SHA 42603c1dc9a09c54ea3a249c9d6b7ae1b82aa674ec324cb8046a5ad8ea89ee8d
+  _do:  ..._0379_do.bin SHA a72d1053afeea0f6d381170f79dbaa8fe5abfc40944f0d95cfe5d9345cdd4bb5
+  _s:   ..._0379_s.bin  SHA bc7fab73e97f968b2f77625b1e321bb153ffa13ff2975544fdc15287852450d9
+* complete 5-variant family produced: YES · counter: 378 -> 379 · non-gameplay gates: canonical PASS, boot guard PASS (pre+post), verify-variant-set PASS · automatic existing smoke gate: N/A (no new emulator run added) · gameplay verification performed by Andy: NO · gameplay verification owner: TIGHE
+* Build-0378 diff classification: 390 bytes total — header/build-number 2B @0x18e; palette CRAM + offline sprite reindex 388B @0x085559-0x1a48dc; maincpu code 0; other ZERO · unrelated changes: NONE
+* USER MUST VERIFY: Tighe loads Build 0379 gameplay variant, compares Rastan R1/P1 to saved Test target + inspects shared line-0/1 sprites.
+
+### MAME Exit Summary (2026-09-27 13:22:34)
+- Final PC: 0x073FB0
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Andy — Build 0380 H24 Rastan Complete PC090OJ Reindex]
+
+* classification: EXTENDING · baseline: 0379 USER-REJECTED (frame-dependent Rastan palette failure)
+* root cause: gen_reindexed_pc090oj.py Rastan code set = old 29-code representative corpus; 0379 changed the map KEY to object:player.rastan but NOT the code set, so only 29 of 344 player cells reindexed; the other 321 rendered raw -> wrong colors on those frames.
+* old Rastan generated code count: 29 · complete H24 Rastan unique code count: 344 (183 torso + 162 leg cells, 345 total minus 1 invalid 0x140C) · missing before fix: 321 · missing after fix: 0
+* torso slots covered: 75/75 · leg slots covered: 52/52 · valid pairings represented: 60/60 · exceptional palette-control pieces: 1 (cell 0x140C nibble-12, invalid code >0xFFF, excluded; NOT a player-body cell). All 344 player-body cells nibble 3 (object:player.rastan).
+* generator source-of-truth: reads h24_player_frame_cells.tsv + h24_player_leg_cells.tsv (same authoritative H24 evidence the Palette Composer consumes) · hard-coded player code list added: NO · cell stride: 128 (code*128, 4 subtiles; Build-0327 model retained) · player/enemy code conflicts: 0 (flat code-indexed asset sufficient; no (code,bank) split)
+* independent verifier (extended, Rastan breakdown) on built asset: PASS — authored 443, transformed 437, mismatch 0, incomplete 0, non-identity-raw 0, stray 0; RASTAN 344 codes/342 transformed/0 mismatch/0 incomplete/0 non-identity-raw
+* palette policy changed: NO (same frozen build0379/Test.snapshot.json, same Makefile snapshot path) · Build-0379 CRAM == Build-0380 CRAM: YES (code+palette region byte-identical except 2-byte build-number header 0x18e) · runtime pixel transform: NO · PC090OJ compatibility restored: NO
+* Build family (all 1724088 bytes):
+  base: dist/rastan-direct/rastan_direct_video_test_build_0380.bin SHA beeceaa7daacfb4ca4f8d3a755b498759a99944169989863b87261ca345bbde0
+  _c:   ..._0380_c.bin  SHA f8fedc47f96fe27241ac4ea33a017fcc612f2659a85d0a70ebeadc9298019529
+  _d:   ..._0380_d.bin  SHA 8ddc4f89b51d61a17798fae063343952c8047bc27869617c5055780c70458cfa
+  _do:  ..._0380_do.bin SHA 308ef06e2ffc0d2401a9771701f932ea9a7b42893ac9940521136684ff1173b9
+  _s:   ..._0380_s.bin  SHA 32be3b650fcfeabef7f79b56501ea6473d1ac43f8c15cdb41e70d1ee0be14db4
+* complete variant family: YES · counter: 379 -> 380 · non-gameplay gates: canonical PASS, boot guard PASS, verify-variant-set PASS · gameplay verification by Andy: NO · gameplay authority: TIGHE
+* 0379->0380 diff: 16264 bytes — header 2B @0x18e; offline sprite reindex 16262B @0x084b1f-0x1a48dc (315 newly-covered player cells); CRAM/code region byte-identical; maincpu code 0 · unrelated changes: NONE
+* USER MUST VERIFY: Tighe re-checks the poses wrong in 0379 (up-thrust/down-thrust/squat/standing lower-body/walk/attack/death) against the Test target.
+
+### MAME Exit Summary (2026-09-27 17:56:08)
+- Final PC: 0x073B86
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-27 18:02:59)
+- Final PC: 0x073B86
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-27 18:04:37)
+- Final PC: 0x073B86
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none

@@ -7,8 +7,16 @@
  *     record end < 0x10C508  -> delta 0x702
  *     otherwise              -> delta 0x4E2
  * The companion block is the actor's paired render/scratch structure. Clearing +0x00 (active) makes
- * the slot immediately reusable by the occupancy scan (0x49F30). No fields are preserved: callers
- * that must keep identity (e.g. 0x40A1E recycle) save/restore around this call. */
+ * the slot immediately reusable by the occupancy scan (0x49F30). Within the two cleared spans no
+ * fields are preserved; callers that must keep identity (e.g. 0x40A1E recycle) save/restore around
+ * this call.
+ *
+ * H15: the two cleared spans are the 0x40-byte record (0x00..0x3F) and the 0x20-byte companion at
+ * record+delta (delta 0x702 or 0x4E2). The PARALLEL variant byte at record+0x752 lies OUTSIDE both
+ * spans (for delta 0x702 the companion ends at +0x721; for 0x4E2 at +0x501), so the family-2
+ * VARIANT (+0x752) SURVIVES this clear. That is why a hunter re-armed via 0x4103A (= this clear +
+ * 0x4103E) keeps its variant identity even though its palette line +0x27 is reset. See
+ * raw/0004103e.c / raw/00045684.c. */
 #include "raw_common.h"
 
 /* 0x3A2D0: movew (a0)+,(a1)+ ; dbra d0 -- propagating fill when a1=a0+2. */

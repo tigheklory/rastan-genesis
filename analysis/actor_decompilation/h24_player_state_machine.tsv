@@ -1,0 +1,12 @@
+state	proposed_name	name_status	handler_evidence	entry/transition	movement	frame_source	status
+0	spawn/init	PROPOSED	0x50xx init	respawn	none	a3 pose	PARTIAL
+1	spawn2/enter	PROPOSED	-	init	none	a3 pose	PARTIAL
+2	grounded (walk/stand)	PROPOSED	movement 0x515xx	default; 11 writers	horizontal 0x51e24	a3[A5+0x10EA]	PARTIAL
+3	crouch/guard	PROPOSED	0x515b4 flag	input	limited	a3 pose	PENDING
+4	climb (rope)	PROVEN(climb)	H23 climb; scroll pending A5+0x1266	rope contact	vertical pending	a3 pose	PARTIAL
+5	attack	PROPOSED	0x54396 selector	attack input	attack overlay	a3[A5+0x10EA]	PARTIAL
+6	airborne/jump	PROPOSED	0x515b4 (2/3/6 flag)	jump input	gravity/fall	a3 pose	PENDING
+7	door/transition	PROVEN	H22 tile 0x7E->7 (0x3A7D2 consume)	door tile	frozen	0x542E8	PROVEN
+8	death	PROVEN	0x517EE energy==0->8	energy 0 / hit	death anim	a3[A5+0x12F4]	PROVEN
+9	special/attack9	PROPOSED	0x54492 slot-1 adjust	attack sub	overlay	pose tbl	PARTIAL
+16	round-complete	PROVEN	H22 0x51250->16	round end	frozen	-	PROVEN

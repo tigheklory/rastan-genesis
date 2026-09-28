@@ -1,0 +1,14 @@
+stage	producer_pc	consumer_pc	input_state	table	record_format	output_state	ownership	status
+progression	0x50248	0x50294	A5+0x1242 master section	0x5073A byte	1 byte/section	A5+0x013E progression	world selector	PROVEN
+round-boundary flag	0x50260	0x50284/0x5028C	A5+0x013E	0x502AC {0x16,0x2D,0x44,0x5B,0x72,0x89,0xFFFF}	word list	A5+0x1360 (1=round start)	world selector	PROVEN
+scene index	0x50294	0x503A0	A5+0x013E	0x507C5 byte	1 byte/prog	A5+0x1386 scene idx	world selector	PROVEN
+scene descriptor ptr	0x503A0	0x55C4A	A5+0x1386	0x3951C	12B = 2x{u16 count,u32 ptr}	A5+0x10FC desc ptr	world selector	PROVEN
+layout source ptrs	0x50384	0x55C5E	A5+0x1386*..	0x34F9C(FG)/0x3725C(BG)	longword ROM ptr	A5+0x1038/0x103C	world selector	PROVEN
+section-kind	0x503BC	0x527xx	A5+0x013E	0x50EE0->0x50F6B	1 byte kind	A5+0x10C6 (0=outdoor)	H11	PROVEN
+map-column ptr table	0x502CC	0x55904	A5+0x013E scene	0x1691C col descriptors	col*0x22C0+scene*0x40	A5+0x10D000[16]	H12	PROVEN
+record ptr build	0x55904	0x559B2	A5+0x10D000[col]	descriptor word0/word1	word0->tile,word1->rec ptr	A5+0x10D040/0x10D080	H13	PROVEN
+FG tile stream	0x55C7A	PC080SN name tbl	A5+0x10FC desc/0x10F6 col	layout src	tile=src[row*32+col*2]	name table (+0xFE/row,64)	H22	PROVEN
+BG tilemap decompress	0x563A6	name tbl	0x562CA[round] ptr0	metatile stream	0xFF=col,0=end	name table	H11	PROVEN
+collision word produce	0x559B2	0x53A2E	descriptor/strip/cell	collision record	cw=rec[0x14+strip*2+cell*8] | rec[0x22]	0x10DE00 grid	H13	PROVEN
+collision lookup	0x53A2E	player/actor	0x10DE00 grid	-	cell & 0x7F	collision property	H13	PROVEN
+scene transition	0x55DFE	0x56176/0x59F5E	A5+0x1394/0x13AA	-	-	A5+0x13B8 checkpoint,scene switch	H22	PARTIAL

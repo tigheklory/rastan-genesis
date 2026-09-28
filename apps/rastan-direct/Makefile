@@ -76,7 +76,7 @@ PC090OJ_PALSEL_EQUIV := $(ROOT)/build/rastan-direct/pc090oj_direct_palette_equiv
 MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
 PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
 PC080SN_EDITOR_LAYERA := $(ROOT)/build/regions/pc080sn_editor_layera.bin
-EDITOR_LAYERA_SNAPSHOT := $(ROOT)/build/rastan-direct/build0314/Test.snapshot.json
+EDITOR_LAYERA_SNAPSHOT := $(ROOT)/build/rastan-direct/build0381/Test.snapshot.json
 # Canonical approved pattern reference-substitution policy (offline only). Consumed automatically by the
 # normal build: apply_pattern_reuse.py validates every approved entry against the real plane-A usage
 # inventory and fails the build on any unresolved entry. Editing the policy re-triggers validation.
@@ -105,9 +105,14 @@ PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
 # Build 0325: offline Palette-Composer-reindexed R1/P1 sprite region (frozen Test index_maps per resolved
 # (code,bank)). Consumed by pc090oj_assets.s. Provenance in pc090oj_editor_manifest.json.
 PC090OJ_EDITOR := $(ROOT)/build/regions/pc090oj_editor.bin
-SPRITE_ENEMIES_CORPUS := $(ROOT)/analysis/graphics_optimizer/round1_phase1_corpus/enemies.json
-SPRITE_ENEMY_PATTERNS := $(ROOT)/analysis/graphics_optimizer/round1_phase1_corpus/enemy_patterns.json
-SPRITE_FAMILIES := $(ROOT)/analysis/graphics_optimizer/round1_phase1/sprite_families.json
+# Build 0381: complete R1/P1 semantic corpus + weapon/player cell evidence (replaces the
+# representative enemies.json/enemy_patterns.json subset). Drives the complete (code,bank)
+# variant reindex. The generated variant index include is consumed by pc090oj_hooks.s.
+R1P1_ENEMY_CORPUS := $(ROOT)/analysis/actor_decompilation/r1p1_enemy_semantic_corpus.tsv
+H24_WEAPON_CELLS := $(ROOT)/analysis/actor_decompilation/h24_player_weapon_cells.tsv
+H24_PLAYER_CELLS := $(ROOT)/analysis/actor_decompilation/h24_player_frame_cells.tsv
+H24_LEG_CELLS := $(ROOT)/analysis/actor_decompilation/h24_player_leg_cells.tsv
+PC090OJ_VARIANTS_INC := $(OUT_DIR)/pc090oj_sprite_variants.inc
 PC090OJ_HUD_WHITE := $(ROOT)/build/pc090oj_hud_white_genesis.bin
 PC090OJ_SLOT_LUT := $(ROOT)/build/pc090oj_slot_lut.bin
 PC090OJ_BLANK_BITSET := $(ROOT)/build/pc090oj_blank_bitset.bin
@@ -153,7 +158,7 @@ DO_ROM := $(DIST_DIR)/rastan_direct_video_test_do.bin
 CHEAT_ROM := $(DIST_DIR)/rastan_direct_video_test_cheat.bin
 
 .DELETE_ON_ERROR:
-.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant cheat-variant
+.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant cheat-variant verify-variant-set
 
 # Build 0360: every build produces FIVE ROMs sharing one build number:
 #   ..._NNNN.bin     release (all diag/variant flags off) -- owns the counter/gates/ledger
@@ -172,6 +177,18 @@ dual-build:
 	$(MAKE) score-variant RASTAN_DIAG_SCORE_METRIC=1
 	$(MAKE) do-variant RASTAN_VBLANK_DISPLAY_OFF=1
 	$(MAKE) cheat-variant RASTAN_MODE_RACK_ADVANCE=1 CRASH_BUILD_USE_CURRENT=1
+	$(MAKE) verify-variant-set
+
+# A default/release build is incomplete unless the canonical ROM and every
+# same-number variant, including the rack-advance `_c` ROM, are present.
+verify-variant-set:
+	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
+	tag=$$(printf "%04d" "$$n"); \
+	for suffix in "" _d _s _do _c; do \
+		artifact="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}$${suffix}.bin"; \
+		if [ ! -s "$$artifact" ]; then echo "ERROR: required build artifact missing/empty: $$artifact"; exit 1; fi; \
+	done; \
+	echo "complete build artifact set verified for $$tag (canonical, _d, _s, _do, _c)"
 
 $(OUT_DIR) $(DIST_DIR):
 	@mkdir -p $@
@@ -248,11 +265,15 @@ $(PC090OJ_PRECONV): $(PC090OJ_REGION) $(ROOT)/tools/translation/preconvert_pc090
 	$(PYTHON) "$(ROOT)/tools/translation/preconvert_pc090oj_tiles.py" \
 		--input "$<" --output "$@"
 
-$(PC090OJ_EDITOR): $(PC090OJ_PRECONV) $(EDITOR_LAYERA_SNAPSHOT) $(SPRITE_ENEMIES_CORPUS) $(SPRITE_ENEMY_PATTERNS) $(SPRITE_FAMILIES) $(ROOT)/tools/graphics_editor/gen_reindexed_pc090oj.py
+$(PC090OJ_EDITOR): $(PC090OJ_PRECONV) $(EDITOR_LAYERA_SNAPSHOT) $(R1P1_ENEMY_CORPUS) $(H24_WEAPON_CELLS) $(H24_PLAYER_CELLS) $(H24_LEG_CELLS) $(ROOT)/tools/graphics_editor/gen_reindexed_pc090oj.py | $(OUT_DIR)
 	$(PYTHON) "$(ROOT)/tools/graphics_editor/gen_reindexed_pc090oj.py" \
 		--profile "$(EDITOR_LAYERA_SNAPSHOT)" --pc090oj "$(PC090OJ_PRECONV)" \
-		--enemies "$(SPRITE_ENEMIES_CORPUS)" --enemy-patterns "$(SPRITE_ENEMY_PATTERNS)" \
-		--families "$(SPRITE_FAMILIES)" --out "$@"
+		--corpus "$(R1P1_ENEMY_CORPUS)" --out "$(PC090OJ_EDITOR)" \
+		--variants-inc "$(PC090OJ_VARIANTS_INC)"
+
+# The variant index include is produced as a side-effect of the pc090oj_editor.bin recipe.
+$(PC090OJ_VARIANTS_INC): $(PC090OJ_EDITOR)
+	@test -f "$@"
 
 $(PC090OJ_HUD_WHITE): $(PC090OJ_PRECONV) $(ROOT)/tools/translation/build_pc090oj_hud_white.py
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_hud_white.py" \
@@ -283,7 +304,7 @@ $(PC090OJ_PALSEL_LUT_INC): $(SRC_DIR)/palette_hooks.s $(EDITOR_LAYERA_SNAPSHOT) 
 	$(PYTHON) $(PC090OJ_PALSEL_LUT_GEN) --route-src $(SRC_DIR)/palette_hooks.s \
 		--profile $(EDITOR_LAYERA_SNAPSHOT) --out $@ --report $(PC090OJ_PALSEL_EQUIV) --verify
 
-$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) $(PC090OJ_VARIANTS_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_EDITOR) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -444,7 +465,9 @@ diag-variant: $(DIAG_ROM)
 	echo "diagnostic build artifact (CPU-load bar): $$dest"
 
 # Build 0338: score-metric ROM = same postpatch-only pipeline as $(DIAG_ROM) but built with
-# RASTAN_DIAG_SCORE_METRIC=1 (via the recursive `score-variant` invocation).  Separate manifest.
+# RASTAN_DIAG_SCORE_METRIC=1 (via the recursive `score-variant` invocation). Separate manifest.
+# Build 0378: the shared Plane-A collision resolver moves canonical into that formerly
+# score-only aligned page, so this variant no longer needs an additional coverage delta.
 $(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -496,6 +519,8 @@ do-variant: $(DO_ROM)
 
 # Build 0360: MODE rack-advance ROM.  This uses the normal postpatch pipeline,
 # but the compile-time feature and its two state bytes exist only in the _c ROM.
+# Build 0378: canonical helper growth reaches the formerly MODE-only aligned page,
+# so this variant no longer needs an additional coverage delta.
 $(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -506,8 +531,7 @@ $(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) 
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/cheat_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)" \
-		--genesis-coverage-delta 0x1000
+		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 cheat-variant: $(CHEAT_ROM)

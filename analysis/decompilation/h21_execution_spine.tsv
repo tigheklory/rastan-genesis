@@ -1,0 +1,8 @@
+stage	pc	role	calls	status	notes
+RESET_VECTOR	0x000004	68000 reset PC -> 0x3A000	0x3AE86	PROVEN	SSP=0x10DE00
+RESET_INIT	0x3AE86	hardware init	PC080SN 0xC50000; PC090OJ 0xD0xxxx; int-ack 0x350008; sound 0x3E0001/0x3E0003; palette clear 0x200000 (8192w x2)	PARTIAL	large; HW register init proven
+MAIN_IDLE_LOOP	0x3A080	post-init idle; interrupt-driven	jsr 0x510C6 (d0=2); bras self (0x3A08A)	PROVEN	all per-frame work is in the L5 VBlank ISR
+INT_L1_L4_L6	0x3A004	generic autovector	braw 0x3A080	PROVEN	non-main levels fall to idle
+INT_L5_VBLANK	0x3A008	MAIN per-frame ISR	ack; pre-frame subsystems; game-state dispatch	PARTIAL	the frame spine (see h21_frame_lifecycle.tsv)
+INT_L7	0x00007C	unused	0xFFFFFFFF	PROVEN	-
+GAME_STATE_DISPATCH	0x3A052	per-frame state machine	jump table 0x3A06C (8 states)	PROVEN	state = a5@(0)

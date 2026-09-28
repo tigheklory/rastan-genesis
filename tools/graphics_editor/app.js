@@ -1,6 +1,7 @@
 "use strict";
 let O=null,POL=null,TAB="objects",U=null,SRC=null,CMP=null,TGT=null,DIRTY=false,UNDO=[],REDO=[];
 let GROUP=new Set(),ACTIVE=0,SOLUTION=null;
+let FCAT='fullbody';   // active frame-browser category for the selected multi-frame object
 // ---- CRAM Line-2 (Layer B / arcade controlled) protection ----
 const reservedLines=()=>((POL&&POL.reserved_lines)||[2]);
 const isProtected=l=>reservedLines().includes(l);
@@ -41,6 +42,10 @@ function renderScopeBar(){const b=$('#scopebar');if(!b)return;const seg=scopeSeg
  b.innerHTML='EDITING SCOPE: <b>'+ctxName(SCOPE).toUpperCase()+'</b> <span class="cid">'+SCOPE+'</span>'+(seg!=null?' · segment '+seg:'')+' · local overrides: '+nlocal;
  b.title='All palette color edits apply to this context. Child contexts inherit unless overridden.';}
 const $=s=>document.querySelector(s),el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;};
+// Palette-mapping key: all frames of one object (e.g. every Rastan torso/leg/full-body frame) share
+// ONE map_key, so a single palette mapping covers every frame. Enemies fall back to their usage_id.
+const MK=u=>(u&&(u.map_key||u.usage_id));
+const usageByMapKey=k=>O.usages.find(x=>MK(x)===k);
 const j=async(u,o)=>(await fetch(u,o)).json();
 const LV=[0,36,73,109,146,182,219,255];
 const cramToRGB=w=>{if(w==null)return null;w=parseInt(w);const R=(w>>1)&7,G=(w>>5)&7,B=(w>>9)&7;return[LV[R],LV[G],LV[B]];};
@@ -100,14 +105,18 @@ function renderList(){const L=$('#list');L.innerHTML='';
   const doms={};O.usages.forEach(u=>{(doms[u.object_id]=doms[u.object_id]||[]).push(u);});
   Object.entries(doms).forEach(([oid,reps])=>{const u0=reps[0];const dname=u0.display_name.split(' (')[0];
    const r=el('div','row');const ck=el('input');ck.type='checkbox';
-   const inGroup=reps.some(x=>GROUP.has(x.usage_id));ck.checked=inGroup;
-   ck.onclick=e=>{e.stopPropagation();reps.forEach(x=>{if(ck.checked)GROUP.add(x.usage_id);else GROUP.delete(x.usage_id);});renderList();};
+   // group checkbox adds ONE representative per object (all frames share one palette mapping)
+   const inGroup=GROUP.has(u0.usage_id);ck.checked=inGroup;
+   ck.onclick=e=>{e.stopPropagation();if(ck.checked)GROUP.add(u0.usage_id);else GROUP.delete(u0.usage_id);renderList();};
    r.appendChild(ck);r.appendChild(el('span',null,' '+dname+' '));r.appendChild(el('span','badge PROVEN',u0.n_used+'c'));
-   if(reps.length>1)r.appendChild(el('span','badge OTHER',reps.length+' frames'));
-   r.onclick=()=>{document.querySelectorAll('#list .row').forEach(x=>x.classList.remove('sel'));r.classList.add('sel');selectUsage(u0);};
+   // accurate inventory badge (Rastan: categories; others: N frames)
+   const pc=u0.player_counts;
+   if(pc)r.appendChild(el('span','badge OTHER',pc.fullbody+' pairs · '+pc.torso+' torso · '+pc.legs+' legs'));
+   else if(reps.length>1)r.appendChild(el('span','badge OTHER',reps.length+' frames'));
+   r.onclick=()=>{document.querySelectorAll('#list .row').forEach(x=>x.classList.remove('sel'));r.classList.add('sel');if(!(U&&U.object_id===oid))selectUsage(reps[0]);renderList();};
    if(U&&U.object_id===oid)r.classList.add('sel');L.appendChild(r);
-   // frame selector for multi-representation domains (preview only)
-   if(reps.length>1&&U&&U.object_id===oid){const fr=el('div','framesel');reps.forEach(x=>{const fb=el('button','mini'+(U.usage_id===x.usage_id?' on':''),x.display_name.replace(/.*\(/,'').replace(')',''));fb.onclick=ev=>{ev.stopPropagation();selectUsage(x);};fr.appendChild(fb);});L.appendChild(fr);}
+   // FRAME BROWSER for the selected multi-frame object (shared palette mapping; preview follows frame)
+   if(reps.length>1&&U&&U.object_id===oid)L.appendChild(renderFrameBrowser(reps));
   });
   O.objects.filter(o=>statusOf(o)!=='PROVEN').forEach(o=>{const r=el('div','row');r.appendChild(el('span',null,(o.display_name||o.id)+' '));r.appendChild(el('span','badge '+statusOf(o),statusOf(o)));r.onclick=()=>{document.querySelectorAll('#list .row').forEach(x=>x.classList.remove('sel'));r.classList.add('sel');U=null;$('#srccolors').innerHTML='';$('#maptable').innerHTML='';$('#previews').innerHTML='<div class="dim">NO PROVEN GRAPHICS PREVIEW AVAILABLE for '+(o.display_name||o.id)+'</div>';};L.appendChild(r);});}
  if(TAB==='contexts'){L.appendChild(el('div','dim','Click a context = set the active EDITING SCOPE. Children inherit unless overridden.'));
@@ -117,7 +126,33 @@ function renderList(){const L=$('#list');L.innerHTML='';
    r.onclick=()=>{selectContext(c.id);};L.appendChild(r);});}
  if(TAB==='palettes')O.palettes.forEach(p=>{const dup=Object.values(O.exact_duplicate_palette_groups).some(g=>g.includes(p.palette_id));const r=el('div','row');r.appendChild(el('span',null,p.palette_id.replace('palette:','')+' '));if(dup)r.appendChild(el('span','badge OTHER','lossless-share'));r.onclick=()=>showPaletteResource(p);L.appendChild(r);});}
 
-function selectUsage(u){U=u;SRC=null;CMP=null;const m=POL.usage_palette_mappings[u.usage_id];if(m&&m.line!=null)ACTIVE=m.line;renderTarget();renderSource();renderPreviews();}
+// Frame browser: category selector + Prev/Next + dropdown over one object's frames. All frames share
+// ONE palette mapping (MK); selecting a frame only changes the previewed artwork, never the mapping.
+const FBLBL={fullbody:'Valid Full-Body Pairings',torso:'Torso Frames',legs:'Leg Frames',diagnostic:'Palette Coverage (diagnostic)',weapon:'Weapon Frames',complete:'Complete Corpus (all cells)',composite:'Composite',frames:'Frames'};
+function renderFrameBrowser(reps){
+ const order=['fullbody','torso','legs','weapon','composite','complete','frames','diagnostic'];const cats=[];
+ order.forEach(c=>{const its=reps.filter(x=>x.frame_category===c).sort((a,b)=>(a.frame_order||0)-(b.frame_order||0));if(its.length)cats.push([c,its]);});
+ if(!cats.length)cats.push(['frames',reps]);
+ let cur=FCAT;if(!cats.some(([c])=>c===cur))cur=(U&&U.frame_category)||cats[0][0];FCAT=cur;
+ const items=(cats.find(([c])=>c===cur)||cats[0])[1];
+ const wrap=el('div','framebrowser');
+ const catbar=el('div','fbcat');
+ cats.forEach(([c,its])=>{const b=el('button','mini'+(c===cur?' on':''),(FBLBL[c]||c)+' ('+its.length+')');
+  b.title=(c==='diagnostic')?'internal validation view — the union of every player cell; not a game pose':((FBLBL[c]||c)+' — '+its.length);
+  b.onclick=ev=>{ev.stopPropagation();FCAT=c;selectUsage(its[0]);renderList();};catbar.appendChild(b);});
+ wrap.appendChild(catbar);
+ let idx=items.findIndex(x=>x.usage_id===(U&&U.usage_id));if(idx<0)idx=0;
+ const nav=el('div','fbnav');
+ const prev=el('button','mini','◀ Prev');prev.disabled=idx<=0;prev.onclick=ev=>{ev.stopPropagation();selectUsage(items[idx-1]);renderList();};
+ nav.appendChild(prev);nav.appendChild(el('span','fbpos',(idx+1)+' / '+items.length));
+ const next=el('button','mini','Next ▶');next.disabled=idx>=items.length-1;next.onclick=ev=>{ev.stopPropagation();selectUsage(items[idx+1]);renderList();};
+ nav.appendChild(next);
+ const sel=el('select','fbsel');items.forEach((x,i)=>{const o=el('option',null,x.frame_label||x.display_name);o.value=i;if(i===idx)o.selected=true;sel.appendChild(o);});
+ sel.onchange=ev=>{ev.stopPropagation();selectUsage(items[+sel.value]);renderList();};sel.onclick=ev=>ev.stopPropagation();
+ nav.appendChild(sel);wrap.appendChild(nav);
+ return wrap;
+}
+function selectUsage(u){U=u;SRC=null;CMP=null;const m=POL.usage_palette_mappings[MK(u)];if(m&&m.line!=null)ACTIVE=m.line;renderTarget();renderSource();renderPreviews();}
 function swBox(rgb,cls){const s=el('div','sw'+(cls?' '+cls:''));s.style.background=rgb?`rgb(${rgb.join(',')})`:'#20202a';return s;}
 
 function renderSource(){const S=$('#srccolors');S.innerHTML='';if(!U){S.innerHTML='<div class="dim">Select an object (left) to see the colors it actually uses.</div>';return;}
@@ -125,14 +160,14 @@ function renderSource(){const S=$('#srccolors');S.innerHTML='';if(!U){S.innerHTM
  // primary actions bar
  const bar=el('div','actbar');
  mkbtn(bar,'Auto-fill Object',()=>autoFill());mkbtn(bar,'Recommend Line',()=>recommendLine());
- mkbtn(bar,'Reset Mapping',()=>{pushUndo();delete POL.usage_palette_mappings[U.usage_id];afterChange();});
+ mkbtn(bar,'Reset Mapping',()=>{pushUndo();delete POL.usage_palette_mappings[MK(U)];afterChange();});
  S.appendChild(bar);S.appendChild(el('div','dim','Drag a color onto a Genesis entry (right) — or click a color, then a target entry. Click two colors to Compare.'));
  const grid=el('div','apal');
  U.used_colors.forEach(c=>{const cell=el('div','ccell');const sw=swBox(c.arcade_rgb8);sw.draggable=true;if(SRC&&SRC.src_index===c.src_index)sw.classList.add('picked');sw.title=`src idx ${c.src_index} ${c.hex} · ${c.pixel_count}px · Genesis ${c.genesis_cram}`;
   sw.ondragstart=e=>{SRC=c;e.dataTransfer.setData('text/plain','src');};
   sw.onclick=()=>{if(SRC&&CMP===null&&SRC.src_index!==c.src_index&&window._cmpMode){compareTool(SRC,c);window._cmpMode=false;}else{SRC=c;renderSource();showColorProps(c);if(TGT){/* click-to-map */}}};
   cell.appendChild(sw);cell.appendChild(el('span',null,'i'+c.src_index));
-  const m=(POL.usage_palette_mappings[U.usage_id]||{}).index_map||{};if(m[c.src_index]!=null)cell.appendChild(el('span','tag','→L'+POL.usage_palette_mappings[U.usage_id].line+':'+m[c.src_index]));
+  const m=(POL.usage_palette_mappings[MK(U)]||{}).index_map||{};if(m[c.src_index]!=null)cell.appendChild(el('span','tag','→L'+POL.usage_palette_mappings[MK(U)].line+':'+m[c.src_index]));
   grid.appendChild(cell);});
  S.appendChild(grid);renderMapTable();renderPreviews();
 }
@@ -147,7 +182,7 @@ function recommendLine(){const ranks=editableLines().map(lineFit).sort((a,b)=>(b
 function autoFill(line){if(POL.immutable)return alert('Create an editable profile first.');
  if(line==null){line=editableLines().map(lineFit).sort((a,b)=>(b.shares-a.shares)||(a.neu-b.neu))[0].line;}
  if(guardProtected(line))return;
- pushUndo();const m=POL.usage_palette_mappings[U.usage_id]={line,index_map:{}};const L=POL.target_palette_lines[line];
+ pushUndo();const m=POL.usage_palette_mappings[MK(U)]={line,index_map:{}};const L=POL.target_palette_lines[line];
  // used->distinct target entries; detail-preserving: never map two used colors to one entry; resolve natural collisions
  const taken={};L.forEach((c,i)=>{if(c!=null)taken[c]=i;});
  let next=1;const nextFree=()=>{while(next<16&&L[next]!=null)next++;return next<16?next:-1;};
@@ -184,14 +219,14 @@ function showColorProps(c){const P=$('#props');const lab=rgb2lab(c.arcade_rgb8),
  mkbtn(P,'Compare (pick another color next)',()=>{window._cmpMode=true;$('#status').textContent='compare mode: click another source color';});}
 function mapWithAuto(line,index){/* map SRC to target line/index; auto best legal color if empty; MRD-checked */
  if(!U||!SRC)return;if(POL.immutable)return alert('Create an editable profile first.');if(guardProtected(line))return;
- const m=POL.usage_palette_mappings[U.usage_id]||(POL.usage_palette_mappings[U.usage_id]={line,index_map:{}});
+ const m=POL.usage_palette_mappings[MK(U)]||(POL.usage_palette_mappings[MK(U)]={line,index_map:{}});
  if(m.line!==line){if(Object.keys(m.index_map).length&&!confirm('Move this usage\'s mappings to line '+line+'?'))return;m.line=line;}
  for(const[si,ti]of Object.entries(m.index_map)){if(+ti===index&&+si!==SRC.src_index){const pair=U.mrd_pairs.some(([a,b])=>(a===+si&&b===SRC.src_index)||(b===+si&&a===SRC.src_index));if(pair)return alert('Cannot share: Must Stay Distinct — src i'+SRC.src_index+' and i'+si+' both appear in '+U.display_name+'.');}}
  pushUndo();m.index_map[SRC.src_index]=index;
  if(POL.target_palette_lines[line][index]==null)POL.target_palette_lines[line][index]=bestCramFor(SRC.arcade_rgb8).cram;
  $('#status').textContent=`${U.display_name} i${SRC.src_index} → L${line}:${index} (${POL.target_palette_lines[line][index]})`;afterChange();showTarget();}
 
-function renderMapTable(){const T=$('#maptable');T.innerHTML='';if(!U)return;const map=(POL.usage_palette_mappings[U.usage_id]||{});const im=map.index_map||{};
+function renderMapTable(){const T=$('#maptable');T.innerHTML='';if(!U)return;const map=(POL.usage_palette_mappings[MK(U)]||{});const im=map.index_map||{};
  const head=el('div','maprow mono');head.innerHTML='<b>Source</b><b>Arcade</b><b>Mapped To</b><b>Target color</b><b></b>';T.appendChild(head);
  U.used_colors.forEach(c=>{const r=el('div','maprow mono');const ti=im[c.src_index];const tcram=ti!=null?POL.target_palette_lines[map.line][ti]:null;const trgb=cramToRGB(tcram);
   r.appendChild(el('span',null,'i'+c.src_index));const a=el('span');a.appendChild(swBox(c.arcade_rgb8));a.appendChild(el('span',null,' '+c.hex));r.appendChild(a);
@@ -242,9 +277,9 @@ function showTarget(){const P=$('#props');P.innerHTML='';if(!TGT)return;if(isPro
  else P.appendChild(el('div','dim','Select a source color to map it here. Color edits above apply to the active context scope.'));
  const users=sourcesAt(TGT.line,TGT.index);if(users.length){P.appendChild(el('div','vitem PASS','Sources mapped here: '+users.map(u=>u.name+' i'+u.si).join(', ')));}
  const cl=el('button','mini','clear entry (base)');cl.onclick=()=>{pushUndo();POL.target_palette_lines[TGT.line][TGT.index]=null;Object.values(POL.usage_palette_mappings).forEach(m=>{if(m.line===TGT.line)for(const k in m.index_map)if(m.index_map[k]===TGT.index)delete m.index_map[k];});afterChange();};P.appendChild(cl);}
-function sourcesAt(line,index){const out=[];for(const[uid,m]of Object.entries(POL.usage_palette_mappings)){if(m.line!==line)continue;for(const[si,ti]of Object.entries(m.index_map||{}))if(+ti===index){const u=O.usages.find(x=>x.usage_id===uid);out.push({name:u?u.display_name:uid,si});}}return out;}
+function sourcesAt(line,index){const out=[];for(const[uid,m]of Object.entries(POL.usage_palette_mappings)){if(m.line!==line)continue;for(const[si,ti]of Object.entries(m.index_map||{}))if(+ti===index){const u=usageByMapKey(uid)||O.usages.find(x=>x.usage_id===uid);out.push({name:u?u.display_name:uid,si});}}return out;}
 
-function mapSrcToTarget(){if(POL.immutable)return alert('Create an editable profile first.');if(guardProtected(TGT.line))return;const uid=U.usage_id;const m=POL.usage_palette_mappings[uid]||(POL.usage_palette_mappings[uid]={line:TGT.line,index_map:{}});
+function mapSrcToTarget(){if(POL.immutable)return alert('Create an editable profile first.');if(guardProtected(TGT.line))return;const uid=MK(U);const m=POL.usage_palette_mappings[uid]||(POL.usage_palette_mappings[uid]={line:TGT.line,index_map:{}});
  if(m.line!==TGT.line){if(Object.keys(m.index_map).length&&!confirm('This usage was mapped to line '+m.line+'. Move all its mappings to line '+TGT.line+'?'))return;m.line=TGT.line;}
  // MRD check: does any already-mapped src of THIS usage that must stay distinct from SRC share this target index?
  for(const[si,ti]of Object.entries(m.index_map)){if(+ti===TGT.index&&+si!==SRC.src_index){const pair=U.mrd_pairs.some(([a,b])=>(a===+si&&b===SRC.src_index)||(b===+si&&a===SRC.src_index));if(pair){$('#status').textContent='';return alert('MERGE FORBIDDEN — internal detail would be lost: src i'+SRC.src_index+' and src i'+si+' both appear in '+U.display_name+' and must stay distinct.');}}}
@@ -284,7 +319,7 @@ async function renderPreviews(){const P=$('#previews');P.innerHTML='';if(!U)retu
    zlab.textContent=`  zoom: ${ZOOM==='fit'?'Fit('+Z+'×)':Z+'×'} · display ${nW*Z}×${nH*Z}px · source ${nW}×${nH}px · ${U.preview_type} · ${U.n_pieces} pieces`;}
  const s=el('div','pv');s.appendChild(el('div','pvh',(U.composite_proven?'TRUE ARCADE COMPOSITE':'PROVEN CELL SHEET — NOT COMPOSITE')));
  const i1=new Image();i1.className='pimg';i1.onload=()=>sizeImg(i1);i1.src=`/api/render?usage=${uid}${b}`;s.appendChild(i1);P.appendChild(s);
- const map=POL.usage_palette_mappings[U.usage_id];const pal=[[0,0,0]];for(let i=1;i<16;i++)pal[i]=[60,60,72];
+ const map=POL.usage_palette_mappings[MK(U)];const pal=[[0,0,0]];for(let i=1;i<16;i++)pal[i]=[60,60,72];
  U.used_colors.forEach(c=>{let rgb=c.genesis_rgb8;if(map&&map.index_map[c.src_index]!=null){const cr=tcram(map.line,map.index_map[c.src_index]);const g=cramToRGB(cr);if(g)rgb=g;}pal[c.src_index]=rgb;});
  const t=el('div','pv');t.appendChild(el('div','pvh','GENESIS TARGET (same geometry, mapped colors) — click a pixel to pick its CRAM entry'));
  const i2=new Image();i2.className='pimg pickable';i2.onload=()=>sizeImg(i2);i2.src=`/api/render?usage=${uid}&target=${encodeURIComponent(JSON.stringify(pal))}${b}`;
@@ -295,7 +330,7 @@ async function spritePixelPick(e,img){if(!U)return;const rc=img.getBoundingClien
  if(!_HIT[U.usage_id])_HIT[U.usage_id]=await j('/api/hitmap?usage='+encodeURIComponent(U.usage_id));
  const hm=_HIT[U.usage_id];if(nx<0||ny<0||nx>=hm.w||ny>=hm.h)return;const vi=hm.idx[ny*hm.w+nx];
  if(!vi){$('#status').textContent='Transparent pixel — no palette entry';return;}
- const map=POL.usage_palette_mappings[U.usage_id];SRC=(U.used_colors.find(c=>c.src_index===vi))||SRC;
+ const map=POL.usage_palette_mappings[MK(U)];SRC=(U.used_colors.find(c=>c.src_index===vi))||SRC;
  if(map&&map.index_map[vi]!=null){TGT={line:map.line,index:map.index_map[vi]};ACTIVE=map.line;renderTarget();showTarget();$('#status').textContent=`picked ${U.display_name} src i${vi} → L${map.line}:${map.index_map[vi]}`;}
  else{renderSource();$('#status').textContent=`clicked ${U.display_name} src i${vi} (unmapped) — selected as source color`;}}
 
@@ -321,7 +356,7 @@ function closestInLine(c,line){/* nearest populated entry by ΔE00; nearest LEGA
  for(let i=1;i<16;i++){const cram=tcram(line,i);if(cram==null)continue;const de=deltaE00(c.arcade_rgb8,cramToRGB(cram));
   if(abs===null||de<abs.de)abs={index:i,de};
   // legal if mapping c here won't collide with an MRD partner of c already mapped here (same usage U)
-  let ok=true;if(U){const m=POL.usage_palette_mappings[U.usage_id];if(m&&m.line===line){for(const[si,ti]of Object.entries(m.index_map)){if(+ti===i&&+si!==c.src_index&&U.mrd_pairs.some(([a,b])=>(a===+si&&b===c.src_index)||(b===+si&&a===c.src_index))){ok=false;break;}}}}
+  let ok=true;if(U){const m=POL.usage_palette_mappings[MK(U)];if(m&&m.line===line){for(const[si,ti]of Object.entries(m.index_map)){if(+ti===i&&+si!==c.src_index&&U.mrd_pairs.some(([a,b])=>(a===+si&&b===c.src_index)||(b===+si&&a===c.src_index))){ok=false;break;}}}}
   if(ok&&(legal===null||de<legal.de))legal={index:i,de};}
  return {absolute:abs,legal};}
 async function solveGroup(fitActive,mode){if(!GROUP.size)return alert('check 1+ objects');$('#status').textContent='solving…';
@@ -350,8 +385,8 @@ function proposedPal(sol,u){const pal=[[0,0,0]];for(let i=1;i<16;i++)pal[i]=[50,
 function applySolution(sol,line){if(POL.immutable)return alert('Create an editable profile first.');if(guardProtected(line))return;pushUndo();
  // one Undo transaction: set target line entries + remap each group usage
  sol.entries.forEach(e=>{POL.target_palette_lines[line][e.target_index]=e.cram;});
- GROUP.forEach(uid=>{const m=POL.usage_palette_mappings[uid]={line,index_map:{}};sol.entries.forEach(e=>e.members.forEach(mm=>{if(mm.usage_id===uid)m.index_map[mm.src_index]=e.target_index;}));});
- GROUP.forEach(uid=>{if(POL.usage_palette_mappings[uid])POL.usage_palette_mappings[uid].solver=sol.solver;});ACTIVE=line;$('#status').textContent='applied '+(sol.solver||'')+' shared palette → Line '+line+' ('+GROUP.size+' objects, 1 undo)';afterChange();}
+ GROUP.forEach(uid=>{const u=O.usages.find(x=>x.usage_id===uid);const k=MK(u)||uid;const m=POL.usage_palette_mappings[k]={line,index_map:{}};sol.entries.forEach(e=>e.members.forEach(mm=>{if(mm.usage_id===uid)m.index_map[mm.src_index]=e.target_index;}));POL.usage_palette_mappings[k].solver=sol.solver;});
+ ACTIVE=line;$('#status').textContent='applied '+(sol.solver||'')+' shared palette → Line '+line+' ('+GROUP.size+' objects, 1 undo)';afterChange();}
 async function compareSolvers(){if(!GROUP.size)return alert('check 1+ objects');$('#status').textContent='comparing solvers…';
  const ids=[...GROUP];
  const de=await j('/api/solve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usage_ids:ids,mode:'delta_e'})});
@@ -372,7 +407,7 @@ function solveGroupShow(sol){SOLUTION=sol;const P=$('#props');P.innerHTML='';P.a
 function txt(s){return el('div','mono',s);}
 function validate(){const V=$('#valid');V.innerHTML='';let err=0;
  // MRD violations across all usages
- let mrdV=0;for(const[uid,m]of Object.entries(POL.usage_palette_mappings)){const u=O.usages.find(x=>x.usage_id===uid);if(!u)continue;for(const[a,b]of u.mrd_pairs){if(m.index_map[a]!=null&&m.index_map[a]===m.index_map[b])mrdV++;}}
+ let mrdV=0;for(const[uid,m]of Object.entries(POL.usage_palette_mappings)){const u=usageByMapKey(uid)||O.usages.find(x=>x.usage_id===uid);if(!u)continue;for(const[a,b]of u.mrd_pairs){if(m.index_map[a]!=null&&m.index_map[a]===m.index_map[b])mrdV++;}}
  if(mrdV){V.appendChild(el('div','vitem ERROR',`MRD violations (internal detail merged): ${mrdV}`));err++;}else V.appendChild(el('div','vitem PASS','MRD: 0 internal-detail merges'));
  const linesUsed=POL.target_palette_lines.filter(l=>l.some(x=>x!=null)).length;
  V.appendChild(el('div','vitem '+(linesUsed<=4?'PASS':'ERROR'),`target lines used: ${linesUsed}/4`));

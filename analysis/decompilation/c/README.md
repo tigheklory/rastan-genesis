@@ -38,9 +38,26 @@ rather than trusting the Markdown conclusions.
   `0x3F0BC`/`0x4770E`/`0x3FFDC`/`0x3FFF0` (all funnel to the shared 0x3C902 interpreter).
 - `rastan_actor_palette.c` — CHECKPOINT H10: palette-attribute resolver `0x45684` (non-fam2 table
   `0x45722`, family-2 table `0x456EC`; round/variant/comp → palette line → +0x27).
+- `rastan_player_world_contact.c` — Build 0361: complete `0x51AB6` PC090OJ-coordinate extractor,
+  `0x51B04` player/world contact consumer, and `0x51B74` source-third classifier. Documents the
+  native semantic cut from actor mapping program directly to the retained A5+0x1134 gameplay list.
+- `rastan_player_solid_object.c` — Build 0366: cave-block mode-actor rectangle selection and
+  A5+0x0242 special-solid record producer (`0x44548`/`0x444F8`), plus the retained player response
+  consumer (`0x54BF8`). Records the exact rectangle {-20,+20,-16,+16} and the Genesis WRAM operand
+  rebase; this path is independent from the sword/damage passes.
+- `rastan_player_weapon_state.c` — Build 0368: normal-SWORD initialization, the bounded
+  A5+0x12C8 item-event route that grants FIRE SWORD, the shared A5+0x12FA selector, and
+  A5+0x1326 timer expiry back to state 1. It also records the distinct graphics and contact-table
+  consumers and the Genesis absolute-WRAM operand regression.
 - `rastan_scene_map.c` — CHECKPOINT H11: scene/section resolver `0x503BC` (0x50EE0/0x50F6B →
   section kind), collision-grid column writer `0x559B2` (marker = column_record[20+…]),
-  background decompressor `0x563A6`. Six Phase-2 castle starts proven.
+  background decompressor `0x563A6`. Six Phase-2 castle starts proven. H12: A5+0x10D000 populator 0x502CC (descriptor(col,scene)=0x1691C+col*0x22C0+0x13E*0x40) closes the H11 blocker.
+- `rastan_boss_composite.c` — complete normal-state boss structure and palette publication:
+  0x43450/0x43458 signed component offsets; R5's five body-relative segments; R6 primary/anchor/tail
+  relationships and mirrored phase tables; 0x3B9F8/0x3BA20/0x45D7C/0x45DC4/0x59AD4 palette layout.
+  The decisive operand-order correction is that 0x45D7C/0x45DC4 publish `A5+0x1600 -> CLCS`.
+  PC090OJ nibble F with sprite control 0x60 selects physical bank 0x3F, populated from working line
+  15 and therefore from `0x3BA88[(round-1)*32+15] -> 0x4FD02`.
 - `raw/` — close-to-machine reconstructions (per arcade PC, e.g. `raw/00043840.c`), for auditing.
 - `function_coverage.csv` — status/provenance index (guarded).
 

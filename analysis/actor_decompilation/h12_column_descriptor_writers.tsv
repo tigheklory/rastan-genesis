@@ -1,0 +1,4 @@
+writer_pc	target	source	formula	status
+0x502CC	A5+0x1000 (16 col descriptor ptrs)	ROM 0x1691C base	descriptor(col,scene)=0x1691C+col*0x22C0+(0x13E)*0x40	COMPLETE
+0x55904	A5+0x1040 (rebuilt records) + 0x1080 (first words)	A5+0x1000 descriptors	reads word0 + pointer per column	COMPLETE (H11)
+0x559B2/0x55A14	collision grid 0x10DE00	A5+0x1040 records	grid=col_record[20+subcol*2+row*8]; marker=high byte	COMPLETE (H11)

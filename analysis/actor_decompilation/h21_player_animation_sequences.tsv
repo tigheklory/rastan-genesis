@@ -1,0 +1,8 @@
+sequence_id	semantic_state	state_pc	animation_selector	frame_count	timing	looping	weapon_variant	reachable	status
+SEQ_body_var0	body table var0 (0x1116==0)	0x543A6	a5@(0x110A) anim idx -> table 0x5BAE0 (frames 0x0C-0x0E...)	~12/seq	per-step byte	yes	shared	REACHABLE gameplay	PARTIAL (table proven; exhaustive per-frame cells frontier)
+SEQ_body_var1	body table var1 (0x1116!=0)	0x543AE	table 0x5BB10 (frames 0x19-0x1B...)	~12/seq	per-step byte	yes	shared	REACHABLE gameplay	PARTIAL
+SEQ_state8	state a5@(0x10E8)==8	0x54376	a5@(0x12F4) index	?	-	?	-	REACHABLE	FRONTIER
+SEQ_state9	state a5@(0x10E8)==9	0x5433E	a5@(0x10EA) index (+0x1114==3 special -1)	?	-	?	-	REACHABLE	FRONTIER
+SEQ_weaponmode	a5@(0x12F0)==1	0x5435E	a5@(0x12F2) index	?	-	?	weapon	REACHABLE	FRONTIER
+SEQ_state5	a5@(0x10E8)==5	0x54396	shared with default (0x54346)	?	-	?	-	REACHABLE	FRONTIER
+SEQ_special1108	a5@(0x1108)==1	0x5438E	special body path	?	-	?	-	REACHABLE	FRONTIER

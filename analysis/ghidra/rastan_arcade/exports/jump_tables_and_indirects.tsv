@@ -161,6 +161,18 @@ arcade_pc	instruction	function	references_from	note
 0x051322	jsr 0x00053a0c.l	FUN_000512c8	UNCONDITIONAL_CALL:00053a0c	manual review for dynamic dispatch/table
 0x052742	jsr 0x00052a64.l	FUN_00052732	UNCONDITIONAL_CALL:00052a64	manual review for dynamic dispatch/table
 0x0529E2	jsr 0x0003a0ec.l	FUN_000529cc	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x054B16	jsr (A1)	player_item_event_dispatch_54a2c		manual review for dynamic dispatch/table
+0x054ECA	jsr 0x0003a0ec.l	player_weapon_grant_state3_54ec6	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x054EE0	jsr 0x0003a0ec.l	player_weapon_grant_state2_54edc	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x054EF6	jsr 0x0003a0ec.l	player_fire_sword_grant_54ef2	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x054F0C	jsr 0x0003a0ec.l	FUN_00054f08	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x054F22	jsr 0x0003a0ec.l	FUN_00054f1e	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x054F38	jsr 0x0003a0ec.l	FUN_00054f34	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x054F4E	jsr 0x0003a0ec.l	FUN_00054f4a	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x054F64	jsr 0x0003a0ec.l	FUN_00054f60	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x054FD8	jsr 0x0003a0ec.l	FUN_00054fd4	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x054FF0	jsr 0x0003a0ec.l	FUN_00054fec	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
+0x055008	jsr 0x0003a0ec.l	FUN_00055004	UNCONDITIONAL_CALL:0003a0ec	manual review for dynamic dispatch/table
 0x055726	jsr 0x000406a4.l	FUN_00055696	UNCONDITIONAL_CALL:000406a4	manual review for dynamic dispatch/table
 0x0557B2	jsr 0x000406a4.l	FUN_0005572e	UNCONDITIONAL_CALL:000406a4	manual review for dynamic dispatch/table
 0x05584C	jsr 0x000406a4.l	FUN_000557ba	UNCONDITIONAL_CALL:000406a4	manual review for dynamic dispatch/table

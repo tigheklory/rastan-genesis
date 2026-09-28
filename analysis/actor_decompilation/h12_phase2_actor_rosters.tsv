@@ -1,0 +1,7 @@
+round	phase2_start	descriptor_source	marker_roster	status	blocker
+1	0x11	0x1691C+col*0x22C0+0x13E*0x40	OPEN (markers confirmed present, exact per-cell extraction pending)	PARTIAL	0x55904 record build vs 0x1691C column format
+2	0x2b	0x1691C+col*0x22C0+0x13E*0x40	OPEN (markers confirmed present, exact per-cell extraction pending)	PARTIAL	0x55904 record build vs 0x1691C column format
+3	0x41	0x1691C+col*0x22C0+0x13E*0x40	OPEN (markers confirmed present, exact per-cell extraction pending)	PARTIAL	0x55904 record build vs 0x1691C column format
+4	0x5a	0x1691C+col*0x22C0+0x13E*0x40	OPEN (markers confirmed present, exact per-cell extraction pending)	PARTIAL	0x55904 record build vs 0x1691C column format
+5	0x6e	0x1691C+col*0x22C0+0x13E*0x40	OPEN (markers confirmed present, exact per-cell extraction pending)	PARTIAL	0x55904 record build vs 0x1691C column format
+6	0x85	0x1691C+col*0x22C0+0x13E*0x40	OPEN (markers confirmed present, exact per-cell extraction pending)	PARTIAL	0x55904 record build vs 0x1691C column format

@@ -1,0 +1,8 @@
+field	source	transform	consumer	meaning
+descriptor_base	0x502CC 0x10D000[col]	0x1691C + col*0x22C0 + scene*0x40	0x55904 a4=@a0	per-(col,scene) descriptor page (0x40 bytes = 16 four-byte entries)
+entry.word0	ROM @entry+0	0x55904 movew a4@,a2@+ -> 0x10D080[col]	0x559B4 movew a1@,a0@	name-table tile word written to dest
+entry.word1	ROM @entry+2	0x55904 movew a4@(2),d1; a1@+=d1 -> 0x10D040[col]	0x55968 a2=a3@	16-bit ROM pointer to the collision RECORD (col_record)
+col_record[0x20]	ROM @rec+0x20	(none)	0x559B6 cmpiw #0x00FF	control/sentinel: ==0x00FF -> uniform fill
+col_record[0x22]	ROM @rec+0x22	(none)	0x559D4 lea a2@(0x22)	uniform collision word when sentinel set
+col_record[20+strip*2+cell*8]	ROM @rec+20+strip*2+cell*8	(none)	0x559CE lea a2@(20,d7:w)	per-cell collision word (strip=a5@0x10CA 0..3, cell=d2 0..3); 20 dec = 0x14 hex
+grid word	collision word	d7=(dest-0xC08000)/2	0x559EC movew d0,(0x10DE00+d7)	64x64 word grid; high byte = MARKER (0x41294 lsrw #8)

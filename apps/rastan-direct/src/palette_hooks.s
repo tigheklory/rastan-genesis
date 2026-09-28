@@ -69,6 +69,9 @@ palette_route_table:
     .word 1, PROUTE_OWNER_PC090OJ,    0x36, 1, 0
     .word 1, PROUTE_OWNER_PC090OJ,    0x35, 1, 0
     .word 1, PROUTE_OWNER_PC090OJ,    0x3A, 1, 0
+    /* Build 0366: cave block bank 0x3C shares the resident Layer-A mud palette. Its four
+     * cells are reindexed offline by the Palette Composer profile; no CRAM line is rewritten. */
+    .word 1, PROUTE_OWNER_PC090OJ,    0x3C, 3, 0
     .word 1, PROUTE_OWNER_HUD,        0,  0, 0
     .word 0xFFFF, 0, 0, 0, 0
 

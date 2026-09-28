@@ -6,7 +6,7 @@
  "schema": "v0.2",
  "target_palette_lines": [
   [
-   null,
+   "0x0888",
    "0x006C",
    "0x0226",
    "0x0224",
@@ -85,21 +85,10 @@
     "3": 1,
     "7": 7,
     "10": 2,
-    "11": 3,
+    "11": 6,
     "12": 4,
     "13": 5,
-    "14": 6
-   }
-  },
-  "usage:small_bat:bank0x3E": {
-   "line": 0,
-   "index_map": {
-    "3": 1,
-    "10": 2,
-    "11": 3,
-    "12": 10,
-    "13": 11,
-    "14": 6
+    "14": 15
    }
   },
   "usage:rastan_f7722:bank0x33": {
@@ -222,6 +211,143 @@
     "10": 10,
     "11": 11,
     "12": 12
+   }
+  },
+  "usage:cave_block:bank0x3C": {
+   "object": "Destroyable cave-entrance block",
+   "hardware": "PC090OJ",
+   "base": "0x0179",
+   "cells": [
+    "0x0179",
+    "0x017A",
+    "0x017B",
+    "0x017C"
+   ],
+   "arcade_source": {
+    "round": 1,
+    "logical_line": "0xC",
+    "physical_bank": "0x3C",
+    "pool_index": 35,
+    "rom_palette_address": "0x50162",
+    "used_indices": [
+     1,
+     7,
+     8,
+     9,
+     12,
+     13,
+     14
+    ],
+    "used_colors_rgb": {
+     "1": "0,0,0",
+     "7": "238,119,68",
+     "8": "238,136,68",
+     "9": "119,85,34",
+     "12": "102,51,0",
+     "13": "153,102,68",
+     "14": "187,119,68"
+    },
+    "appearance": "BLACK + BROWN rocky block",
+    "arcade_status": "PROVEN EXACT ARCADE DISPLAY (H17)"
+   },
+   "genesis_realization": {
+    "line": 3,
+    "index_map": {
+     "1": 5,
+     "7": 2,
+     "8": 1,
+     "9": 3,
+     "12": 3,
+     "13": 3,
+     "14": 1
+    },
+    "solver": "delta_e_fixed_layera_ground_entries_1_5",
+    "genesis_status": "CURRENT IMPLEMENTATION COLOR WRONG / DEFERRED \u2014 the Layer-A Line-3 muddy-ground reindex (Cody build0366) was not visually accepted; it must be corrected to reproduce the arcade black/brown, not presented as the object's true appearance."
+   },
+   "line": 3,
+   "index_map": {
+    "1": 5,
+    "7": 2,
+    "8": 1,
+    "9": 3,
+    "12": 3,
+    "13": 3,
+    "14": 1
+   },
+   "solver": "delta_e_fixed_layera_ground_entries_1_5"
+  },
+  "object:player.rastan": {
+   "line": 0,
+   "index_map": {
+    "1": 7,
+    "2": 8,
+    "3": 9,
+    "4": 10,
+    "5": 2,
+    "6": 11,
+    "7": 6,
+    "8": 12,
+    "9": 1,
+    "10": 13,
+    "11": 14,
+    "12": 5,
+    "13": 4,
+    "14": 15,
+    "15": 3
+   }
+  },
+  "usage:small_bat:bank0x3E": {
+   "line": 0,
+   "index_map": {
+    "3": 1,
+    "10": 2,
+    "11": 7,
+    "12": 5,
+    "13": 15,
+    "14": 3
+   }
+  },
+  "object:weapon.sword": {
+   "line": 0,
+   "index_map": {
+    "1": 7,
+    "2": 8,
+    "12": 4,
+    "13": 5
+   }
+  },
+  "object:weapon.axe": {
+   "line": 0,
+   "index_map": {
+    "1": 7,
+    "2": 8,
+    "6": 11,
+    "10": 13,
+    "11": 14,
+    "12": 0,
+    "13": 5,
+    "15": 3
+   }
+  },
+  "object:weapon.hammer": {
+   "line": 0,
+   "index_map": {
+    "1": 7,
+    "2": 8,
+    "6": 11,
+    "12": 4,
+    "13": 5,
+    "15": 3
+   }
+  },
+  "object:weapon.fire_sword": {
+   "line": 0,
+   "index_map": {
+    "2": 8,
+    "8": 12,
+    "9": 1,
+    "12": 0,
+    "13": 5
    }
   }
  },
@@ -16320,7 +16446,12 @@
    },
    "tpl": {
     "0": {
-     "6": "0x0028"
+     "2": "0x0224",
+     "3": "0x022C",
+     "4": "0x0446",
+     "5": "0x0668",
+     "6": "0x0026",
+     "8": "0x0EEE"
     },
     "1": {
      "5": "0x04C4",

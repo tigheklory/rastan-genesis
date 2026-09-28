@@ -1,0 +1,5 @@
+table	addr	producer_pc	count	record	source_rom	lifetime	refresh	status
+column stream ptrs	A5+0x10D000	0x502CC	16	longword ptr/col	0x1691C+col*0x22C0+scene*0x40	per scene	on scene advance (A5+0x13E++)	PROVEN
+record ptrs	A5+0x10D040	0x55904	16	16-bit ROM collision-record ptr	descriptor word1	per 4-strip group	every 4 strips (0x558C6)	PROVEN
+name-table tile words	A5+0x10D080	0x55904	16	tile word	descriptor word0	per column build	per column	PROVEN
+stream src/hdr staging	0x10D0FC/0x10D100/0x10D104	0x55C2E/0x55C5E	3	ptr triple	descriptor layout	per frame	per streamed column	PROVEN

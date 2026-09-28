@@ -1,0 +1,13 @@
+rank,tier,subsystem,not_decompiled_bytes,fully_pct,touched_pct,funcs_remaining,dependency_unlock_note
+1,1,INTERRUPTS_TIMING_VBLANK_SYSTEM,2232,4.6,4.6,14,8 state handlers + 5 pre-frame subsystems
+2,1,INIT_RESET_MEMORY,458,0.0,0.0,10,-
+3,1,INPUT_SERVICE_ATTRACT,40,0.0,0.0,3,-
+4,2,HUD_SCORE_LIVES_GAMESTATE,1140,0.0,0.0,17,-
+5,2,MAP_SCENE_ROUND_PROGRESSION,648,33.1,33.1,13,transition internals 0x56176/0x59F5E
+6,2,PC080SN_TILEMAP_SCROLL_COLLISIONMAP,118,79.7,79.7,3,0x406A4 row-stream helpers
+7,3,ACTOR_CORE_LIFECYCLE_CREATION,14226,21.0,21.4,30,largest gameplay unknown
+8,3,COLLISION_DAMAGE_PHYSICS,3234,2.1,40.4,57,H25 target: player+enemy collision consumers (movement 0x51880/0x515xx expose API)
+9,3,PLAYER_WEAPONS_ITEMS_STATUS,2032,15.7,41.4,22,-
+10,3,ENEMY_AI_BEHAVIORS,452,0.0,0.0,8,after collision
+11,3,BOSS_LOGIC,370,47.6,47.6,8,CF-07
+12,4,PC090OJ_SPRITE_COMPOSITOR,5360,6.8,6.8,81,-

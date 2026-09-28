@@ -388,6 +388,103 @@
     "KNOWN_FINDINGS.md#kf-1214",
     "docs/design/Andy_round1_phase1_enemy_contact_sheet.md"
    ]
+  },
+  {
+   "id": "PAL-PC090OJ-STAGE1-CAVE-BLOCK-001",
+   "status": "decided",
+   "context": {
+    "scene": "gameplay scene 1 cave entrance",
+    "stage": "Stage 1",
+    "subsystem": "PC090OJ native destructible cave-block pieces",
+    "actor_family": "actor_2c8 / base 0x0179 / target character H / state 0x1E",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0xC",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x3C",
+    "palette_source": "ROUND-1 indirect load: source-buffer bank k=12 -> 0x3BA88[12]=35 -> pool 0x4FD02+35*0x20 = 0x50162 (16 words 0RGB). Cave-block cells 0x0179..0x017C use nonzero indices {1,7,8,9,12,13,14}.",
+    "arcade_display_palette_PROVEN_H17": {
+     "round": 1,
+     "pool_index": 35,
+     "rom_palette_address": "0x50162",
+     "raw_words_0RGB": [
+      "0x0000",
+      "0x0000",
+      "0x0444",
+      "0x0CCC",
+      "0x0999",
+      "0x0777",
+      "0x0555",
+      "0x0E74",
+      "0x0E84",
+      "0x0752",
+      "0x0333",
+      "0x0666",
+      "0x0630",
+      "0x0964",
+      "0x0B74",
+      "0x0BA9"
+     ],
+     "rgb8": [
+      "0,0,0",
+      "0,0,0",
+      "68,68,68",
+      "204,204,204",
+      "153,153,153",
+      "119,119,119",
+      "85,85,85",
+      "238,119,68",
+      "238,136,68",
+      "119,85,34",
+      "51,51,51",
+      "102,102,102",
+      "102,51,0",
+      "153,102,68",
+      "187,119,68",
+      "187,170,153"
+     ],
+     "appearance": "BLACK + BROWN block (matches the arcade screenshot). The tiles 0x0179..0x017C use ONLY indices {1,7,8,9,12,13,14}: idx1 black(0,0,0), idx7/8 orange-brown(238,119,68 / 238,136,68), idx9 dark brown(119,85,34), idx12 very-dark brown(102,51,0), idx13 brown(153,102,68), idx14 light brown(187,119,68). The pool's gray entries (2,3,4,5,6,10,11) are shared-line colors NOT used by the cave block.",
+     "verified_by": "H17 independent arcade trace: program 0x3E1C0 control nibble 0xC (all 4 pieces) -> 0x3C9E8 (+0x27 bit6 clear) -> line 0xC -> 0x3BA88[R1][0xC]=35 -> 0x50162",
+     "status": "PROVEN EXACT ARCADE DISPLAY",
+     "used_indices": [
+      1,
+      7,
+      8,
+      9,
+      12,
+      13,
+      14
+     ],
+     "used_index_proof": "decoded pc090oj.bin tiles 0x0179..0x017C (128B/16x16 4bpp) -> pixel indices = {1,7,8,9,12,13,14} for all four cells"
+    }
+   },
+   "genesis_realization": {
+    "palette_line": 3,
+    "route_kind": "direct PC090OJ selection of the already-resident shared Layer-A master line",
+    "dynamic_behavior": "stable for gameplay scene 1; the route selects line 3 and does not write CRAM",
+    "shared_line_ownership": "Line 3 remains owned by Layer A. Cave-block cells are offline-reindexed to the established muddy-ground entries 1..5; no duplicate palette and no palette-line steal."
+   },
+   "decision_basis": "The frozen Palette Composer context maps the Stage-1 muddy Layer-A ground source indices 9..13 to resident Line-3 entries 1..5. Raw cave-block indices are incompatible with those meanings, so only cells 0x0179..0x017C are reindexed. The authored map uses Palette Composer CIEDE2000 matching constrained to those five established ground entries; seven source indices necessarily collapse into the five shared ground colors. Visual acceptance remains with Tighe in BlastEm.",
+   "known_defects": [
+    "Genesis color WRONG (deferred to Andy per Cody build0366): the genesis_realization Line-3 muddy-ground offline reindex (1->5,7->2,8->1,9->3,12->3,13->3,14->1) is a Genesis compatibility fit, NOT the arcade appearance, and was not visually accepted. H17 proves the arcade cave block is gray stone + brown (pool 35 / 0x50162), which the Genesis realization must reproduce rather than collapse into the muddy ground line."
+   ],
+   "consumers_to_inspect": [
+    "analysis/graphics_optimizer/editor_policy/Test.json usage:cave_block:bank0x3C",
+    "build/rastan-direct/build0314/Test.snapshot.json usage:cave_block:bank0x3C",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py offline cell reindex",
+    "apps/rastan-direct/src/palette_hooks.s scene-1 PC090OJ bank 0x3C route",
+    "apps/rastan-direct/src/vdp_comm.s gameplay Line-3 installation"
+   ],
+   "evidence": [
+    "analysis/graphics_optimizer/arcade_graphics_oracle/objects.json object:hazard.cave_block",
+    "analysis/graphics_optimizer/round1_phase1_corpus/sprite_census_captured.json semantic 2c8_0179_00",
+    "build/regions/maincpu.bin 0x3BA88[12] and palette pool 0x50162",
+    "docs/design/Cody_build0366_cave_block_collision_palette.md",
+    "analysis/actor_decompilation/h17_cave_block_palette.tsv (H17 arcade-truth palette)",
+    "docs/design/Andy_h17_cave_block_arcade_palette.md"
+   ]
   }
  ]
 }

@@ -1,0 +1,69 @@
+{
+ "checkpoint": "H23",
+ "scope": "original_arcade world_rev1 foreground vertical scroll",
+ "a5_base": "0x10C000",
+ "state_fields": {
+  "fg_y_scroll": "A5+0x10AE",
+  "fg_x_scroll": "A5+0x10EC",
+  "player_screen_y": "A5+0x10BE",
+  "scroll_delta": "A5+0x10DC",
+  "pending_up": "A5+0x1266",
+  "pending_down": "A5+0x1268",
+  "scroll_step": "A5+0x10D8",
+  "dir_accumulator": "A5+0x10B8",
+  "subrow_accumulator": "A5+0x10B2",
+  "scroll_flags": "A5+0x10D0",
+  "dir_mode": "A5+0x13D0",
+  "x_frac_accumulator": "A5+0x10F0"
+ },
+ "thresholds": {
+  "screen_y_center": 80,
+  "screen_y_lower_clamp": 32,
+  "screen_y_upper_region": 304,
+  "dir_accumulator_upper_limit": 160,
+  "max_step_px_per_frame": 4
+ },
+ "coordinate_equations": {
+  "actor_screen_y": "(actor_world_y + fg_y_scroll) & 0x1FF",
+  "collision_probe_row": "((((~fg_y_scroll + 1) & 0x1FF) + world_y) >> 1) + 8) & 0xFC",
+  "logical_map_row": "(world_y >> 3) & 63",
+  "ring_row": "(fg_y_scroll & 0x1FF) >> 3"
+ },
+ "wrap": {
+  "modulus_px": 512,
+  "ring_tile_rows": 64,
+  "tile_px": 8,
+  "new_row_condition": "each 8px step (subrow_accumulator bit3) streams a row via 0x406A4"
+ },
+ "scroll_decision_order": [
+  "player movement queues motion into pending_up/pending_down",
+  "step dispenser caps at 4 px/frame -> scroll_delta (0x51880)",
+  "clamp controller keeps player_screen_y in [32,304] band center 80, arms scroll_step+flags (0x539C2)",
+  "dispatch: if dir_accumulator>=160 and section-kind gate set -> stop (flag bit6); else accumulate subrow, stream row per 8px, fg_y_scroll +=/-= step mod 512 (0x557BA/0x55854)",
+  "commit fg_x_scroll->0xC40000, fg_y_scroll->0xC40002 (0x55AB4)"
+ ],
+ "clamps": {
+  "fg_y_scroll": "wrap mod 512",
+  "player_screen_y": "[32,304]",
+  "dir_accumulator": "< 160 for further up scroll"
+ },
+ "wrap_rules": "both axes wrap pixel scroll value mod 512; vertical is a 64-tile ring",
+ "scene_initialization": {
+  "table": "0x50850",
+  "index": "A5+0x013E * 12",
+  "fields": [
+   "word0->fg_y_scroll & fg_x_scroll",
+   "word2->dir_accumulator",
+   "word4->player_screen_y"
+  ],
+  "r1_phase2_example": {
+   "progression": "2/3",
+   "fg_y_scroll_init": 352,
+   "player_screen_y_init": 120
+  },
+  "transition_reset": "0x561A0 zeroes fg_y/fg_x scroll before re-init"
+ },
+ "vertical_climb_state4": "while climbing, movement feeds pending_up; step dispenser emits up to 4px/frame; fg_y_scroll advances upward mod 512 and streams rows until dir_accumulator limit (160, gated by A5+0x10A8) or screen-Y band clamp stops it",
+ "third_chain_contract": "from scene-init fg_y_scroll 0x160, an upward climb moves the committed Y toward ~0x010D and keeps moving; a value stuck at ~0x0026 means the up path (pending_up->scroll_delta->fg_y_scroll+=step) is not driven",
+ "pc080sn_cut": "preserve everything up to fg_y_scroll (mod 512) + logical map row; hardware side = write fg_y_scroll to 0xC40002 + name-table ring row walk (+0xFE stride)"
+}

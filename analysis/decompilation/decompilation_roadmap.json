@@ -1,0 +1,103 @@
+{
+ "as_of": "2026-09-26",
+ "synced_through": "H24",
+ "primary_metric": "unique_executable_byte_union",
+ "overall": {
+  "fully_pct_union": 21.1,
+  "touched_pct_union": 29.1,
+  "fully_pct_spansum": 17.5,
+  "complete_functions": 64,
+  "total_functions": 334
+ },
+ "tiers": [
+  {
+   "tier": "CORE EXECUTION",
+   "subsystems": [
+    "INIT_RESET_MEMORY",
+    "INTERRUPTS_TIMING_VBLANK_SYSTEM",
+    "INPUT_SERVICE_ATTRACT"
+   ],
+   "status": "ISR+idle closed (H21); reset init + 8 handlers + 5 pre-frame subsystems open"
+  },
+  {
+   "tier": "GAME / WORLD CONTROL",
+   "subsystems": [
+    "HUD_SCORE_LIVES_GAMESTATE",
+    "MAP_SCENE_ROUND_PROGRESSION",
+    "PC080SN_TILEMAP_SCROLL_COLLISIONMAP"
+   ],
+   "status": "H22 progression/descriptor/FG-column-stream/collision-producer + H23 vertical+horizontal SCROLL closed; WORLD VERTICAL SCROLL COMPLETE. Remaining: transition internals + 0x406A4 row-stream helpers"
+  },
+  {
+   "tier": "CORE GAMEPLAY",
+   "subsystems": [
+    "PLAYER_CONTROL_MOVEMENT",
+    "COLLISION_DAMAGE_PHYSICS",
+    "ACTOR_CORE_LIFECYCLE_CREATION",
+    "ENEMY_AI_BEHAVIORS",
+    "PLAYER_WEAPONS_ITEMS_STATUS",
+    "BOSS_LOGIC"
+   ],
+   "status": "actor lifecycle/collision substantial; player-control is the H23 target"
+  },
+  {
+   "tier": "PRESENTATION",
+   "subsystems": [
+    "PC090OJ_SPRITE_COMPOSITOR",
+    "PALETTE_COLOR"
+   ],
+   "status": "compositor VM proven; palette resolver complete"
+  },
+  {
+   "tier": "SUPPORT",
+   "subsystems": [
+    "AUDIO_INTERFACE",
+    "OTHER_KNOWN",
+    "UNCLASSIFIED"
+   ],
+   "status": "Z80 sound ROM separate; not in 68000 denominator"
+  }
+ ],
+ "closed_h22": [
+  "0x50248 world progression selector",
+  "0x503A0 scene descriptor ptr",
+  "0x55C4A/0x55C5E/0x55C7A PC080SN column streamer"
+ ],
+ "closed_h21": [
+  "0x3A008 VBlank ISR",
+  "0x3A080 idle loop"
+ ],
+ "next_dependencies": [
+  {
+   "id": "H25-A",
+   "subsystem": "COLLISION_DAMAGE_PHYSICS",
+   "entry_pcs": [
+    "0x53A2E grid lookup (done)",
+    "player collision consumers 0x515xx",
+    "0x51880 movement"
+   ],
+   "rationale": "H24 movement exposes the collision API; core/player collision consumers are next"
+  },
+  {
+   "id": "H24-frontier",
+   "subsystem": "PLAYER_CONTROL_MOVEMENT",
+   "entry_pcs": [
+    "0x515xx-0x520xx state handlers",
+    "0x540CC per-state pose tables"
+   ],
+   "rationale": "player movement state handlers (frame selection now closed)"
+  }
+ ],
+ "closed_h23": [
+  "0x557BA/0x55854 vertical Y-scroll",
+  "0x55B3C horizontal X-scroll",
+  "0x55AB4 PC080SN scroll commit",
+  "0x504FA/0x539C2/0x51880 scroll drivers (PARTIAL)"
+ ],
+ "world_vertical_scroll": "COMPLETE",
+ "closed_h24": [
+  "0x54326 player frame selector",
+  "0x54492 player body composer (CF-01 closed: 75/75 slots decoded)"
+ ],
+ "player_frame_extraction": "COMPLETE (73 distinct composites)"
+}

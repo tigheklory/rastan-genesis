@@ -19,6 +19,31 @@ Rules:
   sword palette is also still reported to cycle incorrectly. Palette work must
   follow `specs/palette_decisions.json` and is not part of the current sprite
   producer conversion.
+  - **[2026-09-27 Build 0383, IMPLEMENTED — complete (code,bank) sprite variant
+    pipeline; awaiting Tighe visual verification]** Build 0381→0382→0383 (0381/0382
+    preserved canonical=FAIL per the build-number imperative; 0383 canonical=PASS)
+    consumes Tighe's Test.json (SHA 31dedf43…, rev 25; only change vs Build 0380 =
+    the four equipped-weapon palettes added), the complete R1/P1 enemy corpus, and
+    the four weapon corpora. Offline `gen_reindexed_pc090oj.py` now bakes a base cell
+    per code plus 96 appended (code,bank) variant cells for the single contiguous
+    divergent enemy anim block 0xA73–0xAA2 (banks chimera 0x34 / lizardman 0x36 /
+    four_armed 0x3A, all byte-distinct); a bounded O(1) runtime selector in
+    `pc090oj_hooks.s` picks the variant at the native SAT emit boundary from the
+    effective bank the palette path already resolves (no recolor, no PC090OJ
+    emulation). Accepted Rastan body preserved byte-identical (verifier 344/0).
+    Independent reindex verifier PASS (missing/mismatch/incomplete/raw all 0).
+    Interactive acceptance (weapons, complete enemy animations incl. Flying Demon /
+    bats / four-armed / chimera) deferred to Tighe. Not closed; no duplicate.
+    Evidence: `docs/design/Andy_build0381_test_complete_sprite_variants.md`.
+  - **[2026-09-27 NEW sub-item — Fire Sword vertical-state flame unresolved]** While
+    authoring, Tighe observed the Fire Sword shows no flame when held vertically
+    (flame is present during swings). No additional vertical-state flame component
+    is mechanically provable from the existing arcade weapon tables using the
+    already-authored Fire Sword palette; if it is a separate semantic object/palette
+    it needs new user authoring. No flame cells were invented and Build 0383 was not
+    blocked on it. Separately, the weapon-browser "frame 69" was proven a decode
+    artefact (case B: player-slot overrun; HAMMER frame 69 = 0x0003×3) and is now
+    excluded from the weapon corpus. Owner: palette-authoring follow-up.
 - **OPEN-017 remains open:** the farther-Stage-1 flying demon cannot currently
   be killed, and significant slowdown remains with many enemies visible.
   Current gameplay executes neither the frontend PC090OJ scanner nor its

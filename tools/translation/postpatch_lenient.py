@@ -693,6 +693,7 @@ def main() -> int:
                 _src_end,
                 spec.get("jump_table_word_displacements", []),
                 [],
+                spec.get("declared_relative_branches", []),
             )
         )
 
@@ -913,17 +914,24 @@ def main() -> int:
         table_addr = parse_hexish(table["table_address"])
         entry_count = int(table["entry_count"])
         entry_size = int(table.get("entry_size_bytes", 4))
+        entry_stride = int(table.get("entry_stride_bytes", entry_size))
+        pointer_offset = int(table.get("pointer_offset_bytes", 0))
         if entry_size != 4:
             raise RuntimeError(
                 f"absolute_long_pointer_table at 0x{table_addr:06X}: "
                 f"unsupported entry_size_bytes={entry_size}"
+            )
+        if entry_stride < entry_size or pointer_offset < 0 or pointer_offset + entry_size > entry_stride:
+            raise RuntimeError(
+                f"absolute_long_pointer_table at 0x{table_addr:06X}: invalid "
+                f"entry_stride_bytes={entry_stride}, pointer_offset_bytes={pointer_offset}"
             )
 
         rom_table_addr = table_addr + relocation_delta + accumulated_shift_before(table_addr, shift_deltas)
         fixes = 0
         target_relocation = relocation_delta if execute_from_relocated_base else 0
         for i in range(entry_count):
-            entry_addr = rom_table_addr + (i * 4)
+            entry_addr = rom_table_addr + (i * entry_stride) + pointer_offset
             old_target = int.from_bytes(rom_bytes[entry_addr:entry_addr + 4], "big")
             if not (source_start <= old_target < source_end):
                 continue
@@ -943,6 +951,8 @@ def main() -> int:
                 "table_address": f"0x{table_addr:06X}",
                 "rom_table_address": f"0x{rom_table_addr:06X}",
                 "entry_count": entry_count,
+                "entry_stride_bytes": entry_stride,
+                "pointer_offset_bytes": pointer_offset,
                 "fixes": fixes,
             }
         )

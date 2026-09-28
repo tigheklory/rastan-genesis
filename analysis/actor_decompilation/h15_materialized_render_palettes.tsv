@@ -1,0 +1,9 @@
+round	base	marker	prog13e	anim	selector	program_addr	program_control	eff_palette_nibble	palette_pool	palette_rom_addr	palette_words	frame_status	palette_status
+2	0x0224	0x47	0x2b	0x00	0	0x03d298	0x00	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	REPRESENTATIVE	PROVEN (control-byte nibble, +0x27=0)
+4	0x0224	0x45	0x5a	0x00	0	0x03d298	0x00	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	REPRESENTATIVE	PROVEN (control-byte nibble, +0x27=0)
+4	0x00f4	0x46	0x5a	0x00	0	0x03d298	0x00	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	REPRESENTATIVE	PROVEN (control-byte nibble, +0x27=0)
+5	0x00f4	0x67	0x6e	0x00	0	0x03d298	0x00	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	REPRESENTATIVE	PROVEN (control-byte nibble, +0x27=0)
+6	0x00f4	0x71	0x85	0x00	0	0x03d298	0x00	0x0	0x0b	0x04fe62	0000 0000 0800 0f50 0f90 0ff0 0ff9 0fff 000b 005f 009f 00df 0aff 0000 0000 0000	REPRESENTATIVE	PROVEN (control-byte nibble, +0x27=0)
+5	0x09ea	0x6e	0x70	0x27	2	0x03f3e9	0x0d	0xc	0x23	0x050162	0000 0000 0444 0ccc 0999 0777 0555 0e74 0e84 0752 0333 0666 0630 0964 0b74 0ba9	HANDLER-SET anim 0x27	PROVEN (control-byte nibble, +0x27=0)
+5	0x09ea	0x6e	0x70	0x27	2	0x03f3e9	0x0d	0xd	0x07	0x04fde2	0000 0098 0067 0056 0046 0045 0044 0877 0420 0ca6 0a84 0752 0530 0420 0752 0530	HANDLER-SET anim 0x27	PROVEN (control-byte nibble, +0x27=0)
+6	0x0179	0x6e	0x85	0x70	0	0x03e1c0	0x0c	0xc	0x23	0x050162	0000 0000 0444 0ccc 0999 0777 0555 0e74 0e84 0752 0333 0666 0630 0964 0b74 0ba9	HANDLER-SET anim 0x70	PROVEN (control-byte nibble, +0x27=0)

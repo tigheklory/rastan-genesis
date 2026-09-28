@@ -1,0 +1,22 @@
+{
+  "round": 1, "phase": "Phase-2 (castle scene 0x15)", "entry_marker": "0x4D",
+  "controller": {"pc": "0x43ECC", "state": "0x1B", "role": "burst controller (not a species)",
+    "gate": "+0x1C timer + +0x16 X vs camera 0x10BE", "sets": "a5@0x286=5; calls 0x43F4E"},
+  "pool": {"base": "A5+0x3C8", "slots": 5, "stride": "0x40",
+    "addrs": ["A5+0x3C8","A5+0x408","A5+0x448","A5+0x488","A5+0x4C8"],
+    "shared_with": ["boss component handlers 0x46xxx","char-route activators 0x41652/0x41A88","scripted pos-spawn 0x451xx"],
+    "writers": "all via 0x45248 (active hunter: base,target-char,mode1; NO +0x05 state)"},
+  "activation": {"pc": "0x43F4E/0x43F52",
+    "contract": {"inactive(+0x00==0)": "skip", "active(+0x05==0)": "RETIRE 0x4092E",
+      "active(+0x05!=0)": "+0x39=1 -> 0x447F0 -> 0x448B2 -> state 0x0F"}},
+  "child": {"state": "0x0F", "handler": "0x40CCC",
+    "identity_source": "state 0x0F (assigned), NOT inherited from pool slot",
+    "paths": {
+      "+0x39,+0x03==0 (0x40DD8)": {"base": "0x0275", "selector": 0, "anim": ["0x9E","0x9F","0xA0"],
+        "pieces": [8,9,10], "palette_line": 0, "pool": "0x0B", "palette_addr": "0x04FE62",
+        "lifetime": "self-retire at +0x08>=4 (0x4092E)", "role": "expanding burst/impact effect"},
+      "+0x03!=0 (0x40E0E)": {"base": "inherited", "anim": ["0x70","0x71","0x72","0x73"],
+        "sfx": "0x17", "lifetime": "self-limited at +0x08>=4", "role": "transient effect"}}},
+  "conclusion": "The five records are UP TO FIVE INDEPENDENT TRANSIENT EFFECT INSTANCES (one per activated pool slot), NOT five enemy species and NOT one composite. Identity assigned by state 0x0F (base 0x0275 on the primary +0x39/+0x03==0 path).",
+  "palette_rule": "H15: +0x27 bit6 clear -> display palette = compositor control-byte nibble (here 0)."
+}

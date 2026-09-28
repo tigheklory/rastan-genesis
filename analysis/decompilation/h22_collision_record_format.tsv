@@ -1,0 +1,8 @@
+field_offset	name	size	meaning	route	status
++0x00..+0x13	header/tile words	20B	per-cell tile/name words (word0 companion)	ordinary	PROVEN
++0x14 + strip*2 + cell*8	collision_word	2B	ordinary per-cell collision word; marker = word>>8	ordinary (rec[0x20]!=0xFF)	PROVEN
++0x20	sentinel control	2B	if high byte==0x00FF -> uniform-fill record	selector	PROVEN
++0x22	uniform_word	2B	uniform collision word used for ALL cells when +0x20==0xFF	uniform/sentinel	PROVEN
+strip	a5@0x10CA	-	horizontal strip 0..3 (FG pass reflects parity, 0x55A36)	index	PROVEN
+cell	d2	-	row 0..3 within the 4x4 record view	index	PROVEN
+marker	word>>8	-	high byte classified by 0x41362 28-route table (H6)	consume	PROVEN

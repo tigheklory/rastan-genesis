@@ -1,0 +1,9 @@
+concept	equation_or_value	source_pc	status
+wrap modulus	512 px (&0x1FF) both axes	0x5583A/0x55888/0x55BAC	PROVEN
+vertical ring rows	512px / 8 = 64 tile rows	name-table geometry	PROVEN
+ring row	(A5+0x10AE mod 512) / 8 in [0,63]	0x55ACC	PROVEN
+new row resident	every 8px step (A5+0x10B2 bit3) -> 0x406A4	0x557F8	PROVEN
+row-stream direction	A5+0x13D0 (2 up / 3 down)	0x55842/0x55890	PROVEN
+name-table row base	0xC08000 + (A5+0x10CC<<4) + (A5+0x10CA<<2)	0x5580A	PROVEN
+visual/collision origin	SAME A5+0x10AE field (no offset)	0x461CE + 0x53A2E	PROVEN
+collision grid row	(((~A5+0x10AE+1)&0x1FF)+world_y)>>1)+8 &0xFC	0x53A2E	PROVEN

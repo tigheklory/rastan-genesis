@@ -9,7 +9,7 @@
   "family_palette_bank": "FUN_00045684 table 0x45722 (per +0x3E family)",
   "render_family_composite": "actor_family0_render_3d054 (0x3D054) -> family tables 0=0x3D09E,1=0x4771C,2=0x3F0CE,3=0x40004,4=0x4002C -> actor_four_record_expand_3c902 (0x3C902), quartet [control,signed_y,code_offset,signed_x] term 0x00",
   "spawn_seed_tables": "static_actor_records.json: 48 seed records, ROM offsets 0x0454BA+ (mode2_variant_a etc.); fields base_code,+0x3A,actor_class,+0x28,+0x2C",
-  "player_composer": "player_body_constructor_540cc (0x540CC)->0x54326(frame 0x1244/0x1246)->0x54492(body ~0x5BD40; weapons 0x5CD8A/0x5D068/0x5D346/0x5D666)"
+  "player_composer": "player_body_constructor_540cc (0x540CC) -> frame_selector 0x54326; UPPER: slot A5+0x1244 -> 0x54492 -> table 0x5BD40; LOWER: slot A5+0x1246 -> 0x546A8 -> table 0x5C466; WEAPON overlay: selector A5+0x12FA -> composer tail 0x54598 -> tables 0x5CD8A(sword)/0x5D346(axe)/0x5D666(hammer)/0x5D068(fire_sword). See player_render_architecture for the full two-track + weapon-overlay detail."
  },
  "normal_families_by_actor_3e": {
   "0": {
@@ -377,13 +377,13 @@
   "creation_routes": {
    "marker_scheduler_0x41180": "DECODED (field enemies at map markers)",
    "field_schedule_0x4A086_via_0x4A0D8_0x49F30": "DECODED (spawn table 0x4A104 per round)",
-   "paired_scripted_init_0x45342": "PARTIAL — 17 call sites, only 5 demon sites decoded; 12 sites in 0x4A000-0x4C700 UNDECODED",
+   "paired_scripted_init_0x45342": "PARTIAL \u2014 17 call sites, only 5 demon sites decoded; 12 sites in 0x4A000-0x4C700 UNDECODED",
    "scripted_spawner_0x4BBCA": "UNDECODED",
    "boss_frame_owner_0x41F30": "PARTIAL",
    "alt_activation_0x4CD50": "UNDECODED"
   },
-  "undecoded_region": "0x4A000-0x4C700 scripted/boss/special subsystem — only 4 named functions; holds the 12 paired-init sites = the missing bosses/scripted/phase actors/items",
-  "census_status": "NOT COMPLETE — scripted-encounter subsystem now decoded (structure); exhaustiveness NOT YET PROVEN (per-scene handler enumeration, per-route seed->base, item system, compositor VM remain)",
+  "undecoded_region": "0x4A000-0x4C700 scripted/boss/special subsystem \u2014 only 4 named functions; holds the 12 paired-init sites = the missing bosses/scripted/phase actors/items",
+  "census_status": "NOT COMPLETE \u2014 scripted-encounter subsystem now decoded (structure); exhaustiveness NOT YET PROVEN (per-scene handler enumeration, per-route seed->base, item system, compositor VM remain)",
   "unresolved_paths": [
    "12x 0x45342 sites in 0x4A000-0x4C700",
    "0x4BBCA",
@@ -503,7 +503,7 @@
    "per_round_door_status": "BLOCKED (precisely): enumerating 0x7E requires the metatile->collision-property mapping + the per-round metatile-column source feeding collision-grid field @(20). This is a full map-engine decode. A runtime watchpoint on the 0x10DE00 door cell or on 0x53f0c would CORROBORATE positions but is not the static authority the task requires. No per-round door 0x13E is asserted.",
    "why_not_TT": "a TT background-bank change (R3/R5/R6) is a visual theme change at a scene reload and CORROBORATES a transition there, but is not the phase decoder; R1/R2/R4 cross a gameplay phase within one TT bank, which is exactly why background appearance must not define the phase.",
    "A5_base_unlock": {
-    "A5": "0x10C000 (arcade work-RAM base) — VERIFIED: 0x10C118(round-intro idx)=A5+0x118(round counter); 0x10C016=A5+0x16(player X); decisively 0x10D0A8(absolute)-0x10C000=0x10A8 => the map-stream byte written at 0x558f8 IS A5+0x10A8. (Genesis port relocates A5 to 0xFF2200; the ARCADE base is 0x10C000.)",
+    "A5": "0x10C000 (arcade work-RAM base) \u2014 VERIFIED: 0x10C118(round-intro idx)=A5+0x118(round counter); 0x10C016=A5+0x16(player X); decisively 0x10D0A8(absolute)-0x10C000=0x10A8 => the map-stream byte written at 0x558f8 IS A5+0x10A8. (Genesis port relocates A5 to 0xFF2200; the ARCADE base is 0x10C000.)",
     "consequence_0x10D000": "0x10D000 = A5+0x1000, populated by 0x502cc: 16 map-column stream pointers = base_k + 0x13E*64 (base_0=0x1691C, stride 0x22C0). Advanced +4/column during scroll (0x558c8); rebuilt into 0x10D040(=A5+0x1040) by 0x55904. These 16 streams are VISUAL name-table columns.",
     "consequence_section_kind": "A5+0x10A8 (section-kind) = the current map-stream byte from ROM 0x50F6B (indexed by 0x13E via table 0x50EE0). DECODED: values are ONLY {0,1,2}."
    },
@@ -1550,7 +1550,7 @@
    "name_status": "PENDING",
    "category": "BOSS",
    "base_graphics": "0x061D",
-   "actor_family_3e": 2,
+   "actor_family_3e": 0,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     1
@@ -1560,9 +1560,9 @@
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "none",
    "frame_provenance": "STATIC_DECOMPILED",
-   "palette_status": "PROVEN",
-   "palette_source": "boss palette path not traced",
-   "palette_provenance": "UNRESOLVED",
+   "palette_status": "PARTIAL",
+   "palette_source": "palette LINE F proven (0x3C9E8, +0x27=0 -> embedded compositor nibble). COLOUR source is NOT the field pool 0x3BA88->0x4FD02 (disproven: R3 field pool 2 = teal, arcade boss = purple). Real colours come via the master sprite-palette staging 0x4EAF6 -> 0x200000 -> A5+0x1600 (0x3B9FE/0x45D7C); exact line-F layout not yet resolved.",
+   "palette_provenance": "PARTIAL_line_proven_colours_pending",
    "confidence": "route-proven only",
    "unresolved_reason": "",
    "palette": {
@@ -1601,7 +1601,20 @@
     },
     "verified": true,
     "note": "Cody MAME-verified body frame+palette"
-   }
+   },
+   "palette_instances": [
+    {
+     "round": 1,
+     "palette_line": "0xF",
+     "source": "compositor control byte (0x3C9E8 no override)",
+     "anim": "0x00",
+     "program": "0x47908",
+     "lookup": "0x3ba97",
+     "pool": 11,
+     "status": "DISPROVEN as boss colours (field pool != boss palette); line F correct"
+    }
+   ],
+   "boss_structure": "single-record (normal state)"
   },
   {
    "technical_id": "boss_round2",
@@ -1609,7 +1622,7 @@
    "name_status": "PENDING",
    "category": "BOSS",
    "base_graphics": "0x0753",
-   "actor_family_3e": 2,
+   "actor_family_3e": 0,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     2
@@ -1619,9 +1632,9 @@
    "frame_status": "PROVISIONAL",
    "frame_source": "none",
    "frame_provenance": "RUNTIME_CORROBORATION",
-   "palette_status": "PROVISIONAL",
-   "palette_source": "boss palette path not traced",
-   "palette_provenance": "UNRESOLVED",
+   "palette_status": "PARTIAL",
+   "palette_source": "palette LINE F proven (0x3C9E8, +0x27=0 -> embedded compositor nibble). COLOUR source is NOT the field pool 0x3BA88->0x4FD02 (disproven: R3 field pool 2 = teal, arcade boss = purple). Real colours come via the master sprite-palette staging 0x4EAF6 -> 0x200000 -> A5+0x1600 (0x3B9FE/0x45D7C); exact line-F layout not yet resolved.",
+   "palette_provenance": "PARTIAL_line_proven_colours_pending",
    "confidence": "route-proven only",
    "unresolved_reason": "",
    "palette": {
@@ -1660,7 +1673,20 @@
     },
     "verified": false,
     "note": "body frame = ROM init anim (table 0x45592 byte3); NOT MAME-captured; palette line 0xF inferred from R1/R5, pool ROM-proven per round"
-   }
+   },
+   "palette_instances": [
+    {
+     "round": 2,
+     "palette_line": "0xF",
+     "source": "compositor control byte (0x3C9E8 no override)",
+     "anim": "0xd6",
+     "program": "0x499da",
+     "lookup": "0x3bab7",
+     "pool": 3,
+     "status": "DISPROVEN as boss colours (field pool != boss palette); line F correct"
+    }
+   ],
+   "boss_structure": "single-record (normal state)"
   },
   {
    "technical_id": "boss_round3",
@@ -1668,7 +1694,7 @@
    "name_status": "PENDING",
    "category": "BOSS",
    "base_graphics": "0x082C",
-   "actor_family_3e": 2,
+   "actor_family_3e": 0,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     3
@@ -1678,9 +1704,9 @@
    "frame_status": "PROVISIONAL",
    "frame_source": "none",
    "frame_provenance": "RUNTIME_CORROBORATION",
-   "palette_status": "PROVISIONAL",
-   "palette_source": "boss palette path not traced",
-   "palette_provenance": "UNRESOLVED",
+   "palette_status": "PARTIAL",
+   "palette_source": "palette LINE F proven (0x3C9E8, +0x27=0 -> embedded compositor nibble). COLOUR source is NOT the field pool 0x3BA88->0x4FD02 (disproven: R3 field pool 2 = teal, arcade boss = purple). Real colours come via the master sprite-palette staging 0x4EAF6 -> 0x200000 -> A5+0x1600 (0x3B9FE/0x45D7C); exact line-F layout not yet resolved.",
+   "palette_provenance": "PARTIAL_line_proven_colours_pending",
    "confidence": "route-proven only",
    "unresolved_reason": "",
    "palette": {
@@ -1719,7 +1745,20 @@
     },
     "verified": false,
     "note": "body frame = ROM init anim (table 0x45592 byte3); NOT MAME-captured; palette line 0xF inferred from R1/R5, pool ROM-proven per round"
-   }
+   },
+   "palette_instances": [
+    {
+     "round": 3,
+     "palette_line": "0xF",
+     "source": "compositor control byte (0x3C9E8 no override)",
+     "anim": "0x24",
+     "program": "0x47eb4",
+     "lookup": "0x3bad7",
+     "pool": 2,
+     "status": "DISPROVEN as boss colours (field pool != boss palette); line F correct"
+    }
+   ],
+   "boss_structure": "single-record (normal state)"
   },
   {
    "technical_id": "boss_round4",
@@ -1727,7 +1766,7 @@
    "name_status": "PENDING",
    "category": "BOSS",
    "base_graphics": "0x07BF",
-   "actor_family_3e": 2,
+   "actor_family_3e": 0,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     4
@@ -1737,9 +1776,9 @@
    "frame_status": "PROVISIONAL",
    "frame_source": "none",
    "frame_provenance": "RUNTIME_CORROBORATION",
-   "palette_status": "PROVISIONAL",
-   "palette_source": "boss palette path not traced",
-   "palette_provenance": "UNRESOLVED",
+   "palette_status": "PARTIAL",
+   "palette_source": "palette LINE F proven (0x3C9E8, +0x27=0 -> embedded compositor nibble). COLOUR source is NOT the field pool 0x3BA88->0x4FD02 (disproven: R3 field pool 2 = teal, arcade boss = purple). Real colours come via the master sprite-palette staging 0x4EAF6 -> 0x200000 -> A5+0x1600 (0x3B9FE/0x45D7C); exact line-F layout not yet resolved.",
+   "palette_provenance": "PARTIAL_line_proven_colours_pending",
    "confidence": "route-proven only",
    "unresolved_reason": "",
    "palette": {
@@ -1778,7 +1817,20 @@
     },
     "verified": false,
     "note": "body frame = ROM init anim (table 0x45592 byte3); NOT MAME-captured; palette line 0xF inferred from R1/R5, pool ROM-proven per round"
-   }
+   },
+   "palette_instances": [
+    {
+     "round": 4,
+     "palette_line": "0xF",
+     "source": "compositor control byte (0x3C9E8 no override)",
+     "anim": "0xe0",
+     "program": "0x49b90",
+     "lookup": "0x3baf7",
+     "pool": 11,
+     "status": "DISPROVEN as boss colours (field pool != boss palette); line F correct"
+    }
+   ],
+   "boss_structure": "single-record (normal state)"
   },
   {
    "technical_id": "boss_round5",
@@ -1786,7 +1838,7 @@
    "name_status": "PENDING",
    "category": "BOSS",
    "base_graphics": "0x0988",
-   "actor_family_3e": 2,
+   "actor_family_3e": 0,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     5
@@ -1796,9 +1848,9 @@
    "frame_status": "COMPOSER_PROVEN",
    "frame_source": "none",
    "frame_provenance": "STATIC_DECOMPILED",
-   "palette_status": "PROVEN",
-   "palette_source": "boss palette path not traced",
-   "palette_provenance": "UNRESOLVED",
+   "palette_status": "PARTIAL",
+   "palette_source": "palette LINE F proven (0x3C9E8, +0x27=0 -> embedded compositor nibble). COLOUR source is NOT the field pool 0x3BA88->0x4FD02 (disproven: R3 field pool 2 = teal, arcade boss = purple). Real colours come via the master sprite-palette staging 0x4EAF6 -> 0x200000 -> A5+0x1600 (0x3B9FE/0x45D7C); exact line-F layout not yet resolved.",
+   "palette_provenance": "PARTIAL_line_proven_colours_pending",
    "confidence": "route-proven only",
    "unresolved_reason": "",
    "palette": {
@@ -1837,7 +1889,64 @@
     },
     "verified": true,
     "note": "Cody MAME-verified body frame+palette"
-   }
+   },
+   "palette_instances": [
+    {
+     "round": 5,
+     "palette_line": "0xF",
+     "source": "compositor control byte (0x3C9E8 no override)",
+     "anim": "0x82",
+     "program": "0x490de",
+     "lookup": "0x3bb17",
+     "pool": 3,
+     "status": "DISPROVEN as boss colours (field pool != boss palette); line F correct"
+    }
+   ],
+   "boss_component_palette": "5x type-0x11 components: +0x27=0, compositor line F (same 0x3C9E8 embedded rule).",
+   "boss_structure": "MULTI-RECORD (body + structural components)",
+   "boss_component_records": [
+    {
+     "index": 0,
+     "rec_type": "0x11",
+     "base": "0x0988",
+     "anim": "0x89",
+     "selector": 1,
+     "role": "structural segment"
+    },
+    {
+     "index": 1,
+     "rec_type": "0x11",
+     "base": "0x0988",
+     "anim": "0x89",
+     "selector": 1,
+     "role": "structural segment"
+    },
+    {
+     "index": 2,
+     "rec_type": "0x11",
+     "base": "0x0988",
+     "anim": "0x89",
+     "selector": 1,
+     "role": "structural segment"
+    },
+    {
+     "index": 3,
+     "rec_type": "0x11",
+     "base": "0x0988",
+     "anim": "0x89",
+     "selector": 1,
+     "role": "structural segment"
+    },
+    {
+     "index": 4,
+     "rec_type": "0x11",
+     "base": "0x0988",
+     "anim": "0x89",
+     "selector": 1,
+     "role": "structural segment"
+    }
+   ],
+   "boss_component_position": "relative to body each frame via 0x42380 -> 0x43458 (positioner PENDING)"
   },
   {
    "technical_id": "boss_round6",
@@ -1845,7 +1954,7 @@
    "name_status": "PENDING",
    "category": "BOSS",
    "base_graphics": "0x0B35",
-   "actor_family_3e": 2,
+   "actor_family_3e": 0,
    "spawn_route": "scripted paired 0x45342 (mode2 variant), round-tail",
    "round_presence": [
     6
@@ -1855,9 +1964,9 @@
    "frame_status": "PROVISIONAL",
    "frame_source": "none",
    "frame_provenance": "RUNTIME_CORROBORATION",
-   "palette_status": "PROVISIONAL",
-   "palette_source": "boss palette path not traced",
-   "palette_provenance": "UNRESOLVED",
+   "palette_status": "PARTIAL",
+   "palette_source": "palette LINE F proven (0x3C9E8, +0x27=0 -> embedded compositor nibble). COLOUR source is NOT the field pool 0x3BA88->0x4FD02 (disproven: R3 field pool 2 = teal, arcade boss = purple). Real colours come via the master sprite-palette staging 0x4EAF6 -> 0x200000 -> A5+0x1600 (0x3B9FE/0x45D7C); exact line-F layout not yet resolved.",
+   "palette_provenance": "PARTIAL_line_proven_colours_pending",
    "confidence": "route-proven only",
    "unresolved_reason": "",
    "palette": {
@@ -1896,7 +2005,53 @@
     },
     "verified": false,
     "note": "body frame = ROM init anim (table 0x45592 byte3); NOT MAME-captured; palette line 0xF inferred from R1/R5, pool ROM-proven per round"
-   }
+   },
+   "palette_instances": [
+    {
+     "round": 6,
+     "palette_line": "0xF",
+     "source": "compositor control byte (0x3C9E8 no override)",
+     "anim": "0x66",
+     "program": "0x3fa5e",
+     "lookup": "0x3bb37",
+     "pool": 11,
+     "status": "DISPROVEN as boss colours (field pool != boss palette); line F correct"
+    }
+   ],
+   "boss_component_palette": "type 0x17/0x18/0x19 line F; type 0x1A line 0 \u2014 R6 line 0 AND line F both resolve to pool 11, so all four structural records share the same ROM colours (0x4FE62).",
+   "boss_structure": "MULTI-RECORD (body + structural components)",
+   "boss_component_records": [
+    {
+     "index": 0,
+     "rec_type": "0x17",
+     "base": "0x0B35",
+     "anim": "0x66",
+     "selector": 2,
+     "role": "BODY"
+    },
+    {
+     "index": 1,
+     "rec_type": "0x18",
+     "base": "0x0AED",
+     "anim": "0x82",
+     "role": "structural part"
+    },
+    {
+     "index": 2,
+     "rec_type": "0x19",
+     "base": "0x0CCB",
+     "anim": "0x7C",
+     "role": "structural part"
+    },
+    {
+     "index": 3,
+     "rec_type": "0x1A",
+     "base": "0x0BEB",
+     "anim": "0x30",
+     "role": "structural part"
+    }
+   ],
+   "boss_component_position": "relative to body each frame via 0x42380 -> 0x43458 (positioner PENDING)"
   },
   {
    "technical_id": "special_0x0129",
@@ -2074,7 +2229,7 @@
    "category": "CONTROLLER",
    "base_graphics": "0x033E",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
    "round_presence": [],
    "round_status": "PENDING (materialized; round not pinned)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
@@ -2092,7 +2247,7 @@
    "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "—",
+    "marker": "\u2014",
     "state": "0x00",
     "handler": "0x41180"
    },
@@ -2107,30 +2262,34 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x00F4",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
-   "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "round_presence": [
+    4,
+    5,
+    6
+   ],
+   "round_status": "PROVEN PRESENT \u2014 R4,R5,R6 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Materialized/retarget base assigned by state 0x1E transform (0x40E88 sets +0x1E=0x0F4, retargets marker 'O').",
    "frame_status": "VM_LEGAL",
    "frame_source": "0x3D054 selector 0 -> table -> 0x3C902 program (anim 0x00)",
    "frame_provenance": "COMPOSITOR_VM",
-   "palette_status": "PARTIAL",
-   "palette_source": "0x45684 family-2 line 0x456EC nibble 0x4 (round-specific; round-1 representative)",
-   "palette_provenance": "STATIC_DECOMPILED_round_representative",
+   "palette_status": "PROVEN (post-transform DISPLAY)",
+   "palette_source": "H15: compositor control-byte nibble (0x3C9E8, +0x27=0) -> 0x3BA88[round][nibble] -> 0x4FD02; see h15_materialized_render_palettes.tsv",
+   "palette_provenance": "STATIC_DECOMPILED_H15_display",
    "render": {
     "method": "vm",
     "base": 244,
     "anim": 0,
     "compositor_table": 0,
     "palette": {
-     "kind": "materialized_fam2",
-     "round": 1,
-     "nibble": 4
+     "kind": "materialized_display_h15",
+     "round": 4,
+     "nibble": 0
     },
     "note": "legal general program via 0x3D054 sel0 -> 0x3C902; 9 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "round + base write PROVEN (H14); human identity + exact legal frame still PENDING",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
     "marker": "'H' 0x48",
@@ -2150,7 +2309,8 @@
     "compositor_selector": 0,
     "palette_line": "0x4",
     "pieces": 9
-   }
+   },
+   "palette_note_h15": "H15 DISPLAY palette line 0 (pool 0x0b): +0x27=0 -> compositor control nibble (sel0/anim0 prog 0x3D298). Present R4,R5,R6."
   },
   {
    "technical_id": "materialized_0x0DAB",
@@ -2159,9 +2319,9 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0DAB",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
    "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Retarget base assigned by state 0x20 torch chain (0x40EDE/0x40F82 sets +0x1E=0xDAB, retargets marker 'I', anim 0x74).",
    "frame_status": "VM_LEGAL",
@@ -2182,7 +2342,7 @@
     },
     "note": "legal general program via 0x3D054 sel0 -> 0x3C902; 13 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
     "marker": "'O'..'Q' 0x4F-0x51",
@@ -2207,30 +2367,32 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x09EA",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
-   "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "round_presence": [
+    5
+   ],
+   "round_status": "PROVEN PRESENT \u2014 R5 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
-   "description": "Shared marker-chain TRANSFORM base written at 9 sites (H7/H9) — the 'next actor' a hunter/transform becomes. NOT a single projectile.",
+   "description": "Shared marker-chain TRANSFORM base written at 9 sites (H7/H9) \u2014 the 'next actor' a hunter/transform becomes. NOT a single projectile.",
    "frame_status": "VM_LEGAL",
    "frame_source": "0x3D054 selector 0 -> table -> 0x3C902 program (anim 0x74)",
    "frame_provenance": "COMPOSITOR_VM",
-   "palette_status": "PARTIAL",
-   "palette_source": "0x45684 family-2 line 0x456EC nibble 0x4 (round-specific; round-1 representative)",
-   "palette_provenance": "STATIC_DECOMPILED_round_representative",
+   "palette_status": "PROVEN (post-transform DISPLAY)",
+   "palette_source": "H15: compositor control-byte nibble (0x3C9E8, +0x27=0) -> 0x3BA88[round][nibble] -> 0x4FD02; see h15_materialized_render_palettes.tsv",
+   "palette_provenance": "STATIC_DECOMPILED_H15_display",
    "render": {
     "method": "vm",
     "base": 2538,
     "anim": 116,
     "compositor_table": 0,
     "palette": {
-     "kind": "materialized_fam2",
-     "round": 1,
-     "nibble": 4
+     "kind": "materialized_display_h15",
+     "round": 5,
+     "nibble": 12
     },
     "note": "legal general program via 0x3D054 sel0 -> 0x3C902; 13 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "round + base write PROVEN (H14); human identity + exact legal frame still PENDING",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
     "marker": "multi",
@@ -2254,7 +2416,8 @@
     "compositor_selector": 0,
     "palette_line": "0x4",
     "pieces": 13
-   }
+   },
+   "palette_note_h15": "H15 DISPLAY palette lines 0xC/0xD (pools 0x23/0x07, multi-line): +0x27=0 -> control nibbles (sel2/anim0x27 prog 0x3F3E9). Present R5."
   },
   {
    "technical_id": "materialized_0x0179",
@@ -2263,30 +2426,32 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0179",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
-   "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "round_presence": [
+    6
+   ],
+   "round_status": "PROVEN PRESENT \u2014 R6 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Materialized by H5 state 0x15 handler at 0x438B6 (project notes associate it with a cave-entrance block; identity not ROM-name-proven).",
    "frame_status": "VM_LEGAL",
    "frame_source": "0x3D054 selector 2 -> table -> 0x3C902 program (anim 0x70)",
    "frame_provenance": "COMPOSITOR_VM",
-   "palette_status": "PARTIAL",
-   "palette_source": "0x45684 family-2 line 0x456EC nibble 0x1 (round-specific; round-1 representative)",
-   "palette_provenance": "STATIC_DECOMPILED_round_representative",
+   "palette_status": "PROVEN (post-transform DISPLAY)",
+   "palette_source": "H15: compositor control-byte nibble (0x3C9E8, +0x27=0) -> 0x3BA88[round][nibble] -> 0x4FD02; see h15_materialized_render_palettes.tsv",
+   "palette_provenance": "STATIC_DECOMPILED_H15_display",
    "render": {
     "method": "vm",
     "base": 377,
     "anim": 112,
     "compositor_table": 2,
     "palette": {
-     "kind": "materialized_fam2",
-     "round": 1,
-     "nibble": 1
+     "kind": "materialized_display_h15",
+     "round": 6,
+     "nibble": 12
     },
     "note": "legal general program via 0x3D054 sel2 -> 0x3C902; 8 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "round + base write PROVEN (H14); human identity + exact legal frame still PENDING",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
     "marker": "'a'..'c'/'n'..'p'/'z'",
@@ -2302,7 +2467,8 @@
     "compositor_selector": 2,
     "palette_line": "0x1",
     "pieces": 8
-   }
+   },
+   "palette_note_h15": "H15 DISPLAY palette line 0xC (pool 0x23): +0x27=0 -> control nibble (sel0/anim0x70 prog 0x3E1C0). Present R6."
   },
   {
    "technical_id": "materialized_0x0224",
@@ -2311,30 +2477,33 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0224",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
-   "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "round_presence": [
+    2,
+    4
+   ],
+   "round_status": "PROVEN PRESENT \u2014 R2,R4 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Common materialized body assigned across several H5 state handlers.",
    "frame_status": "VM_LEGAL",
    "frame_source": "0x3D054 selector 2 -> table -> 0x3C902 program (anim 0x07)",
    "frame_provenance": "COMPOSITOR_VM",
-   "palette_status": "PARTIAL",
-   "palette_source": "0x45684 family-2 line 0x456EC nibble 0x1 (round-specific; round-1 representative)",
-   "palette_provenance": "STATIC_DECOMPILED_round_representative",
+   "palette_status": "PROVEN (post-transform DISPLAY)",
+   "palette_source": "H15: compositor control-byte nibble (0x3C9E8, +0x27=0) -> 0x3BA88[round][nibble] -> 0x4FD02; see h15_materialized_render_palettes.tsv",
+   "palette_provenance": "STATIC_DECOMPILED_H15_display",
    "render": {
     "method": "vm",
     "base": 548,
     "anim": 7,
     "compositor_table": 2,
     "palette": {
-     "kind": "materialized_fam2",
-     "round": 1,
-     "nibble": 1
+     "kind": "materialized_display_h15",
+     "round": 2,
+     "nibble": 0
     },
     "note": "legal general program via 0x3D054 sel2 -> 0x3C902; 4 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "round + base write PROVEN (H14); human identity + exact legal frame still PENDING",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
     "marker": "multi",
@@ -2354,7 +2523,8 @@
     "compositor_selector": 2,
     "palette_line": "0x1",
     "pieces": 4
-   }
+   },
+   "palette_note_h15": "H15 DISPLAY palette line 0 (pool 0x0b): +0x27=0 -> compositor control nibble (sel0/anim0 prog 0x3D298). Present R2,R4."
   },
   {
    "technical_id": "materialized_0x0266",
@@ -2363,9 +2533,9 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0266",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
    "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Common materialized body assigned across several H5 state handlers.",
    "frame_status": "VM_LEGAL",
@@ -2386,7 +2556,7 @@
     },
     "note": "legal general program via 0x3D054 sel0 -> 0x3C902; 9 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
     "marker": "multi",
@@ -2415,9 +2585,9 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0235",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
    "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Materialized body (H5 handler 0x43984).",
    "frame_status": "VM_LEGAL",
@@ -2438,10 +2608,10 @@
     },
     "note": "legal general program via 0x3D054 sel0 -> 0x3C902; 9 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "—",
+    "marker": "\u2014",
     "state": "H5",
     "handler": "0x43984"
    },
@@ -2463,9 +2633,9 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x09F6",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
    "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Materialized body (H5 handler 0x439AE).",
    "frame_status": "VM_LEGAL",
@@ -2486,10 +2656,10 @@
     },
     "note": "legal general program via 0x3D054 sel2 -> 0x3C902; 10 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "—",
+    "marker": "\u2014",
     "state": "H5",
     "handler": "0x439AE"
    },
@@ -2511,9 +2681,9 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x01FC",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
    "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Materialized body (H5 handler 0x43BEA).",
    "frame_status": "VM_LEGAL",
@@ -2534,10 +2704,10 @@
     },
     "note": "legal general program via 0x3D054 sel0 -> 0x3C902; 9 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "—",
+    "marker": "\u2014",
     "state": "H5",
     "handler": "0x43BEA"
    },
@@ -2559,9 +2729,9 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0236",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
    "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Materialized body (H5 handler 0x43C34).",
    "frame_status": "VM_LEGAL",
@@ -2582,10 +2752,10 @@
     },
     "note": "legal general program via 0x3D054 sel0 -> 0x3C902; 9 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "—",
+    "marker": "\u2014",
     "state": "H5",
     "handler": "0x43C34"
    },
@@ -2607,9 +2777,9 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0546",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
    "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Materialized body (H5 handlers 0x43DFA/0x43FD0).",
    "frame_status": "VM_LEGAL",
@@ -2630,10 +2800,10 @@
     },
     "note": "legal general program via 0x3D054 sel0 -> 0x3C902; 9 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "—",
+    "marker": "\u2014",
     "state": "H5",
     "handler": "0x43DFA"
    },
@@ -2656,9 +2826,9 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x05E9",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
    "round_presence": [],
-   "round_status": "PENDING (materialized; round not pinned)",
+   "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Materialized body (H5 handler 0x43FC4).",
    "frame_status": "VM_LEGAL",
@@ -2679,10 +2849,10 @@
     },
     "note": "legal general program via 0x3D054 sel0 -> 0x3C902; 9 pieces"
    },
-   "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
+   "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "—",
+    "marker": "\u2014",
     "state": "H5",
     "handler": "0x43FC4"
    },
@@ -2696,6 +2866,131 @@
     "palette_line": "0x4",
     "pieces": 9
    }
+  },
+  {
+   "technical_id": "effect_0x0275_burst",
+   "semantic_name": "Burst / impact effect (base 0x0275)",
+   "name_status": "PROVEN (effect, not enemy)",
+   "category": "EFFECT_TRANSIENT",
+   "base_graphics": "0x0275",
+   "actor_family_3e": null,
+   "round_presence": [
+    1
+   ],
+   "round_status": "PROVEN PRESENT \u2014 R1 Phase-2 (marker 0x4D burst); up to 5 concurrent instances",
+   "phase_presence": "Phase-2 (castle scene 0x15)",
+   "description": "Transient burst/impact EFFECT produced by the Round-1 marker-0x4D state-0x1B burst controller (0x43ECC -> 0x43F4E/0x43F52 activates <=5 shared-pool slots A5+0x3C8..0x4C8 -> 0x447F0/0x448B2 -> state 0x0F). The state-0x0F +0x39 child path (0x40DD8) assigns base 0x0275, selector 0, expanding anim 0x9E/0x9F/0xA0 (8/9/10 pieces), and SELF-RETIRES at +0x08>=4 (0x4092E). NOT five enemy species and NOT a composite: each activated slot is an independent short-lived effect. Identity is assigned by state 0x0F, not inherited from the preloaded pool slot.",
+   "frame_status": "VM_LEGAL",
+   "frame_source": "0x3D054 selector 0 -> 0x3C902 program 0x3E732/0x3E753/0x3E778 (anim 0x9E/0x9F/0xA0)",
+   "frame_provenance": "COMPOSITOR_VM",
+   "palette_status": "PROVEN (post-transform DISPLAY)",
+   "palette_source": "H16: +0x27=0 -> compositor control-byte nibble 0 (0x3C9E8) -> 0x3BA88[1][0]=pool 0x0B -> 0x4FD02; h16_burst_child_render.tsv",
+   "palette_provenance": "STATIC_DECOMPILED_H16_display",
+   "materialization_route": {
+    "marker": "0x4D",
+    "state": "0x1B->0x0F",
+    "handler": "0x43ECC->0x43F4E->0x447F0/0x448B2->0x40CCC(0x40DD8)"
+   },
+   "confidence": "technical identity PROVEN (H16): creator route, state-0x0F +0x39 effect path, base/anim/palette. Human name not applicable (effect).",
+   "render": {
+    "method": "vm",
+    "base": 629,
+    "anim": 158,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "materialized_display_h15",
+     "round": 1,
+     "nibble": 0
+    },
+    "note": "burst/impact effect first expanding frame (anim 0x9E); self-retires by frame 0xA0"
+   },
+   "render_state": {
+    "base": "0x0275",
+    "anim": "0x9E",
+    "compositor_selector": 0,
+    "palette_line": "0x0",
+    "pieces": 8
+   },
+   "spawn_route": "0x43ECC (state 0x1B burst controller) -> 0x43F4E/0x43F52 pool activate -> 0x447F0/0x448B2 -> state 0x0F (0x40CCC +0x39 path 0x40DD8)",
+   "unresolved_reason": "Effect (not an enemy). Sub-path depends on activated slot +0x03: +0x03==0 -> base 0x0275 (0x40DD8); +0x03!=0 -> inherited base + sfx 0x17 (0x40E0E). Which slots hold active-state actors at burst time is runtime-dependent.",
+   "legacy_reconciliation": "Sweep-derived producer labels referencing base 0x0275 (normal_families_by_actor_3e: aux_5c8/aux_748/aux_8c8_base0275_compositor0, hostile_base0275_compositor0) are the SAME 0x0275 graphics/effect path now statically proven here (H16). Kept as legacy census evidence; this EFFECT_TRANSIENT entry is the authoritative representation."
+  },
+  {
+   "technical_id": "hazard_r1_cave_block_0x0179",
+   "semantic_name": "Destroyable cave-entrance block",
+   "name_status": "PROVEN",
+   "category": "HAZARD_INTERACTIVE",
+   "hardware": "PC090OJ",
+   "base_graphics": "0x0179",
+   "cells": [
+    "0x0179",
+    "0x017A",
+    "0x017B",
+    "0x017C"
+   ],
+   "actor_family_3e": null,
+   "round_presence": [
+    1
+   ],
+   "round_status": "PROVEN PRESENT \u2014 R1 Phase 1 / Sub-round 1",
+   "phase_presence": "Phase 1 / Sub-round 1",
+   "target_char": "H (0x48)",
+   "live_state": "0x1E",
+   "destruction_state": "0x0F",
+   "description": "Solid, destructible cave-entrance block (2x2 of four 16x16 PC090OJ cells 0x0179..0x017C). Target 'H' (0x48) -> live state 0x1E; on destruction transitions to state 0x0F. Participates in the special-solid player-collision path. Rendered via compositor selector 0, anim 0x70, program 0x3E1C0 (control byte 0x0C on all four pieces -> palette line 0xC). ARCADE colours are BLACK + BROWN (H17). NOT gray, and NOT Cody's rejected Genesis muddy-ground Line-3 reindex.",
+   "frame_status": "VM_LEGAL",
+   "frame_source": "0x3D054 selector 0 -> 0x3C902 program 0x3E1C0 (four cells 0x0179..0x017C)",
+   "frame_provenance": "COMPOSITOR_VM (build/regions/pc090oj.bin arcade cells)",
+   "palette_status": "PROVEN (EXACT ARCADE DISPLAY \u2014 H17)",
+   "palette_source": "R1 line 0xC -> bank 0x3C -> 0x3BA88[R1][0xC]=35 -> pool 0x4FD02+35*0x20 = 0x50162; +0x27 bit6 clear -> compositor control nibble (0x3C9E8). Used pixel indices {1,7,8,9,12,13,14} = black + brown.",
+   "palette_provenance": "STATIC_DECOMPILED_H17_arcade",
+   "used_indices": [
+    1,
+    7,
+    8,
+    9,
+    12,
+    13,
+    14
+   ],
+   "materialization_route": {
+    "marker": "H (0x48)",
+    "state": "0x1E",
+    "destruction_state": "0x0F",
+    "handler": "0x40E88 (live) / 0x40CCC (destruction 0x0F)"
+   },
+   "graphics_base_shared_note": "PC090OJ base 0x0179 is REUSED by more than one actor route. This R1 cave block (target H, state 0x1E, destructible) is DISTINCT from the R6 materialized use of base 0x0179 (state 0x15). Shared graphics base != same semantic actor.",
+   "confidence": "PROVEN (H17): route, states, cells, program, palette line/bank/pool, used indices, arcade colours",
+   "render": {
+    "method": "vm",
+    "base": 377,
+    "anim": 112,
+    "compositor_table": 0,
+    "palette": {
+     "kind": "arcade_object",
+     "round": 1,
+     "nibble": 12,
+     "src": 328034,
+     "used_indices": [
+      1,
+      7,
+      8,
+      9,
+      12,
+      13,
+      14
+     ]
+    },
+    "note": "four arcade PC090OJ cells 0x0179..0x017C, pool-35 palette; visible brown/black rocky block"
+   },
+   "render_state": {
+    "base": "0x0179",
+    "anim": "0x70",
+    "compositor_selector": 0,
+    "palette_line": "0xC",
+    "cells": 4
+   },
+   "spawn_route": "R1 Phase-1 map marker 'H' (0x48) -> 0x41180/0x41362 materialize -> state 0x1E (0x40E88); cells 0x0179..0x017C; special-solid obstacle; destruction -> state 0x0F (0x40CCC)"
   }
  ],
  "actor_registry_note": "actors[] is the SOLE authoritative semantic actor registry driving the bestiary. Legacy structures (former 'bosses' 0x033E model) are quarantined under legacy_evidence and are NEVER generated from. per_round_boss_body_map + actor_census_from_rom are DERIVED references; boss cards come from actors[] (category BOSS).",
@@ -2705,7 +3000,7 @@
    "round": 1,
    "role": "Flying Demon enc-A",
    "oneshot": "A5+0x264",
-   "variant": "—",
+   "variant": "\u2014",
    "identity": "PROVEN (0x0129)",
    "phase": "PHASE 1/2 UNDECIDED (mid-round scripted enemy; door 0x13E unknown) - NOT boss"
   },
@@ -2714,7 +3009,7 @@
    "round": 1,
    "role": "Flying Demon enc-B",
    "oneshot": "A5+0x25A",
-   "variant": "—",
+   "variant": "\u2014",
    "identity": "PROVEN (0x0129)",
    "phase": "PHASE 1/2 UNDECIDED (mid-round scripted enemy; door 0x13E unknown) - NOT boss"
   },
@@ -2813,7 +3108,7 @@
    "ok"
   ],
   [
-   "Marker → actor materialization (H6)",
+   "Marker \u2192 actor materialization (H6)",
    "PROVEN (0x41180 scan + 0x41362 28-route classifier)",
    "ok"
   ],
@@ -2829,37 +3124,37 @@
   ],
   [
    "Ordinary enemy death path (H9)",
-   "PROVEN (one-hit → state 0x0F death → score +0x2C → retire)",
+   "PROVEN (one-hit \u2192 state 0x0F death \u2192 score +0x2C \u2192 retire)",
    "ok"
   ],
   [
    "Boss BODY per round",
-   "6/6 PROVEN bodies (0x061D/0753/082C/07BF/0988/0B35; table 0x444E0→0x45592)",
+   "6/6 PROVEN bodies (0x061D/0753/082C/07BF/0988/0B35; table 0x444E0\u21920x45592)",
    "ok"
   ],
   [
    "Boss clean legal frames",
-   "PARTIAL — bodies proven; per-round legal frames/palettes UNVERIFIED",
+   "bodies proven; R5/R6 multi-record structure + component positions decoded (Cody 0x43458 table 0x43484); palette line F = 0x3BA88[round][15] (Cody-corrected copy direction), colours per pool",
    "part"
   ],
   [
    "Per-round palettes",
-   "PROVEN mechanism (0x3BA88→0x4FD02); field proven, boss line-inferred",
+   "PROVEN mechanism (0x3BA88->0x4FD02); field proven; boss line F = 0x3BA88[round][15] proven",
    "part"
   ],
   [
    "Item / power-up system",
-   "PARTIAL — mechanisms found, roster not proven",
+   "H19: A5+0x12C8 effect dispatcher fully decoded (0x54B1E, types 0..13) but PROVEN VESTIGIAL \u2014 sole producer 0x449B4 writes only types 0/1/2/3; rec_type-12 (weapon) actors are NEVER created and types 4..13 are NEVER produced. Only type-0 (HIT_AUX) actually occurs. Visible item pickups (if any) use a mechanism OUTSIDE this table (open).",
    "part"
   ],
   [
-   "Enemy-death → item link",
-   "OPEN — not yet decoded",
+   "Enemy-death \u2192 item link",
+   "H20: PROVEN no live collectible/drop via reward-field xref (A5+0x12FA weapon path vestigial per H19; A5+0x013A is player-state energy + enemy-contact damage). Real collectible mechanism (if present) undecoded.",
    "pend"
   ],
   [
    "Droppable item types",
-   "0 PROVEN so far",
+   "0 PROVEN pickups (H19: item event table vestigial; no pickup actor/creator via A5+0x12C8)",
    "pend"
   ],
   [
@@ -2869,13 +3164,13 @@
   ],
   [
    "Scripted / positional actors",
-   "PARTIAL (0x450D8 → 0x45248)",
+   "PARTIAL (0x450D8 \u2192 0x45248)",
    "part"
   ],
   [
    "Phase / sub-round assignment",
-   "Phase-2 START proven 6/6 (0x50EE0/0x50F6B section stream); per-scene marker roster OPEN",
-   "part"
+   "Phase-2 START 6/6 + per-scene marker rosters (H13); marker chains executed + cast round-pinned (H14); post-transform DISPLAY palettes resolved for the 4 present bases (H15)",
+   "ok"
   ],
   [
    "Map-marker hazards/obstacles",
@@ -2884,18 +3179,18 @@
   ],
   [
    "PC090OJ compositor VM",
-   "IMPLEMENTED — all 5 selectors funnel to the shared 0x3C902 interpreter; renders field, boss + materialized legal frames",
+   "IMPLEMENTED \u2014 all 5 selectors funnel to the shared 0x3C902 interpreter; renders field, boss + materialized legal frames",
    "ok"
   ],
   [
    "Overall bestiary completeness",
-   "INCOMPLETE — ACTIVE DECOMPILATION",
+   "INCOMPLETE \u2014 ACTIVE DECOMPILATION",
    "pend"
   ],
   [
    "Materialized / marker-driven actors (H5/H6)",
-   "12/12 LEGAL frames via VM (H10); palettes round-representative (round PENDING)",
-   "part"
+   "12/12 LEGAL frames via VM (H10); Phase-2 round placement RESOLVED (H14): 4 present (0x0224 R2,R4 / 0x00F4 R4,R5,R6 / 0x09EA R5 / 0x0179 R6), 8 absent from Phase-2; DISPLAY palettes resolved via compositor control byte +0x27=0 (H15). Human identity/exact anim still pending.",
+   "ok"
   ]
  ],
  "remaining": [
@@ -2904,7 +3199,7 @@
    "PARTIAL"
   ],
   [
-   "2. Resolve exact scripted actor identities (0x450D8 → 0x45248 bases 0x0F4/0x224/0x548 …)",
+   "2. Resolve exact scripted actor identities (0x450D8 \u2192 0x45248 bases 0x0F4/0x224/0x548 \u2026)",
    "PARTIAL"
   ],
   [
@@ -2920,7 +3215,7 @@
    "PARTIAL"
   ],
   [
-   "6. Enemy-death → item-placement LINK (collision/death PROVEN H9; the drop link is the open gap)",
+   "6. Enemy-death \u2192 item-placement LINK (collision/death PROVEN H9; the drop link is the open gap)",
    "NOT STARTED"
   ],
   [
@@ -2971,7 +3266,7 @@
    "_status": "LEGACY: lexicon guessed names (SPEAR/FIREBALL/BOULDER etc.) are NOT authoritative; superseded by actors[]"
   },
   "DEPRECATED_boss_0x033E_model": {
-   "_status": "NON-AUTHORITATIVE / DEPRECATED — do NOT generate from this",
+   "_status": "NON-AUTHORITATIVE / DEPRECATED \u2014 do NOT generate from this",
    "_why": "0x033E is the hidden family-2 scanner/controller ROUTE, not a visible boss body. Real per-round boss bodies are in per_round_boss_body_map / actors[] (bases 0x061D/0753/082C/07BF/0988/0B35 via table 0x444E0->0x45592).",
    "former_bosses_struct": {
     "base": "0x033E",
@@ -3327,7 +3622,7 @@
     "name": "Actor 0x00F4",
     "name_status": "PENDING",
     "creation": [
-     "code-spawned (secondary/projectile/sub-object) @ 0x40E9C, 0x43658, 0x43B06, 0x43E1C, 0x440EA…"
+     "code-spawned (secondary/projectile/sub-object) @ 0x40E9C, 0x43658, 0x43B06, 0x43E1C, 0x440EA\u2026"
     ]
    },
    {
@@ -3393,7 +3688,7 @@
     "name": "Actor 0x0224",
     "name_status": "PENDING",
     "creation": [
-     "code-spawned (secondary/projectile/sub-object) @ 0x436BA, 0x43798, 0x4387A, 0x43C1C, 0x43D7C…"
+     "code-spawned (secondary/projectile/sub-object) @ 0x436BA, 0x43798, 0x4387A, 0x43C1C, 0x43D7C\u2026"
     ]
    },
    {
@@ -3441,7 +3736,7 @@
     "name": "Actor 0x0266",
     "name_status": "PENDING",
     "creation": [
-     "code-spawned (secondary/projectile/sub-object) @ 0x4367C, 0x43694, 0x43C6E, 0x43C86, 0x43CDA…"
+     "code-spawned (secondary/projectile/sub-object) @ 0x4367C, 0x43694, 0x43C6E, 0x43C86, 0x43CDA\u2026"
     ]
    },
    {
@@ -3716,7 +4011,7 @@
     "name": "Actor 0x09EA",
     "name_status": "PENDING",
     "creation": [
-     "code-spawned (secondary/projectile/sub-object) @ 0x40FAC, 0x40FCC, 0x42722, 0x438DC, 0x43C9E…"
+     "code-spawned (secondary/projectile/sub-object) @ 0x40FAC, 0x40FCC, 0x42722, 0x438DC, 0x43C9E\u2026"
     ]
    },
    {
@@ -3905,7 +4200,7 @@
   }
  },
  "phase_partition": {
-  "_source": "Sub-round (phase) boundaries from A5+0x1243 progression variable, decoded by MAME \"Finish Current Sub-Round Now!\" cheat (tools/mame/cheat/output.json) — reflects the code sub-round advance. Each round = 3 sub-rounds: OUTDOOR / CASTLE(Phase2) / BOSS (per \"Select Starting Round/Sub-Round\" naming).",
+  "_source": "Sub-round (phase) boundaries from A5+0x1243 progression variable, decoded by MAME \"Finish Current Sub-Round Now!\" cheat (tools/mame/cheat/output.json) \u2014 reflects the code sub-round advance. Each round = 3 sub-rounds: OUTDOOR / CASTLE(Phase2) / BOSS (per \"Select Starting Round/Sub-Round\" naming).",
   "_provenance": "R1 INDEPENDENTLY CODE-PROVEN: 0x7E collision whole-block door at map col 0x0F -> A5+0x10E8:=7 wipe -> castle sub-round 0x10 (matches cheat). R2-R6 castle doors are per-cell map tiles (not individually mapped) but the sub-round boundaries are the game transition points (cheat authority + A5+0x1243 variable, code-linked via 0x3a63a copying 0x13E->0x1242). Round/boss boundaries {16,2d,44,5b,72,89} independently proven (0x502AC).",
   "castle_start_by_round": {
    "1": "0x10",
@@ -3935,8 +4230,8 @@
      "0x02E8",
      "0x033E"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "castle_confirmed_MAME": [
      "0x0A73 Armored Man A (comp2)",
      "0x0A5A Armored Man B (comp2)",
@@ -3975,8 +4270,8 @@
      "0x02E8",
      "0x033E"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "subround2_13E_static": "0x28-0x2D",
     "subround2_family2_spawners": [
      "0x033E f2 v0 c0",
@@ -4010,8 +4305,8 @@
      "0x01CB",
      "0x033E"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "subround2_13E_static": "0x3F-0x44",
     "subround2_family2_spawners": [
      "0x033E f2 v0 c3",
@@ -4051,8 +4346,8 @@
      "0x03B3",
      "0x06E2"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "subround2_13E_static": "0x56-0x5B",
     "subround2_family2_spawners": [
      "0x033E f2 v0 c3",
@@ -4092,8 +4387,8 @@
      "0x03B3",
      "0x0400"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "subround2_13E_static": "0x6D-0x72",
     "subround2_family2_spawners": [
      "0x033E f2 v1 c3",
@@ -4132,8 +4427,8 @@
      "0x033E",
      "0x03B3"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "subround2_13E_static": "0x7E-0x89",
     "subround2_family2_spawners": [
      "0x033E f2 v1 c4",
@@ -4237,7 +4532,7 @@
     "0x0DAB (0x40F82)",
     "0x09EA (0x40FAC/FCC)"
    ],
-   "type15_armored": "0x0A73 / 0x0A5A (armored men, compositor 2) — MAME-confirmed R1"
+   "type15_armored": "0x0A73 / 0x0A5A (armored men, compositor 2) \u2014 MAME-confirmed R1"
   },
   "common_types_1_14": "route to 0x47140 (walking) / 0x473B8 (flying) -> 0x3CEB0 sets base from actor+0x3E family (via family tables 0x45502). Per-type family assignment NOT yet fully decoded.",
   "status": "MECHANISM PROVEN; per-round Castle enemy IDENTITIES PENDING (need type->base for common types + precise per-castle marker geometry, or MAME corroboration).",
@@ -4245,14 +4540,14 @@
   "MAME_corroboration_R1": {
    "method": "ORIGINAL ARCADE MAME (0.276) live actor-array dump (A5+0x2C8 stride 0x40); coin+start, sampled distinct active actors +0x1E/+0x3E/+0x06/+0x38/+0x01/+0x27 across R1 gameplay.",
    "observed_bases": {
-    "0x004B": "Lizardman — field/outdoor (fam0,comp0)",
-    "0x00D0": "Chimera — field (fam1,comp0)",
-    "0x02E8": "Four-Armed — field (fam3,comp0)",
-    "0x0A73": "ARMORED MAN A — comp2, ground-marker/code-spawned (NOT field schedule)",
-    "0x0A5A": "ARMORED MAN B (variant) — comp2, fam0x0C",
-    "0x03F6": "Large Bat — type0x0A",
-    "0x050B": "Actor 0x050B — type0x0C (bat-like, IDENTITY PENDING)",
-    "0x0D5F": "Actor 0x0D5F — type0x0D (IDENTITY PENDING)",
+    "0x004B": "Lizardman \u2014 field/outdoor (fam0,comp0)",
+    "0x00D0": "Chimera \u2014 field (fam1,comp0)",
+    "0x02E8": "Four-Armed \u2014 field (fam3,comp0)",
+    "0x0A73": "ARMORED MAN A \u2014 comp2, ground-marker/code-spawned (NOT field schedule)",
+    "0x0A5A": "ARMORED MAN B (variant) \u2014 comp2, fam0x0C",
+    "0x03F6": "Large Bat \u2014 type0x0A",
+    "0x050B": "Actor 0x050B \u2014 type0x0C (bat-like, IDENTITY PENDING)",
+    "0x0D5F": "Actor 0x0D5F \u2014 type0x0D (IDENTITY PENDING)",
     "0x033E": "boss family",
     "0x0275": "projectile/effect",
     "0x019D": "projectile",
@@ -4260,7 +4555,7 @@
     "0x00F4": "effect (multi-anim)",
     "0x0DAB": "effect"
    },
-   "key_finding": "The Castle-scene enemies (armored men 0x0A73/0x0A5A, bats) come from the ground-marker/code-spawn system with compositor 2 — NEVER from the 0x4A104 field schedule. Confirms the field-schedule Castle partition was wrong.",
+   "key_finding": "The Castle-scene enemies (armored men 0x0A73/0x0A5A, bats) come from the ground-marker/code-spawn system with compositor 2 \u2014 NEVER from the 0x4A104 field schedule. Confirms the field-schedule Castle partition was wrong.",
    "limitation": "Clean per-scene (outdoor vs castle) separation and R2-R6 castle rosters require a full playthrough trace with player input (memory-forcing 0x13E / start-select 0x5FF9F did not cleanly load the castle scene). R2-R6 Castle rosters PENDING that capture."
   }
  },
@@ -4425,12 +4720,12 @@
    "0x40F82": "0x0DAB",
    "0x40FAC/0x40FCC": "0x09EA"
   },
-  "update_routine_base_pool": "0x43xxx-0x44xxx enemy updates assign bases incl 0x0224/0x0266 (common bodies), 0x09EA (marker-chain TRANSFORM base, H7/H9 — NOT a single projectile; genuine thrown route is marker 'I'->rec_type 1, template A5+0x588), 0x0179,0x0235,0x01FC,0x0236,0x0546,0x05E9,0x00F4",
+  "update_routine_base_pool": "0x43xxx-0x44xxx enemy updates assign bases incl 0x0224/0x0266 (common bodies), 0x09EA (marker-chain TRANSFORM base, H7/H9 \u2014 NOT a single projectile; genuine thrown route is marker 'I'->rec_type 1, template A5+0x588), 0x0179,0x0235,0x01FC,0x0236,0x0546,0x05E9,0x00F4",
   "transformation_model": "Family-2 (base 0x033E, Y=0x180 offscreen) actors are SELF-TRANSFORMING scanners: state0->0x41180 scans collision-grid markers; on target-marker hit the enemy-state handler REWRITES the SAME record +0x1E/+0x3E/+0x38/+0x01 in place. 0x033E is never rendered as itself. Only 0x4103E allocates a second (latent child hunter) actor.",
   "floor_vs_letter_markers": "floor markers 0x31-0x3c (nav/waypoint, via 0x40a86->states 3-14); letter markers 0x45-0x7b (enemy placement, via 0x41180 big dispatch->states 0x0F,0x13-0x22), 0x13E-gated"
  },
  "architecture_status": {
-  "_synced_through": "H10",
+  "_synced_through": "H24",
   "actor_architecture": [
    [
     "Creation pools mapped (A5+0x2C8/0x508/0x5C8/0x748/0x8C8)",
@@ -4463,7 +4758,7 @@
   ],
   "visual_reconstruction": [
    [
-    "Render dispatch proven: 0x3D054 selector → shared 0x3C902 interpreter (all 5 tables)",
+    "Render dispatch proven: 0x3D054 selector \u2192 shared 0x3C902 interpreter (all 5 tables)",
     "done"
    ],
    [
@@ -4475,8 +4770,8 @@
     "done"
    ],
    [
-    "Materialized palettes are round-specific; exact per-round instance PENDING",
-    "part"
+    "Materialized Phase-2 round placement RESOLVED (H14); post-transform DISPLAY palettes RESOLVED (H15, +0x27=0 -> compositor control nibble) for the 4 PRESENT bases; 8 others PROVEN ABSENT from Phase-2",
+    "done"
    ],
    [
     "Boss legal frames / palettes (R2/R3/R4/R6 static)",
@@ -4488,30 +4783,30 @@
    ]
   ],
   "still_open": [
-   "Exact per-round placement of the materialized cast (palette instance depends on it)",
-   "Enemy death → item-placement link (H9 gap); droppable-item roster (0 proven)",
+   "Exact on-screen first-frame animation + human identity for materialized cast (round placement + display palettes already resolved H14/H15)",
+   "Item/collectible system: A5+0x12C8 event path PROVEN VESTIGIAL (H19); H20 proved weapon-grant path unreachable and found no live collectible-actor reward via A5+0x12FA/A5+0x013A. Real collectible/drop mechanism (if any in world_rev1) still undecoded \u2014 see H20 report.",
    "Remaining boss legal frames + palettes for R2/R3/R4/R6",
    "Exact per-round 0x7E door boundary (metatile-collision format blocked)"
   ]
  },
  "items_system": {
-  "_synced_through": "H9",
-  "status": "PARTIAL — mechanisms located, roster not proven",
+  "_synced_through": "H24",
+  "status": "PARTIAL \u2014 mechanisms located, roster not proven",
   "categories": [
    {
     "kind": "ENEMY-DEATH DROPS",
     "status": "OPEN",
-    "detail": "Enemy kill path is PROVEN (H9: collision 0x449B4 → one-hit → state 0x0F death → score +0x2C → retire 0x4092E), but NO per-kill item-drop creator is reached from it. The enemy-death → item-placement LINK is not yet decoded."
+    "detail": "Enemy kill path is PROVEN (H9: collision 0x449B4 \u2192 one-hit \u2192 state 0x0F death \u2192 score +0x2C \u2192 retire 0x4092E), but NO per-kill item-drop creator is reached from it. The enemy-death \u2192 item-placement LINK is not yet decoded."
    },
    {
     "kind": "FIXED / MARKER-PLACED",
-    "status": "MECHANISM PROVEN · identities partial",
+    "status": "MECHANISM PROVEN \u00b7 identities partial",
     "detail": "H6 marker materialization (letter markers via 0x41180/0x41362) places actors in the level; some are pickups. Exact per-marker item identities PARTIAL."
    },
    {
     "kind": "SCRIPTED / POSITIONAL",
-    "status": "MECHANISM PROVEN · identities partial",
-    "detail": "Per-frame scripted spawner 0x450D8 → 0x45248 places actors by camera position (A5+0x2DE) and sub-sequence (A5+0x21C); bases include 0x0F4/0x224/0x548. Which of these are items vs enemies is not all proven."
+    "status": "MECHANISM PROVEN \u00b7 identities partial",
+    "detail": "Per-frame scripted spawner 0x450D8 \u2192 0x45248 places actors by camera position (A5+0x2DE) and sub-sequence (A5+0x21C); bases include 0x0F4/0x224/0x548. Which of these are items vs enemies is not all proven."
    },
    {
     "kind": "DROPPABLE ITEM TYPES",
@@ -4522,8 +4817,130 @@
  },
  "compositor_status": {
   "_source": "tools/graphics_optimizer/compositor_vm.py (offline model of 0x3D054/0x3C902)",
-  "general_modes": "IMPLEMENTED — run_general + program_address over COMPOSITOR_TABLES render field actors and the six boss-body initial frames",
-  "special_program_modes": "NOT VALIDATED — raise SpecialCompositorProgram (mode/program-address surfaced, not executed)",
+  "general_modes": "IMPLEMENTED \u2014 run_general + program_address over COMPOSITOR_TABLES render field actors and the six boss-body initial frames",
+  "special_program_modes": "NOT VALIDATED \u2014 raise SpecialCompositorProgram (mode/program-address surfaced, not executed)",
   "summary": "IMPLEMENTED FOR SUPPORTED (GENERAL) MODES; SPECIAL/PROGRAM MODES UNVALIDATED"
+ },
+ "player_render_architecture": {
+  "status": "PROVEN (H24 + integrity closure)",
+  "summary": "Rastan is TWO independent body tracks (upper torso + lower legs) composed at a fixed waist seam; the weapon is a separate overlay layer. The two tracks animate independently \u2014 full-body poses are per-animation-index pairings, not the Cartesian product.",
+  "constructor": "0x540CC",
+  "frame_selector": "0x54326",
+  "upper_body": {
+   "frame_field": "A5+0x1244",
+   "composer": "0x54492",
+   "table": "0x5BD40",
+   "slots": 75,
+   "selection_routes": {
+    "a2_weapon_variant": "weapon-variant pose tables (weapon anim active); e.g. 0x5BA38 -> weapon-swing torso 44/46/48/50/52/54 + odd companions",
+    "a3_normal": "17 normal pose tables 0x5B640..0x5BCC0 (idle/walk/run/jump/death)",
+    "attack_tables": "0x5BAE0 / 0x5BB10 (word-stride); 0x5BAE0 -> up-thrust torso 12/13/14"
+   }
+  },
+  "lower_body": {
+   "frame_field": "A5+0x1246",
+   "composer": "0x546A8",
+   "table": "0x5C466",
+   "slots": 52,
+   "distinct": 51,
+   "note": "slot 34 is intentionally blank; leg cells at y 0/+16",
+   "selection_route": "a4 pose tables in 0x540CC"
+  },
+  "record_format": "6-byte pieces [tile:u16][xoff:s8][yoff:s8][control:u16]; piece count is VARIABLE, bounded by the next slot's offset (fixed 4-piece hardware loop over-reads short records into padding = stray tile-0x0003)",
+  "weapon_overlay": {
+   "kind": "separate layer, indexed by the same slot A5+0x1244, appended after body pieces",
+   "selector": "A5+0x12FA",
+   "tables": [
+    "0x5CD8A",
+    "0x5D068",
+    "0x5D346",
+    "0x5D666"
+   ],
+   "hand_point": "the sword-hilt cell of the weapon frame is the per-frame hand/grip position",
+   "proven_identities": {
+    "object:weapon.sword": {
+     "name": "SWORD",
+     "selector_a12fa": 1,
+     "table": "0x5CD8A",
+     "frames": 43,
+     "unique_cells": 13,
+     "grant": "respawn 0x504B6 / default",
+     "identity_proof": "base/default weapon"
+    },
+    "object:weapon.axe": {
+     "name": "AXE",
+     "selector_a12fa": 2,
+     "table": "0x5D346",
+     "frames": 43,
+     "unique_cells": 15,
+     "grant": "player_weapon_grant_state2_54edc",
+     "identity_proof": "shaft+head cells; elimination vs hammer"
+    },
+    "object:weapon.hammer": {
+     "name": "HAMMER",
+     "selector_a12fa": 3,
+     "table": "0x5D666",
+     "frames": 43,
+     "unique_cells": 18,
+     "grant": "player_weapon_grant_state3_54ec6",
+     "identity_proof": "ball-and-chain: cells 0x491-0x49d render as round balls on chains (decisive)"
+    },
+    "object:weapon.fire_sword": {
+     "name": "FIRE SWORD",
+     "selector_a12fa": 4,
+     "table": "0x5D068",
+     "frames": 43,
+     "unique_cells": 13,
+     "grant": "player_fire_sword_grant_54ef2 (named)",
+     "identity_proof": "named grant handler; flaming-blade cells"
+    }
+   },
+   "composer": "0x54598 (tail of body composer); indexed by A5+0x1244; SAT staging 0x10D1B2",
+   "authoritative_evidence": [
+    "analysis/actor_decompilation/h24_player_weapon_cells.tsv",
+    "analysis/actor_decompilation/h24_player_weapon_frames.tsv",
+    "analysis/decompilation/h24_player_weapon_render_contract.json"
+   ],
+   "palette": "each weapon is a distinct palette object (object:weapon.<name>) in the sprite palette space; NOT object:player.rastan; authored separately in the Palette Composer"
+  },
+  "palette": "single shared source: line 3, colbank 0x60 (see specs/palette_decisions.json Rastan-player decision; NOT duplicated here). Mapping the player palette once covers every torso/leg frame.",
+  "reachability": "POSITIVE PROVENANCE 75/75 torso slots (a2 + a3 + attack); NO torso frame is UNUSED",
+  "full_body_pairings": "60 valid reconstructed pairings (independent tracks; disconnected leg-17 pairings removed by waist-seam gap check)",
+  "authoritative_generated_evidence": {
+   "torso_cells": "analysis/actor_decompilation/h24_player_frame_cells.tsv",
+   "leg_cells": "analysis/actor_decompilation/h24_player_leg_cells.tsv",
+   "reference_map": "analysis/actor_decompilation/h24_player_frame_reference_map.tsv",
+   "render_contract": "analysis/decompilation/h24_player_render_contract.json",
+   "frame_selection": "analysis/actor_decompilation/h24_player_frame_selection.tsv"
+  },
+  "consumers": [
+   "tools/graphics_optimizer/build_bestiary.py (Rastan/Player galleries)",
+   "tools/graphics_editor/server.py (Palette Composer 'Rastan body' usages)"
+  ],
+  "durable_c": [
+   "raw/00054326.c + rastan_player_animation.c",
+   "raw/00054492.c + rastan_player_render.c (documents both composers 0x54492 + 0x546A8, two-half, a2/a3/a4, weapon overlay)"
+  ],
+  "_synced_through": "H24-integrity"
+ },
+ "r1p1_enemy_corpus": {
+  "status": "COMPLETE corpus derived from sprite_census_captured.json (H24-era census)",
+  "authoritative_evidence": [
+   "analysis/actor_decompilation/r1p1_enemy_semantic_corpus.tsv",
+   "analysis/graphics_optimizer/round1_phase1_corpus/sprite_census_captured.json"
+  ],
+  "complete_counts": {
+   "chimera": 148,
+   "flying_demon": 112,
+   "four_armed_insect": 106,
+   "lizardman": 91,
+   "valkyrie": 18,
+   "large_bat": 14,
+   "small_bat": 3
+  },
+  "code_bank_collisions": "48 codes in the 0x0A73 shared anim block occur under banks 0x34/0x36/0x3A (chimera/four_armed/lizardman) with DIFFERENT authored index_maps -> requires (code,bank) byte-variant representations; a flat code-indexed asset cannot satisfy all three",
+  "flying_demon": "two components: component_A base 0x0129 (79 cells) + component_B anim 0x0275 (70 cells), both bank 0x35; body/wing labels not proven -> neutral component terminology",
+  "bats": "Small Bat base 0x0268 (3 cells) and Large Bat base 0x03F6 + anim 0x0275 (14 cells), both bank 0x3E, DISJOINT codes -> distinct palette objects",
+  "coverage_matrix": "analysis/actor_decompilation/r1p1_sprite_coverage_matrix.tsv"
  }
 }

@@ -1,0 +1,7 @@
+space	equation	source_pc	status
+player screen-Y	A5+0x10BE, clamp [32,304] center 80	0x539C2	PROVEN
+FG Y scroll	A5+0x10AE (mod 512) -> 0xC40002	0x55ACC	PROVEN
+actor screen-Y	(actor_world_y + A5+0x10AE) & 0x1FF	0x461CE	PROVEN
+collision probe row	((( (~A5+0x10AE+1)&0x1FF ) + world_y) >>1)+8 &0xFC	0x53A2E	PROVEN
+logical map row	(world_y / 8) mod 64	derived	PROVEN
+ring row	(A5+0x10AE mod 512) / 8	0x55ACC	PROVEN

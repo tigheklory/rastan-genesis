@@ -1,0 +1,7 @@
+field	writer_pc	value	context	role	status
+A5+0x12FA weapon	0x504B6	=1	player respawn/init (0x504A2)	RESET normal sword	PROVEN (not a collectible)
+A5+0x12FA weapon	0x54ED4/0x54EEA/0x54F00	=3/2/4	vestigial A5+0x12C8 handlers (H19)	weapon grant (UNREACHABLE)	PROVEN vestigial
+A5+0x013A energy	0x504A2/0x51040/0x51222/0x5500E	=12288	respawn/init/continue	RESET full energy	PROVEN (not a collectible)
+A5+0x013A energy	0x504F2	+3072	player state a5@(0x46)==2 (0x50234)	player-state energy regen	PROVEN (state-driven, not pickup)
+A5+0x013A energy	0x551xx-0x554xx (jump table 0x550A8)	-N	A5+0x12A8 enemy-contact damage	ENEMY DAMAGE drain	PROVEN (damage, not collectible)
+A5+0x013A energy	0x54FD4/0x54FEC	+1024/+2048	vestigial A5+0x12C8 handlers	energy pickup (UNREACHABLE)	PROVEN vestigial

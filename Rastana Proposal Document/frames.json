@@ -1,0 +1,58 @@
+[
+ {
+  "key": "idle",
+  "label": "Idle / stand",
+  "file": "rastana_idle.png",
+  "rastan_u": 0,
+  "rastan_l": 0
+ },
+ {
+  "key": "walk1",
+  "label": "Walk A",
+  "file": "rastana_walk1.png",
+  "rastan_u": 28,
+  "rastan_l": 18
+ },
+ {
+  "key": "walk2",
+  "label": "Walk B",
+  "file": "rastana_walk2.png",
+  "rastan_u": 29,
+  "rastan_l": 19
+ },
+ {
+  "key": "lunge",
+  "label": "Guard lunge (your reference pose)",
+  "file": "rastana_lunge.png",
+  "rastan_u": 15,
+  "rastan_l": 13
+ },
+ {
+  "key": "crouch",
+  "label": "Crouch guard",
+  "file": "rastana_crouch.png",
+  "rastan_u": 6,
+  "rastan_l": 6
+ },
+ {
+  "key": "jump",
+  "label": "Jump",
+  "file": "rastana_jump.png",
+  "rastan_u": 37,
+  "rastan_l": 27
+ },
+ {
+  "key": "attack",
+  "label": "Overhead sword",
+  "file": "rastana_attack.png",
+  "rastan_u": 38,
+  "rastan_l": 28
+ },
+ {
+  "key": "thrust",
+  "label": "Upward thrust",
+  "file": "rastana_thrust.png",
+  "rastan_u": 12,
+  "rastan_l": 8
+ }
+]

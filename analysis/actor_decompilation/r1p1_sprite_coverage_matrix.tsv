@@ -1,0 +1,13 @@
+object	proven_frames	unique_codes	codebank_variants	composer_frames	authored	generated	missing	raw_wrong	status
+Rastan	135 (60 pairs)	344	344	187 (60/75/51)	YES	344	0	0	COMPLETE (Build 0380, USER ACCEPTED)
+Sword	43	13	13	43	no (author)	0	13	0	IN COMPOSER · NOT YET AUTHORED
+Axe	43	15	15	43	no (author)	0	15	0	IN COMPOSER · NOT YET AUTHORED
+Hammer	43	18	18	43	no (author)	0	18	0	IN COMPOSER · NOT YET AUTHORED
+Fire Sword	43	13	13	43	no (author)	0	13	0	IN COMPOSER · NOT YET AUTHORED
+Lizardman	complete	91	91	91	YES	35	56	pending gen	COMPLETE CORPUS in Composer; gen=representative (needs (code,bank))
+Valkyrie	complete	18	18	18	YES	8	10	pending gen	COMPLETE CORPUS in Composer; gen=representative (needs (code,bank))
+Four-Armed Insect	complete	106	106	106	YES	10	96	pending gen	COMPLETE CORPUS in Composer; gen=representative (needs (code,bank))
+Chimera	complete	148	148	148	YES	11	137	pending gen	COMPLETE CORPUS in Composer; gen=representative (needs (code,bank))
+Flying Demon	complete	112	112	112	YES	26	86	pending gen	COMPLETE CORPUS in Composer; gen=representative (needs (code,bank))
+Small Bat	complete	3	3	3	YES	1	2	pending gen	COMPLETE CORPUS in Composer; gen=representative (needs (code,bank))
+Large Bat	complete	14	14	14	YES	4	10	pending gen	COMPLETE CORPUS in Composer; gen=representative (needs (code,bank))

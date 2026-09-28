@@ -36,7 +36,7 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 # hardware destinations to pc090oj_object_ram + the same record offsets.
 # Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
 # source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
-CANONICAL_OPCODE_REPLACE_COUNT = 228  # 227 + 1 (Build 0346: arcade 0x51AB6 absolute WRAM base literal 0x10D280->0xFF1280 rebase, seg-5 address-error fix).
+CANONICAL_OPCODE_REPLACE_COUNT = 230  # Build 0377: rebase the Phase-3 stage selector at 0x59704.
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -110,7 +110,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # 227 + 1 (Build 0346: arcade 0x51AB6 abso
 # canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the semantic
 # opcode-replacement sites are unchanged. The direct-native 0x05A098 gameplay
 # status producer adds 0x1D0 wrapper bytes without adding a replacement site.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1A2EB8  # Build 0359: four exact bbox orientations expand the generated PC090OJ bbox asset by 0xC000; opcode sites unchanged.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1A7EB8  # Build 0381: complete (code,bank) sprite pipeline appends 96 variant cells to pc090oj_editor.bin (+0x3000). Prev 0x1A4EB8 (Build 0378).
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
@@ -1565,6 +1565,7 @@ def main() -> int:
                 _src_end,
                 spec.get("jump_table_word_displacements", []),
                 [],
+                spec.get("declared_relative_branches", []),
             )
         )
         for _resolved_rep in resolved_shift_replacements:
@@ -1938,17 +1939,24 @@ def main() -> int:
         table_addr = parse_hexish(table["table_address"])
         entry_count = int(table["entry_count"])
         entry_size = int(table.get("entry_size_bytes", 4))
+        entry_stride = int(table.get("entry_stride_bytes", entry_size))
+        pointer_offset = int(table.get("pointer_offset_bytes", 0))
         if entry_size != 4:
             raise RuntimeError(
                 f"absolute_long_pointer_table at 0x{table_addr:06X}: "
                 f"unsupported entry_size_bytes={entry_size}"
+            )
+        if entry_stride < entry_size or pointer_offset < 0 or pointer_offset + entry_size > entry_stride:
+            raise RuntimeError(
+                f"absolute_long_pointer_table at 0x{table_addr:06X}: invalid "
+                f"entry_stride_bytes={entry_stride}, pointer_offset_bytes={pointer_offset}"
             )
 
         rom_table_addr = table_addr + relocation_delta + accumulated_shift_before(table_addr, shift_deltas)
         fixes = 0
         target_relocation = relocation_delta if execute_from_relocated_base else 0
         for i in range(entry_count):
-            entry_addr = rom_table_addr + (i * 4)
+            entry_addr = rom_table_addr + (i * entry_stride) + pointer_offset
             old_target = int.from_bytes(rom_bytes[entry_addr:entry_addr + 4], "big")
             if not (source_start <= old_target < source_end):
                 continue
@@ -1968,6 +1976,8 @@ def main() -> int:
                 "table_address": f"0x{table_addr:06X}",
                 "rom_table_address": f"0x{rom_table_addr:06X}",
                 "entry_count": entry_count,
+                "entry_stride_bytes": entry_stride,
+                "pointer_offset_bytes": pointer_offset,
                 "fixes": fixes,
             }
         )

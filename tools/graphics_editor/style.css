@@ -76,6 +76,12 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .sw.nearestforbid{outline:3px solid #f55;z-index:3}
 #list .row input[type=checkbox]{vertical-align:middle;margin-right:2px}
 .framesel{padding:2px 8px;background:#181820;display:flex;gap:3px;flex-wrap:wrap;border-bottom:1px solid #23232c}
+.framebrowser{padding:5px 8px;background:#15151d;border-bottom:1px solid #23232c;display:flex;flex-direction:column;gap:5px}
+.fbcat{display:flex;gap:4px;flex-wrap:wrap}
+.fbcat .mini{border:1px solid #33333f}
+.fbnav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fbpos{font-size:11px;color:#ffcf6b;min-width:58px;text-align:center;font-variant-numeric:tabular-nums}
+.fbsel{flex:1;min-width:130px;background:#0f0f15;color:#e8e8f0;border:1px solid #33333f;border-radius:4px;font-size:11px;padding:2px 4px}
 
 /* v0.4 Layer A + protected line */
 .line.protline{background:#2a2016;outline:1px solid #7a5a20;border-radius:4px}

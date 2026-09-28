@@ -1,0 +1,11 @@
+frontier_id,domain,item,current_status,blocking_dependency,enables
+CF-01,player,player per-frame cells extracted (H24: 75/75 slots decoded; 73 distinct),CLOSED,DONE (h24_player_frame_cells.tsv),full player body frames rendered
+CF-02,hazard,Centaur base identity among 4 PENDING field bases,PARTIAL,per-base sprite silhouette decode,name + Bestiary entry for Centaur
+CF-03,hazard,terrain-hazard marker set (spears/stalagmites),PENDING,enumerate markers driving 0x40E88/0x40EDE,spears+stalagmites census rows
+CF-04,hazard,fireball/flame projectile child base,PENDING,0x4092E child-base selection decode,fireball+flame-block graphics
+CF-05,enemy,human names for field bases 0x01CB/0x043A/0x06E2/0x0889,PARTIAL,sprite decode + arcade attract cross-ref,named Bestiary field roster
+CF-06,item,equipment/inventory grant path (A5+0x1302/0x1390/0x140C..),PENDING,xref non-init writers of equipment fields (H20 §M),confirm/deny functional pickups in world_rev1
+CF-07,boss,boss state machines beyond identity,PENDING,decompile boss dispatch handlers,boss behavior census
+CF-08,world,0x7E door-boundary per-round positions,PARTIAL,source CLARIFIED (H22): door = collision-word low 7 bits (cell&0x7F)==0x7E via 0x53A2E; remaining = scan 0x1691C->record cells per scene for 0x7E,per-round door 0x13E enumeration
+CF-09,world,scene-transition internals (screen wipe / new-scene setup),PENDING,decompile 0x56176 + 0x59F5E + 0x5632A,exact transition timing/ownership
+CF-10,player,PLAYER_SLOT_REACHABILITY: which of 75 slots are gameplay vs attract/demo,PARTIAL,static state/pose-table reachability from 0x54326 pose tables + per-state a3,reachability class per slot

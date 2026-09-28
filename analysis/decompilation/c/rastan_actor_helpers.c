@@ -56,12 +56,15 @@ void actor_family_loader_4544e(ActorRecord *a4, uint8_t a4_variant_752)
 /*
  * ORIGINAL ARCADE PC: 0x00045684  FUN_00045684  palette attribute resolver.
  * Provenance: GHIDRA_RAW (normalized). Status: COMPLETE.
- * family==2 -> boss palette 0x456EC (by comp/variant/round); else 0x45722 /
- * 0x4576A (boss-mode) by family per round. Writes +0x27 |= 0x40.
+ * CORRECTION (boss-palette-source): 0x45684 is the FIELD-SCHEDULE path (sole caller 0x4A086@0x4A0CE);
+ * it is NOT on the boss-body creation path. family==2 -> family-2 FIELD palette 0x456EC
+ * (by comp/variant/round); else 0x45722 / 0x4576A by family per round. Writes +0x27 |= 0x40.
+ * Boss BODY records (+0x3E=0, record-type path 0x45330->0x4449E->0x453A8->0x4543E) keep +0x27=0,
+ * so their palette comes from the EMBEDDED compositor control nibble via 0x3C9E8 (see 0x3C9E8).
  */
-extern const uint8_t pal_456ec[];   /* boss palette bank table */
+extern const uint8_t pal_456ec[];   /* family-2 FIELD palette table (0x45684 path; NOT boss) */
 extern const uint8_t pal_45722[];   /* per-family per-round palette table */
-extern const uint8_t pal_4576a[];   /* boss-mode variant */
+extern const uint8_t pal_4576a[];   /* 0x45684 alt table (A5+0x2A2 set); NOT boss-specific */
 void actor_palette_45684(ActorRecord *a4, uint8_t a4_variant_752,
                          int a5_boss_mode /* A5+0x2A2 */)
 {

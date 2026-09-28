@@ -1,0 +1,10 @@
+pc	field	classification	caller	condition	calculation	result	status
+0x5050E	A5+0x10AE	RESPAWN/INIT	0x504FA	scene entry	word0 of 0x50850[prog*12]	Y scroll init (R1P2=0x160)	PROVEN
+0x5583E	A5+0x10AE	NORMAL_GAMEPLAY	0x557BA	down branch	A5+0x10AE-=step &0x1FF	Y scroll down	PROVEN
+0x5588C	A5+0x10AE	NORMAL_GAMEPLAY / VERTICAL_CLIMB	0x55854	up branch (accum>=0)	A5+0x10AE+=step &0x1FF	Y scroll up	PROVEN
+0x5608A	A5+0x10AE	SCENE_TRANSITION	0x560xx	transition	clrw	Y scroll = 0	PROVEN
+0x561A0	A5+0x10AE	SCENE_TRANSITION	0x561xx	transition entry	clrw	Y scroll = 0 (pre re-init)	PROVEN
+0x5788A	A5+0x10AE	ROUND_TRANSITION	0x578xx	round setup	clrw	Y scroll = 0	PARTIAL
+0x50512	A5+0x10EC	RESPAWN/INIT	0x504FA	scene entry	word0 (same as Y)	X scroll init	PROVEN
+0x55BB0/0x55BE6	A5+0x10EC	NORMAL_GAMEPLAY	0x55B3C	half-rate	A5+0x10EC-=half &0x1FF	X scroll	PROVEN
+0x5744E	A5+0x10EC	SCRIPTED/INIT	0x574xx	setup	movew #0x160	X scroll = 352	PARTIAL

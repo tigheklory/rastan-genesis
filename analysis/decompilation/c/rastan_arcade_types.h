@@ -50,7 +50,7 @@ typedef struct ActorRecord {
     uint8_t  field_24;        /* +0x24 off-screen retire flag */
     uint8_t  field_25;        /* +0x25 */
     uint8_t  sched_slot;      /* +0x26 field-schedule slot id (0..4) */
-    uint8_t  pal_attr;        /* +0x27 palette attribute (0x40|nibble) */
+    uint8_t  pal_attr;        /* +0x27 optional attribute override; bit6 enables replacement */
     uint16_t cfg_28;          /* +0x28..+0x29 template word; +0x29 is its low byte (68000 big-endian) */
     uint8_t  field_2a;        /* +0x2A schedule bit0 flag */
     uint8_t  field_2b;        /* +0x2B */
@@ -86,7 +86,17 @@ typedef struct ActorRecord {
  *  +0x26 (sched_slot): schedule-slot id for field-schedule actors; not meaningful
  *      for scripted/child actors.
  *  +0x2F (variant_2f): difficulty/variant select; also a saved-char scratch in
- *      some H5 re-target branches.
+ *      some H5 re-target branches. DISTINCT from the family-2 variant at +0x752 (below).
+ *  +0x27 (pal_attr): palette attribute. Low nibble = PC090OJ palette line, bit6 = "use it";
+ *      resolved at creation by 0x45684. NOTE (H15): 0x4092E zeroes this on retire/re-arm, and the
+ *      marker-chain transforms do NOT re-run 0x45684, so a transformed actor renders from the
+ *      compositor control byte (0x3C9E8, bit6 clear), not its creation-time line.
+ *  A4+0x752 (family-2 VARIANT): a PARALLEL per-actor byte, OUTSIDE this 0x40-byte record (it cannot
+ *      be a struct field). Written once at creation by 0x4A086 (= schedule entry byte2>>4); read by
+ *      0x4544E/0x45494 (template row) and 0x45684 (palette nibble). It lies outside BOTH spans
+ *      0x4092E clears (record 0x00..0x3F and companion at +0x702/+0x4E2), so it PERSISTS across
+ *      retire/re-arm -- it is the durable family-2 identity a hunter keeps through transforms.
+ *      In the semantic layer it is passed as `variant_752` (an explicit model of this parallel byte).
  */
 
 /* Compile-time layout contract: sizeof and key offsets must match the arcade. */

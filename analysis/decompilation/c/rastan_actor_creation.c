@@ -57,7 +57,7 @@ void sched_install_4a086(ActorRecord *a4, const uint8_t entry[8])
     a4->family = entry[1];                      /* b1 -> +0x3E */
     uint8_t b2 = entry[2];
     a4->comp   = (uint8_t)(b2 & 0x0F);          /* lo nibble -> +0x38 */
-    uint8_t variant = (uint8_t)(b2 >> 4);       /* hi nibble -> A4+0x752 */
+    uint8_t variant = (uint8_t)(b2 >> 4);       /* hi nibble -> PARALLEL byte A4+0x752 (VARIANT) */
     a4->field_36 = entry[3];                    /* b3 -> +0x36 */
     uint16_t w45 = (uint16_t)((entry[4] << 8) | entry[5]);
     if (w45 & 1) a4->field_2a = 1;              /* bit0 stripped as flag -> +0x2A */
@@ -65,15 +65,26 @@ void sched_install_4a086(ActorRecord *a4, const uint8_t entry[8])
     a4->field_34 = (uint16_t)((entry[6] << 8) | entry[7]); /* w67 -> +0x34 */
     a4->active = 1;                             /* +0x00 */
     a4->y = 0x180;                              /* +0x1A off-screen */
-    actor_family_loader_4544e(a4, variant);     /* base/graphics */
-    actor_palette_45684(a4, variant, 0);        /* palette */
+    /* H15: the variant is WRITTEN once here into the persistent parallel byte A4+0x752 (raw
+     * 0x4A09C moveb d6,a4@(0x752)); both loaders below READ it from A4+0x752, not from an argument
+     * (raw 0x4544E/0x45684). It survives 0x4092E clears, so a re-armed hunter keeps its variant. */
+    actor_family_loader_4544e(a4, variant);     /* base/graphics (reads A4+0x752) */
+    actor_palette_45684(a4, variant, 0);        /* palette line +0x27 (reads A4+0x752); creation-only */
 }
 
 /*
- * ORIGINAL ARCADE PC: 0x0004103E  latent child-hunter creation
+ * ORIGINAL ARCADE PC: 0x0004103E  latent hunter RE-ARM / child-hunter creation
  * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE.
- * Reached from the marker-spawn table at 0x41000. target_char (+0x0D) is set by
- * config 0x41D08 before this.
+ * Reached (a) as the tail of 0x4103A (marker consume: 0x4092E clear then fall into this re-arm)
+ * and (b) standalone from the marker-spawn table at 0x41000. target_char (+0x0D) is set by the
+ * caller (transform tail / config 0x41D08) after this.
+ *
+ * H15 PALETTE-LIFETIME: this re-arm writes ONLY the six fields below. It does NOT restore the
+ * palette line +0x27 (already zeroed by the preceding 0x4092E when reached via 0x4103A) and does
+ * NOT touch the PARALLEL variant byte A4+0x752 (which lies outside both of 0x4092E's cleared spans
+ * and therefore persists). Since the palette resolver 0x45684 runs only at creation and is not
+ * re-run by the transforms, the palette-relevant state a re-armed hunter carries is the VARIANT
+ * (A4+0x752), not the resolved line (+0x27, now 0 -> compositor control-byte palette via 0x3C9E8).
  */
 void child_hunter_create_4103e(ActorRecord *a4)
 {
@@ -83,6 +94,7 @@ void child_hunter_create_4103e(ActorRecord *a4)
     a4->timer     = 1;      /* +0x1C */
     a4->field_20  = 1;      /* +0x20 armed */
     a4->y         = 0x180;  /* +0x1A off-screen */
+    /* +0x27 (palette line) NOT restored; A4+0x752 (variant) NOT touched -> persists. See header. */
 }
 
 /*

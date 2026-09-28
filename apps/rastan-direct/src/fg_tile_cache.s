@@ -101,7 +101,7 @@ fg_boundary_advance_segment:
     rts
 
 /* Event records 15->16 and 21->22 reseed the descriptor cursor and Plane-B Y through the
- * outer controller after the raw segment increment.  The scene-fill return at arcade_pc 0x050482
+ * outer controller after the raw segment increment. The scene-fill return at arcade_pc 0x050482
  * calls here only after that authoritative state and its 64 publications are complete. */
 fg_boundary_install_post_reseed:
     tst.b   fg_boundary_reseed_pending

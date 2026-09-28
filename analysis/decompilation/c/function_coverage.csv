@@ -1,18 +1,20 @@
 arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confidence,notes
+0003c9e8,raw/0003c9e8.c,rastan_actor_render.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"render-time SAT attribute selector; bit6 clear keeps compositor control/palette nibble, bit6 set replaces low byte from +0x27"
 00040baa,raw/00040baa.c,rastan_actor_dispatch.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,state dispatcher + jump table 0x40BC2
 00040e74,raw/00040e74.c,rastan_actor_dispatch.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,marker recheck
 00041064,raw/00041064.c,rastan_actor_dispatch.c,COMPLETE,GHIDRA_RAW,YES,STATIC,hunter marker find
 0004543e,raw/0004543e.c,rastan_actor_helpers.c,COMPLETE,GHIDRA_RAW,YES,STATIC,record-type template loader
-0004544e,raw/0004544e.c,rastan_actor_helpers.c,COMPLETE,GHIDRA_RAW,YES,STATIC,family template loader
+0004544e,raw/0004544e.c,rastan_actor_helpers.c,COMPLETE,GHIDRA_RAW,YES,STATIC,"H15: family/variant template loader; reads variant from PARALLEL A4+0x752 (not an arg); includes 0x45494 family-2 branch"
+00045494,raw/0004544e.c,rastan_actor_helpers.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H15: family-2 template branch of 0x4544E (fall-in beqs 0x45454); table by +0x38 comp (0x454BA/0x454D2/0x454EA), row by A4+0x752 variant; shares 0x4546E apply tail"
 00045684,raw/00045684.c,rastan_actor_palette.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H10: palette-attr resolver; fam!=2 tbl 0x45722, fam==2 tbl 0x456EC (round/variant/comp); +0x27|=(nib|0x40)"
 00049f30,raw/00049f30.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,schedule occupancy scan
-0004a086,raw/0004a086.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,PARTIAL,STATIC,field-schedule installer
-0004103e,raw/0004103e.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,child hunter create
+0004a086,raw/0004a086.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,PARTIAL,STATIC,"H15: field-schedule installer; writes VARIANT (entry[2]>>4) to parallel A4+0x752; loaders read it there"
+0004103e,raw/0004103e.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H15: latent hunter re-arm; preserves A4+0x752 variant, does NOT restore +0x27 (zeroed by 0x4092E); palette resolver is creation-only"
 00045248,raw/00045248.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,parameterized hunter create (18 callers)
 000453a2,raw/000453a2.c,rastan_actor_creation.c,COMPLETE,GHIDRA_RAW,YES,STATIC,paired actor activate
 00045342,raw/00045342.c,rastan_actor_creation.c,COMPLETE,GHIDRA_RAW,YES,STATIC,paired Flying Demon init
 00045cfc,raw/00045cfc.c,rastan_actor_creation.c,COMPLETE,GHIDRA_RAW,YES,STATIC,scripted activate
-000423b2,raw/000423b2.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,boss 5-component create (0x423F4 mirror)
+000423b2,raw/000423b2.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,boss R5 five-component creator
 00004cd50,raw/00004cd50.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,batch/group creator
 000427b2,raw/000427b2.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,off-screen retire
 00040ccc,raw/00040ccc.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x0F armored man
@@ -26,18 +28,21 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 00043ecc,raw/00043ecc.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x1B burst spawner
 00043636,raw/00043636.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x22
 0004396a,raw/0004396a.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x19 jumper (arc tail summarized)
-00043b32,raw/00043b32.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x1A master chain (band matrix summarized)
+00043b32,raw/00043b32.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H14: full 0x13e-band x char matrix (0x43B32..0x43E8C) decoded; writes {0x01FC,0x0224,0x0236,0x0266,0x09EA,0x0546,0x00F4} per band; state != identity"
 0004415a,raw/0004415a.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 states 0x1D/0x21 (char matrix summarized)
 000473b8,raw/000473b8.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,airborne engine (anim tail summarized)
 00041180,raw/00041180.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,H6: full state-0 scan + 28-route char materialization dispatch; +0x0E=cell addr
 00040c08,raw/00040c08.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x10 anim setup
-000423f4,,rastan_actor_creation.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,boss components mirror (into A5+0x648)
+000423f4,raw/000423b2.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,boss R6 four-record creator into A5+0x648..0x708
 00045330,,,PARTIAL,GHIDRA_RAW,NO,STATIC,boss trigger -> 0x4449E (rectype via 0x444E0[round])
 0003ceb0,raw/0003ceb0.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H8: anim-frame advance + motion integration core (frame timing, seq, velocity ring, band reload)"
 0004092e,raw/0004092e.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H7: actor RETIRE/CLEAR (zero 0x40 record + paired companion block +0x702/+0x4E2)
 00041cfa,,,STUB_ONLY,GHIDRA_RAW,YES,STATIC,config-table 0x41D26 load by state
 0004103a,raw/0004103a.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H7: consume(0x4092E clear)+re-arm hunter, end-to-end proven (0x4092E now decompiled)"
-00041bee,raw/00041bee.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H6: light/fire source register (A5+0x1282 slot, 0xD00460 gfx)"
+00041bee,raw/00041bee.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H6/Build 0361: light/fire contact-source register (A5+0x1282 slot, 0xD00460 PC090OJ record band)"
+00051ab6,raw/00051ab6.c,rastan_player_world_contact.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,Build 0361: three registered PC090OJ bands -> 27 Y/X gameplay contact pairs; direct-native semantic cut replaces object-RAM readback
+00051b04,raw/00051b04.c,rastan_player_world_contact.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,Build 0361: player/world contact scan consuming A5+0x1134 coordinate pairs
+00051b74,raw/00051b04.c,rastan_player_world_contact.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,Build 0361: contact-source third classifier writing A5+0x13BE
 000453d6,,,STUB_ONLY,GHIDRA_RAW,YES,STATIC,difficulty tune of +0x28/+0x29
 0004734a,,,STUB_ONLY,NONE,NO,STATIC,airborne vertical/hover pre-step
 00041f9c,raw/00041f9c.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H7: jump/anim phase-advance leaf (nibble carry); arc owner is caller 0x41FAC
@@ -45,7 +50,8 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 000447f0,raw/000447f0.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H7: child/impact activate -> state 0x0F + sfx 0x10 (0x448B2); rec_type 7 keeps state
 0004382e,,,STUB_ONLY,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x13 anim reload
 000468d0,,,STUB_ONLY,RECONSTRUCTED_FROM_68000,NO,STATIC,component facing vs camera
-00042380,raw/00042380.c,rastan_actor_subsystems.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,boss body update: syncs 5 components by +0x21
+00042380,raw/00042380.c,rastan_actor_subsystems.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,boss R5 body update: sync facing and positions five active components through internal entry 0x43458
+00042340,raw/00042340.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,R6 primary positioning plus deliberate overlapping forward copy producing four full records
 0003a7d2,raw/0003a7d2.c,rastan_actor_subsystems.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,scene-wipe / clear
 00040a60,raw/00040a60.c,rastan_actor_subsystems.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,floor-marker transition table 0x40A86
 00041d08,raw/00041d08.c,rastan_actor_subsystems.c,COMPLETE,GHIDRA_RAW,YES,STATIC,spawner config loader (table 0x41D26)
@@ -62,7 +68,7 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 00042e38,raw/00042e38.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H8: move+contact stepper; anim core now lifted; solid cell -> 0x447F0 impact. COMPLETE
 0003cf40,raw/0003cf40.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H8: frame-index wrap (0->56, 57->1)"
 0003cf52,raw/0003cf52.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H8: frame->velocity applier + axis-lock flags +0x13; table 0x3CFD4 (56 dir pairs) + 0x3CFB0 band test
-000449b4,raw/000449b4.c,rastan_actor_collision.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,"H9: ENEMY COLLISION MANAGER (player boxes vs enemy hurtboxes, A5+0x2C8 x29). pass ladder partial"
+000449b4,raw/000449b4.c,rastan_actor_collision.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,"H9/H19: enemy collision manager + SOLE A5+0x12C8/0x12A8 producer (3 passes). H19: types written are only 0/1/2/3 via 0x4495A; rec_type-12 (weapon) never created, types 4..13 never produced -> item path vestigial"
 00044cba,raw/00044cba.c,rastan_actor_collision.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H9: per-axis AABB overlap; hurtbox rect table 0x44CE0 {xl,xr,yt,yb} signed bytes (var 0x44FA8)"
 000446bc,raw/000446bc.c,rastan_actor_collision.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H9: hurtbox-index selector by rec_type/family/state; 0x446B0 base + 0x44796 table not fully enumerated
 000447ce,raw/000447ce.c,rastan_actor_collision.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H9: enemy hit reaction (one-hit -> +0x3D flash + state 0x0F death anim); rec_type 10/11/18 freeze
@@ -70,5 +76,50 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 0003d054,raw/0003d054.c,rastan_actor_render.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H10: render selector dispatch; +0x38 picks program table, all selectors -> shared 0x3C902"
 0003f0bc,raw/0003f0bc.c,rastan_actor_render.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H10: selector-2 thunk (also 0x4770E/0x3FFDC/0x3FFF0) -> table 0x3F0CE -> 0x3C902
 000503bc,raw/000503bc.c,rastan_scene_map.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H11: 0x13E -> scene idx (0x50EE0) -> section kind (0x50F6B); 0=outdoor !=0=castle/phase2
-000559b2,raw/000559b2.c,rastan_scene_map.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H11: collision-grid column writer; grid marker = column_record[20+subcol*2+row*8]
+000559b2,raw/000559b2.c,rastan_scene_map.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H13: collision-grid producer; a2=descriptor.word1 record; cw=(rec[0x20]==0xFF)?rec[0x22]:rec[20+strip*2+cell*8]; marker=cw>>8"
+00055a14,raw/000559b2.c,rastan_scene_map.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H13: 0x55A14 FG-pass variant of 0x559B2 (strip parity reflection via 0x55A36 notw/andi #3; companion word 0x100 below)"
+00055904,raw/000559b2.c,rastan_scene_map.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H13: 0x55904 record build reads word0->0x10D080 / word1(@+2)->0x10D040=16-bit ROM collision-record ptr; 0x55968 BG dispatch a2=0x10D040[col]"
 000563a6,raw/000563a6.c,rastan_scene_map.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H11: background tilemap decompressor (per-round 0x562CA ptr0; metatile stream, 0xFF=col, 0=end)"
+0003ba20,raw/0003ba20.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,round working-palette load 0x3BA88->0x4FD02->A5+0x1600
+0003a2d0,raw/0003a2d0.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,generic D0-word copy A0 source to A1 destination; resolves palette publisher direction
+0003b9f8,raw/0003b9f8.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,cold-start master palette initialization: 48 master lines plus pool-11 line into CLCS
+00043450,raw/00043458.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,entire containing function including internal 0x43458 entry and 27-entry signed-byte offset table 0x43484
+00045d7c,raw/00045d7c.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,publishes working palette lines 0..31 to physical CLCS lines 0..31 then reloads round palette
+00045dc4,raw/00045dc4.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,publishes round working palette lines 0..31 to physical CLCS lines 48..79
+00059ad4,raw/00059ad4.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,16-word source-row to physical CLCS-line converter with 0xFFFF preserve sentinel
+0004e69c,raw/0004e69c.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,R6 type-0x1A dynamic placement from primary with mirrored 0x4EAC6/0x4EADA tables
+0004e7c6,raw/0004e7c6.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,R6 type-0x18/0x19 facing+x+y anchor copy from primary A5+0x648
+0004e976,raw/0004e976.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,R6 phase bucket to tail table index and animation selector
+00044548,raw/00044548.c,rastan_player_solid_object.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"Build 0366: internal mode-actor target-char selector; H -> rect index 82 {-20,+20,-16,+16}; qualifying states write A5+0x0242"
+00054bf8,raw/00054bf8.c,rastan_player_solid_object.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,Build 0366: player special-solid record consumer; original absolute LEA 0x10C242 requires Genesis WRAM rebase to 0xFF0242
+0005049a,raw/0005049a.c,rastan_player_weapon_state.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,Build 0368: round/player equipment init sets melee selector A5+0x12FA=1 and timer A5+0x1326=0
+00054a2c,raw/00054a2c.c,rastan_player_weapon_state.c,PARTIAL,RECONSTRUCTED_FROM_68000,YES,STATIC,Build 0368: A5+0x12C8 four-record weapon/item event scan and subtype dispatch COMPLETE; separate A5+0x12A8 status half remains outside this bounded lift
+00054dd2,raw/00054dd2.c,rastan_player_weapon_state.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,Build 0368: melee timer compares A5+0x1326 with 0x54E96[A5+0x1418] and expires selector to state 1
+00054ec6,raw/00054ec6.c,rastan_player_weapon_state.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,Build 0368: sound 0x0E; timer clear; melee selector state 3
+00054edc,raw/00054ec6.c,rastan_player_weapon_state.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,Build 0368: sound 0x0E; timer clear; melee selector state 2
+00054ef2,raw/00054ec6.c,rastan_player_weapon_state.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,Build 0368: subtype-1 event grants FIRE SWORD by timer clear and A5+0x12FA=4
+000502cc,raw/000502cc.c,rastan_scene_map.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H12: A5+0x10D000 populator; descriptor(col,scene)=0x1691C+col*0x22C0+0x13E*0x40 (closes H11 blocker)"
+00054b1e,raw/00054b1e.c,rastan_player_items.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H18: A5+0x12C8 item/status effect dispatcher; 4 records, types 0..13 if-chain"
+0005506c,raw/00054b1e.c,rastan_player_items.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H18: type-0 hit event -> activate auxiliary A5+0x1296 (not an item)"
+00054f08,raw/00054b1e.c,rastan_player_items.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H18: types 4-7 COMBO_STATE handlers (A5+0x1388=0..3); 0x54F08/0x54F1E/0x54F34/0x54F4A"
+00054f60,raw/00054b1e.c,rastan_player_items.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H18: type-8 LIFE/HEALTH (A5+0x110A/0x1108/0x1390/0x140E)"
+00054fd4,raw/00054b1e.c,rastan_player_items.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H18: types 9/10 ENERGY_RESTORE (A5+0x013A += 0x400/0x800)"
+00054fa4,raw/00054b1e.c,rastan_player_items.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H18: types 11/12 ENERGY_DRAIN (A5+0x013A -=; defense A5+0x1366)"
+00055004,raw/00054b1e.c,rastan_player_items.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H18: type-13 ENERGY_SET full (A5+0x013A=0x3000)"
+0004495a,raw/0004495a.c,rastan_player_items.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H18: actor->A5+0x12C8 event-type; rec_type12 pickup ->1/2/3 (+0x25), else 0"
+0003a008,raw/0003a008.c,rastan_execution_spine.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H21: L5/VBlank ISR engine spine; acks 0x350008, gates actor update 0x41f30 on A5+0x02/0x00/0x1394, runs 5 pre-frame subsystems, dispatches 8-state table @0x3a06c"
+0003a080,raw/0003a008.c,rastan_execution_spine.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H21: main idle loop (jsr 0x510c6; bra self) - game is interrupt-driven"
+00050248,raw/00050248.c,rastan_world_progression.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H22: progression selector; A5+0x1242->0x5073A->A5+0x013E; round-bound table 0x502AC {0x16,0x2D,0x44,0x5B,0x72,0x89}->A5+0x1360; A5+0x013E->0x507C5->A5+0x1386; 0x3951C+scene*12->A5+0x10FC (Ghidra-unlisted region, not in census denominator)"
+00055c4a,raw/00055c4a.c,rastan_world_stream.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H22: PC080SN column-stream advance; saves descriptor A5+0x10FC->0x1126, streams via 0x55c5e, scroll col A5+0x10F6++"
+00055c5e,raw/00055c4a.c,rastan_world_stream.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H22: PC080SN stream setup; dest A5+0x10F8, src [0x10D100], hdr [0x10D104] -> 0x55c7a"
+00055c7a,raw/00055c4a.c,rastan_world_stream.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H22: PC080SN 64-row column copy; tile=layout[row*32+col*2]; name-table dest stride +0xFE (visual sibling of collision producer 0x559B2)"
+000557ba,raw/000557ba.c,rastan_world_scroll.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H23: FG vertical Y-scroll dispatcher; accum A5+0x10B8 limit 160; sub-row A5+0x10B2 (8px)->stream row 0x406A4; DOWN A5+0x10AE-=step &0x1FF mode3"
+00055854,raw/000557ba.c,rastan_world_scroll.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H23: FG Y-scroll UP branch; A5+0x10AE+=step &0x1FF; mode2; stream row up 0x406A4; bit7 flag when accumulator<0"
+00055ab4,raw/00055ab4.c,rastan_world_scroll.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H23: PC080SN scroll commit; A5+0x10EC->0xC40000 (X), A5+0x10AE->0xC40002 (Y), A5+0x10EE->0xC20000"
+00055b3c,raw/00055ab4.c,rastan_world_scroll.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H23: FG X-scroll update (half-rate via 0x10F0 fraction); A5+0x10EC-=half &0x1FF; column stream 0x55C4A"
+000504fa,raw/000539c2.c,rastan_world_scroll.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,"H23: scene scroll-init; table 0x50850[A5+0x013E*12]->A5+0x10AE/0x10EC(Yscroll) /0x10B8(dir)/0x10BE(screenY); R1P2 prog2/3 init Y=0x160 screenY=0x78 (Ghidra-unlisted; documented in semantic)"
+000539c2,raw/000539c2.c,rastan_world_scroll.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,"H23: vertical clamp controller; keeps player screen-Y A5+0x10BE in band [32,304] center 80 (hard-coded 0x539A0/0x539E0/0x53A0C); sets step A5+0x10D8 + flags A5+0x10D0 (Ghidra-unlisted)"
+00051880,raw/000539c2.c,rastan_world_scroll.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,"H23: scroll step dispenser; pending A5+0x1266(up)/0x1268(down) capped at 4px/frame -> A5+0x10DC; calls 0x539c2/0x53956 (Ghidra-unlisted)"
+00054326,raw/00054326.c,rastan_player_animation.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H24: player frame selector; state A5+0x10E8 + anim idx (A5+0x10EA/0x110A/0x12F2/0x12F4) + pose tables 0x5BAE0/0x5BB10 -> body slot A5+0x1244 -> 0x54492"
+00054492,raw/00054492.c,rastan_player_render.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H24: player body composer; slot A5+0x1244 -> 0x5BD40[slot] offset -> 4 pieces (6B [tile][xoff][yoff][ctrl]); screenX/Y via A5+0x10BE/0x10C0, facing A5+0x1114, palette=ctrl&0xF (line 3); weapon overlay A5+0x12FA. Closes CF-01"
+000546a8,raw/00054492.c,rastan_player_render.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H24-fix: player LOWER-body (legs) composer; slot A5+0x1246 -> 0x5C466[slot] offset -> 4 pieces -> SAT 0x10D1F2; cells at y=0/+16; full body = torso 0x54492 + legs 0x546A8 (two half-sprites)"
