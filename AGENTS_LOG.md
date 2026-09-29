@@ -49942,3 +49942,43 @@ normal `make` build.
 * architecture: retained arcade semantic map/collision decisions still feed direct native final
   Plane-A/collision publication; no PC080SN shadow or chip-shaped compatibility path added.
 * report: `docs/design/Cody_build0387_rejection_third_chain_reanalysis.md`.
+
+### MAME Exit Summary (2026-09-29 16:43:34)
+- Final PC: 0x073B92
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-29 16:47:55)
+- Final PC: 0x073B92
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-29 16:49:41)
+- Final PC: 0x073B96
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Phase-2 Initial Plane-A Population]
+
+* files changed: `apps/rastan-direct/src/tilemap_hooks.s` calls the existing general
+  `fg_boundary_install` from the native descriptor-rebuild boundary; spec exports that symbol;
+  Makefile freezes `build0390/Test.snapshot.json`; added the bounded trace script, standalone
+  report, and KF-078. `Test.json` was not edited.
+* root cause confirmed: YES — original `0x050206 -> 0x0503DC` scene fill ran with valid record,
+  selector, 16 sources, and collision, but before record-selected package 5 residency existed.
+  Baseline: 3648 misses and 128/2048 staged/VDP names; VDP exactly matched staging.
+* fix implemented: general install at existing native arcade-`0x055904` descriptor rebuild,
+  after retained record/source/stream selection and before the first fill publication. No MODE,
+  record, phase, tile, coordinate, final-resolver, palette, fake-scroll, or PC080SN-emulation path.
+* corrected proof: Build 0390 record `0x11`, selector 1, stream `0x51183`, sources valid,
+  misses 0, stage 2048/2048, VDP 2048/2048, stage/VDP binary-identical and unchanged through
+  120 idle frames; collision remains 1735 nonzero words / `0x00225958` sum.
+* rejected artifacts preserved: 0388 zero-byte insertion and 0389 4-to-10 copied-ROM replacement
+  both left downstream `MOVE.L #map_data,Dn` pointer relocation unsafe; neither is testable.
+* build produced: Build 0390 complete family (canonical, `_d`, `_s`, `_do`, `_c`), counter 390.
+  Canonical/gameplay-entry/variant/MAME gates PASS; known Phase-1 seven-epoch gate remains
+  FAIL/WARNING.
+* canonical ROM: `dist/rastan-direct/rastan_direct_video_test_build_0390.bin`, SHA-256
+  `7a7fc6f484be3ef699f33f703857ae39ad7c98bde23a6c475d489ef68e5aedfe`.
+* user validation: REQUIRED — Tighe must compare initial Phase-2 Plane-A composition in gameplay.
+* report: `docs/design/Cody_phase2_initial_plane_a_population.md`.

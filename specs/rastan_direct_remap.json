@@ -122,6 +122,7 @@
   "genesistan_plane_a_pan_publish_entering_rows_up",
   "genesistan_plane_a_pan_publish_entering_rows_down",
   "fg_boundary_advance_segment",
+  "fg_boundary_install",
   "fg_boundary_install_post_reseed",
   "genesistan_pc080sn_directional_dispatch_native",
   "genesistan_collision_surface_mark_visual_native",

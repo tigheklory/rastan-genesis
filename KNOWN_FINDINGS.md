@@ -1612,3 +1612,16 @@ and the header checksum. Bounded attract validation: NO CRASH in 2400 frames wit
 (vs the ~frame-610 crash in 0287-0294); item page runs the emit without faulting, attract continues. High-ROM crash
 architecture, arcade splice (0x117E), and all other code unchanged. See
 docs/design/Andy_scrolling_item_page_illegal_73212_fix.md.
+
+## KF-078 — Initial native Plane-A scene fill requires record-selected residency before its first publication
+
+Original arcade `0x050206 -> 0x0503DC` performs a 64-publication scene fill after selecting the record, initializing
+all 16 source pointers, and selecting the stream descriptor. Build-0386-semantics Phase-2 evidence reached the
+correct record 17 / selector 1 / stream `0x51183` with valid sources and populated collision, but only 128/2048
+Plane-A names because package 5 was installed after the fill; the resolver accumulated 3648 misses. VDP exactly
+matched bad staging, ruling out publication. Build 0390 installs the general record-selected package at the existing
+native descriptor-rebuild boundary (arcade `0x055904`) before publication: misses 0, staging 2048/2048, final VDP
+2048/2048, and stage/VDP binaries identical through 120 idle frames. A zero-byte or ordinary copied-ROM insertion at
+`0x050206` is unsafe with current reflow because downstream `MOVE.L #map_data,Dn` operands are not an automatically
+relocated ROM-pointer class; rejected Builds 0388/0389 preserve that evidence. See
+`docs/design/Cody_phase2_initial_plane_a_population.md`.

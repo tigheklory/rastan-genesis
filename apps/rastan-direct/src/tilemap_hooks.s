@@ -47,6 +47,7 @@
     .extern vdp_commit_fg_strips_if_dirty
     .extern genesistan_current_scene_id
     .extern fg_cache_resolve
+    .extern fg_boundary_install
     .extern fg_boundary_resolve_b
     .extern fg_boundary_transition_step
     .extern genesistan_current_pc080sn_tileset_id
@@ -4004,6 +4005,13 @@ genesistan_hook_textwriter_dispatch:
  * arcade_copy segment before reading descriptor words from Genesis ROM.
  */
 genesistan_hook_pc080sn_descriptor_rebuild:
+    /* Build 0390: the retained scene-fill reaches descriptor rebuild only after
+     * record, all 16 source pointers, and the stream descriptor are selected,
+     * and before its first publication.  Install the record-selected native
+     * residency here so every following source cell resolves to a final Plane-A
+     * name.  The installer preserves the descriptor-rebuild register contract;
+     * repeated steady-state rebuilds in the same package take its no-op path. */
+    bsr     fg_boundary_install
     movea.l #PC080SN_DESC_REBUILD_SRC_TABLE, %a0
     movea.l #PC080SN_DESC_REBUILD_PTR_TABLE, %a1
     movea.l #PC080SN_DESC_REBUILD_WORD_TABLE, %a2
