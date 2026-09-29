@@ -1,7 +1,9 @@
 # Cody — Third-chain record/selector identity and manual-trace decision
 
-**Scope:** Resume the Build-0378 third-chain investigation at the record-identity gate. No ROM
-change, no numbered build, and no selector transform patch.
+**Scope:** Resume the third-chain investigation at the record-identity gate. No ROM change, no
+numbered build, and no selector transform patch. The human trace now runs against Andy's latest
+complete MODE-cheat artifact, Build `0386_c`; its hooked runtime PCs were rechecked against the
+current generated address map and postpatch disassembly.
 
 ## Result
 
@@ -51,7 +53,7 @@ Output directory:
 `states/traces/build0379_third_chain_user_genesis0378c/`
 
 The script supplies no game input and performs no emulated-memory writes. The first `M` key rising
-edge records `USER_MARK`, arms only the existing Build-0378 player collision/movement PCs, and keeps
+edge records `USER_MARK`, arms only the current player collision/movement PCs, and keeps
 720 frames. It records:
 
 - progression, full map-stream pointer, selector, strip/group;
@@ -60,8 +62,8 @@ edge records `USER_MARK`, arms only the existing Build-0378 player collision/mov
 - actual head/side/feet collision probe events and returned words;
 - all 16 retained live source pointers/rebuilt descriptors at the mark and every 30 frames.
 
-The script passed a MAME startup/syntax smoke test with Build `0378_c`. Marker input itself remains
-for the required interactive run.
+The script passed a GENESIS NTSC MAME startup/syntax smoke test with Build `0386_c` and an explicit
+six-button controller. Marker input itself remains for the required interactive run.
 
 Exact command is preserved in
 `states/traces/build0379_third_chain_user_genesis0378c/launch_command.txt`.
@@ -69,15 +71,18 @@ Exact command is preserved in
 ## User procedure
 
 1. Launch the preserved command.
-2. Start Round 1. To shorten the route in `_c`, press MODE once after gameplay begins to enter
-   Phase 2; do not press MODE again.
-3. Play normally to the third chain and attach to it.
-4. Before the final climb into the upper exit, press `M` once. MAME will report `USER_MARK` and that
+2. The command starts MAME with `-ctrl1 md6button`. In MAME, open **Input Settings → Input
+   Assignments (this system)** and bind **P1 Mode** to an unused key such as `N`. Do not bind MODE
+   to `M`, because `M` is reserved for the trace's `USER_MARK`.
+3. Start Round 1. To shorten the route in `_c`, press the key assigned to **P1 Mode** once after
+   gameplay begins to enter Phase 2; do not press it again.
+4. Play normally to the third chain and attach to it.
+5. Before the final climb into the upper exit, press `M` once. MAME will report `USER_MARK` and that
    the 720-frame window is armed.
-5. Climb and use the controls that should carry Rastan through the intended upper exit. If blocked,
+6. Climb and use the controls that should carry Rastan through the intended upper exit. If blocked,
    continue the attempted exit for roughly ten seconds.
-6. Wait for MAME to report that the trace is complete, then stop MAME.
-7. Return `third_chain_states.tsv`, `third_chain_probe_events.tsv`,
+7. Wait for MAME to report that the trace is complete, then stop MAME.
+8. Return `third_chain_states.tsv`, `third_chain_probe_events.tsv`,
    `third_chain_source_tables.tsv`, and `trace_metadata.txt` from the output directory.
 
 The next comparison will first determine whether Tighe's actual state is coherent record 17 /
@@ -90,4 +95,18 @@ not the selector-1 transpose.
 - Build 0379: **NOT BUILT**
 - Runtime counter: unchanged at `378`
 - Production source/spec changes: **NONE**
-- Build 0378_c SHA-256: `ad67c2bf6922c8f1b602b71b391f574b8c04dbea3ef6b64336827e22e17152c4`
+- Trace ROM: Build `0386_c`
+- Build 0386_c SHA-256: `0eaa77dc5e54f6dab7f3821fd86c4e0faa5abb9b66f37276e6ee0e3dfd650aae`
+
+## Completed human capture and gate result
+
+Tighe completed the trace on 2026-09-29 and pressed `M` immediately after attaching. `USER_MARK`
+frame 3090 records progression `0x0011`, runtime stream pointer `0x00051183`, selector `1`, and
+player state 4. Under the current Build-0386 address map, `0x51183` maps to original `0x50F7D`
+(`identity_offset=0x206`), whose selector byte is `1`. The capture is therefore coherent record 17 /
+selector 1. The older `0x51183 -> 0x50F83` interpretation applied the historical `+0x200` delta and
+is invalid for Build 0386 after shift reflow.
+
+The exactly-once audit proceeded and proved the native descriptor resolver used selector-0 axes for
+selector 1/2. The correction and Build 0387 are documented in
+`docs/design/Cody_build0387_record17_selector1_transpose.md`.

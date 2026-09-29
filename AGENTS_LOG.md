@@ -1,5 +1,39 @@
 # AGENTS Log
 
+## [Cody — Build 0387 record-17 selector-1 transpose correction]
+
+* Baseline Build 0386; counter `386 -> 387`. Tighe's completed GENESIS NTSC MAME `USER_MARK`
+  capture proves coherent progression `0x0011`, record 17, selector 1: runtime pointer `0x51183`
+  maps through the current address map (`+0x206`) to original `0x50F7D`, whose byte is 1.
+* First divergence: the selector-1/2 producer formed correct world row/column, but both native
+  Plane-A and collision resolvers reused selector-0's `live_table[world_row] + X delta` equation.
+  Arcade selector 1/2 requires `live_table[world_column] + Y delta`, with selector-1 row inversion.
+  In the marked 64×64 epoch, old-vs-arcade source coordinates differ for 3,844 cells; tile values
+  differ for 2,942 and collision values for 1,535. The 40-cell chain-top sample had 28 wrong source
+  coordinates but coincidentally zero collision-value differences, explaining the earlier false
+  local match.
+* Fix: one general descriptor selector shared by visual and collision paths. Selector 0 behavior is
+  preserved; selectors 1/2 transpose the table/cursor axes exactly once and use direction-correct
+  Y-ring unwrapping. No chain/record/stage/MODE special case and no PC080SN shadow.
+* Complete Build 0387 family: canonical `db33a09915695d7020538848c51e2c58716c5571c4eabf33e804badc56b1c46b`
+  (1,744,568 bytes); `_c` `b7ff58823125505a6f6e3c9ab558c3e8b354cfd2bb293a7703caca96c9bfa12b`
+  (1,748,664); `_d` `36f5bde0…`; `_s` `8276d4a7…`; `_do` `e4e36e0f…`.
+  Opcode replacements 231 and coverage `0x1A9EB8`, both unchanged. Boot/canonical/gameplay-entry/
+  transition-retention/variant-set PASS; known seven-epoch gate FAIL; standard 1,798-frame Genesis
+  trace clean of unique unmapped addresses. Natural third-chain traversal: USER TEST REQUIRED.
+* Report: `docs/design/Cody_build0387_record17_selector1_transpose.md`.
+
+## [Cody — Third-chain human trace updated to Build 0386_c]
+
+* No ROM build and no gameplay/source patch. The existing bounded human trace now launches Andy's
+  latest complete MODE-cheat artifact, Build `0386_c` (SHA-256
+  `0eaa77dc5e54f6dab7f3821fd86c4e0faa5abb9b66f37276e6ee0e3dfd650aae`), with explicit MAME
+  slot option `-ctrl1 md6button`. The current generated address map and postpatch disassembly still
+  place all hooked player collision/movement PCs at the trace's existing runtime addresses.
+* GENESIS NTSC MAME startup smoke: PASS; `P1 Mode` preflight passed and the script reported ready.
+  The ALSA `/dev/snd/seq` message is non-fatal. Standalone evidence report:
+  `docs/design/Cody_record17_selector1_identity_and_manual_trace.md`.
+
 ## [Andy — Flying Demon 0x548 Death-Link Decompilation]
 
 * baseline: Build 0385. counter before: 385. A5+0x548 hittable: PROVEN. investigation authority: STATIC ARCADE DECOMPILATION. trace used: NO. **OUTCOME: mechanism PROVEN + byte-neutral repair + Build 0386 produced (canonical=PASS, complete family).** Standalone report: docs/design/Andy_build0386_flying_demon_decompilation_ownership_palette.md (CONTINUATION 3). Andy gameplay verification: NO (authority TIGHE). Test.json changed: NO. Palette mapping changed: NO.
@@ -49875,3 +49909,36 @@ normal `make` build.
 - Final PC: 0x073B92
 - Stack Pointer (SP): 0x00FEFF6E
 - Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-29 10:59:52)
+- Final PC: 0x073BA6
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0387 rejection / third-chain reanalysis STOP]
+
+* files changed: restored `apps/rastan-direct/src/tilemap_hooks.s` to its tracked pre-0387
+  resolver semantics; added `docs/design/Cody_build0387_rejection_third_chain_reanalysis.md`,
+  bounded ORIGINAL ARCADE MAME script/evidence, and OPEN-028/OPEN-029. Existing Build-0387
+  artifacts/evidence preserved.
+* build produced: NO; Build 0387 remains consumed/rejected; counter remains 387; Build 0388 not
+  consumed.
+* ROM path: N/A.
+* root cause confirmed: NO. First observed outcome divergence is arcade state-4 lateral release
+  (`arcade_pc 0x051ED2 -> 0x051F0A -> 0x05206E -> 0x052200`, then state 2 at `0x052230` or
+  `0x05226E`) versus Genesis capture remaining state 4. The Genesis trace lacks decisive
+  `A5+0x136E` and raw-input values and captured no probe events, so input absence versus translated
+  input/state failure is unresolved.
+* fix implemented: rollback only. Build-0387 `.Lresolve_plane_a_descriptor` and its visual/collision
+  call-site changes removed; `git diff --exit-code -- apps/rastan-direct/src/tilemap_hooks.s` passes.
+* no unrelated changes: YES. Build-0386 Flying Demon remap at original `arcade_pc 0x044898`
+  remains; palette source untouched; no shared resolver change, rope/record/coordinate special case,
+  ROM build, or H25 work.
+* user result retained: third-chain traversal FAIL; Layer-A visuals WORSE. Human USER_MARK record-17
+  selector-1 identity remains authoritative.
+* ORIGINAL ARCADE MAME bounded trace: continued Up reaches the arcade ceiling without an automatic
+  progression transition, corroborating the static input-driven release contract. It did not prove
+  a successful upper landing and therefore authorizes no Build 0388.
+* architecture: retained arcade semantic map/collision decisions still feed direct native final
+  Plane-A/collision publication; no PC080SN shadow or chip-shaped compatibility path added.
+* report: `docs/design/Cody_build0387_rejection_third_chain_reanalysis.md`.

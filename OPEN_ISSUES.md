@@ -790,3 +790,38 @@ Final response must include "Open/Closed Issues Impact" section with:
 - **Note on evidence limits:** the saved trace shows a state-locked lifecycle but does NOT contain a positively-identified attack against a single component, and no static arcade damage-ownership code has been analyzed; universal wing-only-death impossibility is therefore NOT proven. A future focused task would need (A) a trace isolating a wing-targeted hit, or (B) static original-arcade proof of shared damage/death ownership, to classify the divergence.
 
 - **Current scope:** DEFERRED. No implementation, no trace, no ROM, no Build 0314 for this issue now. Record and defer.
+
+## OPEN-028 — First-arrival Plane-A sky cells can retain isolated stale names
+
+- **Status:** OPEN / DEFERRED (recorded during Build-0387 rejection; not investigated in that task)
+- **Priority:** MEDIUM
+- **Observed by:** Tighe before Build 0387
+- **Symptom:** on first arrival in some Round-1 Phase-1 areas, isolated nonblank Layer-A cells appear
+  in otherwise empty sky; after scrolling the location offscreen and returning, the stray cells are
+  gone.
+- **Separation:** this predates and is distinct from the rejected Build-0387 selector-1/2 resolver
+  change. It must not be used to justify retaining that change.
+- **First required proof:** for one reproducible cell, compare authoritative source cell, final
+  staged Plane-A word, and actual Plane-A VRAM word on first arrival, after scroll-away, and on
+  second arrival. Classify the first divergence as staged-buffer or VDP-publication/overwrite.
+- **Current classification:** UNRESOLVED. No production patch or build was made for this issue.
+
+## OPEN-029 — R1 Phase-2 third-chain upper-route traversal remains blocked
+
+- **Status:** OPEN / BLOCKED ON DECISIVE HUMAN INPUT/TRANSITION EVIDENCE
+- **Priority:** HIGH
+- **Observed through:** Build 0387 (user-rejected); Build 0386 is the accepted pre-0387 Plane-A
+  behavior baseline.
+- **Locked identity:** Tighe's Build-0386_c USER_MARK is progression `A5+0x013E=0x0011`, runtime
+  stream pointer `0x00051183` mapping to original `arcade_pc 0x00050F7D`, selector 1, player state 4.
+- **Current finding:** original arcade state-4 climb does not contain an automatic record/progression
+  upper-exit transition. A button-edge value `A5+0x136E=0x0011` routes through original
+  `arcade_pc 0x051ED2 -> 0x051F0A -> 0x05206E -> 0x052200`; direction bits in raw input
+  `HW/WRAM 0x0010D37A` choose the lateral state-4-to-state-2 release. The retained Genesis trace
+  never leaves state 4, but it did not log `A5+0x136E` or raw input and captured no probe events,
+  so it does not distinguish absent user input from a translated-input/state divergence.
+- **Rejected repair:** Build 0387's shared selector-1/2 descriptor-axis change did not restore the
+  route and worsened Layer-A visuals; its production source change has been reverted.
+- **Next proof required:** capture the exact successful ORIGINAL ARCADE lateral release/landing and
+  the same attempted control in GENESIS NTSC, including `A5+0x136E`, raw input, state transition,
+  player motion, and collision results. No record-, coordinate-, chain-, or MODE-specific patch.

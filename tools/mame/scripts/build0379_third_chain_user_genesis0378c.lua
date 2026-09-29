@@ -1,4 +1,4 @@
--- Build 0379 investigation only: user-controlled Genesis Build 0378_c trace.
+-- Build 0379 investigation only: user-controlled Genesis Build 0386_c trace.
 --
 -- This script never supplies controls and never writes emulated memory.  Tighe
 -- plays normally, reaches/attaches to the third chain, then presses M once.
@@ -9,6 +9,17 @@ local cpu = assert(machine.devices[":maincpu"])
 local p = assert(cpu.spaces["program"])
 local input = machine.input
 local outdir = assert(os.getenv("TRACE_DIR"), "TRACE_DIR is required")
+
+-- The Build-0386_c rack-advance control is the Genesis six-button MODE input.
+-- MAME defaults ctrl1 to the three-button mdpad, so require the caller to use
+-- `-ctrl1 md6button` and fail visibly instead of silently offering no MODE key.
+local has_p1_mode = false
+for _, port in pairs(machine.ioport.ports) do
+  for name, _ in pairs(port.fields) do
+    if name == "P1 Mode" then has_p1_mode = true end
+  end
+end
+assert(has_p1_mode, "P1 Mode unavailable: relaunch MAME with -ctrl1 md6button")
 
 local states = assert(io.open(outdir .. "/third_chain_states.tsv", "w"))
 local probes = assert(io.open(outdir .. "/third_chain_probe_events.tsv", "w"))
@@ -51,12 +62,14 @@ sources:write(table.concat({
 }, "\t"), "\n")
 
 metadata:write("purpose=third-chain retained-state identity and blocked-exit transition\n")
-metadata:write("rom=dist/rastan-direct/rastan_direct_video_test_build_0378_c.bin\n")
+metadata:write("rom=dist/rastan-direct/rastan_direct_video_test_build_0386_c.bin\n")
 metadata:write("control=user only; no scripted input\n")
 metadata:write("memory_writes=NO\n")
 metadata:write("marker_key=M\nmarker_event=USER_MARK\n")
 metadata:write("capture_frames_after_mark=" .. tostring(capture_frames) .. "\n")
 metadata:write("debugger_breakpoints=armed only after USER_MARK\n")
+metadata:write("controller1=md6button\n")
+metadata:write("required_input_field=P1 Mode\n")
 metadata:flush()
 
 local function state_row(event, mark)
@@ -189,4 +202,4 @@ emu.register_frame_done(function()
 end)
 
 emu.register_stop(function() finish() end)
-emu.print_info("Build 0378_c third-chain user trace ready: attach to the third chain, then press M once")
+emu.print_info("Build 0386_c third-chain user trace ready: attach to the third chain, then press M once")
