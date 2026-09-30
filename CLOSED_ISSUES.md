@@ -342,3 +342,25 @@ Closure note format:
   open. ROM dist/rastan-direct/rastan_direct_video_test_build_0295.bin, SHA256
   0cb1779e8b9c24e57a774a75cd2e6f08ef9a4232f02ebe37f7ca125c59bb891a, size 1,597,112, counter 295, GATE_PASS + smoke.
   See docs/design/Andy_scrolling_item_page_illegal_73212_fix.md.
+
+---
+
+## CLOSED-020 — R1/P1 Flying Demon wing kill retires the whole composite
+
+- **Status:** CLOSED by user gameplay verification
+- **Date closed:** 2026-09-29
+- **First user-confirmed build:** Build 0387
+- **Closure condition:** killing the Flying Demon through its wings kills the entire Flying Demon;
+  no wingless body remains alive.
+- **Verification:** Tighe confirmed the closure behavior during Build-0390 regression reporting.
+  The exact earlier build where the behavior first became correct is not established, so Build 0387
+  is recorded only as the first user-confirmed point.
+- **Preserved repair:** the rebased body-death reference from the earlier Flying Demon repair remains
+  in current source/spec state. Build 0391 does not modify Flying Demon gameplay, sprite, damage,
+  lifecycle, or palette code.
+- **Historical evidence:** the former OPEN-027 arcade composite/state-lock evidence and Build-0313
+  symptom remain historical provenance; they are not a reason to reopen the issue without a new
+  user-observed regression.
+- **Evidence:** `docs/design/Andy_build0386_flying_demon_decompilation_ownership_palette.md`;
+  `docs/design/Cody_build0390_phase1_waterfall_regression.md`.
+- **Cross-references:** OPEN-017 remains open for its other hardware/performance symptoms.

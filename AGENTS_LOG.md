@@ -49982,3 +49982,61 @@ normal `make` build.
   `7a7fc6f484be3ef699f33f703857ae39ad7c98bde23a6c475d489ef68e5aedfe`.
 * user validation: REQUIRED — Tighe must compare initial Phase-2 Plane-A composition in gameplay.
 * report: `docs/design/Cody_phase2_initial_plane_a_population.md`.
+
+### MAME Exit Summary (2026-09-29 21:42:39)
+- Final PC: 0x073BA2
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+## [Cody — Build 0390 Phase-1 Waterfall Regression]
+
+- baseline: Build 0390
+- counter before: 390
+- 0390 user result:
+  - Phase-2 initial Plane A improved: YES
+  - Phase-1 first waterfall regressed: YES
+
+Waterfall:
+- exact record: 3
+- selector: 0
+- expected package: stable package 1 after column-45 handoff
+- expected overlap package: package 6 on record-2→3 entry; package 7 on record-3→4 exit
+- actual 0390 package: package 6 incorrectly restored at frame 5453 after correct package-1 handoff
+- 0x055904 install triggered: YES; the Build-0390-only call causes the package-changing reinstall
+- first divergence: frame 5453, record 3 unchanged, package 1→6, epoch/DMA transition 3→4
+- source code correct: YES; 224 authoritative waterfall identities, 101 absent from wrong package 6
+- staged slot: examples 0x0298 (code 0x028A), 0x0365 (0x028E), 0x035B (0x0293)
+- active LUT slot: those entries become 0x0000 after the wrong reinstall
+- resident pattern: 45/101 same identity re-uploaded; 56/101 slots untouched; zero overwritten
+- stale-name churn: NO as first cause; later publications emit tile 0 from cleared LUT mappings
+- premature package switch: YES; invalid restoration of entry-overlap package after safe handoff
+
+Architecture:
+- scene-init discriminator: retained `A5+0x013E != fg_boundary_active_record`
+- ordinary-stream discriminator: retained `A5+0x013E == fg_boundary_active_record`
+- Phase-2 early residency preserved: YES; package 5 before fill, 2048 staged and VDP names, misses 0
+- record special case added: NO
+- MODE special case added: NO
+- PC080SN emulation added: NO
+- final resolver changed: NO
+
+Flying Demon:
+- user-confirmed resolved by Build 0387: YES
+- wing kill -> whole demon death preserved in source: YES
+- reopened investigation: NO
+
+Palette:
+- changed: NO
+- deferred: YES
+
+Build:
+- produced: YES
+- Build 0391
+- complete family: YES (`canonical`, `_d`, `_s`, `_do`, `_c`)
+- canonical gate: PASS
+- gameplay-entry gate: PASS
+- transition-retention verifier: PASS
+- legacy epoch gate: FAIL (known/pre-existing; not changed)
+- counter after: 391
+
+Gameplay verification:
+TIGHE ONLY

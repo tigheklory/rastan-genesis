@@ -44,29 +44,12 @@ Rules:
     blocked on it. Separately, the weapon-browser "frame 69" was proven a decode
     artefact (case B: player-slot overrun; HAMMER frame 69 = 0x0003×3) and is now
     excluded from the weapon corpus. Owner: palette-authoring follow-up.
-- **OPEN-017 remains open:** the farther-Stage-1 flying demon cannot currently
-  be killed, and significant slowdown remains with many enemies visible.
+- **OPEN-017 remains open:** significant slowdown remains with many enemies visible.
+  The former farther-Stage-1 Flying Demon whole-death subissue is closed by
+  CLOSED-020 from Tighe's Build-0387 gameplay confirmation.
   Current gameplay executes neither the frontend PC090OJ scanner nor its
   generic decoder, so that slowdown must not be attributed to those two paths
   without new evidence.
-  - **[2026-09-28 Build 0386 STOP — Flying Demon wing-kill does not kill the
-    wingless body (static RE partial)]** Tighe established the arcade contract:
-    killing the demon's wings kills the whole demon; Genesis leaves a wingless
-    body flying. Static decompilation PROVEN: the Flying Demon is a fixed PAIR of
-    records blk_508[0]=A5+0x508 + blk_508[1]=A5+0x548 (paired init 0x45342, both
-    rec_type 8/9, different graphics templates via 0x4543E/rt_45592; body
-    0x0129-family + 0x0275-side wings). The A5+0x508 pool is driven by
-    0x420E6/0x42102 (separate from the A5+0x2C8 hurtbox scan 0x449B4); retire
-    0x4092E zeros a record + paired companion block. NOT YET PROVEN: the exact
-    wing-hit -> whole-demon-death propagation for the rec_type-8/9 pair (the
-    traced companion/generation-byte mechanism at 0x43562/0x4219A is for
-    rec_type-7 aux components, not the 8/9 pair), the first Genesis divergence,
-    and a safe repair. No build produced (counter 385->385); STOP rather than
-    guess a lifecycle fix. Demon PALETTE routing separately proven mechanically
-    correct (body+wings both bank 0x35/Line 1, fully mapped; burst bank 0x30/Line
-    0; Build-0385 (code,bank) variants distinct) — no palette fix; Tighe's maps
-    unchanged. Evidence:
-    `docs/design/Andy_build0386_flying_demon_decompilation_ownership_palette.md`.
 - **OPEN-024 remains open but is narrower:** gameplay SAT output is direct
   native semantic-lane output. Remaining PC090OJ debt is frontend/shared
   producer compatibility. The player auxiliary/raw family has corrected
@@ -768,28 +751,6 @@ Final response must include "Open/Closed Issues Impact" section with:
 - **Future proof required (its own focused task):** compare ORIGINAL ARCADE vs GENESIS for the initial Lizardman wave and prove: (1) live semantic actor count; (2) spawn-descriptor consumption count; (3) native render requests per actor/frame; (4) SAT entries emitted per actor/frame; (5) SAT retirement between animation poses; (6) frame/VBlank identity around the defect. Decisive classification: A. EXTRA ACTOR / B. DUPLICATE RENDER EMISSION / C. STALE SAT POSE / D. MULTIPLE / E. OTHER.
 
 - **Current scope:** DEFERRED. Do not trace/instrument Build 0300 or 0313, patch SAT retirement, alter VBlank, change actor activation or sprite limits, produce a test ROM, or consume Build 0314 for this issue now. Record and defer.
-
-## OPEN-027 — R1/P1 Flying Demon components can separate on Genesis despite state-locked arcade composite
-
-- **Status:** OPEN / DEFERRED (documented during the active R1/P1 sprite-corpus audit; NOT investigated here)
-- **Priority:** MEDIUM
-- **Discovered by:** Tighe (Build 0313 gameplay observation) + Andy (saved original-arcade user-play trace analysis)
-- **Observed in build:** 0313
-- **Architecture note:** gameplay lifecycle/damage semantics belong to arcade execution; native Genesis sprite/SAT production is graphics realization. This divergence is NOT attributed to the native renderer (or to gameplay, collision, SAT retirement, or damage translation) without proof.
-
-- **Original arcade evidence (flying_demon_trace/flying_demon_capture.json):**
-  - Flying Demon = special two-slot `actor_508` composite, base 0x0129 (does NOT use the +0x3E family system).
-  - component_A @0x0010C508 → OBJ records 57-69, codes 0x0129-0x0155.
-  - component_B @0x0010C548 → OBJ records 70-82, codes 0x014A-0x0177 (shared death anim 0x0288-0x02A8).
-  - Co-located and state-locked: 0 of 885 shared observed frames show one component in death state 0x0F while the other lives. (Which component is pixel-wise body vs wings is UNRESOLVED.)
-
-- **Genesis Build 0313 observation:** the user can remove/kill one visible component (a wing-like portion) while the remaining demon survives — a separation not seen in the state-locked arcade trace. Palette is also incorrect, but palette remains part of the sprite audit.
-
-- **Root cause:** UNRESOLVED. Candidate owners (hypotheses only): translated gameplay lifecycle ownership; component state synchronization; native sprite publication/retirement; damage-target ownership; another proven mechanism. Do NOT assign to renderer/gameplay/collision/SAT-retirement/damage-translation without proof.
-
-- **Note on evidence limits:** the saved trace shows a state-locked lifecycle but does NOT contain a positively-identified attack against a single component, and no static arcade damage-ownership code has been analyzed; universal wing-only-death impossibility is therefore NOT proven. A future focused task would need (A) a trace isolating a wing-targeted hit, or (B) static original-arcade proof of shared damage/death ownership, to classify the divergence.
-
-- **Current scope:** DEFERRED. No implementation, no trace, no ROM, no Build 0314 for this issue now. Record and defer.
 
 ## OPEN-028 — First-arrival Plane-A sky cells can retain isolated stale names
 

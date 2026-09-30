@@ -28,6 +28,7 @@ local EXPECTED_SLOT  = tonumber(os.getenv("OPT003_EXPECTED_SLOT") or "0x0420")
 local CODE           = 0x034C
 local MAX_FRAMES     = tonumber(os.getenv("OPT003_MAX_FRAMES") or "5000")
 local OBSERVE_FRAMES = tonumber(os.getenv("OPT003_OBSERVE_FRAMES") or "24")
+local AUDIT_DIR      = os.getenv("OPT003_AUDIT_DIR")
 
 local machine = manager.machine
 local cpu = machine.devices[":maincpu"]
@@ -58,6 +59,21 @@ local function pkg()  return r16(symbols.fg_boundary_active_package) & 0xffff en
 local function scene() return r8(symbols.genesistan_current_scene_id) end
 local function lut(code) return r16(symbols.fg_boundary_active_lut + code * 2) & 0xffff end
 local function eptrans() return r32(symbols.fg_boundary_epoch_transitions) end
+local function optional16(name)
+  return symbols[name] and r16(symbols[name]) or 0
+end
+local function optional32(name)
+  return symbols[name] and r32(symbols[name]) or 0
+end
+
+local function dump_words(path, address, words)
+  local f = assert(io.open(path, "wb"))
+  for i = 0, words - 1 do
+    local value = r16(address + i * 2)
+    f:write(string.char((value >> 8) & 0xff, value & 0xff))
+  end
+  f:close()
+end
 
 local homedir = machine.options.entries.homepath:value():match("([^;]+)") or "."
 local dir = homedir .. "/opt003_natural"
@@ -81,6 +97,7 @@ local frame = 0
 local reached_frame = -1
 local prev_rec, prev_pkg = -1, -1
 local crash = 0
+if AUDIT_DIR then os.execute('mkdir -p "' .. AUDIT_DIR .. '" 2>/dev/null') end
 
 -- follow final vectors for exceptions
 for _, v in ipairs({0x000008, 0x00000c, 0x000010}) do
@@ -110,6 +127,24 @@ emu.register_frame_done(function()
       logln(string.format("frame=%d scene=1 record=%d package=%d lut034C=%04X eptrans=%d %s",
         frame, rc, pk, lut(CODE), eptrans(),
         (rc == TARGET_RECORD and reached_frame < 0) and "<== TARGET RECORD REACHED" or ""))
+      if AUDIT_DIR and symbols.staged_fg_buffer and symbols.fg_boundary_active_lut then
+        local stem = string.format("frame_%05d_record_%d_package_%d", frame, rc, pk)
+        dump_words(AUDIT_DIR .. "/" .. stem .. "_staged_fg.bin",
+          symbols.staged_fg_buffer, 2048)
+        dump_words(AUDIT_DIR .. "/" .. stem .. "_active_lut.bin",
+          symbols.fg_boundary_active_lut, 10240)
+        local f = assert(io.open(AUDIT_DIR .. "/" .. stem .. "_state.txt", "w"))
+        f:write(string.format(
+          "frame=%d\nrecord=%d\npackage=%d\nselector=%d\nscroll_x_fg=%d\nscroll_y_fg=%d\n" ..
+          "strip_index=%d\nstrip_group=%d\nepoch_transitions=%d\npattern_dma_transitions=%d\n" ..
+          "name_remap_a=%d\nslots_reassigned=%d\nmiss_a=%d\n",
+          frame, rc, pk, optional16("selector"), optional16("staged_scroll_x_fg"),
+          optional16("staged_scroll_y_fg"), optional16("strip_index"),
+          optional16("strip_group"), eptrans(), optional32("pattern_dma_transitions"),
+          optional32("name_remap_a"), optional32("slots_reassigned"),
+          optional32("miss_a")))
+        f:close()
+      end
       prev_rec, prev_pkg = rc, pk
       if rc == TARGET_RECORD and reached_frame < 0 then reached_frame = frame end
     end
