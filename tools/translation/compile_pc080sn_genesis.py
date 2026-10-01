@@ -123,6 +123,19 @@ BOUNDARY_TRANSITION_DEFS = (
      "out_epoch": 0, "in_epoch": 1, "scroll_x": 0x0168, "scroll_y": 0x0105},
     {"name": "waterfall_to_next_rope", "out_record": 3, "in_record": 4,
      "out_epoch": 1, "in_epoch": 2, "scroll_x": 0x0168, "scroll_y": 0x015D},
+    # Build 0396: record 11 enters while record 10 is still visible.  Allocate this overlap
+    # from the already-approved incoming stable package so record-11 identities and slots stay
+    # byte-for-byte stable; the installer's existing exact-identity remap moves only outgoing
+    # record-10 names whose old slots conflict with that locked incoming assignment.
+    {"name": "segment10_to_segment11", "out_record": 10, "in_record": 11,
+     "out_epoch": 2, "in_epoch": 3, "scroll_x": 0x0168, "scroll_y": 0x0000,
+     "lock_incoming_slots": True},
+    # Build 0398: the next visible residency boundary is record 12 -> 13, not record 11 -> 12
+    # (records 11 and 12 already share stable epoch 3). Preserve the accepted incoming stable
+    # epoch-4 assignment and move only conflicting outgoing record-12 names atomically.
+    {"name": "segment12_to_segment13", "out_record": 12, "in_record": 13,
+     "out_epoch": 3, "in_epoch": 4, "scroll_x": 0x0168, "scroll_y": 0x0000,
+     "lock_incoming_slots": True},
 )
 
 # Statically decoded Stage-1 animation unions. These are source PC090OJ 16x16 cell codes, not
@@ -554,8 +567,9 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         combined_code_blob.update(record_code_blob[definition["in_record"]])
         code_blob = {code: combined_code_blob[code] for code in sorted(required_codes)}
         pattern_set = set(code_blob.values())
-        expected = 395 if definition["name"] == "rope_to_waterfall" else 479
-        if len(pattern_set) != expected:
+        expected = {"rope_to_waterfall": 395,
+                    "waterfall_to_next_rope": 479}.get(definition["name"])
+        if expected is not None and len(pattern_set) != expected:
             # Build 0316: editor-policy reindex legitimately shifts exact-pattern dedup counts.
             print(f"NOTE {definition['name']} transition set changed (editor-policy reindex): "
                   f"{len(pattern_set)} vs baseline {expected}")
@@ -567,9 +581,11 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
             "incoming_required_codes": incoming_required_codes,
         })
 
-    # Package IDs retain the stable epoch IDs. Two overlap IDs are appended to the binary,
-    # while allocation follows semantic time A -> overlap AB -> B -> overlap BC -> C -> ... so
-    # every retained exact identity keeps its physical slot.
+    # Package IDs retain the stable epoch IDs. Overlap IDs are appended to the binary. The first
+    # two historical overlaps allocate in semantic order and remain byte-for-byte unchanged.
+    # A transition which locks its incoming slots is allocated immediately after that stable
+    # package; this preserves the authoritative incoming package and lets the existing native
+    # exact-identity name remap reposition outgoing-only cells atomically.
     stable_package_count = len(epoch_code_blob)
     transition_package_ids = [stable_package_count + index
                               for index in range(len(transition_specs))]
@@ -583,8 +599,22 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         "records": [spec["out_record"], spec["in_record"]],
         "name": spec["name"], "code_blob": spec["code_blob"]}
         for spec in transition_specs)
-    allocation_order = [0, transition_package_ids[0], 1, transition_package_ids[1],
-                        *range(2, stable_package_count)]
+    transition_by_out_epoch = {
+        spec["out_epoch"]: package_id for spec, package_id in
+        zip(transition_specs, transition_package_ids)
+        if not spec.get("lock_incoming_slots")}
+    transition_by_in_epoch = {
+        spec["in_epoch"]: package_id for spec, package_id in
+        zip(transition_specs, transition_package_ids)
+        if spec.get("lock_incoming_slots")
+    }
+    allocation_order = []
+    for stable_id in range(stable_package_count):
+        allocation_order.append(stable_id)
+        if stable_id in transition_by_out_epoch:
+            allocation_order.append(transition_by_out_epoch[stable_id])
+        if stable_id in transition_by_in_epoch:
+            allocation_order.append(transition_by_in_epoch[stable_id])
     packages = [None] * len(package_specs)
     previous = {}
     all_a_only = set()
@@ -654,8 +684,8 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
     # Project-owned compiler gates: every transition state and every publisher-resolved incoming
     # row must map to the correct exact pattern; retained old identities must keep their slots.
     transition_gate_reports = []
-    for spec, package_id, stable_new_id in zip(
-            transition_specs, transition_package_ids, (1, 2)):
+    for spec, package_id in zip(transition_specs, transition_package_ids):
+        stable_new_id = spec["in_epoch"]
         package = packages[package_id]
         old_package = packages[spec["out_epoch"]]
         new_package = packages[stable_new_id]
@@ -687,10 +717,22 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
                          for spec_code in (record_maps[spec["in_record"]][row][column]
                                            for row in range(64)) if spec_code}
         handoff_missing = sum(code not in new_map for code in handoff_codes)
-        if visible_missing or slot_collisions or retained_moved or handoff_missing:
+        incoming_slot_changes = sum(
+            package["assigned"].get(blob) != new_package["assigned"].get(blob)
+            for blob in {tile_bytes(code) for code in spec["incoming_required_codes"]}
+            if blob in package["assigned"] and blob in new_package["assigned"])
+        outgoing_visible_patterns = {
+            tile_bytes(code) for code in spec["outgoing_visible_codes"]}
+        incoming_required_patterns = {
+            tile_bytes(code) for code in spec["incoming_required_codes"]}
+        stable_incoming_patterns = set(new_package["assigned"])
+        retained_move_failure = retained_moved and not spec.get("lock_incoming_slots")
+        if (visible_missing or slot_collisions or retained_move_failure or
+                incoming_slot_changes or handoff_missing):
             raise SystemExit(
                 f"{spec['name']} gate failed: visible_missing={visible_missing}, "
                 f"slot_collisions={slot_collisions}, retained_moved={retained_moved}, "
+                f"incoming_slot_changes={incoming_slot_changes}, "
                 f"handoff_missing={handoff_missing}")
         transition_gate_reports.append({
             "name": spec["name"], "package": package_id,
@@ -699,19 +741,25 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
             "peak_patterns": len(spec["pattern_set"]),
             "capacity": a_slot_count,
             "margin": a_slot_count - len(spec["pattern_set"]),
-            "outgoing_visible_patterns": len({tile_bytes(code)
-                                               for code in spec["outgoing_visible_codes"]}),
-            "incoming_required_patterns": len({tile_bytes(code)
-                                                for code in spec["incoming_required_codes"]}),
+            "out_record_patterns": len(record_pattern_sets[spec["out_record"]]),
+            "in_record_patterns": len(record_pattern_sets[spec["in_record"]]),
+            "record_shared_patterns": len(
+                record_pattern_sets[spec["out_record"]]
+                & record_pattern_sets[spec["in_record"]]),
+            "outgoing_visible_patterns": len(outgoing_visible_patterns),
+            "outgoing_visible_retained_by_stable_in": len(
+                outgoing_visible_patterns & stable_incoming_patterns),
+            "outgoing_visible_lost_by_direct_stable_switch": len(
+                outgoing_visible_patterns - stable_incoming_patterns),
+            "incoming_required_patterns": len(incoming_required_patterns),
             "shared_visible_patterns": len(
-                {tile_bytes(code) for code in spec["outgoing_visible_codes"]}
-                & {tile_bytes(code) for code in spec["incoming_required_codes"]}),
+                outgoing_visible_patterns & incoming_required_patterns),
             "incoming_only_required_patterns": len(
-                {tile_bytes(code) for code in spec["incoming_required_codes"]}
-                - {tile_bytes(code) for code in spec["outgoing_visible_codes"]}),
+                incoming_required_patterns - outgoing_visible_patterns),
             "visible_missing_patterns": visible_missing,
             "slot_collisions": slot_collisions,
             "retained_patterns_moved": retained_moved,
+            "incoming_stable_slots_changed": incoming_slot_changes,
             "handoff_missing_patterns": handoff_missing,
             "gate": "PASS",
         })
@@ -728,12 +776,13 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         raise SystemExit(f"transition scratch overlaps legal LUT codes: {scratch_overlap[:8]}")
 
     # Binary contract: record->package table, fixed-size descriptors, per-package A sections, then
-    # the fixed-B sections. Records 3 and 4 first select their bounded overlap packages; the native
-    # selector-0 publisher performs the generated handoff to stable epochs B/C at column 45.
+    # the fixed-B sections. Each incoming transition record first selects its bounded overlap
+    # package; the native selector-0 publisher reads the generated descriptor handoff target at
+    # column 45.  No runtime record/segment special case is needed.
     # fixed-B map/upload sections. Every runtime-consumed section is naturally word-aligned.
     record_to_package = list(record_to_epoch)
-    record_to_package[3] = transition_package_ids[0]
-    record_to_package[4] = transition_package_ids[1]
+    for spec, package_id in zip(transition_specs, transition_package_ids):
+        record_to_package[spec["in_record"]] = package_id
     record_table = [(package, 1) for package in record_to_package]
     table_bytes = len(record_table) * BOUNDARY_RECORD_ENTRY_BYTES
     desc_bytes = len(packages) * BOUNDARY_PACKAGE_DESC_BYTES
@@ -761,7 +810,12 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         desc += be32(offset)
         desc += be16(len(package["map"])) + be16(len(package["uploads"]))
         desc += be16(len(package["identities"])) + be16(package["required_patterns"])
-        desc += be16(0) + be16(0)
+        handoff_target = 0
+        if package["kind"] == "transition":
+            transition = next(spec for spec in transition_specs
+                              if spec["name"] == package["name"])
+            handoff_target = transition["in_epoch"] + 1  # zero means no handoff
+        desc += be16(handoff_target) + be16(0)
         for code, slot in package["map"]: data += be16(code) + be16(slot)
         for code, slot in package["uploads"]: data += be16(code) + be16(slot)
         for slot, identity in package["identities"]: data += be16(slot) + be16(identity)
@@ -843,7 +897,7 @@ def build_boundary_experiment(mc: bytes, patterns: bytes, outdir: Path, stage_in
         f".equ FG_BOUNDARY_RESEED_MASK, 0x{reseed_mask:08X}\n")
 
     report = {
-        "model": "fixed Level-1 Plane B plus six stable Plane-A epochs and two bounded transition-overlap packages",
+        "model": "fixed Level-1 Plane B plus six stable Plane-A epochs and four bounded transition-overlap packages",
         "trace_inputs": 0,
         "records": len(record_table), "packages": len(packages),
         "stable_epochs": stable_package_count,

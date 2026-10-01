@@ -39,6 +39,10 @@
     .extern staged_fg_buffer
     .extern bg_row_dirty
     .extern fg_row_dirty
+    .extern fg_col_dirty
+    .extern fg_narrow_desc_count
+    .extern fg_narrow_pending_rows
+    .extern genesistan_scene_present_pending
     .extern vdp_set_reg
     .extern vdp_dma_words_to_vram
 
@@ -104,38 +108,69 @@ fg_boundary_advance_segment:
  * outer controller after the raw segment increment. The scene-fill return at arcade_pc 0x050482
  * calls here only after that authoritative state and its 64 publications are complete. */
 fg_boundary_install_post_reseed:
+    movem.l %d0-%d7/%a0-%a4, -(%sp)
     tst.b   fg_boundary_reseed_pending
-    beq.s   .Lpost_reseed_done
+    beq.s   .Lpost_reseed_check_scene_entry
     clr.b   fg_boundary_reseed_pending
     bsr     fg_boundary_install
+.Lpost_reseed_check_scene_entry:
+    tst.b   genesistan_scene_present_pending
+    beq.s   .Lpost_reseed_done
+
+    /* Build 0394: arcade_pc 0x050482 is reached only after the authoritative
+     * 64-iteration scene fill has completed both native Plane-A and Plane-B
+     * staging.  Publish the two existing full-plane initial name DMAs here,
+     * then make that coherent presentation visible. */
+    lea     staged_bg_buffer, %a0
+    move.l  #VRAM_PLANE_B_BASE, %d0
+    move.w  #PLANE_NAME_WORDS, %d1
+    bsr     vdp_dma_words_to_vram
+    lea     staged_fg_buffer, %a0
+    move.l  #VRAM_PLANE_A_BASE, %d0
+    move.w  #PLANE_NAME_WORDS, %d1
+    bsr     vdp_dma_words_to_vram
+    clr.l   bg_row_dirty
+    clr.l   fg_row_dirty
+    clr.l   fg_col_dirty
+    clr.l   fg_col_dirty + 4
+    clr.w   fg_narrow_desc_count
+    clr.w   fg_narrow_pending_rows
+    clr.b   genesistan_scene_present_pending
+    moveq   #VDP_REG_MODE2, %d0
+    moveq   #VDP_MODE2_DISPLAY_ON, %d1
+    bsr     vdp_set_reg
 .Lpost_reseed_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a4
     rts
 
-/* Build 0311 generated overlap handoff. The selector-0 producer publishes one logical column at
- * a time. At column 45 the 40-column arcade viewport cannot reference the outgoing record, so the
- * bounded overlap package may become the stable incoming epoch. D0 = logical column. */
+/* Generated overlap handoff. The selector-0 producer publishes one logical column at a time. At
+ * column 45 the 40-column arcade viewport cannot reference the outgoing record, so the bounded
+ * overlap package may become its generated stable incoming epoch. Descriptor word +12 stores
+ * stable-package-plus-one (zero means no handoff), avoiding record/segment special cases.
+ * D0 = logical column. */
 fg_boundary_transition_step:
-    movem.l %d0-%d2/%a0, -(%sp)
+    movem.l %d0-%d3/%a0/%a4, -(%sp)
     cmpi.w  #FG_BOUNDARY_TRANSITION_HANDOFF_COLUMN, %d0
     bne.s   .Ltransition_step_done
     cmpi.b  #1, genesistan_current_scene_id
     bne.s   .Ltransition_step_done
-    cmpi.w  #3, fg_boundary_active_record
-    bne.s   .Ltransition_step_check_bc
-    cmpi.w  #FG_BOUNDARY_TRANSITION_AB_PACKAGE, fg_boundary_active_package
-    bne.s   .Ltransition_step_done
-    moveq   #FG_BOUNDARY_TRANSITION_AB_STABLE_PACKAGE, %d2
-    bsr     .Linstall_selected_package
-    bra.s   .Ltransition_step_done
-.Ltransition_step_check_bc:
-    cmpi.w  #4, fg_boundary_active_record
-    bne.s   .Ltransition_step_done
-    cmpi.w  #FG_BOUNDARY_TRANSITION_BC_PACKAGE, fg_boundary_active_package
-    bne.s   .Ltransition_step_done
-    moveq   #FG_BOUNDARY_TRANSITION_BC_STABLE_PACKAGE, %d2
+    moveq   #0, %d3
+    move.w  fg_boundary_active_package, %d3
+    cmpi.w  #FG_BOUNDARY_PACKAGES, %d3
+    bhs.s   .Ltransition_step_done
+    lsl.l   #4, %d3
+    addi.l  #(FG_BOUNDARY_DESC_OFFSET + 12), %d3
+    lea     fg_boundary_packages, %a4
+    lea     0(%a4,%d3.l), %a0
+    moveq   #2, %d0
+    bsr     .Linstall_require_package_range
+    moveq   #0, %d2
+    move.w  (%a0), %d2
+    beq.s   .Ltransition_step_done
+    subq.w  #1, %d2
     bsr     .Linstall_selected_package
 .Ltransition_step_done:
-    movem.l (%sp)+, %d0-%d2/%a0
+    movem.l (%sp)+, %d0-%d3/%a0/%a4
     rts
 
 /* Compatibility name for surviving Plane-A call sites. */
@@ -486,7 +521,15 @@ fg_boundary_install:
 .Linstall_uploads_done:
     addq.l  #1, fg_boundary_pattern_dma_transitions
 
-    /* Plane A changes atomically. Plane B name DMA occurs only on the initial gameplay install. */
+    /* Build 0394: on a true gameplay scene entry, the caller has not built the
+     * initial native maps yet.  The existing full-plane initial name DMAs move
+     * to the completed-fill boundary at arcade_pc 0x050482; keep the display
+     * off until then.  Ordinary in-game epoch/residency transitions retain
+     * their established atomic publication here. */
+    tst.b   genesistan_scene_present_pending
+    bne.s   .Linstall_names_done
+    /* Plane A changes atomically. Plane B name DMA occurs only on an initial
+     * package install that is not the deferred gameplay-entry case. */
     cmpi.w  #0xFFFF, fg_boundary_active_package
     bne.s   .Linstall_plane_a_name
     lea     staged_bg_buffer, %a0
@@ -500,14 +543,18 @@ fg_boundary_install:
     bsr     vdp_dma_words_to_vram
     clr.l   bg_row_dirty
     clr.l   fg_row_dirty
+.Linstall_names_done:
 
     move.w  fg_boundary_pending_record, fg_boundary_active_record
     move.w  fg_boundary_pending_variant, fg_boundary_active_variant
     move.w  fg_boundary_pending_package, fg_boundary_active_package
     addq.l  #1, fg_boundary_epoch_transitions
+    tst.b   genesistan_scene_present_pending
+    bne.s   .Linstall_leave_display_off
     moveq   #VDP_REG_MODE2, %d0
     moveq   #VDP_MODE2_DISPLAY_ON, %d1
     bsr     vdp_set_reg
+.Linstall_leave_display_off:
     move.w  (%sp)+, %sr
     bra.s   .Linstall_done
 

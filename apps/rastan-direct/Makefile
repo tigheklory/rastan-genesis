@@ -76,7 +76,7 @@ PC090OJ_PALSEL_EQUIV := $(ROOT)/build/rastan-direct/pc090oj_direct_palette_equiv
 MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
 PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
 PC080SN_EDITOR_LAYERA := $(ROOT)/build/regions/pc080sn_editor_layera.bin
-EDITOR_LAYERA_SNAPSHOT := $(ROOT)/build/rastan-direct/build0391/Test.snapshot.json
+EDITOR_LAYERA_SNAPSHOT := $(ROOT)/build/rastan-direct/build0397/Test.snapshot.json
 # Canonical approved pattern reference-substitution policy (offline only). Consumed automatically by the
 # normal build: apply_pattern_reuse.py validates every approved entry against the real plane-A usage
 # inventory and fails the build on any unresolved entry. Editing the policy re-triggers validation.
@@ -466,8 +466,8 @@ diag-variant: $(DIAG_ROM)
 
 # Build 0338: score-metric ROM = same postpatch-only pipeline as $(DIAG_ROM) but built with
 # RASTAN_DIAG_SCORE_METRIC=1 (via the recursive `score-variant` invocation). Separate manifest.
-# Build 0378: the shared Plane-A collision resolver moves canonical into that formerly
-# score-only aligned page, so this variant no longer needs an additional coverage delta.
+# Build 0396: the third generated Plane-A overlap package grows canonical coverage onto the
+# formerly score-only aligned page, so this variant no longer adds a coverage page.
 $(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -521,10 +521,8 @@ do-variant: $(DO_ROM)
 # but the compile-time feature and its two state bytes exist only in the _c ROM.
 # Build 0378: canonical helper growth reached the formerly MODE-only aligned page,
 # so this variant needed no additional coverage delta.
-# Build 0384: the complete (code,bank) multi-block variant index adds an 8 KiB
-# group_base table to the canonical helper region, which shifts the _c-only MODE
-# code back onto its own aligned page -> the _c ROM again carries one extra 0x1000
-# page vs the canonical ROM.  Restore the +0x1000 coverage delta for this variant.
+# Build 0396: the third generated Plane-A overlap package grows canonical coverage onto the
+# formerly MODE-only aligned page, so this variant again needs no additional coverage delta.
 $(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -535,8 +533,7 @@ $(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) 
 		--rom "$@" \
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/cheat_patch_manifest.json" \
-		--spec "$(PATCH_SPEC)" \
-		--genesis-coverage-delta 4096
+		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 cheat-variant: $(CHEAT_ROM)

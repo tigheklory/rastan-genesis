@@ -42,6 +42,7 @@
     .global vdp_commit_sprites_vram
     .global genesistan_pc090oj_dma_self_test
     .extern dma_words_to_vram_noai         /* Build 0345: single DMA-programming owner in dma.s */
+    .extern genesistan_hook_cwindow_clear  /* Native Plane A/B consequence of arcade 0x0561A0. */
 
     .global pc090oj_ctrl_shadow
     .global pc090oj_sprite_ctrl_shadow
@@ -1162,9 +1163,16 @@ genesistan_pc090oj_hook_copy_56114:
 
 /* Frontend-direct retirement (was: park the item object-RAM records).  The
  * arcade clear is the semantic end-of-life for the transient item family, so we
- * retire the native semantic state; the emitter then contributes no pieces. */
+ * retire the native semantic state; the emitter then contributes no pieces.
+ *
+ * Original arcade 0x056440 finishes by calling the general tilemap-clear
+ * routine at arcade_pc 0x0561A0.  Replacing the whole 0x056440 body made that
+ * internal call unreachable, so preserve its semantic consequence explicitly:
+ * clear both final Genesis-format staged name tables and mark their rows dirty.
+ * This is the original generic clear contract, not a ROUND/READY or scene gate. */
 genesistan_pc090oj_hook_zero_fill_56440:
     clr.w   transient_items_active
+    bsr     genesistan_hook_cwindow_clear
     rts
 
     /* native_queue_hud entry 2, code word: 2 * 8-byte entry + 4.  Keep the

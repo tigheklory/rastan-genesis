@@ -30,6 +30,7 @@
     .global genesistan_current_pc080sn_tileset_id
     .global genesistan_scene_a0_lo
     .global genesistan_scene_a0_hi
+    .global genesistan_scene_present_pending
 
     .extern vdp_set_reg
     .extern vdp_set_vram_write_addr
@@ -159,9 +160,15 @@ load_scene_tiles:
     bsr     vdp_install_test_lines
 .Lload_scene_no_cache_reset:
 
+    /* Build 0394: when the semantic scene-fill caller has armed presentation,
+     * resource loading returns with the display off.  The completed-fill
+     * boundary at arcade_pc 0x050482 owns publication and display-enable. */
+    tst.b   genesistan_scene_present_pending
+    bne.s   .Lload_scene_leave_display_off
     moveq   #VDP_REG_MODE2, %d0
     moveq   #VDP_MODE2_DISPLAY_ON, %d1
     bsr     vdp_set_reg
+.Lload_scene_leave_display_off:
 
     move.w  (%sp)+, %sr
     movem.l (%sp)+, %d1-%d7/%a0-%a4
@@ -250,3 +257,5 @@ genesistan_scene_a0_lo:
     .long 0
 genesistan_scene_a0_hi:
     .long 0
+genesistan_scene_present_pending:
+    .byte 0

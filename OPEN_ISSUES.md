@@ -786,3 +786,22 @@ Final response must include "Open/Closed Issues Impact" section with:
 - **Next proof required:** capture the exact successful ORIGINAL ARCADE lateral release/landing and
   the same attempted control in GENESIS NTSC, including `A5+0x136E`, raw input, state transition,
   player motion, and collision results. No record-, coordinate-, chain-, or MODE-specific patch.
+
+## OPEN-030 — Post-Segment-11 Plane-A tile loss at the record-12 -> record-13 residency switch
+
+- **Status:** OPEN / BUILD 0398 IMPLEMENTED / USER VERIFICATION REQUIRED
+- **Priority:** HIGH
+- **Observed through:** Build 0397; explicitly reported as pre-existing and not caused by the
+  accepted Segment-10 -> Segment-11 repair.
+- **Corrected identity:** The initial literal record-11 -> record-12 test was the wrong boundary;
+  those records share stable package 3. Direct review of Tighe's video confirms abrupt still-visible
+  terrain loss, and the next actual generated residency boundary is record 12 -> record 13,
+  stable package 3 -> stable package 4.
+- **Proven failure:** Of 217 still-visible record-12 identities, stable package 4 retained 115 and
+  retired/reassigned 102 too early. Incoming record 13 needs 217 identities, shares 89 with the
+  outgoing-visible set, and the exact union is 346/676.
+- **Build 0398:** Generated overlap package 9 implements `stable 3 -> overlap 9 -> stable 4` using
+  the existing exact-identity remap and generic column-45 handoff. Stable packages 3/4 and accepted
+  overlap package 8 are hash-locked unchanged. All mechanical gates pass; user visual verification
+  remains required before closure.
+- **Evidence:** `docs/design/Cody_build0398_segment11_segment12_plane_a_transition.md`.

@@ -40,9 +40,11 @@
     .global genesistan_hook_itempage_strip_populate
     .global genesistan_hook_itempage_strip_blit
     .global vdp_commit_fg_narrow_strips
+    .global fg_col_dirty
     .global rastan_direct_update_inputs
 
     .extern vdp_set_reg
+    .extern genesistan_scene_present_pending
     .extern vdp_set_vram_write_addr
     .extern vdp_commit_fg_strips_if_dirty
     .extern genesistan_current_scene_id
@@ -4121,6 +4123,14 @@ genesistan_hook_itempage_strip_blit:
 .Litempage_blit_tileset_selected:
     cmp.b   genesistan_current_pc080sn_tileset_id, %d1
     beq.s   .Litempage_blit_scene_ready
+    /* Build 0394: this retained countdown is nonzero only while the arcade
+     * 0x0503DC initial 64-publication scene fill is in progress.  Tell the
+     * resource loader that this caller, not elapsed time or a scene ID, owns
+     * the later coherent presentation boundary. */
+    tst.w   0x10AA(%a5)
+    beq.s   .Litempage_blit_load_scene
+    move.b  #1, genesistan_scene_present_pending
+.Litempage_blit_load_scene:
     move.w  %d1, %d0
     bsr     load_scene_tiles
 .Litempage_blit_scene_ready:

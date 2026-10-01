@@ -1,8 +1,8 @@
 [{
     "space":{
       "maincpup":{
-        "type":"program",
-        "tag":":maincpu"
+        "tag":":maincpu",
+        "type":"program"
       }
     },
     "script":{
@@ -12,8 +12,8 @@
   },{
     "space":{
       "maincpup":{
-        "type":"program",
-        "tag":":maincpu"
+        "tag":":maincpu",
+        "type":"program"
       }
     },
     "script":{
@@ -23,8 +23,8 @@
   },{
     "space":{
       "maincpup":{
-        "type":"program",
-        "tag":":maincpu"
+        "tag":":maincpu",
+        "type":"program"
       }
     },
     "comment":"You die though when fall down into the water",
@@ -48,8 +48,8 @@
   },{
     "space":{
       "maincpup":{
-        "type":"program",
-        "tag":":maincpu"
+        "tag":":maincpu",
+        "type":"program"
       }
     },
     "script":{
@@ -126,8 +126,8 @@
   },{
     "space":{
       "maincpup":{
-        "type":"program",
-        "tag":":maincpu"
+        "tag":":maincpu",
+        "type":"program"
       }
     },
     "parameter":{
@@ -155,8 +155,8 @@
   },{
     "space":{
       "maincpup":{
-        "type":"program",
-        "tag":":maincpu"
+        "tag":":maincpu",
+        "type":"program"
       }
     },
     "parameter":{
@@ -184,8 +184,8 @@
   },{
     "space":{
       "maincpup":{
-        "type":"program",
-        "tag":":maincpu"
+        "tag":":maincpu",
+        "type":"program"
       }
     },
     "script":{
@@ -193,13 +193,6 @@
     },
     "desc":"Rapid Fire"
   },{
-    "comment":"Having the ring let's you fire faster",
-    "space":{
-      "maincpup":{
-        "type":"program",
-        "tag":":maincpu"
-      }
-    },
     "parameter":{
       "item":[{
           "value":"0x01",
@@ -209,6 +202,13 @@
           "text":"No Ring"
         }]
     },
+    "space":{
+      "maincpup":{
+        "tag":":maincpu",
+        "type":"program"
+      }
+    },
+    "comment":"Having the ring let's you fire faster",
     "script":{
       "run":" if (param==0x01) then maincpup:writev_u8(0x10d391,0x0f) end if (param==0x01) then maincpup:writev_u8(0x10d40f,0x01) end if (param==0x02) then maincpup:writev_u8(0x10d391,0x18) end if (param==0x02) then maincpup:writev_u8(0x10d40f,0xff) end"
     },
@@ -216,8 +216,8 @@
   },{
     "space":{
       "maincpup":{
-        "type":"program",
-        "tag":":maincpu"
+        "tag":":maincpu",
+        "type":"program"
       }
     },
     "script":{
@@ -227,8 +227,8 @@
   },{
     "space":{
       "maincpup":{
-        "type":"program",
-        "tag":":maincpu"
+        "tag":":maincpu",
+        "type":"program"
       }
     },
     "script":{

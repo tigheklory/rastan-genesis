@@ -50040,3 +50040,227 @@ Build:
 
 Gameplay verification:
 TIGHE ONLY
+
+## [Cody — Build 0391 ROUND/READY Video Sequencing Audit]
+
+- build: 0391
+- build counter: 391 unchanged
+- analysis only: YES
+- ROM produced: NO
+- source changed: NO
+- Build-0391 video: `states/screenshots/build_391.mp4`, SHA-256
+  `bdca44f40d12f1697b6bb72a4b26c676147c42631a3e6090a3c4a8cc4978d88a`,
+  642x512 at 30 fps, 309 decoded frames.
+- original-arcade video: `states/screenshots/arcade_example.mp4`, SHA-256
+  `b69700b6b9d7188b798334fd681ae968e82d84b3fbb2dc8815c18b22d884cc16`,
+  1932x1426 at 30 fps, 354 decoded frames.
+- extraction: 30 fps, full original resolution, lossless PNG, no scaling or
+  cropping; 309 Genesis and 354 arcade frames retained locally with timestamp
+  indexes and seven unscaled side-by-side comparison images.
+- Genesis timeline: READY first frame 120 (`4.000000`), last correct frame 175
+  (`5.833333`), display-off/blank frames 176–177, first corrupt stale-READY
+  frame 178 (`5.933333`), first correct gameplay frame 186 (`6.200000`).
+- arcade timeline: READY first frame 194 (`6.466667`), last correct frame 251
+  (`8.366667`, with the first left terrain strip), teardown starts frame 252,
+  center-only black transition frames 253–256, first correct gameplay frame
+  257 (`8.566667`); there is no fully blank arcade frame and no READY-to-level
+  pattern alias.
+- root cause: Build 0391 disables display at `load_scene_tiles` `0x074818`, but
+  initial `fg_boundary_install` (`0x072B2C`) reuses READY's low VRAM pattern
+  slots in its fixed-B loop `0x072C30..0x072C4E`, republishes the still-staged
+  READY Plane-B names at `0x072E1C..0x072E2C`, and enables display at
+  `0x072E74..0x072E78`. Later gameplay map publication replaces the stale
+  names. READY names retained: YES. READY slots reused: YES. Palette cause: NO.
+- original arcade: controller `0x055DDC`; substate-12 clear/text calls at
+  `0x055FCA`/`0x055FCE`; 128-tick substate 13 at `0x055FE0`; expiry/teardown at
+  `0x055FF6`/`0x055FFA`; teardown `0x056440` calls tilemap clear `0x0561A0`, so
+  the old READY map is removed before gameplay graphics become visible.
+- first semantic divergence: arcade removes/clears READY names before gameplay
+  presentation; Genesis retains and republishes them after their pattern slots
+  have been reassigned.
+- Tighe hypothesis: SUPPORTED IN SUBSTANCE. The eventual fix must preserve the
+  arcade ordering so gameplay patterns and matching names become visible as one
+  coherent state. No fix was implemented.
+- report: `docs/design/Cody_round_start_ready_video_comparison.md`.
+
+### MAME Exit Summary (2026-09-30 16:22:29)
+- Final PC: 0x073BA6
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0392 ROUND/READY Teardown Fix]
+
+- baseline/counter: Build 0391; counter `391 -> 392`.
+- root cause: the full native replacement of arcade teardown `0x056440` retired
+  transient items but omitted the original function's final call to generic
+  tilemap clear `0x0561A0`. The existing native clear was correct but unreachable
+  from this replaced body, so READY names survived into gameplay pattern reuse.
+- fix: `genesistan_pc090oj_hook_zero_fill_56440` now retires transient-item
+  state and calls existing `genesistan_hook_cwindow_clear`. The helper fills all
+  2,048 final Plane-B and 2,048 final Plane-A staged names with the LUT-translated
+  blank, marks both row masks dirty, and returns before gameplay publication.
+  No READY/scene special case, PC080SN emulation, new DMA, or per-frame work.
+- canonical generated route: translated `0x0564D0 -> 0x073874 -> 0x07232E`.
+- architecture: arcade timing/control selects the semantic teardown; original
+  PC090OJ record clearing and PC080SN C-window filling remain completely
+  bypassed; the helper writes final Genesis-format staging only. No transitional
+  compatibility was introduced or retained by this change.
+- build: complete Build-0392 family (`canonical`, `_c`, `_d`, `_do`, `_s`),
+  counter 392. Canonical/gameplay-entry/complete-variant/transition-retention
+  gates PASS; Genesis NTSC MAME smoke completed without unmapped-memory output.
+  Known pre-existing Phase-1 seven-epoch gate remains FAIL/WARNING.
+- canonical ROM: `dist/rastan-direct/rastan_direct_video_test_build_0392.bin`,
+  SHA-256 `deb28761f0e57af01d4c81c2008bb5ee49aaf3fa34973c9c28ad0a8453989237`,
+  1,744,568 bytes.
+- unchanged: palette, final Plane-A resolver, collision logic, third-chain work,
+  and Build-0387 Flying Demon mapping.
+- user validation: REQUIRED for visual transition and listed gameplay regression
+  checks.
+- report: `docs/design/Cody_build0392_round_ready_teardown_fix.md`.
+
+### MAME Exit Summary (2026-09-30 17:09:35)
+- Final PC: 0x073BA6
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0393 ROUND/READY Last-Writer Fix]
+
+- baseline/counter: Build 0392; counter `392 -> 393`.
+- Build-0392 user result: READY-shaped terrain remained visible, but for less
+  time than Build 0391.
+- first remaining bad event: `load_scene_tiles` enabled display at canonical
+  Build-0392 PC `0x0746D2` while the cleared final Plane-B staging update was
+  still only dirty/pending; live Plane-B VRAM retained the earlier READY names.
+- ownership: `genesistan_hook_cwindow_clear` at `0x07232E` correctly blanked
+  staging and marked all rows dirty; the most recent live READY-name owner was
+  the earlier normal `vdp_commit_bg_strips_if_dirty` publication at `0x070106`.
+- fix: Build 0393 calls that existing dirty Plane-B publisher at `0x0746CE`
+  while scene loading still owns display-off, then enables display at
+  `0x0746D6`. Published dirty bits are consumed, so this moves already-required
+  work and adds no clear, redundant DMA, delay, READY/round/record/coordinate
+  special case, or per-frame operation.
+- architecture: arcade presentation-end control remains authoritative; the
+  retired PC080SN tail remains bypassed; final Genesis staging publishes
+  directly to VDP VRAM. No chip shadow/emulation or new representation.
+- build: complete Build-0393 family (`canonical`, `_c`, `_d`, `_do`, `_s`).
+  Canonical/gameplay-entry/complete-variant/transition-retention checks PASS;
+  normal Genesis NTSC MAME smoke completed without unmapped-memory output.
+  The pre-existing Phase-1 seven-epoch gate remains FAIL/WARNING.
+- canonical ROM: `dist/rastan-direct/rastan_direct_video_test_build_0393.bin`,
+  SHA-256 `b089d3f92bce80fcbf4cd705ce7a7cbcfec511d5d8d47db693f8a8b9994eb9a1`,
+  1,744,568 bytes.
+- unchanged: palette, final Plane-A resolver, collision, waterfall, Phase-2,
+  Flying Demon, third-chain, and H25 code.
+- user visual/gameplay verification: REQUIRED.
+- report: `docs/design/Cody_build0393_round_ready_last_writer_fix.md`.
+
+### MAME Exit Summary (2026-09-30 21:16:35)
+- Final PC: 0x073C2A
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-09-30 21:17:39)
+- Final PC: 0x073C2A
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0394/0395 scene-load display ownership]
+
+- baseline: rejected Build 0393; counter `393 -> 394 -> 395`.
+- static proof: the normal gameplay resource load occurs inside the first
+  Plane-B strip of arcade scene fill `0x0503DC`; after it returns, the retained
+  loop finishes all 64 Plane-A/Plane-B publications. Its existing completion
+  hook is arcade `0x050482` / canonical Genesis `0x050682`.
+- fix: retained fill countdown `a5+0x10AA` arms deferred presentation. The
+  resource loader and initial package installer leave display off; the two
+  existing initial full-plane name DMAs and display-enable now run at
+  `fg_boundary_install_post_reseed` (`0x07286A`, display-enable `0x0728DE`).
+  Build-0393's premature dirty-B commit was reverted.
+- architecture: no READY/round/scene/record special case, additional clear,
+  delay, per-frame work, chip shadow, or PC080SN emulation.
+- Build 0394 was preserved but incomplete after `_s` exposed a 4 KiB
+  diagnostic wrapper-size delta. The exact Makefile coverage delta was added;
+  Build 0395 is the complete family (`canonical`, `_c`, `_d`, `_do`, `_s`).
+- gates: canonical PASS; gameplay-entry PASS; transition-retention PASS;
+  complete variant set PASS; pre-existing Phase-1 seven-epoch FAIL/WARNING.
+- canonical Build 0395: SHA-256
+  `77369949a85ca726072349db82839a10834a14841a2e2dc956b88e217fb61a64`,
+  1,744,568 bytes. Tighe visual/gameplay verification required.
+- report: `docs/design/Cody_build0394_scene_load_display_ownership.md`.
+
+### MAME Exit Summary (2026-10-01 11:06:32)
+- Final PC: 0x073C26
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-01 11:07:52)
+- Final PC: 0x073C26
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Build 0396/0397 Segment-10 -> Segment-11 Plane-A overlap]
+
+- baseline/counter: accepted Build 0395; `395 -> 396 -> 397`. Build 0396 was
+  preserved incomplete after `_s` exposed an obsolete 4 KiB coverage delta;
+  Build 0397 is the complete family.
+- proof: record 10 stable package 2 switched directly to record 11 stable
+  package 3. Of 304 outgoing-visible Segment-10 physical identities, only 202
+  existed in package 3; 102 were retired while their name words remained visible.
+- capacity: incoming Segment-11 requires 469 identities during overlap, shares
+  167 with outgoing-visible Segment 10, and the exact union is 607/676 (69 free).
+- fix: offline transition package 8 gives `stable 2 -> overlap 8 -> stable 3`.
+  Generated descriptor metadata supplies the generic column-45 handoff target;
+  no runtime record/segment special case, per-frame search, LRU, shadow, or chip
+  emulation was added.
+- Segment-11 lock: stable package-3 payload is byte-identical to Build 0395,
+  SHA-256 `616389bb1016326afa76929590fc44180148894c81e2b88e37b97b12026da446`;
+  map/reference inputs, Build-0324 substitutions, identities, stable mappings,
+  and palette/index mappings are unchanged.
+- gates: canonical PASS; gameplay-entry PASS; transition-retention PASS (607 <=
+  676, missing/collisions/incoming-slot-changes/handoff-misses all zero); complete
+  five-ROM family PASS; pre-existing Phase-1 seven-epoch FAIL/WARNING.
+- canonical Build 0397: SHA-256
+  `05c81c7c9b95c948ab6a40ba3704a9fcfef4d0d71085aa3fed434c75a6c79c4d`,
+  1,752,760 bytes. Tighe gameplay verification required.
+- report: `docs/design/Cody_build0396_segment10_segment11_plane_a_transition.md`.
+
+## [Cody — Initial Segment-11 -> Segment-12 literal-record check — SUPERSEDED]
+
+- baseline/counter: accepted Build 0397; counter remains `397`; Build 0398 was not produced.
+- exact current records: Segment 11 = record 11 / selector 0; Segment 12 = record 12 /
+  selector 0. Both belong to stable epoch/package 3.
+- current sequence: record 11 enters through accepted overlap package 8 and hands off at
+  column 45 to stable package 3; record 12 remains on stable package 3. The exact boundary is
+  therefore `stable 3 -> stable 3`, with no package install.
+- bounded identity proof: complete sets 483/225, complete shared 124, outgoing-visible 447,
+  retained 447, prematurely lost 0, incoming-required 167, overlap-shared 107, union 508/676
+  with 168 free. Missing/collisions/incoming-slot-changes/handoff-misses are all zero.
+- correction: Tighe challenged the transition identity and explicitly directed review of the video.
+  The video confirms abrupt still-visible terrain loss; the literal record-11 -> record-12 result
+  was valid but addressed the wrong boundary. The corrected boundary is record 12 -> record 13,
+  documented below.
+- report: `docs/design/Cody_build0398_segment11_segment12_plane_a_transition.md`.
+
+## [Cody — Build 0398 corrected record-12 -> record-13 Plane-A overlap]
+
+- baseline/counter: accepted Build 0397; `397 -> 398`.
+- corrected identity: video review confirms the visible loss and current generated ownership places
+  the next real residency switch at record 12 -> record 13, selector 0, stable package 3 -> 4.
+- proof: 217 record-12 identities remain visible; stable package 4 retains 115 and retires 102 too
+  early. Incoming record 13 needs 217; overlap-shared 89; exact union 346/676 (330 free).
+- fix: generated package 9 gives `stable 3 -> overlap 9 -> stable 4`; 100 conflicting outgoing
+  identities are moved by the existing atomic remapper; generic descriptor handoff remains column 45.
+- locks: stable package 3 hash `616389bb...`, stable package 4 `2666dd72...`, and accepted package 8
+  `4bd3c8a2...` are unchanged. No map/reference/palette change, runtime special case, per-frame work,
+  or PC080SN emulation.
+- gates: canonical PASS; gameplay-entry PASS; transition-retention PASS; complete five-ROM family
+  PASS; pre-existing Phase-1 seven-epoch FAIL/WARNING.
+- canonical ROM: `dist/rastan-direct/rastan_direct_video_test_build_0398.bin`, SHA-256
+  `afa543a0c77ea8a7b8ed3bb930cbfecd5dbfa0ec6a574ad3a86c192b07625716`, 1,756,856 bytes.
+- Tighe BlastEm verification required.
+- report: `docs/design/Cody_build0398_segment11_segment12_plane_a_transition.md`.
+
+### MAME Exit Summary (2026-10-01 11:59:04)
+- Final PC: 0x073C26
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
