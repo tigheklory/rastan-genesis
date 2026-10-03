@@ -2122,6 +2122,18 @@
    "note": "Build 0153 / KF-028 / OPEN-016 / OPEN-017: embedded per-SUBSTAGE layout/scroll descriptor-source pointer table, arcade 0x059F1E -> Genesis 0x05A11E. Consumed by gameplay scene sub-routine arcade 0x059EE0 (Genesis 0x05A0E0: `move.b a5@(0x1D),d0; andi.b #0x0C,d0; movea.l #0x05A11E,a0; movea.l (a0,d0),a0`), indexing by the substage/area selector a5@(0x1D)&0x0C (0,4,8,12 -> entries 0..3). Original values 0x00059F2E,0x00059F3A,0x00059F46,0x00059F52 are ORIGINAL arcade ROM addresses embedded as data longwords (not operands). Copied-ROM mapping = +0x200: 0x00059F2E->0x0005A12E, whose relocated data reads `0010 0020 0040 0060 0080 9999` (layout/position data). Bounds: index & 0x0C -> exactly 4 entries, stride 4, pointer-field offset 0; entry[4] at Genesis 0x05A12E is the first pointed-to data block (0x00100020, out of the source window), so count=4. All 4 lie in the copied-ROM window; no sentinel/index/RAM entries. Asset role = substage layout/scroll descriptors; same structural family (adjacent scene-loader routine, same embedded-pointer pattern) as the palette and BG/tile tables above."
   }
  ],
+ "verbatim_restores": [
+  {
+   "start": "0x02A58A",
+   "end_exclusive": "0x02A58C",
+   "note": "Build 0400 rope-exit B: restore PC080SN descriptor word1 to arcade 0x2120. rom_absolute_call_relocation's whole-maincpu opcode scan misread the PRECEDING descriptor's word1 value 0x237C (at arcade 0x02A586; 0x237C is in opcodes_with_abs_long_operand) as a move.l #imm instruction, so the next 4 bytes 0x00032120 (this entry 0x02A588 = {0003,2120}) were relocated +0x200 to 0x00032320, making word1=0x2320. resolve_plane_a_cell then read built[0x200+0x2320]=built[0x2520]=metatile 0x2320 (whose cells 12/13 are collision markers 00FF/0001 -> blank), instead of built[0x200+0x2120]=built[0x2320]=metatile 0x2120 (the correct rope-exit platform). Data-as-code false positive; the other ~10 {0003,2120} descriptors are not preceded by a spurious abs-long opcode and relocate correctly. Restoring the original word1 (0x2120) is byte-neutral and generic: the resolver's PC080SN_DESC_SECOND_WORD_BASE=0x200 supplies the copied-ROM rebase."
+  },
+  {
+   "start": "0x02C54E",
+   "end_exclusive": "0x02C550",
+   "note": "Build 0400 rope-exit A: same false positive. Preceding descriptor word1 0x237C at arcade 0x02C54A was misread as a move.l #imm opcode, relocating this entry 0x02C54C = {0003,2120} by +0x200 to {0003,2320}. Restore word1 to 0x2120."
+  }
+ ],
  "expectations": {
   "opcode_replace_count": 231,
   "genesis_only_maincpu_ref_count": 7

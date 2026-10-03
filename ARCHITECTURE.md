@@ -61,6 +61,15 @@ Genesis VBlank must not:
 - run gameplay logic
 - control execution flow
 
+**Current Build 0400 reality (PROVEN — this is the gap the section above describes as the goal):**
+the Genesis Level-6 VINT vector runs `_vblank_service` (input → SAT guard → `dma_publish_frame`
+commits the previous frame) and then **tail-jumps into the original arcade VBlank worker at 0x3A208**,
+which raises IPL7 and runs the entire gameplay tick + CPU graphics producers + sprite emit before its
+`rte` at 0x3A27E. So today the whole arcade worker executes *inside* the Genesis IRQ6 (non-preemptible),
+and the post-RTE mainline merely spins. Reaching the "VBlank must not run gameplay logic" goal above is
+the subject of the reorder plan. See KF-081/KF-082 and
+docs/design/Andy_build0400_irq6_decomposition_and_reorder_plan.md.
+
 ---
 
 ## Rendering Pipeline

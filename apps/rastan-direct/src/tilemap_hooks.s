@@ -258,7 +258,16 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     add.w   %d1, %d1
     move.w  %d1, 4(%sp)             /* source subcolumn offset */
 
-    move.w  staged_scroll_y_fg, %d0
+    /* Build 0399: derive the vertical visible window from the LIVE arcade-owned
+     * Plane-A vertical scroll (a5@0x10B0), the SAME source the vertical row/pan
+     * producers use (.Lplane_a_visible_top_from_scroll_d0).  Was staged_scroll_y_fg,
+     * a one-stage-latent Genesis copy written by the arcade staged-scroll writer
+     * (arcade 0x055AB4); during combined H+V motion the live value leads that copy
+     * by the per-frame vertical delta, so an entering column resolved its rows one
+     * cell out of phase with the resident rows and leaked a phase-correct terrain
+     * tile into the adjacent sky row (captured R22C46=0x62D7, R28C44=0x6316).  The
+     * visible-top arithmetic below is unchanged; only the scroll source operand changes. */
+    move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d0
     neg.w   %d0
     addq.w  #8, %d0
     andi.w  #0x01FF, %d0
@@ -398,7 +407,11 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     andi.w  #0x003F, %d0
     move.w  %d0, 0(%sp)             /* logical row */
 
-    move.w  staged_scroll_y_fg, %d0
+    /* Build 0399: same fix as selector0 -- use the LIVE arcade Plane-A vertical
+     * scroll (a5@0x10B0) so this horizontal column producer shares one coherent
+     * vertical front with the vertical row/pan producers.  Was staged_scroll_y_fg
+     * (latent copy); arithmetic below unchanged, only the scroll source operand. */
+    move.w  ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5), %d0
     neg.w   %d0
     addq.w  #8, %d0
     andi.w  #0x01FF, %d0

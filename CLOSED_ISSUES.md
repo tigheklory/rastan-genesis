@@ -364,3 +364,53 @@ Closure note format:
 - **Evidence:** `docs/design/Andy_build0386_flying_demon_decompilation_ownership_palette.md`;
   `docs/design/Cody_build0390_phase1_waterfall_regression.md`.
 - **Cross-references:** OPEN-017 remains open for its other hardware/performance symptoms.
+
+## CLOSED-021 — Combined horizontal+vertical Plane-A misplaced/stale 8×8-cell corruption
+
+- **Status:** CLOSED by user gameplay verification
+- **Date closed:** 2026-10-01
+- **First user-confirmed build:** Build 0399
+- **Symptom (before fix):** during COMBINED horizontal + vertical camera scrolling, intermittent
+  misplaced/missing single Plane-A 8×8 terrain cells (valid terrain tile appearing in a sky cell);
+  self-repaired after scrolling the region out of the ring and back. Reproducible by jumping off the
+  Segment-2/3 climbable rope with a horizontal component, jumping up/down stepped terrain, and in the
+  repeatable Segment-6 area. Clean under horizontal-only or vertical-only scrolling.
+- **Proven first divergence (Case A):** Exodus Segment-6 capture — Plane-A `row22/col46 = 0x62D7` and
+  `row28/col44 = 0x6316`, each a phase-correct terrain tile at the correct column but a wrong (sky)
+  ring row; `staged_fg_buffer == VRAM` at both, so the producer staged the error (publication innocent).
+- **Root cause:** the two horizontal Plane-A column producers (`…selector0_native`, `…selector12_native`
+  in `tilemap_hooks.s`) derived their vertical visible-window from the latent `staged_scroll_y_fg`
+  (0xFF409E, written by arcade `0x055AB4`) while the vertical row/pan producers used the live arcade
+  `a5@0x10B0`; during combined motion the two timing domains diverge by the per-frame vertical delta,
+  staging an entering column one vertical cell out of phase with the resident rows. See KF-079.
+- **Repair (Build 0399):** two source-operand changes — both horizontal producers now read
+  `ARCADE_PC080SN_SCROLL_Y_FG_OFFSET(%a5)` (live) instead of `staged_scroll_y_fg`, unifying the vertical
+  front across axes. `resolve_plane_a_cell`, `vdp_commit_fg_narrow_strips`, `vdp_commit_scroll`, and the
+  dirty/residency/Sonic-incremental architecture are unchanged. Net instruction cost lower.
+- **Protected repair:** this Build-0399 change must not be reverted to `staged_scroll_y_fg` for the
+  entering-column vertical window. Canonical SHA `8227d3458af5d9b51fe858e92bfd94492c4dbf1266eba97023ba580858dbc0ba`.
+- **Evidence:** `docs/design/Andy_build0399_plane_a_combined_xy_misplaced_cell.md`; KF-079; AGENTS_LOG Build-0399 entry.
+- **Cross-references:** OPEN-028 (first-arrival stale sky cells) remains OPEN — distinct trigger
+  (scene arrival, stationary) not addressed by the combined-motion producer-latency fix.
+
+## CLOSED-022 — R1/P1 climbable-rope-exit platforms missing/wrong (metatile relocation corruption)
+
+- **Status:** CLOSED by user gameplay verification (rope metatile). Black-strobe portion of Build 0400 still pending Tighe verification (tracked separately).
+- **Date closed:** 2026-10-02
+- **First user-confirmed build:** Build 0400
+- **Symptom (before fix):** the two Round-1 climbable-rope-exit platforms (Segment 2 anchor X48/Y40, Segment 14 anchor X44/Y36) rendered the wrong metatile on Genesis, with the bottom-left cells blank (Layer B through); Rastan could not stand at the intended ledge height.
+- **Proven root cause:** `rom_absolute_call_relocation`'s whole-maincpu opcode scan misread PC080SN descriptor DATA — the preceding descriptor's word1 value `0x237C` (an abs-long opcode in the scan list) at arcade `0x02A586`/`0x02C54A` — as a `move.l #imm` instruction, relocating the adjacent rope-exit descriptor `{0003,2120}` by +0x200 to `{0003,2320}`. `resolve_plane_a_cell` then added its own `PC080SN_DESC_SECOND_WORD_BASE=0x200`, reading `built[0x2520]=maincpu[0x2320]` (wrong metatile; cells 12/13 = collision words `00FF/0001` → blank) instead of `built[0x2320]=maincpu[0x2120]`. Exactly two sites corrupted (both rope exits); all other `{0003,2120}` descriptors and the ledge `0x3408` intact. Data-as-code false positive; the +0x200 was double-counted. See KF-080.
+- **Repair (Build 0400):** two `verbatim_restores` in `specs/rastan_direct_remap.json` restore the two descriptor word1 values to arcade `0x2120` after relocation. `resolve_plane_a_cell`, the relocation scanner, and the Build-0399 X/Y fix are unchanged. Verified in ROM and by Tighe gameplay. Canonical SHA `36e0806fb288d38d3b092fb01b2c8a01fe69de1934b206c2a47677b561c02fe5`.
+- **Evidence:** `docs/design/Andy_build0400_rope_exit_missing_metatiles.md`; KF-080; AGENTS_LOG Build-0400 entry.
+- **Cross-references:** the corrected screenshot audit (images 57=Genesis/58=arcade); KF-028/OPEN-016 pointer-relocation family.
+
+## CLOSED-023 — Ordinary gameplay segment-transition black strobe
+
+- **Status:** CLOSED by user gameplay verification
+- **Date closed:** 2026-10-02
+- **First user-confirmed build:** Build 0400
+- **Symptom (before fix):** crossing an ordinary Round-1 gameplay segment/package boundary turned the Genesis display off (MODE2=0x34) during the package install and back on (0x74), producing a visible black flash/strobe.
+- **Repair (Build 0400):** `fg_boundary_install` (`fg_tile_cache.s`) now guards the top display-OFF with `genesistan_scene_present_pending` — only a major scene-entry fill (that flag; `load_scene_tiles` already blanks those) turns the display off. Ordinary gameplay package/epoch installs keep the display ON (no strobe); the bottom display-ON becomes a harmless no-op. No extra DMA/redraw; two register writes removed from the ordinary path.
+- **Verification:** Tighe confirmed on Build 0400 — black strobe FIXED, no visible partial/garbage transition frame observed.
+- **Preserved:** major scene-entry blanking + Build-0395 ROUND/READY ownership (`.Linstall_leave_display_off` unchanged), cold-boot/title/`load_scene_tiles` blanking unchanged, Build-0399 combined-X/Y fix, Build-0400 rope-exit fix (CLOSED-022).
+- **Evidence:** `docs/design/Andy_build0400_rope_exit_missing_metatiles.md` §6h; AGENTS_LOG Build-0400 entry.

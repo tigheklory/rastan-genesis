@@ -42,7 +42,6 @@ local symbols = parse_symbols(symbols_path)
 local constants = parse_constants(constants_path)
 for _, name in ipairs({
     "fg_boundary_install", "fg_boundary_packages", "fg_boundary_active_lut",
-    "fg_boundary_conflict_lut",
     "fg_boundary_epoch_transitions", "fg_boundary_pattern_dma_transitions",
     "fg_boundary_active_record", "fg_boundary_active_package",
     "genesistan_current_scene_id", "staged_fg_buffer", "staged_palette_words",
@@ -54,7 +53,6 @@ for _, name in ipairs({
     "FG_BOUNDARY_DESC_BYTES", "FG_BOUNDARY_FIXED_B_OFFSET",
     "FG_BOUNDARY_FIXED_B_MAP_COUNT", "FG_BOUNDARY_SLOT_FIRST",
     "FG_BOUNDARY_SLOT_COUNT", "FG_BOUNDARY_BINARY_LEN",
-    "FG_BOUNDARY_CONFLICT_CODE_FIRST", "FG_BOUNDARY_CONFLICT_CODE_COUNT",
 }) do
   assert(constants[name], "missing boundary constant: " .. name)
 end
@@ -73,11 +71,10 @@ local function reg(name)
 end
 local function scene() return r8(symbols.genesistan_current_scene_id) end
 local function active_lut_slot(code)
-  local first = constants.FG_BOUNDARY_CONFLICT_CODE_FIRST
-  local limit = first + constants.FG_BOUNDARY_CONFLICT_CODE_COUNT
-  if code >= first and code < limit then
-    return r16(symbols.fg_boundary_conflict_lut + (code - first) * 2)
-  end
+  -- Build 0400: the residency model is a SINGLE active LUT; the former split
+  -- conflict-code LUT (fg_boundary_conflict_lut + FG_BOUNDARY_CONFLICT_CODE_*)
+  -- was removed ~Build 0378 when fg_cache_resolve became single-LUT. Resolve
+  -- every code through fg_boundary_active_lut, matching the runtime resolver.
   return r16(symbols.fg_boundary_active_lut + code * 2)
 end
 

@@ -299,9 +299,19 @@ fg_boundary_install:
 
     move.w  %sr, -(%sp)
     ori.w   #0x0700, %sr
+    /* Build 0400: only blank the display for a MAJOR scene-entry fill
+     * (genesistan_scene_present_pending, set by the arcade 0x0503DC 64-publication
+     * scene fill; load_scene_tiles has already turned the display off for those).
+     * For an ORDINARY gameplay package/epoch install the display stays ON, removing
+     * the segment-crossing black strobe.  The bottom display-ON for the ordinary path
+     * (scene_present_pending clear) then writes 0x74 while already on = harmless no-op;
+     * the scene-entry leave-off path is unchanged (Build-0395 ROUND/READY preserved). */
+    tst.b   genesistan_scene_present_pending
+    beq.s   .Linstall_skip_display_off
     moveq   #VDP_REG_MODE2, %d0
     moveq   #VDP_MODE2_DISPLAY_OFF, %d1
     bsr     vdp_set_reg
+.Linstall_skip_display_off:
 
     /* The first gameplay install reclaims frontend slots and installs the fixed Level-1
      * Plane-B vocabulary. This is the only residency/name-table work performed for Plane B. */

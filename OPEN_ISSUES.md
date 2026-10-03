@@ -766,6 +766,11 @@ Final response must include "Open/Closed Issues Impact" section with:
   staged Plane-A word, and actual Plane-A VRAM word on first arrival, after scroll-away, and on
   second arrival. Classify the first divergence as staged-buffer or VDP-publication/overwrite.
 - **Current classification:** UNRESOLVED. No production patch or build was made for this issue.
+- **Relation to Build 0399 / CLOSED-021 (not the same):** Build 0399 closed the COMBINED horizontal+vertical
+  misplaced-cell defect (CLOSED-021), whose proven cause is the horizontal column producer reading a latent
+  vertical scroll during *simultaneous vertical motion*. OPEN-028's trigger is *first arrival* (stationary /
+  scene entry), to which the combined-motion producer-latency mechanism does not apply. Left OPEN; do not
+  assume CLOSED-021 fixed it without the first-arrival staged-vs-VRAM proof this entry requires.
 
 ## OPEN-029 — R1 Phase-2 third-chain upper-route traversal remains blocked
 
