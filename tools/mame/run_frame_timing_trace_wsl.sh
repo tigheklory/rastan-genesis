@@ -3,7 +3,8 @@
 # Measures gameplay-ticks/display-frame (crawl proof), per-tick producer-done beam position,
 # publication span, and publication sub-phase split by VDP target. No ROM/WRAM modification.
 #
-# Capture LIGHT, then MEDIUM, then the HEAVY slowdown area in ONE run (or one run each).
+# Enter normal gameplay, press M once to start the controlled interval, then capture LIGHT,
+# MEDIUM, and the HEAVY slowdown area in ONE run.
 # Quit MAME (Esc) when done -> summary written (also rewritten every 300 frames).
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -24,14 +25,20 @@ elif command -v mame64 >/dev/null 2>&1; then MAME_BIN="$(command -v mame64)"
 else echo "MAME not found. sudo apt-get install -y mame mame-tools" >&2; exit 1; fi
 if [[ ! -f "${CART}" ]]; then echo "cart not found: ${CART}" >&2; exit 1; fi
 HOMEPATH="${ROOT}/build/mame/home"; TRACE_DIR="${HOMEPATH}/frame_timing"; mkdir -p "${TRACE_DIR}"
+export FRAME_TIMING_SYMBOLS="${ROOT}/apps/rastan-direct/out/symbol.txt"
 echo "=========================================================================="
 echo " FRAME-TIMING TRACE  (ROM: $(basename "${CART}"))"
 echo " Play LIGHT (few sprites), then MEDIUM, then the HEAVY slowdown room."
+echo " Once normal gameplay is underway, press M ONCE to arm/reset the measured interval."
 echo " The headline metric is GAMEPLAY TICKS / DISPLAY FRAME (<1.0 = the crawl)."
 echo " Quit MAME (Esc) when done.  Summary: ${TRACE_DIR}/frame_timing_summary.txt"
 echo "=========================================================================="
+# -debug -debugger none: enables the MAME debugger (for exact worker/publication cycle breakpoints)
+# with NO debugger GUI/console, so the game runs normally and the breakpoint actions auto-continue (g).
+# This adds ZERO emulated 68000 instructions (host-side only).
 exec "${MAME_BIN}" "${MACHINE}" -cart "${CART}" \
   -window -nomaximize -resolution "${MAME_RESOLUTION}" -nokeepaspect -nounevenstretch -prescale 1 -nofilter \
   -sound "${MAME_SOUND}" -midiprovider "${MAME_MIDIPROVIDER}" -skip_gameinfo \
+  -debug -debugger none \
   -homepath "${HOMEPATH}" \
   -autoboot_script "${ROOT}/tools/mame/scripts/frame_timing_trace.lua" "$@"
