@@ -110,7 +110,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 231  # Build 0386: +1 byte-neutral opcode_repla
 # canonical Genesis coverage by -0x260 (0x1848E0 -> 0x184680); the semantic
 # opcode-replacement sites are unchanged. The direct-native 0x05A098 gameplay
 # status producer adds 0x1D0 wrapper bytes without adding a replacement site.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1ACEB8  # Build 0398: +4096 linked coverage from the fourth generated Plane-A overlap package. Prev 0x1ABEB8 (Build 0397).
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1B7EB8  # Native Graphics Phase B2: +0x2000 linked coverage for direct generic dispatch and expanded proven enemy frames. Prev 0x1B5EB8 (Build 0404).
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

@@ -208,6 +208,7 @@
   "native_player_frame_begin",
   "native_player_front_begin",
   "native_player_body_begin",
+  "native_player_frame_try",
   "native_player_piece",
   "native_player_body_anchor_piece",
   "native_player_body_anchor_blank",
@@ -324,8 +325,8 @@
   {
    "arcade_pc": "0x054492",
    "original_bytes": "227C0010D1D2",
-   "replacement_bytes": "4EB9{symbol:native_player_body_begin}",
-   "note": "BODY segment selects the final native PLAYER_BODY lane instead of a PC090OJ tuple destination."
+   "replacement_bytes": "4EB9{symbol:native_player_frame_try}4A0067024E754EB9{symbol:native_player_body_begin}",
+   "note": "Native Graphics Task 1: the dedicated player compositor first tries the generated whole-frame pilot. Native entries return from 0x54492 after direct BODY-lane emission; explicit UNRESOLVED entries call the accepted native_player_body_begin hook and fall through into the unchanged Build-0400 per-piece compositor."
   },
   {
    "arcade_pc": "0x0544D0",

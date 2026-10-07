@@ -6,6 +6,39 @@ rastan_pc090oj:
      * resolved (code,bank); all other codes byte-identical to the preconverted region). */
     .incbin "../../build/regions/pc090oj_editor.bin"
 
+    /* Native Graphics Task 1: dedicated Rastan compositor frame pilot. */
+    .global pc090oj_frame_table
+    .global pc090oj_player_frame_table
+    .align 2
+pc090oj_frame_table:
+pc090oj_player_frame_table:
+    .incbin "../../build/pc090oj_frame_table.bin"
+
+    .global pc090oj_player_frame_index
+    .align 2
+pc090oj_player_frame_index:
+    .incbin "../../build/pc090oj_frame_index.bin"
+
+    .global pc090oj_generic_frame_index
+    .align 2
+pc090oj_generic_frame_index:
+    .incbin "../../build/pc090oj_generic_frame_index.bin"
+
+    .global pc090oj_generic_base_lut
+    .align 2
+pc090oj_generic_base_lut:
+    .incbin "../../build/pc090oj_generic_base_lut.bin"
+
+    .global pc090oj_generic_usage_table
+    .align 2
+pc090oj_generic_usage_table:
+    .incbin "../../build/pc090oj_generic_usage_table.bin"
+
+    .global pc090oj_player_frame_residency
+    .align 2
+pc090oj_player_frame_residency:
+    .incbin "../../build/pc090oj_frame_residency.bin"
+
     /* Build 0232: score/1UP HUD glyph slice (codes 0x02A..0x048) with every
      * opaque pixel remapped to palette index 2.  Only the gameplay HUD mode-2
      * score-family records select this data; normal sprite residency is separate. */

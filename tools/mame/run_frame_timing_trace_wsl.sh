@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# READ-ONLY Build-0400 EXACT frame-timing trace (memory taps + VDP beam).
+# READ-ONLY exact frame-timing trace (memory taps + VDP beam).
 # Measures gameplay-ticks/display-frame (crawl proof), per-tick producer-done beam position,
 # publication span, and publication sub-phase split by VDP target. No ROM/WRAM modification.
 #
@@ -24,8 +24,19 @@ if command -v mame >/dev/null 2>&1; then MAME_BIN="$(command -v mame)"
 elif command -v mame64 >/dev/null 2>&1; then MAME_BIN="$(command -v mame64)"
 else echo "MAME not found. sudo apt-get install -y mame mame-tools" >&2; exit 1; fi
 if [[ ! -f "${CART}" ]]; then echo "cart not found: ${CART}" >&2; exit 1; fi
-HOMEPATH="${ROOT}/build/mame/home"; TRACE_DIR="${HOMEPATH}/frame_timing"; mkdir -p "${TRACE_DIR}"
+HOMEPATH="${ROOT}/build/mame/home"
+cart_tag="$(basename "${CART}" .bin | sed 's/^rastan_direct_video_test_//')"
+TRACE_DIR="${FRAME_TIMING_OUTDIR:-${HOMEPATH}/frame_timing_${cart_tag}}"
+mkdir -p "${TRACE_DIR}"
 export FRAME_TIMING_SYMBOLS="${ROOT}/apps/rastan-direct/out/symbol.txt"
+export FRAME_TIMING_LABEL="${FRAME_TIMING_LABEL:-${cart_tag}}"
+export FRAME_TIMING_OUTDIR="${TRACE_DIR}"
+# Exact boundaries are unchanged between the historical Build 0400 trace and
+# Build 0404 (confirmed from the Build-0404 address map and linked symbol).
+export FRAME_TIMING_PUB_ENTRY="${FRAME_TIMING_PUB_ENTRY:-0x070250}"
+export FRAME_TIMING_PUB_RTS="${FRAME_TIMING_PUB_RTS:-0x0702D2}"
+export FRAME_TIMING_WORKER_ENTRY="${FRAME_TIMING_WORKER_ENTRY:-0x03A208}"
+export FRAME_TIMING_WORKER_RTE="${FRAME_TIMING_WORKER_RTE:-0x03A27E}"
 echo "=========================================================================="
 echo " FRAME-TIMING TRACE  (ROM: $(basename "${CART}"))"
 echo " Play LIGHT (few sprites), then MEDIUM, then the HEAVY slowdown room."

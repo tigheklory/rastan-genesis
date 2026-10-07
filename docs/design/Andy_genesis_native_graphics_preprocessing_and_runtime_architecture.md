@@ -9,6 +9,16 @@ Build 0401 (WORK/READY/DISPLAYED ownership) is SHELVED, not rejected — preserv
 model). 0401 proved ownership isolation works behaviorally; its temporary full-plane snapshot cost
 makes it unsuitable as the *immediate* development baseline, so it is reintroduced late (§20).
 
+> **LOCKED DEVELOPMENT SEQUENCE (2026-10-06, project-management decision):** Build 0400 is the
+> **current accepted behavioral baseline**. The Build-0401 ownership work **stays shelved** — do not
+> reapply, modify, redesign, or merge it now. We require a **proven, Tighe-tested working ROM of the
+> new native graphics producer** before any ownership / IRQ6 restructuring resumes, because the
+> producer is about to change substantially and we will not engineer the final READY-ownership layer
+> around graphics structures that are themselves being replaced. The ordering is **A → B → C → D →
+> E** (§21), where each ROM-producing phase is gated on *Tighe playing it and confirming it works*,
+> not on static verification. **Scheduling-out-of-IRQ6 (Phase E) is NOT "last after all cleanup"** —
+> its only hard predecessors are a proven producer and a proven ownership model (see §21/§24).
+
 **Authoritative premise (KF-089 / the Build-0400 audit):** there is **no remaining PC090OJ/PC080SN
 hardware-bus emulation.** This is **not** a "remove emulation" project. The real problems are: (1)
 runtime interpretation of arcade graphics structures; (2) translation overhead; (3)
@@ -186,7 +196,23 @@ every animation this object can display."
 
 ---
 
-## 8. Native frame format (fields fixed; binary layout frozen in Task 1 after KU-1/KU-5)
+## 8. Native frame format (fields fixed; binary layout frozen in Task 1 after the player-KU set §27)
+
+> **Player-pilot deviation (Task 1 — read before applying this section to Rastan).** The generic
+> model below describes the *generic actor-family* renderer (`native_stage_dispatch_*` /
+> `.Lnative_emit_actor_common`) and is the format for the **enemy** families converted in later
+> phases. **Rastan is NOT rendered by that path.** Rastan is produced by the dedicated arcade player
+> compositor (`0x540CC → 0x54326 → 0x54492 / 0x546A8`) whose graphics emission is already hooked by
+> `native_player_frame_begin / native_player_front_begin / native_player_body_begin /
+> native_player_piece` (`pc090oj_hooks.s:280-324`), selected from player state at `A5+0x1244` /
+> `A5+0x1246` (+ `A5+0x1308`, `A5+0x129A/0x129C`). The player pilot therefore does **not** use the
+> generic `family table`, the `a4@0x1e base_tile` additive, or the enemy visibility classifier. Its
+> native frame key comes from the player compositor's own semantic selectors (body pose, front/body
+> pass, equipped weapon, orientation), and its frame data is attached at the `native_player_*`
+> boundary. The *fields* a player frame needs are still `piece_count`, per-piece `dX`/`dY`,
+> finalized `vi` (or a minimum runtime-resolvable pattern ref only if genuinely needed), Genesis
+> size, and baked invariant flags — but the player path is allowed to express the semantics it
+> actually has (§22, §27 player-KUs), not the generic base_tile model.
 
 Per `(family/usage, anim_index, orientation)` the generator pre-expands the arcade piece stream
 (both orientations baked; mirror neg/+0x10 and type-0x70 extra-Y folded offline):
@@ -399,46 +425,91 @@ guarantee.
 
 ---
 
-## 20. Relationship to Build 0401
+## 20. Relationship to Build 0401 (SHELVED — reintroduced at Phase D)
 
-Independent of the sprite/preprocessing work. Reintroduce **after** producers are cheap, so the
-ownership overhead fits. The 0401 patch is already isolated/preserved for clean reapplication.
-
----
-
-## 21. Migration sequence (challenge-reviewed; recommended)
-
-1. Native frame-compiler infrastructure + finalized `(code,bank)` integration.
-2. Palette-Composer / native-pattern integration (shared corpus, hashes).
-3. **Pilot native renderer** — ONE mature path, final format (§27 Task 1).
-4. Hybrid O(1) residency integration.
-5. Expand **proven** R1/P1 coverage (§28 Task 2).
-6. Performance verification (the slope gate).
-7. Reintroduce WORK/READY/DISPLAYED ownership (0401).
-8. Eliminate/simplify the temporary full-plane snapshot.
-9. Move worker scheduling outside IRQ6 — **last**, never bundled with frame conversion.
-Parallel low-risk tracks: textwriter (§13), PC080SN token decoupling (§12), dead-vestige sweep (gated).
+Independent of the sprite/preprocessing work and **locked shelved until the new producer is a
+Tighe-accepted working baseline**. 0401 is engineering evidence, **not** the development baseline;
+Build 0400 is. WORK/READY/DISPLAYED remains **required** before gameplay can leave IRQ6 — it is
+deferred, not cancelled. At Phase D it is **redesigned against the accepted new producer**, not
+blindly reapplied: recover the *new* producer's actual publication read-set, reuse the proven
+WORK/READY/DISPLAYED concepts and lessons, and **drop obsolete complexity** — in particular, do
+**not** automatically restore the temporary 4 KB Plane-A + 4 KB Plane-B snapshot if a smaller clean
+immutable transaction is possible with the new architecture. The shelved patch/hashes stay a
+read-only historical artifact; do not overwrite or mutate them.
 
 ---
 
-## 22. Cody Task 1 — final-architecture pilot (ONE numbered ROM)
+## 21. Migration sequence — LOCKED (Phases A–E; each ROM gated on Tighe acceptance)
 
-- **Baseline:** Build 0400. **Pilot:** Rastan/player (most mature evidence); state exact coverage, do
-  not claim the whole actor is complete if it is not.
-- **Establish (FINAL model, not a prototype):** shared-corpus input; Palette Composer integration;
-  final frame-table format (freeze layout here after KU-1/KU-5); finalized `(code,bank)`→`vi`
-  integration via the existing resolver; fast `native_emit_frame`; hybrid residency interface;
-  `UNRESOLVED` fallback; generated coverage report; independent Layer-2 verifier.
-- **Python/build:** new `tools/translation/precompute_pc090oj_frame_table.py` +
+Every phase that produces a ROM is accepted only when **a ROM exists AND Tighe has played it AND
+Tighe says it works** — static/assembly success is necessary, never sufficient.
+
+- **PHASE A — Native graphics pilot.** From accepted Build 0400, implement the final-format pilot for
+  the **Rastan/player path only** (Task 1, §22): shared corpus input, existing
+  `(code,effective_bank)→vi` mechanism, frame-table compiler + independent verifier, `native_emit_frame`,
+  explicit `UNRESOLVED` fallback, hybrid-residency-compatible format, Makefile/incbin. **Produce a
+  numbered ROM → Tighe tests.** Fix regressions in subsequent sequential test builds until there is an
+  **accepted** native-pilot baseline.
+- **PHASE B — Expand proven R1/P1 native graphics.** Only after the pilot ROM is accepted. Convert the
+  currently **proven** R1/P1 frames/families (Task 2, §23), integrate the finalized-pattern-keyed O(1)
+  hybrid residency, keep `UNRESOLVED` fallback for everything unproven. **Produce a ROM → Tighe tests**
+  (Rastan, enemies, lizard-men, bats, hurry-up swarm, Flying Demon, converted weapons/effects,
+  palettes, scrolling, transitions, heavy sprite situations, ordinary gameplay). Accepted ROM = new
+  baseline. No faked completeness.
+- **PHASE C — Performance sanity check.** With the producer working in gameplay, use the existing
+  Build-0400 measurements as BEFORE data and take the **minimum** measurement needed to show the new
+  producer materially reduced runtime graphics cost. **Do not restart the profiling campaign.**
+- **PHASE D — Reintroduce ownership.** Only now return to the preserved 0401 work, redesigned against
+  the accepted new producer (§20): recover the new producer's real publication read-set, reuse the
+  WORK/READY/DISPLAYED concepts, drop obsolete complexity, avoid the 4 KB×2 snapshot if a smaller clean
+  immutable transaction is possible. **Produce a ROM → Tighe tests.** Ownership is not accepted until
+  Tighe confirms correct behavior.
+- **PHASE E — Move gameplay out of IRQ6.** Once the new ownership build is accepted, move the complete
+  arcade gameplay/frame-production worker to the arcade-owned mainline (player logic, enemy AI, actor
+  lifecycle, collision, game state, animation selection, sprite/frame production, Plane A/B production,
+  palette/scroll prep — all CPU next-frame work). IRQ6 then owns only: publish the COMPLETE READY
+  state, required VDP/DMA hardware service, `tick_pending`, RTE. **Produce a ROM → Tighe tests.**
+
+**Phase E is NOT postponed until unrelated cleanup is done.** Its only hard predecessors are a proven
+producer (A/B) and a proven ownership model (D). Secondary cleanup runs afterward or on independent
+tracks: textwriter (§13), PC080SN token decoupling (§12), dead-vestige sweep (gated), frontend
+conversion, historical-symbol renaming.
+
+---
+
+## 22. Cody Task 1 — final-architecture pilot: RASTAN PLAYER COMPOSITOR (ONE numbered ROM)
+
+- **Baseline:** Build 0400. **Pilot:** the Rastan/player graphics path only, via the **dedicated
+  player compositor** (`0x540CC → 0x54326 → 0x54492 / 0x546A8`) and the **existing `native_player_*`
+  boundary** — **NOT** `native_stage_dispatch_41dae` (that processes actor slots `A5+0x0508` /
+  `A5+0x0548`, the scripted Flying Demon pair, not Rastan). State exact coverage; do not claim the
+  whole player is complete if it is not.
+- **Boundary:** the arcade player compositor keeps making every semantic decision (body pose/frame,
+  front/body pass, equipped weapon, orientation, dynamic attributes, position, game state). The
+  native conversion attaches **after** that decision, at the `native_player_frame_begin /
+  front_begin / body_begin / piece` hooks (`pc090oj_hooks.s:280-324`): replace the current
+  *per-piece* `native_player_piece` interpretation with a single native player-frame emitter that
+  consumes a compact player-frame key and emits the whole precomputed ordered piece list in one loop
+  via the existing SAT lanes (`native_sprite_emit`, `NATIVE_LANE_PLAYER_FRONT/BODY`).
+- **Establish (FINAL model, not a prototype):** shared-corpus input; final player-frame format
+  (freeze layout here after the player-KU set, §27); finalized `(code,0x33)`→`vi` via the existing
+  resolver; a fast native player-frame emitter; hybrid-residency-compatible format; `UNRESOLVED`
+  fallback (any unproven player state returns to the existing per-piece path unchanged); generated
+  coverage report; independent Layer-2 verifier.
+- **Python/build:** new `tools/translation/precompute_pc090oj_frame_table.py` (player frames) +
   `verify_pc090oj_frame_table.py`; Makefile targets + incbin into `pc090oj_assets.s`.
-- **Assembly:** new `native_emit_frame` in `pc090oj_hooks.s`; one-path dispatch gate in the player
-  band of `native_stage_dispatch_41dae` only.
-- **Do NOT touch:** scheduling, 0401 ownership, unrelated tilemap, unrelated palette policy,
-  unresolved families. Palette policy must stay equivalent to Build 0400.
-- **Acceptance:** Layer-1 verifier PASS; Layer-2 verifier PASS; exact known pilot geometry PASS;
-  correct finalized variants; correct SAT palette bits; correct CRAM content/line; visual PASS;
-  address/bus errors 0; measured renderer cost materially reduced; fallback correct for unresolved
-  frames. **Rollback:** revert the single dispatch gate → pure Build 0400.
+- **Assembly:** the new player-frame emitter wired at the `native_player_*` boundary in
+  `pc090oj_hooks.s`. **Do NOT modify `native_stage_dispatch_41dae`** (or any enemy/family path) for
+  this pilot.
+- **Do NOT touch:** scheduling, 0401 ownership, unrelated tilemap, unrelated palette policy, the
+  Flying Demon / generic enemy path, unresolved player states. Palette policy must stay equivalent
+  to Build 0400.
+- **Acceptance:** Layer-1 verifier PASS; Layer-2 verifier PASS; exact known player geometry PASS;
+  correct finalized variants; correct front/body lane order; correct weapon composition; correct SAT
+  palette bits; correct CRAM content/line; visual PASS (Rastan standing/crouch/thrust/run/jump + each
+  equipped weapon, both facings); address/bus errors 0; measured player renderer cost materially
+  reduced vs Build 0400; fallback correct for any unresolved player state. **Rollback:** revert the
+  `native_player_*` emitter wiring → pure Build 0400 per-piece behavior.
 
 ---
 
@@ -455,9 +526,12 @@ data structures. HEAVY-run runtime proof; VDP ownership gate PASS; new slope mea
 
 ## 24. Later migration tasks + global retirement criteria
 
-Later tasks: textwriter (§13), PC080SN token decoupling (§12), 0401 reintroduction (§20), snapshot
-simplification, scheduling move (last), dead-vestige sweep (gated on arcade call sites cut; Build
-0267 precedent).
+Later tasks: 0401 reintroduction (§20, Phase D) and the scheduling move (§21, Phase E) follow the
+locked A–E order and are **not** gated on finishing unrelated cleanup. Independent/parallel tracks:
+textwriter (§13), PC080SN token decoupling (§12), dead-vestige sweep (gated on arcade call sites cut;
+Build 0267 precedent), frontend conversion, historical-symbol renaming. The scheduling move is **not
+"last after everything"** — its only hard predecessors are a proven producer and a proven ownership
+model.
 
 **Context-specific retirement:** when a *context* reaches proven 100% coverage, its legacy
 interpretation path may be removed **for that context**. **Global deletion** of
@@ -487,21 +561,52 @@ cleanup; behavior and architecture come first.
 
 ---
 
-## 27. Known unknowns (resolve before freezing the Task-1 format)
+## 27. Known unknowns
 
-- **KU-1 (blocks §8/§14/§15):** is `base_tile` (`a4@0x1e`) a pure function of `(family,anim)`? If yes
-  → Level B (emit `vi` directly, exact resident bitsets). If dynamic → Level A (runtime resolve).
-  Resolve via Ghidra writers to actor `+0x1e` (+ whether anim-select sets it) + one watchpoint.
-- **KU-2 (blocks §13):** exact `0x565CE` contract — pure static char→code, or dynamic state? Ghidra.
-- **KU-3:** specialized-dispatch sprite types (0x10..0xC0) reachable in later stages/bosses? If so the
-  generator must expand `a4@0x0B`-indexed specialized frames (format already supports it).
-- **KU-4:** the actor→usage→bank runtime mapping. `USAGE_BANK` is static per usage, but `a4@0x38`
-  family is a *bucket, not identity* (`project_actor_identity_and_census`: 36 distinct bases via
+### 27A. Player-pilot KUs — resolve before freezing the Task-1 player-frame format
+
+These, **not** the generic `a4@0x1e` question, are the Task-1 blockers. Answer them mechanically from
+the dedicated player compositor (`0x540CC → 0x54326 → 0x54492 / 0x546A8`) and the `native_player_*`
+hooks.
+
+- **PLAYER-KU-1 — selector contract:** exactly what `A5+0x1244` / `A5+0x1246` mean in the player
+  compositor; which value(s) select body pose/frame, front vs body pass, weapon/composite selection,
+  and orientation (if represented there) or any alternate player graphics set. Trace their
+  writers/readers statically. The native frame key must be built from the selectors the compositor
+  **actually** uses.
+- **PLAYER-KU-2 — body frame source:** the exact body-table / descriptor / piece-stream source used
+  by `0x54326 → 0x54492 / 0x546A8` for each proven Rastan animation state: frame selector, ordered
+  pieces, relative geometry, graphics-code derivation, fixed vs dynamic attributes, orientation
+  behavior. Determine what can be baked offline.
+- **PLAYER-KU-3 — weapon composition:** how the compositor selects/composes sword / axe / hammer /
+  fire sword with the body frame. Do not assume body+weapon is one precombined table if source shows
+  separate semantic selection. The format may carry `body frame + weapon overlay` **or** a precombined
+  native player frame — choose the representation that removes runtime invariant interpretation while
+  preserving dynamic weapon selection.
+- **PLAYER-KU-4 — pattern identity:** the compositor's graphics-code identity source; for each
+  body/weapon piece, whether finalized `(code, 0x33)→vi` can be emitted directly offline. Player bank
+  is expected 0x33 (usage model), but confirm the compositor does not dynamically alter the effective
+  pattern identity in a way that invalidates direct `vi` generation (note the Build-0281 inline
+  sword-segment case at `0x54598/0x545EE/0x54602`, `A5+0x1308` — `word0 = attr | flipX`). Reuse
+  `gen_reindexed_pc090oj.py` / `pc090oj_sprite_variants.inc` / `pc090oj_variant_index.json`; invent no
+  player-specific pattern system.
+- **PLAYER-KU-5 — front/body lane order:** Rastan FRONT/BODY lanes are **dynamically** selected by the
+  compositor hooks (`native_player_front_begin` / `native_player_body_begin` set
+  `native_sprite_lane`; SAT append order = priority). Document the exact contract; do not collapse
+  FRONT/BODY into one static lane. The native emitter must preserve this exactly.
+
+### 27B. Later-phase KUs (NOT Task-1 blockers)
+
+- **GEN-KU-1 (generic enemy path, §8/§14/§15):** is `base_tile` (`a4@0x1e`) a pure function of
+  `(family,anim)` for the **generic actor renderer** (enemies via `native_stage_dispatch_*`)? Level B
+  vs Level A for those families. This is a Phase-B enemy-conversion question, **not** a Rastan/player
+  question — it does not block Task 1.
+- **KU-2 (blocks §13 textwriter):** exact `0x565CE` contract — pure static char→code, or dynamic?
+- **KU-3:** specialized-dispatch sprite types (0x10..0xC0) reachable in later stages/bosses?
+- **KU-4 (enemy):** actor→usage→bank runtime mapping. `USAGE_BANK` is static per usage, but `a4@0x38`
+  family is a *bucket, not identity* (`project_actor_identity_and_census`: 36 bases via
   `0x45502/0x45562/0x454ba`, +0x3E bucket, +0x752 variant; per-round palette `0x3BA88→0x4FD02`).
-  Confirm how the runtime resolves an actor instance to its usage/bank (sprite-ctrl colour-bank
-  shadow + per-round palette) before Task 2 claims multi-family coverage.
-- **KU-5:** `native_sprite_lane` ordering (append order = priority) must be preserved exactly; confirm
-  lane assignment is purely per-band from the three callers, carried as a runtime input.
+  Confirm before Task 2 claims multi-enemy-family coverage.
 
 ---
 
@@ -515,8 +620,10 @@ cleanup; behavior and architecture come first.
    absent poses/frames/selectors are simply not present, and the frame index emits `UNRESOLVED` for
    them. The coverage matrix (§25) records exactly which dimensions are known. No fabricated entries.
 3. **Ready for native conversion today?** Rastan/player (H24 body + 4 weapons) has mature palette +
-   pose evidence → the Task-1 pilot. Non-divergent-code enemies with authored index_maps are
-   candidates for Task 2 **per frame/selector readiness**, not wholesale.
+   pose evidence and is already hooked at the dedicated player compositor (`native_player_*`) → the
+   Task-1 pilot, converted at that boundary (NOT via `native_stage_dispatch_41dae`). Non-divergent-code
+   enemies with authored index_maps are candidates for Task 2 **per frame/selector readiness**, not
+   wholesale.
 4. **Palette-known but frame/selector-incomplete?** The enemy families whose `USAGE_BANK`/index_maps
    are authored (lizardman, valkyrie, chimera, flying_demon, four_armed, bats) but whose *complete
    legal frame domain and runtime selectors* are not yet enumerated → `PALETTE_COMPLETE_FRAME_PARTIAL`
@@ -524,9 +631,11 @@ cleanup; behavior and architecture come first.
 5. **Bank granularity?** **Static per semantic usage** (`USAGE_BANK`) — not per actor instance, not
    per piece (proven R1/P1). A *code* shared across usages needs that usage's bank; within one frame
    of one usage, bank is a compile-time constant. (Runtime actor→usage mapping = KU-4.)
-6. **Where can Python emit finalized `vi` directly?** Any piece whose `(code,bank)` is fully static —
-   i.e. base_tile static per `(family,anim)` (KU-1) and usage/bank known. Expected to cover the
-   proven R1/P1 static-code corpus (Level B).
+6. **Where can Python emit finalized `vi` directly?** Any piece whose `(code,bank)` is fully static.
+   For the **player pilot** this is governed by PLAYER-KU-2/KU-4 (the compositor's body/weapon code
+   source + bank 0x33), not by the generic `a4@0x1e` question. For later **enemy** families it is
+   governed by GEN-KU-1 (base_tile static per `(family,anim)`). Both are Level B; expected to cover
+   the proven R1/P1 static-code corpus.
 7. **Where must runtime `(code,bank)` resolution remain?** Only where base_tile is runtime-dynamic
    (Level A, bank constant-folded) or a frame is genuinely shared across usages with different runtime
    banks (full O(1) resolve). Not elsewhere.
@@ -569,15 +678,20 @@ cleanup; behavior and architecture come first.
 18. **When may the legacy path be deleted globally?** Only when *all* contexts reach that state and the
     interpreter has zero live consumers game-wide (per "replace every live consumer first"; never on
     "not observed in current playtesting").
-19. **Cody's first exact steps?** (a) Resolve KU-1 (base_tile granularity) and KU-5 (lane) for the
-    player; (b) write `precompute_pc090oj_frame_table.py` consuming the corpus + variant index, emit
-    player frames (both orientations) with finalized `vi` where KU-1 permits, UNRESOLVED elsewhere;
-    (c) write `verify_pc090oj_frame_table.py`; (d) implement `native_emit_frame` + the player-band
-    dispatch gate + UNRESOLVED fallback; (e) Makefile + incbin; (f) run Layer-1/2/3 proofs; (g) emit
-    one numbered ROM + coverage report.
+19. **Cody's first exact steps?** (a) Resolve the player-KUs (§27A): the `A5+0x1244/0x1246` selector
+    contract, the `0x54326 → 0x54492/0x546A8` body-frame source, weapon composition, pattern identity
+    (bank 0x33 / finalized `vi`), and the dynamic FRONT/BODY lane order; (b) write
+    `precompute_pc090oj_frame_table.py` consuming the corpus + variant index, emit **player** frames
+    (both orientations) with finalized `vi` where PLAYER-KU-4 permits, UNRESOLVED elsewhere; (c) write
+    `verify_pc090oj_frame_table.py`; (d) implement the native player-frame emitter at the
+    `native_player_*` boundary + UNRESOLVED fallback (leave the per-piece path intact for unproven
+    states); (e) Makefile + incbin; (f) run Layer-1/2/3 proofs; (g) emit one numbered ROM + coverage
+    report.
 20. **What NOT to touch in Task 1?** Scheduling/IRQ6; Build 0401 ownership material; unrelated
-    tilemap/PC080SN code; palette policy (must stay equivalent to Build 0400); all non-player /
-    unresolved families (they stay on the fallback); the `(code,bank)` resolver internals; A5-WRAM.
+    tilemap/PC080SN code; palette policy (must stay equivalent to Build 0400); **`native_stage_dispatch_41dae`
+    and the entire enemy/family path (including the Flying Demon pair at `A5+0x0508/0x0548`)**; all
+    non-player / unresolved states (they stay on the fallback); the `(code,bank)` resolver internals;
+    A5-WRAM layout.
 
 ---
 

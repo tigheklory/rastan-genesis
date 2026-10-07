@@ -112,11 +112,27 @@ R1P1_ENEMY_CORPUS := $(ROOT)/analysis/actor_decompilation/r1p1_enemy_semantic_co
 H24_WEAPON_CELLS := $(ROOT)/analysis/actor_decompilation/h24_player_weapon_cells.tsv
 H24_PLAYER_CELLS := $(ROOT)/analysis/actor_decompilation/h24_player_frame_cells.tsv
 H24_LEG_CELLS := $(ROOT)/analysis/actor_decompilation/h24_player_leg_cells.tsv
+H16_BURST_RENDER := $(ROOT)/analysis/actor_decompilation/h16_burst_child_render.tsv
+ACTOR_GRAPHICS_MANIFEST := $(ROOT)/docs/design/rastan_actor_graphics_manifest.json
 PC090OJ_VARIANTS_INC := $(OUT_DIR)/pc090oj_sprite_variants.inc
 PC090OJ_HUD_WHITE := $(ROOT)/build/pc090oj_hud_white_genesis.bin
 PC090OJ_SLOT_LUT := $(ROOT)/build/pc090oj_slot_lut.bin
 PC090OJ_BLANK_BITSET := $(ROOT)/build/pc090oj_blank_bitset.bin
 PC090OJ_OPAQUE_BBOX := $(ROOT)/build/pc090oj_opaque_bbox.bin
+PC090OJ_FRAME_GEN := $(ROOT)/tools/translation/precompute_pc090oj_frame_table.py
+PC090OJ_FRAME_VERIFY := $(ROOT)/tools/translation/verify_pc090oj_frame_table.py
+PC090OJ_DISPATCH_VERIFY := $(ROOT)/tools/translation/verify_pc090oj_direct_dispatch.py
+PC090OJ_FRAME_TABLE := $(ROOT)/build/pc090oj_frame_table.bin
+PC090OJ_FRAME_INDEX := $(ROOT)/build/pc090oj_frame_index.bin
+PC090OJ_GENERIC_FRAME_INDEX := $(ROOT)/build/pc090oj_generic_frame_index.bin
+PC090OJ_GENERIC_BASE_LUT := $(ROOT)/build/pc090oj_generic_base_lut.bin
+PC090OJ_GENERIC_USAGE_TABLE := $(ROOT)/build/pc090oj_generic_usage_table.bin
+PC090OJ_FRAME_RESIDENCY := $(ROOT)/build/pc090oj_frame_residency.bin
+PC090OJ_FRAME_REPORT := $(ROOT)/build/pc090oj_frame_table.report.txt
+PC090OJ_FRAME_COVERAGE := $(ROOT)/build/pc090oj_frame_table.coverage.json
+PALETTE_DECISIONS := $(ROOT)/specs/palette_decisions.json
+PC090OJ_LAYER1_VERIFY := $(ROOT)/tools/graphics_editor/verify_reindexed_pc090oj.py
+PC090OJ_LAYER1_STAMP := $(OUT_DIR)/pc090oj_layer1_verify.stamp
 
 AS := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-as
 LD := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-ld
@@ -271,6 +287,11 @@ $(PC090OJ_EDITOR): $(PC090OJ_PRECONV) $(EDITOR_LAYERA_SNAPSHOT) $(R1P1_ENEMY_COR
 		--corpus "$(R1P1_ENEMY_CORPUS)" --out "$(PC090OJ_EDITOR)" \
 		--variants-inc "$(PC090OJ_VARIANTS_INC)"
 
+$(PC090OJ_LAYER1_STAMP): $(PC090OJ_EDITOR) $(PC090OJ_PRECONV) $(EDITOR_LAYERA_SNAPSHOT) $(R1P1_ENEMY_CORPUS) $(PC090OJ_LAYER1_VERIFY) | $(OUT_DIR)
+	$(PYTHON) "$(PC090OJ_LAYER1_VERIFY)" --profile "$(EDITOR_LAYERA_SNAPSHOT)" \
+		--corpus "$(R1P1_ENEMY_CORPUS)" --raw "$(PC090OJ_PRECONV)" --editor "$(PC090OJ_EDITOR)"
+	@touch "$@"
+
 # The variant index include is produced as a side-effect of the pc090oj_editor.bin recipe.
 $(PC090OJ_VARIANTS_INC): $(PC090OJ_EDITOR)
 	@test -f "$@"
@@ -290,6 +311,30 @@ $(PC090OJ_OPAQUE_BBOX): $(PC090OJ_REGION) $(ROOT)/tools/translation/build_pc090o
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_opaque_bbox.py" \
 		--input "$<" --output "$@"
 
+$(PC090OJ_FRAME_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) $(PC090OJ_FRAME_REPORT) $(PC090OJ_FRAME_COVERAGE): $(MAINCPU_REGION) $(PC090OJ_EDITOR) $(EDITOR_LAYERA_SNAPSHOT) $(PALETTE_DECISIONS) $(H24_WEAPON_CELLS) $(H24_PLAYER_CELLS) $(H16_BURST_RENDER) $(ACTOR_GRAPHICS_MANIFEST) $(R1P1_ENEMY_CORPUS) $(PC090OJ_FRAME_GEN) $(PC090OJ_FRAME_VERIFY) $(PC090OJ_DISPATCH_VERIFY)
+	$(PYTHON) "$(PC090OJ_FRAME_GEN)" \
+		--maincpu "$(MAINCPU_REGION)" --variant-index "$(ROOT)/build/regions/pc090oj_variant_index.json" \
+		--body-evidence "$(H24_PLAYER_CELLS)" --weapon-evidence "$(H24_WEAPON_CELLS)" \
+		--profile "$(EDITOR_LAYERA_SNAPSHOT)" --palette-decisions "$(PALETTE_DECISIONS)" \
+		--burst-evidence "$(H16_BURST_RENDER)" --actor-manifest "$(ACTOR_GRAPHICS_MANIFEST)" \
+		--enemy-corpus "$(R1P1_ENEMY_CORPUS)" \
+		--table-output "$(PC090OJ_FRAME_TABLE)" --index-output "$(PC090OJ_FRAME_INDEX)" \
+		--generic-index-output "$(PC090OJ_GENERIC_FRAME_INDEX)" \
+		--generic-base-lut-output "$(PC090OJ_GENERIC_BASE_LUT)" \
+		--generic-usage-output "$(PC090OJ_GENERIC_USAGE_TABLE)" \
+		--residency-output "$(PC090OJ_FRAME_RESIDENCY)" --report-output "$(PC090OJ_FRAME_REPORT)" \
+		--coverage-output "$(PC090OJ_FRAME_COVERAGE)"
+	$(PYTHON) "$(PC090OJ_FRAME_VERIFY)" --maincpu "$(MAINCPU_REGION)" \
+		--variant-index "$(ROOT)/build/regions/pc090oj_variant_index.json" \
+		--table "$(PC090OJ_FRAME_TABLE)" --index "$(PC090OJ_FRAME_INDEX)" \
+		--generic-index "$(PC090OJ_GENERIC_FRAME_INDEX)" \
+		--generic-base-lut "$(PC090OJ_GENERIC_BASE_LUT)" \
+		--generic-usage "$(PC090OJ_GENERIC_USAGE_TABLE)" \
+		--residency "$(PC090OJ_FRAME_RESIDENCY)" --coverage "$(PC090OJ_FRAME_COVERAGE)"
+	$(PYTHON) "$(PC090OJ_DISPATCH_VERIFY)" --base-lut "$(PC090OJ_GENERIC_BASE_LUT)" \
+		--usage "$(PC090OJ_GENERIC_USAGE_TABLE)" --index "$(PC090OJ_GENERIC_FRAME_INDEX)" \
+		--assembly "$(SRC_DIR)/pc090oj_hooks.s"
+
 # Generate the PC090OJ helper sizing include from the Make variable each build so
 # an override (PC090OJ_MIRROR_RECORDS=N) is always applied without hand-editing.
 $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -307,7 +352,7 @@ $(PC090OJ_PALSEL_LUT_INC): $(SRC_DIR)/palette_hooks.s $(EDITOR_LAYERA_SNAPSHOT) 
 $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) $(PC090OJ_VARIANTS_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_EDITOR) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_EDITOR) $(PC090OJ_LAYER1_STAMP) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) $(PC090OJ_FRAME_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/diag_bookmark.o: $(SRC_DIR)/diag_bookmark.s FORCE_ASM_REBUILD | $(OUT_DIR)

@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy — TASK-1 BOUNDARY CORRECTION: Rastan uses the dedicated player compositor, NOT native_stage_dispatch_41dae (doc/handoff only; no code/ROM; counter unchanged)]
+
+* DOC/BOUNDARY CORRECTION ONLY. No production source; no ROM; 0401 untouched/shelved; architecture body not reopened. Cody CORRECTLY STOPPED Task 1 on a source-level contradiction in the governing doc.
+* THE CONTRADICTION: Task 1 said route the Rastan/player pilot through native_stage_dispatch_41dae and derive frames via the generic actor contract incl a4@0x1E base_tile. WRONG. native_stage_dispatch_41dae processes actor slots A5+0x0508/A5+0x0548 = the scripted FLYING DEMON pair (the source label "players1"/NATIVE_LANE_PLAYER_FRONT is misleading), NOT Rastan.
+* CORRECT RASTAN BOUNDARY: dedicated player compositor 0x540CC -> 0x54326 -> 0x54492/0x546A8, player selection via A5+0x1244/0x1246 (+ A5+0x1308, A5+0x129A/0x129C), ALREADY hooked by native_player_frame_begin/front_begin/body_begin/piece (pc090oj_hooks.s:280-324; JSR-redirected at the 0x54xxx PCs per remap). native_player_piece is currently called ONCE PER PIECE by retained arcade expanders (d1=word0, d6=Y, d3=code, d4=X) = the repeated interpretation to remove. FRONT/BODY lane is dynamically set by the *_begin hooks; SAT append order = priority.
+* CORRECTIONS MADE to docs/design/Andy_genesis_native_graphics_preprocessing_and_runtime_architecture.md: §8 added player-pilot deviation callout (player path does NOT use family table / a4@0x1E / enemy visibility classifier); §22 Task 1 rewritten to the dedicated compositor + native_player_* boundary, forbids modifying native_stage_dispatch_41dae; §27 removed generic a4@0x1E KU-1 from the player task, added PLAYER-KU-1..5 (selector contract A5+0x1244/0x1246; body frame source 0x54326->0x54492/0x546A8; weapon composition sword/axe/hammer/fire-sword; pattern identity bank 0x33->vi incl Build-0281 inline-sword case 0x54598/0x545EE/0x54602; dynamic FRONT/BODY lane), reframed generic base_tile as GEN-KU-1 (enemy/Phase-B only, NOT a Task-1 blocker); Required Answers Q3/Q6/Q19/Q20 corrected.
+* UNCHANGED: Build 0400 accepted baseline; 0401 SHELVED; locked A-E sequence; reuse existing (code,effective_bank)->vi chain (gen_reindexed_pc090oj.py/pc090oj_editor.bin/pc090oj_sprite_variants.inc/pc090oj_variant_index.json); residency keys vi; mixed-mode UNRESOLVED fallback keeps the Build-0400 per-piece path intact. Player pilot still ends in a REAL numbered ROM for Tighe. No 41DAE/enemy/Flying-Demon/generic-enemy/Phase-B/scheduling/textwriter/PC080SN work in Task 1.
+
+## [Andy — DECISION LOCK: development sequence A-E; Build-0401 ownership stays SHELVED until new producer is Tighe-proven (doc/handoff only; no code/ROM; counter unchanged)]
+
+* DOC/HANDOFF ONLY. No production source; no ROM; no Build 0402; 0401 NOT reapplied. Updated sequencing/status in docs/design/Andy_genesis_native_graphics_preprocessing_and_runtime_architecture.md (§20/§21/§24 + top banner); architecture body unchanged. Build 0401 status = SHELVED/PRESERVED (do not reapply/modify/redesign/merge now; shelved patch is read-only history).
+* ACCEPTED BASELINE = Build 0400. LOCKED A->E sequence, each ROM gated on TIGHE PLAYING IT (static/assembly success != acceptance): A native graphics pilot (Rastan/player, Task 1) -> ROM -> Tighe; B expand PROVEN R1/P1 + O(1) hybrid residency, UNRESOLVED fallback kept -> ROM -> Tighe; C minimum perf sanity check (Build-0400 = BEFORE; NO new profiling campaign); D reintroduce ownership REDESIGNED against the accepted NEW producer (recover its real publication read-set; reuse WORK/READY/DISPLAYED concepts; DROP the 4KB+4KB snapshot if a smaller clean immutable transaction fits) -> ROM -> Tighe; E move gameplay worker OUT of IRQ6 (mainline owns all CPU next-frame work; IRQ6 owns publish READY + VDP/DMA service + tick_pending + RTE) -> ROM -> Tighe.
+* CORRECTED the "scheduling move = last" wording: Phase E is NOT postponed until all unrelated cleanup (textwriter, PC080SN tokens, dead-code, frontend, renames). Its ONLY hard predecessors are a proven producer (A/B) + a proven ownership model (D). Secondary cleanup runs afterward / on independent tracks.
+* NEXT IMPLEMENTATION = native graphics Task 1 (Rastan/player pilot), requires a REAL numbered ROM. Resolve KU-1 (a4@0x1e base_tile granularity -> Level B vs A) + KU-5 (player lane/priority) FIRST. Reuse existing (code,effective_bank)->vi chain (gen_reindexed_pc090oj.py / pc090oj_editor.bin / pc090oj_sprite_variants.inc / pc090oj_variant_index.json); residency keys vi not raw code; CRAM line separate. Mixed-mode intentional (PROVEN->native_emit_frame, else UNRESOLVED->existing Build-0400 interpreter kept unchanged).
+* DO NOT YET: reapply 0401, write WORK/READY/DISPLAYED code, move worker, alter IRQ6/controller sampling/watchdog-IPL wrapper, global PC080SN cleanup, replace textwriter, convert unproven actors, delete the Build-0400 fallback interpreter, launch broad profiling. Build numbers disposable — the next graphics pilot ROM takes the next sequential counter value, NOT forced to 0401.
+
 ## [Andy — DESIGN-ONLY (FINALIZED REV 2): Genesis-native graphics preprocessing & runtime architecture (Cody handoff; no code/ROM; counter unchanged)]
 
 * DESIGN ONLY, finalized revision. No production source; no ROM; no Build 0402; 0401 not reapplied. Deliverable rewritten: docs/design/Andy_genesis_native_graphics_preprocessing_and_runtime_architecture.md (25 sections + 20 pre-implementation answers + KU-1..5). Build 0400 baseline; 0401 preserved docs/design/build0401_shelved/.
@@ -50491,3 +50507,133 @@ TIGHE ONLY
 - Final PC: 0x073D8E
 - Stack Pointer (SP): 0x00FEFF6E
 - Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-06 17:09:56)
+- Final PC: 0x073D04
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-06 17:10:46)
+- Final PC: 0x073D04
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Native Graphics Task 1: Rastan player-compositor pilot, Build 0403]
+
+- Implemented the player-only whole-frame pilot at dedicated compositor `0x054492`; `native_stage_dispatch_41dae`, generic/Flying-Demon rendering, IRQ6 scheduling, and shelved Build-0401 ownership work were not modified.
+- Frozen key: `((effective A5+0x1244 * 5 + A5+0x12FA) * 2 + orientation)`. Generated 600 native entries covering all 75 primary-body selectors with no weapon/sword/axe/hammer in both orientations. All 150 fire-sword entries are explicit UNRESOLVED because `A5+0x1308` dynamically substitutes its special codes.
+- Native hits pre-expand ordered body+weapon pieces, mirrored geometry, fixed attributes, size, finalized pattern identity, and weapon anchor publication. UNRESOLVED falls through to the unchanged Build-0400 dedicated compositor/per-piece path. Secondary/legs and FRONT paths remain retained.
+- Added generator, independent Layer-2 verifier, table/index/residency/report/coverage outputs, normal Make dependencies, and unchanged Layer-1 palette verification. Layer 1 PASS (0 mismatches); Layer 2 PASS (600 native / 150 UNRESOLVED).
+- Build 0402 was preserved as a consumed canonical-gate failure caused by one stale member of the paired ROM-size invariant. Build 0403 synchronized both invariants: canonical gate PASS, gameplay-entry PASS, address errors 0, bus errors 0, illegal instructions 0, crash entries 0; normal 30-second trace had no unmapped address. Existing seven-epoch warning remains unrelated.
+- Build 0403 family complete (canonical, `_c`, `_d`, `_do`, `_s`), each 1,793,720 bytes. Canonical SHA-256 `cd2e8f273c92ff3e0e7a9218fae8a8b007f6a91707cc774ed067b5e048a1cf76`. Tighe acceptance required; Phase B remains blocked pending it.
+- Report: `docs/design/Cody_native_graphics_task1_player_compositor_pilot.md`.
+
+## [Cody — Native Graphics Phase B: proven R1/P1 expansion, Build 0404]
+
+- Accepted input baseline: Build 0403. Preserved all 600 player-native keys, 150 explicit fire-sword UNRESOLVED keys, FRONT/BODY lanes, weapon anchor, secondary/legs fallback, scheduling, IRQ6, and the shelved Build-0401 ownership state.
+- Readiness remained bounded: enemy selector domains are unresolved and remain on the accepted fallback. Added only eight exact generic records: cave block `(state 0x1E, base 0x0179, anim 0x70, compositor 0)` and burst child `(state 0x0F, base 0x0275, anim 0x9E/0x9F/0xA0, compositor 0)`, both orientations.
+- GEN-KU-4 key includes retained actor state, base, animation selector, compositor selector, effective bank, and the original orientation predicate. This prevents shared base `0x0179` from being treated as unique cave-block identity.
+- Extended the single frame compiler/artifact family and independent verifier. Layer 1 PASS (916 requirements, zero mismatch/incomplete/stray); Layer 2 PASS (600 player native, eight generic native, 150 player UNRESOLVED). Coverage authority: `build/pc090oj_frame_table.coverage.json`.
+- Cave carries direct finalized code/vi. Burst carries offline-finalized `0x2000|vi`; generated `vi->source code` provenance preserves blank/opaque-bbox behavior while the finalized key enters the existing O(1) reverse residency map. No second allocator or slot scan; existing bounded 12-item DMA worklist unchanged (largest new frame 10).
+- Build 0404 gates: canonical PASS; gameplay-entry PASS; address/bus/illegal/crash-handler counts all 0; normal Genesis NTSC trace 1,798 frames with no unmapped-memory report; complete canonical/`_c`/`_d`/`_do`/`_s` family PASS. Existing seven-epoch warning unchanged and unrelated.
+- Canonical ROM: `dist/rastan-direct/rastan_direct_video_test_build_0404.bin`, SHA-256 `5f6585292a60ef3ded5c6a34337eec9137eaa3cae36b9d4dda0fd20d786a3d49`, 1,793,720 bytes. Tighe visual/gameplay acceptance required; Phase C remains blocked pending acceptance.
+- Report: `docs/design/Cody_native_graphics_phase_b_proven_r1p1_expansion.md`.
+
+### MAME Exit Summary (2026-10-06 21:06:07)
+- Final PC: 0x0741DA
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## [Cody — Phase C: Build 0404 performance sanity check]
+
+- Measurement/decision only: accepted Build 0404 ROM measured unchanged; no production source,
+  numbered ROM, counter, Build-0401 ownership, IRQ6, or scheduling change.
+- Reused the Build-0400 debugger-exact boundaries (`0x70250/0x702D2` publication and
+  `0x3A208/0x3A27E` worker) and first-`M` Scene-1 interval. Build 0404 captured 4,777 display
+  frames and 3,363 complete worker pairs with zero rejected sequences and a passing VDP gate.
+- Human workload was lighter than Build 0400 (no 60–79 emitted-sprite samples), so the better
+  whole-run median/tick ratio is not a like-for-like acceptance result. Across all five shared
+  buckets, Build-0404 worker medians rose: +1.10%, +7.73%, +7.23%, +4.26%, and +8.73%.
+- Bounded attribution: every active unresolved generic actor now pays `.Lnative_generic_frame_try`
+  and then the complete retained interpreter. The common eight-record all-base-miss path costs
+  832–856 extra MC68000 cycles per actor; up to 17 active generic slots make this approximately
+  14,144–14,552 cycles/worker, materially consistent with the shared-bucket regressions.
+- Classification: **REGRESSION**. Before Phase D, replace the repeated linear miss scan with a
+  cheap bounded direct rejection/dispatch while preserving exact keys and fallback. No optimization
+  was implemented in Phase C.
+- Retained issue record: Build-0404 demon-burst first displayed frame has the wrong demon palette;
+  cause UNKNOWN. The Segment-1 one-frame Rastan tile glitch predates 0404 and is not Phase B.
+- Report: `docs/design/Cody_build0404_phase_c_performance_sanity.md`.
+
+### MAME Exit Summary (2026-10-07 11:45:06)
+- Final PC: 0x074260
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+## 2026-10-07 — Cody — Build 0405 R1/P1 native enemy expansion + direct dispatch
+
+- Baseline: Tighe-accepted Build 0404.
+- Replaced the temporary eight-record generic native scan with a generated
+  O(1) base LUT, one exact semantic-usage descriptor, and a normalized direct
+  selector/orientation index. Common unresolved LUT-zero reject is ~302 cycles
+  versus Build 0404's proven 832–856-cycle scan and does not grow with coverage.
+- Added exact NATIVE_PARTIAL coverage for Lizardman selectors `17..1F`
+  (family `+3E=0`, base `004B`, bank `36`), Large Bat `B6..B8` (raw
+  `+06=0A`, base `03F6`, bank `3E`), and Small Bat `B9..BB` (raw `+06=0B`,
+  base `0268`, bank `3E`), both orientations. Flying Demon, Four-Armed,
+  Chimera, Valkyrie, and all non-exact tuples remain fallback.
+- Preserved 600 player-native keys, 150 fire-sword UNRESOLVED keys, and the
+  accepted cave/burst paths. Generic native records: 8 -> 38.
+- Added `verify_pc090oj_direct_dispatch.py`; generator, Layer-1 verifier,
+  Layer-2 verifier, direct-dispatch verifier, assembler/linker, boot guards,
+  canonical gate, gameplay-entry gate, and five-ROM family gate passed.
+- GENESIS NTSC gameplay-entry evidence: address/bus/illegal/crash-handler =
+  `0/0/0/0`; normal trace completed 1,798 frames. Phase-1 seven-epoch Make
+  gate remained labeled FAIL because its automated route did not complete all
+  epochs; no PC080SN code changed.
+- Build 0405 canonical SHA-256:
+  `af0024630475af16c8e784b88050dcf633180db450c57f8da6f44f8e4549e055`;
+  size 1,801,912 bytes. Complete `_d`, `_s`, `_do`, `_c` family preserved.
+- Burst first-frame palette defect is unchanged; cause remains unproven.
+- Tighe gameplay/visual acceptance required before the requested Phase-C
+  timing recheck.
+- Report: `docs/design/Cody_build0405_r1p1_native_enemy_expansion.md`.
+
+## 2026-10-07 — Cody — Build 0404 vs 0405 objective performance check
+
+- Measurement only; no production source change, optimization, ROM build, or counter advance.
+- Ran canonical Builds 0404 and 0405 in GENESIS NTSC MAME 0.276 from cold boot with the same
+  deterministic coin/start/right/jump/attack schedule, equal host-held energy, the same
+  `A5+0x013E == 2` measurement boundary, and fixed 1,200-rendered-frame intervals.
+- Required workload was present: Lizardman (`004B`), Large Bat (`03F6`, raw `+06=0A`), and
+  Small Bat (`0268`, raw `+06=0B`) all executed. Build 0404 sent them to fallback; Build 0405
+  recorded 1,932 / 870 / 870 native hits respectively.
+- Build 0405 is not slower: complete workers/rendered frame +9.86%; average worker cycles/update
+  -8.93%; average IRQ-total cycles/update -8.89%; worst IRQ -3.77%; IRQs over the one-frame
+  budget fell 99.37% -> 94.25%.
+- Changed graphics path: average measured native-graphics cycles/update -12.43%, generic
+  fallbacks/update -80.40%. Exact emitted-count weighted comparison also favors 0405: worker
+  -4.06%, IRQ -4.19%, graphics -3.17%.
+- Residency misses/update -18.67%, installs -20.34%, evictions -20.42%, DMA words/update -6.87%.
+  DMA words/rendered frame rise 2.32% only because 0405 completes 9.86% more updates; worst DMA
+  and fixed 320-word SAT DMA are unchanged.
+- Evidence: `states/traces/build0404_vs_0405_objective_performance/{build0404,build0405}/`.
+- Report: `docs/design/Cody_build0404_vs_0405_objective_performance.md`. Counter remains 405.
+
+## 2026-10-07 — Cody — Build 0400→0404→0405 direct graphics-cost progression
+
+- Measurement only; no production source change, ROM build, optimization, scheduling/IRQ6 change,
+  Build-0401 ownership change, or counter advance.
+- Reran all three canonical ROMs on the same deterministic GENESIS NTSC record-2 route for 1,200
+  rendered frames because the final comparable union adds the previously omitted retained
+  secondary-player compositor to the generic/finalizer and primary-player brackets.
+- Direct graphics averages: 0400 `124,944.25`, 0404 `125,855.55`, 0405 `110,663.64`
+  cycles/update. Whole-run 0400→0405 is -11.43%; worker average -8.72%; workers/rendered frame
+  +9.58%.
+- Exact emitted-count weighting is deliberately reported as a limiting control: 0400→0405 graphics
+  +2.26%, worker +0.75%, IRQ +0.65%. The 0404→0405 conversion remains favorable under equal load:
+  graphics -3.08%, worker -4.06%, IRQ -4.19%.
+- Build 0405 remains 47,630.68 average IRQ cycles above the NTSC budget. Graphics is still dominant
+  at 65.09% of worker cost; the generic graphics producer subtotal is the largest measured next
+  target at 103,167.34 cycles/update.
+- Evidence: `states/traces/build0400_0404_0405_graphics_cost_progression/final/build{0400,0404,0405}/`.
+- Report: `docs/design/Cody_build0400_0404_0405_graphics_cost_progression.md`. Counter remains 405.

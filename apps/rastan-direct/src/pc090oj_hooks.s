@@ -53,6 +53,7 @@
     .global native_player_frame_begin
     .global native_player_front_begin
     .global native_player_body_begin
+    .global native_player_frame_try
     .global native_player_piece
     .global native_player_body_anchor_piece
     .global native_player_body_anchor_blank
@@ -95,6 +96,12 @@
     .extern rastan_pc090oj
     .extern rastan_pc090oj_hud_white
     .extern pc090oj_slot_lut
+    .extern pc090oj_player_frame_table
+    .extern pc090oj_player_frame_index
+    .extern pc090oj_frame_table
+    .extern pc090oj_generic_frame_index
+    .extern pc090oj_generic_base_lut
+    .extern pc090oj_generic_usage_table
     .extern genesistan_current_scene_id
     .equ    PC090OJ_SCENE_GAMEPLAY_ID, 1
     .extern diag_score_bcd                  /* Build 0338: diagnostic score-metric BCD (only referenced when RASTAN_DIAG_SCORE_METRIC=1) */
@@ -290,6 +297,88 @@ native_player_body_begin:
     move.w  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane
     rts
 
+/* Native Graphics Task 1, dedicated player-compositor pilot.
+ *
+ * Called at the semantic entry to arcade 0x54492 after 0x54326 has selected
+ * A5+0x1244.  D0.b=1 means this routine emitted the complete primary-body plus
+ * static weapon overlay and the caller must return from 0x54492.  D0.b=0 means
+ * UNRESOLVED and the retained Build-0400 compositor must continue unchanged.
+ *
+ * Key = ((effective A5+0x1244 * 5 + A5+0x12FA) * 2 + orientation), where
+ * orientation 0 is A5+0x1114==2 and 1 is every mirrored orientation.  Mode 9,
+ * orientation value 3 retains the original selector decrement here. */
+native_player_frame_try:
+    movem.l %d1-%d7/%a0-%a2, -(%sp)
+    moveq   #0, %d0
+    move.w  0x1244(%a5), %d0
+    cmpi.w  #9, 0x10E8(%a5)
+    bne.s   .Lnpft_selector_ready
+    cmpi.w  #3, 0x1114(%a5)
+    bne.s   .Lnpft_selector_ready
+    subq.w  #1, %d0
+.Lnpft_selector_ready:
+    cmpi.w  #74, %d0
+    bhi     .Lnpft_unresolved
+    moveq   #0, %d1
+    move.w  0x12FA(%a5), %d1
+    cmpi.w  #3, %d1
+    bhi     .Lnpft_unresolved          /* fire sword and unknown values */
+    mulu.w  #5, %d0
+    add.w   %d1, %d0
+    add.w   %d0, %d0
+    cmpi.w  #2, 0x1114(%a5)
+    beq.s   .Lnpft_key_ready
+    addq.w  #1, %d0
+.Lnpft_key_ready:
+    mulu.w  #6, %d0
+    lea     pc090oj_player_frame_index, %a1
+    adda.l  %d0, %a1
+    move.l  (%a1), %d0
+    cmpi.l  #0xFFFFFFFF, %d0
+    beq     .Lnpft_unresolved
+    moveq   #0, %d7
+    move.b  4(%a1), %d7
+    cmpi.b  #1, 5(%a1)
+    bne     .Lnpft_unresolved
+    lea     pc090oj_player_frame_table, %a0
+    adda.l  %d0, %a0
+
+    move.w  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane
+    clr.w   0x129A(%a5)
+    clr.w   0x129C(%a5)
+    move.w  0x10BE(%a5), %d5          /* player base X */
+    move.w  0x10C0(%a5), %d6          /* player base Y */
+    tst.w   %d7
+    beq.s   .Lnpft_native_done
+.Lnpft_piece_loop:
+    move.w  0(%a0), %d4
+    add.w   %d5, %d4
+    move.w  2(%a0), %d2
+    add.w   %d6, %d2
+    move.w  4(%a0), %d3               /* baked finalized vi == non-divergent code */
+    move.w  6(%a0), %d1               /* baked invariant attr + orientation flip */
+    btst    #0, 9(%a0)
+    beq.s   .Lnpft_no_anchor
+    move.w  %d4, %d0
+    andi.w  #0x01FF, %d0
+    move.w  %d0, 0x129A(%a5)
+    move.w  %d2, %d0
+    andi.w  #0x01FF, %d0
+    move.w  %d0, 0x129C(%a5)
+.Lnpft_no_anchor:
+    bsr     native_sprite_emit
+    adda.w  #10, %a0
+    subq.w  #1, %d7
+    bne.s   .Lnpft_piece_loop
+.Lnpft_native_done:
+    movem.l (%sp)+, %d1-%d7/%a0-%a2
+    moveq   #1, %d0
+    rts
+.Lnpft_unresolved:
+    movem.l (%sp)+, %d1-%d7/%a0-%a2
+    moveq   #0, %d0
+    rts
+
 /* Retained arcade expanders provide d1=word0, d6=Y, d3=code and d4=X.
  * Preserve their d2 loop counter while adapting to native_sprite_emit. */
 native_player_piece:
@@ -330,11 +419,14 @@ native_player_body_anchor_clear:
  * applied once when the final SAT entry is encoded. */
 native_sprite_emit:
     movem.l %d0-%d7/%a0-%a2, -(%sp)
+    btst    #13, %d3                    /* offline-finalized 0x2000|vi; vi zero is valid */
+    bne.s   .Lnse_identity_ready
     move.w  %d3, %d0
     andi.w  #0x1FFF, %d0
     beq     .Lnse_done
     cmpi.w  #0x00FF, %d0
     beq     .Lnse_done
+.Lnse_identity_ready:
     move.w  %d2, %d0
     andi.w  #0x01FF, %d0
     cmpi.w  #0x0180, %d0
@@ -603,6 +695,13 @@ native_stage_dispatch_45dfa:
     beq     .Lnea_ret
     move.w  %d2, %d5                    /* d5 = piece budget (loop count) */
 
+    /* Phase B: exact semantic keys only.  A native hit emits a precompiled
+     * general-compositor frame; every unlisted selector returns to the accepted
+     * Build-0403 interpreter below without changing retained actor state. */
+    bsr     .Lnative_generic_frame_try
+    tst.b   %d0
+    bne     .Lnea_ret
+
     /* a0 = family descriptor (relocated arcade family tables, +0x200 copy) */
     moveq   #0, %d1
     move.b  0x38(%a4), %d1             /* family a4@0x38 */
@@ -765,6 +864,132 @@ native_stage_dispatch_45dfa:
     bne     .Lnea_sloop
 .Lnea_ret:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* A4=retained actor, D2=actor piece ceiling.  D0.b=1 iff an exact generated
+ * frame emitted.  A generated 4096-byte base LUT performs coarse O(1)
+ * classification; one usage descriptor then validates the raw semantic
+ * discriminator, compositor, selector interval, effective bank, and actor
+ * attribute policy before one normalized selector/orientation index lookup.
+ * There is no frame-record scan, so UNKNOWN reject cost does not grow with
+ * native coverage.  Finalized vi enters the accepted O(1) reverse-residency
+ * map and bounded 12-item DMA worklist through native_sprite_emit.
+ *
+ * This attaches after retained arcade animation/state selection and replaces
+ * only the exact proven PC090OJ mapping-program expansion.  Base tile and
+ * a4+0x38 are classification fields, never globally unique identities.
+ */
+.Lnative_generic_frame_try:
+    movem.l %d1-%d7/%a0-%a2, -(%sp)
+    move.w  %d2, %d5                    /* retain caller piece ceiling */
+    move.w  0x1E(%a4), %d0
+    cmpi.w  #0x0FFF, %d0
+    bhi     .Lngft_unresolved
+    lea     pc090oj_generic_base_lut, %a0
+    moveq   #0, %d1
+    move.b  (%a0,%d0.w), %d1           /* 1-based usage id; zero = UNKNOWN */
+    beq     .Lngft_unresolved
+    subq.w  #1, %d1
+    mulu.w  #10, %d1
+    lea     pc090oj_generic_usage_table, %a1
+    adda.l  %d1, %a1                   /* exact generated usage descriptor */
+
+    moveq   #0, %d0
+    move.b  0(%a1), %d0                /* raw actor discriminator offset */
+    moveq   #0, %d1
+    move.b  (%a4,%d0.w), %d1
+    cmp.b   1(%a1), %d1
+    bne     .Lngft_unresolved
+    move.b  0x38(%a4), %d0
+    cmp.b   4(%a1), %d0                /* compositor selector */
+    bne     .Lngft_unresolved
+
+    move.b  6(%a1), %d0                /* bit0 requires +0x27 override; bit1 forbids it */
+    btst    #6, 0x27(%a4)
+    beq.s   .Lngft_attr_embedded
+    btst    #0, %d0
+    beq     .Lngft_unresolved
+    bra.s   .Lngft_attr_policy_ok
+.Lngft_attr_embedded:
+    btst    #1, %d0
+    beq     .Lngft_unresolved
+.Lngft_attr_policy_ok:
+    move.w  pc090oj_sprite_ctrl_shadow, %d0
+    andi.w  #0x00E0, %d0
+    lsr.w   #1, %d0                    /* exact effective-bank high bits */
+    moveq   #0, %d1
+    move.b  5(%a1), %d1
+    andi.w  #0x0070, %d1
+    cmp.w   %d1, %d0
+    bne     .Lngft_unresolved
+    btst    #6, 0x27(%a4)
+    beq.s   .Lngft_bank_ok             /* embedded low nibble was verified offline */
+    moveq   #0, %d0
+    move.b  0x27(%a4), %d0
+    andi.w  #0x000F, %d0
+    moveq   #0, %d1
+    move.b  5(%a1), %d1
+    andi.w  #0x000F, %d1
+    cmp.w   %d1, %d0
+    bne     .Lngft_unresolved
+.Lngft_bank_ok:
+    moveq   #0, %d7
+    move.b  1(%a4), %d7                /* retained animation/program selector */
+    moveq   #0, %d0
+    move.b  2(%a1), %d0
+    sub.w   %d0, %d7                   /* family-specific normalization */
+    blo     .Lngft_unresolved
+    moveq   #0, %d0
+    move.b  3(%a1), %d0
+    cmp.w   %d0, %d7
+    bhs     .Lngft_unresolved
+    add.w   %d7, %d7                   /* two orientations per selector */
+    add.w   8(%a1), %d7                /* first direct-index record */
+    bsr     .Lnative_mapping_branch_is_normal
+    moveq   #1, %d6                    /* generated orientation 1 = mirrored */
+    tst.b   %d0
+    beq.s   .Lngft_orientation_ready
+    moveq   #0, %d6                    /* generated orientation 0 = normal */
+.Lngft_orientation_ready:
+    add.w   %d6, %d7
+    mulu.w  #6, %d7
+    lea     pc090oj_generic_frame_index, %a2
+    adda.l  %d7, %a2
+    cmpi.b  #1, 5(%a2)
+    bne     .Lngft_unresolved           /* explicit generated UNRESOLVED */
+    moveq   #0, %d7
+    move.b  4(%a2), %d7
+    cmp.w   %d5, %d7
+    bhi.s   .Lngft_unresolved          /* retain original caller's piece ceiling */
+    lea     pc090oj_frame_table, %a0
+    adda.l  (%a2), %a0
+    move.w  0x16(%a4), %d5
+    move.w  0x1A(%a4), %d6
+.Lngft_emit:
+    move.w  0(%a0), %d4
+    add.w   %d5, %d4
+    move.w  2(%a0), %d2
+    add.w   %d6, %d2
+    btst    #2, 9(%a0)
+    beq.s   .Lngft_no_y_adjust
+    add.w   0x18(%a4), %d2
+.Lngft_no_y_adjust:
+    move.w  4(%a0), %d3               /* direct code or baked 0x2000|vi */
+    move.w  6(%a0), %d1
+    btst    #6, 0x27(%a4)
+    beq.s   .Lngft_attr_ready
+    move.b  0x27(%a4), %d1             /* exact 0x3C9E8 low-byte replacement */
+.Lngft_attr_ready:
+    bsr     native_sprite_emit
+    adda.w  #10, %a0
+    subq.w  #1, %d7
+    bne.s   .Lngft_emit
+    movem.l (%sp)+, %d1-%d7/%a0-%a2
+    moveq   #1, %d0
+    rts
+.Lngft_unresolved:
+    movem.l (%sp)+, %d1-%d7/%a0-%a2
+    moveq   #0, %d0
     rts
 
 /* Exact original-arcade default-compositor branch predicate
@@ -1990,6 +2215,15 @@ native_frontend_hud_emit:
     swap    %d7
 .Lnq_entry_ctrl_ready:
     move.w  %d3, %d0
+    btst    #13, %d3
+    beq.s   .Lnq_source_identity_ready
+    andi.w  #0x0FFF, %d0
+    cmpi.w  #SPRITE_VARIANT_CELLS, %d0
+    bhs     .Lnq_entry_skip
+    add.w   %d0, %d0
+    lea     pc090oj_variant_source_code, %a1
+    move.w  0(%a1,%d0.w), %d0          /* source code only for blank/bbox provenance */
+.Lnq_source_identity_ready:
     andi.w  #0x1FFF, %d0
     beq     .Lnq_entry_skip
     cmpi.w  #0x1000, %d0
@@ -2007,7 +2241,10 @@ native_frontend_hud_emit:
      * the lane loader and directly with d1=attr/d2=Y/d3=code/d4=X in registers. */
     btst    #15, %d3
     sne     %d6
+    btst    #13, %d3
+    bne.s   .Lnq_keep_finalized_vi
     move.w  %d0, %d3
+.Lnq_keep_finalized_vi:
     tst.b   %d6
     beq.s   .Lnq_no_hud_tag
     ori.w   #0x8000, %d3
@@ -2039,6 +2276,13 @@ native_frontend_hud_emit:
     addi.w  #PC090OJ_TO_GENESIS_Y_OFFSET, %d2
 
     move.w  %d3, %d0
+    btst    #13, %d3
+    beq.s   .Lnq_bbox_source_ready
+    andi.w  #0x0FFF, %d0
+    add.w   %d0, %d0
+    lea     pc090oj_variant_source_code, %a1
+    move.w  0(%a1,%d0.w), %d0
+.Lnq_bbox_source_ready:
     andi.l  #0x00000FFF, %d0
     lsl.l   #4, %d0
     lea     pc090oj_opaque_bbox, %a1
@@ -2075,6 +2319,8 @@ native_frontend_hud_emit:
      * 0x35 for 0x28E..0x2A8); variant banks (chimera 0x34 / four_armed 0x3A / burst 0x30) select an
      * appended cell.  Bounded O(1): one u16 table read + one byte read.  No runtime recolor; variant
      * bytes are pre-transformed offline.  Base bank and every non-divergent code are untouched. */
+    btst    #13, %d3                    /* native frame already baked canonical vi */
+    bne.s   .Lnq_no_variant
     move.w  %d3, %d0
     andi.w  #0x0FFF, %d0
     add.w   %d0, %d0
