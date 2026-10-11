@@ -114,6 +114,16 @@ def _weapon_cells():
             base = WEAPON_NAME_TO_BASE.get(r["name"].strip())
             if base:
                 out[base].add(code)
+    # Fire-sword display substitutes four descriptor codes through four finite
+    # four-word tables at 0x54688..0x546A7, selected by
+    # ((A5+0x1308 >> 1) & 3).  The evidence TSV records descriptor vocabulary;
+    # include the complete displayed vocabulary in the same authored usage.
+    maincpu = open(os.path.join(ROOT, "build/regions/maincpu.bin"), "rb").read()
+    for table in (0x054688, 0x054690, 0x054698, 0x0546A0):
+        for phase in range(4):
+            code = int.from_bytes(maincpu[table + phase * 2:table + phase * 2 + 2], "big") & 0x0FFF
+            if code < TILE_MAX:
+                out["weapon.fire_sword"].add(code)
     return out
 
 

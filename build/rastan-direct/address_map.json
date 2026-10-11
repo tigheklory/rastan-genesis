@@ -9,13 +9,13 @@
     "symbols_path": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/symbol.txt",
     "maincpu_path": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin"
   },
-  "genesis_rom_size_bytes": 1801912,
+  "genesis_rom_size_bytes": 1998520,
   "relocation_delta": "0x000200",
   "arcade_source_start": "0x000000",
   "arcade_source_end_exclusive": "0x060000",
   "wrapper_region": {
     "genesis_start": "0x070000",
-    "genesis_end_exclusive": "0x1B7EB8"
+    "genesis_end_exclusive": "0x1E7EB8"
   },
   "segments": [
     {
@@ -172,7 +172,7 @@
       "arcade_end_exclusive": "0x03A1DE",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000739f0",
+      "replacement_bytes": "4eb900073d10",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -753,7 +753,7 @@
       "arcade_end_exclusive": "0x03AD4C",
       "origin": "opcode_replace",
       "original_bytes": "20c0534166fa4e75",
-      "replacement_bytes": "4eb900073a104e75",
+      "replacement_bytes": "4eb900073d304e75",
       "note": "PC090OJ + tilemap polymorphic-utility dispatch at fn 0x3AD44 via v3.2 helper genesistan_hook_3ad44_dispatch. Intercepts 7 callers: 3 PC090OJ-targeting (0x03AD5C, 0x03AD6E, 0x03AD82; A0 \u2208 [0xD00000, 0xD00800)) routed to PC090OJ bulk-clear branch (LUT-mediated, slots 76..79 destination space); 4 tilemap-targeting (0x03AE70, 0x03AE80, 0x03AF38, 0x03AF48; A0 \u2208 [0xC00000, 0xC10000)) routed to tilemap-branch reusing genesistan_hook_tilemap_bg_fill semantics. A0 dispatch on entry; out-of-range A0 falls through to \u00a77.3 audit-guard halt-with-heartbeat. Replaces v3.1 PC090OJ-only helper genesistan_pc090oj_hook_init_clear_3ad44 (which broke pre-existing tilemap coverage). See Andy_pc090oj_implementation_spec.md \u00a72.2.A and \u00a78.6 entry #8.",
       "shift_delta": 0
     },
@@ -812,7 +812,7 @@
       "arcade_end_exclusive": "0x03ADBC",
       "origin": "opcode_replace",
       "original_bytes": "720e41f900d00778203c000000082e3c000001604eb90005b7126100000a7203203c000000c8208021470004508806400010534166f04e75",
-      "replacement_bytes": "4eb900073a9a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073dba4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x3AD84 (helper genesistan_pc090oj_hook_init_priority_3ad84). Intercepts 2 ledger callers via 0x3AD72 fall-through (0x03ABB6, 0x03AF28). Helper initializes 4 priority-frame slots at SAT range 76..79 (the 0xD00778 origin per Andy_d00778_write_path_analysis.md). See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -848,7 +848,7 @@
       "arcade_end_exclusive": "0x03AE0E",
       "origin": "opcode_replace",
       "original_bytes": "33fc000100d01bfe",
-      "replacement_bytes": "4eb9000739cc4e71",
+      "replacement_bytes": "4eb900073cec4e71",
       "note": "Capture PC090OJ control write #1 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan.",
       "shift_delta": 0
     },
@@ -884,7 +884,7 @@
       "arcade_end_exclusive": "0x03AE26",
       "origin": "opcode_replace",
       "original_bytes": "33fc000000d01bfe",
-      "replacement_bytes": "4eb9000739e04e71",
+      "replacement_bytes": "4eb900073d004e71",
       "note": "Capture PC090OJ control write #0 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan.",
       "shift_delta": 0
     },
@@ -907,7 +907,7 @@
       "arcade_end_exclusive": "0x03AE3A",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000739f0",
+      "replacement_bytes": "4eb900073d10",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -943,7 +943,7 @@
       "arcade_end_exclusive": "0x03AE96",
       "origin": "opcode_replace",
       "original_bytes": "33fc000000d01bfe",
-      "replacement_bytes": "4eb9000739e04e71",
+      "replacement_bytes": "4eb900073d004e71",
       "note": "Capture PC090OJ control write #0 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan.",
       "shift_delta": 0
     },
@@ -969,7 +969,7 @@
       "arcade_end_exclusive": "0x03AEA2",
       "origin": "opcode_replace",
       "original_bytes": "427900380000",
-      "replacement_bytes": "4eb900073a00",
+      "replacement_bytes": "4eb900073d20",
       "note": "Capture sprite_ctrl/coin-lockout register clear (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1195,7 +1195,7 @@
       "arcade_end_exclusive": "0x03AF24",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000739f0",
+      "replacement_bytes": "4eb900073d10",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1382,7 +1382,7 @@
       "arcade_end_exclusive": "0x03B8B0",
       "origin": "opcode_replace",
       "original_bytes": "4285c0fc000a41fa0074d0c0424010100c000001660252451c280001226800022468000608000000671a12120241000f61000032134600030641002a33410004538a60181212e8090241000f61000016134600030641002a334100045189534066c24e754a45660c4a416608137c000100024e757a01422900024e75061000d001080010c11e061000d001500010c11e061000d000d80010c14201e800d000a80010c11701e400d000880010c103",
-      "replacement_bytes": "4eb900073a9c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073dbc4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x3B802 (helper genesistan_pc090oj_hook_score_digit_3b802). Intercepts 10 ledger score/HUD-digit callers (0x03A66A, 0x03A9C0, 0x03A9CE, 0x03A9DA, 0x03B7A2, 0x03B7B0, 0x03B7E0, 0x03B8C2, 0x03B8F6, 0x03B8FC). 174-byte span includes the function's PC-relative digit-attribute table at 0x3B87E..0x3B8AF (referenced only from inside the function). Helper emits HUD-digit sprites to SAT slots 22..29. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -1756,7 +1756,7 @@
       "arcade_end_exclusive": "0x03EF2E",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000739f0",
+      "replacement_bytes": "4eb900073d10",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1779,7 +1779,7 @@
       "arcade_end_exclusive": "0x03EF4E",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000739f0",
+      "replacement_bytes": "4eb900073d10",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1802,7 +1802,7 @@
       "arcade_end_exclusive": "0x03EF90",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000739f0",
+      "replacement_bytes": "4eb900073d10",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1825,7 +1825,7 @@
       "arcade_end_exclusive": "0x03EFB0",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000739f0",
+      "replacement_bytes": "4eb900073d10",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -1986,7 +1986,7 @@
       "arcade_end_exclusive": "0x04530C",
       "origin": "opcode_replace",
       "original_bytes": "33c000380000",
-      "replacement_bytes": "4eb9000739f0",
+      "replacement_bytes": "4eb900073d10",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect.",
       "shift_delta": 0
     },
@@ -2330,7 +2330,7 @@
       "arcade_end_exclusive": "0x0505E4",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5ec1332",
-      "replacement_bytes": "2b7c0005b6581332",
+      "replacement_bytes": "2b7c0005b6221332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5EC now maps to runtime Genesis copied-ROM table 0x0005B7EC per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5EC=0x00AD at runtime instead of relocated 0x0005B7EC=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -2422,7 +2422,7 @@
       "arcade_end_exclusive": "0x0510F2",
       "origin": "opcode_replace",
       "original_bytes": "33fc000200d00698",
-      "replacement_bytes": "4eb900073d4c4e75",
+      "replacement_bytes": "4eb90007406c4e75",
       "note": "PC090OJ audit guard at arcade_pc 0x0510EA. FU1 trace (Cody_fu1_arcade_trace_510EA_510F4.md) showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #2,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP. Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4.",
       "shift_delta": 0
     },
@@ -2445,7 +2445,7 @@
       "arcade_end_exclusive": "0x0510FC",
       "origin": "opcode_replace",
       "original_bytes": "33fc000000d00698",
-      "replacement_bytes": "4eb900073d4c4e75",
+      "replacement_bytes": "4eb90007406c4e75",
       "note": "PC090OJ audit guard at arcade_pc 0x0510F4. FU1 trace showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #0,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP (shared helper with entry #17). Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4.",
       "shift_delta": 0
     },
@@ -2606,7 +2606,7 @@
       "arcade_end_exclusive": "0x0514C0",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5ec1332",
-      "replacement_bytes": "2b7c0005b6581332",
+      "replacement_bytes": "2b7c0005b6221332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5EC now maps to runtime Genesis copied-ROM table 0x0005B7EC per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5EC=0x00AD at runtime instead of relocated 0x0005B7EC=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -2813,7 +2813,7 @@
       "arcade_end_exclusive": "0x051B04",
       "origin": "shift_replacement",
       "original_bytes": "247c0010d280548a43ed1134363c00033012548a0c4000016718588a303c000932fc01ff32fc01ff534066f4534366e04e752052588a303c0009548832d0588832d05488534066f2534366c44e75",
-      "replacement_bytes": "4eb90007389e4e75",
+      "replacement_bytes": "4eb900073ad24e75",
       "note": "Build 0361 retires the complete arcade PC090OJ contact-coordinate extraction tail. The original 0x51AB6 routine dereferenced registered object-RAM bands (0xD00460 + actor_index*0x50) and copied each record's Y/X words into the gameplay-owned A5+0x1134 list; after direct-native PC090OJ retirement, Segment 5's first live band therefore reads the unmapped 0xD00462. The native helper decodes the retained actor-index token and the same actor family/class mapping program directly into the 27-pair gameplay list. This is a whole-function 78-to-8-byte shift replacement: no D-window read, object-RAM mirror, shadow, NOP padding, segment special case, or renderer suppression. The downstream 0x51B04 world/contact consumer is unchanged.",
       "shift_delta": -70
     },
@@ -3089,7 +3089,7 @@
       "arcade_end_exclusive": "0x0520E4",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5a21332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3112,7 +3112,7 @@
       "arcade_end_exclusive": "0x0520EE",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5701332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3158,7 +3158,7 @@
       "arcade_end_exclusive": "0x052122",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5a21332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3181,7 +3181,7 @@
       "arcade_end_exclusive": "0x05212C",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5701332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3227,7 +3227,7 @@
       "arcade_end_exclusive": "0x052158",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5481332",
-      "replacement_bytes": "2b7c0005b5b41332",
+      "replacement_bytes": "2b7c0005b57e1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B548 now maps to runtime Genesis copied-ROM table 0x0005B748 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B548=0x00AD at runtime instead of relocated 0x0005B748=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3250,7 +3250,7 @@
       "arcade_end_exclusive": "0x052162",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5161332",
-      "replacement_bytes": "2b7c0005b5821332",
+      "replacement_bytes": "2b7c0005b54c1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3296,7 +3296,7 @@
       "arcade_end_exclusive": "0x052196",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5a21332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3319,7 +3319,7 @@
       "arcade_end_exclusive": "0x0521A0",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5701332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3365,7 +3365,7 @@
       "arcade_end_exclusive": "0x0521D2",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5a21332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3388,7 +3388,7 @@
       "arcade_end_exclusive": "0x0521DC",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5701332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3434,7 +3434,7 @@
       "arcade_end_exclusive": "0x05221A",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5a21332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3457,7 +3457,7 @@
       "arcade_end_exclusive": "0x052224",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5701332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3503,7 +3503,7 @@
       "arcade_end_exclusive": "0x052258",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5a21332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3526,7 +3526,7 @@
       "arcade_end_exclusive": "0x052262",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5701332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3572,7 +3572,7 @@
       "arcade_end_exclusive": "0x0522A0",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5481332",
-      "replacement_bytes": "2b7c0005b5b41332",
+      "replacement_bytes": "2b7c0005b57e1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B548 now maps to runtime Genesis copied-ROM table 0x0005B748 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B548=0x00AD at runtime instead of relocated 0x0005B748=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3595,7 +3595,7 @@
       "arcade_end_exclusive": "0x0522AA",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5161332",
-      "replacement_bytes": "2b7c0005b5821332",
+      "replacement_bytes": "2b7c0005b54c1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3641,7 +3641,7 @@
       "arcade_end_exclusive": "0x0522DE",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5a21332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3664,7 +3664,7 @@
       "arcade_end_exclusive": "0x0522E8",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b5701332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3710,7 +3710,7 @@
       "arcade_end_exclusive": "0x052318",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b62e1332",
-      "replacement_bytes": "2b7c0005b69a1332",
+      "replacement_bytes": "2b7c0005b6641332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B62E now maps to runtime Genesis copied-ROM table 0x0005B82E per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B62E=0x00AD at runtime instead of relocated 0x0005B82E=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3756,7 +3756,7 @@
       "arcade_end_exclusive": "0x052346",
       "origin": "opcode_replace",
       "original_bytes": "2b7c0005b62e1332",
-      "replacement_bytes": "2b7c0005b69a1332",
+      "replacement_bytes": "2b7c0005b6641332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B62E now maps to runtime Genesis copied-ROM table 0x0005B82E per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B62E=0x00AD at runtime instead of relocated 0x0005B82E=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -3802,7 +3802,7 @@
       "arcade_end_exclusive": "0x0523CC",
       "origin": "opcode_replace",
       "original_bytes": "0cad0005b5161332",
-      "replacement_bytes": "0cad0005b5821332",
+      "replacement_bytes": "0cad0005b54c1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy.",
       "shift_delta": 0
     },
@@ -4282,7 +4282,7 @@
       "arcade_end_exclusive": "0x0540CC",
       "origin": "opcode_replace",
       "original_bytes": "227c0010d1d2343c000632fc000332fc000032fc000032fc0000534266ec343c0004227c0010d1b232fc000332fc000032fc000032fc0000534266ec227c0010d1f2343c000632fc000332fc000032fc000032fc0000534266ec227c00d00000343c000432fc000332fc000032fc000032fc0000534266ec4e75",
-      "replacement_bytes": "4eb900073a9e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073dbe4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x54052 (helper genesistan_pc090oj_hook_slot_init_54052). Intercepts 2 ledger callers (0x0501F4, 0x051260). Helper preserves the original function's Taito C-chip text-RAM clears at 0x10D1B2/0x10D1D2/0x10D1F2 (replicated verbatim) and emits sprite-slot init to SAT slots 72..75. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
@@ -4318,7 +4318,7 @@
       "arcade_end_exclusive": "0x054320",
       "origin": "shift_replacement",
       "original_bytes": "227c0010d1d2343c001832fc0000534266f8227c0010d1f2343c001832fc0000534266f8227c0010d1b2343c001032fc0000534266f86004",
-      "replacement_bytes": "4eb90007327a74004cdf00584e75",
+      "replacement_bytes": "4eb9000733fa74004cdf00584e75",
       "note": "BODY inactive-state path clears the retained semantic anchor, preserves the original clear-loop result D2=0, restores the original D3/D4/D6 contract, and returns without rebuilding Block A.",
       "shift_delta": -42
     },
@@ -4357,30 +4357,30 @@
     },
     {
       "genesis_start": "0x05458C",
-      "genesis_end_exclusive": "0x05459E",
-      "size_bytes": 18,
+      "genesis_end_exclusive": "0x054594",
+      "size_bytes": 8,
       "kind": "patched_site",
       "arcade_start": "0x054492",
       "arcade_end_exclusive": "0x054498",
       "origin": "shift_replacement",
       "original_bytes": "227c0010d1d2",
-      "replacement_bytes": "4eb9000731724a0067024e754eb900073168",
-      "note": "Native Graphics Task 1: the dedicated player compositor first tries the generated whole-frame pilot. Native entries return from 0x54492 after direct BODY-lane emission; explicit UNRESOLVED entries call the accepted native_player_body_begin hook and fall through into the unchanged Build-0400 per-piece compositor.",
-      "shift_delta": 12
+      "replacement_bytes": "4eb90007324a4e75",
+      "note": "Build 0407 closes the statically complete 1200-key player producer at the 0x54492 semantic boundary. The generated whole frame is authoritative and the old retained per-piece BODY interpreter is no longer a runtime continuation; the diagnostic miss counter remains an unreachable-coverage assertion.",
+      "shift_delta": 2
     },
     {
-      "genesis_start": "0x05459E",
-      "genesis_end_exclusive": "0x0545D6",
+      "genesis_start": "0x054594",
+      "genesis_end_exclusive": "0x0545CC",
       "size_bytes": 56,
       "kind": "arcade_copy",
       "arcade_start": "0x054498",
       "arcade_end_exclusive": "0x0544D0",
       "source": "whole_maincpu_copy",
-      "identity_offset": 262
+      "identity_offset": 252
     },
     {
-      "genesis_start": "0x0545D6",
-      "genesis_end_exclusive": "0x0545DA",
+      "genesis_start": "0x0545CC",
+      "genesis_end_exclusive": "0x0545D0",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x0544D0",
@@ -4392,18 +4392,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0545DA",
-      "genesis_end_exclusive": "0x0545F8",
+      "genesis_start": "0x0545D0",
+      "genesis_end_exclusive": "0x0545EE",
       "size_bytes": 30,
       "kind": "arcade_copy",
       "arcade_start": "0x0544D4",
       "arcade_end_exclusive": "0x0544F2",
       "source": "whole_maincpu_copy",
-      "identity_offset": 262
+      "identity_offset": 252
     },
     {
-      "genesis_start": "0x0545F8",
-      "genesis_end_exclusive": "0x0545FA",
+      "genesis_start": "0x0545EE",
+      "genesis_end_exclusive": "0x0545F0",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x0544F2",
@@ -4415,18 +4415,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0545FA",
-      "genesis_end_exclusive": "0x05460A",
+      "genesis_start": "0x0545F0",
+      "genesis_end_exclusive": "0x054600",
       "size_bytes": 16,
       "kind": "arcade_copy",
       "arcade_start": "0x0544F4",
       "arcade_end_exclusive": "0x054504",
       "source": "whole_maincpu_copy",
-      "identity_offset": 262
+      "identity_offset": 252
     },
     {
-      "genesis_start": "0x05460A",
-      "genesis_end_exclusive": "0x05460C",
+      "genesis_start": "0x054600",
+      "genesis_end_exclusive": "0x054602",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x054504",
@@ -4438,18 +4438,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05460C",
-      "genesis_end_exclusive": "0x05460E",
+      "genesis_start": "0x054602",
+      "genesis_end_exclusive": "0x054604",
       "size_bytes": 2,
       "kind": "arcade_copy",
       "arcade_start": "0x054506",
       "arcade_end_exclusive": "0x054508",
       "source": "whole_maincpu_copy",
-      "identity_offset": 262
+      "identity_offset": 252
     },
     {
-      "genesis_start": "0x05460E",
-      "genesis_end_exclusive": "0x054612",
+      "genesis_start": "0x054604",
+      "genesis_end_exclusive": "0x054608",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x054508",
@@ -4461,110 +4461,87 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054612",
-      "genesis_end_exclusive": "0x054632",
-      "size_bytes": 32,
+      "genesis_start": "0x054608",
+      "genesis_end_exclusive": "0x054672",
+      "size_bytes": 106,
       "kind": "arcade_copy",
       "arcade_start": "0x05450C",
-      "arcade_end_exclusive": "0x05452C",
-      "source": "whole_maincpu_copy",
-      "identity_offset": 262
-    },
-    {
-      "genesis_start": "0x054632",
-      "genesis_end_exclusive": "0x05463A",
-      "size_bytes": 8,
-      "kind": "patched_site",
-      "arcade_start": "0x05452C",
-      "arcade_end_exclusive": "0x05452E",
-      "origin": "shift_replacement",
-      "original_bytes": "32c0",
-      "replacement_bytes": "38004eb90007324c",
-      "note": "BODY piece X completes the semantic tuple and appends one final native lane entry.",
-      "shift_delta": 6
-    },
-    {
-      "genesis_start": "0x05463A",
-      "genesis_end_exclusive": "0x054682",
-      "size_bytes": 72,
-      "kind": "arcade_copy",
-      "arcade_start": "0x05452E",
       "arcade_end_exclusive": "0x054576",
       "source": "whole_maincpu_copy",
-      "identity_offset": 268
+      "identity_offset": 252
     },
     {
-      "genesis_start": "0x054682",
-      "genesis_end_exclusive": "0x05468A",
+      "genesis_start": "0x054672",
+      "genesis_end_exclusive": "0x05467A",
       "size_bytes": 8,
       "kind": "patched_site",
       "arcade_start": "0x054576",
       "arcade_end_exclusive": "0x054598",
       "origin": "shift_replacement",
       "original_bytes": "343c0004227c0010d1b232fc000332fc000032fc000032fc0000534266ec600000c0",
-      "replacement_bytes": "4eb90007327a4e75",
+      "replacement_bytes": "4eb9000733fa4e75",
       "note": "BODY all-blank state clears the semantic anchor, emits no native entries, and retires the tuple clear loop.",
       "shift_delta": -26
     },
     {
-      "genesis_start": "0x05468A",
-      "genesis_end_exclusive": "0x0546AC",
+      "genesis_start": "0x05467A",
+      "genesis_end_exclusive": "0x05469C",
       "size_bytes": 34,
       "kind": "arcade_copy",
       "arcade_start": "0x054598",
       "arcade_end_exclusive": "0x0545BA",
       "source": "whole_maincpu_copy",
-      "identity_offset": 242
+      "identity_offset": 226
     },
     {
-      "genesis_start": "0x0546AC",
-      "genesis_end_exclusive": "0x0546B2",
+      "genesis_start": "0x05469C",
+      "genesis_end_exclusive": "0x0546A2",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x0545BA",
       "arcade_end_exclusive": "0x0545C0",
       "origin": "shift_replacement",
       "original_bytes": "227c0010d1b2",
-      "replacement_bytes": "4eb900073168",
+      "replacement_bytes": "4eb900073240",
       "note": "BODY inline segment selects the native PLAYER_BODY lane.",
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0546B2",
-      "genesis_end_exclusive": "0x0546BE",
+      "genesis_start": "0x0546A2",
+      "genesis_end_exclusive": "0x0546AE",
       "size_bytes": 12,
       "kind": "arcade_copy",
       "arcade_start": "0x0545C0",
       "arcade_end_exclusive": "0x0545CC",
       "source": "whole_maincpu_copy",
-      "identity_offset": 242
+      "identity_offset": 226
     },
     {
-      "genesis_start": "0x0546BE",
-      "genesis_end_exclusive": "0x0546C8",
+      "genesis_start": "0x0546AE",
+      "genesis_end_exclusive": "0x0546B8",
       "size_bytes": 10,
       "kind": "patched_site",
       "arcade_start": "0x0545CC",
       "arcade_end_exclusive": "0x0545D0",
       "origin": "shift_replacement",
       "original_bytes": "32fc0003",
-      "replacement_bytes": "4eb90007326a60000082",
+      "replacement_bytes": "4eb9000733ea60000082",
       "note": "Blank BODY inline piece appends no native entry; tuple 0 also clears the retained semantic anchor that the retired Block-A consumer would have read as zero.",
       "shift_delta": 6
     },
     {
-      "genesis_start": "0x0546C8",
-      "genesis_end_exclusive": "0x0546E6",
+      "genesis_start": "0x0546B8",
+      "genesis_end_exclusive": "0x0546D6",
       "size_bytes": 30,
       "kind": "arcade_copy",
       "arcade_start": "0x0545D0",
       "arcade_end_exclusive": "0x0545EE",
       "source": "whole_maincpu_copy",
-      "identity_offset": 248
+      "identity_offset": 232
     },
     {
-      "genesis_start": "0x0546E6",
-      "genesis_end_exclusive": "0x0546E8",
+      "genesis_start": "0x0546D6",
+      "genesis_end_exclusive": "0x0546D8",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x0545EE",
@@ -4576,18 +4553,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0546E8",
-      "genesis_end_exclusive": "0x0546F8",
+      "genesis_start": "0x0546D8",
+      "genesis_end_exclusive": "0x0546E8",
       "size_bytes": 16,
       "kind": "arcade_copy",
       "arcade_start": "0x0545F0",
       "arcade_end_exclusive": "0x054600",
       "source": "whole_maincpu_copy",
-      "identity_offset": 248
+      "identity_offset": 232
     },
     {
-      "genesis_start": "0x0546F8",
-      "genesis_end_exclusive": "0x0546FA",
+      "genesis_start": "0x0546E8",
+      "genesis_end_exclusive": "0x0546EA",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x054600",
@@ -4599,8 +4576,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0546FA",
-      "genesis_end_exclusive": "0x0546FE",
+      "genesis_start": "0x0546EA",
+      "genesis_end_exclusive": "0x0546EE",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x054602",
@@ -4612,8 +4589,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0546FE",
-      "genesis_end_exclusive": "0x054700",
+      "genesis_start": "0x0546EE",
+      "genesis_end_exclusive": "0x0546F0",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x054606",
@@ -4625,8 +4602,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054700",
-      "genesis_end_exclusive": "0x054704",
+      "genesis_start": "0x0546F0",
+      "genesis_end_exclusive": "0x0546F4",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x054608",
@@ -4638,8 +4615,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054704",
-      "genesis_end_exclusive": "0x054706",
+      "genesis_start": "0x0546F4",
+      "genesis_end_exclusive": "0x0546F6",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x05460C",
@@ -4651,18 +4628,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054706",
-      "genesis_end_exclusive": "0x054720",
+      "genesis_start": "0x0546F6",
+      "genesis_end_exclusive": "0x054710",
       "size_bytes": 26,
       "kind": "arcade_copy",
       "arcade_start": "0x05460E",
       "arcade_end_exclusive": "0x054628",
       "source": "whole_maincpu_copy",
-      "identity_offset": 248
+      "identity_offset": 232
     },
     {
-      "genesis_start": "0x054720",
-      "genesis_end_exclusive": "0x054722",
+      "genesis_start": "0x054710",
+      "genesis_end_exclusive": "0x054712",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x054628",
@@ -4674,41 +4651,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054722",
-      "genesis_end_exclusive": "0x054742",
-      "size_bytes": 32,
+      "genesis_start": "0x054712",
+      "genesis_end_exclusive": "0x054746",
+      "size_bytes": 52,
       "kind": "arcade_copy",
       "arcade_start": "0x05462A",
-      "arcade_end_exclusive": "0x05464A",
-      "source": "whole_maincpu_copy",
-      "identity_offset": 248
-    },
-    {
-      "genesis_start": "0x054742",
-      "genesis_end_exclusive": "0x05474A",
-      "size_bytes": 8,
-      "kind": "patched_site",
-      "arcade_start": "0x05464A",
-      "arcade_end_exclusive": "0x05464C",
-      "origin": "shift_replacement",
-      "original_bytes": "32c0",
-      "replacement_bytes": "38004eb900073258",
-      "note": "BODY tuple-0 segment X completes one final native lane entry and publishes its semantic anchor on the first piece.",
-      "shift_delta": 6
-    },
-    {
-      "genesis_start": "0x05474A",
-      "genesis_end_exclusive": "0x05475C",
-      "size_bytes": 18,
-      "kind": "arcade_copy",
-      "arcade_start": "0x05464C",
       "arcade_end_exclusive": "0x05465E",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 232
     },
     {
-      "genesis_start": "0x05475C",
-      "genesis_end_exclusive": "0x05475E",
+      "genesis_start": "0x054746",
+      "genesis_end_exclusive": "0x054748",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x05465E",
@@ -4720,18 +4674,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05475E",
-      "genesis_end_exclusive": "0x054768",
+      "genesis_start": "0x054748",
+      "genesis_end_exclusive": "0x054752",
       "size_bytes": 10,
       "kind": "arcade_copy",
       "arcade_start": "0x054660",
       "arcade_end_exclusive": "0x05466A",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 232
     },
     {
-      "genesis_start": "0x054768",
-      "genesis_end_exclusive": "0x05476A",
+      "genesis_start": "0x054752",
+      "genesis_end_exclusive": "0x054754",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x05466A",
@@ -4743,18 +4697,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05476A",
-      "genesis_end_exclusive": "0x054774",
+      "genesis_start": "0x054754",
+      "genesis_end_exclusive": "0x05475E",
       "size_bytes": 10,
       "kind": "arcade_copy",
       "arcade_start": "0x05466C",
       "arcade_end_exclusive": "0x054676",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 232
     },
     {
-      "genesis_start": "0x054774",
-      "genesis_end_exclusive": "0x054776",
+      "genesis_start": "0x05475E",
+      "genesis_end_exclusive": "0x054760",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x054676",
@@ -4766,18 +4720,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054776",
-      "genesis_end_exclusive": "0x054780",
+      "genesis_start": "0x054760",
+      "genesis_end_exclusive": "0x05476A",
       "size_bytes": 10,
       "kind": "arcade_copy",
       "arcade_start": "0x054678",
       "arcade_end_exclusive": "0x054682",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 232
     },
     {
-      "genesis_start": "0x054780",
-      "genesis_end_exclusive": "0x054782",
+      "genesis_start": "0x05476A",
+      "genesis_end_exclusive": "0x05476C",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x054682",
@@ -4789,41 +4743,41 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054782",
-      "genesis_end_exclusive": "0x0547A6",
+      "genesis_start": "0x05476C",
+      "genesis_end_exclusive": "0x054790",
       "size_bytes": 36,
       "kind": "arcade_copy",
       "arcade_start": "0x054684",
       "arcade_end_exclusive": "0x0546A8",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 232
     },
     {
-      "genesis_start": "0x0547A6",
-      "genesis_end_exclusive": "0x0547AC",
-      "size_bytes": 6,
+      "genesis_start": "0x054790",
+      "genesis_end_exclusive": "0x054798",
+      "size_bytes": 8,
       "kind": "patched_site",
       "arcade_start": "0x0546A8",
       "arcade_end_exclusive": "0x0546AE",
       "origin": "shift_replacement",
       "original_bytes": "227c0010d1f2",
-      "replacement_bytes": "4eb900073168",
-      "note": "BODY secondary segment selects the native PLAYER_BODY lane.",
-      "shift_delta": 0
+      "replacement_bytes": "4eb9000733404e75",
+      "note": "Build 0407 whole-producer semantic cut for the A5+0x1246 secondary/legs compositor: direct-index the offline-generated 52-selector x four finite phase x two orientation frame set and emit to PLAYER_BODY. The old 0x5C466 runtime descriptor loop and native_player_piece adapter are unreachable.",
+      "shift_delta": 2
     },
     {
-      "genesis_start": "0x0547AC",
-      "genesis_end_exclusive": "0x0547E4",
+      "genesis_start": "0x054798",
+      "genesis_end_exclusive": "0x0547D0",
       "size_bytes": 56,
       "kind": "arcade_copy",
       "arcade_start": "0x0546AE",
       "arcade_end_exclusive": "0x0546E6",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 234
     },
     {
-      "genesis_start": "0x0547E4",
-      "genesis_end_exclusive": "0x0547E8",
+      "genesis_start": "0x0547D0",
+      "genesis_end_exclusive": "0x0547D4",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x0546E6",
@@ -4835,18 +4789,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0547E8",
-      "genesis_end_exclusive": "0x054806",
+      "genesis_start": "0x0547D4",
+      "genesis_end_exclusive": "0x0547F2",
       "size_bytes": 30,
       "kind": "arcade_copy",
       "arcade_start": "0x0546EA",
       "arcade_end_exclusive": "0x054708",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 234
     },
     {
-      "genesis_start": "0x054806",
-      "genesis_end_exclusive": "0x054808",
+      "genesis_start": "0x0547F2",
+      "genesis_end_exclusive": "0x0547F4",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x054708",
@@ -4858,18 +4812,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054808",
-      "genesis_end_exclusive": "0x054818",
+      "genesis_start": "0x0547F4",
+      "genesis_end_exclusive": "0x054804",
       "size_bytes": 16,
       "kind": "arcade_copy",
       "arcade_start": "0x05470A",
       "arcade_end_exclusive": "0x05471A",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 234
     },
     {
-      "genesis_start": "0x054818",
-      "genesis_end_exclusive": "0x05481A",
+      "genesis_start": "0x054804",
+      "genesis_end_exclusive": "0x054806",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x05471A",
@@ -4881,18 +4835,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05481A",
-      "genesis_end_exclusive": "0x05481C",
+      "genesis_start": "0x054806",
+      "genesis_end_exclusive": "0x054808",
       "size_bytes": 2,
       "kind": "arcade_copy",
       "arcade_start": "0x05471C",
       "arcade_end_exclusive": "0x05471E",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 234
     },
     {
-      "genesis_start": "0x05481C",
-      "genesis_end_exclusive": "0x054820",
+      "genesis_start": "0x054808",
+      "genesis_end_exclusive": "0x05480C",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05471E",
@@ -4904,41 +4858,31 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054820",
-      "genesis_end_exclusive": "0x054840",
-      "size_bytes": 32,
+      "genesis_start": "0x05480C",
+      "genesis_end_exclusive": "0x054838",
+      "size_bytes": 44,
       "kind": "arcade_copy",
       "arcade_start": "0x054722",
-      "arcade_end_exclusive": "0x054742",
+      "arcade_end_exclusive": "0x05474E",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 234
+    },
+    {
+      "genesis_start": "0x054838",
+      "genesis_end_exclusive": "0x054840",
+      "size_bytes": 8,
+      "kind": "patched_site",
+      "arcade_start": "0x05474E",
+      "arcade_end_exclusive": "0x054754",
+      "origin": "shift_replacement",
+      "original_bytes": "0c6d000412fa",
+      "replacement_bytes": "4eb9000731f04e75",
+      "note": "Build 0407 whole-producer semantic cut for the three-piece player auxiliary: consume the retained A5+0x1338 active/Y/X records and A5+0x1364 phase directly into PLAYER_BODY. The old PC090OJ tuple loop and native_player_piece adapter are unreachable.",
+      "shift_delta": 2
     },
     {
       "genesis_start": "0x054840",
-      "genesis_end_exclusive": "0x054848",
-      "size_bytes": 8,
-      "kind": "patched_site",
-      "arcade_start": "0x054742",
-      "arcade_end_exclusive": "0x054744",
-      "origin": "shift_replacement",
-      "original_bytes": "32c0",
-      "replacement_bytes": "38004eb90007324c",
-      "note": "BODY secondary X completes and emits one final native lane entry.",
-      "shift_delta": 6
-    },
-    {
-      "genesis_start": "0x054848",
-      "genesis_end_exclusive": "0x054858",
-      "size_bytes": 16,
-      "kind": "arcade_copy",
-      "arcade_start": "0x054744",
-      "arcade_end_exclusive": "0x054754",
-      "source": "whole_maincpu_copy",
-      "identity_offset": 260
-    },
-    {
-      "genesis_start": "0x054858",
-      "genesis_end_exclusive": "0x05485E",
+      "genesis_end_exclusive": "0x054846",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x054754",
@@ -4950,31 +4894,31 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05485E",
-      "genesis_end_exclusive": "0x054864",
+      "genesis_start": "0x054846",
+      "genesis_end_exclusive": "0x05484C",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x05475A",
       "arcade_end_exclusive": "0x054760",
       "origin": "shift_replacement",
       "original_bytes": "227c0010d212",
-      "replacement_bytes": "4eb900073168",
+      "replacement_bytes": "4eb900073240",
       "note": "The live three-piece player auxiliary segment selects PLAYER_BODY instead of the Block-A tail destination.",
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054864",
-      "genesis_end_exclusive": "0x054870",
+      "genesis_start": "0x05484C",
+      "genesis_end_exclusive": "0x054858",
       "size_bytes": 12,
       "kind": "arcade_copy",
       "arcade_start": "0x054760",
       "arcade_end_exclusive": "0x05476C",
       "source": "whole_maincpu_copy",
-      "identity_offset": 260
+      "identity_offset": 236
     },
     {
-      "genesis_start": "0x054870",
-      "genesis_end_exclusive": "0x054874",
+      "genesis_start": "0x054858",
+      "genesis_end_exclusive": "0x05485C",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05476C",
@@ -4986,8 +4930,8 @@
       "shift_delta": 2
     },
     {
-      "genesis_start": "0x054874",
-      "genesis_end_exclusive": "0x054878",
+      "genesis_start": "0x05485C",
+      "genesis_end_exclusive": "0x054860",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x054774",
@@ -4999,18 +4943,18 @@
       "shift_delta": -2
     },
     {
-      "genesis_start": "0x054878",
-      "genesis_end_exclusive": "0x054882",
+      "genesis_start": "0x054860",
+      "genesis_end_exclusive": "0x05486A",
       "size_bytes": 10,
       "kind": "arcade_copy",
       "arcade_start": "0x05477A",
       "arcade_end_exclusive": "0x054784",
       "source": "whole_maincpu_copy",
-      "identity_offset": 254
+      "identity_offset": 230
     },
     {
-      "genesis_start": "0x054882",
-      "genesis_end_exclusive": "0x054888",
+      "genesis_start": "0x05486A",
+      "genesis_end_exclusive": "0x054870",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x054784",
@@ -5022,31 +4966,18 @@
       "shift_delta": 2
     },
     {
-      "genesis_start": "0x054888",
-      "genesis_end_exclusive": "0x054892",
-      "size_bytes": 10,
-      "kind": "patched_site",
-      "arcade_start": "0x054788",
-      "arcade_end_exclusive": "0x05478E",
-      "origin": "shift_replacement",
-      "original_bytes": "336800020006",
-      "replacement_bytes": "382800024eb90007324c",
-      "note": "Player auxiliary X completes and emits one final PLAYER_BODY entry.",
-      "shift_delta": 4
-    },
-    {
-      "genesis_start": "0x054892",
-      "genesis_end_exclusive": "0x054894",
-      "size_bytes": 2,
+      "genesis_start": "0x054870",
+      "genesis_end_exclusive": "0x054878",
+      "size_bytes": 8,
       "kind": "arcade_copy",
-      "arcade_start": "0x05478E",
+      "arcade_start": "0x054788",
       "arcade_end_exclusive": "0x054790",
       "source": "whole_maincpu_copy",
-      "identity_offset": 260
+      "identity_offset": 232
     },
     {
-      "genesis_start": "0x054894",
-      "genesis_end_exclusive": "0x054898",
+      "genesis_start": "0x054878",
+      "genesis_end_exclusive": "0x05487C",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x054790",
@@ -5058,18 +4989,18 @@
       "shift_delta": -16
     },
     {
-      "genesis_start": "0x054898",
-      "genesis_end_exclusive": "0x0548B4",
+      "genesis_start": "0x05487C",
+      "genesis_end_exclusive": "0x054898",
       "size_bytes": 28,
       "kind": "arcade_copy",
       "arcade_start": "0x0547A4",
       "arcade_end_exclusive": "0x0547C0",
       "source": "whole_maincpu_copy",
-      "identity_offset": 244
+      "identity_offset": 216
     },
     {
-      "genesis_start": "0x0548B4",
-      "genesis_end_exclusive": "0x0548B8",
+      "genesis_start": "0x054898",
+      "genesis_end_exclusive": "0x05489C",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x0547C0",
@@ -5081,51 +5012,51 @@
       "shift_delta": -22
     },
     {
-      "genesis_start": "0x0548B8",
-      "genesis_end_exclusive": "0x0548E8",
+      "genesis_start": "0x05489C",
+      "genesis_end_exclusive": "0x0548CC",
       "size_bytes": 48,
       "kind": "arcade_copy",
       "arcade_start": "0x0547DA",
       "arcade_end_exclusive": "0x05480A",
       "source": "whole_maincpu_copy",
-      "identity_offset": 222
+      "identity_offset": 194
     },
     {
-      "genesis_start": "0x0548E8",
-      "genesis_end_exclusive": "0x0548EA",
+      "genesis_start": "0x0548CC",
+      "genesis_end_exclusive": "0x0548CE",
       "size_bytes": 2,
       "kind": "arcade_copy",
       "arcade_start": "0x05480E",
       "arcade_end_exclusive": "0x054810",
       "source": "whole_maincpu_copy",
-      "identity_offset": 218
+      "identity_offset": 190
     },
     {
-      "genesis_start": "0x0548EA",
-      "genesis_end_exclusive": "0x0548FE",
+      "genesis_start": "0x0548CE",
+      "genesis_end_exclusive": "0x0548E2",
       "size_bytes": 20,
       "kind": "patched_site",
       "arcade_start": "0x054810",
       "arcade_end_exclusive": "0x054864",
       "origin": "shift_replacement",
       "original_bytes": "227c00d00000207c0005da5ec0fc001841f00000343c00043028000432c0102800034880d06d129c5240024001ff32c0301032e80000102800024880d06d129a024001ff3e00300732c0d0fc0006534266c64e75",
-      "replacement_bytes": "207c0005dacac0fc0018d0c04eb900073aa04e75",
+      "replacement_bytes": "207c0005da94c0fc0018d0c04eb900073dc04e75",
       "note": "Retain the original shift-relocated animation table and selected four-piece frame, then cut before PC090OJ destination/record packing and emit directly to the native FRONT_EFFECT lane. Historical virtual records 44..47 are retired.",
       "shift_delta": -64
     },
     {
-      "genesis_start": "0x0548FE",
-      "genesis_end_exclusive": "0x054BB8",
+      "genesis_start": "0x0548E2",
+      "genesis_end_exclusive": "0x054B9C",
       "size_bytes": 698,
       "kind": "arcade_copy",
       "arcade_start": "0x054864",
       "arcade_end_exclusive": "0x054B1E",
       "source": "whole_maincpu_copy",
-      "identity_offset": 154
+      "identity_offset": 126
     },
     {
-      "genesis_start": "0x054BB8",
-      "genesis_end_exclusive": "0x054BBE",
+      "genesis_start": "0x054B9C",
+      "genesis_end_exclusive": "0x054BA2",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x054B1E",
@@ -5137,18 +5068,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054BBE",
-      "genesis_end_exclusive": "0x054C92",
+      "genesis_start": "0x054BA2",
+      "genesis_end_exclusive": "0x054C76",
       "size_bytes": 212,
       "kind": "arcade_copy",
       "arcade_start": "0x054B24",
       "arcade_end_exclusive": "0x054BF8",
       "source": "whole_maincpu_copy",
-      "identity_offset": 154
+      "identity_offset": 126
     },
     {
-      "genesis_start": "0x054C92",
-      "genesis_end_exclusive": "0x054C98",
+      "genesis_start": "0x054C76",
+      "genesis_end_exclusive": "0x054C7C",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x054BF8",
@@ -5160,18 +5091,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x054C98",
-      "genesis_end_exclusive": "0x05579E",
+      "genesis_start": "0x054C7C",
+      "genesis_end_exclusive": "0x055782",
       "size_bytes": 2822,
       "kind": "arcade_copy",
       "arcade_start": "0x054BFE",
       "arcade_end_exclusive": "0x055704",
       "source": "whole_maincpu_copy",
-      "identity_offset": 154
+      "identity_offset": 126
     },
     {
-      "genesis_start": "0x05579E",
-      "genesis_end_exclusive": "0x0557A6",
+      "genesis_start": "0x055782",
+      "genesis_end_exclusive": "0x05578A",
       "size_bytes": 8,
       "kind": "patched_site",
       "arcade_start": "0x055704",
@@ -5183,18 +5114,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0557A6",
-      "genesis_end_exclusive": "0x05582A",
+      "genesis_start": "0x05578A",
+      "genesis_end_exclusive": "0x05580E",
       "size_bytes": 132,
       "kind": "arcade_copy",
       "arcade_start": "0x05570C",
       "arcade_end_exclusive": "0x055790",
       "source": "whole_maincpu_copy",
-      "identity_offset": 154
+      "identity_offset": 126
     },
     {
-      "genesis_start": "0x05582A",
-      "genesis_end_exclusive": "0x055832",
+      "genesis_start": "0x05580E",
+      "genesis_end_exclusive": "0x055816",
       "size_bytes": 8,
       "kind": "patched_site",
       "arcade_start": "0x055790",
@@ -5206,18 +5137,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055832",
-      "genesis_end_exclusive": "0x055962",
+      "genesis_start": "0x055816",
+      "genesis_end_exclusive": "0x055946",
       "size_bytes": 304,
       "kind": "arcade_copy",
       "arcade_start": "0x055798",
       "arcade_end_exclusive": "0x0558C8",
       "source": "whole_maincpu_copy",
-      "identity_offset": 154
+      "identity_offset": 126
     },
     {
-      "genesis_start": "0x055962",
-      "genesis_end_exclusive": "0x055968",
+      "genesis_start": "0x055946",
+      "genesis_end_exclusive": "0x05594C",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x0558C8",
@@ -5229,18 +5160,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055968",
-      "genesis_end_exclusive": "0x055992",
+      "genesis_start": "0x05594C",
+      "genesis_end_exclusive": "0x055976",
       "size_bytes": 42,
       "kind": "arcade_copy",
       "arcade_start": "0x0558CE",
       "arcade_end_exclusive": "0x0558F8",
       "source": "whole_maincpu_copy",
-      "identity_offset": 154
+      "identity_offset": 126
     },
     {
-      "genesis_start": "0x055992",
-      "genesis_end_exclusive": "0x055998",
+      "genesis_start": "0x055976",
+      "genesis_end_exclusive": "0x05597C",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x0558F8",
@@ -5252,8 +5183,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055998",
-      "genesis_end_exclusive": "0x05599E",
+      "genesis_start": "0x05597C",
+      "genesis_end_exclusive": "0x055982",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x0558FE",
@@ -5265,18 +5196,18 @@
       "shift_delta": 2
     },
     {
-      "genesis_start": "0x05599E",
-      "genesis_end_exclusive": "0x0559A0",
+      "genesis_start": "0x055982",
+      "genesis_end_exclusive": "0x055984",
       "size_bytes": 2,
       "kind": "arcade_copy",
       "arcade_start": "0x055902",
       "arcade_end_exclusive": "0x055904",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x0559A0",
-      "genesis_end_exclusive": "0x0559A6",
+      "genesis_start": "0x055984",
+      "genesis_end_exclusive": "0x05598A",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x055904",
@@ -5288,8 +5219,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0559A6",
-      "genesis_end_exclusive": "0x0559AC",
+      "genesis_start": "0x05598A",
+      "genesis_end_exclusive": "0x055990",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x05590A",
@@ -5301,8 +5232,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0559AC",
-      "genesis_end_exclusive": "0x0559B2",
+      "genesis_start": "0x055990",
+      "genesis_end_exclusive": "0x055996",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x055910",
@@ -5314,18 +5245,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0559B2",
-      "genesis_end_exclusive": "0x0559DC",
+      "genesis_start": "0x055996",
+      "genesis_end_exclusive": "0x0559C0",
       "size_bytes": 42,
       "kind": "arcade_copy",
       "arcade_start": "0x055916",
       "arcade_end_exclusive": "0x055940",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x0559DC",
-      "genesis_end_exclusive": "0x0559E2",
+      "genesis_start": "0x0559C0",
+      "genesis_end_exclusive": "0x0559C6",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x055940",
@@ -5337,18 +5268,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0559E2",
-      "genesis_end_exclusive": "0x055A04",
+      "genesis_start": "0x0559C6",
+      "genesis_end_exclusive": "0x0559E8",
       "size_bytes": 34,
       "kind": "arcade_copy",
       "arcade_start": "0x055946",
       "arcade_end_exclusive": "0x055968",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x055A04",
-      "genesis_end_exclusive": "0x055A2A",
+      "genesis_start": "0x0559E8",
+      "genesis_end_exclusive": "0x055A0E",
       "size_bytes": 38,
       "kind": "patched_site",
       "arcade_start": "0x055968",
@@ -5360,18 +5291,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055A2A",
-      "genesis_end_exclusive": "0x055A2C",
+      "genesis_start": "0x055A0E",
+      "genesis_end_exclusive": "0x055A10",
       "size_bytes": 2,
       "kind": "arcade_copy",
       "arcade_start": "0x05598E",
       "arcade_end_exclusive": "0x055990",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x055A2C",
-      "genesis_end_exclusive": "0x055A4C",
+      "genesis_start": "0x055A10",
+      "genesis_end_exclusive": "0x055A30",
       "size_bytes": 32,
       "kind": "patched_site",
       "arcade_start": "0x055990",
@@ -5383,18 +5314,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055A4C",
-      "genesis_end_exclusive": "0x055A80",
+      "genesis_start": "0x055A30",
+      "genesis_end_exclusive": "0x055A64",
       "size_bytes": 52,
       "kind": "arcade_copy",
       "arcade_start": "0x0559B0",
       "arcade_end_exclusive": "0x0559E4",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x055A80",
-      "genesis_end_exclusive": "0x055A86",
+      "genesis_start": "0x055A64",
+      "genesis_end_exclusive": "0x055A6A",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x0559E4",
@@ -5406,18 +5337,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055A86",
-      "genesis_end_exclusive": "0x055AF6",
+      "genesis_start": "0x055A6A",
+      "genesis_end_exclusive": "0x055ADA",
       "size_bytes": 112,
       "kind": "arcade_copy",
       "arcade_start": "0x0559EA",
       "arcade_end_exclusive": "0x055A5A",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x055AF6",
-      "genesis_end_exclusive": "0x055AFC",
+      "genesis_start": "0x055ADA",
+      "genesis_end_exclusive": "0x055AE0",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x055A5A",
@@ -5429,18 +5360,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055AFC",
-      "genesis_end_exclusive": "0x055B16",
+      "genesis_start": "0x055AE0",
+      "genesis_end_exclusive": "0x055AFA",
       "size_bytes": 26,
       "kind": "arcade_copy",
       "arcade_start": "0x055A60",
       "arcade_end_exclusive": "0x055A7A",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x055B16",
-      "genesis_end_exclusive": "0x055B1C",
+      "genesis_start": "0x055AFA",
+      "genesis_end_exclusive": "0x055B00",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x055A7A",
@@ -5452,18 +5383,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055B1C",
-      "genesis_end_exclusive": "0x055B50",
+      "genesis_start": "0x055B00",
+      "genesis_end_exclusive": "0x055B34",
       "size_bytes": 52,
       "kind": "arcade_copy",
       "arcade_start": "0x055A80",
       "arcade_end_exclusive": "0x055AB4",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x055B50",
-      "genesis_end_exclusive": "0x055B72",
+      "genesis_start": "0x055B34",
+      "genesis_end_exclusive": "0x055B56",
       "size_bytes": 34,
       "kind": "patched_site",
       "arcade_start": "0x055AB4",
@@ -5475,18 +5406,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055B72",
-      "genesis_end_exclusive": "0x055CB0",
+      "genesis_start": "0x055B56",
+      "genesis_end_exclusive": "0x055C94",
       "size_bytes": 318,
       "kind": "arcade_copy",
       "arcade_start": "0x055AD6",
       "arcade_end_exclusive": "0x055C14",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x055CB0",
-      "genesis_end_exclusive": "0x055CB6",
+      "genesis_start": "0x055C94",
+      "genesis_end_exclusive": "0x055C9A",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x055C14",
@@ -5498,18 +5429,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055CB6",
-      "genesis_end_exclusive": "0x055CCA",
+      "genesis_start": "0x055C9A",
+      "genesis_end_exclusive": "0x055CAE",
       "size_bytes": 20,
       "kind": "arcade_copy",
       "arcade_start": "0x055C1A",
       "arcade_end_exclusive": "0x055C2E",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x055CCA",
-      "genesis_end_exclusive": "0x055CD0",
+      "genesis_start": "0x055CAE",
+      "genesis_end_exclusive": "0x055CB4",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x055C2E",
@@ -5521,8 +5452,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055CD0",
-      "genesis_end_exclusive": "0x055CD6",
+      "genesis_start": "0x055CB4",
+      "genesis_end_exclusive": "0x055CBA",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x055C34",
@@ -5534,8 +5465,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055CD6",
-      "genesis_end_exclusive": "0x055CDC",
+      "genesis_start": "0x055CBA",
+      "genesis_end_exclusive": "0x055CC0",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x055C3A",
@@ -5547,18 +5478,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055CDC",
-      "genesis_end_exclusive": "0x055CFA",
+      "genesis_start": "0x055CC0",
+      "genesis_end_exclusive": "0x055CDE",
       "size_bytes": 30,
       "kind": "arcade_copy",
       "arcade_start": "0x055C40",
       "arcade_end_exclusive": "0x055C5E",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x055CFA",
-      "genesis_end_exclusive": "0x055D04",
+      "genesis_start": "0x055CDE",
+      "genesis_end_exclusive": "0x055CE8",
       "size_bytes": 10,
       "kind": "patched_site",
       "arcade_start": "0x055C5E",
@@ -5570,8 +5501,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055D04",
-      "genesis_end_exclusive": "0x055D0A",
+      "genesis_start": "0x055CE8",
+      "genesis_end_exclusive": "0x055CEE",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x055C68",
@@ -5583,64 +5514,64 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x055D0A",
-      "genesis_end_exclusive": "0x056118",
+      "genesis_start": "0x055CEE",
+      "genesis_end_exclusive": "0x0560FC",
       "size_bytes": 1038,
       "kind": "arcade_copy",
       "arcade_start": "0x055C6E",
       "arcade_end_exclusive": "0x05607C",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x056118",
-      "genesis_end_exclusive": "0x056176",
+      "genesis_start": "0x0560FC",
+      "genesis_end_exclusive": "0x05615A",
       "size_bytes": 94,
       "kind": "patched_site",
       "arcade_start": "0x05607C",
       "arcade_end_exclusive": "0x0560DA",
       "origin": "opcode_replace",
       "original_bytes": "302d1392024000030c400000664e426d10ae426d10b0322d10ee5341024101ff3b4110ee024100076604610000324eb900055cb4207c00d00170226d141cb3c8671a302800025340314000020c4000106606317c00000004508860e24e75",
-      "replacement_bytes": "4eb900073ae84e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073e084e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x5607C (helper genesistan_pc090oj_hook_sprite_decay_5607c). Intercepts 1 ledger caller (0x055E92). Helper performs sprite-decay Y-decrement on SAT slots 56..63 (sprite-disappear when Y reaches 16). See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x056176",
-      "genesis_end_exclusive": "0x0561B0",
+      "genesis_start": "0x05615A",
+      "genesis_end_exclusive": "0x056194",
       "size_bytes": 58,
       "kind": "arcade_copy",
       "arcade_start": "0x0560DA",
       "arcade_end_exclusive": "0x056114",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x0561B0",
-      "genesis_end_exclusive": "0x0561C4",
+      "genesis_start": "0x056194",
+      "genesis_end_exclusive": "0x0561A8",
       "size_bytes": 20,
       "kind": "patched_site",
       "arcade_start": "0x056114",
       "arcade_end_exclusive": "0x056128",
       "origin": "opcode_replace",
       "original_bytes": "30100c40ffff670a32d832d832d832d860ee4e75",
-      "replacement_bytes": "4eb900073b1e4e754e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073e3e4e754e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56114 (helper genesistan_pc090oj_hook_copy_56114). Intercepts 2 ledger callers (0x05604C, 0x056076). Helper copies 4 word-pairs from source descriptor list (terminated by 0xFFFF) into SAT slots 64..67. See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0561C4",
-      "genesis_end_exclusive": "0x056252",
+      "genesis_start": "0x0561A8",
+      "genesis_end_exclusive": "0x056236",
       "size_bytes": 142,
       "kind": "arcade_copy",
       "arcade_start": "0x056128",
       "arcade_end_exclusive": "0x0561B6",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x056252",
-      "genesis_end_exclusive": "0x056270",
+      "genesis_start": "0x056236",
+      "genesis_end_exclusive": "0x056254",
       "size_bytes": 30,
       "kind": "patched_site",
       "arcade_start": "0x0561B6",
@@ -5652,18 +5583,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x056270",
-      "genesis_end_exclusive": "0x056442",
+      "genesis_start": "0x056254",
+      "genesis_end_exclusive": "0x056426",
       "size_bytes": 466,
       "kind": "arcade_copy",
       "arcade_start": "0x0561D4",
       "arcade_end_exclusive": "0x0563A6",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x056442",
-      "genesis_end_exclusive": "0x05644A",
+      "genesis_start": "0x056426",
+      "genesis_end_exclusive": "0x05642E",
       "size_bytes": 8,
       "kind": "patched_site",
       "arcade_start": "0x0563A6",
@@ -5675,41 +5606,41 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05644A",
-      "genesis_end_exclusive": "0x0564DC",
+      "genesis_start": "0x05642E",
+      "genesis_end_exclusive": "0x0564C0",
       "size_bytes": 146,
       "kind": "arcade_copy",
       "arcade_start": "0x0563AE",
       "arcade_end_exclusive": "0x056440",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x0564DC",
-      "genesis_end_exclusive": "0x0564FA",
+      "genesis_start": "0x0564C0",
+      "genesis_end_exclusive": "0x0564DE",
       "size_bytes": 30,
       "kind": "patched_site",
       "arcade_start": "0x056440",
       "arcade_end_exclusive": "0x05645E",
       "origin": "opcode_replace",
       "original_bytes": "227c00d00000d3fc00000170303c0009323c0008610000346100fd464e75",
-      "replacement_bytes": "4eb900073b344e754e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073e544e754e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. The native helper retires transient-item semantic state and preserves the original function's final call to the general tilemap clear at arcade_pc 0x0561A0 by invoking genesistan_hook_cwindow_clear, which clears both final Genesis staged planes and marks all rows dirty. No READY or scene special case.",
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0564FA",
-      "genesis_end_exclusive": "0x0597A0",
+      "genesis_start": "0x0564DE",
+      "genesis_end_exclusive": "0x059784",
       "size_bytes": 12966,
       "kind": "arcade_copy",
       "arcade_start": "0x05645E",
       "arcade_end_exclusive": "0x059704",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x0597A0",
-      "genesis_end_exclusive": "0x0597A6",
+      "genesis_start": "0x059784",
+      "genesis_end_exclusive": "0x05978A",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x059704",
@@ -5721,18 +5652,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x0597A6",
-      "genesis_end_exclusive": "0x0597D2",
+      "genesis_start": "0x05978A",
+      "genesis_end_exclusive": "0x0597B6",
       "size_bytes": 44,
       "kind": "arcade_copy",
       "arcade_start": "0x05970A",
       "arcade_end_exclusive": "0x059736",
       "source": "whole_maincpu_copy",
-      "identity_offset": 156
+      "identity_offset": 128
     },
     {
-      "genesis_start": "0x0597D2",
-      "genesis_end_exclusive": "0x0597D8",
+      "genesis_start": "0x0597B6",
+      "genesis_end_exclusive": "0x0597BC",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x059736",
@@ -5744,18 +5675,18 @@
       "shift_delta": -48
     },
     {
-      "genesis_start": "0x0597D8",
-      "genesis_end_exclusive": "0x059B40",
+      "genesis_start": "0x0597BC",
+      "genesis_end_exclusive": "0x059B24",
       "size_bytes": 872,
       "kind": "arcade_copy",
       "arcade_start": "0x05976C",
       "arcade_end_exclusive": "0x059AD4",
       "source": "whole_maincpu_copy",
-      "identity_offset": 108
+      "identity_offset": 80
     },
     {
-      "genesis_start": "0x059B40",
-      "genesis_end_exclusive": "0x059B86",
+      "genesis_start": "0x059B24",
+      "genesis_end_exclusive": "0x059B6A",
       "size_bytes": 70,
       "kind": "patched_site",
       "arcade_start": "0x059AD4",
@@ -5767,54 +5698,54 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x059B86",
-      "genesis_end_exclusive": "0x059FCA",
+      "genesis_start": "0x059B6A",
+      "genesis_end_exclusive": "0x059FAE",
       "size_bytes": 1092,
       "kind": "arcade_copy",
       "arcade_start": "0x059B1A",
       "arcade_end_exclusive": "0x059F5E",
       "source": "whole_maincpu_copy",
-      "identity_offset": 108
+      "identity_offset": 80
     },
     {
-      "genesis_start": "0x059FCA",
-      "genesis_end_exclusive": "0x059FFE",
+      "genesis_start": "0x059FAE",
+      "genesis_end_exclusive": "0x059FE2",
       "size_bytes": 52,
       "kind": "patched_site",
       "arcade_start": "0x059F5E",
       "arcade_end_exclusive": "0x059F92",
       "origin": "opcode_replace",
       "original_bytes": "323c0008207c00d00048428020c020c0534166f8323c0004207c0010c17030fc008030fc000030fc000030fc0000534166ec4e75",
-      "replacement_bytes": "4eb9000739ca4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073cea4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x59F5E (helper genesistan_pc090oj_hook_target_59f5e). Intercepts April-6 caller 0x03A8E4 plus 3 non-ledger callers (0x051266, 0x0519A0, 0x055E18). Helper clears SAT slots 0..7 (the 0xD00048+ region). See Andy_pc090oj_implementation_spec.md \u00a78.6.",
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x059FFE",
-      "genesis_end_exclusive": "0x05A008",
-      "size_bytes": 10,
+      "genesis_start": "0x059FE2",
+      "genesis_end_exclusive": "0x059FEA",
+      "size_bytes": 8,
       "kind": "patched_site",
       "arcade_start": "0x059F92",
       "arcade_end_exclusive": "0x059F98",
       "origin": "shift_replacement",
       "original_bytes": "0c6d00ff1388",
-      "replacement_bytes": "48e75a000c6d00ff1388",
-      "note": "Preserve D1/D3/D4/D6 across FRONT: native register realization uses them, while the original FRONT producer modifies only A0.",
-      "shift_delta": 4
+      "replacement_bytes": "4eb9000731684e75",
+      "note": "Build 0407 whole-producer semantic cut: replace the fixed FRONT function at entry with direct generation of its four invariant PLAYER_FRONT records from A5+0x1388/A5+0x140E/A5+0x1410/A5+0x140C. No PC090OJ tuple or native_player_piece adapter is entered; the remainder of the old function is unreachable.",
+      "shift_delta": 2
     },
     {
-      "genesis_start": "0x05A008",
-      "genesis_end_exclusive": "0x05A00A",
+      "genesis_start": "0x059FEA",
+      "genesis_end_exclusive": "0x059FEC",
       "size_bytes": 2,
       "kind": "arcade_copy",
       "arcade_start": "0x059F98",
       "arcade_end_exclusive": "0x059F9A",
       "source": "whole_maincpu_copy",
-      "identity_offset": 112
+      "identity_offset": 82
     },
     {
-      "genesis_start": "0x05A00A",
-      "genesis_end_exclusive": "0x05A010",
+      "genesis_start": "0x059FEC",
+      "genesis_end_exclusive": "0x059FF2",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x059F9A",
@@ -5826,8 +5757,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A010",
-      "genesis_end_exclusive": "0x05A014",
+      "genesis_start": "0x059FF2",
+      "genesis_end_exclusive": "0x059FF6",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x059FA0",
@@ -5839,8 +5770,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A014",
-      "genesis_end_exclusive": "0x05A018",
+      "genesis_start": "0x059FF6",
+      "genesis_end_exclusive": "0x059FFA",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x059FA4",
@@ -5852,18 +5783,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A018",
-      "genesis_end_exclusive": "0x05A020",
+      "genesis_start": "0x059FFA",
+      "genesis_end_exclusive": "0x05A002",
       "size_bytes": 8,
       "kind": "arcade_copy",
       "arcade_start": "0x059FA8",
       "arcade_end_exclusive": "0x059FB0",
       "source": "whole_maincpu_copy",
-      "identity_offset": 112
+      "identity_offset": 82
     },
     {
-      "genesis_start": "0x05A020",
-      "genesis_end_exclusive": "0x05A024",
+      "genesis_start": "0x05A002",
+      "genesis_end_exclusive": "0x05A006",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x059FB0",
@@ -5875,18 +5806,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A024",
-      "genesis_end_exclusive": "0x05A02C",
+      "genesis_start": "0x05A006",
+      "genesis_end_exclusive": "0x05A00E",
       "size_bytes": 8,
       "kind": "arcade_copy",
       "arcade_start": "0x059FB4",
       "arcade_end_exclusive": "0x059FBC",
       "source": "whole_maincpu_copy",
-      "identity_offset": 112
+      "identity_offset": 82
     },
     {
-      "genesis_start": "0x05A02C",
-      "genesis_end_exclusive": "0x05A030",
+      "genesis_start": "0x05A00E",
+      "genesis_end_exclusive": "0x05A012",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x059FBC",
@@ -5898,18 +5829,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A030",
-      "genesis_end_exclusive": "0x05A038",
+      "genesis_start": "0x05A012",
+      "genesis_end_exclusive": "0x05A01A",
       "size_bytes": 8,
       "kind": "arcade_copy",
       "arcade_start": "0x059FC0",
       "arcade_end_exclusive": "0x059FC8",
       "source": "whole_maincpu_copy",
-      "identity_offset": 112
+      "identity_offset": 82
     },
     {
-      "genesis_start": "0x05A038",
-      "genesis_end_exclusive": "0x05A03C",
+      "genesis_start": "0x05A01A",
+      "genesis_end_exclusive": "0x05A01E",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x059FC8",
@@ -5921,18 +5852,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A03C",
-      "genesis_end_exclusive": "0x05A042",
+      "genesis_start": "0x05A01E",
+      "genesis_end_exclusive": "0x05A024",
       "size_bytes": 6,
       "kind": "arcade_copy",
       "arcade_start": "0x059FCC",
       "arcade_end_exclusive": "0x059FD2",
       "source": "whole_maincpu_copy",
-      "identity_offset": 112
+      "identity_offset": 82
     },
     {
-      "genesis_start": "0x05A042",
-      "genesis_end_exclusive": "0x05A046",
+      "genesis_start": "0x05A024",
+      "genesis_end_exclusive": "0x05A028",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x059FD2",
@@ -5944,8 +5875,8 @@
       "shift_delta": 2
     },
     {
-      "genesis_start": "0x05A046",
-      "genesis_end_exclusive": "0x05A04A",
+      "genesis_start": "0x05A028",
+      "genesis_end_exclusive": "0x05A02C",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x059FD4",
@@ -5957,31 +5888,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A04A",
-      "genesis_end_exclusive": "0x05A054",
-      "size_bytes": 10,
-      "kind": "patched_site",
-      "arcade_start": "0x059FD8",
-      "arcade_end_exclusive": "0x059FDC",
-      "origin": "shift_replacement",
-      "original_bytes": "30fc00a0",
-      "replacement_bytes": "383c00a04eb90007324c",
-      "note": "FRONT weapon X completes and emits one final native lane entry.",
-      "shift_delta": 6
-    },
-    {
-      "genesis_start": "0x05A054",
-      "genesis_end_exclusive": "0x05A056",
-      "size_bytes": 2,
+      "genesis_start": "0x05A02C",
+      "genesis_end_exclusive": "0x05A032",
+      "size_bytes": 6,
       "kind": "arcade_copy",
-      "arcade_start": "0x059FDC",
+      "arcade_start": "0x059FD8",
       "arcade_end_exclusive": "0x059FDE",
       "source": "whole_maincpu_copy",
-      "identity_offset": 120
+      "identity_offset": 84
     },
     {
-      "genesis_start": "0x05A056",
-      "genesis_end_exclusive": "0x05A05A",
+      "genesis_start": "0x05A032",
+      "genesis_end_exclusive": "0x05A036",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x059FDE",
@@ -5993,18 +5911,18 @@
       "shift_delta": -2
     },
     {
-      "genesis_start": "0x05A05A",
-      "genesis_end_exclusive": "0x05A072",
+      "genesis_start": "0x05A036",
+      "genesis_end_exclusive": "0x05A04E",
       "size_bytes": 24,
       "kind": "arcade_copy",
       "arcade_start": "0x059FE4",
       "arcade_end_exclusive": "0x059FFC",
       "source": "whole_maincpu_copy",
-      "identity_offset": 118
+      "identity_offset": 82
     },
     {
-      "genesis_start": "0x05A072",
-      "genesis_end_exclusive": "0x05A078",
+      "genesis_start": "0x05A04E",
+      "genesis_end_exclusive": "0x05A054",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x059FFC",
@@ -6016,8 +5934,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A078",
-      "genesis_end_exclusive": "0x05A07C",
+      "genesis_start": "0x05A054",
+      "genesis_end_exclusive": "0x05A058",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A002",
@@ -6029,8 +5947,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A07C",
-      "genesis_end_exclusive": "0x05A080",
+      "genesis_start": "0x05A058",
+      "genesis_end_exclusive": "0x05A05C",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A006",
@@ -6042,8 +5960,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A080",
-      "genesis_end_exclusive": "0x05A084",
+      "genesis_start": "0x05A05C",
+      "genesis_end_exclusive": "0x05A060",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A00A",
@@ -6055,31 +5973,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A084",
-      "genesis_end_exclusive": "0x05A08E",
-      "size_bytes": 10,
-      "kind": "patched_site",
-      "arcade_start": "0x05A00E",
-      "arcade_end_exclusive": "0x05A012",
-      "origin": "shift_replacement",
-      "original_bytes": "30fc00b0",
-      "replacement_bytes": "383c00b04eb90007324c",
-      "note": "FRONT overlay slot 1 X completes and emits one native entry.",
-      "shift_delta": 6
-    },
-    {
-      "genesis_start": "0x05A08E",
-      "genesis_end_exclusive": "0x05A090",
-      "size_bytes": 2,
+      "genesis_start": "0x05A060",
+      "genesis_end_exclusive": "0x05A066",
+      "size_bytes": 6,
       "kind": "arcade_copy",
-      "arcade_start": "0x05A012",
+      "arcade_start": "0x05A00E",
       "arcade_end_exclusive": "0x05A014",
       "source": "whole_maincpu_copy",
-      "identity_offset": 124
+      "identity_offset": 82
     },
     {
-      "genesis_start": "0x05A090",
-      "genesis_end_exclusive": "0x05A094",
+      "genesis_start": "0x05A066",
+      "genesis_end_exclusive": "0x05A06A",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A014",
@@ -6091,18 +5996,18 @@
       "shift_delta": -2
     },
     {
-      "genesis_start": "0x05A094",
-      "genesis_end_exclusive": "0x05A0AC",
+      "genesis_start": "0x05A06A",
+      "genesis_end_exclusive": "0x05A082",
       "size_bytes": 24,
       "kind": "arcade_copy",
       "arcade_start": "0x05A01A",
       "arcade_end_exclusive": "0x05A032",
       "source": "whole_maincpu_copy",
-      "identity_offset": 122
+      "identity_offset": 80
     },
     {
-      "genesis_start": "0x05A0AC",
-      "genesis_end_exclusive": "0x05A0B2",
+      "genesis_start": "0x05A082",
+      "genesis_end_exclusive": "0x05A088",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x05A032",
@@ -6114,8 +6019,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A0B2",
-      "genesis_end_exclusive": "0x05A0B6",
+      "genesis_start": "0x05A088",
+      "genesis_end_exclusive": "0x05A08C",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A038",
@@ -6127,8 +6032,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A0B6",
-      "genesis_end_exclusive": "0x05A0BA",
+      "genesis_start": "0x05A08C",
+      "genesis_end_exclusive": "0x05A090",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A03C",
@@ -6140,8 +6045,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A0BA",
-      "genesis_end_exclusive": "0x05A0BE",
+      "genesis_start": "0x05A090",
+      "genesis_end_exclusive": "0x05A094",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A040",
@@ -6153,31 +6058,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A0BE",
-      "genesis_end_exclusive": "0x05A0C8",
-      "size_bytes": 10,
-      "kind": "patched_site",
-      "arcade_start": "0x05A044",
-      "arcade_end_exclusive": "0x05A048",
-      "origin": "shift_replacement",
-      "original_bytes": "30fc00c0",
-      "replacement_bytes": "383c00c04eb90007324c",
-      "note": "FRONT overlay slot 2 X completes and emits one native entry.",
-      "shift_delta": 6
-    },
-    {
-      "genesis_start": "0x05A0C8",
-      "genesis_end_exclusive": "0x05A0CA",
-      "size_bytes": 2,
+      "genesis_start": "0x05A094",
+      "genesis_end_exclusive": "0x05A09A",
+      "size_bytes": 6,
       "kind": "arcade_copy",
-      "arcade_start": "0x05A048",
+      "arcade_start": "0x05A044",
       "arcade_end_exclusive": "0x05A04A",
       "source": "whole_maincpu_copy",
-      "identity_offset": 128
+      "identity_offset": 80
     },
     {
-      "genesis_start": "0x05A0CA",
-      "genesis_end_exclusive": "0x05A0CE",
+      "genesis_start": "0x05A09A",
+      "genesis_end_exclusive": "0x05A09E",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A04A",
@@ -6189,18 +6081,18 @@
       "shift_delta": -2
     },
     {
-      "genesis_start": "0x05A0CE",
-      "genesis_end_exclusive": "0x05A0E6",
+      "genesis_start": "0x05A09E",
+      "genesis_end_exclusive": "0x05A0B6",
       "size_bytes": 24,
       "kind": "arcade_copy",
       "arcade_start": "0x05A050",
       "arcade_end_exclusive": "0x05A068",
       "source": "whole_maincpu_copy",
-      "identity_offset": 126
+      "identity_offset": 78
     },
     {
-      "genesis_start": "0x05A0E6",
-      "genesis_end_exclusive": "0x05A0EC",
+      "genesis_start": "0x05A0B6",
+      "genesis_end_exclusive": "0x05A0BC",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x05A068",
@@ -6212,8 +6104,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A0EC",
-      "genesis_end_exclusive": "0x05A0F0",
+      "genesis_start": "0x05A0BC",
+      "genesis_end_exclusive": "0x05A0C0",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A06E",
@@ -6225,8 +6117,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A0F0",
-      "genesis_end_exclusive": "0x05A0F4",
+      "genesis_start": "0x05A0C0",
+      "genesis_end_exclusive": "0x05A0C4",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A072",
@@ -6238,8 +6130,8 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A0F4",
-      "genesis_end_exclusive": "0x05A0F8",
+      "genesis_start": "0x05A0C4",
+      "genesis_end_exclusive": "0x05A0C8",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A076",
@@ -6251,31 +6143,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A0F8",
-      "genesis_end_exclusive": "0x05A102",
-      "size_bytes": 10,
-      "kind": "patched_site",
-      "arcade_start": "0x05A07A",
-      "arcade_end_exclusive": "0x05A07E",
-      "origin": "shift_replacement",
-      "original_bytes": "30fc00d0",
-      "replacement_bytes": "383c00d04eb90007324c",
-      "note": "FRONT overlay slot 3 X completes and emits one native entry.",
-      "shift_delta": 6
-    },
-    {
-      "genesis_start": "0x05A102",
-      "genesis_end_exclusive": "0x05A104",
-      "size_bytes": 2,
+      "genesis_start": "0x05A0C8",
+      "genesis_end_exclusive": "0x05A0CE",
+      "size_bytes": 6,
       "kind": "arcade_copy",
-      "arcade_start": "0x05A07E",
+      "arcade_start": "0x05A07A",
       "arcade_end_exclusive": "0x05A080",
       "source": "whole_maincpu_copy",
-      "identity_offset": 132
+      "identity_offset": 78
     },
     {
-      "genesis_start": "0x05A104",
-      "genesis_end_exclusive": "0x05A108",
+      "genesis_start": "0x05A0CE",
+      "genesis_end_exclusive": "0x05A0D2",
       "size_bytes": 4,
       "kind": "patched_site",
       "arcade_start": "0x05A080",
@@ -6287,18 +6166,18 @@
       "shift_delta": -2
     },
     {
-      "genesis_start": "0x05A108",
-      "genesis_end_exclusive": "0x05A118",
+      "genesis_start": "0x05A0D2",
+      "genesis_end_exclusive": "0x05A0E2",
       "size_bytes": 16,
       "kind": "arcade_copy",
       "arcade_start": "0x05A086",
       "arcade_end_exclusive": "0x05A096",
       "source": "whole_maincpu_copy",
-      "identity_offset": 130
+      "identity_offset": 76
     },
     {
-      "genesis_start": "0x05A118",
-      "genesis_end_exclusive": "0x05A11E",
+      "genesis_start": "0x05A0E2",
+      "genesis_end_exclusive": "0x05A0E8",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x05A096",
@@ -6310,31 +6189,31 @@
       "shift_delta": 4
     },
     {
-      "genesis_start": "0x05A11E",
-      "genesis_end_exclusive": "0x05A310",
+      "genesis_start": "0x05A0E8",
+      "genesis_end_exclusive": "0x05A2DA",
       "size_bytes": 498,
       "kind": "patched_site",
       "arcade_start": "0x05A098",
       "arcade_end_exclusive": "0x05A28A",
       "origin": "opcode_replace",
       "original_bytes": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a48ad2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
-      "replacement_bytes": "4eb900073b404e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073e604e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "note": "Direct-native gameplay energy/status replacement at arcade_pc 0x05A098 (helper genesistan_pc090oj_hook_status_sprite_5a098), reached only from arcade_pc 0x051054. The helper preserves the energy animation, full/partial/empty six-cell bar, low-energy blink, lifecycle fields and sound transitions, but emits ordered semantic pieces directly into native_queue_hud. The original HW_ADDRESS 0x00D00048 record tail and the transitional virtual-record 30..43 packing path are retired for this producer; no frontend object-RAM scanner/decoder consumes its output.",
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A310",
-      "genesis_end_exclusive": "0x05A354",
+      "genesis_start": "0x05A2DA",
+      "genesis_end_exclusive": "0x05A31E",
       "size_bytes": 68,
       "kind": "arcade_copy",
       "arcade_start": "0x05A28A",
       "arcade_end_exclusive": "0x05A2CE",
       "source": "whole_maincpu_copy",
-      "identity_offset": 134
+      "identity_offset": 80
     },
     {
-      "genesis_start": "0x05A354",
-      "genesis_end_exclusive": "0x05A35A",
+      "genesis_start": "0x05A31E",
+      "genesis_end_exclusive": "0x05A324",
       "size_bytes": 6,
       "kind": "patched_site",
       "arcade_start": "0x05A2CE",
@@ -6346,18 +6225,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A35A",
-      "genesis_end_exclusive": "0x05A3BA",
+      "genesis_start": "0x05A324",
+      "genesis_end_exclusive": "0x05A384",
       "size_bytes": 96,
       "kind": "arcade_copy",
       "arcade_start": "0x05A2D4",
       "arcade_end_exclusive": "0x05A334",
       "source": "whole_maincpu_copy",
-      "identity_offset": 134
+      "identity_offset": 80
     },
     {
-      "genesis_start": "0x05A3BA",
-      "genesis_end_exclusive": "0x05A3C2",
+      "genesis_start": "0x05A384",
+      "genesis_end_exclusive": "0x05A38C",
       "size_bytes": 8,
       "kind": "patched_site",
       "arcade_start": "0x05A334",
@@ -6369,18 +6248,18 @@
       "shift_delta": -26
     },
     {
-      "genesis_start": "0x05A3C2",
-      "genesis_end_exclusive": "0x05A54A",
+      "genesis_start": "0x05A38C",
+      "genesis_end_exclusive": "0x05A514",
       "size_bytes": 392,
       "kind": "arcade_copy",
       "arcade_start": "0x05A356",
       "arcade_end_exclusive": "0x05A4DE",
       "source": "whole_maincpu_copy",
-      "identity_offset": 108
+      "identity_offset": 54
     },
     {
-      "genesis_start": "0x05A54A",
-      "genesis_end_exclusive": "0x05A554",
+      "genesis_start": "0x05A514",
+      "genesis_end_exclusive": "0x05A51E",
       "size_bytes": 10,
       "kind": "patched_site",
       "arcade_start": "0x05A4DE",
@@ -6392,18 +6271,18 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A554",
-      "genesis_end_exclusive": "0x05A56E",
+      "genesis_start": "0x05A51E",
+      "genesis_end_exclusive": "0x05A538",
       "size_bytes": 26,
       "kind": "arcade_copy",
       "arcade_start": "0x05A4E8",
       "arcade_end_exclusive": "0x05A502",
       "source": "whole_maincpu_copy",
-      "identity_offset": 108
+      "identity_offset": 54
     },
     {
-      "genesis_start": "0x05A56E",
-      "genesis_end_exclusive": "0x05A570",
+      "genesis_start": "0x05A538",
+      "genesis_end_exclusive": "0x05A53A",
       "size_bytes": 2,
       "kind": "patched_site",
       "arcade_start": "0x05A502",
@@ -6415,32 +6294,32 @@
       "shift_delta": 0
     },
     {
-      "genesis_start": "0x05A570",
-      "genesis_end_exclusive": "0x06006C",
+      "genesis_start": "0x05A53A",
+      "genesis_end_exclusive": "0x060036",
       "size_bytes": 23292,
       "kind": "arcade_copy",
       "arcade_start": "0x05A504",
       "arcade_end_exclusive": "0x060000",
       "source": "whole_maincpu_copy",
-      "identity_offset": 108
+      "identity_offset": 54
     },
     {
-      "genesis_start": "0x06006C",
+      "genesis_start": "0x060036",
       "genesis_end_exclusive": "0x070000",
-      "size_bytes": 65428,
+      "size_bytes": 65482,
       "kind": "genesis_only",
       "tag": "padding"
     },
     {
       "genesis_start": "0x070000",
-      "genesis_end_exclusive": "0x1B7EB8",
-      "size_bytes": 1343160,
+      "genesis_end_exclusive": "0x1E7EB8",
+      "size_bytes": 1539768,
       "kind": "genesis_only",
       "tag": "wrapper"
     }
   ],
   "segment_coverage": {
-    "total_genesis_bytes_covered": 1801912,
+    "total_genesis_bytes_covered": 1998520,
     "gaps": [],
     "overlaps": []
   },
@@ -6503,7 +6382,7 @@
     ],
     [
       "0x054492",
-      12
+      2
     ],
     [
       "0x0544D0",
@@ -6520,10 +6399,6 @@
     [
       "0x054508",
       0
-    ],
-    [
-      "0x05452C",
-      6
     ],
     [
       "0x054576",
@@ -6550,12 +6425,8 @@
       0
     ],
     [
-      "0x05464A",
-      6
-    ],
-    [
       "0x0546A8",
-      0
+      2
     ],
     [
       "0x0546E6",
@@ -6574,8 +6445,8 @@
       0
     ],
     [
-      "0x054742",
-      6
+      "0x05474E",
+      2
     ],
     [
       "0x05475A",
@@ -6596,10 +6467,6 @@
     [
       "0x054784",
       2
-    ],
-    [
-      "0x054788",
-      4
     ],
     [
       "0x054790",
@@ -6627,7 +6494,7 @@
     ],
     [
       "0x059F92",
-      4
+      2
     ],
     [
       "0x059F9A",
@@ -6662,10 +6529,6 @@
       0
     ],
     [
-      "0x059FD8",
-      6
-    ],
-    [
       "0x059FDE",
       -2
     ],
@@ -6684,10 +6547,6 @@
     [
       "0x05A00A",
       0
-    ],
-    [
-      "0x05A00E",
-      6
     ],
     [
       "0x05A014",
@@ -6710,10 +6569,6 @@
       0
     ],
     [
-      "0x05A044",
-      6
-    ],
-    [
       "0x05A04A",
       -2
     ],
@@ -6732,10 +6587,6 @@
     [
       "0x05A076",
       0
-    ],
-    [
-      "0x05A07A",
-      6
     ],
     [
       "0x05A080",

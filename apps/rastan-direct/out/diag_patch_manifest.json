@@ -12,17 +12,17 @@
       "end_exclusive": "0x060000",
       "size_bytes": 393216,
       "runtime_start": "0x000200",
-      "runtime_end_exclusive": "0x06006C"
+      "runtime_end_exclusive": "0x060036"
     }
   ],
   "whole_maincpu_copy": {
     "source_start": "0x000000",
     "source_end_exclusive": "0x060000",
     "shifted_source_start": "0x000000",
-    "shifted_source_end_exclusive": "0x05FE6C",
+    "shifted_source_end_exclusive": "0x05FE36",
     "dest_start": "0x000200",
-    "dest_end_exclusive": "0x06006C",
-    "size_bytes": 392812
+    "dest_end_exclusive": "0x060036",
+    "size_bytes": 392758
   },
   "execute_from_relocated_base": true,
   "keep_identity_overlays_for_bringup": false,
@@ -49,7 +49,7 @@
       "range": "whole_maincpu_copy_window",
       "kind": "absolute_rom_target_relocation",
       "source_start": "0x000000",
-      "source_end_exclusive": "0x05FE6C",
+      "source_end_exclusive": "0x05FE36",
       "relocation_delta": "0x000200",
       "count": 634,
       "unresolved_before_fix": 634
@@ -75,7 +75,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x05976E",
-      "rom_table_address": "0x0597DA",
+      "rom_table_address": "0x0597BE",
       "entry_count": 6,
       "entry_stride_bytes": 6,
       "pointer_offset_bytes": 0,
@@ -84,7 +84,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x059EC8",
-      "rom_table_address": "0x059F34",
+      "rom_table_address": "0x059F18",
       "entry_count": 6,
       "entry_stride_bytes": 4,
       "pointer_offset_bytes": 0,
@@ -93,7 +93,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x059C9A",
-      "rom_table_address": "0x059D06",
+      "rom_table_address": "0x059CEA",
       "entry_count": 6,
       "entry_stride_bytes": 4,
       "pointer_offset_bytes": 0,
@@ -102,7 +102,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x059F1E",
-      "rom_table_address": "0x059F8A",
+      "rom_table_address": "0x059F6E",
       "entry_count": 4,
       "entry_stride_bytes": 4,
       "pointer_offset_bytes": 0,
@@ -113,7 +113,7 @@
       "arcade_pc": "0x05109C",
       "rom_pc": "0x0512A8",
       "original_bytes": "4eb900055ad6",
-      "original_bytes_shift_adjusted": "4eb900055b72",
+      "original_bytes_shift_adjusted": "4eb900055b56",
       "replacement_bytes": "4eb900070bea",
       "replacement_bytes_template": "4eb900070bea",
       "replacement_bytes_shift_adjusted": "",
@@ -144,7 +144,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A2CE",
-      "rom_pc": "0x05A354",
+      "rom_pc": "0x05A31E",
       "original_bytes": "06800010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068000ff1e00",
@@ -155,7 +155,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0559E4",
-      "rom_pc": "0x055A80",
+      "rom_pc": "0x055A64",
       "original_bytes": "06870010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068700ff1e00",
@@ -166,7 +166,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055A5A",
-      "rom_pc": "0x055AF6",
+      "rom_pc": "0x055ADA",
       "original_bytes": "06870010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068700ff1e00",
@@ -177,7 +177,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055A7A",
-      "rom_pc": "0x055B16",
+      "rom_pc": "0x055AFA",
       "original_bytes": "06870010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068700ff1e00",
@@ -290,8 +290,8 @@
       "rom_pc": "0x03A3D8",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a14",
-      "replacement_bytes_template": "4eb900073a14",
+      "replacement_bytes": "4eb900073d34",
+      "replacement_bytes_template": "4eb900073d34",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
@@ -430,7 +430,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054BF8",
-      "rom_pc": "0x054C92",
+      "rom_pc": "0x054C76",
       "original_bytes": "41f90010c242",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "41f900ff0242",
@@ -441,7 +441,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054B1E",
-      "rom_pc": "0x054BB8",
+      "rom_pc": "0x054B9C",
       "original_bytes": "41f90010d2c8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "41f900ff12c8",
@@ -463,7 +463,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059704",
-      "rom_pc": "0x0597A0",
+      "rom_pc": "0x059784",
       "original_bytes": "10390010c118",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103900ff0118",
@@ -653,8 +653,8 @@
       "rom_pc": "0x03AF44",
       "original_bytes": "20c0534166fa4e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a344e75",
-      "replacement_bytes_template": "4eb900073a344e75",
+      "replacement_bytes": "4eb900073d544e75",
+      "replacement_bytes_template": "4eb900073d544e75",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ + tilemap polymorphic-utility dispatch at fn 0x3AD44 via v3.2 helper genesistan_hook_3ad44_dispatch. Intercepts 7 callers: 3 PC090OJ-targeting (0x03AD5C, 0x03AD6E, 0x03AD82; A0 \u2208 [0xD00000, 0xD00800)) routed to PC090OJ bulk-clear branch (LUT-mediated, slots 76..79 destination space); 4 tilemap-targeting (0x03AE70, 0x03AE80, 0x03AF38, 0x03AF48; A0 \u2208 [0xC00000, 0xC10000)) routed to tilemap-branch reusing genesistan_hook_tilemap_bg_fill semantics. A0 dispatch on entry; out-of-range A0 falls through to \u00a77.3 audit-guard halt-with-heartbeat. Replaces v3.1 PC090OJ-only helper genesistan_pc090oj_hook_init_clear_3ad44 (which broke pre-existing tilemap coverage). See Andy_pc090oj_implementation_spec.md \u00a72.2.A and \u00a78.6 entry #8."
     },
@@ -675,8 +675,8 @@
       "rom_pc": "0x03B006",
       "original_bytes": "33fc000100d01bfe",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000739f04e71",
-      "replacement_bytes_template": "4eb9000739f04e71",
+      "replacement_bytes": "4eb900073d104e71",
+      "replacement_bytes_template": "4eb900073d104e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture PC090OJ control write #1 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan."
     },
@@ -697,8 +697,8 @@
       "rom_pc": "0x03B01E",
       "original_bytes": "33fc000000d01bfe",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a044e71",
-      "replacement_bytes_template": "4eb900073a044e71",
+      "replacement_bytes": "4eb900073d244e71",
+      "replacement_bytes_template": "4eb900073d244e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture PC090OJ control write #0 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan."
     },
@@ -708,8 +708,8 @@
       "rom_pc": "0x03B034",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a14",
-      "replacement_bytes_template": "4eb900073a14",
+      "replacement_bytes": "4eb900073d34",
+      "replacement_bytes_template": "4eb900073d34",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
@@ -730,8 +730,8 @@
       "rom_pc": "0x03B08E",
       "original_bytes": "33fc000000d01bfe",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a044e71",
-      "replacement_bytes_template": "4eb900073a044e71",
+      "replacement_bytes": "4eb900073d244e71",
+      "replacement_bytes_template": "4eb900073d244e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture PC090OJ control write #0 (HW 0x00D01BFE / word offset 0x0DFF) into pc090oj_ctrl_shadow for object-RAM mirror scan."
     },
@@ -752,8 +752,8 @@
       "rom_pc": "0x03B09C",
       "original_bytes": "427900380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a24",
-      "replacement_bytes_template": "4eb900073a24",
+      "replacement_bytes": "4eb900073d44",
+      "replacement_bytes_template": "4eb900073d44",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register clear (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
@@ -884,8 +884,8 @@
       "rom_pc": "0x03B11E",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a14",
-      "replacement_bytes_template": "4eb900073a14",
+      "replacement_bytes": "4eb900073d34",
+      "replacement_bytes_template": "4eb900073d34",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
@@ -1115,8 +1115,8 @@
       "rom_pc": "0x03F128",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a14",
-      "replacement_bytes_template": "4eb900073a14",
+      "replacement_bytes": "4eb900073d34",
+      "replacement_bytes_template": "4eb900073d34",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
@@ -1126,8 +1126,8 @@
       "rom_pc": "0x03F148",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a14",
-      "replacement_bytes_template": "4eb900073a14",
+      "replacement_bytes": "4eb900073d34",
+      "replacement_bytes_template": "4eb900073d34",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
@@ -1137,8 +1137,8 @@
       "rom_pc": "0x03F18A",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a14",
-      "replacement_bytes_template": "4eb900073a14",
+      "replacement_bytes": "4eb900073d34",
+      "replacement_bytes_template": "4eb900073d34",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
@@ -1148,8 +1148,8 @@
       "rom_pc": "0x03F1AA",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a14",
-      "replacement_bytes_template": "4eb900073a14",
+      "replacement_bytes": "4eb900073d34",
+      "replacement_bytes_template": "4eb900073d34",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
@@ -1159,15 +1159,15 @@
       "rom_pc": "0x045506",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073a14",
-      "replacement_bytes_template": "4eb900073a14",
+      "replacement_bytes": "4eb900073d34",
+      "replacement_bytes_template": "4eb900073d34",
       "replacement_bytes_shift_adjusted": "",
       "note": "Capture sprite_ctrl/coin-lockout register write (HW 0x00380000) into pc090oj_sprite_ctrl_shadow; Genesis ignores the hardware side effect."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055704",
-      "rom_pc": "0x05579E",
+      "rom_pc": "0x055782",
       "original_bytes": "322d10dad36d10ba",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000707004e71",
@@ -1178,7 +1178,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055790",
-      "rom_pc": "0x05582A",
+      "rom_pc": "0x05580E",
       "original_bytes": "322d10da936d10ba",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000706a84e71",
@@ -1189,7 +1189,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055968",
-      "rom_pc": "0x055A04",
+      "rom_pc": "0x0559E8",
       "original_bytes": "206d10a0323c0010227c0010d080267c0010d0402453610000322b4810a0588b5489534166ee",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef90007043c4e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1200,7 +1200,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055990",
-      "rom_pc": "0x055A2C",
+      "rom_pc": "0x055A10",
       "original_bytes": "206d10a47210227c0010d080267c0010d04024536100006e588b5489534166f2",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000705764e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1211,7 +1211,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055AB4",
-      "rom_pc": "0x055B50",
+      "rom_pc": "0x055B34",
       "original_bytes": "33ed10ee00c2000033ed10ec00c4000033ed10b000c2000233ed10ae00c400024e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33ed10ee00ff409c33ed10ec00ff409833ed10b000ff409e33ed10ae00ff409a4e75",
@@ -1222,7 +1222,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A4DE",
-      "rom_pc": "0x05A54A",
+      "rom_pc": "0x05A514",
       "original_bytes": "3800244932c232d85340",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000715644e714e71",
@@ -1233,7 +1233,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0561B6",
-      "rom_pc": "0x056252",
+      "rom_pc": "0x056236",
       "original_bytes": "323c1000203c00000020207c00c08000227c00c0000020c022c0534166f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb90007234e4e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1244,7 +1244,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0563A6",
-      "rom_pc": "0x056442",
+      "rom_pc": "0x056426",
       "original_bytes": "2449424010180c00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000724b04e75",
@@ -1310,11 +1310,11 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059F5E",
-      "rom_pc": "0x059FCA",
+      "rom_pc": "0x059FAE",
       "original_bytes": "323c0008207c00d00048428020c020c0534166f8323c0004207c0010c17030fc008030fc000030fc000030fc0000534166ec4e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb9000739ee4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "replacement_bytes_template": "4eb9000739ee4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073d0e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900073d0e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at April-6 target fn 0x59F5E (helper genesistan_pc090oj_hook_target_59f5e). Intercepts April-6 caller 0x03A8E4 plus 3 non-ledger callers (0x051266, 0x0519A0, 0x055E18). Helper clears SAT slots 0..7 (the 0xD00048+ region). See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
@@ -1323,9 +1323,9 @@
       "arcade_pc": "0x03AD84",
       "rom_pc": "0x03AF84",
       "original_bytes": "720e41f900d00778203c000000082e3c000001604eb90005b7126100000a7203203c000000c8208021470004508806400010534166f04e75",
-      "original_bytes_shift_adjusted": "720e41f900d00778203c000000082e3c000001604eb90005b57e6100000a7203203c000000c8208021470004508806400010534166f04e75",
-      "replacement_bytes": "4eb900073abe4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "replacement_bytes_template": "4eb900073abe4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "original_bytes_shift_adjusted": "720e41f900d00778203c000000082e3c000001604eb90005b5486100000a7203203c000000c8208021470004508806400010534166f04e75",
+      "replacement_bytes": "4eb900073dde4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900073dde4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x3AD84 (helper genesistan_pc090oj_hook_init_priority_3ad84). Intercepts 2 ledger callers via 0x3AD72 fall-through (0x03ABB6, 0x03AF28). Helper initializes 4 priority-frame slots at SAT range 76..79 (the 0xD00778 origin per Andy_d00778_write_path_analysis.md). See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
@@ -1335,8 +1335,8 @@
       "rom_pc": "0x03BA02",
       "original_bytes": "4285c0fc000a41fa0074d0c0424010100c000001660252451c280001226800022468000608000000671a12120241000f61000032134600030641002a33410004538a60181212e8090241000f61000016134600030641002a334100045189534066c24e754a45660c4a416608137c000100024e757a01422900024e75061000d001080010c11e061000d001500010c11e061000d000d80010c14201e800d000a80010c11701e400d000880010c103",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073ac04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "replacement_bytes_template": "4eb900073ac04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073de04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900073de04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x3B802 (helper genesistan_pc090oj_hook_score_digit_3b802). Intercepts 10 ledger score/HUD-digit callers (0x03A66A, 0x03A9C0, 0x03A9CE, 0x03A9DA, 0x03B7A2, 0x03B7B0, 0x03B7E0, 0x03B8C2, 0x03B8F6, 0x03B8FC). 174-byte span includes the function's PC-relative digit-attribute table at 0x3B87E..0x3B8AF (referenced only from inside the function). Helper emits HUD-digit sprites to SAT slots 22..29. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
@@ -1346,52 +1346,52 @@
       "rom_pc": "0x05416E",
       "original_bytes": "227c0010d1d2343c000632fc000332fc000032fc000032fc0000534266ec343c0004227c0010d1b232fc000332fc000032fc000032fc0000534266ec227c0010d1f2343c000632fc000332fc000032fc000032fc0000534266ec227c00d00000343c000432fc000332fc000032fc000032fc0000534266ec4e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073ac24e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "replacement_bytes_template": "4eb900073ac24e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073de24e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900073de24e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x54052 (helper genesistan_pc090oj_hook_slot_init_54052). Intercepts 2 ledger callers (0x0501F4, 0x051260). Helper preserves the original function's Taito C-chip text-RAM clears at 0x10D1B2/0x10D1D2/0x10D1F2 (replicated verbatim) and emits sprite-slot init to SAT slots 72..75. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05607C",
-      "rom_pc": "0x056118",
+      "rom_pc": "0x0560FC",
       "original_bytes": "302d1392024000030c400000664e426d10ae426d10b0322d10ee5341024101ff3b4110ee024100076604610000324eb900055cb4207c00d00170226d141cb3c8671a302800025340314000020c4000106606317c00000004508860e24e75",
-      "original_bytes_shift_adjusted": "302d1392024000030c400000664e426d10ae426d10b0322d10ee5341024101ff3b4110ee024100076604610000324eb900055b50207c00d00170226d141cb3c8671a302800025340314000020c4000106606317c00000004508860e24e75",
-      "replacement_bytes": "4eb900073b0c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "replacement_bytes_template": "4eb900073b0c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "original_bytes_shift_adjusted": "302d1392024000030c400000664e426d10ae426d10b0322d10ee5341024101ff3b4110ee024100076604610000324eb900055b34207c00d00170226d141cb3c8671a302800025340314000020c4000106606317c00000004508860e24e75",
+      "replacement_bytes": "4eb900073e2c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900073e2c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x5607C (helper genesistan_pc090oj_hook_sprite_decay_5607c). Intercepts 1 ledger caller (0x055E92). Helper performs sprite-decay Y-decrement on SAT slots 56..63 (sprite-disappear when Y reaches 16). See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x056114",
-      "rom_pc": "0x0561B0",
+      "rom_pc": "0x056194",
       "original_bytes": "30100c40ffff670a32d832d832d832d860ee4e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073b424e754e714e714e714e714e714e71",
-      "replacement_bytes_template": "4eb900073b424e754e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073e624e754e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900073e624e754e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56114 (helper genesistan_pc090oj_hook_copy_56114). Intercepts 2 ledger callers (0x05604C, 0x056076). Helper copies 4 word-pairs from source descriptor list (terminated by 0xFFFF) into SAT slots 64..67. See Andy_pc090oj_implementation_spec.md \u00a78.6."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x056440",
-      "rom_pc": "0x0564DC",
+      "rom_pc": "0x0564C0",
       "original_bytes": "227c00d00000d3fc00000170303c0009323c0008610000346100fd464e75",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073b584e754e714e714e714e714e714e714e714e714e714e714e71",
-      "replacement_bytes_template": "4eb900073b584e754e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900073e784e754e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900073e784e754e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. The native helper retires transient-item semantic state and preserves the original function's final call to the general tilemap clear at arcade_pc 0x0561A0 by invoking genesistan_hook_cwindow_clear, which clears both final Genesis staged planes and marks all rows dirty. No READY or scene special case."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A098",
-      "rom_pc": "0x05A11E",
+      "rom_pc": "0x05A0E8",
       "original_bytes": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a48ad2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
-      "original_bytes_shift_adjusted": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a310d2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
-      "replacement_bytes": "4eb900073b644e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "replacement_bytes_template": "4eb900073b644e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "original_bytes_shift_adjusted": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a2dad2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
+      "replacement_bytes": "4eb900073e844e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900073e844e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "Direct-native gameplay energy/status replacement at arcade_pc 0x05A098 (helper genesistan_pc090oj_hook_status_sprite_5a098), reached only from arcade_pc 0x051054. The helper preserves the energy animation, full/partial/empty six-cell bar, low-energy blink, lifecycle fields and sound transitions, but emits ordered semantic pieces directly into native_queue_hud. The original HW_ADDRESS 0x00D00048 record tail and the transitional virtual-record 30..43 packing path are retired for this producer; no frontend object-RAM scanner/decoder consumes its output."
     },
@@ -1401,8 +1401,8 @@
       "rom_pc": "0x0512F6",
       "original_bytes": "33fc000200d00698",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073d704e75",
-      "replacement_bytes_template": "4eb900073d704e75",
+      "replacement_bytes": "4eb9000740904e75",
+      "replacement_bytes_template": "4eb9000740904e75",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ audit guard at arcade_pc 0x0510EA. FU1 trace (Cody_fu1_arcade_trace_510EA_510F4.md) showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #2,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP. Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4."
     },
@@ -1412,15 +1412,15 @@
       "rom_pc": "0x051300",
       "original_bytes": "33fc000000d00698",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900073d704e75",
-      "replacement_bytes_template": "4eb900073d704e75",
+      "replacement_bytes": "4eb9000740904e75",
+      "replacement_bytes_template": "4eb9000740904e75",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ audit guard at arcade_pc 0x0510F4. FU1 trace showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #0,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP (shared helper with entry #17). Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059AD4",
-      "rom_pc": "0x059B40",
+      "rom_pc": "0x059B24",
       "original_bytes": "c2fc0020d0c1eb484246227c00200000d2c032180c41ffff671e3401360102410f00ee49024200f0e54a0243000fe14be74bd641d64232830c46000f67065246548960ce4e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900072eae4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1640,7 +1640,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0558C8",
-      "rom_pc": "0x055962",
+      "rom_pc": "0x055946",
       "original_bytes": "207c0010d000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff1000",
@@ -1651,7 +1651,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0558F8",
-      "rom_pc": "0x055992",
+      "rom_pc": "0x055976",
       "original_bytes": "33c00010d0a8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33c000ff10a8",
@@ -1662,7 +1662,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055904",
-      "rom_pc": "0x0559A0",
+      "rom_pc": "0x055984",
       "original_bytes": "207c0010d000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef90007256a",
@@ -1673,7 +1673,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05590A",
-      "rom_pc": "0x0559A6",
+      "rom_pc": "0x05598A",
       "original_bytes": "227c0010d040",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "227c00ff1040",
@@ -1684,7 +1684,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055910",
-      "rom_pc": "0x0559AC",
+      "rom_pc": "0x055990",
       "original_bytes": "247c0010d080",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "247c00ff1080",
@@ -1695,7 +1695,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055940",
-      "rom_pc": "0x0559DC",
+      "rom_pc": "0x0559C0",
       "original_bytes": "33c00010d0a8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33c000ff10a8",
@@ -1706,7 +1706,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C14",
-      "rom_pc": "0x055CB0",
+      "rom_pc": "0x055C94",
       "original_bytes": "207c0010d0fc",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff10fc",
@@ -1717,7 +1717,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C2E",
-      "rom_pc": "0x055CCA",
+      "rom_pc": "0x055CAE",
       "original_bytes": "207c0010d0fc",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000725dc",
@@ -1728,7 +1728,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C34",
-      "rom_pc": "0x055CD0",
+      "rom_pc": "0x055CB4",
       "original_bytes": "227c0010d100",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "227c00ff1100",
@@ -1739,7 +1739,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C3A",
-      "rom_pc": "0x055CD6",
+      "rom_pc": "0x055CBA",
       "original_bytes": "247c0010d104",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "247c00ff1104",
@@ -1750,7 +1750,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C68",
-      "rom_pc": "0x055D04",
+      "rom_pc": "0x055CE8",
       "original_bytes": "267c0010d100",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "267c00ff1100",
@@ -1772,7 +1772,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C5E",
-      "rom_pc": "0x055CFA",
+      "rom_pc": "0x055CDE",
       "original_bytes": "206d10f8227c0010d104",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000726344e714e71",
@@ -2225,10 +2225,10 @@
       "arcade_pc": "0x0505DC",
       "rom_pc": "0x0507E2",
       "original_bytes": "2b7c0005b5ec1332",
-      "original_bytes_shift_adjusted": "2b7c0005b6581332",
-      "replacement_bytes": "2b7c0005b6581332",
+      "original_bytes_shift_adjusted": "2b7c0005b6221332",
+      "replacement_bytes": "2b7c0005b6221332",
       "replacement_bytes_template": "2b7c0005b7ec1332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b6581332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b6221332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5EC now maps to runtime Genesis copied-ROM table 0x0005B7EC per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5EC=0x00AD at runtime instead of relocated 0x0005B7EC=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2236,10 +2236,10 @@
       "arcade_pc": "0x0514B8",
       "rom_pc": "0x0516C0",
       "original_bytes": "2b7c0005b5ec1332",
-      "original_bytes_shift_adjusted": "2b7c0005b6581332",
-      "replacement_bytes": "2b7c0005b6581332",
+      "original_bytes_shift_adjusted": "2b7c0005b6221332",
+      "replacement_bytes": "2b7c0005b6221332",
       "replacement_bytes_template": "2b7c0005b7ec1332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b6581332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b6221332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5EC now maps to runtime Genesis copied-ROM table 0x0005B7EC per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5EC=0x00AD at runtime instead of relocated 0x0005B7EC=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2247,10 +2247,10 @@
       "arcade_pc": "0x0520DC",
       "rom_pc": "0x052294",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b60e1332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5d81332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b60e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2258,10 +2258,10 @@
       "arcade_pc": "0x0520E6",
       "rom_pc": "0x05229E",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5dc1332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5a61332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5dc1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2269,10 +2269,10 @@
       "arcade_pc": "0x05211A",
       "rom_pc": "0x0522D2",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b60e1332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5d81332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b60e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2280,10 +2280,10 @@
       "arcade_pc": "0x052124",
       "rom_pc": "0x0522DC",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5dc1332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5a61332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5dc1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2291,10 +2291,10 @@
       "arcade_pc": "0x052150",
       "rom_pc": "0x052308",
       "original_bytes": "2b7c0005b5481332",
-      "original_bytes_shift_adjusted": "2b7c0005b5b41332",
-      "replacement_bytes": "2b7c0005b5b41332",
+      "original_bytes_shift_adjusted": "2b7c0005b57e1332",
+      "replacement_bytes": "2b7c0005b57e1332",
       "replacement_bytes_template": "2b7c0005b7481332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5b41332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b57e1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B548 now maps to runtime Genesis copied-ROM table 0x0005B748 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B548=0x00AD at runtime instead of relocated 0x0005B748=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2302,10 +2302,10 @@
       "arcade_pc": "0x05215A",
       "rom_pc": "0x052312",
       "original_bytes": "2b7c0005b5161332",
-      "original_bytes_shift_adjusted": "2b7c0005b5821332",
-      "replacement_bytes": "2b7c0005b5821332",
+      "original_bytes_shift_adjusted": "2b7c0005b54c1332",
+      "replacement_bytes": "2b7c0005b54c1332",
       "replacement_bytes_template": "2b7c0005b7161332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5821332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b54c1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2313,10 +2313,10 @@
       "arcade_pc": "0x05218E",
       "rom_pc": "0x052346",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b60e1332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5d81332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b60e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2324,10 +2324,10 @@
       "arcade_pc": "0x052198",
       "rom_pc": "0x052350",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5dc1332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5a61332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5dc1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2335,10 +2335,10 @@
       "arcade_pc": "0x0521CA",
       "rom_pc": "0x052382",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b60e1332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5d81332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b60e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2346,10 +2346,10 @@
       "arcade_pc": "0x0521D4",
       "rom_pc": "0x05238C",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5dc1332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5a61332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5dc1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2357,10 +2357,10 @@
       "arcade_pc": "0x052212",
       "rom_pc": "0x0523CA",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b60e1332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5d81332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b60e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2368,10 +2368,10 @@
       "arcade_pc": "0x05221C",
       "rom_pc": "0x0523D4",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5dc1332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5a61332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5dc1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2379,10 +2379,10 @@
       "arcade_pc": "0x052250",
       "rom_pc": "0x052408",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b60e1332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5d81332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b60e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2390,10 +2390,10 @@
       "arcade_pc": "0x05225A",
       "rom_pc": "0x052412",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5dc1332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5a61332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5dc1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2401,10 +2401,10 @@
       "arcade_pc": "0x052298",
       "rom_pc": "0x052450",
       "original_bytes": "2b7c0005b5481332",
-      "original_bytes_shift_adjusted": "2b7c0005b5b41332",
-      "replacement_bytes": "2b7c0005b5b41332",
+      "original_bytes_shift_adjusted": "2b7c0005b57e1332",
+      "replacement_bytes": "2b7c0005b57e1332",
       "replacement_bytes_template": "2b7c0005b7481332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5b41332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b57e1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B548 now maps to runtime Genesis copied-ROM table 0x0005B748 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B548=0x00AD at runtime instead of relocated 0x0005B748=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2412,10 +2412,10 @@
       "arcade_pc": "0x0522A2",
       "rom_pc": "0x05245A",
       "original_bytes": "2b7c0005b5161332",
-      "original_bytes_shift_adjusted": "2b7c0005b5821332",
-      "replacement_bytes": "2b7c0005b5821332",
+      "original_bytes_shift_adjusted": "2b7c0005b54c1332",
+      "replacement_bytes": "2b7c0005b54c1332",
       "replacement_bytes_template": "2b7c0005b7161332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5821332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b54c1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2423,10 +2423,10 @@
       "arcade_pc": "0x0522D6",
       "rom_pc": "0x05248E",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b60e1332",
-      "replacement_bytes": "2b7c0005b60e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5d81332",
+      "replacement_bytes": "2b7c0005b5d81332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b60e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5d81332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2434,10 +2434,10 @@
       "arcade_pc": "0x0522E0",
       "rom_pc": "0x052498",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5dc1332",
-      "replacement_bytes": "2b7c0005b5dc1332",
+      "original_bytes_shift_adjusted": "2b7c0005b5a61332",
+      "replacement_bytes": "2b7c0005b5a61332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5dc1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5a61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2445,10 +2445,10 @@
       "arcade_pc": "0x052310",
       "rom_pc": "0x0524C8",
       "original_bytes": "2b7c0005b62e1332",
-      "original_bytes_shift_adjusted": "2b7c0005b69a1332",
-      "replacement_bytes": "2b7c0005b69a1332",
+      "original_bytes_shift_adjusted": "2b7c0005b6641332",
+      "replacement_bytes": "2b7c0005b6641332",
       "replacement_bytes_template": "2b7c0005b82e1332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b69a1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b6641332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B62E now maps to runtime Genesis copied-ROM table 0x0005B82E per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B62E=0x00AD at runtime instead of relocated 0x0005B82E=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2456,10 +2456,10 @@
       "arcade_pc": "0x05233E",
       "rom_pc": "0x0524F6",
       "original_bytes": "2b7c0005b62e1332",
-      "original_bytes_shift_adjusted": "2b7c0005b69a1332",
-      "replacement_bytes": "2b7c0005b69a1332",
+      "original_bytes_shift_adjusted": "2b7c0005b6641332",
+      "replacement_bytes": "2b7c0005b6641332",
       "replacement_bytes_template": "2b7c0005b82e1332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b69a1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b6641332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B62E now maps to runtime Genesis copied-ROM table 0x0005B82E per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B62E=0x00AD at runtime instead of relocated 0x0005B82E=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2467,10 +2467,10 @@
       "arcade_pc": "0x0523C4",
       "rom_pc": "0x05257C",
       "original_bytes": "0cad0005b5161332",
-      "original_bytes_shift_adjusted": "0cad0005b5821332",
-      "replacement_bytes": "0cad0005b5821332",
+      "original_bytes_shift_adjusted": "0cad0005b54c1332",
+      "replacement_bytes": "0cad0005b54c1332",
       "replacement_bytes_template": "0cad0005b7161332",
-      "replacement_bytes_shift_adjusted": "0cad0005b5821332",
+      "replacement_bytes_shift_adjusted": "0cad0005b54c1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
@@ -2509,7 +2509,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054754",
-      "rom_pc": "0x054858",
+      "rom_pc": "0x054840",
       "original_bytes": "207c0010d338",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff1338",
@@ -2520,7 +2520,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054602",
-      "rom_pc": "0x0546FA",
+      "rom_pc": "0x0546EA",
       "original_bytes": "322d1308",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "3e2d1308",
@@ -2531,7 +2531,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054606",
-      "rom_pc": "0x0546FE",
+      "rom_pc": "0x0546EE",
       "original_bytes": "e249",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "e24f",
@@ -2542,7 +2542,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054608",
-      "rom_pc": "0x054700",
+      "rom_pc": "0x0546F0",
       "original_bytes": "02410003",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "02470003",
@@ -2553,7 +2553,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05460C",
-      "rom_pc": "0x054704",
+      "rom_pc": "0x0546F4",
       "original_bytes": "e349",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "e34f",
@@ -2564,7 +2564,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05465E",
-      "rom_pc": "0x05475C",
+      "rom_pc": "0x054746",
       "original_bytes": "d4c1",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "d4c7",
@@ -2575,7 +2575,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05466A",
-      "rom_pc": "0x054768",
+      "rom_pc": "0x054752",
       "original_bytes": "d4c1",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "d4c7",
@@ -2586,7 +2586,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054676",
-      "rom_pc": "0x054774",
+      "rom_pc": "0x05475E",
       "original_bytes": "d4c1",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "d4c7",
@@ -2597,7 +2597,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054682",
-      "rom_pc": "0x054780",
+      "rom_pc": "0x05476A",
       "original_bytes": "d4c1",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "d4c7",
@@ -2608,7 +2608,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A502",
-      "rom_pc": "0x05A56E",
+      "rom_pc": "0x05A538",
       "original_bytes": "4280",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e75",
@@ -2653,13 +2653,13 @@
       "kind": "relocate_after_shift_operand",
       "arcade_pc": "0x054810",
       "arcade_target": "0x05DA5E",
-      "shift_before_target": -404,
-      "final_operand": "0x05DACA",
-      "genesis_callsite": "0x0548EA",
-      "rom_bytes_written": "207C0005DACAC0FC0018D0C04EB900073AC44E75"
+      "shift_before_target": -458,
+      "final_operand": "0x05DA94",
+      "genesis_callsite": "0x0548CE",
+      "rom_bytes_written": "207C0005DA94C0FC0018D0C04EB900073DE44E75"
     }
   ],
-  "checksum": "0x802B",
+  "checksum": "0x658C",
   "relocation_map": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {
@@ -2671,7 +2671,7 @@
   "build_context": "canonical",
   "genesis_coverage_delta": "0x0",
   "postpatch_expected_opcode_replace_sites": 231,
-  "postpatch_expected_total_genesis_bytes_covered": "0x1B7EB8",
+  "postpatch_expected_total_genesis_bytes_covered": "0x1E7EB8",
   "bookmarks_v2_count": 0,
   "bookmarks_v2_applied": [],
   "direct_execution": {

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import struct
 from pathlib import Path
 
@@ -17,6 +18,229 @@ EXPECTED = (
     ("large_bat", 0x03F6, 0xB6, 3, 0, 0x3E, 0x06, 0x0A, ATTR_EMBEDDED),
     ("small_bat", 0x0268, 0xB9, 3, 0, 0x3E, 0x06, 0x0B, ATTR_EMBEDDED),
 )
+
+
+def block(source: str, start: str, end: str) -> str:
+    begin = source.index(start)
+    finish = source.index(end, begin)
+    return source[begin:finish]
+
+
+def direct_references(source: str, label: str) -> list[tuple[str, int, str]]:
+    """Return assembly instructions that directly reference *label*.
+
+    Label definitions and comments are excluded.  This deliberately accepts
+    mnemonic size suffixes and arbitrary whitespace so a bsr.w/jsr or a second
+    caller cannot evade the private-probe contract through formatting.
+    """
+    refs: list[tuple[str, int, str]] = []
+    for lineno, raw in enumerate(source.splitlines(), 1):
+        code = raw.split("/*", 1)[0].split("|", 1)[0].strip()
+        if not code or code.endswith(":"):
+            continue
+        match = re.match(r"([A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z0-9]+)?)\s+(.+)$", code)
+        if match and re.search(rf"(?<![A-Za-z0-9_.]){re.escape(label)}(?![A-Za-z0-9_.])",
+                               match.group(2)):
+            refs.append((match.group(1).lower(), lineno, code))
+    return refs
+
+
+def address_register_writes(source_block: str, registers: tuple[str, ...]) -> list[str]:
+    """Find instructions that can modify one of the named address registers.
+
+    Ordinary address-register reads are legal.  A register is treated as
+    clobbered when it is the explicit destination, is restored/loaded by
+    MOVEM, or is changed implicitly by predecrement/postincrement addressing.
+    """
+    writes: list[str] = []
+    wanted = {f"%{register.lower()}" for register in registers}
+    for raw in source_block.splitlines():
+        code = raw.split("/*", 1)[0].split("|", 1)[0].strip()
+        if not code or code.endswith(":") or code.startswith("."):
+            continue
+        match = re.match(r"([A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z0-9]+)?)\s+(.+)$", code)
+        if not match:
+            continue
+        mnemonic, operands = match.group(1).lower(), match.group(2).lower()
+        # Addressing-mode side effects modify the address register even when
+        # the memory operand is a source rather than the final destination.
+        if any(re.search(rf"(?:-\({re.escape(reg)}\)|\({re.escape(reg)}\)\+)", operands)
+               for reg in wanted):
+            writes.append(code)
+            continue
+        parts = [part.strip() for part in operands.split(",")]
+        destination = parts[-1] if parts else ""
+        if destination in wanted:
+            writes.append(code)
+            continue
+        # A memory-to-register MOVEM has a register list as its destination.
+        if mnemonic.startswith("movem") and len(parts) >= 2 and any(
+                re.search(rf"(?<![a-z0-9]){re.escape(reg)}(?![a-z0-9])", destination)
+                for reg in wanted):
+            writes.append(code)
+    return writes
+
+
+def verify_fast_enqueue(source: str) -> None:
+    """Prove that the generated-frame fast path changes cost, not semantics.
+
+    The generated tables already own geometry, finalized identity and attributes.
+    This check therefore compares the queue contract at the only optimized cut:
+    lane selection plus the four-word append.  Residency, worklist construction,
+    SAT attributes/linking and emit-on-miss remain below the same shared finalizer.
+    """
+    context = block(source, "native_sprite_fast_context:", "native_sprite_emit_fast:")
+    emit = block(source, "native_sprite_emit_fast:", "native_stage_dispatch_41dae:")
+    finalizer = block(source, "pc090oj_native_emit_pass:", "profile_native_finalizer_done:")
+
+    lanes = (
+        ("hud", "native_queue_hud", "native_hud_count", "NATIVE_HUD_BOUND"),
+        ("front_effect", "native_queue_front_effect", "native_front_effect_count", "NATIVE_FRONT_EFFECT_BOUND"),
+        ("player_front", "native_queue_player_front", "native_player_front_count", "NATIVE_PLAYER_FRONT_BOUND"),
+        ("middle", "native_queue_middle", "native_middle_count", "NATIVE_MIDDLE_BOUND"),
+        ("player_body", "native_queue_player_body", "native_player_body_count", "NATIVE_PLAYER_BODY_BOUND"),
+        ("back_enemy", "native_queue_back_enemy", "native_back_enemy_count", "NATIVE_BACK_ENEMY_BOUND"),
+    )
+    for name, queue, count, bound in lanes:
+        end = f"{queue}_end"
+        for token in (queue, count, end):
+            if token not in context:
+                raise SystemExit(f"FAIL fast enqueue: {name} context omits {token}")
+        allocation = f"{queue}:\n    .space ({bound} * NATIVE_QUEUE_ENTRY_BYTES)\n{end}:"
+        if allocation not in source:
+            raise SystemExit(f"FAIL fast enqueue: {name} end label does not exactly bound allocation")
+
+    required_emit = (
+        "btst    #13, %d3", "andi.w  #0x1FFF, %d0", "cmpi.w  #0x00FF, %d0",
+        "andi.w  #0x01FF, %d0", "cmpi.w  #0x0180, %d0",
+        "move.w  (%a6), %d0", "lsl.w   #3, %d0", "lea     0(%a3,%d0.w), %a1",
+        "cmpa.l  %a2, %a1", "move.w  %d1, (%a1)+", "move.w  %d2, (%a1)+",
+        "move.w  %d3, (%a1)+", "move.w  %d4, (%a1)+", "addq.w  #1, (%a6)",
+    )
+    for token in required_emit:
+        if token not in emit:
+            raise SystemExit(f"FAIL fast enqueue contract omits: {token}")
+    stores = re.findall(r"move\.w\s+%d([1-4]), \(%a1\)\+", emit)
+    if stores != ["1", "2", "3", "4"]:
+        raise SystemExit(f"FAIL fast enqueue tuple order: {stores}")
+
+    # Every generated producer selects context once and reaches the fast append;
+    # the finalizer remains the sole consumer, preserving queue/lane ordering,
+    # dynamic attrs/flips/priority, residency misses/worklists, SAT links and DMA.
+    generated = (
+        ("native_player_front_fixed:", "native_player_aux_fixed:"),
+        ("native_player_aux_fixed:", "native_player_body_begin:"),
+        ("native_player_frame_try:", "native_player_secondary_frame:"),
+        ("native_player_secondary_frame:", "native_player_body_anchor_blank:"),
+        (".Lnative_generic_frame_try:", ".Lnative_mapping_branch_is_normal:"),
+        (".Lnative_universal_general_try:", ".Lnative_mapping_branch_is_normal:"),
+    )
+    for start, end in generated:
+        producer = block(source, start, end)
+        if "native_sprite_fast_context" not in producer or "native_sprite_emit_fast" not in producer:
+            raise SystemExit(f"FAIL fast enqueue not used by generated producer {start}")
+
+    # The two generated probes are private to the common actor wrapper.  Stage
+    # dispatch owns the complete retained-caller register contract once, while
+    # the common wrapper preserves only its loop-live D5/A1 values.  Reject a
+    # reintroduction of nested full saves or any second call site that would
+    # make the private clobber contract unsafe.
+    common = block(source, ".Lnative_emit_actor_common:",
+                   ".Lnative_generic_frame_try:")
+    if ("movem.l %d5/%a1, -(%sp)" not in common or
+            "movem.l (%sp)+, %d5/%a1" not in common):
+        raise SystemExit("FAIL fast enqueue: common actor wrapper does not preserve D5/A1")
+    intended_calls = {
+        ".Lnative_generic_frame_try": direct_references(
+            source, ".Lnative_generic_frame_try"),
+        ".Lnative_universal_general_try": direct_references(
+            source, ".Lnative_universal_general_try"),
+    }
+    for label, references in intended_calls.items():
+        if len(references) != 1 or references[0][0].split(".", 1)[0] != "bsr":
+            raise SystemExit(
+                f"FAIL fast enqueue: {label} private-call contract changed: {references}")
+        if references[0][2] not in common:
+            raise SystemExit(f"FAIL fast enqueue: {label} caller escaped common wrapper")
+
+    push = re.search(r"movem\.l\s+%d5/%a1\s*,\s*-\(%sp\)", common)
+    pop = re.search(r"movem\.l\s+\(%sp\)\+\s*,\s*%d5/%a1", common)
+    ret_label = common.find(".Lnea_ret:")
+    if push is None or pop is None or not (push.start() < pop.start() < ret_label):
+        raise SystemExit("FAIL fast enqueue: common wrapper D5/A1 stack order is unbalanced")
+    pre_save = common[:push.start()]
+    post_save = common[push.end():pop.start()]
+    if len(re.findall(r"\bbeq(?:\.[a-z]+)?\s+\.Lnea_ret\b", pre_save, re.I)) != 2:
+        raise SystemExit("FAIL fast enqueue: pre-save early exits changed")
+    if re.search(r"\.Lnea_ret\b", post_save):
+        raise SystemExit("FAIL fast enqueue: post-save path can bypass D5/A1 restore")
+    if common.count("rts") != 1 or common.find("rts", ret_label) < ret_label:
+        raise SystemExit("FAIL fast enqueue: common wrapper return/stack structure changed")
+    full_save = "movem.l %d0-%d7/%a0-%a6, -(%sp)"
+    full_restore = "movem.l (%sp)+, %d0-%d7/%a0-%a6"
+    for start, end in (("native_stage_dispatch_41dae:", "native_stage_dispatch_45dfa:"),
+                       ("native_stage_dispatch_45dfa:", ".Lnative_emit_actor_common:")):
+        stage = block(source, start, end)
+        if full_save not in stage or full_restore not in stage:
+            raise SystemExit(f"FAIL fast enqueue: stage dispatcher {start} lost full caller preservation")
+    private_blocks = {
+        "generic probe": block(source, ".Lnative_generic_frame_try:",
+                               ".Lnative_universal_general_try:"),
+        "universal probe": block(source, ".Lnative_universal_general_try:",
+                                 ".Lnative_mapping_branch_is_normal:"),
+        "fast context": context,
+        "fast emit": emit,
+        "mapping predicate": block(source, ".Lnative_mapping_branch_is_normal:",
+                                   "genesistan_native_contact_coords_51ab6:"),
+    }
+    for name, private_block in private_blocks.items():
+        if re.search(r"\bmovem\.", private_block, re.I):
+            raise SystemExit(f"FAIL fast enqueue: nested register save/load in {name}")
+        a4_a5_writes = address_register_writes(private_block, ("a4", "a5"))
+        if a4_a5_writes:
+            raise SystemExit(
+                f"FAIL fast enqueue: {name} clobbers loop-live A4/A5: {a4_a5_writes}")
+    for token in ("native_queue_player_front", "native_queue_player_body",
+                  "native_queue_front_effect", "native_queue_middle",
+                  "native_queue_back_enemy", "pc090oj_tile_dma_worklist",
+                  "staged_sprite_sat", "profile_native_final_piece_entry"):
+        if token not in finalizer:
+            raise SystemExit(f"FAIL shared finalizer contract omits {token}")
+
+    print("PASS fast enqueue semantics: 6 exact allocation-end labels; filters/bounds/count "
+          "and D1/D2/D3/D4 tuple order equivalent; stage-owned full caller contract and "
+          "D5/A1 loop preservation, A4/A5 non-clobber, robust single-caller and balanced "
+          "early-exit contracts verified; shared residency/worklist/SAT finalizer retained")
+
+    # Mechanical variable-count reconciliation.  False means that a potential
+    # piece is legitimately rejected before append.  Source consideration is
+    # independent of the compact output pointer/count.
+    def reconcile(visible: tuple[bool, ...], initial: int = 0,
+                  bound: int = 32) -> tuple[int, int, int, int]:
+        considered = rejected = emitted = 0
+        queue_count = initial
+        for accept in visible:
+            considered += 1
+            if not accept or queue_count >= bound:
+                rejected += 1
+                continue
+            emitted += 1
+            queue_count += 1
+        return considered, rejected, emitted, queue_count - initial
+
+    cases = {
+        "no rejection/fully onscreen": ((True,) * 8, 0, 32, (8, 0, 8, 8)),
+        "first rejected": ((False, True, True, True), 0, 32, (4, 1, 3, 3)),
+        "middle rejected": ((True, False, True, True), 0, 32, (4, 1, 3, 3)),
+        "last rejected": ((True, True, True, False), 0, 32, (4, 1, 3, 3)),
+        "multiple/partly offscreen": ((False, False, True, False, True), 0, 32, (5, 3, 2, 2)),
+        "near capacity": ((True, True, True, True), 30, 32, (4, 2, 2, 2)),
+    }
+    for name, (visible, initial, bound, expected) in cases.items():
+        actual = reconcile(visible, initial, bound)
+        if actual != expected:
+            raise SystemExit(f"FAIL variable-count reconciliation {name}: {actual} != {expected}")
+    print(f"PASS variable-count reconciliation: {len(cases)} reject/visibility/capacity cases")
 
 
 def dispatch(base_lut: bytes, usage_blob: bytes, index: bytes, actor: dict,
@@ -100,6 +324,7 @@ def main() -> None:
         raise SystemExit("FAIL UNKNOWN base did not fall back")
 
     source = args.assembly.read_text()
+    verify_fast_enqueue(source)
     start = source.index(".Lnative_generic_frame_try:")
     end = source.index(".Lnative_mapping_branch_is_normal:", start)
     dispatcher = source[start:end]

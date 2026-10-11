@@ -19,10 +19,25 @@ pc090oj_player_frame_table:
 pc090oj_player_frame_index:
     .incbin "../../build/pc090oj_frame_index.bin"
 
+    .global pc090oj_secondary_frame_index
+    .align 2
+pc090oj_secondary_frame_index:
+    .incbin "../../build/pc090oj_secondary_frame_index.bin"
+
     .global pc090oj_generic_frame_index
     .align 2
 pc090oj_generic_frame_index:
     .incbin "../../build/pc090oj_generic_frame_index.bin"
+
+    .global pc090oj_universal_frame_index
+    .align 2
+pc090oj_universal_frame_index:
+    .incbin "../../build/pc090oj_universal_frame_index.bin"
+
+    .global pc090oj_special_frame_index
+    .align 2
+pc090oj_special_frame_index:
+    .incbin "../../build/pc090oj_special_frame_index.bin"
 
     .global pc090oj_generic_base_lut
     .align 2

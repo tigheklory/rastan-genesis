@@ -47,6 +47,31 @@ local PC_PLAYER2_ENTRY = envpc("FRAME_TIMING_PLAYER2_ENTRY", 0)
 local PC_PLAYER2_RETURN = envpc("FRAME_TIMING_PLAYER2_RETURN", 0)
 local PC_GENERIC_RET  = envpc("FRAME_TIMING_GENERIC_RET", 0x07358E)
 local PC_RES_MISS     = envpc("FRAME_TIMING_RES_MISS", 0x0743EC)
+-- Host-only timestamps at existing top-level worker boundaries.  They add no
+-- emulated instructions and partition pre-dispatch, gameplay, and graphics.
+local WORKER_STAGE_PCS = {
+  {1, envpc("FRAME_TIMING_STAGE_PRE_DONE", 0x03A252)},
+  {2, envpc("FRAME_TIMING_STAGE_DISPATCH_DONE", 0x03A274)},
+  {3, envpc("FRAME_TIMING_STAGE_GRAPHICS_DONE", 0x03A27A)},
+}
+local GAMEPLAY_STAGE_PCS = {
+  {0,0x04210E}, {1,0x042114}, {2,0x042118}, {3,0x04211C},
+  {4,0x042120}, {5,0x042124}, {6,0x042128}, {7,0x04212E},
+}
+local PLAYER_UPDATE_STAGE_PCS = {
+  {0,0x05125A}, {1,0x051260}, {2,0x05126C}, {3,0x051272},
+  {4,0x051276}, {5,0x05127C}, {6,0x051282}, {7,0x051288},
+  {8,0x05128E}, {9,0x051292}, {10,0x051298}, {11,0x0512A2},
+  {12,0x0512A8}, {13,0x0512AE}, {14,0x0512B4}, {15,0x0512B8},
+  {16,0x0512BE}, {17,0x0512C4}, {18,0x0512C8}, {19,0x0512CC},
+}
+local SCROLL_STAGE_PCS = {
+  {1,0x0559C8}, {2,0x0559E6}, {3,0x0408A4}, {4,0x0409A4},
+}
+local PC080SN_MAP_PCS = {
+  {1,0x070418}, {2,0x070550}, {3,0x070552}, {4,0x070682},
+  {5,0x070684}, {6,0x0706DC}, {7,0x055816},
+}
 local function r8(a)  local v=0; pcall(function() v=prog:read_u8(a) end); return v & 0xFF end
 local function r16(a) local v=0; pcall(function() v=prog:read_u16(a) end); return v & 0xFFFF end
 local symbols={}
@@ -74,13 +99,29 @@ local A_EMIT   = 0x00FFBED4
 local A_INPUT  = 0x00FF61F6
 local A_VC0    = 0x00FF61E4   -- vblank_vc[0]; marks 0..6 at vblank_vc+0..+6
 local A_VC6    = 0x00FF61EA
-local A_SCENE  = 0x00FFC554   -- genesistan_current_scene_id (1 = gameplay; 0 title, 2 end-round)
+local A_SCENE  = tonumber(os.getenv("FRAME_TIMING_SCENE_ADDR") or "0x00FFC55C")
+                                      -- genesistan_current_scene_id (1 = gameplay; 0 title, 2 end-round)
 local A_RECORD = 0x00FF013E
 local A_ENERGY = 0x00FF013A
 local A_TILE_DMA_COUNT = 0x00FFB7E8
 local A_TILE_DMA_WORK  = 0x00FFB7B8
 local A_RESIDENT_CODE  = 0x00FFB756
 local VDP_LO, VDP_HI = 0x00C00000, 0x00C00007
+local function active_count(base, count)
+  local n=0
+  for i=0,count-1 do if r8(base+i*0x40)~=0 then n=n+1 end end
+  return n
+end
+local function active_stage_counts()
+  local enemies=active_count(0x00FF02C8,9)
+  local total=enemies+active_count(0x00FF0508,2)+active_count(0x00FF05C8,6)+active_count(0x00FF0748,11)
+  local renderable_enemies=0
+  for i=0,8 do
+    local a=0x00FF02C8+i*0x40
+    if r8(a)~=0 and r8(a+5)~=0 then renderable_enemies=renderable_enemies+1 end
+  end
+  return total,enemies,renderable_enemies
+end
 
 -- ======== interval statistics (reset on ARM) ========
 local S = {}
@@ -155,6 +196,31 @@ if have_dbg then
   nx(PC_GENERIC_RET,8,"d0,a4,b@(a4+5),b@(a4+6),w@(a4+1e),b@(a4+1)")
   nx(PC_RES_MISS,9)
   nx(PC_PLAYER2_ENTRY,10); nx(PC_PLAYER2_RETURN,11)
+  for _,stage in ipairs(WORKER_STAGE_PCS) do
+    assert(pcall(function() cpu.debug:bpset(stage[2],"1",string.format(
+      'printf "WS,%d,%%d,%%X,%%X,%%X\\n",totalcycles,w@(a5),w@(a5+2),w@(a5+13e); g',stage[1])) end),
+      string.format("worker stage breakpoint %d install failed",stage[1]))
+  end
+  for _,stage in ipairs(GAMEPLAY_STAGE_PCS) do
+    assert(pcall(function() cpu.debug:bpset(stage[2],"1",string.format(
+      'printf "GP,%d,%%d\\n",totalcycles; g',stage[1])) end),
+      string.format("gameplay stage breakpoint %d install failed",stage[1]))
+  end
+  for _,stage in ipairs(PLAYER_UPDATE_STAGE_PCS) do
+    assert(pcall(function() cpu.debug:bpset(stage[2],"1",string.format(
+      'printf "PU,%d,%%d\\n",totalcycles; g',stage[1])) end),
+      string.format("player-update stage breakpoint %d install failed",stage[1]))
+  end
+  for _,stage in ipairs(SCROLL_STAGE_PCS) do
+    assert(pcall(function() cpu.debug:bpset(stage[2],"1",string.format(
+      'printf "SM,%d,%%d\\n",totalcycles; g',stage[1])) end),
+      string.format("scroll stage breakpoint %d install failed",stage[1]))
+  end
+  for _,stage in ipairs(PC080SN_MAP_PCS) do
+    assert(pcall(function() cpu.debug:bpset(stage[2],"1",string.format(
+      'printf "PM,%d,%%d\\n",totalcycles; g',stage[1])) end),
+      string.format("PC080SN map breakpoint %d install failed",stage[1]))
+  end
   -- NOTE: the async debugger VDP WATCHPOINT ("VW") was REMOVED. Debugger watchpoint events and
   -- PE/PR breakpoint events are drained from one console log but are not guaranteed mutually
   -- chronological, which produced the false GATE FAIL / 100%-UNKNOWN artifact. VDP-write ownership
@@ -201,6 +267,38 @@ local function on_native_event(kind, cyc, d0, a4, raw5, raw6, base, selector)
   elseif kind==11 then
     if player2_start and cur then cur.player=(cur.player or 0)+(cyc-player2_start) end
     player2_start=nil
+  end
+end
+local function on_worker_stage(kind, cyc, state0, state2, record)
+  if not armed or not cur or phase~="WE" then return end
+  cur.ws=cur.ws or {}
+  cur.ws[kind]=cyc
+  cur.state0=state0; cur.state2=state2; cur.record=record
+end
+local function on_gameplay_stage(kind, cyc)
+  if not armed or not cur or phase~="WE" then return end
+  cur.gp=cur.gp or {}
+  cur.gp[kind]=cyc
+end
+local function on_player_update_stage(kind, cyc)
+  if not armed or not cur or phase~="WE" then return end
+  cur.pu=cur.pu or {}
+  cur.pu[kind]=cyc
+end
+local function on_scroll_stage(kind, cyc)
+  if not armed or not cur or phase~="WE" then return end
+  if kind==1 then cur.sm_start=cyc
+  elseif kind==2 and cur.sm_start then cur.sm=(cur.sm or 0)+(cyc-cur.sm_start);cur.sm_start=nil
+  elseif kind==3 then cur.sa_start=cyc
+  elseif kind==4 and cur.sa_start then cur.sa=(cur.sa or 0)+(cyc-cur.sa_start);cur.sa_start=nil end
+end
+local function on_pc080sn_map(kind, cyc)
+  if not armed or not cur or phase~="WE" then return end
+  if kind==1 or kind==3 or kind==5 or kind==6 then cur.pm_start=cyc
+  elseif (kind==2 or kind==4) and cur.pm_start then
+    cur.pm=(cur.pm or 0)+(cyc-cur.pm_start);cur.pm_start=nil
+  elseif kind==7 and cur.pm_start then
+    cur.pm=(cur.pm or 0)+(cyc-cur.pm_start);cur.pm_start=nil
   end
 end
 local function reject_sequence()
@@ -250,10 +348,27 @@ local function on_event(tag, cyc, frame, hv, emit)
     -- accumulate Pearson correlation over (emitted, worker_cycles)
     S.corr_n=S.corr_n+1; S.corr_sx=S.corr_sx+e; S.corr_sy=S.corr_sy+wcyc
     S.corr_sxx=S.corr_sxx+e*e; S.corr_syy=S.corr_syy+wcyc*wcyc; S.corr_sxy=S.corr_sxy+e*wcyc
-    S.series[#S.series+1]=string.format("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+    local ws=cur.ws or {}
+    local pre=ws[1] and (ws[1]-cur.we) or -1
+    local dispatch=(ws[1] and ws[2]) and (ws[2]-ws[1]) or -1
+    local final_graphics=(ws[2] and ws[3]) and (ws[3]-ws[2]) or -1
+    local tail=ws[3] and (cyc-ws[3]) or -1
+    local gp=cur.gp or {}
+    local gc={}
+    for i=1,7 do gc[i]=(gp[i-1] and gp[i]) and (gp[i]-gp[i-1]) or -1 end
+    local pu=cur.pu or {}
+    local pcost={}
+    for i=1,19 do pcost[i]=(pu[i-1] and pu[i]) and (pu[i]-pu[i-1]) or -1 end
+    local active_total,active_enemies,renderable_enemies=active_stage_counts()
+    S.series[#S.series+1]=string.format(string.rep("%d,",49).."%d",
       frame, e, wcyc, icyc, cur.pr-cur.pe, cur.we_v, frame-cur.we_f,
       graphics,cur.player or 0,cur.gh or 0,cur.gf or 0,cur.rm or 0,
-      pm.installs,pm.evictions,cur.dma_words or 0)
+      pm.installs,pm.evictions,cur.dma_words or 0,
+      pre,dispatch,final_graphics,tail,cur.state0 or -1,cur.state2 or -1,cur.record or -1,
+      gc[1],gc[2],gc[3],gc[4],gc[5],gc[6],gc[7],
+      pcost[1],pcost[2],pcost[3],pcost[4],pcost[5],pcost[6],pcost[7],pcost[8],pcost[9],pcost[10],
+      pcost[11],pcost[12],pcost[13],pcost[14],pcost[15],pcost[16],pcost[17],pcost[18],pcost[19],
+      cur.sm or 0,cur.sa or 0)..string.format(",%d,%d,%d,%d",active_total,active_enemies,renderable_enemies,cur.pm or 0)
     S.complete_handlers=S.complete_handlers+1
     cur=nil; phase="IDLE"
   else
@@ -270,10 +385,35 @@ local function drain()
       on_native_event(tonumber(nk),tonumber(nc),tonumber(nd0,16),tonumber(na4,16),
         tonumber(n5,16),tonumber(n6,16),tonumber(nb,16),tonumber(ns,16))
     else
+    local wk,wc,ws0,ws2,wr = l:match("^WS,(%d+),(%d+),(%x+),(%x+),(%x+)")
+    if wk then
+      on_worker_stage(tonumber(wk),tonumber(wc),tonumber(ws0,16),tonumber(ws2,16),tonumber(wr,16))
+    else
+    local gk,gc = l:match("^GP,(%d+),(%d+)")
+    if gk then
+      on_gameplay_stage(tonumber(gk),tonumber(gc))
+    else
+    local pk,pc = l:match("^PU,(%d+),(%d+)")
+    if pk then
+      on_player_update_stage(tonumber(pk),tonumber(pc))
+    else
+    local mk,mc = l:match("^PM,(%d+),(%d+)")
+    if mk then
+      on_pc080sn_map(tonumber(mk),tonumber(mc))
+    else
+    local sk,sc = l:match("^SM,(%d+),(%d+)")
+    if sk then
+      on_scroll_stage(tonumber(sk),tonumber(sc))
+    else
     -- WR carries a 4th (emitted) field; PE/PR/WE carry 3. Accept only exact PE/PR/WE/WR tags.
     local tag,c,f,h,e = l:match("^(%u%u),(%d+),(%d+),(%d+),?(%d*)")
     if tag=="PE" or tag=="PR" or tag=="WE" or tag=="WR" then
       on_event(tag, tonumber(c), tonumber(f), tonumber(h), (e~="" and tonumber(e)) or nil)
+    end
+    end
+    end
+    end
+    end
     end
     end
   end
@@ -408,8 +548,8 @@ local function ms(c) return c/7670453*1000 end
 local function mean(a) if #a==0 then return 0 end local n=0 for _,v in ipairs(a) do n=n+v end return n/#a end
 local function pearson() -- over (emitted, worker_cycles)
   local n=S.corr_n; if n<2 then return "N/A" end
-  local num=n*S.corr_sxy - S.corr_sx*S.corr_sy
-  local den=math.sqrt((n*S.corr_sxx - S.corr_sx*S.corr_sx)*(n*S.corr_syy - S.corr_sy*S.corr_sy))
+  local num=1.0*n*S.corr_sxy - S.corr_sx*S.corr_sy
+  local den=math.sqrt((1.0*n*S.corr_sxx - S.corr_sx*S.corr_sx)*(1.0*n*S.corr_syy - S.corr_sy*S.corr_sy))
   if den==0 then return "N/A" end
   return string.format("%.3f", num/den)
 end
@@ -505,7 +645,7 @@ local function dump()
   f:close()
   -- per-handler time series for phase segmentation (before -> bats -> sustained)
   local cf=io.open(outdir.."/frame_timing_series.csv","w")
-  if cf then cf:write("frame,emitted,worker_cyc,irq_cyc,pub_cyc,worker_entry_V,frame_wraps,graphics_cyc,player_cyc,generic_hits,generic_fallbacks,residency_misses,pattern_installs,evictions,dma_words\n")
+  if cf then cf:write("frame,emitted,worker_cyc,irq_cyc,pub_cyc,worker_entry_V,frame_wraps,graphics_cyc,player_cyc,generic_hits,generic_fallbacks,residency_misses,pattern_installs,evictions,dma_words,pre_dispatch_cyc,state_dispatch_cyc,final_graphics_cyc,worker_tail_cyc,state0,state2,record,gp_51210_cyc,gp_40d66_cyc,gp_422e6_cyc,gp_445e0_cyc,gp_44bb4_cyc,gp_452d8_cyc,gp_4a1a6_cyc,pu_5a0e8,pu_73150,pu_59fe2,pu_51476,pu_52cd2,pu_52c54,pu_52c66,pu_54aaa,pu_51422,pu_51532,pu_gap,pu_556ce,pu_70bc6,pu_59e38,pu_514d0,pu_5a2ec,pu_59774,pu_5135e,pu_51432,scroll_map_cyc,scroll_actor_cyc,active_stage_actors,active_enemy_actors,renderable_enemy_candidates,pc080sn_map_cyc\n")
     for _,s in ipairs(S.series) do cf:write(s.."\n") end cf:close() end
   print(string.format("[frame_timing] wrote summary (armed=%d worker_pairs=%d prodC=%d gate_viol=%d dbg=%s)",
     S.armed_frames, #S.worker_cycles, S.producer_completions, S.gate_viol_total, tostring(have_dbg)))

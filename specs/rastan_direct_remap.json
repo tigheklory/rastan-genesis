@@ -207,10 +207,11 @@
   "genesistan_pc090oj_sprite_ctrl_clear",
   "native_player_frame_begin",
   "native_player_front_begin",
+  "native_player_front_fixed",
+  "native_player_aux_fixed",
   "native_player_body_begin",
   "native_player_frame_try",
-  "native_player_piece",
-  "native_player_body_anchor_piece",
+  "native_player_secondary_frame",
   "native_player_body_anchor_blank",
   "native_player_body_anchor_clear"
  ],
@@ -325,8 +326,8 @@
   {
    "arcade_pc": "0x054492",
    "original_bytes": "227C0010D1D2",
-   "replacement_bytes": "4EB9{symbol:native_player_frame_try}4A0067024E754EB9{symbol:native_player_body_begin}",
-   "note": "Native Graphics Task 1: the dedicated player compositor first tries the generated whole-frame pilot. Native entries return from 0x54492 after direct BODY-lane emission; explicit UNRESOLVED entries call the accepted native_player_body_begin hook and fall through into the unchanged Build-0400 per-piece compositor."
+   "replacement_bytes": "4EB9{symbol:native_player_frame_try}4E75",
+   "note": "Build 0407 closes the statically complete 1200-key player producer at the 0x54492 semantic boundary. The generated whole frame is authoritative and the old retained per-piece BODY interpreter is no longer a runtime continuation; the diagnostic miss counter remains an unreachable-coverage assertion."
   },
   {
    "arcade_pc": "0x0544D0",
@@ -351,12 +352,6 @@
    "original_bytes": "32E80000",
    "replacement_bytes": "36280000",
    "note": "BODY piece code remains semantic register state."
-  },
-  {
-   "arcade_pc": "0x05452C",
-   "original_bytes": "32C0",
-   "replacement_bytes": "38004EB9{symbol:native_player_piece}",
-   "note": "BODY piece X completes the semantic tuple and appends one final native lane entry."
   },
   {
    "arcade_pc": "0x054576",
@@ -395,16 +390,10 @@
    "note": "BODY state-adjusted code register realization."
   },
   {
-   "arcade_pc": "0x05464A",
-   "original_bytes": "32C0",
-   "replacement_bytes": "38004EB9{symbol:native_player_body_anchor_piece}",
-   "note": "BODY tuple-0 segment X completes one final native lane entry and publishes its semantic anchor on the first piece."
-  },
-  {
    "arcade_pc": "0x0546A8",
    "original_bytes": "227C0010D1F2",
-   "replacement_bytes": "4EB9{symbol:native_player_body_begin}",
-   "note": "BODY secondary segment selects the native PLAYER_BODY lane."
+   "replacement_bytes": "4EB9{symbol:native_player_secondary_frame}4E75",
+   "note": "Build 0407 whole-producer semantic cut for the A5+0x1246 secondary/legs compositor: direct-index the offline-generated 52-selector x four finite phase x two orientation frame set and emit to PLAYER_BODY. The old 0x5C466 runtime descriptor loop and native_player_piece adapter are unreachable."
   },
   {
    "arcade_pc": "0x0546E6",
@@ -431,10 +420,10 @@
    "note": "BODY secondary code register realization."
   },
   {
-   "arcade_pc": "0x054742",
-   "original_bytes": "32C0",
-   "replacement_bytes": "38004EB9{symbol:native_player_piece}",
-   "note": "BODY secondary X completes and emits one final native lane entry."
+   "arcade_pc": "0x05474E",
+   "original_bytes": "0C6D000412FA",
+   "replacement_bytes": "4EB9{symbol:native_player_aux_fixed}4E75",
+   "note": "Build 0407 whole-producer semantic cut for the three-piece player auxiliary: consume the retained A5+0x1338 active/Y/X records and A5+0x1364 phase directly into PLAYER_BODY. The old PC090OJ tuple loop and native_player_piece adapter are unreachable."
   },
   {
    "arcade_pc": "0x05475A",
@@ -465,12 +454,6 @@
    "original_bytes": "33410004",
    "replacement_bytes": "3601323C0010",
    "note": "Capture the completed auxiliary animation code in D3, then set the final native attribute word in D1 immediately before emission."
-  },
-  {
-   "arcade_pc": "0x054788",
-   "original_bytes": "336800020006",
-   "replacement_bytes": "382800024EB9{symbol:native_player_piece}",
-   "note": "Player auxiliary X completes and emits one final PLAYER_BODY entry."
   },
   {
    "arcade_pc": "0x054790",
@@ -516,8 +499,8 @@
   {
    "arcade_pc": "0x059F92",
    "original_bytes": "0C6D00FF1388",
-   "replacement_bytes": "48E75A000C6D00FF1388",
-   "note": "Preserve D1/D3/D4/D6 across FRONT: native register realization uses them, while the original FRONT producer modifies only A0."
+   "replacement_bytes": "4EB9{symbol:native_player_front_fixed}4E75",
+   "note": "Build 0407 whole-producer semantic cut: replace the fixed FRONT function at entry with direct generation of its four invariant PLAYER_FRONT records from A5+0x1388/A5+0x140E/A5+0x1410/A5+0x140C. No PC090OJ tuple or native_player_piece adapter is entered; the remainder of the old function is unreachable."
   },
   {
    "arcade_pc": "0x059F9A",
@@ -568,12 +551,6 @@
    "note": "FRONT weapon type-3 code register realization."
   },
   {
-   "arcade_pc": "0x059FD8",
-   "original_bytes": "30FC00A0",
-   "replacement_bytes": "383C00A04EB9{symbol:native_player_piece}",
-   "note": "FRONT weapon X completes and emits one final native lane entry."
-  },
-  {
    "arcade_pc": "0x059FDE",
    "original_bytes": "207C0010C170",
    "replacement_bytes": "60000012",
@@ -602,12 +579,6 @@
    "original_bytes": "30FC0A68",
    "replacement_bytes": "363C0A68",
    "note": "FRONT overlay slot 1 code register realization."
-  },
-  {
-   "arcade_pc": "0x05A00E",
-   "original_bytes": "30FC00B0",
-   "replacement_bytes": "383C00B04EB9{symbol:native_player_piece}",
-   "note": "FRONT overlay slot 1 X completes and emits one native entry."
   },
   {
    "arcade_pc": "0x05A014",
@@ -640,12 +611,6 @@
    "note": "FRONT overlay slot 2 code register realization."
   },
   {
-   "arcade_pc": "0x05A044",
-   "original_bytes": "30FC00C0",
-   "replacement_bytes": "383C00C04EB9{symbol:native_player_piece}",
-   "note": "FRONT overlay slot 2 X completes and emits one native entry."
-  },
-  {
    "arcade_pc": "0x05A04A",
    "original_bytes": "207C0010C180",
    "replacement_bytes": "60000012",
@@ -674,12 +639,6 @@
    "original_bytes": "30FC0A64",
    "replacement_bytes": "363C0A64",
    "note": "FRONT overlay slot 3 code register realization."
-  },
-  {
-   "arcade_pc": "0x05A07A",
-   "original_bytes": "30FC00D0",
-   "replacement_bytes": "383C00D04EB9{symbol:native_player_piece}",
-   "note": "FRONT overlay slot 3 X completes and emits one native entry."
   },
   {
    "arcade_pc": "0x05A080",

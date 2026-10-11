@@ -48,14 +48,19 @@
     .global pc090oj_sprite_ctrl_shadow
     .global pc090oj_emitted_count
     .global pc090oj_dropped_count
+    .global native_player_fallback_count
+    .global native_generic_fallback_count
+    .global native_specialized_hit_count
+    .global native_player_piece_adapter_count
     .global native_sprite_emit
     .global native_sprite_lane
     .global native_player_frame_begin
     .global native_player_front_begin
+    .global native_player_front_fixed
+    .global native_player_aux_fixed
     .global native_player_body_begin
     .global native_player_frame_try
-    .global native_player_piece
-    .global native_player_body_anchor_piece
+    .global native_player_secondary_frame
     .global native_player_body_anchor_blank
     .global native_player_body_anchor_clear
     .global pc090oj_select_palette_map
@@ -98,8 +103,11 @@
     .extern pc090oj_slot_lut
     .extern pc090oj_player_frame_table
     .extern pc090oj_player_frame_index
+    .extern pc090oj_secondary_frame_index
     .extern pc090oj_frame_table
     .extern pc090oj_generic_frame_index
+    .extern pc090oj_universal_frame_index
+    .extern pc090oj_special_frame_index
     .extern pc090oj_generic_base_lut
     .extern pc090oj_generic_usage_table
     .extern genesistan_current_scene_id
@@ -290,11 +298,85 @@ native_player_frame_begin:
     rts
 
 native_player_front_begin:
-    move.w  #NATIVE_LANE_PLAYER_FRONT, native_sprite_lane
+    move.b  #NATIVE_LANE_PLAYER_FRONT, native_sprite_lane+1
+    rts
+
+/* Whole fixed-FRONT semantic producer.  Replaces arcade 0x59F92 at function
+ * entry: the four invariant records are generated directly from their three
+ * retained active/type fields, with no PC090OJ tuple and no per-piece adapter. */
+native_player_front_fixed:
+    movem.l %d0-%d4/%a0-%a3/%a6, -(%sp)
+    move.b  #NATIVE_LANE_PLAYER_FRONT, native_sprite_lane+1
+    bsr     native_sprite_fast_context
+
+    move.w  0x1388(%a5), %d0
+    cmpi.w  #3, %d0
+    bhi.s   .Lnpff_overlay1
+    moveq   #3, %d1
+    move.w  #0x00E8, %d2
+    move.w  #0x0A6A, %d3
+    add.w   %d0, %d3
+    move.w  #0x00A0, %d4
+    bsr     native_sprite_emit_fast
+.Lnpff_overlay1:
+    cmpi.w  #0x00FF, 0x140E(%a5)
+    beq.s   .Lnpff_overlay2
+    move.w  #0x0080, %d1
+    move.w  #0x00E8, %d2
+    move.w  #0x0A68, %d3
+    move.w  #0x00B0, %d4
+    bsr     native_sprite_emit_fast
+.Lnpff_overlay2:
+    cmpi.w  #0x00FF, 0x1410(%a5)
+    beq.s   .Lnpff_overlay3
+    move.w  #0x0080, %d1
+    move.w  #0x00E8, %d2
+    move.w  #0x0A66, %d3
+    move.w  #0x00C0, %d4
+    bsr     native_sprite_emit_fast
+.Lnpff_overlay3:
+    cmpi.w  #0x00FF, 0x140C(%a5)
+    beq.s   .Lnpff_done
+    move.w  #0x0080, %d1
+    move.w  #0x00E8, %d2
+    move.w  #0x0A64, %d3
+    move.w  #0x00D0, %d4
+    bsr     native_sprite_emit_fast
+.Lnpff_done:
+    movem.l (%sp)+, %d0-%d4/%a0-%a3/%a6
+    rts
+
+/* Whole fixed three-piece auxiliary producer at arcade 0x5474E.  The retained
+ * gameplay-owned A5+0x1338 records supply only active/Y/X; code animation is
+ * the original A5+0x1364 phase. */
+native_player_aux_fixed:
+    movem.l %d0-%d4/%d7/%a0-%a3/%a6, -(%sp)
+    move.b  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane+1
+    bsr     native_sprite_fast_context
+    lea     0x1338(%a5), %a0
+    moveq   #2, %d7
+.Lnpaf_loop:
+    cmpi.w  #0x00FF, (%a0)
+    beq.s   .Lnpaf_next
+    move.w  #0x0010, %d1
+    move.w  4(%a0), %d2
+    move.w  #0x09D9, %d3
+    add.w   0x1364(%a5), %d3
+    move.w  2(%a0), %d4
+    bsr     native_sprite_emit_fast
+.Lnpaf_next:
+    addq.l  #8, %a0
+    dbra    %d7, .Lnpaf_loop
+    addq.w  #1, 0x1364(%a5)
+    cmpi.w  #3, 0x1364(%a5)
+    bne.s   .Lnpaf_done
+    clr.w   0x1364(%a5)
+.Lnpaf_done:
+    movem.l (%sp)+, %d0-%d4/%d7/%a0-%a3/%a6
     rts
 
 native_player_body_begin:
-    move.w  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane
+    move.b  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane+1
     rts
 
 /* Native Graphics Task 1, dedicated player-compositor pilot.
@@ -308,7 +390,7 @@ native_player_body_begin:
  * orientation 0 is A5+0x1114==2 and 1 is every mirrored orientation.  Mode 9,
  * orientation value 3 retains the original selector decrement here. */
 native_player_frame_try:
-    movem.l %d1-%d7/%a0-%a2, -(%sp)
+    movem.l %d1-%d7/%a0-%a3/%a6, -(%sp)
     moveq   #0, %d0
     move.w  0x1244(%a5), %d0
     cmpi.w  #9, 0x10E8(%a5)
@@ -321,9 +403,16 @@ native_player_frame_try:
     bhi     .Lnpft_unresolved
     moveq   #0, %d1
     move.w  0x12FA(%a5), %d1
-    cmpi.w  #3, %d1
-    bhi     .Lnpft_unresolved          /* fire sword and unknown values */
-    mulu.w  #5, %d0
+    cmpi.w  #4, %d1
+    bhi     .Lnpft_unresolved
+    cmpi.w  #4, %d1
+    bne.s   .Lnpft_variant_ready
+    move.w  0x1308(%a5), %d1          /* finite fire-sword phase */
+    lsr.w   #1, %d1
+    andi.w  #3, %d1
+    addq.w  #4, %d1
+.Lnpft_variant_ready:
+    mulu.w  #8, %d0
     add.w   %d1, %d0
     add.w   %d0, %d0
     cmpi.w  #2, 0x1114(%a5)
@@ -343,7 +432,8 @@ native_player_frame_try:
     lea     pc090oj_player_frame_table, %a0
     adda.l  %d0, %a0
 
-    move.w  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane
+    move.b  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane+1
+    bsr     native_sprite_fast_context
     clr.w   0x129A(%a5)
     clr.w   0x129C(%a5)
     move.w  0x10BE(%a5), %d5          /* player base X */
@@ -366,38 +456,79 @@ native_player_frame_try:
     andi.w  #0x01FF, %d0
     move.w  %d0, 0x129C(%a5)
 .Lnpft_no_anchor:
-    bsr     native_sprite_emit
+    bsr     native_sprite_emit_fast
     adda.w  #10, %a0
     subq.w  #1, %d7
     bne.s   .Lnpft_piece_loop
 .Lnpft_native_done:
-    movem.l (%sp)+, %d1-%d7/%a0-%a2
+    movem.l (%sp)+, %d1-%d7/%a0-%a3/%a6
     moveq   #1, %d0
     rts
 .Lnpft_unresolved:
-    movem.l (%sp)+, %d1-%d7/%a0-%a2
+    addq.w  #1, native_player_fallback_count
+    movem.l (%sp)+, %d1-%d7/%a0-%a3/%a6
     moveq   #0, %d0
     rts
 
-/* Retained arcade expanders provide d1=word0, d6=Y, d3=code and d4=X.
- * Preserve their d2 loop counter while adapting to native_sprite_emit. */
-native_player_piece:
-    move.w  %d2, -(%sp)
-    move.w  %d6, %d2
-    bsr     native_sprite_emit
-    move.w  (%sp)+, %d2
+/* Whole A5+0x1246 secondary/legs compositor.  Replaces arcade 0x546A8 at
+ * its semantic entry.  Python has already decoded the 0x5C466 descriptor
+ * table, finite A5+0x1308 substitutions, and both mirror orientations. */
+native_player_secondary_frame:
+    movem.l %d0-%d7/%a0-%a3/%a6, -(%sp)
+    moveq   #0, %d0
+    move.w  0x1246(%a5), %d0
+    cmpi.w  #9, 0x10E8(%a5)
+    bne.s   .Lnpsf_selector_ready
+    cmpi.w  #3, 0x1114(%a5)
+    bne.s   .Lnpsf_selector_ready
+    subq.w  #1, %d0
+.Lnpsf_selector_ready:
+    cmpi.w  #51, %d0
+    bhi.s   .Lnpsf_unresolved
+    move.w  0x1308(%a5), %d1
+    lsr.w   #1, %d1
+    andi.w  #3, %d1
+    mulu.w  #4, %d0
+    add.w   %d1, %d0
+    add.w   %d0, %d0
+    cmpi.w  #2, 0x1114(%a5)
+    beq.s   .Lnpsf_key_ready
+    addq.w  #1, %d0
+.Lnpsf_key_ready:
+    mulu.w  #6, %d0
+    lea     pc090oj_secondary_frame_index, %a1
+    adda.l  %d0, %a1
+    move.l  (%a1), %d0
+    moveq   #0, %d7
+    move.b  4(%a1), %d7
+    cmpi.b  #1, 5(%a1)
+    bne.s   .Lnpsf_unresolved
+    lea     pc090oj_player_frame_table, %a0
+    adda.l  %d0, %a0
+    move.b  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane+1
+    bsr     native_sprite_fast_context
+    move.w  0x10BE(%a5), %d5
+    move.w  0x10C0(%a5), %d6
+    tst.w   %d7
+    beq.s   .Lnpsf_done
+.Lnpsf_piece_loop:
+    move.w  0(%a0), %d4
+    add.w   %d5, %d4
+    move.w  2(%a0), %d2
+    add.w   %d6, %d2
+    move.w  4(%a0), %d3
+    move.w  6(%a0), %d1
+    bsr     native_sprite_emit_fast
+    adda.w  #10, %a0
+    subq.w  #1, %d7
+    bne.s   .Lnpsf_piece_loop
+.Lnpsf_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a3/%a6
     rts
-
-/* The old Block-A tuple-0 consumer copied this anchor into player state after
- * BODY generation.  Tuple 0 is the first iteration of the 0x545BA expander;
- * publish the same semantic coordinates directly without retaining Block A. */
-native_player_body_anchor_piece:
-    cmpi.w  #4, %d2
-    bne.s   .Lnative_player_anchor_emit
-    move.w  %d4, 0x129A(%a5)
-    move.w  %d6, 0x129C(%a5)
-.Lnative_player_anchor_emit:
-    bra     native_player_piece
+.Lnpsf_unresolved:
+    addq.w  #1, native_player_fallback_count
+    movem.l (%sp)+, %d0-%d7/%a0-%a3/%a6
+    rts
 
 native_player_body_anchor_blank:
     cmpi.w  #4, %d2
@@ -432,7 +563,8 @@ native_sprite_emit:
     cmpi.w  #0x0180, %d0
     beq     .Lnse_done
 
-    move.w  native_sprite_lane, %d0
+    moveq   #0, %d0
+    move.b  native_sprite_lane+1, %d0
     cmpi.w  #NATIVE_LANE_HUD, %d0
     beq.s   .Lnse_hud
     cmpi.w  #NATIVE_LANE_FRONT_EFFECT, %d0
@@ -487,13 +619,97 @@ native_sprite_emit:
     move.w  %d3, (%a0)+
     move.w  %d4, (%a0)+
     addq.w  #1, (%a1)
+    .global profile_native_queue_return
+profile_native_queue_return:
 .Lnse_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a2
     rts
 
+/* Generated-frame fast enqueue.  The Python frame table already owns piece
+ * structure, so select the lane once per generated frame rather than saving
+ * eleven registers and redispatching the same lane for every piece.  Context:
+ * A3=queue base, A6=count word, A2=end; D0/A1 are scratch. */
+native_sprite_fast_context:
+    moveq   #0, %d0
+    move.b  native_sprite_lane+1, %d0
+    cmpi.w  #NATIVE_LANE_HUD, %d0
+    beq.s   .Lnsfc_hud
+    cmpi.w  #NATIVE_LANE_FRONT_EFFECT, %d0
+    beq.s   .Lnsfc_front_effect
+    cmpi.w  #NATIVE_LANE_PLAYER_FRONT, %d0
+    beq.s   .Lnsfc_player_front
+    cmpi.w  #NATIVE_LANE_MIDDLE, %d0
+    beq.s   .Lnsfc_middle
+    cmpi.w  #NATIVE_LANE_PLAYER_BODY, %d0
+    beq.s   .Lnsfc_player_body
+    lea     native_queue_back_enemy, %a3
+    lea     native_back_enemy_count, %a6
+    lea     native_queue_back_enemy_end, %a2
+    rts
+.Lnsfc_hud:
+    lea     native_queue_hud, %a3
+    lea     native_hud_count, %a6
+    lea     native_queue_hud_end, %a2
+    rts
+.Lnsfc_front_effect:
+    lea     native_queue_front_effect, %a3
+    lea     native_front_effect_count, %a6
+    lea     native_queue_front_effect_end, %a2
+    rts
+.Lnsfc_player_front:
+    lea     native_queue_player_front, %a3
+    lea     native_player_front_count, %a6
+    lea     native_queue_player_front_end, %a2
+    rts
+.Lnsfc_middle:
+    lea     native_queue_middle, %a3
+    lea     native_middle_count, %a6
+    lea     native_queue_middle_end, %a2
+    rts
+.Lnsfc_player_body:
+    lea     native_queue_player_body, %a3
+    lea     native_player_body_count, %a6
+    lea     native_queue_player_body_end, %a2
+    rts
+
+native_sprite_emit_fast:
+    btst    #13, %d3
+    bne.s   .Lnsef_identity_ready
+    move.w  %d3, %d0
+    andi.w  #0x1FFF, %d0
+    beq.s   .Lnsef_done
+    cmpi.w  #0x00FF, %d0
+    beq.s   .Lnsef_done
+.Lnsef_identity_ready:
+    move.w  %d2, %d0
+    andi.w  #0x01FF, %d0
+    cmpi.w  #0x0180, %d0
+    beq.s   .Lnsef_done
+    moveq   #0, %d0
+    move.w  (%a6), %d0
+    lsl.w   #3, %d0
+    lea     0(%a3,%d0.w), %a1
+    cmpa.l  %a2, %a1
+    bhs.s   .Lnsef_done
+    move.w  %d1, (%a1)+
+    move.w  %d2, (%a1)+
+    move.w  %d3, (%a1)+
+    move.w  %d4, (%a1)+
+    addq.w  #1, (%a6)
+.Lnsef_done:
+    rts
+
 native_stage_dispatch_41dae:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
-    move.w  #NATIVE_LANE_PLAYER_FRONT, native_sprite_lane
+    /* The sprite-control colbank cannot change inside this private native
+     * dispatch: every writer is an arcade-side call-site replacement outside
+     * the stage walk.  Normalize its frame-invariant high bits once for all
+     * actor probes instead of repeating mask/shift work per active actor. */
+    move.w  pc090oj_sprite_ctrl_shadow, %d0
+    andi.w  #0x00E0, %d0
+    lsr.w   #1, %d0
+    move.b  %d0, native_sprite_lane
+    move.b  #NATIVE_LANE_PLAYER_FRONT, native_sprite_lane+1
     lea     0x0508(%a5), %a4
     lea     0x00D001C8, %a1
     moveq   #(2 - 1), %d5
@@ -503,7 +719,7 @@ native_stage_dispatch_41dae:
     adda.w  #64, %a4
     dbra    %d5, .Lns41_players1
 
-    move.w  #NATIVE_LANE_MIDDLE, native_sprite_lane
+    move.b  #NATIVE_LANE_MIDDLE, native_sprite_lane+1
     lea     0x05C8(%a5), %a4
     lea     0x00D00300, %a1
     moveq   #(6 - 1), %d5
@@ -513,7 +729,7 @@ native_stage_dispatch_41dae:
     adda.w  #64, %a4
     dbra    %d5, .Lns41_middle
 
-    move.w  #NATIVE_LANE_BACK_ENEMY, native_sprite_lane
+    move.b  #NATIVE_LANE_BACK_ENEMY, native_sprite_lane+1
     lea     0x02C8(%a5), %a4
     lea     0x00D00460, %a1
     moveq   #0, %d5
@@ -605,7 +821,7 @@ native_stage_dispatch_41dae:
     cmpi.w  #9, %d5
     blo     .Lns41_enemy
 
-    move.w  #NATIVE_LANE_FRONT_EFFECT, native_sprite_lane
+    move.b  #NATIVE_LANE_FRONT_EFFECT, native_sprite_lane+1
     lea     0x0748(%a5), %a4
     lea     0x00D00170, %a1
     moveq   #(11 - 1), %d5
@@ -625,7 +841,11 @@ native_stage_dispatch_41dae:
 
 native_stage_dispatch_45dfa:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
-    move.w  #NATIVE_LANE_BACK_ENEMY, native_sprite_lane
+    move.w  pc090oj_sprite_ctrl_shadow, %d0
+    andi.w  #0x00E0, %d0
+    lsr.w   #1, %d0
+    move.b  %d0, native_sprite_lane
+    move.b  #NATIVE_LANE_BACK_ENEMY, native_sprite_lane+1
     lea     0x05C8(%a5), %a4
     lea     0x00D00460, %a1
     moveq   #(6 - 1), %d5
@@ -639,7 +859,7 @@ native_stage_dispatch_45dfa:
     adda.w  #64, %a4
     dbra    %d5, .Lns45_enemy
 
-    move.w  #NATIVE_LANE_FRONT_EFFECT, native_sprite_lane
+    move.b  #NATIVE_LANE_FRONT_EFFECT, native_sprite_lane+1
     lea     0x0748(%a5), %a4
     lea     0x00D00170, %a1
     moveq   #(6 - 1), %d5
@@ -649,7 +869,7 @@ native_stage_dispatch_45dfa:
     adda.w  #64, %a4
     dbra    %d5, .Lns45_effect
 
-    move.w  #NATIVE_LANE_MIDDLE, native_sprite_lane
+    move.b  #NATIVE_LANE_MIDDLE, native_sprite_lane+1
     lea     0x08C8(%a5), %a4
     lea     0x00D00300, %a1
     moveq   #(5 - 1), %d5
@@ -687,183 +907,41 @@ native_stage_dispatch_45dfa:
  * predicate is retained below without assigning unproven semantic names to
  * a4@0x20 or a4@0x03.  a0 = family_descriptor = reloc_table_base +
  * u16[reloc_table_base + class*2]. */
+    .global profile_native_actor_entry
+profile_native_actor_entry:
 .Lnative_emit_actor_common:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
     tst.b   0(%a4)                     /* active */
     beq     .Lnea_ret
-    andi.l  #0x0000FFFF, %d2
+    tst.w   %d2
     beq     .Lnea_ret
-    move.w  %d2, %d5                    /* d5 = piece budget (loop count) */
+    /* Every caller is inside native_stage_dispatch_41dae/45dfa, whose outer
+     * frame already preserves D0-D7/A0-A6 for the retained arcade caller.
+     * Across one actor probe only D5 (stage loop/index) and A1 (legacy lane
+     * cursor used by skip paths) remain live.  The former nested full saves in
+     * this wrapper and both generated probes duplicated that contract once per
+     * actor and dominated dense-frame setup cost. */
+    movem.l %d5/%a1, -(%sp)
 
     /* Phase B: exact semantic keys only.  A native hit emits a precompiled
      * general-compositor frame; every unlisted selector returns to the accepted
      * Build-0403 interpreter below without changing retained actor state. */
     bsr     .Lnative_generic_frame_try
     tst.b   %d0
-    bne     .Lnea_ret
+    bne.s   .Lnea_restore
+    bsr     .Lnative_universal_general_try
+    /* Static closure + Build-0406 runtime zero-fallback proof make the old
+     * descriptor interpreter unreachable.  A generated miss owns no output;
+     * it must never re-enter arcade descriptor/piece-stream parsing. */
+.Lnea_restore:
+    movem.l (%sp)+, %d5/%a1
 
-    /* a0 = family descriptor (relocated arcade family tables, +0x200 copy) */
-    moveq   #0, %d1
-    move.b  0x38(%a4), %d1             /* family a4@0x38 */
-    cmpi.w  #4, %d1
-    bhi     .Lnea_ret
-    lsl.w   #2, %d1
-    lea     .Lnea_fam_bases, %a1
-    movea.l (%a1,%d1.w), %a1           /* a1 = reloc table base */
-    moveq   #0, %d0
-    move.b  1(%a4), %d0               /* animation/program index a4@1 (zero is valid) */
-    add.w   %d0, %d0
-    move.w  (%a1,%d0.w), %d0          /* u16 self-relative descriptor offset */
-    lea     (%a1,%d0.w), %a0          /* a0 = descriptor / piece stream */
-
-    move.b  (%a0), %d3                 /* dispatcher type nibble */
-    andi.b  #0xF0, %d3
-    beq.s   .Lnea_default              /* 0x00 */
-    cmpi.b  #0x40, %d3
-    beq.s   .Lnea_default
-    cmpi.b  #0x70, %d3
-    beq.s   .Lnea_default
-    cmpi.b  #0x80, %d3
-    beq.s   .Lnea_default
-    cmpi.b  #0xD0, %d3
-    beq.s   .Lnea_default
-    cmpi.b  #0xE0, %d3
-    beq.s   .Lnea_default
-    cmpi.b  #0xF0, %d3
-    beq.s   .Lnea_default
-    bra     .Lnea_special              /* one of the 8 specialized dispatch types */
-
-.Lnea_default:
-    /* One shared predicate owns visual and gameplay-contact branch selection.
-     * Both destinations implement the complete transform: per-piece flip
-     * attributes AND actor-relative X repositioning. */
-    bsr     .Lnative_mapping_branch_is_normal
-    tst.b   %d0
-    beq     .Lnea_dmirror
-    bra     .Lnea_dloop
-
-.Lnea_dloop:                            /* --- normal orientation (arcade 0x3C960) --- */
-    moveq   #0, %d0
-    move.b  (%a0)+, %d0               /* control byte */
-    cmpi.b  #0xFF, %d0
-    beq.w   .Lnea_ret                 /* Build 0328: 0xFF = end-of-representation terminator (arcade FUN_0003c606 rts). Stop; do NOT skip-and-continue into the next pose. Capacity stays a ceiling, not the emit count. */
-    move.b  %d0, %d3
-    andi.b  #0xF0, %d3                /* per-piece type nibble */
-    moveq   #0, %d7                    /* flip flag */
-    cmpi.b  #0x40, %d3
-    bne.s   .Lnea_d_nf
-    moveq   #1, %d7
-.Lnea_d_nf:
-    moveq   #0, %d1                    /* attr */
-    cmpi.b  #0x80, %d3
-    bne.s   .Lnea_d_na
-    ori.w   #0x4000, %d1
-.Lnea_d_na:
-    btst    #6, 0x27(%a4)             /* a4@39 visibility */
-    beq.s   .Lnea_d_av
-    move.b  0x27(%a4), %d1            /* attr low byte = a4@39 */
-.Lnea_d_av:
-    moveq   #0, %d2                    /* Y */
-    move.b  (%a0)+, %d2
-    ext.w   %d2
-    add.w   0x1a(%a4), %d2            /* + base Y a4@26 */
-    cmpi.b  #0x70, %d3
-    bne.s   .Lnea_d_ny
-    add.w   0x18(%a4), %d2           /* type 0x70: + a4@24 */
-.Lnea_d_ny:
-    moveq   #0, %d0                    /* code */
-    move.b  (%a0)+, %d0
-    tst.w   %d7
-    beq.s   .Lnea_d_nc
-    neg.w   %d0
-.Lnea_d_nc:
-    add.w   0x1e(%a4), %d0           /* + base tile a4@30 */
-    move.w  %d0, %d3
-    moveq   #0, %d4                    /* X */
-    move.b  (%a0)+, %d4
-    ext.w   %d4
-    add.w   0x16(%a4), %d4           /* + base X a4@22 */
-    bsr     native_sprite_emit
-.Lnea_dnext:
-    subq.w  #1, %d5
-    bne     .Lnea_dloop
-    bra     .Lnea_ret
-
-.Lnea_dmirror:                          /* --- mirrored orientation (arcade 0x3C9A6) --- */
-    moveq   #0, %d0
-    move.b  (%a0)+, %d0
-    cmpi.b  #0xFF, %d0
-    beq.w   .Lnea_ret                 /* Build 0328: 0xFF terminator (mirrored/facing-left path) */
-    move.b  %d0, %d3
-    andi.b  #0xF0, %d3
-    moveq   #0, %d7
-    cmpi.b  #0x40, %d3
-    bne.s   .Lnea_m_nf
-    moveq   #1, %d7
-.Lnea_m_nf:
-    move.w  #0x4000, %d1              /* mirror path always sets flipX */
-    btst    #6, 0x27(%a4)
-    beq.s   .Lnea_m_av
-    move.b  0x27(%a4), %d1
-.Lnea_m_av:
-    moveq   #0, %d2
-    move.b  (%a0)+, %d2
-    ext.w   %d2
-    add.w   0x1a(%a4), %d2           /* Y = sext(byte) + a4@26 (no 0x70 adjust) */
-    moveq   #0, %d0
-    move.b  (%a0)+, %d0
-    tst.w   %d7
-    beq.s   .Lnea_m_nc
-    neg.w   %d0
-.Lnea_m_nc:
-    add.w   0x1e(%a4), %d0
-    move.w  %d0, %d3
-    moveq   #0, %d4
-    move.b  (%a0)+, %d4
-    ext.w   %d4
-    neg.w   %d4
-    subi.w  #0x10, %d4
-    add.w   0x16(%a4), %d4           /* X = a4@22 - sext(byte) - 0x10 */
-    bsr     native_sprite_emit
-.Lnea_mnext:
-    subq.w  #1, %d5
-    bne     .Lnea_dmirror
-    bra     .Lnea_ret
-
-/* Specialized dispatch types (0x10/0x20/0x30/0x50/0x60/0x90/0xA0/0xB0/0xC0).
- * Original-arcade trace shows ZERO specialized-type actor-frames in Stage-1
- * gameplay, so this path is not exercised by observed gameplay; it is kept
- * native and record-free for completeness.  Every specialized handler begins by
- * dereferencing the frame-indexed piece pointer (movea.l a0@(2)); each piece is
- * a position delta with retained artwork, so code is sourced from the actor base
- * tile a4@30 and attribute from a4@39 -- no PC090OJ record, no scratch. */
-.Lnea_special:
-    movea.l 2(%a0), %a0              /* piece data pointer (shared by all 8) */
-    moveq   #0, %d0
-    move.b  0x0b(%a4), %d0          /* animation frame a4@0x0B */
-    add.w   %d0, %d0
-    move.w  %d0, %d1
-    add.w   %d0, %d0
-    add.w   %d1, %d0               /* frame*3 */
-    adda.w  %d0, %a0
-.Lnea_sloop:
-    moveq   #0, %d0
-    move.b  (%a0)+, %d0
-    cmpi.b  #0xFF, %d0
-    beq.w   .Lnea_ret                 /* Build 0328: 0xFF terminator (specialized-dispatch path) */
-    ext.w   %d0
-    move.w  0x1a(%a4), %d2         /* Y = base Y + delta */
-    add.w   %d0, %d2
-    move.w  0x1e(%a4), %d3         /* code = base tile a4@30 (retained) */
-    move.w  0x16(%a4), %d4         /* X = base X a4@22 */
-    moveq   #0, %d1
-    move.b  0x27(%a4), %d1         /* attr = a4@39 */
-    bsr     native_sprite_emit
-.Lnea_snext:
-    subq.w  #1, %d5
-    bne     .Lnea_sloop
+    /* Build 0407: the former native fallback parser is retired.  Every live
+     * general/special mapping key is represented by the offline-generated
+     * indexes above; a generated miss owns no output and cannot re-enter an
+     * arcade descriptor or piece stream at runtime. */
+    .global profile_native_actor_return
+profile_native_actor_return:
 .Lnea_ret:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 /* A4=retained actor, D2=actor piece ceiling.  D0.b=1 iff an exact generated
@@ -879,8 +957,9 @@ native_stage_dispatch_45dfa:
  * only the exact proven PC090OJ mapping-program expansion.  Base tile and
  * a4+0x38 are classification fields, never globally unique identities.
  */
+    .global profile_native_levelb_entry
+profile_native_levelb_entry:
 .Lnative_generic_frame_try:
-    movem.l %d1-%d7/%a0-%a2, -(%sp)
     move.w  %d2, %d5                    /* retain caller piece ceiling */
     move.w  0x1E(%a4), %d0
     cmpi.w  #0x0FFF, %d0
@@ -914,9 +993,8 @@ native_stage_dispatch_45dfa:
     btst    #1, %d0
     beq     .Lngft_unresolved
 .Lngft_attr_policy_ok:
-    move.w  pc090oj_sprite_ctrl_shadow, %d0
-    andi.w  #0x00E0, %d0
-    lsr.w   #1, %d0                    /* exact effective-bank high bits */
+    moveq   #0, %d0
+    move.b  native_sprite_lane, %d0    /* dispatch-cached exact high bits */
     moveq   #0, %d1
     move.b  5(%a1), %d1
     andi.w  #0x0070, %d1
@@ -950,6 +1028,8 @@ native_stage_dispatch_45dfa:
     tst.b   %d0
     beq.s   .Lngft_orientation_ready
     moveq   #0, %d6                    /* generated orientation 0 = normal */
+    .global profile_native_levelb_index_lookup
+profile_native_levelb_index_lookup:
 .Lngft_orientation_ready:
     add.w   %d6, %d7
     mulu.w  #6, %d7
@@ -963,8 +1043,13 @@ native_stage_dispatch_45dfa:
     bhi.s   .Lngft_unresolved          /* retain original caller's piece ceiling */
     lea     pc090oj_frame_table, %a0
     adda.l  (%a2), %a0
+    .global profile_native_levelb_frame_ready
+profile_native_levelb_frame_ready:
     move.w  0x16(%a4), %d5
     move.w  0x1A(%a4), %d6
+    bsr     native_sprite_fast_context
+    .global profile_native_levelb_piece
+profile_native_levelb_piece:
 .Lngft_emit:
     move.w  0(%a0), %d4
     add.w   %d5, %d4
@@ -980,16 +1065,154 @@ native_stage_dispatch_45dfa:
     beq.s   .Lngft_attr_ready
     move.b  0x27(%a4), %d1             /* exact 0x3C9E8 low-byte replacement */
 .Lngft_attr_ready:
-    bsr     native_sprite_emit
+    bsr     native_sprite_emit_fast
     adda.w  #10, %a0
     subq.w  #1, %d7
     bne.s   .Lngft_emit
-    movem.l (%sp)+, %d1-%d7/%a0-%a2
     moveq   #1, %d0
+    .global profile_native_levelb_success
+profile_native_levelb_success:
     rts
 .Lngft_unresolved:
-    movem.l (%sp)+, %d1-%d7/%a0-%a2
     moveq   #0, %d0
+    .global profile_native_levelb_miss
+profile_native_levelb_miss:
+    rts
+
+/* Dense generated Level-A closure for every decodable general compositor
+ * program. Key = ((actor+0x38 * 256 + actor+0x01) * 2 + orientation).
+ * Geometry/control syntax and orientation are compiled by Python; the only
+ * retained dynamic pattern input is actor+0x1E plus a signed generated delta.
+ * No arcade descriptor/table/piece-stream byte is read on a native hit. */
+    .global profile_native_universal_entry
+profile_native_universal_entry:
+.Lnative_universal_general_try:
+    move.w  %d2, %d5
+    moveq   #0, %d7
+    move.b  0x38(%a4), %d7
+    cmpi.w  #4, %d7
+    bhi     .Lnugt_unresolved
+    lsl.w   #8, %d7
+    move.b  1(%a4), %d7
+    add.w   %d7, %d7
+    bsr     .Lnative_mapping_branch_is_normal
+    tst.b   %d0
+    bne.s   .Lnugt_orientation_ready
+    addq.w  #1, %d7
+.Lnugt_orientation_ready:
+    mulu.w  #6, %d7
+    lea     pc090oj_universal_frame_index, %a2
+    adda.l  %d7, %a2
+    cmpi.b  #2, 5(%a2)                 /* generated specialized subframe index */
+    beq.s   .Lnugt_special_index
+    cmpi.b  #1, 5(%a2)
+    bne     .Lnugt_unresolved
+    bra.s   .Lnugt_index_ready
+.Lnugt_special_index:
+    addq.w  #1, native_specialized_hit_count
+    moveq   #0, %d0
+    move.b  0x0B(%a4), %d0             /* sole geometry selector retained at runtime */
+    cmp.b   4(%a2), %d0
+    bcc     .Lnugt_unresolved
+    mulu.w  #6, %d0
+    lea     pc090oj_special_frame_index, %a1
+    adda.l  (%a2), %a1
+    adda.l  %d0, %a1
+    movea.l %a1, %a2
+    cmpi.b  #1, 5(%a2)
+    bne     .Lnugt_unresolved
+    .global profile_native_universal_index_lookup
+profile_native_universal_index_lookup:
+.Lnugt_index_ready:
+    moveq   #0, %d7
+    move.b  4(%a2), %d7
+    cmp.w   %d5, %d7
+    bls.s   .Lnugt_count_ready
+    move.w  %d5, %d7                    /* original D2 caller record ceiling */
+.Lnugt_count_ready:
+    .global profile_native_universal_frame_ready
+profile_native_universal_frame_ready:
+    lea     pc090oj_frame_table, %a0
+    adda.l  (%a2), %a0
+    move.w  0x16(%a4), %d5
+    move.w  0x1A(%a4), %d6
+    bsr     native_sprite_fast_context
+    tst.w   %d7
+    beq     .Lnugt_done
+    .global profile_native_universal_piece
+profile_native_universal_piece:
+.Lnugt_emit:
+    /* Mode 0xB0 has two statically compiled layouts selected by exactly the
+     * arcade predicate A5+0x0118==2 || 0x62<=A5+0x013E<0x64. */
+    moveq   #0, %d0
+    btst    #4, 9(%a0)
+    bne.s   .Lnugt_need_special_condition
+    btst    #5, 9(%a0)
+    beq.s   .Lnugt_condition_ready
+    bra.s   .Lnugt_compute_special_condition
+.Lnugt_need_special_condition:
+    moveq   #1, %d0
+.Lnugt_compute_special_condition:
+    moveq   #0, %d1
+    cmpi.b  #2, 0x0118(%a5)
+    beq.s   .Lnugt_condition_computed
+    move.w  0x013E(%a5), %d1
+    cmpi.w  #0x0062, %d1
+    bcs.s   .Lnugt_condition_computed
+    cmpi.w  #0x0064, %d1
+    bcc.s   .Lnugt_condition_computed
+    moveq   #1, %d1
+.Lnugt_condition_computed:
+    cmp.b   %d0, %d1
+    bne.s   .Lnugt_next_piece
+.Lnugt_condition_ready:
+    move.w  0(%a0), %d4
+    add.w   %d5, %d4
+    move.w  2(%a0), %d2
+    add.w   %d6, %d2
+    btst    #2, 9(%a0)
+    beq.s   .Lnugt_no_y_adjust
+    add.w   0x18(%a4), %d2
+.Lnugt_no_y_adjust:
+    move.w  4(%a0), %d3
+    btst    #3, 9(%a0)
+    beq.s   .Lnugt_code_ready
+    add.w   0x1E(%a4), %d3
+.Lnugt_code_ready:
+    /* Mode 0x10's first record in each family-0 half is the sole specialized
+     * code mutation.  Everything else carries selector-1's generated code. */
+    btst    #6, 9(%a0)
+    beq.s   .Lnugt_code_override_done
+    cmpi.b  #3, 0x0118(%a5)
+    bne.s   .Lnugt_code_override_done
+    move.w  #0x0A0D, %d3
+    btst    #7, 9(%a0)
+    beq.s   .Lnugt_code_override_stage
+    addq.w  #1, %d3
+.Lnugt_code_override_stage:
+    cmpi.w  #0x003F, 0x013E(%a5)
+    bcs.s   .Lnugt_code_override_done
+    addq.w  #7, %d3
+.Lnugt_code_override_done:
+    move.w  6(%a0), %d1
+    btst    #6, 0x27(%a4)
+    beq.s   .Lnugt_attr_ready
+    move.b  0x27(%a4), %d1
+.Lnugt_attr_ready:
+    bsr     native_sprite_emit_fast
+.Lnugt_next_piece:
+    adda.w  #10, %a0
+    subq.w  #1, %d7
+    bne     .Lnugt_emit
+.Lnugt_done:
+    moveq   #1, %d0
+    .global profile_native_universal_success
+profile_native_universal_success:
+    rts
+.Lnugt_unresolved:
+    moveq   #0, %d0
+    .global profile_native_universal_miss
+profile_native_universal_miss:
     rts
 
 /* Exact original-arcade default-compositor branch predicate
@@ -1042,6 +1265,8 @@ native_stage_dispatch_45dfa:
  * default 0x3C950 expander.  The specialized path below mirrors the existing
  * direct-native renderer's retained coordinate interpretation for completeness.
  */
+    .global profile_native_contact_entry
+profile_native_contact_entry:
 genesistan_native_contact_coords_51ab6:
     movem.l %d0-%d7/%a0-%a4, -(%sp)
     lea     0x1282(%a5), %a2          /* three {active.w, token.l} entries */
@@ -1061,6 +1286,101 @@ genesistan_native_contact_coords_51ab6:
     adda.w  %d0, %a4
     tst.b   0(%a4)
     beq     .Lnc51_fill_entry
+
+    /* Generated visual/contact convergence.  Resolve the same native frame
+     * index used above, then consume only its precompiled X/Y fields.  A miss
+     * retains the legacy reconstruction below until the full-game zero-miss
+     * validation gate authorizes its removal. */
+    move.w  %d7, -(%sp)                 /* preserve registration-loop counter */
+    move.l  %a2, -(%sp)                 /* preserve registration cursor */
+    moveq   #0, %d7
+    move.b  0x38(%a4), %d7
+    cmpi.w  #4, %d7
+    bhi     .Lnc51_generated_miss
+    lsl.w   #8, %d7
+    move.b  1(%a4), %d7
+    add.w   %d7, %d7
+    bsr     .Lnative_mapping_branch_is_normal
+    tst.b   %d0
+    bne.s   .Lnc51_generated_orientation
+    addq.w  #1, %d7
+.Lnc51_generated_orientation:
+    mulu.w  #6, %d7
+    lea     pc090oj_universal_frame_index, %a1
+    adda.l  %d7, %a1
+    cmpi.b  #2, 5(%a1)
+    bne.s   .Lnc51_generated_direct
+    moveq   #0, %d0
+    move.b  0x0B(%a4), %d0
+    cmp.b   4(%a1), %d0
+    bcc     .Lnc51_generated_miss
+    mulu.w  #6, %d0
+    move.l  (%a1), %d1
+    lea     pc090oj_special_frame_index, %a1
+    adda.l  %d1, %a1
+    adda.l  %d0, %a1
+.Lnc51_generated_direct:
+    cmpi.b  #1, 5(%a1)
+    bne     .Lnc51_generated_miss
+    moveq   #0, %d7
+    move.b  4(%a1), %d7
+    lea     pc090oj_frame_table, %a0
+    adda.l  (%a1), %a0
+    moveq   #8, %d6                    /* first nine visible contact coordinates */
+    tst.w   %d7
+    beq.s   .Lnc51_generated_done
+.Lnc51_generated_loop:
+    moveq   #0, %d0
+    btst    #4, 9(%a0)
+    bne.s   .Lnc51_generated_need_cond
+    btst    #5, 9(%a0)
+    beq.s   .Lnc51_generated_accept
+    bra.s   .Lnc51_generated_compute_cond
+.Lnc51_generated_need_cond:
+    moveq   #1, %d0
+.Lnc51_generated_compute_cond:
+    moveq   #0, %d1
+    cmpi.b  #2, 0x0118(%a5)
+    beq.s   .Lnc51_generated_cond_ready
+    move.w  0x013E(%a5), %d1
+    cmpi.w  #0x0062, %d1
+    bcs.s   .Lnc51_generated_cond_ready
+    cmpi.w  #0x0064, %d1
+    bcc.s   .Lnc51_generated_cond_ready
+    moveq   #1, %d1
+.Lnc51_generated_cond_ready:
+    cmp.b   %d0, %d1
+    bne.s   .Lnc51_generated_next
+.Lnc51_generated_accept:
+    move.w  2(%a0), %d2
+    add.w   0x1A(%a4), %d2
+    btst    #2, 9(%a0)
+    beq.s   .Lnc51_generated_y_ready
+    add.w   0x18(%a4), %d2
+.Lnc51_generated_y_ready:
+    move.w  0(%a0), %d3
+    add.w   0x16(%a4), %d3
+    move.w  %d2, (%a3)+
+    move.w  %d3, (%a3)+
+    subq.w  #1, %d6
+    bmi.s   .Lnc51_generated_done
+.Lnc51_generated_next:
+    adda.w  #10, %a0
+    subq.w  #1, %d7
+    bne     .Lnc51_generated_loop
+.Lnc51_generated_done:
+    movea.l (%sp)+, %a2
+    move.w  (%sp)+, %d7
+    tst.w   %d6
+    bmi     .Lnc51_next_entry
+    bra     .Lnc51_fill_remaining
+.Lnc51_generated_miss:
+    movea.l (%sp)+, %a2
+    move.w  (%sp)+, %d7
+    /* Same generated closure as the visual consumer.  Retire the old arcade
+     * descriptor parser from the live contact path; an impossible miss fills
+     * the registration with the established inactive coordinates. */
+    bra     .Lnc51_fill_entry
 
     /* Resolve the same family/animation mapping program as native sprite output. */
     moveq   #0, %d1
@@ -1158,10 +1478,14 @@ genesistan_native_contact_coords_51ab6:
     move.w  #0x01FF, (%a3)+
     move.w  #0x01FF, (%a3)+
     dbra    %d6, .Lnc51_fill_remaining
+    .global profile_native_contact_record_done
+profile_native_contact_record_done:
 .Lnc51_next_entry:
     addq.l  #6, %a2
     dbra    %d7, .Lnc51_entry
     movem.l (%sp)+, %d0-%d7/%a0-%a4
+    .global profile_native_contact_return
+profile_native_contact_return:
     rts
 
 
@@ -1307,7 +1631,7 @@ genesistan_pc090oj_hook_slot_init_54052:
 genesistan_pc090oj_hook_player_aux_native_54810:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
 
-    move.w  #NATIVE_LANE_FRONT_EFFECT, native_sprite_lane
+    move.b  #NATIVE_LANE_FRONT_EFFECT, native_sprite_lane+1
     moveq   #4, %d7
 .Lplayer_aux_native_loop:
     move.w  4(%a0), %d1
@@ -1744,7 +2068,17 @@ pc090oj_reverse_index_init:
 
 /* Build 0250 native semantic-lane finalizer.  Non-gameplay falls back to the
  * legacy object-table scanner; gameplay consumes only the native queues. */
+    .global profile_native_finalizer_entry
+profile_native_finalizer_entry:
 pc090oj_native_emit_pass:
+    /* Emit-time palette/variant selection uses the same sprite-control value
+     * for every piece in this uninterrupted pass.  Cache the normalized high
+     * bits once; direct frontend and gameplay emitters then share the exact
+     * same general effective-bank contract. */
+    move.w  pc090oj_sprite_ctrl_shadow, %d0
+    andi.w  #0x00E0, %d0
+    lsr.w   #1, %d0
+    move.b  %d0, native_sprite_lane
     move.b  genesistan_current_scene_id, %d0
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, %d0
     beq     .Lnq_gameplay
@@ -2106,69 +2440,70 @@ native_frontend_hud_emit:
     move.b  diag_score_bcd+1, 0x00FF011F
     move.b  diag_score_bcd+2, 0x00FF0120
 .endif
-    movem.l %d0-%d7/%a0-%a2, -(%sp)
+    movem.l %d0-%d7/%a0-%a3/%a6, -(%sp)
     clr.w   native_hud_count
-    move.w  #NATIVE_LANE_HUD, native_sprite_lane
-    movea.l #0x00FF011E, %a2
+    move.b  #NATIVE_LANE_HUD, native_sprite_lane+1
+    bsr     native_sprite_fast_context
+    movea.l #0x00FF011E, %a0
     clr.w   %d5
 
     moveq   #0, %d1
-    move.b  (%a2), %d1
+    move.b  (%a0), %d1
     lsr.b   #4, %d1
     andi.w  #0x000F, %d1
     moveq   #0x08, %d4
     bsr     .Lnq_emit_hud_digit
 
     moveq   #0, %d1
-    move.b  (%a2), %d1
+    move.b  (%a0), %d1
     andi.w  #0x000F, %d1
     moveq   #0x10, %d4
     bsr     .Lnq_emit_hud_digit
-    subq.l  #1, %a2
+    subq.l  #1, %a0
 
     moveq   #0, %d1
-    move.b  (%a2), %d1
+    move.b  (%a0), %d1
     lsr.b   #4, %d1
     andi.w  #0x000F, %d1
     moveq   #0x18, %d4
     bsr     .Lnq_emit_hud_digit
 
     moveq   #0, %d1
-    move.b  (%a2), %d1
+    move.b  (%a0), %d1
     andi.w  #0x000F, %d1
     moveq   #0x20, %d4
     bsr     .Lnq_emit_hud_digit
-    subq.l  #1, %a2
+    subq.l  #1, %a0
 
     moveq   #0, %d1
-    move.b  (%a2), %d1
+    move.b  (%a0), %d1
     lsr.b   #4, %d1
     andi.w  #0x000F, %d1
     moveq   #0x28, %d4
     bsr     .Lnq_emit_hud_digit
 
     moveq   #0, %d1
-    move.b  (%a2), %d1
+    move.b  (%a0), %d1
     andi.w  #0x000F, %d1
     moveq   #0x30, %d4
     bsr     .Lnq_emit_hud_digit
 
     moveq   #0, %d1
     move.w  #0x0010, %d2
-    move.w  #0x8039, %d3
+    move.w  #0xD039, %d3            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  #0x0040, %d4
-    bsr     native_sprite_emit
+    bsr     native_sprite_emit_fast
     moveq   #0, %d1
     move.w  #0x0010, %d2
-    move.w  #0x8048, %d3
+    move.w  #0xD048, %d3            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  #0x0028, %d4
-    bsr     native_sprite_emit
+    bsr     native_sprite_emit_fast
     moveq   #0, %d1
     move.w  #0x0010, %d2
-    move.w  #0x8046, %d3
+    move.w  #0xD046, %d3            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  #0x0038, %d4
-    bsr     native_sprite_emit
-    movem.l (%sp)+, %d0-%d7/%a0-%a2
+    bsr     native_sprite_emit_fast
+    movem.l (%sp)+, %d0-%d7/%a0-%a3/%a6
     rts
 .Lnq_emit_hud_digit:
     move.w  #0x0010, %d2
@@ -2176,19 +2511,20 @@ native_frontend_hud_emit:
     bne.s   .Lnq_digit_visible
     tst.w   %d1
     bne.s   .Lnq_digit_visible
-    move.w  #0x0110, %d2
-    bra.s   .Lnq_digit_ready
+    rts                                 /* leading zero was formerly queued off-screen and clipped */
 .Lnq_digit_visible:
     moveq   #1, %d5
 .Lnq_digit_ready:
     addi.w  #0x002A, %d1
-    ori.w   #0x8000, %d1
+    ori.w   #0xD000, %d1            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  %d1, %d3
     moveq   #0, %d1
-    bsr     native_sprite_emit
+    bsr     native_sprite_emit_fast
     rts
 .endif
 
+    .global profile_native_lane_entry
+profile_native_lane_entry:
 .Lnq_emit_lane:
     tst.w   %d6
     beq     .Lnq_lane_done
@@ -2207,6 +2543,8 @@ native_frontend_hud_emit:
 .Lnq_lane_done:
     rts
 
+    .global profile_native_final_piece_entry
+profile_native_final_piece_entry:
 .Lnq_emit_entry_cached:
     move.l  %a4, %d7                  /* cached ctrl word is in the upper half */
     bra.s   .Lnq_entry_ctrl_ready
@@ -2215,14 +2553,33 @@ native_frontend_hud_emit:
     swap    %d7
 .Lnq_entry_ctrl_ready:
     move.w  %d3, %d0
+    /* Build 0410: bit 12 is the generated-table direct-identity marker.  The
+     * source code, nonblank status, and absence of a palette variant were all
+     * proven by the independent frame-table verifier, so do not repeat those
+     * dynamic decisions here.  Unmarked Level-A records retain the complete
+     * runtime path below. */
+    btst    #12, %d3
+    bne.s   .Lnq_direct_identity
     btst    #13, %d3
     beq.s   .Lnq_source_identity_ready
+    .global profile_native_pre_variant
+profile_native_pre_variant:
     andi.w  #0x0FFF, %d0
     cmpi.w  #SPRITE_VARIANT_CELLS, %d0
     bhs     .Lnq_entry_skip
     add.w   %d0, %d0
     lea     pc090oj_variant_source_code, %a1
     move.w  0(%a1,%d0.w), %d0          /* source code only for blank/bbox provenance */
+    bra.s   .Lnq_finalized_identity
+    .global profile_native_pre_direct
+profile_native_pre_direct:
+.Lnq_direct_identity:
+    andi.w  #0x0FFF, %d0
+.Lnq_finalized_identity:
+    beq     .Lnq_entry_skip
+    bra.s   .Lnq_identity_validated
+    .global profile_native_pre_dynamic
+profile_native_pre_dynamic:
 .Lnq_source_identity_ready:
     andi.w  #0x1FFF, %d0
     beq     .Lnq_entry_skip
@@ -2250,10 +2607,27 @@ native_frontend_hud_emit:
     ori.w   #0x8000, %d3
 .Lnq_no_hud_tag:
 
+    .global profile_native_pre_validated
+profile_native_pre_validated:
+.Lnq_identity_validated:
+    /* Keep the opaque-bounds source pointer live across coordinate geometry.
+     * Build 0409 reconstructed this same source a second time below. */
+    btst    #14, %d3                    /* fixed HUD producer proved viewport inclusion */
+    bne.s   .Lnq_bbox_pointer_ready
+    andi.l  #0x00000FFF, %d0
+    lsl.l   #4, %d0
+    lea     pc090oj_opaque_bbox, %a1
+    adda.l  %d0, %a1
+
+.Lnq_bbox_pointer_ready:
+    .global profile_native_pre_pointer_ready
+profile_native_pre_pointer_ready:
     andi.w  #0x01FF, %d2
     cmpi.w  #0x0140, %d2
     bls.s   .Lnq_y_ok
     subi.w  #0x0200, %d2
+    .global profile_native_geometry_entry
+profile_native_geometry_entry:
 .Lnq_y_ok:
     andi.w  #0x01FF, %d4
     cmpi.w  #0x0140, %d4
@@ -2275,18 +2649,11 @@ native_frontend_hud_emit:
     addi.w  #PC090OJ_TO_GENESIS_X_OFFSET, %d4
     addi.w  #PC090OJ_TO_GENESIS_Y_OFFSET, %d2
 
-    move.w  %d3, %d0
-    btst    #13, %d3
-    beq.s   .Lnq_bbox_source_ready
-    andi.w  #0x0FFF, %d0
-    add.w   %d0, %d0
-    lea     pc090oj_variant_source_code, %a1
-    move.w  0(%a1,%d0.w), %d0
+    .global profile_native_bbox_entry
+profile_native_bbox_entry:
 .Lnq_bbox_source_ready:
-    andi.l  #0x00000FFF, %d0
-    lsl.l   #4, %d0
-    lea     pc090oj_opaque_bbox, %a1
-    adda.l  %d0, %a1
+    btst    #14, %d3                    /* only fixed, visible P1 HUD cells carry this proof */
+    bne     .Lnq_bbox_proven_visible
     move.w  %d1, %d7
     rol.w   #2, %d7                   /* attr V/H bits 15/14 -> index bits 1/0 */
     andi.w  #0x0003, %d7
@@ -2311,6 +2678,9 @@ native_frontend_hud_emit:
     cmpi.w  #GENESIS_VIEWPORT_LEFT, %d6
     blt     .Lnq_entry_skip
 
+.Lnq_bbox_proven_visible:
+    .global profile_native_variant_entry
+profile_native_variant_entry:
     /* Complete (code,bank) variant residency remap (generalized to ANY number of divergent code
      * blocks).  pc090oj_variant_group_base[code] (u16) is 0xFFFF for a non-divergent code, else the
      * variant-region cell base for the code's group; pc090oj_variant_bank_slot[effective_bank] is 0xFF
@@ -2319,6 +2689,8 @@ native_frontend_hud_emit:
      * 0x35 for 0x28E..0x2A8); variant banks (chimera 0x34 / four_armed 0x3A / burst 0x30) select an
      * appended cell.  Bounded O(1): one u16 table read + one byte read.  No runtime recolor; variant
      * bytes are pre-transformed offline.  Base bank and every non-divergent code are untouched. */
+    btst    #12, %d3                    /* direct frame already proved base identity */
+    bne.s   .Lnq_no_variant
     btst    #13, %d3                    /* native frame already baked canonical vi */
     bne.s   .Lnq_no_variant
     move.w  %d3, %d0
@@ -2330,9 +2702,8 @@ native_frontend_hud_emit:
     beq.s   .Lnq_no_variant
     /* effective bank = (attr & 0x0F) | ((sprite_ctrl_shadow & 0x00E0) >> 1) -- the exact quantity the
      * palette-line lookup uses at .Lnq_hit, so the pixel variant matches its CRAM line. */
-    move.w  pc090oj_sprite_ctrl_shadow, %d7
-    andi.w  #0x00E0, %d7
-    lsr.w   #1, %d7
+    moveq   #0, %d7
+    move.b  native_sprite_lane, %d7
     move.w  %d1, %d0
     andi.w  #0x000F, %d0
     or.w    %d0, %d7
@@ -2361,6 +2732,8 @@ native_frontend_hud_emit:
 .Lnq_reverse_key_variant:
     andi.w  #0x0FFF, %d0
     addi.w  #SPRITE_VARIANT_KEY_NORM, %d0
+    .global profile_native_residency_entry
+profile_native_residency_entry:
 .Lnq_reverse_key_ready:
     move.w  %d0, %d6
     lsr.w   #4, %d6
@@ -2377,18 +2750,45 @@ native_frontend_hud_emit:
     move.b  0(%a1,%d7.w), %d0
     cmpi.b  #0xFF, %d0
     bne     .Lnq_hit
+    .global profile_native_residency_miss
+profile_native_residency_miss:
 .Lnq_reverse_miss:
     move.w  %d1, -(%sp)
+    /* Exact first-free allocation, preserved without the old 49-call scan.
+     * Slots 0..47 occupy six complete used-bit bytes; slot 48 is bit 0 of
+     * the seventh byte.  Scan bytes in ascending order, then bits in
+     * ascending order, so the selected resident slot is unchanged. */
     moveq   #0, %d0
-    move.w  #(NATIVE_CELLS - 1), %d1
-.Lnq_vloop:
-    bsr     .Lnq_cell_free
-    beq.s   .Lnq_take
-    addq.w  #2, %d0
-    dbra    %d1, .Lnq_vloop
+    lea     pc090oj_cell_used, %a1
+    moveq   #5, %d1
+.Lnq_vbyte_loop:
+    cmpi.b  #0xFF, (%a1)+
+    bne.s   .Lnq_vbyte_found
+    addq.w  #8, %d0
+    dbra    %d1, .Lnq_vbyte_loop
+    btst    #0, (%a1)                  /* sole valid bit in byte 6: slot 48 */
+    beq.s   .Lnq_vslot_found
+.Lnq_vfull:
     move.w  (%sp)+, %d1
     addq.w  #1, pc090oj_dropped_count
     bra     .Lnq_entry_skip
+.Lnq_vbyte_found:
+    moveq   #0, %d6
+    move.b  -1(%a1), %d6
+    moveq   #0, %d7
+    moveq   #7, %d1
+.Lnq_vbit_loop:
+    btst    %d7, %d6
+    beq.s   .Lnq_vbit_found
+    addq.w  #1, %d7
+    dbra    %d1, .Lnq_vbit_loop
+    bra.s   .Lnq_vfull                 /* impossible unless used bits changed */
+.Lnq_vbit_found:
+    add.w   %d7, %d0
+.Lnq_vslot_found:
+    add.w   %d0, %d0                   /* resident slot -> forward byte offset */
+    .global profile_native_allocation_take
+profile_native_allocation_take:
 .Lnq_take:
     move.w  pc090oj_tile_dma_count, %d1
     cmpi.w  #12, %d1
@@ -2496,87 +2896,86 @@ native_frontend_hud_emit:
     movem.l (%sp)+, %d0-%d2/%d6-%d7/%a0-%a1
     rts
 
-.Lnq_cell_free:
-    move.w  %d0, -(%sp)
-    lea     pc090oj_cell_used, %a1
-    lsr.w   #4, %d0
-    adda.w  %d0, %a1
-    move.w  (%sp), %d0
-    lsr.w   #1, %d0
-    andi.w  #7, %d0
-    btst    %d0, (%a1)
-    movem.w (%sp)+, %d0
-    rts
+    .global profile_native_sat_entry
+profile_native_sat_entry:
 .Lnq_hit:
-    move.w  %d0, -(%sp)
+    /* Build 0411: retain the live resident slot in d6.  The old path pushed it
+     * twice and reconstructed the used-bit address from stack temporaries. */
+    move.w  %d0, %d6
+    move.w  %d0, %d7
     lea     pc090oj_cell_used, %a1
-    lsr.w   #4, %d0
-    adda.w  %d0, %a1
-    move.w  (%sp), %d0
+    lsr.w   #4, %d7
+    adda.w  %d7, %a1
     lsr.w   #1, %d0
     andi.w  #7, %d0
     bset    %d0, (%a1)
-    move.w  (%sp)+, %d0
-    move.w  %d0, -(%sp)
+    /* (value & 0x1ff + bias) & 0x1ff equals (value + bias) & 0x1ff. */
+    .global profile_native_sat_y
+profile_native_sat_y:
     move.w  %d2, %d0
-    andi.w  #0x01FF, %d0
     addi.w  #PC090OJ_SAT_Y_BIAS, %d0
     andi.w  #0x01FF, %d0
     move.w  %d0, (%a3)+
+    .global profile_native_sat_link
+profile_native_sat_link:
     move.w  %d5, %d0
     addq.w  #1, %d0
-    andi.w  #0x007F, %d0
     ori.w   #0x0500, %d0
     move.w  %d0, (%a3)+
-    moveq   #0, %d0
+    /* Arcade V/H bits 15/14 map directly to Genesis bits 12/11 after a
+     * three-place shift.  This replaces two per-entry branch trees. */
+    .global profile_native_sat_attr
+profile_native_sat_attr:
+    move.w  %d1, %d0
+    lsr.w   #3, %d0
+    andi.w  #0x1800, %d0
     ori.w   #0x8000, %d0
-    btst    #15, %d1
-    beq.s   .Lnq_novf
-    ori.w   #0x1000, %d0
-.Lnq_novf:
-    btst    #14, %d1
-    beq.s   .Lnq_nohf
-    ori.w   #0x0800, %d0
-.Lnq_nohf:
     /* Compose final palette bits now. d2 is free until the resident-cell pop.
      * HUD-white is an existing semantic code tag, so it needs no SAT-slot
      * metadata transport and no second pass. */
-    moveq   #3, %d2
+    moveq   #3, %d7
 .if RASTAN_GAMEPLAY_HUD_SPRITES == 2
     btst    #15, %d3
     bne.s   .Lnq_palette_ready
 .endif
     move.w  %d1, %d2
     andi.w  #0x000F, %d2
-    move.w  %d0, -(%sp)
-    move.w  pc090oj_sprite_ctrl_shadow, %d0
-    andi.w  #0x00E0, %d0
-    lsr.w   #1, %d0
-    or.w    %d0, %d2
+    moveq   #0, %d7
+    move.b  native_sprite_lane, %d7
+    or.w    %d7, %d2
     movea.l current_sprite_palette_map, %a1
-    moveq   #0, %d0
-    move.b  0(%a1,%d2.w), %d0
-    move.w  %d0, %d2
-    move.w  (%sp)+, %d0
+    moveq   #0, %d7
+    move.b  0(%a1,%d2.w), %d7
 .Lnq_palette_ready:
-    lsl.w   #8, %d2
-    lsl.w   #5, %d2
-    or.w    %d2, %d0
-    move.w  (%sp)+, %d2
+    add.w   %d7, %d7
+    lea     .Lnq_sat_palette_bits, %a1
+    move.w  0(%a1,%d7.w), %d7
+    or.w    %d7, %d0
+    move.w  %d6, %d2
     add.w   %d2, %d2
     addi.w  #SPRITE_TILE_BASE, %d2
-    andi.w  #0x07FF, %d2
     or.w    %d2, %d0
     move.w  %d0, (%a3)+
+    .global profile_native_sat_x
+profile_native_sat_x:
     move.w  %d4, %d0
-    andi.w  #0x01FF, %d0
     addi.w  #PC090OJ_SAT_X_BIAS, %d0
     andi.w  #0x01FF, %d0
     move.w  %d0, (%a3)+
+    .global profile_native_sat_count
+profile_native_sat_count:
     addq.w  #1, %d5
+    .global profile_native_piece_return
+profile_native_piece_return:
 .Lnq_entry_skip:
     rts
 
+    .align 2
+.Lnq_sat_palette_bits:
+    .word 0x0000, 0x2000, 0x4000, 0x6000
+
+    .global profile_native_finalizer_done
+profile_native_finalizer_done:
 .Lnq_done_scan:
     tst.w   %d5
     bne.s   .Lnq_have
@@ -2897,6 +3296,9 @@ transient_items_scroll:
     .word 0
 transient_items_source_ptr:
     .long 0
+/* Private packed dispatch word: high byte is normalized
+ * ((sprite_ctrl & 0x00E0) >> 1), low byte is the semantic lane.  Packing the
+ * two frame-private values preserves every established WRAM symbol address. */
 native_sprite_lane:
     .word 0
 native_hud_count:
@@ -2913,16 +3315,22 @@ native_back_enemy_count:
     .word 0
 native_queue_hud:
     .space (NATIVE_HUD_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_hud_end:
 native_queue_front_effect:
     .space (NATIVE_FRONT_EFFECT_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_front_effect_end:
 native_queue_player_front:
     .space (NATIVE_PLAYER_FRONT_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_player_front_end:
 native_queue_middle:
     .space (NATIVE_MIDDLE_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_middle_end:
 native_queue_player_body:
     .space (NATIVE_PLAYER_BODY_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_player_body_end:
 native_queue_back_enemy:
     .space (NATIVE_BACK_ENEMY_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+native_queue_back_enemy_end:
     .align 2
 /* Native sprite-control shadows: pc090oj_ctrl_shadow is the global-flip control;
  * pc090oj_sprite_ctrl_shadow supplies the dynamic colbank to emit-time lookup.
@@ -2935,6 +3343,14 @@ pc090oj_sprite_ctrl_shadow:
 pc090oj_emitted_count:
     .word 0
 pc090oj_dropped_count:
+    .word 0
+native_player_fallback_count:
+    .word 0
+native_generic_fallback_count:
+    .word 0
+native_specialized_hit_count:
+    .word 0
+native_player_piece_adapter_count:
     .word 0
 pc090oj_sat_dirty:
     .word 0

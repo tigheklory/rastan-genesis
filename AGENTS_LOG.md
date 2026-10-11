@@ -1,5 +1,24 @@
 # AGENTS Log
 
+## [Cody — Build 0413 native tail-performance optimization]
+
+* Baseline Build 0412 tail classification retained: under-budget graphics/non-graphics 47.6K/53.1K; >250K 81.8K/199.1K. Dominant chain is `0x51210 -> 0x055650 -> 0x0556CE -> 0x055948 -> 0x0559C8 -> 0x70418/0x70552`; PC080SN strip/map work remained OUT OF SCOPE and UNCHANGED.
+* Production change: removed redundant full nested register saves from the private generated-actor probe chain. Stage dispatchers still preserve `D0-D7/A0-A6`; common wrapper preserves loop-live `D5/A1`; probe/helper `A4/A5` non-clobber is mandatory. Local MC68000 recovery: 260 cycles inactive, 420 generic hit, 632 generic-miss/universal path.
+* Verifier hardened for actual `A4/A5` destination/implicit writes, both-probe/helper nested MOVEM rejection, robust `bsr`/`bsr.w`/`jsr` single-caller detection, pre-save exits, post-save restore, and full dispatcher preservation. Generator/frame/direct-dispatch/variable-count/fast-enqueue gates PASS; completion manifest remains 49 `NATIVE_COMPLETE`, 0 `NATIVE_PARTIAL`, 0 reachable `UNRESOLVED`.
+* Deterministic 1200-rendered-frame result: 1092 workers / 0.9100 vs 1084 / 0.9033; missing-worker frames 108 vs 116; worker worst 309574 vs 319882; graphics p95 90372 vs 93636; non-graphics avg/p95 61754.31/132112 vs 63099.23/133428. Faster ROM reaches denser later state, so raw aggregate avg/p95 and IRQ-over ratio are not uniformly lower (IRQ avg 128023.36, p95 233507, over-budget 34.1%). Equal-load median worker savings are 3.3% (20-29), 11.0% (30-39), 9.4% (40-49).
+* Optional `FUN_000406A4` guard NOT implemented: static proof shows 0x055650 invokes only active direction routine(s), not all four; route entered actor-scroll compensation in 259/1092 workers and meaningful zero-delta calls were not proven.
+* Closeout tooling fixed: actual producer-completion writes now define gameplay-worker cadence; MODE dwell/release cannot run between missed workers; `(round,subround,progress)` owns a no-progress watchdog; tap objects pinned globally. Build 0413 `_c`: COMPLETE, 18 subrounds, 13948 display frames / 11283 workers, 19 MODE presses, fallback0/adapter0/crash0. Build-0412 4-subround stop was tooling synchronization, not a proven ROM regression.
+* Build 0413 full family produced. Canonical and gameplay-entry gates PASS; VDP ownership PASS; address/bus/illegal/crash `0/0/0/0`; existing phase-one seven-epoch labeled FAIL preserved. Canonical SHA-256 `0a3aab0c485bb1aaa82a5adf6260388e9df86e8670885020e6f00c0ced6b61d7`. Tighe visual/gameplay/performance acceptance and Four-Armed visual test required. Report: `docs/design/Cody_build0413_native_tail_performance_optimization.md`.
+
+## [Andy — Build 0412 tail-optimization STATIC REVIEW (review only; no code/ROM; Cody tree untouched; counter unchanged)]
+
+* STATIC REVIEW ONLY. No production source edited, no ROM, no Cody working-tree file changed, no Phase D/E, no PC080SN change. Deliverable: docs/design/Andy_build0412_tail_optimization_review.md.
+* REGISTER CONTRACT: Cody's probe lean-save is SAFE. .Lnative_emit_actor_common now saves only D5/A1 around the two single-caller probes (.Lnative_generic_frame_try @914, .Lnative_universal_general_try @917). Proven: stage dispatchers 41dae/45dfa own the full d0-d7/a0-a6 save; intra-loop live regs = A4,A5,D5; D5/A1 saved by wrapper; A4/A5 NEVER written by either probe, native_sprite_fast_context, native_sprite_emit_fast, or the mapping predicate; early exits (@900/902) precede the push and jump past the pop (stack balanced); no CCR dep crosses the boundary.
+* VERIFIER GAPS (verify_pc090oj_direct_dispatch.py can PASS an unsafe regeneration): (1) it never asserts the probes/emit/context do NOT write A4/A5 — the real invariant; (2) the "no nested full save" check covers only the generic probe, not the universal probe; (3) no early-exit stack-balance assertion; (4) single-caller check is exact-bsr-spacing only (misses jsr/bsr.w/reformat). Recommended exact additions in the doc §2.
+* NON-PC080SN TAIL: heavy chain 0x51210 -> 0x055650 (4-dir scroll) -> 0x0556CE scroll-step + 0x055948 -> 0x0559C8 -> 0x70418/0x70552 (Genesis-native PC080SN strip/map = OUT OF SCOPE, boundary CONFIRMED). KEY FINDING: FUN_000406a4 (called by all 4 directional routines) is ACTOR-COORDINATE SCROLL COMPENSATION, NOT strip/map — adds camera delta (A5+0x10D8/0x10DA, sign/zero by D2) to ~29 actor records across A5+0x2C8(9)/0x508(9)/0x748(11); touches only A5 actor WRAM. Stationary-axis / non-matching-direction invocations apply the full walk as +0.
+* NEXT CODY TARGET (ranked by heavy-frame recoverable cycles): #1 FUN_000406a4 zero-delta early-out (if sVar1==0 && sVar2==0 return; provably identical state incl A5+0x24e-=0; LOW risk; actor-count-scaling); #2 extend the lean-save contract to the 0x4210E 7-call dispatch glue; #3 hoist the per-actor effective-bank mask (sprite_ctrl_shadow) once/frame. Confirm first (cheap/static) whether 0x055650 calls all 4 directions or only the active one.
+* MODE CLOSEOUT: 0412 _c reached 4/18 subrounds w/ fallback0/adapter0/crash0 => NOT a proven production regression; LIKELY a TOOLING desync. native_sprite_fullgame_closeout.lua drives movement+MODE presses+dwell/abort on DISPLAY frames (frame%N, frame-subround_changed_at>=dwell, max_frames=18000), but progress advances on GAMEPLAY TICKS; 0412's 0.9033 workers/frame + heavy tail yields fewer ticks per display frame so the fixed frame budget expires early. Tooling-only fix: pace dwell/stable/abort in gameplay_frames + replace fixed max_frames with an A_PROGRESS/subround no-progress watchdog (state-driven; the script already reads these). Does NOT alter the ROM.
+
 ## [Andy — TASK-1 BOUNDARY CORRECTION: Rastan uses the dedicated player compositor, NOT native_stage_dispatch_41dae (doc/handoff only; no code/ROM; counter unchanged)]
 
 * DOC/BOUNDARY CORRECTION ONLY. No production source; no ROM; 0401 untouched/shelved; architecture body not reopened. Cody CORRECTLY STOPPED Task 1 on a source-level contradiction in the governing doc.
@@ -50637,3 +50656,252 @@ TIGHE ONLY
   target at 103,167.34 cycles/update.
 - Evidence: `states/traces/build0400_0404_0405_graphics_cost_progression/final/build{0400,0404,0405}/`.
 - Report: `docs/design/Cody_build0400_0404_0405_graphics_cost_progression.md`. Counter remains 405.
+
+### MAME Exit Summary (2026-10-08 10:29:05)
+- Final PC: 0x0744BE
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-08 — Cody — Build 0406 native sprite completion human-validation candidate
+
+- Baseline: Build 0405; first numbered ROM of the native sprite completion
+  campaign, produced at the required human-visual validation boundary.
+- Expanded the player generated table to all 1,200 BODY/weapon/fire-phase and
+  orientation keys with zero reachable player `UNRESOLVED`.
+- Corrected compositor table offsets to signed `MOVE.W`/`ADDA.W` semantics and
+  generated 1,898 legal universal general records, 24 specialized dispatch
+  records, and 682 specialized-subframe records for modes `10/20/30/50/60/90/A0/B0/C0`.
+- Statically classified all 638 remaining dense slots as
+  `PROVEN_UNREACHABLE`; reachable general/specialized unresolved count is zero.
+- Converged native gameplay contact coordinates with the same generated
+  visual geometry on native hits and added lifetime player fallback, generic
+  fallback, specialized-hit, and player-piece-adapter counters.
+- Machine manifest: 49 consumers, 48 `NATIVE_COMPLETE`, one `NATIVE_PARTIAL`.
+  The remaining partial is the fixed player FRONT tuple adapter; retained miss
+  paths are not yet retired pending the full-game zero-fallback suite.
+- Generator, independent frame verifier, finalized-pattern/palette verifier,
+  direct-dispatch verifier, static unresolved gate, manifest check,
+  assembler/link, boot guards, canonical gate, gameplay-entry gate, and full
+  five-ROM family verifier passed. Gameplay-entry exception counts were
+  `0/0/0/0`; normal MAME trace completed 1,798 frames with no unmapped memory.
+- Existing phase-one seven-epoch automated route remains a labeled `FAIL`
+  warning; no PC080SN code changed.
+- Canonical SHA-256:
+  `6d83c02795abc9d1343acabba1873cfca7fa5226ae112815b8680f9c8371341c`;
+  size 1,994,424 bytes. Complete canonical/`_d`/`_s`/`_do`/`_c` family
+  preserved as Build 0406.
+- Full-game zero-fallback runtime suite: NOT YET RUN. Tighe gameplay/visual
+  acceptance required before legacy path retirement.
+- Reports: `docs/design/Cody_native_sprite_completion_campaign.md` and
+  `docs/design/Cody_build0406_native_sprite_completion_human_validation.md`.
+
+## 2026-10-08 — Cody — Build 0407 pure-native sprite closeout and first optimization
+
+- Continued the accepted Build-0406 campaign state; no Phase D/E, H25,
+  scheduling/IRQ6, controller, PC080SN, or unrelated palette work.
+- Breakpoint proof isolated every remaining player adapter call to original
+  `0x054742` (return `0x05483E`) inside the `0x0546A8` `A5+0x1246`
+  secondary/legs compositor: 36/36 captured calls, four per active update.
+- Added a 416-key offline-generated secondary index, corrected H24 selector 51
+  to arcade sticky-zero semantics, and converted fixed FRONT plus the
+  three-record auxiliary producer to direct minimal native enqueue.
+- Removed the obsolete `native_player_piece` helper/eight dead remap references
+  and physically removed the unreachable native general descriptor/piece
+  parser. Manifest is 49 `NATIVE_COMPLETE`, 0 `NATIVE_PARTIAL`; reachable
+  `UNRESOLVED` is 0. Runtime player/generic fallback and adapter counters are 0;
+  established specialized routes recorded 27,204 and 28,236 hits.
+- Optimized generated frames by selecting lane context once and using a minimal
+  prevalidated append. Build gate verifies six lanes, filters, bounds/count,
+  tuple order, and the unchanged residency/worklist/SAT finalizer.
+- Queue cost fell 399.45 -> 172.11 cycles/piece and 13,135.84 -> 3,940.43
+  cycles/completed update. On the same 1,200-frame route, worker average fell
+  21.94%, graphics average 29.87%, workers/rendered frame rose 0.6567 -> 0.8342,
+  IRQ-over-budget fell 99.5% -> 79.1%, and frames without a worker fell 412 ->
+  199. VDP ownership passed. Next measured cost is the common finalizer at
+  48,591.61 cycles/call; no second optimization was made.
+- Generator, independent frame, finalized-pattern/palette, direct-dispatch,
+  residency, fast-enqueue, assembler/link, boot, canonical, gameplay-entry and
+  five-ROM family gates passed. Exception counts are `0/0/0/0`; normal trace
+  ran 1,798 frames without unmapped memory.
+- Build 0407 canonical SHA-256
+  `a152dfbf2e436f13234d668d37a9bc5cb897072d122e3bf4babab3eafd5ecaab`,
+  size 1,998,520 bytes; full canonical/`_d`/`_s`/`_do`/`_c` family preserved.
+  Human visual/gameplay validation remains required.
+- Reports: `docs/design/Cody_native_sprite_completion_campaign.md` and
+  `docs/design/Cody_build0407_native_sprite_performance_optimization.md`.
+
+### MAME Exit Summary (2026-10-08 21:12:41)
+- Final PC: 0x07458C
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-09 — Cody — Build 0408 variable-count native sprite regression correction
+
+- Tighe rejected Build 0407: Build 0406 was visually correct, while 0407 lost
+  whole Lizardman and Four-Armed composite pieces despite being faster.
+- Generated data and A-H accounting were correct: Lizardman `004B/17/ori0`
+  considered/enqueued/finalized/SAT `8/8/8/8`; Four-Armed
+  `02E8/61/ori0` considered/enqueued `9/9`, with SAT `6` while right-clipped
+  and `9` fully visible.
+- First 0406/0407 divergence: Level-B and universal generated wrappers did not
+  preserve caller-owned `A3/A6` after Build 0407's fast context began using
+  them. Lizardman exact A/B: entry `A3=FF12A8 A6=FF0298`; 0406 returns those
+  values, 0407 returns `A3=FFBBB8 A6=FFB7FE` (back-enemy queue/count).
+- Fix: save/restore `A3/A6` once in both generic frame wrappers, on success and
+  unresolved exits. Fast enqueue, once-per-frame lane context, the generic
+  variable-count architecture, and the common finalizer are retained.
+- Added build-gated register-contract checks and six variable-count
+  reject/visibility/capacity reconciliation cases. Build-0408 runtime recorded
+  4,017 generic entry/return pairs with zero register mismatches.
+- Rack-advance closeout completed all 18 established subrounds with
+  player/generic fallback `0/0`, adapter `0`, crash `0`; gameplay-entry
+  address/bus/illegal/crash counts `0/0/0/0`.
+- Performance (1,200-frame GENESIS NTSC route): workers/rendered frame `0.8308`,
+  worker avg `146,609.22`, IRQ avg `152,246.56`, graphics avg `80,392.38`,
+  IRQ-over-budget `82.7%`, frames without worker `203`. The Build-0407 speed
+  gain is substantially retained.
+- Build 0408 full family produced; canonical SHA-256
+  `f6f563b100e8101283b40748c6e1261694c71888ab52406355b1277352f305a5`,
+  size 1,998,520 bytes. Canonical/entry gates PASS; existing epoch gate FAIL.
+- Report: `docs/design/Cody_build0408_variable_count_native_sprite_fix.md`.
+  Tighe visual/gameplay/performance acceptance required.
+
+### MAME Exit Summary (2026-10-09 13:07:58)
+- Final PC: 0x07458C
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-09 23:10:25)
+- Final PC: 0x074580
+- Stack Pointer (SP): 0x00FEFF66
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-09 — Cody Build 0409 displayed enemy sprite-loss correction
+
+- Build 0408's actual VDP SAT proved the missing Lizardman body records were
+  absent before publication: all 8 generated records were read, but only 2
+  appended after 13 existing back-enemy records.
+- Root cause: `native_sprite_fast_context` used numeric-displacement `LEA` end
+  calculations that encoded a later-CPU full/index extension. The Genesis
+  68000 interpreted it as a brief D0-indexed EA; measured back-enemy
+  `A2-A3=0x75`, an unintended 15-record cutoff instead of 99.
+- Build 0409 uses exact allocation-end linker labels for all six lanes and the
+  direct-dispatch verifier enforces the labels and allocation adjacency.
+- Post-fix actual VDP SAT/framebuffer proof publishes both complete eight-piece
+  Lizardman bodies with the impact effect. Hardware scanline overflow,
+  residency, DMA publication, slot reuse, and worklist saturation are not
+  causal. Four-Armed shares the fixed lane; Tighe visual acceptance remains
+  required.
+- Full 0409 family produced; canonical/gameplay-entry gates pass; entry
+  address/bus/illegal/crash counts are `0/0/0/0`. Performance retains the
+  native gain. Report:
+  `docs/design/Cody_build0409_displayed_enemy_sprite_loss_fix.md`.
+
+### MAME Exit Summary (2026-10-10 10:24:53)
+- Final PC: 0x074186
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-10 — Cody Build 0410 shared native finalizer optimization
+
+- Build 0409 finalizer baseline: 53,808.48 cycles/completed update, median/p95
+  49,580/94,270, 70.60% of its graphics subtotal. The largest removable work
+  was repeated identity/blank/bounds/variant processing for build-time-proven
+  generated records.
+- The existing frame generator now emits `x1000|source` for proven direct
+  player, secondary, and Level-B identities; `x2000|vi` remains the proven
+  variant form; unmarked Level-A records retain dynamic semantics. The frame
+  verifier enforces this contract and normalized residency metadata.
+- The shared finalizer skips redundant blank/variant work for marked records
+  and retains one bounds pointer across geometry. Geometry, clipping, queue
+  ordering/bounds, residency replacement, DMA worklists, SAT ordering, and
+  hardware-limit behavior remain unchanged.
+- Finalizer result: 46,502.94 cycles/update (-13.58%), median/p95
+  39,264/86,404, and 1,334.21 cycles/piece (-18.08%). Whole-worker average is
+  still 146,980.39 cycles and IRQ average 152,267.67, above 128,009; no second
+  optimization was attempted.
+- Bounded scene proof reaches back-enemy count 43 and publishes complete
+  selector-1F/1E Lizardman bodies (10+8 pieces) with the separate impact.
+  Canonical/gameplay-entry/VDP ownership and generated-table/dispatch/queue
+  gates pass; gameplay-entry exceptions are 0/0/0/0. Four-Armed human visual
+  validation remains required.
+- Full Build 0410 canonical/_d/_s/_do/_c family produced, each 1,998,520 bytes.
+  Canonical SHA-256:
+  `68669fec67a00566f4e4cc4624062c52ac6ac36e5875fdc76161fce700ec923e`.
+  Report: `docs/design/Cody_build0410_native_finalizer_performance_optimization.md`.
+
+### MAME Exit Summary (2026-10-10 14:23:46)
+- Final PC: 0x0745AC
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-10 — Cody Build 0411 native worker one-frame-average milestone
+
+- Build 0410 SAT construction was exclusively decomposed: 22.004 entries per
+  finalizer update, 445.76 cycles/entry, 9,808.69 cycles/update. The
+  tile/priority/palette/flip word was the largest subcost at 5,363.80.
+- SAT hit construction now retains the resident slot in `D6`, derives V/H bits
+  together, selects palette fragments from a four-word table, and removes
+  redundant masks/stack traffic. Dynamic X/Y, palette-map selection, current
+  residency, links, ordering, and output count remain runtime-owned. SAT falls
+  to 7,220.27 cycles/update (-26.39%).
+- Post-SAT worker average remained 136,611.67, so the next measured target was
+  applied: the 49-call first-free residency scan is now an exact ascending
+  byte/bit scan. It preserves the lowest-free-slot policy and all reverse-map,
+  eviction, reservation, and worklist semantics; cost falls from 4,317.19 to
+  522.23 cycles/update on the final route.
+- Final deterministic result: workers/rendered frame 0.9033; worker average
+  126,786.39 (1,222.61 below the 128,009 budget); IRQ average 131,589.13;
+  graphics average 56,833.13; finalizer 38,572.31. IRQ remains 3,580.13 over
+  budget, but the requested average-worker milestone is achieved.
+- Regression route reaches `back_enemy=38`; frame 1228 publishes complete
+  8+10-piece visible Lizardman bodies with the separate `0x0275` impact.
+  The numbered `_c` closeout reaches all 18 established subrounds with
+  player/generic fallback `0/0`, adapter `0`, first fallback `NONE`, and crash
+  flag `0000`. Four-Armed actual visual validation remains a user test. Canonical and
+  gameplay-entry gates PASS, VDP ownership PASS, entry exceptions `0/0/0/0`,
+  modified code base-MC68000 PASS; the existing epoch warning remains.
+- Full Build 0411 family produced (canonical/_d/_s/_do/_c), each 1,998,520
+  bytes. Canonical SHA-256:
+  `5b3941e57e885e13e34772daef211f2ed67557372f95bf4d1855bb6b2cb6a0e8`.
+  Report:
+  `docs/design/Cody_build0411_native_worker_one_frame_optimization.md`.
+
+### MAME Exit Summary (2026-10-10 15:45:24)
+- Final PC: 0x074182
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-10 — Cody Build 0412 hardware-grounded native performance
+
+- Reviewed Tighe's 1920x1080, approximately 30 fps Build 0411 hardware capture
+  qualitatively only; 59.94 Hz-to-30 fps sampling cannot supply exact timing.
+- Build 0411 pre-geometry split: direct 15.406 entries/frame at 146.00
+  cycles/entry; dynamic Level-A 8.858 at 302.32. Dynamic identity validation
+  was the largest exclusive substage at 1,489.99 cycles/frame.
+- The finite P1 HUD glyph producer now uses proven direct identity and one fast
+  queue context. Leading zeroes are culled at the producer; only fixed visible
+  HUD glyphs skip bounds-pointer/viewport work. Dynamic Level-A and every actor,
+  player, and effect clipping path are unchanged.
+- Finalizer cost falls 38,572.31 -> 32,408.16 cycles/completed update (-15.98%).
+  Final timing: worker avg 120,467.68; IRQ avg 125,442.49 (2,566.51 below the
+  128,009 budget); IRQ over-budget 29.0%; 0.9033 workers/rendered frame.
+- Generator/frame/direct-dispatch/variable-count/fast-enqueue, canonical,
+  gameplay-entry, VDP-ownership, and base-MC68000 checks pass; gameplay-entry
+  exceptions are `0/0/0/0`. The known epoch warning remains.
+- Build 0412 `_c` retained fallback/adapter/crash `0/0/0/0` but MODE automation
+  reached only four subrounds before MAX_FRAMES; full-game coverage is not
+  claimed and Tighe hardware validation is required.
+- Full Build 0412 family produced, each 1,998,520 bytes. Canonical SHA-256:
+  `235b617b7ed923435b42f22016e4669de58dd32a5afc06f6f456bebeb198237c`.
+  Report: `docs/design/Cody_build0412_hardware_grounded_native_performance.md`.
+
+### MAME Exit Summary (2026-10-10 22:18:46)
+- Final PC: 0x07415E
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-10 22:49:08)
+- Final PC: 0x07456A
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
