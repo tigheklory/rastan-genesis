@@ -113,25 +113,91 @@ vblank_vc:
  * ============================================================================ */
 
 /* VRAM word DMA.  in: d0 = VRAM byte dest, d1 = word count, a0 = 68k source.
- * Triggers a 68k->VRAM DMA.  Clobbers d1-d3, a1.
+ * Triggers a 68k->VRAM DMA.  Clobbers d1-d3, a1; preserves d0/a0.
  *
  * Two entry points, same body:
  *   vdp_dma_words_to_vram / dma_words_to_vram  -- also forces autoinc=2 first
  *       (plane strips + FG cache: defensive, in case the arcade tick left a
  *        different autoinc during its own PIO writes).
- *   dma_words_to_vram_noai                      -- skips the autoinc set for
- *       callers that run after a plane DMA has already set autoinc=2 (the sprite
- *       cell + SAT commits, which historically issued no autoinc write of their
- *       own).  This keeps the sprite publication byte-for-byte / cycle-for-cycle
- *       identical to Build 0344 so it does not perturb epoch-transition timing. */
+ *   dma_words_to_vram_noai                      -- skips both the autoinc set
+ *       and the ROM-bank split check.  Its remaining callers use bounded WRAM
+ *       sources (SAT and 64-byte column gathers), so they cannot cross a
+ *       128-KiB source boundary.  In particular this preserves autoinc=128 for
+ *       the strided-column publisher.
+ *
+ * Build 0418: the normal autoinc=2 entry checks the VDP's 64-Kword source-bank
+ * limit.  The common case still issues exactly one DMA.  A crossing transfer
+ * is split at the next 0x20000-byte boundary and the second destination is
+ * advanced by first_words*2.  Since d1 is a 16-bit hardware word count, a
+ * transfer is at most 0x10000 words and can cross at most one such boundary.
+ * A zero d1 retains the VDP meaning of 0x10000 words.
+ *
+ * Historically dma_words_to_vram_noai was also used by the ROM-backed sprite
+ *       cell upload.  Build 0418 routes that caller through the checked normal
+ *       entry; the noai entry is now WRAM-only.
+ */
 dma_words_to_vram_noai:
     movea.l #VDP_CTRL, %a1
-    bra.s   .Ldwtv_len
+    bra.w   .Ldwtv_issue
 dma_words_to_vram:
 vdp_dma_words_to_vram:
     movea.l #VDP_CTRL, %a1
     move.w  #0x8F02, (%a1)
-.Ldwtv_len:
+
+    /* Cheap one-DMA fast path.  In VDP word-address space the low word is the
+     * position inside the 64-Kword source bank.  Adding a nonzero d1 crosses
+     * only when it carries and does not land exactly on bank offset zero. */
+    move.l  %a0, %d2
+    lsr.l   #1, %d2
+    tst.w   %d1
+    beq.s   .Ldwtv_zero_count          /* zero means 0x10000 words */
+    add.w   %d1, %d2
+    bcc.s   .Ldwtv_issue
+    beq.s   .Ldwtv_issue               /* ends exactly at next boundary */
+    bra.s   .Ldwtv_find_first
+.Ldwtv_zero_count:
+    tst.w   %d2
+    beq.s   .Ldwtv_issue               /* aligned full-bank transfer */
+
+.Ldwtv_find_first:
+    move.l  %a0, %d2
+    andi.l  #0x0001FFFF, %d2
+    neg.l   %d2
+    addi.l  #0x00020000, %d2
+    lsr.l   #1, %d2                    /* words available before boundary */
+.Ldwtv_split:
+    /* d2 = first word count.  Save the caller-visible d0/a0 and both chunk
+     * counts because the raw hardware programmer clobbers d1-d3/a1. */
+    moveq   #0, %d3
+    move.w  %d1, %d3
+    bne.s   .Ldwtv_total_ready
+    move.l  #0x00010000, %d3
+.Ldwtv_total_ready:
+    sub.l   %d2, %d3                   /* remaining words (always <= 0xFFFF) */
+    move.w  %d3, -(%sp)
+    move.w  %d2, -(%sp)
+    move.l  %d0, -(%sp)
+    move.l  %a0, -(%sp)
+    move.w  %d2, %d1
+    bsr.s   .Ldwtv_issue
+
+    movea.l (%sp)+, %a0
+    move.l  (%sp)+, %d0
+    moveq   #0, %d3
+    move.w  (%sp)+, %d3                /* first words */
+    move.w  (%sp)+, %d1                /* remaining words */
+    move.l  %d0, -(%sp)                /* preserve caller's original values */
+    move.l  %a0, -(%sp)
+    add.l   %d3, %d3                   /* first bytes */
+    adda.l  %d3, %a0                   /* actual next ROM address */
+    add.l   %d3, %d0                   /* contiguous VRAM destination */
+    movea.l #VDP_CTRL, %a1
+    bsr.s   .Ldwtv_issue
+    movea.l (%sp)+, %a0
+    move.l  (%sp)+, %d0
+    rts
+
+.Ldwtv_issue:
     move.w  %d1, %d2
     andi.w  #0x00FF, %d2
     ori.w   #0x9300, %d2

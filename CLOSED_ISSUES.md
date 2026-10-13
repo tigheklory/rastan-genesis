@@ -13,6 +13,17 @@ Closure note format:
 
 ---
 
+## CLOSED-031 — Six A-0154 Layer-A holes / 128-KiB VDP DMA source-boundary crossing
+
+- **Original title / retrospective OPEN-031 identity:** Six persistent Segment-2 A-0154 partial Layer-A holes on real Genesis. The defect was investigated and closed before it received a durable OPEN entry; 031 is used to avoid colliding with still-open OPEN-024.
+- **Closed by:** Cody Build 0418 implementation; Tighe real-Genesis acceptance.
+- **Build/artifact:** Complete Build 0418 family; accepted forward baseline.
+- **Evidence:** `docs/design/Cody_build0418_vdp_dma_boundary_fix.md`; KF-090; Tighe confirmed that the six A-0154 holes are resolved on real hardware.
+- **Closure note:** The generic autoincrement-2 ROM DMA path now splits only true 128-KiB source-boundary crossings, and the PC080SN corpus is 32-byte aligned. Preserve the historical correction: palette mapping and active-display DMA were disproven as the cause of these six fixed pattern holes.
+- **Related still-open issue:** IRQ6/full-frame overrun, active-display DMA, `_do` forced-black bands, the one-frame entering-cell transient, and background runtime cost remain separate and open.
+
+---
+
 ## CLOSED-001 — Build 53 D0/D6 runaway / wild PC / stack corruption
 
 - **Original title:** Build 53 D0/D6 runaway / wild PC / stack corruption

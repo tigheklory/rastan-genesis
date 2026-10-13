@@ -15,6 +15,8 @@ CANONICAL_GATE := $(ROOT)/tools/translation/verify_canonical_rom.py
 GAMEPLAY_ENTRY_GATE := $(ROOT)/tools/mame/run_build0309_gameplay_entry_gate.sh
 PHASE1_EPOCH_GATE := $(ROOT)/tools/mame/run_build0310_epoch_gate.sh
 TRANSITION_RETENTION_GATE := $(ROOT)/tools/translation/verify_build0311_transition_retention.py
+BG_A_INCREMENTAL_GATE := $(ROOT)/tools/translation/verify_bg_a_incremental_background.py
+VDP_DMA_BOUNDARY_GATE := $(ROOT)/tools/translation/verify_vdp_dma_boundary.py
 REGION_BUILDER := $(ROOT)/tools/build_rastan_regions.py
 NUMBERED_DIST_DIR := $(ROOT)/dist/rastan-direct
 NUMBERED_COUNTER := $(ROOT)/build/rastan-direct/build_counter.txt
@@ -402,7 +404,9 @@ $(SYMBOLS): $(ELF) | $(OUT_DIR)
 $(PREPATCH_BIN): $(ELF) | $(OUT_DIR)
 	$(OBJCOPY) -O binary $< $@
 
-$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) | $(DIST_DIR)
+$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(VDP_DMA_BOUNDARY_GATE) | $(DIST_DIR)
+	$(PYTHON) "$(BG_A_INCREMENTAL_GATE)"
+	$(PYTHON) "$(VDP_DMA_BOUNDARY_GATE)" --symbols "$(SYMBOLS)" --patterns "$(PC080SN_EDITOR_LAYERA)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"

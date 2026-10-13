@@ -41,7 +41,8 @@
     .global vdp_commit_sprites
     .global vdp_commit_sprites_vram
     .global genesistan_pc090oj_dma_self_test
-    .extern dma_words_to_vram_noai         /* Build 0345: single DMA-programming owner in dma.s */
+    .extern dma_words_to_vram_noai         /* WRAM SAT/column-style publication, current autoinc */
+    .extern vdp_dma_words_to_vram          /* Build 0418: boundary-safe ROM source, autoinc=2 */
     .extern genesistan_hook_cwindow_clear  /* Native Plane A/B consequence of arcade 0x0561A0. */
 
     .global pc090oj_ctrl_shadow
@@ -3096,14 +3097,16 @@ vdp_commit_sprites_vram:
 	.Lvcs_tile_src_ready:
     /* Build 0345: issue the sprite-cell VRAM DMA through the dma.s-owned primitive instead of an
      * inline register program.  in: a0 = 68k source (byte), d0 = VRAM byte dest, d1 = word count
-     * (64 words = one 128-byte sprite cell group).  Preserves d4-d7 (slot/index/code/count) and a2. */
+     * (64 words = one 128-byte sprite cell group).  Preserves d4-d7 (slot/index/code/count) and a2.
+     * Build 0418 uses the checked autoinc=2 entry because this source is ROM-backed; the SAT and
+     * strided-column WRAM callers retain the noai entry. */
     movea.l %a1, %a0
     move.w  %d4, %d0
     lsl.w   #2, %d0
     addi.w  #SPRITE_TILE_BASE, %d0
     lsl.l   #5, %d0
     moveq   #64, %d1
-    bsr     dma_words_to_vram_noai
+    bsr     vdp_dma_words_to_vram
     move.w  %d4, %d0
     add.w   %d0, %d0
     lea     sprite_tile_resident_code, %a1

@@ -1725,3 +1725,51 @@ A full-source sweep for arcade hardware address literals (`0x20xxxx` palette, `0
 What remains is three classes, not emulation: **(A) dead vestige** — `lea 0x00D00xxx,%a1` loads clobbered at `pc090oj_hooks.s:613`, `rts`-stub hook bodies (`3b902/3b926/41f5e`-frontend/`59f5e/5a098/3ad4c/3ad72`), uncalled dead arcade routines (`0x3B930/0x3B8B0`); **(B) translation bridge** (load-bearing) — native hooks read arcade A5-WRAM descriptor/actor/palette state and arcade-written *destination tokens* (`0xD00460` sprite, `0xC00000/0xC08000` C-window, `0x200000` palette) used purely as range-recognition and offset-decode keys, producing native staged Genesis output consumed by `dma_publish_frame`; **(D) ROM diagnostics** (73 refs) — `audit_guard` trap (`tilemap_hooks.s:3999`), `dma_self_test` (`pc090oj_hooks.s:2509`), `pc090oj_dma_test_*`, `VC_MARK`/`vblank_vc`.
 
 Consequences: (1) the Build-0400 slowdown is **not** hardware emulation — it is the Category-B per-piece arcade→Genesis expansion in `.Lnative_emit_actor_common` (`worker ≈ 55,600 + 2,609×emitted`), fixed only by a resident/transient sprite redesign, not by deleting scaffolding; (2) the most arcade-coupled subsystem is the textwriter (`genesistan_hook_textwriter_dispatch`, still `jsr 0x565CE` for glyphs + C-window token keying, ungated by scene); (3) 64 hook sites intercept the arcade frame worker's graphics production in `0x03A0xx-0x03AFxx` — the worker still runs (correct semantic owner) and we re-decode its WRAM output every frame. Full audit: `docs/design/Andy_build0400_pc090oj_pc080sn_remnant_audit.md`.
+
+## KF-090 — The six persistent A-0154 (tile 0x117) partial Layer-A holes are an unsplit ROM-source VDP DMA crossing a 128-KiB source-bank boundary — NOT active-display DMA
+
+Status: RESOLVED / DURABLE (Build 0418 accepted on real Genesis). Confidence: CONFIRMED (Cody root cause + Andy independent arithmetic + hardware mask match + Tighe hardware acceptance). Applicability: all PC080SN/PC090OJ ROM-source VDP DMA. Rediscovery Hazard: HIGH (an earlier Andy review wrongly blamed active-display DMA).
+
+The per-tile Plane-A pattern upload is a 68k→VRAM **ROM-source DMA**: `source = genesistan_pc080sn_tile_rom + code*32`, 16 words / 32 bytes (`apps/rastan-direct/src/scene_load.s:110-118`, `lsl.l #5` = ×32). The Genesis VDP DMA source counter increments only the low 17 bits, so it **wraps within the same 128-KiB (0x20000) bank**: after source `0x15FFFF` it continues at `0x140000`, not `0x160000`. When a tile's 32 bytes straddle a `0x20000` boundary, the tail bytes are read from the **bank base** (unrelated data) — which contains **zero nibbles → transparent Plane-A pixels → Layer B shows through** those sub-tile rows, in **settled VRAM on real hardware**.
+
+Verified for A-0154 / code 0x117 (corpus base `0x15DD08`, `code*32 = 0x22E0`): **Normal 0417** source `0x15FFE8` → 24 bytes before `0x160000` → rows 0–5 correct, rows **6–7** corrupt, **8** transparent px/occurrence. **0417_do** source `0x15FFF8` (its linked corpus moved **+0x10**) → 8 bytes before → rows 0–1 correct, rows **2–7** corrupt, **23** transparent px/occurrence. `_do` is worse purely because the +0x10 **static layout** shift moves a larger portion of the *same* tile past the boundary — **not** a raster/timing effect. All six Segment-2 occurrences share one VRAM pattern slot → identical corrupted transparency mask over differing Layer-B artwork.
+
+**MAME did not reproduce this** (it continues the source linearly across `0x160000`), so terminal VRAM dumps showed a correct pattern and contradicted the hardware observation — real Genesis is authoritative. **Do NOT attribute these six A-0154 holes to active-display VRAM DMA / publication overrun.** Those are real but SEPARATE performance/correctness topics (publication overruns VBlank ~180–230K vs 128,009; the one-frame `0x6297`→`0x63A4` entrance name transient). Repair direction (Build 0418 scope): make ROM-source VDP DMA 128-KiB-boundary safe — keep the one-DMA fast path, split only transfers that cross a `0x20000` source boundary, and **32-byte-align** `genesistan_pc080sn_tile_rom` (`0x20000 % 32 == 0` ⇒ each `code*32` tile lies wholly within one bank; the 0417 corpus base `0x15DD08` is not 32-aligned). Full evidence: `docs/design/Cody_build0417_partial_layer_a_dropout_root_cause.md` and `docs/design/Andy_build0417_partial_layer_a_dropout_architecture_review.md` §CORRECTION.
+
+**RESOLUTION (Build 0418):** the autoincrement-2 ROM DMA entry now keeps a
+one-DMA fast path and splits a true crossing into two fully reprogrammed DMAs;
+the ROM-backed PC090OJ pattern caller uses that checked entry, while SAT and
+autoincrement-128 column gathers remain on their bounded-WRAM specialized path.
+The PC080SN corpus is `.balign 32`. Normal 0418 base/A-0154 are
+`0x15DD80`/`0x160060`; every family variant is 32-byte aligned, non-crossing,
+and uses one 16-word A-0154 DMA. Mechanical verification PASS. Tighe then
+confirmed on real Genesis that all six A-0154 holes are gone, accepting Build
+0418 as the forward baseline. The separate IRQ6/full-frame overrun,
+active-display DMA, `_do` bands, one-frame entering-cell transient, and
+background runtime cost remain open and must not be conflated with this
+closed defect. Report:
+`docs/design/Cody_build0418_vdp_dma_boundary_fix.md`.
+
+## KF-091 — Build 0419 safely fuses duplicate Plane-A name/collision descriptor walks, but background translation is not closed
+
+Status: ACTIVE. Confidence: CONFIRMED (source contract, exact call inventory,
+full-span verifier, build gates). Applicability: Build 0419+ background work.
+
+Build 0418 selector 0 resolved each of 64 logical cells twice: once through
+`resolve_plane_a_cell` and again through `resolve_plane_a_collision_cell`, even
+though both chose the same live source entry, ring-unwrapped descriptor, and
+metatile. Build 0419's `resolve_plane_a_name_collision_cell` shares that
+selection and returns both products. Selector 0 changes from 128 resolver
+entries/descriptor traversals to 64 fused entries/traversals; selector 1/2
+uses the fused leaf only when its row is resident and retains collision-only
+semantics otherwise. Full 64-cell logical maintenance, the 64x64 collision
+ring, Plane B, physical 64x32 projection, dirty publication, DMA, palette
+authority, and gameplay decisions are unchanged.
+
+This is not background closure. Name-only Plane A, Plane B, and collision-only
+paths still interpret live arcade descriptor layouts. The existing exact
+0417/0418-equivalent selector-0 baseline is 135,751.6 cycles/event; the current
+controlled MAME cold-boot route failed to arm on both comparison ROMs, so no
+post-change cycle percentage is claimed. See
+`docs/design/Cody_build0418_background_native_closure_audit.md` and
+`docs/design/Cody_build0419_background_native_optimization.md`.

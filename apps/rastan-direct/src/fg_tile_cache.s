@@ -40,6 +40,7 @@
     .extern bg_row_dirty
     .extern fg_row_dirty
     .extern fg_col_dirty
+    .extern bg_col_dirty
     .extern fg_narrow_desc_count
     .extern fg_narrow_pending_rows
     .extern genesistan_scene_present_pending
@@ -133,6 +134,8 @@ fg_boundary_install_post_reseed:
     clr.l   fg_row_dirty
     clr.l   fg_col_dirty
     clr.l   fg_col_dirty + 4
+    clr.l   bg_col_dirty
+    clr.l   bg_col_dirty + 4
     clr.w   fg_narrow_desc_count
     clr.w   fg_narrow_pending_rows
     clr.b   genesistan_scene_present_pending
@@ -553,6 +556,10 @@ fg_boundary_install:
     bsr     vdp_dma_words_to_vram
     clr.l   bg_row_dirty
     clr.l   fg_row_dirty
+    clr.l   fg_col_dirty
+    clr.l   fg_col_dirty + 4
+    clr.l   bg_col_dirty
+    clr.l   bg_col_dirty + 4
 .Linstall_names_done:
 
     move.w  fg_boundary_pending_record, fg_boundary_active_record

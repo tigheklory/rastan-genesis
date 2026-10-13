@@ -28,17 +28,20 @@ local function reg(name)
   return s and (s.value & 0xffffffff) or 0
 end
 
-local A_SCENE = 0x00ffc55c
+local function envaddr(name, fallback)
+  return tonumber(os.getenv(name) or string.format("0x%08X", fallback))
+end
+local A_SCENE = envaddr("NATIVE_CLOSEOUT_SCENE_ADDR", 0x00ffc55c)
 local A_GAME_MODE = 0x00ff0000
 local A_ROUND = 0x00ff0118
 local A_PROGRESS = 0x00ff013e
 local A_SUBROUND = 0x00ff1243
-local A_PLAYER_FALLBACK = 0x00ffbed8
-local A_GENERIC_FALLBACK = 0x00ffbeda
-local A_SPECIALIZED_HIT = 0x00ffbedc
-local A_PLAYER_ADAPTER = 0x00ffbede
-local A_EMIT = 0x00ffbed4
-local A_CRASH = 0x00ff6180
+local A_PLAYER_FALLBACK = envaddr("NATIVE_CLOSEOUT_PLAYER_FALLBACK_ADDR", 0x00ffbed8)
+local A_GENERIC_FALLBACK = envaddr("NATIVE_CLOSEOUT_GENERIC_FALLBACK_ADDR", 0x00ffbeda)
+local A_SPECIALIZED_HIT = envaddr("NATIVE_CLOSEOUT_SPECIALIZED_HIT_ADDR", 0x00ffbedc)
+local A_PLAYER_ADAPTER = envaddr("NATIVE_CLOSEOUT_PLAYER_ADAPTER_ADDR", 0x00ffbede)
+local A_EMIT = envaddr("NATIVE_CLOSEOUT_EMIT_ADDR", 0x00ffbed4)
+local A_CRASH = envaddr("NATIVE_CLOSEOUT_CRASH_ADDR", 0x00ff6180)
 
 local fields = {}
 for _, port in pairs(machine.ioport.ports) do

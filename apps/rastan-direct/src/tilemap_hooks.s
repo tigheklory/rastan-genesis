@@ -40,12 +40,15 @@
     .global genesistan_hook_itempage_strip_populate
     .global genesistan_hook_itempage_strip_blit
     .global vdp_commit_fg_narrow_strips
+    .global vdp_commit_bg_columns_if_dirty
     .global fg_col_dirty
+    .global bg_col_dirty
     .global rastan_direct_update_inputs
 
     .extern vdp_set_reg
     .extern genesistan_scene_present_pending
     .extern vdp_set_vram_write_addr
+    .extern dma_words_to_vram_noai
     .extern vdp_commit_fg_strips_if_dirty
     .extern genesistan_current_scene_id
     .extern fg_cache_resolve
@@ -103,6 +106,31 @@
     .equ NATIVE_LANE_PLAYER_BODY,            4
     .equ NATIVE_LANE_BACK_ENEMY,             5
     .equ ARCADE_COLLISION_MAP_BASE,          0x00FF1E00
+    /* Build 0417 / KF-072: the current moving-source runtime requires every
+     * background producer to traverse the complete 64-cell logical span.
+     * This is a logical/cache-coherence contract, not the physical Genesis
+     * viewport size: the final Plane A/B staging projection remains 64x32. */
+    .equ BG_LOGICAL_SPAN,                    64
+
+/* Build 0415 BG-A accessor seam.  These private macros deliberately expand to
+ * the existing authoritative resolver leaves; BG-C can replace only the macro
+ * bodies with O(1) native-table loads without touching strip/ring/dirty code.
+ * NAME_B operates on D3 after the current Plane-B descriptor walk. */
+.macro MAP_GET_NAME_A
+    bsr     resolve_plane_a_cell
+.endm
+.macro MAP_GET_NAME_B
+    bsr     fg_boundary_resolve_b
+.endm
+.macro MAP_GET_COLLISION
+    bsr     resolve_plane_a_collision_cell
+.endm
+/* Build 0419 BG-B: when a producer needs both products for one logical cell,
+ * traverse the live descriptor/metatile chain once.  D0 returns the final
+ * Genesis name word and D2 returns the retained arcade collision word. */
+.macro MAP_GET_NAME_COLLISION_A
+    bsr     resolve_plane_a_name_collision_cell
+.endm
     /* Build 0215 / OPEN-017: Stage 1 FG plane replay (proven deterministic ROM model).
      * The live FG boundary is genesistan_hook_tilemap_fg (0x703EA), reached per-column from
      * the Stage 1 setup loop (0x50634); its native slot a5@0x10A4 is out of range so it bails,
@@ -150,6 +178,7 @@
     .equ FG_NARROW_CAP,                       64
     .equ VDP_DATA,                            0x00C00000
     .equ VDP_REG_AUTOINC,                     15
+    .equ VRAM_PLANE_B_BASE,                   0x0000C000
     .equ VRAM_PLANE_A_BASE,                   0x0000E000
     /* Continuations expressed by their durable ARCADE identity (+ the whole-maincpu
      * relocation base).  The postpatch re-resolves these Genesis-only -> copied-maincpu
@@ -306,8 +335,8 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     add.w   %d5, %d1
     move.w  %d1, %d0                         /* logical row */
     move.w  0(%sp), %d1                      /* logical column */
-    bsr     resolve_plane_a_collision_cell   /* D0 = retained collision word */
-    move.w  %d0, %d2
+    MAP_GET_NAME_COLLISION_A                 /* D0 = name; D2 = collision */
+    move.w  %d0, 8(%sp)                     /* retain name across collision store */
     move.w  %d4, %d1
     lsl.w   #2, %d1
     add.w   %d5, %d1                         /* logical row */
@@ -322,16 +351,11 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     move.w  %d2, 0(%a6,%d3.w)
     lea     staged_fg_buffer, %a6
 
-    /* Build 0351: resolve the Plane-A name word through the ONE shared authoritative
-     * resolver, so the horizontal producer and the vertical row producer resolve the
-     * same logical cell identically.  (Was a direct read from the live rebuilt table,
-     * which diverged from the vertical producer's static walk.)  The collision
-     * side-channel above still uses the live descriptor and is intentionally unchanged. */
-    move.w  %d1, %d0                         /* logical row = d4*4 + d5 */
-    move.w  0(%sp), %d1                      /* logical column */
-    bsr     resolve_plane_a_cell             /* D0 = final Genesis name word */
-    move.w  %d0, %d3
-    move.w  %d4, %d1                         /* recompute logical row for the residency test */
+    /* Resolve every logical row before the physical projection test.  Rows
+     * N/N+32 share one Genesis plane row, but they must not alias in semantic
+     * resolution/cache state.  Only the currently projected 32 rows stage. */
+    move.w  8(%sp), %d3                     /* fused final Genesis name word */
+    move.w  %d4, %d1
     lsl.w   #2, %d1
     add.w   %d5, %d1
 
@@ -446,8 +470,18 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     lsl.w   #2, %d1
     add.w   %d5, %d1                /* logical column */
     move.w  0(%sp), %d0             /* logical row */
-    bsr     resolve_plane_a_collision_cell
+    move.w  %d0, %d3
+    sub.w   2(%sp), %d3
+    andi.w  #0x003F, %d3
+    cmpi.w  #32, %d3
+    bhs.s   .Lplane_a_sel12_collision_only
+    MAP_GET_NAME_COLLISION_A         /* resident row: D0 = name; D2 = collision */
+    move.w  %d0, 8(%sp)
+    bra.s   .Lplane_a_sel12_store_collision
+.Lplane_a_sel12_collision_only:
+    MAP_GET_COLLISION                /* nonresident row has no name consumer */
     move.w  %d0, %d2
+.Lplane_a_sel12_store_collision:
     move.w  0(%sp), %d3
     lsl.w   #6, %d3
     add.w   %d1, %d3
@@ -456,18 +490,13 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.w  %d2, 0(%a6,%d3.w)
     lea     staged_fg_buffer, %a6
 
-    /* Build 0351: shared authoritative resolver (name word only; the collision
-     * side-channel above is intentionally unchanged).  d1 already holds the logical
-     * column and is preserved across the call. */
-    move.w  0(%sp), %d0                     /* logical row (fixed for this selector-1/2 row) */
-    bsr     resolve_plane_a_cell            /* D0 = final Genesis name word */
-    move.w  %d0, %d3
-
     move.w  0(%sp), %d0
     sub.w   2(%sp), %d0
     andi.w  #0x003F, %d0
     cmpi.w  #32, %d0
     bhs.s   .Lplane_a_sel12_not_resident
+
+    move.w  8(%sp), %d3                     /* fused final Genesis name word */
 
     move.w  0(%sp), %d0
     andi.w  #0x001F, %d0
@@ -719,6 +748,111 @@ resolve_plane_a_cell:
     movem.l (%sp)+, %d1-%d7/%a0-%a2
     rts
 
+/* Build 0419 BG-B fused Plane-A semantic accessor.  Selector producers need
+ * both the final name word and the retained collision word for the same cell.
+ * The former implementation called the two leaves independently and repeated
+ * the complete live source-pointer/ring/descriptor/metatile traversal.
+ *
+ * in:  D0.W = logical row 0..63, D1.W = logical column 0..63; A5 = 0x00FF0000
+ * out: D0.W = final Genesis Plane-A name word (0 = blank)
+ *      D2.W = original collision word (0 = blank)
+ * clobbers: D0/D2 only (preserves D1/D3-D7/A0-A2)
+ */
+resolve_plane_a_name_collision_cell:
+    movem.l %d1/%d3-%d7/%a0-%a2, -(%sp)
+    suba.w  #8, %sp
+
+    move.w  %d0, %d4
+    move.w  %d1, %d5
+
+    move.w  %d4, %d2
+    andi.w  #0x0003, %d2
+    lsl.w   #3, %d2
+    move.w  %d2, 0(%sp)                      /* row byte */
+    move.w  %d5, %d2
+    andi.w  #0x0003, %d2
+    add.w   %d2, %d2
+    move.w  %d2, 2(%sp)                      /* column byte */
+
+    move.w  %d4, %d2
+    lsr.w   #2, %d2
+    andi.w  #0x000F, %d2
+    lsl.w   #2, %d2
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a1
+    movea.l 0(%a1,%d2.w), %a0
+
+    move.w  %d5, %d2
+    andi.w  #0x003F, %d2
+    lsr.w   #2, %d2
+    cmpi.w  #16, plane_a_src_ref_block
+    bne.s   .Lrpncc_source_leading_edge
+    moveq   #0, %d7
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
+    andi.w  #0x000F, %d7
+    sub.w   %d7, %d2
+    lsl.w   #2, %d7
+    moveq   #0, %d6
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d6
+    andi.w  #0x0003, %d6
+    add.w   %d6, %d7
+    cmp.w   %d7, %d5
+    bls.s   .Lrpncc_source_delta_ready
+    subi.w  #16, %d2
+    bra.s   .Lrpncc_source_delta_ready
+.Lrpncc_source_leading_edge:
+    sub.w   plane_a_src_ref_block, %d2
+.Lrpncc_source_delta_ready:
+    ext.l   %d2
+    asl.l   #2, %d2
+    adda.l  %d2, %a0
+
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
+    blo.w   .Lrpncc_blank
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
+    bhs.w   .Lrpncc_blank
+    suba.l  #PC080SN_DESC_ARCADE_START, %a0
+    adda.l  #PC080SN_DESC_GENESIS_START, %a0
+
+    move.w  (%a0), %d6
+    moveq   #0, %d2
+    move.w  2(%a0), %d2
+    btst    #0, %d2
+    bne.w   .Lrpncc_blank
+    cmpi.l  #0x0005FDFC, %d2
+    bhi.w   .Lrpncc_blank
+    movea.l #PC080SN_DESC_SECOND_WORD_BASE, %a0
+    adda.l  %d2, %a0
+
+    /* Collision product uses the same selected metatile. */
+    cmpi.w  #0x00FF, 0x20(%a0)
+    beq.s   .Lrpncc_uniform_collision
+    move.w  0(%sp), %d0
+    add.w   2(%sp), %d0
+    move.w  0x20(%a0,%d0.w), %d2
+    bra.s   .Lrpncc_collision_ready
+.Lrpncc_uniform_collision:
+    move.w  0x22(%a0), %d2
+.Lrpncc_collision_ready:
+
+    move.w  %d6, %d0
+    bsr     .Lplane_a_native_attr_from_word
+    move.w  %d0, 4(%sp)
+    move.w  0(%sp), %d0
+    add.w   2(%sp), %d0
+    move.w  0(%a0,%d0.w), %d3
+    andi.w  #0x3FFF, %d3
+    bsr     fg_cache_resolve
+    or.w    4(%sp), %d3
+    move.w  %d3, %d0
+    bra.s   .Lrpncc_done
+.Lrpncc_blank:
+    moveq   #0, %d0
+    moveq   #0, %d2
+.Lrpncc_done:
+    adda.w  #8, %sp
+    movem.l (%sp)+, %d1/%d3-%d7/%a0-%a2
+    rts
+
 /* Resolve one gameplay collision word from the exact retained descriptor mapping
  * used by resolve_plane_a_cell.
  *
@@ -825,17 +959,10 @@ resolve_plane_a_collision_cell:
     lsl.w   #3, %d1
     move.w  %d1, 6(%sp)                      /* source row byte offset */
 
-    move.w  ARCADE_PC080SN_SCROLL_X_FG_OFFSET(%a5), %d0
-    neg.w   %d0
-    andi.w  #0x01FF, %d0
-    lsr.w   #3, %d0
-    andi.w  #0x003F, %d0
-    move.w  %d0, 8(%sp)                      /* X-scroll-derived source column base */
-
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     staged_fg_buffer, %a6
     move.w  #16, plane_a_src_ref_block       /* Build 0353: vertical pan producer = camera-relative (one plane lead) */
-    moveq   #0, %d4                          /* logical destination column */
+    moveq   #0, %d4                          /* full logical destination column */
 
     /* Build 0351: resolve every cell of this entering row through the ONE shared
      * authoritative resolver (identical to the horizontal producer).  The old
@@ -846,7 +973,7 @@ resolve_plane_a_collision_cell:
 .Lplane_a_row_col_loop:
     move.w  0(%sp), %d0                      /* logical row (fixed for this entering row) */
     move.w  %d4, %d1                         /* logical column = destination column */
-    bsr     resolve_plane_a_cell             /* D0 = final Genesis name word */
+    MAP_GET_NAME_A                           /* D0 = final Genesis name word */
 
     move.w  2(%sp), %d3                      /* physical resident row */
     lsl.w   #7, %d3
@@ -856,7 +983,7 @@ resolve_plane_a_collision_cell:
     move.w  %d0, 0(%a6,%d3.w)                /* staged_fg_buffer[phys_row*64 + col] */
 
     addq.w  #1, %d4
-    cmpi.w  #64, %d4
+    cmpi.w  #BG_LOGICAL_SPAN, %d4
     blo.w   .Lplane_a_row_col_loop
 
     move.w  2(%sp), %d0
@@ -915,7 +1042,7 @@ resolve_plane_a_collision_cell:
 
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     staged_bg_buffer, %a6
-    moveq   #0, %d4                          /* ring destination column C */
+    moveq   #0, %d4                          /* full logical destination column C */
 
 .Lplane_b_row_col_loop:
     move.w  6(%sp), %d0
@@ -967,7 +1094,7 @@ resolve_plane_a_collision_cell:
     clr.w   12(%sp)
 
 .Lplane_b_row_tile_ready:
-    bsr     fg_boundary_resolve_b
+    MAP_GET_NAME_B
     or.w    12(%sp), %d3
 
     move.w  2(%sp), %d0
@@ -978,7 +1105,7 @@ resolve_plane_a_collision_cell:
     move.w  %d3, 0(%a6,%d0.w)
 
     addq.w  #1, %d4
-    cmpi.w  #64, %d4
+    cmpi.w  #BG_LOGICAL_SPAN, %d4
     blo.w   .Lplane_b_row_col_loop
 
     move.w  2(%sp), %d0
@@ -1034,7 +1161,7 @@ resolve_plane_a_collision_cell:
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     move.w  %d7, %d3
     andi.w  #0x3FFF, %d3
-    bsr     fg_boundary_resolve_b
+    MAP_GET_NAME_B
     or.w    6(%sp), %d3
 
     lea     staged_bg_buffer, %a6
@@ -1045,6 +1172,8 @@ resolve_plane_a_collision_cell:
     add.w   %d1, %d0
     move.w  %d3, 0(%a6,%d0.w)
 
+    tst.b   plane_b_column_mode
+    bne.s   .Lplane_b_stage_cell_done
     move.w  2(%sp), %d0
     move.l  bg_row_dirty, %d1
     bset    %d0, %d1
@@ -1178,13 +1307,15 @@ genesistan_pc080sn_directional_dispatch_native:
     move.w  (%a0), %d7
     movea.l 2(%a0), %a2
     cmpa.l  #PC080SN_DESC_ARCADE_START, %a2
-    blo.s   .Ldirectional_bad_pointer
+    blo.w   .Ldirectional_bad_pointer
     cmpa.l  #PC080SN_DESC_ARCADE_END, %a2
-    bhs.s   .Ldirectional_bad_pointer
+    bhs.w   .Ldirectional_bad_pointer
     suba.l  #PC080SN_DESC_ARCADE_START, %a2
     adda.l  #PC080SN_DESC_GENESIS_START, %a2
 
-    moveq   #0, %d2
+    move.b  #1, plane_b_column_mode
+    moveq   #0, %d2                          /* full logical source row */
+    move.w  #(BG_LOGICAL_SPAN - 1), %d6
 .Ldirectional_publish_row_loop:
     move.w  %d2, %d0
     lsl.w   #5, %d0
@@ -1199,8 +1330,25 @@ genesistan_pc080sn_directional_dispatch_native:
     or.l    %d1, %d0
     bsr     .Lplane_b_stage_gameplay_producer_cell_native
     addq.w  #1, %d2
-    cmpi.w  #64, %d2
-    blo.s   .Ldirectional_publish_row_loop
+    andi.w  #0x003F, %d2
+    dbra    %d6, .Ldirectional_publish_row_loop
+
+    clr.b   plane_b_column_mode
+    move.w  ARCADE_PC080SN_BG_GROUP_OFFSET(%a5), %d0
+    andi.w  #0x0003, %d0
+    lsl.w   #4, %d0
+    move.w  ARCADE_PC080SN_BG_SUBCOL_OFFSET(%a5), %d1
+    andi.w  #0x000F, %d1
+    add.w   %d1, %d0                         /* physical dirty column 0..63 */
+    lea     bg_col_dirty, %a1
+    cmpi.w  #32, %d0
+    blo.s   .Ldirectional_col_dirty_lo
+    subi.w  #32, %d0
+    addq.l  #4, %a1
+.Ldirectional_col_dirty_lo:
+    move.l  (%a1), %d1
+    bset    %d0, %d1
+    move.l  %d1, (%a1)
 
     addq.w  #1, 0x10F6(%a5)
     cmpi.w  #16, 0x10F6(%a5)
@@ -3651,6 +3799,10 @@ genesistan_hook_cwindow_clear:
     /* Build 0257: dead staged_fg_tall_buffer clear + fg_tall_dirty set removed. */
     move.l  #0xFFFFFFFF, bg_row_dirty
     move.l  #0xFFFFFFFF, fg_row_dirty
+    clr.l   fg_col_dirty
+    clr.l   fg_col_dirty + 4
+    clr.l   bg_col_dirty
+    clr.l   bg_col_dirty + 4
     clr.b   fg_native_gameplay_owner
 
     movem.l (%sp)+, %d0-%d3/%a0-%a3
@@ -4189,13 +4341,74 @@ genesistan_hook_itempage_strip_blit:
     movem.l (%sp)+, %d1/%d6
     rts
 
-/* Build 0350: native Sonic-style Plane-A COLUMN publisher.
+/* Build 0415: native Plane-B gathered-column DMA publisher.
+ *
+ * Genesis DMA reads a contiguous source, while a staged plane column is strided
+ * by 128 bytes.  Gather exactly the 32 physical plane rows into WRAM, then DMA
+ * 32 words with VDP autoincrement 128 so each word lands one name-table row
+ * below the previous word. */
+vdp_commit_bg_columns_if_dirty:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.l  bg_col_dirty, %d6
+    move.l  bg_col_dirty + 4, %d7
+    move.l  %d6, %d0
+    or.l    %d7, %d0
+    beq     .Lbgcol_done
+
+    moveq   #VDP_REG_AUTOINC, %d0
+    move.w  #0x80, %d1
+    bsr     vdp_set_reg
+
+    moveq   #0, %d5
+.Lbgcol_scan:
+    cmpi.w  #32, %d5
+    bhs.s   .Lbgcol_hi
+    btst    %d5, %d6
+    beq.s   .Lbgcol_next
+    bra.s   .Lbgcol_publish
+.Lbgcol_hi:
+    move.w  %d5, %d4
+    subi.w  #32, %d4
+    btst    %d4, %d7
+    beq.s   .Lbgcol_next
+.Lbgcol_publish:
+    move.w  %d5, %d4
+    add.w   %d4, %d4
+    lea     staged_bg_buffer, %a0
+    adda.w  %d4, %a0
+    lea     bg_col_gather, %a3
+    move.w  #(32 - 1), %d2
+.Lbgcol_gather_word:
+    move.w  (%a0), (%a3)+
+    adda.w  #128, %a0
+    dbra    %d2, .Lbgcol_gather_word
+
+    move.l  #VRAM_PLANE_B_BASE, %d0
+    add.w   %d4, %d0
+    lea     bg_col_gather, %a0
+    move.w  #32, %d1
+    bsr     dma_words_to_vram_noai
+.Lbgcol_next:
+    addq.w  #1, %d5
+    cmpi.w  #64, %d5
+    blo.s   .Lbgcol_scan
+
+    moveq   #VDP_REG_AUTOINC, %d0
+    moveq   #0x02, %d1
+    bsr     vdp_set_reg
+    clr.l   bg_col_dirty
+    clr.l   bg_col_dirty + 4
+.Lbgcol_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Build 0350/0415: native Sonic-style Plane-A COLUMN publisher.
  *
  * Adapts Sonic 1's DrawBlocks_TB technique (docs/reference/s1disasm, "Level Drawing":
  * strided vertical writes down a plane column via the VDP autoincrement) to Rastan's
- * single-cell granularity: for each dirty logical column, set VDP autoincrement = one
- * plane row (0x80 bytes), point at VRAM Plane-A column `col`, then PIO 32 name words
- * straight down the column out of staged_fg_buffer.  This replaces selector-0's old
+ * single-cell granularity: for each dirty logical column, gather 32 strided
+ * staging words, set VDP autoincrement = one plane row (0x80 bytes), and DMA
+ * the 32-word gather buffer down Plane A. This replaces selector-0's old
  * whole-row publication (a 1-column change dirtied all 32 rows -> up to 32 x 64-word
  * DMAs = 2048 words) with one bounded 32-word column write.
  *
@@ -4230,17 +4443,21 @@ vdp_commit_fg_columns_if_dirty:
     beq.s   .Lfgcol_next
 .Lfgcol_publish:
     move.w  %d5, %d4
-    add.w   %d4, %d4                        /* col * 2 (byte offset within a plane row) */
-    move.l  #VRAM_PLANE_A_BASE, %d0
-    add.w   %d4, %d0                        /* VRAM byte address = 0xE000 + col*2 */
-    bsr     vdp_set_vram_write_addr         /* clobbers d1/d2, preserves d3-d7/a* */
+    add.w   %d4, %d4
     lea     staged_fg_buffer, %a0
-    adda.w  %d4, %a0                        /* &staged_fg_buffer[row 0][col] */
+    adda.w  %d4, %a0
+    lea     fg_col_gather, %a3
     move.w  #(32 - 1), %d2
-.Lfgcol_word:
-    move.w  (%a0), VDP_DATA                 /* write one cell; autoinc steps VRAM down a row */
-    adda.w  #128, %a0                       /* next plane row (64 words) in staged buffer */
-    dbra    %d2, .Lfgcol_word
+.Lfgcol_gather_word:
+    move.w  (%a0), (%a3)+
+    adda.w  #128, %a0
+    dbra    %d2, .Lfgcol_gather_word
+
+    move.l  #VRAM_PLANE_A_BASE, %d0
+    add.w   %d4, %d0
+    lea     fg_col_gather, %a0
+    move.w  #32, %d1
+    bsr     dma_words_to_vram_noai
 .Lfgcol_next:
     addq.w  #1, %d5
     cmpi.w  #64, %d5
@@ -4319,6 +4536,21 @@ vdp_commit_fg_narrow_strips:
  * one bounded column publication plus one bounded row publication from the same staged buffer. */
 fg_col_dirty:
     .long 0, 0
+bg_col_dirty:
+    .long 0, 0
+
+/* Gather buffers make strided 64x32 staging columns legal 68k DMA sources. */
+fg_col_gather:
+    .space (32 * 2)
+bg_col_gather:
+    .space (32 * 2)
+
+/* Suppress row dirties while the dedicated Plane-B full-logical-span column
+ * producer stages its 32-row physical projection; publication is owned by
+ * bg_col_dirty in that mode. */
+plane_b_column_mode:
+    .byte 0
+    .align 2
 
 /* Build 0353/0373: per-producer source mode/reference for resolve_plane_a_cell.
  * The raw strip pointer a5@0x1000 leads the camera-left edge by a constant one plane width

@@ -1,5 +1,146 @@
 # AGENTS Log
 
+## [Andy — Build 0417 A-0154 root-cause CORRECTION (reconciliation; read-only; no code/ROM; counter unchanged)]
+
+* CORRECTION of the entry below. My prior active-display-DMA/publication-timing root cause for the six A-0154 holes was WRONG. Cody's root cause is CONFIRMED (independently verified arithmetic). ACTUAL CAUSE: an unsplit ROM-source VDP DMA (source=genesistan_pc080sn_tile_rom+code*32, 32 bytes; scene_load.s:110-118 lsl #5) crosses a Genesis 128-KiB (0x20000) DMA source-bank boundary; real HW WRAPS the source counter within the bank (after 0x15FFFF -> 0x140000, not 0x160000), loading unrelated bytes (zero nibbles -> transparent Plane-A px -> Layer B through) into the pattern tail rows.
+* VERIFIED: corpus base 0x15DD08, code 0x117 (code*32=0x22E0). NORMAL src=0x15FFE8, 24 bytes before 0x160000 -> rows 0-5 correct, rows 6-7 corrupt, 8 transparent px/occ. _do src=0x15FFF8 (+0x10 link shift) -> 8 bytes before -> rows 0-1 correct, rows 2-7 corrupt, 23 transparent px/occ. Both match Cody's masks exactly. _do worse = STATIC layout +0x10 moves a larger portion of the SAME tile past the boundary; NOT a raster-timing effect. All six Seg2 occurrences share the same VRAM pattern slot -> same mask, differing Layer-B beneath.
+* WHY MAME MISLED: MAME continues the DMA source linearly across 0x160000 (loads intended 32B, correct settled VRAM, no zero nibbles); real HW wraps to 0x140000 (corrupted settled pattern). Terminal VRAM inspection was correct FOR MAME; the emulator does not reproduce the VDP DMA source-bank wrap. Real Genesis authoritative.
+* WHY MY THEORY WAS WRONG for these holes: mask is fixed to the PATTERN not the raster; bad rows predicted solely by source addr vs 0x160000; zero mask predicted by bytes at 0x140000; normal vs _do differ exactly by the +0x10 link; no publication/DMA overlaps the 6 target scanlines at the owner frame; name words correct+stable; corruption is in settled VRAM on HW. ACTIVE-DISPLAY DMA IS NOT THE A-0154 ROOT CAUSE.
+* SEPARATE (still true, NOT this defect): publication overruns VBlank (~180-230K vs 128,009); active-display VRAM DMA occurs; _do forced-black bands; proven 1-frame 0x6297->0x63A4 entrance transient. Track as separate perf/correctness items; do not attribute the six A-0154 holes to them. See KF-090.
+* REPAIR DIRECTION (design, Build 0418 scope): make ROM-source VDP DMA 128-KiB-boundary safe; keep the 1-DMA fast path; split ONLY transfers crossing a 0x20000 source boundary; 32-byte-ALIGN genesistan_pc080sn_tile_rom (0x20000 % 32 == 0 => each code*32 tile wholly within one bank). 0417 corpus base 0x15DD08 is NOT 32-aligned (rationale already at scene_load.s:189-190). Report: docs/design/Andy_build0417_partial_layer_a_dropout_architecture_review.md §CORRECTION.
+
+## [Andy — Build 0417 partial Layer-A dropout ARCHITECTURE REVIEW (read-only; no code/ROM; counter unchanged) — ROOT CAUSE SUPERSEDED, see correction above]
+
+* SUPERSEDED FOR A-0154 ROOT CAUSE (see the correction entry above + the review's §CORRECTION). The active-display-DMA mechanism below did NOT cause the six A-0154 holes; it stands only as a separate performance/publication topic.
+* READ-ONLY timing/VDP review. No source/ROM/profile/build-number; Cody tree untouched. Deliverable: docs/design/Andy_build0417_partial_layer_a_dropout_architecture_review.md. OWNER FACT ACCEPTED (not re-litigated): sub-tile Layer-B-through inside A-0154 (Seg2 X40/Y38 0x117 LA-0092, 6 occurrences), SMALLER in 0417, LARGER in 0417_do.
+* KEY ARCH FACTS: column publishers issue REAL 68k->VRAM DMA (dma_words_to_vram_noai ori.l #0x40000080 trigger); dma_publish_frame runs palette/tiles/BG-row/FG-columns/sprite/scroll at IRQ6 start; _do (RASTAN_VBLANK_DISPLAY_OFF=1) wraps publication in reg1 display-OFF 0x8134 / ON 0x8174 (dma.s:72-94), normal leaves display ON. Scroll IRQ ~180-230K >> 128,009 budget & VBlank ~3.6-13K -> publication + its DMAs OVERRUN VBlank into ACTIVE DISPLAY.
+* MECHANISM (#1, explains partial + _do): a Plane-A VRAM DMA during active display disrupts the VDP per-scanline name/pattern fetch for the overlapping scanlines; the 32-word strided COLUMN DMA (autoinc 128, one cell per physical row) rewrites a cell down-column while the raster scans down-screen, so TOP rows fetch stale/blank name (0x6297 blank / uniform 0x4000 -> Layer B through) and later rows fetch A-0154 -> SUB-TILE dropout. Unrelated active-display DMA (Plane-B/sprite/SAT/tiles) also starves Plane-A fetch (not just A-0154's own cells). Settled VRAM/name-word is correct post-frame -> static dumps structurally cannot see it (scanout-time only). _do WORSE: longer IRQ6 + blank/unblank bracket pushes the DMA/display-reenable crossing deeper into active display -> MORE affected scanlines. #2 late-name race (proven 0x6297->0x63A4 generalized to scroll) = facet of #1. #3 autoinc 128<->2 / row+col overlap transitions in active display (secondary). NOT: static A-0154 pixels (no zeros, wouldn't vary w/ _do); palette mapping (static).
+* BLIND SPOTS in prior forensics: terminal VRAM as scanout state; final name word assumed valid for all 8 rows / 1-pixel sample; assuming MAME reproduces VDP<->DMA active-display contention; inspecting only A-0154-targeting DMA; normalized/paused vs owner-observed live frames. Real Genesis is authority; MAME under-reproduces the contention -> investigate MAME, don't overrule HW.
+* DECISIVE EXPERIMENT: reuse VC_MARK/vblank_vc beam-capture (dma.s) + sample V-counter 0xC00008 immediately before/after each fg/bg column DMA (and sprite/SAT/Plane-B DMA) during heavy Seg2 scroll, normal vs _do. If DMAs run at active-display V (not VBlank) AND their V-span overlaps the circled cells' screen scanlines -> proves #1; if _do spans are later/larger -> proves the growth. Optional fix-probe: gate the column DMA to start only while V still in VBlank (drop late columns) and check on real Genesis if the Layer-B-through vanishes -> repair = keep plane DMA inside VBlank/forced-blank.
+
+## [Cody — Build 0417 rope-area hole source identification]
+
+* Read-only Genesis NTSC MAME capture at frame 7792 / progression `0x000B`;
+  no production, profile, ROM, or counter change. Captured the visible rope
+  wall before terminally reading all real VDP VRAM.
+* The bounded X44..55/Y32..39 Plane-A grid contains 96 cells and 32 unique
+  live patterns. Every staged word equals live VRAM; every unique pattern has
+  zero transparent pixels. A-0154 remains a passing negative control.
+* Exact apparent-hole attribution: screen X67/Y124 -> Plane-A col47/row0 ->
+  logical X47/Y32 -> `0x150 / LA-0149 / A-0211` -> word `0x6455`, slot
+  `0x455`, pixel `(4,1)` -> opaque nibble `0xA`. The 8x8 live pattern matches
+  the screenshot 64/64 pixels.
+* Arcade source index 4 is xBGR-555 `0x30CA` (RGB8 `82,49,98`, direct Genesis
+  `0x0624`); Composer maps `4 -> 10`, whose live Line-3 color is `0x0200`
+  (MAME RGB `0,0,52`). Classification: **OPAQUE WRONG COLOR**, not Plane-A
+  transparency. Six additional rock identities use opaque target index 10.
+* Report: `docs/design/Cody_build0417_rope_area_hole_source_identification.md`.
+
+## [Cody — Build 0417 A-0154 runtime palette boundary proof]
+
+* Read-only Genesis NTSC MAME capture of canonical Build 0417; no production,
+  palette-profile, ROM, or counter change. Normal start plus the established
+  natural-route pulse schedule reached record `0x000B`; segment-11 X44/Y38 was
+  mechanically resident at physical Plane-A col44/row6 and screen X57/Y223.
+* Real VDP-port reads prove VRAM slot `0x0468` matches the expected 32 bytes
+  exactly and live Plane-A `0xE358` is `0x6468` (pattern `0x468`, Line 3, no
+  flips/priority).
+* Live CRAM Line-3 entries used by A-0154 all match Composer:
+  6/7/8/9/11 = `0424/0624/0402/0202/0422`. Runtime writer evidence proves
+  `vdp_install_test_lines` copies `editor_layera_palette`; only unrelated
+  waterfall entries 14/15 animate later. The arcade bank-3 carrier is not live
+  at the target entries.
+* Classification: **Case D**. The exact A-0154 runtime tile/name/Composer-color
+  diagnosis is contradicted; the stop rule was honored and no alternative
+  visual-source investigation began. Report:
+  `docs/design/Cody_build0417_A0154_runtime_palette_boundary_proof.md`.
+
+## [Andy — A-0154/LA-0092 Palette-Composer authority AUDIT (read-only; no code/ROM/profile; counter unchanged)]
+
+* READ-ONLY review (compare with Cody's audit). No source/Test.json/palette_decisions/artifact edits, no ROM, no build-number. Deliverable: docs/design/Andy_build0417_A0154_palette_composer_authority_audit.md. Target: PC080SN tile 0x117 = A-0154 = usage LA-0092 bank 0x003, Line 3 (secondary LA-0543 bank 0x005).
+* PIXEL REINDEX IS CORRECT. LA-0092 and LA-0543 have IDENTICAL maps {4->7,5->6,6->11,7->8,8->9}; the odd Test.json "LA-0154" entry is tile 0x155 (different tile, not involved). 0x117 source nibbles {4:4,5:20,6:9,7:15,8:16}, ZERO transparent, used {4..8}. gen_reindexed_region.py is code-indexed/most-frequent-collapse (Build-0315 limitation) but the 0x117 vote is UNANIMOUS -> correct; every index mapped; no 0 introduced (source0 preserved, unmapped nonzero passes through). Golden == generated, pixel-exact.
+* ROOT CAUSE #1 (HIGH): BROKEN COLOR-AUTHORITY BRIDGE. Composer authors BOTH the pixel index_map (consumed by gen_reindexed_region.py) AND target_palette_lines[3] CRAM colors (NOT consumed by production). Production CRAM Line-3 = arcade FG bank-3 carrier via palette_route_table (palette_hooks.s:61 scene1/PC080SN_FG/bank3->Line3 CARRIER); compile_editor_layera.py (which reads target_palette_lines[3]) is NOT in the Makefile. Composer authored purple at Line-3 entries 6,7,8,9,11 = {0x0424,0x0624,0x0402,0x0202,0x0422} where LA-0092 pixels point, but production never installs those -> wrong color everywhere A-0154 is drawn. #2 (HIGH related): the ONLY Line-3 palette_decisions entry is the cave-block GROUND (entries 1-5, itself flagged "Genesis color WRONG, deferred to Andy per build0366, NOT visually accepted"); entries 6-11 (purple rock) have NO canonical decision. Line 3 is over-shared (ground 1-5 + purple 6-11 + sprite carrier) with only part authored into production. #3 (MEDIUM latent, NOT 0x117): Layer-A code-indexed collapse drops minority usage maps for any code with DIVERGENT usages (sprite pipeline emits per-(code,bank) variants; Layer-A does not).
+* STALENESS RULED OUT for A-0154: Makefile consumes frozen build/rastan-direct/build0400/Test.snapshot.json (Makefile:80), but snapshot == live Test.json for these usages (verified). Standing gap: Composer v0.4 edits won't reach the ROM until re-frozen.
+* ARCHITECTURE: PARTIALLY COMPLIANT / BYPASSES COMPOSER (color half). Compliant for pixel index_map; target_palette_lines color authority not bridged to runtime CRAM install.
+* NEXT ACTION (no impl, compare with Cody first): (1) dump CRAM Line-3[6,7,8,9,11] in Stage-1 gameplay vs {0x0424,0x0624,0x0402,0x0202,0x0422} to confirm; (2) Tighe decides authority model -- bridge target_palette_lines into vdp_install_test_lines + add canonical decision for Line-3 6-11, OR constrain Composer Layer-A maps to only target installed carrier entries; (3) schedule Layer-A per-(code,bank) variant fix (#3); (4) close snapshot-staleness.
+
+## [Cody — Build 0417 full-span logical background correctness restore]
+
+* Restored the KF-072-proven full 64-cell logical coordinate model after real-hardware rejection of Builds 0415/0416. Selector0 again resolves all 64 logical rows before the 32-row physical projection; selector1/2 and both Plane-A/Plane-B row producers traverse 64 columns; Plane-B directional production traverses 64 logical rows in its independent context. Collision remains full 64x64 and unchanged.
+* Preserved the safe physical publication changes: MAP_GET accessor seam, independent row/column dirty masks, separately regenerated per-column gathers, 32-word Plane-A/Plane-B DMA, and VDP destination autoincrement 128. Full logical work remains distinct from the 64x32 Genesis physical planes.
+* Replaced the inadequate visible-window verifier. Broken 0415 40x28 FAILS, broken 0416 41x29 FAILS, restored 0417 PASSES initial 64x64 seed, N/N+32, source rebase, trailing retention, independent Plane-B context, physical projection, gather, and DMA contracts.
+* Exact controlled trace: 211 complete workers / 300 display frames (0.7033); overall worker median 147,248 and IRQ median 157,405 cycles; 80.1%/87.7% exceed the 128,009-cycle frame budget. The slower run does not reach the old 22-event pan interval, so that table is N/A. Comparable selector0 row/map average is 135,751.6 vs Build-0414 135,704.0 (+0.04%): unsafe deleted resolver work has been restored. `_do` black bands remain performance instrumentation only, never visual-corruption evidence.
+* Gates: canonical PASS; gameplay-entry PASS with address/bus/illegal/crash 0/0/0/0; VDP ownership PASS; transition retention/generator/direct-dispatch/packed-bank/A4-A5 PASS. Pre-existing seven-epoch label remains FAIL. `_c` closeout COMPLETE 18/18 with player/generic fallback 0/0, adapter 0, crash 0000.
+* Produced complete Build 0417 family, each 1,998,520 bytes. SHA-256 canonical `36f8300bedc077c9b3af99c83c1b0fc9d2623e2acfa4541e7cea86f8d78b4835`; `_d` `8485a146333918e2cec3782fdf29485d04a92ff9551b16973e2907e353be6f7e`; `_s` `c72d8340f297a5ff8b61debc06011a4d38a68e388a3b8b89b3d2c55160da04d9`; `_do` `d7fd99773ba612ffa411b06966fc89fbec8b393e75cd53367472716cfa2f8e8f`; `_c` `90c2eba88205ad50c6db66e6a72928a8a2954df64e02dc3909377ccfbf51973f`. Tighe real-Genesis visual and performance acceptance required. BG-B/Background Phase C/Phase D/E/H25 not started. Report: `docs/design/Cody_build0417_fullspan_background_correctness_restore.md`.
+
+## [Andy — Historical FULL-64 background update AUDIT (research only; no code/ROM; Cody tree untouched; counter unchanged)]
+
+* RESEARCH/STATIC ONLY. No source, no ROM, no build-number, no repair, Cody tree untouched. Deliverable: docs/design/Andy_historical_full64_background_update_audit.md. Answers: why did earlier native BG use full 64-cell strips, and does it explain the 0415/0416 corruption that persists on real HW after the fine-scroll +1 fix.
+* ANSWER: full-64 was a DELIBERATE CORRECTNESS FIX, not incidental. Evidence: KF (KNOWN_FINDINGS ~598-616) Builds 0169-0172 proved Stage-1 terrain is a 64-ROW tall PC080SN column the 32-row Genesis ring CANNOT preserve (row N and N+32 alias) -> staged_fg_tall_buffer 64x64 + vdp_project_*_tall rolling projection; Build 0246 proved the initial fill publishes 64 cols x 64 rows (incl rows 33-54 the ring is missing); Build 0373 showed the 64-COLUMN ring retains still-visible TRAILING-segment terrain after the source front advances.
+* GOVERNING FINDING KF-072 (HIGH hazard): the Build 0226 ring/full-VSRAM/COL-DIRTY rewrite produced a cyan band + HALF-SCREEN FG DISPLACEMENT (large coherent placement corruption) and was REVERTED; proven-correct = 0223 full-span coords. Verbatim: "do NOT reintroduce a ring/full-VSRAM/col-dirty layer without ALSO converting every producer to the same coordinate space -- piecemeal is what broke 0226." AGENTS_LOG (Build 0349+): the 32-word column DMA was permitted ONLY as a transfer-granularity change (resident-row coord space UNCHANGED), convert H+V+VBlank together, after visual validation.
+* => Build 0415/0416's 41x29 narrow resident span REINTRODUCES exactly the KF-072-forbidden piecemeal narrowing. The persistent large coherent corruption matches the 0226 class (placement/coord-space), NOT a 1-cell fine-scroll seam (0416 already fixed that). Mechanisms (ranked above the seam): 64-row-map vs 32-row-ring ALIASING; SEGMENT/SOURCE-POINTER REBASE (map_advance_source_ptrs 0x558C6 advances source per block + a5@0x013E segment counter -> off-window staged cells stale under the NEW source context -> whole trailing segments displaced); TRAILING-COLUMN retention drop (0373).
+* ROPE: PARTLY related -- Build 0373 rope-view fix IS the 64-column trailing-retention invariant (direct); rope-grab/geometry (0362-0365) are collision, timing-only. Full-span lineage = 0169-0172/0227(KF-072)/0246/0349-0352, temporally adjacent to the rope period.
+* CLASSIFICATION B: full-64 is a correctness fix; a narrow span is safe ONLY with missing invariants: (1) full ring-height per column (64-row-map alias), (2) trailing-column retention, (3) bulk reseed on segment rebase/camera jump, (4) ALL producers in one coord space (KF-072). 0415/0416 added none -> corrupts.
+* KEY DISTINCTION for the future native-map arch: full-64 was required by the OLD PC080SN RUNTIME representation (cells re-derived from a MOVING source context + 64-row map in a 32-row ring), NOT by VDP visibility. Python-generated O(1) native map keyed on absolute (context,row,col) has NO moving source context -> a narrow entering-strip refresh (visible + fine +1) IS provably correct; off-window cells need no maintenance (re-derived O(1) on entry). Collision still needs its fixed 64-ring span. So BG-C REMOVES the full-64 requirement.
+* RECOMMENDATION TO CODY: do NOT ship a standalone narrow 41x29 BG-A (KF-072 violation; keeps corrupting). Either (1) restore full-span resident coordinate space for BG-A (keep the 32-word column-DMA transfer win, which KF-072 permits; widen the maintained span back to the full ring) until BG-C, OR (2) go straight to BG-C native O(1) tables (the only model where narrow refresh is provably correct). Convert all producers together + keep a bulk reseed on segment/scene/jump. Real Genesis is authority; verifier-pass is insufficient.
+
+## [Cody — Build 0416 BG-A fine-scroll residency regression repair]
+
+* Preserved the in-progress Cody tree and consumed Andy's independent Build-0415 forensic review. Root cause confirmed: rejected 0415 maintained only the 40x28 complete-cell viewport, so non-zero fine H/V scroll exposed a stale partial 41st column and 29th row on both Plane A and Plane B. The first wrong boundary was producer/staging, not publication, gather, or DMA.
+* Production repair is the minimal 41x29 resident visual span on selector-0 columns, selector-1/2 rows, pan-row publishers, and both planes. Full 64-cell collision, accessor seam, dirty masks, per-dirty-column gather, and 32-word DMA with destination autoincrement 128 remain unchanged. Plane B continues to derive cadence/window alignment from its own retained parallax state; all four independent-crossing cases pass.
+* Rewrote `verify_bg_a_incremental_background.py` so rejected 40x28 MUST fail and 41x29 passes physical-ring exposure, fine H/V 0..7, diagonal motion, independent Plane-B phase, wrap, row+column overlap, multi-dirty gather lifetime, and strided DMA. This closes the vacuous Build-0415 verifier model.
+* Controlled 22-event performance: row/map 153,890 (0414) -> 98,298 (rejected 0415) -> 100,704 (0416); worker 230,636 -> 172,396 -> 174,892; IRQ 233,829 -> 179,471 -> 181,967. Corrected 0416 retains a 34.56% row/map improvement over 0414 and costs 2.45% versus broken 0415. Static/sprite behavior unchanged.
+* Gates: canonical PASS; gameplay-entry PASS with address/bus/illegal/crash `0/0/0/0`; VDP ownership PASS; generator/direct-dispatch/packed-bank/A4-A5 PASS. `_c` full-game closeout COMPLETE 18/18 with player fallback 0, generic fallback 0, adapter 0, crash 0000. Build 0415 historical closeout also reached 18/18 but remains hardware visually rejected.
+* Produced complete Build 0416 family (all 1,998,520 bytes): canonical `7578b5c107f42f0bfce9623607944ee4d8f56f262bc6facdf9c57fcf9b880e4b`; `_c` `4373f47660d9927d3b21ae9caab2a2b364aa21cba3c090a8ffab3d2844e40e34`; `_d` `c0a1012e5b1d29eeecbd8b2d3e7fec6210d392db6fbe5994a8057a1dad28418a`; `_do` `bfea941adaa1eca37811ee2e921efabff860bcdc9e46a2243c6376b31e8be15c`; `_s` `4025883a0784750df4226d85fcf4cc0aa94af16ae202ed6ed2da40c24fcf0e24`. Tighe real-Genesis `_do` acceptance is required before BG-B.
+* Standalone report: `docs/design/Cody_build0416_bg_a_regression_repair.md`. Campaign status updated. BG-B, Background Phase C, Phase D/E, and H25 not started.
+
+## [Andy — Build 0415 BG-A regression FORENSIC REVIEW (review only; no code/ROM; Cody tree untouched; counter unchanged)]
+
+* FORENSIC/STATIC ONLY. No source, no ROM, no build-number, no repair, Cody tree untouched. Deliverable: docs/design/Andy_build0415_bg_a_regression_forensic_review.md. NOTE: Cody's uncommitted tree already has the likely fix in progress (BG_A_RESIDENT_ROWS=29/COLS=41 + rewritten verifier) -- this review independently confirms it.
+* HARDWARE: no 0415 static/sprite regression (real HW ~4 enemies on 0413/0414/0415; BlastEm ~2 is emulator-specific, ignore). Real regression = Layer A+B corruption while scrolling (coherent displaced/stale terrain+mountains/sky; sprites clean). 0415 CPU win real (row/map 153,890->98,298) -- preserve.
+* ROOT CAUSE #1 (HIGH): shipped 0415 resident span = 40x28 = EXACTLY the full-cell viewport, omitting the +1 PARTIAL row/column the VDP exposes whenever fine HSCROLL/VSCROLL != 0 (nearly always while scrolling). So the 41st col / 29th row the VDP samples was never refreshed -> stale ring cell (previous world content) at the entering/visible edge, BOTH planes (both reduced), rectangular/coherent, sprites untouched. Minimal failing seq: advance camera 1 px (fine scroll=1, NO tile crossing -> no producer runs) -> VDP samples stale col41/row29.
+* MIN SAFE SPAN = 29 rows (28 full + 1 fine-Y) / 41 cols (40 + 1 fine-X), both planes; physical 32/64 NOT required resident (viewport < plane; off-window cells never simultaneously visible -> the 32-word column DMA publishing 3 off-window stale rows is HARMLESS). Fix is "+1", not "+4".
+* #2 (MED): Plane B not independently aligned to its parallax horizontal scroll (B crosses at a different cadence) -> give B its own 41-col window from B's scroll. #3 (LOW): window-origin phase vs scroll source (Build-0399 class, already switched to live a5@0x10B0). #4 gather lifetime REJECTED (publisher gathers each dirty column fresh from staged_fg_buffer at VBlank, per-column, single transient buffer safe, multiple pending cols handled). #5 column DMA math REJECTED (VRAM base+col*2, autoinc=128=1 row, 32 words, wrap fine).
+* ROW/COL OVERLAP safe: gather reads staged buffer at publish AFTER all producers -> no stale gather.
+* OLD VERIFIER PASSED broken 0415 because it modeled the logical 40x28 as the visible set and omitted fine-scroll +1 exposure + physical 64x32 ring aliasing + independent Plane-B scroll. The rewritten verifier (already in tree) models fine 0..7 + requires 40x28 to FAIL / 41x29 to pass -- corroborated.
+* REPAIR (design): adopt 29/41 (already in tree) on selector0 (col: 29 rows) + selector1/2/pan (row: 41 cols) both planes; give Plane B independent window from B's scroll; keep full-span collision; gather/dirty/DMA unchanged. PERF: +~1 resolve/entering strip -> repaired row/map ~99-106K (best~100K) -> essentially ALL the 0415 gain survives. Comfortable margin still needs BG-B/BG-C. PRESERVE accessor seam + native tables + visual/collision separation; BG-B/C must not start until BG-A visual correctness is Tighe-confirmed on real Genesis.
+
+## [Andy — Genesis-native BACKGROUND pre-implementation SPEC (design only; no code/ROM; Cody tree untouched; counter unchanged)]
+
+* DESIGN/STATIC ONLY. No source, no ROM, no build-number, Cody tree untouched. Deliverable: docs/design/Andy_genesis_native_background_implementation_spec.md (supersedes the architecture doc's ambiguous unit wording; architecture doc kept).
+* UNIT MODEL RESOLVED (from index math): cell = Genesis 8x8 name cell; segment = 4 cells; full map dim = 64 cells (plane 64x32); visible ~40 col x ~28 row; camera step = 1 cell (pos = group*4+index). The 1-vs-4-vs-64 ambiguity: selector0_native (arcade 0x055968, HORIZONTAL) fixes entering COLUMN, loops 0..63 ROWS = 1 col x 64 rows; selector12_native (0x055990, VERTICAL-style) fixes ROW, loops 0..63 COLS = 1 row x 64 cols; pan_publish_entering_rows (0x055704/90) = already-incremental vertical. Entering unit per crossing = 1-cell-wide strip spanning full 64 dim. "~4 exposed" was the segment; "64 rebuilt" was the orthogonal full-dim loop. BOTH inefficiencies proven: resolve full 64 though only visible ~28/~40 needs the VISUAL write (collision needs full 64), AND each cell resolved TWICE.
+* RESIDUAL TO MEASURE (Step 1, not guessed): M = number of 64-cell producer invocations per heavy scroll event (sets real per-cell cost vs the ~153,890); and selector12-vs-pan redundancy for pure vertical.
+* COLLISION: collision_map_64x64_words_base @0xFF1E00, read by collision_map_lookup_53a2e at arbitrary world pos. Entering span per horizontal crossing = exactly ONE column x 64 rows (full height, physics reads off-visible). Incremental over the 64-ring, maintained INDEPENDENTLY of the ~40-visible visual plane (different axis/table).
+* DMA: columns are STRIDED (128B) in the row-major staged image -> NOT contiguous. CHOSEN: Option A per-plane 64-word gather buffer (fg/bg_col_gather) written during resolve, DMA with VDP DEST autoincrement=128 (source contiguous). Rows are already contiguous -> Option D direct. Distinguish SOURCE increment vs DEST autoinc explicitly.
+* DIRTY: fg/bg_col_dirty = 64-bit masks (new, horizontal) + existing 32-bit fg/bg_row_dirty (vertical); producer sets, publisher clears+enumerates; row+col coexist (idempotent overlap); no IRQ ownership change.
+* PLANE A != PLANE B: Plane B resolves via fg_boundary_resolve_b + gameplay-producer-cell path (fg_tile_cache AB/BC packages) -- separate source. SEPARATE native tables plane_a_name / plane_b_name; one collision (Plane-A side channel).
+* DYNAMIC: cave block = CONFIRMED finite 2-state (writer collision_map_surface_mark_5a2ee); animated BG = likely PALETTE-ONLY (no map write, confirm via coverage report); mid-round bank R3/R5/R6 = CONTEXT switch. Generic fallback = NO *conditional* on BG-C coverage report UNKNOWN=0; keep dev-only native_map_fallback_count until then. Cave block = per-context override BITSET (1 btst/cell) + small override table (default/destroyed), no linear search.
+* INDEX: plane tables column-major (entering column contiguous) off = ctx_base + (col*MAP_ROWS+row)*2; collision row-major (col*... arcade ring). No inner-loop multiply (per-column base + adda step). Static lookup ~8-12 cyc vs ~200-300 resolve.
+* CYCLE MODEL (best/cons, Step-1 M confirms): BG-A ~70-85K/~95K; BG-B ~45-60K/~75K; BG-C ~8-15K (MUST also generate the collision table or the 64 collision resolves dominate). Scroll IRQ -> ~88K, ~40K margin. BG-A alone may NOT clear 128,009 under worst M; BG-B likely required for the HW pass, BG-C for margin. GENERATED: pc080sn_native_plane_a/plane_b/collision/override_<ctx>.bin + report; extend precompute_pc080sn_tile_lut.py. VERIFIER keeps a Python golden reimpl after resolver retirement (never self-verify).
+* CODY ORDER: 1 instrument (count invocations/cells + selector12/pan redundancy) -> 2 accessor macros wrapping current resolvers (no behavior change) -> 3 BG-A visible-span + entering-strip-only -> 4 column dirty+gather+DMA -> 5 measure real Genesis -> 6 BG-B fused resolve -> 7 BG-C Python tables+generator+golden verifier+O(1) lookup -> 8 BG-D/E retire descriptor walk (counter 0) + unify vertical/horizontal/init. Each step: files, invariant, mechanical+perf+Tighe-HW test.
+
+## [Andy — Genesis-native BACKGROUND architecture DESIGN (design only; no code/ROM; Cody tree untouched; counter unchanged)]
+
+* DESIGN ONLY. No production source, no ROM, no build-number, Cody tree untouched. Deliverable: docs/design/Andy_genesis_native_background_architecture.md. Builds on the 0414 scroll review. Background equivalent of the native sprite (code,bank)->vi system.
+* CURRENT: already native = tile->VRAM LUT (genesistan_pc080sn_tile_vram_lut / pc080sn_tile_vram_lut.bin), per-scene resident tile sets, staged full-plane image (staged_fg/bg_buffer = 2048 words = 64x32), central publisher. Still runtime-derived = per-cell name resolve (resolve_plane_a_cell :606) + per-cell collision resolve (resolve_plane_a_collision_cell :729), each a descriptor walk. selector12_native rebuilds 64 cols/strip (only ~4 exposed) AND resolves each cell twice -> ~153,890 cyc.
+* COLLISION CONTRACT (critical): collision_map_64x64_words_base @0xFF1E00 = full 64x64 words, read by collision_map_lookup_53a2e from many gameplay sites at arbitrary world positions. Needs the full 64-ring span (wider than the ~40 visible), BUT is itself a ring -> incremental (one entering column) and maintained INDEPENDENTLY of the visual plane. Do NOT force the visual plane full-width because collision is wider.
+* RECORD: two PARALLEL packed u16 tables per context -- pc080sn_native_name (finalized Genesis name word: VRAM slot|pal|pri|Hflip|Vflip, all offline since tile slot is scene-resident) + pc080sn_native_collision -- plus a sparse dynamic-override table. Parallel (not inline) because name feeds the ~40 visible plane ring and collision feeds the 64 ring (different spans/destinations + contiguous-column DMA). Reuses canonical tile identity; no second namespace. 4 B/static cell.
+* DYNAMIC: only genuine per-cell map rewrite = destroyable cave block (2-state override, written by collision_map_surface_mark_5a2ee). Animated BG likely palette-cycle (no map change). Mid-round bank R3/R5/R6 = context switch (load other context map). Sparse override -> NO generic fallback in the final live path.
+* RUNTIME: incremental entering-column (horizontal) mirrors the already-incremental vertical pan (genesistan_plane_a_pan_publish_entering_rows_up/down); one shared native_map_cell(context,row,col)->{name,collision} accessor used by horizontal/vertical/init/rebuild. Wrap = mask &63 (no modulo). DMA = 1 strided 32-word column run/plane (VDP autoinc=128) from contiguous source.
+* PYTHON: extend precompute_pc080sn_tile_lut.py -> pc080sn_native_name/collision/override_{context}.bin + coverage report + hashes. Verifiers: (1) name-equivalence vs resolve_plane_a_cell bit-exact; (2) collision-equivalence vs resolve_plane_a_collision_cell; (3) incremental-vs-bulk consistency + dev-only fallback counter.
+* CYCLE MODEL: current ~153,890 -> BG-A incremental strip ~15-25K -> BG-B fused resolve ~10-15K -> BG-C generated records direct O(1) ~2-5K. Scroll IRQ ~230K -> ~80K < 128,009. One-frame fit PLAUSIBLE; structural ~102K recovery met at BG-A.
+* MIGRATION: BG-A incremental horizontal strip (keep resolver) -> BG-B fused collision/name -> BG-C generated native records -> BG-D retire descriptor walk from live scroll -> BG-E unify vertical/horizontal/init on one accessor. Each: mechanical verify + perf threshold + Tighe real-Genesis test + rollback. SECONDARY enemy: owning-probe cache (key family,anim; ~100-300 cyc/actor) + per-actor variant-group-base hoist.
+
+## [Andy — Build 0414 scroll + enemy performance STATIC REVIEW (review only; no code/ROM; Cody tree untouched; counter unchanged)]
+
+* REVIEW ONLY. No production source, no ROM, no build-number consumed, Cody working tree untouched. Deliverable: docs/design/Andy_build0414_scroll_enemy_performance_review.md. Real Genesis = perf authority; BlastEm diagnostic only.
+* EFFECTIVE-BANK HOIST: SAFE WITH CONDITIONS. Hoists ((pc090oj_sprite_ctrl_shadow & 0x00E0)>>1) into the HIGH byte of a repurposed packed native_sprite_lane word (low byte=lane). Re-hoisted at 41dae(:708)/45dfa(:844)/native_emit_pass(:2076) entries; writer is arcade-side sprite-ctrl hook outside the walk; IPL7 blocks async writes. Verified consumers: lane reads native_sprite_lane+1 (emit :567 / fast_context :634); bank reads native_sprite_lane high byte (generic probe :997, variant/residency :2706/:2944). No full-word cmpi.w remains. ~232-cyc median saving plausible (removes move.w+andi+lsr per probe+piece). CONDITIONS: shadow must stay stable within a pass (true now); native_sprite_lane now overloaded {bank:lane} — new consumers must read the right byte. Recommend verifier asserts no move.w native_sprite_lane + all 3 entries re-hoist.
+* SCROLL (PRIMARY, ~153,890 cyc in the native row/map path = 98.1% of 0x556CE): decisive structural finding. VERTICAL pan (genesistan_plane_a_pan_publish_entering_rows_up/down) is ALREADY incremental (entering rows only). HORIZONTAL producer genesistan_hook_tilemap_plane_a_selector12_native (arcade 0x055990) rebuilds ALL 16 segments x 4 cells = 64 columns per strip event though a one-tile crossing exposes only 1 segment (4 cols); AND each cell is resolved TWICE (resolve_plane_a_collision_cell :449 for collision side-channel + resolve_plane_a_cell :464 for the name word), each walking the PC080SN_DESC_REBUILD tables. Cost is CPU-side prep, not DMA.
+* SCROLL TOP-3: #1 Class-A incremental column-strip (rebuild only entering segment, like the vertical pan) ~90-110K recover, risk MEDIUM (confirm collision-map span need first); #2 Class-G fuse the double per-cell resolve ~20-40K, risk LOW-MED; #3 Class-B/C Python-precompiled map-cell->{name word, collision word} table (reuse precompute_pc080sn_tile_lut.py) ~30-60K, risk MED. Required recovery to fit 128,009 = ~102K => structural (~66% of the row/map path). #1+#2(+#3) => PLAUSIBLE fit.
+* ENEMY (SECONDARY): model quiet 72,593 + ~14,850/enemy => ~3.7 enemies before overrun = matches Tighe's ">3 enemies". Top-2 after the bank hoist: #1 cache per-(family,anim) owning probe to skip the wasted generic-then-universal double probe (~100-300 cyc/actor, LOW-MED, HIGH generality); #2 hoist per-actor variant group base out of the per-piece emit (scales with pieces, MED).
+* HAMMER/FLAIL: DIAGNOSTIC ONLY. Weapons are PC090OJ player-composite sprites, NOT Layer A/B => unrelated to the scroll bottleneck. Real Genesis clean; BlastEm bar likely stricter VDP/DMA-slot/beam timing model. Production optimization NOT warranted.
+* NEXT ORDER: #1 scroll incremental-strip + resolve-fusion (the real-HW FAIL, ~100K-class structural win); #2 enemy single-probe dispatch; #3 hammer = diagnostic only, no production change.
+
 ## [Cody — Build 0413 native tail-performance optimization]
 
 * Baseline Build 0412 tail classification retained: under-budget graphics/non-graphics 47.6K/53.1K; >250K 81.8K/199.1K. Dominant chain is `0x51210 -> 0x055650 -> 0x0556CE -> 0x055948 -> 0x0559C8 -> 0x70418/0x70552`; PC080SN strip/map work remained OUT OF SCOPE and UNCHANGED.
@@ -50903,5 +51044,154 @@ TIGHE ONLY
 
 ### MAME Exit Summary (2026-10-10 22:49:08)
 - Final PC: 0x07456A
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-11 11:11:51)
+- Final PC: 0x0746F2
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-11 — Cody Build 0415 BG-A incremental background
+
+- Preserved the existing Build 0414 family. Its resumed `_c` closeout ended
+  `NO_PROGRESS` at 4/18 with fallback/adapter/crash all zero; it was not rebuilt.
+- Step-1 tracing proved representative pure pan uses two 64-cell visual
+  producers (`M=2`) and selector 12 does not duplicate that retained pan route.
+- Added private Plane-A, Plane-B, and collision accessor macros backed by the
+  existing authoritative resolvers. Horizontal visual work is 28 rows while
+  collision remains 64; vertical visual work is 40 columns while selector-1/2
+  collision remains 64.
+- Added independent 64-bit Plane-B column dirtiness and converted both planes'
+  column publication to a 32-word contiguous gather DMA with destination
+  autoincrement 128. Row and column dirty state coexist.
+- Added the build-owned BG-A incremental-vs-bulk verifier: complete Plane-A,
+  Plane-B, collision, wrap, multi-cross, combined-axis, dirty, and column-DMA
+  contracts PASS. Hardened the Build 0414 packed bank verifier against unsafe
+  full-word lane consumers and locked all three bank re-hoist sites.
+- Representative pan row/map median fell 153,890 -> 98,298 cycles (-36.1%);
+  complete IRQ median fell 233,829 -> 179,471 (-23.2%). Non-scroll IRQ was flat.
+- Canonical and gameplay-entry gates PASS; the existing seven-epoch label
+  remains FAIL. Steady-state VDP ownership PASS (zero outside-bracket writes).
+  Corrected 0415 `_c` closeout reaches 18/18 with player/generic
+  fallback `0/0`, adapter `0`, and crash `0000`.
+- Full Build 0415 family produced, each 1,998,520 bytes. Canonical SHA-256:
+  `c3392a9dfa9d2162298571ade4e7346ef3096dd52cefd0c2fefb2829c3ce9e9f`.
+  Report: `docs/design/Cody_build0415_bg_a_incremental_background.md`.
+
+### MAME Exit Summary (2026-10-11 11:46:46)
+- Final PC: 0x0746F2
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-11 17:42:17)
+- Final PC: 0x074682
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-12 — Cody Build 0417 A-0154 scanout-time forensic
+
+- Ran read-only Genesis NTSC MAME traces against the existing Build 0417 and
+  0417_do ROMs at the owner-confirmed Segment-2 A-0154 target.
+- Corrected the prior package assumption: Segment 2 maps code `0x117` to slot
+  `0x3A4`; slot `0x468` is a later-package control and remains zero here.
+- Proved the A-0154 pattern complete at frame 323 while display was off, over
+  100 frames before scene-load display enable. No partial pattern row exists.
+- Correlated all six physical A-0154 cells with Tighe's marked two-by-three
+  layout. Three are LA-0092 and three are LA-0543; all resolve to `0x63A4`.
+- Found one separate Class-C entrance transient: X40/Y38 changes from blank
+  slot `0x297` to `0x3A4` at V123 after its V113 fetch for one frame. The other
+  five names are published while horizontally offscreen.
+- At the comparable settled frame, normal and `_do` target pixels are
+  identical. Their only difference is `_do`'s 320x18 intentional black band.
+- Exact X40/Y38 pixel `(69,125)` renders opaque Plane-A nibble 9 / RGB
+  `(52,0,52)`; Plane B would be nibble 3 / RGB `(87,87,116)`. The six-at-once
+  owner-marked appearance is therefore Class H, not Layer-B show-through.
+- Report: `docs/design/Cody_build0417_A0154_scanout_timing_forensic.md`.
+- No production/palette changes, no ROM build, counter remains 417.
+# 2026-10-12 — Cody Build 0417 A-0154 partial Layer-A dropout root cause (read-only)
+
+- Owner fact accepted: all six Segment-2 physical A-0154 occurrences show a sub-tile Plane-B-through-A defect; `_do` is larger. No palette/production/ROM/build change.
+- Proven common owner is the one A-0154 upload to slot `0x3A4`. `fg_boundary_install` sends a 16-word/32-byte ROM DMA through the unsplit `vdp_dma_words_to_vram` primitive.
+- Normal 0417 source is `0x15FFE8`: the DMA crosses the VDP 128-KiB source boundary `0x160000` after 24 bytes, so hardware wraps the last 8 bytes to `0x140000`; rows 6..7 contain 8 zero nibbles per occurrence.
+- 0417_do source is `0x15FFF8`: the display-bracket code shifts the tile corpus by `+0x10`, so the same transfer crosses after 8 bytes and wraps 24 bytes from `0x140000`; rows 2..7 contain 23 zero nibbles per occurrence.
+- Exact masks: normal 8 missing pixels/tile (48 across six); `_do` 23/tile (138 across six); `_do` adds 15/tile (90 total). Zero pattern nibbles are transparent and expose the distinct Plane-B tiles beneath each occurrence.
+- Local SGDK authority confirms the contract: `DMA_doDma` splits at `0x20000` byte / 64-Kword boundaries (`tools/sgdk/src/dma.c:545..563`); current native DMA primitive does not.
+- Full VDP trace also confirms active-display DMA and `_do` forced-blank bands, but no target write/transfer overlaps the owner-comparable six-cell rows. Those performance bands are separate; the fixed shared-pattern masks are explained exactly by the source-bank wrap.
+- MAME reads the source contiguously across `0x160000`, so its terminal/live VRAM is internally correct and does not reproduce the hardware source wrap. Real Genesis remains authority.
+- Report: `docs/design/Cody_build0417_partial_layer_a_dropout_root_cause.md`. Raw all-VDP traces: `states/traces/build0417_A0154_partial_dropout/{normal,do}/vdp_events.tsv`. Counter remains 417.
+
+### MAME Exit Summary (2026-10-13 09:30:04)
+- Final PC: 0x0746E0
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-13 — Cody Build 0418 VDP DMA source-boundary fix
+
+- Resumed and preserved the interrupted dirty-tree implementation; no Phase-0
+  or A-0154 root-cause reinvestigation.
+- Made `vdp_dma_words_to_vram` 128-KiB-source-bank safe. The ordinary path adds
+  six instructions / approximately 38 cycles and still triggers one DMA. A
+  crossing is split at the bank, with complete source and destination
+  reprogramming; the legal 16-bit count can cross at most one boundary.
+- Preserved `D0/A0` return semantics. The second chunk uses the real subsequent
+  ROM address and contiguous autoincrement-2 VRAM destination.
+- Routed the ROM-backed PC090OJ sprite-pattern upload through the checked path.
+  SAT and autoincrement-128 Plane-A/B column gathers remain on the specialized
+  bounded-WRAM `dma_words_to_vram_noai` path.
+- Added `.balign 32` before `genesistan_pc080sn_tile_rom`. Normal 0418 base is
+  `0x15DD80`; A-0154 is `0x160060`, 32-byte aligned and one 16-word DMA. Every
+  family variant is aligned/non-crossing.
+- Added `verify_vdp_dma_boundary.py` and Makefile gate. Boundary-32, -24, -8,
+  boundary-aligned, source continuation, destination continuation, all 16,384
+  corpus starts, and linked A-0154 one-DMA cases PASS.
+- PC080SN corpus and A-0154 bytes are unchanged; palette decisions unchanged.
+- Full 0418 family produced (all 1,998,520 bytes). Canonical SHA-256:
+  `816675e9e008833c9d30fe266485b26eae2dad26ef7b210090a75ced8105af54`.
+  Canonical, boot, gameplay-entry, background, DMA-boundary, trace, and family
+  gates PASS. The standing seven-epoch label remains FAIL, unchanged from
+  Builds 0414–0417.
+- Report: `docs/design/Cody_build0418_vdp_dma_boundary_fix.md`. Real-Genesis
+  verification of normal and `_do` six-hole removal is Tighe-required.
+
+## 2026-10-13 — Tighe acceptance / Cody formal closure of Build 0418
+
+- Tighe confirmed on real Genesis that the six Segment-2 A-0154 holes are
+  resolved. Build 0418 is the accepted forward baseline.
+- CLOSED-031 now closes both the visible six-hole symptom and the generic
+  128-KiB ROM-source VDP DMA boundary defect. KF-090 and the Build 0418 report
+  record the accepted hardware result.
+- The disproven palette and active-display-DMA diagnoses remain in history as
+  explicit corrections; neither caused these six holes.
+- This closure does not close IRQ6/full-frame overrun, active-display DMA,
+  `_do` bands, the one-frame entering-cell transient, or background runtime
+  cost.
+
+## 2026-10-13 — Cody Build 0419 fused Plane-A name/collision traversal
+
+- Bounded Build 0418 audit found that selector 0 performed 64 Plane-A name
+  walks plus 64 independent collision walks over the same live descriptors.
+- Added `resolve_plane_a_name_collision_cell`: one live source/ring/descriptor/
+  metatile traversal returns the final Genesis name word and retained arcade
+  collision word. Selector 0 now uses 64 fused traversals; selector 1/2 uses it
+  only for resident rows and keeps collision-only behavior otherwise.
+- Full 64-cell logical coherence, 64x64 collision, Plane B, package/LUT,
+  palette authority, physical projection, dirty publication, and DMA are
+  unchanged. No generated data or gameplay semantic changed.
+- Full-span, transition-retention, DMA-boundary, canonical, boot, and
+  gameplay-entry gates PASS. Mandatory 30-second NTSC MAME trace completed;
+  the standing seven-epoch label remains FAIL as on 0418.
+- Full 0419 family produced, 1,998,520 bytes each. Canonical SHA-256:
+  `79a479d611284a11e7123f46ee5dd5b2c7922f774a9d55cc4717d7cdcc09cb12`.
+- Existing exact 0417/0418-equivalent selector-0 baseline: 135,751.6 cycles
+  with 128 resolver calls. The current controlled cold-boot timing route did
+  not arm on either ROM, so no fabricated post-change cycle percentage is
+  reported. Real-Genesis performance/visual acceptance is Tighe-required.
+- Background optimization remains OPEN; scheduler Phase D/E not started.
+  Reports: `docs/design/Cody_build0418_background_native_closure_audit.md` and
+  `docs/design/Cody_build0419_background_native_optimization.md`.
+
+### MAME Exit Summary (2026-10-13 13:32:45)
+- Final PC: 0x0747F4
 - Stack Pointer (SP): 0x00FEFF6A
 - Unique Unmapped Memory Addresses: none

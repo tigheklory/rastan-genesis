@@ -185,7 +185,10 @@ genesistan_pc080sn_tile_vram_lut:
 genesistan_pc080sn_attr_lut:
     .incbin "../../build/pc080sn_attr_lut.bin"
 
-    .align 2
+    /* Build 0418: each PC080SN pattern is exactly 32 bytes.  Aligning the
+     * corpus makes every code*32 upload 32-byte aligned; because 0x20000 is a
+     * multiple of 32, no individual tile can straddle a VDP DMA source bank. */
+    .balign 32
 genesistan_pc080sn_tile_rom:
     /* Build 0315: offline Palette Composer Layer-A patterns (editor index-maps applied by
      * tools/graphics_editor/compile_editor_layera.py). Layer-B tile codes are disjoint from

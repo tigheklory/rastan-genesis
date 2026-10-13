@@ -69,8 +69,20 @@ local SCROLL_STAGE_PCS = {
   {1,0x0559C8}, {2,0x0559E6}, {3,0x0408A4}, {4,0x0409A4},
 }
 local PC080SN_MAP_PCS = {
-  {1,0x070418}, {2,0x070550}, {3,0x070552}, {4,0x070682},
-  {5,0x070684}, {6,0x0706DC}, {7,0x055816},
+  {1,envpc("FRAME_TIMING_SELECTOR0_ENTRY", 0x070418)},
+  {2,envpc("FRAME_TIMING_SELECTOR0_RETURN", 0x070550)},
+  {3,envpc("FRAME_TIMING_SELECTOR12_ENTRY", 0x070552)},
+  {4,envpc("FRAME_TIMING_SELECTOR12_RETURN", 0x070682)},
+  {5,envpc("FRAME_TIMING_PAN_UP_ENTRY", 0x070684)},
+  {6,envpc("FRAME_TIMING_PAN_DOWN_ENTRY", 0x0706DC)},
+  {7,envpc("FRAME_TIMING_PAN_RETURN", 0x055816)},
+}
+-- Build 0415 Step-1 bounded producer accounting.  These are existing private
+-- leaves in Build 0414; the trace only counts entries and never changes state.
+local PC080SN_RESOLVER_PCS = {
+  {1, envpc("FRAME_TIMING_NAME_A_RESOLVER", 0x07073C)},
+  {2, envpc("FRAME_TIMING_COLLISION_RESOLVER", 0x070826)},
+  {3, envpc("FRAME_TIMING_NAME_B_RESOLVER", 0x072B4C)},
 }
 local function r8(a)  local v=0; pcall(function() v=prog:read_u8(a) end); return v & 0xFF end
 local function r16(a) local v=0; pcall(function() v=prog:read_u16(a) end); return v & 0xFFFF end
@@ -95,17 +107,17 @@ local function owning_symbol(pc)
   return best
 end
 
-local A_EMIT   = 0x00FFBED4
-local A_INPUT  = 0x00FF61F6
+local A_EMIT   = tonumber(os.getenv("FRAME_TIMING_EMIT_ADDR") or "0x00FFBED4")
+local A_INPUT  = tonumber(os.getenv("FRAME_TIMING_INPUT_ADDR") or "0x00FF61F6")
 local A_VC0    = 0x00FF61E4   -- vblank_vc[0]; marks 0..6 at vblank_vc+0..+6
 local A_VC6    = 0x00FF61EA
 local A_SCENE  = tonumber(os.getenv("FRAME_TIMING_SCENE_ADDR") or "0x00FFC55C")
                                       -- genesistan_current_scene_id (1 = gameplay; 0 title, 2 end-round)
 local A_RECORD = 0x00FF013E
 local A_ENERGY = 0x00FF013A
-local A_TILE_DMA_COUNT = 0x00FFB7E8
-local A_TILE_DMA_WORK  = 0x00FFB7B8
-local A_RESIDENT_CODE  = 0x00FFB756
+local A_TILE_DMA_COUNT = tonumber(os.getenv("FRAME_TIMING_TILE_DMA_COUNT_ADDR") or "0x00FFB7E8")
+local A_TILE_DMA_WORK  = tonumber(os.getenv("FRAME_TIMING_TILE_DMA_WORK_ADDR") or "0x00FFB7B8")
+local A_RESIDENT_CODE  = tonumber(os.getenv("FRAME_TIMING_RESIDENT_CODE_ADDR") or "0x00FFB756")
 local VDP_LO, VDP_HI = 0x00C00000, 0x00C00007
 local function active_count(base, count)
   local n=0
@@ -221,6 +233,11 @@ if have_dbg then
       'printf "PM,%d,%%d\\n",totalcycles; g',stage[1])) end),
       string.format("PC080SN map breakpoint %d install failed",stage[1]))
   end
+  for _,stage in ipairs(PC080SN_RESOLVER_PCS) do
+    assert(pcall(function() cpu.debug:bpset(stage[2],"1",string.format(
+      'printf "RC,%d,%%d\\n",totalcycles; g',stage[1])) end),
+      string.format("PC080SN resolver breakpoint %d install failed",stage[1]))
+  end
   -- NOTE: the async debugger VDP WATCHPOINT ("VW") was REMOVED. Debugger watchpoint events and
   -- PE/PR breakpoint events are drained from one console log but are not guaranteed mutually
   -- chronological, which produced the false GATE FAIL / 100%-UNKNOWN artifact. VDP-write ownership
@@ -294,12 +311,22 @@ local function on_scroll_stage(kind, cyc)
 end
 local function on_pc080sn_map(kind, cyc)
   if not armed or not cur or phase~="WE" then return end
+  cur.pm_count=cur.pm_count or {0,0,0,0}
+  if kind==1 then cur.pm_count[1]=cur.pm_count[1]+1
+  elseif kind==3 then cur.pm_count[2]=cur.pm_count[2]+1
+  elseif kind==5 then cur.pm_count[3]=cur.pm_count[3]+1
+  elseif kind==6 then cur.pm_count[4]=cur.pm_count[4]+1 end
   if kind==1 or kind==3 or kind==5 or kind==6 then cur.pm_start=cyc
   elseif (kind==2 or kind==4) and cur.pm_start then
     cur.pm=(cur.pm or 0)+(cyc-cur.pm_start);cur.pm_start=nil
   elseif kind==7 and cur.pm_start then
     cur.pm=(cur.pm or 0)+(cyc-cur.pm_start);cur.pm_start=nil
   end
+end
+local function on_pc080sn_resolver(kind)
+  if not armed or not cur or phase~="WE" then return end
+  cur.rc=cur.rc or {0,0,0}
+  cur.rc[kind]=cur.rc[kind]+1
 end
 local function reject_sequence()
   if phase ~= "IDLE" then S.rejected_sequences = S.rejected_sequences + 1 end
@@ -360,6 +387,8 @@ local function on_event(tag, cyc, frame, hv, emit)
     local pcost={}
     for i=1,19 do pcost[i]=(pu[i-1] and pu[i]) and (pu[i]-pu[i-1]) or -1 end
     local active_total,active_enemies,renderable_enemies=active_stage_counts()
+    local pmc=cur.pm_count or {0,0,0,0}
+    local rc=cur.rc or {0,0,0}
     S.series[#S.series+1]=string.format(string.rep("%d,",49).."%d",
       frame, e, wcyc, icyc, cur.pr-cur.pe, cur.we_v, frame-cur.we_f,
       graphics,cur.player or 0,cur.gh or 0,cur.gf or 0,cur.rm or 0,
@@ -368,7 +397,9 @@ local function on_event(tag, cyc, frame, hv, emit)
       gc[1],gc[2],gc[3],gc[4],gc[5],gc[6],gc[7],
       pcost[1],pcost[2],pcost[3],pcost[4],pcost[5],pcost[6],pcost[7],pcost[8],pcost[9],pcost[10],
       pcost[11],pcost[12],pcost[13],pcost[14],pcost[15],pcost[16],pcost[17],pcost[18],pcost[19],
-      cur.sm or 0,cur.sa or 0)..string.format(",%d,%d,%d,%d",active_total,active_enemies,renderable_enemies,cur.pm or 0)
+      cur.sm or 0,cur.sa or 0)..string.format(",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+      active_total,active_enemies,renderable_enemies,cur.pm or 0,
+      pmc[1],pmc[2],pmc[3],pmc[4],rc[1],rc[2],rc[3],rc[1]+rc[2]+rc[3])
     S.complete_handlers=S.complete_handlers+1
     cur=nil; phase="IDLE"
   else
@@ -401,6 +432,10 @@ local function drain()
     if mk then
       on_pc080sn_map(tonumber(mk),tonumber(mc))
     else
+    local rk = l:match("^RC,(%d+),")
+    if rk then
+      on_pc080sn_resolver(tonumber(rk))
+    else
     local sk,sc = l:match("^SM,(%d+),(%d+)")
     if sk then
       on_scroll_stage(tonumber(sk),tonumber(sc))
@@ -409,6 +444,7 @@ local function drain()
     local tag,c,f,h,e = l:match("^(%u%u),(%d+),(%d+),(%d+),?(%d*)")
     if tag=="PE" or tag=="PR" or tag=="WE" or tag=="WR" then
       on_event(tag, tonumber(c), tonumber(f), tonumber(h), (e~="" and tonumber(e)) or nil)
+    end
     end
     end
     end
@@ -645,7 +681,7 @@ local function dump()
   f:close()
   -- per-handler time series for phase segmentation (before -> bats -> sustained)
   local cf=io.open(outdir.."/frame_timing_series.csv","w")
-  if cf then cf:write("frame,emitted,worker_cyc,irq_cyc,pub_cyc,worker_entry_V,frame_wraps,graphics_cyc,player_cyc,generic_hits,generic_fallbacks,residency_misses,pattern_installs,evictions,dma_words,pre_dispatch_cyc,state_dispatch_cyc,final_graphics_cyc,worker_tail_cyc,state0,state2,record,gp_51210_cyc,gp_40d66_cyc,gp_422e6_cyc,gp_445e0_cyc,gp_44bb4_cyc,gp_452d8_cyc,gp_4a1a6_cyc,pu_5a0e8,pu_73150,pu_59fe2,pu_51476,pu_52cd2,pu_52c54,pu_52c66,pu_54aaa,pu_51422,pu_51532,pu_gap,pu_556ce,pu_70bc6,pu_59e38,pu_514d0,pu_5a2ec,pu_59774,pu_5135e,pu_51432,scroll_map_cyc,scroll_actor_cyc,active_stage_actors,active_enemy_actors,renderable_enemy_candidates,pc080sn_map_cyc\n")
+  if cf then cf:write("frame,emitted,worker_cyc,irq_cyc,pub_cyc,worker_entry_V,frame_wraps,graphics_cyc,player_cyc,generic_hits,generic_fallbacks,residency_misses,pattern_installs,evictions,dma_words,pre_dispatch_cyc,state_dispatch_cyc,final_graphics_cyc,worker_tail_cyc,state0,state2,record,gp_51210_cyc,gp_40d66_cyc,gp_422e6_cyc,gp_445e0_cyc,gp_44bb4_cyc,gp_452d8_cyc,gp_4a1a6_cyc,pu_5a0e8,pu_73150,pu_59fe2,pu_52cd2,pu_52c54,pu_52c66,pu_54aaa,pu_51422,pu_51532,pu_gap,pu_556ce,pu_70bc6,pu_59e38,pu_514d0,pu_5a2ec,pu_59774,pu_5135e,pu_51432,pu_512cc,scroll_map_cyc,scroll_actor_cyc,active_stage_actors,active_enemy_actors,renderable_enemy_candidates,pc080sn_map_cyc,selector0_calls,selector12_calls,pan_up_calls,pan_down_calls,name_a_resolves,collision_resolves,name_b_resolves,total_resolver_calls\n")
     for _,s in ipairs(S.series) do cf:write(s.."\n") end cf:close() end
   print(string.format("[frame_timing] wrote summary (armed=%d worker_pairs=%d prodC=%d gate_viol=%d dbg=%s)",
     S.armed_frames, #S.worker_cycles, S.producer_completions, S.gate_viol_total, tostring(have_dbg)))
@@ -655,7 +691,9 @@ local total_display = 0
 local auto_record = tonumber(os.getenv("FRAME_TIMING_AUTO_RECORD") or "2")
 local auto_measure_frames = tonumber(os.getenv("FRAME_TIMING_AUTO_MEASURE_FRAMES") or "1200")
 local auto_max_frames = tonumber(os.getenv("FRAME_TIMING_AUTO_MAX_FRAMES") or "7000")
+local auto_arm_delay = tonumber(os.getenv("FRAME_TIMING_AUTO_ARM_DELAY") or "0")
 local auto_armed_at = nil
+local auto_record_frames = 0
 local fields={}
 for _,port in pairs(mac.ioport.ports) do for name,field in pairs(port.fields) do fields[name]=field end end
 local function set_input(name,on) if fields[name] then fields[name]:set_value(on and 1 or 0) end end
@@ -668,7 +706,11 @@ emu.register_frame_done(function()
     local gameplay=(scene==1)
     local pre_route=(not auto_armed_at and total_display>=360)
     local route=(auto_armed_at and rel<360)
+    -- Match the established gameplay-entry gate aliases: different MAME
+    -- Genesis controller configurations expose coin/start under either name.
+    set_input("Coin 1",total_display>=120 and total_display<=132)
     set_input("P1 A",total_display>=120 and total_display<=132)
+    set_input("1 Player Start",total_display>=175 and total_display<=187)
     set_input("P1 Start",total_display>=175 and total_display<=187)
     set_input("P1 Right",pre_route or route)
     local active_route=pre_route or route
@@ -676,6 +718,12 @@ emu.register_frame_done(function()
     set_input("P1 B",active_route and (total_display%30)<6)
     if gameplay then pcall(function() prog:write_u16(A_ENERGY,0x0030) end) end
     if not auto_armed_at and gameplay and r16(A_RECORD)==auto_record then
+      auto_record_frames = auto_record_frames + 1
+    elseif not auto_armed_at then
+      auto_record_frames = 0
+    end
+    if not auto_armed_at and gameplay and r16(A_RECORD)==auto_record and
+        auto_record_frames > auto_arm_delay then
       reset_interval(); S._li=(log and #log) or 0
       producer_metrics={}; publication_metrics={}; gfx_start=nil; player_start=nil; player2_start=nil
       run_started=true; armed=true; auto_armed_at=total_display

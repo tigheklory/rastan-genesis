@@ -28,6 +28,7 @@
     .global palette_pending
     .global bg_row_dirty
     .global fg_row_dirty
+    .extern vdp_commit_bg_columns_if_dirty
     .global fg_native_gameplay_owner
     .global staged_dest_ptr_bg
     .global staged_dest_ptr_fg
@@ -277,6 +278,7 @@ vdp_commit_tiles_if_dirty:
  * clobbers d1-d3, a1). */
 
 vdp_commit_bg_strips_if_dirty:
+    bsr     vdp_commit_bg_columns_if_dirty
     move.l  bg_row_dirty, %d6
     beq.s   .Lbg_done
 

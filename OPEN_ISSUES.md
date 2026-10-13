@@ -12,6 +12,16 @@ Rules:
 
 ## Current Build 0283+ Reconciliation (2026-08-16)
 
+- **[2026-10-13 Build 0419 — background optimization remains OPEN]** The
+  accepted Build 0418 background path repeated the full live Plane-A descriptor
+  walk for name and collision products. Build 0419 fuses those products where
+  both are consumed, reducing selector-0 resolver entries and descriptor walks
+  from 128 to 64 while preserving the full 64-cell logical model and 64x64
+  collision ring. Background work is not closed: Plane-A name-only, Plane-B,
+  and collision-only paths retain runtime arcade-layout interpretation. This is
+  separate from the closed A-0154/128-KiB DMA defect and from still-open IRQ6,
+  active-display publication, `_do` bands, and entering-cell transient work.
+
 - **OPEN-001 / OPEN-018 remain open:** native PC080SN level/map rendering is
   incomplete. Cave and water-hazard tiles are still missing or incorrect, and
   falling into water farther into Stage 1 can reach the exception handler.

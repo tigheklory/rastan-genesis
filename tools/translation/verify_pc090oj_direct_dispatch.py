@@ -243,6 +243,39 @@ def verify_fast_enqueue(source: str) -> None:
     print(f"PASS variable-count reconciliation: {len(cases)} reject/visibility/capacity cases")
 
 
+def verify_packed_lane_bank(source: str) -> None:
+    """Guard Build-0414's packed {effective-bank:lane} word contract."""
+    unsafe = []
+    for lineno, raw in enumerate(source.splitlines(), 1):
+        code = raw.split("/*", 1)[0].split("|", 1)[0].strip()
+        if re.search(r"\bmove\.(?:w|l)\s+native_sprite_lane(?:\b|\s*,)", code, re.I):
+            unsafe.append((lineno, code))
+    if unsafe:
+        raise SystemExit(f"FAIL packed lane: unsafe full-word consumer(s): {unsafe}")
+
+    hoist = (
+        "move.w  pc090oj_sprite_ctrl_shadow, %d0",
+        "andi.w  #0x00E0, %d0",
+        "lsr.w   #1, %d0",
+        "move.b  %d0, native_sprite_lane",
+    )
+    entries = {
+        "native_stage_dispatch_41dae": block(
+            source, "native_stage_dispatch_41dae:", "native_stage_dispatch_45dfa:"),
+        "native_stage_dispatch_45dfa": block(
+            source, "native_stage_dispatch_45dfa:", ".Lnative_emit_actor_common:"),
+        "pc090oj_native_emit_pass": block(
+            source, "pc090oj_native_emit_pass:", ".Lnq_title:"),
+    }
+    for name, body in entries.items():
+        positions = [body.find(token) for token in hoist]
+        if any(pos < 0 for pos in positions) or positions != sorted(positions):
+            raise SystemExit(f"FAIL packed lane: {name} omits/reorders effective-bank re-hoist")
+
+    print("PASS packed lane/effective bank: no full-word lane consumer; normalized bank "
+          "re-hoisted at both stage dispatchers and pc090oj_native_emit_pass")
+
+
 def dispatch(base_lut: bytes, usage_blob: bytes, index: bytes, actor: dict,
              orientation: int) -> int | None:
     base = actor[0x1E]
@@ -325,6 +358,7 @@ def main() -> None:
 
     source = args.assembly.read_text()
     verify_fast_enqueue(source)
+    verify_packed_lane_bank(source)
     start = source.index(".Lnative_generic_frame_try:")
     end = source.index(".Lnative_mapping_branch_is_normal:", start)
     dispatcher = source[start:end]

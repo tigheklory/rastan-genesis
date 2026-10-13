@@ -7,6 +7,8 @@
     .extern tiles_dirty
     .extern bg_row_dirty
     .extern fg_row_dirty
+    .extern fg_col_dirty
+    .extern bg_col_dirty
     .extern fg_native_gameplay_owner
     .extern fg_narrow_desc_count
     .extern fg_narrow_pending_rows
@@ -182,6 +184,10 @@ _bootstrap_clear_staging:
     clr.b   tiles_dirty
     clr.l   bg_row_dirty
     clr.l   fg_row_dirty
+    clr.l   fg_col_dirty
+    clr.l   fg_col_dirty + 4
+    clr.l   bg_col_dirty
+    clr.l   bg_col_dirty + 4
     clr.b   fg_native_gameplay_owner
     clr.w   fg_narrow_desc_count
     clr.w   fg_narrow_pending_rows
