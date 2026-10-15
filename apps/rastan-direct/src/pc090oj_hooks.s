@@ -1033,7 +1033,7 @@ profile_native_levelb_entry:
 profile_native_levelb_index_lookup:
 .Lngft_orientation_ready:
     add.w   %d6, %d7
-    mulu.w  #6, %d7
+    lsl.w   #3, %d7                    /* 8-byte {offset,count,status,frame_attr} */
     lea     pc090oj_generic_frame_index, %a2
     adda.l  %d7, %a2
     cmpi.b  #1, 5(%a2)
@@ -1042,13 +1042,25 @@ profile_native_levelb_index_lookup:
     move.b  4(%a2), %d7
     cmp.w   %d5, %d7
     bhi.s   .Lngft_unresolved          /* retain original caller's piece ceiling */
-    lea     pc090oj_frame_table, %a0
+    move.w  6(%a2), %d1               /* build-time frame-invariant attr */
+    btst    #6, 0x27(%a4)
+    beq.s   .Lngft_frame_attr_ready
+    move.b  0x27(%a4), %d1             /* exact 0x3C9E8 low-byte replacement, once */
+.Lngft_frame_attr_ready:
+    lea     pc090oj_generic_piece_table, %a0
     adda.l  (%a2), %a0
     .global profile_native_levelb_frame_ready
 profile_native_levelb_frame_ready:
     move.w  0x16(%a4), %d5
     move.w  0x1A(%a4), %d6
     bsr     native_sprite_fast_context
+    /* The compact Level-B compiler proves fixed size, no Y-adjust flag and a
+     * valid direct/variant key for every piece.  Establish the append cursor
+     * once; clipping/capacity and queue count remain exact per piece. */
+    moveq   #0, %d0
+    move.w  (%a6), %d0
+    lsl.w   #3, %d0
+    lea     0(%a3,%d0.w), %a1
     .global profile_native_levelb_piece
 profile_native_levelb_piece:
 .Lngft_emit:
@@ -1056,18 +1068,20 @@ profile_native_levelb_piece:
     add.w   %d5, %d4
     move.w  2(%a0), %d2
     add.w   %d6, %d2
-    btst    #2, 9(%a0)
-    beq.s   .Lngft_no_y_adjust
-    add.w   0x18(%a4), %d2
-.Lngft_no_y_adjust:
     move.w  4(%a0), %d3               /* direct code or baked 0x2000|vi */
-    move.w  6(%a0), %d1
-    btst    #6, 0x27(%a4)
-    beq.s   .Lngft_attr_ready
-    move.b  0x27(%a4), %d1             /* exact 0x3C9E8 low-byte replacement */
-.Lngft_attr_ready:
-    bsr     native_sprite_emit_fast
-    adda.w  #10, %a0
+    move.w  %d2, %d0
+    andi.w  #0x01FF, %d0
+    cmpi.w  #0x0180, %d0
+    beq.s   .Lngft_piece_done
+    cmpa.l  %a2, %a1
+    bhs.s   .Lngft_piece_done
+    move.w  %d1, (%a1)+
+    move.w  %d2, (%a1)+
+    move.w  %d3, (%a1)+
+    move.w  %d4, (%a1)+
+    addq.w  #1, (%a6)
+.Lngft_piece_done:
+    adda.w  #6, %a0
     subq.w  #1, %d7
     bne.s   .Lngft_emit
     moveq   #1, %d0

@@ -282,6 +282,7 @@ def main() -> None:
     ap.add_argument("--index", default=ROOT / "build/pc090oj_frame_index.bin", type=Path)
     ap.add_argument("--secondary-index", default=ROOT / "build/pc090oj_secondary_frame_index.bin", type=Path)
     ap.add_argument("--generic-index", default=ROOT / "build/pc090oj_generic_frame_index.bin", type=Path)
+    ap.add_argument("--generic-table", default=ROOT / "build/pc090oj_generic_piece_table.bin", type=Path)
     ap.add_argument("--universal-index", default=ROOT / "build/pc090oj_universal_frame_index.bin", type=Path)
     ap.add_argument("--special-index", default=ROOT / "build/pc090oj_special_frame_index.bin", type=Path)
     ap.add_argument("--generic-base-lut", default=ROOT / "build/pc090oj_generic_base_lut.bin", type=Path)
@@ -292,6 +293,7 @@ def main() -> None:
     rom, table, index = a.maincpu.read_bytes(), a.table.read_bytes(), a.index.read_bytes()
     secondary_index = a.secondary_index.read_bytes()
     generic_index = a.generic_index.read_bytes()
+    generic_table = a.generic_table.read_bytes()
     universal_index = a.universal_index.read_bytes()
     special_index = a.special_index.read_bytes()
     generic_base_lut = a.generic_base_lut.read_bytes()
@@ -346,7 +348,7 @@ def main() -> None:
                 secondary_native += 1
 
     generic_record_count = sum(len(list(spec[2])) for spec in GENERIC) * ORIENTATIONS
-    if len(generic_index) != generic_record_count * 6:
+    if len(generic_index) != generic_record_count * 8:
         raise SystemExit(f"bad generic index size {len(generic_index)}")
     if len(generic_base_lut) != 0x1000 or len(generic_usage) != len(GENERIC) * 10:
         raise SystemExit("bad generic direct-dispatch metadata size")
@@ -364,21 +366,24 @@ def main() -> None:
         for anim in selectors:
             for orientation in range(ORIENTATIONS):
                 record = next_record + (anim - selectors[0]) * 2 + orientation
-                off, count, status = struct.unpack_from(">IBB", generic_index, record * 6)
+                off, count, status, frame_attr = struct.unpack_from(">IBBH", generic_index, record * 8)
                 if status != 1:
                     raise SystemExit(f"generic direct index unexpectedly unresolved {record}")
                 want = expected_generic(rom, spec, anim, orientation, variants)
-                if count != len(want) or off + count * 10 > len(table):
+                if count != len(want) or off + count * 6 > len(generic_table):
                     raise SystemExit(f"bad generic payload bounds {record}")
-                got = [struct.unpack_from(">hhHHBB", table, off + i * 10)
+                got = [struct.unpack_from(">hhH", generic_table, off + i * 6)
                        for i in range(count)]
-                if got != want:
+                compact_want = [(p[0], p[1], p[2]) for p in want]
+                if got != compact_want or any(p[3] != frame_attr for p in want):
                     raise SystemExit(f"generic frame mismatch {usage}/{anim:02x}/{orientation}")
                 # Effective-bank identity is independently tied to the exact source
                 # program nibble plus the proven bank high bits. Every divergent
                 # source must have the canonical offline (code,bank)->vi mapping.
-                for piece in got:
+                for piece in want:
                     finalized, attr, flags = piece[2], piece[3], piece[5]
+                    if piece[4] != 5 or flags & F_YADJ:
+                        raise SystemExit(f"generic compact invariant mismatch {record}")
                     if attr_policy == ATTR_EMBEDDED and (attr & 0x0F) != (bank & 0x0F):
                         raise SystemExit(f"generic low-bank mismatch {record}")
                     if attr_policy == ATTR_OVERRIDE and (attr & 0x0F) == (bank & 0x0F):

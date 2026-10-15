@@ -1,5 +1,12 @@
 # OPTIMIZATIONS.md — Rastan Genesis Performance Optimization Registry
 
+> **Layer A/B (background) performance work is CLOSED as of Build 0425.** Builds 0423/0424/0425 removed
+> the known material background translation costs (0425_do scrolls horizontally with no enemies and no
+> `_do` overrun bars). Deferred/future background candidates, the preserved proven constraints, the
+> forbidden/rejected theories, and the explicit reopening criteria are preserved in:
+> **`docs/design/Andy_layer_ab_future_optimization_backlog.md`**. Do not reopen Layer A/B on hypothesis
+> alone — take the measurement named per-item in that backlog first.
+
 Living registry of **performance optimizations** for the Rastan Genesis port. Add an entry when an
 optimization is discovered (even if not yet implemented); update its Status + Build when implemented.
 This is the single place we track *what could be faster*, *how much it might save*, and *when we did it*.

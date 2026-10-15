@@ -26,8 +26,9 @@ artifacts:
 * one 10-byte descriptor per usage: discriminator offset/value, selector
   minimum/count, compositor, effective bank, attribute policy, reserved byte,
   and first direct-frame-index record;
-* a direct 6-byte frame index for every (normalized selector, orientation),
-  using the same ``{u32 offset,u8 count,u8 status}`` format as player frames.
+* a direct 8-byte frame index for every (normalized selector, orientation),
+  ``{u32 compact_offset,u8 count,u8 status,u16 frame_attr}``;
+* a compact 6-byte piece stream ``{s16 dx,s16 dy,u16 finalized_key}``.
 
 The dense universal index independently covers every general program in all
 five retained compositor tables.  Python compiles the geometry, control
@@ -515,6 +516,7 @@ def main() -> None:
     ap.add_argument("--index-output", default=ROOT / "build/pc090oj_frame_index.bin", type=Path)
     ap.add_argument("--secondary-index-output", default=ROOT / "build/pc090oj_secondary_frame_index.bin", type=Path)
     ap.add_argument("--generic-index-output", default=ROOT / "build/pc090oj_generic_frame_index.bin", type=Path)
+    ap.add_argument("--generic-table-output", default=ROOT / "build/pc090oj_generic_piece_table.bin", type=Path)
     ap.add_argument("--universal-index-output", default=ROOT / "build/pc090oj_universal_frame_index.bin", type=Path)
     ap.add_argument("--special-index-output", default=ROOT / "build/pc090oj_special_frame_index.bin", type=Path)
     ap.add_argument("--generic-base-lut-output", default=ROOT / "build/pc090oj_generic_base_lut.bin", type=Path)
@@ -640,6 +642,8 @@ def main() -> None:
                 secondary_indexes.append((offset, len(packed) // PIECE_SIZE, STATUS_NATIVE))
 
     generic_indexes = []
+    generic_table_blob = bytearray()
+    generic_dedup: dict[bytes, int] = {}
     usage_descriptors = []
     base_lut = bytearray(GENERIC_BASE_LUT_COUNT)
     generic_coverage = []
@@ -655,6 +659,16 @@ def main() -> None:
         for anim in selectors:
             for orientation in range(ORIENTATION_COUNT):
                 pieces = decode_generic(rom, usage, anim, bool(orientation), finalized_variants)
+                attrs = {piece[3] for piece in pieces}
+                if len(attrs) != 1:
+                    raise SystemExit(f"{usage['usage']}/{anim:02x} has per-piece attributes")
+                if any(piece[4] != SIZE_16X16 or piece[5] & FLAG_ACTOR_Y_ADJUST
+                       for piece in pieces):
+                    raise SystemExit(f"{usage['usage']}/{anim:02x} is not compact-Level-B safe")
+                if any((piece[2] & (DIRECT_KEY_MARK | VARIANT_KEY_MARK)) == 0 or
+                       (piece[2] & DIRECT_KEY_MARK and
+                        (piece[2] & 0x0FFF) in (0, 0x00FF)) for piece in pieces):
+                    raise SystemExit(f"{usage['usage']}/{anim:02x} has unproven identity")
                 if len({piece[2] for piece in pieces}) > 12:
                     raise SystemExit(f"{usage['usage']}/{anim:02x} exceeds 12-item DMA worklist")
                 if usage["usage"] in semantic_codes:
@@ -667,13 +681,14 @@ def main() -> None:
                     missing = sorted(source_codes - semantic_codes[usage["usage"]])
                     if missing:
                         raise SystemExit(f"{usage['usage']}/{anim:02x} codes absent from semantic corpus: {missing}")
-                packed_bytes = b"".join(struct.pack(">hhHHBB", *piece) for piece in pieces)
-                offset = dedup.get(packed_bytes)
+                packed_bytes = b"".join(struct.pack(">hhH", piece[0], piece[1], piece[2])
+                                        for piece in pieces)
+                offset = generic_dedup.get(packed_bytes)
                 if offset is None:
-                    offset = len(table_blob)
-                    dedup[packed_bytes] = offset
-                    table_blob += packed_bytes
-                generic_indexes.append((offset, len(pieces), STATUS_NATIVE))
+                    offset = len(generic_table_blob)
+                    generic_dedup[packed_bytes] = offset
+                    generic_table_blob += packed_bytes
+                generic_indexes.append((offset, len(pieces), STATUS_NATIVE, next(iter(attrs))))
                 residency_key = INDEX_COUNT + len(generic_indexes) - 1
                 frame_residency[residency_key] = sorted(
                     {(piece[2] & 0x0FFF) if piece[2] & DIRECT_KEY_MARK else piece[2]
@@ -758,7 +773,7 @@ def main() -> None:
 
     generic_index_blob = bytearray()
     for record in generic_indexes:
-        generic_index_blob += struct.pack(">IBB", *record)
+        generic_index_blob += struct.pack(">IBBH", *record)
     secondary_index_blob = b"".join(struct.pack(">IBB", *record)
                                     for record in secondary_indexes)
     universal_index_blob = b"".join(struct.pack(">IBB", *record) for record in universal_indexes)
@@ -786,7 +801,7 @@ def main() -> None:
     residency_blob = residency_header + residency_records + residency_lists
 
     for path in (args.table_output, args.index_output, args.secondary_index_output,
-                 args.generic_index_output, args.universal_index_output,
+                 args.generic_index_output, args.generic_table_output, args.universal_index_output,
                  args.special_index_output,
                  args.generic_base_lut_output, args.generic_usage_output, args.residency_output,
                  args.report_output, args.coverage_output):
@@ -795,6 +810,7 @@ def main() -> None:
     args.index_output.write_bytes(index_blob)
     args.secondary_index_output.write_bytes(secondary_index_blob)
     args.generic_index_output.write_bytes(generic_index_blob)
+    args.generic_table_output.write_bytes(generic_table_blob)
     args.universal_index_output.write_bytes(universal_index_blob)
     args.special_index_output.write_bytes(special_index_blob)
     args.generic_base_lut_output.write_bytes(base_lut)
@@ -811,6 +827,7 @@ def main() -> None:
         str(args.index_output.resolve().relative_to(ROOT)): hashlib.sha256(index_blob).hexdigest(),
         str(args.secondary_index_output.resolve().relative_to(ROOT)): hashlib.sha256(secondary_index_blob).hexdigest(),
         str(args.generic_index_output.resolve().relative_to(ROOT)): hashlib.sha256(generic_index_blob).hexdigest(),
+        str(args.generic_table_output.resolve().relative_to(ROOT)): hashlib.sha256(generic_table_blob).hexdigest(),
         str(args.universal_index_output.resolve().relative_to(ROOT)): hashlib.sha256(universal_index_blob).hexdigest(),
         str(args.special_index_output.resolve().relative_to(ROOT)): hashlib.sha256(special_index_blob).hexdigest(),
         str(args.generic_base_lut_output.resolve().relative_to(ROOT)): hashlib.sha256(base_lut).hexdigest(),
@@ -880,6 +897,7 @@ def main() -> None:
         f"UNRESOLVED index entries: {INDEX_COUNT - len(native_keys)}",
         f"unique native frame payloads: {len(dedup)}",
         f"generic direct index entries: {len(generic_indexes)}",
+        f"generic compact piece-table bytes: {len(generic_table_blob)}",
         f"universal index entries: {len(universal_indexes)} ({universal_native} general, {universal_special} specialized dispatch, {universal_unresolved} unresolved)",
         f"specialized subframe index entries: {len(special_indexes)}",
         f"generic usage descriptors: {len(usage_descriptors)}",

@@ -137,7 +137,25 @@ def verify_fast_enqueue(source: str) -> None:
     )
     for start, end in generated:
         producer = block(source, start, end)
-        if "native_sprite_fast_context" not in producer or "native_sprite_emit_fast" not in producer:
+        if "native_sprite_fast_context" not in producer:
+            raise SystemExit(f"FAIL fast enqueue not used by generated producer {start}")
+        if start == ".Lnative_generic_frame_try:":
+            # Build 0426's exact Level-B stream owns a private compact append:
+            # frame attr/context/cursor once, then the same Y-hide, queue-end,
+            # D1/D2/D3/D4 tuple and count contract per piece.
+            compact_required = (
+                "pc090oj_generic_piece_table", "move.w  6(%a2), %d1",
+                "move.w  (%a6), %d0", "lea     0(%a3,%d0.w), %a1",
+                "andi.w  #0x01FF, %d0", "cmpi.w  #0x0180, %d0",
+                "cmpa.l  %a2, %a1", "move.w  %d1, (%a1)+",
+                "move.w  %d2, (%a1)+", "move.w  %d3, (%a1)+",
+                "move.w  %d4, (%a1)+", "addq.w  #1, (%a6)",
+                "adda.w  #6, %a0",
+            )
+            for token in compact_required:
+                if token not in producer:
+                    raise SystemExit(f"FAIL compact Level-B append omits: {token}")
+        elif "native_sprite_emit_fast" not in producer:
             raise SystemExit(f"FAIL fast enqueue not used by generated producer {start}")
 
     # The two generated probes are private to the common actor wrapper.  Stage
@@ -299,7 +317,7 @@ def dispatch(base_lut: bytes, usage_blob: bytes, index: bytes, actor: dict,
     if normalized < 0 or normalized >= count:
         return None
     record = frame_base + normalized * 2 + orientation
-    _table_off, _pieces, status = struct.unpack_from(">IBB", index, record * 6)
+    _table_off, _pieces, status, _attr = struct.unpack_from(">IBBH", index, record * 8)
     return record if status == 1 else None
 
 
@@ -320,6 +338,9 @@ def main() -> None:
     base_lut, usage, index = args.base_lut.read_bytes(), args.usage.read_bytes(), args.index.read_bytes()
     if len(base_lut) != 0x1000 or len(usage) != len(EXPECTED) * 10:
         raise SystemExit("FAIL malformed direct-dispatch artifacts")
+    expected_records = sum(spec[3] for spec in EXPECTED) * 2
+    if len(index) != expected_records * 8:
+        raise SystemExit("FAIL malformed compact direct-index artifact")
 
     next_record = 0
     for usage_id, spec in enumerate(EXPECTED, 1):

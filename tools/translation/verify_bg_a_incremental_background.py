@@ -50,6 +50,8 @@ def static_contract() -> None:
                     "/* Native Plane A no-publication vertical-scroll route.")
     row_a = section(source, ".Lplane_a_publish_logical_row_native:",
                     ".Lplane_a_strip_src_table:")
+    block4 = section(source, ".Lplane_a_publish_name_block4_native:",
+                     ".Lplane_a_strip_src_table:")
     row_b = section(source, ".Lplane_b_publish_logical_row_native:",
                     ".Lplane_b_stage_gameplay_producer_cell_native:")
     column_b = section(source, ".Ldirectional_publish_column_native:",
@@ -62,33 +64,59 @@ def static_contract() -> None:
     require(source, (".equ BG_LOGICAL_SPAN,                    64",
                      ".macro MAP_GET_NAME_A", ".macro MAP_GET_NAME_B",
                      ".macro MAP_GET_COLLISION",
-                     ".macro MAP_GET_NAME_COLLISION_A"), "logical/accessor seam")
+                     ".macro MAP_GET_NAME_COLLISION_A",
+                     ".macro MAP_PUBLISH_NAME_A_BLOCK4"), "logical/accessor seam")
     if "BG_A_RESIDENT_ROWS" in source or "BG_A_RESIDENT_COLS" in source:
         fail("rejected viewport-local maintenance constants remain")
 
-    require(sel0, ("MAP_GET_NAME_COLLISION_A", "cmpi.w  #32",
-                   "fg_col_dirty", "cmpi.w  #16, %d4"), "selector-0")
-    if sel0.index("MAP_GET_NAME_COLLISION_A") > sel0.index("cmpi.w  #32"):
+    require(sel0, (".Lplane_a_sel0_shared_ready", "PC080SN_DESC_REBUILD_SRC_TABLE",
+                   ".Lplane_a_native_metatile_record_from_d2", "0x20(%a4,%d0.w)",
+                   "fg_cache_resolve", "cmpi.w  #32", "fg_col_dirty",
+                   "cmpi.w  #16, %d4"), "selector-0")
+    if sel0.index("fg_cache_resolve") > sel0.index("cmpi.w  #32"):
         fail("selector-0 semantic resolution is behind physical projection")
-    require(sel12, ("MAP_GET_COLLISION", "MAP_GET_NAME_COLLISION_A", "cmpi.w  #32",
+    require(sel12, ("MAP_GET_COLLISION", "MAP_GET_NAME_COLLISION_A",
+                    ".Lplane_a_sel12_fallback_loop",
+                    ".Lplane_a_sel12_shared_segment",
+                    ".Lplane_a_sel12_shared_loop",
+                    ".Lplane_a_native_metatile_record_from_d2",
+                    "0x20(%a4,%d0.w)", "cmpi.w  #32",
                     "cmpi.w  #16, %d4", "fg_row_dirty"), "selector-1/2")
-    if sel0.count("MAP_GET_NAME_COLLISION_A") != 1:
-        fail("selector-0 must perform exactly one fused access per cell loop")
+    if "MAP_GET_NAME_COLLISION_A" in sel0:
+        fail("selector-0 retains per-row fused descriptor discovery")
+    if sel0.count(".Lplane_a_native_metatile_record_from_d2") != 1:
+        fail("selector-0 must select one native record per four-row segment")
     if "\n    MAP_GET_COLLISION " in sel0 or "\n    MAP_GET_NAME_A " in sel0:
         fail("selector-0 retains a duplicate standalone semantic access")
     fused = section(source, "resolve_plane_a_name_collision_cell:",
                     "/* Resolve one gameplay collision word")
     require(fused, ("PC080SN_DESC_REBUILD_SRC_TABLE", "plane_a_src_ref_block",
-                    "PC080SN_DESC_SECOND_WORD_BASE", "0x20(%a0",
+                    ".Lplane_a_native_metatile_record_from_d2", "0x20(%a0",
                     ".Lplane_a_native_attr_from_word", "fg_cache_resolve"),
             "fused Plane-A name/collision accessor")
-    require(row_a, ("moveq   #0, %d4", "MAP_GET_NAME_A",
+    require(row_a, ("moveq   #0, %d4", "MAP_PUBLISH_NAME_A_BLOCK4",
+                    "addq.w  #4, %d4",
                     "cmpi.w  #BG_LOGICAL_SPAN, %d4"), "Plane-A row producer")
+    require(block4, ("ARCADE_PC080SN_STRIP_GROUP_OFFSET",
+                     "ARCADE_PC080SN_STRIP_INDEX_OFFSET",
+                     ".Lplane_a_block_ring_seam_loop",
+                     "bsr     resolve_plane_a_cell",
+                     ".Lplane_a_block_single_descriptor"),
+            "Plane-A four-cell ring-seam guard")
     require(row_b, ("moveq   #0, %d4", "MAP_GET_NAME_B",
+                    ".Lplane_b_row_cached_group", "14(%sp)", "16(%sp)",
                     "cmpi.w  #BG_LOGICAL_SPAN, %d4"), "Plane-B row producer")
-    require(column_b, ("moveq   #0, %d2",
-                       "move.w  #(BG_LOGICAL_SPAN - 1), %d6",
-                       "plane_b_column_mode", "bg_col_dirty"),
+    native_leaf = section(source, ".Lplane_a_native_metatile_record_from_d2:",
+                          "/* in: D0.W = logical row 0..63")
+    require(native_leaf, ("genesistan_pc080sn_native_metatile_index",
+                          "genesistan_pc080sn_native_metatile_records",
+                          "lsl.l   #6", "cmpa.l  #0, %a0"),
+            "generated Plane-A semantic leaf")
+    if "tst.l   %a" in source:
+        fail("illegal 68000 TST.L address-register form remains")
+    require(column_b, ("genesistan_pc080sn_plane_b_visual_records",
+                       "first resident logical row", "move.w  #31, %d6",
+                       "MAP_GET_NAME_B", "plane_b_column_mode", "bg_col_dirty"),
             "Plane-B column producer")
 
     for name, block, gather, plane in (
@@ -244,7 +272,8 @@ def main() -> None:
     verify_dirty_gather_and_dma()
     print("PASS full-span background coherence: broken 0415 FAIL; broken 0416 "
           "FAIL; restored 0417/0418 full-span PASS; Build 0419 fused "
-          "name/collision accessor PASS; initial 64x64 seed, N/N+32 semantics, "
+          "accessor PASS; Build 0422 generated semantics + ring-safe grouped "
+          "row resolution PASS; initial 64x64 seed, N/N+32 semantics, "
           "source rebase, trailing retention, independent Plane-B context, "
           "32-row projection, dirty gather, and 32-word column DMA PASS")
 

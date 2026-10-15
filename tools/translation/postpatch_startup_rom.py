@@ -113,7 +113,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 231  # Build 0386: +1 byte-neutral opcode_repla
 # Build 0406 native sprite completion candidate adds the generated universal
 # specialized-frame payload/index and the shared visual/contact dispatch code.
 # Opcode-replacement site count remains unchanged.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x1E7EB8  # Build 0407 generated secondary-player closure.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x292EB8  # Build 0423 generated Plane-B visual records.
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
@@ -1665,9 +1665,42 @@ def main() -> int:
             _reloc_lo = relocation_delta + source_start
             _reloc_hi = relocation_delta + source_end
             _scan_start = dest_start + source_size
+            _genesis_ref_excludes: list[tuple[int, int, str]] = []
+            for _exclude in spec.get("genesis_only_maincpu_ref_exclude_symbol_ranges", []):
+                _start_symbol = str(_exclude["start_symbol"])
+                _end_symbol = str(_exclude["end_symbol"])
+                _exclude_start = resolve_symbol_address(all_symbol_addresses, _start_symbol)
+                _exclude_end = resolve_symbol_address(all_symbol_addresses, _end_symbol)
+                if (_exclude_start & 1) or (_exclude_end & 1):
+                    raise RuntimeError(
+                        "Genesis-only ref exclusion must be word aligned: "
+                        f"{_start_symbol}=0x{_exclude_start:06X}, "
+                        f"{_end_symbol}=0x{_exclude_end:06X}"
+                    )
+                if not (_scan_start <= _exclude_start < _exclude_end <= len(rom_bytes)):
+                    raise RuntimeError(
+                        "Genesis-only ref exclusion is outside the Genesis-only scan: "
+                        f"{_start_symbol}..{_end_symbol} = "
+                        f"0x{_exclude_start:06X}..0x{_exclude_end:06X}"
+                    )
+                _genesis_ref_excludes.append(
+                    (_exclude_start, _exclude_end, str(_exclude.get("note", "")))
+                )
+            _genesis_ref_excludes.sort()
+            for _prev, _next in zip(_genesis_ref_excludes, _genesis_ref_excludes[1:]):
+                if _prev[1] > _next[0]:
+                    raise RuntimeError("Genesis-only ref exclusion ranges overlap")
             genesis_only_maincpu_refs = []
             _gi = _scan_start
             while _gi + 6 <= len(rom_bytes):
+                _excluded_end = next(
+                    (_end for _start, _end, _note in _genesis_ref_excludes
+                     if _start <= _gi < _end),
+                    None,
+                )
+                if _excluded_end is not None:
+                    _gi = _excluded_end
+                    continue
                 _op = (rom_bytes[_gi] << 8) | rom_bytes[_gi + 1]
                 if _op in (0x4EF9, 0x4EB9):
                     _operand = int.from_bytes(rom_bytes[_gi + 2:_gi + 6], "big")

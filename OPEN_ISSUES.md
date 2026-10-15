@@ -21,6 +21,44 @@ Rules:
   and collision-only paths retain runtime arcade-layout interpretation. This is
   separate from the closed A-0154/128-KiB DMA defect and from still-open IRQ6,
   active-display publication, `_do` bands, and entering-cell transient work.
+  Tighe accepted 0419 on real Genesis (gameplay PASS, graphics PASS, no observed
+  regression; subjectively somewhat faster than 0418). Acceptance establishes
+  the baseline but does not close this item: `_do` still shows intentional
+  IRQ6-overrun bands, and material background descriptor work remains.
+
+- **[2026-10-13 Build 0421 — generated background semantics, still OPEN]** The
+  corrected candidate moves invariant Plane-A tile/collision interpretation to
+  4,733 exhaustively verified native records and batches/caches vertical row
+  descriptors. A paired A/B row event now performs 20–21 descriptor walks
+  instead of 128 while preserving all 128 logical cells and residency lookups.
+  Build 0420 remains preserved/rejected (illegal `TST.L A0` found by its entry
+  gate); Build 0421 passes canonical and gameplay-entry gates. Remaining
+  Plane-B directional-column and per-distinct-cell dynamic work keeps background
+  optimization, IRQ6 overrun, active-display publication, and `_do` bands open.
+
+- **[2026-10-14 Build 0424 — selector-0 segment hoist, still OPEN]** Tighe
+  accepted Build 0423 on real Genesis. Build 0424 hoists selector-0 live
+  descriptor/native-record discovery from four times to once per aligned
+  four-row vertical segment while retaining independent per-row visual,
+  collision, residency, and destination work. Matched Plane A/Plane B/collision
+  diffs are zero; selector-0 median falls 112,090→49,918 cycles and the rope
+  route 858→817 frames. One material background path remains:
+  `genesistan_hook_tilemap_plane_a_selector12_native` still repeats descriptor
+  and record discovery per row (up to 64 rather than 16 per event). Background
+  optimization therefore remains open; sprites/scheduler remain out of scope.
+
+- **[2026-10-14 Build 0425 — current material background optimization phase
+  IMPLEMENTED; real-Genesis validation pending]** Selector 1/2 now shares
+  descriptor/native-record discovery across each safe aligned four-column
+  block and retains per-cell resolution only for the one block crossing the
+  live ring front. Discovery falls 64→19 while collision stays 64 writes and
+  resident visual/residency work stays independent. Exhaustive runtime
+  equivalence and matched Plane-A/Plane-B/full-collision differentials pass;
+  median controlled path cost falls 122,672→33,984 cycles. No further material
+  background path is presently identified. This closes only the current
+  performance-optimization phase after Tighe's hardware validation; separate
+  IRQ6 overrun, active-display publication, `_do` bands, entering-cell
+  transient, and incomplete-map/visual issues remain open.
 
 - **OPEN-001 / OPEN-018 remain open:** native PC080SN level/map rendering is
   incomplete. Cave and water-hazard tiles are still missing or incorrect, and

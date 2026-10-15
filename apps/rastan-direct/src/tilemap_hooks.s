@@ -58,6 +58,9 @@
     .extern fg_boundary_transition_step
     .extern genesistan_current_pc080sn_tileset_id
     .extern fg_native_gameplay_owner
+    .extern genesistan_pc080sn_native_metatile_index
+    .extern genesistan_pc080sn_native_metatile_records
+    .extern genesistan_pc080sn_plane_b_visual_records
     .extern palette_route_lookup
     .extern native_sprite_emit
     .extern native_sprite_lane
@@ -131,6 +134,11 @@
 .macro MAP_GET_NAME_COLLISION_A
     bsr     resolve_plane_a_name_collision_cell
 .endm
+/* Build 0420 row hot path: one dynamic descriptor/native-record selection
+ * publishes the four cells belonging to that metatile block. */
+.macro MAP_PUBLISH_NAME_A_BLOCK4
+    bsr     .Lplane_a_publish_name_block4_native
+.endm
     /* Build 0215 / OPEN-017: Stage 1 FG plane replay (proven deterministic ROM model).
      * The live FG boundary is genesistan_hook_tilemap_fg (0x703EA), reached per-column from
      * the Stage 1 setup loop (0x50634); its native slot a5@0x10A4 is out of range so it bails,
@@ -175,6 +183,7 @@
     .equ PC080SN_DESC_GENESIS_START,          0x00001108
     .equ PC080SN_DESC_SECOND_WORD_BASE,       0x00000200
     .equ PLANE_B_DESC_TABLE_ARCADE_BASE,      0x0003951C
+    .equ PLANE_B_DESC_TABLE_ARCADE_END,       0x0003A00C
     .equ FG_NARROW_CAP,                       64
     .equ VDP_DATA,                            0x00C00000
     .equ VDP_REG_AUTOINC,                     15
@@ -284,8 +293,10 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     andi.w  #0x003F, %d0
     move.w  %d0, 0(%sp)             /* logical column */
     bsr     fg_boundary_transition_step
+    move.w  0(%sp), %d1
+    andi.w  #0x0003, %d1
     add.w   %d1, %d1
-    move.w  %d1, 4(%sp)             /* source subcolumn offset */
+    move.w  %d1, 4(%sp)             /* fixed record subcolumn byte */
 
     /* Build 0399: derive the vertical visible window from the LIVE arcade-owned
      * Plane-A vertical scroll (a5@0x10B0), the SAME source the vertical row/pan
@@ -305,38 +316,82 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     move.w  %d0, 2(%sp)             /* visible top logical row */
 
     lea     PC080SN_DESC_REBUILD_PTR_TABLE, %a3
-    lea     PC080SN_DESC_REBUILD_WORD_TABLE, %a1
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     staged_fg_buffer, %a6
 
     moveq   #0, %d4                 /* descriptor segment */
 .Lplane_a_sel0_segment_loop:
     move.l  (%a3)+, %d6
-    move.w  (%a1)+, %d7
     btst    #0, %d6
     bne     .Lplane_a_sel0_next_segment
     cmpi.l  #0x00000200, %d6
     blo     .Lplane_a_sel0_next_segment
     cmpi.l  #0x0005FFFC, %d6
     bhi     .Lplane_a_sel0_next_segment
-    move.w  %d7, %d0
+
+    /* Build 0424: all four logical rows in this segment share row_group=d4,
+     * the fixed selector-0 entering column, plane_a_src_ref_block, and the
+     * live source pointer at FF1000[row_group].  Select/relocate/validate the
+     * descriptor and native metatile record ONCE.  Only the row subcell,
+     * visual code, collision word/destination, residency lookup, and physical
+     * projection remain in the four-iteration loop below.  The rebuilt-pointer
+     * validity gate above is retained exactly from accepted Build 0423. */
+    move.w  %d4, %d2
+    lsl.w   #2, %d2
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a0
+    movea.l 0(%a0,%d2.w), %a0
+
+    move.w  0(%sp), %d2
+    andi.w  #0x003F, %d2
+    lsr.w   #2, %d2
+    sub.w   plane_a_src_ref_block, %d2
+    ext.l   %d2
+    asl.l   #2, %d2
+    adda.l  %d2, %a0
+
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
+    blo.s   .Lplane_a_sel0_shared_blank
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
+    bhs.s   .Lplane_a_sel0_shared_blank
+    suba.l  #PC080SN_DESC_ARCADE_START, %a0
+    adda.l  #PC080SN_DESC_GENESIS_START, %a0
+
+    move.w  (%a0), %d6
+    moveq   #0, %d2
+    move.w  2(%a0), %d2
+    btst    #0, %d2
+    bne.s   .Lplane_a_sel0_shared_blank
+    cmpi.l  #0x0005FDFC, %d2
+    bhi.s   .Lplane_a_sel0_shared_blank
+    bsr     .Lplane_a_native_metatile_record_from_d2
+    beq.s   .Lplane_a_sel0_shared_blank
+    movea.l %a0, %a4                         /* shared tile[16]/collision[16] */
+    move.w  %d6, %d0
     bsr     .Lplane_a_native_attr_from_word
-    move.w  %d0, 6(%sp)             /* final Plane A attribute bits */
-    movea.l %d6, %a0
+    move.w  %d0, 6(%sp)                      /* shared final Plane-A attr */
+    bra.s   .Lplane_a_sel0_shared_ready
+.Lplane_a_sel0_shared_blank:
+    suba.l  %a4, %a4
+    moveq   #0, %d0
+    move.w  %d0, 6(%sp)
+.Lplane_a_sel0_shared_ready:
 
     moveq   #0, %d5                 /* cell inside this segment */
 .Lplane_a_sel0_cell_loop:
-    /* Build 0378: collision and visual publication must select the same retained
-     * descriptor.  The rebuilt table in A3 names the current stream front and is
-     * not authoritative for resident/wrapped cells; resolve this logical cell
-     * through the same live/ring-unwrapped mapping used by Plane-A staging. */
-    move.w  %d4, %d1
-    lsl.w   #2, %d1
-    add.w   %d5, %d1
-    move.w  %d1, %d0                         /* logical row */
-    move.w  0(%sp), %d1                      /* logical column */
-    MAP_GET_NAME_COLLISION_A                 /* D0 = name; D2 = collision */
-    move.w  %d0, 8(%sp)                     /* retain name across collision store */
+    move.w  %d5, %d0
+    lsl.w   #3, %d0
+    add.w   4(%sp), %d0                      /* row-specific record subcell */
+    moveq   #0, %d2
+    moveq   #0, %d3
+    move.l  %a4, %d1
+    beq.s   .Lplane_a_sel0_outputs_ready
+    move.w  0x20(%a4,%d0.w), %d2             /* independent collision field */
+    move.w  0(%a4,%d0.w), %d3                /* independent visual field */
+    andi.w  #0x3FFF, %d3
+    bsr     fg_cache_resolve                  /* still dynamic per row/cell */
+    or.w    6(%sp), %d3
+.Lplane_a_sel0_outputs_ready:
+    move.w  %d3, 8(%sp)                      /* preserve visual across collision address */
     move.w  %d4, %d1
     lsl.w   #2, %d1
     add.w   %d5, %d1                         /* logical row */
@@ -354,7 +409,7 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     /* Resolve every logical row before the physical projection test.  Rows
      * N/N+32 share one Genesis plane row, but they must not alias in semantic
      * resolution/cache state.  Only the currently projected 32 rows stage. */
-    move.w  8(%sp), %d3                     /* fused final Genesis name word */
+    move.w  8(%sp), %d3                      /* independent final Genesis name word */
     move.w  %d4, %d1
     lsl.w   #2, %d1
     add.w   %d5, %d1
@@ -444,28 +499,49 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     move.w  %d0, 2(%sp)             /* visible top logical row */
 
     lea     PC080SN_DESC_REBUILD_PTR_TABLE, %a3
-    lea     PC080SN_DESC_REBUILD_WORD_TABLE, %a1
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     staged_fg_buffer, %a6
+
+    moveq   #0, %d7
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
+    andi.w  #0x000F, %d7
+    lsl.w   #2, %d7
+    moveq   #0, %d6
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d6
+    andi.w  #0x0003, %d6
+    add.w   %d6, %d7
+    move.w  %d7, 10(%sp)                     /* live horizontal ring front */
 
     move.w  #16, plane_a_src_ref_block      /* Build 0353: vertical row producer = camera-relative (one plane lead) */
     moveq   #0, %d4                 /* descriptor segment */
 .Lplane_a_sel12_segment_loop:
     move.l  (%a3)+, %d6
-    move.w  (%a1)+, %d7
     btst    #0, %d6
     bne     .Lplane_a_sel12_next_segment
     cmpi.l  #0x00000200, %d6
     blo     .Lplane_a_sel12_next_segment
     cmpi.l  #0x0005FFFC, %d6
     bhi     .Lplane_a_sel12_next_segment
-    move.w  %d7, %d0
-    bsr     .Lplane_a_native_attr_from_word
-    move.w  %d0, 6(%sp)             /* final Plane A attribute bits */
-    movea.l %d6, %a0
 
-    moveq   #0, %d5                 /* cell inside this segment */
-.Lplane_a_sel12_cell_loop:
+    /* Build 0425: selector 1/2 publishes one fixed logical row across 64
+     * columns.  Four aligned columns share row-group source selection and
+     * col_block, except the one block that may straddle the live ring front.
+     * Preserve accepted per-cell discovery for that boundary fragment; all
+     * other blocks select/relocate/validate one descriptor and one native
+     * record, then consume four independent visual/collision subcells. */
+    move.w  %d4, %d7
+    lsl.w   #2, %d7                          /* aligned block start column */
+    move.w  10(%sp), %d6
+    cmp.w   %d7, %d6
+    blo.s   .Lplane_a_sel12_shared_segment
+    move.w  %d7, %d0
+    addq.w  #3, %d0
+    cmp.w   %d0, %d6
+    bhs.s   .Lplane_a_sel12_shared_segment
+
+    move.w  #1, 12(%sp)                      /* ring-front fragment fallback */
+    moveq   #0, %d5
+.Lplane_a_sel12_fallback_loop:
     move.w  %d4, %d1
     lsl.w   #2, %d1
     add.w   %d5, %d1                /* logical column */
@@ -477,10 +553,94 @@ genesistan_hook_tilemap_plane_a_selector12_native:
     bhs.s   .Lplane_a_sel12_collision_only
     MAP_GET_NAME_COLLISION_A         /* resident row: D0 = name; D2 = collision */
     move.w  %d0, 8(%sp)
-    bra.s   .Lplane_a_sel12_store_collision
+    bra.w   .Lplane_a_sel12_store_collision
 .Lplane_a_sel12_collision_only:
     MAP_GET_COLLISION                /* nonresident row has no name consumer */
     move.w  %d0, %d2
+    bra.w   .Lplane_a_sel12_store_collision
+
+.Lplane_a_sel12_shared_segment:
+    clr.w   12(%sp)                           /* shared-record segment */
+
+    move.w  0(%sp), %d2
+    lsr.w   #2, %d2
+    andi.w  #0x000F, %d2
+    lsl.w   #2, %d2
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a0
+    movea.l 0(%a0,%d2.w), %a0
+
+    move.w  %d4, %d2                         /* col_block */
+    moveq   #0, %d6
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d6
+    andi.w  #0x000F, %d6
+    sub.w   %d6, %d2
+    cmp.w   10(%sp), %d7                     /* block start after live front? */
+    bls.s   .Lplane_a_sel12_delta_ready
+    subi.w  #16, %d2
+.Lplane_a_sel12_delta_ready:
+    ext.l   %d2
+    asl.l   #2, %d2
+    adda.l  %d2, %a0
+
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
+    blo.s   .Lplane_a_sel12_shared_blank
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
+    bhs.s   .Lplane_a_sel12_shared_blank
+    suba.l  #PC080SN_DESC_ARCADE_START, %a0
+    adda.l  #PC080SN_DESC_GENESIS_START, %a0
+    move.w  (%a0), %d6
+    moveq   #0, %d2
+    move.w  2(%a0), %d2
+    btst    #0, %d2
+    bne.s   .Lplane_a_sel12_shared_blank
+    cmpi.l  #0x0005FDFC, %d2
+    bhi.s   .Lplane_a_sel12_shared_blank
+    bsr     .Lplane_a_native_metatile_record_from_d2
+    beq.s   .Lplane_a_sel12_shared_blank
+    movea.l %a0, %a4
+
+    /* Attribute conversion is needed only for this row's resident visual
+     * product. Collision consumes its independent record field regardless. */
+    move.w  0(%sp), %d0
+    sub.w   2(%sp), %d0
+    andi.w  #0x003F, %d0
+    cmpi.w  #32, %d0
+    bhs.s   .Lplane_a_sel12_shared_no_attr
+    move.w  %d6, %d0
+    bsr     .Lplane_a_native_attr_from_word
+    move.w  %d0, 6(%sp)
+    bra.s   .Lplane_a_sel12_shared_ready
+.Lplane_a_sel12_shared_no_attr:
+    clr.w   6(%sp)
+    bra.s   .Lplane_a_sel12_shared_ready
+.Lplane_a_sel12_shared_blank:
+    suba.l  %a4, %a4
+    clr.w   6(%sp)
+.Lplane_a_sel12_shared_ready:
+    moveq   #0, %d5
+.Lplane_a_sel12_shared_loop:
+    move.w  %d5, %d0
+    add.w   %d0, %d0
+    add.w   4(%sp), %d0                      /* fixed row + column subcell */
+    moveq   #0, %d2
+    moveq   #0, %d3
+    move.l  %a4, %d1
+    beq.s   .Lplane_a_sel12_shared_outputs_ready
+    move.w  0x20(%a4,%d0.w), %d2             /* collision for every column */
+    move.w  0(%sp), %d1
+    sub.w   2(%sp), %d1
+    andi.w  #0x003F, %d1
+    cmpi.w  #32, %d1
+    bhs.s   .Lplane_a_sel12_shared_outputs_ready
+    move.w  0(%a4,%d0.w), %d3                /* visual only when row resident */
+    andi.w  #0x3FFF, %d3
+    bsr     fg_cache_resolve
+    or.w    6(%sp), %d3
+.Lplane_a_sel12_shared_outputs_ready:
+    move.w  %d3, 8(%sp)
+    move.w  %d4, %d1
+    lsl.w   #2, %d1
+    add.w   %d5, %d1                         /* logical column */
 .Lplane_a_sel12_store_collision:
     move.w  0(%sp), %d3
     lsl.w   #6, %d3
@@ -512,7 +672,10 @@ genesistan_hook_tilemap_plane_a_selector12_native:
 .Lplane_a_sel12_not_resident:
     addq.w  #1, %d5
     cmpi.w  #4, %d5
-    blo.w   .Lplane_a_sel12_cell_loop
+    bhs.s   .Lplane_a_sel12_next_segment
+    tst.w   12(%sp)
+    bne.w   .Lplane_a_sel12_fallback_loop
+    bra.w   .Lplane_a_sel12_shared_loop
 
 .Lplane_a_sel12_next_segment:
     addq.w  #1, %d4
@@ -726,8 +889,8 @@ resolve_plane_a_cell:
     cmpi.l  #0x0005FDFC, %d2
     bhi.w   .Lrpc_blank
 
-    movea.l #PC080SN_DESC_SECOND_WORD_BASE, %a0
-    adda.l  %d2, %a0                         /* metatile base */
+    bsr     .Lplane_a_native_metatile_record_from_d2
+    beq.w   .Lrpc_blank
 
     move.w  %d6, %d0
     bsr     .Lplane_a_native_attr_from_word  /* D0 word -> D0 attr bits (preserves D1-D3/A0) */
@@ -820,19 +983,13 @@ resolve_plane_a_name_collision_cell:
     bne.w   .Lrpncc_blank
     cmpi.l  #0x0005FDFC, %d2
     bhi.w   .Lrpncc_blank
-    movea.l #PC080SN_DESC_SECOND_WORD_BASE, %a0
-    adda.l  %d2, %a0
+    bsr     .Lplane_a_native_metatile_record_from_d2
+    beq.w   .Lrpncc_blank
 
-    /* Collision product uses the same selected metatile. */
-    cmpi.w  #0x00FF, 0x20(%a0)
-    beq.s   .Lrpncc_uniform_collision
+    /* Collision product is already expanded in the generated record. */
     move.w  0(%sp), %d0
     add.w   2(%sp), %d0
     move.w  0x20(%a0,%d0.w), %d2
-    bra.s   .Lrpncc_collision_ready
-.Lrpncc_uniform_collision:
-    move.w  0x22(%a0), %d2
-.Lrpncc_collision_ready:
 
     move.w  %d6, %d0
     bsr     .Lplane_a_native_attr_from_word
@@ -912,11 +1069,10 @@ resolve_plane_a_collision_cell:
     bne.s   .Lrpcc_blank
     cmpi.l  #0x0005FDFC, %d3
     bhi.s   .Lrpcc_blank
-    movea.l #PC080SN_DESC_SECOND_WORD_BASE, %a0
-    adda.l  %d3, %a0
+    move.l  %d3, %d2
+    bsr     .Lplane_a_native_metatile_record_from_d2
+    beq.s   .Lrpcc_blank
 
-    cmpi.w  #0x00FF, 0x20(%a0)
-    beq.s   .Lrpcc_uniform
     move.w  %d4, %d2
     andi.w  #0x0003, %d2
     lsl.w   #3, %d2
@@ -926,13 +1082,33 @@ resolve_plane_a_collision_cell:
     add.w   %d3, %d2
     move.w  0x20(%a0,%d2.w), %d0
     bra.s   .Lrpcc_done
-.Lrpcc_uniform:
-    move.w  0x22(%a0), %d0
-    bra.s   .Lrpcc_done
 .Lrpcc_blank:
     moveq   #0, %d0
 .Lrpcc_done:
     movem.l (%sp)+, %d1-%d7/%a0-%a2
+    rts
+
+/* Build 0420 generated semantic leaf.
+ * in: D2.L = validated even metatile pointer
+ * out: A0 = 64-byte native record, Z clear; A0 = 0, Z set if unindexed
+ * preserves D3/A1.  Record layout is tile[16], collision[16]. */
+.Lplane_a_native_metatile_record_from_d2:
+    movem.l %d3/%a1, -(%sp)
+    lea     genesistan_pc080sn_native_metatile_index, %a1
+    adda.l  %d2, %a1
+    moveq   #0, %d3
+    move.w  (%a1), %d3
+    beq.s   .Lplane_a_native_metatile_missing
+    subq.l  #1, %d3
+    lsl.l   #6, %d3
+    lea     genesistan_pc080sn_native_metatile_records, %a0
+    adda.l  %d3, %a0
+    bra.s   .Lplane_a_native_metatile_done
+.Lplane_a_native_metatile_missing:
+    suba.l  %a0, %a0
+.Lplane_a_native_metatile_done:
+    movem.l (%sp)+, %d3/%a1
+    cmpa.l  #0, %a0
     rts
 
 /* in: D0.W = logical row 0..63
@@ -973,16 +1149,9 @@ resolve_plane_a_collision_cell:
 .Lplane_a_row_col_loop:
     move.w  0(%sp), %d0                      /* logical row (fixed for this entering row) */
     move.w  %d4, %d1                         /* logical column = destination column */
-    MAP_GET_NAME_A                           /* D0 = final Genesis name word */
+    MAP_PUBLISH_NAME_A_BLOCK4
 
-    move.w  2(%sp), %d3                      /* physical resident row */
-    lsl.w   #7, %d3
-    move.w  %d4, %d1
-    add.w   %d1, %d1
-    add.w   %d1, %d3
-    move.w  %d0, 0(%a6,%d3.w)                /* staged_fg_buffer[phys_row*64 + col] */
-
-    addq.w  #1, %d4
+    addq.w  #4, %d4
     cmpi.w  #BG_LOGICAL_SPAN, %d4
     blo.w   .Lplane_a_row_col_loop
 
@@ -993,6 +1162,139 @@ resolve_plane_a_collision_cell:
 
     adda.w  #16, %sp
     movem.l (%sp)+, %d1-%d7/%a0-%a6
+    rts
+
+/* Resolve and publish one four-column Plane-A metatile slice.
+ * Dynamic source/ring selection is identical to resolve_plane_a_cell; only
+ * invariant payload decode is shared across the four required logical cells.
+ * in: D0.W logical row, D1.W aligned logical start column; preserves registers. */
+.Lplane_a_publish_name_block4_native:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    move.w  %d0, %d4
+    move.w  %d1, %d5
+
+    /* A four-cell physical block is not necessarily one semantic descriptor at
+     * the live ring seam.  The authoritative per-cell resolver assigns cells
+     * after front=(10CC*4+10CA) to the preceding ring revolution.  Therefore
+     * only the one block with start <= front < end can straddle two descriptors;
+     * resolve that block cell-by-cell and retain batching everywhere else. */
+    moveq   #0, %d7
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
+    andi.w  #0x000F, %d7
+    lsl.w   #2, %d7
+    moveq   #0, %d6
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d6
+    andi.w  #0x0003, %d6
+    add.w   %d6, %d7                         /* live front physical column */
+    cmp.w   %d5, %d7
+    blo.s   .Lplane_a_block_single_descriptor
+    move.w  %d5, %d6
+    addq.w  #3, %d6
+    cmp.w   %d6, %d7
+    bhs.s   .Lplane_a_block_single_descriptor
+
+    lea     staged_fg_buffer, %a6
+    move.w  %d4, %d0
+    andi.w  #0x001F, %d0
+    lsl.w   #7, %d0
+    move.w  %d5, %d1
+    add.w   %d1, %d1
+    add.w   %d1, %d0
+    adda.w  %d0, %a6
+    moveq   #3, %d7
+.Lplane_a_block_ring_seam_loop:
+    move.w  %d4, %d0
+    move.w  %d5, %d1
+    bsr     resolve_plane_a_cell
+    move.w  %d0, (%a6)+
+    addq.w  #1, %d5
+    dbra    %d7, .Lplane_a_block_ring_seam_loop
+    bra.w   .Lplane_a_block_done
+
+.Lplane_a_block_single_descriptor:
+
+    move.w  %d4, %d2
+    lsr.w   #2, %d2
+    andi.w  #0x000F, %d2
+    lsl.w   #2, %d2
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a1
+    movea.l 0(%a1,%d2.w), %a0
+
+    move.w  %d5, %d2
+    andi.w  #0x003F, %d2
+    lsr.w   #2, %d2
+    cmpi.w  #16, plane_a_src_ref_block
+    bne.s   .Lplane_a_block_source_leading
+    moveq   #0, %d7
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
+    andi.w  #0x000F, %d7
+    sub.w   %d7, %d2
+    lsl.w   #2, %d7
+    moveq   #0, %d6
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d6
+    andi.w  #0x0003, %d6
+    add.w   %d6, %d7
+    cmp.w   %d7, %d5
+    bls.s   .Lplane_a_block_source_ready
+    subi.w  #16, %d2
+    bra.s   .Lplane_a_block_source_ready
+.Lplane_a_block_source_leading:
+    sub.w   plane_a_src_ref_block, %d2
+.Lplane_a_block_source_ready:
+    ext.l   %d2
+    asl.l   #2, %d2
+    adda.l  %d2, %a0
+
+    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
+    blo.s   .Lplane_a_block_blank
+    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
+    bhs.s   .Lplane_a_block_blank
+    suba.l  #PC080SN_DESC_ARCADE_START, %a0
+    adda.l  #PC080SN_DESC_GENESIS_START, %a0
+    move.w  (%a0), %d6
+    moveq   #0, %d2
+    move.w  2(%a0), %d2
+    btst    #0, %d2
+    bne.s   .Lplane_a_block_blank
+    cmpi.l  #0x0005FDFC, %d2
+    bhi.s   .Lplane_a_block_blank
+    bsr     .Lplane_a_native_metatile_record_from_d2
+    beq.s   .Lplane_a_block_blank
+    movea.l %a0, %a3
+    move.w  %d4, %d0
+    andi.w  #0x0003, %d0
+    lsl.w   #3, %d0
+    adda.w  %d0, %a3
+    move.w  %d6, %d0
+    bsr     .Lplane_a_native_attr_from_word
+    move.w  %d0, %d6
+    bra.s   .Lplane_a_block_stage
+.Lplane_a_block_blank:
+    suba.l  %a3, %a3
+    moveq   #0, %d6
+
+.Lplane_a_block_stage:
+    lea     staged_fg_buffer, %a6
+    move.w  %d4, %d0
+    andi.w  #0x001F, %d0
+    lsl.w   #7, %d0
+    move.w  %d5, %d1
+    add.w   %d1, %d1
+    add.w   %d1, %d0
+    adda.w  %d0, %a6
+    moveq   #3, %d7
+.Lplane_a_block_stage_loop:
+    moveq   #0, %d3
+    move.l  %a3, %d0
+    beq.s   .Lplane_a_block_word_ready
+    move.w  (%a3)+, %d3
+    bsr     fg_cache_resolve
+    or.w    %d6, %d3
+.Lplane_a_block_word_ready:
+    move.w  %d3, (%a6)+
+    dbra    %d7, .Lplane_a_block_stage_loop
+.Lplane_a_block_done:
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
     .align 2
@@ -1042,6 +1344,8 @@ resolve_plane_a_collision_cell:
 
     lea     genesistan_pc080sn_tile_vram_lut, %a2
     lea     staged_bg_buffer, %a6
+    move.w  #0xFFFF, 14(%sp)                 /* no cached source group */
+    clr.w   16(%sp)                          /* cached descriptor invalid */
     moveq   #0, %d4                          /* full logical destination column C */
 
 .Lplane_b_row_col_loop:
@@ -1053,6 +1357,11 @@ resolve_plane_a_collision_cell:
     move.w  %d5, %d6
     lsr.w   #4, %d6                          /* source_group */
 
+    cmp.w   14(%sp), %d6
+    beq.s   .Lplane_b_row_cached_group
+    move.w  %d6, 14(%sp)
+    clr.w   16(%sp)
+
     move.w  %d6, %d0
     add.w   %d0, %d0                         /* group * 2 */
     lsl.w   #2, %d6                          /* group * 4 */
@@ -1060,26 +1369,22 @@ resolve_plane_a_collision_cell:
 
     movea.l 8(%sp), %a0
     adda.w  %d6, %a0
-    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
+    cmpa.l  #PLANE_B_DESC_TABLE_ARCADE_BASE, %a0
     blo.s   .Lplane_b_row_blank_cell
-    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
+    cmpa.l  #PLANE_B_DESC_TABLE_ARCADE_END, %a0
     bhs.s   .Lplane_b_row_blank_cell
-    suba.l  #PC080SN_DESC_ARCADE_START, %a0
-    adda.l  #PC080SN_DESC_GENESIS_START, %a0
+    suba.l  #PLANE_B_DESC_TABLE_ARCADE_BASE, %a0
+    adda.l  #genesistan_pc080sn_plane_b_visual_records, %a0
 
-    move.w  (%a0), %d7                       /* semantic attribute word */
-    move.l  2(%a0), %d6                      /* semantic tile-block pointer */
-    btst    #0, %d6
-    bne.s   .Lplane_b_row_blank_cell
-    cmpi.l  #0x0005FDFC, %d6
-    bhi.s   .Lplane_b_row_blank_cell
+    move.w  (%a0), 12(%sp)                   /* generated final attribute bits */
+    movea.l 2(%a0), %a0                      /* generated copied-maincpu tile block */
+    cmpa.l  #0, %a0
+    beq.s   .Lplane_b_row_blank_cell
+    move.w  #1, 16(%sp)
 
-    addi.l  #PC080SN_DESC_SECOND_WORD_BASE, %d6
-    movea.l %d6, %a0
-
-    move.w  %d7, %d0
-    bsr     .Lplane_b_native_attr_from_word
-    move.w  %d0, 12(%sp)
+.Lplane_b_row_cached_group:
+    tst.w   16(%sp)
+    beq.s   .Lplane_b_row_blank_cell
 
     move.w  %d4, %d0
     andi.w  #0x000F, %d0                     /* source_subcol = C & 15 */
@@ -1298,56 +1603,71 @@ genesistan_pc080sn_directional_dispatch_native:
     movem.l %d0-%d7/%a0-%a4, -(%sp)
     move.l  0x10FC(%a5), 0x1126(%a5)
     movea.l 0x10FC(%a5), %a0
-    cmpa.l  #PC080SN_DESC_ARCADE_START, %a0
+    cmpa.l  #PLANE_B_DESC_TABLE_ARCADE_BASE, %a0
     blo.w   .Ldirectional_bad_pointer
-    cmpa.l  #PC080SN_DESC_ARCADE_END, %a0
+    cmpa.l  #PLANE_B_DESC_TABLE_ARCADE_END, %a0
     bhs.w   .Ldirectional_bad_pointer
-    suba.l  #PC080SN_DESC_ARCADE_START, %a0
-    adda.l  #PC080SN_DESC_GENESIS_START, %a0
-    move.w  (%a0), %d7
+    suba.l  #PLANE_B_DESC_TABLE_ARCADE_BASE, %a0
+    adda.l  #genesistan_pc080sn_plane_b_visual_records, %a0
+    move.w  (%a0), %d7                       /* generated final attribute bits */
     movea.l 2(%a0), %a2
-    cmpa.l  #PC080SN_DESC_ARCADE_START, %a2
-    blo.w   .Ldirectional_bad_pointer
-    cmpa.l  #PC080SN_DESC_ARCADE_END, %a2
-    bhs.w   .Ldirectional_bad_pointer
-    suba.l  #PC080SN_DESC_ARCADE_START, %a2
-    adda.l  #PC080SN_DESC_GENESIS_START, %a2
+    cmpa.l  #0, %a2
+    beq.w   .Ldirectional_bad_pointer
 
+    /* Build 0423: the selected descriptor owns one 64x16 invariant tile block,
+     * but only 32 logical rows are resident in the Genesis plane.  Build 0422
+     * read all 64 tile words, called the generic cell helper 64 times, converted
+     * the same attribute 32 times, and rejected half of the calls.  Start at the
+     * live visible top and emit exactly the 32 resident rows. */
     move.b  #1, plane_b_column_mode
-    moveq   #0, %d2                          /* full logical source row */
-    move.w  #(BG_LOGICAL_SPAN - 1), %d6
+    move.w  ARCADE_PC080SN_SCROLL_Y_BG_OFFSET(%a5), %d0
+    bsr     .Lplane_a_visible_top_from_scroll_d0
+    move.w  %d0, %d2                         /* first resident logical row */
+
+    move.w  0x10F6(%a5), %d4
+    andi.w  #0x000F, %d4
+    add.w   %d4, %d4                         /* source subcolumn byte offset */
+
+    move.w  ARCADE_PC080SN_BG_GROUP_OFFSET(%a5), %d5
+    andi.w  #0x0003, %d5
+    lsl.w   #4, %d5
+    move.w  ARCADE_PC080SN_BG_SUBCOL_OFFSET(%a5), %d0
+    andi.w  #0x000F, %d0
+    add.w   %d0, %d5
+    andi.w  #0x003F, %d5                     /* physical destination column */
+
+    lea     staged_bg_buffer, %a4
+    move.w  #31, %d6
 .Ldirectional_publish_row_loop:
     move.w  %d2, %d0
     lsl.w   #5, %d0
-    move.w  0x10F6(%a5), %d1
+    add.w   %d4, %d0
+    move.w  0(%a2,%d0.w), %d3
+    andi.w  #0x3FFF, %d3
+    MAP_GET_NAME_B
+    or.w    %d7, %d3
+
+    move.w  %d2, %d0
+    andi.w  #0x001F, %d0
+    lsl.w   #7, %d0
+    move.w  %d5, %d1
     add.w   %d1, %d1
     add.w   %d1, %d0
-    moveq   #0, %d1
-    move.w  0(%a2,%d0.w), %d1
-    move.w  %d7, %d0
-    swap    %d0
-    clr.w   %d0
-    or.l    %d1, %d0
-    bsr     .Lplane_b_stage_gameplay_producer_cell_native
+    move.w  %d3, 0(%a4,%d0.w)
+
     addq.w  #1, %d2
     andi.w  #0x003F, %d2
     dbra    %d6, .Ldirectional_publish_row_loop
 
     clr.b   plane_b_column_mode
-    move.w  ARCADE_PC080SN_BG_GROUP_OFFSET(%a5), %d0
-    andi.w  #0x0003, %d0
-    lsl.w   #4, %d0
-    move.w  ARCADE_PC080SN_BG_SUBCOL_OFFSET(%a5), %d1
-    andi.w  #0x000F, %d1
-    add.w   %d1, %d0                         /* physical dirty column 0..63 */
     lea     bg_col_dirty, %a1
-    cmpi.w  #32, %d0
+    cmpi.w  #32, %d5
     blo.s   .Ldirectional_col_dirty_lo
-    subi.w  #32, %d0
+    subi.w  #32, %d5
     addq.l  #4, %a1
 .Ldirectional_col_dirty_lo:
     move.l  (%a1), %d1
-    bset    %d0, %d1
+    bset    %d5, %d1
     move.l  %d1, (%a1)
 
     addq.w  #1, 0x10F6(%a5)

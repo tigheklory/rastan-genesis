@@ -5,6 +5,11 @@
 
     .global genesistan_pc080sn_tile_vram_lut
     .global genesistan_pc080sn_attr_lut
+    .global genesistan_pc080sn_native_metatile_index
+    .global genesistan_pc080sn_native_metatile_records
+    .global genesistan_pc080sn_native_metatile_records_end
+    .global genesistan_pc080sn_plane_b_visual_records
+    .global genesistan_pc080sn_plane_b_visual_records_end
     .global genesistan_pc080sn_tile_rom
     .global genesistan_scene_preload_title
     .global genesistan_scene_preload_title_end
@@ -184,6 +189,24 @@ genesistan_pc080sn_tile_vram_lut:
     .align 2
 genesistan_pc080sn_attr_lut:
     .incbin "../../build/pc080sn_attr_lut.bin"
+
+    /* Build 0420: generated invariant Plane-A metatile semantics.  Runtime
+     * camera/ring/descriptor selection remains arcade-owned; the selected
+     * pointer indexes one 64-byte record: 16 tile codes + 16 collision words. */
+    .align 2
+genesistan_pc080sn_native_metatile_index:
+    .incbin "../../build/pc080sn_native_metatile_index.bin"
+genesistan_pc080sn_native_metatile_records:
+    .incbin "../../build/pc080sn_native_metatile_records.bin"
+genesistan_pc080sn_native_metatile_records_end:
+
+    /* Build 0423: visual-only invariant Plane-B descriptor interpretation.
+     * Dynamic descriptor, scroll, ring, package, and residency state remain
+     * runtime-owned; records contain no collision data. */
+    .align 2
+genesistan_pc080sn_plane_b_visual_records:
+    .incbin "../../build/pc080sn_plane_b_visual_records.bin"
+genesistan_pc080sn_plane_b_visual_records_end:
 
     /* Build 0418: each PC080SN pattern is exactly 32 bytes.  Aligning the
      * corpus makes every code*32 upload 32-byte aligned; because 0x20000 is a

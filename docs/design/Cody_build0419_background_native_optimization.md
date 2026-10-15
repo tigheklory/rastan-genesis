@@ -3,6 +3,12 @@
 Date: 2026-10-13  
 Baseline: accepted Build 0418  
 Produced: complete Build 0419 family
+Owner status: **ACCEPTED ON REAL GENESIS**
+
+Tighe verified gameplay and graphics as PASS on real Genesis, with no observed
+regression. Subjective performance result: **somewhat faster than Build 0418**.
+This is deliberately not converted into a quantitative hardware percentage;
+the exact quantitative evidence remains the 50% selector-0 traversal reduction.
 
 ## Change
 
@@ -83,9 +89,11 @@ All artifacts are 1,998,520 bytes.
 
 ## Closure
 
-Background optimization is **NOT CLOSED**. Plane-A name-only rows, Plane-B
+Build 0419 is the accepted forward baseline. Background optimization is
+**NOT CLOSED**. Plane-A name-only rows, Plane-B
 rows/columns, and collision-only consumers still interpret live arcade
 descriptor layouts at runtime. A safe native-index/generated-record design for
 those dynamic contexts remains the next graphics task. Scheduler Phase D and
-Phase E were not started, and the worker remains in IRQ6.
-
+Phase E were not started, and the worker remains in IRQ6. The `_do` black bands
+remain valid IRQ6-overrun instrumentation; their continued presence keeps the
+performance issue open and is not Layer-A/Plane-B corruption.

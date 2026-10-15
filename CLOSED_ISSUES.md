@@ -425,3 +425,24 @@ Closure note format:
 - **Verification:** Tighe confirmed on Build 0400 — black strobe FIXED, no visible partial/garbage transition frame observed.
 - **Preserved:** major scene-entry blanking + Build-0395 ROUND/READY ownership (`.Linstall_leave_display_off` unchanged), cold-boot/title/`load_scene_tiles` blanking unchanged, Build-0399 combined-X/Y fix, Build-0400 rope-exit fix (CLOSED-022).
 - **Evidence:** `docs/design/Andy_build0400_rope_exit_missing_metatiles.md` §6h; AGENTS_LOG Build-0400 entry.
+
+## CLOSED-024 — Build 0421 Plane-A ring-seam visual regression
+
+- **Status:** CLOSED by user gameplay verification
+- **Date closed:** 2026-10-13
+- **First user-confirmed build:** Build 0422
+- **Rejected builds:** Build 0420 (illegal `TST.L A0`) and Build 0421
+  (Segment-0 Plane-A corruption) remain rejected.
+- **Symptom:** Build 0421's four-cell Plane-A batching produced visibly wrong
+  Segment-0 terrain while collision remained unchanged.
+- **Root cause:** the grouped lookup crossed the live Plane-A ring front, where
+  adjacent physical cells can belong to different logical ring revolutions.
+  Matched-state proof found 33 wrong Plane-A words and zero Plane-B/collision
+  differences.
+- **Repair:** Build 0422 retains batching except for the one block that
+  straddles the live ring front, which uses the authoritative per-cell resolver.
+- **Verification:** matched Build 0419/0422 Plane A, Plane B, and collision maps
+  are identical; Tighe verified on real Genesis that the Segment-0 visual defect
+  is fixed and the destructible block still works, accepting Build 0422.
+- **Evidence:** `docs/design/Cody_build0421_segment0_regression_root_cause.md`;
+  `docs/design/Cody_build0422_background_native_fix.md`; KF-092.

@@ -1752,8 +1752,9 @@ closed defect. Report:
 
 ## KF-091 — Build 0419 safely fuses duplicate Plane-A name/collision descriptor walks, but background translation is not closed
 
-Status: ACTIVE. Confidence: CONFIRMED (source contract, exact call inventory,
-full-span verifier, build gates). Applicability: Build 0419+ background work.
+Status: ACCEPTED. Confidence: CONFIRMED (source contract, exact call inventory,
+full-span verifier, build gates, Tighe real-Genesis acceptance). Applicability:
+Build 0419+ background work.
 
 Build 0418 selector 0 resolved each of 64 logical cells twice: once through
 `resolve_plane_a_cell` and again through `resolve_plane_a_collision_cell`, even
@@ -1773,3 +1774,122 @@ controlled MAME cold-boot route failed to arm on both comparison ROMs, so no
 post-change cycle percentage is claimed. See
 `docs/design/Cody_build0418_background_native_closure_audit.md` and
 `docs/design/Cody_build0419_background_native_optimization.md`.
+
+Tighe accepted Build 0419 on real Genesis: gameplay PASS, graphics PASS, no
+observed regression, and subjectively somewhat faster than Build 0418. No
+quantitative hardware percentage is inferred. Background/IRQ6 optimization is
+still open because `_do` continues to show intentional overrun bands.
+
+## KF-092 — REJECTED Build-0421 grouping assumption: a four-cell physical block can straddle the live Plane-A ring front
+
+Status: REJECTED / CORRECTED BY BUILD 0422. Confidence: CONFIRMED (matched
+0419/0421 MAME state and exact staged-buffer differential). Applicability:
+all future grouped Plane-A row resolution.
+
+Build 0421 assumed each aligned four-column physical block used one descriptor.
+At `front=(A5+0x10CC)*4+(A5+0x10CA)`, the authoritative resolver assigns cells
+after the front to the preceding ring revolution, so the one block containing
+the front may require two descriptors. At front 0, row1/col1 should use
+descriptor `0x01691C`, record 2997, name `0x62CA`; 0421 reused col0 descriptor
+`0x01695C`, record 1412, yielding `0x6297`. The matched diff was 33 Plane-A
+words, zero Plane-B words, and zero collision words. Never batch across this
+semantic seam.
+
+Build 0420 remains rejected for illegal `TST.L A0`; Build 0421 remains rejected
+for this visual defect. See the Build-0421 root-cause report.
+
+## KF-093 — Collision and Genesis visual planes share indexing context, not semantic ownership
+
+Status: ACTIVE. Confidence: CONFIRMED (arcade source/Ghidra, translated source,
+corpus counterexamples, matched runtime differential). Applicability: all
+background/collision work. Rediscovery Hazard: HIGH.
+
+Gameplay collision is the separate 64×64 word ring at arcade `0x0010DE00`,
+mapped to Genesis WRAM `0x00FF1E00`, consumed through arcade `0x053A2E` and
+written by the retained `0x0559B2/0x055A14` semantics plus independent dynamic
+mutators such as `0x05A2EE`. Plane A and Plane B are visual only. The generated
+record may co-store `visual[16]` and `collision[16]`, but APIs and products are
+independent: visual-only lookup never reads collision, collision-only lookup
+does not produce a name word, and Plane B never reads collision. The corpus
+contains identical visuals with different collision and different visuals with
+identical collision. Classification: **B — shared arcade descriptor,
+independent fields/products**. Build 0422 matched 0419 with zero differences in
+the complete collision map.
+
+## KF-094 — Plane-B directional columns need only 32 resident-row emissions after one visual-record lookup
+
+Status: ACCEPTED. Tighe verified Build 0423 gameplay and visuals on real
+Genesis with no new defect observed.
+Confidence: CONFIRMED (accepted-0422 semantic model, exhaustive generated-record
+verifier, matched-state MAME differential, focused total-cycle measurement).
+Applicability: Plane-B visual row and directional-column producers.
+
+After the retained arcade state selects the live Plane-B descriptor, its
+attribute conversion and copied-maincpu tile-block pointer are invariant. A
+generated six-byte visual-only record stores those two products and contains no
+collision. Descriptor/group choice, subcolumn, scroll, ring position,
+scene/package state, tile residency, and final name word remain dynamic.
+
+The accepted 0422 directional path probed 64 logical rows and called the generic
+producer 64 times so that it could reject half as nonresident. Build 0423 starts
+at the live visible top and directly emits the 32 resident rows: helper calls
+64->0, raw tile-block reads 64->32, runtime attribute conversions 32->0, while
+the 32 dynamic package/residency lookups remain. All 16 subcolumns, all 64 ring
+alignments, descriptor boundaries, and dynamic-context semantics verify exact.
+Matched 0422/0423 Plane A, Plane B, and collision maps differ by zero words.
+
+Focused MAME timing over 66 matched calls fell from median 64,578 to 12,486
+cycles (-52,092, -80.683%). The three-trial rope route improved from 879 to 858
+frames (-2.389%). Background optimization is not closed: Plane-A selector 0
+still repeats descriptor selection within a proven four-row vertical segment.
+See `docs/design/Cody_build0423_plane_b_native_optimization.md`.
+
+## KF-095 — Selector-0 four-row vertical segments share descriptor discovery, not visual/collision identity
+
+Status: ACCEPTED. Tighe verified Build 0424 gameplay and visuals on real
+Genesis with no new defect observed.
+Confidence: CONFIRMED (source contract, exhaustive runtime-selection verifier,
+matched-state differential, exact MAME cycle bracket). Applicability: Plane-A
+selector-0 entering-column production.
+
+The four rows in one aligned selector-0 segment share the same live row-group
+source pointer, fixed entering column/source reference, descriptor address,
+relocation/validation, native metatile record, and descriptor attribute. Their
+record subcells, visual tile identities, collision values/destinations,
+residency lookups, physical projection, and final names remain independent.
+Build 0424 therefore reduces semantic descriptor/record discovery 4→1 per
+valid segment (64→16 maximum per event) without repeating Build 0421's rejected
+horizontal grouping.
+
+Runtime equivalence passes 163,840 coordinate/front/wrap/rebase cases and
+934,928 descriptor/subcell/context cases. Matched 0423/0424 Plane A, Plane B,
+and full collision ring differ by zero words. The selector-0 median falls from
+112,090 to 49,918 cycles (-62,172 / -55.466%); the deterministic rope route
+falls 858→817 frames (-4.779%). Background work is not closed because the
+separate selector-1/2 path still repeats the same class of descriptor/record
+discovery per row. See
+`docs/design/Cody_build0424_plane_a_selector0_segment_hoist.md`.
+
+## KF-096 — Selector-1/2 four-column sharing is safe except at the live ring-front seam
+
+Status: IMPLEMENTED; REAL-GENESIS VALIDATION REQUIRED.
+Confidence: CONFIRMED (source contract, exhaustive runtime-selection verifier,
+matched-state differential, exact controlled MAME cycle bracket). Applicability:
+Plane-A selector-1/2 fixed-row production.
+
+Selector 1/2 emits one fixed logical row across sixteen aligned four-column
+blocks. Each block shares descriptor/native-record discovery, but the one block
+that straddles the live horizontal ring front can contain two descriptor
+revolutions and must retain accepted per-cell resolution. Build 0425 therefore
+uses 15 shared lookups plus four seam-fallback lookups (64→19), not an unsafe
+unconditional 64→16. Collision remains 64 independent writes; visual reads,
+dynamic residency, and Plane-A staging remain resident-only.
+
+The verifier passes 655,360 selection cases, 1,869,856 output cases, and all
+4,096 row/top residency placements. Matched 0424/0425 Plane A, Plane B, and the
+full collision ring differ by zero words. Fifty controlled matched invocations
+reduce median selector cost 122,672→33,984 cycles (-72.297%); the natural rope
+route remains 817 frames because it does not execute this hook. This closes the
+currently identified material background optimization phase; remaining work is
+dynamic/bounded. See
+`docs/design/Cody_build0425_plane_a_selector12_segment_hoist.md`.

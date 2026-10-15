@@ -1,5 +1,82 @@
 # AGENTS Log
 
+## [Andy — Layer A/B future optimization BACKLOG; background perf phase CLOSED at 0425 (doc only; no code/ROM; counter unchanged)]
+
+* DOCUMENTATION ONLY. Files changed: docs/design/Andy_layer_ab_future_optimization_backlog.md (new), OPTIMIZATIONS.md (pointer banner appended, no history rewrite), AGENTS_LOG.md. No production source, no ROM, no Build 0426, no Phase D/E.
+* BACKGROUND PERFORMANCE PHASE CLOSED at Build 0425 (0423/0424/0425 removed known material background translation cost; 0425_do scrolls horizontally with no enemies & no _do overrun bars). Backlog preserves deferred candidates so they are not lost; NOT permission to keep optimizing.
+* DEFERRED ITEMS (all UNKNOWN/STATIC-HYPOTHESIS/DEFERRED — no invented savings): #1 per-cell fg_cache_resolve residency hoist (MEDIUM); #2 Plane-A residual per-cell (block4) (LOW-MED); #3 Plane-B residual per-cell + 16-col cache boundary (LOW-MED); #4 staging/dirty/DMA coalescing (UNKNOWN, NOT Phase-D here); #5 package/transition install cost (UNKNOWN, keep separate from steady frame); #6 textwriter/number-renderer native glyph LUT (LOW, not gameplay hot path); #7 collision republish = CORRECTNESS/ARCH DEBT not perf (destroy-then-scroll test).
+* PRESERVED CONSTRAINTS: 64-cell logical domain vs 64x32 physical plane; independent visual/collision + separate 64x64 WRAM collision map; arcade-owned camera/ring/descriptor selection; ring-front seam (invalidated 0421, fixed 0422); selector-0 four-row (0424) / selector-1/2 four-col (0425) group boundaries; 0418 128-KiB DMA source-boundary fix; no PC080SN shadow; KF-072 no piecemeal ring. FORBIDDEN/REJECTED: 0421 +0x200 as the Segment-0 cause (accepted fix = 0422); A-0154 active-display-timing theory (real cause = 128-KiB DMA wrap KF-090, fixed 0418).
+* REOPEN CRITERIA (measured/forced only): background again material % of frame; Phase D/E exposes publication/setup as dominant; later level/context new background path; correctness requirement; a specifically-measured small budget gap one named opt would close. Else LEAVE CLOSED; take the per-item measurement before reopening.
+
+## [Andy — Build 0425 enemy-load cost ATTRIBUTION (read-only diagnostic; no code/ROM; counter unchanged)]
+
+* READ-ONLY. No source/ROM/Build-0426/Phase-D/E. Deliverable: docs/design/Andy_build0425_enemy_load_cost_attribution.md. Does not overlap Cody's Silver Standard.
+* TOP-LEVEL DELTA = MEASURED (Cody's controlled 0414 trace, worker path unchanged in 0425): quiet 72,593 -> one-enemy 87,443 = +14,850 cyc for ~10 emitted pieces (~1,485 cyc/piece, +20.5%). One enemy fits the 128,009 budget. Per-category SPLIT = STATIC-ESTIMATED (not freshly traced this task; marked EST/UNKNOWN; confirming profile_* breakpoint recipe handed to Cody).
+* ATTRIBUTION: delta DOMINATED by sprite PRESENTATION (~65-85%: native dispatch/classify + per-piece emit + residency + SAT + DMA-prep, scaling with ~10 pieces), NOT gameplay (AI/collision ~15-35%). FALLBACK .Lnative_emit_actor_common = NOT exercised for common R1 enemies (lizardman 0x36, small/large bat 0x3E are in the proven direct-dispatch set, verify_pc090oj_direct_dispatch.py:17-19) -> 0% cycles. Enemy load primarily adds CPU WORK (68000); DMA only gains ~fixed SAT + one-time pattern upload on first appearance (resident thereafter). AI/collision cheap (collision_map_lookup_53a2e = arithmetic + 1 map read) -> DO NOT NATIVIZE GAMEPLAY FOR PERFORMANCE.
+* KEY Q: AI major? NO/MODERATE. Collision major? NO. Presentation > AI? YES. Fallback exercised? NO. Residency material? mostly cheap hits (material only on appearance). SAT material? only via ×pieces. CPU vs DMA? CPU. If presentation free -> enemy frames fit easily. If AI free -> presentation still the ×pieces lever under dense frames.
+* NEXT TARGET: Phase D/E scheduler (worker out of IRQ6) is the strategic lever -- one enemy fits budget, overrun-under-load manifests as TEARING (scheduler property, not computation), and the biggest local cost (presentation) is already native. Optional pre-Phase-D closure = #1 sprite-presentation residency/variant-group hoist out of the per-piece loop (MEDIUM, raises enemy-count headroom). #2 residency hoist (LOW-MED), #3 SAT (LOW/inherent). DO THIS BEFORE PHASE D: NO (optional) -- no local category fix removes the overrun; proceed to Phase D/E (consistent with the post-0425 study).
+
+## [Andy — Post-0425 Genesis-native reference architecture STUDY (read-only research; no code/ROM; counter unchanged)]
+
+* READ-ONLY. No source/ROM/build-number/Phase-D/E. Deliverable: docs/design/Andy_post0425_genesis_native_reference_architecture_study.md. Refs: Sonic1 disasm docs/reference/s1disasm/, Rainbow Islands arcade+genesis disasms build/rainbow_islands_*.disasm.txt, ROM sha1s recorded (Sonic/Gunstar/Shinobi3/TFIV(PAL)/Cadash-Genesis). Alien Soldier src + sega2asm NOT local (not cloned; flagged UNKNOWN at routine level). Silver standard: Cody could NOT establish an arcade rope time (route doesn't reach rope) -> no arcade-vs-Genesis translation target; use Genesis rope benchmark (emulated frames).
+* SCORES: sprites 8/10, backgrounds 7/10; overall purpose-built 7/10, arcade-port 8/10. Hot-path native: sprites 80-95%, backgrounds 80-95%.
+* SPRITES substantially native (native frame tables + (code,bank)->vi finalized identity + O(1) residency + native SAT; .Lnative_emit_actor_common only UNRESOLVED fallback). BACKGROUNDS substantially native post-0425 (native 64B metatile records + Plane A/B staging + separate 64x64 collision; arcade descriptor SELECTION is a justified gameplay-semantic seam, not a payload interpreter). 0425 real-HW: horizontal scroll w/ no enemies fits budget, no _do bars -> graphics translation materially CLOSED.
+* KEY FINDING (VBlank/mainline table): Rastan is the SINGLE outlier -- it runs the whole gameplay WORKER INSIDE IRQ6 at IPL7 (publish N-1 then produce N in-interrupt). Sonic/Gunstar/Rainbow/Alien Soldier/Shinobi3/TFIV/Cadash ALL run gameplay in the MAINLINE and use VBlank only to publish prebuilt SAT/scroll/tiles; overload = lag frame/slowdown, never tear. Rastan over-budget frames spill into active display (tear/_do bars).
+* DOMINANT REMAINING COST = C worker-inside-IRQ6 scheduling/ownership (NOT graphics translation A, which is closed; sprite/enemy workload B is secondary + partly fixable by closing the fallback). RECOMMENDATION A: graphics sufficiently native, STOP major graphics rewrites; short final sprite closure (retire the fallback interpreter, trim per-piece residency), THEN Phase D (WORK/READY/DISPLAYED) then Phase E (move worker to mainline, IRQ6 publishes only). COPY Sonic BuildSprites-in-mainline + VBlank-publish + lag-frame overload. Material debt ranked: #1 HIGH worker-in-IRQ6; #2/#3 MEDIUM sprite fallback + per-cell residency; #4/#5 LOW dynamic-collision republish + 0421 +0x200 keying.
+
+## 2026-10-14 — Cody Build 0425 Plane-A selector-1/2 segment hoist
+
+- Recorded Tighe's real-Genesis acceptance of Build 0424 before work. Build
+  0425 changes only selector-1/2: fifteen safe four-column blocks share one
+  descriptor/native record while the live-ring-front block retains four
+  accepted per-cell resolutions. Exact discovery count is 64→19; collision
+  writes remain 64 and resident-only visual/residency behavior is unchanged.
+- Runtime equivalence PASS: 655,360 selection cases, 1,869,856 output cases,
+  and 4,096 row/top residency cases. Matched 0424/0425 Plane A, Plane B, and
+  full collision ring each differ by zero words.
+- Exact controlled MAME bracket (50 matched calls): median 122,672→33,984
+  cycles (-72.297%); mean 122,672→35,170 (-71.330%). Natural three-trial rope
+  benchmark remains deterministic at 817 frames / 13,634.222 ms for both 0424
+  and 0425 because that route does not execute selector 1/2.
+- Canonical/gameplay-entry/boot/full-span/generated-record/collision-visual/
+  transition/DMA and complete family gates PASS; mandatory NTSC trace reports
+  zero bus/address/illegal/crash-handler events. Produced complete Build 0425
+  family; counter 425. Background graphics are closed for the current
+  performance phase; next is the short final sprite closure audit. Tighe must
+  validate 0425 normal and `_do` on real Genesis.
+
+## 2026-10-14 — Tighe accepts Build 0424 on real Genesis
+
+- Tighe played Build 0424 on actual Genesis hardware: gameplay PASS, visuals
+  PASS, and no new defect observed. Build 0424 is the accepted forward baseline
+  for Build 0425.
+- The accepted selector-0 result remains median 112,090 -> 49,918 cycles
+  (-62,172 / -55.466%), with the deterministic rope route at 817 frames /
+  13,634.222 ms. Do not modify the Build-0424 selector-0 path or the accepted
+  Build-0423 Plane-B path during the bounded selector-1/2 task.
+
+## 2026-10-14 — Tighe accepts Build 0423 on real Genesis
+
+- Tighe played Build 0423 on actual Genesis hardware: gameplay PASS, visuals
+  PASS, and no new defect observed. Build 0423 is the accepted forward baseline
+  for Build 0424.
+- The accepted targeted Plane-B directional-column result remains median
+  64,578 -> 12,486 cycles (-52,092 / -80.683%), and the deterministic rope
+  route remains 858 frames / 14,318.437 ms. Do not reopen or modify this
+  completed Plane-B optimization during the bounded Build-0424 Plane-A work.
+
+## [Andy — Build 0421 native background INDEPENDENT AUDIT (read-only; no code/ROM; Cody tree untouched; counter unchanged)]
+
+* READ-ONLY audit (HEAD=0419 accepted; 0420/0421 uncommitted in Cody's tree, diffed via git diff HEAD). Deliverable: docs/design/Andy_build0421_native_background_independent_audit.md. No source/ROM/build-number; Cody tree untouched.
+* SEMANTIC MODEL SOUND. Arcade collision = Classification B (collision + visual share the metatile DESCRIPTOR source but are INDEPENDENT fields: tiles at pointer+0x00..0x1E, collision at pointer+0x20..0x3E uniform if +0x20==0x00FF; collision NOT derived from visual tile identity). collision_map_lookup_53a2e reads the separate 64x64 WRAM map @0xFF1E00 by camera scroll (A5+0x10B0/0x10AE)+probe coords, NEVER from VRAM. Genesis: Plane A/B own NO collision; gameplay reads WRAM map not VDP. Cody's 64-byte record (tile[16]+collision[16]) = shared ALLOCATION not shared semantics, keyed by descriptor pointer (not final tile/VRAM/name) -> CORRECT. 0419 fused resolve_plane_a_name_collision_cell = address-work fusion only, standalone visual + collision-only leaves retained -> clean.
+* SEGMENT-0 ROOT CAUSE = bounded +0x200 copy-base KEYING bug (NOT the semantic model). Constants: ARCADE_START 0xF08, GENESIS_START 0x1108 (Δ+0x200), SECOND_WORD_BASE 0x200. 0419 read metatile at data[SECOND_WORD_BASE+d2]=data[0x200+d2] (d2=descriptor word1, confirmed move.w 2(%a0),%d2 then bsr leaf). 0421 leaf indexes index[d2]; generator gen_pc080sn_native_metatiles.py sets index[pointer]->record_for(data,pointer)=data[pointer] AND index[pointer+0x200]->data[pointer+0x200]. So index[d2] returns the record sourced from data[d2] (WRONG, -0x200); the correct-content record (data[0x200+d2]) sits at index[d2+0x200] which the runtime never uses -> coherent-but-wrong Plane-A tiles (and collision) at Segment-0 initial fill. FIX: make index[d2] resolve to the record sourced from data[0x200+d2] (either generate base record from pointer+0x200, or runtime index d2+0x200) consistently.
+* COLLISION DIFFERENTIAL 0419 vs 0421 = DIFFERENT (same mis-keyed record feeds collision); silent physics hazard, do not infer from visual. VERIFIER GAP: 4733/4733 PASS proves record_for(data,pointer) self-consistency, NOT runtime-key equivalence (index[d2] == 0419 result at 0x200+d2) nor grouping-at-boundary nor initial placement. Add that invariant.
+* GROUPING CONDITIONAL: Plane-A block4 (entering-row path, d4 0..63 step 4 -> 4-aligned OK in pure vertical/initial) and Plane-B 16-col cache are self-consistent per full row but UNPROVEN where a 4-col/16-col group straddles a segment boundary at non-zero ring alignment -> validate at Segment-0 start. Horizontal selector-0 still per-cell (unaffected).
+* DYNAMIC COLLISION RISK (track, not the Seg0 cause, exists in 0419 too): native republish writes STATIC record collision to the 64x64 map each scroll -> could restore cave-block collision over a destroyed cell; test destroy-then-scroll.
+* 0420 CRASH CONFIRMED: tst.l %a0 illegal on 68000 (An operand 68020+ only), PC 0x070A72 in the metatile leaf; 0421 cmpa.l #0,%a0 (tilemap_hooks.s:955) is legal+equivalent; no other live tst.l %an (prior tst.l %a5 already fixed at pc090oj_hooks.s:2153). PERF: 64->~16 descriptor traversals/plane plausible, but per-word fg_cache_resolve residency lookups UNCHANGED (still per cell in block4) + new index/branch overhead -> improvement real but smaller than naive; benchmark, don't claim %.
+* ROPE BENCHMARK sound: START = first controllable frame (scene_id==1 & game-mode==2 & input sampled); STOP = first rope-grab state set (A5+0x1308/player grab bit per rope lineage, confirm w/ watchpoint); unit = EMULATED FRAMES (+ ms = frames/59.922), never host wall-clock; 3-5 deterministic runs; reuse native_sprite_fullgame_closeout.lua plumbing (RIGHT held); instrumentation only, give to Cody.
+* RECOMMENDATION A: architecture/record-format/semantic-model SOUND & retained (generator, record, fused accessor, 0420 fix, Plane-B cache structure); FIX the bounded +0x200 record-keying bug; also validate grouping-at-boundary + add verifier runtime-key invariant + test dynamic-collision-survives-republish before re-acceptance.
+
 ## [Andy — Build 0417 A-0154 root-cause CORRECTION (reconciliation; read-only; no code/ROM; counter unchanged)]
 
 * CORRECTION of the entry below. My prior active-display-DMA/publication-timing root cause for the six A-0154 holes was WRONG. Cody's root cause is CONFIRMED (independently verified arithmetic). ACTUAL CAUSE: an unsplit ROM-source VDP DMA (source=genesistan_pc080sn_tile_rom+code*32, 32 bytes; scene_load.s:110-118 lsl #5) crosses a Genesis 128-KiB (0x20000) DMA source-bank boundary; real HW WRAPS the source counter within the bank (after 0x15FFFF -> 0x140000, not 0x160000), loading unrelated bytes (zero nibbles -> transparent Plane-A px -> Layer B through) into the pattern tail rows.
@@ -51195,3 +51272,263 @@ TIGHE ONLY
 - Final PC: 0x0747F4
 - Stack Pointer (SP): 0x00FEFF6A
 - Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-13 14:00:24)
+- Final PC: 0x0748F8
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-13 14:03:45)
+- Final PC: 0x0748FC
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-13 — Tighe acceptance / Cody formal closure of Build 0419
+
+- Tighe tested Build 0419 on real Genesis: gameplay PASS, graphics PASS, and no
+  observed regression. Subjective performance: **somewhat faster than 0418**.
+- Build 0419 is the accepted baseline. Exact structural evidence remains
+  selector-0 resolver entries 128->64, complete descriptor traversals 128->64,
+  duplicate traversals 64->0 (50%); no quantitative hardware percentage is
+  claimed because the controlled MAME timing route did not arm.
+- Background optimization, IRQ6 overrun, active-display publication, and `_do`
+  black-band instrumentation remain open. Worker remains in IRQ6; scheduler
+  Phase D/E not started. No issue moved to CLOSED_ISSUES.md.
+
+## 2026-10-13 — Cody Build 0420/0421 generated background semantics
+
+- Starting from accepted 0419, generated 4,733 native Plane-A semantic records
+  from authoritative `maincpu.bin`: 16 tile identities + 16 expanded collision
+  words per record, indexed by the still-dynamically-selected metatile pointer.
+- Plane-A row publication now selects once per four cells (64->16 descriptor
+  walks). Plane-B row publication caches 16-column groups (64->4/5 walks).
+  Paired-row descriptor relocations and attribute conversions are 128->20/21;
+  raw metatile/tile-block interpretation is 128->4/5; all 128 logical cells and
+  residency lookups remain. Full 64x64 collision and full-span model unchanged.
+- Added generator, exhaustive verifier, Makefile integration, and an explicit
+  spec-owned non-code symbol range so postpatch control-flow scanning cannot
+  mistake generated payload bytes for instructions. Native-record equivalence
+  PASS 4,733/4,733; background, transition, DMA, and canonical gates PASS.
+- Build 0420 was numbered/preserved before its entry gate label found illegal
+  `TST.L A0` at Genesis PC `0x070A72`. Crash record: vector 4, fault PC
+  `0x00070A72`. The zero-test was corrected to legal `CMPA.L #0,A0`; immutable
+  build numbering was honored, so 0420 was not overwritten and corrected 0421
+  was produced.
+- Build 0421 gameplay-entry PASS: gameplay/package install, player control, 240
+  survival frames, and zero bus/address/illegal/crash entries. Mandatory NTSC
+  trace completed 1,798 frames. Standing epoch label remains FAIL after epoch 0
+  PASS, as on accepted prior builds.
+- Full 0421 family produced, each 2,694,840 bytes. Canonical SHA-256:
+  `b127f7ef929424b1be41bb119a8f64d9e03a863ff4d4db58ec8d6dea4fb68327`.
+- Background optimization remains open; next choice is ADDITIONAL BACKGROUND
+  OPTIMIZATION. Worker remains in IRQ6; Phase D/E not started. No issue closed.
+  Report: `docs/design/Cody_build0420_background_native_optimization.md`.
+
+### MAME Exit Summary (2026-10-13 21:02:14)
+- Final PC: 0x07494C
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-13 — Cody Build 0421 rejection audit and Build 0422 correction
+
+- Corrected status: Build 0419 remains accepted; 0420 is rejected for its
+  illegal `TST.L A0`; 0421 is rejected for a new Segment-0 Plane-A defect.
+- Arcade provenance proves gameplay collision is the separate 64×64 ring at
+  `0x0010DE00` (Genesis `0x00FF1E00`), consumed by `0x053A2E`, populated by
+  independent collision fields in `0x0559B2/0x055A14`, and dynamically mutable
+  through paths including `0x05A2EE`. Genesis Plane A and Plane B have no
+  collision ownership. Classification B: visual/collision share an arcade
+  descriptor but remain independent fields/products.
+- Matched 0419/0421 NTSC MAME state at player X `0x0081`, foreground Y
+  `0x0149`, record 1 found the first difference at Plane-A row1/col1:
+  0419 `0x62CA`, descriptor `0x01691C`, record 2997; 0421 `0x6297`, descriptor
+  `0x01695C`, record 1412. Total diff: 33 Plane-A words, zero Plane-B words,
+  zero collision words.
+- Root cause: four-cell grouping crossed the live ring front. Build 0422 keeps
+  grouping except for the single block satisfying `start <= front < end`, which
+  uses the established per-cell resolver. Matched 0419/0422 Plane A, Plane B,
+  and full collision-map diffs are all zero.
+- Added collision/visual semantic gate, ring-seam gate, focused machine-readable
+  differential, and deterministic MAME start-to-first-rope benchmark.
+- Rope metric: 0419 = `878,878,878` frames (14652.200 ms median); 0422 =
+  `879,879,879` (14668.888 ms), one frame / +0.114% elapsed. No additional
+  optimization was included.
+- Full Build 0422 family produced, 2,694,840 bytes each. Canonical SHA-256
+  `3828222d36e689b6f000ffe3b72509d555fb237a147e0e066dfff105e295d3cb`.
+  Canonical, gameplay-entry, background, collision/visual, exhaustive-record,
+  DMA-boundary, boot, trace, and family gates PASS; zero crash-handler entries.
+  Standing seven-epoch label remains FAIL after epoch 0 PASS.
+- Build 0422 is not accepted until Tighe verifies it on real Genesis. Reports:
+  `docs/design/Cody_build0421_collision_visual_semantic_audit.md`,
+  `docs/design/Cody_build0421_segment0_regression_root_cause.md`,
+  `docs/design/Cody_rope_attach_performance_benchmark.md`, and
+  `docs/design/Cody_build0422_background_native_fix.md`.
+
+### MAME Exit Summary (2026-10-13 22:40:26)
+- Final PC: 0x074944
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-13 — Build 0422 accepted; Cody Build 0423 Plane-B native optimization
+
+- Tighe verified Build 0422 on real Genesis: Segment-0 visuals PASS and the
+  destructible block still works. Build 0422 is accepted; OPEN-031 moved to
+  CLOSED-024. Builds 0420 and 0421 remain rejected for their respective illegal
+  instruction and Plane-A ring-front regression.
+- Build 0423 cuts the invariant Plane-B descriptor tail after dynamic descriptor
+  selection. A generated visual-only six-byte record supplies the Genesis
+  attribute and copied-maincpu tile-block pointer; it contains no collision.
+  Group/descriptor choice, subcolumn, scroll, ring alignment, scene/package,
+  residency, and final name-word production remain dynamic.
+- Directional-column work changes from 64 raw row probes and 64 generic-helper
+  calls to 32 direct resident-row emissions. Raw reads are 64->32, runtime
+  attribute conversions 32->0, and dynamic package/residency lookups remain 32.
+- The record/boundary verifier passes all 16 subcolumns, all 64 ring placements,
+  descriptor boundaries, and dynamic contexts. Matched 0422/0423 NTSC MAME
+  state has zero Plane-A, Plane-B, and collision-word differences.
+- Focused 66-sample MAME timing: median 64,578 -> 12,486 cycles, a 52,092-cycle
+  / 80.683% reduction. Three-trial rope benchmark: 0419 `878/878/878`, 0422
+  `879/879/879`, 0423 `858/858/858`; 0423 is 21 frames / 2.389% faster than 0422.
+- Canonical, gameplay-entry, boot, generated-data, background, collision/visual,
+  DMA-boundary, mandatory NTSC trace, and five-ROM-family gates PASS. Standing
+  seven-epoch label remains FAIL after epoch-0 PASS, unchanged.
+- Full Build 0423 family is 2,698,936 bytes each. Canonical SHA-256:
+  `0891f25fb0872cfa8e6bef1e600fc7f5d9e499eae6cdf2ad76e3b66709cea572`.
+  Counter 423. Report: `docs/design/Cody_build0423_plane_b_native_optimization.md`.
+- Background status remains NOT CLOSED. Next material candidate is one more
+  bounded Plane-A selector-0 four-row segment descriptor-hoist optimization.
+  Worker remains in IRQ6; collision and Plane-A architecture are unchanged;
+  Phase D/E not started.
+
+### MAME Exit Summary (2026-10-14 09:21:31)
+- Final PC: 0x0749BC
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-14 — Cody Build 0424 Plane-A selector-0 segment hoist
+
+- Starting from Tighe-accepted Build 0423, selector 0 now selects/relocates one
+  live descriptor and one native metatile record per aligned four-row vertical
+  segment. It retains independent row subcells, visual codes, collision values
+  and destinations, residency lookups, projection, and final names. The
+  Build-0421 horizontal ring-front guard and all Plane-B code are unchanged.
+- Structural maximum per selector event: semantic descriptor selections,
+  relocations, and native-record lookups 64→16; attribute conversions 80→16
+  (the prior 16 dead outer conversions are removed); residency 64→64; resident
+  Plane-A writes 32→32; collision writes 64→64.
+- Runtime-selection verifier PASS: 163,840 coordinate/front/group-rollover/
+  rebase cases and 934,928 descriptor/subcell/context cases, with Plane-A
+  visual and collision outputs independent. Full-span, N/N+32, transition,
+  source-rebase, collision/visual, and DMA gates PASS.
+- Matched 0423/0424 state: Plane A zero differences, Plane B zero differences,
+  full collision ring zero differences.
+- Exact selector-0 bracket, 196 samples each: 0423 min/median/max/mean
+  `108376/112090/112478/112082.653`; 0424
+  `46204/49918/50306/49910.653`; median improvement 62,172 cycles / 55.466%.
+- Rope benchmark: 0419 `878/878/878`, 0422 `879/879/879`, 0423
+  `858/858/858`, 0424 `817/817/817` (13,634.222 ms). Build 0424 is 41 frames
+  / 4.779% faster than accepted 0423 on this route.
+- Canonical, gameplay-entry, mandatory 1,798-frame NTSC trace, and full
+  five-ROM-family gates PASS; zero bus/address/illegal/crash-handler events.
+  The standing seven-epoch label remains FAIL after epoch-0 PASS.
+- Full family size: 2,698,936 bytes each. Canonical SHA-256:
+  `11ab83be9056d77bd0e79dff0f82ef5afe3600fc711b55c87e9f9e12ddf326ff`.
+  Counter 424. Report:
+  `docs/design/Cody_build0424_plane_a_selector0_segment_hoist.md`.
+- Background remains NOT CLOSED. Selector 1/2 still repeats descriptor/native
+  record discovery per row; that is the one remaining material background
+  candidate. Plane B, collision semantics, sprites, worker/IRQ6 scheduling,
+  VBlank ownership, active-display DMA, and Phases D/E are unchanged.
+
+### MAME Exit Summary (2026-10-14 09:50:34)
+- Final PC: 0x074AC8
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-14 — Original arcade rope-race Silver Standard attempt
+
+- Exact source identity proven: MAME `rastan` / Rastan (World Rev 1) matches
+  the project's six main-CPU ROM SHA-1s and reconstructed maincpu SHA-1
+  `63577d3f75a96b35398cf40126c40598ebd8089d`.
+- Added the reusable original-arcade benchmark runner and Lua under
+  `tools/mame/`; it uses isolated factory-default MAME configuration, speed
+  1.0, no refresh-speed synchronization, and emulated attotime.
+- The retained arcade/Genesis start fields map directly between A5 bases
+  `0x10C000` and `0xFF0000`. The intended state-4 rope stop is also inherited.
+- Five deterministic no-jump/no-attack trials all began at frame 787 with
+  active Right (`P1=0xF7`) and exhausted all lives before rope attachment at
+  2,902 elapsed frames / 48,366.667 ms, record 2, player state 8. Zero valid
+  arcade rope-attach samples were produced.
+- Therefore no Silver Standard target or arcade-vs-0425 percentage was
+  declared. An initial later state-4 attract-playback false positive was
+  explicitly rejected.
+- Evidence: `states/traces/arcade_rastan_rope_attach_reference/`. Report:
+  `docs/design/Cody_arcade_rastan_rope_race_silver_standard.md`.
+- Production modified: NO. ROM built: NO. Build 0426 consumed: NO. Counter
+  remains 425.
+
+## 2026-10-14 — Arcade rope-race Silver Standard completed with invincibility
+
+- Owner correction accepted: the stock MAME `rastan` Invincibility cheat is
+  required so enemy contact cannot exhaust the deterministic Right-only route.
+  The five preliminary no-cheat failures remain preserved separately and are
+  not timing samples.
+- The runner now enables the existing cheat through MAME's cheat plugin. Its
+  sole mechanism is maintaining bit 6 at arcade A5+0x0040 (`0x10C040`). It
+  leaves enemies, AI, collision lookup, ordinary velocity, camera, scroll,
+  timers, and rope logic active, while suppressing player damage, hit-stun,
+  knockback, and enemy-contact death.
+- Smoke PASS and five official trials PASS. Every trial starts at frame 787,
+  stops at the credited first-rope record-3/state-4 transition at frame 1558,
+  and measures 771 arcade frames / 12,850.000 emulated ms. Stop state is
+  X/Y A7/70, lives 3, Right F7, cheat YES, invincibility word 0040.
+- Attract false positives are blocked by global gameplay state, scene, positive
+  lives, exact record 3, state 4, and active-cheat conditions.
+- Silver Standard: 12,850.000 ms. Build 0425 is 784.222 ms / 6.102895% slower,
+  equivalent to 47.053 arcade frames: MATERIAL SLOWDOWN.
+- Evidence and report remain under
+  `states/traces/arcade_rastan_rope_attach_reference/` and
+  `docs/design/Cody_arcade_rastan_rope_race_silver_standard.md`.
+- Production modified: NO. Genesis gameplay modified: NO. ROM built: NO.
+  Build 0426 consumed: NO. Counter remains 425. Phase D/E not started.
+
+### MAME Exit Summary (2026-10-14 22:07:22)
+- Final PC: 0x074ADA
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-14 22:09:22)
+- Final PC: 0x074ADA
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-14 — Cody Build 0426 Genesis-native sprite optimization
+
+- The shared proven-native Level-B gameplay path now consumes a compact
+  6-byte `{dx,dy,finalized_key}` piece stream and an 8-byte frame index carrying
+  the invariant attribute. All 38 common generic records are covered; no
+  Lizardman/Bat-specific path was added and the unresolved/attract fallback is
+  unchanged.
+- Frame attribute/override and queue append cursor setup are once per frame.
+  Static Y-adjust testing, repeated attribute work, already-finalized identity
+  validation, per-piece cursor reconstruction, and per-piece emitter BSR/RTS
+  are removed from the inner loop. Dynamic coordinates, clipping, capacity,
+  ordering, residency, uploads, palette/priority, SAT, and DMA remain exact.
+- Native generator/direct-dispatch verification PASS: 1,200 player, 416
+  secondary, 38 compact generic, 1,898 universal general, and 24 universal
+  specialized native records; focused generic fallbacks 0. Canonical,
+  gameplay-entry, boot, DMA-boundary, background/collision, and five-ROM-family
+  gates PASS. The standing seven-epoch gate warning remains unchanged.
+- Controlled enemy delta: 14,850 cycles (0425) -> 12,800 cycles (0426), saving
+  2,050 cycles / 13.8047%. Publication is 3,257 cycles in both controls; both
+  have zero residency misses/installs and 320 DMA words.
+- Three-trial rope benchmark: 0425 `817 / 13,634.222 ms`; 0426 deterministic
+  `806 / 13,450.653 ms`; arcade Silver Standard `771 / 12,850.000 ms`.
+- Full Build 0426 family, including `_do`, is 2,698,936 bytes each. Canonical
+  SHA-256: `d174637016506e94b4c71c2673b8c8c83b152ae10f45196387e260646e871676`.
+  Real Genesis acceptance: USER MUST VERIFY. Report:
+  `docs/design/Cody_build0426_genesis_native_sprite_optimization.md`.
+- Process disclosure: a later rolling-target invocation unintentionally
+  published canonical Build 0427 from the same source. Counter is 427; the
+  consumed ledger/artifact are preserved and no build number was reused.
+- Production modified: YES. Phase D/E: NOT STARTED.

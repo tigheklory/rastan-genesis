@@ -29,6 +29,13 @@ pc090oj_secondary_frame_index:
 pc090oj_generic_frame_index:
     .incbin "../../build/pc090oj_generic_frame_index.bin"
 
+    /* Build 0426: compact exact-Level-B pieces: s16 dx, s16 dy, u16 finalized key.
+     * Frame-invariant attributes live once in the corresponding 8-byte index. */
+    .global pc090oj_generic_piece_table
+    .align 2
+pc090oj_generic_piece_table:
+    .incbin "../../build/pc090oj_generic_piece_table.bin"
+
     .global pc090oj_universal_frame_index
     .align 2
 pc090oj_universal_frame_index:

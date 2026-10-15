@@ -2094,6 +2094,13 @@
    "note": "Build 0400 rope-exit A: same false positive. Preceding descriptor word1 0x237C at arcade 0x02C54A was misread as a move.l #imm opcode, relocating this entry 0x02C54C = {0003,2120} by +0x200 to {0003,2320}. Restore word1 to 0x2120."
   }
  ],
+ "genesis_only_maincpu_ref_exclude_symbol_ranges": [
+  {
+   "start_symbol": "genesistan_pc080sn_native_metatile_index",
+   "end_symbol": "genesistan_pc080sn_native_metatile_records_end",
+   "note": "Build 0420 generated read-only PC080SN index/record payload; bytes are data, not 68000 instructions, and must not be decoded as Genesis-only JMP/JSR continuations."
+  }
+ ],
  "expectations": {
   "opcode_replace_count": 231,
   "genesis_only_maincpu_ref_count": 7
