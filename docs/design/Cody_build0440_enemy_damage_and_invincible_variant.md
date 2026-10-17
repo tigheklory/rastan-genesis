@@ -2,6 +2,7 @@
 
 **Date:** 2026-10-17
 **Status:** candidate; real-Genesis acceptance of the standard ROM is pending Tighe
+**Exact candidate source commit:** `ba4b4c2264993b53193a8067eece3bb9faa71e63`
 
 ## Scope and result
 

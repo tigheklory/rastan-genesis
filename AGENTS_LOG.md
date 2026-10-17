@@ -52189,3 +52189,4 @@ TIGHE ONLY
   deterministic; this is the new post-damage-restoration Genesis rope baseline pending Build-0440
   acceptance. Standard real-Genesis acceptance is **PENDING TIGHE**.
 - Permanent report: `docs/design/Cody_build0440_enemy_damage_and_invincible_variant.md`.
+- Exact Build-0440 candidate source commit: `ba4b4c2264993b53193a8067eece3bb9faa71e63`.
