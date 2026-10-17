@@ -4,7 +4,9 @@ Date: 2026-10-17
 Baseline: Build 0438, commit `29412437861ea5e7fb046fc6d0b1c1bb58d73b2a`
 Candidate: Build 0439
 Candidate source commit: `033795e327a70b2cb79b94ed2632cb2630ed628b`
-Acceptance: pending Tighe real-hardware testing
+Acceptance: **ACCEPTED BY TIGHE ON REAL GENESIS HARDWARE**
+Acceptance date: **2026-10-17**
+Accepted source commit: `033795e327a70b2cb79b94ed2632cb2630ed628b`
 
 ## Scope and semantic boundary
 

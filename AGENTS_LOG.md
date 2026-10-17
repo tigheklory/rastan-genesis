@@ -52154,3 +52154,15 @@ TIGHE ONLY
   pending Tighe. Exact candidate source commit:
   `033795e327a70b2cb79b94ed2632cb2630ed628b`.
 - Report: `docs/design/Cody_build0439_plane_a_horizontal_residency_optimization.md`.
+
+## 2026-10-17 — Build 0439 accepted by Tighe on real Genesis hardware
+
+- **ACCEPTED BY TIGHE ON REAL GENESIS HARDWARE.** Accepted canonical Build
+  0439 ROM SHA-256:
+  `4d149b3cb5b37a61815aeff4767c479fece41168b279bf3e352326dd6ef4438f`.
+- Accepted rope result: `798/798/798`, deterministic YES, median
+  `13,317.147 ms`.
+- Exact accepted ROM-producing source commit:
+  `033795e327a70b2cb79b94ed2632cb2630ed628b`.
+- Accepted ref: `accepted/build-0439`, pointing exactly to the source commit
+  above rather than a later documentation commit.
