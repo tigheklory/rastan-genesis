@@ -52094,6 +52094,7 @@ TIGHE ONLY
 - Standard 30-second GENESIS NTSC MAME trace PASS at 1,798 frames. Existing
   unchanged canonical rope benchmark restored exactly to `803/803/803`,
   deterministic YES, 13,400.588 ms.
-- Candidate source will be committed on `rastan-direct-proposal`; real-hardware
-  acceptance remains PENDING TIGHE. Report:
+- Exact candidate source commit on `rastan-direct-proposal`:
+  `29412437861ea5e7fb046fc6d0b1c1bb58d73b2a`; real-hardware acceptance remains
+  PENDING TIGHE. Report:
   `docs/design/Cody_build0438_restore_build0434_production.md`.

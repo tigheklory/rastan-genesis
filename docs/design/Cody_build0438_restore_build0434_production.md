@@ -103,6 +103,10 @@ Phase D, or Phase E work was started.
 The build is a candidate, not an accepted baseline. Real-Genesis behavior and presentation remain
 outside automated proof.
 
+Exact Build-0438 candidate source commit:
+`29412437861ea5e7fb046fc6d0b1c1bb58d73b2a`. This commit is not labeled accepted; acceptance remains
+pending Tighe's real-hardware test.
+
 ## USER MUST VERIFY
 
 On real Genesis hardware, Tighe should verify that Build 0438 matches accepted Build 0434 during
