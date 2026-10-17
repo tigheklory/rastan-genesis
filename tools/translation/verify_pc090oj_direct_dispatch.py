@@ -18,6 +18,12 @@ EXPECTED = (
     ("large_bat", 0x03F6, 0xB6, 3, 0, 0x3E, 0x06, 0x0A, ATTR_EMBEDDED),
     ("small_bat", 0x0268, 0xB9, 3, 0, 0x3E, 0x06, 0x0B, ATTR_EMBEDDED),
 )
+DEATH_EXPECTED = (
+    ("fountain", 0x0275, 0, 0x9D, 4, 0),
+    ("bat_pop", 0x0275, 0, 0xA8, 1, 8),
+    ("ordinary_death", 0x0A73, 2, 0x0B, 8, 10),
+    ("death_reward", 0x0A5A, 2, 0x13, 17, 26),
+)
 
 
 def block(source: str, start: str, end: str) -> str:
@@ -132,14 +138,45 @@ def verify_fast_enqueue(source: str) -> None:
         ("native_player_aux_fixed:", "native_player_body_begin:"),
         ("native_player_frame_try:", "native_player_secondary_frame:"),
         ("native_player_secondary_frame:", "native_player_body_anchor_blank:"),
-        (".Lnative_generic_frame_try:", ".Lnative_mapping_branch_is_normal:"),
+        (".Lnative_generic_frame_try:", ".Lnative_death_frame_try:"),
+        (".Lnative_death_frame_try:", ".Lnative_universal_general_try:"),
         (".Lnative_universal_general_try:", ".Lnative_mapping_branch_is_normal:"),
     )
     for start, end in generated:
         producer = block(source, start, end)
         if "native_sprite_fast_context" not in producer:
             raise SystemExit(f"FAIL fast enqueue not used by generated producer {start}")
-        if start == ".Lnative_generic_frame_try:":
+        if start == "native_player_frame_try:":
+            player_required = (
+                "pc090oj_player_piece_table", "mulu.w  #12, %d0",
+                "move.w  8(%a1), %d2", "move.w  10(%a1), %d2",
+                "move.w  (%a6), %d0", "lea     0(%a3,%d0.w), %a1",
+                "cmpi.w  #0x0180, %d0", "cmpa.l  %a2, %a1",
+                "move.w  %d1, (%a1)+", "move.w  %d2, (%a1)+",
+                "move.w  %d3, (%a1)+", "move.w  %d4, (%a1)+",
+                "addq.w  #1, (%a6)", "adda.w  #6, %a0", "adda.w  #8, %a0",
+            )
+            for token in player_required:
+                if token not in producer:
+                    raise SystemExit(f"FAIL compact primary-player append omits: {token}")
+            if "native_sprite_emit_fast" in producer:
+                raise SystemExit("FAIL primary-player loop still calls generalized fast emitter")
+        elif start == "native_player_secondary_frame:":
+            secondary_required = (
+                "pc090oj_player_piece_table", "mulu.w  #12, %d0",
+                "move.w  6(%a1), %d1", "move.w  (%a6), %d0",
+                "lea     0(%a3,%d0.w), %a1", "cmpi.w  #0x0180, %d0",
+                "cmpa.l  %a2, %a1", "move.w  %d1, (%a1)+",
+                "move.w  %d2, (%a1)+", "move.w  %d3, (%a1)+",
+                "move.w  %d4, (%a1)+", "addq.w  #1, (%a6)",
+                "adda.w  #6, %a0",
+            )
+            for token in secondary_required:
+                if token not in producer:
+                    raise SystemExit(f"FAIL compact secondary-player append omits: {token}")
+            if "native_sprite_emit_fast" in producer:
+                raise SystemExit("FAIL secondary-player loop still calls generalized fast emitter")
+        elif start == ".Lnative_generic_frame_try:":
             # Build 0426's exact Level-B stream owns a private compact append:
             # frame attr/context/cursor once, then the same Y-hide, queue-end,
             # D1/D2/D3/D4 tuple and count contract per piece.
@@ -155,6 +192,21 @@ def verify_fast_enqueue(source: str) -> None:
             for token in compact_required:
                 if token not in producer:
                     raise SystemExit(f"FAIL compact Level-B append omits: {token}")
+        elif start == ".Lnative_death_frame_try:":
+            death_required = (
+                "pc090oj_death_frame_index", "pc090oj_death_piece_table",
+                "move.w  6(%a2), %d1", "move.w  (%a6), %d0",
+                "lea     0(%a3,%d0.w), %a1", "andi.w  #0x01FF, %d0",
+                "cmpi.w  #0x0180, %d0", "cmpa.l  %a2, %a1",
+                "move.w  %d1, (%a1)+", "move.w  %d2, (%a1)+",
+                "move.w  %d3, (%a1)+", "move.w  %d4, (%a1)+",
+                "addq.w  #1, (%a6)", "adda.w  #6, %a0",
+            )
+            for token in death_required:
+                if token not in producer:
+                    raise SystemExit(f"FAIL compact death append omits: {token}")
+            if "native_sprite_emit_fast" in producer:
+                raise SystemExit("FAIL death loop still calls generalized fast emitter")
         elif "native_sprite_emit_fast" not in producer:
             raise SystemExit(f"FAIL fast enqueue not used by generated producer {start}")
 
@@ -173,6 +225,8 @@ def verify_fast_enqueue(source: str) -> None:
             source, ".Lnative_generic_frame_try"),
         ".Lnative_universal_general_try": direct_references(
             source, ".Lnative_universal_general_try"),
+        ".Lnative_death_frame_try": direct_references(
+            source, ".Lnative_death_frame_try"),
     }
     for label, references in intended_calls.items():
         if len(references) != 1 or references[0][0].split(".", 1)[0] != "bsr":
@@ -180,6 +234,11 @@ def verify_fast_enqueue(source: str) -> None:
                 f"FAIL fast enqueue: {label} private-call contract changed: {references}")
         if references[0][2] not in common:
             raise SystemExit(f"FAIL fast enqueue: {label} caller escaped common wrapper")
+    for token in ("cmpi.w  #0x0A73, 0x1E(%a4)",
+                  "cmpi.w  #0x0275, 0x1E(%a4)",
+                  "cmpi.w  #0x0A5A, 0x1E(%a4)"):
+        if token not in common:
+            raise SystemExit(f"FAIL death prefilter contract omits: {token}")
 
     push = re.search(r"movem\.l\s+%d5/%a1\s*,\s*-\(%sp\)", common)
     pop = re.search(r"movem\.l\s+\(%sp\)\+\s*,\s*%d5/%a1", common)
@@ -203,7 +262,9 @@ def verify_fast_enqueue(source: str) -> None:
             raise SystemExit(f"FAIL fast enqueue: stage dispatcher {start} lost full caller preservation")
     private_blocks = {
         "generic probe": block(source, ".Lnative_generic_frame_try:",
-                               ".Lnative_universal_general_try:"),
+                               ".Lnative_death_frame_try:"),
+        "death probe": block(source, ".Lnative_death_frame_try:",
+                             ".Lnative_universal_general_try:"),
         "universal probe": block(source, ".Lnative_universal_general_try:",
                                  ".Lnative_mapping_branch_is_normal:"),
         "fast context": context,
@@ -328,19 +389,56 @@ def actor_for(spec: tuple) -> dict:
             disc_off: disc_val, "ctrl_high": bank & 0x70}
 
 
+def death_dispatch(index: bytes, base: int, compositor: int,
+                   selector: int, orientation: int) -> int | None:
+    record = None
+    for _name, wanted_base, wanted_compositor, first, count, first_record in DEATH_EXPECTED:
+        if (base == wanted_base and compositor == wanted_compositor and
+                first <= selector < first + count):
+            record = first_record + (selector - first) * 2 + orientation
+            break
+    if record is None:
+        return None
+    _off, _pieces, status, _attr = struct.unpack_from(">IBBH", index, record * 8)
+    return record if status == 1 else None
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--base-lut", default=ROOT / "build/pc090oj_generic_base_lut.bin", type=Path)
     ap.add_argument("--usage", default=ROOT / "build/pc090oj_generic_usage_table.bin", type=Path)
     ap.add_argument("--index", default=ROOT / "build/pc090oj_generic_frame_index.bin", type=Path)
+    ap.add_argument("--death-index", default=ROOT / "build/pc090oj_death_frame_index.bin", type=Path)
     ap.add_argument("--assembly", default=ROOT / "apps/rastan-direct/src/pc090oj_hooks.s", type=Path)
     args = ap.parse_args()
     base_lut, usage, index = args.base_lut.read_bytes(), args.usage.read_bytes(), args.index.read_bytes()
+    death_index = args.death_index.read_bytes()
     if len(base_lut) != 0x1000 or len(usage) != len(EXPECTED) * 10:
         raise SystemExit("FAIL malformed direct-dispatch artifacts")
     expected_records = sum(spec[3] for spec in EXPECTED) * 2
     if len(index) != expected_records * 8:
         raise SystemExit("FAIL malformed compact direct-index artifact")
+    if len(death_index) != 60 * 8:
+        raise SystemExit("FAIL malformed compact death-index artifact")
+
+    death_records = 0
+    for name, base, compositor, first, count, first_record in DEATH_EXPECTED:
+        for selector in range(first, first + count):
+            for orientation in (0, 1):
+                expected_record = first_record + (selector - first) * 2 + orientation
+                got = death_dispatch(death_index, base, compositor, selector, orientation)
+                if got != expected_record:
+                    raise SystemExit(
+                        f"FAIL death {name}: selector/orientation routes to {got}, "
+                        f"expected {expected_record}")
+                death_records += 1
+        for bad_base, bad_compositor, bad_selector in (
+                (base ^ 1, compositor, first),
+                (base, (compositor + 1) & 0xFF, first),
+                (base, compositor, (first - 1) & 0xFF),
+                (base, compositor, (first + count) & 0xFF)):
+            if death_dispatch(death_index, bad_base, bad_compositor, bad_selector, 0) is not None:
+                raise SystemExit(f"FAIL death {name}: out-of-domain key did not reject")
 
     next_record = 0
     for usage_id, spec in enumerate(EXPECTED, 1):
@@ -390,8 +488,18 @@ def main() -> None:
                   "pc090oj_generic_frame_index"):
         if token not in dispatcher:
             raise SystemExit(f"FAIL dispatcher does not consume {token}")
+    death_probe = block(source, ".Lnative_death_frame_try:",
+                        ".Lnative_universal_general_try:")
+    for token in ("cmpi.w  #0x0275, %d0", "cmpi.w  #0x0A73, %d0",
+                  "cmpi.w  #0x0A5A, %d0", "subi.w  #0x9D, %d7",
+                  "subi.w  #0x0B, %d7", "subi.w  #0x13, %d7",
+                  "addi.w  #10, %d7", "addi.w  #26, %d7",
+                  "moveq   #8, %d7"):
+        if token not in death_probe:
+            raise SystemExit(f"FAIL death dispatcher mapping omits: {token}")
     print(f"PASS PC090OJ direct dispatch: {len(EXPECTED)} usages, {next_record} direct records; "
-          "wrong usage/state/selector/bank/attribute and UNKNOWN all fall back; no linear scan")
+          f"{death_records} exact death records; wrong usage/state/selector/bank/attribute "
+          "and UNKNOWN all fall back; no linear scan")
 
 
 if __name__ == "__main__":

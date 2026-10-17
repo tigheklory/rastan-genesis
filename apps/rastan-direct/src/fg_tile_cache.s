@@ -31,6 +31,7 @@
     .global fg_boundary_slots_reassigned
     .global fg_boundary_active_record
     .global fg_boundary_active_variant
+    .global fg_boundary_active_lut
 
     .extern genesistan_current_scene_id
     .extern genesistan_pc080sn_tile_vram_lut

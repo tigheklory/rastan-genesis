@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>After Burner 32X Teardown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#060a16; --bg2:#0a1024;
+    --line:rgba(140,170,220,.15); --line-2:rgba(140,170,220,.3);
+    --ink:#e6eefb; --muted:#93a4c8; --faint:#657099;
+    --sky:#39b6ff; --electric:#4d79ff; --orange:#ff8a3c; --amber:#ffc24b; --violet:#9b7bff;
+    --present:#36dca6; --partial:#ffc24b; --absent:#ff6274;
+    --native:#222c4d;
+    --maxw:1080px;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --disp:"Chakra Petch",system-ui,sans-serif;
+    --body:"IBM Plex Sans",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(1100px 600px at 80% -10%, rgba(255,138,60,.14), transparent 60%),
+      radial-gradient(1000px 560px at 6% 0%, rgba(57,182,255,.14), transparent 58%),
+      linear-gradient(180deg,#071023 0%,#060a16 44%);
+    background-attachment:fixed;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 16px}
+  a{color:var(--sky); text-decoration:none} a:hover{text-decoration:underline}
+  code,.mono{font-family:var(--mono)}
+  h1,h2,h3{font-family:var(--disp); font-weight:700; line-height:1.1; text-wrap:balance; margin:0}
+
+  header.hero{padding:62px 16px 30px}
+  .hero-inner{max-width:var(--maxw); margin:0 auto}
+  .eyebrow{font-family:var(--mono); font-size:12.5px; letter-spacing:.3em; text-transform:uppercase; color:var(--sky); margin:0 0 18px}
+  .hero h1{font-size:clamp(2.2rem,6vw,4rem); letter-spacing:-.5px}
+  .hero h1 .grad{background:linear-gradient(92deg,var(--sky),var(--orange) 78%); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .lede{color:var(--muted); font-size:clamp(1.02rem,2.3vw,1.25rem); max-width:62ch; margin:20px 0 0}
+  .verdict-line{margin:26px 0 0; font-size:1.05rem; border-left:3px solid var(--sky); padding:4px 0 4px 16px}
+  .verdict-line b{color:var(--orange)}
+  .crumb{font-family:var(--mono); font-size:12px; color:var(--faint); margin:0 0 26px}
+  .crumb a{color:var(--muted)}
+
+  .stats{display:flex; flex-wrap:wrap; gap:10px; margin-top:30px}
+  .stat{background:rgba(14,20,44,.6); border:1px solid var(--line); border-radius:12px; padding:12px 16px}
+  .stat .n{font-family:var(--disp); font-size:1.5rem; font-weight:700}
+  .stat .l{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint)}
+
+  section{padding:40px 0 10px}
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:10px; flex-wrap:wrap}
+  .sec-head .idx{font-family:var(--mono); font-size:13px; color:var(--sky); letter-spacing:.1em}
+  .sec-head h2{font-size:clamp(1.5rem,3.6vw,2.1rem)}
+  .sec-sub{color:var(--muted); max-width:72ch; margin:8px 0 0}
+
+  .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  .card{background:linear-gradient(180deg,rgba(14,20,44,.85),rgba(8,12,28,.7)); border:1px solid var(--line); border-radius:16px; padding:22px; position:relative; overflow:hidden}
+  .card::before{content:""; position:absolute; inset:0 0 auto 0; height:3px}
+  .card.rewrite::before{background:linear-gradient(90deg,var(--absent),#ff93a3)}
+  .card.lift::before{background:linear-gradient(90deg,var(--present),#8af0cf)}
+  .card.reimpl::before{background:linear-gradient(90deg,var(--sky),var(--violet))}
+  .card .tag{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint)}
+  .card h3{font-size:1.18rem; margin:8px 0 10px}
+  .card.rewrite h3{color:#ff8a9a} .card.lift h3{color:var(--present)} .card.reimpl h3{color:var(--sky)}
+  .card p{margin:0; color:var(--muted); font-size:.95rem}
+
+  .mapwrap{background:linear-gradient(180deg,rgba(9,14,32,.9),rgba(6,10,22,.9)); border:1px solid var(--line); border-radius:18px; padding:26px 22px 20px}
+  .legend{display:flex; flex-wrap:wrap; gap:16px 22px; margin:0 0 20px; font-family:var(--mono); font-size:12px; color:var(--muted)}
+  .legend .k{display:inline-flex; align-items:center; gap:8px}
+  .sw{width:15px; height:15px; border-radius:4px; display:inline-block; flex:none}
+  .sw.full{background:var(--present)}
+  .sw.part{background:repeating-linear-gradient(45deg,var(--partial),var(--partial) 4px,rgba(0,0,0,.25) 4px,rgba(0,0,0,.25) 8px)}
+  .sw.snd{background:var(--orange)} .sw.nat{background:var(--native)}
+  .map-scroll{overflow-x:auto; padding-bottom:6px}
+  svg.rommap{display:block; width:100%; min-width:680px; height:auto}
+  .maplabel{font-family:var(--mono); font-size:11px; fill:var(--muted)}
+  .maplabel.b{fill:var(--ink); font-weight:600}
+  .ruler{font-family:var(--mono); font-size:10.5px; fill:var(--faint)}
+  .inset-note{font-family:var(--mono); font-size:11.5px; color:var(--faint); margin:14px 2px 0}
+
+  .tablecard{background:rgba(9,14,32,.7); border:1px solid var(--line); border-radius:16px; overflow:hidden}
+  .tscroll{overflow-x:auto}
+  table{border-collapse:collapse; width:100%; min-width:730px; font-size:14px}
+  thead th{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); text-align:left; padding:14px; border-bottom:1px solid var(--line-2); background:rgba(14,20,44,.5)}
+  td{padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+  tbody tr:hover{background:rgba(57,182,255,.05)}
+  td.rom{font-family:var(--mono); color:var(--ink); white-space:nowrap}
+  td.ic{font-family:var(--mono); color:var(--faint)}
+  .role{font-family:var(--mono); font-size:12px; color:var(--sky)}
+  .dtype{color:var(--muted); font-size:13px}
+  .badge{font-family:var(--mono); font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; white-space:nowrap}
+  .badge.full{background:rgba(54,220,166,.15); color:var(--present); border:1px solid rgba(54,220,166,.35)}
+  .badge.part{background:rgba(255,194,75,.13); color:var(--partial); border:1px solid rgba(255,194,75,.33)}
+  .badge.no{background:rgba(255,98,116,.12); color:var(--absent); border:1px solid rgba(255,98,116,.3)}
+  td.loc{font-family:var(--mono); color:var(--orange); font-size:12.5px; white-space:nowrap}
+  .grp td{background:rgba(155,123,255,.08); font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--violet); padding:9px 14px}
+
+  .prose p{color:#cdd6ec; margin:0 0 16px; max-width:72ch} .prose p b{color:var(--ink)} .prose .hl{color:var(--orange); font-weight:600}
+  .steps{list-style:none; margin:10px 0 0; padding:0; counter-reset:s}
+  .steps li{counter-increment:s; position:relative; padding:16px 16px 16px 60px; margin-bottom:12px; background:rgba(14,20,44,.55); border:1px solid var(--line); border-radius:12px; color:#cdd6ec}
+  .steps li::before{content:counter(s,decimal-leading-zero); position:absolute; left:18px; top:15px; font-family:var(--disp); font-weight:700; font-size:1.1rem; color:var(--sky)}
+  .steps li b{color:var(--ink)}
+
+  .callout{background:linear-gradient(180deg,rgba(57,182,255,.12),rgba(14,20,44,.5)); border:1px solid rgba(57,182,255,.3); border-radius:16px; padding:22px; margin-top:8px}
+  .callout h3{font-size:1.1rem; color:var(--sky); margin:0 0 8px}
+  .callout p{margin:0; color:#cdd6ec}
+
+  footer{padding:40px 0 70px; color:var(--faint); font-size:13px}
+  footer .fcard{background:rgba(9,14,32,.6); border:1px solid var(--line); border-radius:14px; padding:20px}
+  footer h3{font-family:var(--disp); font-size:1rem; color:var(--muted); margin:0 0 10px}
+  footer p{margin:0 0 10px; max-width:78ch; line-height:1.55}
+  .divider{height:1px; background:var(--line); margin:30px 0}
+  @media (max-width:760px){ .cards{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="crumb">ROM teardown series · 02 of 02 &nbsp;·&nbsp; companion to the Space&nbsp;Harrier teardown</p>
+    <p class="eyebrow">Sega 32X vs. Sega X Board Super Scaler</p>
+    <h1><span class="grad">After Burner</span> Complete,<br>pulled apart</h1>
+    <p class="lede">The 1994 <code>AFTER BURNER COMPLETE</code> 32X cartridge (2&nbsp;MB) measured byte-for-byte
+      against the 27 original After&nbsp;Burner&nbsp;II arcade ROMs. Same question as Space Harrier: how much of
+      the arcade machine is actually inside the cart?</p>
+    <p class="verdict-line">Verdict: the <b>same recipe</b> as Space Harrier — rewritten engine, lifted data —
+      with one sharper detail: the arcade's <b>3D sprite-projection &amp; scaling tables are copied in at 94%</b>
+      and driven by the SH-2s.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">2,097,152</div><div class="l">32X bytes scanned</div></div>
+      <div class="stat"><div class="n">27</div><div class="l">arcade ROMs compared</div></div>
+      <div class="stat"><div class="n">94 %</div><div class="l">sub-CPU 3D tables lifted</div></div>
+      <div class="stat"><div class="n">~0 %</div><div class="l">arcade engine code present</div></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="verdict">
+    <div class="sec-head"><span class="idx">01</span><h2>The same three layers</h2></div>
+    <p class="sec-sub">After Burner II runs on Sega's X Board — a bigger, later Super Scaler design than Space
+      Harrier, with two 68000s both substantially larger. Rutubo split it the same way.</p>
+    <div class="cards" style="margin-top:22px">
+      <div class="card rewrite">
+        <div class="tag">Thrown away</div><h3>Both engines</h3>
+        <p>The <b>main</b> 68000 code (reset, main loop, X-Board hardware setup at <code>$140000</code>/<code>$e8010</code>)
+          and the <b>sub</b> 68000 code (the <code>$55555555</code> master/slave handshake, the per-frame loop) are
+          absent — 7.6% in the sub's code zone, the entry code not found at all. Standard <code>"MARS"</code> boot.</p>
+      </div>
+      <div class="card lift">
+        <div class="tag">Copied verbatim</div><h3>Data &amp; math tables</h3>
+        <p>The main-CPU <b>mission/object data</b> (up to 78% of some banks) and — the headline — the sub-CPU's
+          <b>sprite-projection &amp; scaling tables</b> at <b>94%</b> are embedded intact. The arcade sound Z80 is
+          ~49% reused.</p>
+      </div>
+      <div class="card reimpl">
+        <div class="tag">Reinvented</div><h3>The Super Scaler</h3>
+        <p>All 16 sprite ROMs, the tiles, the road and the PCM samples are <b>gone / re-encoded</b>. The SH-2 pair
+          performs the scaling the X-Board hardware did — but it does it using the arcade's own copied scaling
+          tables.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="map">
+    <div class="sec-head"><span class="idx">02</span><h2>Where the arcade lives in the cart</h2></div>
+    <p class="sec-sub">The full 2&nbsp;MB image. The arcade-derived content sits in one data cluster near the
+      front and a block of reused sound near the back; the rest is Rutubo's native 32X payload.</p>
+    <div class="mapwrap" style="margin-top:22px">
+      <div class="legend">
+        <span class="k"><span class="sw nat"></span>Native 32X code / re-encoded assets</span>
+        <span class="k"><span class="sw snd"></span>Arcade Z80 sound (~49%)</span>
+        <span class="k"><span class="sw part"></span>Arcade main-CPU data (partial)</span>
+        <span class="k"><span class="sw full"></span>Arcade sub-CPU 3D tables (94%)</span>
+      </div>
+      <div class="map-scroll">
+        <svg class="rommap" viewBox="0 0 1000 220" preserveAspectRatio="xMidYMid meet" role="img"
+             aria-label="Memory map of the 2 MB After Burner 32X ROM showing embedded arcade data">
+          <rect x="0" y="86" width="1000" height="34" rx="4" fill="#222c4d"/>
+          <defs>
+            <pattern id="hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+              <rect width="7" height="7" fill="#ffc24b"/><rect width="3.5" height="7" fill="rgba(0,0,0,.28)"/>
+            </pattern>
+          </defs>
+          <!-- main data 6.0-13.0% -->
+          <rect x="60.0" y="86" width="69.9" height="34" fill="url(#hatch)"/>
+          <!-- sub 3D tables 13.0-16.0% -->
+          <rect x="130.1" y="86" width="30.1" height="34" fill="#36dca6"/>
+          <!-- sound 74.2-81.2% -->
+          <rect x="741.6" y="86" width="70.4" height="34" fill="#ff8a3c"/>
+
+          <g class="ruler">
+            <line x1="0" y1="128" x2="1000" y2="128" stroke="rgba(140,170,220,.2)"/>
+            <line x1="1" y1="124" x2="1" y2="132" stroke="rgba(140,170,220,.4)"/><text x="2" y="146">0x000000</text>
+            <line x1="250" y1="124" x2="250" y2="132" stroke="rgba(140,170,220,.4)"/><text x="250" y="146" text-anchor="middle">0x080000</text>
+            <line x1="500" y1="124" x2="500" y2="132" stroke="rgba(140,170,220,.4)"/><text x="500" y="146" text-anchor="middle">0x100000</text>
+            <line x1="750" y1="124" x2="750" y2="132" stroke="rgba(140,170,220,.4)"/><text x="750" y="146" text-anchor="middle">0x180000</text>
+            <line x1="999" y1="124" x2="999" y2="132" stroke="rgba(140,170,220,.4)"/><text x="999" y="146" text-anchor="end">0x200000</text>
+          </g>
+          <g>
+            <!-- main data callout -->
+            <line x1="95" y1="86" x2="95" y2="40" stroke="#ffc24b" stroke-width="1"/><circle cx="95" cy="86" r="2.4" fill="#ffc24b"/>
+            <text class="maplabel b" x="60" y="28">Main-CPU data (partial)</text>
+            <text class="maplabel" x="60" y="40">epr-11107/11108 · 0x01EB56–0x042840</text>
+            <!-- sub data callout -->
+            <line x1="145" y1="120" x2="145" y2="172" stroke="#36dca6" stroke-width="1"/><circle cx="145" cy="120" r="2.4" fill="#36dca6"/>
+            <text class="maplabel b" x="150" y="188">Sub-CPU 3D projection / scaling tables — 94%</text>
+            <text class="maplabel" x="150" y="200">epr-11109/11110 · 0x0429D0–0x05206A</text>
+            <!-- sound callout -->
+            <line x1="776" y1="86" x2="776" y2="40" stroke="#ff8a3c" stroke-width="1"/><circle cx="776" cy="86" r="2.4" fill="#ff8a3c"/>
+            <text class="maplabel b" x="776" y="28" text-anchor="middle">Z80 sound ~49%</text>
+            <text class="maplabel" x="776" y="40" text-anchor="middle">epr-11112 · 0x17BAF9–0x19FBF2</text>
+          </g>
+        </svg>
+      </div>
+      <p class="inset-note">Arcade data clusters across 0x01E000–0x052000 (main mission data flowing straight
+        into the sub-CPU math tables), with reused sound near 0x17C000. The intervening ~1.4&nbsp;MB and the tail
+        are the native 32X engine, SH-2 renderer and re-encoded graphics.</p>
+    </div>
+  </section>
+
+  <section id="roms">
+    <div class="sec-head"><span class="idx">03</span><h2>Every ROM, accounted for</h2></div>
+    <p class="sec-sub">Roles from MAME's <code>segaxbd.cpp</code> <code>aburner2</code> set. "In 32X" measured by
+      32-byte content matching against the de-interleaved cart image.</p>
+    <div class="tablecard" style="margin-top:20px">
+      <div class="tscroll">
+      <table>
+        <thead><tr><th>Arcade ROM</th><th>IC</th><th>Arcade role</th><th>Data type</th><th>In 32X</th><th>32X location</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="6">Main CPU — 68000 · 256 KB interleaved pair</td></tr>
+          <tr><td class="rom">epr-11107 / epr-11108</td><td class="ic">.58 / .63</td><td class="role">maincpu</td><td class="dtype">Engine code zone (reset, loop, HW setup)</td><td><span class="badge no">code absent</span></td><td class="loc">—</td></tr>
+          <tr><td class="rom">epr-11107 / epr-11108</td><td class="ic">.58 / .63</td><td class="role">maincpu $20000+</td><td class="dtype">Mission / stage / object <b>data tables</b></td><td><span class="badge part">partial 30–78%</span></td><td class="loc">0x01EB56–0x042840</td></tr>
+
+          <tr class="grp"><td colspan="6">Sub CPU — 68000 (sprite / road processor) · 256 KB interleaved pair</td></tr>
+          <tr><td class="rom">epr-11109 / epr-11110</td><td class="ic">.20 / .29</td><td class="role">subcpu code</td><td class="dtype">Projection engine code (handshake, loop)</td><td><span class="badge no">7.6% — absent</span></td><td class="loc">—</td></tr>
+          <tr><td class="rom">epr-11109 / epr-11110</td><td class="ic">.20 / .29</td><td class="role">subcpu $20000+</td><td class="dtype"><b>3D sprite-projection &amp; scaling tables</b></td><td><span class="badge full">verbatim 94%</span></td><td class="loc">0x0429D0–0x05206A</td></tr>
+
+          <tr class="grp"><td colspan="6">Sound</td></tr>
+          <tr><td class="rom">epr-11112</td><td class="ic">ic17</td><td class="role">soundcpu (Z80)</td><td class="dtype">Z80 sound driver + sequence data</td><td><span class="badge part">reused ~49%</span></td><td class="loc">0x17BAF9–0x19FBF2</td></tr>
+          <tr><td class="rom">mpr-10930 / 10931 / epr-11102</td><td class="ic">.11/.12/.13</td><td class="role">SegaPCM</td><td class="dtype">PCM voice / sample data (512 KB)</td><td><span class="badge no">absent</span></td><td class="loc">re-encoded</td></tr>
+
+          <tr class="grp"><td colspan="6">Graphics</td></tr>
+          <tr><td class="rom">mpr-10932 … epr-11119</td><td class="ic">×16</td><td class="role">sprites (2 MB)</td><td class="dtype">Zoomable Super&nbsp;Scaler sprite cels</td><td><span class="badge no">absent</span></td><td class="loc">re-encoded for SH-2</td></tr>
+          <tr><td class="rom">epr-11113 / 11114 / 11115</td><td class="ic">.152/.153/.154</td><td class="role">gfx1 (tiles)</td><td class="dtype">Background / text tile planes</td><td><span class="badge no">absent</span></td><td class="loc">re-encoded for VDP</td></tr>
+          <tr><td class="rom">epr-10922</td><td class="ic">ic40</td><td class="role">road graphics</td><td class="dtype">Road/horizon pattern data</td><td><span class="badge no">absent</span></td><td class="loc">re-encoded</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="rutubo" class="prose">
+    <div class="sec-head"><span class="idx">04</span><h2>What Rutubo did here</h2></div>
+    <p>After Burner II is a heavier machine than Space Harrier — the X Board carries two full-size 68000
+      programs (256&nbsp;KB each) because the sub-CPU is doing continuous 3D work: projecting and scaling the jet,
+      enemies, missiles and the banking horizon every frame. That makes the triage more interesting, but the
+      principle is identical to the Space Harrier cart:</p>
+    <ol class="steps">
+      <li><b>The executable cores of both 68000s were rewritten.</b> Neither the main engine code nor the
+        sub-CPU's projection <em>code</em> is in the cart (the sub code zone scores 7.6%, and the exact entry-code
+        bytes are not present). As with Space Harrier, the ROM boots through the stock <code>"MARS"</code> 32X stub
+        into fresh code.</li>
+      <li><b>The sub-CPU's math tables were too valuable to recompute.</b> The X-Board sub-CPU leans on large
+        baked tables — sprite zoom/projection, scaling and object data. Reproducing those exactly is tedious and
+        error-prone, so Rutubo copied them in whole: <span class="hl">94%</span> of the sub-CPU data region lands in
+        the cart at <code>0x429D0</code>. The SH-2 software scaler then renders <em>using the arcade's own
+        numbers</em> — which is as literal as "the 32X takes over the Super Scaler" ever gets.</li>
+      <li><b>Main-CPU mission data came along too.</b> The stage/enemy/attack-pattern tables in the upper main
+        program (up to ~78% of one bank) were reused, matching how Space Harrier's stage data was lifted.</li>
+      <li><b>Sound reused where the chip matches.</b> The arcade sound CPU is a Z80 and so is the Genesis's, so
+        ~49% of the sound ROM — driver plus sequence data — carries over, parked near <code>0x17C000</code>.</li>
+      <li><b>Everything format-bound was re-encoded.</b> All sixteen sprite mask ROMs (a full 2&nbsp;MB on the
+        arcade), the tiles, the road graphics and the half-megabyte of PCM are absent, rebuilt for the SH-2
+        framebuffer, the Genesis VDP and the Genesis sound path.</li>
+    </ol>
+
+    <div class="callout">
+      <h3>The one real difference from Space Harrier</h3>
+      <p>Space Harrier's ground is a flat checkerboard, so its sub-CPU had little worth keeping and was dropped
+        almost entirely. After Burner's sub-CPU is a genuine 3D projector, so its <em>data</em> — not its code —
+        became the single largest arcade lift in the cart. Same strategy, applied to a harder problem: keep the
+        expensive numbers, rewrite the machine that uses them.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+  <footer>
+    <div class="fcard">
+      <h3>Method &amp; caveats</h3>
+      <p>The 32X image (<code>After Burner 32X (A) [!].32x</code>, 2,097,152 bytes, header name
+        <code>AFTER BURNER COMPLETE</code>) was de-interleaved into even/odd streams and each arcade ROM searched
+        against the raw image and each half using 32-byte high-entropy windows; blocks were confirmed by
+        extending exact contiguous runs and by 68000 disassembly. "Code zone" vs "data zone" of each program was
+        separated by disassembly and by per-region coverage: the sub-CPU's code region (around entry
+        <code>0x402</code>) is 7.6% present while its table region (<code>0x20000–0x3C000</code>) is 94% present.
+        Whether the Genesis 68000 executes any lifted bytes or only reads them as data was not instrumented; the
+        verbatim, un-relocated copies are consistent with data/table reuse rather than re-hosted code. Roles from
+        MAME <code>segaxbd.cpp</code> <code>aburner2</code>. Originals treated as read-only; analysis ran on copies.</p>
+      <p>Sources:
+        <a href="https://github.com/mamedev/mame/blob/master/src/mame/sega/segaxbd.cpp">MAME segaxbd.cpp</a> ·
+        <a href="https://segaretro.org/After_Burner">Sega Retro — After Burner</a> ·
+        <a href="https://www.system16.com/hardware.php?id=847">system16 — Sega X Board</a></p>
+      <p style="color:var(--faint)">Teardown prepared for Tighe · rastan-genesis/analysis · 2026-10-16</p>
+    </div>
+  </footer>
+</main>
+</body>
+</html>

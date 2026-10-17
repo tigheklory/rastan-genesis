@@ -8,14 +8,16 @@
  *   moving rec_type actor step (0x42E38): animate + move + probe collision grid
  *        -> solid cell  -> 0x447F0 impact  -> state 0x0F (0x40CCC) + sfx 0x10
  *   component/burst group (0x43F52 over a pool): each active member -> 0x447F0 (state 0) -> retire
- *   death-animation complete (0x44804 component stepper) / boss defeat (0x469E8):
- *        -> 0x3B726 score award, value = dying actor's +0x2C  (extra life at 999999)
- *        -> 0x4092E retire/clear (zero record + companion block) ; slot reusable
+ *   damage accumulator 0x44804: add weapon-dependent damage, compare +0x3A threshold,
+ *        and on lethal damage enter state 0x0F through 0x448B2; rec_type 8/9 also
+ *        starts the paired Flying-Demon body death immediately at 0x44896
  *   latent-hunter retarget (0x4103A): 0x4092E clear -> re-arm hunter -> caller writes next base/char
  *
- * ITEM/DROP FINDING: no death-triggered drop/item creator is reached from any of these paths.
- * Rastan pickups/power-ups are PLACED in the level via the marker-materialization system (H6) and
- * the field schedule (checkpoints A/B/C), not dropped on kill. See report section E.
+ * ITEM/DROP CORRECTION: the default state-0x0F completion at 0x40D32 transforms the SAME
+ * actor into family 12.  Field-schedule byte 3, installed at actor +0x36 by 0x4A086,
+ * deterministically selects the 0x0A5A reward form through tables 0x40C2E/0x40C40;
+ * +0x36==0 recycles without leaving a reward.  This is separate from fixed/map pickups and
+ * from the A5+0x12C8 timed-weapon event path.
  */
 #include "rastan_arcade_types.h"
 

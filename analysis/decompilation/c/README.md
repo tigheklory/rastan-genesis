@@ -33,7 +33,9 @@ rather than trusting the Markdown conclusions.
 - `rastan_actor_collision.c` — CHECKPOINT H9: the enemy collision manager `0x449B4` (player boxes
   vs enemy hurtboxes, the scan H8 could not find), AABB primitive `0x44CBA` + hurtbox rect table
   `0x44CE0`, hurtbox-index selector `0x446BC`, one-hit reaction `0x447CE`/`0x448D8`. Fatal path is
-  one-hit → state 0x0F death anim → score(+0x2C) → retire. (Per-kill item-drop creator still OPEN.)
+  thresholded damage → state 0x0F death anim. Eligible ordinary deaths do not allocate a child:
+  `0x40CCC` transforms the same record to family 12/base `0x0A5A`, selected deterministically by
+  schedule field `+0x36`; `0x448D8` awards `+0x2C` and recycles it on collection.
 - `rastan_actor_render.c` — CHECKPOINT H10: render selector dispatch `0x3D054` + selector thunks
   `0x3F0BC`/`0x4770E`/`0x3FFDC`/`0x3FFF0` (all funnel to the shared 0x3C902 interpreter).
 - `rastan_actor_palette.c` — CHECKPOINT H10: palette-attribute resolver `0x45684` (non-fam2 table
@@ -49,6 +51,11 @@ rather than trusting the Markdown conclusions.
   A5+0x12C8 item-event route that grants FIRE SWORD, the shared A5+0x12FA selector, and
   A5+0x1326 timer expiry back to state 1. It also records the distinct graphics and contact-table
   consumers and the Genesis absolute-WRAM operand regression.
+- `rastan_player_hud.c` — bounded static reconstruction of the gameplay bottom-HUD producers:
+  active-player reserve lives and persistent ROUND at `0x3B802`, four independently gated icon
+  intents at `0x59F92`, the six-cell energy/status semantics at `0x5A098` plus lifecycle helper
+  `0x5A244`, and their true containing caller `0x5100A`. Raw files also separate the persistent
+  PC090OJ ROUND group from the one-shot PC080SN `ROUND ... READY` transition at `0x3A6B2`.
 - `rastan_scene_map.c` — CHECKPOINT H11: scene/section resolver `0x503BC` (0x50EE0/0x50F6B →
   section kind), collision-grid column writer `0x559B2` (marker = column_record[20+…]),
   background decompressor `0x563A6`. Six Phase-2 castle starts proven. H12: A5+0x10D000 populator 0x502CC (descriptor(col,scene)=0x1691C+col*0x22C0+0x13E*0x40) closes the H11 blocker.

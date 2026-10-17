@@ -127,7 +127,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 231  # Build 0386: +1 byte-neutral opcode_repla
 # Build 0406 native sprite completion candidate adds the generated universal
 # specialized-frame payload/index and the shared visual/contact dispatch code.
 # Opcode-replacement site count remains unchanged.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x292EB8  # Build 0423 generated Plane-B visual records.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x292EB8  # Build 0433 compact native death-frame payload.
 
 # Build 0277: arcade_pc 0x051DF8 is a BRA.S to the semantic entry at
 # arcade_pc 0x051E00.  The target is also the start of a shrinking shift

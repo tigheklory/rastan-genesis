@@ -137,12 +137,15 @@ PC090OJ_FRAME_GEN := $(ROOT)/tools/translation/precompute_pc090oj_frame_table.py
 PC090OJ_FRAME_VERIFY := $(ROOT)/tools/translation/verify_pc090oj_frame_table.py
 PC090OJ_DISPATCH_VERIFY := $(ROOT)/tools/translation/verify_pc090oj_direct_dispatch.py
 PC090OJ_FRAME_TABLE := $(ROOT)/build/pc090oj_frame_table.bin
+PC090OJ_PLAYER_PIECE_TABLE := $(ROOT)/build/pc090oj_player_piece_table.bin
 PC090OJ_FRAME_INDEX := $(ROOT)/build/pc090oj_frame_index.bin
 PC090OJ_SECONDARY_FRAME_INDEX := $(ROOT)/build/pc090oj_secondary_frame_index.bin
 PC090OJ_GENERIC_FRAME_INDEX := $(ROOT)/build/pc090oj_generic_frame_index.bin
 PC090OJ_GENERIC_PIECE_TABLE := $(ROOT)/build/pc090oj_generic_piece_table.bin
 PC090OJ_UNIVERSAL_FRAME_INDEX := $(ROOT)/build/pc090oj_universal_frame_index.bin
 PC090OJ_SPECIAL_FRAME_INDEX := $(ROOT)/build/pc090oj_special_frame_index.bin
+PC090OJ_DEATH_FRAME_INDEX := $(ROOT)/build/pc090oj_death_frame_index.bin
+PC090OJ_DEATH_PIECE_TABLE := $(ROOT)/build/pc090oj_death_piece_table.bin
 PC090OJ_GENERIC_BASE_LUT := $(ROOT)/build/pc090oj_generic_base_lut.bin
 PC090OJ_GENERIC_USAGE_TABLE := $(ROOT)/build/pc090oj_generic_usage_table.bin
 PC090OJ_FRAME_RESIDENCY := $(ROOT)/build/pc090oj_frame_residency.bin
@@ -190,41 +193,72 @@ DIAG_ROM := $(DIST_DIR)/rastan_direct_video_test_diag.bin
 SCORE_ROM := $(DIST_DIR)/rastan_direct_video_test_score.bin
 DO_ROM := $(DIST_DIR)/rastan_direct_video_test_do.bin
 CHEAT_ROM := $(DIST_DIR)/rastan_direct_video_test_cheat.bin
+FULL_HUD_ROM := $(DIST_DIR)/rastan_direct_video_test_full_hud.bin
+VARIANT_CONFIG_DIR := $(OUT_DIR)/variant_configs
+
+# Every family member declares the complete compile-time configuration.  This
+# prevents a recursively built variant from inheriting the preceding member's
+# generated pc090oj_config.inc state.  Mode 2 remains the canonical default;
+# mode 1 differs only by enabling the existing full gameplay HUD.
+CANONICAL_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0
+DIAG_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=1 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0
+SCORE_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=1 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0
+DISPLAY_OFF_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=1 RASTAN_MODE_RACK_ADVANCE=0
+CHEAT_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=1
+FULL_HUD_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=1 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0
 
 .DELETE_ON_ERROR:
-.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant cheat-variant verify-variant-set
+.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant cheat-variant full-hud-variant verify-variant-set
 
-# Build 0360: every build produces FIVE ROMs sharing one build number:
+# Every build produces SIX ROMs sharing one build number:
 #   ..._NNNN.bin     release (all diag/variant flags off) -- owns the counter/gates/ledger
 #   ..._NNNN_d.bin   diagnostic CPU-load raster bar (RASTAN_DIAG_CPU_BAR=1)
 #   ..._NNNN_s.bin   diagnostic numeric score metric (RASTAN_DIAG_SCORE_METRIC=1)
 #   ..._NNNN_do.bin  display-off VBlank publication phase (RASTAN_VBLANK_DISPLAY_OFF=1)
 #   ..._NNNN_c.bin   P1 six-button MODE rack-advance cheat (RASTAN_MODE_RACK_ADVANCE=1)
+#   ..._NNNN_full_hud.bin existing full gameplay HUD (RASTAN_GAMEPLAY_HUD_SPRITES=1)
 # The suffixed builds are postpatch-only copies that reuse the release's number and are never
 # numbered/ledgered themselves.
 all: dual-build
 release: dual-build
 
 dual-build:
-	$(MAKE) $(BIN)
-	$(MAKE) diag-variant RASTAN_DIAG_CPU_BAR=1
-	$(MAKE) score-variant RASTAN_DIAG_SCORE_METRIC=1
-	$(MAKE) do-variant RASTAN_VBLANK_DISPLAY_OFF=1
-	$(MAKE) cheat-variant RASTAN_MODE_RACK_ADVANCE=1 CRASH_BUILD_USE_CURRENT=1
+	$(MAKE) $(BIN) $(CANONICAL_BUILD_FLAGS)
+	$(MAKE) diag-variant $(DIAG_BUILD_FLAGS)
+	$(MAKE) score-variant $(SCORE_BUILD_FLAGS)
+	$(MAKE) do-variant $(DISPLAY_OFF_BUILD_FLAGS)
+	$(MAKE) cheat-variant $(CHEAT_BUILD_FLAGS) CRASH_BUILD_USE_CURRENT=1
+	$(MAKE) full-hud-variant $(FULL_HUD_BUILD_FLAGS) CRASH_BUILD_USE_CURRENT=1
 	$(MAKE) verify-variant-set
 
 # A default/release build is incomplete unless the canonical ROM and every
-# same-number variant, including the rack-advance `_c` ROM, are present.
+# same-number variant, including the full-HUD comparison ROM, are present.
 verify-variant-set:
 	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
 	tag=$$(printf "%04d" "$$n"); \
-	for suffix in "" _d _s _do _c; do \
+	for suffix in "" _d _s _do _c _full_hud; do \
 		artifact="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}$${suffix}.bin"; \
 		if [ ! -s "$$artifact" ]; then echo "ERROR: required build artifact missing/empty: $$artifact"; exit 1; fi; \
 	done; \
-	echo "complete build artifact set verified for $$tag (canonical, _d, _s, _do, _c)"
+	check_config() { \
+		file="$$1"; hud="$$2"; bar="$$3"; score="$$4"; display_off="$$5"; mode="$$6"; \
+		if [ ! -s "$$file" ]; then echo "ERROR: missing variant configuration receipt: $$file"; exit 1; fi; \
+		grep -qx ".equ PC090OJ_MIRROR_RECORDS, $(PC090OJ_MIRROR_RECORDS)" "$$file" || exit 1; \
+		grep -qx ".equ RASTAN_GAMEPLAY_HUD_SPRITES, $$hud" "$$file" || exit 1; \
+		grep -qx ".equ RASTAN_DIAG_CPU_BAR, $$bar" "$$file" || exit 1; \
+		grep -qx ".equ RASTAN_DIAG_SCORE_METRIC, $$score" "$$file" || exit 1; \
+		grep -qx ".equ RASTAN_VBLANK_DISPLAY_OFF, $$display_off" "$$file" || exit 1; \
+		grep -qx ".equ RASTAN_MODE_RACK_ADVANCE, $$mode" "$$file" || exit 1; \
+	}; \
+	check_config "$(VARIANT_CONFIG_DIR)/canonical.inc" 2 0 0 0 0; \
+	check_config "$(VARIANT_CONFIG_DIR)/diag.inc" 2 1 0 0 0; \
+	check_config "$(VARIANT_CONFIG_DIR)/score.inc" 2 0 1 0 0; \
+	check_config "$(VARIANT_CONFIG_DIR)/display_off.inc" 2 0 0 1 0; \
+	check_config "$(VARIANT_CONFIG_DIR)/cheat.inc" 2 0 0 0 1; \
+	check_config "$(VARIANT_CONFIG_DIR)/full_hud.inc" 1 0 0 0 0; \
+	echo "complete build artifact/configuration set verified for $$tag (canonical, _d, _s, _do, _c, _full_hud)"
 
-$(OUT_DIR) $(DIST_DIR):
+$(OUT_DIR) $(DIST_DIR) $(VARIANT_CONFIG_DIR):
 	@mkdir -p $@
 
 $(OUT_DIR)/boot.o: $(SRC_DIR)/boot/boot.s FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -246,7 +280,7 @@ $(CRASH_BUILD_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 	printf '/* GENERATED build number by apps/rastan-direct/Makefile -- do not hand-edit. */\ncrash_build_number_str: .asciz "%s"\n' "$$tag" > $@; \
 	echo "crash build number -> $$tag ($@)"
 
-$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -349,7 +383,7 @@ $(PC090OJ_OPAQUE_BBOX): $(PC090OJ_REGION) $(ROOT)/tools/translation/build_pc090o
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_opaque_bbox.py" \
 		--input "$<" --output "$@"
 
-$(PC090OJ_FRAME_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_SECONDARY_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_PIECE_TABLE) $(PC090OJ_UNIVERSAL_FRAME_INDEX) $(PC090OJ_SPECIAL_FRAME_INDEX) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) $(PC090OJ_FRAME_REPORT) $(PC090OJ_FRAME_COVERAGE): $(MAINCPU_REGION) $(PC090OJ_EDITOR) $(EDITOR_LAYERA_SNAPSHOT) $(PALETTE_DECISIONS) $(H24_WEAPON_CELLS) $(H24_PLAYER_CELLS) $(H24_LEG_CELLS) $(H16_BURST_RENDER) $(ACTOR_GRAPHICS_MANIFEST) $(R1P1_ENEMY_CORPUS) $(PC090OJ_FRAME_GEN) $(PC090OJ_FRAME_VERIFY) $(PC090OJ_DISPATCH_VERIFY)
+$(PC090OJ_FRAME_TABLE) $(PC090OJ_PLAYER_PIECE_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_SECONDARY_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_PIECE_TABLE) $(PC090OJ_UNIVERSAL_FRAME_INDEX) $(PC090OJ_SPECIAL_FRAME_INDEX) $(PC090OJ_DEATH_FRAME_INDEX) $(PC090OJ_DEATH_PIECE_TABLE) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) $(PC090OJ_FRAME_REPORT) $(PC090OJ_FRAME_COVERAGE): $(MAINCPU_REGION) $(PC090OJ_EDITOR) $(EDITOR_LAYERA_SNAPSHOT) $(PALETTE_DECISIONS) $(H24_WEAPON_CELLS) $(H24_PLAYER_CELLS) $(H24_LEG_CELLS) $(H16_BURST_RENDER) $(ACTOR_GRAPHICS_MANIFEST) $(R1P1_ENEMY_CORPUS) $(PC090OJ_FRAME_GEN) $(PC090OJ_FRAME_VERIFY) $(PC090OJ_DISPATCH_VERIFY)
 	$(PYTHON) "$(PC090OJ_FRAME_GEN)" \
 		--maincpu "$(MAINCPU_REGION)" --variant-index "$(ROOT)/build/regions/pc090oj_variant_index.json" \
 		--body-evidence "$(H24_PLAYER_CELLS)" --weapon-evidence "$(H24_WEAPON_CELLS)" \
@@ -357,29 +391,36 @@ $(PC090OJ_FRAME_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_SECONDARY_FRAME_INDEX) $
 		--profile "$(EDITOR_LAYERA_SNAPSHOT)" --palette-decisions "$(PALETTE_DECISIONS)" \
 		--burst-evidence "$(H16_BURST_RENDER)" --actor-manifest "$(ACTOR_GRAPHICS_MANIFEST)" \
 		--enemy-corpus "$(R1P1_ENEMY_CORPUS)" \
-		--table-output "$(PC090OJ_FRAME_TABLE)" --index-output "$(PC090OJ_FRAME_INDEX)" \
+		--table-output "$(PC090OJ_FRAME_TABLE)" --player-table-output "$(PC090OJ_PLAYER_PIECE_TABLE)" \
+		--index-output "$(PC090OJ_FRAME_INDEX)" \
 		--secondary-index-output "$(PC090OJ_SECONDARY_FRAME_INDEX)" \
 		--generic-index-output "$(PC090OJ_GENERIC_FRAME_INDEX)" \
 		--generic-table-output "$(PC090OJ_GENERIC_PIECE_TABLE)" \
 		--universal-index-output "$(PC090OJ_UNIVERSAL_FRAME_INDEX)" \
 		--special-index-output "$(PC090OJ_SPECIAL_FRAME_INDEX)" \
+		--death-index-output "$(PC090OJ_DEATH_FRAME_INDEX)" \
+		--death-table-output "$(PC090OJ_DEATH_PIECE_TABLE)" \
 		--generic-base-lut-output "$(PC090OJ_GENERIC_BASE_LUT)" \
 		--generic-usage-output "$(PC090OJ_GENERIC_USAGE_TABLE)" \
 		--residency-output "$(PC090OJ_FRAME_RESIDENCY)" --report-output "$(PC090OJ_FRAME_REPORT)" \
 		--coverage-output "$(PC090OJ_FRAME_COVERAGE)"
 	$(PYTHON) "$(PC090OJ_FRAME_VERIFY)" --maincpu "$(MAINCPU_REGION)" \
 		--variant-index "$(ROOT)/build/regions/pc090oj_variant_index.json" \
-		--table "$(PC090OJ_FRAME_TABLE)" --index "$(PC090OJ_FRAME_INDEX)" \
+		--table "$(PC090OJ_FRAME_TABLE)" --player-table "$(PC090OJ_PLAYER_PIECE_TABLE)" \
+		--index "$(PC090OJ_FRAME_INDEX)" \
 		--secondary-index "$(PC090OJ_SECONDARY_FRAME_INDEX)" \
 		--generic-index "$(PC090OJ_GENERIC_FRAME_INDEX)" \
 		--generic-table "$(PC090OJ_GENERIC_PIECE_TABLE)" \
 		--universal-index "$(PC090OJ_UNIVERSAL_FRAME_INDEX)" \
 		--special-index "$(PC090OJ_SPECIAL_FRAME_INDEX)" \
+		--death-index "$(PC090OJ_DEATH_FRAME_INDEX)" \
+		--death-table "$(PC090OJ_DEATH_PIECE_TABLE)" \
 		--generic-base-lut "$(PC090OJ_GENERIC_BASE_LUT)" \
 		--generic-usage "$(PC090OJ_GENERIC_USAGE_TABLE)" \
 		--residency "$(PC090OJ_FRAME_RESIDENCY)" --coverage "$(PC090OJ_FRAME_COVERAGE)"
 	$(PYTHON) "$(PC090OJ_DISPATCH_VERIFY)" --base-lut "$(PC090OJ_GENERIC_BASE_LUT)" \
 		--usage "$(PC090OJ_GENERIC_USAGE_TABLE)" --index "$(PC090OJ_GENERIC_FRAME_INDEX)" \
+		--death-index "$(PC090OJ_DEATH_FRAME_INDEX)" \
 		--assembly "$(SRC_DIR)/pc090oj_hooks.s"
 
 # Generate the PC090OJ helper sizing include from the Make variable each build so
@@ -399,7 +440,7 @@ $(PC090OJ_PALSEL_LUT_INC): $(SRC_DIR)/palette_hooks.s $(EDITOR_LAYERA_SNAPSHOT) 
 $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) $(PC090OJ_VARIANTS_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_EDITOR) $(PC090OJ_LAYER1_STAMP) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) $(PC090OJ_FRAME_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_SECONDARY_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_PIECE_TABLE) $(PC090OJ_UNIVERSAL_FRAME_INDEX) $(PC090OJ_SPECIAL_FRAME_INDEX) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_EDITOR) $(PC090OJ_LAYER1_STAMP) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) $(PC090OJ_FRAME_TABLE) $(PC090OJ_PLAYER_PIECE_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_SECONDARY_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_PIECE_TABLE) $(PC090OJ_UNIVERSAL_FRAME_INDEX) $(PC090OJ_SPECIAL_FRAME_INDEX) $(PC090OJ_DEATH_FRAME_INDEX) $(PC090OJ_DEATH_PIECE_TABLE) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/diag_bookmark.o: $(SRC_DIR)/diag_bookmark.s FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -442,7 +483,8 @@ $(SYMBOLS): $(ELF) | $(OUT_DIR)
 $(PREPATCH_BIN): $(ELF) | $(OUT_DIR)
 	$(OBJCOPY) -O binary $< $@
 
-$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) | $(DIST_DIR)
+$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/canonical.inc"
 	$(PYTHON) "$(PC080SN_NATIVE_METATILE_VERIFY)" --maincpu "$(MAINCPU_REGION)" \
 		--index "$(PC080SN_NATIVE_METATILE_INDEX)" --records "$(PC080SN_NATIVE_METATILE_RECORDS)" \
 		--report "$(PC080SN_NATIVE_METATILE_REPORT)"
@@ -549,7 +591,8 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 # release/counter/gates (those belong to the normal build).  Built with RASTAN_DIAG_CPU_BAR=1 via
 # the recursive `diag-variant` invocation, so config.inc regenerates and every object re-assembles
 # with the bar enabled.  Uses a separate manifest so the normal build's manifest is untouched.
-$(DIAG_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
+$(DIAG_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/diag.inc"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
@@ -568,6 +611,7 @@ diag-variant: $(DIAG_ROM)
 	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
 	tag=$$(printf "%04d" "$$n"); \
 	dest="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_d.bin"; \
+	if [ -e "$$dest" ]; then echo "ERROR: refusing to overwrite existing diagnostic build: $$dest"; exit 1; fi; \
 	cp "$(DIAG_ROM)" "$$dest"; \
 	if [ ! -s "$$dest" ]; then echo "ERROR: diagnostic build artifact missing/empty: $$dest"; exit 1; fi; \
 	echo "diagnostic build artifact (CPU-load bar): $$dest"
@@ -576,7 +620,8 @@ diag-variant: $(DIAG_ROM)
 # RASTAN_DIAG_SCORE_METRIC=1 (via the recursive `score-variant` invocation). Separate manifest.
 # Build 0396: the third generated Plane-A overlap package grows canonical coverage onto the
 # formerly score-only aligned page, so this variant no longer adds a coverage page.
-$(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
+$(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/score.inc"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
@@ -595,6 +640,7 @@ score-variant: $(SCORE_ROM)
 	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
 	tag=$$(printf "%04d" "$$n"); \
 	dest="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_s.bin"; \
+	if [ -e "$$dest" ]; then echo "ERROR: refusing to overwrite existing score-metric build: $$dest"; exit 1; fi; \
 	cp "$(SCORE_ROM)" "$$dest"; \
 	if [ ! -s "$$dest" ]; then echo "ERROR: score-metric build artifact missing/empty: $$dest"; exit 1; fi; \
 	echo "diagnostic build artifact (score metric): $$dest"
@@ -602,7 +648,8 @@ score-variant: $(SCORE_ROM)
 # Build 0344: display-off ROM = same postpatch-only pipeline as $(DIAG_ROM) but built with
 # RASTAN_VBLANK_DISPLAY_OFF=1 (via the recursive `do-variant` invocation).  Separate manifest.
 # This is the Rainbow-model publication-phase forced-blank variant; NOT a diagnostic overlay.
-$(DO_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
+$(DO_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/display_off.inc"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
@@ -621,6 +668,7 @@ do-variant: $(DO_ROM)
 	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
 	tag=$$(printf "%04d" "$$n"); \
 	dest="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_do.bin"; \
+	if [ -e "$$dest" ]; then echo "ERROR: refusing to overwrite existing display-off build: $$dest"; exit 1; fi; \
 	cp "$(DO_ROM)" "$$dest"; \
 	if [ ! -s "$$dest" ]; then echo "ERROR: display-off build artifact missing/empty: $$dest"; exit 1; fi; \
 	echo "display-off build artifact (RASTAN_VBLANK_DISPLAY_OFF=1): $$dest"
@@ -631,7 +679,8 @@ do-variant: $(DO_ROM)
 # so this variant needed no additional coverage delta.
 # Build 0396: the third generated Plane-A overlap package grows canonical coverage onto the
 # formerly MODE-only aligned page, so this variant again needs no additional coverage delta.
-$(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR)
+$(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/cheat.inc"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
 	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
@@ -652,6 +701,33 @@ cheat-variant: $(CHEAT_ROM)
 	cp "$(CHEAT_ROM)" "$$dest"; \
 	if [ ! -s "$$dest" ]; then echo "ERROR: cheat build artifact missing/empty: $$dest"; exit 1; fi; \
 	echo "cheat build artifact (RASTAN_MODE_RACK_ADVANCE=1): $$dest"
+
+# Permanent full-gameplay-HUD comparison ROM. It uses the canonical release
+# configuration except for RASTAN_GAMEPLAY_HUD_SPRITES=1 and shares the already
+# consumed canonical build number exactly like the diagnostic variants.
+$(FULL_HUD_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/full_hud.inc"
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
+	cp "$(PREPATCH_BIN)" "$@"
+	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
+	$(PYTHON) "$(PATCHER)" \
+		--variant "$(VARIANT)" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
+		--rom "$@" \
+		--symbols "$(SYMBOLS)" \
+		--manifest "$(OUT_DIR)/full_hud_patch_manifest.json" \
+		--genesis-coverage-delta=-0x1000 \
+		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
+
+full-hud-variant: $(FULL_HUD_ROM)
+	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
+	tag=$$(printf "%04d" "$$n"); \
+	dest="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_full_hud.bin"; \
+	if [ -e "$$dest" ]; then echo "ERROR: refusing to overwrite existing full-HUD build: $$dest"; exit 1; fi; \
+	cp "$(FULL_HUD_ROM)" "$$dest"; \
+	if [ ! -s "$$dest" ]; then echo "ERROR: full-HUD build artifact missing/empty: $$dest"; exit 1; fi; \
+	echo "full-HUD build artifact (RASTAN_GAMEPLAY_HUD_SPRITES=1): $$dest"
 
 clean:
 	rm -rf $(OUT_DIR) $(DIST_DIR)

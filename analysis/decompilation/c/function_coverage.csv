@@ -17,7 +17,7 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 000423b2,raw/000423b2.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,boss R5 five-component creator
 00004cd50,raw/00004cd50.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,batch/group creator
 000427b2,raw/000427b2.c,rastan_actor_creation.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,off-screen retire
-00040ccc,raw/00040ccc.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x0F armored man
+00040ccc,raw/00040ccc.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"polymorphic state 0x0F: default 0x0A73 ordinary death -> conditional in-place 0x0A5A family-12 reward; +0x39 0x0275 burst child; +0x03 alternate"
 00047140,raw/00047140.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,ground engine (states 3-0C
 0004684e,raw/0004684e.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x11 boss component
 0004375c,raw/0004375c.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 states 0x13/0x14
@@ -65,6 +65,8 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 00041362,raw/00041180.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,H6: char-hunter materialization dispatch (28 marker routes)
 0003b726,raw/0003b726.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H7: score award (3-byte BCD @A5+0x11C), value=dying actor +0x2C; extra life at 999999"
 000448b2,raw/000447f0.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H7: component init -> state 0x0F, +0x08=0xff, sfx 0x10"
+00044804,raw/00044804.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,PARTIAL,STATIC,"damage accumulator and lethal state-0x0F transition; rec_type 8/9 paired-body link at 0x44896; Genesis operand at 0x44898 patched to FF0508"
+00042abc,raw/00042abc.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"fixed-pool state-0x0F presentation: Flying Demon types 8/9 and selected boss types use base 0x0275 selectors 9D-A0; bat types 10/11 use selector A8 then retire"
 00042e38,raw/00042e38.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H8: move+contact stepper; anim core now lifted; solid cell -> 0x447F0 impact. COMPLETE
 0003cf40,raw/0003cf40.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H8: frame-index wrap (0->56, 57->1)"
 0003cf52,raw/0003cf52.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H8: frame->velocity applier + axis-lock flags +0x13; table 0x3CFD4 (56 dir pairs) + 0x3CFB0 band test
@@ -123,3 +125,16 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 00054326,raw/00054326.c,rastan_player_animation.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H24: player frame selector; state A5+0x10E8 + anim idx (A5+0x10EA/0x110A/0x12F2/0x12F4) + pose tables 0x5BAE0/0x5BB10 -> body slot A5+0x1244 -> 0x54492"
 00054492,raw/00054492.c,rastan_player_render.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H24: player body composer; slot A5+0x1244 -> 0x5BD40[slot] offset -> 4 pieces (6B [tile][xoff][yoff][ctrl]); screenX/Y via A5+0x10BE/0x10C0, facing A5+0x1114, palette=ctrl&0xF (line 3); weapon overlay A5+0x12FA. Closes CF-01"
 000546a8,raw/00054492.c,rastan_player_render.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H24-fix: player LOWER-body (legs) composer; slot A5+0x1246 -> 0x5C466[slot] offset -> 4 pieces -> SAT 0x10D1F2; cells at y=0/+16; full body = torso 0x54492 + legs 0x546A8 (two half-sprites)"
+0005100a,raw/0005100a.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"bottom-HUD caller context; true body 0x5100A..0x510C4, energy 0x5A098 then A5+0x12FC=FF then icons 0x59F92; conditional 0x59F5E clear is later via 0x5122A"
+00059f92,raw/00059f92.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"four independent gameplay bottom-HUD icon records from A5+0x1388/0x140E/0x1410/0x140C; codes 0xA6A..0xA64 at Y=0xE8"
+0005a098,raw/0005a098.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"energy/status producer 0x5A098..0x5A242; high-byte energy clamp 48, indicator, cap, six full/partial/empty cells, blink and sound side effects"
+0005a244,raw/0005a098.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"direct energy lifecycle helper 0x5A244..0x5A288; A5+0x1328/0x13CE -> event A5+0x13D2"
+0003a64c,raw/0003b802.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"gameplay lower-HUD show boundary; restores records 17..21 then refreshes ROUND selector 3 and reserve-lives selector 4"
+0003a6b2,raw/0003a6b2.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"one-shot PC080SN ROUND/READY transition overlay; ROUND descriptor 55 at C08C48 and direct digit at C08C62"
+0003a860,raw/0003a860.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"stage advance; A5+0x118 authoritative and A5+0x117 display mirror increment; mirror caps at 6 when authoritative reaches 7"
+0003b802,raw/0003b802.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"five-config PC090OJ digit producer; selector 3 ROUND from A5+0x117, selector 4 reserve lives from low byte A5+0x102"
+0003b866,raw/0003b802.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"digit leading-zero visibility helper; one-digit ROUND/lives configurations force zero visible"
+0003b8ee,raw/0003b802.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"restore lower-HUD five-record template then invoke 3B802 selectors 3 and 4"
+0003b902,raw/0003b802.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"records 17..21 visibility/template owner; D1=0 restores, D1=1 hides by Y-high byte"
+0003bb48,raw/0003bb48.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"generic PC080SN text descriptor writer; bit7 selects same-length space clearing"
+0004527e,raw/0004527e.c,rastan_player_hud.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"one-based stage initialization into A5+0x118 authoritative and A5+0x117 display mirror"

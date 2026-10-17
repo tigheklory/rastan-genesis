@@ -1,4 +1,5 @@
     .include "pc090oj_config.inc"
+    .include "../../build/pc080sn_boundary/boundary_constants.inc"
 
     .section .text,"ax"
 
@@ -55,6 +56,9 @@
     .extern fg_boundary_install
     .extern fg_boundary_active_record
     .extern fg_boundary_resolve_b
+    .extern fg_boundary_active_lut
+    .extern fg_boundary_miss_a
+    .extern fg_boundary_miss_b
     .extern fg_boundary_transition_step
     .extern genesistan_current_pc080sn_tileset_id
     .extern fg_native_gameplay_owner
@@ -124,6 +128,36 @@
 .endm
 .macro MAP_GET_NAME_B
     bsr     fg_boundary_resolve_b
+.endm
+/* Gameplay vertical-row hot leaves.  The row publishers are entered only from
+ * the scene-1 semantic pan boundary, so select the active boundary LUT once per
+ * row and retain the exact resolver result/miss accounting inline.  A2 is the
+ * row-wide active-LUT base; D3 is the raw code on entry and final slot on exit. */
+.macro MAP_GET_NAME_A_GAMEPLAY_ROW
+    andi.w  #0x3FFF, %d3
+    beq.s   .Lmap_name_a_row_done\@
+    cmpi.w  #FG_BOUNDARY_LUT_WORDS, %d3
+    bhs.s   .Lmap_name_a_row_miss\@
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+    bne.s   .Lmap_name_a_row_done\@
+.Lmap_name_a_row_miss\@:
+    addq.l  #1, fg_boundary_miss_a
+    moveq   #0, %d3
+.Lmap_name_a_row_done\@:
+.endm
+.macro MAP_GET_NAME_B_GAMEPLAY_ROW
+    andi.w  #0x3FFF, %d3
+    beq.s   .Lmap_name_b_row_done\@
+    cmpi.w  #FG_BOUNDARY_LUT_WORDS, %d3
+    bhs.s   .Lmap_name_b_row_miss\@
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+    bne.s   .Lmap_name_b_row_done\@
+.Lmap_name_b_row_miss\@:
+    addq.l  #1, fg_boundary_miss_b
+    moveq   #0, %d3
+.Lmap_name_b_row_done\@:
 .endm
 .macro MAP_GET_COLLISION
     bsr     resolve_plane_a_collision_cell
@@ -1117,7 +1151,7 @@ resolve_plane_a_collision_cell:
  */
 .Lplane_a_publish_logical_row_native:
     movem.l %d1-%d7/%a0-%a6, -(%sp)
-    suba.w  #16, %sp
+    subq.w  #4, %sp
 
     move.b  #1, fg_native_gameplay_owner
 
@@ -1126,18 +1160,34 @@ resolve_plane_a_collision_cell:
     move.w  %d0, %d1
     andi.w  #0x001F, %d1
     move.w  %d1, 2(%sp)                      /* physical resident row */
+
+    /* Row-wide context: all sixteen four-cell blocks share the row's rebuilt
+     * source pointer, physical staging-row base, active residency LUT and live
+     * ring front.  Build 0433 recomputed these inside every block and entered
+     * the general scene-aware LUT helper for every cell. */
     move.w  %d0, %d1
     lsr.w   #2, %d1
     andi.w  #0x000F, %d1
-    move.w  %d1, 4(%sp)                      /* source row segment */
-    move.w  %d0, %d1
-    andi.w  #0x0003, %d1
-    lsl.w   #3, %d1
-    move.w  %d1, 6(%sp)                      /* source row byte offset */
+    lsl.w   #2, %d1
+    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a0
+    movea.l 0(%a0,%d1.w), %a4                /* row source pointer */
 
-    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     fg_boundary_active_lut, %a2
     lea     staged_fg_buffer, %a6
-    move.w  #16, plane_a_src_ref_block       /* Build 0353: vertical pan producer = camera-relative (one plane lead) */
+    move.w  2(%sp), %d1
+    lsl.w   #7, %d1
+    adda.w  %d1, %a6                         /* physical staging-row base */
+
+    moveq   #0, %d7
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
+    andi.w  #0x000F, %d7
+    lsl.w   #2, %d7
+    moveq   #0, %d1
+    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d1
+    andi.w  #0x0003, %d1
+    add.w   %d1, %d7                         /* live horizontal ring front */
+    move.w  #16, plane_a_src_ref_block       /* retained authoritative seam-fallback mode */
+
     moveq   #0, %d4                          /* full logical destination column */
 
     /* Build 0351: resolve every cell of this entering row through the ONE shared
@@ -1160,7 +1210,7 @@ resolve_plane_a_collision_cell:
     bset    %d0, %d1
     move.l  %d1, fg_row_dirty
 
-    adda.w  #16, %sp
+    addq.w  #4, %sp
     movem.l (%sp)+, %d1-%d7/%a0-%a6
     rts
 
@@ -1169,7 +1219,7 @@ resolve_plane_a_collision_cell:
  * invariant payload decode is shared across the four required logical cells.
  * in: D0.W logical row, D1.W aligned logical start column; preserves registers. */
 .Lplane_a_publish_name_block4_native:
-    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    movem.l %d4/%d7, -(%sp)
     move.w  %d0, %d4
     move.w  %d1, %d5
 
@@ -1178,14 +1228,6 @@ resolve_plane_a_collision_cell:
      * after front=(10CC*4+10CA) to the preceding ring revolution.  Therefore
      * only the one block with start <= front < end can straddle two descriptors;
      * resolve that block cell-by-cell and retain batching everywhere else. */
-    moveq   #0, %d7
-    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
-    andi.w  #0x000F, %d7
-    lsl.w   #2, %d7
-    moveq   #0, %d6
-    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d6
-    andi.w  #0x0003, %d6
-    add.w   %d6, %d7                         /* live front physical column */
     cmp.w   %d5, %d7
     blo.s   .Lplane_a_block_single_descriptor
     move.w  %d5, %d6
@@ -1193,53 +1235,32 @@ resolve_plane_a_collision_cell:
     cmp.w   %d6, %d7
     bhs.s   .Lplane_a_block_single_descriptor
 
-    lea     staged_fg_buffer, %a6
-    move.w  %d4, %d0
-    andi.w  #0x001F, %d0
-    lsl.w   #7, %d0
     move.w  %d5, %d1
     add.w   %d1, %d1
-    add.w   %d1, %d0
-    adda.w  %d0, %a6
-    moveq   #3, %d7
+    lea     0(%a6,%d1.w), %a1
+    moveq   #3, %d6
 .Lplane_a_block_ring_seam_loop:
     move.w  %d4, %d0
     move.w  %d5, %d1
     bsr     resolve_plane_a_cell
-    move.w  %d0, (%a6)+
+    move.w  %d0, (%a1)+
     addq.w  #1, %d5
-    dbra    %d7, .Lplane_a_block_ring_seam_loop
+    dbra    %d6, .Lplane_a_block_ring_seam_loop
     bra.w   .Lplane_a_block_done
 
 .Lplane_a_block_single_descriptor:
-
-    move.w  %d4, %d2
-    lsr.w   #2, %d2
-    andi.w  #0x000F, %d2
-    lsl.w   #2, %d2
-    lea     PC080SN_DESC_REBUILD_SRC_TABLE, %a1
-    movea.l 0(%a1,%d2.w), %a0
+    movea.l %a4, %a0
 
     move.w  %d5, %d2
     andi.w  #0x003F, %d2
     lsr.w   #2, %d2
-    cmpi.w  #16, plane_a_src_ref_block
-    bne.s   .Lplane_a_block_source_leading
-    moveq   #0, %d7
-    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d7
-    andi.w  #0x000F, %d7
-    sub.w   %d7, %d2
-    lsl.w   #2, %d7
     moveq   #0, %d6
-    move.w  ARCADE_PC080SN_STRIP_INDEX_OFFSET(%a5), %d6
-    andi.w  #0x0003, %d6
-    add.w   %d6, %d7
+    move.w  ARCADE_PC080SN_STRIP_GROUP_OFFSET(%a5), %d6
+    andi.w  #0x000F, %d6
+    sub.w   %d6, %d2
     cmp.w   %d7, %d5
     bls.s   .Lplane_a_block_source_ready
     subi.w  #16, %d2
-    bra.s   .Lplane_a_block_source_ready
-.Lplane_a_block_source_leading:
-    sub.w   plane_a_src_ref_block, %d2
 .Lplane_a_block_source_ready:
     ext.l   %d2
     asl.l   #2, %d2
@@ -1274,27 +1295,22 @@ resolve_plane_a_collision_cell:
     moveq   #0, %d6
 
 .Lplane_a_block_stage:
-    lea     staged_fg_buffer, %a6
-    move.w  %d4, %d0
-    andi.w  #0x001F, %d0
-    lsl.w   #7, %d0
     move.w  %d5, %d1
     add.w   %d1, %d1
-    add.w   %d1, %d0
-    adda.w  %d0, %a6
-    moveq   #3, %d7
+    lea     0(%a6,%d1.w), %a1
+    moveq   #3, %d5
 .Lplane_a_block_stage_loop:
     moveq   #0, %d3
     move.l  %a3, %d0
     beq.s   .Lplane_a_block_word_ready
     move.w  (%a3)+, %d3
-    bsr     fg_cache_resolve
+    MAP_GET_NAME_A_GAMEPLAY_ROW
     or.w    %d6, %d3
 .Lplane_a_block_word_ready:
-    move.w  %d3, (%a6)+
-    dbra    %d7, .Lplane_a_block_stage_loop
+    move.w  %d3, (%a1)+
+    dbra    %d5, .Lplane_a_block_stage_loop
 .Lplane_a_block_done:
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    movem.l (%sp)+, %d4/%d7
     rts
 
     .align 2
@@ -1342,8 +1358,11 @@ resolve_plane_a_collision_cell:
     add.w   ARCADE_PC080SN_BG_SUBCOL_OFFSET(%a5), %d0
     move.w  %d0, 6(%sp)                      /* AR = G_r*16 + F6 */
 
-    lea     genesistan_pc080sn_tile_vram_lut, %a2
+    lea     fg_boundary_active_lut, %a2
     lea     staged_bg_buffer, %a6
+    move.w  2(%sp), %d0
+    lsl.w   #7, %d0
+    adda.w  %d0, %a6                         /* physical staging-row base */
     move.w  #0xFFFF, 14(%sp)                 /* no cached source group */
     clr.w   16(%sp)                          /* cached descriptor invalid */
     moveq   #0, %d4                          /* full logical destination column C */
@@ -1399,15 +1418,12 @@ resolve_plane_a_collision_cell:
     clr.w   12(%sp)
 
 .Lplane_b_row_tile_ready:
-    MAP_GET_NAME_B
+    MAP_GET_NAME_B_GAMEPLAY_ROW
     or.w    12(%sp), %d3
 
-    move.w  2(%sp), %d0
-    lsl.w   #7, %d0
     move.w  %d4, %d1
     add.w   %d1, %d1
-    add.w   %d1, %d0
-    move.w  %d3, 0(%a6,%d0.w)
+    move.w  %d3, 0(%a6,%d1.w)
 
     addq.w  #1, %d4
     cmpi.w  #BG_LOGICAL_SPAN, %d4

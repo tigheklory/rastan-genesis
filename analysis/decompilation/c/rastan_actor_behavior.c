@@ -13,11 +13,13 @@ extern int arcade_40e74_marker_recheck(ActorRecord *a4);
  * per-state anim values are written inline in each handler below. */
 
 /*
- * ORIGINAL ARCADE PC: 0x00040CCC  state 0x0F — armored man
+ * ORIGINAL ARCADE PC: 0x00040CCC  polymorphic state 0x0F
  * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE.
- * base 0x0A73 (sword) -> transforms in place to 0x0A5A (ball&chain) at anim
- * frame >= 10; comp 2; family -> 0x0C. mode!=0 -> alt anim path (sound 23);
- * field_39 set -> base 0x0275 sub-path.
+ * The default branch is the ordinary enemy-death animation (base 0x0A73,
+ * compositor 2).  At phase 10 it either retires (+0x36==0) or transforms the
+ * same actor into the schedule-selected family-12 reward/drop presentation
+ * (base 0x0A5A).  mode!=0 selects the alternate short path; field_39 selects
+ * the independent 0x0275 burst-child path.
  */
 void actor_armored_40ccc(ActorRecord *a4)
 {
@@ -44,12 +46,15 @@ void actor_armored_40ccc(ActorRecord *a4)
     }
     return;
 
-transform: /* 0x40D32: family 0x0C, base 0x0A5A ball-and-chain variant */
+transform: /* 0x40D32: in-place family-12 reward/drop conversion */
     a4->family  = 0x0C;   /* +0x3E */
     a4->field_3a = 0xFF;  /* +0x3A */
     a4->field_37 = 0;     /* +0x37 */
     a4->field_3d = 0;     /* +0x3D */
-    a4->base    = 0x0A5A; /* +0x1E */
+    /* 0x40C0E maps schedule field +0x36 through tables 0x40C2E/0x40C40 to
+     * identity +0x29 and reward value +0x2C.  The instruction-faithful raw
+     * reconstruction contains the selector, bounds and recycle behavior. */
+    a4->base    = 0x0A5A; /* presentation base when +0x36 permits a drop */
     return;
 
 base_0275: /* 0x40DD8 */
@@ -70,6 +75,19 @@ alt_anim: /* 0x40E0E: sound cue then anim from +0x08 */
         arcade_3a0ec(0x17);          /* sound #23 */
     if (a4->anim_frame_dur < 4)
         a4->anim = (uint8_t)(a4->anim_frame_dur + 0x70);
+}
+
+/* ORIGINAL ARCADE PC: 0x00042ABC — specialized state-0x0F presentation.
+ * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE.
+ * The exact type branches, double phase increment for types 10-13/18/28,
+ * coordinate adjustment for type 12, selectors, and retirement predicates are
+ * preserved in raw/00042abc.c.  In particular, lethal-initialized bat types
+ * 10/11 show selector 0xA8 and retire on the next gated update; Flying Demon
+ * types 8/9 and selected boss types use base 0x0275 and the 0x9D-0xA0 run.
+ */
+void actor_specialized_death_42abc(ActorRecord *a4)
+{
+    (void)a4; /* See instruction-faithful raw reconstruction. */
 }
 
 /* ORIGINAL ARCADE PC: 0x00040C08 — state 0x10 anim-table param setup.

@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Rutubo Method</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#080912; --bg2:#0e1020;
+    --line:rgba(150,158,200,.15); --line-2:rgba(150,158,200,.3);
+    --ink:#e9ecf6; --muted:#99a0bf; --faint:#666d93;
+    --sh:#ff3d7f;      /* Space Harrier accent */
+    --ab:#39b6ff;      /* After Burner accent */
+    --sh2:#ffb24c; --ab2:#ff8a3c;
+    --present:#36dca6; --partial:#ffc24b; --absent:#ff6274; --violet:#9b7bff;
+    --maxw:1120px;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --disp:"Chakra Petch",system-ui,sans-serif;
+    --body:"IBM Plex Sans",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(900px 520px at 0% -6%, rgba(255,61,127,.14), transparent 55%),
+      radial-gradient(900px 520px at 100% -6%, rgba(57,182,255,.14), transparent 55%),
+      linear-gradient(180deg,#0a0b18 0%,#080912 42%);
+    background-attachment:fixed;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 16px}
+  a{color:var(--ab)} h1,h2,h3{font-family:var(--disp); font-weight:700; line-height:1.12; text-wrap:balance; margin:0}
+  code,.mono{font-family:var(--mono)}
+
+  header.hero{padding:64px 16px 26px; text-align:center}
+  .eyebrow{font-family:var(--mono); font-size:12.5px; letter-spacing:.3em; text-transform:uppercase; color:var(--muted); margin:0 0 20px}
+  .hero h1{font-size:clamp(2.3rem,6.4vw,4.2rem); letter-spacing:-.5px}
+  .hero h1 .g{background:linear-gradient(92deg,var(--sh),var(--ab)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .lede{color:var(--muted); font-size:clamp(1.04rem,2.2vw,1.24rem); max-width:64ch; margin:20px auto 0}
+
+  /* game chips */
+  .chips{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:30px}
+  .chip{display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:999px; font-family:var(--mono); font-size:13px; border:1px solid var(--line); background:rgba(14,16,32,.6)}
+  .dot{width:11px; height:11px; border-radius:50%}
+  .dot.sh{background:var(--sh)} .dot.ab{background:var(--ab)}
+
+  section{padding:42px 0 8px}
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; flex-wrap:wrap}
+  .sec-head .idx{font-family:var(--mono); font-size:13px; color:var(--violet)}
+  .sec-head h2{font-size:clamp(1.5rem,3.6vw,2.15rem)}
+  .sec-sub{color:var(--muted); max-width:74ch; margin:8px 0 0}
+
+  /* the method: shared steps */
+  .method{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:22px}
+  .mstep{background:linear-gradient(180deg,rgba(14,16,32,.85),rgba(10,11,22,.6)); border:1px solid var(--line); border-radius:14px; padding:18px 20px; position:relative}
+  .mstep .no{font-family:var(--disp); font-weight:700; color:var(--violet); font-size:1.4rem; line-height:1}
+  .mstep h3{font-size:1.06rem; margin:8px 0 6px}
+  .mstep p{margin:0; color:var(--muted); font-size:.93rem}
+  .mstep.full{grid-column:1 / -1}
+
+  /* comparison table */
+  .tablecard{background:rgba(10,12,26,.7); border:1px solid var(--line); border-radius:16px; overflow:hidden; margin-top:22px}
+  .tscroll{overflow-x:auto}
+  table{border-collapse:collapse; width:100%; min-width:760px; font-size:14px}
+  thead th{font-family:var(--disp); font-size:15px; text-align:left; padding:16px 16px; border-bottom:1px solid var(--line-2); background:rgba(14,16,32,.6)}
+  thead th.sh{color:var(--sh)} thead th.ab{color:var(--ab)}
+  thead th .sub{display:block; font-family:var(--mono); font-size:10.5px; font-weight:400; letter-spacing:.08em; color:var(--faint); text-transform:uppercase; margin-top:3px}
+  td{padding:12px 16px; border-bottom:1px solid var(--line); vertical-align:top}
+  td.aspect{font-family:var(--mono); font-size:12px; color:var(--muted); letter-spacing:.03em; white-space:nowrap}
+  td.sh-c{border-left:2px solid rgba(255,61,127,.25)}
+  td.ab-c{border-left:2px solid rgba(57,182,255,.25)}
+  tbody tr:hover{background:rgba(255,255,255,.025)}
+  .b{font-family:var(--mono); font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px; white-space:nowrap}
+  .b.full{background:rgba(54,220,166,.15); color:var(--present)}
+  .b.part{background:rgba(255,194,75,.13); color:var(--partial)}
+  .b.no{background:rgba(255,98,116,.12); color:var(--absent)}
+  .small{color:var(--muted); font-size:13px}
+  .small b{color:var(--ink)}
+
+  /* spectrum */
+  .spectrum{background:rgba(10,12,26,.7); border:1px solid var(--line); border-radius:16px; padding:26px 24px 20px; margin-top:22px}
+  .spectrum .bar{position:relative; height:16px; border-radius:999px; margin:46px 0 40px;
+    background:linear-gradient(90deg, rgba(255,98,116,.5), rgba(255,194,75,.5) 50%, rgba(54,220,166,.6))}
+  .pin{position:absolute; top:-8px; transform:translateX(-50%); text-align:center}
+  .pin .knob{width:18px; height:18px; border-radius:50%; margin:0 auto; border:3px solid #0a0b18}
+  .pin.sh .knob{background:var(--sh)} .pin.ab .knob{background:var(--ab)}
+  .pin .lab{font-family:var(--disp); font-weight:700; font-size:13px; margin-top:8px; white-space:nowrap}
+  .pin .val{font-family:var(--mono); font-size:11px; color:var(--muted)}
+  .pin.up{top:-56px} .pin.up .knob{margin-top:34px}
+  .ends{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--faint); margin-top:-26px}
+
+  .prose p{color:#ced3e8; margin:0 0 16px; max-width:76ch} .prose p b{color:var(--ink)}
+  .prose .sh-t{color:var(--sh); font-weight:600} .prose .ab-t{color:var(--ab); font-weight:600}
+
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:8px}
+  .panel{border-radius:16px; padding:22px; border:1px solid var(--line)}
+  .panel.sh{background:linear-gradient(180deg,rgba(255,61,127,.1),rgba(14,16,32,.5)); border-color:rgba(255,61,127,.28)}
+  .panel.ab{background:linear-gradient(180deg,rgba(57,182,255,.1),rgba(14,16,32,.5)); border-color:rgba(57,182,255,.28)}
+  .panel h3{font-size:1.1rem; margin:0 0 4px} .panel.sh h3{color:var(--sh)} .panel.ab h3{color:var(--ab)}
+  .panel .hw{font-family:var(--mono); font-size:11.5px; color:var(--faint); margin:0 0 12px}
+  .panel p{margin:0; color:#ced3e8; font-size:.93rem}
+
+  footer{padding:40px 0 70px; color:var(--faint); font-size:13px}
+  .fcard{background:rgba(10,12,26,.6); border:1px solid var(--line); border-radius:14px; padding:20px}
+  .fcard h3{font-family:var(--disp); font-size:1rem; color:var(--muted); margin:0 0 10px}
+  .fcard p{margin:0 0 10px; max-width:80ch; line-height:1.55}
+  .divider{height:1px; background:var(--line); margin:30px 0}
+  @media (max-width:760px){ .method{grid-template-columns:1fr} .two{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Sega 32X ports · Rutubo Games · byte-level comparison</p>
+    <h1>The <span class="g">Rutubo Method</span></h1>
+    <p class="lede">Two Super Scaler arcade legends, two 2&nbsp;MB 32X carts, one consistent engineering
+      playbook. What the byte evidence says Rutubo did to bring Space Harrier and After Burner home — and the
+      single place their approaches diverge.</p>
+    <div class="chips">
+      <span class="chip"><span class="dot sh"></span>Space Harrier · Sega Space Harrier board</span>
+      <span class="chip"><span class="dot ab"></span>After Burner II · Sega X Board</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- SHARED METHOD -->
+  <section id="method">
+    <div class="sec-head"><span class="idx">01</span><h2>The shared playbook</h2></div>
+    <p class="sec-sub">Both teardowns show the same five decisions. This is the signature of a studio that had
+      solved the "arcade Super Scaler → 32X" problem once and applied the solution again.</p>
+    <div class="method">
+      <div class="mstep"><div class="no">01</div><h3>Keep the data, rewrite the code</h3>
+        <p>Arcade <b>game data</b> (stages, enemies, patterns, math tables) is hardware-independent and expensive
+          to recreate, so it's copied in. The arcade <b>executable engine</b> is tied to dead silicon, so it's
+          thrown away and re-authored.</p></div>
+      <div class="mstep"><div class="no">02</div><h3>Boot like any 32X game</h3>
+        <p>Both carts start at the stock Sega <code>"MARS"</code> 32X security/init stub and run Rutubo's own
+          Genesis-68000 + SH-2 program. Neither boots into arcade code.</p></div>
+      <div class="mstep"><div class="no">03</div><h3>Put the Super Scaler on the SH-2s</h3>
+        <p>The arcade sprite-scaling hardware has no 32X equivalent, so its <em>function</em> — drawing cels at
+          arbitrary zoom — is reimplemented as SH-2 code writing into the 32X framebuffer.</p></div>
+      <div class="mstep"><div class="no">04</div><h3>Reuse the Z80 sound</h3>
+        <p>The arcade sound CPU is a Z80 and so is the Genesis's, so the sound driver and sequence data carry
+          over substantially — ~60% for Space Harrier, ~49% for After Burner.</p></div>
+      <div class="mstep full"><div class="no">05</div><h3>Re-encode everything format-bound</h3>
+        <p>Zoomable sprite cels, background tiles, road/ground patterns, PCM samples and zoom lookup tables are
+          all stored in arcade-specific bit layouts with no meaning on the 32X. In both games, <b>every one of
+          these is absent from the cart</b> and rebuilt for the SH-2 renderer, the Genesis VDP and the Genesis
+          sound path.</p></div>
+    </div>
+  </section>
+
+  <!-- COMPARISON TABLE -->
+  <section id="table">
+    <div class="sec-head"><span class="idx">02</span><h2>Side by side</h2></div>
+    <div class="tablecard">
+      <div class="tscroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th class="sh">Space Harrier<span class="sub">segahang · 2×68000 + Z80 + MCU</span></th>
+            <th class="ab">After Burner II<span class="sub">segaxbd · 2×68000 + Z80</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="aspect">Main 68000 size</td><td class="sh-c small">256 KB (4 pairs)</td><td class="ab-c small">256 KB (1 pair)</td></tr>
+          <tr><td class="aspect">Sub 68000 size</td><td class="sh-c small">64 KB — flat-ground helper</td><td class="ab-c small">256 KB — full 3D projector</td></tr>
+          <tr><td class="aspect">Main engine code</td><td class="sh-c"><span class="b no">absent ~0%</span></td><td class="ab-c"><span class="b no">absent (entry not found)</span></td></tr>
+          <tr><td class="aspect">Main data tables</td>
+            <td class="sh-c"><span class="b full">64 KB bank verbatim</span> <span class="small">+ bank3 mostly, bank1 partial</span></td>
+            <td class="ab-c"><span class="b part">partial 30–78%</span></td></tr>
+          <tr><td class="aspect">Sub-CPU code</td><td class="sh-c"><span class="b no">absent (1 KB frag)</span></td><td class="ab-c"><span class="b no">absent 7.6%</span></td></tr>
+          <tr><td class="aspect">Sub-CPU data / math</td>
+            <td class="sh-c small">— (little worth keeping)</td>
+            <td class="ab-c"><span class="b full">3D tables verbatim 94%</span></td></tr>
+          <tr><td class="aspect">Z80 sound</td><td class="sh-c"><span class="b part">reused ~60%</span></td><td class="ab-c"><span class="b part">reused ~49%</span></td></tr>
+          <tr><td class="aspect">PCM samples</td><td class="sh-c"><span class="b no">re-encoded</span></td><td class="ab-c"><span class="b no">re-encoded</span></td></tr>
+          <tr><td class="aspect">Sprite cels</td><td class="sh-c small"><span class="b no">re-encoded</span> 36 ROMs</td><td class="ab-c small"><span class="b no">re-encoded</span> 16 ROMs · 2 MB</td></tr>
+          <tr><td class="aspect">Tiles / road</td><td class="sh-c"><span class="b no">re-encoded</span></td><td class="ab-c"><span class="b no">re-encoded</span></td></tr>
+          <tr><td class="aspect">Boot path</td><td class="sh-c small">Sega <code>"MARS"</code> stub</td><td class="ab-c small">Sega <code>"MARS"</code> stub</td></tr>
+          <tr><td class="aspect">Biggest single lift</td>
+            <td class="sh-c small"><b>64 KB</b> main data bank @ 0x5A0AE</td>
+            <td class="ab-c small"><b>94%</b> sub 3D tables @ 0x429D0</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIVERGENCE -->
+  <section id="diverge" class="prose">
+    <div class="sec-head"><span class="idx">03</span><h2>Where they diverge</h2></div>
+    <p>The playbook is identical; <b>what counted as "data worth keeping" is not</b>, and the reason is the
+      arcade hardware each game ran on.</p>
+    <div class="two">
+      <div class="panel sh">
+        <h3>Space Harrier</h3>
+        <p class="hw">flat checkerboard ground · simple sub-CPU</p>
+        <p>The ground is a scrolling checkerboard — cheap to draw and cheap to recompute. Its second 68000 had
+          little baked math worth salvaging, so it was dropped almost entirely. The prize lift was the
+          <b>main-CPU stage/enemy data</b> — one 64&nbsp;KB bank copied byte-for-byte.</p>
+      </div>
+      <div class="panel ab">
+        <h3>After Burner II</h3>
+        <p class="hw">true 3D projection · heavy sub-CPU</p>
+        <p>The jet, missiles and banking horizon are projected and scaled in real 3D every frame, driven by large
+          baked tables in the sub-CPU ROM. Recreating those exactly is painful, so Rutubo copied <b>94%</b> of
+          them — and the SH-2 scaler renders using the arcade's own numbers.</p>
+      </div>
+    </div>
+    <p style="margin-top:20px">Put simply: <span class="sh-t">Space Harrier</span> kept the game's
+      <em>content</em>; <span class="ab-t">After Burner</span> kept the game's content <em>and</em> the arcade's
+      3D <em>mathematics</em>. The harder the arcade's custom silicon worked, the more of its baked data survived
+      into the 32X — because that data is exactly what you don't want to reverse-engineer and retype by hand.</p>
+  </section>
+
+  <!-- CONCLUSION -->
+  <section id="takeaway" class="prose">
+    <div class="sec-head"><span class="idx">04</span><h2>What this tells us about Rutubo</h2></div>
+    <p>The rumor that these carts "run the arcade 68000 code on the Genesis" is, in both cases, <b>false in the
+      literal sense and revealing in the useful sense</b>. No arcade engine executes on the 32X. But Rutubo
+      wasn't writing clean-room reimplementations either — they were performing a disciplined <b>hardware
+      translation</b>: isolate the portable payload (data, tables, Z80 sound), lift it intact, and rebuild only
+      the parts bonded to the dead arcade silicon (the engine, the Super Scaler, the asset formats).</p>
+    <p>It's the same philosophy a faithful modern port follows: preserve the authoritative arcade <em>data and
+      intent</em>, replace the arcade-chip-specific <em>execution</em> with native hardware realization. Rutubo
+      just did it in 1994, by hand, twice — and the byte-for-byte fingerprints are still sitting in the carts.</p>
+  </section>
+
+  <!-- SPECTRUM VISUAL -->
+  <section id="spectrum">
+    <div class="sec-head"><span class="idx">05</span><h2>How much arcade is in the cart?</h2></div>
+    <p class="sec-sub">A rough placement on the spectrum from "clean-room rewrite" to "arcade re-host," weighing
+      how much authoritative arcade ROM content survives byte-for-byte.</p>
+    <div class="spectrum">
+      <div class="bar">
+        <div class="pin sh up" style="left:46%"><span class="knob"></span><div class="lab" style="color:var(--sh)">Space Harrier</div><div class="val">data bank lifted</div></div>
+        <div class="pin ab" style="left:62%"><span class="knob"></span><div class="lab" style="color:var(--ab)">After Burner II</div><div class="val">+ 94% 3D tables</div></div>
+      </div>
+      <div class="ends"><span>◀ clean-room reimplementation</span><span>verbatim arcade re-host ▶</span></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+  <footer>
+    <div class="fcard">
+      <h3>About this comparison</h3>
+      <p>Companion to the two detailed teardowns (<code>space_harrier_32x_rom_teardown.html</code> and
+        <code>after_burner_32x_rom_teardown.html</code>) in the same folder. All figures are measured by
+        de-interleaving each 2&nbsp;MB 32X image into even/odd streams and content-matching every arcade EPROM in
+        32-byte high-entropy windows, with blocks confirmed by exact contiguous-run extension and 68000
+        disassembly. Code-vs-data separation within each program is by disassembly and per-region coverage.
+        Arcade ROM roles are from MAME (<code>segahang.cpp</code> / <code>segaxbd.cpp</code>). Original ROM files
+        were treated as read-only; all analysis ran on copies.</p>
+      <p style="color:var(--faint)">Prepared for Tighe · rastan-genesis/analysis · 2026-10-16</p>
+    </div>
+  </footer>
+</main>
+</body>
+</html>

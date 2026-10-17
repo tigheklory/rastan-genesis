@@ -9,15 +9,15 @@ fire-sword phases for both compositor orientations.  The fire phase is
 ``((A5+0x1308 >> 1) & 3)``; Python applies the original substitution tables
 offline and runtime selects one of the four generated variants.
 
-Index entry (6 bytes, big endian): u32 table_offset, u8 piece_count, u8 status.
-UNRESOLVED is {0xffffffff, 0xff, 0}.  Native status is 1.
-Piece entry (10 bytes): s16 dx, s16 dy, u16 finalized_vi/residency key,
-u16 attr, u8 Genesis size, u8 flags.  flags bit0 marks the weapon anchor,
-bit1 marks an offline-finalized palette variant, and bit2 requests the retained
-actor+0x18 Y adjustment.  Direct source identities store ``0x1000 | code``;
-variant pieces store ``0x2000 | vi``.  These transport markers let the shared
-finalizer consume build-time-proven identity directly while unmarked Level-A
-records retain the dynamic actor-state path.
+Universal Level-A index entries remain 6-byte ``{u32 offset,u8 count,u8 status}``
+records over the legacy 10-byte general piece table.  Dedicated player indexes
+are 12-byte ``{u32 compact_offset,u8 count,u8 format,u16 frame_attr,s16
+anchor_dx,s16 anchor_dy}`` records.  Player format 1 uses compact 6-byte
+``{s16 dx,s16 dy,u16 finalized_key}`` pieces when the attribute is frame-wide;
+format 2 uses the minimum 8-byte ``{s16 dx,s16 dy,u16 finalized_key,u16 attr}``
+piece only for a genuinely mixed-attribute frame.  ``anchor_dx=0x8000`` means
+no weapon anchor.  The generated anchor coordinates replace the former
+per-piece flag test without changing A5+0x129A/A5+0x129C semantics.
 
 Exact Level-B generic dispatch is O(1) and consists of three generated
 artifacts:
@@ -56,8 +56,16 @@ ORIENTATION_COUNT = 2
 INDEX_COUNT = FRAME_COUNT * PLAYER_VARIANT_COUNT * ORIENTATION_COUNT
 INDEX_ENTRY_SIZE = 6
 PIECE_SIZE = 10
+PLAYER_INDEX_ENTRY_SIZE = 12
+PLAYER_COMPACT_PIECE_SIZE = 6
+PLAYER_MIXED_PIECE_SIZE = 8
+DEATH_INDEX_ENTRY_SIZE = 8
+DEATH_COMPACT_PIECE_SIZE = 6
 STATUS_NATIVE = 1
 STATUS_SPECIAL = 2
+PLAYER_FORMAT_COMPACT = 1
+PLAYER_FORMAT_MIXED_ATTR = 2
+PLAYER_NO_ANCHOR = -0x8000
 SIZE_16X16 = 5
 FLAG_WEAPON_ANCHOR = 1
 FLAG_FINALIZED_VARIANT = 2
@@ -134,6 +142,21 @@ GENERIC_USAGES = (
      "compositor": 0, "bank": 0x3E, "disc_offset": 0x06, "disc_value": 0x0B,
      "attr_policy": ATTR_REQUIRE_EMBEDDED, "residency": "shared transient",
      "status": "NATIVE_PARTIAL"},
+)
+
+# Purpose-built finite death-presentation registry.  Ordering is the runtime
+# record numbering contract in pc090oj_hooks.s.  Geometry and source pattern
+# identity are shared across palette contexts; effective bank remains the
+# retained dispatch/frame context consumed by the existing finalizer.
+DEATH_USAGES = (
+    {"usage": "fountain", "base": 0x0275, "compositor": 0,
+     "selectors": range(0x9D, 0xA1)},
+    {"usage": "bat_pop", "base": 0x0275, "compositor": 0,
+     "selectors": range(0xA8, 0xA9)},
+    {"usage": "ordinary_death", "base": 0x0A73, "compositor": 2,
+     "selectors": range(0x0B, 0x13)},
+    {"usage": "death_reward", "base": 0x0A5A, "compositor": 2,
+     "selectors": range(0x13, 0x24)},
 )
 
 PROVEN_PROGRAMS = {
@@ -485,8 +508,14 @@ def validate_generic_evidence(burst_path: Path, manifest_path: Path) -> None:
     burst = next(u for u in GENERIC_USAGES if u["usage"] == "burst")
     want = {(anim, burst["compositor"], *PROVEN_PROGRAMS[("burst", anim)],
              burst["disc_value"]) for anim in burst["selectors"]}
-    if got != want:
-        raise SystemExit(f"burst corpus mismatch: got={got!r} want={want!r}")
+    # The completed death/drop audit added the first 0x9D/6-piece phase to the
+    # authoritative child-burst evidence.  It deliberately remains outside the
+    # bank-0x30 finalized Level-B range (0x9E..0xA0) and is consumed by the
+    # shared dynamic death fast path, but the evidence gate must retain it.
+    evidence_only_first_phase = {(0x9D, 0, 0x03E719, 6, 0x0F)}
+    if got != want | evidence_only_first_phase:
+        raise SystemExit(
+            f"burst corpus mismatch: got={got!r} want={(want | evidence_only_first_phase)!r}")
 
     manifest = json.loads(manifest_path.read_text())
     cave = next((actor for actor in manifest["actors"]
@@ -513,12 +542,15 @@ def main() -> None:
     ap.add_argument("--actor-manifest", default=ROOT / "docs/design/rastan_actor_graphics_manifest.json", type=Path)
     ap.add_argument("--enemy-corpus", default=ROOT / "analysis/actor_decompilation/r1p1_enemy_semantic_corpus.tsv", type=Path)
     ap.add_argument("--table-output", default=ROOT / "build/pc090oj_frame_table.bin", type=Path)
+    ap.add_argument("--player-table-output", default=ROOT / "build/pc090oj_player_piece_table.bin", type=Path)
     ap.add_argument("--index-output", default=ROOT / "build/pc090oj_frame_index.bin", type=Path)
     ap.add_argument("--secondary-index-output", default=ROOT / "build/pc090oj_secondary_frame_index.bin", type=Path)
     ap.add_argument("--generic-index-output", default=ROOT / "build/pc090oj_generic_frame_index.bin", type=Path)
     ap.add_argument("--generic-table-output", default=ROOT / "build/pc090oj_generic_piece_table.bin", type=Path)
     ap.add_argument("--universal-index-output", default=ROOT / "build/pc090oj_universal_frame_index.bin", type=Path)
     ap.add_argument("--special-index-output", default=ROOT / "build/pc090oj_special_frame_index.bin", type=Path)
+    ap.add_argument("--death-index-output", default=ROOT / "build/pc090oj_death_frame_index.bin", type=Path)
+    ap.add_argument("--death-table-output", default=ROOT / "build/pc090oj_death_piece_table.bin", type=Path)
     ap.add_argument("--generic-base-lut-output", default=ROOT / "build/pc090oj_generic_base_lut.bin", type=Path)
     ap.add_argument("--generic-usage-output", default=ROOT / "build/pc090oj_generic_usage_table.bin", type=Path)
     ap.add_argument("--residency-output", default=ROOT / "build/pc090oj_frame_residency.bin", type=Path)
@@ -580,7 +612,10 @@ def main() -> None:
         raise SystemExit("pilot contains palette-divergent codes requiring another runtime identity: " +
                          ", ".join(f"0x{x:03x}" for x in bad))
 
-    indexes = [(0xFFFFFFFF, 0xFF, 0) for _ in range(INDEX_COUNT)]
+    indexes = [(0xFFFFFFFF, 0xFF, 0, 0, PLAYER_NO_ANCHOR, 0)
+               for _ in range(INDEX_COUNT)]
+    player_table_blob = bytearray()
+    player_dedup: dict[tuple[int, bytes], int] = {}
     table_blob = bytearray()
     dedup: dict[bytes, int] = {}
     native_keys = []
@@ -597,21 +632,35 @@ def main() -> None:
                 else:
                     weapon_source = fire_frames[player_variant - 4][frame]
                 source.extend(weapon_source)
-                packed = bytearray()
                 weapon_start = len(body_frames[frame])
-                for n, raw_piece in enumerate(source):
-                    dx, dy, vi, attr = orient_piece(raw_piece, bool(orientation))
-                    flags = FLAG_WEAPON_ANCHOR if player_variant and n == weapon_start else 0
-                    packed += struct.pack(">hhHHBB", dx, dy, DIRECT_KEY_MARK | vi,
-                                          attr, SIZE_16X16, flags)
+                pieces = [orient_piece(raw_piece, bool(orientation)) for raw_piece in source]
+                attrs = {piece[3] for piece in pieces}
+                if len(attrs) <= 1:
+                    piece_format = PLAYER_FORMAT_COMPACT
+                    frame_attr = next(iter(attrs), 0)
+                    packed = b"".join(struct.pack(">hhH", piece[0], piece[1],
+                                                   DIRECT_KEY_MARK | piece[2])
+                                      for piece in pieces)
+                else:
+                    piece_format = PLAYER_FORMAT_MIXED_ATTR
+                    frame_attr = 0
+                    packed = b"".join(struct.pack(">hhHH", piece[0], piece[1],
+                                                   DIRECT_KEY_MARK | piece[2], piece[3])
+                                      for piece in pieces)
+                if player_variant and weapon_start < len(pieces):
+                    anchor_dx, anchor_dy = pieces[weapon_start][0:2]
+                else:
+                    anchor_dx, anchor_dy = PLAYER_NO_ANCHOR, 0
                 packed_bytes = bytes(packed)
-                offset = dedup.get(packed_bytes)
+                dedup_key = (piece_format, packed_bytes)
+                offset = player_dedup.get(dedup_key)
                 if offset is None:
-                    offset = len(table_blob)
-                    dedup[packed_bytes] = offset
-                    table_blob += packed_bytes
+                    offset = len(player_table_blob)
+                    player_dedup[dedup_key] = offset
+                    player_table_blob += packed_bytes
                 k = key(frame, player_variant, orientation)
-                indexes[k] = (offset, len(source), STATUS_NATIVE)
+                indexes[k] = (offset, len(source), piece_format, frame_attr,
+                              anchor_dx, anchor_dy)
                 native_keys.append(k)
                 frame_residency[k] = sorted({p[0] for p in source})
 
@@ -623,23 +672,28 @@ def main() -> None:
     for frame in range(SECONDARY_FRAME_COUNT):
         for phase in range(4):
             for orientation in range(ORIENTATION_COUNT):
-                packed = bytearray()
+                pieces = []
                 for raw_piece in secondary_frames[frame]:
                     code, x, y, attr = raw_piece
                     substitution = FIRE_SUBSTITUTIONS.get(code)
                     if substitution is not None:
                         code = u16(rom, substitution + phase * 2)
-                    piece = orient_piece((code, x, y, attr), bool(orientation))
-                    packed += struct.pack(">hhHHBB", piece[0], piece[1],
-                                          DIRECT_KEY_MARK | piece[2], piece[3],
-                                          SIZE_16X16, 0)
-                packed_bytes = bytes(packed)
-                offset = dedup.get(packed_bytes)
+                    pieces.append(orient_piece((code, x, y, attr), bool(orientation)))
+                attrs = {piece[3] for piece in pieces}
+                if len(attrs) > 1:
+                    raise SystemExit(f"secondary {frame}/{phase}/{orientation} has mixed attributes")
+                frame_attr = next(iter(attrs), 0)
+                packed_bytes = b"".join(struct.pack(">hhH", piece[0], piece[1],
+                                                    DIRECT_KEY_MARK | piece[2])
+                                        for piece in pieces)
+                dedup_key = (PLAYER_FORMAT_COMPACT, packed_bytes)
+                offset = player_dedup.get(dedup_key)
                 if offset is None:
-                    offset = len(table_blob)
-                    dedup[packed_bytes] = offset
-                    table_blob += packed_bytes
-                secondary_indexes.append((offset, len(packed) // PIECE_SIZE, STATUS_NATIVE))
+                    offset = len(player_table_blob)
+                    player_dedup[dedup_key] = offset
+                    player_table_blob += packed_bytes
+                secondary_indexes.append((offset, len(pieces), PLAYER_FORMAT_COMPACT,
+                                          frame_attr, PLAYER_NO_ANCHOR, 0))
 
     generic_indexes = []
     generic_table_blob = bytearray()
@@ -767,17 +821,66 @@ def main() -> None:
             f"unclassified universal UNRESOLVED records: got {universal_unresolved}, "
             f"expected {proven_unreachable} statically unreachable")
 
+    # Finite death effects: compile universal decoder truth into a compact
+    # purpose-built stream.  Every listed frame is fixed 16x16, dynamic-base
+    # only, and frame-attribute invariant.  The compact piece stores the final
+    # raw arcade pattern code (base+delta), so runtime performs no mode/delta
+    # interpretation; the shared finalizer still resolves residency using the
+    # retained effective bank, including fountain banks 0x30/0x35/0x3F.
+    death_indexes = []
+    death_table_blob = bytearray()
+    death_dedup: dict[bytes, int] = {}
+    death_coverage = []
+    for usage in DEATH_USAGES:
+        for anim in usage["selectors"]:
+            for orientation in range(ORIENTATION_COUNT):
+                pieces = decode_universal_general(
+                    rom, usage["compositor"], anim, bool(orientation))
+                if pieces is None or not pieces:
+                    raise SystemExit(
+                        f"death frame unresolved {usage['usage']}/{anim:02x}/{orientation}")
+                attrs = {piece[3] for piece in pieces}
+                if len(attrs) != 1 or any(
+                        piece[4] != SIZE_16X16 or piece[5] != FLAG_DYNAMIC_BASE
+                        for piece in pieces):
+                    raise SystemExit(
+                        f"death compact invariant mismatch {usage['usage']}/{anim:02x}/{orientation}")
+                compact = []
+                for dx, dy, delta, _attr, _size, _flags in pieces:
+                    signed_delta = delta - 0x10000 if delta & 0x8000 else delta
+                    code = usage["base"] + signed_delta
+                    if not 0 < code <= 0x0FFF or code == 0x00FF:
+                        raise SystemExit(
+                            f"death pattern identity invalid {usage['usage']}/{anim:02x}: {code:04x}")
+                    compact.append((dx, dy, code))
+                packed = b"".join(struct.pack(">hhH", *piece) for piece in compact)
+                offset = death_dedup.get(packed)
+                if offset is None:
+                    offset = len(death_table_blob)
+                    death_dedup[packed] = offset
+                    death_table_blob += packed
+                death_indexes.append((offset, len(compact), STATUS_NATIVE, next(iter(attrs))))
+                death_coverage.append({
+                    "usage": usage["usage"], "base": f"0x{usage['base']:04X}",
+                    "compositor": usage["compositor"], "selector": f"0x{anim:02X}",
+                    "orientation": orientation, "piece_count": len(compact),
+                    "table_offset": offset, "frame_attr": f"0x{next(iter(attrs)):04X}",
+                    "piece_format": "s16 dx, s16 dy, u16 raw pattern code",
+                    "effective_bank": "retained frame context; shared geometry supports 0x30/0x35/0x3F",
+                })
+
     index_blob = bytearray()
-    for offset, count, status in indexes:
-        index_blob += struct.pack(">IBB", offset, count, status)
+    for record in indexes:
+        index_blob += struct.pack(">IBBHhh", *record)
 
     generic_index_blob = bytearray()
     for record in generic_indexes:
         generic_index_blob += struct.pack(">IBBH", *record)
-    secondary_index_blob = b"".join(struct.pack(">IBB", *record)
+    secondary_index_blob = b"".join(struct.pack(">IBBHhh", *record)
                                     for record in secondary_indexes)
     universal_index_blob = b"".join(struct.pack(">IBB", *record) for record in universal_indexes)
     special_index_blob = b"".join(struct.pack(">IBB", *record) for record in special_indexes)
+    death_index_blob = b"".join(struct.pack(">IBBH", *record) for record in death_indexes)
     usage_blob = b"".join(struct.pack(">BBBBBBBBH", *record) for record in usage_descriptors)
 
     # Future-compatible finalized-vi requirement metadata. Each fixed record is
@@ -800,19 +903,22 @@ def main() -> None:
             residency_lists += struct.pack(">H", vi)
     residency_blob = residency_header + residency_records + residency_lists
 
-    for path in (args.table_output, args.index_output, args.secondary_index_output,
+    for path in (args.table_output, args.player_table_output, args.index_output, args.secondary_index_output,
                  args.generic_index_output, args.generic_table_output, args.universal_index_output,
-                 args.special_index_output,
+                 args.special_index_output, args.death_index_output, args.death_table_output,
                  args.generic_base_lut_output, args.generic_usage_output, args.residency_output,
                  args.report_output, args.coverage_output):
         path.parent.mkdir(parents=True, exist_ok=True)
     args.table_output.write_bytes(table_blob)
+    args.player_table_output.write_bytes(player_table_blob)
     args.index_output.write_bytes(index_blob)
     args.secondary_index_output.write_bytes(secondary_index_blob)
     args.generic_index_output.write_bytes(generic_index_blob)
     args.generic_table_output.write_bytes(generic_table_blob)
     args.universal_index_output.write_bytes(universal_index_blob)
     args.special_index_output.write_bytes(special_index_blob)
+    args.death_index_output.write_bytes(death_index_blob)
+    args.death_table_output.write_bytes(death_table_blob)
     args.generic_base_lut_output.write_bytes(base_lut)
     args.generic_usage_output.write_bytes(usage_blob)
     args.residency_output.write_bytes(residency_blob)
@@ -824,12 +930,15 @@ def main() -> None:
     )}
     outputs = {
         str(args.table_output.resolve().relative_to(ROOT)): hashlib.sha256(table_blob).hexdigest(),
+        str(args.player_table_output.resolve().relative_to(ROOT)): hashlib.sha256(player_table_blob).hexdigest(),
         str(args.index_output.resolve().relative_to(ROOT)): hashlib.sha256(index_blob).hexdigest(),
         str(args.secondary_index_output.resolve().relative_to(ROOT)): hashlib.sha256(secondary_index_blob).hexdigest(),
         str(args.generic_index_output.resolve().relative_to(ROOT)): hashlib.sha256(generic_index_blob).hexdigest(),
         str(args.generic_table_output.resolve().relative_to(ROOT)): hashlib.sha256(generic_table_blob).hexdigest(),
         str(args.universal_index_output.resolve().relative_to(ROOT)): hashlib.sha256(universal_index_blob).hexdigest(),
         str(args.special_index_output.resolve().relative_to(ROOT)): hashlib.sha256(special_index_blob).hexdigest(),
+        str(args.death_index_output.resolve().relative_to(ROOT)): hashlib.sha256(death_index_blob).hexdigest(),
+        str(args.death_table_output.resolve().relative_to(ROOT)): hashlib.sha256(death_table_blob).hexdigest(),
         str(args.generic_base_lut_output.resolve().relative_to(ROOT)): hashlib.sha256(base_lut).hexdigest(),
         str(args.generic_usage_output.resolve().relative_to(ROOT)): hashlib.sha256(usage_blob).hexdigest(),
         str(args.residency_output.resolve().relative_to(ROOT)): hashlib.sha256(residency_blob).hexdigest(),
@@ -883,6 +992,13 @@ def main() -> None:
                 "selector bytes beyond the five statically bounded tables, plus compositor/selector "
                 "3/36, 3/37, 4/91 whose special long pointers are outside arcade ROM/address space"),
         },
+        "death_native_dispatch": {
+            "kind": "finite family/selector/orientation index with shared compact geometry and retained effective-bank context",
+            "index_records": len(death_indexes),
+            "piece_table_bytes": len(death_table_blob),
+            "unresolved_records": 0,
+            "contexts": death_coverage,
+        },
         "readiness_matrix": readiness,
         "gen_ku_1": {"cave_block": "static base 0x0179", "burst": "static base 0x0275", "lizardman": "static base 0x004B within the proven family-0 selector domain", "large_bat": "static base 0x03F6 within raw record-type 0x0A", "small_bat": "static base 0x0268 within raw record-type 0x0B", "unresolved_families": "UNKNOWN; retained fallback"},
         "gen_ku_4": "base LUT is only coarse classification; exact identity additionally validates raw discriminator, selector range, compositor, effective bank, and actor+0x27 policy",
@@ -895,14 +1011,18 @@ def main() -> None:
         "PC090OJ native frame coverage Phase B",
         f"native index entries: {len(native_keys)}",
         f"UNRESOLVED index entries: {INDEX_COUNT - len(native_keys)}",
-        f"unique native frame payloads: {len(dedup)}",
+        f"unique player frame payloads: {len(player_dedup)}",
+        f"unique universal frame payloads: {len(dedup)}",
         f"generic direct index entries: {len(generic_indexes)}",
         f"generic compact piece-table bytes: {len(generic_table_blob)}",
         f"universal index entries: {len(universal_indexes)} ({universal_native} general, {universal_special} specialized dispatch, {universal_unresolved} unresolved)",
         f"specialized subframe index entries: {len(special_indexes)}",
+        f"death native index entries: {len(death_indexes)}",
+        f"death compact piece-table bytes: {len(death_table_blob)}",
         f"generic usage descriptors: {len(usage_descriptors)}",
         f"generic base LUT bytes: {len(base_lut)}",
         f"frame table bytes: {len(table_blob)}",
+        f"compact player piece table bytes: {len(player_table_blob)}",
         f"frame index bytes: {len(index_blob)}",
         f"secondary frame index entries: {len(secondary_indexes)}",
         f"secondary frame index bytes: {len(secondary_index_blob)}",
@@ -920,7 +1040,8 @@ def main() -> None:
     ]
     args.report_output.write_text("\n".join(report) + "\n")
     print(f"PC090OJ player frame table: {len(native_keys)} native, "
-          f"{INDEX_COUNT - len(native_keys)} UNRESOLVED, {len(dedup)} unique payloads")
+          f"{INDEX_COUNT - len(native_keys)} UNRESOLVED, "
+          f"{len(player_dedup)} unique player payloads, {len(dedup)} universal payloads")
 
 
 if __name__ == "__main__":

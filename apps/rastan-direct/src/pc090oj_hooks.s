@@ -103,12 +103,15 @@
     .extern rastan_pc090oj_hud_white
     .extern pc090oj_slot_lut
     .extern pc090oj_player_frame_table
+    .extern pc090oj_player_piece_table
     .extern pc090oj_player_frame_index
     .extern pc090oj_secondary_frame_index
     .extern pc090oj_frame_table
     .extern pc090oj_generic_frame_index
     .extern pc090oj_universal_frame_index
     .extern pc090oj_special_frame_index
+    .extern pc090oj_death_frame_index
+    .extern pc090oj_death_piece_table
     .extern pc090oj_generic_base_lut
     .extern pc090oj_generic_usage_table
     .extern genesistan_current_scene_id
@@ -168,14 +171,8 @@
      * x = 320 - x - 16, y = 256 - y - 16 when the flip-screen ctrl bit is clear). */
     .equ PC090OJ_FLIP_X_TERM, 304       /* 320 - PC090OJ_PATTERN_WIDTH  */
     .equ PC090OJ_FLIP_Y_TERM, 240       /* 256 - PC090OJ_PATTERN_HEIGHT */
-    /* Arcade -> Genesis display-origin alignment.  The background plane applies
-     * VDP_DISPLAY_ORIGIN_Y_BIAS(=8) / _X_BIAS(=16) in vdp_comm.s so the arcade
-     * visible-area origin (raster Y=8, per rastan.cpp set_visarea 8..247) maps to
-     * Genesis display line 0.  Sprites use the SAME origin so sprite/background
-     * stay vertically aligned; this also places the arcade top margin above the
-     * Genesis viewport, where its records clip out naturally.  Configurable. */
-    .equ PC090OJ_TO_GENESIS_Y_OFFSET, -8   /* = -VDP_DISPLAY_ORIGIN_Y_BIAS */
     .equ PC090OJ_TO_GENESIS_X_OFFSET,  0   /* frontend X already aligned; tune later */
+    .equ PC090OJ_TO_GENESIS_Y_OFFSET, -8   /* remove top 8 arcade lines */
     /* Effective sprite clip rectangle = intersection of the arcade visible area
      * (raster 8..247 -> Genesis 0..239 after the Y origin) and the Genesis output
      * viewport (0..223, 0..319).  The Genesis bounds bind; ends are exclusive. */
@@ -420,7 +417,7 @@ native_player_frame_try:
     beq.s   .Lnpft_key_ready
     addq.w  #1, %d0
 .Lnpft_key_ready:
-    mulu.w  #6, %d0
+    mulu.w  #12, %d0
     lea     pc090oj_player_frame_index, %a1
     adda.l  %d0, %a1
     move.l  (%a1), %d0
@@ -428,9 +425,15 @@ native_player_frame_try:
     beq     .Lnpft_unresolved
     moveq   #0, %d7
     move.b  4(%a1), %d7
-    cmpi.b  #1, 5(%a1)
+    moveq   #0, %d4
+    move.b  5(%a1), %d4
+    cmpi.b  #1, %d4
+    beq.s   .Lnpft_format_ready
+    cmpi.b  #2, %d4
     bne     .Lnpft_unresolved
-    lea     pc090oj_player_frame_table, %a0
+.Lnpft_format_ready:
+    move.w  6(%a1), %d1              /* frame-wide attr for compact format */
+    lea     pc090oj_player_piece_table, %a0
     adda.l  %d0, %a0
 
     move.b  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane+1
@@ -439,28 +442,68 @@ native_player_frame_try:
     clr.w   0x129C(%a5)
     move.w  0x10BE(%a5), %d5          /* player base X */
     move.w  0x10C0(%a5), %d6          /* player base Y */
+    move.w  8(%a1), %d2               /* generated weapon-anchor dx */
+    cmpi.w  #0x8000, %d2
+    beq.s   .Lnpft_anchor_done
+    add.w   %d5, %d2
+    andi.w  #0x01FF, %d2
+    move.w  %d2, 0x129A(%a5)
+    move.w  10(%a1), %d2              /* generated weapon-anchor dy */
+    add.w   %d6, %d2
+    andi.w  #0x01FF, %d2
+    move.w  %d2, 0x129C(%a5)
+.Lnpft_anchor_done:
     tst.w   %d7
     beq.s   .Lnpft_native_done
-.Lnpft_piece_loop:
+    move.w  (%a6), %d0                /* establish append cursor once */
+    lsl.w   #3, %d0
+    lea     0(%a3,%d0.w), %a1
+    cmpi.b  #2, %d4
+    beq.s   .Lnpft_mixed_piece_loop
+.Lnpft_compact_piece_loop:
     move.w  0(%a0), %d4
     add.w   %d5, %d4
     move.w  2(%a0), %d2
     add.w   %d6, %d2
     move.w  4(%a0), %d3               /* baked finalized vi == non-divergent code */
-    move.w  6(%a0), %d1               /* baked invariant attr + orientation flip */
-    btst    #0, 9(%a0)
-    beq.s   .Lnpft_no_anchor
-    move.w  %d4, %d0
+    move.w  %d2, %d0                  /* retained Y visibility test */
     andi.w  #0x01FF, %d0
-    move.w  %d0, 0x129A(%a5)
+    cmpi.w  #0x0180, %d0
+    beq.s   .Lnpft_compact_next
+    cmpa.l  %a2, %a1
+    bhs.s   .Lnpft_native_done
+    move.w  %d1, (%a1)+
+    move.w  %d2, (%a1)+
+    move.w  %d3, (%a1)+
+    move.w  %d4, (%a1)+
+    addq.w  #1, (%a6)
+.Lnpft_compact_next:
+    adda.w  #6, %a0
+    subq.w  #1, %d7
+    bne.s   .Lnpft_compact_piece_loop
+    bra.s   .Lnpft_native_done
+.Lnpft_mixed_piece_loop:
+    move.w  0(%a0), %d4
+    add.w   %d5, %d4
+    move.w  2(%a0), %d2
+    add.w   %d6, %d2
+    move.w  4(%a0), %d3
+    move.w  6(%a0), %d1               /* only 28 keys genuinely vary by piece */
     move.w  %d2, %d0
     andi.w  #0x01FF, %d0
-    move.w  %d0, 0x129C(%a5)
-.Lnpft_no_anchor:
-    bsr     native_sprite_emit_fast
-    adda.w  #10, %a0
+    cmpi.w  #0x0180, %d0
+    beq.s   .Lnpft_mixed_next
+    cmpa.l  %a2, %a1
+    bhs.s   .Lnpft_native_done
+    move.w  %d1, (%a1)+
+    move.w  %d2, (%a1)+
+    move.w  %d3, (%a1)+
+    move.w  %d4, (%a1)+
+    addq.w  #1, (%a6)
+.Lnpft_mixed_next:
+    adda.w  #8, %a0
     subq.w  #1, %d7
-    bne.s   .Lnpft_piece_loop
+    bne.s   .Lnpft_mixed_piece_loop
 .Lnpft_native_done:
     movem.l (%sp)+, %d1-%d7/%a0-%a3/%a6
     moveq   #1, %d0
@@ -485,7 +528,7 @@ native_player_secondary_frame:
     subq.w  #1, %d0
 .Lnpsf_selector_ready:
     cmpi.w  #51, %d0
-    bhi.s   .Lnpsf_unresolved
+    bhi     .Lnpsf_unresolved
     move.w  0x1308(%a5), %d1
     lsr.w   #1, %d1
     andi.w  #3, %d1
@@ -496,7 +539,7 @@ native_player_secondary_frame:
     beq.s   .Lnpsf_key_ready
     addq.w  #1, %d0
 .Lnpsf_key_ready:
-    mulu.w  #6, %d0
+    mulu.w  #12, %d0
     lea     pc090oj_secondary_frame_index, %a1
     adda.l  %d0, %a1
     move.l  (%a1), %d0
@@ -504,7 +547,8 @@ native_player_secondary_frame:
     move.b  4(%a1), %d7
     cmpi.b  #1, 5(%a1)
     bne.s   .Lnpsf_unresolved
-    lea     pc090oj_player_frame_table, %a0
+    move.w  6(%a1), %d1              /* all secondary attrs are frame-wide */
+    lea     pc090oj_player_piece_table, %a0
     adda.l  %d0, %a0
     move.b  #NATIVE_LANE_PLAYER_BODY, native_sprite_lane+1
     bsr     native_sprite_fast_context
@@ -512,15 +556,28 @@ native_player_secondary_frame:
     move.w  0x10C0(%a5), %d6
     tst.w   %d7
     beq.s   .Lnpsf_done
+    move.w  (%a6), %d0
+    lsl.w   #3, %d0
+    lea     0(%a3,%d0.w), %a1
 .Lnpsf_piece_loop:
     move.w  0(%a0), %d4
     add.w   %d5, %d4
     move.w  2(%a0), %d2
     add.w   %d6, %d2
     move.w  4(%a0), %d3
-    move.w  6(%a0), %d1
-    bsr     native_sprite_emit_fast
-    adda.w  #10, %a0
+    move.w  %d2, %d0
+    andi.w  #0x01FF, %d0
+    cmpi.w  #0x0180, %d0
+    beq.s   .Lnpsf_next
+    cmpa.l  %a2, %a1
+    bhs.s   .Lnpsf_done
+    move.w  %d1, (%a1)+
+    move.w  %d2, (%a1)+
+    move.w  %d3, (%a1)+
+    move.w  %d4, (%a1)+
+    addq.w  #1, (%a6)
+.Lnpsf_next:
+    adda.w  #6, %a0
     subq.w  #1, %d7
     bne.s   .Lnpsf_piece_loop
 .Lnpsf_done:
@@ -929,6 +986,20 @@ profile_native_actor_entry:
     bsr     .Lnative_generic_frame_try
     tst.b   %d0
     bne.s   .Lnea_restore
+    /* Death presentation has a finite, exhaustively generated domain.  Keep
+     * the ordinary Level-B routes first, then probe the compact death stream
+     * only for its three exact source-pattern families. */
+    cmpi.w  #0x0A73, 0x1E(%a4)
+    beq.s   .Lnea_try_death
+    cmpi.w  #0x0275, 0x1E(%a4)
+    beq.s   .Lnea_try_death
+    cmpi.w  #0x0A5A, 0x1E(%a4)
+    bne.s   .Lnea_try_universal
+.Lnea_try_death:
+    bsr     .Lnative_death_frame_try
+    tst.b   %d0
+    bne.s   .Lnea_restore
+.Lnea_try_universal:
     bsr     .Lnative_universal_general_try
     /* Static closure + Build-0406 runtime zero-fallback proof make the old
      * descriptor interpreter unreachable.  A generated miss owns no output;
@@ -1092,6 +1163,142 @@ profile_native_levelb_success:
     moveq   #0, %d0
     .global profile_native_levelb_miss
 profile_native_levelb_miss:
+    rts
+
+/* Purpose-built Genesis-native death presentation.
+ *
+ * The generated records cover exactly:
+ *   records  0.. 7: base 0275, compositor 0, selectors 9D..A0
+ *   records  8.. 9: base 0275, compositor 0, selector A8
+ *   records 10..25: base 0A73, compositor 2, selectors 0B..12
+ *   records 26..59: base 0A5A, compositor 2, selectors 13..23
+ * Each selector has normal then mirrored orientation.  Python has already
+ * interpreted the arcade descriptor/mode/delta stream.  Each compact piece is
+ * only {s16 dx,s16 dy,u16 raw pattern code}; the frame attribute and effective
+ * bank/lane context are established once, and the unchanged shared finalizer
+ * owns residency, DMA work generation and SAT realization.
+ *
+ * In: A4=retained actor, D2=caller piece ceiling.  Out: D0.b=1 on exact hit.
+ */
+    .global profile_native_death_entry
+profile_native_death_entry:
+.Lnative_death_frame_try:
+    move.w  %d2, %d5
+    move.w  0x1E(%a4), %d0
+    cmpi.w  #0x0275, %d0
+    beq.s   .Lndft_base_0275
+    cmpi.w  #0x0A73, %d0
+    beq.s   .Lndft_base_0a73
+    cmpi.w  #0x0A5A, %d0
+    bne     .Lndft_unresolved
+
+    cmpi.b  #2, 0x38(%a4)
+    bne     .Lndft_unresolved
+    moveq   #0, %d7
+    move.b  1(%a4), %d7
+    subi.w  #0x13, %d7
+    cmpi.w  #(0x23 - 0x13), %d7
+    bhi     .Lndft_unresolved
+    add.w   %d7, %d7
+    addi.w  #26, %d7
+    bra.s   .Lndft_orientation
+
+.Lndft_base_0a73:
+    cmpi.b  #2, 0x38(%a4)
+    bne     .Lndft_unresolved
+    moveq   #0, %d7
+    move.b  1(%a4), %d7
+    subi.w  #0x0B, %d7
+    cmpi.w  #(0x12 - 0x0B), %d7
+    bhi     .Lndft_unresolved
+    add.w   %d7, %d7
+    addi.w  #10, %d7
+    bra.s   .Lndft_orientation
+
+.Lndft_base_0275:
+    tst.b   0x38(%a4)
+    bne     .Lndft_unresolved
+    moveq   #0, %d7
+    move.b  1(%a4), %d7
+    cmpi.w  #0xA8, %d7
+    beq.s   .Lndft_bat_pop
+    subi.w  #0x9D, %d7
+    cmpi.w  #(0xA0 - 0x9D), %d7
+    bhi     .Lndft_unresolved
+    add.w   %d7, %d7
+    bra.s   .Lndft_orientation
+.Lndft_bat_pop:
+    moveq   #8, %d7
+
+.Lndft_orientation:
+    bsr     .Lnative_mapping_branch_is_normal
+    tst.b   %d0
+    bne.s   .Lndft_index
+    addq.w  #1, %d7
+.Lndft_index:
+    lsl.w   #3, %d7
+    lea     pc090oj_death_frame_index, %a2
+    adda.l  %d7, %a2
+    .global profile_native_death_index_lookup
+profile_native_death_index_lookup:
+    cmpi.b  #1, 5(%a2)
+    bne     .Lndft_unresolved
+    moveq   #0, %d7
+    move.b  4(%a2), %d7
+    cmp.w   %d5, %d7
+    bls.s   .Lndft_count_ready
+    move.w  %d5, %d7                   /* exact universal-path ceiling semantics */
+.Lndft_count_ready:
+    move.w  6(%a2), %d1               /* frame-wide attribute */
+    btst    #6, 0x27(%a4)
+    beq.s   .Lndft_attr_ready
+    move.b  0x27(%a4), %d1             /* retained low-byte override contract */
+.Lndft_attr_ready:
+    lea     pc090oj_death_piece_table, %a0
+    adda.l  (%a2), %a0
+    move.w  0x16(%a4), %d5
+    move.w  0x1A(%a4), %d6
+    bsr     native_sprite_fast_context
+    tst.w   %d7
+    beq.s   .Lndft_done
+    moveq   #0, %d0
+    move.w  (%a6), %d0
+    lsl.w   #3, %d0
+    lea     0(%a3,%d0.w), %a1
+    .global profile_native_death_frame_ready
+profile_native_death_frame_ready:
+    .global profile_native_death_piece
+profile_native_death_piece:
+.Lndft_emit:
+    move.w  0(%a0), %d4
+    add.w   %d5, %d4
+    move.w  2(%a0), %d2
+    add.w   %d6, %d2
+    move.w  4(%a0), %d3
+    move.w  %d2, %d0
+    andi.w  #0x01FF, %d0
+    cmpi.w  #0x0180, %d0
+    beq.s   .Lndft_piece_done
+    cmpa.l  %a2, %a1
+    bhs.s   .Lndft_piece_done
+    move.w  %d1, (%a1)+
+    move.w  %d2, (%a1)+
+    move.w  %d3, (%a1)+
+    move.w  %d4, (%a1)+
+    addq.w  #1, (%a6)
+.Lndft_piece_done:
+    adda.w  #6, %a0
+    subq.w  #1, %d7
+    bne.s   .Lndft_emit
+.Lndft_done:
+    moveq   #1, %d0
+    .global profile_native_death_success
+profile_native_death_success:
+    rts
+.Lndft_unresolved:
+    moveq   #0, %d0
+    .global profile_native_death_miss
+profile_native_death_miss:
     rts
 
 /* Dense generated Level-A closure for every decodable general compositor
@@ -2665,7 +2872,7 @@ profile_native_geometry_entry:
     addi.w  #PC090OJ_TO_GENESIS_Y_OFFSET, %d2
 
     .global profile_native_bbox_entry
-profile_native_bbox_entry:
+    profile_native_bbox_entry:
 .Lnq_bbox_source_ready:
     btst    #14, %d3                    /* only fixed, visible P1 HUD cells carry this proof */
     bne     .Lnq_bbox_proven_visible

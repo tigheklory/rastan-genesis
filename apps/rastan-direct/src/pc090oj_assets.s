@@ -14,6 +14,14 @@ pc090oj_frame_table:
 pc090oj_player_frame_table:
     .incbin "../../build/pc090oj_frame_table.bin"
 
+    /* Build 0428: player-only Genesis-native pieces. Primary frames use a
+     * 6-byte compact form when attr is frame-wide and an 8-byte mixed form
+     * only where body/weapon priority genuinely differs. Secondary is compact. */
+    .global pc090oj_player_piece_table
+    .align 2
+pc090oj_player_piece_table:
+    .incbin "../../build/pc090oj_player_piece_table.bin"
+
     .global pc090oj_player_frame_index
     .align 2
 pc090oj_player_frame_index:
@@ -45,6 +53,18 @@ pc090oj_universal_frame_index:
     .align 2
 pc090oj_special_frame_index:
     .incbin "../../build/pc090oj_special_frame_index.bin"
+
+    /* Genesis-native death presentation: 8-byte frame records and compact
+     * {dx,dy,raw-pattern-code} pieces shared by every effective-bank context. */
+    .global pc090oj_death_frame_index
+    .align 2
+pc090oj_death_frame_index:
+    .incbin "../../build/pc090oj_death_frame_index.bin"
+
+    .global pc090oj_death_piece_table
+    .align 2
+pc090oj_death_piece_table:
+    .incbin "../../build/pc090oj_death_piece_table.bin"
 
     .global pc090oj_generic_base_lut
     .align 2

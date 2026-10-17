@@ -25,6 +25,9 @@ VARIANT_MARK = 0x2000
 DIRECT_MARK = 0x1000
 ATTR_OVERRIDE, ATTR_EMBEDDED = 1, 2
 STATUS_NATIVE, STATUS_SPECIAL = 1, 2
+PLAYER_FORMAT_COMPACT, PLAYER_FORMAT_MIXED_ATTR = 1, 2
+PLAYER_INDEX_SIZE = 12
+PLAYER_NO_ANCHOR = -0x8000
 F_YADJ, F_DYNAMIC = 4, 8
 F_COND_TRUE, F_COND_FALSE, F_M10_OVERRIDE, F_M10_PLUS1 = 0x10, 0x20, 0x40, 0x80
 SPECIAL_DATA = {
@@ -45,6 +48,12 @@ GENERIC = (
     ("lizardman", 0x004B, range(0x17, 0x20), 0, 0x36, 0x3E, 0x00, ATTR_OVERRIDE),
     ("large_bat", 0x03F6, range(0xB6, 0xB9), 0, 0x3E, 0x06, 0x0A, ATTR_EMBEDDED),
     ("small_bat", 0x0268, range(0xB9, 0xBC), 0, 0x3E, 0x06, 0x0B, ATTR_EMBEDDED),
+)
+DEATH = (
+    ("fountain", 0x0275, 0, range(0x9D, 0xA1)),
+    ("bat_pop", 0x0275, 0, range(0xA8, 0xA9)),
+    ("ordinary_death", 0x0A73, 2, range(0x0B, 0x13)),
+    ("death_reward", 0x0A5A, 2, range(0x13, 0x24)),
 )
 PROGRAMS = {
     ("cave_block", 0x70): (0x03E1C0, 4),
@@ -279,26 +288,32 @@ def main() -> None:
     ap.add_argument("--maincpu", default=ROOT / "build/regions/maincpu.bin", type=Path)
     ap.add_argument("--variant-index", default=ROOT / "build/regions/pc090oj_variant_index.json", type=Path)
     ap.add_argument("--table", default=ROOT / "build/pc090oj_frame_table.bin", type=Path)
+    ap.add_argument("--player-table", default=ROOT / "build/pc090oj_player_piece_table.bin", type=Path)
     ap.add_argument("--index", default=ROOT / "build/pc090oj_frame_index.bin", type=Path)
     ap.add_argument("--secondary-index", default=ROOT / "build/pc090oj_secondary_frame_index.bin", type=Path)
     ap.add_argument("--generic-index", default=ROOT / "build/pc090oj_generic_frame_index.bin", type=Path)
     ap.add_argument("--generic-table", default=ROOT / "build/pc090oj_generic_piece_table.bin", type=Path)
     ap.add_argument("--universal-index", default=ROOT / "build/pc090oj_universal_frame_index.bin", type=Path)
     ap.add_argument("--special-index", default=ROOT / "build/pc090oj_special_frame_index.bin", type=Path)
+    ap.add_argument("--death-index", default=ROOT / "build/pc090oj_death_frame_index.bin", type=Path)
+    ap.add_argument("--death-table", default=ROOT / "build/pc090oj_death_piece_table.bin", type=Path)
     ap.add_argument("--generic-base-lut", default=ROOT / "build/pc090oj_generic_base_lut.bin", type=Path)
     ap.add_argument("--generic-usage", default=ROOT / "build/pc090oj_generic_usage_table.bin", type=Path)
     ap.add_argument("--residency", default=ROOT / "build/pc090oj_frame_residency.bin", type=Path)
     ap.add_argument("--coverage", default=ROOT / "build/pc090oj_frame_table.coverage.json", type=Path)
     a = ap.parse_args()
     rom, table, index = a.maincpu.read_bytes(), a.table.read_bytes(), a.index.read_bytes()
+    player_table = a.player_table.read_bytes()
     secondary_index = a.secondary_index.read_bytes()
     generic_index = a.generic_index.read_bytes()
     generic_table = a.generic_table.read_bytes()
     universal_index = a.universal_index.read_bytes()
     special_index = a.special_index.read_bytes()
+    death_index = a.death_index.read_bytes()
+    death_table = a.death_table.read_bytes()
     generic_base_lut = a.generic_base_lut.read_bytes()
     generic_usage = a.generic_usage.read_bytes()
-    if len(index) != FRAMES * PLAYER_VARIANTS * ORIENTATIONS * 6:
+    if len(index) != FRAMES * PLAYER_VARIANTS * ORIENTATIONS * PLAYER_INDEX_SIZE:
         raise SystemExit(f"bad index size {len(index)}")
     variant_json = json.loads(a.variant_index.read_text())
     divergent = {int(x, 16) for x in variant_json["group_base"]}
@@ -310,39 +325,72 @@ def main() -> None:
         for player_variant in range(PLAYER_VARIANTS):
             for orientation in range(ORIENTATIONS):
                 k = ((frame * PLAYER_VARIANTS + player_variant) * ORIENTATIONS) + orientation
-                off, count, status = struct.unpack_from(">IBB", index, k * 6)
+                off, count, piece_format, frame_attr, anchor_dx, anchor_dy = \
+                    struct.unpack_from(">IBBHhh", index, k * PLAYER_INDEX_SIZE)
                 want = expected(rom, frame, player_variant, orientation)
-                if status != 1 or count != len(want) or off + count * 10 > len(table):
-                    raise SystemExit(f"bad native index key {k}: {(off, count, status)}")
-                got = [struct.unpack_from(">hhHHBB", table, off + i * 10) for i in range(count)]
-                if got != want:
-                    raise SystemExit(f"frame mismatch key {k}: got={got!r} want={want!r}")
-                bad = sorted({p[2] & 0x0FFF for p in got} & divergent)
+                attrs = {p[3] for p in want}
+                want_format = (PLAYER_FORMAT_COMPACT if len(attrs) <= 1
+                               else PLAYER_FORMAT_MIXED_ATTR)
+                piece_size = 6 if piece_format == PLAYER_FORMAT_COMPACT else 8
+                if (piece_format != want_format or count != len(want) or
+                        off + count * piece_size > len(player_table)):
+                    raise SystemExit(
+                        f"bad native index key {k}: {(off, count, piece_format, frame_attr)}")
+                if piece_format == PLAYER_FORMAT_COMPACT:
+                    got = [struct.unpack_from(">hhH", player_table, off + i * 6)
+                           for i in range(count)]
+                    compact_want = [(p[0], p[1], p[2]) for p in want]
+                    if got != compact_want or frame_attr != next(iter(attrs), 0):
+                        raise SystemExit(f"compact frame mismatch key {k}")
+                else:
+                    got = [struct.unpack_from(">hhHH", player_table, off + i * 8)
+                           for i in range(count)]
+                    mixed_want = [(p[0], p[1], p[2], p[3]) for p in want]
+                    if got != mixed_want or frame_attr != 0:
+                        raise SystemExit(f"mixed frame mismatch key {k}")
+                anchors = [(p[0], p[1]) for p in want if p[5] & 1]
+                want_anchor = anchors[0] if anchors else (PLAYER_NO_ANCHOR, 0)
+                if len(anchors) > 1 or (anchor_dx, anchor_dy) != want_anchor:
+                    raise SystemExit(f"anchor mismatch key {k}")
+                for base_x, base_y in ((0, 0), (0x1FE, 0x1FE), (0x123, 0x087)):
+                    got_anchor = (0, 0) if anchor_dx == PLAYER_NO_ANCHOR else \
+                        ((base_x + anchor_dx) & 0x1FF, (base_y + anchor_dy) & 0x1FF)
+                    want_result = (0, 0) if not anchors else \
+                        ((base_x + anchors[0][0]) & 0x1FF,
+                         (base_y + anchors[0][1]) & 0x1FF)
+                    if got_anchor != want_result:
+                        raise SystemExit(f"anchor publication mismatch key {k}")
+                bad = sorted({p[2] & 0x0FFF for p in want} & divergent)
                 if bad:
                     raise SystemExit(f"key {k} bakes non-finalized divergent codes {bad}")
-                if any(not p[2] & DIRECT_MARK for p in got):
+                if any(not p[2] & DIRECT_MARK for p in want):
                     raise SystemExit(f"key {k} lacks direct-identity marker")
-                expected_residency[k] = sorted({p[2] & 0x0FFF for p in got})
+                expected_residency[k] = sorted({p[2] & 0x0FFF for p in want})
                 native += 1
 
-    if len(secondary_index) != SECONDARY_FRAMES * SECONDARY_PHASES * ORIENTATIONS * 6:
+    if len(secondary_index) != SECONDARY_FRAMES * SECONDARY_PHASES * ORIENTATIONS * PLAYER_INDEX_SIZE:
         raise SystemExit(f"bad secondary index size {len(secondary_index)}")
     secondary_native = 0
     for frame in range(SECONDARY_FRAMES):
         for phase in range(SECONDARY_PHASES):
             for orientation in range(ORIENTATIONS):
                 k = ((frame * SECONDARY_PHASES + phase) * ORIENTATIONS) + orientation
-                off, count, status = struct.unpack_from(">IBB", secondary_index, k * 6)
+                off, count, piece_format, frame_attr, anchor_dx, anchor_dy = \
+                    struct.unpack_from(">IBBHhh", secondary_index, k * PLAYER_INDEX_SIZE)
                 want = expected_secondary(rom, frame, phase, orientation)
-                if status != STATUS_NATIVE or count != len(want) or off + count * 10 > len(table):
-                    raise SystemExit(f"bad secondary native index key {k}: {(off, count, status)}")
-                got = [struct.unpack_from(">hhHHBB", table, off + i * 10)
+                if (piece_format != PLAYER_FORMAT_COMPACT or count != len(want) or
+                        off + count * 6 > len(player_table) or
+                        (anchor_dx, anchor_dy) != (PLAYER_NO_ANCHOR, 0)):
+                    raise SystemExit(f"bad secondary native index key {k}")
+                got = [struct.unpack_from(">hhH", player_table, off + i * 6)
                        for i in range(count)]
-                if got != want:
+                compact_want = [(p[0], p[1], p[2]) for p in want]
+                attrs = {p[3] for p in want}
+                if got != compact_want or len(attrs) > 1 or frame_attr != next(iter(attrs), 0):
                     raise SystemExit(
                         f"secondary frame mismatch {frame}/{phase}/{orientation}: "
                         f"got={got!r} want={want!r}")
-                if any(not p[2] & DIRECT_MARK for p in got):
+                if any(not p[2] & DIRECT_MARK for p in want):
                     raise SystemExit(
                         f"secondary frame {frame}/{phase}/{orientation} lacks direct marker")
                 secondary_native += 1
@@ -456,6 +504,60 @@ def main() -> None:
                     raise SystemExit(f"universal frame mismatch {compositor}/{anim:02x}/{orientation}")
                 universal_native += 1
 
+    death_record_count = sum(len(list(spec[3])) for spec in DEATH) * ORIENTATIONS
+    if len(death_index) != death_record_count * 8:
+        raise SystemExit(f"bad death index size {len(death_index)}")
+    death_native = 0
+    next_death_record = 0
+    for usage, base, compositor, selectors_range in DEATH:
+        selectors = list(selectors_range)
+        for anim in selectors:
+            for orientation in range(ORIENTATIONS):
+                record = next_death_record + (anim - selectors[0]) * 2 + orientation
+                off, count, status, frame_attr = struct.unpack_from(
+                    ">IBBH", death_index, record * 8)
+                source = expected_universal(rom, compositor, anim, orientation)
+                if source is None or not source:
+                    raise SystemExit(
+                        f"death source unexpectedly unresolved {usage}/{anim:02x}/{orientation}")
+                compact_want = []
+                attrs = set()
+                for dx, dy, delta, attr, size, flags in source:
+                    signed_delta = delta - 0x10000 if delta & 0x8000 else delta
+                    code = base + signed_delta
+                    if (size, flags) != (5, F_DYNAMIC) or not 0 < code <= 0x0FFF or code == 0x00FF:
+                        raise SystemExit(
+                            f"death compact invariant mismatch {usage}/{anim:02x}/{orientation}")
+                    compact_want.append((dx, dy, code))
+                    attrs.add(attr)
+                if (status != STATUS_NATIVE or count != len(compact_want) or
+                        off + count * 6 > len(death_table) or len(attrs) != 1 or
+                        frame_attr != next(iter(attrs))):
+                    raise SystemExit(
+                        f"bad death record {usage}/{anim:02x}/{orientation}")
+                got = [struct.unpack_from(">hhH", death_table, off + i * 6)
+                       for i in range(count)]
+                if got != compact_want:
+                    raise SystemExit(
+                        f"death frame mismatch {usage}/{anim:02x}/{orientation}")
+
+                # The fountain stream is deliberately shared.  Prove the
+                # exact retained effective-bank composition for its embedded
+                # 0x30 context and actor-low-byte override contexts 0x35/0x3F.
+                if usage == "fountain":
+                    contexts = ((0x30, None), (0x30, 0x45), (0x30, 0x4F))
+                    for ctrl_high, actor_attr in contexts:
+                        effective_attr = (frame_attr if actor_attr is None else
+                                          (frame_attr & 0xFF00) | actor_attr)
+                        effective_bank = ctrl_high | (effective_attr & 0x0F)
+                        want_bank = ctrl_high if actor_attr is None else \
+                            ctrl_high | (actor_attr & 0x0F)
+                        if effective_bank != want_bank:
+                            raise SystemExit(
+                                f"death fountain bank-context mismatch {effective_bank:02x}")
+                death_native += 1
+        next_death_record += len(selectors) * ORIENTATIONS
+
     residency = a.residency.read_bytes()
     magic, version, records = struct.unpack_from(">4sHH", residency)
     total_records = FRAMES * PLAYER_VARIANTS * ORIENTATIONS + generic_record_count
@@ -488,9 +590,13 @@ def main() -> None:
             uc["reachable_unresolved_records"] != 0 or
             uc["proven_unreachable_records"] != proven_unreachable):
         raise SystemExit("universal static reachability classification mismatch")
+    dc = coverage["death_native_dispatch"]
+    if (dc["index_records"], dc["unresolved_records"], len(dc["contexts"])) != \
+            (death_native, 0, death_native):
+        raise SystemExit("coverage JSON death counts disagree with verified index")
     print(f"PASS pc090oj frame table: {native} player native, {secondary_native} player secondary native, {generic_native} generic native, "
           f"{unresolved} player UNRESOLVED, {universal_native} universal general native, "
-          f"{universal_special} universal specialized native")
+          f"{universal_special} universal specialized native, {death_native} compact death native")
 
 
 if __name__ == "__main__":

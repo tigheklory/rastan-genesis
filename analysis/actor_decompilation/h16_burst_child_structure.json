@@ -12,8 +12,8 @@
   "child": {"state": "0x0F", "handler": "0x40CCC",
     "identity_source": "state 0x0F (assigned), NOT inherited from pool slot",
     "paths": {
-      "+0x39,+0x03==0 (0x40DD8)": {"base": "0x0275", "selector": 0, "anim": ["0x9E","0x9F","0xA0"],
-        "pieces": [8,9,10], "palette_line": 0, "pool": "0x0B", "palette_addr": "0x04FE62",
+      "+0x39,+0x03==0 (0x40DD8)": {"base": "0x0275", "selector": 0, "anim": ["0x9D","0x9E","0x9F","0xA0"],
+        "pieces": [6,8,9,10], "palette_line": 0, "pool": "0x0B", "palette_addr": "0x04FE62",
         "lifetime": "self-retire at +0x08>=4 (0x4092E)", "role": "expanding burst/impact effect"},
       "+0x03!=0 (0x40E0E)": {"base": "inherited", "anim": ["0x70","0x71","0x72","0x73"],
         "sfx": "0x17", "lifetime": "self-limited at +0x08>=4", "role": "transient effect"}}},

@@ -21,6 +21,7 @@ LOGICAL = 64
 PHYSICAL_W = 64
 PHYSICAL_H = 32
 STALE = 0xDEAD
+BOUNDARY_LUT_WORDS = 10240
 
 
 def fail(message: str) -> None:
@@ -94,18 +95,44 @@ def static_contract() -> None:
                     ".Lplane_a_native_metatile_record_from_d2", "0x20(%a0",
                     ".Lplane_a_native_attr_from_word", "fg_cache_resolve"),
             "fused Plane-A name/collision accessor")
-    require(row_a, ("moveq   #0, %d4", "MAP_PUBLISH_NAME_A_BLOCK4",
+    require(row_a, ("movea.l 0(%a0,%d1.w), %a4",
+                    "lea     fg_boundary_active_lut, %a2",
+                    "adda.w  %d1, %a6",
+                    "ARCADE_PC080SN_STRIP_GROUP_OFFSET",
+                    "ARCADE_PC080SN_STRIP_INDEX_OFFSET",
+                    "move.w  #16, plane_a_src_ref_block",
+                    "moveq   #0, %d4", "MAP_PUBLISH_NAME_A_BLOCK4",
                     "addq.w  #4, %d4",
-                    "cmpi.w  #BG_LOGICAL_SPAN, %d4"), "Plane-A row producer")
-    require(block4, ("ARCADE_PC080SN_STRIP_GROUP_OFFSET",
-                     "ARCADE_PC080SN_STRIP_INDEX_OFFSET",
+                    "cmpi.w  #BG_LOGICAL_SPAN, %d4",
+                    "fg_row_dirty"), "Plane-A row producer")
+    require(block4, ("movea.l %a4, %a0",
+                     "MAP_GET_NAME_A_GAMEPLAY_ROW",
                      ".Lplane_a_block_ring_seam_loop",
                      "bsr     resolve_plane_a_cell",
                      ".Lplane_a_block_single_descriptor"),
             "Plane-A four-cell ring-seam guard")
-    require(row_b, ("moveq   #0, %d4", "MAP_GET_NAME_B",
+    require(row_b, ("lea     fg_boundary_active_lut, %a2",
+                    "adda.w  %d0, %a6",
+                    "moveq   #0, %d4", "MAP_GET_NAME_B_GAMEPLAY_ROW",
                     ".Lplane_b_row_cached_group", "14(%sp)", "16(%sp)",
-                    "cmpi.w  #BG_LOGICAL_SPAN, %d4"), "Plane-B row producer")
+                    "cmpi.w  #BG_LOGICAL_SPAN, %d4", "bg_row_dirty"),
+            "Plane-B row producer")
+    for macro in ("MAP_GET_NAME_A_GAMEPLAY_ROW", "MAP_GET_NAME_B_GAMEPLAY_ROW"):
+        direct = section(source, f".macro {macro}", ".endm")
+        require(direct, ("andi.w  #0x3FFF, %d3",
+                         "cmpi.w  #FG_BOUNDARY_LUT_WORDS, %d3",
+                         "move.w  0(%a2,%d3.w), %d3",
+                         "moveq   #0, %d3"), macro)
+    if row_a.count("PC080SN_DESC_REBUILD_SRC_TABLE") != 1:
+        fail("Plane-A row source context is not selected exactly once per row")
+    if row_a.count("lea     staged_fg_buffer, %a6") != 1:
+        fail("Plane-A staging-row context is not selected exactly once per row")
+    if row_b.count("lea     staged_bg_buffer, %a6") != 1:
+        fail("Plane-B staging-row context is not selected exactly once per row")
+    if "bsr     fg_cache_resolve" in block4:
+        fail("Plane-A row hot loop retains the general per-cell LUT helper")
+    if "MAP_GET_NAME_B\n" in row_b:
+        fail("Plane-B row hot loop retains the general per-cell LUT helper")
     native_leaf = section(source, ".Lplane_a_native_metatile_record_from_d2:",
                           "/* in: D0.W = logical row 0..63")
     require(native_leaf, ("genesistan_pc080sn_native_metatile_index",
@@ -245,6 +272,83 @@ def verify_plane_b_independent_context() -> None:
                 fail("Plane-B row/package context collapsed into Plane A")
 
 
+def old_row_lut_resolve(code: int, lut: list[int]) -> tuple[int, int]:
+    """Scene-1 behavior of the accepted Build-0433 general resolver."""
+    code &= 0x3FFF
+    if code == 0:
+        return 0, 0
+    if code >= BOUNDARY_LUT_WORDS:
+        return 0, 1
+    resolved = lut[code]
+    return (resolved, 0) if resolved else (0, 1)
+
+
+def hoisted_row_lut_resolve(code: int, lut: list[int]) -> tuple[int, int]:
+    """Build-0434 inline row leaf: value and miss delta must stay identical."""
+    code &= 0x3FFF
+    if code == 0:
+        return 0, 0
+    if code >= BOUNDARY_LUT_WORDS:
+        return 0, 1
+    resolved = lut[code]
+    if resolved:
+        return resolved, 0
+    return 0, 1
+
+
+def verify_vertical_row_hoist_equivalence() -> None:
+    """Exhaustively compare the accepted and hoisted vertical-row contracts."""
+    lut = [((code * 37) ^ 0x35A) & 0x07FF for code in range(BOUNDARY_LUT_WORDS)]
+    for code in range(0, BOUNDARY_LUT_WORDS, 97):
+        lut[code] = 0
+    for code in range(0x4000):
+        old = old_row_lut_resolve(code, lut)
+        new = hoisted_row_lut_resolve(code, lut)
+        if old != new:
+            fail(f"row LUT/miss mismatch code={code:#06x}: {old} != {new}")
+
+    # Build 0433 recomputed these values in each four-cell block. Build 0434
+    # computes them once per row; the values themselves must be unchanged.
+    for row in range(LOGICAL):
+        old_source_row = (row >> 2) & 0xF
+        new_source_row = (row >> 2) & 0xF
+        old_dest_row = row & 0x1F
+        new_dest_row = row & 0x1F
+        if (old_source_row, old_dest_row) != (new_source_row, new_dest_row):
+            fail(f"row context mismatch at logical row {row}")
+        for strip_group in range(16):
+            for strip_index in range(4):
+                front = strip_group * 4 + strip_index
+                for block_col in range(0, LOGICAL, 4):
+                    seam_old = block_col <= front < block_col + 4
+                    seam_new = block_col <= front < block_col + 4
+                    if seam_old != seam_new:
+                        fail(f"ring-seam classification mismatch front={front} block={block_col}")
+                    for col in range(block_col, block_col + 4):
+                        old_delta = (col >> 2) - strip_group
+                        if col > front:
+                            old_delta -= 16
+                        new_delta = (col >> 2) - strip_group
+                        if col > front:
+                            new_delta -= 16
+                        old_dest = old_dest_row * PHYSICAL_W + col
+                        new_dest = new_dest_row * PHYSICAL_W + col
+                        if (old_delta, old_dest) != (new_delta, new_dest):
+                            fail(
+                                "Plane-A row hoist mismatch "
+                                f"r={row} c={col} front={front}: "
+                                f"{(old_delta, old_dest)} != {(new_delta, new_dest)}"
+                            )
+
+    # Plane B changes only the hoisted physical row base and LUT call leaf.
+    for row in range(LOGICAL):
+        for col in range(LOGICAL):
+            old_dest = (row & 0x1F) * PHYSICAL_W + col
+            new_dest = (row & 0x1F) * PHYSICAL_W + col
+            if old_dest != new_dest:
+                fail(f"Plane-B row destination mismatch r={row} c={col}")
+
+
 def verify_dirty_gather_and_dma() -> None:
     staged = [[name_word(0, 6, row, col) for col in range(PHYSICAL_W)]
               for row in range(PHYSICAL_H)]
@@ -269,12 +373,14 @@ def main() -> None:
     verify_n_n32_semantics()
     verify_source_rebase_and_trailing_retention()
     verify_plane_b_independent_context()
+    verify_vertical_row_hoist_equivalence()
     verify_dirty_gather_and_dma()
     print("PASS full-span background coherence: broken 0415 FAIL; broken 0416 "
           "FAIL; restored 0417/0418 full-span PASS; Build 0419 fused "
           "accessor PASS; Build 0422 generated semantics + ring-safe grouped "
           "row resolution PASS; initial 64x64 seed, N/N+32 semantics, "
           "source rebase, trailing retention, independent Plane-B context, "
+          "Build 0434 vertical-row context/LUT/miss equivalence, "
           "32-row projection, dirty gather, and 32-word column DMA PASS")
 
 

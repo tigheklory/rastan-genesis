@@ -546,6 +546,16 @@ than the report's evidence.
 
 Do not use `AGENTS_LOG.md` as a scratchpad or as the only documentation of a build.
 
+### 4A. Accepted Numbered Builds Require Durable Source Commits
+
+When Tighe accepts a numbered build on real hardware, the exact source state that produced that
+artifact must already have, or immediately receive, a durable Git commit before development begins
+on any subsequent build. Record the commit SHA as the accepted baseline in the applicable build
+report and project log; create an acceptance tag/reference when project policy permits. A candidate
+commit must not be called accepted before Tighe's explicit acceptance. Do not begin the next
+numbered implementation while the current candidate's acceptance and durable-baseline record remain
+unresolved.
+
 ### 5. Current Source Is Authority Over Historical Reports
 
 Before modifying a subsystem, inspect the current source tree and current generated

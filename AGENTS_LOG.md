@@ -1,5 +1,93 @@
 # AGENTS Log
 
+## [Andy — Deferred full gameplay HUD / 240→224 vertical-framing preservation & restart plan]
+
+* READ-ONLY preservation/planning. No production source, Makefile, generator, verifier, spec, ROM, build number, build counter, branch, commit, tag, MAME run, or rope benchmark touched. Phase D/E NO. Deliverable: `docs/design/Andy_deferred_full_hud_vertical_framing_plan.md`.
+* DECISION: HUD/vertical-framing work (Builds 0435 upper-HUD restoration, 0436 runtime-origin split [rejected], 0437 compile-time-origin correction, post-0437 SAT regression isolation) intentionally DEFERRED. Intended production return baseline = **Build 0434** (last Tighe-accepted real-Genesis baseline; 803 fr; general vertical paired-row optimization). Builds 0435/0436/0437 preserved as consumed history — never delete/reuse.
+* GIT PROVENANCE (critical): current branch `rastan-direct-proposal`, HEAD `9982f7c` = commit "Build 426"; **0 tags**; **no commits for builds 0427–0437**. All of 0427–0437 (incl. the whole HUD/framing campaign) exist ONLY as uncommitted working-tree state on top of HEAD. Build-0434/0435/0436/0437 Git references NOT IDENTIFIED. `build_counter.txt`=437. "Return to 0434" is therefore a source RECONSTRUCTION, not a checkout.
+* EXACT post-0434 code inventory documented (production `Makefile`, `pc090oj_hooks.s`, `vdp_comm.s` carry the deferred HUD/origin delta; `tilemap_hooks.s`/`fg_tile_cache.s` are the 0434 work that must be KEPT on rollback; new `verify_gameplay_hud_modes.py`, `out/variant_configs/`, `out/full_hud_patch_manifest.json`, `analysis/decompilation/c/rastan_player_hud.c` + raws; trace evidence). Lower-HUD semantics preserved (reserve lives Y=0xE4 X=0x00; energy/pickups/ROUND Y=0xE8; origin 24 → bottom-aligned 24..247→0..223 as FUTURE CANDIDATE, not accepted). Zero-extra-runtime-coordinate-work recorded as the stronger future requirement; arcade-vs-Genesis coordinate-cost audit set as the first restart task.
+* HARD GATE: a separate Cody Git code-preservation task (preservation ref `archive/deferred-hud-framing-0437` + commit SHA + §6 file verification + exact 0434→deferred patch) MUST complete and verify BEFORE production source is returned to Build 0434. NOT safe to revert right now. Verified current source = Build 0437 state (`native_active_y_origin` absent; conditional-assembly origin immediates present).
+
+## [Andy — Interactive rope-race performance-history REPORT (visualization only; no code/ROM/benchmarks)]
+
+* VISUALIZATION/REPORT ONLY. No production source, no ROM, no build-number, no benchmarks rerun, no MAME, Phase D/E NO. Deliverables: docs/design/rastan_rope_performance_history.html (self-contained interactive, embedded data + native Canvas chart, no network deps) + docs/design/rastan_rope_performance_history_sources.md.
+* DATA SOURCE (authoritative, embedded): states/traces/historical_rope_benchmark/canonical_results.csv/json (436 canonical; benchmarkable era 0282-0436 = 155 rows embedded) + full_hud_results.csv (0434/0435/0436), generated 2026-10-17Z, tool tools/mame/run_historical_rope_benchmarks.py. Verified corrected sequential reruns ALREADY present (0412=949,0413=917,0414=915,0415=854,0416=856,0417=911,0418=911,0419=878,0421=879; 0420=NO_GAMEPLAY). No rebuild/rerun needed.
+* ARCADE REF 771 fr/12850 ms shown as prominent horizontal line; lower=better emphasized. First benchmarked B0282=1082; current B0436=807; best accepted B0428=803; current gap +36. Pre-282 (281 builds) excluded from chart (no gameplay / rope never reached) + noted in integrity footer.
+* FEATURES: Canvas line chart (frames + gap-to-arcade toggle), pan/drag + wheel/pinch zoom + reset + zoom-late(≥410) + build search/jump, accepted/rejected/other status filter, annotations toggle, _full_hud overlay (435/436 penalties +51/+6.35%, +54/+6.69%; 0434 _full_hud flagged NOT a valid baseline), hover tooltip + click persistent detail panel, clickable milestone-era timeline, summary tiles, collapsible methodology, sortable/filterable raw table, dark/light theme. Rejected builds (0415 fast-but-invalid, 0420/0421) drawn as distinct square markers + excluded from the trend line; evidence tags P/A/H/U on annotations; 0429-0432 marked acceptance=unknown (cause not established); causation not invented.
+* No benchmark re-run; data read-only from the existing durable aggregate.
+
+## [Cody — Build 0437 compile-time vertical-origin correction]
+
+* Removed Build-0436 `native_active_y_origin` completely: no BSS word, pass-time stores, per-sprite RAM load, or linked symbol. Default 8/8 sprite and Plane A/B arithmetic now uses direct immediate `#8`; unequal builds assemble tiny frontend/gameplay immediate paths and reconverge into the shared finalizer/publication code. Compile-only 8/0 proof PASS (`8` frontend / `0` gameplay in sprite and both planes); default objects restored before release. Top HUD, viewport, world/collision, camera, actor, rope, and DMA semantics unchanged.
+* Produced complete Build 0437 family (2,698,936 bytes each). Canonical SHA-256 `cadfef11f2e87621d087874335f03278041665acbeec79cadb10a57dfdd1d2e1`; canonical gate PASS, gameplay-entry PASS, known epoch FAIL; fixed 30-second GENESIS NTSC MAME trace completed at 1,798 frames.
+* Existing deterministic GENESIS NTSC rope benchmark: canonical `806,806,806` / 13,450.653 ms (+3 frames vs 0435, -1 vs 0436); full HUD `859,859,859` / 14,335.125 ms (+5 vs 0435, -2 vs 0436). Regression reduced but not resolved; no broader performance investigation. Report: `docs/design/Cody_build0437_compile_time_vertical_origin.md`. Real-hardware acceptance: Tighe required.
+
+## [Cody — Build 0436 independent frontend/gameplay vertical-origin implementation]
+
+* IMPLEMENTED build-time `RASTAN_FRONTEND_Y_ORIGIN ?= 8` and `RASTAN_GAMEPLAY_Y_ORIGIN ?= 8`; both are emitted into the generated config and verified across canonical, `_d`, `_s`, `_do`, `_c`, and `_full_hud` receipts. No origin suffix/cross-product. Alternate compile-only 8/0 proof PASS; no alternate ROM numbered.
+* PRESENTATION: existing `pc090oj_native_emit_pass` scene split selects one active raw-sprite origin; final SAT math is `raw_y - origin`. `vdp_commit_scroll` selects the same domain value and applies `-scroll_y + origin` to both Plane A/B. Viewport remains 0..223. Fixed-screen top HUD retains accepted placement independent of both origins. Bottom-HUD raw Y E4/E8 future queue contract inherits gameplay origin; no lower-HUD restoration.
+* ISOLATION: no actor/world/collision/probe/grounding/hitbox/hurtbox/sword/contact/camera/rope changes or origin references. `.Lb2c8_yfix`, `RASTAN_VERTICAL_CROP_BIAS`, and object-specific/`BACK_ENEMY -8` compensation remain absent. No shadow/mirror/chip tail/scheduler/ownership change; Phase D/E NO.
+* BUILD 0436: six artifacts complete, each 2,698,936 bytes. Canonical SHA-256 `af98cd46add652b031d22c11af4655387a655ada596b9a190ab746f0ad8d3dd0`; gates canonical PASS, gameplay-entry PASS, known epoch FAIL. Standard 30-second NTSC MAME trace completed (1798 frames); the rope benchmark was not part of that release workflow. Report: `docs/design/Cody_build0436_vertical_origin_split.md`. Real-hardware visual acceptance: Tighe required.
+* ROPE BENCHMARK: existing deterministic Genesis NTSC route, three trials each. Canonical `807,807,807` / 13,467.341 ms: +4 frames / +66.753 ms / +0.498% versus 0435 and +36 frames / +617.341 ms versus arcade. `_full_hud` `861,861,861` / 14,368.501 ms: +7 / +116.817 ms / +0.820% versus 0435 and +90 / +1,518.501 ms versus arcade. Full-HUD penalty is now +54 frames / +901.160 ms / +6.691%, versus 0435's +51 frames. Deterministic regressions reported; no debugging, source change, rebuild, or build number consumed.
+
+## [Andy — Vertical -8px origin HISTORY + build-time constantization AUDIT (read-only; no code/ROM/trace/counter)]
+
+* READ-ONLY history+spec. No production/Makefile/ROM/counter change, no gameplay/trace, Phase D/E NO. Deliverable: docs/design/Andy_vertical_origin_history_and_buildtime_constantization.md.
+* FIRST -8/+8 origin = Build 0096 attribution (arcade visible top raster Y=8; X+16 = PC080SN scrolldx -16); Build 0147 introduced PC090OJ_TO_GENESIS_Y_OFFSET=-8 + viewport 0..223. Build 0179 RASTAN_VERTICAL_CROP_BIAS=8 (BG/FG) now SUPERSEDED by VDP_DISPLAY_ORIGIN_Y_BIAS=+8 (symbol ABSENT in 0435). Signs: one positive origin 8; sprite screen_y=arcade_y-8, plane bias=+8 (opposite signs keep sprite/BG aligned).
+* LIZARDMAN: 0205/0206/0234 render -8 was SUSPICION only; FINAL PROVEN CAUSE = Build 0282 COLLISION-SOURCE displacement bug (0x14 vs arcade 0x20), NOT the -8 origin; Build 0282 also RETIRED an unproven BACK_ENEMY -8. Build-0234 .Lb2c8_yfix / object-specific -8 cluster = ABSENT in 0435 (retired). These obsolete compensations must NOT be parameterized.
+* CURRENT 0435: origin already SYMBOLIC + linked (PC090OJ_TO_GENESIS_Y_OFFSET=-8 = -VDP_DISPLAY_ORIGIN_Y_BIAS). ~4 named constants / ~5 live sites: sprite transform pc090oj_hooks.s:3050 (SHARED FE+GP, after flip), viewport clip :3066/3068 (tracks post-offset Y), plane bias vdp_comm.s:366/377, VIEWPORT 0/224. ZERO stray origin magic literals remain (the #8 at :372/419/510/802/... are stride/BCD/count, excluded w/ proof). So constantization largely DONE; remaining work = SPLIT the single shared origin into FE vs GP.
+* 3 DOMAINS: RENDER (sprite Y, plane Y, SAT, clip, screen-fixed HUD) = may derive from origin; GAMEPLAY/WORLD (actor Y, ground, collision probes, hurtbox, sword, collision-map row) = MUST NOT move (no origin dep; Build 0282); COMPENSATION/BUG (0234 cluster, BACK_ENEMY -8) = retired, keep removed.
+* HUD: TOP HUD (.Lnq_project_p1_hud / .Lnq_title_emit_scores) = screen-fixed native coords, does NOT inherit origin (do not move accepted HUD); BOTTOM-STATUS HUD raw arcade Y (0xE4 lives / 0xE8 energy) flows through the shared sprite transform -> inherits GAMEPLAY origin (e.g. 0xE8-8=224). [CONFIRM] the bottom-HUD sites.
+* PROPOSED MODEL: two positive logical origins RASTAN_FRONTEND_Y_ORIGIN / RASTAN_GAMEPLAY_Y_ORIGIN (default 8 each; one per domain, derive all signs; NOT per-subsystem). Derive: sprite = arcade_y - O_active; plane bias = +O_active; clip bounds unchanged (auto-tracks). SELECTION = compile-time constant chosen by the existing scene split (pc090oj_native_emit_pass: scene1 .Lnq_gameplay vs scene0/2 .Lnq_title/.Lnq_frontend_native) via a resident native_active_y_origin word set at each branch; NO runtime scheduler. Both=8 => byte-identical to 0435. FE can change independently of GP. Makefile: add both ?=8 beside existing flags + emit into out/pc090oj_config.inc receipt; defaults = current behavior; _full_hud inherits canonical GP origin; _d/_s/_do/_c unchanged; NO new auto variants.
+* COLLISION/HITBOX dependency on origin constant = NO (render-only). CAN FE stay current while GP changes = YES. BLOCKERS = static [CONFIRM]: bottom-status HUD raw-Y site ownership; exact FE-vs-GP emit entry points to set native_active_y_origin. No PC090OJ/collision restoration involved.
+
+## [Andy — Full gameplay HUD Genesis-native RESTORATION CONTRACT (read-only design; no code/ROM/trace)]
+
+* task = full gameplay HUD Genesis-native restoration contract. production modified = NO. ROM built = NO. gameplay driven = NO. new trace = NO. Phase D/E = NO. Deliverable: docs/design/Andy_full_gameplay_hud_native_restoration_contract.md.
+* ORIGINAL FLAG CONTRACT = mode 1 full HUD (was the default ?=1), mode 0 suppressed (records 0..45), mode 2 LATER added as reduced 1UP/current-score. LAST WORKING MODE-1 BUILD = 0249 (HUD still via PC090OJ mirror hooks hook_score_digit_3b802 0x3B802 + hook_status_sprite_5a098 0x5A098, per 0249 boundary report §6). CONTRACT-BREAKING = Build 0250 native semantic-lane migration: carried only mode-2 (1UP+P1 score via .Lnq_project_p1_hud) forward; 0x3B802 later fully retired (0271/0272); HIGH SCORE/2UP got a native FRONTEND owner (.Lnq_title_emit_scores) but NO native GAMEPLAY owner. Today modes 0 and 1 assemble IDENTICAL bytes (no gameplay HUD); _full_hud artifact REJECTED on hardware (Cody full-HUD doc).
+* LEGACY PC090OJ GAMEPLAY SCANNER REQUIRED = NO. PC090OJ EMULATION REQUIRED = NO. TARGET = arcade semantic state -> native gameplay HUD producer -> native_queue_hud (+ native energy lane) -> native SAT -> VDP. Scene split intact (never route scene-1 gameplay through native_frontend_hud_emit).
+* MODE-1 TARGET = complete native gameplay HUD = mode-2 group (unchanged) + NEW native HIGH SCORE (0xFF0142) + 2UP groups + the ALREADY-NATIVE energy/status lane (genesistan_pc090oj_hook_status_sprite_5a098, reads A5+0x013A, 6 cells, blink). MODE-2 TARGET = current reduced HUD UNCHANGED (6 P1 digits 0xFF011E X=0x08..0x30 + 1UP glyph 0xD039; placement/palette/leading-zero/order byte-identical; do NOT fix the score-above-1UP layout here).
+* SHARED PRIMITIVES = .Lnq_emit_hud_digit, native_sprite_emit_fast/fast_context, glyph 0xD039; mode 1 = mode-2 emits + extra digit groups (compile-time .if; no leak; no generalized interpreter). Missing native producers = exactly HIGH SCORE group + 2UP group (mode-1 only); energy lane just needs wiring/confirmation. Permanent 6th variant _full_hud = RASTAN_GAMEPLAY_HUD_SPRITES=1 (Makefile infra exists; DO NOT modify in this task); default stays 2.
+* CODY IMPLEMENTATION BOUNDARY = add the two native gameplay score groups + wire the energy lane under .if ==1; reuse the digit/glyph emitters; keep mode-2 unchanged; verify (mode-1 finite-domain digit/pos/palette/energy; mode-2 byte-identical regression; mode isolation; no legacy path). BLOCKERS/[CONFIRM] before impl: (1) P2/2UP score WRAM address; (2) gameplay HUD coordinates for HIGH SCORE/2UP (from the 0249 producer; frontend layout = reference only); (3) 0x5A098 energy caller reachability in gameplay; (4) existence of any non-energy bottom HUD (lives/stage/item) as gameplay sprites. All are static RE confirmations, none needs PC090OJ restoration.
+
+## [Andy — Historical HUD / off-screen sprite suppression AUDIT (docs archaeology + current-source; no code/ROM/trace)]
+
+* task = historical HUD suppression audit. docs/design recursive audit completed = YES (content search across all docs/design/*.md + relevant reports read in full). production modified = NO. ROM built = NO. gameplay driven = NO. trace created = NO. Deliverable: docs/design/Andy_hud_suppression_history_audit.md.
+* 1UP-ONLY FLAG PRESERVE REQUIREMENT = YES. Flag = RASTAN_GAMEPLAY_HUD_SPRITES (Makefile:55, default 2). Values: 1=full old Genesis HUD (diagnostics/comparison); 2=keep ONLY the player-one score group (1UP label + 1P score records 28..36), suppress the rest (palette follows mode 0). Gameplay producer = .Lnq_project_p1_hud (pc090oj_hooks.s:2627 guard, :2663 body) — emits 6 BCD digits of the CURRENT-player score (0xFF011E) + the 1UP label glyph (0xD039); NO HIGH SCORE (0xFF0142) / 2UP in those 9 components. STILL ACTIVE in 0434; MUST REMAIN AVAILABLE (default; on the 60fps critical path).
+* OFF-SCREEN SUPPRESSION MECHANISM = Build 0147 viewport/opaque-clip constants (pc090oj_hooks.s:160-191): GENESIS_VIEWPORT 0..223/0..319, Y offset -8; arcade top/bottom margins map outside the Genesis viewport and "clip out naturally" (LEVEL 5/6 coordinate clip, not upstream work skip). STILL ACTIVE. It is NOT the reason the gameplay HUD is reduced.
+* BOTTOM-HUD MECHANISM = hypothesis C (intentional 1UP-only native gameplay HUD) + native-replacement scope; NOT A (crash NOP — NO evidence found) and NOT primarily B (off-screen). The arcade bottom/status HUD (status records 30-43, old 0x5A098) is RETAINED-but-unreached per Build 0271 (rule 13), i.e. never produced by the native gameplay finalizer. Old frontend HUD writers 0x3B802 = REMOVED/native (0271).
+* ATTRACT/GAMEPLAY DISTINCTION = scene-gated separate native producers in pc090oj_native_emit_pass: scene1 gameplay -> .Lnq_gameplay -> .Lnq_project_p1_hud (1UP-only); scene0/2 frontend -> .Lnq_title/.Lnq_frontend_native -> .Lnq_title_emit_scores (full 1UP/HIGH SCORE 0xFF0142/CREDIT 0xFF0117>0) + native_frontend_hud_emit. 0271:19 explicitly: "gameplay uses .Lnq_project_p1_hud". CREDIT is a frontend element, intentionally preserved for insert-coin/throne.
+* CORRECTION to the prior ROM-variant audit: the _s (RASTAN_DIAG_SCORE_METRIC) diag_score_bcd overwrite reaches BOTH the gameplay HUD (.Lnq_project_p1_hud :2633) AND the frontend HUD, not only the frontend path as I earlier hypothesized.
+* AMBIGUOUS: exact introducing build # of RASTAN_GAMEPLAY_HUD_SPRITES / the 1UP-only request (candidate 0264-0271 era, unproven); the gameplay "score-above-1UP" vertical reversal has no historical doc explanation (observed only, not investigated). FUTURE OPT IDEA (not implemented): cache/skip the per-frame 1UP HUD rebuild when score unchanged, preserving 1UP-only behavior.
+
+## [Andy — ROM variant AUDIT (read-only; no build/ROM/emu; only report + this log changed; Cody WIP untouched)]
+
+* READ-ONLY. Deliverable: docs/design/Andy_ROM_variant_audit.md. No build/ROM/emulator/source/config/git change. Variant recipes audited are long-standing (0337/0338/0344/0360), not Cody's 0428 WIP.
+* 5 variants = 4 build defines (release all-off), Makefile:196-226, config gen :391: .bin RELEASE (all 0); _d RASTAN_DIAG_CPU_BAR=1; _s RASTAN_DIAG_SCORE_METRIC=1; _do RASTAN_VBLANK_DISPLAY_OFF=1; _c RASTAN_MODE_RACK_ADVANCE=1. Suffixed ROMs are postpatch-only copies reusing the release number.
+* _d [SRC]: vdp_comm.s:185-203 sets CRAM0 green 0x00E0 before dma_publish_frame, black after -> a TIMING BRACKET (not a conditional detector); green band in the active picture = publication overran VBlank. Brackets ONLY publication, not the whole worker.
+* _s [SRC impl; INFER on failure]: vdp_comm.s:205+ computes overrun-scanline MAX from VDP V-counter 0xC00008 -> diag_score_bcd; pc090oj_hooks.s:2450 overwrites P1 score 0xFF011E/1F/20 INSIDE native_frontend_hud_emit. Likely non-functional IN GAMEPLAY because native_frontend_hud_emit is the FRONTEND/title HUD producer; gameplay (scene 1) renders score via .Lnq_gameplay (no overwrite) -> metric only reaches the frontend/attract HUD. Makefile:67 "NEVER shipped; corrupts score". NOT repaired; static hypothesis, runtime-unverified.
+* _do [SRC]: dma.s:72-94 reg1 display-OFF 0x8134 before publication, display-ON 0x8174 after -> forced blank during dma_publish_frame; overrun shows as BLACK band. Makefile:607 "NOT a diagnostic overlay" (real Rainbow publication-model variant). Measurement caveat: full-bandwidth blanked DMA -> timing NOT directly comparable to the display-on release.
+* _c [SRC]: tilemap_hooks.s:4143 completes the 6-button handshake + .Lmode_rack_advance_poll; consumes P1 MODE to advance the rack (stage/subround) = opt-in CHEAT/debug-nav ROM (purpose CONFIRMED, was "unconfirmed"). Needs a 6-button pad.
+* DEPENDENCIES: none need a debugger/trace facility; _c needs a 6-button controller; _s/_d/_do read/write VDP (HV counter / backdrop / display-enable) on HW+emu. UNRESOLVED w/o runtime: _s actual on-screen behavior; _d/_do exact overrun extents; all require emulator/HW to confirm display.
+
+## [Andy — Build 0428 interrupted-work AUDIT preserved to design doc (read-only; no code/ROM; no git state change)]
+
+* DOCUMENTATION PRESERVATION of the prior read-only audit (no re-investigation, no source/ROM/MAME/git change). Report: docs/design/Andy_build0428_interrupted_death_effect_audit.md. Cody's WIP untouched.
+* KEY FINDING (FACT): the implemented Build-0428 change is the RASTAN PLAYER sprite optimization (native_player_frame_try / native_player_secondary_frame; compositors 0x054492/0x0546A8; new pc090oj_player_piece_table), NOT a death-effect optimization. Cody's doc is titled "Rastan Player Genesis-Native Sprite Optimization". The death-effect material (Cody_enemy_death_drop_semantic_validation.md + new decompiles 00042abc/00044804) is SEMANTIC VALIDATION/analysis correcting Andy's taxonomy -> NOT an implemented renderer. So NO death-effect/Flying-Demon optimization exists in the tree; the task's premise mismatches the tree.
+* STATE: HEAD 9982f7c "Build 426" = accepted baseline, intact/recoverable. Working tree = uncommitted multi-build WIP (build_counter -> 432; numbered builds 427-432 consumed). Mixed doc ownership: AGENTS_LOG.md (+113) and Andy_enemy_death_effect_sprite_taxonomy.md are Andy prior-task outputs intermingled with Cody's WIP -> separate before any commit.
+* VALIDATION/PERF: player 5-ROM gates PASS + rope 806->803 frames (13,450.653->13,400.588 ms) = CLAIM (Cody's doc, not independently verified; genesis_exec_trace.log modified but not confirmed to back it). Death-effect ordinary/Flying-Demon perf = NOT ESTABLISHED (no implementation). Real-Genesis player acceptance = USER MUST VERIFY.
+* CONTINUATION (automated only): re-run frame-table/dispatch verifiers + canonical gate; re-run rope-race to confirm 803; diff-verify 0x0A73/0x0275/death paths byte-unchanged; produce one clean numbered ROM family for USER real-Genesis acceptance. Death effects = new task; reconcile Cody's validation vs Andy's taxonomy first; Cody must NOT navigate gameplay to reproduce the Flying Demon encounter (user owns nontrivial gameplay validation).
+* WORKSPACE SAFETY: preserve unchanged; baseline recoverable at HEAD; audit made no source/ROM/git change.
+
+## [Andy — Enemy death-effect sprite TAXONOMY (static analysis; baseline accepted 0426; no code/ROM)]
+
+* task = enemy death-effect sprite taxonomy. baseline = accepted 0426. production modified = NO. ROM built = NO. player task touched = NO (Cody owns player). Phase D started = NO. Phase E started = NO. Files: docs/design/Andy_enemy_death_effect_sprite_taxonomy.md (new), AGENTS_LOG.md. Authority: maincpu disasm + H7/H8 reports + verify_pc090oj_*.
+* PROVEN MAPPING: (B) common_enemy_death_explosion = the generated "burst" 0x0275 / state 0x0F / compositor 0 / bank 0x30 / selectors 0x9E,0x9F,0xA0 / 8,9,10 pieces. state 0x0F is the arcade impact/death-component animation: 0x42E38 damage/contact -> 0x447F0 impact (+0x3D=1) -> 0x448B2 sets +0x05=0x0F (handler 0x40CCC, sfx 0x10) -> 0x44804 death-component stepper (rec_types 8/9/11) -> complete 0x44862/74/E4 -> score 0x3B726 -> retire 0x4092E. Current path = GENESIS-NATIVE DIRECT compact 0426 Level-B (frame records 0x3E732/753/778). The historical name "burst" is MISLEADING -> it is B, NOT the blood fountain; recommend rename common_enemy_death_explosion/death_explosion_state0f (production rename NOT done here).
+* ITEM-DROP (task premise corrected): Rastan does NOT drop items on enemy death. H7 proven (reachability): death awards score + spawns state-0x0F explosion components then retires; no death->drop RNG/creator/table reachable. H8 keeps enemy-hurtbox->dying initiation OPEN but found no drop creator/table and fabricated none. ONLY proven pickup placement = H6 markers/schedule (0x41180/0x41362, 0x4A104). So B's "then item drop" = explosion + a marker-placed item nearby, not a death drop. Item-drop relation for B = PROVEN ABSENT.
+* (A) bat_death_pop = PARTIAL/UNRESOLVED: bat flight frames native (small_bat 0x0268/0xB9-BB 1pc, large_bat 0x03F6/0xB6-B8 4/2/4) but the distinct death-POP effect identity is NOT isolated; strongest lead = H7 "(unless rec_type 7) runs 0x448B2" -> bats may be rec_type 7 skipping the 0x0F explosion -> small own death. Missing: bats' rec_type + death-state effect base.
+* (C) blood_fountain_death = UNRESOLVED: distinct from B; boss defeat path 0x469E8/0x46AAC (rounds 5/6) located but the flying-demon/boss fountain EFFECT graphics identity (base/selector) not isolated; NOT in the R1/P1 proven native set. Missing: the fountain effect spawn + frame base.
+* ARCH: PC090OJ gameplay emulation involved for A/B/C = NO (B is compact native; A/C effect routes unresolved but no emulation; frontend object-RAM scan is retired/scene-gated, kept separate). Largest future nativeization candidate = B (already compact native; residual per-piece Y-adjust/attr-override/orientation flags + per-piece residency/SAT; the "heavy/slowdown" is piece-count 8-10 x simultaneous death components = effect density, MEDIUM payoff not HIGH; no invented savings). A and C must be identity-proven before any conversion (stop conditions honored; not collapsed into B).
+
 ## [Andy — Layer A/B future optimization BACKLOG; background perf phase CLOSED at 0425 (doc only; no code/ROM; counter unchanged)]
 
 * DOCUMENTATION ONLY. Files changed: docs/design/Andy_layer_ab_future_optimization_backlog.md (new), OPTIMIZATIONS.md (pointer banner appended, no history rewrite), AGENTS_LOG.md. No production source, no ROM, no Build 0426, no Phase D/E.
@@ -51532,3 +51620,480 @@ TIGHE ONLY
   published canonical Build 0427 from the same source. Counter is 427; the
   consumed ledger/artifact are preserved and no build number was reused.
 - Production modified: YES. Phase D/E: NOT STARTED.
+
+### MAME Exit Summary (2026-10-14 23:16:02)
+- Final PC: 0x074B64
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-14 — Cody Build 0428 Rastan player Genesis-native optimization
+
+- Accepted baseline: Build 0426 (Tighe real-Genesis accepted). Build 0427 remains
+  the preserved mechanically consumed canonical rebuild. This task produced only
+  reference/build label 0428; final candidate is 0428, counter 428.
+- Primary player frames now use a 12-byte descriptor plus a generated player-only
+  piece table: 1,172/1,200 keys use compact 6-byte `{dx,dy,finalized_key}` pieces;
+  only the 28 keys with genuine body/weapon priority differences use an 8-byte
+  per-piece-attribute form. Body/weapon/Fire Sword composition remains one frame.
+- Secondary/legs: all 416 keys use the compact 6-byte form with one frame-wide
+  attribute. Both paths establish queue context/cursor once and append directly;
+  per-piece finalized-identity validation, cursor reconstruction, and emitter
+  BSR/RTS are removed.
+- Weapon anchor is generated as frame-level relative X/Y metadata. Publication
+  to A5+0x129A/A5+0x129C remains before clipping/capacity, with existing clear
+  behavior preserved. Complete verifier covers all primary/secondary selectors,
+  weapons, fire phases, orientations, order, geometry, attrs, identities,
+  anchors, and residency: 1,200 primary + 416 secondary PASS, zero unresolved.
+- The accepted 0426 common-enemy/generic path was not modified; 38 compact
+  generic, 1,898 universal general, and 24 universal specialized records PASS.
+- Canonical/gameplay-entry/boot/native/direct-dispatch/DMA/background/collision,
+  mandatory 1,798-frame NTSC trace, and complete five-ROM-family gates PASS.
+  The standing seven-epoch warning remains unchanged.
+- Three-trial rope benchmark: accepted 0426 `806 / 13,450.653 ms`; Build 0428
+  `803/803/803 / 13,400.588 ms`; improvement 3 frames / 50.065 ms / 0.372%.
+  Arcade Silver Standard remains `771 / 12,850.000 ms`; gap is 32 frames /
+  550.588 ms.
+- Complete family size 2,694,840 bytes. Canonical SHA-256:
+  `b54b076debab195cc766c1cd81506047e139db25d65913ade7732cf24824a080`.
+  Report: `docs/design/Cody_build0428_rastan_player_genesis_native_optimization.md`.
+- Real Genesis acceptance: USER MUST VERIFY. Production modified: YES. Phase D/E:
+  NOT STARTED. OPEN-017/OPEN-024 touched; no issue opened or closed; KNOWN_FINDINGS
+  Option A (no update; refines KF-074/KF-077/KF-089).
+
+## 2026-10-15 — Cody enemy-death/drop semantic validation (analysis only)
+
+- Baseline: Build 0428, USER ACCEPTED. Andy's death-effect taxonomy was
+  independently audited against reconstructed C, original disassembly/Ghidra
+  exports, current generated native coverage, and Build-0428 address artifacts.
+- Bat result: large/small bats are rec_type 10/11, not 7. Lethal damage calls
+  `0x448B2`; specialized state-0F handler `0x42ABC` presents an in-place
+  base-`0x0275`, selector-`0xA8`, compositor-0 tiny pop and retires the same
+  actor on the next gated update. No child effect is allocated.
+- Common-death result: Lizardman, Valkyrie, Four-Armed Insect and Chimera use
+  the default `0x40CCC` branch (`+0x03/+0x39` clear): base `0x0A73`, compositor
+  2, selector sequence `0x0D..0x12`. Andy's identification of
+  `0x0275/0x9E-0xA0` as this ordinary death was rejected; that sequence belongs
+  to the `+0x39` burst child and selected specialized/boss types.
+- Exact burst-phase correction: `0x448B2` initializes phase `+0x08=0xFF`, so
+  the `+0x39` branch first displays selector `0x9D` (6 pieces), followed by the
+  previously catalogued `0x9E/0x9F/0xA0` (8/9/10 pieces), then retires.
+- Fountain result: Flying Demon is a paired simultaneous specialized
+  `0x0275/0x9D-0xA0` death. Lethal `0x44804` starts the A5+`0x0508` partner
+  through `0x44896`; fixed-pool dispatcher table `0x4213A[state 15]` maps both
+  records to `0x42ABC` (superseding older Build-0386 prose that named
+  `0x40CCC/0x0A73`). Round-5 boss defeat activates its existing primary through
+  `0x447F0` and also uses `0x42ABC`, with separate owner/palette context.
+- Enemy-drop result: the “no enemy drops” claim is rejected. At ordinary-death
+  completion, the same actor becomes family 12. Field-schedule byte 3 is stored
+  at `+0x36`; `0x40C0E` maps it through identity/value tables `0x40C2E/0x40C40`
+  and nonzero eligible entries present base `0x0A5A`. Zero recycles. Collection
+  at `0x448D8` awards `+0x2C` and recycles. This is distinct from rec_type-12
+  timed-weapon events at A5+`0x12C8`.
+- Newly completed/corrected arcade decompilation: `0x44804` damage/lethal
+  accumulator, `0x40CCC/0x40C0E` ordinary-death/reward completion, and static
+  `0x42ABC` bat/specialized death semantics. Decomp coverage/audit artifacts
+  were updated.
+- Current mapping verified through `address_map.json`, remap spec, patch
+  manifest, postpatch disassembly, symbols and current source. Gameplay
+  decisions remain translated; normal gameplay presentation is the generated
+  Level-B/universal native queue/SAT path. Build-0386's paired-body WRAM rebase
+  remains the only partial replacement in the semantic chain.
+- Report: `docs/design/Cody_enemy_death_drop_semantic_validation.md`.
+- Genesis production modified: NO. ROM built: NO. Rope benchmark run: NO
+  (analysis-only). Rope race remains the standard global regression benchmark:
+  YES. Expected rope effect of a future death optimization: LITTLE OR NONE.
+  Future effect validation: normal `_do` black-bar hardware testing. Phase D:
+  NO. Phase E: NO.
+
+### MAME Exit Summary (2026-10-15 10:12:42)
+- Final PC: 0x074C60
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-15 10:12:54)
+- Final PC: 0x074C60
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-15 10:13:24)
+- Final PC: 0x074E98
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-15 10:16:36)
+- Final PC: 0x074C70
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-15 — Cody enemy-death/drop FINAL static closeout
+
+- Baseline remains USER-ACCEPTED Build 0428. Requirement-by-requirement audit
+  closes bat pop, ordinary `0x0A73` death, special-child `0x0275/9D-A0` burst,
+  paired Flying-Demon fountain, representative Round-5 boss fountain, and the
+  in-place family-12 `0x0A5A` enemy-death reward transformation.
+- Andy taxonomy is substantially corrected: bat rec_type-7, ordinary-death
+  `0x0275`, absent enemy drops, marker-only reward, timed rec_type-12 equivalence,
+  and fallback/unconverted Genesis assumptions are rejected or corrected as
+  documented. Family `+0x3E=0x0C` is not rec_type `+0x06=12`.
+- Arcade-to-Build-0428 mapping is complete: gameplay semantics remain retained;
+  `0x44896` is partially replaced for the corrected WRAM operand; gameplay
+  PC090OJ producers are fully replaced at the semantic boundary; the old chip
+  compositor tail is dead/unreachable in normal gameplay presentation.
+- Static closeout checks: actor coverage PASS (126 rows / 109 COMPLETE), fidelity
+  PASS (72 audit rows), game-wide coverage PASS (334 functions / 40,392 bytes),
+  and whole semantic+raw C-tree syntax PASS.
+- This closeout performed no gameplay driving, created no gameplay trace, ran no
+  rope benchmark, modified no Genesis production source, and built no ROM.
+  Performance measurement/optimization, Phase D, and Phase E were not started
+  as part of this closeout. No user-driven gameplay test is required to close
+  the static semantic/mapping task.
+
+### MAME Exit Summary (2026-10-15 15:18:02)
+- Final PC: 0x074CA0
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-15 — Cody Build 0433 Genesis-native death presentation optimization
+
+- Baseline: USER-ACCEPTED Build 0428. The death/drop semantic/decompilation task
+  was already CLOSED; this implementation performed no new semantic research.
+- Optimization target: finite death presentation only. Generated 60 exact
+  8-byte frame records plus a deduplicated 1,074-byte compact piece stream for
+  ordinary `0x0A73/0B-12`, fountain `0x0275/9D-A0`, bat `0x0275/A8`, reward
+  `0x0A5A/13-23`, and both orientations.
+- Architecture: arcade gameplay/state remains retained; the generator resolves
+  compositor geometry, orientation, mode/delta, final raw pattern code and
+  frame-wide attribute. Runtime establishes lane/queue/cursor/actor X-Y/context
+  once and uses a thin six-byte direct append loop. The unchanged finalizer owns
+  bank-specific variants, residency, DMA worklists and SAT publication.
+- Shared fountain geometry covers effective bank `0x30`, Flying Demon `0x35`
+  and representative boss `0x3F`; `0x9D` is included. Existing bank-`0x30`
+  compact Level-B `0x9E-A0` records retain precedence.
+- Static equivalence: PASS, 60/60 native records and zero unresolved; exact
+  count/order/coordinates/pattern identity/attributes/orientations checked.
+  Direct queue, clipping/capacity/count, register and shared-finalizer contracts
+  PASS. Unrelated universal-general records are preserved.
+- Labels `0429-0432` were already consumed and remain preserved. This task
+  produced only label 0433; a pre-numbering invariant stop consumed no label.
+  Final candidate family: canonical, `_d`, `_s`, `_do`, `_c`, all 2,698,936
+  bytes. Canonical SHA-256:
+  `145fc9038ac682b6cc195f51a075457184a426431692b8426513fa2f4f419ef6`.
+- Gates: canonical PASS; gameplay-entry PASS with zero exceptions; mandatory
+  fixed trace completed (1,798 frames). Existing phase-epoch gate recorded FAIL
+  after observing only target record/epoch 0; workflow preserved the candidate.
+- Gameplay driven by Cody: NO. New gameplay traces: NO. Rope test: USER DRIVEN;
+  expected change LITTLE OR NONE. `_do` death-effect black-bar test: USER
+  DRIVEN. Phase D: NO. Phase E: NO.
+- Report: `docs/design/Cody_death_effect_genesis_native_optimization.md`.
+
+## 2026-10-15 — Cody Build 0433 deterministic rope-race benchmark
+
+- Tighe explicitly authorized only the existing automated deterministic rope
+  benchmark. The unchanged established workflow ran three trials against the
+  numbered canonical Build 0433 ROM under **GENESIS NTSC MAME**.
+- Trials: `803, 803, 803` frames; each was `13,400.588 ms`; deterministic YES.
+  This is exactly unchanged from accepted Build 0428: `0 frames / 0.000 ms /
+  0.000%`. The remaining arcade Silver Standard gap is `32 frames / 550.588
+  ms` versus `771 frames / 12,850.000 ms`.
+- Interpretation: **NO GLOBAL REGRESSION**. The result is expected because the
+  rope route does not exercise the optimized death-presentation workload.
+- Existing tools reused unchanged:
+  `tools/mame/run_rope_attach_performance_benchmark.sh`, its existing Lua
+  runner, and its summarizer. New tooling: NONE. Evidence:
+  `states/traces/build0433_rope_attach_benchmark/`.
+- Other gameplay driven: NO. New gameplay trace script/route/harness: NO.
+  Source modified: NO. ROM built: NO. Build label consumed: NO. Tighe's `_do`
+  death-effect acceptance remains PENDING. Phase D/E: NO.
+- Updated report:
+  `docs/design/Cody_death_effect_genesis_native_optimization.md`.
+
+## 2026-10-15 — Cody Build 0433 `_do` drop-in black-bar analysis
+
+- Analysis-only review of Tighe's real-Genesis Build 0433 `_do` capture:
+  `states/screenshots/build_433_od/WIN_20261015_16_19_34_Pro.mp4`.
+- Extracted all 700 encoded source frames as lossless, unscaled 1920x1080 PNGs
+  under `states/screenshots/build_433_od/frames_30fps_full/`; generated bounded
+  labeled contact sheets under the adjacent `contact_sheets/` directory.
+- The initial-drop overrun window is frames 420-448. Eight episodes begin at
+  frames `420, 424, 428, 432, 436, 440, 444, 448`, an exact four-source-frame
+  cadence (approximately eight Genesis frames). The maximum is frame 436:
+  source Y 276-429, 154 pixels, approximately 34 logical display lines.
+- Rastan's body/sword/secondary pose remains visually stable. The first four
+  episodes occur before an enemy is visible; a right-edge Lizardman may add to
+  the largest frame-436 event but cannot own the established cadence.
+- Static correlation identifies the strongest next bounded target as the
+  vertical-pan paired-row bundle at
+  `genesistan_plane_a_pan_publish_entering_rows_down/up`, including its Plane-A
+  and Plane-B 64-cell row generation and resulting two 64-word publications,
+  with possible pattern residency DMA. `_do` black pixels directly measure the
+  publication interval; video alone does not separate pattern, Plane-B, and
+  Plane-A publication costs.
+- No additional pre-implementation gameplay capture is required. A future
+  candidate should be checked by Tighe with the same real-Genesis `_do`
+  entrance and by the already-established rope benchmark for global regression.
+- Gameplay driven by Cody: NO. New gameplay traces: NO. Production source
+  modified: NO. ROM built: NO. Build label consumed: NO. Phase D/E: NO.
+- Report: `docs/design/Cody_build0433_dropin_blackbar_analysis.md`.
+
+### MAME Exit Summary (2026-10-15 19:58:47)
+- Final PC: 0x074C80
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-15 — Cody Build 0434 general vertical-scroll optimization
+
+- Accepted baseline remains Build 0433. Task resumed after a usage-limit
+  interruption from the existing partial implementation; the completed bounded
+  player/HUD/vertical-scroll audit was **not repeated**.
+- Player assessment: already near-minimal; not modified. HUD assessment:
+  material future change-driven opportunity; deferred and not modified.
+- Selected and implemented the **general vertical-scroll paired-row path** in
+  `genesistan_plane_a_pan_publish_entering_rows_up/down`. Plane-A source row,
+  physical staging row, active LUT and live ring front are now established once
+  per row; Plane-B physical staging row and active LUT are also row-hoisted.
+  The general resolver/helper entry is removed from all 64 Plane-B cells and
+  60–64 Plane-A cells, eliminating 124–128 entries per paired row. All 64 cells,
+  both dirty rows, the live-front seam fallback, miss accounting, attributes,
+  residency, publication ordering and two 64-word DMAs remain intact. Collision
+  ownership is unchanged.
+- Existing `verify_bg_a_incremental_background.py` was narrowly extended. It
+  passed exhaustive old/new equivalence for 16,384 masked tile codes, all
+  64x64 row/column coordinates, all 64 live fronts, Plane-A source/seam mapping,
+  both planes' staging destinations and miss deltas. Existing selector-0,
+  selector-1/2, collision/visual, native metatile, Plane-B record, DMA-boundary,
+  canonical and gameplay-entry gates passed. No arcade functions were newly
+  decompiled.
+- Complete Build 0434 family produced and verified: canonical, `_d`, `_s`,
+  `_do`, `_c`; each 2,698,936 bytes. Canonical SHA-256:
+  `178838c4eed65f920a78718c63fe1086e55ab0aeb567177f2918898b0ac1d5ca`.
+  Standard fixed trace completed 1,798 frames. The established phase-epoch gate
+  recorded FAIL after seeing only target record/epoch 0, consistent with recent
+  builds; target checks passed and the numbered ROM was preserved.
+- Existing unchanged GENESIS NTSC rope benchmark: `803, 803, 803` frames,
+  median `13,400.588 ms`, deterministic YES. Delta versus accepted 0433:
+  `0 frames / 0.000 ms / 0.000%`; remaining arcade gap:
+  `32 frames / 550.588 ms`. Interpretation: **NO GLOBAL REGRESSION**.
+- Exploratory gameplay traces: NONE. Gameplay driven manually by Cody: NO.
+  Only authorized runtime validation was used: standard fixed 30-second trace
+  and existing rope benchmark. Tighe real-Genesis acceptance: PENDING. If the
+  candidate fails, Build 0433 remains accepted. Phase D: NO. Phase E: NO.
+- Report: `docs/design/Cody_general_vertical_scroll_player_hud_optimization.md`.
+
+## 2026-10-16 — Cody permanent Build-0434 full-HUD parallel variant
+
+- Accepted baseline remains Build 0434. The canonical/default HUD mode remains
+  `RASTAN_GAMEPLAY_HUD_SPRITES=2` (1UP/current-player score). Added permanent
+  automatic `_full_hud` family member using the existing mode 1 implementation;
+  production HUD/frontend/gameplay source was not changed.
+- Normal family count is now six: canonical, `_d`, `_s`, `_do`, `_c`, and
+  `_full_hud`. Every recursive family invocation supplies all compile-time
+  flags explicitly. Actual generated-config receipts are verified by the
+  extended existing family target; configuration isolation and build-order
+  independence PASS.
+- New artifact:
+  `dist/rastan-direct/rastan_direct_video_test_build_0434_full_hud.bin`,
+  2,694,840 bytes, SHA-256
+  `00e90a76f0b13e6c8b089946a6ccc5c003b0873ddcae986dd7ed741e59fbb726`.
+  Counter remained 434. Full-HUD postpatch invariant: 231 opcode replacements,
+  exact coverage `0x291EB8`; boot guards PASS.
+- Canonical 0434 reproduced byte-identically with SHA-256
+  `178838c4eed65f920a78718c63fe1086e55ab0aeb567177f2918898b0ac1d5ca`.
+  `_d`, `_s`, `_do`, and `_c` also reproduced byte-identically to their recorded
+  hashes. The protected existing numbered artifacts were not overwritten.
+- Existing fixed 30-second **GENESIS NTSC MAME** validation on full-HUD completed
+  1,798 frames. Existing unchanged rope benchmark: reduced `803/803/803`,
+  full-HUD `803/803/803`; both 13,400.588 ms and deterministic YES; measured
+  difference `0 frames / 0.000 ms / 0.000%`. This does not resolve fine-grained
+  HUD CPU cost.
+- Existing project tools reused; new tooling NONE. Gameplay driven manually by
+  Cody: NO. New gameplay trace/route: NO. Full-HUD real Genesis/Exodus visual
+  and `_do` performance acceptance: USER MUST VERIFY. Future HUD optimization
+  must keep both modes functional. Phase D: NO. Phase E: NO.
+- Report: `docs/design/Cody_full_hud_parallel_build_variant.md`.
+
+### MAME Exit Summary (2026-10-16 10:42:23)
+- Final PC: 0x074C00
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-16 — Cody correction: Build-0434 `_full_hud` mode interpretation rejected
+
+- Tighe hardware-tested the mode-1 artifact
+  `rastan_direct_video_test_build_0434_full_hud.bin` (SHA-256
+  `00e90a76f0b13e6c8b089946a6ccc5c003b0873ddcae986dd7ed741e59fbb726`)
+  and observed **NO GAMEPLAY HUD**. It is unaccepted and invalid as a full-HUD
+  baseline.
+- Current-source proof: all four `RASTAN_GAMEPLAY_HUD_SPRITES` assembly
+  conditionals are `== 2`. Mode 2 calls/assembles `.Lnq_project_p1_hud` and its
+  HUD-white SAT/DMA handling. Modes 0 and 1 omit all four blocks. Their
+  `pc090oj_hooks.o` executable section is byte-identical (SHA-256
+  `1f645de4af9b99ed01e4d3f4c52620f67ef482fcfd8d44a03eb203a3a8372ae3`);
+  only the absolute config symbol differs.
+- Mode 0 hypothesis: **REJECTED**. It cannot enable the complete HUD because it
+  is executable-code-identical to tested mode 1. The flag-independent native
+  0x05A098 helper can supply the energy/status lane when called, but no mode
+  0/1 producer supplies gameplay 1UP, HIGH SCORE, or 2UP. The old full PC090OJ
+  builders/scanner are unconditionally retired; the complete native frontend
+  producer is not reached from gameplay scene 1.
+- No configuration-only value/path satisfies the requested complete gameplay
+  HUD. Replacing the known-bad artifact with mode 0 would knowingly create the
+  same no-HUD executable, so it was not done. Makefile/ROM/HUD implementation:
+  unchanged in this correction. Build 0435 not consumed; counter remains 434;
+  accepted canonical Build 0434 remains protected.
+- Runtime work: NONE. Gameplay driven by Cody: NO. New gameplay trace: NO.
+  Rope benchmark not rerun because no corrected candidate exists. Full-HUD
+  implementation/restoration requires separate Tighe authorization. Phase D:
+  NO. Phase E: NO.
+- Corrected reports:
+  `docs/design/Cody_full_hud_parallel_build_variant.md` and
+  `docs/design/Andy_hud_suppression_history_audit.md`.
+
+### MAME Exit Summary (2026-10-16 15:10:35)
+- Final PC: 0x074C80
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-16 15:12:02)
+- Final PC: 0x074D1A
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-16 — Cody Build 0435 Genesis-native full gameplay HUD restoration
+
+- Task: Build 0435 Genesis-native full gameplay HUD restoration. Accepted
+  baseline: Build 0434. Permanent flag contract is restored as `0` suppressed,
+  `1` full native HUD, `2` reduced 1UP/current-score HUD.
+- Phase-0 static proof: active packed-BCD score is
+  `A5+0x011C..0x011E`; inactive P1 is `A5+0x009C..0x009E`; inactive P2 is
+  `A5+0x00DC..0x00DE`; `A5+0x002A` selects the active player. HIGH gameplay
+  digits are `Y=0x10, X=0x80..0xA8`; 2UP digits are
+  `Y=0x10, X=0xE8..0x110`. Exact HIGH/2UP label tuples are recorded in the
+  standalone report.
+- The native energy producer `genesistan_pc090oj_hook_status_sprite_5a098` is
+  reachable through retained original caller `0x051054` / current runtime
+  `0x051254`. Additional non-energy bottom/status gameplay HUD: NONE PROVEN;
+  lives/items/weapons are not separate gameplay HUD producers and round/stage
+  is frontend/transition presentation.
+- Mode 1 implementation: purpose-built `.Lnq_project_full_hud` emits HIGH,
+  accepted P1/1UP semantics, and 2UP from retained state into
+  `native_queue_hud`; the existing direct-native energy producer owns its
+  reserved persistent entries. Mode 2 altered: **NO**. Its final 7,378-byte
+  `.text` is byte-identical to the pre-edit capture, SHA-256
+  `9824922a687767da3cf280788941c7dfc7510284bf6a92b50a2ce2e362bcb80c`.
+  Mode 0 altered: **NO**.
+- PC090OJ gameplay emulation introduced: NO. Object-RAM gameplay HUD
+  intermediary: NO. Gameplay legacy scanner: NO. Historical records
+  regenerated: NO. Frontend behavior changed: NO. New static verifier
+  `tools/translation/verify_gameplay_hud_modes.py`: PASS for arcade oracle,
+  BCD digits 0..9 at all positions, energy 0..48, and native-only references.
+- Six-ROM family: **PASS**. All artifacts are 2,698,936 bytes. Canonical SHA-256
+  `eb6c27991ca49ef49c13c3da9a1b9b3f869455c43d57c4518629e3737f6a31c2`;
+  full-HUD SHA-256
+  `14a14317512e0305096a9ad2061430c0a3a0b1915a170265434fa84775773a04`.
+  Configuration isolation: PASS. The restored Mode-1 code now occupies the
+  formerly absent coverage page, so its exact coverage delta was updated from
+  `-0x1000` to `0` (`0x292EB8` exact coverage), without weakening the gate.
+- Standard fixed GENESIS NTSC validation: canonical 1,798 frames PASS; full HUD
+  1,798 frames PASS. Existing phase-epoch gate retained its baseline warning
+  after target record/epoch 0, as in accepted 0434; all target/static/entry
+  checks passed.
+- Unchanged rope benchmark: canonical `803/803/803`, `13,400.588 ms`; full HUD
+  `854/854/854`, `14,251.684 ms`; both deterministic. Full-HUD delta is
+  `+51 frames / +851.096 ms / +6.351%`. No optimization was performed.
+- Gameplay driven manually by Cody: NO. New gameplay trace/route/harness: NO.
+  User full-HUD acceptance: PENDING. Phase D: NO. Phase E: NO.
+- Report:
+  `docs/design/Cody_build0435_genesis_native_full_gameplay_hud_restoration.md`.
+
+## 2026-10-16 — Cody bounded arcade bottom-HUD semantic decompilation pass 1
+
+- Static-only extension of the existing arcade C tree; no MAME, gameplay,
+  Genesis trace, production source change, ROM build, or build-number use.
+- Added complete raw + semantic coverage for true caller `0x5100A..0x510C4`,
+  four-slot icon producer `0x59F92..0x5A096`, energy/status producer
+  `0x5A098..0x5A242`, and direct lifecycle helper `0x5A244..0x5A288`.
+- Proved four independently coexisting icon slots from `A5+0x1388/0x140E/
+  0x1410/0x140C`, their codes `0x0A6A..0x0A64`, geometry, raw attributes, and
+  `0xFF` hide records. Only `0x140E` has a safe LIFE/HEALTH name in current
+  evidence; `0x1410/0x140C` remain neutral.
+- Reconciled energy semantics exactly: high-byte units, clamp 48, cap plus six
+  cells, full `0x03CD`, partial `0x03D4..0x03CE`, empty `0x03D5`, leading
+  `0x03CA/0x03CB`, refresh retention, blink, lifecycle, and sound transitions.
+- Proved caller order: energy at `0x51054`, `A5+0x12FC=0xFF`, icons at
+  `0x51060`, then later conditional descriptor clear through `0x5122A ->
+  0x59F5E`. ROUND/stage was not investigated.
+- Report: `docs/design/Cody_arcade_bottom_hud_energy_item_decompilation.md`.
+
+## 2026-10-16 — Cody bounded arcade bottom-HUD semantic decompilation pass 2
+
+- Static-only completion of original arcade lives + ROUND semantics; no MAME,
+  trace, production source change, ROM build, or build-number use.
+- Proved lives selector 4 reads the low byte of active-player reserve word
+  `A5+0x0102` (`A5+0x0103`), renders one visible-zero digit at raw
+  `(0x0000,0x00E4)`, and has no separate player-icon piece in this producer.
+- Proved persistent gameplay ROUND is PC090OJ: fixed codes `0x34/0x35/0x36`
+  at X `0x100/0x110/0x120`, plus selector-3 digit from one-based display
+  mirror `A5+0x0117` at X `0x128`, all Y `0xE8`. `A5+0x0118` is authoritative;
+  init is one-based and the mirror caps at 6 when authoritative state reaches 7.
+- Separated the one-shot PC080SN `ROUND ... READY` overlay
+  (`0x3A6B2`, descriptor 55 at `0xC08C48`, digit `0xC08C62`) from the
+  persistent sprite HUD. Corrected the old `0x3B2DA..0x3B420` association:
+  that path is ranking/high-score bookkeeping.
+- Added primary C coverage for `0x3B802`, `0x3A64C`, `0x3A6B2` and exactly six
+  supporting boundaries/helpers (`0x3B866`, `0x3B8EE`, `0x3B902`, `0x4527E`,
+  `0x3A860`, `0x3BB48`), plus the complete lower-HUD geometry/mapping table.
+- Report: `docs/design/Cody_arcade_bottom_hud_lives_round_decompilation.md`.
+
+### MAME Exit Summary (2026-10-16 21:16:40)
+- Final PC: 0x0748E2
+- Stack Pointer (SP): 0x00FEFF6E
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-16 22:26:54)
+- Final PC: 0x074C96
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+## [Cody — 0435 vs 0437 remaining rope regression isolation]
+
+* Direct ROM disassembly found Build 0437 retained a +8-cycle gameplay pass-entry branch shape and
+  +20 cycles per ordinary / +28 cycles per fixed-HUD SAT piece from redundant equal-origin
+  selection; Plane A/B also changed `ADDQ.W #8` to `ADDI.W #8` (+8 cycles/VBlank total).
+* Unnumbered GENESIS NTSC MAME control A restored only the SAT-origin path to the Build-0435 shape
+  while leaving 0437 scroll code intact: canonical returned exactly to 803 frames / 13,400.588 ms,
+  and full HUD returned exactly to 854 frames / 14,251.684 ms. B/C were unnecessary. Temporary
+  source edits were removed; no numbered ROM and counter remains 437.
+* Report: `docs/design/Cody_0435_vs_0437_remaining_rope_regression_isolation.md`.
+
+### MAME Exit Summary (2026-10-17 10:27:08)
+- Final PC: 0x074C80
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-17 — Cody Build 0438 deferred-state preservation and Build-0434 production rebaseline
+
+- Preserved the complete post-0437 working state on
+  `archive/deferred-hud-framing-0437`: original full-state commit
+  `8b0d8659f5a62a70b11af0c92af0d57fee0e527b`; final archive HEAD
+  `5a886bb4cbd9e9b5f45bf1c5496d17d480201b83` adds only the exact Git-derived
+  Build-0426-base safety patch. Required 0434–0437 canonical/`_full_hud` ROMs,
+  traces, benchmarks, reports, research, generated evidence, and post-0437
+  isolation state were verified recoverable.
+- Reconstructed active production selectively: retained all accepted 0427–0434
+  work, including the Build-0434 paired-row background optimization; removed the
+  deferred 0435 Mode-1 full-HUD implementation and 0436/0437 split-origin
+  machinery. Later documentation, decompilation, verifier, and research evidence
+  remain. No horizontal audit, HUD/framing continuation, Phase D, or Phase E.
+- Static equivalence: Build 0438 canonical and `_full_hud` ROMs each differ from
+  preserved Build 0434 counterparts at only header checksum offset `0x18F` and
+  build-string offset `0x2928DB`; all other bytes match.
+- Build 0438: canonical ROM
+  `dist/rastan-direct/rastan_direct_video_test_build_0438.bin`, 2,698,936 bytes,
+  SHA-256 `a262fbb4cab529c1b23b3e85e4b87d927587bf2507b492611598d6ba3057a0dc`.
+  Counter 437->438; 231 opcode sites; coverage `0x292EB8`; canonical and gameplay
+  entry gates PASS; known phase-epoch warning preserved; six-ROM family PASS.
+- Standard 30-second GENESIS NTSC MAME trace PASS at 1,798 frames. Existing
+  unchanged canonical rope benchmark restored exactly to `803/803/803`,
+  deterministic YES, 13,400.588 ms.
+- Candidate source will be committed on `rastan-direct-proposal`; real-hardware
+  acceptance remains PENDING TIGHE. Report:
+  `docs/design/Cody_build0438_restore_build0434_production.md`.
