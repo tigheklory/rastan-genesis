@@ -52166,3 +52166,26 @@ TIGHE ONLY
   `033795e327a70b2cb79b94ed2632cb2630ed628b`.
 - Accepted ref: `accepted/build-0439`, pointing exactly to the source commit
   above rather than a later documentation commit.
+
+### MAME Exit Summary (2026-10-17 17:15:04)
+- Final PC: 0x074CB0
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-17 — Cody Build 0440 enemy damage restoration + invincible benchmark variant
+
+- Added the exact byte-neutral arcade `0x054A40` body-hit consumer rebase
+  `0x0010D2A8 -> 0x00FF12A8`; all producer, dispatch, handler, hurt/knockback, and post-hit
+  invulnerability logic remains the retained arcade code.
+- Added permanent normal-display `_invincible` family output using build flag
+  `RASTAN_INVINCIBLE=1`. Its sole semantic delta clears source bit 6 at arcade `0x05FF9F`, causing
+  the original startup initializer to assert `A5+0x0040`; `A5+0x0044` and ungated death mechanisms
+  are unchanged. Static standard-versus-variant proof found zero unrelated ROM differences.
+- Complete seven-ROM Build 0440 family produced; canonical gate PASS on corrected verifier,
+  gameplay-entry PASS, standing epoch gate FAIL, standard 30-second Genesis NTSC trace 1,798 frames.
+  Standard SHA-256 `3c1b1bbd60a7b25af53e4eea2a643460467d2209abbd88bf9b9fcedf7cf0c6b7`;
+  `_invincible` SHA-256 `d689a1a7dfe50d2b5714e534398f648197059a38cc9441247d94c6cbe8715a3a`.
+- Unchanged three-trial rope route on `_invincible`: `799 / 799 / 799`, median 13,333.835 ms,
+  deterministic; this is the new post-damage-restoration Genesis rope baseline pending Build-0440
+  acceptance. Standard real-Genesis acceptance is **PENDING TIGHE**.
+- Permanent report: `docs/design/Cody_build0440_enemy_damage_and_invincible_variant.md`.

@@ -429,6 +429,17 @@
     },
     {
       "kind": "opcode_replace",
+      "arcade_pc": "0x054A40",
+      "rom_pc": "0x054ABE",
+      "original_bytes": "41f90010d2a8",
+      "original_bytes_shift_adjusted": "",
+      "replacement_bytes": "41f900ff12a8",
+      "replacement_bytes_template": "41f900ff12a8",
+      "replacement_bytes_shift_adjusted": "",
+      "note": "Build 0440 enemy-to-player damage consumer rebase. The retained arcade overlap producer at 0x0449B4 writes the live body-hit records to A5+0x12A8 (Genesis WRAM 0x00FF12A8), but the consumer at 0x054A40 still used LEA 0x0010D2A8,A0 and therefore scanned ROM instead of those records. Rebase only that absolute operand. The original producer, 0x0550A8 dispatch, 0x0551CC+ A5+0x0040-gated damage handlers, energy loss, 0x05560C hurt/knockback, and post-hit invulnerability remain unchanged. Intentional byte-neutral 6-to-6 address-contract correction mirroring the established 0x054B1E item-record repair."
+    },
+    {
+      "kind": "opcode_replace",
       "arcade_pc": "0x054BF8",
       "rom_pc": "0x054C76",
       "original_bytes": "41f90010c242",
@@ -2659,18 +2670,19 @@
       "rom_bytes_written": "207C0005DA94C0FC0018D0C04EB90007450C4E75"
     }
   ],
-  "checksum": "0xB7B8",
+  "checksum": "0xF99E",
   "relocation_map": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {
-    "opcode_replace_count": 231
+    "opcode_replace_count": 232
   },
   "patch_counts": {
-    "opcode_replace_and_rom_opcode_replace": 231
+    "opcode_replace_and_rom_opcode_replace": 232
   },
   "build_context": "canonical",
   "genesis_coverage_delta": "0x-1000",
-  "postpatch_expected_opcode_replace_sites": 231,
+  "invincible_variant": false,
+  "postpatch_expected_opcode_replace_sites": 232,
   "postpatch_expected_total_genesis_bytes_covered": "0x291EB8",
   "bookmarks_v2_count": 0,
   "bookmarks_v2_applied": [],

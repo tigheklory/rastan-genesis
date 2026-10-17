@@ -4,18 +4,18 @@
     "variant": "world_rev1",
     "patcher_profile": "rastan_direct",
     "spec_path": "/home/tighe/projects/rastan-genesis/specs/rastan_direct_remap.json",
-    "manifest_path": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/full_hud_patch_manifest.json",
-    "rom_path": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/dist/rastan_direct_video_test_full_hud.bin",
+    "manifest_path": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/invincible_patch_manifest.json",
+    "rom_path": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/dist/rastan_direct_video_test_invincible.bin",
     "symbols_path": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/symbol.txt",
     "maincpu_path": "/home/tighe/projects/rastan-genesis/build/regions/maincpu.bin"
   },
-  "genesis_rom_size_bytes": 2694840,
+  "genesis_rom_size_bytes": 2698936,
   "relocation_delta": "0x000200",
   "arcade_source_start": "0x000000",
   "arcade_source_end_exclusive": "0x060000",
   "wrapper_region": {
     "genesis_start": "0x070000",
-    "genesis_end_exclusive": "0x291EB8"
+    "genesis_end_exclusive": "0x292EB8"
   },
   "segments": [
     {
@@ -5046,10 +5046,33 @@
     },
     {
       "genesis_start": "0x0548E2",
-      "genesis_end_exclusive": "0x054B9C",
-      "size_bytes": 698,
+      "genesis_end_exclusive": "0x054ABE",
+      "size_bytes": 476,
       "kind": "arcade_copy",
       "arcade_start": "0x054864",
+      "arcade_end_exclusive": "0x054A40",
+      "source": "whole_maincpu_copy",
+      "identity_offset": 126
+    },
+    {
+      "genesis_start": "0x054ABE",
+      "genesis_end_exclusive": "0x054AC4",
+      "size_bytes": 6,
+      "kind": "patched_site",
+      "arcade_start": "0x054A40",
+      "arcade_end_exclusive": "0x054A46",
+      "origin": "opcode_replace",
+      "original_bytes": "41f90010d2a8",
+      "replacement_bytes": "41f900ff12a8",
+      "note": "Build 0440 enemy-to-player damage consumer rebase. The retained arcade overlap producer at 0x0449B4 writes the live body-hit records to A5+0x12A8 (Genesis WRAM 0x00FF12A8), but the consumer at 0x054A40 still used LEA 0x0010D2A8,A0 and therefore scanned ROM instead of those records. Rebase only that absolute operand. The original producer, 0x0550A8 dispatch, 0x0551CC+ A5+0x0040-gated damage handlers, energy loss, 0x05560C hurt/knockback, and post-hit invulnerability remain unchanged. Intentional byte-neutral 6-to-6 address-contract correction mirroring the established 0x054B1E item-record repair.",
+      "shift_delta": 0
+    },
+    {
+      "genesis_start": "0x054AC4",
+      "genesis_end_exclusive": "0x054B9C",
+      "size_bytes": 216,
+      "kind": "arcade_copy",
+      "arcade_start": "0x054A46",
       "arcade_end_exclusive": "0x054B1E",
       "source": "whole_maincpu_copy",
       "identity_offset": 126
@@ -6295,10 +6318,33 @@
     },
     {
       "genesis_start": "0x05A53A",
-      "genesis_end_exclusive": "0x060036",
-      "size_bytes": 23292,
+      "genesis_end_exclusive": "0x05FFD5",
+      "size_bytes": 23195,
       "kind": "arcade_copy",
       "arcade_start": "0x05A504",
+      "arcade_end_exclusive": "0x05FF9F",
+      "source": "whole_maincpu_copy",
+      "identity_offset": 54
+    },
+    {
+      "genesis_start": "0x05FFD5",
+      "genesis_end_exclusive": "0x05FFD6",
+      "size_bytes": 1,
+      "kind": "patched_site",
+      "arcade_start": "0x05FF9F",
+      "arcade_end_exclusive": "0x05FFA0",
+      "origin": "build_variant_patch",
+      "original_bytes": "ff",
+      "replacement_bytes": "bf",
+      "note": "Build 0440 permanent _invincible diagnostic/performance variant only. Clear source bit 6 in the arcade configuration word read at 0x03AFEE so the original NOT.W/ANDI.B #0x40/MOVE.W sequence initializes A5+0x0040 to 0x0040. Bits 0-3 remain unchanged for the other readers, and bit 7 remains set so the separate A5+0x0044 initializer still produces zero. Standard ROMs do not apply this data patch.",
+      "shift_delta": 0
+    },
+    {
+      "genesis_start": "0x05FFD6",
+      "genesis_end_exclusive": "0x060036",
+      "size_bytes": 96,
+      "kind": "arcade_copy",
+      "arcade_start": "0x05FFA0",
       "arcade_end_exclusive": "0x060000",
       "source": "whole_maincpu_copy",
       "identity_offset": 54
@@ -6312,14 +6358,14 @@
     },
     {
       "genesis_start": "0x070000",
-      "genesis_end_exclusive": "0x291EB8",
-      "size_bytes": 2236088,
+      "genesis_end_exclusive": "0x292EB8",
+      "size_bytes": 2240184,
       "kind": "genesis_only",
       "tag": "wrapper"
     }
   ],
   "segment_coverage": {
-    "total_genesis_bytes_covered": 2694840,
+    "total_genesis_bytes_covered": 2698936,
     "gaps": [],
     "overlaps": []
   },

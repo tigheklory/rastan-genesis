@@ -367,6 +367,20 @@ judgment to the contrary.**
 
 Numbered ROM artifacts are evidence and must not be deleted, overwritten, or silently replaced.
 
+### Standard damage and permanent invincibility benchmark variant (Build 0440+)
+
+- Standard numbered ROMs retain normal original-arcade enemy damage; they must never be made
+  invincible to stabilize a benchmark.
+- Each normal build family also produces one normal-display `_invincible.bin` artifact using the
+  same source build number; it consumes no additional number and does not change the meanings of
+  `_d`, `_s`, `_do`, `_c`, or `_full_hud`.
+- `_invincible` is diagnostic/performance-only and asserts the original arcade `A5+0x0040` debug
+  gate at build time. It must not change `A5+0x0044`, bypass body-hit production/consumption or
+  dispatch, add a per-frame poller, or suppress unrelated ungated death mechanisms.
+- From Build 0440 onward, the canonical Genesis rope-race benchmark uses `_invincible.bin`, matching
+  the arcade silver-standard's invincibility condition. Pre-0440 rope results remain historical;
+  Build 0440 `_invincible` establishes the post-damage-restoration Genesis baseline.
+
 If a numbered build, diagnostic build, or candidate ROM is produced, preserve the ROM file, SHA256, size, build counter, config, source patch/diff, and status.
 
 Rejected or broken numbered builds must be preserved and clearly labeled: **REJECTED / NOT ACCEPTED / DIAGNOSTIC ONLY.**

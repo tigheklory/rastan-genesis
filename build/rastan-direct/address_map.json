@@ -5046,10 +5046,33 @@
     },
     {
       "genesis_start": "0x0548E2",
-      "genesis_end_exclusive": "0x054B9C",
-      "size_bytes": 698,
+      "genesis_end_exclusive": "0x054ABE",
+      "size_bytes": 476,
       "kind": "arcade_copy",
       "arcade_start": "0x054864",
+      "arcade_end_exclusive": "0x054A40",
+      "source": "whole_maincpu_copy",
+      "identity_offset": 126
+    },
+    {
+      "genesis_start": "0x054ABE",
+      "genesis_end_exclusive": "0x054AC4",
+      "size_bytes": 6,
+      "kind": "patched_site",
+      "arcade_start": "0x054A40",
+      "arcade_end_exclusive": "0x054A46",
+      "origin": "opcode_replace",
+      "original_bytes": "41f90010d2a8",
+      "replacement_bytes": "41f900ff12a8",
+      "note": "Build 0440 enemy-to-player damage consumer rebase. The retained arcade overlap producer at 0x0449B4 writes the live body-hit records to A5+0x12A8 (Genesis WRAM 0x00FF12A8), but the consumer at 0x054A40 still used LEA 0x0010D2A8,A0 and therefore scanned ROM instead of those records. Rebase only that absolute operand. The original producer, 0x0550A8 dispatch, 0x0551CC+ A5+0x0040-gated damage handlers, energy loss, 0x05560C hurt/knockback, and post-hit invulnerability remain unchanged. Intentional byte-neutral 6-to-6 address-contract correction mirroring the established 0x054B1E item-record repair.",
+      "shift_delta": 0
+    },
+    {
+      "genesis_start": "0x054AC4",
+      "genesis_end_exclusive": "0x054B9C",
+      "size_bytes": 216,
+      "kind": "arcade_copy",
+      "arcade_start": "0x054A46",
       "arcade_end_exclusive": "0x054B1E",
       "source": "whole_maincpu_copy",
       "identity_offset": 126

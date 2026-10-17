@@ -156,7 +156,7 @@ snapshot, and select it explicitly.
 ## 6. Build the test ROM family
 
 The following command currently consumes the next sequential build number. It produces the canonical
-ROM plus `_d`, `_s`, `_do`, and `_c` variants:
+ROM plus `_d`, `_s`, `_do`, `_c`, `_full_hud`, and `_invincible` variants:
 
 ```bash
 source tools/setup_env.sh
@@ -166,7 +166,7 @@ make -C apps/rastan-direct release
 
 The build reconstructs the arcade regions from `roms/`, runs the palette and graphics generators,
 assembles and postpatches the Genesis ROM, runs the canonical/gameplay/epoch gates, records the build
-number, and verifies the five-artifact family. It may take several minutes because MAME gates run as
+number, and verifies the seven-artifact family. It may take several minutes because MAME gates run as
 part of the release.
 
 The Phase-1 epoch gate is presently known to report `epoch=FAIL` on recent builds. The Makefile records
@@ -182,7 +182,7 @@ BUILD_NUMBER=$(cat build/rastan-direct/build_counter.txt)
 BUILD_TAG=$(printf '%04d' "$BUILD_NUMBER")
 echo "Produced build $BUILD_TAG"
 
-for suffix in "" _d _s _do _c; do
+for suffix in "" _d _s _do _c _full_hud _invincible; do
   rom="dist/rastan-direct/rastan_direct_video_test_build_${BUILD_TAG}${suffix}.bin"
   test -s "$rom" || { echo "MISSING: $rom"; exit 1; }
   sha256sum "$rom"
@@ -198,7 +198,9 @@ dist/rastan-direct/rastan_direct_video_test_build_NNNN.bin
 ```
 
 The `_c` variant adds the six-button MODE rack-advance cheat and is useful for quickly reaching later
-sections. The `_d`, `_s`, and `_do` files are diagnostic variants, not the normal gameplay ROM.
+sections. `_full_hud` is the gameplay-HUD comparison ROM. `_invincible` asserts the original arcade
+`A5+0x0040` debug gate and is the canonical Genesis rope-benchmark ROM from Build 0440 onward. The
+standard unsuffixed ROM retains normal enemy damage. The suffixed files do not consume extra build numbers.
 
 ## 8. Launch the Genesis ROM in MAME
 

@@ -36,7 +36,7 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 # hardware destinations to pc090oj_object_ram + the same record offsets.
 # Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
 # source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
-CANONICAL_OPCODE_REPLACE_COUNT = 231  # Build 0386: +1 byte-neutral opcode_replace rebases the Flying Demon death-propagation WRAM literal at 0x044898 (0x0010C508 -> 0x00FF0508, KF-044 class). Prev 230 (Build 0377).
+CANONICAL_OPCODE_REPLACE_COUNT = 232  # Build 0440: +1 byte-neutral opcode_replace rebases the enemy-to-player body-hit consumer at 0x054A40 (0x0010D2A8 -> 0x00FF12A8). Prev 231.
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -351,6 +351,14 @@ def parse_args() -> argparse.Namespace:
         type=lambda value: int(value, 0),
         default=0,
         help="Explicit variant-only delta from canonical Genesis helper coverage.",
+    )
+    parser.add_argument(
+        "--invincible",
+        action="store_true",
+        help=(
+            "Apply the spec-declared build-time invincible variant patch that "
+            "asserts the original arcade A5+0x0040 debug gate."
+        ),
     )
     return parser.parse_args()
 
@@ -2146,6 +2154,59 @@ def main() -> int:
             },
         )
 
+    # Build-time diagnostic variants may change immutable arcade source data,
+    # but never gameplay code.  The _invincible ROM changes the single source
+    # bit consumed by the original startup initializer; the retained arcade
+    # NOT/AND/store sequence then owns A5+0x0040 exactly as on the arcade.
+    if args.invincible:
+        variant_patches = spec.get("build_variant_patches", {}).get("invincible", [])
+        if not variant_patches:
+            raise RuntimeError("--invincible requested but the spec declares no invincible patch.")
+        for replacement in variant_patches:
+            arcade_pc = parse_hexish(replacement["arcade_pc"])
+            expected = bytes.fromhex(str(replacement["original_bytes"]).replace(" ", ""))
+            new_bytes = bytes.fromhex(str(replacement["replacement_bytes"]).replace(" ", ""))
+            if len(expected) != len(new_bytes):
+                raise RuntimeError(
+                    f"invincible variant patch at 0x{arcade_pc:06X} must be byte-neutral."
+                )
+            rom_pc = arcade_pc + relocation_delta + accumulated_shift_before(arcade_pc, shift_deltas)
+            actual = bytes(rom_bytes[rom_pc:rom_pc + len(expected)])
+            if actual != expected:
+                raise RuntimeError(
+                    f"invincible variant patch at 0x{arcade_pc:06X}: "
+                    f"expected {expected.hex()} but found {actual.hex()}"
+                )
+            rom_bytes[rom_pc:rom_pc + len(new_bytes)] = new_bytes
+            rewrite_log.append(
+                {
+                    "kind": "build_variant_patch",
+                    "variant": "invincible",
+                    "arcade_pc": f"0x{arcade_pc:06X}",
+                    "rom_pc": f"0x{rom_pc:06X}",
+                    "original_bytes": expected.hex(),
+                    "replacement_bytes": new_bytes.hex(),
+                    "note": replacement.get("note", ""),
+                }
+            )
+            _append_segment(
+                segments,
+                segment_sequence,
+                {
+                    "genesis_start": _hex6(rom_pc),
+                    "genesis_end_exclusive": _hex6(rom_pc + len(new_bytes)),
+                    "size_bytes": len(new_bytes),
+                    "kind": "patched_site",
+                    "arcade_start": _hex6(arcade_pc),
+                    "arcade_end_exclusive": _hex6(arcade_pc + len(expected)),
+                    "origin": "build_variant_patch",
+                    "original_bytes": expected.hex(),
+                    "replacement_bytes": new_bytes.hex(),
+                    "note": str(replacement.get("note", "")),
+                    "shift_delta": 0,
+                },
+            )
+
     # WRAM-immediate rebase (KF-044): after all opcode_replace sites are applied,
     # rebase raw arcade-WRAM immediate-long operands (MOVE.L/MOVEA.L #0x0010xxxx,Rn)
     # in the relocated arcade code so Genesis producers store into mapped work RAM
@@ -2635,6 +2696,7 @@ def main() -> int:
         },
         "build_context": build_context_label,
         "genesis_coverage_delta": f"0x{args.genesis_coverage_delta:X}",
+        "invincible_variant": bool(args.invincible),
     }
     if expected_opcode_replace_sites_for_context is not None:
         manifest["postpatch_expected_opcode_replace_sites"] = expected_opcode_replace_sites_for_context

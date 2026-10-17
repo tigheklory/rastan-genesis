@@ -12,8 +12,8 @@ operational recipe.
 > diagnosing the full numbered-release pipeline.
 
 > **TL;DR** — freeze the profile → point the Makefile at the frozen snapshot → `make clean && make release`
-> in `apps/rastan-direct/` → fix the coverage invariant if the sprite region size changed → you get five
-> ROMs (`base, _c, _d, _do, _s`) numbered with the next build number. Never delete/withhold/reuse a build
+> in `apps/rastan-direct/` → fix the coverage invariant if the sprite region size changed → you get seven
+> ROMs (`base, _c, _d, _do, _s, _full_hud, _invincible`) sharing the next build number. Never delete/withhold/reuse a build
 > number.
 
 ---
@@ -141,7 +141,7 @@ manually to inspect/verify; see §7.)
 
 ---
 
-## 6. Build the complete five-variant family
+## 6. Build the complete seven-ROM family
 
 ```bash
 cd apps/rastan-direct
@@ -149,7 +149,7 @@ make clean          # STRONGLY recommended — avoids stale-object / boundary-mi
 make release
 ```
 
-`make release` (a.k.a. `dual-build`) produces **five ROMs for ONE build number** and advances the counter
+`make release` (a.k.a. `dual-build`) produces **seven ROMs for ONE build number** and advances the counter
 once:
 
 | Suffix | Meaning |
@@ -159,8 +159,13 @@ once:
 | `_s` | diagnostic numeric score metric |
 | `_do` | display-off VBlank publication variant |
 | `_c` | P1 six-button MODE rack-advance cheat (also uses the current build number) |
+| `_full_hud` | full gameplay-HUD comparison variant |
+| `_invincible` | normal display; original arcade `A5+0x0040` invincibility gate asserted for deterministic benchmarks |
 
-On success you'll see `complete build artifact set verified for NNNN (canonical, _d, _s, _do, _c)`.
+The standard ROM has normal arcade enemy damage. From Build 0440 onward, run the canonical Genesis
+rope benchmark on `_invincible`, not on the standard ROM. The variant shares the same build number.
+
+On success you'll see the complete canonical/`_d`/`_s`/`_do`/`_c`/`_full_hud`/`_invincible` set verified.
 
 ### What the generators do during the build (for reference)
 - `gen_reindexed_pc090oj.py` reads the snapshot + the complete sprite corpus

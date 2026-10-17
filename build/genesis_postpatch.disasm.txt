@@ -133,7 +133,8 @@ Disassembly of section .data:
      188:	2000           	movel %d0,%d0
      18a:	004a           	.short 0x004a
      18c:	2020           	movel %a0@-,%d0
-     18e:	8cfa 2020      	divuw %pc@(0x21b0),%d6
+     18e:	cee0           	muluw %a0@-,%d7
+     190:	2020           	movel %a0@-,%d0
      192:	2020           	movel %a0@-,%d0
      194:	2020           	movel %a0@-,%d0
      196:	2020           	movel %a0@-,%d0
@@ -105303,7 +105304,7 @@ Disassembly of section .data:
    54ab0:	0c6d 0001 13c6 	cmpiw #1,%a5@(5062)
    54ab6:	6700 036e      	beqw 0x54e26
    54aba:	6100 0394      	bsrw 0x54e50
-   54abe:	41f9 0010 d2a8 	lea 0x10d2a8,%a0
+   54abe:	41f9 00ff 12a8 	lea 0xff12a8,%a0
    54ac4:	383c 0004      	movew #4,%d4
    54ac8:	3018           	movew %a0@+,%d0
    54aca:	3218           	movew %a0@+,%d1
@@ -722501,8 +722502,8 @@ Disassembly of section .data:
   2928d0:	0042 5549      	oriw #21833,%d2
   2928d4:	4c44           	.short 0x4c44
   2928d6:	2000           	movel %d0,%d0
-  2928d8:	3034 3339 0056 	movew %a4@(564543,%d3:w:2)@(0),%d0
-  2928de:	4543 
+  2928d8:	3034 3430      	movew %a4@(30,%d3:w:4),%d0
+  2928dc:	0056 4543      	oriw #17731,%fp@
   2928e0:	544f           	addqw #2,%sp
   2928e2:	5200           	addqb #1,%d0
   2928e4:	4745           	.short 0x4745

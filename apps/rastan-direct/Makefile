@@ -73,6 +73,10 @@ RASTAN_VBLANK_DISPLAY_OFF ?= 0
 # invokes the authoritative arcade/MAME "Finish Current Sub-Round Now!"
 # semantic on a rising edge.  The normal and diagnostic ROMs compile it out.
 RASTAN_MODE_RACK_ADVANCE ?= 0
+# Build 0440: permanent benchmark/diagnostic variant. When 1, the postpatcher
+# asserts the original arcade A5+0x0040 debug gate at its startup source. The
+# standard numbered ROM defaults to 0 and retains normal enemy damage.
+RASTAN_INVINCIBLE ?= 0
 CRASH_BUILD_USE_CURRENT ?= 0
 PC090OJ_CONFIG_INC := $(OUT_DIR)/pc090oj_config.inc
 CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
@@ -194,29 +198,33 @@ SCORE_ROM := $(DIST_DIR)/rastan_direct_video_test_score.bin
 DO_ROM := $(DIST_DIR)/rastan_direct_video_test_do.bin
 CHEAT_ROM := $(DIST_DIR)/rastan_direct_video_test_cheat.bin
 FULL_HUD_ROM := $(DIST_DIR)/rastan_direct_video_test_full_hud.bin
+INVINCIBLE_ROM := $(DIST_DIR)/rastan_direct_video_test_invincible.bin
 VARIANT_CONFIG_DIR := $(OUT_DIR)/variant_configs
+INVINCIBLE_VARIANT_VERIFY := $(ROOT)/tools/translation/verify_invincible_variant.py
 
 # Every family member declares the complete compile-time configuration.  This
 # prevents a recursively built variant from inheriting the preceding member's
 # generated pc090oj_config.inc state.  Mode 2 remains the canonical default;
 # mode 1 differs only by enabling the existing full gameplay HUD.
-CANONICAL_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0
-DIAG_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=1 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0
-SCORE_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=1 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0
-DISPLAY_OFF_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=1 RASTAN_MODE_RACK_ADVANCE=0
-CHEAT_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=1
-FULL_HUD_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=1 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0
+CANONICAL_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0
+DIAG_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=1 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0
+SCORE_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=1 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0
+DISPLAY_OFF_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=1 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0
+CHEAT_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=1 RASTAN_INVINCIBLE=0
+FULL_HUD_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=1 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=0
+INVINCIBLE_BUILD_FLAGS := PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=2 RASTAN_DIAG_CPU_BAR=0 RASTAN_DIAG_SCORE_METRIC=0 RASTAN_VBLANK_DISPLAY_OFF=0 RASTAN_MODE_RACK_ADVANCE=0 RASTAN_INVINCIBLE=1
 
 .DELETE_ON_ERROR:
-.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant cheat-variant full-hud-variant verify-variant-set
+.PHONY: all clean release FORCE_ASM_REBUILD dual-build diag-variant score-variant do-variant cheat-variant full-hud-variant invincible-variant verify-variant-set
 
-# Every build produces SIX ROMs sharing one build number:
+# Every build produces SEVEN ROMs sharing one build number:
 #   ..._NNNN.bin     release (all diag/variant flags off) -- owns the counter/gates/ledger
 #   ..._NNNN_d.bin   diagnostic CPU-load raster bar (RASTAN_DIAG_CPU_BAR=1)
 #   ..._NNNN_s.bin   diagnostic numeric score metric (RASTAN_DIAG_SCORE_METRIC=1)
 #   ..._NNNN_do.bin  display-off VBlank publication phase (RASTAN_VBLANK_DISPLAY_OFF=1)
 #   ..._NNNN_c.bin   P1 six-button MODE rack-advance cheat (RASTAN_MODE_RACK_ADVANCE=1)
 #   ..._NNNN_full_hud.bin existing full gameplay HUD (RASTAN_GAMEPLAY_HUD_SPRITES=1)
+#   ..._NNNN_invincible.bin normal display with the arcade A5+0x0040 gate asserted
 # The suffixed builds are postpatch-only copies that reuse the release's number and are never
 # numbered/ledgered themselves.
 all: dual-build
@@ -229,6 +237,7 @@ dual-build:
 	$(MAKE) do-variant $(DISPLAY_OFF_BUILD_FLAGS)
 	$(MAKE) cheat-variant $(CHEAT_BUILD_FLAGS) CRASH_BUILD_USE_CURRENT=1
 	$(MAKE) full-hud-variant $(FULL_HUD_BUILD_FLAGS) CRASH_BUILD_USE_CURRENT=1
+	$(MAKE) invincible-variant $(INVINCIBLE_BUILD_FLAGS) CRASH_BUILD_USE_CURRENT=1
 	$(MAKE) verify-variant-set
 
 # A default/release build is incomplete unless the canonical ROM and every
@@ -236,12 +245,12 @@ dual-build:
 verify-variant-set:
 	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
 	tag=$$(printf "%04d" "$$n"); \
-	for suffix in "" _d _s _do _c _full_hud; do \
+	for suffix in "" _d _s _do _c _full_hud _invincible; do \
 		artifact="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}$${suffix}.bin"; \
 		if [ ! -s "$$artifact" ]; then echo "ERROR: required build artifact missing/empty: $$artifact"; exit 1; fi; \
 	done; \
 	check_config() { \
-		file="$$1"; hud="$$2"; bar="$$3"; score="$$4"; display_off="$$5"; mode="$$6"; \
+		file="$$1"; hud="$$2"; bar="$$3"; score="$$4"; display_off="$$5"; mode="$$6"; invincible="$$7"; \
 		if [ ! -s "$$file" ]; then echo "ERROR: missing variant configuration receipt: $$file"; exit 1; fi; \
 		grep -qx ".equ PC090OJ_MIRROR_RECORDS, $(PC090OJ_MIRROR_RECORDS)" "$$file" || exit 1; \
 		grep -qx ".equ RASTAN_GAMEPLAY_HUD_SPRITES, $$hud" "$$file" || exit 1; \
@@ -249,14 +258,20 @@ verify-variant-set:
 		grep -qx ".equ RASTAN_DIAG_SCORE_METRIC, $$score" "$$file" || exit 1; \
 		grep -qx ".equ RASTAN_VBLANK_DISPLAY_OFF, $$display_off" "$$file" || exit 1; \
 		grep -qx ".equ RASTAN_MODE_RACK_ADVANCE, $$mode" "$$file" || exit 1; \
+		grep -qx ".equ RASTAN_INVINCIBLE, $$invincible" "$$file" || exit 1; \
 	}; \
-	check_config "$(VARIANT_CONFIG_DIR)/canonical.inc" 2 0 0 0 0; \
-	check_config "$(VARIANT_CONFIG_DIR)/diag.inc" 2 1 0 0 0; \
-	check_config "$(VARIANT_CONFIG_DIR)/score.inc" 2 0 1 0 0; \
-	check_config "$(VARIANT_CONFIG_DIR)/display_off.inc" 2 0 0 1 0; \
-	check_config "$(VARIANT_CONFIG_DIR)/cheat.inc" 2 0 0 0 1; \
-	check_config "$(VARIANT_CONFIG_DIR)/full_hud.inc" 1 0 0 0 0; \
-	echo "complete build artifact/configuration set verified for $$tag (canonical, _d, _s, _do, _c, _full_hud)"
+	check_config "$(VARIANT_CONFIG_DIR)/canonical.inc" 2 0 0 0 0 0; \
+	check_config "$(VARIANT_CONFIG_DIR)/diag.inc" 2 1 0 0 0 0; \
+	check_config "$(VARIANT_CONFIG_DIR)/score.inc" 2 0 1 0 0 0; \
+	check_config "$(VARIANT_CONFIG_DIR)/display_off.inc" 2 0 0 1 0 0; \
+	check_config "$(VARIANT_CONFIG_DIR)/cheat.inc" 2 0 0 0 1 0; \
+	check_config "$(VARIANT_CONFIG_DIR)/full_hud.inc" 1 0 0 0 0 0; \
+	check_config "$(VARIANT_CONFIG_DIR)/invincible.inc" 2 0 0 0 0 1; \
+	$(PYTHON) "$(INVINCIBLE_VARIANT_VERIFY)" \
+		--standard "$(BIN)" --invincible "$(INVINCIBLE_ROM)" \
+		--standard-manifest "$(PATCH_MANIFEST)" \
+		--invincible-manifest "$(OUT_DIR)/invincible_patch_manifest.json"; \
+	echo "complete build artifact/configuration set verified for $$tag (canonical, _d, _s, _do, _c, _full_hud, _invincible)"
 
 $(OUT_DIR) $(DIST_DIR) $(VARIANT_CONFIG_DIR):
 	@mkdir -p $@
@@ -426,8 +441,8 @@ $(PC090OJ_FRAME_TABLE) $(PC090OJ_PLAYER_PIECE_TABLE) $(PC090OJ_FRAME_INDEX) $(PC
 # Generate the PC090OJ helper sizing include from the Make variable each build so
 # an override (PC090OJ_MIRROR_RECORDS=N) is always applied without hand-editing.
 $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
-	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s RASTAN_DIAG_CPU_BAR=%s RASTAN_DIAG_SCORE_METRIC=%s RASTAN_VBLANK_DISPLAY_OFF=%s RASTAN_MODE_RACK_ADVANCE=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n.equ RASTAN_DIAG_CPU_BAR, %s\n.equ RASTAN_DIAG_SCORE_METRIC, %s\n.equ RASTAN_VBLANK_DISPLAY_OFF, %s\n.equ RASTAN_MODE_RACK_ADVANCE, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(RASTAN_MODE_RACK_ADVANCE)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(RASTAN_MODE_RACK_ADVANCE)' > $@
-	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) RASTAN_VBLANK_DISPLAY_OFF=$(RASTAN_VBLANK_DISPLAY_OFF) RASTAN_MODE_RACK_ADVANCE=$(RASTAN_MODE_RACK_ADVANCE) -> $@"
+	@printf '/* GENERATED from PC090OJ_MIRROR_RECORDS=%s RASTAN_GAMEPLAY_HUD_SPRITES=%s RASTAN_DIAG_CPU_BAR=%s RASTAN_DIAG_SCORE_METRIC=%s RASTAN_VBLANK_DISPLAY_OFF=%s RASTAN_MODE_RACK_ADVANCE=%s RASTAN_INVINCIBLE=%s by apps/rastan-direct/Makefile -- do not hand-edit. */\n.equ PC090OJ_MIRROR_RECORDS, %s\n.equ PC090OJ_MIRROR_BYTES, (PC090OJ_MIRROR_RECORDS * 8)\n.equ PC090OJ_BITSET_BYTES, ((PC090OJ_MIRROR_RECORDS + 7) / 8)\n.equ RASTAN_GAMEPLAY_HUD_SPRITES, %s\n.equ RASTAN_DIAG_CPU_BAR, %s\n.equ RASTAN_DIAG_SCORE_METRIC, %s\n.equ RASTAN_VBLANK_DISPLAY_OFF, %s\n.equ RASTAN_MODE_RACK_ADVANCE, %s\n.equ RASTAN_INVINCIBLE, %s\n' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(RASTAN_MODE_RACK_ADVANCE)' '$(RASTAN_INVINCIBLE)' '$(PC090OJ_MIRROR_RECORDS)' '$(RASTAN_GAMEPLAY_HUD_SPRITES)' '$(RASTAN_DIAG_CPU_BAR)' '$(RASTAN_DIAG_SCORE_METRIC)' '$(RASTAN_VBLANK_DISPLAY_OFF)' '$(RASTAN_MODE_RACK_ADVANCE)' '$(RASTAN_INVINCIBLE)' > $@
+	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) RASTAN_VBLANK_DISPLAY_OFF=$(RASTAN_VBLANK_DISPLAY_OFF) RASTAN_MODE_RACK_ADVANCE=$(RASTAN_MODE_RACK_ADVANCE) RASTAN_INVINCIBLE=$(RASTAN_INVINCIBLE) -> $@"
 
 # Build 0340 OPT-003: generate the prebaked (scene,effective_bank)->palette-line LUT from the authored
 # The current Palette Editing Tool snapshot authors R1/P1 mappings. The live route
@@ -728,6 +743,34 @@ full-hud-variant: $(FULL_HUD_ROM)
 	cp "$(FULL_HUD_ROM)" "$$dest"; \
 	if [ ! -s "$$dest" ]; then echo "ERROR: full-HUD build artifact missing/empty: $$dest"; exit 1; fi; \
 	echo "full-HUD build artifact (RASTAN_GAMEPLAY_HUD_SPRITES=1): $$dest"
+
+# Permanent normal-display invincibility ROM for deterministic benchmarks. The
+# normal code image is built with the canonical flags; only the postpatcher's
+# spec-declared source-data patch makes the arcade startup initializer assert
+# A5+0x0040. It shares the canonical build number and never enters the ledger.
+$(INVINCIBLE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(INVINCIBLE_VARIANT_VERIFY) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/invincible.inc"
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
+	cp "$(PREPATCH_BIN)" "$@"
+	$(PYTHON) "$(ROOT)/tools/build_rastan_regions.py" --variant "$(VARIANT)"
+	$(PYTHON) "$(PATCHER)" \
+		--variant "$(VARIANT)" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin" \
+		--rom "$@" \
+		--symbols "$(SYMBOLS)" \
+		--manifest "$(OUT_DIR)/invincible_patch_manifest.json" \
+		--invincible \
+		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
+
+invincible-variant: $(INVINCIBLE_ROM)
+	@n=$$(if [ -f "$(NUMBERED_COUNTER)" ]; then cat "$(NUMBERED_COUNTER)"; else echo 0; fi); \
+	tag=$$(printf "%04d" "$$n"); \
+	dest="$(NUMBERED_DIST_DIR)/$(NUMBERED_PREFIX)_$${tag}_invincible.bin"; \
+	if [ -e "$$dest" ]; then echo "ERROR: refusing to overwrite existing invincible build: $$dest"; exit 1; fi; \
+	cp "$(INVINCIBLE_ROM)" "$$dest"; \
+	if [ ! -s "$$dest" ]; then echo "ERROR: invincible build artifact missing/empty: $$dest"; exit 1; fi; \
+	echo "invincible build artifact (RASTAN_INVINCIBLE=1): $$dest"
 
 clean:
 	rm -rf $(OUT_DIR) $(DIST_DIR)
