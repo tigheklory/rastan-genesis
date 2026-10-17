@@ -350,7 +350,21 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     move.w  %d0, 2(%sp)             /* visible top logical row */
 
     lea     PC080SN_DESC_REBUILD_PTR_TABLE, %a3
+
+    /* Build 0439: selector 0 is a complete, bounded entering-column event, so
+     * its scene/LUT choice is invariant across all 64 logical rows.  Select
+     * the exact fg_cache_resolve context once: non-gameplay scenes use the
+     * complete static 0x4000-word LUT and never count misses; gameplay uses
+     * the bounded active LUT and retains its range/zero-entry miss semantics.
+     * A2 = selected LUT base, D7 = exclusive code limit.  Both are already
+     * protected by the outer MOVEM; no runtime context state is introduced. */
     lea     genesistan_pc080sn_tile_vram_lut, %a2
+    move.w  #0x4000, %d7
+    cmpi.b  #1, genesistan_current_scene_id
+    bne.s   .Lplane_a_sel0_residency_context_ready
+    lea     fg_boundary_active_lut, %a2
+    move.w  #FG_BOUNDARY_LUT_WORDS, %d7
+.Lplane_a_sel0_residency_context_ready:
     lea     staged_fg_buffer, %a6
 
     moveq   #0, %d4                 /* descriptor segment */
@@ -422,7 +436,23 @@ genesistan_hook_tilemap_plane_a_selector0_native:
     move.w  0x20(%a4,%d0.w), %d2             /* independent collision field */
     move.w  0(%a4,%d0.w), %d3                /* independent visual field */
     andi.w  #0x3FFF, %d3
-    bsr     fg_cache_resolve                  /* still dynamic per row/cell */
+
+    /* Exact inline fg_cache_resolve leaf using the once-per-column context.
+     * Zero remains blank without a miss.  The static LUT's masked domain is
+     * always below 0x4000 and a zero static entry is not a counted miss.  The
+     * active LUT retains both its out-of-range and zero-entry miss accounting. */
+    beq.s   .Lplane_a_sel0_residency_done
+    cmp.w   %d7, %d3
+    bhs.s   .Lplane_a_sel0_residency_miss
+    add.w   %d3, %d3
+    move.w  0(%a2,%d3.w), %d3
+    bne.s   .Lplane_a_sel0_residency_done
+    cmpi.w  #0x4000, %d7
+    beq.s   .Lplane_a_sel0_residency_done
+.Lplane_a_sel0_residency_miss:
+    addq.l  #1, fg_boundary_miss_a
+    moveq   #0, %d3
+.Lplane_a_sel0_residency_done:
     or.w    6(%sp), %d3
 .Lplane_a_sel0_outputs_ready:
     move.w  %d3, 8(%sp)                      /* preserve visual across collision address */

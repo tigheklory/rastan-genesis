@@ -72,10 +72,24 @@ def static_contract() -> None:
 
     require(sel0, (".Lplane_a_sel0_shared_ready", "PC080SN_DESC_REBUILD_SRC_TABLE",
                    ".Lplane_a_native_metatile_record_from_d2", "0x20(%a4,%d0.w)",
-                   "fg_cache_resolve", "cmpi.w  #32", "fg_col_dirty",
+                   "lea     genesistan_pc080sn_tile_vram_lut, %a2",
+                   "cmpi.b  #1, genesistan_current_scene_id",
+                   "lea     fg_boundary_active_lut, %a2",
+                   "move.w  #FG_BOUNDARY_LUT_WORDS, %d7",
+                   ".Lplane_a_sel0_residency_context_ready",
+                   ".Lplane_a_sel0_residency_miss",
+                   "move.w  0(%a2,%d3.w), %d3",
+                   "addq.l  #1, fg_boundary_miss_a",
+                   "cmpi.w  #32", "fg_col_dirty",
                    "cmpi.w  #16, %d4"), "selector-0")
-    if sel0.index("fg_cache_resolve") > sel0.index("cmpi.w  #32"):
-        fail("selector-0 semantic resolution is behind physical projection")
+    if "bsr     fg_cache_resolve" in sel0:
+        fail("selector-0 hot loop retains the general per-cell residency helper")
+    context_end = sel0.index(".Lplane_a_sel0_residency_context_ready:")
+    cell_loop = sel0.index(".Lplane_a_sel0_cell_loop:")
+    if context_end > cell_loop:
+        fail("selector-0 residency context selection is inside the cell loop")
+    if sel0.count("cmpi.b  #1, genesistan_current_scene_id") != 1:
+        fail("selector-0 must select scene/LUT context exactly once per column")
     require(sel12, ("MAP_GET_COLLISION", "MAP_GET_NAME_COLLISION_A",
                     ".Lplane_a_sel12_fallback_loop",
                     ".Lplane_a_sel12_shared_segment",
@@ -296,6 +310,124 @@ def hoisted_row_lut_resolve(code: int, lut: list[int]) -> tuple[int, int]:
     return 0, 1
 
 
+def old_selector0_lut_resolve(
+    scene: int, code: int, active_lut: list[int], static_lut: list[int]
+) -> tuple[int, int]:
+    """Exact pre-0439 fg_cache_resolve value and Plane-A miss delta."""
+    code &= 0x3FFF
+    if code == 0:
+        return 0, 0
+    if scene != 1:
+        return static_lut[code], 0
+    if code >= BOUNDARY_LUT_WORDS:
+        return 0, 1
+    resolved = active_lut[code]
+    return (resolved, 0) if resolved else (0, 1)
+
+
+def hoisted_selector0_lut_resolve(
+    scene: int, code: int, active_lut: list[int], static_lut: list[int]
+) -> tuple[int, int]:
+    """Build-0439 once-selected LUT context plus inline lookup semantics."""
+    code &= 0x3FFF
+    if scene == 1:
+        lut = active_lut
+        limit = BOUNDARY_LUT_WORDS
+        count_miss = True
+    else:
+        lut = static_lut
+        limit = 0x4000
+        count_miss = False
+    if code == 0:
+        return 0, 0
+    if code >= limit:
+        return 0, 1
+    resolved = lut[code]
+    if resolved or not count_miss:
+        return resolved, 0
+    return 0, 1
+
+
+def verify_selector0_residency_hoist_equivalence() -> None:
+    """Exhaustively prove active/static lookup, output and column contracts."""
+    active_lut = [((code * 37) ^ 0x35A) & 0x07FF
+                  for code in range(BOUNDARY_LUT_WORDS)]
+    static_lut = [((code * 53) ^ 0x621) & 0x07FF
+                  for code in range(0x4000)]
+    for code in range(0, BOUNDARY_LUT_WORDS, 97):
+        active_lut[code] = 0
+    for code in range(0, 0x4000, 113):
+        static_lut[code] = 0
+
+    # Scene 1 is the active package LUT.  Representative non-gameplay scene
+    # identities all take the unchanged full static-LUT contract.
+    for scene in (0, 1, 2, 0xFF):
+        for code in range(0x4000):
+            old = old_selector0_lut_resolve(scene, code, active_lut, static_lut)
+            new = hoisted_selector0_lut_resolve(scene, code, active_lut, static_lut)
+            if old != new:
+                fail(
+                    "selector-0 residency mismatch "
+                    f"scene={scene:#04x} code={code:#06x}: {old} != {new}"
+                )
+
+    # Preserve the entire 64-row logical/collision traversal, the exact
+    # 32-row physical projection, final attr composition, destination words,
+    # cumulative miss delta and single dirty-column result for every visible
+    # top and entering column.  Codes deliberately exercise zero, active
+    # hits/misses, active out-of-range, and static zero entries.
+    code_cases = (0, 1, 97, BOUNDARY_LUT_WORDS - 1,
+                  BOUNDARY_LUT_WORDS, 0x3FFF)
+    for scene in (0, 1, 2):
+        for visible_top in range(LOGICAL):
+            for entering_col in range(LOGICAL):
+                old_collision: list[tuple[int, int]] = []
+                new_collision: list[tuple[int, int]] = []
+                old_stage: list[tuple[int, int]] = []
+                new_stage: list[tuple[int, int]] = []
+                old_misses = 0
+                new_misses = 0
+                attr = 0x6000 | ((entering_col & 3) << 9)
+                for row in range(LOGICAL):
+                    code = code_cases[(row + entering_col) % len(code_cases)]
+                    collision = ((row * 0x83) ^ entering_col) & 0xFFFF
+                    collision_dest = row * LOGICAL + entering_col
+                    old_collision.append((collision_dest, collision))
+                    new_collision.append((collision_dest, collision))
+                    old_word, old_delta = old_selector0_lut_resolve(
+                        scene, code, active_lut, static_lut
+                    )
+                    new_word, new_delta = hoisted_selector0_lut_resolve(
+                        scene, code, active_lut, static_lut
+                    )
+                    old_misses += old_delta
+                    new_misses += new_delta
+                    if ((row - visible_top) & 63) < PHYSICAL_H:
+                        stage_dest = (row & 31) * LOGICAL + entering_col
+                        old_stage.append((stage_dest, old_word | attr))
+                        new_stage.append((stage_dest, new_word | attr))
+                if old_collision != new_collision or len(new_collision) != LOGICAL:
+                    fail(
+                        "selector-0 collision traversal mismatch "
+                        f"scene={scene} top={visible_top} col={entering_col}"
+                    )
+                if old_stage != new_stage or len(new_stage) != PHYSICAL_H:
+                    fail(
+                        "selector-0 staging projection mismatch "
+                        f"scene={scene} top={visible_top} col={entering_col}"
+                    )
+                if old_misses != new_misses:
+                    fail(
+                        "selector-0 miss delta mismatch "
+                        f"scene={scene} top={visible_top} col={entering_col}: "
+                        f"{old_misses} != {new_misses}"
+                    )
+                old_dirty = 1 << entering_col
+                new_dirty = 1 << entering_col
+                if old_dirty != new_dirty:
+                    fail(f"selector-0 dirty-column mismatch col={entering_col}")
+
+
 def verify_vertical_row_hoist_equivalence() -> None:
     """Exhaustively compare the accepted and hoisted vertical-row contracts."""
     lut = [((code * 37) ^ 0x35A) & 0x07FF for code in range(BOUNDARY_LUT_WORDS)]
@@ -374,6 +506,7 @@ def main() -> None:
     verify_source_rebase_and_trailing_retention()
     verify_plane_b_independent_context()
     verify_vertical_row_hoist_equivalence()
+    verify_selector0_residency_hoist_equivalence()
     verify_dirty_gather_and_dma()
     print("PASS full-span background coherence: broken 0415 FAIL; broken 0416 "
           "FAIL; restored 0417/0418 full-span PASS; Build 0419 fused "
@@ -381,6 +514,7 @@ def main() -> None:
           "row resolution PASS; initial 64x64 seed, N/N+32 semantics, "
           "source rebase, trailing retention, independent Plane-B context, "
           "Build 0434 vertical-row context/LUT/miss equivalence, "
+          "Build 0439 selector-0 active/static residency context equivalence, "
           "32-row projection, dirty gather, and 32-word column DMA PASS")
 
 
