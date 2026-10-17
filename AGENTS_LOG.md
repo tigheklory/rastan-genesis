@@ -1,5 +1,13 @@
 # AGENTS Log
 
+## [Andy — Build 0438 player-damage failure root-cause audit (read-only)]
+
+* READ-ONLY gameplay-semantics investigation. No production source/Makefile/generator/verifier/spec/ROM/build-number/counter/branch/commit/MAME/new-trace. Phase D/E NO; HUD/framing NOT resumed. Baseline Build 0438 (commit `29412437`, "Restore Build 434 production implementation"). Deliverable: `docs/design/Andy_build0438_player_damage_failure_audit.md`.
+* INVINCIBILITY HYPOTHESIS REFUTED (ROM-byte proof). Arcade invincibility gate = word A5+0x0040 bit 6 (stock MAME cheat forces it; `cmpiw #0,%a5@(64); bne skip` ⇒ nonzero=invincible; init `(~[0x5FF9E])&0x40`). On Genesis Build 0438 the init read `movew 0x5ff9e` is NOT relocated (runtime 0x3b1fe still absolute 0x5ff9e), but Genesis 0x5FF9E = 0xFFFF padding, so A5+0x40=0 (vulnerable), A5+0x44=0 (timeout-death enabled), start stage=1 — identical to arcade. No forced/retained invincibility in normal play.
+* SYMPTOM IS PRE-EXISTING, NOT A 0438 REGRESSION. Existing evidence (Tighe-confirmed since Build 0228; AGENTS_LOG:44809; Andy_fable_build0228 §131; Andy_h8 §38 "enemy damage/invulnerability model NOT located") shows enemy contact deals no damage on Genesis and observed deaths are collision/terrain-driven (lava/pits/drowning proven, Build 0167). Player CAN die (terrain); only the enemy-contact→player-hurt linkage fails. INTRODUCING BUILD NOT ESTABLISHED (appears never-translated).
+* FIRST DIVERGENCE: terrain/solid contact reaches the retained player response 0x054BF8 (record A5+0x0242 correctly rebased to 0xFF0242 in Build 0366; death states 8/0x0E/0x0F via 0x3A2EC retained), but the enemy-contact→player-hurt branch does not take effect. Exact instruction not nameable because that arcade model is not yet decompiled; leading mechanism = KF-044 un-rebased-WRAM-literal / dropped producer→consumer class (cf. 0366 0x10C242, 0386 0x10C508). Also noted latent-but-benign: the absolute `MOVE.W 0x5FF9E,Dn` data operand is unrelocated (not the bug).
+* DAMAGE SEMANTICS vs PRESENTATION separated: the core gap is damage semantics (enemy-contact linkage), NOT the reduced HUD; but Build 0438 HUD mode 2 does separately hide the energy bar (A5+0x013A=0xFF013A). MINIMUM FUTURE REPAIR: decompile the missing enemy-contact→player-hurt linkage (Ghidra-first), one targeted read-only watchpoint run on 0xFF013A/0xFF10E8/0xFF0242 during a deliberate enemy contact, then a byte-neutral WRAM-literal rebase or restored producer→consumer link preserving arcade hurt/knockback/death/invuln semantics. No Genesis-owned damage system; STOP before implementation.
+
 ## [Andy — Deferred full gameplay HUD / 240→224 vertical-framing preservation & restart plan]
 
 * READ-ONLY preservation/planning. No production source, Makefile, generator, verifier, spec, ROM, build number, build counter, branch, commit, tag, MAME run, or rope benchmark touched. Phase D/E NO. Deliverable: `docs/design/Andy_deferred_full_hud_vertical_framing_plan.md`.
@@ -52098,3 +52106,51 @@ TIGHE ONLY
   `29412437861ea5e7fb046fc6d0b1c1bb58d73b2a`; real-hardware acceptance remains
   PENDING TIGHE. Report:
   `docs/design/Cody_build0438_restore_build0434_production.md`.
+
+## 2026-10-17 — Cody Build 0438 horizontal/vertical background symmetry audit
+
+- Read-only static audit of the restored Build-0434 background implementation;
+  no production change, build, MAME run, trace, benchmark, counter change,
+  HUD/framing work, Phase D, or Phase E.
+- Classified symmetry as **B / partially symmetric**. Build 0423 already
+  optimized the horizontal Plane-B directional column; Build 0424 already
+  hoisted Plane-A selector-0 descriptor/native-record/attribute work. Build
+  0425 is a fixed-row/64-column vertical selector-1/2 path, not the horizontal
+  analogue of Build 0434.
+- The later Build-0434 LUT/context optimization is absent horizontally:
+  selector 0 still calls `fg_cache_resolve` up to 64 times per entering column,
+  and the Plane-B directional column calls `fg_boundary_resolve_b` 32 times.
+  A future bounded candidate may select the correct scene LUT once per column
+  and inline only those lookups, while retaining all 64 Plane-A collision and
+  logical cells, the 32-row physical projection, exact miss accounting, dirty
+  columns, and the absolute prohibition on grouping across the live ring
+  front.
+- Existing 0423/0424 measurements prove the canonical rope route materially
+  exercises both candidate parent paths. Report:
+  `docs/design/Cody_build0438_horizontal_vs_vertical_scroll_symmetry_audit.md`.
+
+### MAME Exit Summary (2026-10-17 15:47:33)
+- Final PC: 0x074CB0
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-17 — Cody Build 0439 Plane-A horizontal residency optimization
+
+- Optimized only `genesistan_hook_tilemap_plane_a_selector0_native`: selected
+  active/static residency context once per entering column and replaced up to
+  64 per-cell `fg_cache_resolve` calls with the exact inline lookup. Preserved
+  all 64 collision cells, 32 resident Plane-A outputs, 16 four-row groups,
+  miss accounting, ring-front contract, dirty column, and gathered DMA.
+- Extended the existing background verifier across all 14-bit codes and the
+  complete row/top/column domain. Static equivalence and assembled hot-path
+  checks PASS; no Plane B, vertical, HUD, damage, Phase D, or Phase E changes.
+- Built the complete Build-0439 family. Canonical ROM: 2,698,936 bytes,
+  SHA-256 `4d149b3cb5b37a61815aeff4767c479fece41168b279bf3e352326dd6ef4438f`.
+  Canonical/gameplay-entry gates and fixed 30-second trace PASS at 1,798 frames;
+  the known phase-epoch warning remains non-blocking.
+- Unchanged rope benchmark: `798/798/798`, deterministic YES, median
+  13,317.147 ms; 5 frames / 83.441 ms faster than Build 0438, with 27 frames /
+  467.147 ms remaining to the arcade silver standard. Hardware acceptance is
+  pending Tighe. Exact candidate source commit:
+  `033795e327a70b2cb79b94ed2632cb2630ed628b`.
+- Report: `docs/design/Cody_build0439_plane_a_horizontal_residency_optimization.md`.
