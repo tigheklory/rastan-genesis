@@ -1,15 +1,16 @@
 # Cody — Build 0440 enemy damage and invincible benchmark variant
 
 **Date:** 2026-10-17
-**Status:** candidate; real-Genesis acceptance of the standard ROM is pending Tighe
+**Status:** **REJECTED on real Genesis hardware** — standard enemy contact still caused no damage,
+hurt animation, or knockback. The `0x054A40` WRAM rebase is correct but insufficient: Build 0440
+did not relocate the 66 embedded handler pointers in dispatch table `0x0550A8`.
 **Exact candidate source commit:** `ba4b4c2264993b53193a8067eece3bb9faa71e63`
 
 ## Scope and result
 
-Build 0440 restores the retained original-arcade enemy-to-player damage chain by correcting one
-absolute WRAM operand. It also adds a permanent, normal-display `_invincible` build variant for the
-canonical Genesis rope benchmark. The standard ROM remains vulnerable and is the gameplay acceptance
-candidate.
+Build 0440 corrected one required absolute WRAM operand but **did not restore** the complete retained
+original-arcade enemy-to-player damage chain. It also added a permanent, normal-display `_invincible`
+build variant for the canonical Genesis rope benchmark. The standard ROM is rejected.
 
 No damage rule, collision test, body-hit producer, dispatcher, handler, hurt/knockback routine, or
 post-hit invulnerability rule was replaced. No graphics code was changed.
@@ -129,5 +130,6 @@ The reduced HUD still hides the energy bar; that is expected. Tighe may optional
 `_invincible` ROM to confirm ordinary enemy contact causes no gated damage/hit-stun/knockback while
 ungated hazards retain their original behavior.
 
-Real-hardware acceptance of standard Build 0440: **PENDING TIGHE**. No later optimization or phase
-was started.
+Real-hardware acceptance of standard Build 0440: **REJECTED BY TIGHE**. See
+`docs/design/Cody_enemy_damage_actual_root_cause_and_repair.md` for the first remaining divergence:
+unrelocated absolute-long dispatch pointers at arcade table `0x0550A8`.

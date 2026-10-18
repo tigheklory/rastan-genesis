@@ -40,9 +40,10 @@ rather than trusting the Markdown conclusions.
   the Build-0438 audit): producer `0x449B4` pass 1 → body-hit list `A5+0x12A8` → consumer `0x54A40`
   (absolute `LEA 0x0010D2A8`, dispatch table `0x550A8`) → per-type handlers `0x551CC`+ (gate
   `A5+0x40` debug-invuln and `A5+0x1366` post-hit invuln, decrement energy `A5+0x13A`, knockback via
-  `0x5560C`; lethal arm sets state 8). raws: `raw/00054a40.c`, `raw/000551b0.c`. The Genesis defect
-  is the un-rebased `0x0010D2A8` consumer read; see
-  `docs/design/Andy_arcade_enemy_contact_player_damage_decompilation_and_repair_design.md`.
+  `0x5560C`; lethal arm sets state 8). raws: `raw/00054a40.c`, `raw/000551b0.c`. Build 0440 fixed the
+  un-rebased `0x0010D2A8` consumer read but hardware testing proved that insufficient: the 66
+  absolute handler pointers in table `0x550A8` also required shift relocation. See
+  `docs/design/Cody_enemy_damage_actual_root_cause_and_repair.md`.
 - `rastan_actor_render.c` — CHECKPOINT H10: render selector dispatch `0x3D054` + selector thunks
   `0x3F0BC`/`0x4770E`/`0x3FFDC`/`0x3FFF0` (all funnel to the shared 0x3C902 interpreter).
 - `rastan_actor_palette.c` — CHECKPOINT H10: palette-attribute resolver `0x45684` (non-fam2 table

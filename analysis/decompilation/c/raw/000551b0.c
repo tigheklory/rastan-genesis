@@ -8,7 +8,12 @@
  * Every live handler begins with the DEBUG-INVINCIBILITY GATE and the POST-HIT INVULNERABILITY
  * latch, then applies a type-specific ENERGY decrement and the knockback/pose reaction. This is the
  * authoritative "enemy contact hurts Rastan" tail that the stock MAME Invincibility cheat (A5+0x40
- * bit 6) suppresses. */
+ * bit 6) suppresses.
+ *
+ * GENESIS TRANSLATION DEFECT THROUGH BUILD 0440: shift reflow moved this handler family, but the
+ * 66 embedded absolute-long pointers in 0x550A8..0x551AF were not declared for relocation. Type 1
+ * still pointed to arcade 0x551CC instead of mapped Genesis 0x5524A. Build 0441 relocates the table
+ * through the established absolute_long_pointer_tables mechanism. */
 #include "raw_common.h"
 
 extern void arcade_5560c_hurt_reaction(void);  /* pose 0x0C via 0x3A0EC + knockback + invuln start */

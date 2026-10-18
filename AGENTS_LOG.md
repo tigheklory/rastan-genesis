@@ -1,5 +1,24 @@
 # AGENTS Log
 
+## 2026-10-17 — Cody Build 0441 enemy-damage dispatch repair
+
+- Build 0440 standard is hardware-rejected: enemy contact still produced no damage, hurt, or
+  knockback. Its `0x054A40` WRAM rebase was required but insufficient.
+- Exact retained order is previous-frame consumption (`0x041F0E -> 0x05100A -> 0x054A2C`), then
+  actor update and `0x0449B4` clear/repopulate. Pass 1 writes four-byte-header records at
+  `A5+0x12A8`; the dispatch type is the low byte actor `+0x29` (ordinary Lizardman = 1), not the
+  constant high byte. Existing C comments were corrected.
+- First remaining Genesis divergence: arcade table `0x0550A8..0x0551AF` contains 66 absolute-long
+  handler pointers. Build 0440 moved the table and handlers but left all entries unrelocated; type 1
+  loaded stale `0x000551CC` instead of mapped handler `0x0005524A`. Added one declarative
+  `absolute_long_pointer_tables` rule so shift reflow owns all 66 targets. No Genesis damage logic,
+  runtime state, shadow, bypass, invincibility work, sprite/frontend/HUD work, Phase D, or Phase E.
+- Report: `docs/design/Cody_enemy_damage_actual_root_cause_and_repair.md`.
+- Build 0441 standard SHA-256 `43fc0aa15f02549661ce438f71657914cbfed08e655c510caaa85dd80f393337`;
+  manifest and ROM prove 66/66 relocated pointers (entry 0 `0x5524A`); canonical and gameplay-entry
+  gates PASS; fixed 30-second Genesis NTSC trace PASS at 1,798 frames. Real-hardware acceptance is
+  pending Tighe.
+
 ## [Andy — Build 0438 player-damage failure root-cause audit (read-only)]
 
 * READ-ONLY gameplay-semantics investigation. No production source/Makefile/generator/verifier/spec/ROM/build-number/counter/branch/commit/MAME/new-trace. Phase D/E NO; HUD/framing NOT resumed. Baseline Build 0438 (commit `29412437`, "Restore Build 434 production implementation"). Deliverable: `docs/design/Andy_build0438_player_damage_failure_audit.md`.

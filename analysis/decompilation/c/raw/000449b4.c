@@ -8,7 +8,7 @@
  * Per pass, per enemy (active +0x00, state +0x05 != 0, NOT hit-flashing +0x3D == 0):
  *   0x446BC  build enemy hurtbox INDEX d3 (by rec_type/family/state)
  *   0x44930/0x44C5A.. overlap test (dispatch by pool index/state) -> d0
- *   on hit (d0!=0), up to 4 per list: record {active=1, type, pal/+0x28, X=+0x16, Y=+0x1A} into
+ *   on hit (d0!=0), up to 4 per list: record {active=1, flags/type, X=+0x16, Y=+0x1A} into
  *       the hit list (A5+0x12A8 body / A5+0x12C8 secondary), then apply the reaction:
  *         0x4498C set hit-type code ; 0x448D8 (family 12 -> score +0x2C + recycle 0x40A1E) ;
  *         0x447CE hit reaction: +0x3D=1 (hit flash) and (rec_type!=7) 0x448B2 -> state 0x0F death
@@ -46,7 +46,8 @@ void arcade_449b4_pass1(void){
         W(a3,0)=1;                                          /* active */
         W(a3,4)=W(r,0x16);                                  /* hit X */
         W(a3,6)=W(r,0x1a);                                  /* hit Y */
-        B(a3,2)=1; B(a3,3)=B(r,0x29);                       /* type + palette attr */
+        /* Big-endian word +2 is 0x01TT: high-byte flag=1, low-byte dispatch type TT=actor +0x29. */
+        B(a3,2)=1; B(a3,3)=B(r,0x29);
         arcade_4498c(r,a3); arcade_448d8(r); arcade_447ce(r,a3);
         g_hitcount_21e++; a3 += 8;
     }

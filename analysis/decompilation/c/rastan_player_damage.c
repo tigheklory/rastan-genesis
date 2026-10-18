@@ -13,11 +13,15 @@
  *
  *   0x449B4 pass 1 (0x449E4): for each live enemy (mode +0x03==0), build its hurtbox index (0x446BC)
  *       and test it against the PLAYER BODY box (0x44930 dispatch -> 0x44CBA AABB). On overlap it
- *       records {active=1, type(=1), X=+0x16, Y=+0x1A} into the BODY-HIT LIST at A5+0x12A8,
+ *       records {active=1, flags/type=0x01TT, X=+0x16, Y=+0x1A} into the BODY-HIT LIST at A5+0x12A8,
+ *       where TT is actor byte +0x29 (ordinary normal-difficulty Lizardman TT=1),
  *       A5-relative (LEA %a5@(4776)) -- up to 4 entries. [producer, correct on Genesis]
  *
  *   0x54A40 consumer: LEA 0x0010D2A8,A0 (ABSOLUTE) and loops the 4 records; for a live record with
- *       type in range it dispatches a per-type handler via the jump table at 0x550A8. [KF-044 site]
+ *       type in range it dispatches a per-type handler via the 66-longword table at 0x550A8.
+ *       Build 0440 rebased the LEA but did not relocate the table's embedded code pointers; type 1
+ *       loaded stale arcade 0x551CC instead of mapped Genesis 0x5524A. Build 0441 declares the
+ *       table for shift relocation.
  *
  *   0x551CC family (0x551CC/0x5520E/0x55250/0x55292/0x552D4/0x55316/0x55346/0x55376/0x553A6/...):
  *       (1) if A5+0x0040 != 0  -> return (DEBUG/benchmark invincibility; stock MAME cheat sets bit6);

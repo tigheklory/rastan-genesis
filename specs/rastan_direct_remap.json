@@ -2060,6 +2060,12 @@
  },
  "absolute_long_pointer_tables": [
   {
+   "table_address": "0x0550A8",
+   "entry_count": 66,
+   "entry_size_bytes": 4,
+   "note": "Build 0441 enemy-to-player damage dispatch repair. The retained consumer at 0x054A40 indexes this 66-entry absolute-long handler table (0x0550A8..0x0551AF). Shift reflow moved the table and every target, but the embedded pointers remained original arcade PCs; ordinary Lizardman type 1 therefore loaded stale 0x000551CC instead of mapped handler 0x0005524A and never reached the damage gates/energy/hurt logic. Relocate every in-window handler pointer through the authoritative shift table. This restores the original arcade dispatch only; no Genesis-owned damage rule or collision logic is added."
+  },
+  {
    "table_address": "0x03BB7C",
    "entry_count": 71,
    "entry_size_bytes": 4,

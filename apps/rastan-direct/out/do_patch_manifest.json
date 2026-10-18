@@ -56,6 +56,15 @@
     },
     {
       "kind": "absolute_long_pointer_table",
+      "table_address": "0x0550A8",
+      "rom_table_address": "0x055126",
+      "entry_count": 66,
+      "entry_stride_bytes": 4,
+      "pointer_offset_bytes": 0,
+      "fixes": 66
+    },
+    {
+      "kind": "absolute_long_pointer_table",
       "table_address": "0x03BB7C",
       "rom_table_address": "0x03BD7C",
       "entry_count": 71,
@@ -2670,7 +2679,7 @@
       "rom_bytes_written": "207C0005DA94C0FC0018D0C04EB90007451C4E75"
     }
   ],
-  "checksum": "0x41C9",
+  "checksum": "0x6246",
   "relocation_map": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {
