@@ -8,195 +8,196 @@ api_probe rolling_pc_history=no method=not_available note=cpu:add_exec unavailab
 arm: initial_pc=000000
 [frame 000000] live_write vdp_ports_live pc=07008e addr=c00004 data=8004 mask=ffff count=1
 [frame 000001] exec_enter pc=000348 range=other
-[frame 000007] exec_enter pc=03b0be range=startup_common@000200
-[frame 000014] exec_enter pc=0735c0 range=other
-[frame 000030] pc=071866 exec=other
+[frame 000007] exec_enter pc=03b0c8 range=startup_common@000200
+[frame 000014] exec_enter pc=0735b8 range=other
+[frame 000030] pc=071860 exec=other
 [frame 000040] first_symbol_change dip1 addr=ff0005 0->1
-[frame 000042] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000042] exec_enter pc=03b296 range=title_init_block@000000
 [frame 000042] symbol_change dip1 addr=ff0005 1->0
-[frame 000043] exec_enter pc=03b29a range=title_init_block@000000
-[frame 000046] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000047] exec_enter pc=03b286 range=title_init_block@000000
-[frame 000049] exec_enter pc=03a1aa range=frontend_core@000000
-[frame 000050] exec_enter pc=03b29a range=title_init_block@000000
-[frame 000053] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000054] exec_enter pc=03b286 range=title_init_block@000000
-[frame 000056] exec_enter pc=03a1aa range=frontend_core@000000
-[frame 000057] exec_enter pc=03b29a range=title_init_block@000000
-[frame 000060] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000060] pc=03a1ae exec=frontend_core@000000
+[frame 000043] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000044] exec_enter pc=03b286 range=title_init_block@000000
+[frame 000046] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000047] exec_enter pc=03b282 range=title_init_block@000000
+[frame 000050] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000051] exec_enter pc=03b286 range=title_init_block@000000
+[frame 000053] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000054] exec_enter pc=03b282 range=title_init_block@000000
+[frame 000057] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000058] exec_enter pc=03b286 range=title_init_block@000000
+[frame 000060] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000060] pc=03a1aa exec=frontend_core@000000
 [frame 000060] first_window_change wram_ff0000
 [frame 000060] first_window_change io_a10000
 [frame 000060] first_window_change vdp_ports
 [frame 000060] first_window_change z80_ctrl
-[frame 000061] exec_enter pc=03b286 range=title_init_block@000000
-[frame 000063] exec_enter pc=03a1aa range=frontend_core@000000
-[frame 000064] exec_enter pc=03b29a range=title_init_block@000000
-[frame 000067] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000068] exec_enter pc=03b286 range=title_init_block@000000
-[frame 000070] exec_enter pc=03a1aa range=frontend_core@000000
-[frame 000071] exec_enter pc=03b29a range=title_init_block@000000
-[frame 000074] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000075] exec_enter pc=03b286 range=title_init_block@000000
-[frame 000077] exec_enter pc=03a1aa range=frontend_core@000000
-[frame 000078] exec_enter pc=03b29a range=title_init_block@000000
-[frame 000081] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000082] exec_enter pc=03b286 range=title_init_block@000000
-[frame 000084] exec_enter pc=03a1aa range=frontend_core@000000
-[frame 000085] exec_enter pc=03b29a range=title_init_block@000000
-[frame 000088] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000089] exec_enter pc=03b286 range=title_init_block@000000
-[frame 000090] pc=03b290 exec=title_init_block@000000
+[frame 000061] exec_enter pc=03b282 range=title_init_block@000000
+[frame 000064] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000065] exec_enter pc=03b286 range=title_init_block@000000
+[frame 000067] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000068] exec_enter pc=03b282 range=title_init_block@000000
+[frame 000071] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000072] exec_enter pc=03b286 range=title_init_block@000000
+[frame 000074] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000075] exec_enter pc=03b282 range=title_init_block@000000
+[frame 000078] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000079] exec_enter pc=03b286 range=title_init_block@000000
+[frame 000081] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000082] exec_enter pc=03b282 range=title_init_block@000000
+[frame 000085] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000086] exec_enter pc=03b286 range=title_init_block@000000
+[frame 000088] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000089] exec_enter pc=03b282 range=title_init_block@000000
+[frame 000090] pc=03b28c exec=title_init_block@000000
 [frame 000090] window_change z80_ctrl
-[frame 000091] exec_enter pc=03a1aa range=frontend_core@000000
-[frame 000092] exec_enter pc=03b29a range=title_init_block@000000
-[frame 000095] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000096] exec_enter pc=03b286 range=title_init_block@000000
-[frame 000098] exec_enter pc=03a1aa range=frontend_core@000000
-[frame 000100] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000104] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000106] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000110] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000112] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000117] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000092] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000093] exec_enter pc=03b286 range=title_init_block@000000
+[frame 000095] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000096] exec_enter pc=03b282 range=title_init_block@000000
+[frame 000103] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000105] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000110] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000111] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000116] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000117] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000118] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000120] pc=03b28c exec=title_init_block@000000
+[frame 000120] pc=03b288 exec=title_init_block@000000
 [frame 000120] window_change z80_ctrl
-[frame 000123] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000124] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000125] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000129] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000131] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000136] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000122] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000124] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000129] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000130] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000135] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000136] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000137] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000142] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000143] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000144] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000148] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000150] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000150] pc=03b296 exec=title_init_block@000000
+[frame 000141] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000143] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000148] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000149] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000150] pc=03b292 exec=title_init_block@000000
 [frame 000150] window_change z80_ctrl
-[frame 000155] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000154] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000155] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000156] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000161] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000162] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000163] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000167] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000169] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000173] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000175] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000180] exec_enter pc=03a1aa range=frontend_core@000000
-[frame 000180] pc=03a1aa exec=frontend_core@000000
+[frame 000160] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000162] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000166] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000168] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000173] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000174] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000179] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000180] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
+[frame 000180] pc=03a1a8 exec=frontend_core@000000
 [frame 000180] window_change wram_ff0000
 [frame 000180] window_change z80_ctrl
 [frame 000181] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000186] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000187] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000188] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000192] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000194] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000199] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000185] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000187] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000192] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000193] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000198] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000199] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000200] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000205] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000206] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000207] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000210] pc=03b29a exec=title_init_block@000000
+[frame 000204] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000206] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000210] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000210] pc=03a1ae exec=frontend_core@000000
 [frame 000210] window_change wram_ff0000
 [frame 000210] window_change z80_ctrl
-[frame 000211] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000213] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000217] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000219] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000224] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000212] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000217] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000218] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000223] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000224] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000225] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000230] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000231] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000232] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000236] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000238] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000240] pc=03b28c exec=title_init_block@000000
+[frame 000229] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000231] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000236] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000237] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000240] pc=03b288 exec=title_init_block@000000
 [frame 000240] window_change z80_ctrl
-[frame 000243] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000242] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000243] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000244] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000248] exec_enter pc=03a1ae range=frontend_core@000000
 [frame 000249] exec_enter pc=071784 range=other
 [frame 000257] symbol_change dip1 addr=ff0005 0->1
-[frame 000259] exec_enter pc=03b29a range=title_init_block@000000
+[frame 000259] exec_enter pc=03a1ae range=frontend_core@000000
 [frame 000259] symbol_change dip1 addr=ff0005 1->2
-[frame 000260] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000262] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000266] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000268] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000270] pc=03b28c exec=title_init_block@000000
+[frame 000261] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000266] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000267] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000270] pc=03b288 exec=title_init_block@000000
 [frame 000270] window_change z80_ctrl
-[frame 000273] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000272] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000273] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000274] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000279] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000280] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000281] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000285] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000287] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000292] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000278] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000280] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000285] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000286] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000291] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000292] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000293] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000298] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000299] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000300] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000300] pc=03b296 exec=title_init_block@000000
+[frame 000297] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000299] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000300] pc=03b290 exec=title_init_block@000000
 [frame 000300] window_change z80_ctrl
-[frame 000304] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000306] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000311] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000304] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000305] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000310] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000311] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000312] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000317] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000318] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000319] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000323] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000325] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000329] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000330] pc=03a1aa exec=frontend_core@000000
+[frame 000316] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000318] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000322] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000324] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000329] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000330] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000330] pc=03b296 exec=title_init_block@000000
 [frame 000330] window_change wram_ff0000
 [frame 000330] window_change z80_ctrl
-[frame 000331] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000336] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000335] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000336] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000337] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000342] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000343] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000344] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000348] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000350] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000355] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000341] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000343] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000348] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000349] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000354] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000355] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000356] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000360] pc=03b29a exec=title_init_block@000000
+[frame 000360] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000360] pc=03a1ae exec=frontend_core@000000
 [frame 000360] window_change wram_ff0000
 [frame 000360] window_change z80_ctrl
-[frame 000361] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000362] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000363] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000367] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000369] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000373] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000375] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000380] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000362] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000366] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000368] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000373] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000374] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000379] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000380] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000381] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000386] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000387] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000388] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000390] pc=03b288 exec=title_init_block@000000
+[frame 000385] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000387] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000390] pc=03b286 exec=title_init_block@000000
 [frame 000390] window_change z80_ctrl
-[frame 000392] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000394] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000399] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000392] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000393] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000398] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000399] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
 [frame 000400] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000405] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000406] reset_helper_hit pc=03a1a8 page0=0000 page2=0000 mode4=0000 credits=0000 stage=0000 dipA=00 dipB=00
-[frame 000407] exec_enter pc=03b296 range=title_init_block@000000
-[frame 000411] exec_enter pc=03a1ae range=frontend_core@000000
-[frame 000413] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000404] exec_enter pc=03a1ae range=frontend_core@000000
+[frame 000406] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000411] exec_enter pc=03a1aa range=frontend_core@000000
+[frame 000412] exec_enter pc=03b296 range=title_init_block@000000
+[frame 000417] exec_enter pc=03a1ae range=frontend_core@000000
 [frame 000418] exec_enter pc=071798 range=other
 [frame 000420] pc=071768 exec=other
 [frame 000420] window_change wram_ff0000
 [frame 000420] window_change vdp_ports
 [frame 000420] window_change z80_ctrl
-[frame 000428] exec_enter pc=03b292 range=title_init_block@000000
+[frame 000428] exec_enter pc=03b290 range=title_init_block@000000
 [frame 000428] symbol_change dip1 addr=ff0005 2->0
 [frame 000432] exec_enter pc=03a1aa range=frontend_core@000000
 [frame 000433] exec_enter pc=03b296 range=title_init_block@000000
@@ -279,47 +280,47 @@ arm: initial_pc=000000
 [frame 000600] window_change vdp_ports
 [frame 000600] window_change z80_ctrl
 [frame 000606] exec_enter pc=03b03e range=startup_common@000000
-[frame 000607] exec_enter pc=074f34 range=other
+[frame 000607] exec_enter pc=074f30 range=other
 [frame 000630] window_change wram_ff0000
 [frame 000630] window_change vdp_ports
 [frame 000630] window_change z80_ctrl
 [frame 000660] window_change wram_ff0000
 [frame 000660] window_change z80_ctrl
-[frame 000690] pc=074f38 exec=other
+[frame 000690] pc=074f34 exec=other
 [frame 000690] window_change z80_ctrl
-[frame 000720] pc=074f34 exec=other
+[frame 000720] pc=074f30 exec=other
 [frame 000720] window_change wram_ff0000
 [frame 000720] window_change z80_ctrl
 [frame 000750] window_change wram_ff0000
 [frame 000750] window_change z80_ctrl
-[frame 000780] pc=074f34 exec=other
+[frame 000780] pc=074f30 exec=other
 [frame 000780] window_change wram_ff0000
 [frame 000780] window_change z80_ctrl
 [frame 000810] window_change z80_ctrl
 [frame 000840] window_change wram_ff0000
 [frame 000840] window_change z80_ctrl
-[frame 000870] pc=074f34 exec=other
+[frame 000870] pc=074f30 exec=other
 [frame 000870] window_change wram_ff0000
 [frame 000870] window_change z80_ctrl
 [frame 000900] window_change wram_ff0000
 [frame 000900] window_change z80_ctrl
-[frame 000930] pc=074f34 exec=other
+[frame 000930] pc=074f30 exec=other
 [frame 000930] window_change z80_ctrl
-[frame 000960] pc=074f38 exec=other
+[frame 000960] pc=074f34 exec=other
 [frame 000960] window_change wram_ff0000
 [frame 000960] window_change z80_ctrl
-[frame 000990] pc=074f38 exec=other
+[frame 000990] pc=074f34 exec=other
 [frame 000990] window_change wram_ff0000
 [frame 000990] window_change z80_ctrl
-[frame 001020] pc=074f32 exec=other
+[frame 001020] pc=074f2e exec=other
 [frame 001020] window_change wram_ff0000
 [frame 001020] window_change z80_ctrl
-[frame 001050] pc=0752dc exec=other
+[frame 001050] pc=0752d8 exec=other
 [frame 001050] window_change wram_ff0000
 [frame 001050] window_change z80_ctrl
-[frame 001080] pc=0752da exec=other
+[frame 001080] pc=0752d6 exec=other
 [frame 001080] window_change z80_ctrl
-[frame 001110] pc=0752e0 exec=other
+[frame 001110] pc=0752dc exec=other
 [frame 001110] window_change z80_ctrl
 [frame 001140] window_change wram_ff0000
 [frame 001140] window_change z80_ctrl
@@ -387,7 +388,7 @@ arm: initial_pc=000000
 [frame 001650] window_change wram_ff0000
 [frame 001650] window_change vdp_ports
 [frame 001650] window_change z80_ctrl
-[frame 001680] pc=075476 exec=other
+[frame 001680] pc=075472 exec=other
 [frame 001680] window_change wram_ff0000
 [frame 001680] window_change vdp_ports
 [frame 001680] window_change z80_ctrl

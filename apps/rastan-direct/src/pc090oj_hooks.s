@@ -2562,7 +2562,6 @@ native_frontend_hud_emit:
     .include "../../build/rastan-direct/native_frontend_labels.inc"
 .endif
 .Lnq_gameplay:
-    bsr     genesistan_hud_deactivate
     movem.l %d0-%d7/%a0-%a3, -(%sp)
     move.l  %a4, -(%sp)
     /* pc090oj_ctrl_shadow can only be changed by the arcade control producer.

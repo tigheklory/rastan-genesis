@@ -42,6 +42,7 @@
     .extern fg_native_gameplay_owner
     .extern vdp_install_test_lines
     .extern pc090oj_select_palette_map
+    .extern genesistan_hud_deactivate
 
     .equ VDP_DATA,              0x00C00000
     .equ VDP_REG_MODE2,         1
@@ -139,6 +140,10 @@ load_scene_tiles:
     moveq   #1, %d5
 .Lload_scene_logical_ready:
     move.b  %d5, genesistan_current_scene_id
+    cmpi.w  #1, %d5
+    bne.s   .Lload_scene_hud_ready
+    bsr     genesistan_hud_deactivate
+.Lload_scene_hud_ready:
     bsr     pc090oj_select_palette_map
     cmpi.w  #1, %d5
     beq.s   .Lload_scene_keep_fg_owner_state

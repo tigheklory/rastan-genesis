@@ -1,13 +1,13 @@
-# Cody — Build 0450 Shared Native HUD + BEST-5 Regression Correction
+# Cody — Build 0451 Shared Native HUD + BEST-5 Regression Correction
 
 ## Scope and result
 
-Build 0449 remains rejected. Build 0450 preserves its native title Plane A/B art package and corrects two independent regressions:
+Build 0449 remains rejected. Build 0450 is preserved as an intermediate candidate; static review found its frontend-residency teardown check in the recurring gameplay finalizer. Build 0451 moves that teardown to the existing one-time gameplay scene-load boundary, preserves the gameplay hot path, and corrects two independent regressions:
 
 1. The title-private HUD SAT chain used `index + 2` as the Genesis link, skipping alternating records. Its title-active predicate also suppressed the established frontend HUD through the story/throne portion of scene 0. The same private glyph allocation occupied normal sprite-residency slots without a durable frontend reservation.
 2. The BEST-5 SCORE/ROUND and NAME producers retained pre-reflow Genesis literals `0x03C57C` and `0x03C654`. The current address map places the original arcade tables at `0x03C560` and `0x03C638` respectively.
 
-The correction introduces one generated shared HUD package and one runtime FRONTEND_FULL owner. The established gameplay `1UP + P1` hot path remains the GAMEPLAY_REDUCED_P1 policy adapter and is otherwise unchanged.
+The correction introduces one generated shared HUD package and one runtime FRONTEND_FULL owner. The established gameplay `1UP + P1` hot path remains the GAMEPLAY_REDUCED_P1 policy adapter and is otherwise unchanged; frontend residency teardown occurs once in `load_scene_tiles` when logical scene 1 is selected.
 
 ## Semantic cut
 
@@ -31,7 +31,7 @@ The removed chip tail is generic PC090OJ HUD record construction/interpretation.
 
 ## Runtime ownership and performance
 
-`hud_native.s` provides FRONTEND_FULL activation, semantic change detection, changed-group publication, credit publication, fixed frontend pattern residency, and clean transition back to gameplay residency.
+`hud_native.s` provides FRONTEND_FULL activation, semantic change detection, changed-group publication, credit publication, fixed frontend pattern residency, and clean transition back to gameplay residency. `scene_load.s` invokes the teardown exactly once at the gameplay scene boundary.
 
 - Stable frontend: ten semantic-byte comparisons; no SAT rebuild and no HUD publication.
 - Changed score: only the affected six SAT records are replaced in both staged banks and live VRAM.
@@ -97,20 +97,20 @@ The title-specific package retains the complete RASTAN logo, sword, red TAITO ar
 - Canonical gate: PASS.
 - Gameplay-entry gate: PASS.
 - Seven-epoch gate: PASS.
-- Standard fixed 30-second MAME validation: PASS; trace `states/traces/rastan_direct_video_test_build_0450_mame_30s_20261018_174458`.
+- Standard fixed 30-second MAME validation: PASS; trace `states/traces/rastan_direct_video_test_build_0451_mame_30s_20261018_175008`.
 - Seven-member family/configuration verification: PASS.
 
 ## Artifact
 
-- Build: 0450
-- Canonical ROM: `dist/rastan-direct/rastan_direct_video_test_build_0450.bin`
+- Build: 0451
+- Canonical ROM: `dist/rastan-direct/rastan_direct_video_test_build_0451.bin`
 - Size: 2,723,512 bytes
-- SHA-256: `38880ca84030ca16e2f2e5cac8cc1699d6dcfd65b9b4a3809f7e6ed0740f383e`
-- `_d`: `2816e7dbee451f5bc9ec8ccf001e0bd2a6f3dde85135f26821e6c6b1237579d8`
-- `_do`: `29703ae279db1c43bc855241584f97b7374799cb728c9b31dee2d83ac0246c4e`
-- `_invincible`: `b2a93f17fdd0f2e8c8dfa6b328f8a4d39dc7f8628c97c66614cdad7c98d9ff6e`
-- Counter: 450
-- ROM-producing source commit: `79f05b5e`
+- SHA-256: `070bbee980e1c33096a75c0cf41c5b9819e8aa1301985b03333fcff1527f9062`
+- `_d`: `22ff29c762323c04fae7641e113cb7358bc9140eb2fc5be2fbff50706da725a7`
+- `_do`: `db21c31aea00c874c4353802d5e7a5d4a6c79f1d619131e59a6b1cfdd88f18c0`
+- `_invincible`: `1e72bf33d796183b322f78988f160f42b01e2a79988d8c22658b7302993eaa96`
+- Counter: 451
+- ROM-producing source commit: pending final source commit
 - Visual/hardware acceptance: pending Tighe.
 
 No item-description ring conversion, stray-3 repair, full gameplay HUD restoration, Phase D, or Phase E work was started.
