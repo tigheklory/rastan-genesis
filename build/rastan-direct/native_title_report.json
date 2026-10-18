@@ -1,647 +1,5229 @@
 {
-  "authoritative_sources": {
-    "invincible_no_hit_string": "0x1D",
-    "palette": "maincpu 0x05A6FA row 0",
-    "plane_a_strings": [
-      "0x02",
-      "0x1E",
-      "0x20",
-      "0x12",
-      "0x13"
-    ],
-    "plane_b_logo": "maincpu 0x05B0B2 28x20",
-    "static_sat": "maincpu 0x03B950/0x03B9B0/0x03B9D4"
+  "allocation": {
+    "dedupe": "exact_bytes",
+    "historical_slots_0349_034c_special": false,
+    "order": "first_use",
+    "plane_unique": 216,
+    "sprite_glyphs": 20
   },
-  "blank_word": "0x0000",
-  "dimensions": {
-    "logo_cols": 28,
-    "logo_rows": 20,
-    "plane_words": 2048
+  "cells": [
+    {
+      "attr": "0x0001",
+      "cell": 202,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 203,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 204,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 205,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 206,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 207,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 208,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 209,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 210,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 211,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 212,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 213,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 214,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 215,
+      "owner": "RASTAN_logo_sword",
+      "slot": 846,
+      "source_code": "0x21B6",
+      "word": "0x234E"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 216,
+      "owner": "RASTAN_logo_sword",
+      "slot": 847,
+      "source_code": "0x21B7",
+      "word": "0x234F"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 217,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 218,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 219,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 220,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 221,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 222,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 223,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 224,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 225,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 226,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 227,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 228,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 229,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 266,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 267,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 268,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 269,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 270,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 271,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 272,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 273,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 274,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 275,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 276,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 277,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 278,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 279,
+      "owner": "RASTAN_logo_sword",
+      "slot": 848,
+      "source_code": "0x24CB",
+      "word": "0x2350"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 280,
+      "owner": "RASTAN_logo_sword",
+      "slot": 849,
+      "source_code": "0x24CC",
+      "word": "0x2351"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 281,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 282,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 283,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 284,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 285,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 286,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 287,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 288,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 289,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 290,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 291,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 292,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 293,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 330,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 331,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 332,
+      "owner": "RASTAN_logo_sword",
+      "slot": 850,
+      "source_code": "0x24CD",
+      "word": "0x2352"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 333,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 334,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 335,
+      "owner": "RASTAN_logo_sword",
+      "slot": 851,
+      "source_code": "0x24CE",
+      "word": "0x2353"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 336,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 337,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 338,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 339,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 340,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 341,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 342,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 343,
+      "owner": "RASTAN_logo_sword",
+      "slot": 852,
+      "source_code": "0x21C2",
+      "word": "0x2354"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 344,
+      "owner": "RASTAN_logo_sword",
+      "slot": 853,
+      "source_code": "0x21C3",
+      "word": "0x2355"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 345,
+      "owner": "RASTAN_logo_sword",
+      "slot": 854,
+      "source_code": "0x24CF",
+      "word": "0x2356"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 346,
+      "owner": "RASTAN_logo_sword",
+      "slot": 855,
+      "source_code": "0x24D0",
+      "word": "0x2357"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 347,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 348,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 349,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 350,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 351,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 352,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 353,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 354,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 355,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 356,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 357,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 394,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 395,
+      "owner": "RASTAN_logo_sword",
+      "slot": 856,
+      "source_code": "0x24D1",
+      "word": "0x2358"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 396,
+      "owner": "RASTAN_logo_sword",
+      "slot": 857,
+      "source_code": "0x24D2",
+      "word": "0x2359"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 397,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 398,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 399,
+      "owner": "RASTAN_logo_sword",
+      "slot": 858,
+      "source_code": "0x24D3",
+      "word": "0x235A"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 400,
+      "owner": "RASTAN_logo_sword",
+      "slot": 859,
+      "source_code": "0x24D4",
+      "word": "0x235B"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 401,
+      "owner": "RASTAN_logo_sword",
+      "slot": 860,
+      "source_code": "0x24D5",
+      "word": "0x235C"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 402,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 403,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 404,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 405,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 406,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 407,
+      "owner": "RASTAN_logo_sword",
+      "slot": 861,
+      "source_code": "0x24D6",
+      "word": "0x235D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 408,
+      "owner": "RASTAN_logo_sword",
+      "slot": 862,
+      "source_code": "0x24D7",
+      "word": "0x235E"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 409,
+      "owner": "RASTAN_logo_sword",
+      "slot": 863,
+      "source_code": "0x2253",
+      "word": "0x235F"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 410,
+      "owner": "RASTAN_logo_sword",
+      "slot": 864,
+      "source_code": "0x24D8",
+      "word": "0x2360"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 411,
+      "owner": "RASTAN_logo_sword",
+      "slot": 865,
+      "source_code": "0x24D9",
+      "word": "0x2361"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 412,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 413,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 414,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 415,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 416,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 417,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 418,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 419,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 420,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 421,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 458,
+      "owner": "RASTAN_logo_sword",
+      "slot": 866,
+      "source_code": "0x24DA",
+      "word": "0x2362"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 459,
+      "owner": "RASTAN_logo_sword",
+      "slot": 867,
+      "source_code": "0x24DB",
+      "word": "0x2363"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 460,
+      "owner": "RASTAN_logo_sword",
+      "slot": 868,
+      "source_code": "0x24DC",
+      "word": "0x2364"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 461,
+      "owner": "RASTAN_logo_sword",
+      "slot": 869,
+      "source_code": "0x24DD",
+      "word": "0x2365"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 462,
+      "owner": "RASTAN_logo_sword",
+      "slot": 870,
+      "source_code": "0x24DE",
+      "word": "0x2366"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 463,
+      "owner": "RASTAN_logo_sword",
+      "slot": 871,
+      "source_code": "0x24DF",
+      "word": "0x2367"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 464,
+      "owner": "RASTAN_logo_sword",
+      "slot": 872,
+      "source_code": "0x24E0",
+      "word": "0x2368"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 465,
+      "owner": "RASTAN_logo_sword",
+      "slot": 873,
+      "source_code": "0x24E1",
+      "word": "0x2369"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 466,
+      "owner": "RASTAN_logo_sword",
+      "slot": 874,
+      "source_code": "0x24E2",
+      "word": "0x236A"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 467,
+      "owner": "RASTAN_logo_sword",
+      "slot": 875,
+      "source_code": "0x24E3",
+      "word": "0x236B"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 468,
+      "owner": "RASTAN_logo_sword",
+      "slot": 876,
+      "source_code": "0x24E4",
+      "word": "0x236C"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 469,
+      "owner": "RASTAN_logo_sword",
+      "slot": 877,
+      "source_code": "0x24E5",
+      "word": "0x236D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 470,
+      "owner": "RASTAN_logo_sword",
+      "slot": 878,
+      "source_code": "0x24E6",
+      "word": "0x236E"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 471,
+      "owner": "RASTAN_logo_sword",
+      "slot": 879,
+      "source_code": "0x24E7",
+      "word": "0x236F"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 472,
+      "owner": "RASTAN_logo_sword",
+      "slot": 880,
+      "source_code": "0x24E8",
+      "word": "0x2370"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 473,
+      "owner": "RASTAN_logo_sword",
+      "slot": 881,
+      "source_code": "0x24E9",
+      "word": "0x2371"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 474,
+      "owner": "RASTAN_logo_sword",
+      "slot": 882,
+      "source_code": "0x24EA",
+      "word": "0x2372"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 475,
+      "owner": "RASTAN_logo_sword",
+      "slot": 883,
+      "source_code": "0x24EB",
+      "word": "0x2373"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 476,
+      "owner": "RASTAN_logo_sword",
+      "slot": 884,
+      "source_code": "0x24EC",
+      "word": "0x2374"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 477,
+      "owner": "RASTAN_logo_sword",
+      "slot": 885,
+      "source_code": "0x24ED",
+      "word": "0x2375"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 478,
+      "owner": "RASTAN_logo_sword",
+      "slot": 886,
+      "source_code": "0x24EE",
+      "word": "0x2376"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 479,
+      "owner": "RASTAN_logo_sword",
+      "slot": 887,
+      "source_code": "0x24EF",
+      "word": "0x2377"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 480,
+      "owner": "RASTAN_logo_sword",
+      "slot": 888,
+      "source_code": "0x24F0",
+      "word": "0x2378"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 481,
+      "owner": "RASTAN_logo_sword",
+      "slot": 889,
+      "source_code": "0x24F1",
+      "word": "0x2379"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 482,
+      "owner": "RASTAN_logo_sword",
+      "slot": 890,
+      "source_code": "0x24F2",
+      "word": "0x237A"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 483,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 484,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 485,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 522,
+      "owner": "RASTAN_logo_sword",
+      "slot": 891,
+      "source_code": "0x24F3",
+      "word": "0x237B"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 523,
+      "owner": "RASTAN_logo_sword",
+      "slot": 892,
+      "source_code": "0x24F4",
+      "word": "0x237C"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 524,
+      "owner": "RASTAN_logo_sword",
+      "slot": 893,
+      "source_code": "0x24F5",
+      "word": "0x237D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 525,
+      "owner": "RASTAN_logo_sword",
+      "slot": 894,
+      "source_code": "0x24F6",
+      "word": "0x237E"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 526,
+      "owner": "RASTAN_logo_sword",
+      "slot": 895,
+      "source_code": "0x24F7",
+      "word": "0x237F"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 527,
+      "owner": "RASTAN_logo_sword",
+      "slot": 896,
+      "source_code": "0x24F8",
+      "word": "0x2380"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 528,
+      "owner": "RASTAN_logo_sword",
+      "slot": 897,
+      "source_code": "0x24F9",
+      "word": "0x2381"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 529,
+      "owner": "RASTAN_logo_sword",
+      "slot": 898,
+      "source_code": "0x24FA",
+      "word": "0x2382"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 530,
+      "owner": "RASTAN_logo_sword",
+      "slot": 899,
+      "source_code": "0x24FB",
+      "word": "0x2383"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 531,
+      "owner": "RASTAN_logo_sword",
+      "slot": 900,
+      "source_code": "0x24FC",
+      "word": "0x2384"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 532,
+      "owner": "RASTAN_logo_sword",
+      "slot": 901,
+      "source_code": "0x24FD",
+      "word": "0x2385"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 533,
+      "owner": "RASTAN_logo_sword",
+      "slot": 902,
+      "source_code": "0x24FE",
+      "word": "0x2386"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 534,
+      "owner": "RASTAN_logo_sword",
+      "slot": 903,
+      "source_code": "0x24FF",
+      "word": "0x2387"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 535,
+      "owner": "RASTAN_logo_sword",
+      "slot": 904,
+      "source_code": "0x2500",
+      "word": "0x2388"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 536,
+      "owner": "RASTAN_logo_sword",
+      "slot": 905,
+      "source_code": "0x2501",
+      "word": "0x2389"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 537,
+      "owner": "RASTAN_logo_sword",
+      "slot": 906,
+      "source_code": "0x2502",
+      "word": "0x238A"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 538,
+      "owner": "RASTAN_logo_sword",
+      "slot": 907,
+      "source_code": "0x2503",
+      "word": "0x238B"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 539,
+      "owner": "RASTAN_logo_sword",
+      "slot": 908,
+      "source_code": "0x2504",
+      "word": "0x238C"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 540,
+      "owner": "RASTAN_logo_sword",
+      "slot": 909,
+      "source_code": "0x2505",
+      "word": "0x238D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 541,
+      "owner": "RASTAN_logo_sword",
+      "slot": 910,
+      "source_code": "0x2506",
+      "word": "0x238E"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 542,
+      "owner": "RASTAN_logo_sword",
+      "slot": 911,
+      "source_code": "0x2507",
+      "word": "0x238F"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 543,
+      "owner": "RASTAN_logo_sword",
+      "slot": 912,
+      "source_code": "0x2508",
+      "word": "0x2390"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 544,
+      "owner": "RASTAN_logo_sword",
+      "slot": 913,
+      "source_code": "0x2509",
+      "word": "0x2391"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 545,
+      "owner": "RASTAN_logo_sword",
+      "slot": 914,
+      "source_code": "0x220D",
+      "word": "0x2392"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 546,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 547,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 548,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 549,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 586,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 587,
+      "owner": "RASTAN_logo_sword",
+      "slot": 915,
+      "source_code": "0x21F7",
+      "word": "0x2393"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 588,
+      "owner": "RASTAN_logo_sword",
+      "slot": 916,
+      "source_code": "0x250A",
+      "word": "0x2394"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 589,
+      "owner": "RASTAN_logo_sword",
+      "slot": 917,
+      "source_code": "0x250B",
+      "word": "0x2395"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 590,
+      "owner": "RASTAN_logo_sword",
+      "slot": 918,
+      "source_code": "0x250C",
+      "word": "0x2396"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 591,
+      "owner": "RASTAN_logo_sword",
+      "slot": 919,
+      "source_code": "0x250D",
+      "word": "0x2397"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 592,
+      "owner": "RASTAN_logo_sword",
+      "slot": 920,
+      "source_code": "0x250E",
+      "word": "0x2398"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 593,
+      "owner": "RASTAN_logo_sword",
+      "slot": 921,
+      "source_code": "0x250F",
+      "word": "0x2399"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 594,
+      "owner": "RASTAN_logo_sword",
+      "slot": 922,
+      "source_code": "0x2510",
+      "word": "0x239A"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 595,
+      "owner": "RASTAN_logo_sword",
+      "slot": 923,
+      "source_code": "0x2511",
+      "word": "0x239B"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 596,
+      "owner": "RASTAN_logo_sword",
+      "slot": 924,
+      "source_code": "0x2512",
+      "word": "0x239C"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 597,
+      "owner": "RASTAN_logo_sword",
+      "slot": 925,
+      "source_code": "0x2513",
+      "word": "0x239D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 598,
+      "owner": "RASTAN_logo_sword",
+      "slot": 926,
+      "source_code": "0x2514",
+      "word": "0x239E"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 599,
+      "owner": "RASTAN_logo_sword",
+      "slot": 927,
+      "source_code": "0x2515",
+      "word": "0x239F"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 600,
+      "owner": "RASTAN_logo_sword",
+      "slot": 928,
+      "source_code": "0x2516",
+      "word": "0x23A0"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 601,
+      "owner": "RASTAN_logo_sword",
+      "slot": 929,
+      "source_code": "0x2517",
+      "word": "0x23A1"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 602,
+      "owner": "RASTAN_logo_sword",
+      "slot": 930,
+      "source_code": "0x2518",
+      "word": "0x23A2"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 603,
+      "owner": "RASTAN_logo_sword",
+      "slot": 931,
+      "source_code": "0x2519",
+      "word": "0x23A3"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 604,
+      "owner": "RASTAN_logo_sword",
+      "slot": 932,
+      "source_code": "0x251A",
+      "word": "0x23A4"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 605,
+      "owner": "RASTAN_logo_sword",
+      "slot": 933,
+      "source_code": "0x2209",
+      "word": "0x23A5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 606,
+      "owner": "RASTAN_logo_sword",
+      "slot": 934,
+      "source_code": "0x251B",
+      "word": "0x23A6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 607,
+      "owner": "RASTAN_logo_sword",
+      "slot": 935,
+      "source_code": "0x251C",
+      "word": "0x23A7"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 608,
+      "owner": "RASTAN_logo_sword",
+      "slot": 936,
+      "source_code": "0x220C",
+      "word": "0x23A8"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 609,
+      "owner": "RASTAN_logo_sword",
+      "slot": 914,
+      "source_code": "0x220D",
+      "word": "0x2392"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 610,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 611,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 612,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 613,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 650,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 651,
+      "owner": "RASTAN_logo_sword",
+      "slot": 915,
+      "source_code": "0x21F7",
+      "word": "0x2393"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 652,
+      "owner": "RASTAN_logo_sword",
+      "slot": 937,
+      "source_code": "0x251D",
+      "word": "0x23A9"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 653,
+      "owner": "RASTAN_logo_sword",
+      "slot": 938,
+      "source_code": "0x251E",
+      "word": "0x23AA"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 654,
+      "owner": "RASTAN_logo_sword",
+      "slot": 939,
+      "source_code": "0x251F",
+      "word": "0x23AB"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 655,
+      "owner": "RASTAN_logo_sword",
+      "slot": 940,
+      "source_code": "0x2520",
+      "word": "0x23AC"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 656,
+      "owner": "RASTAN_logo_sword",
+      "slot": 941,
+      "source_code": "0x2521",
+      "word": "0x23AD"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 657,
+      "owner": "RASTAN_logo_sword",
+      "slot": 942,
+      "source_code": "0x2522",
+      "word": "0x23AE"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 658,
+      "owner": "RASTAN_logo_sword",
+      "slot": 943,
+      "source_code": "0x2523",
+      "word": "0x23AF"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 659,
+      "owner": "RASTAN_logo_sword",
+      "slot": 944,
+      "source_code": "0x2524",
+      "word": "0x23B0"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 660,
+      "owner": "RASTAN_logo_sword",
+      "slot": 945,
+      "source_code": "0x2525",
+      "word": "0x23B1"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 661,
+      "owner": "RASTAN_logo_sword",
+      "slot": 946,
+      "source_code": "0x2526",
+      "word": "0x23B2"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 662,
+      "owner": "RASTAN_logo_sword",
+      "slot": 947,
+      "source_code": "0x2527",
+      "word": "0x23B3"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 663,
+      "owner": "RASTAN_logo_sword",
+      "slot": 948,
+      "source_code": "0x2528",
+      "word": "0x23B4"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 664,
+      "owner": "RASTAN_logo_sword",
+      "slot": 949,
+      "source_code": "0x2529",
+      "word": "0x23B5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 665,
+      "owner": "RASTAN_logo_sword",
+      "slot": 950,
+      "source_code": "0x252A",
+      "word": "0x23B6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 666,
+      "owner": "RASTAN_logo_sword",
+      "slot": 951,
+      "source_code": "0x252B",
+      "word": "0x23B7"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 667,
+      "owner": "RASTAN_logo_sword",
+      "slot": 952,
+      "source_code": "0x252C",
+      "word": "0x23B8"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 668,
+      "owner": "RASTAN_logo_sword",
+      "slot": 953,
+      "source_code": "0x252D",
+      "word": "0x23B9"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 669,
+      "owner": "RASTAN_logo_sword",
+      "slot": 954,
+      "source_code": "0x252E",
+      "word": "0x23BA"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 670,
+      "owner": "RASTAN_logo_sword",
+      "slot": 955,
+      "source_code": "0x252F",
+      "word": "0x23BB"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 671,
+      "owner": "RASTAN_logo_sword",
+      "slot": 956,
+      "source_code": "0x2530",
+      "word": "0x23BC"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 672,
+      "owner": "RASTAN_logo_sword",
+      "slot": 957,
+      "source_code": "0x2531",
+      "word": "0x23BD"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 673,
+      "owner": "RASTAN_logo_sword",
+      "slot": 914,
+      "source_code": "0x220D",
+      "word": "0x2392"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 674,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 675,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 676,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 677,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 714,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 715,
+      "owner": "RASTAN_logo_sword",
+      "slot": 958,
+      "source_code": "0x2532",
+      "word": "0x23BE"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 716,
+      "owner": "RASTAN_logo_sword",
+      "slot": 959,
+      "source_code": "0x2533",
+      "word": "0x23BF"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 717,
+      "owner": "RASTAN_logo_sword",
+      "slot": 960,
+      "source_code": "0x2534",
+      "word": "0x23C0"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 718,
+      "owner": "RASTAN_logo_sword",
+      "slot": 961,
+      "source_code": "0x2535",
+      "word": "0x23C1"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 719,
+      "owner": "RASTAN_logo_sword",
+      "slot": 962,
+      "source_code": "0x2536",
+      "word": "0x23C2"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 720,
+      "owner": "RASTAN_logo_sword",
+      "slot": 963,
+      "source_code": "0x2537",
+      "word": "0x23C3"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 721,
+      "owner": "RASTAN_logo_sword",
+      "slot": 964,
+      "source_code": "0x2538",
+      "word": "0x23C4"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 722,
+      "owner": "RASTAN_logo_sword",
+      "slot": 965,
+      "source_code": "0x2539",
+      "word": "0x23C5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 723,
+      "owner": "RASTAN_logo_sword",
+      "slot": 966,
+      "source_code": "0x253A",
+      "word": "0x23C6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 724,
+      "owner": "RASTAN_logo_sword",
+      "slot": 967,
+      "source_code": "0x253B",
+      "word": "0x23C7"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 725,
+      "owner": "RASTAN_logo_sword",
+      "slot": 968,
+      "source_code": "0x253C",
+      "word": "0x23C8"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 726,
+      "owner": "RASTAN_logo_sword",
+      "slot": 969,
+      "source_code": "0x253D",
+      "word": "0x23C9"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 727,
+      "owner": "RASTAN_logo_sword",
+      "slot": 970,
+      "source_code": "0x253E",
+      "word": "0x23CA"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 728,
+      "owner": "RASTAN_logo_sword",
+      "slot": 971,
+      "source_code": "0x253F",
+      "word": "0x23CB"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 729,
+      "owner": "RASTAN_logo_sword",
+      "slot": 972,
+      "source_code": "0x2540",
+      "word": "0x23CC"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 730,
+      "owner": "RASTAN_logo_sword",
+      "slot": 973,
+      "source_code": "0x2541",
+      "word": "0x23CD"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 731,
+      "owner": "RASTAN_logo_sword",
+      "slot": 974,
+      "source_code": "0x2542",
+      "word": "0x23CE"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 732,
+      "owner": "RASTAN_logo_sword",
+      "slot": 975,
+      "source_code": "0x2543",
+      "word": "0x23CF"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 733,
+      "owner": "RASTAN_logo_sword",
+      "slot": 976,
+      "source_code": "0x2544",
+      "word": "0x23D0"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 734,
+      "owner": "RASTAN_logo_sword",
+      "slot": 977,
+      "source_code": "0x2545",
+      "word": "0x23D1"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 735,
+      "owner": "RASTAN_logo_sword",
+      "slot": 978,
+      "source_code": "0x2546",
+      "word": "0x23D2"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 736,
+      "owner": "RASTAN_logo_sword",
+      "slot": 979,
+      "source_code": "0x2547",
+      "word": "0x23D3"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 737,
+      "owner": "RASTAN_logo_sword",
+      "slot": 914,
+      "source_code": "0x220D",
+      "word": "0x2392"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 738,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 739,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 740,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 741,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 778,
+      "owner": "RASTAN_logo_sword",
+      "slot": 980,
+      "source_code": "0x2548",
+      "word": "0x23D4"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 779,
+      "owner": "RASTAN_logo_sword",
+      "slot": 981,
+      "source_code": "0x2549",
+      "word": "0x23D5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 780,
+      "owner": "RASTAN_logo_sword",
+      "slot": 982,
+      "source_code": "0x254A",
+      "word": "0x23D6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 781,
+      "owner": "RASTAN_logo_sword",
+      "slot": 983,
+      "source_code": "0x254B",
+      "word": "0x23D7"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 782,
+      "owner": "RASTAN_logo_sword",
+      "slot": 984,
+      "source_code": "0x254C",
+      "word": "0x23D8"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 783,
+      "owner": "RASTAN_logo_sword",
+      "slot": 985,
+      "source_code": "0x254D",
+      "word": "0x23D9"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 784,
+      "owner": "RASTAN_logo_sword",
+      "slot": 986,
+      "source_code": "0x254E",
+      "word": "0x23DA"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 785,
+      "owner": "RASTAN_logo_sword",
+      "slot": 987,
+      "source_code": "0x254F",
+      "word": "0x23DB"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 786,
+      "owner": "RASTAN_logo_sword",
+      "slot": 988,
+      "source_code": "0x2550",
+      "word": "0x23DC"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 787,
+      "owner": "RASTAN_logo_sword",
+      "slot": 989,
+      "source_code": "0x2551",
+      "word": "0x23DD"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 788,
+      "owner": "RASTAN_logo_sword",
+      "slot": 990,
+      "source_code": "0x2552",
+      "word": "0x23DE"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 789,
+      "owner": "RASTAN_logo_sword",
+      "slot": 991,
+      "source_code": "0x2553",
+      "word": "0x23DF"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 790,
+      "owner": "RASTAN_logo_sword",
+      "slot": 992,
+      "source_code": "0x2554",
+      "word": "0x23E0"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 791,
+      "owner": "RASTAN_logo_sword",
+      "slot": 993,
+      "source_code": "0x2555",
+      "word": "0x23E1"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 792,
+      "owner": "RASTAN_logo_sword",
+      "slot": 994,
+      "source_code": "0x2556",
+      "word": "0x23E2"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 793,
+      "owner": "RASTAN_logo_sword",
+      "slot": 995,
+      "source_code": "0x2557",
+      "word": "0x23E3"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 794,
+      "owner": "RASTAN_logo_sword",
+      "slot": 996,
+      "source_code": "0x2558",
+      "word": "0x23E4"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 795,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 796,
+      "owner": "RASTAN_logo_sword",
+      "slot": 997,
+      "source_code": "0x2559",
+      "word": "0x23E5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 797,
+      "owner": "RASTAN_logo_sword",
+      "slot": 998,
+      "source_code": "0x255A",
+      "word": "0x23E6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 798,
+      "owner": "RASTAN_logo_sword",
+      "slot": 999,
+      "source_code": "0x255B",
+      "word": "0x23E7"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 799,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1000,
+      "source_code": "0x255C",
+      "word": "0x23E8"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 800,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1001,
+      "source_code": "0x255D",
+      "word": "0x23E9"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 801,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1002,
+      "source_code": "0x255E",
+      "word": "0x23EA"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 802,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 803,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 804,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 805,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 842,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 843,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 844,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 845,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1003,
+      "source_code": "0x255F",
+      "word": "0x23EB"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 846,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1004,
+      "source_code": "0x2560",
+      "word": "0x23EC"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 847,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1005,
+      "source_code": "0x2561",
+      "word": "0x23ED"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 848,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 849,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 850,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 851,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 852,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 853,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 854,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 855,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1006,
+      "source_code": "0x2562",
+      "word": "0x23EE"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 856,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1007,
+      "source_code": "0x2563",
+      "word": "0x23EF"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 857,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 858,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 859,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 860,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 861,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 862,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 863,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 864,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1008,
+      "source_code": "0x2564",
+      "word": "0x23F0"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 865,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1009,
+      "source_code": "0x2565",
+      "word": "0x23F1"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 866,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1010,
+      "source_code": "0x2566",
+      "word": "0x23F2"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 867,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 868,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 869,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 906,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 907,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 908,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 909,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 910,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1011,
+      "source_code": "0x2567",
+      "word": "0x23F3"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 911,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1012,
+      "source_code": "0x2568",
+      "word": "0x23F4"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 912,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 913,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 914,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 915,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 916,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 917,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 918,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 919,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1013,
+      "source_code": "0x2569",
+      "word": "0x23F5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 920,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1014,
+      "source_code": "0x225A",
+      "word": "0x23F6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 921,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 922,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 923,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 924,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 925,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 926,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 927,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 928,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 929,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 930,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 931,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 932,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 933,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 970,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 971,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 972,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 973,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 974,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1015,
+      "source_code": "0x2570",
+      "word": "0x23F7"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 975,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 976,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 977,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 978,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 979,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 980,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 981,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 982,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 983,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1013,
+      "source_code": "0x2569",
+      "word": "0x23F5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 984,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1014,
+      "source_code": "0x225A",
+      "word": "0x23F6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 985,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 986,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 987,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 988,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 989,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 990,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 991,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 992,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 993,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 994,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 995,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 996,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 997,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1034,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1035,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1036,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1037,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1038,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1039,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1040,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1041,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1042,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1043,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1044,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1045,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1046,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1047,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1013,
+      "source_code": "0x2569",
+      "word": "0x23F5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1048,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1014,
+      "source_code": "0x225A",
+      "word": "0x23F6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1049,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1050,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1051,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1052,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1053,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1054,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1055,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1056,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1057,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1058,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1059,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1060,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1061,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1098,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1099,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1100,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1101,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1102,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1103,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1104,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1105,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1106,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1107,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1108,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1109,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1110,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1111,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1013,
+      "source_code": "0x2569",
+      "word": "0x23F5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1112,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1014,
+      "source_code": "0x225A",
+      "word": "0x23F6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1113,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1114,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1115,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1116,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1117,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1118,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1119,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1120,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1121,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1122,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1123,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1124,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1125,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1162,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1163,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1164,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1165,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1166,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1167,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1168,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1169,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1170,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1171,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1172,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1173,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1174,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1175,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1013,
+      "source_code": "0x2569",
+      "word": "0x23F5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1176,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1014,
+      "source_code": "0x225A",
+      "word": "0x23F6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1177,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1178,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1179,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1180,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1181,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1182,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1183,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1184,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1185,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1186,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1187,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1188,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1189,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1226,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1227,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1228,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1229,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1230,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1231,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1232,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1233,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1234,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1235,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1236,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1237,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1238,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1239,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1013,
+      "source_code": "0x2569",
+      "word": "0x23F5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1240,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1014,
+      "source_code": "0x225A",
+      "word": "0x23F6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1241,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1242,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1243,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1244,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1245,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1246,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1247,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1248,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1249,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1250,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1251,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1252,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1253,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1290,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1291,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1292,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1293,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1294,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1295,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1296,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1297,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1298,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1299,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1300,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1301,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1302,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1303,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1013,
+      "source_code": "0x2569",
+      "word": "0x23F5"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1304,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1014,
+      "source_code": "0x225A",
+      "word": "0x23F6"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1305,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1306,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1307,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1308,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1309,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1310,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1311,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1312,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1313,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1314,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1315,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1316,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1317,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1354,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1355,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1356,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1357,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1358,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1359,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1360,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1361,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1362,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1363,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1364,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1365,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1366,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1367,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1016,
+      "source_code": "0x22CB",
+      "word": "0x23F8"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1368,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1017,
+      "source_code": "0x22CC",
+      "word": "0x23F9"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1369,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1370,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1371,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1372,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1373,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1374,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1375,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1376,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1377,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1378,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1379,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1380,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1381,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1418,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1419,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1420,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1421,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1422,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1423,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1424,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1425,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1426,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1427,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1428,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1429,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1430,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1431,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1018,
+      "source_code": "0x22CD",
+      "word": "0x23FA"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1432,
+      "owner": "RASTAN_logo_sword",
+      "slot": 1019,
+      "source_code": "0x22CE",
+      "word": "0x23FB"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1433,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1434,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1435,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1436,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1437,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1438,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1439,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1440,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1441,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1442,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1443,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1444,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0001",
+      "cell": 1445,
+      "owner": "RASTAN_logo_sword",
+      "slot": 845,
+      "source_code": "0x00AD",
+      "word": "0x234D"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1953,
+      "owner": "static_text_2",
+      "slot": 1020,
+      "source_code": "0x0043",
+      "word": "0x03FC"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1954,
+      "owner": "static_text_2",
+      "slot": 1021,
+      "source_code": "0x0052",
+      "word": "0x03FD"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1955,
+      "owner": "static_text_2",
+      "slot": 1022,
+      "source_code": "0x0045",
+      "word": "0x03FE"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1956,
+      "owner": "static_text_2",
+      "slot": 1023,
+      "source_code": "0x0044",
+      "word": "0x03FF"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1957,
+      "owner": "static_text_2",
+      "slot": 1024,
+      "source_code": "0x0049",
+      "word": "0x0400"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1958,
+      "owner": "static_text_2",
+      "slot": 1025,
+      "source_code": "0x0054",
+      "word": "0x0401"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1959,
+      "owner": "static_text_2",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1960,
+      "owner": "static_text_2",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1961,
+      "owner": "static_text_2",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1670,
+      "owner": "static_text_30",
+      "slot": 1026,
+      "source_code": "0x0040",
+      "word": "0x0402"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1671,
+      "owner": "static_text_30",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1672,
+      "owner": "static_text_30",
+      "slot": 1027,
+      "source_code": "0x0031",
+      "word": "0x0403"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1673,
+      "owner": "static_text_30",
+      "slot": 1028,
+      "source_code": "0x0039",
+      "word": "0x0404"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1674,
+      "owner": "static_text_30",
+      "slot": 1029,
+      "source_code": "0x0038",
+      "word": "0x0405"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1675,
+      "owner": "static_text_30",
+      "slot": 1030,
+      "source_code": "0x0037",
+      "word": "0x0406"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1676,
+      "owner": "static_text_30",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1677,
+      "owner": "static_text_30",
+      "slot": 1025,
+      "source_code": "0x0054",
+      "word": "0x0401"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1678,
+      "owner": "static_text_30",
+      "slot": 1031,
+      "source_code": "0x0041",
+      "word": "0x0407"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1679,
+      "owner": "static_text_30",
+      "slot": 1024,
+      "source_code": "0x0049",
+      "word": "0x0400"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1680,
+      "owner": "static_text_30",
+      "slot": 1025,
+      "source_code": "0x0054",
+      "word": "0x0401"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1681,
+      "owner": "static_text_30",
+      "slot": 1032,
+      "source_code": "0x004F",
+      "word": "0x0408"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1682,
+      "owner": "static_text_30",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1683,
+      "owner": "static_text_30",
+      "slot": 1020,
+      "source_code": "0x0043",
+      "word": "0x03FC"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1684,
+      "owner": "static_text_30",
+      "slot": 1032,
+      "source_code": "0x004F",
+      "word": "0x0408"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1685,
+      "owner": "static_text_30",
+      "slot": 1021,
+      "source_code": "0x0052",
+      "word": "0x03FD"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1686,
+      "owner": "static_text_30",
+      "slot": 1033,
+      "source_code": "0x0050",
+      "word": "0x0409"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1687,
+      "owner": "static_text_30",
+      "slot": 1032,
+      "source_code": "0x004F",
+      "word": "0x0408"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1688,
+      "owner": "static_text_30",
+      "slot": 1021,
+      "source_code": "0x0052",
+      "word": "0x03FD"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1689,
+      "owner": "static_text_30",
+      "slot": 1031,
+      "source_code": "0x0041",
+      "word": "0x0407"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1690,
+      "owner": "static_text_30",
+      "slot": 1025,
+      "source_code": "0x0054",
+      "word": "0x0401"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1691,
+      "owner": "static_text_30",
+      "slot": 1024,
+      "source_code": "0x0049",
+      "word": "0x0400"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1692,
+      "owner": "static_text_30",
+      "slot": 1032,
+      "source_code": "0x004F",
+      "word": "0x0408"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1693,
+      "owner": "static_text_30",
+      "slot": 1034,
+      "source_code": "0x004E",
+      "word": "0x040A"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1694,
+      "owner": "static_text_30",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1695,
+      "owner": "static_text_30",
+      "slot": 1035,
+      "source_code": "0x004A",
+      "word": "0x040B"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1696,
+      "owner": "static_text_30",
+      "slot": 1031,
+      "source_code": "0x0041",
+      "word": "0x0407"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1697,
+      "owner": "static_text_30",
+      "slot": 1033,
+      "source_code": "0x0050",
+      "word": "0x0409"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1698,
+      "owner": "static_text_30",
+      "slot": 1031,
+      "source_code": "0x0041",
+      "word": "0x0407"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1699,
+      "owner": "static_text_30",
+      "slot": 1034,
+      "source_code": "0x004E",
+      "word": "0x040A"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1700,
+      "owner": "static_text_30",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1701,
+      "owner": "static_text_30",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1804,
+      "owner": "static_text_32",
+      "slot": 1031,
+      "source_code": "0x0041",
+      "word": "0x0407"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1805,
+      "owner": "static_text_32",
+      "slot": 1036,
+      "source_code": "0x004C",
+      "word": "0x040C"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1806,
+      "owner": "static_text_32",
+      "slot": 1036,
+      "source_code": "0x004C",
+      "word": "0x040C"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1807,
+      "owner": "static_text_32",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1808,
+      "owner": "static_text_32",
+      "slot": 1021,
+      "source_code": "0x0052",
+      "word": "0x03FD"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1809,
+      "owner": "static_text_32",
+      "slot": 1024,
+      "source_code": "0x0049",
+      "word": "0x0400"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1810,
+      "owner": "static_text_32",
+      "slot": 1037,
+      "source_code": "0x0047",
+      "word": "0x040D"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1811,
+      "owner": "static_text_32",
+      "slot": 1038,
+      "source_code": "0x0048",
+      "word": "0x040E"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1812,
+      "owner": "static_text_32",
+      "slot": 1025,
+      "source_code": "0x0054",
+      "word": "0x0401"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1813,
+      "owner": "static_text_32",
+      "slot": 1039,
+      "source_code": "0x0053",
+      "word": "0x040F"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1814,
+      "owner": "static_text_32",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1815,
+      "owner": "static_text_32",
+      "slot": 1021,
+      "source_code": "0x0052",
+      "word": "0x03FD"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1816,
+      "owner": "static_text_32",
+      "slot": 1022,
+      "source_code": "0x0045",
+      "word": "0x03FE"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1817,
+      "owner": "static_text_32",
+      "slot": 1039,
+      "source_code": "0x0053",
+      "word": "0x040F"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1818,
+      "owner": "static_text_32",
+      "slot": 1022,
+      "source_code": "0x0045",
+      "word": "0x03FE"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1819,
+      "owner": "static_text_32",
+      "slot": 1021,
+      "source_code": "0x0052",
+      "word": "0x03FD"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1820,
+      "owner": "static_text_32",
+      "slot": 1040,
+      "source_code": "0x0056",
+      "word": "0x0410"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1821,
+      "owner": "static_text_32",
+      "slot": 1022,
+      "source_code": "0x0045",
+      "word": "0x03FE"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1822,
+      "owner": "static_text_32",
+      "slot": 1023,
+      "source_code": "0x0044",
+      "word": "0x03FF"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1489,
+      "owner": "large_TAITO_art",
+      "slot": 1041,
+      "source_code": "0x0022",
+      "word": "0x0411"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1490,
+      "owner": "large_TAITO_art",
+      "slot": 1042,
+      "source_code": "0x0023",
+      "word": "0x0412"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1491,
+      "owner": "large_TAITO_art",
+      "slot": 1043,
+      "source_code": "0x0024",
+      "word": "0x0413"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1492,
+      "owner": "large_TAITO_art",
+      "slot": 1044,
+      "source_code": "0x0025",
+      "word": "0x0414"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1493,
+      "owner": "large_TAITO_art",
+      "slot": 1045,
+      "source_code": "0x0026",
+      "word": "0x0415"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1494,
+      "owner": "large_TAITO_art",
+      "slot": 1046,
+      "source_code": "0x0027",
+      "word": "0x0416"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1495,
+      "owner": "large_TAITO_art",
+      "slot": 1047,
+      "source_code": "0x002B",
+      "word": "0x0417"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1496,
+      "owner": "large_TAITO_art",
+      "slot": 1048,
+      "source_code": "0x002C",
+      "word": "0x0418"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1497,
+      "owner": "large_TAITO_art",
+      "slot": 1049,
+      "source_code": "0x002F",
+      "word": "0x0419"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1498,
+      "owner": "large_TAITO_art",
+      "slot": 1050,
+      "source_code": "0x003A",
+      "word": "0x041A"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1553,
+      "owner": "large_TAITO_art",
+      "slot": 0,
+      "source_code": "0x0020",
+      "word": "0x0000"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1554,
+      "owner": "large_TAITO_art",
+      "slot": 1051,
+      "source_code": "0x003C",
+      "word": "0x041B"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1555,
+      "owner": "large_TAITO_art",
+      "slot": 1052,
+      "source_code": "0x003E",
+      "word": "0x041C"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1556,
+      "owner": "large_TAITO_art",
+      "slot": 1053,
+      "source_code": "0x003F",
+      "word": "0x041D"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1557,
+      "owner": "large_TAITO_art",
+      "slot": 1054,
+      "source_code": "0x005B",
+      "word": "0x041E"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1558,
+      "owner": "large_TAITO_art",
+      "slot": 1055,
+      "source_code": "0x005C",
+      "word": "0x041F"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1559,
+      "owner": "large_TAITO_art",
+      "slot": 1056,
+      "source_code": "0x005D",
+      "word": "0x0420"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1560,
+      "owner": "large_TAITO_art",
+      "slot": 1057,
+      "source_code": "0x005E",
+      "word": "0x0421"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1561,
+      "owner": "large_TAITO_art",
+      "slot": 1058,
+      "source_code": "0x005F",
+      "word": "0x0422"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1562,
+      "owner": "large_TAITO_art",
+      "slot": 1059,
+      "source_code": "0x0060",
+      "word": "0x0423"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1936,
+      "owner": "static_text_29",
+      "slot": 1034,
+      "source_code": "0x004E",
+      "word": "0x040A"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1937,
+      "owner": "static_text_29",
+      "slot": 1032,
+      "source_code": "0x004F",
+      "word": "0x0408"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1938,
+      "owner": "static_text_29",
+      "slot": 1060,
+      "source_code": "0x274A",
+      "word": "0x0424"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1939,
+      "owner": "static_text_29",
+      "slot": 1038,
+      "source_code": "0x0048",
+      "word": "0x040E"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1940,
+      "owner": "static_text_29",
+      "slot": 1024,
+      "source_code": "0x0049",
+      "word": "0x0400"
+    },
+    {
+      "attr": "0x0000",
+      "cell": 1941,
+      "owner": "static_text_29",
+      "slot": 1025,
+      "source_code": "0x0054",
+      "word": "0x0401"
+    }
+  ],
+  "dynamic_digit_positions": 18,
+  "format": "rastan-native-title-v2",
+  "ownership": {
+    "1UP_label": "static_SAT",
+    "2UP_label": "static_SAT",
+    "HIGH_SCORE_label": "static_SAT",
+    "P1_score": "dynamic_semantic_SAT",
+    "P2_score": "dynamic_semantic_SAT",
+    "RASTAN_logo": "static_plane_b",
+    "all_rights_reserved": "static_plane_a",
+    "copyright": "static_plane_a",
+    "credit_label": "static_plane_a",
+    "high_score": "dynamic_semantic_SAT",
+    "insert_coin_blink": "arcade_semantic_plane_owner",
+    "large_TAITO": "static_plane_a_art",
+    "sword": "static_plane_b"
   },
-  "format": "rastan-native-title-v1",
-  "logo_first_cell": 202,
-  "semantic_cut": "arcade 0x03AA54 title presentation entry",
+  "semantic_cut": "arcade 0x03AA54",
   "sha256": {
-    "native_title_bg.bin": "fdfaad623e5c84745ff48367d917b642ee4a4c823facf930c983ca8095b98263",
-    "native_title_fg.bin": "f268abb966c646068b8d8a109f68ef42ac143531837d71fda7c64e8ad422141b",
-    "native_title_fg_invincible.bin": "fd79dbfb3cdecb6152e415838581a42c1c5bb410aee65b78c32f7bb340c4dc68",
-    "native_title_palette.bin": "d8174e5d098fdfd3e182eaed983238add3cccbc5415c69de03f6fc86bccd5db3"
+    "native_title_bg.bin": "0813a750ca4e9b8ca3a8d60c817d6f260bdf3459749f5712b7d7713dc36592f6",
+    "native_title_dynamic_records.bin": "6da17f23917317b90ea41b51a81e1e5e1f6cddea40f7e570b4f574de63799ca1",
+    "native_title_fg.bin": "68563d90d8cc3f359bd0356135483dad6f89aed76633ff8069e1a7196b428566",
+    "native_title_fg_invincible.bin": "e5f50adce2bdaae1fd7efb0b52261556b77b02cf86aeb609740f7f2e7d400f2f",
+    "native_title_palette.bin": "d8174e5d098fdfd3e182eaed983238add3cccbc5415c69de03f6fc86bccd5db3",
+    "native_title_patterns.bin": "d9f49afc2c3153ab827914500bd1a72420c435095a1dd071a14505abb7ab596d",
+    "native_title_static_sat.bin": "6425f3e0d9b96c81b82f19132443abfa546ada74278b924cba057ffae89a4c89"
   },
-  "static_sat_count": 22,
-  "text_cells": {
-    "18": [
-      {
-        "attr": 0,
-        "cell": 1489,
-        "code": 34,
-        "mapped_code": 10053,
-        "word": 53
-      },
-      {
-        "attr": 0,
-        "cell": 1490,
-        "code": 35,
-        "mapped_code": 35,
-        "word": 1
-      },
-      {
-        "attr": 0,
-        "cell": 1491,
-        "code": 36,
-        "mapped_code": 36,
-        "word": 2
-      },
-      {
-        "attr": 0,
-        "cell": 1492,
-        "code": 37,
-        "mapped_code": 37,
-        "word": 3
-      },
-      {
-        "attr": 0,
-        "cell": 1493,
-        "code": 38,
-        "mapped_code": 38,
-        "word": 4
-      },
-      {
-        "attr": 0,
-        "cell": 1494,
-        "code": 39,
-        "mapped_code": 10054,
-        "word": 54
-      },
-      {
-        "attr": 0,
-        "cell": 1495,
-        "code": 43,
-        "mapped_code": 43,
-        "word": 5
-      },
-      {
-        "attr": 0,
-        "cell": 1496,
-        "code": 44,
-        "mapped_code": 10057,
-        "word": 57
-      },
-      {
-        "attr": 0,
-        "cell": 1497,
-        "code": 47,
-        "mapped_code": 47,
-        "word": 7
-      },
-      {
-        "attr": 0,
-        "cell": 1498,
-        "code": 58,
-        "mapped_code": 58,
-        "word": 18
-      }
-    ],
-    "19": [
-      {
-        "attr": 0,
-        "cell": 1553,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      },
-      {
-        "attr": 0,
-        "cell": 1554,
-        "code": 60,
-        "mapped_code": 60,
-        "word": 20
-      },
-      {
-        "attr": 0,
-        "cell": 1555,
-        "code": 62,
-        "mapped_code": 62,
-        "word": 21
-      },
-      {
-        "attr": 0,
-        "cell": 1556,
-        "code": 63,
-        "mapped_code": 10059,
-        "word": 59
-      },
-      {
-        "attr": 0,
-        "cell": 1557,
-        "code": 91,
-        "mapped_code": 91,
-        "word": 46
-      },
-      {
-        "attr": 0,
-        "cell": 1558,
-        "code": 92,
-        "mapped_code": 92,
-        "word": 47
-      },
-      {
-        "attr": 0,
-        "cell": 1559,
-        "code": 93,
-        "mapped_code": 93,
-        "word": 48
-      },
-      {
-        "attr": 0,
-        "cell": 1560,
-        "code": 94,
-        "mapped_code": 94,
-        "word": 49
-      },
-      {
-        "attr": 0,
-        "cell": 1561,
-        "code": 95,
-        "mapped_code": 95,
-        "word": 50
-      },
-      {
-        "attr": 0,
-        "cell": 1562,
-        "code": 96,
-        "mapped_code": 96,
-        "word": 51
-      }
-    ],
-    "2": [
-      {
-        "attr": 0,
-        "cell": 1953,
-        "code": 67,
-        "mapped_code": 67,
-        "word": 25
-      },
-      {
-        "attr": 0,
-        "cell": 1954,
-        "code": 82,
-        "mapped_code": 82,
-        "word": 39
-      },
-      {
-        "attr": 0,
-        "cell": 1955,
-        "code": 69,
-        "mapped_code": 69,
-        "word": 27
-      },
-      {
-        "attr": 0,
-        "cell": 1956,
-        "code": 68,
-        "mapped_code": 68,
-        "word": 26
-      },
-      {
-        "attr": 0,
-        "cell": 1957,
-        "code": 73,
-        "mapped_code": 73,
-        "word": 31
-      },
-      {
-        "attr": 0,
-        "cell": 1958,
-        "code": 84,
-        "mapped_code": 84,
-        "word": 41
-      },
-      {
-        "attr": 0,
-        "cell": 1959,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      },
-      {
-        "attr": 0,
-        "cell": 1960,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      },
-      {
-        "attr": 0,
-        "cell": 1961,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      }
-    ],
-    "29": [
-      {
-        "attr": 0,
-        "cell": 1936,
-        "code": 78,
-        "mapped_code": 78,
-        "word": 36
-      },
-      {
-        "attr": 0,
-        "cell": 1937,
-        "code": 79,
-        "mapped_code": 79,
-        "word": 37
-      },
-      {
-        "attr": 0,
-        "cell": 1938,
-        "code": 45,
-        "mapped_code": 10058,
-        "word": 58
-      },
-      {
-        "attr": 0,
-        "cell": 1939,
-        "code": 72,
-        "mapped_code": 72,
-        "word": 30
-      },
-      {
-        "attr": 0,
-        "cell": 1940,
-        "code": 73,
-        "mapped_code": 73,
-        "word": 31
-      },
-      {
-        "attr": 0,
-        "cell": 1941,
-        "code": 84,
-        "mapped_code": 84,
-        "word": 41
-      }
-    ],
-    "30": [
-      {
-        "attr": 0,
-        "cell": 1670,
-        "code": 64,
-        "mapped_code": 64,
-        "word": 22
-      },
-      {
-        "attr": 0,
-        "cell": 1671,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      },
-      {
-        "attr": 0,
-        "cell": 1672,
-        "code": 49,
-        "mapped_code": 49,
-        "word": 9
-      },
-      {
-        "attr": 0,
-        "cell": 1673,
-        "code": 57,
-        "mapped_code": 57,
-        "word": 17
-      },
-      {
-        "attr": 0,
-        "cell": 1674,
-        "code": 56,
-        "mapped_code": 56,
-        "word": 16
-      },
-      {
-        "attr": 0,
-        "cell": 1675,
-        "code": 55,
-        "mapped_code": 55,
-        "word": 15
-      },
-      {
-        "attr": 0,
-        "cell": 1676,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      },
-      {
-        "attr": 0,
-        "cell": 1677,
-        "code": 84,
-        "mapped_code": 84,
-        "word": 41
-      },
-      {
-        "attr": 0,
-        "cell": 1678,
-        "code": 65,
-        "mapped_code": 65,
-        "word": 23
-      },
-      {
-        "attr": 0,
-        "cell": 1679,
-        "code": 73,
-        "mapped_code": 73,
-        "word": 31
-      },
-      {
-        "attr": 0,
-        "cell": 1680,
-        "code": 84,
-        "mapped_code": 84,
-        "word": 41
-      },
-      {
-        "attr": 0,
-        "cell": 1681,
-        "code": 79,
-        "mapped_code": 79,
-        "word": 37
-      },
-      {
-        "attr": 0,
-        "cell": 1682,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      },
-      {
-        "attr": 0,
-        "cell": 1683,
-        "code": 67,
-        "mapped_code": 67,
-        "word": 25
-      },
-      {
-        "attr": 0,
-        "cell": 1684,
-        "code": 79,
-        "mapped_code": 79,
-        "word": 37
-      },
-      {
-        "attr": 0,
-        "cell": 1685,
-        "code": 82,
-        "mapped_code": 82,
-        "word": 39
-      },
-      {
-        "attr": 0,
-        "cell": 1686,
-        "code": 80,
-        "mapped_code": 80,
-        "word": 38
-      },
-      {
-        "attr": 0,
-        "cell": 1687,
-        "code": 79,
-        "mapped_code": 79,
-        "word": 37
-      },
-      {
-        "attr": 0,
-        "cell": 1688,
-        "code": 82,
-        "mapped_code": 82,
-        "word": 39
-      },
-      {
-        "attr": 0,
-        "cell": 1689,
-        "code": 65,
-        "mapped_code": 65,
-        "word": 23
-      },
-      {
-        "attr": 0,
-        "cell": 1690,
-        "code": 84,
-        "mapped_code": 84,
-        "word": 41
-      },
-      {
-        "attr": 0,
-        "cell": 1691,
-        "code": 73,
-        "mapped_code": 73,
-        "word": 31
-      },
-      {
-        "attr": 0,
-        "cell": 1692,
-        "code": 79,
-        "mapped_code": 79,
-        "word": 37
-      },
-      {
-        "attr": 0,
-        "cell": 1693,
-        "code": 78,
-        "mapped_code": 78,
-        "word": 36
-      },
-      {
-        "attr": 0,
-        "cell": 1694,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      },
-      {
-        "attr": 0,
-        "cell": 1695,
-        "code": 74,
-        "mapped_code": 74,
-        "word": 32
-      },
-      {
-        "attr": 0,
-        "cell": 1696,
-        "code": 65,
-        "mapped_code": 65,
-        "word": 23
-      },
-      {
-        "attr": 0,
-        "cell": 1697,
-        "code": 80,
-        "mapped_code": 80,
-        "word": 38
-      },
-      {
-        "attr": 0,
-        "cell": 1698,
-        "code": 65,
-        "mapped_code": 65,
-        "word": 23
-      },
-      {
-        "attr": 0,
-        "cell": 1699,
-        "code": 78,
-        "mapped_code": 78,
-        "word": 36
-      },
-      {
-        "attr": 0,
-        "cell": 1700,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      },
-      {
-        "attr": 0,
-        "cell": 1701,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      }
-    ],
-    "32": [
-      {
-        "attr": 0,
-        "cell": 1804,
-        "code": 65,
-        "mapped_code": 65,
-        "word": 23
-      },
-      {
-        "attr": 0,
-        "cell": 1805,
-        "code": 76,
-        "mapped_code": 76,
-        "word": 34
-      },
-      {
-        "attr": 0,
-        "cell": 1806,
-        "code": 76,
-        "mapped_code": 76,
-        "word": 34
-      },
-      {
-        "attr": 0,
-        "cell": 1807,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      },
-      {
-        "attr": 0,
-        "cell": 1808,
-        "code": 82,
-        "mapped_code": 82,
-        "word": 39
-      },
-      {
-        "attr": 0,
-        "cell": 1809,
-        "code": 73,
-        "mapped_code": 73,
-        "word": 31
-      },
-      {
-        "attr": 0,
-        "cell": 1810,
-        "code": 71,
-        "mapped_code": 71,
-        "word": 29
-      },
-      {
-        "attr": 0,
-        "cell": 1811,
-        "code": 72,
-        "mapped_code": 72,
-        "word": 30
-      },
-      {
-        "attr": 0,
-        "cell": 1812,
-        "code": 84,
-        "mapped_code": 84,
-        "word": 41
-      },
-      {
-        "attr": 0,
-        "cell": 1813,
-        "code": 83,
-        "mapped_code": 83,
-        "word": 40
-      },
-      {
-        "attr": 0,
-        "cell": 1814,
-        "code": 32,
-        "mapped_code": 32,
-        "word": 0
-      },
-      {
-        "attr": 0,
-        "cell": 1815,
-        "code": 82,
-        "mapped_code": 82,
-        "word": 39
-      },
-      {
-        "attr": 0,
-        "cell": 1816,
-        "code": 69,
-        "mapped_code": 69,
-        "word": 27
-      },
-      {
-        "attr": 0,
-        "cell": 1817,
-        "code": 83,
-        "mapped_code": 83,
-        "word": 40
-      },
-      {
-        "attr": 0,
-        "cell": 1818,
-        "code": 69,
-        "mapped_code": 69,
-        "word": 27
-      },
-      {
-        "attr": 0,
-        "cell": 1819,
-        "code": 82,
-        "mapped_code": 82,
-        "word": 39
-      },
-      {
-        "attr": 0,
-        "cell": 1820,
-        "code": 86,
-        "mapped_code": 86,
-        "word": 43
-      },
-      {
-        "attr": 0,
-        "cell": 1821,
-        "code": 69,
-        "mapped_code": 69,
-        "word": 27
-      },
-      {
-        "attr": 0,
-        "cell": 1822,
-        "code": 68,
-        "mapped_code": 68,
-        "word": 26
-      }
-    ]
-  }
+  "sprite_slots": {
+    "0x2A": 1379,
+    "0x2B": 1383,
+    "0x2C": 1387,
+    "0x2D": 1391,
+    "0x2E": 1395,
+    "0x2F": 1399,
+    "0x30": 1403,
+    "0x31": 1407,
+    "0x32": 1411,
+    "0x33": 1415,
+    "0x39": 1359,
+    "0x3A": 1339,
+    "0x3B": 1343,
+    "0x3C": 1347,
+    "0x3D": 1351,
+    "0x3E": 1355,
+    "0x46": 1367,
+    "0x47": 1375,
+    "0x48": 1363,
+    "0x49": 1371
+  },
+  "static_sat_count": 11
 }

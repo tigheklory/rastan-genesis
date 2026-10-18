@@ -45,8 +45,8 @@
     .extern dma_words_to_vram_noai         /* WRAM SAT/column-style publication, current autoinc */
     .extern vdp_dma_words_to_vram          /* Build 0418: boundary-safe ROM source, autoinc=2 */
     .extern genesistan_hook_cwindow_clear  /* Native Plane A/B consequence of arcade 0x0561A0. */
-    .extern genesistan_title_sat_needs_update
-    .extern genesistan_title_sat_cache_commit
+    .extern genesistan_title_is_active
+    .extern genesistan_title_prepare_dynamic
 
     .global pc090oj_ctrl_shadow
     .global pc090oj_sprite_ctrl_shadow
@@ -71,6 +71,10 @@
     .global current_sprite_palette_map
 
     .global staged_sprite_sat
+    .global staged_sprite_sat_b
+    .global pc090oj_sat_bank
+    .global pc090oj_sat_front
+    .global pc090oj_sat_frame_ready
     .global sprite_tile_resident_code
     .global sprite_tile_reverse_directory
     .global sprite_tile_reverse_pages
@@ -2327,23 +2331,11 @@ pc090oj_native_emit_pass:
  * cache suppresses this entire pass on stable title frames; other frontend
  * screens retain their existing per-frame native path. */
 .Lnq_title:
-    movem.l %d0-%d7/%a0-%a3, -(%sp)
-    movem.l %a4-%a6, -(%sp)
-    lea     staged_sprite_sat, %a3
-    tst.w   pc090oj_sat_bank
-    beq.s   .Lnq_title_bank_ok
-    lea     staged_sprite_sat_b, %a3
-.Lnq_title_bank_ok:
-    lea     sprite_tile_resident_code, %a2
-    lea     pc090oj_cell_used, %a1
-    clr.l   (%a1)+
-    clr.l   (%a1)+
-    clr.l   (%a1)+
-    clr.l   (%a1)+
-    moveq   #0, %d5
-    bsr     native_frontend_hud_emit     /* labels + scores + credit (unified) */
-    movem.l (%sp)+, %a4-%a6
-    bra     .Lnq_done_scan
+    /* The title's fixed SAT, sprite patterns and digit records are generated
+     * offline and installed by genesistan_title_present_once.  Its VBlank
+     * service updates only changed digit records, so the generic residency /
+     * full-SAT builder has no title-active work. */
+    rts
 
 /* Fixed-label glyph sequence emitter (semantic {Y,X,glyph}, 0xFFFF-terminated).
  * Each glyph is passed in registers straight to the shared native SAT builder. */
@@ -2584,7 +2576,9 @@ native_frontend_hud_emit:
  * path, so native output reproduces the former labels byte-for-byte.
  * 0xFFFF Y terminates. */
 .Lnq_title_labels:
-    .include "../../build/rastan-direct/native_title_sat.inc"
+    /* Shared later-frontend labels retain their established native producer.
+     * The title-active path above never reaches this table. */
+    .include "../../build/rastan-direct/native_frontend_labels.inc"
 .Lnq_gameplay:
     movem.l %d0-%d7/%a0-%a3, -(%sp)
     move.l  %a4, -(%sp)
@@ -3228,13 +3222,15 @@ profile_native_finalizer_done:
 /* VBlank entry (called by _vblank_service).  Title-active is change-driven;
  * every other scene retains the existing fallback pass. */
 vdp_prepare_sprites:
+    bsr     genesistan_title_is_active
+    tst.b   %d0
+    beq.s   .Lvps_not_title
+    bsr     genesistan_title_prepare_dynamic
+    rts
+.Lvps_not_title:
     tst.w   pc090oj_sat_frame_ready
     bne.s   .Lvps_done
-    bsr     genesistan_title_sat_needs_update
-    tst.b   %d0
-    beq.s   .Lvps_done
     bsr     pc090oj_native_emit_pass
-    bsr     genesistan_title_sat_cache_commit
 .Lvps_done:
     rts
 

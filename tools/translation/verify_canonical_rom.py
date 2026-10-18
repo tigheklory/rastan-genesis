@@ -128,7 +128,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 231  # Build 0445 moves the 0x03BB48 glyph cut 
 # specialized-frame payload/index and the shared visual/contact dispatch code.
 # Opcode-replacement site count remains unchanged.
 # Build 0443 native title assets add three 4-KiB final Genesis plane maps.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x295EB8
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x298EB8
 
 # Build 0277: arcade_pc 0x051DF8 is a BRA.S to the semantic entry at
 # arcade_pc 0x051E00.  The target is also the start of a shrinking shift

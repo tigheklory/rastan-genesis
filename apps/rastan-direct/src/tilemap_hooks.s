@@ -3478,8 +3478,8 @@ genesistan_hook_number_renderer_3c2e2:
 
 genesistan_hook_glyph_renderer_3bd48:
     /* The copied-code wrapper retains the arcade selector decode and resolves
-     * the adjacent descriptor table PC-relatively, so A0 follows every shift
-     * insertion.  Contract: D1 = original selector, D0 = index*4, A0 = table. */
+     * arcade table 0x03BB7C through shift-aware operand relocation.
+     * Contract: D1 = original selector, D0 = index*4, A0 = table. */
     adda.w  %d0, %a0
     movea.l (%a0), %a0
     movea.l (%a0)+, %a1

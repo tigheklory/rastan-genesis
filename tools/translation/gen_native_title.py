@@ -1,229 +1,127 @@
 #!/usr/bin/env python3
-"""Generate the first attract TITLE as final Genesis presentation data.
-
-The retained arcade sources are authoritative:
-  * 0x5B0B2: 28x20 RASTAN/logo Plane-B block used by 0x5A356/0x5A38E
-  * 0x3BB7C: frontend string descriptor table used by 0x3BB48
-  * 0x5A6FA: title palette row used by 0x5A356
-  * 0x3B950/0x3B9B0/0x3B9D4: frontend HUD glyph templates
-
-Outputs contain final Genesis name words/CRAM words, never PC080SN C-window
-records.  They are consumed once by genesistan_title_present_once.
-"""
-
+"""Generate the first title as a self-contained native Genesis package."""
 from __future__ import annotations
-
-import argparse
-import hashlib
-import json
+import argparse, hashlib, json
 from pathlib import Path
 
-PLANE_WORDS = 64 * 32
-TITLE_BLOCK = 0x5B0B2
-TITLE_COLS = 28
-TITLE_ROWS = 20
-TITLE_BG_DEST = 0x00C00328
-BG_BASE = 0x00C00000
-FG_BASE = 0x00C08000
-TEXT_TABLE = 0x3BB7C
-TITLE_PALETTE = 0x5A6FA
-BLANK_CODE = 0x0020
-CLEAR_FIRST_CELL = 0x100 // 4
-CLEAR_CELLS = 1900
-TITLE_TEXT_IDS = (2, 30, 32, 18, 19)
-NO_HIT_TEXT_ID = 29
-TEXT_SPECIAL_GLYPH_MAP = {
-    0x21: 0x2744,
-    0x22: 0x2745,
-    0x27: 0x2746,
-    0x28: 0x2747,
-    0x29: 0x2748,
-    0x2C: 0x2749,
-    0x2D: 0x274A,
-    0x3F: 0x274B,
-}
+PLANE_WORDS=64*32; TITLE_BLOCK=0x5B0B2; COLS=28; ROWS=20
+BG_DEST=0xC00328; BG_BASE=0xC00000; FG_BASE=0xC08000
+TEXT_TABLE=0x3BB7C; PALETTE=0x5A6FA; BLANK=0x20
+TEXT_IDS=(2,30,32); ART_IDS=(18,19); INV_ID=29
+ALIASES={0x21:0x2744,0x22:0x2745,0x27:0x2746,0x28:0x2747,
+         0x29:0x2748,0x2C:0x2749,0x2D:0x274A,0x3F:0x274B}
+SPRITE_BASE=1339; SPRITE_LIMIT=1536; SAT_DYNAMIC=18; SAT_TOTAL=29
 
+def u16(b,o): return int.from_bytes(b[o:o+2],"big")
+def u32(b,o): return int.from_bytes(b[o:o+4],"big")
+def words(v): return b"".join((x&0xffff).to_bytes(2,"big") for x in v)
+def akey(a): return (a&3)|(((a>>14)&1)<<2)|(((a>>15)&1)<<3)|(((a>>13)&1)<<4)
+def template(b,s,n): return [(b[s+i*4],u16(b,s+i*4+2),b[s+i*4+1]) for i in range(n)]
 
-def be16(data: bytes, off: int) -> int:
-    return int.from_bytes(data[off : off + 2], "big")
+def desc(b,i):
+ p=u32(b,TEXT_TABLE+(i&0x7f)*4); d,a=u32(b,p),u16(b,p+4); p+=6; out=[]
+ while b[p]: out.append(b[p]); p+=1
+ return d,a,out
 
+class Alloc:
+ def __init__(self,rom,preload):
+  used=set()
+  for p in range(0,len(preload),4):
+   if u16(preload,p)==0xffff: break
+   used.add(u16(preload,p+2))
+  self.free=iter(x for x in range(1,SPRITE_BASE) if x not in used)
+  self.rom=rom; self.by_bytes={}; self.entries=[]
+ def get(self,code):
+  if code==BLANK: return 0
+  raw=self.rom[(code&0x3fff)*32:(code&0x3fff)*32+32]
+  if len(raw)!=32: raise ValueError(f"bad PC080SN code {code:#x}")
+  if raw not in self.by_bytes:
+   slot=next(self.free); self.by_bytes[raw]=slot; self.entries.append((slot,code,raw))
+  return self.by_bytes[raw]
 
-def be32(data: bytes, off: int) -> int:
-    return int.from_bytes(data[off : off + 4], "big")
+def package(entries):
+ out=bytearray()
+ for slot,_code,raw in entries: out+=slot.to_bytes(2,"big")+raw
+ return bytes(out+b"\xff\xff")
 
+def sat_record(index,y,x,tile,visible=True):
+ sy=((y-8+0x80) if visible else 0)&0x1ff
+ link=index+2 if index+1<SAT_TOTAL else 0
+ return words([sy,0x0500|link,0xC000|tile,(x+0x80)&0x1ff])
 
-def words_be(words: list[int]) -> bytes:
-    return b"".join((word & 0xFFFF).to_bytes(2, "big") for word in words)
+def build(main,pc080,pc090,preload,attrs):
+ al=Alloc(pc080,preload); bg=[0]*PLANE_WORDS; fg=[0]*PLANE_WORDS; cells=[]
+ def put(dst,cell,code,attr,owner):
+  slot=al.get(code); word=slot|u16(attrs,akey(attr)*2); dst[cell]=word
+  cells.append(dict(owner=owner,cell=cell,source_code=f"0x{code:04X}",slot=slot,
+                    attr=f"0x{attr:04X}",word=f"0x{word:04X}"))
+ first=(BG_DEST-BG_BASE)//4
+ for y in range(ROWS):
+  for x in range(COLS): put(bg,first+y*64+x,u16(main,TITLE_BLOCK+2*(y*COLS+x)),1,"RASTAN_logo_sword")
+ def apply(i,dst,art=False):
+  dest,attr,codes=desc(main,i); cell=(dest-FG_BASE)//4
+  if not 0<=cell<PLANE_WORDS: raise ValueError(f"title descriptor {i} outside Plane A")
+  for raw in codes:
+   code=raw if art else ALIASES.get(raw,raw)
+   put(dst,cell,code,attr,"large_TAITO_art" if art else f"static_text_{i}"); cell+=1
+ for i in TEXT_IDS: apply(i,fg)
+ for i in ART_IDS: apply(i,fg,True)
+ fgi=list(fg); apply(INV_ID,fgi)
+ pal=[]
+ for i in range(16):
+  r=u16(main,PALETTE+i*2); xb=((r&0xf00)>>7)|((r&0xf0)<<2)|((r&15)<<11)
+  pal.append(((((xb>>10)&31)>>2)<<9)|((((xb>>5)&31)>>2)<<5)|(((xb&31)>>2)<<1))
 
+ mt=template(main,0x3B950,24); p1=template(main,0x3B9B0,9); p2=template(main,0x3B9D4,9)
+ labels=sorted(mt[:5],key=lambda z:z[1])+p1[6:9]+p2[6:9]
+ glyphs=[]
+ for _y,_x,c in labels:
+  if c not in glyphs:glyphs.append(c)
+ for c in range(0x2a,0x34):
+  if c not in glyphs:glyphs.append(c)
+ slots={}; sentries=[]
+ for i,c in enumerate(glyphs):
+  s=SPRITE_BASE+i*4
+  if s+4>SPRITE_LIMIT: raise ValueError("title sprite package exceeds sprite band")
+  raw=pc090[c*128:c*128+128]; slots[c]=s
+  for q in range(4): sentries.append((s+q,c,raw[q*32:(q+1)*32]))
+ static=bytearray(80*8)
+ for i,(y,x,c) in enumerate(labels): static[i*8:(i+1)*8]=sat_record(i,y,x,slots[c])
+ positions=[(x,0) for x in range(8,0x38,8)]+[(x,0) for x in range(0xe8,0x118,8)]+[(x,0x10) for x in range(0x80,0xb0,8)]
+ dynamic=bytearray()
+ for i,(x,y) in enumerate(positions,len(labels)):
+  hidden=sat_record(i,y,x,slots[0x2a],False); static[i*8:(i+1)*8]=hidden; dynamic+=hidden
+  for d in range(10): dynamic+=sat_record(i,y,x,slots[0x2a+d],True)
+ entries=al.entries+sentries
+ legacy=sorted(mt[:5],key=lambda z:z[1])+mt[5:13]+[(y|0x100,x,c) for y,x,c in mt[14:17]]+p1[6:9]+p2[6:9]
+ return dict(bg=bg,fg=fg,fg_invincible=fgi,palette=pal,pattern_package=package(entries),
+             static_sat=bytes(static),dynamic_records=bytes(dynamic),plane_entries=al.entries,
+             sprite_entries=sentries,sprite_slots=slots,labels=labels,legacy_labels=legacy,cells=cells)
 
-def attr_key(attr: int) -> int:
-    return (
-        (attr & 0x0003)
-        | (((attr >> 14) & 1) << 2)
-        | (((attr >> 15) & 1) << 3)
-        | (((attr >> 13) & 1) << 4)
-    )
-
-
-def name_word(code: int, attr: int, tile_lut: bytes, attr_lut: bytes) -> int:
-    tile = be16(tile_lut, (code & 0x3FFF) * 2)
-    mapped_attr = be16(attr_lut, attr_key(attr) * 2)
-    # The arcade blank glyph (0x20) intentionally resolves to Genesis tile 0.
-    if code and code != BLANK_CODE and tile == 0:
-        raise ValueError(f"title tile {code & 0x3FFF:#06x} has no resident LUT slot")
-    return tile | mapped_attr
-
-
-def apply_text(
-    plane: list[int], text_id: int, maincpu: bytes, tile_lut: bytes, attr_lut: bytes
-) -> list[dict[str, int]]:
-    desc = be32(maincpu, TEXT_TABLE + ((text_id & 0x7F) * 4))
-    dest = be32(maincpu, desc)
-    attr = be16(maincpu, desc + 4)
-    if not (FG_BASE <= dest < FG_BASE + 0x4000):
-        raise ValueError(f"title text {text_id} destination {dest:#x} is not Plane A")
-    cell = (dest - FG_BASE) // 4
-    pos = desc + 6
-    touched: list[dict[str, int]] = []
-    while True:
-        code = maincpu[pos]
-        pos += 1
-        if code == 0:
-            break
-        mapped_code = TEXT_SPECIAL_GLYPH_MAP.get(code, code)
-        word = name_word(mapped_code, attr, tile_lut, attr_lut)
-        plane[cell] = word
-        touched.append(
-            {"cell": cell, "code": code, "mapped_code": mapped_code, "attr": attr, "word": word}
-        )
-        cell += 1
-    return touched
-
-
-def convert_title_palette(maincpu: bytes) -> list[int]:
-    out: list[int] = []
-    for idx in range(16):
-        raw = be16(maincpu, TITLE_PALETTE + idx * 2)
-        # Exact 0RGB-444 -> xBGR-555 -> Genesis conversion used by 0x59AD4.
-        xbgr = ((raw & 0x0F00) >> 7) | ((raw & 0x00F0) << 2) | ((raw & 0x000F) << 11)
-        red = ((xbgr & 0x001F) >> 2) << 1
-        green = (((xbgr >> 5) & 0x001F) >> 2) << 5
-        blue = (((xbgr >> 10) & 0x001F) >> 2) << 9
-        out.append(red | green | blue)
-    return out
-
-
-def decode_template(maincpu: bytes, start: int, count: int) -> list[tuple[int, int, int]]:
-    return [
-        (maincpu[start + i * 4], be16(maincpu, start + i * 4 + 2), maincpu[start + i * 4 + 1])
-        for i in range(count)
-    ]
-
-
-def static_sat_labels(maincpu: bytes) -> list[tuple[int, int, int]]:
-    main = decode_template(maincpu, 0x3B950, 24)
-    p1 = decode_template(maincpu, 0x3B9B0, 9)
-    p2 = decode_template(maincpu, 0x3B9D4, 9)
-    # Preserve the accepted native title ordering. Numeric 0x2A..0x33 glyphs
-    # remain live semantic producers. Credit label records are parked exactly
-    # as the accepted native path parks them on the zero-credit title.
-    labels = sorted(main[:5], key=lambda item: item[1]) + main[5:13]
-    labels += [(y | 0x0100, x, code) for y, x, code in main[14:17]]
-    labels += p1[6:9] + p2[6:9]
-    if any(0x2A <= code <= 0x33 for _, _, code in labels):
-        raise ValueError("static SAT label set contains a dynamic digit glyph")
-    return labels
-
-
-def build(maincpu: bytes, tile_lut: bytes, attr_lut: bytes) -> dict[str, object]:
-    if len(tile_lut) != 0x8000 or len(attr_lut) != 64:
-        raise ValueError("unexpected PC080SN LUT size")
-    blank = name_word(BLANK_CODE, 0, tile_lut, attr_lut)
-    bg = [blank] * PLANE_WORDS
-    fg = [blank] * PLANE_WORDS
-
-    bg_first = (TITLE_BG_DEST - BG_BASE) // 4
-    for row in range(TITLE_ROWS):
-        for col in range(TITLE_COLS):
-            code = be16(maincpu, TITLE_BLOCK + 2 * (row * TITLE_COLS + col))
-            bg[bg_first + row * 64 + col] = name_word(code, 1, tile_lut, attr_lut)
-
-    text_evidence: dict[str, list[dict[str, int]]] = {}
-    for text_id in TITLE_TEXT_IDS:
-        text_evidence[str(text_id)] = apply_text(fg, text_id, maincpu, tile_lut, attr_lut)
-    fg_invincible = list(fg)
-    text_evidence[str(NO_HIT_TEXT_ID)] = apply_text(
-        fg_invincible, NO_HIT_TEXT_ID, maincpu, tile_lut, attr_lut
-    )
-
-    return {
-        "bg": bg,
-        "fg": fg,
-        "fg_invincible": fg_invincible,
-        "palette": convert_title_palette(maincpu),
-        "labels": static_sat_labels(maincpu),
-        "text_evidence": text_evidence,
-        "blank_word": blank,
-        "bg_first_cell": bg_first,
-    }
-
-
-def write_inc(path: Path, labels: list[tuple[int, int, int]]) -> None:
-    lines = ["/* Generated by gen_native_title.py; {Y, X, glyph}. */"]
-    lines += [f"    .word 0x{y:04X},0x{x:04X},0x{code:04X}" for y, x, code in labels]
-    lines.append("    .word 0xFFFF,0x0000,0x0000")
-    path.write_text("\n".join(lines) + "\n")
-
-
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--maincpu", type=Path, required=True)
-    ap.add_argument("--tile-lut", type=Path, required=True)
-    ap.add_argument("--attr-lut", type=Path, required=True)
-    ap.add_argument("--bg-output", type=Path, required=True)
-    ap.add_argument("--fg-output", type=Path, required=True)
-    ap.add_argument("--fg-invincible-output", type=Path, required=True)
-    ap.add_argument("--palette-output", type=Path, required=True)
-    ap.add_argument("--sat-include", type=Path, required=True)
-    ap.add_argument("--report", type=Path, required=True)
-    args = ap.parse_args()
-
-    maincpu = args.maincpu.read_bytes()
-    tile_lut = args.tile_lut.read_bytes()
-    attr_lut = args.attr_lut.read_bytes()
-    result = build(maincpu, tile_lut, attr_lut)
-    outputs = {
-        args.bg_output: words_be(result["bg"]),
-        args.fg_output: words_be(result["fg"]),
-        args.fg_invincible_output: words_be(result["fg_invincible"]),
-        args.palette_output: words_be(result["palette"]),
-    }
-    for path, data in outputs.items():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
-    args.sat_include.parent.mkdir(parents=True, exist_ok=True)
-    write_inc(args.sat_include, result["labels"])
-
-    report = {
-        "format": "rastan-native-title-v1",
-        "semantic_cut": "arcade 0x03AA54 title presentation entry",
-        "authoritative_sources": {
-            "plane_b_logo": "maincpu 0x05B0B2 28x20",
-            "plane_a_strings": [f"0x{x:02X}" for x in TITLE_TEXT_IDS],
-            "invincible_no_hit_string": f"0x{NO_HIT_TEXT_ID:02X}",
-            "palette": "maincpu 0x05A6FA row 0",
-            "static_sat": "maincpu 0x03B950/0x03B9B0/0x03B9D4",
-        },
-        "dimensions": {"plane_words": PLANE_WORDS, "logo_cols": TITLE_COLS, "logo_rows": TITLE_ROWS},
-        "blank_word": f"0x{result['blank_word']:04X}",
-        "logo_first_cell": result["bg_first_cell"],
-        "static_sat_count": len(result["labels"]),
-        "text_cells": result["text_evidence"],
-        "sha256": {path.name: hashlib.sha256(data).hexdigest() for path, data in outputs.items()},
-    }
-    args.report.parent.mkdir(parents=True, exist_ok=True)
-    args.report.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
-
-
-if __name__ == "__main__":
-    main()
+def main():
+ ap=argparse.ArgumentParser()
+ for n in ("maincpu","pc080sn","pc090oj","title-preload","attr-lut","bg-output","fg-output",
+           "fg-invincible-output","palette-output","pattern-output","sat-output","dynamic-output","frontend-labels-output","report"):
+  ap.add_argument("--"+n,type=Path,required=True)
+ a=ap.parse_args(); r=build(a.maincpu.read_bytes(),a.pc080sn.read_bytes(),a.pc090oj.read_bytes(),a.title_preload.read_bytes(),a.attr_lut.read_bytes())
+ outs={a.bg_output:words(r["bg"]),a.fg_output:words(r["fg"]),a.fg_invincible_output:words(r["fg_invincible"]),
+       a.palette_output:words(r["palette"]),a.pattern_output:r["pattern_package"],a.sat_output:r["static_sat"],a.dynamic_output:r["dynamic_records"]}
+ for p,d in outs.items(): p.parent.mkdir(parents=True,exist_ok=True); p.write_bytes(d)
+ lines=["/* Generated legacy later-frontend labels; title-active uses prebaked SAT. */"]
+ lines += [f"    .word 0x{y:04X},0x{x:04X},0x{c:04X}" for y,x,c in r["legacy_labels"]]
+ lines += ["    .word 0xFFFF,0x0000,0x0000"]
+ a.frontend_labels_output.parent.mkdir(parents=True,exist_ok=True)
+ a.frontend_labels_output.write_text("\n".join(lines)+"\n")
+ report={"format":"rastan-native-title-v2","semantic_cut":"arcade 0x03AA54",
+  "ownership":{"RASTAN_logo":"static_plane_b","sword":"static_plane_b","large_TAITO":"static_plane_a_art",
+   "copyright":"static_plane_a","all_rights_reserved":"static_plane_a","credit_label":"static_plane_a",
+   "1UP_label":"static_SAT","2UP_label":"static_SAT","HIGH_SCORE_label":"static_SAT",
+   "P1_score":"dynamic_semantic_SAT","P2_score":"dynamic_semantic_SAT","high_score":"dynamic_semantic_SAT",
+   "insert_coin_blink":"arcade_semantic_plane_owner"},
+  "allocation":{"order":"first_use","dedupe":"exact_bytes","plane_unique":len(r["plane_entries"]),
+   "sprite_glyphs":len(r["sprite_slots"]),"historical_slots_0349_034c_special":False},
+  "static_sat_count":len(r["labels"]),"dynamic_digit_positions":SAT_DYNAMIC,"cells":r["cells"],
+  "sprite_slots":{f"0x{k:02X}":v for k,v in r["sprite_slots"].items()},
+  "sha256":{p.name:hashlib.sha256(d).hexdigest() for p,d in outs.items()}}
+ a.report.parent.mkdir(parents=True,exist_ok=True); a.report.write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
+if __name__=="__main__": main()

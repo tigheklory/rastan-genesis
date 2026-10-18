@@ -271,8 +271,13 @@
   {
    "arcade_pc": "0x03BB48",
    "original_bytes": "32000240007FE54841FA002AD0C02050225834184A016B0C10186716488032C232C060F4323C00201018670632C232C160F64E75",
-   "replacement_bytes": "32000240007FE54841FA000A4EB9{symbol:genesistan_hook_glyph_renderer_3bd48}4E75",
-   "note": "Build 0446 glyph descriptor-table address repair. Retain the arcade semantic selector prefix (D1=original selector, D0=(selector&0x7F)*4), resolve the immediately-adjacent copied descriptor table with LEA +10(PC), then call the Genesis-native FG renderer and return. On 68000 the PC-relative base is the extension-word address: Build 0445 incorrectly used +8, resolving to the preceding RTS two bytes before the table and producing entry 2 = 0xBE880003. The 52-to-20-byte contraction removes the retired PC080SN write loop without NOP padding. Because wrapper and table move together, the corrected PC-relative base remains valid across future shift insertions; this also replaces the stale Genesis-helper literal 0x03BD7C that Build 0444 left two bytes before its shifted table and that assembled entry 2 as 0xBEA80003."
+   "relocate_after_shift": true,
+   "replacement_template": "32000240007FE54841F9",
+   "replacement_suffix": "4EB9{symbol:genesistan_hook_glyph_renderer_3bd48}4E75",
+   "operand_kind": "abs_l_32bit",
+   "operand_width": 4,
+   "operand_arcade_target": "0x03BB7C",
+   "note": "Build 0447 semantic glyph-table reference cleanup. Retain the arcade selector prefix (D1=original selector, D0=(selector&0x7F)*4), resolve the copied descriptor table by its authoritative arcade target 0x03BB7C through the established relocate_after_shift operand pass, then call the Genesis-native FG renderer and return. This removes Build 0446's hand-encoded LEA +10(PC) layout arithmetic and emits no historical final runtime address. The 52-to-22-byte contraction still removes the retired PC080SN write loop without NOP padding; address_map.json and operand_relocation_report.txt own the final runtime correlation."
   },
   {
    "arcade_pc": "0x050482",
@@ -955,9 +960,9 @@
   },
   {
    "arcade_pc": "0x03AC54",
-   "original_bytes": "0c39004300c09e87660a7003610016606100",
+   "original_bytes": "0c39004300c09e87660a7003610016626100",
    "replacement_bytes": "60124e714e714e714e714e714e714e714e71",
-   "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis). Build 0445 updates only the validated trailing BSR displacement from 0x1680 to the shift-table-reflowed 0x1660 because that branch crosses the new 0x03BB48 -32-byte glyph-tail contraction; replacement semantics are unchanged."
+   "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis). Build 0447 updates only the validated trailing BSR displacement from 0x1660 to the shift-table-reflowed 0x1662 because the semantic absolute-long 0x03BB7C glyph-table reference makes the 0x03BB48 contraction 30 bytes instead of Build 0446's 32; replacement semantics are unchanged."
   },
   {
    "arcade_pc": "0x03AC94",

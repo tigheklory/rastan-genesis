@@ -115,7 +115,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 231  # Build 0445 reclassifies the 0x03BB48 gly
 # Opcode-replacement site count remains unchanged.
 # Build 0443 adds three generated 4 KiB final-name-word title maps (standard
 # Plane A, invincible Plane A, Plane B) to the native helper image.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x295EB8
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x298EB8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

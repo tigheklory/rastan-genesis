@@ -1,5 +1,21 @@
 # AGENTS Log
 
+## [Andy — Scrolling item-description attract screen: arcade semantics + native prebake design]
+
+* READ-ONLY arcade RE + C-tree extension. No Genesis production/Makefile/generator/spec/ROM/MAME/trace/build-number change; Cody title work untouched; Phase D/E NO. Baseline Build 0446. Deliverable: `docs/design/Andy_scrolling_item_description_attract_arcade_semantics.md`. Authorized C-tree additions only.
+* SCREEN: the scrolling item-description attract screen = attract state `A5@(0/2/4)=2/2/{4,6}`; a continuously, vertically scrolling item list (AXE/HAMMER/FIRE SWORD/SHIELD/MANTLE/ARMATURE/MEDICINE/POISON/GOLD SHEEP/JEWEL). It REUSES the shared gameplay PC080SN scroll/stream/decompress machinery.
+* MECHANISM (proven): per-frame tick `0x5607C` — every 4th frame BG Y scroll `A5+0x10EE -= 1` (wrap mod 512), commit via `0x55AB4` to PC080SN `0xC20000` (BG Y); every 8 scroll units advance/blank a row-region (`0x560DA`); at cursor `0xC00F00` re-decompress the page (`0x56056` → metatile decompressor `0x563A6` + icon sprite-record copy `0x56114` to object RAM `0xD00170`). BG text/layout is a ROM metatile stream decompressed ONCE PER LOOP (not per frame); icons are PC090OJ sprites; punctuation sub `0x565CE` = same aliases as title. So most frames are just a scroll-register write + dwell timer. The list wraps at 512 units = 64 rows = one VDP plane.
+* EXISTING C REUSED (sufficient): `0x563A6` (rastan_scene_map.c), `0x55C4A/5E/7A` (rastan_world_stream.c), `0x557BA/854/AB4/B3C` (rastan_world_scroll.c). NEW decompiled + added (none redone): `0x5607C/0x560DA/0x56032/0x56056/0x56114` → `raw/0005607c.c` + `rastan_attract_item_description.c`; `function_coverage.csv` + README updated.
+* CURRENT GENESIS: scroll already translated to native VDP scroll; but the decompressed page + streamed rows are re-staged/re-DMA'd via `genesistan_hook_tilemap_bg_fill` as it scrolls/loops. FUTURE NATIVE DESIGN (no impl): PREBAKE the full 64-row item-list tilemap + patterns + icon SAT + palette (load once); drive native VSRAM BG-Y from the retained arcade scroll counter `A5+0x10EE`; eliminate per-frame row stream/re-decompress/plane DMA. Runtime remains: scroll counter + dwell timer + attract sequencing (arcade authority). Steady-state per changing frame = one VSRAM write. No Genesis attract state machine; no PC080SN emulation. STOP before implementation.
+
+## [Andy — Archaeology: historical red-TAITO missing-title-tile workaround + native repair design (read-only)]
+
+* READ-ONLY archaeology/design. No production/generator/spec/manifest/ROM/MAME/trace/build-number/counter change; Cody title candidate untouched; Phase D/E NO. Baseline Build 0446 (commit `f9686893`). Deliverable: `docs/design/Andy_historical_title_taito_missing_tile_archaeology.md`.
+* ROOT: the red TAITO logo (current native era = Plane-A text IDs 18/19, `gen_native_title.py` `TAITO_RAW_TEXT_IDS`) uses LOW PC080SN codes; four of them (`0x22/0x27/0x2C/0x3F`) collide with punctuation `" ' , ?`. One tile-LUT code→one slot, so the logo fragment and the punctuation glyph cannot share a code. FIRST CAUSE (per `Cody_build_0106_missing_fixed_tiles…`): the global PC080SN tile-LUT precompute never allocated Genesis slots for those low title-only codes → slot 0 (blank).
+* WORKAROUND (now baked in): the 4 colliding codes' logo patterns were placed at FREE slots `0x0349–0x034C` and the tile-LUT maps the raw codes there; punctuation was redirected to alias codes `0x2744–0x274B` (slots `0x0035/0x0036/0x0039/0x003B`). Confirmed in `build/pc080sn_tile_vram_lut.bin` (0x22→0x0349, 0x27→0x034A, 0x2C→0x034B, 0x3F→0x034C) and hard-coded in `verify_native_title.py` `taito_expected`. Baked across 4 places: precompute LUT, generator (`TAITO_RAW_TEXT_IDS`+`TEXT_SPECIAL_GLYPH_MAP`), verifier (`taito_expected`+`SPECIAL_ALIASES`), report field. HAND/GENERATED split.
+* WHY 0446 STILL WRONG + VERIFIER GAP: only the 4 colliding codes got dedicated slots; the OTHER ~16 logo codes (`0x23…0x60`) map to low slots `0x0001–0x0033` SHARED with the general font, and their pattern content is unverified. `verify_native_title.py` compares the generated planes to an authoritative reconstruction built from the SAME tile-LUT and hard-checks only 4 cell WORDS — it NEVER validates the VRAM PATTERN BYTES at the referenced slots. So wrong patterns pass while the logo renders incorrect tiles. (Free slots 0x0349–0x034C also abut the OPT-003 conflict/dense boundary 0x034C — fragile.)
+* DESIGN (no impl): YES-BUT-GENERATED. Make `precompute_pc080sn_tile_lut.py` own a per-title-logo logical→physical allocation for ALL fragment codes (not just 4), upload the authoritative arcade logo patterns, emit map words; extend the verifier to validate PATTERN BYTES; ideally per-scene/title-package allocation so logo codes never share slots with text (dissolves the collision). Retire the hand-split `taito_expected`/`SPECIAL_ALIASES`/`TAITO_RAW_TEXT_IDS`; keep `title_native.s` consuming generated maps (already does). 1UP/2UP HUD defect NOT PROVEN RELATED (separate SAT path). STOP before implementation.
+
 ## [Andy — Title-screen `_d`/`_do` VBlank overrun root cause (read-only, title-only)]
 
 * READ-ONLY title-only perf audit. No production/Makefile/generator/ROM/MAME/trace/build-number/counter change; Cody 0440/0441 damage + `_invincible` untouched; Phase D/E NO; HUD/framing NOT resumed. Baseline Build 0441 (commit `9f07b5dc`). Deliverable: `docs/design/Andy_title_screen_vblank_overrun_root_cause_audit.md`.
@@ -52399,3 +52415,45 @@ TIGHE ONLY
 - Final PC: 0x074E6E
 - Stack Pointer (SP): 0x00FEFF6A
 - Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-18 16:41:40)
+- Final PC: 0x074FB4
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-18 16:44:17)
+- Final PC: 0x074FB4
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-18 16:45:48)
+- Final PC: 0x074FB4
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-18 — Build 0449 fully prebaked native title candidate
+
+- Replaced the title's historical/global physical-slot and generic PC090OJ
+  residency dependencies with generated final Plane A/B tables, a deterministic
+  296-pattern title package, static SAT, and 18x11 dynamic digit records.
+- All 646 authored static cells are verified through authoritative identity,
+  final name word, allocated slot, and exact uploaded bytes.  The complete
+  20-cell TAITO artwork is ordinary generated content; no `0x0349..0x034C`
+  workaround remains.
+- Static `HIGH SCORE`, `1UP`, and `2UP` labels have title-owned SAT records.
+  P1, P2, and high-score digits read distinct semantic state and publish only
+  the changed six-record group.  Stable title frames perform no map, pattern,
+  palette, or SAT publication/rebuild.
+- The complete title Plane-A install deterministically clears prior content.
+  The separately reported stray `3` reappears on the later credit/throne screen
+  and is deferred to that Plane-A frontend owner; no cell-specific workaround
+  was made.
+- Builds 0447 and 0448 were preserved canonical-gate failures caused solely by
+  new incbin anchor metadata/source form.  Build 0449 passes native-title,
+  assembly/link, postpatch/reflow, canonical, gameplay-entry, seven-epoch,
+  fixed-30-second (`1798` frames), and complete-family gates.
+- Build 0449 canonical SHA-256:
+  `22f5efaecbd8bba8724b477f100e718c2a591f987ea4cb7cf55fd47c05dd705c`.
+- Real-hardware acceptance: **PENDING TIGHE**.  Item-description work, Phase D,
+  and Phase E were not started.  Report:
+  `docs/design/Cody_build0449_fully_prebaked_native_title.md`.
