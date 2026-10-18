@@ -52454,6 +52454,8 @@ TIGHE ONLY
   fixed-30-second (`1798` frames), and complete-family gates.
 - Build 0449 canonical SHA-256:
   `22f5efaecbd8bba8724b477f100e718c2a591f987ea4cb7cf55fd47c05dd705c`.
+- Exact ROM-producing source commit:
+  `e36daa2fae901b06f878f0c608b8f6ce1a498bcf`.
 - Real-hardware acceptance: **PENDING TIGHE**.  Item-description work, Phase D,
   and Phase E were not started.  Report:
   `docs/design/Cody_build0449_fully_prebaked_native_title.md`.

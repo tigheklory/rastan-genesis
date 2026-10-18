@@ -135,6 +135,8 @@ Artifacts:
   `c325ad4ea37b135c4e6174de42ba5adfc8f490411ba07cbf8f7df1e66624ae13`
 - `_invincible` SHA-256:
   `0ae7252323c091a1f9bba58ee5557a6b11c95184e65748d6c72f307dc4a5f24b`
+- exact ROM-producing source commit:
+  `e36daa2fae901b06f878f0c608b8f6ce1a498bcf`
 
 Real-hardware acceptance is pending Tighe.  No rope race was rerun because the
 bounded title presentation changes do not affect gameplay execution or the
