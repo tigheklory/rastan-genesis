@@ -69,4 +69,16 @@ Artifacts:
   2,698,936 bytes, SHA-256
   `865e611c56068ba080fe927e163d0e1515ad153fc3145541153b92436241161b`.
 
-Real-hardware acceptance of Build 0442 standard and `_invincible`: **PENDING TIGHE**.
+## Real-hardware acceptance
+
+**BUILD 0442 ACCEPTED BY TIGHE ON REAL GENESIS HARDWARE — 2026-10-17.**
+
+- Accepted source commit: `c7ca1439e5cad8028043e8b3ff56fe7282addb1d`.
+- Accepted standard ROM SHA-256:
+  `76cdf3f0e7b515a227ca7e58b168481d2cdbb9dad0d50f6d1805472b6c1f9284`.
+- Accepted `_invincible` ROM SHA-256:
+  `865e611c56068ba080fe927e163d0e1515ad153fc3145541153b92436241161b`.
+- Hardware result: standard enemy damage/hurt/eventual death remains restored; `_invincible`
+  correctly suppresses ordinary enemy-contact damage through the original arcade gate.
+- Accepted `_invincible` rope result: `798 / 798 / 798`, median `13,317.147 ms`.
+- Accepted ref: `accepted/build-0442`.

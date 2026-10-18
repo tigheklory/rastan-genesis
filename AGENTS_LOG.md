@@ -52248,3 +52248,17 @@ TIGHE ONLY
 - Final PC: 0x074CB0
 - Stack Pointer (SP): 0x00FEFF6A
 - Unique Unmapped Memory Addresses: none
+
+## 2026-10-17 — Build 0442 accepted by Tighe on real Genesis hardware
+
+- **ACCEPTED BY TIGHE ON REAL GENESIS HARDWARE.** Standard enemy damage/hurt/eventual death remains
+  restored, and `_invincible` correctly suppresses ordinary enemy-contact damage through the
+  original arcade gate.
+- Exact accepted ROM-producing source commit:
+  `c7ca1439e5cad8028043e8b3ff56fe7282addb1d`.
+- Standard ROM SHA-256:
+  `76cdf3f0e7b515a227ca7e58b168481d2cdbb9dad0d50f6d1805472b6c1f9284`.
+- `_invincible` ROM SHA-256:
+  `865e611c56068ba080fe927e163d0e1515ad153fc3145541153b92436241161b`.
+- Accepted `_invincible` rope result: `798/798/798`, median `13,317.147 ms`.
+- Accepted ref: `accepted/build-0442`, pointing exactly to the ROM-producing source commit.
