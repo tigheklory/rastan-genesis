@@ -234,6 +234,26 @@
  ],
  "shift_replacements": [
   {
+   "arcade_pc": "0x03AFEE",
+   "original_bytes": "30390005FF9E",
+   "relocate_after_shift": true,
+   "replacement_template": "3039",
+   "operand_kind": "abs_l_32bit",
+   "operand_width": 4,
+   "operand_arcade_target": "0x05FF9E",
+   "note": "Build 0442 _invincible runtime-contract repair. The retained startup MOVE.W reads the arcade configuration word whose copied-ROM location moves under whole-maincpu relocation and shift reflow. Resolve its absolute-long operand after the final shift table so the original NOT.W / bit-6 mask / A5+0x0040 store consumes the same relocated byte patched by the build variant. Equal instruction size and execution cost; no Genesis-owned invincibility logic or standard-build runtime overhead."
+  },
+  {
+   "arcade_pc": "0x03AFFE",
+   "original_bytes": "30390005FF9E",
+   "relocate_after_shift": true,
+   "replacement_template": "3039",
+   "operand_kind": "abs_l_32bit",
+   "operand_width": 4,
+   "operand_arcade_target": "0x05FF9E",
+   "note": "Build 0442 paired startup configuration relocation for A5+0x0044. Resolve the same copied-ROM word through the final shift table so bit 7 remains sourced from exactly the word used by A5+0x0040. The _invincible patch changes only bit 6; bit 7 and all unrelated configuration bits remain unchanged."
+  },
+  {
    "arcade_pc": "0x050482",
    "original_bytes": "4E75",
    "replacement_bytes": "4EB9{symbol:fg_boundary_install_post_reseed}4E75",

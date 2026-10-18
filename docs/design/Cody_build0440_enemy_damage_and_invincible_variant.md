@@ -50,6 +50,13 @@ code are unchanged.
 
 ## Permanent `_invincible` variant
 
+**Superseded by Build 0442:** real-Genesis testing proved the Build 0440/0441 implementation below
+ineffective. The variant patch reached relocated ROM byte `0x05FFD5`, but the startup instructions
+still read stale absolute address `0x0005FF9E`; both standard and `_invincible` consequently stored
+zero to `A5+0x0040`. Build 0442 shift-relocates the two startup operands to the authoritative
+configuration word at `0x05FFD4`. See
+`docs/design/Cody_build0442_invincible_runtime_contract_repair.md`.
+
 The build-family flag is `RASTAN_INVINCIBLE ?= 0`. Every standard and pre-existing variant declares
 it as zero. The sole normal-display `_invincible` family member declares it as one and shares the
 canonical build number.
@@ -69,9 +76,9 @@ invincible variant, overlap, body-hit production, body-hit consumption, and hand
 execute; the unchanged handlers take their original `A5+0x0040` skip branches. Pits, water, terrain,
 timeout, and any other mechanism not gated by that arcade flag are not independently suppressed.
 
-`verify_invincible_variant.py` proves the standard manifest is non-invincible, the variant manifest
-contains exactly the declared `FF -> BF` source patch, and the two final ROMs have no other byte
-differences except the Genesis checksum. Result: **PASS**.
+The original Build 0440 `verify_invincible_variant.py` proved only the declared source patch and
+allowed ROM differences; it did not follow the final runtime instruction to the address actually
+read. Its PASS was therefore insufficient and is superseded by the Build 0442 final-ROM verifier.
 
 ## Build artifacts
 

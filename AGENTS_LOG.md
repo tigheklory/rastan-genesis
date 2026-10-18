@@ -52222,3 +52222,29 @@ TIGHE ONLY
   acceptance-bookkeeping commit.
 - Known auxiliary defect: Build 0441 `_invincible` behaves like standard and remains vulnerable.
   The standard Build 0441 acceptance stands; only the auxiliary variant is deferred to Build 0442.
+
+## 2026-10-17 — Cody Build 0442 arcade invincibility runtime-contract repair
+
+- Proved from final Build 0441 ROM bytes that startup runtime `0x03B1EE` still read stale arcade
+  address `0x0005FF9E`, where both variants held `0xFFFF`; both therefore initialized
+  `A5+0x0040=0`. The variant byte was correctly patched in the relocated config word at
+  `0x05FFD5`; the startup absolute-ROM operand was stale.
+- Added shift-aware data-operand relocation at arcade `0x03AFEE` and paired `0x03AFFE`. Final
+  runtime instructions read `0x05FFD4`: standard `0xFFFF -> A5+0x0040=0x0000`, `_invincible`
+  `0xFFBF -> A5+0x0040=0x0040`. `A5+0x0044`, bits 0–3, original handler gate, and standard runtime
+  cost are unchanged; no Genesis-owned invincibility logic.
+- Strengthened `verify_invincible_variant.py` to prove actual final-ROM operands/data/results,
+  allowed differences, and the retained 66/66 relocated damage dispatch table.
+- Complete Build 0442 family and normal gates PASS; fixed standard trace PASS at 1,798 frames.
+  `_invincible` rope benchmark `798/798/798`, deterministic YES, median `13,317.147 ms`.
+- Standard ROM SHA-256:
+  `76cdf3f0e7b515a227ca7e58b168481d2cdbb9dad0d50f6d1805472b6c1f9284`;
+  `_invincible` SHA-256:
+  `865e611c56068ba080fe927e163d0e1515ad153fc3145541153b92436241161b`.
+- Real-hardware acceptance: **PENDING TIGHE**. Report:
+  `docs/design/Cody_build0442_invincible_runtime_contract_repair.md`.
+
+### MAME Exit Summary (2026-10-17 22:05:02)
+- Final PC: 0x074CB0
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none

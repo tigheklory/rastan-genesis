@@ -1329,10 +1329,56 @@
     },
     {
       "genesis_start": "0x03B18C",
-      "genesis_end_exclusive": "0x03B298",
-      "size_bytes": 268,
+      "genesis_end_exclusive": "0x03B1EE",
+      "size_bytes": 98,
       "kind": "arcade_copy",
       "arcade_start": "0x03AF8C",
+      "arcade_end_exclusive": "0x03AFEE",
+      "source": "whole_maincpu_copy",
+      "identity_offset": 512
+    },
+    {
+      "genesis_start": "0x03B1EE",
+      "genesis_end_exclusive": "0x03B1F4",
+      "size_bytes": 6,
+      "kind": "patched_site",
+      "arcade_start": "0x03AFEE",
+      "arcade_end_exclusive": "0x03AFF4",
+      "origin": "shift_replacement",
+      "original_bytes": "30390005ff9e",
+      "replacement_bytes": "30390005ffd4",
+      "note": "Build 0442 _invincible runtime-contract repair. The retained startup MOVE.W reads the arcade configuration word whose copied-ROM location moves under whole-maincpu relocation and shift reflow. Resolve its absolute-long operand after the final shift table so the original NOT.W / bit-6 mask / A5+0x0040 store consumes the same relocated byte patched by the build variant. Equal instruction size and execution cost; no Genesis-owned invincibility logic or standard-build runtime overhead.",
+      "shift_delta": 0
+    },
+    {
+      "genesis_start": "0x03B1F4",
+      "genesis_end_exclusive": "0x03B1FE",
+      "size_bytes": 10,
+      "kind": "arcade_copy",
+      "arcade_start": "0x03AFF4",
+      "arcade_end_exclusive": "0x03AFFE",
+      "source": "whole_maincpu_copy",
+      "identity_offset": 512
+    },
+    {
+      "genesis_start": "0x03B1FE",
+      "genesis_end_exclusive": "0x03B204",
+      "size_bytes": 6,
+      "kind": "patched_site",
+      "arcade_start": "0x03AFFE",
+      "arcade_end_exclusive": "0x03B004",
+      "origin": "shift_replacement",
+      "original_bytes": "30390005ff9e",
+      "replacement_bytes": "30390005ffd4",
+      "note": "Build 0442 paired startup configuration relocation for A5+0x0044. Resolve the same copied-ROM word through the final shift table so bit 7 remains sourced from exactly the word used by A5+0x0040. The _invincible patch changes only bit 6; bit 7 and all unrelated configuration bits remain unchanged.",
+      "shift_delta": 0
+    },
+    {
+      "genesis_start": "0x03B204",
+      "genesis_end_exclusive": "0x03B298",
+      "size_bytes": 148,
+      "kind": "arcade_copy",
+      "arcade_start": "0x03B004",
       "arcade_end_exclusive": "0x03B098",
       "source": "whole_maincpu_copy",
       "identity_offset": 512
@@ -6370,6 +6416,14 @@
     "overlaps": []
   },
   "shift_deltas": [
+    [
+      "0x03AFEE",
+      0
+    ],
+    [
+      "0x03AFFE",
+      0
+    ],
     [
       "0x050482",
       6

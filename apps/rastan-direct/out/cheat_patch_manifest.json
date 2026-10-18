@@ -2671,6 +2671,24 @@
     },
     {
       "kind": "relocate_after_shift_operand",
+      "arcade_pc": "0x03AFEE",
+      "arcade_target": "0x05FF9E",
+      "shift_before_target": -458,
+      "final_operand": "0x05FFD4",
+      "genesis_callsite": "0x03B1EE",
+      "rom_bytes_written": "30390005FFD4"
+    },
+    {
+      "kind": "relocate_after_shift_operand",
+      "arcade_pc": "0x03AFFE",
+      "arcade_target": "0x05FF9E",
+      "shift_before_target": -458,
+      "final_operand": "0x05FFD4",
+      "genesis_callsite": "0x03B1FE",
+      "rom_bytes_written": "30390005FFD4"
+    },
+    {
+      "kind": "relocate_after_shift_operand",
       "arcade_pc": "0x054810",
       "arcade_target": "0x05DA5E",
       "shift_before_target": -458,
@@ -2679,7 +2697,7 @@
       "rom_bytes_written": "207C0005DA94C0FC0018D0C04EB9000746E44E75"
     }
   ],
-  "checksum": "0x988A",
+  "checksum": "0x98F7",
   "relocation_map": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {

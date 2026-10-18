@@ -270,7 +270,9 @@ verify-variant-set:
 	$(PYTHON) "$(INVINCIBLE_VARIANT_VERIFY)" \
 		--standard "$(BIN)" --invincible "$(INVINCIBLE_ROM)" \
 		--standard-manifest "$(PATCH_MANIFEST)" \
-		--invincible-manifest "$(OUT_DIR)/invincible_patch_manifest.json"; \
+		--invincible-manifest "$(OUT_DIR)/invincible_patch_manifest.json" \
+		--address-map "$(OUT_DIR)/address_map.json" \
+		--maincpu "$(ROOT)/build/regions/maincpu.bin"; \
 	echo "complete build artifact/configuration set verified for $$tag (canonical, _d, _s, _do, _c, _full_hud, _invincible)"
 
 $(OUT_DIR) $(DIST_DIR) $(VARIANT_CONFIG_DIR):
