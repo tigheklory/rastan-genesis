@@ -71,4 +71,10 @@ post-hit invulnerability, recovery, and death remains Tighe-owned.
 - Build-family verification: PASS for canonical, `_d`, `_s`, `_do`, `_c`, `_full_hud`, and
   `_invincible`. The `_invincible` feature was not investigated, changed, benchmarked, or validated
   beyond the Makefile's mandatory family mechanical check.
-- Real-Genesis enemy-damage acceptance: **PENDING TIGHE**.
+- Real-Genesis enemy-damage acceptance: **ACCEPTED BY TIGHE ON REAL GENESIS HARDWARE**, 2026-10-17.
+  Enemy contact reduces health, the hurt response occurs, and repeated attacks can kill Rastan.
+  Accepted source commit: `9f07b5dca86f445033247ec79fb92959a3832512`; accepted ref:
+  `accepted/build-0441`.
+- Known auxiliary defect accepted separately: the Build 0441 `_invincible` family variant behaves
+  like the standard build and remains vulnerable. This does not reject the standard Build 0441
+  damage repair; the variant defect is scoped to the follow-up Build 0442 repair.

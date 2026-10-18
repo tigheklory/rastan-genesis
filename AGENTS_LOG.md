@@ -52209,3 +52209,16 @@ TIGHE ONLY
   acceptance. Standard real-Genesis acceptance is **PENDING TIGHE**.
 - Permanent report: `docs/design/Cody_build0440_enemy_damage_and_invincible_variant.md`.
 - Exact Build-0440 candidate source commit: `ba4b4c2264993b53193a8067eece3bb9faa71e63`.
+
+## 2026-10-17 — Build 0441 accepted by Tighe on real Genesis hardware
+
+- **ACCEPTED BY TIGHE ON REAL GENESIS HARDWARE.** Enemy contact reduces health, the hurt response
+  occurs, and repeated enemy attacks can kill Rastan in the standard Build 0441 ROM.
+- Accepted canonical ROM SHA-256:
+  `43fc0aa15f02549661ce438f71657914cbfed08e655c510caaa85dd80f393337`.
+- Exact accepted ROM-producing source commit:
+  `9f07b5dca86f445033247ec79fb92959a3832512`.
+- Accepted ref: `accepted/build-0441`, pointing exactly to that source commit rather than the later
+  acceptance-bookkeeping commit.
+- Known auxiliary defect: Build 0441 `_invincible` behaves like standard and remains vulnerable.
+  The standard Build 0441 acceptance stands; only the auxiliary variant is deferred to Build 0442.
