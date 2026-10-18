@@ -110,6 +110,7 @@ The title-specific package retains the complete RASTAN logo, sword, red TAITO ar
 - `_do`: `29703ae279db1c43bc855241584f97b7374799cb728c9b31dee2d83ac0246c4e`
 - `_invincible`: `b2a93f17fdd0f2e8c8dfa6b328f8a4d39dc7f8628c97c66614cdad7c98d9ff6e`
 - Counter: 450
+- ROM-producing source commit: `79f05b5e`
 - Visual/hardware acceptance: pending Tighe.
 
 No item-description ring conversion, stray-3 repair, full gameplay HUD restoration, Phase D, or Phase E work was started.
