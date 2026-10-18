@@ -52390,6 +52390,8 @@ TIGHE ONLY
   fixed 30-second Genesis NTSC trace (`1798` frames), full seven-ROM family, and configuration
   verification PASS. Canonical SHA-256:
   `6e4002611320a568b71b60d791b3898ce13bc1d1124c58647bc0cf39a2ae1d08`.
+- Exact ROM-producing source commit:
+  `f968689388c77b15deaeb38b40e9784c29fe4e0b`.
 - Real-hardware acceptance: **PENDING TIGHE**. Screen 2 not started. Report:
   `docs/design/Cody_build0446_native_title_address_mapping_repair.md`.
 

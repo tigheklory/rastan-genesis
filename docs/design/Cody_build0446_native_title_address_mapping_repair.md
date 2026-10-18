@@ -84,4 +84,6 @@ metadata synchronization.
 - `_full_hud`: `cce2890cf8f6f8eb6ef34c51432e7f08ffdc3ef4251bda883c2b7036b6928e89`.
 - `_invincible`: `537b0184244c68961ac8bc5d9d47a640749a7235c2841ddb88b19b52ccf74c11`.
 - Counter: `445 -> 446`.
+- Exact ROM-producing source commit:
+  `f968689388c77b15deaeb38b40e9784c29fe4e0b`.
 - Real-hardware acceptance: PENDING TIGHE.
