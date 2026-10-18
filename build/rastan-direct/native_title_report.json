@@ -1,0 +1,647 @@
+{
+  "authoritative_sources": {
+    "invincible_no_hit_string": "0x1D",
+    "palette": "maincpu 0x05A6FA row 0",
+    "plane_a_strings": [
+      "0x02",
+      "0x1E",
+      "0x20",
+      "0x12",
+      "0x13"
+    ],
+    "plane_b_logo": "maincpu 0x05B0B2 28x20",
+    "static_sat": "maincpu 0x03B950/0x03B9B0/0x03B9D4"
+  },
+  "blank_word": "0x0000",
+  "dimensions": {
+    "logo_cols": 28,
+    "logo_rows": 20,
+    "plane_words": 2048
+  },
+  "format": "rastan-native-title-v1",
+  "logo_first_cell": 202,
+  "semantic_cut": "arcade 0x03AA54 title presentation entry",
+  "sha256": {
+    "native_title_bg.bin": "fdfaad623e5c84745ff48367d917b642ee4a4c823facf930c983ca8095b98263",
+    "native_title_fg.bin": "f268abb966c646068b8d8a109f68ef42ac143531837d71fda7c64e8ad422141b",
+    "native_title_fg_invincible.bin": "fd79dbfb3cdecb6152e415838581a42c1c5bb410aee65b78c32f7bb340c4dc68",
+    "native_title_palette.bin": "d8174e5d098fdfd3e182eaed983238add3cccbc5415c69de03f6fc86bccd5db3"
+  },
+  "static_sat_count": 22,
+  "text_cells": {
+    "18": [
+      {
+        "attr": 0,
+        "cell": 1489,
+        "code": 34,
+        "mapped_code": 10053,
+        "word": 53
+      },
+      {
+        "attr": 0,
+        "cell": 1490,
+        "code": 35,
+        "mapped_code": 35,
+        "word": 1
+      },
+      {
+        "attr": 0,
+        "cell": 1491,
+        "code": 36,
+        "mapped_code": 36,
+        "word": 2
+      },
+      {
+        "attr": 0,
+        "cell": 1492,
+        "code": 37,
+        "mapped_code": 37,
+        "word": 3
+      },
+      {
+        "attr": 0,
+        "cell": 1493,
+        "code": 38,
+        "mapped_code": 38,
+        "word": 4
+      },
+      {
+        "attr": 0,
+        "cell": 1494,
+        "code": 39,
+        "mapped_code": 10054,
+        "word": 54
+      },
+      {
+        "attr": 0,
+        "cell": 1495,
+        "code": 43,
+        "mapped_code": 43,
+        "word": 5
+      },
+      {
+        "attr": 0,
+        "cell": 1496,
+        "code": 44,
+        "mapped_code": 10057,
+        "word": 57
+      },
+      {
+        "attr": 0,
+        "cell": 1497,
+        "code": 47,
+        "mapped_code": 47,
+        "word": 7
+      },
+      {
+        "attr": 0,
+        "cell": 1498,
+        "code": 58,
+        "mapped_code": 58,
+        "word": 18
+      }
+    ],
+    "19": [
+      {
+        "attr": 0,
+        "cell": 1553,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      },
+      {
+        "attr": 0,
+        "cell": 1554,
+        "code": 60,
+        "mapped_code": 60,
+        "word": 20
+      },
+      {
+        "attr": 0,
+        "cell": 1555,
+        "code": 62,
+        "mapped_code": 62,
+        "word": 21
+      },
+      {
+        "attr": 0,
+        "cell": 1556,
+        "code": 63,
+        "mapped_code": 10059,
+        "word": 59
+      },
+      {
+        "attr": 0,
+        "cell": 1557,
+        "code": 91,
+        "mapped_code": 91,
+        "word": 46
+      },
+      {
+        "attr": 0,
+        "cell": 1558,
+        "code": 92,
+        "mapped_code": 92,
+        "word": 47
+      },
+      {
+        "attr": 0,
+        "cell": 1559,
+        "code": 93,
+        "mapped_code": 93,
+        "word": 48
+      },
+      {
+        "attr": 0,
+        "cell": 1560,
+        "code": 94,
+        "mapped_code": 94,
+        "word": 49
+      },
+      {
+        "attr": 0,
+        "cell": 1561,
+        "code": 95,
+        "mapped_code": 95,
+        "word": 50
+      },
+      {
+        "attr": 0,
+        "cell": 1562,
+        "code": 96,
+        "mapped_code": 96,
+        "word": 51
+      }
+    ],
+    "2": [
+      {
+        "attr": 0,
+        "cell": 1953,
+        "code": 67,
+        "mapped_code": 67,
+        "word": 25
+      },
+      {
+        "attr": 0,
+        "cell": 1954,
+        "code": 82,
+        "mapped_code": 82,
+        "word": 39
+      },
+      {
+        "attr": 0,
+        "cell": 1955,
+        "code": 69,
+        "mapped_code": 69,
+        "word": 27
+      },
+      {
+        "attr": 0,
+        "cell": 1956,
+        "code": 68,
+        "mapped_code": 68,
+        "word": 26
+      },
+      {
+        "attr": 0,
+        "cell": 1957,
+        "code": 73,
+        "mapped_code": 73,
+        "word": 31
+      },
+      {
+        "attr": 0,
+        "cell": 1958,
+        "code": 84,
+        "mapped_code": 84,
+        "word": 41
+      },
+      {
+        "attr": 0,
+        "cell": 1959,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      },
+      {
+        "attr": 0,
+        "cell": 1960,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      },
+      {
+        "attr": 0,
+        "cell": 1961,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      }
+    ],
+    "29": [
+      {
+        "attr": 0,
+        "cell": 1936,
+        "code": 78,
+        "mapped_code": 78,
+        "word": 36
+      },
+      {
+        "attr": 0,
+        "cell": 1937,
+        "code": 79,
+        "mapped_code": 79,
+        "word": 37
+      },
+      {
+        "attr": 0,
+        "cell": 1938,
+        "code": 45,
+        "mapped_code": 10058,
+        "word": 58
+      },
+      {
+        "attr": 0,
+        "cell": 1939,
+        "code": 72,
+        "mapped_code": 72,
+        "word": 30
+      },
+      {
+        "attr": 0,
+        "cell": 1940,
+        "code": 73,
+        "mapped_code": 73,
+        "word": 31
+      },
+      {
+        "attr": 0,
+        "cell": 1941,
+        "code": 84,
+        "mapped_code": 84,
+        "word": 41
+      }
+    ],
+    "30": [
+      {
+        "attr": 0,
+        "cell": 1670,
+        "code": 64,
+        "mapped_code": 64,
+        "word": 22
+      },
+      {
+        "attr": 0,
+        "cell": 1671,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      },
+      {
+        "attr": 0,
+        "cell": 1672,
+        "code": 49,
+        "mapped_code": 49,
+        "word": 9
+      },
+      {
+        "attr": 0,
+        "cell": 1673,
+        "code": 57,
+        "mapped_code": 57,
+        "word": 17
+      },
+      {
+        "attr": 0,
+        "cell": 1674,
+        "code": 56,
+        "mapped_code": 56,
+        "word": 16
+      },
+      {
+        "attr": 0,
+        "cell": 1675,
+        "code": 55,
+        "mapped_code": 55,
+        "word": 15
+      },
+      {
+        "attr": 0,
+        "cell": 1676,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      },
+      {
+        "attr": 0,
+        "cell": 1677,
+        "code": 84,
+        "mapped_code": 84,
+        "word": 41
+      },
+      {
+        "attr": 0,
+        "cell": 1678,
+        "code": 65,
+        "mapped_code": 65,
+        "word": 23
+      },
+      {
+        "attr": 0,
+        "cell": 1679,
+        "code": 73,
+        "mapped_code": 73,
+        "word": 31
+      },
+      {
+        "attr": 0,
+        "cell": 1680,
+        "code": 84,
+        "mapped_code": 84,
+        "word": 41
+      },
+      {
+        "attr": 0,
+        "cell": 1681,
+        "code": 79,
+        "mapped_code": 79,
+        "word": 37
+      },
+      {
+        "attr": 0,
+        "cell": 1682,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      },
+      {
+        "attr": 0,
+        "cell": 1683,
+        "code": 67,
+        "mapped_code": 67,
+        "word": 25
+      },
+      {
+        "attr": 0,
+        "cell": 1684,
+        "code": 79,
+        "mapped_code": 79,
+        "word": 37
+      },
+      {
+        "attr": 0,
+        "cell": 1685,
+        "code": 82,
+        "mapped_code": 82,
+        "word": 39
+      },
+      {
+        "attr": 0,
+        "cell": 1686,
+        "code": 80,
+        "mapped_code": 80,
+        "word": 38
+      },
+      {
+        "attr": 0,
+        "cell": 1687,
+        "code": 79,
+        "mapped_code": 79,
+        "word": 37
+      },
+      {
+        "attr": 0,
+        "cell": 1688,
+        "code": 82,
+        "mapped_code": 82,
+        "word": 39
+      },
+      {
+        "attr": 0,
+        "cell": 1689,
+        "code": 65,
+        "mapped_code": 65,
+        "word": 23
+      },
+      {
+        "attr": 0,
+        "cell": 1690,
+        "code": 84,
+        "mapped_code": 84,
+        "word": 41
+      },
+      {
+        "attr": 0,
+        "cell": 1691,
+        "code": 73,
+        "mapped_code": 73,
+        "word": 31
+      },
+      {
+        "attr": 0,
+        "cell": 1692,
+        "code": 79,
+        "mapped_code": 79,
+        "word": 37
+      },
+      {
+        "attr": 0,
+        "cell": 1693,
+        "code": 78,
+        "mapped_code": 78,
+        "word": 36
+      },
+      {
+        "attr": 0,
+        "cell": 1694,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      },
+      {
+        "attr": 0,
+        "cell": 1695,
+        "code": 74,
+        "mapped_code": 74,
+        "word": 32
+      },
+      {
+        "attr": 0,
+        "cell": 1696,
+        "code": 65,
+        "mapped_code": 65,
+        "word": 23
+      },
+      {
+        "attr": 0,
+        "cell": 1697,
+        "code": 80,
+        "mapped_code": 80,
+        "word": 38
+      },
+      {
+        "attr": 0,
+        "cell": 1698,
+        "code": 65,
+        "mapped_code": 65,
+        "word": 23
+      },
+      {
+        "attr": 0,
+        "cell": 1699,
+        "code": 78,
+        "mapped_code": 78,
+        "word": 36
+      },
+      {
+        "attr": 0,
+        "cell": 1700,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      },
+      {
+        "attr": 0,
+        "cell": 1701,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      }
+    ],
+    "32": [
+      {
+        "attr": 0,
+        "cell": 1804,
+        "code": 65,
+        "mapped_code": 65,
+        "word": 23
+      },
+      {
+        "attr": 0,
+        "cell": 1805,
+        "code": 76,
+        "mapped_code": 76,
+        "word": 34
+      },
+      {
+        "attr": 0,
+        "cell": 1806,
+        "code": 76,
+        "mapped_code": 76,
+        "word": 34
+      },
+      {
+        "attr": 0,
+        "cell": 1807,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      },
+      {
+        "attr": 0,
+        "cell": 1808,
+        "code": 82,
+        "mapped_code": 82,
+        "word": 39
+      },
+      {
+        "attr": 0,
+        "cell": 1809,
+        "code": 73,
+        "mapped_code": 73,
+        "word": 31
+      },
+      {
+        "attr": 0,
+        "cell": 1810,
+        "code": 71,
+        "mapped_code": 71,
+        "word": 29
+      },
+      {
+        "attr": 0,
+        "cell": 1811,
+        "code": 72,
+        "mapped_code": 72,
+        "word": 30
+      },
+      {
+        "attr": 0,
+        "cell": 1812,
+        "code": 84,
+        "mapped_code": 84,
+        "word": 41
+      },
+      {
+        "attr": 0,
+        "cell": 1813,
+        "code": 83,
+        "mapped_code": 83,
+        "word": 40
+      },
+      {
+        "attr": 0,
+        "cell": 1814,
+        "code": 32,
+        "mapped_code": 32,
+        "word": 0
+      },
+      {
+        "attr": 0,
+        "cell": 1815,
+        "code": 82,
+        "mapped_code": 82,
+        "word": 39
+      },
+      {
+        "attr": 0,
+        "cell": 1816,
+        "code": 69,
+        "mapped_code": 69,
+        "word": 27
+      },
+      {
+        "attr": 0,
+        "cell": 1817,
+        "code": 83,
+        "mapped_code": 83,
+        "word": 40
+      },
+      {
+        "attr": 0,
+        "cell": 1818,
+        "code": 69,
+        "mapped_code": 69,
+        "word": 27
+      },
+      {
+        "attr": 0,
+        "cell": 1819,
+        "code": 82,
+        "mapped_code": 82,
+        "word": 39
+      },
+      {
+        "attr": 0,
+        "cell": 1820,
+        "code": 86,
+        "mapped_code": 86,
+        "word": 43
+      },
+      {
+        "attr": 0,
+        "cell": 1821,
+        "code": 69,
+        "mapped_code": 69,
+        "word": 27
+      },
+      {
+        "attr": 0,
+        "cell": 1822,
+        "code": 68,
+        "mapped_code": 68,
+        "word": 26
+      }
+    ]
+  }
+}

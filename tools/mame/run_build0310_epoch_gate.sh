@@ -24,14 +24,13 @@ done
 mkdir -p "$TRACE_DIR"
 printf '%s\n' "$TRACE_DIR" > "$ROOT/build/rastan-direct/phase1_epoch_gate_latest.txt"
 
-# One representative semantic record for each generated Phase-1 residency epoch. Build 0311
-# enters epochs B/C through compiler-generated overlap packages 7/8; the stable epoch IDs remain
-# 1/2 and are verified by the transition-retention gate and the column-45 production handoff.
-# Build 0342: 5 stable epochs at 676-slot Layer-A capacity + the two preserved streamed transitions.
-# record:epoch:package  (record_to_package = [0,0,0,5,6,2,2,2,2,2,2,3,3,4,4,4])
-#   0 -> epoch0/pkg0 ; 3 -> epoch1/pkg5 (rope transition) ; 4 -> epoch2/pkg6 (waterfall transition) ;
-#   5 -> epoch2/pkg2 (stable) ; 11 -> epoch3/pkg3 ; 13 -> epoch4/pkg4
-cases=("0:0:0" "3:1:5" "4:2:6" "5:2:2" "11:3:3" "13:4:4")
+# One representative production handoff for each generated Phase-1 residency epoch/transition.
+# Keep these package expectations synchronized with boundary_report.json's authoritative
+# record_to_package array: [0,0,0,6,7,2,2,2,2,2,2,8,3,9,4,4,5,5,5,5,5].
+# record:epoch:package
+#   0 -> epoch0/pkg0 ; 3 -> epoch1/pkg6 (rope transition) ; 4 -> epoch2/pkg7 (waterfall transition) ;
+#   5 -> epoch2/pkg2 (stable) ; 11 -> epoch3/pkg8 ; 13 -> epoch4/pkg9
+cases=("0:0:0" "3:1:6" "4:2:7" "5:2:2" "11:3:8" "13:4:9")
 for entry in "${cases[@]}"; do
     IFS=: read -r record epoch package <<< "$entry"
     case_dir="$TRACE_DIR/epoch_${epoch}_record_${record}"
@@ -65,7 +64,7 @@ done
 {
     echo "result=PASS"
     echo "epochs_tested=7"
-    echo "records_tested=0,3,4,10,11,12,15"
+    echo "records_tested=0,3,4,5,11,13"
     echo "plane_a_full_lut_checks=PASS"
     echo "plane_b_fixed_lut_checks=PASS"
 } > "$TRACE_DIR/phase1_epoch_gate_summary.txt"

@@ -31,6 +31,7 @@
     .global genesistan_pc090oj_hook_zero_fill_56440
     .global genesistan_pc090oj_hook_status_sprite_5a098
     .global native_frontend_hud_emit
+    .global pc090oj_native_emit_pass
     .global genesistan_pc090oj_hook_audit_guard
     .global genesistan_pc090oj_ctrl_set_1
     .global genesistan_pc090oj_ctrl_set_0
@@ -44,6 +45,8 @@
     .extern dma_words_to_vram_noai         /* WRAM SAT/column-style publication, current autoinc */
     .extern vdp_dma_words_to_vram          /* Build 0418: boundary-safe ROM source, autoinc=2 */
     .extern genesistan_hook_cwindow_clear  /* Native Plane A/B consequence of arcade 0x0561A0. */
+    .extern genesistan_title_sat_needs_update
+    .extern genesistan_title_sat_cache_commit
 
     .global pc090oj_ctrl_shadow
     .global pc090oj_sprite_ctrl_shadow
@@ -2313,15 +2316,16 @@ pc090oj_native_emit_pass:
     tst.w   0x00FF0118
     bne     .Lnq_frontend_native
     bra     .Lnq_title
-/* Build 0264: title-screen sprites produced by LIVE direct-native producers.
+/* Build 0443: title-screen sprites produced by change-driven direct-native producers.
  * Fixed text is a semantic glyph sequence (.Lnq_title_labels: {Y,X,glyph}); the
- * score and high-score digits are generated every frame from the live arcade
+ * score and high-score digits are generated from the live arcade
  * BCD values (player 0x00FF011E, high score 0x00FF0142) -- no captured digit
  * constants.  Every piece is emitted straight into staged_sprite_sat through
  * the residency + SAT builder the gameplay lanes use: no pc090oj_object_ram,
  * no 0xD00000, no Y=0x180 park, no object-RAM scan.  Scene 0 title-active never
- * reaches .Lnq_frontend_object_scan; other frontend scenes keep the object-RAM
- * path unchanged. */
+ * reaches the general frontend producer.  Build 0443's seven-byte semantic
+ * cache suppresses this entire pass on stable title frames; other frontend
+ * screens retain their existing per-frame native path. */
 .Lnq_title:
     movem.l %d0-%d7/%a0-%a3, -(%sp)
     movem.l %a4-%a6, -(%sp)
@@ -2580,29 +2584,7 @@ native_frontend_hud_emit:
  * path, so native output reproduces the former labels byte-for-byte.
  * 0xFFFF Y terminates. */
 .Lnq_title_labels:
-    .word 0x0000,0x0078,0x003A
-    .word 0x0000,0x0088,0x003B
-    .word 0x0000,0x0098,0x003C
-    .word 0x0000,0x00A8,0x003D
-    .word 0x0008,0x00B8,0x003E
-    .word 0x00F8,0x0008,0x0037
-    .word 0x00F8,0x0018,0x0038
-    .word 0x00F8,0x0030,0x0045
-    .word 0x00F8,0x0040,0x0045
-    .word 0x00F8,0x0050,0x0045
-    .word 0x00F8,0x0060,0x0045
-    .word 0x00F8,0x0070,0x0045
-    .word 0x00F8,0x0080,0x0045
-    .word 0x01E8,0x0100,0x0034
-    .word 0x01E8,0x0110,0x0035
-    .word 0x01E8,0x0120,0x0036
-    .word 0x0010,0x0040,0x0039
-    .word 0x0000,0x0028,0x0048
-    .word 0x0000,0x0038,0x0046
-    .word 0x0010,0x0120,0x0039
-    .word 0x0000,0x0108,0x0049
-    .word 0x0000,0x0118,0x0047
-    .word 0xFFFF,0x0000,0x0000
+    .include "../../build/rastan-direct/native_title_sat.inc"
 .Lnq_gameplay:
     movem.l %d0-%d7/%a0-%a3, -(%sp)
     move.l  %a4, -(%sp)
@@ -3243,11 +3225,16 @@ profile_native_finalizer_done:
     movem.l (%sp)+, %a4-%a6
     bra     .Lnq_done_scan
 
-/* VBlank entry (called by _vblank_service): frontend fallback pass only.    */
+/* VBlank entry (called by _vblank_service).  Title-active is change-driven;
+ * every other scene retains the existing fallback pass. */
 vdp_prepare_sprites:
     tst.w   pc090oj_sat_frame_ready
     bne.s   .Lvps_done
+    bsr     genesistan_title_sat_needs_update
+    tst.b   %d0
+    beq.s   .Lvps_done
     bsr     pc090oj_native_emit_pass
+    bsr     genesistan_title_sat_cache_commit
 .Lvps_done:
     rts
 

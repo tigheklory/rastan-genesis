@@ -140,6 +140,7 @@
   "genesistan_hook_tilemap_bg_blockcopy",
   "genesistan_hook_text_writer_3c4d2",
   "genesistan_hook_cwindow_clear",
+  "genesistan_title_present_once",
   "genesistan_shadow_input_390001",
   "genesistan_shadow_input_390003",
   "genesistan_shadow_input_390005",
@@ -232,7 +233,21 @@
    "note": "Build 0377 declares the Phase-3 animation gate's BNE.S boundary because the canonical linear objdump loses the 0x596F4 function boundary in preceding inline data and therefore omits this instruction. Relocate its original target, the shared RTS at 0x5976C, across the 0x59736 native-tail contraction. This is branch reflow metadata, not an opcode replacement or control-flow change."
   }
  ],
+ "jump_table_word_displacements": [
+  {
+   "table_address": "0x03AA20",
+   "entry_count": 3,
+   "entry_size_bytes": 2,
+   "note": "Build 0444 declares the outer title/attract state dispatch table. The Build-0443 title cut inserts two bytes at 0x03AA54, so the entries targeting 0x03AA90 and 0x03AB58 must reflow from 0x0070/0x0138 to 0x0072/0x013A; leaving the words unchanged branches two bytes before both handlers. This is relocation metadata for the existing arcade control flow, not new behavior."
+  }
+ ],
  "shift_replacements": [
+  {
+   "arcade_pc": "0x03AA54",
+   "original_bytes": "4EB90005A356",
+   "replacement_bytes": "4EB9{symbol:genesistan_title_present_once}4E75",
+   "note": "Build 0443 native one-shot title presentation. Replace the first attract title presentation entry with one Genesis-native helper and return. The retired tail is the title palette call 0x05A356, its 0x05A38E -> 0x05A4DE PC080SN 28x20 logo block copy, and the five 0x03BB48 PC080SN text renders. The helper consumes offline-translated final Plane A/B name words, title CRAM words, and native semantic SAT labels, then reproduces the original A5+0x0004/A5+0x0002/A5+0x002C state writes. Arcade attract timing, input, credits, sound, and transition ownership remain above this cut. Proper 6-to-8-byte shift replacement; no NOP, trampoline, shadow chip RAM, or bypass."
+  },
   {
    "arcade_pc": "0x03AFEE",
    "original_bytes": "30390005FF9E",
@@ -252,6 +267,12 @@
    "operand_width": 4,
    "operand_arcade_target": "0x05FF9E",
    "note": "Build 0442 paired startup configuration relocation for A5+0x0044. Resolve the same copied-ROM word through the final shift table so bit 7 remains sourced from exactly the word used by A5+0x0040. The _invincible patch changes only bit 6; bit 7 and all unrelated configuration bits remain unchanged."
+  },
+  {
+   "arcade_pc": "0x03BB48",
+   "original_bytes": "32000240007FE54841FA002AD0C02050225834184A016B0C10186716488032C232C060F4323C00201018670632C232C160F64E75",
+   "replacement_bytes": "32000240007FE54841FA000A4EB9{symbol:genesistan_hook_glyph_renderer_3bd48}4E75",
+   "note": "Build 0446 glyph descriptor-table address repair. Retain the arcade semantic selector prefix (D1=original selector, D0=(selector&0x7F)*4), resolve the immediately-adjacent copied descriptor table with LEA +10(PC), then call the Genesis-native FG renderer and return. On 68000 the PC-relative base is the extension-word address: Build 0445 incorrectly used +8, resolving to the preceding RTS two bytes before the table and producing entry 2 = 0xBE880003. The 52-to-20-byte contraction removes the retired PC080SN write loop without NOP padding. Because wrapper and table move together, the corrected PC-relative base remains valid across future shift insertions; this also replaces the stale Genesis-helper literal 0x03BD7C that Build 0444 left two bytes before its shifted table and that assembled entry 2 as 0xBEA80003."
   },
   {
    "arcade_pc": "0x050482",
@@ -784,9 +805,9 @@
   },
   {
    "arcade_pc": "0x03A47E",
-   "original_bytes": "0c79004900c0883a6608303c009a610016ba",
+   "original_bytes": "0c79004900c0883a6608303c009a610016bc",
    "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
-   "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis)."
+   "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis). Build 0443 updates only the validated trailing BSR displacement from 0x16BA to the shift-table-reflowed 0x16BC because that branch crosses the new 0x03AA54 +2-byte title cut; replacement semantics are unchanged."
   },
   {
    "arcade_pc": "0x03A490",
@@ -934,9 +955,9 @@
   },
   {
    "arcade_pc": "0x03AC54",
-   "original_bytes": "0c39004300c09e87660a7003610016806100",
+   "original_bytes": "0c39004300c09e87660a7003610016606100",
    "replacement_bytes": "60124e714e714e714e714e714e714e714e71",
-   "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis)."
+   "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis). Build 0445 updates only the validated trailing BSR displacement from 0x1680 to the shift-table-reflowed 0x1660 because that branch crosses the new 0x03BB48 -32-byte glyph-tail contraction; replacement semantics are unchanged."
   },
   {
    "arcade_pc": "0x03AC94",
@@ -1153,12 +1174,6 @@
    "original_bytes": "42B900C40000",
    "replacement_bytes": "42B9{symbol:staged_scroll_x_bg}",
    "note": "Redirect title-path PC080SN xscroll clear write to Genesis staged BG X scroll mirror."
-  },
-  {
-   "arcade_pc": "0x03BB48",
-   "original_bytes": "32000240007FE54841FA002AD0C02050225834184A016B0C10186716488032C232C060F4323C00201018670632C232C160F64E75",
-   "replacement_bytes": "4EB9{symbol:genesistan_hook_glyph_renderer_3bd48}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
-   "note": "Route title glyph/string renderer at arcade_pc 0x03BB48 (runtime Genesis 0x03BD48) through Genesis FG staging hook; preserve descriptor loop semantics while preventing direct PC080SN FG C-window writes."
   },
   {
    "arcade_pc": "0x03C2E2",
@@ -2144,7 +2159,7 @@
   }
  ],
  "expectations": {
-  "opcode_replace_count": 232,
+  "opcode_replace_count": 231,
   "genesis_only_maincpu_ref_count": 7
  }
 }

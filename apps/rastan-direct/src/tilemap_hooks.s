@@ -3477,10 +3477,9 @@ genesistan_hook_number_renderer_3c2e2:
     rts
 
 genesistan_hook_glyph_renderer_3bd48:
-    move.w  %d0, %d1
-    andi.w  #0x007F, %d0
-    lsl.w   #2, %d0
-    movea.l #0x0003BD7C, %a0
+    /* The copied-code wrapper retains the arcade selector decode and resolves
+     * the adjacent descriptor table PC-relatively, so A0 follows every shift
+     * insertion.  Contract: D1 = original selector, D0 = index*4, A0 = table. */
     adda.w  %d0, %a0
     movea.l (%a0), %a0
     movea.l (%a0)+, %a1

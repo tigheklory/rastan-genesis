@@ -36,7 +36,7 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 # hardware destinations to pc090oj_object_ram + the same record offsets.
 # Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
 # source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
-CANONICAL_OPCODE_REPLACE_COUNT = 232  # Build 0440: +1 byte-neutral opcode_replace rebases the enemy-to-player body-hit consumer at 0x054A40 (0x0010D2A8 -> 0x00FF12A8). Prev 231.
+CANONICAL_OPCODE_REPLACE_COUNT = 231  # Build 0445 reclassifies the 0x03BB48 glyph cut as a shift replacement so its adjacent table follows reflow; total coverage is unchanged. Prev 232.
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -113,7 +113,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 232  # Build 0440: +1 byte-neutral opcode_repla
 # Build 0406 native sprite completion candidate adds the generated universal
 # specialized-frame payload/index and the shared visual/contact dispatch code.
 # Opcode-replacement site count remains unchanged.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x292EB8  # Build 0433 compact native death-frame payload.
+# Build 0443 adds three generated 4 KiB final-name-word title maps (standard
+# Plane A, invincible Plane A, Plane B) to the native helper image.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x295EB8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

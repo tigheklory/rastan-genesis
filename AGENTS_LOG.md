@@ -1,5 +1,13 @@
 # AGENTS Log
 
+## [Andy — Title-screen `_d`/`_do` VBlank overrun root cause (read-only, title-only)]
+
+* READ-ONLY title-only perf audit. No production/Makefile/generator/ROM/MAME/trace/build-number/counter change; Cody 0440/0441 damage + `_invincible` untouched; Phase D/E NO; HUD/framing NOT resumed. Baseline Build 0441 (commit `9f07b5dc`). Deliverable: `docs/design/Andy_title_screen_vblank_overrun_root_cause_audit.md`.
+* `_d` = backdrop green bracketed around `dma_publish_frame` (display ON). `_do` = display OFF for the same `dma_publish_frame` window. BOTH measure the Genesis publication phase only; the arcade worker runs after (`jmp 0x3A208`) → Phase E would NOT shrink either band. `_do` (black) < `_d` (green) = SAME transfer volume at a FASTER rate (full forced-blank bandwidth vs active-display-throttled DMA); the remaining `_do` band proves the per-frame transfer VOLUME is genuinely too large even at best bandwidth.
+* ROOT CAUSE: the title PLANE name-table is re-staged + re-DMA'd EVERY FRAME. The arcade title tick re-writes the PC080SN C-window; the ACTIVE `genesistan_hook_tilemap_bg_fill`/`_fg_fill` interceptors mark rows dirty per write (frontend has no change-driven native row producer — gameplay does); `vdp_commit_bg_strips`/`fg_narrow_strips` re-DMA up to 32+32 rows ×64w (~16KB). Matches `Andy_pure_publisher_audit…` §5 ("`_do` band = plane transfer VOLUME"). The unconditional 640B SAT re-DMA is a secondary contributor (no `sat_changed` distinction, only `sat_frame_ready`). Palette gated; patterns residency-gated (≈0); scene-present not per-frame; logo art is plane not sprites.
+* CORRECTS my earlier attract audit's "title background entry-loaded" claim: title TILES are entry-loaded, but the NAME-TABLE is per-frame via the active fill hooks (I'd conflated them with the stubbed PC080SN *scroll-fill* hooks). Long-standing design debt since `_do` (Build 0344), NOT a 0439/0440/0441 regression.
+* NECESSARY static-title publication ≈ 0 (only scroll); CURRENT ≈ up to 16KB plane + 640B SAT/frame. ONE measurement to confirm the split: read `vblank_vc[0..6]` (VC_MARK stage V-counters) on a stable title — expect large [2]→[3]/[3]→[4] (planes), small [4]→[5] (SAT). RECOMMENDATION (title-only, not implemented): add change-detection — in the two tilemap fill hooks compare the new staged name word to the existing one and set the row dirty ONLY on difference; add `sat_dirty` gating the SAT DMA. Credit-blink/score still publish (content differs). Caveat: publication-timing change trips the synthetic `build0310_epoch_gate` (a known gate ARTIFACT per pure-publisher §7) — correct the gate first. No Genesis attract state machine.
+
 ## 2026-10-17 — Cody Build 0441 enemy-damage dispatch repair
 
 - Build 0440 standard is hardware-rejected: enemy contact still produced no damage, hurt, or
@@ -18,6 +26,47 @@
   manifest and ROM prove 66/66 relocated pointers (entry 0 `0x5524A`); canonical and gameplay-entry
   gates PASS; fixed 30-second Genesis NTSC trace PASS at 1,798 frames. Real-hardware acceptance is
   pending Tighe.
+
+## [Andy — Attract/frontend IRQ6 overrun + Genesis-shape audit (read-only)]
+
+* READ-ONLY architecture/perf audit. No production/Makefile/generator/ROM/MAME/trace/build-number/counter change; Cody scroll/production untouched; Phase D/E NO; HUD/framing NOT resumed. Baseline Build 0439 (commit `1c35dc96`). Deliverable: `docs/design/Andy_attract_frontend_irq6_genesis_shape_audit.md`.
+* KEY: the `_d` green band = the Genesis VBlank PUBLICATION phase `dma_publish_frame` (bar bracketed around it in `_vblank_service`), NOT the arcade worker (which runs after, via `jmp (0x3A208)`, backdrop black). So the overrun is DMA/publication, and **Phase E would NOT fix it**.
+* Attract BACKGROUND/text-plane is ALREADY Genesis-shaped: both PC080SN scroll-fill hooks are no-op stubs and scenes are entry-loaded via `genesistan_scene_preload_*`/`load_scene_tiles`; the arcade's per-frame full-plane PC080SN redraw is not translated per frame. Palette is dirty-gated (`palette_pending`); sprite patterns are residency-gated. The one proven 60 Hz waste is the FRONTEND SAT: `vdp_prepare_sprites` rebuilds the whole SAT every VBlank (no arcade dispatcher sets `sat_frame_ready` in frontend) and `vdp_commit_sprites_vram` DMAs the 640-byte SAT unconditionally. Residual frontend PC090OJ object-RAM scan is physically present but bypassed on the live sub-screen path.
+* HONEST GAP: 640B SAT alone can't explain the multi-scanline band in Tighe's screenshots → an additional per-frame plane/pattern DMA may exist that the static read didn't surface. The existing `VC_MARK 0..6`/`vblank_vc` per-stage instrument in `dma_publish_frame` + `diag_servicing_peak` (`_score`) + `_do` comparison will attribute it in minutes (not run here).
+* RECOMMENDATION (PARTIAL): verdict PARTIAL (background Genesis-shaped; frontend sprite publication is unconditional per-frame). First bounded fix = make the frontend SAT publication change-driven on the TITLE screen (build SAT once on entry; set `sat_frame_ready`/`sat_dirty` only on credit-blink/score-digit change; gate SAT DMA on it), mirroring how planes/palette are already dirty-gated. Arcade keeps sequencing; no Genesis frontend state machine. STOP before implementation.
+
+## 2026-10-17 — Cody Genesis-shaped sprite architecture / VRAM safety audit
+
+- Read-only audit against accepted Build 0439 source commit
+  `033795e327a70b2cb79b94ed2632cb2630ed628b`; no production source, ROM, MAME,
+  trace, build number/counter, HUD/framing, Phase D, or Phase E change.
+- The gameplay visual path is already PC090OJ-free for every proven reachable
+  key. Compact player and Level-B records are Genesis-shaped; the remaining
+  material translation-shaped producer is the universal ten-byte per-piece
+  interpreter. Dormant invalid-key compatibility remains, but no reachable
+  normal-gameplay generic descriptor interpreter is proven live.
+- Current sprite residency is a reusable fully associative 49-cell cache at
+  patterns 1339..1534. Existing R1/P1 proof permits at most 58 complete cells
+  at 1302..1533: nine additional cells / 1,152 bytes, but the observed peak is
+  63 and later-round safety is unproven. Current cache guarantees contiguity
+  only within each 16x16 cell, so larger Genesis rectangles require a selected
+  contiguous-block residency change.
+- Safest next bounded implementation: convert exact Four-Armed base
+  `0x02E8`, selector `0x61`, compositor 0, both orientations, from universal
+  records to the existing compact direct-record shape. It is VRAM-neutral,
+  keeps the same up-to-nine SAT entries, preserves arcade gameplay and palette
+  ownership, and has a narrow dispatch/data rollback boundary. A later
+  separate Large-Bat 32x32/four-cell block is the best bounded use of some R1
+  headroom, but is not yet authorized.
+- Report:
+  `docs/design/Cody_genesis_shaped_sprite_architecture_vram_safety_audit.md`.
+
+## [Andy — Arcade enemy→Rastan damage linkage decompiled; exact Genesis root cause + Cody repair design]
+
+* ARCADE RE + existing-C-tree extension + repair DESIGN. No Genesis production source/Makefile/generator/verifier/spec/ROM/MAME/new-trace/build-number/counter change; fix NOT implemented; scroll work untouched; Phase D/E NO; HUD/framing NOT resumed. Baseline Build 0439 (commit `033795e3`; Plane-A residency opt atop restored-0434, damage path unaffected). Deliverable: `docs/design/Andy_arcade_enemy_contact_player_damage_decompilation_and_repair_design.md`.
+* LOCATED the previously "not located" enemy-contact→player-damage chain (existing Ghidra/disasm). Added to C tree: `raw/00054a40.c` (consumer), `raw/000551b0.c` (handler family + 0x5560C), `rastan_player_damage.c` (semantic); updated `function_coverage.csv` + `README.md`. Chain: 0x449B4 pass1 writes body-hit list A5+0x12A8 (A5-relative) → consumer 0x54A40 reads it (ABSOLUTE `LEA 0x0010D2A8`) → table 0x550A8 → per-type handlers 0x551CC+ (gate A5+0x40 debug-invuln & A5+0x1366 post-hit-invuln; `subiw #N,A5+0x13A` energy decrement -2..-24 cells; knockback via 0x5560C pose 0x0C/0x3A0EC; lethal arm 0x553E6 sets A5+0x10E8=8 death). ENERGY QUESTION: YES — enemy contact decrements A5+0x13A (the health field); no separate HP. Post-hit invuln = A5+0x1366 latch + A5+0x1368 timer, DISTINCT from A5+0x40 debug gate.
+* EXACT ROOT CAUSE (WRAM REBASE / KF-044): the consumer read at arcade 0x54A40 / runtime 0x54ABE is `LEA 0x0010D2A8,A0` (ROM) instead of Genesis WRAM `0x00FF12A8`. Producer writes A5-relative (correct) to 0xFF12A8; the un-rebased absolute read never sees the hit, so NO handler fires → enemies deal no damage/hurt/knockback/death. Sibling list A5+0x12C8 (0x0010D2C8) was rebased to 0x00FF12C8 in Build 0368; the body-hit read was missed. Long-standing (never worked on Genesis), not a 0438/0439 regression. Terrain deaths work because the separate solid consumer 0x54BF8 record A5+0x0242 was rebased in Build 0366.
+* CODY FIX (Tier 1, byte-neutral): add one `opcode_replace` in `specs/rastan_direct_remap.json` at arcade_pc 0x054A40, original `41F90010D2A8` → replacement `41F900FF12A8` (mirror Build-0368 0x054B1E entry). No runtime state, no Genesis damage system, no PC080SN/PC090OJ emulation. Optional one-watchpoint post-fix confirmation (0xFF12A8/0xFF013A/0xFF1366/0xFF10E8 on a deliberate enemy contact). STOP before implementation.
 
 ## [Andy — Build 0438 player-damage failure root-cause audit (read-only)]
 
@@ -52210,6 +52259,11 @@ TIGHE ONLY
 - Permanent report: `docs/design/Cody_build0440_enemy_damage_and_invincible_variant.md`.
 - Exact Build-0440 candidate source commit: `ba4b4c2264993b53193a8067eece3bb9faa71e63`.
 
+### MAME Exit Summary (2026-10-17 21:39:24)
+- Final PC: 0x074CB0
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
+
 ## 2026-10-17 — Build 0441 accepted by Tighe on real Genesis hardware
 
 - **ACCEPTED BY TIGHE ON REAL GENESIS HARDWARE.** Enemy contact reduces health, the hurt response
@@ -52262,3 +52316,84 @@ TIGHE ONLY
   `865e611c56068ba080fe927e163d0e1515ad153fc3145541153b92436241161b`.
 - Accepted `_invincible` rope result: `798/798/798`, median `13,317.147 ms`.
 - Accepted ref: `accepted/build-0442`, pointing exactly to the ROM-producing source commit.
+
+### MAME Exit Summary (2026-10-17 22:45:54)
+- Final PC: 0x295254
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-18 11:12:13)
+- Final PC: 0x295254
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-18 — Builds 0443/0444 native one-shot title candidates failed early runtime gate
+
+- Build 0443 introduced the generated one-shot Genesis title presentation at arcade semantic
+  cut `0x03AA54`; it is preserved as a failed candidate after an early address error.
+- Static reflow audit proved the `+2` insertion crossed the undeclared three-entry word-displacement
+  dispatch table at arcade `0x03AA20`. Build 0444 declares it, and postpatch correctly changes the
+  crossed entries from `0x0070/0x0138` to `0x0072/0x013A` (`3` table fixes).
+- Build 0444 generated-title verification, assembly/link, postpatch, canonical coverage, boot guards,
+  seven-ROM family verification, and the standard 30-second run (`1798` frames) completed. The
+  gameplay-entry and epoch gates still entered the address-error handler at frame 31/32, so the table
+  defect was real but not the complete early-fault cause.
+- Existing evidence records handler/vector target `0x29500C` and last periodic sample `0x071866`
+  (`genesistan_hook_tilemap_fg_fill`), but not the stacked group-0 fault PC/address/access word. These
+  values are not misreported as the fault PC. No speculative second patch, Build 0445, or candidate
+  commit was made.
+- Build 0444 canonical SHA-256:
+  `0705b91980acf6cbbdc6eb330a641abbfa9cd0cdf88f143e15061769798f9b97`.
+- Report: `docs/design/Cody_build0444_native_one_shot_title_screen.md`.
+
+### MAME Exit Summary (2026-10-18 11:32:27)
+- Final PC: 0x295254
+- Stack Pointer (SP): 0x00FFF000
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-18 — Build 0444 real fault diagnosed; Build 0445 repair exposes a second exception
+
+- Tighe's enhanced Build-0444 crash screen proved stacked continuation PC `0x000721AA`, fault
+  address/A0 `0xBEA80003`, and owner `genesistan_hook_glyph_renderer_3bd48`. The actual failed
+  memory cycle is the preceding `0x721A8: 2258 movea.l (a0)+,a1`; unchanged A1 proves it did not
+  complete.
+- Root cause: the helper retained literal table base `0x03BD7C` after the Build-0443 insertion
+  moved the table to `0x03BD7E`. With `D0=8`, the stale base assembled exact bogus entry
+  `0xBEA80003`; correct entry 2 was `0x0003BEC0`.
+- Build 0445 converts arcade cut `0x03BB48` from byte-neutral replacement to a 52-to-20-byte shift
+  replacement retaining selector decode, resolving the adjacent table with `lea +8(pc),a0`, and
+  calling the native Plane-A staging helper. The helper no longer embeds a runtime table address.
+  The valid prior `0x03AA20` dispatch-table repair remains.
+- Generated equivalence, assembly/link, postpatch, boot guards, canonical coverage/gate, complete
+  seven-ROM family build, and family verification PASS. Canonical SHA-256:
+  `23b574cece108eb97914e2d1e3afafb870c76360c11db3fe87276ec9514caf16`.
+- Build 0445 is **not accepted**: gameplay-entry and epoch gates both detect a new address error at
+  frame 31/32. The 30-second run completes 1,798 frames while halted on the crash screen. Existing
+  gate artifacts lack the new stacked PC/register record, so no speculative follow-on repair or
+  source commit was made. Next evidence required: Tighe's Build-0445 improved crash-screen image.
+- Report: `docs/design/Cody_build0445_native_title_address_error_repair.md`.
+
+## 2026-10-18 — Build 0446 corrects PC-relative table base; automated gates pass
+
+- Tighe's Build-0445 crash screen proved stacked continuation PC `0x0007219C`, `D0=8`, and
+  `FAULT=A0=0xBE880003`. This exactly identifies Build 0445's remaining error: 68000
+  `LEA d16(PC)` uses the extension-word address as its base, so `41FA0008` resolved to the
+  preceding `RTS` at runtime `0x03BD5C`, two bytes before address-map authority `0x03BD5E`.
+- Build 0446 changes only that displacement to `41FA000A`. Final ROM proof:
+  `0x03BD54 + 0x000A = 0x03BD5E`; selector 2 reads valid pointer `0x0003BEA0` instead of
+  `0xBE880003`. The verifier requires the corrected encoding.
+- The existing epoch-gate wrapper had stale package expectations. It was synchronized with the
+  generated `boundary_report.json` mapping: records `3/4/11/13 -> packages 6/7/8/9`. All six
+  existing production handoffs then PASS full Plane-A/fixed Plane-B LUT validation with zero
+  exceptions; production code is unaffected by this harness correction.
+- Build 0446 generated equivalence, canonical gate, boot guards, gameplay entry, epoch gate,
+  fixed 30-second Genesis NTSC trace (`1798` frames), full seven-ROM family, and configuration
+  verification PASS. Canonical SHA-256:
+  `6e4002611320a568b71b60d791b3898ce13bc1d1124c58647bc0cf39a2ae1d08`.
+- Real-hardware acceptance: **PENDING TIGHE**. Screen 2 not started. Report:
+  `docs/design/Cody_build0446_native_title_address_mapping_repair.md`.
+
+### MAME Exit Summary (2026-10-18 12:21:25)
+- Final PC: 0x074E6E
+- Stack Pointer (SP): 0x00FEFF6A
+- Unique Unmapped Memory Addresses: none
