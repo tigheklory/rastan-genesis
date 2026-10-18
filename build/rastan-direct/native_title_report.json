@@ -4,7 +4,7 @@
     "historical_slots_0349_034c_special": false,
     "order": "first_use",
     "plane_unique": 216,
-    "sprite_glyphs": 20
+    "sprite_glyphs": 0
   },
   "cells": [
     {
@@ -5176,54 +5176,23 @@
       "word": "0x0401"
     }
   ],
-  "dynamic_digit_positions": 18,
-  "format": "rastan-native-title-v2",
+  "format": "rastan-native-title-v3",
   "ownership": {
-    "1UP_label": "static_SAT",
-    "2UP_label": "static_SAT",
-    "HIGH_SCORE_label": "static_SAT",
-    "P1_score": "dynamic_semantic_SAT",
-    "P2_score": "dynamic_semantic_SAT",
     "RASTAN_logo": "static_plane_b",
     "all_rights_reserved": "static_plane_a",
     "copyright": "static_plane_a",
     "credit_label": "static_plane_a",
-    "high_score": "dynamic_semantic_SAT",
     "insert_coin_blink": "arcade_semantic_plane_owner",
     "large_TAITO": "static_plane_a_art",
+    "shared_HUD": "genesistan_native_hud_package",
     "sword": "static_plane_b"
   },
   "semantic_cut": "arcade 0x03AA54",
   "sha256": {
     "native_title_bg.bin": "0813a750ca4e9b8ca3a8d60c817d6f260bdf3459749f5712b7d7713dc36592f6",
-    "native_title_dynamic_records.bin": "6da17f23917317b90ea41b51a81e1e5e1f6cddea40f7e570b4f574de63799ca1",
     "native_title_fg.bin": "68563d90d8cc3f359bd0356135483dad6f89aed76633ff8069e1a7196b428566",
     "native_title_fg_invincible.bin": "e5f50adce2bdaae1fd7efb0b52261556b77b02cf86aeb609740f7f2e7d400f2f",
     "native_title_palette.bin": "d8174e5d098fdfd3e182eaed983238add3cccbc5415c69de03f6fc86bccd5db3",
-    "native_title_patterns.bin": "d9f49afc2c3153ab827914500bd1a72420c435095a1dd071a14505abb7ab596d",
-    "native_title_static_sat.bin": "6425f3e0d9b96c81b82f19132443abfa546ada74278b924cba057ffae89a4c89"
-  },
-  "sprite_slots": {
-    "0x2A": 1379,
-    "0x2B": 1383,
-    "0x2C": 1387,
-    "0x2D": 1391,
-    "0x2E": 1395,
-    "0x2F": 1399,
-    "0x30": 1403,
-    "0x31": 1407,
-    "0x32": 1411,
-    "0x33": 1415,
-    "0x39": 1359,
-    "0x3A": 1339,
-    "0x3B": 1343,
-    "0x3C": 1347,
-    "0x3D": 1351,
-    "0x3E": 1355,
-    "0x46": 1367,
-    "0x47": 1375,
-    "0x48": 1363,
-    "0x49": 1371
-  },
-  "static_sat_count": 11
+    "native_title_patterns.bin": "41cc04ffddd455296c8092e4ea8ce9bd084b1e14b230210e56e64d67a236247b"
+  }
 }

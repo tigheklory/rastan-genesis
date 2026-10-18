@@ -30,7 +30,6 @@
     .global genesistan_pc090oj_hook_copy_56114
     .global genesistan_pc090oj_hook_zero_fill_56440
     .global genesistan_pc090oj_hook_status_sprite_5a098
-    .global native_frontend_hud_emit
     .global pc090oj_native_emit_pass
     .global genesistan_pc090oj_hook_audit_guard
     .global genesistan_pc090oj_ctrl_set_1
@@ -45,8 +44,10 @@
     .extern dma_words_to_vram_noai         /* WRAM SAT/column-style publication, current autoinc */
     .extern vdp_dma_words_to_vram          /* Build 0418: boundary-safe ROM source, autoinc=2 */
     .extern genesistan_hook_cwindow_clear  /* Native Plane A/B consequence of arcade 0x0561A0. */
-    .extern genesistan_title_is_active
-    .extern genesistan_title_prepare_dynamic
+    .extern genesistan_hud_activate_frontend
+    .extern genesistan_hud_prepare_frontend
+    .extern genesistan_hud_deactivate
+    .extern genesistan_hud_link_transient
 
     .global pc090oj_ctrl_shadow
     .global pc090oj_sprite_ctrl_shadow
@@ -84,6 +85,7 @@
     .global pc090oj_reverse_index_init
     .global pc090oj_tile_dma_worklist
     .global pc090oj_tile_dma_count
+    .global transient_items_active
 
     /* Build 0142 retained-identity translation state.  The player-specific
      * work-RAM tuple bridges were retired by the native main-loop player
@@ -2311,15 +2313,7 @@ pc090oj_native_emit_pass:
     move.b  genesistan_current_scene_id, %d0
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, %d0
     beq     .Lnq_gameplay
-    tst.b   %d0
-    bne     .Lnq_frontend_native        /* scene != 0 and != 1 (scene 2): native frontend */
-    /* scene 0 (title tileset): the static native title HUD table is exact only in
-     * the title-active state (arcade stage a5@0x118 == 0).  Once the attract loop
-     * advances (stage != 0: PUSH-BUTTON text toggles off, sub-screens), the frontend
-     * runs the same native producers (HUD + transient items) as scene 2. */
-    tst.w   0x00FF0118
-    bne     .Lnq_frontend_native
-    bra     .Lnq_title
+    bra     .Lnq_frontend_native
 /* Build 0443: title-screen sprites produced by change-driven direct-native producers.
  * Fixed text is a semantic glyph sequence (.Lnq_title_labels: {Y,X,glyph}); the
  * score and high-score digits are generated from the live arcade
@@ -2335,23 +2329,6 @@ pc090oj_native_emit_pass:
      * offline and installed by genesistan_title_present_once.  Its VBlank
      * service updates only changed digit records, so the generic residency /
      * full-SAT builder has no title-active work. */
-    rts
-
-/* Fixed-label glyph sequence emitter (semantic {Y,X,glyph}, 0xFFFF-terminated).
- * Each glyph is passed in registers straight to the shared native SAT builder. */
-.Lnq_title_emit_labels:
-    lea     .Lnq_title_labels, %a5
-.Ltl_loop:
-    move.w  (%a5), %d2                /* Y */
-    cmpi.w  #0xFFFF, %d2
-    beq.s   .Ltl_done
-    move.w  2(%a5), %d4               /* X */
-    move.w  4(%a5), %d3               /* glyph code */
-    moveq   #0, %d1                   /* attr = 0 (palette line 0) */
-    bsr     .Lnq_emit_entry
-    addq.l  #6, %a5
-    bra.s   .Ltl_loop
-.Ltl_done:
     rts
 
 /* Frontend-direct transient treasure/item emitter.  Replaces the former
@@ -2448,6 +2425,10 @@ pc090oj_native_emit_pass:
     .word 0x00E0, 0x0044            /* R */
     .word 0xFFFF
 
+/* Build 0450: superseded source retained under an assembly-false guard only
+ * for local provenance.  It emits no code and owns no runtime consumer; the
+ * generated shared HUD module is the sole frontend HUD owner. */
+.if 0
 /* -------------------------------------------------------------------------
  * native_frontend_hud_emit -- the complete native frontend HUD subsystem.
  *
@@ -2579,7 +2560,9 @@ native_frontend_hud_emit:
     /* Shared later-frontend labels retain their established native producer.
      * The title-active path above never reaches this table. */
     .include "../../build/rastan-direct/native_frontend_labels.inc"
+.endif
 .Lnq_gameplay:
+    bsr     genesistan_hud_deactivate
     movem.l %d0-%d7/%a0-%a3, -(%sp)
     move.l  %a4, -(%sp)
     /* pc090oj_ctrl_shadow can only be changed by the arcade control producer.
@@ -3200,34 +3183,44 @@ profile_native_finalizer_done:
  * family, then hands off to the shared native finalizer .Lnq_done_scan.  Reached
  * for scene 0 stage!=0 and scene 2 from pc090oj_native_emit_pass. */
 .Lnq_frontend_native:
+    tst.w   transient_items_active
+    beq     .Lnq_title
     movem.l %d0-%d7/%a0-%a3, -(%sp)
     movem.l %a4-%a6, -(%sp)
+    bsr     genesistan_hud_activate_frontend
+    bsr     genesistan_hud_link_transient
     lea     staged_sprite_sat, %a3
     tst.w   pc090oj_sat_bank
     beq.s   .Lnqfn_bank_ok
     lea     staged_sprite_sat_b, %a3
 .Lnqfn_bank_ok:
+    adda.w  #(30 * 8), %a3
     lea     sprite_tile_resident_code, %a2
     lea     pc090oj_cell_used, %a1     /* per-frame referenced-cell bitmap */
+    move.w  #0xFFFF, (%a1)+           /* HUD cells 0..15 reserved */
+    move.b  #0x0F, (%a1)+             /* HUD cells 16..19 reserved */
+    clr.b   (%a1)+
     clr.l   (%a1)+
     clr.l   (%a1)+
     clr.l   (%a1)+
-    clr.l   (%a1)+
-    moveq   #0, %d5                    /* d5 = emitted count / cursor */
-    bsr     native_frontend_hud_emit     /* live scores/labels/credit */
+    moveq   #30, %d5                   /* append after shared HUD records */
     bsr     .Lnq_transient_items_emit    /* frontend-direct treasure/item family */
     movem.l (%sp)+, %a4-%a6
     bra     .Lnq_done_scan
 
-/* VBlank entry (called by _vblank_service).  Title-active is change-driven;
- * every other scene retains the existing fallback pass. */
+/* VBlank entry. Every frontend state selects the same change-driven FULL HUD;
+ * gameplay retains the established REDUCED_P1 finalizer. */
 vdp_prepare_sprites:
-    bsr     genesistan_title_is_active
-    tst.b   %d0
-    beq.s   .Lvps_not_title
-    bsr     genesistan_title_prepare_dynamic
+    cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, genesistan_current_scene_id
+    beq.s   .Lvps_gameplay
+    bsr     genesistan_hud_prepare_frontend
+    tst.w   transient_items_active
+    beq.s   .Lvps_done
+    tst.w   pc090oj_sat_frame_ready
+    bne.s   .Lvps_done
+    bsr     pc090oj_native_emit_pass
     rts
-.Lvps_not_title:
+.Lvps_gameplay:
     tst.w   pc090oj_sat_frame_ready
     bne.s   .Lvps_done
     bsr     pc090oj_native_emit_pass

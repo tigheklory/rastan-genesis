@@ -26,6 +26,10 @@ PC080SN_PLANE_B_VISUAL_VERIFY := $(ROOT)/tools/translation/verify_pc080sn_plane_
 COLLISION_VISUAL_SEMANTICS_VERIFY := $(ROOT)/tools/translation/verify_collision_visual_semantics.py
 NATIVE_TITLE_GEN := $(ROOT)/tools/translation/gen_native_title.py
 NATIVE_TITLE_VERIFY := $(ROOT)/tools/translation/verify_native_title.py
+NATIVE_HUD_GEN := $(ROOT)/tools/translation/gen_native_hud.py
+NATIVE_HUD_VERIFY := $(ROOT)/tools/translation/verify_native_hud.py
+BEST5_TABLE_GEN := $(ROOT)/tools/translation/gen_best5_native_tables.py
+BEST5_TABLE_VERIFY := $(ROOT)/tools/translation/verify_best5_native_tables.py
 REGION_BUILDER := $(ROOT)/tools/build_rastan_regions.py
 NUMBERED_DIST_DIR := $(ROOT)/dist/rastan-direct
 NUMBERED_COUNTER := $(ROOT)/build/rastan-direct/build_counter.txt
@@ -105,10 +109,14 @@ NATIVE_TITLE_FG := $(ROOT)/build/rastan-direct/native_title_fg.bin
 NATIVE_TITLE_FG_INVINCIBLE := $(ROOT)/build/rastan-direct/native_title_fg_invincible.bin
 NATIVE_TITLE_PALETTE := $(ROOT)/build/rastan-direct/native_title_palette.bin
 NATIVE_TITLE_PATTERNS := $(ROOT)/build/rastan-direct/native_title_patterns.bin
-NATIVE_TITLE_STATIC_SAT := $(ROOT)/build/rastan-direct/native_title_static_sat.bin
-NATIVE_TITLE_DYNAMIC_RECORDS := $(ROOT)/build/rastan-direct/native_title_dynamic_records.bin
-NATIVE_FRONTEND_LABELS := $(ROOT)/build/rastan-direct/native_frontend_labels.inc
 NATIVE_TITLE_REPORT := $(ROOT)/build/rastan-direct/native_title_report.json
+NATIVE_HUD_PATTERNS := $(ROOT)/build/rastan-direct/native_hud_patterns.bin
+NATIVE_HUD_STATIC_SAT := $(ROOT)/build/rastan-direct/native_hud_static_sat.bin
+NATIVE_HUD_DYNAMIC_RECORDS := $(ROOT)/build/rastan-direct/native_hud_dynamic_records.bin
+NATIVE_HUD_REPORT := $(ROOT)/build/rastan-direct/native_hud_report.json
+BEST5_NUMBER_TABLE := $(ROOT)/build/rastan-direct/best5_number_descriptors.bin
+BEST5_NAME_TABLE := $(ROOT)/build/rastan-direct/best5_name_descriptors.bin
+BEST5_TABLE_REPORT := $(ROOT)/build/rastan-direct/best5_native_tables_report.json
 PC080SN_NATIVE_METATILE_INDEX := $(ROOT)/build/pc080sn_native_metatile_index.bin
 PC080SN_NATIVE_METATILE_RECORDS := $(ROOT)/build/pc080sn_native_metatile_records.bin
 PC080SN_NATIVE_METATILE_REPORT := $(ROOT)/build/rastan-direct/pc080sn_native_metatile_report.json
@@ -195,6 +203,7 @@ OBJS := \
 	$(OUT_DIR)/fg_tile_cache.o \
 	$(OUT_DIR)/palette_hooks.o \
 	$(OUT_DIR)/title_native.o \
+	$(OUT_DIR)/hud_native.o \
 	$(OUT_DIR)/pc090oj_hooks.o \
 	$(OUT_DIR)/pc090oj_assets.o \
 	$(OUT_DIR)/diag_bookmark.o \
@@ -309,7 +318,7 @@ $(CRASH_BUILD_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 	printf '/* GENERATED build number by apps/rastan-direct/Makefile -- do not hand-edit. */\ncrash_build_number_str: .asciz "%s"\n' "$$tag" > $@; \
 	echo "crash build number -> $$tag ($@)"
 
-$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) $(BEST5_NUMBER_TABLE) $(BEST5_NAME_TABLE) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -358,18 +367,32 @@ $(PC080SN_ATTR_LUT): $(ROOT)/tools/translation/precompute_pc080sn_attr_lut.py
 		--output "$(PC080SN_ATTR_LUT)" \
 		--include "$(ROOT)/build/pc080sn_attr_lut_words.inc"
 
-$(NATIVE_TITLE_BG): $(MAINCPU_REGION) $(PC080SN_REGION) $(PC090OJ_PRECONV) $(PC080SN_SCENE_PRELOAD_TITLE) $(PC080SN_ATTR_LUT) $(NATIVE_TITLE_GEN)
+$(NATIVE_TITLE_BG): $(MAINCPU_REGION) $(PC080SN_REGION) $(PC080SN_SCENE_PRELOAD_TITLE) $(PC080SN_ATTR_LUT) $(NATIVE_TITLE_GEN)
 	$(PYTHON) "$(NATIVE_TITLE_GEN)" --maincpu "$(MAINCPU_REGION)" \
-		--pc080sn "$(PC080SN_REGION)" --pc090oj "$(PC090OJ_PRECONV)" \
+		--pc080sn "$(PC080SN_REGION)" \
 		--title-preload "$(PC080SN_SCENE_PRELOAD_TITLE)" --attr-lut "$(PC080SN_ATTR_LUT)" \
 		--bg-output "$(NATIVE_TITLE_BG)" --fg-output "$(NATIVE_TITLE_FG)" \
 		--fg-invincible-output "$(NATIVE_TITLE_FG_INVINCIBLE)" \
 		--palette-output "$(NATIVE_TITLE_PALETTE)" --pattern-output "$(NATIVE_TITLE_PATTERNS)" \
-		--sat-output "$(NATIVE_TITLE_STATIC_SAT)" --dynamic-output "$(NATIVE_TITLE_DYNAMIC_RECORDS)" \
-		--frontend-labels-output "$(NATIVE_FRONTEND_LABELS)" \
 		--report "$(NATIVE_TITLE_REPORT)"
 
-$(NATIVE_TITLE_FG) $(NATIVE_TITLE_FG_INVINCIBLE) $(NATIVE_TITLE_PALETTE) $(NATIVE_TITLE_PATTERNS) $(NATIVE_TITLE_STATIC_SAT) $(NATIVE_TITLE_DYNAMIC_RECORDS) $(NATIVE_FRONTEND_LABELS) $(NATIVE_TITLE_REPORT): $(NATIVE_TITLE_BG)
+$(NATIVE_TITLE_FG) $(NATIVE_TITLE_FG_INVINCIBLE) $(NATIVE_TITLE_PALETTE) $(NATIVE_TITLE_PATTERNS) $(NATIVE_TITLE_REPORT): $(NATIVE_TITLE_BG)
+	@test -f "$@"
+
+$(NATIVE_HUD_PATTERNS): $(MAINCPU_REGION) $(PC090OJ_PRECONV) $(NATIVE_HUD_GEN)
+	$(PYTHON) "$(NATIVE_HUD_GEN)" --maincpu "$(MAINCPU_REGION)" --pc090oj "$(PC090OJ_PRECONV)" \
+		--patterns-output "$(NATIVE_HUD_PATTERNS)" --sat-output "$(NATIVE_HUD_STATIC_SAT)" \
+		--dynamic-output "$(NATIVE_HUD_DYNAMIC_RECORDS)" --report "$(NATIVE_HUD_REPORT)"
+
+$(NATIVE_HUD_STATIC_SAT) $(NATIVE_HUD_DYNAMIC_RECORDS) $(NATIVE_HUD_REPORT): $(NATIVE_HUD_PATTERNS)
+	@test -f "$@"
+
+$(BEST5_NUMBER_TABLE): $(MAINCPU_REGION) $(BEST5_TABLE_GEN)
+	$(PYTHON) "$(BEST5_TABLE_GEN)" --maincpu "$(MAINCPU_REGION)" \
+		--number-output "$(BEST5_NUMBER_TABLE)" --name-output "$(BEST5_NAME_TABLE)" \
+		--report "$(BEST5_TABLE_REPORT)"
+
+$(BEST5_NAME_TABLE) $(BEST5_TABLE_REPORT): $(BEST5_NUMBER_TABLE)
 	@test -f "$@"
 
 $(PC080SN_NATIVE_METATILE_INDEX): $(MAINCPU_REGION) $(PC080SN_NATIVE_METATILE_GEN)
@@ -480,10 +503,13 @@ $(PC090OJ_PALSEL_LUT_INC): $(SRC_DIR)/palette_hooks.s $(EDITOR_LAYERA_SNAPSHOT) 
 	$(PYTHON) $(PC090OJ_PALSEL_LUT_GEN) --route-src $(SRC_DIR)/palette_hooks.s \
 		--profile $(EDITOR_LAYERA_SNAPSHOT) --out $@ --report $(PC090OJ_PALSEL_EQUIV) --verify
 
-$(OUT_DIR)/title_native.o: $(SRC_DIR)/title_native.s $(PC090OJ_CONFIG_INC) $(NATIVE_TITLE_BG) $(NATIVE_TITLE_FG) $(NATIVE_TITLE_FG_INVINCIBLE) $(NATIVE_TITLE_PALETTE) $(NATIVE_TITLE_PATTERNS) $(NATIVE_TITLE_STATIC_SAT) $(NATIVE_TITLE_DYNAMIC_RECORDS) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/title_native.o: $(SRC_DIR)/title_native.s $(PC090OJ_CONFIG_INC) $(NATIVE_TITLE_BG) $(NATIVE_TITLE_FG) $(NATIVE_TITLE_FG_INVINCIBLE) $(NATIVE_TITLE_PALETTE) $(NATIVE_TITLE_PATTERNS) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) $(PC090OJ_VARIANTS_INC) $(NATIVE_FRONTEND_LABELS) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/hud_native.o: $(SRC_DIR)/hud_native.s $(NATIVE_HUD_PATTERNS) $(NATIVE_HUD_STATIC_SAT) $(NATIVE_HUD_DYNAMIC_RECORDS) FORCE_ASM_REBUILD | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+$(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) $(PC090OJ_VARIANTS_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_EDITOR) $(PC090OJ_LAYER1_STAMP) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) $(PC090OJ_FRAME_TABLE) $(PC090OJ_PLAYER_PIECE_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_SECONDARY_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_PIECE_TABLE) $(PC090OJ_UNIVERSAL_FRAME_INDEX) $(PC090OJ_SPECIAL_FRAME_INDEX) $(PC090OJ_DEATH_FRAME_INDEX) $(PC090OJ_DEATH_PIECE_TABLE) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -529,7 +555,7 @@ $(SYMBOLS): $(ELF) | $(OUT_DIR)
 $(PREPATCH_BIN): $(ELF) | $(OUT_DIR)
 	$(OBJCOPY) -O binary $< $@
 
-$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) $(NATIVE_TITLE_VERIFY) $(NATIVE_TITLE_REPORT) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) $(NATIVE_TITLE_VERIFY) $(NATIVE_TITLE_REPORT) $(NATIVE_HUD_VERIFY) $(NATIVE_HUD_REPORT) $(BEST5_TABLE_VERIFY) $(BEST5_TABLE_REPORT) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/canonical.inc"
 	$(PYTHON) "$(PC080SN_NATIVE_METATILE_VERIFY)" --maincpu "$(MAINCPU_REGION)" \
 		--index "$(PC080SN_NATIVE_METATILE_INDEX)" --records "$(PC080SN_NATIVE_METATILE_RECORDS)" \
@@ -544,13 +570,18 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 		--index "$(PC080SN_NATIVE_METATILE_INDEX)" --records "$(PC080SN_NATIVE_METATILE_RECORDS)"
 	$(PYTHON) "$(COLLISION_VISUAL_SEMANTICS_VERIFY)"
 	$(PYTHON) "$(NATIVE_TITLE_VERIFY)" --generator "$(NATIVE_TITLE_GEN)" \
-		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_REGION)" --pc090oj "$(PC090OJ_PRECONV)" \
+		--maincpu "$(MAINCPU_REGION)" --pc080sn "$(PC080SN_REGION)" \
 		--title-preload "$(PC080SN_SCENE_PRELOAD_TITLE)" --attr-lut "$(PC080SN_ATTR_LUT)" \
 		--bg "$(NATIVE_TITLE_BG)" --fg "$(NATIVE_TITLE_FG)" \
 		--fg-invincible "$(NATIVE_TITLE_FG_INVINCIBLE)" --palette "$(NATIVE_TITLE_PALETTE)" \
-		--patterns "$(NATIVE_TITLE_PATTERNS)" --static-sat "$(NATIVE_TITLE_STATIC_SAT)" \
-		--dynamic-records "$(NATIVE_TITLE_DYNAMIC_RECORDS)" --report "$(NATIVE_TITLE_REPORT)" \
+		--patterns "$(NATIVE_TITLE_PATTERNS)" --report "$(NATIVE_TITLE_REPORT)" \
 		--spec "$(PATCH_SPEC)" --title-source "$(SRC_DIR)/title_native.s"
+	$(PYTHON) "$(NATIVE_HUD_VERIFY)" --generator "$(NATIVE_HUD_GEN)" \
+		--maincpu "$(MAINCPU_REGION)" --pc090oj "$(PC090OJ_PRECONV)" \
+		--patterns "$(NATIVE_HUD_PATTERNS)" --static-sat "$(NATIVE_HUD_STATIC_SAT)" \
+		--dynamic-records "$(NATIVE_HUD_DYNAMIC_RECORDS)" --report "$(NATIVE_HUD_REPORT)" \
+		--hud-source "$(SRC_DIR)/hud_native.s" --sprite-source "$(SRC_DIR)/pc090oj_hooks.s" \
+		--title-source "$(SRC_DIR)/title_native.s"
 	$(PYTHON) "$(VDP_DMA_BOUNDARY_GATE)" --symbols "$(SYMBOLS)" --patterns "$(PC080SN_EDITOR_LAYERA)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -562,6 +593,10 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(PATCH_MANIFEST)" \
 		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(BEST5_TABLE_VERIFY)" --maincpu "$(MAINCPU_REGION)" --rom "$@" \
+		--address-map "$(ROOT)/build/rastan-direct/address_map.json" \
+		--number-table "$(BEST5_NUMBER_TABLE)" --name-table "$(BEST5_NAME_TABLE)" \
+		--tilemap-source "$(SRC_DIR)/tilemap_hooks.s"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 	@mkdir -p "$(ROOT)/build"
 	$(OBJDUMP) -D -b binary -m m68k:68000 --adjust-vma=0 "$@" > "$(ROOT)/build/genesis_postpatch.disasm.txt"

@@ -2584,7 +2584,7 @@ genesistan_hook_highscore_fg_producer:
     move.w  %d0, %d5
     mulu.w  #6, %d0
 
-    lea     0x0003C654, %a0
+    lea     genesistan_highscore_name_descriptor_table, %a0
     adda.w  %d0, %a0
     move.w  (%a0), %d3
     beq.s   .Lhighscore_done
@@ -3302,7 +3302,7 @@ genesistan_hook_number_renderer_3c2e2:
 
     move.w  %d0, %d6
     mulu.w  #10, %d6
-    movea.l #0x0003C57C, %a0
+    lea     genesistan_number_descriptor_table, %a0
     adda.w  %d6, %a0
 
     move.w  (%a0), %d3
@@ -4890,6 +4890,15 @@ vdp_commit_fg_narrow_strips:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     bra.w   vdp_commit_fg_strips_if_dirty
 
+
+    .section .rodata,"a"
+    .align 2
+    .global genesistan_number_descriptor_table
+    .global genesistan_highscore_name_descriptor_table
+genesistan_number_descriptor_table:
+    .incbin "../../build/rastan-direct/best5_number_descriptors.bin"
+genesistan_highscore_name_descriptor_table:
+    .incbin "../../build/rastan-direct/best5_name_descriptors.bin"
 
     .section .bss
     .align 2

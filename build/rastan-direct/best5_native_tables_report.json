@@ -1,0 +1,12 @@
+{
+  "format": "rastan-best5-native-descriptors-v1",
+  "name": {
+    "arcade_pc": "0x03C454",
+    "bytes": 48
+  },
+  "number": {
+    "arcade_pc": "0x03C37C",
+    "bytes": 130
+  },
+  "source_contract": "generated from authoritative original maincpu; addressed by linker symbols"
+}

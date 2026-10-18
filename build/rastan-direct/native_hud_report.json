@@ -1,0 +1,57 @@
+{
+  "dynamic_positions": 19,
+  "fixed_residency_cells": 20,
+  "format": "rastan-shared-native-hud-v1",
+  "modes": {
+    "FRONTEND_FULL": [
+      "1UP",
+      "P1",
+      "HIGH SCORE",
+      "HIGH",
+      "2UP",
+      "P2",
+      "CREDIT"
+    ],
+    "GAMEPLAY_FULL_future_supported": true,
+    "GAMEPLAY_REDUCED_P1": [
+      "1UP",
+      "P1"
+    ]
+  },
+  "performance": {
+    "generic_glyph_interpretation": 0,
+    "pc090oj_record_interpretation": 0,
+    "stable_frontend_full_rebuild": 0,
+    "update_granularity": "changed semantic score group or credit record"
+  },
+  "sat_records": 30,
+  "semantic_cut": "arcade HUD state -> final Genesis SAT",
+  "sha256": {
+    "native_hud_dynamic_records.bin": "6790134f9962f9c2d80017c2a6ed5d2cd78a263dee4f4ff0e419aa19a41514db",
+    "native_hud_patterns.bin": "2494a6db83781607e609208982e1cc2dcc1e111cbe3773b5035c60c81cd54edc",
+    "native_hud_static_sat.bin": "570c766c5eac962574b09bf2b97fbee38e4bb1462b2df5f2892ca39b91662913"
+  },
+  "sprite_slots": {
+    "0x2A": 1379,
+    "0x2B": 1383,
+    "0x2C": 1387,
+    "0x2D": 1391,
+    "0x2E": 1395,
+    "0x2F": 1399,
+    "0x30": 1403,
+    "0x31": 1407,
+    "0x32": 1411,
+    "0x33": 1415,
+    "0x39": 1359,
+    "0x3A": 1339,
+    "0x3B": 1343,
+    "0x3C": 1347,
+    "0x3D": 1351,
+    "0x3E": 1355,
+    "0x46": 1367,
+    "0x47": 1375,
+    "0x48": 1363,
+    "0x49": 1371
+  },
+  "static_label_records": 11
+}
