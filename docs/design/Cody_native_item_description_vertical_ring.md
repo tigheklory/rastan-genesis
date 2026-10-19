@@ -58,3 +58,14 @@ All normal gates passed: item verifier, title, shared HUD, BEST-5, assembly/link
 - `_invincible` SHA-256: `8e680621a80948d96ad86fda0f0f367c5fed270d98ccddbfeb3a7756888b1f10`
 - Counter: 453
 - Real-hardware acceptance: pending Tighe
+
+## Rejection record
+
+Tighe visually rejected Build 0453 on 2026-10-19. The artifact and its passing mechanical gates are
+preserved as a rejected candidate, not accepted or locked. The automated rope benchmark was
+`798 / 798 / 798` frames (median `13,317.147 ms`), so the candidate was performance-neutral against
+accepted Build 0452; that result does not override the visual rejection. Static re-audit found that
+the generator incorrectly placed page A at logical row 8 instead of the `0xC00828`-encoded row 4,
+placed delayed page B at logical rows 0..6 instead of 32..38, and forced every icon to palette line 0
+instead of applying the arcade sprite-control colbank and attribute nibble. Build 0453 must not be
+acceptance-locked.

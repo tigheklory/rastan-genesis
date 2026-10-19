@@ -52504,3 +52504,40 @@ TIGHE ONLY
 - The item presentation now cuts at arcade `0x05602C` (Genesis `0x056090`) and item tick `0x05607C` (Genesis `0x0560E2`) into native helpers. Offline assets contain the complete 64x64 final Plane-B logical map, 27 text patterns, and authoritative 17+3 icon templates/patterns. Physical Plane B remains 64x32 with `physical=logical&31`; live `A5+0x10EE` remains the one 4-frame/-1/modulo-512 scroll authority. Entry seeds 32 rows; each eight-pixel crossing copies one 64-word row and marks one dirty bit; wrap never rebuilds the plane.
 - Item-specific runtime `0x563A6` decompression output, `0x560DA` PC080SN row streaming/rebuild, C-window projection, PC090 tuple interpretation, separate scroll state, and the old padded `0x5607C` body replacement are retired from this screen. FRONTEND_FULL remains shared; item icon slots 1419..1498 derive from current HUD/sprite ownership and do not overlap HUD, name tables, SAT, or HScroll.
 - Item logical/ring/pattern/icon verification, title, shared HUD, BEST-5, assembly/link, 75-site reflow, canonical, gameplay-entry, seven-epoch, fixed 30-second Genesis NTSC MAME, complete seven-ROM family, and invincibility gates PASS. Canonical artifact `dist/rastan-direct/rastan_direct_video_test_build_0453.bin`, size 2,735,800, SHA-256 `628f3025dfffe09a6b2188b0ecc14f5134683b93efdbc3482275dd489fd4a36e`; `_invincible` SHA-256 `8e680621a80948d96ad86fda0f0f367c5fed270d98ccddbfeb3a7756888b1f10`; counter 453; ROM-producing source commit `d5bae39b67f5df6d5ff3499adfa6972bdf111942`. Real-hardware acceptance pending Tighe. Report: `docs/design/Cody_native_item_description_vertical_ring.md`.
+
+## 2026-10-19 — Build 0453 visually rejected
+
+- Tighe visually rejected Build 0453. Preserve source `d5bae39b67f5df6d5ff3499adfa6972bdf111942`
+  and canonical SHA-256 `628f3025dfffe09a6b2188b0ecc14f5134683b93efdbc3482275dd489fd4a36e`
+  as a rejected candidate; do not acceptance-lock it. Its existing rope benchmark was
+  798/798/798 frames, median 13,317.147 ms, deterministic YES and neutral against accepted 0452;
+  that mechanical/performance result does not satisfy visual acceptance.
+
+### MAME Exit Summary (2026-10-19 11:24:35)
+- Final PC: 0x03B296
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-19 — Build 0454 arcade-exact item-description semantic conversion
+
+- Corrected Build 0453's offline presentation package from original arcade code/ROM data, without
+  changing its 64-logical-row / 32-physical-row native ring. Arcade `0x563A6` is the text/layout
+  writer (`0xFF` next row, `0x00` end), not a metatile decompressor; page A is source `0x5672A` at
+  row 4/column 10, while delayed page B `0x5697E` owns logical rows 32..38 at column 10 after
+  12 crossings. Build 0453 had used rows 8 and 0..6. Icon tables `0x56226`/`0x562B0` remain the
+  identity/position/attribute authority; control colbank `0x30` plus attrs selects effective banks
+  `0x33`/`0x30`, mapped by the current scene-0 LUT to lines 3/2 instead of Build 0453's forced line 0.
+- Strengthened the independent verifier: preserved 0453 data fails spatial equivalence at row 0,
+  column 10; its icon data fails bank `0x33` expected-line-3 equivalence; corrected package passes
+  complete 64x64 source/pattern, all-window ring, 17+3 icon, and palette semantics. Screenshots were
+  acceptance evidence only. No runtime decompression/text interpretation/PC080SN presentation was
+  restored; no palette registry decision changed.
+- Normal gates, 75-site reflow, canonical/gameplay-entry/seven-epoch gates, fixed 30-second Genesis
+  NTSC MAME, and all seven ROM variants pass. Canonical artifact
+  `dist/rastan-direct/rastan_direct_video_test_build_0454.bin`, size 2,735,800, SHA-256
+  `e3c12b58e7cd7d9a499e26f8fec7aa2db0642d344c2a606f359b99fd55640a5d`; counter 454; source
+  commit `2c83bc25be43c8495f039d429f08eb74667a73f1`. Existing rope route on `_invincible` is
+  798/798/798 frames, median 13,317.147 ms, deterministic YES: no measurable regression.
+  OPEN-001 advances but remains open; OPEN-032 remains open pending Tighe's explicit coin-transition
+  check. Build 0454 is a candidate: real-hardware visual/gameplay acceptance is USER MUST VERIFY.
+  Report: `docs/design/Cody_build0454_arcade_exact_item_description.md`. Phase D/E NO.

@@ -44,6 +44,14 @@ rather than trusting the Markdown conclusions.
   un-rebased `0x0010D2A8` consumer read but hardware testing proved that insufficient: the 66
   absolute handler pointers in table `0x550A8` also required shift relocation. See
   `docs/design/Cody_enemy_damage_actual_root_cause_and_repair.md`.
+- `rastan_attract_item_description.c` — the SCROLLING ITEM-DESCRIPTION attract screen (state
+  `A5@(0/2/4)=2/2/{4,6}`): per-frame tick `0x5607C` (BG vertical scroll `A5+0x10EE`, scroll commit
+  `0x55AB4`→PC080SN `0xC20000`, per-item dwell timer at `0xD00170`), row-stream advance `0x560DA`,
+  page (re)build `0x56032`/`0x56056` (shared BG text/layout writer `0x563A6` + icon sprite copy
+  `0x56114`). Page A writes C-window row 4 / column 10; the delayed page-B physical rows 0..6 map
+  to logical ring rows 32..38. Reuses the shared gameplay scroll/stream machinery; raws:
+  `raw/0005607c.c`, `raw/000563a6.c`. See
+  `docs/design/Cody_build0454_arcade_exact_item_description.md`.
 - `rastan_actor_render.c` — CHECKPOINT H10: render selector dispatch `0x3D054` + selector thunks
   `0x3F0BC`/`0x4770E`/`0x3FFDC`/`0x3FFF0` (all funnel to the shared 0x3C902 interpreter).
 - `rastan_actor_palette.c` — CHECKPOINT H10: palette-attribute resolver `0x45684` (non-fam2 table
