@@ -12,13 +12,16 @@ Rules:
 
 ## Current Build 0283+ Reconciliation (2026-08-16)
 
-- **[2026-10-19 Build 0455 — item layout reconstructed; Tighe verification pending]** Build 0454
+- **[2026-10-19 Build 0455 — ACCEPTED by Tighe]** Build 0454
   is visually rejected as a complete candidate: its icon colors appeared corrected, but its text
   layout was vertically compressed because it treated the PC080SN writer's `+0x200` delimiter as
   one row. Hardware proves a `0x100`-byte row, so the delimiter advances two 8-pixel rows. Build
   0455 generates the entry and wrapped surfaces from original ROM/code and passes an independent
-  oracle that reports 987 mismatches against preserved Build 0454. OPEN-001 remains open pending
-  Tighe's visual acceptance; OPEN-032 remains independently open for coin-transition icon teardown.
+  oracle that reports 987 mismatches against preserved Build 0454. Exact accepted source
+  `bb09135dee3e6491a844c84635a70710291a33f6` is locked by `accepted/build-0455`; canonical SHA-256
+  `3a2141bd5aa1f1dafbb0d5a59fa408e736f29c32ae377e595ab982e45aa8db68`; accepted rope
+  798/798/798, median 13,317.147 ms. OPEN-001 remains broader than this accepted item screen;
+  OPEN-032 remains independently open for coin-transition icon teardown.
 
 - **[2026-10-13 Build 0419 — background optimization remains OPEN]** The
   accepted Build 0418 background path repeated the full live Plane-A descriptor

@@ -2,7 +2,7 @@
 
 Date: 2026-10-19  
 Agent: Cody  
-Status: candidate produced; Tighe visual/hardware acceptance required
+Status: ACCEPTED by Tighe; acceptance ref `accepted/build-0455`
 
 ## Outcome
 
@@ -167,8 +167,10 @@ Build 0454 is recorded as visually rejected. Build 0455 advances the item-screen
 OPEN-001 but does not close it without Tighe visual verification. OPEN-032 remains open: this task
 did not prove coin-during-item-screen icon teardown. No CLOSED issue changes.
 
-Build 0455 remains a candidate. Tighe must verify exact layout/spacing, multiline descriptions,
-blank regions, icon identity/color/alignment, smooth scrolling, no black bar or ring seam, full
-wrap, HUD, coin-up teardown, unchanged title/story/BEST-5, and no gameplay regression.
+Tighe visually accepted Build 0455. The exact accepted ROM-producing source is
+`bb09135dee3e6491a844c84635a70710291a33f6`, locked by `accepted/build-0455`; the later
+bookkeeping commit `3d0bcc31` does not replace that source identity. The accepted deterministic
+rope result is 798/798/798 frames, median 13,317.147 ms. OPEN-032 remains open because item-screen
+acceptance did not establish coin-up icon teardown.
 
 Phase D: NO. Phase E: NO.

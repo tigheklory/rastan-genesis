@@ -52579,3 +52579,13 @@ TIGHE ONLY
 - Established `_invincible` rope: 798/798/798, median 13,317.147 ms, deterministic YES. OPEN-001
   remains pending Tighe visual acceptance; OPEN-032 remains open. Report:
   `docs/design/Cody_build0455_rom_driven_item_screen.md`. Phase D/E: NO.
+
+## 2026-10-19 — Build 0455 accepted and locked
+
+- Tighe visually accepted Build 0455. Exact accepted ROM-producing source:
+  `bb09135dee3e6491a844c84635a70710291a33f6`; canonical SHA-256
+  `3a2141bd5aa1f1dafbb0d5a59fa408e736f29c32ae377e595ab982e45aa8db68`; `_invincible`
+  SHA-256 `91db6af42904a4563dc7d5b91abf3c1ecd3d5ba1745e1ee5a30463ae8f865755`.
+- `accepted/build-0455` points exactly to that ROM-producing source, not later bookkeeping commit
+  `3d0bcc31`. Accepted deterministic rope: 798/798/798 frames, median 13,317.147 ms, YES.
+- OPEN-032 remains open: accepted item layout does not prove coin-transition icon teardown.
