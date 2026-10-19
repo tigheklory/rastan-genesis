@@ -18,8 +18,8 @@
     .equ ITEM_LOGICAL_ROWS,           64
     .equ ITEM_PHYSICAL_ROWS,          32
     .equ ITEM_ROW_BYTES,              128
-    .equ ITEM_INITIAL_TOP_ROW,        4
-    .equ ITEM_INITIAL_LAST_ROW,       35
+    .equ ITEM_INITIAL_TOP_ROW,        0
+    .equ ITEM_INITIAL_LAST_ROW,       31
     .equ ITEM_PAGE_B_INSTALL_PIXEL,   96
     .equ ITEM_PAGE_A_ICON_COUNT,      17
     .equ ITEM_PAGE_B_ICON_COUNT,      3
@@ -63,17 +63,12 @@ genesistan_item_description_enter:
     bra.s   .Litem_icon_pattern_next
 .Litem_icon_patterns_done:
 
-    /* Arcade cursor C00400 means the initial 32-row resident window is logical
-     * rows 4..35. Physical ownership is logical_row&31. */
+    /* Seed the exact pre-scroll arcade surface.  Page B is not resident yet;
+     * it enters through the normal one-row ring crossings after wrap. */
     moveq   #ITEM_INITIAL_TOP_ROW, %d6
+    lea     native_item_initial_rows, %a0
     moveq   #(ITEM_PHYSICAL_ROWS - 1), %d5
 .Litem_initial_row:
-    moveq   #0, %d0
-    move.w  %d6, %d0
-    lsl.l   #7, %d0
-    lea     native_item_logical_map, %a0
-    adda.l  %d0, %a0
-
     move.w  %d6, %d0
     andi.w  #(ITEM_PHYSICAL_ROWS - 1), %d0
     lsl.w   #7, %d0
@@ -192,6 +187,8 @@ genesistan_item_emit_native:
     .align 2
 native_item_logical_map:
     .incbin "../../build/rastan-direct/native_item_logical_map.bin"
+native_item_initial_rows:
+    .incbin "../../build/rastan-direct/native_item_initial_rows.bin"
 native_item_plane_patterns:
     .incbin "../../build/rastan-direct/native_item_plane_patterns.bin"
 native_item_icon_patterns:

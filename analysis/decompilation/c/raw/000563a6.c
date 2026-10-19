@@ -2,7 +2,8 @@
  * RECONSTRUCTED_FROM_68000. Status: COMPLETE.
  * Walks an uncompressed ROM byte stream at A0 into the name-table destination A1. Byte stream:
  *   0x00        -> end (rts)
- *   0xFF        -> next PC080SN row: saved row base += 0x200; A1 = new row base
+ *   0xFF        -> saved row base += 0x200 bytes; because a PC080SN row is 64 four-byte cells
+ *                  (0x100 bytes), this advances TWO 8-pixel hardware rows
  *   otherwise   -> emit: a1[0] = d1 (attribute), a1[1] = glyph_alias(d0)
  * glyph_alias (0x563CE): a small remap for bytes 0x21/0x22/0x27/0x28/0x29/0x2C/0x2D/
  *   0x3F -> tile codes 0x2744..0x274B; other bytes pass through as the tile code.

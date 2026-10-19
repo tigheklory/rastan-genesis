@@ -117,6 +117,8 @@ NATIVE_HUD_STATIC_SAT := $(ROOT)/build/rastan-direct/native_hud_static_sat.bin
 NATIVE_HUD_DYNAMIC_RECORDS := $(ROOT)/build/rastan-direct/native_hud_dynamic_records.bin
 NATIVE_HUD_REPORT := $(ROOT)/build/rastan-direct/native_hud_report.json
 NATIVE_ITEM_LOGICAL_MAP := $(ROOT)/build/rastan-direct/native_item_logical_map.bin
+NATIVE_ITEM_INITIAL_ROWS := $(ROOT)/build/rastan-direct/native_item_initial_rows.bin
+NATIVE_ITEM_REFERENCE := $(ROOT)/build/rastan-direct/native_item_arcade_reference.json
 NATIVE_ITEM_PLANE_PATTERNS := $(ROOT)/build/rastan-direct/native_item_plane_patterns.bin
 NATIVE_ITEM_ICON_PATTERNS := $(ROOT)/build/rastan-direct/native_item_icon_patterns.bin
 NATIVE_ITEM_ICON_RECORDS := $(ROOT)/build/rastan-direct/native_item_icon_records.bin
@@ -401,12 +403,14 @@ $(NATIVE_ITEM_LOGICAL_MAP): $(MAINCPU_REGION) $(PC080SN_REGION) $(PC090OJ_PRECON
 		--hud-report "$(NATIVE_HUD_REPORT)" --sprite-source "$(SRC_DIR)/pc090oj_hooks.s" \
 		--palette-lut "$(PC090OJ_PALSEL_LUT_INC)" \
 		--map-output "$(NATIVE_ITEM_LOGICAL_MAP)" \
+		--initial-rows-output "$(NATIVE_ITEM_INITIAL_ROWS)" \
 		--plane-pattern-output "$(NATIVE_ITEM_PLANE_PATTERNS)" \
 		--icon-pattern-output "$(NATIVE_ITEM_ICON_PATTERNS)" \
 		--icon-record-output "$(NATIVE_ITEM_ICON_RECORDS)" \
+		--reference-output "$(NATIVE_ITEM_REFERENCE)" \
 		--report "$(NATIVE_ITEM_REPORT)"
 
-$(NATIVE_ITEM_PLANE_PATTERNS) $(NATIVE_ITEM_ICON_PATTERNS) $(NATIVE_ITEM_ICON_RECORDS) $(NATIVE_ITEM_REPORT): $(NATIVE_ITEM_LOGICAL_MAP)
+$(NATIVE_ITEM_INITIAL_ROWS) $(NATIVE_ITEM_REFERENCE) $(NATIVE_ITEM_PLANE_PATTERNS) $(NATIVE_ITEM_ICON_PATTERNS) $(NATIVE_ITEM_ICON_RECORDS) $(NATIVE_ITEM_REPORT): $(NATIVE_ITEM_LOGICAL_MAP)
 	@test -f "$@"
 
 $(BEST5_NUMBER_TABLE): $(MAINCPU_REGION) $(BEST5_TABLE_GEN)
@@ -531,7 +535,7 @@ $(OUT_DIR)/title_native.o: $(SRC_DIR)/title_native.s $(PC090OJ_CONFIG_INC) $(NAT
 $(OUT_DIR)/hud_native.o: $(SRC_DIR)/hud_native.s $(NATIVE_HUD_PATTERNS) $(NATIVE_HUD_STATIC_SAT) $(NATIVE_HUD_DYNAMIC_RECORDS) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/item_native.o: $(SRC_DIR)/item_native.s $(NATIVE_ITEM_LOGICAL_MAP) $(NATIVE_ITEM_PLANE_PATTERNS) $(NATIVE_ITEM_ICON_PATTERNS) $(NATIVE_ITEM_ICON_RECORDS) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/item_native.o: $(SRC_DIR)/item_native.s $(NATIVE_ITEM_LOGICAL_MAP) $(NATIVE_ITEM_INITIAL_ROWS) $(NATIVE_ITEM_PLANE_PATTERNS) $(NATIVE_ITEM_ICON_PATTERNS) $(NATIVE_ITEM_ICON_RECORDS) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) $(PC090OJ_VARIANTS_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -611,6 +615,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 		--pc080sn "$(PC080SN_REGION)" --pc090oj "$(PC090OJ_PRECONV)" \
 		--hud-report "$(NATIVE_HUD_REPORT)" \
 		--logical-map "$(NATIVE_ITEM_LOGICAL_MAP)" \
+		--initial-rows "$(NATIVE_ITEM_INITIAL_ROWS)" --reference "$(NATIVE_ITEM_REFERENCE)" \
 		--plane-patterns "$(NATIVE_ITEM_PLANE_PATTERNS)" \
 		--icon-patterns "$(NATIVE_ITEM_ICON_PATTERNS)" \
 		--icon-records "$(NATIVE_ITEM_ICON_RECORDS)" --report "$(NATIVE_ITEM_REPORT)" \

@@ -16,16 +16,19 @@
  *     0x21->0x2744 ... 0x3F->0x274B). Static content; NOT regenerated per frame. The previously
  *     cited original PCs 0x565A6/0x565CE are data, not these routines; those names came from a
  *     historical shifted Genesis correspondence.
- *     The exact destinations are 0xC00828 = row 4 / column 10 for page A and 0xC00028 = physical
- *     row 0 / column 10 for page B. Page B is installed after 12 row crossings and therefore owns
- *     logical ring rows 32..38, not logical rows 0..6.
+ *     PC080SN has 64 columns of two-word cells, hence a hardware-row stride of 0x100 bytes.
+ *     The exact destinations are 0xC00828 = hardware row 8 / column 10 for page A and 0xC00028 =
+ *     physical row 0 / column 10 for page B. The writer's +0x200-byte delimiter advances TWO
+ *     hardware rows (16 pixels), preserving the blank 8-pixel rows authored between text lines.
+ *     Page B is installed after 12 crossings and is the next wrapped presentation content at
+ *     unwrapped row 64 (physical aliases 0,2,...12), not logical rows 32..38.
  *   - Item ICONS (PC090OJ sprites): copied as 8-byte descriptor records by 0x56114 from a ROM table
  *     (0x56226 / 0x562B0) to object RAM 0xD00170 at (re)build time. Attribute nibbles 3/0 combine
  *     with sprite-control colbank 0x30 (control 0x0060) as effective banks 0x33/0x30.
  *   - SCROLL: the shared gameplay PC080SN scroll/stream machinery. Per tick (0x5607C), every 4th
  *     frame: BG vertical scroll A5+0x10EE -= 1 (wrap mod 512); every 8 units a new row-region is
  *     advanced/blanked (0x560DA) and the dest cursor A5+0x10A0 wraps in the C-window; at the wrap
- *     boundary (cursor == 0xC00F00) the page is re-decompressed (0x56056). The scroll is committed to
+ *     boundary (cursor == 0xC00F00) page B is written (0x56056). The scroll is committed to
  *     the PC080SN scroll registers by 0x55AB4 (A5+0x10EC->0xC40000 FG X, A5+0x10AE->0xC40002 FG Y,
  *     A5+0x10EE->0xC20000 BG Y). FG scroll accumulators (A5+0x10AE/0x10B0) are held 0 on this screen.
  *   - A per-item dwell timer walks the 8-byte sprite descriptors at 0xD00170 (countdown field +2;

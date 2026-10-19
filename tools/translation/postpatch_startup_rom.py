@@ -117,7 +117,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 230  # Build 0453 reclassifies item tick 0x0560
 # Plane A, invincible Plane A, Plane B) to the native helper image.
 # Build 0453 adds the complete generated item logical map and native pattern /
 # icon packages (+0x3000 bytes in the linked Genesis-owned helper image).
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x29BEB8
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x29CEB8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #
