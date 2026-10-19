@@ -595,6 +595,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BEST5_TABLE_VERIFY)" --maincpu "$(MAINCPU_REGION)" --rom "$@" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" \
+		--symbols "$(SYMBOLS)" \
 		--number-table "$(BEST5_NUMBER_TABLE)" --name-table "$(BEST5_NAME_TABLE)" \
 		--tilemap-source "$(SRC_DIR)/tilemap_hooks.s"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"

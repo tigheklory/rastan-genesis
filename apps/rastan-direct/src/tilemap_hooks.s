@@ -184,13 +184,6 @@
     .equ FG_PRODUCER_SEG_COUNT,              16  /* 64 rows; gameplay FG now preserves rows 0-63 in staged_fg_tall_buffer. */
     .equ FG_PRODUCER_ROW_COUNT,              4
     .equ ARCADE_MAINCPU_ROM_BASE,            0x00000200
-    .equ ARCADE_HIGHSCORE_SOURCE_BASE,       0x00FF0000
-    /* Arcade A5 work-RAM base (KF-039).  The number-renderer descriptors store
-     * absolute arcade work-RAM pointers (0x0010Cxxx); the mapped Genesis address
-     * is a5(0x00FF0000) + (pointer - ARCADE_WORKRAM_A5_BASE).  Build 0150 fix:
-     * the source was masked with 0x0000FFFF (keeping the 0xC000 A5-base bits),
-     * so it read 0x00FFCxxx (all zero) -> SCORE/ROUND rendered as 0. */
-    .equ ARCADE_WORKRAM_A5_BASE,             0x0010C000
     .equ PC080SN_DESC_REBUILD_SRC_TABLE,      0x00FF1000
     .equ PC080SN_DESC_REBUILD_PTR_TABLE,      0x00FF1040
     .equ PC080SN_DESC_REBUILD_WORD_TABLE,     0x00FF1080
@@ -2591,8 +2584,8 @@ genesistan_hook_highscore_fg_producer:
 
     movea.w 2(%a0), %a1
     adda.l  #ARCADE_PC080SN_CWINDOW_BASE_FG, %a1
-    movea.w 4(%a0), %a2
-    adda.l  #ARCADE_HIGHSCORE_SOURCE_BASE, %a2
+    movea.l %a5, %a2
+    adda.w  4(%a0), %a2
 
 .Lhighscore_cell_loop:
     clr.w   %d4
@@ -3301,13 +3294,12 @@ genesistan_hook_number_renderer_3c2e2:
     movem.l %d0-%d7/%a0/%a2-%a6, -(%sp)
 
     move.w  %d0, %d6
-    mulu.w  #10, %d6
+    lsl.w   #3, %d6
     lea     genesistan_number_descriptor_table, %a0
     adda.w  %d6, %a0
 
     move.w  (%a0), %d3
     movea.l 2(%a0), %a1
-    move.l  6(%a0), %d2
     move.w  %d3, %d7
 
     move.l  %a1, %d6
@@ -3320,11 +3312,9 @@ genesistan_hook_number_renderer_3c2e2:
     move.l  %a1, %d4
 
     movea.l %a5, %a4
-    /* Map the descriptor's absolute arcade work-RAM source pointer to Genesis
-     * WRAM: a4 = a5 + (source - ARCADE_WORKRAM_A5_BASE)  (KF-039).  Was
-     * andi.l #0x0000FFFF (kept the 0xC000 base bits) -> read 0x00FFCxxx zeros. */
-    subi.l  #ARCADE_WORKRAM_A5_BASE, %d2
-    adda.l  %d2, %a4
+    /* Build-generated semantic source: positive signed-word displacement from
+     * the live arcade A5 work-state base.  No runtime arcade/Genesis rebasing. */
+    adda.w  6(%a0), %a4
 
     lea     genesistan_pc080sn_tile_vram_lut, %a3
     lea     genesistan_pc080sn_attr_lut, %a5

@@ -52474,3 +52474,16 @@ TIGHE ONLY
 - Final PC: 0x0702D8
 - Stack Pointer (SP): 0x00FEFF76
 - Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-18 21:43:08)
+- Final PC: 0x0702D8
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-18 — Build 0452 BEST-5 runtime address arithmetic eliminated
+
+- Accepted Build 0451 was first locked at source commit `cc8787f6c1ab4909f40140ab89e5fc0386801abe`, canonical SHA-256 `070bbee980e1c33096a75c0cf41c5b9819e8aa1301985b03333fcff1527f9062`, with ref `accepted/build-0451`; acceptance record commit `c61f062e` precedes this implementation.
+- The authoritative numeric descriptors at arcade `0x03C37C` are now generated as 8-byte `count/destination/A5-displacement` records instead of copied 10-byte records with absolute `0x0010Cxxx` sources. The distinct NAME descriptors at arcade `0x03C454` remain 6-byte records but are explicitly validated as A5-relative. All 21 live sources fit `0x0013–0x0168`.
+- Both producers now use direct `A5 + generated word displacement`; runtime source-base subtraction, Genesis-WRAM rebasing, stale ROM literals, and magic replacement sources are absent. SCORE/ROUND/NAME stay live and leading-zero suppression is unchanged.
+- BEST-5 conversion/final-ROM proof, title, shared HUD, assembly/link, 73-shift postpatch, canonical, gameplay-entry, seven-epoch, fixed 30-second Genesis NTSC MAME (`1798` frames), complete family/config, and invincibility gates PASS.
+- Canonical artifact `dist/rastan-direct/rastan_direct_video_test_build_0452.bin`, size 2,723,512, SHA-256 `7dc9230c1e18cb71900986fc3f06fe2e680622b7e4020d805ce1e67a2057f48e`; `_invincible` SHA-256 `594550b61de2bb3a7fd0d03af9b4a29580de00f7f2d3a2a6ed6a0235cd7141f2`; counter 452. Real-hardware acceptance pending Tighe. Report: `docs/design/Cody_build0452_best5_runtime_address_arithmetic_elimination.md`.

@@ -1,12 +1,168 @@
 {
-  "format": "rastan-best5-native-descriptors-v1",
+  "arcade_a5_base": "0x0010C000",
+  "format": "rastan-best5-native-descriptors-v2",
   "name": {
+    "arcade_bytes": 48,
     "arcade_pc": "0x03C454",
-    "bytes": 48
+    "entries": [
+      {
+        "count": 3,
+        "destination": "0x1374",
+        "generated_a5_displacement": "0x0157",
+        "index": 0,
+        "original_semantic_source": "0x0010C157"
+      },
+      {
+        "count": 3,
+        "destination": "0x1574",
+        "generated_a5_displacement": "0x015A",
+        "index": 1,
+        "original_semantic_source": "0x0010C15A"
+      },
+      {
+        "count": 3,
+        "destination": "0x1774",
+        "generated_a5_displacement": "0x015D",
+        "index": 2,
+        "original_semantic_source": "0x0010C15D"
+      },
+      {
+        "count": 3,
+        "destination": "0x1974",
+        "generated_a5_displacement": "0x0160",
+        "index": 3,
+        "original_semantic_source": "0x0010C160"
+      },
+      {
+        "count": 3,
+        "destination": "0x1B74",
+        "generated_a5_displacement": "0x0163",
+        "index": 4,
+        "original_semantic_source": "0x0010C163"
+      },
+      {
+        "count": 1,
+        "destination": "0x0D6C",
+        "generated_a5_displacement": "0x0166",
+        "index": 5,
+        "original_semantic_source": "0x0010C166"
+      },
+      {
+        "count": 1,
+        "destination": "0x0D70",
+        "generated_a5_displacement": "0x0167",
+        "index": 6,
+        "original_semantic_source": "0x0010C167"
+      },
+      {
+        "count": 1,
+        "destination": "0x0D74",
+        "generated_a5_displacement": "0x0168",
+        "index": 7,
+        "original_semantic_source": "0x0010C168"
+      }
+    ],
+    "generated_bytes": 48,
+    "record_format": "count.w,destination.w,a5_displacement.w"
   },
   "number": {
+    "arcade_bytes": 130,
     "arcade_pc": "0x03C37C",
-    "bytes": 130
+    "entries": [
+      {
+        "count": 6,
+        "destination": "0x00C09334",
+        "generated_a5_displacement": "0x0145",
+        "index": 0,
+        "original_source": "0x0010C145"
+      },
+      {
+        "count": 6,
+        "destination": "0x00C09534",
+        "generated_a5_displacement": "0x0148",
+        "index": 1,
+        "original_source": "0x0010C148"
+      },
+      {
+        "count": 6,
+        "destination": "0x00C09734",
+        "generated_a5_displacement": "0x014B",
+        "index": 2,
+        "original_source": "0x0010C14B"
+      },
+      {
+        "count": 2,
+        "destination": "0x00C09EA0",
+        "generated_a5_displacement": "0x0013",
+        "index": 3,
+        "original_source": "0x0010C013"
+      },
+      {
+        "count": 6,
+        "destination": "0x00C09934",
+        "generated_a5_displacement": "0x014E",
+        "index": 4,
+        "original_source": "0x0010C14E"
+      },
+      {
+        "count": 6,
+        "destination": "0x00C09B34",
+        "generated_a5_displacement": "0x0151",
+        "index": 5,
+        "original_source": "0x0010C151"
+      },
+      {
+        "count": 65535,
+        "destination": "0x00C09368",
+        "generated_a5_displacement": "0x0152",
+        "index": 6,
+        "original_source": "0x0010C152"
+      },
+      {
+        "count": 65535,
+        "destination": "0x00C09568",
+        "generated_a5_displacement": "0x0153",
+        "index": 7,
+        "original_source": "0x0010C153"
+      },
+      {
+        "count": 65535,
+        "destination": "0x00C09768",
+        "generated_a5_displacement": "0x0154",
+        "index": 8,
+        "original_source": "0x0010C154"
+      },
+      {
+        "count": 65535,
+        "destination": "0x00C09968",
+        "generated_a5_displacement": "0x0155",
+        "index": 9,
+        "original_source": "0x0010C155"
+      },
+      {
+        "count": 65535,
+        "destination": "0x00C09B68",
+        "generated_a5_displacement": "0x0156",
+        "index": 10,
+        "original_source": "0x0010C156"
+      },
+      {
+        "count": 6,
+        "destination": "0x00C08D24",
+        "generated_a5_displacement": "0x011E",
+        "index": 11,
+        "original_source": "0x0010C11E"
+      },
+      {
+        "count": 65535,
+        "destination": "0x00C08D5C",
+        "generated_a5_displacement": "0x0118",
+        "index": 12,
+        "original_source": "0x0010C118"
+      }
+    ],
+    "generated_bytes": 104,
+    "record_format": "count.w,destination.l,a5_displacement.w"
   },
-  "source_contract": "generated from authoritative original maincpu; addressed by linker symbols"
+  "source_contract": "generated from authoritative original maincpu; live sources are positive signed-word A5-relative displacements; ROM tables are addressed only by linker symbols"
 }
