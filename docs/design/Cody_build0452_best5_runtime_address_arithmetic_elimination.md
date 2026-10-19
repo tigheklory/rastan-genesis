@@ -73,7 +73,7 @@ No ORIGINAL ARCADE MAME runtime trace was needed: the original static descriptor
 - Size: 2,723,512 bytes.
 - `_invincible` SHA-256: `594550b61de2bb3a7fd0d03af9b4a29580de00f7f2d3a2a6ed6a0235cd7141f2`.
 - Build counter: 451 -> 452.
-- ROM-producing source commit: pending exact commit.
+- ROM-producing source commit: `8cf04c693a1299ac818e653de501a92bb8af8117`.
 - Real-hardware acceptance: **PENDING TIGHE**.
 
 ## Regressions and USER MUST VERIFY
