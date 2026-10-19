@@ -28,6 +28,8 @@ NATIVE_TITLE_GEN := $(ROOT)/tools/translation/gen_native_title.py
 NATIVE_TITLE_VERIFY := $(ROOT)/tools/translation/verify_native_title.py
 NATIVE_HUD_GEN := $(ROOT)/tools/translation/gen_native_hud.py
 NATIVE_HUD_VERIFY := $(ROOT)/tools/translation/verify_native_hud.py
+NATIVE_ITEM_GEN := $(ROOT)/tools/translation/gen_native_item_description.py
+NATIVE_ITEM_VERIFY := $(ROOT)/tools/translation/verify_native_item_description.py
 BEST5_TABLE_GEN := $(ROOT)/tools/translation/gen_best5_native_tables.py
 BEST5_TABLE_VERIFY := $(ROOT)/tools/translation/verify_best5_native_tables.py
 REGION_BUILDER := $(ROOT)/tools/build_rastan_regions.py
@@ -114,6 +116,11 @@ NATIVE_HUD_PATTERNS := $(ROOT)/build/rastan-direct/native_hud_patterns.bin
 NATIVE_HUD_STATIC_SAT := $(ROOT)/build/rastan-direct/native_hud_static_sat.bin
 NATIVE_HUD_DYNAMIC_RECORDS := $(ROOT)/build/rastan-direct/native_hud_dynamic_records.bin
 NATIVE_HUD_REPORT := $(ROOT)/build/rastan-direct/native_hud_report.json
+NATIVE_ITEM_LOGICAL_MAP := $(ROOT)/build/rastan-direct/native_item_logical_map.bin
+NATIVE_ITEM_PLANE_PATTERNS := $(ROOT)/build/rastan-direct/native_item_plane_patterns.bin
+NATIVE_ITEM_ICON_PATTERNS := $(ROOT)/build/rastan-direct/native_item_icon_patterns.bin
+NATIVE_ITEM_ICON_RECORDS := $(ROOT)/build/rastan-direct/native_item_icon_records.bin
+NATIVE_ITEM_REPORT := $(ROOT)/build/rastan-direct/native_item_report.json
 BEST5_NUMBER_TABLE := $(ROOT)/build/rastan-direct/best5_number_descriptors.bin
 BEST5_NAME_TABLE := $(ROOT)/build/rastan-direct/best5_name_descriptors.bin
 BEST5_TABLE_REPORT := $(ROOT)/build/rastan-direct/best5_native_tables_report.json
@@ -204,6 +211,7 @@ OBJS := \
 	$(OUT_DIR)/palette_hooks.o \
 	$(OUT_DIR)/title_native.o \
 	$(OUT_DIR)/hud_native.o \
+	$(OUT_DIR)/item_native.o \
 	$(OUT_DIR)/pc090oj_hooks.o \
 	$(OUT_DIR)/pc090oj_assets.o \
 	$(OUT_DIR)/diag_bookmark.o \
@@ -387,6 +395,19 @@ $(NATIVE_HUD_PATTERNS): $(MAINCPU_REGION) $(PC090OJ_PRECONV) $(NATIVE_HUD_GEN)
 $(NATIVE_HUD_STATIC_SAT) $(NATIVE_HUD_DYNAMIC_RECORDS) $(NATIVE_HUD_REPORT): $(NATIVE_HUD_PATTERNS)
 	@test -f "$@"
 
+$(NATIVE_ITEM_LOGICAL_MAP): $(MAINCPU_REGION) $(PC080SN_REGION) $(PC090OJ_PRECONV) $(NATIVE_HUD_REPORT) $(SRC_DIR)/pc090oj_hooks.s $(NATIVE_ITEM_GEN)
+	$(PYTHON) "$(NATIVE_ITEM_GEN)" --maincpu "$(MAINCPU_REGION)" \
+		--pc080sn "$(PC080SN_REGION)" --pc090oj "$(PC090OJ_PRECONV)" \
+		--hud-report "$(NATIVE_HUD_REPORT)" --sprite-source "$(SRC_DIR)/pc090oj_hooks.s" \
+		--map-output "$(NATIVE_ITEM_LOGICAL_MAP)" \
+		--plane-pattern-output "$(NATIVE_ITEM_PLANE_PATTERNS)" \
+		--icon-pattern-output "$(NATIVE_ITEM_ICON_PATTERNS)" \
+		--icon-record-output "$(NATIVE_ITEM_ICON_RECORDS)" \
+		--report "$(NATIVE_ITEM_REPORT)"
+
+$(NATIVE_ITEM_PLANE_PATTERNS) $(NATIVE_ITEM_ICON_PATTERNS) $(NATIVE_ITEM_ICON_RECORDS) $(NATIVE_ITEM_REPORT): $(NATIVE_ITEM_LOGICAL_MAP)
+	@test -f "$@"
+
 $(BEST5_NUMBER_TABLE): $(MAINCPU_REGION) $(BEST5_TABLE_GEN)
 	$(PYTHON) "$(BEST5_TABLE_GEN)" --maincpu "$(MAINCPU_REGION)" \
 		--number-output "$(BEST5_NUMBER_TABLE)" --name-output "$(BEST5_NAME_TABLE)" \
@@ -509,6 +530,9 @@ $(OUT_DIR)/title_native.o: $(SRC_DIR)/title_native.s $(PC090OJ_CONFIG_INC) $(NAT
 $(OUT_DIR)/hud_native.o: $(SRC_DIR)/hud_native.s $(NATIVE_HUD_PATTERNS) $(NATIVE_HUD_STATIC_SAT) $(NATIVE_HUD_DYNAMIC_RECORDS) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
+$(OUT_DIR)/item_native.o: $(SRC_DIR)/item_native.s $(NATIVE_ITEM_LOGICAL_MAP) $(NATIVE_ITEM_PLANE_PATTERNS) $(NATIVE_ITEM_ICON_PATTERNS) $(NATIVE_ITEM_ICON_RECORDS) FORCE_ASM_REBUILD | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
 $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) $(PC090OJ_VARIANTS_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
@@ -555,7 +579,7 @@ $(SYMBOLS): $(ELF) | $(OUT_DIR)
 $(PREPATCH_BIN): $(ELF) | $(OUT_DIR)
 	$(OBJCOPY) -O binary $< $@
 
-$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) $(NATIVE_TITLE_VERIFY) $(NATIVE_TITLE_REPORT) $(NATIVE_HUD_VERIFY) $(NATIVE_HUD_REPORT) $(BEST5_TABLE_VERIFY) $(BEST5_TABLE_REPORT) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) $(NATIVE_TITLE_VERIFY) $(NATIVE_TITLE_REPORT) $(NATIVE_HUD_VERIFY) $(NATIVE_HUD_REPORT) $(NATIVE_ITEM_VERIFY) $(NATIVE_ITEM_REPORT) $(BEST5_TABLE_VERIFY) $(BEST5_TABLE_REPORT) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/canonical.inc"
 	$(PYTHON) "$(PC080SN_NATIVE_METATILE_VERIFY)" --maincpu "$(MAINCPU_REGION)" \
 		--index "$(PC080SN_NATIVE_METATILE_INDEX)" --records "$(PC080SN_NATIVE_METATILE_RECORDS)" \
@@ -582,6 +606,15 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 		--dynamic-records "$(NATIVE_HUD_DYNAMIC_RECORDS)" --report "$(NATIVE_HUD_REPORT)" \
 		--hud-source "$(SRC_DIR)/hud_native.s" --sprite-source "$(SRC_DIR)/pc090oj_hooks.s" \
 		--title-source "$(SRC_DIR)/title_native.s"
+	$(PYTHON) "$(NATIVE_ITEM_VERIFY)" --maincpu "$(MAINCPU_REGION)" \
+		--pc080sn "$(PC080SN_REGION)" --pc090oj "$(PC090OJ_PRECONV)" \
+		--hud-report "$(NATIVE_HUD_REPORT)" \
+		--logical-map "$(NATIVE_ITEM_LOGICAL_MAP)" \
+		--plane-patterns "$(NATIVE_ITEM_PLANE_PATTERNS)" \
+		--icon-patterns "$(NATIVE_ITEM_ICON_PATTERNS)" \
+		--icon-records "$(NATIVE_ITEM_ICON_RECORDS)" --report "$(NATIVE_ITEM_REPORT)" \
+		--assembly "$(SRC_DIR)/item_native.s" --sprite-source "$(SRC_DIR)/pc090oj_hooks.s" \
+		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(VDP_DMA_BOUNDARY_GATE)" --symbols "$(SYMBOLS)" --patterns "$(PC080SN_EDITOR_LAYERA)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"

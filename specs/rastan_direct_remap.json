@@ -141,6 +141,7 @@
   "genesistan_hook_text_writer_3c4d2",
   "genesistan_hook_cwindow_clear",
   "genesistan_title_present_once",
+  "genesistan_item_description_enter",
   "genesistan_shadow_input_390001",
   "genesistan_shadow_input_390003",
   "genesistan_shadow_input_390005",
@@ -242,6 +243,18 @@
   }
  ],
  "shift_replacements": [
+  {
+   "arcade_pc": "0x05602C",
+   "original_bytes": "207C0005672A",
+   "replacement_bytes": "4EB9{symbol:genesistan_item_description_enter}4E75",
+   "note": "Build 0453 native item-description presentation cut. Retain the arcade attract dispatcher, A5+0x10EE scroll cadence, dwell/input/credit state, and semantic item visibility; replace the item-specific 0x05602C PC080SN decompression/C-window setup and PC090OJ tuple-copy tail with one Genesis-native entry helper and return. The helper installs offline-translated final Plane-B patterns, the initial 32-row physical ring, and native fixed icon patterns. The retained 0x05607C tick advances one precomputed 64-word logical row at each eight-pixel boundary. Proper 6-to-8-byte shift replacement; no NOP, trampoline, chip shadow, runtime decompression, or fallback."
+  },
+  {
+   "arcade_pc": "0x05607C",
+   "original_bytes": "302D1392",
+   "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_sprite_decay_5607c}4E75",
+   "note": "Build 0453 native item-description tick cut. Replace the first complete instruction of the item-only 0x05607C function with the native semantic tick and return; its old PC090OJ record-decay loop, 0x055AB4 hardware-scroll publisher and 0x0560DA PC080SN row-stream call are unreachable. The native helper preserves the original every-fourth-frame cadence, A5+0x10AE/A5+0x10B0 clears, A5+0x10EE decrement/modulo-512 authority and VSRAM publication, then copies exactly one precomputed 64-word row and marks one dirty physical row only at an eight-pixel crossing. Proper 4-to-8-byte shift replacement; no NOP, equal-length body padding, runtime decompression, chip shadow, or fallback."
+  },
   {
    "arcade_pc": "0x03AA54",
    "original_bytes": "4EB90005A356",
@@ -1379,12 +1392,6 @@
    "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x54052 (helper genesistan_pc090oj_hook_slot_init_54052). Intercepts 2 ledger callers (0x0501F4, 0x051260). Helper preserves the original function's Taito C-chip text-RAM clears at 0x10D1B2/0x10D1D2/0x10D1F2 (replicated verbatim) and emits sprite-slot init to SAT slots 72..75. See Andy_pc090oj_implementation_spec.md \u00a78.6."
   },
   {
-   "arcade_pc": "0x05607C",
-   "original_bytes": "302D1392024000030C400000664E426D10AE426D10B0322D10EE5341024101FF3B4110EE024100076604610000324EB900055CB4207C00D00170226D141CB3C8671A302800025340314000020C4000106606317C00000004508860E24E75",
-   "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_sprite_decay_5607c}4E754E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E714E71",
-   "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x5607C (helper genesistan_pc090oj_hook_sprite_decay_5607c). Intercepts 1 ledger caller (0x055E92). Helper performs sprite-decay Y-decrement on SAT slots 56..63 (sprite-disappear when Y reaches 16). See Andy_pc090oj_implementation_spec.md \u00a78.6."
-  },
-  {
    "arcade_pc": "0x056114",
    "original_bytes": "30100C40FFFF670A32D832D832D832D860EE4E75",
    "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_copy_56114}4E754E714E714E714E714E714E71",
@@ -2164,7 +2171,7 @@
   }
  ],
  "expectations": {
-  "opcode_replace_count": 231,
-  "genesis_only_maincpu_ref_count": 7
+  "opcode_replace_count": 230,
+  "genesis_only_maincpu_ref_count": 6
  }
 }

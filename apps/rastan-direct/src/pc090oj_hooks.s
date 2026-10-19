@@ -48,6 +48,12 @@
     .extern genesistan_hud_prepare_frontend
     .extern genesistan_hud_deactivate
     .extern genesistan_hud_link_transient
+    .extern genesistan_item_ring_advance
+    .extern genesistan_item_emit_native
+    .extern staged_scroll_x_bg
+    .extern staged_scroll_y_bg
+    .extern staged_scroll_x_fg
+    .extern staged_scroll_y_fg
 
     .global pc090oj_ctrl_shadow
     .global pc090oj_sprite_ctrl_shadow
@@ -1891,14 +1897,9 @@ genesistan_pc090oj_hook_player_aux_native_54810:
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
-/* Frontend-direct conversion of the transient item decay.  The arcade routine
- * (throttled to every 4th frame via a5@0x1392&3) uniformly decremented every
- * item record's Y by 1 and blanked a record once its Y reached 16 -- i.e. the
- * whole set scrolls up and each item vanishes at Y<=16.  Since the decrement is
- * uniform, that per-record mutation is exactly one accumulated scroll offset,
- * which .Lnq_transient_items_emit applies (Y' = Y - scroll; drop at Y'<=16).
- * The two arcade side-effect clears (a5@0x10AE / a5@0x10B0) are preserved
- * verbatim.  No object-RAM / staged-descriptor mutation. */
+/* Native item-screen tick. The arcade cadence and A5+0x10EE remain the sole
+ * scroll authority. Only an 8-pixel boundary asks the Plane-B ring to replace
+ * one pre-baked row. */
 genesistan_pc090oj_hook_sprite_decay_5607c:
     move.w  0x1392(%a5), %d0
     andi.w  #0x0003, %d0
@@ -1907,38 +1908,25 @@ genesistan_pc090oj_hook_sprite_decay_5607c:
     clr.w   0x10AE(%a5)
     clr.w   0x10B0(%a5)
 
-    /* Restore the item-page TEXT-plane vertical scroll that the Build0286
-     * conversion dropped.  Arcade 0x5607C decremented the 9-bit counter
-     * a5@0x10EE and called 0x55AB4; that routine (rewritten by the spec) writes
-     * a5@0x10EE -> staged_scroll_y_bg, i.e. the BG (Plane B) text-plane VSRAM
-     * scroll that vdp_commit_scroll commits every VBlank.  Without it the item
-     * description text stayed static while the sprites scrolled.  This advances
-     * at the same 1-unit-per-decay cadence as transient_items_scroll below, so
-     * text and sprites move together exactly as in the arcade. */
     move.w  0x10EE(%a5), %d1
     subq.w  #1, %d1
     andi.w  #0x01FF, %d1
     move.w  %d1, 0x10EE(%a5)
-    jsr     (0x00055CB4).l          /* arcade_pc 0x055AB4 (+0x200 blind; postpatch relocates shift-aware to staged_scroll writer) */
-
-    tst.w   transient_items_active
-    beq.s   .Lhook_5607c_done
-    addq.w  #1, transient_items_scroll
+    move.w  %d1, staged_scroll_y_bg
+    move.w  0x10EC(%a5), staged_scroll_x_bg
+    move.w  0x10B0(%a5), staged_scroll_y_fg
+    move.w  0x10AE(%a5), staged_scroll_x_fg
+    andi.w  #0x0007, %d1
+    bne.s   .Lhook_5607c_done
+    bsr     genesistan_item_ring_advance
 
 .Lhook_5607c_done:
     rts
 
-/* Frontend-direct conversion (was: copy the ROM tuple stream into PC090OJ
- * object RAM).  The arcade caller passes a0 = the selected ROM tuple stream
- * (0x56226 = 17 treasure/item tuples, or 0x562B0 = 3), already resolved to its
- * runtime address by the shift-aware relocation of the caller's movea.l.  We
- * latch that live pointer, mark the family active, and reset the scroll; the
- * frontend emitter (.Lnq_transient_items_emit) walks the stream directly into
- * the native SAT.  No object-RAM write, no slot ownership. */
+/* Compatibility entry for the now-retired PC090OJ copy sites. The native item
+ * entry owns generated templates; no ROM tuple pointer or second scroll state. */
 genesistan_pc090oj_hook_copy_56114:
-    move.l  %a0, transient_items_source_ptr
     move.w  #1, transient_items_active
-    clr.w   transient_items_scroll
     rts
 
 /* Frontend-direct retirement (was: park the item object-RAM records).  The
@@ -2331,41 +2319,12 @@ pc090oj_native_emit_pass:
      * full-SAT builder has no title-active work. */
     rts
 
-/* Frontend-direct transient treasure/item emitter.  Replaces the former
- * object-RAM tuple representation for arcade 0x56114/0x5607C/0x56440.  When the
- * family is active, walk the latched ROM tuple stream ({word0/attr, Y, code, X},
- * 0xFFFF-terminated on word0) and emit each piece straight to the native SAT via
- * the shared .Lnq_emit_entry (identical coordinate/flip/viewport transform as the
- * retired object-RAM scanner).  The uniform scroll-up is applied as Y' = Y -
- * scroll, and an item is dropped once Y' <= 16 -- exactly the arcade decay's
- * per-record blank-at-16.  Off-screen (not-yet-scrolled-in) pieces are clipped by
- * .Lnq_emit_entry's viewport test and consume no SAT slot. */
+/* Generated final-format icon templates own geometry, pattern slots, palette
+ * and order. Runtime derives only visibility/Y from live A5+0x10EE. */
 .Lnq_transient_items_emit:
     tst.w   transient_items_active
     beq     .Lti_done
-    move.l  transient_items_source_ptr, %a5
-    move.l  %a5, %d0                 /* CPU-legality fix: `tst.l %a5` (0x4A8D) is a 68020+
-                                       * instruction, illegal on the Genesis 68000 (item-page
-                                       * crash @ GEN PC 0x073212).  move.l An,Dn (0x200D) is the
-                                       * byte-neutral legal equivalent: same Z=(a5==0) for the
-                                       * beq below.  D0 is dead here (proven: sole caller reloads
-                                       * d0 after this call, and the loop's .Lnq_emit_entry
-                                       * already clobbers d0). */
-    beq     .Lti_done
-.Lti_loop:
-    move.w  (%a5), %d1               /* word0 = attr, or 0xFFFF terminator */
-    cmpi.w  #0xFFFF, %d1
-    beq.s   .Lti_done
-    move.w  2(%a5), %d2              /* Y */
-    sub.w   transient_items_scroll, %d2
-    cmpi.w  #16, %d2                 /* scrolled past 16 => blanked (retired) */
-    ble.s   .Lti_next
-    move.w  4(%a5), %d3              /* code */
-    move.w  6(%a5), %d4              /* X */
-    bsr     .Lnq_emit_entry
-.Lti_next:
-    addq.l  #8, %a5
-    bra.s   .Lti_loop
+    bsr     genesistan_item_emit_native
 .Lti_done:
     rts
 
@@ -3483,18 +3442,10 @@ pc090oj_tile_dma_worklist:
     .space (12 * 4)
 pc090oj_tile_dma_count:
     .word 0
-/* Frontend-direct treasure/item transient family (arcade 0x56114 copy /
- * 0x5607C decay / 0x56440 clear).  Small Genesis-only semantic state that
- * replaces the former object-RAM tuple representation: active flag, the live
- * runtime pointer to the selected ROM tuple stream (0x56226 / 0x562B0, set by
- * the arcade caller's a0), and the accumulated uniform Y decrement (scroll)
- * that the decay produces.  Walked directly by .Lnq_transient_items_emit. */
+/* Item family lifetime only. Static content is generated and A5+0x10EE is the
+ * sole scroll authority. */
 transient_items_active:
     .word 0
-transient_items_scroll:
-    .word 0
-transient_items_source_ptr:
-    .long 0
 /* Private packed dispatch word: high byte is normalized
  * ((sprite_ctrl & 0x00E0) >> 1), low byte is the semantic lane.  Packing the
  * two frame-private values preserves every established WRAM symbol address. */

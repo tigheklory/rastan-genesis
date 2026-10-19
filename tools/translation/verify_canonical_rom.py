@@ -49,7 +49,7 @@ FAIL_STATE_CORRUPTED = "GATE_FAIL_STATE_CORRUPTED"
 # hardware destinations to pc090oj_object_ram + the same record offsets.
 # Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
 # source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
-CANONICAL_OPCODE_REPLACE_COUNT = 231  # Build 0445 moves the 0x03BB48 glyph cut from byte-neutral opcode_replace to shift_replacements so its adjacent descriptor table is resolved PC-relatively. Total replacement coverage is retained; only the inventory class changes. Prev 232.
+CANONICAL_OPCODE_REPLACE_COUNT = 230  # Build 0453 moves item tick 0x05607C from a padded opcode body to a proper shift cut. Prev 231.
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.
@@ -128,7 +128,9 @@ CANONICAL_OPCODE_REPLACE_COUNT = 231  # Build 0445 moves the 0x03BB48 glyph cut 
 # specialized-frame payload/index and the shared visual/contact dispatch code.
 # Opcode-replacement site count remains unchanged.
 # Build 0443 native title assets add three 4-KiB final Genesis plane maps.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x298EB8
+# Build 0453 native item assets add the 8-KiB logical map plus 4 KiB of final
+# pattern/icon packages to the Genesis-owned helper image.
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x29BEB8
 
 # Build 0277: arcade_pc 0x051DF8 is a BRA.S to the semantic entry at
 # arcade_pc 0x051E00.  The target is also the start of a shrinking shift
