@@ -1,5 +1,19 @@
 # AGENTS Log
 
+## [Andy — Long-standing issue-ledger reconciliation of Tighe's 11 current visual/gameplay observations]
+
+* ISSUE-LEDGER reconciliation only. No production source/generator/Makefile/ROM/MAME/trace/build-number change; Phase D/E NO. Read current OPEN_ISSUES.md (860 lines, OPEN-001..030) + CLOSED_ISSUES.md (CLOSED-001..024) completely; deduplicated against current tree; checked `specs/palette_decisions.json`. HEAD `d5bae39b` (Build 0453 native item-description ring, Cody in-flight); accepted baseline = Build 0452 (locked by `1850637c`).
+* REFINED existing: OPEN-029 (R1 Phase-2 third-chain) — appended Tighe's current observation (third-chain climb cannot be completed) + UNPROVEN "map ends there" hypothesis, kept distinct from OPEN-029's existing input/state-transition finding (not overwritten).
+* NEW issues opened: OPEN-031 attract gameplay-demo initial Plane-B first-column corruption (#1); OPEN-032 coin-during-item-screen leaves stale icons (#2; Cody 0453 may address but must NOT auto-close); OPEN-033 death->READY stale Rastan (a) + wrong READY! patterns (b) (#3/#4, two explicit symptoms); OPEN-034 CONTINUE/GAME OVER retain prior scene tiles+palette (#5, refines the long-standing informal "continue/game-over wrong tiles" note, adds palette); OPEN-035 attract-loop fails to restore attract tiles/palette (#6); OPEN-036 R1 Phase-2 subround-2 presentation — (a) load not blanked/Plane B visible while Plane A builds (#7), (b) Plane A incorrect (#8), (c) palette very wrong + VERIFIED no R1-Phase-2 decision exists in palette_decisions.json (#9), (d) vertical-map rotation/overlap user-observation+recollection, prior analysis NOT located in current tree (#10).
+* DEDUP: #11 -> existing OPEN-029 (refined); #3+#4 grouped in OPEN-033; #7+#8+#9+#10 grouped in OPEN-036 (symptoms kept explicit). Cross-referenced (not duplicated): OPEN-001 (attract graphics), OPEN-006 (palette), OPEN-024 (sprite subsystem), OPEN-028/030 (Plane-A), OPEN-019/020 (low-code glyph coverage), CLOSED-023 + Build-0395 ROUND/READY blanking. USER OBSERVATION vs PRIOR PROVEN EVIDENCE vs HYPOTHESIS kept distinct throughout; no cause promoted to proven. No runtime investigation or implementation. Issues closed: NONE.
+
+## [Andy — Current-tree gameplay avoidable runtime-calculation / precomputation audit (read-only)]
+
+* READ-ONLY perf audit. No production/Makefile/generator/ROM/MAME/trace/build-number/counter change; Phase D/E NO. CURRENT tree verified: HEAD `4ae4d822`, counter 452, Build 0452 present (`8cf04c69`, BEST-5 address-arith cleanup) atop accepted Build 0451 (`cc8787f6`/locked `c61f062e`). Deliverable: `docs/design/Andy_current_gameplay_runtime_calculation_audit.md`.
+* OLD CANDIDATE VERDICTS (from CURRENT source, correcting stale reports): A (reduced P1 HUD rebuild) STILL EXISTS — `.Lnq_project_p1_hud` rebuilds 6 BCD digits + 3 labels every gameplay frame unconditionally, but rope-value LOW (pre-rope score ~0). B (universal 10-byte interpreter) CHANGED/FIXED — retired Build 0407; now generated 4096-byte base-LUT O(1) classification + finalized-vi, no runtime frame-record scan; old Four-Armed-0x02E8 proposal OBSOLETE. C (Plane-B 32×/col `fg_boundary_resolve_b`) ALREADY FIXED Build 0434 — gameplay Plane-B row producer uses active-LUT-once + cached source-group inline (resolve_b is only in the frontend fill hook). D (runtime WRAM/ROM rebases) MOSTLY ADDRESSED — BEST-5 done 0452, KF-036/044 gameplay sites fixed; gameplay is A5-relative; remaining raw literals are frontend/attract (out of scope). E (shared finalizer) mostly NECESSARY dynamic (X/Y+dx/dy, flip, 9-bit wrap, viewport clip, residency, SAT) — one per-piece duplicate opaque-bbox/source derivation (Build-0409 note) is the one avoidable per-piece item.
+* NEW: (1) finalizer duplicate bbox/source derivation — per-piece, rope-relevant, LOW-MED, STRONG proof (SAT-record equivalence); (2) HUD lane SAT-cache (extends A). No HIGH-CPU multi-frame rope win exists — the pipeline is already near its efficient floor (Builds 0403-0452).
+* RECOMMENDED next bounded impl: consolidate the per-piece duplicate opaque-bbox/source derivation in `.Lnq_emit_entry` (bake the bbox index into the finalized-vi record / derive once), preferred over the HUD gate because it runs per rendered piece (rope-relevant) with an equally strong exhaustive-generator-equivalence proof; ROM~0/WRAM0/VRAM0, no arcade/visual change. HONEST: the highest-value real next step is a PROFILING read via the existing `profile_native_*` symbols on the `_invincible` rope route to evidence-rank finalizer vs producer vs Plane A/B vs DMA before further micro-opt. DO NOT PURSUE: change-driven SAT for moving sprites, finalizer bypass, A5→absolute rebase. STOP (no implementation).
+
 ## [Andy — Scrolling item-description attract screen: arcade semantics + native prebake design]
 
 * READ-ONLY arcade RE + C-tree extension. No Genesis production/Makefile/generator/spec/ROM/MAME/trace/build-number change; Cody title work untouched; Phase D/E NO. Baseline Build 0446. Deliverable: `docs/design/Andy_scrolling_item_description_attract_arcade_semantics.md`. Authorized C-tree additions only.
@@ -52541,3 +52555,27 @@ TIGHE ONLY
   OPEN-001 advances but remains open; OPEN-032 remains open pending Tighe's explicit coin-transition
   check. Build 0454 is a candidate: real-hardware visual/gameplay acceptance is USER MUST VERIFY.
   Report: `docs/design/Cody_build0454_arcade_exact_item_description.md`. Phase D/E NO.
+
+### MAME Exit Summary (2026-10-19 12:08:33)
+- Final PC: 0x03B290
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-19 — Build 0455 ROM-driven arcade item-screen reconstruction
+
+- Build 0454 is visually rejected as a complete candidate but remains the implementation base.
+  Its native icon/palette path, live `A5+0x10EE` scroll, and 64->32 one-row ring are preserved.
+- Root cause: PC080SN is 64 columns of four-byte cells, so its C-window row stride is `0x100`, not
+  `0x200`. Original writer `0x563A6` adds `0x200` per delimiter and therefore advances two 8-pixel
+  rows. Page A derives to rows 8,10,...62; delayed Page B aliases physical 0,2,...12 and unwrapped
+  rows 64,66,...76. A generated pre-page-B entry snapshot preserves publication timing.
+- The ROM-driven ledger records 725 original writes. The independent oracle rejects preserved
+  Build 0454 with 987 mismatches (first: row 0/column 10, expected code `0x0052`, native blank) and
+  passes the corrected package. No screenshot coordinates or item-specific placement constants.
+- All mechanical gates and the complete seven-ROM family pass. Canonical SHA-256
+  `3a2141bd5aa1f1dafbb0d5a59fa408e736f29c32ae377e595ab982e45aa8db68`; `_invincible`
+  `91db6af42904a4563dc7d5b91abf3c1ecd3d5ba1745e1ee5a30463ae8f865755`; size 2,739,896;
+  counter 455; source `bb09135dee3e6491a844c84635a70710291a33f6`.
+- Established `_invincible` rope: 798/798/798, median 13,317.147 ms, deterministic YES. OPEN-001
+  remains pending Tighe visual acceptance; OPEN-032 remains open. Report:
+  `docs/design/Cody_build0455_rom_driven_item_screen.md`. Phase D/E: NO.

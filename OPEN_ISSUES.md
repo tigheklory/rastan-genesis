@@ -12,6 +12,14 @@ Rules:
 
 ## Current Build 0283+ Reconciliation (2026-08-16)
 
+- **[2026-10-19 Build 0455 — item layout reconstructed; Tighe verification pending]** Build 0454
+  is visually rejected as a complete candidate: its icon colors appeared corrected, but its text
+  layout was vertically compressed because it treated the PC080SN writer's `+0x200` delimiter as
+  one row. Hardware proves a `0x100`-byte row, so the delimiter advances two 8-pixel rows. Build
+  0455 generates the entry and wrapped surfaces from original ROM/code and passes an independent
+  oracle that reports 987 mismatches against preserved Build 0454. OPEN-001 remains open pending
+  Tighe's visual acceptance; OPEN-032 remains independently open for coin-transition icon teardown.
+
 - **[2026-10-13 Build 0419 — background optimization remains OPEN]** The
   accepted Build 0418 background path repeated the full live Plane-A descriptor
   walk for name and collision products. Build 0419 fuses those products where
@@ -839,6 +847,16 @@ Final response must include "Open/Closed Issues Impact" section with:
 - **Next proof required:** capture the exact successful ORIGINAL ARCADE lateral release/landing and
   the same attempted control in GENESIS NTSC, including `A5+0x136E`, raw input, state transition,
   player motion, and collision results. No record-, coordinate-, chain-, or MODE-specific patch.
+- **[2026-10-18 current USER OBSERVATION, present in accepted Build 0452]** Tighe reports that in
+  R1 Phase-2 (subround 2) Rastan **cannot finish climbing up the THIRD chain**. OBSERVED FACT:
+  third-chain climb cannot be completed. HYPOTHESIS (Tighe, UNPROVEN): the Genesis version's map may
+  currently **end there**. Keep these distinct: this hypothesis is NOT the same as this issue's
+  existing finding, which located an input/state-transition upper-exit (no automatic record exit;
+  `A5+0x136E` button-edge route `0x051ED2 -> ... -> 0x052200`) rather than a map-extent limit. The
+  "map ends there" possibility is currently UNPROVEN and conflicts with the existing finding; do not
+  overwrite the prior finding — record both. Note cross-dependency with OPEN-036 (R1 Phase-2
+  vertical map construction) if the map extent is implicated. No new runtime evidence gathered this
+  task (ledger reconciliation only).
 
 ## OPEN-030 — Post-Segment-11 Plane-A tile loss at the record-12 -> record-13 residency switch
 
@@ -858,3 +876,140 @@ Final response must include "Open/Closed Issues Impact" section with:
   overlap package 8 are hash-locked unchanged. All mechanical gates pass; user visual verification
   remains required before closure.
 - **Evidence:** `docs/design/Cody_build0398_segment11_segment12_plane_a_transition.md`.
+
+## OPEN-031 — Attract gameplay-demo initial Plane-B is corrupted for ~the first screen-width column
+
+- **Status:** OPEN / USER OBSERVATION (no root cause; ledger reconciliation only)
+- **Priority:** MEDIUM
+- **Observed through:** present in accepted Build 0452 (2026-10-18 Tighe observation). Long-standing;
+  first introducing build not established.
+- **User observation:** during the attract-mode gameplay DEMO, Plane B is mixed up / incorrect for
+  approximately the first screen-width column. Ordinary (non-demo) gameplay presentation is correct
+  in this same area, so the demo uses gameplay presentation but its **initial Plane-B
+  population/state** is wrong.
+- **Prior related evidence / cross-reference (not the same issue):** OPEN-001 (attract graphics
+  incomplete); OPEN-028 (first-arrival Plane-A sky cells retain isolated stale names — a Plane-A
+  gameplay first-arrival analog, not Plane-B demo entry); the historical "D00298 attract-demo /
+  demo-control-flow" deferred note in the Build-0165/0166/0168 log (separate from the 1P path).
+- **Hypothesis (UNPROVEN, do not act on):** demo-entry initial state / stale scene state /
+  attract-demo-specific setup. No cause proven.
+- **Classification:** GENUINELY NEW ISSUE (no existing owner for attract-demo initial Plane-B
+  first-column corruption).
+- **Closure condition:** attract gameplay-demo initial Plane-B first-column matches ordinary gameplay;
+  Tighe real-Genesis visual verification.
+
+## OPEN-032 — Coin during the scrolling item-description screen leaves power-up/item icons visible
+
+- **Status:** OPEN / USER OBSERVATION
+- **Priority:** MEDIUM
+- **Observed through:** present in accepted Build 0452 (2026-10-18 Tighe observation). Long-standing.
+- **User observation:** inserting a coin while the scrolling item-description screen is active
+  correctly transitions to the PRESS START BUTTON screen, but the power-up/item icons from the item
+  screen **remain visible** when they should have been cleared. The transition itself works; the
+  stale item icons are the defect.
+- **Prior related evidence / cross-reference:** OPEN-024 (PC090OJ sprite subsystem incomplete);
+  item-page work (OPEN-022; CLOSED item-page crash fixes Build 0290/0295). No proven owner for the
+  specific coin-transition sprite teardown.
+- **Hypothesis (UNPROVEN, do not act on):** SAT clear / native sprite queue / PC090OJ compat state /
+  residency / scene teardown / item-page ownership — none proven.
+- **Note:** Build 0455 preserves the native item-icon path and corrects ROM-driven text geometry,
+  but did not establish coin-transition teardown. This issue MUST remain open until Tighe verifies
+  the coin-during-item-screen transition; do not auto-close on item-layout acceptance.
+- **Classification:** RELATED BUT DISTINCT — NEW ISSUE.
+- **Closure condition:** coin during the item screen clears the item/power-up icons on transition to
+  PRESS START; Tighe real-Genesis visual verification.
+
+## OPEN-033 — Death -> READY screen lifecycle: stale Rastan sprite + wrong READY! patterns
+
+- **Status:** OPEN / USER OBSERVATION (two distinct symptoms, same screen)
+- **Priority:** MEDIUM
+- **Observed through:** present in accepted Build 0452 (2026-10-18 Tighe observation). Long-standing.
+- **User observation (a) — stale Rastan:** when Rastan dies and the black READY screen appears,
+  **Rastan's sprite remains visible**; he should have been cleared from this screen.
+- **User observation (b) — wrong READY! patterns:** on that black READY screen the word **READY!**
+  is built/displayed using **incorrect tile/pattern graphics**. Tighe cannot identify which
+  patterns; do NOT invent tile numbers. Record only: READY text references/displays wrong patterns.
+- **Distinction kept explicit:** (a) is a sprite-teardown symptom; (b) is a tile/pattern symptom.
+  They may share an owner but both are recorded separately per instruction.
+- **Prior related evidence / cross-reference (distinct from these):** the historical
+  "ROUND 1 / READY flicker + missing header sprites" deferred note (Build 0165/0166 log) is the
+  gameplay-ENTRY ROUND/READY, not death->READY; Build-0395 ROUND/READY ownership and CLOSED-023
+  scene-transition blanking (`.Linstall_leave_display_off`) are the existing ROUND/READY lifecycle
+  mechanism; OPEN-019/OPEN-020 own low-code FG glyph/symbol LUT coverage (candidate relevance to
+  symptom (b) if READY uses low-code PC080SN glyphs — UNPROVEN); OPEN-024 (sprite subsystem) for (a).
+- **Classification:** RELATED BUT DISTINCT — NEW ISSUE (no existing owner for the death->READY
+  lifecycle specifically).
+- **Closure condition:** on death->READY, Rastan is cleared AND READY! renders correct patterns;
+  Tighe real-Genesis visual verification.
+
+## OPEN-034 — CONTINUE and GAME OVER screens retain the previous scene's tiles and palette
+
+- **Status:** OPEN / USER OBSERVATION (refines a long-standing informal note)
+- **Priority:** MEDIUM
+- **Observed through:** present in accepted Build 0452 (2026-10-18 Tighe observation). Long-standing.
+- **User observation:** the CONTINUE and GAME OVER screens do not establish their correct
+  screen-specific presentation assets; they appear to retain the previous scene's **tile/pattern
+  state AND palette state** rather than loading the correct Continue/Game-Over assets. The explicit
+  new current observation covers BOTH patterns/tiles and palette.
+- **Prior related evidence (same symptom, informal):** the recurring "continue/game-over wrong tiles
+  after three deaths" deferred observation in the Build 0165 item (7) / Build 0166 item (9) / Build
+  0168 remaining-open lists. This refines that long-standing informal note into a dedicated issue and
+  ADDS the palette dimension. Do NOT assert which loader/transition is responsible (not proven).
+- **Classification:** EXISTING (informal) OBSERVATION — REFINED INTO NEW DEDICATED ISSUE (tiles +
+  palette), preserving the historical mentions.
+- **Closure condition:** CONTINUE and GAME OVER establish correct tiles/patterns AND palette; Tighe
+  real-Genesis visual verification.
+
+## OPEN-035 — Attract-mode loop does not restore the initial attract tiles/patterns and palette
+
+- **Status:** OPEN / USER OBSERVATION
+- **Priority:** MEDIUM
+- **Observed through:** present in accepted Build 0452 (2026-10-18 Tighe observation). Long-standing.
+- **User observation:** when attract mode completes a full cycle and loops, the proper initial
+  attract tile/pattern set is **not restored** and the proper attract palette is **not restored** —
+  presentation state from the previous attract/game state leaks into the next attract cycle.
+- **Prior related evidence / cross-reference:** OPEN-001 (attract graphics incomplete); the
+  scene-transition/palette-restoration lifecycle class (CLOSED-023 blanking policy;
+  `load_scene_tiles`/`scene_present_pending` scene-entry fill). No proven owner for the attract-loop
+  restoration specifically; do not assume it is the same as any single existing palette/scene issue.
+- **Classification:** GENUINELY NEW ISSUE (attract-loop scene/palette restoration), cross-referencing
+  OPEN-001.
+- **Closure condition:** a full attract loop restores the initial attract tiles/patterns and palette
+  with no leak from the prior cycle; Tighe real-Genesis visual verification.
+
+## OPEN-036 — R1 Phase-2 (subround 2) scene presentation: load blanking, Plane A, palette, vertical map
+
+- **Status:** OPEN / USER OBSERVATION (four distinct symptoms of the subround-2 entry/presentation)
+- **Priority:** HIGH
+- **Observed through:** present in accepted Build 0452 (2026-10-18 Tighe observation). Long-standing.
+  "R1 Phase-2" / "subround 2" is the vertical castle-climb phase after the first part of Round 1.
+- **(a) Load blanking (transition):** entering subround 2, the display should be blank/off while the
+  next scene is built and become visible only when ready; current Genesis behavior keeps **Plane B
+  visible while the new Plane A is loaded/built**, exposing a mixed/incomplete intermediate scene.
+  Cross-reference: CLOSED-023 deliberately keeps **ordinary** segment transitions display-ON (no
+  strobe) and major scene-entry fills use `load_scene_tiles`/`scene_present_pending` blanking
+  (Build 0400). Whether the subround-2 entry should be classified as a major-scene-entry blank is a
+  presentation-timing question; this records the observed mixed intermediate, NOT a prescription.
+  Arcade blanking semantics for this transition are NOT proven here — do not assert them.
+- **(b) Plane A incorrect:** separately from (a), Plane A contains **incorrect tiles/content** when
+  entering subround 2, and this remains wrong after accounting for (a). Cross-reference OPEN-030
+  (Segment-11->12 Plane-A residency loss) — related Plane-A class, not proven identical.
+- **(c) Palette very wrong + NO registry decision:** the subround-2 palette is substantially
+  incorrect. Current repository fact (verified this task): `specs/palette_decisions.json` contains
+  **NO** decision for R1 Phase-2 / subround 2 / castle / interior (0 matches). Therefore this is NOT
+  "the assigned palette decision is wrong" — **no assignment exists yet**; the subround-2 palette has
+  not been entered into the palette-decision workflow. Cross-reference OPEN-006 (palette mapping).
+- **(d) Vertical map construction orientation/overlap:** subround 2 uses a substantially different,
+  much more vertical level-map construction. Tighe RECALLS prior Andy analysis showing some
+  screens/sections not rotated/oriented correctly and some map sections overlapping/stacked. This
+  task did NOT locate that specific "rotation/overlap/stacking" analysis in the current tree
+  (searched docs/design + KNOWN_FINDINGS); recorded as an UNRESOLVED user observation + recollection,
+  NOT as proven. Do not invent a rotation/map-storage mechanism. If the prior analysis is located, it
+  should be cited here.
+- **Cross-dependency:** OPEN-029 (third-chain traversal) — its "map ends there" hypothesis, if
+  proven, would relate to (d)'s map extent.
+- **Classification:** GENUINELY NEW ISSUE for subround-2 presentation (no existing owner); four
+  symptoms kept explicit per instruction (may share a scene-load owner).
+- **Closure condition:** subround-2 entry blanks correctly during load (per proven arcade semantics),
+  Plane A renders correct content, a palette decision is authored and correct, and the vertical map
+  is constructed with correct orientation and no overlap; Tighe real-Genesis visual verification.
