@@ -52492,3 +52492,15 @@ TIGHE ONLY
 
 - Tighe accepted Build 0452: title, story/throne, BEST-5, and gameplay reduced HUD pass. Exact accepted source is `8cf04c693a1299ac818e653de501a92bb8af8117`; canonical SHA-256 `7dc9230c1e18cb71900986fc3f06fe2e680622b7e4020d805ce1e67a2057f48e`; `_invincible` SHA-256 `594550b61de2bb3a7fd0d03af9b4a29580de00f7f2d3a2a6ed6a0235cd7141f2`; ref `accepted/build-0452` points exactly to the ROM-producing source commit.
 - Accepted deterministic `_invincible` rope benchmark: `798 / 798 / 798`, median `13,317.147 ms`, deterministic **YES**.
+
+### MAME Exit Summary (2026-10-18 23:25:36)
+- Final PC: 0x03B296
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-18 — Build 0453 native item-description vertical ring
+
+- Build 0452 acceptance was locked first at exact source `8cf04c693a1299ac818e653de501a92bb8af8117` with `refs/accepted/build-0452`; accepted rope result 798/798/798, median 13,317.147 ms.
+- The item presentation now cuts at arcade `0x05602C` (Genesis `0x056090`) and item tick `0x05607C` (Genesis `0x0560E2`) into native helpers. Offline assets contain the complete 64x64 final Plane-B logical map, 27 text patterns, and authoritative 17+3 icon templates/patterns. Physical Plane B remains 64x32 with `physical=logical&31`; live `A5+0x10EE` remains the one 4-frame/-1/modulo-512 scroll authority. Entry seeds 32 rows; each eight-pixel crossing copies one 64-word row and marks one dirty bit; wrap never rebuilds the plane.
+- Item-specific runtime `0x563A6` decompression output, `0x560DA` PC080SN row streaming/rebuild, C-window projection, PC090 tuple interpretation, separate scroll state, and the old padded `0x5607C` body replacement are retired from this screen. FRONTEND_FULL remains shared; item icon slots 1419..1498 derive from current HUD/sprite ownership and do not overlap HUD, name tables, SAT, or HScroll.
+- Item logical/ring/pattern/icon verification, title, shared HUD, BEST-5, assembly/link, 75-site reflow, canonical, gameplay-entry, seven-epoch, fixed 30-second Genesis NTSC MAME, complete seven-ROM family, and invincibility gates PASS. Canonical artifact `dist/rastan-direct/rastan_direct_video_test_build_0453.bin`, size 2,735,800, SHA-256 `628f3025dfffe09a6b2188b0ecc14f5134683b93efdbc3482275dd489fd4a36e`; `_invincible` SHA-256 `8e680621a80948d96ad86fda0f0f367c5fed270d98ccddbfeb3a7756888b1f10`; counter 453; ROM-producing source commit `d5bae39b67f5df6d5ff3499adfa6972bdf111942`. Real-hardware acceptance pending Tighe. Report: `docs/design/Cody_native_item_description_vertical_ring.md`.
