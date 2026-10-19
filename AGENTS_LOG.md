@@ -52459,3 +52459,18 @@ TIGHE ONLY
 - Real-hardware acceptance: **PENDING TIGHE**.  Item-description work, Phase D,
   and Phase E were not started.  Report:
   `docs/design/Cody_build0449_fully_prebaked_native_title.md`.
+
+### MAME Exit Summary (2026-10-18 17:45:04)
+- Final PC: 0x0702D8
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
+## [Cody — Implementation, Build 0451 Shared Native HUD + BEST-5 Reflow Correction]
+
+* Build 0449 remains rejected. Build 0450 is preserved as an intermediate; Build 0451 moves its frontend-residency teardown from the recurring gameplay finalizer to the one-time gameplay scene-load boundary. Build 0451 preserves the native title Plane A/B/art package and splits the former title-private HUD into one generated `FRONTEND_FULL` native HUD owner. Root cause of the malformed title/story HUD was an off-by-one Genesis SAT link (`index+2` instead of next zero-based record `index+1`) plus the scene-0 title-active ownership split; BEST-5/item recovered only after selecting the later generic frontend path. Shared HUD patterns now have a fixed 20-cell frontend reservation, transient items append after record 29, stable frames do zero HUD rebuild/publication, and changed scores update only six records (credit one). Existing gameplay `GAMEPLAY_REDUCED_P1` (`1UP + P1`) hot path remains unchanged.
+* BEST-5 was independent: numeric producer retained stale pre-reflow literal `0x03C57C`, NAME producer stale `0x03C654`. Generated linker-owned copies now come from original arcade tables `0x03C37C` (numeric, current mapped ROM `0x03C560`) and `0x03C454` (NAME, current `0x03C638`). A5 conversion remains `source - 0x0010C000`; leading-zero rule remains `cmpi.w #6,(a0)`; ranking data is not seeded/hard-coded.
+* Gates PASS: native title, shared HUD assets/links, consumer coverage, BEST-5 reflow, assembly/link, 73-shift postpatch, canonical, gameplay entry, seven-epoch, fixed 30-second MAME, and seven-member family. Artifact `dist/rastan-direct/rastan_direct_video_test_build_0451.bin`, size 2,723,512, SHA-256 `070bbee980e1c33096a75c0cf41c5b9819e8aa1301985b03333fcff1527f9062`; counter 451; ROM-producing source commit `cc8787f6c1ab4909f40140ab89e5fc0386801abe`. **Accepted by Tighe on 2026-10-18** and locked by `accepted/build-0451`. Report: `docs/design/Cody_build0451_shared_native_hud_best5_regression.md`.
+
+### MAME Exit Summary (2026-10-18 17:50:14)
+- Final PC: 0x0702D8
+- Stack Pointer (SP): 0x00FEFF76
+- Unique Unmapped Memory Addresses: none
