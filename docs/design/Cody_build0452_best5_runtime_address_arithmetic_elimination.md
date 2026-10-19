@@ -74,7 +74,9 @@ No ORIGINAL ARCADE MAME runtime trace was needed: the original static descriptor
 - `_invincible` SHA-256: `594550b61de2bb3a7fd0d03af9b4a29580de00f7f2d3a2a6ed6a0235cd7141f2`.
 - Build counter: 451 -> 452.
 - ROM-producing source commit: `8cf04c693a1299ac818e653de501a92bb8af8117`.
-- Real-hardware acceptance: **PENDING TIGHE**.
+- Real-hardware acceptance: **ACCEPTED BY TIGHE** on 2026-10-18.
+- Accepted `_invincible` rope benchmark: `798 / 798 / 798`, median `13,317.147 ms`, deterministic **YES**.
+- Accepted ref: `accepted/build-0452` -> `8cf04c693a1299ac818e653de501a92bb8af8117`.
 
 ## Regressions and USER MUST VERIFY
 
@@ -82,4 +84,4 @@ Automated gates preserve gameplay entry, all seven Round-1 residency epochs, the
 
 Tighe must verify on hardware/emulator: (1) the title remains correct; (2) story/throne remains correct; (3) BEST-5 SCORE, ROUND, and NAME remain populated and respond to live ranking state; and (4) gameplay retains the reduced `1UP + P1` HUD.
 
-STOP status: implementation and automated validation complete; real-hardware acceptance pending Tighe.
+STOP status: Build 0452 accepted by Tighe and durably locked.

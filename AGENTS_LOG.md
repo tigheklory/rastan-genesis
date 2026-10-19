@@ -52487,3 +52487,8 @@ TIGHE ONLY
 - Both producers now use direct `A5 + generated word displacement`; runtime source-base subtraction, Genesis-WRAM rebasing, stale ROM literals, and magic replacement sources are absent. SCORE/ROUND/NAME stay live and leading-zero suppression is unchanged.
 - BEST-5 conversion/final-ROM proof, title, shared HUD, assembly/link, 73-shift postpatch, canonical, gameplay-entry, seven-epoch, fixed 30-second Genesis NTSC MAME (`1798` frames), complete family/config, and invincibility gates PASS.
 - Canonical artifact `dist/rastan-direct/rastan_direct_video_test_build_0452.bin`, size 2,723,512, SHA-256 `7dc9230c1e18cb71900986fc3f06fe2e680622b7e4020d805ce1e67a2057f48e`; `_invincible` SHA-256 `594550b61de2bb3a7fd0d03af9b4a29580de00f7f2d3a2a6ed6a0235cd7141f2`; counter 452; ROM-producing source commit `8cf04c693a1299ac818e653de501a92bb8af8117`. Real-hardware acceptance pending Tighe. Report: `docs/design/Cody_build0452_best5_runtime_address_arithmetic_elimination.md`.
+
+## 2026-10-18 — Build 0452 accepted and locked
+
+- Tighe accepted Build 0452: title, story/throne, BEST-5, and gameplay reduced HUD pass. Exact accepted source is `8cf04c693a1299ac818e653de501a92bb8af8117`; canonical SHA-256 `7dc9230c1e18cb71900986fc3f06fe2e680622b7e4020d805ce1e67a2057f48e`; `_invincible` SHA-256 `594550b61de2bb3a7fd0d03af9b4a29580de00f7f2d3a2a6ed6a0235cd7141f2`; ref `accepted/build-0452` points exactly to the ROM-producing source commit.
+- Accepted deterministic `_invincible` rope benchmark: `798 / 798 / 798`, median `13,317.147 ms`, deterministic **YES**.
