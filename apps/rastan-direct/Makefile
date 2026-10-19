@@ -395,10 +395,11 @@ $(NATIVE_HUD_PATTERNS): $(MAINCPU_REGION) $(PC090OJ_PRECONV) $(NATIVE_HUD_GEN)
 $(NATIVE_HUD_STATIC_SAT) $(NATIVE_HUD_DYNAMIC_RECORDS) $(NATIVE_HUD_REPORT): $(NATIVE_HUD_PATTERNS)
 	@test -f "$@"
 
-$(NATIVE_ITEM_LOGICAL_MAP): $(MAINCPU_REGION) $(PC080SN_REGION) $(PC090OJ_PRECONV) $(NATIVE_HUD_REPORT) $(SRC_DIR)/pc090oj_hooks.s $(NATIVE_ITEM_GEN)
+$(NATIVE_ITEM_LOGICAL_MAP): $(MAINCPU_REGION) $(PC080SN_REGION) $(PC090OJ_PRECONV) $(NATIVE_HUD_REPORT) $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_PALSEL_LUT_INC) $(NATIVE_ITEM_GEN)
 	$(PYTHON) "$(NATIVE_ITEM_GEN)" --maincpu "$(MAINCPU_REGION)" \
 		--pc080sn "$(PC080SN_REGION)" --pc090oj "$(PC090OJ_PRECONV)" \
 		--hud-report "$(NATIVE_HUD_REPORT)" --sprite-source "$(SRC_DIR)/pc090oj_hooks.s" \
+		--palette-lut "$(PC090OJ_PALSEL_LUT_INC)" \
 		--map-output "$(NATIVE_ITEM_LOGICAL_MAP)" \
 		--plane-pattern-output "$(NATIVE_ITEM_PLANE_PATTERNS)" \
 		--icon-pattern-output "$(NATIVE_ITEM_ICON_PATTERNS)" \
@@ -614,6 +615,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 		--icon-patterns "$(NATIVE_ITEM_ICON_PATTERNS)" \
 		--icon-records "$(NATIVE_ITEM_ICON_RECORDS)" --report "$(NATIVE_ITEM_REPORT)" \
 		--assembly "$(SRC_DIR)/item_native.s" --sprite-source "$(SRC_DIR)/pc090oj_hooks.s" \
+		--palette-lut "$(PC090OJ_PALSEL_LUT_INC)" \
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(VDP_DMA_BOUNDARY_GATE)" --symbols "$(SYMBOLS)" --patterns "$(PC080SN_EDITOR_LAYERA)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"

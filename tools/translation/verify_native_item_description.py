@@ -8,6 +8,11 @@ import re
 from pathlib import Path
 
 ROWS, COLS, PHYS = 64, 64, 32
+PAGE_A_DEST = 0x00C00828
+PAGE_B_DEST = 0x00C00028
+PAGE_B_LOGICAL_ROW = 32
+ITEM_SCENE = 0
+ITEM_SPRITE_COLBANK = 0x30
 ALIASES = {0x21: 0x2744, 0x22: 0x2745, 0x27: 0x2746, 0x28: 0x2747,
            0x29: 0x2748, 0x2C: 0x2749, 0x2D: 0x274A, 0x3F: 0x274B}
 
@@ -47,11 +52,33 @@ def assembly_constant(source: str, name: str) -> int:
     return int(match.group(1))
 
 
+def palette_lut(source: str):
+    values = []
+    active = False
+    for raw in source.splitlines():
+        line = raw.strip()
+        if line == "pc090oj_palsel_lut:":
+            active = True
+            continue
+        if active and line.startswith(".byte"):
+            values += [int(token.strip(), 0) for token in line[5:].split(",")]
+        elif active and values and line.startswith(".section"):
+            break
+    if len(values) != 512 or any(not 0 <= value <= 3 for value in values):
+        fail("current PC090OJ palette LUT is not 4x128")
+    return values
+
+
+def cwindow_row_col(destination: int):
+    offset = destination & 0x3FFF
+    return offset // 0x200, (offset & 0x1FF) // 4
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     for name in ("maincpu", "pc080sn", "pc090oj", "hud-report", "logical-map",
                  "plane-patterns", "icon-patterns", "icon-records", "report",
-                 "assembly", "sprite-source", "spec"):
+                 "assembly", "sprite-source", "palette-lut", "spec"):
         parser.add_argument("--" + name, type=Path, required=True)
     args = parser.parse_args()
     main = args.maincpu.read_bytes()
@@ -63,6 +90,7 @@ def main() -> None:
     report = json.loads(args.report.read_text())
     hud_report = json.loads(args.hud_report.read_text())
     sprite_source = args.sprite_source.read_text()
+    palsel = palette_lut(args.palette_lut.read_text())
     sprite_base = assembly_constant(sprite_source, "SPRITE_TILE_BASE")
     native_cells = assembly_constant(sprite_source, "NATIVE_CELLS")
     hud_cells = hud_report.get("fixed_residency_cells")
@@ -75,20 +103,14 @@ def main() -> None:
         "sprite_tile_base": sprite_base,
     }:
         fail("VRAM ownership metadata is not derived from current owners")
-    if report.get("format") != "rastan-native-item-description-ring-v1":
-        fail("report format")
-    if report["geometry"] != {
-        "columns": 64, "initial_top_row": 4, "logical_rows": 64,
-        "mapping": "physical_row = logical_row & 31", "page_b_install_pixel": 96,
-        "physical_rows": 32,
-    }:
-        fail("geometry metadata")
-
     # Independently reconstruct the authoritative arcade 64x64 source-code map.
     expected_codes = [[0x20] * COLS for _ in range(ROWS)]
-    for decoded, first in ((stream(main, 0x5672A), 8), (stream(main, 0x5697E), 0)):
+    page_a_row, page_a_col = cwindow_row_col(PAGE_A_DEST)
+    _page_b_physical_row, page_b_col = cwindow_row_col(PAGE_B_DEST)
+    for decoded, first, first_col in ((stream(main, 0x5672A), page_a_row, page_a_col),
+                                      (stream(main, 0x5697E), PAGE_B_LOGICAL_ROW, page_b_col)):
         for index, row in enumerate(decoded):
-            expected_codes[(first + index) & 63][10:10 + len(row)] = row
+            expected_codes[(first + index) & 63][first_col:first_col + len(row)] = row
     package = args.plane_patterns.read_bytes()
     slot_bytes = {}
     cursor = 0
@@ -159,12 +181,30 @@ def main() -> None:
         if (got_y, got_x, got_code) != (y, x, code):
             fail(f"icon {index} semantic tuple mismatch")
         base_slot = tile & 0x07FF
-        if tile & 0xE000 != 0x8000:
-            fail(f"icon {index} priority/palette mismatch")
+        effective_bank = ITEM_SPRITE_COLBANK | (attr & 0x000F)
+        expected_line = palsel[ITEM_SCENE * 128 + effective_bank]
+        expected_attributes = 0x8000 | (expected_line << 13) | ((attr >> 3) & 0x1800)
+        if tile & 0xF800 != expected_attributes:
+            fail(f"icon {index} priority/palette/flip mismatch: "
+                 f"attr={attr:#06x} bank={effective_bank:#04x} "
+                 f"expected-line={expected_line} tile={tile:#06x}")
         raw = pc090[code * 128:code * 128 + 128]
         for quadrant in range(4):
             if icon_slot_bytes.get(base_slot + quadrant) != raw[quadrant * 32:(quadrant + 1) * 32]:
                 fail(f"icon {index} pattern mismatch")
+
+    if report.get("format") != "rastan-native-item-description-ring-v2":
+        fail("report format")
+    if report["geometry"] != {
+        "columns": 64, "initial_top_row": 4, "logical_rows": 64,
+        "mapping": "physical_row = logical_row & 31", "page_b_install_pixel": 96,
+        "physical_rows": 32,
+        "page_a_destination": "0x00C00828", "page_a_logical_row": 4,
+        "page_a_column": 10, "page_b_destination": "0x00C00028",
+        "page_b_physical_row": 0, "page_b_logical_row": 32,
+        "page_b_column": 10,
+    }:
+        fail("geometry metadata")
 
     assembly = args.assembly.read_text()
     required = ("genesistan_item_description_enter", "genesistan_item_ring_advance",

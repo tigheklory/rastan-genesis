@@ -15,9 +15,14 @@ INITIAL_TOP_ROW = 4
 PAGE_B_INSTALL_PIXEL = 96
 PAGE_A_SOURCE = 0x05672A
 PAGE_B_SOURCE = 0x05697E
-PAGE_A_DEST_ROW = 8
-PAGE_B_DEST_ROW = 0
-TEXT_COLUMN = 10
+PAGE_A_DEST = 0x00C00828
+PAGE_B_DEST = 0x00C00028
+# Page B is published after 12 eight-pixel crossings.  Its physical rows 0..6
+# are therefore logical rows 32..38 in the 64-row native ring; they are not
+# logical rows 0..6 and must not overwrite page-A rows 4..6 at entry.
+PAGE_B_LOGICAL_ROW = 32
+ITEM_SCENE = 0
+ITEM_SPRITE_COLBANK = 0x30  # arcade sprite control 0x0060 -> (ctrl & 0xe0) >> 1
 PAGE_A_ICONS = 0x056226
 PAGE_B_ICONS = 0x0562B0
 ALIASES = {
@@ -64,7 +69,32 @@ def assembly_constant(source: str, name: str) -> int:
     return int(match.group(1))
 
 
-def build(main: bytes, pc080: bytes, pc090: bytes, hud_report: dict, sprite_source: str):
+def parse_palette_lut(source: str) -> list[int]:
+    values: list[int] = []
+    active = False
+    for raw in source.splitlines():
+        line = raw.strip()
+        if line == "pc090oj_palsel_lut:":
+            active = True
+            continue
+        if not active:
+            continue
+        if line.startswith(".byte"):
+            values.extend(int(token.strip(), 0) for token in line[5:].split(","))
+        elif values and line.startswith(".section"):
+            break
+    if len(values) != 4 * 128 or any(not 0 <= value <= 3 for value in values):
+        raise ValueError("current PC090OJ palette LUT is not a 4x128 line map")
+    return values
+
+
+def cwindow_row_col(destination: int) -> tuple[int, int]:
+    offset = destination & 0x3FFF
+    return offset // 0x200, (offset & 0x1FF) // 4
+
+
+def build(main: bytes, pc080: bytes, pc090: bytes, hud_report: dict,
+          sprite_source: str, palette_lut_source: str):
     sprite_tile_base = assembly_constant(sprite_source, "SPRITE_TILE_BASE")
     sprite_cell_limit = assembly_constant(sprite_source, "NATIVE_CELLS")
     hud_fixed_cells = hud_report["fixed_residency_cells"]
@@ -72,15 +102,20 @@ def build(main: bytes, pc080: bytes, pc090: bytes, hud_report: dict, sprite_sour
     expected_hud_slots = list(range(sprite_tile_base, sprite_tile_base + hud_fixed_cells * 4, 4))
     if hud_slots != expected_hud_slots:
         raise ValueError("current FRONTEND_FULL report is not a contiguous fixed-cell owner")
+    palette_lut = parse_palette_lut(palette_lut_source)
     page_a = decode_text_stream(main, PAGE_A_SOURCE)
     page_b = decode_text_stream(main, PAGE_B_SOURCE)
+    page_a_row, page_a_col = cwindow_row_col(PAGE_A_DEST)
+    page_b_physical_row, page_b_col = cwindow_row_col(PAGE_B_DEST)
     source_codes = [[0x20] * PLANE_COLUMNS for _ in range(LOGICAL_ROWS)]
-    for rows, first_row in ((page_a, PAGE_A_DEST_ROW), (page_b, PAGE_B_DEST_ROW)):
+    for rows, first_row, first_col in (
+            (page_a, page_a_row, page_a_col),
+            (page_b, PAGE_B_LOGICAL_ROW, page_b_col)):
         for row_index, row in enumerate(rows):
             logical_row = (first_row + row_index) & 63
-            if TEXT_COLUMN + len(row) > PLANE_COLUMNS:
+            if first_col + len(row) > PLANE_COLUMNS:
                 raise ValueError("item text row exceeds 64 columns")
-            source_codes[logical_row][TEXT_COLUMN:TEXT_COLUMN + len(row)] = row
+            source_codes[logical_row][first_col:first_col + len(row)] = row
 
     pattern_by_bytes: dict[bytes, int] = {}
     plane_entries: list[tuple[int, int, bytes]] = []
@@ -137,7 +172,8 @@ def build(main: bytes, pc080: bytes, pc090: bytes, hud_report: dict, sprite_sour
     def native_icons(records):
         result = []
         for attr, y, code, x in records:
-            line = 0  # scene-0 palette LUT maps effective banks 0 and 3 to line 0
+            effective_bank = ITEM_SPRITE_COLBANK | (attr & 0x000F)
+            line = palette_lut[ITEM_SCENE * 128 + effective_bank]
             flips = ((attr >> 3) & 0x1800)
             tile_word = 0x8000 | (line << 13) | flips | (sprite_tile_base + icon_cell[code] * 4)
             result.append((y, tile_word, x, code))
@@ -156,7 +192,7 @@ def build(main: bytes, pc080: bytes, pc090: bytes, hud_report: dict, sprite_sour
         "icon_records": bytes(icon_records),
     }
     report = {
-        "format": "rastan-native-item-description-ring-v1",
+        "format": "rastan-native-item-description-ring-v2",
         "semantic_cut": "arcade item attract state/scroll/dwell -> native Plane-B ring and native icon SAT",
         "arcade_sources": {
             "page_a_text": f"0x{PAGE_A_SOURCE:06X}",
@@ -171,6 +207,13 @@ def build(main: bytes, pc080: bytes, pc090: bytes, hud_report: dict, sprite_sour
             "initial_top_row": INITIAL_TOP_ROW,
             "mapping": "physical_row = logical_row & 31",
             "page_b_install_pixel": PAGE_B_INSTALL_PIXEL,
+            "page_a_destination": f"0x{PAGE_A_DEST:08X}",
+            "page_a_logical_row": page_a_row,
+            "page_a_column": page_a_col,
+            "page_b_destination": f"0x{PAGE_B_DEST:08X}",
+            "page_b_physical_row": page_b_physical_row,
+            "page_b_logical_row": PAGE_B_LOGICAL_ROW,
+            "page_b_column": page_b_col,
         },
         "text": {
             "page_a_rows": len(page_a), "page_b_rows": len(page_b),
@@ -185,6 +228,14 @@ def build(main: bytes, pc080: bytes, pc090: bytes, hud_report: dict, sprite_sour
             "pattern_slots": [sprite_tile_base + hud_fixed_cells * 4,
                               sprite_tile_base + (hud_fixed_cells + len(icon_codes)) * 4 - 1],
             "source_codes": [f"0x{code:04X}" for code in icon_codes],
+            "arcade_sprite_control": "0x0060",
+            "effective_colbank": "0x30",
+            "palette_lines_by_attribute": {
+                f"0x{attr:04X}": palette_lut[ITEM_SCENE * 128 +
+                                               (ITEM_SPRITE_COLBANK | (attr & 0xF))]
+                for attr in sorted({record[0] for record in icons_a + icons_b})
+            },
+            "palette_authority": "generated pc090oj_palsel_lut scene 0",
         },
         "vram_ownership": {
             "source": "current pc090oj_hooks.s constants + native_hud_report.json",
@@ -202,13 +253,14 @@ def build(main: bytes, pc080: bytes, pc090: bytes, hud_report: dict, sprite_sour
 def main() -> None:
     parser = argparse.ArgumentParser()
     for name in ("maincpu", "pc080sn", "pc090oj", "hud-report", "sprite-source",
+                 "palette-lut",
                  "map-output", "plane-pattern-output", "icon-pattern-output",
                  "icon-record-output", "report"):
         parser.add_argument("--" + name, type=Path, required=True)
     args = parser.parse_args()
     outputs, report = build(args.maincpu.read_bytes(), args.pc080sn.read_bytes(),
                             args.pc090oj.read_bytes(), json.loads(args.hud_report.read_text()),
-                            args.sprite_source.read_text())
+                            args.sprite_source.read_text(), args.palette_lut.read_text())
     paths = {
         args.map_output: outputs["logical_map"],
         args.plane_pattern_output: outputs["plane_patterns"],
