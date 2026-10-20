@@ -446,3 +446,30 @@ Closure note format:
   is fixed and the destructible block still works, accepting Build 0422.
 - **Evidence:** `docs/design/Cody_build0421_segment0_regression_root_cause.md`;
   `docs/design/Cody_build0422_background_native_fix.md`; KF-092.
+
+## CLOSED-037 — R1 Subround-1 premature auto-walk from stale selector-stream pointer
+
+- **Original title:** R1 Subround-1 ends early (premature auto-walk).
+- **Closed by:** Cody Build 0456 relocation-backed selector-stream repair; Tighe real-Genesis
+  acceptance on 2026-10-19.
+- **Build/artifact:** Build 0456 `_invincible`; accepted source
+  `66dd550555a4dbfc76e94c7bcf64334513e3a489`; tag `accepted/build-0456`; canonical SHA-256
+  `961fe13ab04a8571d704bbf39705571ec0910e6fa2300eadc0f41f3fb7ed9829`; `_invincible` SHA-256
+  `c6e459c6df5efba0da47d0eddd5df301cce82e469ac4bfc17acefcc57f04fb97`.
+- **Root cause:** arcade initializer `0x0503CE` permanently embedded historical generated Genesis
+  address `0x051171` for selector stream `0x050F6B`. Later reflow mapped the stream to `0x051155`,
+  so `A5+0x10C6` began 28 bytes late and exposed premature selector events to `FUN_00052732`, which
+  entered player mode `A5+0x10E8=7` and started auto-walk before the true end.
+- **Repair:** the retained `MOVE.L #imm,D0` now declares arcade target `0x050F6B` through the existing
+  `relocate_after_shift` machinery. A mandatory verifier checks final operand equals the current
+  generated address map and the 157-byte stream remains original-arcade exact for all seven variants.
+- **Verification:** all Build 0456 gates and family checks pass; deterministic `_invincible` rope is
+  `798/798/798`, median `13,317.147 ms`. Tighe verified on real Sega Genesis that R1 Subround 1 reaches
+  its true end, no longer ends prematurely, and successfully enters Subround 2.
+- **Evidence:** `docs/design/Cody_build0456_r1_selector_stream_relocation_fix.md`;
+  `docs/design/Cody_r1_subround1_static_root_cause_blocker.md`.
+- **Closure note:** the hardware-observed historical 0445 (~Segment 11) versus 0446 (~Segment 13)
+  difference remains unresolved historical evidence, but it is not required to keep the accepted
+  current defect open and does not weaken Build 0456's verified closure.
+- **Related still-open issue:** NONE for this regression. Separate Subround-2 presentation issues
+  remain under their existing issue IDs.

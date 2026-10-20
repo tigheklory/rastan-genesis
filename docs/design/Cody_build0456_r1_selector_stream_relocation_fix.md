@@ -2,9 +2,9 @@
 
 **Date:** 2026-10-19
 
-**Status:** CANDIDATE — Tighe real-hardware acceptance pending
+**Status:** ACCEPTED — Tighe real-Genesis hardware verification
 
-**Issue:** OPEN-037
+**Issue:** CLOSED-037
 **Accepted baseline:** Build 0455
 
 ## Result
@@ -15,8 +15,9 @@ existing final shift/address relocation pass. The generated operand is `0x051155
 `address_map.json` result. No build-specific runtime address or compensating delta remains in policy.
 
 The established deterministic `_invincible` rope benchmark is `798 / 798 / 798` frames, median
-`13,317.147 ms`, deterministic YES, exactly matching accepted Build 0455. This is mechanically and
-performance validated but remains unaccepted until Tighe completes the required real-Genesis R1 test.
+`13,317.147 ms`, deterministic YES, exactly matching accepted Build 0455. Tighe then verified the
+`_invincible` artifact on a real Sega Genesis: R1 Subround 1 reaches the true end, the premature
+endpoint is gone, and the game enters Subround 2. Build 0456 is accepted.
 
 ## Proven defect and repair
 
@@ -138,7 +139,8 @@ was created or run. The only gameplay benchmark was the existing deterministic r
 - `_invincible` SHA-256: `c6e459c6df5efba0da47d0eddd5df301cce82e469ac4bfc17acefcc57f04fb97`
 - Size: 2,739,896 bytes each
 - Counter: 456
-- Source state: uncommitted candidate working tree based on `e13f32d40584f7de2a42d0f56cdecfd417b7e644`
+- Accepted ROM-producing source: `66dd550555a4dbfc76e94c7bcf64334513e3a489`
+- Acceptance tag: `accepted/build-0456`
 - Fixed30 evidence: `states/traces/rastan_direct_video_test_build_0456_mame_30s_20261019_172527/`
 - Rope evidence: `states/traces/build0456_rope_attach_benchmark_invincible/`
 
@@ -146,5 +148,6 @@ was created or run. The only gameplay benchmark was the existing deterministic r
 
 Build-0455 item presentation, title, HUD, collision, player gameplay behavior, enemies, and the known
 D3 glyph contract mismatch were not intentionally changed. Phase D and Phase E were not started.
-OPEN-037 remains open until Tighe verifies the full R1 Subround-1 extent and true end door, correctly
-timed auto-walk, successful Subround-2 load, and no regression to earlier streaming/collision/gameplay.
+Tighe's real-Genesis test satisfied the OPEN-037 closure condition by reaching the true Subround-1
+end and successfully entering Subround 2; the issue is closed. The separate 0445-versus-0446 endpoint
+difference remains a historical discrepancy and does not reopen the accepted production regression.

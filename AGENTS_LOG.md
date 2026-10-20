@@ -52589,3 +52589,59 @@ TIGHE ONLY
 - `accepted/build-0455` points exactly to that ROM-producing source, not later bookkeeping commit
   `3d0bcc31`. Accepted deterministic rope: 798/798/798 frames, median 13,317.147 ms, YES.
 - OPEN-032 remains open: accepted item layout does not prove coin-transition icon teardown.
+
+## 2026-10-19 — R1 Subround-1 static root-cause pass blocked before Build 0456
+
+- Read all three Andy reports fully and removed the invalid uncommitted passive watcher; no MAME,
+  gameplay trace, route, save state, or harness was run/created. Andy's reports remain untouched.
+- Proved a missed gameplay relocation: spec opcode replacement at arcade `0x0503CE` still embeds
+  Build-0305 runtime address `0x051171` for original selector stream `0x050F6B`. Correct targets:
+  0442 `0x051171`, 0443/44 `0x051173`, 0445/46 `0x051153`, current 0455 `0x051155`.
+- Proved persistent symptom chain: stale +30 stream in 0445/46 emits selector 4 at R1 progression
+  `0x0C`; `FUN_000558E0` publishes it to `A5+0x10A8`; `FUN_00052732` writes player mode
+  `A5+0x10E8=7`, initiating premature scripted auto-walk. 0442 works because `0x051171` was correct.
+- Did **not** build because the prompt also requires reconciliation of 0445 (~Seg11) vs 0446
+  (~Seg13). Their full ROM diff is only checksum, crash-title digit, and glyph LEA +8→+10; map
+  stream is identical. All 48 glyph callers are frontend-only, and 0445's base yields odd invalid
+  pointers and faults if invoked, not a different returning state. D3 clobber predates 0442 and is
+  noncausal. Exact effective hardware-image/execution distinction remains unavailable statically.
+- Report: `docs/design/Cody_r1_subround1_static_root_cause_blocker.md`. OPEN-037 updated; no new
+  issue; no production/spec change; no ROM; counter remains 455; Phase D/E not started.
+
+### MAME Exit Summary (2026-10-19 17:25:33)
+- Final PC: 0x03B290
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-19 — Build 0456 R1 selector-stream relocation fix
+
+- Implemented the proven OPEN-037 root fix only: arcade initializer `0x0503CE` retains
+  `MOVE.L #imm,D0`, but semantic target `0x050F6B` is now owned by existing
+  `relocate_after_shift` metadata instead of historical generated runtime literal `0x051171`.
+  Final operand and current address-map target are both `0x051155`; no build-specific delta.
+- Added `verify_r1_selector_stream_relocation.py` to canonical and all six variant recipes. It proves
+  operand/map equality and all 157 original selector bytes. All seven 0456 ROMs pass; preserved 0455
+  fails as expected (`0x051171 != 0x051155`). Correct stream restores intended first R1 event 4 at
+  `0x10`, eliminating stale premature event 4 at `0x0E` / event 6 at `0x14`.
+- Bounded sibling audit found 23 Build-0200 jump/fall policy literals; all 23 final operands already
+  equal current map targets through recognized abs-long reflow, so no unrelated change. D3 unchanged.
+- Normal build passed assembly/link, 76-site reflow, root/canonical/gameplay-entry/epoch/item/title/
+  HUD/BEST-5/fixed30/family/invincibility gates. Canonical SHA-256
+  `961fe13ab04a8571d704bbf39705571ec0910e6fa2300eadc0f41f3fb7ed9829`; `_invincible`
+  `c6e459c6df5efba0da47d0eddd5df301cce82e469ac4bfc17acefcc57f04fb97`; size 2,739,896;
+  counter 456. Rope `798/798/798`, median `13,317.147 ms`, deterministic YES.
+- No new gameplay route, exploratory trace, manual navigation, Phase D, or Phase E. OPEN-037 remains
+  open pending Tighe hardware acceptance; 0445-vs-0446 endpoint movement remains a noted unresolved
+  secondary historical discrepancy. Report: `docs/design/Cody_build0456_r1_selector_stream_relocation_fix.md`.
+
+## 2026-10-19 — Build 0456 accepted and locked
+
+- Tighe tested Build 0456 `_invincible` on a real Sega Genesis: R1 Subround 1 reaches its true end,
+  the premature endpoint is gone, and Subround 2 loads successfully. Build 0456 is accepted.
+- Exact accepted ROM-producing source is `66dd550555a4dbfc76e94c7bcf64334513e3a489`; annotated tag
+  `accepted/build-0456` points to it. Canonical SHA-256
+  `961fe13ab04a8571d704bbf39705571ec0910e6fa2300eadc0f41f3fb7ed9829`; `_invincible`
+  `c6e459c6df5efba0da47d0eddd5df301cce82e469ac4bfc17acefcc57f04fb97`; accepted rope
+  `798/798/798`, median `13,317.147 ms`, deterministic YES.
+- CLOSED-037 records the verified selector-stream repair. The 0445-versus-0446 endpoint difference
+  remains historical evidence, not a blocker or reason to reopen the accepted current regression.
