@@ -1935,11 +1935,29 @@ genesistan_pc090oj_hook_copy_56114:
  *
  * Original arcade 0x056440 finishes by calling the general tilemap-clear
  * routine at arcade_pc 0x0561A0.  Replacing the whole 0x056440 body made that
- * internal call unreachable, so preserve its semantic consequence explicitly:
- * clear both final Genesis-format staged name tables and mark their rows dirty.
- * This is the original generic clear contract, not a ROUND/READY or scene gate. */
+ * internal call unreachable, so preserve its semantic consequences explicitly:
+ * reset retained/native scroll ownership, clear both final Genesis-format
+ * staged name tables, and mark their rows dirty. This is the original generic
+ * clear contract, not a ROUND/READY or scene gate. */
 genesistan_pc090oj_hook_zero_fill_56440:
     clr.w   transient_items_active
+
+    /* Build 0458 / OPEN-031: the original 0x056440 teardown called the generic
+     * 0x0561A0 clear, whose semantic prologue zeroed all four retained PC080SN
+     * scroll words and published them before clearing the two name tables.
+     * Replacing the whole caller in Build 0453 accidentally preserved only the
+     * table clear.  The scrolling item screen consequently handed its rotated
+     * A5+0x10EE / native VSRAM phase to the fresh R1 Segment-0 fill.  Restore
+     * that omitted one-shot ownership handoff here; pattern residency, caches,
+     * packages, ordinary gameplay entry, and next-life entry are untouched. */
+    clr.w   0x10AE(%a5)
+    clr.w   0x10B0(%a5)
+    clr.w   0x10EC(%a5)
+    clr.w   0x10EE(%a5)
+    clr.w   staged_scroll_x_fg
+    clr.w   staged_scroll_y_fg
+    clr.w   staged_scroll_x_bg
+    clr.w   staged_scroll_y_bg
     bsr     genesistan_hook_cwindow_clear
     rts
 

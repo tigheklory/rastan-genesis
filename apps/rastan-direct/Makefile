@@ -637,7 +637,9 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
-	$(PYTHON) "$(ATTRACT_PLANE_B_ENTRY_VERIFY)" --source "$(SRC_DIR)/tilemap_hooks.s"
+	$(PYTHON) "$(ATTRACT_PLANE_B_ENTRY_VERIFY)" \
+		--tilemap-source "$(SRC_DIR)/tilemap_hooks.s" \
+		--sprite-source "$(SRC_DIR)/pc090oj_hooks.s"
 	$(PYTHON) "$(BEST5_TABLE_VERIFY)" --maincpu "$(MAINCPU_REGION)" --rom "$@" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" \
 		--symbols "$(SYMBOLS)" \
