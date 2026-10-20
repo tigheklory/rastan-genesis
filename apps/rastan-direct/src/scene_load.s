@@ -2,6 +2,7 @@
 
     .global load_scene_tiles
     .global genesistan_frontend_presentation_reset
+    .global genesistan_frontend_owner_reset
     .extern fg_cache_reset
 
     .global genesistan_pc080sn_tile_vram_lut
@@ -219,15 +220,28 @@ load_scene_tiles:
  * a state machine nor authors frontend content. */
 genesistan_frontend_presentation_reset:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
-    moveq   #0, %d0
-    bsr     load_scene_tiles
+    bsr     .Lfrontend_owner_reset_body
     /* The accepted lifecycle reset precedes all retained frontend plane
      * producers. Clear final Genesis name tables here so a scene-0 residency
      * reload cannot reinterpret 1,928 stale gameplay names around Continue. */
     bsr     genesistan_hook_cwindow_clear
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* The 0x056440 teardown retains its original scroll-zero-then-plane-clear
+ * order, so it requests only the shared scene/palette/SAT owner handoff and
+ * performs that retained clear consequence in its own bounded wrapper. */
+genesistan_frontend_owner_reset:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    bsr     .Lfrontend_owner_reset_body
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+.Lfrontend_owner_reset_body:
+    moveq   #0, %d0
+    bsr     load_scene_tiles
     bsr     genesistan_hud_deactivate
     bsr     genesistan_hud_activate_frontend
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 

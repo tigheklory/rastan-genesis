@@ -45,6 +45,7 @@
     .extern vdp_dma_words_to_vram          /* Build 0418: boundary-safe ROM source, autoinc=2 */
     .extern genesistan_hook_cwindow_clear  /* Native Plane A/B consequence of arcade 0x0561A0. */
     .extern genesistan_frontend_presentation_reset
+    .extern genesistan_frontend_owner_reset
     .extern genesistan_hud_activate_frontend
     .extern genesistan_hud_prepare_frontend
     .extern genesistan_hud_deactivate
@@ -1947,7 +1948,7 @@ genesistan_pc090oj_hook_zero_fill_56440:
     /* RG-003: 0x056440 is also the retained death/item-to-READY lifecycle
      * boundary.  Restore the frontend pattern/palette owner and stage a clean
      * native SAT before the retained READY producer repopulates the planes. */
-    bsr     genesistan_frontend_presentation_reset
+    bsr     genesistan_frontend_owner_reset
 
     /* Build 0458 / OPEN-031: the original 0x056440 teardown called the generic
      * 0x0561A0 clear, whose semantic prologue zeroed all four retained PC080SN
@@ -1964,8 +1965,7 @@ genesistan_pc090oj_hook_zero_fill_56440:
     clr.w   staged_scroll_y_fg
     clr.w   staged_scroll_x_bg
     clr.w   staged_scroll_y_bg
-    /* genesistan_frontend_presentation_reset already performs the shared
-     * lifecycle plane clear before the retained READY producer runs. */
+    bsr     genesistan_hook_cwindow_clear
     rts
 
     /* native_queue_hud entry 2, code word: 2 * 8-byte entry + 4.  Keep the
