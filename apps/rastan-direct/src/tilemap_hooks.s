@@ -4641,15 +4641,23 @@ genesistan_hook_itempage_strip_blit:
     blo.s   .Litempage_blit_tileset_selected
     moveq   #SCENE_GAMEPLAY_CAVE_TILESET_ID, %d1
 .Litempage_blit_tileset_selected:
+    /* Build 0457 / OPEN-031: this retained countdown is the authoritative
+     * 0x0503DC initial-scene-fill owner.  Test it BEFORE the tileset cache-hit
+     * fast path: frontend/attract screens do not change the native tileset id,
+     * so a later attract demo can re-enter R1 with gameplay id 1 already
+     * resident.  Skipping load_scene_tiles in that state also skipped
+     * fg_cache_reset, the fixed Plane-B LUT/package reinstall, display blanking,
+     * and the completed-fill publication arm.  Every real scene fill therefore
+     * re-establishes the native scene-entry contract even when its patterns are
+     * already resident.  Ordinary steady-state strips (10AA == 0) retain the
+     * cache-hit fast path. */
+    tst.w   0x10AA(%a5)
+    beq.s   .Litempage_blit_check_tileset
+    move.b  #1, genesistan_scene_present_pending
+    bra.s   .Litempage_blit_load_scene
+.Litempage_blit_check_tileset:
     cmp.b   genesistan_current_pc080sn_tileset_id, %d1
     beq.s   .Litempage_blit_scene_ready
-    /* Build 0394: this retained countdown is nonzero only while the arcade
-     * 0x0503DC initial 64-publication scene fill is in progress.  Tell the
-     * resource loader that this caller, not elapsed time or a scene ID, owns
-     * the later coherent presentation boundary. */
-    tst.w   0x10AA(%a5)
-    beq.s   .Litempage_blit_load_scene
-    move.b  #1, genesistan_scene_present_pending
 .Litempage_blit_load_scene:
     move.w  %d1, %d0
     bsr     load_scene_tiles
