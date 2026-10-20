@@ -1,5 +1,13 @@
 # AGENTS Log
 
+## 2026-10-19 — Cody Build 0457 attract-demo Plane-B scene-entry candidate + palette provenance
+
+- Build 0456 acceptance was locked first: source commit `66dd550555a4dbfc76e94c7bcf64334513e3a489`, annotated tag `accepted/build-0456`, bookkeeping commit `bafc0f2a`; Tighe real-Genesis `_invincible` reached the true R1 Subround-1 end and Subround 2. OPEN-037 closed. Accepted hashes and rope remain `961fe13a…`, `c6e459c6…`, `798/798/798`.
+- OPEN-031 root pinned without a new gameplay trace. Both normal and demo R1 use `0x04529C -> 0x0501E2 -> 0x0503DC`; the native strip hook let cached gameplay tileset ID 1 skip the `A5+0x10AA` initial-fill-owned cache/package reset and coherent publication. Build 0457 tests the fill countdown before the cache fast path. Steady-state strips are unchanged. Semantic cut remains retained arcade map initialization -> final native Plane-B staging; PC080SN C-window/name-RAM tail remains removed.
+- ROM-producing source `fab0325eeb5b6cd0773391dba191cb14b2c1b22d`. Complete Build 0457 family, 2,739,896 bytes each. Canonical SHA `6edfa58f5ea773a200bd8e92d379ba5019cb772e0e6ce3bb009398f2fb457515`; `_invincible` SHA `1ac8c65a3027284c74c3b57c3b0509af1d5201c15d276893d9e6eb286aca1ea5`; counter 457. Root/canonical/epoch/selector/item/title/HUD/BEST-5/fixed30/family/invincible checks PASS. Gameplay-entry gate reached gameplay but reported post-entry assertions incomplete (FAIL; no exception). Fixed30 1,798 frames. Rope deterministic `799/799/799`, 13,333.835 ms (+1 frame vs 0456).
+- Read-only palette handoff: GAME OVER = PC090OJ codes `0x37,0x38,0x3F..0x44`, visibility-only flash, bank `0x30`; P1 labels `0x39/0x46/0x48` and digits `0x2A..0x33` are distinct pattern subfamilies sharing bank `0x30`. Both lack semantic registry/Composer families; no palette files or production palette behavior changed. Report: `docs/design/Cody_gameover_1up_palette_provenance.md`.
+- Build report: `docs/design/Cody_build0457_attract_demo_plane_b_segment0_fix.md`. Real-hardware acceptance PENDING TIGHE. No new gameplay trace/harness/save-state/manual navigation; Phase D/E NO.
+
 ## [Andy — Long-standing issue-ledger reconciliation of Tighe's 11 current visual/gameplay observations]
 
 * ISSUE-LEDGER reconciliation only. No production source/generator/Makefile/ROM/MAME/trace/build-number change; Phase D/E NO. Read current OPEN_ISSUES.md (860 lines, OPEN-001..030) + CLOSED_ISSUES.md (CLOSED-001..024) completely; deduplicated against current tree; checked `specs/palette_decisions.json`. HEAD `d5bae39b` (Build 0453 native item-description ring, Cody in-flight); accepted baseline = Build 0452 (locked by `1850637c`).
