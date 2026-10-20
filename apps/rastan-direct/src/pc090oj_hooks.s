@@ -44,6 +44,7 @@
     .extern dma_words_to_vram_noai         /* WRAM SAT/column-style publication, current autoinc */
     .extern vdp_dma_words_to_vram          /* Build 0418: boundary-safe ROM source, autoinc=2 */
     .extern genesistan_hook_cwindow_clear  /* Native Plane A/B consequence of arcade 0x0561A0. */
+    .extern genesistan_frontend_presentation_reset
     .extern genesistan_hud_activate_frontend
     .extern genesistan_hud_prepare_frontend
     .extern genesistan_hud_deactivate
@@ -1930,8 +1931,9 @@ genesistan_pc090oj_hook_copy_56114:
     rts
 
 /* Frontend-direct retirement (was: park the item object-RAM records).  The
- * arcade clear is the semantic end-of-life for the transient item family, so we
- * retire the native semantic state; the emitter then contributes no pieces.
+ * arcade clear is the semantic end-of-life for the transient item family and
+ * the presentation handoff into READY, so retire native item state and restore
+ * frontend-owned patterns/palettes/SAT before the retained plane producers run.
  *
  * Original arcade 0x056440 finishes by calling the general tilemap-clear
  * routine at arcade_pc 0x0561A0.  Replacing the whole 0x056440 body made that
@@ -1942,14 +1944,18 @@ genesistan_pc090oj_hook_copy_56114:
 genesistan_pc090oj_hook_zero_fill_56440:
     clr.w   transient_items_active
 
+    /* RG-003: 0x056440 is also the retained death/item-to-READY lifecycle
+     * boundary.  Restore the frontend pattern/palette owner and stage a clean
+     * native SAT before the retained READY producer repopulates the planes. */
+    bsr     genesistan_frontend_presentation_reset
+
     /* Build 0458 / OPEN-031: the original 0x056440 teardown called the generic
      * 0x0561A0 clear, whose semantic prologue zeroed all four retained PC080SN
      * scroll words and published them before clearing the two name tables.
      * Replacing the whole caller in Build 0453 accidentally preserved only the
      * table clear.  The scrolling item screen consequently handed its rotated
      * A5+0x10EE / native VSRAM phase to the fresh R1 Segment-0 fill.  Restore
-     * that omitted one-shot ownership handoff here; pattern residency, caches,
-     * packages, ordinary gameplay entry, and next-life entry are untouched. */
+     * that omitted one-shot scroll handoff here. */
     clr.w   0x10AE(%a5)
     clr.w   0x10B0(%a5)
     clr.w   0x10EC(%a5)

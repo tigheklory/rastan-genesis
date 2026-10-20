@@ -181,6 +181,7 @@
   "genesistan_pc090oj_hook_sprite_decay_5607c",
   "genesistan_pc090oj_hook_copy_56114",
   "genesistan_pc090oj_hook_zero_fill_56440",
+  "genesistan_frontend_presentation_reset",
   "genesistan_pc090oj_hook_status_sprite_5a098",
   "genesistan_pc090oj_hook_audit_guard",
   "vdp_commit_sprites",
@@ -277,6 +278,12 @@
    "original_bytes": "4EB90005A356",
    "replacement_bytes": "4EB9{symbol:genesistan_title_present_once}4E75",
    "note": "Build 0443 native one-shot title presentation. Replace the first attract title presentation entry with one Genesis-native helper and return. The retired tail is the title palette call 0x05A356, its 0x05A38E -> 0x05A4DE PC080SN 28x20 logo block copy, and the five 0x03BB48 PC080SN text renders. The helper consumes offline-translated final Plane A/B name words, title CRAM words, and native semantic SAT labels, then reproduces the original A5+0x0004/A5+0x0002/A5+0x002C state writes. Arcade attract timing, input, credits, sound, and transition ownership remain above this cut. Proper 6-to-8-byte shift replacement; no NOP, trampoline, shadow chip RAM, or bypass."
+  },
+  {
+   "arcade_pc": "0x03AD4C",
+   "original_bytes": "323C0008",
+   "replacement_bytes": "4EB9{symbol:genesistan_frontend_presentation_reset}4E75",
+   "note": "RG-003 frontend presentation ownership cut. The retained eight callers invoke 0x03AD4C only after arcade control flow has selected a terminal/frontend reset event. Retire the complete PC090OJ object-RAM parking tail (both D00000/D00170 fill loops and their 0x03AD44 chip writer), restore the generated scene-0 PC080SN pattern/palette owner, and rebuild both native SAT staging banks with the clean FRONTEND_FULL package so VBlank publishes the transition. Plane clearing and Continue/GAME OVER/story/BEST 5 semantic producers remain arcade-owned. Proper 4-to-8-byte shift replacement; no NOP, RTS bypass, chip shadow, route special case, or full-VRAM clear."
   },
   {
    "arcade_pc": "0x03AFEE",
@@ -834,9 +841,9 @@
   },
   {
    "arcade_pc": "0x03A47E",
-   "original_bytes": "0c79004900c0883a6608303c009a610016bc",
+   "original_bytes": "0c79004900c0883a6608303c009a610016c0",
    "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
-   "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis). Build 0443 updates only the validated trailing BSR displacement from 0x16BA to the shift-table-reflowed 0x16BC because that branch crosses the new 0x03AA54 +2-byte title cut; replacement semantics are unchanged."
+   "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis). RG-003 updates only the validated trailing BSR displacement from 0x16BC to the shift-table-reflowed 0x16C0 because that branch crosses the new 0x03AD4C +4-byte frontend ownership cut; replacement semantics are unchanged."
   },
   {
    "arcade_pc": "0x03A490",
@@ -984,9 +991,9 @@
   },
   {
    "arcade_pc": "0x03AC54",
-   "original_bytes": "0c39004300c09e87660a7003610016626100",
+   "original_bytes": "0c39004300c09e87660a7003610016666100",
    "replacement_bytes": "60124e714e714e714e714e714e714e714e71",
-   "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis). Build 0447 updates only the validated trailing BSR displacement from 0x1660 to the shift-table-reflowed 0x1662 because the semantic absolute-long 0x03BB7C glyph-table reference makes the 0x03BB48 contraction 30 bytes instead of Build 0446's 32; replacement semantics are unchanged."
+   "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis). RG-003 updates only the validated trailing BSR displacement from 0x1662 to the shift-table-reflowed 0x1666 because that branch crosses the new 0x03AD4C +4-byte frontend ownership cut; replacement semantics are unchanged."
   },
   {
    "arcade_pc": "0x03AC94",
@@ -1164,15 +1171,15 @@
   },
   {
    "arcade_pc": "0x03AF5E",
-   "original_bytes": "6100FDDC",
-   "replacement_bytes": "6100FDE4",
-   "note": "Route PC080SN BG per-line scroll-RAM clear from raw word-fill primitive 0x3AD3C to the staged/semantic dispatch at 0x3AD44; preserves A0/D0/D1 for genesistan_hook_pc080sn_bg_scroll_fill."
+   "original_bytes": "6100FDD8",
+   "replacement_bytes": "6100FDE0",
+   "note": "Route PC080SN BG per-line scroll-RAM clear from raw word-fill primitive 0x3AD3C to the staged/semantic dispatch at 0x3AD44; preserves A0/D0/D1 for genesistan_hook_pc080sn_bg_scroll_fill. RG-003 adjusts both backward displacements by -4 because the source lies after, and both retained targets lie before, the new 0x03AD4C shift cut."
   },
   {
    "arcade_pc": "0x03AF6E",
-   "original_bytes": "6100FDCC",
-   "replacement_bytes": "6100FDD4",
-   "note": "Route PC080SN FG per-line scroll-RAM clear from raw word-fill primitive 0x3AD3C to the staged/semantic dispatch at 0x3AD44; preserves A0/D0/D1 for genesistan_hook_pc080sn_fg_scroll_fill."
+   "original_bytes": "6100FDC8",
+   "replacement_bytes": "6100FDD0",
+   "note": "Route PC080SN FG per-line scroll-RAM clear from raw word-fill primitive 0x3AD3C to the staged/semantic dispatch at 0x3AD44; preserves A0/D0/D1 for genesistan_hook_pc080sn_fg_scroll_fill. RG-003 adjusts both backward displacements by -4 because the source lies after, and both retained targets lie before, the new 0x03AD4C shift cut."
   },
   {
    "arcade_pc": "0x03AF72",
@@ -1412,7 +1419,7 @@
    "arcade_pc": "0x056440",
    "original_bytes": "227C00D00000D3FC00000170303C0009323C0008610000346100FD464E75",
    "replacement_bytes": "4EB9{symbol:genesistan_pc090oj_hook_zero_fill_56440}4E754E714E714E714E714E714E714E714E714E714E714E71",
-   "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. Build 0458 preserves the complete semantic consequence of the original final BSR 0x0561A0: retire transient-item state; zero retained A5+0x10AE/0x10B0/0x10EC/0x10EE and the matching native staged scroll words; then invoke genesistan_hook_cwindow_clear to clear both final Genesis staged planes and mark all rows dirty. This restores the one-shot item-screen-to-fresh-scene ring-origin handoff omitted by Build 0453. No pattern reload, cache/package reset, READY, next-life, or scene special case."
+   "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. Build 0458 preserves the complete semantic consequence of the original final BSR 0x0561A0: retire transient-item state; zero retained A5+0x10AE/0x10B0/0x10EC/0x10EE and the matching native staged scroll words; then invoke genesistan_hook_cwindow_clear to clear both final Genesis staged planes and mark all rows dirty. RG-003 additionally restores the scene-0 PC080SN pattern/palette owner and stages a clean native frontend SAT at this retained death/item-to-READY lifecycle boundary. READY selection, next-life control flow, plane text/block production, and gameplay re-entry remain arcade-owned."
   },
   {
    "arcade_pc": "0x05A098",
@@ -2087,12 +2094,6 @@
    "note": "Frontend items+GAME OVER conversion: retire arcade GAME OVER producer FUN_0005a502 (records 83..90). Output now produced natively/live by .Lnq_gameover_emit (reads a5@0x34 game-over gate + a5@0x200 bit5 visibility directly, correcting the broken absolute 0x10C200 cart-ROM read). Byte-neutral clr.l d0 -> rts at entry; remaining body incl. 0x5A51E/0x5A554 object-RAM destinations becomes dead/unreachable. Paired 0x5A51E/0x5A554 redirects retained (dead) so no raw 0x00D002xx literal remains live."
   },
   {
-   "arcade_pc": "0x03AD4C",
-   "original_bytes": "323C0008",
-   "replacement_bytes": "4E754E71",
-   "note": "PC090OJ final teardown (Tighe explicitly authorized this RTS, narrowly scoped). Arcade 0x03AD4C is exclusively obsolete PC090OJ object-RAM clearing: its whole body is fill-setup (d1=count,a0=0xD00000/0xD00170,d0=0x100 park value) + two bsr 0x03AD44 fills + rts, with no other arcade state/control work. On Genesis the clear has no effect (native SAT is rebuilt per frame). Replace the entry move.w #8,d1 with rts;nop so the routine returns immediately; the D-range bsr sites 0x03AD5C/0x03AD6E become unreachable dead bytes. The 8 callers (0x3A242/0x3A2DC/0x3A5A4/0x3A8D6/0x3AA44/0x3AA9E) read no result and continue unchanged."
-  },
-  {
    "arcade_pc": "0x03AD72",
    "original_bytes": "323C01E0",
    "replacement_bytes": "4E754E71",
@@ -2182,7 +2183,7 @@
   }
  ],
  "expectations": {
-  "opcode_replace_count": 229,
+  "opcode_replace_count": 228,
   "genesis_only_maincpu_ref_count": 6
  }
 }

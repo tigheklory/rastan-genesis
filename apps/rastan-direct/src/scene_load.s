@@ -1,6 +1,7 @@
     .section .text,"ax"
 
     .global load_scene_tiles
+    .global genesistan_frontend_presentation_reset
     .extern fg_cache_reset
 
     .global genesistan_pc080sn_tile_vram_lut
@@ -43,6 +44,7 @@
     .extern vdp_install_test_lines
     .extern pc090oj_select_palette_map
     .extern genesistan_hud_deactivate
+    .extern genesistan_hud_activate_frontend
 
     .equ VDP_DATA,              0x00C00000
     .equ VDP_REG_MODE2,         1
@@ -182,6 +184,27 @@ load_scene_tiles:
 
     move.w  (%sp)+, %sr
     movem.l (%sp)+, %d1-%d7/%a0-%a4
+    rts
+
+/* RG-003 native frontend ownership handoff.
+ *
+ * The retained arcade callers have already chosen a frontend/READY transition
+ * and are invoking their original PC090OJ clear boundary.  Retire that chip
+ * tail here: restore the generated scene-0 PC080SN pattern residency and
+ * palette ownership, then replace the persistent Genesis SAT with the clean
+ * FRONTEND_FULL package.  Deactivate first so activation always rebuilds both
+ * staging banks and arms a real VBlank publication, even when the prior
+ * frontend mode byte was still set.
+ *
+ * Plane contents remain owned by the retained arcade clear/text/block
+ * producers; this helper neither invents a state machine nor clears all VRAM. */
+genesistan_frontend_presentation_reset:
+    movem.l %d0-%d7/%a0-%a6, -(%sp)
+    moveq   #0, %d0
+    bsr     load_scene_tiles
+    bsr     genesistan_hud_deactivate
+    bsr     genesistan_hud_activate_frontend
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 
