@@ -1,8 +1,9 @@
 # Cody Build 0462 — final-life semantic reflow fix
 
-## Result
+## Result and candidate status
 
-Build 0462 fixes the longstanding final-life hang present by Build 0446. The retained arcade
+Build 0462 is the fix candidate for the longstanding final-life hang present by Build 0446. The
+retained arcade
 terminal dispatcher reached subphase 9, but its hidden `BRA.W` at arcade `0x03A1C0` still carried
 the original displacement `0x0F58` after a two-byte insertion between source and target. In Builds
 0443–0461 that branch landed at Genesis `0x03B31A`, the `RTS` immediately before the mapped
@@ -16,7 +17,8 @@ source `0x03A3C0` to final mapped target `0x03B31C`. No final-ROM byte patch, ge
 literal, historical delta, assembly workaround, NOP, RTS bypass, or gameplay rewrite was added.
 
 Classification: **LONGSTANDING — PRESENT BY BUILD 0446**. This is not a Build-0461 palette
-regression.
+regression. Production issue status is **OPEN / FIX CANDIDATE PENDING TIGHE**; only Tighe's normal-ROM
+real-hardware test can close it.
 
 ## Original arcade semantic path
 
@@ -152,7 +154,9 @@ FINAL_LIFE_TRANSITION_VERIFY_PASS source=0x03A3C0 generated_target=0x03B31C mapp
 
 ROM-producing source was committed before the build as
 `faf55624` (`Fix final-life branch semantic reflow`). The Makefile-owned build consumed number 462
-and completed successfully.
+and completed successfully. Baseline was Build 0461; the build counter advanced `461 -> 462`.
+The normal artifact is
+`dist/rastan-direct/rastan_direct_video_test_build_0462.bin`.
 
 | Validation | Result |
 |---|---|
@@ -177,6 +181,21 @@ Artifacts are 2,739,896 bytes each. Canonical SHA-256 is
 `dede71fef20f40a829b07065dff3c3afd31c9f0d6623c30ba42caa7c7c7e5526`; `_invincible` SHA-256 is
 `27481bca1a1065612aff28fd95f75117ecd97a3252a8775ef4dab3e173263de9`. Counter is 462.
 
-Real-hardware acceptance of the normal ROM remains **PENDING TIGHE**. Attract-loop actor cleanup,
+Existing project tools reused: the canonical Ghidra exports/raw disassembly, current address map,
+shift-table patcher, Makefile gates, fixed30 workflow, configured-family verifier, and established
+rope benchmark. New tooling created: one durable zero-input final-life route, a semantic two-layout
+declared-branch regression, and a read-only final-ROM target verifier. These were necessary because
+the branch boundary is hidden after inline dispatch-table data, no existing route exercised three
+natural deaths without gameplay navigation, and no existing verifier asserted this semantic target.
+
+## USER MUST VERIFY
+
+Use the **normal** ROM, start a normal game, provide no special invincibility, allow all lives to be
+lost naturally, and confirm the final death does not hang and proceeds through GAME OVER / terminal
+progression. `_invincible` is not valid for this acceptance because it prevents the required death
+sequence.
+
+Real-hardware acceptance of the normal ROM remains **PENDING TIGHE**. Build 0462 remains a candidate,
+and no `accepted/build-0462` reference was created. Attract-loop actor cleanup,
 reset/title stale actors, 1UP/score geometry, and Demon palette realization remain separate and
 deferred. Phase D and Phase E were not started.

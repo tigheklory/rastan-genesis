@@ -52780,6 +52780,6 @@ TIGHE ONLY
 - Authorized normal-ROM route used only coin/start then zero gameplay input: three natural deaths,
   final-life zero at frame 2541, GAME OVER subphase 6 reached at frame 3522, PASS. Harness stall
   bound corrected from 900 to 1200 because original subphase-8 dwell is about 960 frames; ROM
-  unchanged. CLOSED-038 records the fix; OPEN-034 and named visual/palette issues remain separate.
-  Real-hardware acceptance PENDING TIGHE; Phase D/E NO. Report:
+  unchanged. OPEN-038 records the FIX CANDIDATE PENDING TIGHE; OPEN-034 and named visual/palette
+  issues remain separate. Real-hardware acceptance PENDING TIGHE; Phase D/E NO. Report:
   `docs/design/Cody_build0462_final_life_semantic_reflow_fix.md`.

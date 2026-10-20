@@ -1043,3 +1043,30 @@ Final response must include "Open/Closed Issues Impact" section with:
 - **Closure condition:** subround-2 entry blanks correctly during load (per proven arcade semantics),
   Plane A renders correct content, a palette decision is authored and correct, and the vertical map
   is constructed with correct orientation and no overlap; Tighe real-Genesis visual verification.
+
+## OPEN-038 — Final-life terminal phase-9 hang from undeclared word-branch reflow
+
+- **Status:** OPEN / FIX CANDIDATE PENDING TIGHE.
+- **Priority:** HIGH.
+- **History:** Longstanding; Tighe proved the hang present by Build 0446. Build 0442 is the last
+  structurally correct reference and Build 0443 is the first structurally bad reference.
+- **Proven root cause:** terminal dispatcher entry 9 reaches hidden arcade `BRA.W` `0x03A1C0 ->
+  0x03B11A`. Linear disassembly omitted the branch immediately after inline table data, while the
+  declared-branch mechanism supported only short encodings. The Build-0443 insertion at arcade
+  `0x03AA54` moved the target by two bytes but left displacement `0x0F58`; generated execution landed
+  at Genesis `0x03B31A` (`RTS`) instead of mapped semantic target `0x03B31C`, leaving subphase 9 stuck.
+- **Build 0462 candidate:** `rastan_direct_remap.json` retains arcade source/target identity and the
+  generic Python resolver now supports validated short and word relative branches after final
+  layout. Build 0462 emits `60000F5A`; no hard-coded `+2`, build-specific target, or final-ROM repair.
+- **Automated verification:** semantic Layout A/B reflow PASS; read-only final target verifier PASS
+  for all seven variants; GENESIS NTSC fixed30 PASS at 1,798 frames with no unmapped access; existing
+  `_invincible` rope `798/798/798`, deterministic YES; normal-ROM zero-input route recorded three
+  natural deaths and reached GAME OVER subphase 6 at frame 3522.
+- **Artifact:** normal Build 0462 SHA-256
+  `dede71fef20f40a829b07065dff3c3afd31c9f0d6623c30ba42caa7c7c7e5526`; ROM-producing source
+  `faf55624`.
+- **Evidence:** `docs/design/Cody_build0462_final_life_semantic_reflow_fix.md` and
+  `states/traces/build0462_final_life_zero_input_20261020_112626/`.
+- **Closure condition:** Tighe verifies on real Genesis with the normal ROM that all lives can be
+  lost naturally and final death proceeds without a hang through GAME OVER / terminal progression.
+- **Related issue:** OPEN-034 remains separately open for GAME OVER/CONTINUE tiles and palette.
