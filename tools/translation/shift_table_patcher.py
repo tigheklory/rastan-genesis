@@ -445,19 +445,30 @@ def fix_declared_relative_branches(
         target = int(item["target_arcade_pc"], 0)
         width = int(item.get("instruction_size_bytes", 2))
         expected = bytes.fromhex(str(item["original_bytes"]).replace(" ", ""))
-        if width != 2 or len(expected) != 2 or (expected[0] & 0xF0) != 0x60:
+        if width not in (2, 4) or len(expected) != width or (expected[0] & 0xF0) != 0x60:
             raise RuntimeError(
-                f"declared relative branch at 0x{source:06X}: only 2-byte 68000 branches are supported"
+                f"declared relative branch at 0x{source:06X}: only 2-byte and 4-byte 68000 branches are supported"
             )
         if not (source_start <= source < source_end and source_start <= target < source_end):
             raise RuntimeError(
                 f"declared relative branch at 0x{source:06X}: source/target outside source range"
             )
-        if maincpu_bytes[source:source + 2] != expected:
+        if maincpu_bytes[source:source + width] != expected:
             raise RuntimeError(
                 f"declared relative branch at 0x{source:06X}: original bytes mismatch"
             )
-        old_disp = struct.unpack(">b", expected[1:2])[0]
+        if width == 2:
+            if expected[1] in (0x00, 0xFF):
+                raise RuntimeError(
+                    f"declared relative branch at 0x{source:06X}: invalid short-branch encoding"
+                )
+            old_disp = struct.unpack(">b", expected[1:2])[0]
+        else:
+            if expected[1] != 0x00:
+                raise RuntimeError(
+                    f"declared relative branch at 0x{source:06X}: invalid word-branch encoding"
+                )
+            old_disp = struct.unpack(">h", expected[2:4])[0]
         if source + 2 + old_disp != target:
             raise RuntimeError(
                 f"declared relative branch at 0x{source:06X}: encoded target does not match 0x{target:06X}"
@@ -465,15 +476,22 @@ def fix_declared_relative_branches(
         new_source = new_offset(source, shifts)
         new_target = new_target_offset(target, shifts)
         new_disp = new_target - (new_source + 2)
-        if not -128 <= new_disp <= 127:
-            raise RuntimeError(
-                f"declared relative branch at 0x{source:06X}: 8-bit displacement overflow {new_disp}"
-            )
-        if result[new_source] != expected[0]:
+        if result[new_source] != expected[0] or result[new_source + 1] != expected[1]:
             raise RuntimeError(
                 f"declared relative branch at 0x{source:06X}: shifted opcode mismatch"
             )
-        result[new_source + 1] = new_disp & 0xFF
+        if width == 2:
+            if not -128 <= new_disp <= 127:
+                raise RuntimeError(
+                    f"declared relative branch at 0x{source:06X}: 8-bit displacement overflow {new_disp}"
+                )
+            result[new_source + 1] = new_disp & 0xFF
+        else:
+            if not -32768 <= new_disp <= 32767:
+                raise RuntimeError(
+                    f"declared relative branch at 0x{source:06X}: 16-bit displacement overflow {new_disp}"
+                )
+            struct.pack_into(">h", result, new_source + 2, new_disp)
         count += 1
     return count
 

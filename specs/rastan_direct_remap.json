@@ -227,6 +227,13 @@
  ],
  "declared_relative_branches": [
   {
+   "arcade_pc": "0x03A1C0",
+   "target_arcade_pc": "0x03B11A",
+   "instruction_size_bytes": 4,
+   "original_bytes": "60000F58",
+   "note": "Final-life/high-score phase-9 bridge. The terminal dispatcher table at 0x03A1AC targets this BRA.W, but canonical linear objdump decodes the preceding inline table as instructions and omits the branch boundary. Retain semantic arcade target 0x03B11A and resolve the signed word displacement after final shift layout; the 0x03AA54 title insertion lies between source and target. Without this declaration the generated branch lands two bytes early on the RTS at runtime 0x03B31A and terminal phase 9 never advances."
+  },
+  {
    "arcade_pc": "0x0596FA",
    "target_arcade_pc": "0x05976C",
    "instruction_size_bytes": 2,

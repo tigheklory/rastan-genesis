@@ -11,6 +11,8 @@ PATCH_MANIFEST := $(ROOT)/build/rastan-direct/rastan_direct_patch_manifest.json
 SYMBOLS := $(OUT_DIR)/symbol.txt
 PATCHER := $(ROOT)/tools/translation/postpatch_startup_rom.py
 R1_SELECTOR_STREAM_VERIFY := $(ROOT)/tools/translation/verify_r1_selector_stream_relocation.py
+DECLARED_BRANCH_REFLOW_TEST := $(ROOT)/tools/translation/test_declared_relative_branch_reflow.py
+FINAL_LIFE_TRANSITION_VERIFY := $(ROOT)/tools/translation/verify_final_life_transition.py
 ATTRACT_PLANE_B_ENTRY_VERIFY := $(ROOT)/tools/translation/verify_attract_demo_plane_b_scene_entry.py
 BOOT_GUARD := $(ROOT)/tools/translation/verify_rastan_direct_boot_guard.py
 CANONICAL_GATE := $(ROOT)/tools/translation/verify_canonical_rom.py
@@ -607,7 +609,8 @@ $(SYMBOLS): $(ELF) | $(OUT_DIR)
 $(PREPATCH_BIN): $(ELF) | $(OUT_DIR)
 	$(OBJCOPY) -O binary $< $@
 
-$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(ATTRACT_PLANE_B_ENTRY_VERIFY) $(PALETTE_FAMILY_VERIFY) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) $(NATIVE_TITLE_VERIFY) $(NATIVE_TITLE_REPORT) $(NATIVE_HUD_VERIFY) $(NATIVE_HUD_REPORT) $(NATIVE_ITEM_VERIFY) $(NATIVE_ITEM_REPORT) $(BEST5_TABLE_VERIFY) $(BEST5_TABLE_REPORT) $(TEST_PALETTE_CRAM_REPORT) $(PC090OJ_SEMANTIC_PROFILE_REPORT) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(DECLARED_BRANCH_REFLOW_TEST) $(FINAL_LIFE_TRANSITION_VERIFY) $(ATTRACT_PLANE_B_ENTRY_VERIFY) $(PALETTE_FAMILY_VERIFY) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) $(NATIVE_TITLE_VERIFY) $(NATIVE_TITLE_REPORT) $(NATIVE_HUD_VERIFY) $(NATIVE_HUD_REPORT) $(NATIVE_ITEM_VERIFY) $(NATIVE_ITEM_REPORT) $(BEST5_TABLE_VERIFY) $(BEST5_TABLE_REPORT) $(TEST_PALETTE_CRAM_REPORT) $(PC090OJ_SEMANTIC_PROFILE_REPORT) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+	$(PYTHON) "$(DECLARED_BRANCH_REFLOW_TEST)"
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/canonical.inc"
 	$(PYTHON) "$(PC080SN_NATIVE_METATILE_VERIFY)" --maincpu "$(MAINCPU_REGION)" \
 		--index "$(PC080SN_NATIVE_METATILE_INDEX)" --records "$(PC080SN_NATIVE_METATILE_RECORDS)" \
@@ -657,6 +660,8 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 		--manifest "$(PATCH_MANIFEST)" \
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
+		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(ATTRACT_PLANE_B_ENTRY_VERIFY)" \
 		--tilemap-source "$(SRC_DIR)/tilemap_hooks.s" \
@@ -764,6 +769,7 @@ $(DIAG_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_S
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 # Copy the diagnostic ROM to the SAME build number as the just-produced numbered release, with a
@@ -795,6 +801,7 @@ $(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 # Copy the score-metric ROM to the SAME build number as the numbered release, with a "_s" suffix.
@@ -825,6 +832,7 @@ $(DO_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STR
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 # Copy the display-off ROM to the SAME build number as the numbered release, with a "_do" suffix.
@@ -858,6 +866,7 @@ $(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 cheat-variant: $(CHEAT_ROM)
@@ -886,6 +895,7 @@ $(FULL_HUD_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECT
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 full-hud-variant: $(FULL_HUD_ROM)
@@ -916,6 +926,7 @@ $(INVINCIBLE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELE
 		--spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(FINAL_LIFE_TRANSITION_VERIFY)" --rom "$@" --address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 invincible-variant: $(INVINCIBLE_ROM)
