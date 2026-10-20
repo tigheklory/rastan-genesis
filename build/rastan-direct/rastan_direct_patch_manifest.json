@@ -12,17 +12,17 @@
       "end_exclusive": "0x060000",
       "size_bytes": 393216,
       "runtime_start": "0x000200",
-      "runtime_end_exclusive": "0x060020"
+      "runtime_end_exclusive": "0x060024"
     }
   ],
   "whole_maincpu_copy": {
     "source_start": "0x000000",
     "source_end_exclusive": "0x060000",
     "shifted_source_start": "0x000000",
-    "shifted_source_end_exclusive": "0x05FE20",
+    "shifted_source_end_exclusive": "0x05FE24",
     "dest_start": "0x000200",
-    "dest_end_exclusive": "0x060020",
-    "size_bytes": 392736
+    "dest_end_exclusive": "0x060024",
+    "size_bytes": 392740
   },
   "execute_from_relocated_base": true,
   "keep_identity_overlays_for_bringup": false,
@@ -49,7 +49,7 @@
       "range": "whole_maincpu_copy_window",
       "kind": "absolute_rom_target_relocation",
       "source_start": "0x000000",
-      "source_end_exclusive": "0x05FE20",
+      "source_end_exclusive": "0x05FE24",
       "relocation_delta": "0x000200",
       "count": 633,
       "unresolved_before_fix": 633
@@ -57,7 +57,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x0550A8",
-      "rom_table_address": "0x05510A",
+      "rom_table_address": "0x05510E",
       "entry_count": 66,
       "entry_stride_bytes": 4,
       "pointer_offset_bytes": 0,
@@ -66,7 +66,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x03BB7C",
-      "rom_table_address": "0x03BD60",
+      "rom_table_address": "0x03BD64",
       "entry_count": 71,
       "entry_stride_bytes": 4,
       "pointer_offset_bytes": 0,
@@ -75,7 +75,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x052C1C",
-      "rom_table_address": "0x052D1C",
+      "rom_table_address": "0x052D20",
       "entry_count": 9,
       "entry_stride_bytes": 4,
       "pointer_offset_bytes": 0,
@@ -84,7 +84,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x05976E",
-      "rom_table_address": "0x0597A8",
+      "rom_table_address": "0x0597AC",
       "entry_count": 6,
       "entry_stride_bytes": 6,
       "pointer_offset_bytes": 0,
@@ -93,7 +93,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x059EC8",
-      "rom_table_address": "0x059F02",
+      "rom_table_address": "0x059F06",
       "entry_count": 6,
       "entry_stride_bytes": 4,
       "pointer_offset_bytes": 0,
@@ -102,7 +102,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x059C9A",
-      "rom_table_address": "0x059CD4",
+      "rom_table_address": "0x059CD8",
       "entry_count": 6,
       "entry_stride_bytes": 4,
       "pointer_offset_bytes": 0,
@@ -111,7 +111,7 @@
     {
       "kind": "absolute_long_pointer_table",
       "table_address": "0x059F1E",
-      "rom_table_address": "0x059F58",
+      "rom_table_address": "0x059F5C",
       "entry_count": 4,
       "entry_stride_bytes": 4,
       "pointer_offset_bytes": 0,
@@ -120,9 +120,9 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05109C",
-      "rom_pc": "0x05128C",
+      "rom_pc": "0x051290",
       "original_bytes": "4eb900055ad6",
-      "original_bytes_shift_adjusted": "4eb900055b3a",
+      "original_bytes_shift_adjusted": "4eb900055b3e",
       "replacement_bytes": "4eb90007100e",
       "replacement_bytes_template": "4eb90007100e",
       "replacement_bytes_shift_adjusted": "",
@@ -131,7 +131,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x053A64",
-      "rom_pc": "0x053B64",
+      "rom_pc": "0x053B68",
       "original_bytes": "207c0010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff1e00",
@@ -142,7 +142,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A2CE",
-      "rom_pc": "0x05A308",
+      "rom_pc": "0x05A30C",
       "original_bytes": "06800010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068000ff1e00",
@@ -153,7 +153,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0559E4",
-      "rom_pc": "0x055A48",
+      "rom_pc": "0x055A4C",
       "original_bytes": "06870010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068700ff1e00",
@@ -164,7 +164,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055A5A",
-      "rom_pc": "0x055ABE",
+      "rom_pc": "0x055AC2",
       "original_bytes": "06870010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068700ff1e00",
@@ -175,7 +175,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055A7A",
-      "rom_pc": "0x055ADE",
+      "rom_pc": "0x055AE2",
       "original_bytes": "06870010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068700ff1e00",
@@ -186,7 +186,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052882",
-      "rom_pc": "0x052A18",
+      "rom_pc": "0x052A1C",
       "original_bytes": "06800010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "068000ff1e00",
@@ -197,7 +197,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0412CC",
-      "rom_pc": "0x0414B0",
+      "rom_pc": "0x0414B4",
       "original_bytes": "b1fc0010fe00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "b1fc00ff3e00",
@@ -208,7 +208,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0412E8",
-      "rom_pc": "0x0414CC",
+      "rom_pc": "0x0414D0",
       "original_bytes": "b1fc0010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "b1fc00ff1e00",
@@ -219,7 +219,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x045D52",
-      "rom_pc": "0x045F36",
+      "rom_pc": "0x045F3A",
       "original_bytes": "b1fc0010de00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "b1fc00ff1e00",
@@ -308,12 +308,12 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03A47E",
       "rom_pc": "0x03A67E",
-      "original_bytes": "0c79004900c0883a6608303c009a610016bc",
+      "original_bytes": "0c79004900c0883a6608303c009a610016c0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
       "replacement_bytes_template": "60104e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
-      "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis). Build 0443 updates only the validated trailing BSR displacement from 0x16BA to the shift-table-reflowed 0x16BC because that branch crosses the new 0x03AA54 +2-byte title cut; replacement semantics are unchanged."
+      "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis). RG-003 updates only the validated trailing BSR displacement from 0x16BC to the shift-table-reflowed 0x16C0 because that branch crosses the new 0x03AD4C +4-byte frontend ownership cut; replacement semantics are unchanged."
     },
     {
       "kind": "opcode_replace",
@@ -406,7 +406,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03D04C",
-      "rom_pc": "0x03D230",
+      "rom_pc": "0x03D234",
       "original_bytes": "33c100c08c66",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071950",
@@ -417,7 +417,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05102E",
-      "rom_pc": "0x051218",
+      "rom_pc": "0x05121C",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -428,7 +428,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054A40",
-      "rom_pc": "0x054AA2",
+      "rom_pc": "0x054AA6",
       "original_bytes": "41f90010d2a8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "41f900ff12a8",
@@ -439,7 +439,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054BF8",
-      "rom_pc": "0x054C5A",
+      "rom_pc": "0x054C5E",
       "original_bytes": "41f90010c242",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "41f900ff0242",
@@ -450,7 +450,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054B1E",
-      "rom_pc": "0x054B80",
+      "rom_pc": "0x054B84",
       "original_bytes": "41f90010d2c8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "41f900ff12c8",
@@ -461,7 +461,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052B66",
-      "rom_pc": "0x052C66",
+      "rom_pc": "0x052C6A",
       "original_bytes": "10390010c118",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103900ff0118",
@@ -472,7 +472,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059704",
-      "rom_pc": "0x05976E",
+      "rom_pc": "0x059772",
       "original_bytes": "10390010c118",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103900ff0118",
@@ -583,12 +583,12 @@
       "kind": "opcode_replace",
       "arcade_pc": "0x03AC54",
       "rom_pc": "0x03AE56",
-      "original_bytes": "0c39004300c09e87660a7003610016626100",
+      "original_bytes": "0c39004300c09e87660a7003610016666100",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "60124e714e714e714e714e714e714e714e71",
       "replacement_bytes_template": "60124e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
-      "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis). Build 0447 updates only the validated trailing BSR displacement from 0x1660 to the shift-table-reflowed 0x1662 because the semantic absolute-long 0x03BB7C glyph-table reference makes the 0x03BB48 contraction 30 bytes instead of Build 0446's 32; replacement semantics are unchanged."
+      "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis). RG-003 updates only the validated trailing BSR displacement from 0x1662 to the shift-table-reflowed 0x1666 because that branch crosses the new 0x03AD4C +4-byte frontend ownership cut; replacement semantics are unchanged."
     },
     {
       "kind": "opcode_replace",
@@ -670,7 +670,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03ADFE",
-      "rom_pc": "0x03B000",
+      "rom_pc": "0x03B004",
       "original_bytes": "33fc000000c50000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
@@ -681,7 +681,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE06",
-      "rom_pc": "0x03B008",
+      "rom_pc": "0x03B00C",
       "original_bytes": "33fc000100d01bfe",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749944e71",
@@ -692,7 +692,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE16",
-      "rom_pc": "0x03B018",
+      "rom_pc": "0x03B01C",
       "original_bytes": "33fc000100c50000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
@@ -703,7 +703,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE1E",
-      "rom_pc": "0x03B020",
+      "rom_pc": "0x03B024",
       "original_bytes": "33fc000000d01bfe",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749a84e71",
@@ -714,7 +714,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE34",
-      "rom_pc": "0x03B036",
+      "rom_pc": "0x03B03A",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749b8",
@@ -725,7 +725,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE86",
-      "rom_pc": "0x03B088",
+      "rom_pc": "0x03B08C",
       "original_bytes": "33fc000000c50000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
@@ -736,7 +736,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE8E",
-      "rom_pc": "0x03B090",
+      "rom_pc": "0x03B094",
       "original_bytes": "33fc000000d01bfe",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749a84e71",
@@ -747,7 +747,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE96",
-      "rom_pc": "0x03B098",
+      "rom_pc": "0x03B09C",
       "original_bytes": "427900350008",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
@@ -758,7 +758,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AE9C",
-      "rom_pc": "0x03B09E",
+      "rom_pc": "0x03B0A2",
       "original_bytes": "427900380000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749c8",
@@ -769,7 +769,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AEA2",
-      "rom_pc": "0x03B0A4",
+      "rom_pc": "0x03B0A8",
       "original_bytes": "13fc0004003e0001",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
@@ -780,7 +780,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AEAA",
-      "rom_pc": "0x03B0AC",
+      "rom_pc": "0x03B0B0",
       "original_bytes": "13fc0001003e0003",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
@@ -791,7 +791,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AEBC",
-      "rom_pc": "0x03B0BE",
+      "rom_pc": "0x03B0C2",
       "original_bytes": "33c100200000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
@@ -802,7 +802,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AEC6",
-      "rom_pc": "0x03B0C8",
+      "rom_pc": "0x03B0CC",
       "original_bytes": "13fc0004003e0001",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
@@ -813,7 +813,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AECE",
-      "rom_pc": "0x03B0D0",
+      "rom_pc": "0x03B0D4",
       "original_bytes": "13fc0000003e0003",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e714e71",
@@ -824,7 +824,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AEE0",
-      "rom_pc": "0x03B0E2",
+      "rom_pc": "0x03B0E6",
       "original_bytes": "33c100200000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
@@ -835,7 +835,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AEEA",
-      "rom_pc": "0x03B0EC",
+      "rom_pc": "0x03B0F0",
       "original_bytes": "41f90010c000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "41f900ff0000",
@@ -846,7 +846,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AEF0",
-      "rom_pc": "0x03B0F2",
+      "rom_pc": "0x03B0F6",
       "original_bytes": "43f90010c002",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "43f900ff0002",
@@ -857,7 +857,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AF04",
-      "rom_pc": "0x03B106",
+      "rom_pc": "0x03B10A",
       "original_bytes": "4bf90010c000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4bf900ff0000",
@@ -868,7 +868,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AF0A",
-      "rom_pc": "0x03B10C",
+      "rom_pc": "0x03B110",
       "original_bytes": "33c0003c0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
@@ -879,7 +879,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AF14",
-      "rom_pc": "0x03B116",
+      "rom_pc": "0x03B11A",
       "original_bytes": "33c0003c0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
@@ -890,7 +890,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AF1E",
-      "rom_pc": "0x03B120",
+      "rom_pc": "0x03B124",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749b8",
@@ -901,7 +901,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AF4C",
-      "rom_pc": "0x03B14E",
+      "rom_pc": "0x03B152",
       "original_bytes": "33c0003c0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
@@ -912,29 +912,29 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AF5E",
-      "rom_pc": "0x03B160",
-      "original_bytes": "6100fddc",
+      "rom_pc": "0x03B164",
+      "original_bytes": "6100fdd8",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "6100fde4",
-      "replacement_bytes_template": "6100fde4",
+      "replacement_bytes": "6100fde0",
+      "replacement_bytes_template": "6100fde0",
       "replacement_bytes_shift_adjusted": "",
-      "note": "Route PC080SN BG per-line scroll-RAM clear from raw word-fill primitive 0x3AD3C to the staged/semantic dispatch at 0x3AD44; preserves A0/D0/D1 for genesistan_hook_pc080sn_bg_scroll_fill."
+      "note": "Route PC080SN BG per-line scroll-RAM clear from raw word-fill primitive 0x3AD3C to the staged/semantic dispatch at 0x3AD44; preserves A0/D0/D1 for genesistan_hook_pc080sn_bg_scroll_fill. RG-003 adjusts both backward displacements by -4 because the source lies after, and both retained targets lie before, the new 0x03AD4C shift cut."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AF6E",
-      "rom_pc": "0x03B170",
-      "original_bytes": "6100fdcc",
+      "rom_pc": "0x03B174",
+      "original_bytes": "6100fdc8",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "6100fdd4",
-      "replacement_bytes_template": "6100fdd4",
+      "replacement_bytes": "6100fdd0",
+      "replacement_bytes_template": "6100fdd0",
       "replacement_bytes_shift_adjusted": "",
-      "note": "Route PC080SN FG per-line scroll-RAM clear from raw word-fill primitive 0x3AD3C to the staged/semantic dispatch at 0x3AD44; preserves A0/D0/D1 for genesistan_hook_pc080sn_fg_scroll_fill."
+      "note": "Route PC080SN FG per-line scroll-RAM clear from raw word-fill primitive 0x3AD3C to the staged/semantic dispatch at 0x3AD44; preserves A0/D0/D1 for genesistan_hook_pc080sn_fg_scroll_fill. RG-003 adjusts both backward displacements by -4 because the source lies after, and both retained targets lie before, the new 0x03AD4C shift cut."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AF72",
-      "rom_pc": "0x03B174",
+      "rom_pc": "0x03B178",
       "original_bytes": "33c0003c0000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e714e714e71",
@@ -945,7 +945,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AF7A",
-      "rom_pc": "0x03B17C",
+      "rom_pc": "0x03B180",
       "original_bytes": "103900390009",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103c00fe4e71",
@@ -956,7 +956,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AF86",
-      "rom_pc": "0x03B188",
+      "rom_pc": "0x03B18C",
       "original_bytes": "10390039000b",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "103c00ff4e71",
@@ -967,7 +967,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03B098",
-      "rom_pc": "0x03B29A",
+      "rom_pc": "0x03B29E",
       "original_bytes": "42b900c20000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "42b900ff409c",
@@ -978,7 +978,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03B09E",
-      "rom_pc": "0x03B2A0",
+      "rom_pc": "0x03B2A4",
       "original_bytes": "42b900c40000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "42b900ff4098",
@@ -989,7 +989,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C2E2",
-      "rom_pc": "0x03C4C6",
+      "rom_pc": "0x03C4CA",
       "original_bytes": "3e3c0000c0fc000a41fa0090d0c0301022680002246800060c40ffff6700005208000000671212120241000f0041003032c732c1538a60101212e8090241000f0041003032c732c1534066d40c500006661c301022680002322900020c410030660c337c002000025889534066ea4e7512120241000f0c010007661a93fc0000000832c732fc004132c732fc004c32c732bc004c4e7570016086",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071ffa4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1000,7 +1000,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C3FE",
-      "rom_pc": "0x03C5E2",
+      "rom_pc": "0x03C5E6",
       "original_bytes": "3e3c000034000240",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000719704e75",
@@ -1011,7 +1011,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C4D2",
-      "rom_pc": "0x03C6B6",
+      "rom_pc": "0x03C6BA",
       "original_bytes": "2449d4fc005020680002102c000b48800c4000206610780a337c018000025089534466f4601ac0fc0005d0c078054242610000125b887805343cfff061000006224a4e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071aaa4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1022,7 +1022,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C550",
-      "rom_pc": "0x03C734",
+      "rom_pc": "0x03C738",
       "original_bytes": "20680002102c000b4880d0c042447604121048813001d06c0016d04433400006336c001a0002508906440010534366e4d2fc00304e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000721e04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1033,7 +1033,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C586",
-      "rom_pc": "0x03C76A",
+      "rom_pc": "0x03C76E",
       "original_bytes": "20680002102c000b4880c0fc0003d0c00c2c00060001673276034242610000624247424661000196d2fc000890fc00037603343cfff06100004842473c3cfff06100017ad2fc00184e75424742466100016cd2fc0008760342426100002490fc000342473c3cfff061000152d2fc00087603343cfff061000008d2fc00104e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000722304e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1044,7 +1044,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C636",
-      "rom_pc": "0x03C81A",
+      "rom_pc": "0x03C81E",
       "original_bytes": "20680002102c000b4880e548d0c00c2d0002011867120c6d0062013e65200c6d0064013e6502601642464247610000de508942463e3cfff0610000d2508976024242610000327602343cfff0610000280c2d0002011867120c6d0062013e65100c6d0064013e65026006d2fc00204e75d2fc00304e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb90007231e4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1055,7 +1055,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C6DC",
-      "rom_pc": "0x03C8C0",
+      "rom_pc": "0x03C8C4",
       "original_bytes": "20680002102c000b4880c0fc0009d0c0323cffd0383c0010760661000012323cffd0424476036100000650894e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000723f64e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1066,7 +1066,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C75C",
-      "rom_pc": "0x03C940",
+      "rom_pc": "0x03C944",
       "original_bytes": "20680002102c000b4880c0fc0007d0c03c3cfff03e3cfff861cc50897601343cfff861000052760142426100004a7601343cfff0610000407604343cfff861000036d2fc00104e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb90007247a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1077,7 +1077,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C7A4",
-      "rom_pc": "0x03C988",
+      "rom_pc": "0x03C98C",
       "original_bytes": "20680002102c000b4880c0fc0006d0c0760242426100004a7602343cfff0610000407606343cfff8610000044e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000725324e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1088,7 +1088,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C830",
-      "rom_pc": "0x03CA14",
+      "rom_pc": "0x03CA18",
       "original_bytes": "20680002102c000b4880e548d0c04a2c00386600007a7605343cfff86100001059887605343cffe8610000044e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000725a04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1099,7 +1099,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03C950",
-      "rom_pc": "0x03CB34",
+      "rom_pc": "0x03CB38",
       "original_bytes": "4240424508060000660000cc4a0767466100009e4a456600008e42470c030040660252470c0300806604004040006100006832c012184881d26c001a6100ff6832c16100007e1e184887de6c001632c7538266bc4e75610000584a456600004842470c03004066025247004040006100002832c012184881d26c001a32c1610000421e18488744479e780010de6c001632c7538266c04e75082c000600276704102c00274e75337c01800002508960a010181600020300f00c0000ff66027a014e75424010184a4767024440d06c001e32c042404e754a2c00036600ff344a076700ff2e6000ff70",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900071d3a4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1110,7 +1110,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03EF28",
-      "rom_pc": "0x03F10C",
+      "rom_pc": "0x03F110",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749b8",
@@ -1121,7 +1121,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03EF48",
-      "rom_pc": "0x03F12C",
+      "rom_pc": "0x03F130",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749b8",
@@ -1132,7 +1132,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03EF8A",
-      "rom_pc": "0x03F16E",
+      "rom_pc": "0x03F172",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749b8",
@@ -1143,7 +1143,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03EFAA",
-      "rom_pc": "0x03F18E",
+      "rom_pc": "0x03F192",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749b8",
@@ -1154,7 +1154,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x045306",
-      "rom_pc": "0x0454EA",
+      "rom_pc": "0x0454EE",
       "original_bytes": "33c000380000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749b8",
@@ -1165,7 +1165,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055704",
-      "rom_pc": "0x055766",
+      "rom_pc": "0x05576A",
       "original_bytes": "322d10dad36d10ba",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000709084e71",
@@ -1176,7 +1176,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055790",
-      "rom_pc": "0x0557F2",
+      "rom_pc": "0x0557F6",
       "original_bytes": "322d10da936d10ba",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000708b04e71",
@@ -1187,7 +1187,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055968",
-      "rom_pc": "0x0559CC",
+      "rom_pc": "0x0559D0",
       "original_bytes": "206d10a0323c0010227c0010d080267c0010d0402453610000322b4810a0588b5489534166ee",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000704804e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1198,7 +1198,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055990",
-      "rom_pc": "0x0559F4",
+      "rom_pc": "0x0559F8",
       "original_bytes": "206d10a47210227c0010d080267c0010d04024536100006e588b5489534166f2",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb90007065e4e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1209,7 +1209,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055AB4",
-      "rom_pc": "0x055B18",
+      "rom_pc": "0x055B1C",
       "original_bytes": "33ed10ee00c2000033ed10ec00c4000033ed10b000c2000233ed10ae00c400024e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33ed10ee00ff409c33ed10ec00ff409833ed10b000ff409e33ed10ae00ff409a4e75",
@@ -1220,7 +1220,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A4DE",
-      "rom_pc": "0x05A4FE",
+      "rom_pc": "0x05A502",
       "original_bytes": "3800244932c232d85340",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000719d64e714e71",
@@ -1231,7 +1231,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0561B6",
-      "rom_pc": "0x056220",
+      "rom_pc": "0x056224",
       "original_bytes": "323c1000203c00000020207c00c08000227c00c0000020c022c0534166f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000727a84e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1242,7 +1242,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0563A6",
-      "rom_pc": "0x056410",
+      "rom_pc": "0x056414",
       "original_bytes": "2449424010180c00",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000729224e75",
@@ -1253,7 +1253,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03B902",
-      "rom_pc": "0x03BB04",
+      "rom_pc": "0x03BB08",
       "original_bytes": "43f900d000884a41660c41fa007672056100001c4e757005134100025089538066f64e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900073bb44e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1264,7 +1264,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03B926",
-      "rom_pc": "0x03BB28",
+      "rom_pc": "0x03BB2C",
       "original_bytes": "43f900d00128700960ea",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900073bb64e754e71",
@@ -1275,7 +1275,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x041DAE",
-      "rom_pc": "0x041F92",
+      "rom_pc": "0x041F96",
       "original_bytes": "49ed050843f900d001c8426d02144a2c0000670000f4102c00011c2c00201e2c0002740d6100b280d9fc00000040526d02140c6d0002021466d449ed05c843f900d00300426d02144a2c0000670000ce102c00011c2c00201e2c000274046100b246d9fc00000040526d02140c6d0006021466d449ed02c8426d021443f900d004604a2c0000670000a84a2c0005670000a04a2c00036600d178102c00011c2c00201e2c0002740a0c6d00080214660274136100b1f2d9fc00000040526d02140c6d0009021466ba49ed074843f900d00170426d02144a2c000067724a2c0036666c102c00011c2c00201e2c000274016100b1b4d9fc00000040526d02140c6d000b021466d04e75303c0180740d334000025089534266f66000ff0e303c01807404334000025089534266f66000ff34303c0180740a0c6d0008021466027413334000025089534266f66000ff6a303c01807401334000025089534266f66094",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900073bb84e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1286,7 +1286,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x041F5E",
-      "rom_pc": "0x042142",
+      "rom_pc": "0x042146",
       "original_bytes": "41ed11b2701243f900d003c06100000e41ed0170700443f900d002e04a50670e32d832d832d832d8534066f04e75337c01800002508960f0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900073bde4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1297,9 +1297,9 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x045DFA",
-      "rom_pc": "0x045FDE",
+      "rom_pc": "0x045FE2",
       "original_bytes": "49ed05c843f900d00460426d02144a2c0000670000aa102c00011c2c00201e2c0002740a0c6d00030214650274144eb90003d254d9fc00000040526d02140c6d0006021466c849ed074843f900d00170426d02144a2c000067000082102c00011c2c00201e2c000274064eb90003d254d9fc00000040526d02140c6d0006021466d249ed08c843f900d00300426d02144a2c00006758102c00011c2c00201e2c000274044eb90003d254d9fc00000040526d02140c6d0005021466d44e75303c0180740a0c6d0003021465027414334000025089534266f66000ff5a303c01807406334000025089534266f66082303c01807404334000025089534266f660aa4e75",
-      "original_bytes_shift_adjusted": "49ed05c843f900d00460426d02144a2c0000670000aa102c00011c2c00201e2c0002740a0c6d00030214650274144eb90003d238d9fc00000040526d02140c6d0006021466c849ed074843f900d00170426d02144a2c000067000082102c00011c2c00201e2c000274064eb90003d238d9fc00000040526d02140c6d0006021466d249ed08c843f900d00300426d02144a2c00006758102c00011c2c00201e2c000274044eb90003d238d9fc00000040526d02140c6d0005021466d44e75303c0180740a0c6d0003021465027414334000025089534266f66000ff5a303c01807406334000025089534266f66082303c01807404334000025089534266f660aa4e75",
+      "original_bytes_shift_adjusted": "49ed05c843f900d00460426d02144a2c0000670000aa102c00011c2c00201e2c0002740a0c6d00030214650274144eb90003d23cd9fc00000040526d02140c6d0006021466c849ed074843f900d00170426d02144a2c000067000082102c00011c2c00201e2c000274064eb90003d23cd9fc00000040526d02140c6d0006021466d249ed08c843f900d00300426d02144a2c00006758102c00011c2c00201e2c000274044eb90003d23cd9fc00000040526d02140c6d0005021466d44e75303c0180740a0c6d0003021465027414334000025089534266f66000ff5a303c01807406334000025089534266f66082303c01807404334000025089534266f660aa4e75",
       "replacement_bytes": "4eb900073bf04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_template": "4eb900073bf04e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
@@ -1308,7 +1308,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059F5E",
-      "rom_pc": "0x059F98",
+      "rom_pc": "0x059F9C",
       "original_bytes": "323c0008207c00d00048428020c020c0534166f8323c0004207c0010c17030fc008030fc000030fc000030fc0000534166ec4e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000749924e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1319,9 +1319,9 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03AD84",
-      "rom_pc": "0x03AF86",
+      "rom_pc": "0x03AF8A",
       "original_bytes": "720e41f900d00778203c000000082e3c000001604eb90005b7126100000a7203203c000000c8208021470004508806400010534166f04e75",
-      "original_bytes_shift_adjusted": "720e41f900d00778203c000000082e3c000001604eb90005b5326100000a7203203c000000c8208021470004508806400010534166f04e75",
+      "original_bytes_shift_adjusted": "720e41f900d00778203c000000082e3c000001604eb90005b5366100000a7203203c000000c8208021470004508806400010534166f04e75",
       "replacement_bytes": "4eb900074a624e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_template": "4eb900074a624e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
@@ -1330,7 +1330,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03B802",
-      "rom_pc": "0x03BA04",
+      "rom_pc": "0x03BA08",
       "original_bytes": "4285c0fc000a41fa0074d0c0424010100c000001660252451c280001226800022468000608000000671a12120241000f61000032134600030641002a33410004538a60181212e8090241000f61000016134600030641002a334100045189534066c24e754a45660c4a416608137c000100024e757a01422900024e75061000d001080010c11e061000d001500010c11e061000d000d80010c14201e800d000a80010c11701e400d000880010c103",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900074a644e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1341,7 +1341,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054052",
-      "rom_pc": "0x054152",
+      "rom_pc": "0x054156",
       "original_bytes": "227c0010d1d2343c000632fc000332fc000032fc000032fc0000534266ec343c0004227c0010d1b232fc000332fc000032fc000032fc0000534266ec227c0010d1f2343c000632fc000332fc000032fc000032fc0000534266ec227c00d00000343c000432fc000332fc000032fc000032fc0000534266ec4e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900074a664e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1352,7 +1352,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x056114",
-      "rom_pc": "0x05617E",
+      "rom_pc": "0x056182",
       "original_bytes": "30100c40ffff670a32d832d832d832d860ee4e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900074afa4e754e714e714e714e714e714e71",
@@ -1363,51 +1363,51 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x056440",
-      "rom_pc": "0x0564AA",
+      "rom_pc": "0x0564AE",
       "original_bytes": "227c00d00000d3fc00000170303c0009323c0008610000346100fd464e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb900074b044e754e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_template": "4eb900074b044e754e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
-      "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. Build 0458 preserves the complete semantic consequence of the original final BSR 0x0561A0: retire transient-item state; zero retained A5+0x10AE/0x10B0/0x10EC/0x10EE and the matching native staged scroll words; then invoke genesistan_hook_cwindow_clear to clear both final Genesis staged planes and mark all rows dirty. This restores the one-shot item-screen-to-fresh-scene ring-origin handoff omitted by Build 0453. No pattern reload, cache/package reset, READY, next-life, or scene special case."
+      "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. Build 0458 preserves the complete semantic consequence of the original final BSR 0x0561A0: retire transient-item state; zero retained A5+0x10AE/0x10B0/0x10EC/0x10EE and the matching native staged scroll words; then invoke genesistan_hook_cwindow_clear to clear both final Genesis staged planes and mark all rows dirty. RG-003 additionally restores the scene-0 PC080SN pattern/palette owner and stages a clean native frontend SAT at this retained death/item-to-READY lifecycle boundary. READY selection, next-life control flow, plane text/block production, and gameplay re-entry remain arcade-owned."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A098",
-      "rom_pc": "0x05A0D2",
+      "rom_pc": "0x05A0D6",
       "original_bytes": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a48ad2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
-      "original_bytes_shift_adjusted": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a2c4d2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
-      "replacement_bytes": "4eb900074b384e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "replacement_bytes_template": "4eb900074b384e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "original_bytes_shift_adjusted": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a2c8d2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
+      "replacement_bytes": "4eb900074b3c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900074b3c4e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "Direct-native gameplay energy/status replacement at arcade_pc 0x05A098 (helper genesistan_pc090oj_hook_status_sprite_5a098), reached only from arcade_pc 0x051054. The helper preserves the energy animation, full/partial/empty six-cell bar, low-energy blink, lifecycle fields and sound transitions, but emits ordered semantic pieces directly into native_queue_hud. The original HW_ADDRESS 0x00D00048 record tail and the transitional virtual-record 30..43 packing path are retired for this producer; no frontend object-RAM scanner/decoder consumes its output."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0510EA",
-      "rom_pc": "0x0512DA",
+      "rom_pc": "0x0512DE",
       "original_bytes": "33fc000200d00698",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900074d444e75",
-      "replacement_bytes_template": "4eb900074d444e75",
+      "replacement_bytes": "4eb900074d484e75",
+      "replacement_bytes_template": "4eb900074d484e75",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ audit guard at arcade_pc 0x0510EA. FU1 trace (Cody_fu1_arcade_trace_510EA_510F4.md) showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #2,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP. Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0510F4",
-      "rom_pc": "0x0512E4",
+      "rom_pc": "0x0512E8",
       "original_bytes": "33fc000000d00698",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900074d444e75",
-      "replacement_bytes_template": "4eb900074d444e75",
+      "replacement_bytes": "4eb900074d484e75",
+      "replacement_bytes_template": "4eb900074d484e75",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ audit guard at arcade_pc 0x0510F4. FU1 trace showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #0,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP (shared helper with entry #17). Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x059AD4",
-      "rom_pc": "0x059B0E",
+      "rom_pc": "0x059B12",
       "original_bytes": "c2fc0020d0c1eb484246227c00200000d2c032180c41ffff671e3401360102410f00ee49024200f0e54a0243000fe14be74bd641d64232830c46000f67065246548960ce4e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000733e24e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1429,7 +1429,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x045DB8",
-      "rom_pc": "0x045F9C",
+      "rom_pc": "0x045FA0",
       "original_bytes": "4eb90003a4d0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb90007351e",
@@ -1440,7 +1440,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0503EC",
-      "rom_pc": "0x0505D0",
+      "rom_pc": "0x0505D4",
       "original_bytes": "23fc00c080000010d0a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23fc00c0800000ff10a0",
@@ -1451,7 +1451,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0503F6",
-      "rom_pc": "0x0505DA",
+      "rom_pc": "0x0505DE",
       "original_bytes": "23fc00c000000010d0f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23fc00c0000000ff10f8",
@@ -1462,7 +1462,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x050400",
-      "rom_pc": "0x0505E4",
+      "rom_pc": "0x0505E8",
       "original_bytes": "23fc00c080000010d0a4",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23fc00c0800000ff10a4",
@@ -1473,7 +1473,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05040C",
-      "rom_pc": "0x0505F0",
+      "rom_pc": "0x0505F4",
       "original_bytes": "23fc00c000000010d0f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23fc00c0000000ff10f8",
@@ -1484,7 +1484,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x050416",
-      "rom_pc": "0x0505FA",
+      "rom_pc": "0x0505FE",
       "original_bytes": "23fc00c080000010d0a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23fc00c0800000ff10a0",
@@ -1495,7 +1495,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x050426",
-      "rom_pc": "0x05060A",
+      "rom_pc": "0x05060E",
       "original_bytes": "23c00010d0a4",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "23c000ff10a4",
@@ -1506,7 +1506,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05042C",
-      "rom_pc": "0x050610",
+      "rom_pc": "0x050614",
       "original_bytes": "33fc00400010d0aa",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33fc004000ff10aa",
@@ -1517,7 +1517,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x050444",
-      "rom_pc": "0x050628",
+      "rom_pc": "0x05062C",
       "original_bytes": "04b900003ffc0010d0a0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "04b900003ffc00ff10a0",
@@ -1528,7 +1528,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05044E",
-      "rom_pc": "0x050632",
+      "rom_pc": "0x050636",
       "original_bytes": "04b900003ffc0010d0f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "04b900003ffc00ff10f8",
@@ -1539,7 +1539,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x050468",
-      "rom_pc": "0x05064C",
+      "rom_pc": "0x050650",
       "original_bytes": "04b900003ffc0010d0f8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "04b900003ffc00ff10f8",
@@ -1550,7 +1550,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x050472",
-      "rom_pc": "0x050656",
+      "rom_pc": "0x05065A",
       "original_bytes": "53790010d0aa",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "537900ff10aa",
@@ -1561,7 +1561,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x050478",
-      "rom_pc": "0x05065C",
+      "rom_pc": "0x050660",
       "original_bytes": "0c7900000010d0aa",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0c79000000ff10aa",
@@ -1572,7 +1572,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0512D2",
-      "rom_pc": "0x0514BE",
+      "rom_pc": "0x0514C2",
       "original_bytes": "3c390010d0da",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "3c3900ff10da",
@@ -1583,7 +1583,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0512E8",
-      "rom_pc": "0x0514D4",
+      "rom_pc": "0x0514D8",
       "original_bytes": "3c390010d0da",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "3c3900ff10da",
@@ -1594,7 +1594,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0512FE",
-      "rom_pc": "0x0514EA",
+      "rom_pc": "0x0514EE",
       "original_bytes": "3c390010d0d8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "3c3900ff10d8",
@@ -1605,7 +1605,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05131C",
-      "rom_pc": "0x051508",
+      "rom_pc": "0x05150C",
       "original_bytes": "3c390010d0d8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "3c3900ff10d8",
@@ -1616,7 +1616,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0526E4",
-      "rom_pc": "0x052880",
+      "rom_pc": "0x052884",
       "original_bytes": "42790010d0ea",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "427900ff10ea",
@@ -1627,7 +1627,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0558C8",
-      "rom_pc": "0x05592A",
+      "rom_pc": "0x05592E",
       "original_bytes": "207c0010d000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff1000",
@@ -1638,7 +1638,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0558F8",
-      "rom_pc": "0x05595A",
+      "rom_pc": "0x05595E",
       "original_bytes": "33c00010d0a8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33c000ff10a8",
@@ -1649,7 +1649,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055904",
-      "rom_pc": "0x055968",
+      "rom_pc": "0x05596C",
       "original_bytes": "207c0010d000",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef9000729dc",
@@ -1660,7 +1660,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05590A",
-      "rom_pc": "0x05596E",
+      "rom_pc": "0x055972",
       "original_bytes": "227c0010d040",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "227c00ff1040",
@@ -1671,7 +1671,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055910",
-      "rom_pc": "0x055974",
+      "rom_pc": "0x055978",
       "original_bytes": "247c0010d080",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "247c00ff1080",
@@ -1682,7 +1682,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055940",
-      "rom_pc": "0x0559A4",
+      "rom_pc": "0x0559A8",
       "original_bytes": "33c00010d0a8",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "33c000ff10a8",
@@ -1693,7 +1693,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C14",
-      "rom_pc": "0x055C78",
+      "rom_pc": "0x055C7C",
       "original_bytes": "207c0010d0fc",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff10fc",
@@ -1704,7 +1704,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C2E",
-      "rom_pc": "0x055C92",
+      "rom_pc": "0x055C96",
       "original_bytes": "207c0010d0fc",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef900072a4e",
@@ -1715,7 +1715,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C34",
-      "rom_pc": "0x055C98",
+      "rom_pc": "0x055C9C",
       "original_bytes": "227c0010d100",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "227c00ff1100",
@@ -1726,7 +1726,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C3A",
-      "rom_pc": "0x055C9E",
+      "rom_pc": "0x055CA2",
       "original_bytes": "247c0010d104",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "247c00ff1104",
@@ -1737,7 +1737,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C68",
-      "rom_pc": "0x055CCC",
+      "rom_pc": "0x055CD0",
       "original_bytes": "267c0010d100",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "267c00ff1100",
@@ -1748,7 +1748,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03BA64",
-      "rom_pc": "0x03BC66",
+      "rom_pc": "0x03BC6A",
       "original_bytes": "301b340002400f00ee483202024100f0e5490242000fea5a8041804230c0538366de4e75",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4eb9000735624e754e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
@@ -1759,7 +1759,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x055C5E",
-      "rom_pc": "0x055CC2",
+      "rom_pc": "0x055CC6",
       "original_bytes": "206d10f8227c0010d104",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4ef900072aa64e714e71",
@@ -1770,7 +1770,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03F0A4",
-      "rom_pc": "0x03F288",
+      "rom_pc": "0x03F28C",
       "original_bytes": "1039003e0003",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "0280fffffffe",
@@ -1781,7 +1781,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05277A",
-      "rom_pc": "0x052910",
+      "rom_pc": "0x052914",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -1792,7 +1792,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0527D4",
-      "rom_pc": "0x05296A",
+      "rom_pc": "0x05296E",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -1803,7 +1803,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0527E4",
-      "rom_pc": "0x05297A",
+      "rom_pc": "0x05297E",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -1814,7 +1814,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0527F4",
-      "rom_pc": "0x05298A",
+      "rom_pc": "0x05298E",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -1825,7 +1825,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052804",
-      "rom_pc": "0x05299A",
+      "rom_pc": "0x05299E",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -1836,7 +1836,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0528CA",
-      "rom_pc": "0x052A60",
+      "rom_pc": "0x052A64",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -1847,7 +1847,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0528DA",
-      "rom_pc": "0x052A70",
+      "rom_pc": "0x052A74",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -1858,7 +1858,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0528EA",
-      "rom_pc": "0x052A80",
+      "rom_pc": "0x052A84",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -1869,7 +1869,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0528FA",
-      "rom_pc": "0x052A90",
+      "rom_pc": "0x052A94",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -1880,7 +1880,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052BC8",
-      "rom_pc": "0x052CC8",
+      "rom_pc": "0x052CCC",
       "original_bytes": "30390010c016",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff0016",
@@ -1891,7 +1891,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0514A4",
-      "rom_pc": "0x051690",
+      "rom_pc": "0x051694",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -1902,7 +1902,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0514C4",
-      "rom_pc": "0x0516B0",
+      "rom_pc": "0x0516B4",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -1913,7 +1913,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0514D8",
-      "rom_pc": "0x0516C4",
+      "rom_pc": "0x0516C8",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -1924,7 +1924,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0515B6",
-      "rom_pc": "0x0517A2",
+      "rom_pc": "0x0517A6",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -1935,7 +1935,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051600",
-      "rom_pc": "0x0517EC",
+      "rom_pc": "0x0517F0",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -1946,7 +1946,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051728",
-      "rom_pc": "0x051914",
+      "rom_pc": "0x051918",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -1957,7 +1957,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051C5A",
-      "rom_pc": "0x051DFC",
+      "rom_pc": "0x051E00",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -1968,7 +1968,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051CA0",
-      "rom_pc": "0x051E42",
+      "rom_pc": "0x051E46",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -1979,7 +1979,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051CE0",
-      "rom_pc": "0x051E82",
+      "rom_pc": "0x051E86",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -1990,7 +1990,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051E2E",
-      "rom_pc": "0x051FCA",
+      "rom_pc": "0x051FCE",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2001,7 +2001,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051EDA",
-      "rom_pc": "0x052076",
+      "rom_pc": "0x05207A",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2012,7 +2012,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051EEE",
-      "rom_pc": "0x05208A",
+      "rom_pc": "0x05208E",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2023,7 +2023,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051F1E",
-      "rom_pc": "0x0520BA",
+      "rom_pc": "0x0520BE",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2034,7 +2034,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051F2E",
-      "rom_pc": "0x0520CA",
+      "rom_pc": "0x0520CE",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2045,7 +2045,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0520CA",
-      "rom_pc": "0x052266",
+      "rom_pc": "0x05226A",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2056,7 +2056,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052108",
-      "rom_pc": "0x0522A4",
+      "rom_pc": "0x0522A8",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2067,7 +2067,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052144",
-      "rom_pc": "0x0522E0",
+      "rom_pc": "0x0522E4",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2078,7 +2078,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05217C",
-      "rom_pc": "0x052318",
+      "rom_pc": "0x05231C",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2089,7 +2089,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0521B8",
-      "rom_pc": "0x052354",
+      "rom_pc": "0x052358",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2100,7 +2100,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052200",
-      "rom_pc": "0x05239C",
+      "rom_pc": "0x0523A0",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2111,7 +2111,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05223E",
-      "rom_pc": "0x0523DA",
+      "rom_pc": "0x0523DE",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2122,7 +2122,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052286",
-      "rom_pc": "0x052422",
+      "rom_pc": "0x052426",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2133,7 +2133,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0522C4",
-      "rom_pc": "0x052460",
+      "rom_pc": "0x052464",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2144,7 +2144,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052304",
-      "rom_pc": "0x0524A0",
+      "rom_pc": "0x0524A4",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2155,7 +2155,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052332",
-      "rom_pc": "0x0524CE",
+      "rom_pc": "0x0524D2",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2166,7 +2166,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05236A",
-      "rom_pc": "0x052506",
+      "rom_pc": "0x05250A",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2177,7 +2177,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0523D6",
-      "rom_pc": "0x052572",
+      "rom_pc": "0x052576",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2188,7 +2188,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05249A",
-      "rom_pc": "0x052636",
+      "rom_pc": "0x05263A",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2199,7 +2199,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052A1A",
-      "rom_pc": "0x052BB0",
+      "rom_pc": "0x052BB4",
       "original_bytes": "30390010d37a",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "303900ff137a",
@@ -2210,260 +2210,260 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0505DC",
-      "rom_pc": "0x0507C6",
+      "rom_pc": "0x0507CA",
       "original_bytes": "2b7c0005b5ec1332",
-      "original_bytes_shift_adjusted": "2b7c0005b60c1332",
-      "replacement_bytes": "2b7c0005b60c1332",
+      "original_bytes_shift_adjusted": "2b7c0005b6101332",
+      "replacement_bytes": "2b7c0005b6101332",
       "replacement_bytes_template": "2b7c0005b7ec1332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b60c1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b6101332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5EC now maps to runtime Genesis copied-ROM table 0x0005B7EC per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5EC=0x00AD at runtime instead of relocated 0x0005B7EC=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0514B8",
-      "rom_pc": "0x0516A4",
+      "rom_pc": "0x0516A8",
       "original_bytes": "2b7c0005b5ec1332",
-      "original_bytes_shift_adjusted": "2b7c0005b60c1332",
-      "replacement_bytes": "2b7c0005b60c1332",
+      "original_bytes_shift_adjusted": "2b7c0005b6101332",
+      "replacement_bytes": "2b7c0005b6101332",
       "replacement_bytes_template": "2b7c0005b7ec1332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b60c1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b6101332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5EC now maps to runtime Genesis copied-ROM table 0x0005B7EC per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5EC=0x00AD at runtime instead of relocated 0x0005B7EC=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0520DC",
-      "rom_pc": "0x052278",
+      "rom_pc": "0x05227C",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b5c21332",
-      "replacement_bytes": "2b7c0005b5c21332",
+      "original_bytes_shift_adjusted": "2b7c0005b5c61332",
+      "replacement_bytes": "2b7c0005b5c61332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5c21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5c61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0520E6",
-      "rom_pc": "0x052282",
+      "rom_pc": "0x052286",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5901332",
-      "replacement_bytes": "2b7c0005b5901332",
+      "original_bytes_shift_adjusted": "2b7c0005b5941332",
+      "replacement_bytes": "2b7c0005b5941332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5901332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5941332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05211A",
-      "rom_pc": "0x0522B6",
+      "rom_pc": "0x0522BA",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b5c21332",
-      "replacement_bytes": "2b7c0005b5c21332",
+      "original_bytes_shift_adjusted": "2b7c0005b5c61332",
+      "replacement_bytes": "2b7c0005b5c61332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5c21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5c61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052124",
-      "rom_pc": "0x0522C0",
+      "rom_pc": "0x0522C4",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5901332",
-      "replacement_bytes": "2b7c0005b5901332",
+      "original_bytes_shift_adjusted": "2b7c0005b5941332",
+      "replacement_bytes": "2b7c0005b5941332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5901332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5941332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052150",
-      "rom_pc": "0x0522EC",
+      "rom_pc": "0x0522F0",
       "original_bytes": "2b7c0005b5481332",
-      "original_bytes_shift_adjusted": "2b7c0005b5681332",
-      "replacement_bytes": "2b7c0005b5681332",
+      "original_bytes_shift_adjusted": "2b7c0005b56c1332",
+      "replacement_bytes": "2b7c0005b56c1332",
       "replacement_bytes_template": "2b7c0005b7481332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5681332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b56c1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B548 now maps to runtime Genesis copied-ROM table 0x0005B748 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B548=0x00AD at runtime instead of relocated 0x0005B748=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05215A",
-      "rom_pc": "0x0522F6",
+      "rom_pc": "0x0522FA",
       "original_bytes": "2b7c0005b5161332",
-      "original_bytes_shift_adjusted": "2b7c0005b5361332",
-      "replacement_bytes": "2b7c0005b5361332",
+      "original_bytes_shift_adjusted": "2b7c0005b53a1332",
+      "replacement_bytes": "2b7c0005b53a1332",
       "replacement_bytes_template": "2b7c0005b7161332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5361332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b53a1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05218E",
-      "rom_pc": "0x05232A",
+      "rom_pc": "0x05232E",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b5c21332",
-      "replacement_bytes": "2b7c0005b5c21332",
+      "original_bytes_shift_adjusted": "2b7c0005b5c61332",
+      "replacement_bytes": "2b7c0005b5c61332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5c21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5c61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052198",
-      "rom_pc": "0x052334",
+      "rom_pc": "0x052338",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5901332",
-      "replacement_bytes": "2b7c0005b5901332",
+      "original_bytes_shift_adjusted": "2b7c0005b5941332",
+      "replacement_bytes": "2b7c0005b5941332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5901332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5941332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0521CA",
-      "rom_pc": "0x052366",
+      "rom_pc": "0x05236A",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b5c21332",
-      "replacement_bytes": "2b7c0005b5c21332",
+      "original_bytes_shift_adjusted": "2b7c0005b5c61332",
+      "replacement_bytes": "2b7c0005b5c61332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5c21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5c61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0521D4",
-      "rom_pc": "0x052370",
+      "rom_pc": "0x052374",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5901332",
-      "replacement_bytes": "2b7c0005b5901332",
+      "original_bytes_shift_adjusted": "2b7c0005b5941332",
+      "replacement_bytes": "2b7c0005b5941332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5901332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5941332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052212",
-      "rom_pc": "0x0523AE",
+      "rom_pc": "0x0523B2",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b5c21332",
-      "replacement_bytes": "2b7c0005b5c21332",
+      "original_bytes_shift_adjusted": "2b7c0005b5c61332",
+      "replacement_bytes": "2b7c0005b5c61332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5c21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5c61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05221C",
-      "rom_pc": "0x0523B8",
+      "rom_pc": "0x0523BC",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5901332",
-      "replacement_bytes": "2b7c0005b5901332",
+      "original_bytes_shift_adjusted": "2b7c0005b5941332",
+      "replacement_bytes": "2b7c0005b5941332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5901332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5941332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052250",
-      "rom_pc": "0x0523EC",
+      "rom_pc": "0x0523F0",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b5c21332",
-      "replacement_bytes": "2b7c0005b5c21332",
+      "original_bytes_shift_adjusted": "2b7c0005b5c61332",
+      "replacement_bytes": "2b7c0005b5c61332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5c21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5c61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05225A",
-      "rom_pc": "0x0523F6",
+      "rom_pc": "0x0523FA",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5901332",
-      "replacement_bytes": "2b7c0005b5901332",
+      "original_bytes_shift_adjusted": "2b7c0005b5941332",
+      "replacement_bytes": "2b7c0005b5941332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5901332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5941332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052298",
-      "rom_pc": "0x052434",
+      "rom_pc": "0x052438",
       "original_bytes": "2b7c0005b5481332",
-      "original_bytes_shift_adjusted": "2b7c0005b5681332",
-      "replacement_bytes": "2b7c0005b5681332",
+      "original_bytes_shift_adjusted": "2b7c0005b56c1332",
+      "replacement_bytes": "2b7c0005b56c1332",
       "replacement_bytes_template": "2b7c0005b7481332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5681332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b56c1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B548 now maps to runtime Genesis copied-ROM table 0x0005B748 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B548=0x00AD at runtime instead of relocated 0x0005B748=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0522A2",
-      "rom_pc": "0x05243E",
+      "rom_pc": "0x052442",
       "original_bytes": "2b7c0005b5161332",
-      "original_bytes_shift_adjusted": "2b7c0005b5361332",
-      "replacement_bytes": "2b7c0005b5361332",
+      "original_bytes_shift_adjusted": "2b7c0005b53a1332",
+      "replacement_bytes": "2b7c0005b53a1332",
       "replacement_bytes_template": "2b7c0005b7161332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5361332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b53a1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0522D6",
-      "rom_pc": "0x052472",
+      "rom_pc": "0x052476",
       "original_bytes": "2b7c0005b5a21332",
-      "original_bytes_shift_adjusted": "2b7c0005b5c21332",
-      "replacement_bytes": "2b7c0005b5c21332",
+      "original_bytes_shift_adjusted": "2b7c0005b5c61332",
+      "replacement_bytes": "2b7c0005b5c61332",
       "replacement_bytes_template": "2b7c0005b7a21332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5c21332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5c61332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B5A2 now maps to runtime Genesis copied-ROM table 0x0005B7A2 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B5A2=0x00AD at runtime instead of relocated 0x0005B7A2=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0522E0",
-      "rom_pc": "0x05247C",
+      "rom_pc": "0x052480",
       "original_bytes": "2b7c0005b5701332",
-      "original_bytes_shift_adjusted": "2b7c0005b5901332",
-      "replacement_bytes": "2b7c0005b5901332",
+      "original_bytes_shift_adjusted": "2b7c0005b5941332",
+      "replacement_bytes": "2b7c0005b5941332",
       "replacement_bytes_template": "2b7c0005b7701332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b5901332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b5941332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B570 now maps to runtime Genesis copied-ROM table 0x0005B770 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B570=0x00AD at runtime instead of relocated 0x0005B770=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x052310",
-      "rom_pc": "0x0524AC",
+      "rom_pc": "0x0524B0",
       "original_bytes": "2b7c0005b62e1332",
-      "original_bytes_shift_adjusted": "2b7c0005b64e1332",
-      "replacement_bytes": "2b7c0005b64e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b6521332",
+      "replacement_bytes": "2b7c0005b6521332",
       "replacement_bytes_template": "2b7c0005b82e1332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b64e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b6521332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B62E now maps to runtime Genesis copied-ROM table 0x0005B82E per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B62E=0x00AD at runtime instead of relocated 0x0005B82E=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05233E",
-      "rom_pc": "0x0524DA",
+      "rom_pc": "0x0524DE",
       "original_bytes": "2b7c0005b62e1332",
-      "original_bytes_shift_adjusted": "2b7c0005b64e1332",
-      "replacement_bytes": "2b7c0005b64e1332",
+      "original_bytes_shift_adjusted": "2b7c0005b6521332",
+      "replacement_bytes": "2b7c0005b6521332",
       "replacement_bytes_template": "2b7c0005b82e1332",
-      "replacement_bytes_shift_adjusted": "2b7c0005b64e1332",
+      "replacement_bytes_shift_adjusted": "2b7c0005b6521332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B62E now maps to runtime Genesis copied-ROM table 0x0005B82E per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B62E=0x00AD at runtime instead of relocated 0x0005B82E=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x0523C4",
-      "rom_pc": "0x052560",
+      "rom_pc": "0x052564",
       "original_bytes": "0cad0005b5161332",
-      "original_bytes_shift_adjusted": "0cad0005b5361332",
-      "replacement_bytes": "0cad0005b5361332",
+      "original_bytes_shift_adjusted": "0cad0005b53a1332",
+      "replacement_bytes": "0cad0005b53a1332",
       "replacement_bytes_template": "0cad0005b7161332",
-      "replacement_bytes_shift_adjusted": "0cad0005b5361332",
+      "replacement_bytes_shift_adjusted": "0cad0005b53a1332",
       "note": "Build 0200 player jump/fall arc-table pointer relocation: original arcade data-pointer literal 0x0005B516 now maps to runtime Genesis copied-ROM table 0x0005B716 per build/rastan-direct/address_map.json. Without this byte-neutral rebase the mode-2 arc walker reads the wrong copied-ROM bytes (example 0x0005B516=0x00AD at runtime instead of relocated 0x0005B716=0x0004), creating oversized pending movement, A5+0x1272=1, and the 0x51564 skip of the arc dispatch. Arcade code/physics unchanged; only embedded ROM data pointers are rebased to their authoritative relocated Genesis copy."
     },
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x03B8B0",
-      "rom_pc": "0x03BAB2",
+      "rom_pc": "0x03BAB6",
       "original_bytes": "41fa009e",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e754e71",
@@ -2474,7 +2474,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051650",
-      "rom_pc": "0x05183C",
+      "rom_pc": "0x051840",
       "original_bytes": "227c0010d338",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "227c00ff1338",
@@ -2485,7 +2485,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x051DB6",
-      "rom_pc": "0x051F58",
+      "rom_pc": "0x051F5C",
       "original_bytes": "207c0010d338",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff1338",
@@ -2496,7 +2496,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054754",
-      "rom_pc": "0x054824",
+      "rom_pc": "0x054828",
       "original_bytes": "207c0010d338",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "207c00ff1338",
@@ -2507,7 +2507,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054602",
-      "rom_pc": "0x0546CE",
+      "rom_pc": "0x0546D2",
       "original_bytes": "322d1308",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "3e2d1308",
@@ -2518,7 +2518,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054606",
-      "rom_pc": "0x0546D2",
+      "rom_pc": "0x0546D6",
       "original_bytes": "e249",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "e24f",
@@ -2529,7 +2529,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054608",
-      "rom_pc": "0x0546D4",
+      "rom_pc": "0x0546D8",
       "original_bytes": "02410003",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "02470003",
@@ -2540,7 +2540,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05460C",
-      "rom_pc": "0x0546D8",
+      "rom_pc": "0x0546DC",
       "original_bytes": "e349",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "e34f",
@@ -2551,7 +2551,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05465E",
-      "rom_pc": "0x05472A",
+      "rom_pc": "0x05472E",
       "original_bytes": "d4c1",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "d4c7",
@@ -2562,7 +2562,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05466A",
-      "rom_pc": "0x054736",
+      "rom_pc": "0x05473A",
       "original_bytes": "d4c1",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "d4c7",
@@ -2573,7 +2573,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054676",
-      "rom_pc": "0x054742",
+      "rom_pc": "0x054746",
       "original_bytes": "d4c1",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "d4c7",
@@ -2584,7 +2584,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x054682",
-      "rom_pc": "0x05474E",
+      "rom_pc": "0x054752",
       "original_bytes": "d4c1",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "d4c7",
@@ -2595,7 +2595,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x05A502",
-      "rom_pc": "0x05A522",
+      "rom_pc": "0x05A526",
       "original_bytes": "4280",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e75",
@@ -2605,19 +2605,8 @@
     },
     {
       "kind": "opcode_replace",
-      "arcade_pc": "0x03AD4C",
-      "rom_pc": "0x03AF4E",
-      "original_bytes": "323c0008",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4e754e71",
-      "replacement_bytes_template": "4e754e71",
-      "replacement_bytes_shift_adjusted": "",
-      "note": "PC090OJ final teardown (Tighe explicitly authorized this RTS, narrowly scoped). Arcade 0x03AD4C is exclusively obsolete PC090OJ object-RAM clearing: its whole body is fill-setup (d1=count,a0=0xD00000/0xD00170,d0=0x100 park value) + two bsr 0x03AD44 fills + rts, with no other arcade state/control work. On Genesis the clear has no effect (native SAT is rebuilt per frame). Replace the entry move.w #8,d1 with rts;nop so the routine returns immediately; the D-range bsr sites 0x03AD5C/0x03AD6E become unreachable dead bytes. The 8 callers (0x3A242/0x3A2DC/0x3A5A4/0x3A8D6/0x3AA44/0x3AA9E) read no result and continue unchanged."
-    },
-    {
-      "kind": "opcode_replace",
       "arcade_pc": "0x03AD72",
-      "rom_pc": "0x03AF74",
+      "rom_pc": "0x03AF78",
       "original_bytes": "323c01e0",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "4e754e71",
@@ -2628,7 +2617,7 @@
     {
       "kind": "opcode_replace",
       "arcade_pc": "0x044898",
-      "rom_pc": "0x044A7C",
+      "rom_pc": "0x044A80",
       "original_bytes": "49f90010c508",
       "original_bytes_shift_adjusted": "",
       "replacement_bytes": "49f900ff0508",
@@ -2640,61 +2629,61 @@
       "kind": "relocate_after_shift_operand",
       "arcade_pc": "0x0503CE",
       "arcade_target": "0x050F6B",
-      "shift_before_target": -22,
-      "final_operand": "0x051155",
-      "genesis_callsite": "0x0505B2",
-      "rom_bytes_written": "203C00051155"
+      "shift_before_target": -18,
+      "final_operand": "0x051159",
+      "genesis_callsite": "0x0505B6",
+      "rom_bytes_written": "203C00051159"
     },
     {
       "kind": "relocate_after_shift_operand",
       "arcade_pc": "0x03AFEE",
       "arcade_target": "0x05FF9E",
-      "shift_before_target": -480,
-      "final_operand": "0x05FFBE",
-      "genesis_callsite": "0x03B1F0",
-      "rom_bytes_written": "30390005FFBE"
+      "shift_before_target": -476,
+      "final_operand": "0x05FFC2",
+      "genesis_callsite": "0x03B1F4",
+      "rom_bytes_written": "30390005FFC2"
     },
     {
       "kind": "relocate_after_shift_operand",
       "arcade_pc": "0x03AFFE",
       "arcade_target": "0x05FF9E",
-      "shift_before_target": -480,
-      "final_operand": "0x05FFBE",
-      "genesis_callsite": "0x03B200",
-      "rom_bytes_written": "30390005FFBE"
+      "shift_before_target": -476,
+      "final_operand": "0x05FFC2",
+      "genesis_callsite": "0x03B204",
+      "rom_bytes_written": "30390005FFC2"
     },
     {
       "kind": "relocate_after_shift_operand",
       "arcade_pc": "0x03BB48",
       "arcade_target": "0x03BB7C",
-      "shift_before_target": -28,
-      "final_operand": "0x03BD60",
-      "genesis_callsite": "0x03BD4A",
-      "rom_bytes_written": "32000240007FE54841F90003BD604EB9000721884E75"
+      "shift_before_target": -24,
+      "final_operand": "0x03BD64",
+      "genesis_callsite": "0x03BD4E",
+      "rom_bytes_written": "32000240007FE54841F90003BD644EB9000721884E75"
     },
     {
       "kind": "relocate_after_shift_operand",
       "arcade_pc": "0x054810",
       "arcade_target": "0x05DA5E",
-      "shift_before_target": -480,
-      "final_operand": "0x05DA7E",
-      "genesis_callsite": "0x0548B2",
-      "rom_bytes_written": "207C0005DA7EC0FC0018D0C04EB900074A684E75"
+      "shift_before_target": -476,
+      "final_operand": "0x05DA82",
+      "genesis_callsite": "0x0548B6",
+      "rom_bytes_written": "207C0005DA82C0FC0018D0C04EB900074A684E75"
     }
   ],
-  "checksum": "0x6C3F",
+  "checksum": "0x012E",
   "relocation_map": "/home/tighe/projects/rastan-genesis/build/rastan-direct/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {
-    "opcode_replace_count": 229
+    "opcode_replace_count": 228
   },
   "patch_counts": {
-    "opcode_replace_and_rom_opcode_replace": 229
+    "opcode_replace_and_rom_opcode_replace": 228
   },
   "build_context": "canonical",
   "genesis_coverage_delta": "0x0",
   "invincible_variant": false,
-  "postpatch_expected_opcode_replace_sites": 229,
+  "postpatch_expected_opcode_replace_sites": 228,
   "postpatch_expected_total_genesis_bytes_covered": "0x29CEB8",
   "bookmarks_v2_count": 0,
   "bookmarks_v2_applied": [],

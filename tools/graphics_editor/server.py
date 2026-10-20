@@ -848,6 +848,42 @@ def build_usages(banks):
         _player_meta[key] = {"category": cat, "order": order, "map_key": obj_id,
                              "frame_label": label, "object_id": obj_id}
         defs.append((key, label, 0x30, pieces, True))
+    # (d) DEATH / EFFECT + GAMEPLAY-REWARD families (H25 taxonomy; rastan_actor_behavior.c + raw/00040ccc
+    #     + raw/00042abc; palette nibbles from the compositor VM control byte, H15 rule). Effective bank =
+    #     0x30 | control-nibble; source palette = per-round pool _arcade_round_palette(round, nibble).
+    #     - bat_death: base 0x0275 anim 0xA8 (0x42ABC A8 branch) = ONE frame, Small(0x0268)+Large(0x03F6)
+    #       bats share it; distinct pattern cell from the burst 0x9D-0xA0; shares burst palette (bank 0x30).
+    #     - item_drop_death / GAMEPLAY REWARD PICKUP: base 0x0A5A (0x40CCC phase-10 transform to family-12),
+    #       the VISIBLE gameplay collectible/reward the dying enemy becomes when schedule +0x36 is set.
+    #       17 reward kinds, anim selector (kind-1)+0x13 (0x13..0x23), one static presentation per kind,
+    #       in THREE bank groups: kinds 1-4 -> nibble 0 (bank 0x30), kinds 5-13 -> nibble 1 (bank 0x31),
+    #       kinds 14-17 -> nibble 7 (bank 0x37). Exposed per bank-group with its REAL arcade palette (no
+    #       bank-0x30 backdrop); reward identity table 0x40C2E, score table 0x40C40. No color authored.
+    #     - specialized_death_019d: base 0x019D (0x42ABC type<8), bank 0x34; reachable (actor 0x019D
+    #       rec_type 0/3). specialized_death_09dc: base 0x09DC (0x42ABC type5, +0x3D bit7), bank 0x33.
+    banks.setdefault(0x31, _arcade_round_palette(1, 1))
+    banks.setdefault(0x33, _arcade_round_palette(1, 3))
+    banks.setdefault(0x34, _arcade_round_palette(1, 4))
+    banks.setdefault(0x37, _arcade_round_palette(1, 7))
+    _death_families = [
+        ("bat_death", "Bat death (one-frame, Small+Large)", 0x0275, 0xA8, 0x30, "object:effect.bat_death", "death", 990),
+        ("item_drop_death", "Item-drop death / gameplay reward (kinds 1-4, weapon-bank 0x30)", 0x0A5A, 0x13, 0x30,
+         "object:effect.item_drop_death", "reward", 991),
+        ("gameplay_reward_b31", "Gameplay reward/pickup (kinds 5-13, bank 0x31)", 0x0A5A, 0x17, 0x31,
+         "object:item.gameplay_reward_b31", "reward", 992),
+        ("gameplay_reward_b37", "Gameplay reward/pickup (kinds 14-17, bank 0x37)", 0x0A5A, 0x20, 0x37,
+         "object:item.gameplay_reward_b37", "reward", 993),
+        ("specialized_death_019d", "Specialized enemy death (base 0x019D, rec_type<8)", 0x019D, 0x2A, 0x34,
+         "object:effect.specialized_death_019d", "death", 994),
+        ("specialized_death_09dc", "Specialized enemy death (base 0x09DC, type5)", 0x09DC, 0xC2, 0x33,
+         "object:effect.specialized_death_09dc", "death", 995),
+    ]
+    for key, label, base, anim, bank, obj_id, cat, order in _death_families:
+        pieces = _manifest_vm_pieces(base, anim, 0)
+        if pieces:
+            _player_meta[key] = {"category": cat, "order": order, "map_key": obj_id,
+                                 "frame_label": label, "object_id": obj_id}
+            defs.append((key, label, bank, pieces, True))
 
     usages = []
     for key, name, bank, pieces, proven in defs:

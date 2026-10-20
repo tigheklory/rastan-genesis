@@ -377,13 +377,13 @@
   "creation_routes": {
    "marker_scheduler_0x41180": "DECODED (field enemies at map markers)",
    "field_schedule_0x4A086_via_0x4A0D8_0x49F30": "DECODED (spawn table 0x4A104 per round)",
-   "paired_scripted_init_0x45342": "PARTIAL \u2014 17 call sites, only 5 demon sites decoded; 12 sites in 0x4A000-0x4C700 UNDECODED",
+   "paired_scripted_init_0x45342": "PARTIAL — 17 call sites, only 5 demon sites decoded; 12 sites in 0x4A000-0x4C700 UNDECODED",
    "scripted_spawner_0x4BBCA": "UNDECODED",
    "boss_frame_owner_0x41F30": "PARTIAL",
    "alt_activation_0x4CD50": "UNDECODED"
   },
-  "undecoded_region": "0x4A000-0x4C700 scripted/boss/special subsystem \u2014 only 4 named functions; holds the 12 paired-init sites = the missing bosses/scripted/phase actors/items",
-  "census_status": "NOT COMPLETE \u2014 scripted-encounter subsystem now decoded (structure); exhaustiveness NOT YET PROVEN (per-scene handler enumeration, per-route seed->base, item system, compositor VM remain)",
+  "undecoded_region": "0x4A000-0x4C700 scripted/boss/special subsystem — only 4 named functions; holds the 12 paired-init sites = the missing bosses/scripted/phase actors/items",
+  "census_status": "NOT COMPLETE — scripted-encounter subsystem now decoded (structure); exhaustiveness NOT YET PROVEN (per-scene handler enumeration, per-route seed->base, item system, compositor VM remain)",
   "unresolved_paths": [
    "12x 0x45342 sites in 0x4A000-0x4C700",
    "0x4BBCA",
@@ -503,7 +503,7 @@
    "per_round_door_status": "BLOCKED (precisely): enumerating 0x7E requires the metatile->collision-property mapping + the per-round metatile-column source feeding collision-grid field @(20). This is a full map-engine decode. A runtime watchpoint on the 0x10DE00 door cell or on 0x53f0c would CORROBORATE positions but is not the static authority the task requires. No per-round door 0x13E is asserted.",
    "why_not_TT": "a TT background-bank change (R3/R5/R6) is a visual theme change at a scene reload and CORROBORATES a transition there, but is not the phase decoder; R1/R2/R4 cross a gameplay phase within one TT bank, which is exactly why background appearance must not define the phase.",
    "A5_base_unlock": {
-    "A5": "0x10C000 (arcade work-RAM base) \u2014 VERIFIED: 0x10C118(round-intro idx)=A5+0x118(round counter); 0x10C016=A5+0x16(player X); decisively 0x10D0A8(absolute)-0x10C000=0x10A8 => the map-stream byte written at 0x558f8 IS A5+0x10A8. (Genesis port relocates A5 to 0xFF2200; the ARCADE base is 0x10C000.)",
+    "A5": "0x10C000 (arcade work-RAM base) — VERIFIED: 0x10C118(round-intro idx)=A5+0x118(round counter); 0x10C016=A5+0x16(player X); decisively 0x10D0A8(absolute)-0x10C000=0x10A8 => the map-stream byte written at 0x558f8 IS A5+0x10A8. (Genesis port relocates A5 to 0xFF2200; the ARCADE base is 0x10C000.)",
     "consequence_0x10D000": "0x10D000 = A5+0x1000, populated by 0x502cc: 16 map-column stream pointers = base_k + 0x13E*64 (base_0=0x1691C, stride 0x22C0). Advanced +4/column during scroll (0x558c8); rebuilt into 0x10D040(=A5+0x1040) by 0x55904. These 16 streams are VISUAL name-table columns.",
     "consequence_section_kind": "A5+0x10A8 (section-kind) = the current map-stream byte from ROM 0x50F6B (indexed by 0x13E via table 0x50EE0). DECODED: values are ONLY {0,1,2}."
    },
@@ -2018,7 +2018,7 @@
      "status": "DISPROVEN as boss colours (field pool != boss palette); line F correct"
     }
    ],
-   "boss_component_palette": "type 0x17/0x18/0x19 line F; type 0x1A line 0 \u2014 R6 line 0 AND line F both resolve to pool 11, so all four structural records share the same ROM colours (0x4FE62).",
+   "boss_component_palette": "type 0x17/0x18/0x19 line F; type 0x1A line 0 — R6 line 0 AND line F both resolve to pool 11, so all four structural records share the same ROM colours (0x4FE62).",
    "boss_structure": "MULTI-RECORD (body + structural components)",
    "boss_component_records": [
     {
@@ -2229,7 +2229,7 @@
    "category": "CONTROLLER",
    "base_graphics": "0x033E",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [],
    "round_status": "PENDING (materialized; round not pinned)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
@@ -2247,7 +2247,7 @@
    "confidence": "route/state PROVEN (H5/H6); human identity + round + legal frame PENDING",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "\u2014",
+    "marker": "—",
     "state": "0x00",
     "handler": "0x41180"
    },
@@ -2262,13 +2262,13 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x00F4",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [
     4,
     5,
     6
    ],
-   "round_status": "PROVEN PRESENT \u2014 R4,R5,R6 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
+   "round_status": "PROVEN PRESENT — R4,R5,R6 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Materialized/retarget base assigned by state 0x1E transform (0x40E88 sets +0x1E=0x0F4, retargets marker 'O').",
    "frame_status": "VM_LEGAL",
@@ -2319,7 +2319,7 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0DAB",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [],
    "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
@@ -2367,13 +2367,13 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x09EA",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [
     5
    ],
-   "round_status": "PROVEN PRESENT \u2014 R5 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
+   "round_status": "PROVEN PRESENT — R5 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
-   "description": "Shared marker-chain TRANSFORM base written at 9 sites (H7/H9) \u2014 the 'next actor' a hunter/transform becomes. NOT a single projectile.",
+   "description": "Shared marker-chain TRANSFORM base written at 9 sites (H7/H9) — the 'next actor' a hunter/transform becomes. NOT a single projectile.",
    "frame_status": "VM_LEGAL",
    "frame_source": "0x3D054 selector 0 -> table -> 0x3C902 program (anim 0x74)",
    "frame_provenance": "COMPOSITOR_VM",
@@ -2426,11 +2426,11 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0179",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [
     6
    ],
-   "round_status": "PROVEN PRESENT \u2014 R6 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
+   "round_status": "PROVEN PRESENT — R6 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Materialized by H5 state 0x15 handler at 0x438B6 (project notes associate it with a cave-entrance block; identity not ROM-name-proven).",
    "frame_status": "VM_LEGAL",
@@ -2477,12 +2477,12 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0224",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [
     2,
     4
    ],
-   "round_status": "PROVEN PRESENT \u2014 R2,R4 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
+   "round_status": "PROVEN PRESENT — R2,R4 (H14: exact +0x1E base write; h14_materialized_round_pinning.tsv)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
    "description": "Common materialized body assigned across several H5 state handlers.",
    "frame_status": "VM_LEGAL",
@@ -2533,7 +2533,7 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0266",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [],
    "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
@@ -2585,7 +2585,7 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0235",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [],
    "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
@@ -2611,7 +2611,7 @@
    "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "\u2014",
+    "marker": "—",
     "state": "H5",
     "handler": "0x43984"
    },
@@ -2633,7 +2633,7 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x09F6",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [],
    "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
@@ -2659,7 +2659,7 @@
    "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "\u2014",
+    "marker": "—",
     "state": "H5",
     "handler": "0x439AE"
    },
@@ -2681,7 +2681,7 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x01FC",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [],
    "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
@@ -2707,7 +2707,7 @@
    "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "\u2014",
+    "marker": "—",
     "state": "H5",
     "handler": "0x43BEA"
    },
@@ -2729,7 +2729,7 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0236",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [],
    "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
@@ -2755,7 +2755,7 @@
    "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "\u2014",
+    "marker": "—",
     "state": "H5",
     "handler": "0x43C34"
    },
@@ -2777,7 +2777,7 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x0546",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [],
    "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
@@ -2803,7 +2803,7 @@
    "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "\u2014",
+    "marker": "—",
     "state": "H5",
     "handler": "0x43DFA"
    },
@@ -2826,7 +2826,7 @@
    "category": "ENEMY_MATERIALIZED",
    "base_graphics": "0x05E9",
    "actor_family_3e": null,
-   "spawn_route": "H5/H6 materialization: 0x41180 latent scan \u2192 0x41362 (28-route classifier) \u2192 0x40BAA state handler",
+   "spawn_route": "H5/H6 materialization: 0x41180 latent scan → 0x41362 (28-route classifier) → 0x40BAA state handler",
    "round_presence": [],
    "round_status": "PROVEN ABSENT FROM PHASE-2 (H14: no phase-2 marker occurrence satisfies its +0x1E base-write branch)",
    "phase_presence": "MATERIALIZED / LATER-SECTION (SUB-ROUND 2 region)",
@@ -2852,7 +2852,7 @@
    "confidence": "PROVEN ABSENT from Phase-2 (H14); may materialize outside Phase-2 (not evaluated here)",
    "unresolved_reason": "Materialized via the marker/hunter system; the exact animation index (legal frame), per-round palette instance, and human identity are not yet statically pinned.",
    "materialization_route": {
-    "marker": "\u2014",
+    "marker": "—",
     "state": "H5",
     "handler": "0x43FC4"
    },
@@ -2877,7 +2877,7 @@
    "round_presence": [
     1
    ],
-   "round_status": "PROVEN PRESENT \u2014 R1 Phase-2 (marker 0x4D burst); up to 5 concurrent instances",
+   "round_status": "PROVEN PRESENT — R1 Phase-2 (marker 0x4D burst); up to 5 concurrent instances",
    "phase_presence": "Phase-2 (castle scene 0x15)",
    "description": "Transient burst/impact EFFECT produced by the Round-1 marker-0x4D state-0x1B burst controller (0x43ECC -> 0x43F4E/0x43F52 activates <=5 shared-pool slots A5+0x3C8..0x4C8 -> 0x447F0/0x448B2 -> state 0x0F). The state-0x0F +0x39 child path (0x40DD8) assigns base 0x0275, selector 0, expanding anim 0x9E/0x9F/0xA0 (8/9/10 pieces), and SELF-RETIRES at +0x08>=4 (0x4092E). NOT five enemy species and NOT a composite: each activated slot is an independent short-lived effect. Identity is assigned by state 0x0F, not inherited from the preloaded pool slot.",
    "frame_status": "VM_LEGAL",
@@ -2932,7 +2932,7 @@
    "round_presence": [
     1
    ],
-   "round_status": "PROVEN PRESENT \u2014 R1 Phase 1 / Sub-round 1",
+   "round_status": "PROVEN PRESENT — R1 Phase 1 / Sub-round 1",
    "phase_presence": "Phase 1 / Sub-round 1",
    "target_char": "H (0x48)",
    "live_state": "0x1E",
@@ -2941,7 +2941,7 @@
    "frame_status": "VM_LEGAL",
    "frame_source": "0x3D054 selector 0 -> 0x3C902 program 0x3E1C0 (four cells 0x0179..0x017C)",
    "frame_provenance": "COMPOSITOR_VM (build/regions/pc090oj.bin arcade cells)",
-   "palette_status": "PROVEN (EXACT ARCADE DISPLAY \u2014 H17)",
+   "palette_status": "PROVEN (EXACT ARCADE DISPLAY — H17)",
    "palette_source": "R1 line 0xC -> bank 0x3C -> 0x3BA88[R1][0xC]=35 -> pool 0x4FD02+35*0x20 = 0x50162; +0x27 bit6 clear -> compositor control nibble (0x3C9E8). Used pixel indices {1,7,8,9,12,13,14} = black + brown.",
    "palette_provenance": "STATIC_DECOMPILED_H17_arcade",
    "used_indices": [
@@ -3000,7 +3000,7 @@
    "round": 1,
    "role": "Flying Demon enc-A",
    "oneshot": "A5+0x264",
-   "variant": "\u2014",
+   "variant": "—",
    "identity": "PROVEN (0x0129)",
    "phase": "PHASE 1/2 UNDECIDED (mid-round scripted enemy; door 0x13E unknown) - NOT boss"
   },
@@ -3009,7 +3009,7 @@
    "round": 1,
    "role": "Flying Demon enc-B",
    "oneshot": "A5+0x25A",
-   "variant": "\u2014",
+   "variant": "—",
    "identity": "PROVEN (0x0129)",
    "phase": "PHASE 1/2 UNDECIDED (mid-round scripted enemy; door 0x13E unknown) - NOT boss"
   },
@@ -3108,7 +3108,7 @@
    "ok"
   ],
   [
-   "Marker \u2192 actor materialization (H6)",
+   "Marker → actor materialization (H6)",
    "PROVEN (0x41180 scan + 0x41362 28-route classifier)",
    "ok"
   ],
@@ -3124,12 +3124,12 @@
   ],
   [
    "Ordinary enemy death path (H9)",
-   "PROVEN (one-hit \u2192 state 0x0F death \u2192 score +0x2C \u2192 retire)",
+   "PROVEN (one-hit → state 0x0F death → score +0x2C → retire)",
    "ok"
   ],
   [
    "Boss BODY per round",
-   "6/6 PROVEN bodies (0x061D/0753/082C/07BF/0988/0B35; table 0x444E0\u21920x45592)",
+   "6/6 PROVEN bodies (0x061D/0753/082C/07BF/0988/0B35; table 0x444E0→0x45592)",
    "ok"
   ],
   [
@@ -3143,28 +3143,28 @@
    "part"
   ],
   [
-   "Item / power-up system",
-   "H19: A5+0x12C8 effect dispatcher fully decoded (0x54B1E, types 0..13) but PROVEN VESTIGIAL \u2014 sole producer 0x449B4 writes only types 0/1/2/3; rec_type-12 (weapon) actors are NEVER created and types 4..13 are NEVER produced. Only type-0 (HIT_AUX) actually occurs. Visible item pickups (if any) use a mechanism OUTSIDE this table (open).",
+   "Gameplay item / reward system",
+   "RESOLVED (graphics mechanism): the visible gameplay collectible / weapon power-up is the family-12 reward presentation the dying enemy transforms into (0x40CCC->0x40D32, base 0x0A5A, gated +0x36). 17 reward kinds, anim (kind-1)+0x13 = 0x13..0x23, one static presentation/kind, banks 0x30 (1-4) / 0x31 (5-13) / 0x37 (14-17), per-round-pool colored; identity table 0x40C2E, score 0x40C40. The rec_type-12 TIMED_WEAPON actor path is vestigial / never created and is NOT the visible mechanism.",
+   "ok"
+  ],
+  [
+   "Enemy-death -> reward presentation",
+   "RESOLVED: the dying enemy is transformed in place into the family-12 reward presentation (0x40CCC phase-10 transform 0x40D32, base 0x0A5A) when schedule +0x36 is set. This is the gameplay drop; it is NOT a separately-created rec_type-12 pickup actor (that path is vestigial).",
+   "ok"
+  ],
+  [
+   "Gameplay reward kinds",
+   "17 reward kinds PROVEN (base 0x0A5A, anim 0x13..0x23, banks 0x30/0x31/0x37). Graphics + palette banks resolved; the exact per-kind human item name (via the +0x29 identity table 0x40C2E, cross-referenced to the accepted item-screen identities) remains PENDING.",
    "part"
   ],
   [
-   "Enemy-death \u2192 item link",
-   "H20: PROVEN no live collectible/drop via reward-field xref (A5+0x12FA weapon path vestigial per H19; A5+0x013A is player-state energy + enemy-contact damage). Real collectible mechanism (if present) undecoded.",
-   "pend"
-  ],
-  [
-   "Droppable item types",
-   "0 PROVEN pickups (H19: item event table vestigial; no pickup actor/creator via A5+0x12C8)",
-   "pend"
-  ],
-  [
-   "Fixed / marker pickups",
-   "mechanism PROVEN (H6 markers); identities partial",
-   "part"
+   "Fixed-marker / scripted placement",
+   "Marker (0x41180/0x41362) and scripted (0x450D8->0x45248) placement create ENEMIES (rec_types 8/9/11/13/15/18), NOT collectibles. Visible collectibles come from the enemy-death family-12 reward transform, not from a separate placed item sprite.",
+   "ok"
   ],
   [
    "Scripted / positional actors",
-   "PARTIAL (0x450D8 \u2192 0x45248)",
+   "PARTIAL (0x450D8 → 0x45248)",
    "part"
   ],
   [
@@ -3179,12 +3179,12 @@
   ],
   [
    "PC090OJ compositor VM",
-   "IMPLEMENTED \u2014 all 5 selectors funnel to the shared 0x3C902 interpreter; renders field, boss + materialized legal frames",
+   "IMPLEMENTED — all 5 selectors funnel to the shared 0x3C902 interpreter; renders field, boss + materialized legal frames",
    "ok"
   ],
   [
    "Overall bestiary completeness",
-   "INCOMPLETE \u2014 ACTIVE DECOMPILATION",
+   "INCOMPLETE — ACTIVE DECOMPILATION",
    "pend"
   ],
   [
@@ -3199,7 +3199,7 @@
    "PARTIAL"
   ],
   [
-   "2. Resolve exact scripted actor identities (0x450D8 \u2192 0x45248 bases 0x0F4/0x224/0x548 \u2026)",
+   "2. Resolve exact scripted actor identities (0x450D8 → 0x45248 bases 0x0F4/0x224/0x548 …)",
    "PARTIAL"
   ],
   [
@@ -3215,7 +3215,7 @@
    "PARTIAL"
   ],
   [
-   "6. Enemy-death \u2192 item-placement LINK (collision/death PROVEN H9; the drop link is the open gap)",
+   "6. Enemy-death → item-placement LINK (collision/death PROVEN H9; the drop link is the open gap)",
    "NOT STARTED"
   ],
   [
@@ -3266,7 +3266,7 @@
    "_status": "LEGACY: lexicon guessed names (SPEAR/FIREBALL/BOULDER etc.) are NOT authoritative; superseded by actors[]"
   },
   "DEPRECATED_boss_0x033E_model": {
-   "_status": "NON-AUTHORITATIVE / DEPRECATED \u2014 do NOT generate from this",
+   "_status": "NON-AUTHORITATIVE / DEPRECATED — do NOT generate from this",
    "_why": "0x033E is the hidden family-2 scanner/controller ROUTE, not a visible boss body. Real per-round boss bodies are in per_round_boss_body_map / actors[] (bases 0x061D/0753/082C/07BF/0988/0B35 via table 0x444E0->0x45592).",
    "former_bosses_struct": {
     "base": "0x033E",
@@ -3622,7 +3622,7 @@
     "name": "Actor 0x00F4",
     "name_status": "PENDING",
     "creation": [
-     "code-spawned (secondary/projectile/sub-object) @ 0x40E9C, 0x43658, 0x43B06, 0x43E1C, 0x440EA\u2026"
+     "code-spawned (secondary/projectile/sub-object) @ 0x40E9C, 0x43658, 0x43B06, 0x43E1C, 0x440EA…"
     ]
    },
    {
@@ -3688,7 +3688,7 @@
     "name": "Actor 0x0224",
     "name_status": "PENDING",
     "creation": [
-     "code-spawned (secondary/projectile/sub-object) @ 0x436BA, 0x43798, 0x4387A, 0x43C1C, 0x43D7C\u2026"
+     "code-spawned (secondary/projectile/sub-object) @ 0x436BA, 0x43798, 0x4387A, 0x43C1C, 0x43D7C…"
     ]
    },
    {
@@ -3736,7 +3736,7 @@
     "name": "Actor 0x0266",
     "name_status": "PENDING",
     "creation": [
-     "code-spawned (secondary/projectile/sub-object) @ 0x4367C, 0x43694, 0x43C6E, 0x43C86, 0x43CDA\u2026"
+     "code-spawned (secondary/projectile/sub-object) @ 0x4367C, 0x43694, 0x43C6E, 0x43C86, 0x43CDA…"
     ]
    },
    {
@@ -4011,7 +4011,7 @@
     "name": "Actor 0x09EA",
     "name_status": "PENDING",
     "creation": [
-     "code-spawned (secondary/projectile/sub-object) @ 0x40FAC, 0x40FCC, 0x42722, 0x438DC, 0x43C9E\u2026"
+     "code-spawned (secondary/projectile/sub-object) @ 0x40FAC, 0x40FCC, 0x42722, 0x438DC, 0x43C9E…"
     ]
    },
    {
@@ -4200,7 +4200,7 @@
   }
  },
  "phase_partition": {
-  "_source": "Sub-round (phase) boundaries from A5+0x1243 progression variable, decoded by MAME \"Finish Current Sub-Round Now!\" cheat (tools/mame/cheat/output.json) \u2014 reflects the code sub-round advance. Each round = 3 sub-rounds: OUTDOOR / CASTLE(Phase2) / BOSS (per \"Select Starting Round/Sub-Round\" naming).",
+  "_source": "Sub-round (phase) boundaries from A5+0x1243 progression variable, decoded by MAME \"Finish Current Sub-Round Now!\" cheat (tools/mame/cheat/output.json) — reflects the code sub-round advance. Each round = 3 sub-rounds: OUTDOOR / CASTLE(Phase2) / BOSS (per \"Select Starting Round/Sub-Round\" naming).",
   "_provenance": "R1 INDEPENDENTLY CODE-PROVEN: 0x7E collision whole-block door at map col 0x0F -> A5+0x10E8:=7 wipe -> castle sub-round 0x10 (matches cheat). R2-R6 castle doors are per-cell map tiles (not individually mapped) but the sub-round boundaries are the game transition points (cheat authority + A5+0x1243 variable, code-linked via 0x3a63a copying 0x13E->0x1242). Round/boss boundaries {16,2d,44,5b,72,89} independently proven (0x502AC).",
   "castle_start_by_round": {
    "1": "0x10",
@@ -4230,8 +4230,8 @@
      "0x02E8",
      "0x033E"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "castle_confirmed_MAME": [
      "0x0A73 Armored Man A (comp2)",
      "0x0A5A Armored Man B (comp2)",
@@ -4270,8 +4270,8 @@
      "0x02E8",
      "0x033E"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "subround2_13E_static": "0x28-0x2D",
     "subround2_family2_spawners": [
      "0x033E f2 v0 c0",
@@ -4305,8 +4305,8 @@
      "0x01CB",
      "0x033E"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "subround2_13E_static": "0x3F-0x44",
     "subround2_family2_spawners": [
      "0x033E f2 v0 c3",
@@ -4346,8 +4346,8 @@
      "0x03B3",
      "0x06E2"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "subround2_13E_static": "0x56-0x5B",
     "subround2_family2_spawners": [
      "0x033E f2 v0 c3",
@@ -4387,8 +4387,8 @@
      "0x03B3",
      "0x0400"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "subround2_13E_static": "0x6D-0x72",
     "subround2_family2_spawners": [
      "0x033E f2 v1 c3",
@@ -4427,8 +4427,8 @@
      "0x033E",
      "0x03B3"
     ],
-    "phase2_spawn_system": "GROUND_MARKER (0x41180) \u2014 NOT the 0x4A104 field schedule",
-    "phase2_roster_status": "PENDING \u2014 enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
+    "phase2_spawn_system": "GROUND_MARKER (0x41180) — NOT the 0x4A104 field schedule",
+    "phase2_roster_status": "PENDING — enemies placed by map markers (high byte of collision word, values 0x31-0x41); marker->type via table 0x40a86; type->enemy via 0x40baa dispatch. Field-schedule slice was WRONG (castle-range blocks are family-2 boss placeholders).",
     "subround2_13E_static": "0x7E-0x89",
     "subround2_family2_spawners": [
      "0x033E f2 v1 c4",
@@ -4532,7 +4532,7 @@
     "0x0DAB (0x40F82)",
     "0x09EA (0x40FAC/FCC)"
    ],
-   "type15_armored": "0x0A73 / 0x0A5A (armored men, compositor 2) \u2014 MAME-confirmed R1"
+   "type15_armored": "0x0A73 / 0x0A5A (armored men, compositor 2) — MAME-confirmed R1"
   },
   "common_types_1_14": "route to 0x47140 (walking) / 0x473B8 (flying) -> 0x3CEB0 sets base from actor+0x3E family (via family tables 0x45502). Per-type family assignment NOT yet fully decoded.",
   "status": "MECHANISM PROVEN; per-round Castle enemy IDENTITIES PENDING (need type->base for common types + precise per-castle marker geometry, or MAME corroboration).",
@@ -4540,14 +4540,14 @@
   "MAME_corroboration_R1": {
    "method": "ORIGINAL ARCADE MAME (0.276) live actor-array dump (A5+0x2C8 stride 0x40); coin+start, sampled distinct active actors +0x1E/+0x3E/+0x06/+0x38/+0x01/+0x27 across R1 gameplay.",
    "observed_bases": {
-    "0x004B": "Lizardman \u2014 field/outdoor (fam0,comp0)",
-    "0x00D0": "Chimera \u2014 field (fam1,comp0)",
-    "0x02E8": "Four-Armed \u2014 field (fam3,comp0)",
-    "0x0A73": "ARMORED MAN A \u2014 comp2, ground-marker/code-spawned (NOT field schedule)",
-    "0x0A5A": "ARMORED MAN B (variant) \u2014 comp2, fam0x0C",
-    "0x03F6": "Large Bat \u2014 type0x0A",
-    "0x050B": "Actor 0x050B \u2014 type0x0C (bat-like, IDENTITY PENDING)",
-    "0x0D5F": "Actor 0x0D5F \u2014 type0x0D (IDENTITY PENDING)",
+    "0x004B": "Lizardman — field/outdoor (fam0,comp0)",
+    "0x00D0": "Chimera — field (fam1,comp0)",
+    "0x02E8": "Four-Armed — field (fam3,comp0)",
+    "0x0A73": "ARMORED MAN A — comp2, ground-marker/code-spawned (NOT field schedule)",
+    "0x0A5A": "ARMORED MAN B (variant) — comp2, fam0x0C",
+    "0x03F6": "Large Bat — type0x0A",
+    "0x050B": "Actor 0x050B — type0x0C (bat-like, IDENTITY PENDING)",
+    "0x0D5F": "Actor 0x0D5F — type0x0D (IDENTITY PENDING)",
     "0x033E": "boss family",
     "0x0275": "projectile/effect",
     "0x019D": "projectile",
@@ -4555,7 +4555,7 @@
     "0x00F4": "effect (multi-anim)",
     "0x0DAB": "effect"
    },
-   "key_finding": "The Castle-scene enemies (armored men 0x0A73/0x0A5A, bats) come from the ground-marker/code-spawn system with compositor 2 \u2014 NEVER from the 0x4A104 field schedule. Confirms the field-schedule Castle partition was wrong.",
+   "key_finding": "The Castle-scene enemies (armored men 0x0A73/0x0A5A, bats) come from the ground-marker/code-spawn system with compositor 2 — NEVER from the 0x4A104 field schedule. Confirms the field-schedule Castle partition was wrong.",
    "limitation": "Clean per-scene (outdoor vs castle) separation and R2-R6 castle rosters require a full playthrough trace with player input (memory-forcing 0x13E / start-select 0x5FF9F did not cleanly load the castle scene). R2-R6 Castle rosters PENDING that capture."
   }
  },
@@ -4720,7 +4720,7 @@
    "0x40F82": "0x0DAB",
    "0x40FAC/0x40FCC": "0x09EA"
   },
-  "update_routine_base_pool": "0x43xxx-0x44xxx enemy updates assign bases incl 0x0224/0x0266 (common bodies), 0x09EA (marker-chain TRANSFORM base, H7/H9 \u2014 NOT a single projectile; genuine thrown route is marker 'I'->rec_type 1, template A5+0x588), 0x0179,0x0235,0x01FC,0x0236,0x0546,0x05E9,0x00F4",
+  "update_routine_base_pool": "0x43xxx-0x44xxx enemy updates assign bases incl 0x0224/0x0266 (common bodies), 0x09EA (marker-chain TRANSFORM base, H7/H9 — NOT a single projectile; genuine thrown route is marker 'I'->rec_type 1, template A5+0x588), 0x0179,0x0235,0x01FC,0x0236,0x0546,0x05E9,0x00F4",
   "transformation_model": "Family-2 (base 0x033E, Y=0x180 offscreen) actors are SELF-TRANSFORMING scanners: state0->0x41180 scans collision-grid markers; on target-marker hit the enemy-state handler REWRITES the SAME record +0x1E/+0x3E/+0x38/+0x01 in place. 0x033E is never rendered as itself. Only 0x4103E allocates a second (latent child hunter) actor.",
   "floor_vs_letter_markers": "floor markers 0x31-0x3c (nav/waypoint, via 0x40a86->states 3-14); letter markers 0x45-0x7b (enemy placement, via 0x41180 big dispatch->states 0x0F,0x13-0x22), 0x13E-gated"
  },
@@ -4758,7 +4758,7 @@
   ],
   "visual_reconstruction": [
    [
-    "Render dispatch proven: 0x3D054 selector \u2192 shared 0x3C902 interpreter (all 5 tables)",
+    "Render dispatch proven: 0x3D054 selector → shared 0x3C902 interpreter (all 5 tables)",
     "done"
    ],
    [
@@ -4784,46 +4784,46 @@
   ],
   "still_open": [
    "Exact on-screen first-frame animation + human identity for materialized cast (round placement + display palettes already resolved H14/H15)",
-   "Item/collectible system: A5+0x12C8 event path PROVEN VESTIGIAL (H19); H20 proved weapon-grant path unreachable and found no live collectible-actor reward via A5+0x12FA/A5+0x013A. Real collectible/drop mechanism (if any in world_rev1) still undecoded \u2014 see H20 report.",
+   "Gameplay reward/pickup identity: the visible gameplay collectible / weapon power-up is RESOLVED as the family-12 reward presentation (0x40CCC->0x40D32, base 0x0A5A, 17 kinds, anim 0x13..0x23, banks 0x30/0x31/0x37, per-round-pool colored; identity 0x40C2E, score 0x40C40). The rec_type-12 A5+0x12C8 event path is vestigial. REMAINING (identity only): exact kind 1..17 -> human item name via the +0x29 identity table.",
    "Remaining boss legal frames + palettes for R2/R3/R4/R6",
    "Exact per-round 0x7E door boundary (metatile-collision format blocked)"
   ]
  },
  "items_system": {
-  "_synced_through": "H24",
-  "status": "PARTIAL \u2014 mechanisms located, roster not proven",
+  "_synced_through": "H25",
+  "status": "RESOLVED (graphics mechanism) - the visible gameplay reward/pickup is the family-12 presentation; per-kind human-name mapping PENDING",
   "categories": [
    {
-    "kind": "ENEMY-DEATH DROPS",
-    "status": "OPEN",
-    "detail": "Enemy kill path is PROVEN (H9: collision 0x449B4 \u2192 one-hit \u2192 state 0x0F death \u2192 score +0x2C \u2192 retire 0x4092E), but NO per-kill item-drop creator is reached from it. The enemy-death \u2192 item-placement LINK is not yet decoded."
+    "kind": "GAMEPLAY REWARD / PICKUP (family-12)",
+    "status": "PROVEN",
+    "detail": "The dying enemy transforms in place into the reward presentation (0x40CCC->0x40D32, base 0x0A5A) when schedule +0x36 is set. 17 reward kinds, anim (kind-1)+0x13 = 0x13..0x23, one static presentation/kind, banks 0x30 (kinds 1-4) / 0x31 (5-13) / 0x37 (14-17), per-round-pool colored. Composer: object:effect.item_drop_death, object:item.gameplay_reward_b31, object:item.gameplay_reward_b37."
    },
    {
-    "kind": "FIXED / MARKER-PLACED",
-    "status": "MECHANISM PROVEN \u00b7 identities partial",
-    "detail": "H6 marker materialization (letter markers via 0x41180/0x41362) places actors in the level; some are pickups. Exact per-marker item identities PARTIAL."
+    "kind": "REWARD IDENTITY / SCORE",
+    "status": "PROVEN tables; names PENDING",
+    "detail": "Reward identity +0x29 = 0x40C2E[kind-1]; score +0x2C = 0x40C40[kind-1]. Exact kind 1..17 -> human item name (AXE/HAMMER/FIRE SWORD/SHIELD/MANTLE/ARMATURE/MEDICINE/POISON/GOLD SHEEP/JEWEL) via +0x29 is PENDING."
    },
    {
-    "kind": "SCRIPTED / POSITIONAL",
-    "status": "MECHANISM PROVEN \u00b7 identities partial",
-    "detail": "Per-frame scripted spawner 0x450D8 \u2192 0x45248 places actors by camera position (A5+0x2DE) and sub-sequence (A5+0x21C); bases include 0x0F4/0x224/0x548. Which of these are items vs enemies is not all proven."
+    "kind": "rec_type-12 TIMED_WEAPON actor",
+    "status": "VESTIGIAL / NOT CREATED",
+    "detail": "A5+0x12C8 event path: sole producer 0x449B4 writes only types 0/1/2/3; rec_type-12 pickup actors are never created (H19/H20). Not the visible pickup mechanism."
    },
    {
-    "kind": "DROPPABLE ITEM TYPES",
-    "status": "0 STATICALLY PROVEN",
-    "detail": "No enemy-droppable item actor record is proven. Not fabricated from screenshots or a known item list."
+    "kind": "HELD WEAPON (not a pickup)",
+    "status": "SEPARATE",
+    "detail": "Rastan's held weapon overlay is object:weapon.{sword,axe,hammer,fire_sword} (bank 0x33) - a different family from the ground reward pickup; read-only provenance only."
    }
   ]
  },
  "compositor_status": {
   "_source": "tools/graphics_optimizer/compositor_vm.py (offline model of 0x3D054/0x3C902)",
-  "general_modes": "IMPLEMENTED \u2014 run_general + program_address over COMPOSITOR_TABLES render field actors and the six boss-body initial frames",
-  "special_program_modes": "NOT VALIDATED \u2014 raise SpecialCompositorProgram (mode/program-address surfaced, not executed)",
+  "general_modes": "IMPLEMENTED — run_general + program_address over COMPOSITOR_TABLES render field actors and the six boss-body initial frames",
+  "special_program_modes": "NOT VALIDATED — raise SpecialCompositorProgram (mode/program-address surfaced, not executed)",
   "summary": "IMPLEMENTED FOR SUPPORTED (GENERAL) MODES; SPECIAL/PROGRAM MODES UNVALIDATED"
  },
  "player_render_architecture": {
   "status": "PROVEN (H24 + integrity closure)",
-  "summary": "Rastan is TWO independent body tracks (upper torso + lower legs) composed at a fixed waist seam; the weapon is a separate overlay layer. The two tracks animate independently \u2014 full-body poses are per-animation-index pairings, not the Cartesian product.",
+  "summary": "Rastan is TWO independent body tracks (upper torso + lower legs) composed at a fixed waist seam; the weapon is a separate overlay layer. The two tracks animate independently — full-body poses are per-animation-index pairings, not the Cartesian product.",
   "constructor": "0x540CC",
   "frame_selector": "0x54326",
   "upper_body": {

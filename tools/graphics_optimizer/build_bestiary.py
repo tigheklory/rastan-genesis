@@ -723,6 +723,42 @@ def items_section():
       f'<div class="statusbox part"><b>{IT.get("status","PARTIAL")}.</b> The item system is now partially decompiled: the enemy kill path is proven, but the enemy-death→item link is not. No item cards are shown because <b>no droppable item actor is statically proven</b> — this section makes the missing work visible rather than fabricating it.</div>'
       f'<div class="itemgrid">{cards}</div></section>')
 
+def death_families_section():
+    """H25 death / effect families — data-driven from h25_death_and_effect_families.tsv. Links each
+    enemy death presentation to its distinct sprite/palette family (ordinary death, item-drop/reward
+    death, generic burst, bat death, alt/specialised), with the Palette Composer semantic keys."""
+    import csv as _csv
+    f=ROOT/'analysis/actor_decompilation/h25_death_and_effect_families.tsv'
+    if not f.exists():
+        return ''
+    rows=list(_csv.DictReader(open(f),delimiter='\t'))
+    def cls(s): return 'ok' if s.startswith('PROVEN') and 'PENDING' not in s else 'part'
+    cards=''
+    for r in rows:
+        comp=r.get('composer_key') or '—'
+        cards+=(f'<div class="itemcat {cls(r["status"])}"><div class="itk">{r["semantic_name"]}</div>'
+          f'<div class="its">{r["status"]}</div>'
+          f'<p><b>base</b> <span class="mono">{r["base"]}</span> · <b>anim</b> <span class="mono">{r["anim_codes"]}</span>'
+          f' · <b>frames</b> {r["frames"]} · <b>handler</b> <span class="mono">{r["handler_pc"]}</span><br>'
+          f'<b>bank</b> <span class="mono">{r["effective_bank"]}</span> · <b>palette</b> {r["palette_status"]}<br>'
+          f'<b>users</b> {r["users"]}<br>'
+          f'<b>Palette Composer</b> <span class="mono">{comp}</span> · <b>distinct from</b> {r["distinct_from"]}</p></div>')
+    return (f'<section class="round"><h2>Enemy Death / Effect &amp; Gameplay-Reward Families <span>(H25 taxonomy)</span></h2>'
+      f'<div class="statusbox ok"><b>Death presentation is polymorphic (state 0x0F: 0x40CCC / 0x42ABC).</b> '
+      f'Ordinary field-enemy death is base <span class="mono">0x0A73</span> (comp 2, colored via the owning enemy '
+      f'palette family). The <b>visible gameplay collectible / weapon power-up</b> is the in-place <b>family-12 reward '
+      f'presentation</b> the dying enemy becomes (<span class="mono">0x40CCC→0x40D32</span>, base '
+      f'<span class="mono">0x0A5A</span>, gated +0x36): <b>17 reward kinds</b>, anim selector (kind-1)+0x13 = '
+      f'<span class="mono">0x13..0x23</span>, one static presentation per kind, in three palette-bank groups '
+      f'(<span class="mono">kinds 1-4 → 0x30, 5-13 → 0x31, 14-17 → 0x37</span>), per-round-pool colored; reward '
+      f'identity <span class="mono">0x40C2E</span>, score <span class="mono">0x40C40</span>. This is NOT a created '
+      f'rec_type-12 pickup actor (that path is vestigial) and NOT a separate marker/scripted sprite (those make '
+      f'enemies). The <b>generic burst</b> is base <span class="mono">0x0275</span> anim 0x9D-0xA0 (Flying Demon + '
+      f'selected boss death too); the <b>bat death</b> is base <span class="mono">0x0275</span> anim '
+      f'<span class="mono">0xA8</span> — ONE frame, Small+Large Bat shared. <b>Still PENDING (identity only):</b> '
+      f'the exact kind→human item name (via +0x29) and the 0x09DC rec_type-5 user identity.</div>'
+      f'<div class="itemgrid">{cards}</div></section>')
+
 def consistency_check():
     """Fail generation if the manifest/report would contradict itself (integrity guard)."""
     errs=[]
@@ -782,6 +818,7 @@ doc=f'''<title>Rastan Bestiary</title>{STYLE}
 {gal_scripted}
 {gal_hazards}
 {gal_effects}
+{death_families_section()}
 {gal_boss}
 {rounds_html}
 {projectiles_section()}

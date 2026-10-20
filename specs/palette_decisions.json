@@ -637,6 +637,332 @@
     "docs/design/Cody_gameover_1up_palette_provenance.md",
     "docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md"
    ]
+  },
+  {
+   "id": "PAL-PC090OJ-ENEMY-DEATH-BURST-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay (all scenes)",
+    "stage": "all",
+    "subsystem": "PC090OJ generic enemy death / burst / impact effect",
+    "actor_family": "generic burst (base 0x0275); Flying Demon + selected boss death also use this",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x0",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30",
+    "base": "0x0275",
+    "anim_codes": [
+     "0x9D",
+     "0x9E",
+     "0x9F",
+     "0xA0"
+    ],
+    "handler": "0x40CCC(0x40DD8 +0x39) / 0x42ABC default",
+    "palette_source": "R1 nibble-0 pool entry 11 -> 0x04FD02+11*0x20 = 0x04FE62",
+    "frames": 4
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer; same base/bank as the existing Palette Composer burst object (object:effect.burst)",
+    "dynamic_behavior": "shared by generic enemy burst, Flying Demon death (types 8/9), selected boss death types, projectile burst",
+    "shared_line_ownership": "effective bank 0x30 (see GAMEOVER/HUD bank-0x30 collision note)"
+   },
+   "decision_basis": "H16 burst structure + H25 death taxonomy (rastan_actor_behavior.c, raw/00042abc.c). Same family the Palette Composer already exposes as object:effect.burst; recorded here so the death-effect palette ownership is in the registry. No color authored.",
+   "known_defects": [
+    "Shares effective bank 0x30 with GAME OVER, HUD P1/SCORE, bat_death (line-LUT bank-key collision)."
+   ],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py (usage:burst:bank0x30)"
+   ],
+   "evidence": [
+    "analysis/actor_decompilation/h16_burst_child_structure.json",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-BAT-DEATH-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "Stage 1+ (bats)",
+    "subsystem": "PC090OJ bat death (one-frame)",
+    "actor_family": "Small Bat 0x0268 + Large Bat 0x03F6 (shared death)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x0",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30",
+    "base": "0x0275",
+    "anim_codes": [
+     "0xA8"
+    ],
+    "handler": "0x42ABC (types 10/11, A8 short branch)",
+    "frames": 1,
+    "palette_source": "R1 nibble-0 pool entry 11 -> 0x04FE62 (same bank as generic burst)"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer; DISTINCT pattern cell 0xA8 (one frame) from the generic burst's 0x9D-0xA0",
+    "dynamic_behavior": "Small Bat and Large Bat share the SAME death family (one semantic family); one frame then retire (0x4092E)",
+    "shared_line_ownership": "shares the generic-burst palette (effective bank 0x30); MAY share the burst palette decision while keeping a distinct pattern identity"
+   },
+   "decision_basis": "H25 / raw/00042abc.c type 10-13/18/28 A8 branch (anim = phase+0xA7 = 0xA8); compositor VM 0x0275/0xA8 renders exactly ONE piece (confirms one-frame). No color authored.",
+   "known_defects": [
+    "Must NOT be merged into the generic burst PATTERN identity despite the shared base/bank (distinct cell 0xA8)."
+   ],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer"
+   ],
+   "evidence": [
+    "analysis/decompilation/c/raw/00042abc.c",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-ENEMY-ITEM-DROP-DEATH-001",
+   "status": "decided",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ enemy-death reward/drop presentation (family-12)",
+    "actor_family": "dying field enemy transformed in-place to family-12 reward presentation",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": null,
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30 (kinds 1-4) / 0x31 (kinds 5-13) / 0x37 (kinds 14-17)",
+    "base": "0x0A5A",
+    "handler": "0x40CCC phase>=10 transform 0x40D32 (family 0x0C)",
+    "frames": "1 static presentation per kind (17 kinds)",
+    "palette_source": "per-round pool at the baked control nibble (0/1/7): 0x3BA88[round] -> 0x4FD02; reward identity +0x29 = table 0x40C2E[kind-1]; score +0x2C = table 0x40C40[kind-1]",
+    "gating": "+0x36 (schedule reward field) selects kind; generation/position constraints at 0x40D64",
+    "anim_selector": "(kind-1)+0x13 = 0x13..0x23 (17 reward kinds)"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer; 17 reward kinds across banks 0x30/0x31/0x37 (per-kind baked control nibble)",
+    "dynamic_behavior": "This IS the visible gameplay collectible/reward: the dying enemy transforms in-place into it when +0x36 is set. NOT a created rec_type-12 pickup actor (PROVEN ABSENT, H19/H20) and NOT a separate marker/scripted item sprite (scripted creators make enemies, never collectibles).",
+    "shared_line_ownership": null
+   },
+   "decision_basis": "H25 / raw/00040ccc xform 0x40D32 + reward tables 0x40C2E/0x40C40; per-kind palette nibble resolved via the compositor VM (H15 rule). Graphics base/anim/bank now PROVEN; Genesis line/index left for Tighe. No color authored.",
+   "known_defects": [
+    "Three bank groups (0x30/0x31/0x37) share the bank-0x30 line-LUT collision caveat; colored per-round-pool, not a free editor nibble."
+   ],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer",
+    "analysis/decompilation/c/raw/00040ccc.c (reward-table 0x40C0E)"
+   ],
+   "evidence": [
+    "analysis/decompilation/c/rastan_actor_behavior.c",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-ORDINARY-ENEMY-DEATH-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ ordinary enemy death animation (armored-man fall)",
+    "actor_family": "shared by field enemies (Lizardman/Chimera/Four-Armed/Valkyrie/Horned/Skeleton/Serpent/...)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": null,
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x36 (shared with Lizardman cell block 0xA73..0xAA2)",
+    "base": "0x0A73",
+    "anim_codes": [
+     "0x40DCE table seq + 11 (0x0B..0x12)"
+    ],
+    "handler": "0x40CCC default (actor_armored_40ccc)",
+    "frames": 10,
+    "compositor": 2,
+    "palette_source": "via the owning enemy's bank; the 0x0A73 death cells are owned by Lizardman (bank 0x36) in the current reindex corpus"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer; the 0x0A73 death cells already belong to the enemy palette families (e.g. usage:lizardman:bank0x36) in the Palette Composer",
+    "dynamic_behavior": "a SINGLE shared ordinary-death animation for field enemies",
+    "shared_line_ownership": "colored via the owning enemy palette family (bank 0x36 block); no separate death palette decision required"
+   },
+   "decision_basis": "H25 / rastan_actor_behavior.c actor_armored_40ccc default branch (base 0x0A73, comp 2). The 0xA73..0xAA2 cells are already in the reindex corpus under Lizardman (bank 0x36). No new color authored; linkage only.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "tools/graphics_editor/gen_reindexed_pc090oj.py (0xA73 block under lizardman)"
+   ],
+   "evidence": [
+    "analysis/decompilation/c/rastan_actor_behavior.c",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-GAMEPLAY-REWARD-B31-001",
+   "status": "decided",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ gameplay reward/pickup (family-12, bank-0x31 kinds)",
+    "actor_family": "reward kinds 5-13 (anim 0x17..0x1F)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "base": "0x0A5A",
+    "anim_selector": "0x17..0x1F (kinds 5-13)",
+    "effective_palette_bank": "0x31",
+    "frames": "1 per kind",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "palette_source": "per-round pool nibble 1 -> 0x3BA88[round]+1 -> 0x4FD02"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer (base 0x0A5A, bank 0x31)",
+    "dynamic_behavior": "visible gameplay reward pickups, bank-0x31 group of the item-drop-death reward presentation",
+    "shared_line_ownership": null
+   },
+   "decision_basis": "H25; same reward presentation as item-drop-death but the bank-0x31 kind group. Graphics PROVEN; no color authored.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py"
+   ],
+   "evidence": [
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "analysis/decompilation/c/raw/00040ccc.c",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-GAMEPLAY-REWARD-B37-001",
+   "status": "decided",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ gameplay reward/pickup (family-12, bank-0x37 kinds)",
+    "actor_family": "reward kinds 14-17 (anim 0x20..0x23)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "base": "0x0A5A",
+    "anim_selector": "0x20..0x23 (kinds 14-17)",
+    "effective_palette_bank": "0x37",
+    "frames": "1 per kind",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "palette_source": "per-round pool nibble 7 -> 0x3BA88[round]+7 -> 0x4FD02"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer (base 0x0A5A, bank 0x37)",
+    "dynamic_behavior": "visible gameplay reward pickups, bank-0x37 group of the item-drop-death reward presentation",
+    "shared_line_ownership": null
+   },
+   "decision_basis": "H25; bank-0x37 kind group of the reward presentation. Graphics PROVEN; no color authored.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py"
+   ],
+   "evidence": [
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "analysis/decompilation/c/raw/00040ccc.c",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-SPECIALIZED-DEATH-019D-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ specialized enemy death (base 0x019D)",
+    "actor_family": "actor 0x019D (map-driven special; rec_type 0/3)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "base": "0x019D",
+    "anim_codes": [
+     "0x2A",
+     "0x2C",
+     "0x2E",
+     "(+1 if type3)"
+    ],
+    "frames": 3,
+    "handler": "0x42ABC type<8 branch",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x34",
+    "palette_source": "per-round pool nibble 4 -> 0x3BA88[round]+4 -> 0x4FD02"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer (base 0x019D, bank 0x34)",
+    "dynamic_behavior": "specialized death of actor 0x019D (rec_type<8)",
+    "shared_line_ownership": null
+   },
+   "decision_basis": "H25 / raw/00042abc type<8 branch; bank 0x34 via compositor control nibble. actor 0x019D observed rec_type 0/3 (native_sprite_completion_manifest) -> reachable. Human identity PENDING. No color authored.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer"
+   ],
+   "evidence": [
+    "analysis/decompilation/c/raw/00042abc.c",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-SPECIALIZED-DEATH-09DC-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay",
+    "stage": "all",
+    "subsystem": "PC090OJ specialized enemy death (base 0x09DC, type5)",
+    "actor_family": "rec_type-5 lethal actor (identity PENDING)",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "base": "0x09DC",
+    "anim_codes": [
+     "seq_42bb8 + 0xC2 (16 phases)"
+    ],
+    "frames": 16,
+    "handler": "0x42ABC type==5 (+0x3D bit7)",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x33",
+    "palette_source": "per-round pool nibble 3 -> 0x3BA88[round]+3 -> 0x4FD02"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native gameplay PC090OJ finalizer (base 0x09DC, bank 0x33)",
+    "dynamic_behavior": "specialized type-5 death",
+    "shared_line_ownership": null
+   },
+   "decision_basis": "H25 / raw/00042abc type==5 branch; bank 0x33 via compositor control nibble. Exact rec_type-5 enemy identity + independent reachability confirmation PENDING. No color authored.",
+   "known_defects": [],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s native finalizer"
+   ],
+   "evidence": [
+    "analysis/decompilation/c/raw/00042abc.c",
+    "analysis/actor_decompilation/h25_death_and_effect_families.tsv",
+    "docs/design/Andy_bestiary_gameplay_items_weapon_powerups_death_palette_families.md"
+   ]
   }
  ]
 }
