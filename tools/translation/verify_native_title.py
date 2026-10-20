@@ -12,13 +12,14 @@ def load(path):
 def main():
  ap=argparse.ArgumentParser()
  for n in ("generator","maincpu","pc080sn","title-preload","attr-lut","bg","fg","fg-invincible",
-           "palette","patterns","report","spec","title-source"):
+           "palette","frontend-palette","patterns","report","spec","title-source"):
   ap.add_argument("--"+n,type=Path,required=True)
  a=ap.parse_args(); g=load(a.generator)
  main=a.maincpu.read_bytes(); pc080=a.pc080sn.read_bytes()
  r=g.build(main,pc080,a.title_preload.read_bytes(),a.attr_lut.read_bytes())
  expected={a.bg:g.words(r["bg"]),a.fg:g.words(r["fg"]),a.fg_invincible:g.words(r["fg_invincible"]),
-           a.palette:g.words(r["palette"]),a.patterns:r["pattern_package"]}
+           a.palette:g.words(r["palette"]),a.frontend_palette:g.words(r["frontend_palette"]),
+           a.patterns:r["pattern_package"]}
  for p,want in expected.items():
   if p.read_bytes()!=want: raise SystemExit(f"native title output mismatch: {p}")
 

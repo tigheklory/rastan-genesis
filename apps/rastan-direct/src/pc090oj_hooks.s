@@ -1964,7 +1964,8 @@ genesistan_pc090oj_hook_zero_fill_56440:
     clr.w   staged_scroll_y_fg
     clr.w   staged_scroll_x_bg
     clr.w   staged_scroll_y_bg
-    bsr     genesistan_hook_cwindow_clear
+    /* genesistan_frontend_presentation_reset already performs the shared
+     * lifecycle plane clear before the retained READY producer runs. */
     rts
 
     /* native_queue_hud entry 2, code word: 2 * 8-byte entry + 4.  Keep the

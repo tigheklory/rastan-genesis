@@ -120,6 +120,7 @@ NATIVE_TITLE_BG := $(ROOT)/build/rastan-direct/native_title_bg.bin
 NATIVE_TITLE_FG := $(ROOT)/build/rastan-direct/native_title_fg.bin
 NATIVE_TITLE_FG_INVINCIBLE := $(ROOT)/build/rastan-direct/native_title_fg_invincible.bin
 NATIVE_TITLE_PALETTE := $(ROOT)/build/rastan-direct/native_title_palette.bin
+NATIVE_FRONTEND_PALETTE := $(ROOT)/build/rastan-direct/native_frontend_palette.bin
 NATIVE_TITLE_PATTERNS := $(ROOT)/build/rastan-direct/native_title_patterns.bin
 NATIVE_TITLE_REPORT := $(ROOT)/build/rastan-direct/native_title_report.json
 NATIVE_HUD_PATTERNS := $(ROOT)/build/rastan-direct/native_hud_patterns.bin
@@ -404,10 +405,12 @@ $(NATIVE_TITLE_BG): $(MAINCPU_REGION) $(PC080SN_REGION) $(PC080SN_SCENE_PRELOAD_
 		--title-preload "$(PC080SN_SCENE_PRELOAD_TITLE)" --attr-lut "$(PC080SN_ATTR_LUT)" \
 		--bg-output "$(NATIVE_TITLE_BG)" --fg-output "$(NATIVE_TITLE_FG)" \
 		--fg-invincible-output "$(NATIVE_TITLE_FG_INVINCIBLE)" \
-		--palette-output "$(NATIVE_TITLE_PALETTE)" --pattern-output "$(NATIVE_TITLE_PATTERNS)" \
+		--palette-output "$(NATIVE_TITLE_PALETTE)" \
+		--frontend-palette-output "$(NATIVE_FRONTEND_PALETTE)" \
+		--pattern-output "$(NATIVE_TITLE_PATTERNS)" \
 		--report "$(NATIVE_TITLE_REPORT)"
 
-$(NATIVE_TITLE_FG) $(NATIVE_TITLE_FG_INVINCIBLE) $(NATIVE_TITLE_PALETTE) $(NATIVE_TITLE_PATTERNS) $(NATIVE_TITLE_REPORT): $(NATIVE_TITLE_BG)
+$(NATIVE_TITLE_FG) $(NATIVE_TITLE_FG_INVINCIBLE) $(NATIVE_TITLE_PALETTE) $(NATIVE_FRONTEND_PALETTE) $(NATIVE_TITLE_PATTERNS) $(NATIVE_TITLE_REPORT): $(NATIVE_TITLE_BG)
 	@test -f "$@"
 
 $(NATIVE_HUD_PATTERNS): $(MAINCPU_REGION) $(PC090OJ_PRECONV) $(NATIVE_HUD_GEN)
@@ -590,6 +593,7 @@ $(OUT_DIR)/scene_load.o: \
 	$(PC080SN_SCENE_PRELOAD_STAGE1_SEG1) \
 	$(PC080SN_SCENE_PRELOAD_STAGE1_SEG2) \
 	$(PC080SN_SCENE_PRELOAD_ENDROUND) \
+	$(NATIVE_FRONTEND_PALETTE) \
 		FORCE_ASM_REBUILD \
 		| $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
@@ -629,6 +633,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 		--title-preload "$(PC080SN_SCENE_PRELOAD_TITLE)" --attr-lut "$(PC080SN_ATTR_LUT)" \
 		--bg "$(NATIVE_TITLE_BG)" --fg "$(NATIVE_TITLE_FG)" \
 		--fg-invincible "$(NATIVE_TITLE_FG_INVINCIBLE)" --palette "$(NATIVE_TITLE_PALETTE)" \
+		--frontend-palette "$(NATIVE_FRONTEND_PALETTE)" \
 		--patterns "$(NATIVE_TITLE_PATTERNS)" --report "$(NATIVE_TITLE_REPORT)" \
 		--spec "$(PATCH_SPEC)" --title-source "$(SRC_DIR)/title_native.s"
 	$(PYTHON) "$(NATIVE_HUD_VERIFY)" --generator "$(NATIVE_HUD_GEN)" \

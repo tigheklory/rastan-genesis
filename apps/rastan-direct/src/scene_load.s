@@ -45,6 +45,9 @@
     .extern pc090oj_select_palette_map
     .extern genesistan_hud_deactivate
     .extern genesistan_hud_activate_frontend
+    .extern staged_palette_words
+    .extern palette_pending
+    .extern genesistan_hook_cwindow_clear
 
     .equ VDP_DATA,              0x00C00000
     .equ VDP_REG_MODE2,         1
@@ -147,6 +150,20 @@ load_scene_tiles:
     bsr     genesistan_hud_deactivate
 .Lload_scene_hud_ready:
     bsr     pc090oj_select_palette_map
+    tst.w   %d5
+    bne.s   .Lload_scene_palette_ready
+    /* Scene 0 is a finite frontend ownership boundary. Restore the original
+     * cold-start frontend base palette offline-generated from arcade banks
+     * 0/1/48, and release gameplay's Test-owned Lines 0/2/3. Retained READY,
+     * title, Continue and item producers may then overwrite their own lines. */
+    lea     genesistan_frontend_base_palette, %a0
+    lea     staged_palette_words, %a1
+    moveq   #(64 - 1), %d2
+.Lload_scene_frontend_palette_copy:
+    move.w  (%a0)+, (%a1)+
+    dbra    %d2, .Lload_scene_frontend_palette_copy
+    move.b  #1, palette_pending
+.Lload_scene_palette_ready:
     cmpi.w  #1, %d5
     beq.s   .Lload_scene_keep_fg_owner_state
     clr.b   fg_native_gameplay_owner
@@ -196,12 +213,18 @@ load_scene_tiles:
  * staging banks and arms a real VBlank publication, even when the prior
  * frontend mode byte was still set.
  *
- * Plane contents remain owned by the retained arcade clear/text/block
- * producers; this helper neither invents a state machine nor clears all VRAM. */
+ * Plane contents remain owned by the retained arcade text/block producers.
+ * This finite lifecycle operation clears the two final staged name tables,
+ * not pattern VRAM, before those producers repopulate them; it neither invents
+ * a state machine nor authors frontend content. */
 genesistan_frontend_presentation_reset:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
     moveq   #0, %d0
     bsr     load_scene_tiles
+    /* The accepted lifecycle reset precedes all retained frontend plane
+     * producers. Clear final Genesis name tables here so a scene-0 residency
+     * reload cannot reinterpret 1,928 stale gameplay names around Continue. */
+    bsr     genesistan_hook_cwindow_clear
     bsr     genesistan_hud_deactivate
     bsr     genesistan_hud_activate_frontend
     movem.l (%sp)+, %d0-%d7/%a0-%a6
@@ -213,6 +236,10 @@ genesistan_frontend_presentation_reset:
     .align 2
 genesistan_pc080sn_tile_vram_lut:
     .incbin "../../build/pc080sn_tile_vram_lut.bin"
+
+    .align 2
+genesistan_frontend_base_palette:
+    .incbin "../../build/rastan-direct/native_frontend_palette.bin"
 
     .align 2
 genesistan_pc080sn_attr_lut:

@@ -48,6 +48,10 @@
     .align 2
 /* rows: scene_id, owner, arcade_bank, genesis_line, flags; 0xFFFF terminator */
 palette_route_table:
+    /* Scene-0 READY/frontend compression: banks 0x33 and 0x43 are duplicate
+     * sprite palettes loaded from the same retained source and share Line 3. */
+    .word 0, PROUTE_OWNER_PC090OJ,    0x33, 3, 0
+    .word 0, PROUTE_OWNER_PC090OJ,    0x43, 3, 0
     /* Current generated Test-profile R1/P1 line ownership.
      *   Line 0 = Test shared sprite palette (source banks 0x32,0x33,0x34,0x3E)
      *   Line 1 = Test shared sprite palette (source banks 0x35,0x36,0x3A)
@@ -141,12 +145,27 @@ genesistan_palette_hook_59ad4:
     moveq   #0, %d5
 
     /* Build 0145: the arcade's bank-51 sprite-palette update reaches this helper with d0 = 0x33;
-     * route it to Genesis staged line 3.  Build 0174: Stage-1 PC080SN FG bank 3 -> Genesis line 1.
+     * route it to Genesis staged line 3. RG-004 proves READY banks 0x33 and 0x43 carry the same
+     * retained source palette and therefore share that frontend line. Build 0174: Stage-1 PC080SN
+     * FG bank 3 -> Genesis line 1.
      * Build 0336: the fg-bank3 / bank-0x36 carrier-cache side path was removed with the dead
      * reasserts; bank 0x36 now simply falls through to the normal reject. */
+    cmpi.w  #0x0004, %d0
+    bne.s   .L59_not_bank4
+    moveq   #0, %d0                 /* frontend PC080SN bank 4 -> Line 0 */
+    bra.s   .L59_dest_ready
+.L59_not_bank4:
+    cmpi.w  #0x0005, %d0
+    bne.s   .L59_not_bank5
+    moveq   #1, %d0                 /* frontend PC080SN bank 5 -> Line 1 */
+    bra.s   .L59_dest_ready
+.L59_not_bank5:
     cmpi.w  #0x0033, %d0
+    beq.s   .L59_to_frontend_sprite
+    cmpi.w  #0x0043, %d0
     bne.s   .L59_not_bank51
-    moveq   #3, %d0                 /* arcade bank 51 -> Genesis line 3 */
+.L59_to_frontend_sprite:
+    moveq   #3, %d0                 /* frontend sprite banks 0x33/0x43 -> Line 3 */
     bra.s   .L59_dest_ready
 .L59_not_bank51:
     cmpi.w  #3, %d0
