@@ -2,23 +2,54 @@
 
 **Date:** 2026-10-19
 
-**Status:** CANDIDATE — PENDING TIGHE REAL-GENESIS ACCEPTANCE
+**Status:** **REJECTED BY TIGHE ON REAL GENESIS**
 
 **Issue:** OPEN-031
 **Accepted baseline:** Build 0456
 **ROM-producing source:** `fab0325eeb5b6cd0773391dba191cb14b2c1b22d`
 
-## Result
+## Real-hardware rejection
 
-Build 0457 corrects one ownership error at the first native Plane-B scene population. The retained
+Build 0457 did **not** correct the attract-demo Segment-0 Plane-B corruption. It also introduced
+three severe regressions on real Genesis hardware:
+
+- the attract gameplay demo remained black for approximately 30+ seconds before appearing;
+- a normal game start had the same approximately 30+ second blackout;
+- death/next-life repeated the same prolonged blackout.
+
+Build 0456 remains accepted. Build 0457 is preserved historical evidence and must not be tagged or
+described as accepted.
+
+## Rejected result
+
+Build 0457 attempted to correct an ownership error at the first native Plane-B scene population. The retained
 arcade initial-fill countdown `A5+0x10AA` is now tested before the native tileset cache-hit branch.
 Every real `0x0503DC` initial 64-publication fill therefore re-establishes the complete native
 scene-entry contract, even when gameplay tileset ID 1 remains resident from an earlier attract-demo
 cycle. Ordinary steady-state strips (`A5+0x10AA == 0`) retain the existing cache fast path.
 
-No palette decision, PC090OJ family, ordinary map renderer, Build-0456 selector relocation, or
-Build-0455 item-screen behavior was intentionally changed. Tighe must verify the attract demo and
-ordinary gameplay on real hardware before this candidate can be accepted or OPEN-031 closed.
+This hypothesis was wrong. The actual defect was the Build-0453 native item-screen teardown omitting
+the original `0x0561A0` scroll-reset prologue; pattern residency was not the cause. Build 0458
+removes the rejected lifecycle behavior and restores that missing one-shot ring-origin handoff.
+
+## Why the implementation caused the blackout
+
+`A5+0x10AA` is initialized to 64 at `0x05042C`, decremented once at `0x050472`, and loops to
+`0x050434` until zero. Each iteration reaches the strip producer once. It is therefore a 64-column
+initial-fill countdown, not a one-shot scene-entry flag.
+
+Build 0457 tested the countdown before the tileset cache. On every one of the 64 iterations it
+re-armed `genesistan_scene_present_pending`, called `load_scene_tiles(1)`, reloaded the 1,002-tile
+gameplay manifest, reset `fg_cache`, reinstalled the fixed Plane-B/package state, and wrote display
+off. The first call held presentation pending; publication/display-on could occur only at the single
+`0x050482` return after all 64 retained iterations. Repeated calls did not reset the retained
+countdown, but each inserted another complete resource load into it: 64 × 1,002 tiles × 16 words =
+1,026,048 pattern-word writes, plus repeated cache/package work. That extended the display-off
+window to Tighe's observed 30+ seconds. The shared initializer is used at normal entry and
+death/next-life, so both repeated the regression.
+
+The verifier passed because it checked only the rejected instruction order. The gameplay-entry
+gate's incomplete post-entry assertions were a warning, not acceptable positive evidence.
 
 ## Static provenance and first divergence
 

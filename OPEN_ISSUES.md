@@ -883,7 +883,7 @@ Final response must include "Open/Closed Issues Impact" section with:
 
 ## OPEN-031 — Attract gameplay-demo initial Plane-B is corrupted for ~the first screen-width column
 
-- **Status:** OPEN / BUILD 0457 CANDIDATE — PENDING TIGHE REAL-GENESIS VERIFICATION
+- **Status:** OPEN / BUILD 0457 REJECTED / BUILD 0458 CANDIDATE — PENDING TIGHE REAL-GENESIS VERIFICATION
 - **Priority:** MEDIUM
 - **Observed through:** present in accepted Build 0452 (2026-10-18 Tighe observation). Long-standing;
   first introducing build not established.
@@ -909,6 +909,19 @@ Final response must include "Open/Closed Issues Impact" section with:
   strips retain the cache fast path. Static verifier PASS; seven-ROM family and fixed30 PASS; rope
   `799/799/799`; gameplay-entry automation reached gameplay but retained its post-entry-assertion
   FAIL with no exception. Report: `docs/design/Cody_build0457_attract_demo_plane_b_segment0_fix.md`.
+  **REJECTED by Tighe on real Genesis:** Segment 0 remained corrupt, and the change caused a 30+
+  second blackout before attract gameplay, normal game start, and death/next-life. `A5+0x10AA`
+  proved to be a 64-call countdown; 0457 repeated full scene loading/cache reset/display-off on all
+  64 calls. Its verifier encoded that false assumption.
+- **Build 0458 candidate (2026-10-19):** actual attract-only survivor pinned to the native
+  Build-0453 replacement of `0x056440`. Original `0x056440` called `0x0561A0`, whose prologue zeroed
+  `A5+0x10AE/10B0/10EC/10EE` and published those scroll origins before clearing the planes. The
+  replacement called only the native plane clear. After 1,488 item dwell frames / 372 decrements,
+  BG Y remained 140, selecting logical top 47 / physical top 15 for fresh R1 instead of logical top
+  1 / physical top 1. Build 0458 restores the omitted retained/native scroll reset exactly once at
+  item teardown and restores the accepted-0456 tileset cache fast path. Static/gate/fixed30/family
+  checks pass; rope `798/798/798`. Hardware acceptance remains pending.
+  Report: `docs/design/Cody_build0458_attract_demo_plane_b_ring_init_fix.md`.
   Do not close until Tighe verifies attract and ordinary Plane B on real hardware.
 - **Closure condition:** attract gameplay-demo initial Plane-B first-column matches ordinary gameplay;
   Tighe real-Genesis visual verification.
