@@ -473,3 +473,29 @@ Closure note format:
   current defect open and does not weaken Build 0456's verified closure.
 - **Related still-open issue:** NONE for this regression. Separate Subround-2 presentation issues
   remain under their existing issue IDs.
+
+---
+
+## CLOSED-038 — Final-life terminal phase-9 hang from undeclared word-branch reflow
+
+- **Original title:** Final-life terminal phase-9 hang after the third natural death.
+- **Closed by:** Cody Build 0462 semantic declared-branch repair; Tighe real-Sega-Genesis hardware
+  acceptance on 2026-10-20.
+- **Build/artifact:** accepted normal Build 0462,
+  `dist/rastan-direct/rastan_direct_video_test_build_0462.bin`; SHA-256
+  `dede71fef20f40a829b07065dff3c3afd31c9f0d6623c30ba42caa7c7c7e5526`; exact ROM-producing
+  source `faf556241a4f1666245d3424dfa41a5c248fa85e`; ref `accepted/build-0462`.
+- **Root cause:** hidden arcade `BRA.W 0x03A1C0 -> 0x03B11A` followed inline dispatcher data and
+  was absent from semantic reflow discovery. The Build-0443 insertion at arcade `0x03AA54` moved the
+  target by two bytes while the copied displacement remained `0x0F58`, landing on Genesis
+  `0x03B31A` (`RTS`) instead of mapped target `0x03B31C` and leaving terminal subphase 9 stuck.
+- **Repair:** the remap spec retains original arcade source and target identities; the generic Python
+  declared-relative-branch resolver supports validated short and word encodings and resolves after
+  final layout. Build 0462 emits `60000F5A`; no hard-coded delta or late ROM repair.
+- **Verification:** semantic Layout A/B test PASS; final-ROM target verifier PASS on all seven
+  variants; GENESIS NTSC zero-input route recorded three natural deaths and reached GAME OVER
+  subphase 6; Tighe then verified the normal ROM on real Sega Genesis hardware and accepted it.
+- **Evidence:** `docs/design/Cody_build0462_final_life_semantic_reflow_fix.md` and
+  `states/traces/build0462_final_life_zero_input_20261020_112626/`.
+- **Related still-open issue:** OPEN-034 remains open for the distinct post-death/front-end tiles,
+  palette, and presentation-lifecycle corruption addressed by PROMPT RG-003.

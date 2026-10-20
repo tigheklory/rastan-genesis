@@ -52783,3 +52783,15 @@ TIGHE ONLY
   unchanged. OPEN-038 records the FIX CANDIDATE PENDING TIGHE; OPEN-034 and named visual/palette
   issues remain separate. Real-hardware acceptance PENDING TIGHE; Phase D/E NO. Report:
   `docs/design/Cody_build0462_final_life_semantic_reflow_fix.md`.
+
+## 2026-10-20 — Build 0462 accepted and locked (PROMPT RG-003)
+
+- Tighe accepted the normal Build 0462 ROM on real Sega Genesis hardware: natural final death no
+  longer hangs and terminal/GAME OVER progression continues. Accepted ROM
+  `dist/rastan-direct/rastan_direct_video_test_build_0462.bin`, SHA-256
+  `dede71fef20f40a829b07065dff3c3afd31c9f0d6623c30ba42caa7c7c7e5526` (reverified).
+- Exact ROM-producing source is `faf556241a4f1666245d3424dfa41a5c248fa85e`; ref
+  `accepted/build-0462` points there, not to later bookkeeping/tooling. OPEN-038 moved to CLOSED-038.
+- This acceptance covers the final-life semantic branch/progression fix only. OPEN-034 remains open
+  for the distinct READY/Continue/GAME OVER/title/story/BEST-5 presentation-lifecycle corruption now
+  assigned under PROMPT RG-003. No new ROM or build number was produced by this lock step.

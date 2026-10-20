@@ -1,8 +1,8 @@
 # Cody Build 0462 — final-life semantic reflow fix
 
-## Result and candidate status
+## Result and acceptance status
 
-Build 0462 is the fix candidate for the longstanding final-life hang present by Build 0446. The
+Build 0462 fixes the longstanding final-life hang present by Build 0446. The
 retained arcade
 terminal dispatcher reached subphase 9, but its hidden `BRA.W` at arcade `0x03A1C0` still carried
 the original displacement `0x0F58` after a two-byte insertion between source and target. In Builds
@@ -17,8 +17,8 @@ source `0x03A3C0` to final mapped target `0x03B31C`. No final-ROM byte patch, ge
 literal, historical delta, assembly workaround, NOP, RTS bypass, or gameplay rewrite was added.
 
 Classification: **LONGSTANDING — PRESENT BY BUILD 0446**. This is not a Build-0461 palette
-regression. Production issue status is **OPEN / FIX CANDIDATE PENDING TIGHE**; only Tighe's normal-ROM
-real-hardware test can close it.
+regression. Tighe accepted the normal ROM on real Sega Genesis hardware on 2026-10-20; OPEN-038 is
+closed and `accepted/build-0462` identifies the exact ROM-producing source.
 
 ## Original arcade semantic path
 
@@ -188,14 +188,13 @@ declared-branch regression, and a read-only final-ROM target verifier. These wer
 the branch boundary is hidden after inline dispatch-table data, no existing route exercised three
 natural deaths without gameplay navigation, and no existing verifier asserted this semantic target.
 
-## USER MUST VERIFY
+## Real-hardware acceptance
 
-Use the **normal** ROM, start a normal game, provide no special invincibility, allow all lives to be
-lost naturally, and confirm the final death does not hang and proceeds through GAME OVER / terminal
-progression. `_invincible` is not valid for this acceptance because it prevents the required death
-sequence.
+Tighe tested the **normal** ROM on real Sega Genesis hardware, allowed all lives to be lost naturally,
+and confirmed final death no longer hangs and terminal/GAME OVER progression continues. `_invincible`
+was not used for acceptance.
 
-Real-hardware acceptance of the normal ROM remains **PENDING TIGHE**. Build 0462 remains a candidate,
-and no `accepted/build-0462` reference was created. Attract-loop actor cleanup,
+Build 0462 is the accepted production baseline. Ref `accepted/build-0462` points to exact
+ROM-producing source `faf556241a4f1666245d3424dfa41a5c248fa85e`. Attract-loop actor cleanup,
 reset/title stale actors, 1UP/score geometry, and Demon palette realization remain separate and
 deferred. Phase D and Phase E were not started.
