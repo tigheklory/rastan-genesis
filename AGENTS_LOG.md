@@ -52795,3 +52795,22 @@ TIGHE ONLY
 - This acceptance covers the final-life semantic branch/progression fix only. OPEN-034 remains open
   for the distinct READY/Continue/GAME OVER/title/story/BEST-5 presentation-lifecycle corruption now
   assigned under PROMPT RG-003. No new ROM or build number was produced by this lock step.
+
+## 2026-10-20 — PROMPT RG-003 post-death/front-end presentation cleanup
+
+- Static original-arcade analysis proved one presentation-owner omission expressed at two retained
+  teardown boundaries: death/item `0x056440` and general frontend `0x03AD4C`. Build 0462 preserved
+  gameplay scene ID/pattern residency/palette gating and the last gameplay VDP SAT because its native
+  replacements did not stage and publish the equivalent clean frontend ownership state.
+- Added bounded `genesistan_frontend_presentation_reset`: reload generated scene-0 residency, select
+  frontend palette mapping, rebuild both FRONTEND_FULL SAT staging banks, and arm normal VBlank SAT
+  publication. Plane/text/state/timing remain retained arcade-owned. Replaced the old `0x03AD4C`
+  `RTS/NOP` workaround with a proper 4-to-8-byte shift replacement. No shadow, fallback, full-VRAM
+  reset, Genesis scene manager, per-frame hide, Test.json edit, or RG-001 palette edit.
+- Build 0463 is permanently preserved as canonical FAIL (duplicated verifier site count 229), entry
+  PASS, epoch PASS; SHA `c8ab7d370fafab407b2ad8ba806296fefc82de813d21ca15867def1dfc8c6031`.
+  It was not reused. Build 0464 is the passing candidate from source `e5358681`; normal artifact
+  `dist/rastan-direct/rastan_direct_video_test_build_0464.bin`, 2,739,896 bytes, SHA
+  `744603425e7e9df9abd1378db07e973c691c4f7cd9359446e0c6ed1730f48302`; counter 464.
+- All normal/family gates PASS; final-life verifier maps `0x03A3C0 -> 0x03B320`; fixed30 1,798 frames;
+  existing zero-input route PASS at 3,580 frames with three deaths and terminal tuple 2/4/6; existing

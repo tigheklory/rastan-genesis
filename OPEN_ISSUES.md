@@ -952,6 +952,11 @@ Final response must include "Open/Closed Issues Impact" section with:
 ## OPEN-033 — Death -> READY screen lifecycle: stale Rastan sprite + wrong READY! patterns
 
 - **Status:** OPEN / USER OBSERVATION (two distinct symptoms, same screen)
+- **Build 0464 candidate (2026-10-20, RG-003):** static provenance found the first common divergence
+  at retained teardown `0x056440`: the native replacement cleared scroll/planes but neither restored
+  scene-0 pattern/palette ownership nor staged/published a clean frontend SAT. Build 0464 restores the
+  bounded frontend owner and both SAT staging banks at that arcade lifecycle boundary. Existing
+  zero-input three-death route PASS; visual closure still requires Tighe real-Genesis acceptance.
 - **Priority:** MEDIUM
 - **Observed through:** present in accepted Build 0452 (2026-10-18 Tighe observation). Long-standing.
 - **User observation (a) — stale Rastan:** when Rastan dies and the black READY screen appears,
@@ -975,6 +980,11 @@ Final response must include "Open/Closed Issues Impact" section with:
 ## OPEN-034 — CONTINUE and GAME OVER screens retain the previous scene's tiles and palette
 
 - **Status:** OPEN / USER OBSERVATION (refines a long-standing informal note)
+- **Build 0464 candidate (2026-10-20, RG-003):** original frontend teardown `0x03AD4C` had been
+  replaced by `RTS/NOP`, leaving gameplay SAT, pattern residency, and palette ownership live. It is
+  now a proper shift-table semantic redirect that restores generated scene-0 residency/palette
+  ownership and publishes the clean FRONTEND_FULL SAT while retaining arcade Continue/GAME OVER
+  producers. Hardware visual acceptance remains required.
 - **Priority:** MEDIUM
 - **Observed through:** present in accepted Build 0452 (2026-10-18 Tighe observation). Long-standing.
 - **User observation:** the CONTINUE and GAME OVER screens do not establish their correct
@@ -993,6 +1003,10 @@ Final response must include "Open/Closed Issues Impact" section with:
 ## OPEN-035 — Attract-mode loop does not restore the initial attract tiles/patterns and palette
 
 - **Status:** OPEN / USER OBSERVATION
+- **Build 0464 candidate (2026-10-20, RG-003):** every retained `0x03AD4C` frontend lifecycle clear
+  now restores scene-0 patterns/palette mapping and republishes clean frontend SAT state before the
+  retained title/story/BEST-5 producers. Fixed30 and terminal-route validation pass; closure remains
+  pending Tighe's full title -> story -> BEST-5 real-hardware observation.
 - **Priority:** MEDIUM
 - **Observed through:** present in accepted Build 0452 (2026-10-18 Tighe observation). Long-standing.
 - **User observation:** when attract mode completes a full cycle and loops, the proper initial
