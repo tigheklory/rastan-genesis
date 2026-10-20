@@ -22,7 +22,7 @@ done
 mkdir -p "$TRACE_DIR"
 printf '%s\n' "$TRACE_DIR" > "$ROOT/build/rastan-direct/final_life_zero_input_latest.txt"
 
-TRACE_DIR="$TRACE_DIR" FINAL_LIFE_MAX_FRAMES=12000 FINAL_LIFE_STALL_FRAMES=900 \
+TRACE_DIR="$TRACE_DIR" FINAL_LIFE_MAX_FRAMES=12000 FINAL_LIFE_STALL_FRAMES=1200 \
 timeout 300s mame genesis \
     -cart "$ROM" -video none -sound none -nothrottle -skip_gameinfo \
     -autoboot_script "$SCRIPT" \

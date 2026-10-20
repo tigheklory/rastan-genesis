@@ -1,0 +1,62 @@
+{
+  "code_range": [
+    "0x02A",
+    "0x048"
+  ],
+  "families": {
+    "object:attract.game_over": {
+      "codes": [
+        "0x037",
+        "0x038",
+        "0x03F",
+        "0x040",
+        "0x041",
+        "0x042",
+        "0x043",
+        "0x044"
+      ],
+      "index_map": {
+        "1": 7,
+        "7": 8
+      },
+      "line": 0
+    },
+    "object:hud.p1_label": {
+      "codes": [
+        "0x039",
+        "0x046",
+        "0x048"
+      ],
+      "index_map": {
+        "5": 12,
+        "7": 8
+      },
+      "line": 0
+    },
+    "object:hud.score_digits": {
+      "codes": [
+        "0x02A",
+        "0x02B",
+        "0x02C",
+        "0x02D",
+        "0x02E",
+        "0x02F",
+        "0x030",
+        "0x031",
+        "0x032",
+        "0x033"
+      ],
+      "index_map": {
+        "7": 8
+      },
+      "line": 0
+    }
+  },
+  "output": "/home/tighe/projects/rastan-genesis/build/pc090oj_semantic_profile_genesis.bin",
+  "output_sha256": "cfff14aada0338903c62dfdd1e188fd43a0eea7cfcdd6d9dc52080ea141a1975",
+  "profile": "/home/tighe/projects/rastan-genesis/analysis/graphics_optimizer/editor_policy/Test.json",
+  "profile_sha256": "30dab473b12dd99e48db2528b2c3c634eefe4cb03f563c9b0ec25b0d1a43d755",
+  "schema": "pc090oj-semantic-profile-slice/v1",
+  "source": "/home/tighe/projects/rastan-genesis/build/pc090oj_genesis.bin",
+  "source_sha256": "916c0dcfeac887f5532ac1f525580c8db15ccc5acd950974a0be3234ce7b239b"
+}

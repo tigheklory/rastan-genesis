@@ -7,7 +7,10 @@ local program = assert(cpu.spaces["program"], "missing maincpu program space")
 local state = cpu.state
 local trace_dir = assert(os.getenv("TRACE_DIR"), "TRACE_DIR is required")
 local max_frames = tonumber(os.getenv("FINAL_LIFE_MAX_FRAMES") or "12000")
-local stall_frames = tonumber(os.getenv("FINAL_LIFE_STALL_FRAMES") or "900")
+-- The arcade-owned GAME OVER dwell advances a 10-step counter once per 96
+-- frames, so a correct zero-input transition can remain in subphase 8 for
+-- roughly 960 frames.  Keep the stall bound beyond that intentional dwell.
+local stall_frames = tonumber(os.getenv("FINAL_LIFE_STALL_FRAMES") or "1200")
 
 local function r16(address) return program:read_u16(address) & 0xffff end
 local function r32(address) return program:read_u32(address) & 0xffffffff end

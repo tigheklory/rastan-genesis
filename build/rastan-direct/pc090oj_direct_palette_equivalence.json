@@ -1,11 +1,11 @@
 {
-  "authoritative_palette_tool_profile": "/home/tighe/projects/rastan-genesis/build/rastan-direct/build0400/Test.snapshot.json",
+  "authoritative_palette_tool_profile": "/home/tighe/projects/rastan-genesis/analysis/graphics_optimizer/editor_policy/Test.json",
   "mapping_equivalence": {
     "anchor_failures": 0,
     "cases": 512,
     "mismatches": 0
   },
-  "palette_tool_profile_sha256": "02d0122a7d9ea91040f24350d299772f7f37196957eaa7e9b2f627bd9e47e250",
+  "palette_tool_profile_sha256": "30dab473b12dd99e48db2528b2c3c634eefe4cb03f563c9b0ec25b0d1a43d755",
   "result": "PASS",
   "route_compatibility_source": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/src/palette_hooks.s",
   "route_rows_sha1": "77978a1baf10ac08",
@@ -37,6 +37,11 @@
       "0x3E": 0
     },
     "lookup_complexity": "O(1)",
-    "scenes": 4
+    "scenes": 4,
+    "semantic_object_lines": {
+      "object:attract.game_over": 0,
+      "object:hud.p1_label": 0,
+      "object:hud.score_digits": 0
+    }
   }
 }

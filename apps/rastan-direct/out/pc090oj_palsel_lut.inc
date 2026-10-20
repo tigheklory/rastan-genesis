@@ -6,7 +6,7 @@
  * dims: NUM_SCENES=4 (scene index masked 0x03), BANK_WIDTH=128 (bank masked 0x7f), element=1 byte, line range 0..3
  * index = (scene & 0x03) << 7 | (effective_bank & 0x7f)
  * route_table_sha1=77978a1baf10ac08
- * palette_tool_profile_sha256=02d0122a7d9ea91040f24350d299772f7f37196957eaa7e9b2f627bd9e47e250
+ * palette_tool_profile_sha256=30dab473b12dd99e48db2528b2c3c634eefe4cb03f563c9b0ec25b0d1a43d755
  * Palette Tool mappings: 0x30->0, 0x32->0, 0x33->0, 0x34->0, 0x35->1, 0x36->1, 0x3A->1, 0x3C->0, 0x3E->0
  * baked PC090OJ route rows:
  *   scene=1 bank=0x33 line=0
@@ -23,6 +23,10 @@
     .equ PALSEL_LUT_BANK_WIDTH, 128
     .equ PALSEL_LUT_BANK_MASK, 0x7f
     .equ PALSEL_LUT_BANK_SHIFT, 7
+    /* Object-specific semantic decisions cannot be inferred from shared bank 0x30. */
+    .equ PC090OJ_GAMEOVER_PROFILE_LINE, 0  /* object:attract.game_over */
+    .equ PC090OJ_HUD_P1_PROFILE_LINE, 0  /* object:hud.p1_label */
+    .equ PC090OJ_HUD_SCORE_PROFILE_LINE, 0  /* object:hud.score_digits */
     .section .rodata
     .align 2
     .global pc090oj_palsel_lut

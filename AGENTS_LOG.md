@@ -52752,3 +52752,34 @@ TIGHE ONLY
   Established rope: 798/798/798, 13,317.147 ms, deterministic YES (matches accepted 0458).
 - OPEN-006 updated; real-hardware visual acceptance remains Tighe's. Phase D/E NO. Report:
   `docs/design/Cody_build0461_updated_test_palette_candidate.md`.
+
+### MAME Exit Summary (2026-10-20 11:23:32)
+- Final PC: 0x03B290
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-20 — Cody Build 0462 final-life semantic reflow fix
+
+- Classified the third/final-death hang as LONGSTANDING (present by 0446), not a 0461 palette
+  regression. Static arcade path: death `0x0517E6/0x0517EE` -> terminal dispatcher `0x03A196` ->
+  life decrement `0x03A200` -> final-life phase `0x03A2D8` -> hidden phase-9 `BRA.W`
+  `0x03A1C0 -> 0x03B11A` -> GAME OVER flow.
+- Exact root: Build 0443's +2 insertion at arcade `0x03AA54` lay between branch source/target, but
+  linear disassembly omitted the branch after inline table data. Builds 0443–0461 kept `60000F58`
+  and landed at Genesis `0x03B31A` (`RTS`) instead of mapped target `0x03B31C`; terminal subphase 9
+  never advanced. Build 0442 is the last structurally correct reference; 0443 first structurally bad.
+- Generic Python repair: declared-relative branches now support validated word-displacement forms;
+  spec retains arcade source and target identities; final layout generates `60000F5A`. Synthetic
+  Layout A/B reflow test passes and would fail old behavior. Read-only final verifier passes canonical
+  plus six configured variants. No late ROM repair, runtime literal, historical delta, assembly
+  bypass, NOP, or unrelated change.
+- Build 0462 source `faf55624`; canonical SHA `dede71fef20f40a829b07065dff3c3afd31c9f0d6623c30ba42caa7c7c7e5526`;
+  `_invincible` SHA `27481bca1a1065612aff28fd95f75117ecd97a3252a8775ef4dab3e173263de9`;
+  size 2,739,896; counter 462. All requested gates/family/fixed30 pass. Rope `798/798/798`,
+  13,317.147 ms, deterministic YES.
+- Authorized normal-ROM route used only coin/start then zero gameplay input: three natural deaths,
+  final-life zero at frame 2541, GAME OVER subphase 6 reached at frame 3522, PASS. Harness stall
+  bound corrected from 900 to 1200 because original subphase-8 dwell is about 960 frames; ROM
+  unchanged. CLOSED-038 records the fix; OPEN-034 and named visual/palette issues remain separate.
+  Real-hardware acceptance PENDING TIGHE; Phase D/E NO. Report:
+  `docs/design/Cody_build0462_final_life_semantic_reflow_fix.md`.
