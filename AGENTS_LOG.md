@@ -1,5 +1,14 @@
 # AGENTS Log
 
+## [Andy — Accept Build 0458; add GAME OVER + gameplay HUD palette families; audit Demon palette pipeline]
+
+* PALETTE TOOL / REGISTRY / GENERATED-POLICY task. No ROM/MAME/trace/build-number; no gameplay/tilemap/runtime-emitter change; Phase D/E NO; Build 0458 behavior untouched. Deliverable: `docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md`.
+* **BUILD 0458 ACCEPTED** (Tighe, real hardware; attract Plane-B Segment-0 ring fixed; 0457 black-screen regression gone). Source `e4545426` verified (= ROM-producing "Fix attract Plane-B ring origin handoff"); base SHA-256 `b8e6784dc0f2…` and `_invincible` `750e9611a2aa…` both match the preserved artifacts exactly. Created ref `accepted/build-0458 -> e4545426` (mirrors the accepted/build-0455/0456 content-commit convention). Rope `_invincible` benchmark 798/798/798, 13,317.147 ms, deterministic — PERF evidence only, NOT the ring-fix visual acceptance.
+* **THREE new semantic families added** to the canonical registry (`specs/palette_decisions.json`, now 13 decisions: PAL-PC090OJ-ATTRACT-GAMEOVER-001, -HUD-P1-LABEL-001, -HUD-SCORE-DIGITS-001) and to the Palette Composer (`tools/graphics_editor/server.py` build_usages: `object:attract.game_over` codes 0x37/0x38/0x3F-0x44, `object:hud.p1_label` 0x39/0x46/0x48, `object:hud.score_digits` 0x2A-0x33). P1 and SCORE kept as SEPARATE pattern identities (disjoint codes, separate object_id/map_key). GAME OVER no longer silently owned by `usage:burst:bank0x30` (own object_id; line-LUT regex `:bank0xNN` skips object keys). New verifier `tools/graphics_editor/verify_palette_families.py` = 9/9 PASS.
+* **ARCHITECTURAL DEFECT (identified, not fixed):** GAME OVER + HUD P1 + HUD SCORE + burst ALL share effective bank 0x30; `gen_pc090oj_palsel_lut.py` keys the palette-LINE LUT only by effective bank, so they cannot get independent Genesis LINES via that LUT. Independent COLOR works per-object through `index_map` (`gen_reindexed_pc090oj.py`); independent LINE needs a per-object/usage key in the line-LUT generator → Cody handoff.
+* **DEMON: assigned LINE + INDEX propagate FAITHFULLY end-to-end** (no pipeline bug found). `usage:flying_demon:bank0x35 -> line 1 + index_map` → `Test.snapshot.json` → generated `pc090oj_palsel_lut.inc` (scene 1 bank 0x35 → line 1; recorded profile_sha256 == live Test.json) → runtime `.Lnq_hit` (effective bank `(attr&0x0F=5)|((0x60&0xE0)>>1)=0x35`); index_map → `gen_reindexed_pc090oj.py` → `build/regions/pc090oj_editor.bin` (rebuilt in 0458). Ruled out all 12 failure modes (persistence, profile selection, registry precedence, key mismatch, base/frame — both components 0x0129+0x0275 emit nibble 5 → 0x35, generator drop, stale output, generic fallback, LUT bypass, post-lookup rewrite, incomplete coverage). FIRST WRONG STAGE = NONE in tool/generator/registry. Two honest remaining items (NOT a reset of Tighe's values): (a) line 1 is SHARED via delta_e by flying_demon + four_armed_insect + lizardman (14/15 CRAM entries multi-claimed) → Demon colors are shared-line approximations, a capacity/authoring tradeoff the composer should surface; (b) one GENESIS-NTSC SAT word-2 capture (bits 13-14 == 1 for every Demon piece/orientation) is the remaining runtime confirmation (not run — no-MAME task). Registry Demon decision updated to record line 1 (was null), preserving the assignment.
+* Updated OPEN-006 (sprite/high-bank palette mapping); no issue closed; no duplicate created. Production runtime/ROM unchanged.
+
 ## 2026-10-19 — Cody Build 0458 attract-demo Plane-B ring-origin candidate
 
 - Build 0457 is hardware-rejected: attract Segment 0 remained corrupt and real Genesis showed a
@@ -52711,3 +52720,35 @@ TIGHE ONLY
 - Final PC: 0x03B290
 - Stack Pointer (SP): 0x00FEFFFC
 - Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-20 09:38:18)
+- Final PC: 0x03B290
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-20 09:41:30)
+- Final PC: 0x03B290
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-20 09:43:14)
+- Final PC: 0x03B290
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-20 — Build 0461 updated Test palette candidate
+
+- Consumed Tighe's complete live `analysis/graphics_optimizer/editor_policy/Test.json` at SHA
+  `30dab473…`; no snapshot, optimizer rewrite, palette reassignment, or hard-coded object colors.
+  Generated semantic production ownership now covers GAME OVER, gameplay P1/1UP, and score;
+  current Demon and changed small/large-bat decisions reproduce exactly.
+- Builds 0459 and 0460 were numbered/preserved and rejected by canonical provenance/dependency
+  gates. The same authored bytes in Build 0461 have whole-artifact hashes and explicit Make
+  dependencies. Canonical/gameplay-entry/epoch/attract/selector/item/title/HUD/BEST-5/fixed30,
+  seven-ROM family, and invincibility checks pass.
+- Normal ROM `dist/rastan-direct/rastan_direct_video_test_build_0461.bin`, SHA-256
+  `6b18f419b2ae703d517825a683229945987bf15e9892749238131b03bd3b9629`, size 2,739,896;
+  `_invincible` SHA `5117967e821c2f357aa6b02179446a20221d3f02fed6e5fcc8db976aee56c87d`.
+  Established rope: 798/798/798, 13,317.147 ms, deterministic YES (matches accepted 0458).
+- OPEN-006 updated; real-hardware visual acceptance remains Tighe's. Phase D/E NO. Report:
+  `docs/design/Cody_build0461_updated_test_palette_candidate.md`.
