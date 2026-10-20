@@ -1,12 +1,60 @@
 # AGENTS Log
 
+## 2026-10-19 — Cody Build 0458 attract-demo Plane-B ring-origin candidate
+
+- Build 0457 is hardware-rejected: attract Segment 0 remained corrupt and real Genesis showed a
+  30+ second blackout before attract gameplay, normal start, and death/next-life. `A5+0x10AA` is a
+  64-call column-fill countdown; 0457 forced the full 1,002-tile scene load/cache reset/display-off
+  on every call and held publication until `0x050482`. Its ordering verifier encoded the same false
+  assumption. Rejected artifact/source remain preserved.
+- Actual OPEN-031 root is the native Build-0453 `0x056440` item teardown omitting original
+  `0x0561A0`'s retained/native scroll reset. After 1,488 item frames, `A5+0x10EE=140`, so fresh R1
+  used logical top 47 / physical top 15 instead of 1 / 1. Build 0458 restores that one-shot
+  retained/staged scroll-origin handoff and accepted-0456 cache behavior; patterns/packages are not
+  reloaded. Semantic cut remains item end-of-life -> final native scroll/name state; PC080SN/
+  PC090OJ register/name/object tails remain removed.
+- Source `e4545426`. Build 0458 canonical SHA `b8e6784dc0f2eb0c2cf9c9021d9cb53204d89731a759213a05646c733a386699`;
+  `_invincible` SHA `750e9611a2aa6bd308f406b8b46ff99080a1e0a51ae7a53d79ed8b131cc3ab2f`;
+  size 2,739,896; counter 458. Root/canonical/gameplay-entry/seven-epoch/selector/item/title/HUD/
+  BEST-5/fixed30/family/invincible gates PASS. Fixed30 1,798 frames. Rope deterministic
+  `798/798/798`, 13,317.147 ms. No new gameplay trace/route/save state/manual navigation.
+- Report: `docs/design/Cody_build0458_attract_demo_plane_b_ring_init_fix.md`. Real-hardware
+  acceptance PENDING TIGHE; OPEN-031 remains open; palette work unchanged; Phase D/E NO.
+
 ## 2026-10-19 — Cody Build 0457 attract-demo Plane-B scene-entry candidate + palette provenance
 
 - Build 0456 acceptance was locked first: source commit `66dd550555a4dbfc76e94c7bcf64334513e3a489`, annotated tag `accepted/build-0456`, bookkeeping commit `bafc0f2a`; Tighe real-Genesis `_invincible` reached the true R1 Subround-1 end and Subround 2. OPEN-037 closed. Accepted hashes and rope remain `961fe13a…`, `c6e459c6…`, `798/798/798`.
-- OPEN-031 root pinned without a new gameplay trace. Both normal and demo R1 use `0x04529C -> 0x0501E2 -> 0x0503DC`; the native strip hook let cached gameplay tileset ID 1 skip the `A5+0x10AA` initial-fill-owned cache/package reset and coherent publication. Build 0457 tests the fill countdown before the cache fast path. Steady-state strips are unchanged. Semantic cut remains retained arcade map initialization -> final native Plane-B staging; PC080SN C-window/name-RAM tail remains removed.
+- **REJECTED BY TIGHE ON REAL GENESIS.** The OPEN-031 root hypothesis was wrong. Both normal and demo R1 use `0x04529C -> 0x0501E2 -> 0x0503DC`, but `A5+0x10AA` is a 64-call fill countdown, not a one-shot scene-entry flag. Build 0457 treated all 64 strips as new scene initialization.
 - ROM-producing source `fab0325eeb5b6cd0773391dba191cb14b2c1b22d`. Complete Build 0457 family, 2,739,896 bytes each. Canonical SHA `6edfa58f5ea773a200bd8e92d379ba5019cb772e0e6ce3bb009398f2fb457515`; `_invincible` SHA `1ac8c65a3027284c74c3b57c3b0509af1d5201c15d276893d9e6eb286aca1ea5`; counter 457. Root/canonical/epoch/selector/item/title/HUD/BEST-5/fixed30/family/invincible checks PASS. Gameplay-entry gate reached gameplay but reported post-entry assertions incomplete (FAIL; no exception). Fixed30 1,798 frames. Rope deterministic `799/799/799`, 13,333.835 ms (+1 frame vs 0456).
+- Hardware failures: attract Segment 0 still wrong; approximately 30+ seconds black before attract gameplay and normal game start; the same prolonged black after death/next-life. The repeated full manifest load/cache reset/display-off on 64 iterations caused the blackout while failing to reset the actual stale row phase. The old verifier enforced the rejected ordering.
 - Read-only palette handoff: GAME OVER = PC090OJ codes `0x37,0x38,0x3F..0x44`, visibility-only flash, bank `0x30`; P1 labels `0x39/0x46/0x48` and digits `0x2A..0x33` are distinct pattern subfamilies sharing bank `0x30`. Both lack semantic registry/Composer families; no palette files or production palette behavior changed. Report: `docs/design/Cody_gameover_1up_palette_provenance.md`.
-- Build report: `docs/design/Cody_build0457_attract_demo_plane_b_segment0_fix.md`. Real-hardware acceptance PENDING TIGHE. No new gameplay trace/harness/save-state/manual navigation; Phase D/E NO.
+- Build report: `docs/design/Cody_build0457_attract_demo_plane_b_segment0_fix.md`. Status REJECTED; OPEN-031 remains open. No new gameplay trace/harness/save-state/manual navigation; Phase D/E NO.
+
+## [Andy — R1 Subround-1 0442→0446 root cause (read-only, hardware-authoritative)]
+
+* READ-ONLY. No production/ROM/MAME/trace/counter change; Phase D/E NO; Cody/working tree untouched. Hardware results authoritative. Deliverable: `docs/design/Andy_r1_subround1_0442_0446_root_cause.md` + update (not close) OPEN-037. Evidence = preserved `dist/` ROM artifacts + committed maps + capstone disasm.
+* **CORRECTED BUILD↔ARTIFACT MAPPING (root of prior error):** only 0442 (`c7ca1439`) and 0446 (`f9686893`) have source commits; **0443/0444/0445 were produced but never committed** — the earlier audit diffed commits and mislabelled an intermediate state "0445". This pass uses the ROM artifacts as authority. Base sizes: 0442=2,698,936; 0443-0446=2,711,224 (+0x3000 = appended native-title tail data, NOT copied-region growth); copied region after the title cut shifts −30 (446[X−30]=442[X]).
+* **HARDWARE (authoritative):** 0442 GOOD (full S1→S2); 0443 CRASH (GEN PC 0x721AA / FAULT 0xBEA80003); 0444 CRASH; 0445 PLAYABLE early-end ≈Seg11; 0446 PLAYABLE early-end ≈Seg13; true end ≈Seg15. Normal+_invincible both affected. Gate ledger corroborates (0442 entry=PASS, 0443 canonical+entry FAIL, 0446 entry=PASS; 0445 entry=FAIL yet plays — static-gate gap, hardware wins).
+* **0443 CRASH PINNED:** native glyph worker `genesistan_hook_glyph_renderer_3bd48` (Genesis 0x72196; crash PC 0x721AA is inside it; stub at 0x3BD48 `jsr 0x72196`). In 0443 it set its descriptor-table base via ABSOLUTE `movea.l #0x0003BD7C,a0` (bytes `207c 0003bd7c` at the crash region) which the native-title reflow invalidated → `movea.l (a0),a0` deref of odd garbage → address error (0xBEA80003 odd). Repaired 0445 (absolute→PC-relative `lea (d16,pc),a0`), fixed 0446 (+8→+10 disp). Glyph stub signature ABSENT in 0442 → the native glyph/title/HUD subsystem is NEW at the 0443 native-title package.
+* **0445→0446 PINNED:** full byte diff of the real artifacts = exactly 3 bytes (0x18F label char; 0x2958DB build digit in crash_title; **0x03BD55 glyph `lea (d16,pc)` disp 0x08→0x0A**). The glyph displacement is the ONLY functional difference → it is the sole static cause of the endpoint moving ≈Seg11→≈Seg13. This OVERTURNS the prior "glyph is frontend-only / unrelated" claim: the native glyph system DOES reach gameplay progression.
+* **ROOT EARLY-END (both 0445/0446) = NATIVE-TITLE-PACKAGE RUNTIME VECTOR at 0443, not a static gameplay bug.** Exhaustively ruled out static causes: gameplay abs pointers relocate cleanly (546 at −30; "unchanged" set is A5-relative EA disp + code-misread-as-long, not pointers); ZERO cross-boundary PC-rel address loads gameplay→pre-cut; section table 0x5073A / boundaries 0x502AC / map-stream FUN_558E0 have NO absolute refs (base-register addressed, reflow-immune); scene descriptor 0x3951C abs refs correct (unshifted target); native title/glyph BSS (0xFFB2C4/0xFFB884/0xFFB890) does NOT overlap arcade progression WRAM (~0xFF32xx); glyph worker + `native_frontend_hud_emit` write only 0xFF01xx HUD, never progression WRAM. 0446 has correct glyph base yet still early-ends → root ≠ glyph byte; glyph only modulates endpoint.
+* **RESULT = B (static end-condition inputs equivalent) + strong vector.** First-wrong subsystem = MAP/STREAM (order A: extent ends early → faithful progression reacts → auto-walk, no end door). **Single bounded runtime evidence request:** capture `A5+0x10C6` (map-stream ptr), `A5+0x10F6` (scroll col), `A5+0x1394` at the one frame the Subround-1 end transition arms, GENESIS NTSC 0442 vs 0446; if 0446 hits the stream end-marker at a smaller scroll column, the stream terminates/advances early. No broad trace. **Fix locus = native-title/glyph/HUD subsystem + reflow** (note: shift patcher does NOT repair `(d16,pc)` data refs — the gap that forced the glyph hand-fix), NOT the progression logic. FORBIDDEN: segment-count/camera-max/auto-walk/fake-door/per-build-delta. OPEN-037 updated (not closed/duplicated). Issues closed: NONE.
+
+## [Andy — Pin exact R1 Subround-1 early-end stale reference (read-only follow-up)]
+
+* READ-ONLY follow-up to the 0442→0446 regression audit. No production/ROM/MAME/trace/build-number/counter change; Phase D/E NO; Cody in-flight work + working tree untouched. Deliverable: `docs/design/Andy_r1_subround1_exact_stale_reference.md` + refine (NOT close/duplicate) OPEN-037. Evidence: git history, preserved ROMs (0442 `c7ca1439` / 0446 `f9686893`), remap spec, disassembly — no new runtime evidence. Current baseline Build 0455.
+* **EXACT SITE PINNED: NO — and the gameplay reflow stale-reference hypothesis is REFUTED.** Direct ROM-byte proof: the Build-0200 arc-table embedded pointers resolve to `0x5B54C/0x5B57E/…` in 0442 and `0x5B52E/0x5B560/…` in 0446 — each exactly **−30** (= the gameplay reflow δ). The postpatcher RECOMPUTES embedded pointers through the current shift table (spec's `…0005B7EC…` is Build-0200 documentation, the verbatim `2B7C0005B7EC` is in NEITHER ROM). So the gameplay region is correctly reflowed; the arc-table / embedded-pointer sub-hypothesis of OPEN-037 is wrong for gameplay.
+* RULED OUT (gameplay): (1) arcade-copy embedded pointers — relocate −30, track reflow; (2) Genesis-only gameplay helper literals — NONE (grep clean; the only arcade literal, glyph `0x03BD7C`, is FRONTEND, fixed 0446); (3) postpatcher relocation logic — UNCHANGED 0442→0446 (constants only: opcode 232→231, coverage `0x292EB8→0x295EB8`); (4) `pc090oj_hooks.s` 43-line diff — TITLE-sprite-only (change-driven title SAT), does not touch `.Lnq_gameplay`/finalizer; (5) attract→gameplay dispatch idiom — PC-relative `lea %pc@(tbl);jmp` (self-tracking); the one absolute sub-table `0x03AA20` WAS declared. Correction to the prior audit: it proved the reflow CLASS via the frontend glyph but over-generalized it to gameplay.
+* SMALLEST REMAINING CANDIDATE SET: **C1** — an UNDECLARED absolute dispatch table / embedded pointer in the attract→gameplay path crossing the `0x03AA54`/`0x03BB48` cuts (pipeline only relocates DECLARED absolute tables → an undeclared one mis-reflows silently, the exact reason `0x03AA20` needed declaring); **C2** — the endpoint MOVES across builds that ALL reach gameplay on real hardware. DECISIVE MISSING EVIDENCE: Tighe's per-build endpoint observations anchored to the exact artifacts he ran, then a disassembly of the endpoint routine inputs on THOSE artifacts. STOP (no implementation; no guess). OPEN-037 refined (hypothesis refuted, candidate set narrowed, NOT closed, NOT duplicated). Issues closed: NONE.
+* **CORRECTION (same day, after Tighe's hardware report):** Tighe played 0442/0444/0445/0446 on REAL Genesis hardware. Two earlier static claims are RETRACTED because they contradicted that ground truth: (1) "0444/0445 crash before gameplay / 0446 is first playable" — FALSE, those builds ran gameplay; (2) "0445→0446 gameplay byte-identical so endpoint can't move" — RETRACTED as an authority claim; Tighe observed the endpoint move (0445 Seg11 / 0446 Seg13), so the artifact-diff premise (build↔artifact mapping or compared region) is what is wrong, not his observation. Hardware play outranks static inference; the arc-pointer-relocates-−30 finding survives (ROM fact, no conflict).
+
+## [Andy — Build 0442→0446 R1 Subround-1 early-end regression archaeology (read-only)]
+
+* READ-ONLY regression audit. No production/ROM/MAME/trace/build-number change; Phase D/E NO. Deliverable: `docs/design/Andy_build0442_0446_subround1_early_end_regression.md` + new OPEN-037. Evidence: git history, build reports, preserved ROMs (no new runtime evidence).
+* CORRECTION to the prompt: Build 0443 ROM EXISTS (`dist/…/build_0443.bin`, 2,711,224 B = 0442 2,698,936 + 0x3000). The native-title package first grew the ROM at 0443; 0444/0445/0446 kept that size; 0447+ grew +0x3000 again. 0442 source = `c7ca1439` (verified).
+* ROOT-CAUSE CLASS PROVEN (ROM-reflow / stale reference, OPEN-016 class): the native-title `shift_replacements` at arcade 0x03AA54/0x03BB48 (Build 0443) shift all copied content after them. Proven instance: `genesistan_hook_glyph_renderer_3bd48` kept literal 0x03BD7C after the table moved to 0x03BD7E → 0x0442→0x0444 crash; fixed 0446 (+8→+10 LEA). The gameplay copied region is a byte-SHIFT of 0442 content: net +30 bytes at 0446, +28 at 0447 (verified comparing ROMs at 0x50000). A gameplay extent/record reference still using the pre-reflow 0442 address reads δ bytes stale → truncated end-of-subround record → premature auto-walk. Progression logic is faithful; INPUT data corrupt (category B/C) — do NOT patch auto-walk/camera/scroll.
+* MOVING-FAILURE MECHANISM PROVEN: 0445 vs 0446 differ in only 3 bytes (checksum, glyph LEA byte 0x03BD55, build string) → gameplay byte-identical → endpoint cannot move 0445→0446; it moves across reflow-size builds because δ varies per build (+30/+28), landing the stale reference on different plausible data. 0445 actually fails the gameplay-entry gate (title-glyph crash), so "0445 Seg11" is imprecise.
+* NOT PINNED: the exact gameplay reference (current source has no hardcoded arcade literal; likely an un-relocated embedded data pointer / declared relocation whose base the title reflow changed). Needs 0442-vs-0446 gameplay disassembly of the Subround-1 extent read (glyph-0x3BD7C analog). DURABLE FIX (design only): make that reference relocation-durable (PC-rel/linker symbol, or declare in absolute_long_pointer_tables, or regenerate from address_map.json) — no segment-count/camera/auto-walk special-casing. New OPEN-037; distinct from OPEN-029/030 (Subround-2). Issues closed: NONE.
 
 ## [Andy — Long-standing issue-ledger reconciliation of Tighe's 11 current visual/gameplay observations]
 
@@ -52653,3 +52701,13 @@ TIGHE ONLY
   `798/798/798`, median `13,317.147 ms`, deterministic YES.
 - CLOSED-037 records the verified selector-stream repair. The 0445-versus-0446 endpoint difference
   remains historical evidence, not a blocker or reason to reopen the accepted current regression.
+
+### MAME Exit Summary (2026-10-19 22:39:16)
+- Final PC: 0x03B290
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-19 23:48:39)
+- Final PC: 0x03B290
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none

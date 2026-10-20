@@ -130,17 +130,6 @@
     },
     {
       "kind": "opcode_replace",
-      "arcade_pc": "0x0503CE",
-      "rom_pc": "0x0505B2",
-      "original_bytes": "203c00050f6b",
-      "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "203c00051171",
-      "replacement_bytes_template": "203c00051171",
-      "replacement_bytes_shift_adjusted": "",
-      "note": "Build 0305 early-game state divergence: retain the Build 0159 byte-neutral pass-sequence data-pointer relocation, but include the Build 0303 +6 shift inserted at arcade_pc 0x050482 before the table at arcade_rom/data 0x050F6B. The correct current runtime_data target is therefore 0x00051171, not the now-stale 0x0005116B. Build 0304/0305 ROM[0x5116B]=0x95 drove PC080SN_DESC_REBUILD_OUT / Genesis-WRAM 0xFF10A8 to selector 0x0095 and selected the row producer for the initial Stage-1 collision pass; ROM[0x51171]=0x00 restores the arcade selector-0 column producer. Diagnostic byte-neutral validation restored Build-0302 collision hashes and early record progression. This changes only the MOVE.L #imm,D0 data address; no collision consumer/class/value, destination, package allocation, directional dispatch, NOP, RTS bypass, or forced selector is introduced."
-    },
-    {
-      "kind": "opcode_replace",
       "arcade_pc": "0x053A64",
       "rom_pc": "0x053B64",
       "original_bytes": "207c0010de00",
@@ -1380,7 +1369,7 @@
       "replacement_bytes": "4eb900074b044e754e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_template": "4eb900074b044e754e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
-      "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. The native helper retires transient-item semantic state and preserves the original function's final call to the general tilemap clear at arcade_pc 0x0561A0 by invoking genesistan_hook_cwindow_clear, which clears both final Genesis staged planes and marks all rows dirty. No READY or scene special case."
+      "note": "PC090OJ Strategy A function-body replacement at INDEPENDENT writer fn 0x56440 (helper genesistan_pc090oj_hook_zero_fill_56440). Intercepts 2 ledger callers (0x055F0E, 0x055FFA). Inline helper 0x5648A is reached only from inside 0x56440 (single internal caller); body replacement renders it unreachable dead code. Build 0458 preserves the complete semantic consequence of the original final BSR 0x0561A0: retire transient-item state; zero retained A5+0x10AE/0x10B0/0x10EC/0x10EE and the matching native staged scroll words; then invoke genesistan_hook_cwindow_clear to clear both final Genesis staged planes and mark all rows dirty. This restores the one-shot item-screen-to-fresh-scene ring-origin handoff omitted by Build 0453. No pattern reload, cache/package reset, READY, next-life, or scene special case."
     },
     {
       "kind": "opcode_replace",
@@ -1388,8 +1377,8 @@
       "rom_pc": "0x05A0D2",
       "original_bytes": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a48ad2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
       "original_bytes_shift_adjusted": "302d013a0800000f6704426d013a343c0010363c00e8207c00d00048302d013ae048e64802400007004000083b4012a6066d001012a4428142844240322d12a4382d12a63c2d13060c44000c6f02780c55440806000066060901663a6004090167343a2d130a066d0010130a72070c4400076c0253410305670452406004526d130630fc000030c3064003ca30c030c20642001060060642001050480c6d000112fc660000a830fc000030c330fc03cc30c206420010302d013ae0480c4000306504303c003032000240fff8e64802410007383c000698403b7c00ff13280c40000066063b7c000113280c400000671430fc000030c330fc03cd30c206420010534060e60c4100006722d24143f90005a2c4d2c130fc000030c3301130c03b40132a30c253440642001060063b7c03d5132a0c440000671430fc000030c330fc03d530c206420010534460e60c6d000113286624207c00d00048d1fc00000014302d1308e248080000006708302d132a3080600430bc03d5610000320c6d000012f466140c6d001113d2660c303c00064eb90003a2ec60120c6d00fe13d2660a303c00294eb90003a3164e750c6d00011328660000200c6d00ff13ce67083b7c000113d260063b7c001113d23b7c000113ce601c0c6d000113ce67083b7c00ff13d260063b7c00fe13d23b7c00ff13ce4e75",
-      "replacement_bytes": "4eb900074b104e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
-      "replacement_bytes_template": "4eb900074b104e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes": "4eb900074b384e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
+      "replacement_bytes_template": "4eb900074b384e754e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e714e71",
       "replacement_bytes_shift_adjusted": "",
       "note": "Direct-native gameplay energy/status replacement at arcade_pc 0x05A098 (helper genesistan_pc090oj_hook_status_sprite_5a098), reached only from arcade_pc 0x051054. The helper preserves the energy animation, full/partial/empty six-cell bar, low-energy blink, lifecycle fields and sound transitions, but emits ordered semantic pieces directly into native_queue_hud. The original HW_ADDRESS 0x00D00048 record tail and the transitional virtual-record 30..43 packing path are retired for this producer; no frontend object-RAM scanner/decoder consumes its output."
     },
@@ -1399,8 +1388,8 @@
       "rom_pc": "0x0512DA",
       "original_bytes": "33fc000200d00698",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900074d1c4e75",
-      "replacement_bytes_template": "4eb900074d1c4e75",
+      "replacement_bytes": "4eb900074d444e75",
+      "replacement_bytes_template": "4eb900074d444e75",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ audit guard at arcade_pc 0x0510EA. FU1 trace (Cody_fu1_arcade_trace_510EA_510F4.md) showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #2,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP. Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4."
     },
@@ -1410,8 +1399,8 @@
       "rom_pc": "0x0512E4",
       "original_bytes": "33fc000000d00698",
       "original_bytes_shift_adjusted": "",
-      "replacement_bytes": "4eb900074d1c4e75",
-      "replacement_bytes_template": "4eb900074d1c4e75",
+      "replacement_bytes": "4eb900074d444e75",
+      "replacement_bytes_template": "4eb900074d444e75",
       "replacement_bytes_shift_adjusted": "",
       "note": "PC090OJ audit guard at arcade_pc 0x0510F4. FU1 trace showed 0 hits in observed boot+attract+demo gameplay. Direct 8-byte movew #0,0xD00698 instruction replaced with JSR genesistan_pc090oj_hook_audit_guard + NOP (shared helper with entry #17). Helper captures CPU state and triggers controlled stop. Rule 8 walkthrough in Andy_pc090oj_implementation_spec.md \u00a77.4."
     },
@@ -2649,6 +2638,15 @@
     },
     {
       "kind": "relocate_after_shift_operand",
+      "arcade_pc": "0x0503CE",
+      "arcade_target": "0x050F6B",
+      "shift_before_target": -22,
+      "final_operand": "0x051155",
+      "genesis_callsite": "0x0505B2",
+      "rom_bytes_written": "203C00051155"
+    },
+    {
+      "kind": "relocate_after_shift_operand",
       "arcade_pc": "0x03AFEE",
       "arcade_target": "0x05FF9E",
       "shift_before_target": -480,
@@ -2684,19 +2682,19 @@
       "rom_bytes_written": "207C0005DA7EC0FC0018D0C04EB900074A684E75"
     }
   ],
-  "checksum": "0x0A35",
+  "checksum": "0x773C",
   "relocation_map": "/home/tighe/projects/rastan-genesis/apps/rastan-direct/out/startup_common_relocations.json",
   "goal": "Apply rastan-direct spec-driven ROM relocation and opcode patching using the existing postpatch pipeline.",
   "expectations": {
-    "opcode_replace_count": 230
+    "opcode_replace_count": 229
   },
   "patch_counts": {
-    "opcode_replace_and_rom_opcode_replace": 230
+    "opcode_replace_and_rom_opcode_replace": 229
   },
   "build_context": "canonical",
   "genesis_coverage_delta": "0x0",
   "invincible_variant": false,
-  "postpatch_expected_opcode_replace_sites": 230,
+  "postpatch_expected_opcode_replace_sites": 229,
   "postpatch_expected_total_genesis_bytes_covered": "0x29CEB8",
   "bookmarks_v2_count": 0,
   "bookmarks_v2_applied": [],
