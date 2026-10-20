@@ -18,7 +18,8 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 
 # Build 0156: +1 opcode_replace (0x03D04C C08C66 raw FG digit write -> staging).
 # Build 0158: +1 opcode_replace (0x05102E raw WRAM literal 0x10C016 -> 0xFF0016 rebase).
-# Build 0159: +1 opcode_replace (0x0503CE pass-seq table base literal 0x050F6B -> 0x05116B relocation).
+# Build 0159 added 0x0503CE as an opcode_replace; Build 0456 moves it to
+# relocate_after_shift so semantic target 0x050F6B follows every reflow.
 # Build 0165: +5 opcode_replace targeted player-source WRAM immediate rebases
 # (0x054492/0x05457A/0x0545BA/0x0546A8/0x05475A), byte-neutral.
 # Build 0168: +9 opcode_replace collision-buffer immediate rebases to mapped WRAM 0x00FF1E00.
@@ -36,7 +37,7 @@ BUILD_COUNTER_PATH = PROJECT_ROOT / "build" / "rastan-direct" / "build_counter.t
 # hardware destinations to pc090oj_object_ram + the same record offsets.
 # Build 0255: +1 byte-neutral opcode_replace rebases the attract-demo stage selector
 # source at 0x052B66 from raw arcade WRAM 0x10C118 to mapped WRAM 0xFF0118.
-CANONICAL_OPCODE_REPLACE_COUNT = 230  # Build 0453 reclassifies item tick 0x05607C as a proper shift cut, removing the padded opcode body replacement. Prev 231.
+CANONICAL_OPCODE_REPLACE_COUNT = 229  # Build 0456 reclassifies selector base 0x0503CE as relocation-backed shift metadata. Prev 230.
 # KF-028 fix (2026-06-17): +4 bytes from bsr rastan_direct_update_inputs.
 # OPEN-016 Part 2 (2026-06-19): +0x54 bytes from glyph hook,
 # plus +0x14 bytes for the Build 0091 helper-crash register setup.

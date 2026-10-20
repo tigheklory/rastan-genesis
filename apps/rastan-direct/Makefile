@@ -10,6 +10,7 @@ PATCH_SPEC := $(ROOT)/specs/rastan_direct_remap.json
 PATCH_MANIFEST := $(ROOT)/build/rastan-direct/rastan_direct_patch_manifest.json
 SYMBOLS := $(OUT_DIR)/symbol.txt
 PATCHER := $(ROOT)/tools/translation/postpatch_startup_rom.py
+R1_SELECTOR_STREAM_VERIFY := $(ROOT)/tools/translation/verify_r1_selector_stream_relocation.py
 BOOT_GUARD := $(ROOT)/tools/translation/verify_rastan_direct_boot_guard.py
 CANONICAL_GATE := $(ROOT)/tools/translation/verify_canonical_rom.py
 GAMEPLAY_ENTRY_GATE := $(ROOT)/tools/mame/run_build0309_gameplay_entry_gate.sh
@@ -584,7 +585,7 @@ $(SYMBOLS): $(ELF) | $(OUT_DIR)
 $(PREPATCH_BIN): $(ELF) | $(OUT_DIR)
 	$(OBJCOPY) -O binary $< $@
 
-$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) $(NATIVE_TITLE_VERIFY) $(NATIVE_TITLE_REPORT) $(NATIVE_HUD_VERIFY) $(NATIVE_HUD_REPORT) $(NATIVE_ITEM_VERIFY) $(NATIVE_ITEM_REPORT) $(BEST5_TABLE_VERIFY) $(BEST5_TABLE_REPORT) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) $(NATIVE_TITLE_VERIFY) $(NATIVE_TITLE_REPORT) $(NATIVE_HUD_VERIFY) $(NATIVE_HUD_REPORT) $(NATIVE_ITEM_VERIFY) $(NATIVE_ITEM_REPORT) $(BEST5_TABLE_VERIFY) $(BEST5_TABLE_REPORT) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/canonical.inc"
 	$(PYTHON) "$(PC080SN_NATIVE_METATILE_VERIFY)" --maincpu "$(MAINCPU_REGION)" \
 		--index "$(PC080SN_NATIVE_METATILE_INDEX)" --records "$(PC080SN_NATIVE_METATILE_RECORDS)" \
@@ -633,6 +634,8 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(PATCH_MANIFEST)" \
 		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
+		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BEST5_TABLE_VERIFY)" --maincpu "$(MAINCPU_REGION)" --rom "$@" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" \
 		--symbols "$(SYMBOLS)" \
@@ -721,7 +724,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(GAME
 # release/counter/gates (those belong to the normal build).  Built with RASTAN_DIAG_CPU_BAR=1 via
 # the recursive `diag-variant` invocation, so config.inc regenerates and every object re-assembles
 # with the bar enabled.  Uses a separate manifest so the normal build's manifest is untouched.
-$(DIAG_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(DIAG_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/diag.inc"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -733,6 +736,8 @@ $(DIAG_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) |
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/diag_patch_manifest.json" \
 		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
+		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 # Copy the diagnostic ROM to the SAME build number as the just-produced numbered release, with a
@@ -750,7 +755,7 @@ diag-variant: $(DIAG_ROM)
 # RASTAN_DIAG_SCORE_METRIC=1 (via the recursive `score-variant` invocation). Separate manifest.
 # Build 0396: the third generated Plane-A overlap package grows canonical coverage onto the
 # formerly score-only aligned page, so this variant no longer adds a coverage page.
-$(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/score.inc"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -762,6 +767,8 @@ $(SCORE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) 
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/score_patch_manifest.json" \
 		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
+		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 # Copy the score-metric ROM to the SAME build number as the numbered release, with a "_s" suffix.
@@ -778,7 +785,7 @@ score-variant: $(SCORE_ROM)
 # Build 0344: display-off ROM = same postpatch-only pipeline as $(DIAG_ROM) but built with
 # RASTAN_VBLANK_DISPLAY_OFF=1 (via the recursive `do-variant` invocation).  Separate manifest.
 # This is the Rainbow-model publication-phase forced-blank variant; NOT a diagnostic overlay.
-$(DO_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(DO_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/display_off.inc"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -790,6 +797,8 @@ $(DO_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/do_patch_manifest.json" \
 		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
+		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 # Copy the display-off ROM to the SAME build number as the numbered release, with a "_do" suffix.
@@ -809,7 +818,7 @@ do-variant: $(DO_ROM)
 # so this variant needed no additional coverage delta.
 # Build 0396: the third generated Plane-A overlap package grows canonical coverage onto the
 # formerly MODE-only aligned page, so this variant again needs no additional coverage delta.
-$(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/cheat.inc"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -821,6 +830,8 @@ $(CHEAT_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) 
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/cheat_patch_manifest.json" \
 		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
+		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 cheat-variant: $(CHEAT_ROM)
@@ -835,7 +846,7 @@ cheat-variant: $(CHEAT_ROM)
 # Permanent full-gameplay-HUD comparison ROM. It uses the canonical release
 # configuration except for RASTAN_GAMEPLAY_HUD_SPRITES=1 and shares the already
 # consumed canonical build number exactly like the diagnostic variants.
-$(FULL_HUD_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(FULL_HUD_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(BOOT_GUARD) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/full_hud.inc"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -847,6 +858,8 @@ $(FULL_HUD_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUAR
 		--symbols "$(SYMBOLS)" \
 		--manifest "$(OUT_DIR)/full_hud_patch_manifest.json" \
 		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
+		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 full-hud-variant: $(FULL_HUD_ROM)
@@ -862,7 +875,7 @@ full-hud-variant: $(FULL_HUD_ROM)
 # normal code image is built with the canonical flags; only the postpatcher's
 # spec-declared source-data patch makes the arcade startup initializer assert
 # A5+0x0040. It shares the canonical build number and never enters the ledger.
-$(INVINCIBLE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GUARD) $(INVINCIBLE_VARIANT_VERIFY) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(INVINCIBLE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(BOOT_GUARD) $(INVINCIBLE_VARIANT_VERIFY) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/invincible.inc"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$(PREPATCH_BIN)"
 	cp "$(PREPATCH_BIN)" "$@"
@@ -875,6 +888,8 @@ $(INVINCIBLE_ROM): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(BOOT_GU
 		--manifest "$(OUT_DIR)/invincible_patch_manifest.json" \
 		--invincible \
 		--spec "$(PATCH_SPEC)"
+	$(PYTHON) "$(R1_SELECTOR_STREAM_VERIFY)" --rom "$@" --maincpu "$(MAINCPU_REGION)" \
+		--address-map "$(ROOT)/build/rastan-direct/address_map.json" --spec "$(PATCH_SPEC)"
 	$(PYTHON) "$(BOOT_GUARD)" --rom "$@"
 
 invincible-variant: $(INVINCIBLE_ROM)
