@@ -101,7 +101,10 @@ MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
 PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
 PC080SN_EDITOR_LAYERA := $(ROOT)/build/regions/pc080sn_editor_layera.bin
 EDITOR_PALETTE_PROFILE := $(ROOT)/analysis/graphics_optimizer/editor_policy/Test.json
-TEST_PALETTE_CRAM := $(ROOT)/build/rastan-direct/test_palette_cram.bin
+TEST_PALETTE_LINE0 := $(ROOT)/build/rastan-direct/test_palette_line0.bin
+TEST_PALETTE_LINE1 := $(ROOT)/build/rastan-direct/test_palette_line1.bin
+TEST_PALETTE_LINE3 := $(ROOT)/build/rastan-direct/test_palette_line3.bin
+TEST_PALETTE_CRAM_LINES := $(TEST_PALETTE_LINE0) $(TEST_PALETTE_LINE1) $(TEST_PALETTE_LINE3)
 TEST_PALETTE_CRAM_REPORT := $(ROOT)/build/rastan-direct/test_palette_cram_report.json
 TEST_PALETTE_CRAM_GEN := $(ROOT)/tools/graphics_editor/gen_test_palette_cram.py
 # Canonical approved pattern reference-substitution policy (offline only). Consumed automatically by the
@@ -338,7 +341,7 @@ $(CRASH_BUILD_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 $(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) $(BEST5_NUMBER_TABLE) $(BEST5_NAME_TABLE) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) $(TEST_PALETTE_CRAM) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) $(TEST_PALETTE_CRAM_LINES) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 # Validated pattern-reuse resolution: canonical policy -> resolved (code,bank) substitutions. Hard gate:
@@ -350,11 +353,14 @@ $(PATTERN_REUSE_RESOLVED): $(PATTERN_REUSE_POLICY) $(PLANE_A_USES) $(ROOT)/tools
 		--uses "$(PLANE_A_USES)" \
 		--out "$@"
 
-$(TEST_PALETTE_CRAM): $(EDITOR_PALETTE_PROFILE) $(TEST_PALETTE_CRAM_GEN)
+$(TEST_PALETTE_CRAM_REPORT): $(EDITOR_PALETTE_PROFILE) $(TEST_PALETTE_CRAM_GEN)
 	$(PYTHON) "$(TEST_PALETTE_CRAM_GEN)" --profile "$(EDITOR_PALETTE_PROFILE)" \
-		--output "$@" --report "$(TEST_PALETTE_CRAM_REPORT)"
+		--line0-output "$(TEST_PALETTE_LINE0)" \
+		--line1-output "$(TEST_PALETTE_LINE1)" \
+		--line3-output "$(TEST_PALETTE_LINE3)" \
+		--report "$@"
 
-$(TEST_PALETTE_CRAM_REPORT): $(TEST_PALETTE_CRAM)
+$(TEST_PALETTE_CRAM_LINES): $(TEST_PALETTE_CRAM_REPORT)
 	@test -f "$@"
 
 $(PC080SN_EDITOR_LAYERA): $(PC080SN_REGION) $(EDITOR_PALETTE_PROFILE) $(PATTERN_REUSE_RESOLVED) $(ROOT)/analysis/graphics_optimizer/round1_phase1/plane_a_uses.json $(ROOT)/tools/graphics_editor/gen_reindexed_region.py

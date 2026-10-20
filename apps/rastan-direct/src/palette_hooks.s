@@ -459,16 +459,17 @@ genesistan_palette_hook_3ba64:
     .align 2
     .global editor_layera_palette
 editor_layera_palette:
-    /* Palette Composer Test line 3. The generated asset stores lines 0,1,3. */
-    .incbin "../../build/rastan-direct/test_palette_cram.bin", 64, 32
+    /* Palette Composer Test line 3. Each symbol owns one complete generated
+     * artifact so canonical provenance hashes cover exactly the included bytes. */
+    .incbin "../../build/rastan-direct/test_palette_line3.bin"
 
-/* Build 0459: current Test-profile shared R1/P1 sprite palettes. Generated
+/* Current Test-profile shared R1/P1 sprite palettes. Generated
  * directly from target_palette_lines[0] and [1], then staged onto Genesis
  * Lines 0/1 at gameplay activation. The offline PC090OJ reindex remaps sprite
  * pixels into these exact target entries. */
     .global test_sprite_line0
 test_sprite_line0:
-    .incbin "../../build/rastan-direct/test_palette_cram.bin", 0, 32
+    .incbin "../../build/rastan-direct/test_palette_line0.bin"
     .global test_sprite_line1
 test_sprite_line1:
-    .incbin "../../build/rastan-direct/test_palette_cram.bin", 32, 32
+    .incbin "../../build/rastan-direct/test_palette_line1.bin"
