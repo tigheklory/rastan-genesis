@@ -126,10 +126,15 @@ scene-0 manifest at the retained lifecycle event. Plane contents remain arcade-o
 Automated validation proves state progression and bounded publication contracts, not visual
 correctness. It does not substitute for Tighe's real-hardware comparison.
 
-## Hardware acceptance required
+## Hardware acceptance — accepted but incomplete
 
-Build 0464 is pending Tighe's normal-ROM real-Genesis check for clean death->READY, intended-only
-Continue Rastan, GAME OVER sword/bones, title, king/story, and BEST-5 presentation with correct
-patterns/palettes and no stale gameplay actors. OPEN-033, OPEN-034, and OPEN-035 remain open until
-that acceptance. Reward/death palette integration, Demon palette, 1UP/score geometry, Phase D, and
-Phase E remain deferred.
+Tighe accepted Build 0464 as the production baseline on real Genesis hardware. The RG-003
+presentation-owner/SAT correction is protected: READY and later frontend states no longer retain
+gameplay actors or gameplay/random tiles; GAME OVER and the first title are perfect. Ref
+`accepted/build-0464` points to exact ROM-producing source `e5358681`.
+
+Acceptance does not close the remaining presentation defects. OPEN-033 remains open for the READY
+palette, OPEN-034 for Continue tile/pattern presentation, and OPEN-035 for the attract-demo re-entry
+palette that propagates through the second title/story/BEST-5/item-screen pass. RG-004 owns those
+remaining defects. Reward/death palette integration, Demon palette, 1UP/score geometry, Phase D,
+and Phase E remain deferred.

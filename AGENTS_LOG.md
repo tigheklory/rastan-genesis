@@ -52814,3 +52814,21 @@ TIGHE ONLY
   `744603425e7e9df9abd1378db07e973c691c4f7cd9359446e0c6ed1730f48302`; counter 464.
 - All normal/family gates PASS; final-life verifier maps `0x03A3C0 -> 0x03B320`; fixed30 1,798 frames;
   existing zero-input route PASS at 3,580 frames with three deaths and terminal tuple 2/4/6; existing
+  rope deterministic `798/798/798`, 13,317.147 ms. Tighe real-Genesis visual acceptance remains
+  pending for READY, Continue, GAME OVER, title, story, and BEST-5. Report:
+  `docs/design/Cody_RG003_post_death_frontend_presentation_cleanup.md`.
+
+## 2026-10-20 — Build 0464 accepted but incomplete (PROMPT RG-004 lock)
+
+- Tighe accepted the normal Build 0464 ROM on real Sega Genesis hardware. Accepted artifact
+  `dist/rastan-direct/rastan_direct_video_test_build_0464.bin`, SHA-256
+  `744603425e7e9df9abd1378db07e973c691c4f7cd9359446e0c6ed1730f48302` (reverified). Exact
+  ROM-producing source is `e535868192c54ee296b3230c7835c122ab018bb3`; annotated ref
+  `accepted/build-0464` points there and will not move.
+- ACCEPTED/PROTECTED: RG-003 presentation-owner architecture, teardown ownership at `0x056440` and
+  `0x03AD4C`, scene-0 residency restoration, FRONTEND_FULL activation, both SAT banks, VBlank SAT
+  publication, gameplay actor/background retirement, perfect GAME OVER, and perfect first title.
+- ACCEPTED BUT INCOMPLETE: OPEN-033 remains open for READY/HUD palette; OPEN-034 remains open for
+  Continue tile/pattern presentation; OPEN-035 remains open for attract-demo death -> second-title
+  palette and its later story/BEST-5/item-screen propagation. Build 0462 and rejected Build 0463
+  remain preserved. No ROM was built and no build number was consumed by this acceptance lock.
