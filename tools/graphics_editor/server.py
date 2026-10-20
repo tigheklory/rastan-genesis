@@ -821,6 +821,33 @@ def build_usages(banks):
                                "frame_label": "Burst / Impact %s" % lbl,
                                "object_id": "object:effect.burst"}
             defs.append((k, "Burst / Impact Effect frame %s" % lbl, 0x30, bp, True))
+    # (c) GAMEPLAY HUD + ATTRACT GAME OVER PC090OJ sprite families (Cody provenance
+    #     docs/design/Cody_gameover_1up_palette_provenance.md). All three share effective bank 0x30
+    #     with the burst effect (round-1 nibble-0 pool entry 11 -> arcade palette 0x4FE62), but they are
+    #     DIFFERENT semantic graphic/pattern families and must be independently authorable. They are keyed
+    #     by their own object_id (NOT usage:...:bank0x30), so the bank-keyed palette-line LUT generator
+    #     (gen_pc090oj_palsel_lut.py, regex :bank0xNN) does not collapse them into usage:burst:bank0x30;
+    #     their per-object index_map is the color-ownership route (gen_reindexed_pc090oj.py, keyed by uid).
+    #     Raw PC090OJ pattern codes laid out as a left-to-right row for authoring preview.
+    def _raw_row(codes):
+        return [{"code": c, "x": i * 16, "y": 0, "fx": 0, "fy": 0} for i, c in enumerate(codes)]
+    banks[0x30] = _arcade_round_palette(1, 0)
+    _hud_gameover = [
+        ("attract_game_over", "Attract GAME OVER (large flashing)",
+         [0x37, 0x38, 0x3F, 0x40, 0x41, 0x42, 0x43, 0x44],
+         "object:attract.game_over", "attract", 980),
+        ("hud_p1_label", "Gameplay P1 / 1UP label",
+         [0x39, 0x46, 0x48],
+         "object:hud.p1_label", "hud", 981),
+        ("hud_score_digits", "Gameplay SCORE digits",
+         [0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33],
+         "object:hud.score_digits", "hud", 982),
+    ]
+    for key, label, codes, obj_id, cat, order in _hud_gameover:
+        pieces = _raw_row(codes)
+        _player_meta[key] = {"category": cat, "order": order, "map_key": obj_id,
+                             "frame_label": label, "object_id": obj_id}
+        defs.append((key, label, 0x30, pieces, True))
 
     usages = []
     for key, name, bank, pieces, proven in defs:

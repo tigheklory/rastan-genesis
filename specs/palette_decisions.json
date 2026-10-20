@@ -371,12 +371,12 @@
     "palette_source": "ROUND-1 indirect load (FUN_0003ba20/56/64): source-buffer bank k=5 -> round-1 index row 0x3BA88 byte -> pool index 16 -> palette 0x4FD02+16*0x20 = 0x4FF02 (16 words 0RGB; converter FUN_0003ba64; MAME xBGR_555 pal5bit(nibble*2)). NOT direct-bank indexing."
    },
    "genesis_realization": {
-    "palette_line": null,
-    "route_kind": null,
-    "dynamic_behavior": null,
-    "shared_line_ownership": null
+    "palette_line": 1,
+    "route_kind": "native gameplay PC090OJ finalizer; effective bank 0x35 (emitted word0 nibble 5 | colbank 0x60); both components (A base 0x0129, B base 0x0275) carry nibble 5",
+    "dynamic_behavior": "Authored by Tighe in the Palette Composer (Test profile usage:flying_demon:bank0x35 -> line 1 + per-color index_map). VERIFIED to propagate: editor -> Test.snapshot.json -> generated pc090oj_palsel_lut.inc (scene 1 bank 0x35 -> line 1, profile_sha256 matches) -> runtime .Lnq_hit lookup; index_map -> gen_reindexed_pc090oj.py -> build/regions/pc090oj_editor.bin (rebuilt in Build 0458). This recorded value PRESERVES Tighe's assignment; it is not a reset.",
+    "shared_line_ownership": "line 1 carries the flying_demon (bank 0x35) in scene 1 per the authored Test profile"
    },
-   "decision_basis": "CORRECTED: palette is loaded via the round-specific index table 0x3BA88 -> pool 0x4FD02 (FUN_0003ba20/56/64), NOT direct-bank indexing. Effective bank from emitted word0 nibble. Validated vs KF-1214 bank 0x36. ",
+   "decision_basis": "CORRECTED: palette is loaded via the round-specific index table 0x3BA88 -> pool 0x4FD02 (FUN_0003ba20/56/64), NOT direct-bank indexing. Effective bank from emitted word0 nibble. Validated vs KF-1214 bank 0x36. | 2026-10-20: Genesis realization recorded as line 1 per Tighe's Palette Composer assignment (previously null); full editor->LUT->runtime propagation statically verified in Build 0458 (see Andy_gameover_gameplay_hud_demon_palette_integration.md).",
    "known_defects": [],
    "consumers_to_inspect": [
     "apps/rastan-direct/src/palette_route.s",
@@ -484,6 +484,164 @@
     "docs/design/Cody_build0366_cave_block_collision_palette.md",
     "analysis/actor_decompilation/h17_cave_block_palette.tsv (H17 arcade-truth palette)",
     "docs/design/Andy_h17_cave_block_arcade_palette.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-ATTRACT-GAMEOVER-001",
+   "status": "provisional",
+   "context": {
+    "scene": "attract/demo gameplay state (A5+(0,2,4)=(2,3,0/1), A5+0x34==0)",
+    "stage": "Stage 1 attract demo; large flashing GAME OVER",
+    "subsystem": "PC090OJ bespoke eight-glyph GAME OVER sprite row (NOT PC080SN text)",
+    "actor_family": "attract GAME OVER graphic",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x0",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30",
+    "pattern_codes": [
+     "0x0037",
+     "0x0038",
+     "0x003F",
+     "0x0040",
+     "0x0041",
+     "0x0042",
+     "0x0043",
+     "0x0044"
+    ],
+    "arcade_routine_chain": "0x05104E -> 0x05A502..0x05A5AA (records 83..90)",
+    "palette_source": "R1 bank-0 round-row 0x3BA88[0]=11 -> 0x4FD02+11*0x20 = 0x4FE62 (16 words 0RGB, provenance only)",
+    "flash_behavior": "ONE family: same patterns/attrs/palette; bit 5 of 0x10C200 toggles visible Y~0x70 vs hidden/parked Y~0x180. No second palette family."
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "native .Lnq_gameover_emit/.Lnq_gameover_labels through the gameplay sprite finalizer; dynamic PC090OJ residency cells 1339..1534 (identity is the semantic family, NOT the temporary native tile slot)",
+    "dynamic_behavior": "must be its own semantic palette family; must NOT inherit usage:burst:bank0x30 ownership merely because effective bank 0x30 is shared",
+    "shared_line_ownership": "effective bank 0x30 is shared by burst, GAME OVER, HUD P1 label, HUD score digits; the bank-keyed palette-line LUT cannot separate them (see known_defects)"
+   },
+   "decision_basis": "Cody static provenance (docs/design/Cody_gameover_1up_palette_provenance.md). Added to the Palette Composer as object:attract.game_over so it is independently authorable; color ownership flows through its per-object index_map (gen_reindexed_pc090oj.py), not the shared bank-0x30 line LUT.",
+   "known_defects": [
+    "Currently resolves its Genesis palette LINE accidentally via usage:burst:bank0x30 because the PC090OJ palette-line LUT (gen_pc090oj_palsel_lut.py) is keyed only by effective bank; GAME OVER, HUD P1/SCORE and burst all share bank 0x30, so they cannot be assigned independent LINES through that LUT. Independent COLOR is achievable per-object via index_map; independent LINE needs a per-object/per-usage key in the line-LUT generator (Cody)."
+   ],
+   "consumers_to_inspect": [
+    "apps/rastan-direct/src/pc090oj_hooks.s .Lnq_gameover_emit/.Lnq_gameover_labels",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py (per-object index_map)",
+    "tools/translation/gen_pc090oj_palsel_lut.py (bank-keyed line LUT)"
+   ],
+   "evidence": [
+    "docs/design/Cody_gameover_1up_palette_provenance.md",
+    "docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-HUD-P1-LABEL-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay HUD (scene 1) and frontend",
+    "stage": "all stages (HUD)",
+    "subsystem": "PC090OJ P1 / 1UP static label sprites",
+    "actor_family": "gameplay HUD P1/1UP label",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x0",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30",
+    "pattern_codes": [
+     "0x0039",
+     "0x0046",
+     "0x0048"
+    ],
+    "arcade_routines": [
+     "0x03B8B0",
+     "0x03B930",
+     "0x03B802"
+    ],
+    "arcade_source_ranges": [
+     "0x1C80..0x1CFF (0x39)",
+     "0x2300..0x237F (0x46)",
+     "0x2400..0x247F (0x48)"
+    ],
+    "palette_source": "shares the 1UP/score arcade palette family/effective bank 0x30 with the score digits, but is a DIFFERENT pattern family"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "frontend generated SAT (gen_native_hud.py, cells 1359..1370) selects line 2; reduced gameplay producer .Lnq_project_p1_hud selects line 3 via pc090oj_hud_white_genesis.bin",
+    "dynamic_behavior": "REQUIRED semantic appearance = PURE WHITE (Tighe). Must be owned by the palette-decision/index model, NOT a hard-coded line in renderer code and NOT keyed on native tile slot.",
+    "shared_line_ownership": "effective bank 0x30 shared (see GAMEOVER decision known_defects)"
+   },
+   "decision_basis": "Cody provenance. Added to Palette Composer as object:hud.p1_label (separate pattern identity from score digits). Pure-white achieved by index_map routing opaque indices to a white CRAM entry; the two HUD subfamilies MAY share the same palette decision but keep separate pattern identities.",
+   "known_defects": [
+    "No semantic Palette Composer/registry representation before this task; current red result comes from target line/package ownership (lines 2/3) not from the arcade family being red. Same bank-0x30 line-LUT collision as the GAMEOVER decision."
+   ],
+   "consumers_to_inspect": [
+    "tools/translation/gen_native_hud.py",
+    "tools/translation/build_pc090oj_hud_white.py",
+    "apps/rastan-direct/src/pc090oj_hooks.s .Lnq_project_p1_hud",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py"
+   ],
+   "evidence": [
+    "docs/design/Cody_gameover_1up_palette_provenance.md",
+    "docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md"
+   ]
+  },
+  {
+   "id": "PAL-PC090OJ-HUD-SCORE-DIGITS-001",
+   "status": "provisional",
+   "context": {
+    "scene": "gameplay HUD (scene 1) and frontend",
+    "stage": "all stages (HUD)",
+    "subsystem": "PC090OJ six BCD score digit sprites",
+    "actor_family": "gameplay HUD score digits",
+    "actor_classes": null
+   },
+   "arcade_semantics": {
+    "source_attribute_nibble": "0x0",
+    "sprite_control": "0x0060",
+    "colbank_bits": "0x0060",
+    "effective_palette_bank": "0x30",
+    "pattern_codes": [
+     "0x002A",
+     "0x002B",
+     "0x002C",
+     "0x002D",
+     "0x002E",
+     "0x002F",
+     "0x0030",
+     "0x0031",
+     "0x0032",
+     "0x0033"
+    ],
+    "arcade_routines": [
+     "0x03B802 (six BCD digits; reads A5+0x011E)"
+    ],
+    "arcade_source_ranges": [
+     "0x1500..0x19FF (0x2A..0x33)"
+    ],
+    "palette_source": "shares the 1UP/score arcade palette family/effective bank 0x30 with the P1 label, but is a DIFFERENT pattern family"
+   },
+   "genesis_realization": {
+    "palette_line": null,
+    "route_kind": "frontend generated SAT (gen_native_hud.py, cells 1379..1418) selects line 2; reduced gameplay HUD-white path selects line 3",
+    "dynamic_behavior": "REQUIRED semantic appearance = PURE WHITE (Tighe). Owned by the palette-decision/index model, not hard-coded.",
+    "shared_line_ownership": "effective bank 0x30 shared (see GAMEOVER decision known_defects)"
+   },
+   "decision_basis": "Cody provenance. Added to Palette Composer as object:hud.score_digits (separate pattern identity from the P1 label). MAY share the P1 label's palette decision; pattern identities stay separate.",
+   "known_defects": [
+    "No semantic Palette Composer/registry representation before this task; same bank-0x30 line-LUT collision as the GAMEOVER decision."
+   ],
+   "consumers_to_inspect": [
+    "tools/translation/gen_native_hud.py",
+    "tools/translation/build_pc090oj_hud_white.py",
+    "apps/rastan-direct/src/pc090oj_hooks.s .Lnq_project_p1_hud",
+    "tools/graphics_editor/gen_reindexed_pc090oj.py"
+   ],
+   "evidence": [
+    "docs/design/Cody_gameover_1up_palette_provenance.md",
+    "docs/design/Andy_gameover_gameplay_hud_demon_palette_integration.md"
    ]
   }
  ]
