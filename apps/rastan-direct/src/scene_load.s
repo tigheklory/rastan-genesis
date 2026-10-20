@@ -160,7 +160,7 @@ load_scene_tiles:
     move.l  %d1, genesistan_scene_a0_hi
 
     /* Build 0301: reset the streaming tile cache on gameplay-scene entry (display still off). */
-    /* Build 0329: install the frozen-Test R1/P1 palette Lines 0/1/3 ONCE here, at the gameplay-scene
+    /* Install the generated current-Test R1/P1 palette Lines 0/1/3 ONCE here, at the gameplay-scene
      * activation event.  This replaces the removed per-VBlank vdp_reassert_test_lines: Test ownership
      * is established at the semantic boundary and the arcade palette hooks are gated off Lines 0/1/3
      * during scene 1, so the Test lines stay static until the next scene-activation event. */
@@ -218,7 +218,7 @@ genesistan_pc080sn_plane_b_visual_records_end:
      * multiple of 32, no individual tile can straddle a VDP DMA source bank. */
     .balign 32
 genesistan_pc080sn_tile_rom:
-    /* Build 0315: offline Palette Composer Layer-A patterns (editor index-maps applied by
+    /* Offline current Palette Composer Test Layer-A patterns (editor index-maps applied by
      * tools/graphics_editor/compile_editor_layera.py). Layer-B tile codes are disjoint from
      * Layer-A codes, so only editor-authored R1/P1 Layer-A patterns are reindexed here. */
     .incbin "../../build/regions/pc080sn_editor_layera.bin"

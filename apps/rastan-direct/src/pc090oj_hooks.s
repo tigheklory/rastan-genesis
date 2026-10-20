@@ -115,7 +115,7 @@
     .global pc090oj_dma_test_heartbeat
 
     .extern rastan_pc090oj
-    .extern rastan_pc090oj_hud_white
+    .extern rastan_pc090oj_semantic_profile
     .extern pc090oj_slot_lut
     .extern pc090oj_player_frame_table
     .extern pc090oj_player_piece_table
@@ -2230,7 +2230,7 @@ genesistan_pc090oj_hook_audit_guard:
     .equ NATIVE_SAT_MAX, 80
     .equ NATIVE_CELLS, 49
     /* Exact two-level reverse index for the Build-0356 residency identity.
-     * The forward key is low 12-bit graphics code plus the HUD-white tag in
+     * The forward key is low 12-bit graphics code plus the semantic-profile tag in
      * bit 15.  Normalize that tag to bit 12 for a dense 13-bit key, then use
      * its high nine bits as a 512-entry directory and low nibble within one
      * of at most 49 live 16-byte pages.  Directory/page entries use 0xFF as
@@ -2378,8 +2378,9 @@ pc090oj_native_emit_pass:
     cmpi.w  #0xFFFF, %d4
     beq.s   .Lgo_pop
     move.w  2(%a5), %d3              /* glyph code */
+    ori.w   #0x8000, %d3             /* current Test object index_map asset */
     move.w  #0x0070, %d2             /* Y = visible */
-    moveq   #0, %d1                  /* attr = palette line 0 */
+    moveq   #PC090OJ_GAMEOVER_PROFILE_LINE, %d1
     bsr     .Lnq_emit_entry_cached
     addq.l  #4, %a5
     bra.s   .Lgo_loop
@@ -2645,17 +2646,17 @@ native_frontend_hud_emit:
     moveq   #0x30, %d4
     bsr     .Lnq_emit_hud_digit
 
-    moveq   #0, %d1
+    moveq   #PC090OJ_HUD_P1_PROFILE_LINE, %d1
     move.w  #0x0010, %d2
     move.w  #0xD039, %d3            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  #0x0040, %d4
     bsr     native_sprite_emit_fast
-    moveq   #0, %d1
+    moveq   #PC090OJ_HUD_P1_PROFILE_LINE, %d1
     move.w  #0x0010, %d2
     move.w  #0xD048, %d3            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  #0x0028, %d4
     bsr     native_sprite_emit_fast
-    moveq   #0, %d1
+    moveq   #PC090OJ_HUD_P1_PROFILE_LINE, %d1
     move.w  #0x0010, %d2
     move.w  #0xD046, %d3            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  #0x0038, %d4
@@ -2675,7 +2676,7 @@ native_frontend_hud_emit:
     addi.w  #0x002A, %d1
     ori.w   #0xD000, %d1            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  %d1, %d3
-    moveq   #0, %d1
+    moveq   #PC090OJ_HUD_SCORE_PROFILE_LINE, %d1
     bsr     native_sprite_emit_fast
     rts
 .endif
@@ -2750,7 +2751,7 @@ profile_native_pre_dynamic:
     andi.w  #0x0007, %d7
     btst    %d7, %d6
     bne     .Lnq_entry_skip
-    /* Preserve HUD-white residency tag from the caller's code bit 15.  Taken from
+    /* Preserve the semantic-profile residency tag from caller code bit 15. Taken from
      * d3 directly (not a memory operand), so .Lnq_emit_entry is callable both by
      * the lane loader and directly with d1=attr/d2=Y/d3=code/d4=X in registers. */
     btst    #15, %d3
@@ -2875,7 +2876,7 @@ profile_native_variant_entry:
     move.w  %d6, %d3                     /* residency key + worklist code = 0x2000 | vi */
 .Lnq_no_variant:
 
-    /* Exact O(1) reverse lookup.  Normalize the HUD-white bit-15 residency tag to
+    /* Exact O(1) reverse lookup. Normalize the semantic-profile bit-15 tag to
      * bit 12 (or a variant key into the free SPRITE_VARIANT_KEY_NORM range), then
      * perform one directory and one leaf access. */
     move.w  %d3, %d0
@@ -3087,14 +3088,16 @@ profile_native_sat_attr:
     lsr.w   #3, %d0
     andi.w  #0x1800, %d0
     ori.w   #0x8000, %d0
-    /* Compose final palette bits now. d2 is free until the resident-cell pop.
-     * HUD-white is an existing semantic code tag, so it needs no SAT-slot
-     * metadata transport and no second pass. */
-    moveq   #3, %d7
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+    /* Compose final palette bits now. Bit 15 marks the generated semantic
+     * GAME OVER/HUD profile asset; its object-specific line travels in d1 and
+     * comes from the generated current-Test constants above, not bank 0x30. */
+    moveq   #0, %d7
     btst    #15, %d3
-    bne.s   .Lnq_palette_ready
-.endif
+    beq.s   .Lnq_palette_lookup
+    move.w  %d1, %d7
+    andi.w  #0x0003, %d7
+    bra.s   .Lnq_palette_ready
+.Lnq_palette_lookup:
     move.w  %d1, %d2
     andi.w  #0x000F, %d2
     moveq   #0, %d7
@@ -3253,17 +3256,15 @@ vdp_commit_sprites_vram:
 	    bra.s   .Lvcs_tile_src_ready
 	.Lvcs_tile_src_notvar:
 	    andi.w  #0x0FFF, %d0
-	.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
 	    btst    #15, %d6
 	    beq.s   .Lvcs_tile_src_normal
 	    move.w  %d0, %d3
 	    subi.w  #0x002A, %d3
 	    mulu.w  #128, %d3
-	    lea     rastan_pc090oj_hud_white, %a1
+	    lea     rastan_pc090oj_semantic_profile, %a1
 	    adda.l  %d3, %a1
 	    bra.s   .Lvcs_tile_src_ready
 	.Lvcs_tile_src_normal:
-	.endif
 	    mulu.w  #128, %d0
 	    lea     rastan_pc090oj, %a1
 	    adda.l  %d0, %a1

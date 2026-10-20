@@ -48,7 +48,7 @@
     .align 2
 /* rows: scene_id, owner, arcade_bank, genesis_line, flags; 0xFFFF terminator */
 palette_route_table:
-    /* Build 0325: FINAL frozen-Test R1/P1 line ownership.
+    /* Current generated Test-profile R1/P1 line ownership.
      *   Line 0 = Test shared sprite palette (source banks 0x32,0x33,0x34,0x3E)
      *   Line 1 = Test shared sprite palette (source banks 0x35,0x36,0x3A)
      *   Line 2 = Layer B (arcade BG bank 48) - PROTECTED
@@ -459,17 +459,16 @@ genesistan_palette_hook_3ba64:
     .align 2
     .global editor_layera_palette
 editor_layera_palette:
-    .word 0x0000, 0x028C, 0x044C, 0x0026, 0x0004, 0x0002, 0x0424, 0x0624
-    .word 0x0402, 0x0202, 0x0200, 0x0422, 0x0440, 0x0660, 0x0AA6, 0x0884
+    /* Palette Composer Test line 3. The generated asset stores lines 0,1,3. */
+    .incbin "../../build/rastan-direct/test_palette_cram.bin", 64, 32
 
-/* Build 0325: frozen-Test shared R1/P1 sprite palettes. Static ROM data (frozen Test profile
- * target_palette_lines[0] and [1]); staged onto Genesis Lines 0/1 each gameplay VBlank. The offline
- * PC090OJ reindex (pc090oj_editor.bin) remaps sprite pixels into these exact target entries. */
+/* Build 0459: current Test-profile shared R1/P1 sprite palettes. Generated
+ * directly from target_palette_lines[0] and [1], then staged onto Genesis
+ * Lines 0/1 at gameplay activation. The offline PC090OJ reindex remaps sprite
+ * pixels into these exact target entries. */
     .global test_sprite_line0
 test_sprite_line0:
-    .word 0x0000, 0x006C, 0x0226, 0x0224, 0x068A, 0x0466, 0x002C, 0x0000
-    .word 0x0EEE, 0x08AE, 0x044A, 0x0008, 0x00EE, 0x0080, 0x0060, 0x0040
+    .incbin "../../build/rastan-direct/test_palette_cram.bin", 0, 32
     .global test_sprite_line1
 test_sprite_line1:
-    .word 0x0000, 0x08CC, 0x0242, 0x0486, 0x0064, 0x04A6, 0x04A0, 0x0662
-    .word 0x0CCA, 0x0CCC, 0x0028, 0x024C, 0x0422, 0x0AA6, 0x0640, 0x0AC4
+    .incbin "../../build/rastan-direct/test_palette_cram.bin", 32, 32

@@ -516,15 +516,13 @@
     "flash_behavior": "ONE family: same patterns/attrs/palette; bit 5 of 0x10C200 toggles visible Y~0x70 vs hidden/parked Y~0x180. No second palette family."
    },
    "genesis_realization": {
-    "palette_line": null,
-    "route_kind": "native .Lnq_gameover_emit/.Lnq_gameover_labels through the gameplay sprite finalizer; dynamic PC090OJ residency cells 1339..1534 (identity is the semantic family, NOT the temporary native tile slot)",
-    "dynamic_behavior": "must be its own semantic palette family; must NOT inherit usage:burst:bank0x30 ownership merely because effective bank 0x30 is shared",
-    "shared_line_ownership": "effective bank 0x30 is shared by burst, GAME OVER, HUD P1 label, HUD score digits; the bank-keyed palette-line LUT cannot separate them (see known_defects)"
+    "palette_line": 0,
+    "route_kind": "native .Lnq_gameover_emit/.Lnq_gameover_labels selects the generated object:attract.game_over semantic profile asset and generated PC090OJ_GAMEOVER_PROFILE_LINE constant; identity is the semantic family, not effective bank 0x30 or a temporary native tile slot",
+    "dynamic_behavior": "current Test object line and index_map are compiled offline; visible/hidden flash remains the retained arcade bit-5 decision",
+    "shared_line_ownership": "Tighe currently authors line 0; semantic object identity remains independent of burst despite their shared effective arcade bank 0x30"
    },
-   "decision_basis": "Cody static provenance (docs/design/Cody_gameover_1up_palette_provenance.md). Added to the Palette Composer as object:attract.game_over so it is independently authorable; color ownership flows through its per-object index_map (gen_reindexed_pc090oj.py), not the shared bank-0x30 line LUT.",
-   "known_defects": [
-    "Currently resolves its Genesis palette LINE accidentally via usage:burst:bank0x30 because the PC090OJ palette-line LUT (gen_pc090oj_palsel_lut.py) is keyed only by effective bank; GAME OVER, HUD P1/SCORE and burst all share bank 0x30, so they cannot be assigned independent LINES through that LUT. Independent COLOR is achievable per-object via index_map; independent LINE needs a per-object/per-usage key in the line-LUT generator (Cody)."
-   ],
+   "decision_basis": "Cody static provenance (docs/design/Cody_gameover_1up_palette_provenance.md). Build 0459 production integration compiles Tighe's current object:attract.game_over line/index_map directly, eliminating the accidental burst-bank fallback without changing the authored values.",
+   "known_defects": [],
    "consumers_to_inspect": [
     "apps/rastan-direct/src/pc090oj_hooks.s .Lnq_gameover_emit/.Lnq_gameover_labels",
     "tools/graphics_editor/gen_reindexed_pc090oj.py (per-object index_map)",
@@ -568,15 +566,13 @@
     "palette_source": "shares the 1UP/score arcade palette family/effective bank 0x30 with the score digits, but is a DIFFERENT pattern family"
    },
    "genesis_realization": {
-    "palette_line": null,
-    "route_kind": "frontend generated SAT (gen_native_hud.py, cells 1359..1370) selects line 2; reduced gameplay producer .Lnq_project_p1_hud selects line 3 via pc090oj_hud_white_genesis.bin",
-    "dynamic_behavior": "REQUIRED semantic appearance = PURE WHITE (Tighe). Must be owned by the palette-decision/index model, NOT a hard-coded line in renderer code and NOT keyed on native tile slot.",
-    "shared_line_ownership": "effective bank 0x30 shared (see GAMEOVER decision known_defects)"
+    "palette_line": 0,
+    "route_kind": "reduced gameplay producer .Lnq_project_p1_hud selects the generated object:hud.p1_label semantic profile asset and PC090OJ_HUD_P1_PROFILE_LINE constant; frontend full HUD remains its separately generated accepted presentation",
+    "dynamic_behavior": "current Test object line/index_map are compiled offline; runtime supplies only the retained score/label visibility and position decision",
+    "shared_line_ownership": "Tighe currently authors line 0; P1 identity remains separate from score and burst despite effective bank 0x30"
    },
-   "decision_basis": "Cody provenance. Added to Palette Composer as object:hud.p1_label (separate pattern identity from score digits). Pure-white achieved by index_map routing opaque indices to a white CRAM entry; the two HUD subfamilies MAY share the same palette decision but keep separate pattern identities.",
-   "known_defects": [
-    "No semantic Palette Composer/registry representation before this task; current red result comes from target line/package ownership (lines 2/3) not from the arcade family being red. Same bank-0x30 line-LUT collision as the GAMEOVER decision."
-   ],
+   "decision_basis": "Cody provenance. Build 0459 compiles Tighe's current object:hud.p1_label line/index_map into the reduced gameplay HUD without collapsing its pattern identity into score or burst.",
+   "known_defects": [],
    "consumers_to_inspect": [
     "tools/translation/gen_native_hud.py",
     "tools/translation/build_pc090oj_hud_white.py",
@@ -624,15 +620,13 @@
     "palette_source": "shares the 1UP/score arcade palette family/effective bank 0x30 with the P1 label, but is a DIFFERENT pattern family"
    },
    "genesis_realization": {
-    "palette_line": null,
-    "route_kind": "frontend generated SAT (gen_native_hud.py, cells 1379..1418) selects line 2; reduced gameplay HUD-white path selects line 3",
-    "dynamic_behavior": "REQUIRED semantic appearance = PURE WHITE (Tighe). Owned by the palette-decision/index model, not hard-coded.",
-    "shared_line_ownership": "effective bank 0x30 shared (see GAMEOVER decision known_defects)"
+    "palette_line": 0,
+    "route_kind": "reduced gameplay producer .Lnq_project_p1_hud selects the generated object:hud.score_digits semantic profile asset and PC090OJ_HUD_SCORE_PROFILE_LINE constant; frontend full HUD remains its separately generated accepted presentation",
+    "dynamic_behavior": "current Test object line/index_map are compiled offline; runtime supplies only retained BCD digits, visibility, and position",
+    "shared_line_ownership": "Tighe currently authors line 0; score identity remains separate from P1 and burst despite effective bank 0x30"
    },
-   "decision_basis": "Cody provenance. Added to Palette Composer as object:hud.score_digits (separate pattern identity from the P1 label). MAY share the P1 label's palette decision; pattern identities stay separate.",
-   "known_defects": [
-    "No semantic Palette Composer/registry representation before this task; same bank-0x30 line-LUT collision as the GAMEOVER decision."
-   ],
+   "decision_basis": "Cody provenance. Build 0459 compiles Tighe's current object:hud.score_digits line/index_map into the reduced gameplay HUD while retaining a separate pattern family from P1 and burst.",
+   "known_defects": [],
    "consumers_to_inspect": [
     "tools/translation/gen_native_hud.py",
     "tools/translation/build_pc090oj_hud_white.py",

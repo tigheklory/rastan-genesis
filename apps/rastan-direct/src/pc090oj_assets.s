@@ -81,13 +81,14 @@ pc090oj_generic_usage_table:
 pc090oj_player_frame_residency:
     .incbin "../../build/pc090oj_frame_residency.bin"
 
-    /* Build 0232: score/1UP HUD glyph slice (codes 0x02A..0x048) with every
-     * opaque pixel remapped to palette index 2.  Only the gameplay HUD mode-2
-     * score-family records select this data; normal sprite residency is separate. */
-    .global rastan_pc090oj_hud_white
+    /* Build 0459: semantic GAME OVER / score / P1 glyph slice (codes
+     * 0x02A..0x048), reindexed from each current Test object index_map.
+     * Bit-15-tagged native producers select this data; ordinary sprite
+     * residency remains separate. */
+    .global rastan_pc090oj_semantic_profile
     .align 2
-rastan_pc090oj_hud_white:
-    .incbin "../../build/pc090oj_hud_white_genesis.bin"
+rastan_pc090oj_semantic_profile:
+    .incbin "../../build/pc090oj_semantic_profile_genesis.bin"
 
     .global pc090oj_slot_lut
     .align 2

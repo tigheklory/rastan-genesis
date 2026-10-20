@@ -253,8 +253,19 @@ def main():
     base, variants, var_ordinal, group_base, n_variant_cells, cb_map, code_banks = build_layout(profile, raw, a.corpus)
 
     out = bytearray(raw)
+    usage_decisions = {}
+    for (code, _bank), (_usagebase, uid, line, imap) in cb_map.items():
+        entry = usage_decisions.setdefault(
+            uid,
+            {"line": line, "index_map": {str(k): v for k, v in sorted(imap.items())}, "codes": []},
+        )
+        entry["codes"].append("0x%03X" % code)
+    for entry in usage_decisions.values():
+        entry["codes"] = sorted(set(entry["codes"]))
+
     manifest = {"profile_sha256": profile_sha, "source": os.path.relpath(a.pc090oj, ROOT),
                 "cell_model": {"offset": "code*128", "size_bytes": CELL, "subtiles": 4},
+                "usage_decisions": usage_decisions,
                 "base_reindexed_codes": 0, "variant_cells": 0, "divergent_blocks": [], "entries": []}
     for code, (usagebase, uid, bank, line, imap) in sorted(base.items()):
         s = code * CELL

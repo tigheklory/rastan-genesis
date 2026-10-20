@@ -95,11 +95,15 @@ CRASH_BUILD_INC := $(OUT_DIR)/crash_build.inc
 PC090OJ_PALSEL_LUT_INC := $(OUT_DIR)/pc090oj_palsel_lut.inc
 PC090OJ_PALSEL_LUT_GEN := $(ROOT)/tools/translation/gen_pc090oj_palsel_lut.py
 PC090OJ_PALSEL_EQUIV := $(ROOT)/build/rastan-direct/pc090oj_direct_palette_equivalence.json
+PALETTE_FAMILY_VERIFY := $(ROOT)/tools/graphics_editor/verify_palette_families.py
 
 MAINCPU_REGION := $(ROOT)/build/regions/maincpu.bin
 PC080SN_REGION := $(ROOT)/build/regions/pc080sn.bin
 PC080SN_EDITOR_LAYERA := $(ROOT)/build/regions/pc080sn_editor_layera.bin
-EDITOR_LAYERA_SNAPSHOT := $(ROOT)/build/rastan-direct/build0400/Test.snapshot.json
+EDITOR_PALETTE_PROFILE := $(ROOT)/analysis/graphics_optimizer/editor_policy/Test.json
+TEST_PALETTE_CRAM := $(ROOT)/build/rastan-direct/test_palette_cram.bin
+TEST_PALETTE_CRAM_REPORT := $(ROOT)/build/rastan-direct/test_palette_cram_report.json
+TEST_PALETTE_CRAM_GEN := $(ROOT)/tools/graphics_editor/gen_test_palette_cram.py
 # Canonical approved pattern reference-substitution policy (offline only). Consumed automatically by the
 # normal build: apply_pattern_reuse.py validates every approved entry against the real plane-A usage
 # inventory and fails the build on any unresolved entry. Editing the policy re-triggers validation.
@@ -150,7 +154,7 @@ PC080SN_BOUNDARY_REPORT := $(PC080SN_BOUNDARY_DIR)/boundary_report.json
 PC080SN_TRANSITION_RETENTION_STAMP := $(OUT_DIR)/build0311_transition_retention_gate.stamp
 PC090OJ_REGION := $(ROOT)/build/regions/pc090oj.bin
 PC090OJ_PRECONV := $(ROOT)/build/pc090oj_genesis.bin
-# Build 0325: offline Palette-Composer-reindexed R1/P1 sprite region (frozen Test index_maps per resolved
+# Offline Palette-Composer-reindexed R1/P1 sprite region (current Test index_maps per resolved
 # (code,bank)). Consumed by pc090oj_assets.s. Provenance in pc090oj_editor_manifest.json.
 PC090OJ_EDITOR := $(ROOT)/build/regions/pc090oj_editor.bin
 # Build 0381: complete R1/P1 semantic corpus + weapon/player cell evidence (replaces the
@@ -163,7 +167,8 @@ H24_LEG_CELLS := $(ROOT)/analysis/actor_decompilation/h24_player_leg_cells.tsv
 H16_BURST_RENDER := $(ROOT)/analysis/actor_decompilation/h16_burst_child_render.tsv
 ACTOR_GRAPHICS_MANIFEST := $(ROOT)/docs/design/rastan_actor_graphics_manifest.json
 PC090OJ_VARIANTS_INC := $(OUT_DIR)/pc090oj_sprite_variants.inc
-PC090OJ_HUD_WHITE := $(ROOT)/build/pc090oj_hud_white_genesis.bin
+PC090OJ_SEMANTIC_PROFILE := $(ROOT)/build/pc090oj_semantic_profile_genesis.bin
+PC090OJ_SEMANTIC_PROFILE_REPORT := $(ROOT)/build/rastan-direct/pc090oj_semantic_profile_report.json
 PC090OJ_SLOT_LUT := $(ROOT)/build/pc090oj_slot_lut.bin
 PC090OJ_BLANK_BITSET := $(ROOT)/build/pc090oj_blank_bitset.bin
 PC090OJ_OPAQUE_BBOX := $(ROOT)/build/pc090oj_opaque_bbox.bin
@@ -333,7 +338,7 @@ $(CRASH_BUILD_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 $(OUT_DIR)/tilemap_hooks.o: $(SRC_DIR)/tilemap_hooks.s $(PC090OJ_CONFIG_INC) $(PC080SN_BOUNDARY_CONSTANTS) $(BEST5_NUMBER_TABLE) $(BEST5_NAME_TABLE) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/palette_hooks.o: $(SRC_DIR)/palette_hooks.s $(PC090OJ_CONFIG_INC) $(TEST_PALETTE_CRAM) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 # Validated pattern-reuse resolution: canonical policy -> resolved (code,bank) substitutions. Hard gate:
@@ -345,9 +350,16 @@ $(PATTERN_REUSE_RESOLVED): $(PATTERN_REUSE_POLICY) $(PLANE_A_USES) $(ROOT)/tools
 		--uses "$(PLANE_A_USES)" \
 		--out "$@"
 
-$(PC080SN_EDITOR_LAYERA): $(PC080SN_REGION) $(EDITOR_LAYERA_SNAPSHOT) $(PATTERN_REUSE_RESOLVED) $(ROOT)/analysis/graphics_optimizer/round1_phase1/plane_a_uses.json $(ROOT)/tools/graphics_editor/gen_reindexed_region.py
+$(TEST_PALETTE_CRAM): $(EDITOR_PALETTE_PROFILE) $(TEST_PALETTE_CRAM_GEN)
+	$(PYTHON) "$(TEST_PALETTE_CRAM_GEN)" --profile "$(EDITOR_PALETTE_PROFILE)" \
+		--output "$@" --report "$(TEST_PALETTE_CRAM_REPORT)"
+
+$(TEST_PALETTE_CRAM_REPORT): $(TEST_PALETTE_CRAM)
+	@test -f "$@"
+
+$(PC080SN_EDITOR_LAYERA): $(PC080SN_REGION) $(EDITOR_PALETTE_PROFILE) $(PATTERN_REUSE_RESOLVED) $(ROOT)/analysis/graphics_optimizer/round1_phase1/plane_a_uses.json $(ROOT)/tools/graphics_editor/gen_reindexed_region.py
 	$(PYTHON) "$(ROOT)/tools/graphics_editor/gen_reindexed_region.py" \
-		--profile "$(EDITOR_LAYERA_SNAPSHOT)" \
+		--profile "$(EDITOR_PALETTE_PROFILE)" \
 		--pc080sn "$(PC080SN_REGION)" \
 		--out "$@"
 
@@ -447,14 +459,14 @@ $(PC090OJ_PRECONV): $(PC090OJ_REGION) $(ROOT)/tools/translation/preconvert_pc090
 	$(PYTHON) "$(ROOT)/tools/translation/preconvert_pc090oj_tiles.py" \
 		--input "$<" --output "$@"
 
-$(PC090OJ_EDITOR): $(PC090OJ_PRECONV) $(EDITOR_LAYERA_SNAPSHOT) $(R1P1_ENEMY_CORPUS) $(H24_WEAPON_CELLS) $(H24_PLAYER_CELLS) $(H24_LEG_CELLS) $(ROOT)/tools/graphics_editor/gen_reindexed_pc090oj.py | $(OUT_DIR)
+$(PC090OJ_EDITOR): $(PC090OJ_PRECONV) $(EDITOR_PALETTE_PROFILE) $(R1P1_ENEMY_CORPUS) $(H24_WEAPON_CELLS) $(H24_PLAYER_CELLS) $(H24_LEG_CELLS) $(ROOT)/tools/graphics_editor/gen_reindexed_pc090oj.py | $(OUT_DIR)
 	$(PYTHON) "$(ROOT)/tools/graphics_editor/gen_reindexed_pc090oj.py" \
-		--profile "$(EDITOR_LAYERA_SNAPSHOT)" --pc090oj "$(PC090OJ_PRECONV)" \
+		--profile "$(EDITOR_PALETTE_PROFILE)" --pc090oj "$(PC090OJ_PRECONV)" \
 		--corpus "$(R1P1_ENEMY_CORPUS)" --out "$(PC090OJ_EDITOR)" \
 		--variants-inc "$(PC090OJ_VARIANTS_INC)"
 
-$(PC090OJ_LAYER1_STAMP): $(PC090OJ_EDITOR) $(PC090OJ_PRECONV) $(EDITOR_LAYERA_SNAPSHOT) $(R1P1_ENEMY_CORPUS) $(PC090OJ_LAYER1_VERIFY) | $(OUT_DIR)
-	$(PYTHON) "$(PC090OJ_LAYER1_VERIFY)" --profile "$(EDITOR_LAYERA_SNAPSHOT)" \
+$(PC090OJ_LAYER1_STAMP): $(PC090OJ_EDITOR) $(PC090OJ_PRECONV) $(EDITOR_PALETTE_PROFILE) $(R1P1_ENEMY_CORPUS) $(PC090OJ_LAYER1_VERIFY) | $(OUT_DIR)
+	$(PYTHON) "$(PC090OJ_LAYER1_VERIFY)" --profile "$(EDITOR_PALETTE_PROFILE)" \
 		--corpus "$(R1P1_ENEMY_CORPUS)" --raw "$(PC090OJ_PRECONV)" --editor "$(PC090OJ_EDITOR)"
 	@touch "$@"
 
@@ -462,9 +474,13 @@ $(PC090OJ_LAYER1_STAMP): $(PC090OJ_EDITOR) $(PC090OJ_PRECONV) $(EDITOR_LAYERA_SN
 $(PC090OJ_VARIANTS_INC): $(PC090OJ_EDITOR)
 	@test -f "$@"
 
-$(PC090OJ_HUD_WHITE): $(PC090OJ_PRECONV) $(ROOT)/tools/translation/build_pc090oj_hud_white.py
+$(PC090OJ_SEMANTIC_PROFILE): $(PC090OJ_PRECONV) $(EDITOR_PALETTE_PROFILE) $(ROOT)/tools/translation/build_pc090oj_hud_white.py
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_hud_white.py" \
-		--input "$<" --output "$@"
+		--input "$(PC090OJ_PRECONV)" --profile "$(EDITOR_PALETTE_PROFILE)" \
+		--output "$@" --report "$(PC090OJ_SEMANTIC_PROFILE_REPORT)"
+
+$(PC090OJ_SEMANTIC_PROFILE_REPORT): $(PC090OJ_SEMANTIC_PROFILE)
+	@test -f "$@"
 
 $(PC090OJ_SLOT_LUT): $(ROOT)/tools/translation/build_pc090oj_slot_lut.py
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_slot_lut.py" --output "$@"
@@ -477,12 +493,12 @@ $(PC090OJ_OPAQUE_BBOX): $(PC090OJ_REGION) $(ROOT)/tools/translation/build_pc090o
 	$(PYTHON) "$(ROOT)/tools/translation/build_pc090oj_opaque_bbox.py" \
 		--input "$<" --output "$@"
 
-$(PC090OJ_FRAME_TABLE) $(PC090OJ_PLAYER_PIECE_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_SECONDARY_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_PIECE_TABLE) $(PC090OJ_UNIVERSAL_FRAME_INDEX) $(PC090OJ_SPECIAL_FRAME_INDEX) $(PC090OJ_DEATH_FRAME_INDEX) $(PC090OJ_DEATH_PIECE_TABLE) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) $(PC090OJ_FRAME_REPORT) $(PC090OJ_FRAME_COVERAGE): $(MAINCPU_REGION) $(PC090OJ_EDITOR) $(EDITOR_LAYERA_SNAPSHOT) $(PALETTE_DECISIONS) $(H24_WEAPON_CELLS) $(H24_PLAYER_CELLS) $(H24_LEG_CELLS) $(H16_BURST_RENDER) $(ACTOR_GRAPHICS_MANIFEST) $(R1P1_ENEMY_CORPUS) $(PC090OJ_FRAME_GEN) $(PC090OJ_FRAME_VERIFY) $(PC090OJ_DISPATCH_VERIFY)
+$(PC090OJ_FRAME_TABLE) $(PC090OJ_PLAYER_PIECE_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_SECONDARY_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_PIECE_TABLE) $(PC090OJ_UNIVERSAL_FRAME_INDEX) $(PC090OJ_SPECIAL_FRAME_INDEX) $(PC090OJ_DEATH_FRAME_INDEX) $(PC090OJ_DEATH_PIECE_TABLE) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) $(PC090OJ_FRAME_REPORT) $(PC090OJ_FRAME_COVERAGE): $(MAINCPU_REGION) $(PC090OJ_EDITOR) $(EDITOR_PALETTE_PROFILE) $(PALETTE_DECISIONS) $(H24_WEAPON_CELLS) $(H24_PLAYER_CELLS) $(H24_LEG_CELLS) $(H16_BURST_RENDER) $(ACTOR_GRAPHICS_MANIFEST) $(R1P1_ENEMY_CORPUS) $(PC090OJ_FRAME_GEN) $(PC090OJ_FRAME_VERIFY) $(PC090OJ_DISPATCH_VERIFY)
 	$(PYTHON) "$(PC090OJ_FRAME_GEN)" \
 		--maincpu "$(MAINCPU_REGION)" --variant-index "$(ROOT)/build/regions/pc090oj_variant_index.json" \
 		--body-evidence "$(H24_PLAYER_CELLS)" --weapon-evidence "$(H24_WEAPON_CELLS)" \
 		--leg-evidence "$(H24_LEG_CELLS)" \
-		--profile "$(EDITOR_LAYERA_SNAPSHOT)" --palette-decisions "$(PALETTE_DECISIONS)" \
+		--profile "$(EDITOR_PALETTE_PROFILE)" --palette-decisions "$(PALETTE_DECISIONS)" \
 		--burst-evidence "$(H16_BURST_RENDER)" --actor-manifest "$(ACTOR_GRAPHICS_MANIFEST)" \
 		--enemy-corpus "$(R1P1_ENEMY_CORPUS)" \
 		--table-output "$(PC090OJ_FRAME_TABLE)" --player-table-output "$(PC090OJ_PLAYER_PIECE_TABLE)" \
@@ -524,12 +540,12 @@ $(PC090OJ_CONFIG_INC): FORCE_ASM_REBUILD | $(OUT_DIR)
 	@echo "PC090OJ_MIRROR_RECORDS=$(PC090OJ_MIRROR_RECORDS) RASTAN_GAMEPLAY_HUD_SPRITES=$(RASTAN_GAMEPLAY_HUD_SPRITES) RASTAN_DIAG_CPU_BAR=$(RASTAN_DIAG_CPU_BAR) RASTAN_DIAG_SCORE_METRIC=$(RASTAN_DIAG_SCORE_METRIC) RASTAN_VBLANK_DISPLAY_OFF=$(RASTAN_VBLANK_DISPLAY_OFF) RASTAN_MODE_RACK_ADVANCE=$(RASTAN_MODE_RACK_ADVANCE) RASTAN_INVINCIBLE=$(RASTAN_INVINCIBLE) -> $@"
 
 # Build 0340 OPT-003: generate the prebaked (scene,effective_bank)->palette-line LUT from the authored
-# The current Palette Editing Tool snapshot authors R1/P1 mappings. The live route
+# The current live Palette Composer Test profile authors R1/P1 mappings. The live route
 # table is retained only as the pre-migration oracle for unauthored inputs. Every
 # build proves direct-map and exhaustive SAT word-2 equivalence.
-$(PC090OJ_PALSEL_LUT_INC): $(SRC_DIR)/palette_hooks.s $(EDITOR_LAYERA_SNAPSHOT) $(PC090OJ_PALSEL_LUT_GEN) | $(OUT_DIR)
+$(PC090OJ_PALSEL_LUT_INC): $(SRC_DIR)/palette_hooks.s $(EDITOR_PALETTE_PROFILE) $(PC090OJ_PALSEL_LUT_GEN) | $(OUT_DIR)
 	$(PYTHON) $(PC090OJ_PALSEL_LUT_GEN) --route-src $(SRC_DIR)/palette_hooks.s \
-		--profile $(EDITOR_LAYERA_SNAPSHOT) --out $@ --report $(PC090OJ_PALSEL_EQUIV) --verify
+		--profile $(EDITOR_PALETTE_PROFILE) --out $@ --report $(PC090OJ_PALSEL_EQUIV) --verify
 
 $(OUT_DIR)/title_native.o: $(SRC_DIR)/title_native.s $(PC090OJ_CONFIG_INC) $(NATIVE_TITLE_BG) $(NATIVE_TITLE_FG) $(NATIVE_TITLE_FG_INVINCIBLE) $(NATIVE_TITLE_PALETTE) $(NATIVE_TITLE_PATTERNS) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
@@ -543,7 +559,7 @@ $(OUT_DIR)/item_native.o: $(SRC_DIR)/item_native.s $(NATIVE_ITEM_LOGICAL_MAP) $(
 $(OUT_DIR)/pc090oj_hooks.o: $(SRC_DIR)/pc090oj_hooks.s $(PC090OJ_CONFIG_INC) $(PC090OJ_PALSEL_LUT_INC) $(PC090OJ_VARIANTS_INC) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_EDITOR) $(PC090OJ_LAYER1_STAMP) $(PC090OJ_HUD_WHITE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) $(PC090OJ_FRAME_TABLE) $(PC090OJ_PLAYER_PIECE_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_SECONDARY_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_PIECE_TABLE) $(PC090OJ_UNIVERSAL_FRAME_INDEX) $(PC090OJ_SPECIAL_FRAME_INDEX) $(PC090OJ_DEATH_FRAME_INDEX) $(PC090OJ_DEATH_PIECE_TABLE) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/pc090oj_assets.o: $(SRC_DIR)/pc090oj_assets.s $(PC090OJ_EDITOR) $(PC090OJ_LAYER1_STAMP) $(PC090OJ_SEMANTIC_PROFILE) $(PC090OJ_SLOT_LUT) $(PC090OJ_BLANK_BITSET) $(PC090OJ_OPAQUE_BBOX) $(PC090OJ_FRAME_TABLE) $(PC090OJ_PLAYER_PIECE_TABLE) $(PC090OJ_FRAME_INDEX) $(PC090OJ_SECONDARY_FRAME_INDEX) $(PC090OJ_GENERIC_FRAME_INDEX) $(PC090OJ_GENERIC_PIECE_TABLE) $(PC090OJ_UNIVERSAL_FRAME_INDEX) $(PC090OJ_SPECIAL_FRAME_INDEX) $(PC090OJ_DEATH_FRAME_INDEX) $(PC090OJ_DEATH_PIECE_TABLE) $(PC090OJ_GENERIC_BASE_LUT) $(PC090OJ_GENERIC_USAGE_TABLE) $(PC090OJ_FRAME_RESIDENCY) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(OUT_DIR)/diag_bookmark.o: $(SRC_DIR)/diag_bookmark.s FORCE_ASM_REBUILD | $(OUT_DIR)
@@ -586,7 +602,7 @@ $(SYMBOLS): $(ELF) | $(OUT_DIR)
 $(PREPATCH_BIN): $(ELF) | $(OUT_DIR)
 	$(OBJCOPY) -O binary $< $@
 
-$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(ATTRACT_PLANE_B_ENTRY_VERIFY) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) $(NATIVE_TITLE_VERIFY) $(NATIVE_TITLE_REPORT) $(NATIVE_HUD_VERIFY) $(NATIVE_HUD_REPORT) $(NATIVE_ITEM_VERIFY) $(NATIVE_ITEM_REPORT) $(BEST5_TABLE_VERIFY) $(BEST5_TABLE_REPORT) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
+$(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM_VERIFY) $(ATTRACT_PLANE_B_ENTRY_VERIFY) $(PALETTE_FAMILY_VERIFY) $(BOOT_GUARD) $(GAMEPLAY_ENTRY_GATE) $(PHASE1_EPOCH_GATE) $(BG_A_INCREMENTAL_GATE) $(PLANE_A_SEL0_SEGMENT_GATE) $(PLANE_A_SEL12_SEGMENT_GATE) $(VDP_DMA_BOUNDARY_GATE) $(PC080SN_NATIVE_METATILE_VERIFY) $(PC080SN_PLANE_B_VISUAL_VERIFY) $(PC080SN_PLANE_B_VISUAL_REPORT) $(COLLISION_VISUAL_SEMANTICS_VERIFY) $(NATIVE_TITLE_VERIFY) $(NATIVE_TITLE_REPORT) $(NATIVE_HUD_VERIFY) $(NATIVE_HUD_REPORT) $(NATIVE_ITEM_VERIFY) $(NATIVE_ITEM_REPORT) $(BEST5_TABLE_VERIFY) $(BEST5_TABLE_REPORT) $(TEST_PALETTE_CRAM_REPORT) $(PC090OJ_SEMANTIC_PROFILE_REPORT) | $(DIST_DIR) $(VARIANT_CONFIG_DIR)
 	cp "$(PC090OJ_CONFIG_INC)" "$(VARIANT_CONFIG_DIR)/canonical.inc"
 	$(PYTHON) "$(PC080SN_NATIVE_METATILE_VERIFY)" --maincpu "$(MAINCPU_REGION)" \
 		--index "$(PC080SN_NATIVE_METATILE_INDEX)" --records "$(PC080SN_NATIVE_METATILE_RECORDS)" \
@@ -640,6 +656,7 @@ $(BIN): $(PREPATCH_BIN) $(SYMBOLS) $(PATCH_SPEC) $(PATCHER) $(R1_SELECTOR_STREAM
 	$(PYTHON) "$(ATTRACT_PLANE_B_ENTRY_VERIFY)" \
 		--tilemap-source "$(SRC_DIR)/tilemap_hooks.s" \
 		--sprite-source "$(SRC_DIR)/pc090oj_hooks.s"
+	$(PYTHON) "$(PALETTE_FAMILY_VERIFY)"
 	$(PYTHON) "$(BEST5_TABLE_VERIFY)" --maincpu "$(MAINCPU_REGION)" --rom "$@" \
 		--address-map "$(ROOT)/build/rastan-direct/address_map.json" \
 		--symbols "$(SYMBOLS)" \
