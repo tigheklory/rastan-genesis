@@ -52996,3 +52996,26 @@ TIGHE ONLY
 - Stopped after mandatory canonical gates. No fixed30 completion, family, final-life, RG-004, HUD
   runtime/SAT-bank, or rope tests. Build 0472 not authorized. Accepted Build 0467 remains untouched.
   Report: `docs/design/Cody_RG008_change_driven_hud_optimization.md`.
+
+## 2026-10-21 — RG-009 Build 0471 frontend-stall diagnosis; Build 0472 candidate
+
+- Build 0471 is REJECTED/CONSUMED. Runtime `0x03B298..0x03B29C` maps to arcade `0x03B080`
+  and is the normal frame-loop tail, not a spin wait. The earliest 0467/0471 divergence is the
+  first state-2 phase-0 dispatch after identical START acceptance at tuple `2/0/0`.
+- First wrong operation: undeclared signed-word table `0x03A17C` retained entry 0=`03EA` after
+  RG-008's two earlier +6-byte restore notifications. It landed at runtime `0x03A766`, the
+  NOP/RTS predecessor, instead of moved handler `0x03A772`, so phase stayed zero each frame.
+  The bounded audit also found crossing table `0x03A1AC`; both are now declaratively reflowed.
+- All four dirty hooks preserve every D/A register, exact SR/CCR, balanced SP, and original return/
+  fallthrough. Writer-triggered HUD remains: one unchanged-frame dirty test, no BCD polling.
+- Exact pre-build source `4d5aadb0e92387617594404f9e757597c87517a3`; Build 0472 normal ROM
+  `dist/rastan-direct/rastan_direct_video_test_build_0472.bin`, SHA-256
+  `5b855e163a572c3a511a76470199c9cb13324f6ea0739bbd0f6834b80092dc7a`, 2,739,896 bytes.
+  Counter 472; complete seven-ROM family verified.
+- Canonical/boot/gameplay-entry/seven-epoch/native-HUD/fixed30/final-life/RG-004 Continue+attract
+  gates PASS. Durable runtime HUD event probe PASS: authoritative +1234 award, dirty consumed,
+  four significant digits + 1/U/P persist in both SAT banks. `_invincible` rope `795/795/795`,
+  13,267.083 ms, deterministic; 3 frames / 50.064 ms faster than accepted 0467.
+- Accepted Build 0467/tag unchanged; real-hardware acceptance PENDING. Concurrent Andy decomp,
+  audio, Palette Composer, and unrelated work preserved. Report:
+  `docs/design/Cody_RG009_build0471_frontend_stall.md`.
