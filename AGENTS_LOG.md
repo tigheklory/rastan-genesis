@@ -52875,3 +52875,15 @@ TIGHE ONLY
   Continue tile/pattern presentation; OPEN-035 remains open for attract-demo death -> second-title
   palette and its later story/BEST-5/item-screen propagation. Build 0462 and rejected Build 0463
   remain preserved. No ROM was built and no build number was consumed by this acceptance lock.
+
+### MAME Exit Summary (2026-10-20 19:56:02)
+- Final PC: 0x03B286
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+## [PROMPT RG-004 — Cody — Complete 0464 Front-End Presentation]
+
+* Resumed the interrupted RG-004 without repeating the accepted Build-0464 lock (`accepted/build-0464` -> `e5358681`, SHA `74460342...`, bookkeeping `a19250f3`). Concurrent Andy audio/Z80/tool changes were preserved, unstaged, and untouched.
+* Proven independent roots: READY retained palette banks 0x04/0x05/0x43 were rejected before staging; Continue's 83 names/patterns were correct but 1,928 gameplay names survived outside its panel; natural demo death returned through source-driven `load_scene_tiles(0)`, which restored residency but left gameplay CRAM. Palette decisions `PAL-FRONTEND-READY-RETAINED-BANKS-001` and `PAL-FRONTEND-SCENE0-BASE-001` record the proven lifecycle mappings.
+* Implementation: retained READY bank translation (4->L0, 5->L1, duplicate-source 0x33/0x43->L3); offline original-source scene-0 base palette; full reset clears final Plane A/B before retained frontend producers, while 0x056440 preserves its original owner handoff -> scroll zero -> single plane clear order. No `Test.json`, item mapping, audio, shadow RAM, state machine, per-frame reset, or bypass change. ROM source `3bd0166e` (main implementation `eb5a9a2a`).
+* Build 0465: REJECTED / NOT ACCEPTED / artifact missing. The pre-number attract structural gate rejected the initial clear placement and `.DELETE_ON_ERROR` removed the rolling ROM; 0465 is permanently consumed and was not reused.
+* Build 0466 candidate: normal `dist/rastan-direct/rastan_direct_video_test_build_0466.bin`, SHA-256 `9ca337969058d206588d886dec6f38f6f2b73e3648c46ef25a01ae6a1e27c4f2`, 2,739,896 bytes, counter 466; complete seven-ROM family. Canonical/boot/gameplay-entry/seven-epoch/final-life/native-title/HUD/item/BEST-5/palette/family gates PASS; fixed30 1,798 frames; final-life zero-input PASS at 3,585 frames; Continue probe 83/83, zero mismatches, zero outside-panel names; bounded no-input demo returns to second title with all four palette lines identical to first title; rope `_invincible` 798/798/798, 13,317.147 ms, deterministic YES. Real-Genesis normal-ROM acceptance PENDING. Report: `docs/design/Cody_RG004_ready_continue_attract_reentry_cleanup.md`.

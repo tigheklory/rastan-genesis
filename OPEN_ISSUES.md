@@ -955,6 +955,12 @@ Final response must include "Open/Closed Issues Impact" section with:
 ## OPEN-033 — Death -> READY screen lifecycle: stale Rastan sprite + wrong READY! patterns
 
 - **Status:** OPEN / USER OBSERVATION (two distinct symptoms, same screen)
+- **Build 0466 candidate (2026-10-20, RG-004):** the remaining READY palette loss is proven before
+  staging in `genesistan_palette_hook_59ad4`: retained banks 0x04/0x05/0x43 were rejected while
+  0x33 survived. Build 0466 maps original bank 4 -> Line 0, bank 5 -> Line 1, and duplicate-source
+  banks 0x33/0x43 -> Line 3; actual CRAM publication already matched staging. Zero-input death route,
+  Continue probe, and all gates pass. OPEN pending Tighe normal-ROM visual acceptance of content and
+  palette; Build-0464 clean SAT/plane result remains a regression lock.
 - **Build 0464 candidate (2026-10-20, RG-003):** static provenance found the first common divergence
   at retained teardown `0x056440`: the native replacement cleared scroll/planes but neither restored
   scene-0 pattern/palette ownership nor staged/published a clean frontend SAT. Build 0464 restores the
@@ -983,6 +989,13 @@ Final response must include "Open/Closed Issues Impact" section with:
 ## OPEN-034 — CONTINUE and GAME OVER screens retain the previous scene's tiles and palette
 
 - **Status:** OPEN / USER OBSERVATION (refines a long-standing informal note)
+- **Build 0466 candidate (2026-10-20, RG-004):** all 83 Continue source codes, translated names,
+  actual Plane-B names, and resident patterns were correct; the first wrong stage was 1,928 stale
+  gameplay name cells outside the 12x10 panel. The accepted frontend reset now clears final staged
+  Plane A/B once before retained producers. The bounded Build-0466 probe reports 83/83 distinct
+  staged/actual names, zero mismatches, and zero nonblank outside-panel cells. GAME OVER control flow
+  still passes; its Build-0464 perfect hardware presentation is locked. OPEN pending Tighe visual
+  acceptance of Continue and confirmation that GAME OVER remains perfect.
 - **Build 0464 candidate (2026-10-20, RG-003):** original frontend teardown `0x03AD4C` had been
   replaced by `RTS/NOP`, leaving gameplay SAT, pattern residency, and palette ownership live. It is
   now a proper shift-table semantic redirect that restores generated scene-0 residency/palette
@@ -1006,6 +1019,12 @@ Final response must include "Open/Closed Issues Impact" section with:
 ## OPEN-035 — Attract-mode loop does not restore the initial attract tiles/patterns and palette
 
 - **Status:** OPEN / USER OBSERVATION
+- **Build 0466 candidate (2026-10-20, RG-004):** natural demo death reaches neither `0x056440` nor
+  `0x03AD4C`; retained source-driven `load_scene_tiles(0)` is the ownership return. It restored
+  residency but not base CRAM, leaving gameplay Lines 0/2/3. Build 0466 restores offline-converted
+  original frontend Lines 0/1/2 and semantic-empty Line 3 at that finite boundary. Bounded no-input
+  validation reaches the second title and proves its four staged/actual CRAM lines byte-identical to
+  first title. OPEN pending Tighe full second-title/story/BEST-5/item sequence acceptance.
 - **Build 0464 candidate (2026-10-20, RG-003):** every retained `0x03AD4C` frontend lifecycle clear
   now restores scene-0 patterns/palette mapping and republishes clean frontend SAT state before the
   retained title/story/BEST-5 producers. Fixed30 and terminal-route validation pass; closure remains
