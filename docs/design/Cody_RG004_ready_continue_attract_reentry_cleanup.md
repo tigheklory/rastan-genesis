@@ -185,13 +185,15 @@ The zero-input route proves READY progression, Continue entry, and unchanged GAM
 The clean frontend SAT construction and its publication verifier remain intact. Automated evidence
 cannot establish final visual correctness or replace Tighe's real-hardware acceptance.
 
-## Hardware acceptance requirements
+## Hardware acceptance — accepted
 
-Tighe must test the normal ROM on real Genesis hardware. READY must retain clean actors/planes and
-gain the correct palette. Continue must be clean with correct patterns/text/palette. GAME OVER and
-the first title must remain perfect. The attract demo must retain the current Palette Composer
-presentation. The second title, story, BEST 5, and the entire scrolling-item sequence must use their
-correct palettes. Build-0462 final-life behavior and Build-0464 SAT cleanup remain regression locks.
+Tighe accepted normal Build 0466 on real Sega Genesis hardware and reported that it runs great; the
+RG-004 frontend fixes are accepted. Immutable annotated ref `accepted/build-0466` peels to exact
+ROM-producing source `3bd0166e7df19553ba8066f24d1f47b7cb2d5ea5`. The normal-ROM SHA-256 was
+reverified as `9ca337969058d206588d886dec6f38f6f2b73e3648c46ef25a01ae6a1e27c4f2` before
+subsequent production work began. READY, Continue, GAME OVER, first title, attract demo, second title,
+story, BEST 5, scrolling-item palette continuity, final-life behavior, and frontend SAT cleanup are
+now accepted regression locks.
 
 Reward/death Palette Composer production integration, Demon palette, 1UP/score geometry, audio,
 Phase D, and Phase E remain outside RG-004.
