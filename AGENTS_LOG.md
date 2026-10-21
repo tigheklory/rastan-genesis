@@ -52916,3 +52916,24 @@ TIGHE ONLY
 - Final PC: 0x03B286
 - Stack Pointer (SP): 0x00FEFFFC
 - Unique Unmapped Memory Addresses: none
+
+## 2026-10-21 — Build 0467 accepted and locked (PROMPT RG-005)
+
+- Tighe tested normal Build 0467 on real Sega Genesis hardware and confirmed that normal-gameplay
+  `1UP` and SCORE are now in the correct positions. The RG-005 visual fix is ACCEPTED.
+- Original arcade proof: score digits Y=`0x10`; label `1` Y=`0x10`; label `U`/`P` Y=`0x00`.
+  Gameplay `.Lnq_project_p1_hud` had inherited score Y and flattened all label pieces to `0x10`;
+  Build 0467 restores the original per-family/per-piece coordinates. Full HUD assets are unchanged.
+- Accepted normal artifact:
+  `dist/rastan-direct/rastan_direct_video_test_build_0467.bin`, SHA-256
+  `8950c173471fc29ba326b8535a163c7265354e0c4c397de24668ac88a45e8e11`, size 2,739,896.
+  Exact ROM-producing source is `ae6179e33ad5a64672050bcbe7e03308c2a8570e`; immutable annotated
+  ref `accepted/build-0467` peels there. Counter remains 467; Build 0468 was not consumed.
+- Canonical/boot/gameplay-entry/seven-epoch/final-life/HUD-geometry/configured-family gates PASS;
+  fixed30 1,798; final-life zero-input PASS at frame 3,585; RG-004 Continue and second-title routes
+  PASS; `_invincible` rope `798/798/798`, 13,317.147 ms, deterministic YES. Complete seven-ROM
+  family is present and verified. No AI gameplay navigation.
+- This closes only the deferred normal-gameplay `1UP`/SCORE vertical-swap defect. HUD performance
+  optimization remains separate. Concurrent Andy RG-006/RG-007, audio, and Palette Composer work
+  was preserved and not staged. Report:
+  `docs/design/Cody_RG005_gameplay_1up_score_vertical_swap.md`.
