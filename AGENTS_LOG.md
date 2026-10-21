@@ -52970,3 +52970,29 @@ TIGHE ONLY
   geometry remains score/`1` Y=`0x10`, `U/P` Y=`0x00`. Real-Genesis acceptance PENDING.
 - Concurrent Andy RG-006/RG-007 C decompilation, audio, and Palette Composer work was preserved and
   not staged. Report: `docs/design/Cody_RG008_change_driven_hud_optimization.md`.
+
+### MAME Exit Summary (2026-10-21 10:53:43)
+- Final PC: 0x03B2AC
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-21 — RG-008 writer-triggered continuation; Builds 0470/0471 rejected
+
+- Tighe hardware-rejected 0469: its score cache shared `native_queue_hud` with the later eight-record
+  energy/status producer, so unchanged frames finalized overwritten status records. SAT alternation
+  was not causal. Actual score is `A5+0x011C..0x011E`; bounded writers are cold/new-game clear,
+  two player restores, and central award `0x03B726`.
+- Source `c344cae0` implements writer-triggered presentation dirtiness and a separate persistent
+  reduced-HUD queue. Ordinary frames do one dirty test, no BCD polling; full HUD unchanged.
+- 0470 is CONSUMED/REJECTED: normal SHA `8e76ea9b147dec0897d68f60d355a31be8657461d28971b0a7ac62159b88bdc9`.
+  Gameplay entry raised illegal vector 4 at `0x03AAAC`: undeclared outer-dispatch table `0x03A06C`
+  retained state-1 displacement `0x0840` after two earlier +6-byte insertions moved semantic handler
+  `0x03A8AC` to `0x03AAB8`.
+- Source `266fea88` declares and proves all three table entries (`09A4/084C/00EE` after reflow) and
+  extends the established gate with crash-record evidence. 0471 is CONSUMED/REJECTED: normal SHA
+  `71479918f165b7e26a2d2bc0881aee03d9a713634d4dc46ffee0e74496d1338e`. The illegal jump is gone,
+  credit/START pass, and exceptions are zero, but the gate stalls at state `2/0/0`, scene 0,
+  PCs `0x03B298/0x03B29C` through frame 1,000. Gameplay-entry and epoch-0 FAIL.
+- Stopped after mandatory canonical gates. No fixed30 completion, family, final-life, RG-004, HUD
+  runtime/SAT-bank, or rope tests. Build 0472 not authorized. Accepted Build 0467 remains untouched.
+  Report: `docs/design/Cody_RG008_change_driven_hud_optimization.md`.

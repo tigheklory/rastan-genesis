@@ -146,3 +146,52 @@ palette mapping, `Test.json`, audio, Phase D, or Phase E was changed. Concurrent
 audio, and Palette Composer work was preserved and not staged.
 
 Hardware acceptance remains pending for normal Build 0469 and its `_full_hud` variant.
+
+## Writer-triggered continuation and failed Builds 0470–0471
+
+Tighe rejected Build 0469 on real Genesis hardware. The shared `native_queue_hud` was later
+rewritten by the gameplay energy/status producer (count 8, records 0–7); an unchanged-score cache
+hit then finalized those status records instead of score/1UP. This explains the blank first HUD,
+temporary complete HUD after scoring, high-digit loss, and whole score/label disappearance. SAT-bank
+alternation was not causal.
+
+The active score is the packed BCD field `A5+0x011C..0x011E`, not the earlier assumed
+`0x011E..0x0120`. Static/decompiler/disassembly proof bounded its mutation paths to cold-start WRAM
+zero, the paid/new-game block clear, two active-player block restores, and centralized award routine
+`0x03B726`. Source `c344cae051a0fa271ca66e52062f1c042983034a` therefore replaced polling with a presentation-only
+dirty byte, an independent persistent reduced-HUD semantic queue, lifecycle dirtiness, and four
+proper shift replacements. Ordinary frames perform one dirty test and no score-byte reads or BCD
+comparisons. Full HUD behavior remains unchanged.
+
+Build 0470 was published and is consumed/rejected. Normal ROM SHA-256 is
+`8e76ea9b147dec0897d68f60d355a31be8657461d28971b0a7ac62159b88bdc9` (2,739,896 bytes).
+Its gameplay-entry gate raised vector 4 at stacked PC `0x03AAAC`. The first wrong operation was
+the outer frontend dispatcher (`0x03A052..0x03A06A`) loading the stale state-1 word `0x0840` from
+undeclared table `0x03A06C` and landing at the old handler address. The two earlier +6-byte player
+restore notifications had moved semantic handler `0x03A8AC` to Genesis `0x03AAB8`; `0x03AAAC` was
+now twelve bytes inside the moved handler. This was a jump-table reflow ownership omission, not a
+dirty-state or SAT failure.
+
+Commit `266fea8898a876374945f2a6c7b8a7fbc661c42f` declares all three `0x03A06C` signed-word table
+entries. The in-memory reflow proof resolves state targets `0x03A9FE`, `0x03A8AC`, and `0x03A15A`
+exactly (`09A4/084C/00EE` after RG-008 shifts). The established gameplay-entry gate now records the
+crash record when an exception occurs.
+
+Build 0471 was then published and is also consumed/rejected. Normal ROM:
+
+- path: `dist/rastan-direct/rastan_direct_video_test_build_0471.bin`
+- SHA-256: `71479918f165b7e26a2d2bc0881aee03d9a713634d4dc46ffee0e74496d1338e`
+- size: 2,739,896 bytes
+- exact source: `266fea8898a876374945f2a6c7b8a7fbc661c42f`
+
+The 0470 illegal jump is gone: credit and START are accepted and the gate records zero address,
+bus, illegal-instruction, or crash-handler entries. However, state remains `2/0/0`, scene remains
+frontend (`0`), and PCs cycle at `0x03B298/0x03B29C` through frame 1,000; Round 1, package install,
+and gameplay are never reached. The gameplay-entry gate and epoch-0 gate therefore FAIL. The build
+was interrupted immediately after those mandatory canonical gates: fixed30 completion, family,
+final-life, RG-004, HUD runtime presentation, SAT-bank, and rope validation were not run.
+
+Build 0472 is not authorized. The remaining proof gap is the first state/control-flow operation that
+leaves Build 0471 at `2/0/0` after START despite eliminating the proven 0470 table jump. No claim is
+made that the writer-triggered candidate is correct or faster. Build 0467 remains the accepted
+baseline; hardware acceptance for 0470/0471 is not applicable.
