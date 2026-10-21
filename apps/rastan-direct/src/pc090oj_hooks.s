@@ -2575,14 +2575,6 @@ native_frontend_hud_emit:
     lea     native_queue_hud, %a0
     move.w  native_hud_count, %d6
     bsr     .Lnq_emit_lane
-.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
-    /* The alternating gameplay SAT bank still needs the fixed P1 label on
-     * every frame.  Consume its immutable semantic records directly instead
-     * of reconstructing three queue entries in WRAM. */
-    lea     .Lnq_p1_label_records, %a0
-    moveq   #3, %d6
-    bsr     .Lnq_emit_lane
-.endif
     lea     native_queue_front_effect, %a0
     move.w  native_front_effect_count, %d6
     bsr     .Lnq_emit_lane
@@ -2679,6 +2671,21 @@ native_frontend_hud_emit:
     andi.w  #0x000F, %d1
     moveq   #0x30, %d4
     bsr     .Lnq_emit_hud_digit
+
+    /* Keep the cached lane compact and in Build-0467 SAT order: visible score
+     * digits followed by the three fixed label pieces.  Copy the immutable
+     * template only on cache construction/score change; unchanged frames keep
+     * using the same single native_queue_hud lane and perform no WRAM writes. */
+    lea     .Lnq_p1_label_records, %a0
+    move.w  native_hud_count, %d0
+    lsl.w   #3, %d0
+    lea     native_queue_hud, %a1
+    adda.w  %d0, %a1
+    moveq   #5, %d7
+.Lnq_p1_label_copy:
+    move.l  (%a0)+, (%a1)+
+    dbra    %d7, .Lnq_p1_label_copy
+    addq.w  #3, native_hud_count
 
     move.b  0x00FF011E, gameplay_hud_score_cache
     move.b  0x00FF011D, gameplay_hud_score_cache+1

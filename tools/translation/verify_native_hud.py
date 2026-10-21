@@ -101,8 +101,8 @@ def main():
 
     # RG-008: the compact score stream is persistent and reconstructed only
     # when one of the exact three bytes consumed by the accepted projector
-    # changes.  Static label tuples are immutable and are emitted after that
-    # stream into whichever alternating SAT bank owns the current frame.
+    # changes.  Static label tuples are immutable and copied behind that
+    # compact stream only on rebuild, leaving one finalizer lane per frame.
     cache_contract = (
         "gameplay_hud_score_cache_valid", "gameplay_hud_score_cache+1",
         "gameplay_hud_score_cache+2", "0x00FF011E", "0x00FF011D",
@@ -120,11 +120,17 @@ def main():
     ]
     if [word.strip() for word in label_words[:3]] != wanted_labels:
         raise SystemExit("immutable gameplay 1UP label changed")
+    label_copy_contract = (
+        "lea .Lnq_p1_label_records, %a0",
+        ".Lnq_p1_label_copy: move.l (%a0)+, (%a1)+",
+        "addq.w #3, native_hud_count",
+    )
+    if any(token not in compact for token in label_copy_contract):
+        raise SystemExit("immutable P1 label is not cached behind the compact score stream")
     gameplay_finalizer = sprites.split(".Lnq_gameplay:", 1)[1].split(
         ".Lnq_project_p1_hud:", 1)[0]
-    if not re.search(r"lea\s+\.Lnq_p1_label_records, %a0\s+moveq\s+#3, %d6\s+bsr\s+\.Lnq_emit_lane",
-                     gameplay_finalizer):
-        raise SystemExit("immutable P1 label is not emitted into every gameplay SAT bank")
+    if gameplay_finalizer.count("bsr     .Lnq_emit_lane") != 6:
+        raise SystemExit("gameplay finalizer must retain exactly one call per native lane")
 
     # Bounded semantic regression: all ten digits at all six positions, plus
     # leading-zero boundaries and consecutive unchanged/change/invalidate
