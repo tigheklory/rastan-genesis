@@ -154,10 +154,17 @@ implementation in parent `eb5a9a2a`). The passing candidate is Build 0466:
 - SHA-256: `9ca337969058d206588d886dec6f38f6f2b73e3648c46ef25a01ae6a1e27c4f2`;
 - size: 2,739,896 bytes;
 - counter: 466;
+- counter transition: accepted 464 -> rejected/missing 465 -> candidate 466;
+- canonical replacement inventory: 228 byte-neutral opcode sites plus 77 shift replacements;
+  expected Genesis coverage `0x29CEB8` bytes;
 - complete normal, `_d`, `_s`, `_do`, `_c`, `_full_hud`, and `_invincible` family present and
   configuration-verified.
 
 Validation results:
+
+All runtime checks below used the MAME Genesis/Genesis NTSC driver. Original-arcade meaning was
+established from the canonical existing Ghidra/disassembly evidence and retained ROM data; RG-004
+did not create another arcade gameplay trace.
 
 - canonical gate, pre/post boot guards, gameplay-entry, seven-epoch, selector relocation, native
   title/HUD/item/BEST-5, palette-family, DMA-boundary, attract Plane-B, and configured seven-ROM
