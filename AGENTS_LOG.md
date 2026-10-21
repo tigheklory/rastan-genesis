@@ -52937,3 +52937,36 @@ TIGHE ONLY
   optimization remains separate. Concurrent Andy RG-006/RG-007, audio, and Palette Composer work
   was preserved and not staged. Report:
   `docs/design/Cody_RG005_gameplay_1up_score_vertical_swap.md`.
+
+### MAME Exit Summary (2026-10-21 09:47:30)
+- Final PC: 0x03B286
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-21 09:52:06)
+- Final PC: 0x03B286
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-21 — RG-008 change-driven HUD candidate
+
+- Accepted Build 0467 and `accepted/build-0467` remain untouched. Build 0468 (source `888716e0`,
+  normal SHA `1e59d0a151f1c5fe89e177fcd6783c01aa244c5616f8d8811be359d7a88fb29b`) was produced but
+  REJECTED after a second per-frame HUD lane regressed the deterministic rope route to
+  `804/804/804`. It remains consumed and was not reused.
+- Corrected Build 0469 uses one persistent compact HUD lane: stable score frames do three byte
+  comparisons, zero digit conversions, and zero HUD-cache writes; score changes rebuild only the
+  visible digit stream and copy an immutable three-record label template. Gameplay still finalizes
+  HUD records into the alternating active SAT bank and DMA-copies the whole 640-byte SAT.
+- Exact ROM-producing source `0596622e33e2e67b4d8521f5de00590c646ebca3`; normal ROM
+  `dist/rastan-direct/rastan_direct_video_test_build_0469.bin`, SHA-256
+  `61956ae1418b9b3e066e79aec23570ad42712d9a24606694b9f74dfa0a315210`, size 2,739,896,
+  counter 469. Seven-ROM family complete.
+- Canonical/boot/gameplay-entry/seven-epoch/final-life/HUD/family gates PASS; fixed30 1,798;
+  final-life zero-input PASS at frame 3,588; RG-004 Continue and second-title probes PASS; rope
+  `799/799/799`, 13,333.835 ms, deterministic YES (one frame slower than accepted 0467).
+- Shared full frontend HUD was already immutable-template plus change-driven P1/P2/high-score/credit
+  and remains so. Per-frame energy/blink/lifecycle/sound status semantics were preserved. RG-005
+  geometry remains score/`1` Y=`0x10`, `U/P` Y=`0x00`. Real-Genesis acceptance PENDING.
+- Concurrent Andy RG-006/RG-007 C decompilation, audio, and Palette Composer work was preserved and
+  not staged. Report: `docs/design/Cody_RG008_change_driven_hud_optimization.md`.
