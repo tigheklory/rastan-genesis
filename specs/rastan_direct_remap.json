@@ -245,6 +245,12 @@
  ],
  "jump_table_word_displacements": [
   {
+   "table_address": "0x03A06C",
+   "entry_count": 3,
+   "entry_size_bytes": 2,
+   "note": "RG-008 declares the outer frontend state dispatch table consumed by 0x03A052..0x03A06A. State 0 targets 0x03A9FE, state 1 targets 0x03A8AC, and state 2 targets 0x03A15A. The two +6-byte player-swap dirty notifications at 0x03A2B0/0x03A2CE and the +6-byte new-game notification at 0x03A9A2 split this table from its later semantic handlers; reflow each signed word from the common shift table instead of retaining a historical displacement."
+  },
+  {
    "table_address": "0x03AA20",
    "entry_count": 3,
    "entry_size_bytes": 2,

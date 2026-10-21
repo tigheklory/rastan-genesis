@@ -35,6 +35,9 @@ local required_symbols = {
   "fg_boundary_install", "fg_boundary_packages", "fg_boundary_active_lut",
   "fg_boundary_epoch_transitions", "fg_boundary_active_record",
   "fg_boundary_active_package", "genesistan_current_scene_id",
+  "CRASH_EXCEPTION_TYPE", "CRASH_STACKED_SR", "CRASH_STACKED_PC",
+  "CRASH_FRAME_SP", "CRASH_FAULT_ADDR", "CRASH_ACCESS_WORD",
+  "CRASH_INSTR_REG",
 }
 for _, name in ipairs(required_symbols) do
   assert(symbols[name], "missing symbol: " .. name)
@@ -208,8 +211,13 @@ emu.register_frame_done(function()
   -- The final ROM vectors still authoritatively locate the isolated crash section.
   if crash_common_entries == 0 and current_pc >= crash_region_start and current_pc < crash_region_end then
     crash_common_entries = 1
-    log_event("CRASH_REGION", string.format("pc=%06X vectors=%06X/%06X/%06X",
-      current_pc, crash_vectors[1].pc, crash_vectors[2].pc, crash_vectors[3].pc))
+    log_event("CRASH_REGION", string.format(
+      "pc=%06X vectors=%06X/%06X/%06X vector=%04X stacked_sr=%04X stacked_pc=%08X frame_sp=%08X fault=%08X access=%04X instruction=%04X",
+      current_pc, crash_vectors[1].pc, crash_vectors[2].pc, crash_vectors[3].pc,
+      r16(symbols.CRASH_EXCEPTION_TYPE), r16(symbols.CRASH_STACKED_SR),
+      r32(symbols.CRASH_STACKED_PC), r32(symbols.CRASH_FRAME_SP),
+      r32(symbols.CRASH_FAULT_ADDR), r16(symbols.CRASH_ACCESS_WORD),
+      r16(symbols.CRASH_INSTR_REG)))
   end
   if current_sp < 0xe00000 or current_sp > 0xffffff or (current_sp & 1) ~= 0 then
     sp_valid = false
