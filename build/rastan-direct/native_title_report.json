@@ -5177,6 +5177,12 @@
     }
   ],
   "format": "rastan-native-title-v3",
+  "frontend_palette": {
+    "line0_source": "0x04EAF6",
+    "line1_source": "0x04EB16",
+    "line2_source": "0x04FE62",
+    "line3_source": "semantic empty until frontend producer"
+  },
   "ownership": {
     "RASTAN_logo": "static_plane_b",
     "all_rights_reserved": "static_plane_a",
@@ -5189,6 +5195,7 @@
   },
   "semantic_cut": "arcade 0x03AA54",
   "sha256": {
+    "native_frontend_palette.bin": "658adf1444d64caa5ab7d014283f62ea1e75ea596b0085d12e4b3b8fbda53c57",
     "native_title_bg.bin": "0813a750ca4e9b8ca3a8d60c817d6f260bdf3459749f5712b7d7713dc36592f6",
     "native_title_fg.bin": "68563d90d8cc3f359bd0356135483dad6f89aed76633ff8069e1a7196b428566",
     "native_title_fg_invincible.bin": "e5f50adce2bdaae1fd7efb0b52261556b77b02cf86aeb609740f7f2e7d400f2f",

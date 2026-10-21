@@ -10,7 +10,11 @@
  * ===========================================================================================
  * VERIFIED Z80 MEMORY / HARDWARE MAP (from decoded instructions)
  * -------------------------------------------------------------------------------------------
- *   0x0000-0x7FFF  program ROM (code 0x0000-~0x1A52; data tables incl. the 0x2300 song table).
+ *   0x0000-0x3FFF  fixed program ROM (code; data tables incl. the 0x2300 song table + sub-sequences).
+ *   0x4000-0x7FFF  BANKED ROM window — 4 x 16KB banks of the 64KB ROM (MAME: bankr(m_audiobank),
+ *                  configure_entries(0,4,base,0x4000)); bank select = sound_bankswitch_w(data&3) wired
+ *                  to the YM2151 PORT-WRITE handler (no explicit bank store in Z80 code). bank0=file
+ *                  0x0000, bank1=0x4000, bank2=0x8000 (the file 0x8000-0x8EDE blob), bank3=0xC000.
  *   0x8000-0x8FFF  work RAM (cleared at init 0x010B; SP top = 0x9000).
  *     0x80x0..0x87x0 : 8 per-FM-channel state blocks (0x100 stride; inited to 0x0F at 0x010B).
  *     0x8E80 head / 0x8E81 tail / 0x8E82+  : 32-slot secondary ring (NMI, FUN_00e9).
@@ -19,12 +23,13 @@
  *     0x8F26/0x8F27/0x8F28 : mode/mute/current-song state. 0x8FFE : writer source pointer.
  *   0x9000  YM2151 register-address port   (VERIFIED: FUN_158c, 14 LD HL,0x9000 sites).
  *   0x9001  YM2151 data / status (bit7 polled as write-ready) (VERIFIED: LD A,(0x9001) @0x0201).
- *   0xA000/0xA001  TC0140SYT inter-CPU port (VERIFIED: NMI_ISR + every dispatch handshake).
- *   0xB000/0xC000/0xD000  MSM5205 ADPCM control/bank/trigger latches (VERIFIED sites 0x1A2B/31/4F;
- *                    the MSM5205 reads its own sample ROM b04-20.76/adpcm.bin, not the Z80 bus).
- *   Interrupts: IM 1 (RST 0x38) = YM2151 timer IRQ line; NMI = TC0140SYT command strobe.
- *   Upper ROM file 0x8000-0xFFFF: BANKED data (not flat-addressable with the above map); banking
- *     mechanism UNRESOLVED (no bank latch identified yet) — see report.
+ *   0xA000/0xA001  PC060HA (Taito CIU) inter-CPU port (MAME-VERIFIED; prior docs' "TC0140SYT" is the
+ *                    wrong chip name — same addresses/protocol). NMI_ISR + every dispatch handshake.
+ *   0xB000 = MSM5205 sample-address latch, 0xC000 = start, 0xD000 = stop (MAME-VERIFIED; matches 0x19A8).
+ *                    The MSM5205 reads its own sample ROM b04-20.76/adpcm.bin (8 kHz, 4-bit).
+ *   Interrupts: IM 1 (RST 0x38) = YM2151 timer IRQ line; NMI = PC060HA command strobe.
+ *   CLOCKS (MAME PCB-verified): Z80 = 16MHz/4 = 4.000 MHz; YM2151 = 16MHz/4 = 4.000 MHz;
+ *     MSM5205 = 384 kHz, prescaler S48_4B = 8 kHz 4-bit ADPCM.
  * ===========================================================================================
  */
 #include <stdint.h>

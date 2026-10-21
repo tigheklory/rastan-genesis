@@ -1117,8 +1117,28 @@ Final response must include "Open/Closed Issues Impact" section with:
   drafted (YM2151→YM2612/PSG, SYT→Genesis mailbox, MSM5205→ch6 DAC, IM1→timer). Artifacts:
   `build/audio/*`, `analysis/decompilation/c/z80/*`, `docs/design/Andy_audio001_z80_ghidra_decompilation.md`.
   Next = AUDIO-002/M1 (resolve bank model → read song/sample tables; manual-disasm FUN_03E5).
+- **AUDIO-002 / M1 / RG-002 (2026-10-20, Andy, RE+inventory — NOT closing):** **Bank model RESOLVED**
+  (corrects M0): music is NOT bank-switched — song table 0x2300, all 44 descriptors, and every
+  sub-sequence pointer are <0x8000 (max 0x3390; zero ≥0x8000; no bank write); upper 32KB is 0xFF
+  padding + a 3807-byte blob at file 0x8000-0x8EDE (addressing TBD, unused by music). **Music inventory:**
+  command 0x00-0x2B → 0x2300 word table → descriptor {count, count×2-byte entries (direct-cmd or
+  sub-seq ptr); count≥0x12 single-subseq}; channel install via table 0x0348; emitted
+  `build/audio/music_command_inventory.json`; command→track-name UNRESOLVED. **0x03E5 RESOLVED** =
+  jump table 0x041B (0xF0→0x03F7, 0xF1-F3→0x0408, 0xF4-FE default; control set, not sample triggers).
+  **ADPCM engine 0x19A8** (state block 0x8E00; MSM5205 latches 0xB000/C000/D000; stop 0xD000=0); sample
+  table + trigger source UNRESOLVED. **YM2151 capture analyzer** `tools/audio/analyze_ym2151_captures.py`
+  → `build/audio/ym2151_track_reports/*`: all 9 tracks use all 8 FM; peak simultaneous voices 6 (most) /
+  8 (Opening, Ending); no ch8 noise → 6-8-voice tracks exceed the 5 usable YM2612 FM (ch6=DAC), needing
+  PSG offload (evidence only, no routing decided). Next = AUDIO-003: decode 0x0479 note-event opcodes +
+  ADPCM sample table → Python sequence parser + sample map + command→track map.
+  **MAME cross-verification (rastan.cpp, in-repo) — CORRECTIONS:** banking DOES exist (Z80 0x4000-0x7FFF
+  = 4×16KB bankr, select via `sound_bankswitch_w(data&3)` on the YM2151 port write; file 0x8000-0x8EDE =
+  bank 2; instruments/sample-table live in the banked window). Inter-CPU chip = **PC060HA**, not
+  TC0140SYT (same addresses). Confirmed 0xB000=MSM addr/0xC000=start/0xD000=stop; PCB clocks Z80 4.0 MHz,
+  YM2151 4.0 MHz, MSM5205 384kHz/S48 = 8kHz 4-bit.
 - **Evidence:** `docs/design/Andy_native_genesis_audio_architecture_research.md`,
-  `docs/design/Andy_audio001_z80_ghidra_decompilation.md`.
+  `docs/design/Andy_audio001_z80_ghidra_decompilation.md`,
+  `docs/design/Andy_audio002_original_audio_asset_inventory.md`.
 - **Closure condition:** native Genesis audio plays the arcade music/SFX/voices with preserved
   sequencing/timing, per-track configurable routing, DAC voices preserved; accepted by Tighe on real
   Genesis — reached only through the M0–M6 plan. Not closed on speculative feasibility.

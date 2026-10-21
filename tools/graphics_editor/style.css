@@ -21,10 +21,22 @@ h3{margin:12px 0 6px;font-size:12px;color:#ffcf6b;text-transform:uppercase;lette
 .OTHER{background:#446;color:#cce}.NOT{background:#533;color:#fbb}
 .line{display:flex;align-items:center;gap:3px;margin:3px 0}
 .line .lbl{width:52px;color:#aaa;font-size:11px}
-.sw{width:22px;height:22px;border:1px solid #000;position:relative;cursor:pointer}
+.sw{width:40px;height:40px;border:1px solid #000;position:relative;cursor:pointer}
 .sw.tp{background-image:linear-gradient(45deg,#333 25%,transparent 25%,transparent 75%,#333 75%),linear-gradient(45deg,#333 25%,#222 25%,#222 75%,#333 75%);background-size:8px 8px;background-position:0 0,4px 4px}
 .sw:hover{outline:2px solid #ffcf6b}
 .sw.assigned{border:2px solid #6cf}
+/* index number shown inside each target swatch (occupied = white, empty = faint) */
+.sw .idx{position:absolute;top:1px;right:2px;font:700 12px/1 'JetBrains Mono',monospace;color:#fff;text-shadow:0 0 2px #000,0 0 2px #000,0 0 2px #000;pointer-events:none}
+.sw .idx.empty{color:#999;text-shadow:none;font-weight:400}
+/* an object color already assigned to this target index: ring + its source index tag at bottom-left */
+.sw.objassigned{outline:2px solid #6cf;z-index:2}
+.sw .objtag{position:absolute;bottom:1px;left:2px;font:700 11px/1 'JetBrains Mono',monospace;color:#6cf;text-shadow:0 0 2px #000,0 0 2px #000;pointer-events:none}
+/* animated Line-2 (sky time-of-day) entry — avoid selecting */
+.sw .anim{position:absolute;bottom:1px;right:1px;font-size:12px;line-height:1;pointer-events:none}
+.sw.animidx{outline:2px dashed #e0a94a}
+/* a protected (Line 2) swatch that DOES carry a color is selectable for reuse (not editable) */
+.sw.protusable{cursor:pointer;opacity:1}
+.sw.protusable:hover{outline:2px solid #6cf}
 .apal{display:flex;flex-wrap:wrap;gap:3px}
 .apal .sw{width:26px;height:26px}
 .acell{display:flex;flex-direction:column;align-items:center;font-size:9px;color:#888}

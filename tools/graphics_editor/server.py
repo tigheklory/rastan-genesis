@@ -27,7 +27,8 @@ LINE_OWNERS = {
     "1": {"owner": "editable", "control": "editor", "editable": True, "optimizer_available": True},
     "2": {"owner": "layer_b", "control": "arcade", "editable": False, "optimizer_available": False,
           "label": "LINE 2 — LAYER B — ARCADE CONTROLLED — PROTECTED",
-          "note": "Owned by the accepted Layer-B time-of-day palette path in Build 0313; excluded from editor optimization."},
+          "animated_indices": [1],  # index 1 = time-of-day sky; verified animated across arcade frames 360/460/700/1000
+          "note": "Owned by the accepted Layer-B time-of-day palette path in Build 0313; excluded from editor optimization. Colors are read-only but REUSABLE; index 1 is the animated sky — avoid."},
     "3": {"owner": "editable", "control": "editor", "editable": True, "optimizer_available": True}}
 
 
@@ -1545,7 +1546,23 @@ def _backfill_policy(pol):
     pol.setdefault("context_policies", {})
     pol["reserved_lines"] = list(RESERVED_LINES)   # protection is server-authoritative, always enforced
     pol["line_owners"] = LINE_OWNERS
+    pol["line2_display"] = _layer_b_display()      # read-only arcade Layer-B colors for Line 2 display
     return pol
+
+
+_LB_DISPLAY = None
+def _layer_b_display():
+    """Read-only arcade Layer-B (Line 2) colors for DISPLAY only (the profile stores Line 2 as null because
+    it is arcade-runtime/time-of-day). Captured arcade palette RAM 0x200000 bank 0x001 via
+    tools/mame/scripts/arcade_layera_palette_dump.lua. Returns {cram:[16], animated_indices:[...]} or None."""
+    global _LB_DISPLAY
+    if _LB_DISPLAY is None:
+        d = loadj(os.path.join(CORP, "layer_b_display_palette.json"), None)
+        _LB_DISPLAY = ({"cram": d.get("cram"), "rgb8": d.get("rgb8"),
+                        "animated_indices": d.get("animated_indices", []),
+                        "frames": d.get("frames"), "cram_by_frame": d.get("cram_by_frame")}
+                       if d and d.get("cram") else False)
+    return _LB_DISPLAY or None
 
 
 def ensure_baseline():

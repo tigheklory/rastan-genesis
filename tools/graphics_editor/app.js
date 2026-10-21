@@ -218,13 +218,29 @@ function showColorProps(c){const P=$('#props');const lab=rgb2lab(c.arcade_rgb8),
  mkbtn(P,'Find Matches (global corpus)',()=>findSimilar(c));
  mkbtn(P,'Compare (pick another color next)',()=>{window._cmpMode=true;$('#status').textContent='compare mode: click another source color';});}
 function mapWithAuto(line,index){/* map SRC to target line/index; auto best legal color if empty; MRD-checked */
- if(!U||!SRC)return;if(POL.immutable)return alert('Create an editable profile first.');if(guardProtected(line))return;
+ if(!U||!SRC)return;if(POL.immutable)return alert('Create an editable profile first.');
+ // Line 2 (protected): colors are arcade-controlled and NOT editable, but an EXISTING Line-2 color
+ // may be REUSED. Allow mapping onto an occupied index; refuse creating a new color here.
+ const prot=isProtected(line);
+ if(prot){
+   const l2d=POL.line2_display&&POL.line2_display.cram?POL.line2_display.cram:null;
+   const have=(POL.target_palette_lines[line]||[])[index]||(l2d?l2d[index]:null);
+   if(index===0||!have){
+     $('#status').textContent='LINE '+line+' index '+index+' has no arcade color — Line 2 colors are not editable, so pick an index that already shows a color.';
+     return alert('LINE '+line+' (Layer B / arcade) is read-only. You can REUSE one of its existing colors, but you cannot create a new color on an empty index. Choose an index that already has a color.');
+   }
+   if(animatedIndices(line).includes(index) && !confirm('L'+line+':'+index+' is the ANIMATED sky/time-of-day color (it changes across Round 1). Reusing it means this object will shift color with the sky. Use it anyway?'))return;
+ }
  const m=POL.usage_palette_mappings[MK(U)]||(POL.usage_palette_mappings[MK(U)]={line,index_map:{}});
  if(m.line!==line){if(Object.keys(m.index_map).length&&!confirm('Move this usage\'s mappings to line '+line+'?'))return;m.line=line;}
  for(const[si,ti]of Object.entries(m.index_map)){if(+ti===index&&+si!==SRC.src_index){const pair=U.mrd_pairs.some(([a,b])=>(a===+si&&b===SRC.src_index)||(b===+si&&a===SRC.src_index));if(pair)return alert('Cannot share: Must Stay Distinct — src i'+SRC.src_index+' and i'+si+' both appear in '+U.display_name+'.');}}
  pushUndo();m.index_map[SRC.src_index]=index;
- if(POL.target_palette_lines[line][index]==null)POL.target_palette_lines[line][index]=bestCramFor(SRC.arcade_rgb8).cram;
- $('#status').textContent=`${U.display_name} i${SRC.src_index} → L${line}:${index} (${POL.target_palette_lines[line][index]})`;afterChange();showTarget();}
+ if(!prot&&POL.target_palette_lines[line][index]==null)POL.target_palette_lines[line][index]=bestCramFor(SRC.arcade_rgb8).cram;
+ $('#status').textContent=`${U.display_name} i${SRC.src_index} → L${line}:${index} (${POL.target_palette_lines[line][index]})`+(prot?' [reusing Layer-B color]':'');afterChange();showTarget();}
+/* Line-2 animated (sky/time-of-day) indices to flag as "avoid". Profile-driven; empty until identified.
+ * Set via line_owners["2"].animated_indices = [..] or reserved_line_animated = {2:[..]} in the profile. */
+function animatedIndices(line){const o=((POL&&POL.line_owners)||{})[line+'']||{};
+ return o.animated_indices||((POL&&POL.reserved_line_animated)||{})[line+'']||[];}
 
 function renderMapTable(){const T=$('#maptable');T.innerHTML='';if(!U)return;const map=(POL.usage_palette_mappings[MK(U)]||{});const im=map.index_map||{};
  const head=el('div','maprow mono');head.innerHTML='<b>Source</b><b>Arcade</b><b>Mapped To</b><b>Target color</b><b></b>';T.appendChild(head);
@@ -239,10 +255,24 @@ function renderTarget(){const G=$('#genlines');G.innerHTML='';if(!POL)return;
  for(let line=0;line<4;line++){const prot=isProtected(line);const row=el('div','line'+(line===ACTIVE&&!prot?' activeline':'')+(prot?' protline':''));
   const lb=el('span','lbl'+(line===ACTIVE&&!prot?' on':''),prot?('L'+line+' 🔒'):('LINE '+line+(line===ACTIVE?' ▸':'')));lb.style.cursor='pointer';
   lb.title=prot?'LINE '+line+' — LAYER B — ARCADE CONTROLLED — PROTECTED':'';
-  lb.onclick=()=>{if(prot){showProtected(line);return;}ACTIVE=line;renderTarget();if(SRC)showColorProps(SRC);};row.appendChild(lb);
+  lb.onclick=()=>{ACTIVE=line;renderTarget();if(prot)showProtected(line);else if(SRC)showColorProps(SRC);};row.appendChild(lb);
   const clc=(SRC&&!prot)?closestInLine(SRC,line):null;
- for(let i=0;i<16;i++){const eff=prot?{cram:(POL.target_palette_lines[line]||[])[i],owner:'layer_b',local:false}:effEntry(line,i);const cram=eff.cram;const rgb=cramToRGB(cram);const s=el('div','sw'+(i===0?' tp':'')+(prot?' protsw':''));if(rgb&&i!==0)s.style.background=`rgb(${rgb.join(',')})`;
-  if(prot){s.title=`L${line}:${i} — Layer B protected (read-only)`;s.onclick=()=>showProtected(line);row.appendChild(s);continue;}
+  // current object's existing target assignments on this line (for the "assigned to index" tags)
+  const curMap=U?(POL.usage_palette_mappings[MK(U)]||{}):{};const curRev={};
+  if(curMap.line===line){for(const[si,ti] of Object.entries(curMap.index_map||{}))curRev[ti]=si;}
+  const anim=animatedIndices(line);
+  // index-number label (+ object source-index tag + animated marker) for every target swatch
+  const decorate=(s,i,cram)=>{s.appendChild(el('span','idx'+(cram&&i!==0?'':' empty'),''+i));
+    if(curRev[i]!=null&&i!==0){s.classList.add('objassigned');s.appendChild(el('span','objtag','i'+curRev[i]));}
+    if(anim.includes(i)){s.classList.add('animidx');s.appendChild(el('span','anim','⚡'));}};
+ const l2disp=(prot&&POL.line2_display&&POL.line2_display.cram)?POL.line2_display.cram:null;
+ for(let i=0;i<16;i++){const eff=prot?{cram:((POL.target_palette_lines[line]||[])[i])||(l2disp?l2disp[i]:null),owner:'layer_b',local:false}:effEntry(line,i);const cram=eff.cram;const rgb=cramToRGB(cram);const s=el('div','sw'+(i===0?' tp':'')+(prot?' protsw':''));if(rgb&&i!==0)s.style.background=`rgb(${rgb.join(',')})`;
+  if(prot){const usable=cram&&i!==0;decorate(s,i,cram);
+    s.title=usable?`L${line}:${i} ${cram} — Layer B color (read-only, reusable)${anim.includes(i)?' · ANIMATED sky — avoid':''}`:`L${line}:${i} — Layer B protected (empty/read-only)`;
+    if(usable)s.classList.add('protusable');
+    s.onclick=()=>{ACTIVE=line;if(usable&&SRC&&U){TGT={line,index:i};renderTarget();mapWithAuto(line,i);}else{TGT={line,index:i};renderTarget();showProtected(line);}};
+    row.appendChild(s);continue;}
+  decorate(s,i,cram);
   if(cram&&i!==0&&eff.local)s.classList.add('localov');else if(cram&&i!==0&&eff.owner!=='default')s.classList.add('inherov');
   if(TGT&&TGT.line===line&&TGT.index===i)s.classList.add('picked');
    let dtip='';if(clc&&cram){const de=deltaE00(SRC.arcade_rgb8,cramToRGB(cram));dtip=' Δ'+de.toFixed(1);
