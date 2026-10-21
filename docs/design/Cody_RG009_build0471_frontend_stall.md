@@ -17,7 +17,8 @@ Build 0472 was produced from exact pre-build source
 - size: 2,739,896 bytes
 - build counter: 471 -> 472; ledger records 0472 produced with canonical/entry/epoch PASS
 - configured family: normal, `_d`, `_s`, `_do`, `_c`, `_full_hud`, `_invincible`
-- hardware acceptance: PENDING; accepted Build 0467 and `accepted/build-0467` are unchanged
+- hardware acceptance: ACCEPTED by Tighe on real Sega Genesis hardware; Build 0472 is the new
+  accepted baseline. Previously accepted Build 0467 and `accepted/build-0467` remain unchanged.
 
 ## Differential proof: 0467 versus 0471
 
@@ -146,6 +147,22 @@ cycle run was claimed: the existing detailed timing tool's historical breakpoint
 match this shifted ROM without a separately resolved full breakpoint set. Build 0472 is not slower
 than 0467 on the required established benchmark.
 
+## Real-hardware acceptance
+
+Tighe tested the normal Build 0472 ROM on real Sega Genesis hardware and accepted it. The accepted
+behavior includes:
+
+- Round 1 entry works and the Build 0471 frontend lock is gone;
+- the initial 1UP/HUD is correct;
+- score updates and persists correctly, without high-order digit loss;
+- SCORE and 1UP do not disappear;
+- writer-triggered score presentation is accepted, with no per-frame score BCD polling;
+- death, restart, Continue, and gameplay-re-entry HUD behavior is accepted; and
+- no performance regression is present on the tested hardware and established regression route.
+
+The immutable acceptance reference is `accepted/build-0472`, targeting exact ROM-producing source
+`4d5aadb0e92387617594404f9e757597c87517a3`, not the later acceptance/bookkeeping commit.
+
 ## Files and tooling
 
 ROM-producing source changes:
@@ -169,13 +186,12 @@ and JSR-injection mechanisms and closes only that evidence gap.
 Concurrent Andy RG-006/RG-007 decompilation, audio work, Palette Composer work, and unrelated
 generated changes were not modified or staged.
 
-## USER MUST VERIFY
+## USER MUST VERIFY — completed
 
-On real Genesis hardware, verify Build 0472 normal ROM enters Round 1; the initial `1UP` label is
-present at the accepted RG-005 geometry; scoring displays the complete value without losing high
-digits; score plus `1UP` persist on unchanged frames; death/restart and Continue return to gameplay
-with the correct score/HUD; and no frontend lock recurs.
+Tighe completed the required real-Genesis verification: Round 1 entry, frontend transition, initial
+1UP/HUD, complete score updates and persistence, high-order digits, SCORE/1UP persistence, and
+death/restart/Continue HUD behavior are accepted.
 
 ## Status
 
-Build 0472 is a validated candidate. RG-009 is awaiting Tighe's real-hardware acceptance. STOP.
+Build 0472 is ACCEPTED and is the new accepted baseline. RG-009 and RG-010 are complete. STOP.

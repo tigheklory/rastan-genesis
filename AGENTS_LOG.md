@@ -53019,3 +53019,22 @@ TIGHE ONLY
 - Accepted Build 0467/tag unchanged; real-hardware acceptance PENDING. Concurrent Andy decomp,
   audio, Palette Composer, and unrelated work preserved. Report:
   `docs/design/Cody_RG009_build0471_frontend_stall.md`.
+
+## 2026-10-21 — RG-010 accept and lock Build 0472
+
+- Tighe tested Build 0472 on real Sega Genesis hardware and ACCEPTED it as the new baseline.
+  Normal artifact `dist/rastan-direct/rastan_direct_video_test_build_0472.bin` remains SHA-256
+  `5b855e163a572c3a511a76470199c9cb13324f6ea0739bbd0f6834b80092dc7a` (2,739,896 bytes).
+  Exact ROM-producing source remains `4d5aadb0e92387617594404f9e757597c87517a3`.
+- Accepted hardware behavior: Round 1 entry works; the frontend lock is gone; initial 1UP/HUD is
+  correct; score updates and persists without high-order loss; SCORE + 1UP do not disappear;
+  writer-triggered score presentation and absence of per-frame score BCD polling are accepted;
+  death/restart/Continue HUD behavior is accepted; no performance regression is present.
+- Immutable `accepted/build-0472` points exactly to ROM-producing source `4d5aadb0`, not this
+  bookkeeping commit. Older accepted refs were not moved. Builds 0468-0471 remain rejected.
+- Preserved deterministic `_invincible` rope result: Build 0472 `795/795/795`, median
+  13,267.083 ms, versus accepted Build 0467 `798/798/798`, median 13,317.147 ms: 0472 is three
+  frames / 50.064 ms faster on that established route only; no universal CPU-cycle claim.
+- Build 0473 was not produced or consumed. Concurrent Andy RG-006/RG-007 C decompilation, audio,
+  Palette Composer, and unrelated work remained unstaged. Updated report:
+  `docs/design/Cody_RG009_build0471_frontend_stall.md`.
