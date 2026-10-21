@@ -2575,6 +2575,14 @@ native_frontend_hud_emit:
     lea     native_queue_hud, %a0
     move.w  native_hud_count, %d6
     bsr     .Lnq_emit_lane
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+    /* The alternating gameplay SAT bank still needs the fixed P1 label on
+     * every frame.  Consume its immutable semantic records directly instead
+     * of reconstructing three queue entries in WRAM. */
+    lea     .Lnq_p1_label_records, %a0
+    moveq   #3, %d6
+    bsr     .Lnq_emit_lane
+.endif
     lea     native_queue_front_effect, %a0
     move.w  native_front_effect_count, %d6
     bsr     .Lnq_emit_lane
@@ -2606,6 +2614,21 @@ native_frontend_hud_emit:
     move.b  diag_score_bcd+2, 0x00FF0120
 .endif
     movem.l %d0-%d7/%a0-%a3/%a6, -(%sp)
+    /* The accepted projector consumes the packed BCD bytes ending at
+     * 0xFF011E (011E, 011D, 011C).  They remain arcade-owned; this cache is
+     * only the last rendered presentation value. */
+    tst.b   gameplay_hud_score_cache_valid
+    beq.s   .Lnq_p1_hud_rebuild
+    move.b  0x00FF011E, %d0
+    cmp.b   gameplay_hud_score_cache, %d0
+    bne.s   .Lnq_p1_hud_rebuild
+    move.b  0x00FF011D, %d0
+    cmp.b   gameplay_hud_score_cache+1, %d0
+    bne.s   .Lnq_p1_hud_rebuild
+    move.b  0x00FF011C, %d0
+    cmp.b   gameplay_hud_score_cache+2, %d0
+    beq     .Lnq_p1_hud_done
+.Lnq_p1_hud_rebuild:
     clr.w   native_hud_count
     move.b  #NATIVE_LANE_HUD, native_sprite_lane+1
     bsr     native_sprite_fast_context
@@ -2657,24 +2680,23 @@ native_frontend_hud_emit:
     moveq   #0x30, %d4
     bsr     .Lnq_emit_hud_digit
 
-    moveq   #PC090OJ_HUD_P1_PROFILE_LINE, %d1
-    move.w  #0x0010, %d2
-    move.w  #0xD039, %d3            /* HUD-white + direct identity + fixed-screen bounds */
-    move.w  #0x0040, %d4
-    bsr     native_sprite_emit_fast
-    /* Original P1 label table at 0x03B9B0 gives code 0x39 Y=0x10, but the
-     * U/P pieces (0x48/0x46) Y=0x00.  Preserve that split exactly. */
-    clr.w   %d2
-    moveq   #PC090OJ_HUD_P1_PROFILE_LINE, %d1
-    move.w  #0xD048, %d3            /* HUD-white + direct identity + fixed-screen bounds */
-    move.w  #0x0028, %d4
-    bsr     native_sprite_emit_fast
-    moveq   #PC090OJ_HUD_P1_PROFILE_LINE, %d1
-    move.w  #0xD046, %d3            /* HUD-white + direct identity + fixed-screen bounds */
-    move.w  #0x0038, %d4
-    bsr     native_sprite_emit_fast
+    move.b  0x00FF011E, gameplay_hud_score_cache
+    move.b  0x00FF011D, gameplay_hud_score_cache+1
+    move.b  0x00FF011C, gameplay_hud_score_cache+2
+    move.b  #1, gameplay_hud_score_cache_valid
+.Lnq_p1_hud_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a3/%a6
     rts
+
+    /* Original P1 label table at 0x03B9B0: immutable semantic tuples
+     * {attr,Y,code,X}.  Code 0x39 and score digits use Y=0x10; U/P retain
+     * Y=0x00.  The finalizer reads these records into each active SAT bank. */
+    .align 2
+.Lnq_p1_label_records:
+    .word PC090OJ_HUD_P1_PROFILE_LINE, 0x0010, 0xD039, 0x0040
+    .word PC090OJ_HUD_P1_PROFILE_LINE, 0x0000, 0xD048, 0x0028
+    .word PC090OJ_HUD_P1_PROFILE_LINE, 0x0000, 0xD046, 0x0038
+
 .Lnq_emit_hud_digit:
     move.w  #0x0010, %d2
     tst.w   %d5
@@ -3497,6 +3519,12 @@ native_back_enemy_count:
 native_queue_hud:
     .space (NATIVE_HUD_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
 native_queue_hud_end:
+.global gameplay_hud_score_cache_valid
+gameplay_hud_score_cache:
+    .space 3
+gameplay_hud_score_cache_valid:
+    .space 1
+    .align 2
 native_queue_front_effect:
     .space (NATIVE_FRONT_EFFECT_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
 native_queue_front_effect_end:

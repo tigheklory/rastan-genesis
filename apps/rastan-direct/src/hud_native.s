@@ -13,6 +13,7 @@
     .extern sprite_tile_resident_code
     .extern pc090oj_reverse_index_init
     .extern transient_items_active
+    .extern gameplay_hud_score_cache_valid
     .extern vdp_set_vram_write_addr
 
     .equ VDP_DATA, 0x00C00000
@@ -131,6 +132,10 @@ genesistan_hud_prepare_frontend:
     rts
 
 genesistan_hud_deactivate:
+    /* Scene ownership is also the gameplay presentation-cache lifetime.  Do
+     * this before the frontend-mode early-out so every gameplay entry/re-entry
+     * starts from an explicit rebuild. */
+    clr.b   gameplay_hud_score_cache_valid
     cmpi.b  #HUD_MODE_OFF, native_hud_mode
     beq.s   .Lhud_deactivate_done
     movem.l %d0-%d1/%d7/%a0, -(%sp)
