@@ -1854,6 +1854,13 @@ genesistan_pc090oj_hook_score_digit_3b802:
      * owner (consumer coverage matrix in the build report). */
     rts
 
+    .global genesistan_gameplay_hud_score_dirty
+genesistan_gameplay_hud_score_dirty:
+    /* Presentation notification only.  No score value or gameplay state is
+     * duplicated; the next reduced-HUD pass reads arcade-owned BCD once. */
+    move.b  #1, gameplay_hud_score_dirty
+    rts
+
 /* RETIRED (setup/priority PC090OJ family).  This helper only initialized
  * object-RAM records 72..75 with code=0 (blank / not-drawable): zero visible
  * semantic output, and PLAYER_BODY is main-loop native staging.  Verified no
@@ -2572,8 +2579,15 @@ native_frontend_hud_emit:
     clr.l   (%a1)+
     moveq   #0, %d5
 
+.if RASTAN_GAMEPLAY_HUD_SPRITES == 2
+    /* The reduced gameplay score/1UP lane has presentation lifetime independent
+     * of the per-frame status producer, which still owns native_queue_hud. */
+    lea     gameplay_hud_semantic_queue, %a0
+    move.w  gameplay_hud_semantic_count, %d6
+.else
     lea     native_queue_hud, %a0
     move.w  native_hud_count, %d6
+.endif
     bsr     .Lnq_emit_lane
     lea     native_queue_front_effect, %a0
     move.w  native_front_effect_count, %d6
@@ -2604,26 +2618,19 @@ native_frontend_hud_emit:
     move.b  diag_score_bcd, 0x00FF011E
     move.b  diag_score_bcd+1, 0x00FF011F
     move.b  diag_score_bcd+2, 0x00FF0120
+    move.b  #1, gameplay_hud_score_dirty
 .endif
     movem.l %d0-%d7/%a0-%a3/%a6, -(%sp)
-    /* The accepted projector consumes the packed BCD bytes ending at
-     * 0xFF011E (011E, 011D, 011C).  They remain arcade-owned; this cache is
-     * only the last rendered presentation value. */
-    tst.b   gameplay_hud_score_cache_valid
-    beq.s   .Lnq_p1_hud_rebuild
-    move.b  0x00FF011E, %d0
-    cmp.b   gameplay_hud_score_cache, %d0
-    bne.s   .Lnq_p1_hud_rebuild
-    move.b  0x00FF011D, %d0
-    cmp.b   gameplay_hud_score_cache+1, %d0
-    bne.s   .Lnq_p1_hud_rebuild
-    move.b  0x00FF011C, %d0
-    cmp.b   gameplay_hud_score_cache+2, %d0
+    /* Arcade score remains solely authoritative at A5+0x011C..0x011E.  Its
+     * proven semantic writers set this presentation-only bit; an ordinary
+     * frame performs no score read or comparison. */
+    tst.b   gameplay_hud_score_dirty
     beq     .Lnq_p1_hud_done
 .Lnq_p1_hud_rebuild:
-    clr.w   native_hud_count
-    move.b  #NATIVE_LANE_HUD, native_sprite_lane+1
-    bsr     native_sprite_fast_context
+    clr.w   gameplay_hud_semantic_count
+    lea     gameplay_hud_semantic_queue, %a3
+    lea     gameplay_hud_semantic_count, %a6
+    lea     gameplay_hud_semantic_queue_end, %a2
     movea.l #0x00FF011E, %a0
     clr.w   %d5
     /* Original arcade mode-0 descriptor at 0x03B87E places all six score
@@ -2672,25 +2679,22 @@ native_frontend_hud_emit:
     moveq   #0x30, %d4
     bsr     .Lnq_emit_hud_digit
 
-    /* Keep the cached lane compact and in Build-0467 SAT order: visible score
-     * digits followed by the three fixed label pieces.  Copy the immutable
-     * template only on cache construction/score change; unchanged frames keep
-     * using the same single native_queue_hud lane and perform no WRAM writes. */
+    /* Keep the persistent lane compact and in Build-0467 SAT order: visible
+     * score digits followed by the independent immutable 1/U/P template. */
     lea     .Lnq_p1_label_records, %a0
-    move.w  native_hud_count, %d0
+    move.w  gameplay_hud_semantic_count, %d0
     lsl.w   #3, %d0
-    lea     native_queue_hud, %a1
+    lea     gameplay_hud_semantic_queue, %a1
     adda.w  %d0, %a1
     moveq   #5, %d7
 .Lnq_p1_label_copy:
     move.l  (%a0)+, (%a1)+
     dbra    %d7, .Lnq_p1_label_copy
-    addq.w  #3, native_hud_count
+    addq.w  #3, gameplay_hud_semantic_count
 
-    move.b  0x00FF011E, gameplay_hud_score_cache
-    move.b  0x00FF011D, gameplay_hud_score_cache+1
-    move.b  0x00FF011C, gameplay_hud_score_cache+2
-    move.b  #1, gameplay_hud_score_cache_valid
+    /* Clear only after the dynamic score and all static label records form one
+     * complete finalizable semantic lane. */
+    clr.b   gameplay_hud_score_dirty
 .Lnq_p1_hud_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a3/%a6
     rts
@@ -3526,10 +3530,13 @@ native_back_enemy_count:
 native_queue_hud:
     .space (NATIVE_HUD_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
 native_queue_hud_end:
-.global gameplay_hud_score_cache_valid
-gameplay_hud_score_cache:
-    .space 3
-gameplay_hud_score_cache_valid:
+.global gameplay_hud_score_dirty
+gameplay_hud_semantic_count:
+    .word 0
+gameplay_hud_semantic_queue:
+    .space (NATIVE_HUD_BOUND * NATIVE_QUEUE_ENTRY_BYTES)
+gameplay_hud_semantic_queue_end:
+gameplay_hud_score_dirty:
     .space 1
     .align 2
 native_queue_front_effect:

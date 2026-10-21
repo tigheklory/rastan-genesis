@@ -25,12 +25,12 @@ def reduced_score_records(packed):
             records.append((0, 0x10, 0xD02A + digit, 0x08 + index * 8))
     return records
 
-def cached_reduced_step(cache, packed):
-    """Model the production cache and expose whether conversion ran."""
-    if cache.get("valid") and cache["packed"] == packed:
-        return cache, cache["records"], False
+def event_reduced_step(state, packed):
+    """Model writer-triggered dirty presentation without value polling."""
+    if not state["dirty"]:
+        return state, state["records"], False
     records = reduced_score_records(packed)
-    return {"valid": True, "packed": packed, "records": records}, records, True
+    return {"dirty": False, "records": records}, records, True
 
 def main():
     parser = argparse.ArgumentParser()
@@ -99,17 +99,21 @@ def main():
     if compact.count("move.w #0x0010, %d2") != 1:
         raise SystemExit("gameplay P1 digit geometry must set score Y=0x10 exactly once")
 
-    # RG-008: the compact score stream is persistent and reconstructed only
-    # when one of the exact three bytes consumed by the accepted projector
-    # changes.  Static label tuples are immutable and copied behind that
-    # compact stream only on rebuild, leaving one finalizer lane per frame.
-    cache_contract = (
-        "gameplay_hud_score_cache_valid", "gameplay_hud_score_cache+1",
-        "gameplay_hud_score_cache+2", "0x00FF011E", "0x00FF011D",
-        "0x00FF011C", ".Lnq_p1_hud_rebuild", ".Lnq_p1_hud_done",
+    # RG-008: arcade score writers dirty one persistent compact semantic lane.
+    # The ordinary path is one dirty test with no BCD value comparison.
+    event_contract = (
+        "tst.b gameplay_hud_score_dirty", "beq .Lnq_p1_hud_done",
+        "gameplay_hud_semantic_queue", "gameplay_hud_semantic_count",
+        "gameplay_hud_semantic_queue_end", "clr.b gameplay_hud_score_dirty",
+        "0x00FF011E", ".Lnq_p1_hud_rebuild", ".Lnq_p1_hud_done",
     )
-    if any(token not in gameplay for token in cache_contract):
-        raise SystemExit("gameplay reduced HUD lacks its three-byte presentation cache")
+    if any(token not in compact for token in event_contract):
+        raise SystemExit("gameplay reduced HUD lacks writer-triggered dirty presentation")
+    if "gameplay_hud_score_cache" in sprites:
+        raise SystemExit("rejected frame-by-frame score cache remains")
+    dirty_test = gameplay.split(".Lnq_p1_hud_rebuild:", 1)[0]
+    if "0x00FF011D" in dirty_test or "0x00FF011C" in dirty_test or "cmp.b" in dirty_test:
+        raise SystemExit("ordinary reduced-HUD path still polls score bytes")
     labels = sprites.split(".Lnq_p1_label_records:", 1)[1].split(
         ".Lnq_emit_hud_digit:", 1)[0]
     label_words = re.findall(r"\.word\s+([^\n]+)", labels)
@@ -123,7 +127,7 @@ def main():
     label_copy_contract = (
         "lea .Lnq_p1_label_records, %a0",
         ".Lnq_p1_label_copy: move.l (%a0)+, (%a1)+",
-        "addq.w #3, native_hud_count",
+        "addq.w #3, gameplay_hud_semantic_count",
     )
     if any(token not in compact for token in label_copy_contract):
         raise SystemExit("immutable P1 label is not cached behind the compact score stream")
@@ -131,10 +135,12 @@ def main():
         ".Lnq_project_p1_hud:", 1)[0]
     if gameplay_finalizer.count("bsr     .Lnq_emit_lane") != 6:
         raise SystemExit("gameplay finalizer must retain exactly one call per native lane")
+    if "lea     gameplay_hud_semantic_queue, %a0" not in gameplay_finalizer:
+        raise SystemExit("reduced HUD does not finalize its independent persistent queue")
 
     # Bounded semantic regression: all ten digits at all six positions, plus
     # leading-zero boundaries and consecutive unchanged/change/invalidate
-    # transitions.  Cache initialization output must equal the old projector.
+    # transitions.  Dirty construction output must equal the old projector.
     cases = {(0, 0, 0), (0, 0, 1), (0, 0, 0x10), (0, 1, 0),
              (1, 0, 0), (0x12, 0x34, 0x56), (0x99, 0x99, 0x99)}
     for position in range(6):
@@ -144,20 +150,22 @@ def main():
             cases.add(tuple((nibbles[i] << 4) | nibbles[i + 1]
                             for i in range(0, 6, 2)))
     for packed in cases:
-        cache, records, rebuilt = cached_reduced_step({}, packed)
+        state, records, rebuilt = event_reduced_step(
+            {"dirty": True, "records": []}, packed)
         if not rebuilt or records != reduced_score_records(packed):
-            raise SystemExit(f"cache initialization mismatch for {packed!r}")
-        cache2, records2, rebuilt2 = cached_reduced_step(cache, packed)
-        if rebuilt2 or cache2 is not cache or records2 != records:
+            raise SystemExit(f"dirty construction mismatch for {packed!r}")
+        state2, records2, rebuilt2 = event_reduced_step(state, packed)
+        if rebuilt2 or state2 is not state or records2 != records:
             raise SystemExit(f"unchanged score reconstructed for {packed!r}")
-    cache, _, _ = cached_reduced_step({}, (0, 0, 1))
-    cache, changed, rebuilt = cached_reduced_step(cache, (0, 0, 2))
+    state, _, _ = event_reduced_step({"dirty": True, "records": []}, (0, 0, 1))
+    state["dirty"] = True
+    state, changed, rebuilt = event_reduced_step(state, (0, 0, 2))
     if not rebuilt or changed != reduced_score_records((0, 0, 2)):
-        raise SystemExit("score-change cache update failed")
-    cache["valid"] = False
-    _, rebuilt_records, rebuilt = cached_reduced_step(cache, (0, 0, 2))
+        raise SystemExit("score-change dirty update failed")
+    state["dirty"] = True
+    _, rebuilt_records, rebuilt = event_reduced_step(state, (0, 0, 2))
     if not rebuilt or rebuilt_records != changed:
-        raise SystemExit("cache invalidation did not force equivalent rebuild")
+        raise SystemExit("lifecycle dirty state did not force equivalent rebuild")
 
     # FRONTEND_FULL is already the intended RG-008 architecture: one immutable
     # static SAT installation, ten scalar comparisons on stable frames, and
@@ -175,15 +183,15 @@ def main():
         raise SystemExit("stable FRONTEND_FULL path revisits the static SAT body")
     deactivate = hud.split("genesistan_hud_deactivate:", 1)[1].split(
         ".Lhud_deactivate_done:", 1)[0]
-    if "clr.b   gameplay_hud_score_cache_valid" not in deactivate:
-        raise SystemExit("scene HUD deactivation does not invalidate reduced HUD cache")
+    if "move.b  #1, gameplay_hud_score_dirty" not in deactivate:
+        raise SystemExit("scene HUD deactivation does not dirty reduced HUD presentation")
     title = args.title_source.read_text()
     if "genesistan_hud_activate_frontend" not in title:
         raise SystemExit("title does not activate shared FRONTEND_FULL HUD")
     print("NATIVE_HUD_VERIFY_PASS records=30 links=0->1..28->29,29->0 "
           "modes=FRONTEND_FULL,GAMEPLAY_REDUCED_P1 "
           "gameplay_geometry=score_y10,label_y10_00_00 "
-          f"cache_cases={len(cases)} unchanged_no_rebuild=PASS invalidation=PASS")
+          f"dirty_cases={len(cases)} unchanged_no_rebuild=PASS lifecycle_dirty=PASS")
 
 if __name__ == "__main__":
     main()

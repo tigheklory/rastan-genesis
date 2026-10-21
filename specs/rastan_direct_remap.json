@@ -204,6 +204,7 @@
   "genesistan_palette_hook_03ab00",
   "genesistan_palette_hook_45dae",
   "genesistan_palette_hook_3ba64",
+  "genesistan_gameplay_hud_score_dirty",
   "genesistan_pc090oj_ctrl_set_1",
   "genesistan_pc090oj_ctrl_set_0",
   "genesistan_pc090oj_sprite_ctrl_write_d0",
@@ -251,6 +252,30 @@
   }
  ],
  "shift_replacements": [
+  {
+   "arcade_pc": "0x03A2B0",
+   "original_bytes": "4E75",
+   "replacement_bytes": "4EB9{symbol:genesistan_gameplay_hud_score_dirty}4E75",
+   "note": "RG-008 player-1 active-score restore notification. The retained second 0x03A2D0 block copy has restored inactive P1 A5+0x0080..0x00BF into active A5+0x0100..0x013F, including score A5+0x011C..0x011E, before this return. Set only the Genesis presentation-dirty byte, then preserve the return. The arcade score and player-switch state remain authoritative; proper 2-to-8-byte shift replacement."
+  },
+  {
+   "arcade_pc": "0x03A2CE",
+   "original_bytes": "4E75",
+   "replacement_bytes": "4EB9{symbol:genesistan_gameplay_hud_score_dirty}4E75",
+   "note": "RG-008 player-2 active-score restore notification. The retained second 0x03A2D0 block copy has restored inactive P2 A5+0x00C0..0x00FF into active A5+0x0100..0x013F, including score A5+0x011C..0x011E, before this return. Set only the Genesis presentation-dirty byte, then preserve the return. No gameplay-state shadow; proper 2-to-8-byte shift replacement."
+  },
+  {
+   "arcade_pc": "0x03A9A2",
+   "original_bytes": "41ED0080",
+   "replacement_bytes": "4EB9{symbol:genesistan_gameplay_hud_score_dirty}41ED0080",
+   "note": "RG-008 paid/new-game score-clear notification. The retained preceding 0x03AD3C zero-fill of A5+0x0080..0x013F has cleared both saved-player blocks and the active score A5+0x011C..0x011E. Notify presentation before preserving this LEA A5+0x0080,A0 and all following initialization. Proper 4-to-10-byte shift replacement."
+  },
+  {
+   "arcade_pc": "0x03B7B0",
+   "original_bytes": "61000050",
+   "replacement_bytes": "4EB9{symbol:genesistan_gameplay_hud_score_dirty}",
+   "note": "RG-008 centralized score-award presentation cut. The retained 0x03B726 routine has already completed its guarded three-byte ABCD update/clamp and extra-life side effects when it reaches this unconditional score-digit refresh call. Replace only the obsolete PC090OJ 0x03B802 refresh tail with a presentation-dirty notification; all score value/gameplay ownership remains arcade-side. Proper 4-to-6-byte shift replacement."
+  },
   {
    "arcade_pc": "0x0503CE",
    "original_bytes": "203C00050F6B",
@@ -841,9 +866,9 @@
   },
   {
    "arcade_pc": "0x03A47E",
-   "original_bytes": "0c79004900c0883a6608303c009a610016c0",
+   "original_bytes": "0c79004900c0883a6608303c009a610016c8",
    "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
-   "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis). RG-003 updates only the validated trailing BSR displacement from 0x16BC to the shift-table-reflowed 0x16C0 because that branch crosses the new 0x03AD4C +4-byte frontend ownership cut; replacement semantics are unchanged."
+   "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis). RG-003 updated the validated trailing BSR displacement to 0x16C0 for its +4-byte frontend ownership cut; RG-008 updates it to the shift-table-reflowed 0x16C8 because its +6-byte new-game dirty notification and +2-byte score-award dirty notification lie between this source and the retained 0x03BB48 target. Replacement semantics are unchanged."
   },
   {
    "arcade_pc": "0x03A490",
@@ -991,9 +1016,9 @@
   },
   {
    "arcade_pc": "0x03AC54",
-   "original_bytes": "0c39004300c09e87660a7003610016666100",
+   "original_bytes": "0c39004300c09e87660a7003610016686100",
    "replacement_bytes": "60124e714e714e714e714e714e714e714e71",
-   "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis). RG-003 updates only the validated trailing BSR displacement from 0x1662 to the shift-table-reflowed 0x1666 because that branch crosses the new 0x03AD4C +4-byte frontend ownership cut; replacement semantics are unchanged."
+   "note": "Bypass PC080SN readback cmp/bne crash site (read from 0xC09E87 invalid on Genesis). RG-003 updated the validated trailing BSR displacement to 0x1666 for its +4-byte frontend ownership cut; RG-008 updates it to the shift-table-reflowed 0x1668 because its +2-byte score-award dirty notification lies between this source and the retained target. Replacement semantics are unchanged."
   },
   {
    "arcade_pc": "0x03AC94",
