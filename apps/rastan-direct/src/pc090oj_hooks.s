@@ -2611,6 +2611,10 @@ native_frontend_hud_emit:
     bsr     native_sprite_fast_context
     movea.l #0x00FF011E, %a0
     clr.w   %d5
+    /* Original arcade mode-0 descriptor at 0x03B87E places all six score
+     * digits at semantic Y=0x10.  Set it explicitly: inheriting D2 from the
+     * finalizer made the score occupy the label's upper row. */
+    move.w  #0x0010, %d2
 
     moveq   #0, %d1
     move.b  (%a0), %d1
@@ -2658,13 +2662,14 @@ native_frontend_hud_emit:
     move.w  #0xD039, %d3            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  #0x0040, %d4
     bsr     native_sprite_emit_fast
+    /* Original P1 label table at 0x03B9B0 gives code 0x39 Y=0x10, but the
+     * U/P pieces (0x48/0x46) Y=0x00.  Preserve that split exactly. */
+    clr.w   %d2
     moveq   #PC090OJ_HUD_P1_PROFILE_LINE, %d1
-    move.w  #0x0010, %d2
     move.w  #0xD048, %d3            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  #0x0028, %d4
     bsr     native_sprite_emit_fast
     moveq   #PC090OJ_HUD_P1_PROFILE_LINE, %d1
-    move.w  #0x0010, %d2
     move.w  #0xD046, %d3            /* HUD-white + direct identity + fixed-screen bounds */
     move.w  #0x0038, %d4
     bsr     native_sprite_emit_fast

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Verify shared native HUD assets and consumer ownership contracts."""
-import argparse, importlib.util, json
+"""Verify shared native HUD assets, geometry, and consumer ownership contracts."""
+import argparse, importlib.util, json, re
 from pathlib import Path
 
 def u16(data, offset):
@@ -19,7 +19,8 @@ def main():
         parser.add_argument("--" + name, type=Path, required=True)
     args = parser.parse_args()
     generator = load(args.generator)
-    result = generator.build(args.maincpu.read_bytes(), args.pc090oj.read_bytes())
+    maincpu = args.maincpu.read_bytes()
+    result = generator.build(maincpu, args.pc090oj.read_bytes())
     expected = {args.patterns: result["patterns"], args.static_sat: result["static_sat"],
                 args.dynamic_records: result["dynamic_records"]}
     for path, wanted in expected.items():
@@ -33,6 +34,19 @@ def main():
             raise SystemExit(f"HUD SAT link {index} is {link}, expected {wanted}")
     if len(args.dynamic_records.read_bytes()) != 19 * 11 * 8:
         raise SystemExit("shared HUD dynamic table is not 19 positions x 11 variants")
+
+    # Original arcade geometry is authoritative.  Mode 0 at 0x03B87E owns the
+    # six P1 score digits; the setup table at 0x03B9B0 owns the fixed 1UP label.
+    score = maincpu[0x3B87E:0x3B888]
+    score_contract = (score[0], score[1], int.from_bytes(score[2:6], "big"),
+                      int.from_bytes(score[6:10], "big"))
+    if score_contract != (6, 0x10, 0x00D00108, 0x0010C11E):
+        raise SystemExit(f"arcade P1 score geometry changed: {score_contract!r}")
+    p1 = generator.template(maincpu, 0x3B9B0, 9)
+    if p1[6:9] != [(0x10, 0x0040, 0x39),
+                    (0x00, 0x0028, 0x48),
+                    (0x00, 0x0038, 0x46)]:
+        raise SystemExit(f"arcade 1UP label geometry changed: {p1[6:9]!r}")
     report = json.loads(args.report.read_text())
     if report.get("format") != "rastan-shared-native-hud-v1":
         raise SystemExit("wrong shared HUD report format")
@@ -54,10 +68,29 @@ def main():
         raise SystemExit("compiled legacy frontend HUD owner remains")
     if "genesistan_hud_prepare_frontend" not in sprites or ".Lnq_project_p1_hud" not in sprites:
         raise SystemExit("frontend full or gameplay reduced HUD consumer is missing")
+    gameplay = sprites.split(".Lnq_project_p1_hud:", 1)[1].split(".Lnq_emit_hud_digit:", 1)[0]
+    compact = re.sub(r"\s+", " ", gameplay)
+    score_geometry = re.compile(
+        r"movea\.l #0x00FF011E, %a0 clr\.w %d5 .*? move\.w #0x0010, %d2 .*? "
+        r"move\.b \(%a0\), %d1",
+    )
+    if not score_geometry.search(compact):
+        raise SystemExit("gameplay P1 digits do not explicitly use arcade Y=0x10")
+    if compact.count("move.w #0x0010, %d2") != 2:
+        raise SystemExit("gameplay P1 geometry must set Y=0x10 for score and code 0x39 only")
+    label_contract = re.compile(
+        r"move\.w #0xD039, %d3 .*? bsr native_sprite_emit_fast .*? clr\.w %d2 .*? "
+        r"move\.w #0xD048, %d3 .*? bsr native_sprite_emit_fast .*? "
+        r"move\.w #0xD046, %d3",
+    )
+    if not label_contract.search(compact):
+        raise SystemExit("gameplay 1UP label does not preserve arcade Y split 0x10/0x00/0x00")
     title = args.title_source.read_text()
     if "genesistan_hud_activate_frontend" not in title:
         raise SystemExit("title does not activate shared FRONTEND_FULL HUD")
-    print("NATIVE_HUD_VERIFY_PASS records=30 links=0->1..28->29,29->0 modes=FRONTEND_FULL,GAMEPLAY_REDUCED_P1")
+    print("NATIVE_HUD_VERIFY_PASS records=30 links=0->1..28->29,29->0 "
+          "modes=FRONTEND_FULL,GAMEPLAY_REDUCED_P1 "
+          "gameplay_geometry=score_y10,label_y10_00_00")
 
 if __name__ == "__main__":
     main()
