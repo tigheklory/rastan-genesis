@@ -1857,8 +1857,13 @@ genesistan_pc090oj_hook_score_digit_3b802:
     .global genesistan_gameplay_hud_score_dirty
 genesistan_gameplay_hud_score_dirty:
     /* Presentation notification only.  No score value or gameplay state is
-     * duplicated; the next reduced-HUD pass reads arcade-owned BCD once. */
+     * duplicated; the next reduced-HUD pass reads arcade-owned BCD once.
+     * Preserve the complete caller-visible SR contract: the two player-block
+     * restore hooks replace an RTS and the new-game hook precedes a LEA, so a
+     * presentation notification must not export MOVE.B condition codes. */
+    move.w  %sr, -(%sp)
     move.b  #1, gameplay_hud_score_dirty
+    move.w  (%sp)+, %sr
     rts
 
 /* RETIRED (setup/priority PC090OJ family).  This helper only initialized

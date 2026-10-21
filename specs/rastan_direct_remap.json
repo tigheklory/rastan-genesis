@@ -251,6 +251,18 @@
    "note": "RG-008 declares the outer frontend state dispatch table consumed by 0x03A052..0x03A06A. State 0 targets 0x03A9FE, state 1 targets 0x03A8AC, and state 2 targets 0x03A15A. The two +6-byte player-swap dirty notifications at 0x03A2B0/0x03A2CE and the +6-byte new-game notification at 0x03A9A2 split this table from its later semantic handlers; reflow each signed word from the common shift table instead of retaining a historical displacement."
   },
   {
+   "table_address": "0x03A17C",
+   "entry_count": 4,
+   "entry_size_bytes": 2,
+   "note": "RG-009 declares the four-entry frontend phase dispatcher consumed by 0x03A166..0x03A17A. RG-008 inserted twelve bytes at 0x03A2B0/0x03A2CE between this table and phase handlers 0x03A566, 0x03A5BC, and 0x03A79C. Build 0471 retained state-0 displacement 0x03EA and landed twelve bytes before 0x03A566 in its NOP/RTS predecessor, leaving frontend state 2/0/0 unchanged. Reflow all four semantic targets from this table."
+  },
+  {
+   "table_address": "0x03A1AC",
+   "entry_count": 10,
+   "entry_size_bytes": 2,
+   "note": "RG-009 declares the ten-entry nested frontend phase dispatcher consumed by 0x03A196..0x03A1AA. Entries 2..8 target handlers after the RG-008 insertions at 0x03A2B0/0x03A2CE and require the same signed-word semantic reflow; entry 9 targets the declared BRA.W at 0x03A1C0 and remains unchanged. This closes the second missing crossing-reference owner found by the bounded RG-008 reflow audit."
+  },
+  {
    "table_address": "0x03AA20",
    "entry_count": 3,
    "entry_size_bytes": 2,
