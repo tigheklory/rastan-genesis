@@ -80,3 +80,27 @@ New tooling created: none. The two established regression scripts receive only b
 assertions required by RG-016.
 
 Why new tooling was necessary: not applicable.
+
+## Build 0477 closure evidence
+
+Build 0477 is the first mechanically and functionally valid RG-016 candidate. Its exact
+ROM-producing source is `a3f1361bd2f583c2d991b04393650d9d208bdcc7`; the normal ROM SHA-256 is
+`a5f9adfc33f44eae8479617d9cc56c4021fe16661fde0572956a44c69ef86eaf`. The canonical build,
+boot, R1-S1 entry, all seven production epochs, generated frame/direct-dispatch/RG-014/HUD gates,
+fixed30 trace and complete seven-ROM family pass.
+
+The first extended final-life result was a validator false negative: its own trace showed both
+post-death `2/2/7` READY dwells visible for 110 frames apiece, but the assertion incorrectly treated
+unrelated `A5+0x13AA == 13` as the READY state. Commit `5586def5` keys the assertion to the proven
+retained subphase-7 owner. The unchanged ROM then passes with three deaths, 220 READY-visible frames,
+140 post-READY blank frames, two coherent visible restarts, 966 Continue-visible frames and zero
+unsafe visible frames or display-on writes.
+
+The established writer-event/Continue-re-entry route was boundedly extended in commit `3d5127c9`
+to count presentation readiness. It passes with 25 visible Continue frames, 71 blank native-loading
+frames and coherent visible gameplay re-entry. The RG-004 Continue panel passes at 120 visible frames,
+83 staged/VDP names, zero name mismatches and zero nonblank outside-panel cells. The natural attract
+route reaches demo death and a matching second title at frame 7,216. The unchanged `_invincible`
+rope route is deterministic `795/795/795`, median `13,267.083 ms`, identical to accepted Build 0473.
+
+Build 0477 remains a candidate pending Tighe's real-Genesis test. No acceptance tag was created.
