@@ -54,9 +54,14 @@ local last_tuple = ""
 local last_player_state = -1
 local display_on = false
 local ready_visible_frames = 0
+local ready_visible_deaths = {}
 local unsafe_visible_frames = 0
 local unsafe_display_on_writes = 0
 local post_ready_blank_frames = 0
+local post_ready_blank_deaths = {}
+local continue_reached = false
+local continue_visible_frames = 0
+local game_over_visible_frames = 0
 local visible_restarts = {}
 local restart_recorded_for_death = 0
 local blank_seen_for_death = {}
@@ -148,9 +153,14 @@ local function finish(result, reason)
     reg("PC") & 0xffffff, reg("SP"), r16(0xff0000), r16(0xff0002), r16(0xff0004)))
   out:write(string.format("lives=%04X\nhp=%04X\nplayer_state=%04X\ndeath_step=%04X\nsession=%04X\n",
     r16(0xff0100), r16(0xff013a), r16(0xff10e8), r16(0xff12f4), r16(0xff0034)))
-  out:write(string.format("ready_visible_frames=%d\nunsafe_visible_frames=%d\nunsafe_display_on_writes=%d\npost_ready_blank_frames=%d\nvisible_restarts=%d\n",
-    ready_visible_frames, unsafe_visible_frames, unsafe_display_on_writes,
-    post_ready_blank_frames, #visible_restarts))
+  local ready_death_count, post_ready_blank_count = 0, 0
+  for _ in pairs(ready_visible_deaths) do ready_death_count = ready_death_count + 1 end
+  for _ in pairs(post_ready_blank_deaths) do post_ready_blank_count = post_ready_blank_count + 1 end
+  out:write(string.format("ready_visible_frames=%d\nready_visible_deaths=%d\nunsafe_visible_frames=%d\nunsafe_display_on_writes=%d\npost_ready_blank_frames=%d\npost_ready_blank_deaths=%d\ncontinue_reached=%s\ncontinue_visible_frames=%d\ngame_over_visible_frames=%d\nvisible_restarts=%d\n",
+    ready_visible_frames, ready_death_count, unsafe_visible_frames,
+    unsafe_display_on_writes, post_ready_blank_frames, post_ready_blank_count,
+    continue_reached and "YES" or "NO", continue_visible_frames,
+    game_over_visible_frames, #visible_restarts))
   for index, restart in ipairs(visible_restarts) do
     out:write(string.format("restart_%d=%s\n", index, restart))
   end
@@ -204,13 +214,19 @@ emu.register_frame_done(function()
 
   if latch == 1 and display_on then unsafe_visible_frames = unsafe_visible_frames + 1 end
   if death_entries > 0 and latch == 1 and not display_on then blank_seen_for_death[death_entries] = true end
-  if death_entries > 0 and ready_state == 13 and display_on then ready_visible_frames = ready_visible_frames + 1 end
-  if death_entries > 0 and death_entries <= 2 and ready_state ~= 13 and not display_on then
+  if death_entries > 0 and death_entries <= 2 and ready_state == 13 and display_on then
+    ready_visible_frames = ready_visible_frames + 1
+    ready_visible_deaths[death_entries] = true
+  end
+  if death_entries > 0 and death_entries <= 2 and ready_visible_deaths[death_entries] and
+     ready_state ~= 13 and not display_on then
     post_ready_blank_frames = post_ready_blank_frames + 1
+    post_ready_blank_deaths[death_entries] = true
   end
   if death_entries > restart_recorded_for_death and death_entries <= 2 and
      blank_seen_for_death[death_entries] and
-     outer == 2 and phase == 3 and display_on then
+     ready_visible_deaths[death_entries] and post_ready_blank_deaths[death_entries] and
+     outer == 2 and phase == 3 and ready_state ~= 13 and player_state == 3 and display_on then
     local restart = string.format("frame=%d state=%04X x=%04X y=%04X sel=%04X/%04X scene=%02X pending=%02X palette=%02X body=%04X emitted=%04X",
       frame, player_state, r16(0xff10be), r16(0xff10c0), r16(0xff1244), r16(0xff1246),
       r8(symbols.genesistan_current_scene_id), r8(symbols.genesistan_scene_present_pending),
@@ -223,6 +239,13 @@ emu.register_frame_done(function()
   if gameplay_seen and death_entries >= 1 and lives == 0 and final_armed_frame < 0 then
     final_armed_frame = frame
     snapshot_line("FINAL_LIFE_ZERO", "armed")
+  end
+  if outer == 2 and phase == 4 and subphase == 8 then
+    continue_reached = true
+    if display_on then continue_visible_frames = continue_visible_frames + 1 end
+  end
+  if outer == 2 and phase == 4 and (subphase == 5 or subphase == 6) and display_on then
+    game_over_visible_frames = game_over_visible_frames + 1
   end
 
   local pc = reg("PC") & 0xffffff
@@ -244,13 +267,18 @@ emu.register_frame_done(function()
   -- Correct final-death flow enters terminal phase 4, exhausts lives, then reaches
   -- the GAME OVER setup/dwell (subphase 5/6) or leaves the gameplay umbrella.
   if final_armed_frame >= 0 and phase == 4 and (subphase == 5 or subphase == 6) then
-    if ready_visible_frames == 0 then finish("FAIL", "ready_never_visible"); return end
-    if post_ready_blank_frames == 0 then finish("FAIL", "post_ready_loading_blank_missing"); return end
+    local ready_death_count, post_ready_blank_count = 0, 0
+    for _ in pairs(ready_visible_deaths) do ready_death_count = ready_death_count + 1 end
+    for _ in pairs(post_ready_blank_deaths) do post_ready_blank_count = post_ready_blank_count + 1 end
+    if ready_death_count ~= 2 then finish("FAIL", "ready_not_visible_on_both_nonfinal_deaths"); return end
+    if post_ready_blank_count ~= 2 then finish("FAIL", "post_ready_loading_blank_missing"); return end
     if #visible_restarts ~= 2 then finish("FAIL", "nonfinal_restart_count_mismatch"); return end
+    if not continue_reached or continue_visible_frames == 0 then finish("FAIL", "continue_never_visible"); return end
+    if game_over_visible_frames == 0 then finish("FAIL", "game_over_frontend_handoff_not_visible"); return end
     finish("PASS", "game_over_transition_and_death_respawn_presentation_reached"); return
   end
   if final_armed_frame >= 0 and outer ~= 2 then
-    finish("PASS", "post_gameplay_frontend_transition_reached"); return
+    finish("FAIL", "frontend_transition_before_required_continue_game_over_visibility"); return
   end
   if final_armed_frame >= 0 and frame - last_transition_frame >= stall_frames then
     finish("FAIL", "final_life_state_stalled"); return

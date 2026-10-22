@@ -254,9 +254,11 @@ genesistan_frontend_owner_reset:
  * The retained arcade death, READY and respawn controllers remain the only
  * gameplay authority.  These helpers own only Genesis display safety. */
 genesistan_presentation_mark_unsafe:
+    move.w  %sr, -(%sp)
     movem.l %d0-%d2, -(%sp)
     bsr     .Lpresentation_mark_unsafe_body
     movem.l (%sp)+, %d0-%d2
+    move.w  (%sp)+, %sr
     rts
 
 .Lpresentation_mark_unsafe_body:
@@ -267,7 +269,9 @@ genesistan_presentation_mark_unsafe:
     rts
 
 genesistan_presentation_mark_ready_after_publish:
+    move.w  %sr, -(%sp)
     move.b  #2, genesistan_presentation_readiness
+    move.w  (%sp)+, %sr
     rts
 
 /* Called exactly at dma_publish_frame completion.  HOLD stays blank; READY is

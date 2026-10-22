@@ -319,6 +319,30 @@
    "note": "Build 0453 native item-description tick cut. Replace the first complete instruction of the item-only 0x05607C function with the native semantic tick and return; its old PC090OJ record-decay loop, 0x055AB4 hardware-scroll publisher and 0x0560DA PC080SN row-stream call are unreachable. The native helper preserves the original every-fourth-frame cadence, A5+0x10AE/A5+0x10B0 clears, A5+0x10EE decrement/modulo-512 authority and VSRAM publication, then copies exactly one precomputed 64-word row and marks one dirty physical row only at an eight-pixel crossing. Proper 4-to-8-byte shift replacement; no NOP, equal-length body padding, runtime decompression, chip shadow, or fallback."
   },
   {
+   "arcade_pc": "0x03A374",
+   "original_bytes": "3B7C00080004",
+   "replacement_bytes": "3B7C000800044EB9{symbol:genesistan_presentation_mark_ready_after_publish}",
+   "note": "RG-016 retained Continue presentation completion boundary. Preserve the original transition to subphase 8 only after 0x03A31C..0x03A36E has selected the Continue panel, emitted all retained text groups, initialized countdown state and established its dwell. Then allow this complete frontend owner to override a gameplay HOLD, with visibility deferred until the next fixed-order VBlank publication. Proper 6-to-12-byte shift replacement; Continue state, input, countdown and content remain arcade-owned."
+  },
+  {
+   "arcade_pc": "0x03A448",
+   "original_bytes": "3B7C00060004",
+   "replacement_bytes": "3B7C000600044EB9{symbol:genesistan_presentation_mark_ready_after_publish}",
+   "note": "RG-016 retained terminal GAME OVER presentation completion boundary. Preserve the original transition to subphase 6 after 0x03A420 has installed the retained presentation block, emitted both text groups, reset terminal selection state and initialized its 160-tick dwell. Then release any gameplay-origin HOLD after the next complete VBlank publication. Proper 6-to-12-byte shift replacement; terminal control flow and content remain arcade-owned."
+  },
+  {
+   "arcade_pc": "0x03A74E",
+   "original_bytes": "3B7C00070004",
+   "replacement_bytes": "3B7C000700044EB9{symbol:genesistan_presentation_mark_ready_after_publish}",
+   "note": "RG-016 human-session READY completion boundary. Preserve the retained transition to subphase 7 only after 0x03A6E8..0x03A748 has authored PLAYER/READY, ROUND/digit, palette and the 112-tick dwell. Then allow READY presentation ownership to override the earlier gameplay HOLD after the next complete VBlank publication. Proper 6-to-12-byte shift replacement; READY timing/content remain arcade-owned."
+  },
+  {
+   "arcade_pc": "0x03A75C",
+   "original_bytes": "3B7C00040004",
+   "replacement_bytes": "3B7C000400044EB9{symbol:genesistan_presentation_mark_unsafe}",
+   "note": "RG-016 human-session READY exit boundary. Preserve the retained transition from the completed 112-tick READY dwell to subphase 4, then mark the forthcoming gameplay-native turnover unsafe before reset/body/resource work can be scanned out. The established 0x050482 producer completion and fixed-order VBlank publication remain the sole coherent gameplay reveal. Proper 6-to-12-byte shift replacement; no wait, poll or gameplay-state ownership is added."
+  },
+  {
    "arcade_pc": "0x03AA54",
    "original_bytes": "4EB90005A356",
    "replacement_bytes": "4EB9{symbol:genesistan_title_present_once}4E75",
@@ -378,12 +402,6 @@
    "original_bytes": "426D0004",
    "replacement_bytes": "426D00044EB9{symbol:genesistan_presentation_mark_unsafe}",
    "note": "RG-015 final-visible-death presentation boundary. Preserve the retained arcade subphase clear after death step 0x38 has selected terminal phase 4, then mark the Genesis display unsafe before the following retained player-reset/body path can stage a death-location reconstruction. This adds no death-state test or gameplay authority; it is a proper 4-to-10-byte shift replacement at the proven lifecycle event."
-  },
-  {
-   "arcade_pc": "0x055FD2",
-   "original_bytes": "3B7C000D13AA",
-   "replacement_bytes": "3B7C000D13AA4EB9{symbol:genesistan_presentation_mark_ready_after_publish}",
-   "note": "RG-015 READY presentation completion boundary. The retained state-12 producers at 0x055FCA/0x055FCE have cleared and authored the READY planes before this original transition to state 13. Preserve that state write, then request display enable only after the next fixed-order VBlank publication commits its matching palette, names, SAT and scroll. Proper 6-to-12-byte shift replacement; READY timing/content remain arcade-owned."
   },
   {
    "arcade_pc": "0x05A334",

@@ -24,7 +24,8 @@ for _, name in ipairs({"staged_bg_buffer", "staged_palette_words",
                         "bg_row_dirty", "bg_col_dirty", "palette_pending",
                         "genesistan_frontend_presentation_reset",
                         "genesistan_current_scene_id",
-                        "genesistan_current_pc080sn_tileset_id"}) do
+                        "genesistan_current_pc080sn_tileset_id",
+                        "genesistan_presentation_readiness"}) do
   assert(symbols[name], "missing symbol: " .. name)
 end
 
@@ -71,6 +72,7 @@ end
 
 local frame = 0
 local continue_frame = nil
+local continue_visible_frames = 0
 local finished = false
 local attract_events = {}
 local attract_taps = {}
@@ -163,6 +165,10 @@ local function finish()
     frame, r16(0xff0000), r16(0xff0002), r16(0xff0004),
     r8(symbols.genesistan_current_scene_id),
     r8(symbols.genesistan_current_pc080sn_tileset_id)))
+  out:write(string.format("presentation_readiness=%02X\ncontinue_visible_frames=%d\ncontinue_visibility=%s\n",
+    r8(symbols.genesistan_presentation_readiness), continue_visible_frames,
+    continue_visible_frames > 0 and "PASS" or "FAIL"))
+  out:write(string.format("continue_reached=%s\n", continue_frame and "YES" or "NO"))
   out:write(string.format("bg_row_dirty=%08X\nbg_col_dirty=%08X%08X\npalette_pending=%02X\n",
     program:read_u32(symbols.bg_row_dirty) & 0xffffffff,
     program:read_u32(symbols.bg_col_dirty) & 0xffffffff,
@@ -291,6 +297,9 @@ emu.register_frame_done(function()
 
   if r16(0xff0000) == 2 and r16(0xff0002) == 4 and r16(0xff0004) == 8 then
     if not continue_frame then continue_frame = frame end
+    if r8(symbols.genesistan_presentation_readiness) == 0 then
+      continue_visible_frames = continue_visible_frames + 1
+    end
     if frame >= continue_frame + continue_dwell_frames then finish(); return end
   end
   if frame >= 4000 then finish() end
