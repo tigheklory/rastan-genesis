@@ -53137,3 +53137,23 @@ TIGHE ONLY
 - Build 0473 was not produced or consumed. Concurrent Andy RG-006/RG-007 C decompilation, audio,
   Palette Composer, and unrelated work remained unstaged. Updated report:
   `docs/design/Cody_RG009_build0471_frontend_stall.md`.
+
+## 2026-10-22 — RG-014 Build 0473 retained-cut preservation candidate
+
+- Exact ROM-producing source `f6e975b864af2aca7bdf24b0a40a9db43bd62f59` consolidates the
+  retained `0x041DAE`/`0x045DFA` gameplay path under one `D4/D6/A2-A6` frame. Internal
+  dispatch/finalizer entries avoid duplicate outer saves; conservative public ABIs and required
+  inner `D5/A1` actor-loop plus `D6` queue preservation remain intact. No finalizer, clipping,
+  residency, bat, HUD, palette, SAT, PC080SN, or gameplay semantic changed.
+- Build 0473 normal ROM `dist/rastan-direct/rastan_direct_video_test_build_0473.bin`, SHA-256
+  `42cac0085a0078ffbc4293e493ece95280e854d4d2b5bf4512756bb095ded717`, 2,739,896 bytes;
+  counter 473 and complete seven-ROM family verified. Static result matches RG-013: save/restore
+  instructions `6 -> 2`, longword transfers `56 -> 14`, outer stack `60 -> 28` bytes, calculated
+  preservation cost `496 -> 132` cycles (`364` calculated cycles/pass removed).
+- Canonical/boot/R1-S1/seven-epoch/frame/direct-dispatch/HUD/fixed30/final-life/HUD-event/RG-004
+  Continue+attract/family gates PASS. Fixed30 1,798 frames; final-life PASS at frame 3,576;
+  Continue 83/83 with zero mismatches; second title PASS at frame 7,215.
+- Established `_invincible` rope is deterministic `795/795/795`, median `13,267.083 ms`: exactly
+  SAME as accepted Build 0472, so no route-level regression or improvement. Candidate is valid and
+  performance-neutral; Tighe real-Genesis acceptance is PENDING. `accepted/build-0472` unchanged.
+  Report: `docs/design/Cody_build0473_retained_cut_preservation.md`.
