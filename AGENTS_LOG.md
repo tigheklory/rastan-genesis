@@ -53188,3 +53188,30 @@ TIGHE ONLY
 - Validation stopped after the hard READY failure; rope and broader acceptance reruns were not run.
   Build 0475 was not produced. Reports: `docs/design/Cody_RG015_death_respawn_semantic_analysis.md`
   and `docs/design/Cody_build0474_death_respawn_presentation.md`.
+
+### MAME Exit Summary (2026-10-22 13:26:44)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-22 13:30:51)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-22 — RG-016 Build 0477 READY / Continue visibility candidate
+
+- Build 0475 is consumed without an artifact after a pre-publication shifted-byte validation
+  failure. Build 0476 is rejected/consumed after its undeclared retained READY dispatcher stalled
+  entry at `2/2/7`. Declaring the existing nine-entry table at arcade `0x03A5D2` produced the first
+  passing candidate from exact source `a3f1361bd2f583c2d991b04393650d9d208bdcc7`.
+- Build 0477 normal ROM `dist/rastan-direct/rastan_direct_video_test_build_0477.bin`, SHA-256
+  `a5f9adfc33f44eae8479617d9cc56c4021fe16661fde0572956a44c69ef86eaf`, 2,739,896 bytes; counter
+  477 and complete seven-ROM family verified. Accepted Build 0473/tag remain unchanged.
+- Extended final-life PASS: three deaths, READY visible on both non-final deaths (220 frames),
+  post-READY loading blank (140 frames), two coherent respawns, Continue visible (966 frames), zero
+  unsafe visible frames. Continue/re-entry PASS: 25 visible Continue frames, 71 blank loading frames,
+  coherent visible re-entry. RG-004 Continue and attract/title PASS.
+- Established `_invincible` rope is deterministic `795/795/795`, median `13,267.083 ms`, identical
+  to accepted Build 0473. Build 0477 is AWAITING TIGHE HARDWARE ACCEPTANCE; no tag created. Report:
+  `docs/design/Cody_build0477_ready_continue_visibility.md`.
