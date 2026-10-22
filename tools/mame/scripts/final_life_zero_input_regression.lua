@@ -214,19 +214,24 @@ emu.register_frame_done(function()
 
   if latch == 1 and display_on then unsafe_visible_frames = unsafe_visible_frames + 1 end
   if death_entries > 0 and latch == 1 and not display_on then blank_seen_for_death[death_entries] = true end
-  if death_entries > 0 and death_entries <= 2 and ready_state == 13 and display_on then
+  -- The retained human-session READY owner is outer/phase/subphase 2/2/7.
+  -- A5+0x13AA is a related frontend word (observed as 1 here), not the READY
+  -- controller state; using 13 made a genuinely visible READY dwell report as
+  -- absent.  Key this assertion to the proven 0x03A74E -> subphase-7 event.
+  local ready_active = outer == 2 and phase == 2 and subphase == 7
+  if death_entries > 0 and death_entries <= 2 and ready_active and display_on then
     ready_visible_frames = ready_visible_frames + 1
     ready_visible_deaths[death_entries] = true
   end
   if death_entries > 0 and death_entries <= 2 and ready_visible_deaths[death_entries] and
-     ready_state ~= 13 and not display_on then
+     not ready_active and not display_on then
     post_ready_blank_frames = post_ready_blank_frames + 1
     post_ready_blank_deaths[death_entries] = true
   end
   if death_entries > restart_recorded_for_death and death_entries <= 2 and
      blank_seen_for_death[death_entries] and
      ready_visible_deaths[death_entries] and post_ready_blank_deaths[death_entries] and
-     outer == 2 and phase == 3 and ready_state ~= 13 and player_state == 3 and display_on then
+     outer == 2 and phase == 3 and not ready_active and player_state == 3 and display_on then
     local restart = string.format("frame=%d state=%04X x=%04X y=%04X sel=%04X/%04X scene=%02X pending=%02X palette=%02X body=%04X emitted=%04X",
       frame, player_state, r16(0xff10be), r16(0xff10c0), r16(0xff1244), r16(0xff1246),
       r8(symbols.genesistan_current_scene_id), r8(symbols.genesistan_scene_present_pending),
