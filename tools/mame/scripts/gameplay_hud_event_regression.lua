@@ -24,7 +24,7 @@ end
 local symbols = parse_symbols(symbols_path)
 for _, name in ipairs({"genesistan_current_scene_id", "gameplay_hud_semantic_count",
   "gameplay_hud_semantic_queue", "gameplay_hud_score_dirty", "staged_sprite_sat",
-  "staged_sprite_sat_b", "pc090oj_sat_bank"}) do
+  "staged_sprite_sat_b", "pc090oj_sat_bank", "genesistan_presentation_readiness"}) do
   assert(symbols[name], "missing symbol: " .. name)
 end
 
@@ -46,6 +46,7 @@ local initial_count, changed_count = nil, nil
 local bank_seen = {[0]=false, [1]=false}
 local hud_event_validated = false
 local continue_frame, reentry_frame = nil, nil
+local continue_visible_frames, reentry_loading_blank_frames = 0, 0
 local death_entries, last_player_state = 0, -1
 local errors = {}
 
@@ -102,6 +103,8 @@ local function finish(result, reason)
     tostring(gameplay_frame), tostring(injected_frame)))
   out:write(string.format("death_entries=%d\ncontinue_frame=%s\nreentry_frame=%s\n",
     death_entries, tostring(continue_frame), tostring(reentry_frame)))
+  out:write(string.format("continue_visible_frames=%d\nreentry_loading_blank_frames=%d\n",
+    continue_visible_frames, reentry_loading_blank_frames))
   out:write(string.format("score=%02X%02X%02X\ndirty=%02X\n",
     r8(0xff011e), r8(0xff011d), r8(0xff011c), r8(symbols.gameplay_hud_score_dirty)))
   out:write(string.format("initial_count=%s\nchanged_count=%s\n",
@@ -185,6 +188,18 @@ emu.register_frame_done(function()
       r16(0xff0002) == 4 and r16(0xff0004) == 8 then
     continue_frame = frame
   end
+  if continue_frame and not reentry_frame then
+    local readiness = r8(symbols.genesistan_presentation_readiness)
+    if r16(0xff0000) == 2 and r16(0xff0002) == 4 and r16(0xff0004) == 8 and
+        readiness == 0 then
+      continue_visible_frames = continue_visible_frames + 1
+    elseif frame > continue_frame + 36 and readiness ~= 0 then
+      -- Continue acceptance has handed ownership back to gameplay, whose
+      -- existing scene-load boundary must hold the display off until native
+      -- publication completes.
+      reentry_loading_blank_frames = reentry_loading_blank_frames + 1
+    end
+  end
   if continue_frame and not reentry_frame and frame > continue_frame + 36 and gameplay and
       r16(0xff0034) ~= 0 then
     reentry_frame = frame
@@ -195,6 +210,9 @@ emu.register_frame_done(function()
     if r8(symbols.gameplay_hud_score_dirty) ~= 0 then fail("reentry_dirty_not_consumed") end
     if count < 3 then fail("reentry_hud_missing") end
     if death_entries < 3 then fail("final_life_route_incomplete") end
+    if continue_visible_frames == 0 then fail("continue_never_visible") end
+    if reentry_loading_blank_frames == 0 then fail("reentry_loading_blank_missing") end
+    if r8(symbols.genesistan_presentation_readiness) ~= 0 then fail("reentry_not_visible") end
     if #errors == 0 then finish("PASS", "writer_event_both_sat_banks_and_continue_reentry")
     else finish("FAIL", "reentry_contract_mismatch") end
     return
