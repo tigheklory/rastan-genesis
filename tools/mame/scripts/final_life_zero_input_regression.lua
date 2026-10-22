@@ -59,6 +59,9 @@ local unsafe_display_on_writes = 0
 local post_ready_blank_frames = 0
 local visible_restarts = {}
 local restart_recorded_for_death = 0
+local blank_seen_for_death = {}
+local last_presentation_latch = -1
+local last_ready_state = -1
 local taps = {}
 local events = assert(io.open(trace_dir .. "/events.tsv", "w"))
 local frames = assert(io.open(trace_dir .. "/bounded_frames.tsv", "w"))
@@ -177,6 +180,15 @@ emu.register_frame_done(function()
   local lives, player_state = r16(0xff0100), r16(0xff10e8)
   local latch = r8(symbols.genesistan_presentation_readiness)
   local ready_state = r16(0xff13aa)
+  -- RG-015's only stable visibility states are NORMAL (0, display on) and
+  -- HOLD (1, display off). READY (2) is consumed inside the publication
+  -- completion routine before the worker/frame boundary can observe it.
+  display_on = latch == 0
+  if latch ~= last_presentation_latch or ready_state ~= last_ready_state then
+    snapshot_line("PRESENTATION_STATE", presentation_data())
+    last_presentation_latch = latch
+    last_ready_state = ready_state
+  end
   local tuple = string.format("%04X/%04X/%04X/%04X/%04X", outer, phase, subphase, lives, player_state)
   if tuple ~= last_tuple then
     snapshot_line("STATE", tuple)
@@ -191,11 +203,13 @@ emu.register_frame_done(function()
   last_player_state = player_state
 
   if latch == 1 and display_on then unsafe_visible_frames = unsafe_visible_frames + 1 end
+  if death_entries > 0 and latch == 1 and not display_on then blank_seen_for_death[death_entries] = true end
   if death_entries > 0 and ready_state == 13 and display_on then ready_visible_frames = ready_visible_frames + 1 end
   if death_entries > 0 and death_entries <= 2 and ready_state ~= 13 and not display_on then
     post_ready_blank_frames = post_ready_blank_frames + 1
   end
   if death_entries > restart_recorded_for_death and death_entries <= 2 and
+     blank_seen_for_death[death_entries] and
      outer == 2 and phase == 3 and display_on then
     local restart = string.format("frame=%d state=%04X x=%04X y=%04X sel=%04X/%04X scene=%02X pending=%02X palette=%02X body=%04X emitted=%04X",
       frame, player_state, r16(0xff10be), r16(0xff10c0), r16(0xff1244), r16(0xff1246),

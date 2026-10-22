@@ -53168,3 +53168,23 @@ TIGHE ONLY
   deterministic `_invincible` rope result `795/795/795`, median `13,267.083 ms`.
 - Immutable `accepted/build-0473` points exactly to ROM-producing source `f6e975b8`, not a report
   or bookkeeping commit. Build 0474 had not been produced or consumed at acceptance lock time.
+
+## 2026-10-22 — RG-015 Build 0474 death/respawn presentation rejected
+
+- Build 0474 exact ROM-producing source `70622388b1dc21c22aa8c3ccaa194abf4ab9575a` added a
+  presentation-only HOLD/READY latch at retained death and native publication events. Normal ROM
+  `dist/rastan-direct/rastan_direct_video_test_build_0474.bin`, SHA-256
+  `93afbf60dbc4b2423e58296e9925c8143c26e9ab242b505e2682c5f899ae901c`, 2,739,896 bytes.
+  Counter 474 and complete seven-ROM family are preserved; no accepted tag was created.
+- Canonical/boot/R1-S1/seven-epoch/generated frame/direct-dispatch/native HUD/title/item/family gates
+  PASS. The established final-life route extended with bounded presentation state rejected the ROM:
+  `ready_visible_frames=0`. Build 0474 hid the required post-death READY interval and is REJECTED.
+- The same bounded run proved HOLD remained hidden and both first post-death gameplay reveals were
+  coherent and identical: player state 3, X/Y `0x0020/0x0030`, selectors `0x0000/0x000C`, scene 1,
+  scene-pending 0, body count 9, emitted SAT count 11.
+- Corrected static provenance: human session bypasses internal `0x055DDC` states 9..13. READY is
+  authored at `0x03A6E8..0x03A748`, enters its 112-tick visible dwell at `0x03A74E`, and exits at
+  `0x03A75C`. The candidate's `0x055FD2` reveal hook was unreachable on the post-death route.
+- Validation stopped after the hard READY failure; rope and broader acceptance reruns were not run.
+  Build 0475 was not produced. Reports: `docs/design/Cody_RG015_death_respawn_semantic_analysis.md`
+  and `docs/design/Cody_build0474_death_respawn_presentation.md`.
