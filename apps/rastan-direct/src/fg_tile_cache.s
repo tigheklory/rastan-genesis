@@ -45,6 +45,7 @@
     .extern fg_narrow_desc_count
     .extern fg_narrow_pending_rows
     .extern genesistan_scene_present_pending
+    .extern genesistan_presentation_mark_ready_after_publish
     .extern vdp_set_reg
     .extern vdp_dma_words_to_vram
 
@@ -140,9 +141,9 @@ fg_boundary_install_post_reseed:
     clr.w   fg_narrow_desc_count
     clr.w   fg_narrow_pending_rows
     clr.b   genesistan_scene_present_pending
-    moveq   #VDP_REG_MODE2, %d0
-    moveq   #VDP_MODE2_DISPLAY_ON, %d1
-    bsr     vdp_set_reg
+    /* RG-015: names are complete, but the matching CRAM/SAT/scroll generation
+     * is not visible until the next normal VBlank publication completes. */
+    bsr     genesistan_presentation_mark_ready_after_publish
 .Lpost_reseed_done:
     movem.l (%sp)+, %d0-%d7/%a0-%a4
     rts

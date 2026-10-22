@@ -3,6 +3,10 @@
     .global load_scene_tiles
     .global genesistan_frontend_presentation_reset
     .global genesistan_frontend_owner_reset
+    .global genesistan_presentation_mark_unsafe
+    .global genesistan_presentation_mark_ready_after_publish
+    .global genesistan_presentation_publish_complete
+    .global genesistan_presentation_readiness
     .extern fg_cache_reset
 
     .global genesistan_pc080sn_tile_vram_lut
@@ -190,10 +194,12 @@ load_scene_tiles:
     bsr     vdp_install_test_lines
 .Lload_scene_no_cache_reset:
 
-    /* Build 0394: when the semantic scene-fill caller has armed presentation,
-     * resource loading returns with the display off.  The completed-fill
-     * boundary at arcade_pc 0x050482 owns publication and display-enable. */
+    /* Build 0394 / RG-015: a semantic scene fill or lifecycle transition keeps
+     * the display off.  The completed producer boundary requests visibility;
+     * only the following completed VBlank publication may enable it. */
     tst.b   genesistan_scene_present_pending
+    bne.s   .Lload_scene_leave_display_off
+    tst.b   genesistan_presentation_readiness
     bne.s   .Lload_scene_leave_display_off
     moveq   #VDP_REG_MODE2, %d0
     moveq   #VDP_MODE2_DISPLAY_ON, %d1
@@ -233,8 +239,54 @@ genesistan_frontend_presentation_reset:
  * performs that retained clear consequence in its own bounded wrapper. */
 genesistan_frontend_owner_reset:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+    bsr     .Lpresentation_mark_unsafe_body
     bsr     .Lfrontend_owner_reset_body
     movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* RG-015 presentation-only readiness latch.
+ *
+ * 0 = normal visible ownership
+ * 1 = unsafe native-resource generation; force display off
+ * 2 = all retained/native producers are complete; enable only after the next
+ *     fixed-order VBlank publication has committed CRAM/planes/SAT/scroll.
+ *
+ * The retained arcade death, READY and respawn controllers remain the only
+ * gameplay authority.  These helpers own only Genesis display safety. */
+genesistan_presentation_mark_unsafe:
+    movem.l %d0-%d2, -(%sp)
+    bsr     .Lpresentation_mark_unsafe_body
+    movem.l (%sp)+, %d0-%d2
+    rts
+
+.Lpresentation_mark_unsafe_body:
+    move.b  #1, genesistan_presentation_readiness
+    moveq   #VDP_REG_MODE2, %d0
+    moveq   #VDP_MODE2_DISPLAY_OFF, %d1
+    bsr     vdp_set_reg
+    rts
+
+genesistan_presentation_mark_ready_after_publish:
+    move.b  #2, genesistan_presentation_readiness
+    rts
+
+/* Called exactly at dma_publish_frame completion.  HOLD stays blank; READY is
+ * consumed once and makes the just-published coherent generation visible. */
+genesistan_presentation_publish_complete:
+    cmpi.b  #2, genesistan_presentation_readiness
+    beq.s   .Lpresentation_enable
+    tst.b   genesistan_presentation_readiness
+    beq.s   .Lpresentation_publish_done
+    moveq   #VDP_REG_MODE2, %d0
+    moveq   #VDP_MODE2_DISPLAY_OFF, %d1
+    bsr     vdp_set_reg
+    bra.s   .Lpresentation_publish_done
+.Lpresentation_enable:
+    moveq   #VDP_REG_MODE2, %d0
+    moveq   #VDP_MODE2_DISPLAY_ON, %d1
+    bsr     vdp_set_reg
+    clr.b   genesistan_presentation_readiness
+.Lpresentation_publish_done:
     rts
 
 .Lfrontend_owner_reset_body:
@@ -353,4 +405,6 @@ genesistan_scene_a0_lo:
 genesistan_scene_a0_hi:
     .long 0
 genesistan_scene_present_pending:
+    .byte 0
+genesistan_presentation_readiness:
     .byte 0

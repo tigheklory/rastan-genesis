@@ -47,6 +47,7 @@
     .extern palette_pending
 
     .global dma_publish_frame
+    .extern genesistan_presentation_publish_complete
     .global dma_words_to_vram
     .global dma_words_to_vram_noai
     .global vdp_dma_words_to_vram    /* legacy symbol name kept for existing callers */
@@ -92,6 +93,10 @@ dma_publish_frame:
 .if RASTAN_VBLANK_DISPLAY_OFF
     move.w  #VDP_REG1_DISPLAY_ON, VDP_CTRL_PORT
 .endif
+    /* RG-015: visibility is decided only after the complete CRAM/VRAM/SAT/
+     * scroll generation above has reached the VDP.  This consumes the finite
+     * READY latch or preserves an unsafe-transition blank. */
+    bsr     genesistan_presentation_publish_complete
     movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 

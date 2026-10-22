@@ -6,6 +6,7 @@ local cpu = assert(machine.devices[":maincpu"], "missing :maincpu")
 local program = assert(cpu.spaces["program"], "missing maincpu program space")
 local state = cpu.state
 local trace_dir = assert(os.getenv("TRACE_DIR"), "TRACE_DIR is required")
+local symbols_path = assert(os.getenv("FINAL_LIFE_SYMBOLS"), "FINAL_LIFE_SYMBOLS is required")
 local max_frames = tonumber(os.getenv("FINAL_LIFE_MAX_FRAMES") or "12000")
 -- The arcade-owned GAME OVER dwell advances a 10-step counter once per 96
 -- frames, so a correct zero-input transition can remain in subphase 8 for
@@ -14,9 +15,25 @@ local stall_frames = tonumber(os.getenv("FINAL_LIFE_STALL_FRAMES") or "1200")
 
 local function r16(address) return program:read_u16(address) & 0xffff end
 local function r32(address) return program:read_u32(address) & 0xffffffff end
+local function r8(address) return program:read_u8(address) & 0xff end
 local function reg(name)
   local item = state[name]
   return item and (item.value & 0xffffffff) or 0
+end
+
+local function parse_symbols(path)
+  local result = {}
+  for line in assert(io.lines(path)) do
+    local address, name = line:match("^([0-9A-Fa-f]+)%s+%S%s+([^%s]+)$")
+    if address and name then result[name] = tonumber(address, 16) end
+  end
+  return result
+end
+local symbols = parse_symbols(symbols_path)
+for _, name in ipairs({"genesistan_presentation_readiness", "genesistan_current_scene_id",
+                        "genesistan_scene_present_pending", "palette_pending",
+                        "native_player_body_count", "pc090oj_emitted_count"}) do
+  assert(symbols[name], "missing symbol: " .. name)
 end
 
 local fields = {}
@@ -35,11 +52,18 @@ local final_armed_frame = -1
 local last_transition_frame = 0
 local last_tuple = ""
 local last_player_state = -1
+local display_on = false
+local ready_visible_frames = 0
+local unsafe_visible_frames = 0
+local unsafe_display_on_writes = 0
+local post_ready_blank_frames = 0
+local visible_restarts = {}
+local restart_recorded_for_death = 0
 local taps = {}
 local events = assert(io.open(trace_dir .. "/events.tsv", "w"))
 local frames = assert(io.open(trace_dir .. "/bounded_frames.tsv", "w"))
 events:write("frame\tevent\tpc\tsp\touter\tphase\tsubphase\tlives\thp\tplayer_state\tdeath_step\tsession\tdata\n")
-frames:write("frame\tpc\tsp\touter\tphase\tsubphase\tlives\thp\tplayer_state\tdeath_step\tsession\n")
+frames:write("frame\tpc\tsp\touter\tphase\tsubphase\tlives\thp\tplayer_state\tdeath_step\tsession\tdisplay\tpresentation\tready_state\tscene\tscene_pending\tpalette_pending\tplayer_body_count\temitted_count\tplayer_x\tplayer_y\tselector_primary\tselector_secondary\n")
 
 local function snapshot_line(tag, data)
   events:write(string.format("%d\t%s\t%06X\t%08X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%s\n",
@@ -47,6 +71,15 @@ local function snapshot_line(tag, data)
     r16(0xff0004), r16(0xff0100), r16(0xff013a), r16(0xff10e8),
     r16(0xff12f4), r16(0xff0034), data or ""))
   events:flush()
+end
+
+local function presentation_data()
+  return string.format("display=%s latch=%02X ready=%04X scene=%02X scene_pending=%02X palette_pending=%02X body=%04X emitted=%04X x=%04X y=%04X sel=%04X/%04X",
+    display_on and "ON" or "OFF", r8(symbols.genesistan_presentation_readiness), r16(0xff13aa),
+    r8(symbols.genesistan_current_scene_id), r8(symbols.genesistan_scene_present_pending),
+    r8(symbols.palette_pending), r16(symbols.native_player_body_count),
+    r16(symbols.pc090oj_emitted_count), r16(0xff10be), r16(0xff10c0),
+    r16(0xff1244), r16(0xff1246))
 end
 
 local function install_word_tap(address, name)
@@ -64,6 +97,26 @@ install_word_tap(0xff0004, "SUBPHASE")
 install_word_tap(0xff0100, "LIVES")
 install_word_tap(0xff10e8, "PLAYER_STATE")
 install_word_tap(0xff12f4, "DEATH_STEP")
+
+-- Observe only VDP register writes.  The RG-015 latch is consumed by the
+-- completed publication event; this proves that no display-enable occurs
+-- while HOLD is active and identifies READY/gameplay reveal boundaries.
+taps[#taps + 1] = program:install_write_tap(0x00c00004, 0x00c00007, "final_life_vdp_ctrl",
+  function(_, data, mask)
+    mask = mask or 0xffffffff
+    local function control_word(word)
+      if (word & 0xff00) == 0x8100 then
+        local next_on = (word & 0x0040) ~= 0
+        local latch = r8(symbols.genesistan_presentation_readiness)
+        if next_on and latch == 1 then unsafe_display_on_writes = unsafe_display_on_writes + 1 end
+        display_on = next_on
+        snapshot_line("VDP_REG1", presentation_data())
+      end
+    end
+    if mask == 0xffffffff then control_word((data >> 16) & 0xffff) end
+    control_word(data & 0xffff)
+    return data
+  end)
 
 local vectors = {
   {name="BUS_ERROR", address=r32(0x000008) & 0xffffff},
@@ -92,6 +145,12 @@ local function finish(result, reason)
     reg("PC") & 0xffffff, reg("SP"), r16(0xff0000), r16(0xff0002), r16(0xff0004)))
   out:write(string.format("lives=%04X\nhp=%04X\nplayer_state=%04X\ndeath_step=%04X\nsession=%04X\n",
     r16(0xff0100), r16(0xff013a), r16(0xff10e8), r16(0xff12f4), r16(0xff0034)))
+  out:write(string.format("ready_visible_frames=%d\nunsafe_visible_frames=%d\nunsafe_display_on_writes=%d\npost_ready_blank_frames=%d\nvisible_restarts=%d\n",
+    ready_visible_frames, unsafe_visible_frames, unsafe_display_on_writes,
+    post_ready_blank_frames, #visible_restarts))
+  for index, restart in ipairs(visible_restarts) do
+    out:write(string.format("restart_%d=%s\n", index, restart))
+  end
   out:close()
   frames:close()
   events:close()
@@ -116,6 +175,8 @@ emu.register_frame_done(function()
 
   local outer, phase, subphase = r16(0xff0000), r16(0xff0002), r16(0xff0004)
   local lives, player_state = r16(0xff0100), r16(0xff10e8)
+  local latch = r8(symbols.genesistan_presentation_readiness)
+  local ready_state = r16(0xff13aa)
   local tuple = string.format("%04X/%04X/%04X/%04X/%04X", outer, phase, subphase, lives, player_state)
   if tuple ~= last_tuple then
     snapshot_line("STATE", tuple)
@@ -128,6 +189,23 @@ emu.register_frame_done(function()
     snapshot_line("DEATH_ENTRY", string.format("count=%d", death_entries))
   end
   last_player_state = player_state
+
+  if latch == 1 and display_on then unsafe_visible_frames = unsafe_visible_frames + 1 end
+  if death_entries > 0 and ready_state == 13 and display_on then ready_visible_frames = ready_visible_frames + 1 end
+  if death_entries > 0 and death_entries <= 2 and ready_state ~= 13 and not display_on then
+    post_ready_blank_frames = post_ready_blank_frames + 1
+  end
+  if death_entries > restart_recorded_for_death and death_entries <= 2 and
+     outer == 2 and phase == 3 and display_on then
+    local restart = string.format("frame=%d state=%04X x=%04X y=%04X sel=%04X/%04X scene=%02X pending=%02X palette=%02X body=%04X emitted=%04X",
+      frame, player_state, r16(0xff10be), r16(0xff10c0), r16(0xff1244), r16(0xff1246),
+      r8(symbols.genesistan_current_scene_id), r8(symbols.genesistan_scene_present_pending),
+      r8(symbols.palette_pending), r16(symbols.native_player_body_count),
+      r16(symbols.pc090oj_emitted_count))
+    visible_restarts[#visible_restarts + 1] = restart
+    restart_recorded_for_death = death_entries
+    snapshot_line("FIRST_VISIBLE_RESTART", restart)
+  end
   if gameplay_seen and death_entries >= 1 and lives == 0 and final_armed_frame < 0 then
     final_armed_frame = frame
     snapshot_line("FINAL_LIFE_ZERO", "armed")
@@ -135,17 +213,27 @@ emu.register_frame_done(function()
 
   local pc = reg("PC") & 0xffffff
   if final_armed_frame >= 0 or (frame % 60) == 0 then
-    frames:write(string.format("%d\t%06X\t%08X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\n",
+    frames:write(string.format("%d\t%06X\t%08X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%s\t%02X\t%04X\t%02X\t%02X\t%02X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\n",
       frame, pc, reg("SP"), outer, phase, subphase, lives, r16(0xff013a), player_state,
-      r16(0xff12f4), r16(0xff0034)))
+      r16(0xff12f4), r16(0xff0034), display_on and "ON" or "OFF", latch, ready_state,
+      r8(symbols.genesistan_current_scene_id), r8(symbols.genesistan_scene_present_pending),
+      r8(symbols.palette_pending), r16(symbols.native_player_body_count),
+      r16(symbols.pc090oj_emitted_count), r16(0xff10be), r16(0xff10c0),
+      r16(0xff1244), r16(0xff1246)))
     frames:flush()
   end
 
   if exception then finish("FAIL", "exception_" .. exception); return end
+  if unsafe_display_on_writes > 0 or unsafe_visible_frames > 0 then
+    finish("FAIL", "unsafe_generation_became_visible"); return
+  end
   -- Correct final-death flow enters terminal phase 4, exhausts lives, then reaches
   -- the GAME OVER setup/dwell (subphase 5/6) or leaves the gameplay umbrella.
   if final_armed_frame >= 0 and phase == 4 and (subphase == 5 or subphase == 6) then
-    finish("PASS", "game_over_transition_reached"); return
+    if ready_visible_frames == 0 then finish("FAIL", "ready_never_visible"); return end
+    if post_ready_blank_frames == 0 then finish("FAIL", "post_ready_loading_blank_missing"); return end
+    if #visible_restarts ~= 2 then finish("FAIL", "nonfinal_restart_count_mismatch"); return end
+    finish("PASS", "game_over_transition_and_death_respawn_presentation_reached"); return
   end
   if final_armed_frame >= 0 and outer ~= 2 then
     finish("PASS", "post_gameplay_frontend_transition_reached"); return

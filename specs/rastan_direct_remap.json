@@ -182,6 +182,8 @@
   "genesistan_pc090oj_hook_copy_56114",
   "genesistan_pc090oj_hook_zero_fill_56440",
   "genesistan_frontend_presentation_reset",
+  "genesistan_presentation_mark_unsafe",
+  "genesistan_presentation_mark_ready_after_publish",
   "genesistan_pc090oj_hook_status_sprite_5a098",
   "genesistan_pc090oj_hook_audit_guard",
   "vdp_commit_sprites",
@@ -370,6 +372,18 @@
    "original_bytes": "3B7C00FF12FC",
    "replacement_bytes": "3B7C00FF12FC4EB9{symbol:native_player_frame_begin}",
    "note": "Native player lifecycle: preserve the once-per-frame semantic write, then reset PLAYER_FRONT/BODY immediately before the 0x51060 FRONT producer."
+  },
+  {
+   "arcade_pc": "0x051998",
+   "original_bytes": "426D0004",
+   "replacement_bytes": "426D00044EB9{symbol:genesistan_presentation_mark_unsafe}",
+   "note": "RG-015 final-visible-death presentation boundary. Preserve the retained arcade subphase clear after death step 0x38 has selected terminal phase 4, then mark the Genesis display unsafe before the following retained player-reset/body path can stage a death-location reconstruction. This adds no death-state test or gameplay authority; it is a proper 4-to-10-byte shift replacement at the proven lifecycle event."
+  },
+  {
+   "arcade_pc": "0x055FD2",
+   "original_bytes": "3B7C000D13AA",
+   "replacement_bytes": "3B7C000D13AA4EB9{symbol:genesistan_presentation_mark_ready_after_publish}",
+   "note": "RG-015 READY presentation completion boundary. The retained state-12 producers at 0x055FCA/0x055FCE have cleared and authored the READY planes before this original transition to state 13. Preserve that state write, then request display enable only after the next fixed-order VBlank publication commits its matching palette, names, SAT and scroll. Proper 6-to-12-byte shift replacement; READY timing/content remain arcade-owned."
   },
   {
    "arcade_pc": "0x05A334",
