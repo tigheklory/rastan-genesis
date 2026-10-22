@@ -1,5 +1,16 @@
 # Andy — AUDIO-002 / M1 (RG-002): Original Rastan Audio Asset Recovery
 
+> **AUDIO-009 CORRECTION NOTICE (2026-10-21, confirmed by Cody AUDIO-008):** (1) The descriptor
+> interpretation "count>=0x12 single-subseq / count 130" is **WRONG**. Verified against Z80 `0x02AA-0x02FE`
+> (`CP 0x12` at `0x02C3`): a descriptor lead byte **< 0x12 is a COUNT**; a lead byte **>= 0x12 (e.g. 0x82)
+> is a channel/control IDENTIFIER** passed to `0x02FE`, NOT a count. The five commands `0x03,0x0A,0x0D,
+> 0x21,0x26` use `0x82` descriptors. `build/audio/music_command_inventory.json` was regenerated with the
+> correct grammar via `tools/audio/gen_music_command_inventory.py`. (2) The "all 9 tracks use all 8 FM
+> channels" statement is **analyzer inflation** (register-`0x08` key-OFFs and key-code writes were counted
+> as "use"). Corrected keyed-channel counts (regenerated `ym2151_track_reports`): Credit 2, Opening 8,
+> Scene 1–Final-boss 6 each, Ending 8. Key-on occupancy does not prove audible polyphony. See
+> `Andy_AUDIO009_audio_foundation_corrections.md`.
+
 **Task:** RG-002 / AUDIO-002 / M1 · **Agent:** Andy (Opus) · **Date:** 2026-10-20 · **Issue:** OPEN-039 ·
 **Type:** RE / static analysis / offline inventory. **No ROM built, no production/assembly change, no
 baseline modified, no Genesis playback/converter implemented, no C compiled into production.** Evidence:

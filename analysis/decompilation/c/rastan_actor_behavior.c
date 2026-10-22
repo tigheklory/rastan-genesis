@@ -127,28 +127,166 @@ void actor_ground_engine_47140(ActorRecord *a4)
     }
 }
 
+/* a5-relative shared WRAM globals used by the airborne engine (names are structural, not invented AI). */
+extern uint16_t g_track_dist_0234;   /* A5+0x234: |horizontal distance| actor<->camera (set by 0x4205C) */
+extern uint16_t g_track_face_0236;   /* A5+0x236: target facing sign (1 = actor left of camera, else 0)  */
+extern uint16_t g_global_dir_0200;   /* A5+0x200: global 8-way direction field consumed by anim selection */
+void actor_airborne_config_load_41cfa(ActorRecord *a4);     /* 0x41CFA */
+void actor_airborne_camera_track_4205c(ActorRecord *a4);    /* 0x4205C */
+void actor_airborne_ground_probe_4736a(ActorRecord *a4);    /* 0x4736A */
+
 /*
- * ORIGINAL ARCADE PC: 0x000473B8  airborne-actor engine (states 1,2,0D,0E)
- * Provenance: RECONSTRUCTED_FROM_68000. Status: COMPLETE (structure).
+ * ORIGINAL ARCADE PC: 0x000473B8  airborne-actor engine (states 1,2,0D,0E).
+ * Provenance: RECONSTRUCTED_FROM_68000 (0x473B8-0x47660; RG-007 completes the states-0D/0E tail +
+ * per-family anim selection). Status: COMPLETE.
+ *
+ * Structure: (1) first-frame init loads the per-state config (0x41CFA), seeds the flap duration +0x08
+ * by family, and runs the anim-rate pre-step; (2) the shared anim/motion core 0x3CEB0 advances motion;
+ * (3) the ACTIVE-PURSUIT + turn-around block runs ONLY for states 1 and 2 and is SKIPPED for states
+ * 0x0D/0x0E (so 0x0D/0x0E are the passive, non-pursuing airborne sub-states); (4) a shared tail runs the
+ * ground/landing probe (0x4736A) and the per-family 8-way directional animation-frame selection.
+ * Bat family is 0x0A; Small/Large bats differ by the +0x2E sub-mode (also seen in the init +0x08 seed).
  */
 void actor_flying_engine_473b8(ActorRecord *a4)
 {
-    if (a4->init_flag == 0) {
-        arcade_41cfa(a4);
-        if (a4->family == 1) {
-            a4->anim_frame_dur = 4;     /* +0x08 */
-            arcade_4734a(a4);           /* vertical/hover pre-step */
-            a4->field_0a = 8;           /* +0x0A */
-        } else if (a4->family == 0x0A) {
-            a4->anim_frame_dur = (a4->field_2e != 0) ? 2 : 7;
-            arcade_4734a(a4);
+    if (a4->init_flag == 0) {                       /* 0x473B8: first frame */
+        actor_airborne_config_load_41cfa(a4);       /* 0x41CFA per-state config -> +0x08/+0x0D..+0x13/+0x02 */
+        if (a4->family == 1) {                      /* +0x3E */
+            a4->anim_frame_dur = 4;                 /* +0x08 */
+            actor_airborne_anim_rate_prestep_4734a(a4);
+            a4->field_0a = 8;                       /* +0x0A */
+        } else if (a4->family == 0x0A) {            /* bats */
+            a4->anim_frame_dur = (a4->field_2e != 0) ? 2 : 7; /* +0x08 */
+            actor_airborne_anim_rate_prestep_4734a(a4);
         } else {
-            arcade_4734a(a4);
+            actor_airborne_anim_rate_prestep_4734a(a4);
         }
     }
-    arcade_3ceb0(a4);                   /* SAME shared core as 0x47140 */
-    a4->field_20 &= (uint8_t)~0x01;     /* bclr #0,+0x20 */
-    /* per-state anim selection (states 0x0D/0x0E special) — represented in raw */
+    arcade_3ceb0(a4);                               /* 0x47408: shared anim/motion core */
+    a4->field_20 &= (uint8_t)~0x01;                 /* bclr #0,+0x20 */
+
+    if (a4->state != 0x0D && a4->state != 0x0E) {   /* 0x47414: ACTIVE PURSUIT only (skip for 0D/0E) */
+        actor_airborne_camera_track_4205c(a4);      /* 0x4205C -> g_track_dist_0234 / g_track_face_0236 */
+        if (g_track_dist_0234 < 0x68) {             /* 0x47432: in horizontal range */
+            if (g_track_face_0236 != a4->field_02)  /* facing != target */
+                a4->field_20 |= 0x01;               /* bset #0,+0x20 (turn needed) */
+        } else {
+            a4->field_741 = 0;                      /* out of range -> clear +0x741 */
+        }
+        uint8_t t = a4->field_747;                  /* 0x4744E: turn-timer */
+        if (t == 2) {                               /* retarget cooldown */
+            a4->field_747 = 2; a4->init_flag = 0;   /* 0x4745C: re-init next frame (reconfig) */
+            a4->field_746 = 24;
+            a4->state   = (uint8_t)(g_track_face_0236 + 1); /* +0x05 = facing+1 (1 or 2) */
+            a4->field_2b = a4->state;               /* +0x2B */
+        } else if (t == 1) {                        /* cooldown tick */
+            if (--a4->field_746 == 0) { a4->field_2b = 0; a4->field_747 = 0; }
+        } else {                                    /* t == 0: not turning */
+            if (a4->init_flag == 0 && a4->field_740 == 0 &&
+                g_track_dist_0234 >= 0x30 && g_track_dist_0234 < 0x34) { /* 0x47498: turn window */
+                a4->field_740 = 2; a4->field_741 = 1;
+                a4->state   ^= 3;                   /* 0x474B4: toggle state 1<->2 */
+                a4->field_02 ^= 1;                  /* 0x474BA: toggle facing */
+                return;                             /* 0x474C0 rts */
+            }
+            if (a4->field_740) a4->field_740--;     /* 0x474C2 */
+        }
+    }
+
+    actor_airborne_ground_probe_4736a(a4);          /* 0x474C6: landing/impact probe (states<0x0D only, internally gated) */
+
+    /* 0x474CA: per-family 8-way directional animation frame -> +0x01.  Families 0/1/2/3/.. each have a
+     * selector; the bat family 0x0A selector (0x4762E): anim = 0x2D + direction, two modes via +0x2E. */
+    if (a4->family == 0x0A) {                       /* bat */
+        uint16_t dir = g_global_dir_0200;           /* A5+0x200 */
+        a4->anim = (uint8_t)(0x2D + (a4->field_2e == 0
+                     ? ((dir & 0x70) >> 4)          /* frames 0x2D-0x34 */
+                     : (8 + ((dir & 0x38) >> 3)))); /* frames 0x35-0x3C */
+    }
+    /* Other families select from their own PC-relative anim tables (0x474EE/0x47530/0x47562/...); those
+     * are not on the bat path and are left as the shared-selector family chain. */
+}
+
+/*
+ * ORIGINAL ARCADE PC: 0x00041CFA  per-state airborne config loader (RG-007, newly decompiled).
+ * Provenance: RECONSTRUCTED_FROM_68000 (0x41CFA-0x41D24; table 0x41D26). Status: COMPLETE.
+ * Index = state (+0x05) * 8 into the 8-byte-record table at ROM 0x41D26.  Record byte layout and the
+ * actor destinations (from the move.b stream 0x41D02-0x41D20):
+ *   rec[7] -> +0x02 (facing/control)    rec[0] -> +0x08 (anim duration)   rec[1] -> +0x0D
+ *   rec[2] -> +0x0E   rec[3] -> +0x0F   rec[4] -> +0x10   rec[5] -> +0x11   rec[6] -> +0x13
+ * (The per-state records 0..7 are enumerated in rastan_actor_tables.c as g_airborne_state_config_41d26;
+ *  airborne enemies enter at state 1/2, whose records seed the flap/motion parameters.)
+ */
+void actor_airborne_config_load_41cfa(ActorRecord *a4)
+{
+    const uint8_t *r = &g_airborne_state_config_41d26[a4->state][0]; /* 0x41D26 + state*8 */
+    a4->field_02       = r[7];
+    a4->anim_frame_dur = r[0];   /* +0x08 */
+    a4->field_0d       = r[1];
+    a4->field_0e       = r[2];
+    a4->field_0f       = r[3];
+    a4->field_10       = r[4];
+    a4->field_11       = r[5];
+    a4->field_13       = r[6];
+}
+
+/*
+ * ORIGINAL ARCADE PC: 0x0004205C  camera-relative horizontal tracking (RG-007, newly decompiled).
+ * Provenance: RECONSTRUCTED_FROM_68000 (0x4205C-0x4208A). Status: COMPLETE.
+ * d2 = (camera_center A5+0x10BE + 96) & 0x1FF ; d1 = (actor X +0x16 + 96) & 0x1FF ; d2 -= d1.
+ * If d2 < 0 (actor to the right): A5+0x236 = 1, d2 = -d2 ; else A5+0x236 = 0.  A5+0x234 = |d2|.
+ * i.e. writes the absolute horizontal camera<->actor distance and the target facing sign the pursuit
+ * block in 0x473B8 consumes.
+ */
+void actor_airborne_camera_track_4205c(ActorRecord *a4)
+{
+    int d2 = ((g_camera_center_10be + 96) & 0x1FF) - ((a4->x_pos + 96) & 0x1FF); /* +0x16 = X */
+    if (d2 < 0) { g_track_face_0236 = 1; d2 = -d2; }
+    else        { g_track_face_0236 = 0; }
+    g_track_dist_0234 = (uint16_t)d2;
+}
+
+/*
+ * ORIGINAL ARCADE PC: 0x0004736A  airborne ground/landing probe (RG-007, newly decompiled).
+ * Provenance: RECONSTRUCTED_FROM_68000 (0x4736A-0x473B6). Status: COMPLETE.
+ * Gated to active flight (returns if +0x07 init set or state >= 0x0D, i.e. NOT for 0x0D/0x0E).  Reads the
+ * collision grid 4px BELOW the actor (X +0x16, Y +0x1A +4) via 0x53A2E; if the cell's high byte (tile
+ * type) is 0 (air) it increments the air-frame counter +0x74F, else clears it.  After >=3 consecutive
+ * solid-ground frames it sets the impact flag +0x39=1 and calls 0x447F0 (-> state 0x0F) — i.e. the bat's
+ * land-on-ground transition into the specialized death/impact path.
+ */
+void actor_airborne_ground_probe_4736a(ActorRecord *a4)
+{
+    if (a4->init_flag != 0 || a4->state >= 0x0D) return;      /* 0x4736E/0x47376 */
+    uint16_t x = (uint16_t)(a4->x_pos & 0x1FF);
+    uint16_t y = (uint16_t)((a4->y_pos & 0x1FF) + 4);         /* +0x1A + 4 (below) */
+    uint16_t cell = collision_word_at(ar_cell_from_xy(x, y)); /* 0x53A2E -> grid word */
+    if ((uint8_t)(cell >> 8) == 0)   a4->field_74f++;         /* air below */
+    else                             a4->field_74f = 0;       /* solid below */
+    if (a4->field_74f >= 3) {                                 /* 3 consecutive solid frames */
+        a4->field_39 = 1;                                     /* +0x39 impact flag */
+        arcade_447f0(a4);                                     /* 0x447F0 -> state 0x0F (death/impact) */
+    }
+}
+
+/*
+ * ORIGINAL ARCADE PC: 0x0004734A  airborne animation-rate pre-step (RG-006, newly decompiled).
+ * Provenance: RECONSTRUCTED_FROM_68000 (build/maincpu.disasm.txt 0x4734A-0x47368). Status: COMPLETE.
+ * Called by the airborne engine 0x473B8 for family 1 and family 0x0A (bats) during init.
+ *
+ * Despite the earlier stub label "vertical/hover pre-step", the code does NOT move the actor: it
+ * conditionally SPEEDS UP the wing-flap animation by halving the per-frame anim duration +0x08
+ * (minimum 1) when either +0x741 or +0x2B is nonzero; otherwise +0x08 is left unchanged. It is a pure
+ * animation-timing adjust (arcade-owned), relevant to bats because the flying engine seeds +0x08 to
+ * 2/7 (family 0x0A) or 4 (family 1) and then calls this to optionally double the flap rate.
+ */
+void actor_airborne_anim_rate_prestep_4734a(ActorRecord *a4)
+{
+    if (a4->field_741 == 0 && a4->field_2b == 0)   /* 0x4734A/0x47350: both zero -> no change */
+        return;
+    uint8_t d1 = (uint8_t)(a4->anim_frame_dur >> 1);/* +0x08 >> 1 (faster flap) */
+    if (d1 == 0) d1 = 1;                            /* clamp to minimum 1 */
+    a4->anim_frame_dur = d1;                        /* +0x08 */
 }
 
 /*

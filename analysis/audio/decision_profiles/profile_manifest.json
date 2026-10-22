@@ -1,0 +1,12 @@
+{
+ "active": "baseline_current",
+ "profiles": [
+  {
+   "profile_id": "baseline_current",
+   "display_name": "Baseline (immutable)",
+   "parent": null,
+   "immutable": true,
+   "revision": 0
+  }
+ ]
+}

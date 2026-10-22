@@ -1,5 +1,14 @@
 # Andy — AUDIO-001 / M0: Original Rastan Z80 Audio Driver Ghidra Decompilation
 
+> **AUDIO-009 CORRECTION NOTICE (2026-10-21, confirmed by Cody AUDIO-008):** (1) The curated C
+> (`analysis/decompilation/c/z80/rastan_z80_sound_driver.c`) is a **declaration index (12 prototypes, zero
+> function bodies)**, NOT a semantic decompilation; coverage was relabeled with honest levels
+> (`INDEXED` / `CONTROL_FLOW_VERIFIED` / `UNRESOLVED`; **no function is `SEMANTIC_C_COMPLETE`**). (2) Any
+> remaining "TC0140SYT" wording is stale — the inter-CPU device is the **PC060HA** (same addresses).
+> (3) The `0x1A00` MSM5205 latch roles were corrected to **0xB000=address, 0xC000=start, 0xD000=stop**.
+> (4) The main loop's YM reg `0x1B` write **also selects a ROM bank** (`data&3`); it is not a generic
+> "refresh". See `Andy_AUDIO009_audio_foundation_corrections.md`.
+
 **Agent:** Andy (Opus) · **Date:** 2026-10-20 · **Issue:** OPEN-039 · **Type:** Reverse engineering /
 Ghidra / C reference reconstruction. **No ROM built, no production/assembly change, no baseline
 modified, no replacement driver written, no C compiled into production.** The original Z80 **binary**

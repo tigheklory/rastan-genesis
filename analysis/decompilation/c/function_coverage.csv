@@ -30,21 +30,21 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 0004396a,raw/0004396a.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 state 0x19 jumper (arc tail summarized)
 00043b32,raw/00043b32.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H14: full 0x13e-band x char matrix (0x43B32..0x43E8C) decoded; writes {0x01FC,0x0224,0x0236,0x0266,0x09EA,0x0546,0x00F4} per band; state != identity"
 0004415a,raw/0004415a.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,H5 states 0x1D/0x21 (char matrix summarized)
-000473b8,raw/000473b8.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,airborne engine (anim tail summarized)
+000473b8,raw/000473b8.c,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"RG-007: airborne engine COMPLETE — init(0x41CFA config+family-seeded flap+0x4734A); core 0x3CEB0; states 1/2 active pursuit (0x4205C + turn-around toggling +0x05^3/+0x02^1) vs states 0D/0E passive; shared landing 0x4736A + per-family 8-way anim (bat family 0x0A -> anim 0x2D+dir, 2 modes via +0x2E)"
 00041180,raw/00041180.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,H6: full state-0 scan + 28-route char materialization dispatch; +0x0E=cell addr
 00040c08,raw/00040c08.c,rastan_actor_behavior.c,PARTIAL,RECONSTRUCTED_FROM_68000,NO,STATIC,state 0x10 anim setup
 000423f4,raw/000423b2.c,rastan_boss_composite.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,boss R6 four-record creator into A5+0x648..0x708
 00045330,,,PARTIAL,GHIDRA_RAW,NO,STATIC,boss trigger -> 0x4449E (rectype via 0x444E0[round])
 0003ceb0,raw/0003ceb0.c,rastan_anim_motion_core.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H8: anim-frame advance + motion integration core (frame timing, seq, velocity ring, band reload)"
 0004092e,raw/0004092e.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H7: actor RETIRE/CLEAR (zero 0x40 record + paired companion block +0x702/+0x4E2)
-00041cfa,,,STUB_ONLY,GHIDRA_RAW,YES,STATIC,config-table 0x41D26 load by state
+00041cfa,,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"RG-007: per-state airborne config load actor_airborne_config_load_41cfa — 8-byte records at ROM 0x41D26 (g_airborne_state_config_41d26) indexed by state*8; copies rec->+0x08/+0x0D..+0x13/+0x02"
 0004103a,raw/0004103a.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H7: consume(0x4092E clear)+re-arm hunter, end-to-end proven (0x4092E now decompiled)"
 00041bee,raw/00041bee.c,rastan_actor_materialization.c,COMPLETE,RECONSTRUCTED_FROM_68000,YES,STATIC,"H6/Build 0361: light/fire contact-source register (A5+0x1282 slot, 0xD00460 PC090OJ record band)"
 00051ab6,raw/00051ab6.c,rastan_player_world_contact.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,Build 0361: three registered PC090OJ bands -> 27 Y/X gameplay contact pairs; direct-native semantic cut replaces object-RAM readback
 00051b04,raw/00051b04.c,rastan_player_world_contact.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,Build 0361: player/world contact scan consuming A5+0x1134 coordinate pairs
 00051b74,raw/00051b04.c,rastan_player_world_contact.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,Build 0361: contact-source third classifier writing A5+0x13BE
 000453d6,,,STUB_ONLY,GHIDRA_RAW,YES,STATIC,difficulty tune of +0x28/+0x29
-0004734a,,,STUB_ONLY,NONE,NO,STATIC,airborne vertical/hover pre-step
+0004734a,,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"RG-006: airborne anim-rate pre-step actor_airborne_anim_rate_prestep_4734a — conditionally halves +0x08 flap duration (min 1) when +0x741 or +0x2B set; NOT movement (corrects the vertical/hover stub label)"
 00041f9c,raw/00041f9c.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H7: jump/anim phase-advance leaf (nibble carry); arc owner is caller 0x41FAC
 00043f4e,raw/00043f4e.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"H7: component-pool driver (0x43F52); active member -> 0x447F0, state-0 -> 0x4092E"
 000447f0,raw/000447f0.c,rastan_actor_lifecycle.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,H7: child/impact activate -> state 0x0F + sfx 0x10 (0x448B2); rec_type 7 keeps state
@@ -145,3 +145,6 @@ arcade_pc,raw_file,semantic_file,status,provenance,original_export_present,confi
 000560da,raw/0005607c.c,rastan_attract_item_description.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"ATTRACT item-desc row-stream advance: blank 50 longs at A5+0x10A0, wrap &0xC03F00; at cursor 0xC00F00 rebuild page via 0x56056; reuses shared scroll machinery"
 00056032,raw/0005607c.c,rastan_attract_item_description.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"ATTRACT item-desc page builds: 0x56032 writes text 0x5672A at C00828 (row4 col10); 0x56056 writes 0x5697E at C00028 (physical row0 col10) after 12 crossings; shared writer 0x563A6 + icon copy 0x56114"
 00056114,raw/0005607c.c,rastan_attract_item_description.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"copy item-icon PC090OJ 8-byte sprite descriptor records (4 words each) from ROM table to object RAM until first word 0xFFFF"
+0004205c,,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"RG-007: airborne camera-relative tracking actor_airborne_camera_track_4205c — |cameraX+96 - actorX+96| (mod 512) -> A5+0x234; facing sign -> A5+0x236"
+0004736a,,rastan_actor_behavior.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"RG-007: airborne ground/landing probe actor_airborne_ground_probe_4736a — collision grid 4px below (0x53A2E); 3 consecutive solid frames (+0x74F) -> +0x39=1 + 0x447F0 (state 0x0F death/impact); gated to states<0x0D"
+00041d26,,rastan_actor_tables.c,COMPLETE,RECONSTRUCTED_FROM_68000,NO,STATIC,"RG-007: airborne per-state config DATA table g_airborne_state_config_41d26[16][8] consumed by 0x41CFA"

@@ -1136,6 +1136,84 @@ Final response must include "Open/Closed Issues Impact" section with:
   bank 2; instruments/sample-table live in the banked window). Inter-CPU chip = **PC060HA**, not
   TC0140SYT (same addresses). Confirmed 0xB000=MSM addr/0xC000=start/0xD000=stop; PCB clocks Z80 4.0 MHz,
   YM2151 4.0 MHz, MSM5205 384kHz/S48 = 8kHz 4-bit.
+- **AUDIO-004 / RG-004 (2026-10-21, Andy, read-only capture analysis + PSG hardware research — NOT
+  closing):** FM-to-PSG instrument feasibility. **Scoped per §0/§14 because AUDIO-003 is NOT done** →
+  instrument identity is **capture-derived** (actual programmed patch state read from the register
+  streams), not from the un-decoded ROM instrument table. NEW tool `tools/audio/fm_instrument_psg_analysis.py`
+  → `build/audio/fm_psg_analysis/*` (9 reports + summary). **VERIFIED: Rastan music is uniformly DEEP
+  single-carrier FM** — algorithm distribution {1:32, 2:10, 3:7, 4:2, 5:3}, mostly feedback 7, **zero
+  algo 6/7** → **no natural PSG candidate voices**; every PSG offload is a timbre compromise. **Six-voice
+  hypothesis SUPPORTED WITH NUANCE** (sustained musical voices: Scene1=5, Scene2/Boss/FinalBoss=6,
+  Ending=7-8; jingles fewer; activity on 8 ch ≠ 8 voices; no YM2151 noise use). **Driver = the 5-FM limit
+  (FM6=DAC):** 6-voice tracks must offload the least-critical voice to PSG tone 1, Ending 2-3; PROPOSED
+  per-track JSON routing schema (no universal arcade-ch→PSG map). PSG spec documented (SN76489: 3 square
+  50%-duty-only + 1 noise, 4-bit/2dB atten, tuned noise costs tone 3, no envelope/duty vs NES).
+  **BLOCKERS:** exact least-critical voice UNRESOLVED without the audio comparison; a validated
+  original/YM2612/PSG 3-way render needs an emulator stage → marked INCOMPLETE, NOT fabricated. Evidence:
+  `docs/design/Andy_audio004_fm_to_psg_feasibility.md`.
+- **AUDIO-005 / RG-005 (2026-10-21, Andy, Genesis VGM RE — NOT closing):** analyzed Lawrence McCormick's
+  (Inglebard) hand-made Genesis arrangement `audio/Inglebard Agressive World Handmade Genesis version/
+  LM-Main Stage Theme (1).vgm` (VGM 1.96 — prompt said 1.60, CORRECTED; YM2612 7,670,454 / SN76489
+  3,579,545 Hz; 53.7 s / 40.7 s loop). NEW read-only tool `tools/audio/vgm_genesis_analysis.py` (YM2612 +
+  SN76489 decode, per-channel instruments/envelopes/stereo, DAC stream, peak voices; clean decode, 0
+  flagged) → `build/audio/vgm_analysis/*`. **ALLOCATION (VERIFIED):** all 6 FM + 3 PSG tones; FM1/2/3 =
+  one patch panned C/L/R (stereo lead/harmony stack); FM4 bass; FM5 bright arp; **FM6 = sampled drums via
+  DAC stream** (4 PCM ~4.8 KB @8 kHz, 398 triggers); peak pitched polyphony 8. **DEEP FM (algo 0/3, high
+  feedback)** throughout — not brightened (corroborates AUDIO-004). **PSG is ADDITIVE** (enters late
+  12-30 s, high sparkle/harmony; tone3→F9; noise 1 hit) — NOT a relocated FM lead → refines AUDIO-004.
+  **Converter takeaways:** keep deep FM on YM2612; percussion→FM6 DAC short PCM (= the MSM5205→ch6 DAC
+  plan); PSG additive w/ per-voice pan+AMS/FMS; same-patch stereo doubling; time-series TL automation;
+  audio-mgmt app adopts the VGM analyzer as reference-import/A-B compare. Evidence:
+  `docs/design/Andy_RG005_lawrence_genesis_arrangement_analysis.md`.
+- **AUDIO-006 / RG-006 (2026-10-21, Andy, development tool — NOT closing):** built the **Rastan Audio
+  Composer (Phase 1)** `tools/audio_composer/` (server.py/index.html/app.js/style.css/run.sh +
+  verify_audio_composer.py), modeled on the Palette Composer. Launch `tools/audio_composer/run.sh` →
+  http://localhost:8781 (Python stdlib only). Read-only evidence oracle (9 arcade tracks from
+  fm_psg_analysis + ym2151_track_reports; 44 command descriptors; Lawrence VGM reference) + editable
+  versioned JSON decision profiles in `analysis/audio/decision_profiles/` (baseline immutable). Per-channel
+  Genesis routing (FM1-5 / PSG tone1-3 / noise / unassigned; **FM6 = reserved DAC, not music-selectable**);
+  propose→approve with proposals/approvals stored separately; conflict validator (FM6 error, >5-FM budget
+  error, monophonic collision = POTENTIAL since AUDIO-003 timing absent, tone3/noise coupling); Genesis PSG
+  model (3×50%-duty vs NES, 10-bit divider, 16-bit LFSR vs TI, noise-select-3 tone-3 coupling). **NO
+  auto-assignment; command-ID UNRESOLVED (not inferred from filename); AUDIO-003-not-decoded surfaced.**
+  Audition UNAVAILABLE in Phase 1 (contract declared, no fabricated playback). 26/26 automated checks +
+  live HTTP smoke test pass; Palette Composer untouched; no ROM/build/ASM change. Evidence:
+  `docs/design/Andy_RG006_audio_composer_phase1.md`.
+- **AUDIO-008 (2026-10-21, Cody, independent verification — NOT closing):** adversarial ROM/MAME/
+  capture/VGM/source/HTTP audit completed. Verdict **PARTIALLY TRUSTWORTHY — CORRECTIONS REQUIRED BEFORE
+  CONVERSION** (55 claims: 32 confirmed / 7 partial / 13 contradicted / 3 unverified). Confirmed the
+  fixed+4-bank Z80 map, YM-port bank switch, PC060HA, clocks, core dispatch/YM/MSM maps, deep-FM register
+  statistics, and Lawrence five-FM + three-PSG + FM6-DAC allocation. Corrected five `$82` descriptors
+  (channel/control ID, not count=130), inflated “all eight FM used,” Lawrence patch denominator
+  (174, not 141), false Genesis-PSG stereo, and unconditional tone3/noise warning. AUDIO-003 remains
+  absent; no audio RG-007 exists; sequence/instrument/sample/trigger maps and arcade-aligned PSG routing
+  remain unresolved. The prototype-only C/coverage artifacts are not a complete semantic decompilation.
+  Confirmed Composer HIGH defects: GET profile traversal, invalid/error routing persisted as approved,
+  client-mutable evidence/approval, and destructive/non-atomic pseudo-versioning. Existing suite rerun
+  26/26, but lacks these cases; isolated audit preserved under `analysis/audio/verification/`. Severity:
+  0 BLOCKER / 6 HIGH / 9 MEDIUM / 4 LOW. Report:
+  `docs/design/Cody_RG008_audio_foundation_independent_verification.md`. OPEN-039 remains open; no
+  production ASM/ROM/build/counter/tag/Palette-Composer/profile change. Repeating **AUDIO-008**.
+- **AUDIO-009 (2026-10-21, Andy, corrective implementation — NOT closing):** corrected the AUDIO-008
+  confirmed defects. **Audio Composer (server.py, schema v1→v2):** directory-traversal fixed (allowlist ID
+  + realpath containment; GET `../` and encoded `%2e%2e%2f` → 400); server **rejects any error-level
+  routing conflict** on save (403, no write); `arcade_evidence` now **server-derived** (client forgery
+  discarded); **atomic immutable revisions** `<id>.rN.json` (os.replace) + consistent manifest +
+  deterministic v1→v2 migration preserving approvals/notes/unknown fields. **PSG model:** per-channel
+  stereo REMOVED → mono/center; explicit noise selector; tone-3/noise coupling ONLY when `tone3_clocked`;
+  divider-zero documented; noise taps/period UNRESOLVED (no false fidelity). **`$82` descriptor:** verified
+  Z80 0x02AA-0x02FE — lead `>=0x12` is a channel/control identifier, NOT count 130; NEW
+  `tools/audio/gen_music_command_inventory.py` regenerates the inventory (cmds 0x03/0x0A/0x0D/0x21/0x26
+  reclassified). **YM2151 analyzer:** zero-mask 0x08 = key-OFF; separate keyed/peak/sustained metrics;
+  regenerated reports (keyed Credit 2/Opening 8/Scene1-FinalBoss 6/Ending 8 — "all 8" was inflation).
+  **VGM analyzer:** `$4F`=2 bytes (+test); DAC stream-trigger reporting (398, active) not misleading 0;
+  distinct-patch total 174 (141 was a label error); Lawrence additive-PSG qualified UNVERIFIED. **Z80
+  C/coverage:** relabeled a declaration index (0 bodies, no SEMANTIC_C_COMPLETE; INDEXED/
+  CONTROL_FLOW_VERIFIED/UNRESOLVED); TC0140SYT→PC060HA; ADPCM latch roles corrected
+  (0xB000=addr/0xC000=start/0xD000=stop). **Tests 37/37** (21 required scenarios + unit + HTTP-level,
+  isolated temp). Correction notices added to RG-005/RG-006/AUDIO-001/002/004. Production: NONE; counter
+  472→472; Palette Composer untouched. AUDIO-003 still NOT complete. Evidence:
+  `docs/design/Andy_AUDIO009_audio_foundation_corrections.md`. Recommend Cody re-verify.
 - **Evidence:** `docs/design/Andy_native_genesis_audio_architecture_research.md`,
   `docs/design/Andy_audio001_z80_ghidra_decompilation.md`,
   `docs/design/Andy_audio002_original_audio_asset_inventory.md`.

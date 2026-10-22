@@ -1,5 +1,13 @@
 /*
- * Rastan ARCADE Z80 sound driver — curated C reference reconstruction (AUDIO-001 / M0).
+ * Rastan ARCADE Z80 sound driver — PROTOTYPE / DECLARATION INDEX (AUDIO-001 / M0; corrected AUDIO-009).
+ *
+ * *** THIS IS NOT A SEMANTIC C DECOMPILATION. ***  (Cody AUDIO-008 finding, confirmed.)
+ * It is an INDEX of function entry points with prose summaries: declarations only, ZERO function bodies.
+ * Register lifetimes, flags, stack effects, alternate paths, indirect control flow, and return behaviour
+ * are NOT translated to C. Control-flow verification lives in build/audio/audiocpu.disasm.txt; the
+ * instruction-backed coverage with honest evidence levels is z80_function_coverage.csv. Do not cite this
+ * file as a completed decompilation or as semantic equivalence.
+ *
  * SOURCE binary: build/regions/audiocpu.bin (ROM b04-19.49, 65536 B, sha1 fa59dac2583a…).
  * Ghidra project: tools/ghidra rastan_audio_z80 (z80:LE:16:default, base 0x0000).
  * Raw Ghidra export: build/audio/z80_decomp.c ; disasm: build/audio/audiocpu.disasm.txt ;
@@ -36,16 +44,19 @@
 
 /* 0x0000 RST0: reset vector -> JP 0x010B (VERIFIED). */
 
-/* 0x010B  main entry / init + main loop (VERIFIED).
- * DI; IM 1; clear RAM 0x8000-0x8FFF; SYT init (a000=4,a001=0); init 8 channel blocks (0x80x0=0x0F);
+/* 0x010B  main entry / init + main loop (control flow VERIFIED; no C body).
+ * DI; IM 1; clear RAM 0x8000-0x8FFF; PC060HA init (a000=4,a001=0); init 8 channel blocks (0x80x0=0x0F);
  * run YM2151 init tables via writer FUN_158c; EI; then FOREVER:
- *   DI -> FUN_158c(YM2151 refresh) -> FUN_0254(command dispatch) -> EI -> FUN_01c2(per-frame) .
+ *   DI -> write YM reg 0x1B = (0x8F23 | 0x40)  [this YM port-write ALSO selects a ROM bank via
+ *         sound_bankswitch_w(data&3); it is NOT a generic "refresh"]  -> FUN_0254(command dispatch)
+ *         -> EI -> FUN_01c2(per-frame). (Cody AUDIO-008 claim 12: the bank-select side effect was omitted.)
  */
 void z80_main_010b(void);
 
-/* 0x0066  NMI_ISR = TC0140SYT command receive (VERIFIED).
- * SYT handshake a001=5,a000=0; read the command byte from the SYT; enqueue (<0xF0) via FUN_00c0
- * into the 0x8F02 ring and via FUN_00e9 into the 0x8E82 ring; SYT ack a000=6,a001=6. */
+/* 0x0066  NMI_ISR = PC060HA command receive (control flow VERIFIED; no C body).
+ * (Cody AUDIO-008 claim 10: the inter-CPU device is the PC060HA, NOT the TC0140SYT.)
+ * PC060HA handshake a001=5,a000=0; read the command byte; enqueue (<0xF0) via FUN_00c0 into the
+ * 0x8F02 ring and via FUN_00e9 into the 0x8E82 ring; PC060HA ack a000=6,a001=6. */
 void z80_nmi_cmd_receive_0066(void);
 
 /* 0x00C0  ring enqueue (16-slot, 0x8F00 head/0x8F01 tail, mask 0xF) for cmd<0xF0 (VERIFIED). */
@@ -62,10 +73,18 @@ void z80_ring32_enqueue_00e9(uint8_t v);
  * SYT busy/ack a000/a001 = 5/5 then 6/6 around the pop. */
 void z80_dispatch_0254(void);
 
-/* 0x02AA  BGM song select (VERIFIED structure).
- * ptr = *(word*)(0x2300 + cmd*2)         // COMMAND -> SEQUENCE POINTER TABLE at ROM 0x2300
- * desc = {count; (channel_id, seq_ptr)[count]}   // count <= 0x11 channel-tracks per song
- * installs each channel-track's sub-sequence (FUN_02fe) / re-enqueues (FUN_00c0). */
+/* 0x02AA  BGM song select (control flow VERIFIED; corrected AUDIO-009; no C body).
+ * ptr = *(word*)(0x2300 + cmd*2)         // COMMAND -> DESCRIPTOR POINTER TABLE at ROM 0x2300
+ * lead = *(u8*)ptr                        // FIRST descriptor byte, tested at 0x02C3: CP 0x12
+ *   lead == 0        -> empty (RET Z).
+ *   lead <  0x12     -> ORDINARY COUNTED form: lead is a COUNT of N two-byte records; each record
+ *                       {low, high}: high==0 -> DIRECT command byte (FUN_00c0); high!=0 -> little-endian
+ *                       sub-sequence pointer (installed via FUN_02fe for sub-descriptors >= 0x12).
+ *   lead >= 0x12     -> NOT a count: it is a CHANNEL/CONTROL IDENTIFIER passed straight to FUN_02fe
+ *                       (0x02C7 CALL 0x02fe). The five commands 0x03,0x0A,0x0D,0x21,0x26 use descriptors
+ *                       whose lead byte is 0x82 (= 130); 0x82/0x83 special-case the 0x8E00 ADPCM state
+ *                       and the 0x0348 channel table.
+ * (Cody AUDIO-008 claim 17: AUDIO-002's "count>=0x12 single-subseq / count 130" reading was WRONG.) */
 void z80_song_select_02aa(void);
 
 /* 0x0368  control commands 0xE0-0xEF (VERIFIED partial): 0xEE -> a001=0,0x8F26=0; 0xEF -> a001=1,
@@ -84,10 +103,12 @@ void z80_sfx_class_03e5_UNRESOLVED(void);
  * This is the single hardware-output chokepoint for all FM. */
 void z80_ym2151_write_158c(uint8_t data, uint16_t reg_in_hi, uint8_t *addr_port /*=0x9000*/);
 
-/* 0x1A00 region  MSM5205 ADPCM sample trigger (VERIFIED sites).
- * Computes a sample length (repeated SBC HL,DE by 0x41) into 0x8E0F; loads the MSM5205 latches
- * 0xD000 (addr/trigger), 0xB000 (bank/start-hi from 0x8E12), 0xC000 (reset/stop). The MSM5205 then
- * streams 4-bit ADPCM from adpcm.bin autonomously (VCK-clocked). */
+/* 0x1A00 region  MSM5205 ADPCM sample trigger (control flow VERIFIED; latch roles corrected AUDIO-009).
+ * Computes a sample length (repeated SBC HL,DE by 0x41) into 0x8E0F; drives the MSM5205 latches with
+ * their CORRECT roles (matching the VERIFIED map above and MAME): 0xB000 = sample ADDRESS(-high) latch,
+ * 0xC000 = START, 0xD000 = STOP. (Cody AUDIO-008 claim 22: the previous comment swapped these — it wrongly
+ * called 0xD000 addr/trigger, 0xB000 bank/start, 0xC000 reset/stop.) The MSM5205 then streams 4-bit ADPCM
+ * from adpcm.bin autonomously (VCK-clocked). */
 void z80_adpcm_trigger_1a00(void);
 
 /* 0x01F9  (callers=0) INFERRED YM2151-timer IRQ (RST 0x38 / IM1) service — per-tick sequence advance.

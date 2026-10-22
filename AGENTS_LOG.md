@@ -1,5 +1,99 @@
 # AGENTS Log
 
+## [AUDIO-009 — Andy — Correct verified audio-foundation & Audio Composer defects]
+
+* CORRECTIVE implementation + regression testing driven by Cody's AUDIO-008 audit (source of truth). NO production ROM/ASM/build-number/baseline/capture/Lawrence-VGM/Palette-Composer change. Baseline Build 0472, counter 472 unchanged. AUDIO-003 still NOT complete (never claimed). Deliverable: `docs/design/Andy_AUDIO009_audio_foundation_corrections.md`; OPEN-039 updated (remains OPEN). Repeating **AUDIO-009**.
+* **Audio Composer security/persistence (server.py, schema v1→v2):** (A) GET/POST/revisions profile paths now use a strict allowlisted ID regex + realpath containment (`safe_profile_path`) — GET traversal `../../../specs/...` and encoded `%2e%2e%2f` now 400 (was 200+disclosure). (B) server recomputes conflicts and **rejects ANY error-level conflict** (403, no write); approved+empty→draft. (C) `arcade_evidence` is **server-derived** from analysis artifacts; client forgery discarded. (D) **atomic immutable revisions** `<id>.rN.json` via os.replace; manifest atomic + consistent; deterministic v1→v2 migration preserves approvals/notes/unknown fields; `/api/revisions`.
+* **PSG model corrected:** per-channel stereo claim REMOVED → mono/center (`stereo_per_channel:false`); explicit noise-frequency selector (fixed_512/1024/2048 | tone3_clocked); tone-3/noise coupling warning ONLY when `tone3_clocked` (fixed rates coexist with tone 3); divider-zero documented; noise taps/period labeled UNRESOLVED (no false fidelity).
+* **`$82` descriptor:** verified Z80 0x02AA-0x02FE (`CP 0x12`): lead `<0x12` = COUNT; lead `>=0x12` (e.g. 0x82) = channel/control identifier → 0x02FE, NOT count 130. NEW `tools/audio/gen_music_command_inventory.py` regenerates `music_command_inventory.json`; commands 0x03/0x0A/0x0D/0x21/0x26 reclassified.
+* **YM2151 analyzer:** register-0x08 with zero operator mask is a KEY-OFF, not key-on; separate key_on/key_off/kc/channels_ever_keyed/peak_simultaneously_keyed/sustained(heuristic); musical identity=null. Regenerated `ym2151_track_reports` — keyed: Credit 2, Opening 8, Scene1–FinalBoss 6, Ending 8 (matches Cody; "all 8" was inflation). Occupancy≠audible polyphony noted.
+* **VGM analyzer:** `$4F`=2 bytes (+regression test); DAC now reports `direct_sample_writes` AND `stream_starts`(398)+`active` (FM6 DAC via stream, not misleading 0); regenerated `vgm_analysis`; distinct-patch total **174** (RG-005's 141 was a label error). Lawrence "additive-PSG" qualified UNVERIFIED (no arcade alignment).
+* **Z80 C/coverage:** C relabeled a declaration INDEX (0 bodies, not a decompilation); coverage vocabulary INDEXED/CONTROL_FLOW_VERIFIED/UNRESOLVED — **no function SEMANTIC_C_COMPLETE**; TC0140SYT→PC060HA; ADPCM latch roles corrected (0xB000=addr,0xC000=start,0xD000=stop); main-loop 0x1B/bank side-effect noted.
+* **Tests: 37/37 pass** (`verify_audio_composer.py` rewritten — 21 required scenarios + unit + HTTP-level, isolated temp storage) + live HTTP smoke. Correction notices added to RG-005/RG-006/AUDIO-001/002/004 docs (append-only). Production files: NONE; counter 472→472; Palette Composer untouched. Recommend Cody re-verify the corrected tools.
+
+## [AUDIO-008 — Cody — Independent audio-foundation verification]
+
+* **AUDIO-008** adversarial read-only audit of AUDIO/RG-001 through RG-006 for OPEN-039. Accepted
+  baseline Build 0472 and counter 472 independently verified and untouched; ROM source/tag/hash remain
+  `4d5aadb0e92387617594404f9e757597c87517a3` / `accepted/build-0472` /
+  `5b855e163a572c3a511a76470199c9cb13324f6ea0739bbd0f6834b80092dc7a`. No ROM build, production ASM,
+  build-counter, accepted baseline, Palette Composer, capture, VGM, or user-profile modification.
+* **Verdict: PARTIALLY TRUSTWORTHY — CORRECTIONS REQUIRED BEFORE CONVERSION.** Claim matrix:
+  32 CONFIRMED / 7 PARTIALLY CONFIRMED / 13 CONTRADICTED / 3 UNVERIFIED / 0 NOT IMPLEMENTED.
+  Z80 fixed/banked map, four banks, YM-port bank switch, PC060HA correction, clocks, command dispatch,
+  YM writer, MSM latch map, deep-FM register statistics, and Lawrence's five-FM + three-PSG + FM6-DAC
+  allocation independently reproduce.
+* **Material corrections:** five `$82` song descriptors are channel/control-ID forms, not count=130;
+  “all eight FM channels used” counts key-offs/KC writes; Scene 1 has six simultaneously keyed channels,
+  so the five-sustained-voice heuristic is not capacity proof; AUDIO-003 and audio RG-007 do not exist;
+  ADPCM sample/trigger map and exact sequence/instrument identity remain open. The Z80 “C decompilation”
+  has 12 prototypes and zero bodies; its CSV has 20 rows/17 unique function entries versus 63 exported
+  functions, so COMPLETE is not semantic-C completeness. Its `$1A00` comment swaps B/C/D latch roles.
+* **Lawrence VGM:** independent parser and analyzer replay confirm VGM 1.96, clocks/sample totals, four
+  ~4.8-KiB 8-kHz PCM blocks, 398 stream starts, five pitched FM + three tones + FM6 DAC, and initial
+  shared FM1-3 patch with C/L/R pan. Patch-state population is **174**, not 141. “PSG is additive rather
+  than replacing arcade FM” remains UNVERIFIED because no arcade note/time alignment exists. Generic
+  `$4F` command length is a latent unexercised parser defect.
+* **PSG/Composer defects:** Genesis VDP PSG has no claimed per-channel stereo latch; tone3/noise coupling
+  applies only to noise selector 3, but the schema lacks the selector and warns unconditionally. Isolated
+  HTTP reproduction confirmed GET profile traversal (200 + JSON disclosure), invalid destinations saved
+  with 200, client-mutable evidence/approval state, destructive non-atomic same-ID overwrite masquerading
+  as versioning, and overbroad `.js` routing. Positive controls: loopback bind, malformed-JSON 400,
+  baseline POST protection, FM6 403/no file, proposal/approval round-trip, unknown-field preservation,
+  and honest unavailable audition.
+* Tests: existing Composer suite **26/26 pass**, but omits the confirmed security/integrity/hardware
+  cases. Independent ROM/capture/VGM parser plus isolated temporary-profile HTTP matrix is preserved at
+  `analysis/audio/verification/audio008_{independent_audit.py,results.json,test_log.txt}`. Main report:
+  `docs/design/Cody_RG008_audio_foundation_independent_verification.md`. Severity: 0 BLOCKER / 6 HIGH /
+  9 MEDIUM / 4 LOW. OPEN-039 updated and remains OPEN. Repeating **AUDIO-008**.
+
+## [RG-006 — Andy — AUDIO-006: Rastan Audio Composer (Phase 1)]
+
+* DEVELOPMENT TOOL (browser-based audio routing editor + Python backend), modeled on tools/graphics_editor/. NO production Z80/68000 ASM/ROM/build-number/driver/Palette-Composer change; nothing rebuilt. Baseline Build 0472 (counter 472) untouched. Arcade captures + Lawrence's VGM READ-ONLY. Deliverable: `docs/design/Andy_RG006_audio_composer_phase1.md`; OPEN-039 updated (NOT closed). Repeating **RG-006**.
+* **NEW tool `tools/audio_composer/`** (server.py, index.html, app.js, style.css, run.sh, verify_audio_composer.py). Launch: `tools/audio_composer/run.sh` → http://localhost:8781 (Python stdlib only; no pip/cloud). Same architecture as the Palette Composer: ThreadingHTTPServer on 127.0.0.1, read-only evidence oracle + editable versioned JSON decision profiles (baseline immutable, branch-to-edit), generated data separated into `analysis/audio/decision_profiles/`.
+* **Loads (read-only):** 9 arcade tracks from `build/audio/fm_psg_analysis` + `ym2151_track_reports`; 44 command descriptors from `music_command_inventory.json`; Lawrence VGM from RG-005 `vgm_analysis`. **Command-ID shown UNRESOLVED, never inferred from filename; instrument identity labeled capture-derived; AUDIO-003-not-decoded banner.** No fabricated instruments/mappings.
+* **Routing editor:** per original YM2151 channel → FM1-5 / PSG tone1-3 / PSG noise / Unassigned; **FM6 = reserved DAC, not music-selectable.** Propose→Approve (proposals and approvals stored/displayed separately; server refuses proposal-as-approval; FM6-music rejected in validator AND as hard 403 on save). NO auto-assignment of any instrument.
+* **Conflict validator (never discards voices):** reserved_fm6 (error), invalid_dest (error), fm_budget >5 FM voices (error), monophonic_collision (**POTENTIAL** — timing incomplete, not proven), tone3_noise_coupling (warning). **Genesis PSG model** (3×50%-duty square vs NES, 10-bit divider, 4-bit/2dB atten, 16-bit LFSR vs TI 15-bit, noise freq-select-3 = tone-3-driven coupling) for validation + future audition; provenance-tagged, no over-claim.
+* **Audition:** UNAVAILABLE in Phase 1 — `/api/audition` available:false + dashed "Playback UNAVAILABLE" box; no oscillator audio presented as reference, no dead play buttons, no fabricated acoustic comparison; future render contract declared. **Instrument data model** (YM2612 algo/fb/MUL/DT/TL/ADSR/AMS/FMS/pan/time-series + PSG divider/atten/env/vibrato/arp/noise) persisted now, editing deferred.
+* **Validation: 26/26 automated checks pass** (verify_audio_composer.py) + live HTTP smoke test (all endpoints serve; legit save round-trips + updates manifest; FM6 save 403 writes no file; Palette Composer server.py still compiles — untouched). No audio-fidelity claim (no rendered audio). Production files: NONE.
+
+## [RG-005 — Andy — AUDIO-005: Lawrence McCormick (Inglebard) Genesis arrangement analysis]
+
+* GENESIS VGM REVERSE ENGINEERING / reference-arrangement study. NO production ASM/ROM/build-number/driver/palette change. Baseline Build 0472 (counter 472) untouched. Deliverable: `docs/design/Andy_RG005_lawrence_genesis_arrangement_analysis.md`; OPEN-039 updated (NOT closed).
+* **NEW read-only tool** `tools/audio/vgm_genesis_analysis.py` — decodes a real Genesis VGM (YM2612 + SN76489): header/clocks, full command histogram with unsupported commands FLAGGED (0 here), per-FM channel key-ons/pitches/algo/fb/operator envelopes (DT/MUL/TL/AR/D1R/D2R/SL/RR)/stereo, per-PSG channel, DAC stream, peak simultaneous voices, reusable instrument inventory → `build/audio/vgm_analysis/*.json`. Clean decode (reached 0x66, 0 flagged).
+* **File:** `audio/Inglebard Agressive World Handmade Genesis version/LM-Main Stage Theme (1).vgm` (71,848 B). Header **VGM 1.96** (prompt said 1.60 — CORRECTED); YM2612 7,670,454 Hz, SN76489 3,579,545 Hz, 53.7 s total / 40.7 s loop (loop @13.0 s) — clocks+totals match prompt.
+* **ALLOCATION (VERIFIED):** all 6 FM + 3 PSG tones. **FM1/2/3 = identical patch (algo5 fb6) panned center/left/right** = a stereo-spread lead/harmony stack (the "big sound"); **FM4 = bass** (algo5 fb2, all MUL=1, G#0-D1); **FM5 = bright arp/comp** (algo6, 131 key-ons); **FM6 = SAMPLED DRUMS via DAC stream** (4 PCM samples ~4.8 KB @ 8 kHz, 398 triggers — key-on reg 0x28=0 so it looked silent). Peak pitched polyphony = 8 (5 FM + 3 PSG @38.4 s).
+* **INSTRUMENTS (VERIFIED):** patch-snapshot algo dist {3:108, 0:35, 5:20, 4:6, 6:5}, fb {5:92, 0:47, 6:30} → Lawrence's YM2612 music is **predominantly DEEP FM (algo 0/3) + high feedback**, NOT brightened — the aggressive edge = feedback, not additive algos. **Corroborates AUDIO-004** (arcade = deep FM too). Patches reprogrammed constantly (43-62 snapshots/ch); per-channel algorithm is NOT fixed.
+* **PSG = ADDITIVE, not FM substitution (key lesson):** intro (0-13 s) is FM-only; PSG enters progressively late (tone3 @12.2 s, tone2 @16.7 s, tone1 @29.7 s) as added harmony/arp/high-sparkle (tone3→F9); PSG noise 1 hit @loop boundary. → **refines AUDIO-004**: keep core voices on FM, ADD PSG sparkle/harmony on top; don't demote an FM lead to a square wave.
+* **CONVERTER TAKEAWAYS (PROPOSED):** keep deep FM on YM2612; percussion → FM6 DAC short PCM (ties OPEN-039 MSM5205→ch6 DAC); PSG additive w/ per-voice pan+AMS/FMS; support same-patch stereo doubling; time-series TL automation; audio-mgmt app adopts this VGM analyzer as reference-import + A/B compare. Production files: NONE; Lawrence's VGM preserved.
+
+## [RG-004 — Andy — AUDIO-004: FM-to-PSG instrument feasibility + Genesis channel allocation]
+
+* AUDIO RESEARCH / read-only capture analysis / offline tooling. NO production Z80/68000 ASM, ROM, build-number, driver/DAC/app, or palette change. Baseline Build 0466 (counter 472) untouched. Scoped per §0/§14 because **AUDIO-003 is NOT done** (no sequence decoder / ROM instrument table / sample map) → instrument identity is **capture-derived**, tagged. Deliverable: `docs/design/Andy_audio004_fm_to_psg_feasibility.md`; OPEN-039 updated (NOT closed).
+* **NEW read-only tool** `tools/audio/fm_instrument_psg_analysis.py` — extracts per-channel YM2151 patch state (algorithm/feedback/MUL/TL), note activity + role, musical-voice count, PSG-candidacy heuristic from the 9 `*_ym2151_writes.csv` captures → `build/audio/fm_psg_analysis/*.json` + `_summary.json` (run; 9 reports).
+* **HEADLINE (VERIFIED from captures): Rastan music is uniformly DEEP single-carrier FM.** Algorithm distribution across active channels = {1:32, 2:10, 3:7, 4:2, 5:3}, mostly feedback 7 (max); **ZERO use of algo 6/7**. → **No voice is a "natural" PSG candidate**; every PSG offload is a timbre compromise, not a fit.
+* **Six-voice hypothesis: SUPPORTED WITH NUANCE.** Sustained musical voices: Scene1=5, Scene2/Boss/FinalBoss=6, Ending=7-8; jingles fewer (Credit/NameRegist=0 sustained). Activity on all 8 channels ≠ 8 musical voices. **No YM2151 noise use in any track** (music is pure FM; PSG noise free for SFX).
+* **The real driver = the 5-FM limit** (FM6=DAC fixed): ≤5-voice tracks fit FM1-5 (no PSG needed, incl. Scene1); 6-voice tracks must offload exactly 1 (least-critical voice) to PSG tone 1; Ending offloads 2-3. PSG tone-3 cost by tuned noise + no PSG envelope/duty-select (vs NES) captured as resource-conflict rules. PROPOSED per-track JSON routing schema (no universal arcade-channel→PSG mapping — the least-critical voice differs per track).
+* **BLOCKERS (honest, not fabricated per §6/§14):** (1) AUDIO-003 prereqs missing → instrument identity capture-derived, per-voice role inferred, exact least-critical voice UNRESOLVED; (2) a validated original-YM2151 / YM2612 / PSG 3-way audio comparison needs an emulator render stage → marked INCOMPLETE (methodology documented, no audio fabricated). Next = AUDIO-003 (sequence/instrument-table/sample decode) then an emulator render stage. Production files: NONE (`apps/rastan-direct/out/*` diffs are Cody's build outputs, untouched).
+
+## [PROMPT RG-007 — Andy — Complete bat / airborne arcade C decompilation]
+
+* ORIGINAL-ARCADE static analysis / Ghidra-raw reconciliation / existing-C-decomp completion. NO production ASM/ROM/build-number/HUD/audio/palette change. Baseline Build 0466 untouched; clean tree at start. Deliverable: `docs/design/Andy_RG007_complete_bat_airborne_decomp.md`.
+* Finished the two RG-006 gaps + the bat-chain dependencies they need:
+  - **0x473B8 airborne engine → COMPLETE.** States 0x0D/0x0E = **passive airborne sub-states** (skip the active horizontal-pursuit/turn-around block via the single `state!=0x0D && state!=0x0E` guard at 0x47414); shared tail runs landing probe + per-family 8-way directional anim. **Bat family 0x0A anim (0x4762E) = `0x2D + direction`** (`(A5+0x200&0x70)>>4` or, +0x2E set, `8+((A5+0x200&0x38)>>3)` → frames 0x2D-0x3C). Active states 1/2 toggle state +0x05^3 and facing +0x02^1 on turn-around.
+  - **0x41CFA per-state config loader → COMPLETE.** `state*8` index into ROM table **0x41D26** (added as `g_airborne_state_config_41d26[16][8]` in rastan_actor_tables.c); 8-byte record → actor +0x08/+0x0D..+0x13/+0x02. Bats enter at state 1/2.
+  - **NEW dependencies decompiled:** 0x4205C `actor_airborne_camera_track_4205c` (|cameraX-actorX| → A5+0x234, facing → A5+0x236); 0x4736A `actor_airborne_ground_probe_4736a` (collision 4px below via 0x53A2E; 3 consecutive solid frames → +0x39=1 + 0x447F0 → state 0x0F land-death).
+* **Bat call graph: no remaining STUB/PARTIAL** (0x4CD50/0x45342/0x40BAA/0x473B8/0x3CEB0/0x41CFA/0x4734A/0x4205C/0x4736A/0x42ABC/0x4092E/0x44804/0x447F0/0x53A2E/0x42E38 all COMPLETE). Small Bat + Large Bat behavior/animation/presentation chains COMPLETE. Files: rastan_actor_behavior.c (+0x473B8 rewrite +3 funcs), rastan_actor_tables.c (+0x41D26 table), function_coverage.csv (statuses + 3 new rows), RG-007 doc, RG-006 doc status note. Production files: NONE. RG-006 flip/HUD conclusions unchanged; no optimization implemented.
+
+## [PROMPT RG-006 — Andy — Flying-enemy nativization + tile-flip audit + HUD efficiency research]
+
+* RESEARCH / static analysis / decomp-completion / optimization design. NO production ASM/remap/frame-generator/HUD/Test.json/palette/audio/ROM/build-number change. Baseline Build 0466 (counter 467) untouched; clean tree at start (Cody RG-005 + audio/palette work preserved). Deliverable: `docs/design/Andy_RG006_flying_enemy_flip_and_hud_efficiency_research.md`.
+* **HEADLINE — FLIP AUDIT: NO software pixel flipping and NO duplicate pre-flipped graphics anywhere** (sprites OR Plane A/B). Native sprites use the VDP H-flip attribute (arcade 0x4000 → SAT word2 bit 11) + precomputed mirrored X offsets (`precompute_pc090oj_frame_table.py` mirrored: `attr|0x4000`, `dx=-dx-16`, SAME tile code); Plane A/B use PC080SN H/V → Genesis 0x0800/0x1000 (`tilemap_hooks.s`). Orientation-specific native frames = separate GEOMETRY + flip bit over the same pixels (Case 2), not pixel/tile duplication. **Flip-optimization avenue is already optimal → 0 CPU/ROM/VRAM/DMA to save there.**
+* **WHY BATS SLOW: volume, not per-actor cost.** Bats swarm (batch creator 0x4CD50 → block 0x748); cost scales with simultaneous sprite PIECES through the shared finalizer + SAT + per-frame SAT DMA. Per-actor the native path is O(1) (universal interpreter retired Build 0407; cached residency; VDP flip). Only per-piece micro-cost = the finalizer duplicate opaque-bbox/source derivation.
+* **BAT DECOMP:** largely already present (tables 0x0A=Large 0x03F6 / 0x0B=Small 0x0268; engine 0x473B8; core 0x3CEB0; death 0x42ABC; creator 0x4CD50; demon init 0x45342). **NEWLY DECOMPILED: 0x4734A** airborne anim-rate pre-step (`actor_airborne_anim_rate_prestep_4734a` in rastan_actor_behavior.c) — conditionally halves +0x08 flap duration (min 1) when +0x741/+0x2B set; corrects the "vertical/hover" stub (it is NOT movement). Still PARTIAL: 0x473B8 states-0D/0E anim tail; 0x41CFA config load (STUB).
+* **HUD:** reduced HUD `.Lnq_project_p1_hud` rebuilds all 6 score digits (from BCD 0xFF011E-0120) + 3 static labels EVERY gameplay frame unconditionally, even when the score is byte-identical. Full HUD (gen_native_hud/native_frontend_hud_emit) is mostly static SAT, digits dynamic. **Recommended:** prebuild static labels once + last-value compare on the 3 BCD bytes → skip digit rebuild/emit when unchanged (presentation cache only; arcade BCD stays authoritative; NO GenesisScore/Lives).
+* **RECOMMENDED ORDER (not implemented):** (1) HUD change-driven update (simplified then full) — highest certain CPU+DMA win, survives Phase D/E; (2) finalizer per-piece bbox/source consolidation (benefits bat swarms); (3) flip optimization SKIP (already optimal). Files changed: `analysis/decompilation/c/rastan_actor_behavior.c` (+0x4734A), `analysis/decompilation/c/function_coverage.csv` (0x4734A STUB→COMPLETE), the research doc. Production files: NONE.
+
 ## [Andy — Palette Composer: Line-2 reuse + index display + larger swatches + Layer-B colors/animated-sky index]
 
 * TOOLING ONLY (graphics editor) + one read-only arcade palette capture. No production/assembly/ROM/baseline/gameplay change; no Test-profile decisions or colors changed. Deliverable: `docs/design/Andy_palette_composer_line2_reuse_and_index_display.md`.
@@ -52996,6 +53090,11 @@ TIGHE ONLY
 - Stopped after mandatory canonical gates. No fixed30 completion, family, final-life, RG-004, HUD
   runtime/SAT-bank, or rope tests. Build 0472 not authorized. Accepted Build 0467 remains untouched.
   Report: `docs/design/Cody_RG008_change_driven_hud_optimization.md`.
+
+### MAME Exit Summary (2026-10-21 15:50:09)
+- Final PC: 0x03B298
+- Stack Pointer (SP): 0x00FEFFFC
+- Unique Unmapped Memory Addresses: none
 
 ## 2026-10-21 — RG-009 Build 0471 frontend-stall diagnosis; Build 0472 candidate
 
