@@ -53157,3 +53157,14 @@ TIGHE ONLY
   SAME as accepted Build 0472, so no route-level regression or improvement. Candidate is valid and
   performance-neutral; Tighe real-Genesis acceptance is PENDING. `accepted/build-0472` unchanged.
   Report: `docs/design/Cody_build0473_retained_cut_preservation.md`.
+
+## 2026-10-22 — RG-015 accept and lock Build 0473
+
+- Tighe tested Build 0473 on real Sega Genesis hardware and ACCEPTED it as the new baseline.
+  Normal artifact `dist/rastan-direct/rastan_direct_video_test_build_0473.bin` remains SHA-256
+  `42cac0085a0078ffbc4293e493ece95280e854d4d2b5bf4512756bb095ded717` (2,739,896 bytes).
+  Exact ROM-producing source is `f6e975b864af2aca7bdf24b0a40a9db43bd62f59`.
+- Accepted behavior includes the RG-014 caller-specific retained-cut preservation reduction and
+  deterministic `_invincible` rope result `795/795/795`, median `13,267.083 ms`.
+- Immutable `accepted/build-0473` points exactly to ROM-producing source `f6e975b8`, not a report
+  or bookkeeping commit. Build 0474 had not been produced or consumed at acceptance lock time.
