@@ -8,6 +8,12 @@ This is the bounded pre-build ownership proof for RG-016. Accepted Build 0473 re
 death HOLD successfully hid the post-disintegration reconstruction and both mixed native gameplay
 generations, but real Genesis hardware proved that the same HOLD leaked across READY and Continue.
 
+The first candidate attempt, Build 0475 at source `a6b0b6796de0f638e78e6cf10f708ce1396c0d7e`,
+was rejected before numbered publication because retained `0x03A47E` still validated the prior
+shifted BSR displacement. It is permanently consumed with no artifact. The exact correction updates
+that generated-layout expectation from `0x16C8` to the reflow-proven `0x16D4`; no semantic hook or
+replacement behavior changes.
+
 Static provenance reuses the canonical Ghidra exports, original linear disassembly, generated address
 map, RG-003/RG-004 frontend reports, RG-015 evidence, and current production source. No new route,
 save state, gameplay trace, or state machine was created.

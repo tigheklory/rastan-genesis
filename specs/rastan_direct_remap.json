@@ -916,9 +916,9 @@
   },
   {
    "arcade_pc": "0x03A47E",
-   "original_bytes": "0c79004900c0883a6608303c009a610016c8",
+   "original_bytes": "0c79004900c0883a6608303c009a610016d4",
    "replacement_bytes": "60104e714e714e714e714e714e714e714e71",
-   "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis). RG-003 updated the validated trailing BSR displacement to 0x16C0 for its +4-byte frontend ownership cut; RG-008 updates it to the shift-table-reflowed 0x16C8 because its +6-byte new-game dirty notification and +2-byte score-award dirty notification lie between this source and the retained 0x03BB48 target. Replacement semantics are unchanged."
+   "note": "Bypass PC080SN readback cmp/bne path (read from 0xC0883A invalid on Genesis). RG-003 updated the validated trailing BSR displacement to 0x16C0 for its +4-byte frontend ownership cut; RG-008 updated it to 0x16C8. RG-016 updates the same generated-layout expectation to 0x16D4 because its READY completion/exit insertions lie between this source and retained target 0x03BB48; the Continue/GAME OVER insertions precede both and cancel from the relative distance. Replacement semantics are unchanged."
   },
   {
    "arcade_pc": "0x03A490",
