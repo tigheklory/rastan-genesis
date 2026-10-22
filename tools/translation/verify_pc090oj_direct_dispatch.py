@@ -87,6 +87,92 @@ def address_register_writes(source_block: str, registers: tuple[str, ...]) -> li
     return writes
 
 
+def verify_retained_cut_preservation(source: str) -> None:
+    """Prove RG-014's specialized ABI ownership and balanced stack shape."""
+    retained_mask = "%d4/%d6/%a2-%a6"
+    retained_save = f"movem.l {retained_mask}, -(%sp)"
+    retained_restore = f"movem.l (%sp)+, {retained_mask}"
+    full_save = "movem.l %d0-%d7/%a0-%a6, -(%sp)"
+    full_restore = "movem.l (%sp)+, %d0-%d7/%a0-%a6"
+
+    hooks = {
+        "0x041DAE": block(source, "genesistan_pc090oj_hook_target_41dae:",
+                           "genesistan_pc090oj_hook_target_41f5e:"),
+        "0x045DFA": block(source, "genesistan_pc090oj_hook_target_45dfa:",
+                           "native_sprite_frame_begin:"),
+    }
+    expected_dispatch = {
+        "0x041DAE": ("native_stage_dispatch_41dae_retained_cut",
+                      "native_stage_dispatch_45dfa_retained_cut"),
+        "0x045DFA": ("native_stage_dispatch_45dfa_retained_cut",),
+    }
+    for cut, hook in hooks.items():
+        if hook.count(retained_save) != 1 or hook.count(retained_restore) != 1:
+            raise SystemExit(f"FAIL retained-cut ABI {cut}: outer frame is not one balanced pair")
+        save_at, restore_at = hook.index(retained_save), hook.index(retained_restore)
+        if save_at >= restore_at or re.search(r"\brts\b", hook[save_at:restore_at]):
+            raise SystemExit(f"FAIL retained-cut ABI {cut}: saved path can return before restore")
+        for dispatch in expected_dispatch[cut]:
+            call = f"bsr     {dispatch}"
+            if call not in hook[save_at:restore_at]:
+                raise SystemExit(f"FAIL retained-cut ABI {cut}: missing internal call {dispatch}")
+        if "bsr     pc090oj_native_emit_pass_retained_cut" not in hook[save_at:restore_at]:
+            raise SystemExit(f"FAIL retained-cut ABI {cut}: missing private gameplay finalizer")
+        if full_save in hook or full_restore in hook:
+            raise SystemExit(f"FAIL retained-cut ABI {cut}: redundant full frame remains")
+
+    dispatches = (
+        ("native_stage_dispatch_41dae:", "native_stage_dispatch_41dae_retained_cut:",
+         "native_stage_dispatch_45dfa:"),
+        ("native_stage_dispatch_45dfa:", "native_stage_dispatch_45dfa_retained_cut:",
+         ".Lnative_emit_actor_common:"),
+    )
+    for public_label, internal_label, end_label in dispatches:
+        body = block(source, public_label, end_label)
+        wrapper = body[:body.index(internal_label)]
+        internal = body[body.index(internal_label):]
+        internal_name = internal_label[:-1]
+        for token in (full_save, f"bsr     {internal_name}", full_restore, "rts"):
+            if token not in wrapper:
+                raise SystemExit(f"FAIL public dispatcher ABI {public_label}: missing {token}")
+        if full_save in internal or full_restore in internal:
+            raise SystemExit(f"FAIL retained-cut dispatcher {internal_label}: nested full frame")
+
+    common = block(source, ".Lnative_emit_actor_common:", ".Lnative_generic_frame_try:")
+    for token in ("movem.l %d5/%a1, -(%sp)", "movem.l (%sp)+, %d5/%a1"):
+        if token not in common:
+            raise SystemExit(f"FAIL retained-cut ABI: required actor-loop preservation lost: {token}")
+    lane = block(source, ".Lnq_emit_lane:", "profile_native_final_piece_entry:")
+    if "move.w  %d6, -(%sp)" not in lane or "move.w  (%sp)+, %d6" not in lane:
+        raise SystemExit("FAIL retained-cut ABI: required semantic-lane D6 preservation lost")
+
+    public = block(source, "pc090oj_native_emit_pass:",
+                   "pc090oj_native_emit_pass_retained_cut:")
+    private = block(source, "pc090oj_native_emit_pass_retained_cut:", ".Lnq_title:")
+    if "beq     .Lnq_gameplay" not in public or "bra     .Lnq_frontend_native" not in public:
+        raise SystemExit("FAIL public finalizer scene-routing ABI changed")
+    if "bra     .Lnq_gameplay_retained_cut" not in private:
+        raise SystemExit("FAIL private finalizer does not enter gameplay-only core")
+    gameplay = block(source, ".Lnq_gameplay:", ".Lnq_project_p1_hud:")
+    wrapper = gameplay[:gameplay.index(".Lnq_gameplay_retained_cut:")]
+    for token in ("movem.l %d0-%d7/%a0-%a3, -(%sp)", "move.l  %a4, -(%sp)",
+                  "bsr     .Lnq_gameplay_retained_cut", "move.l  (%sp)+, %a4",
+                  "movem.l (%sp)+, %d0-%d7/%a0-%a3", "rts"):
+        if token not in wrapper:
+            raise SystemExit(f"FAIL public gameplay finalizer ABI: missing {token}")
+
+    finish = block(source, ".Lnq_finish_frame:", ".Lnq_frontend_native:")
+    for token in ("pc090oj_emitted_count", "pc090oj_sat_frame_ready", "pc090oj_sat_dirty", "rts"):
+        if token not in finish:
+            raise SystemExit(f"FAIL finalizer semantics removed: {token}")
+    if re.search(r"\bmovem\.", finish, re.I):
+        raise SystemExit("FAIL private finalizer core unexpectedly owns an outer frame")
+
+    print("PASS retained-cut preservation: 0x041DAE/0x045DFA use one D4/D6/A2-A6 "
+          "frame; public dispatch/finalizer ABIs remain conservative; D5/A1 and D6 "
+          "inner saves, balanced exits, and final publication semantics verified")
+
+
 def verify_fast_enqueue(source: str) -> None:
     """Prove that the generated-frame fast path changes cost, not semantics.
 
@@ -476,6 +562,7 @@ def main() -> None:
         raise SystemExit("FAIL UNKNOWN base did not fall back")
 
     source = args.assembly.read_text()
+    verify_retained_cut_preservation(source)
     verify_fast_enqueue(source)
     verify_packed_lane_bank(source)
     start = source.index(".Lnative_generic_frame_try:")

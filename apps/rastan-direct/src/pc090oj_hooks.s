@@ -31,6 +31,9 @@
     .global genesistan_pc090oj_hook_zero_fill_56440
     .global genesistan_pc090oj_hook_status_sprite_5a098
     .global pc090oj_native_emit_pass
+    .global pc090oj_native_emit_pass_retained_cut
+    .global native_stage_dispatch_41dae_retained_cut
+    .global native_stage_dispatch_45dfa_retained_cut
     .global genesistan_pc090oj_hook_audit_guard
     .global genesistan_pc090oj_ctrl_set_1
     .global genesistan_pc090oj_ctrl_set_0
@@ -261,15 +264,21 @@ genesistan_pc090oj_hook_target_41dae:
     beq.s   .Lhook_41dae_gameplay_native
     rts
 .Lhook_41dae_gameplay_native:
+    /* Original arcade 0x041DAE preserves exactly D4/D6/A2-A6 across the
+     * replaced rendering operation.  Own that retained-caller contract once
+     * around both native stages; the internal entries deliberately clobber
+     * the registers the original operation also clobbered. */
+    movem.l %d4/%d6/%a2-%a6, -(%sp)
     move.w  0x02A2(%a5), %d0
     cmpi.w  #2, %d0
     beq.s   .Lhook_41dae_mode2
-    bsr     native_stage_dispatch_41dae
+    bsr     native_stage_dispatch_41dae_retained_cut
     bra.s   .Lhook_41dae_finalize
 .Lhook_41dae_mode2:
-    bsr     native_stage_dispatch_45dfa
+    bsr     native_stage_dispatch_45dfa_retained_cut
 .Lhook_41dae_finalize:
-    bsr     pc090oj_native_emit_pass
+    bsr     pc090oj_native_emit_pass_retained_cut
+    movem.l (%sp)+, %d4/%d6/%a2-%a6
     rts
 
 genesistan_pc090oj_hook_target_41f5e:
@@ -285,8 +294,11 @@ genesistan_pc090oj_hook_target_45dfa:
     beq.s   .Lhook_45dfa_gameplay_native
     rts
 .Lhook_45dfa_gameplay_native:
-    bsr     native_stage_dispatch_45dfa
-    bsr     pc090oj_native_emit_pass
+    /* Same caller-visible ABI as the retained 0x041DAE operation. */
+    movem.l %d4/%d6/%a2-%a6, -(%sp)
+    bsr     native_stage_dispatch_45dfa_retained_cut
+    bsr     pc090oj_native_emit_pass_retained_cut
+    movem.l (%sp)+, %d4/%d6/%a2-%a6
     rts
 
 
@@ -776,6 +788,13 @@ native_sprite_emit_fast:
 
 native_stage_dispatch_41dae:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+    bsr     native_stage_dispatch_41dae_retained_cut
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Internal retained-cut entry: D4/D6/A2-A6 are owned by the hook's single
+ * outer frame.  D0-D3/D5/D7/A0-A1 match the original renderer's clobber ABI. */
+native_stage_dispatch_41dae_retained_cut:
     /* The sprite-control colbank cannot change inside this private native
      * dispatch: every writer is an arcade-side call-site replacement outside
      * the stage walk.  Normalize its frame-invariant high bits once for all
@@ -911,11 +930,16 @@ native_stage_dispatch_41dae:
 .Lns41_effect_next:
     adda.w  #64, %a4
     dbra    %d5, .Lns41_effect
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 native_stage_dispatch_45dfa:
     movem.l %d0-%d7/%a0-%a6, -(%sp)
+    bsr     native_stage_dispatch_45dfa_retained_cut
+    movem.l (%sp)+, %d0-%d7/%a0-%a6
+    rts
+
+/* Internal retained-cut entry; contract matches the 0x041DAE specialization. */
+native_stage_dispatch_45dfa_retained_cut:
     move.w  pc090oj_sprite_ctrl_shadow, %d0
     andi.w  #0x00E0, %d0
     lsr.w   #1, %d0
@@ -953,7 +977,6 @@ native_stage_dispatch_45dfa:
     bsr     .Lnative_emit_actor_common
     adda.w  #64, %a4
     dbra    %d5, .Lns45_middle
-    movem.l (%sp)+, %d0-%d7/%a0-%a6
     rts
 
 /* A4=actor, D2=piece budget for this actor.  native_sprite_lane (set by the
@@ -989,8 +1012,8 @@ profile_native_actor_entry:
     beq     .Lnea_ret
     tst.w   %d2
     beq     .Lnea_ret
-    /* Every caller is inside native_stage_dispatch_41dae/45dfa, whose outer
-     * frame already preserves D0-D7/A0-A6 for the retained arcade caller.
+    /* Every hot-path caller is inside the retained-cut dispatchers, whose
+     * hook-owned outer frame preserves D4/D6/A2-A6 for the arcade caller.
      * Across one actor probe only D5 (stage loop/index) and A1 (legacy lane
      * cursor used by skip paths) remain live.  The former nested full saves in
      * this wrapper and both generated probes duplicated that contract once per
@@ -2339,6 +2362,16 @@ pc090oj_native_emit_pass:
     cmpi.b  #PC090OJ_SCENE_GAMEPLAY_ID, %d0
     beq     .Lnq_gameplay
     bra     .Lnq_frontend_native
+
+/* Private gameplay-only entry for the retained 0x041DAE/0x045DFA cuts.  Its
+ * caller owns D4/D6/A2-A6 once across dispatch plus finalization; the public
+ * entry above keeps its established conservative save/restore contract. */
+pc090oj_native_emit_pass_retained_cut:
+    move.w  pc090oj_sprite_ctrl_shadow, %d0
+    andi.w  #0x00E0, %d0
+    lsr.w   #1, %d0
+    move.b  %d0, native_sprite_lane
+    bra     .Lnq_gameplay_retained_cut
 /* Build 0443: title-screen sprites produced by change-driven direct-native producers.
  * Fixed text is a semantic glyph sequence (.Lnq_title_labels: {Y,X,glyph}); the
  * score and high-score digits are generated from the live arcade
@@ -2561,6 +2594,11 @@ native_frontend_hud_emit:
 .Lnq_gameplay:
     movem.l %d0-%d7/%a0-%a3, -(%sp)
     move.l  %a4, -(%sp)
+    bsr     .Lnq_gameplay_retained_cut
+    move.l  (%sp)+, %a4
+    movem.l (%sp)+, %d0-%d7/%a0-%a3
+    rts
+.Lnq_gameplay_retained_cut:
     /* pc090oj_ctrl_shadow can only be changed by the arcade control producer.
      * This finalizer is one uninterrupted 68000 call, so cache its value once
      * for every gameplay lane entry in this pass. */
@@ -2613,8 +2651,7 @@ native_frontend_hud_emit:
      * gameplay finalizer under its exact original 0x05104E state gate, appended
      * after the native lanes (shares this pass's a3/a2/a1/d5 SAT context). */
     bsr     .Lnq_gameover_emit
-    move.l  (%sp)+, %a4
-    bra     .Lnq_done_scan
+    bra     .Lnq_finish_frame
 
 .if RASTAN_GAMEPLAY_HUD_SPRITES == 2
 .Lnq_project_p1_hud:
@@ -3187,6 +3224,10 @@ profile_native_piece_return:
     .global profile_native_finalizer_done
 profile_native_finalizer_done:
 .Lnq_done_scan:
+    bsr     .Lnq_finish_frame
+    movem.l (%sp)+, %d0-%d7/%a0-%a3
+    rts
+.Lnq_finish_frame:
     tst.w   %d5
     bne.s   .Lnq_have
     clr.w   (%a3)+
@@ -3202,7 +3243,6 @@ profile_native_finalizer_done:
     move.w  %d5, pc090oj_emitted_count
     move.w  #1, pc090oj_sat_frame_ready
     move.w  #1, pc090oj_sat_dirty
-    movem.l (%sp)+, %d0-%d7/%a0-%a3
     rts
 
 /* Frontend / non-gameplay native finalizer (PC090OJ final teardown).  The former
