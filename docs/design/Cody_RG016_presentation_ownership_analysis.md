@@ -14,6 +14,13 @@ shifted BSR displacement. It is permanently consumed with no artifact. The exact
 that generated-layout expectation from `0x16C8` to the reflow-proven `0x16D4`; no semantic hook or
 replacement behavior changes.
 
+Build 0476 then produced a complete numbered family but failed gameplay-entry and epoch gates with
+frontend tuple `2/2/7` repeating and no exception. Static inspection proved the missing crossing
+reference: retained `0x03A5BC..0x03A5D0` dispatches through a nine-word table at `0x03A5D2`.
+Original entries are `0012,0042,00A8,00C4,007A,0092,00E0,0184,0192`; entries 7 and 8 target
+`0x03A756` and `0x03A764`. The RG-016 hooks shift those targets by six and twelve bytes respectively.
+Declaring that existing table is the complete correction; Build 0476 remains rejected/consumed.
+
 Static provenance reuses the canonical Ghidra exports, original linear disassembly, generated address
 map, RG-003/RG-004 frontend reports, RG-015 evidence, and current production source. No new route,
 save state, gameplay trace, or state machine was created.

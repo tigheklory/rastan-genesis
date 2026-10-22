@@ -265,6 +265,12 @@
    "note": "RG-009 declares the ten-entry nested frontend phase dispatcher consumed by 0x03A196..0x03A1AA. Entries 2..8 target handlers after the RG-008 insertions at 0x03A2B0/0x03A2CE and require the same signed-word semantic reflow; entry 9 targets the declared BRA.W at 0x03A1C0 and remains unchanged. This closes the second missing crossing-reference owner found by the bounded RG-008 reflow audit."
   },
   {
+   "table_address": "0x03A5D2",
+   "entry_count": 9,
+   "entry_size_bytes": 2,
+   "note": "RG-016 declares the nine-entry retained READY-controller dispatcher consumed by 0x03A5BC..0x03A5D0. The READY-completion insertion at 0x03A74E moves state-7 dwell handler 0x03A756 by six bytes, and the READY-exit insertion at 0x03A75C moves state-8 handler 0x03A764 by twelve bytes. Build 0476 proved the missing crossing reference by landing entry 7 six bytes before the dwell and re-running construction indefinitely. Reflow all nine semantic targets from the common shift table; no control-flow behavior is added."
+  },
+  {
    "table_address": "0x03AA20",
    "entry_count": 3,
    "entry_size_bytes": 2,
