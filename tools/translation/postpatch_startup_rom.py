@@ -2062,6 +2062,19 @@ def main() -> int:
             opcode_set,
             True,
         )
+        # Shift reflow deliberately treats later whole opcode_replace ranges as
+        # opaque. The copy-relocation pass may still have rebased an absolute
+        # operand by the fixed ROM delta, so validate that exact intermediate
+        # form as well; the complete instruction is replaced immediately below.
+        expected_relocated_opaque = shift_abs_long_expected_bytes(
+            expected,
+            [],
+            source_start,
+            source_end,
+            relocation_delta,
+            opcode_set,
+            True,
+        )
         new_bytes = bytes.fromhex(
             resolve_replacement_hex(
                 str(replacement["replacement_bytes"]),
@@ -2088,6 +2101,7 @@ def main() -> int:
             expected,
             expected_shifted_source,
             expected_shifted_relocated,
+            expected_relocated_opaque,
         }
         if actual not in expected_candidates:
             raise RuntimeError(
