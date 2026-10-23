@@ -118,8 +118,13 @@ grounded in ORIGINAL ARCADE ring evidence (§2), not in a Genesis observation.
   authoritative; only the native bridge's semantic classification changed).
 
 ## 6. Status
-- OPEN-039 remains **OPEN** pending Tighe's hardware audition of 0492 (restart suppression + GAME OVER
-  stop) and the broader multi-song acceptance.
+- **Build 0492 ACCEPTED on physical Genesis hardware by Tighe, 2026-10-23.** The unwanted restarts are
+  resolved and R1-S1 playback behaves correctly. This is the new accepted development baseline.
+  - Accepted ROM: `dist/rastan-direct/rastan_direct_video_test_build_0492.bin`
+    SHA-256 `feb610c0ceef6a25247248733e326fbf4a1cd9fd3cab7cfc478e920fb582f065`.
+  - ROM-producing source commit: `158ddac7` ("Build 492"), tagged `accepted/build-0492`.
+- OPEN-039 remains **OPEN**: the six non-`$25` authored songs still need their authentic gameplay
+  triggers wired into the native dispatcher (follow-on task); SFX work is explicitly deferred.
 - Prior superseded hypotheses (`$19` live publisher, YM2151-IRQ owning the 68000 flags) are already
   retracted in `Andy_AUDIO015_68000_audio_call_restoration.md`; the live mechanism is the `$25`
   appearance cue proven here and in Cody's Build 0488 report.

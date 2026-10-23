@@ -53540,3 +53540,16 @@ the 68000→Z80 bridge `apps/rastan-direct/src/sound/sound_comm.s` (`z80_write_c
   GAME OVER are unreachable in Genesis automation (player stalls at `player_x=0xA7`, route takes no
   deaths), so restart-suppression + GAME-OVER-stop acceptance is for Tighe's hardware audition, as 0490.
 - **Design note:** `docs/design/Andy_AUDIO015_restart_and_gameover_fix.md`. **OPEN-039 remains OPEN.**
+
+## AUDIO-015 — Build 0492 ACCEPTED as baseline (Andy, 2026-10-23)
+
+Tighe accepted Build 0492 on physical Genesis hardware (2026-10-23): unwanted R1-S1 restarts resolved,
+playback correct. New accepted development baseline.
+- Accepted ROM SHA-256: `feb610c0ceef6a25247248733e326fbf4a1cd9fd3cab7cfc478e920fb582f065`
+  (`dist/rastan-direct/rastan_direct_video_test_build_0492.bin`).
+- ROM-producing source commit `158ddac7` ("Build 492"), tagged **`accepted/build-0492`** and pushed.
+- Exclusions: raw native-music `.bin` streams and ROM artifacts are already git-ignored (`*.bin`,
+  `dist/`), so they are not tracked. FLAG for Tighe: the copyrighted source captures
+  `audio/rastan_music_dump/*.vgz` and the compiled `apps/rastan-direct/out/audio_assets.o` are already
+  tracked and already on origin from prior history; purging them from GitHub requires a destructive
+  history rewrite + force-push, which was NOT performed without explicit authorization.
