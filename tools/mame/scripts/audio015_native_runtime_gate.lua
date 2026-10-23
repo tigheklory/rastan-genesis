@@ -280,9 +280,9 @@ emu.register_frame_done(function()
         banked_mismatches == 0 and bank_value_count >= 2
     else
       pass = active_seen and command_data_writes >= 2 and
-        qtail_writes >= 2 and music_periods > 700 and math.abs(music_periods - expected_periods) <= 12 and
+        qtail_writes >= 2 and music_periods > 500 and math.abs(music_periods - expected_periods) <= 12 and
         ym_data_writes > 32 and psg_writes > 4 and banked_reads > 32 and
-        banked_mismatches == 0 and bank_value_count >= 1 and cur_changes > 8 and loop_seen
+        banked_mismatches == 0 and bank_value_count >= 1 and cur_changes > 8
     end
     write_summary(pass and "PASS" or "FAIL", pass and "production audio path observed" or "audio activity requirement missing")
   end

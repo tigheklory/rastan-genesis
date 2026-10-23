@@ -1,5 +1,13 @@
 # AUDIO-015 — Original arcade Z80 semantic recovery
 
+> **Correction from Build 0488 (2026-10-23):** the descriptor parsing below is valid, but the claim
+> that command `0x19` is the live R1-S1/Aggressive World wire command is not. The generated inventory
+> correctly records command-to-track-name mapping as unresolved. Static 68000 proof shows the
+> `0x055E30` call is dead under `0x03A0EC`'s `A5+0x34` queue gate, and ORIGINAL ARCADE MAME publishes
+> `0x29` at Start and `0x25` exactly at player appearance, with no `0x19` through frame 1800. See
+> `Cody_build0488_audio_command_semantic_dispatch.md`. Statements below connecting descriptor
+> `0x2DF0` to the named track are superseded; the byte-level descriptor inventory remains evidence.
+
 ## Result
 
 Targeted instruction-level recovery removed the blocker that stopped AUDIO-014. The maintained C
