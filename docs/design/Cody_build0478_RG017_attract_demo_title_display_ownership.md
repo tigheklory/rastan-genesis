@@ -25,8 +25,9 @@ display OFF/latch 1 and passes 0478 with one publication-gated VDP Reg1 ON, latc
 zero unsafe ON writes. Rope is deterministic `795/795/795`, median `13,267.083 ms`, unchanged from
 0477. No original-arcade MAME, BlastEm, Exodus, or real hardware was run for RG-017.
 
-Unresolved limitation / USER MUST VERIFY: Tighe must test real-Genesis title -> demo -> natural end ->
-visible next title (and another loop), non-final death/READY/hidden unsafe loading/coherent respawn,
-and final-death GAME OVER/Continue recovery. Build 0478 is not accepted and no tag was created.
+Hardware acceptance (2026-10-22): Tighe tested Build 0478 on real Sega Genesis hardware and
+accepted the RG-017 behavior it was designed to correct. The immutable acceptance tag
+`accepted/build-0478` points to exact ROM-producing source
+`aab0eac15a9a332331cea5f773252a3010059dd8`, not to later regression or bookkeeping commits.
 
 STOP: Build 0478 candidate and reports only; no unrelated optimization or audio work.

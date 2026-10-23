@@ -53347,3 +53347,13 @@ TIGHE ONLY
   `902bf040`; published history was preserved and RG-017 completed through clean follow-up commits.
   Hardware acceptance remains pending. Reports: `docs/design/Cody_RG017_attract_demo_title_display_ownership.md`
   and `docs/design/Cody_build0478_RG017_attract_demo_title_display_ownership.md`.
+
+## 2026-10-22 — RG-017 accept and lock Build 0478
+
+- Tighe tested Build 0478 on real Sega Genesis hardware and ACCEPTED the RG-017 attract-demo-to-title
+  display-ownership correction. The normal artifact remains
+  `dist/rastan-direct/rastan_direct_video_test_build_0478.bin`, SHA-256
+  `989842a323b2e27ad8461425271291c38840cc4e949bfcca160bf0124286634c`.
+- Exact ROM-producing source is `aab0eac15a9a332331cea5f773252a3010059dd8`. Immutable
+  `accepted/build-0478` points exactly to that source, not later regression or bookkeeping commits.
+- No ROM was built and no build number was consumed for acceptance bookkeeping; counter remains 478.

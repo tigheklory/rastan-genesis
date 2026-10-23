@@ -2,9 +2,10 @@
 
 ## Result and baseline
 
-Cody produced Build 0478 as an automated-validation candidate. The accepted baseline remains Build
-0473 (`accepted/build-0473` -> `f6e975b864af2aca7bdf24b0a40a9db43bd62f59`); Builds 0474–0477 remain
-consumed and unaccepted. The counter advanced `477 -> 478`. No accepted tag was created or moved.
+Cody produced Build 0478 as an automated-validation candidate. Tighe subsequently tested it on real
+Sega Genesis hardware and accepted the RG-017 correction on 2026-10-22. The accepted baseline is now
+Build 0478 (`accepted/build-0478` -> `aab0eac15a9a332331cea5f773252a3010059dd8`); Builds 0474–0477 remain
+consumed and unaccepted. The counter advanced `477 -> 478` for the original candidate build only.
 
 The exact ROM-producing source is `aab0eac15a9a332331cea5f773252a3010059dd8`. The title source edit
 was accidentally swept into Tighe's published audio commit `902bf040` during the interrupted session.
@@ -117,8 +118,8 @@ Genesis coverage `0x29CEB8`. The complete configured seven-ROM family verifier p
   identical to Build 0477, so no route-level performance regression or improvement.
 
 No new gameplay bot or new gameplay route was created. Original arcade meaning was established from
-existing Ghidra/disassembly evidence; runtime validation used Genesis NTSC MAME only. No real-hardware
-success is claimed.
+existing Ghidra/disassembly evidence; automated runtime validation used Genesis NTSC MAME. Tighe's
+later acceptance supplies the real-hardware result.
 
 ## USER MUST VERIFY
 
@@ -126,7 +127,8 @@ On real Genesis, Tighe must verify title -> visible attract demo -> natural demo
 title visibly returns, preferably allowing one more attract cycle. Then verify only the affected
 ownership regressions: non-final death disintegration with no torso/legs reconstruction, visible
 READY, black unsafe post-READY loading, coherent respawn, and final human death with visible
-GAME OVER/Continue/frontend recovery. Build 0478 remains unaccepted until that test.
+GAME OVER/Continue/frontend recovery. Tighe completed this test and accepted Build 0478 for RG-017
+on 2026-10-22.
 
-STOP: RG-017 complete as an automated-validation candidate; hardware acceptance pending. No audio,
+STOP: RG-017 complete and hardware accepted. No audio,
 `_full_hud`, bat, PC080SN, PC090OJ, or unrelated optimization work was started.
