@@ -218,6 +218,8 @@ AUDIO_SOURCE_VGZ = $(ROOT)/audio/rastan_music_dump/03 - Aggressive World (Scene 
 AUDIO_INTRO := $(OUT_DIR)/aggressive_world_intro.bin
 AUDIO_LOOP := $(OUT_DIR)/aggressive_world_loop.bin
 AUDIO_REPORT := $(OUT_DIR)/aggressive_world_native_report.json
+AUDIO_VERIFY := $(ROOT)/tools/audio/verify_genesis_native_audio.py
+AUDIO_VERIFY_STAMP := $(OUT_DIR)/audio_native_verify.stamp
 Z80_ASM := $(SRC_DIR)/sound/z80_driver.asm
 Z80_BIN := $(OUT_DIR)/z80_driver.bin
 
@@ -637,7 +639,11 @@ $(OUT_DIR)/z80_driver.o: $(SRC_DIR)/sound/z80_driver.s $(Z80_BIN) FORCE_ASM_REBU
 $(OUT_DIR)/audio_assets.o: $(SRC_DIR)/sound/audio_assets.s $(AUDIO_INTRO) $(AUDIO_LOOP) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(ELF): $(OBJS)
+$(AUDIO_VERIFY_STAMP): $(AUDIO_VERIFY) $(Z80_BIN) $(AUDIO_INTRO) $(AUDIO_LOOP) | $(OUT_DIR)
+	$(PYTHON) "$(AUDIO_VERIFY)" --driver "$(Z80_BIN)" --intro "$(AUDIO_INTRO)" --loop "$(AUDIO_LOOP)"
+	touch $@
+
+$(ELF): $(OBJS) $(AUDIO_VERIFY_STAMP)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
 
 $(SYMBOLS): $(ELF) | $(OUT_DIR)

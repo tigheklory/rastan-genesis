@@ -6,10 +6,12 @@
         di
         jp      init
 
-        org     $0038
+        ; sjasm raw-binary output does not materialize ORG gaps. Explicit
+        ; padding keeps file offsets identical to Z80 load addresses.
+        defs    $0038-$,0
         reti                            ; scheduler polls YM2612 Timer B
 
-        org     $0066
+        defs    $0066-$,0
         retn                            ; no arcade PC060HA/NMI exists on Genesis
 
 YM0A    equ     $4000
@@ -40,25 +42,32 @@ init:
         ld      (QTAIL),a
         ld      (ACTIVE),a
         call    silence_all
-        ld      a,$26                  ; YM2612 Timer B: ~61.09 Hz
-        ld      e,$93
-        call    ym0
-        ld      a,$27                  ; load/enable B, clear B status
-        ld      e,$2A
-        call    ym0
+        call    timer_reload
 
 main:
         call    command_pop
-        ld      a,(YM0A)
+        ld      a,(YM0A)                ; documented Genesis status port
         bit     1,a
         jr      z,main
-        ld      a,$27
-        ld      e,$2A
-        call    ym0
+        call    timer_reload
         ld      a,(ACTIVE)
         or      a
         call    nz,music_tick
         jr      main
+
+; Timer B must be explicitly reprogrammed as well as status-cleared for every
+; period. Register $C9 is the closest integral Genesis period to the original
+; 61.03515625 Hz YM2151 Timer-A cadence.
+timer_reload:
+        ld      a,$27                  ; clear B status, take load B low
+        ld      e,$28
+        call    ym0
+        ld      a,$26
+        ld      e,$C9
+        call    ym0
+        ld      a,$27                  ; load/enable B on a real 0 -> 1 edge
+        ld      e,$0A
+        jp      ym0
 
 command_pop:
         ld      a,(QTAIL)
@@ -78,8 +87,8 @@ command_pop:
         ld      a,b
         or      a
         jp      z,music_stop            ; command $00: original all-channel stop
-        cp      $19
-        ret     nz                      ; unsupported authentic commands remain queued/consumed
+        cp      $29                     ; wire command -> original song selector $19
+        ret     nz                      ; unsupported authentic commands remain consumed
 music_start:
         ld      hl,STARTP
         call    load_pointer
@@ -144,6 +153,8 @@ load_pointer:
         ret
 
 set_bank_from_current:
+        push    bc
+        push    de
         ld      a,(CUR_HI)
         add     a,a
         ld      c,a
@@ -168,6 +179,8 @@ set_bank_from_current:
         ld      a,(CUR_LO)
         ld      l,a
         ld      (WIN_LO),hl
+        pop     de
+        pop     bc
         ret
 
 stream_byte:
@@ -202,6 +215,8 @@ stream_byte:
         ret
 
 set_bank_value:
+        push    bc                      ; crossing may occur inside an event
+        push    de                      ; decoder B/C/D/E must survive it
         ld      bc,BANK
         ld      d,9
 .bankbits:
@@ -209,6 +224,8 @@ set_bank_value:
         srl     a
         dec     d
         jr      nz,.bankbits
+        pop     de
+        pop     bc
         ret
 
 ym0:

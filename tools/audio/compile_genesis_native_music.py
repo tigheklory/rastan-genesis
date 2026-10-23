@@ -99,6 +99,25 @@ def encode_ticks(writes, total_samples: int, loop_start_sample: int):
     return span(0, loop_tick), span(loop_tick, total_ticks), total_ticks, loop_tick, grouped
 
 
+def remove_driver_owned_registers(writes):
+    """Keep music packets from modifying the permanent driver's scheduler.
+
+    YM2612 port 0 registers 0x24-0x27 are Timer A/B and timer-control state.
+    They are capture/converter setup traffic, not authored musical events.  The
+    resident Z80 driver exclusively owns them so a song cannot disable its own
+    clock, change cadence, or clear/load a timer behind the scheduler.
+    """
+    kept = []
+    removed = []
+    for event in writes:
+        _, kind, reg, _ = event
+        if kind == 0 and 0x24 <= reg <= 0x27:
+            removed.append(event)
+        else:
+            kept.append(event)
+    return kept, removed
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--capture", required=True, type=Path)
@@ -119,8 +138,11 @@ def main() -> int:
     events = renderer.read_capture(str(args.capture))
     vgm, render_stats = renderer.render(events, routing, noise, levels)
     total, loop_start, loop_len = source_loop_samples(args.source_vgz)
+    native_writes, scheduler_writes = remove_driver_owned_registers(
+        decode_native_writes(vgm)
+    )
     intro, loop, ticks, loop_tick, grouped = encode_ticks(
-        decode_native_writes(vgm), total, loop_start
+        native_writes, total, loop_start
     )
 
     args.intro.parent.mkdir(parents=True, exist_ok=True)
@@ -129,7 +151,8 @@ def main() -> int:
     report = {
         "schema": "rastan-genesis-native-audio/v1",
         "track": TRACK,
-        "authentic_command": "0x19",
+        "authentic_wire_command": "0x29",
+        "original_song_selector": "0x19",
         "profile_revision": profile.get("revision"),
         "profile_revision_id": profile.get("revision_id"),
         "routing": routing,
@@ -146,6 +169,8 @@ def main() -> int:
         "loop_bytes": len(loop),
         "native_event_count": sum(len(v) for v in grouped.values()),
         "max_events_per_tick": max(map(len, grouped.values())),
+        "scheduler_owned_registers": ["0x24", "0x25", "0x26", "0x27"],
+        "scheduler_owned_writes_filtered": len(scheduler_writes),
         "render_stats": render_stats,
     }
     args.report.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
