@@ -1019,6 +1019,14 @@ Final response must include "Open/Closed Issues Impact" section with:
 ## OPEN-035 — Attract-mode loop does not restore the initial attract tiles/patterns and palette
 
 - **Status:** OPEN / USER OBSERVATION
+- **Build 0478 candidate (2026-10-22, RG-017):** Tighe proved Build 0477 returned to correct second-
+  title semantic state/CRAM while the VDP display remained OFF. Static proof found natural demo death
+  legitimately asserted HOLD at retained `0x051998`; source-selected `load_scene_tiles(0)` preserved
+  it; and the completed native title producer at retained `0x03AA54` never requested reveal. Build
+  0478 adds TITLE as a complete owner through the existing publication-gated readiness latch. The
+  upgraded natural route fails 0477 (second title, display OFF, latch 1, zero ON writes) and passes
+  0478 (second title, exact CRAM, one publication-gated VDP Reg1 ON, latch 0, zero unsafe ON writes).
+  OPEN pending Tighe real-Genesis full attract-loop visibility and regression acceptance.
 - **Build 0466 candidate (2026-10-20, RG-004):** natural demo death reaches neither `0x056440` nor
   `0x03AD4C`; retained source-driven `load_scene_tiles(0)` is the ownership return. It restored
   residency but not base CRAM, leaving gameplay Lines 0/2/3. Build 0466 restores offline-converted

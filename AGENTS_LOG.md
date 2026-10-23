@@ -53322,3 +53322,28 @@ TIGHE ONLY
 * **UPDATE 2026-10-22 (EXACT arcade pitch):** the ratio fix above was still ~1 semitone low (the A440 approximation anchored A to the wrong OPM semitone). Replaced `opm_hz` with the YM2151's own `phaseinc_rom[768]` table (copied verbatim from the same OPM core webVGM uses) evaluated at the real 4.0 MHz clock: `Hz = phaseinc_rom[i]·clock·2^(octave−28)`, i = semitone·64 + KF. The render now lands on the IDENTICAL frequency the emulator produces for the arcade capture — verified A4 = 491.62 Hz, reproduced to 0.4 cents on YM2612 / 3.5 cents on PSG (chip quantization only). PITCH_CLOCK_RATIO removed. Ground-truth A/B = play the arcade capture VGM (real OPM @4MHz in webVGM) vs the Genesis render in the same player. verify_playback.py 39/0/5.
 * **UPDATE 2026-10-22 (per-song mappings + UI trim):** (1) Each song now keeps its OWN independent channel mapping — the frontend stores `PROF.track_routings[track_id] = {approved_routing, proposals, noise_mode, instrument_overrides}` and swaps the active working set on track selection; persisted via the server's existing unknown-field round-trip (NO server schema/profile-code change, legacy flat routing auto-migrates to its track's slot). Selecting a track also syncs the playback source so original-vs-authored A/B is the same song. (2) Removed **Lawrence McCormick's VGM** from the tool: dropped from `playback_sources`, removed `/api/lawrence`, `src=lawrence`, `/engine_media/lawrence.vgm`, `lawrence_reference()`, and the UI checkbox/panel (the raw VGM file + RG-005 analysis on disk are untouched). (3) Commented out the right-hand column (Conflicts/Instrument/PSG-model/Audition) per request — HTML wrapped in `<!-- -->`, grid → 2 columns, all JS render targets guarded for null. Tests updated (P1 per-song round-trip + Lawrence-removed assertions); verify_playback.py 36 pass/0 fail/5 unavailable. No production/counter change (477).
 * **UPDATE 2026-10-22 (per-channel volume BOOST):** the per-channel volume slider now ranges 0–200 (was 0–100): <100 attenuates, 100 = original, >100 boosts, 0 mutes. Boost lowers the FM carrier TL / PSG attenuation toward the chip max (clamped at TL 0 / atten 0 — a voice already at max can't exceed it). render_genesis_vgm.py `level_offsets` now allows negative offsets (boost) with emit-time clamping; FM carrier TL clamp is max(0,min(127,…)). Test R11b added (200% lowers PSG attenuation vs default); verify_playback.py 37 pass/0 fail/5 unavailable. No production/counter change (477).
+
+### MAME Exit Summary (2026-10-22 22:37:57)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## 2026-10-22 — RG-017 Build 0478 attract demo-to-title display ownership candidate
+
+- RG-017 statically proved the Build-0477 black second title: demo death legitimately asserted HOLD
+  at retained `0x051998`; source-selected `load_scene_tiles(0)` preserved it during unsafe title
+  loading; but the completed native title producer at retained `0x03AA54` never requested reveal.
+  `genesistan_title_present_once` now requests the existing publication-gated READY state only after
+  title planes/patterns/CRAM/SAT/HUD/scroll/dwell state are complete. No direct force-ON, timer,
+  polling owner, new state machine, or RG-016 boundary change was added.
+- Build 0478 exact source `aab0eac15a9a332331cea5f773252a3010059dd8`; normal SHA-256
+  `989842a323b2e27ad8461425271291c38840cc4e949bfcca160bf0124286634c`; size 2,739,896; counter
+  `477 -> 478`; complete seven-ROM family and canonical gates PASS. No accepted tag was created.
+- Upgraded RG-004 route retains semantic/palette/CRAM checks and now directly locks VDP Reg1
+  visibility: 0477 FAIL (display OFF, latch 1, 0 ON writes); 0478 PASS (display ON, latch 0, 1 ON
+  write, exact CRAM, 0 unsafe ON writes). Final-life/READY and HUD/Continue-reentry routes PASS.
+  Rope `795/795/795`, median `13,267.083 ms`, deterministic YES, unchanged from 0477.
+- Interrupted title/test edits were accidentally included in Tighe's published audio commit
+  `902bf040`; published history was preserved and RG-017 completed through clean follow-up commits.
+  Hardware acceptance remains pending. Reports: `docs/design/Cody_RG017_attract_demo_title_display_ownership.md`
+  and `docs/design/Cody_build0478_RG017_attract_demo_title_display_ownership.md`.
