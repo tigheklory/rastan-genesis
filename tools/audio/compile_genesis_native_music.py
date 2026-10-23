@@ -151,7 +151,7 @@ def main() -> int:
     report = {
         "schema": "rastan-genesis-native-audio/v1",
         "track": TRACK,
-        "authentic_wire_command": "0x29",
+        "authentic_wire_command": "0x19",
         "original_song_selector": "0x19",
         "profile_revision": profile.get("revision"),
         "profile_revision_id": profile.get("revision_id"),
