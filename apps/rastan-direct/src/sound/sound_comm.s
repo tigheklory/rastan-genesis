@@ -25,14 +25,13 @@ z80_release_bus:
 
 z80_init_and_start:
     /* The Genesis bus controller only acknowledges BUSREQ after Z80 reset is
-       released.  Request, release reset, wait for the grant, then assert
-       reset again while replacing Z80 RAM. */
+       released.  Request, release reset, and wait for the grant.  BUSREQ then
+       holds the Z80 while its RAM is replaced. */
     move.w  #0x0100, Z80_BUSREQ
     move.w  #0x0100, Z80_RESET
 .Lwait_initial_bus:
     btst    #0, Z80_BUSREQ
     bne.s   .Lwait_initial_bus
-    move.w  #0x0000, Z80_RESET
 
     lea     z80_driver_start, %a0
     lea     z80_driver_end, %a2
@@ -46,6 +45,7 @@ z80_init_and_start:
 
     clr.b   Z80_MAILBOX
 
+    move.w  #0x0000, Z80_RESET
     bsr     z80_release_bus
 
     /* Hold reset across a short delay after releasing the bus, then start. */
