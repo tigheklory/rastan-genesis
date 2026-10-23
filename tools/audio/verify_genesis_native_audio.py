@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 
@@ -30,8 +31,8 @@ def verify_driver(data: bytes) -> None:
         or data[timer_rearm + 14 : timer_rearm + 19] != b"\x3E\x27\x1E\x0A\xC3"
     ):
         raise ValueError("Timer B lacks clear/unload -> C9 -> load/enable rearm sequence")
-    if b"\xFE\x25" not in data:
-        raise ValueError("driver does not classify live player-appearance/respawn command 0x25")
+    if b"\x3A\xFF\x1D" not in data or b"\x21\x00\x1E" not in data:
+        raise ValueError("driver does not scan the generated song table at 0x1DFF/0x1E00")
 
 
 def verify_stream(path: Path) -> tuple[int, int]:
@@ -74,19 +75,32 @@ def verify_stream(path: Path) -> tuple[int, int]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--driver", required=True, type=Path)
-    parser.add_argument("--intro", required=True, type=Path)
-    parser.add_argument("--loop", required=True, type=Path)
+    parser.add_argument("--manifest", required=True, type=Path)
     args = parser.parse_args()
 
     driver = args.driver.read_bytes()
     verify_driver(driver)
-    intro_ticks, intro_events = verify_stream(args.intro)
-    loop_ticks, loop_events = verify_stream(args.loop)
+    manifest = json.loads(args.manifest.read_text())
+    if manifest.get("schema") != "rastan-genesis-native-audio-library/v1":
+        raise ValueError("unexpected native audio library schema")
+    if not manifest.get("fm6_reserved"):
+        raise ValueError("Audio Composer profile does not reserve YM2612 FM6/DAC")
+    dispatch_commands = [int(row["wire_command"], 0) for row in manifest["dispatch"]]
+    if dispatch_commands != [0x25]:
+        raise ValueError(f"unproven or missing live dispatch mapping: {dispatch_commands}")
+    ticks = events = 0
+    for song in manifest["songs"]:
+        intro_ticks, intro_events = verify_stream(Path(song["intro"]))
+        loop_ticks, loop_events = verify_stream(Path(song["loop"]))
+        if intro_ticks != song["intro_ticks"] or loop_ticks != song["loop_ticks"]:
+            raise ValueError(f"manifest tick mismatch: {song['track']}")
+        ticks += intro_ticks + loop_ticks
+        events += intro_events + loop_events
     print(
         "AUDIO_NATIVE_STATIC_PASS "
         f"driver={len(driver)} init=0x{driver[2] | (driver[3] << 8):04X} "
-        f"intro_ticks={intro_ticks} loop_ticks={loop_ticks} "
-        f"events={intro_events + loop_events}"
+        f"songs={len(manifest['songs'])} dispatch={len(dispatch_commands)} "
+        f"ticks={ticks} events={events}"
     )
     return 0
 

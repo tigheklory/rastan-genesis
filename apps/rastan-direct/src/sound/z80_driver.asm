@@ -30,6 +30,8 @@ WIN_HI  equ     $1FA5
 BANKV   equ     $1FA6
 STARTP  equ     $1FC0
 LOOPP   equ     $1FC3
+SONGC   equ     $1DFF
+SONGT   equ     $1E00
 QHEAD   equ     $1FD0
 QTAIL   equ     $1FD1
 QDATA   equ     $1FE0
@@ -87,8 +89,33 @@ command_pop:
         ld      a,b
         or      a
         jp      z,music_stop            ; command $00: original all-channel stop
-        cp      $25                     ; live player-appearance/respawn music-start intent
-        ret     nz                      ; unsupported authentic commands remain consumed
+        ld      b,a
+        ld      a,(SONGC)
+        or      a
+        ret     z
+        ld      c,a
+        ld      hl,SONGT
+.dispatch:
+        ld      a,(hl)
+        cp      b
+        jr      z,.mapped
+        ld      de,7
+        add     hl,de
+        dec     c
+        jr      nz,.dispatch
+        ret                             ; unsupported authentic command: consumed
+.mapped:
+        inc     hl                      ; packed intro pointer follows command
+        push    hl
+        ld      de,STARTP
+        ld      bc,3
+        ldir
+        pop     hl
+        ld      de,3
+        add     hl,de                   ; packed loop pointer follows intro
+        ld      de,LOOPP
+        ld      bc,3
+        ldir
 music_start:
         ld      hl,STARTP
         call    load_pointer
@@ -105,6 +132,13 @@ music_tick:
         call    stream_byte
         cp      $FF
         jr      nz,.count
+        ld      hl,LOOPP
+        ld      a,(hl)
+        inc     hl
+        or      (hl)
+        inc     hl
+        or      (hl)
+        jp      z,music_stop            ; authored one-shot reached its end
         ld      hl,LOOPP
         call    load_pointer
         call    stream_byte

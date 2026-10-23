@@ -4,14 +4,14 @@
 
     .extern z80_driver_start
     .extern z80_driver_end
-    .extern genesistan_audio_aggressive_start
-    .extern genesistan_audio_aggressive_loop
+    .extern genesistan_audio_song_dispatch_count
+    .extern genesistan_audio_song_dispatch
 
     .equ Z80_RAM,      0x00A00000
     .equ Z80_BUSREQ,   0x00A11100
     .equ Z80_RESET,    0x00A11200
-    .equ Z80_MUSIC_START, 0x00A01FC0
-    .equ Z80_MUSIC_LOOP,  0x00A01FC3
+    .equ Z80_SONG_COUNT,  0x00A01DFF
+    .equ Z80_SONG_TABLE,  0x00A01E00
     .equ Z80_QHEAD,       0x00A01FD0
     .equ Z80_QTAIL,       0x00A01FD1
     .equ Z80_QDATA,       0x00A01FE0
@@ -49,12 +49,26 @@ z80_init_and_start:
     move.b  (%a0)+, (%a1)+
     bra.s   .Lcopy_driver
 .Lcopy_done:
-    lea     genesistan_audio_aggressive_start, %a0
-    lea     Z80_MUSIC_START, %a1
+    /* Convert the link-resolved 68000 catalog pointers into the packed
+       command/start24/loop24 table consumed from Z80 RAM. */
+    moveq   #0, %d2
+    move.b  genesistan_audio_song_dispatch_count, %d2
+    move.b  %d2, Z80_SONG_COUNT
+    beq.s   .Lsong_table_done
+    subq.w  #1, %d2
+    lea     genesistan_audio_song_dispatch, %a0
+    lea     Z80_SONG_TABLE, %a1
+.Lcopy_song_entry:
+    move.b  (%a0)+, (%a1)+             /* wire command */
+    addq.l  #3, %a0                    /* song id + alignment word */
+    move.l  (%a0)+, %d0                /* cartridge intro pointer */
     bsr     .Lstore_z80_pointer
-    lea     genesistan_audio_aggressive_loop, %a0
-    lea     Z80_MUSIC_LOOP, %a1
+    addq.l  #1, %a1
+    move.l  (%a0)+, %d0                /* cartridge loop pointer */
     bsr     .Lstore_z80_pointer
+    addq.l  #1, %a1
+    dbra    %d2, .Lcopy_song_entry
+.Lsong_table_done:
     clr.b   Z80_QHEAD
     clr.b   Z80_QTAIL
 
@@ -69,7 +83,6 @@ z80_init_and_start:
     rts
 
 .Lstore_z80_pointer:
-    move.l  %a0, %d0
     move.b  %d0, (%a1)+
     lsr.l   #8, %d0
     move.b  %d0, (%a1)+

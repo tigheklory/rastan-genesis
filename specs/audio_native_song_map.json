@@ -1,0 +1,13 @@
+{
+  "schema": "rastan-genesis-native-song-map/v1",
+  "unmapped_command_policy": "consume_without_interrupting_current_music",
+  "dispatch": [
+    {
+      "wire_command": "0x25",
+      "track": "03 - Aggressive World (Scene 1)",
+      "status": "proven",
+      "semantics": "player appearance/reappearance after death-form filtering at the shared 68000 semantic bridge",
+      "evidence": "Build 0488 ORIGINAL ARCADE timing plus Build 0489 death/respawn command-state proof"
+    }
+  ]
+}

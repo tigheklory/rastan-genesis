@@ -26,7 +26,6 @@ from pathlib import Path
 
 YM2151_TIMER_A_HZ = 4_000_000 / (64 * 1024)
 VGM_RATE = 44_100
-TRACK = "03 - Aggressive World (Scene 1)"
 
 
 def load_renderer(path: Path):
@@ -44,8 +43,10 @@ def source_loop_samples(vgz_path: Path) -> tuple[int, int, int]:
     total = struct.unpack_from("<I", raw, 0x18)[0]
     loop_rel = struct.unpack_from("<I", raw, 0x1C)[0]
     loop_len = struct.unpack_from("<I", raw, 0x20)[0]
-    if not loop_rel or not loop_len or loop_len > total:
-        raise ValueError("Aggressive World source has no valid loop metadata")
+    if not loop_rel or not loop_len:
+        return total, total, 0
+    if loop_len > total:
+        raise ValueError(f"invalid loop length in source: {vgz_path}")
     return total, total - loop_len, loop_len
 
 
@@ -122,6 +123,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--capture", required=True, type=Path)
     ap.add_argument("--source-vgz", required=True, type=Path)
+    ap.add_argument("--track", required=True)
     ap.add_argument("--profile", required=True, type=Path)
     ap.add_argument("--renderer", required=True, type=Path)
     ap.add_argument("--intro", required=True, type=Path)
@@ -130,7 +132,7 @@ def main() -> int:
     args = ap.parse_args()
 
     profile = json.loads(args.profile.read_text())
-    decision = profile["track_routings"][TRACK]
+    decision = profile["track_routings"][args.track]
     routing = decision["approved_routing"]
     levels = decision.get("channel_levels", {})
     noise = decision.get("noise_mode", "fixed_1024")
@@ -150,10 +152,8 @@ def main() -> int:
     args.loop.write_bytes(loop)
     report = {
         "schema": "rastan-genesis-native-audio/v1",
-        "track": TRACK,
-        "authentic_wire_command": "0x25",
-        "wire_command_semantics": "live player-appearance/respawn music-start intent",
-        "original_track_command_mapping": "unresolved; 0x055E30/0x19 is dead under the original queue gate",
+        "track": args.track,
+        "original_track_command_mapping": "unresolved unless listed by the generated native dispatch registry",
         "profile_revision": profile.get("revision"),
         "profile_revision_id": profile.get("revision_id"),
         "routing": routing,
@@ -162,6 +162,7 @@ def main() -> int:
         "source_total_samples": total,
         "source_loop_start_sample": loop_start,
         "source_loop_samples": loop_len,
+        "has_source_loop": loop_len > 0,
         "tick_hz": YM2151_TIMER_A_HZ,
         "total_ticks": ticks,
         "loop_tick": loop_tick,

@@ -211,13 +211,14 @@ SJASM := ../../tools/local/bin/sjasm
 # outside version control; the normal build reproducibly compiles it from the
 # user-supplied corpus and the persisted Audio Composer decision profile.
 AUDIO_COMPILER := $(ROOT)/tools/audio/compile_genesis_native_music.py
+AUDIO_LIBRARY_COMPILER := $(ROOT)/tools/audio/compile_genesis_native_library.py
 AUDIO_RENDERER := $(ROOT)/tools/audio/render_genesis_vgm.py
 AUDIO_PROFILE := $(ROOT)/analysis/audio/decision_profiles/music-test.json
-AUDIO_CAPTURE = $(ROOT)/audio/rastan_music_dump/conversion_attempts/03 - Aggressive World (Scene 1)_ym2151_writes.csv
-AUDIO_SOURCE_VGZ = $(ROOT)/audio/rastan_music_dump/03 - Aggressive World (Scene 1).vgz
-AUDIO_INTRO := $(OUT_DIR)/aggressive_world_intro.bin
-AUDIO_LOOP := $(OUT_DIR)/aggressive_world_loop.bin
-AUDIO_REPORT := $(OUT_DIR)/aggressive_world_native_report.json
+AUDIO_SONG_MAP := $(ROOT)/specs/audio_native_song_map.json
+AUDIO_LIBRARY_DIR := $(OUT_DIR)/audio_native
+AUDIO_LIBRARY_MANIFEST := $(AUDIO_LIBRARY_DIR)/library.json
+AUDIO_ASSETS_GENERATED := $(OUT_DIR)/audio_assets_generated.inc
+AUDIO_LIBRARY_STAMP := $(AUDIO_LIBRARY_DIR)/library.stamp
 AUDIO_VERIFY := $(ROOT)/tools/audio/verify_genesis_native_audio.py
 AUDIO_VERIFY_STAMP := $(OUT_DIR)/audio_native_verify.stamp
 Z80_ASM := $(SRC_DIR)/sound/z80_driver.asm
@@ -620,15 +621,18 @@ $(OUT_DIR)/scene_load.o: \
 $(OUT_DIR)/sound_comm.o: $(SRC_DIR)/sound/sound_comm.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(AUDIO_INTRO) $(AUDIO_LOOP) $(AUDIO_REPORT) &: \
-	$(AUDIO_COMPILER) $(AUDIO_RENDERER) $(AUDIO_PROFILE) \
-	$(ROOT)/audio/rastan_music_dump/conversion_attempts/03\ -\ Aggressive\ World\ (Scene\ 1)_ym2151_writes.csv \
-	$(ROOT)/audio/rastan_music_dump/03\ -\ Aggressive\ World\ (Scene\ 1).vgz \
+$(AUDIO_LIBRARY_STAMP) $(AUDIO_ASSETS_GENERATED) $(AUDIO_LIBRARY_MANIFEST) &: \
+	$(AUDIO_LIBRARY_COMPILER) $(AUDIO_COMPILER) $(AUDIO_RENDERER) $(AUDIO_PROFILE) $(AUDIO_SONG_MAP) \
 	| $(OUT_DIR)
-	$(PYTHON) "$(AUDIO_COMPILER)" \
-		--capture "$(AUDIO_CAPTURE)" --source-vgz "$(AUDIO_SOURCE_VGZ)" \
-		--profile "$(AUDIO_PROFILE)" --renderer "$(AUDIO_RENDERER)" \
-		--intro "$(AUDIO_INTRO)" --loop "$(AUDIO_LOOP)" --report "$(AUDIO_REPORT)"
+	mkdir -p "$(AUDIO_LIBRARY_DIR)"
+	$(PYTHON) "$(AUDIO_LIBRARY_COMPILER)" \
+		--profile "$(AUDIO_PROFILE)" --song-map "$(AUDIO_SONG_MAP)" \
+		--capture-dir "$(ROOT)/audio/rastan_music_dump/conversion_attempts" \
+		--vgz-dir "$(ROOT)/audio/rastan_music_dump" \
+		--compiler "$(AUDIO_COMPILER)" --renderer "$(AUDIO_RENDERER)" \
+		--output-dir "$(AUDIO_LIBRARY_DIR)" --assembly-include "$(AUDIO_ASSETS_GENERATED)" \
+		--manifest "$(AUDIO_LIBRARY_MANIFEST)"
+	touch "$(AUDIO_LIBRARY_STAMP)"
 
 $(Z80_BIN): $(Z80_ASM) | $(OUT_DIR)
 	$(SJASM) -e "$<" "$@" "$(OUT_DIR)/z80_driver.lst"
@@ -636,11 +640,11 @@ $(Z80_BIN): $(Z80_ASM) | $(OUT_DIR)
 $(OUT_DIR)/z80_driver.o: $(SRC_DIR)/sound/z80_driver.s $(Z80_BIN) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/audio_assets.o: $(SRC_DIR)/sound/audio_assets.s $(AUDIO_INTRO) $(AUDIO_LOOP) FORCE_ASM_REBUILD | $(OUT_DIR)
+$(OUT_DIR)/audio_assets.o: $(SRC_DIR)/sound/audio_assets.s $(AUDIO_ASSETS_GENERATED) $(AUDIO_LIBRARY_STAMP) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(AUDIO_VERIFY_STAMP): $(AUDIO_VERIFY) $(Z80_BIN) $(AUDIO_INTRO) $(AUDIO_LOOP) | $(OUT_DIR)
-	$(PYTHON) "$(AUDIO_VERIFY)" --driver "$(Z80_BIN)" --intro "$(AUDIO_INTRO)" --loop "$(AUDIO_LOOP)"
+$(AUDIO_VERIFY_STAMP): $(AUDIO_VERIFY) $(Z80_BIN) $(AUDIO_LIBRARY_MANIFEST) $(AUDIO_LIBRARY_STAMP) | $(OUT_DIR)
+	$(PYTHON) "$(AUDIO_VERIFY)" --driver "$(Z80_BIN)" --manifest "$(AUDIO_LIBRARY_MANIFEST)"
 	touch $@
 
 $(ELF): $(OBJS) $(AUDIO_VERIFY_STAMP)
