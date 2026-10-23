@@ -87,6 +87,23 @@ local unsafe_display_on_writes = 0
 local second_title_display_enable_writes = 0
 local second_title_display_disable_writes = 0
 
+local function arrays_equal(left, right)
+  if not left or not right or #left ~= #right then return false end
+  for index = 1, #left do
+    if left[index] ~= right[index] then return false end
+  end
+  return true
+end
+
+
+local function cram_equals_palette(cram, palette)
+  if not cram or not palette then return false end
+  for index = 0, 63 do
+    if cram[index] ~= palette[index + 1] then return false end
+  end
+  return true
+end
+
 local function palette_snapshot()
   local result = {}
   for index = 0, 63 do
@@ -128,6 +145,11 @@ local function finish_attract(result, reason)
   if finished then return end
   finished = true
   local actual_cram = read_actual_cram()
+  if result == "PASS" and not arrays_equal(first_title_palette, second_title_palette) then
+    result, reason = "FAIL", "SECOND_TITLE_PALETTE_DIFFERS"
+  elseif result == "PASS" and not cram_equals_palette(actual_cram, second_title_palette) then
+    result, reason = "FAIL", "SECOND_TITLE_CRAM_NOT_PUBLISHED"
+  end
   local out = assert(io.open(output_path, "w"))
   out:write(string.format("route=attract\nresult=%s\nreason=%s\nframe=%d\n", result, reason, frame))
   out:write(string.format("state=%04X/%04X/%04X\nscene=%02X\ntileset=%02X\n",
@@ -135,7 +157,7 @@ local function finish_attract(result, reason)
     r8(symbols.genesistan_current_scene_id),
     r8(symbols.genesistan_current_pc080sn_tileset_id)))
   out:write(string.format(
-    "display=%s\npresentation_readiness=%02X\nsecond_title_display_enable_writes=%d\n" ..
+    "last_observed_display=%s\npresentation_readiness=%02X\nsecond_title_display_enable_writes=%d\n" ..
     "second_title_display_disable_writes=%d\nsecond_title_visibility=%s\nunsafe_display_on_writes=%d\n",
     display_on and "ON" or "OFF", r8(symbols.genesistan_presentation_readiness),
     second_title_display_enable_writes, second_title_display_disable_writes,
@@ -281,10 +303,12 @@ local function finish()
 end
 
 if route == "attract" then
-  -- Current Build-0464 address-map authority:
-  -- arcade 0x056440 -> runtime 0x0564AE; arcade 0x03AD4C -> 0x03AF4E.
-  install_exec_observer(0x0564ae, "ARCADE_056440")
-  install_exec_observer(0x03af4e, "ARCADE_03AD4C")
+  -- Optional retained-PC observers must come from the address map for the ROM
+  -- under test; historical generated addresses are never permanent authority.
+  local runtime_056440 = tonumber(os.getenv("RG004_ARCADE_056440_RUNTIME_PC") or "", 16)
+  local runtime_03ad4c = tonumber(os.getenv("RG004_ARCADE_03AD4C_RUNTIME_PC") or "", 16)
+  if runtime_056440 then install_exec_observer(runtime_056440, "ARCADE_056440") end
+  if runtime_03ad4c then install_exec_observer(runtime_03ad4c, "ARCADE_03AD4C") end
   install_exec_observer(symbols.genesistan_frontend_presentation_reset,
     "FRONTEND_PRESENTATION_RESET")
 end
