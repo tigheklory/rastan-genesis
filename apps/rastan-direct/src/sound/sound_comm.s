@@ -15,6 +15,9 @@
     .equ Z80_QHEAD,       0x00A01FD0
     .equ Z80_QTAIL,       0x00A01FD1
     .equ Z80_QDATA,       0x00A01FE0
+    .equ ARCADE_OUTER_STATE,  0x00FF0000
+    .equ ARCADE_PHASE_STATE,  0x00FF0002
+    .equ ARCADE_PLAYER_STATE, 0x00FF10E8
 
 z80_request_bus:
     move.w  #0x0100, Z80_BUSREQ
@@ -76,6 +79,23 @@ z80_init_and_start:
 
 z80_write_command:
     movem.l %d1-%d2/%a0, -(%sp)
+
+    /* Original command $25 is emitted both at the genuine player-appearance
+       boundary and by the phase-4 death transition.  The arcade sound driver
+       distinguished those events internally; the native command ring must
+       preserve that semantic distinction.  Consume only the proven death
+       form (2/4, player state 8).  Initial appearance and post-READY
+       reappearance retain $25 and therefore deliberately start/restart the
+       current stage song. */
+    cmpi.b  #0x25, %d0
+    bne.s   .Lpublish
+    cmpi.w  #0x0002, ARCADE_OUTER_STATE
+    bne.s   .Lpublish
+    cmpi.w  #0x0004, ARCADE_PHASE_STATE
+    bne.s   .Lpublish
+    cmpi.w  #0x0008, ARCADE_PLAYER_STATE
+    beq.s   .Lcommand_consumed
+.Lpublish:
     bsr     z80_request_bus
     moveq   #0, %d1
     move.b  Z80_QHEAD, %d1
@@ -89,5 +109,6 @@ z80_write_command:
     move.b  %d2, Z80_QHEAD
 .Lqueue_full:
     bsr     z80_release_bus
+.Lcommand_consumed:
     movem.l (%sp)+, %d1-%d2/%a0
     rts

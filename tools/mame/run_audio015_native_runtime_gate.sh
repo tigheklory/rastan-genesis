@@ -19,7 +19,8 @@ done
 
 mkdir -p "$OUTPUT_DIR"
 TRACE_DIR="$OUTPUT_DIR" AUDIO015_ROM="$ROM" AUDIO015_Z80_BIN="$Z80_BIN" \
-AUDIO015_MAX_FRAMES=1000 timeout 120s mame genesis \
+AUDIO015_MAX_FRAMES="${AUDIO015_MAX_FRAMES:-1000}" \
+AUDIO015_ROUTE="${AUDIO015_ROUTE:-gameplay_right}" timeout 300s mame genesis \
     -cart "$ROM" -video none -sound none -nothrottle -skip_gameinfo \
     -autoboot_script "$SCRIPT" \
     > "$OUTPUT_DIR/mame_stdout.txt" 2> "$OUTPUT_DIR/mame_stderr.txt"

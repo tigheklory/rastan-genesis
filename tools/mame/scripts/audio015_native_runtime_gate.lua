@@ -13,6 +13,7 @@ local driver_path = assert(os.getenv("AUDIO015_Z80_BIN"), "AUDIO015_Z80_BIN is r
 local rom_path = assert(os.getenv("AUDIO015_ROM"), "AUDIO015_ROM is required")
 local max_frames = tonumber(os.getenv("AUDIO015_MAX_FRAMES") or "1100")
 local no_input = os.getenv("AUDIO015_NO_INPUT") == "1"
+local route = os.getenv("AUDIO015_ROUTE") or "gameplay_right"
 local seed_source = tonumber(os.getenv("AUDIO015_SEED_SOURCE") or "")
 local seed_applied = false
 
@@ -39,7 +40,7 @@ local function set_input(name, active)
 end
 
 local events = assert(io.open(trace_dir .. "/audio_runtime_events.tsv", "w"))
-events:write("frame\tevent\tz80_pc\tz80_sp\taddress\tdata\tnote\n")
+events:write("frame\tevent\tz80_pc\tz80_sp\tmain_pc\touter\tphase\tsubphase\tlives\tplayer_state\tdeath_step\tstream_source\taddress\tdata\tnote\n")
 local frame = 0
 local taps = {}
 local first_invalid_pc = nil
@@ -74,10 +75,17 @@ local last_cur = nil
 local cur_changes = 0
 local loop_source = nil
 local loop_seen = false
+local command_resets = 0
+local natural_loops = 0
+local loop_entries = 0
+local last_active = 0
 
 local function event(kind, address, data, note)
-  events:write(string.format("%d\t%s\t%04X\t%04X\t%04X\t%02X\t%s\n",
-    frame, kind, zreg("PC"), zreg("SP"), address or 0, data or 0, note or ""))
+  local source = z8(0x1fa0) | (z8(0x1fa1) << 8) | (z8(0x1fa2) << 16)
+  events:write(string.format("%d\t%s\t%04X\t%04X\t%06X\t%04X\t%04X\t%04X\t%04X\t%04X\t%04X\t%06X\t%04X\t%02X\t%s\n",
+    frame, kind, zreg("PC"), zreg("SP"), maincpu.state["PC"].value & 0xffffff,
+    m16(0xff0000), m16(0xff0002), m16(0xff0004), m16(0xff0100),
+    m16(0xff10e8), m16(0xff12f4), source, address or 0, data or 0, note or ""))
   events:flush()
 end
 
@@ -105,6 +113,13 @@ taps[#taps + 1] = zprog:install_read_tap(0x8000, 0xffff, "audio015_banked_reads"
     end
     local source = bank * 0x8000 + (address - 0x8000)
     if loop_source and source >= loop_source then loop_seen = true end
+    if loop_source and source == loop_source then
+      loop_entries = loop_entries + 1
+      if loop_entries > 1 then
+        natural_loops = natural_loops + 1
+        event("NATURAL_LOOP", address, data, string.format("loop_entry=%d", loop_entries))
+      end
+    end
     if min_stream_address == nil or source < min_stream_address then min_stream_address = source end
     if max_stream_address == nil or source > max_stream_address then max_stream_address = source end
     local expected = source < #rom and rom:byte(source + 1) or nil
@@ -122,6 +137,8 @@ taps[#taps + 1] = zprog:install_write_tap(0x0000, #driver - 1, "audio015_code_wr
 taps[#taps + 1] = zprog:install_write_tap(0x1fa3, 0x1fa3, "audio015_active",
   function(address, data, _)
     active_writes = active_writes + 1
+    if (data & 0xff) ~= 0 and last_active ~= 0 then command_resets = command_resets + 1 end
+    last_active = data & 0xff
     if (data & 0xff) ~= 0 then
       active_seen = true
       if active_frame == nil then
@@ -221,6 +238,8 @@ local function write_summary(result, reason)
     max_stream_address and string.format("%06X", max_stream_address) or "NONE"))
   out:write("first_stream_bytes=", table.concat(first_stream_bytes, " "), "\n")
   out:write(string.format("stream_pointer_changes=%d\n", cur_changes))
+  out:write(string.format("command_resets=%d\nloop_entries=%d\nnatural_loops=%d\n",
+    command_resets, loop_entries, natural_loops))
   out:write(string.format("loop_source=%s\nloop_seen=%s\n",
     loop_source and string.format("%06X", loop_source) or "NONE",
     loop_seen and "YES" or "NO"))
@@ -243,7 +262,12 @@ emu.register_frame_done(function()
     set_input("P1 A", frame >= 120 and frame <= 132)
     set_input("1 Player Start", frame >= 175 and frame <= 187)
     set_input("P1 Start", frame >= 175 and frame <= 187)
-    set_input("P1 Right", frame >= 360)
+    set_input("P1 Right", route == "gameplay_right" and frame >= 360)
+    if route == "final_life" then
+      for _, name in ipairs({"P1 Up", "P1 Down", "P1 Left", "P1 Right", "P1 B", "P1 C"}) do
+        set_input(name, false)
+      end
+    end
   end
 
   check_pc(zreg("PC"))
