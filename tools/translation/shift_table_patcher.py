@@ -509,6 +509,7 @@ def apply_shift_table(
     jump_table_word_displacements: list[dict] | None = None,
     absolute_long_pointer_tables: list[dict] | None = None,
     declared_relative_branches: list[dict] | None = None,
+    opaque_source_ranges: list[tuple[int, int]] | None = None,
 ) -> bytearray:
     """
     Apply shift_replacements to maincpu_bytes, fixing all internal references.
@@ -527,6 +528,21 @@ def apply_shift_table(
 
     # --- PHASE 1: parse disassembly ---
     insns = parse_disasm(disasm_path, source_start, source_end)
+
+    # A later whole-region opcode replacement validates its original source
+    # bytes after this pass, then discards every instruction in the region.
+    # Do not rewrite internal branches/operands there. References from outside
+    # still relocate normally, including targets that enter the region.
+    opaque = sorted(opaque_source_ranges or [])
+    for start, end in opaque:
+        if not (source_start <= start < end <= source_end):
+            raise RuntimeError(
+                f"opaque source range 0x{start:06X}..0x{end:06X} outside source window"
+            )
+    insns = [
+        (address, size) for address, size in insns
+        if not any(start <= address < end for start, end in opaque)
+    ]
 
     # --- PHASE 2: detect jump tables (stub) ---
     jtable_addrs = detect_jump_tables(maincpu_bytes, insns, source_start, source_end)
