@@ -24,11 +24,15 @@ z80_release_bus:
     rts
 
 z80_init_and_start:
-    /* At cold boot the Z80 is held in reset and therefore cannot acknowledge
-       a bus request.  Assert reset first, then request the bus without using
-       the live-Z80 acknowledgement loop used by command writes. */
-    move.w  #0x0000, Z80_RESET
+    /* The Genesis bus controller only acknowledges BUSREQ after Z80 reset is
+       released.  Request, release reset, wait for the grant, then assert
+       reset again while replacing Z80 RAM. */
     move.w  #0x0100, Z80_BUSREQ
+    move.w  #0x0100, Z80_RESET
+.Lwait_initial_bus:
+    btst    #0, Z80_BUSREQ
+    bne.s   .Lwait_initial_bus
+    move.w  #0x0000, Z80_RESET
 
     lea     z80_driver_start, %a0
     lea     z80_driver_end, %a2
@@ -42,9 +46,13 @@ z80_init_and_start:
 
     clr.b   Z80_MAILBOX
 
-    move.w  #0x0100, Z80_RESET
-
     bsr     z80_release_bus
+
+    /* Hold reset across a short delay after releasing the bus, then start. */
+    move.w  #0x0020, %d0
+.Lreset_delay:
+    dbra    %d0, .Lreset_delay
+    move.w  #0x0100, Z80_RESET
     rts
 
 z80_write_command:
