@@ -198,13 +198,18 @@ attract_taps[#attract_taps + 1] = program:install_write_tap(
     local function control_word(word)
       if (word & 0xff00) == 0x8100 then
         local next_on = (word & 0x0040) ~= 0
-        if next_on and r8(symbols.genesistan_presentation_readiness) == 1 then
+        local readiness = r8(symbols.genesistan_presentation_readiness)
+        if next_on and readiness == 1 then
           unsafe_display_on_writes = unsafe_display_on_writes + 1
         end
-        if attract_second_title_frame then
+        -- The completed-title publication can occur before the frame callback
+        -- first observes outer/phase 0/1.  Key visibility to an actual VDP
+        -- Reg1 ON write after natural demo death, then require the later title
+        -- state, published CRAM, cleared latch, and zero unsafe ON writes.
+        if attract_demo_death_seen then
           if next_on then
             second_title_display_enable_writes = second_title_display_enable_writes + 1
-          else
+          elseif not next_on then
             second_title_display_disable_writes = second_title_display_disable_writes + 1
           end
         end
@@ -312,6 +317,10 @@ if route == "attract" then
   install_exec_observer(symbols.genesistan_frontend_presentation_reset,
     "FRONTEND_PRESENTATION_RESET")
 end
+
+-- MAME tap objects must stay strongly reachable after the autoboot chunk
+-- returns; otherwise Lua GC can silently remove the late attract observers.
+_G.rg004_frontend_taps = attract_taps
 
 emu.register_frame_done(function()
   frame = frame + 1
