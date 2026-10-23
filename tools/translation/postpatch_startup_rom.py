@@ -1256,6 +1256,28 @@ def shift_abs_long_expected_bytes(
     return bytes(adjusted)
 
 
+def relocate_abs_long_expected_bytes(
+    expected: bytes,
+    source_start: int,
+    source_end: int,
+    relocation_delta: int,
+    opcode_set: set[int],
+) -> bytes:
+    """Apply only the fixed whole-copy delta inside an opaque opcode guard."""
+    adjusted = bytearray(expected)
+    cursor = 0
+    while cursor + 6 <= len(adjusted):
+        opcode = int.from_bytes(adjusted[cursor:cursor + 2], "big")
+        if opcode not in opcode_set:
+            cursor += 2
+            continue
+        target = int.from_bytes(adjusted[cursor + 2:cursor + 6], "big")
+        if source_start <= target < source_end:
+            adjusted[cursor + 2:cursor + 6] = (target + relocation_delta).to_bytes(4, "big")
+        cursor += 6
+    return bytes(adjusted)
+
+
 def update_genesis_checksum(rom_bytes: bytearray) -> int:
     checksum = 0
     for offset in range(0x200, len(rom_bytes), 2):
@@ -2066,14 +2088,12 @@ def main() -> int:
         # opaque. The copy-relocation pass may still have rebased an absolute
         # operand by the fixed ROM delta, so validate that exact intermediate
         # form as well; the complete instruction is replaced immediately below.
-        expected_relocated_opaque = shift_abs_long_expected_bytes(
+        expected_relocated_opaque = relocate_abs_long_expected_bytes(
             expected,
-            [],
             source_start,
             source_end,
             relocation_delta,
             opcode_set,
-            True,
         )
         new_bytes = bytes.fromhex(
             resolve_replacement_hex(
