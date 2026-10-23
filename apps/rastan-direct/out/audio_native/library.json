@@ -1,0 +1,128 @@
+{
+  "authored_track_count": 7,
+  "dispatch": [
+    {
+      "evidence": "Build 0488 ORIGINAL ARCADE timing plus Build 0489 death/respawn command-state proof",
+      "semantics": "player appearance/reappearance after death-form filtering at the shared 68000 semantic bridge",
+      "status": "proven",
+      "track": "03 - Aggressive World (Scene 1)",
+      "wire_command": "0x25"
+    }
+  ],
+  "fm6_reserved": true,
+  "profile": "../../analysis/audio/decision_profiles/music-test.json",
+  "profile_revision": 11,
+  "profile_revision_id": "music-test.r11.20261022T220736Z",
+  "profile_sha256": "724754a46244b148111058f17a332fb9f6a5e96fcb1e908beb5ef072590c2743",
+  "schema": "rastan-genesis-native-audio-library/v1",
+  "songs": [
+    {
+      "has_loop": false,
+      "id": 1,
+      "intro": "out/audio_native/track_01_credit_intro.bin",
+      "intro_bytes": 791,
+      "intro_sha256": "b9ac2eafc695cb7d47efbe9ad61044e53eed0320599734c45dd037350c86c019",
+      "intro_ticks": 524,
+      "loop": "out/audio_native/track_01_credit_loop.bin",
+      "loop_bytes": 1,
+      "loop_sha256": "a8100ae6aa1940d0b663bb31cd466142ebbdbd5187131b92d93818987832eb89",
+      "loop_ticks": 0,
+      "slug": "track_01_credit",
+      "track": "01 - Credit",
+      "wire_commands": []
+    },
+    {
+      "has_loop": false,
+      "id": 2,
+      "intro": "out/audio_native/track_02_broken_the_promises_opening_intro.bin",
+      "intro_bytes": 14816,
+      "intro_sha256": "41039f693bae3508cd180b1476dac72273f02754b46bc0066af45a17f0877327",
+      "intro_ticks": 610,
+      "loop": "out/audio_native/track_02_broken_the_promises_opening_loop.bin",
+      "loop_bytes": 1,
+      "loop_sha256": "a8100ae6aa1940d0b663bb31cd466142ebbdbd5187131b92d93818987832eb89",
+      "loop_ticks": 0,
+      "slug": "track_02_broken_the_promises_opening",
+      "track": "02 - Broken The Promises (Opening)",
+      "wire_commands": []
+    },
+    {
+      "has_loop": true,
+      "id": 3,
+      "intro": "out/audio_native/track_03_aggressive_world_scene_1_intro.bin",
+      "intro_bytes": 8836,
+      "intro_sha256": "070e5d6f317c10030f9f925a839d44e8d859c69bdc1d3b2246f9d0f8e84c80e0",
+      "intro_ticks": 798,
+      "loop": "out/audio_native/track_03_aggressive_world_scene_1_loop.bin",
+      "loop_bytes": 47368,
+      "loop_sha256": "66323cf3ea6289297741bfb74f867844571930bf37cb0a1107f5e5e2b46ec86b",
+      "loop_ticks": 2402,
+      "slug": "track_03_aggressive_world_scene_1",
+      "track": "03 - Aggressive World (Scene 1)",
+      "wire_commands": [
+        "0x25"
+      ]
+    },
+    {
+      "has_loop": true,
+      "id": 4,
+      "intro": "out/audio_native/track_04_bad_bible_name_regist_intro.bin",
+      "intro_bytes": 575,
+      "intro_sha256": "18889183ca015cd94983a0193ac34a0e5a5deb77391ab02936586fd63e9e2090",
+      "intro_ticks": 16,
+      "loop": "out/audio_native/track_04_bad_bible_name_regist_loop.bin",
+      "loop_bytes": 2600,
+      "loop_sha256": "89cf288c1d4d90c09430973178879a27ce0978220b95b7ccb3ebb587755b3995",
+      "loop_ticks": 120,
+      "slug": "track_04_bad_bible_name_regist",
+      "track": "04 - Bad Bible (Name Regist)",
+      "wire_commands": []
+    },
+    {
+      "has_loop": true,
+      "id": 5,
+      "intro": "out/audio_native/track_05_re_in_carnation_scene_2_intro.bin",
+      "intro_bytes": 2920,
+      "intro_sha256": "4b26249d8739857c1755d11b1e038c6a41899ca4e34aca66fe3b7c5eb000c4bf",
+      "intro_ticks": 188,
+      "loop": "out/audio_native/track_05_re_in_carnation_scene_2_loop.bin",
+      "loop_bytes": 181539,
+      "loop_sha256": "f373d7af749fb54d84d6ce466c4b28af7f7f025f2a292cd47c9b6f1aa80fa44a",
+      "loop_ticks": 5841,
+      "slug": "track_05_re_in_carnation_scene_2",
+      "track": "05 - Re-In-Carnation (Scene 2)",
+      "wire_commands": []
+    },
+    {
+      "has_loop": true,
+      "id": 6,
+      "intro": "out/audio_native/track_06_the_devil_boss_carnival_scene_3_boss_intro.bin",
+      "intro_bytes": 7556,
+      "intro_sha256": "81af4d2161d91e9a1b9acde279d9bc51aad8e77f4940a970d1c1dc453eae54b1",
+      "intro_ticks": 582,
+      "loop": "out/audio_native/track_06_the_devil_boss_carnival_scene_3_boss_loop.bin",
+      "loop_bytes": 38018,
+      "loop_sha256": "affa9a93b2c4dee8d073617f37eb3bf0e612563aafb322b6368c6d1dbfd2018c",
+      "loop_ticks": 1152,
+      "slug": "track_06_the_devil_boss_carnival_scene_3_boss",
+      "track": "06 - The Devil Boss Carnival (Scene 3 Boss)",
+      "wire_commands": []
+    },
+    {
+      "has_loop": false,
+      "id": 7,
+      "intro": "out/audio_native/track_09_the_man_of_saga_ending_intro.bin",
+      "intro_bytes": 146959,
+      "intro_sha256": "63a2ef9cd6845844578d0b85e189797b4eb3347fb744382ff74225eb3383f0a4",
+      "intro_ticks": 5177,
+      "loop": "out/audio_native/track_09_the_man_of_saga_ending_loop.bin",
+      "loop_bytes": 1,
+      "loop_sha256": "a8100ae6aa1940d0b663bb31cd466142ebbdbd5187131b92d93818987832eb89",
+      "loop_ticks": 0,
+      "slug": "track_09_the_man_of_saga_ending",
+      "track": "09 - The Man Of Saga (Ending)",
+      "wire_commands": []
+    }
+  ],
+  "unmapped_command_policy": "consume_without_interrupting_current_music"
+}

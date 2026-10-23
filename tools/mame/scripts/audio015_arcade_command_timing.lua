@@ -15,13 +15,17 @@ local coin_frame = tonumber(os.getenv("AUDIO015_ARCADE_COIN_FRAME") or "600")
 local start_press_frame = tonumber(os.getenv("AUDIO015_ARCADE_START_FRAME") or "655")
 local A5 = 0x10c000
 
+-- Invincibility keeps the player alive to observe the full live command stream.
+-- Setting AUDIO015_ARCADE_INVINCIBLE=0 leaves it off so the deterministic route
+-- dies and reaches the authentic GAME OVER sound-command sequence.
+local want_invincible = (os.getenv("AUDIO015_ARCADE_INVINCIBLE") or "1") ~= "0"
 local cheat_api = assert(emu.plugin and emu.plugin.cheat,
   "MAME cheat plugin unavailable; launch with -cheat")
 local invincibility = nil
 for index, description in pairs(cheat_api.list()) do
   if description == "Invincibility" then
     invincibility = assert(cheat_api.get(index), "Invincibility cheat unavailable")
-    invincibility.set_enabled(true)
+    invincibility.set_enabled(want_invincible)
     break
   end
 end

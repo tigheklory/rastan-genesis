@@ -93,21 +93,35 @@ z80_init_and_start:
 z80_write_command:
     movem.l %d1-%d2/%a0, -(%sp)
 
-    /* Original command $25 is emitted both at the genuine player-appearance
-       boundary and by the phase-4 death transition.  The arcade sound driver
-       distinguished those events internally; the native command ring must
-       preserve that semantic distinction.  Consume only the proven death
-       form (2/4, player state 8).  Initial appearance and post-READY
-       reappearance retain $25 and therefore deliberately start/restart the
-       current stage song. */
+    /* Original command $25 is the stage player-appearance cue.  ORIGINAL
+       ARCADE ring evidence (states/traces/audio015_arcade_gameover) shows the
+       live program emits $25 in three distinct forms during R1-S1:
+         - genuine (re)appearance : outer 2, player_state 3  (start/restart)
+         - death transition       : outer 2, player_state 8  (no music event)
+         - mid-stage scene-segment : player_state 1 (walking) (no music event)
+       The arcade sound CPU distinguished these internally; the native ring
+       must preserve that distinction with one shared rule.  Publish $25 only
+       in the genuine-appearance form (gameplay outer == 2 AND player_state
+       == 3); consume every other $25.  This both keeps the authentic start /
+       post-READY respawn restart and removes the death restart and the
+       spurious segment-5/8/12 restarts without any per-segment gate. */
     cmpi.b  #0x25, %d0
-    bne.s   .Lpublish
+    bne.s   .Lnot_appearance
     cmpi.w  #0x0002, ARCADE_OUTER_STATE
+    bne.s   .Lcommand_consumed
+    cmpi.w  #0x0003, ARCADE_PLAYER_STATE
+    bne.s   .Lcommand_consumed
+    bra.s   .Lpublish
+.Lnot_appearance:
+    /* Original command $1E is the authentic GAME OVER music cue (song-table
+       descriptor $0492).  ORIGINAL ARCADE evidence shows it is emitted once at
+       the final-death GAME OVER transition (state4 == 2) and preempts the
+       looping stage song.  The current native library authors no GAME OVER
+       jingle, so render $1E as the engine's canonical all-channel stop ($00):
+       the looping stage song ends at GAME OVER instead of running forever. */
+    cmpi.b  #0x1E, %d0
     bne.s   .Lpublish
-    cmpi.w  #0x0004, ARCADE_PHASE_STATE
-    bne.s   .Lpublish
-    cmpi.w  #0x0008, ARCADE_PLAYER_STATE
-    beq.s   .Lcommand_consumed
+    moveq   #0x00, %d0
 .Lpublish:
     bsr     z80_request_bus
     moveq   #0, %d1

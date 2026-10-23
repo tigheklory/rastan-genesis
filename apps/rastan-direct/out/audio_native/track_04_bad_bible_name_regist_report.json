@@ -1,0 +1,56 @@
+{
+  "channel_levels": {},
+  "has_source_loop": true,
+  "intro_bytes": 575,
+  "loop_bytes": 2600,
+  "loop_tick": 16,
+  "loop_ticks": 120,
+  "max_events_per_tick": 86,
+  "native_event_count": 1026,
+  "noise_mode": "fixed_1024",
+  "original_track_command_mapping": "unresolved unless listed by the generated native dispatch registry",
+  "profile_revision": 11,
+  "profile_revision_id": "music-test.r11.20261022T220736Z",
+  "render_stats": {
+    "dropped_channels": [
+      6,
+      7
+    ],
+    "duration_s": 2.226,
+    "fm_targets": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "psg_targets": [
+      "psg_tone3"
+    ],
+    "psg_writes": 37,
+    "total_samples": 98167,
+    "ym2612_writes": 983
+  },
+  "routing": {
+    "0": "ym2612_fm1",
+    "1": "ym2612_fm2",
+    "2": "ym2612_fm3",
+    "3": "ym2612_fm4",
+    "4": "ym2612_fm5",
+    "5": "psg_tone3"
+  },
+  "scheduler_owned_registers": [
+    "0x24",
+    "0x25",
+    "0x26",
+    "0x27"
+  ],
+  "scheduler_owned_writes_filtered": 1,
+  "schema": "rastan-genesis-native-audio/v1",
+  "source_loop_samples": 86706,
+  "source_loop_start_sample": 11467,
+  "source_total_samples": 98173,
+  "tick_hz": 61.03515625,
+  "total_ticks": 136,
+  "track": "04 - Bad Bible (Name Regist)"
+}

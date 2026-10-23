@@ -53421,3 +53421,122 @@ TIGHE ONLY
   No temporary VGM/captured-song runtime, forced Scene-1 trigger, fake PC060HA, placeholder SFX/PCM,
   or Build 0484 was created. Historical report:
   `docs/design/Cody_AUDIO014_production_audio_architecture.md`.
+
+### MAME Exit Summary (2026-10-23 10:59:01)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-23 12:09:45)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-23 13:30:20)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## [AUDIO-015 — Andy — Build 0486: commit + build Cody's permanent Genesis audio]
+
+* Finished Cody's interrupted AUDIO-015 work and published the numbered Build 0486 family. PRESERVED Cody's corrected source unchanged (511-byte permanent Z80 driver: valid control flow, YM2612 Timer B clear/unload/reload edge `$27=28 / $26=C9 / $27=0A`, Timer-B-polled tick scheduler, direct Z80 cartridge-bank streaming, intro→loop, native YM2612/PSG). Only corrections: removed the trailing blank line at EOF in `tools/mame/scripts/audio015_native_runtime_gate.lua` (whitespace-clean, no behavior change). Exact-source commit `26ca2ac2` of the 6 source files, then `make release`.
+* **Build 0486:** counter 485→486; family of 7 ROMs produced (canonical, _d, _s, _do, _c, _full_hud, _invincible); gates canonical=PASS entry=PASS epoch=PASS; variant-set verified. Normal ROM `dist/rastan-direct/rastan_direct_video_test_build_0486.bin`, SHA-256 `d0072ac1fad5fbc7cf69d64ee8bc2a6bd3e562635f65ac4f637790422ebd7449`.
+* **MAME audio runtime gate on the PUBLISHED 0486 = result=PASS** ("production audio path observed"): driver active, ym_data_writes=5063, psg_writes=1195, Timer-B clear/unload/reload sequence repeated (27=28/26=C9/27=0A ×1008), banked_reads=9310 / banked_mismatches=0 / bank_values=54, stream from ROM 0x2A0000, loop_seen=YES, music_periods=831 vs expected 834 (−3), final_active=01, no invalid PC/SP/access (511-byte driver stays in its executable). Reproduces Cody's final result.
+* **KNOWN RISK for Tighe's hardware test (command identity):** the driver triggers on wire command `$29`. Independent evidence (arcade disasm + PC060HA-port trace on accepted 0478) shows the authentic R1-S1 Aggressive World command is `$00`+`$19` from arcade producer `0x055E30` (sole `#$19;jsr` at ROM 0x055ECA); `$29` is a game-start/ready cue (producers at 0x051472/0x051B72/0x051B86/0x074D5A) sent at the start press. MAME gameplay did not advance far enough to reach the `$19` stage-music producer (player barely moves; `$19` never delivered in 9000 frames), so the authentic trigger could not be dynamically validated. Left as Cody implemented ($29) per Tighe's directive to build Cody's work; flagged for Tighe's listening evaluation — if music starts at the wrong moment or is silent during stage play, the next step is reconciling the driver trigger to `$19`. OPEN-039 remains open.
+
+### MAME Exit Summary (2026-10-23 14:10:06)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## [AUDIO-015 — Andy — Build 0487 Phase A: Aggressive World trigger 0x29 -> 0x19]
+
+* Corrected the R1-S1 Aggressive World trigger from the game-start cue 0x29 to the authentic selector 0x19 (arcade producer 0x055E30). Smallest fix: driver `cp $29`->`cp $19`; static verifier `\xFE\x29`->`\xFE\x19`; compile report `authentic_wire_command 0x19`. Cody's control-flow/Timer-B/banking/streaming engine preserved unchanged. Commit `8f6d946e`.
+* **Build 0487:** counter 486->487; 7-ROM family; gates canonical=PASS entry=PASS epoch=PASS. Normal ROM `dist/rastan-direct/rastan_direct_video_test_build_0487.bin`, SHA-256 `fd4536f8652029ed39ce92364ee623cb0b7f46adce6353e8c56585e8a36630cc`.
+* **Automated verification:** static build gate confirms driver classifies 0x19 (FE19 present, FE29 absent), 511-byte driver. SYNTHETIC command injection (frame 200, 0x19 written to the Z80 command ring — NOT authentic gameplay delivery): driver active at frame 201, 668 YM2612 data writes + PSG writes → plays on 0x19. NOTE: MAME gameplay does not advance far enough to deliver the authentic 0x19 (0x055E30 stage-music producer); 0x29 game-start cue no longer triggers music. Start/death/respawn timing must be confirmed by Tighe on hardware (not claimed from the byte change).
+* Phase B (multi-song) pending Tighe's hardware confirmation of 0487 trigger timing. OPEN-039 remains open.
+
+## [AUDIO-015 — Andy — 68000 audio-call audit + 0x19 delivery root cause]
+
+* Audited every original 68000 sound-command call site through the semantic remapper to explain why Build 0487 (authentic `0x19` driver) is SILENT on hardware while 0486 (`0x29`) plays. **Finding: the command TRANSPORT is intact — no sound-command call was NOPed.** Only arcade sound-HARDWARE writes are suppressed (TC0140SYT reset/bank `0x03AEA2/AA/C6/CE`, coin `0x03A00C/0x03AE96`) and the status read redirected (`0x03F0A4`); the sender `0x03F084` is correctly shift-replaced to `JSR z80_write_command` (the Z80 bridge). Queue `0x03A0EC`, direct insert `0x03A116`, dispatcher `0x03A126`, producers `0x055E26`/`0x055E30`, and music-trigger `0x03A614` are all intact. Evidence the path works: `EF/04/29/25/1A/0B/0C` reach the Z80 ring and 0486's `0x29` was audible on hardware.
+* **Verified cause of missing `0x19`:** the `0x055E30` `$19` request is gated at R1-S1 state `0x055DE6` by `a5+0x1394==1` (music-change pending) AND `a5+0x13AA==1` AND sound momentarily disabled (`a5+0x34==0`); if sound is enabled at that state the code force-sets `a5+0x1394=0x00FF` and skips the request. On Genesis the end state is `a5+0x34=1`, `a5+0x1394=0x00FF`, so `0x055E30` is never executed and `$19` is never queued. The arcade satisfied the disable→request→enable handshake via the YM2151 timer IRQ/sequencer (`0x01F9`/`0x0479`) that AUDIO-015 removed; the retained 68000 dispatcher still runs (commands get out) but the timed `a5+0x34`/`a5+0x1394` phasing around the stage-music one-shot no longer lands. This is a sender-side state-handshake issue, NOT a NOPed call — nothing in the remapper to "restore" for the command path.
+* No new ROM produced: there is no incorrectly-NOPed call to repair, so no remapper change to build; Build 0487 (commit `8f6d946e`, SHA `fd4536f8…a36630cc`) remains the correct-driver candidate. Recommended next step (scoped follow-up with Tighe): reconcile the `a5+0x34`/`a5+0x1394` handshake so the retained R1-S1 one-shot issues `$00`+`$19` at the authentic moment (Rastan appears / respawn), without a scene-ID hardcode. MAME tap caveat noted (translated 68000 bypasses taps post-warmup; hardware is authoritative). Docs: `docs/design/Andy_AUDIO015_68000_audio_call_restoration.md`; multisong doc updated. OPEN-039 open.
+
+### MAME Exit Summary (2026-10-23 16:11:38)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## [AUDIO-015 — Cody — Build 0488 live command semantic dispatch]
+
+* Corrected the prior `$19` diagnosis. Original `0x055E30` can only call queue routine `0x03A0EC`
+  while `A5+0x34==0`, but that routine immediately returns without queueing in that state. The
+  intervening `0x059F5E`, `0x056176 -> 0x059AD4`, and `0x0561A0 -> 0x055AB4` paths do not change A5
+  or the gate. `A5+0x1394`/`A5+0x13AA` are transition-controller state, not a YM2151-IRQ-owned 68000
+  audio handshake. The earlier timer-handshake and live-`$19` claims are retracted in their reports.
+* Durable ORIGINAL ARCADE MAME evidence using the established coin/Start/right route and stock
+  invincibility cheat recorded `$29` at Start (frame 656), live `$25` exactly at first player
+  appearance (frame 787), and no external/internal `$19` through frame 1800. The live `$25` direct
+  producer is arcade `0x03A1C4`; the common hardware cut remains `0x03F084 -> z80_write_command`.
+* Permanent driver dispatch now starts the implemented native Aggressive World asset on live `$25`.
+  `$00` retains stop/silence semantics; unsupported music-control/SFX/voice commands are consumed and
+  ignored without interrupting active playback. Timer B, banking, decoder, stream format, bridge, and
+  gameplay producers are unchanged. Exact ROM-producing source `13eb6ebf1890213b51700189e7933b058ca8cd3a`.
+* **Build 0488:** counter 487->488; complete seven-ROM family; canonical, R1-S1 entry, seven-epoch,
+  fixed trace, and variant gates PASS. Normal ROM
+  `dist/rastan-direct/rastan_direct_video_test_build_0488.bin`, SHA-256
+  `c70a271551bf2a10b971ccffa990a7ddf3855c00b134b0004b5407b08ad687e0`, 2,813,624 bytes.
+* GENESIS NTSC MAME authentic-delivery gate PASS: `$29` at frame 175 did not activate; `$25` at frame
+  381 and `ACTIVE=1` occurred on frame 381; later `1A/0B/0C` left playback active. Measured 623 music
+  periods vs 626 expected, 4,416 YM2612 data writes, 922 PSG writes, 6,614 banked reads, zero bank
+  mismatches, and no invalid Z80 PC/SP. Audible timing/quality and death/respawn behavior remain for
+  Tighe's real-Genesis test; Build 0488 is not yet accepted. Report:
+  `docs/design/Cody_build0488_audio_command_semantic_dispatch.md`. OPEN-039 remains open.
+
+### MAME Exit Summary (2026-10-23 16:57:59)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-23 17:04:36)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-23 19:23:58)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+### MAME Exit Summary (2026-10-23 19:39:07)
+- Final PC: 0x03A1AA
+- Stack Pointer (SP): 0x00FEFFF8
+- Unique Unmapped Memory Addresses: none
+
+## AUDIO-015 — Shared `$25` restart correction + GAME OVER stop (Andy, Build 0492, 2026-10-23)
+
+Continued Cody's interrupted multi-song audio work; nothing of Cody's engine, compiler, 7-song
+library, size-invariant correction, or death-fix lineage was reset or rewritten. Entire change is in
+the 68000→Z80 bridge `apps/rastan-direct/src/sound/sound_comm.s` (`z80_write_command`).
+
+- **Build 0491 (finished first):** `dist/rastan-direct/rastan_direct_video_test_build_0491.bin`
+  (SHA `8051a6ab…7de6e973`), 7 songs, FM6 reserved, dispatch `$25`, static audio gate PASS.
+- **Evidence (ORIGINAL ARCADE MAME):** no-invincibility run through appearance → 3 deaths → GAME OVER
+  (`states/traces/audio015_arcade_gameover/`, observer extended with a durable
+  `AUDIO015_ARCADE_INVINCIBLE` toggle). Genuine (re)appearance `$25` is uniquely `player_state==3`;
+  death is `player_state==8`; mid-stage segment crossings leave the player walking (`player_state==1`).
+  GAME OVER emits authentic cue `$1E` (arcade song-table `0x2300` → descriptor `0x0492`); `$00` is only
+  the boot-time ring clear, never sent in gameplay/GAME OVER.
+- **Fix (one shared rule):** publish `$25` only when outer(`0xFF0000`)==2 AND player_state(`0xFF10E8`)==3
+  (keeps appearance + post-READY respawn restart; drops death restart and segment-5/8/12 restarts, no
+  per-segment gate); translate GAME OVER cue `$1E`→`$00` so the driver's existing all-channel stop ends
+  the looping stage song. No NOP/RTS/dead-write; no production ROM scaffolding.
+- **Build 0492:** `dist/rastan-direct/rastan_direct_video_test_build_0492.bin`
+  (SHA `feb610c0…b582f065`), full 7-ROM family, all gates PASS (boot guard, canonical, final-life
+  transition, R1 selector, invincible-variant, `AUDIO_NATIVE_STATIC_PASS`).
+- **GENESIS NTSC MAME non-regression:** `run_audio015_native_runtime_gate.sh` → `result=PASS`
+  (`states/traces/build0492_audio015_native_runtime/`): driver ACTIVE at frame 381 (appearance music
+  still starts), `banked_mismatches=0`, no invalid access, `music_periods=623/626`. Segments 5/8/12 and
+  GAME OVER are unreachable in Genesis automation (player stalls at `player_x=0xA7`, route takes no
+  deaths), so restart-suppression + GAME-OVER-stop acceptance is for Tighe's hardware audition, as 0490.
+- **Design note:** `docs/design/Andy_AUDIO015_restart_and_gameover_fix.md`. **OPEN-039 remains OPEN.**

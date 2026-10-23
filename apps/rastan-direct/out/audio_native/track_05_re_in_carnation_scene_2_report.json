@@ -1,0 +1,56 @@
+{
+  "channel_levels": {},
+  "has_source_loop": true,
+  "intro_bytes": 2920,
+  "loop_bytes": 181539,
+  "loop_tick": 188,
+  "loop_ticks": 5841,
+  "max_events_per_tick": 138,
+  "native_event_count": 59669,
+  "noise_mode": "fixed_1024",
+  "original_track_command_mapping": "unresolved unless listed by the generated native dispatch registry",
+  "profile_revision": 11,
+  "profile_revision_id": "music-test.r11.20261022T220736Z",
+  "render_stats": {
+    "dropped_channels": [
+      6,
+      7
+    ],
+    "duration_s": 98.774,
+    "fm_targets": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "psg_targets": [
+      "psg_noise"
+    ],
+    "psg_writes": 575,
+    "total_samples": 4355928,
+    "ym2612_writes": 59088
+  },
+  "routing": {
+    "0": "ym2612_fm1",
+    "1": "ym2612_fm2",
+    "2": "ym2612_fm3",
+    "3": "ym2612_fm4",
+    "4": "ym2612_fm5",
+    "5": "psg_noise"
+  },
+  "scheduler_owned_registers": [
+    "0x24",
+    "0x25",
+    "0x26",
+    "0x27"
+  ],
+  "scheduler_owned_writes_filtered": 1,
+  "schema": "rastan-genesis-native-audio/v1",
+  "source_loop_samples": 4220322,
+  "source_loop_start_sample": 135610,
+  "source_total_samples": 4355932,
+  "tick_hz": 61.03515625,
+  "total_ticks": 6029,
+  "track": "05 - Re-In-Carnation (Scene 2)"
+}
