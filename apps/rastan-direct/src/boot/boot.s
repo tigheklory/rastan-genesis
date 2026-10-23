@@ -31,6 +31,7 @@
     .extern pc090oj_emitted_count
     .extern pc090oj_dropped_count
     .extern genesistan_pc090oj_dma_self_test
+    .extern z80_init_and_start
     .extern _crash_stub_bus_error
     .extern _crash_stub_address_error
     .extern _crash_stub_illegal
@@ -167,6 +168,7 @@ _start:
 _bootstrap:
     jsr     vdp_boot_setup
     bsr     _bootstrap_clear_staging
+    jsr     z80_init_and_start
     moveq   #0, %d0
     jsr     load_scene_tiles
     lea     0x00FF0000, %a5
