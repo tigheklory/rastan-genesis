@@ -53411,3 +53411,13 @@ TIGHE ONLY
   0483**. This accepts only the narrow existing Z80/YM2612 bring-up repair. OPEN-039 remains OPEN;
   production audio is not implemented. Report:
   `docs/design/Cody_AUDIO013_z80_forced_tone_diagnosis.md`.
+
+## 2026-10-23 — AUDIO-014 permanent Genesis audio — BLOCKED
+
+- AUDIO-014 ended BLOCKED without production-source changes, a ROM, or build-number consumption.
+  Build 0483 remained the proven forced-tone foundation and counter 483 remained current.
+- Original Z80 command identity, timer/sequencer/loop semantics, music/SFX ownership, and maintained C
+  bodies were not yet sufficient to select a permanent implementation without unsupported assumptions.
+  No temporary VGM/captured-song runtime, forced Scene-1 trigger, fake PC060HA, placeholder SFX/PCM,
+  or Build 0484 was created. Historical report:
+  `docs/design/Cody_AUDIO014_production_audio_architecture.md`.

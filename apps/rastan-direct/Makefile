@@ -204,6 +204,21 @@ LD := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-ld
 OBJCOPY := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-objcopy
 NM := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-nm
 OBJDUMP := ../../tools/local/toolchain/m68k-elf/bin/m68k-elf-objdump
+SJASM := ../../tools/local/bin/sjasm
+
+# AUDIO-015 permanent native-audio inputs. Original/capture-derived music stays
+# outside version control; the normal build reproducibly compiles it from the
+# user-supplied corpus and the persisted Audio Composer decision profile.
+AUDIO_COMPILER := $(ROOT)/tools/audio/compile_genesis_native_music.py
+AUDIO_RENDERER := $(ROOT)/tools/audio/render_genesis_vgm.py
+AUDIO_PROFILE := $(ROOT)/analysis/audio/decision_profiles/music-test.json
+AUDIO_CAPTURE = $(ROOT)/audio/rastan_music_dump/conversion_attempts/03 - Aggressive World (Scene 1)_ym2151_writes.csv
+AUDIO_SOURCE_VGZ = $(ROOT)/audio/rastan_music_dump/03 - Aggressive World (Scene 1).vgz
+AUDIO_INTRO := $(OUT_DIR)/aggressive_world_intro.bin
+AUDIO_LOOP := $(OUT_DIR)/aggressive_world_loop.bin
+AUDIO_REPORT := $(OUT_DIR)/aggressive_world_native_report.json
+Z80_ASM := $(SRC_DIR)/sound/z80_driver.asm
+Z80_BIN := $(OUT_DIR)/z80_driver.bin
 
 ifeq ($(wildcard $(AS)),)
 AS := m68k-elf-as
@@ -231,7 +246,8 @@ OBJS := \
 	$(OUT_DIR)/diag_bookmark.o \
 	$(OUT_DIR)/scene_load.o \
 	$(OUT_DIR)/sound_comm.o \
-	$(OUT_DIR)/z80_driver.o
+	$(OUT_DIR)/z80_driver.o \
+	$(OUT_DIR)/audio_assets.o
 
 ELF := $(OUT_DIR)/rastan_direct_video_test.elf
 PREPATCH_BIN := $(OUT_DIR)/rastan_direct_video_test.prepatch.bin
@@ -601,7 +617,23 @@ $(OUT_DIR)/scene_load.o: \
 $(OUT_DIR)/sound_comm.o: $(SRC_DIR)/sound/sound_comm.s FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-$(OUT_DIR)/z80_driver.o: $(SRC_DIR)/sound/z80_driver.s FORCE_ASM_REBUILD | $(OUT_DIR)
+$(AUDIO_INTRO) $(AUDIO_LOOP) $(AUDIO_REPORT) &: \
+	$(AUDIO_COMPILER) $(AUDIO_RENDERER) $(AUDIO_PROFILE) \
+	$(ROOT)/audio/rastan_music_dump/conversion_attempts/03\ -\ Aggressive\ World\ (Scene\ 1)_ym2151_writes.csv \
+	$(ROOT)/audio/rastan_music_dump/03\ -\ Aggressive\ World\ (Scene\ 1).vgz \
+	| $(OUT_DIR)
+	$(PYTHON) "$(AUDIO_COMPILER)" \
+		--capture "$(AUDIO_CAPTURE)" --source-vgz "$(AUDIO_SOURCE_VGZ)" \
+		--profile "$(AUDIO_PROFILE)" --renderer "$(AUDIO_RENDERER)" \
+		--intro "$(AUDIO_INTRO)" --loop "$(AUDIO_LOOP)" --report "$(AUDIO_REPORT)"
+
+$(Z80_BIN): $(Z80_ASM) | $(OUT_DIR)
+	$(SJASM) -e "$<" "$@" "$(OUT_DIR)/z80_driver.lst"
+
+$(OUT_DIR)/z80_driver.o: $(SRC_DIR)/sound/z80_driver.s $(Z80_BIN) FORCE_ASM_REBUILD | $(OUT_DIR)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+$(OUT_DIR)/audio_assets.o: $(SRC_DIR)/sound/audio_assets.s $(AUDIO_INTRO) $(AUDIO_LOOP) FORCE_ASM_REBUILD | $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(ELF): $(OBJS)

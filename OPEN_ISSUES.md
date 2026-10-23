@@ -1279,6 +1279,16 @@ Final response must include "Open/Closed Issues Impact" section with:
   hardware in both Builds 0482 and 0483. This proves the existing Z80/YM2612 bring-up path only;
   production music, SFX, PCM/FM6 DAC and channel arbitration remain unimplemented, so OPEN-039 stays
   OPEN. Evidence: `docs/design/Cody_AUDIO013_z80_forced_tone_diagnosis.md`.
+- **AUDIO-015 (2026-10-23, Cody, semantic recovery + production implementation in progress — NOT
+  closing):** reconciled preserved Build 0483 to AUDIO-013's SHA-256; recovered instruction-backed C
+  bodies and coverage for command receive/rings/init/timer/dispatch/song/channel/SFX/sequencer/YM/ADPCM
+  contracts. Proved command `0x00` is the all-channel stop/reset and command `0x19` selects the eight
+  R1-S1 Aggressive World sequences through table `0x2332`/descriptor `0x2DF0`. Proved YM timer-A
+  scheduling at 61.03515625 Hz and paired music/SFX progression/restoration. Selected the complete
+  retained 68000 PC060HA-send routine `0x03F084` as the cut; permanent implementation uses a bounded
+  Genesis Z80 command ring, Z80 timer-owned scheduling, native cartridge-resident YM2612/PSG tick
+  packets compiled offline from persisted profile r11, and reserves FM6 for future DAC. Candidate
+  build and hardware listening acceptance remain pending; full soundtrack/SFX/PCM remains open.
 - **Evidence:** `docs/design/Andy_native_genesis_audio_architecture_research.md`,
   `docs/design/Andy_audio001_z80_ghidra_decompilation.md`,
   `docs/design/Andy_audio002_original_audio_asset_inventory.md`.

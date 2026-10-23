@@ -27,6 +27,13 @@ SECTIONS
     *(.data .data.*)
   }
 
+  /* Z80-bank-readable, cartridge-resident native audio packets. */
+  . = ALIGN(0x8000);
+  .audio :
+  {
+    *(.audio)
+  }
+
   /* Dedicated high-ROM crash section, placed AFTER all existing normal ROM
    * content (boot, arcade copy, and Genesis-only .text.wrapper).  The old
    * Build0287 crash handler (stubs + common + renderer + font/strings) lives

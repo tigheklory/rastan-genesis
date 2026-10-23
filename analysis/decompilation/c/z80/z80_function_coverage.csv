@@ -2,24 +2,27 @@ z80_addr,name,role,callers,hardware,semantic_level,evidence,notes
 # AUDIO-009 correction of AUDIO-001 coverage. semantic_level vocabulary:
 #   INDEXED               = entry point identified; call site(s) known; semantics NOT established.
 #   CONTROL_FLOW_VERIFIED = branch/flow/hardware access verified against instructions; NO C body, so not semantic equivalence.
-#   SEMANTIC_C_COMPLETE   = genuine instruction-backed C body (register/flag/stack/return). *** NO function qualifies — there are zero bodies. ***
+#   SEMANTIC_C_COMPLETE   = genuine instruction-backed C body for all material semantic paths.
 #   UNRESOLVED            = behaviour not decoded (data-as-code, Ghidra failure, or undecoded encoding).
-# The rastan_z80_sound_driver.c file is a declaration index, not a decompilation. 20 rows / 18 unique entry points vs 63 exported functions.
+# AUDIO-015 adds maintained instruction-backed bodies for the bounded routines below. Complex synthesis/control helpers remain honestly partial.
 0x0000,RST0_reset,reset vector,0,-,CONTROL_FLOW_VERIFIED,VERIFIED,JP 0x010B
-0x0066,NMI_ISR,PC060HA command receive + enqueue,0(NMI),0xA000/0xA001,CONTROL_FLOW_VERIFIED,VERIFIED,"PC060HA (NOT TC0140SYT); enqueues cmd<0xF0 to 0x8F02 ring (FUN_00c0) + 0x8E82 ring (FUN_00e9)"
-0x00C0,ring16_enqueue,16-slot command ring enqueue,3,RAM 0x8F00/0x8F01/0x8F02,CONTROL_FLOW_VERIFIED,VERIFIED,mask 0xF; gate cmd<0xF0
-0x00E9,ring32_enqueue,32-slot secondary ring enqueue,2,RAM 0x8E80/0x8E81/0x8E82,CONTROL_FLOW_VERIFIED,VERIFIED,mask 0x1F
-0x010B,main_init_loop,init + infinite main loop,1,YM2151/PC060HA,CONTROL_FLOW_VERIFIED,VERIFIED,"DI;IM1;clear 0x8000-0x8FFF;8 chan blocks=0x0F;loop writes YM reg 0x1B (ALSO selects ROM bank via data&3) then dispatch 0x0254 + 0x01C2"
-0x0254,command_dispatch,pop ring + dispatch by command range,1,0xA000/0xA001,CONTROL_FLOW_VERIFIED,VERIFIED,<0x2C BGM(0x02aa);0xE0-0xEF(0x0368);0xF0-0xFE(0x03e5);0xFF skip;mute 0x8F27
-0x02AA,song_select,BGM descriptor select from 0x2300 table,1,-,CONTROL_FLOW_VERIFIED,VERIFIED,"lead byte at 0x02C3 CP 0x12: <0x12 = COUNT of N {low,high} records (high==0 direct cmd else LE subseq); >=0x12 (e.g. 0x82) = channel/control identifier -> 0x02FE. NOT count 130."
+0x0066,NMI_ISR,PC060HA command receive + enqueue,0(NMI),0xA000/0xA001,SEMANTIC_C_COMPLETE,VERIFIED,"C body preserves nibble reconstruction; <0xF0 helper path; F0-FE inline primary path; all commands secondary; FF excluded from primary"
+0x00C0,ring16_enqueue,16-slot command ring enqueue,3,RAM 0x8F00/0x8F01/0x8F02,SEMANTIC_C_COMPLETE,VERIFIED,"C body; mask 0xF; gate cmd<0xF0; advances tail on collision (overwrite oldest)"
+0x00E9,ring32_enqueue,32-slot secondary ring enqueue,2,RAM 0x8E80/0x8E81/0x8E82,SEMANTIC_C_COMPLETE,VERIFIED,"C body; mask 0x1F; advances tail on collision (overwrite oldest)"
+0x010B,main_init_loop,init + infinite main loop,1,YM2151/PC060HA,CONTROL_FLOW_VERIFIED,VERIFIED,"C bounded body; DI/IM1; clear 0x8000-0x8FFF; channel flags; timer registers; dispatch/update loop; PC060HA init detail and called synthesis paths remain partial"
+0x0254,command_dispatch,pop ring + dispatch by command range,1,0xA000/0xA001,SEMANTIC_C_COMPLETE,VERIFIED,"C body drains queue; <0x2C BGM; E0-EF control; F0-FE SFX; FF skip; mute holding at 0x8F27/28"
+0x02AA,song_select,BGM descriptor select from 0x2300 table,1,-,SEMANTIC_C_COMPLETE,VERIFIED,"C body implements empty/direct-counted/identifier forms and nested descriptor installation"
 0x02FE,chan_control_install,channel/control identifier install,1,-,CONTROL_FLOW_VERIFIED,INFERRED,"0x82/0x83 -> 0x8E00 ADPCM state; SUB 0x8C index into 0x0348 channel table; per-identifier semantics partial"
 0x0368,control_E0_EF,control commands 0xE0-0xEF,1,0xA000/0xA001,CONTROL_FLOW_VERIFIED,VERIFIED,0xEE/0xEF toggle flag 0x8F26 (sound-enable/attract-mute); other 0xE0-0xED semantics unresolved
-0x03E5,sfx_control_dispatch,0xF0-0xFE jump-table dispatch,1,-,CONTROL_FLOW_VERIFIED,VERIFIED,"jump table at ROM 0x041B: 0xF0->0x03F7, 0xF1-F3->0x0408, 0xF4-FE->default; dispatch SHAPE verified, HANDLER semantics UNRESOLVED"
+0x03E5,sfx_control_dispatch,0xF0-0xFE jump-table dispatch,1,-,CONTROL_FLOW_VERIFIED,VERIFIED,"C body preserves computed-table shape; 0xF0->0x03F7; 0xF1-F3->0x0408; individual handler semantics remain partial"
 0x0439,pc060ha_status_parse,PC060HA status read + re-enqueue helper,2,0xA000/0xA001,INDEXED,INFERRED,bit-parses inter-CPU status; calls 0x00c0/0x00e9; semantics partial
-0x0479,seq_interpreter,per-channel sequence/note-event interpreter,1,0x9000/0x8000,UNRESOLVED,INFERRED,largest routine (747 B); note-event byte encoding NOT decoded (AUDIO-003)
-0x01C2,per_frame_update,per-frame update from main loop,1,-,INDEXED,INFERRED,called each main-loop iteration after dispatch; body not decoded
-0x01F9,irq_timer_service,YM2151 timer IRQ (IM1/RST38) candidate,0,YM2151,INDEXED,INFERRED,callers=0 (vectored); per-tick sequence advance candidate; timing/flags unresolved
-0x158C,ym2151_write,YM2151 register write primitive,18,0x9000/0x9001,CONTROL_FLOW_VERIFIED,VERIFIED,busy-wait 0x9001 bit7; 0x9000=reg,0x9001=data
+0x0479,seq_interpreter,eight paired music/SFX channel tick orchestrator,1,0x9000/0x8000,CONTROL_FLOW_VERIFIED,VERIFIED,"C orchestration body; 8 music+SFX pairs; music continuation and restore-dirty behavior recovered; synthesis callees partial"
+0x0764,channel_tick_loop,eight 0x100-stride channel-state tick loop,2,0x8000-0x87FF/0x8080-0x8780,CONTROL_FLOW_VERIFIED,VERIFIED,"initialization bit; duration decrement; 0x09A6 event fetch; per-channel writer calls"
+0x09A6,event_duration_note,sequence pointer/duration/note service,1,channel state,CONTROL_FLOW_VERIFIED,VERIFIED,"pointer +0B/0C; duration +13; gate +15; rest path 08AC; then 0A56 control decode"
+0x0A56,event_control_decode,note/control grammar and computed dispatch,2,ROM 0x0B2C/0x0AEC,CONTROL_FLOW_VERIFIED,VERIFIED,"bit7 clear note return; pitch forms low nibble <C; control forms >=C via computed table; individual handler naming partial"
+0x01C2,per_frame_update,PC060HA housekeeping from main loop,1,0xA000/0xA001,SEMANTIC_C_COMPLETE,VERIFIED,"C body; status/held-command PC060HA exchange; explicitly not musical timing"
+0x01F9,irq_timer_service,YM2151 timer-A IM1 service,0,YM2151,SEMANTIC_C_COMPLETE,VERIFIED,"C body; vector 0038; status bits; reg14 clear/reload; calls 0479+19A8; optional timer reload; 61.03515625 Hz init"
+0x158C,ym2151_write,YM2151 register write primitive,18,0x9000/0x9001,SEMANTIC_C_COMPLETE,VERIFIED,"C body; busy-wait 0x9001 bit7; 0x9000=reg; 0x9001=data"
 0x1A00,adpcm_trigger,MSM5205 ADPCM sample trigger,1,0xB000/0xC000/0xD000,CONTROL_FLOW_VERIFIED,VERIFIED,"CORRECTED latch roles: 0xB000=address, 0xC000=start, 0xD000=stop; length calc to 0x8E0F; MSM5205 streams adpcm.bin"
 0x19A8,adpcm_stream_engine,per-tick MSM5205 ADPCM streaming state machine,1,0xB000/0xC000/0xD000,CONTROL_FLOW_VERIFIED,INFERRED,"IX=0x8E00 state block; stop via 0xD000=0; drives latches; sample table/trigger map UNRESOLVED (AUDIO-003)"
 0x0348,channel_state_table,channel-index -> state-block pointer table,ref,-,CONTROL_FLOW_VERIFIED,VERIFIED,"16 LE word entries (32 B); 0x02FE SUB 0x8C indexes it; full normalization of every legal identifier partial"

@@ -279,6 +279,12 @@
  ],
  "shift_replacements": [
   {
+   "arcade_pc": "0x03F084",
+   "original_bytes": "13FC0000003E000113C0003E0003E80813C0003E00034E75",
+   "replacement_bytes": "4EB9{symbol:z80_write_command}4E75",
+   "note": "AUDIO-015 permanent Genesis sound publication cut. Retain every original 68000 sound-event producer, the six-slot gameplay queue, dispatcher 0x03A126, command ordering and timing above this boundary; replace the complete PC060HA nibble-send hardware tail with one bounded Genesis Z80 command-ring publication and return. The bridge drops the newest command when its 16-slot ring is full, matching the retained arcade queue's bounded non-overwrite policy. Proper 24-to-8-byte shift replacement; no NOP, mailbox poll, fake arcade board, runtime conversion, or scene-specific trigger."
+  },
+  {
    "arcade_pc": "0x03A2B0",
    "original_bytes": "4E75",
    "replacement_bytes": "4EB9{symbol:genesistan_gameplay_hud_score_dirty}4E75",

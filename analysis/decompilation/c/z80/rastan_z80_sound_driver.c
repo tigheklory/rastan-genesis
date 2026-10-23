@@ -1,117 +1,341 @@
 /*
- * Rastan ARCADE Z80 sound driver — PROTOTYPE / DECLARATION INDEX (AUDIO-001 / M0; corrected AUDIO-009).
+ * Rastan arcade Z80 sound driver — maintained semantic reference (AUDIO-015).
  *
- * *** THIS IS NOT A SEMANTIC C DECOMPILATION. ***  (Cody AUDIO-008 finding, confirmed.)
- * It is an INDEX of function entry points with prose summaries: declarations only, ZERO function bodies.
- * Register lifetimes, flags, stack effects, alternate paths, indirect control flow, and return behaviour
- * are NOT translated to C. Control-flow verification lives in build/audio/audiocpu.disasm.txt; the
- * instruction-backed coverage with honest evidence levels is z80_function_coverage.csv. Do not cite this
- * file as a completed decompilation or as semantic equivalence.
+ * This is instruction-backed pseudocode, not a Genesis build input and not a
+ * claim that the complete 0x0000..0x3fff program has been decompiled. Original
+ * addresses are retained in function names and comments. Unknown helper tails
+ * remain explicitly named rather than filled with guessed behavior.
  *
- * SOURCE binary: build/regions/audiocpu.bin (ROM b04-19.49, 65536 B, sha1 fa59dac2583a…).
- * Ghidra project: tools/ghidra rastan_audio_z80 (z80:LE:16:default, base 0x0000).
- * Raw Ghidra export: build/audio/z80_decomp.c ; disasm: build/audio/audiocpu.disasm.txt ;
- *                    function map: build/audio/z80_functions.tsv (63 functions).
- * NOT original Taito source. The original Z80 BINARY remains authoritative; this C is reference only
- * and is NOT compiled into any ROM. Evidence: VERIFIED (from instructions) / INFERRED / UNRESOLVED.
- *
- * ===========================================================================================
- * VERIFIED Z80 MEMORY / HARDWARE MAP (from decoded instructions)
- * -------------------------------------------------------------------------------------------
- *   0x0000-0x3FFF  fixed program ROM (code; data tables incl. the 0x2300 song table + sub-sequences).
- *   0x4000-0x7FFF  BANKED ROM window — 4 x 16KB banks of the 64KB ROM (MAME: bankr(m_audiobank),
- *                  configure_entries(0,4,base,0x4000)); bank select = sound_bankswitch_w(data&3) wired
- *                  to the YM2151 PORT-WRITE handler (no explicit bank store in Z80 code). bank0=file
- *                  0x0000, bank1=0x4000, bank2=0x8000 (the file 0x8000-0x8EDE blob), bank3=0xC000.
- *   0x8000-0x8FFF  work RAM (cleared at init 0x010B; SP top = 0x9000).
- *     0x80x0..0x87x0 : 8 per-FM-channel state blocks (0x100 stride; inited to 0x0F at 0x010B).
- *     0x8E80 head / 0x8E81 tail / 0x8E82+  : 32-slot secondary ring (NMI, FUN_00e9).
- *     0x8E0F..0x8E14 : ADPCM sample length/addr scratch (0x1A00 trigger routine).
- *     0x8F00 head / 0x8F01 tail / 0x8F02+  : 16-slot command ring (NMI enqueue, dispatch pop).
- *     0x8F26/0x8F27/0x8F28 : mode/mute/current-song state. 0x8FFE : writer source pointer.
- *   0x9000  YM2151 register-address port   (VERIFIED: FUN_158c, 14 LD HL,0x9000 sites).
- *   0x9001  YM2151 data / status (bit7 polled as write-ready) (VERIFIED: LD A,(0x9001) @0x0201).
- *   0xA000/0xA001  PC060HA (Taito CIU) inter-CPU port (MAME-VERIFIED; prior docs' "TC0140SYT" is the
- *                    wrong chip name — same addresses/protocol). NMI_ISR + every dispatch handshake.
- *   0xB000 = MSM5205 sample-address latch, 0xC000 = start, 0xD000 = stop (MAME-VERIFIED; matches 0x19A8).
- *                    The MSM5205 reads its own sample ROM b04-20.76/adpcm.bin (8 kHz, 4-bit).
- *   Interrupts: IM 1 (RST 0x38) = YM2151 timer IRQ line; NMI = PC060HA command strobe.
- *   CLOCKS (MAME PCB-verified): Z80 = 16MHz/4 = 4.000 MHz; YM2151 = 16MHz/4 = 4.000 MHz;
- *     MSM5205 = 384 kHz, prescaler S48_4B = 8 kHz 4-bit ADPCM.
- * ===========================================================================================
+ * Authority: build/regions/audiocpu.bin and
+ * build/audio/audiocpu.disasm.txt. Hardware: YM2151 address/data 9000/9001,
+ * PC060HA A000/A001, MSM5205 address/start/stop B000/C000/D000.
  */
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
-/* 0x0000 RST0: reset vector -> JP 0x010B (VERIFIED). */
+/* Reference-machine adapters. They make hardware effects explicit without
+ * pretending normal C pointers reproduce Z80 memory-mapped I/O. */
+uint8_t z80_mem_read(uint16_t address);
+void z80_mem_write(uint16_t address, uint8_t value);
+uint16_t z80_mem_read16le(uint16_t address);
+void z80_mem_write16le(uint16_t address, uint16_t value);
+void z80_enable_interrupts(void);
+void z80_disable_interrupts(void);
 
-/* 0x010B  main entry / init + main loop (control flow VERIFIED; no C body).
- * DI; IM 1; clear RAM 0x8000-0x8FFF; PC060HA init (a000=4,a001=0); init 8 channel blocks (0x80x0=0x0F);
- * run YM2151 init tables via writer FUN_158c; EI; then FOREVER:
- *   DI -> write YM reg 0x1B = (0x8F23 | 0x40)  [this YM port-write ALSO selects a ROM bank via
- *         sound_bankswitch_w(data&3); it is NOT a generic "refresh"]  -> FUN_0254(command dispatch)
- *         -> EI -> FUN_01c2(per-frame). (Cody AUDIO-008 claim 12: the bank-select side effect was omitted.)
+enum {
+    YM_ADDR = 0x9000, YM_DATA_STATUS = 0x9001,
+    PC060HA_MASTER = 0xA000, PC060HA_SLAVE = 0xA001,
+    ADPCM_ADDRESS = 0xB000, ADPCM_START = 0xC000, ADPCM_STOP = 0xD000,
+    PRIMARY_HEAD = 0x8F00, PRIMARY_TAIL = 0x8F01, PRIMARY_DATA = 0x8F02,
+    SECONDARY_HEAD = 0x8E80, SECONDARY_TAIL = 0x8E81, SECONDARY_DATA = 0x8E82
+};
+
+/* 0x158C: exact YM2151 writer. B supplies the register in the Z80 routine;
+ * A supplies data; HL conventionally points to 0x9000. */
+void z80_ym2151_write_158c(uint8_t reg, uint8_t data)
+{
+    while (z80_mem_read(YM_DATA_STATUS) & 0x80) {}
+    z80_mem_write(YM_ADDR, reg);
+    while (z80_mem_read(YM_DATA_STATUS) & 0x80) {}
+    z80_mem_write(YM_DATA_STATUS, data);
+}
+
+/* 0x00C0: primary 16-slot enqueue. The original advances head first and, on
+ * collision, advances tail: it overwrites the oldest item. Carry is set only
+ * for command classes >= F0, which the NMI handles in its inline path. */
+bool z80_ring16_enqueue_00c0(uint8_t command)
+{
+    uint8_t next, tail;
+    if (command >= 0xF0)
+        return false;                       /* original SCF return */
+    tail = z80_mem_read(PRIMARY_TAIL);
+    next = (z80_mem_read(PRIMARY_HEAD) + 1) & 0x0F;
+    if (next == tail)
+        ++tail;
+    z80_mem_write(PRIMARY_HEAD, next);
+    z80_mem_write(PRIMARY_TAIL, tail & 0x0F);
+    z80_mem_write(PRIMARY_DATA + next, command);
+    return true;                            /* original AND A clears carry */
+}
+
+/* 0x00E9: secondary 32-slot overwrite-oldest ring. */
+void z80_ring32_enqueue_00e9(uint8_t value)
+{
+    uint8_t tail = z80_mem_read(SECONDARY_TAIL);
+    uint8_t next = (z80_mem_read(SECONDARY_HEAD) + 1) & 0x1F;
+    if (next == tail)
+        ++tail;
+    z80_mem_write(SECONDARY_HEAD, next);
+    z80_mem_write(SECONDARY_TAIL, tail & 0x1F);
+    z80_mem_write(SECONDARY_DATA + next, value);
+}
+
+static void primary_inline_f0_fe(uint8_t command)
+{
+    uint8_t tail = z80_mem_read(PRIMARY_TAIL);
+    uint8_t next = (z80_mem_read(PRIMARY_HEAD) + 1) & 0x0F;
+    if (next == tail)
+        ++tail;
+    z80_mem_write(PRIMARY_HEAD, next);
+    z80_mem_write(PRIMARY_TAIL, tail & 0x0F);
+    z80_mem_write(PRIMARY_DATA + next, command);
+}
+
+/* 0x0066: exact PC060HA NMI receive shape. Two low-nibble reads reconstruct
+ * one byte. Every byte enters the secondary ring; every value below FF also
+ * enters the primary command ring. F0..FE use the NMI's inline enqueue because
+ * 00C0 deliberately returns carry for that class. */
+void z80_nmi_cmd_receive_0066(void)
+{
+    uint8_t command;
+    z80_mem_write(PC060HA_MASTER, 5);
+    z80_mem_write(PC060HA_SLAVE, 5);
+    z80_mem_write(PC060HA_MASTER, 0);
+    command  = z80_mem_read(PC060HA_SLAVE) & 0x0F;
+    command |= (z80_mem_read(PC060HA_SLAVE) & 0x0F) << 4;
+    if (!z80_ring16_enqueue_00c0(command) && command < 0xFF)
+        primary_inline_f0_fe(command);
+    z80_ring32_enqueue_00e9(command);
+    z80_mem_write(PC060HA_MASTER, 6);
+    z80_mem_write(PC060HA_SLAVE, 6);
+}
+
+/* Necessary callees whose lower-level arithmetic is independently indexed.
+ * These declarations are explicit incompleteness, not fabricated bodies. */
+void z80_sequence_tick_0479(void);
+void z80_adpcm_stream_19a8(void);
+void z80_song_select_02aa(uint8_t command);
+void z80_control_e0_ef_0368(uint8_t command);
+void z80_sfx_class_03e5(uint8_t command);
+void z80_channel_install_02fe(uint8_t identifier, uint16_t descriptor,
+                              uint8_t song_command);
+
+/* 0x01C2: PC060HA housekeeping. It is not the musical clock. */
+void z80_perframe_01c2(void)
+{
+    if (z80_mem_read(0x8F27) & 1) {
+        uint8_t v = z80_mem_read(0x8F28);
+        z80_mem_write(PC060HA_MASTER, 0);
+        z80_mem_write(PC060HA_SLAVE, v);
+        z80_mem_write(PC060HA_SLAVE, (v >> 4) | (v << 4));
+        return;
+    }
+    z80_mem_write(PC060HA_MASTER, 4);
+    if (!(z80_mem_read(PC060HA_SLAVE) & 4)) {
+        z80_mem_write(PC060HA_MASTER, 0);
+        z80_mem_write(PC060HA_SLAVE, 0xE0);
+        z80_mem_write(PC060HA_SLAVE, 0x0E);
+    }
+}
+
+/* 0x01F9, reached from IM1 vector 0038. YM timer A is the music clock.
+ * Init programs 10=00,11=00,12=C0,14=35: 4MHz/(64*1024)=61.03515625 Hz.
+ * Timer A service clears/reloads with reg14=15, advances FM sequencing and
+ * ADPCM together, and optionally installs a pending timer-A reload. */
+void z80_irq_timer_service_01f9(void)
+{
+    uint8_t status;
+    do { status = z80_mem_read(YM_DATA_STATUS) & 3; } while (!status);
+    if (status & 1) {
+        uint16_t reload;
+        z80_ym2151_write_158c(0x14, 0x15);
+        z80_sequence_tick_0479();
+        z80_adpcm_stream_19a8();
+        if (z80_mem_read(0x8F22) & 1) {
+            z80_mem_write(0x8F22, z80_mem_read(0x8F22) & 0xFE);
+            reload = z80_mem_read16le(0x8F1F);
+            z80_ym2151_write_158c(0x10, (uint8_t)(reload >> 2));
+            z80_ym2151_write_158c(0x11, (uint8_t)reload & 3);
+            z80_ym2151_write_158c(0x14, 0x15);
+        }
+    }
+}
+
+/* 0x0254 drains the primary queue completely on each main-loop pass. */
+void z80_command_dispatch_0254(void)
+{
+    z80_mem_write(PC060HA_MASTER, 5);
+    z80_mem_write(PC060HA_SLAVE, 5);
+    for (;;) {
+        uint8_t tail = z80_mem_read(PRIMARY_TAIL);
+        uint8_t command;
+        if (tail == z80_mem_read(PRIMARY_HEAD))
+            break;
+        tail = (tail + 1) & 0x0F;
+        z80_mem_write(PRIMARY_TAIL, tail);
+        command = z80_mem_read(PRIMARY_DATA + tail);
+        if (command < 0xE0) {
+            if (z80_mem_read(0x8F27) & 1)
+                z80_mem_write(0x8F28, command);
+            else if (command < 0x2C)
+                z80_song_select_02aa(command);
+        } else if (command < 0xF0) {
+            z80_control_e0_ef_0368(command);
+        } else if (command < 0xFF) {
+            z80_sfx_class_03e5(command);
+        }
+    }
+    z80_mem_write(PC060HA_MASTER, 6);
+    z80_mem_write(PC060HA_SLAVE, 6);
+}
+
+/* 0x02AA: command -> table 2300 -> descriptor. For a counted descriptor,
+ * high==0 republishes a direct command; otherwise the pair is a little-endian
+ * subdescriptor pointer whose identifier is installed by 02FE. */
+void z80_song_select_02aa(uint8_t command)
+{
+    uint16_t p = z80_mem_read16le(0x2300 + 2u * command);
+    uint8_t lead = z80_mem_read(p);
+    uint8_t i;
+    z80_mem_write(PC060HA_MASTER, 6);
+    z80_mem_write(PC060HA_SLAVE, 6);
+    if (!lead)
+        return;
+    if (lead >= 0x12) {
+        z80_channel_install_02fe(lead, p, command);
+        return;
+    }
+    for (i = 0; i < lead; ++i) {
+        uint8_t low = z80_mem_read(++p);
+        uint8_t high = z80_mem_read(++p);
+        if (!high) {
+            z80_ring16_enqueue_00c0(low);
+        } else {
+            uint16_t sub = (uint16_t)low | ((uint16_t)high << 8);
+            uint8_t identifier = z80_mem_read(sub);
+            if (identifier >= 0x12)
+                z80_channel_install_02fe(identifier, sub, command);
+        }
+    }
+}
+
+/* 0x02FE semantic core. 82/83 select ADPCM state 8E00. Other identifiers are
+ * normalized through the 0348 channel-state table. The existing active owner
+ * may reject a lower-priority descriptor by comparing state+5 to the new
+ * descriptor high nibble. */
+void z80_channel_install_02fe(uint8_t identifier, uint16_t descriptor,
+                              uint8_t song_command)
+{
+    uint16_t state;
+    uint8_t normalized;
+    if (!z80_mem_read(0x8F26))
+        return;
+    if (identifier >= 0xF0) {
+        /* 0395 performs paired music/SFX takeover and restoration setup. */
+        return;
+    }
+    normalized = identifier & 0xFE;
+    if (normalized == 0x82) {
+        state = 0x8E00;
+    } else {
+        uint8_t index = normalized - 0x8C;
+        if (index >= 0x20)
+            return;
+        state = z80_mem_read16le(0x0348 + index);
+    }
+    if ((z80_mem_read(state) & 2) &&
+        z80_mem_read(state + 5) >= (z80_mem_read(descriptor + 1) & 0xF0))
+        return;
+    z80_mem_write(state, 1);
+    z80_mem_write16le(state + 1, descriptor);
+    z80_mem_write(state + 3, song_command);
+}
+
+/* 0x03E5: exact computed dispatch shape. Table 041B contains 15 LE handlers:
+ * F0 -> 03F7, F1..F3 -> 0408, F4..FE -> the table's default handler. */
+void z80_sfx_class_03e5(uint8_t command)
+{
+    uint16_t handler = z80_mem_read16le(0x041B + 2u * (command - 0xF0));
+    /* Semantic call through original Z80 address; handler details remain
+     * CONTROL_FLOW_VERIFIED rather than falsely marked complete. */
+    (void)handler;
+}
+
+/* 0x0479 orchestration recovered. Eight 0x100-stride music blocks at 8000..
+ * 8700 are paired with eight SFX blocks at 8080..8780. Music ticks first.
+ * Active SFX marks the channel-owned bit in 8F1C; when it ends, the music
+ * block is dirtied for register restoration while its sequence has continued
+ * to progress. Full note/control arithmetic lives in 0764/09A6/0A56. */
+void z80_sequence_tick_0479(void)
+{
+    unsigned channel;
+    uint8_t owned = z80_mem_read(0x8F1C);
+    for (channel = 0; channel < 8; ++channel) {
+        uint16_t music = 0x8000 + (uint16_t)channel * 0x100;
+        uint16_t sfx = music + 0x80;
+        /* sequence_channel_tick_12ed/music_publish_1366 are retained as named
+         * dependencies because their detailed register math is not COMPLETE. */
+        if (z80_mem_read(music) & 2) {
+            owned |= (uint8_t)(1u << channel);
+        } else {
+            if ((owned & (1u << channel)) && (z80_mem_read(sfx) & 2)) {
+                owned &= (uint8_t)~(1u << channel);
+                z80_mem_write(sfx + 0x0F, 7);
+                z80_mem_write(sfx + 0x12, z80_mem_read(sfx + 0x12) | 0x80);
+                if (z80_mem_read(sfx) & 0x80)
+                    z80_mem_write(sfx + 0x12, z80_mem_read(sfx + 0x12) | 0x40);
+            }
+        }
+    }
+    z80_mem_write(0x8F1C, owned);
+}
+
+/* 0x09A6/0x0A56 grammar summary, instruction-backed but not COMPLETE:
+ * - state+0B/0C is the sequence pointer; state+13 is duration countdown.
+ * - zero event calls 08AC (rest/termination path).
+ * - a nonzero duration is copied to +13 and gate length derived into +15.
+ * - 0A56 consumes bytes recursively. bit7 clear returns a note/event byte.
+ * - bit7 set, low nibble < C selects one of 12 pitch entries at 0B2C and
+ *   updates +1A..+1E; low nibble >= C dispatches through table 0AEC.
+ * - handlers update pointer, instrument, volume/pitch, branch/loop state,
+ *   key-on/off dirty flags, and termination. Exact per-opcode naming remains
+ *   CONTROL_FLOW_VERIFIED and is intentionally not guessed here.
  */
-void z80_main_010b(void);
 
-/* 0x0066  NMI_ISR = PC060HA command receive (control flow VERIFIED; no C body).
- * (Cody AUDIO-008 claim 10: the inter-CPU device is the PC060HA, NOT the TC0140SYT.)
- * PC060HA handshake a001=5,a000=0; read the command byte; enqueue (<0xF0) via FUN_00c0 into the
- * 0x8F02 ring and via FUN_00e9 into the 0x8E82 ring; PC060HA ack a000=6,a001=6. */
-void z80_nmi_cmd_receive_0066(void);
+/* 0x19A8/0x1A00: MSM5205 is advanced on the same timer-A tick as FM. State is
+ * rooted at 8E00; sample metadata is read from table 2400. B000 receives the
+ * sample address, C000 starts, D000 stops. This proves a future Genesis design
+ * must reserve a timed PCM/DAC service independently of music channel state. */
+void z80_adpcm_stream_19a8(void)
+{
+    if (!(z80_mem_read(0x8E00) & 1))
+        return;
+    /* Detailed nibble/length arithmetic below this proven hardware contract
+     * remains CONTROL_FLOW_VERIFIED; no invented sample identity is supplied. */
+}
 
-/* 0x00C0  ring enqueue (16-slot, 0x8F00 head/0x8F01 tail, mask 0xF) for cmd<0xF0 (VERIFIED). */
-void z80_ring16_enqueue_00c0(uint8_t cmd);
-/* 0x00E9  ring enqueue (32-slot, 0x8E80 head/0x8E81 tail, mask 0x1F) (VERIFIED). */
-void z80_ring32_enqueue_00e9(uint8_t v);
-
-/* 0x0254  COMMAND DISPATCH (VERIFIED).
- * Pops the 16-slot ring; per command byte c:
- *   c < 0x2C  (and not muted, 0x8F27 bit0==0) -> FUN_02aa  (BGM song select)
- *   0xE0..0xEF                                -> FUN_0368  (control: 0xEE/0xEF toggle flag 0x8F26)
- *   0xF0..0xFE                                -> FUN_03e5  (SFX/channel class; see UNRESOLVED)
- *   0xFF                                      -> skip
- * SYT busy/ack a000/a001 = 5/5 then 6/6 around the pop. */
-void z80_dispatch_0254(void);
-
-/* 0x02AA  BGM song select (control flow VERIFIED; corrected AUDIO-009; no C body).
- * ptr = *(word*)(0x2300 + cmd*2)         // COMMAND -> DESCRIPTOR POINTER TABLE at ROM 0x2300
- * lead = *(u8*)ptr                        // FIRST descriptor byte, tested at 0x02C3: CP 0x12
- *   lead == 0        -> empty (RET Z).
- *   lead <  0x12     -> ORDINARY COUNTED form: lead is a COUNT of N two-byte records; each record
- *                       {low, high}: high==0 -> DIRECT command byte (FUN_00c0); high!=0 -> little-endian
- *                       sub-sequence pointer (installed via FUN_02fe for sub-descriptors >= 0x12).
- *   lead >= 0x12     -> NOT a count: it is a CHANNEL/CONTROL IDENTIFIER passed straight to FUN_02fe
- *                       (0x02C7 CALL 0x02fe). The five commands 0x03,0x0A,0x0D,0x21,0x26 use descriptors
- *                       whose lead byte is 0x82 (= 130); 0x82/0x83 special-case the 0x8E00 ADPCM state
- *                       and the 0x0348 channel table.
- * (Cody AUDIO-008 claim 17: AUDIO-002's "count>=0x12 single-subseq / count 130" reading was WRONG.) */
-void z80_song_select_02aa(void);
-
-/* 0x0368  control commands 0xE0-0xEF (VERIFIED partial): 0xEE -> a001=0,0x8F26=0; 0xEF -> a001=1,
- *          0x8F26=1 (a sound-enable / attract-mute mode flag). Other 0xE0-0xED: no-op here. */
-void z80_control_0368(void);
-
-/* 0x03E5  SFX / channel class 0xF0-0xFE — UNRESOLVED.
- * Ghidra decompile FAILED here (pcode constructor error at 0x03E5; also at 0x57D8/0x7EE7, data-as-code
- * at the banked tail). Requires manual disassembly; it is the FM-SFX / stop / ADPCM-trigger dispatch
- * candidate. DO NOT GUESS its behavior. */
-void z80_sfx_class_03e5_UNRESOLVED(void);
-
-/* 0x158C  YM2151 REGISTER WRITE PRIMITIVE (VERIFIED, 18 callers).
- *   wait while (*(0x9001) & 0x80);  *(0x9000) = reg;        // address port
- *   wait while (*(0x9001) & 0x80);  *(0x9001) = data;       // data port
- * This is the single hardware-output chokepoint for all FM. */
-void z80_ym2151_write_158c(uint8_t data, uint16_t reg_in_hi, uint8_t *addr_port /*=0x9000*/);
-
-/* 0x1A00 region  MSM5205 ADPCM sample trigger (control flow VERIFIED; latch roles corrected AUDIO-009).
- * Computes a sample length (repeated SBC HL,DE by 0x41) into 0x8E0F; drives the MSM5205 latches with
- * their CORRECT roles (matching the VERIFIED map above and MAME): 0xB000 = sample ADDRESS(-high) latch,
- * 0xC000 = START, 0xD000 = STOP. (Cody AUDIO-008 claim 22: the previous comment swapped these — it wrongly
- * called 0xD000 addr/trigger, 0xB000 bank/start, 0xC000 reset/stop.) The MSM5205 then streams 4-bit ADPCM
- * from adpcm.bin autonomously (VCK-clocked). */
-void z80_adpcm_trigger_1a00(void);
-
-/* 0x01F9  (callers=0) INFERRED YM2151-timer IRQ (RST 0x38 / IM1) service — per-tick sequence advance.
- * 0x01C2  per-frame update called from the main loop (VERIFIED call site). */
-void z80_irq_01f9_INFERRED(void);
-void z80_perframe_01c2(void);
+/* 0x010B, semantically bounded form. The real routine initializes PC060HA,
+ * clears 8000..8FFF, sets channel flags, installs YM timers, then loops. */
+void z80_main_010b(void)
+{
+    uint16_t p;
+    z80_disable_interrupts();
+    z80_mem_write(PC060HA_MASTER, 5);
+    z80_mem_write(PC060HA_SLAVE, 5);
+    z80_mem_write(PC060HA_MASTER, 0);
+    (void)z80_mem_read(PC060HA_SLAVE);
+    (void)z80_mem_read(PC060HA_SLAVE);
+    for (p = 0x8000; p != 0x9000; ++p)
+        z80_mem_write(p, 0);
+    z80_mem_write(PC060HA_MASTER, 4);
+    z80_mem_write(PC060HA_SLAVE, 0);
+    z80_mem_write(ADPCM_STOP, 0);
+    for (p = 0x8010; p <= 0x8710; p += 0x100)
+        z80_mem_write(p, 0x0F);
+    z80_mem_write(0x8806, 0x9D);
+    z80_mem_write16le(0x8F1F, 0);
+    z80_ym2151_write_158c(0x10, 0x00);
+    z80_ym2151_write_158c(0x11, 0x00);
+    z80_mem_write(0x8F21, 0xC0);
+    z80_ym2151_write_158c(0x12, 0xC0);
+    z80_ym2151_write_158c(0x14, 0x35);
+    z80_enable_interrupts();
+    for (;;) {
+        z80_disable_interrupts();
+        z80_ym2151_write_158c(0x1B, z80_mem_read(0x8F23) | 0x40);
+        z80_command_dispatch_0254();
+        z80_enable_interrupts();
+        z80_perframe_01c2();
+    }
+}

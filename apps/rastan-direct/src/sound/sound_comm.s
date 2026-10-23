@@ -4,13 +4,17 @@
 
     .extern z80_driver_start
     .extern z80_driver_end
+    .extern genesistan_audio_aggressive_start
+    .extern genesistan_audio_aggressive_loop
 
     .equ Z80_RAM,      0x00A00000
-    .equ Z80_MAILBOX,  0x00A01FF0
     .equ Z80_BUSREQ,   0x00A11100
     .equ Z80_RESET,    0x00A11200
-    .equ Z80_RUNMARK,  0x00A01FF2
-    .equ Z80_HEARTBEAT,0x00A01FF3
+    .equ Z80_MUSIC_START, 0x00A01FC0
+    .equ Z80_MUSIC_LOOP,  0x00A01FC3
+    .equ Z80_QHEAD,       0x00A01FD0
+    .equ Z80_QTAIL,       0x00A01FD1
+    .equ Z80_QDATA,       0x00A01FE0
 
 z80_request_bus:
     move.w  #0x0100, Z80_BUSREQ
@@ -42,8 +46,14 @@ z80_init_and_start:
     move.b  (%a0)+, (%a1)+
     bra.s   .Lcopy_driver
 .Lcopy_done:
-
-    clr.b   Z80_MAILBOX
+    lea     genesistan_audio_aggressive_start, %a0
+    lea     Z80_MUSIC_START, %a1
+    bsr     .Lstore_z80_pointer
+    lea     genesistan_audio_aggressive_loop, %a0
+    lea     Z80_MUSIC_LOOP, %a1
+    bsr     .Lstore_z80_pointer
+    clr.b   Z80_QHEAD
+    clr.b   Z80_QTAIL
 
     move.w  #0x0000, Z80_RESET
     bsr     z80_release_bus
@@ -55,8 +65,29 @@ z80_init_and_start:
     move.w  #0x0100, Z80_RESET
     rts
 
+.Lstore_z80_pointer:
+    move.l  %a0, %d0
+    move.b  %d0, (%a1)+
+    lsr.l   #8, %d0
+    move.b  %d0, (%a1)+
+    lsr.l   #8, %d0
+    move.b  %d0, (%a1)
+    rts
+
 z80_write_command:
+    movem.l %d1-%d2/%a0, -(%sp)
     bsr     z80_request_bus
-    move.b  %d0, Z80_MAILBOX
+    moveq   #0, %d1
+    move.b  Z80_QHEAD, %d1
+    move.b  %d1, %d2
+    addq.b  #1, %d2
+    andi.b  #0x0F, %d2
+    cmp.b   Z80_QTAIL, %d2
+    beq.s   .Lqueue_full
+    lea     Z80_QDATA, %a0
+    move.b  %d0, (%a0,%d1.w)
+    move.b  %d2, Z80_QHEAD
+.Lqueue_full:
     bsr     z80_release_bus
+    movem.l (%sp)+, %d1-%d2/%a0
     rts
