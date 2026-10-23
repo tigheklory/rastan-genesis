@@ -24,9 +24,11 @@ z80_release_bus:
     rts
 
 z80_init_and_start:
-    bsr     z80_request_bus
-
+    /* At cold boot the Z80 is held in reset and therefore cannot acknowledge
+       a bus request.  Assert reset first, then request the bus without using
+       the live-Z80 acknowledgement loop used by command writes. */
     move.w  #0x0000, Z80_RESET
+    move.w  #0x0100, Z80_BUSREQ
 
     lea     z80_driver_start, %a0
     lea     z80_driver_end, %a2
