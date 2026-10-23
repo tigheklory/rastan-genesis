@@ -120,7 +120,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # RG-003 reclassifies frontend teardown 0x
 # icon packages (+0x3000 bytes in the linked Genesis-owned helper image).
 # AUDIO-015 adds the aligned cartridge-resident native music section before
 # the high crash section; all bytes remain represented in the address map.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x2AEEB8
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x30FEB8
 
 # DIAGNOSTIC_SYMBOLS — symbols allowed for bookmarks_v2 helper_symbol resolution.
 #

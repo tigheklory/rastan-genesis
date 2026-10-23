@@ -131,7 +131,7 @@ CANONICAL_OPCODE_REPLACE_COUNT = 228  # RG-003 moves frontend teardown 0x03AD4C 
 # Build 0453 native item assets add the 8-KiB logical map plus 4 KiB of final
 # pattern/icon packages to the Genesis-owned helper image.
 # AUDIO-015 aligned native-audio ROM section plus relocated high crash tail.
-CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x2AEEB8
+CANONICAL_TOTAL_GENESIS_BYTES_COVERED = 0x30FEB8
 
 # Build 0277: arcade_pc 0x051DF8 is a BRA.S to the semantic entry at
 # arcade_pc 0x051E00.  The target is also the start of a shrinking shift
